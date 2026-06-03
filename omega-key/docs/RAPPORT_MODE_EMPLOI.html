@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMEGA·KEY — Rapport &amp; mode d'emploi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3EFE6; --paper-2:#EBE5D8; --ink:#1C1815; --ink-soft:#4A433B;
+  --line:#D8D0BF; --line-2:#C7BCA5;
+  --accent:#B0432B; --accent-2:#1E5A55; --gold:#9A7B22;
+  --ok:#1E5A55; --warn:#9A7B22; --exc:#9B3331; --info:#3C5A8A;
+  --shadow:0 1px 0 rgba(0,0,0,.04),0 8px 26px -18px rgba(28,24,21,.5);
+  --maxw:980px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Spectral",Georgia,serif; font-size:18px; line-height:1.62;
+  overflow-x:hidden; overflow-wrap:anywhere; -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle at 1px 1px, rgba(28,24,21,.035) 1px, transparent 0);
+  background-size:22px 22px;
+}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:120;transition:width .1s linear}
+.wrap{display:grid;grid-template-columns:288px minmax(0,1fr);max-width:1320px;margin:0 auto}
+aside{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,var(--paper-2),var(--paper));padding:26px 20px 60px}
+aside .brand{font-family:"Fraunces",serif;font-weight:600;font-size:1.5rem;line-height:1.05;letter-spacing:-.01em}
+aside .brand b{color:var(--accent)}
+aside .sub{font-size:.82rem;color:var(--ink-soft);margin-top:6px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px}
+nav.toc a{display:block;text-decoration:none;color:var(--ink-soft);font-size:.88rem;padding:6px 10px;border-radius:6px;border-left:2px solid transparent;line-height:1.3}
+nav.toc a .n{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--accent);margin-right:7px}
+nav.toc a:hover{background:var(--paper)}
+nav.toc a.active{color:var(--ink);border-left-color:var(--accent);background:var(--paper);font-weight:500}
+main{padding:46px clamp(20px,4vw,64px) 120px;max-width:calc(var(--maxw) + 128px);min-width:0;width:100%}
+.doc{max-width:var(--maxw);min-width:0}
+h1{font-family:"Fraunces",serif;font-weight:600;font-size:2.6rem;line-height:1.05;letter-spacing:-.02em;margin:0 0 6px}
+h1 .tld{color:var(--accent)}
+.lede{font-size:1.18rem;color:var(--ink-soft);margin:0 0 30px;max-width:64ch}
+h2{font-family:"Fraunces",serif;font-weight:600;font-size:1.7rem;margin:54px 0 14px;padding-top:14px;border-top:1px solid var(--line);letter-spacing:-.01em}
+h2 .n{font-family:"JetBrains Mono",monospace;font-size:.95rem;color:var(--accent);margin-right:10px}
+h3{font-family:"Fraunces",serif;font-weight:600;font-size:1.18rem;margin:26px 0 8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:22px}
+li{margin:5px 0}
+code,kbd{font-family:"JetBrains Mono",monospace;font-size:.82em;background:var(--paper-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+kbd{box-shadow:0 1px 0 var(--line-2)}
+pre{font-family:"JetBrains Mono",monospace;font-size:.8rem;line-height:1.5;background:#1C1815;color:#EBE5D8;border-radius:9px;padding:16px 18px;overflow:auto;margin:0 0 18px}
+pre .c{color:#9A8C73}
+.callout{border-radius:10px;padding:14px 16px 14px 18px;margin:0 0 18px;border:1px solid var(--line);box-shadow:var(--shadow);background:#fff8}
+.callout.ok{border-left:4px solid var(--ok)}
+.callout.warn{border-left:4px solid var(--warn)}
+.callout.exc{border-left:4px solid var(--exc)}
+.callout.info{border-left:4px solid var(--info)}
+.callout b{font-family:"Fraunces",serif}
+.tag{font-family:"JetBrains Mono",monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:20px;border:1px solid;vertical-align:middle}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+.tag.warn{color:var(--warn);border-color:var(--warn)}
+.tag.exc{color:var(--exc);border-color:var(--exc)}
+table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--paper-2);font-family:"JetBrains Mono",monospace;font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft)}
+.step{display:grid;grid-template-columns:34px 1fr;gap:12px;margin:0 0 12px}
+.step .num{font-family:"JetBrains Mono",monospace;font-weight:600;color:#fff;background:var(--accent-2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+.step .num.b{background:var(--accent)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:.82rem;color:var(--ink-soft)}
+.mono{font-family:"JetBrains Mono",monospace;font-size:.85em}
+.diagram{font-family:"JetBrains Mono",monospace;font-size:.72rem;line-height:1.45;background:var(--paper-2);border:1px solid var(--line);border-radius:9px;padding:16px;overflow:auto;white-space:pre;color:var(--ink-soft)}
+@media(max-width:860px){
+  .wrap{grid-template-columns:1fr}
+  aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+  main{padding:30px 18px 80px}
+  h1{font-size:2rem}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="wrap">
+<aside>
+  <div class="brand">OMEGA<b>·KEY</b></div>
+  <div class="sub">Rapport &amp; mode d'emploi · v0.16 · 03/06/2026</div>
+  <nav class="toc" id="toc">
+    <a href="#presentation"><span class="n">1</span>Présentation</a>
+    <a href="#demarrage"><span class="n">2</span>Démarrage rapide</a>
+    <a href="#passphrase"><span class="n">3</span>Générer une passphrase</a>
+    <a href="#cle"><span class="n">4</span>Clé partagée</a>
+    <a href="#conversation"><span class="n">5</span>Conversation chiffrée</a>
+    <a href="#ratchet"><span class="n">6</span>Ratchet DH (FS+PCS)</a>
+    <a href="#relais"><span class="n">7</span>Chat sans copier-coller</a>
+    <a href="#securite"><span class="n">8</span>Sécurité</a>
+    <a href="#annexe"><span class="n">9</span>Annexe &amp; licences</a>
+  </nav>
+</aside>
+<main>
+<div class="doc">
+
+  <h1>OMEGA<span class="tld">·KEY</span></h1>
+  <p class="lede">Messagerie chiffrée de bout en bout, dans un seul fichier HTML. Passphrases françaises prononçables, AES-GCM-256, Double Ratchet à clés éphémères, et chat sans copier-coller via un relais minimal. Aucune dépendance, aucun serveur propriétaire obligatoire.</p>
+
+  <h2 id="presentation"><span class="n">1</span>Présentation</h2>
+  <p>OMEGA·KEY est un dérivé applicatif du moteur cognitif <b>OMEGA-Ω</b>. Il en réutilise le substrat (graine sémantique, dynamique) comme <i>source d'identité et d'entropie</i>, puis confie tout le chiffrement à la <b>WebCrypto API</b> du navigateur — primitives standard et auditées. Le moteur OMEGA n'invente aucune cryptographie : il sert de contexte, la sécurité repose sur des algorithmes éprouvés.</p>
+  <p>Le tout tient dans <b>un fichier HTML autonome</b> (<span class="mono">app/omega-key.html</span>) : on l'ouvre dans n'importe quel navigateur, hors-ligne si besoin. Le seul composant réseau optionnel est un <b>relais</b> (<span class="mono">server/omega-relay.ts</span>) qui ne transporte que du chiffré.</p>
+  <div class="callout info"><b>Principe directeur.</b> Le secret vient du chiffrement (couches 1–2 ci-dessous), jamais du transport. Le relais peut donc être public ou non fiable sans exposer le contenu.</div>
+
+  <h2 id="demarrage"><span class="n">2</span>Démarrage rapide</h2>
+  <p>Trois couches indépendantes, à activer selon le besoin :</p>
+  <div class="diagram">  APPAREIL A                      RELAIS (optionnel)            APPAREIL B
+ ┌───────────┐   chiffré OMEGA   ┌─────────────┐  chiffré OMEGA ┌───────────┐
+ │  en clair │ ───POST /r/salon─▶│  file 1 h    │◀──GET ?since──│  → clair  │
+ └───────────┘                   │ (chiffré only)│               └───────────┘
+       ▲                          └─────────────┘                      ▲
+       └──── clé OMEGA (passphrase) + Ratchet DH ── le clair n'existe QUE sur A et B</div>
+  <ol>
+    <li><b>Clé partagée</b> <span class="tag ok">confidentialité</span> — dérivée d'une passphrase commune (§3–4).</li>
+    <li><b>Ratchet DH</b> <span class="tag ok">FS + post-compromission</span> — optionnel, à établir une fois (§6).</li>
+    <li><b>Liaison relais</b> <span class="tag warn">transport</span> — chat automatique sans copier-coller (§7).</li>
+  </ol>
+  <p>Pour discuter à deux : ouvrir l'app des deux côtés → dériver la même clé (§4) → écrire dans la conversation (§5). Le relais (§7) rend l'échange automatique.</p>
+
+  <h2 id="passphrase"><span class="n">3</span>Générer une passphrase</h2>
+  <p>Onglet <b>🎲 PASSPHRASE</b>. Deux modes, chacun à entropie <i>exacte</i> (sans biais de modulo) :</p>
+  <table>
+    <tr><th>Mode</th><th>Source</th><th>Entropie</th></tr>
+    <tr><td>Mots réels</td><td>Liste française de 4096 mots (Diceware)</td><td><b>12 bits / mot</b> (2¹²)</td></tr>
+    <tr><td>Pseudo-mots</td><td>256 syllabes ouvertes (phonotactique FR)</td><td><b>8 bits / syllabe</b> (2⁸)</td></tr>
+  </table>
+  <p>Les pseudo-mots appliquent un lissage anti-grappe nasale : après une syllabe nasale, la syllabe suivante est tirée d'un sous-ensemble de 128 syllabes sans cluster (7 bits) — entropie variable mais toujours exacte, prononçabilité garantie.</p>
+  <div class="callout ok"><b>Conseil.</b> Vise ≥ 6 mots réels (~72 bits) ou ~9 syllabes. Note la passphrase ; tu devras la transmettre <i>une seule fois</i> au correspondant, par un canal sûr.</div>
+
+  <h2 id="cle"><span class="n">4</span>Clé partagée (les deux côtés)</h2>
+  <p>Les deux appareils doivent aboutir à <b>la même clé AES</b>. Onglet <b>🔑 PARTAGÉE</b> :</p>
+  <div class="step"><div class="num">1</div><div><b>PHRASE</b> = la passphrase commune.</div></div>
+  <div class="step"><div class="num">2</div><div><b>SEL</b> = identique des deux côtés (la valeur par défaut <span class="mono">OMEGA-KEY-2026</span> convient ; le sel peut être public).</div></div>
+  <div class="step"><div class="num">3</div><div><b>🔑 DÉRIVER CLÉ COMMUNE</b>. La clé est obtenue par <span class="mono">PBKDF2-SHA256</span> (310 000 itérations) → <span class="mono">AES-256-GCM</span>.</div></div>
+  <div class="step"><div class="num b">✓</div><div>Vérifie que l'<b>empreinte de clé</b> affichée est <b>identique</b> sur les deux appareils. Si oui, vous pouvez vous chiffrer mutuellement.</div></div>
+  <div class="callout warn"><b>Règle d'or.</b> La passphrase voyage par un canal sûr <i>distinct</i> (de vive voix, en personne). Jamais par le chat lui-même.</div>
+
+  <h2 id="conversation"><span class="n">5</span>Conversation chiffrée</h2>
+  <p>Carte <b>💬 CONVERSATION CHIFFRÉE</b> : un fil de bulles (tes messages à droite, ceux du correspondant à gauche), un badge indiquant le mode actif, et un champ d'écriture.</p>
+  <ul>
+    <li><b>Envoyer</b> : écris puis <kbd>▶</kbd> ou <kbd>Entrée</kbd> (<kbd>Maj+Entrée</kbd> = nouvelle ligne). Le chiffré est <b>copié automatiquement</b> ; la bulle affiche <span class="mono">✓ copié</span>.</li>
+    <li><b>Recevoir</b> : colle le message reçu dans la zone dédiée → <b>déchiffrement automatique au collage</b>, ajouté au fil.</li>
+    <li><b>Reprise locale</b> : le fil est conservé sur l'appareil et restauré au rechargement. <b>🗑 Effacer</b> le supprime (fil + stockage).</li>
+  </ul>
+  <div class="callout info"><b>Modes (badge).</b> <span class="mono">🔒 AES-GCM</span> (clé partagée seule) · <span class="mono">🔐 FS</span> (cliquet symétrique) · <span class="mono">🔗 RATCHET DH</span> (recommandé, §6).</div>
+
+  <h2 id="ratchet"><span class="n">6</span>Ratchet DH — forward secrecy + post-compromission</h2>
+  <p>Le Double Ratchet (style Signal) injecte de la fraîcheur cryptographique à chaque échange : la compromission d'une clé <b>ne révèle pas le passé</b> (forward secrecy) et la session <b>se ressoigne</b> ensuite (post-compromise security). Carte <b>🔗 SESSION RATCHET DH</b> :</p>
+  <div class="step"><div class="num">1</div><div>Clé partagée déjà dérivée (§4) — elle sert de racine d'authentification.</div></div>
+  <div class="step"><div class="num">2</div><div>Chacun : <b>GÉNÉRER MON CODE D'INIT</b>, puis <b>échanger les deux codes</b> (les coller mutuellement).</div></div>
+  <div class="step"><div class="num">3</div><div><b>ÉTABLIR LA SESSION</b> des deux côtés. Le badge passe à <span class="mono">🔗 RATCHET DH</span>.</div></div>
+  <div class="callout warn"><b>À savoir.</b> Ce premier échange de codes d'init reste <b>manuel</b> (copier-coller une fois) : le relais n'achemine aujourd'hui que les messages, pas ce handshake. Une fois établi, tout le reste est automatique.</div>
+
+  <h2 id="relais"><span class="n">7</span>Chat sans copier-coller (relais)</h2>
+  <p>Pour que les messages circulent tout seuls, on déploie un petit relais et on lie les deux appareils à un même salon. <i>(Guide pas-à-pas complet : <span class="mono">docs/GUIDE_chat_relais.md</span>.)</i></p>
+  <h3>Déployer le relais (gratuit, ~2 min, une fois)</h3>
+  <ol>
+    <li><a href="https://dash.deno.com">dash.deno.com</a> → <b>New Playground</b>.</li>
+    <li>Coller <span class="mono">server/omega-relay.ts</span> → <b>Save &amp; Deploy</b>.</li>
+    <li>Récupérer l'URL <span class="mono">https://xxxx.deno.dev</span>. Vérif : <span class="mono">…/r/test</span> renvoie <span class="mono">{"msgs":[],"now":…}</span>.</li>
+  </ol>
+  <h3>Lier les deux appareils</h3>
+  <p>Carte conversation, bloc <b>🔌 LIAISON DIRECTE (relais)</b> : saisir la <b>même URL</b> et le <b>même code de salon</b> des deux côtés, puis <b>SE CONNECTER</b>. À partir de là : <kbd>Entrée</kbd> envoie, les réponses arrivent toutes seules (sondage 1,5 s). Hors liaison, l'app retombe automatiquement sur le mode copier-coller.</p>
+  <div class="callout ok"><b>Pourquoi un relais et pas du P2P (WebRTC) ?</b> Le contenu est aussi sûr dans les deux cas (chiffré de bout en bout). Mais sur mobile (CGNAT), le P2P direct échoue souvent sans serveur TURN, alors qu'un relais HTTPS marche partout et permet l'asynchrone (message en attente si le pair est hors-ligne, TTL 1 h). Meilleur rapport facilité × fiabilité.</div>
+
+  <h2 id="securite"><span class="n">8</span>Sécurité — garanties &amp; limites</h2>
+  <h3>Protégé</h3>
+  <ul>
+    <li><b>Contenu</b> : chiffré de bout en bout (AES-GCM-256 ; + Ratchet DH → FS + post-compromission). Le relais ne voit jamais le clair.</li>
+    <li><b>Intégrité</b> : tag GCM → tout message altéré est rejeté.</li>
+  </ul>
+  <h3>À connaître <span class="tag warn">réserves honnêtes</span></h3>
+  <table>
+    <tr><th>Point</th><th>Détail / mitigation</th></tr>
+    <tr><td>Métadonnées relais</td><td>Le relais voit salon, horaires, tailles (pas le contenu). Mitige en l'auto-hébergeant (TTL court).</td></tr>
+    <tr><td>Code de salon</td><td>Adresse de rendez-vous, <b>pas un secret</b> : qui le connaît lit le chiffré ou spamme, mais ne déchiffre rien sans la clé OMEGA.</td></tr>
+    <tr><td>Fil local en clair</td><td>Conservé pour la reprise. Sur appareil partagé : <b>🗑 Effacer</b>, ou demander un mode chiffré-au-repos / éphémère.</td></tr>
+    <tr><td>Transmission passphrase</td><td>Doit passer par un canal sûr séparé.</td></tr>
+    <tr><td>Mémoire RAM</td><td>JavaScript ne garantit pas l'effacement des anciennes clés en mémoire.</td></tr>
+  </table>
+  <div class="callout exc"><b>Avertissement.</b> OMEGA·KEY est un projet expérimental, non audité par un tiers. Pour des enjeux critiques (vie en danger, secret professionnel lourd), utilise un outil audité (Signal). Ici, transparence avant garanties.</div>
+
+  <h2 id="annexe"><span class="n">9</span>Annexe &amp; licences</h2>
+  <h3>API du relais</h3>
+  <pre>POST /r/{salon}   body {"id","m"}        -> {ok, ts}
+GET  /r/{salon}?since={ms}              -> {msgs:[{mid,id,m,ts}], now}
+<span class="c"># TTL message : 1 h (Deno KV). Taille max : 200 000 car. CORS *.</span></pre>
+  <h3>Persistance locale (<span class="mono">localStorage</span>)</h3>
+  <ul>
+    <li><span class="mono">omega_key_chat_v1</span> — le fil (en clair).</li>
+    <li><span class="mono">omega_relay</span> — { url, salon } pour reconnexion rapide.</li>
+  </ul>
+  <h3>Licences</h3>
+  <p>Le <b>code</b> est sous licence MIT (voir <span class="mono">LICENSE</span>). En revanche, les listes de mots/syllabes embarquées dans l'application (génération de passphrases) sont <b>dérivées de la base Lexique</b> (Boris New &amp; Christophe Pallier, <span class="mono">lexique.org</span>), diffusée en <b>CC BY-SA 4.0</b>. Par conséquent :</p>
+  <ul>
+    <li><b>Attribution</b> requise (citée dans <span class="mono">NOTICE.md</span>).</li>
+    <li><b>Partage à l'identique (ShareAlike)</b> pour la partie données dérivées : tout dérivé reste sous CC BY-SA 4.0. L'usage commercial est <b>autorisé</b> sous cette condition.</li>
+  </ul>
+  <div class="callout info">Détails et texte complet : <span class="mono">NOTICE.md</span> à la racine du dépôt.</div>
+
+  <footer>
+    OMEGA·KEY — fichier unique, chiffrement WebCrypto, relais Deno optionnel.<br>
+    Rapport généré le 03/06/2026 · build <span class="mono">app/omega-key.html</span> · MD5 <span class="mono">fd89d3ba68494ac9f4af5de2876d8c20</span>.
+  </footer>
+</div>
+</main>
+</div>
+<script>
+const prog=document.getElementById('progress');
+const links=[...document.querySelectorAll('nav.toc a')];
+const secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1)));
+function onScroll(){
+  const h=document.documentElement;
+  const p=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
+  prog.style.width=(p*100)+'%';
+  let i=secs.length-1;
+  for(let k=0;k<secs.length;k++){ if(secs[k]&&secs[k].getBoundingClientRect().top<140) i=k; }
+  links.forEach((a,k)=>a.classList.toggle('active',k===i));
+}
+document.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+</script>
+</body>
+</html>
