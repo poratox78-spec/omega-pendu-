@@ -135,7 +135,7 @@ footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-si
   <h2 id="cle"><span class="n">4</span>Clé partagée (les deux côtés)</h2>
   <p>Les deux appareils doivent aboutir à <b>la même clé AES</b>. Onglet <b>🔑 PARTAGÉE</b> :</p>
   <div class="step"><div class="num">1</div><div><b>PHRASE</b> = la passphrase commune.</div></div>
-  <div class="step"><div class="num">2</div><div><b>SEL</b> = identique des deux côtés (la valeur par défaut <span class="mono">OMEGA-KEY-2026</span> convient ; le sel peut être public).</div></div>
+  <div class="step"><div class="num">2</div><div><b>SEL</b> = identique des deux côtés, mais <b>unique par conversation</b> : l'un clique <span class="mono">↺ ALÉATOIRE</span> (sel CSPRNG 96 bits) et le communique à l'autre — il peut transiter <b>en clair</b>. Évite le défaut <span class="mono">OMEGA-KEY-2026</span> (commun à tous → précalcul possible).</div></div>
   <div class="step"><div class="num">3</div><div><b>🔑 DÉRIVER CLÉ COMMUNE</b>. La clé est obtenue par <span class="mono">PBKDF2-SHA256</span> (310 000 itérations) → <span class="mono">AES-256-GCM</span>.</div></div>
   <div class="step"><div class="num b">✓</div><div>Vérifie que l'<b>empreinte de clé</b> affichée est <b>identique</b> sur les deux appareils. Si oui, vous pouvez vous chiffrer mutuellement.</div></div>
   <div class="callout warn"><b>Règle d'or.</b> La passphrase voyage par un canal sûr <i>distinct</i> (de vive voix, en personne). Jamais par le chat lui-même.</div>

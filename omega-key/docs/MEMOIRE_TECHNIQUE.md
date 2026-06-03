@@ -65,7 +65,15 @@ Ordre approximatif dans `app/omega-key.html` :
 
 ### 3.1 Dérivation de clé (racine de confidentialité)
 - `deriveSharedKey` : **PBKDF2-SHA256, 310 000 itérations**, sel = `#pbkdf-salt`
-  (défaut `OMEGA-KEY-2026`, peut être public), sortie **AES-256-GCM** (`extractable`).
+  (peut être public), sortie **AES-256-GCM** (`extractable`).
+- **Sel recommandé : unique par conversation.** Le bouton `↺ ALÉATOIRE` (`genSalt`)
+  génère un sel CSPRNG **96 bits** à communiquer au pair (canal en clair OK). Le sel
+  par défaut `OMEGA-KEY-2026` est conservé pour rétro-compat mais **déclenche un
+  avertissement** à la dérivation : un sel constant partagé par tous les utilisateurs
+  permet un **précalcul** (passphrase→clé) réutilisable et donne la même clé à deux
+  paires ayant la même passphrase. PBKDF2 reste favorable au GPU → privilégier des
+  passphrases longues (cf. §3.2) ; un KDF mémoire-dur (Argon2id) serait supérieur mais
+  n'est pas exposé par WebCrypto.
 - Empreinte de clé = 8 premiers octets d'un hash, en hex `aa:bb:…` — sert à
   **comparer visuellement** que les deux côtés ont la même clé.
 
