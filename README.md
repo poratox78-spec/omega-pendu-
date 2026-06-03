@@ -73,31 +73,20 @@ cohorte). Détails dans le mémoire.
 
 Direction et conception : **Rem**. Assistance d'ingénierie et rédaction : **Claude (Anthropic)**.
 
-## Licence (double licence)
+## Licence
 
-Ce projet combine du **code** et des **données lexicales tierces**, qui ne sont **pas** sous le même régime.
+Régime double :
 
-### Code — MIT
-Le code source (auteur : **Rem**, © 2026) est sous licence **MIT** — voir [`LICENSE`](LICENSE).
-Réutilisable librement, y compris commercialement, **pris séparément du lexique**.
+- **Code** (moteur, UI, docs rédigées) : © Rem — sous **MIT** (voir [`LICENSE`](LICENSE)).
+- **Données lexicales** (base Lexique embarquée dans `app/omega-pendu.html`) :
+  **Creative Commons Attribution – ShareAlike 4.0 (CC BY-SA 4.0)**, © New, Pallier et al.,
+  [www.lexique.org](https://www.lexique.org). **Attribution requise · Partage à l'identique obligatoire.**
 
-### Données lexicales — CC BY-SA 4.0
-La base lexicale française embarquée dans `app/omega-pendu.html` provient de **Lexique** ([lexique.org](https://www.lexique.org), projet [openlexicon](https://github.com/chrplr/openlexicon))
-et est sous licence **Creative Commons Attribution – Partage dans les Mêmes Conditions 4.0 (CC BY-SA 4.0)**. Deux obligations :
+Voir le fichier [`NOTICE`](NOTICE) pour l'attribution complète.
 
-- **Attribution obligatoire** — citer les auteurs et le lien :
-  > New, B., Pallier, C., Brysbaert, M., & Ferrand, L. (2004). *Lexique 2: A New French Lexical Database.*
-  > Behavior Research Methods, Instruments, & Computers, 36(3), 516-524. — [lexique.org](https://www.lexique.org)
-- **Partage à l'identique (ShareAlike)** — toute redistribution/adaptation des données, et toute œuvre
-  qui les incorpore, doit rester sous **CC BY-SA 4.0** (ou compatible). L'usage commercial est **autorisé**
-  dès lors que l'attribution et le partage à l'identique sont respectés.
-
-### Œuvre combinée
-Tant que le lexique reste embarqué, `app/omega-pendu.html` est une **œuvre combinée** soumise dans son
-ensemble à la clause de **partage à l'identique (CC BY-SA 4.0)** et à l'**attribution** ci-dessus. Détails dans le fichier [`NOTICE`](NOTICE).
-
-> ⚠️ Ne pas placer une licence MIT/Apache « globale » sur le dépôt : cela contredirait l'obligation de
-> **partage à l'identique (SA)** des données lexicales, qui impose CC BY-SA 4.0 sur l'œuvre combinée.
+> Réutilisation : libre, **y compris commerciale**, avec attribution **et** partage des dérivés
+> sous CC BY-SA 4.0. Pour passer l'app sous une licence non-SA (ex. MIT pur), il faudrait
+> remplacer la base lexicale par une source compatible.
 
 ---
 *Instantané au 03/06/2026 · build phase47 (moteur cognitif phase46).*
