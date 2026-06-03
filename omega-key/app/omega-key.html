@@ -3343,11 +3343,13 @@ window.chatSend = async function(){
 }
 async function chatReceiveCipher(blob){
   blob=(blob||"").trim(); if(!blob) return false
+  if(_recvSeen.has(blob)){ if(typeof log==="function") log("⚠ Chiffré déjà reçu — rejeu/doublon ignoré","err"); return false }
   const cf=document.getElementById("enc-cipher"), rf=document.getElementById("dec-result")
   if(cf) cf.value=blob; if(rf) rf.textContent=""
   await window.decryptMsg()
   const txt=(rf&&rf.textContent||"").trim()
   if(!txt) return false          // échec : déjà loggé
+  _trackBounded(_recvSeen, blob) // marqué reçu seulement après déchiffrement réussi → un rejeu ultérieur du même chiffré est écarté
   _chatLog.push({dir:"in",text:txt,ts:_chatTime()})
   chatRender(); _chatSave()
   return true
@@ -3363,10 +3365,14 @@ window.chatClear = function(){ _chatLog=[]; chatRender(); const w=document.getEl
 // ── LIAISON RELAIS (transport sans copier-coller) — ne véhicule que le chiffré ──
 let _relayUrl="", _relayRoom="", _relayId="", _relaySince=0, _relayTimer=null
 const _relaySeen=new Set()
+const _relaySent=new Set()   // chiffrés émis par CE client → suppression d'écho (anti-usurpation : ne dépend plus du champ `id`, falsifiable)
+const _recvSeen=new Set()    // chiffrés déjà acceptés → rejet des rejeux/doublons exacts (tous modes, y compris AES-GCM seul)
+function _trackBounded(set,val,cap=400){ set.add(val); if(set.size>cap) set.delete(set.values().next().value) }
 function _relayConnected(){ return !!_relayTimer }
 function _relayBase(){ return _relayUrl.replace(/\/+$/,"") }
 function relayRestore(){ try{ const r=localStorage.getItem("omega_relay"); if(r){ const o=JSON.parse(r); const ue=document.getElementById("relay-url"), re=document.getElementById("relay-room"); if(ue&&o.u) ue.value=o.u; if(re&&o.r) re.value=o.r } }catch(e){} }
 async function relaySend(cipher){
+  _trackBounded(_relaySent, cipher)   // mémorise notre chiffré pour reconnaître notre propre écho au prochain poll
   const res=await fetch(_relayBase()+"/r/"+encodeURIComponent(_relayRoom),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:_relayId,m:cipher})})
   if(!res.ok) throw new Error("HTTP "+res.status)
 }
@@ -3380,8 +3386,8 @@ async function relayPoll(){
     for(const m of data.msgs){
       if(!m || _relaySeen.has(m.mid)) continue
       _relaySeen.add(m.mid)
-      if(m.id===_relayId) continue           // ignorer ses propres messages
-      await chatReceiveCipher(m.m)            // déchiffre + ajoute au fil
+      if(_relaySent.has(m.m)) continue        // notre propre écho — reconnu par le chiffré, pas par `id` (usurpable par un tiers du salon)
+      await chatReceiveCipher(m.m)            // déchiffre + ajoute au fil (rejeu/doublon filtrés dans chatReceiveCipher)
     }
   }catch(e){ /* réseau : nouvel essai au prochain tick */ }
 }

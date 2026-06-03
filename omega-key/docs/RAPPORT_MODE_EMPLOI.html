@@ -179,6 +179,7 @@ footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-si
     <tr><th>Point</th><th>Détail / mitigation</th></tr>
     <tr><td>Métadonnées relais</td><td>Le relais voit salon, horaires, tailles (pas le contenu). Mitige en l'auto-hébergeant (TTL court).</td></tr>
     <tr><td>Code de salon</td><td>Adresse de rendez-vous, <b>pas un secret</b> : qui le connaît lit le chiffré ou spamme, mais ne déchiffre rien sans la clé OMEGA.</td></tr>
+    <tr><td>Rejeu / écho</td><td>Tout chiffré déjà reçu est <b>rejeté</b> (anti-rejeu, tous modes) ; la suppression de l'écho s'appuie sur le chiffré émis, pas sur le champ <span class="mono">id</span> du relais (non falsifiable par un tiers du salon).</td></tr>
     <tr><td>Fil local en clair</td><td>Conservé pour la reprise. Sur appareil partagé : <b>🗑 Effacer</b>, ou demander un mode chiffré-au-repos / éphémère.</td></tr>
     <tr><td>Transmission passphrase</td><td>Doit passer par un canal sûr séparé.</td></tr>
     <tr><td>Mémoire RAM</td><td>JavaScript ne garantit pas l'effacement des anciennes clés en mémoire.</td></tr>
