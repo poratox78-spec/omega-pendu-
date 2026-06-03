@@ -4,7 +4,7 @@
 > contexte pour reprendre, vérifier et faire évoluer OMEGA·KEY sans relire
 > l'historique. Architecture, cryptographie, décisions, tests, limites, pistes.
 
-**Build de référence :** `app/omega-key.html` — v0.16 — MD5 `fd89d3ba68494ac9f4af5de2876d8c20` (~201 Ko).
+**Build de référence :** `app/omega-key.html` — v0.17 — MD5 `9775bc811227cebcd41de3c9caf49797` (~200 Ko).
 **Relais :** `server/omega-relay.ts` (Deno Deploy + Deno KV).
 **Daté :** 03/06/2026.
 
@@ -227,7 +227,7 @@ omega-key/
   README.md
   LICENSE                MIT (code)
   NOTICE.md              attribution Lexique (données passphrases, CC BY-SA 4.0)
-  app/omega-key.html     build v0.16 (fichier unique)
+  app/omega-key.html     build v0.17 (fichier unique)
   server/omega-relay.ts  relais Deno Deploy + Deno KV
   docs/RAPPORT_MODE_EMPLOI.html   rapport/mode d'emploi (HTML stylé)
   docs/MEMOIRE_TECHNIQUE.md       ce document
@@ -262,3 +262,33 @@ doivent rester `word-break/overflow-wrap`.
   Pour passer ces listes sous une licence **non-SA**, **régénérer depuis une source au
   domaine public ou sous licence permissive** (ex. listes EFF Diceware), sans
   données dérivées de Lexique.
+
+---
+
+## 11. Historique des versions
+
+### v0.17 — durcissement sécurité (revue de code)
+Trois correctifs issus d'une revue, chacun couvert par des tests headless :
+
+- **Sel PBKDF2 unique par conversation.** `genSalt` génère désormais **96 bits**
+  d'aléa CSPRNG (l'ancienne version en tronquait à 32). Un **avertissement** s'affiche
+  si le sel par défaut global `OMEGA-KEY-2026` est utilisé → empêche le précalcul
+  partagé (passphrase→clé) et les clés identiques entre paires. Le sel reste public et
+  transmissible en clair ; l'interopérabilité (même phrase + même sel ⇒ même clé) est
+  préservée (testée).
+- **Anti-rejeu tous modes** (`_recvSeen` dans `chatReceiveCipher`). Tout chiffré déjà
+  accepté est rejeté → comble l'absence d'anti-rejeu du mode **AES-GCM seul** (en FS/DR,
+  le rejeu était déjà rejeté cryptographiquement). Aucun faux positif (chiffrés à IV
+  aléatoire).
+- **Suppression d'écho anti-usurpation** (`_relaySent`). L'écho propre est reconnu par
+  le **chiffré émis**, plus par le champ `id` du relais (falsifiable par un tiers du
+  salon, qui pouvait ainsi masquer les messages du pair). `id` est encore posté mais
+  n'est plus de confiance.
+
+Ensembles bornés (`_trackBounded`, cap 400) → pas de fuite mémoire. Réserves connues
+inchangées (§7) ; PBKDF2 reste non mémoire-dur (Argon2id absent de WebCrypto) → privilégier
+des passphrases longues. **Toujours non audité par un tiers.**
+
+### v0.16 et antérieures
+Chat + liaison relais, UI responsive, Double Ratchet DH, passphrases FR à entropie exacte
+(cf. §3). Voir l'historique git pour le détail.

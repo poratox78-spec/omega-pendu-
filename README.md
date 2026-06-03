@@ -44,6 +44,13 @@ autonome (code + lexique inlinés), aucun serveur, aucune dépendance.
 - **`notes/`** — notes de session sourcées : système NEO (changelog, décomposition brique-par-brique,
   croisement de la voie muette) et le résultat négatif documenté (reconnexion M3_d falsifiée).
 
+## Aussi dans ce dépôt — OMEGA·KEY
+
+Le dossier [**`omega-key/`**](omega-key/) contient un projet dérivé : une **messagerie chiffrée de bout en bout**
+dans un seul fichier HTML (passphrases françaises, AES-GCM-256, Double Ratchet DH, relais optionnel).
+Il réutilise le substrat OMEGA comme source d'identité/entropie et confie toute la cryptographie à WebCrypto.
+Voir [`omega-key/README.md`](omega-key/README.md) et le rapport [`omega-key/docs/RAPPORT_MODE_EMPLOI.html`](omega-key/docs/RAPPORT_MODE_EMPLOI.html).
+
 ## Doctrine & méthode
 
 - **Cap §43 (cognition > oracle)** : les modules cognitifs ne lisent `currentWord` qu'aux positions
