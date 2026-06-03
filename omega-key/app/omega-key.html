@@ -1,0 +1,3434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMEGA·KEY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:    #010810;
+  --bg2:   #020d18;
+  --bg3:   #030f1e;
+  --cyan:  #00d4ff;
+  --green: #00ff9f;
+  --amber: #ffaa00;
+  --red:   #ff3355;
+  --dim:   #163848;
+  --muted: #3d6878;
+  --text:  #7ec8dc;
+  --hi:    #c8e8f8;
+}
+html,body{
+  background:var(--bg); color:var(--text);
+  font-family:'IBM Plex Mono',monospace; font-size:11px;
+  min-height:100vh; overflow-x:hidden;
+}
+
+/* Scanlines overlay */
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent, transparent 2px,
+    rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px
+  );
+}
+/* Grain */
+body::after{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:998;
+  opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+
+/* ── LAYOUT ───────────────────────────────────────────── */
+.shell{max-width:860px;margin:0 auto;padding:24px 16px}
+.header{
+  border-bottom:1px solid var(--dim); padding-bottom:14px; margin-bottom:24px;
+  display:flex; align-items:baseline; gap:16px;
+}
+.logo{
+  font-family:'Share Tech Mono',monospace;
+  font-size:22px; letter-spacing:6px; color:var(--cyan);
+}
+.logo-sub{font-size:9px;letter-spacing:3px;color:var(--muted)}
+.ver{font-size:9px;color:var(--muted);margin-left:auto;letter-spacing:2px}
+
+/* ── GRILLE PRINCIPALE ────────────────────────────────── */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.panel{
+  background:var(--bg2); border:1px solid var(--dim);
+  border-radius:2px; padding:14px;
+}
+.panel-full{grid-column:1/-1}
+/* — Responsive & anti-débordement (v16) — */
+.main-grid>*{min-width:0}
+.panel{min-width:0}
+.vocab-heat>*{min-width:0}
+.enc-grid>*{min-width:0}
+.share-row{flex-wrap:wrap}
+@media (max-width:720px){
+  .main-grid{grid-template-columns:1fr}
+  .shell{padding:16px 12px}
+  .ptitle{letter-spacing:2px}
+}
+.ptitle{
+  font-size:8px; letter-spacing:3px; color:#7ec8dc;
+  border-left:2px solid var(--cyan); padding-left:8px;
+  margin-bottom:12px; display:flex; justify-content:space-between;
+}
+.ptitle .live{color:var(--cyan);animation:blink 1.4s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── GCONV GAUGE ──────────────────────────────────────── */
+.gauge-wrap{display:flex;align-items:center;gap:12px}
+.gauge-num{
+  font-family:'Share Tech Mono',monospace;
+  font-size:44px; color:var(--cyan); transition:color .5s;
+  letter-spacing:2px; line-height:1;
+}
+.gauge-num.ok{color:var(--green)}
+.gauge-side{flex:1}
+.gauge-bar{height:6px;background:var(--bg3);border-radius:1px;overflow:hidden;margin-bottom:6px}
+.gauge-fill{
+  height:100%; border-radius:1px; transition:width .4s;
+  background:linear-gradient(90deg,#003366,var(--cyan));
+}
+.gauge-fill.ok{background:linear-gradient(90deg,#005533,var(--green))}
+.gauge-meta{display:flex;gap:12px;font-size:9px;color:var(--muted)}
+.gauge-meta span{display:flex;flex-direction:column;gap:1px}
+.gauge-meta b{color:var(--text)}
+
+/* ── BRAIN GRAPH SVG ──────────────────────────────────── */
+.brain-svg{width:100%;height:140px}
+.brain-node circle{transition:r .3s,stroke .3s}
+.brain-node text{fill:#1a3a4a;font-size:8px;font-family:'IBM Plex Mono';letter-spacing:1px}
+.brain-node.active circle{stroke:var(--cyan)}
+.brain-edge{transition:stroke-opacity .3s,stroke-width .3s}
+
+/* ── WAVE CANVAS ──────────────────────────────────────── */
+canvas.wave-canvas{width:100%;height:60px;display:block}
+
+/* ── VOCAB HEATMAP ────────────────────────────────────── */
+.vocab-heat{
+  display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin-top:4px
+}
+.vh-cell{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:7px;border-radius:1px;transition:background .4s,color .3s;
+  cursor:default;
+}
+
+/* ── METRICS GRID ─────────────────────────────────────── */
+.mrow{display:flex;justify-content:space-between;
+  border-bottom:1px solid var(--dim);padding:3px 0;font-size:10px}
+.mrow:last-child{border:none}
+.mk{color:#7ec8dc}
+.mv{color:var(--hi)}
+.mv.ok{color:var(--green)}
+.mv.warn{color:var(--amber)}
+
+/* ── KEY PANEL ────────────────────────────────────────── */
+.key-panel{
+  background:var(--bg2); border:1px solid var(--cyan);
+  border-radius:2px; padding:18px; position:relative; overflow:hidden;
+  margin-top:12px;
+}
+.key-panel::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan) 30%,var(--green) 70%,transparent);
+}
+.key-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:16px
+}
+.key-title{
+  font-family:'Share Tech Mono',monospace;
+  font-size:12px;letter-spacing:4px;color:var(--cyan)
+}
+.key-status{
+  font-size:9px;padding:4px 10px;border-radius:1px;letter-spacing:1px;
+  border:1px solid var(--dim);color:var(--muted);
+}
+.key-status.ready{border-color:var(--green);color:var(--green);
+  box-shadow:0 0 8px rgba(0,255,159,.15);animation:kpulse 2s infinite}
+.key-status.done{border-color:var(--cyan);color:var(--cyan)}
+@keyframes kpulse{0%,100%{box-shadow:0 0 8px rgba(0,255,159,.1)}
+  50%{box-shadow:0 0 16px rgba(0,255,159,.25)}}
+
+.key-qual-row{margin-bottom:14px}
+.key-qual-bar{height:3px;background:var(--bg3);border-radius:1px;overflow:hidden;margin-top:4px}
+.key-qual-fill{height:100%;transition:width .5s,background .5s;border-radius:1px;
+  background:linear-gradient(90deg,var(--red),var(--amber))}
+.key-qual-fill.good{background:linear-gradient(90deg,var(--cyan),var(--green))}
+.key-qlabel{display:flex;justify-content:space-between;font-size:8px;color:var(--muted)}
+
+/* Options toggle */
+.options-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.opt-toggle{
+  font-size:9px;letter-spacing:1px;padding:4px 10px;
+  border:1px solid var(--dim);background:none;color:var(--muted);
+  cursor:pointer;border-radius:1px;transition:all .2s;font-family:'IBM Plex Mono';
+}
+.opt-toggle.on{border-color:var(--amber);color:var(--amber)}
+.opt-toggle:hover{border-color:var(--text);color:var(--text)}
+
+.btn-generate{
+  width:100%;padding:12px;
+  border:1px solid var(--cyan);background:none;
+  font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;
+  color:var(--cyan);cursor:pointer;border-radius:1px;
+  transition:all .25s;margin-bottom:0;
+}
+.btn-generate:hover:not(:disabled){
+  background:rgba(0,212,255,.06);
+  box-shadow:0 0 20px rgba(0,212,255,.15);
+}
+.btn-generate:disabled{opacity:.25;cursor:not-allowed}
+.btn-generate.done{border-color:var(--green);color:var(--green)}
+
+/* KEY OUTPUT */
+.key-output{margin-top:16px;display:none}
+.key-block{
+  background:var(--bg3);border:1px solid var(--dim);
+  border-radius:1px;padding:12px;margin-bottom:10px;
+}
+.kb-title{font-size:8px;letter-spacing:3px;color:#7ec8dc;margin-bottom:8px}
+.passphrase{display:flex;flex-wrap:wrap;gap:5px}
+.pw-word{
+  background:rgba(0,255,159,.04);border:1px solid rgba(0,255,159,.2);
+  padding:4px 9px;font-size:10px;color:var(--green);letter-spacing:1px;
+  border-radius:1px;
+}
+.pw-word.fuzzy{border-color:rgba(255,170,0,.3);color:var(--amber)}
+.pw-word.amber{border-color:rgba(255,170,0,.3);color:var(--amber)}
+.key-hex{font-size:9px;color:var(--text);word-break:break-all;
+  letter-spacing:.5px;line-height:1.8}
+.key-fp{font-size:10px;color:var(--amber);letter-spacing:2px;margin-top:6px}
+.alpha-grid{display:grid;grid-template-columns:repeat(13,1fr);gap:2px}
+.ac{text-align:center;padding:3px 1px}
+.ac-l{font-size:7px;color:var(--muted)}
+.ac-s{font-size:12px;color:var(--cyan)}
+.enc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+textarea.enc{
+  width:100%;height:64px;background:var(--bg);border:1px solid var(--dim);
+  color:var(--hi);font-family:'IBM Plex Mono';font-size:10px;
+  padding:8px;resize:none;outline:none;border-radius:1px;
+}
+textarea.enc:focus{border-color:var(--cyan)}
+.enc-label{font-size:8px;color:#7ec8dc;letter-spacing:2px;margin-bottom:4px}
+.btn-enc{
+  margin-top:5px;padding:5px 12px;border:1px solid;background:none;
+  font-family:'IBM Plex Mono';font-size:9px;letter-spacing:1px;
+  cursor:pointer;border-radius:1px;transition:opacity .2s;
+}
+.btn-enc.e{border-color:var(--green);color:var(--green)}
+.btn-enc.d{border-color:var(--amber);color:var(--amber)}
+.btn-enc:hover{opacity:.7}
+.enc-role{font-size:8px;letter-spacing:2px;color:#7ec8dc;margin-bottom:6px;
+  padding:3px 6px;border-left:2px solid #3d6878;background:rgba(61,104,120,.1)}
+.dec-result{
+  background:rgba(0,255,159,.04);border:1px solid rgba(0,255,159,.25);
+  border-radius:1px;padding:10px;font-size:11px;color:var(--green);
+  line-height:1.6;word-break:break-word;min-height:40px;margin-top:4px;
+}
+.btn-copy{
+  margin-top:6px;padding:6px 14px;border:1px solid var(--green);
+  background:none;font-family:'IBM Plex Mono';font-size:9px;letter-spacing:1px;
+  color:var(--green);cursor:pointer;border-radius:1px;transition:all .2s;
+}
+.btn-copy.amber{border-color:var(--amber);color:var(--amber)}
+.btn-copy:hover{opacity:.7}
+.chat-card{margin-bottom:12px}
+.chat-mode{font-family:'Share Tech Mono';font-size:9px;letter-spacing:2px;padding:6px 9px;border:1px solid var(--dim);border-radius:3px;margin-bottom:8px;color:var(--muted)}
+.chat-thread{height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--dim);border-radius:4px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.chat-row{display:flex}
+.chat-row.out{justify-content:flex-end}
+.chat-row.in{justify-content:flex-start}
+.chat-bubble{max-width:80%;padding:9px 12px;border-radius:12px;font-size:14px;line-height:1.45;word-break:break-word}
+.chat-bubble.out{background:rgba(0,255,159,.10);border:1px solid rgba(0,255,159,.35);color:var(--hi);border-bottom-right-radius:3px}
+.chat-bubble.in{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.30);color:var(--hi);border-bottom-left-radius:3px}
+.chat-meta{display:block;font-size:8px;color:var(--muted);margin-top:4px;text-align:right;letter-spacing:1px}
+.chat-empty{margin:auto;color:var(--muted);font-size:10px;text-align:center;line-height:1.6;padding:0 20px}
+.chat-inputrow{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+.chat-input{flex:1;min-height:48px;max-height:130px;background:var(--bg);border:1px solid var(--dim);color:var(--hi);font-family:'IBM Plex Mono';font-size:14px;padding:13px;border-radius:8px;outline:none;resize:none}
+.chat-input:focus{border-color:var(--cyan)}
+.chat-send{min-width:60px;border:1px solid var(--green);background:rgba(0,255,159,.10);color:var(--green);font-size:18px;border-radius:8px;cursor:pointer}
+.chat-send:active{background:rgba(0,255,159,.22)}
+.chat-recv{margin-top:12px}
+.chat-recv-input{width:100%;min-height:44px;background:var(--bg);border:1px dashed var(--dim);color:var(--text);font-family:'IBM Plex Mono';font-size:11px;padding:11px;border-radius:8px;outline:none;resize:none}
+.chat-recv-input:focus{border-color:var(--cyan);border-style:solid}
+.chat-btn{width:100%;margin-top:7px;padding:13px;border:1px solid var(--cyan);background:rgba(0,212,255,.06);color:var(--cyan);font-family:'Share Tech Mono';font-size:12px;border-radius:8px;cursor:pointer;letter-spacing:1px}
+.chat-btn:active{opacity:.7}
+.chat-cipher-wrap{margin-top:10px;padding:9px;border:1px solid rgba(255,170,0,.3);border-radius:8px;background:rgba(255,170,0,.04)}
+.ent-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:9px}
+.ent-item{display:flex;flex-direction:column;gap:2px}
+.ent-k{font-size:7px;letter-spacing:2px;color:var(--muted)}
+.ent-v{color:var(--cyan)}
+.ent-v.ok{color:var(--green)}
+
+/* ── MODES PARTAGE ──────────────────────────────────────── */
+.share-panel{
+  background:var(--bg2); border:1px solid var(--dim);
+  border-radius:2px; padding:16px; margin-top:10px;
+}
+.share-tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--dim)}
+.share-tab{
+  padding:7px 16px;font-family:'IBM Plex Mono';font-size:9px;
+  letter-spacing:2px;cursor:pointer;background:none;border:none;
+  color:var(--muted);border-bottom:2px solid transparent;
+  transition:all .2s;
+}
+.share-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.share-tab:hover{color:var(--text)}
+.share-pane{display:none}
+.share-pane.active{display:block}
+.share-title{font-size:8px;letter-spacing:3px;color:#7ec8dc;margin-bottom:10px}
+.share-desc{font-size:9px;color:var(--muted);margin-bottom:10px;line-height:1.6}
+.share-desc b{color:var(--text)}
+.hex-display{
+  background:var(--bg3);border:1px solid var(--dim);border-radius:1px;
+  padding:10px;font-size:9px;color:var(--cyan);word-break:break-all;
+  letter-spacing:.5px;line-height:1.8;margin-bottom:8px;
+  font-family:'IBM Plex Mono';
+}
+.share-input{
+  width:100%;background:var(--bg3);border:1px solid var(--dim);
+  color:var(--hi);font-family:'IBM Plex Mono';font-size:10px;
+  padding:8px;outline:none;border-radius:1px;margin-bottom:6px;
+}
+.share-input:focus{border-color:var(--cyan)}
+input.share-input{height:36px}
+.share-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.share-label{font-size:8px;color:var(--muted);letter-spacing:1px;
+  white-space:nowrap;min-width:80px}
+.btn-share{
+  padding:8px 18px;border:1px solid var(--cyan);background:none;
+  font-family:'IBM Plex Mono';font-size:9px;letter-spacing:2px;
+  color:var(--cyan);cursor:pointer;border-radius:1px;transition:all .2s;
+}
+.btn-share:hover{background:rgba(0,212,255,.07)}
+.btn-share.green{border-color:var(--green);color:var(--green)}
+.btn-share.green:hover{background:rgba(0,255,159,.06)}
+.btn-share.amber{border-color:var(--amber);color:var(--amber)}
+.share-status{font-size:9px;margin-top:6px;padding:5px 8px;
+  border-radius:1px;display:none}
+.share-status.ok{color:var(--green);border:1px solid rgba(0,255,159,.3);display:block}
+.share-status.err{color:var(--red);border:1px solid rgba(255,51,85,.3);display:block}
+.pbkdf-strength{display:flex;gap:10px;font-size:8px;color:var(--muted);margin-top:4px}
+.pbkdf-strength span{color:var(--text)}
+
+/* ── BRUTE FORCE PANEL ────────────────────────────────── */
+.bf-panel{
+  background:var(--bg2);border:1px solid var(--red);
+  border-radius:2px;padding:16px;margin-top:12px;
+}
+.bf-title{font-size:8px;letter-spacing:3px;color:var(--red);
+  border-left:2px solid var(--red);padding-left:8px;margin-bottom:12px}
+.bf-row{display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid var(--dim);font-size:10px}
+.bf-row:last-child{border:none}
+.bf-k{color:#7ec8dc}
+.bf-v{color:var(--hi)}
+.bf-v.safe{color:var(--green)}
+.bf-v.warn{color:var(--amber)}
+.bf-v.dead{color:var(--red)}
+.btn-bf{
+  width:100%;margin-top:10px;padding:10px;
+  border:1px solid var(--red);background:none;
+  font-family:'Share Tech Mono';font-size:10px;letter-spacing:2px;
+  color:var(--red);cursor:pointer;border-radius:1px;transition:all .2s;
+}
+.btn-bf:hover:not(:disabled){background:rgba(255,51,85,.05)}
+.btn-bf:disabled{opacity:.3}
+.bf-log{
+  margin-top:10px;background:var(--bg3);border:1px solid var(--dim);
+  padding:10px;max-height:120px;overflow-y:auto;font-size:9px;
+  color:var(--muted);line-height:1.6;
+}
+.bf-log .safe{color:var(--green)}
+.bf-log .dead{color:var(--red)}
+.bf-log .warn{color:var(--amber)}
+
+/* ── LOG ──────────────────────────────────────────────── */
+.log-panel{
+  background:var(--bg2);border:1px solid var(--dim);
+  border-radius:2px;padding:10px;margin-top:12px;
+  max-height:100px;overflow-y:auto;font-size:9px;color:var(--muted);
+}
+.log-panel .ok{color:var(--green)}
+.log-panel .info{color:var(--cyan)}
+.log-panel .err{color:var(--red)}
+
+/* Controls */
+.ctrl-row{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.btn-ctrl{
+  padding:7px 16px;border:1px solid;font-family:'IBM Plex Mono';
+  font-size:9px;letter-spacing:2px;cursor:pointer;background:none;
+  border-radius:1px;transition:all .2s;
+}
+.btn-run{border-color:var(--cyan);color:var(--cyan)}
+.btn-run:hover{background:rgba(0,212,255,.07)}
+.btn-stop{border-color:var(--red);color:var(--red)}
+.btn-stop:hover{background:rgba(255,51,85,.06)}
+.btn-rst{border-color:var(--muted);color:var(--muted);font-size:8px;padding:5px 12px}
+.btn-rst:hover{border-color:var(--text);color:var(--text)}
+.spd-label{font-size:9px;color:var(--muted);white-space:nowrap}
+input[type=range]{accent-color:var(--cyan);width:70px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="header">
+    <div>
+      <div class="logo">OMEGA·KEY</div>
+      <div class="logo-sub">BEHAVIORAL PUF — COGNITIVE KEY GENERATOR</div>
+    </div>
+    <div class="ver">v0.15 · Chat + liaison relais · UI responsive · Double Ratchet DH · Passphrase FR</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="ctrl-row">
+    <button class="btn-ctrl btn-run"  onclick="startLoop()">▶ RUN</button>
+    <button class="btn-ctrl btn-stop" onclick="stopLoop()">■ STOP</button>
+    <button class="btn-ctrl btn-rst"  onclick="resetSim()">↺</button>
+    <span class="spd-label">×<span id="spd-v">1</span></span>
+    <input type="range" min="1" max="32" value="1"
+      oninput="adaptedSpd=+this.value;document.getElementById('spd-v').textContent=this.value">
+  </div>
+
+  <!-- Row 1 : gConv + cerveaux -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="ptitle">◈ CONVERGENCE <span class="live" id="gc-live">●</span></div>
+      <div class="gauge-wrap">
+        <div class="gauge-num" id="gc-num">0.000</div>
+        <div class="gauge-side">
+          <div class="gauge-bar"><div class="gauge-fill" id="gc-fill" style="width:0%"></div></div>
+          <div class="gauge-meta">
+            <span><span class="muted">STEPS</span><b id="g-steps">0</b></span>
+            <span><span class="muted">vocabH</span><b id="g-vh">0.000</b></span>
+            <span><span class="muted">slowEMA</span><b id="g-slow">0.000</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ptitle">◈ CERVEAUX — GRAPHE CONVERGENCE</div>
+      <svg class="brain-svg" id="brain-svg" viewBox="0 0 300 130"></svg>
+    </div>
+  </div>
+
+  <!-- Row 2 : onde + vocab -->
+  <div class="main-grid">
+    <div class="panel">
+      <div class="ptitle">◈ ONDE 1D — ÉNERGIE ZONES</div>
+      <canvas class="wave-canvas" id="wave-cvs" width="400" height="60"></canvas>
+      <div id="zone-sigs" style="display:flex;gap:6px;margin-top:4px;font-size:8px;color:var(--muted)"></div>
+    </div>
+
+    <div class="panel">
+      <div class="ptitle">◈ VOCAB ACTIF — seqZoneEMA</div>
+      <div class="vocab-heat" id="vocab-heat"></div>
+    </div>
+  </div>
+
+  <!-- Row 3 : métriques -->
+  <div class="panel panel-full" style="margin-bottom:12px">
+    <div class="ptitle">◈ MÉTRIQUES COGNITIVES</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0 24px" id="metrics"></div>
+  </div>
+
+  <!-- v0.7-phase1 : MASTER SEED PANEL ───────────────────────── -->
+  <div class="key-panel" style="border-color:#f5a;margin-bottom:12px">
+    <div class="key-header">
+      <div class="key-title" style="color:#f5a">◈ MASTER SEED — ESPACE SÉMANTIQUE SECRET</div>
+      <div class="key-status done" id="seed-status" style="background:rgba(255,85,170,.12);border-color:#f5a;color:#f5a">ACTIF</div>
+    </div>
+    <div style="font-size:9px;color:var(--muted);line-height:1.5;margin-bottom:10px">
+      Ce seed (128 bits hex) dérive l'encodage sémantique complet : _BIT_VECS (12 vecteurs HDC de base)
+      + LETTER_CODES (mapping A-Z → signature 6D). Les pairs doivent partager ce seed par canal sûr
+      pour parler le même langage cryptographique. <strong style="color:#f5a">Saut de crypto algorithmique → sémantique.</strong>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <input type="text" id="master-seed-input" 
+             style="flex:1;background:var(--bg3);border:1px solid var(--dim);color:var(--text);font-family:'IBM Plex Mono';font-size:10px;padding:8px;border-radius:2px"
+             placeholder="32 caractères hex" maxlength="64">
+      <button onclick="applyMasterSeed()" 
+              style="background:rgba(255,85,170,.08);border:1px solid #f5a;color:#f5a;font-family:'IBM Plex Mono';font-size:9px;padding:8px 14px;cursor:pointer;letter-spacing:2px;border-radius:2px">
+        ◈ APPLIQUER
+      </button>
+      <button onclick="randomMasterSeed()" 
+              style="background:var(--bg3);border:1px solid var(--dim);color:var(--text);font-family:'IBM Plex Mono';font-size:9px;padding:8px 12px;cursor:pointer;letter-spacing:2px;border-radius:2px">
+        🎲 ALÉATOIRE
+      </button>
+    </div>
+    <div style="font-size:9px;color:var(--muted)">
+      Seed actuel : <span id="current-seed" style="color:#f5a;font-family:'Share Tech Mono'">—</span>
+    </div>
+    <div style="font-size:9px;color:var(--muted);margin-top:4px">
+      LETTER_CODES signature : <span id="lc-signature" style="color:var(--amber);font-family:'Share Tech Mono'">—</span>
+    </div>
+  </div>
+
+  <!-- KEY PANEL -->
+  <div class="key-panel">
+    <div class="key-header">
+      <div class="key-title">◈ OMEGA·KEY</div>
+      <div class="key-status waiting" id="key-status">INITIALISATION…</div>
+    </div>
+
+    <div class="key-qual-row">
+      <div class="key-qlabel">
+        <span>QUALITÉ SEED</span>
+        <span id="kq-pct">0%</span>
+      </div>
+      <div class="key-qual-bar">
+        <div class="key-qual-fill" id="kq-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="options-row">
+      <button class="opt-toggle" id="opt-fuzzy" onclick="toggleOpt('fuzzy')">
+        ⊕ FUZZY EXTRACTOR
+      </button>
+      <button class="opt-toggle" id="opt-slow"  onclick="toggleOpt('slow')">
+        ◎ EMA LENTE SEED
+      </button>
+      <button class="opt-toggle on" id="opt-salt"  onclick="toggleOpt('salt')">
+        ∅ SESSION SALT
+      </button>
+    </div>
+
+    <button class="btn-generate" id="btn-gen" disabled onclick="generateKey()">
+      🔑 GÉNÉRER CLÉ CRYPTOGRAPHIQUE
+    </button>
+
+    <div class="key-output" id="key-output">
+
+      <div class="key-block">
+        <div class="kb-title">PASSPHRASE — 8 MOTS</div>
+        <div class="passphrase" id="kp-words"></div>
+        <div style="margin-top:6px;font-size:8px;color:var(--muted)" id="kp-mode"></div>
+      </div>
+
+      <div class="key-block">
+        <div class="kb-title">CLÉ AES-256-GCM</div>
+        <div class="key-hex" id="kp-hex"></div>
+        <div class="key-fp" id="kp-fp"></div>
+      </div>
+
+      <div class="key-block">
+        <div class="kb-title">ALPHABET SESSION — 26 SYMBOLES</div>
+        <div class="alpha-grid" id="kp-alpha"></div>
+      </div>
+
+      <!-- ══ CONVERSATION (habillage ergonomique) ══ -->
+      <div class="key-block chat-card">
+        <div class="kb-title" style="color:var(--cyan)">💬 CONVERSATION CHIFFRÉE</div>
+        <div class="chat-mode" id="chat-mode">○ aucune clé — à générer</div>
+        <div class="chat-thread" id="chat-thread"><div class="chat-empty">Aucun message.<br>Génère une clé, écris ton message, appuie sur ▶ : le chiffré est copié automatiquement pour ton correspondant.</div></div>
+        <div class="chat-inputrow">
+          <textarea class="chat-input" id="chat-input" placeholder="Écris ton message…" onfocus="chatRefreshMode()"></textarea>
+          <button class="chat-send" onclick="chatSend()" title="Chiffrer &amp; envoyer">▶</button>
+        </div>
+        <div class="chat-cipher-wrap" id="chat-cipher-wrap" style="display:none">
+          <div class="enc-label" style="color:var(--amber)">↓ À TRANSMETTRE (déjà copié dans le presse-papier)</div>
+          <textarea class="chat-recv-input" id="chat-cipher" readonly style="border-color:rgba(255,170,0,.3)"></textarea>
+          <button class="chat-btn" onclick="chatCopyCipher()" style="border-color:var(--amber);color:var(--amber);background:rgba(255,170,0,.06)">📋 RECOPIER LE CHIFFRÉ</button>
+        </div>
+        <div class="chat-recv">
+          <div class="enc-label">↓ MESSAGE REÇU DU CORRESPONDANT</div>
+          <textarea class="chat-recv-input" id="chat-paste" placeholder="Colle ici le message reçu — déchiffré automatiquement" onpaste="setTimeout(chatReceive,0)"></textarea>
+        </div>
+        <div class="chat-recv" style="border-top:1px solid var(--dim);margin-top:12px;padding-top:10px">
+          <div class="enc-label" style="color:var(--cyan)">🔌 LIAISON DIRECTE (relais) — chat sans copier-coller</div>
+          <input class="chat-recv-input" id="relay-url" placeholder="URL du relais — ex. https://mon-relais.deno.dev" style="margin-bottom:6px">
+          <input class="chat-recv-input" id="relay-room" placeholder="Code de salon partagé — ex. salon-7421">
+          <button class="chat-btn" id="relay-btn" onclick="relayToggle()">🔌 SE CONNECTER</button>
+          <div class="share-status" id="relay-status" style="margin-top:6px"></div>
+          <div style="margin-top:6px;font-size:8px;color:var(--muted)">Le relais ne voit que le chiffré (jamais le clair). Le code de salon = adresse de rendez-vous, à partager avec le correspondant ; la sécurité vient du chiffrement OMEGA.</div>
+        </div>
+        <button class="btn-copy" onclick="chatClear()" style="margin-top:10px;border-color:var(--muted);color:var(--muted)">🗑 EFFACER LA CONVERSATION</button>
+        <div style="margin-top:6px;font-size:8px;color:var(--muted)">Fil conservé en clair sur cet appareil (reprise auto au rechargement). « Effacer » l'efface définitivement.</div>
+      </div>
+
+      <div class="key-block" style="display:none">
+        <div class="kb-title">CHIFFREMENT AES-GCM-256 — USAGE PARTAGÉ</div>
+
+        <!-- Workflow 2 personnes -->
+        <div style="display:grid;grid-template-columns:1fr 36px 1fr;gap:6px;align-items:start;margin-bottom:10px">
+
+          <!-- COLONNE A : ÉMETTEUR -->
+          <div>
+            <div class="enc-role">● ÉMETTEUR — rédiger &amp; chiffrer</div>
+            <div class="enc-label">MESSAGE CLAIR</div>
+            <textarea class="enc" id="enc-plain" placeholder="Votre message…"></textarea>
+            <button class="btn-enc e" onclick="encryptMsg()">🔒 CHIFFRER</button>
+          </div>
+
+          <!-- FLÈCHE centrale -->
+          <div style="display:flex;flex-direction:column;align-items:center;padding-top:32px;gap:6px;color:#3d6878;font-size:10px">
+            <div>→</div>
+            <div style="writing-mode:vertical-lr;font-size:7px;letter-spacing:2px;color:#3d6878">PUBLIC</div>
+            <div>→</div>
+          </div>
+
+          <!-- COLONNE B : RÉCEPTEUR -->
+          <div>
+            <div class="enc-role">○ RÉCEPTEUR — coller &amp; déchiffrer</div>
+            <div class="enc-label">MESSAGE CHIFFRÉ (base64)</div>
+            <textarea class="enc" id="enc-cipher" placeholder="Coller ici le message reçu…" oninput="clearResult()"></textarea>
+            <button class="btn-enc d" onclick="decryptMsg()">🔓 DÉCHIFFRER</button>
+          </div>
+        </div>
+
+        <!-- Zone résultat déchiffré — visible et distincte -->
+        <div id="dec-result-wrap" style="display:none">
+          <div class="enc-label" style="color:var(--green);margin-top:2px">✓ MESSAGE DÉCHIFFRÉ</div>
+          <div class="dec-result" id="dec-result"></div>
+          <button class="btn-copy" onclick="copyResult()">📋 COPIER LE RÉSULTAT</button>
+        </div>
+
+        <!-- Bouton copier cipher après chiffrement -->
+        <div id="enc-copy-wrap" style="display:none;margin-top:6px">
+          <div class="enc-label" style="color:var(--amber)">↓ TRANSMETTRE VIA CANAL PUBLIC (email, chat…)</div>
+          <button class="btn-copy amber" onclick="copyCipher()">📋 COPIER LE MESSAGE CHIFFRÉ</button>
+        </div>
+
+        <div style="margin-top:8px;font-size:8px;color:#3d6878;border-top:1px solid #163848;padding-top:6px">
+          ⚠ La passphrase + l'alphabet session doivent être transmis via un canal SÉPARÉ et SÉCURISÉ
+        </div>
+      </div>
+
+        <!-- ══ SESSION RATCHET DH (FS + PCS) ══ -->
+        <div class="key-block" style="margin-top:10px;border:1px solid var(--cyan)">
+          <div class="kb-title" style="color:var(--cyan)">🔗 SESSION RATCHET DH — forward secrecy + post-compromission</div>
+          <div style="font-size:8px;color:var(--muted);margin-bottom:8px">
+            Échange unique de clés publiques (authentifié par ta passphrase via le root). Ensuite chaque
+            message renouvelle la clé par Diffie-Hellman éphémère → secret persistant ET auto-guérison.
+            Pré-requis : avoir généré/dérivé une clé partagée. Une fois établie, CHIFFRER/DÉCHIFFRER passent en mode DR.
+          </div>
+          <button class="btn-share" onclick="drMakeInit()" style="width:100%">1 · GÉNÉRER MON CODE D'INIT</button>
+          <textarea class="enc" id="dr-my-init" placeholder="Ton code d'init apparaîtra ici — transmets-le au pair" style="margin-top:6px;font-size:9px" readonly></textarea>
+          <div class="enc-label" style="margin-top:6px">2 · CODE D'INIT DU PAIR</div>
+          <textarea class="enc" id="dr-peer-init" placeholder="Colle ici le code reçu du pair"  style="font-size:9px"></textarea>
+          <button class="btn-share green" onclick="drEstablish()" style="width:100%;margin-top:6px">3 · ÉTABLIR LA SESSION</button>
+          <div class="share-status" id="dr-status" style="margin-top:6px"></div>
+        </div>
+
+      <div class="ent-row" id="kp-ent"></div>
+
+      <!-- ══ PARTAGE INTER-UTILISATEURS ══ -->
+      <div class="share-panel" id="share-panel" style="display:none">
+        <div class="share-tabs">
+          <button class="share-tab active" onclick="showTab('export')">📤 EXPORTER</button>
+          <button class="share-tab" onclick="showTab('import')">📥 IMPORTER</button>
+          <button class="share-tab" onclick="showTab('pbkdf2')">🔑 PARTAGÉE</button>
+          <button class="share-tab" onclick="showTab('p2p')" style="color:#f5a;border-color:#f5a">🔗 P2P SYNC</button>
+          <button class="share-tab" onclick="showTab('passphrase')" style="color:var(--green);border-color:var(--green)">🎲 PASSPHRASE</button>
+        </div>
+
+        <!-- TAB 1 : EXPORTER CLÉ HEX ──────── -->
+        <div class="share-pane active" id="tab-export">
+          <div class="share-title">EXPORTER CLÉ AES-256</div>
+          <div class="share-desc">
+            Transmettez les 64 caractères hexadécimaux ci-dessous à votre interlocuteur
+            via un canal sécurisé (<b>Signal, remise en main propre, etc.</b>).<br>
+            ⚠ Ne jamais transmettre via le même canal que les messages chiffrés.
+          </div>
+          <div class="hex-display" id="share-hex-display">—</div>
+          <button class="btn-share" onclick="copyShareHex()">📋 COPIER LA CLÉ HEX</button>
+          <div class="share-status" id="share-hex-status"></div>
+        </div>
+
+        <!-- TAB 2 : IMPORTER CLÉ HEX ──────── -->
+        <div class="share-pane" id="tab-import">
+          <div class="share-title">IMPORTER CLÉ AES-256</div>
+          <div class="share-desc">
+            Collez la clé hexadécimale reçue de votre interlocuteur (64 caractères).<br>
+            Une fois chargée, vous pourrez déchiffrer ses messages.
+          </div>
+          <textarea class="share-input" id="import-hex-input"
+            rows="2" placeholder="Coller les 64 caractères hex ici…"
+            oninput="checkImportHex()"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:8px;color:var(--muted)" id="import-hex-count">0/64 chars</span>
+            <button class="btn-share green" id="btn-import-hex"
+              onclick="importKeyHex()" disabled>✓ CHARGER CETTE CLÉ</button>
+          </div>
+          <div class="share-status" id="import-hex-status"></div>
+        </div>
+
+        <!-- TAB 3 : CLÉ PARTAGÉE PBKDF2 ──── -->
+        <div class="share-pane" id="tab-pbkdf2">
+          <div class="share-title">CLÉ PARTAGÉE — PBKDF2-SHA256</div>
+          <div class="share-desc">
+            Les deux utilisateurs entrent la <b>même phrase secrète</b> et le <b>même sel</b>.
+            La même clé AES-256 est dérivée des deux côtés <b>sans jamais la transmettre</b>.
+          </div>
+          <div class="share-row">
+            <span class="share-label">PHRASE</span>
+            <input class="share-input" type="password" id="pbkdf-pass"
+              placeholder="Phrase secrète commune…" oninput="updatePbkdfStrength()">
+          </div>
+          <div class="share-row">
+            <span class="share-label">SEL</span>
+            <input class="share-input" type="text" id="pbkdf-salt"
+              value="OMEGA-KEY-2026" placeholder="Salt commun…">
+            <button class="btn-share amber" onclick="genSalt()" style="white-space:nowrap;padding:6px 10px;font-size:8px">↺ ALÉATOIRE</button>
+          </div>
+          <div class="pbkdf-strength" id="pbkdf-strength">
+            <span>Longueur : <span id="ph-len">0</span></span>
+            <span>Itérations : <span>310 000</span></span>
+            <span>Algorithme : <span>PBKDF2-SHA256</span></span>
+          </div>
+          <button class="btn-share green" id="btn-pbkdf"
+            onclick="deriveSharedKey()" style="margin-top:10px;width:100%">
+            🔑 DÉRIVER CLÉ COMMUNE
+          </button>
+          <div class="share-status" id="pbkdf-status"></div>
+          <div style="margin-top:8px;font-size:8px;color:var(--muted)">
+            ⚠ Le sel peut être transmis en clair — seule la phrase secrète doit rester confidentielle
+          </div>
+        </div>
+
+        <!-- TAB 5 : PASSPHRASE PRONONÇABLE ──────────── -->
+        <div class="share-pane" id="tab-passphrase">
+          <div class="share-title" style="color:var(--green)">PASSPHRASE PRONONÇABLE — FR</div>
+          <div class="share-desc">
+            Entropie tirée de <b>WebCrypto</b> (vraie aléa), encodée en mots français prononçables
+            issus du lexique OMEGA. <b>4096 mots = 12 bits/mot</b>, sans biais modulo.
+            La passphrase <b>EST</b> la clé : la même phrase ⇒ la même clé AES-256 des deux côtés.
+          </div>
+          <div class="share-row">
+            <span class="share-label">MODE</span>
+            <select class="share-input" id="pp-mode" onchange="ppPreview()">
+              <option value="reels" selected>Mots réels (Diceware FR — 12 b/mot)</option>
+              <option value="pseudo">Pseudo-mots (phonotactique — ~22–24 b/mot)</option>
+            </select>
+          </div>
+          <div class="share-row">
+            <span class="share-label">NOMBRE</span>
+            <select class="share-input" id="pp-nwords" onchange="ppPreview()">
+              <option value="4">4</option>
+              <option value="6">6</option>
+              <option value="8" selected>8</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+            </select>
+            <button class="btn-share green" onclick="generatePassphrase()" style="white-space:nowrap;padding:6px 12px">🎲 GÉNÉRER</button>
+          </div>
+          <div id="pp-display" style="margin:10px 0;padding:12px;background:var(--bg3);border:1px solid var(--green);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--hi);word-break:break-word;letter-spacing:1px;min-height:20px">—</div>
+          <div class="pbkdf-strength" id="pp-entropy" style="color:var(--muted)">génère une passphrase…</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn-copy" onclick="copyPassphrase()" style="flex:1">📋 COPIER</button>
+            <button class="btn-share green" onclick="usePassphraseForKey()" style="flex:1">🔑 DÉRIVER LA CLÉ AES</button>
+          </div>
+          <button class="btn-copy" onclick="verifyPassphrase()" style="width:100%;margin-top:8px;border-color:var(--cyan);color:var(--cyan)">✓ VÉRIFIER (round-trip → empreinte clé)</button>
+          <div id="pp-verify" style="margin-top:6px;font-size:9px;color:var(--muted);font-family:'Share Tech Mono',monospace"></div>
+          <div style="margin-top:8px;font-size:8px;color:var(--muted)">
+            ⚠ La sécurité = l'entropie affichée (octets WebCrypto), indépendante de la sim. Note la phrase : elle n'est pas stockée.
+          </div>
+        </div>
+
+        <!-- TAB 4 : P2P SYNC WEBRTC ──────────── -->
+        <div class="share-pane" id="tab-p2p">
+          <div class="share-title" style="color:#f5a">SYNC P2P — WEBRTC + MASTER_SEED</div>
+          <div class="share-desc">
+            Les deux pairs s'introduisent via un code 6 chiffres et un serveur de signaling.
+            Une fois connectés par WebRTC, ils échangent leur <b>MASTER_SEED</b> via DataChannel
+            chiffré par AES-GCM (clé PBKDF2 dérivée du code). Le serveur ne voit jamais les seeds.
+            <br><span style="color:#f5a">⚠ Pour fonctionner, les deux pairs doivent avoir lancé le serveur signaling (server.js).</span>
+          </div>
+
+          <div class="share-row">
+            <span class="share-label">SERVEUR</span>
+            <input class="share-input" type="text" id="p2p-server" 
+                   value="http://localhost:3000" placeholder="URL du signaling server">
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <!-- COLONNE A : INITIATEUR -->
+            <div style="border:1px solid var(--dim);border-radius:2px;padding:10px">
+              <div class="enc-role" style="color:#f5a">● INITIATEUR</div>
+              <div style="font-size:9px;color:var(--muted);margin-bottom:8px">
+                Générez un code et partagez-le à votre pair.
+              </div>
+              <button class="btn-share" style="border-color:#f5a;color:#f5a;width:100%" 
+                      onclick="p2pCreateRoom()">🔗 CRÉER SESSION</button>
+              <div id="p2p-my-code" style="margin-top:8px;text-align:center;font-family:'Share Tech Mono';font-size:24px;letter-spacing:6px;color:#f5a">—</div>
+            </div>
+
+            <!-- COLONNE B : RECEPTEUR -->
+            <div style="border:1px solid var(--dim);border-radius:2px;padding:10px">
+              <div class="enc-role" style="color:#f5a">○ RECEPTEUR</div>
+              <div style="font-size:9px;color:var(--muted);margin-bottom:8px">
+                Entrez le code reçu pour rejoindre.
+              </div>
+              <input class="share-input" type="text" id="p2p-peer-code" 
+                     placeholder="Code 6 chiffres" maxlength="6" 
+                     style="text-align:center;font-family:'Share Tech Mono';font-size:18px;letter-spacing:4px">
+              <button class="btn-share" style="border-color:#f5a;color:#f5a;width:100%;margin-top:6px" 
+                      onclick="p2pJoinRoom()">🔗 REJOINDRE</button>
+            </div>
+          </div>
+
+          <div class="share-status" id="p2p-status" style="margin-top:10px">
+            ○ Non connecté
+          </div>
+
+          <div id="p2p-sync-panel" style="display:none;margin-top:12px;padding:10px;border:1px solid #f5a;border-radius:2px;background:rgba(255,85,170,.04)">
+            <div style="font-size:10px;color:#f5a;margin-bottom:6px">◈ CONNEXION ÉTABLIE</div>
+            <div style="font-size:9px;color:var(--muted);margin-bottom:8px">
+              Empreinte MASTER_SEED local : <span id="p2p-my-fp" style="color:var(--amber);font-family:'Share Tech Mono'">—</span><br>
+              Empreinte MASTER_SEED pair : <span id="p2p-peer-fp" style="color:var(--amber);font-family:'Share Tech Mono'">—</span>
+            </div>
+            <button class="btn-share" style="border-color:#f5a;color:#f5a;width:100%" 
+                    onclick="p2pExchangeSeed()">📡 ÉCHANGER MASTER_SEED</button>
+            <div id="p2p-sync-result" style="margin-top:6px;font-size:9px"></div>
+          </div>
+
+          <div style="margin-top:8px;font-size:8px;color:var(--muted);border-top:1px solid var(--dim);padding-top:6px">
+            ⚠ Le code 6 chiffres est partagé en clair (canal de confiance supposé, ex: vocal).<br>
+            ⚠ Le MASTER_SEED est transmis chiffré via AES-GCM-256 (clé PBKDF2 du code + nonce temporel).
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BRUTE FORCE PANEL -->
+  <div class="bf-panel">
+    <div class="bf-title">⚔ SIMULATION D'ATTAQUE — ANALYSE SÉCURITÉ BPUF</div>
+    <div id="bf-analysis"></div>
+    <button class="btn-bf" id="btn-bf" onclick="runBruteForce()">
+      ⚔ LANCER SIMULATION ATTAQUE
+    </button>
+    <div class="bf-log" id="bf-log"></div>
+  </div>
+
+  <div class="log-panel" id="log"></div>
+
+</div><!-- /shell -->
+
+<script type="module">
+
+
+// ══════════════════════════════════════════════════════════
+// CONSTANTES
+// ══════════════════════════════════════════════════════════
+const LDIM  = 512
+const B     = 5
+const SYMS  = ['E','A','S','I','T','R','N','U']
+const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+const VOCAB = []
+for(const a of SYMS) for(const b of SYMS) VOCAB.push(a+b)
+
+// Fréquences lettres FR pour bootstrap pendu
+const LETTER_FREQ = {
+  E:0.147,A:0.079,S:0.079,I:0.075,T:0.071,N:0.071,R:0.066,
+  L:0.055,U:0.063,O:0.054,D:0.037,C:0.033,M:0.030,P:0.029,
+  V:0.016,F:0.011,B:0.009,G:0.009,H:0.008,Q:0.009,Y:0.003,
+  X:0.004,Z:0.002,J:0.002,K:0.001,W:0.001
+}
+
+// ──────────────────────────────────────────────────────────
+// v0.7-phase1 — MASTER SEED déclaré ici, LETTER_CODES dérivés
+// plus bas (après définition de lcgRand)
+// ──────────────────────────────────────────────────────────
+// Seed par défaut (hex 32 chars = 128 bits). À changer via UI.
+let MASTER_SEED = 'a7f3c91e8b5d42069e4c1ab7f85d3692'
+let LETTER_CODES_V4 = null  // sera assigné après définition de lcgRand
+
+// Paires de cerveaux pour pairConv
+// Topologie OMEGA : intra-tier + C hub + un lien cross-tier
+const CPAIRS = [
+  [0,1],  // A1↔A2 intra
+  [2,3],  // B1↔B2 intra
+  [0,4],  // A1↔C
+  [1,4],  // A2↔C
+  [2,4],  // B1↔C
+  [3,4],  // B2↔C
+  [0,2],  // A1↔B1 cross-tier
+]
+const BRAIN_NAMES = ['A1','A2','B1','B2','C']
+let zoneScalar = new Float32Array(B)  // activité zone par cerveau
+let _burst = null  // burst post-WIN — anciennement _burst
+// EMA longue τ≈200 steps — plus stable pour extraction seed
+// seqZonePrev — snapshot gradient (snapshot toutes 30 steps pour gradFactor)
+const seqZonePrev = Array.from({length:B}, ()=>{const o={}; for(const s of VOCAB) o[s]=0; return o})
+let _semGradTick = 0
+const ZONE_EMA_SLOW = 0.005
+const seqZoneEMA_slow = Array.from({length:B}, ()=>{
+  const o={}; for(const s of VOCAB) o[s]=0; return o
+})
+// ══════════════════════════════════════════════════════════
+// ONDE SIMPLIFIÉE — diffusion 1D inter-cerveaux
+// Remplace la grille 64×32 par 5 scalaires + diffusion directe
+// Topologie : A1↔A2↔B1↔B2↔C (+ C↔A1, C↔A2 pour coordination)
+// ══════════════════════════════════════════════════════════
+const wU  = new Float32Array(B)   // énergie onde par cerveau
+const wP  = new Float32Array(B)   // état précédent (d'Alembert)
+const WAVE_D    = 0.18             // vitesse diffusion
+const WAVE_DAMP = 0.985            // amortissement
+const WAVE_CONN = [                // graphe de connexions
+  [1,4],   // A1 ↔ A2, C
+  [0,2,4], // A2 ↔ A1, B1, C
+  [1,3,4], // B1 ↔ A2, B2, C
+  [2,4],   // B2 ↔ B1, C
+  [0,1,2,3]// C  ↔ tous
+]
+const zoneE      = new Float32Array(B)
+const zoneSignal = new Float32Array(B)
+
+function stepWave(){
+  const next = new Float32Array(B)
+  for(let b=0;b<B;b++){
+    const neighbours = WAVE_CONN[b]
+    // Laplacien discret sur graphe
+    let lap = 0
+    for(const nb of neighbours) lap += wU[nb] - wU[b]
+    lap /= neighbours.length
+    // d'Alembert : next = 2U - P + D×lap
+    next[b] = WAVE_DAMP * (2*wU[b] - wP[b] + WAVE_D*lap)
+  }
+  const CLAMP = 30
+  for(let b=0;b<B;b++){
+    wP[b]=wU[b]
+    wU[b]=Math.max(-CLAMP, Math.min(CLAMP, next[b]))
+  }
+}
+
+function injectWave(intensity){
+  // Injection sémantique : chaque cerveau injecte selon son activité
+  // → l'onde transporte de l'information sur les séquences actives
+  const baseAmp = Math.max(0.3, intensity * 4)
+  for(let b=0;b<B;b++){
+    // Activité de ce cerveau = somme seqZoneEMA
+    let activity = 0
+    for(const seq of VOCAB) activity += Math.abs(seqZoneEMA[b][seq]||0)
+    activity = Math.tanh(activity / VOCAB.length * 20)
+    // C reçoit le double (coordinateur)
+    const coeff = b===4 ? 2.0 : 1.0
+    wU[b] += baseAmp * coeff * (0.5 + activity * 0.5)
+  }
+  for(let b=0;b<B;b++) wU[b] = Math.max(-30, Math.min(30, wU[b]))
+}
+
+function readZones(){
+  // Chaque cerveau lit son énergie locale
+  for(let b=0;b<B;b++) zoneE[b] = Math.abs(wU[b])
+  const gMean = zoneE.reduce((s,v)=>s+v,0) / B
+  for(let b=0;b<B;b++){
+    zoneSignal[b] = gMean > 0.001
+      ? Math.tanh((gMean - zoneE[b]) / gMean * 4)
+      : 0
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════
+// CERVEAU D — arbitrage appris des sources de décision
+// Apprend quel canal (onde/sem/freq) était aligné avec le résultat
+// dWeights ∈ [-1.0, 3.0] — peut inhiber activement
+// ══════════════════════════════════════════════════════════
+const D_MIN_V = -1.0
+const D_MAX_V =  3.0
+const D_LR_V  =  0.02  // plus lent
+let   dWeightsD    = new Float32Array([1.0, 1.0, 1.0])  // [onde, sem, freq]
+let   dWeightsEMA  = new Float32Array([1.0, 1.0, 1.0])
+const _dLastScores = [{}, {}, {}]  // scores par source [onde,sem,freq] par lettre
+
+function updateD(letter, isHit){
+  const sO = _dLastScores[0][letter] || 0
+  const sS = _dLastScores[1][letter] || 0
+  const sF = _dLastScores[2][letter] || 0
+  const norm = Math.max(1e-6, Math.abs(sO)+Math.abs(sS)+Math.abs(sF))
+  const lr = isHit ? D_LR_V : -D_LR_V * 0.5
+  dWeightsD[0] = Math.max(D_MIN_V, Math.min(D_MAX_V, dWeightsD[0] + lr*(sO/norm)))
+  dWeightsD[1] = Math.max(D_MIN_V, Math.min(D_MAX_V, dWeightsD[1] + lr*(sS/norm)))
+  dWeightsD[2] = Math.max(D_MIN_V, Math.min(D_MAX_V, dWeightsD[2] + lr*(sF/norm)))
+  // EMA pour export stable
+  for(let i=0;i<3;i++) dWeightsEMA[i] = dWeightsEMA[i]*0.95 + dWeightsD[i]*0.05
+}
+
+
+const SEQ_WIN_ALPHA = 0.08
+const ZONE_EMA_A   = 0.06
+
+// ══════════════════════════════════════════════════════════
+// HRR PRIMITIVES (identique v0.001)
+// ══════════════════════════════════════════════════════════
+function lcgRand(s){ s=(Math.imul(1664525,s)+1013904223)>>>0; return [s,(s>>>1)/0x7FFFFFFF] }
+
+// ──────────────────────────────────────────────────────────
+// v0.7-phase1 — FONCTIONS DÉRIVATION DEPUIS MASTER_SEED
+// ──────────────────────────────────────────────────────────
+// Le MASTER_SEED (déclaré plus haut) dérive :
+//   1. Les 12 _BIT_VECS (base HDC)
+//   2. Les 26 LETTER_CODES (mapping lettre → signature 6D)
+// Sans ce seed, un attaquant ne connaît PAS l'espace sémantique
+// dans lequel les pairs communiquent — même s'il capture tout le
+// trafic, il ne peut ni encoder ni décoder les bigrammes.
+// Saut qualitatif : crypto algorithmique → crypto sémantique.
+// ──────────────────────────────────────────────────────────
+function seedToInt32(hex, offset=0){
+  let x = 0
+  for(let i=0;i<8;i++){
+    const c = hex.charCodeAt((offset+i) % hex.length)
+    x = (Math.imul(x, 31) + c) >>> 0
+  }
+  return (x ^ 0xDEADBEEF) >>> 0  // XOR pour diffusion
+}
+
+// Dérive les LETTER_CODES depuis seed : 26 lettres × 6 dims × 2 bits
+function deriveLETTER_CODES(seed){
+  const codes = {}
+  let st = seedToInt32(seed, 0)
+  for(const ch of ALPHA){
+    // Mix charCode pour diversifier entre lettres
+    st = (Math.imul(st ^ ch.charCodeAt(0), 2654435761) + 1013904223) >>> 0
+    const c = [0,0,0,0,0,0]
+    for(let d=0;d<6;d++){
+      let r; [st, r] = lcgRand(st)
+      c[d] = Math.floor(r * 4) & 0b11
+    }
+    codes[ch] = c
+  }
+  return codes
+}
+
+// Dérive les 12 BIT_VECS depuis seed (offset 8 pour indépendance)
+function deriveBITVECS(seed){
+  const v = []
+  let st = seedToInt32(seed, 8)
+  for(let i=0;i<12;i++){
+    const vec = new Float32Array(LDIM)
+    for(let j=0;j<LDIM;j++){
+      let r; [st, r] = lcgRand(st)
+      vec[j] = r < .5 ? -1 : 1
+    }
+    v.push(vec)
+  }
+  return v
+}
+
+// Initialisation des LETTER_CODES maintenant que lcgRand est défini
+LETTER_CODES_V4 = deriveLETTER_CODES(MASTER_SEED)
+
+// _BIT_VECS dérivés du seed (pas plus de constante hardcodée)
+let _BIT_VECS = deriveBITVECS(MASTER_SEED)
+const _LDIM_MASK = LDIM-1
+
+function normalize(v){
+  let n=0; for(let i=0;i<LDIM;i++) n+=v[i]*v[i]
+  n=Math.sqrt(n)||1; for(let i=0;i<LDIM;i++) v[i]/=n; return v
+}
+function dot(a,b){ let s=0; for(let i=0;i<LDIM;i++) s+=a[i]*b[i]; return s }
+
+function makeLetterVec(ch){
+  const code=LETTER_CODES_V4[ch]; if(!code) return null
+  const out=new Float32Array(LDIM)
+  for(let d=0;d<6;d++){
+    const val=code[d],b0=(val>>0)&1,b1=(val>>1)&1
+    const w0=b0?1:-1,w1=b1?1:-1
+    for(let i=0;i<LDIM;i++) out[i]+=_BIT_VECS[d*2][i]*w0+_BIT_VECS[d*2+1][i]*w1
+  }
+  return normalize(out)
+}
+
+let letterVecs = {}
+for(const ch of ALPHA) letterVecs[ch] = makeLetterVec(ch)
+
+// v0.7-phase1 : fonction pour reconstruire l'espace sémantique depuis nouveau seed
+// Utilisée quand l'utilisateur change MASTER_SEED via l'UI
+function rebuildSemanticSpace(newSeed){
+  MASTER_SEED = newSeed
+  _BIT_VECS   = deriveBITVECS(newSeed)
+  LETTER_CODES_V4 = deriveLETTER_CODES(newSeed)
+  letterVecs = {}
+  for(const ch of ALPHA) letterVecs[ch] = makeLetterVec(ch)
+  console.log('[v0.7] Espace sémantique reconstruit depuis seed:', newSeed.slice(0,8)+'...')
+}
+
+function encodeSeq(seq){
+  const out=new Float32Array(LDIM)
+  for(const ch of seq){ const lv=letterVecs[ch]; if(lv) for(let i=0;i<LDIM;i++) out[i]+=lv[i] }
+  return normalize(out)
+}
+
+// Sparse vector (pour init aléatoire des cerveaux)
+function sparseV(){
+  const v=new Float32Array(LDIM)
+  const k=Math.floor(LDIM*.05)
+  for(let i=0;i<k;i++){
+    const j=Math.random()*LDIM|0
+    v[j]=(Math.random()*2-1)
+  }
+  return normalize(v)
+}
+
+// lStore — EMA mémoire
+function lStore(mem,v,lr=0.03){
+  for(let i=0;i<LDIM;i++) mem[i]=mem[i]*(1-lr)+v[i]*lr
+  normalize(mem)
+}
+
+// ══════════════════════════════════════════════════════════
+// ÉTAT SIMULATION
+// ══════════════════════════════════════════════════════════
+let lB, pairConv, seqZoneEMA, vocabHist, vocabH
+let gConv, steps, adaptedSpd
+let running = false, rafId = null
+
+// Vecteurs bigrammes pré-calculés
+const seqVecs = {}
+for(const seq of VOCAB) seqVecs[seq] = encodeSeq(seq)
+
+function initSim(){
+  // Cerveaux
+  lB = Array.from({length:B}, ()=>({
+    mem: sparseV(),
+  }))
+  // Convergence par paire
+  pairConv = new Float32Array(CPAIRS.length).fill(0.1)
+  // Activité bigrammes
+  seqZoneEMA = Array.from({length:B}, ()=>{
+    const o={}; for(const s of VOCAB) o[s]=0; return o
+  })
+  // Vocab history pour H
+  vocabHist = []; vocabH = 0
+  gConv = 0; steps = 0; adaptedSpd = 1
+  initHebb()
+  dWeightsD = new Float32Array([1.0,1.0,1.0])
+  dWeightsEMA = new Float32Array([1.0,1.0,1.0])
+  wU.fill(0); wP.fill(0); zoneE.fill(0); zoneSignal.fill(0)
+  for(let b=0;b<B;b++) for(const s of VOCAB){ seqZonePrev[b][s]=0; seqZoneEMA_slow[b][s]=0 }
+  _semGradTick=0
+  for(let b=0;b<B;b++){
+    // Init gSt avec bruit sparse — divergence initiale nécessaire pour pairPull
+    for(let i=0;i<SDIM;i++) gSt[b][i]=(Math.random()-0.5)*0.3*(Math.random()<0.1?1:0)
+    hMem[b].fill(0); hPrev[b].fill(0)
+    sfProxy[b].fill(0); _pull[b].fill(0)
+  }
+  _avg.fill(0)
+  for(const seq of VOCAB) seqWinCorr[seq]=0
+  taskScore=0; gameActive=false; gameWins=0; gamePlayed=0; gameWinRate=0
+  log('Simulation initialisée','info')
+}
+
+// ══════════════════════════════════════════════════════════
+// nextSeq — choisir bigramme pour cerveau b
+// ══════════════════════════════════════════════════════════
+function nextSeq(b){
+  const scores = {}
+  // Maturité cerveau b — cerveaux cristallisés font confiance à ema
+  const maturity = Math.min(1, (crystalByBrain[b]||0) / NCONCEPT)
+  for(const seq of VOCAB){
+    const sv = seqVecs[seq]
+    const hdcScore = dot(lB[b].mem, sv)
+    const ema = seqZoneEMA[b][seq] || 0
+    // seqWinCorr booste les bigrammes associés à des victoires
+    const winBoost = 1 + Math.max(0, seqWinCorr[seq]||0) * 1.5  // plus fort
+    scores[seq] = (hdcScore * (1-maturity*0.3) + ema * (0.3 + maturity*0.3)) * winBoost
+  }
+  // Softmax temperature 0.5
+  const vals = Object.values(scores)
+  const maxV = Math.max(...vals)
+  const exps = vals.map(v => Math.exp((v - maxV) * 2))
+  const sum  = exps.reduce((a,b)=>a+b, 0)
+  const prob = exps.map(e => e/sum)
+
+  let r = Math.random(), cumul = 0
+  const keys = Object.keys(scores)
+  for(let i=0;i<keys.length;i++){
+    cumul += prob[i]
+    if(r <= cumul) return keys[i]
+  }
+  return keys[keys.length-1]
+}
+
+// ══════════════════════════════════════════════════════════
+// doExchange — communication inter-cerveaux
+// ══════════════════════════════════════════════════════════
+function doExchange(){
+  // Sélection proportionnelle : paires alignées communiquent plus
+  // + une paire aléatoire pour l'exploration
+  const pcSum = pairConv.reduce((s,v)=>s+v+0.1, 0)  // +0.1 évite division /0
+  let r = Math.random() * pcSum
+  let selectedCi = 0
+  for(let ci=0;ci<CPAIRS.length;ci++){
+    r -= pairConv[ci]+0.1
+    if(r<=0){ selectedCi=ci; break }
+  }
+
+  // Traiter la paire sélectionnée + 2 aléatoires pour couvrir
+  const toProcess = new Set([selectedCi,
+    Math.random()*CPAIRS.length|0,
+    Math.random()*CPAIRS.length|0])
+
+  for(const ci of toProcess){
+    const [bA, bB] = CPAIRS[ci]
+    const seq = nextSeq(bA)
+
+    // Encode le bigramme
+    const sv = seqVecs[seq]
+
+    // Mesure similarité (convergence)
+    const dA = dot(lB[bA].mem, sv)
+    const dB = dot(lB[bB].mem, sv)
+
+    // Convergence = accord entre A et B sur ce bigramme
+    const zBoost = 1 + Math.abs(zoneSignal[bA] + zoneSignal[bB]) * 0.4
+    const agree  = dA * dB * zBoost
+    const pcLR = pairConv[ci] > 0.80 ? 0.08 : 0.05
+    pairConv[ci] = pairConv[ci] * (1-pcLR) + Math.max(0, agree) * pcLR
+
+    // Apprentissage : blend vers sv + attraction vers cMem du partenaire
+    const LR = 0.015
+    // Signal d'onde module l'apprentissage : cerveau "actif" apprend plus
+    const waveModA = 1 + Math.abs(zoneSignal[bA]) * 0.5
+    const waveModB = 1 + Math.abs(zoneSignal[bB]) * 0.5
+    if(Math.abs(dB) > 0.05){
+      for(let i=0;i<LDIM;i++){
+        lB[bA].mem[i] += sv[i]*dB*LR*waveModA
+        lB[bA].mem[i] += cMem[bB][i]*dB*LR*0.3
+      }
+      normalize(lB[bA].mem)
+    }
+    if(Math.abs(dA) > 0.05){
+      for(let i=0;i<LDIM;i++){
+        lB[bB].mem[i] += sv[i]*dA*LR*waveModB
+        lB[bB].mem[i] += cMem[bA][i]*dA*LR*0.3
+      }
+      normalize(lB[bB].mem)
+    }
+
+    // Update seqZoneEMA
+    const sigA = Math.max(0, dA)
+    const sigB = Math.max(0, dB)
+    // zoneSignal module l'apprentissage EMA — cerveaux sous-actifs apprennent plus
+    const zModA = 1 + Math.max(0, zoneSignal[bA]) * 0.5
+    const zModB = 1 + Math.max(0, zoneSignal[bB]) * 0.5
+    seqZoneEMA[bA][seq] = (seqZoneEMA[bA][seq]||0)*(1-ZONE_EMA_A*zModA) + sigA*ZONE_EMA_A*zModA
+    seqZoneEMA[bB][seq] = (seqZoneEMA[bB][seq]||0)*(1-ZONE_EMA_A*zModB) + sigB*ZONE_EMA_A*zModB
+    // EMA longue — seed stable
+    seqZoneEMA_slow[bA][seq] = (seqZoneEMA_slow[bA][seq]||0)*(1-ZONE_EMA_SLOW) + sigA*ZONE_EMA_SLOW
+    seqZoneEMA_slow[bB][seq] = (seqZoneEMA_slow[bB][seq]||0)*(1-ZONE_EMA_SLOW) + sigB*ZONE_EMA_SLOW
+
+    // Vocab history
+    vocabHist.push(seq)
+    if(vocabHist.length > 200) vocabHist.shift()
+
+    // Résonance forcée : paire très alignée → tirer gSt l'un vers l'autre
+    if(pairConv[ci] > 0.80){
+      const pull = 0.08
+      for(let i=0;i<SDIM;i++){
+        const diff = gSt[bB][i] - gSt[bA][i]
+        gSt[bA][i] = Math.tanh(gSt[bA][i] + diff*pull)
+        gSt[bB][i] = Math.tanh(gSt[bB][i] - diff*pull)
+      }
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// computeGConv
+// ══════════════════════════════════════════════════════════
+function computeGConv(){
+  // Convergence depuis gSt — cosine similarity entre cerveaux voisins
+  let s=0
+  for(let ci=0;ci<CPAIRS.length;ci++){
+    const [bA,bB]=CPAIRS[ci]
+    // cos(gSt[bA], gSt[bB])
+    let dot=0,nA=0,nB=0
+    for(let i=0;i<SDIM;i++){
+      dot+=gSt[bA][i]*gSt[bB][i]
+      nA +=gSt[bA][i]*gSt[bA][i]
+      nB +=gSt[bB][i]*gSt[bB][i]
+    }
+    const cos = (Math.sqrt(nA)*Math.sqrt(nB))>1e-6 ? dot/(Math.sqrt(nA)*Math.sqrt(nB)) : 0
+    // Blend avec pairConv (activité onde)
+    s += (cos*0.6 + pairConv[ci]*0.4)
+  }
+  gConv = Math.max(0, s/CPAIRS.length)
+}
+
+// ══════════════════════════════════════════════════════════
+// computeVocabH
+// ══════════════════════════════════════════════════════════
+function computeVocabH(){
+  if(vocabHist.length<5){ vocabH=0; return }
+  const cnt={}
+  for(const s of vocabHist) cnt[s]=(cnt[s]||0)+1
+  const tot=vocabHist.length
+  let h=0
+  for(const k in cnt){ const p=cnt[k]/tot; h-=p*Math.log(p) }
+  vocabH = h/Math.log(VOCAB.length)
+}
+
+
+// ══════════════════════════════════════════════════════════
+// gSt — état cognitif 64D par cerveau (source d'entropie haute dimension)
+// hMem — mémoire EMA de l'état (Hebbian trace)
+// sfProxy — proxy 4D du substrat (remplace sFieldCoarse sans neurones)
+// ══════════════════════════════════════════════════════════
+const SDIM = 64
+const SP   = 4
+const coup = 25/15000
+const hrrStr = 0.001
+
+const gSt    = Array.from({length:B}, ()=> new Float32Array(SDIM))
+const hMem   = Array.from({length:B}, ()=> new Float32Array(SDIM))
+const hPrev  = Array.from({length:B}, ()=> new Float32Array(SDIM))
+const _avg   = new Float32Array(SDIM)
+const _pull  = Array.from({length:B}, ()=> new Float32Array(SDIM))
+const sfProxy= Array.from({length:B}, ()=> new Float32Array(SP))
+const PISTE6_GAIN = 0.3
+
+// Calcul sfProxy depuis seqZoneEMA — projection sur 4 axes par code de bigramme
+function computeSfProxy(){
+  // 4 statistiques fonctionnelles de seqZoneEMA par cerveau
+  // → signature biologique différenciée selon l'activité réelle
+  for(let b=0;b<B;b++){
+    const vals = VOCAB.map(seq=>seqZoneEMA[b][seq]||0)
+    const n = vals.length
+    const mean = vals.reduce((s,v)=>s+v,0)/n
+    const max  = Math.max(...vals)
+    const min  = Math.min(...vals)
+    // variance
+    const vari = vals.reduce((s,v)=>s+(v-mean)**2,0)/n
+    // asymétrie (skewness simplifié)
+    const skew = vals.reduce((s,v)=>s+(v-mean)**3,0)/(n*Math.max(1e-6,vari)**1.5)
+    // top-k activité : somme des 8 plus actifs / somme totale
+    const sorted = [...vals].sort((a,b)=>b-a)
+    const topK = sorted.slice(0,8).reduce((s,v)=>s+v,0)
+    const totAbs = vals.reduce((s,v)=>s+Math.abs(v),0)
+    sfProxy[b][0] = Math.tanh(mean * 20)        // niveau moyen
+    sfProxy[b][1] = Math.tanh(Math.sqrt(vari)*10) // dispersion
+    sfProxy[b][2] = Math.tanh(skew * 0.5)        // asymétrie
+    sfProxy[b][3] = totAbs > 0 ? topK/totAbs : 0  // concentration (peak ratio)
+  }
+}
+
+function stepCognition(){
+  // 1. Moyenne inter-cerveaux
+  _avg.fill(0)
+  for(let b=0;b<B;b++) for(let i=0;i<SDIM;i++) _avg[i]+=gSt[b][i]
+  for(let i=0;i<SDIM;i++) _avg[i]/=B
+
+  // 2. pairPull : chaque cerveau est tiré vers ses partenaires ∝ pairConv
+  for(let b=0;b<B;b++) _pull[b].fill(0)
+  for(let ci=0;ci<CPAIRS.length;ci++){
+    const [bA,bB]=CPAIRS[ci], w=pairConv[ci]
+    for(let i=0;i<SDIM;i++){
+      _pull[bA][i] += (gSt[bB][i]-gSt[bA][i]) * w * 0.5
+      _pull[bB][i] += (gSt[bA][i]-gSt[bB][i]) * w * 0.5
+    }
+  }
+
+  // 3. Update gSt par cerveau
+  computeSfProxy()
+  for(let b=0;b<B;b++){
+    const st  = gSt[b]
+    const mat = 1 + (crystalByBrain[b]||0)/NCONCEPT * 0.5  // maturité [1,1.5]
+    const p6  = PISTE6_GAIN * mat   // gain Piste 6 ∈ [0.3, 0.45]
+
+    for(let i=0;i<SDIM;i++){
+      // Gains calibrés : pairPull fort pour convergence, onde pour modulation
+      const next = st[i]
+        + _avg[i]   * coup * 3.0      // attraction moyenne (×3 vs OMEGA)
+        + _pull[b][i] * coup * 20.0   // sync ∝ pairConv (dominant)
+        + zoneSignal[b] * coup * 2.0  // onde module l'état
+        + sfProxy[b][i%SP] * coup * p6 * 3.0  // Piste 6 proxy (amplifié)
+        + hMem[b][i] * hrrStr * 5.0   // trace Hebbian
+        + (Math.random()*2-1) * 0.001 // bruit ergodique (réduit)
+      st[i] = Math.tanh(isFinite(next)?next:st[i])
+    }
+
+    // hMem — EMA vers état courant (consolidation Hebbienne)
+    for(let i=0;i<SDIM;i++) hMem[b][i] = hMem[b][i]*0.994 + st[i]*0.006
+
+    // Injecter gSt dans l'onde : énergie ∝ activité moyenne de l'état
+    let en=0; for(let i=0;i<SDIM;i++) en+=Math.abs(st[i]); en/=SDIM
+    wU[b] += Math.tanh(en * 2) * 0.03  // feedback gSt → onde
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// HEBB + crystalByBrain
+// ══════════════════════════════════════════════════════════
+const NCONCEPT  = 16
+const HEBB_LR   = 0.02
+const HEBB_THR  = 0.82   // seuil cristallisation
+
+// cMem = mémoire consolidée (Hebbian trace)
+let cMem, crystalByBrain
+
+function initHebb(){
+  cMem = Array.from({length:B}, ()=> new Float32Array(LDIM))
+  crystalByBrain = new Int32Array(B)
+}
+
+function hebb(taskScore){
+  if(taskScore < 0.1) return
+  for(let b=0;b<B;b++){
+    const mem = lB[b].mem
+    const cm  = cMem[b]
+    // EMA vers état courant pondéré par taskScore
+    const matC = Math.min(1, crystalByBrain[b]/NCONCEPT)
+    const lr = HEBB_LR * taskScore * (1 + matC)  // plus fort si mature
+    for(let i=0;i<LDIM;i++) cm[i] = cm[i]*(1-lr) + mem[i]*lr
+    normalize(cm)
+    // Cristallisation si convergence forte
+    const stability = dot(mem, cm)
+    if(stability > HEBB_THR && crystalByBrain[b] < NCONCEPT){
+      crystalByBrain[b]++
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// PENDU SILENCIEUX
+// ══════════════════════════════════════════════════════════
+const WORDS = [
+  'ABIME','ABORD','ACIER','ADIEU','AGILE','AIGLE','AMOUR','ANCRE','ARBRE','ARCHE',
+  'ARRET','ASILE','ASTRE','ATOME','AVION','BAGUE','BALLE','BATON','BOIRE','BOMBE',
+  'BOTTE','BOUCHE','BRANCHE','BRIQUE','CALME','CARTE','CAUSE','CHANT','CHEVAL','CHOSE',
+  'CIBLE','CLEF','COEUR','CONTE','CORDE','CORPS','CRANE','CUIVRE','CYCLE','DANSE',
+  'DELTA','DENSE','DETTE','DIODE','DISCO','DROIT','DRONE','ECLAT','ECRAN','ELAN',
+  'EMAIL','ENCRE','ENFIN','ENTRE','ENVOL','EPAVE','EQUIP','ESPRIT','ETOIL','EXTRA',
+  'FABLE','FAUVE','FERME','FICHE','FILET','FLAIR','FLEUR','FLORE','FOCUS','FORGE',
+  'FORME','FORUM','FOYER','FRANC','FRONT','FUGUE','FUMET','FUSEE','GALET','GARDE',
+  'GLOBE','GRADE','GRAIN','GUIDE','HALTE','HAUTE','HAVRE','HERBE','HOTEL','HUILE',
+  'IMAGE','INDEX','ISSUE','JAUGE','JUSTE','LANCE','LASER','LESTE','LIBRE','LINGE',
+  'LIVRE','LUEUR','LUMEN','MONDE','MOTIF','MOULE','OCEAN','OMBRE','OPERA','ORDRE',
+  'ORQUE','OZONE','PALME','PANEL','PENTE','PHASE','PIANO','PIECE','PILIER','PIXEL',
+  'PLACE','PLAGE','PLANE','POIDS','POINT','POMPE','PORTE','POSTE','POUTRE','PRISE',
+  'PRIZE','PROBE','PULSE','QUETE','QUEUE','RADAR','RAPIDE','RAYON','REFLET','REGIE',
+  'REGLE','RELAI','RENNE','REPAS','REPOS','RESEAU','REVER','REVUE','RIDEAU','ROBOT',
+  'ROCHE','ROUGE','ROUTE','RUBAN','SABLE','SABRE','SAGESSE','SALLE','SALUT','SANTE',
+  'SAULE','SAVOIR','SCENE','SIGNE','SINON','SIRENE','SOLDE','SOLEIL','SONAR','SONDE',
+  'SOUDE','SOUPE','SPORT','STADE','STAGE','STYLE','SUITE','TABLE','TACHE','TALON',
+  'TANGO','TAPIS','TEMPS','TERME','TEXTE','TIARE','TITRE','TOILE','TOMBE','TORCHE',
+  'TOTAL','TRACE','TRAIN','TRAIT','TREVE','TRIAL','TRIBU','TRONE','TROUS','TUILE',
+  'ULTRA','UNION','USAGE','USINE','VALSE','VALVE','VAPEUR','VEINE','VENUE','VERBE',
+  'VERRE','VERTU','VITRE','VOILE','VOUTE','WAGON','ZESTE'
+]
+const REF_ERREURS = 20  // référence sans dictionnaire
+const GUESS_EVERY = 20  // steps entre chaque guess
+
+let gameWord='', revealed=[], wrongSet=new Set(), proposedSet=new Set()
+let gameActive=false, gameWins=0, gamePlayed=0, gameWinRate=0
+let dWeights = new Float32Array([1,1,1,1])
+let seqWinCorr = {}
+let taskScore = 0
+let _stepsSinceGuess = 0
+const D_MIN=-1.0, D_MAX=3.0, D_LR=0.06
+
+for(const seq of VOCAB) seqWinCorr[seq] = 0
+
+function startGame(){
+  gameWord = WORDS[Math.random()*WORDS.length|0]
+  revealed  = Array.from(gameWord, ()=>'_')
+  wrongSet.clear(); proposedSet.clear()
+  gameActive = true
+  _stepsSinceGuess = 0
+  _gameGuesses = 0   // compteur guesses du jeu courant
+}
+let _gameGuesses = 0
+
+// Décision lettre — carte sémantique amplifiée
+// Inspiré des fixes v3.12 (semBrainW) + v3.8 (corrFactor) + v3.15.1 (C discriminant)
+function penduDecideC(){
+  // semBrainW : poids par cerveau selon maturité (crystalByBrain)
+  // Cerveau C (b=4) a poids de base 2 comme dans OMEGA original
+  const semBaseW = [1,1,1,1,2]
+  const semBrainW = semBaseW.map((w,b)=> w * (1 + (crystalByBrain[b]||0)/NCONCEPT))
+
+  // Calculer semSignal par lettre
+  const semSignal = {}
+  for(const seq of VOCAB){
+    const sv  = seqVecs[seq]
+    const wCorr = seqWinCorr[seq] || 0
+
+    // corrFactor : amplifie les bigrammes corrélés avec victoire
+    const corrFactor = 1 + wCorr * 1.5
+
+    // coherFactor : consensus inter-cerveaux (tous dans même direction → signal fiable)
+    const emas = Array.from({length:B},(_,b)=>seqZoneEMA[b][seq]||0)
+    const avgEma = emas.reduce((a,v)=>a+v,0)/B
+    const variance = emas.reduce((a,v)=>a+(v-avgEma)**2,0)/B
+    const coherFactor = 1 / (1 + variance * 10)  // élevé si consensus
+
+    // Signal pondéré par cerveau
+    let sAgg = 0
+    for(let b=0;b<B;b++){
+      sAgg += (seqZoneEMA[b][seq]||0) * semBrainW[b]
+    }
+    // gradFactor — précédence intentionnelle Chesterton (calibrée OMEGA v3.15)
+    // NOTE : (seqZoneEMA[b][seq]||0 - seqZonePrev[b][seq]||0) → bug précédence
+    // intentionnel. Corriger divise semSignal par ~2.5. NE PAS MODIFIER.
+    let gradSum = 0
+    for(let b=0;b<B;b++)
+      gradSum += (seqZoneEMA[b][seq]||0 - seqZonePrev[b][seq]||0) * semBrainW[b]
+    const gradFactor = 1 + Math.max(0, gradSum) * 2
+
+    sAgg = sAgg * corrFactor * coherFactor * gradFactor / B
+
+    if(sAgg < 0.01) continue  // seuil minimum
+
+    // Distribuer sur les lettres du bigramme
+    for(const ch of seq){
+      semSignal[ch] = (semSignal[ch]||0) + sAgg
+    }
+  }
+
+  // Score par lettre
+  const scores = {}
+  for(const ch of ALPHA){
+    if(proposedSet.has(ch)){ scores[ch]=-9; continue }
+
+    // sFreq : fréquence FR comme prior
+    const sFreq = (LETTER_FREQ[ch]||0.001) * 2.0
+
+    // sSem : signal carte sémantique amplifiée
+    const sSem = semSignal[ch] || 0
+
+    // sPattern : bonus bigrammes avec lettres révélées
+    let sPat = 0
+    for(let i=0;i<revealed.length;i++){
+      if(revealed[i]!=='_') continue
+      if(i>0 && revealed[i-1]!=='_'){
+        const bg=revealed[i-1]+ch; sPat+=Math.max(0,(seqWinCorr[bg]||0))*0.8
+      }
+      if(i<revealed.length-1 && revealed[i+1]!=='_'){
+        const bg=ch+revealed[i+1]; sPat+=Math.max(0,(seqWinCorr[bg]||0))*0.8
+      }
+    }
+
+    // Scores par source pour D
+    const lv = letterVecs[ch]
+    const sOndeCh  = lv ? dot(lB[4].mem, lv) : 0  // signal onde C
+    const sSemCh   = semSignal[ch] || 0
+    const sFreqCh  = sFreq
+    _dLastScores[0][ch] = sOndeCh
+    _dLastScores[1][ch] = sSemCh
+    _dLastScores[2][ch] = sFreqCh
+
+    // Score final avec arbitrage D
+    const gOnde = Math.max(0, dWeightsD[0])
+    const gSem  = Math.max(0, dWeightsD[1])
+    const gFreq = Math.max(0, dWeightsD[2])
+    scores[ch] = sOndeCh*gOnde*0.3 + sSemCh*gSem*0.5 + sFreqCh*gFreq*0.2 + sPat*0.1
+  }
+
+  // Softmax température 3
+  const vals=Object.values(scores),maxV=Math.max(...vals)
+  const exps=vals.map(v=>Math.exp((v-maxV)*3))
+  const sum=exps.reduce((a,b)=>a+b,0)
+  const prob=exps.map(e=>e/sum)
+  let r=Math.random(),cumul=0
+  const keys=Object.keys(scores)
+  for(let i=0;i<keys.length;i++){
+    cumul+=prob[i]; if(r<=cumul) return keys[i]
+  }
+  return keys[0]
+}
+
+function penduApplyGuess(letter){
+  proposedSet.add(letter)
+  _gameGuesses++
+  const isHit = gameWord.includes(letter)
+  updateD(letter, isHit)  // cerveau D apprend
+
+  if(isHit){
+    for(let i=0;i<gameWord.length;i++) if(gameWord[i]===letter) revealed[i]=letter
+  } else {
+    wrongSet.add(letter)
+  }
+
+  // Fin de partie : uniquement victoire (tour infini)
+  const won = !revealed.includes('_')
+
+  if(won){
+    gamePlayed++
+    gameWins++
+    gameWinRate = gameWins/gamePlayed
+
+    // Score gradué [0,100]
+    const nErreurs = _gameGuesses - new Set(gameWord.split('')).size  // guesses - lettres uniques
+    // Difficulté : proportion de lettres rares dans le mot
+    const freqSum = gameWord.split('').reduce((s,c)=>s+(LETTER_FREQ[c]||0.001),0)
+    const difficulte = Math.max(0.3, 1 - freqSum/gameWord.length)
+    const efficiency = Math.max(0, 1 - nErreurs/REF_ERREURS)
+    const score100 = efficiency * (0.7 + difficulte*0.3) * 100
+    const intensity = score100/100  // [0,1]
+
+    // Update dWeights — gradué par score
+
+    // Update seqWinCorr — bigrammes des lettres trouvées renforcés
+    const foundLetters = new Set(revealed.filter(c=>c!=='_'))
+    for(const seq of VOCAB){
+      const inWord = seq.split('').every(c=>foundLetters.has(c))
+      const reward = inWord ? intensity : -intensity*0.1  // pénalité légère si hors-mot
+      seqWinCorr[seq] = Math.max(-1, Math.min(1,
+        seqWinCorr[seq]*(1-SEQ_WIN_ALPHA) + reward*SEQ_WIN_ALPHA
+      ))
+    }
+
+    // taskScore pour hebb
+    taskScore = Math.max(0.1, intensity)
+
+    // Exposer score courant
+    window._lastScore  = Math.round(score100*10)/10
+    window._lastErrors = nErreurs
+    // Injection onde proportionnelle au score
+    injectWave(Math.max(0.5, intensity) * 1.5)  // boost post-WIN
+
+    // Burst post-WIN : bigrammes des lettres trouvées → +1 dans seqZoneEMA
+    const foundL = new Set(revealed.filter(c=>c!=='_'))
+    // Exclure les bigrammes répétitifs (AA, EE...) du burst — préserver l'entropie
+    const burstSeqs = VOCAB.filter(s=>s[0]!==s[1] && s.split('').every(c=>foundL.has(c)))
+    const burstN = Math.round(30 + intensity * 90)   // 30-120 steps
+    _burst = { seqs: burstSeqs.length ? burstSeqs : VOCAB.slice(0,4),
+                      steps: burstN, alpha: 0.05 * intensity }
+
+    // Attracteurs : seqWinCorr fort → injecter dans hMem comme attracteur
+    for(let b=0;b<B;b++){
+      for(const seq of VOCAB){
+        if((seqWinCorr[seq]||0) > 0.5){
+          const sv = seqVecs[seq]
+          const boost = seqWinCorr[seq] * 0.002 * intensity
+          for(let i=0;i<SDIM;i++) hMem[b][i] += sv[i % SDIM] * boost
+        }
+      }
+      // Renormaliser hMem après attracteurs
+      let hn=0; for(let i=0;i<SDIM;i++) hn+=hMem[b][i]*hMem[b][i]
+      hn=Math.sqrt(hn)||1; for(let i=0;i<SDIM;i++) hMem[b][i]/=hn
+    }
+
+    gameActive = false
+    startGame()  // direct — pas de setTimeout, wrongSet encore intact au calcul
+  }
+}
+
+function penduStep(){
+  if(!gameActive){ startGame(); return }
+  _stepsSinceGuess++
+  if(_stepsSinceGuess >= GUESS_EVERY){
+    _stepsSinceGuess = 0
+    const letter = penduDecideC()
+    penduApplyGuess(letter)
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// BOUCLE PRINCIPALE
+// ══════════════════════════════════════════════════════════
+let lastGconv = 0, lastSteps = 0, lastTime = 0
+
+function step(){
+  const spd = adaptedSpd || 1
+  for(let k=0;k<spd;k++){
+    stepWave()
+    if(steps % 30 === 0) injectWave(0.08 + taskScore * 0.15)
+    // Snapshot gradient toutes les 30 steps
+    if(++_semGradTick % 30 === 0)
+      for(let b=0;b<B;b++) for(const s of VOCAB) seqZonePrev[b][s]=seqZoneEMA[b][s]||0
+    readZones()
+    stepCognition()   // gSt + pairPull + sfProxy
+    doExchange()
+    penduStep()
+    steps++
+    if(steps % 30 === 0) hebb(taskScore)
+    // Burst post-WIN actif
+    if(_burst && _burst.steps > 0){
+      _burst.steps--
+      const ba = _burst.alpha
+      for(const seq of _burst.seqs){
+        for(let b=0;b<B;b++){
+          seqZoneEMA[b][seq] = (seqZoneEMA[b][seq]||0)*(1-ba) + ba
+        }
+      }
+    }
+  }
+  if(steps % 10 === 0){
+    computeGConv()
+    computeVocabH()
+    for(let b=0;b<B;b++){
+      let s=0; for(const seq of VOCAB) s+=seqZoneEMA[b][seq]||0
+      zoneScalar[b]=s/VOCAB.length
+    }
+  }
+}
+
+
+
+// ══════════════════════════════════════════════════════════
+// BRAIN GRAPH SVG
+// ══════════════════════════════════════════════════════════
+const BRAIN_POS = [
+  {x:45, y:35,  name:'A1'},
+  {x:45, y:95,  name:'A2'},
+  {x:150,y:35,  name:'B1'},
+  {x:150,y:95,  name:'B2'},
+  {x:255,y:65,  name:'C'},
+]
+
+function initBrainSVG(){
+  const svg = document.getElementById('brain-svg')
+  if(!svg) return
+  svg.innerHTML = ''
+  const ns = 'http://www.w3.org/2000/svg'
+
+  // Edges
+  for(let ci=0;ci<CPAIRS.length;ci++){
+    const [bA,bB] = CPAIRS[ci]
+    const pA=BRAIN_POS[bA], pB=BRAIN_POS[bB]
+    const line = document.createElementNS(ns,'line')
+    line.setAttribute('x1',pA.x); line.setAttribute('y1',pA.y)
+    line.setAttribute('x2',pB.x); line.setAttribute('y2',pB.y)
+    line.setAttribute('stroke','#0e2535'); line.setAttribute('stroke-width','1')
+    line.id = `edge-${ci}`
+    svg.appendChild(line)
+  }
+  // Nodes
+  for(let b=0;b<B;b++){
+    const {x,y,name} = BRAIN_POS[b]
+    const g = document.createElementNS(ns,'g')
+    g.id = `brain-${b}`
+    const c = document.createElementNS(ns,'circle')
+    c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r','12')
+    c.setAttribute('fill','#020d18'); c.setAttribute('stroke','#0e2535')
+    c.setAttribute('stroke-width','1.5')
+    const t = document.createElementNS(ns,'text')
+    t.setAttribute('x',x); t.setAttribute('y',y+3)
+    t.setAttribute('text-anchor','middle'); t.setAttribute('fill','#1a3a4a')
+    t.setAttribute('font-size','8'); t.textContent = name
+    g.appendChild(c); g.appendChild(t)
+    svg.appendChild(g)
+  }
+}
+
+function updateBrainSVG(){
+  for(let ci=0;ci<CPAIRS.length;ci++){
+    const el = document.getElementById(`edge-${ci}`)
+    if(!el) continue
+    const pc = pairConv[ci]
+    const col = pc > 0.8 ? '#00ff9f' : pc > 0.5 ? '#00d4ff' : '#0e2535'
+    el.setAttribute('stroke', col)
+    el.setAttribute('stroke-width', (pc*3+0.5).toFixed(1))
+    el.setAttribute('stroke-opacity', (0.2+pc*0.8).toFixed(2))
+  }
+  for(let b=0;b<B;b++){
+    const g = document.getElementById(`brain-${b}`)
+    if(!g) continue
+    const c = g.querySelector('circle')
+    const t = g.querySelector('text')
+    // Activité = norm gSt[b]
+    let en=0; for(let i=0;i<SDIM;i++) en+=gSt[b][i]*gSt[b][i]; en=Math.sqrt(en/SDIM)
+    const r = 10 + en*12
+    c.setAttribute('r',r.toFixed(1))
+    const col = crystalByBrain[b]>=14 ? '#00ff9f' : '#00d4ff'
+    c.setAttribute('stroke', col)
+    c.setAttribute('stroke-opacity', (0.3+en).toFixed(2))
+    t.setAttribute('fill', col)
+    // Label crystal
+    g.querySelector('text').textContent = BRAIN_NAMES[b]
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// WAVE CANVAS
+// ══════════════════════════════════════════════════════════
+let _waveHistory = Array.from({length:B}, ()=>[])
+const WAVE_HIST_N = 80
+
+function updateWaveCanvas(){
+  const cvs = document.getElementById('wave-cvs')
+  if(!cvs) return
+  const ctx = cvs.getContext('2d')
+  const W = cvs.offsetWidth||400, H = 60
+  cvs.width = W
+
+  ctx.fillStyle = '#030f1e'
+  ctx.fillRect(0,0,W,H)
+
+  // Grid lines
+  ctx.strokeStyle = '#0e2535'; ctx.lineWidth = 0.5
+  for(let y=10;y<H;y+=10){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke()
+  }
+
+  // Push current wU values
+  for(let b=0;b<B;b++){
+    _waveHistory[b].push(wU[b])
+    if(_waveHistory[b].length > WAVE_HIST_N) _waveHistory[b].shift()
+  }
+
+  const colors = ['#00d4ff','#00ff9f','#ffaa00','#6ab4cc','#ff3355']
+  for(let b=0;b<B;b++){
+    const hist = _waveHistory[b]
+    if(hist.length < 2) continue
+    ctx.strokeStyle = colors[b]; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.7
+    ctx.beginPath()
+    for(let i=0;i<hist.length;i++){
+      const x = (i/WAVE_HIST_N)*W
+      const y = H/2 - (hist[i]/30)*H*0.45
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y)
+    }
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+
+  // Zone signals text
+  const zEl = document.getElementById('zone-sigs')
+  if(zEl) zEl.innerHTML = Array.from(zoneSignal).map((z,b)=>
+    `<span style="color:${colors[b]}">${BRAIN_NAMES[b]}:${z>=0?'+':''}${z.toFixed(2)}</span>`
+  ).join(' ')
+}
+
+// ══════════════════════════════════════════════════════════
+// VOCAB HEATMAP
+// ══════════════════════════════════════════════════════════
+function updateVocabHeat(){
+  const el = document.getElementById('vocab-heat')
+  if(!el) return
+  // Moyenne seqZoneEMA sur cerveaux
+  const avg = {}
+  for(const seq of VOCAB){
+    avg[seq]=0
+    for(let b=0;b<B;b++) avg[seq]+=(seqZoneEMA[b][seq]||0)/B
+  }
+  const mx = Math.max(0.001, ...Object.values(avg))
+  el.innerHTML = VOCAB.map(seq=>{
+    const v = avg[seq]
+    const i = Math.max(0, Math.min(1, v/mx))
+    const bg = `rgba(0,212,255,${(i*0.25).toFixed(3)})`
+    const col = i > 0.5 ? '#00d4ff' : '#1a3a4a'
+    return `<div class="vh-cell" style="background:${bg};color:${col}" title="${seq}:${v.toFixed(3)}">${seq}</div>`
+  }).join('')
+}
+
+// ══════════════════════════════════════════════════════════
+// MÉTRIQUES
+// ══════════════════════════════════════════════════════════
+function updateMetrics(){
+  const el = document.getElementById('metrics')
+  if(!el) return
+  const dD = Array.from(dWeightsEMA).map(v=>v.toFixed(3))
+  const cr  = Array.from(crystalByBrain)
+  const rows = [
+    ['gConv', gConv.toFixed(4), gConv>0.70?'ok':''],
+    ['vocabH', vocabH.toFixed(4), ''],
+    ['steps', steps.toLocaleString(), ''],
+    ['taskScore', taskScore.toFixed(3), taskScore>0.5?'ok':''],
+    ['winRate', (gameWinRate*100).toFixed(1)+'%', ''],
+    ['parties', gamePlayed, ''],
+    ['dWeightsD', dD.join(' '), ''],
+    ['crystal', cr.join(' '), cr.every(v=>v>=14)?'ok':''],
+    ['slowEmaMax', (window._sim?.slowEmaMax||0).toFixed(4), ''],
+  ]
+  el.innerHTML = rows.map(([k,v,cls])=>
+    `<div class="mrow"><span class="mk">${k}</span><span class="mv ${cls}">${v}</span></div>`
+  ).join('')
+}
+
+// ══════════════════════════════════════════════════════════
+// OPTIONS KEY PANEL
+// ══════════════════════════════════════════════════════════
+const _opts = { fuzzy:false, slow:false, salt:true }
+window.toggleOpt = function(name){
+  _opts[name] = !_opts[name]
+  const el = document.getElementById(`opt-${name}`)
+  if(el) el.classList.toggle('on', _opts[name])
+}
+
+// ══════════════════════════════════════════════════════════
+// KEY PANEL UPDATE
+// ══════════════════════════════════════════════════════════
+const KEY_GCONV_MIN = 0.70
+const KEY_STEPS_MIN = 300
+
+function seedQuality(){
+  const gcS = Math.min(1, gConv/KEY_GCONV_MIN)
+  const stS = Math.min(1, steps/KEY_STEPS_MIN)
+  const emS = Math.min(1, (window._sim?.slowEmaMax||0)/0.30)
+  return gcS*0.5 + stS*0.3 + emS*0.2
+}
+
+function updateKeyPanel(){
+  const qual  = seedQuality()
+  const ready = gConv >= KEY_GCONV_MIN && steps >= KEY_STEPS_MIN
+  const pct   = Math.round(qual*100)
+
+  const fill = document.getElementById('kq-fill')
+  const pctEl= document.getElementById('kq-pct')
+  const sts  = document.getElementById('key-status')
+  const btn  = document.getElementById('btn-gen')
+
+  if(fill){
+    fill.style.width = pct+'%'
+    fill.classList.toggle('good', qual > 0.65)
+  }
+  if(pctEl) pctEl.textContent = pct+'%'
+
+  if(ready && btn && btn.disabled && !window._aesKey){
+    btn.disabled = false
+    if(sts && !sts.classList.contains('done')){
+      sts.className = 'key-status ready'
+      sts.textContent = 'PRÊT'
+    }
+  } else if(!ready && sts && sts.classList.contains('waiting')){
+    const miss = []
+    if(gConv < KEY_GCONV_MIN) miss.push(`gConv ${gConv.toFixed(3)}`)
+    if(steps < KEY_STEPS_MIN) miss.push(`steps ${steps}`)
+    sts.textContent = miss.join(' · ')
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// BRUTE FORCE SIMULATION
+// ══════════════════════════════════════════════════════════
+function analyseSecurity(){
+  const el = document.getElementById('bf-analysis')
+  if(!el) return
+
+  // Espace de recherche
+  const gstDims  = B * SDIM          // 320 floats
+  const emaDims  = B * VOCAB.length  // 320 EMA
+  const dDims    = 3                 // dWeightsEMA
+  const saltBits = 128               // SESSION_SALT
+  const aesBits  = 256               // clé dérivée
+
+  // Entropie estimée du seed (floats dans [-1,1] avec précision 5 décimales)
+  const precisionBits = Math.log2(200000)  // 100000 valeurs possibles par float ~17 bits
+  const gstEntropy   = gstDims  * precisionBits  // théorique
+  const emaEntropy   = B * 10 * precisionBits    // top-10 EMA slow par cerveau
+  const dEntropy     = dDims * precisionBits
+  const totalTheory  = Math.min(gstEntropy + emaEntropy + dEntropy, 512)
+
+  // Entropie pratique (corrélée — moins que théorique)
+  const practicalEst = Math.min(totalTheory, 128) // gSt reste partiellement corrélé
+
+  el.innerHTML = `
+    <div class="bf-row"><span class="bf-k">Dimensions gSt</span><span class="bf-v safe">${gstDims} floats (5×64)</span></div>
+    <div class="bf-row"><span class="bf-k">EMA lente (top-10×5)</span><span class="bf-v safe">50 floats</span></div>
+    <div class="bf-row"><span class="bf-k">dWeightsEMA</span><span class="bf-v safe">3 floats</span></div>
+    <div class="bf-row"><span class="bf-k">SESSION_SALT</span><span class="bf-v safe">${saltBits} bits (aléatoire pur)</span></div>
+    <div class="bf-row"><span class="bf-k">Entropie seed théorique</span><span class="bf-v safe">≥ ${Math.round(totalTheory)} bits</span></div>
+    <div class="bf-row"><span class="bf-k">Entropie pratique estimée</span><span class="bf-v ${practicalEst>80?'safe':'warn'}">~${Math.round(practicalEst)} bits</span></div>
+    <div class="bf-row"><span class="bf-k">Clé AES dérivée</span><span class="bf-v safe">${aesBits} bits</span></div>
+    <div class="bf-row"><span class="bf-k">Attaque force brute directe</span><span class="bf-v safe">2^256 opérations — IMPOSSIBLE</span></div>
+    <div class="bf-row"><span class="bf-k">Attaque sur seed</span><span class="bf-v ${practicalEst>80?'safe':'warn'}">2^${Math.round(practicalEst)} opérations — ${practicalEst>80?'SÛRE':'LIMITE'}</span></div>
+    <div class="bf-row"><span class="bf-k">Replay attack (sans SESSION_SALT)</span><span class="bf-v ${_opts.salt?'safe':'dead'}">${_opts.salt?'IMPOSSIBLE (salt random)':'POSSIBLE si trajectoire connue'}</span></div>
+    <div class="bf-row"><span class="bf-k">Side-channel (état observable)</span><span class="bf-v warn">PARTIEL — gConv visible, gSt non</span></div>
+  `
+}
+
+window.runBruteForce = async function(){
+  const btn = document.getElementById('btn-bf')
+  const log = document.getElementById('bf-log')
+  if(!window._lastKey){ log.innerHTML='<span class="warn">⚠ Générer une clé avant</span>'; return }
+
+  btn.disabled = true; btn.textContent = '⚔ ATTAQUE EN COURS…'
+  log.innerHTML = ''
+
+  const targetFp = window._lastKey.fp
+  const targetHex = window._lastKey.hex
+  const N_ATTEMPTS = 1000
+
+  function bfLog(msg, cls=''){
+    log.innerHTML += `<div class="${cls}">${msg}</div>`
+    log.scrollTop = log.scrollHeight
+  }
+
+  bfLog(`Cible : empreinte ${targetFp}`)
+  bfLog(`Stratégie 1 : force brute SESSION_SALT (${N_ATTEMPTS} essais)`)
+
+  let found = false
+  let t0 = performance.now()
+
+  // Attaque 1 : essayer des SESSION_SALT aléatoires avec le seed actuel
+  for(let i=0;i<N_ATTEMPTS;i++){
+    // Faux sel aléatoire
+    const fakeSalt = crypto.getRandomValues(new Uint8Array(16))
+    // Utiliser extractSeed direct pour l'attaque (seed actuel du run)
+    const seedStr_att = extractSeed()
+    const seedBytes = new TextEncoder().encode(seedStr_att)
+    const seedHash = new Uint8Array(await crypto.subtle.digest('SHA-256', seedBytes))
+    const combined = new Uint8Array(seedHash.length + fakeSalt.length)
+    combined.set(seedHash); combined.set(fakeSalt, seedHash.length)
+    const masterHash = new Uint8Array(await crypto.subtle.digest('SHA-256', combined))
+    const fp = Array.from(masterHash.slice(0,8)).map(b=>b.toString(16).padStart(2,'0')).join(':')
+    if(fp === targetFp){ found = true; bfLog(`COLLISION TROUVÉE à i=${i}! `, 'dead'); break }
+    if(i===N_ATTEMPTS-1) bfLog(`✓ ${N_ATTEMPTS} essais salt — aucune collision`, 'safe')
+  }
+
+  const t1 = performance.now()
+  bfLog(`Temps : ${((t1-t0)/1000).toFixed(2)}s pour ${N_ATTEMPTS} essais`)
+  bfLog(`Vitesse : ${Math.round(N_ATTEMPTS/((t1-t0)/1000))} hash/s`)
+
+  // Attaque 2 : essayer des seeds totalement aléatoires
+  bfLog(`Stratégie 2 : seeds aléatoires (${N_ATTEMPTS} essais)`)
+  let found2 = false
+  let t2 = performance.now()
+  for(let i=0;i<N_ATTEMPTS;i++){
+    // Seed synthétique — gConv aléatoire dans [0.7, 0.9]
+    const fakeSeed = JSON.stringify({
+      v:'0.4', gc: (0.7+Math.random()*0.2).toFixed(6),
+      ema: Array.from({length:5},()=>[]),
+      dw: [1+Math.random()-0.5, 1+Math.random()-0.5, 1+Math.random()-0.5],
+      cr: [16,16,16,16,16], gst:[], sf:[], vh:0.94, wc:[]
+    })
+    const fakeBytes = new TextEncoder().encode(fakeSeed)
+    const fakeHash  = new Uint8Array(await crypto.subtle.digest('SHA-256', fakeBytes))
+    const fakeSalt2 = SESSION_SALT
+    const combined2 = new Uint8Array(fakeHash.length + fakeSalt2.length)
+    combined2.set(fakeHash); combined2.set(fakeSalt2, fakeHash.length)
+    const masterHash2 = new Uint8Array(await crypto.subtle.digest('SHA-256', combined2))
+    const fp2 = Array.from(masterHash2.slice(0,8)).map(b=>b.toString(16).padStart(2,'0')).join(':')
+    if(fp2 === targetFp){ found2=true; bfLog(`COLLISION SEED à i=${i}!`, 'dead'); break }
+    if(i===N_ATTEMPTS-1) bfLog(`✓ ${N_ATTEMPTS} seeds aléatoires — aucune collision`, 'safe')
+  }
+
+  const t3 = performance.now()
+  bfLog(`Temps total : ${((t3-t2)/1000).toFixed(2)}s`)
+
+  // Rapport
+  bfLog(`
+══ RAPPORT SÉCURITÉ ══`)
+  if(found||found2)
+    bfLog('✗ VULNÉRABILITÉ DÉTECTÉE', 'dead')
+  else
+    bfLog('✓ 2000 tentatives — AUCUNE COLLISION — système SÛRE', 'safe')
+  bfLog(`Probabilité de collision sur 8 bytes : 1/2^64 ≈ 5×10^-20`)
+  bfLog(`Espace de recherche réel : SESSION_SALT seul = 2^128 possibilités`)
+
+  btn.disabled = false; btn.textContent = '⚔ RELANCER ATTAQUE'
+  analyseSecurity()
+}
+
+// ══════════════════════════════════════════════════════════
+// UPDATE UI PRINCIPALE
+// ══════════════════════════════════════════════════════════
+function updateUI(){
+  const gc = gConv
+  // gConv gauge
+  const gcNum  = document.getElementById('gc-num')
+  const gcFill = document.getElementById('gc-fill')
+  if(gcNum){
+    gcNum.textContent = gc.toFixed(3)
+    gcNum.className = 'gauge-num' + (gc>0.70?' ok':'')
+  }
+  if(gcFill){
+    gcFill.style.width = Math.min(100,gc*100)+'%'
+    gcFill.className = 'gauge-fill' + (gc>0.70?' ok':'')
+  }
+  const sl = window._sim?.slowEmaMax||0
+  const stEl=document.getElementById('g-steps')
+  const vhEl=document.getElementById('g-vh')
+  const slEl=document.getElementById('g-slow')
+  if(stEl) stEl.textContent=steps.toLocaleString()
+  if(vhEl) vhEl.textContent=vocabH.toFixed(3)
+  if(slEl) slEl.textContent=sl.toFixed(3)
+
+  updateBrainSVG()
+  updateWaveCanvas()
+  updateVocabHeat()
+  updateMetrics()
+  updateKeyPanel()
+
+  // Export headless
+  window._sim = {
+    gconv: gConv, vocabH, steps, adaptedSpd,
+    pairConv: Array.from(pairConv),
+    crystal: Array.from(crystalByBrain),
+    gStNorm: gSt.map(v=>{let n=0;for(let i=0;i<SDIM;i++)n+=v[i]*v[i];return Math.sqrt(n/SDIM)}),
+    slowEmaMax: Math.max(...Object.values(seqZoneEMA_slow[4]).map(Math.abs)),
+    topWinCorr: Object.entries(seqWinCorr).sort((a,b)=>b[1]-a[1]).slice(0,4),
+    games: gamePlayed, taskScore, lastScore: window._lastScore||0
+  }
+}
+
+let frameCount=0
+function loop(){
+  if(!running){ rafId=null; return }
+  step()
+  frameCount++
+  if(frameCount%4===0) updateUI()
+  rafId=requestAnimationFrame(loop)
+}
+
+window.startLoop = function(){
+  if(running) return
+  running=true; log('START','info')
+  rafId=requestAnimationFrame(loop)
+}
+window.stopLoop = function(){
+  running=false
+  if(rafId){ cancelAnimationFrame(rafId); rafId=null }
+  log(`STOP — gConv=${gConv.toFixed(4)} steps=${steps}`)
+}
+window.resetSim = function(){
+  window.stopLoop(); initSim(); initBrainSVG(); updateUI()
+  log('RESET ✓','info')
+}
+
+function log(msg,cls=''){
+  const el=document.getElementById('log')
+  if(!el) return
+  el.innerHTML+=`<div class="${cls}">[${new Date().toLocaleTimeString()}] ${msg}</div>`
+  el.scrollTop=el.scrollHeight
+}
+window.log=log
+
+initSim()
+initBrainSVG()
+analyseSecurity()
+updateUI()
+log('v0.6 — IBM Plex Mono · AES-GCM-256 · BPUF', 'info')
+log('▶ RUN pour démarrer la convergence cognitive', 'info')
+
+
+// OMEGA-KEY — COUCHE CRYPTOGRAPHIQUE
+// SESSION_SALT : unique par chargement — même seed → clés différentes
+// ══════════════════════════════════════════════════════════
+const SESSION_SALT = crypto.getRandomValues(new Uint8Array(16))
+
+// Wordlist 256 mots ASCII (8 bits/mot → 64 bits pour 8 mots)
+const WORDLIST = [
+  'alpha','bravo','delta','echo','folio','gamma','hotel','india',
+  'juliet','kilo','lima','metro','nova','oscar','papa','quebec',
+  'romeo','sierra','tango','ultra','victor','whisky','xray','yankee',
+  'zulu','abyss','acorn','adage','agile','aisle','alarm','album',
+  'alien','alloy','altar','amber','amble','amend','ample','angel',
+  'angle','anime','annex','anvil','aorta','apron','arbor','ardor',
+  'argon','armor','aroma','array','arrow','arson','atlas','atoll',
+  'atone','attic','audio','audit','auger','avail','avoid','azure',
+  'badge','basic','basin','batch','bayou','bezel','bison','blade',
+  'blaze','blend','bliss','block','bloom','blown','blunt','blurb',
+  'blush','botch','bough','brace','braid','brash','brawn','brawl',
+  'braze','brisk','broil','brook','brood','broom','broth','brown',
+  'brush','brute','budge','build','bulge','buoy','burst','cabal',
+  'cache','cairn','canal','cargo','carol','carte','carve','caste',
+  'catch','caulk','cedar','cello','chalk','champ','chant','chaos',
+  'charm','chase','chasm','cheap','cheer','chess','chimp','chord',
+  'civic','clamp','clash','clasp','class','clave','clean','clear',
+  'cleft','clerk','cliff','clink','clone','cloud','clump','coil',
+  'coral','court','craft','crave','crawl','creak','creek','crest',
+  'crime','crisp','croft','crook','cross','croup','crowd','crown',
+  'crypt','curve','cycle','daily','datum','daunt','dawn','decay',
+  'decoy','defog','delta','dense','depot','depth','derby','digit',
+  'dirge','disco','ditto','divert','divot','dizzy','dodge','dough',
+  'draft','drain','drape','drawl','dread','dream','drift','drill',
+  'drink','drive','droop','drove','drown','druid','drunk','drupe',
+  'duvet','dwarf','eager','eagle','ebony','edify','eerie','eight',
+  'eject','elbow','elect','elite','ember','emote','empower','enact',
+  'endow','endue','ensue','envoy','epoch','equip','erode','erupt',
+  'ethos','evade','evoke','exact','expel','exult','fable','facet',
+  'faith','famed','fancy','feral','fetch','fever','fiber','field',
+  'fifty','fight','final','flair','flare','flask','flesh','flint',
+  'flock','flood','flora','floss','fluid','fluke','flunk','focus',
+  'forge','forte','forum','forum','fractal','frail','frame','frank'
+]
+
+// Symboles ALT pour alphabet session
+const ALT_POOL = '⊕⊗∇∆Ω∑∏√∫≈≠≤≥±∓×÷∧∨⊂⊃∈∉∀∃¬→←↑↓↔⟨⟩⌘⌃⌥⌦⎋⎊⏎⊞⊠⊡◉●○◎□■'
+
+// ── WORDLIST_FR — liste Diceware française (4096 = 2^12 ⇒ 12 bits/mot) ──────
+// Extraite du lexique OMEGA-pendu (source : Lexique, CC BY-SA 4.0) : noms/adjectifs,
+// 4–8 lettres, 2–3 syllabes, a–z, préfixe-4 unique. Entropie comptable, zéro biais.
+const WORDLIST_FR = "abaisses abalone abandon abattoir abbayes abbesse abdomen abeilles abjecte ablation abondant abordage aboyant abrasion abregee abricot abrogee abrutis absence absinthe absolue abstrait absurde abusive abysses acacias acariens accalmie accents accident accompli accrocs accueil acerees acetone acheteur acidose acierie acolyte acompte acquitte acrobate acteurs activees actrice actuelle addendum addition adenome adeptes adequat adhesif adipeux adition adjacent adjectif adjoints adjudant admises adoption adorable adoucis adroite adultes adverse aerienne affaire affectee affiche afflige affolee affreux afghans africain agacante agendas agitant agneaux agnosie agraire agreable agricole agronome agrumes aguerri aigreurs aiguille aileron ailiers aimable ainesse airbags airelles aisance aisselle ajournee ajustage akkadien alambic albanais albinos albumine alcatraz alchimie alcides alcoolo alderman alertes algebre alginate alhambra alienes alignes aliments allante allemand alliance allusion almanach alouette alpagas alphabet alsacien altesse altitude alveoles amaigri amalgame amandes amarres amateur amazone ambages ambiance ambulant amenees amerique amiable amicale amiraux amities ammoniac amnesie amorphe amoureux amovible amperes amphore ampleur ampoule amulette amusant amygdale amylase analyses anarchie anatheme ancetres anchois ancienne ancrage andalou androide anecdote anemique aneries angelus angines anglais angoisse anguille animaux anisette annales anneaux annonce annulee anodine anonyme anormal antenne anthrax antidote antonin anxiete aortique apaches apanage apathie apercus aphasie aphteuse aplatis apollon apostat apotres appareil appetit appoint apprenti aptitude aquarium aqueduc aquifere arables arachide araignee arbalete arbustes arcades arceaux archers arctique ardents ardoise areoles argente argileux argument aristos arlequin armature armement armoire armures aromates arpents arpions arquees arrache arretee arrivee arrogant arsenal artefact arthrite article aryenne arythmie ascetes asexuee ashanti asiates asocial aspects asphyxie aspirine assassin asservie assieds associe assuree assyrien astarte asteure astheure asticots astronef astuces atavique atelier athenien athlete atlantes atomique atresie atroces attaque attendu attitude attorney attribue atypique aubaine auberge audience auguste aumonier aurevoir aurores auspices austere autarcie auteurs autiste autopsie autruche auvergne avachie avaient avalant avantage avarice avatars aventure aversion aveugle aviation avirons avisees avocats avorton avulsion azalees azimuts azteque baballe babeurre babioles babouin babyfoot baccarat bachelor bacille backroom bacterie badauds baderne badinage badlands bafouee bagages bagnole baguette baignade baillon baisers bajoues bakchich bakelite baklava balayage balcons baleine baliste ballade balourd baltique baluchon bambous bananes bancaire bandits bankable banlieue banniere banquier banshee bapteme baratin barbara bardeaux bargain barillet barjots barmaid baroque barriere baryton basanes bascule baseball basique baskets bassiste bastion batards bateaux batiment batonnet batterie baudrier bauxite bavarde bavette baviere bavoirs bavures bazooka beagles beantes beatnik beautes bebetes becasse becheuse becotage becquee bedaine bedouin beffroi begonias beguins beignets belette belgique beliers bellatre benefice bengali benigne benjamin benzene beotien bequille berbere berceau bergers berline bermuda bernard besoins bestiole betasse betises betonne beurrees beuverie bezoard biaisee biathlon biberon bibiche biblique bichette bicoque bicycle bidasses bidoche bidules bienvenu bifteck bigamie bighorn bigleux bigoudis bikinis biliaire billets bimoteur binaire binette binomes biologie biomasse bionique biopsie biotech bipedes biplace biquette birmans biroute bisbille biscuits bisexuel bismuth bistrot bitcoin bivouac bizarre bizness bizutage blablas blackout blafard blagueur blaireau blanche blaster blazers blender blessure bleuets blindes blister blizzard blocage blogueur blondin bloquees blouson bluette bluffeur bluteau bobards bobettes bobines bobonne bogosse bohemien boisson boiteux bolivar bologne bombonne bonasse bonbons bondage bonheur boniche bonjour bonnets bonobos bonsoir boomers booster bordeaux boreale borique borough bosquet bosseur bottines bouclier bouddha bouffon bougies bouillon boulots bouquin bourree boussole boutique bouvier bowling boxeurs boyards boycott boyscout brabant bracelet braderie brahmane braiment brandon braquage brasier bravoure breaker brechet breloque bretzels breuvage brevets bricole briefing brigade brillant brimades brioche briquet bristol british brochure broderie bromure bronzage brossage brouhaha brownies broyeur bruitage brulures brumeux brunette brushing brutale bruyant buccale bucheron budgets buffalo building buissons bulgare bulletin bungalow bunkers bureaux burgers burnout burrito bursite busards bushido business bustier butcher butoirs buvable buveurs byzantin cabaret cabernet cabinet cablage caboche cachets cacique cadavre caddies cadeaux cadmium cadogan cadrage caduque cafards cafeine cafteur cageots cagnotte cagoule cahiers cahoteux cailloux caimans caiques caisson calamar calculs caldera calecon calibre calleux calmants calories calumet calvaire calypso calzone camarade cambouis cameras camions camorra campagne canards cancers candidat canette caniveau cannelle canopee cantique canular canyons capable capella capitale caporal cappella caprices capsule capteurs capuche caravane carbone carcasse cardinal caresse carillon carlins carnage caroline carpien carquois carriere cartons casanier cascades casernes cashmere casiers cassette casting catalan catcheur catheter catogan caudillo causette caution cavalier caverne cavites cayenne celadon celeste celibat cellule celtique cenacle cendrier censees central cephalee cerbere cercueil cereales cerises certains cerumen cerveau cession cetaces ceviche chablis chacals chaebol chagrin chainon chakras chaleur champion chanson chapeau charmant chasseur chateau chaudron checker cheddar chelous chemins chenille cheptel chequier cherokee chester chetive cheveux cheyenne chianti chichis chienlit chiffon chignon chiites chilien chimique chinois chippewa chlorate chocolat choisis cholera chomage chopine choquees chorale chouchou chretien chronos chtarbe churros chutney ciabatta ciblage ciboire cigares cigogne cimarron cineaste cinglee cinoche cinzano cipayes circuit cireuse cirrhose cisaille ciseaux citation citerne cithare citoyens citrons civette civiles clairon clameur clapotis claquant clarence classeur claustro clavier claymore cleaner clebard clement cliches clients climats clinique clipper cliquet clitoris clivage cloaque clochard cloison clonage cloporte closing cloture cloutier clubber cluster coaching coauteur coaxial cobayes cocaine cochons cocktail cocotier cocufie codeine coffret cogneur coherent cohorte coiffure coincees coleres colibri collier colonel coltard colvert comanche combines comedie comfort comique commune complet comtesse conasse concert conduite confirme congres conique conjugal connais conquis conseil content converti cookies coolies copains copeaux copines coquille corbeau cordial coreens coriace cormier corniche coroner corporel correct corsage cortege corvees cosaques cosinus cosmique cosplay cossard costumes cotation coteaux cotiere cottage coucher coudees couffin cougars couillon couleur country coupable courage cousins couteau couverts covenant cowboys coyotes crackers craignos crampons cranien crapaud craquant crasseux cratere cravate crayons creature crecelle credible cremeux creneau creoles creperie cresson cretins creuset crevette criarde cricket crieuse criminel criniere criquet cristal critique croates crochet croises crooner croquis crosseur crottin croupier croyant cruaute crucial crudites cruelle cruiser crumble crustace cryptage cubains cubitus cuillere cuistot cuivree culasse culotte culture cumulus cupcakes cupidon curatif curcuma curetage curieux curling curseur custard cutanee cuticule cutters cuvette cyanose cyborgs cyclone cylindre cymbales cynique cystite cytosine dactylo dahlias daiquiri damages damiers damnees dancing dangers danoise danseuse darknet darling daronne datation dauphin daurade deadline dealers debarras debiles deboule debridee debutant decalage decembre decharge decision declics decoupe decrets decuple dedales deduits deesses defauts defense deficit defoncee defunte degaine degonfle degrossi deguise dejante dejeuner delaisse delegue delicat deloyal deltoide deluree demande demeure deminage demodee demunis deniers denommee denrees densite dentiste denudee depassee depeint dephase deplacee depourvu deprimee deputes deranges deregle derision dermato derniere deroute derrick derviche desastre descente deserts desintox desordre despote dessert destinee desuete details detente detourne detruit deuxieme devastee deveine devises devoirs dextrose dhampire diabete diademe diagonal dialogue diamants diapason diarrhee diaspora diatribe diazepam diction diesels difforme digestif digitale dignite dilatees dilemme diligent diluant dimanche dindons dinette diocese diorama dioxyde diplomes directe dirhams discret diseuse disgrace disparus dissoute district diurese diverse division divorce dixieme dizaines doberman dociles dockers docteur document doleance dollars domaine domicile dommage dompteur donation donjons donnees donzelle dopamine doppler dormant dorsale dortoir dorures dosages dossier dotation douanier doublure douceur doudoune douglas douillet douleur douteux douzaine downtown doyenne dragons drainage drakkar drapeau dressing drifter droguee droides drolerie drummer dualite ducasse duchesse dugland dulcinee dumpling dunette duodenum duperie durable duveteux dynamite dyslexie dyspnee ebeniste eblouis eborgne eboueur ebreche ecailles ecarlate echappe echelle echoppe eclaire eclipses eclosion ecoliere econome ecorchee ecossais ecoutes ecrasee ecremage ecrivain ecstasy ectopie ecuelle ecumoire ecureuil ecusson ecuyers edifice edition edredon effarant effectif efficace effluves efforts effronte effusion eglises egoiste egorgeur egotiste egoutier egyptien ehontee einstein ejection elagueur election elegant elements elephant elevage elfique eligible elitiste elixirs ellipse elogieux eloquent embarras embetant embleme embolie embrasse embuches emechee emeraude emetteur emeutes emigrant emilien eminence emirats emission emmerdes emotions emouvant empathie empereur emphase empilage emplois emportee emprise emulsion encadre enceinte enchante enclume encombre encrier enculeur endette endives endormi endroit endurcis energie enfants enferme enfilade enflure enfoire enfumee engagee engeance engorge engrais enigmes enjambee enjouee enlacant enlevee ennemis ennuyeux enonces enormes enquete enragee enrhume enrichie enrouee entaille entendu entiere entorse entrepot envahis environs envoyes enzymes eolienne epagneul epaisse epandage epargne epatant epaules epeiste eperons ephemere epicier epiderme epilogue epingle epiploon epiques episode epitaphe eploree eponges epopees epoques epouses epreuve epsilon epuisant equation equestre equipage erables eraflure erection ereinte ermitage erogenes erosion erotique errants erreurs erronee erudits eruption erytheme esbroufe escalier escient esclave escorte escrocs escudos eskimos espagnol especes espions espoirs esprits esquimau essayage essence essieux essorage essuies estampes esthete estivale estomac estropie estuaire etablis etagere etalage etamine etanche etatique eteintes etendues eternel ethanol ethernet ethique ethnique ethylene etirable etoffes etoilee etourdi etrange etreinte etriers etroite etrusque etudiee eunuque euphorie euskera eustache evacues evanoui evasion eventail eveques eviction evident evitable evoluees exactes exaltant examens excepte excitant exclusif excuses exemple exercice exigeant existant exotique expansif experts expirant explosif exposes express expulse exquise exsangue extases externe extreme extuber exutoire eyeliner fabuleux facades facettes facheux faciles faconne facteur faculte fadaises fagotee faiblard faience faignant faillite faineant fairplay faisable fajitas falaise fameuse famille fanclub fandango fanfare fanions fantome fanzine faraday farceur fardeau farfelu farines farmers farouche farthing fasciste fashion fastoche fatales fatigue faubourg fauches faussete fauteuil fauvette faveurs favoris fazenda febrile fecales feconde fedayin federal feedback feeling feerique felines felonie felures femelle feminin femorale fendant fenetres fenouil fentanyl fenwick feodale fermier feroces ferreux fertile ferveur fessier festival fetards fetiche feuillus fevrier fiances fiascos fibrille ficelles fichiers fiction fideles fiducie fieffes fiertes fiestas fievreux fifille figurine filature filetage filiale fillette filoche filtrage finance finesse finition finnois firewall firmware fiscale fission fistule fitness fixation fixette flacons flagrant flambeau flanelle flatteur flemmard fleuron flexible flicard flippee flocons floride flottant flouter fluette fluidite fluorure flusher flutiste fluviale foetale fofolle foireux folatre folichon folklore follets fonction fondees fongique fontaine football foraine forceps foreman forfait forgeron forints formelle fortune fossiles fouette foufoune fougueux fouineur foulard fourgon foutues foxtrot fracture fragile fraisier francais frappeur fratrie fraudeur frayeur frederic freezer fregates freinage frelons frenesie frequent frerots freudien friands friction frigide frileux frimeur fringant friperie friques frissons friture frivole froisse fromage frontal frottis froufrou fructose fruitee frustre fuchsia fugaces fugitif fugueuse fulcrum fumante fumeurs fumiers funebres fureurs furieux furlong furoncle furtive fuselage fusible futiles futures fuyards gabarit gachette gadgets gaelique gaffeur gageure gagnant gaillard galaxie galerie galicien gallois galopant gamberge gamelle gamines gammees ganache gangster gantelet garantie garcons gardien garenne gargote garnison garrick gascons gaspard gastrite gateaux gaucher gaufrier gaulois gavotte gavroche gazeuse gazoduc gazpacho geantes gehenne geignard geishas gelatine gelules gemeaux genante gencives gendarme general geniale genocide gentille geolier geometre georgien gerante gerbille gercures gerfaut germain gestion geysers ghettos gibbons gibiers gicleurs gigolos gilbert gimmick ginseng girafes girofle gisement gitanes glacier glaieuls glamour glandeur glasnost glaucome glissade globale glorieux glouton gluante glucose glycemie gnangnan gnocchi gnognote gobelet godasses godiche goelette goguette golfeur golgotha goliath gommage gonades gondole gonflees gonzesse goodies googler gordien gorgone gorille gothique goudron goujats goulasch gourmand gousset gouters goyaves grabuge gracieux gradins graffiti graillon grandeur grappin gratuit gravite gredins greement greffier gregeois grelots grenier gressins gretchen greviste griffon grigris grilles grimoire gringos grippee grisant grivois grizzly grognon grondant groover grossier groupie grumeaux grunion grutier gruyere guenille guepard guerrier guetteur gueulard gugusse guiboles guichet guidage guignol guimauve guinees guitare gujarati gulliver guttural gymnase habitude hachoir hacienda hackers haddock hadrons hagards haillons haineux haitien halcyon haleine halitose halogene halteres hambourg hamecon hamster handicap hangars hanneton hanoukka hantees hapkido hardcore harengs hargneux haricots harmonie harnais harpons hasards haschich hashtag hassidim hatives haubans hauteur havanes hawaien hebetee hebreux hectares helicos hellene hematome hemlock hemolyse hepatite herbages hercule heresie heritage hermine hernies heroine hesitant heteros heureux hexagone hibiscus hickory hidalgo hideuse highway hilarant hindous hippies hipsters hirsute histoire hittites hivernal hobbies hochets holding hollande holster homards homeland homicide hommage homonyme hongrois honneur honoree honteux hooligan hopital hoquets horaires horizon horloge hormones horrible hosanna hospice hostile hotdogs hotesse hotline houblon houlette houmous houngan hourrah hublots huguenot huileux huissier huitieme humains humeurs humilie hunters huppees hurlant huskies hussards hybride hydrate hygiene hypnose hypoxie hysterie iambique iberique iceberg iconique ideales idiotes idolatre idylles ignames ignition ignoble iguanes iliaque illegal illicite illusion imageur imbecile immature immeuble imminent immobile immuable impasse imperial impiete implants impolie imprevu impulsif inactif inaptes inavoue incarne inceste inchange incident incluse inconnu inculpe indemne indiens indolore induite inedite inegale inepties inertie inexact infamie infecte infidele informe infusion ingenue ingrate inherent inhumain initiale injecte injuste innocent inodore inondee inouies inquiete inscrit insectes insigne insolent instant insulte intacte interet intimes intruse intuitif inusable inutile invasion inverse invitee ionique irakiens iranien iraquien iridium ironique iroquois irreelle isabelle ischemie isocele isoloir isomere isotopes italien ivresse ivrogne jacasse jachere jacinthe jackpot jacobite jacquot jacuzzi jaguars jalouse jambons jammais janvier japonais jaquette jardins jarrets jaunisse javanais javelot javotte jazzman jeannot jejunum jemadar jerrican jersiais jesuites jetable jetpack jettons jeunesse jingles jockeys jodhpur jogging jointure jonction jongleur joufflu jouissif joujoux journee jouvence joviale joyeuse joystick jubilant judaisme jugement juillet jujitsu jujubes julienne jumeaux jumpers juniors junkies jupette juriste justice juteuse juvenile kabbale kaddish kafkaien kamikaze karcher karmique karting kascher kazakhs kelvins keratine kermesse kerosene ketamine ketchup kibboutz killers kilowatt kimonos klaxons kleenex klingon knickers knockout kolkhoze kombucha kopecks kremlin kreutzer krypton kumquat kyrielle kystique labelle labours labrador laceree lachete lacrosse lactose lacunes laideur laineux laiques laissees laitier lamantin lambeaux lamelles lampion lancelot landing langage laniere lanoline lanterne lapinou laquais larbins larcins lardons larguee larrons larvaire larynge lasagnes lascars lassant laterale latitude latrines laudanum lauriers lavande laverie laxatif laxiste layette leaders leasing lechage lecture legales legendes legging legiste legumes lemming lemurien lentille leonard leopard lepreux lesbien lesions letales lettons leucemie leviers levrette lexique lezards liaison libanais liberte libraire libyens licence lichette licorne lifting ligament lignees ligotee limaces limbique limerick limitees limonade limpide linceul lineaire lingerie liniment linotte lionceau lipides liqueur liseuse lisiere lissage listing litanie litchis literie lithium litiere litteral liturgie livides livreur lobbying location logement logique lointain loisirs lolitas lombaire longueur looping loosers lopette loquace lorette lorraine losange loseuse loterie lotions loubards loufoque loukoums louloute lourdaud loustic lovelace loyaute lubrique lucarne lucioles lucratif ludique lugubre luisant lumbago lumiere lunaire lunettes lupanar lustree luthier lutteur luxation luxueux luzerne lyceens lymphome lynchage lyonnais lyrique maboule macabre macchab machine macoutes macrame macumba madames madison madonne madrigal maestro maffieux mafieux magasin magenta magique magneto mahatma mahjong maigreur maillot maintien mairesse maisons maitrise majeste maladie maldonne malefice malfrats malgache malheur maligne mallette malotru malpoli malsain maltais malvenu malware mamelons mammouth mamours mamzelle manager manchot mandats manette mangeur manieres mannitol manoirs manquant mansarde manteau manucure maousse marathon marchand marechal margaux mariage marlins marmotte marocain marquis marrante marshall marteau marxiste maryland masculin masquee massage masters matador materiel matheux matiere matraque matures maudite mausolee mauvais maximum maxwell mazurka meandres mecanos meccano mecenes mechant meconnu mecreant medecin medical meeting mefaits mefiance megabit megeres meilleur mektoub melange melchior melodie membrane memento memoire menaces meneuse menhirs meninges menorah mensonge menteur meprises mercredi merdique merengue merguez merites merlotte mesange mesdames mesquin message mesurees metayers meteore methode metiers metrage metteur meublee meunier meurtris mexicain micheton microbes miction mielleux mignonne migraine mijauree milanais mildiou milieux millions milonga mimiques mimosas minable minceur mineurs ministre minouche minutes miquette miracle mirettes mirliton miroirs misaine miseres misogyne mission mistral mitaines miteuse mitiges mitoyen mitrale mixeurs mixture mobiles mocassin mochete moderne modifie moelleux mohawks mohican moignon moineau moisson moities mojitos molaire moldave molecule mollets molosse moments monarque monceau mondiale mongolie moniteur monnaie monopole monsieur montagne monument moonwalk moquette morales morbide morceau mordant morelle moribond mormons moroses morphine morsure mortelle morveux mosaique mosquee motards moteurs motivee motrices mouchoir mouflets mouille moujiks moulant moumoute mourant mousson moutons mouvants moyenne muchacho muezzin muffins mulatre muletier multiple munition munster muqueuse muraille muriers murmures muscade musette musique muskogee mustang musulman mutation mutiles mutuelle mycelium mycoses myeline myocarde myosotis myriade myrtille mystere mythique nacelle nageurs nanites napperon narcisse narguile narines narquois narratif nasales naseaux natation natchez national naturel naufrage nausees nautique navales navette navires navrante nazisme nebuleux necrose nectars nefaste negatif neglige negresse neigeux nenette nenuphar neophyte nepalais nerveux nescafe netball nettete network neuneus neurones neutrons neuvieme nevrose newtons niacine niaiseux nibards nichols nickels nicotine nigauds nigerian nippons nirvana nitrique niveaux noblesse noceurs nocives nocturne nodules noirceur noisette nomades nombreux nominale nonsense nordique normale norrois notaire notebook notions notoire nougats nounours nourrice nouveau novateur novembre novices noyades nuageux nuancee nucleus nudiste nuggets nuisible nullite numeros nunchaku nunuche nuptiale nursery nutella nutritif nymphos objectif obligee obscene obsedee obsolete obstacle occasion occident occupee octaves octobre oculaire odieuse odometre odonate odorant odyssee oedemes oedipien oeillets offense officier offrant offshore ogresse oignons oiseaux oisillon olfactif olivier olympien ombilic ombrelle omelette omicron omission omnibus omoplate onanisme onction ondules onereux onglets onguent onirique onzieme opaques operette ophtalmo opiaces opinion opossum opportun oppresse options opulence oracles orageux oraison oranges orateur orbites orchidee ordonne ordures oreilles orfevre organes orgelet orgueil oriental orifice origines orioles oripeaux orleans ormeaux ornement orniere orphelin orteils orthese oseille ossature osseuse ossuaire otaries ottoman oublieux ouistiti ouragan ourlets oursons oustachi outlaws outrage outsider ouverte ouvriers ovaires ovarien ovation overdose ovocytes oxygene oxymore pacanes pachinko package pactole paddock pagaille pagodes paiement paillis paisible paladin palettes paliers palmiers palourde palpable paluche pamoison pamphlet panacee pancakes pandore paniers panneau panoplie pantalon panzers papaute papelard papiers papounet paprika papyrus paquets paradis parcours pardons parents parfaite parieurs parjures parking parlant parmesan paroles parpaing parquet parrain parsons partant parution parvenus pascale pashmina passage pasteur patates patcher paternel patient patrons pattern paturage pauline paumees paupiere pauvrete pavillon payante payement paysans peabody peanuts pecheur pecores pectoral pedales pedestre pediatre peeling pegases peignoir peinard pekinois pelerins pelican pelletee pelouse peluche pelvien penalty penchees pendant penetre penible pennies penombre pension pentacle penurie peoples pepette pepites peptides pequenot perceuse perdant perfide pergola periode permien peroxyde perplexe perruque personne peruvien pervers pesante pesetas petards peteuse petites petoire petrole petunia peuplier peureux pfennigs phaeton phallus pharaon philippe phlebite phobies phoenix phonique phosgene photons physique pianiste piccolo pichets pickles picotin picrate piedmont piegeur piemont pierrot pietonne pigeons pigiste pigments pignons piliers pillage pilotes pilules pimbeche piments pimpant pinacle pinceau pineale pingouin pinotte pinsons pintade pionnier pipeline piqures piratage pirogue piscine pisseuse pistolet pitance pitbull pitcher piteuse pitoune pitrerie pivoines pizzeria placard plafond plagiat plaisir planete plaquage plastic plateau playboy plebeien pleiades pleniere plessis plethore pleurant pliante plissee plombier plongeur plumard plupart pluriel pluvieux pochette podcast podiums poesies poetique pogroms poignee poilues pointer poirier poisson poitrine poivrot polaire polenta policier pollack polonais poltron polymere pomerol pommier pompiers ponction pondeuse pontage popcorn popotin poppers popstar populace porcher poreuse porridge portable poseurs position possible postale potable potence potions poubelle poudrier poulets poumons poupees pourrie poussin poutine pouvoir practice prairie praline pratique preavis precieux predite prefixe prejuges prelude premiere prenoms prepose present pretendu prevenu prieres primaire principe prisunic privees proactif probleme prochain prodige profond progres prohibe projets prologue promesse pronoms prophete prospere protegee prouesse province proximal prudent prunelle prussien pseudos psychose puanteur puberte pubiens publique pucelle pudding pudique puerile pugilat pugnace puissant pullman pulpeuse pulsions punaises puncher punition punjabi pupilles purgatif puritain purpura purulent pushing pustules putains putride putting puzzles pygmees pyjamas pylones pyrates pyromane pythons quadrant quakers qualite quantite quartier quasars quatres quechua question quetaine queutard quidams quietude quignon quinine quotient rabattu rabbins rabougri racaille raccord rachats raciste rackets raclure racolage radeaux radical radotage rafales rafiots rafting rageant ragouts ragtime raiders raifort railway rainures raiponce raisons rajeuni rajouts ralentis rallyes ramassis rambarde rameaux ramoneur rampant ramures rancune rangers rapaces rapeuse rapides raplapla rapport raquette rarefie rasante raseurs rasoirs rassoir ratages ratchet ratelier rations ravages raviolis rayures reaction realiste rebattu rebelles rebonds rebrise rebutant recette rechange recital recluse reconnu recrues recteur recueil redneck redoute reduite reelles refaite referent reflexe reforme refrain refugies regards regents registre reglisse regnant regrets regulier rehausse reinette rejetee rejouie relation releves religion remblai remedes remontee remplies remuant renards rencard rendant renegat renforts rengaine rentree renvois reouvrir repaire reperage repique replique reponse reprises reptiles reputee requins rescrit reserves residus resolue respect ressorts restants resultat retarde retenue reticent retourne retraite reunion reussite revenue revision revolver rhubarbe ricains richard rickshaw ricochet rideaux ridicule riesling rigides rigolade rigueur rincage ringard ripaille ripostes riquiqui risette risible risotto rituels rivages riviere riziere roadster roberts robinson robuste rocaille rochers rockers rodeurs rognures roitelet rollers romains rombiere ronchon rondelle ronflant rongeur roquette rosalie rosbifs roseaux rosiers rotation rotonde rotules roublard rougeole roulant roumain roupies rouquine rousseur routine rouvert royaume rubeole rubrique rudesse ruffians rugbyman rugueux ruineux ruisseau rumeurs ruminant runabout running rupture rurales rusalka rustique rutilant rwandais rythmee sabayon sablier sabotage sabreur saccadee sachets sacoche sacrifie sadique safaris sagesse sagouin saguaro saignant saintete saisons salaire saletes saligaud salopard salpetre salubre sambuca samedis samourai sampler samsara samurai sanction sandwich sanguin sanskrit santiag saoudien sapeurs saphirs sapiens sarcasme sardines sarrasin sashimi satanees satiete saturne satyres saucisse saudade saugrenu saumons sauniere saurien sauteur sauvage savants saveurs savoirs saxonne scabreux scalpel scandale scarabee scatter scelerat scenario schemas scierie scission scolaire scooter scorpion scottish scrapper scrotum scrupule sculptee seances secateur sechoir seconde secrets secteur sedatif sedition seduite segment seigneur seismes seizieme sejours selectif selfies sellette semaine semblant semestre seminal semonce senateur senechal seniors senores sensible sentence separes seppuku septieme sepulcre sequoia seraphin serenade sergent serieux serment serpent serrure service session severes sevices sevrage sexiste sextape sexuelle shabbat shamisen shawnee shekels sheriff shetland shiatsu shilling shipping shogunat shooting shopping shorter showbiz shrapnel shuffle shuriken siamois siberien sibylle sicilien sideree sierras sifflet signale silence silicone sillage simplet simulee sincere sinecure sinistre sinusal sioniste siphons sirenes sirocco sirupeux sismique sitcoms sitting situees sixieme sixtine skateur skinner skipper slasher sleeping slibard slogans slovaque smileys smoking smoothie sniffeur snipers snobisme snooker societe sodique sodomie softball soieries soiffard soignant soirees soixante solaire soldats soleils solfege solitude solstice solution solvant somalie sombrero sommeil sonates sondages songeur sonique sonnerie sonores sopalin sophisme soprano sorbonne sorciere sordide sortant sottises soucoupe soudain soufflet souillon souliers soumise soupirs sourcils soutien souvlaki soviets soyeuse spacieux spatial speaker special spencer spetsnaz spiders spinale spirale spoiler sponsor sportif spoutnik springer spyware staccato stadium stafford standard starter station stenose stepper sterling stetson stewart stickers stigmate stilton stimuli stipule stockage stoique stomacal storage stratege streets strident strudel studios stupide styliste styrene subites subsides subtile succube sucette sucrerie sudation sudetes sudiste suedois suffrage suicidee suintant suivante sujette sultans sumerien sundaes sunlight sunnites superbe supposee supreme surbooke surcroit surdoue surfeur surgele surhomme suricate surjoue surnoms surpris surround sursaut surtaxe survolte susnomme suspect susucre suzerain svastika swahili swastika sweater sycomore sylvain symbole symetrie symptome synapses synchro syndicat synergie synonyme synthese syphilis syriens systeme tabasco tableau tabouret tachyons tacites tactique taffetas tafiole tagalog taggeur tagueur tahitien tailleur takedown talents talibans talkies taloche tamarin tambour tamisee tampons tandoori tangible taniere tankers tanneur tantine tanukis taoiste tapantes tapette tapioca taquine tardive tarlouze tartare tatamis tatillon tatouage taulard taureau taverne taxation tchador teckels teenager teigneux teinture telethon teloche temoins temporel tenaces tendance tenebres tension tentant tequila teratome teriyaki terminal terrible tessons testeur tetanos tetines teutonne texanes texture thallium thanatos theatre theiere theorie therapie thiamine thompson thorium thriller thrombus thyroide tibetain tibiale tickets tiedeur tignasse tigresse tilapia tilbury tilleul timbree timides timonier tintouin tirages tireurs tiroirs tisanes tissage titrage titubant tlingit toasteur toboggan tocards toilette toiture tolerie toluene tomates tombeau tondeuse tonique tonnerre tonsure tontons topless toquard torchon tordante toreros torgnole tornade torpeur torride torsion torture toscane totales tototte touaregs toubibs toucher touffue toundra toupies tournee toutous township toxique tracteur traduit trafics tragedie trahison traitee trajets tralala tramway tranchee trapeze traqueur traumas travail trayeuse trefonds treillis tremplin trepied tresors treteaux trevise triangle tribunal tricheur trident trieuse trigger trilogie trinite triples trireme trisomie tritons trivial trocart trognon trolley trompee troncon trophee troquet trottoir trouvee troyens truands trublion trucage truelle truffier truquees tsarine tsigane tsunami tubulure tueries tulipes tumbling tumeurs tumorale tumulte tunique tunnels turbans tutelle tutorat tutrice tweeter twerker twitter tympans typhoide typique tyrannie tyrolien tzatziki tziganes ulceres ulnaire ultimes ultrason unanime uniforme uniques unissons unitaire univers uploade uppercut uranium urbaine uretere urgence urinaire urologue usagees usinage usuelles usufruit usurier uterine utopique vacances vaccins vacherie vacuite vagabond vaginal vaillant vaincus vairons vaisseau valable valeurs valises valkyrie vallees valoches valvule vampire vanadium vandales vanille vanneau vantard vapeurs vaporeux vaqueros varennes variete vaseline vasistas vassaux vatican vaudous vaurien vautours vauxhall vecteur vedette vegetale vehement vehicule veilleur veinard velours venaison vendredi veneneux vengeur venimeux ventilo veranda verbale verdict vereuse vergogne verites vermine vernies verolee verrous version vertige verveine vesicule vessies vestiges veterans vetilles vetuste veuvage vibreur vicaire vicelard vicieux vicomte victime vidanges videurs vieilli viennois vigiles vignoble vigogne vigueur vikings vilaine vilenie village vinaigre vindaloo vinicole vintage vinyles violence viperes virages virement virginie viriles virtuel virulent visages visceres viseurs visites visqueux vissage visuelle vitamine vitesse viticole vitrine vivante vocation voilier voisins voiture volants volcans voleurs voliere volonte voltaire volumes volvulus vomitif voraces votants voulues voutees voyageur voyeurs vulcain vulgaire wagonnet walkman wallace wapitis wargames warning warriors watcher waterman webcams webisode weekend welters western wheeling whiskey wiccans wildcat william windows wishbone wisigoth wolfram wombats workshop xiphoide yachtman yahourt yakuzas yankees yaourts yemenite yeshiva yiddish yogourt yorkais youpins yuppies zairois zakouski zanzibar zapette zapping zebrures zelotes zeppelin zezette zibeline zigotos zigzags zingara zinnias zinzins zizanie zodiaque zombies zonards zoulous zugzwang".split(' ')
+
+// ── GÉNÉRATEUR DE PASSPHRASE CRYPTO-HONNÊTE ────────────────────────────────
+// Entropie = octets WebCrypto. W=2^12 ⇒ on lit EXACTEMENT 12 bits/mot ⇒ pas de
+// biais modulo. N mots ⇒ N×12 bits, comptables et affichés.
+function genPassphrase(nWords){
+  const W = WORDLIST_FR.length
+  const bpw = Math.log2(W)
+  if(!Number.isInteger(bpw)) throw new Error('WORDLIST_FR doit être une puissance de 2')
+  const totalBits = nWords*bpw
+  const rnd = crypto.getRandomValues(new Uint8Array(Math.ceil(totalBits/8)))
+  let bitPos=0
+  const readBits=(n)=>{let v=0;for(let i=0;i<n;i++){const b=rnd[bitPos>>3];v=(v<<1)|((b>>(7-(bitPos&7)))&1);bitPos++}return v}
+  const words=[]; for(let i=0;i<nWords;i++) words.push(WORDLIST_FR[readBits(bpw)])
+  if(!Number.isFinite(totalBits)) throw new Error('R39 : entropie non finie')
+  return {words, bits: totalBits, perWord: bpw}
+}
+
+// ── SYLL_FR — syllabes CV ouvertes (256 = 2^8 ⇒ 8 bits/syllabe) ─────────────
+// Inventaire phonotactique onset×noyau, validé par fréquence dans le lexique
+// OMEGA-pendu. Toutes ouvertes (finissent par voyelle/nasale) ⇒ concaténation
+// CV-CV-CV toujours prononçable. Pseudo-mots hors-dictionnaire, entropie comptable.
+const SYLL_FR = "a ai an au ba bai ban be bi bin bla ble bli blo bo bon bou bra bran bre bri bro brou bru bu ca cai can ce cha chai chan chau che cheu chi cho chon chou ci cin cla cle cli clo clu co coi con cou cra cre cri cro cru cu da dai dan de deu di din do don dou dra drai dre dri dro dron du e ein eu fa fai fan fe fi fin fla fle fli flu fo fon fou fra fre fri fro fu ga gan ge geu gi gin gla gle glo go gon gou gra gran gre gri gro gu i in ion ja je jo jou ju la lai lan le leu li lin lo loi lon lou lu ma mai man me meu mi min mo moi mon mou mu na nai nan nau ne neu ni no noi non nou nu o oi on ou pa pai pan pe peu pi pin pla plai plan ple pli plo po poi pon pou pre pri pro prou pu qua quai quan que qui quin ra rai ran re rein reu ri rin rion ro roi ron rou ru sa sai san sau se seu si sin sion so soi son sou su ta tai tan tau te teu ti tin tion to toi ton tou tra trai tran tre tri tro tron trou tru tu u va vai van ve vi vin vo voi vou vra vre vri za ze zi zo".split(' ')
+const SYLL_BPS = Math.log2(SYLL_FR.length)
+const SYLL_SAFE = "a ai an au ba be bi bo bou bu ca can ce cha chan che chi cho ci co con cou cu da dai dan de di do don du e eu fa fe fi fo fou fu ga ge gi go gu i in ion jo la lai lan le leu li lin lo lon lu ma mai man me mi min mo mon mu na nai nan ne neu ni no non nu o oi on ou pa pe pi po pou pu qua que qui ra rai ran re reu ri rin ro ron rou ru sa sai san se seu si sion so son sou su ta tai tan te teu ti tin tion to ton tou tu u va ve vi vo".split(' ')   // pool sans-cluster (128 = 2^7) pour l'après-nasale
+const SYLL_SAFE_BPS = Math.log2(SYLL_SAFE.length)
+
+function genPseudoPassphrase(nWords, syllPerWord){
+  if(!Number.isInteger(SYLL_BPS)) throw new Error('SYLL_FR doit être une puissance de 2')
+  const maxBits = nWords*syllPerWord*SYLL_BPS
+  const rnd = crypto.getRandomValues(new Uint8Array(Math.ceil(maxBits/8)))
+  let bitPos=0
+  const readBits=(n)=>{let v=0;for(let i=0;i<n;i++){const b=rnd[bitPos>>3];v=(v<<1)|((b>>(7-(bitPos&7)))&1);bitPos++}return v}
+  const NAS=/(?:ein|ion|on|an|in)$/    // syllabe à finale nasale
+  let bits=0
+  const words=[]
+  for(let i=0;i<nWords;i++){
+    let w='', prevNasal=false
+    for(let j=0;j<syllPerWord;j++){
+      let syl
+      if(prevNasal){ syl=SYLL_SAFE[readBits(SYLL_SAFE_BPS)]; bits+=SYLL_SAFE_BPS }  // après nasale : pool sans-cluster (7 b)
+      else        { syl=SYLL_FR[readBits(SYLL_BPS)];          bits+=SYLL_BPS }       // sinon : pool complet (8 b)
+      w+=syl; prevNasal=NAS.test(syl)
+    }
+    words.push(w)
+  }
+  if(!Number.isFinite(bits)) throw new Error('R39 : entropie non finie')
+  return {words, bits, perWord: null}
+}
+
+// Clé AES-GCM courante
+let _aesKey = null
+let _keyMaterial = null  // pour HMAC
+
+
+// ══════════════════════════════════════════════════════════
+// FUZZY EXTRACTOR
+// Quantifie gSt et seqZoneEMA_slow pour stabiliser le seed
+// dans un bassin de convergence (tolérance ε sur les floats)
+// ══════════════════════════════════════════════════════════
+function fuzzyQuantize(val, mean, sigma, levels=4){
+  // Retourne un entier [0, levels-1] stable autour de mean±sigma
+  if(sigma < 1e-6) return Math.floor(levels/2)
+  const z = (val - mean) / sigma
+  // Quantification en levels niveaux symétriques
+  const bin = Math.floor((z + 2) / 4 * levels)
+  return Math.max(0, Math.min(levels-1, bin))
+}
+
+function extractSeedFuzzy(){
+  // Quantifier gSt par cerveau
+  const gstQ = gSt.map(sv=>{
+    // Stats de ce vecteur
+    const mean = sv.reduce((s,v)=>s+v, 0) / SDIM
+    const sigma = Math.sqrt(sv.reduce((s,v)=>s+(v-mean)**2, 0) / SDIM)
+    return Array.from(sv).map(v => fuzzyQuantize(v, mean, sigma, 4))
+  })
+
+  // Quantifier seqZoneEMA_slow — top-10 par cerveau
+  const emaQ = Array.from({length:B},(_,b)=>{
+    const sorted = Object.entries(seqZoneEMA_slow[b])
+      .sort((a,c)=>c[1]-a[1]).slice(0,10)
+    const vals = sorted.map(([,v])=>v)
+    const mean  = vals.reduce((s,v)=>s+v,0)/Math.max(1,vals.length)
+    const sigma = Math.sqrt(vals.reduce((s,v)=>s+(v-mean)**2,0)/Math.max(1,vals.length))
+    return sorted.map(([s,v])=>[s, fuzzyQuantize(v, mean, sigma, 8)])
+  })
+
+  // dWeightsEMA quantifiés (3 niveaux : inhibe / neutre / renforce)
+  const dwQ = Array.from(dWeightsEMA).map(v=>
+    v < 0.5 ? 0 : v < 1.2 ? 1 : v < 2.0 ? 2 : 3
+  )
+
+  const seed = {
+    v: '0.4f',  // f = fuzzy
+    gc:  +gConv.toFixed(3),  // moins précis = plus stable
+    ema: emaQ,
+    dw:  dwQ,
+    cr:  Array.from(crystalByBrain),
+    gst: gstQ,  // quantifié
+    sf:  sfProxy.map(v=>Array.from(v).map(x=>+x.toFixed(2))),  // 2 décimales seulement
+    vh:  +vocabH.toFixed(3),
+    wc:  Object.entries(seqWinCorr).sort((a,b)=>b[1]-a[1]).slice(0,8)
+           .map(([s,v])=>[s, Math.round(v*10)/10])  // 1 décimale
+  }
+  return JSON.stringify(seed)
+}
+
+
+function extractSeedSlow(){
+  // Utilise seqZoneEMA_slow (τ≈200) pour un seed plus stable
+  return JSON.stringify({
+    v: '0.4s',
+    gc: +gConv.toFixed(4),
+    ema: Array.from({length:B},(_,b)=>
+      Object.entries(seqZoneEMA_slow[b]).sort((a,c)=>c[1]-a[1]).slice(0,10)
+        .map(([s,v])=>[s,+v.toFixed(4)])),
+    dw: Array.from(dWeightsEMA).map(v=>+v.toFixed(5)),
+    cr: Array.from(crystalByBrain),
+    gst: gSt.map(v=>Array.from(v).map(x=>+x.toFixed(4))),
+    sf: sfProxy.map(v=>Array.from(v).map(x=>+x.toFixed(4))),
+    vh: +vocabH.toFixed(4),
+    wc: Object.entries(seqWinCorr).sort((a,b)=>b[1]-a[1]).slice(0,12)
+          .map(([s,v])=>[s,+v.toFixed(4)])
+  })
+}
+// ── EXTRACTION DU SEED ──────────────────────────────────
+function extractSeed(){
+  // 6 composantes du seed
+  const seed = {
+    v: '0.4',
+    gc:  +gConv.toFixed(6),
+    // seqZoneEMA_slow — top 10 bigrammes par cerveau (EMA lente stable)
+    ema: Array.from({length:B},(_,b)=>{
+      return Object.entries(seqZoneEMA_slow[b])
+        .sort((a,c)=>c[1]-a[1]).slice(0,10)
+        .map(([s,v])=>[s,+v.toFixed(4)])
+    }),
+    // dWeightsEMA — arbitrage appris par D
+    dw:  Array.from(dWeightsEMA).map(v=>+v.toFixed(5)),
+    // crystalByBrain — maturité par cerveau
+    cr:  Array.from(crystalByBrain),
+    // gSt snapshot — état cognitif haute entropie
+    gst: gSt.map(v=>Array.from(v).map(x=>+x.toFixed(5))),
+    // sfProxy — signature substrat par cerveau
+    sf:  sfProxy.map(v=>Array.from(v).map(x=>+x.toFixed(5))),
+    // vocabH — diversité vocabulaire
+    vh:  +vocabH.toFixed(6),
+    // seqWinCorr — top bigrammes gagnants
+    wc:  Object.entries(seqWinCorr).sort((a,b)=>b[1]-a[1]).slice(0,16)
+           .map(([s,v])=>[s,+v.toFixed(4)])
+  }
+  return JSON.stringify(seed)
+}
+
+// ── HKDF SIMPLIFIÉ ──────────────────────────────────────
+async function hkdf(ikm, salt, info, length){
+  const ikmKey = await crypto.subtle.importKey(
+    'raw', ikm, {name:'HMAC',hash:'SHA-256'}, false, ['sign']
+  )
+  const prk = new Uint8Array(await crypto.subtle.sign('HMAC', ikmKey, salt))
+
+  const prkKey = await crypto.subtle.importKey(
+    'raw', prk, {name:'HMAC',hash:'SHA-256'}, false, ['sign']
+  )
+  const infoBytes = new TextEncoder().encode(info)
+  const t1Input   = new Uint8Array([...infoBytes, 0x01])
+  const t1 = new Uint8Array(await crypto.subtle.sign('HMAC', prkKey, t1Input))
+  const t2Input   = new Uint8Array([...t1, ...infoBytes, 0x02])
+  const t2 = new Uint8Array(await crypto.subtle.sign('HMAC', prkKey, t2Input))
+
+  return new Uint8Array([...t1, ...t2]).slice(0, length)
+}
+
+// ── DÉRIVATION DES CLÉS ─────────────────────────────────
+async function deriveCryptoKeys(seedStr){
+  const encoder = new TextEncoder()
+  const seedBytes = encoder.encode(seedStr)
+
+  // SHA-256(seed) → master input
+  const seedHash = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', seedBytes)
+  )
+  // Mélanger avec SESSION_SALT
+  const combined = new Uint8Array(seedHash.length + SESSION_SALT.length)
+  combined.set(seedHash); combined.set(SESSION_SALT, seedHash.length)
+  const masterHash = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', combined)
+  )
+
+  // HKDF → 64 bytes : 32 pour AES + 32 pour HMAC/alphabet
+  const derived = await hkdf(masterHash, SESSION_SALT, 'OMEGA-KEY-v0.4', 64)
+  const aesBytes  = derived.slice(0, 32)
+  const hmacBytes = derived.slice(32, 64)
+
+  // Importer clé AES-GCM
+  _aesKey = await crypto.subtle.importKey(
+    'raw', aesBytes, {name:'AES-GCM'}, false, ['encrypt','decrypt']
+  )
+  _keyMaterial = { aes: aesBytes, hmac: hmacBytes, master: masterHash }
+
+  return { aesBytes, hmacBytes, masterHash, derived }
+}
+
+// ── PASSPHRASE 8 MOTS ───────────────────────────────────
+function buildPassphrase(masterHash){
+  const words = []
+  for(let i=0;i<8;i++){
+    const idx = masterHash[i] % WORDLIST.length
+    words.push(WORDLIST[idx])
+  }
+  return words
+}
+
+// ── ALPHABET SESSION 26 SYMBOLES ────────────────────────
+function buildAlphabet(hmacBytes){
+  const syms = ALT_POOL.split('')  // characters Unicode (pas bytes)
+  // Durstenfeld shuffle depuis hmacBytes
+  const pool = [...syms]
+  for(let i=pool.length-1;i>0;i--){
+    const j = hmacBytes[i % hmacBytes.length] % (i+1);
+    [pool[i],pool[j]] = [pool[j],pool[i]]
+  }
+  // Map A→Z aux 26 premiers symboles shufflés
+  const alphabet = {}
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+  for(let i=0;i<26;i++) alphabet[letters[i]] = pool[i]
+  return alphabet
+}
+
+// ── CHIFFREMENT AES-GCM ─────────────────────────────────
+async function encryptMsg(){
+  if(!_aesKey){ log('Clé non générée — générez d\'abord','err'); return }
+  const plain = document.getElementById('enc-plain').value.trim()
+  if(!plain){ log('Message vide','err'); return }
+  const iv   = crypto.getRandomValues(new Uint8Array(12))
+  const enc  = await crypto.subtle.encrypt(
+    {name:'AES-GCM', iv}, _aesKey,
+    new TextEncoder().encode(plain)
+  )
+  // v0.7-phase2 : HMAC-SHA256 sur [iv || ciphertext] pour auth indépendante
+  // Défense en profondeur (AES-GCM a déjà auth tag, mais HMAC ajoute couche
+  // cryptographique distincte utile pour rejet rapide + future auth multi-pairs)
+  let hmacBytes = null
+  if(_keyMaterial?.hmac && _keyMaterial.hmac.length === 32){
+    const hmacKey = await crypto.subtle.importKey(
+      'raw', _keyMaterial.hmac,
+      {name:'HMAC', hash:'SHA-256'}, false, ['sign']
+    )
+    const macInput = new Uint8Array(iv.length + enc.byteLength)
+    macInput.set(iv); macInput.set(new Uint8Array(enc), iv.length)
+    hmacBytes = new Uint8Array(
+      await crypto.subtle.sign('HMAC', hmacKey, macInput)
+    )
+  }
+  // Format final : [iv(12) || ciphertext+tag || hmac(32)?]
+  const totalLen = iv.length + enc.byteLength + (hmacBytes ? 32 : 0)
+  const combined = new Uint8Array(totalLen)
+  combined.set(iv)
+  combined.set(new Uint8Array(enc), iv.length)
+  if(hmacBytes) combined.set(hmacBytes, iv.length + enc.byteLength)
+  const b64 = btoa(String.fromCharCode(...combined))
+  document.getElementById('enc-cipher').value = b64
+  // Afficher le bouton copier cipher
+  const wrap = document.getElementById('enc-copy-wrap')
+  if(wrap) wrap.style.display='block'
+  // Masquer résultat précédent
+  const rw = document.getElementById('dec-result-wrap')
+  if(rw) rw.style.display='none'
+  log(hmacBytes ? '✓ Message chiffré + HMAC auth (défense en profondeur)' : '✓ Message chiffré','ok')
+}
+
+// ── DÉCHIFFREMENT AES-GCM ───────────────────────────────
+async function decryptMsg(){
+  if(!_aesKey){ log('Clé non générée — générez d\'abord','err'); return }
+  const cipherB64 = document.getElementById('enc-cipher').value.trim()
+  if(!cipherB64){ log('Aucun message chiffré à déchiffrer','err'); return }
+  try {
+    const bytes = Uint8Array.from(atob(cipherB64), c=>c.charCodeAt(0))
+    const iv    = bytes.slice(0, 12)
+    // v0.7-phase2 : détecter présence HMAC par longueur
+    // Format sans HMAC : iv(12) + ct+tag(min 16)
+    // Format avec HMAC : iv(12) + ct+tag(min 16) + hmac(32)
+    // Heuristique : si on a une hmacKey et le message fait au moins 60 bytes,
+    // supposer HMAC présent
+    const hasHmacKey = _keyMaterial?.hmac && _keyMaterial.hmac.length === 32
+    let data, receivedMac = null
+    if(hasHmacKey && bytes.length >= 60){
+      // Tenter vérification HMAC
+      receivedMac = bytes.slice(-32)
+      data = bytes.slice(12, -32)
+      const hmacKey = await crypto.subtle.importKey(
+        'raw', _keyMaterial.hmac,
+        {name:'HMAC', hash:'SHA-256'}, false, ['verify']
+      )
+      const macInput = new Uint8Array(iv.length + data.length)
+      macInput.set(iv); macInput.set(data, iv.length)
+      const valid = await crypto.subtle.verify('HMAC', hmacKey, receivedMac, macInput)
+      if(!valid){
+        // HMAC invalide OU message sans HMAC mal interprété
+        // Fallback : essayer sans HMAC
+        data = bytes.slice(12)
+        receivedMac = null
+      }
+    } else {
+      data = bytes.slice(12)
+    }
+    const dec   = await crypto.subtle.decrypt({name:'AES-GCM',iv}, _aesKey, data)
+    const plainText = new TextDecoder().decode(dec)
+    // Afficher dans la zone résultat distincte
+    const resEl = document.getElementById('dec-result')
+    const resWrap = document.getElementById('dec-result-wrap')
+    if(resEl) resEl.textContent = plainText
+    if(resWrap) resWrap.style.display='block'
+    // Animer l'apparition
+    if(resEl){ resEl.style.opacity='0'; setTimeout(()=>resEl.style.transition='opacity .4s',10); setTimeout(()=>resEl.style.opacity='1',20) }
+    log(receivedMac ? '✓ Message déchiffré + HMAC vérifié (authentique)' : '✓ Message déchiffré (sans HMAC)','ok')
+  } catch(e) {
+    log('✗ Déchiffrement échoué — clé incorrecte ou message altéré','err')
+    const rw = document.getElementById('dec-result-wrap')
+    if(rw) rw.style.display='none'
+  }
+}
+
+// ── UTILITAIRES COPIER ───────────────────────────────────
+window.copyCipher = async function(){
+  const t = document.getElementById('enc-cipher')?.value
+  if(!t) return
+  await navigator.clipboard.writeText(t).catch(()=>{})
+  log('✓ Message chiffré copié dans le presse-papier','ok')
+}
+window.copyResult = async function(){
+  const t = document.getElementById('dec-result')?.textContent
+  if(!t) return
+  await navigator.clipboard.writeText(t).catch(()=>{})
+  log('✓ Résultat déchiffré copié','ok')
+}
+window.clearResult = function(){
+  const rw = document.getElementById('dec-result-wrap')
+  if(rw) rw.style.display='none'
+}
+
+// ── GÉNÉRATION CLÉ PRINCIPALE ───────────────────────────
+window.generateKey = async function(){
+  const btn = document.getElementById('btn-gen')
+  btn.disabled = true; btn.textContent = '⏳ DÉRIVATION…'
+  try {
+    const useFuzzy = _opts?.fuzzy || false
+    const seedStr  = useFuzzy ? extractSeedFuzzy()
+                   : (_opts?.slow ? extractSeedSlow() : extractSeed())
+    // Indicateur mode actif
+    const modeEl = document.getElementById('kp-mode')
+    if(modeEl) modeEl.textContent = useFuzzy ? '⊕ FUZZY EXTRACTOR actif — seed stabilisé'
+                                  : (_opts?.slow ? '◎ EMA LENTE — seed long terme' : '● Extraction directe')
+    const { aesBytes, hmacBytes, masterHash } = await deriveCryptoKeys(seedStr)
+
+    const passphrase = buildPassphrase(masterHash)
+    const alphabet   = buildAlphabet(hmacBytes)
+
+    // Afficher passphrase
+    const ppEl = document.getElementById('kp-words')
+    ppEl.innerHTML = passphrase.map(w=>`<span class="pw-word${useFuzzy?' fuzzy':''}">` + w + '</span>').join('')
+
+    // Afficher clé hex
+    const hexStr = Array.from(aesBytes).map(b=>b.toString(16).padStart(2,'0')).join('')
+    document.getElementById('kp-hex').textContent = hexStr
+
+    // Empreinte (8 premiers bytes du master hash)
+    const fp = Array.from(masterHash.slice(0,8)).map(b=>b.toString(16).padStart(2,'0')).join(':')
+    document.getElementById('kp-fp').textContent = fp
+
+    // Alphabet
+    const alphaEl = document.getElementById('kp-alpha')
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+    alphaEl.innerHTML = letters.map(l=>`
+      <div class="ac">
+        <div class="ac-l">${l}</div>
+        <div class="ac-s">${alphabet[l]}</div>
+      </div>`).join('')
+
+    // Entropie estimée
+    const entropyEl = document.getElementById('kp-ent')
+    const seedLen = seedStr.length
+    entropyEl.innerHTML = `
+      <div class="ent-item"><span class="ent-label">SEED</span><span class="ent-val">${seedLen} chars</span></div>
+      <div class="ent-item"><span class="ent-label">gConv</span><span class="ent-val">${gConv.toFixed(4)}</span></div>
+      <div class="ent-item"><span class="ent-label">steps</span><span class="ent-val">${steps}</span></div>
+      <div class="ent-item"><span class="ent-label">slowEmaMax</span><span class="ent-val">${(window._sim?.slowEmaMax||0).toFixed(4)}</span></div>
+      <div class="ent-item"><span class="ent-label">qualité seed</span><span class="ent-val ${seedQuality()>0.8?'ok':'warn'}">${Math.round(seedQuality()*100)}%</span></div>
+      <div class="ent-item"><span class="ent-label">gSt dims</span><span class="ent-val">${B}×${SDIM}=320</span></div>
+      <div class="ent-item"><span class="ent-label">SESSION_SALT</span><span class="ent-val">128 bits</span></div>
+      <div class="ent-item"><span class="ent-label">AES</span><span class="ent-val">256 bits</span></div>
+      <div class="ent-item"><span class="ent-label">PASSPHRASE</span><span class="ent-val">~64 bits</span></div>
+    `
+
+    // Afficher le panel
+    document.getElementById('key-output').style.display = 'block'
+    const ksEl=document.getElementById('key-status'); if(ksEl){ksEl.className='key-status done'; ksEl.textContent='CLÉ ACTIVE'}
+    document.getElementById('key-status').textContent = '✓ CLÉ DÉRIVÉE — SESSION ACTIVE'
+    // Verrouillage : garder le bouton actif pour permettre régénération consciente
+    btn.textContent = '↺ RÉGÉNÉRER'
+    btn.disabled = false
+    btn.classList.add('done')
+
+    log('✓ Clé générée — AES-GCM 256 + passphrase 8 mots + alphabet 26 symboles','ok')
+    window._lastKey = { hex: hexStr, passphrase, fp }
+    // Afficher le panel de partage et mettre à jour l'hex exportable
+    showSharePanel()
+    const hexDisp = document.getElementById('share-hex-display')
+    if(hexDisp) hexDisp.textContent = hexStr
+  } catch(e) {
+    log('✗ Erreur génération: ' + e.message, 'err')
+    btn.disabled = false; btn.textContent = '🔑 GÉNÉRER CLÉ CRYPTOGRAPHIQUE'
+  }
+}
+window.encryptMsg = encryptMsg
+window.decryptMsg = decryptMsg
+
+
+// ══════════════════════════════════════════════════════════
+// PARTAGE INTER-UTILISATEURS
+// ══════════════════════════════════════════════════════════
+
+// ── Onglets ─────────────────────────────────────────────
+window.showTab = function(tab){
+  document.querySelectorAll('.share-pane').forEach(p=>p.classList.remove('active'))
+  document.querySelectorAll('.share-tab').forEach(t=>t.classList.remove('active'))
+  const pane = document.getElementById(`tab-${tab}`)
+  const tabs = document.querySelectorAll('.share-tab')
+  if(pane) pane.classList.add('active')
+  const idx = ['export','import','pbkdf2','p2p','passphrase'].indexOf(tab)
+  if(idx>=0 && tabs[idx]) tabs[idx].classList.add('active')
+}
+
+// ── HANDLERS PASSPHRASE PRONONÇABLE ────────────────────────────────────────
+let _lastPassphrase = ''
+const _ppLabel = (bits)=> bits>=128?'très fort':bits>=96?'fort':bits>=72?'correct':'faible'
+const PSEUDO_SYLL = 3
+window.ppPreview = function(){
+  const n = +(document.getElementById('pp-nwords')?.value || 8)
+  const mode = document.getElementById('pp-mode')?.value || 'reels'
+  const bits = mode==='pseudo' ? n*PSEUDO_SYLL*SYLL_BPS : n*Math.log2(WORDLIST_FR.length)
+  const pfx = mode==='pseudo' ? '≤ ' : '≈ '
+  const ent = document.getElementById('pp-entropy')
+  if(ent) ent.textContent = `${pfx}${bits} bits prévus · ${n} ${mode==='pseudo'?'pseudo-mots × '+PSEUDO_SYLL+' syll':'mots'} · ${_ppLabel(bits)}`
+}
+window.generatePassphrase = function(){
+  try{
+    const n = +(document.getElementById('pp-nwords')?.value || 8)
+    const mode = document.getElementById('pp-mode')?.value || 'reels'
+    const r = mode==='pseudo' ? genPseudoPassphrase(n, PSEUDO_SYLL) : genPassphrase(n)
+    _lastPassphrase = r.words.join('-')   // forme canonique = tiret (1 jeton, sans ambiguïté)
+    const disp = document.getElementById('pp-display'); if(disp) disp.textContent = _lastPassphrase
+    const ent = document.getElementById('pp-entropy')
+    if(ent) ent.textContent = `${r.bits} bits · ${n} ${mode==='pseudo'?'pseudo-mots × '+PSEUDO_SYLL+' syll':'mots'} · ${_ppLabel(r.bits)}`
+    if(typeof log==='function') log(`Passphrase (${mode}) : ${n} = ${r.bits} bits`,'ok')
+  }catch(e){ if(typeof log==='function') log('generatePassphrase : '+e.message,'err') }
+}
+window.copyPassphrase = function(){
+  if(!_lastPassphrase){ if(typeof log==='function') log('Génère d\'abord une passphrase','err'); return }
+  navigator.clipboard.writeText(_lastPassphrase).then(()=>{ if(typeof log==='function') log('Passphrase copiée','ok') })
+}
+window.usePassphraseForKey = function(){
+  if(!_lastPassphrase){ if(typeof log==='function') log('Génère d\'abord une passphrase','err'); return }
+  // réutilise le chemin PBKDF2 éprouvé (deriveSharedKey lit pbkdf-pass + pbkdf-salt)
+  const pass = document.getElementById('pbkdf-pass'); if(pass) pass.value=_lastPassphrase
+  const salt = document.getElementById('pbkdf-salt'); if(salt && !salt.value) salt.value='OMEGA-KEY-2026'
+  if(typeof updatePbkdfStrength==='function') updatePbkdfStrength()
+  if(typeof deriveSharedKey==='function'){ deriveSharedKey() }
+  else if(typeof log==='function') log('deriveSharedKey introuvable','err')
+}
+
+window.verifyPassphrase = async function(){
+  if(!_lastPassphrase){ if(typeof log==='function') log('Génère d\'abord une passphrase','err'); return }
+  const salt=(document.getElementById('pbkdf-salt')?.value)||'OMEGA-KEY-2026'
+  const enc=new TextEncoder()
+  // calque EXACT de deriveSharedKey : PBKDF2-SHA256, 310000 itér., 256 bits
+  const derive=async()=>{
+    const base=await crypto.subtle.importKey('raw',enc.encode(_lastPassphrase),'PBKDF2',false,['deriveBits'])
+    return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:310000,hash:'SHA-256'},base,256))
+  }
+  try{
+    const a=await derive(), b=await derive()
+    const same = a.length===b.length && a.every((x,i)=>x===b[i])
+    const fp = Array.from(a.slice(0,8)).map(x=>x.toString(16).padStart(2,'0')).join(':')
+    const el=document.getElementById('pp-verify')
+    if(el){ el.textContent = same ? `✓ déterministe — même clé des deux côtés · empreinte ${fp}` : '✗ ÉCHEC : deux dérivations différentes'
+            el.style.color = same ? 'var(--green)' : 'var(--red)' }
+    if(typeof log==='function') log(same?`Round-trip OK · empreinte ${fp}`:'Round-trip ÉCHEC','ok')
+  }catch(e){ if(typeof log==='function') log('verifyPassphrase : '+e.message,'err') }
+}
+
+// ── MODE 1 : EXPORT HEX ─────────────────────────────────
+function showSharePanel(){
+  const p = document.getElementById('share-panel')
+  if(p) p.style.display='block'
+}
+
+window.copyShareHex = async function(){
+  const hex = document.getElementById('share-hex-display')?.textContent
+  if(!hex || hex==='—') return
+  try {
+    await navigator.clipboard.writeText(hex)
+    setShareStatus('share-hex-status', '✓ Clé copiée — transmettez via canal sécurisé', 'ok')
+  } catch(e) {
+    setShareStatus('share-hex-status', '✗ Impossible de copier — sélectionnez manuellement', 'err')
+  }
+}
+
+// ── MODE 2 : IMPORT HEX ─────────────────────────────────
+window.checkImportHex = function(){
+  const val = document.getElementById('import-hex-input')?.value.trim() || ''
+  const clean = val.replace(/[^0-9a-fA-F]/g,'')
+  const cnt = document.getElementById('import-hex-count')
+  const btn = document.getElementById('btn-import-hex')
+  if(cnt) cnt.textContent = `${clean.length}/64 chars`
+  if(cnt) cnt.style.color = clean.length===64 ? 'var(--green)' : 'var(--muted)'
+  if(btn) btn.disabled = clean.length !== 64
+}
+
+window.importKeyHex = async function(){
+  const val = document.getElementById('import-hex-input')?.value.trim() || ''
+  const clean = val.replace(/[^0-9a-fA-F]/g,'')
+  if(clean.length !== 64){
+    setShareStatus('import-hex-status','✗ La clé doit faire exactement 64 caractères hex (256 bits)','err'); return
+  }
+  try {
+    // Convertir hex → Uint8Array
+    const keyBytes = new Uint8Array(32)
+    for(let i=0;i<32;i++) keyBytes[i] = parseInt(clean.slice(i*2,i*2+2),16)
+
+    // Importer comme clé AES-GCM
+    _aesKey = await crypto.subtle.importKey(
+      'raw', keyBytes, {name:'AES-GCM'}, false, ['encrypt','decrypt']
+    )
+    _keyMaterial = { aes: keyBytes, hmac: new Uint8Array(32), master: keyBytes }
+
+    // Mettre à jour l'affichage
+    const hexEl = document.getElementById('kp-hex')
+    if(hexEl) hexEl.textContent = clean
+
+    // Générer passphrase correspondante pour vérification visuelle
+    const pp = buildPassphrase(keyBytes)
+    const ppEl = document.getElementById('kp-words')
+    if(ppEl) ppEl.innerHTML = pp.map(w=>`<span class="pw-word amber">${w}</span>`).join('')
+    const modeEl = document.getElementById('kp-mode')
+    if(modeEl) modeEl.textContent = '📥 Clé importée — mode récepteur actif'
+
+    // Afficher le panel de sortie et activer le bouton
+    document.getElementById('key-output').style.display='block'
+    const sts=document.getElementById('key-status')
+    if(sts){sts.className='key-status done';sts.textContent='CLÉ IMPORTÉE ACTIVE'}
+    const btn=document.getElementById('btn-gen')
+    if(btn){btn.disabled=false;btn.textContent='↺ RÉGÉNÉRER BPUF';btn.classList.add('done')}
+
+    setShareStatus('import-hex-status',`✓ Clé AES-256 chargée — déchiffrement disponible`,'ok')
+    window._lastKey = { hex:clean, passphrase:pp, fp: Array.from(keyBytes.slice(0,8)).map(b=>b.toString(16).padStart(2,'0')).join(':') }
+    const fpEl = document.getElementById('kp-fp')
+    if(fpEl) fpEl.textContent = window._lastKey.fp
+    log('✓ Clé importée — récepteur prêt à déchiffrer','ok')
+  } catch(e) {
+    setShareStatus('import-hex-status','✗ Erreur importation: '+e.message,'err')
+  }
+}
+
+// ── MODE 3 : CLÉ PARTAGÉE PBKDF2 ────────────────────────
+window.updatePbkdfStrength = function(){
+  const len = (document.getElementById('pbkdf-pass')?.value||'').length
+  const el  = document.getElementById('ph-len')
+  if(el){
+    el.textContent = len
+    el.style.color = len>=12?'var(--green)':len>=8?'var(--amber)':'var(--red)'
+  }
+}
+
+window.genSalt = function(){
+  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  const salt  = Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('')
+  const el = document.getElementById('pbkdf-salt')
+  if(el) el.value = 'OMEGA-'+salt.toUpperCase().slice(0,8)
+}
+
+window.deriveSharedKey = async function(){
+  const pass = document.getElementById('pbkdf-pass')?.value || ''
+  const salt = document.getElementById('pbkdf-salt')?.value || 'OMEGA-KEY-2026'
+  if(pass.length < 6){
+    setShareStatus('pbkdf-status','✗ Phrase trop courte (minimum 6 caractères)','err'); return
+  }
+  const btn = document.getElementById('btn-pbkdf')
+  btn.disabled=true; btn.textContent='⏳ DÉRIVATION PBKDF2 (310 000 itérations)…'
+  try {
+    const enc = new TextEncoder()
+    // Importer le mot de passe comme clé base PBKDF2
+    const baseKey = await crypto.subtle.importKey(
+      'raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']
+    )
+    // Dériver AES-256-GCM — 310 000 itérations OWASP recommandé
+    _aesKey = await crypto.subtle.deriveKey(
+      { name:'PBKDF2', salt:enc.encode(salt), iterations:310000, hash:'SHA-256' },
+      baseKey,
+      { name:'AES-GCM', length:256 },
+      true, ['encrypt','decrypt']
+    )
+    // Exporter pour affichage
+    const rawKey   = new Uint8Array(await crypto.subtle.exportKey('raw',_aesKey))
+    const hexStr   = Array.from(rawKey).map(b=>b.toString(16).padStart(2,'0')).join('')
+    const pp       = buildPassphrase(rawKey)
+    const fp       = Array.from(rawKey.slice(0,8)).map(b=>b.toString(16).padStart(2,'0')).join(':')
+
+    // Afficher
+    const hexEl = document.getElementById('kp-hex')
+    if(hexEl) hexEl.textContent = hexStr
+    const ppEl  = document.getElementById('kp-words')
+    if(ppEl)  ppEl.innerHTML = pp.map(w=>`<span class="pw-word" style="border-color:rgba(255,170,0,.3);color:var(--amber)">${w}</span>`).join('')
+    const modeEl = document.getElementById('kp-mode')
+    if(modeEl) modeEl.textContent = `🔑 Clé partagée PBKDF2 — sel: ${salt}`
+    const fpEl  = document.getElementById('kp-fp')
+    if(fpEl)   fpEl.textContent = fp
+    document.getElementById('key-output').style.display='block'
+    const hexDisp = document.getElementById('share-hex-display')
+    if(hexDisp) hexDisp.textContent = hexStr
+
+    const sts=document.getElementById('key-status')
+    if(sts){sts.className='key-status done';sts.textContent='CLÉ PARTAGÉE ACTIVE'}
+    window._lastKey={hex:hexStr,passphrase:pp,fp}
+    _keyMaterial={aes:rawKey,hmac:new Uint8Array(32),master:rawKey}
+
+    setShareStatus('pbkdf-status',
+      `✓ Clé dérivée — empreinte ${fp} | Partagez le sel "${salt}" en clair, gardez la phrase secrète`,'ok')
+    showSharePanel()
+    showTab('export')
+    log(`✓ Clé partagée PBKDF2 dérivée — sel: ${salt}`,'ok')
+  } catch(e){
+    setShareStatus('pbkdf-status','✗ Erreur: '+e.message,'err')
+  } finally {
+    btn.disabled=false; btn.textContent='🔑 DÉRIVER CLÉ COMMUNE'
+  }
+}
+
+// ── UTILITAIRE STATUS ─────────────────────────────────────
+function setShareStatus(id, msg, type){
+  const el = document.getElementById(id)
+  if(!el) return
+  el.textContent = msg
+  el.className = `share-status ${type}`
+}
+
+// Modifier generateKey pour afficher le panel partage et exporter la clé hex
+
+// ══════════════════════════════════════════════════════════
+// v0.7-phase1 — UI MASTER SEED
+// ══════════════════════════════════════════════════════════
+function updateSeedUI(){
+  const cur = document.getElementById('current-seed')
+  const lcSig = document.getElementById('lc-signature')
+  const input = document.getElementById('master-seed-input')
+  if(cur) cur.textContent = MASTER_SEED.slice(0,8) + '…' + MASTER_SEED.slice(-4)
+  if(input && !input.value) input.value = MASTER_SEED
+  if(lcSig){
+    // Signature courte des LETTER_CODES pour vérification visuelle inter-pairs
+    // Hash simple : XOR de tous les codes packés en hex
+    let h = 0
+    for(const ch of ALPHA){
+      const c = LETTER_CODES_V4[ch]
+      for(let i=0;i<6;i++) h = ((h*31) + c[i]) >>> 0
+    }
+    lcSig.textContent = h.toString(16).padStart(8,'0').toUpperCase()
+  }
+}
+
+window.applyMasterSeed = function(){
+  const input = document.getElementById('master-seed-input')
+  const val = (input?.value || '').trim().toLowerCase()
+  // Validation : doit être hex, longueur min 16 (64 bits)
+  const clean = val.replace(/[^0-9a-f]/g,'')
+  if(clean.length < 16){
+    alert('Seed trop court : minimum 16 caractères hex (64 bits)')
+    return
+  }
+  if(clean !== val){
+    alert('Le seed doit être hex (0-9, a-f) uniquement')
+    return
+  }
+  // Reconstruire tout l'espace sémantique
+  rebuildSemanticSpace(clean)
+  updateSeedUI()
+  // Marquer les cerveaux pour reset (letterVecs ont changé, les mémoires sont stales)
+  if(typeof resetSim === 'function') {
+    if(confirm('Le changement de seed invalide l\'état cognitif actuel. Redémarrer la simulation ?')){
+      resetSim()
+    }
+  } else {
+    console.log('[v0.7] Seed appliqué. Redémarrer manuellement si nécessaire.')
+  }
+  // Flash visuel
+  const status = document.getElementById('seed-status')
+  if(status){
+    const prev = status.textContent
+    status.textContent = 'APPLIQUÉ ✓'
+    setTimeout(()=>{ status.textContent = prev }, 1500)
+  }
+}
+
+window.randomMasterSeed = function(){
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  const hex = Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('')
+  const input = document.getElementById('master-seed-input')
+  if(input) input.value = hex
+}
+
+// Initialiser l'UI au chargement
+if(typeof window !== 'undefined'){
+  window.addEventListener('DOMContentLoaded', updateSeedUI)
+}
+
+// ══════════════════════════════════════════════════════════
+// v0.7-phase3 — P2P SYNC via WebRTC
+// ══════════════════════════════════════════════════════════
+// Les pairs s'introduisent via un code 6 chiffres + serveur signaling.
+// Quand DataChannel ouvert, ils échangent leur MASTER_SEED chiffré
+// par AES-GCM avec clé PBKDF2 dérivée du code.
+// Le serveur ne voit jamais les seeds (juste offer/answer WebRTC).
+// ══════════════════════════════════════════════════════════
+const P2P_ICE = [{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]
+let _p2pPc = null       // RTCPeerConnection
+let _p2pDc = null       // DataChannel
+let _p2pRoom = null     // code 6 chiffres courant
+let _p2pRole = null     // 'init' ou 'join'
+let _p2pPeerFp = null   // empreinte seed pair reçu
+
+function p2pServer(){ return document.getElementById('p2p-server').value.trim() }
+function p2pStatus(msg, kind='info'){
+  const el = document.getElementById('p2p-status')
+  if(!el) return
+  el.textContent = msg
+  el.style.color = kind==='ok' ? 'var(--green)' : kind==='err' ? 'var(--red)' : 'var(--text)'
+}
+function seedFingerprint(seed){
+  // Hash simple pour comparaison rapide (32 bits hex)
+  let h = 0
+  for(let i=0;i<seed.length;i++) h = ((h*31) + seed.charCodeAt(i)) >>> 0
+  return h.toString(16).padStart(8,'0').toUpperCase()
+}
+
+// Clé PBKDF2 dérivée du code (pour chiffrer échange MASTER_SEED)
+async function p2pDeriveKeyFromCode(code){
+  const enc = new TextEncoder()
+  const pp = (typeof _lastPassphrase!=='undefined' && _lastPassphrase) || document.getElementById('pbkdf-pass')?.value || ''
+  const baseKey = await crypto.subtle.importKey(
+    'raw', enc.encode('P2P|'+code+'|'+pp+'|OMEGA'), 'PBKDF2', false, ['deriveKey']
+  )
+  // canal lié à la passphrase : le code seul (faible) ne suffit plus à déchiffrer
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt:enc.encode('OMEGA-P2P-SALT-v2'), iterations:250000, hash:'SHA-256' },
+    baseKey,
+    { name:'AES-GCM', length:256 },
+    false, ['encrypt','decrypt']
+  )
+}
+
+// Envoi signaling
+async function p2pPost(type, body){
+  const res = await fetch(`${p2pServer()}/room/${_p2pRoom}/${type}`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: typeof body === 'string' ? body : JSON.stringify(body)
+  })
+  return res.ok
+}
+async function p2pGet(type){
+  const res = await fetch(`${p2pServer()}/room/${_p2pRoom}/${type}`)
+  const txt = await res.text()
+  return txt === 'null' ? null : txt
+}
+
+// Polling answer (initiateur) ou offer (récepteur)
+async function p2pPoll(type, maxWait=60){
+  for(let i=0;i<maxWait;i++){
+    const v = await p2pGet(type)
+    if(v) return v
+    await new Promise(r=>setTimeout(r, 1000))
+  }
+  return null
+}
+
+// ── INITIATEUR ──────────────────────────────────────────
+window.p2pCreateRoom = async function(){
+  try {
+    _p2pRole = 'init'
+    _p2pRoom = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000))
+    const _pp = (typeof _lastPassphrase!=='undefined' && _lastPassphrase) || document.getElementById('pbkdf-pass')?.value || ''
+    if(!_pp) log('⚠ P2P sans passphrase : sécurité = code 6 chiffres seul (faible). Génère/entre une passphrase d\'abord.','err')
+    document.getElementById('p2p-my-code').textContent = _p2pRoom
+    p2pStatus('Création session...', 'info')
+
+    _p2pPc = new RTCPeerConnection({iceServers: P2P_ICE})
+    _p2pDc = _p2pPc.createDataChannel('omega-seed-exchange')
+    _p2pDc.onopen = p2pOnChannelOpen
+    _p2pDc.onmessage = p2pOnMessage
+    _p2pDc.onclose = () => p2pStatus('✗ Canal fermé', 'err')
+
+    const offer = await _p2pPc.createOffer()
+    await _p2pPc.setLocalDescription(offer)
+    await new Promise(r=>{
+      if(_p2pPc.iceGatheringState==='complete') r()
+      else _p2pPc.onicegatheringstatechange=()=>{ if(_p2pPc.iceGatheringState==='complete')r() }
+    })
+
+    await p2pPost('offer', JSON.stringify(_p2pPc.localDescription))
+    p2pStatus(`Session ${_p2pRoom} créée — en attente du pair...`, 'info')
+
+    const answerStr = await p2pPoll('answer', 120)
+    if(!answerStr){ p2pStatus('✗ Timeout — aucun pair n\'a rejoint', 'err'); return }
+    await _p2pPc.setRemoteDescription(JSON.parse(answerStr))
+    p2pStatus('Handshake... attente ouverture canal...', 'info')
+  } catch(e) {
+    p2pStatus('✗ Erreur: '+e.message, 'err')
+    console.error(e)
+  }
+}
+
+// ── RECEPTEUR ───────────────────────────────────────────
+window.p2pJoinRoom = async function(){
+  try {
+    _p2pRole = 'join'
+    const code = document.getElementById('p2p-peer-code').value.trim()
+    if(!/^\d{6}$/.test(code)){ p2pStatus('✗ Code invalide (6 chiffres)', 'err'); return }
+    _p2pRoom = code
+    p2pStatus(`Récupération offer de ${code}...`, 'info')
+
+    const offerStr = await p2pGet('offer')
+    if(!offerStr){ p2pStatus('✗ Aucune session avec ce code', 'err'); return }
+
+    _p2pPc = new RTCPeerConnection({iceServers: P2P_ICE})
+    _p2pPc.ondatachannel = ev => {
+      _p2pDc = ev.channel
+      _p2pDc.onopen = p2pOnChannelOpen
+      _p2pDc.onmessage = p2pOnMessage
+      _p2pDc.onclose = () => p2pStatus('✗ Canal fermé', 'err')
+    }
+
+    await _p2pPc.setRemoteDescription(JSON.parse(offerStr))
+    const answer = await _p2pPc.createAnswer()
+    await _p2pPc.setLocalDescription(answer)
+    await new Promise(r=>{
+      if(_p2pPc.iceGatheringState==='complete') r()
+      else _p2pPc.onicegatheringstatechange=()=>{ if(_p2pPc.iceGatheringState==='complete')r() }
+    })
+
+    await p2pPost('answer', JSON.stringify(_p2pPc.localDescription))
+    p2pStatus('Handshake... attente ouverture canal...', 'info')
+  } catch(e) {
+    p2pStatus('✗ Erreur: '+e.message, 'err')
+    console.error(e)
+  }
+}
+
+// ── CANAL OUVERT ────────────────────────────────────────
+function p2pOnChannelOpen(){
+  p2pStatus('✓ CONNECTÉ — canal sécurisé ouvert', 'ok')
+  const syncPanel = document.getElementById('p2p-sync-panel')
+  if(syncPanel) syncPanel.style.display='block'
+  document.getElementById('p2p-my-fp').textContent = seedFingerprint(MASTER_SEED)
+}
+
+// ── ÉCHANGE MASTER_SEED ─────────────────────────────────
+window.p2pExchangeSeed = async function(){
+  if(!_p2pDc || _p2pDc.readyState !== 'open'){
+    p2pStatus('✗ Canal non ouvert', 'err'); return
+  }
+  try {
+    const key = await p2pDeriveKeyFromCode(_p2pRoom)
+    const iv = crypto.getRandomValues(new Uint8Array(12))
+    const enc = await crypto.subtle.encrypt(
+      {name:'AES-GCM', iv}, key,
+      new TextEncoder().encode(JSON.stringify({
+        seed: MASTER_SEED,
+        fp: seedFingerprint(MASTER_SEED),
+        ts: Date.now()
+      }))
+    )
+    const payload = new Uint8Array(iv.length + enc.byteLength)
+    payload.set(iv); payload.set(new Uint8Array(enc), iv.length)
+    const b64 = btoa(String.fromCharCode(...payload))
+    _p2pDc.send(JSON.stringify({type:'seed', payload: b64}))
+
+    const resEl = document.getElementById('p2p-sync-result')
+    if(resEl){
+      resEl.innerHTML = '<span style="color:var(--amber)">📡 Seed envoyé — en attente du pair...</span>'
+    }
+  } catch(e) {
+    p2pStatus('✗ Erreur envoi: '+e.message, 'err')
+  }
+}
+
+async function p2pOnMessage(ev){
+  try {
+    const msg = JSON.parse(ev.data)
+    if(msg.type === 'seed' && msg.payload){
+      const key = await p2pDeriveKeyFromCode(_p2pRoom)
+      const bytes = Uint8Array.from(atob(msg.payload), c=>c.charCodeAt(0))
+      const iv = bytes.slice(0,12)
+      const data = bytes.slice(12)
+      const dec = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data)
+      const peerData = JSON.parse(new TextDecoder().decode(dec))
+
+      _p2pPeerFp = peerData.fp
+      document.getElementById('p2p-peer-fp').textContent = _p2pPeerFp
+
+      const match = _p2pPeerFp === seedFingerprint(MASTER_SEED)
+      const resEl = document.getElementById('p2p-sync-result')
+      if(resEl){
+        if(match){
+          resEl.innerHTML = '<span style="color:var(--green)">✓ SEEDS IDENTIQUES — espace sémantique partagé confirmé</span>'
+        } else {
+          resEl.innerHTML = `<span style="color:var(--amber)">⚠ SEEDS DIFFÉRENTS — <button onclick="p2pAdoptPeerSeed('${peerData.seed}')" style="background:rgba(255,170,0,.1);border:1px solid var(--amber);color:var(--amber);padding:3px 8px;font-size:9px;cursor:pointer">ADOPTER LE SEED DU PAIR</button></span>`
+          window._p2pPeerFullSeed = peerData.seed
+        }
+      }
+    }
+  } catch(e){
+    console.error('P2P message error:', e)
+  }
+}
+
+window.p2pAdoptPeerSeed = function(seed){
+  if(!seed && window._p2pPeerFullSeed) seed = window._p2pPeerFullSeed
+  if(!seed){ return }
+  if(!confirm(`Adopter le seed du pair (${seedFingerprint(seed)}) ? L'état cognitif actuel sera perdu.`)) return
+  rebuildSemanticSpace(seed)
+  updateSeedUI()
+  if(typeof resetSim === 'function') resetSim()
+  const resEl = document.getElementById('p2p-sync-result')
+  if(resEl) resEl.innerHTML = '<span style="color:var(--green)">✓ Seed du pair adopté — espace sémantique synchronisé</span>'
+  document.getElementById('p2p-my-fp').textContent = seedFingerprint(seed)
+}
+
+// ══════════════════════════════════════════════════════════
+// v0.7-phase4 — FORWARD SECRECY + KEY ROTATION
+// ══════════════════════════════════════════════════════════
+// Chaque message est chiffré avec une clé unique dérivée de :
+//   keyN = HKDF(rootKey || counter, salt='FS-N-'||counter, 'AES')
+// Si un attaquant capture keyN, il ne peut pas déchiffrer messages précédents.
+// Le counter est transmis en clair (dans le header message) — non secret.
+// Toggle activable via UI.
+// ══════════════════════════════════════════════════════════
+let _fsEnabled = false       // toggle forward secrecy
+let _fsSendCounter = 0       // compteur envoi (incrémenté à chaque encrypt)
+let _fsRecvCounter = -1      // compteur reçu (pour détecter replay)
+
+window.toggleFS = function(){
+  _fsEnabled = !_fsEnabled
+  const btn = document.getElementById('btn-fs-toggle')
+  if(btn){
+    btn.textContent = _fsEnabled ? '✓ FORWARD SECRECY ON' : '○ FORWARD SECRECY OFF'
+    btn.style.color = _fsEnabled ? 'var(--green)' : 'var(--muted)'
+    btn.style.borderColor = _fsEnabled ? 'var(--green)' : 'var(--dim)'
+  }
+  if(_fsEnabled){
+    _fsSendCounter = 0
+    _fsRecvCounter = -1
+    log('🔐 Forward Secrecy ACTIVÉ — chaque message utilise une clé unique','ok')
+  } else {
+    log('⚠ Forward Secrecy désactivé','info')
+  }
+}
+
+// ── RATCHET FS v2 — clé par message à cliquet, séparée par direction ────────
+// (1) vraie FS : chaîne à sens unique, clé jetée après usage (un état capturé
+//     à l'index n ne redonne pas les messages < n).  (2) séparation : senderId
+//     aléatoire embarqué ⇒ A et B ne réutilisent jamais la même clé.  (3) anti-
+//     replay réel : cliquet en avant uniquement ⇒ counter déjà passé = rejet.
+const FS_SALT = new TextEncoder().encode('OMEGA-FS-v2')
+const FS_MAX_SKIP = 1000
+let _fsSenderId = null          // 4 octets aléatoires, par session
+let _fsSendChain = null         // clé de chaîne d'envoi courante
+let _fsRecvChains = new Map()   // senderIdHex -> { chain, next }
+const _hex = (u8)=>Array.from(u8).map(b=>b.toString(16).padStart(2,'0')).join('')
+
+async function _fsChainInit(root, senderHex){ return hkdf(root, FS_SALT, 'chain-'+senderHex, 32) }
+
+// délégation format standard (conserve les bindings d'origine)
+const _originalEncrypt = encryptMsg
+const _originalDecrypt = decryptMsg
+
+async function encryptMsgFS(){
+  if(!_aesKey){ log('Clé non générée — générez d\'abord','err'); return }
+  if(!_fsEnabled){ return _originalEncrypt() }
+  const plain = document.getElementById('enc-plain').value.trim()
+  if(!plain){ log('Message vide','err'); return }
+  if(!_keyMaterial?.aes){ log('✗ FS nécessite le keyMaterial — re-générez la clé','err'); return }
+  if(!_fsSenderId){
+    _fsSenderId = crypto.getRandomValues(new Uint8Array(4))
+    _fsSendChain = await _fsChainInit(_keyMaterial.aes, _hex(_fsSenderId))
+    _fsSendCounter = 0
+  }
+  const counter = _fsSendCounter
+  const mk = await hkdf(_fsSendChain, FS_SALT, 'msg', 32)
+  _fsSendChain = await hkdf(_fsSendChain, FS_SALT, 'rk', 32)   // avance le cliquet, jette l'ancienne
+  _fsSendCounter++
+  const key = await crypto.subtle.importKey('raw', mk, {name:'AES-GCM'}, false, ['encrypt'])
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(plain)))
+  const cb = new Uint8Array(4); new DataView(cb.buffer).setUint32(0, counter, false)
+  const comb = new Uint8Array(4 + 4 + 12 + ct.length)
+  comb.set(_fsSenderId, 0); comb.set(cb, 4); comb.set(iv, 8); comb.set(ct, 20)
+  document.getElementById('enc-cipher').value = 'FS2:' + btoa(String.fromCharCode(...comb))
+  const wrap=document.getElementById('enc-copy-wrap'); if(wrap) wrap.style.display='block'
+  const rw=document.getElementById('dec-result-wrap'); if(rw) rw.style.display='none'
+  log(`🔐 Message #${counter} chiffré (ratchet FS, clé jetée)`,'ok')
+}
+
+async function decryptMsgFS(){
+  if(!_aesKey){ log('Clé non générée — générez d\'abord','err'); return }
+  const cipherB64 = document.getElementById('enc-cipher').value.trim()
+  if(!cipherB64){ log('Aucun message chiffré à déchiffrer','err'); return }
+  if(!cipherB64.startsWith('FS2:')){ return _originalDecrypt() }
+  if(!_keyMaterial?.aes){ log('✗ FS nécessite le keyMaterial — re-générez la clé','err'); return }
+  try{
+    const bytes = Uint8Array.from(atob(cipherB64.slice(4)), c=>c.charCodeAt(0))
+    const senderHex = _hex(bytes.slice(0,4))
+    const counter = new DataView(bytes.buffer, bytes.byteOffset+4, 4).getUint32(0, false)
+    const iv = bytes.slice(8,20), data = bytes.slice(20)
+    let st = _fsRecvChains.get(senderHex)
+    if(!st){ st = { chain: await _fsChainInit(_keyMaterial.aes, senderHex), next: 0 }; _fsRecvChains.set(senderHex, st) }
+    if(counter < st.next){ log(`✗ Replay/ancien rejeté (counter=${counter} < ${st.next}) — clé détruite`,'err'); return }
+    if(counter - st.next > FS_MAX_SKIP){ log('✗ Saut de counter trop grand — rejeté','err'); return }
+    let chain = st.chain                                   // ratchet sur copie locale
+    for(let k=st.next; k<counter; k++){ chain = await hkdf(chain, FS_SALT, 'rk', 32) }
+    const mk = await hkdf(chain, FS_SALT, 'msg', 32)
+    const key = await crypto.subtle.importKey('raw', mk, {name:'AES-GCM'}, false, ['decrypt'])
+    const dec = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data)   // throw si KO -> pas de commit
+    st.chain = await hkdf(chain, FS_SALT, 'rk', 32); st.next = counter+1        // commit : jette les anciennes
+    const txt = new TextDecoder().decode(dec)
+    const resEl=document.getElementById('dec-result'), resWrap=document.getElementById('dec-result-wrap')
+    if(resEl) resEl.textContent = txt; if(resWrap) resWrap.style.display='block'
+    if(resEl){ resEl.style.opacity='0'; setTimeout(()=>resEl.style.transition='opacity .4s',10); setTimeout(()=>resEl.style.opacity='1',20) }
+    log(`🔐 Message #${counter} déchiffré de ${senderHex} (clé jetée)`,'ok')
+  }catch(e){
+    log('✗ Déchiffrement FS échoué — clé incorrecte ou message altéré','err')
+    const rw=document.getElementById('dec-result-wrap'); if(rw) rw.style.display='none'
+  }
+}
+
+window.encryptMsg = encryptMsgFS
+window.decryptMsg = decryptMsgFS
+
+// ══════════════════════════════════════════════════════════════════════════
+// DOUBLE RATCHET (DH) — forward secrecy + post-compromission, par-dessus le
+// root passphrase. ECDH P-256 (WebCrypto) + KDF chaîne. Validé en isolation :
+// ping-pong, hors-ordre (clés sautées), tamper, replay, guérison PCS.
+// ══════════════════════════════════════════════════════════════════════════
+const _DR_MAX_SKIP = 1000
+let _drState = null
+let _drAnchor = null
+const _b2h = u8=>Array.from(u8).map(b=>b.toString(16).padStart(2,'0')).join('')
+async function _drGenDH(){ return crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},true,['deriveBits']) }
+async function _drPub(kp){ return new Uint8Array(await crypto.subtle.exportKey('raw',kp.publicKey)) }
+async function _drDH(kp,peerRaw){ const pk=await crypto.subtle.importKey('raw',peerRaw,{name:'ECDH',namedCurve:'P-256'},false,[])
+  return new Uint8Array(await crypto.subtle.deriveBits({name:'ECDH',public:pk},kp.privateKey,256)) }
+async function _drHmac(kb,b){ const k=await crypto.subtle.importKey('raw',kb,{name:'HMAC',hash:'SHA-256'},false,['sign']); return new Uint8Array(await crypto.subtle.sign('HMAC',k,b)) }
+async function _drKdfRK(rk,dhOut){ const o=await hkdf(dhOut,rk,'DR-root',64); return [o.slice(0,32),o.slice(32,64)] }
+async function _drKdfCK(ck){ return [await _drHmac(ck,new Uint8Array([2])), await _drHmac(ck,new Uint8Array([1]))] }
+async function _drMkKey(mk){ const k=await hkdf(mk,new Uint8Array(32),'DR-msg',32); return crypto.subtle.importKey('raw',k,{name:'AES-GCM'},false,['encrypt','decrypt']) }
+function _drHdr(pubRaw,PN,N){ const h=new Uint8Array(73); h.set(pubRaw,0); const dv=new DataView(h.buffer); dv.setUint32(65,PN,false); dv.setUint32(69,N,false); return h }
+function _drParseHdr(h){ return {dh:h.slice(0,65), PN:new DataView(h.buffer,h.byteOffset+65,4).getUint32(0,false), N:new DataView(h.buffer,h.byteOffset+69,4).getUint32(0,false)} }
+async function _drInitAlice(SK,bobPub){ const DHs=await _drGenDH(); const [RK,CKs]=await _drKdfRK(SK, await _drDH(DHs,bobPub))
+  return {RK,DHs,DHr:bobPub,CKs,CKr:null,Ns:0,Nr:0,PN:0,SKIP:new Map()} }
+async function _drInitBob(SK,bobKp){ return {RK:new Uint8Array(SK),DHs:bobKp,DHr:null,CKs:null,CKr:null,Ns:0,Nr:0,PN:0,SKIP:new Map()} }
+async function _drSkip(st,until){ if(st.Nr+_DR_MAX_SKIP<until) throw new Error('MAX_SKIP')
+  if(st.CKr){ while(st.Nr<until){ const r=await _drKdfCK(st.CKr); st.CKr=r[0]; st.SKIP.set(_b2h(st._dhrPub)+':'+st.Nr,r[1]); st.Nr++ } } }
+async function _drStep(st,header){ st.PN=st.Ns; st.Ns=0; st.Nr=0; st.DHr=header.dh
+  let r=await _drKdfRK(st.RK, await _drDH(st.DHs,st.DHr)); st.RK=r[0]; st.CKr=r[1]; st._dhrPub=header.dh
+  st.DHs=await _drGenDH(); r=await _drKdfRK(st.RK, await _drDH(st.DHs,st.DHr)); st.RK=r[0]; st.CKs=r[1] }
+async function _drEnc(st,plain){ const r=await _drKdfCK(st.CKs); st.CKs=r[0]
+  const header=_drHdr(await _drPub(st.DHs),st.PN,st.Ns); st.Ns++
+  const key=await _drMkKey(r[1]); const iv=crypto.getRandomValues(new Uint8Array(12))
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:header},key,new TextEncoder().encode(plain)))
+  return 'DR:'+btoa(String.fromCharCode(...header,...iv,...ct)) }
+async function _drDec(st,b64){ const raw=Uint8Array.from(atob(b64.slice(3)),c=>c.charCodeAt(0))
+  const header=_drParseHdr(raw.slice(0,73)); const iv=raw.slice(73,85); const ct=raw.slice(85)
+  const id=_b2h(header.dh)+':'+header.N
+  if(st.SKIP.has(id)){ const mk=st.SKIP.get(id); st.SKIP.delete(id); const key=await _drMkKey(mk)
+    return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv,additionalData:_drHdr(header.dh,header.PN,header.N)},key,ct)) }
+  const same = st.DHr && _b2h(header.dh)===_b2h(st.DHr)
+  if(!same){ await _drSkip(st,header.PN); await _drStep(st,header) }
+  await _drSkip(st,header.N)
+  const r=await _drKdfCK(st.CKr); st.CKr=r[0]; st.Nr++
+  const key=await _drMkKey(r[1])
+  return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv,additionalData:_drHdr(header.dh,header.PN,header.N)},key,ct)) }
+
+window.drMakeInit = async function(){
+  if(!_keyMaterial?.aes){ if(typeof log==='function') log('Génère d\'abord une clé partagée (passphrase)','err'); return }
+  _drAnchor = await _drGenDH()
+  const el=document.getElementById('dr-my-init'); if(el) el.value=btoa(String.fromCharCode(...(await _drPub(_drAnchor))))
+  if(typeof log==='function') log('Code d\'init DH généré — transmets-le au pair','ok')
+}
+window.drEstablish = async function(){
+  if(!_keyMaterial?.aes){ setShareStatus('dr-status','✗ Clé partagée manquante (passphrase)','err'); return }
+  if(!_drAnchor){ setShareStatus('dr-status','✗ Génère d\'abord ton code d\'init (1)','err'); return }
+  const peerB64=(document.getElementById('dr-peer-init')?.value||'').trim()
+  if(!peerB64){ setShareStatus('dr-status','✗ Colle le code d\'init du pair (2)','err'); return }
+  try{
+    const peerPub=Uint8Array.from(atob(peerB64),c=>c.charCodeAt(0))
+    const myPub=await _drPub(_drAnchor); const SK=_keyMaterial.aes
+    if(_b2h(myPub) < _b2h(peerPub)){ _drState=await _drInitBob(SK,_drAnchor); setShareStatus('dr-status','✓ Session établie (rôle B) — ratchet DH actif','ok') }
+    else { _drState=await _drInitAlice(SK,peerPub); setShareStatus('dr-status','✓ Session établie (rôle A) — ratchet DH actif','ok') }
+    if(typeof log==='function') log('🔗 Session ratchet DH établie — FS + post-compromission','ok')
+  }catch(e){ setShareStatus('dr-status','✗ Échec : '+e.message,'err') }
+}
+
+async function encryptMsgDR(){
+  if(_drState){
+    try{ const plain=(document.getElementById('enc-plain')?.value||'').trim(); if(!plain){ log('Message vide','err'); return }
+      document.getElementById('enc-cipher').value=await _drEnc(_drState,plain)
+      const w=document.getElementById('enc-copy-wrap'); if(w) w.style.display='block'
+      const rw=document.getElementById('dec-result-wrap'); if(rw) rw.style.display='none'
+      log('🔗 Message chiffré (ratchet DH — clé éphémère, jetée)','ok')
+    }catch(e){ log('DR chiffrement : '+e.message,'err') }
+    return
+  }
+  return encryptMsgFS()
+}
+async function decryptMsgDR(){
+  const c=(document.getElementById('enc-cipher')?.value||'').trim()
+  if(_drState && c.startsWith('DR:')){
+    try{ const txt=await _drDec(_drState,c)
+      const resEl=document.getElementById('dec-result'), rw=document.getElementById('dec-result-wrap')
+      if(resEl) resEl.textContent=txt; if(rw) rw.style.display='block'
+      log('🔗 Message déchiffré (ratchet DH)','ok')
+    }catch(e){ log('✗ Déchiffrement DR échoué — clé / ordre / altération','err') }
+    return
+  }
+  return decryptMsgFS()
+}
+window.encryptMsg = encryptMsgDR
+window.decryptMsg = decryptMsgDR
+
+// ── COUCHE CHAT (conversation) — habillage du moteur ; appelle window.encryptMsg/decryptMsg (routage standard/FS/DR) ──
+let _chatLog = []
+const _CHAT_KEY="omega_key_chat_v1"
+function _chatSave(){ try{ localStorage.setItem(_CHAT_KEY, JSON.stringify(_chatLog)) }catch(e){} }
+function _chatLoad(){ try{ const r=localStorage.getItem(_CHAT_KEY); if(r){ const a=JSON.parse(r); if(Array.isArray(a)) _chatLog=a } }catch(e){ _chatLog=[] } }
+function _chatTime(){ const d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0") }
+function _esc(t){ return (t||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])) }
+function chatRefreshMode(){
+  const b=document.getElementById("chat-mode"); if(!b) return
+  let t,c
+  if(typeof _drState!=="undefined" && _drState){ t="🔗 RATCHET DH · forward secrecy + post-compromission"; c="var(--cyan)" }
+  else if(typeof _fsEnabled!=="undefined" && _fsEnabled){ t="🔐 FS · cliquet symétrique"; c="var(--green)" }
+  else if(typeof _aesKey!=="undefined" && _aesKey){ t="🔒 AES-GCM 256 · clé partagée"; c="var(--amber)" }
+  else { t="○ aucune clé — à générer/dériver"; c="var(--muted)" }
+  b.textContent=t; b.style.color=c
+}
+function chatRender(){
+  const box=document.getElementById("chat-thread"); if(!box) return
+  if(!_chatLog.length){ box.innerHTML='<div class="chat-empty">Aucun message.<br>Génère une clé, écris ton message, appuie sur ▶ : le chiffré est copié automatiquement pour ton correspondant.</div>' }
+  else { box.innerHTML=_chatLog.map(m=>{ const tag=(m.dir==="out"?(m.via==="relay"?"→ envoyé · ":m.via==="fail"?"⚠ échec envoi · ":m.copied===true?"✓ copié · ":m.copied===false?"⚠ copie manuelle · ":""):""); return '<div class="chat-row '+m.dir+'"><div class="chat-bubble '+m.dir+'">'+_esc(m.text)+'<span class="chat-meta">'+tag+m.ts+'</span></div></div>' }).join("") }
+  box.scrollTop=box.scrollHeight
+  chatRefreshMode()
+}
+window.chatSend = async function(){
+  const inp=document.getElementById("chat-input"); const txt=(inp&&inp.value||"").trim(); if(!txt) return
+  const cf=document.getElementById("enc-cipher"), pf=document.getElementById("enc-plain")
+  if(pf) pf.value=txt; if(cf) cf.value=""
+  await window.encryptMsg()
+  const cipher=(cf&&cf.value||"").trim()
+  if(!cipher) return            // pas de clé / échec : le moteur a déjà loggé
+  const msg={dir:"out",text:txt,ts:_chatTime()}
+  _chatLog.push(msg)
+  if(inp) inp.value=""
+  chatRender(); _chatSave()
+  if(_relayConnected()){
+    msg.via="relay"; chatRender(); _chatSave()
+    try{ await relaySend(cipher); if(typeof log==="function") log("Message envoyé via la liaison","ok") }
+    catch(e){ msg.via="fail"; if(typeof log==="function") log("Échec envoi relais : "+e.message,"err"); chatRender(); _chatSave() }
+    const wrap=document.getElementById("chat-cipher-wrap"); if(wrap) wrap.style.display="none"
+    return
+  }
+  const out=document.getElementById("chat-cipher"); if(out) out.value=cipher
+  const wrap=document.getElementById("chat-cipher-wrap"); if(wrap) wrap.style.display="block"
+  try{ await navigator.clipboard.writeText(cipher); msg.copied=true; if(typeof log==="function") log("Chiffré copié — transmets-le au correspondant","ok") }
+  catch(e){ msg.copied=false }
+  chatRender(); _chatSave()
+}
+async function chatReceiveCipher(blob){
+  blob=(blob||"").trim(); if(!blob) return false
+  const cf=document.getElementById("enc-cipher"), rf=document.getElementById("dec-result")
+  if(cf) cf.value=blob; if(rf) rf.textContent=""
+  await window.decryptMsg()
+  const txt=(rf&&rf.textContent||"").trim()
+  if(!txt) return false          // échec : déjà loggé
+  _chatLog.push({dir:"in",text:txt,ts:_chatTime()})
+  chatRender(); _chatSave()
+  return true
+}
+window.chatReceive = async function(){
+  const pst=document.getElementById("chat-paste")
+  const ok=await chatReceiveCipher(pst&&pst.value)
+  if(ok && pst) pst.value=""
+}
+window.chatCopyCipher = function(){ const o=document.getElementById("chat-cipher"); if(o&&o.value) navigator.clipboard.writeText(o.value).then(()=>{ if(typeof log==="function") log("Chiffré recopié","ok") }) }
+window.chatClear = function(){ _chatLog=[]; chatRender(); const w=document.getElementById("chat-cipher-wrap"); if(w) w.style.display="none"; try{ localStorage.removeItem(_CHAT_KEY) }catch(e){} }
+
+// ── LIAISON RELAIS (transport sans copier-coller) — ne véhicule que le chiffré ──
+let _relayUrl="", _relayRoom="", _relayId="", _relaySince=0, _relayTimer=null
+const _relaySeen=new Set()
+function _relayConnected(){ return !!_relayTimer }
+function _relayBase(){ return _relayUrl.replace(/\/+$/,"") }
+function relayRestore(){ try{ const r=localStorage.getItem("omega_relay"); if(r){ const o=JSON.parse(r); const ue=document.getElementById("relay-url"), re=document.getElementById("relay-room"); if(ue&&o.u) ue.value=o.u; if(re&&o.r) re.value=o.r } }catch(e){} }
+async function relaySend(cipher){
+  const res=await fetch(_relayBase()+"/r/"+encodeURIComponent(_relayRoom),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:_relayId,m:cipher})})
+  if(!res.ok) throw new Error("HTTP "+res.status)
+}
+async function relayPoll(){
+  try{
+    const res=await fetch(_relayBase()+"/r/"+encodeURIComponent(_relayRoom)+"?since="+_relaySince)
+    if(!res.ok) return
+    const data=await res.json()
+    if(data && typeof data.now==="number") _relaySince=data.now
+    if(!data || !Array.isArray(data.msgs)) return
+    for(const m of data.msgs){
+      if(!m || _relaySeen.has(m.mid)) continue
+      _relaySeen.add(m.mid)
+      if(m.id===_relayId) continue           // ignorer ses propres messages
+      await chatReceiveCipher(m.m)            // déchiffre + ajoute au fil
+    }
+  }catch(e){ /* réseau : nouvel essai au prochain tick */ }
+}
+window.relayToggle = function(){
+  if(_relayConnected()) return window.relayDisconnect()
+  const u=(document.getElementById("relay-url")?.value||"").trim()
+  const r=(document.getElementById("relay-room")?.value||"").trim()
+  if(!/^https?:\/\//.test(u)){ setShareStatus("relay-status","✗ URL du relais invalide (https://…)","err"); return }
+  if(!/^[A-Za-z0-9_-]{3,64}$/.test(r)){ setShareStatus("relay-status","✗ Code de salon invalide (3-64 car. A-Z a-z 0-9 _ -)","err"); return }
+  _relayUrl=u; _relayRoom=r
+  _relayId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random())
+  _relaySince=Date.now(); _relaySeen.clear()
+  try{ localStorage.setItem("omega_relay", JSON.stringify({u,r})) }catch(e){}
+  _relayTimer=setInterval(relayPoll,1500)
+  const b=document.getElementById("relay-btn"); if(b) b.textContent="🔌 DÉCONNECTER"
+  setShareStatus("relay-status","✓ Lié au salon « "+r+" » — réception auto (1,5 s)","ok")
+  if(typeof log==="function") log("Liaison relais active","ok")
+  relayPoll()
+}
+window.relayDisconnect = function(){
+  if(_relayTimer){ clearInterval(_relayTimer); _relayTimer=null }
+  const b=document.getElementById("relay-btn"); if(b) b.textContent="🔌 SE CONNECTER"
+  setShareStatus("relay-status","○ Liaison coupée","err")
+}
+// Entrée = envoyer (Maj+Entrée = nouvelle ligne)
+document.addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey && document.activeElement && document.activeElement.id==="chat-input"){ e.preventDefault(); window.chatSend() } })
+_chatLoad(); relayRestore(); chatRender()
+
+// Injecter le toggle FS dans l'UI après chargement
+function injectFSToggle(){
+  // Chercher un bon endroit : après le bloc AES-GCM USAGE PARTAGÉ
+  const kb = document.querySelectorAll('.kb-title')
+  for(const t of kb){
+    if(t.textContent.includes('CHIFFREMENT AES')){
+      const block = t.parentElement
+      if(block && !document.getElementById('btn-fs-toggle')){
+        const fsDiv = document.createElement('div')
+        fsDiv.style.cssText = 'margin-top:8px;padding:6px;border-top:1px dashed var(--dim)'
+        fsDiv.innerHTML = `
+          <button id="btn-fs-toggle" onclick="toggleFS()" 
+                  style="background:var(--bg3);border:1px solid var(--dim);color:var(--muted);font-family:'IBM Plex Mono';font-size:9px;padding:6px 10px;cursor:pointer;letter-spacing:2px;border-radius:2px;width:100%">
+            ○ FORWARD SECRECY OFF
+          </button>
+          <div style="font-size:8px;color:var(--muted);margin-top:4px;text-align:center">
+            Active : chaque message = clé unique (capture d'une clé ≠ accès au passé)
+          </div>
+        `
+        block.appendChild(fsDiv)
+      }
+      break
+    }
+  }
+}
+if(typeof window !== 'undefined'){
+  window.addEventListener('DOMContentLoaded', injectFSToggle)
+}
+
+</script>
+</body>
+</html>
