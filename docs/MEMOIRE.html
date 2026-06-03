@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMEGA-Ω — Mémoire : une architecture cognitive pour le pendu français</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3EFE6; --paper-2:#EBE5D8; --ink:#1C1815; --ink-soft:#4A433B;
+  --line:#D8D0BF; --line-2:#C7BCA5;
+  --accent:#B0432B; --accent-2:#1E5A55; --gold:#9A7B22;
+  --mes:#1E5A55; --des:#3C5A8A; --hyp:#9A7B22; --exc:#9B3331;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Spectral",Georgia,serif;font-weight:400;font-size:18.5px;line-height:1.68;
+  overflow-x:hidden;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  background-image:radial-gradient(circle at 1px 1px,rgba(28,24,21,.03) 1px,transparent 0);background-size:24px 24px;}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:120;transition:width .1s linear}
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);max-width:1340px;margin:0 auto}
+aside{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,var(--paper-2),var(--paper));padding:30px 22px 60px}
+aside .brand{font-family:"Fraunces",serif;font-weight:600;font-size:22px;margin:0 0 2px}
+aside .sub{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin-bottom:22px}
+aside nav a{display:block;color:var(--ink-soft);text-decoration:none;font-size:14px;padding:5px 10px;border-radius:7px;border-left:2px solid transparent}
+aside nav a:hover{background:var(--paper);color:var(--ink)}
+aside nav a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(176,67,43,.06);font-weight:500}
+aside nav a .n{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--line-2);margin-right:9px}
+main{padding:0 clamp(22px,5vw,90px) 140px;min-width:0}
+.title{padding:90px 0 40px;border-bottom:2px solid var(--ink);margin-bottom:50px}
+.title .kick{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.title h1{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:0 0 18px;letter-spacing:-.5px}
+.title .por{font-size:21px;color:var(--ink-soft);font-style:italic;max-width:60ch}
+.title .meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);margin-top:26px;line-height:1.9}
+section{margin:0 0 52px;scroll-margin-top:18px}
+h2{font-family:"Fraunces",serif;font-weight:600;font-size:30px;margin:0 0 12px;letter-spacing:-.3px;line-height:1.12}
+h2 .hn{font-family:"JetBrains Mono",monospace;font-size:15px;color:var(--accent);margin-right:14px;font-weight:500}
+h3{font-family:"Fraunces",serif;font-weight:600;font-size:20px;margin:30px 0 8px}
+p{margin:13px 0;text-align:justify;hyphens:auto}
+.lead{font-size:20.5px;color:var(--ink-soft);text-align:left}
+.abstract{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:24px 28px;margin:8px 0 14px;font-size:17.5px}
+.abstract .lbl{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px}
+code{font-family:"JetBrains Mono",monospace;font-size:.85em;background:var(--paper-2);padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+.chip{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;padding:2px 9px;border-radius:20px;color:#fff;vertical-align:middle}
+.c-mes{background:var(--mes)} .c-des{background:var(--des)} .c-hyp{background:var(--hyp)} .c-exc{background:var(--exc)}
+.callout{border-left:3px solid var(--accent);background:linear-gradient(90deg,rgba(176,67,43,.05),transparent);padding:16px 20px;border-radius:0 10px 10px 0;margin:20px 0;text-align:left}
+.callout.mes{border-color:var(--mes);background:linear-gradient(90deg,rgba(30,90,85,.06),transparent)}
+.callout.exc{border-color:var(--exc);background:linear-gradient(90deg,rgba(155,51,49,.06),transparent)}
+.callout .lbl{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:5px}
+.callout.mes .lbl{color:var(--mes)} .callout.exc .lbl{color:var(--exc)}
+.pull{font-family:"Fraunces",serif;font-size:25px;font-weight:500;line-height:1.3;color:var(--accent-2);border:none;margin:30px 0;padding:0 0 0 22px;border-left:4px solid var(--gold)}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);border-bottom:2px solid var(--line-2)}
+.num{font-family:"JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.pos{color:var(--mes);font-weight:600} .neg{color:var(--exc);font-weight:600}
+ul,ol{margin:12px 0;padding-left:24px} li{margin:7px 0;text-align:justify}
+.foot{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);line-height:1.8}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:0 20px 90px}.title{padding:50px 0 30px}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="wrap">
+<aside>
+  <div class="brand">OMEGA-Ω</div>
+  <div class="sub">Mémoire · v0.07</div>
+  <nav id="toc"></nav>
+</aside>
+<main>
+<div class="title">
+  <div class="kick">Mémoire de recherche & d'ingénierie</div>
+  <h1>Une architecture cognitive pour le pendu français</h1>
+  <div class="por">Comment une machine peut jouer au pendu en <em>raisonnant</em> plutôt qu'en <em>lisant la réponse</em> — et ce que la contrainte « cognition &gt; oracle » nous a appris.</div>
+  <div class="meta">OMEGA-Ω v0.07 · build phase47 (moteur cognitif phase46) · direction Rem · rédaction Claude (Anthropic)<br>Instantané au 03/06/2026 · doctrine cap §43 · R66</div>
+</div>
+
+<section id="m0">
+<h2><span class="hn">0</span>Résumé</h2>
+<div class="abstract">
+<span class="lbl">Abstract</span>
+OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme un chercheur de dictionnaire mais comme une <strong>architecture cognitive</strong>. Sa doctrine — <em>cognition &gt; oracle</em> — interdit à tout module de lire le mot caché ailleurs qu'aux positions révélées. Sous cette contrainte, la cognition seule atteint <strong>~90 %</strong> de réussite ; complétée d'un système de déclaration <em>émergent et cheat-free</em> (NEO), elle atteint <strong>97,5 % à 98,8 %</strong> — au niveau d'un oracle lexical, <strong>sans jamais lire le dictionnaire pour scorer une lettre</strong>. Ces chiffres valent en régime <em>in-lexique</em> ; sur des mots <em>hors-dictionnaire</em> (protocole Trexquant), la reconnaissance ne joue plus, mais la séquence phon→ortho généralise encore à <strong>~70 %</strong> — au niveau des bons solveurs. Ce mémoire expose l'architecture (double pipeline Möbius, substrat hyperdimensionnel, voies ortho/phon), la méthode (mesure-d'abord, falsification R66, harnais déterministe), les résultats, et — tout aussi instructifs — les <strong>résultats négatifs</strong> qui ont délimité ce qui était possible.
+</div>
+</section>
+
+<section id="m1">
+<h2><span class="hn">1</span>Thèse</h2>
+<p class="lead">La performance n'est pas la cognition. Un programme qui gagne au pendu en consultant un dictionnaire <em>performe</em> ; il ne <em>raisonne</em> pas. OMEGA pose l'inverse comme contrainte fondatrice.</p>
+<p>Le pendu est un banc d'essai idéal pour cette distinction. La solution triviale — filtrer le dictionnaire par le motif révélé, scorer les lettres par fréquence du cohort — atteint ~95–98 %. Mais elle ne dit rien d'une <em>compréhension</em> : elle connaît le français par cœur. OMEGA s'interdit cette béquille (<span class="chip c-exc">triche grise</span>, interrupteurs <code>A1/A2/A3</code> tenus OFF) et demande : <strong>jusqu'où une cognition qui n'a pas le droit de lire la réponse peut-elle aller&nbsp;?</strong></p>
+<p class="pull">« Sans lire le dictionnaire pour choisir une lettre, peut-on rejoindre l'oracle&nbsp;? » — La réponse mesurée est : à quelques points près, oui.</p>
+<p>La réponse centrale du projet : partant de ~2,6 % (premières semaines de la v0.07), la cognition pure rejoint ~90 %, et avec un système de déclaration cheat-free, 97,5–98,8 % — contre un plafond oracle de 98,7 %. L'écart restant n'est pas un défaut de cognition : c'est l'<em>ambiguïté irréductible</em> de la langue (un /o/ peut s'écrire o, au, eau — seule la mémoire du mot exact tranche).</p>
+</section>
+
+<section id="m2">
+<h2><span class="hn">2</span>La tâche & la doctrine</h2>
+<p>Le jeu : deviner un mot français de 7 lettres ou plus, lettre par lettre, avec un budget d'erreurs. À chaque tour, le moteur voit le <em>board</em> (positions révélées) et propose une lettre.</p>
+<h3>2.1 — Cap §43 : la règle d'or</h3>
+<p>Aucun module cognitif ne lit <code>currentWord</code> au-delà des positions révélées. Le sens <strong>montant</strong> (décider) ne voit que le révélé ; le sens <strong>descendant</strong> (apprendre) opère <em>après</em> la partie, sur le mot complet désormais légitime. Lire la réponse n'est une triche que dans le montant.</p>
+<h3>2.2 — Ce qui est permis, ce qui ne l'est pas</h3>
+<ul>
+<li>Le <strong>lexique</strong> est interdit dans le scoring-lettre (montant). Il est autorisé pour le <em>DECLARE par cohorte</em> (board-dérivé) et l'apprentissage post-partie (descendant). <code>A1/A2/A3</code> = injection de fréquence lexicale dans le scoring = <span class="chip c-exc">triche grise</span>, OFF.</li>
+<li><code>w.p</code> (la prononciation) est une <strong>entrée légitime</strong> sous la prémisse « mot entendu » (proto-langage, <code>M4_PHON_USE_P</code>) — comme on connaît le son d'un mot qu'on cherche à écrire.</li>
+<li><strong>R66</strong> : aucun module n'est activé par défaut sans <em>test de falsification</em> (bypass + statistiques appariées multi-graines).</li>
+</ul>
+</section>
+
+<section id="m3">
+<h2><span class="hn">3</span>Méthode</h2>
+<p>La discipline expérimentale est le cœur du projet — davantage que tel ou tel module.</p>
+<ul>
+<li><strong>Mesure d'abord.</strong> Toute question d'architecture se tranche empiriquement (A/B/C appariés, multi-graines), jamais par conviction.</li>
+<li><strong>Harnais déterministe.</strong> L'apprentissage en ligne + le codage prédictif rendaient la base non reproductible ; le harnais a été rendu déterministe (re-seed avant init → poids <code>bPC</code> déterministes ; reset de l'état θ ; cible de déploiement θ remise à neuf ; RNG de jeu aligné). Sans ce correctif, tous les Δ étaient du bruit.</li>
+<li><strong>Falsification (R66).</strong> Un module n'est gardé que si, OFF, il est inerte (baseline byte-identique) <em>et</em>, ON, il montre un apport mesuré. Sinon il est reverté — même s'il « semble » juste.</li>
+<li><strong>Isolation.</strong> Tout prototypage sur copies jetables ; le build n'est jamais modifié sans ordre.</li>
+<li><strong>Amplitude ET direction.</strong> Un correctif peut restaurer la bonne <em>direction</em> d'un signal tout en paraissant modeste en amplitude (amortissement structurel) — il faut juger les deux.</li>
+</ul>
+</section>
+
+<section id="m4">
+<h2><span class="hn">4</span>L'architecture</h2>
+<p>OMEGA est un <strong>double pipeline en Möbius</strong> : un circuit direct (montant, perception → décision) et un circuit miroir (descendant, déconstruction vers le proto-langage). En pratique, le miroir P2 reste largement débranché ; la puissance vient du circuit direct et de ses couplages.</p>
+<h3>4.1 — Le substrat & les cinq niveaux</h3>
+<p>Le substrat est <strong>hyperdimensionnel</strong> (HRR/VSA, Plate 1995) : 1024 dimensions pour le concept (SDIM), 512 pour le lexical (LDIM). Cinq niveaux montants :</p>
+<ul>
+<li><strong>M1</strong> — perception : lie position et lettre par convolution circulaire (HRR). Représentation <em>riche</em> qui suit les révélations et discrimine les mots.</li>
+<li><strong>M2</strong> — zones (4×4) : réduit M1 à 16 zones. <span class="chip c-exc">défaut historique</span> : la valeur absolue + moyenne y jette le signe/la phase → M2 ne code en pratique que la <em>longueur</em>. Cause-racine d'un effondrement du concept (corrigé en branchant le concept sur M1).</li>
+<li><strong>M3_d</strong> — concept (12 cellules, 1024D) : autoencodeur compétitif bidirectionnel (bPC, blueprint DBPC/Qiu 2025) encodant désormais depuis <strong>M1</strong> (riche), plus un readout appris par récompense.</li>
+<li><strong>M4</strong> — lexical/lettre : convertit le concept et les voies en scores par lettre.</li>
+<li><strong>M5</strong> — décision : tranche la lettre, avec une marge (<code>gap</code>) qui mesure la confiance.</li>
+</ul>
+<h3>4.2 — Deux voies, un arbitre</h3>
+<p>Conformément à la <strong>double route</strong> de la lecture (Coltheart, DRC) : une voie <strong>orthographique</strong> et une voie <strong>phonologique</strong> (en SAMPA, à partir de <code>w.p</code>) raisonnent en parallèle. L'<strong>OS v07</strong> les arbitre pour trancher. Une couche de <strong>saillance</strong> (M_S) fusionne le concept dans le scoring. Le tout est régulé par un apprentissage en ligne borné (4 garde-fous).</p>
+</section>
+
+<section id="m5">
+<h2><span class="hn">5</span>Les déclarations & le système NEO</h2>
+<p>La cognition pure plafonne ~90 % : excellente sur le vu, limitée sur le mot jamais rencontré. Les <em>déclarations</em> comblent l'écart en proposant un mot entier quand la confiance est forte. Le declare manuel (lexical) atteint 98,8 % — mais lit le dictionnaire. Le projet a donc construit un declare <strong>émergent et cheat-free</strong>, abouti dans le système <strong>NEO</strong> (phase 46) :</p>
+<table>
+<thead><tr><th>Voie</th><th>Principe</th><th class="num">Apport</th></tr></thead>
+<tbody>
+<tr><td><strong>Recall</strong> (adressée)</td><td>Reconnaissance VSA depuis le board révélé + un banc des mots vécus. Mémoire épisodique exacte.</td><td class="num">100 % sur vécu</td></tr>
+<tr><td><strong>Assemblé</strong> (phon→ortho)</td><td>Décodage des positions sonores via une table L2 apprise ; align <em>masqué</em> (aucun graphème caché lu). Généralise au mot neuf.</td><td class="num pos">+5,3 (K=1)</td></tr>
+<tr><td><strong>Cohorte</strong></td><td>Filtre board-dérivé : n'autorise qu'une lettre portée par ≥1 mot compatible avec le motif révélé.</td><td class="num pos">+0,5</td></tr>
+<tr><td><strong>Muette</strong> (par le son)</td><td>Positions sans phonème prédites par phonogramme <em>croisé</em>.</td><td class="num">neutre</td></tr>
+<tr><td><strong>Trigger</strong> (B)</td><td>N'override que si la cognition est incertaine (gap faible).</td><td class="num">gate</td></tr>
+</tbody></table>
+<p>NEO est <em>additif</em> (OFF-inerte, baseline byte-identique), ne modifie aucune des déclarations préexistantes, et reste cheat-free par construction : recall lié au révélé seul, assemblé masqué, apprentissage descendant.</p>
+</section>
+
+<section id="m6">
+<h2><span class="hn">6</span>Croiser n'est pas additionner — ni multiplier</h2>
+<p>Une leçon centrale, et longtemps mal appliquée. Combiner deux sources d'évidence (l'orthographe et le son) ne se fait <strong>ni</strong> par une somme pondérée de scores (<code>log f + wO·ortho + wP·phon</code>), <strong>ni</strong> par un produit de marginales (qui suppose l'indépendance).</p>
+<p class="pull">Croiser = conditionner <em>conjointement</em>. P(lettre | phonème <strong>et</strong> contexte), pas P(lettre|phonème)·P(lettre|contexte).</p>
+<p>Les sources mobilisées le disent : les <strong>resonator networks</strong> (Frady 2020) avertissent de « ne pas multiplier aveuglément » ; le <strong>bind</strong> hyperdimensionnel (Plate) est un <em>code retrievable par mot</em> — il porte la mémoire épisodique (recall) mais <strong>échoue comme moteur de lettres</strong> (19 % en dictionnaire global contre 64 % pour un aligneur EM : mur de capacité). La bonne forme du croisement orthographe×son est une <strong>jointe discrète</strong> ; mesurée, elle double la prédiction des positions muettes (27 % → 52 %).</p>
+<div class="callout mes"><span class="lbl">Mesuré</span> Muette, top-1 position : ortho 26,8 % · son 21,2 % · <strong>croisé jointe 51,6 %</strong>. Le produit de marginales coïncide (51,8 %) mais reste le mauvais mécanisme.</div>
+</section>
+
+<section id="m7">
+<h2><span class="hn">7</span>Résultats</h2>
+<p>Tous les chiffres proviennent du harnais headless déterministe, config cognition forte, mots ≥ 7 lettres, 4 graines × 120, Δ appariés.</p>
+<table>
+<thead><tr><th>Configuration</th><th class="num">K=1 (généralisation)</th><th class="num">K=3 (vocab répété)</th></tr></thead>
+<tbody>
+<tr><td>Fréquence pure (référence basse)</td><td class="num">~22–23 %</td><td class="num">—</td></tr>
+<tr><td>Cognition cheat-free seule</td><td class="num">91,5 %</td><td class="num">93,8 %</td></tr>
+<tr><td><strong>+ declare NEO (R+Assemblé+Cohorte)</strong></td><td class="num pos"><strong>97,50 %</strong></td><td class="num pos"><strong>98,82 %</strong></td></tr>
+<tr><td>Plafond oracle (lexique complet) <span class="chip c-exc">exclu</span></td><td class="num">98,7 % / 100 %</td><td class="num">—</td></tr>
+</tbody></table>
+<p>Trois constats. <strong>(1)</strong> La performance vient de l'<em>intégration des modules</em>, pas d'une route unique. <strong>(2)</strong> Le cheat-free rejoint l'oracle à quelques points <em>sans lire le dictionnaire pour scorer une lettre</em> — le résultat central. <strong>(3)</strong> La voie assemblée phon→ortho à <em>table apprise</em> bat la table codée-main (71–85 % vs 67–79 % sur positions sonores) : <em>apprendre &gt; coder à la main</em>.</p>
+<h3>7.1 — Régime in-lexique vs hors-lexique</h3>
+<p>Les chiffres ci-dessus valent <em>in-lexique</em> (le mot appartient au dictionnaire du solveur). C'est le régime où la reconnaissance (recall/cohorte) domine — et où OMEGA est au niveau des meilleurs solveurs lexicaux. Le test décisif est le régime <strong>hors-lexique</strong> (mots retirés du dictionnaire, façon Trexquant) : la reconnaissance ne peut plus rien, seule la <em>généralisation sous-lexicale</em> compte. Ce régime est <strong>jouable et mesurable dans l'application</strong> : le mode <span class="chip c-des">🎯 Trexquant</span> retire le mot tiré du dictionnaire (cohorte et recall aveugles), et un banc dédié calcule le taux de réussite hors-lexique.</p>
+<table>
+<thead><tr><th>Régime / configuration</th><th class="num">Victoires (mots ≥7, budget 6)</th></tr></thead>
+<tbody>
+<tr><td>In-lexique (reconnaissance)</td><td class="num pos">~97 %</td></tr>
+<tr><td>Hors-lexique — <strong>phon→ortho cascade</strong> (avec son, le concept)</td><td class="num">70,7 %</td></tr>
+<tr><td>Hors-lexique — fusion plate (voies en parallèle)</td><td class="num">66,7 %</td></tr>
+<tr><td>Hors-lexique — ortho seul (lettre-seule)</td><td class="num neg">22 %</td></tr>
+<tr><td>Repère Trexquant (lettre-seule, sans son)</td><td class="num">~50 % / bons ~65-68 %</td></tr>
+</tbody></table>
+<p>Trois enseignements. <strong>(1)</strong> Le 97 % est essentiellement du <em>levier in-lexique</em> ; retirée la reconnaissance, le winrate chute. <strong>(2)</strong> Le <strong>concept phon→ortho</strong> (la séquence assemblée, le mot étant <em>entendu</em>) porte tout le hors-lexique : 12–22 % sans lui → 70,7 % avec — au niveau des bons solveurs, sur une tâche légitime (épeler un mot entendu, <code>w.p</code> de doctrine). <strong>(3)</strong> La <strong>cascade gardée par marge bat la fusion plate</strong> (70,7 % vs 66,7 % ; la voie phon fusionnée seule, 12,7 %, <em>nuit</em>) — confirmant que combiner les voies passe par la marge, jamais par une somme. La faiblesse réelle est l'ortho pur OOV (22 %) : la généralisation sous-lexicale sans le son reste à construire (couche morphologique, §10).</p>
+</section>
+
+<section id="m8">
+<h2><span class="hn">8</span>Résultats négatifs — et ce qu'ils enseignent</h2>
+<p>Autant que les gains, les <em>non</em> mesurés ont façonné l'architecture. Les consigner évite de les refaire et révèle les murs réels.</p>
+<h3>8.1 — M3_d ne peut pas être un magasin épisodique <span class="chip c-exc">falsifié</span></h3>
+<p>L'idée séduisante de « loger le banc recall dans le concept » a été testée deux fois. Nourrir M4_d avec le mot rappelé <strong>contamine</strong> le scoring-lettre (net-négatif, −1,3 à −2,0). Et porter la familiarité dans les cellules se heurte à un <strong>mur de capacité</strong> : l'AUC de reconnaissance grimpe régulièrement avec le nombre de cellules — 0,64 (12) → 0,87 (96) → 0,98 (K=N) — si bien que la porter exige <em>une cellule par mot</em>, c'est-à-dire re-stocker le banc, sans aucun gain sur la Map exacte qui existe déjà.</p>
+<div class="callout"><span class="lbl">Leçon · systèmes complémentaires</span> Épisodique (banc, grand, exact) et sémantique (M3_d, petit, comprimé) sont <strong>séparés à dessein</strong> — comme hippocampe et cortex — c'est la théorie des systèmes complémentaires (McClelland, McNaughton &amp; O'Reilly 1995). Mettre l'épisodique dans le petit latent sémantique échoue par capacité. M3_d n'est pas cassé : ce n'est simplement pas un magasin de mots.</div>
+<h3>8.2 — La muette est vivante mais inoffensive</h3>
+<p>Même croisée correctement (le bon mécanisme), la voie muette ne devient <em>system-positive</em> qu'avec le trigger, et alors seulement <strong>neutre</strong> (Δ +0,00 à +0,14). Le résidu muet est l'ambiguïté irréductible ; la cognition le couvre déjà. La muette est un complément propre, pas un levier.</p>
+<h3>8.3 — Tout ne s'apprend pas par la victoire</h3>
+<p>Apprendre le seuil du trigger par SPSA sur le <em>winrate</em> donne un gradient <strong>plat</strong> : l'effet est sous le quantum de la mesure. Un signal de récompense trop grossier ne peut pas guider un réglage fin — il faudrait une récompense dense par décision.</p>
+<h3>8.4 — L'oracle est subtil</h3>
+<p>Une route peut être <em>entraînée sur des données propres</em> et rester un oracle si elle lit au-delà du masque <em>à l'inférence</em>. Le diagnostic décisif n'est pas la propreté de l'entraînement, mais ce que la route lit au moment de décider.</p>
+</section>
+
+<section id="m9">
+<h2><span class="hn">9</span>Principes</h2>
+<p>Ce que le projet a distillé, transférable au-delà du pendu :</p>
+<ol>
+<li><strong>Cognition &gt; oracle.</strong> Séparer la performance (lire la réponse) de la cognition (raisonner sur le révélé) clarifie ce qu'on construit vraiment.</li>
+<li><strong>Apprendre &gt; coder-main.</strong> Les tables apprises-en-jouant battent les tables expertes — et restent dans la doctrine si elles sont board-dérivées.</li>
+<li><strong>Croiser, pas sommer ni multiplier.</strong> Conditionner conjointement ; le bind est une mémoire par-mot, pas un moteur de prédiction lettre.</li>
+<li><strong>Cascade par marge &gt; fusion plate.</strong> Reconnaître d'abord, décoder si la marge est faible — la fusion plate dilue.</li>
+<li><strong>Systèmes complémentaires.</strong> Épisodique exact et sémantique comprimé ont des rôles distincts ; ne pas les confondre.</li>
+<li><strong>Mesurer, falsifier, garder en dernier.</strong> OFF-inerte + apport ON mesuré, ou on reverte.</li>
+</ol>
+</section>
+
+<section id="m10">
+<h2><span class="hn">10</span>Questions ouvertes & perspectives</h2>
+<ul>
+<li><strong>Trigger appris</strong> par récompense dense (avantage par décision) plutôt que winrate, pour arbitrer recall/assemblé/cognition.</li>
+<li><strong>Couche morphologique/grammaticale</strong> — la prochaine marche pour le résidu lexical-dur (terminaisons, familles de mots).</li>
+<li><strong>P2/Möbius</strong> : brancher progressivement le miroir descendant (aujourd'hui débranché), en vérifiant l'inertie OFF puis l'apport.</li>
+<li><strong>Réglages héréditaires</strong> : borner le Hebbian, corriger la projection bijective (gain d'information nul).</li>
+<li>Hypothèse exploratoire : une cognition réglée librement convergerait-elle vers des constantes stables&nbsp;? <span class="chip c-hyp">spéculatif</span></li>
+</ul>
+</section>
+
+<section id="m11t">
+<h2><span class="hn">11</span>Travaux liés & positionnement</h2>
+<p>OMEGA assemble cinq fils de recherche établis ; le situer permet de juger sa nouveauté et sa rigueur.</p>
+<ul>
+<li><strong>Solveurs de pendu.</strong> Les approches contrainte + entropie atteignent ~96 % <em>in-dictionnaire</em> (longueur connue) ; le défi Trexquant, sur mots <em>hors-dictionnaire</em>, plafonne ~50 % (baseline) à ~65-68 % (bons solveurs). OMEGA est au niveau des premiers en in-lexique (~97 %) et des seconds en hors-lexique (~70 %, via phon→ortho, le mot étant entendu).</li>
+<li><strong>Architectures vectorielles symboliques (VSA / HRR).</strong> Le substrat reprend les représentations holographiques réduites (Plate 1995) et le calcul hyperdimensionnel (Kanerva 2009). L'avertissement des <em>resonator networks</em> (Frady et al. 2020) — ne pas multiplier des facteurs corrélés — recoupe la leçon mesurée d'OMEGA : le bind est une mémoire par-mot, pas un moteur de lettres.</li>
+<li><strong>Double route de lecture.</strong> Les voies ortho/phon et leur arbitrage instancient le modèle DRC (Coltheart et al. 2001) ; OMEGA y ajoute une cascade gardée par marge plutôt qu'une fusion plate.</li>
+<li><strong>Codage prédictif bidirectionnel.</strong> Le concept M3_d suit le blueprint DBPC (Qiu et al. 2025) : poids partagés, apprentissage par reconstruction.</li>
+<li><strong>Systèmes complémentaires.</strong> Le résultat <a class="x" href="#m8">§8.1</a> — banc épisodique exact vs latent sémantique comprimé, et le mur de capacité quand on les confond — est précisément la division hippocampe/néocortex de la théorie CLS (McClelland, McNaughton &amp; O'Reilly 1995). OMEGA la <em>redécouvre empiriquement</em> dans un domaine applicatif, ce qui en constitue une validation indépendante.</li>
+</ul>
+<p>À notre connaissance, l'assemblage de ces cinq fils dans un moteur de pendu <em>cheat-free</em>, sous la contrainte stricte « cognition &gt; oracle » et validé par falsification systématique, est original dans ce créneau. La contribution n'est pas un record de performance — les solveurs lexicaux égalent le winrate in-lexique — mais une <strong>méthode</strong> et une cartographie de ce qui généralise (la séquence phon→ortho) et de ce qui se heurte à des murs (la capacité du concept).</p>
+</section>
+
+<section id="m11">
+<h2><span class="hn">12</span>Conclusion</h2>
+<p>OMEGA-Ω montre qu'une machine peut jouer au pendu français à un niveau quasi-oracle <strong>en raisonnant</strong> — perception hyperdimensionnelle, double voie ortho/phon, concept régulé, déclarations émergentes — <strong>sans jamais lire le dictionnaire pour choisir une lettre</strong>. Les gains sont réels et mesurés ; les murs aussi (la capacité du concept, l'ambiguïté irréductible, la grossièreté du reward). La valeur durable du projet n'est pas un chiffre de winrate : c'est une <em>méthode</em> — mesurer avant de croire, falsifier avant de garder, distinguer la cognition de l'oracle — et un catalogue de ce qui marche, de ce qui ne marche pas, et de <em>pourquoi</em>.</p>
+<p class="pull">La cognition cheat-free a rejoint l'oracle à quelques points — et chaque point a été gagné, ou écarté, par la mesure.</p>
+</section>
+
+<section id="m13">
+<h2><span class="hn">13</span>Références</h2>
+<p class="note">Références vérifiées (auteurs, année, support, pages).</p>
+<ol style="font-size:15px;line-height:1.5">
+<li>Coltheart, M., Rastle, K., Perry, C., Langdon, R., &amp; Ziegler, J. (2001). DRC: A Dual Route Cascaded Model of Visual Word Recognition and Reading Aloud. <em>Psychological Review</em>, 108(1), 204–256.</li>
+<li>Frady, E. P., Kent, S. J., Olshausen, B. A., &amp; Sommer, F. T. (2020). Resonator Networks for Factoring Distributed Representations of Data Structures. <em>Neural Computation</em>, 32(12).</li>
+<li>Kanerva, P. (2009). Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors. <em>Cognitive Computation</em>, 1(2), 139–159.</li>
+<li>McClelland, J. L., McNaughton, B. L., &amp; O'Reilly, R. C. (1995). Why There Are Complementary Learning Systems in the Hippocampus and Neocortex. <em>Psychological Review</em>, 102(3), 419–457.</li>
+<li>Plate, T. A. (1995). Holographic Reduced Representations. <em>IEEE Transactions on Neural Networks</em>, 6(3), 623–641.</li>
+<li>Qiu, S., Bhattacharyya, S., Coyle, D., &amp; Dora, S. (2025). Deep Predictive Coding with Bi-directional Propagation for Classification and Reconstruction. <em>Neural Networks</em>, 191, 107785.</li>
+</ol>
+</section>
+
+<div class="foot">
+OMEGA-Ω v0.07 — mémoire de recherche &amp; d'ingénierie · build phase47 · direction Rem · rédaction Claude (Anthropic).<br>
+Doctrine : cap §43 (cognition &gt; oracle) · R66 (mesure avant activation). Convention <span class="chip c-mes">mesuré</span> <span class="chip c-des">design</span> <span class="chip c-hyp">hypothèse</span> <span class="chip c-exc">exclu</span>.<br>
+Documents liés : rapport de référence &amp; mode d'emploi · NEO muette/croisement · M3_d reconnexion (falsifié).
+</div>
+</main>
+</div>
+<script>
+const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références"};
+const toc=document.getElementById('toc');
+Object.keys(titles).forEach((id,i)=>{const a=document.createElement('a');a.href='#'+id;a.dataset.id=id;a.innerHTML='<span class="n">'+i+'</span>'+titles[id];toc.appendChild(a);});
+const links=[...toc.querySelectorAll('a')];const byId=Object.fromEntries(links.map(a=>[a.dataset.id,a]));
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));const a=byId[e.target.id];if(a){a.classList.add('active');if(window.innerWidth>900){const r=a.getBoundingClientRect(),pr=toc.getBoundingClientRect();if(r.top<pr.top||r.bottom>pr.bottom)a.scrollIntoView({block:'nearest'});}}}})},{rootMargin:'-12% 0px -78% 0px',threshold:0});
+document.querySelectorAll('section').forEach(s=>obs.observe(s));
+const prog=document.getElementById('progress');
+addEventListener('scroll',()=>{const h=document.documentElement,sc=h.scrollTop||document.body.scrollTop,mx=(h.scrollHeight-h.clientHeight)||1;prog.style.width=(100*sc/mx)+'%';},{passive:true});
+</script>
+</body>
+</html>

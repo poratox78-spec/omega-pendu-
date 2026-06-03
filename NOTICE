@@ -1,0 +1,43 @@
+NOTICE — Données tierces & attribution
+=======================================
+
+Ce projet est distribué sous un régime de DOUBLE LICENCE.
+
+1. CODE
+-------
+Le code source du projet (auteur : Rem) est sous licence MIT.
+Voir le fichier LICENSE.
+
+2. DONNÉES LEXICALES (base française embarquée)
+-----------------------------------------------
+Le fichier `app/omega-pendu.html` embarque une base lexicale française
+issue de LEXIQUE (Lexique.org). Ces données NE SONT PAS couvertes par la
+licence MIT du code. Elles sont diffusées sous :
+
+    Creative Commons Attribution - Pas d'Utilisation Commerciale
+    (CC BY-NC)
+
+Cela implique deux obligations :
+
+  a) ATTRIBUTION OBLIGATOIRE — citer les auteurs et lexique.org :
+
+       New, B., Pallier, C., Brysbaert, M., & Ferrand, L. (2004).
+       Lexique 2: A New French Lexical Database.
+       Behavior Research Methods, Instruments, & Computers,
+       36(3), 516-524.
+
+       Source : https://www.lexique.org
+
+  b) PAS D'USAGE COMMERCIAL — la publication en open source / recherche
+     (p. ex. sur GitHub) est autorisée. La vente, ou l'intégration dans
+     un produit ou service commercial, NE L'EST PAS.
+
+3. ŒUVRE COMBINÉE
+-----------------
+Le fichier `app/omega-pendu.html` est une œuvre combinée : il contient à
+la fois du code (MIT) et les données lexicales (CC BY-NC). Tant que les
+données restent embarquées, l'artefact dans son ensemble est soumis à la
+clause NON COMMERCIALE et à l'obligation d'attribution ci-dessus.
+
+La licence MIT s'applique pleinement à la LOGIQUE du code prise séparément
+(architecture cognitive, moteur), réutilisable hors du lexique.
