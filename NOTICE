@@ -11,11 +11,11 @@ Voir le fichier LICENSE.
 2. DONNÉES LEXICALES (base française embarquée)
 -----------------------------------------------
 Le fichier `app/omega-pendu.html` embarque une base lexicale française
-issue de LEXIQUE (Lexique.org). Ces données NE SONT PAS couvertes par la
-licence MIT du code. Elles sont diffusées sous :
+issue de LEXIQUE (Lexique 3 / Lexique 383, lexique.org). Ces données NE
+SONT PAS couvertes par la licence MIT du code. Elles sont diffusées sous :
 
-    Creative Commons Attribution - Pas d'Utilisation Commerciale
-    (CC BY-NC)
+    Creative Commons Attribution - Partage dans les Mêmes Conditions 4.0
+    (CC BY-SA 4.0)
 
 Cela implique deux obligations :
 
@@ -27,17 +27,23 @@ Cela implique deux obligations :
        36(3), 516-524.
 
        Source : https://www.lexique.org
+       Projet : https://github.com/chrplr/openlexicon
 
-  b) PAS D'USAGE COMMERCIAL — la publication en open source / recherche
-     (p. ex. sur GitHub) est autorisée. La vente, ou l'intégration dans
-     un produit ou service commercial, NE L'EST PAS.
+  b) PARTAGE DANS LES MÊMES CONDITIONS (ShareAlike) — toute
+     redistribution ou adaptation des données, ainsi que toute œuvre
+     dérivée qui les incorpore, doit être diffusée sous la même licence
+     CC BY-SA 4.0 (ou une licence compatible).
+
+     L'usage commercial est AUTORISÉ par CC BY-SA 4.0, à condition de
+     respecter l'attribution et le partage à l'identique ci-dessus.
 
 3. ŒUVRE COMBINÉE
 -----------------
 Le fichier `app/omega-pendu.html` est une œuvre combinée : il contient à
-la fois du code (MIT) et les données lexicales (CC BY-NC). Tant que les
+la fois du code (MIT) et les données lexicales (CC BY-SA 4.0). Tant que les
 données restent embarquées, l'artefact dans son ensemble est soumis à la
-clause NON COMMERCIALE et à l'obligation d'attribution ci-dessus.
+clause de PARTAGE À L'IDENTIQUE (CC BY-SA 4.0) et à l'obligation
+d'attribution ci-dessus.
 
 La licence MIT s'applique pleinement à la LOGIQUE du code prise séparément
 (architecture cognitive, moteur), réutilisable hors du lexique.
