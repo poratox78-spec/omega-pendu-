@@ -318,6 +318,7 @@ input.share-input{height:36px}
   border-radius:1px;display:none}
 .share-status.ok{color:var(--green);border:1px solid rgba(0,255,159,.3);display:block}
 .share-status.err{color:var(--red);border:1px solid rgba(255,51,85,.3);display:block}
+.share-status.warn{color:var(--amber);border:1px solid rgba(255,170,0,.35);display:block}
 .pbkdf-strength{display:flex;gap:10px;font-size:8px;color:var(--muted);margin-top:4px}
 .pbkdf-strength span{color:var(--text)}
 
@@ -671,6 +672,7 @@ input[type=range]{accent-color:var(--cyan);width:70px}
           <div class="share-desc">
             Les deux utilisateurs entrent la <b>même phrase secrète</b> et le <b>même sel</b>.
             La même clé AES-256 est dérivée des deux côtés <b>sans jamais la transmettre</b>.
+            Pour une sécurité maximale, l'un génère un <b>sel aléatoire</b> (↺) et le communique à l'autre (il peut transiter en clair) : un sel unique par conversation empêche tout précalcul.
           </div>
           <div class="share-row">
             <span class="share-label">PHRASE</span>
@@ -694,7 +696,8 @@ input[type=range]{accent-color:var(--cyan);width:70px}
           </button>
           <div class="share-status" id="pbkdf-status"></div>
           <div style="margin-top:8px;font-size:8px;color:var(--muted)">
-            ⚠ Le sel peut être transmis en clair — seule la phrase secrète doit rester confidentielle
+            ⚠ Le sel peut être transmis en clair — seule la phrase secrète doit rester confidentielle.
+            Évite le sel par défaut : un sel unique par conversation (↺) bloque tout précalcul partagé.
           </div>
         </div>
 
@@ -2723,10 +2726,12 @@ window.updatePbkdfStrength = function(){
 }
 
 window.genSalt = function(){
-  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  // 12 octets = 96 bits d'aléa CSPRNG → sel unique par conversation (anti-précalcul).
+  // (l'ancienne version tronquait à 32 bits via slice(0,8) — corrigé.)
+  const bytes = crypto.getRandomValues(new Uint8Array(12))
   const salt  = Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('')
   const el = document.getElementById('pbkdf-salt')
-  if(el) el.value = 'OMEGA-'+salt.toUpperCase().slice(0,8)
+  if(el) el.value = 'OMEGA-'+salt.toUpperCase()
 }
 
 window.deriveSharedKey = async function(){
@@ -2774,8 +2779,13 @@ window.deriveSharedKey = async function(){
     window._lastKey={hex:hexStr,passphrase:pp,fp}
     _keyMaterial={aes:rawKey,hmac:new Uint8Array(32),master:rawKey}
 
+    const defaultSalt = (salt === 'OMEGA-KEY-2026')
     setShareStatus('pbkdf-status',
-      `✓ Clé dérivée — empreinte ${fp} | Partagez le sel "${salt}" en clair, gardez la phrase secrète`,'ok')
+      (defaultSalt
+        ? `⚠ Sel par défaut, commun à tous les utilisateurs — clique « ↺ ALÉATOIRE » pour un sel unique par conversation, puis communique-le au correspondant (il peut transiter en clair). `
+        : '')
+      + `✓ Clé dérivée — empreinte ${fp} | Partage le sel "${salt}" en clair, garde la phrase secrète`,
+      defaultSalt ? 'warn' : 'ok')
     showSharePanel()
     showTab('export')
     log(`✓ Clé partagée PBKDF2 dérivée — sel: ${salt}`,'ok')
