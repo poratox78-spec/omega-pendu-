@@ -46,7 +46,7 @@ Guide pas-à-pas complet (déploiement, liaison, **protocole de test**) :
 ## Structure du dépôt
 
 ```
-app/omega-key.html            build (fichier unique, v0.16)
+app/omega-key.html            build (fichier unique, v0.17)
 server/omega-relay.ts         relais Deno Deploy + Deno KV (éphémère, CORS)
 docs/RAPPORT_MODE_EMPLOI.html  rapport / mode d'emploi (HTML stylé)
 docs/MEMOIRE_TECHNIQUE.md      mémoire technique détaillée (archi, crypto, décisions, tests, pistes)
