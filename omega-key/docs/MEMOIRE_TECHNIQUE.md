@@ -113,8 +113,15 @@ Ordre approximatif dans `app/omega-key.html` :
 - API : `POST /r/{salon}` `{id,m}` ; `GET /r/{salon}?since={ms}` → `{msgs,now}`.
 - Stockage **Deno KV**, clé `["room",room,ts,mid]`, **`expireIn` 1 h** (asynchrone
   possible dans la fenêtre). Taille max 200 000 car. CORS `*`.
-- Client : `_relayId` aléatoire par session → **ignore ses propres messages** ;
-  **dédup par `mid`** ; curseur `since` = `now` serveur ; **sondage 1,5 s**.
+- Client : **suppression d'écho par le chiffré émis** (`_relaySent`), pas par le
+  champ `id` — un tiers du salon qui usurpe l'`id` ne peut donc plus masquer les
+  messages du pair ; **dédup transport par `mid`** ; curseur `since` = `now`
+  serveur ; **sondage 1,5 s**. (`id` est encore posté mais **n'est plus de
+  confiance** côté réception.)
+- **Anti-rejeu tous modes** : `chatReceiveCipher` rejette tout chiffré déjà accepté
+  (`_recvSeen`, mémorisé après déchiffrement réussi). Comble l'absence d'anti-rejeu
+  du mode AES-GCM seul ; en FS/DR le rejeu était déjà rejeté cryptographiquement.
+  Les deux ensembles sont **bornés** (`_trackBounded`, cap 400) → pas de fuite mémoire.
 - Le relais ne voit que `m` (chiffré OMEGA). Aucune clé n'y transite.
 
 ---
@@ -166,8 +173,12 @@ Ordre approximatif dans `app/omega-key.html` :
   anti-échec (pas de clé → pas de bulle fantôme). OK.
 - **Relais bout-en-bout** : vrai serveur HTTP mock (même API) + **2 clients
   isolés** (contextes `vm`) utilisant les fonctions relais réelles → B reçoit les
-  messages de A, A ignore les siens (match `id`), dédup par `mid`, curseur `since`
-  incrémental. OK.
+  messages de A, A ignore son propre écho (par le **chiffré émis**, pas par `id`),
+  dédup par `mid`, curseur `since` incrémental. OK.
+- **Anti-usurpation `id` + anti-rejeu** (7/7) : l'écho propre est supprimé sans
+  dépendre d'`id` ; un message du pair passe même si un tiers usurpe l'`id` ; un
+  chiffré rejoué est rejeté ; deux chiffrés distincts pour le même clair restent
+  acceptés (aucun faux positif) ; bornage mémoire à 400. OK.
 
 **Ce qui n'est pas testé automatiquement** : le rendu visuel réel (à confirmer
 navigateur/mobile), le relais Deno réel (Deno non disponible dans le harnais — le
