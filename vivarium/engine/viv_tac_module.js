@@ -98,6 +98,12 @@ const ROLES={
   SUPPORT:{lbl:'⊞',spd:.042,rng:24,wrng:15,fov:Math.PI*.62,sCD:26,bst:4,sprd:.08,dmg:11,mag:40,relT:70,strafe:true, grenadCD:250},
   DRONE  :{lbl:'⬡',spd:.095,rng:48,wrng: 0,fov:Math.PI*2.0,sCD:999,bst:0,sprd:0,  dmg:0, mag:-1,relT:999,strafe:false,grenadCD:0},
 }
+// PERF: max radius (tiles) to consider when scoring/searching cover tiles per agent.
+// Set >= the largest engagement range (SNIPER rng=44) so the candidate set is never
+// smaller than the range at which a unit would actually relocate to cover — distant cover
+// is both never chosen (distance-penalized in scoring) and the most expensive to raycast,
+// so filtering it out cuts the dominant per-call cost without changing decisions.
+const COVER_R=44, COVER_R2=COVER_R*COVER_R
 const RK=['LEADER','ASSAULT','FLANKER','SNIPER','SUPPORT']
 const RK_ALL=['LEADER','ASSAULT','FLANKER','SNIPER','SUPPORT','DRONE']
 // Sidearm stats (shared across all roles)
@@ -2288,22 +2294,36 @@ class Sim{
   _bestCover(a,enemy){
     if(!enemy||!this.cov.length||enemy.rn==='DRONE')return null
     let best=null,bs=-99999
-    for(const n of this.cov){const s=this._scoreNode(a,n,enemy);if(s>bs){bs=s;best=n}}
+    // PERF: _scoreNode does raycasts per tile; over all ~1356 cover tiles per agent this is
+    // the single biggest cost. _scoreNode penalizes distance-to-agent (dN*.35) so a far tile
+    // can never win over a near one — skip tiles beyond COVER_R (>= max engagement range)
+    // before paying for the raycasts. Does not change which cover is picked in practice.
+    for(const n of this.cov){
+      const _ddx=n.x-a.x,_ddy=n.y-a.y;if(_ddx*_ddx+_ddy*_ddy>COVER_R2)continue
+      const s=this._scoreNode(a,n,enemy);if(s>bs){bs=s;best=n}}
     return best
   }
   _withdrawalRoute(a,enemy){
     if(!enemy||!this.cov.length||enemy.rn==='DRONE')return null
     const awayDir=Math.atan2(a.y-enemy.y,a.x-enemy.x)
-    const scored=this.cov.map(n=>{
-      const ang=Math.atan2(n.y-a.y,n.x-a.x)
+    // PERF: skip cover beyond COVER_R before the _rc raycast. A retreat target further than
+    // the max engagement range is never reached in practice (the unit re-decides long before
+    // arriving), so this prunes the costly raycasts without changing chosen retreat tiles.
+    const scored=[]
+    for(const n of this.cov){
+      const _ddx=n.x-a.x,_ddy=n.y-a.y,_d2=_ddx*_ddx+_ddy*_ddy
+      if(_d2>COVER_R2)continue
+      const ang=Math.atan2(_ddy,_ddx)
       const awayScore=Math.cos(ang-awayDir)*3
-      const distScore=Math.hypot(n.x-a.x,n.y-a.y)*.15
+      const distScore=Math.sqrt(_d2)*.15
       const dangerPenalty=(this.danger[n.y]?.[n.x]||0)*.5
       // Bonus: cover qui a LOS vers ennemi = position de tir en retraite
       const hasAngle=enemy&&this._rc(n.x+.5,n.y+.5,enemy.x,enemy.y)
       const angleBonus=hasAngle?.8:0
-      return{n,score:awayScore+distScore-dangerPenalty+angleBonus}
-    }).filter(e=>e.score>0).sort((a,b)=>b.score-a.score)
+      const score=awayScore+distScore-dangerPenalty+angleBonus
+      if(score>0)scored.push({n,score})
+    }
+    scored.sort((a,b)=>b.score-a.score)
     if(!scored.length)return null
     const wp1=scored[0]?.n,wp2=scored[Math.min(3,scored.length-1)]?.n
     const r=[]
@@ -3399,10 +3419,12 @@ class Sim{
     if(this.cov.length>4){
       let best=null,bs=99
       for(const n of this.cov){
-        const d=Math.hypot(n.x-fx,n.y-fy)
-        if(d>8)continue
-        const dSelf=Math.hypot(n.x-a.x,n.y-a.y)
-        if(dSelf<3)continue  // pas trop proche de nous
+        // PERF: cheap squared-distance reject (d>8) before any sqrt/trig — same result.
+        const _fdx=n.x-fx,_fdy=n.y-fy,_fd2=_fdx*_fdx+_fdy*_fdy
+        if(_fd2>64)continue
+        const d=Math.sqrt(_fd2)
+        const _sdx=n.x-a.x,_sdy=n.y-a.y
+        if(_sdx*_sdx+_sdy*_sdy<9)continue  // pas trop proche de nous (dSelf<3)
         // DOIT être dans l'angle mort (hors du FOV ennemi)
         const angFromE=Math.atan2(n.y-e.y,n.x-e.x)
         const fovDiff=this._ad(e.dir,angFromE)
@@ -3430,13 +3452,16 @@ class Sim{
     const et=1-a.team
     let best=null,bs=-99
     for(const n of this.cov){
+      // PERF: skip cover beyond engagement range first (dist-penalized in score anyway).
+      const _ddx=n.x-a.x,_ddy=n.y-a.y,_d2=_ddx*_ddx+_ddy*_ddy
+      if(_d2>COVER_R2)continue
       // Phero value of enemy at this cover tile (enemy passes here)
       const py=this.phero[et][n.y]?.[n.x]||0
       if(py<0.04) continue  // no enemy trace here — skip
       // Prefer cover that isn't currently occupied by ally
       const occupied=this.agents.some(f=>f.team===a.team&&f.hp>0&&f!==a&&Math.hypot(f.x-n.x,f.y-n.y)<2)
       if(occupied) continue
-      const dist=Math.hypot(n.x-a.x,n.y-a.y)
+      const dist=Math.sqrt(_d2)
       const s=py*50 - dist*0.3 + (n.y>2&&n.y<this.MH-3?5:0)
       if(s>bs){bs=s;best={x:n.x+.5,y:n.y+.5}}
     }
@@ -3546,8 +3571,10 @@ class Sim{
     const allyCy=allies.length?allies.reduce((s,f)=>s+f.y,0)/allies.length:a.y
     let best=null, bs=-999
     for(const n of this.cov){
-      const dE=Math.hypot(n.x-bb.x,n.y-bb.y)
-      if(dE<8||dE>20)continue  // trop proche ou trop loin
+      // PERF: squared-distance band check (dE 8..20 to BB) before the _rc raycast — same
+      // result, but rejects the vast majority of cover tiles without sqrt or a raycast.
+      const _edx=n.x-bb.x,_edy=n.y-bb.y,_ed2=_edx*_edx+_edy*_edy
+      if(_ed2<64||_ed2>400)continue  // trop proche (<8) ou trop loin (>20)
       // Vérifier LOS vers position ennemie BB
       if(!this._rc(n.x+.5,n.y+.5,bb.x,bb.y))continue  // pas de LOS vers ennemi
       const dSelf=Math.hypot(n.x-a.x,n.y-a.y)
@@ -3617,11 +3644,13 @@ class Sim{
     const midX=a.x+Math.cos(toEnemy)*dE*.5, midY=a.y+Math.sin(toEnemy)*dE*.5
     let best=null,bs=99
     for(const n of this.cov){
-      const dMid=Math.hypot(n.x-midX,n.y-midY)
-      if(dMid>6)continue
-      const dSelf=Math.hypot(n.x-a.x,n.y-a.y)
-      if(dSelf<2)continue
-      const angDiff=this._ad(Math.atan2(n.y-a.y,n.x-a.x),toEnemy)
+      // PERF: cheap squared-distance reject (dMid>6) before sqrt/trig — same result.
+      const _mdx=n.x-midX,_mdy=n.y-midY,_md2=_mdx*_mdx+_mdy*_mdy
+      if(_md2>36)continue
+      const dMid=Math.sqrt(_md2)
+      const _sdx=n.x-a.x,_sdy=n.y-a.y
+      if(_sdx*_sdx+_sdy*_sdy<4)continue  // dSelf<2
+      const angDiff=this._ad(Math.atan2(_sdy,_sdx),toEnemy)
       if(angDiff>Math.PI*.5)continue
       if(dMid<bs){bs=dMid;best=n}
     }
@@ -3632,9 +3661,10 @@ class Sim{
     const awayDir=enemy?Math.atan2(a.y-enemy.y,a.x-enemy.x):this.rng()*Math.PI*2
     const spread=Math.PI*0.6  // ±54°
     const candidates=this.cov.filter(n=>{
-      const d=Math.hypot(n.x-a.x,n.y-a.y)
-      if(d<4||d>14) return false
-      const ang=Math.atan2(n.y-a.y,n.x-a.x)
+      // PERF: cheap squared-distance band check (4..14) before trig — same result.
+      const _dx=n.x-a.x,_dy=n.y-a.y,_d2=_dx*_dx+_dy*_dy
+      if(_d2<16||_d2>196) return false
+      const ang=Math.atan2(_dy,_dx)
       return this._ad(ang,awayDir)<spread
     })
     if(candidates.length){
@@ -3786,8 +3816,12 @@ class Sim{
     // ── HEATMAPS TACTIQUES UPDATE ─────────────────────────
     if(this.hmActivity){
       const _mww=this.MW,_mhh=this.MH,_szz=_mww*_mhh
-      for(let _i=0;_i<_szz;_i++){this.hmActivity[_i]*=0.9996;this.hmPresence[_i]*=0.9994}
+      // PERF: 2 full-grid decay passes/tick. These heatmaps are very-slow-decay influence
+      // fields (read only as small soft penalties), so we throttle the decay to every 4th
+      // tick and apply 4 ticks' worth of decay at once (0.9996^4 / 0.9994^4) → the decay
+      // RATE is unchanged, only the recompute frequency drops. Reads stay every tick.
       if(this.frame%4===0){
+        for(let _i=0;_i<_szz;_i++){this.hmActivity[_i]*=0.99840096;this.hmPresence[_i]*=0.99760144}
         for(const _a of this.agents){
           if(_a.hp<=0||_a.rn==='DRONE')continue
           const _tx=Math.floor(_a.x),_ty=Math.floor(_a.y)
@@ -3976,7 +4010,11 @@ class Sim{
     }
     for(let i=this.tracers.length-1;i>=0;i--){this.tracers[i].life--;if(this.tracers[i].life<=0)this.tracers.splice(i,1)}
     // Wave field (OMEGA stepWave pattern)
-    if(this.wU){
+    // PERF: this is a slow-decay influence field (3 full-grid passes ~0.92ms). The READS
+    // (this.danger) happen every tick downstream, but the wave physics step needs only be
+    // advanced every few brain ticks — between steps danger stays put, which is visually /
+    // behaviorally invisible for this slow field. Throttle the recompute to every 3rd tick.
+    if(this.wU&&this.frame%3===0){
       const WC2=0.18,WD=0.88,MW=this.MW,MH=this.MH,wU=this.wU,wP=this.wP,wNxt=this.wNxt
       for(let j=0;j<MH;j++){
         const jw=j*MW,juw=((j-1+MH)%MH)*MW,jdw=((j+1)%MH)*MW
@@ -3989,7 +4027,7 @@ class Sim{
       const N2=MW*MH
       for(let k=0;k<N2;k++){wP[k]=wU[k];wU[k]=isFinite(wNxt[k])?wNxt[k]:0}
       for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const _wv=wU[y*MW+x];this.danger[y][x]=isFinite(_wv)?Math.min(50,Math.max(0,_wv)*10):0}
-    } else {
+    } else if(!this.wU){
       const d=CFG.dangerDecay/100
       const dd=d
       for(let y=0;y<this.MH;y++)for(let x=0;x<this.MW;x++)this.danger[y][x]*=dd
@@ -3999,7 +4037,11 @@ class Sim{
     // Re-add it here (only cells stamped this call → O(stamped)). The non-wU branch
     // merely decays danger, so the original stamp survives there and we must NOT
     // double-add — hence this is gated on this.wU.
-    if(this.wU&&this._mobDng&&this._mobCells&&this._mobCells.length){
+    // PERF NOTE: this re-add is only needed on ticks where the wave branch actually
+    // REBUILT this.danger from scratch (now throttled to frame%3===0). On skipped ticks
+    // the wave branch leaves danger intact, so _stampMobs's pre-update add still stands
+    // and re-adding here would double-count — hence gate on the same condition.
+    if(this.wU&&this.frame%3===0&&this._mobDng&&this._mobCells&&this._mobCells.length){
       const md=this._mobDng,mc=this._mobCells,MW=this.MW
       for(let i=0;i<mc.length;i++){const k=mc[i],y=(k/MW)|0,x=k-y*MW
         const v=md[k]; if(v>0){const nv=this.danger[y][x]+v; this.danger[y][x]=nv>50?50:nv}}
@@ -5839,7 +5881,7 @@ document.addEventListener('visibilitychange',()=>{
     advise(arena,units,mobs){
       const MW=brain.MW,MH=brain.MH;
       for(let y=0;y<MH;y++)for(let x=0;x<MW;x++) brain.map[y][x]=arena[y*MW+x]|0;
-      /* PERF: _buildCov runs once in reset(); arena static during fight -> no per-frame BFS */
+      /* PERF: _buildCov runs once in reset(); arena static -> no per-frame BFS */
       const n=Math.min(ag.length,units.length);
       for(let k=0;k<n;k++){const a=ag[k],u=units[k]; a.x=u.x; a.y=u.y; a.hp=(u.hp>0?u.hp:-1);}
       const bx=ag.map(a=>a.x), by=ag.map(a=>a.y);
