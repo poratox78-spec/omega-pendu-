@@ -251,7 +251,7 @@ function gameRenderPost(){
   const pu2=S.playerU,WWm=S.MW*S.TILE,WHm=S.MH*S.TILE,MMX=x=>mcx+(S.tdel(pu2.x,x,WWm)/S.TILE)*mmS,MMY=y=>mcy+(S.tdel(pu2.y,y,WHm)/S.TILE)*mmS;
   if(pu2){ for(const o of S.mobs){if(o.hp<=0)continue;drawRect(vec2(MMX(o.x),MMY(o.y)),vec2(2,2),o.sp===2?C('#b3f'):o.sp===4?C('#a5a'):o.sp===1?C('#e83'):o.sp===3?C('#e0a040'):C('#9d6'),0,1,true);}
     for(const u of S.units){if(u.hp<=0||u===pu2)continue;drawRect(vec2(MMX(u.x),MMY(u.y)),vec2(3,3),C(S.TEAMCOL[u.team]),0,1,true);}
-    drawRect(vec2(mcx,mcy),vec2(12,2),C('#ff3df0')); drawRect(vec2(mcx,mcy),vec2(2,12),C('#ff3df0')); drawRect(vec2(mcx,mcy),vec2(9,9),C('#000')); drawRect(vec2(mcx,mcy),vec2(7,7),C('#ff3df0')); drawRect(vec2(mcx,mcy),vec2(3,3),C('#fff')); }
+    drawRect(vec2(mcx,mcy),vec2(14,3),C('#ff3df0'),0,1,true); drawRect(vec2(mcx,mcy),vec2(3,14),C('#ff3df0'),0,1,true); drawRect(vec2(mcx,mcy),vec2(9,9),C('#000'),0,1,true); drawRect(vec2(mcx,mcy),vec2(7,7),C('#ff3df0'),0,1,true); drawRect(vec2(mcx,mcy),vec2(3,3),C('#fff'),0,1,true); }
   if(S.bannerT>0&&S.banner) drawTextScreen(S.banner,vec2(ms.x/2,58),20,C('#fff'),4,C('#000'));
   if(S.world&&S.playerU){const hb=Math.round(S.heat*10);let g='';for(let i=0;i<10;i++)g+=(i<hb?'▮':'▯');drawTextScreen('☠ '+g,vec2(ms.x/2,ms.y-18),13,S.heat>.6?C('#ff9a7a'):C('#fff'),3,C('#000'));}
   drawTextScreen('▸ '+(S.playerWpns?S.playerWpns[S.pwi].name:''),vec2(12,ms.y-16),13,C('#fff'),3,C('#000'),'left');

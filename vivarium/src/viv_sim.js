@@ -68,6 +68,7 @@ function createVivSim(VIV_TAC){
   }
   function terrainAt(px,py){const tx=(px/TILE)|0,ty=(py/TILE)|0;if(tx<0||ty<0||tx>=S.MW||ty>=S.MH)return 5;return S.world?S.world.terrain[ty*S.MW+tx]:0;}
   function wallAt(px,py){const tx=(px/TILE)|0,ty=(py/TILE)|0;if(tx<0||ty<0||tx>=S.MW||ty>=S.MH)return true;return S.arena[ty*S.MW+tx]===1;}
+  function los(x1,y1,x2,y2){const WWp=S.MW*TILE,WHp=S.MH*TILE,dx=tdel(x1,x2,WWp),dy=tdel(y1,y2,WHp),d=Math.hypot(dx,dy),n=Math.max(1,Math.ceil(d/(TILE*.5)));for(let i=1;i<n;i++){const t=i/n;if(wallAt(wrapv(x1+dx*t,WWp),wrapv(y1+dy*t,WHp)))return false;}return true;}
   function snapFree(px,py){for(let r=0;r<12;r++)for(let aa=0;aa<8;aa++){const ang=aa/8*6.2832,x=px+Math.cos(ang)*r*TILE,y=py+Math.sin(ang)*r*TILE;if(!wallAt(x,y))return{x,y};}return{x:px,y:py};}
   function clearArea(cx,cy,rad){const MW=S.MW,MH=S.MH;for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=MW||y>=MH||dx*dx+dy*dy>rad*rad)continue;const i=y*MW+x,t=S.world.terrain[i];if(t===3||t===4||t===5)S.world.terrain[i]=1;const t2=S.world.terrain[i];S.arena[i]=(t2===3||t2===5)?1:(t2===4?2:0);}}
   function unstick(e){if(wallAt(e.x,e.y)){const p=snapFree(e.x,e.y);e.x=p.x;e.y=p.y;}}
@@ -118,11 +119,11 @@ function createVivSim(VIV_TAC){
     if(m>0){const spd=S.cfg.playerSpeed*(terrainAt(pu.x,pu.y)===2?.5:1),WWp=S.MW*TILE,WHp=S.MH*TILE,nx=wrapv(pu.x+(mx/m)*spd,WWp),ny=wrapv(pu.y+(my/m)*spd,WHp);if(!wallAt(nx,pu.y))pu.x=nx;if(!wallAt(pu.x,ny))pu.y=ny;}
     const AB=(S.cfg.aimbot==null?1:S.cfg.aimbot),WWp=S.MW*TILE,WHp=S.MH*TILE; let autoFire=false;
     if(inp.aim)pu.aim=Math.atan2(inp.aim.y-pu.y,inp.aim.x-pu.x);
-    if(AB===2){ let tg=null,bd=1100; for(const u of S.units){if(u.hp>0&&u.team!==pu.team){const d=Math.hypot(tdel(pu.x,u.x,WWp),tdel(pu.y,u.y,WHp));if(d<bd){bd=d;tg=u;}}}
-      if(!tg){let md=900;for(const o of S.mobs){if(o.hp>0){const d=Math.hypot(tdel(pu.x,o.x,WWp),tdel(pu.y,o.y,WHp));if(d<md){md=d;tg=o;}}}}
+    if(AB===2){ let tg=null,bd=1100; for(const u of S.units){if(u.hp>0&&u.team!==pu.team){const d=Math.hypot(tdel(pu.x,u.x,WWp),tdel(pu.y,u.y,WHp));if(d<bd&&los(pu.x,pu.y,u.x,u.y)){bd=d;tg=u;}}}
+      if(!tg){let md=900;for(const o of S.mobs){if(o.hp>0){const d=Math.hypot(tdel(pu.x,o.x,WWp),tdel(pu.y,o.y,WHp));if(d<md&&los(pu.x,pu.y,o.x,o.y)){md=d;tg=o;}}}}
       if(tg){pu.aim=Math.atan2(tdel(pu.y,tg.y,WHp),tdel(pu.x,tg.x,WWp));autoFire=true;}
     } else if(AB===1&&inp.aim){ let bd=850,ba=null;
-      const cns=(ox,oy)=>{const dx=tdel(pu.x,ox,WWp),dy=tdel(pu.y,oy,WHp),d=Math.hypot(dx,dy);if(d<bd&&d>1){const ang=Math.atan2(dy,dx);let da=((ang-pu.aim+9.42478)%6.28319)-3.14159;if(Math.abs(da)<0.55){bd=d;ba=ang;}}};
+      const cns=(ox,oy)=>{const dx=tdel(pu.x,ox,WWp),dy=tdel(pu.y,oy,WHp),d=Math.hypot(dx,dy);if(d<bd&&d>1&&los(pu.x,pu.y,ox,oy)){const ang=Math.atan2(dy,dx);let da=((ang-pu.aim+9.42478)%6.28319)-3.14159;if(Math.abs(da)<0.55){bd=d;ba=ang;}}};
       for(const u of S.units){if(u.hp>0&&u.team!==pu.team)cns(u.x,u.y);}
       for(const o of S.mobs){if(o.hp>0)cns(o.x,o.y);}
       if(ba!=null){let da=((ba-pu.aim+9.42478)%6.28319)-3.14159;pu.aim+=da*0.85;}
@@ -146,7 +147,7 @@ function createVivSim(VIV_TAC){
       u.aim=it.aim;if(it.fire&&u.fireCD<=0)fire(u,it.aim);}
       const WWa=S.MW*TILE,WHa=S.MH*TILE; let dgm=null,dgd=85; for(const o of S.mobs){if(o.hp>0&&(o.sp===2||o.sp===4)){const d=Math.hypot(tdel(u.x,o.x,WWa),tdel(u.y,o.y,WHa));if(d<dgd){dgd=d;dgm=o;}}}
       if(dgm){const ang=Math.atan2(tdel(dgm.y,u.y,WHa),tdel(dgm.x,u.x,WWa)),spd=S.cfg.unitSpeed,nx=wrapv(u.x+Math.cos(ang)*spd,WWa),ny=wrapv(u.y+Math.sin(ang)*spd,WHa);if(!wallAt(nx,u.y))u.x=nx;if(!wallAt(u.x,ny))u.y=ny;}
-      if(u.fireCD<=0&&(!it||!it.fire)){let mb=null,md=300;for(const o of S.mobs){if(o.hp<=0)continue;const d=Math.hypot(tdel(u.x,o.x,WWa),tdel(u.y,o.y,WHa));if(d<md){md=d;mb=o;}}if(mb){u.aim=Math.atan2(tdel(u.y,mb.y,WHa),tdel(u.x,mb.x,WWa));fire(u,u.aim);}}
+      if(u.fireCD<=0&&(!it||!it.fire)){let mb=null,md=300;for(const o of S.mobs){if(o.hp<=0)continue;const d=Math.hypot(tdel(u.x,o.x,WWa),tdel(u.y,o.y,WHa));if(d<md){md=d;mb=o;}}if(mb&&los(u.x,u.y,mb.x,mb.y)){u.aim=Math.atan2(tdel(u.y,mb.y,WHa),tdel(u.x,mb.x,WWa));fire(u,u.aim);}}
       if((u.rn==='FLANKER'||u.rn==='ASSAULT')){const WWp=S.MW*TILE,WHp=S.MH*TILE; if(u.smCD>0)u.smCD--; else { let nr=false; for(const e of S.units){if(e.hp>0&&e.team!==u.team&&Math.hypot(tdel(u.x,e.x,WWp),tdel(u.y,e.y,WHp))<320){nr=true;break;}} if(nr){S.smokes.push({x:u.x,y:u.y,r:95,life:300});u.smCD=540;} } }
       if(u.rn==='LEADER'){ if(u.nadeCD>0)u.nadeCD--; else { let bx=0,by=0,bd=240,fd=false; for(const e of S.units){if(e.hp>0&&e.team!==u.team){const d=Math.hypot(e.x-u.x,e.y-u.y);if(d<bd){bd=d;bx=e.x;by=e.y;fd=true;}}} for(const o of S.mobs){if(o.hp>0){const d=Math.hypot(o.x-u.x,o.y-u.y);if(d<bd){bd=d;bx=o.x;by=o.y;fd=true;}}} if(fd){const dst=Math.hypot(tdel(u.x,bx,S.MW*TILE),tdel(u.y,by,S.MH*TILE));S.nades.push({sx:u.x,sy:u.y,x:u.x,y:u.y,tx:bx,ty:by,t:0,fuse:Math.max(34,Math.min(64,dst/6))|0,flash:0,team:u.team,z:0,peak:Math.min(60,16+dst/5)});u.nadeCD=300;} } }
       if(u.rn==='SUPPORT'){const WWp=S.MW*TILE,WHp=S.MH*TILE; if(u.medCD>0)u.medCD--;
