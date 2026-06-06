@@ -101,6 +101,7 @@ const ROLES={
 const RK=['LEADER','ASSAULT','FLANKER','SNIPER','SUPPORT']
 const RK_ALL=['LEADER','ASSAULT','FLANKER','SNIPER','SUPPORT','DRONE']
 // Sidearm stats (shared across all roles)
+const NEI8=[[0,-1,1],[0,1,1],[-1,0,1],[1,0,1],[-1,-1,1.41],[1,-1,1.41],[-1,1,1.41],[1,1,1.41]];
 const SIDEARM={rng:4,dmg:9,sCD:18,bst:1,sprd:0.18,mag:8,relT:25}
 const FORMATION=[[3,0],[1,2],[2,-3],[-3,0],[0,-1],[1,3],[-1,3]]
 const AIM_THRESH={LEADER:Math.PI/6,ASSAULT:Math.PI/5,FLANKER:Math.PI/5,SNIPER:Math.PI/14,SUPPORT:Math.PI/4}
@@ -1950,14 +1951,14 @@ class Sim{
     // FLAT heuristic (reverted from toroidal): raw Euclidean to the goal on a bounded grid.
     gs.set(K(sx,sy),0);push({x:sx,y:sy,f:Math.hypot(gx-sx,gy-sy)})
     let it=0
-    while(heap.length>0&&it++<3500){
+    while(heap.length>0&&it++<1400){
       const c=heap.pop(),ck=K(c.x,c.y)
       if(ck===gk){
         const p=[{x:c.x,y:c.y}];let k=ck
         while(cf.has(k)){const q=cf.get(k);p.unshift(q);k=K(q.x,q.y)}
         p.shift();return this._smooth(p)
       }
-      for(const [dx,dy,dc] of [[0,-1,1],[0,1,1],[-1,0,1],[1,0,1],[-1,-1,1.41],[1,-1,1.41],[-1,1,1.41],[1,1,1.41]]){
+      for(const [dx,dy,dc] of NEI8){
         const nx=c.x+dx,ny=c.y+dy
         if(!this.pass(nx,ny))continue
         if(dc>1&&(!this.pass(c.x+dx,c.y)||!this.pass(c.x,c.y+dy)))continue
@@ -5838,7 +5839,7 @@ document.addEventListener('visibilitychange',()=>{
     advise(arena,units,mobs){
       const MW=brain.MW,MH=brain.MH;
       for(let y=0;y<MH;y++)for(let x=0;x<MW;x++) brain.map[y][x]=arena[y*MW+x]|0;
-      brain._buildCov&&brain._buildCov();
+      /* PERF: _buildCov runs once in reset(); arena static during fight -> no per-frame BFS */
       const n=Math.min(ag.length,units.length);
       for(let k=0;k<n;k++){const a=ag[k],u=units[k]; a.x=u.x; a.y=u.y; a.hp=(u.hp>0?u.hp:-1);}
       const bx=ag.map(a=>a.x), by=ag.map(a=>a.y);
