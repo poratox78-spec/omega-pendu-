@@ -129,7 +129,7 @@ function buildMenus(){
   btn.addEventListener('click',vivMenuToggle); btn.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();vivMenuToggle();},{passive:false});
   document.body.appendChild(btn);
 }
-function gameInit(){ S=createVivSim(window.VIV_TAC); cameraScale=0.7; gravity=0; if(touchDev)S.cfg.adviseEvery=3;
+function gameInit(){ S=createVivSim(window.VIV_TAC); cameraScale=0.7; gravity=0; if(touchDev){S.cfg.adviseEvery=3;cameraScale=0.95;}
   if(AUDIO&&typeof Sound!=='undefined'){ try{
     sndShot=new Sound([.22,.06,420,0,.02,.05,1]); sndHit=new Sound([.3,.1,200,0,.02,.05,4]);
     sndBoom=new Sound([.7,.3,90,.02,.2,.4,4]); sndDie=new Sound([.4,.1,160,.02,.1,.2,1]);
