@@ -1,4 +1,3 @@
-# Build vivarium.html from source files (engine/ + src/) — the single source of truth.
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 files=['engine/littlejs.release.js','engine/viv_tac_module.js','src/viv_sim.js','src/viv_game.js']

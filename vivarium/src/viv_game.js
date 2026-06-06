@@ -91,7 +91,6 @@ function buildMenus(){
   const head=document.createElement('div'); head.innerHTML='<b style="color:#fff">REGLAGES [STA]</b><div style="color:#789;margin:4px 0 8px">PV/spawn = au prochain renfort</div>'; cfgEl.appendChild(head);
   const rows=[
     ['— JOUEUR —'],['Vitesse joueur',1,8,.1,()=>cfg.playerSpeed,v=>cfg.playerSpeed=v],
-    ['Aimbot  0 off · 1 assist · 2 auto',0,2,1,()=>cfg.aimbot==null?1:cfg.aimbot,v=>cfg.aimbot=v],
     ['Arme joueur dmg',5,80,1,()=>cfg.player.dmg,v=>cfg.player.dmg=v],['Arme joueur cadence',3,40,1,()=>cfg.player.cd,v=>cfg.player.cd=v],
     ['— ESCOUADE —'],['PV unites',80,500,10,()=>cfg.unitHp,v=>cfg.unitHp=v],['Vitesse IA',1,6,.1,()=>cfg.unitSpeed,v=>cfg.unitSpeed=v],
     ['Escalade PV ennemi/niv',0,60,5,()=>cfg.enemyHpStep,v=>cfg.enemyHpStep=v],['Bonus PV/niveau',0,80,5,()=>cfg.allyBuff,v=>cfg.allyBuff=v],
@@ -114,7 +113,6 @@ function buildMenus(){
     sl.addEventListener('input',()=>{ const v=parseFloat(sl.value); set(v); val.textContent=v; });
     w.appendChild(top); w.appendChild(sl); cfgEl.appendChild(w);
   }
-  ['mousedown','mousemove','mouseup','pointerdown','pointermove','pointerup','touchstart','touchmove','wheel'].forEach(ev=>cfgEl.addEventListener(ev,e=>e.stopPropagation()));
   document.body.appendChild(cfgEl);
   // ===== ÉCRAN CHOIX DE RÔLE =====
   roleEl=document.createElement('div');
@@ -128,10 +126,11 @@ function buildMenus(){
   // ===== bouton MENU (haut-gauche) =====
   const btn=document.createElement('button'); btn.textContent='\u2630'; btn.title='Menu (C)';
   btn.style.cssText='position:fixed;top:8px;left:8px;z-index:99997;width:48px;height:48px;font-size:24px;background:#16202c;color:#fff;border:1px solid #3a4a5a;border-radius:8px;cursor:pointer;pointer-events:auto;touch-action:manipulation';
-  btn.addEventListener('click',vivMenuToggle); btn.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();vivMenuToggle();},{passive:false});
+  btn.addEventListener('click',e=>{e.stopPropagation();vivMenuToggle();}); btn.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();vivMenuToggle();},{passive:false});
+  ['mousedown','mouseup','pointerdown','pointerup'].forEach(ev=>btn.addEventListener(ev,e=>e.stopPropagation()));
   document.body.appendChild(btn);
 }
-function gameInit(){ S=createVivSim(window.VIV_TAC); cameraScale=0.7; setGravity(vec2(0,0)); if(touchDev)S.cfg.adviseEvery=3;
+function gameInit(){ S=createVivSim(window.VIV_TAC); cameraScale=0.7; gravity=0; if(touchDev)S.cfg.adviseEvery=3;
   if(AUDIO&&typeof Sound!=='undefined'){ try{
     sndShot=new Sound([.22,.06,420,0,.02,.05,1]); sndHit=new Sound([.3,.1,200,0,.02,.05,4]);
     sndBoom=new Sound([.7,.3,90,.02,.2,.4,4]); sndDie=new Sound([.4,.1,160,.02,.1,.2,1]);
@@ -219,9 +218,7 @@ function gameRender(){
     if(u.down){ drawPoly(circlePts(ux,uy,u.r,10),C('#3a3a3a'),2,C(ally?'#5af':'#f85')); drawText('!',vec2(ux,uy),13,C('#fff'),2.5,C('#000')); hpbar(ux,uy+u.r+6,26,1-u.downT/420,C('#fa4')); continue; }
     drawPoly(circlePts(ux,uy-u.r*.5,u.r*.78,14),C('#000',.22));
     drawPoly(circlePts(ux,uy-u.r*.5,u.r*.95,16),ally?C('#2a86c8',.45):C('#c8462a',.45));
-    if(u===S.playerU){ drawPoly(circlePts(ux,uy-u.r*.5,u.r*1.08,18),C('#ffd24a',.5));
-      const pr=u.r+9+Math.sin(time*5)*2; for(let i=0;i<28;i++){const a1=i/28*6.2832,a2=(i+1)/28*6.2832;drawLine(vec2(ux+Math.cos(a1)*pr,uy+Math.sin(a1)*pr),vec2(ux+Math.cos(a2)*pr,uy+Math.sin(a2)*pr),3,C('#9dfff0'));}
-      const ay=uy+u.r+14+Math.sin(time*5)*2; drawPoly([vec2(ux,ay),vec2(ux-6,ay+9),vec2(ux+6,ay+9)],C('#9dfff0'),2,C('#06302a')); }
+    if(u===S.playerU){ for(let i=0;i<24;i++){const a1=i/24*6.2832,a2=(i+1)/24*6.2832;drawLine(vec2(ux+Math.cos(a1)*(u.r+10),uy+Math.sin(a1)*(u.r+10)),vec2(ux+Math.cos(a2)*(u.r+10),uy+Math.sin(a2)*(u.r+10)),2.5,C('#bbffff'));} }
     if(SPR){ const spr=ally?(SPR[u.rn]||SPR.ASSAULT):SPR.enemy; drawTile(vec2(ux,uy),vec2(u.r*2.7),spr,WHITE,0,Math.cos(u.aim)<0); }
     else if(u===S.playerU){ drawRect(vec2(ux,uy),vec2(u.r*1.6,u.r*1.6),C('#cceeff')); }
     else { drawPoly(tpts(ally?CHEV:DIAM,ux,uy,u.aim,u.r),col,1.5,COL.white); }
@@ -247,11 +244,9 @@ function gameRenderPost(){
     y+=22;
   }
   // minimap
-  const mmS=120/Math.max(S.MW,S.MH),mw=S.MW*mmS,mh=S.MH*mmS,mx=ms.x-mw-12,my=12,mcx=mx+mw/2,mcy=my+mh/2; drawRect(vec2(mcx,mcy),vec2(mw+6,mh+6),C('#000',.5),0,1,true);
-  const pu2=S.playerU,WWm=S.MW*S.TILE,WHm=S.MH*S.TILE,MMX=x=>mcx+(S.tdel(pu2.x,x,WWm)/S.TILE)*mmS,MMY=y=>mcy+(S.tdel(pu2.y,y,WHm)/S.TILE)*mmS;
-  if(pu2){ for(const o of S.mobs){if(o.hp<=0)continue;drawRect(vec2(MMX(o.x),MMY(o.y)),vec2(2,2),o.sp===2?C('#b3f'):o.sp===4?C('#a5a'):o.sp===1?C('#e83'):o.sp===3?C('#e0a040'):C('#9d6'),0,1,true);}
-    for(const u of S.units){if(u.hp<=0||u===pu2)continue;drawRect(vec2(MMX(u.x),MMY(u.y)),vec2(3,3),C(S.TEAMCOL[u.team]),0,1,true);}
-    drawRect(vec2(mcx,mcy),vec2(14,3),C('#ff3df0'),0,1,true); drawRect(vec2(mcx,mcy),vec2(3,14),C('#ff3df0'),0,1,true); drawRect(vec2(mcx,mcy),vec2(9,9),C('#000'),0,1,true); drawRect(vec2(mcx,mcy),vec2(7,7),C('#ff3df0'),0,1,true); drawRect(vec2(mcx,mcy),vec2(3,3),C('#fff'),0,1,true); }
+  const mmS=120/Math.max(S.MW,S.MH),mx=ms.x-S.MW*mmS-12,my=12; drawRect(vec2(mx+S.MW*mmS/2,my+S.MH*mmS/2),vec2(S.MW*mmS+6,S.MH*mmS+6),C('#000',.5),0,1,true);
+  for(const u of S.units){if(u.hp<=0)continue;drawRect(vec2(mx+(u.x/S.TILE)*mmS,my+(u.y/S.TILE)*mmS),vec2(3,3),C(S.TEAMCOL[u.team]),0,1,true);}
+  for(const o of S.mobs){drawRect(vec2(mx+(o.x/S.TILE)*mmS,my+(o.y/S.TILE)*mmS),vec2(2,2),o.sp===2?C('#b3f'):o.sp===4?C('#a5a'):o.sp===1?C('#e83'):o.sp===3?C('#e0a040'):C('#9d6'),0,1,true);}
   if(S.bannerT>0&&S.banner) drawTextScreen(S.banner,vec2(ms.x/2,58),20,C('#fff'),4,C('#000'));
   if(S.world&&S.playerU){const hb=Math.round(S.heat*10);let g='';for(let i=0;i<10;i++)g+=(i<hb?'▮':'▯');drawTextScreen('☠ '+g,vec2(ms.x/2,ms.y-18),13,S.heat>.6?C('#ff9a7a'):C('#fff'),3,C('#000'));}
   drawTextScreen('▸ '+(S.playerWpns?S.playerWpns[S.pwi].name:''),vec2(12,ms.y-16),13,C('#fff'),3,C('#000'),'left');
