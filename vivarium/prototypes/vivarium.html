@@ -19630,21 +19630,17 @@ function gameRender(){
   // terrain : lookup WRAPPÉ autour du joueur (monde toroïdal, sans couture)
   if(tr){ const ptx=Math.floor(pu.x/T),pty=Math.floor(pu.y/T);
     const sx=Math.ceil(mainCanvasSize.x/2/cameraScale/T)+1, sy=Math.ceil(mainCanvasSize.y/2/cameraScale/T)+1;
-    const BT=SPR?[WHITE,C('#c2e0a6'),C('#d4c6a4'),C('#a2c2ac')]:null;
-    const SZ=vec2(T,T),SZf=vec2(T+0.5,T+0.5),SZtr=vec2(T*1.5,T*1.5),SZbu=vec2(T*1.05,T*1.05),_pp=vec2(),_wat=C('#2f6f9a'),_wallM=C('#cdd4da');
+    // TERRAIN PROCÉDURAL (non-texturé = léger mobile) : teintes par biome + variation
+    const GR=[[C('#3f7233'),C('#356a2b'),C('#467d3a')],[C('#305b29'),C('#274e22'),C('#356230')],[C('#6f6547'),C('#655b3f'),C('#776b4d')],[C('#305347'),C('#27493f'),C('#365b4d')]];
+    const BUSHC=[C('#357a32'),C('#2a6228'),C('#4f6a3a'),C('#2f6a52')],BUSHL=[C('#4a9244'),C('#3a7a36'),C('#647e4c'),C('#3f8468')],ROCKC=C('#59626e'),ROCKL=C('#727b88'),WALLC=C('#363f4b'),WALLT=C('#4a5566'),_wat=C('#2f6f9a'),_pp=vec2(),SZ=vec2(T,T),SZw=vec2(T,T*.32),SZb=vec2(T*.72,T*.72),SZb2=vec2(T*.42,T*.42);
     for(let dy=-sy;dy<=sy;dy++)for(let dx=-sx;dx<=sx;dx++){
-      const wtx=S.wrapv(ptx+dx,MW)|0, wty=S.wrapv(pty+dy,MH)|0, t=tr[wty*MW+wtx], bm=(S.world.biome?S.world.biome[wty*MW+wtx]:0);
+      const wtx=S.wrapv(ptx+dx,MW)|0, wty=S.wrapv(pty+dy,MH)|0, t=tr[wty*MW+wtx], bm=(S.world.biome?S.world.biome[wty*MW+wtx]:0), hsh=((wtx*73856093)^(wty*19349663))>>>0;
       _pp.x=(ptx+dx)*T+T/2; _pp.y=(pty+dy)*T+T/2;
-      if(SPR&&SPR.grass){ const hsh=((wtx*73856093)^(wty*19349663))>>>0;
-        if(t===2){ drawTile(_pp,SZ,SPR.grass,BT[bm]); _wat.a=.46+.08*Math.sin(time*2+wtx+wty); drawRect(_pp,SZ,_wat); }
-        else if(t===3||t===5){ drawTile(_pp,SZ,SPR.wall,bm===3?_wallM:WHITE); }
-        else { drawTile(_pp,SZf,(hsh&7)===0?SPR.flower:SPR.grass,BT[bm]);
-          if(t===4){ if(bm===1)drawTile(_pp,SZtr,SPR.tree); else drawTile(_pp,SZbu,SPR.bush); } }
-      } else { const px=_pp.x,py=_pp.y;
-        let c=BIOMEF[bm],sz=T; if(t===1)c=BIOMEG[bm];else if(t===2)c=COL.water;else if(t===3)c=COL.rock;else if(t===4){c=COL.bush;sz=T-5;}else if(t===5)c=COL.wall;
-        drawRect(vec2(px,py),vec2(sz,sz),c);
-        if(t===2)drawRect(vec2(px,py),vec2(T,T),C('#3a7faa',.12+.06*Math.sin(time*2+wtx+wty)));
-      }
+      if(t===3){ drawRect(_pp,SZ,ROCKC); if((hsh&3)===0)drawRect(vec2(_pp.x-T*.16,_pp.y+T*.16),SZb2,ROCKL); }
+      else if(t===5){ drawRect(_pp,SZ,WALLC); drawRect(vec2(_pp.x,_pp.y+T*.34),SZw,WALLT); }
+      else { drawRect(_pp,SZ,GR[bm][hsh%3]);
+        if(t===2){ _wat.a=.42+.1*Math.sin(time*2+wtx+wty); drawRect(_pp,SZ,_wat); }
+        else if(t===4){ drawRect(_pp,SZb,BUSHC[bm]); drawRect(vec2(_pp.x,_pp.y+T*.12),SZb2,BUSHL[bm]); } }
     }
   }
   if(S.objType==='zone'&&S.zone){ const z=S.zone,zx=RX(z.x),zy=RY(z.y),pts=circlePts(zx,zy,z.r,28); for(let i=0;i<pts.length;i++)drawLine(pts[i],pts[(i+1)%pts.length],2,C('#78c8ff',.6)); }
