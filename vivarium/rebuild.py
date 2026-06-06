@@ -90,6 +90,16 @@ mod=rep(mod,"    const thresh=AIM_THRESH[a.rn]||Math.PI/5\n    if(aimErr>thresh)
         "    const thresh=(dist<3.2?Math.PI/2:(AIM_THRESH[a.rn]||Math.PI/5))\n    if(aimErr>thresh){this._sDir(a,toL,Math.min(.6,.2+aimErr*.45));return}","melee fire gate")
 mod=rep(mod,"if(dT<5&&(a.mag<=0||a.state==='RL'||a.sqActive)){","if(dT<5&&(a.mag<=0||a.state==='RL'||a.sqActive||dT<2.6)){","sidearm point-blank")
 
+# ECOSYSTEM: evolved personality traits (aggression/flee-threshold/flock) derived from each mob's
+# brain weights -> they evolve with the genes and gate real behavior (not just movement wiggle).
+sim=rep(sim,"function _mk(sp,p){const d=MOBD[sp];S.mobs.push({sp,x:p.x,y:p.y,r:d.r,hp:d.hp,maxHp:d.hp,brain:breed(sp),spd:d.spd,dmg:d.dmg,dmgCD:0,_t:null,fit:0});}",
+        "function _mk(sp,p){const d=MOBD[sp],br=breed(sp);let wa=0,wf=0,wk=0;for(let i=0;i<8;i++)wa+=br[i];for(let i=8;i<16;i++)wf+=br[i];for(let i=16;i<24;i++)wk+=br[i];const aggr=1+Math.tanh(wa*.3)*.4,flee=.26+Math.tanh(wf*.3)*.14,flock=1+Math.tanh(wk*.3)*.5;S.mobs.push({sp,x:p.x,y:p.y,r:d.r,hp:d.hp,maxHp:d.hp,brain:br,spd:d.spd,dmg:d.dmg,dmgCD:0,_t:null,fit:0,aggr,flee,flock});}","eco _mk traits")
+sim=rep(sim,"(k,sp)=>k==='mob'&&sp===0,320)","(k,sp)=>k==='mob'&&sp===0,320*m.aggr)","eco aggr prey")
+sim=rep(sim,"(k)=>k==='unit',360)","(k)=>k==='unit',360*m.aggr)","eco aggr intr")
+sim=rep(sim,"if(m.hp<m.maxHp*.25){const dg","if(m.hp<m.maxHp*m.flee){const dg","eco flee thresh")
+sim=rep(sim,"sp!==2&&sp!==4),520)","sp!==2&&sp!==4),520*m.aggr)","eco aggr apex")
+sim=rep(sim,"const cf=m.sp===3?.006:.002;","const cf=(m.sp===3?.006:.002)*m.flock;","eco flock trait")
+
 import os
 os.makedirs('/home/user/work/vivarium/engine',exist_ok=True)
 os.makedirs('/home/user/work/vivarium/src',exist_ok=True)

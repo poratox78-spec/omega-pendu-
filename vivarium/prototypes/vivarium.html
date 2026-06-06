@@ -17330,9 +17330,12 @@ class Sim{
         p.shift();return this._smooth(p)
       }
       for(const [dx,dy,dc] of [[0,-1,1],[0,1,1],[-1,0,1],[1,0,1],[-1,-1,1.41],[1,-1,1.41],[-1,1,1.41],[1,1,1.41]]){
-        const nx=c.x+dx,ny=c.y+dy
+        // TORUS: wrap node coords so paths can cross the world seam (walkable edges)
+        const nx=((c.x+dx)%this.MW+this.MW)%this.MW,ny=((c.y+dy)%this.MH+this.MH)%this.MH
         if(!this.pass(nx,ny))continue
-        if(dc>1&&(!this.pass(c.x+dx,c.y)||!this.pass(c.x,c.y+dy)))continue
+        // corner-cut check on the wrapped orthogonal cells (so seam diagonals aren't falsely blocked)
+        const _cx=((c.x+dx)%this.MW+this.MW)%this.MW,_cy=((c.y+dy)%this.MH+this.MH)%this.MH
+        if(dc>1&&(!this.pass(_cx,c.y)||!this.pass(c.x,_cy)))continue
         const _dc3=this.danger[ny][nx]||0
         let cost=dc*(this.map[ny][nx]===2?1.5:1)+Math.min(isFinite(_dc3)?_dc3*.05:0,1.5)
         // GAP-1: route AROUND apex/brute footprints (soft, not hard-walled — mobs move)
@@ -17360,7 +17363,7 @@ class Sim{
         const ng=(gs.get(ck)||0)+cost,nk=K(nx,ny)
         if(!gs.has(nk)||ng<gs.get(nk)){
           gs.set(nk,ng);cf.set(nk,{x:c.x,y:c.y})
-          push({x:nx,y:ny,f:ng+Math.hypot(gx-nx,gy-ny)})
+          push({x:nx,y:ny,f:ng+_heur(nx,ny)})
         }
       }
     }
@@ -17490,7 +17493,8 @@ class Sim{
   }
 
   _stepTo(a,tx,ty,spd,enemy=null){
-    const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy)
+    // TORUS: steer toward the target via the SHORT wrapped delta (cross the seam)
+    const dx=this._txd(a.x,tx),dy=this._tyd(a.y,ty),d=Math.hypot(dx,dy)
     if(d<.05)return true
     let moveSpd=spd
     if(enemy){
@@ -17506,7 +17510,10 @@ class Sim{
       // Toujours face à l'ennemi
       this._sDir(a,toEnemy,.22)
     }
-    const nx=a.x+(dx/d)*moveSpd,ny=a.y+(dy/d)*moveSpd
+    // TORUS: wrap the candidate position so a step over the seam stays in-bounds
+    const MW=this.MW,MH=this.MH
+    const wx=v=>((v%MW)+MW)%MW, wy=v=>((v%MH)+MH)%MH
+    const nx=wx(a.x+(dx/d)*moveSpd),ny=wy(a.y+(dy/d)*moveSpd)
     if(this.pass(Math.floor(nx),Math.floor(ny))){a.x=nx;a.y=ny}
     else if(this.pass(Math.floor(nx),Math.floor(a.y))){a.x=nx}
     else if(this.pass(Math.floor(a.x),Math.floor(ny))){a.y=ny}
@@ -17516,7 +17523,8 @@ class Sim{
   _fp(a,spd,lookAt=null){
     if(!a.path||!a.path.length)return true
     const wp=a.path[0],cx=wp.x+.5,cy=wp.y+.5
-    if(Math.hypot(cx-a.x,cy-a.y)<.42){a.path.shift();if(!a.path.length)return true}
+    // TORUS: measure waypoint arrival via the wrapped distance (seam-aware)
+    if(this._tdist(a.x,a.y,cx,cy)<.42){a.path.shift();if(!a.path.length)return true}
     if(a.path.length){
       const nwp=a.path.length>1?a.path[1]:a.path[0],lx=nwp.x+.5,ly=nwp.y+.5
       if(lookAt){
@@ -17524,8 +17532,8 @@ class Sim{
         // Le déplacement se fait en strafe/backpedal via _stepTo(enemy)
         this._stepTo(a,cx,cy,spd,lookAt)
       } else {
-        // Pas d'ennemi connu → orienter vers le prochain waypoint
-        const td=Math.atan2(ly-a.y,lx-a.x)
+        // Pas d'ennemi connu → orienter vers le prochain waypoint (bearing wrappé)
+        const td=this._tbrg(a.x,a.y,lx,ly)
         this._sDir(a,td,.18)
         this._stepTo(a,cx,cy,spd)
       }
@@ -21296,7 +21304,7 @@ function createVivSim(VIV_TAC){
   function snapFree(px,py){for(let r=0;r<12;r++)for(let aa=0;aa<8;aa++){const ang=aa/8*6.2832,x=px+Math.cos(ang)*r*TILE,y=py+Math.sin(ang)*r*TILE;if(!wallAt(x,y))return{x,y};}return{x:px,y:py};}
   function clearArea(cx,cy,rad){const MW=S.MW,MH=S.MH;for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const x=cx+dx,y=cy+dy;if(x<0||y<0||x>=MW||y>=MH||dx*dx+dy*dy>rad*rad)continue;const i=y*MW+x,t=S.world.terrain[i];if(t===3||t===4||t===5)S.world.terrain[i]=1;const t2=S.world.terrain[i];S.arena[i]=(t2===3||t2===5)?1:(t2===4?2:0);}}
   function unstick(e){if(wallAt(e.x,e.y)){const p=snapFree(e.x,e.y);e.x=p.x;e.y=p.y;}}
-  function _mk(sp,p){const d=MOBD[sp];S.mobs.push({sp,x:p.x,y:p.y,r:d.r,hp:d.hp,maxHp:d.hp,brain:breed(sp),spd:d.spd,dmg:d.dmg,dmgCD:0,_t:null,fit:0});}
+  function _mk(sp,p){const d=MOBD[sp],br=breed(sp);let wa=0,wf=0,wk=0;for(let i=0;i<8;i++)wa+=br[i];for(let i=8;i<16;i++)wf+=br[i];for(let i=16;i<24;i++)wk+=br[i];const aggr=1+Math.tanh(wa*.3)*.4,flee=.26+Math.tanh(wf*.3)*.14,flock=1+Math.tanh(wk*.3)*.5;S.mobs.push({sp,x:p.x,y:p.y,r:d.r,hp:d.hp,maxHp:d.hp,brain:br,spd:d.spd,dmg:d.dmg,dmgCD:0,_t:null,fit:0,aggr,flee,flock});}
   const PREF={0:[0,3],1:[1],2:[2],3:[3,1],4:[2]};
   function spawnMob(sp){let best=null;const pf=PREF[sp]||[];for(let t=0;t<6;t++){const p=snapFree((2+Math.random()*(S.MW-4))*TILE,(2+Math.random()*(S.MH-4))*TILE);if(!best)best=p;const bb=S.world?S.world.biome[((p.y/TILE)|0)*S.MW+((p.x/TILE)|0)]:0;if(pf.indexOf(bb)>=0){best=p;break;}}_mk(sp,best);}
   function spawnMobFar(sp){const pu=S.playerU;let best=null,bd=-1;for(let t=0;t<8;t++){const p=snapFree((2+Math.random()*(S.MW-4))*TILE,(2+Math.random()*(S.MH-4))*TILE);const dd=pu?Math.hypot(tdel(pu.x,p.x,S.MW*TILE),tdel(pu.y,p.y,S.MH*TILE)):0;if(dd>bd){bd=dd;best=p;}}_mk(sp,best);}
@@ -21386,11 +21394,11 @@ function createVivSim(VIV_TAC){
     for(let i=S.mobs.length-1;i>=0;i--){const m=S.mobs[i];if(m.hp<=0){recordGene(m.sp,m.brain,m.fit||0);S.heat=Math.min(1,S.heat+0.005);S.fx.push({t:'die',x:m.x,y:m.y,col:m.sp===2?'#b3f':m.sp===4?'#a5a':m.sp===3?'#e0a040':'#9d6'});if(m.sp===2||m.sp===4)S.loot.push({x:m.x,y:m.y,type:'core',life:900});else if(Math.random()<.4)S.loot.push({x:m.x,y:m.y,type:'hp',life:600});S.mobs.splice(i,1);continue;}if(m.dmgCD>0)m.dmgCD--; m.fit=(m.fit||0)+0.002; unstick(m);
       let gx=0,gy=0,has=false,fleeing=false;m._t=null;
       if(m.sp===0){const th=nearest(m.x,m.y,(k,sp)=>k==='unit'||(k==='mob'&&sp>=1),170);if(th){gx=-(th.tgt.x-m.x);gy=-(th.tgt.y-m.y);has=true;fleeing=true;}}
-      else if(m.sp===1||m.sp===3){const prey=nearest(m.x,m.y,(k,sp)=>k==='mob'&&sp===0,320),intr=nearest(m.x,m.y,(k)=>k==='unit',360);let t=prey;if(intr&&(!prey||intr.d<prey.d))t=intr;if(m.hp<m.maxHp*.25){const dg=nearest(m.x,m.y,(k,sp)=>k==='unit'||(k==='mob'&&sp===2),200);if(dg){gx=-(dg.tgt.x-m.x);gy=-(dg.tgt.y-m.y);fleeing=true;has=true;}}else if(t){gx=t.tgt.x-m.x;gy=t.tgt.y-m.y;has=true;m._t=t.tgt;}}
-      else {const t=nearest(m.x,m.y,(k,sp)=>k==='unit'||(k==='mob'&&sp!==2&&sp!==4),520);if(t){gx=t.tgt.x-m.x;gy=t.tgt.y-m.y;has=true;m._t=t.tgt;}}
+      else if(m.sp===1||m.sp===3){const prey=nearest(m.x,m.y,(k,sp)=>k==='mob'&&sp===0,320*m.aggr),intr=nearest(m.x,m.y,(k)=>k==='unit',360*m.aggr);let t=prey;if(intr&&(!prey||intr.d<prey.d))t=intr;if(m.hp<m.maxHp*m.flee){const dg=nearest(m.x,m.y,(k,sp)=>k==='unit'||(k==='mob'&&sp===2),200);if(dg){gx=-(dg.tgt.x-m.x);gy=-(dg.tgt.y-m.y);fleeing=true;has=true;}}else if(t){gx=t.tgt.x-m.x;gy=t.tgt.y-m.y;has=true;m._t=t.tgt;}}
+      else {const t=nearest(m.x,m.y,(k,sp)=>k==='unit'||(k==='mob'&&sp!==2&&sp!==4),520*m.aggr);if(t){gx=t.tgt.x-m.x;gy=t.tgt.y-m.y;has=true;m._t=t.tgt;}}
       const inp=new Float32Array(16);if(has){const d=Math.hypot(gx,gy)||1;inp[0]=gx/d;inp[1]=gy/d;inp[2]=m.hp/m.maxHp;inp[3]=fleeing?1:0;inp[4]=Math.sin(S.t*.001+i);}
       const out=runBrain(inp,m.brain);let mvx=out[0]*.6,mvy=out[1]*.6;if(has){const d=Math.hypot(gx,gy)||1;mvx+=(gx/d)*.7;mvy+=(gy/d)*.7;}
-      if(m.sp===1||m.sp===3){const cf=m.sp===3?.006:.002;let cx=0,cy=0,n=0;gridNear(m.x,m.y,160,(o)=>{if(o!==m&&o.sp===m.sp&&o.hp>0){const dd=Math.hypot(o.x-m.x,o.y-m.y);if(dd<160){cx+=o.x;cy+=o.y;n++;}}});if(n){cx/=n;cy/=n;mvx+=(cx-m.x)*cf;mvy+=(cy-m.y)*cf;}}
+      if(m.sp===1||m.sp===3){const cf=(m.sp===3?.006:.002)*m.flock;let cx=0,cy=0,n=0;gridNear(m.x,m.y,160,(o)=>{if(o!==m&&o.sp===m.sp&&o.hp>0){const dd=Math.hypot(o.x-m.x,o.y-m.y);if(dd<160){cx+=o.x;cy+=o.y;n++;}}});if(n){cx/=n;cy/=n;mvx+=(cx-m.x)*cf;mvy+=(cy-m.y)*cf;}}
       const mag=Math.hypot(mvx,mvy)||1;mvx/=mag;mvy/=mag;const espd=((m.sp===2&&m.hp<m.maxHp*.3)?m.spd*1.4:m.spd)*(terrainAt(m.x,m.y)===2?.5:1);const WWp=S.MW*TILE,WHp=S.MH*TILE,nx=wrapv(m.x+mvx*espd,WWp),ny=wrapv(m.y+mvy*espd,WHp);if(!wallAt(nx,m.y))m.x=nx;if(!wallAt(m.x,ny))m.y=ny;
       if(m.sp!==0&&!fleeing&&m.dmgCD<=0&&m._t){if(Math.hypot(m._t.x-m.x,m._t.y-m.y)<m.r+16){m.dmgCD=30;m.fit=(m.fit||0)+m.dmg*0.3;if(m._t.ref){const wasUp=!m._t.ref.down;hurt(m._t.ref,m.dmg);if(wasUp&&m._t.ref.down)m.fit+=18;}}}
     }

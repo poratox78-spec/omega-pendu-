@@ -1952,9 +1952,12 @@ class Sim{
         p.shift();return this._smooth(p)
       }
       for(const [dx,dy,dc] of [[0,-1,1],[0,1,1],[-1,0,1],[1,0,1],[-1,-1,1.41],[1,-1,1.41],[-1,1,1.41],[1,1,1.41]]){
-        const nx=c.x+dx,ny=c.y+dy
+        // TORUS: wrap node coords so paths can cross the world seam (walkable edges)
+        const nx=((c.x+dx)%this.MW+this.MW)%this.MW,ny=((c.y+dy)%this.MH+this.MH)%this.MH
         if(!this.pass(nx,ny))continue
-        if(dc>1&&(!this.pass(c.x+dx,c.y)||!this.pass(c.x,c.y+dy)))continue
+        // corner-cut check on the wrapped orthogonal cells (so seam diagonals aren't falsely blocked)
+        const _cx=((c.x+dx)%this.MW+this.MW)%this.MW,_cy=((c.y+dy)%this.MH+this.MH)%this.MH
+        if(dc>1&&(!this.pass(_cx,c.y)||!this.pass(c.x,_cy)))continue
         const _dc3=this.danger[ny][nx]||0
         let cost=dc*(this.map[ny][nx]===2?1.5:1)+Math.min(isFinite(_dc3)?_dc3*.05:0,1.5)
         // GAP-1: route AROUND apex/brute footprints (soft, not hard-walled — mobs move)
@@ -1982,7 +1985,7 @@ class Sim{
         const ng=(gs.get(ck)||0)+cost,nk=K(nx,ny)
         if(!gs.has(nk)||ng<gs.get(nk)){
           gs.set(nk,ng);cf.set(nk,{x:c.x,y:c.y})
-          push({x:nx,y:ny,f:ng+Math.hypot(gx-nx,gy-ny)})
+          push({x:nx,y:ny,f:ng+_heur(nx,ny)})
         }
       }
     }
@@ -2112,7 +2115,8 @@ class Sim{
   }
 
   _stepTo(a,tx,ty,spd,enemy=null){
-    const dx=tx-a.x,dy=ty-a.y,d=Math.hypot(dx,dy)
+    // TORUS: steer toward the target via the SHORT wrapped delta (cross the seam)
+    const dx=this._txd(a.x,tx),dy=this._tyd(a.y,ty),d=Math.hypot(dx,dy)
     if(d<.05)return true
     let moveSpd=spd
     if(enemy){
@@ -2128,7 +2132,10 @@ class Sim{
       // Toujours face à l'ennemi
       this._sDir(a,toEnemy,.22)
     }
-    const nx=a.x+(dx/d)*moveSpd,ny=a.y+(dy/d)*moveSpd
+    // TORUS: wrap the candidate position so a step over the seam stays in-bounds
+    const MW=this.MW,MH=this.MH
+    const wx=v=>((v%MW)+MW)%MW, wy=v=>((v%MH)+MH)%MH
+    const nx=wx(a.x+(dx/d)*moveSpd),ny=wy(a.y+(dy/d)*moveSpd)
     if(this.pass(Math.floor(nx),Math.floor(ny))){a.x=nx;a.y=ny}
     else if(this.pass(Math.floor(nx),Math.floor(a.y))){a.x=nx}
     else if(this.pass(Math.floor(a.x),Math.floor(ny))){a.y=ny}
@@ -2138,7 +2145,8 @@ class Sim{
   _fp(a,spd,lookAt=null){
     if(!a.path||!a.path.length)return true
     const wp=a.path[0],cx=wp.x+.5,cy=wp.y+.5
-    if(Math.hypot(cx-a.x,cy-a.y)<.42){a.path.shift();if(!a.path.length)return true}
+    // TORUS: measure waypoint arrival via the wrapped distance (seam-aware)
+    if(this._tdist(a.x,a.y,cx,cy)<.42){a.path.shift();if(!a.path.length)return true}
     if(a.path.length){
       const nwp=a.path.length>1?a.path[1]:a.path[0],lx=nwp.x+.5,ly=nwp.y+.5
       if(lookAt){
@@ -2146,8 +2154,8 @@ class Sim{
         // Le déplacement se fait en strafe/backpedal via _stepTo(enemy)
         this._stepTo(a,cx,cy,spd,lookAt)
       } else {
-        // Pas d'ennemi connu → orienter vers le prochain waypoint
-        const td=Math.atan2(ly-a.y,lx-a.x)
+        // Pas d'ennemi connu → orienter vers le prochain waypoint (bearing wrappé)
+        const td=this._tbrg(a.x,a.y,lx,ly)
         this._sDir(a,td,.18)
         this._stepTo(a,cx,cy,spd)
       }
