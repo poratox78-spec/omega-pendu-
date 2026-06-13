@@ -26,14 +26,22 @@ But : savoir ce qu'on mesure et sur quoi, sinon tout Δ est du bruit.
 - [ ] 0.3 **Métriques définies** :
   - moteur : % mots phon→ortho corrects **avec accents** (in-lexique / hors-lexique séparés) ;
   - diagnostic : **taux de bonne classification** du type de faute sur le jeu 0.2.
-- [ ] 0.4 **Décision « hors cadre pendu »** : comment gérer mots courts (<7) + sortie accentuée (cf. Phase 1).
+- [x] 0.4 **Décision « hors cadre pendu » — TRANCHÉE (Lexique4 complet en main, 188 863 mots, 37 col.)** :
+  `1_Mot` = orthographe **accentuée** → accent = lookup en lexique ; **30 774 mots < 7 lettres (16 %)** dispo →
+  V1 assume **mots courts + accents**. Colonnes bonus exploitables : `24_NbHomoph` (homophones, 71,8 %),
+  `15_NbLettres`/`16_NbPhons` (muettes), `33_Preval`+`11_FreqOrtho`+`26_SyllNb` (difficulté), `30-32` (morpho),
+  `2_Phono` SAMPA + `3_Phono_IPA`.
 - [ ] 0.5 **Harnais déterministe** réutilisé (omegaRand seedé) pour reproductibilité.
+- [ ] 0.6 **Sous-ensemble accentué** : régénérer la table inliné (comme l'actuelle, mais en gardant `1_Mot` accentué
+  + colonnes utiles) — le `.tsv` 34 Mo reste hors-repo (trop gros), seul le sous-ensemble est embarqué.
 
-## Phase 1 — Restitution des accents *(le verrou identifié)*
-But : que la sortie écrive les accents, en exploitant l'info déjà présente dans le SAMPA.
-- [ ] 1.1 **Enrichir `PHON_TO_LETTERS`** pour émettre les graphèmes accentués : /e/→É, /ɛ/(E)→È/Ê, /o/(o)→Ô (selon contexte), /ɑ̃ /, ç via /s/ devant e/i, etc. (table dérivée, pas codée au doigt mouillé).
-- [ ] 1.2 **Mesure** : % de ré-accentuation correcte, in-lexique vs hors-lexique (jeu 0.2).
-- [ ] 1.3 **Falsification R66** : OFF = comportement ASCII actuel **inchangé** (pendu intact) ; ON = gain mesuré sur l'accentuation, sinon on reverte.
+## Phase 1 — Accents *(simplifiée : data confirmée)*
+But : écrire les accents. **En lexique = lookup `1_Mot`** (trivial). Reconstruction **uniquement hors-lexique**.
+- [ ] 1.1 **En lexique** : sortie accentuée = lookup direct dans `1_Mot` (rien à reconstruire).
+- [ ] 1.2 **Hors lexique** : enrichir `PHON_TO_LETTERS` pour émettre les graphèmes accentués depuis le SAMPA :
+  /e/→é, /ɛ/(E)→è/ê, /o/→ô (selon contexte), ç via /s/ devant e/i, etc. (table dérivée, mesurée).
+- [ ] 1.3 **Mesure** : % de ré-accentuation correcte hors-lexique (jeu 0.2).
+- [ ] 1.4 **Falsification R66** : OFF = comportement ASCII actuel **inchangé** (pendu intact) ; ON = gain mesuré, sinon reverte.
 
 ## Phase 2 — Boucle dictée réelle *(entrée apprenant)*
 But : passer de « OMEGA s'auto-dicte » à « l'élève écrit, on corrige ».
