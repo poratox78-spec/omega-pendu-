@@ -4,10 +4,11 @@
 > Docs de fond : `docs/MEMOIRE.html`, `docs/rapport-mode-emploi.html`. Plan dictée : `DICTEE_ROADMAP.md`.
 > Journal dictée (le plus à jour) : `dictee/JOURNAL.md`.
 
-## Ce dépôt contient 3 choses
+## Ce dépôt contient 4 choses
 1. **OMEGA-Ω** — moteur cognitif de **pendu français** (`app/omega-pendu.html`, monolithique : code + lexique inlinés). Doctrine **« cognition > oracle »** + **R66** (mesurer/falsifier avant de garder ; tout module OFF par défaut, baseline byte-identique au repos). Détails : `docs/MEMOIRE.html` + `docs/rapport-mode-emploi.html`.
 2. **`omega-key/`** — messagerie chiffrée (projet dérivé). Pas le focus.
-3. **`dictee/`** — **SOUS-PROJET ACTIF** : *dictée diagnostique* (cible **dys / troubles de l'écrit**) bâtie sur la **double route** phon↔ortho d'OMEGA.
+3. **`evo/`** — **workstream exploratoire** : *OMEGA apprend à coder* — il **se copie** (reconstruit du code qui tourne), le **pendu sert de test de fitness** (lexicographique : win rate→erreurs→temps). Harnais de mesure réel et headless : `evo/fitness_harness.js`. Plan : `evo/EVO_ROADMAP.md`.
+4. **`dictee/`** — **SOUS-PROJET ACTIF** : *dictée diagnostique* (cible **dys / troubles de l'écrit**) bâtie sur la **double route** phon↔ortho d'OMEGA.
 
 ## Chantier actif = dictée. Déjà fait & commité (depuis une session cloud)
 - `DICTEE_ROADMAP.md` — plan en 7 phases (doctrine R66).
