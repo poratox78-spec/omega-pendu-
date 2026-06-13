@@ -54,3 +54,12 @@
 - **Ambiguïté concentrée sur les homophones (27 %)** → seul le **sens** tranche.
 - **Hypothèse M3_d (Rem) cadrée** : le latent sémantique orphelin pourrait enfin servir **à désambiguïser les homophones** — mais **uniquement en contexte** (indécidable sur mot isolé) → **argument pour la dictée de PHRASES**.
 - Prochaine expérience falsifiable : un signal sémantique en contexte réduit-il le 27 % d'ambigu homophone ? (OFF-inerte, gardé si Δ mesuré).
+
+---
+
+## 2026-06-13 (suite 2) — Expérience M3_d : FALSIFIÉE au design
+
+- Revue du code : `M3_d_step` encode `M1_d` (ortho) + option `M1_phon` ; **aucune entrée sens/contexte**.
+- Donc M3_d **ne peut pas** désambiguïser les homophones (mauvais signal + pas de contexte), ET il n'y a pas de vrai problème (cible connue en dictée ; ambiguïté gérée en **multi-étiquette**).
+- **Décision : on ne monte pas l'expérience A.** M3_d reste sans rôle (cohérent mémoire §8). Détail : `EXP_M3D_FALSIFIE.md`.
+- **Pivot : on avance la surface** (Ph.1-2) — 91,3 % de diagnostic sans M3_d ; sémantique = signal externe à acter séparément si dictée de phrases un jour.
