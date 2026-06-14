@@ -11,7 +11,7 @@ Voir le fichier LICENSE.
 2. DONNÉES LEXICALES (base française embarquée)
 -----------------------------------------------
 Le fichier `app/omega-pendu.html` embarque une base lexicale française
-issue de LEXIQUE (Lexique 3 / Lexique 383, lexique.org). Ces données NE
+issue de LEXIQUE 4 (lexique.org). Ces données NE
 SONT PAS couvertes par la licence MIT du code. Elles sont diffusées sous :
 
     Creative Commons Attribution - Partage dans les Mêmes Conditions 4.0
@@ -21,10 +21,13 @@ Cela implique deux obligations :
 
   a) ATTRIBUTION OBLIGATOIRE — citer les auteurs et lexique.org :
 
-       New, B., Pallier, C., Brysbaert, M., & Ferrand, L. (2004).
-       Lexique 2: A New French Lexical Database.
-       Behavior Research Methods, Instruments, & Computers,
-       36(3), 516-524.
+       (version utilisée) New, B., Pallier, C., Schalchli, G.,
+       Bourgin, J., & Gimenes, M. (2026). Lexique 4: A major upgrade of
+       the « Lexique » French lexical database. Behavior Research Methods.
+
+       (réf. fondatrice) New, B., Pallier, C., Brysbaert, M., & Ferrand, L.
+       (2004). Lexique 2: A New French Lexical Database. Behavior Research
+       Methods, Instruments, & Computers, 36(3), 516-524.
 
        Source : https://www.lexique.org
        Projet : https://github.com/chrplr/openlexicon
@@ -47,3 +50,11 @@ d'attribution ci-dessus.
 
 La licence MIT s'applique pleinement à la LOGIQUE du code prise séparément
 (architecture cognitive, moteur), réutilisable hors du lexique.
+
+4. DONNÉES DÉRIVÉES (sous-projet dictée)
+----------------------------------------
+Les fichiers de `dictee/` dérivés de Lexique 4 — `sentences.json`,
+`phono_homophones.json`, `legacy/test_set.tsv`, `legacy/word_pool.json` —
+sont des ŒUVRES DÉRIVÉES des données Lexique. À ce titre ils sont
+également diffusés sous CC BY-SA 4.0, avec l'attribution ci-dessus
+(citer Lexique 4, New et al. 2026).
