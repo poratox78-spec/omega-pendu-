@@ -10870,6 +10870,11 @@ window.addEventListener('DOMContentLoaded', () => {
   var VS={b:'p',p:'b',d:'t',t:'d',g:'k',k:'g',v:'f',f:'v',z:'s',s:'z'};
   var INFL={s:1,e:1,t:1,x:1,n:1};
   function deacc(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'');}
+  function norm(w){w=w.toLowerCase();w=w.replace(/ph/g,'f').replace(/th/g,'t');w=w.replace(/qu|q/g,'k').replace(/ç/g,'s');
+    w=w.replace(/c([eiyéèê])/g,'s$1').replace(/c/g,'k');w=w.replace(/gu([eiéè])/g,'g$1').replace(/g([eiyéè])/g,'j$1');
+    w=w.replace(/eaux|eau/g,'o').replace(/aux|au/g,'o');w=w.replace(/ai|ei|ais|ait|aient/g,'e').replace(/y/g,'i');
+    w=w.replace(/([aeiouéèêàâô])s([aeiouéèêàâô])/g,'$1z$2');w=w.replace(/h/g,'');w=deacc(w);
+    w=w.replace(/(.)\1/g,'$1').replace(/(ent|s|t|d|x|p|e)$/,'').replace(/(.)\1/g,'$1');return w;}
   function toks(s){return (s.match(/[A-Za-zÀ-ÿ']+/g)||[]);}
   function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}
   function isAccord(t,s){var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;
@@ -10886,7 +10891,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(ds.length>dt.length&&subseq(dt,ds))o.push('ajout');
     var fl=fam.map(function(x){return x.toLowerCase();});
     if(fl.indexOf(s.toLowerCase())>=0)o.push(isAccord(t,s)?'accord':'homophone');
-    if(!o.length)o.push('autre');
+    if(!o.length)o.push(norm(t)===norm(s)?'surface':'autre');
     return o;
   }
   function align(T,S){var n=T.length,m=S.length,dp=[],i,j;
@@ -10909,8 +10914,8 @@ window.addEventListener('DOMContentLoaded', () => {
       F.push({types:ty,msg:'« '+s+' » → « '+t+' » : '+ty.join(', ')});});
     return F;
   }
-  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',autre:'#777'};
-  var LBL={accord:'accord',homophone:'homophone',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',autre:'à vérifier'};
+  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',autre:'#777'};
+  var LBL={accord:'accord',homophone:'homophone',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',autre:'à vérifier'};
   var st=document.createElement('style');
   st.textContent='#vdd-btn{position:fixed;right:14px;bottom:14px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#2a6f97;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdd-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdd-ov.on{display:flex}'

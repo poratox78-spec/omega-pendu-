@@ -7,6 +7,19 @@ HERE=os.path.dirname(os.path.abspath(__file__))
 VS={'b':'p','p':'b','d':'t','t':'d','g':'k','k':'g','v':'f','f':'v','z':'s','s':'z'}
 INFL=set('setxn')
 def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
+def norm(w):
+    """graphème → pseudo-son (approx) : 2 graphies qui normalisent pareil = soundalike (surface)."""
+    w=w.lower()
+    w=w.replace('ph','f').replace('th','t')
+    w=re.sub(r'qu|q','k',w); w=w.replace('ç','s')
+    w=re.sub(r'c([eiyéèê])',r's\1',w); w=w.replace('c','k')
+    w=re.sub(r'gu([eiéè])',r'g\1',w); w=re.sub(r'g([eiyéè])',r'j\1',w)
+    w=w.replace('eaux','o').replace('eau','o').replace('aux','o').replace('au','o')
+    w=re.sub(r'ai|ei|ais|ait|aient','e',w); w=w.replace('y','i')
+    w=re.sub(r'([aeiouéèêàâô])s([aeiouéèêàâô])',r'\1z\2',w)
+    w=w.replace('h',''); w=deacc(w)
+    w=re.sub(r'(.)\1',r'\1',w); w=re.sub(r'(ent|s|t|d|x|p|e)$','',w); w=re.sub(r'(.)\1',r'\1',w)
+    return w
 def toks(s): return re.findall(r"[A-Za-zÀ-ÿ']+", s)
 def subseq(a,b):
     i=0
@@ -35,7 +48,7 @@ def diag_word(t,s,fam):
     if len(ds)>len(dt) and subseq(dt,ds): out.append('ajout')
     if s.lower() in (x.lower() for x in fam):
         out.append('accord' if is_accord(t,s) else 'homophone')
-    if not out: out.append('autre')
+    if not out: out.append('surface' if norm(t)==norm(s) else 'autre')
     return out
 
 def align(T,S):
@@ -104,6 +117,17 @@ if __name__=='__main__':
         if len(T)>3:
             i=len(T)//2; S=T[:i]+T[i+1:]; f=diagnose_sentence(e['text'],' '.join(S),fam)
             rec('omission', any('omission' in x['types'] for x in f))
+        # surface : muter un mot en une graphie qui SONNE pareil (ç->s, eau->o, ph->f, qu->k, c->k...)
+        SUB=[('ç','s'),('eau','o'),('ph','f'),('qu','k'),('ai','è'),('au','o')]
+        done=False
+        for i,w in enumerate(T):
+            for a,b in SUB:
+                if a in w.lower():
+                    w2=w.lower().replace(a,b,1)
+                    if w2!=w.lower() and norm(w2)==norm(w):
+                        S=T[:i]+[w2]+T[i+1:]; f=diagnose_sentence(e['text'],' '.join(S),fam)
+                        rec('surface', any('surface' in x['types'] for x in f)); done=True; break
+            if done: break
     print('=== rappel par famille (dictée de phrases, 30 phrases) ===')
     for k in sorted(tot): print(f'  {k:11} {ok[k]}/{tot[k]}  = {ok[k]/tot[k]*100:.0f}%')
     # démo
