@@ -785,6 +785,21 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 </div>
 
 </div><!-- /doc -->
+<section id="s18">
+<h2><span class="hn">18</span>Dictée diagnostique (application dys)</h2>
+<p><strong>Objectif.</strong> Application dérivée ciblant les <strong>troubles de l'écrit (dys)</strong>, bâtie sur la <strong>double route</strong> phon↔ortho du moteur. Le moteur diagnostique <em>le type</em> de chaque faute d'orthographe et oriente l'entraînement. Détails &amp; mesures reproductibles dans <code>dictee/</code> (JOURNAL, README, AUDIT, EXP_M3D_FALSIFIE).</p>
+<p><strong>Cadre = dictée de PHRASES.</strong> Mesuré : sur des mots isolés, <strong>84&nbsp;%</strong> des mots ont des homophones (surtout flexionnels) → indécidables au son seul. La phrase fournit le <strong>contexte</strong> : le mot cible étant connu, <strong>homophones et accords deviennent des erreurs gradables</strong> — <em>sans</em> M3_d (l'expérience « M3_d désambiguïse les homophones » a été <strong>falsifiée au design</strong> : M3_d encode l'ortho/le son, aucune entrée sens/contexte ; cf. <code>dictee/EXP_M3D_FALSIFIE.md</code>).</p>
+<p><strong>Familles d'erreurs</strong> (typologie dysorthographique : phonologique · lexicale-surface · sémantique/morpho), multi-étiquette :</p>
+<ul>
+<li><strong>accent</strong> (é/è/ê) · <strong>voisée/sourde</strong> (p·b, t·d, k·g, f·v, s·z) · <strong>inversion</strong> · <strong>lettre muette</strong> · <strong>lettre en trop</strong></li>
+<li><strong>homophone</strong> (graphie homophone fausse) · <strong>accord</strong> (homophone flexionnel tranché par le contexte) · <strong>surface</strong> (graphie « plausible mais fausse » détectée par un normaliseur phonétique : <em>leson→leçon</em>, <em>bato→bateau</em>)</li>
+<li><strong>omission / mot en trop</strong> (alignement Levenshtein des mots cible vs élève)</li>
+</ul>
+<p><strong>Remédiation.</strong> Profil d'erreurs persistant (par famille) ; la sélection des phrases <strong>cible en priorité la famille la plus ratée</strong> (« on travaille : accord »). On ne se contente pas de diagnostiquer : on oriente l'entraînement.</p>
+<p><strong>UI.</strong> Panneau <strong>additif OFF-inerte</strong> (IIFE — n'altère pas le moteur pendu ; baseline intacte, doctrine R66) : bouton <span class="ui">✍️ Dictée diag</span> (bas-droite) → choix de difficulté, <strong>dictée vocale</strong> (synthèse fr-FR), saisie de la phrase, <strong>feedback par mot</strong> coloré par famille + correction révélée, profil + réinitialisation.</p>
+<p><strong>Données.</strong> <strong>Lexique 4</strong> (Boris New, CC BY-SA 4.0) : 30 phrases graduées (<code>dictee/sentences.json</code>) + index homophones plein (43&nbsp;580 groupes). <strong>Mesuré</strong> (synthétique, 30 phrases) : rappel <strong>100&nbsp;%</strong> sur accent/accord/homophone/omission, surface <strong>17/17</strong>.</p>
+<p class="tech"><strong>Limites (honnêtes).</strong> Validation encore <strong>synthétique/partiellement circulaire</strong> — pas de copies d'élèves réelles (validation terrain orthophonistes = à faire). Normaliseur « surface » approximatif (nasales, <em>femme</em> non couverts). Morphosyntaxe limitée aux accords détectables par comparaison à la cible.</p>
+</section>
 </main>
 </div><!-- /wrap -->
 
