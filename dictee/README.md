@@ -26,11 +26,15 @@ gradués en difficulté via `preval`+`freq`. Multi-étiquettes possibles par mot
 
 ---
 
-## Application : `dictee_app.html` (autonome)
-Outil de **dictée diagnostique** prêt à l'emploi (un seul fichier, ouvrir au navigateur) :
-- **620 mots gradués** (facile/moyen/difficile) inlinés (`word_pool.json`), dérivés de Lexique 4 — chaque mot a sa phono, son IPA et sa **famille d'homophones**.
-- **Dictée vocale** (synthèse vocale fr-FR du navigateur), saisie élève, **diagnostic multi-étiquette** + feedback dys (accent / sourde-sonore / muette / homophone), correction révélée.
-- Build : pool généré depuis `Lexique4.tsv` (seed=42, freq≥3, 260/220/140 par difficulté).
+## Application : intégrée dans `app/omega-pendu.html` (fichier UNIQUE)
+La dictée diagnostique est un **panneau additif** du fichier OMEGA unique (bouton « ✍️ Dictée diag », bas-droite).
+**OFF-inerte** (IIFE, ne touche pas le moteur pendu — doctrine R66). Contenu :
+- **620 mots gradués** (Lexique 4) inlinés (`word_pool.json`) avec phono/IPA/famille d'homophones,
+- **dictée vocale** (synthèse fr-FR), saisie, **diagnostic multi-étiquette** + feedback dys, correction révélée.
+- Catégories **fondées sur la typologie dysorthographique** (phono/lexical-surface/sémantique) :
+  **accent · voisée-sourde · inversion · muette · ajout · homophone** (morphosyntaxique/accords = extension *phrases*).
+- Diagnostic JS testé 8/8 (identique à `diagnostic.py` + nouvelles catégories).
+
 
 ## Index & résultats (finaux)
 - `phono_homophones.json` — index homophones **PLEIN** (43 580 groupes, sans filtre fréquence).
