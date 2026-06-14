@@ -540,13 +540,11 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
       M_BPC_READOUT_COUPLE, M_PHON_READOUT_COUPLE, M_PHON_CONCEPT_BIND,
       M_OS_LEARNING (+ ses 4 gardes), M_OS_LEARNING_ONLINE
 ON (declare NEO) : M_DECLARE_NEO, M_NEO_RECALL, M_NEO_ASSEMBLED,
-      M_NEO_COHORT, M_EMERGENT_DECLARE          (NEO_CONF 0,60)
+      M_NEO_COHORT   (muette/trigger OFF ; NEO_CONF 0,75, RECALL_MARGIN 0,20)
 OFF : A1, A2, A3                                (triche grise / béquille)
 À MESURER : L01_B2_MOBIUS, M_IG_SELECT, M_IG_PSUCCESS</pre>
 <p><strong>Win rate mesuré</strong> (in-lexique, graine 12345, 120 mots, warmup 150) :
-défaut tout-OFF <strong>5,0 %</strong> → référence <em>sans</em> NEO <strong>91,7 %</strong>
-→ <strong>référence + NEO = 99,2 %</strong> (config optimale). Cohérent avec le mémoire
-(cognition seule ~90 % ; +NEO 97,5 % K=1 / 98,8 % K=3, cf. §17).</p>
+cognition seule (base) 91,46 % (K=1) / 93,75 % (K=3) → <strong>+NEO (R+A+Cohorte) : 97,50 % (K=1) / 98,82 % (K=3)</strong> (4 graines × 120, harnais déterministe ; cf. notes NEO + §17). Cheat-free, niveau declare manuel.</p>
 <div class="note">⚠️ <strong>NEO était absent de l'ancien preset (31/05)</strong> : sans le déclareur NEO on plafonne à ~91-92 %. Le système NEO (recall + assemblé + cohorte) est ce qui amène la cognition cheat-free au niveau oracle. Aucun preset « 1 clic » dans l'UI : activer les bascules manuellement (panneaux L01 + Declare NEO).</div>
 
 <h3>8.4 — Procédure de mesure (réplicable)</h3>
