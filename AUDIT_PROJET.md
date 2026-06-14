@@ -52,3 +52,14 @@ Le nom « omega-pendu » ne reflète plus le contenu. Tout vit sur **une branche
 3. **Dictée** : isoler le legacy ; viser une validation sur **données réelles**.
 4. **app** : décider du sort du lexique (97 % de données) — externaliser/compresser.
 5. **(option)** merger la branche vers `main` (ou clarifier la stratégie de branche) ; ajouter tests + CI minimal.
+
+---
+
+## Suivi des correctifs (2026-06-14)
+- ✅ **vivarium** retiré du repo (vit ailleurs/privé).
+- ✅ **legacy dictée** isolé → `dictee/legacy/`.
+- ✅ **app compressée** : 16 Mo → ~5 Mo (gzip+base64 + loader async `DecompressionStream`), moteur vérifié intact (le finding « 97 % de données / 16 Mo » est donc résolu).
+- ✅ **CI minimale** ajoutée (`.github/workflows/ci.yml`).
+- ✅ **omega-key** : avertissement sécurité en tête du README (revue crypto indépendante = toujours requise avant usage réel).
+- ✅ **citation Lexique 4 complète + CC BY-SA 4.0** dans NOTICE / app / rapport §18 / dictee/README.
+- ⏳ **Reste** : validation terrain dictée (données réelles) ; PR #2 → `main` (divergence OMEGA·KEY à arbitrer) ; *(option)* tests plus larges.
