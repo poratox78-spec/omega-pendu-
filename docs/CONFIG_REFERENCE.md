@@ -88,3 +88,49 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 
 **22 ON / 16 OFF.** Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`.
 Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 % (K=1) / 98,82 % (K=3)**, cheat-free.
+
+## Notice UI — config optimale par LIBELLÉ AFFICHÉ (ce qu'on voit dans l'app)
+
+**À ACTIVER (ON) :**
+- ☑ A4 · Decomp
+- ☑ A5 · Positional
+- ☑ A6 · OS Arbitrage
+- ☑ φ · Voie Phon
+- ☑ φ · OS v07
+- ☑ φ · Croisement p
+- ☑ φ · Substrat pur
+- ☑ φ · Feedback ↓
+- ☑ bPC M3_d
+- ☑ Couplage readout
+- ☑ Couplage readout φ
+- ☑ Concept lié φ (étape 2)
+- ☑ θ · Apprentissage
+- ☑ θ · Garde 1 borné
+- ☑ θ · Garde 2 audit
+- ☑ θ · Garde 3 MDL
+- ☑ θ · Garde 4 cohérence
+- ☑ θ · Apprentissage EN LIGNE (SPSA)
+- ☑ 🧩 Declare NEO · maître
+- ☑ 🔁 NEO · recall (adressée)
+- ☑ 🧬 NEO · assemblé (phon→ortho)
+- ☑ 🎯 NEO · cohorte (filtre board)
+
+**À LAISSER ÉTEINT (OFF) :**
+- ☐ A1 · Orthography
+- ☐ A2 · Lexique 4
+- ☐ A3 · Word Lex4
+- ☐ B2 · Möbius
+- ☐ 🎯 Declare mot
+- ☐ 🧠 InfoGain
+- ☐ IG x P(succès)
+- ☐ 🎯 Declare BPC
+- ☐ 🦴 Declare DUAL (cheat-free)
+- ☐ 🧠 Apprendre depuis la cognition
+- ☐ 🦴 Declare émergent · recall
+- ☐ 🧬 Declare émergent · phon→ortho
+- ☐ 🔤 g2p appris en jouant (online)
+- ☐ 🔇 NEO · muette (par le son, croisée)
+- ☐ 🎚️ NEO · trigger (cognition incertaine)
+- ☐ 🎯 Mode Trexquant (hors-lexique)
+
+Réglages : NEO_CONF 0,75 · RECALL_MARGIN 0,20. → 97,50 % (K=1) / 98,82 % (K=3), cheat-free.
