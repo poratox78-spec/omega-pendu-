@@ -540,12 +540,13 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
       M_BPC_READOUT_COUPLE, M_PHON_READOUT_COUPLE, M_PHON_CONCEPT_BIND,
       M_OS_LEARNING (+ ses 4 gardes)   [M_OS_LEARNING_ONLINE OFF : mesuré sans gain + dérive]
 ON (declare NEO) : M_DECLARE_NEO, M_NEO_RECALL, M_NEO_ASSEMBLED,
-      M_NEO_COHORT   (muette/trigger OFF ; NEO_CONF 0,75, RECALL_MARGIN 0,20)
+      M_NEO_COHORT, M_NEO_G2P_EXP (pén 0,5)   (muette/trigger OFF ; NEO_CONF 0,75, RECALL_MARGIN 0,20)
 OFF : A1, A2, A3                                (triche grise / béquille)
 À MESURER : L01_B2_MOBIUS, M_IG_SELECT, M_IG_PSUCCESS</pre>
 <p><strong>Win rate mesuré</strong> (in-lexique, graine 12345, 120 mots, warmup 150) :
 cognition seule (base) 91,46 % (K=1) / 93,75 % (K=3) → <strong>+NEO (R+A+Cohorte) : 97,50 % (K=1) / 98,82 % (K=3)</strong> (4 graines × 120, harnais déterministe ; cf. notes NEO + §17). Cheat-free, niveau declare manuel.</p>
-<div class="note">⚠️ <strong>NEO était absent de l'ancien preset (31/05)</strong> : sans le déclareur NEO on plafonne à ~91-92 %. Le système NEO (recall + assemblé + cohorte) est ce qui amène la cognition cheat-free au niveau oracle. Aucun preset « 1 clic » dans l'UI : activer les bascules manuellement (panneaux L01 + Declare NEO).</div>
+<div class="note">⚠️ <strong>NEO était absent de l'ancien preset (31/05)</strong> : sans le déclareur NEO on plafonne à ~91-92 %. Le système NEO (recall + assemblé + cohorte) est ce qui amène la cognition cheat-free au niveau oracle. Aucun preset « 1 clic » dans l'UI : activer les bascules manuellement (panneaux L01 + Declare NEO). <strong>Repère couleur</strong> : bordure gauche <span style="color:#2ea043">verte</span> = config optimale (à activer) · <span style="color:#e5534b">rouge</span> = triche grise (A1/A2/A3, ne pas activer).</div>
+<div class="note">🧪 <strong>g2p révélé + pénalité (adopté 14/06)</strong> : la table phon→graphe (voie NEO assemblée) n'apprend désormais que des <strong>positions révélées</strong> du mot joué — l'expérience gagnée en partie — au lieu du mot complet en fin de partie (<code>learnExp</code> vs <code>learn</code>), avec une pénalité bornée (0,5) sur les lettres fausses essayées. Falsification mesurée : ancien g2p 98,9 % · révélé-seul sans pénalité 98,3 % · <strong>révélé-seul + pénalité 0,5 = 98,9 %</strong> (= ancien). L'ancien ne trichait pas de façon mesurable, mais le nouveau est doctrinalement plus propre (n'absorbe pas l'orthographe entière) sans coût → adopté dans la config de référence.</div>
 
 <h3>8.4 — Procédure de mesure (réplicable)</h3>
 <ol>
@@ -735,10 +736,11 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 <tr><td><code>M_NEO_RECALL_ENABLED</code> <span class="ui">🔁 NEO · recall</span></td><td>ON*</td><td>Adressée : recall VSA depuis le board <strong>révélé</strong> + banc des mots vécus. 100&nbsp;% sur vocab répété, inerte sur mot neuf.</td></tr>
 <tr><td><code>M_NEO_ASSEMBLED_ENABLED</code> <span class="ui">🧬 NEO · assemblé</span></td><td>ON*</td><td>phon→ortho <strong>masqué</strong> : décode les positions sonores via <code>L2[phonème]</code>. <code>w.p</code> légitime, align masqué (graphème caché → UNI). Généralise au mot neuf.</td></tr>
 <tr><td><code>M_NEO_COHORT_ENABLED</code> <span class="ui">🎯 NEO · cohorte</span></td><td>OFF</td><td>Filtre board-derived : n'autorise une lettre que si ≥1 mot compatible avec le motif révélé la porte. Élague les ratés.</td></tr>
+<tr><td><code>M_NEO_G2P_EXP_ENABLED</code> <span class="ui">🧪 NEO · g2p révélé + pénalité</span></td><td>OFF</td><td>Apprend la table phon→graphe (voie assemblée) des <strong>positions révélées seules</strong> + pénalité bornée (<code>M_NEO_G2P_EXP_PEN</code> 0,5) sur lettres fausses, au lieu du mot complet (<code>learnExp</code> vs <code>learn</code>). Cheat-free strict ; mesuré = niveau de l'ancien g2p (98,9 %).</td></tr>
 <tr><td><code>M_NEO_MUTE_ENABLED</code> <span class="ui">🔇 NEO · muette</span></td><td>OFF</td><td>Par le son : positions muettes prédites par phonogramme <strong>croisé (jointe)</strong> phonème-tête × offset × voisins révélés.</td></tr>
 <tr><td><code>M_NEO_TRIGGER_ENABLED</code> <span class="ui">🎚️ NEO · trigger</span></td><td>OFF</td><td>(B) : la muette n'override que si la cognition est incertaine (<code>M5_d.output.gap &lt; 0,005</code>).</td></tr>
 </tbody></table></div>
-<p class="note tech">* sous-flags actifs uniquement si le maître est ON. Paramètres numériques (<code>NEO_CONF</code> 0,75 · <code>MUTE_CONF</code> 0,85 · <code>TRIGGER_GAP</code> 0,005 · <code>RECALL_MARGIN</code> 0,20) aux défauts mesurés, pas encore pilotables en UI.</p>
+<p class="note tech">* sous-flags actifs uniquement si le maître est ON. Paramètres numériques (<code>NEO_CONF</code> 0,75 · <code>MUTE_CONF</code> 0,85 · <code>TRIGGER_GAP</code> 0,005 · <code>RECALL_MARGIN</code> 0,20) aux défauts mesurés, pas encore pilotables en UI ; <code>M_NEO_G2P_EXP_PEN</code> (0,5) est pilotable (champ « pén » du toggle g2p révélé).</p>
 
 <h3>17.2 — Cheat-free (vérifié ligne par ligne)</h3>
 <div class="tablewrap"><table>

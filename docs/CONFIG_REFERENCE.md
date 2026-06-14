@@ -19,9 +19,16 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 - `M_NEO_RECALL_ENABLED`    (voie adressée : recall VSA, board **révélé** + banc)
 - `M_NEO_ASSEMBLED_ENABLED` (voie assemblée phon→ortho **masquée**)
 - `M_NEO_COHORT_ENABLED`    (filtre cohorte **board-derived**)
+- `M_NEO_G2P_EXP_ENABLED`   (g2p **révélé-seul + pénalité 0,5** : apprend la table phon→graphe des positions RÉVÉLÉES uniquement, pas du mot complet)
 - `M_NEO_MUTE_ENABLED` = **OFF** · `M_NEO_TRIGGER_ENABLED` = **OFF** (optionnels, neutres)
-- Seuils (défauts mesurés) : `M_DECLARE_NEO_CONF = 0,75` · `M_DECLARE_NEO_RECALL_MARGIN = 0,20`
+- Seuils (défauts mesurés) : `M_DECLARE_NEO_CONF = 0,75` · `M_DECLARE_NEO_RECALL_MARGIN = 0,20` · `M_NEO_G2P_EXP_PEN = 0,5`
   (si muette/trigger : `M_NEO_MUTE_CONF = 0,85`, `M_NEO_TRIGGER_GAP = 0,005`)
+
+> **g2p révélé + pénalité (adopté 14/06)** : l'ancien g2p apprenait depuis `learn(currentWord)` (mot complet post-partie).
+> Le nouveau `learnExp` n'apprend que des **positions révélées** (l'expérience gagnée en jouant) + une pénalité bornée
+> sur les lettres fausses essayées. **Falsification mesurée** : ancien 98,9 % · révélé-seul sans pénalité 98,3 %
+> · révélé-seul + pénalité 0,5 = **98,9 %** (= ancien). L'ancien ne trichait donc pas de façon mesurable, mais le
+> nouveau est **doctrinalement plus propre** (n'absorbe pas l'orthographe entière) **sans coût** → adopté.
 
 ## ON — Cognition (panneau « L01 ENHANCEMENTS ») — preset §8.3
 `L01_A4_M4M_DECOMP` · `L01_A5_M2M_POSITIONAL` · `L01_A6_OS_CONCEPT_ARBITRAGE` ·
@@ -43,7 +50,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 2. **NEO cheat-free par construction** : recall lié au **révélé** seul ; assemblé **masqué** ; cohorte **board-dérivée** → aucune déclaration ne lit le mot caché.
 3. Apprentissage (θ, readouts, banc, g2p) = **descendant**, post-décision → légitime.
 
-## Configuration EXACTE des 38 toggles (énumération complète)
+## Configuration EXACTE des 39 toggles (énumération complète)
 
 | # | Toggle | État | Note |
 |---|---|---|---|
@@ -82,14 +89,19 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | 33 | `M_NEO_RECALL_ENABLED` | **ON** | NEO recall (board révélé + banc) |
 | 34 | `M_NEO_ASSEMBLED_ENABLED` | **ON** | NEO assemblé phon→ortho masqué |
 | 35 | `M_NEO_COHORT_ENABLED` | **ON** | NEO cohorte board-derived |
-| 36 | `M_NEO_MUTE_ENABLED` | OFF | optionnel (neutre) |
-| 37 | `M_NEO_TRIGGER_ENABLED` | OFF | optionnel (neutre) |
-| 38 | `M_TREXQUANT_MODE_ENABLED` | OFF | mode test hors-lexique uniquement |
+| 36 | `M_NEO_G2P_EXP_ENABLED` | **ON** | g2p révélé-seul + pénalité 0,5 (cheat-free strict) |
+| 37 | `M_NEO_MUTE_ENABLED` | OFF | optionnel (neutre) |
+| 38 | `M_NEO_TRIGGER_ENABLED` | OFF | optionnel (neutre) |
+| 39 | `M_TREXQUANT_MODE_ENABLED` | OFF | mode test hors-lexique uniquement |
 
-**21 ON / 17 OFF** (online learning passé OFF après mesure). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`.
+**22 ON / 17 OFF** (online learning passé OFF après mesure ; g2p révélé+pénalité ajouté ON). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`, `M_NEO_G2P_EXP_PEN=0,5`.
 Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 % (K=1) / 98,82 % (K=3)**, cheat-free.
 
 ## Notice UI — config optimale par LIBELLÉ AFFICHÉ (ce qu'on voit dans l'app)
+
+> 🎨 **Repère couleur dans l'app** (depuis 14/06) : bordure gauche **verte** = toggle de la config
+> optimale cheat-free (à activer) · bordure gauche **rouge** = triche grise (A1/A2/A3, ne pas activer).
+> Les autres toggles gardent leur apparence neutre. Le repère est visible que le toggle soit ON ou OFF.
 
 **À ACTIVER (ON) :**
 - ☑ A4 · Decomp
@@ -113,6 +125,7 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 - ☑ 🔁 NEO · recall (adressée)
 - ☑ 🧬 NEO · assemblé (phon→ortho)
 - ☑ 🎯 NEO · cohorte (filtre board)
+- ☑ 🧪 NEO · g2p révélé + pénalité  *(pén 0,5)*
 
 **À LAISSER ÉTEINT (OFF) :**
 - ☐ θ · Apprentissage EN LIGNE (SPSA)  *(mesuré : aucun gain + dérive de session)*

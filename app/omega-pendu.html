@@ -525,6 +525,11 @@ body::before {
 }
 .toggle-item:hover { border-color: var(--border); }
 .toggle-item.on { border-color: var(--accent-line); background: var(--accent-soft); }
+/* Repère config de référence : VERT = config optimale cheat-free à activer · ROUGE = triche grise (ne pas activer). Le repère est visible ON comme OFF. */
+.toggle-item.cfg-optim { border-left: 3px solid #2ea043; }
+.toggle-item.cfg-optim.on { border-color: #2ea043; background: rgba(46,160,67,0.12); }
+.toggle-item.cfg-triche { border-left: 3px solid #e5534b; }
+.toggle-item.cfg-triche.on { border-color: #e5534b; background: rgba(229,83,75,0.14); }
 .toggle-switch {
   width: 28px;
   height: 16px;
@@ -980,42 +985,42 @@ footer {
   <div class="panel-label">EXPERIMENTAL · L01 ENHANCEMENTS</div>
   <div class="panel-title">Toggles <span class="accent">Phase A + B2</span></div>
   <div class="toggle-grid" id="toggle-grid">
-    <div class="toggle-item" data-toggle="L01_A1_M2_ORTHO_ENABLED" title="A1 · Perception orthographique (M2) : lit les lettres révélées comme entrée visuelle/épellation. Socle de la voie ortho (legacy -11)." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-triche" data-toggle="L01_A1_M2_ORTHO_ENABLED" title="A1 · Perception orthographique (M2) : lit les lettres révélées comme entrée visuelle/épellation. Socle de la voie ortho (legacy -11)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">A1 · Orthography</div>
         <div class="toggle-desc">M2_d cvPattern</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="L01_A2_M4_LEX4_ENABLED" title="A2 · Filtre lexical : ne garde que les mots du dictionnaire compatibles avec le motif révélé, et score les lettres par fréquence parmi ces candidats. Le levier qui connaît le français." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-triche" data-toggle="L01_A2_M4_LEX4_ENABLED" title="A2 · Filtre lexical : ne garde que les mots du dictionnaire compatibles avec le motif révélé, et score les lettres par fréquence parmi ces candidats. Le levier qui connaît le français." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">A2 · Lexique 4</div>
         <div class="toggle-desc">M4_d 88K mots</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="L01_A3_M5M_WORDLEX4_ENABLED" title="A3 · Usage descendant au niveau MOT (M5_m) : réinjecte la connaissance du mot entier depuis Lex4 dans la correction." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-triche" data-toggle="L01_A3_M5M_WORDLEX4_ENABLED" title="A3 · Usage descendant au niveau MOT (M5_m) : réinjecte la connaissance du mot entier depuis Lex4 dans la correction." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">A3 · Word Lex4</div>
         <div class="toggle-desc">M5_m wordEntry</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="L01_A4_M4M_DECOMP_ENABLED" title="A4 · Décomposition descendante (M4_m) : convertit le signal-mot en pénalités par lettre." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="L01_A4_M4M_DECOMP_ENABLED" title="A4 · Décomposition descendante (M4_m) : convertit le signal-mot en pénalités par lettre." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">A4 · Decomp</div>
         <div class="toggle-desc">M4_m C/V boost</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="L01_A5_M2M_POSITIONAL_ENABLED" title="A5 · Correction positionnelle descendante (M2_m) : pondère quelles positions du mot comptent." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="L01_A5_M2M_POSITIONAL_ENABLED" title="A5 · Correction positionnelle descendante (M2_m) : pondère quelles positions du mot comptent." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">A5 · Positional</div>
         <div class="toggle-desc">M2_m C/V mismatch</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED" title="A6 · L'OS arbitre entre les signaux conceptuels des voies pour trancher la lettre finale." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED" title="A6 · L'OS arbitre entre les signaux conceptuels des voies pour trancher la lettre finale." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">A6 · OS Arbitrage</div>
@@ -1029,35 +1034,35 @@ footer {
         <div class="toggle-desc">M1_m → M1_d loop</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_VOIE_PHON_ENABLED" title="φ · Voie phonologique : convertit le mot en sons (SAMPA) et raisonne phonétiquement, en parallèle de l'ortho (double voie de Coltheart)." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_VOIE_PHON_ENABLED" title="φ · Voie phonologique : convertit le mot en sons (SAMPA) et raisonne phonétiquement, en parallèle de l'ortho (double voie de Coltheart)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">φ · Voie Phon</div>
         <div class="toggle-desc">M1→M5 phonologique (re-init)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_OS_V07_ENABLED" title="⊕ · Laisse l'OS v07 combiner ortho + phon et PILOTER la décision. OFF : la voie phon tourne en observation seule sans influencer le choix." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_OS_V07_ENABLED" title="⊕ · Laisse l'OS v07 combiner ortho + phon et PILOTER la décision. OFF : la voie phon tourne en observation seule sans influencer le choix." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">φ · OS v07</div>
         <div class="toggle-desc">combine ortho+phon μ(r)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M4_PHON_USE_P_ENABLED" title="⇄ · Croisement : M4_phon mélange un prior issu de la phonétique réelle (champ p / SAMPA de Lex4) — c'est ce qui fait se croiser les deux voies." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M4_PHON_USE_P_ENABLED" title="⇄ · Croisement : M4_phon mélange un prior issu de la phonétique réelle (champ p / SAMPA de Lex4) — c'est ce qui fait se croiser les deux voies." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">φ · Croisement p</div>
         <div class="toggle-desc">phono réelle SAMPA + W dyn</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_SUBSTRAT_ORTHO_PURE_ENABLED" title="⊙ · Mode substrat orthographique pur (expérimental). OFF = comportement identique au socle -11." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_SUBSTRAT_ORTHO_PURE_ENABLED" title="⊙ · Mode substrat orthographique pur (expérimental). OFF = comportement identique au socle -11." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">φ · Substrat pur</div>
         <div class="toggle-desc">ortho 40D indép (re-init)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_PHON_FEEDBACK_ENABLED" title="φ↓ · Retour descendant phon (Phase 3.6 B) : la voie phon corrige par le haut (pénalité M4 effective, M3 observationnel). Défaut OFF." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_PHON_FEEDBACK_ENABLED" title="φ↓ · Retour descendant phon (Phase 3.6 B) : la voie phon corrige par le haut (pénalité M4 effective, M3 observationnel). Défaut OFF." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">φ · Feedback ↓</div>
@@ -1085,28 +1090,28 @@ footer {
         <div class="toggle-desc">pondere IG par P(presence) — requiert InfoGain ON</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_BPC_M3D_ENABLED" title="bPC M3_d : autoencodeur competitif (encodeur W depuis M1 riche, decodeur tied, reconstruction, lambda_b=0). Le concept percoit le mot en interne (representation polyvalente, multi-cellules). Sa sortie est DECOUPLEE du scoring-lettre : percevoir l&#39;etat revele n&#39;est pas predire les lettres cachees (= role du lexique A2). Winrate non-regresse (99.25%). OFF = ancien M3_d_step (Hebbian competitif effondre)." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_BPC_M3D_ENABLED" title="bPC M3_d : autoencodeur competitif (encodeur W depuis M1 riche, decodeur tied, reconstruction, lambda_b=0). Le concept percoit le mot en interne (representation polyvalente, multi-cellules). Sa sortie est DECOUPLEE du scoring-lettre : percevoir l&#39;etat revele n&#39;est pas predire les lettres cachees (= role du lexique A2). Winrate non-regresse (99.25%). OFF = ancien M3_d_step (Hebbian competitif effondre)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">bPC M3_d</div>
         <div class="toggle-desc">concept polyvalent (decouple)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_BPC_READOUT_COUPLE_ENABLED" title="Couplage readout-recompense : injecte le score-lettre appris du concept (R, entraine par la recompense du jeu) dans la decision. AIDE en config depouillee/cognitive (+2 a +3 pts, pas d&#39;A2) ; NUIT en config pleine (A2 fournit deja le prior). Requiert bPC M3_d ON. OFF par defaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_BPC_READOUT_COUPLE_ENABLED" title="Couplage readout-recompense : injecte le score-lettre appris du concept (R, entraine par la recompense du jeu) dans la decision. AIDE en config depouillee/cognitive (+2 a +3 pts, pas d&#39;A2) ; NUIT en config pleine (A2 fournit deja le prior). Requiert bPC M3_d ON. OFF par defaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">Couplage readout</div>
         <div class="toggle-desc">concept-recompense -&gt; score (depouille) — poids W: <input id="bpc-couple-w" type="number" value="0.20" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_BPC_COUPLE_W=Math.max(0,Math.min(1,parseFloat(this.value)||0.2))"> (sweet 0,20)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_PHON_READOUT_COUPLE_ENABLED" title="Couplage readout PHON : injecte le score-lettre du concept phon (R_phon, replique de rwR, entraine par la recompense) dans la decision. Parite avec le couplage ortho. Decouple par defaut (OFF). Requiert la voie phon ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_PHON_READOUT_COUPLE_ENABLED" title="Couplage readout PHON : injecte le score-lettre du concept phon (R_phon, replique de rwR, entraine par la recompense) dans la decision. Parite avec le couplage ortho. Decouple par defaut (OFF). Requiert la voie phon ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">Couplage readout &phi;</div>
         <div class="toggle-desc">concept phon -&gt; score — poids W: <input id="phon-couple-w" type="number" value="0.20" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_PHON_COUPLE_W=Math.max(0,Math.min(1,parseFloat(this.value)||0.2))"> (parite ortho)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_PHON_CONCEPT_BIND_ENABLED" title="Etape 2 : le readout phon lit un CONCEPT LIE (code bind des lettres revelees, position liee par permutation) au lieu du concept melange. Buffer separe : M3_phon.output et la fusion M_S restent intacts. Decouple (n injecte que si Couplage readout phi est ON). OFF par defaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_PHON_CONCEPT_BIND_ENABLED" title="Etape 2 : le readout phon lit un CONCEPT LIE (code bind des lettres revelees, position liee par permutation) au lieu du concept melange. Buffer separe : M3_phon.output et la fusion M_S restent intacts. Decouple (n injecte que si Couplage readout phi est ON). OFF par defaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">Concept lié &phi; (étape 2)</div>
@@ -1134,35 +1139,35 @@ footer {
         <div class="toggle-desc">anti-béquille · OS θ + miroir + phon ← lettre cognitive</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_OS_LEARNING_ENABLED" title="θ · Interrupteur maître autorisant l'OS à apprendre ses paramètres θ=(α,β). Active les boutons Train θ / Sweep β." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_OS_LEARNING_ENABLED" title="θ · Interrupteur maître autorisant l'OS à apprendre ses paramètres θ=(α,β). Active les boutons Train θ / Sweep β." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">θ · Apprentissage</div>
         <div class="toggle-desc">master : autorise Train θ (§6.5)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_OS_LEARNING_GUARD_1_BOUNDED" title="θ Garde 1 · Contraint θ à une famille paramétrique bornée (sécurité d'apprentissage)." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_OS_LEARNING_GUARD_1_BOUNDED" title="θ Garde 1 · Contraint θ à une famille paramétrique bornée (sécurité d'apprentissage)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">θ · Garde 1 borné</div>
         <div class="toggle-desc">0,1 ≤ α,β ≤ 5</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT" title="θ Garde 2 · Alerte si l'écart entre θ appris et θ analytique dépasse un seuil (lecture seule, ne modifie rien)." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT" title="θ Garde 2 · Alerte si l'écart entre θ appris et θ analytique dépasse un seuil (lecture seule, ne modifie rien)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">θ · Garde 2 audit</div>
         <div class="toggle-desc">alerte si |w−analytique|&gt;0,2</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_OS_LEARNING_GUARD_3_MDL_REGUL" title="θ Garde 3 · Régularisation de parcimonie (Occam / MDL) : pénalise la complexité de θ." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_OS_LEARNING_GUARD_3_MDL_REGUL" title="θ Garde 3 · Régularisation de parcimonie (Occam / MDL) : pénalise la complexité de θ." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">θ · Garde 3 MDL</div>
         <div class="toggle-desc">rappel λ vers (1,1)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_OS_LEARNING_GUARD_4_COHERENCE" title="θ Garde 4 · Refuse une mise à jour qui augmente le winrate mais baisse la cohérence interne." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_OS_LEARNING_GUARD_4_COHERENCE" title="θ Garde 4 · Refuse une mise à jour qui augmente le winrate mais baisse la cohérence interne." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">θ · Garde 4 cohérence</div>
@@ -1197,32 +1202,39 @@ footer {
         <div class="toggle-desc">phon→ortho appris des mots joués · sinon batch</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_DECLARE_NEO_ENABLED" title="🧩 Declare NEO (maître, cheat-free) : nouveau declare émergent croisé = Recall (adressée VSA board révélé) + Assemblé (phon→ortho masqué, w.p) + Cohorte (filtre board-derived) + Muette (par le son, jointe croisée) + Trigger. Additif, n'altère aucun des 5 declares. Mesuré R+A+Cohorte : 97,5% (K=1) / 98,8% (K=3), cheat-free. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_DECLARE_NEO_ENABLED" title="🧩 Declare NEO (maître, cheat-free) : nouveau declare émergent croisé = Recall (adressée VSA board révélé) + Assemblé (phon→ortho masqué, w.p) + Cohorte (filtre board-derived) + Muette (par le son, jointe croisée) + Trigger. Additif, n'altère aucun des 5 declares. Mesuré R+A+Cohorte : 97,5% (K=1) / 98,8% (K=3), cheat-free. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧩 Declare NEO · maître</div>
         <div class="toggle-desc">recall + assemblé + cohorte + muette + trigger · cheat-free</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_RECALL_ENABLED" title="NEO · voie adressée : recall VSA depuis le board RÉVÉLÉ + banc des mots vécus. 100% de réussite sur vocab répété, inerte sur mot neuf. Nécessite le maître NEO ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_NEO_RECALL_ENABLED" title="NEO · voie adressée : recall VSA depuis le board RÉVÉLÉ + banc des mots vécus. 100% de réussite sur vocab répété, inerte sur mot neuf. Nécessite le maître NEO ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔁 NEO · recall (adressée)</div>
         <div class="toggle-desc">reconnaît un mot vécu · 100% sur répété</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_ASSEMBLED_ENABLED" title="NEO · voie assemblée phon→ortho MASQUÉE : décode les positions sonores via L2[phonème]. align masqué (pas de graphème caché), w.p = entrée légitime. Généralise au mot neuf (+5 pts). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_NEO_ASSEMBLED_ENABLED" title="NEO · voie assemblée phon→ortho MASQUÉE : décode les positions sonores via L2[phonème]. align masqué (pas de graphème caché), w.p = entrée légitime. Généralise au mot neuf (+5 pts). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧬 NEO · assemblé (phon→ortho)</div>
         <div class="toggle-desc">positions sonores · généralise au mot neuf</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_COHORT_ENABLED" title="NEO · filtre cohorte board-derived : n'autorise une lettre que si ≥1 mot du lexique compatible avec le motif RÉVÉLÉ la porte à cette position. Lexique autorisé pour DECLARE (board-dérivé), jamais pour le scoring-lettre. Élague les ratés (hit 96,7→98,3%). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_NEO_COHORT_ENABLED" title="NEO · filtre cohorte board-derived : n'autorise une lettre que si ≥1 mot du lexique compatible avec le motif RÉVÉLÉ la porte à cette position. Lexique autorisé pour DECLARE (board-dérivé), jamais pour le scoring-lettre. Élague les ratés (hit 96,7→98,3%). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🎯 NEO · cohorte (filtre board)</div>
         <div class="toggle-desc">board-derived · élague les lettres impossibles</div>
+      </div>
+    </div>
+    <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🧪 NEO · g2p révélé + pénalité</div>
+        <div class="toggle-desc">apprend des positions révélées seules · pén <input id="neo-g2p-pen" type="number" value="0.50" step="0.05" min="0" max="2" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_G2P_EXP_PEN=Math.max(0,parseFloat(this.value)||0)"></div>
       </div>
     </div>
     <div class="toggle-item" data-toggle="M_NEO_MUTE_ENABLED" title="NEO · voie muette PAR LE SON : positions sans phonème (al=EPS) prédites par phonogramme CROISÉ = jointe P(lettre | phonème-tête, offset, voisins révélés), PAS un produit. Apprise en descendant. Neutre au système quand gatée par trigger. Nécessite le maître NEO ON." onclick="ui_toggle(this)">
@@ -8750,7 +8762,7 @@ function ui_initToggles() {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   document.querySelectorAll('.toggle-item').forEach(item => {
     const name = item.dataset.toggle;
@@ -8793,7 +8805,7 @@ function ui_toggle(item) {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   if (ALLOWED_TOGGLES.indexOf(name) === -1) {
     ui_log('ERROR', 'Toggle inconnu : ' + name);
@@ -8818,6 +8830,12 @@ function ui_toggle(item) {
     if (typeof ui_applyOSLParams === 'function') ui_applyOSLParams();
     if (typeof _omega_OSL_reset === 'function') _omega_OSL_reset();
     ui_log('THETA ONLINE', 'apprentissage en ligne ACTIVE (depart depuis theta courant)');
+  }
+  if (name === 'M_NEO_G2P_EXP_ENABLED' && newValue) {
+    // adopte la pénalité par défaut (0,5) en lisant le champ — config de référence cheat-free
+    var _gp = document.getElementById('neo-g2p-pen');
+    M_NEO_G2P_EXP_PEN = _gp ? Math.max(0, parseFloat(_gp.value) || 0.5) : 0.5;
+    ui_log('NEO G2P', 'g2p révélé+pénalité ACTIVE · pén = ' + M_NEO_G2P_EXP_PEN);
   }
   if (name === 'M_VOIE_PHON_ENABLED' || name === 'M_SUBSTRAT_ORTHO_PURE_ENABLED') {
     try {
