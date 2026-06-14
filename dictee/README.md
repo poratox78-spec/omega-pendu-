@@ -23,3 +23,15 @@ gradués en difficulté via `preval`+`freq`. Multi-étiquettes possibles par mot
 ## Limites (v1)
 - `muette` reste fréquent (le français est riche en lettres muettes) — discriminant mais pas rare.
 - Pas encore d'erreur « régularisation » étiquetée (graphie plausible mais fausse) — à ajouter si besoin.
+
+---
+
+## Application : `dictee_app.html` (autonome)
+Outil de **dictée diagnostique** prêt à l'emploi (un seul fichier, ouvrir au navigateur) :
+- **620 mots gradués** (facile/moyen/difficile) inlinés (`word_pool.json`), dérivés de Lexique 4 — chaque mot a sa phono, son IPA et sa **famille d'homophones**.
+- **Dictée vocale** (synthèse vocale fr-FR du navigateur), saisie élève, **diagnostic multi-étiquette** + feedback dys (accent / sourde-sonore / muette / homophone), correction révélée.
+- Build : pool généré depuis `Lexique4.tsv` (seed=42, freq≥3, 260/220/140 par difficulté).
+
+## Index & résultats (finaux)
+- `phono_homophones.json` — index homophones **PLEIN** (43 580 groupes, sans filtre fréquence).
+- `diagnostic.py` re-mesuré : **rappel global 99,8 %** — accent/voisée-sourde/muette **100 %**, **homophone 98,6 %** (avant index compact : 58,6 %).
