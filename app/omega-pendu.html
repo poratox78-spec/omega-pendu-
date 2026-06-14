@@ -6055,6 +6055,10 @@ function _emrg_initOnline(){
       if(dp[N][M]<=-Infinity) return null; const al=[]; let i=N,j=M; while(i>0){ if(bk[i][j]===1){al.push(p[j-1]);i--;j--;} else {al.push(EPS);i--;} } return al.reverse(); },
     learn(word){ const p=wp.get(word); if(!p) return; const ps=new Set(p); for(const g of word){ const gx=ci(g); if(gx<0||gx>=26)continue; for(const ph of ps) cooc[gx][PHI[ph]]++; cooc[gx][PHI[EPS]]+=0.5; }
       const al=this.align(word,p,null); if(!al) return; for(let k=0;k<al.length;k++){ const gx=ci(word[k]); if(gx>=0&&gx<26) emit[gx][PHI[al[k]]]++; } this.dirty=true; this.n++; },
+    learnExp(word,mask,tried,pen){ const p=wp.get(word); if(!p) return; const al=this.align(word,p,null); if(!al) return;
+      for(let k=0;k<al.length;k++){ if(mask && !mask[k]) continue; const gx=ci(word[k]); if(gx>=0&&gx<26){ emit[gx][PHI[al[k]]]++; cooc[gx][PHI[al[k]]]++; } }   // EXP : n'apprend qu'aux positions RÉVÉLÉES (expérience de l'agent)
+      if(pen>0 && tried){ const ps=new Set(p); for(let x=0;x<26;x++){ if(tried[x] && word.indexOf(String.fromCharCode(65+x))<0){ for(const ph of ps){ const pi=PHI[ph]; const v=emit[x][pi]; emit[x][pi]=v>pen?v-pen:0; } } } }   // pénalité bornée sur lettres fausses
+      this.dirty=true; this.n++; },
     getL2(){ if(this.dirty){ const L2={}; for(let ph=0;ph<NP;ph++){ if(PH[ph]===EPS)continue; let s=0; for(let g=0;g<26;g++) s+=emit[g][ph]; if(s<=0)continue; const d=new Float64Array(26); for(let g=0;g<26;g++) d[g]=emit[g][ph]/s; L2[PH[ph]]=d; } this.L2=L2; this.dirty=false; } return this.L2; }
   };
   return _emrgOG;
@@ -6073,6 +6077,8 @@ let _neoCR = {};                             // JOINTE croisée muette : clé "p
 let M_NEO_TRIGGER_ENABLED = false;           // Trigger (B) : n'overrider que quand la cognition est incertaine (gap faible) — sinon on fait confiance à la cognition
 let M_NEO_TRIGGER_GAP = 0.005;               // seuil mesuré : NEO muette n'engage que si M5_d.output.gap < ce seuil (cognition tres incertaine) -> muette neutre, ne drague plus
 let M_NEO_COHORT_ENABLED = false;           // brique cohorte : filtre board-derived (lexique autorisé pour DECLARE) — isolable
+let M_NEO_G2P_EXP_ENABLED = false;          // EXP : g2p apprend SEULEMENT des positions révélées (expérience), pas du mot complet — sonde de triche
+let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres fausses (0 = OFF)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6882,7 +6888,7 @@ function endCurrentGame(success) {
   }
   if (M_DECLARE_NEO_ENABLED && typeof currentWord==='string' && currentWord && /^[A-Z]+$/.test(currentWord) && currentWord.length>=7 && letterVecsSDIM && letterVecsSDIM[0]) {
     if (!_emrgBank.has(currentWord)) _emrgBank.set(currentWord, _emrg_bind(currentWord, null));   // NEO voie adressee : banc des mots vecus (descendant)
-    _emrg_initOnline().learn(currentWord);   // NEO voie assemblee : g2p appris en jouant (descendant)
+    if (M_NEO_G2P_EXP_ENABLED) { _emrg_initOnline().learnExp(currentWord, revealedMask, alreadyTried, M_NEO_G2P_EXP_PEN); } else { _emrg_initOnline().learn(currentWord); }   // NEO voie assemblee : g2p (descendant ; EXP=révélé-seul)
     { const _gp = _emrg_initOnline(); const _wpx = _gp.wp.get(currentWord); if (_wpx) { const _ala = _gp.align(currentWord, _wpx, null);   // NEO muette : JOINTE croisée apprise PAR LE SON (descendant, voisins du mot complet = légitime)
         if (_ala) { let _h = -1, _hph = null; for (let i = 0; i < currentWord.length; i++) { if (_ala[i] !== '_') { _h = i; _hph = _ala[i]; } else if (_hph != null) { const _off = i - _h; const _t = currentWord.charCodeAt(i)-65; if (_t>=0 && _t<26) {
           const _L = i>0?currentWord.charAt(i-1):'#', _R = i<currentWord.length-1?currentWord.charAt(i+1):'#';
