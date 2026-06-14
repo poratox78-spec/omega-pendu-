@@ -254,7 +254,9 @@ body::before {
 .tried-letters {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 6px;
+  min-height: 26px;        /* réserve 1 ligne -> pas de décalage à 0/1 lettre */
   margin-bottom: 12px;
 }
 .tried-letter {
