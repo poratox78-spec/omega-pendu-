@@ -39,3 +39,5 @@ La dictée diagnostique est un **panneau additif** du fichier OMEGA unique (bout
 ## Index & résultats (finaux)
 - `phono_homophones.json` — index homophones **PLEIN** (43 580 groupes, sans filtre fréquence).
 - `diagnostic.py` re-mesuré : **rappel global 99,8 %** — accent/voisée-sourde/muette **100 %**, **homophone 98,6 %** (avant index compact : 58,6 %).
+
+> **MAJ 2026-06-14 — cadre = DICTÉE DE PHRASES** (audit : la dictée de mots isolés est mal posée pour 84 % des mots à cause des homophones/accords). Le moteur de référence est `diag_sentence.py` (corpus `sentences.json`), intégré dans `app/omega-pendu.html` (panneau « ✍️ Dictée diag », mode phrases). Les fichiers mot-isolé (`diagnostic.py`, `test_set.tsv`, `word_pool.json`) sont **legacy**.
