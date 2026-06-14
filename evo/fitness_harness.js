@@ -14,11 +14,11 @@ function loadEngine() {
   const parts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
   let js = '', lex = '';
   for (const m of parts) {
-    if (/application\/json/.test(m[1])) lex = m[2];   // <script type=application/json id=lex4-data>
+    if (/lex4-data-gz/.test(m[1])) lex = m[2];        // <script type=text/plain id=lex4-data-gz> (gzip+base64)
     else js += '\n;\n' + m[2];
   }
   const stub = new Proxy(function(){}, { get:(t,p)=>{ if(p==='style')return {}; if(p==='textContent')return ''; if(p==='classList')return {add(){},remove(){},toggle(){},contains:()=>false}; if(p==='getContext')return ()=>stub; return stub; }, set:()=>true, apply:()=>stub, construct:()=>stub });
-  global.document = { getElementById:(id)=> id==='lex4-data' ? {textContent:lex} : stub, querySelector:()=>stub, querySelectorAll:()=>[], createElement:()=>stub, addEventListener(){}, body:stub, documentElement:stub, getElementsByTagName:()=>[] };
+  global.document = { getElementById:(id)=> id==='lex4-data-gz' ? {textContent:lex} : stub, head:stub, querySelector:()=>stub, querySelectorAll:()=>[], createElement:()=>stub, addEventListener(){}, body:stub, documentElement:stub, getElementsByTagName:()=>[] };
   global.addEventListener=()=>{}; global.removeEventListener=()=>{}; global.matchMedia=()=>({matches:false,addEventListener(){},addListener(){}});
   global.getComputedStyle=()=>({getPropertyValue:()=>''}); global.AudioContext=function(){return stub;}; global.webkitAudioContext=global.AudioContext;
   global.window=global; global.requestAnimationFrame=()=>0; global.cancelAnimationFrame=()=>{};
@@ -37,17 +37,16 @@ function loadEngine() {
     get word(){return (typeof currentWord!=='undefined')?currentWord:undefined},
     get tried(){return (typeof alreadyTried!=='undefined')?alreadyTried:undefined} };`;
   eval(js + exp);
-  const O = globalThis.__O;
-  if (O.loadLex) O.loadLex();
-  return O;
+  return globalThis.__O;
 }
 
 function _snap(O){ const t=O.tried,w=O.word; if(!t||!w)return null; let coups=0,err=0; for(let i=0;i<26;i++){ if(t[i]){coups++; if(!w.includes(String.fromCharCode(65+i)))err++;} } return {coups,err}; }
 function _playOne(O,w){ O.startNewGame(w); let sf=300,last=_snap(O); while(O.active&&sf-->0){ O.omegaStep(); const s=_snap(O); if(s)last=s; } return {won:!!O.won, coups:last?last.coups:0, err:last?last.err:0}; }
 
 // Mesure tri-critère, déterministe (graine fixe). repeats>1 pour stabiliser le temps.
-function runBench({seed=12345, n=30, repeats=1, O=null}={}) {
+async function runBench({seed=12345, n=30, repeats=1, O=null}={}) {
   O = O || loadEngine();
+  if(O.loadLex) await O.loadLex();
   O.setSeed(seed); if(O.init)O.init(); O.setSeed(seed);
   const words=(O.pick?O.pick(n,seed):[]).filter(Boolean);
   let W=0,E=0,C=0; let best=Infinity;
@@ -76,11 +75,12 @@ module.exports = { loadEngine, runBench, fitterLex };
 
 if (require.main === module) {
   const seed=+(process.argv[2]||12345), n=+(process.argv[3]||30);
-  const r=runBench({seed, n, repeats:3});
-  console.log('=== OMEGA fitness bench (config défaut) ===');
-  console.log(`seed ${r.seed} · ${r.n} mots`);
-  console.log(`win rate      : ${(r.winrate*100).toFixed(1)} %`);
-  console.log(`erreurs/partie: ${r.erreurs}`);
-  console.log(`coups/partie  : ${r.coups}`);
-  console.log(`temps (min/${3} runs) : ${r.ms} ms`);
+  runBench({seed, n, repeats:3}).then(function(r){
+    console.log('=== OMEGA fitness bench (config défaut) ===');
+    console.log('seed '+r.seed+' · '+r.n+' mots');
+    console.log('win rate      : '+(r.winrate*100).toFixed(1)+' %');
+    console.log('erreurs/partie: '+r.erreurs);
+    console.log('coups/partie  : '+r.coups);
+    console.log('temps (min/3 runs) : '+r.ms+' ms');
+  }).catch(function(e){console.error(e);});
 }
