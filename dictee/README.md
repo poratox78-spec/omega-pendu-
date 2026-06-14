@@ -44,6 +44,6 @@ La dictée diagnostique est un **panneau additif** du fichier OMEGA unique (bout
 
 ## Licence des données
 Données dérivées de **Lexique 4** — à citer :
-> New, B., Pallier, C., Schalchli, G., Bourgin, J., & Gimenes, M. (2026). *Lexique 4: A major upgrade of the « Lexique » French lexical database.* Behavior Research Methods. — lexique.org
+> New, B., Pallier, C., Schalchli, G., Bourgin, J., & Gimenes, M. (2026). *Lexique 4: A major upgrade of the « Lexique » French lexical database.* Behavior Research Methods, 58(5), 140. — lexique.org
 
 Licence : **CC BY-SA 4.0** (Attribution — Partage dans les mêmes conditions). Les fichiers dérivés ici (`sentences.json`, `phono_homophones.json`, `legacy/test_set.tsv`, `legacy/word_pool.json`) sont donc aussi sous **CC BY-SA 4.0**.
