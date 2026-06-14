@@ -42,3 +42,49 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 1. **A1/A2/A3 OFF** → aucune fréquence lexicale dans le scoring-lettre (sens montant).
 2. **NEO cheat-free par construction** : recall lié au **révélé** seul ; assemblé **masqué** ; cohorte **board-dérivée** → aucune déclaration ne lit le mot caché.
 3. Apprentissage (θ, readouts, banc, g2p) = **descendant**, post-décision → légitime.
+
+## Configuration EXACTE des 38 toggles (énumération complète)
+
+| # | Toggle | État | Note |
+|---|---|---|---|
+| 1 | `L01_A1_M2_ORTHO_ENABLED` | OFF | triche grise (béquille lexicale) |
+| 2 | `L01_A2_M4_LEX4_ENABLED` | OFF | triche grise — fréquence dico dans le scoring-lettre |
+| 3 | `L01_A3_M5M_WORDLEX4_ENABLED` | OFF | triche grise |
+| 4 | `L01_A4_M4M_DECOMP_ENABLED` | **ON** | décomposition descendante |
+| 5 | `L01_A5_M2M_POSITIONAL_ENABLED` | **ON** | correction positionnelle descendante |
+| 6 | `L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED` | **ON** | arbitrage conceptuel OS |
+| 7 | `L01_B2_MOBIUS_ENABLED` | OFF | à mesurer (non requis) |
+| 8 | `M_VOIE_PHON_ENABLED` | **ON** | voie phonologique (SAMPA) |
+| 9 | `M_OS_V07_ENABLED` | **ON** | OS v07 pilote la décision |
+| 10 | `M4_PHON_USE_P_ENABLED` | **ON** | croisement prior phonétique |
+| 11 | `M_SUBSTRAT_ORTHO_PURE_ENABLED` | **ON** | substrat ortho pur |
+| 12 | `M_PHON_FEEDBACK_ENABLED` | **ON** | retour descendant phon |
+| 13 | `M_WORD_DECLARE_ENABLED` | OFF | ancien declare (remplacé par NEO) |
+| 14 | `M_IG_SELECT_ENABLED` | OFF | à mesurer (InfoGain) |
+| 15 | `M_IG_PSUCCESS_ENABLED` | OFF | à mesurer (requiert InfoGain) |
+| 16 | `M_BPC_M3D_ENABLED` | **ON** | concept bPC M3_d |
+| 17 | `M_BPC_READOUT_COUPLE_ENABLED` | **ON** | couplage readout-récompense |
+| 18 | `M_PHON_READOUT_COUPLE_ENABLED` | **ON** | couplage readout phon |
+| 19 | `M_PHON_CONCEPT_BIND_ENABLED` | **ON** | readout phon sur concept lié |
+| 20 | `M_BPC_DECLARE_ENABLED` | OFF | declare BPC (≠ NEO) |
+| 21 | `M_DECLARE_DUAL_ENABLED` | OFF | ancien declare |
+| 22 | `M_LEARN_FROM_COGNITION_ENABLED` | OFF | non requis |
+| 23 | `M_OS_LEARNING_ENABLED` | **ON** | apprentissage OS (θ) |
+| 24 | `M_OS_LEARNING_GUARD_1_BOUNDED` | **ON** | garde θ 1 |
+| 25 | `M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT` | **ON** | garde θ 2 |
+| 26 | `M_OS_LEARNING_GUARD_3_MDL_REGUL` | **ON** | garde θ 3 |
+| 27 | `M_OS_LEARNING_GUARD_4_COHERENCE` | **ON** | garde θ 4 |
+| 28 | `M_OS_LEARNING_ONLINE_ENABLED` | **ON** | apprentissage en ligne (SPSA) |
+| 29 | `M_EMERGENT_DECLARE_ENABLED` | OFF | declare émergent (hors config NEO recommandée) |
+| 30 | `M_EMERGENT_ASSEMBLED_ENABLED` | OFF |  |
+| 31 | `M_EMERGENT_G2P_ONLINE` | OFF |  |
+| 32 | `M_DECLARE_NEO_ENABLED` | **ON** | NEO maître |
+| 33 | `M_NEO_RECALL_ENABLED` | **ON** | NEO recall (board révélé + banc) |
+| 34 | `M_NEO_ASSEMBLED_ENABLED` | **ON** | NEO assemblé phon→ortho masqué |
+| 35 | `M_NEO_COHORT_ENABLED` | **ON** | NEO cohorte board-derived |
+| 36 | `M_NEO_MUTE_ENABLED` | OFF | optionnel (neutre) |
+| 37 | `M_NEO_TRIGGER_ENABLED` | OFF | optionnel (neutre) |
+| 38 | `M_TREXQUANT_MODE_ENABLED` | OFF | mode test hors-lexique uniquement |
+
+**22 ON / 16 OFF.** Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`.
+Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 % (K=1) / 98,82 % (K=3)**, cheat-free.
