@@ -27,7 +27,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 `L01_A4_M4M_DECOMP` · `L01_A5_M2M_POSITIONAL` · `L01_A6_OS_CONCEPT_ARBITRAGE` ·
 `M_VOIE_PHON` · `M_OS_V07` · `M4_PHON_USE_P` · `M_SUBSTRAT_ORTHO_PURE` · `M_PHON_FEEDBACK` ·
 `M_BPC_M3D` · `M_BPC_READOUT_COUPLE` · `M_PHON_READOUT_COUPLE` · `M_PHON_CONCEPT_BIND` ·
-`M_OS_LEARNING` (+ ses 4 gardes) `M_OS_LEARNING_ONLINE`
+`M_OS_LEARNING` (+ ses 4 gardes)  — `M_OS_LEARNING_ONLINE` **OFF** (mesuré sans gain + dérive)
 
 > ⚠️ **Réserve honnête** : la base *cognition* a **deux variantes documentées** qui diffèrent :
 > §8.3 (ci-dessus, voie phon ON) vs la fonction de bench `baseCfg()` **dans le code** (voie phon OFF,
@@ -74,7 +74,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | 25 | `M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT` | **ON** | garde θ 2 |
 | 26 | `M_OS_LEARNING_GUARD_3_MDL_REGUL` | **ON** | garde θ 3 |
 | 27 | `M_OS_LEARNING_GUARD_4_COHERENCE` | **ON** | garde θ 4 |
-| 28 | `M_OS_LEARNING_ONLINE_ENABLED` | **ON** | apprentissage en ligne (SPSA) |
+| 28 | `M_OS_LEARNING_ONLINE_ENABLED` | OFF | mesuré : aucun gain (98,1 vs 98,3 %) + dérive de session → OFF |
 | 29 | `M_EMERGENT_DECLARE_ENABLED` | OFF | declare émergent (hors config NEO recommandée) |
 | 30 | `M_EMERGENT_ASSEMBLED_ENABLED` | OFF |  |
 | 31 | `M_EMERGENT_G2P_ONLINE` | OFF |  |
@@ -86,7 +86,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | 37 | `M_NEO_TRIGGER_ENABLED` | OFF | optionnel (neutre) |
 | 38 | `M_TREXQUANT_MODE_ENABLED` | OFF | mode test hors-lexique uniquement |
 
-**22 ON / 16 OFF.** Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`.
+**21 ON / 17 OFF** (online learning passé OFF après mesure). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`.
 Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 % (K=1) / 98,82 % (K=3)**, cheat-free.
 
 ## Notice UI — config optimale par LIBELLÉ AFFICHÉ (ce qu'on voit dans l'app)
@@ -109,13 +109,13 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 - ☑ θ · Garde 2 audit
 - ☑ θ · Garde 3 MDL
 - ☑ θ · Garde 4 cohérence
-- ☑ θ · Apprentissage EN LIGNE (SPSA)
 - ☑ 🧩 Declare NEO · maître
 - ☑ 🔁 NEO · recall (adressée)
 - ☑ 🧬 NEO · assemblé (phon→ortho)
 - ☑ 🎯 NEO · cohorte (filtre board)
 
 **À LAISSER ÉTEINT (OFF) :**
+- ☐ θ · Apprentissage EN LIGNE (SPSA)  *(mesuré : aucun gain + dérive de session)*
 - ☐ A1 · Orthography
 - ☐ A2 · Lexique 4
 - ☐ A3 · Word Lex4
@@ -134,3 +134,6 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 - ☐ 🎯 Mode Trexquant (hors-lexique)
 
 Réglages : NEO_CONF 0,75 · RECALL_MARGIN 0,20. → 97,50 % (K=1) / 98,82 % (K=3), cheat-free.
+
+## MAJ mesurée (online) — 14/06/2026
+`M_OS_LEARNING_ONLINE` (θ · Apprentissage EN LIGNE) : **OFF**. Mesuré (config optimale, 3 graines, warmup 150) : ON 98,1 % vs OFF 98,3 % (égal) ; ON rend le résultat **dépendant de l'historique de session** (même graine : 99,2 % → 98,3 %). OFF = même score, reproductible. Le master `M_OS_LEARNING` + gardes restent ON.
