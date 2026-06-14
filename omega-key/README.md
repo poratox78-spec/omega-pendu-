@@ -1,3 +1,5 @@
+> ⚠️ **AVERTISSEMENT SÉCURITÉ — projet expérimental NON audité cryptographiquement.** Ne pas l'utiliser pour de vrais secrets ; pour des enjeux critiques, utiliser un outil audité (Signal).
+
 # OMEGA·KEY
 
 > Messagerie chiffrée de bout en bout dans **un seul fichier HTML**. Passphrases
