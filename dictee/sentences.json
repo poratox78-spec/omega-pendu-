@@ -33,7 +33,13 @@
 "lis",
 "lits"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les enfants jouent dans le jardin.",
@@ -64,7 +70,13 @@
 "jardin": [
 "jardins"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Elle boit de l'eau dans un verre.",
@@ -116,7 +128,13 @@
 "vert",
 "verts"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Le petit chien court vite.",
@@ -141,7 +159,13 @@
 "vîte",
 "vîtes"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Papa lit une histoire le soir.",
@@ -170,7 +194,12 @@
 "soire",
 "soirs"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette"
+]
 },
 {
 "text": "Les fleurs rouges sont belles.",
@@ -202,7 +231,13 @@
 "bêlent",
 "bêles"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Il met ses chaussures et son manteau.",
@@ -247,7 +282,12 @@
 "manteaux",
 "mentaux"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette"
+]
 },
 {
 "text": "Nous mangeons une bonne soupe.",
@@ -270,7 +310,13 @@
 "soupent",
 "soupes"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "La maîtresse écrit au tableau.",
@@ -302,7 +348,14 @@
 "tableau": [
 "tableaux"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les oiseaux chantent le matin.",
@@ -324,7 +377,13 @@
 "matins",
 "mâtin"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les élèves répètent la leçon difficile.",
@@ -353,7 +412,13 @@
 "difficile": [
 "difficiles"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
 },
 {
 "text": "Le ver de terre creuse un trou profond.",
@@ -395,7 +460,13 @@
 "profond": [
 "profonds"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Elle porte une jolie robe verte.",
@@ -431,7 +502,13 @@
 "verte": [
 "vertes"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Ils prennent leurs cahiers et leurs crayons.",
@@ -473,7 +550,12 @@
 "crayons": [
 "crayon"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette"
+]
 },
 {
 "text": "La fillette a cueilli des fraises mûres.",
@@ -514,7 +596,13 @@
 "mûr",
 "mûre"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Mon frère et ma sœur sont arrivés ensemble.",
@@ -565,7 +653,14 @@
 "ensemble": [
 "ensembles"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Le boulanger vend du pain et des gâteaux.",
@@ -610,7 +705,13 @@
 "gâteaux": [
 "gâteau"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Ces grandes maisons blanches sont anciennes.",
@@ -634,7 +735,13 @@
 "anciennes": [
 "ancienne"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Nous avons trouvé un trésor près de la rivière.",
@@ -678,7 +785,14 @@
 "rivière": [
 "rivières"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les pompiers éteignent le feu rapidement.",
@@ -702,7 +816,14 @@
 "feus",
 "feux"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les chevaux galopent à travers les champs immenses.",
@@ -733,7 +854,13 @@
 "immenses": [
 "immense"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Il faut que tu finisses tes devoirs avant de jouer.",
@@ -785,7 +912,13 @@
 "jouées",
 "joués"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les scientifiques étudient les phénomènes naturels étranges.",
@@ -814,7 +947,13 @@
 "étranges": [
 "étrange"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
 },
 {
 "text": "Quand les feuilles tombent, l'automne est arrivé.",
@@ -862,7 +1001,14 @@
 "arrivées",
 "arrivés"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Elle aurait préféré que nous restions plus longtemps.",
@@ -903,7 +1049,13 @@
 "longtemps": [
 "long-temps"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
 },
 {
 "text": "Le vieux château abandonné cachait de nombreux secrets.",
@@ -929,7 +1081,14 @@
 "secrets": [
 "secret"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Les bateaux quittent le port dès que la tempête se calme.",
@@ -973,7 +1132,14 @@
 "calment",
 "calmes"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Plusieurs personnes attendaient patiemment leur tour.",
@@ -999,7 +1165,13 @@
 "toures",
 "tours"
 ]
-}
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Ces magnifiques tableaux furent peints il y a deux siècles.",
@@ -1053,7 +1225,14 @@
 "siecles",
 "siècle"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
 },
 {
 "text": "Malgré la pluie, les randonneurs poursuivirent leur chemin.",
@@ -1083,6 +1262,12 @@
 "chemin": [
 "chemins"
 ]
-}
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
 }
 ]
