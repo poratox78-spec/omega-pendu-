@@ -533,15 +533,21 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
 <tr><td><span class="ui">Développeur / monitoring</span></td><td><strong>Smoke load</strong> · <strong>Smoke runtime (100 ticks)</strong> · <strong>Bench</strong> · <strong>Dump 14 canaux</strong> · <strong>Dump inventaire global</strong> · <strong>initOmegaGlobals()</strong></td><td>Non-régression, débit, inspection des canaux/état.</td></tr>
 </tbody></table></div>
 
-<h3>8.3 — Configuration de référence (cognition cheat-free)</h3>
-<p>Le preset exact mesuré le 31/05 (à activer dans <span class="ui">L01 ENHANCEMENTS</span>) :</p>
-<pre class="ascii">ON  : A4, A5, A6, M_VOIE_PHON, M_OS_V07, M4_PHON_USE_P,
+<h3>8.3 — Configuration de référence (cognition cheat-free) — MAJ 14/06/2026</h3>
+<p>Preset optimal <strong>re-mesuré sur le code courant</strong>, à activer dans <span class="ui">L01 ENHANCEMENTS</span> + <span class="ui">Declare NEO</span> :</p>
+<pre class="ascii">ON (cognition) : A4, A5, A6, M_VOIE_PHON, M_OS_V07, M4_PHON_USE_P,
       M_SUBSTRAT_ORTHO_PURE, M_PHON_FEEDBACK, M_BPC_M3D,
-      M_BPC_READOUT_COUPLE, M_PHON_READOUT_COUPLE,
-      M_PHON_CONCEPT_BIND, M_OS_LEARNING (+ ses 4 gardes)
-OFF : A1, A2, A3                 (triche grise / béquille)
+      M_BPC_READOUT_COUPLE, M_PHON_READOUT_COUPLE, M_PHON_CONCEPT_BIND,
+      M_OS_LEARNING (+ ses 4 gardes), M_OS_LEARNING_ONLINE
+ON (declare NEO) : M_DECLARE_NEO, M_NEO_RECALL, M_NEO_ASSEMBLED,
+      M_NEO_COHORT, M_EMERGENT_DECLARE          (NEO_CONF 0,60)
+OFF : A1, A2, A3                                (triche grise / béquille)
 À MESURER : L01_B2_MOBIUS, M_IG_SELECT, M_IG_PSUCCESS</pre>
-<p>Régime attendu : cognition ~90 % / err ~2,5 ; +declare 0,85 → ~97,7 % / err ~1,7.</p>
+<p><strong>Win rate mesuré</strong> (in-lexique, graine 12345, 120 mots, warmup 150) :
+défaut tout-OFF <strong>5,0 %</strong> → référence <em>sans</em> NEO <strong>91,7 %</strong>
+→ <strong>référence + NEO = 99,2 %</strong> (config optimale). Cohérent avec le mémoire
+(cognition seule ~90 % ; +NEO 97,5 % K=1 / 98,8 % K=3, cf. §17).</p>
+<div class="note">⚠️ <strong>NEO était absent de l'ancien preset (31/05)</strong> : sans le déclareur NEO on plafonne à ~91-92 %. Le système NEO (recall + assemblé + cohorte) est ce qui amène la cognition cheat-free au niveau oracle. Aucun preset « 1 clic » dans l'UI : activer les bascules manuellement (panneaux L01 + Declare NEO).</div>
 
 <h3>8.4 — Procédure de mesure (réplicable)</h3>
 <ol>
