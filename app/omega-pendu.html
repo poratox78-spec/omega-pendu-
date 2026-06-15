@@ -1230,6 +1230,13 @@ footer {
         <div class="toggle-desc">board-derived · élague les lettres impossibles</div>
       </div>
     </div>
+    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🔊 NEO · son board-dérivé (cohorte)</div>
+        <div class="toggle-desc">le son vient de la cohorte, pas du mot · cheat-free intégral</div>
+      </div>
+    </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
@@ -6091,6 +6098,8 @@ let M_NEO_TRIGGER_GAP = 0.005;               // seuil mesuré : NEO muette n'eng
 let M_NEO_COHORT_ENABLED = false;           // brique cohorte : filtre board-derived (lexique autorisé pour DECLARE) — isolable
 let M_NEO_G2P_EXP_ENABLED = false;          // EXP : g2p apprend SEULEMENT des positions révélées (expérience), pas du mot complet — sonde de triche
 let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres fausses (0 = OFF)
+let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
+let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6105,6 +6114,30 @@ function _neoCohortMasks(){                  // masques de lettres possibles par
     for (let p = 0; p < L; p++) { const c = m.charCodeAt(p)-65; if (c>=0&&c<26) masks[p] |= (1<<c); }
   }
   return masks;
+}
+function _neoPhonCohort(){               // _al consensus : phonème dominant par position, dérivé des mots board-compatibles (jamais du mot caché)
+  const G = _emrg_initOnline();
+  if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const Lw = w.m.length; (_neoWBL[Lw] || (_neoWBL[Lw] = [])).push(w.m); } } }
+  const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
+  const absent = [];
+  for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let seen = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p)-65 === x) { seen = true; break; } if (!seen) absent.push(String.fromCharCode(65+x)); }
+  const acc = new Array(L); for (let p = 0; p < L; p++) acc[p] = Object.create(null);
+  let used = 0;
+  for (let i = 0; i < cand.length && used < M_NEO_PHON_COHORT_CAP; i++) {
+    const m = cand[i];
+    let ok = true;
+    for (let p = 0; p < L; p++) { if (revealedMask[p] && m.charCodeAt(p) !== currentWord.charCodeAt(p)) { ok = false; break; } }   // matche le révélé
+    if (!ok) continue;
+    if (absent.length) { let bad = false; for (let a = 0; a < absent.length; a++) if (m.indexOf(absent[a]) >= 0) { bad = true; break; } if (bad) continue; }
+    const ph = G.wp.get(m); if (!ph) continue;
+    const al = G.align(m, ph, null); if (!al) continue;   // align PLEIN du mot board-compatible (imaginé, connu du joueur) — PAS du mot caché
+    for (let p = 0; p < L; p++) { const k = al[p]; acc[p][k] = (acc[p][k] || 0) + 1; }
+    used++;
+  }
+  if (!used) return null;
+  const out = new Array(L);
+  for (let p = 0; p < L; p++) { let bk = '_', bv = -1; const a = acc[p]; for (const k in a) { if (a[k] > bv) { bv = a[k]; bk = k; } } out[p] = bk; }
+  return out;                            // out[p] = phonème consensus ('_'=muet) à la position p, board-dérivé
 }
 let M_LEARN_FROM_COGNITION_ENABLED = false;   // fix bequille : apprenants <- lettre cognitive (pre-declare), pas la jouee
 var _DECL2 = (function () {
@@ -7154,8 +7187,10 @@ function omegaStep() {
         }
       }
       if ((M_NEO_ASSEMBLED_ENABLED || M_NEO_MUTE_ENABLED) && !_neoDone) {   // (2)(3) assemblee sonore + muette ortho — alignement MASQUE partage
-        const _G = _emrg_initOnline(); const _L2 = _G.getL2(); const _ph = _G.wp.get(currentWord);
-        const _al = _ph ? _G.align(currentWord, _ph, revealedMask) : null;
+        const _G = _emrg_initOnline(); const _L2 = _G.getL2();
+        let _al;
+        if (M_NEO_PHON_COHORT_ENABLED) { _al = _neoPhonCohort(); }                                                  // son board-dérivé (cohorte) : ne lit jamais le son du mot caché
+        else { const _ph = _G.wp.get(currentWord); _al = _ph ? _G.align(currentWord, _ph, revealedMask) : null; }   // défaut : son du mot (wp.get) — entrée « mot entendu »
         if (_al) {
           if (M_NEO_ASSEMBLED_ENABLED) {   // (2) positions SONORES via L2[phoneme]
             let _best = -1, _bestL = -1; const _cm = M_NEO_COHORT_ENABLED ? _neoCohortMasks() : null;
@@ -8762,7 +8797,7 @@ function ui_initToggles() {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   document.querySelectorAll('.toggle-item').forEach(item => {
     const name = item.dataset.toggle;
@@ -8805,7 +8840,7 @@ function ui_toggle(item) {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   if (ALLOWED_TOGGLES.indexOf(name) === -1) {
     ui_log('ERROR', 'Toggle inconnu : ' + name);
@@ -9155,13 +9190,13 @@ function _omega_trexquant_bench(testN, warmupN, seed){
   const S = {a4:L01_A4_M4M_DECOMP_ENABLED,a5:L01_A5_M2M_POSITIONAL_ENABLED,a6:L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED,b2:L01_B2_MOBIUS_ENABLED,os:M_OS_V07_ENABLED,sub:M_SUBSTRAT_ORTHO_PURE_ENABLED,
     bpc:M_BPC_M3D_ENABLED,bpcr:M_BPC_READOUT_COUPLE_ENABLED,osl:M_OS_LEARNING_ONLINE_ENABLED,g1:M_OS_LEARNING_GUARD_1_BOUNDED,g2:M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT,g3:M_OS_LEARNING_GUARD_3_MDL_REGUL,g4:M_OS_LEARNING_GUARD_4_COHERENCE,
     vp:M_VOIE_PHON_ENABLED,p4:M4_PHON_USE_P_ENABLED,pf:M_PHON_FEEDBACK_ENABLED,prc:M_PHON_READOUT_COUPLE_ENABLED,pcb:M_PHON_CONCEPT_BIND_ENABLED,
-    nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,
+    nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,npc:M_NEO_PHON_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,
     conf:(typeof M_DECLARE_NEO_CONF!=='undefined'?M_DECLARE_NEO_CONF:null)};
   function restore(){ OMEGA_LEX4.len_index=origLI;
     L01_A4_M4M_DECOMP_ENABLED=S.a4;L01_A5_M2M_POSITIONAL_ENABLED=S.a5;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=S.a6;L01_B2_MOBIUS_ENABLED=S.b2;M_OS_V07_ENABLED=S.os;M_SUBSTRAT_ORTHO_PURE_ENABLED=S.sub;
     M_BPC_M3D_ENABLED=S.bpc;M_BPC_READOUT_COUPLE_ENABLED=S.bpcr;M_OS_LEARNING_ONLINE_ENABLED=S.osl;M_OS_LEARNING_GUARD_1_BOUNDED=S.g1;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=S.g2;M_OS_LEARNING_GUARD_3_MDL_REGUL=S.g3;M_OS_LEARNING_GUARD_4_COHERENCE=S.g4;
     M_VOIE_PHON_ENABLED=S.vp;M4_PHON_USE_P_ENABLED=S.p4;M_PHON_FEEDBACK_ENABLED=S.pf;M_PHON_READOUT_COUPLE_ENABLED=S.prc;M_PHON_CONCEPT_BIND_ENABLED=S.pcb;
-    M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;
+    M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_PHON_COHORT_ENABLED=S.npc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;
     if(S.conf!=null)M_DECLARE_NEO_CONF=S.conf; }
   function L(m,c){ if(typeof _logOut==='function')_logOut('bench-out',m,c||''); else console.log(m); }
   try{
@@ -9178,7 +9213,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
       if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
       baseCfg();
       M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
-      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
+      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=false;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
       if(assembled && typeof M_DECLARE_NEO_CONF!=='undefined' && conf!=null) M_DECLARE_NEO_CONF=conf;
       OMEGA_LEX4.len_index=origLI; _omegaRng=makeMulberry32(seed); for(let i=0;i<trainW.length;i++) play(trainW[i]);
       OMEGA_LEX4.len_index=filtered; let win=0; for(let i=0;i<testW.length;i++){ if(play(testW[i])) win++; }
