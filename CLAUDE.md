@@ -1,8 +1,9 @@
 # OMEGA-Ω — mémoire projet (pour Claude Code local)
 
 > Lis ce fichier en entier au démarrage. Il oriente sur le dépôt et **le chantier actif (dictée)**.
+> **⚖️ DOCTRINE PRIORITAIRE — lire AVANT de coder : `DOCTRINE.md`** (cap §43 consolidé : §0 clause de service · §1 falsifiabilité/mesure · §2 R66/R67 · §3 doctrine probabiliste = jointe `Σ_φ P(φ|p)·P(lettre|φ,contexte)`, pas argmax · §4 une jonction à la fois · **§5 anti-fainéantise** (inventaire+réutiliser l'existant) · §6 audit honnête « défaut = pas terminé »).
 > Docs de fond : `docs/MEMOIRE.html`, `docs/rapport-mode-emploi.html` (§18 = dictée). Plan : `DICTEE_ROADMAP.md`.
-> Journal le plus à jour : `dictee/JOURNAL.md`. Audit transverse : `AUDIT_PROJET.md`.
+> Journal le plus à jour : `dictee/JOURNAL.md`. Audit transverse : `AUDIT_PROJET.md` · audit moteur : `AUDIT_OMEGA.md`.
 
 ## Ce dépôt contient 4 choses
 1. **OMEGA-Ω** — moteur cognitif de **pendu français** (`app/omega-pendu.html`, monolithique). Doctrine **« cognition > oracle »** + **R66** (mesurer/falsifier avant de garder ; tout module OFF par défaut, baseline byte-identique). Détails : `docs/MEMOIRE.html` + `docs/rapport-mode-emploi.html`.
