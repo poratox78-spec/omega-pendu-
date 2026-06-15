@@ -50,7 +50,7 @@ Demande : la session précédente avait garanti que `currentWord` n'était « pl
 
 **Options (objectif « g2p sans `currentWord` ») :**
 1. Garder `wp.get(currentWord)` = assumer la prémisse « dictée / mot entendu » + **afficher le régime**. *(recommandé ; cohérent avec le pivot dictée)*
-2. Dériver le son du **cohort board** (consensus des prononciations compatibles) → réellement board-only. **Estimé ≈78 % — FALSIFIÉ par la mesure (§1.1) : réel ~55 % OOV, Δ −18,8 pts.**
+2. Dériver le son du **cohort board** (consensus des prononciations compatibles) → réellement board-only. **Implémenté + corrigé (garde de pureté) — §1.1 : parité vrai-son in-lexique (97 %), coût OOV ~7,5 pts. Le −18,8 initial était un bug d'implémentation (override confiant-mais-faux), pas le concept.**
 3. Couper la route assemblée au pendu → −5,28, ~92 % 100 % board-only.
 
 ### 1.1 Option 2 implémentée + MESURÉE (R66) — `M_NEO_PHON_COHORT_ENABLED`
@@ -66,7 +66,18 @@ Option 2 codée en **OFF-inerte** (toggle `M_NEO_PHON_COHORT_ENABLED`, défaut O
 | ortho seul | 18,8 % | 22,5 % |
 | **Δ cohort − son-mot** | **−18,8** | **−18,8** |
 
-**Verdict :** l'estimation ≈78 % était optimiste. Le cohort-board **fonctionne** (≫ ortho seul) mais **coûte ~19 pts OOV** = exactement l'**avantage oracle d'« entendre » le mot**. Δ **stable** sur 2 graines. **In-lexique AUSSI, ON dégrade** (config optimale cognition+voie phon+NEO : OFF **97 %** → ON **84 %/76 %**, Δ **−13 à −21 pts**, 2 graines) — corrige une affirmation antérieure erronée (« ne mord pas »). **OFF-inerte vérifié** : OFF = baseline intact. Le cohort-board n'est **jamais** un gain de perf (OOV −19, in-lexique −13 à −21) : la declare assemblée override avec une lettre confiante mais fausse quand le son-consensus est lavé. Outil d'**honnêteté/pureté pendu uniquement**. Décision inchangée : **dictée / mot-entendu → garder `wp.get`** ; **pendu pur → cohort-board** (au prix mesuré de −19 pts). Toggle **OFF par défaut**, rien adopté en config de référence.
+Les chiffres ci-dessus (cohort-board 55,0/40,0 %, Δ −18,8) sont ceux de la **première implémentation SANS garde** — et c'était un **BUG**, pas le concept.
+
+**Diagnostic (instrumenté `_neoDbg`).** Tôt dans la partie la cohorte fait des milliers de mots → le consensus est lavé, l'argmax sort un phonème faible, mais `L2[phonème]` pique quand même → l'assemblée **override la cognition avec une lettre confiante mais fausse**. In-lexique, config optimale : OFF tire 413 fois à **97,8 %** ; ON-sans-garde tire **665** fois à **60,5 %**. D'où la chute (−18,8 OOV ; −13 à −21 in-lexique). **OFF-inerte vérifié** (OFF = baseline 97 % intact, aucun bug hors-toggle).
+
+**Fix (R66) — garde de pureté** `M_NEO_PHON_COHORT_PURITY` (défaut **0,5**) : ne retenir un phonème consensus que si ≥ cette fraction de la cohorte s'accorde (sinon `'_'` → l'assemblée passe la main à la cognition). Élimine l'override confiant-mais-faux. Mesure **post-garde** :
+
+| Cadre | vrai son (`wp.get`) | cohort-board + garde 0,5 | coût réel |
+|---|---|---|---|
+| in-lexique (config optimale) | 97,0 % | **97,0 %** | **~0 (parité)** |
+| hors-lexique (OOV, bench 80/300) | 73,8 % | **66,3 %** | **~7,5 pts** |
+
+**Verdict corrigé :** le vrai coût d'honnêteté est **~0 in-lexique, ~7,5 pts OOV** — *pas* −18,8 (c'était le bug). L'estimation ≈78 % était optimiste, mais la pureté pendu n'est **pas** chère une fois la garde posée. Avec la garde, le cohort-board est une **option pendu-pur viable** (cheat-free, perte minime). Décision : **dictée / mot-entendu → `wp.get`** (gratuit, légitime sous prémisse) ; **pendu pur → cohort-board + garde** (cheat-free, parité in-lexique, ~7,5 pts OOV). Toggle **OFF par défaut**, rien adopté en config de référence sans arbitrage explicite.
 
 ---
 
@@ -114,7 +125,7 @@ Soit ça marche, soit ça ferme l'incertitude par la mesure.
 
 ## 4. Synthèse priorisée
 1. **Communication** : toujours afficher le régime (« 97,5 % in-lexique, mot entendu » ; repères sans prémisse 70,7 % / 22 %).
-2. **g2p** : trancher l'une des 3 options (recommandé : 1 + libellé de régime ; ou 2 pour la pureté pendu, **coût mesuré −19 pts OOV — §1.1**). Option 2 déjà codée OFF-inerte (`M_NEO_PHON_COHORT_ENABLED`).
+2. **g2p** : trancher l'une des 3 options (recommandé : 1 + libellé de régime ; ou 2 pour la pureté pendu — **coût réel après garde : ~0 in-lexique / ~7,5 pts OOV, §1.1**). Option 2 codée OFF-inerte + garde de pureté (`M_NEO_PHON_COHORT_ENABLED` / `_PURITY`).
 3. **CI** : harnais seedé gardant 2-3 chiffres clés (anti-régression du monolithe).
 4. **M3_d** : tenter la masked-prediction, ou clore par `M3_D_BYPASS` + AUC.
 5. **Hygiène** : retirer le vestigial (`pairConv`…), réconcilier la doc miroir phon.

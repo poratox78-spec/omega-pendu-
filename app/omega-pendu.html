@@ -1230,11 +1230,11 @@ footer {
         <div class="toggle-desc">board-derived · élague les lettres impossibles</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. GARDE DE PURETÉ : ne tire que si ≥ seuil de la cohorte s'accorde sur le phonème (sinon la cognition décide) → évite l'override confiant-mais-faux. Mesuré : PARITÉ du vrai son in-lexique (97 %), coût OOV ~7 pts seulement. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔊 NEO · son board-dérivé (cohorte)</div>
-        <div class="toggle-desc">le son vient de la cohorte, pas du mot · cheat-free intégral</div>
+        <div class="toggle-desc">cheat-free · parité vrai-son in-lexique · garde pureté ≥ <input id="neo-phoncohort-purity" type="number" value="0.50" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_PURITY=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
       </div>
     </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
@@ -6100,6 +6100,7 @@ let M_NEO_G2P_EXP_ENABLED = false;          // EXP : g2p apprend SEULEMENT des p
 let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres fausses (0 = OFF)
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
+let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6136,8 +6137,8 @@ function _neoPhonCohort(){               // _al consensus : phonème dominant pa
   }
   if (!used) return null;
   const out = new Array(L);
-  for (let p = 0; p < L; p++) { let bk = '_', bv = -1; const a = acc[p]; for (const k in a) { if (a[k] > bv) { bv = a[k]; bk = k; } } out[p] = bk; }
-  return out;                            // out[p] = phonème consensus ('_'=muet) à la position p, board-dérivé
+  for (let p = 0; p < L; p++) { let bk = '_', bv = -1; const a = acc[p]; for (const k in a) { if (a[k] > bv) { bv = a[k]; bk = k; } } out[p] = (bv/used >= M_NEO_PHON_COHORT_PURITY) ? bk : '_'; }   // garde de pureté : consensus dispersé → '_' (assemblée skip → cognition décide), évite l'override confiant-mais-faux
+  return out;                            // out[p] = phonème consensus ('_'=muet/dispersé) à la position p, board-dérivé
 }
 let M_LEARN_FROM_COGNITION_ENABLED = false;   // fix bequille : apprenants <- lettre cognitive (pre-declare), pas la jouee
 var _DECL2 = (function () {
