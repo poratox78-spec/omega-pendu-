@@ -290,7 +290,7 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
 </tbody></table></div>
 
 <div class="callout"><span class="lbl">Lecture — la thèse d'intégration</span>
-(1) La fréquence pure donne ~22–23 % ; la config de référence cheat-free atteint <strong>~90 %</strong> sur la même tâche durcie : c'est <strong>l'intégration des modules</strong>, pas une route unique, qui produit la performance. (2) On part de ~2,6 % (début v7) : le gain vient du travail entre le 02/05 et le 31/05. (3) Le cheat-free (90 %, +declare 97,7 %) s'approche à quelques points du <strong>plafond oracle</strong> (98,7 %) <strong>sans lire le dictionnaire</strong> — c'est le résultat central. (4) Le 95 % de la config complète repose sur A2 (lookup lexical) : <em>performance, pas cognition.</em></div>
+(1) La fréquence pure donne ~22–23 % ; la config de référence cheat-free atteint <strong>~90 %</strong> sur la même tâche durcie : c'est <strong>l'intégration des modules</strong>, pas une route unique, qui produit la performance. (2) On part de ~2,6 % (début v7) : le gain vient du travail entre le 02/05 et le 31/05. (3) Le cheat-free (90 %, +declare NEO 97,5–98,8 %) s'approche à quelques points du <strong>plafond oracle</strong> (98,7 %) <strong>sans lire le dictionnaire</strong> — c'est le résultat central. (4) Le 95 % de la config complète repose sur A2 (lookup lexical) : <em>performance, pas cognition.</em></div>
 <div class="note"><strong>Note de régime — in-lexique vs hors-lexique.</strong> Les chiffres ci-dessus (97–98 %) sont en régime <em>in-lexique</em> (mot du dico, longueur connue, budget 6) : OMEGA y est au niveau des meilleurs solveurs lexicaux. <strong>Hors-lexique</strong> (mots retirés du dico, façon Trexquant — mesurable par le bouton <span class="ui">🎯 Trexquant</span>, <a class="x" href="#s8">§8</a>) : <strong>70,7 %</strong> via la cascade phon→ortho (le concept, le mot étant <em>entendu</em> — <code>w.p</code> légitime), <strong>22 %</strong> en ortho seul. Repères Trexquant (lettre-seule, sans son) : ~50 % baseline, ~65-68 % bons solveurs. Lecture honnête : <strong>excellent in-lexique</strong> ; <strong>bon hors-lexique via le concept phon→ortho</strong> (au-dessus des bons solveurs, mais en entendant le mot) ; <strong>faible en ortho pur</strong> — la généralisation sous-lexicale OOV reste le point faible (couche morpho à venir).</div>
 
 <h3>2.2 — Principes fondateurs (L01–L04)</h3>
@@ -533,15 +533,20 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
 <tr><td><span class="ui">Développeur / monitoring</span></td><td><strong>Smoke load</strong> · <strong>Smoke runtime (100 ticks)</strong> · <strong>Bench</strong> · <strong>Dump 14 canaux</strong> · <strong>Dump inventaire global</strong> · <strong>initOmegaGlobals()</strong></td><td>Non-régression, débit, inspection des canaux/état.</td></tr>
 </tbody></table></div>
 
-<h3>8.3 — Configuration de référence (cognition cheat-free)</h3>
-<p>Le preset exact mesuré le 31/05 (à activer dans <span class="ui">L01 ENHANCEMENTS</span>) :</p>
-<pre class="ascii">ON  : A4, A5, A6, M_VOIE_PHON, M_OS_V07, M4_PHON_USE_P,
+<h3>8.3 — Configuration de référence (cognition cheat-free) — MAJ 14/06/2026</h3>
+<p>Preset optimal <strong>re-mesuré sur le code courant</strong>, à activer dans <span class="ui">L01 ENHANCEMENTS</span> + <span class="ui">Declare NEO</span> :</p>
+<pre class="ascii">ON (cognition) : A4, A5, A6, M_VOIE_PHON, M_OS_V07, M4_PHON_USE_P,
       M_SUBSTRAT_ORTHO_PURE, M_PHON_FEEDBACK, M_BPC_M3D,
-      M_BPC_READOUT_COUPLE, M_PHON_READOUT_COUPLE,
-      M_PHON_CONCEPT_BIND, M_OS_LEARNING (+ ses 4 gardes)
-OFF : A1, A2, A3                 (triche grise / béquille)
+      M_BPC_READOUT_COUPLE, M_PHON_READOUT_COUPLE, M_PHON_CONCEPT_BIND,
+      M_OS_LEARNING (+ ses 4 gardes)   [M_OS_LEARNING_ONLINE OFF : mesuré sans gain + dérive]
+ON (declare NEO) : M_DECLARE_NEO, M_NEO_RECALL, M_NEO_ASSEMBLED,
+      M_NEO_COHORT, M_NEO_G2P_EXP (pén 0,5)   (muette/trigger OFF ; NEO_CONF 0,75, RECALL_MARGIN 0,20)
+OFF : A1, A2, A3                                (triche grise / béquille)
 À MESURER : L01_B2_MOBIUS, M_IG_SELECT, M_IG_PSUCCESS</pre>
-<p>Régime attendu : cognition ~90 % / err ~2,5 ; +declare 0,85 → ~97,7 % / err ~1,7.</p>
+<p><strong>Win rate mesuré</strong> (in-lexique, graine 12345, 120 mots, warmup 150) :
+cognition seule (base) 91,46 % (K=1) / 93,75 % (K=3) → <strong>+NEO (R+A+Cohorte) : 97,50 % (K=1) / 98,82 % (K=3)</strong> (4 graines × 120, harnais déterministe ; cf. notes NEO + §17). Cheat-free, niveau declare manuel.</p>
+<div class="note">⚠️ <strong>NEO était absent de l'ancien preset (31/05)</strong> : sans le déclareur NEO on plafonne à ~91-92 %. Le système NEO (recall + assemblé + cohorte) est ce qui amène la cognition cheat-free au niveau oracle. Aucun preset « 1 clic » dans l'UI : activer les bascules manuellement (panneaux L01 + Declare NEO). <strong>Repère couleur</strong> : bordure gauche <span style="color:#2ea043">verte</span> = config optimale (à activer) · <span style="color:#e5534b">rouge</span> = triche grise (A1/A2/A3, ne pas activer).</div>
+<div class="note">🧪 <strong>g2p révélé + pénalité (adopté 14/06)</strong> : la table phon→graphe (voie NEO assemblée) n'apprend désormais que des <strong>positions révélées</strong> du mot joué — l'expérience gagnée en partie — au lieu du mot complet en fin de partie (<code>learnExp</code> vs <code>learn</code>), avec une pénalité bornée (0,5) sur les lettres fausses essayées. Falsification mesurée : ancien g2p 98,9 % · révélé-seul sans pénalité 98,3 % · <strong>révélé-seul + pénalité 0,5 = 98,9 %</strong> (= ancien). L'ancien ne trichait pas de façon mesurable, mais le nouveau est doctrinalement plus propre (n'absorbe pas l'orthographe entière) sans coût → adopté dans la config de référence.</div>
 
 <h3>8.4 — Procédure de mesure (réplicable)</h3>
 <ol>
@@ -731,10 +736,11 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 <tr><td><code>M_NEO_RECALL_ENABLED</code> <span class="ui">🔁 NEO · recall</span></td><td>ON*</td><td>Adressée : recall VSA depuis le board <strong>révélé</strong> + banc des mots vécus. 100&nbsp;% sur vocab répété, inerte sur mot neuf.</td></tr>
 <tr><td><code>M_NEO_ASSEMBLED_ENABLED</code> <span class="ui">🧬 NEO · assemblé</span></td><td>ON*</td><td>phon→ortho <strong>masqué</strong> : décode les positions sonores via <code>L2[phonème]</code>. <code>w.p</code> légitime, align masqué (graphème caché → UNI). Généralise au mot neuf.</td></tr>
 <tr><td><code>M_NEO_COHORT_ENABLED</code> <span class="ui">🎯 NEO · cohorte</span></td><td>OFF</td><td>Filtre board-derived : n'autorise une lettre que si ≥1 mot compatible avec le motif révélé la porte. Élague les ratés.</td></tr>
+<tr><td><code>M_NEO_G2P_EXP_ENABLED</code> <span class="ui">🧪 NEO · g2p révélé + pénalité</span></td><td>OFF</td><td>Apprend la table phon→graphe (voie assemblée) des <strong>positions révélées seules</strong> + pénalité bornée (<code>M_NEO_G2P_EXP_PEN</code> 0,5) sur lettres fausses, au lieu du mot complet (<code>learnExp</code> vs <code>learn</code>). Cheat-free strict ; mesuré = niveau de l'ancien g2p (98,9 %).</td></tr>
 <tr><td><code>M_NEO_MUTE_ENABLED</code> <span class="ui">🔇 NEO · muette</span></td><td>OFF</td><td>Par le son : positions muettes prédites par phonogramme <strong>croisé (jointe)</strong> phonème-tête × offset × voisins révélés.</td></tr>
 <tr><td><code>M_NEO_TRIGGER_ENABLED</code> <span class="ui">🎚️ NEO · trigger</span></td><td>OFF</td><td>(B) : la muette n'override que si la cognition est incertaine (<code>M5_d.output.gap &lt; 0,005</code>).</td></tr>
 </tbody></table></div>
-<p class="note tech">* sous-flags actifs uniquement si le maître est ON. Paramètres numériques (<code>NEO_CONF</code> 0,75 · <code>MUTE_CONF</code> 0,85 · <code>TRIGGER_GAP</code> 0,005 · <code>RECALL_MARGIN</code> 0,20) aux défauts mesurés, pas encore pilotables en UI.</p>
+<p class="note tech">* sous-flags actifs uniquement si le maître est ON. Paramètres numériques (<code>NEO_CONF</code> 0,75 · <code>MUTE_CONF</code> 0,85 · <code>TRIGGER_GAP</code> 0,005 · <code>RECALL_MARGIN</code> 0,20) aux défauts mesurés, pas encore pilotables en UI ; <code>M_NEO_G2P_EXP_PEN</code> (0,5) est pilotable (champ « pén » du toggle g2p révélé).</p>
 
 <h3>17.2 — Cheat-free (vérifié ligne par ligne)</h3>
 <div class="tablewrap"><table>
@@ -780,11 +786,26 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 </section>
 
 <div class="foot">
-<p><strong>OMEGA-Ω — rapport de référence &amp; mode d'emploi.</strong> Consolidation de trois itérations (vulgarisation 01/06, audit boucles 01/06, rapport v0.07) par Claude (Anthropic), direction Rem. Instantané au 03/06/2026, build <code>phase47</code> (declare NEO + mode Trexquant ajoutés — <a class="x" href="#s17">§17</a>). Convention <span class="chip c-mes">mesuré</span>/<span class="chip c-des">design</span>/<span class="chip c-hyp">hypothèse</span>/<span class="chip c-exc">exclu</span>. Chaque interrupteur cité porte son nom UI. Doctrine : cap §43 strict · R66 (mesure avant activation) · cognition &gt; oracle.</p>
+<p><strong>OMEGA-Ω — rapport de référence &amp; mode d'emploi.</strong> Consolidation de trois itérations (vulgarisation 01/06, audit boucles 01/06, rapport v0.07) par Claude (Anthropic), direction Rem. Instantané au 03/06/2026 — addendum 14/06/2026 : application dérivée = dictée diagnostique (dys), voir dictee/ ; déploiement = lexique embarqué compressé (gzip+base64, navigateur ≥ 2023), build <code>phase47</code> (declare NEO + mode Trexquant ajoutés — <a class="x" href="#s17">§17</a>). Convention <span class="chip c-mes">mesuré</span>/<span class="chip c-des">design</span>/<span class="chip c-hyp">hypothèse</span>/<span class="chip c-exc">exclu</span>. Chaque interrupteur cité porte son nom UI. Doctrine : cap §43 strict · R66 (mesure avant activation) · cognition &gt; oracle.</p>
 <p style="font-size:.78rem;color:var(--ink-soft)"><em>Noms UI, libellés de boutons, panneaux et défauts au boot <strong>vérifiés sur le build <code>phase45</code></strong> (tooltips inclus) ; les 6 toggles <code>NEO</code> vérifiés sur <code>phase46</code> (<a class="x" href="#s17">§17</a>). Restent indicatifs (depuis docs/mémoire, non re-vérifiés ligne-à-ligne) : le mapping des <code>F-codes</code> internes et le détail des constantes. Les chiffres mesurés sont datés et sourcés.</em></p>
 </div>
 
 </div><!-- /doc -->
+<section id="s18">
+<h2><span class="hn">18</span>Dictée diagnostique (application dys)</h2>
+<p><strong>Objectif.</strong> Application dérivée ciblant les <strong>troubles de l'écrit (dys)</strong>, bâtie sur la <strong>double route</strong> phon↔ortho du moteur. Le moteur diagnostique <em>le type</em> de chaque faute d'orthographe et oriente l'entraînement. Détails &amp; mesures reproductibles dans <code>dictee/</code> (JOURNAL, README, AUDIT, EXP_M3D_FALSIFIE).</p>
+<p><strong>Cadre = dictée de PHRASES.</strong> Mesuré : sur des mots isolés, <strong>84&nbsp;%</strong> des mots ont des homophones (surtout flexionnels) → indécidables au son seul. La phrase fournit le <strong>contexte</strong> : le mot cible étant connu, <strong>homophones et accords deviennent des erreurs gradables</strong> — <em>sans</em> M3_d (l'expérience « M3_d désambiguïse les homophones » a été <strong>falsifiée au design</strong> : M3_d encode l'ortho/le son, aucune entrée sens/contexte ; cf. <code>dictee/EXP_M3D_FALSIFIE.md</code>).</p>
+<p><strong>Familles d'erreurs</strong> (typologie dysorthographique : phonologique · lexicale-surface · sémantique/morpho), multi-étiquette :</p>
+<ul>
+<li><strong>accent</strong> (é/è/ê) · <strong>voisée/sourde</strong> (p·b, t·d, k·g, f·v, s·z) · <strong>inversion</strong> · <strong>lettre muette</strong> · <strong>lettre en trop</strong></li>
+<li><strong>homophone</strong> (graphie homophone fausse) · <strong>accord</strong> (homophone flexionnel tranché par le contexte) · <strong>surface</strong> (graphie « plausible mais fausse » détectée par un normaliseur phonétique : <em>leson→leçon</em>, <em>bato→bateau</em>)</li>
+<li><strong>omission / mot en trop</strong> (alignement Levenshtein des mots cible vs élève)</li>
+</ul>
+<p><strong>Remédiation.</strong> Profil d'erreurs persistant (par famille) ; la sélection des phrases <strong>cible en priorité la famille la plus ratée</strong> (« on travaille : accord »). On ne se contente pas de diagnostiquer : on oriente l'entraînement.</p>
+<p><strong>UI.</strong> Panneau <strong>additif OFF-inerte</strong> (IIFE — n'altère pas le moteur pendu ; baseline intacte, doctrine R66) : bouton <span class="ui">✍️ Dictée diag</span> (bas-droite) → choix de difficulté, <strong>dictée vocale</strong> (synthèse fr-FR), saisie de la phrase, <strong>feedback par mot</strong> coloré par famille + correction révélée, profil + réinitialisation.</p>
+<p><strong>Données.</strong> <strong>Lexique 4</strong> (New et al. 2026, lexique.org, CC BY-SA 4.0) : 30 phrases graduées (<code>dictee/sentences.json</code>) + index homophones plein (43&nbsp;580 groupes). <strong>Mesuré</strong> (synthétique, 30 phrases) : rappel <strong>100&nbsp;%</strong> sur accent/accord/homophone/omission, surface <strong>17/17</strong>.</p>
+<p class="tech"><strong>Limites (honnêtes).</strong> Validation encore <strong>synthétique/partiellement circulaire</strong> — pas de copies d'élèves réelles (validation terrain orthophonistes = à faire). Normaliseur « surface » approximatif (nasales, <em>femme</em> non couverts). Morphosyntaxe limitée aux accords détectables par comparaison à la cible.</p>
+</section>
 </main>
 </div><!-- /wrap -->
 

@@ -1,0 +1,301 @@
+mot	phono	ipa	cgram	nblettres	nbphons	syll	freq	preval	difficulte	labels	homophones	confus_vs
+abruti	abRyti	abʁyti	ADJ	6	6	3	22.035	96.0	facile	homophone	abrutie abruties abrutis abrutit	
+admettons	admEt§	admɛtɔ̃	VER	9	6	3	3.778	100.0	facile	muette		
+affreux	afR2	afʁø	NOM	7	4	2	21.848	100.0	facile	muette		
+aidiez	Edje	ɛdje	VER	6	4	2	3.044	100.0	facile	muette		
+aimiez	Emje	ɛmje	VER	6	4	2	8.019	100.0	facile	muette		
+amenée	am°ne	aməne	NOM	6	5	3	9.082	96.0	facile	homophone;accent	amener amenez amenées amenés	
+apprendre	apR@dR	apʁɑ̃dʁ	VER	9	6	2	108.051	100.0	facile	muette		
+apprenez	apR°ne	apʁəne	VER	8	6	3	6.266	100.0	facile	muette		
+arrêtez	aREte	aʁɛte	VER	7	5	3	158.541	96.0	facile	muette;accent		
+arrêtiez	aREtje	aʁɛtje	VER	8	6	3	2.405	96.0	facile	muette;accent		
+assistance	asist@s	asistɑ̃s	NOM	10	7	3	7.345	96.0	facile	homophone;muette	assistances	
+audition	odisj§	odisjɔ̃	NOM	8	6	3	13.187	100.0	facile	muette		
+auditions	Oditj§	ɔditjɔ̃	VER	9	6	3	3.383	100.0	facile	muette		
+autopsie	otOpsi	otɔpsi	NOM	8	6	3	14.5	96.0	facile	homophone;muette	autopsient autopsies	
+barré	baRe	baʁe	VER	5	4	2	4.75	100.0	facile	homophone;accent;voisee_sourde	barai barrer barrez barrée	b→p (parer)
+battus	baty	baty	NOM	6	4	2	9.275	96.0	facile	homophone;muette;voisee_sourde	battu battue battues	b→p (pattu)
+bientôt	bj5to	bjɛ̃to	ADV	7	5	2	168.171	0.0	facile	muette		
+blessant	blEs@	blɛsɑ̃	ADJ	8	5	2	2.209	100.0	facile	homophone;muette	blessants	
+blocage	blokaZ	blokaʒ	NOM	7	6	2	2.63	100.0	facile	homophone	blocages	
+blouse	bluz	bluz	NOM	6	4	1	4.342	95.0	facile	homophone;muette	blousent blouses blues	
+bourgeois	buRZwa	buʁʒwa	ADJ	9	6	2	2.937	95.0	facile	muette		
+bourgeois	buRZwa	buʁʒwa	NOM	9	6	2	2.937	95.0	facile	muette		
+bâti	bati	bati	ADJ	4	4	2	4.5	100.0	facile	homophone;voisee_sourde	basti battis battit bâtie	b→p (pâti)
+chaleureux	Sal2R2	ʃaløʁø	ADJ	10	6	3	3.88	100.0	facile	muette		
+comment	kom@	komɑ̃	ONO	7	4	2	1649.228	82.0	facile	muette;voisee_sourde		k→g (gommant)
+comment	kom@	komɑ̃	NOM	7	4	2	1649.228	82.0	facile	muette;voisee_sourde		k→g (gommant)
+conduire	k§d8iR	kɔ̃dɥiʁ	VER	8	6	2	60.449	100.0	facile	muette		
+congélateur	k§Zelat9R	kɔ̃ʒelatœʁ	NOM	11	9	4	3.215	100.0	facile	homophone;muette;accent	congélateurs	
+connaissez	konEse	konɛse	VER	10	6	3	115.079	93.0	facile	muette		
+construire	k§stR8iR	kɔ̃stʁɥiʁ	VER	10	8	2	28.557	100.0	facile	muette		
+conséquence	k§sek@s	kɔ̃sekɑ̃s	NOM	11	7	3	6.604	100.0	facile	homophone;muette;accent	conséquences	
+courir	kuRiR	kuʁiʁ	VER	6	5	2	44.81	100.0	facile			
+cuisiner	k8izine	kɥizine	VER	8	7	3	15.028	100.0	facile	homophone	cuisinez cuisiné cuisinée cuisinées	
+câlin	kal5	kalɛ̃	ADJ	5	4	2	11.437	100.0	facile	homophone	calin calins câlins	
+descendons	des@d§	desɑ̃dɔ̃	VER	10	6	3	2.614	100.0	facile	muette		
+descendre	des@dR	desɑ̃dʁ	VER	9	6	2	49.589	100.0	facile	muette;voisee_sourde		d→t (décentre)
+deviez	d°vje	dəvje	VER	6	5	2	15.696	95.0	facile			
+devions	d°vj§	dəvjɔ̃	VER	7	5	2	7.199	95.0	facile	muette		
+devons	d°v§	dəvɔ̃	NOM	6	4	2	148.997	95.0	facile	muette		
+direz	diRe	diʁe	VER	5	4	2	13.43	100.0	facile	voisee_sourde		d→t (tirer)
+diriges	diRiZ	diʁiʒ	VER	7	5	2	2.18	100.0	facile	homophone;muette	dirige dirigent	
+disiez	dizje	dizje	VER	6	5	2	22.959	100.0	facile			
+disparaissez	dispaREse	dispaʁɛse	VER	12	9	4	2.294	100.0	facile	muette		
+distraire	distRER	distʁɛʁ	VER	9	7	2	8.111	95.0	facile	muette		
+divertir	divERtiR	divɛʁtiʁ	VER	8	8	3	3.304	100.0	facile			
+donniez	donje	donje	VER	7	5	2	3.335	96.0	facile	muette;voisee_sourde		d→t (thonier)
+décevant	dEs°v@	dɛsəvɑ̃	VER	8	6	3	2.867	100.0	facile	muette;accent		
+décrire	dekRiR	dekʁiʁ	VER	7	6	2	11.994	100.0	facile	accent		
+décès	desE	desɛ	NOM	5	4	2	17.573	100.0	facile	accent		
+défendez	def@de	defɑ̃de	VER	8	6	3	2.38	100.0	facile	muette;accent		
+délicieux	delisj2	delisjø	ADJ	9	7	3	27.604	100.0	facile	muette;accent		
+délires	deliR	deliʁ	VER	7	5	2	4.304	95.0	facile	homophone;muette;accent	délire délirent	
+dépendre	dep@dR	depɑ̃dʁ	VER	8	6	2	2.028	100.0	facile	muette;accent		
+dépourvu	depuRvy	depuʁvy	ADJ	8	7	3	2.408	100.0	facile	homophone;accent	dépourvue dépourvues dépourvus dépourvut	
+dépêchons	depES§	depɛʃɔ̃	VER	9	6	3	5.978	100.0	facile	muette;accent		
+détendre	det@dR	detɑ̃dʁ	VER	8	6	2	14.68	100.0	facile	muette;accent		
+détruire	detR8iR	detʁɥiʁ	VER	8	7	2	55.127	100.0	facile	accent		
+effondré	ef§dRe	efɔ̃dʁe	VER	8	6	3	4.354	100.0	facile	homophone;muette;accent	effondrer effondrez effondrée effondrées	
+endurance	@dyR@s	ɑ̃dyʁɑ̃s	NOM	9	6	3	2.104	100.0	facile	muette		
+engager	@gaZe	ɑ̃gaʒe	VER	7	5	3	21.481	95.0	facile	homophone;muette;voisee_sourde	engagez engagé engagée engagées	g→k (encager)
+envers	@vER	ɑ̃vɛʁ	NOM	6	4	2	52.646	91.0	facile	muette;voisee_sourde		v→f (enfer)
+excès	EksE	ɛksɛ	NOM	5	4	2	5.741	100.0	facile	accent		
+exposé	Ekspoze	ɛkspoze	NOM	6	7	3	10.231	100.0	facile	homophone;accent	exposer exposez exposée exposées	
+fallait	falE	falɛ	VER	7	4	2	83.278	91.0	facile	muette;voisee_sourde		f→v (valaient)
+faudra	fodRa	fodʁa	VER	6	5	2	59.535	91.0	facile	voisee_sourde		f→v (vaudra)
+fichons	fiS§	fiʃɔ̃	VER	7	4	2	2.133	95.0	facile	muette		
+fichus	fiSy	fiʃy	NOM	6	4	2	3.5	95.0	facile	homophone;muette	fichu fichue fichues	
+finissez	finise	finise	VER	8	6	3	5.247	100.0	facile	muette		
+furieux	fyRj2	fyʁjø	ADJ	7	5	2	17.259	100.0	facile	muette		
+furieux	fyRj2	fyʁjø	NOM	7	5	2	17.259	100.0	facile	muette		
+février	fevRije	fevʁije	NOM	7	7	3	7.896	100.0	facile	accent		
+gagnerai	gaN°RE	gaɲəʁɛ	VER	8	6	3	2.491	100.0	facile	homophone;muette	gagneraient gagnerais gagnerait	
+gras	gRa	gʁa	ADJ	4	3	1	10.582	100.0	facile	voisee_sourde		g→k (cra)
+gras	gRa	gʁa	NOM	4	3	1	10.582	100.0	facile	voisee_sourde		g→k (cra)
+gras	gRa	gʁa	ADV	4	3	1	10.582	100.0	facile	voisee_sourde		g→k (cra)
+grincheux	gR5S2	gʁɛ̃ʃø	ADJ	9	5	2	3.756	100.0	facile	muette		
+guerres	gER	gɛʁ	NOM	7	3	1	7.057	100.0	facile	homophone;muette;voisee_sourde	guerre guère guères	g→k (querre)
+guide	gid	gid	NOM	5	3	1	16.937	100.0	facile	homophone;muette;voisee_sourde	guident guides	g→k (kid)
+habituée	abit8e	abitɥe	NOM	8	6	3	4.785	95.0	facile	homophone;muette;accent	habituer habitué habituées habitués	
+humilité	ymilite	ymilite	NOM	8	7	4	2.763	100.0	facile	accent		
+idéaux	ideo	ideo	ADJ	6	4	3	2.623	95.0	facile	muette;accent		
+illégaux	ilego	ilego	ADJ	8	5	3	2.465	100.0	facile	muette;accent		
+ingénieux	5Zenj2	ɛ̃ʒenjø	ADJ	9	6	3	2.854	100.0	facile	muette;accent		
+intello	5tlo	ɛ̃tlo	ADJ	7	4	2	3.127	100.0	facile	muette		
+intentions	5t@tj§	ɛ̃tɑ̃tjɔ̃	VER	10	6	3	11.361	100.0	facile	muette		
+interrompre	5tER§pR	ɛ̃tɛʁɔ̃pʁ	VER	11	7	3	15.915	100.0	facile	muette		
+joli	ZOli	ʒɔli	NOM	4	4	2	83.367	100.0	facile			
+labo	labo	labo	NOM	4	4	2	40.554	95.0	facile	homophone	labos	
+langue	l@g	lɑ̃g	NOM	6	3	1	44.706	100.0	facile	homophone;muette	langues	
+lisant	liz@	lizɑ̃	VER	6	4	2	3.206	100.0	facile	muette;voisee_sourde		z→s (lissant)
+lève	lEv	lɛv	VER	4	3	1	50.437	100.0	facile	homophone;accent	lev levs lèvent lèves	
+maintenant	m5t°n@	mɛ̃tənɑ̃	ADV	10	6	3	1299.687	100.0	facile	muette		
+maintenant	m5tna	mɛ̃tna	NOM	10	5	2	1299.687	100.0	facile	muette		
+mauvais	movE	movɛ	NOM	7	4	2	164.538	100.0	facile	muette		
+module	modyl	modyl	VER	6	5	2	4.674	100.0	facile	homophone	modulent modules	
+mon	m§	mɔ̃	PRO:pos	3	2	1	3717.418	0.0	facile	homophone	mont monts	
+monastère	monastER	monastɛʁ	NOM	9	8	3	3.642	100.0	facile	homophone;accent	monastères	
+mystérieux	misteRj2	misteʁjø	ADJ	10	8	3	11.165	95.0	facile	muette;accent		
+métal	metal	metal	NOM	5	5	2	14.652	100.0	facile	accent		
+métaux	meto	meto	NOM	6	4	2	2.652	100.0	facile	muette;accent		
+notre	nOtR	nɔtʁ	PRO:pos	5	4	1	1052.763	0.0	facile			
+objections	ObZEktj§	ɔbʒɛktjɔ̃	VER	10	8	3	2.263	100.0	facile	muette		
+observateur	opsERvat9R	opsɛʁvatœʁ	ADJ	11	10	4	3.259	95.0	facile	homophone	observateurs	
+obéissance	obeis@s	obeisɑ̃s	NOM	10	7	4	2.035	96.0	facile	muette;accent		
+obéissez	obeise	obeise	VER	8	6	4	3.259	100.0	facile	muette;accent		
+octobre	OktObR	ɔktɔbʁ	NOM	7	6	2	11.813	96.0	facile			
+options	opsj§	opsjɔ̃	NOM	7	5	2	13.117	100.0	facile	muette		
+origine	ORiZin	ɔʁiʒin	PRO:per	7	6	3	22.636	100.0	facile			
+ouvrons	uvR§	uvʁɔ̃	VER	7	4	2	2.839	96.0	facile	muette		
+paresseux	paREs2	paʁɛsø	ADJ	9	6	3	4.699	95.0	facile	muette		
+parles	paRl	paʁl	VER	6	4	1	149.348	100.0	facile	homophone;muette	parle parlent	
+parvenir	paRv°niR	paʁvəniʁ	VER	8	8	3	6.149	100.0	facile			
+pause	pOz	pɔz	VER	5	3	1	42.75	100.0	facile	muette		
+peuvent	p9v	pœv	VER	7	3	1	152.829	95.0	facile	muette;voisee_sourde		v→f (puff)
+plaire	plER	plɛʁ	VER	6	4	1	13.845	95.0	facile	muette;voisee_sourde		p→b (blair)
+plane	plan	plan	VER	5	4	1	2.687	100.0	facile	homophone	planent planes	
+pote	pOt	pɔt	NOM	4	3	1	90.117	95.0	facile	homophone;voisee_sourde	potes putts	p→b (boat)
+pourriez	puRje	puʁje	VER	8	5	2	95.601	95.0	facile	muette;voisee_sourde		p→b (bourriez)
+pouvez	puve	puve	VER	6	4	2	437.481	95.0	facile	muette;voisee_sourde		v→f (pouffer)
+pouviez	puvje	puvje	VER	7	5	2	24.146	95.0	facile	muette;voisee_sourde		p→b (bouvier)
+prendrez	pR@dRe	pʁɑ̃dʁe	VER	8	6	2	6.256	95.0	facile	muette		
+prenez	pR°ne	pʁəne	VER	6	5	2	157.769	95.0	facile			
+processus	pRosesys	pʁosesys	NOM	9	8	3	15.589	100.0	facile			
+provenant	pRov°n@	pʁovənɑ̃	VER	9	7	3	5.589	95.0	facile	muette		
+précis	pResi	pʁesi	ADJ	6	5	2	20.108	100.0	facile	accent		
+précis	pResi	pʁesi	NOM	6	5	2	20.108	100.0	facile	accent		
+prévoir	pRevwaR	pʁevwaʁ	VER	7	7	2	7.744	100.0	facile	accent		
+prêtez	pREte	pʁɛte	VER	6	5	2	2.133	100.0	facile	accent		
+psychiatrie	psikjatRi	psikjatʁi	NOM	11	9	3	2.509	100.0	facile	muette		
+puissiez	p8isje	pɥisje	VER	8	6	2	10.842	95.0	facile	muette;voisee_sourde		s→z (puisiez)
+puissions	p8isj§	pɥisjɔ̃	VER	9	6	2	7.506	95.0	facile	muette;voisee_sourde		s→z (puisions)
+put	py	py	VER	3	2	1	4.025	95.0	facile	homophone;voisee_sourde	pu pue puent pues	p→b (bu)
+pénis	penis	penis	NOM	5	5	2	16.623	95.0	facile	accent;voisee_sourde		p→b (bénisse)
+quais	ke	ke	NOM	5	2	1	3.168	100.0	facile	muette;voisee_sourde		k→g (gaies)
+quatre	katR	katʁ	ADJ:num	6	4	1	157.677	100.0	facile	muette;voisee_sourde		t→d (cadre)
+radin	Rad5	ʁadɛ̃	NOM	5	4	2	3.174	96.0	facile	homophone	radins	
+rapidité	Rapidite	ʁapidite	NOM	8	8	4	2.079	100.0	facile	accent		
+reconstruire	R°k§stR8iR	ʁəkɔ̃stʁɥiʁ	VER	12	10	3	5.082	100.0	facile	muette		
+redire	R°diR	ʁədiʁ	VER	6	5	2	3.354	95.0	facile	voisee_sourde		d→t (retire)
+regardons	R°gaRd§	ʁəgaʁdɔ̃	VER	9	7	3	8.386	96.0	facile	muette		
+remplissez	R@plise	ʁɑ̃plise	VER	10	7	3	3.769	100.0	facile	muette		
+rencontrons	R@k§tR§	ʁɑ̃kɔ̃tʁɔ̃	VER	11	7	3	2.392	100.0	facile	muette		
+rentrons	R@tR§	ʁɑ̃tʁɔ̃	VER	8	5	2	15.203	95.0	facile	muette;voisee_sourde		t→d (rendrons)
+reprennent	R°pREn	ʁəpʁɛn	VER	10	6	2	2.12	100.0	facile	homophone;muette	reprenne reprennes	
+reproduira	R°pRod8iRa	ʁəpʁodɥiʁa	VER	10	10	4	4.5	95.0	facile			
+reverrez	R°vERe	ʁəvɛʁe	VER	8	6	3	2.342	100.0	facile	muette;voisee_sourde		v→f (referrai)
+revoir	R°vwaR	ʁəvwaʁ	VER	6	6	2	264.199	96.0	facile	voisee_sourde		v→f (refoire)
+réglée	Regle	ʁegle	ADJ	6	5	2	3.313	100.0	facile	homophone;accent	régler réglez réglè réglé	
+répondre	Rep§dR	ʁepɔ̃dʁ	VER	8	6	2	65.772	100.0	facile	muette;accent		
+réveil	RevEj	ʁevɛj	NOM	6	5	2	14.285	100.0	facile	homophone;accent	réveille réveillent réveilles réveils	
+révélé	Revele	ʁevele	VER	6	6	3	9.892	100.0	facile	homophone;accent	revéler revélé revélés révéler	
+sainteté	s5tte	sɛ̃tte	NOM	8	5	2	4.601	95.0	facile	homophone;muette;accent	saintetés	
+savant	sav@	savɑ̃	ADJ	6	4	2	3.316	95.0	facile	homophone;muette	savants	
+section	seksj§	seksjɔ̃	NOM	7	6	2	20.184	95.0	facile	homophone	sections	
+serions	s°Rj§	səʁjɔ̃	AUX	7	5	2	10.715	100.0	facile	muette		
+silencieux	sil@sj2	silɑ̃sjø	ADJ	10	7	3	11.924	95.0	facile	muette		
+sinon	sin§	sinɔ̃	ADV	5	4	2	116.918	0.0	facile			
+sobriété	sobRijete	sobʁijete	NOM	8	9	4	2.013	100.0	facile	accent		
+solidarité	solidaRite	solidaʁite	NOM	10	10	5	2.519	100.0	facile	accent		
+sournois	suRnwa	suʁnwa	NOM	8	6	2	3.339	96.0	facile	muette		
+supérieur	sypeRj9R	sypeʁjœʁ	ADJ	9	8	3	18.022	100.0	facile	homophone;accent	supérieure supérieures supérieurs	
+surfer	s9Rfe	sœʁfe	VER	6	5	2	3.291	100.0	facile	homophone	surfez surfé surfée	
+systèmes	sistEm	sistɛm	NOM	8	6	2	13.579	100.0	facile	homophone;muette;accent	system systems système	
+séparons	sepaR§	sepaʁɔ̃	VER	8	6	3	2.481	100.0	facile	muette;accent		
+tantôt	t@to	tɑ̃to	NOM	6	4	2	3.199	95.0	facile	muette;voisee_sourde		t→d (dentaux)
+tellement	tEl°m@	tɛləmɑ̃	ADV	9	6	3	257.275	0.0	facile	muette		
+teniez	t°nje	tənje	VER	6	5	2	2.184	100.0	facile	voisee_sourde		t→d (denier)
+tolérance	toleR@s	toleʁɑ̃s	NOM	9	7	3	3.165	95.0	facile	muette;accent		
+traduire	tRad8iR	tʁadɥiʁ	VER	8	7	2	4.598	100.0	facile			
+traînée	tRene	tʁene	NOM	7	5	2	8.797	95.0	facile	homophone;muette;accent;voisee_sourde	trainer trainez trainé trainée	t→d (drainer)
+triple	tRipl	tʁipl	NOM	6	5	1	7.794	100.0	facile	homophone	triplent triples	
+trois	tRwa	tʁwa	ADJ:num	5	4	1	406.766	0.0	facile	voisee_sourde		t→d (droit)
+trois	tRwa	tʁwa	NOM	5	4	1	406.766	0.0	facile	voisee_sourde		t→d (droit)
+troublée	tRuble	tʁuble	ADJ	8	6	2	2.491	100.0	facile	homophone;muette;accent	troubler troublez troublé troublées	
+trouverez	tRuv°Re	tʁuvəʁe	VER	9	7	3	18.617	100.0	facile	muette		
+utérus	yteRys	yteʁys	NOM	6	6	3	4.943	95.0	facile	accent		
+vais	vE	vɛ	VER	4	2	1	1713.101	100.0	facile	homophone;muette;voisee_sourde	vest vêt vêts	v→f (fais)
+vendez	v@de	vɑ̃de	VER	6	4	2	6.468	95.0	facile	muette;voisee_sourde		v→f (fendez)
+venons	v°n§	vənɔ̃	VER	6	4	2	16.266	100.0	facile	muette		
+veulent	v9l	vœl	VER	7	3	1	138.066	94.0	facile	muette;voisee_sourde		v→f (feule)
+vides	vid	vid	ADJ	5	3	1	12.203	100.0	facile	homophone;muette;voisee_sourde	vide vident	d→t (vite)
+vieillir	vjejiR	vjejiʁ	VER	8	6	2	4.383	100.0	facile	muette		
+vieux	vj2	vjø	NOM	5	3	1	241.025	100.0	facile	muette;voisee_sourde		v→f (fieu)
+violé	vjole	vjole	VER	5	5	2	11.092	100.0	facile	homophone;accent	violer violez violée violées	
+vouliez	vulje	vulje	VER	7	5	2	51.573	94.0	facile	muette;voisee_sourde		v→f (fouliez)
+vouloir	vulwaR	vulwaʁ	VER	7	6	2	86.747	94.0	facile	voisee_sourde		v→f (fouloir)
+écoutant	ekut@	ekutɑ̃	VER	8	5	3	3.095	95.0	facile	muette;accent;voisee_sourde		k→g (égouttant)
+écrire	ekRiR	ekʁiʁ	VER	6	5	2	71.807	96.0	facile	accent;voisee_sourde		k→g (aigrir)
+épais	epE	epɛ	ADV	5	3	2	5.25	100.0	facile	muette;accent		
+épées	epe	epe	NOM	5	3	2	3.908	95.0	facile	homophone;muette;accent	épée	
+éteignez	etENe	etɛɲe	VER	8	5	3	5.604	100.0	facile	muette;accent		
+éteindre	et5dR	etɛ̃dʁ	VER	8	5	2	15.75	100.0	facile	muette;accent		
+éteintes	et5t	etɛ̃t	VER	8	4	2	2.098	100.0	facile	homophone;muette;accent	éteinte	
+étendre	et@dR	etɑ̃dʁ	VER	7	5	2	5.222	100.0	facile	muette;accent		
+étions	etj§	etjɔ̃	VER	6	4	2	67.411	100.0	facile	muette;accent		
+étions	etj§	etjɔ̃	AUX	6	4	2	67.411	100.0	facile	muette;accent		
+évanouir	evanuiR	evanuiʁ	VER	8	7	4	4.608	100.0	facile	accent		
+évoque	evOk	evɔk	VER	6	4	2	2.873	100.0	facile	homophone;muette;accent	évoquent évoques	
+alphonse	alf§s	alfɔ̃s	NOM	8	5	2	2.136	0.0	difficile	muette		
+argh	aERZeaS	aɛʁʒeaʃ	NOM	4	7	4	2.655	0.0	difficile			
+artefact	aRtefakt	aʁtefakt	NOM	8	8	3	2.259	80.0	moyen	homophone	artefacts artéfact artéfacts	
+assises	asiz	asiz	NOM	7	4	2	2.323	90.0	moyen	homophone;muette;voisee_sourde	assise	z→s (assisse)
+assurément	asyRem@	asyʁemɑ̃	ADV	10	7	4	3.642	0.0	difficile	muette;accent		
+auprès	opRE	opʁɛ	PRE	6	4	2	29.022	0.0	moyen	muette;accent		
+best	bEst	bɛst	NOM	4	4	1	2.544	71.0	difficile	voisee_sourde		b→p (peste)
+brièvement	bRijEv°m@	bʁijɛvəmɑ̃	ADV	10	9	4	2.671	0.0	difficile	accent		
+bêtement	bEt°m@	bɛtəmɑ̃	ADV	8	6	3	2.516	0.0	difficile	muette;accent		
+chronique	kRonik	kʁonik	ADJ	9	6	2	3.797	93.0	moyen	homophone;muette	chroniques	
+city	siti	siti	NOM	4	4	2	20.373	81.0	moyen	voisee_sourde		t→d (sidi)
+commettre	komEtR	komɛtʁ	VER	9	6	2	8.978	94.0	moyen	muette		
+connaissant	konEs@	konɛsɑ̃	VER	11	6	3	3.924	93.0	moyen	muette		
+connaissons	konEs§	konɛsɔ̃	VER	11	6	3	10.725	93.0	moyen	muette		
+considérant	k§sideR@	kɔ̃sideʁɑ̃	VER	11	8	4	3.184	89.0	moyen	muette;accent		
+cora	koRa	koʁa	NOM	4	4	2	3.237	9.0	difficile	voisee_sourde		k→g (gaura)
+country	kuntRi	kuntʁi	NOM	7	6	2	6.291	76.0	moyen			
+croira	kRwaRa	kʁwaʁa	VER	6	6	2	7.196	94.0	moyen	homophone	croiras	
+cupidité	kypidite	kypidite	NOM	8	8	4	2.193	90.0	moyen	accent		
+del	dEl	dɛl	NOM	3	3	1	6.016	0.0	moyen	voisee_sourde		d→t (tel)
+dom	d§	dɔ̃	NOM	3	2	1	4.766	0.0	difficile	homophone;voisee_sourde	doms don dons dont	d→t (thon)
+ducon	dyk§	dykɔ̃	NOM	5	4	2	4.209	45.0	difficile	voisee_sourde		k→g (dugong)
+duquel	dykEl	dykɛl	PRO:rel	6	5	2	2.222	0.0	difficile			
+décidément	desidem@	desidemɑ̃	ADV	10	8	4	2.687	0.0	difficile	muette;accent		
+désintox	dez5tOks	dezɛ̃tɔks	NOM	8	8	3	5.313	0.0	moyen	accent		
+désires	deziR	deziʁ	VER	7	5	2	3.291	94.0	moyen	homophone;muette;accent;voisee_sourde	désir désire désirent désirs	z→s (décire)
+entièrement	@tjER°m@	ɑ̃tjɛʁəmɑ̃	ADV	11	8	4	21.601	0.0	moyen	muette;accent		
+expression	EkspREsj§	ɛkspʁɛsjɔ̃	NOM	10	9	3	17.608	92.0	moyen			
+extrêmement	EkstREm°m@	ɛkstʁɛməmɑ̃	ADV	11	10	4	18.81	0.0	moyen	accent		
+falloir	falwaR	falwaʁ	VER	7	6	2	38.918	91.0	moyen	voisee_sourde		f→v (valoir)
+faudrait	fodRE	fodʁɛ	VER	8	5	2	48.263	91.0	moyen	muette;voisee_sourde		f→v (vaudrai)
+feng	f5g	fɛ̃g	NOM	4	3	1	2.313	0.0	difficile	voisee_sourde		g→k (funk)
+fez	fEz	fɛz	NOM	3	3	1	3.604	0.0	difficile	voisee_sourde		z→s (faisse)
+ficelles	fisEl	fisɛl	NOM	8	5	2	5.19	93.0	moyen	homophone;muette	ficelle ficellent ficèle ficèles	
+fisc	fisk	fisk	NOM	4	4	1	2.937	92.0	moyen			
+foutrement	futR°m@	futʁəmɑ̃	ADV	10	7	3	2.212	0.0	difficile	muette		
+good	gud	gud	NOM	4	3	1	8.858	0.0	moyen	voisee_sourde		g→k (coude)
+hélas	elas	elas	ONO	5	4	2	11.918	70.0	moyen	accent		
+illégalement	ilegal°m@	ilegaləmɑ̃	ADV	12	9	5	3.68	0.0	difficile	muette;accent		
+indéfiniment	5definim@	ɛ̃definimɑ̃	ADV	12	9	5	3.07	0.0	difficile	muette;accent		
+insinuez	5sinye	ɛ̃sinye	VER	8	6	4	3.953	92.0	moyen	muette		
+jersey	ZERzE	ʒɛʁzɛ	NOM	6	5	2	3.725	90.0	moyen	voisee_sourde		z→s (jerseys)
+jesse	ZEs	ʒɛs	NOM	5	3	1	20.975	0.0	moyen	muette		
+joindre	Zw5dR	ʒwɛ̃dʁ	VER	7	5	1	35.07	94.0	moyen	muette		
+jouant	Zw@	ʒwɑ̃	VER	6	3	1	7.956	90.0	moyen	muette;voisee_sourde		Z→S (chouan)
+jus	Zy	ʒy	NOM	3	2	1	25.041	0.0	moyen	voisee_sourde		Z→S (chu)
+justine	Zystin	ʒystin	NOM	7	6	2	3.434	0.0	difficile			
+jésus	Zezy	ʒezy	NOM	5	4	2	44.513	82.0	moyen	accent		
+lessive	lesiv	lesiv	NOM	7	5	2	7.405	93.0	moyen	homophone;muette	lessivent lessives	
+liberty	libERti	libɛʁti	NOM	7	7	3	2.367	0.0	difficile			
+lord	lORd	lɔʁd	NOM	4	4	1	18.892	85.0	moyen			
+lot	lo	lo	NOM	3	2	1	14.237	0.0	moyen	homophone	laud los lots	
+légalement	legal°m@	legaləmɑ̃	ADV	10	8	4	7.475	0.0	moyen	muette;accent		
+légèrement	leZER°m@	leʒɛʁəmɑ̃	ADV	10	8	4	8.491	0.0	moyen	muette;accent		
+léonard	leonaR	leonaʁ	ADJ	7	6	3	2.801	45.0	difficile	accent		
+maudite	modit	modit	ADJ	7	5	2	8.769	92.0	moyen	homophone;muette	maudites	
+méprenez	mepR°ne	mepʁəne	VER	8	7	3	3.177	90.0	moyen	accent		
+mépris	mepRi	mepʁi	NOM	6	5	2	5.136	90.0	moyen	accent		
+nova	nova	nova	NOM	4	4	2	2.636	75.0	difficile			
+nuire	n8iR	nɥiʁ	VER	5	4	1	6.25	90.0	moyen			
+néanmoins	ne@mw5	neɑ̃mwɛ̃	ADV	9	6	3	6.975	0.0	moyen	muette;accent		
+ohé	oe	oe	ONO	3	2	2	3.943	0.0	difficile	accent		
+oliver	Olive	ɔlive	NOM	6	5	3	19.456	0.0	moyen			
+onze	§z	ɔ̃z	NOM	4	2	1	8.354	94.0	moyen	muette;voisee_sourde		z→s (once)
+paco	pako	pako	NOM	4	4	2	2.636	0.0	difficile			
+pauvreté	povR°te	povʁəte	NOM	8	7	3	5.206	90.0	moyen	accent		
+pawnee	poni	poni	NOM	6	4	2	2.275	0.0	difficile	muette;voisee_sourde		p→b (boni)
+pink	pink	pink	NOM	4	4	1	2.092	0.0	difficile			
+poliment	polim@	polimɑ̃	ADV	8	6	3	2.503	0.0	difficile	muette		
+pourris	puRi	puʁi	VER	7	4	2	4.389	93.0	moyen	homophone;muette;voisee_sourde	pourri pourrie pourries pourrit	p→b (bouris)
+pride	pRajd	pʁajd	NOM	5	5	1	2.69	0.0	difficile			
+principale	pR5sipal	pʁɛ̃sipal	NOM	10	8	3	16.715	93.0	moyen	homophone;muette	principal principales	
+principaux	pR5sipo	pʁɛ̃sipo	NOM	10	7	3	4.791	93.0	moyen	muette		
+proprement	pROpR°m@	pʁɔpʁəmɑ̃	ADV	10	8	3	3.345	0.0	difficile	muette		
+quasi	kazi	kazi	NOM	5	4	2	4.038	83.0	moyen	voisee_sourde		z→s (cassie)
+quasi	kazi	kazi	ADV	5	4	2	4.038	83.0	moyen	voisee_sourde		z→s (cassie)
+quiconque	kik§k	kikɔ̃k	PRO:ind	9	5	2	28.816	0.0	moyen	muette		
+quoique	kwak°	kwakə	ADV	7	5	2	15.237	0.0	moyen	muette		
+rendant	R@d@	ʁɑ̃dɑ̃	VER	7	4	2	3.396	89.0	moyen	muette;voisee_sourde		d→t (rentant)
+rendant	R@d@	ʁɑ̃dɑ̃	ADJ	7	4	2	3.396	89.0	moyen	muette;voisee_sourde		d→t (rentant)
+réfléchissez	RefleSise	ʁefleʃise	VER	12	9	4	11.696	93.0	moyen	muette;accent		
+secrètement	s°kREt°m@	səkʁɛtəmɑ̃	ADV	11	9	4	4.551	0.0	difficile	muette;accent		
+seize	sEz	sɛz	NOM	5	3	1	4.465	0.0	difficile	muette;voisee_sourde		z→s (cesse)
+sioux	sju	sju	NOM	5	3	1	2.098	87.0	moyen	muette		
+songé	s§Ze	sɔ̃ʒe	VER	5	4	2	3.367	92.0	moyen	homophone;accent	songer songez songée songées	
+soudainement	sudEn°m@	sudɛnəmɑ̃	ADV	12	8	4	12.108	0.0	moyen	muette;voisee_sourde		d→t (soutènement)
+supporter	sypoRte	sypoʁte	VER	9	7	3	34.266	91.0	moyen	muette		
+séparément	sepaRem@	sepaʁemɑ̃	ADV	10	8	4	3.649	0.0	difficile	muette;accent		
+talentueuse	tal@t82z	talɑ̃tɥøz	ADJ	11	8	3	2.595	94.0	moyen	muette		
+taudis	todi	todi	NOM	6	4	2	3.532	90.0	moyen	muette		
+terriblement	tERibl°m@	tɛʁibləmɑ̃	ADV	12	9	4	11.668	0.0	moyen	muette		
+totalité	totalite	totalite	NOM	8	8	4	3.592	90.0	moyen	accent		
+treize	tREz	tʁɛz	ADJ:num	6	4	1	4.038	0.0	difficile	muette;voisee_sourde		z→s (tresse)
+vachement	vaS°m@	vaʃəmɑ̃	ADV	9	6	3	7.434	0.0	moyen	muette		
+via	vja	vja	NOM	3	3	1	7.076	0.0	moyen	voisee_sourde		v→f (fia)
+vivez	vive	vive	VER	5	4	2	14.389	93.0	moyen			
+xavier	gzavje	gzavje	NOM	6	6	2	2.576	23.0	difficile			
+également	egal°m@	egaləmɑ̃	ADV	9	7	4	40.614	0.0	moyen	muette;accent		
+élaboré	elaboRe	elaboʁe	ADJ	7	7	4	2.228	92.0	moyen	homophone;accent	élaborer élaborée élaborées élaborés	
+équivalent	ekival	ekival	VER	10	6	3	3.658	61.0	difficile	muette;accent		
+étonnamment	etonam@	etonamɑ̃	ADV	11	7	4	2.677	0.0	difficile	muette;accent		
+étrangement	etR@Z°m@	etʁɑ̃ʒəmɑ̃	ADV	11	8	4	3.981	0.0	difficile	muette;accent		

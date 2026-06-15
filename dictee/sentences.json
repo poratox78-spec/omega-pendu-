@@ -1,0 +1,1273 @@
+[
+{
+"text": "Le chat dort sur le lit.",
+"d": "facile",
+"fam": {
+"chat": [
+"chah",
+"chas",
+"chats",
+"schah",
+"shah",
+"shahs"
+],
+"dort": [
+"dore",
+"dorent",
+"dores",
+"dors"
+],
+"sur": [
+"sure",
+"surent",
+"sures",
+"surs",
+"sûr",
+"sûre"
+],
+"lit": [
+"li",
+"lie",
+"lient",
+"lies",
+"lis",
+"lits"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les enfants jouent dans le jardin.",
+"d": "facile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"enfants": [
+"enfans",
+"enfant"
+],
+"jouent": [
+"joue",
+"joues",
+"joug",
+"jougs"
+],
+"dans": [
+"dam",
+"dams",
+"dens",
+"dent",
+"dents"
+],
+"jardin": [
+"jardins"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Elle boit de l'eau dans un verre.",
+"d": "facile",
+"fam": {
+"elle": [
+"aile",
+"ailes",
+"elles",
+"hèle",
+"hèlent",
+"hèles"
+],
+"boit": [
+"bois",
+"boua"
+],
+"l": [
+"l'"
+],
+"eau": [
+"au",
+"aulx",
+"aux",
+"eaux",
+"haut",
+"hauts"
+],
+"dans": [
+"dam",
+"dams",
+"dens",
+"dent",
+"dents"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun"
+],
+"verre": [
+"vair",
+"ver",
+"verres",
+"vers",
+"vert",
+"verts"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Le petit chien court vite.",
+"d": "facile",
+"fam": {
+"petit": [
+"petits"
+],
+"chien": [
+"chiens"
+],
+"court": [
+"cour",
+"coure",
+"courent",
+"coures",
+"courre",
+"courres"
+],
+"vite": [
+"vites",
+"vîte",
+"vîtes"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Papa lit une histoire le soir.",
+"d": "facile",
+"fam": {
+"papa": [
+"papas"
+],
+"lit": [
+"li",
+"lie",
+"lient",
+"lies",
+"lis",
+"lits"
+],
+"une": [
+"hune",
+"hunes",
+"unes"
+],
+"histoire": [
+"histoires"
+],
+"soir": [
+"soire",
+"soirs"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette"
+]
+},
+{
+"text": "Les fleurs rouges sont belles.",
+"d": "facile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"fleurs": [
+"fleur",
+"fleure",
+"fleurent",
+"fleures"
+],
+"rouges": [
+"rouge"
+],
+"sont": [
+"son",
+"sons"
+],
+"belles": [
+"bel",
+"belle",
+"bels",
+"bêle",
+"bêlent",
+"bêles"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Il met ses chaussures et son manteau.",
+"d": "facile",
+"fam": {
+"il": [
+"hile",
+"ile",
+"iles",
+"ils",
+"île",
+"îles"
+],
+"met": [
+"mai",
+"maie",
+"mais",
+"meix",
+"mets"
+],
+"ses": [
+"ces",
+"cé",
+"sers"
+],
+"chaussures": [
+"chaussure"
+],
+"et": [
+"ai",
+"ais",
+"ait",
+"eh",
+"est",
+"hé"
+],
+"son": [
+"sons",
+"sont"
+],
+"manteau": [
+"manteaux",
+"mentaux"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette"
+]
+},
+{
+"text": "Nous mangeons une bonne soupe.",
+"d": "facile",
+"fam": {
+"nous": [
+"noue",
+"nouent",
+"noues"
+],
+"une": [
+"hune",
+"hunes",
+"unes"
+],
+"bonne": [
+"bonnes"
+],
+"soupe": [
+"soupent",
+"soupes"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "La maîtresse écrit au tableau.",
+"d": "facile",
+"fam": {
+"la": [
+"las",
+"là"
+],
+"maîtresse": [
+"maitresses",
+"maîtresses"
+],
+"écrit": [
+"écrie",
+"écrient",
+"écries",
+"écris",
+"écrits"
+],
+"au": [
+"aulx",
+"aux",
+"eau",
+"eaux",
+"haut",
+"hauts"
+],
+"tableau": [
+"tableaux"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les oiseaux chantent le matin.",
+"d": "facile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"oiseaux": [
+"oiseau"
+],
+"chantent": [
+"chante",
+"chantes"
+],
+"matin": [
+"matins",
+"mâtin"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les élèves répètent la leçon difficile.",
+"d": "moyen",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"élèves": [
+"élève",
+"élèvent"
+],
+"répètent": [
+"répète",
+"répètes"
+],
+"la": [
+"las",
+"là"
+],
+"leçon": [
+"leçons"
+],
+"difficile": [
+"difficiles"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
+},
+{
+"text": "Le ver de terre creuse un trou profond.",
+"d": "moyen",
+"fam": {
+"ver": [
+"vair",
+"verre",
+"verres",
+"vers",
+"vert",
+"verts"
+],
+"terre": [
+"donataires",
+"taire",
+"ter",
+"terrent",
+"terres"
+],
+"creuse": [
+"creusent",
+"creuses"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun"
+],
+"trou": [
+"troue",
+"trouent",
+"troues",
+"trous"
+],
+"profond": [
+"profonds"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Elle porte une jolie robe verte.",
+"d": "moyen",
+"fam": {
+"elle": [
+"aile",
+"ailes",
+"elles",
+"hèle",
+"hèlent",
+"hèles"
+],
+"porte": [
+"portent",
+"portes"
+],
+"une": [
+"hune",
+"hunes",
+"unes"
+],
+"jolie": [
+"joli",
+"jolies",
+"jolis"
+],
+"robe": [
+"rob",
+"robes",
+"robs"
+],
+"verte": [
+"vertes"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Ils prennent leurs cahiers et leurs crayons.",
+"d": "moyen",
+"fam": {
+"ils": [
+"hile",
+"il",
+"ile",
+"iles",
+"île",
+"îles"
+],
+"prennent": [
+"prenne",
+"prennes"
+],
+"leurs": [
+"leur",
+"leurre",
+"leurrent",
+"leurres"
+],
+"cahiers": [
+"cahier",
+"cailler",
+"caillé",
+"caillée",
+"caillés"
+],
+"et": [
+"ai",
+"ais",
+"ait",
+"eh",
+"est",
+"hé"
+],
+"crayons": [
+"crayon"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette"
+]
+},
+{
+"text": "La fillette a cueilli des fraises mûres.",
+"d": "moyen",
+"fam": {
+"la": [
+"las",
+"là"
+],
+"fillette": [
+"fillettes"
+],
+"a": [
+"ah",
+"as",
+"ha",
+"hâ",
+"à"
+],
+"cueilli": [
+"cueillie",
+"cueillies",
+"cueillis",
+"cueillit"
+],
+"des": [
+"dé",
+"dés"
+],
+"fraises": [
+"fraise"
+],
+"mûres": [
+"mur",
+"mure",
+"mures",
+"murs",
+"mûr",
+"mûre"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Mon frère et ma sœur sont arrivés ensemble.",
+"d": "moyen",
+"fam": {
+"mon": [
+"mone",
+"mont",
+"monts"
+],
+"frère": [
+"frères"
+],
+"et": [
+"ai",
+"ais",
+"ait",
+"eh",
+"est",
+"hé"
+],
+"ma": [
+"makimono",
+"mas",
+"mât",
+"mâts"
+],
+"s": [
+"aces",
+"aisse",
+"esse",
+"esses",
+"hesse",
+"ès"
+],
+"sont": [
+"son",
+"sons"
+],
+"arrivés": [
+"arriver",
+"arrivez",
+"arrivè",
+"arrivé",
+"arrivée",
+"arrivées"
+],
+"ensemble": [
+"ensembles"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Le boulanger vend du pain et des gâteaux.",
+"d": "moyen",
+"fam": {
+"boulanger": [
+"boulangers"
+],
+"vend": [
+"vends",
+"vent",
+"vents"
+],
+"du": [
+"due",
+"dues",
+"dus",
+"dut",
+"dû",
+"dûs"
+],
+"pain": [
+"pains",
+"peins",
+"peint",
+"peints",
+"pin",
+"pins"
+],
+"et": [
+"ai",
+"ais",
+"ait",
+"eh",
+"est",
+"hé"
+],
+"des": [
+"dé",
+"dés"
+],
+"gâteaux": [
+"gâteau"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Ces grandes maisons blanches sont anciennes.",
+"d": "moyen",
+"fam": {
+"ces": [
+"cé",
+"sers",
+"ses"
+],
+"grandes": [
+"grande"
+],
+"maisons": [
+"maison"
+],
+"sont": [
+"son",
+"sons"
+],
+"anciennes": [
+"ancienne"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Nous avons trouvé un trésor près de la rivière.",
+"d": "moyen",
+"fam": {
+"nous": [
+"noue",
+"nouent",
+"noues"
+],
+"avons": [
+"havons"
+],
+"trouvé": [
+"trouver",
+"trouvez",
+"trouvè",
+"trouvée",
+"trouvées",
+"trouvés"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun"
+],
+"trésor": [
+"trésors"
+],
+"près": [
+"prêt",
+"prêts"
+],
+"la": [
+"las",
+"là"
+],
+"rivière": [
+"rivières"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les pompiers éteignent le feu rapidement.",
+"d": "moyen",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"pompiers": [
+"pompier",
+"pompiez"
+],
+"éteignent": [
+"éteigne",
+"éteignes"
+],
+"feu": [
+"feue",
+"feus",
+"feux"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les chevaux galopent à travers les champs immenses.",
+"d": "difficile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"galopent": [
+"galope",
+"galopes"
+],
+"à": [
+"a",
+"ah",
+"as",
+"ha",
+"hâ"
+],
+"champs": [
+"champ",
+"chand",
+"chant",
+"chants"
+],
+"immenses": [
+"immense"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Il faut que tu finisses tes devoirs avant de jouer.",
+"d": "difficile",
+"fam": {
+"il": [
+"hile",
+"ile",
+"iles",
+"ils",
+"île",
+"îles"
+],
+"faut": [
+"fau",
+"faux",
+"pho",
+"phos"
+],
+"tu": [
+"tue",
+"tuent",
+"tues",
+"tus",
+"tut",
+"tût"
+],
+"finisses": [
+"finisse",
+"finissent"
+],
+"tes": [
+"thé",
+"thés",
+"té",
+"tés"
+],
+"devoirs": [
+"devoir"
+],
+"avant": [
+"avants",
+"avent",
+"havant"
+],
+"jouer": [
+"joué",
+"jouée",
+"jouées",
+"joués"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les scientifiques étudient les phénomènes naturels étranges.",
+"d": "difficile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"scientifiques": [
+"scientifique"
+],
+"étudient": [
+"étudie",
+"étudies"
+],
+"phénomènes": [
+"phénomène"
+],
+"naturels": [
+"naturel",
+"naturelle",
+"naturelles"
+],
+"étranges": [
+"étrange"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
+},
+{
+"text": "Quand les feuilles tombent, l'automne est arrivé.",
+"d": "difficile",
+"fam": {
+"quand": [
+"camp",
+"camps",
+"can",
+"cans",
+"kans",
+"quant"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"feuilles": [
+"feuille"
+],
+"tombent": [
+"tombe",
+"tombes"
+],
+"l": [
+"l'"
+],
+"automne": [
+"automnes"
+],
+"est": [
+"ai",
+"ais",
+"ait",
+"eh",
+"este",
+"estes"
+],
+"arrivé": [
+"arriver",
+"arrivez",
+"arrivè",
+"arrivée",
+"arrivées",
+"arrivés"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Elle aurait préféré que nous restions plus longtemps.",
+"d": "difficile",
+"fam": {
+"elle": [
+"aile",
+"ailes",
+"elles",
+"hèle",
+"hèlent",
+"hèles"
+],
+"aurait": [
+"aurai",
+"auraient",
+"aurais"
+],
+"préféré": [
+"préférer",
+"préférez",
+"préférée",
+"préférées",
+"préférés"
+],
+"nous": [
+"noue",
+"nouent",
+"noues"
+],
+"plus": [
+"plu",
+"plue",
+"plusse",
+"plut",
+"plût"
+],
+"longtemps": [
+"long-temps"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
+},
+{
+"text": "Le vieux château abandonné cachait de nombreux secrets.",
+"d": "difficile",
+"fam": {
+"château": [
+"châteaux"
+],
+"abandonné": [
+"abandonner",
+"abandonnez",
+"abandonnée",
+"abandonnées",
+"abandonnés"
+],
+"cachait": [
+"cachai",
+"cachaient",
+"cachais",
+"cachet",
+"cachets"
+],
+"secrets": [
+"secret"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les bateaux quittent le port dès que la tempête se calme.",
+"d": "difficile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"bateaux": [
+"bateau"
+],
+"quittent": [
+"kit",
+"kite",
+"kits",
+"quitte",
+"quittes"
+],
+"port": [
+"porc",
+"porcs",
+"pore",
+"pores",
+"ports"
+],
+"dès": [
+"dais",
+"dey"
+],
+"la": [
+"las",
+"là"
+],
+"tempête": [
+"tempêtent",
+"tempêtes"
+],
+"calme": [
+"calment",
+"calmes"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Plusieurs personnes attendaient patiemment leur tour.",
+"d": "difficile",
+"fam": {
+"personnes": [
+"personne"
+],
+"attendaient": [
+"attendais",
+"attendait"
+],
+"leur": [
+"leurre",
+"leurrent",
+"leurres",
+"leurs"
+],
+"tour": [
+"tourd",
+"toure",
+"tourent",
+"toures",
+"tours"
+]
+},
+"traps": [
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Ces magnifiques tableaux furent peints il y a deux siècles.",
+"d": "difficile",
+"fam": {
+"ces": [
+"cé",
+"sers",
+"ses"
+],
+"magnifiques": [
+"magnifique"
+],
+"tableaux": [
+"tableau"
+],
+"furent": [
+"fur",
+"fure",
+"fures"
+],
+"peints": [
+"pain",
+"pains",
+"peins",
+"peint",
+"pin",
+"pins"
+],
+"il": [
+"hile",
+"ile",
+"iles",
+"ils",
+"île",
+"îles"
+],
+"y": [
+"hi",
+"hie",
+"i"
+],
+"a": [
+"ah",
+"as",
+"ha",
+"hâ",
+"à"
+],
+"siècles": [
+"siecles",
+"siècle"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Malgré la pluie, les randonneurs poursuivirent leur chemin.",
+"d": "difficile",
+"fam": {
+"la": [
+"las",
+"là"
+],
+"pluie": [
+"pluies"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"randonneurs": [
+"randonneur"
+],
+"leur": [
+"leurre",
+"leurrent",
+"leurres",
+"leurs"
+],
+"chemin": [
+"chemins"
+]
+},
+"traps": [
+"accent",
+"accord",
+"homophone",
+"muette"
+]
+}
+]
