@@ -66,7 +66,7 @@ Option 2 codée en **OFF-inerte** (toggle `M_NEO_PHON_COHORT_ENABLED`, défaut O
 | ortho seul | 18,8 % | 22,5 % |
 | **Δ cohort − son-mot** | **−18,8** | **−18,8** |
 
-**Verdict :** l'estimation ≈78 % était optimiste. Le cohort-board **fonctionne** (≫ ortho seul) mais **coûte ~19 pts OOV** = exactement l'**avantage oracle d'« entendre » le mot**. Δ **stable** sur 2 graines. In-lexique la question ne mord pas (NEO = 99 %). Décision inchangée : **dictée / mot-entendu → garder `wp.get`** ; **pendu pur → cohort-board** (au prix mesuré de −19 pts). Toggle **OFF par défaut**, rien adopté en config de référence.
+**Verdict :** l'estimation ≈78 % était optimiste. Le cohort-board **fonctionne** (≫ ortho seul) mais **coûte ~19 pts OOV** = exactement l'**avantage oracle d'« entendre » le mot**. Δ **stable** sur 2 graines. **In-lexique AUSSI, ON dégrade** (config optimale cognition+voie phon+NEO : OFF **97 %** → ON **84 %/76 %**, Δ **−13 à −21 pts**, 2 graines) — corrige une affirmation antérieure erronée (« ne mord pas »). **OFF-inerte vérifié** : OFF = baseline intact. Le cohort-board n'est **jamais** un gain de perf (OOV −19, in-lexique −13 à −21) : la declare assemblée override avec une lettre confiante mais fausse quand le son-consensus est lavé. Outil d'**honnêteté/pureté pendu uniquement**. Décision inchangée : **dictée / mot-entendu → garder `wp.get`** ; **pendu pur → cohort-board** (au prix mesuré de −19 pts). Toggle **OFF par défaut**, rien adopté en config de référence.
 
 ---
 
