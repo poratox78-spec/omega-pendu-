@@ -6111,7 +6111,6 @@ let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohor
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
 let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
-let M_NEO_JOINTE_MORPHO = false;            // MORPHO : ajoute la distance-de-fin e au contexte de la jointe (clés φ|eE|G|D, φ|eE|D prepended) → capte terminaisons (-ION,-ENT,-MENT,pluriels). Backoff = jointe bigramme. OFF-inerte.
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6969,7 +6968,7 @@ function endCurrentGame(success) {
     if (!_emrgBank.has(currentWord)) _emrgBank.set(currentWord, _emrg_bind(currentWord, null));   // NEO voie adressee : banc des mots vecus (descendant)
     if (M_NEO_G2P_EXP_ENABLED) { _emrg_initOnline().learnExp(currentWord, revealedMask, alreadyTried, M_NEO_G2P_EXP_PEN); } else { _emrg_initOnline().learn(currentWord); }   // NEO voie assemblee : g2p (descendant ; EXP=révélé-seul)
     { const _gp = _emrg_initOnline(); const _wpx = _gp.wp.get(currentWord); if (_wpx) { const _ala = _gp.align(currentWord, _wpx, null);   // NEO muette : JOINTE croisée apprise PAR LE SON (descendant, voisins du mot complet = légitime)
-        if (_ala) { let _h = -1, _hph = null; for (let i = 0; i < currentWord.length; i++) { if (_ala[i] !== '_') { _h = i; _hph = _ala[i]; { const _tS = currentWord.charCodeAt(i)-65; if (_tS>=0 && _tS<26) { const _LS = i>0?currentWord.charAt(i-1):'#', _RS = i<currentWord.length-1?currentWord.charAt(i+1):'#'; const _eS = Math.min((currentWord.length-1)-i, 4); const _ksS = [_ala[i]+'|e'+_eS+'|'+_LS+'|'+_RS, _ala[i]+'|e'+_eS+'|'+_RS, _ala[i]+'|'+_LS+'|'+_RS, _ala[i]+'|'+_LS, _ala[i]+'|#|'+_RS, _ala[i]]; for (let _kj=0;_kj<_ksS.length;_kj++){ const _kk=_ksS[_kj]; (_neoCRS[_kk] || (_neoCRS[_kk] = new Float64Array(26)))[_tS]++; } } } } else if (_hph != null) { const _off = i - _h; const _t = currentWord.charCodeAt(i)-65; if (_t>=0 && _t<26) {
+        if (_ala) { let _h = -1, _hph = null; for (let i = 0; i < currentWord.length; i++) { if (_ala[i] !== '_') { _h = i; _hph = _ala[i]; { const _tS = currentWord.charCodeAt(i)-65; if (_tS>=0 && _tS<26) { const _LS = i>0?currentWord.charAt(i-1):'#', _RS = i<currentWord.length-1?currentWord.charAt(i+1):'#'; const _ksS = [_ala[i]+'|'+_LS+'|'+_RS, _ala[i]+'|'+_LS, _ala[i]+'|#|'+_RS, _ala[i]]; for (let _kj=0;_kj<_ksS.length;_kj++){ const _kk=_ksS[_kj]; (_neoCRS[_kk] || (_neoCRS[_kk] = new Float64Array(26)))[_tS]++; } } } } else if (_hph != null) { const _off = i - _h; const _t = currentWord.charCodeAt(i)-65; if (_t>=0 && _t<26) {
           const _L = i>0?currentWord.charAt(i-1):'#', _R = i<currentWord.length-1?currentWord.charAt(i+1):'#';
           const _ks = [_hph+'|'+_off+'|'+_L+'|'+_R, _hph+'|'+_off+'|'+_L, _hph+'|'+_off+'|#|'+_R, _hph+'|'+_off];
           for (let _ki=0;_ki<_ks.length;_ki++){ const _k=_ks[_ki]; (_neoCR[_k] || (_neoCR[_k] = new Float64Array(26)))[_t]++; }
@@ -7234,7 +7233,7 @@ function omegaStep() {
                 const _Lj = (p>0 && revealedMask[p-1]) ? currentWord.charAt(p-1) : '#'; const _Rj = (p<currentWord.length-1 && revealedMask[p+1]) ? currentWord.charAt(p+1) : '#';
                 const _sc = new Float64Array(26);
                 for (const _ph in _dist) { if (_ph === '_') continue; const _w = _dist[_ph]/_tot;
-                  let _ksj; if (M_NEO_JOINTE_MORPHO) { const _ej = Math.min((currentWord.length-1)-p, 4); _ksj = [_ph+'|e'+_ej+'|'+_Lj+'|'+_Rj, _ph+'|e'+_ej+'|'+_Rj, _ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; } else { _ksj = [_ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; } let _cj = null, _sj = 0;
+                  const _ksj = [_ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; let _cj = null, _sj = 0;
                   for (let _ki=0;_ki<_ksj.length;_ki++){ const _cc=_neoCRS[_ksj[_ki]]; if(_cc){ let _ss=0; for(let q=0;q<26;q++)_ss+=_cc[q]; if(_ss>=3){_cj=_cc;_sj=_ss;break;} if(!_cj){_cj=_cc;_sj=_ss;} } }
                   if (_cj && _sj>0) { for (let x=0;x<26;x++) _sc[x] += _w*(_cj[x]/_sj); }
                   else { const _l2=_L2[_ph]; if(_l2){ for(let x=0;x<26;x++) _sc[x] += _w*_l2[x]; } }
