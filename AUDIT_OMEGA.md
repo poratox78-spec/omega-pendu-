@@ -50,8 +50,23 @@ Demande : la session précédente avait garanti que `currentWord` n'était « pl
 
 **Options (objectif « g2p sans `currentWord` ») :**
 1. Garder `wp.get(currentWord)` = assumer la prémisse « dictée / mot entendu » + **afficher le régime**. *(recommandé ; cohérent avec le pivot dictée)*
-2. Dériver le son du **cohort board** (consensus des prononciations compatibles) → réellement board-only, ≈78 % (tension A2).
+2. Dériver le son du **cohort board** (consensus des prononciations compatibles) → réellement board-only. **Estimé ≈78 % — FALSIFIÉ par la mesure (§1.1) : réel ~55 % OOV, Δ −18,8 pts.**
 3. Couper la route assemblée au pendu → −5,28, ~92 % 100 % board-only.
+
+### 1.1 Option 2 implémentée + MESURÉE (R66) — `M_NEO_PHON_COHORT_ENABLED`
+
+Option 2 codée en **OFF-inerte** (toggle `M_NEO_PHON_COHORT_ENABLED`, défaut OFF → baseline byte-identique). Quand ON, la source de `_al` **partagée par l'assemblée ET la muette** (subtilité : les deux lisaient le même son via `wp.get`, la muette n'était donc pas une voie propre) devient le **consensus phonémique de la cohorte board-compatible** (`_neoPhonCohort()`, mots de même longueur matchant le révélé) — plus aucune lecture du son du mot caché. Modèle fidèle du joueur humain qui « sonne » ce qu'il voit (`_AU` → /o/ → EAU, inféré du lexique, pas entendu).
+
+**Mesure** (bench Trexquant hors-lexique, 80 test / 300 warmup, budget 6, headless via `evo` loader ; en UI = bouton « 🎯 Trexquant », 3 conditions + Δ) :
+
+| Condition (OOV) | graine 12345 | graine 777 |
+|---|---|---|
+| phon→ortho · son du MOT (`wp.get`) | 73,8 % | 58,8 % |
+| phon→ortho · son **cohort-board** | 55,0 % | 40,0 % |
+| ortho seul | 18,8 % | 22,5 % |
+| **Δ cohort − son-mot** | **−18,8** | **−18,8** |
+
+**Verdict :** l'estimation ≈78 % était optimiste. Le cohort-board **fonctionne** (≫ ortho seul) mais **coûte ~19 pts OOV** = exactement l'**avantage oracle d'« entendre » le mot**. Δ **stable** sur 2 graines. In-lexique la question ne mord pas (NEO = 99 %). Décision inchangée : **dictée / mot-entendu → garder `wp.get`** ; **pendu pur → cohort-board** (au prix mesuré de −19 pts). Toggle **OFF par défaut**, rien adopté en config de référence.
 
 ---
 
@@ -99,7 +114,7 @@ Soit ça marche, soit ça ferme l'incertitude par la mesure.
 
 ## 4. Synthèse priorisée
 1. **Communication** : toujours afficher le régime (« 97,5 % in-lexique, mot entendu » ; repères sans prémisse 70,7 % / 22 %).
-2. **g2p** : trancher l'une des 3 options (recommandé : 1 + libellé de régime ; ou 2 pour la pureté pendu).
+2. **g2p** : trancher l'une des 3 options (recommandé : 1 + libellé de régime ; ou 2 pour la pureté pendu, **coût mesuré −19 pts OOV — §1.1**). Option 2 déjà codée OFF-inerte (`M_NEO_PHON_COHORT_ENABLED`).
 3. **CI** : harnais seedé gardant 2-3 chiffres clés (anti-régression du monolithe).
 4. **M3_d** : tenter la masked-prediction, ou clore par `M3_D_BYPASS` + AUC.
 5. **Hygiène** : retirer le vestigial (`pairConv`…), réconcilier la doc miroir phon.
