@@ -1354,7 +1354,7 @@ footer {
   <div class="actions">
     <button class="primary" onclick="benchR1()">▶ Lancer bench R1 complet</button>
     <button onclick="benchTickReal()">Bench tick réel (omegaStep × 1000)</button>
-    <button onclick="_omega_trexquant_bench(80,300,12345)" title="Mode Trexquant : retire 80 mots du lexique (cohorte/recall aveugles), joue dessus hors-lexique, affiche le winrate OOV. 2 conditions : phon→ortho cascade (le concept, avec son) vs ortho seul (comparable lettre-seule). Restaure le lexique après — relancer Nouvelle partie ensuite.">🎯 Trexquant (hors-lexique)</button>
+    <button onclick="_omega_trexquant_bench(80,300,12345)" title="Mode Trexquant : retire 80 mots du lexique (cohorte/recall aveugles), joue dessus hors-lexique, affiche le winrate OOV. 3 conditions : phon→ortho son-du-mot (wp.get) · phon→ortho son board-dérivé (cohorte, cheat-free, plus lent) · ortho seul (comparable lettre-seule). Le Δ cohorte−son-mot dit le coût d'honnêteté. Restaure le lexique après — relancer Nouvelle partie ensuite.">🎯 Trexquant (hors-lexique)</button>
     <button onclick="clearOut('bench-out')">Clear</button>
   </div>
   <div class="output" id="bench-out">// Bench prêt. R1 = ticks omegaStep par seconde sur SDIM=1024.</div>
@@ -9208,22 +9208,24 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     const testSet=new Set(testIdx); const filtered={}; for(const k in origLI) filtered[k]=origLI[k].filter(id=>!testSet.has(id));
     function baseCfg(){L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;}
     function play(w){startNewGame(w);let sf=300;while(gameActive&&sf-->0)omegaStep();return lastGameWon;}
-    function runCond(assembled,conf){
+    function runCond(assembled,conf,phonCohort){
       _omegaSeed=seed;_omegaRng=makeMulberry32(seed);initOmegaGlobals();
       if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
       baseCfg();
       M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
-      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=false;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
+      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=(assembled&&!!phonCohort);M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
       if(assembled && typeof M_DECLARE_NEO_CONF!=='undefined' && conf!=null) M_DECLARE_NEO_CONF=conf;
       OMEGA_LEX4.len_index=origLI; _omegaRng=makeMulberry32(seed); for(let i=0;i<trainW.length;i++) play(trainW[i]);
       OMEGA_LEX4.len_index=filtered; let win=0; for(let i=0;i<testW.length;i++){ if(play(testW[i])) win++; }
       return 100*win/testW.length;
     }
-    const casc=runCond(true,0.60);
-    const orth=runCond(false,null);
+    const casc=runCond(true,0.60,false);
+    const cohort=runCond(true,0.60,true);
+    const orth=runCond(false,null,false);
     restore();
     L('— '+testN+' mots hors-lexique (\u22657 lettres), budget 6, graine '+seed+', warmup '+warmupN+' mots —','dim');
-    L('  phon\u2192ortho cascade (AVEC son, le concept) : '+casc.toFixed(1)+' %','');
+    L('  phon\u2192ortho cascade \u00b7 son du MOT (wp.get)  : '+casc.toFixed(1)+' %','');
+    L('  phon\u2192ortho cohorte \u00b7 son BOARD-d\u00e9riv\u00e9     : '+cohort.toFixed(1)+' %  (\u0394 '+(cohort-casc>=0?'+':'')+(cohort-casc).toFixed(1)+' pts vs son-mot, cheat-free \u00b7 plus lent)','');
     L('  ortho seul (comparable lettre-seule std)   : '+orth.toFixed(1)+' %','dim');
     L('  rep\u00e8res SOTA Trexquant : baseline ~50 % \u00b7 bons solveurs ~65-68 % (sans son)','dim');
     L('  \u2192 relance \u00ab Nouvelle partie \u00bb (l\'\u00e9tat a servi \u00e0 la mesure).','dim');
