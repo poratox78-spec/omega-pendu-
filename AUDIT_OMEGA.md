@@ -79,6 +79,23 @@ Les chiffres ci-dessus (cohort-board 55,0/40,0 %, Δ −18,8) sont ceux de la **
 
 **Verdict corrigé :** le vrai coût d'honnêteté est **~0 in-lexique, ~7,5 pts OOV** — *pas* −18,8 (c'était le bug). L'estimation ≈78 % était optimiste, mais la pureté pendu n'est **pas** chère une fois la garde posée. Avec la garde, le cohort-board est une **option pendu-pur viable** (cheat-free, perte minime). Décision : **dictée / mot-entendu → `wp.get`** (gratuit, légitime sous prémisse) ; **pendu pur → cohort-board + garde** (cheat-free, parité in-lexique, ~7,5 pts OOV). Toggle **OFF par défaut**, rien adopté en config de référence sans arbitrage explicite.
 
+### 1.2 Jointe son×ortho — la cohorte FAITE PROPREMENT (R66, mesuré)
+
+L'argmax du §1.1 était **fainéant** : il jette la distribution de phonème ET le contexte ortho. La doctrine (mémoire §6/§17.3) impose **croiser = jointe** `P(lettre | phonème, contexte)`, pas argmax ni produit. Implémenté (`M_NEO_PHON_COHORT_JOINTE`, OFF-inerte) :
+- `_neoCRS` : table jointe **sonore** `phonème|G|D` (+backoffs), apprise **descendant** (mirror de `_neoCR` muette, ligne ~6938) ;
+- `_neoPhonCohortDist()` : distribution phonème **molle** de la cohorte board (pas argmax) ;
+- décision : `Σ_φ Pcoh(φ|p) · CRsonore[φ | voisins révélés]`, backoff L2 marginal. Seuil propre `M_NEO_PHON_COHORT_JOINTE_CONF = 0,30`.
+
+**Mesure (in-lexique K=1, warmup 200 / test 100 mots distincts, 4 graines) :**
+
+| Cheat-free | winrate moyen | par graine |
+|---|---|---|
+| cohorte **argmax** (§1.1) | 94,3 % | [95, 94, 95, 93] |
+| cohorte **JOINTE @0,30** | **96,5 %** | [96, 96, 97, 97] |
+| *(réf son-lu, triche pendu)* | *98,0 %* | *[98, 98, 99, 97]* |
+
+**Verdict :** la jointe bat l'argmax de **+2,2 pts, à chaque graine** (jamais en-dessous), cheat-free, et **réduit l'écart à la version qui triche de −3,7 à −1,5 pt**. Le « croiser = jointe » de la doctrine, mesuré et confirmé. Adopté comme **voie cheat-free recommandée** (toggle OFF par défaut, conf 0,30 réglable en UI). Prochaine marche actée : **couche morpho** (mémoire §10 : terminaisons, familles, POS) pour le résidu.
+
 ---
 
 ## 2. Findings structurels (par sévérité)

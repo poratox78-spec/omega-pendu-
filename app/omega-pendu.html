@@ -1237,6 +1237,13 @@ footer {
         <div class="toggle-desc">cheat-free · parité vrai-son in-lexique · garde pureté ≥ <input id="neo-phoncohort-purity" type="number" value="0.50" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_PURITY=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
       </div>
     </div>
+    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_JOINTE" title="🔗 NEO · jointe son×ortho : remplace l'argmax du son board-dérivé par la JOINTE P(lettre | distribution phonème cohorte molle, voisins ortho révélés) — table _neoCRS apprise en descendant (doctrine « croiser = jointe, pas argmax/produit », mémoire §6/§17.3). Mesuré in-lexique K=1 : 96,5 % vs argmax 94,3 % (4 graines, +2,2 pts, cheat-free), réduit l'écart au son-lu de −3,7 à −1,5. Nécessite NEO + assemblé + son board-dérivé ON. OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🔗 NEO · jointe son×ortho (croisée)</div>
+        <div class="toggle-desc">croiser, pas argmax · +2,2 pts vs argmax (K=1) · seuil <input id="neo-jointe-conf" type="number" value="0.30" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_JOINTE_CONF=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
+      </div>
+    </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
@@ -6103,6 +6110,7 @@ let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
+let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -7236,7 +7244,7 @@ function omegaStep() {
               for (let p = 0; p < currentWord.length; p++) { if (revealedMask[p]) continue; const _d = _L2[_al[p]]; if (!_d) continue;
                 for (let x = 0; x < 26; x++) { if (alreadyTried[x]) continue; if (_cm && _cm[p] !== undefined && ((_cm[p] >> x) & 1) === 0) continue; if (_d[x] > _best) { _best = _d[x]; _bestL = x; } } }
             }
-            if (_bestL >= 0 && _best > M_DECLARE_NEO_CONF) { proposed = String.fromCharCode(65 + _bestL); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
+            if (_bestL >= 0 && _best > (_pcd ? M_NEO_PHON_COHORT_JOINTE_CONF : M_DECLARE_NEO_CONF)) { proposed = String.fromCharCode(65 + _bestL); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
           }
           if (!_neoDone && M_NEO_MUTE_ENABLED) {   // (3) MUETTES : JOINTE croisée P(lettre | phonème-tête, offset, voisins révélés) avec backoff (croiser = jointe)
             let _mb = -1, _mbL = -1, _h = -1, _hph = null;
@@ -8837,7 +8845,7 @@ function ui_initToggles() {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   document.querySelectorAll('.toggle-item').forEach(item => {
     const name = item.dataset.toggle;
@@ -8880,7 +8888,7 @@ function ui_toggle(item) {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   if (ALLOWED_TOGGLES.indexOf(name) === -1) {
     ui_log('ERROR', 'Toggle inconnu : ' + name);
