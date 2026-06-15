@@ -2693,7 +2693,7 @@ function initOmegaGlobals() {
   //   Vérifié F182 vrai bug actuel (pas Phase 4+ comme classé F180 initialement).
   //   36e leçon ré-appliquée : vérifier bug mineur révèle bug actuel.
   _recentGames = [];
-  _emrgBank = new Map(); for (const k in _emrgShiftCache) delete _emrgShiftCache[k]; _emrgOG = null; _neoCR = {};
+  _emrgBank = new Map(); for (const k in _emrgShiftCache) delete _emrgShiftCache[k]; _emrgOG = null; _neoCR = {}; _neoCRS = {};
   OS._dissHistory = [];
 
   // Substrat phonétique — Jour 2 (stub minimal pour smoke)
@@ -6093,6 +6093,7 @@ let M_NEO_ASSEMBLED_ENABLED = true;         // brique assemblee (phon->ortho) �
 let M_NEO_MUTE_ENABLED = false;             // brique muette ortho (positions sans phonème) — isolable, OFF par défaut
 let M_NEO_MUTE_CONF = 0.75;                 // seuil muette JOINTE croisée P(lettre|phonème-tête,offset,voisins) — sweet spot mesuré
 let _neoCR = {};                             // JOINTE croisée muette : clé "phonème|offset|G|D" (+backoffs) -> dist(26) lettres (croiser = jointe, pas produit)
+let _neoCRS = {};                            // JOINTE sonore : clé "phonème|G|D" (+backoffs) -> dist(26) lettres, apprise descendant (positions SONORES) — croiser, pas argmax
 let M_NEO_TRIGGER_ENABLED = false;           // Trigger (B) : n'overrider que quand la cognition est incertaine (gap faible) — sinon on fait confiance à la cognition
 let M_NEO_TRIGGER_GAP = 0.005;               // seuil mesuré : NEO muette n'engage que si M5_d.output.gap < ce seuil (cognition tres incertaine) -> muette neutre, ne drague plus
 let M_NEO_COHORT_ENABLED = false;           // brique cohorte : filtre board-derived (lexique autorisé pour DECLARE) — isolable
@@ -6101,6 +6102,7 @@ let M_NEO_G2P_EXP_PEN = 0;                   // pénalité bornée sur lettres f
 let M_NEO_PHON_COHORT_ENABLED = false;      // NEO : le SON décodé (assemblée+muette) vient du consensus phonémique de la cohorte board-compatible, PAS de wp.get(mot). Supprime la lecture du son du mot caché. OFF par défaut.
 let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohorte alignés par décision
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
+let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6139,6 +6141,28 @@ function _neoPhonCohort(){               // _al consensus : phonème dominant pa
   const out = new Array(L);
   for (let p = 0; p < L; p++) { let bk = '_', bv = -1; const a = acc[p]; for (const k in a) { if (a[k] > bv) { bv = a[k]; bk = k; } } out[p] = (bv/used >= M_NEO_PHON_COHORT_PURITY) ? bk : '_'; }   // garde de pureté : consensus dispersé → '_' (assemblée skip → cognition décide), évite l'override confiant-mais-faux
   return out;                            // out[p] = phonème consensus ('_'=muet/dispersé) à la position p, board-dérivé
+}
+function _neoPhonCohortDist(){            // par position : distribution MOLLE {phonème: poids} sur la cohorte board (pour la JOINTE, pas l'argmax)
+  const G = _emrg_initOnline();
+  if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const Lw = w.m.length; (_neoWBL[Lw] || (_neoWBL[Lw] = [])).push(w.m); } } }
+  const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
+  const absent = [];
+  for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let seen = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p)-65 === x) { seen = true; break; } if (!seen) absent.push(String.fromCharCode(65+x)); }
+  const acc = new Array(L); for (let p = 0; p < L; p++) acc[p] = Object.create(null);
+  let used = 0;
+  for (let i = 0; i < cand.length && used < M_NEO_PHON_COHORT_CAP; i++) {
+    const m = cand[i];
+    let ok = true;
+    for (let p = 0; p < L; p++) { if (revealedMask[p] && m.charCodeAt(p) !== currentWord.charCodeAt(p)) { ok = false; break; } }
+    if (!ok) continue;
+    if (absent.length) { let bad = false; for (let a = 0; a < absent.length; a++) if (m.indexOf(absent[a]) >= 0) { bad = true; break; } if (bad) continue; }
+    const ph = G.wp.get(m); if (!ph) continue;
+    const al = G.align(m, ph, null); if (!al) continue;
+    for (let p = 0; p < L; p++) { const k = al[p]; acc[p][k] = (acc[p][k] || 0) + 1; }
+    used++;
+  }
+  if (!used) return null;
+  return { dist: acc, used: used };
 }
 let M_LEARN_FROM_COGNITION_ENABLED = false;   // fix bequille : apprenants <- lettre cognitive (pre-declare), pas la jouee
 var _DECL2 = (function () {
@@ -6936,7 +6960,7 @@ function endCurrentGame(success) {
     if (!_emrgBank.has(currentWord)) _emrgBank.set(currentWord, _emrg_bind(currentWord, null));   // NEO voie adressee : banc des mots vecus (descendant)
     if (M_NEO_G2P_EXP_ENABLED) { _emrg_initOnline().learnExp(currentWord, revealedMask, alreadyTried, M_NEO_G2P_EXP_PEN); } else { _emrg_initOnline().learn(currentWord); }   // NEO voie assemblee : g2p (descendant ; EXP=révélé-seul)
     { const _gp = _emrg_initOnline(); const _wpx = _gp.wp.get(currentWord); if (_wpx) { const _ala = _gp.align(currentWord, _wpx, null);   // NEO muette : JOINTE croisée apprise PAR LE SON (descendant, voisins du mot complet = légitime)
-        if (_ala) { let _h = -1, _hph = null; for (let i = 0; i < currentWord.length; i++) { if (_ala[i] !== '_') { _h = i; _hph = _ala[i]; } else if (_hph != null) { const _off = i - _h; const _t = currentWord.charCodeAt(i)-65; if (_t>=0 && _t<26) {
+        if (_ala) { let _h = -1, _hph = null; for (let i = 0; i < currentWord.length; i++) { if (_ala[i] !== '_') { _h = i; _hph = _ala[i]; { const _tS = currentWord.charCodeAt(i)-65; if (_tS>=0 && _tS<26) { const _LS = i>0?currentWord.charAt(i-1):'#', _RS = i<currentWord.length-1?currentWord.charAt(i+1):'#'; const _ksS = [_ala[i]+'|'+_LS+'|'+_RS, _ala[i]+'|'+_LS, _ala[i]+'|#|'+_RS, _ala[i]]; for (let _kj=0;_kj<_ksS.length;_kj++){ const _kk=_ksS[_kj]; (_neoCRS[_kk] || (_neoCRS[_kk] = new Float64Array(26)))[_tS]++; } } } } else if (_hph != null) { const _off = i - _h; const _t = currentWord.charCodeAt(i)-65; if (_t>=0 && _t<26) {
           const _L = i>0?currentWord.charAt(i-1):'#', _R = i<currentWord.length-1?currentWord.charAt(i+1):'#';
           const _ks = [_hph+'|'+_off+'|'+_L+'|'+_R, _hph+'|'+_off+'|'+_L, _hph+'|'+_off+'|#|'+_R, _hph+'|'+_off];
           for (let _ki=0;_ki<_ks.length;_ki++){ const _k=_ks[_ki]; (_neoCR[_k] || (_neoCR[_k] = new Float64Array(26)))[_t]++; }
@@ -7193,10 +7217,25 @@ function omegaStep() {
         if (M_NEO_PHON_COHORT_ENABLED) { _al = _neoPhonCohort(); }                                                  // son board-dérivé (cohorte) : ne lit jamais le son du mot caché
         else { const _ph = _G.wp.get(currentWord); _al = _ph ? _G.align(currentWord, _ph, revealedMask) : null; }   // défaut : son du mot (wp.get) — entrée « mot entendu »
         if (_al) {
-          if (M_NEO_ASSEMBLED_ENABLED) {   // (2) positions SONORES via L2[phoneme]
+          if (M_NEO_ASSEMBLED_ENABLED) {   // (2) positions SONORES
             let _best = -1, _bestL = -1; const _cm = M_NEO_COHORT_ENABLED ? _neoCohortMasks() : null;
-            for (let p = 0; p < currentWord.length; p++) { if (revealedMask[p]) continue; const _d = _L2[_al[p]]; if (!_d) continue;
-              for (let x = 0; x < 26; x++) { if (alreadyTried[x]) continue; if (_cm && _cm[p] !== undefined && ((_cm[p] >> x) & 1) === 0) continue; if (_d[x] > _best) { _best = _d[x]; _bestL = x; } } }
+            const _pcd = (M_NEO_PHON_COHORT_JOINTE && M_NEO_PHON_COHORT_ENABLED) ? _neoPhonCohortDist() : null;
+            if (_pcd) {   // JOINTE : Σ_φ Pcoh(φ|p) · CRsonore[φ | voisins révélés] (croiser, pas argmax) ; backoff L2 marginal
+              for (let p = 0; p < currentWord.length; p++) { if (revealedMask[p]) continue; const _dist = _pcd.dist[p]; let _tot = 0; for (const k in _dist) _tot += _dist[k]; if (_tot <= 0) continue;
+                const _Lj = (p>0 && revealedMask[p-1]) ? currentWord.charAt(p-1) : '#'; const _Rj = (p<currentWord.length-1 && revealedMask[p+1]) ? currentWord.charAt(p+1) : '#';
+                const _sc = new Float64Array(26);
+                for (const _ph in _dist) { if (_ph === '_') continue; const _w = _dist[_ph]/_tot;
+                  const _ksj = [_ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; let _cj = null, _sj = 0;
+                  for (let _ki=0;_ki<_ksj.length;_ki++){ const _cc=_neoCRS[_ksj[_ki]]; if(_cc){ let _ss=0; for(let q=0;q<26;q++)_ss+=_cc[q]; if(_ss>=3){_cj=_cc;_sj=_ss;break;} if(!_cj){_cj=_cc;_sj=_ss;} } }
+                  if (_cj && _sj>0) { for (let x=0;x<26;x++) _sc[x] += _w*(_cj[x]/_sj); }
+                  else { const _l2=_L2[_ph]; if(_l2){ for(let x=0;x<26;x++) _sc[x] += _w*_l2[x]; } }
+                }
+                for (let x=0;x<26;x++){ if(alreadyTried[x]) continue; if(_cm && _cm[p]!==undefined && ((_cm[p]>>x)&1)===0) continue; if(_sc[x]>_best){_best=_sc[x];_bestL=x;} }
+              }
+            } else {   // argmax (cohorte molle gardée OU son-lu) via L2[phonème]
+              for (let p = 0; p < currentWord.length; p++) { if (revealedMask[p]) continue; const _d = _L2[_al[p]]; if (!_d) continue;
+                for (let x = 0; x < 26; x++) { if (alreadyTried[x]) continue; if (_cm && _cm[p] !== undefined && ((_cm[p] >> x) & 1) === 0) continue; if (_d[x] > _best) { _best = _d[x]; _bestL = x; } } }
+            }
             if (_bestL >= 0 && _best > M_DECLARE_NEO_CONF) { proposed = String.fromCharCode(65 + _bestL); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
           }
           if (!_neoDone && M_NEO_MUTE_ENABLED) {   // (3) MUETTES : JOINTE croisée P(lettre | phonème-tête, offset, voisins révélés) avec backoff (croiser = jointe)
