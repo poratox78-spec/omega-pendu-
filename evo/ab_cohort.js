@@ -80,7 +80,7 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
 
   // une condition = reset complet + config + flags cohorte/jointe/cross-modal, warmup (lexique plein) puis test.
-  function runCond(seed, sets, { cohort, jointe, xmodal, dual, freqonly }) {
+  function runCond(seed, sets, { cohort, jointe, xmodal, dual, freqonly, osarb }) {
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
@@ -89,6 +89,7 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     ev(`M_BPC_CROSSMODAL_ENABLED=${!!xmodal};`);   // croisement dormant : M3_d perçoit M1_d ⊕ M1_phon (hub-and-spoke, descendant bPC)
     ev(`M_DECLARE_DUAL_ENABLED=${!!dual};`);        // DUAL : declare cohorte-board (freq × ortho × phon), cheat-free, sans currentWord ; conf/poids aux défauts 0,85/0,50/0,25
     if (dual) ev(`M_DECLARE_DUAL_WORTHO=${freqonly?0:0.50};M_DECLARE_DUAL_WPHON=${freqonly?0:0.25};`);   // freqonly → wO=wP=0 : DUAL = PRIOR FRÉQUENCE pur sur la cohorte (aucune somme ortho+phon ; teste si le gain est propre)
+    ev(`M_NEO_OS_ARB=${!!osarb};`);                 // arbitrage OS des 2 voies DRC (mélange convexe sublexical⟷lexical) au lieu de la cascade
     LEX.len_index = origLI;                                   // warmup : lexique plein (le mot vécu est légitime en descendant)
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
@@ -113,6 +114,10 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     : (mode === 'dualfreq')
     ? [ { key: 'cohorte-jointe (sans CW)    ', cohort: true,  jointe: true,  dual: false },
         { key: 'cohorte-jointe + DUAL freq-seule', cohort: true, jointe: true, dual: true, freqonly: true } ]
+    : (mode === 'arb')
+    ? [ { key: 'cohorte-jointe (cascade, base)', cohort: true, jointe: true },
+        { key: 'cohorte-jointe + DUAL (cascade)', cohort: true, jointe: true, dual: true },
+        { key: 'cohorte-jointe + ARBITRAGE OS ', cohort: true, jointe: true, osarb: true } ]
     : [ { key: 'REF  son-lu (wp.get·triche) ', cohort: false, jointe: false },
         { key: 'cohorte ARGMAX (board)      ', cohort: true,  jointe: false },
         { key: 'cohorte JOINTE @0.30        ', cohort: true,  jointe: true  } ];
@@ -141,11 +146,13 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     console.log(`\n  Δ « ${a} » − « ${b} » : moyenne ${(mean(1)-mean(0)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
     const allWin = perSeed.every(d => d > 0), noLoss = perSeed.every(d => d >= 0);
     console.log(`  → bat à CHAQUE graine ? ${allWin ? 'OUI' : (noLoss ? 'égalité au pire' : 'NON')}  (gardé seulement si ≥ 0 partout et moyenne > 0)`);
-  } else {
-    const perSeed = rows[2].vals.map((v, i) => v - rows[1].vals[i]);
-    console.log(`\n  Δ JOINTE − ARGMAX : moyenne ${(mean(2)-mean(1)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
-    console.log(`  Δ JOINTE − son-lu (écart résiduel)        : ${(mean(2)-mean(0)).toFixed(1)} pts`);
-    const allWin = perSeed.every(d => d > 0);
-    console.log(`  → JOINTE bat ARGMAX à CHAQUE graine ? ${allWin ? 'OUI' : 'NON'}  (claim §1.2 : OUI, +2,2 pts)`);
+  } else {   // 3 conditions : Δ de la 3e vs la 2e ET vs la 1re (générique, libellés des conditions)
+    const c2 = rows[2].key.trim(), c1 = rows[1].key.trim(), c0 = rows[0].key.trim();
+    const d21 = rows[2].vals.map((v, i) => v - rows[1].vals[i]);
+    const d20 = rows[2].vals.map((v, i) => v - rows[0].vals[i]);
+    console.log(`\n  Δ « ${c2} » − « ${c1} » : moyenne ${(mean(2)-mean(1)).toFixed(1)} pts · par graine [${d21.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
+    console.log(`  Δ « ${c2} » − « ${c0} » : moyenne ${(mean(2)-mean(0)).toFixed(1)} pts · par graine [${d20.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
+    const allWin = d20.every(d => d > 0), noLoss = d20.every(d => d >= 0);
+    console.log(`  → « ${c2} » bat la base à CHAQUE graine ? ${allWin ? 'OUI' : (noLoss ? 'égalité au pire' : 'NON')}  (barrière §6.4)`);
   }
 })().catch(e => { console.error('ERR', e && e.stack || e); process.exit(1); });

@@ -6111,6 +6111,9 @@ let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohor
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
 let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
+let M_NEO_OS_ARB = false;                    // ARBITRAGE OS niveau DECLARE : mélange les 2 voies DRC — sublexicale (jointe) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step (forme w(r)=r^α/(β+r^α) prouvée, mélange CONVEXE pondéré par fiabilité relative), au lieu de la cascade either/or. Cheat-free, sans currentWord. OFF-inerte.
+let M_NEO_OS_ARB_CONF = 0.0;                 // seuil sur la lettre mélangée (0 = tire la meilleure non essayée)
+let _neoWF = null;                           // cache word→fréquence (voie lexicale, board-dérivé légitime pour DECLARE)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6171,6 +6174,47 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
   }
   if (!used) return null;
   return { dist: acc, used: used };
+}
+function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
+  const _pcd = _neoPhonCohortDist(); if (!_pcd) return null;
+  const G = _emrg_initOnline(); const _L2 = G.getL2();
+  if (!_neoWF) { _neoWF = new Map(); for (const w of OMEGA_LEX4.words) if (w && w.m) _neoWF.set(w.m, (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001); }
+  const L = currentWord.length;
+  // voie SUBLEXICALE : distribution lettre = max sur positions non révélées de la jointe (Σ_φ Pcoh·CR)
+  const sub = new Float64Array(26);
+  for (let p = 0; p < L; p++) { if (revealedMask[p]) continue; const _dist = _pcd.dist[p]; let _tot = 0; for (const k in _dist) _tot += _dist[k]; if (_tot <= 0) continue;
+    const _Lj = (p>0 && revealedMask[p-1]) ? currentWord.charAt(p-1) : '#'; const _Rj = (p<L-1 && revealedMask[p+1]) ? currentWord.charAt(p+1) : '#';
+    const _sc = new Float64Array(26);
+    for (const _ph in _dist) { if (_ph === '_') continue; const _w = _dist[_ph]/_tot;
+      const _ksj = [_ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; let _cj = null, _sj = 0;
+      for (let _ki=0;_ki<_ksj.length;_ki++){ const _cc=_neoCRS[_ksj[_ki]]; if(_cc){ let _ss=0; for(let q=0;q<26;q++)_ss+=_cc[q]; if(_ss>=3){_cj=_cc;_sj=_ss;break;} if(!_cj){_cj=_cc;_sj=_ss;} } }
+      if (_cj && _sj>0) { for (let x=0;x<26;x++) _sc[x] += _w*(_cj[x]/_sj); } else { const _l2=_L2[_ph]; if(_l2){ for(let x=0;x<26;x++) _sc[x] += _w*_l2[x]; } }
+    }
+    for (let x=0;x<26;x++) if (_sc[x] > sub[x]) sub[x] = _sc[x];
+  }
+  // voie LEXICALE : distribution lettre = cohorte board pondérée fréquence (cohort model, Marslen-Wilson 1978)
+  const lex = new Float64Array(26);
+  const absent = []; for (let x=0;x<26;x++){ if(!alreadyTried[x]) continue; let seen=false; for(let p=0;p<L;p++) if(revealedMask[p]&&currentWord.charCodeAt(p)-65===x){seen=true;break;} if(!seen) absent.push(String.fromCharCode(65+x)); }
+  const cand = _neoWBL[L];
+  if (cand) { let used = 0;
+    for (let i=0;i<cand.length && used<M_NEO_PHON_COHORT_CAP;i++){ const m = cand[i];
+      let ok = true; for (let p=0;p<L;p++){ if(revealedMask[p] && m.charCodeAt(p)!==currentWord.charCodeAt(p)){ ok=false; break; } } if(!ok) continue;
+      if (absent.length){ let bad=false; for(let a=0;a<absent.length;a++) if(m.indexOf(absent[a])>=0){bad=true;break;} if(bad) continue; }
+      used++; const f = _neoWF.get(m) || 0.001; const seen = new Uint8Array(26);
+      for (let p=0;p<L;p++){ if(revealedMask[p]) continue; const c=m.charCodeAt(p)-65; if(c>=0&&c<26&&!seen[c]){ seen[c]=1; lex[c]+=f; } }
+    }
+  }
+  let ssub=0,slex=0; for(let x=0;x<26;x++){ssub+=sub[x];slex+=lex[x];}
+  if (ssub<=0 && slex<=0) return null;
+  if (ssub>0) for(let x=0;x<26;x++) sub[x]/=ssub; if (slex>0) for(let x=0;x<26;x++) lex[x]/=slex;   // distributions L1
+  let sigSub=0,sigLex=0; for(let x=0;x<26;x++){ if(sub[x]>sigSub)sigSub=sub[x]; if(lex[x]>sigLex)sigLex=lex[x]; }   // fiabilité = piqué de chaque voie
+  const _o=M_OS_v07.output,_r=M_OS_v07.r,_m=M_OS_v07.mu;   // save (ne pas perturber la cognition)
+  const _mix = M_OS_v07_step(sub, sigSub||1e-9, lex, sigLex||1e-9);   // RÉUTILISE l'OS : (1−μ)·sub + μ·lex, μ=r^α/(β+r^α), r=sigLex/sigSub
+  const mix = Float64Array.from(_mix);
+  M_OS_v07.output=_o; M_OS_v07.r=_r; M_OS_v07.mu=_m;   // restore
+  let best=-1, bestL=-1; for (let x=0;x<26;x++){ if(alreadyTried[x]) continue; if(mix[x]>best){ best=mix[x]; bestL=x; } }
+  if (bestL>=0 && best>M_NEO_OS_ARB_CONF) return String.fromCharCode(65+bestL);
+  return null;
 }
 let M_LEARN_FROM_COGNITION_ENABLED = false;   // fix bequille : apprenants <- lettre cognitive (pre-declare), pas la jouee
 var _DECL2 = (function () {
@@ -7218,6 +7262,10 @@ function omegaStep() {
         if (_ncompat && _nrc.margin > M_DECLARE_NEO_RECALL_MARGIN) {
           for (let p = 0; p < _nrc.w.length; p++) { const li = _nrc.w.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li] && !revealedMask[p]) { proposed = _nrc.w.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.rH++; } break; } }
         }
+      }
+      if (M_NEO_OS_ARB && M_NEO_PHON_COHORT_ENABLED && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical)
+        const _ar = _neoDeclareOSmix();
+        if (_ar) { proposed = _ar; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }
       if ((M_NEO_ASSEMBLED_ENABLED || M_NEO_MUTE_ENABLED) && !_neoDone) {   // (2)(3) assemblee sonore + muette ortho — alignement MASQUE partage
         const _G = _emrg_initOnline(); const _L2 = _G.getL2();
