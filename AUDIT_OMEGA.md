@@ -142,7 +142,24 @@ Les chiffres §1.1/§1.2 venaient de la session précédente (inaccessible). Doc
 
 → **net −3,0, perd aux 4 graines = falsifié** (un smoke N=25/1 graine donnait +4 — bruit). Croiser les deux routes **au concept 12 cellules** le **contamine** — cohérent avec le mur de capacité (§3, mémoire §8.1) et la falsification « banc dans M3_d ». La cognition croise déjà via `M_S`/OS ; en rajouter au concept sur-contamine.
 
-**Acquis convergent.** Trois leviers pour pousser le declare cheat-free ce cycle — morpho distance (#1), morpho backoff dense (#2, §1.2), croisement cross-modal (#1.4) — **tous net-négatif/bruit**. Le résidu cheat-free (~2-3 pts sous le son-lu) ne vit **ni** dans la table phon→lettre **ni** dans le concept M3_d : il est dans l'**ambiguïté cohorte** (mots durs), et le croisement *utile* est **déjà** capté par `M_S`/OS au niveau lettre. Pistes honnêtes restantes : croisement à l'**arbitrage OS** (`w(r)`, pas au concept) ; ou **acter ~96,5-97,5 % comme plafond cheat-free** et le fiabiliser (puissance R66, ≥ 200 × 4). Mesure reproductible : `node evo/ab_cohort.js xmodal 200 100 12345,777,2024,99`.
+**Acquis convergent.** Trois leviers pour pousser le declare cheat-free ce cycle — morpho distance (#1), morpho backoff dense (#2, §1.2), croisement cross-modal (#1.4) — **tous net-négatif/bruit**. Le résidu cheat-free (~2-3 pts sous le son-lu) ne vit **ni** dans la table phon→lettre **ni** dans le concept M3_d : il est dans l'**ambiguïté cohorte** (mots durs), et le croisement *utile* est **déjà** capté par `M_S`/OS au niveau lettre. Mesure reproductible : `node evo/ab_cohort.js xmodal 200 100 12345,777,2024,99`.
+
+### 1.5 Pousser le declare cheat-free SANS currentWord — exploration complète (R66) — 2026-06-16
+
+Question : combler le trou du declare **sans aucune lecture de `currentWord`** (cohorte-jointe seule = **94,8 %** vs son-lu/«mot entendu» 98,0 %, K=1 4 graines). Comparaison **DUAL (`_DECL2`, niveau mot, freq×ortho×phon) vs NEO** (per-lettre, sans fréquence) : NEO **n'exploite ni la fréquence ni un posterior-mot** — c'est ce qui manquait. Tous les variants mesurés (in-lexique K=1, warmup 200/test 100, config `CONFIG_REFERENCE` épinglée) :
+
+| Variant ajouté à la cohorte-jointe (sans CW) | Δ moy. | par graine | doctrine | verdict |
+|---|---|---|---|---|
+| **DUAL complet** (freq + ortho + phon, additif) | **+2,5** | [+3,+0,+1,+6] | §3.1-*pattern* (produit de marginales, **niveau mot**) | **stable, jamais en-dessous → seul gain robuste** |
+| DUAL **fréquence seule** (wO=wP=0) | +1,3 | [+3,−1,+0,+3] | propre (prior fréquence) | positif **mais bruité** (perd 1 graine) |
+| **jointe-mot** (freq × vraisemblance jointe propre, §3.2) | **−2,3** | [−1,−4,−4,+0] | propre | **échoue** : le produit Σ_p de la jointe *compose* le bruit, engage le mauvais mot MAP |
+| freq croisée au **phonème** (`Pcoh` pondérée) | −4,3 | [−2,−7,−4,−4] | propre | échoue : la fréquence est un signal de *mot*, pas de phonème |
+
+*(Régime « mot entendu » : DUAL complet donne **+1,8 → 99,8 %**, [+4,+0,+1,+2].)*
+
+**Conclusion (honnête).** Le seul gain robuste vient de **DUAL** : un **modèle de mot** (prior fréquence × plausibilités intrinsèques ortho/phon du mot, par produit). Décomposé : ~moitié fréquence (propre mais bruitée), ~moitié ortho/phon (qui *stabilise*). **Aucun variant doctrinalement pur n'égale le +2,5** — la jointe, excellente *par lettre* (adoptée §1.2), est mauvaise *multipliée sur le mot*. Le « produit » de DUAL est le *pattern* que §3.1 déconseille, mais (a) au niveau **mot-declare** (≠ croisement per-lettre visé par §3.1/§3.2), (b) c'est de la **reconnaissance in-lexique** (la cohorte contient le vrai mot → s'effondre en OOV, non mesuré ici). 
+
+**Statut : arbitrage humain (§0/§4.4), non tranché.** Options mesurées, toutes cheat-free-sans-currentWord : **(c)** adopter DUAL (+2,5 → 97,3 % no-CW / +1,8 → 99,8 % mot-entendu, stable ; assumer le produit niveau-mot) ; **(b)** fréquence-seule (+1,3 → 96,0 %, plus pur, bruité) ; **(d)** garder la cohorte-jointe (94,8 %). DUAL reste **OFF dans CONFIG_REFERENCE** tant que non arbitré. Repro : `node evo/ab_cohort.js dual|dualncw|dualfreq 200 100 12345,777,2024,99`.
 
 ---
 
