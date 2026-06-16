@@ -80,13 +80,14 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
 
   // une condition = reset complet + config + flags cohorte/jointe/cross-modal, warmup (lexique plein) puis test.
-  function runCond(seed, sets, { cohort, jointe, xmodal }) {
+  function runCond(seed, sets, { cohort, jointe, xmodal, dual }) {
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
     ev(oov ? CFG_OOV : CFG_INLEX);
     ev(`M_NEO_PHON_COHORT_ENABLED=${!!cohort};M_NEO_PHON_COHORT_JOINTE=${!!jointe};`);
     ev(`M_BPC_CROSSMODAL_ENABLED=${!!xmodal};`);   // croisement dormant : M3_d perçoit M1_d ⊕ M1_phon (hub-and-spoke, descendant bPC)
+    ev(`M_DECLARE_DUAL_ENABLED=${!!dual};`);        // DUAL : declare cohorte-board (freq × ortho × phon), cheat-free, sans currentWord ; conf/poids aux défauts 0,85/0,50/0,25
     LEX.len_index = origLI;                                   // warmup : lexique plein (le mot vécu est légitime en descendant)
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
@@ -102,6 +103,12 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     : (mode === 'xmodal')
     ? [ { key: 'config réf. (cross-modal OFF)', cohort: false, jointe: false, xmodal: false },
         { key: 'config réf. + CROSS-MODAL ON ', cohort: false, jointe: false, xmodal: true  } ]
+    : (mode === 'dual')
+    ? [ { key: 'NEO seul (config réf.)      ', cohort: false, jointe: false, dual: false },
+        { key: 'NEO + DUAL (filet cohorte)  ', cohort: false, jointe: false, dual: true  } ]
+    : (mode === 'dualncw')
+    ? [ { key: 'NEO cohorte-jointe (sans CW)', cohort: true,  jointe: true,  dual: false },
+        { key: 'NEO cohorte-jointe + DUAL   ', cohort: true,  jointe: true,  dual: true  } ]
     : [ { key: 'REF  son-lu (wp.get·triche) ', cohort: false, jointe: false },
         { key: 'cohorte ARGMAX (board)      ', cohort: true,  jointe: false },
         { key: 'cohorte JOINTE @0.30        ', cohort: true,  jointe: true  } ];
