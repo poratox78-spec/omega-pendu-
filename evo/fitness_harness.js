@@ -35,7 +35,8 @@ function loadEngine() {
     get active(){return (typeof gameActive!=='undefined')?gameActive:undefined},
     get won(){return (typeof lastGameWon!=='undefined')?lastGameWon:undefined},
     get word(){return (typeof currentWord!=='undefined')?currentWord:undefined},
-    get tried(){return (typeof alreadyTried!=='undefined')?alreadyTried:undefined} };`;
+    get tried(){return (typeof alreadyTried!=='undefined')?alreadyTried:undefined},
+    evalIn:(c)=>eval(c) };`;   // pont de MESURE (direct eval = même portée que le moteur) : lit/écrit les toggles (let) et objets internes par référence. N'altère pas la baseline (clé d'export en plus).
   eval(js + exp);
   return globalThis.__O;
 }
