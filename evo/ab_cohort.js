@@ -79,13 +79,14 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     return { trainW, testW, filtered };
   }
 
-  // une condition = reset complet + config + flags cohorte/jointe, warmup (lexique plein) puis test.
-  function runCond(seed, sets, { cohort, jointe }) {
+  // une condition = reset complet + config + flags cohorte/jointe/cross-modal, warmup (lexique plein) puis test.
+  function runCond(seed, sets, { cohort, jointe, xmodal }) {
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
     ev(oov ? CFG_OOV : CFG_INLEX);
     ev(`M_NEO_PHON_COHORT_ENABLED=${!!cohort};M_NEO_PHON_COHORT_JOINTE=${!!jointe};`);
+    ev(`M_BPC_CROSSMODAL_ENABLED=${!!xmodal};`);   // croisement dormant : M3_d perçoit M1_d ⊕ M1_phon (hub-and-spoke, descendant bPC)
     LEX.len_index = origLI;                                   // warmup : lexique plein (le mot vécu est légitime en descendant)
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
@@ -98,6 +99,9 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   const conds = oov
     ? [ { key: 'REF  son-lu (wp.get)        ', cohort: false, jointe: false },
         { key: 'cohorte argmax + garde 0.5  ', cohort: true,  jointe: false } ]
+    : (mode === 'xmodal')
+    ? [ { key: 'config réf. (cross-modal OFF)', cohort: false, jointe: false, xmodal: false },
+        { key: 'config réf. + CROSS-MODAL ON ', cohort: false, jointe: false, xmodal: true  } ]
     : [ { key: 'REF  son-lu (wp.get·triche) ', cohort: false, jointe: false },
         { key: 'cohorte ARGMAX (board)      ', cohort: true,  jointe: false },
         { key: 'cohorte JOINTE @0.30        ', cohort: true,  jointe: true  } ];
@@ -120,8 +124,12 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
   // Δ falsifiables
   const mean = i => rows[i].vals.reduce((a, b) => a + b, 0) / rows[i].vals.length;
-  if (oov) {
-    console.log(`\n  Δ cohorte − son-lu (coût d'honnêteté OOV) : ${(mean(1)-mean(0)).toFixed(1)} pts`);
+  if (rows.length === 2) {   // 2 conditions (oov / xmodal) : Δ 2e − 1re, par graine + barrière de mérite §6.4
+    const a = rows[1].key.trim(), b = rows[0].key.trim();
+    const perSeed = rows[1].vals.map((v, i) => v - rows[0].vals[i]);
+    console.log(`\n  Δ « ${a} » − « ${b} » : moyenne ${(mean(1)-mean(0)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
+    const allWin = perSeed.every(d => d > 0), noLoss = perSeed.every(d => d >= 0);
+    console.log(`  → bat à CHAQUE graine ? ${allWin ? 'OUI' : (noLoss ? 'égalité au pire' : 'NON')}  (gardé seulement si ≥ 0 partout et moyenne > 0)`);
   } else {
     const perSeed = rows[2].vals.map((v, i) => v - rows[1].vals[i]);
     console.log(`\n  Δ JOINTE − ARGMAX : moyenne ${(mean(2)-mean(1)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);

@@ -128,6 +128,22 @@ Les chiffres §1.1/§1.2 venaient de la session précédente (inaccessible). Doc
 
 > Tout reste **OFF par défaut** (baseline byte-identique). La reproduction n'a **pas** modifié le moteur ; elle ajoute un harnais (`evo/`) et cette sous-section.
 
+### 1.4 Le declare cheat-free ne croise pas les deux routes — et croiser AU concept (M3_d) dégrade (R66) — 2026-06-16
+
+**Vérifié (code).** Le declare NEO (7210-7248) combine ses voies en **cascade « soit l'un soit l'autre »** : recall → SINON assemblé (phon→ortho) → SINON muette (ortho-contexte). **Pas de jointe entre voies**, et **une seule direction** (phon→ortho ; aucune voie ortho→phon). Il **n'utilise ni le hub concept `M_S`** (fusion amodale M3_ortho+M3_phon, 1771/5062) **ni les branches descendantes** (`M3_phon_m_step` renforce les `conceptCells` partagées, 3854) — il court-circuite le croisement par le concept, *la* mécanique OMEGA. (La cognition **par-lettre**, elle, croise bien via `M_S`/OS `w(r)` — c'est le ~98 % de base.)
+
+**Testé (R66).** Réveil du croisement dormant `M_BPC_CROSSMODAL` (M3_d perçoit `M1_d ⊕ M1_phon`, hub-and-spoke Rogers 2004, bPC descendant ; poids `bpcW_phon` alloués mais OFF, 2827). Mesuré K=1, 4 graines (config `CONFIG_REFERENCE` épinglée, régime son-lu) :
+
+| | 12345 | 777 | 2024 | 99 | moy. |
+|---|---|---|---|---|---|
+| config réf. (cross-modal OFF) | 96 | 99 | 99 | 98 | **98,0 %** |
+| + CROSS-MODAL ON | 95 | 95 | 97 | 93 | **95,0 %** |
+| Δ | −1 | −4 | −2 | −5 | **−3,0** |
+
+→ **net −3,0, perd aux 4 graines = falsifié** (un smoke N=25/1 graine donnait +4 — bruit). Croiser les deux routes **au concept 12 cellules** le **contamine** — cohérent avec le mur de capacité (§3, mémoire §8.1) et la falsification « banc dans M3_d ». La cognition croise déjà via `M_S`/OS ; en rajouter au concept sur-contamine.
+
+**Acquis convergent.** Trois leviers pour pousser le declare cheat-free ce cycle — morpho distance (#1), morpho backoff dense (#2, §1.2), croisement cross-modal (#1.4) — **tous net-négatif/bruit**. Le résidu cheat-free (~2-3 pts sous le son-lu) ne vit **ni** dans la table phon→lettre **ni** dans le concept M3_d : il est dans l'**ambiguïté cohorte** (mots durs), et le croisement *utile* est **déjà** capté par `M_S`/OS au niveau lettre. Pistes honnêtes restantes : croisement à l'**arbitrage OS** (`w(r)`, pas au concept) ; ou **acter ~96,5-97,5 % comme plafond cheat-free** et le fiabiliser (puissance R66, ≥ 200 × 4). Mesure reproductible : `node evo/ab_cohort.js xmodal 200 100 12345,777,2024,99`.
+
 ---
 
 ## 2. Findings structurels (par sévérité)
