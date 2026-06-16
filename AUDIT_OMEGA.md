@@ -162,6 +162,43 @@ Question : combler le trou du declare **sans aucune lecture de `currentWord`** (
 **Statut : DUAL ADOPTÉ (arbitrage humain, 16/06/2026, §0/§4.4)** — option (c). `M_DECLARE_DUAL` passe **ON dans la config de référence cheat-free** (`docs/CONFIG_REFERENCE.md`, MAJ 16/06) : +1,8 → 99,8 % mot-entendu / +2,5 → 97,3 % sans-currentWord, stable, cheat-free, declare niveau-mot (pas d'entorse §3.1, qui vise le per-lettre). Défaut moteur **OFF** (baseline byte-identique ; activé dans le preset). *(Alternatives écartées : (b) fréquence-seule +1,3 bruité ; (d) base 94,8.)* Repro : `node evo/ab_cohort.js dual|dualncw 200 100 12345,777,2024,99`.
 **Reste honnête (non clos) :** l'effet **OOV (Trexquant)** de DUAL n'est **pas mesuré** — DUAL étant de la reconnaissance in-lexique, on attend ~0 en OOV ; à vérifier avant tout chiffre hors-lexique.
 
+### 1.6 Lecture à la lumière de la littérature — et chantier futur : l'arbitrage des deux voies (R66) — 2026-06-16
+
+Confrontation des résultats §1.1–§1.5 aux sources du projet (MEMOIRE §11t/§13, rapport §14). But : **fonder le prochain chantier**, pas pavoiser. *(Épistémique du mémoire : une concordance n'est pas une preuve ; on distingue lien fort et analogie.)*
+
+**Concordances fortes (mesuré ↔ source) :**
+- **DUAL = le *cohort model* (Marslen-Wilson & Welsh 1978).** DUAL *est* la cohorte board-compatible pondérée par la **fréquence** = reconnaissance lexicale. Mesuré : la fréquence au niveau **mot** aide (+1,3) mais au niveau **phonème** nuit (−4,3, §1.5) → la reconnaissance est lexicale, pas phonémique-position. Conforme au modèle.
+- **DUAL + NEO = les deux voies de la DRC (Coltheart et al. 2001).** Lexicale (recall/DUAL : reconnaître le mot) ∥ sublexicale (assemblé/jointe : assembler par phonème). « Les combiner bat chacune » (§1.5) = la thèse double-route. Le caveat OOV s'y inscrit : hors-lexique la voie lexicale s'effondre (cohorte sans le mot), la sublexicale doit porter — prédiction DRC directe.
+- **M3_d cross-modal qui dégrade (−3,0, §1.4) = CLS (McClelland, McNaughton & O'Reilly 1995).** Le petit latent sémantique (12 cellules, blueprint DBPC, Qiu et al. 2025) ne peut absorber une charge cross-modale/épisodique sans se contaminer — séparation hippocampe/néocortex. Re-confirme §8.1 du mémoire de façon indépendante.
+
+**Tensions / analogies à ne pas surinterpréter :**
+- **Notre combinaison est plus grossière que la DRC.** DRC = deux voies **arbitrées en interaction** (activation relative) ; nous = **cascade à priorité fixe** (recall → DUAL → jointe ; le dernier confiant écrase). L'arbitrage fin (OS `w(r)=−r/(1+r)`, rapport §4) n'existe qu'au niveau **lettre**, pas entre les déclares. **C'est l'écart au modèle — et le chantier ci-dessous.**
+- Le *cohort model* est **auditif** (entrée phonétique incrémentale) ; on l'applique à un board **écrit**. L'analogie (rétrécissement de l'ensemble compatible) tient, la modalité diffère.
+- Lien **resonator (Frady et al. 2020)** ↔ échec de la jointe-mot (−2,3, le produit Σ_p compose le bruit) : **analogique** (Frady factorise des produits VSA liés, pas des vraisemblances par position). Éclairage, pas preuve. Recoupe §3.1 (« ne pas multiplier des marginales »).
+
+---
+
+#### Chantier futur — **arbitrage des deux voies du declare** (≈ croisement OS au niveau declare)
+
+**Constat (§1.5 + DRC).** Le declare cheat-free combine voie **lexicale** (recall/DUAL) et voie **sublexicale** (jointe) par **cascade à priorité fixe**. Ce n'est pas l'arbitrage interactif DRC, où l'intégration pondère par la **fiabilité/activation relative** des routes.
+
+**Hypothèse falsifiable.** Remplacer la cascade par un **arbitrage par fiabilité relative** lexical⟷sublexical — à l'image de l'OS `w(r)=−r/(1+r)` qui arbitre déjà ortho⟷phon **au niveau lettre** — mais porté au **niveau declare**. C'est le **croisement OS réservé**. Confiances **board-dérivées** : marge du posterior cohorte (lexical) vs marge de la jointe (sublexical) ; aucune lecture de `currentWord`.
+
+**Pourquoi ça pourrait payer.** (a) La cascade laisse une voie *confiante-mais-fausse* écraser l'autre (pattern d'échec §1.1) ; pondérer par la fiabilité **mesurée dans le régime courant** l'évite. (b) Bascule gracieuse vers la sublexicale quand la cohorte lexicale est peu fiable (OOV / mots durs) — exactement la prédiction DRC, et l'angle mort actuel (OOV).
+
+**Protocole R66 (reprenable).**
+1. Contrôle = cascade actuelle (baseline).
+2. Variante = gate d'arbitrage par fiabilité relative (nouveau toggle **OFF-inerte**, confiances board-dérivées).
+3. Mesurer K=1, 4 graines, **in-lexique ET OOV séparément** (doctrine §1 : ne jamais les confondre ; c'est en OOV que l'arbitrage devrait le plus aider).
+4. Barrière de mérite §6.4 : gardé seulement si ≥ baseline **à chaque graine** et moyenne > 0, dans ≥ 1 régime, **sans régresser l'autre**.
+
+**Garde-fous (mesurés — ne pas réapprendre à la dure).**
+- La forme `w(r)` est un **choix de design**, non dérivé (rapport §4 note) — l'étendre aux declares en hérite ; la traiter comme paramètre à mesurer.
+- **Apprendre le poids d'arbitrage en ligne par le winrate = plat** (SPSA : §8.3 mémoire ; trigger gap, notes NEO §6 — gradient nul, effet sous le quantum). → fixer le poids par **mesure** (constante, comme θ batch), ne pas l'apprendre en ligne.
+- **Une jonction à la fois** (§4.1) : chantier **séparé** de l'adoption DUAL ; ne pas fusionner. Cheat-free strict.
+
+**Pré-requis de lecture (A3) avant de coder :** rapport §4 (OS `w(r)`) · §17 (declares NEO) · MEMOIRE §6 (croiser = jointe) · §8.2-8.3 (l'arbitrage par **seuil fixe** drague ; le trigger appris a échoué) · le présent §1.5/§1.6. Harnais prêt : `evo/ab_cohort.js` (ajouter un mode `arb`).
+
 ---
 
 ## 2. Findings structurels (par sévérité)
