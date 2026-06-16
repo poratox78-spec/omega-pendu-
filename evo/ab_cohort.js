@@ -62,7 +62,7 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   const W = LEX.words;
 
   // helper de jeu, défini DANS la portée du moteur (closure sur startNewGame/omegaStep/...).
-  ev('globalThis.__play=function(w){startNewGame(w);var sf=300;while(gameActive&&sf-->0)omegaStep();return !!lastGameWon;}');
+  ev('globalThis.__play=function(w){startNewGame(w);var sf=300,lc=0,le=0;while(gameActive&&sf-->0){omegaStep();var c=0,e=0;for(var i=0;i<26;i++){if(alreadyTried[i]){c++;if(currentWord.indexOf(String.fromCharCode(65+i))<0)e++;}}if(c>0){lc=c;le=e;}}return {won:!!lastGameWon,coups:lc,err:le};}');
   const play = global.__play;
 
   // sélection de mots — MIROIR EXACT de _omega_trexquant_bench (valid 7..12, shuffle LCG seedé).
@@ -94,9 +94,10 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
     LEX.len_index = oov ? sets.filtered : origLI;             // test : OOV → filtré (mots retirés du lexique) ; in-lexique → plein
-    let win = 0; for (let i = 0; i < sets.testW.length; i++){ if (play(sets.testW[i])) win++; }
+    let win = 0, sumC = 0, sumE = 0; const n = sets.testW.length || 1;
+    for (let i = 0; i < sets.testW.length; i++){ const x = play(sets.testW[i]); if (x.won) win++; sumC += x.coups; sumE += x.err; }
     LEX.len_index = origLI;
-    return 100 * win / sets.testW.length;
+    return { wr: 100*win/n, err: sumE/n, coups: sumC/n };
   }
 
   const conds = oov
@@ -123,20 +124,25 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
         { key: 'cohorte JOINTE @0.30        ', cohort: true,  jointe: true  } ];
 
   console.log(`\n=== A/B cohorte — mode ${oov ? 'HORS-LEXIQUE (§1.1)' : 'IN-LEXIQUE K=1 (§1.2)'} · warmup ${warmupN} / test ${testN} · graines [${seeds.join(',')}] ===`);
-  const rows = conds.map(c => ({ key: c.key, vals: [] }));
+  const rows = conds.map(c => ({ key: c.key, vals: [], errs: [], coups: [] }));
   for (const seed of seeds) {
     const sets = pickSets(seed);
     for (let ci = 0; ci < conds.length; ci++) {
       const t0 = Date.now();
-      const wr = runCond(seed, sets, conds[ci]);
-      rows[ci].vals.push(wr);
-      process.stderr.write(`  [seed ${seed}] ${conds[ci].key.trim()} = ${wr.toFixed(1)}%  (${((Date.now()-t0)/1000).toFixed(1)}s)\n`);
+      const r = runCond(seed, sets, conds[ci]);
+      rows[ci].vals.push(r.wr); rows[ci].errs.push(r.err); rows[ci].coups.push(r.coups);
+      process.stderr.write(`  [seed ${seed}] ${conds[ci].key.trim()} = ${r.wr.toFixed(1)}% · err ${r.err.toFixed(2)} · coups ${r.coups.toFixed(2)}  (${((Date.now()-t0)/1000).toFixed(1)}s)\n`);
     }
   }
   console.log('\n  condition                      ' + seeds.map(s => pad(s, 8)).join('') + '  moyenne');
   for (const row of rows) {
     const mean = row.vals.reduce((a, b) => a + b, 0) / row.vals.length;
     console.log('  ' + row.key + '  ' + row.vals.map(v => pad(v.toFixed(1) + '%', 8)).join('') + '  ' + mean.toFixed(1) + '%');
+  }
+  const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+  console.log('\n  tri-critère (moyenne graines) — winrate · erreurs/partie · coups/partie (↓ = plus efficace) :');
+  for (const row of rows) {
+    console.log('  ' + row.key + '  ' + pad(avg(row.vals).toFixed(1) + '%', 8) + ' · err ' + pad(avg(row.errs).toFixed(2), 6) + ' · coups ' + avg(row.coups).toFixed(2));
   }
   // Δ falsifiables
   const mean = i => rows[i].vals.reduce((a, b) => a + b, 0) / rows[i].vals.length;
