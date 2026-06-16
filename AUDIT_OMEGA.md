@@ -199,6 +199,22 @@ Confrontation des résultats §1.1–§1.5 aux sources du projet (MEMOIRE §11t/
 
 **Pré-requis de lecture (A3) avant de coder :** rapport §4 (OS `w(r)`) · §17 (declares NEO) · MEMOIRE §6 (croiser = jointe) · §8.2-8.3 (l'arbitrage par **seuil fixe** drague ; le trigger appris a échoué) · le présent §1.5/§1.6. Harnais prêt : `evo/ab_cohort.js` (ajouter un mode `arb`).
 
+#### Résultat mesuré (16/06) — l'arbitrage OS MARCHE vs base, mais ne bat pas DUAL
+
+Prototypé `M_NEO_OS_ARB` (OFF-inerte) : mélange convexe sublexical (jointe) ⟷ lexical (cohorte-fréquence) via `M_OS_v07_step` réutilisé. Mesuré in-lexique K=1, 4 graines (tri-critère) :
+
+| sans currentWord | winrate | err/partie | coups/partie |
+|---|---|---|---|
+| cohorte-jointe (cascade, base) | 94,8 % | 2,13 | 8,18 |
+| + DUAL (cascade) | **97,3 %** | **1,80** | **7,88** |
+| + ARBITRAGE OS | 96,8 % | 1,89 | 7,95 |
+
+**Verdict.** L'arbitrage OS **bat la base** (+2,0 winrate, jamais en-dessous, moins de coups/erreurs) → le mécanisme est **validé** (hypothèse §1.6 confirmée). Mais il **ne bat pas DUAL** (−0,5 winrate, +0,09 err, +0,07 coups — dans le bruit, mais DUAL marginalement devant **sur les 3 critères**) → barrière §6.4 non franchie contre l'incumbent. **Décision (arbitrage humain 16/06) : DUAL reste adopté ; OS-arb gardé OFF-inerte comme alternative propre documentée** (plus fidèle DRC + ~2× plus rapide en wall-clock, mais pas meilleur sur la fitness). UI à câbler pour test manuel.
+
+#### ⚠️ Conflit de SENS des voies (trouvé en confrontant code + intuition Rem) — garde-fou
+
+La voie phon de la **cognition** est **ortho→phon** (`M1_phon_step(cw, rev)` sonorise les **lettres révélées**, cap §43 — direction *lecture*), et l'OS `M_OS_v07_step` qui l'arbitre a un θ appris **réglé pour la lecture** (α≈1,13, β≈0,65). Le **declare/assemblé**, lui, est **phon→ortho** (épellation — la force pendu). Les deux directions coexistent (DRC bidirectionnelle), **mais** un arbitrage OS au niveau declare qui **hériterait du θ de lecture** appliquerait un biais *ortho→phon* à une décision *phon→ortho* = **conflit de sens**. **Corrigé dans le prototype** : `_neoDeclareOSmix` force `α=β=1` (forme analytique neutre, save/restore), **découplé** du θ cognition. **Garde-fou pour la suite : l'arbitrage declare doit avoir son PROPRE (α,β) mesuré, jamais celui de la lecture.**
+
 ---
 
 ## 2. Findings structurels (par sévérité)

@@ -6208,10 +6208,11 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
   if (ssub<=0 && slex<=0) return null;
   if (ssub>0) for(let x=0;x<26;x++) sub[x]/=ssub; if (slex>0) for(let x=0;x<26;x++) lex[x]/=slex;   // distributions L1
   let sigSub=0,sigLex=0; for(let x=0;x<26;x++){ if(sub[x]>sigSub)sigSub=sub[x]; if(lex[x]>sigLex)sigLex=lex[x]; }   // fiabilité = piqué de chaque voie
-  const _o=M_OS_v07.output,_r=M_OS_v07.r,_m=M_OS_v07.mu;   // save (ne pas perturber la cognition)
+  const _o=M_OS_v07.output,_r=M_OS_v07.r,_m=M_OS_v07.mu,_a=M_OS_v07.alpha,_b=M_OS_v07.beta;   // save (ne pas perturber la cognition)
+  M_OS_v07.alpha=1; M_OS_v07.beta=1;   // ARBITRAGE DECLARE = forme analytique neutre μ=r/(1+r), DÉCOUPLÉE du θ de LECTURE (ortho→phon) de la cognition — évite le conflit de sens des voies (le declare est phon→ortho)
   const _mix = M_OS_v07_step(sub, sigSub||1e-9, lex, sigLex||1e-9);   // RÉUTILISE l'OS : (1−μ)·sub + μ·lex, μ=r^α/(β+r^α), r=sigLex/sigSub
   const mix = Float64Array.from(_mix);
-  M_OS_v07.output=_o; M_OS_v07.r=_r; M_OS_v07.mu=_m;   // restore
+  M_OS_v07.alpha=_a; M_OS_v07.beta=_b; M_OS_v07.output=_o; M_OS_v07.r=_r; M_OS_v07.mu=_m;   // restore
   let best=-1, bestL=-1; for (let x=0;x<26;x++){ if(alreadyTried[x]) continue; if(mix[x]>best){ best=mix[x]; bestL=x; } }
   if (bestL>=0 && best>M_NEO_OS_ARB_CONF) return String.fromCharCode(65+bestL);
   return null;
