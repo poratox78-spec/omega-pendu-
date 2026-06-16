@@ -79,13 +79,14 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     return { trainW, testW, filtered };
   }
 
-  // une condition = reset complet + config + flags cohorte/jointe, warmup (lexique plein) puis test.
-  function runCond(seed, sets, { cohort, jointe }) {
+  // une condition = reset complet + config + flags cohorte/jointe/morpho, warmup (lexique plein) puis test.
+  function runCond(seed, sets, { cohort, jointe, morpho }) {
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
     ev(oov ? CFG_OOV : CFG_INLEX);
     ev(`M_NEO_PHON_COHORT_ENABLED=${!!cohort};M_NEO_PHON_COHORT_JOINTE=${!!jointe};`);
+    ev(`M_NEO_MORPHO=${!!morpho};`);   // backoff dense morpho (jonction #2) — piloté par condition
     LEX.len_index = origLI;                                   // warmup : lexique plein (le mot vécu est légitime en descendant)
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
@@ -98,6 +99,10 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   const conds = oov
     ? [ { key: 'REF  son-lu (wp.get)        ', cohort: false, jointe: false },
         { key: 'cohorte argmax + garde 0.5  ', cohort: true,  jointe: false } ]
+    : (mode === 'morpho')
+    ? [ { key: 'REF  son-lu (triche)        ', cohort: false, jointe: false, morpho: false },
+        { key: 'jointe BIGRAMME (sans CW)   ', cohort: true,  jointe: true,  morpho: false },
+        { key: 'jointe + MORPHO dense (sCW) ', cohort: true,  jointe: true,  morpho: true  } ]
     : [ { key: 'REF  son-lu (wp.get·triche) ', cohort: false, jointe: false },
         { key: 'cohorte ARGMAX (board)      ', cohort: true,  jointe: false },
         { key: 'cohorte JOINTE @0.30        ', cohort: true,  jointe: true  } ];
@@ -123,10 +128,11 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   if (oov) {
     console.log(`\n  Δ cohorte − son-lu (coût d'honnêteté OOV) : ${(mean(1)-mean(0)).toFixed(1)} pts`);
   } else {
+    const a = rows[2].key.trim(), b = rows[1].key.trim();
     const perSeed = rows[2].vals.map((v, i) => v - rows[1].vals[i]);
-    console.log(`\n  Δ JOINTE − ARGMAX : moyenne ${(mean(2)-mean(1)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
-    console.log(`  Δ JOINTE − son-lu (écart résiduel)        : ${(mean(2)-mean(0)).toFixed(1)} pts`);
-    const allWin = perSeed.every(d => d > 0);
-    console.log(`  → JOINTE bat ARGMAX à CHAQUE graine ? ${allWin ? 'OUI' : 'NON'}  (claim §1.2 : OUI, +2,2 pts)`);
+    console.log(`\n  Δ « ${a} » − « ${b} » : moyenne ${(mean(2)-mean(1)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
+    console.log(`  Δ « ${a} » − son-lu (écart résiduel) : ${(mean(2)-mean(0)).toFixed(1)} pts`);
+    const allWin = perSeed.every(d => d > 0), noLoss = perSeed.every(d => d >= 0);
+    console.log(`  → bat à CHAQUE graine ? ${allWin ? 'OUI' : (noLoss ? 'égalité au pire' : 'NON')}  (barrière §6.4 : gardé seulement si ≥ 0 partout et moyenne > 0)`);
   }
 })().catch(e => { console.error('ERR', e && e.stack || e); process.exit(1); });

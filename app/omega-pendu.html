@@ -6111,6 +6111,8 @@ let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohor
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
 let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
+let M_NEO_MORPHO = false;                   // MORPHO (jonction #2) : quand la cellule jointe apprise est CREUSE, backoff vers une table phonème|G|D construite UNE FOIS depuis TOUT le lexique (align/SAMPA, dense) au lieu du L2 plat marginal. Corrige la cause mesurée de l'échec #1 (fragmentation/données à warmup 200), sans décalage d'alphabet (≠ g2p IPA). OFF-inerte.
+let _neoMorphoCRS = null;                   // cache : table phonème|G|D -> dist(26) lettres, dérivée du lexique entier (dense, zéro warmup, cheat-free comme L2)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6171,6 +6173,23 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
   }
   if (!used) return null;
   return { dist: acc, used: used };
+}
+function _neoBuildMorphoCRS(){            // table DENSE phonème|G|D -> lettres, depuis TOUT le lexique (align/SAMPA) — backoff structuré contre la cellule apprise creuse. Construite une fois, cachée. cheat-free (savoir phonotactique général, comme L2 ; jamais currentWord).
+  if (_neoMorphoCRS) return _neoMorphoCRS;
+  const G = _emrg_initOnline(); const T = Object.create(null); const W = OMEGA_LEX4.words;
+  for (let k = 0; k < W.length; k++) {
+    const m = W[k] && W[k].m; if (typeof m !== 'string' || m.length < 3 || !/^[A-Z]+$/.test(m)) continue;
+    const ph = G.wp.get(m); if (!ph) continue;
+    const al = G.align(m, ph, null); if (!al) continue;   // phonème SAMPA par position (MÊME machinerie que la jointe)
+    for (let p = 0; p < m.length; p++) {
+      const phi = al[p]; if (phi == null || phi === '_') continue;
+      const t = m.charCodeAt(p) - 65; if (t < 0 || t >= 26) continue;
+      const L = p > 0 ? m.charAt(p-1) : '#', R = p < m.length-1 ? m.charAt(p+1) : '#';
+      const ks = [phi+'|'+L+'|'+R, phi+'|'+L, phi+'|#|'+R, phi];   // mêmes clés/backoffs que _neoCRS
+      for (let j = 0; j < ks.length; j++) { const kk = ks[j]; (T[kk] || (T[kk] = new Float64Array(26)))[t]++; }
+    }
+  }
+  _neoMorphoCRS = T; return T;
 }
 let M_LEARN_FROM_COGNITION_ENABLED = false;   // fix bequille : apprenants <- lettre cognitive (pre-declare), pas la jouee
 var _DECL2 = (function () {
@@ -7236,6 +7255,12 @@ function omegaStep() {
                   const _ksj = [_ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; let _cj = null, _sj = 0;
                   for (let _ki=0;_ki<_ksj.length;_ki++){ const _cc=_neoCRS[_ksj[_ki]]; if(_cc){ let _ss=0; for(let q=0;q<26;q++)_ss+=_cc[q]; if(_ss>=3){_cj=_cc;_sj=_ss;break;} if(!_cj){_cj=_cc;_sj=_ss;} } }
                   if (_cj && _sj>0) { for (let x=0;x<26;x++) _sc[x] += _w*(_cj[x]/_sj); }
+                  else if (M_NEO_MORPHO) {   // cellule apprise creuse → backoff DENSE morpho (lexique) au lieu du L2 plat
+                    const _MT=_neoBuildMorphoCRS(); let _mc=null,_ms=0;
+                    for (let _ki=0;_ki<_ksj.length;_ki++){ const _cc=_MT[_ksj[_ki]]; if(_cc){ let _ss=0; for(let q=0;q<26;q++)_ss+=_cc[q]; if(_ss>0){_mc=_cc;_ms=_ss;break;} } }
+                    if (_mc) { for (let x=0;x<26;x++) _sc[x] += _w*(_mc[x]/_ms); }
+                    else { const _l2=_L2[_ph]; if(_l2){ for(let x=0;x<26;x++) _sc[x] += _w*_l2[x]; } }
+                  }
                   else { const _l2=_L2[_ph]; if(_l2){ for(let x=0;x<26;x++) _sc[x] += _w*_l2[x]; } }
                 }
                 for (let x=0;x<26;x++){ if(alreadyTried[x]) continue; if(_cm && _cm[p]!==undefined && ((_cm[p]>>x)&1)===0) continue; if(_sc[x]>_best){_best=_sc[x];_bestL=x;} }
