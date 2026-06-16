@@ -74,7 +74,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | 18 | `M_PHON_READOUT_COUPLE_ENABLED` | **ON** | couplage readout phon |
 | 19 | `M_PHON_CONCEPT_BIND_ENABLED` | **ON** | readout phon sur concept lié |
 | 20 | `M_BPC_DECLARE_ENABLED` | OFF | declare BPC (≠ NEO) |
-| 21 | `M_DECLARE_DUAL_ENABLED` | OFF | ancien declare |
+| 21 | `M_DECLARE_DUAL_ENABLED` | **ON** | **adopté 16/06** (AUDIT_OMEGA §1.5) : declare niveau-mot cohorte-board (freq × plausibilité ortho/phon du mot), cheat-free. **+1,8 → 99,8 %** in-lex mot-entendu · **+2,5 → 97,3 %** sans-currentWord (4 graines, stable). Caveat : reconnaissance in-lexique (OOV inchangé). |
 | 22 | `M_LEARN_FROM_COGNITION_ENABLED` | OFF | non requis |
 | 23 | `M_OS_LEARNING_ENABLED` | **ON** | apprentissage OS (θ) |
 | 24 | `M_OS_LEARNING_GUARD_1_BOUNDED` | **ON** | garde θ 1 |
@@ -94,7 +94,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | 38 | `M_NEO_TRIGGER_ENABLED` | OFF | optionnel (neutre) |
 | 39 | `M_TREXQUANT_MODE_ENABLED` | OFF | mode test hors-lexique uniquement |
 
-**22 ON / 17 OFF** (online learning passé OFF après mesure ; g2p révélé+pénalité ajouté ON). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`, `M_NEO_G2P_EXP_PEN=0,5`.
+**23 ON / 16 OFF** (online learning OFF après mesure ; g2p révélé+pénalité ON ; **DUAL adopté 16/06 — cf. MAJ en fin de doc**). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`, `M_NEO_G2P_EXP_PEN=0,5` ; DUAL : `M_DECLARE_DUAL_CONF=0,85`, `WORTHO=0,50`, `WPHON=0,25`.
 Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 % (K=1) / 98,82 % (K=3)**, cheat-free.
 
 ## Notice UI — config optimale par LIBELLÉ AFFICHÉ (ce qu'on voit dans l'app)
@@ -126,6 +126,7 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 - ☑ 🧬 NEO · assemblé (phon→ortho)
 - ☑ 🎯 NEO · cohorte (filtre board)
 - ☑ 🧪 NEO · g2p révélé + pénalité  *(pén 0,5)*
+- ☑ 🦴 Declare DUAL (cheat-free)  *(adopté 16/06 — declare niveau-mot, +1,8 → 99,8 % in-lex / +2,5 → 97,3 % sans-CW)*
 
 **À LAISSER ÉTEINT (OFF) :**
 - ☐ θ · Apprentissage EN LIGNE (SPSA)  *(mesuré : aucun gain + dérive de session)*
@@ -137,7 +138,6 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 - ☐ 🧠 InfoGain
 - ☐ IG x P(succès)
 - ☐ 🎯 Declare BPC
-- ☐ 🦴 Declare DUAL (cheat-free)
 - ☐ 🧠 Apprendre depuis la cognition
 - ☐ 🦴 Declare émergent · recall
 - ☐ 🧬 Declare émergent · phon→ortho
@@ -150,3 +150,12 @@ Réglages : NEO_CONF 0,75 · RECALL_MARGIN 0,20. → 97,50 % (K=1) / 98,82 % (K=
 
 ## MAJ mesurée (online) — 14/06/2026
 `M_OS_LEARNING_ONLINE` (θ · Apprentissage EN LIGNE) : **OFF**. Mesuré (config optimale, 3 graines, warmup 150) : ON 98,1 % vs OFF 98,3 % (égal) ; ON rend le résultat **dépendant de l'historique de session** (même graine : 99,2 % → 98,3 %). OFF = même score, reproductible. Le master `M_OS_LEARNING` + gardes restent ON.
+
+## MAJ mesurée — DUAL adopté — 16/06/2026
+`M_DECLARE_DUAL` (🦴 Declare DUAL, cheat-free) : **ON** (était OFF). Mesuré in-lexique K=1, 4 graines (warmup 200 / test 100, harnais `evo/ab_cohort.js`, détail `AUDIT_OMEGA §1.5`) :
+- **régime mot-entendu** (config réf., NEO assemblé lit le son) : NEO **98,0 → 99,8 %** avec DUAL (**+1,8**, [+4,0,+1,+2], jamais en-dessous) ;
+- **régime sans `currentWord`** (cohorte-jointe, `M_NEO_PHON_COHORT`+`_JOINTE` ON) : **94,8 → 97,3 %** (**+2,5**, [+3,0,+1,+6], jamais en-dessous) — sauve les graines dures.
+
+**Pourquoi adopté.** DUAL est un **declare niveau-mot** : posterior cohorte-board = prior **fréquence** × plausibilités **ortho/phon du mot**. Il apporte la fréquence + le posterior-mot que NEO (per-lettre) n'exploitait pas. C'est complémentaire à NEO (filet quand NEO ne déclare pas). Cheat-free : lit le board révélé + la longueur, **jamais `currentWord`**.
+**Doctrine.** Le « produit » de DUAL est un modèle de mot (naïf-Bayes), **pas** le croisement per-lettre que §3.1/§3.2 régissent → pas d'entorse. Les variantes « pures » testées pour égaler DUAL ont **toutes échoué** (jointe-mot −2,3 ; freq-au-phonème −4,3 ; cross-modal −3,0) — AUDIT §1.5.
+**Caveat (régime).** DUAL est de la **reconnaissance in-lexique** (sa cohorte contient le vrai mot) → **OOV inchangé** (le 99,8/97,3 % est in-lexique ; effet Trexquant **non mesuré — à vérifier** avant de communiquer un chiffre OOV). Défaut moteur **OFF** (baseline byte-identique) ; activé dans le preset, comme les autres toggles.
