@@ -98,6 +98,34 @@ L'argmax du §1.1 était **fainéant** : il jette la distribution de phonème ET
 
 **Morpho jonction #1 (distance-de-fin) — FALSIFIÉ (R66, §6.4 barrière de mérite).** Tenté : ajouter `e` = distance-de-fin au contexte de la jointe (`_neoCRS`, clés `φ|eE|G|D`, `φ|eE|D` prepended). Mesuré K=1, 4 graines (warmup 200 / test 100) : jointe **+morpho 96,0 %** vs jointe **bigramme 97,0 %** (−1,0 pt, perd dans 3/4 graines). Cause : `e` **fragmente `_neoCRS`** (cellules trop creuses à warmup 200 → estimations bruitées) et reste un **proxy grossier** (ne capte pas le *contenu* du suffixe). **Reverté** (pas de cimetière). Piste morpho suivante (jonction séparée) : contexte = **suffixe révélé / segment AQUA `SEG`** (le contenu, pas la distance).
 
+### 1.3 Reproduction indépendante (R66, §1.2 falsifiabilité / §6.3 preuve) — 2026-06-16
+
+Les chiffres §1.1/§1.2 venaient de la session précédente (inaccessible). Doctrine : *« un résultat non reproductible est nul »*. **Rejoué de façon déterministe** par un harnais headless dédié — `evo/ab_cohort.js` — qui **miroite le protocole du bench embarqué `_omega_trexquant_bench`** (même `baseCfg`, warmup/test, RNG LCG seedé, filtrage OOV) et pilote le **vrai** code de décision (`startNewGame`/`omegaStep`), via un pont `evalIn` ajouté à `evo/fitness_harness.js` (lecture/écriture des toggles par référence ; baseline non modifiée). Rejouable :
+`node evo/ab_cohort.js oov 300 80 12345,777` · `node evo/ab_cohort.js inlex 200 100 12345,777,2024,99`.
+
+**§1.1 (OOV, warmup 300 / test 80).** Reproduction **exacte** à la graine 12345 :
+
+| OOV | graine 12345 | graine 777 | moyenne |
+|---|---|---|---|
+| son-lu (`wp.get`) | 73,8 % | 60,0 % | 66,9 % |
+| cohorte argmax + garde 0,5 | **66,3 %** | 53,8 % | 60,0 % |
+| **Δ coût d'honnêteté** | **−7,5** | −6,2 | **−6,9** |
+
+→ confirme le coût OOV **~7 pts** (claim ~7,5). Le 73,8 / 66,3 à la graine 12345 est **identique au tableau §1.1** : le miroir de config est fidèle.
+
+**§1.2 (in-lexique K=1, warmup 200 / test 100, 4 graines).** Le son-lu reproduit **98,0 % pile** (= réf §1.2), ce qui valide la config de base. La jointe :
+
+| in-lexique K=1 | 12345 | 777 | 2024 | 99 | moyenne |
+|---|---|---|---|---|---|
+| réf son-lu (triche pendu) | 96 | 99 | 99 | 98 | **98,0 %** |
+| cohorte **argmax** | 93 | 94 | 94 | 89 | 92,5 % |
+| cohorte **JOINTE @0,30** | 97 | 97 | 97 | 89 | **95,0 %** |
+| **Δ JOINTE − argmax** | +4 | +3 | +3 | **+0** | **+2,5** |
+
+**Verdict reproduit (honnête).** Le cœur tient : la **jointe bat l'argmax de +2,5 pts en moyenne** (claim +2,2) et **n'est jamais en-dessous** — *« croiser = jointe »* (doctrine §3) confirmé sur le harnais déterministe. **Nuance** : sur ce jeu de graines, le strict *« à chaque graine »* devient **3 victoires + 1 égalité** (graine 99 : 89 = 89) ; et l'écart résiduel à la triche est **−3,0 pts** (le −1,5 du §1.2 était optimiste — dépend du pool de mots). Rien n'infirme l'adoption (jointe ≥ argmax partout, gratuit en pureté), mais les bornes honnêtes sont **+2,5 / jamais-sous / résiduel −3** sur graines {12345,777,2024,99}.
+
+> Tout reste **OFF par défaut** (baseline byte-identique). La reproduction n'a **pas** modifié le moteur ; elle ajoute un harnais (`evo/`) et cette sous-section.
+
 ---
 
 ## 2. Findings structurels (par sévérité)
