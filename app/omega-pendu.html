@@ -6111,6 +6111,8 @@ let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohor
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
 let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
+let M_NEO_COHORT_FREQ = false;              // CROISER la fréquence DANS la jointe : pondère la cohorte par la fréquence lexicale en construisant Pcoh(φ|p) → les mots fréquents pèsent plus dans le phonème latent (§3.2). PAS un terme ajouté/multiplié (≠ DUAL additif). OFF-inerte.
+let _neoWF = null;                          // cache word→fréquence (pondération cohorte, construit une fois)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6153,6 +6155,7 @@ function _neoPhonCohort(){               // _al consensus : phonème dominant pa
 function _neoPhonCohortDist(){            // par position : distribution MOLLE {phonème: poids} sur la cohorte board (pour la JOINTE, pas l'argmax)
   const G = _emrg_initOnline();
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const Lw = w.m.length; (_neoWBL[Lw] || (_neoWBL[Lw] = [])).push(w.m); } } }
+  if (M_NEO_COHORT_FREQ && !_neoWF) { _neoWF = new Map(); for (const w of OMEGA_LEX4.words) if (w && w.m) _neoWF.set(w.m, (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001); }   // fréquence par mot (board-dérivé légitime pour DECLARE)
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
   for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let seen = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p)-65 === x) { seen = true; break; } if (!seen) absent.push(String.fromCharCode(65+x)); }
@@ -6166,7 +6169,8 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
     if (absent.length) { let bad = false; for (let a = 0; a < absent.length; a++) if (m.indexOf(absent[a]) >= 0) { bad = true; break; } if (bad) continue; }
     const ph = G.wp.get(m); if (!ph) continue;
     const al = G.align(m, ph, null); if (!al) continue;
-    for (let p = 0; p < L; p++) { const k = al[p]; acc[p][k] = (acc[p][k] || 0) + 1; }
+    const _wgt = M_NEO_COHORT_FREQ ? (_neoWF.get(m) || 0.001) : 1;   // fréquence CROISÉE dans le phonème latent (poids de la cohorte), pas additionnée
+    for (let p = 0; p < L; p++) { const k = al[p]; acc[p][k] = (acc[p][k] || 0) + _wgt; }
     used++;
   }
   if (!used) return null;
