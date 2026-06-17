@@ -215,6 +215,20 @@ Prototypé `M_NEO_OS_ARB` (OFF-inerte) : mélange convexe sublexical (jointe) �
 
 La voie phon de la **cognition** est **ortho→phon** (`M1_phon_step(cw, rev)` sonorise les **lettres révélées**, cap §43 — direction *lecture*), et l'OS `M_OS_v07_step` qui l'arbitre a un θ appris **réglé pour la lecture** (α≈1,13, β≈0,65). Le **declare/assemblé**, lui, est **phon→ortho** (épellation — la force pendu). Les deux directions coexistent (DRC bidirectionnelle), **mais** un arbitrage OS au niveau declare qui **hériterait du θ de lecture** appliquerait un biais *ortho→phon* à une décision *phon→ortho* = **conflit de sens**. **Corrigé dans le prototype** : `_neoDeclareOSmix` force `α=β=1` (forme analytique neutre, save/restore), **découplé** du θ cognition. **Garde-fou pour la suite : l'arbitrage declare doit avoir son PROPRE (α,β) mesuré, jamais celui de la lecture.**
 
+#### Résultat du balayage (α,β) — CHANTIER CLOS par la mesure (R66, §6.4) — 2026-06-17
+
+Garde-fou ci-dessus levé : `M_NEO_OS_ARB_ALPHA`/`M_NEO_OS_ARB_BETA` ajoutés (OFF-inerte, défaut 1/1 = byte-identique ; `_neoDeclareOSmix` les lit). Balayage in-lexique K=1, 4 graines (warmup 200 / test 100, `node evo/ab_cohort.js arbsweep 200 100 12345,777,2024,99`) :
+
+| sans `currentWord` | winrate | err/p | coups/p | vs DUAL (par graine) |
+|---|---|---|---|---|
+| **DUAL (incumbent)** | **97,3 %** | **1,79** | **7,86** | — |
+| cascade jointe (base) | 95,0 % | 2,08 | 8,14 | −2,3 |
+| OS-arb α1 β1 (neutre) | 96,8 % | 1,89 | 7,95 | **−0,5** [−1, 0, 0, −1] |
+| OS-arb α1 β0,5 (+lexical) | 96,5 % | 1,90 | 7,96 | **−0,8** [−1, 0, −1, −1] |
+| OS-arb α2 β0,5 (+lex. raide) | 96,0 % | 1,89 | 7,95 | **−1,3** [−1, 0, −1, −3] |
+
+**Sanity** : le neutre (1,1) reproduit **96,8 %** pile (= §1.6 ci-dessus) → plomberie (α,β) validée. **Verdict (barrière §6.4) : aucun (α,β) ne bat DUAL, et biaiser vers la voie lexicale (β<1) *dégrade*** (96,5/96,0 < 96,8). L'hypothèse « pencher lexical → rejoindre DUAL » est **falsifiée** : le mélange convexe **par lettre** (`Σ` pondéré de la distribution-lettre cohorte) ne réplique pas la reconnaissance **MAP par mot** de DUAL — ce sont deux mécanismes de niveaux différents. **Le levier (α,β) propre est clos : la cascade + DUAL reste l'optimum mesuré.** Les params restent OFF-inerte (alternative DRC documentée, ~2× plus rapide, mais non meilleure). Plus rien à mesurer côté arbitrage des declares.
+
 ---
 
 ## 2. Findings structurels (par sévérité)

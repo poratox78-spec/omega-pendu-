@@ -60,7 +60,7 @@ scalaire** `out[l] = (1−μ)·ortho[l] + μ·phon[l]`, `μ=r^α/(β+r^α)` (L37
 DRC (axe 1, *race model*), légitime comme tel, **mais pas** la marginalisation `Σ_φ P(φ|p)·P(lettre|φ,ctx)`
 de §3.2. M5_d empile en plus **5 enrichissements additifs/multiplicatifs** re-triés séparément (phonScore L5066,
 M_S L5091, P1 L5132, IG L4901, readout couplé L4924, puis modulation **multiplicative** M1_m L5160) — exactement
-le *pattern* « sommer/multiplier des marginales » que §3.1 déconseille, **au niveau lettre**. *À assumer* (cohérent
+le *pattern* « sommer/multiplier des marginales » que §3.1 déconseille, **au niveau lettre**. **→ Documenté/assumé (17/06)** : mémoire §6 clarifie que la jointe `Σ_φ` est un mécanisme **délibéré du declare** (où elle paie), le scoreur cognitif étant un **arbitrage de routes** (légitime) ; une jointe *dans* la cognition (concept M3_d) a été **falsifiée** (−3,0). *À assumer* (cohérent
 AUDIT_OMEGA §S1 « scoreur cognitif modeste ») : la doctrine §3 n'est pleinement honorée **que** dans le declare NEO.
 
 **🟢 D2 — La jointe per-lettre du declare NEO est correcte (§3.2).** Bloc assemblée/muette (L7291–7300, 7309–7326) :
@@ -109,6 +109,7 @@ réassignent la même variable `proposed` (WORD_DECLARE 7205 → BPC 7219 → DU
 NEO 7266). Aucune garde **entre familles** : si plusieurs toggles sont ON, le dernier de l'ordre textuel gagne
 mécaniquement. (À l'intérieur de NEO, un flag `_neoDone` ordonne recall>OS-arb>assemblée>muette.) C'est l'écart à
 la DRC interactive noté AUDIT_OMEGA §1.6 — **confirmé** ; fragile car l'ordre de priorité est purement implicite.
+**→ Mesuré / clos (17/06)** : l'arbitrage interactif `M_NEO_OS_ARB` a reçu ses **propres (α,β) mesurés** (balayage, AUDIT_OMEGA §1.6) — **aucun (α,β) ne bat DUAL** (neutre 96,8 < DUAL 97,3 ; biaiser lexical *dégrade*) → **cascade + DUAL = optimum mesuré**, pas de refonte. Reste à clarifier (hygiène, non mesuré) : rendre l'ordre de priorité **explicite**.
 
 ### 2.6 Code mort, vestigial, doublons (tissu cicatriciel — §S3)
 
