@@ -165,7 +165,18 @@ Le mapping voies descendantes ↔ routes DRC tranche le sens des deux dérives :
 - **Miroir phon ↔ voie sublexicale (GPC).** La GPC de DRC est **série, feedforward, sans feedback**. Brancher `M2_phon_m`/`M1_phon_m` comme co-décideurs serait **anti-DRC** → leur « utilité » n'est pas dans la décision (candidats hygiène S3, ou rôle non-décisionnel type cleanup HRR).
 - **HRR (Plate ; resonator Frady 2020).** Le bind est une **mémoire associative clé→valeur**, pas un moteur de prédiction de lettres (cf. mémoire §6 : 19 % vs 64 %). Confirme : ne pas câbler les dormants phon en scoring-lettre.
 
-> **Chantier ouvert (R66, non tranché).** (1) `M1_m` : poser un toggle débranchable + mesurer son Δ seul (K=1, 4 graines) — ferme la faille R66 et teste si le feedback IA gagne ses 0,1. (2) `bPC readout` (0,20) : ablation/repurpose (le concept porte la *longueur*, pas la lettre — audit §3). (3) Dormants phon : trancher (supprimer vs cleanup). **Ordre choisi (Rem, 16/06→17/06) : corriger les docs d'abord (ce commit), puis arbitrer les jonctions.**
+> **Chantier ouvert (R66, non tranché).** (1) `M1_m` : poser un toggle débranchable + mesurer son Δ seul (K=1, 4 graines) — ferme la faille R66 et teste si le feedback IA gagne ses 0,1. (2) `bPC readout` (0,20) : ablation/repurpose (le concept porte la *longueur*, pas la lettre — audit §3). (3) Dormants phon : trancher (supprimer vs cleanup). **Ordre choisi (Rem, 16/06→17/06) : corriger les docs d'abord (fait), puis arbitrer les jonctions.**
+
+#### 1.4.1 — Jonction M1_m mesurée (R66) — 2026-06-17 · FALSIFIÉE (n'gagne pas ses 0,1)
+
+Toggle `M5_D_M1_M_ENABLED` posé (défaut **ON** = baseline byte-identique ; court-circuit `true` sur les 2 blocs de co-décision en `cStep`). Ferme la faille R66 (M1_m était le seul co-décideur non gardé). Harnais : `evo/ab_m1m.js` (réutilise `loadEngine`/`evalIn` + protocole `pickSets` de `ab_cohort.js`), in-lexique K=1, warmup 200 / test 100, 4 graines {12345,777,2024,99}, ON vs OFF apparié.
+
+| Config | M1_m ON (0,1) | M1_m OFF (0,0) | Δ ON−OFF | par graine |
+|---|---|---|---|---|
+| cognition seule (declares OFF, isole M1_m) | 88,5 % | 89,8 % | **−1,3** | [−8, +4, −4, +3] (2 gains / 2 pertes, σ≈±8) |
+| référence (+NEO, config qui ship) | 98,0 % | 98,0 % | **+0,0** | [+1, −1, 0, 0] (égalité) |
+
+**Verdict.** M1_m à 0,1 **ne bat OFF nulle part** : égalité franche en référence (les declares NEO lavent le tweak per-lettre), neutre-à-négatif en cognition pure (−1,3, dans le bruit). La légitimité DRC de principe (feedback top-down mot→lettre, effet de supériorité du mot) **ne se traduit en aucun gain mesuré** → **falsifié** au sens §6.4 (barrière de mérite). Acquis : OFF est **égal-ou-meilleur** partout et plus simple (retire un co-décideur, ferme la tension « miroir décide »). **Décision de défaut (ON conservé pour continuité vs OFF adopté) = arbitrage Rem.** Le toggle laisse les deux réversibles (R66). Rejouable : `node evo/ab_m1m.js both 200 100 12345,777,2024,99`.
 
 ---
 
