@@ -1125,7 +1125,7 @@ footer {
         <div class="toggle-desc">concept M3_d -&gt; declare mot — CONF: <input id="bpc-declare-conf" type="number" value="0.95" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_BPC_DECLARE_CONF=Math.max(0,Math.min(1,parseFloat(this.value)||0.95))"> (sweet 0,95)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_DECLARE_DUAL_ENABLED" title="🦴 Declare DUAL (cheat-free) : declare via le board-buffer (coups publics revelees), JAMAIS currentWord. Cohort board + fusion freq x ortho(bigramme lex4) x phon(AQUA g2p). Force une lettre du mot MAP si posterior >= conf. Mesure config cognition : +5 pts (93,7 -> 98,7%), avgErr 2,29 -> 1,51." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_DECLARE_DUAL_ENABLED" title="🦴 Declare DUAL (cheat-free) : declare via le board-buffer (coups publics revelees), JAMAIS currentWord. Cohort board + fusion freq x ortho(bigramme lex4) x phon(AQUA g2p). Force une lettre du mot MAP si posterior >= conf. ADOPTÉ 16/06 dans la config cheat-free (AUDIT §1.5) : +1,8 → 99,8% (mot entendu) / +2,5 → 97,3% (sans currentWord), 4 graines, jamais en-dessous. Reconnaissance in-lexique (neutre OOV)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🦴 Declare DUAL (cheat-free)</div>
@@ -1242,6 +1242,13 @@ footer {
       <div>
         <div class="toggle-label">🔗 NEO · jointe son×ortho (croisée)</div>
         <div class="toggle-desc">croiser, pas argmax · +2,2 pts vs argmax (K=1) · seuil <input id="neo-jointe-conf" type="number" value="0.30" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_JOINTE_CONF=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
+      </div>
+    </div>
+    <div class="toggle-item" data-toggle="M_NEO_OS_ARB" title="🧭 NEO · arbitrage OS des 2 voies DRC : remplace la cascade either/or par un MÉLANGE CONVEXE — sublexicale (jointe phon→ortho) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step réutilisé (forme w(r)=r^α/(β+r^α), forcée α=β=1 neutre, DÉCOUPLÉE du θ de lecture ortho→phon de la cognition → pas de conflit de sens). Nécessite NEO + son board-dérivé (cohorte) ON. Mesuré sans currentWord (K=1, 4 graines) : +2,0 vs base (jamais en-dessous, moins de coups/erreurs), ≈ DUAL (96,8 vs 97,3, dans le bruit) mais plus propre (vraie DRC interactive) et ~2× plus rapide. Cheat-free. OFF par défaut (alternative à DUAL, non adoptée — AUDIT §1.6)." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🧭 NEO · arbitrage OS (2 voies DRC)</div>
+        <div class="toggle-desc">mélange convexe sublexical⟷lexical · alternative propre à la cascade</div>
       </div>
     </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
@@ -8894,7 +8901,7 @@ function ui_initToggles() {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   document.querySelectorAll('.toggle-item').forEach(item => {
     const name = item.dataset.toggle;
@@ -8937,7 +8944,7 @@ function ui_toggle(item) {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
   ];
   if (ALLOWED_TOGGLES.indexOf(name) === -1) {
     ui_log('ERROR', 'Toggle inconnu : ' + name);
