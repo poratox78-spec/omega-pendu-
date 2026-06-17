@@ -52,4 +52,4 @@ des orthophonistes pour une validation terrain, aurait beaucoup de valeur.
 Je reste à votre disposition pour une démonstration ou toute question.
 
 Bien cordialement,
-Rem
+Rémi
