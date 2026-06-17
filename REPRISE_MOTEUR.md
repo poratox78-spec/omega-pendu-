@@ -95,17 +95,28 @@ contributeur ; si AUC plat → **mur 12 cellules confirmé, on clôt** (la famil
 soit ça ferme l'incertitude par la mesure.** **Prérequis** : AUDIT_OMEGA §2 (S2)/§3, MEMOIRE §8.1, rapport §12.
 **Ne pas refaire** : loger le banc épisodique dans M3_d (falsifié ×2) ; croiser au concept (cross-modal −3,0).
 
-### 3.3 — Le miroir **P2 / Möbius** largement débranché (axe 2)
-**Contexte.** Le cercle **miroir descendant** est conçu (P1 direct, P2 miroir) mais **P2 et les modules miroir étendus
-sont débranchés** (rapport §4.1/§12). Côté phon, le miroir est **tronqué** : l'audit a montré que `M2_phon_m_step` /
-`M1_phon_m_step` **sont appelés mais leurs sorties (`zonePenalty`/`letterScore`) n'ont AUCUN consommateur**
-(AUDIT_STRUCTUREL §V2) — « branchement consommateur viendra en étape B », jamais venue. `M3_phon_m_step` est observationnel.
-**Hypothèse falsifiable.** Brancher **progressivement** le miroir descendant (d'abord brancher un consommateur réel des
-sorties phon mortes ; ou activer un étage P2) **apporte-t-il** un gain mesuré — **après** avoir vérifié l'**inertie OFF**
-(byte-identique éteint) ? **Garde-fous** : c'est de l'**apprentissage** (descendant) — légitime post-partie ; ne pas le
-laisser piloter la décision montante ; une jonction à la fois (un étage à la fois). **Prérequis** : MEMOIRE §10 (« P2/Möbius »),
-rapport §4.1/§5.2/§12, AUDIT_STRUCTUREL §2.6 (V2) + §S4. **Réconcilier la doc** : §S4 dit « M2/M1_phon_m jamais construits » —
-**faux**, ils existent et sont appelés (sorties mortes) ; corriger en « câblés-mais-sans-consommateur ».
+### 3.3 — Voies DESCENDANTES : ce que dit la littérature (recadrage — correction d'une direction mal cadrée)
+**⚠️ Correction (audit littérature, autre session — branche `claude/cool-curie-ctnvhi`, consigné AUDIT_OMEGA §1.4).** Une version
+antérieure de ce document proposait de « brancher le miroir phon dormant comme co-décideur » — **mauvaise direction**, et la
+littérature DRC tranche :
+- **Voie LEXICALE = activation interactive** (McClelland & Rumelhart 1981, bidirectionnelle) : les unités-mot renvoient un
+  **feedback descendant** aux unités-lettre (excitent les lettres du mot, inhibent les autres) = **effet de supériorité du mot**,
+  un vrai mécanisme de **discrimination de lettres**. → Le **miroir ORTHO** d'OMEGA (`M1_m` co-décide, poids ~0,1) ↔ ce feedback
+  lexical : **légitime sur le fond**. Sa vraie faille n'est pas son existence mais (a) un **mauvais étiquetage** (la doc dit poids
+  0,0, le réel est ~0,1) et (b) **non débranchable** (aucun toggle = vraie entorse R66).
+- **Voie SUBLEXICALE = GPC série, feedforward, SANS feedback** (Coltheart 2001). → Le **miroir PHON** (`M2_phon_m`/`M1_phon_m`
+  dormants, sorties sans consommateur) **n'a AUCUN mandat** comme co-décideur : les brancher ainsi serait **anti-DRC**. Soit leur
+  trouver un usage **hors décision** (apprentissage), soit **les retirer** (hygiène S3) — **jamais** en co-décideurs.
+- **Readout bPC « trop mis en avant »** (`M_BPC_READOUT_COUPLE`, W=0,20, toggle vert préset, slider exposé) : c'est le module de
+  discrimination de lettres **le plus mis en avant** dans l'UI, **or** M3_d est structurellement un **détecteur de longueur**
+  (S2) → il injecte de la **longueur** là où DRC attend des **traits + feedback lexical**. Over-emphasis confirmée (le tooltip
+  avertit lui-même « nuit en config pleine »). Lié à 3.2.
+**Hypothèse falsifiable (recadrée, R66).** (a) Rendre le miroir **ortho** débranchable + corriger son étiquetage, mesurer son
+apport réel ; (b) trancher le sort du miroir **phon** (usage hors-décision OU suppression) — **ne pas** le câbler en décision ;
+(c) rééquilibrer le poids du readout bPC, ou le conditionner à un M3_d réellement discriminant (cf. 3.2). **Prérequis lecture** :
+McClelland & Rumelhart (1981) activation interactive / word superiority · Coltheart (2001) GPC feedforward · **AUDIT_OMEGA §1.4
+(autre branche)** · AUDIT_STRUCTUREL §V2/§S4 · rapport §4.1/§5.2/§12. **Réconcilier §S4** : « M2/M1_phon_m jamais construits »
+est **faux** (ils existent, sont appelés, sorties mortes) → « câblés-mais-sans-consommateur, et sans mandat décisionnel DRC ».
 
 ### 3.4 — Le **substrat HDC** (réglages héréditaires)
 **Contexte (MEMOIRE §10 + rapport §12 + audit).** Deux dettes structurelles du substrat :
@@ -126,7 +137,9 @@ lié à 3.2 (un substrat sain est un prérequis d'un M3_d utile). **Prérequis**
    contributeur, ou on clôt. **Commencer par là.**
 2. **3.4 (substrat HDC)** — prérequis qualité de 3.2 (un concept sur un substrat sain). Peut se mener en parallèle conceptuel
    mais **mesurer séparément** (une jonction à la fois).
-3. **3.3 (miroir P2)** — gros effort, gain incertain ; brancher **un étage** à la fois, inertie OFF d'abord.
+3. **3.3 (voies descendantes)** — **recadré par la littérature** : le feedback **ortho** est légitime (le corriger = R66 +
+   étiquetage, **pas** le câbler) ; le miroir **phon** n'a **aucun mandat décisionnel** (GPC feedforward) → **ne pas** le
+   brancher en co-décideur ; rééquilibrer le readout bPC. Cf. AUDIT_OMEGA §1.4 (autre branche).
 4. **3.1 (DRC cognition)** — le plus ambitieux/diffus ; cadrer une hypothèse **étroite et mesurable** avant de toucher au
    hot-path (sinon on casse la baseline). **Arbitrage humain requis sur la direction (§4.4).**
 
