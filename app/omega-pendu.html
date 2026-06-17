@@ -530,6 +530,8 @@ body::before {
 .toggle-item.cfg-optim.on { border-color: #2ea043; background: rgba(46,160,67,0.12); }
 .toggle-item.cfg-triche { border-left: 3px solid #e5534b; }
 .toggle-item.cfg-triche.on { border-color: #e5534b; background: rgba(229,83,75,0.14); }
+.toggle-item.cfg-option { border-left: 3px solid #3b82f6; }
+.toggle-item.cfg-option.on { border-color: #3b82f6; background: rgba(59,130,246,0.12); }
 .toggle-switch {
   width: 28px;
   height: 16px;
@@ -1230,21 +1232,21 @@ footer {
         <div class="toggle-desc">board-derived · élague les lettres impossibles</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. GARDE DE PURETÉ : ne tire que si ≥ seuil de la cohorte s'accorde sur le phonème (sinon la cognition décide) → évite l'override confiant-mais-faux. Mesuré : PARITÉ du vrai son in-lexique (97 %), coût OOV ~7 pts seulement. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. GARDE DE PURETÉ : ne tire que si ≥ seuil de la cohorte s'accorde sur le phonème (sinon la cognition décide) → évite l'override confiant-mais-faux. Mesuré : PARITÉ du vrai son in-lexique (97 %), coût OOV ~7 pts seulement. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔊 NEO · son board-dérivé (cohorte)</div>
         <div class="toggle-desc">cheat-free · parité vrai-son in-lexique · garde pureté ≥ <input id="neo-phoncohort-purity" type="number" value="0.50" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_PURITY=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_JOINTE" title="🔗 NEO · jointe son×ortho : remplace l'argmax du son board-dérivé par la JOINTE P(lettre | distribution phonème cohorte molle, voisins ortho révélés) — table _neoCRS apprise en descendant (doctrine « croiser = jointe, pas argmax/produit », mémoire §6/§17.3). Mesuré in-lexique K=1 : 96,5 % vs argmax 94,3 % (4 graines, +2,2 pts, cheat-free), réduit l'écart au son-lu de −3,7 à −1,5. Nécessite NEO + assemblé + son board-dérivé ON. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_PHON_COHORT_JOINTE" title="🔗 NEO · jointe son×ortho : remplace l'argmax du son board-dérivé par la JOINTE P(lettre | distribution phonème cohorte molle, voisins ortho révélés) — table _neoCRS apprise en descendant (doctrine « croiser = jointe, pas argmax/produit », mémoire §6/§17.3). Mesuré in-lexique K=1 : 96,5 % vs argmax 94,3 % (4 graines, +2,2 pts, cheat-free), réduit l'écart au son-lu de −3,7 à −1,5. Nécessite NEO + assemblé + son board-dérivé ON. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔗 NEO · jointe son×ortho (croisée)</div>
         <div class="toggle-desc">croiser, pas argmax · +2,2 pts vs argmax (K=1) · seuil <input id="neo-jointe-conf" type="number" value="0.30" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_JOINTE_CONF=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_OS_ARB" title="🧭 NEO · arbitrage OS des 2 voies DRC : remplace la cascade either/or par un MÉLANGE CONVEXE — sublexicale (jointe phon→ortho) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step réutilisé (forme w(r)=r^α/(β+r^α), forcée α=β=1 neutre, DÉCOUPLÉE du θ de lecture ortho→phon de la cognition → pas de conflit de sens). Nécessite NEO + son board-dérivé (cohorte) ON. Mesuré sans currentWord (K=1, 4 graines) : +2,0 vs base (jamais en-dessous, moins de coups/erreurs), ≈ DUAL (96,8 vs 97,3, dans le bruit) mais plus propre (vraie DRC interactive) et ~2× plus rapide. Cheat-free. OFF par défaut (alternative à DUAL, non adoptée — AUDIT §1.6)." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_OS_ARB" title="🧭 NEO · arbitrage OS des 2 voies DRC : remplace la cascade either/or par un MÉLANGE CONVEXE — sublexicale (jointe phon→ortho) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step réutilisé (forme w(r)=r^α/(β+r^α), forcée α=β=1 neutre, DÉCOUPLÉE du θ de lecture ortho→phon de la cognition → pas de conflit de sens). Nécessite NEO + son board-dérivé (cohorte) ON. Mesuré sans currentWord (K=1, 4 graines) : +2,0 vs base (jamais en-dessous, moins de coups/erreurs), ≈ DUAL (96,8 vs 97,3, dans le bruit) mais plus propre (vraie DRC interactive) et ~2× plus rapide. Cheat-free. OFF par défaut (alternative à DUAL, non adoptée — AUDIT §1.6)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧭 NEO · arbitrage OS (2 voies DRC)</div>
