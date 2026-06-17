@@ -532,6 +532,8 @@ body::before {
 .toggle-item.cfg-triche.on { border-color: #e5534b; background: rgba(229,83,75,0.14); }
 .toggle-item.cfg-option { border-left: 3px solid #3b82f6; }
 .toggle-item.cfg-option.on { border-color: #3b82f6; background: rgba(59,130,246,0.12); }
+.toggle-item.cfg-orange { border-left: 3px solid #e8920c; }
+.toggle-item.cfg-orange.on { border-color: #e8920c; background: rgba(232,146,12,0.13); }
 .toggle-switch {
   width: 28px;
   height: 16px;
@@ -1190,7 +1192,7 @@ footer {
         <div class="toggle-desc">reconnaissance VSA · banc appris en jouant</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_EMERGENT_ASSEMBLED_ENABLED" title="Declare emergent (phon vers ortho) : sur une position sonore ou le phoneme implique fortement un graphe (conf > 0.75), force ce graphe. Decodage assemble, generalise au mot jamais vu. Utilise w.p (proto-langage, config forte). Apprend en jouant si g2p online ON, sinon batch. OFF par defaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-orange" data-toggle="M_EMERGENT_ASSEMBLED_ENABLED" title="Declare emergent (phon vers ortho) : sur une position sonore ou le phoneme implique fortement un graphe (conf > 0.75), force ce graphe. Decodage assemble, generalise au mot jamais vu. Utilise w.p (proto-langage, config forte). Apprend en jouant si g2p online ON, sinon batch. OFF par defaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧬 Declare émergent · phon→ortho</div>
@@ -1218,7 +1220,7 @@ footer {
         <div class="toggle-desc">reconnaît un mot vécu · 100% sur répété</div>
       </div>
     </div>
-    <div class="toggle-item cfg-optim" data-toggle="M_NEO_ASSEMBLED_ENABLED" title="NEO · voie assemblée phon→ortho MASQUÉE : décode les positions sonores via L2[phonème]. align masqué (pas de graphème caché), w.p = entrée légitime. Généralise au mot neuf (+5 pts). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-orange" data-toggle="M_NEO_ASSEMBLED_ENABLED" title="NEO · voie assemblée phon→ortho MASQUÉE : décode les positions sonores via L2[phonème]. align masqué (pas de graphème caché), w.p = entrée légitime. Généralise au mot neuf (+5 pts). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧬 NEO · assemblé (phon→ortho)</div>
@@ -8915,8 +8917,15 @@ function ui_initToggles() {
       // toggle inconnu : ignorer
     }
   });
+  if (typeof ui_syncAssembledColor === 'function') ui_syncAssembledColor();   // couleur assemblé selon l'état cohorte au chargement
 }
 
+function ui_syncAssembledColor(){   // M_NEO_ASSEMBLED dynamique : ORANGE (lit le son wp.get(currentWord) = mot entendu) si cohorte OFF ; VERT (cheat-free, son board-dérivé) si M_NEO_PHON_COHORT ON
+  var el = document.querySelector('[data-toggle="M_NEO_ASSEMBLED_ENABLED"]'); if (!el || !el.classList) return;
+  var cohort = (typeof M_NEO_PHON_COHORT_ENABLED !== 'undefined') && M_NEO_PHON_COHORT_ENABLED;
+  el.classList.remove('cfg-orange'); el.classList.remove('cfg-optim');
+  el.classList.add(cohort ? 'cfg-optim' : 'cfg-orange');
+}
 function ui_toggle(item) {
   const name = item.dataset.toggle;
 
@@ -8977,6 +8986,10 @@ function ui_toggle(item) {
     var _gp = document.getElementById('neo-g2p-pen');
     M_NEO_G2P_EXP_PEN = _gp ? Math.max(0, parseFloat(_gp.value) || 0.5) : 0.5;
     ui_log('NEO G2P', 'g2p révélé+pénalité ACTIVE · pén = ' + M_NEO_G2P_EXP_PEN);
+  }
+  if (name === 'M_NEO_PHON_COHORT_ENABLED') {   // bascule le bleu cohorte → recolorer l'assemblé (orange si lit le son, vert si cohorte cheat-free)
+    ui_syncAssembledColor();
+    ui_log('NEO', 'assemblé recoloré : ' + (M_NEO_PHON_COHORT_ENABLED ? 'VERT (cheat-free, son board-dérivé)' : 'ORANGE (lit le son du mot)'));
   }
   if (name === 'M_VOIE_PHON_ENABLED' || name === 'M_SUBSTRAT_ORTHO_PURE_ENABLED') {
     try {
