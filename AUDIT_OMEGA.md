@@ -176,7 +176,22 @@ Toggle `M5_D_M1_M_ENABLED` posé (défaut **ON** = baseline byte-identique ; cou
 | cognition seule (declares OFF, isole M1_m) | 88,5 % | 89,8 % | **−1,3** | [−8, +4, −4, +3] (2 gains / 2 pertes, σ≈±8) |
 | référence (+NEO, config qui ship) | 98,0 % | 98,0 % | **+0,0** | [+1, −1, 0, 0] (égalité) |
 
-**Verdict.** M1_m à 0,1 **ne bat OFF nulle part** : égalité franche en référence (les declares NEO lavent le tweak per-lettre), neutre-à-négatif en cognition pure (−1,3, dans le bruit). La légitimité DRC de principe (feedback top-down mot→lettre, effet de supériorité du mot) **ne se traduit en aucun gain mesuré** → **falsifié** au sens §6.4 (barrière de mérite). Acquis : OFF est **égal-ou-meilleur** partout et plus simple (retire un co-décideur, ferme la tension « miroir décide »). **Décision de défaut (ON conservé pour continuité vs OFF adopté) = arbitrage Rem.** Le toggle laisse les deux réversibles (R66). Rejouable : `node evo/ab_m1m.js both 200 100 12345,777,2024,99`.
+**Verdict.** M1_m à 0,1 **ne bat OFF nulle part** : égalité franche en référence (les declares NEO lavent le tweak per-lettre), neutre-à-négatif en cognition pure (−1,3, dans le bruit). La légitimité DRC de principe (feedback top-down mot→lettre, effet de supériorité du mot) **ne se traduit en aucun gain mesuré** → **falsifié** au sens §6.4 (barrière de mérite). Le toggle laisse les deux défauts réversibles (R66). Rejouable : `node evo/ab_m1m.js both 200 100 12345,777,2024,99`.
+
+**POURQUOI (mécanisme prouvé — `evo/diag_m1m.js`, R67 lecture seule).** Un Δ sans cause ne vaut rien (§1). Diagnostic instrumenté de ce que `M1_m.letterScore` porte au moment de décider (cognition, warmup 200 / test 80) :
+
+| Mesure | M1_m | Référence (prior fréquence brut 1−letterTarget) |
+|---|---|---|
+| GAP discrimination in-word − out-word | **+0,0216** | **+0,0229** (≈ identique) |
+| corr( M1_m tick0 , prior fréquence ) | **0,999** | — |
+| variance de `letterScore[l]` **entre mots** (tick 0) | **9,8·10⁻⁶ ≈ 0** | — |
+
+Lecture : (a) M1_m **ne discrimine le mot qu'à hauteur de la fréquence brute** (gap identique au prior) ; (b) `M1_m.letterScore` **EST** le prior de fréquence global (corr 0,999) ; (c) c'est un **vecteur global** — mêmes 26 valeurs quel que soit le mot (variance ~10⁻⁵), **zéro info spécifique au mot**. Deux causes-racines, exactement la thèse « connexions + sens des flux » :
+
+1. **Redondance.** M1_m réinjecte une **fréquence-lettre globale** déjà portée par M4_d natif (30 %, rapport §5.1) → double comptage → bruit → Δ ≤ 0.
+2. **Déconnexion du miroir (le fond).** Origine : `M1_m.letterScore = 1 − M4_m.letterPenalty`, et `letterPenalty` homéostate vers `letterTarget` = **prior de fréquence inverse** (init 2904-2921, assert 7811-7816). Surtout : `M1_m_step`(5579) **ne lit que** `M4_m.letterPenalty` + `M5_m` (récompense scalaire) — **jamais `M3_m` (concept) ni `M2_m` (position)**. La « cascade descendante » M5_m→M4_m→M3_m→M2_m→M1_m est un **ordre d'appel, pas un flux de données** : 3 prises **parallèles** sur la même récompense. **Le concept (M3_m) n'atteint jamais la décision-lettre.** M1_m « hérite » donc d'un signal plat ; aucun réglage de poids ne peut le sauver tant que la **connexion concept→lettre** (et le sens du flux, p.ex. phon→ortho) n'est pas posée.
+
+→ **Conséquence pour la décision de défaut.** Le débat ON/OFF est secondaire (les deux ~égaux) ; le vrai sujet est **en amont** : (i) le concept M3_d/M3_m discrimine-t-il les lettres, ou est-il lui-même un détecteur de longueur (S2) ? (ii) faut-il **câbler** la correction concept/position → lettre (et dans quel sens, ortho↔phon) ? Prochain pas instrumenté : mesurer si `M3_m`/`M2_m` portent un signal **spécifique au mot** (sinon recâbler M1_m ne sert à rien — la racine serait le concept, audit §3 prédiction-masquée).
 
 ---
 
