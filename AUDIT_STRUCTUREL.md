@@ -39,6 +39,10 @@ et **un vrai bug de sécurité local** dans la dictée (XSS DOM via saisie élè
 Décompte : **1 🔴 · 8 🟠 · 11 🟡 · 11 🟢**. Aucun défaut ne touche la baseline mesurée (tous OFF-inerte au repos),
 **sauf** la lecture du son du mot (régime « mot entendu », déjà documenté) et la désync d'un défaut UI.
 
+> **MAJ 2026-06-17 — corrigés** (commits sur `claude/stoic-knuth-5mt7sr`, moteur de décision byte-identique) :
+> **🔴 S1** XSS dictée (échappement saisie élève) · **🟠 E1/R1/U1** catch muets + restauration trexquant (R67) + désync `bpc-declare-conf` · **#1** jointe documentée/assumée (mémoire §6) · **#2** arbitrage OS-arb (α,β) mesuré → **clos** (cascade+DUAL = optimum) · **🟡 V1** `eSleepReplay` supprimée · **🟡 U2** accessibilité des 38 toggles (role/tabindex/aria-checked/clavier) · **🟡 U3** CSS `.status-pill`/`.meta` restauré (contrastes sous-AA **restent** à traiter) · **🟡 V5** `ALLOWED_TOGGLES` dédupliquée (1 constante ; la boucle de jeu ×5 **reste**).
+> **Différés (refontes mesurées / risquées)** : `pairConv` (entrelacé OS.step + asserts + métriques → refonte mesurée), `eval`→Map (dispatcher critique, déjà whitelisté), projection SDIM bijective (hot-path M3_d, à mesurer), factorisation boucle de jeu ×5 (outils de mesure), trancher modules socle ON (§D3, à mesurer), renumérotation lignes AUDIT_OMEGA, CI anti-régression.
+
 ---
 
 ## 2. Findings consolidés (par thème)

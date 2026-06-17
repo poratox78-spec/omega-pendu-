@@ -715,6 +715,13 @@ footer {
   font-family: var(--mono);
 }
 .canary { font-style: italic; margin-top: 6px; opacity: 0.6; }
+/* status-pill (état chargement lexique) + barre meta — restaurés (AUDIT_STRUCTUREL §U3) */
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--fg-mute); }
+.meta strong { color: var(--fg-dim); }
+.status-pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-family: var(--mono); font-size: 10.5px; font-weight: 600; border: 1px solid var(--border); color: var(--fg-mute); }
+.status-pill.gray { color: var(--fg-mute); border-color: var(--border); background: rgba(110,118,129,.10); }
+.status-pill.green { color: var(--green); border-color: var(--green); background: rgba(163,217,119,.12); }
+.status-pill.red { color: var(--red); border-color: var(--red); background: rgba(244,113,116,.12); }
 </style>
 <!-- ═══════════════════════════════════════════════════════════════
      LEXIQUE 4 EMBEDDED · 20 000 mots top-freq · 2.78 MB minified
@@ -6741,75 +6748,7 @@ function M_S_sleep_replay() {
   OS._phonGraphLock.consolidating = false;
 }
 
-/**
- * === I61 A.3 — eSleepReplay (DÉPRÉCIÉ F199 — 🔴 DEAD POST-F199 NEVER CALLED) ===
- * Cap Rem 02/05 : "Sleep ne doit concerner QUE le cerveau Semantic/Shared"
- * F197 implémentait sleep replay sur Service E (eHistoryDual/eWeightsDual) = ERREUR architecturale.
- * F199 corrige en migrant vers M_S_sleep_replay (cerveau sémantique).
- *
- * 🚨 STATUT POST-F207 AUDIT (02/05 ~17h00) :
- *   - SLEEP_REPLAY_ENABLED = false (REVERT empirique F197 -24.1 pts)
- *   - Cette fonction eSleepReplay() N'EST JAMAIS APPELÉE en runtime productif
- *   - Variable _sleepReplayCount jamais lue ailleurs (incrémentée seulement ici)
- *   - Code conservé pour traçabilité R59 corrigée stricte + référence historique
- *   - Représente ~70L dead code MAIS PAS supprimable sans perte trace V7-α1.6.6 → F199
- *   - Étape 6 refonte structurelle : décider conservation R59 vs purge.
- */
-function eSleepReplay() {
-  if (!SLEEP_REPLAY_ENABLED || !_omegaIsSleeping) return;
-  
-  const asleepIdx = 1 - eAwakeIdx;  // cerveau endormi
-  const traces = eHistoryDual[asleepIdx];
-  if (!traces || traces.length < SLEEP_REPLAY_N_TRACES) return;
-
-  // Verrou anti-race condition F/E2/I61 (R5 mitigation F194)
-  if (OS._phonGraphLock.consolidating) return;
-  OS._phonGraphLock.consolidating = true;
-
-  // Neuromodulation par OS_mod (équivalent globalFitness V7-α1.6.4 / F96)
-  // Plus conservateur que awake : [0.7, 1.3] vs [0.5, 1.5] (F196 leçon 5)
-  let _gfModReplay = 1.0;
-  if (typeof OS._lastModSignal === 'string') {
-    if (OS._lastModSignal === 'tighten')      _gfModReplay = SLEEP_REPLAY_NEUROMOD_MAX;
-    else if (OS._lastModSignal === 'relax')   _gfModReplay = SLEEP_REPLAY_NEUROMOD_MIN;
-  }
-
-  // Replay des N traces les plus récentes (LIFO) sur eWeights[asleepIdx]
-  const lr = SLEEP_REPLAY_LR * _gfModReplay;
-  for (let i = 0; i < SLEEP_REPLAY_N_TRACES && i < traces.length; i++) {
-    const trace = traces[traces.length - 1 - i];
-    if (!trace || !trace.phonState) continue;
-    
-    // Re-Hebbian sur eWeights[asleepIdx] (cerveau endormi consolidant)
-    for (let d = 0; d < SDIM; d++) {
-      eWeightsDual[asleepIdx][d] += lr * trace.phonState[d];
-    }
-
-    // Réinjection HRR conditionnelle dans phonGraphMap (cohérent F91 + caveat F79)
-    // α=0.005 anti-pollution v3.16. Faible amplitude, conditionnelle au sleep.
-    if (trace.letter && typeof trace.letter === 'string') {
-      const idx = trace.letter.charCodeAt(0) - 65;
-      if (idx >= 0 && idx < 26 && phonGraphMap && phonGraphMap[idx]) {
-        for (let d = 0; d < SDIM; d++) {
-          phonGraphMap[idx][d] += lr * trace.phonState[d];
-        }
-        if (typeof normalizeInPlace === 'function') {
-          normalizeInPlace(phonGraphMap[idx]);
-        }
-      }
-    }
-  }
-
-  _sleepReplayCount++;
-
-  if (OS.channels.has('OS_phonGraphMap_update')) {
-    OS.channels.get('OS_phonGraphMap_update').publish(
-      { source: 'I61_replay', asleepIdx: asleepIdx, neuromod: _gfModReplay }, OS.t
-    );
-  }
-
-  OS._phonGraphLock.consolidating = false;
-}
+/* eSleepReplay() retiré (AUDIT_STRUCTUREL §V1) : DEAD POST-F199, jamais appelé ; le replay au sommeil vit dans M_S_sleep_replay (cerveau sémantique). */
 
 function eConsolidatePhonGraph() {
   // (1) Anti-double-consolidation au même tick (résout R3)
@@ -8884,8 +8823,8 @@ function ui_renderBpcHealth() {
 }
 
 // === Toggle handling ===
-function ui_initToggles() {
-  const ALLOWED_TOGGLES = [
+// Liste UNIQUE des toggles pilotables (factorisée — AUDIT_STRUCTUREL §V5 ; était dupliquée verbatim dans ui_initToggles ET ui_toggle).
+const ALLOWED_TOGGLES = [
     'L01_A1_M2_ORTHO_ENABLED',
     'L01_A2_M4_LEX4_ENABLED',
     'L01_A3_M5M_WORDLEX4_ENABLED',
@@ -8908,16 +8847,21 @@ function ui_initToggles() {
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
     'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
-  ];
+];
+function ui_initToggles() {
   document.querySelectorAll('.toggle-item').forEach(item => {
     const name = item.dataset.toggle;
     if (ALLOWED_TOGGLES.indexOf(name) === -1) return;
-    try {
-      const value = eval(name);
-      if (value) item.classList.add('on');
-    } catch (e) {
-      // toggle inconnu : ignorer
-    }
+    let value = false;
+    try { value = !!eval(name); if (value) item.classList.add('on'); }
+    catch (e) { console.warn('[toggle] init : nom whitelisté non déclaré :', name, e); }   // §1.7 : ne plus avaler en silence (un throw ici = vraie incohérence)
+    // Accessibilité (AUDIT_STRUCTUREL §U2 — cible dys) : focusable + annonçable + pilotable au clavier
+    item.setAttribute('role', 'switch');
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('aria-checked', value ? 'true' : 'false');
+    const _lbl = item.querySelector('.toggle-label');
+    if (_lbl && !item.getAttribute('aria-label')) item.setAttribute('aria-label', _lbl.textContent.trim());
+    if (!item.dataset.a11yKey) { item.dataset.a11yKey = '1'; item.addEventListener('keydown', function(e){ if (e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar') { e.preventDefault(); ui_toggle(item); } }); }
   });
   if (typeof ui_syncAssembledColor === 'function') ui_syncAssembledColor();   // couleur assemblé selon l'état cohorte au chargement
 }
@@ -8934,31 +8878,7 @@ function ui_toggle(item) {
   // R48 honnête : maintenant les toggles sont des `let` (mode 2 livré 02/05),
   // donc mutables runtime. Mais accès via window[name] pour set est subtil
   // car les `let` top-level ne deviennent pas propriétés de window en strict mode.
-  // Solution : eval ciblé restreint aux 7 noms whitelistés.
-  const ALLOWED_TOGGLES = [
-    'L01_A1_M2_ORTHO_ENABLED',
-    'L01_A2_M4_LEX4_ENABLED',
-    'L01_A3_M5M_WORDLEX4_ENABLED',
-    'L01_A4_M4M_DECOMP_ENABLED',
-    'L01_A5_M2M_POSITIONAL_ENABLED',
-    'L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
-    'L01_B2_MOBIUS_ENABLED',
-    'M_VOIE_PHON_ENABLED', 'M_OS_V07_ENABLED', 'M4_PHON_USE_P_ENABLED', 'M_SUBSTRAT_ORTHO_PURE_ENABLED',
-    'M_PHON_FEEDBACK_ENABLED',
-    'M_WORD_DECLARE_ENABLED',
-    'M_IG_SELECT_ENABLED',
-    'M_IG_PSUCCESS_ENABLED',
-    'M_BPC_M3D_ENABLED',
-    'M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED','M_BPC_DECLARE_ENABLED',
-    'M_OS_LEARNING_ENABLED',
-    'M_OS_LEARNING_GUARD_1_BOUNDED', 'M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT',
-    'M_OS_LEARNING_GUARD_3_MDL_REGUL', 'M_OS_LEARNING_GUARD_4_COHERENCE',
-    'M_OS_LEARNING_ONLINE_ENABLED',
-    'M_DECLARE_DUAL_ENABLED',
-    'M_LEARN_FROM_COGNITION_ENABLED',
-    'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
-  ];
+  // Solution : eval ciblé restreint aux noms whitelistés — ALLOWED_TOGGLES = constante module unique (factorisée, AUDIT_STRUCTUREL §V5).
   if (ALLOWED_TOGGLES.indexOf(name) === -1) {
     ui_log('ERROR', 'Toggle inconnu : ' + name);
     return;
@@ -8974,6 +8894,7 @@ function ui_toggle(item) {
   // Update visuel
   if (newValue) item.classList.add('on');
   else item.classList.remove('on');
+  item.setAttribute('aria-checked', newValue ? 'true' : 'false');   // a11y (AUDIT_STRUCTUREL §U2)
 
   ui_log('CONFIG', name.replace('L01_', '').replace('_ENABLED', '') + ' = ' + newValue);
 
