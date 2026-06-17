@@ -99,9 +99,14 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 
 ## Notice UI — config optimale par LIBELLÉ AFFICHÉ (ce qu'on voit dans l'app)
 
-> 🎨 **Repère couleur dans l'app** (depuis 14/06) : bordure gauche **verte** = toggle de la config
-> optimale cheat-free (à activer) · bordure gauche **rouge** = triche grise (A1/A2/A3, ne pas activer).
-> Les autres toggles gardent leur apparence neutre. Le repère est visible que le toggle soit ON ou OFF.
+> 🎨 **Repère couleur dans l'app — 4 catégories (MAJ 06/26)** : bordure gauche **🟢 verte** = config
+> optimale cheat-free (à activer, dont **DUAL adopté**) · **🔵 bleue** = option cheat-free non-défaut
+> (`M_NEO_PHON_COHORT` son board-dérivé · `M_NEO_PHON_COHORT_JOINTE` · `M_NEO_OS_ARB`) ·
+> **🟠 orange** = lit le **SON** de `currentWord` (« mot entendu » : assemblé NEO si cohorte OFF, +
+> assemblé émergent) — pas cheat-free *intégral* au pendu · **🔴 rouge** = triche grise dico (A1/A2/A3,
+> ne pas activer). Les autres restent neutres. Repère visible ON ou OFF.
+> **Dynamique** : l'assemblé NEO bascule 🟠→🟢 dès que le bleu « son board-dérivé » est ON (plus de `wp.get`).
+> Le **θ · Apprentissage** (maître) est neutre ; ses **4 gardes** restent vertes.
 
 **À ACTIVER (ON) :**
 - ☑ A4 · Decomp
