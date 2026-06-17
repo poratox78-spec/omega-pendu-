@@ -126,6 +126,39 @@ Les chiffres §1.1/§1.2 venaient de la session précédente (inaccessible). Doc
 
 > Tout reste **OFF par défaut** (baseline byte-identique). La reproduction n'a **pas** modifié le moteur ; elle ajoute un harnais (`evo/`) et cette sous-section.
 
+### 1.4 Audit des deux voies descendantes (miroir) — lecture **du code** (2026-06-17)
+
+Méthode : lecture des fonctions miroir + traçage des **consommateurs réels** (qui *lit* l'état produit ?), pas seulement des appels. Distinction clé : *appelé* ≠ *effectif*. Une fonction qui écrit un buffer que **personne ne lit** est du code vivant mais inerte.
+
+**Voie ortho descendante** — appelée **sans garde** dans `omegaStep` (7290-7294 : socle, pas un toggle).
+
+| Étage | Ligne | Écrit | Consommateur réel | Effectif ? |
+|---|---|---|---|---|
+| `M5_m_step` | 5252 | `M5_m.output{letter,reward}` + canal M5 | tous les étages sous lui | ✅ source |
+| `M4_m_step` | 5301 | `M4_m.letterPenalty` (homéo + reward + floor + tanh) | `M1_m` (5585) | ✅ |
+| `M3_m_step` | 5435 | **anti-Hebbian sur `conceptCells`** (seul étage miroir qui écrit le hub, 5467/5486) ; `M3_m.output` | hub M_S (5714, poids 0,5) + `OS_diss` (2076) | ⚠️ effet winrate **~+0,3 non-signif.** (révision F207, 5443-5445) |
+| `M2_m_step` | 5513 | `M2_m.zonePenalty` (+ A5 cvPattern positionnel) ; `M2_m.output` | canal M2 + `OS_diss` (2060) **seulement** | ⚠️ pèse sur la dissonance structurelle, **pas sur le scoring-lettre** |
+| `M1_m_step` | 5579 | `M1_m.letterScore = 1−penalty` ; canal `M_BOUCLE` | **co-décide M5 (5140-5153, NON gardé)** + source COUCHE_A (4996) ; `M_BOUCLE`→M1_d (4043) seulement si B2 Möbius ON (OFF) | ✅ **co-décideur vif à 0,1** |
+
+**Voie phon descendante** — gardée par `M_PHON_FEEDBACK_ENABLED` (7297 ; préset ✔ en config de référence).
+
+| Étage | Ligne | Écrit | Consommateur | Statut réel |
+|---|---|---|---|---|
+| `M5_phon_m_step` | 3823 | `M5_phon_m.output{letter,reward}` | étages sous lui | ✅ source |
+| `M4_phon_m_step` | 3835 | `M4_phon_m.letterPenalty` | **lu en 3590** (biais lettre M4_phon ascendant) | ✅ **effectif** |
+| `M3_phon_m_step` | 3854 | `lastDominantCell` | aucun | 🔵 **observationnel** — n'écrit PAS le hub (l'effondrerait, commenté 3867-3871 : normes→0, ortho −7 pts) |
+| `M2_phon_m_step` | 3879 | `M2_phon_m.zonePenalty` | **aucun** (init 2768 + écriture seules) | ⚫ **dormant** (« NEW polyvalence A », appelé sans lecteur) |
+| `M1_phon_m_step` | 3902 | `M1_phon_m.letterScore` | **aucun** (init 2769 + écriture seules) | ⚫ **dormant** |
+
+**Cheat-free.** Les deux voies sont **descendantes = post-résultat** → lire le mot complet est légitime (cap §43, le « professeur »). `M2_m`/`M2_phon_m` lisent `currentWord.length` (5540, 3889) — longueur seule, descendant → aucune fuite montante.
+
+#### Deux dérives doc↔code tranchées par le code
+
+- **D1 — S4 résolu (rapport §5.2 périmé).** Le rapport affirme `M2_phon_m`/`M1_phon_m` « jamais construits ». **Faux** : ils existent (3879, 3902) **et sont appelés** (7301-7302). Nuance honnête : *construits + appelés mais sans consommateur* → inertes en **effet**, pas en **exécution**. Vérité de la voie phon : **effectif s'arrête à `M4_phon_m`** (lu en 3590) · `M3` observationnel · `M2`/`M1` **mort-nés** (candidats S3, ou à brancher si on muscle la voie phon — rapport §12).
+- **D2 — dérive nouvelle, plus sérieuse (audit §0 + rapport §5.3 périmés).** Les deux affirment « `M1_m` co-décide M5, **poids 0,0 en baseline** ». **Faux dans le code courant** : `M5_D_M1_M_WEIGHT = 0.1` (ligne 1604, F198 « rebranchement M1_m »), **gardé par un assert** (7418 : `=== 0.1`), appliqué **sans toggle** (5149 : `score *= (1 − W + ls·W)`). Donc la voie ortho descendante **influence vraiment la décision montante** à 0,1, à chaque coup — pas inerte. Seul le schéma §5.2 du rapport hedge à demi (« 0,0 en baseline v7 ; ~0,1 ultérieurement ») ; la table de constantes §5.3 et l'audit §0 sont **stale à 0,0** → à corriger.
+
+> **Conséquence doctrinale (à instruire, pas encore tranchée).** La règle d'or dit « miroir = **apprend, ne décide pas** ». Or `M1_m` (descendant) **décide** à 0,1 (D2). À qualifier : entorse à la frontière montant/descendant, ou co-décision légitime (le miroir publie un score *appris*, relu en montant le tick suivant) ? Chantier ouvert : trouver une **utilité mesurée** aux étages dormants M2/M1_phon_m (revue littérature DRC/HRR en cours), sous R66 (OFF-inerte → apport mesuré ou revert).
+
 ---
 
 ## 2. Findings structurels (par sévérité)
@@ -142,8 +175,8 @@ Les **derniers ~7 pts** (90→97,5) viennent **entièrement de la cascade de dec
 ### 🟡 S3 — Tissu cicatriciel & code vestigial *(vérifié)*
 Monolithe ~11 k lignes + lexique, **87 fonctions** entrelacées, commentaires = historique de patchs (`R41-#1..#11`, `F177/F198/F169`). Exemple : `cStep` étape (5) `pairConv` marqué **« transitoire, sera retiré Jour 6' »** (6393) — jamais retiré. Édition via extraction `/tmp`. **Aucun test ne garde le comportement** (la CI ne teste que la dictée) → risque #1 de régression silencieuse. *Reco : un harnais headless seedé en CI qui `assert` cognition seule ≥ 90 % et +NEO ≥ 97 %.*
 
-### 🟡 S4 — Dérive doc↔code (miroir phon)
-La doc dit `M2_phon_m`/`M1_phon_m` « jamais construits » ; l'inventaire montre `M2_phon_m_step`(3865) et `M1_phon_m_step`(3888) **existent**. Soit *existent-mais-non-câblés*, soit doc périmée. À réconcilier (typiquement là que se loge le code mort).
+### 🟡 S4 — Dérive doc↔code (miroir phon) — **RÉSOLU §1.4/D1**
+La doc dit `M2_phon_m`/`M1_phon_m` « jamais construits » ; l'inventaire montre `M2_phon_m_step`(3879) et `M1_phon_m_step`(3902) **existent**. **Tranché (§1.4) :** ils existent **et sont appelés** (7301-7302) mais **sans consommateur** (zonePenalty/letterScore lus nulle part) → *vivants en exécution, inertes en effet*. Doc rapport §5.2 périmée. C'est bien là que se loge le code mort (candidat nettoyage S3, ou à brancher). **§1.4/D2** ajoute une dérive sœur plus sérieuse : `M5_D_M1_M_WEIGHT` n'est pas 0,0 mais **0,1** (co-décideur ortho vif).
 
 ### 🟢 S5 — Discipline OFF-inerte réelle *(vérifié)*
 Chaque brique derrière un flag (`if (M_S_ENABLED)`, `if (M_BPC_M3D_ENABLED && M3_d.bpcW)`, `if (m3Ok)`…) ; le toggle **`M3_D_BYPASS` existe** (4292). La baseline-byte-identique est **structurellement crédible** (les flags gardent des blocs, ne patchent pas des sorties). Coût : espace de config combinatoire de 47 flags, peu de présets réellement mesurés.
