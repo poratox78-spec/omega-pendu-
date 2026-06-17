@@ -33,15 +33,16 @@ Vous trouverez ci-joint :
     anti-triche ; §8.3 = la configuration exacte à activer ; §18 = dictée) ;
   - l'application complète en un seul fichier HTML, autonome, sans
     dépendance ni serveur — à ouvrir dans un navigateur récent (lexique
-    embarqué compressé) ; bouton « ▶ Auto » pour jouer, panneau de mesure
-    A/B seedé, « ✍️ Dictée diag » pour la dictée.
+    embarqué compressé). **Cliquez « ⚙️ Config optimale » en premier**
+    (au démarrage les interrupteurs sont OFF), puis « ▶▶ Auto » pour jouer ;
+    panneau de mesure A/B seedé, « ✍️ Dictée diag » pour la dictée.
 
 Le code : https://github.com/poratox78-spec/omega-pendu-
 Single-file, sans build ; chaque module est derrière un interrupteur
 OFF-inerte (sortie byte-identique éteint), avec un harnais de mesure
 déterministe (graines fixées) — la discipline « R66 » du projet. (Au
-démarrage les interrupteurs sont OFF ; la config optimale cheat-free à
-activer est détaillée dans le rapport, §8.3.)
+démarrage les interrupteurs sont OFF : cliquer « ⚙️ Config optimale »
+active le preset cheat-free — détail rapport §8.3.)
 
 Concernant openlexicon : ce serait un honneur, j'y suis tout à fait ouvert.
 Par souci de transparence : la validation de la dictée est encore synthétique
@@ -51,3 +52,4 @@ des orthophonistes pour une validation terrain, aurait beaucoup de valeur.
 Je reste à votre disposition pour une démonstration ou toute question.
 
 Bien cordialement,
+Rem

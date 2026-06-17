@@ -788,6 +788,7 @@ footer {
     <div class="game-controls">
       <input type="text" class="input-word" id="input-word" placeholder="Mot à deviner (≥7 lettres)" maxlength="20">
       <button class="btn primary" onclick="ui_startGame()">▶ Start</button>
+      <button class="btn primary" onclick="applyReferenceConfig()" title="Active la configuration optimale CHEAT-FREE (preset rapport §8.3). À cliquer en premier : au démarrage tous les interrupteurs sont OFF (≈ 2,6 %).">⚙️ Config optimale</button>
       <button class="btn" onclick="ui_runStep()">+1 Tick</button>
       <button class="btn" onclick="ui_runUntilEnd()">▶▶ Auto</button>
       <button class="btn danger" onclick="ui_abortGame()">Abort</button>
@@ -1345,14 +1346,12 @@ footer {
   <div class="legacy-debug-content">
 
 <header>
-  <h1>OMEGA<span class="o">-Ω</span> v2-α0 BLUEPRINT<span class="v">Jour 1' refactor — fidélité §6.6 blueprint (M1_d LDIM=512 + D1-D5 + stubs M2/M3/M4/M5)</span></h1>
-  <div class="sub">Jour 2 livré · Substrat phonétique B1 (14 features × 26 lettres + ortho HRR α=0.85, β=0.15) + I3 consolidation lente E2 + verrou anti-double-tick + auxiliaires collectObservedLetters/computeAvgPhonemesForLetter — fondation Jour 1 mergée 17 fixes — patch R40 30/04/2026 (7 fixes) — patch R41 01/05/2026 (11 fixes : alpha-asymmetry, decode-LDIM, last-letter-eHistory, m3-stale-output, bench-init-uncond, smoke-restart, zoneEMA-consume, pair1-publish, doExchange-retire, letterTried-type, currentPhonState-normalize) — patch R42 01/05/2026 (10 fixes : M1d-brain-phase, M4d-deepcopy, AZ-strict-validation, M3D-threshold-lower, M2d-double-init-removed, R41-7-comment-fix, channel-publish-isolation, smoke-doubletick-deterministic, hash-projection-permutation-doc, smoke-brain-divergence) — patch R43 01/05/2026 (6 fixes : M5d-wire-omegaStep, startNewGame-atomic-validation, M4d-M5d-output-reset-init, M5d-T-gap-factor-recalibrate, M5d-fallback-by-freq, M5d-doublecheck-dead-removed)</div>
+  <h1>OMEGA<span class="o">-Ω</span><span class="v">architecture cognitive du pendu français — « cognition &gt; oracle »</span></h1>
+  <div class="sub">Double route orthographe/phonologie (DRC) sur substrat hyperdimensionnel · déclaration émergente <em>cheat-free</em> · discipline mesure &amp; falsification (R66). Détails : mémoire &amp; rapport de référence.</div>
   <div class="meta">
-    <span>SDIM = <strong>1024</strong></span>
-    <span>14 canaux MVP</span>
-    <span>16/16 bloquants résolus</span>
-    <span>v2 BLUEPRINT — refactor 🅑 acté F153 (acquis Jour 1-3 préservés)</span>
-    <span>Source : <strong>v4 FINAL §3, §6, §7, §18</strong></span>
+    <span>concept <strong>1024D</strong> · lexical 512D</span>
+    <span>~97,5 % cheat-free in-lexique</span>
+    <span>Lexique 4 · CC BY-SA 4.0</span>
     <span id="status-pill" class="status-pill gray">non chargé</span>
   </div>
 </header>
@@ -9004,6 +9003,29 @@ function ui_startGame() {
   } catch (e) {
     ui_log('ERROR', e.message);
     ui_setStatus('error', 'ERROR');
+  }
+}
+
+function applyReferenceConfig() {
+  // Preset 1-clic : configuration optimale CHEAT-FREE (rapport §8.3 / CONFIG_REFERENCE, 97,5 % in-lexique).
+  // N'altère PAS le boot (la baseline reste OFF-inerte au chargement) : c'est une action explicite de l'utilisateur.
+  try {
+    const ON = ['L01_A4_M4M_DECOMP_ENABLED','L01_A5_M2M_POSITIONAL_ENABLED','L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
+      'M_VOIE_PHON_ENABLED','M_OS_V07_ENABLED','M4_PHON_USE_P_ENABLED','M_SUBSTRAT_ORTHO_PURE_ENABLED','M_PHON_FEEDBACK_ENABLED',
+      'M_BPC_M3D_ENABLED','M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED',
+      'M_OS_LEARNING_ENABLED','M_OS_LEARNING_GUARD_1_BOUNDED','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT','M_OS_LEARNING_GUARD_3_MDL_REGUL','M_OS_LEARNING_GUARD_4_COHERENCE',
+      'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_DECLARE_DUAL_ENABLED'];
+    ON.forEach(function(n){ if (ALLOWED_TOGGLES.indexOf(n) >= 0) { try { eval(n + ' = true'); } catch(e){ console.warn('[preset]', n, e); } } });
+    if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
+    if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
+    if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
+    if (typeof ui_renderGame === 'function') ui_renderGame();
+    if (typeof ui_renderMath === 'function') ui_renderMath();
+    if (typeof ui_renderStats === 'function') ui_renderStats();
+    if (typeof ui_log === 'function') ui_log('CONFIG', 'Config optimale cheat-free activée (preset §8.3, 23 ON) — prêt : ▶ Start ou ▶▶ Auto (~97,5 % in-lexique).');
+    if (typeof ui_setStatus === 'function') ui_setStatus('live', 'CONFIG OPTIMALE');
+  } catch (e) {
+    if (typeof ui_log === 'function') ui_log('ERROR', 'applyReferenceConfig: ' + e.message);
   }
 }
 
