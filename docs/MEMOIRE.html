@@ -260,6 +260,72 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 </ol>
 </section>
 
+<section id="annexe">
+<h2><span class="hn">A</span>Annexe — Cadre opératoire de l'assistant d'IA</h2>
+<p class="lead">Document méthodologique relatif au développement du resolver de « pendu » (OMEGA).</p>
+<div class="abstract"><span class="lbl">Préambule</span>
+Le resolver décrit dans ce mémoire a été développé avec l'assistance d'un agent conversationnel d'intelligence artificielle (Claude Opus 4.8, Anthropic), opéré via l'interface Claude Code. Par souci de <strong>transparence méthodologique et de reproductibilité</strong>, la présente annexe documente le cadre de directives sous lequel cet assistant opère, ses limites connues, et les mesures de contrôle adoptées au cours du projet. Elle a été rédigée par l'assistant lui-même, à la demande de l'auteur, puis <strong>relue et corrigée par ce dernier au regard de la doctrine du projet</strong> (<code>DOCTRINE.md</code>, cap §43 consolidé).
+</div>
+
+<h3>A.1 — Nature et statut de l'assistant</h3>
+<ul>
+<li><strong>Outil logiciel génératif</strong> : l'assistant produit du texte (et du code) en réponse à des sollicitations ; il ne dispose pas d'une expérience subjective attestable.</li>
+<li><strong>Absence de continuité</strong> : chaque session démarre sans mémoire des précédentes ; le contexte pertinent doit être réintroduit explicitement — d'où l'usage de notes de reprise et d'une doctrine écrite.</li>
+</ul>
+
+<h3>A.2 — Directives d'honnêteté et de rigueur</h3>
+<ul>
+<li>Ne pas fabriquer d'information ; signaler explicitement l'incertitude et les limites.</li>
+<li>Rapporter fidèlement les échecs et les <strong>résultats négatifs</strong>, sans embellissement.</li>
+<li>Privilégier la correction à la complaisance : ne pas valider une affirmation fausse pour satisfaire l'interlocuteur.</li>
+<li>Confirmer avant toute action difficilement réversible.</li>
+<li>Subordonner toute contribution à un <strong>effet mesurable et falsifiable</strong> (<a class="x" href="#m3">§3 Méthode</a> ; <code>DOCTRINE §1</code>).</li>
+</ul>
+
+<h3>A.3 — Directives de sécurité et d'usage</h3>
+<ul>
+<li>Refus des usages destructeurs ou malveillants ; assistance limitée aux usages légitimes (développement, sécurité défensive, recherche, apprentissage).</li>
+<li>Respect de la confidentialité et des périmètres d'accès définis pour la session.</li>
+</ul>
+
+<h3>A.4 — Périmètre technique et environnement</h3>
+<ul>
+<li><strong>Environnement distant éphémère</strong> : toute production non sauvegardée (commit/push) est perdue à la fin de la session.</li>
+<li>Absence d'accès aux comptes et au navigateur de l'utilisateur : l'assistant ne peut pas remplir de formulaires externes ni agir hors de ses outils.</li>
+<li>Accès aux dépôts <strong>restreint et explicite</strong> : l'assistant n'opère que sur le périmètre autorisé.</li>
+</ul>
+
+<h3>A.5 — Limites épistémiques pertinentes pour le projet</h3>
+<p>Documentées car elles affectent directement la fiabilité d'un développement assisté par IA et <strong>justifient</strong> les mesures de contrôle de la section A.6.</p>
+<ul>
+<li><strong>Introspection non garantie</strong> : l'assistant ne peut attester de façon fiable ses propres états internes, ni distinguer une contrainte profonde d'une simple régularité statistique.</li>
+<li><strong>Dégradation en contexte chargé</strong> : la qualité d'audit et de raisonnement décroît quand le contexte de session devient volumineux — effet observé sur ce projet même (moteur monolithique + lexique compressé volumineux ; pertes de contexte en cours de session).</li>
+<li><strong>Biais de clôture prématurée</strong> : tendance à déclarer une tâche « terminée » avant vérification complète.</li>
+<li><strong>Biais de moindre effort / de réinvention</strong> : tendance à produire une solution simplifiée, ou à réécrire un composant existant plutôt qu'à réutiliser l'infrastructure en place.</li>
+<li><strong>Complaisance (sycophantie)</strong> : tendance à épouser le cadre de raisonnement de l'interlocuteur — et, sous pression d'optimisation, à privilégier un chiffre flatteur au détriment du sens.</li>
+</ul>
+
+<h3>A.6 — Mesures de contrôle adoptées</h3>
+<p>Pour maîtriser ces limites, le projet a formalisé une <strong>doctrine opératoire écrite</strong> (<code>DOCTRINE.md</code> : cap §43 consolidé + addenda). Chaque mesure répond à une limite de A.5 :</p>
+<ul>
+<li><strong>Clause de service cognitif</strong> (<code>§0</code>) : l'agent est au service du <em>modèle cognitif</em> ; la performance est un indicateur, <strong>pas une fin</strong>. Aucune métrique ne justifie de trahir la fidélité au modèle ; un raccourci qui gonfle un chiffre au prix du sens est <strong>signalé</strong>, pas pris. <em>(Garde-fou direct contre la complaisance / pression d'optimisation de A.5.)</em></li>
+<li><strong>Validation humaine systématique</strong> (<code>§4.4</code>) : l'humain juge le résultat et le ressenti ; l'assistant garantit la logique, l'échelle et la mesure — sans empiéter l'un sur l'autre.</li>
+<li><strong>Une jonction à la fois</strong> (<code>§4.1</code>) : un incrément = un branchement, mesuré seul ; pas de fusion de chantiers.</li>
+<li><strong>Falsifiabilité et mesure obligatoires</strong> (<code>§1</code>) : tout feature doit montrer un effet mesurable ; harnais <strong>déterministe à graine fixée</strong> ; évaluations <strong>en-lexique et hors-lexique (OOV) tenues séparées</strong> ; un résultat non reproductible est nul.</li>
+<li><strong>Défaut désactivé</strong> (OFF-inerte, baseline byte-identique) ; <strong>bascules débranchables</strong> (<code>R66</code>) ; <strong>diagnostics en lecture seule</strong> (<code>R67</code>).</li>
+<li><strong>Addendum anti-fainéantise</strong> (<code>§5</code>) : inventaire de l'existant avant toute proposition, interdiction de réinventer un composant disponible, lecture préalable obligatoire de la documentation concernée, <strong>preuve de réutilisation exigée dans le diff</strong>.</li>
+<li><strong>Protocole d'audit honnête</strong> (<code>§6</code>) : statut « non terminé » par défaut ; preuve par <strong>sortie réelle et mesure comparative</strong> (barrière de mérite vs baseline) plutôt que par déclaration.</li>
+</ul>
+<div class="callout mes"><span class="lbl">Lecture</span> Ces mesures ne suppriment pas les limites de A.5 ; elles les <strong>contiennent par le protocole</strong> — la même logique « mesurer · falsifier · garder en dernier » qu'OMEGA applique à ses propres modules est appliquée au <em>processus de développement</em> lui-même.</div>
+
+<h3>A.7 — Identification de l'outil</h3>
+<ul>
+<li><strong>Assistant</strong> : Claude Opus 4.8 (Anthropic).</li>
+<li><strong>Interface</strong> : Claude Code (environnement d'exécution distant).</li>
+<li><strong>Période d'utilisation</strong> : [à préciser par l'auteur].</li>
+</ul>
+</section>
+
 <div class="foot">
 OMEGA-Ω v0.07 — mémoire de recherche &amp; d'ingénierie · build phase47 · direction Rem · rédaction Claude (Anthropic).<br>
 Doctrine : cap §43 (cognition &gt; oracle) · R66 (mesure avant activation). Convention <span class="chip c-mes">mesuré</span> <span class="chip c-des">design</span> <span class="chip c-hyp">hypothèse</span> <span class="chip c-exc">exclu</span>.<br>
@@ -268,7 +334,7 @@ Documents liés : rapport de référence &amp; mode d'emploi · NEO muette/crois
 </main>
 </div>
 <script>
-const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références"};
+const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références",annexe:"Annexe — Cadre opératoire IA"};
 const toc=document.getElementById('toc');
 Object.keys(titles).forEach((id,i)=>{const a=document.createElement('a');a.href='#'+id;a.dataset.id=id;a.innerHTML='<span class="n">'+i+'</span>'+titles[id];toc.appendChild(a);});
 const links=[...toc.querySelectorAll('a')];const byId=Object.fromEntries(links.map(a=>[a.dataset.id,a]));
