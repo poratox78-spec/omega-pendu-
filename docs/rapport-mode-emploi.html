@@ -388,7 +388,7 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
 <li><strong>Ascendante (M1→M5)</strong> : perçoit et décide ; ne lit le mot <strong>qu'aux positions révélées</strong> (cap §43) ; jamais d'accès aux lettres cachées.</li>
 <li><strong>Descendante (miroir, M5→M1)</strong> : reçoit le résultat, ajuste les poids ; <strong>enseigne, ne décide pas</strong>.</li>
 </ul>
-<p class="tech"><strong>Câblage du miroir.</strong> Ortho complet : <code>M5_m (reward) → M4_m (letterPenalty) → M3_m (anti-Hebbian, écrit conceptCells) → M2_m (zonePenalty) → M1_m (letterScore)</code>. M3 partage ses poids (seul étage où le miroir écrit) ; M4/M2/M1 ont un état séparé réinjecté ; <code>M1_m.letterScore</code> co-décide M5 avec poids <code>M5_D_M1_M_WEIGHT</code> (0,0 en baseline v7 ; ~0,1 ultérieurement). Phon tronqué : <code>M5_phon→M4_phon</code> effectif, <code>M3_phon_m</code> observationnel, <code>M2_phon_m</code>/<code>M1_phon_m</code> jamais construits (« le mur des points de consommation »).</p>
+<p class="tech"><strong>Câblage du miroir.</strong> Ortho complet : <code>M5_m (reward) → M4_m (letterPenalty) → M3_m (anti-Hebbian, écrit conceptCells) → M2_m (zonePenalty) → M1_m (letterScore)</code>. M3 partage ses poids (seul étage où le miroir écrit) ; M4/M2/M1 ont un état séparé réinjecté ; <code>M1_m.letterScore</code> co-décide M5 avec poids <code>M5_D_M1_M_WEIGHT</code> = <strong>0,1</strong> (F198 « rebranchement M1_m » ; gardé par <code>assert</code>, appliqué <strong>sans toggle</strong> — co-décideur vif, cf. <code>AUDIT_OMEGA §1.4/D2</code> ; l'ancien « 0,0 baseline » est <strong>périmé</strong>). Phon tronqué : <code>M5_phon→M4_phon</code> effectif (lu par M4_phon ascendant), <code>M3_phon_m</code> observationnel, <code>M2_phon_m</code>/<code>M1_phon_m</code> <strong>construits + appelés mais sans consommateur</strong> (dormants — <em>pas</em> « jamais construits » ; cf. <code>AUDIT_OMEGA §1.4/D1</code>).</p>
 
 <h3 class="tech">5.3 — Constantes principales</h3>
 <div class="tech tablewrap"><table>
@@ -398,7 +398,7 @@ La décision doit dériver du <strong>perçu</strong> et de l'<strong>appris</st
 <tr><td>M2_d</td><td>zones ; grille ; EMA ; σ_exc/σ_inh/poids</td><td class="num">16 ; 4×4 ; 0,05 ; 1,5 / 4,0 / 0,5</td></tr>
 <tr><td>M3_d</td><td>cellules ; α_Hebb ; α_decay ; seuil ; dim</td><td class="num">12 ; 0,008 ; 0,001 ; 0,005 ; SDIM=1024</td></tr>
 <tr><td>M4_d</td><td>poids cosine/freq ; top-K</td><td class="num">0,7 / 0,3 ; 10</td></tr>
-<tr><td>M5_d</td><td>T_min/T_max ; facteur gap ; poids M1_m</td><td class="num">0,05 / 0,5 ; 20,0 ; 0,0 (baseline)</td></tr>
+<tr><td>M5_d</td><td>T_min/T_max ; facteur gap ; poids M1_m</td><td class="num">0,05 / 0,5 ; 20,0 ; 0,1 (F198)</td></tr>
 <tr><td>M5_m</td><td>reward HIT/MISS/WIN/LOSE</td><td class="num">+1,0 / −0,5 / +2,0 / −1,0</td></tr>
 <tr><td>M3_m</td><td>taux anti-Hebbian</td><td class="num">0,004 (½ du Hebbian direct)</td></tr>
 </tbody></table></div>
@@ -721,7 +721,7 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 </tbody></table></div>
 
 <h3 class="tech">16.2 — Référence rapide des constantes</h3>
-<p class="tech mono" style="font-size:.8rem;line-height:1.7">5 sous-cerveaux M1_d, phases [0,103,207,311,415], LDIM=512 · 16 zones M2 (4×4), EMA 0,05, σ 1,5/4,0 · 12 cellules M3_d, α_Hebb 0,008, α_decay 0,001, seuil 0,005, SDIM=1024 · M4_d 70/30, top-10 · M5_d T 0,05–0,5, gap×20, poids M1_m 0,0 (baseline) · reward +1/−0,5/+2/−1 · anti-Hebbian 0,004.</p>
+<p class="tech mono" style="font-size:.8rem;line-height:1.7">5 sous-cerveaux M1_d, phases [0,103,207,311,415], LDIM=512 · 16 zones M2 (4×4), EMA 0,05, σ 1,5/4,0 · 12 cellules M3_d, α_Hebb 0,008, α_decay 0,001, seuil 0,005, SDIM=1024 · M4_d 70/30, top-10 · M5_d T 0,05–0,5, gap×20, poids M1_m 0,1 (F198) · reward +1/−0,5/+2/−1 · anti-Hebbian 0,004.</p>
 </section>
 
 <section id="s17">

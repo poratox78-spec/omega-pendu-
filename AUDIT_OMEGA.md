@@ -23,7 +23,7 @@ Deux axes **orthogonaux** :
 
 - Montante ortho : `cStep`(6343) → `M1_d_step`(4022) → `M2_d_step`(4117) → `M3_d_step`(4232) → `M_S_step`(5669) → `M4_d_step`(4729) → `M5_d_step`(4849).
 - Montante phon + arbitre : `omega_voiePhon_OS_tick`(3903) + `M_OS_v07_step`(3747).
-- Descendante ortho (5 étages) : `M5_m_step`(5238) → `M4_m_step`(5287) → `M3_m_step`(5421, **seul étage qui écrit `conceptCells`**) → `M2_m_step`(5499) → `M1_m_step`(5565, co-décide M5 ; poids 0,0 en baseline).
+- Descendante ortho (5 étages) : `M5_m_step`(5252) → `M4_m_step`(5301) → `M3_m_step`(5435, **seul étage qui écrit `conceptCells`**) → `M2_m_step`(5513) → `M1_m_step`(5579, co-décide M5 ; **poids 0,1** — F198, *pas* 0,0 ; cf §1.4/D2).
 - Descendante phon : **tronquée** — `M5_phon_m_step`(3809)/`M4_phon_m_step`(3821) effectifs, `M3_phon_m_step`(3840) observationnel.
 - Apprentissage descendant des declares : `endCurrentGame`(6894) — banc recall, g2p (`learnExp`), table muette jointe (tous post-partie, mot complet légitime).
 
@@ -155,9 +155,17 @@ Méthode : lecture des fonctions miroir + traçage des **consommateurs réels** 
 #### Deux dérives doc↔code tranchées par le code
 
 - **D1 — S4 résolu (rapport §5.2 périmé).** Le rapport affirme `M2_phon_m`/`M1_phon_m` « jamais construits ». **Faux** : ils existent (3879, 3902) **et sont appelés** (7301-7302). Nuance honnête : *construits + appelés mais sans consommateur* → inertes en **effet**, pas en **exécution**. Vérité de la voie phon : **effectif s'arrête à `M4_phon_m`** (lu en 3590) · `M3` observationnel · `M2`/`M1` **mort-nés** (candidats S3, ou à brancher si on muscle la voie phon — rapport §12).
-- **D2 — dérive nouvelle, plus sérieuse (audit §0 + rapport §5.3 périmés).** Les deux affirment « `M1_m` co-décide M5, **poids 0,0 en baseline** ». **Faux dans le code courant** : `M5_D_M1_M_WEIGHT = 0.1` (ligne 1604, F198 « rebranchement M1_m »), **gardé par un assert** (7418 : `=== 0.1`), appliqué **sans toggle** (5149 : `score *= (1 − W + ls·W)`). Donc la voie ortho descendante **influence vraiment la décision montante** à 0,1, à chaque coup — pas inerte. Seul le schéma §5.2 du rapport hedge à demi (« 0,0 en baseline v7 ; ~0,1 ultérieurement ») ; la table de constantes §5.3 et l'audit §0 sont **stale à 0,0** → à corriger.
+- **D2 — dérive nouvelle, plus sérieuse (audit §0 + rapport §5.3 périmés).** Les deux affirment « `M1_m` co-décide M5, **poids 0,0 en baseline** ». **Faux dans le code courant** : `M5_D_M1_M_WEIGHT = 0.1` (ligne 1604, F198 « rebranchement M1_m »), **gardé par un assert** (7418 : `=== 0.1`), appliqué **sans toggle** (5149 : `score *= (1 − W + ls·W)`). Donc la voie ortho descendante **influence vraiment la décision montante** à 0,1, à chaque coup — pas inerte. Seul le schéma §5.2 du rapport hedgeait à demi (« 0,0 en baseline v7 ; ~0,1 ultérieurement ») ; la table de constantes §5.3 et l'audit §0 étaient stale à 0,0. **Corrigé (2026-06-17)** : rapport §5.2/§5.3/§16.2 + audit §0 portent désormais **0,1 (F198)** ; D1 (rapport §5.2 « jamais construits ») corrigé en « construits + appelés, sans consommateur ».
 
-> **Conséquence doctrinale (à instruire, pas encore tranchée).** La règle d'or dit « miroir = **apprend, ne décide pas** ». Or `M1_m` (descendant) **décide** à 0,1 (D2). À qualifier : entorse à la frontière montant/descendant, ou co-décision légitime (le miroir publie un score *appris*, relu en montant le tick suivant) ? Chantier ouvert : trouver une **utilité mesurée** aux étages dormants M2/M1_phon_m (revue littérature DRC/HRR en cours), sous R66 (OFF-inerte → apport mesuré ou revert).
+#### Ancrage littérature (DRC / IA / HRR) — revue faite (2026-06-17)
+
+Le mapping voies descendantes ↔ routes DRC tranche le sens des deux dérives :
+
+- **Miroir ortho ↔ voie lexicale (activation interactive, McClelland & Rumelhart 1981).** L'IA a un **feedback top-down mot→lettre** qui « excite les lettres du mot, inhibe les autres » = l'effet de supériorité du mot = **de la discrimination de lettres**. Donc `M1_m` co-décidant à 0,1 (D2) est **légitime au sens DRC**, pas une entorse de fond ; le vrai défaut est qu'il est **non débranchable** (faille R66) et qu'il **n'a jamais été mesuré seul**.
+- **Miroir phon ↔ voie sublexicale (GPC).** La GPC de DRC est **série, feedforward, sans feedback**. Brancher `M2_phon_m`/`M1_phon_m` comme co-décideurs serait **anti-DRC** → leur « utilité » n'est pas dans la décision (candidats hygiène S3, ou rôle non-décisionnel type cleanup HRR).
+- **HRR (Plate ; resonator Frady 2020).** Le bind est une **mémoire associative clé→valeur**, pas un moteur de prédiction de lettres (cf. mémoire §6 : 19 % vs 64 %). Confirme : ne pas câbler les dormants phon en scoring-lettre.
+
+> **Chantier ouvert (R66, non tranché).** (1) `M1_m` : poser un toggle débranchable + mesurer son Δ seul (K=1, 4 graines) — ferme la faille R66 et teste si le feedback IA gagne ses 0,1. (2) `bPC readout` (0,20) : ablation/repurpose (le concept porte la *longueur*, pas la lettre — audit §3). (3) Dormants phon : trancher (supprimer vs cleanup). **Ordre choisi (Rem, 16/06→17/06) : corriger les docs d'abord (ce commit), puis arbitrer les jonctions.**
 
 ---
 
