@@ -1034,6 +1034,13 @@ footer {
         <div class="toggle-desc">M1_m → M1_d loop</div>
       </div>
     </div>
+    <div class="toggle-item cfg-optim" data-toggle="M5_D_M1_M_ENABLED" title="Co-décision descendante M1_m (cercle miroir) : pondère le score-lettre par le feedback appris M1_m.letterScore au poids 0,1 (F198). Analogue du feedback top-down mot→lettre de l'activation interactive (DRC, effet de supériorité du mot). Défaut ON = baseline byte-identique ; OFF = débranche la co-décision (ferme la faille R66). Mesure du Δ : evo/ab_m1m.js." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">M1_m co-décision (0,1)</div>
+        <div class="toggle-desc">miroir → score-lettre (F198, R66)</div>
+      </div>
+    </div>
     <div class="toggle-item cfg-optim" data-toggle="M_VOIE_PHON_ENABLED" title="φ · Voie phonologique : convertit le mot en sons (SAMPA) et raisonne phonétiquement, en parallèle de l'ortho (double voie de Coltheart)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
@@ -1602,6 +1609,11 @@ const COUCHE_BC_SEPARATION_ENABLED = false;  // 🔴 DÉFAUT OFF
 
 // === F198 (02/05) — Activation M1_m.letterScore co-décideur ===
 const M5_D_M1_M_WEIGHT    = 0.1;      // F198 : 0.1 modeste (était 0.0 baseline désactivé)
+// R66 — co-décision M1_m DÉBRANCHABLE (audit 2026-06-17, §1.4/D2). Défaut ON = baseline
+//   byte-identique (court-circuit true). OFF = retire la pondération M1_m de la décision
+//   (gardé en cStep) → ferme la faille R66 (seul co-décideur jusque-là non gardé) et
+//   permet de mesurer le Δ du feedback descendant ortho seul (cf. evo/ab_m1m.js).
+let M5_D_M1_M_ENABLED     = true;
 
 // === Rebranchement phonGraphMap co-décideur (blueprint v6 §29.1, F177) ===
 // Plan : la carte phonGraphMap[26][SDIM] est construite par F (rapide) + E2 (lent)
@@ -4993,7 +5005,7 @@ function M5_d_step() {
       }
     }
     // Source 3 : M1_m letterScore (cercle miroir)
-    if (typeof M1_m !== 'undefined' && M1_m.letterScore) {
+    if (M5_D_M1_M_ENABLED && typeof M1_m !== 'undefined' && M1_m.letterScore) {
       for (let i = 0; i < N; i++) {
         const l = filtered[i].ch.charCodeAt(0) - 65;
         if (l >= 0 && l < 26) m1mScores[i] = M1_m.letterScore[l];
@@ -5137,7 +5149,7 @@ function M5_d_step() {
   //         logique = enrichir (F177) → pondérer miroir (M1_m) → trier final →
   //         calculer gap → softmax. T reflète maintenant la confiance du top1
   //         FINAL, pas une étape intermédiaire.
-  if (typeof M1_m !== 'undefined' && M1_m.letterScore) {
+  if (M5_D_M1_M_ENABLED && typeof M1_m !== 'undefined' && M1_m.letterScore) {
     for (let i = 0; i < filtered.length; i++) {
       const letterIdx = filtered[i].ch.charCodeAt(0) - 65;
       if (letterIdx >= 0 && letterIdx < 26) {
@@ -8831,6 +8843,7 @@ function ui_initToggles() {
     'L01_A5_M2M_POSITIONAL_ENABLED',
     'L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
     'L01_B2_MOBIUS_ENABLED',
+    'M5_D_M1_M_ENABLED',
     'M_VOIE_PHON_ENABLED', 'M_OS_V07_ENABLED', 'M4_PHON_USE_P_ENABLED', 'M_SUBSTRAT_ORTHO_PURE_ENABLED',
     'M_PHON_FEEDBACK_ENABLED',
     'M_WORD_DECLARE_ENABLED',
@@ -8874,6 +8887,7 @@ function ui_toggle(item) {
     'L01_A5_M2M_POSITIONAL_ENABLED',
     'L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
     'L01_B2_MOBIUS_ENABLED',
+    'M5_D_M1_M_ENABLED',
     'M_VOIE_PHON_ENABLED', 'M_OS_V07_ENABLED', 'M4_PHON_USE_P_ENABLED', 'M_SUBSTRAT_ORTHO_PURE_ENABLED',
     'M_PHON_FEEDBACK_ENABLED',
     'M_WORD_DECLARE_ENABLED',
