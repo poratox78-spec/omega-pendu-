@@ -6124,6 +6124,8 @@ let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la di
 let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
 let M_NEO_OS_ARB = false;                    // ARBITRAGE OS niveau DECLARE : mélange les 2 voies DRC — sublexicale (jointe) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step (forme w(r)=r^α/(β+r^α) prouvée, mélange CONVEXE pondéré par fiabilité relative), au lieu de la cascade either/or. Cheat-free, sans currentWord. OFF-inerte.
 let M_NEO_OS_ARB_CONF = 0.0;                 // seuil sur la lettre mélangée (0 = tire la meilleure non essayée)
+let M_NEO_OS_ARB_ALPHA = 1.0;                // (α,β) PROPRES à l'arbitrage DECLARE (≠ θ de lecture). Défaut 1/1 = forme neutre μ=r/(1+r) → byte-identique à l'ancien comportement. Mesurables (balayage R66, AUDIT_OMEGA §1.6).
+let M_NEO_OS_ARB_BETA = 1.0;                 // β<1 → favorise la voie lexicale (cohorte) ; β>1 → favorise la sublexicale (jointe) ; α = raideur de la bascule sur r=sigLex/sigSub.
 let _neoWF = null;                           // cache word→fréquence (voie lexicale, board-dérivé légitime pour DECLARE)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
@@ -6220,7 +6222,7 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
   if (ssub>0) for(let x=0;x<26;x++) sub[x]/=ssub; if (slex>0) for(let x=0;x<26;x++) lex[x]/=slex;   // distributions L1
   let sigSub=0,sigLex=0; for(let x=0;x<26;x++){ if(sub[x]>sigSub)sigSub=sub[x]; if(lex[x]>sigLex)sigLex=lex[x]; }   // fiabilité = piqué de chaque voie
   const _o=M_OS_v07.output,_r=M_OS_v07.r,_m=M_OS_v07.mu,_a=M_OS_v07.alpha,_b=M_OS_v07.beta;   // save (ne pas perturber la cognition)
-  M_OS_v07.alpha=1; M_OS_v07.beta=1;   // ARBITRAGE DECLARE = forme analytique neutre μ=r/(1+r), DÉCOUPLÉE du θ de LECTURE (ortho→phon) de la cognition — évite le conflit de sens des voies (le declare est phon→ortho)
+  M_OS_v07.alpha=M_NEO_OS_ARB_ALPHA; M_OS_v07.beta=M_NEO_OS_ARB_BETA;   // (α,β) PROPRES au declare (défaut 1/1 = forme neutre μ=r/(1+r)), DÉCOUPLÉS du θ de LECTURE (ortho→phon) de la cognition — évite le conflit de sens des voies (le declare est phon→ortho). Mesurables (§1.6).
   const _mix = M_OS_v07_step(sub, sigSub||1e-9, lex, sigLex||1e-9);   // RÉUTILISE l'OS : (1−μ)·sub + μ·lex, μ=r^α/(β+r^α), r=sigLex/sigSub
   const mix = Float64Array.from(_mix);
   M_OS_v07.alpha=_a; M_OS_v07.beta=_b; M_OS_v07.output=_o; M_OS_v07.r=_r; M_OS_v07.mu=_m;   // restore

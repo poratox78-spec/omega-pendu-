@@ -80,7 +80,7 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
 
   // une condition = reset complet + config + flags cohorte/jointe/cross-modal, warmup (lexique plein) puis test.
-  function runCond(seed, sets, { cohort, jointe, xmodal, dual, freqonly, osarb }) {
+  function runCond(seed, sets, { cohort, jointe, xmodal, dual, freqonly, osarb, arbA, arbB }) {
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
@@ -90,6 +90,7 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     ev(`M_DECLARE_DUAL_ENABLED=${!!dual};`);        // DUAL : declare cohorte-board (freq × ortho × phon), cheat-free, sans currentWord ; conf/poids aux défauts 0,85/0,50/0,25
     if (dual) ev(`M_DECLARE_DUAL_WORTHO=${freqonly?0:0.50};M_DECLARE_DUAL_WPHON=${freqonly?0:0.25};`);   // freqonly → wO=wP=0 : DUAL = PRIOR FRÉQUENCE pur sur la cohorte (aucune somme ortho+phon ; teste si le gain est propre)
     ev(`M_NEO_OS_ARB=${!!osarb};`);                 // arbitrage OS des 2 voies DRC (mélange convexe sublexical⟷lexical) au lieu de la cascade
+    if (osarb) ev(`M_NEO_OS_ARB_ALPHA=${arbA==null?1:arbA};M_NEO_OS_ARB_BETA=${arbB==null?1:arbB};`);   // (α,β) PROPRES au declare, mesure §1.6 (défaut 1/1 = neutre)
     LEX.len_index = origLI;                                   // warmup : lexique plein (le mot vécu est légitime en descendant)
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
@@ -119,6 +120,12 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
     ? [ { key: 'cohorte-jointe (cascade, base)', cohort: true, jointe: true },
         { key: 'cohorte-jointe + DUAL (cascade)', cohort: true, jointe: true, dual: true },
         { key: 'cohorte-jointe + ARBITRAGE OS ', cohort: true, jointe: true, osarb: true } ]
+    : (mode === 'arbsweep')
+    ? [ { key: 'DUAL (incumbent)             ', cohort: true, jointe: true, dual: true },
+        { key: 'cascade jointe (base)        ', cohort: true, jointe: true },
+        { key: 'OS-arb a1.0 b1.0 (neutre)    ', cohort: true, jointe: true, osarb: true, arbA: 1.0, arbB: 1.0 },
+        { key: 'OS-arb a1.0 b0.5 (+lexical)  ', cohort: true, jointe: true, osarb: true, arbA: 1.0, arbB: 0.5 },
+        { key: 'OS-arb a2.0 b0.5 (+lex raide)', cohort: true, jointe: true, osarb: true, arbA: 2.0, arbB: 0.5 } ]
     : [ { key: 'REF  son-lu (wp.get·triche) ', cohort: false, jointe: false },
         { key: 'cohorte ARGMAX (board)      ', cohort: true,  jointe: false },
         { key: 'cohorte JOINTE @0.30        ', cohort: true,  jointe: true  } ];
@@ -146,7 +153,14 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
   // Δ falsifiables
   const mean = i => rows[i].vals.reduce((a, b) => a + b, 0) / rows[i].vals.length;
-  if (rows.length === 2) {   // 2 conditions (oov / xmodal) : Δ 2e − 1re, par graine + barrière de mérite §6.4
+  if (mode === 'arbsweep') {   // incumbent = DUAL (rows[0]) ; chaque OS-arb (rows>=2) vs DUAL, barrière §6.4
+    console.log("\n  Barrière de mérite §6.4 — un OS-arb ne se garde que s'il bat DUAL à CHAQUE graine ET en moyenne :");
+    for (let i = 2; i < rows.length; i++) {
+      const d = rows[i].vals.map((v, k) => v - rows[0].vals[k]);
+      const allWin = d.every(x => x > 0), noLoss = d.every(x => x >= 0);
+      console.log('  ' + rows[i].key + ' − DUAL : moy ' + (mean(i)-mean(0)>=0?'+':'') + (mean(i)-mean(0)).toFixed(1) + ' pts · [' + d.map(x=>(x>=0?'+':'')+x.toFixed(1)).join(', ') + ']  → ' + (allWin ? 'BAT DUAL partout' : (noLoss ? 'égalité au pire' : 'NON')));
+    }
+  } else if (rows.length === 2) {   // 2 conditions (oov / xmodal) : Δ 2e − 1re, par graine + barrière de mérite §6.4
     const a = rows[1].key.trim(), b = rows[0].key.trim();
     const perSeed = rows[1].vals.map((v, i) => v - rows[0].vals[i]);
     console.log(`\n  Δ « ${a} » − « ${b} » : moyenne ${(mean(1)-mean(0)).toFixed(1)} pts · par graine [${perSeed.map(d => (d>=0?'+':'')+d.toFixed(1)).join(', ')}]`);
