@@ -11316,6 +11316,64 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdd-diff').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var ch=$('vdd-diff').children;for(var i=0;i<ch.length;i++)ch[i].classList.remove('on');b.classList.add('on');diff=b.getAttribute('data-d');pick();});
   $('vdd-say').onclick=say;$('vdd-again').onclick=say;$('vdd-check').onclick=check;$('vdd-next').onclick=pick;$('vdd-reset').onclick=function(e){e.preventDefault();PROF={};try{localStorage.removeItem('vdd_profile');}catch(_){}renderProf();};renderProf();var _li=$('vdd-lisible');if(_li){_li.checked=localStorage.getItem('vdd_lisible')==='1';if(_li.checked)$('vdd-card').classList.add('lisible');_li.onchange=function(){$('vdd-card').classList.toggle('lisible',_li.checked);try{localStorage.setItem('vdd_lisible',_li.checked?'1':'0');}catch(e){}};}var _rt=$('vdd-rate');if(_rt){_rt.value=VR;_rt.oninput=function(){VR=parseFloat(_rt.value)||0.85;try{localStorage.setItem('vdd_rate',String(VR));}catch(e){}};}renderHist();
   $('vdd-ans').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();answered?pick():check();}});
+
+  // ===== CORRECTEUR DYS (semi-direct) — port de dictee/correcteur_probe.py, réutilise le levier ci-dessus =====
+  // Détecte + corrige des homophones grammaticaux SANS corrigé, et situe le STADE. OFF-inerte (bouton dédié).
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  var COMMON_VERBS={};("suis es est sommes etes sont etais etait etions etiez etaient sera seront fut furent serait soit "
+    +"ai as a avons avez ont avais avait avaient aura auront aurait eu vais vas va allons allez vont allais allait ira iront alle aille "
+    +"fais fait faisons faites font faisait fera fasse dis dit disons dites disent disait dira peux peut pouvons pouvez peuvent pouvait pourra pu puisse "
+    +"veux veut voulons voulez veulent voulait voudra voulu veuille dois doit devons devez doivent devait devra du doive sais sait savons savez savent savait saura su sache "
+    +"vois voit voyons voyez voient voyait verra vu voie viens vient venons venez viennent venait viendra venu vienne prends prend prenons prenez prennent prenait prendra pris prenne "
+    +"mets met mettons mettez mettent mettait mettra mis mette mange mangent mangeons mangez mangeait parle parlent parlez parlait aime aiment aimez aimait donne donnent donnez "
+    +"trouve trouvent regarde regardent joue jouent jouez jouait porte portent cherche cherchent pense pensent reste restent passe passent arrive arrivent entre entrent monte montent "
+    +"tombe tombent tombait chante chantent court courent boit boivent lit lisent ecrit ecrivent dort dorment finit finissent etudie etudient quitte quittent calme creuse vend vendent").split(/\s+/).forEach(function(w){if(w)COMMON_VERBS[w]=1;});
+  var MODAL={};("veux veut veulent peux peut peuvent dois doit doivent va vais vas vont faut sais sait aime aimes aiment adore espere souhaite prefere preferent vient viens allons allez laisse laissent semble ose pour sans afin de").split(/\s+/).forEach(function(w){MODAL[w]=1;});
+  var CAUX={};Object.keys(AUX_ETRE).forEach(function(k){CAUX[k]=1;});Object.keys(AUX_AVOIR).forEach(function(k){CAUX[k]=1;});
+  function cprev(T,i){return i>0?deacc(T[i-1].toLowerCase()):null;}
+  function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());return !!COMMON_VERBS[w]&&!(i>0&&NUM_DET[T[i-1].toLowerCase()]);}
+  function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;return j>0&&NUM_DET[T[j-1].toLowerCase()]==='pl';}
+  function rEer(T,i){var w=T[i],lw=w.toLowerCase(),f;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;var p=cprev(T,i);if(p===null)return null;if(CAUX[p])return f[0];if(PREP[p]||MODAL[p])return f[1];return null;}
+  function rSon(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='son'&&lw!=='sont')return null;if(i===0)return 'son';var pl=T[i-1].toLowerCase();if(isVerb(T,i-1)||PREP[deacc(pl)]||pl==='et'||pl==='ou'||pl==='ni')return 'son';return 'sont';}
+  function rOn(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;var p=cprev(T,i);if(p==='ils'||p==='elles'||cpl(T,i-1))return 'ont';if(isParticiple(T,i+1))return 'ont';if(vlike(T,i+1))return 'on';return null;}
+  function rLeur(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='leur'&&lw!=='leurs')return null;if(i+1>=T.length)return null;if(vlike(T,i+1))return 'leur';var dn=deacc(T[i+1].toLowerCase());return /[sx]$/.test(dn)?'leurs':'leur';}
+  function rA(T,i){if(deacc(T[i].toLowerCase())!=='a')return null;var p=cprev(T,i);if(p==='il'||p==='elle'||p==='on'||p==='qui'||p==='ca'||p==='c')return 'a';if(i+1<T.length&&isParticiple(T,i+1))return 'a';if(vlike(T,i-1))return 'à';return null;}
+  function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')return null;var p=cprev(T,i);var sg=(p==='il'||p==='elle'||p==='on'||p==='c'||p==='ce'||p==='ca'||p==='qui')||(i>1&&!(T[i-1].toLowerCase() in NUM_DET)&&!cpl(T,i-1)&&NUM_DET[T[i-2].toLowerCase()]==='sg');if(sg&&i+1<T.length){if(isParticiple(T,i+1)||!(T[i+1].toLowerCase() in NUM_DET))return 'est';}return null;}
+  function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';return null;}
+  function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());if(nd==='qui'||nd==='que'||nd==='dont'||CAUX[nd]||nd==='sont'||nd==='est')return 'ce';if(vlike(T,i+1))return 'se';return 'ce';}
+  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe]];
+  function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
+  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿ']+/g,o='',last=0,m,idx=0,fm={};flags.forEach(function(f){fm[f.i]=f;});while((m=re.exec(text))){o+=esc(text.slice(last,m.index));var f=fm[idx];o+=f?'<span class="vdc-bad" title="→ '+esc(f.sugg)+'">'+esc(m[0])+'</span>':esc(m[0]);last=m.index+m[0].length;idx++;}o+=esc(text.slice(last));return o;}
+
+  var cst=document.createElement('style');
+  cst.textContent='#vdc-btn{position:fixed;right:14px;bottom:62px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#7a4fb5;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
+   +'#vdc-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdc-ov.on{display:flex}'
+   +'#vdc-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
+   +'#vdc-card h2{margin:.1em 0;font-size:20px}#vdc-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
+   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:90px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
+   +'#vdc-render{font-size:18px;line-height:1.9;margin-top:10px;padding:10px;background:#fff;border-radius:10px;border:1px solid #eee;min-height:30px}'
+   +'.vdc-bad{background:#fde2e2;border-bottom:3px solid #c0392b;border-radius:3px;padding:0 1px;cursor:help}'
+   +'.vdc-fact{padding:8px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff;border-left:5px solid #c0392b}.vdc-sc{color:#6b6b6b;font-size:13px}'
+   +'#vdc-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}';
+  document.head.appendChild(cst);
+  var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
+  var cov=document.createElement('div');cov.id='vdc-ov';
+  cov.innerHTML='<div id="vdc-card"><button id="vdc-x">×</button><h2>🩹 Correcteur dys — semi-direct</h2>'
+   +'<div class="vdc-sc">Colle ou écris ton texte : les homophones grammaticaux fautifs sont <b>soulignés</b> (survole pour la correction), avec le <b>stade</b>. Hors-ligne, aucune donnée envoyée.</div>'
+   +'<textarea id="vdc-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea>'
+   +'<div id="vdc-render"></div><div id="vdc-out" style="margin-top:8px"></div></div>';
+  document.body.appendChild(cov);
+  function runCorr(){var t=$('vdc-in').value;var flags=correctText(t);$('vdc-render').innerHTML=renderCorr(t,flags);
+    if(!t.trim()){$('vdc-out').innerHTML='';return;}
+    if(!flags.length){$('vdc-out').innerHTML='<div class="vdc-fact" style="border-left-color:#1f7a3d;background:#e3f6e6"><b>✓ Aucun homophone grammatical détecté.</b></div>';return;}
+    var html=flags.map(function(f){return '<div class="vdc-fact">« '+esc(f.word)+' » → <b>« '+esc(f.sugg)+' »</b> <span class="vdc-sc">['+esc(f.name)+']</span></div>';}).join('');
+    var dev=developmental(flags.map(function(){return {types:['accord']};}));
+    if(dev)html+='<div class="vdc-fact" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+'</span></div>';
+    $('vdc-out').innerHTML=html;}
+  var _ct;cbtn.onclick=function(){cov.classList.add('on');$('vdc-in').focus();runCorr();};
+  $('vdc-x').onclick=function(){cov.classList.remove('on');};
+  cov.addEventListener('click',function(e){if(e.target===cov)cov.classList.remove('on');});
+  $('vdc-in').addEventListener('input',function(){clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct
 })();
 </script>
 
