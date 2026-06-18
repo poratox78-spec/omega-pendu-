@@ -15,23 +15,27 @@ La dictée connaît la cible ; un correcteur non → il doit **inférer l'intent
 forme via le contexte (voisins, POS, accord — réutilise `diag_sentence`). Le correcteur **flague** si tapé ≠ décidé
 et **propose** la forme décidée.
 
-### Résultat (détection ET correction, faite une seule fois)
+### Résultat (détection ET correction, faite une seule fois) — après étape 1 (couverture élargie)
 - **Faux positifs sur 30 phrases CORRECTES : 0** ✅ (condition n°1 : ne pas « corriger » du texte juste).
-- **Détection + correction : 13/16** témoins.
+- **Détection + correction : 22/24** témoins (était 13/16 avant l'élargissement verbal).
 
 | confusion | fp | détection | correction |
 |---|---|---|---|
 | `-é/-er` (mangé/manger) | 0/3 | 3/3 | 3/3 |
 | `son/sont` | 0/3 | 3/3 | 3/3 |
 | `leur/leurs` | 0/3 | 3/3 | 3/3 |
-| `on/ont` | 0/3 | 2/3 | 2/3 |
-| `a/à` | 0/2 | 1/2 | 1/2 |
+| `on/ont` | 0/5 | 5/5 | 5/5 |
+| `a/à` | 0/3 | 3/3 | 3/3 |
+| `peu/peux/peut` | 0/3 | 3/3 | 3/3 |
 | `et/est` | 0/2 | 1/2 | 1/2 |
+| `ce/se` | 0/2 | 1/2 | 1/2 |
 
-### Le pourquoi des 3 manques (mécanisme, pas échec d'architecture)
-`a/à`, `et/est`, `on/ont`(présent) demandent de savoir si le slot est **verbal** ; or `is_verb` est un **stub de 32
-formes** du corpus (il ignore « mange », « va »…). Ce n'est PAS la méthode qui échoue : c'est la **couverture verbale**.
-Un vrai lexique POS (Lexique4 `cgram`) lève ces 3 cas et scale hors-corpus.
+### Étape 1 : couverture verbale élargie SANS le lexique 34 Mo
+`is_verb` du levier dictée est un stub de 32 formes du corpus (il ignore « mange », « va »…). On l'a doublé d'une
+**liste blanche de formes verbales fréquentes** (exactes → 0 FP par sur-généralisation) : `vlike()`. Ça débloque
+`a/à`, `on/ont`, `peu/peux/peut` **sans** le lexique. Restent partiels : `et/est` (seule la direction `et→est` est
+sûre ; `est→et` exige détecter un parallélisme de noms, sémantique) et `ce/se` (couverture pronominale limitée).
+**Lexique4 `cgram` (étape 3)** remplacera la liste blanche → couverture verbale complète + scaling hors-corpus.
 
 ## Verdict
 Le cœur du correcteur (détecter + corriger sans corrigé) **marche, avec 0 faux positif** sur les confusions à

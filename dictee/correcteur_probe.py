@@ -27,6 +27,38 @@ MODAL = {'veux','veut','veulent','peux','peut','peuvent','dois','doit','doivent'
          'vient','viens','allons','allez','laisse','laissent','semble','ose','vais','pour','sans','afin','de'}
 AUX = set(D.AUX_ETRE) | set(D.AUX_AVOIR)
 
+# Couverture verbale élargie SANS le lexique 34 Mo : liste BLANCHE de formes fréquentes (exactes → 0 FP par
+# sur-généralisation). Stopgap avant Lexique4 cgram (étape 3). Désaccentué, minuscule.
+COMMON_VERBS = set("""
+suis es est sommes etes sont etais etait etions etiez etaient sera seront fut furent serait soit
+ai as a avons avez ont avais avait avaient aura auront aurait eu
+vais vas va allons allez vont allais allait ira iront alle aille
+fais fait faisons faites font faisait fera fait fasse
+dis dit disons dites disent disait dira
+peux peut pouvons pouvez peuvent pouvait pourra pu puisse
+veux veut voulons voulez veulent voulait voudra voulu veuille
+dois doit devons devez doivent devait devra du doive
+sais sait savons savez savent savait saura su sache
+vois voit voyons voyez voient voyait verra vu voie
+viens vient venons venez viennent venait viendra venu vienne
+prends prend prenons prenez prennent prenait prendra pris prenne
+mets met mettons mettez mettent mettait mettra mis mette
+mange mangent mangeons mangez mangeait parle parlent parlez parlait
+aime aiment aimez aimait donne donnent donnez trouve trouvent regarde regardent
+joue jouent jouez jouait porte portent cherche cherchent pense pensent reste restent
+passe passent arrive arrivent entre entrent monte montent tombe tombent tombait
+chante chantent court courent boit boivent lit lisent ecrit ecrivent dort dorment
+finit finissent etudie etudient quitte quittent calme creuse vend vendent
+""".split())
+
+
+def vlike(T, i):
+    """Verbe EN CONTEXTE, couverture élargie : levier dictée (is_verb) OU liste blanche fréquente."""
+    if i < 0 or i >= len(T): return False
+    if is_verb(T, i): return True
+    w = deacc(T[i].lower())
+    return (w in COMMON_VERBS) and not (i > 0 and T[i-1].lower() in NUM_DET)  # « le porte » reste un nom
+
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
 def nxt(T, i):  return deacc(T[i+1].lower()) if i+1 < len(T) else None
@@ -64,7 +96,7 @@ def rule_on_ont(T, i):
     p = prev(T, i)
     if p in ('ils', 'elles') or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
     if is_participle(T, i+1): return 'ont'
-    if is_verb(T, i+1):       return 'on'                               # « on » sujet + verbe
+    if vlike(T, i+1):         return 'on'                               # « on » sujet + verbe
     return None
 
 def rule_leur_leurs(T, i):
@@ -80,7 +112,7 @@ def rule_a_aa(T, i):
     p = prev(T, i)
     if p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg → avoir
     if i+1 < len(T) and is_participle(T, i+1):            return 'a'    # « a mangé » (aux)
-    if p and is_verb(T, i-1):                             return 'à'    # après un verbe → préposition
+    if vlike(T, i-1):                                     return 'à'    # après un verbe (« va à ») → préposition
     return None
 
 def rule_et_est(T, i):
@@ -96,8 +128,29 @@ def rule_et_est(T, i):
             return 'est'
     return None
 
+def rule_peu(T, i):
+    lw = deacc(T[i].lower())
+    if lw not in ('peu', 'peux', 'peut'): return None
+    p = prev(T, i)
+    if p in ('je', 'tu'):              return 'peux'                    # 1re/2e pers. → pouvoir
+    if p in ('il', 'elle', 'on', 'qui'): return 'peut'                 # 3e sg → pouvoir
+    if p in ('un', 'de', 'tres', 'si', 'trop', 'assez', 'bien', 'plus', 'tout', 'aussi', 'y'):
+        return 'peu'                                                   # adverbe de quantité
+    return None
+
+def rule_ce_se(T, i):
+    lw = deacc(T[i].lower())
+    if lw not in ('ce', 'se'): return None
+    if i+1 >= len(T): return None
+    nd = deacc(T[i+1].lower())
+    if nd in ('qui', 'que', 'dont') or nd in AUX or nd in ('sont', 'est'):
+        return 'ce'                                                    # ce qui/que/dont · c'est · ce sont
+    if vlike(T, i+1): return 'se'                                      # se + verbe pronominal
+    return 'ce'                                                        # ce + nom (démonstratif)
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
-         ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est)]
+         ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se)]
 
 
 def correct(text):
@@ -127,8 +180,16 @@ CASES = [
     ("Je leur parle souvent", "leur", "leurs", "leur/leurs"),
     ("Elle a trouvé un trésor", "a", "à", "a/à"),
     ("Elle va à Paris", "à", "a", "a/à"),
+    ("Il pense à son chien", "à", "a", "a/à"),
     ("Le chat est noir", "est", "et", "et/est"),
     ("Le chien et le chat jouent", "et", "est", "et/est"),
+    ("Je peux venir demain", "peux", "peut", "peu/peux/peut"),
+    ("Il peut venir demain", "peut", "peux", "peu/peux/peut"),
+    ("Il mange un peu de pain", "peu", "peut", "peu/peux/peut"),
+    ("Le chat se trouve là", "se", "ce", "ce/se"),
+    ("Il prend ce livre", "ce", "se", "ce/se"),
+    ("On mange ensemble", "On", "Ont", "on/ont"),
+    ("Ils ont fini leur travail", "ont", "on", "on/ont"),
 ]
 
 
