@@ -55,5 +55,10 @@ lexique 34 Mo (nécessaire seulement pour la couche « typo / non-mot » et pour
    utilisée comme drapeau « est-un-verbe » brut. L'app garde la liste blanche compacte ; le probe Python utilise cgram.
    **Vrai gisement non exploité : les colonnes `7_Genre` / `8_Nombre`** → une route lexicale du GENRE (accord
    nom/adjectif) qu'on ne sait PAS faire aujourd'hui (on n'infère le genre que via le déterminant).
+3b. ✅ **Port APP des lexiques** : `build_cgram.py` émet aussi `cgram_hf.json` (sous-ensemble haute-fréquence,
+   freq≥5 : **3454 verbes + 4178 noms genrés**, 88 Ko), embarqué dans l'app via un bloc `<script type="application/json"
+   id="vdc-lex">` lu par l'IIFE → `vlike` (couverture verbale) + `lexicalGender` (route lexicale du genre dans le
+   diagnostic navigateur). Repli liste blanche si le bloc est absent. FP corpus = 0. CI verte ; harnais `evo/` mis à
+   jour pour ignorer les blocs `application/json`.
 4. ⬜ **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → fautes non-homophones (nécessite le lexique).
 5. ⬜ **Double voie grammaire** (ascendante/descendante) : voir `DICTEE_ROADMAP.md` / discussion en cours.

@@ -17,7 +17,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LEX_PATH = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 OUT = os.path.join(HERE, 'cgram_verbs.json')
 OUT_GENDER = os.path.join(HERE, 'cgram_gender.json')
+OUT_HF = os.path.join(HERE, 'cgram_hf.json')           # sous-ensemble haute-fréquence embarquable dans l'app
 FREQ_MIN = float(os.environ.get('FREQ_MIN', '0.5'))   # garde les formes pas trop rares (taille raisonnable)
+HF_FREQ = float(os.environ.get('HF_FREQ', '5'))        # seuil du sous-ensemble embarquable (par million, FreqOrtho)
 
 
 def deacc(s):
@@ -49,9 +51,10 @@ def main():
         if min(c_mot, c_gram) < 0:
             print(f"[cgram] colonnes introuvables (mot={c_mot}, cgram={c_gram}). En-tête : {header[:8]}…")
             return 2
-        verbs = set()
+        verbs = {}                                       # forme VER → fréquence max
         n = 0
-        gset = {}                                        # forme NOM → ensemble de genres vus (pour écarter l'ambigu)
+        gset = {}                                        # forme NOM → {genres vus} (écarte l'ambigu)
+        gfreq = {}                                       # forme NOM → fréquence max
         for row in rdr:
             if len(row) <= max(c_mot, c_gram):
                 continue
@@ -59,18 +62,17 @@ def main():
             w = deacc(row[c_mot].strip().lower())
             if not (w and all('a' <= ch <= 'z' for ch in w)):
                 continue
-            freq_ok = True
+            fr = 0.0
             if c_freq >= 0 and c_freq < len(row):
-                try:
-                    freq_ok = float((row[c_freq] or '0').replace(',', '.')) >= FREQ_MIN
-                except ValueError:
-                    pass
-            if cg.startswith('VER') and freq_ok:         # VER = verbe (toutes formes fléchies)
-                verbs.add(w); n += 1
+                try: fr = float((row[c_freq] or '0').replace(',', '.'))
+                except ValueError: pass
+            if cg.startswith('VER') and fr >= FREQ_MIN:   # VER = verbe (toutes formes fléchies)
+                verbs[w] = max(verbs.get(w, 0.0), fr); n += 1
             if cg.startswith('NOM') and c_genre >= 0 and c_genre < len(row):
                 g = row[c_genre].strip().lower()
                 if g in ('m', 'f'):                       # genre marqué dans le lexique
                     gset.setdefault(w, set()).add(g)
+                    gfreq[w] = max(gfreq.get(w, 0.0), fr)
     out = sorted(verbs)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[cgram] {len(out)} formes verbales (sur {n} lignes VER, freq≥{FREQ_MIN}) → {OUT}")
@@ -78,6 +80,14 @@ def main():
     amb = sum(1 for gs in gset.values() if len(gs) > 1)
     json.dump(gender, open(OUT_GENDER, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[gender] {len(gender)} noms à genre non ambigu (+{amb} ambigus écartés : tour, livre…) → {OUT_GENDER}")
+
+    # === sous-ensemble HAUTE-FRÉQUENCE, embarquable dans l'app (IIFE) ===
+    hv = sorted([w for w, fr in verbs.items() if fr >= HF_FREQ])
+    hg = {w: gender[w] for w in gender if gfreq.get(w, 0.0) >= HF_FREQ}
+    hf = {'v': hv, 'g': hg}
+    json.dump(hf, open(OUT_HF, 'w', encoding='utf-8', newline=''), ensure_ascii=False, separators=(',', ':'))
+    sz = os.path.getsize(OUT_HF)
+    print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés → {OUT_HF}  ({sz//1024} Ko)")
     print("        vlike + governor_gender (route lexicale) les chargeront automatiquement.")
     return 0
 
