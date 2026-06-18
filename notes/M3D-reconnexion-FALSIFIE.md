@@ -1,5 +1,7 @@
 # OMEGA v0.07 — Reconnexion M3_d via le banc recall : FALSIFIÉ (R66)
 
+> ⚠️ **Périmètre (maj 17/06/2026).** Ce qui est falsifié ici est **une voie précise** : loger le **banc épisodique** dans M3_d / réinjecter le concept dans le **scoring-lettre via M4** (net-négatif −1,3 à −2,0). **Ce n'est PAS « M3_d est inutile ».** Mesuré depuis (`AUDIT_OMEGA §3.1`) : le **readout-récompense `cLetterScore`** (couplage 0,20) **rapporte +3,4 pts de winrate en cheat-free** (8 graines, jamais sous zéro) — M3_d est un **contributeur réel hors-A2**. Et doctrine §0 : on ne juge pas M3_d au seul winrate du pendu (cf. reclassement `AUDIT_OMEGA §3`). **Conclusion bornée : la *reconnexion banc→concept→scoring* est morte ; M3_d, lui, est vivant et utile.**
+
 Date 03/06/2026. Direction Rem. Harnais headless déterministe. Build remis **phase46 propre** (rien gardé).
 
 ## Objet
