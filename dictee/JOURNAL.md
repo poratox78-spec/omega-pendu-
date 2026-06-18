@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-06-18 — Boucle DESCENDANTE de la grammaire : apprendre le lexique de genre (100 % préc., FP=0, data-bound)
+
+Seconde moitié de la double voie (après la route lexicale). `dictee/descending_probe.py` : la boucle descendante
+**apprend** nom→genre depuis les contextes à déterminant genré des phrases correctes (« une table » → f), validé
+contre Lexique4.
+- **Précision 26/26 = 100 %** · généralisation leave-one-out **1/1** (un seul nom se répète sur 30 phrases →
+  recouvrement quasi nul) · détection via genre appris **FP=0**.
+- **Verdict** : ça APPREND vraiment (≠ miroirs du pendu, mesurés inertes) et c'est FP-safe, MAIS la valeur vient
+  du **VOLUME** — 30 phrases n'apprennent qu'une poignée de noms. Home réel = corpus corrigés (validation terrain) :
+  la boucle est le moteur d'**auto-enrichissement** du correcteur (genre/POS/gouverneur→terminaison appris en continu).
+- Les deux moitiés de la double voie sont posées et mesurées : route **lexicale** (genre 3/3) + boucle **descendante**
+  (100 % préc.). Détail : `GRAMMAIRE_DOUBLE_VOIE.md`.
+
+---
+
 ## 2026-06-18 — Lexique4 reçu → route LEXICALE de la grammaire (verbes + GENRE)
 
 Rem a fourni le `Lexique4.tsv` (33 Mo) → `build_cgram.py` génère deux ressources dérivées (CC BY-SA) :

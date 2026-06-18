@@ -50,9 +50,16 @@ couverture depuis les données → scale sans coder chaque règle. Et le **cercl
 - Le péché capital du correcteur = le **faux positif**. Tout apprentissage doit **garder FP = 0** comme garde-fou.
 - Risque de sur-apprentissage sur un mini-corpus (30 phrases) → mesurer la **généralisation** (held-out), pas le rappel.
 
-## Premier pas FALSIFIABLE (cheap, avant tout build lourd)
-Probe « boucle descendante » : **apprendre** depuis les cibles connues de la dictée (supervisé) deux tables
-— `gouverneur→terminaison` et `mot→POS` — puis mesurer si le modèle **appris** (a) égale/bat les règles écrites à
-la main sur les témoins, (b) **étend** la couverture verbale (lève des cas que `vlike` rate), (c) **reste à FP = 0**.
-Tout sur l'existant (`sentences.json` + levier), sans le lexique 34 Mo. Si Δ>0 et FP=0 → la boucle descendante
-grammaire est réelle ; sinon → falsifiée tôt, comme les miroirs du pendu.
+## Premier pas FALSIFIABLE — FAIT (`dictee/descending_probe.py`)
+Boucle descendante : **apprendre le lexique de GENRE** depuis les contextes à déterminant genré des phrases
+correctes (« une table » → table=f), validable contre Lexique4 (vérité terrain).
+- **Précision : 26/26 = 100 %** (le genre appris depuis l'usage est correct).
+- **Généralisation (leave-one-out) : 1/1** — MAIS un seul nom se répète sur 30 phrases (vocabulaire quasi
+  sans recouvrement) → généralisation à peine testable : **limite de DONNÉES, pas de mécanisme.**
+- **Usage en détection : FP = 0** (genre appris → accord vérifiable, aucune contradiction).
+
+**Verdict** : la boucle descendante **apprend vraiment** (≠ miroirs du pendu, inertes) et reste FP-safe ; mais sa
+valeur vient du **VOLUME** (corpus corrigés réels = validation terrain). C'est le moteur d'**auto-enrichissement**
+du correcteur : chaque copie corrigée nourrit les tables (genre, POS, gouverneur→terminaison). Les deux moitiés de
+la double voie sont donc posées et mesurées — route **lexicale** (genre, 3/3) + boucle **descendante** (100 % préc.).
+Suite naturelle : brancher la collecte (fiche `validation_terrain.html`) → la boucle apprend des vraies données.
