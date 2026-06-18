@@ -525,7 +525,7 @@ body::before {
 }
 .toggle-item:hover { border-color: var(--border); }
 .toggle-item.on { border-color: var(--accent-line); background: var(--accent-soft); }
-/* Repère config de référence : VERT = config optimale cheat-free à activer · ROUGE = triche grise (ne pas activer). Le repère est visible ON comme OFF. */
+/* Repère config (audit toggles 2026-06-18, docs/AUDIT_TOGGLES.md) : 🟢 VERT = cheat-free (ne lit que le révélé/len_index, OOV-honnête) · 🔵 BLEU = option cheat-free non-défaut (cohorte board ; fuite _neoWBL corrigée) · 🟠 ORANGE = lit le SON du mot entier (wp.get = « mot entendu », triche au pendu pur ; assemblé+muette dynamiques selon cohorte) · 🔴 ROUGE = béquille lexicale dico (A1/A2/A3). Visible ON comme OFF. */
 .toggle-item.cfg-optim { border-left: 3px solid #2ea043; }
 .toggle-item.cfg-optim.on { border-color: #2ea043; background: rgba(46,160,67,0.12); }
 .toggle-item.cfg-triche { border-left: 3px solid #e5534b; }
@@ -1277,7 +1277,7 @@ footer {
         <div class="toggle-desc">apprend des positions révélées seules · pén <input id="neo-g2p-pen" type="number" value="0.50" step="0.05" min="0" max="2" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_G2P_EXP_PEN=Math.max(0,parseFloat(this.value)||0)"></div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_MUTE_ENABLED" title="NEO · voie muette PAR LE SON : positions sans phonème (al=EPS) prédites par phonogramme CROISÉ = jointe P(lettre | phonème-tête, offset, voisins révélés), PAS un produit. Apprise en descendant. Neutre au système quand gatée par trigger. Nécessite le maître NEO ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-orange" data-toggle="M_NEO_MUTE_ENABLED" title="NEO · voie muette PAR LE SON : positions sans phonème (al=EPS) prédites par phonogramme CROISÉ = jointe P(lettre | phonème-tête, offset, voisins révélés), PAS un produit. Apprise en descendant. Neutre au système quand gatée par trigger. Nécessite le maître NEO ON. COULEUR DYNAMIQUE (comme l'assemblé) : 🟠 lit le son du mot (wp.get) si cohorte OFF, 🟢 board-dérivé si M_NEO_PHON_COHORT ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔇 NEO · muette (par le son, croisée)</div>
@@ -8897,11 +8897,13 @@ function ui_initToggles() {
   if (typeof ui_syncAssembledColor === 'function') ui_syncAssembledColor();   // couleur assemblé selon l'état cohorte au chargement
 }
 
-function ui_syncAssembledColor(){   // M_NEO_ASSEMBLED dynamique : ORANGE (lit le son wp.get(currentWord) = mot entendu) si cohorte OFF ; VERT (cheat-free, son board-dérivé) si M_NEO_PHON_COHORT ON
-  var el = document.querySelector('[data-toggle="M_NEO_ASSEMBLED_ENABLED"]'); if (!el || !el.classList) return;
+function ui_syncAssembledColor(){   // assemblé ET muette partagent la source de phonème _al : ORANGE (lit le son wp.get(currentWord) = mot entendu) si cohorte OFF ; VERT (cheat-free, son board-dérivé) si M_NEO_PHON_COHORT ON. Audit toggles 2026-06-18.
   var cohort = (typeof M_NEO_PHON_COHORT_ENABLED !== 'undefined') && M_NEO_PHON_COHORT_ENABLED;
-  el.classList.remove('cfg-orange'); el.classList.remove('cfg-optim');
-  el.classList.add(cohort ? 'cfg-optim' : 'cfg-orange');
+  ['M_NEO_ASSEMBLED_ENABLED','M_NEO_MUTE_ENABLED'].forEach(function(n){
+    var el = document.querySelector('[data-toggle="'+n+'"]'); if (!el || !el.classList) return;
+    el.classList.remove('cfg-orange'); el.classList.remove('cfg-optim');
+    el.classList.add(cohort ? 'cfg-optim' : 'cfg-orange');
+  });
 }
 function ui_toggle(item) {
   const name = item.dataset.toggle;

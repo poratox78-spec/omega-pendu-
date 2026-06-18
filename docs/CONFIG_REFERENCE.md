@@ -102,10 +102,12 @@ Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 
 > 🎨 **Repère couleur dans l'app — 4 catégories (MAJ 06/26)** : bordure gauche **🟢 verte** = config
 > optimale cheat-free (à activer, dont **DUAL adopté**) · **🔵 bleue** = option cheat-free non-défaut
 > (`M_NEO_PHON_COHORT` son board-dérivé · `M_NEO_PHON_COHORT_JOINTE` · `M_NEO_OS_ARB`) ·
-> **🟠 orange** = lit le **SON** de `currentWord` (« mot entendu » : assemblé NEO si cohorte OFF, +
+> **🟠 orange** = lit le **SON** de `currentWord` (« mot entendu » : **assemblé NEO ET muette NEO** si cohorte OFF, +
 > assemblé émergent) — pas cheat-free *intégral* au pendu · **🔴 rouge** = triche grise dico (A1/A2/A3,
 > ne pas activer). Les autres restent neutres. Repère visible ON ou OFF.
-> **Dynamique** : l'assemblé NEO bascule 🟠→🟢 dès que le bleu « son board-dérivé » est ON (plus de `wp.get`).
+> **Dynamique** (audit toggles 2026-06-18) : l'assemblé NEO **et la muette NEO** basculent 🟠→🟢 dès que le bleu
+> « son board-dérivé » (`M_NEO_PHON_COHORT`) est ON (plus de `wp.get`). Le bleu cohorte (37/38/39) est désormais
+> **OOV-honnête** (fuite `_neoWBL` corrigée — `AUDIT_OMEGA §1.6.1`). Audit complet par toggle : `docs/AUDIT_TOGGLES.md`.
 > Le **θ · Apprentissage** (maître) est neutre ; ses **4 gardes** restent vertes.
 
 **À ACTIVER (ON) :**
