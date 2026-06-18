@@ -42,7 +42,11 @@ const PHRASES = [
   'Je peux venir', 'Tu manges bien', 'Il nous voit', 'Nous mangeons', 'Ils peut-être là', 'Vous êtes prêts',
   'Il y a un chat', 'je suis content', 'tu es gentil', 'ils doivent partir', 'il faut', 'elle veut partir',
   'on peut essayer', 'je vais bien', 'Il a mangé la soupe', 'Il veut manger la soupe', 'Les enfants sont contents',
-  'Elle a trouvé un trésor', 'Elle va à Paris', 'Il prend ce livre', 'Le chat se trouve là', 'Je leur parle souvent'
+  'Elle a trouvé un trésor', 'Elle va à Paris', 'Il prend ce livre', 'Le chat se trouve là', 'Je leur parle souvent',
+  // accord sujet-verbe à sujet NOM (déterminant pluriel) + gardes FP
+  'les enfants joue dans le jardin et ils ont content', 'Les oiseaux chante le matin', 'Les voitures roule vite',
+  'les chats mange', 'Les chevaux galopent à travers les champs', 'Mon frère et ma sœur sont arrivés',
+  'le chat les regarde', 'la préparation des plats est longue', 'Les enfants jouent dehors'
 ];
 
 // flags Python via un petit pont
@@ -56,19 +60,20 @@ print(json.dumps([[(i, w, s, n) for (i, w, s, n) in C.correct(p)] for p in ph]))
 if (py.status !== 0) { console.error('probe Python échoué :', py.stderr); process.exit(2); }
 const pyflags = JSON.parse(py.stdout);
 
-let diff = 0;
+// Invariant : flags APP ⊆ flags Python. L'app ne doit JAMAIS flaguer ce que Python ne flague pas (= pas de
+// faux positif propre à l'app) ; elle peut en flaguer MOINS (lexique embarqué HF compressé → s'abstient sur les
+// verbes rares, FP-safe). Un flag JS absent de PY = divergence réelle (échec) ; PY > JS = écart de couverture (info).
+let appOnly = 0, gap = 0;
+const key = x => x[0] + '|' + String(x[1]).toLowerCase() + '|' + String(x[2]).toLowerCase();
 PHRASES.forEach((p, k) => {
   const js = corr(p).map(f => [f.i, f.word, f.sugg, f.name]);
   const pf = pyflags[k];
-  const norm = a => JSON.stringify(a.map(x => [x[0], String(x[1]).toLowerCase(), String(x[2]).toLowerCase()]));
-  const ok = norm(js) === norm(pf);
-  if (!ok) { diff++;
-    console.log('≠ ', JSON.stringify(p));
-    console.log('   JS :', JSON.stringify(js));
-    console.log('   PY :', JSON.stringify(pf));
-  }
+  const pset = new Set(pf.map(key));
+  const extra = js.filter(x => !pset.has(key(x)));      // flags présents dans l'app mais PAS dans Python = FP propre app
+  if (extra.length) { appOnly++; console.log('✗ APP flague ce que PY ne flague pas :', JSON.stringify(p), JSON.stringify(extra)); }
+  if (js.length < pf.length) { gap++; console.log('  (couverture) PY > APP sur :', JSON.stringify(p), '| PY=' + JSON.stringify(pf) + ' APP=' + JSON.stringify(js)); }
 });
-console.log(diff === 0
-  ? `PARITÉ OK — ${PHRASES.length} phrases identiques APP↔Python (correcteur + accord sujet-verbe).`
-  : `PARITÉ KO — ${diff}/${PHRASES.length} divergences.`);
-process.exit(diff === 0 ? 0 : 1);
+console.log(appOnly === 0
+  ? `PARITÉ OK — aucun flag propre à l'app sur ${PHRASES.length} phrases (app ⊆ Python). Écarts de couverture (lexique HF) : ${gap}.`
+  : `PARITÉ KO — ${appOnly} phrase(s) où l'app flague hors Python (FP app).`);
+process.exit(appOnly === 0 ? 0 : 1);

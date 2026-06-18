@@ -85,12 +85,22 @@ le levier d'accord existait déjà côté DIAGNOSTIC, ici on le retourne en CORR
   (`chanter:ind:pre:2`) → écarté quand forme=lemme ; (c) `8_Nombre` vide fréquent au présent des -er (`travaille`) →
   **nombre déduit de la morphologie** (-ons/-ez=pluriel ; 3e pers. -ent/-ont=ambigu→wildcard ; sinon sing.) ;
   (d) participe mal tagué présent (`joué:ind:pre:1`) → écarté des slots présents.
-- **Mesuré** : témoins 5/5 (det+corr), held-out **6/6 sur vocabulaire NEUF** (chanter/travailler/regarder/inventer/
-  ranger/nettoyer, hors témoins) → **généralise**. **Faux positifs : 0** (30 phrases, 24+5 témoins, 98 phrases
-  réelles GEC, held-out). Corpus réel : **2/12** accords sujet-verbe détectés (les 2 à sujet pronom ; les 10 autres
-  sont à sujet **nom** → prochaine jonction, plus risquée, réutilisera `governor_number`).
+- **Sujet PRONOM** (`rule_accord_sv`) et **sujet NOM** (`rule_accord_sv_noun`, ajouté après test terrain Rem
+  « les enfants joue ») : le sujet-nom couvre le **déterminant pluriel EN TÊTE de phrase** (les/des/ces… → verbe au
+  pluriel : « les enfants **joue** »→jouent, « Les oiseaux **chante** »→chantent). **FP=0 sans lexique de noms** :
+  en tête, aucun génitif/PP/objet-de-verbe possible à gauche → on évite tous ces pièges (« la préparation **des**
+  mahashi », « protéger **les** infrastructures ») ; garde structure = nom-tête toléré (homographe « voitures »),
+  tout verbe intercalé après (sous-phrase « les feuilles **tombent**, l'automne est ») → abstention. Direction
+  unique sûre = pluriel→3p (singulier→3p écarté : sujet coordonné « le chien **et** le chat mangent »).
+- **Mesuré** : témoins 8/8 (5 pronom + 3 nom), held-out **11/11 sur vocabulaire NEUF** (chanter/travailler/regarder/
+  inventer/ranger/nettoyer + oiseaux/voitures/fleurs/chiens/nuages) → **généralise**. **Faux positifs : 0** (30
+  phrases, 8 témoins SV, **98 phrases réelles GEC**, held-out). Corpus réel : **3/12** accords SV détectés (sujet
+  pronom + nom-en-tête ; le reste = sujets-noms en sous-phrase/distance → abstention assumée, FP=0 cardinal).
 - **Choix assumé** : on corrige le **verbe** pour qu'il s'accorde au sujet écrit (« il sont »→« il **est** »), pas le
-  sujet ; règle explicable, enseignable. **Parité APP↔Python** vérifiée (`parity_corr.js`, en CI).
+  sujet ; règle explicable, enseignable. **Parité APP↔Python** vérifiée (`parity_corr.js`, en CI ; invariant
+  flags-app ⊆ flags-Python : l'app au lexique HF compressé s'abstient sur les verbes rares, jamais de FP propre).
+- **Hors portée (honnête)** : « ils **ont** content » n'est PAS flagué — « ont » s'accorde avec « ils » (avoir 3pl) ;
+  l'erreur réelle est avoir↔être (sémantique) + « content »→« contents » (accord adjectif) — deux autres chantiers.
 
 ## Validation indépendante (held-out) & collecte en ligne
 - **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
@@ -119,10 +129,11 @@ le levier d'accord existait déjà côté DIAGNOSTIC, ici on le retourne en CORR
    id="vdc-lex">` lu par l'IIFE → `vlike` (couverture verbale) + `lexicalGender` (route lexicale du genre dans le
    diagnostic navigateur). Repli liste blanche si le bloc est absent. FP corpus = 0. CI verte ; harnais `evo/` mis à
    jour pour ignorer les blocs `application/json`.
-4. ✅ **Accord SUJET-VERBE** (sujet pronom) : route lexicale `cgram_conj.json` (conjugaisons Lexique 4) → « Je doit »→dois,
-   « On ont »→a, « il sont »→est, « Tu chante »→chantes… **FP=0**, held-out 6/6 (vocab neuf), parité app↔Python. Voir section ci-dessus.
-5. ⬜ **Accord sujet-verbe à sujet NOM** (« Les enfant joue »→jouent) : réutilisera `governor_number` (détection du nom-sujet
-   + son nombre). Plus risqué (détection du sujet à distance) → jonction suivante, à mesurer FP=0 avant de brancher.
+4. ✅ **Accord SUJET-VERBE** (sujet pronom **et** sujet nom-en-tête) : route lexicale `cgram_conj.json` → « Je doit »→dois,
+   « On ont »→a, « il sont »→est, « Tu chante »→chantes, **« les enfants joue »→jouent**… **FP=0**, held-out 11/11 (vocab neuf),
+   parité app↔Python. Voir section ci-dessus.
+5. ⬜ **Accord sujet-verbe à sujet NOM en sous-phrase/distance** (au-delà du déterminant en tête) : exige une vraie
+   analyse de la structure (le déterminant-heuristique crée des FP sur génitifs/PP/sujets coordonnés) → reporté.
 6. ⬜ **Accord du nom/déterminant** (« Les enfant »→enfants) et **genre** (« une robe vert »→verte) dans le correcteur :
    exigent un POS/tagger en contexte (cf. `rule_genre_adj` mesurée FP-insûre) — restent au DIAGNOSTIC pour l'instant.
 7. ⬜ **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → fautes non-homophones (nécessite le lexique).

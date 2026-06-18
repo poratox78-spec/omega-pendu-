@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-06-18 — Accord sujet-verbe à SUJET-NOM (« les enfants joue »→jouent), FP=0 sans lexique de noms
+
+Test terrain Rem : « les enfants joue dans le jardin et ils ont content » → rien (joue = sujet NOM, hors v1 pronom).
+Ajout `rule_accord_sv_noun` (Python + app, parité).
+- **Portée sûre** : déterminant PLURIEL (les/des/ces…) **EN TÊTE de phrase** (dk==0) → verbe au pluriel. En tête,
+  rien à gauche → aucun génitif/PP/objet-de-verbe → **FP=0 SANS lexique de noms** (donc parité app↔Python parfaite).
+- **Itérations FP (cardinal)** : 1res versions = 21 FP/98 corpus (déterminant le plus proche attrapait « des
+  institutions », « l'automne est »→« les feuilles », « protéger les infrastructures »). Durci pas à pas
+  (exclure « à »≠« a » ; clitique « le chat **les** regarde » ; génitif « des » ; verbe/coordination) puis
+  **simplifié en dk==0** (lexicon-free, robuste) → **FP 21→0**. Garde structure : nom-tête toléré (homographe
+  « voitures »), verbe intercalé après = sous-phrase → abstention. Direction unique pluriel→3p (singulier→3p écarté :
+  « le chien **et** le chat mangent »).
+- **Donnée** : corrigé `derive_number` (nombre vide fréquent au présent) → -ent/-ont LONG non -ient = pluriel
+  régulier (chantent, dorment) ; -ient/court = ambigu→wildcard (vient/ment) → débloque les slots 3p manquants.
+- **Mesuré** : témoins 8/8, held-out **11/11 vocab NEUF**, **FP=0** (30 phrases + 98 GEC réel + held-out). Parité
+  app↔Python : invariant **flags-app ⊆ flags-Python** (app au lexique HF s'abstient sur verbes rares, jamais de FP).
+- **Honnête** : « ils ont content » non flagué (« ont » s'accorde avec « ils ») ; reste l'erreur avoir↔être
+  (sémantique) + accord adjectif — hors portée. Sujet-nom en sous-phrase/distance = reporté (exige une vraie analyse).
+
+---
+
 ## 2026-06-18 — ACCORD SUJET-VERBE branché dans le correcteur (route conjugaison Lexique 4), FP=0
 
 Recadrage de Rem (test « Les enfant joue… Je doit manger. On ont gagné. » → rien détecté) : le correcteur ne

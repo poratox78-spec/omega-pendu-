@@ -256,6 +256,61 @@ def rule_accord_sv(T, i):
     return sugg
 
 
+def _noun_subject_number(T, i):
+    """Nombre du sujet-NOM avant le verbe i (3e personne). Saute les clitiques objets (« le chat LES regarde » :
+    « les » = pronom, pas déterminant pluriel), puis prend le déterminant gouverneur (en sautant les dét. de
+    groupe prépositionnel). Renvoie (nombre 's'|'p', index_du_déterminant) ou None. Pronom → None (autre règle)."""
+    j = i - 1; steps = 0
+    while j >= 0 and steps < 2 and deacc(T[j].lower()) in CLITIC: j -= 1; steps += 1
+    for k in range(j, -1, -1):
+        w = deacc(T[k].lower())
+        if w in NUM_PRON: return None                                  # sujet pronom → règle pronom
+        if T[k].lower() in NUM_DET:
+            if k > 0 and deacc(T[k-1].lower()) in PREP: continue        # déterminant de PP → continuer (vrai sujet plus à gauche)
+            return ('s' if NUM_DET[T[k].lower()] == 'sg' else 'p', k)
+    return None
+
+
+# Mots qui « cassent » le groupe sujet→verbe (sous-phrase, PP, coordination, 2e GN) : si l'un apparaît ENTRE le
+# déterminant sujet et le verbe, la structure est trop complexe pour un accord sûr sans analyse → on s'abstient (FP=0).
+CONJ_WORDS = {'et', 'ou', 'ni', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui', 'quand', 'comme', 'si',
+              'lorsque', 'puisque', 'dont', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
+
+
+def rule_accord_sv_noun(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
+    if i > 0 and T[i-1].lower() in NUM_DET: return None                 # déterminant juste avant → T[i] est un NOM (« les joue »)
+    if _subject_before(T, i) is not None: return None                  # sujet pronom net → règle pronom (pas ici)
+    p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']  # sujet-nom = 3e personne
+    if not p3: return None
+    sub = _noun_subject_number(T, i)
+    if sub is None: return None
+    nb, dk = sub
+    # FP=0 SANS lexique de noms : déterminant PLURIEL (les/des/ces…) EN TÊTE de phrase (dk==0). En tête, aucun
+    # génitif/PP/objet-de-verbe possible à gauche (rien ne précède) → on évite tous ces pièges (« la préparation
+    # DES mahashi », « protéger LES infrastructures ») sans dépendre d'un lexique de noms (→ parité app↔Python).
+    if nb != 'p' or dk != 0 or i - dk < 2: return None                 # +il faut un nom-tête entre le déterminant et le verbe
+    # GARDE STRUCTURE : le nom-tête (dk+1, homographe « voitures » toléré) ; tout PP / 2e déterminant / pronom /
+    # conjonction, ou un VERBE intercalé APRÈS le nom-tête (sous-phrase « les feuilles TOMBENT, l'automne est ») → abstention.
+    for m in range(dk + 1, i):
+        tok = T[m]; dw = deacc(tok.lower())
+        if "'" in tok.lower() or dw in PREP or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS:
+            return None
+        if m > dk + 1 and _reads(tok):
+            return None
+    if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
+    lemmas = {l for (l, _mt, _p, _n) in p3}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop()
+    mts = [mt for (_l, mt, _p, _n) in p3]
+    mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    sugg = CONJ_C.get(lem, {}).get(mt, {}).get('3' + nb)
+    if not sugg: return None
+    if not any(p == '3' and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)):
+        return None
+    return sugg
+
+
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
     d = deacc(w.lower())
@@ -290,7 +345,8 @@ def rule_genre_adj(T, i):
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se),
-         ('accord sujet-verbe', rule_accord_sv)]   # accord SV en dernier (homophones d'abord) ; rule_genre_adj NON branchée
+         ('accord sujet-verbe', rule_accord_sv),
+         ('accord sujet-verbe', rule_accord_sv_noun)]   # accord SV (pronom puis nom) en dernier ; rule_genre_adj NON branchée
 
 
 def correct(text):
@@ -336,6 +392,10 @@ CASES = [
     ("On a gagné", "a", "ont", "accord sujet-verbe"),
     ("Ils doivent manger", "doivent", "doit", "accord sujet-verbe"),
     ("Elle est contente", "est", "sont", "accord sujet-verbe"),
+    # accord sujet-verbe à sujet NOM (déterminant pluriel → verbe pluriel)
+    ("Les enfants jouent dehors", "jouent", "joue", "accord sujet-verbe"),
+    ("Les oiseaux chantent", "chantent", "chante", "accord sujet-verbe"),
+    ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
 ]
 
 

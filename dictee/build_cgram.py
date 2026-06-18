@@ -34,13 +34,16 @@ def deacc(s):
 
 
 def derive_number(form_lw, per):
-    """Nombre déduit de la morphologie quand 8_Nombre est vide (fréquent pour les -er au présent : « travaille »).
-    Sûr : -ons/-ez = pluriel (1p/2p) ; 3e pers. en -ent/-ont = AMBIGU (vient↔viennent) → 'x' (wildcard, pas de FP) ;
-    sinon singulier (je/tu/il + formes courtes). Les seules erreurs (passé simple 1p/2p) ne touchent que nous/vous (exclus)."""
+    """Nombre déduit de la morphologie quand 8_Nombre est vide (fréquent au présent : « travaille », « chantent »).
+    Sûr : -ons/-ez = pluriel (1p/2p) ; 3e pers. -ent/-ont LONG non -ient = pluriel régulier (chantent, dorment) ;
+    3e pers. -ient ou forme courte (≤5) = AMBIGU (vient/ment 3sg ↔ rient 3pl) → 'x' (wildcard, pas de FP) ;
+    sinon singulier. Les seules erreurs (passé simple 1p/2p) ne touchent que nous/vous (exclus du correcteur)."""
     if form_lw.endswith('ons') or form_lw.endswith('ez'):
         return 'p'
     if per == '3' and (form_lw.endswith('ent') or form_lw.endswith('ont')):
-        return 'x'
+        if form_lw.endswith('ient') or len(form_lw) <= 5:   # vient/tient (3sg), ment/sent (3sg) → ambigu
+            return 'x'
+        return 'p'                                            # chantent, dorment, racontent… = pluriel régulier
     return 's'
 
 

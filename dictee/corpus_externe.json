@@ -22,6 +22,11 @@
     ["Elles regardent la mer", "regardent", "regarde", "accord sujet-verbe"],
     ["On invente une histoire", "invente", "inventent", "accord sujet-verbe"],
     ["Tu ranges ta chambre", "ranges", "range", "accord sujet-verbe"],
-    ["Elle nettoie la table", "nettoie", "nettoient", "accord sujet-verbe"]
+    ["Elle nettoie la table", "nettoie", "nettoient", "accord sujet-verbe"],
+    ["Les oiseaux chantent le matin", "chantent", "chante", "accord sujet-verbe"],
+    ["Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"],
+    ["Les fleurs poussent au soleil", "poussent", "pousse", "accord sujet-verbe"],
+    ["Les chiens aboient fort", "aboient", "aboie", "accord sujet-verbe"],
+    ["Des nuages cachent la lune", "cachent", "cache", "accord sujet-verbe"]
   ]
 }
