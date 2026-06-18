@@ -308,6 +308,26 @@ Le 97,5 % = 4 graines × 120 = **480 parties** ; R66 recommande ≥ 200 × 4. Pl
 
 Soit ça marche, soit ça ferme l'incertitude par la mesure.
 
+### 3.1 — Audit structurel + test de bPC (M_BPC_M3D) et de `cLetterScore` — 2026-06-17
+
+**Structure (lecture code).** Config réf. (bPC ON), `M3_d_step`(4267) :
+- encode `a_c = relu(bpcW_c · M1_d.output)` (depuis **M1**, pas M2), décode tied, MAJ par **erreur de reconstruction** (`bpcW += LR·a·(m1−m̂)`) ;
+- **readout récompense** `rwR[lettre] += LR·reward·a` (reward = +1 si une position s'est révélée depuis le tick précédent, sinon −1) → `cLetterScore[l] = Σ a_c·rwR[l][c]` ;
+- **`M3_d.output` explicitement remis à 0 (4596)** → le concept **ne nourrit PAS le hub M_S** sous bPC (« perception ≠ prédiction lexicale »). Seule sortie décision = `cLetterScore` (couplage 0,20).
+- Chemin Hebbian (bPC OFF, 4601+) : projection LDIM→SDIM **bijective** (aucune info nouvelle, R42-#9), écrit `conceptCells`+`M3_d.output`→hub. **OFF en réf.** → l'argument « fidélité = concept nourrit le hub » (§3 reclassement) ne vaut que bPC OFF ; sous bPC le lien concept→hub est **coupé volontairement**.
+
+**Test (R67, voie phon active, cognition, warmup 200/test 80, 3 graines) :**
+
+| Mesure | 12345 | 777 | 2024 | lecture |
+|---|---|---|---|---|
+| (R) reconstruction `‖m1−m̂‖/‖m1‖` | 0,757 | 0,781 | 0,762 | autoencodeur **partiel/lossy** (~0,77) |
+| (C) cellules vivantes · dominante | 9/12 · #4 51 % | 8/12 · #1 26 % | 8/12 · #10 45 % | code **concentré** (1 cellule plurale, cellule variable selon init) · modale par longueur → **forme** |
+| (S) `cLetterScore` **GAP NET** (− fréquence) | **+0,128** | **+0,127** | **+0,131** | **fort signal spécifique au mot** (~6× la fréquence) |
+
+**Verdict — l'inverse de M1_m.** Les *cellules* bPC codent surtout la **forme/longueur** (reconstruction partielle, 1 cellule plurale, modale par longueur), MAIS le **readout-récompense `cLetterScore` discrimine fortement les lettres DU MOT** (+0,128 net, robuste) : le readout extrait des corrélations **forme→lettre spécifiques au mot** depuis un code pourtant formel. → M3_d-via-bPC **n'est pas mort même par la discrimination** — c'est le **plus fort signal concept→lettre** mesuré (vs M1_m ≈ fréquence ; M4_phon_m +0,028). Renforce le reclassement §0 : de *peut-être utile* à *porte un vrai signal*, et **déjà câblé** (couplage 0,20). Outil : `evo/diag_bpc.js`.
+
+**Nuance winrate (discrimination ≠ victoires).** Le rapport documente : couplage readout = **+2 à +3 en config dépouillée**, **redondant/nuit avec A2** (le lexique fournit déjà le prior). A/B `M_BPC_READOUT_COUPLE` ON/OFF en cheat-free = test en cours (`evo/ab_bpcr.js`).
+
 ---
 
 ## 4. Synthèse priorisée
