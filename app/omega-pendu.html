@@ -4592,7 +4592,10 @@ function M3_d_step() {
       M3_phon._abPrevRevealed = curRevAB;
     }
     // DECOUPLAGE : le concept perçoit le mot en interne (M3_d.activations, bpcW = polyvalence),
-    // mais sa sortie ne nourrit PAS le scoring-lettre (perception != prediction lexicale -> sinon bruit).
+    // mais sa SORTIE VECTORIELLE (M3_d.output -> hub M_S) ne nourrit PAS le scoring (perception != prediction lexicale).
+    // ⚠️ NE PAS lire ceci comme "M3_d inutile" : le READOUT cLetterScore (calcule ci-dessus, ligne ~4317) EST,
+    //    lui, couple a la decision (M_BPC_READOUT_COUPLE 0,20) et MESURE +3,4 winrate cheat-free (AUDIT_OMEGA §3.1).
+    //    "Decouple" ne concerne que la sortie-vecteur->hub, pas le readout.
     for (let i = 0; i < SDIM; i++) M3_d.output[i] = 0;
     if (typeof M3_m !== 'undefined') M3_m.lastDominantCell = bC;
     OS.channels.get('D3').publish(new Float32Array(M3_d.output), OS.t);
