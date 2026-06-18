@@ -523,6 +523,35 @@ seulement si une 2e voie apportait un Δ, ce qui n'est pas le cas ici).
 mémorisation/agrégation à un **mécanisme séparé** (le substrat n-gram EST ce mécanisme). Le câblage concept→lettre
 (§3) reste la frontière si un jour on veut que la *cognition* ajoute un Δ — mais A dit que ça n'urge pas.
 
+#### 1.8.2 — Carte sémantique (M_S / phonGraphMap) : trouvée, reconnectée, MESURÉE insuffisante — 2026-06-18
+Rem : « on a perdu la carte sémantique construite par la cognition, vérifier ; et surtout : suffisant ? »
+**Inventaire (§5, ce qui EXISTE) :**
+- **`phonGraphMap[26][SDIM]`** : carte apprise lettre↔contexte (F online + L2 vers substrat), **co-décideur actif**
+  (poids 0,3, `cosine(currentPhonState, phonGraphMap[l])`). **Pas sous-pondérée** (peut dominer le natif 0,05-0,15).
+- **`M_S`** (6e cerveau Sense/Semantic/Shared, Patterson 2007) : fusionne M1-M5, `M_S_ENABLED=true`. **= la carte sémantique.**
+- **`M2_phon_m`/`M1_phon_m`** : existent, stepés (3918/3941), **DORMANTS** (non consommés). Portent zonePenalty/letterScore = **priors globaux**.
+
+**La carte est PERDUE par un mécanisme précis** : bPC (`M_BPC_M3D`, config réf.) **zéroe `M3_d.output`** (4625, découplage)
+→ `currentPhonState = M3_d.output` (6585) **= 0** → le co-décideur phonGraphMap fait `cosine(0,·)=0` (**mort**), et M_S
+fusionne vers 0 **et** est *sauté* sous bPC (5110). Donc sous bPC, **toute la carte reçoit un vecteur-contexte nul**.
+
+**Mesuré (reconnexion par toggle, bPC OFF → carte vivante) :**
+| cognition MAX (vrai OOV, N=300) | winrate |
+|---|---|
+| bPC ON (carte morte, currentPhonState≈0) | 10,7 % |
+| **bPC OFF (carte VIVANTE : phonGraphMap + M_S actifs)** | **12,0 %** [11,11,14] |
+
+→ **+1,3 pt = bruit. La carte, même vivante, n'est PAS suffisante.** Pourquoi : phonGraphMap et M_S sont bâtis sur le
+**concept M3_d = détecteur global/longueur** (§1.4.2) → ils encodent la longueur, pas le **contexte-lettre** (le signal
+n-gram). **Décision : on N'implémente PAS le fix de dérive M_S** (measure-before-build : le candidat le plus fort donne
+déjà ~0). M2/M1_phon_m = priors globaux → prédits ~0 (cf. ortho M2_m/M1_m, §1.4.1 Δ≈0), non câblés. Möbius (B2) était
+**déjà ON** dans le test → sans effet.
+
+**Verdict consolidé** : reconnecter les pièces existantes (carte M_S, miroir phon, phonGraphMap) **ne suffit pas** —
+toutes vivent sur un concept global/longueur. Le vrai C = **que le concept M3_d encode le contexte-lettre** (capacité +
+nature de la représentation), pas un re-câblage. Confirme §1.8 par la mesure : le levier OOV est l'**agrégation**
+(n-gram), pas la cognition ni sa carte.
+
 ---
 
 ## 2. Findings structurels (par sévérité)
