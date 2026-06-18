@@ -330,6 +330,23 @@ Soit ça marche, soit ça ferme l'incertitude par la mesure.
 
 > **Conséquence — double correction du vieux verdict M3_d.** « M3_d détecteur de longueur **inutile** / chantier clos » était faux pour **deux** raisons : (1) mauvais étalon (winrate du pendu vs §0) ; (2) le « contribution plate » se mesurait **en config pleine AVEC A2** (oracle redondant). En **cheat-free**, le concept (via bPC readout) **rapporte +3,4** et c'est l'un des **rares leviers cognitifs cheat-free qui marchent**. Les *cellules* restent un code de **forme** (réutilisable côté dictée, §0) ; le *readout* est un **contributeur winrate prouvé**. M3_d n'est PAS mort.
 
+### 3.2 — (b) Pourquoi `rwR` (readout) gagne là où `letterPenalty` (miroirs) échoue — 2026-06-17
+
+Décomposition mesurée (`evo/diag_rwr.js`, voie phon active, 3 graines) du GAP in−out de `cLetterScore` : **RÉEL** (`a·rwR`, conditionnel) vs **PLAT** (`mean(a)·Σ_c rwR[l]`, marginal — pattern d'activation supprimé) vs **FRÉQUENCE**.
+
+| GAP in−out | 12345 | 777 | 2024 |
+|---|---|---|---|
+| RÉEL (conditionnel) | +0,150 | +0,149 | +0,153 |
+| PLAT (marginal rwR) | +0,109 | +0,101 | +0,096 |
+| FRÉQUENCE (réf) | +0,022 | +0,022 | +0,023 |
+| part conditionnelle (réel − plat) | +0,041 | +0,048 | +0,058 |
+
+**Deux causes (pas une) :**
+1. **Marginal non-ancré à la fréquence (~2/3 du gain : +0,087 au-dessus de la fréquence).** `rwR` accumule la récompense par lettre avec **décroissance vers 0** (`rwR += LR·reward·a`, `×(1−R_DECAY)`) → il apprend « les lettres qui apparaissent **et gagnent** ». `M4_m.letterPenalty` (M1_m) est au contraire **homéostasé vers une cible de FRÉQUENCE** (`M4_m_step` 5340 : `lp += (letterTarget−lp)·rate` ; plancher = letterTarget) → son signal appris est **continuellement relavé vers la fréquence** (d'où corr 0,999, §1.4.1). **C'est l'homéostasie-fréquence qui tue M1_m**, pas seulement le fait d'être marginal.
+2. **Conditionnement sur la forme (~1/3 : +0,041).** `rwR` est une **matrice 26×12** → `cLetterScore = a·rwR[l]` conditionne sur le **pattern d'activation** (la forme du mot) = `P(lettre | forme)`. `letterPenalty` (vecteur 26) ne peut exprimer que `P(lettre)`. C'est la doctrine §3 (conditionnel/jointe > marginale) **au niveau du mécanisme**.
+
+**Bilan (b) :** M1_m cumule **deux handicaps** — marginal **ET** ancré-fréquence ; `rwR` n'a **aucun** des deux (marginal appris non-ancré + conditionnement sur la forme). Piste falsifiable **non faite** : un miroir ortho **sans homéostasie-fréquence** (décroissance vers 0) récupérerait-il le +0,087 marginal ? — à mesurer seulement si on veut ressusciter un miroir ortho.
+
 ---
 
 ## 4. Synthèse priorisée
