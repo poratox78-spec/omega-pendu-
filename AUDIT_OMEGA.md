@@ -288,7 +288,12 @@ Le 97,5 % = 4 graines × 120 = **480 parties** ; R66 recommande ≥ 200 × 4. Pl
 
 ---
 
-## 3. M3_d — diagnostic + piste falsifiable (différente des essais passés)
+## 3. M3_d — PEUT-ÊTRE UTILE (hors winrate) : reclassement §0 + diagnostic + piste
+
+**⚠️ Reclassement (Rem, 2026-06-17) — la doctrine §0 prime sur le winrate.** Tout ce qui suit (et le rapport §12 « chantier clos ») jugeait M3_d à l'aune du **winrate du pendu**. Or le pendu n'est qu'un **banc d'essai** ; le système est un **modèle cognitif** (clause §0 : *la performance est un indicateur, pas une fin*). **Conclusion révisée : M3_d n'est ni « mort » ni « à clore » — il est *winrate-inert* (mesuré, solide) MAIS PEUT-ÊTRE UTILE hors-winrate**, à juger sur la **fidélité cognitive** et son rôle dans la **dictée**.
+- *Solide (inchangé)* : M3_d code surtout la **forme/longueur** (S2 ; diag `evo/diag_mirror.js` : cellule #10 = 79 %) ; **aucune entrée sens/contexte** (EXP_M3D_FALSIFIE) → **latent de FORME, pas de sens** ; banc→scoring-lettre falsifié (−1,33, §1.4.2).
+- *Rouvert (§0)* : (1) **fidélité structurelle** — M3_d *est* la couche-concept du modèle double-route/triangle (hub-and-spoke Rogers/Patterson) ; le retirer briserait la fidélité → §0 mandate de le garder. (2) **dictée** — un latent de **forme** = candidat **signal de stade précoce** (Ferreiro pré-syllabique/syllabique : préserver la silhouette/longueur du mot, *KAP*→canapé) ; le *défaut* « ne voit que la forme » devient un *signal*. (3) **familiarité** faible (AUC 0,64→0,98), bornée (le banc fait mieux).
+- *Garde §1 (anti-hype)* : « peut-être utile » n'est **pas** « utile ». Il faut un **effet mesurable sur la bonne tâche** (la **dictée**, pas le pendu). Tant que non mesuré là → statut = **hypothèse vivante**, pas chantier clos. (Frontière : utilité possible = **forme/morpho**, jamais sémantique/homophone — déjà falsifié.)
 
 **Déjà falsifié (ne pas refaire) :** loger le banc épisodique dans M3_d (mur de capacité 12 cellules) ; coupler le readout reward en config pleine (nuit, A2 redondant).
 
@@ -299,7 +304,7 @@ Le 97,5 % = 4 graines × 120 = **480 parties** ; R66 recommande ≥ 200 × 4. Pl
 **Protocole R66 (contrôle = `M3_D_BYPASS` existant) :**
 1. AUC présent/absent de `cLetterScore` actuel (reconstruction) = baseline.
 2. Ré-entraîner sur masked-prediction, re-mesurer l'AUC.
-3. Si AUC ↑ **et** couplage utile **en config pleine** → M3_d devient contributeur. Si AUC plat → mur 12 cellules confirmé, on **clôt** la question (la familiarité reste dans le banc).
+3. Si AUC ↑ **et** couplage utile **en config pleine** → M3_d devient contributeur. Si AUC plat → mur 12 cellules confirmé pour le **rôle winrate** seulement (la familiarité reste dans le banc) — **on clôt le rôle *winrate*, PAS le rôle cognitif/dictée** (§0 ; cf. reclassement ci-dessus).
 
 Soit ça marche, soit ça ferme l'incertitude par la mesure.
 
@@ -309,7 +314,7 @@ Soit ça marche, soit ça ferme l'incertitude par la mesure.
 1. **Communication** : toujours afficher le régime (« 97,5 % in-lexique, mot entendu » ; repères sans prémisse 70,7 % / 22 %).
 2. **g2p** : trancher l'une des 3 options (recommandé : 1 + libellé de régime ; ou 2 pour la pureté pendu — **coût réel après garde : ~0 in-lexique / ~7,5 pts OOV, §1.1**). Option 2 codée OFF-inerte + garde de pureté (`M_NEO_PHON_COHORT_ENABLED` / `_PURITY`).
 3. **CI** : harnais seedé gardant 2-3 chiffres clés (anti-régression du monolithe).
-4. **M3_d** : tenter la masked-prediction, ou clore par `M3_D_BYPASS` + AUC.
+4. **M3_d** : *ne pas* enterrer sur le winrate (§0, cf. §3 reclassement) — **peut-être utile** comme latent de **forme** côté **dictée** (signal de stade précoce) ; rôle à **mesurer là**. Côté pendu (winrate seul) : masked-prediction ou `M3_D_BYPASS`+AUC.
 5. **Hygiène** : retirer le vestigial (`pairConv`…), réconcilier la doc miroir phon.
 
 *Tous les points laissent la baseline OFF-inerte (byte-identique au repos). Aucune action de cet audit n'a modifié le moteur.*
