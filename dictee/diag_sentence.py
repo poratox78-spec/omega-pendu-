@@ -81,6 +81,44 @@ def diagnose_sentence(cible, eleve, fam):
         facts.append({'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'})
     return facts
 
+# === Diagnostic DÉVELOPPEMENTAL (stades) — additif, réutilise diag_word ===
+# Fondé sur Ferreiro (genèse de l'écriture) via Berliocchi (2022) + typologie dysorthographique
+# (phonologique / lexicale-surface / morphosyntaxique). Chaque famille révèle le PALIER non maîtrisé.
+STAGE_OF = {
+    'phonologique':  ['voisee_sourde','inversion','ajout'],   # le SON mal perçu/segmenté (conscience phonémique)
+    'alphabetique':  ['surface','accent'],                    # écrit "comme ça sonne", pas l'ortho conventionnelle
+    'orthographique':['muette','accord','homophone'],         # règles sans indice sonore (dernier palier)
+}
+STAGE_ORDER = ['phonologique','alphabetique','orthographique']  # du plus amont au plus avancé
+FAM2STAGE = {f:st for st,fs in STAGE_OF.items() for f in fs}
+STAGE_MSG = {
+    'phonologique':  "travaille le SON (conscience phonémique) : confusions sourde/sonore, inversions, lettres en trop.",
+    'alphabetique':  "écrit « comme ça sonne » : il faut passer du son à l'orthographe conventionnelle (accents, graphies).",
+    'orthographique':"maîtrise le son→lettre ; reste l'orthographe sans indice sonore : lettres muettes, accords, homophones.",
+}
+
+def stage_of_fact(types):
+    """Stade d'UNE erreur (mot). diag_word est multi-étiquette : une erreur spécifique (homophone, accord…)
+    co-déclenche souvent un détecteur STRUCTUREL de longueur (ajout/muette). Le stade le plus AVANCÉ
+    l'emporte → la famille spécifique prime sur le détecteur structurel incident."""
+    sts=[FAM2STAGE[t] for t in types if t in FAM2STAGE]
+    return max(sts, key=lambda s: STAGE_ORDER.index(s)) if sts else None
+
+def developmental_diagnosis(all_facts):
+    """all_facts = facts (sortie de diagnose_sentence) agrégés sur une dictée/session.
+    Stade de l'élève = bande la plus EN AMONT où il bute encore (on maîtrise de bas en haut) ;
+    chaque erreur est d'abord rangée dans UN stade (le plus avancé de ses types) pour ne pas
+    sur-compter les co-tags structurels. 'autre'/omission/mot_en_trop = hors-stades (attention/lexique)."""
+    counts={st:0 for st in STAGE_ORDER}; off=0
+    for f in all_facts:
+        st=stage_of_fact(f.get('types',[]))
+        if st: counts[st]+=1
+        elif any(t in ('autre','omission','mot_en_trop') for t in f.get('types',[])): off+=1
+    if sum(counts.values())==0:
+        return {'stade':None,'counts':counts,'hors_stade':off,'msg':"Pas d'erreur graduable — niveau orthographique consolidé."}
+    stade=next(st for st in STAGE_ORDER if counts[st]>0)   # bande la plus en amont avec ≥1 erreur
+    return {'stade':stade,'counts':counts,'hors_stade':off,'msg':"Stade : "+stade+" — "+STAGE_MSG[stade]}
+
 if __name__=='__main__':
     SENT=json.load(open(os.path.join(HERE,'sentences.json'),encoding='utf-8'))
     def lc_fam(e): return {k:v for k,v in e['fam'].items()}
@@ -130,10 +168,42 @@ if __name__=='__main__':
             if done: break
     print('=== rappel par famille (dictée de phrases, 30 phrases) ===')
     for k in sorted(tot): print(f'  {k:11} {ok[k]}/{tot[k]}  = {ok[k]/tot[k]*100:.0f}%')
-    # démo
+
+    # === mesure STADE développemental : un élève "pur" par stade est-il bien placé ? ===
+    def first_vs_swap(T,fam):
+        for i,w in enumerate(T):
+            for j,ch in enumerate(w.lower()):
+                if ch in VS: return T[:i]+[w[:j]+VS[ch]+w[j+1:]]+T[i+1:]
+        return None
+    def first_surface(T,fam):
+        for i,w in enumerate(T):
+            for a,b in [('ç','s'),('eau','o'),('ph','f'),('qu','k'),('au','o')]:
+                if a in w.lower():
+                    w2=w.lower().replace(a,b,1)
+                    if w2!=w.lower() and norm(w2)==norm(w): return T[:i]+[w2]+T[i+1:]
+        return None
+    def first_ortho(T,fam):
+        for i,w in enumerate(T):
+            for h in fam.get(w.lower(),[]):
+                if h.lower()!=w.lower(): return T[:i]+[h]+T[i+1:]
+        return None
+    builders={'phonologique':first_vs_swap,'alphabetique':first_surface,'orthographique':first_ortho}
+    print('=== diagnostic par STADE (élève "pur" par stade) ===')
+    for exp,build in builders.items():
+        facts_all=[]
+        for e in SENT:
+            T=toks(e['text']); S=build(T,e['fam'])
+            if S: facts_all+=[f for f in diagnose_sentence(e['text'],' '.join(S),e['fam']) if f.get('types')]
+        dx=developmental_diagnosis(facts_all)
+        flag='OK' if dx['stade']==exp else 'X'
+        print(f"  élève '{exp:14}' (n={sum(dx['counts'].values())} erreurs) → diagnostiqué « {dx['stade']} »  {flag}  {dx['counts']}")
+
+    # démo (par mot + STADE)
     print('\n--- démo ---')
     e=SENT[10]  # "Les élèves répètent la leçon difficile."
     for bad in ["Les élève répète la leçon difficile.", "Les éleves répètent la leson difficile."]:
         print(f'cible : {e["text"]}'); print(f'élève : {bad}')
-        for x in diagnose_sentence(e['text'],bad,e['fam']): print('   -',x['msg'])
+        facts=diagnose_sentence(e['text'],bad,e['fam'])
+        for x in facts: print('   -',x['msg'])
+        print('   ⇒',developmental_diagnosis(facts)['msg'])
         print()

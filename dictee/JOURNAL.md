@@ -138,3 +138,17 @@
 
 - **1** vivarium **retiré** du repo (vit ailleurs/privé). **3** legacy mot-isolé → `dictee/legacy/`. **2** banner sécurité en tête de `omega-key/README`. **5** CI minimale (`.github/workflows/ci.yml` : mesure `diag_sentence` + syntaxe bloc dictée) + README monorepo.
 - **4 Compression du lexique** : `app/omega-pendu.html` **16 Mo → 5 Mo**. Le bloc `application/json` (15,5 Mo) devient `text/plain` **gzip+base64** (3,4 Mo gz) ; `loadOmegaLex4` (déjà `async`) décompresse via `DecompressionStream`. **Vérifié headless : 83 605 mots décompressés + parties jouées** → moteur intact (OFF-inerte, R66). Harnais evo mis à jour (gz + async).
+
+---
+
+## 2026-06-17 — Diagnostic DÉVELOPPEMENTAL par stade (Ferreiro/Berliocchi)
+
+- **Apport** : lecture du mémoire Berliocchi (2022, conscience phonologique / entrée dans l'écrit) → les familles d'erreurs ne sont pas une liste plate, elles révèlent un **stade** (genèse de l'écriture, Ferreiro). Ajout d'une couche **développementale** sur `diag_sentence.py` (additif, réutilise `diag_word` ; familles toujours 100 %).
+- **Mapping** (3 bandes, du plus amont au plus avancé) :
+  - **phonologique** (voisée-sourde · inversion · ajout) → le SON mal perçu/segmenté (conscience phonémique ; l'axe dyslexie-phono d'OMEGA) ;
+  - **alphabétique** (surface · accent) → écrit « comme ça sonne », pas l'ortho conventionnelle ;
+  - **orthographique** (muette · accord · homophone) → règles sans indice sonore (dernier palier).
+- **Fonctions** : `stage_of_fact(types)` (par mot, le stade le plus AVANCÉ l'emporte → la famille spécifique prime sur le détecteur structurel de longueur `ajout/muette` co-déclenché — multi-étiquette) ; `developmental_diagnosis(facts)` → stade de l'élève = **bande la plus en amont où il bute** (on maîtrise de bas en haut) + message pédagogique.
+- **Mesuré** : élèves « purs » par stade → **3/3 bien placés** (phono/alpha/ortho). Démo : « Les élève répète… » → orthographique ; « Les éleves… leson… » → alphabétique.
+- **Lien cognition** (session moteur) : cohérent avec l'audit M3_d — les **cellules-concept = latent de FORME** (silhouette/longueur du mot) = candidat signal de **stade précoce** (pré-syllabique/syllabique) ; piste pour brancher la forme M3_d au diagnostic de stade.
+- **Reste** : porter dans l'app (le panneau dictée affiche encore les familles seules) ; grain syllabe (Berliocchi : syllabe→rime→phonème) ; axe **temporel/rythmique** de la dyslexie = **non couvert** (OMEGA segmental, SAMPA sans durée) — limite honnête.
