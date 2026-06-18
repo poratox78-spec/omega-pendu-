@@ -17,6 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 LEX_PATH = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 OUT = os.path.join(HERE, 'cgram_verbs.json')
 OUT_GENDER = os.path.join(HERE, 'cgram_gender.json')
+OUT_ADJ = os.path.join(HERE, 'cgram_adj.json')         # adjectifs : paires de genre (vert↔verte)
 OUT_HF = os.path.join(HERE, 'cgram_hf.json')           # sous-ensemble haute-fréquence embarquable dans l'app
 FREQ_MIN = float(os.environ.get('FREQ_MIN', '0.5'))   # garde les formes pas trop rares (taille raisonnable)
 HF_FREQ = float(os.environ.get('HF_FREQ', '5'))        # seuil du sous-ensemble embarquable (par million, FreqOrtho)
@@ -45,8 +46,10 @@ def main():
         rdr = csv.reader(f, delimiter='\t')
         header = next(rdr)
         c_mot = find_col(header, 'mot')                 # 1_Mot (forme fléchie)
+        c_lemme = find_col(header, 'lemme')              # 4_Lemme
         c_gram = find_col(header, 'cgram', 'gram')       # 5_Cgram : catégorie grammaticale
         c_genre = find_col(header, 'genre')              # 7_Genre : m / f
+        c_nombre = find_col(header, 'nombre')            # 8_Nombre : s / p
         c_freq = find_col(header, 'freqortho', 'freqfilms', 'freq')
         if min(c_mot, c_gram) < 0:
             print(f"[cgram] colonnes introuvables (mot={c_mot}, cgram={c_gram}). En-tête : {header[:8]}…")
@@ -55,6 +58,9 @@ def main():
         n = 0
         gset = {}                                        # forme NOM → {genres vus} (écarte l'ambigu)
         gfreq = {}                                       # forme NOM → fréquence max
+        adjp = {}                                         # (lemme, nombre) → {'m':forme_acc, 'f':forme_acc}
+        adjg = {}                                         # déacc(forme ADJ) → {genres vus} (écarte l'ambigu)
+        adjfreq = {}                                      # déacc(forme ADJ) → fréquence max
         for row in rdr:
             if len(row) <= max(c_mot, c_gram):
                 continue
@@ -73,6 +79,12 @@ def main():
                 if g in ('m', 'f'):                       # genre marqué dans le lexique
                     gset.setdefault(w, set()).add(g)
                     gfreq[w] = max(gfreq.get(w, 0.0), fr)
+            if cg.startswith('ADJ') and min(c_genre, c_lemme, c_nombre) >= 0 and max(c_genre, c_lemme, c_nombre) < len(row):
+                g = row[c_genre].strip().lower(); nb = (row[c_nombre].strip().lower()[:1] or '')
+                if g in ('m', 'f') and nb in ('s', 'p'):
+                    lem = deacc(row[c_lemme].strip().lower())
+                    adjp.setdefault((lem, nb), {})[g] = row[c_mot].strip().lower()   # forme accentuée (pour la suggestion)
+                    adjg.setdefault(w, set()).add(g); adjfreq[w] = max(adjfreq.get(w, 0.0), fr)
     out = sorted(verbs)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[cgram] {len(out)} formes verbales (sur {n} lignes VER, freq≥{FREQ_MIN}) → {OUT}")
@@ -81,10 +93,22 @@ def main():
     json.dump(gender, open(OUT_GENDER, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[gender] {len(gender)} noms à genre non ambigu (+{amb} ambigus écartés : tour, livre…) → {OUT_GENDER}")
 
+    # adjectifs : paires genre (forme → [genre, contrepartie de l'autre genre, même nombre]). Épicènes/ambigus écartés (FP=0).
+    adj = {}
+    for (lem, nb), d in adjp.items():
+        if 'm' in d and 'f' in d and d['m'] != d['f']:    # paire genrée distincte (≠ épicène « rouge »)
+            adj[deacc(d['m'])] = ['m', d['f']]            # tapé masculin → suggérer le féminin
+            adj[deacc(d['f'])] = ['f', d['m']]
+    for w, gs in adjg.items():                            # forme vue dans les 2 genres (homographe) → écarter
+        if len(gs) > 1 and w in adj:
+            del adj[w]
+    json.dump(adj, open(OUT_ADJ, 'w', encoding='utf-8'), ensure_ascii=False)
+    print(f"[adj] {len(adj)} formes adjectivales genrées (épicènes/ambigus écartés) → {OUT_ADJ}")
+
     # === sous-ensemble HAUTE-FRÉQUENCE, embarquable dans l'app (IIFE) ===
     hv = sorted([w for w, fr in verbs.items() if fr >= HF_FREQ])
     hg = {w: gender[w] for w in gender if gfreq.get(w, 0.0) >= HF_FREQ}
-    hf = {'v': hv, 'g': hg}
+    hf = {'v': hv, 'g': hg}                                # embed app = verbes + genre (l'accord-genre adjectif n'est pas branché ; cgram_adj.json reste un asset)
     json.dump(hf, open(OUT_HF, 'w', encoding='utf-8', newline=''), ensure_ascii=False, separators=(',', ':'))
     sz = os.path.getsize(OUT_HF)
     print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés → {OUT_HF}  ({sz//1024} Ko)")

@@ -42,6 +42,16 @@ Le cœur du correcteur (détecter + corriger sans corrigé) **marche, avec 0 fau
 discriminateur propre. C'est constructible **sur l'existant** (levier d'accord + `phono_homophones.json`), sans le
 lexique 34 Mo (nécessaire seulement pour la couche « typo / non-mot » et pour élargir `is_verb`).
 
+## Accord en genre dans le CORRECTEUR — tenté, mesuré FP-insûr, NON branché (§6)
+Pour donner « le genre » au correcteur, on a généré les paires adjectivales (`cgram_adj.json`, 16 755 : vert↔verte…)
+et une règle `rule_genre_adj`. **Mesure** : sans garde → **3 FP** sur le corpus correct (« maîtresse »/« écrit »
+pris pour adjectifs ; « rouges » pris pour nom-tête). Avec garde « adjectif pur » (≠ verbe ≠ nom) → **détection 0/3**
+car *presque toutes* les formes adjectivales sont aussi des NOMS dans Lexique4 (blanche/noire = notes, grande, vert…).
+**Conclusion** : l'accord en genre dans le correcteur exige un **POS en contexte (tagger)**, pas la seule appartenance
+lexicale → règle **non branchée** (FP=0 cardinal). La route lexicale du genre **reste** dans le DIAGNOSTIC
+(`diag_sentence.lexical_gender`, mesurée 3/3) où elle ne se déclenche que sur une erreur d'accord déjà détectée.
+`cgram_adj.json` est conservé comme **asset** pour un futur correcteur à tagger.
+
 ## Validation indépendante (held-out) & collecte en ligne
 - **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
   et des témoins), confusions choisies d'après les erreurs FR documentées comme fréquentes. → **12/15 détection+correction,

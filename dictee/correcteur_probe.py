@@ -63,6 +63,12 @@ if os.path.exists(_CGRAM_PATH):
         CGRAM_LOADED = True
     except Exception:
         pass
+# Adjectifs genrés (vert↔verte) pour l'accord en genre dans le correcteur. Épicènes/ambigus déjà écartés (FP=0).
+_ADJ_PATH = os.path.join(HERE, 'cgram_adj.json')
+ADJ_LEX = {}
+if os.path.exists(_ADJ_PATH):
+    try: ADJ_LEX = json.load(open(_ADJ_PATH, encoding='utf-8'))
+    except Exception: ADJ_LEX = {}
 
 
 def vlike(T, i):
@@ -161,9 +167,40 @@ def rule_ce_se(T, i):
     if vlike(T, i+1): return 'se'                                      # se + verbe pronominal
     return 'ce'                                                        # ce + nom (démonstratif)
 
+def _pure_adj(w):
+    """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
+    d = deacc(w.lower())
+    return d in ADJ_LEX and d not in VERB_LEX and d not in D.GENDER_LEX
+
+def _head_noun_gender(T, i):
+    """Genre du nom-tête, en ne retenant que des noms PURS (ni adjectif ni verbe) — évite de prendre « rouges »/« écrit »."""
+    for rng in (range(i-1, max(-1, i-4), -1), range(i+1, min(len(T), i+3))):
+        for j in rng:
+            w = T[j].lower()
+            if w in D.NUM_PRON or deacc(w) in PREP: break
+            d = deacc(w)
+            if d in D.GENDER_LEX and d not in ADJ_LEX and d not in VERB_LEX:
+                return D.GENDER_LEX[d]
+    return None
+
+def rule_genre_adj(T, i):
+    """Accord en GENRE de l'adjectif via le lexique. ⚠️ NON BRANCHÉ (mesuré FP-INSÛR) : presque toutes les formes
+    adjectivales sont aussi des NOMS dans Lexique4 (blanche/noire = notes, grande, vert = couleur…). Le filtre
+    « adjectif pur » sûr (≠ verbe ≠ nom) ne laisse alors quasi rien (det 0/3) ; sans filtre il flague du juste
+    (maîtresse/écrit → FP). Conclusion : l'accord en genre dans le CORRECTEUR exige un vrai POS en contexte
+    (tagger), pas la seule appartenance lexicale. La route lexicale du genre reste utilisée dans le DIAGNOSTIC
+    (diag_sentence.lexical_gender), où elle ne se déclenche que sur une erreur d'accord détectée (sûr, mesuré 3/3)."""
+    if not _pure_adj(T[i]):
+        return None
+    g_adj, alt = ADJ_LEX[deacc(T[i].lower())]
+    gn = _head_noun_gender(T, i)
+    if gn and gn != g_adj:
+        return alt
+    return None
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se)]
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se)]   # rule_genre_adj NON branchée (FP-insûr, cf. ci-dessus)
 
 
 def correct(text):
