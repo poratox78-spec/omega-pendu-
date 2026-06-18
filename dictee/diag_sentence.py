@@ -62,6 +62,18 @@ def governor_gender(T,idx):
         if w in GEN_DET: return (T[j],GEN_DET[w])
         if w in NUM_DET or w in NUM_PRON: return None     # plur. non genré / pronom → genre non porté
     return None
+def find_cod_antepose(T,idx):
+    """Règle de l'accord du participe avec AVOIR : il s'accorde avec le COD s'il est ANTÉPOSÉ.
+    Cas régulier = relatif « que/qu' » à gauche → l'antécédent (GN avant le relatif) est le COD.
+    Renvoie (antécédent, genre|None, nombre|None) si un relatif gouverne, sinon None (→ invariable).
+    « la pomme qu'il a cueillie » : COD = « la pomme » (fém. sg) → accord ; « il a cueilli des pommes » : COD après → invariable."""
+    for j in range(idx-1,max(-1,idx-6),-1):
+        w=T[j].lower()
+        if w=='que' or w.startswith("qu'"):
+            if j==0: return None
+            gg=governor_gender(T,j); gn=governor_number(T,j)   # genre/nombre de l'antécédent (GN avant le relatif)
+            return (T[j-1], gg[1] if gg else None, gn[1] if gn else None)
+    return None
 def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
 def norm(w):
     """graphème → pseudo-son (approx) : 2 graphies qui normalisent pareil = soundalike (surface)."""
@@ -159,7 +171,18 @@ def diagnose_sentence(cible, eleve, fam):
                     if gov: fact['gouverneur'],fact['gouv_nombre']=gov[0],gov[1]; fact['msg']+=f' (participe passé avec être : accord avec le sujet « {gov[0]} » {gov[1]})'
                     else:   fact['msg']+=' (participe passé avec être : accord avec le sujet)'
                 elif aux=='avoir':
-                    fact['grammaire']='participe passé (avoir)'; fact['msg']+=' (participe passé avec avoir : invariable, sauf COD antéposé)'
+                    fact['grammaire']='participe passé (avoir)'
+                    cod=find_cod_antepose(T,ti)               # COD antéposé (relatif « que ») → accord ; sinon invariable
+                    if cod:
+                        if cod[1]: fact['gouv_genre']=cod[1]
+                        if cod[2]: fact['gouv_nombre']=cod[2]
+                        fact['cod_antepose']=cod[0]
+                        marq=[m for m in (('féminin' if cod[1]=='f' else 'masculin') if cod[1] else None,
+                                          ('pluriel' if cod[2]=='pl' else 'singulier') if cod[2] else None) if m]
+                        det=(' '+' '.join(marq)) if marq else ''
+                        fact['msg']+=f' (participe passé avec avoir : COD antéposé « {cod[0]} »{det} → accorder « {t} »)'
+                    else:
+                        fact['msg']+=' (participe passé avec avoir : invariable, COD placé après)'
                 else:
                     fact['grammaire']='participe passé'; fact['msg']+=' (participe passé)'
             else:
@@ -349,6 +372,18 @@ if __name__=='__main__':
                     if fa: pp_tot+=1; pp_ok+=1 if fa.get('grammaire','').startswith('participe') else 0
                     break
     print(f"  (1) participe passé détecté : {pp_ok}/{pp_tot}")
+    # participe avec AVOIR : COD antéposé (relatif « que ») → accord · COD postposé → invariable
+    pp_cases=[("La pomme qu'il a cueillie est mûre","cueillie","cueilli",True),   # COD antéposé fém sg → accord
+              ("Les fleurs qu'elle a cueillies sont belles","cueillies","cueilli",True),  # COD antéposé pl → accord
+              ("Elle a cueilli des pommes rouges","cueilli","cueillie",False)]    # COD postposé → invariable
+    print("  participe (avoir) COD antéposé/postposé :")
+    for txt,part,bad,anteposed in pp_cases:
+        T=toks(txt); i=[k for k,w in enumerate(T) if w.lower()==part.lower()][0]
+        f=diagnose_sentence(txt,' '.join(T[:i]+[bad]+T[i+1:]),{part.lower():[bad,part]})
+        fa=next((x for x in f if x.get('mot')==part),None)
+        got=bool(fa and fa.get('cod_antepose')); flag='✓' if got==anteposed else '✗'
+        info=(f"COD antéposé « {fa.get('cod_antepose')} » g={fa.get('gouv_genre')} n={fa.get('gouv_nombre')}" if got else "invariable") if fa else "(non diagnostiqué)"
+        print(f"    {flag} « {txt} » → {info}")
     # (2) sujet à distance (PP déterminé intercalé) — démo synthétique : le bon NOMBRE n'est trouvé qu'avec skip_pp
     Td=toks("Les vers de la terre creusent")    # sujet pluriel « Les vers », PP « de la terre » (sg) intercalé
     vi=[k for k,w in enumerate(Td) if w.lower()=='creusent'][0]

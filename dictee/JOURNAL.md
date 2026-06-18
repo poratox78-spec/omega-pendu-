@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-06-18 — Levier grammaire : participe passé avec AVOIR, le COD antéposé
+
+### Quoi
+La dernière règle d'accord « dure » du français : le participe avec *avoir* s'accorde avec le **COD
+quand il est ANTÉPOSÉ** (« la pomme **qu'**il a cueilli**e** ») et reste **invariable** sinon (« il a cueilli des pommes »).
+
+- `find_cod_antepose(T,idx)` : cherche un relatif **« que / qu' »** à gauche du participe (fenêtre courte) ;
+  l'antécédent = le GN avant le relatif → genre/nombre via `governor_gender` + `governor_number`.
+  Renvoie `(antécédent, genre|None, nombre|None)`, ou `None` (→ invariable).
+- Branche *avoir* de `diagnose_sentence` : accord avec le COD antéposé si relatif, sinon « invariable, COD placé après ».
+  ⚠️ Le tokeniseur garde l'élision : `qu'il` est **un seul token** → on teste `== 'que'` **ou** `startswith("qu'")`.
+
+### Mesuré (`python3 dictee/diag_sentence.py`)
+- Familles **100 %** · participe détecté **7/7** inchangés.
+- Démos COD (synthétiques — le corpus n'a que des COD postposés, cf. phrases 14/18) :
+  - « La pomme **qu'**il a cueillie » → COD antéposé « pomme » (f, sg) → accord ✓
+  - « Les fleurs **qu'**elle a cueillies » → COD antéposé « fleurs » (genre None car « les » ne marque pas le genre, pl) → accord ✓
+  - « Elle a cueilli des pommes rouges » → **invariable** (COD placé après) ✓
+- Honnêteté : avec « les » le genre n'est pas porté par le déterminant → on accorde en **nombre** seul (le genre est lexical, hors moteur sans lexique).
+
+### App (port vérifié)
+`findCodAntepose` porté dans l'IIFE dictée ; branche *avoir* enrichie. Parité JS↔Python sur les 3 cas (`['pomme','f','sg']` / `['fleurs',null,'pl']` / `null`). CI verte.
+
+---
+
 ## 2026-06-18 — Levier grammaire : chaîne du GN, l'accord en GENRE
 
 ### Quoi
