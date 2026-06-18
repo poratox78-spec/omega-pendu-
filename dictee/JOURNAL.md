@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-06-18 — Validation terrain : fiche imprimable (le juge est humain, §4)
+
+### Quoi
+Le levier grammaire « classe fermée » a épuisé ce que le corpus de 30 phrases permet de **mesurer en synthétique**.
+Prochaine étape du plan = **C, validation terrain** (vraies copies dys, orthophonistes) : c'est le vrai juge (doctrine §4).
+Livrable : un **support imprimable** pour faire passer la dictée et **mesurer l'accord outil↔expert**.
+
+- `dictee/build_validation_sheet.py` — générateur (réutilise `sentences.json` + `FAM2STAGE`/`STAGE_ORDER` de `diag_sentence.py`,
+  doctrine §5 : pas de duplication des données). Régénérable.
+- `dictee/validation_terrain.html` — fiche autonome, 3 feuilles (sauts de page) :
+  1. **Protocole + métadonnées élève** (anonymisé, consignes, aide-mémoire familles/stades).
+  2. **Feuille EXAMINATEUR** : 30 phrases à dicter + grille de relevé par mot fauté
+     (mot cible · écrit élève · **famille expert** · stade · **famille outil** · **accord ?**) → mesure directe du taux d'accord.
+  3. **Feuille ÉLÈVE** : lignes vierges numérotées, police lisible dys — **sans le texte cible** (c'est une dictée).
+  4. **Synthèse** : profil de stade (expert vs outil) + calcul du **taux d'accord** = validation/falsification du diagnostic.
+
+### Conception (pourquoi cette forme)
+- Diagnostic expert **en aveugle** d'abord, comparaison à l'outil ensuite → le taux d'accord n'est pas biaisé.
+- Cible interne = 100 %/famille (synthétique) ; un écart terrain pointe la famille à revoir (donnée actionnable, §1 falsifiable).
+- Pas de moteur PDF dans l'env → l'HTML s'imprime au navigateur (Ctrl+P). Données : Lexique 4, CC BY-SA 4.0.
+
+---
+
 ## 2026-06-18 — Levier grammaire : participe passé avec AVOIR, le COD antéposé
 
 ### Quoi

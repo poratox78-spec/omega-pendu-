@@ -42,6 +42,9 @@ La dictée diagnostique est un **panneau additif** du fichier OMEGA unique (bout
 
 > **MAJ 2026-06-14 — cadre = DICTÉE DE PHRASES** (audit : la dictée de mots isolés est mal posée pour 84 % des mots à cause des homophones/accords). Le moteur de référence est `diag_sentence.py` (corpus `sentences.json`), intégré dans `app/omega-pendu.html` (panneau « ✍️ Dictée diag », mode phrases). Les fichiers mot-isolé (`diagnostic.py`, `test_set.tsv`, `word_pool.json`) sont **legacy**.
 
+## Validation terrain (vraies copies dys)
+- `build_validation_sheet.py` → génère `validation_terrain.html` : fiche imprimable (protocole anonymisé · feuille examinateur avec grille de relevé expert↔outil · feuille élève en lignes vierges · synthèse + taux d'accord). Régénérer : `python3 dictee/build_validation_sheet.py`, puis ouvrir l'HTML au navigateur (Ctrl+P pour imprimer/PDF). Sert à **mesurer l'accord** entre le diagnostic automatique et le jugement de l'orthophoniste (doctrine §4 : le juge est humain).
+
 ## Licence des données
 Données dérivées de **Lexique 4** — à citer :
 > New, B., Pallier, C., Schalchli, G., Bourgin, J., & Gimenes, M. (2026). *Lexique 4: A major upgrade of the « Lexique » French lexical database.* Behavior Research Methods, 58(5), 140. — lexique.org
