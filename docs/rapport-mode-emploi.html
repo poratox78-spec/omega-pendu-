@@ -622,7 +622,7 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 </ul>
 
 <h3>11.3 — Bilan honnête</h3>
-<p>La cognition cheat-free atteint ~90 % et s'approche de l'oracle sur le vu, mais : (a) elle plafonne sous l'oracle sur le nouveau (attendu) ; (b) les défaites résiduelles sont dominées par la confusion phon voisée/sourde non résolue ; (c) le concept M3_d, censé porter la mémoire, est faiblement connecté à la décision (<a class="x" href="#s12">§12</a>).</p>
+<p>La cognition cheat-free atteint ~90 % et s'approche de l'oracle sur le vu, mais : (a) elle plafonne sous l'oracle sur le nouveau (attendu) ; (b) les défaites résiduelles sont dominées par la confusion phon voisée/sourde non résolue ; (c) les <strong>cellules</strong>-concept M3_d (forme) sont faiblement connectées au hub (<code>M3_d.output=0</code> sous bPC) — <strong>mais</strong> son <strong>readout-récompense</strong> <code>cLetterScore</code> est un contributeur cheat-free <strong>mesuré +3,4</strong> (<a class="x" href="#s12">§12</a> ; <code>AUDIT_OMEGA §3.1</code>) : « M3_d faiblement connecté » ne vaut que pour les cellules/hub, pas le readout.</p>
 </section>
 
 <!-- ================ 12 ================ -->
@@ -632,7 +632,7 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 <div class="tablewrap"><table>
 <thead><tr><th>Point</th><th>Impact</th><th>Effort</th><th>Expérience falsifiable</th></tr></thead>
 <tbody>
-<tr><td><strong>M3_d faiblement connecté</strong> (héritée v0.06 : corr game↔winrate ≈ −0,15 ; norme ↗ +0,88 ; v0.07 : 7 cellules/12 mortes, 1 concept pour tous, projection M2→M3 = permutation, pas vraie compression HRR)</td><td>Élevé</td><td>Faible</td><td>Toggle <code>M3_D_BYPASS</code> : prouver que M3_d <em>compte</em> <strong>avant</strong> d'en débugger les internes (R66).</td></tr>
+<tr><td><strong>Cellules M3_d faiblement connectées</strong> — <em>le readout, lui, compte</em> (héritée v0.06 : corr game↔winrate ≈ −0,15 ; v0.07 : 7-9 cellules/12, 1 concept plural, projection M2→M3 = permutation, pas vraie compression HRR ; cellules = code de forme)</td><td>Faible*</td><td>Faible</td><td><strong>FAIT (17/06)</strong> : A/B <code>M_BPC_READOUT_COUPLE</code> → le readout <code>cLetterScore</code> <strong>compte</strong> = <strong>+3,4 cheat-free</strong> (8 graines, jamais sous ; <code>AUDIT_OMEGA §3.1</code>). Restent faibles = les <em>cellules</em> (forme/hub) ; débugger les internes = optionnel (le readout porte déjà la valeur).</td></tr>
 <tr><td><strong>Dyslexie phon</strong> (96 % des défaites, paires voisée/sourde)</td><td>Élevé</td><td>Moyen</td><td>Activer <code>M_PHON_CORRECTION</code> (α=0,10 / β=0,05) à grande échelle ; mesurer la baisse des défaites dist≤2.</td></tr>
 <tr><td><strong>Voie phon tronquée</strong> (M2_phon_m/M1_phon_m absents)</td><td>Élevé</td><td>Élevé</td><td>Construire les miroirs manquants (codage prédictif) ; mesurer l'apport phon.</td></tr>
 <tr><td><strong>B1 — M3_d.output non normalisé</strong> (héritée v0.06 : norme ~1,76, sature M_S ~1,46 ; inerte tant que bPC met output=0)</td><td>Moyen</td><td>Faible</td><td>B1 reste <strong>inerte</strong> (output=0 sous bPC) ; la reconnexion qui l'aurait activé est <span class="chip c-exc">falsifiée</span> (mur de capacité 12 cellules — la familiarité vit dans le banc). Sans urgence.</td></tr>

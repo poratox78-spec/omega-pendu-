@@ -272,7 +272,7 @@ Les **derniers ~7 pts** (90→97,5) viennent **entièrement de la cascade de dec
 - `M3_d_step`:4241 — fix `« encoder depuis M1 (riche), pas M2 (lave) »` → **M2_d lessivé** (ne code que la longueur).
 - bPC = autoencodeur de **reconstruction** (4273, `w += LR·a·(m2 − m2hat)`) sur entrée dominée par la longueur, goulot **12 cellules** → effondrement de modes (7/12 mortes).
 - `M3_d.output` **norme non bornée** (~8, point fixe Hebbian α/α=8 ; 6383), rustine `normalizeInPlace`.
-→ Le concept est **structurellement un détecteur de longueur**, pas un discriminateur de lettres (cause-racine de son inertie ; cf. §3).
+→ Les **cellules** sont **structurellement un détecteur de longueur**, pas un discriminateur de lettres. **MAIS** (maj §3.1/§3.2) le **readout-récompense** `cLetterScore` (matrice 26×12, apprise `reward·a`) **extrait quand même** un signal lettre **spécifique au mot** depuis ce code de forme → **+0,128 discrimination, +3,4 winrate cheat-free**. Donc « inertie » ne vaut que pour les *cellules/hub* ; le *readout* n'est **pas** inerte. Cf. §3.1.
 
 ### 🟡 S3 — Tissu cicatriciel & code vestigial *(vérifié)*
 Monolithe ~11 k lignes + lexique, **87 fonctions** entrelacées, commentaires = historique de patchs (`R41-#1..#11`, `F177/F198/F169`). Exemple : `cStep` étape (5) `pairConv` marqué **« transitoire, sera retiré Jour 6' »** (6393) — jamais retiré. Édition via extraction `/tmp`. **Aucun test ne garde le comportement** (la CI ne teste que la dictée) → risque #1 de régression silencieuse. *Reco : un harnais headless seedé en CI qui `assert` cognition seule ≥ 90 % et +NEO ≥ 97 %.*
