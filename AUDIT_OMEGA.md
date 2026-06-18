@@ -212,7 +212,9 @@ Diagnostic `evo/diag_mirror.js` (R67, cognition, warmup 200 / test 80) — le co
 - Principe Rem documenté (`notes/NEO-muette-croisement.md`) = celui de cette session : *« si ça ne rend pas au système, on a mal câblé, pas l'approche »* ; la fix-câblage qui a marché là = le **trigger** (gate sur l'incertitude cognition) → rend la brique **neutre**, pas un levier.
 - **Non essayé** : prédiction-masquée des 12 cellules (audit §3) — mais **même mur de capacité** (AUC familiarité 0,64 à K=12). Le flux qui marche est documenté : **phon→ortho** (assemblé +5,28) et **declare** (recall +1,76), pas concept→lettre.
 
-→ **Bilan jonction M1_m.** Mécanisme prouvé + amont diagnostiqué + littérature interne croisée : M1_m ne peut pas gagner ses 0,1 (prior fréquence redondant) **et** la « réparation par connexion » est un **cul-de-sac documenté** (concept global + concept→scoring falsifié). Le toggle R66 reste l'acquis net (débranchable + mesuré). Décisions ouvertes pour Rem : (a) défaut OFF (mécanisme-justifié, plus simple) ; (b) tenter la prédiction-masquée §3 (haut risque, mur de capacité) ; (c) pivot **sens du flux phon→ortho** (la force mesurée).
+→ **Bilan jonction M1_m.** Mécanisme prouvé + amont diagnostiqué + littérature interne croisée : M1_m ne peut pas gagner ses 0,1 (prior fréquence redondant) **et** la « réparation par connexion » est un **cul-de-sac documenté** (concept global + concept→scoring falsifié). Le toggle R66 reste l'acquis net (débranchable + mesuré).
+
+**DÉCIDÉ (Rem, 2026-06-17) : défaut `M5_D_M1_M_ENABLED = false`** (OFF). Justifié par le *mécanisme* (pas un Δ bruité) : OFF est plus simple et égal-ou-meilleur (réf égalité, cognition +1,3). Le toggle reste (ON réactivable pour A/B). (b) prédiction-masquée §3 = écartée court-terme (même mur de capacité) ; (c) **prochaine jonction = sens du flux phon→ortho** (la force mesurée, +5,28 assemblé) — instrumenter la voie phon descendante (dont les dormants M2/M1_phon_m du §1.4).
 
 ---
 

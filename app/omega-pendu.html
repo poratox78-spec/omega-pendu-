@@ -1034,11 +1034,11 @@ footer {
         <div class="toggle-desc">M1_m → M1_d loop</div>
       </div>
     </div>
-    <div class="toggle-item cfg-optim" data-toggle="M5_D_M1_M_ENABLED" title="Co-décision descendante M1_m (cercle miroir) : pondère le score-lettre par le feedback appris M1_m.letterScore au poids 0,1 (F198). Analogue du feedback top-down mot→lettre de l'activation interactive (DRC, effet de supériorité du mot). Défaut ON = baseline byte-identique ; OFF = débranche la co-décision (ferme la faille R66). Mesure du Δ : evo/ab_m1m.js." onclick="ui_toggle(this)">
+    <div class="toggle-item" data-toggle="M5_D_M1_M_ENABLED" title="Co-décision descendante M1_m (cercle miroir) : pondère le score-lettre par M1_m.letterScore au poids 0,1 (F198). DÉFAUT OFF (acté 17/06) : mesuré (evo/ab_m1m.js) Δ nul/négatif — M1_m.letterScore n'est qu'un prior de fréquence global (corr 0,999), redondant avec M4_d, et déconnecté de M3_m (le concept n'atteint jamais la lettre). ON = réactive la co-décision pour A/B." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">M1_m co-décision (0,1)</div>
-        <div class="toggle-desc">miroir → score-lettre (F198, R66)</div>
+        <div class="toggle-desc">miroir → score-lettre — défaut OFF (mesuré neutre, R66)</div>
       </div>
     </div>
     <div class="toggle-item cfg-optim" data-toggle="M_VOIE_PHON_ENABLED" title="φ · Voie phonologique : convertit le mot en sons (SAMPA) et raisonne phonétiquement, en parallèle de l'ortho (double voie de Coltheart)." onclick="ui_toggle(this)">
@@ -1609,11 +1609,12 @@ const COUCHE_BC_SEPARATION_ENABLED = false;  // 🔴 DÉFAUT OFF
 
 // === F198 (02/05) — Activation M1_m.letterScore co-décideur ===
 const M5_D_M1_M_WEIGHT    = 0.1;      // F198 : 0.1 modeste (était 0.0 baseline désactivé)
-// R66 — co-décision M1_m DÉBRANCHABLE (audit 2026-06-17, §1.4/D2). Défaut ON = baseline
-//   byte-identique (court-circuit true). OFF = retire la pondération M1_m de la décision
-//   (gardé en cStep) → ferme la faille R66 (seul co-décideur jusque-là non gardé) et
-//   permet de mesurer le Δ du feedback descendant ortho seul (cf. evo/ab_m1m.js).
-let M5_D_M1_M_ENABLED     = true;
+// R66 — co-décision M1_m DÉBRANCHABLE (audit 2026-06-17, §1.4). **Défaut OFF acté (Rem, 17/06)** :
+//   mesuré (evo/ab_m1m.js) Δ ON−OFF = +0,0 (réf, égalité) / −1,3 (cognition, bruité) → ne gagne pas ses 0,1 ;
+//   diag (evo/diag_m1m.js) : M1_m.letterScore = prior de fréquence GLOBAL (corr 0,999, var inter-mots ≈0),
+//   redondant avec M4_d (30 % fréq) — et déconnecté de M3_m/M2_m (concept n'atteint jamais la lettre).
+//   OFF = config plus simple, égale-ou-meilleure. ON (=0,1) reste activable (toggle UI) pour A/B.
+let M5_D_M1_M_ENABLED     = false;
 
 // === Rebranchement phonGraphMap co-décideur (blueprint v6 §29.1, F177) ===
 // Plan : la carte phonGraphMap[26][SDIM] est construite par F (rapide) + E2 (lent)
