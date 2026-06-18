@@ -180,6 +180,82 @@ def rule_ce_se(T, i):
     if isn and not isv: return 'ce'                                    # nom PUR → ce (démonstratif)
     return None                                                       # homographe (livre…)/inconnu → s'abstenir
 
+# ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
+# Le correcteur ne couvrait que 8 homophones ; les vraies copies dys ont surtout des accords (« Je doit », « On ont »,
+# « il sont »). On ajoute l'accord sujet-verbe pour les sujets PRONOMS (personne+nombre certains), borné FP=0 :
+#   - sujet = pronom isolé je/tu/il/elle/on/ils/elles (nous/vous écartés : ambigus avec le clitique objet) ;
+#   - on flague le verbe seulement s'AUCUNE lecture finie (ind/sub/cnd) n'admet (personne,nombre) du sujet ;
+#   - la correction n'est proposée QUE si la forme suggérée est elle-même confirmée par la table comme (pers,nombre)
+#     du sujet (auto-garde contre le bruit Lexique : un slot douteux → abstention, jamais une mauvaise correction).
+_CONJ_PATH = os.path.join(HERE, 'cgram_conj.json')
+CONJ_F, CONJ_C = {}, {}
+CONJ_LOADED = False
+if os.path.exists(_CONJ_PATH):
+    try:
+        _cj = json.load(open(_CONJ_PATH, encoding='utf-8'))
+        CONJ_F, CONJ_C = _cj.get('f', {}), _cj.get('c', {})
+        CONJ_LOADED = bool(CONJ_F)
+    except Exception:
+        pass
+
+SUBJ_PRON = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'),
+             'on': ('3', 's'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
+CLITIC = {'ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous',
+          "l'", "m'", "t'", "s'", "n'"}
+
+
+def _reads(w):
+    """Lectures finies de la forme : liste de (lemme, mode:temps, personne, nombre)."""
+    s = CONJ_F.get(deacc(w.lower()))
+    if not s: return []
+    r = []
+    for chunk in s.split('|'):
+        f = chunk.split(';')
+        if len(f) == 4: r.append((f[0], f[1], f[2], f[3]))
+    return r
+
+
+def _subject_before(T, i):
+    """Remonte depuis i-1 en sautant les clitiques objets ; renvoie (personne, nombre) si un PRONOM sujet net précède."""
+    j = i - 1; steps = 0
+    while j >= 0 and steps < 3 and deacc(T[j].lower()) in CLITIC:
+        j -= 1; steps += 1
+    if j < 0: return None
+    return SUBJ_PRON.get(deacc(T[j].lower()))
+
+
+def _agrees(reads, per, nb):
+    """La forme s'accorde-t-elle avec (personne, nombre) du sujet ?
+    3e personne : nombre STRICT (il/ils, on/ont = là où le nombre tranche, et les tags y sont fiables).
+    1re/2e personne (toujours SINGULIER) : personne seule — le tag 8_Nombre y est parfois faux (« peux »=p
+    dans Lexique) ; ignorer le nombre évite le faux positif, au prix de rater « je pouvons » (rare)."""
+    if per == '3':
+        return any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in reads)
+    return any(p == per for (_l, _mt, p, _n) in reads)
+
+
+def rule_accord_sv(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower(): return None        # forme élidée (j'ai) → hors v1
+    reads = _reads(T[i])
+    if not reads: return None                                     # pas une forme verbale connue → abstention
+    pn = _subject_before(T, i)
+    if pn is None: return None                                    # pas de sujet-pronom net → abstention
+    per, nb = pn
+    if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre':
+        return None                                              # « peut-être » (adverbe), pas le verbe pouvoir
+    if _agrees(reads, per, nb): return None                      # déjà d'accord → ne pas toucher
+    lemmas = {l for (l, _mt, _p, _n) in reads}
+    if len(lemmas) != 1: return None                             # forme homographe inter-lemmes (vis=vivre/voir) → abstention
+    lem = lemmas.pop()
+    mts = [mt for (_l, mt, _p, _n) in reads]
+    mt = 'ind:pre' if 'ind:pre' in mts else mts[0]               # temps cible = présent si dispo, sinon le temps tapé
+    sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
+    if not sugg: return None
+    if not _agrees(_reads(sugg), per, nb):
+        return None                                             # garde : la suggestion doit VRAIMENT s'accorder (anti-bruit Lexique)
+    return sugg
+
+
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
     d = deacc(w.lower())
@@ -213,7 +289,8 @@ def rule_genre_adj(T, i):
 
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se)]   # rule_genre_adj NON branchée (FP-insûr, cf. ci-dessus)
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se),
+         ('accord sujet-verbe', rule_accord_sv)]   # accord SV en dernier (homophones d'abord) ; rule_genre_adj NON branchée
 
 
 def correct(text):
@@ -253,6 +330,12 @@ CASES = [
     ("Il prend ce livre", "ce", "se", "ce/se"),
     ("On mange ensemble", "On", "Ont", "on/ont"),
     ("Ils ont fini leur travail", "ont", "on", "on/ont"),
+    # accord SUJET-VERBE (route lexicale cgram_conj) — sujet pronom, personne/nombre certains
+    ("Je dois partir", "dois", "doit", "accord sujet-verbe"),
+    ("Il a faim", "a", "ont", "accord sujet-verbe"),
+    ("On a gagné", "a", "ont", "accord sujet-verbe"),
+    ("Ils doivent manger", "doivent", "doit", "accord sujet-verbe"),
+    ("Elle est contente", "est", "sont", "accord sujet-verbe"),
 ]
 
 

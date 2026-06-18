@@ -16,6 +16,12 @@
     ["Il reste peu de farine", "peu", "peut", "peu/peux/peut"],
     ["Mon cousin se repose", "se", "ce", "ce/se"],
     ["Je choisis ce cadeau", "ce", "se", "ce/se"],
-    ["La forêt est sombre", "est", "et", "et/est"]
+    ["La forêt est sombre", "est", "et", "et/est"],
+    ["Tu chantes faux", "chantes", "chante", "accord sujet-verbe"],
+    ["Ils travaillent dur", "travaillent", "travaille", "accord sujet-verbe"],
+    ["Elles regardent la mer", "regardent", "regarde", "accord sujet-verbe"],
+    ["On invente une histoire", "invente", "inventent", "accord sujet-verbe"],
+    ["Tu ranges ta chambre", "ranges", "range", "accord sujet-verbe"],
+    ["Elle nettoie la table", "nettoie", "nettoient", "accord sujet-verbe"]
   ]
 }

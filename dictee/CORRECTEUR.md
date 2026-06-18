@@ -69,6 +69,29 @@ sur les 98 phrases CORRECTES** (texte Wikipédia réel, multi-clauses).
   correcteur est **FP-safe sur du réel** mais **couvre une petite part** des erreurs réelles → la couche large
   (genre déterminant, nombre, typo) reste à faire et exige un POS/tagger.
 
+## Accord SUJET-VERBE — branché (route lexicale Lexique4 `cgram_conj.json`), FP=0
+Recadrage terrain (Rem teste « Les enfant joue… Je doit manger. On ont gagné. ») : le correcteur ne couvrait **que
+8 homophones**, or les vraies copies dys ont surtout des **accords**. On a donc ajouté l'**accord sujet-verbe** —
+le levier d'accord existait déjà côté DIAGNOSTIC, ici on le retourne en CORRECTION (§5 réutilise l'existant).
+- **Donnée** : `9_InfoVER` (mode:temps:personne) + `8_Nombre` de Lexique 4 → table de conjugaison
+  `cgram_conj.json` (8 018 formes / 2 404 lemmes ; `build_cgram.py`). `f` = forme→lectures finies (lemme;mt;pers;nb),
+  `c` = lemme→temps→slot(« 3s »)→forme. Sous-ensemble HF (présent+imparfait) **embarqué dans l'app**.
+- **Règle** `rule_accord_sv` : (1) sujet = **pronom isolé** je/tu/il/elle/on/ils/elles (personne+nombre certains ;
+  nous/vous écartés car ambigus avec le clitique objet « il **nous** voit ») ; (2) on flague le verbe **seulement
+  si AUCUNE lecture finie n'admet (personne,nombre)** du sujet ; (3) la correction n'est proposée **que si la forme
+  suggérée est elle-même confirmée** par la table comme (pers,nombre) du sujet — auto-garde contre le bruit Lexique.
+- **Bruit Lexique neutralisé** (sinon FP/mauvaises corrections) : (a) `peux` est tagué nombre=`p` (faux) → pour la
+  1re/2e pers. (toujours sing.) on n'exige que la **personne** ; (b) l'**infinitif** porte des tags finis parasites
+  (`chanter:ind:pre:2`) → écarté quand forme=lemme ; (c) `8_Nombre` vide fréquent au présent des -er (`travaille`) →
+  **nombre déduit de la morphologie** (-ons/-ez=pluriel ; 3e pers. -ent/-ont=ambigu→wildcard ; sinon sing.) ;
+  (d) participe mal tagué présent (`joué:ind:pre:1`) → écarté des slots présents.
+- **Mesuré** : témoins 5/5 (det+corr), held-out **6/6 sur vocabulaire NEUF** (chanter/travailler/regarder/inventer/
+  ranger/nettoyer, hors témoins) → **généralise**. **Faux positifs : 0** (30 phrases, 24+5 témoins, 98 phrases
+  réelles GEC, held-out). Corpus réel : **2/12** accords sujet-verbe détectés (les 2 à sujet pronom ; les 10 autres
+  sont à sujet **nom** → prochaine jonction, plus risquée, réutilisera `governor_number`).
+- **Choix assumé** : on corrige le **verbe** pour qu'il s'accorde au sujet écrit (« il sont »→« il **est** »), pas le
+  sujet ; règle explicable, enseignable. **Parité APP↔Python** vérifiée (`parity_corr.js`, en CI).
+
 ## Validation indépendante (held-out) & collecte en ligne
 - **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
   et des témoins), confusions choisies d'après les erreurs FR documentées comme fréquentes. → **12/15 détection+correction,
@@ -96,5 +119,11 @@ sur les 98 phrases CORRECTES** (texte Wikipédia réel, multi-clauses).
    id="vdc-lex">` lu par l'IIFE → `vlike` (couverture verbale) + `lexicalGender` (route lexicale du genre dans le
    diagnostic navigateur). Repli liste blanche si le bloc est absent. FP corpus = 0. CI verte ; harnais `evo/` mis à
    jour pour ignorer les blocs `application/json`.
-4. ⬜ **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → fautes non-homophones (nécessite le lexique).
-5. ⬜ **Double voie grammaire** (ascendante/descendante) : voir `DICTEE_ROADMAP.md` / discussion en cours.
+4. ✅ **Accord SUJET-VERBE** (sujet pronom) : route lexicale `cgram_conj.json` (conjugaisons Lexique 4) → « Je doit »→dois,
+   « On ont »→a, « il sont »→est, « Tu chante »→chantes… **FP=0**, held-out 6/6 (vocab neuf), parité app↔Python. Voir section ci-dessus.
+5. ⬜ **Accord sujet-verbe à sujet NOM** (« Les enfant joue »→jouent) : réutilisera `governor_number` (détection du nom-sujet
+   + son nombre). Plus risqué (détection du sujet à distance) → jonction suivante, à mesurer FP=0 avant de brancher.
+6. ⬜ **Accord du nom/déterminant** (« Les enfant »→enfants) et **genre** (« une robe vert »→verte) dans le correcteur :
+   exigent un POS/tagger en contexte (cf. `rule_genre_adj` mesurée FP-insûre) — restent au DIAGNOSTIC pour l'instant.
+7. ⬜ **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → fautes non-homophones (nécessite le lexique).
+8. ⬜ **Double voie grammaire** (ascendante/descendante) : voir `DICTEE_ROADMAP.md` / discussion en cours.

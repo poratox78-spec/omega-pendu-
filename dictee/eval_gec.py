@@ -30,6 +30,11 @@ def e_er_stem(w):
     return None
 
 
+def _verb_lemmas(w):
+    s = C.CONJ_F.get(D.deacc(w.lower()))
+    return {r.split(';')[0] for r in s.split('|')} if s else set()
+
+
 def confusion_kind(bad, good):
     lb, lg = bad.lower(), good.lower()
     if lb == lg: return None
@@ -37,6 +42,8 @@ def confusion_kind(bad, good):
         if lb in s and lg in s: return k
     sb, sg = e_er_stem(bad), e_er_stem(good)
     if sb is not None and sg is not None and sb == sg: return '-é/-er'
+    if _verb_lemmas(bad) & _verb_lemmas(good):    # même lemme verbal, forme différente → accord/conjugaison
+        return 'accord sujet-verbe'
     return None
 
 

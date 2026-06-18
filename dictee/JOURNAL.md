@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-06-18 — ACCORD SUJET-VERBE branché dans le correcteur (route conjugaison Lexique 4), FP=0
+
+Recadrage de Rem (test « Les enfant joue… Je doit manger. On ont gagné. » → rien détecté) : le correcteur ne
+couvrait **que 8 homophones**, or ses fautes étaient toutes des **accords**. On retourne le levier d'accord du
+DIAGNOSTIC en CORRECTION (§5 réutiliser l'existant), pour l'**accord sujet-verbe à sujet PRONOM**.
+- **Donnée** : `9_InfoVER` + `8_Nombre` de Lexique 4 → `cgram_conj.json` (8 018 formes / 2 404 lemmes ;
+  `f`=forme→lectures, `c`=lemme→temps→slot→forme). Généré par `build_cgram.py`. Sous-ensemble HF (présent+imparfait)
+  embarqué dans l'app (`vdc-lex`, +210 Ko). Probe Python = table complète.
+- **Règle** `rule_accord_sv` : sujet = pronom isolé (je/tu/il/elle/on/ils/elles ; nous/vous exclus, ambigus avec le
+  clitique objet) ; flague le verbe **si aucune lecture (pers,nombre) du sujet** ; corrige **seulement si** la
+  suggestion est elle-même confirmée (pers,nombre) du sujet (auto-garde anti-bruit).
+- **Bruit Lexique trouvé & neutralisé** (sinon FP/mauvaises corrections) : `peux`=nombre `p` (faux) → 1re/2e pers.
+  jugées sur la **personne seule** ; **infinitif** porte des tags finis parasites (`chanter:ind:pre:2`) → écarté
+  (forme=lemme) ; `8_Nombre` **vide** fréquent au présent des -er (`travaille`) → **nombre déduit** (-ons/-ez=pl ;
+  3e pers. -ent/-ont=ambigu→wildcard ; sinon sg) ; participe mal tagué présent (`joué:ind:pre:1`) → écarté des slots.
+- **Mesuré** : « Je doit »→dois, « On ont »→a, « il sont »→est ✓ ; témoins 5/5 ; **held-out 6/6 sur vocab NEUF**
+  (chanter/travailler/regarder/inventer/ranger/nettoyer) → généralise. **FP=0** partout (30+29 témoins, 98 GEC réel,
+  held-out). Corpus réel : 2/12 accords SV (les 2 à sujet pronom ; 10 à sujet **nom** = jonction suivante).
+- **Parité app↔Python** : `dictee/parity_corr.js` (29 phrases identiques), ajouté en CI. UI : message « Aucune faute
+  grammaticale » + périmètre explicite ; intro mentionne l'accord SV.
+- **Choix** : on corrige le **verbe** vers le sujet écrit (« il sont »→« il est »), pas le sujet — règle enseignable.
+
+---
+
 ## 2026-06-18 — Correcteur validé sur VRAI corpus (Rem) : FP 11 → 0 / 98, durcissement « abstention »
 
 Rem a fourni un vrai corpus GEC FR (98 paires erroné/corrigé, Wikipédia). `dictee/eval_gec.py`.
