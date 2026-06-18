@@ -175,4 +175,15 @@ reconstruite sans les mots-test ; fuite ≈ 62-65 pts) — la généralisation *
 - **Corrigé** : `_neoEnsureWBL()` bâtit la cohorte depuis `len_index` (in-lexique inchangé ; Trexquant aveugle vraiment).
 - **À RE-MESURER** tout chiffre OOV/Trexquant avec le fix avant d'en communiquer un. Le **in-lexique** (DUAL/OS-arb
   ~96-99 %, §1.6) **n'est pas touché** (cohorte pleine = comportement voulu en jeu normal).
-- Le **Mode Trexquant reste OFF** par défaut ; il est désormais honnête (mesure une vraie généralisation OOV ~33 %).
+- Le **Mode Trexquant reste OFF** par défaut ; il est désormais honnête (mesure une vraie généralisation OOV).
+
+## Config OOV / Trexquant — la VOIE N-GRAM DE LETTRES (recommandée hors-lexique) — 2026-06-18
+Après l'audit OOV (`AUDIT_OMEGA §1.7/§1.8`) : la généralisation hors-lexique vient de l'**AGRÉGATION** (statistiques du
+lexique), PAS de la cognition (mesurée ~11 % seule, double-voie pleinement engagée) ni de l'apprentissage-par-jeu.
+- **🔠 `M_NEO_LETTER_NGRAM` (bleu, cheat-free)** : n-gram positionnel de lettres uni/bi/tri **pré-calculé depuis tout
+  le lexique** (≠ appris du jeu, ≠ médié par phonèmes). **Mesuré N=400 (vrai OOV) : 50,0 → 66,0 % (+16 pts, chaque
+  graine), moins de coups.** Dans/au-dessus de la bande SOTA (cf. `docs/HANGMAN_SOTA.md`).
+- **Régime** : **ON pour OOV/Trexquant** ; **OFF en jeu normal** (in-lexique mesuré 97,5 % OFF → 69,5 % ON : il écrase
+  la cohorte qui contient déjà le mot). C'est une voie **OOV-only**.
+- Reste **OFF par défaut** dans le moteur (R66, baseline byte-identique) ; à activer dans le preset Trexquant.
+- Visible aussi dans le **bench Trexquant in-app** (bouton 🎯 → 4e ligne « n-gram de lettres »).

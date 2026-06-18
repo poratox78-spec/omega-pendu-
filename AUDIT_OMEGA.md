@@ -483,6 +483,33 @@ paradigme gagnant côté dictée ; seul le moteur pendu était resté sur l'appr
 cohorte-jointe via OS-arb plutôt qu'en cascade ?) ; (2) étape 2 (mesurer Δ cognition sur substrat) ; (3) si oui, §3
 (capacité/câblage).
 
+#### 1.8.1 — A (Δ cognition, mesuré FAIR) + B (défaut OOV) — 2026-06-18
+**A — la cognition ne contribue pas, même double-voie pleinement engagée.** Garde-fou de Rem : « tu as peut-être
+sous-estimé les doubles voies ; les voies descendantes ne participent pas directement à la décision ; OS sans
+double-voie ne marche pas ». Re-testé **fair** (vrai OOV, test 100×2) :
+
+| cognition seule (vrai OOV) | winrate |
+|---|---|
+| REF (M1_m co-décision OFF) | 10,5 % |
+| **+ M1_m ON** (descendant ortho→décision branché) | 11,0 % |
+| + M1_m ON + voie phon poussée (OS sur double-voie) | 11,0 % |
+
+→ Brancher le descendant dans la décision = **+0,5 pt (bruit)**. **Pas de sous-estimation** : la cognition reste
+**~11 %** OOV, double-voie engagée. Confirme §1.4 (le descendant n'atteint pas la décision) **par la mesure**.
+**Verdict A : la cognition ajoute ~0 par-dessus le substrat** (cognition 11 % ≪ n-gram 66 %). « cognition > oracle »
+est **faux pour l'OOV** ; la généralisation vient de l'**agrégation**, pas de la cognition.
+
+**B — n-gram = voie OOV-only, branchée.** Le n-gram **écrase la cohorte en in-lexique** (il ignore que le mot EST là)
+→ à n'activer **qu'en OOV/Trexquant**. **Mesuré in-lexique : OFF 97,5 % → ON 69,5 %** (le n-gram générique remplace
+la cohorte qui a le mot) → **OFF en jeu normal, obligatoire**. Livré : voie `M_NEO_LETTER_NGRAM` recommandée ON pour
+Trexquant/OOV (CONFIG_REFERENCE), et **ajoutée au bench Trexquant in-app** (4e ligne « n-gram de lettres »). Pas de
+croisement OS-arb nécessaire (A montre que rien n'ajoute au n-gram → cascade simple suffit ; OS-arb resterait utile
+seulement si une 2e voie apportait un Δ, ce qui n'est pas le cas ici).
+
+**C reporté (cadrage Rem) :** ne PAS reconstruire la capacité de M3_d ; **garder M3_d tel quel** et confier la
+mémorisation/agrégation à un **mécanisme séparé** (le substrat n-gram EST ce mécanisme). Le câblage concept→lettre
+(§3) reste la frontière si un jour on veut que la *cognition* ajoute un Δ — mais A dit que ça n'urge pas.
+
 ---
 
 ## 2. Findings structurels (par sévérité)
