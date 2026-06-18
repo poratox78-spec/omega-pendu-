@@ -165,7 +165,12 @@ Réglages : NEO_CONF 0,75 · RECALL_MARGIN 0,20. → 97,50 % (K=1) / 98,82 % (K=
 **Doctrine.** Le « produit » de DUAL est un modèle de mot (naïf-Bayes), **pas** le croisement per-lettre que §3.1/§3.2 régissent → pas d'entorse. Les variantes « pures » testées pour égaler DUAL ont **toutes échoué** (jointe-mot −2,3 ; freq-au-phonème −4,3 ; cross-modal −3,0) — AUDIT §1.5.
 **Caveat (régime).** DUAL est de la **reconnaissance in-lexique** (sa cohorte contient le vrai mot) → **OOV inchangé** (le 99,8/97,3 % est in-lexique). Défaut moteur **OFF** (baseline byte-identique) ; activé dans le preset, comme les autres toggles.
 
-## MAJ mesurée — Trexquant/OOV : OS-arb > DUAL (verdict inversé) — 2026-06-18
-L'« effet Trexquant **à vérifier** » est **mesuré** (`AUDIT_OMEGA §1.6.1`, `node evo/ab_cohort.js trexq`, OOV N=120, cheat-free). **Hors-lexique, le verdict du §1.6 s'inverse** : l'**arbitrage OS** (`M_NEO_OS_ARB`, pondéré par fiabilité) fait **96,7 %** vs cascade-jointe+DUAL **72-75 %** (**+24 pts à chaque graine**, moins de coups : 8,1 vs 9,2). Mécanisme : en OOV la voie **lexicale** s'effondre (cohorte sans le mot) → l'arbitrage route vers la **sublexicale**, la cascade à seuil fixe et DUAL non.
-- **Reco régime** : **in-lexique → DUAL** (optimum §1.6) ; **Trexquant/OOV → OS-arb** (`M_NEO_OS_ARB` ON **+ `M_NEO_PHON_COHORT_ENABLED` ON**, gate obligatoire — sinon OS-arb est **inerte** → ~9,3 coups, signe à reconnaître). DUAL+OS-arb = OS-arb (cascade : OS-arb écrase DUAL ; pas de conflit, DUAL devient neutre).
-- À **confirmer N=400/4 graines** avant un chiffre OOV headline (le *relatif* OS-arb≫cascade est robuste ; l'*absolu* 96,7 % reste à reproduire).
+## ⛔ MAJ — les chiffres "Trexquant/OOV" étaient FAUX (fuite cohorte), RÉTRACTÉS — 2026-06-18
+La mesure « OS-arb 96,7 % OOV » publiée plus tôt est **FAUSSE** : bug de **fuite cohorte** (`AUDIT_OMEGA §1.6.1`).
+La cohorte NEO lit un cache `_neoWBL` bâti depuis `words[]` et jamais invalidé ; Trexquant ne retire le mot que du
+`len_index` → **le mot restait dans la cohorte** → le declare voyait la réponse. **Vrai OOV mesuré ≈ 33 %** (cohorte
+reconstruite sans les mots-test ; fuite ≈ 62-65 pts) — la généralisation **sublexicale pure** d'OMEGA est **faible**.
+- **Corrigé** : `_neoEnsureWBL()` bâtit la cohorte depuis `len_index` (in-lexique inchangé ; Trexquant aveugle vraiment).
+- **À RE-MESURER** tout chiffre OOV/Trexquant avec le fix avant d'en communiquer un. Le **in-lexique** (DUAL/OS-arb
+  ~96-99 %, §1.6) **n'est pas touché** (cohorte pleine = comportement voulu en jeu normal).
+- Le **Mode Trexquant reste OFF** par défaut ; il est désormais honnête (mesure une vraie généralisation OOV ~33 %).

@@ -6153,8 +6153,20 @@ let M_NEO_OS_ARB_ALPHA = 1.0;                // (α,β) PROPRES à l'arbitrage D
 let M_NEO_OS_ARB_BETA = 1.0;                 // β<1 → favorise la voie lexicale (cohorte) ; β>1 → favorise la sublexicale (jointe) ; α = raideur de la bascule sur r=sigLex/sigSub.
 let _neoWF = null;                           // cache word→fréquence (voie lexicale, board-dérivé légitime pour DECLARE)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
+let _neoWBLsrc = null;                       // référence len_index ayant servi à bâtir _neoWBL (invalidation du cache)
+function _neoEnsureWBL(){
+  // AUDIT-FIX (2026-06-18) : bâtir l'index cohorte depuis OMEGA_LEX4.len_index (RESPECTE les retraits Trexquant/
+  // filtrés), PAS depuis words[]. Bug trouvé : _neoWBL était caché depuis words[] → Trexquant retirait du len_index
+  // mais la cohorte gardait le mot → "97% OOV" bidon (vrai OOV mesuré ~33%). Cache invalidé si len_index change de
+  // référence (bench) ; _trexq_* annule aussi explicitement (_neoWBL=null) car le splice garde la même référence.
+  if (_neoWBL && _neoWBLsrc === OMEGA_LEX4.len_index) return;
+  _neoWBL = {}; _neoWBLsrc = OMEGA_LEX4.len_index;
+  const LI = OMEGA_LEX4.len_index, WD = OMEGA_LEX4.words;
+  if (LI) { for (const key in LI) { const arr = LI[key]; for (let i = 0; i < arr.length; i++) { const w = WD[arr[i]]; if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } } }
+  else { for (const w of WD) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
+}
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
-  if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
+  _neoEnsureWBL();
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
   for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let seen = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p)-65 === x) { seen = true; break; } if (!seen) absent.push(String.fromCharCode(65+x)); }
@@ -6169,7 +6181,7 @@ function _neoCohortMasks(){                  // masques de lettres possibles par
 }
 function _neoPhonCohort(){               // _al consensus : phonème dominant par position, dérivé des mots board-compatibles (jamais du mot caché)
   const G = _emrg_initOnline();
-  if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const Lw = w.m.length; (_neoWBL[Lw] || (_neoWBL[Lw] = [])).push(w.m); } } }
+  _neoEnsureWBL();
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
   for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let seen = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p)-65 === x) { seen = true; break; } if (!seen) absent.push(String.fromCharCode(65+x)); }
@@ -6193,7 +6205,7 @@ function _neoPhonCohort(){               // _al consensus : phonème dominant pa
 }
 function _neoPhonCohortDist(){            // par position : distribution MOLLE {phonème: poids} sur la cohorte board (pour la JOINTE, pas l'argmax)
   const G = _emrg_initOnline();
-  if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const Lw = w.m.length; (_neoWBL[Lw] || (_neoWBL[Lw] = [])).push(w.m); } } }
+  _neoEnsureWBL();
   const L = currentWord.length; const cand = _neoWBL[L]; if (!cand) return null;
   const absent = [];
   for (let x = 0; x < 26; x++) { if (!alreadyTried[x]) continue; let seen = false; for (let p = 0; p < L; p++) if (revealedMask[p] && currentWord.charCodeAt(p)-65 === x) { seen = true; break; } if (!seen) absent.push(String.fromCharCode(65+x)); }
@@ -9257,12 +9269,13 @@ let _trexqRemoved = null;  // {key,pos,id} mot retiré du len_index (mode Trexqu
 function _trexq_restore(){
   try{ if(_trexqRemoved && typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
     const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){ console.error('[trexq] restore len_index échec — lexique possiblement amputé:', e); }
+  _neoWBL=null;   // AUDIT-FIX : invalider le cache cohorte (splice in-place garde la même référence len_index)
   _trexqRemoved=null;
 }
 function _trexq_removeWord(word){
   try{ if(typeof OMEGA_LEX4==='undefined'||!OMEGA_LEX4||!OMEGA_LEX4.words||!OMEGA_LEX4.len_index) return false;
     const key=String(word.length); const arr=OMEGA_LEX4.len_index[key]; if(!arr) return false;
-    for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; return true; } }
+    for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; _neoWBL=null; return true; } }
   }catch(e){ console.error('[trexq] removeWord échec:', e); }
   return false;
 }

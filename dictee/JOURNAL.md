@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-06-18 — ⛔ FUITE COHORTE trouvée (Rem avait raison) : "97 % OOV" = bidon, vrai OOV ~33 % — CORRIGÉ
+
+Rem : « 97 % Trexquant impossible, le système triche ». **Exact.** Audit du code → bug `_neoWBL` :
+- La cohorte NEO (`_neoCohortMasks`/`_neoPhonCohort`/`_neoPhonCohortDist` → assemblé/jointe/**OS-arb**/muette) lit un
+  cache `_neoWBL` **bâti une fois depuis `OMEGA_LEX4.words[]`** et **jamais invalidé**. Trexquant (`_trexq_removeWord`)
+  et le harnais (`filtered`) ne retirent le mot que du **`len_index`** → le mot "retiré" **restait dans la cohorte**.
+- **Preuve** (même protocole, cohorte reconstruite SANS les mots-test) : 98,3/95,0 % (fuite) → **33,3/33,3 %** (vrai OOV).
+  Fuite **≈ 62-65 pts**. Le vrai OOV est **~33 %** (sous SOTA 50-68 %) : la généralisation sublexicale pure d'OMEGA
+  est **faible**, pas exceptionnelle. Ma §1.6.1 « OS-arb 96,7 % OOV » = **artefact**, **rétractée**.
+- **Fix** : `_neoEnsureWBL()` bâtit la cohorte depuis `len_index` (respecte les retraits) + invalide le cache
+  (changement de référence ; `_trexq_*` annulent `_neoWBL`). **In-lexique inchangé** ; Trexquant aveugle enfin vraiment.
+- **Leçon (doctrine §1/§6)** : un Δ extraordinaire = chercher la fuite, pas pavoiser. Tout chiffre OOV/Trexquant
+  antérieur (§1.1, MAJ CONFIG_REFERENCE) est **à re-mesurer**. Le in-lexique (§1.6) n'est pas touché.
+
+---
+
 ## 2026-06-18 — Accord sujet-verbe à SUJET-NOM (« les enfants joue »→jouent), FP=0 sans lexique de noms
 
 Test terrain Rem : « les enfants joue dans le jardin et ils ont content » → rien (joue = sujet NOM, hors v1 pronom).

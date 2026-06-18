@@ -365,22 +365,41 @@ Garde-fou ci-dessus levé : `M_NEO_OS_ARB_ALPHA`/`M_NEO_OS_ARB_BETA` ajoutés (O
 
 **Sanity** : le neutre (1,1) reproduit **96,8 %** pile (= §1.6 ci-dessus) → plomberie (α,β) validée. **Verdict (barrière §6.4) : aucun (α,β) ne bat DUAL, et biaiser vers la voie lexicale (β<1) *dégrade*** (96,5/96,0 < 96,8). L'hypothèse « pencher lexical → rejoindre DUAL » est **falsifiée** : le mélange convexe **par lettre** (`Σ` pondéré de la distribution-lettre cohorte) ne réplique pas la reconnaissance **MAP par mot** de DUAL — ce sont deux mécanismes de niveaux différents. **Le levier (α,β) propre est clos : la cascade + DUAL reste l'optimum mesuré.** Les params restent OFF-inerte (alternative DRC documentée, ~2× plus rapide, mais non meilleure). Plus rien à mesurer côté arbitrage des declares.
 
-### 1.6.1 — DUAL vs OS-arb en RÉGIME HORS-LEXIQUE (Trexquant) — le verdict s'INVERSE — 2026-06-18
+### 1.6.1 — ⛔ RÉTRACTÉ : les chiffres "OOV/Trexquant" étaient FAUX (fuite cohorte `_neoWBL`) — 2026-06-18
 
-Comble le « effet Trexquant **non mesuré — à vérifier** » de `docs/CONFIG_REFERENCE.md §166`. §1.6 tranchait **in-lexique** (DUAL optimum). Question de Rem : et quand le mot est **retiré du lexique** (Trexquant) ? Harnais `evo/ab_cohort.js trexq` (mode ajouté, mêmes warmup/test/RNG/filtrage OOV que `_omega_trexquant_bench`). Mesuré OOV, warmup 200 / test 60, graines {12345, 777} (N=120/cond, cheat-free : cohorte board-dérivée, mots-test held-out du warmup) :
+> **CE QUI SUIT (table + verdict) EST FALSIFIÉ. Conservé barré pour mémoire honnête (§6).** La cause : un **bug de
+> fuite** trouvé en auditant (challenge de Rem « 97 % OOV impossible, le système triche » — il avait raison).
 
-| OOV (Trexquant) | winrate | err/partie | coups/partie |
+**Bug (`omega-pendu.html` _neoWBL).** La cohorte NEO (`_neoCohortMasks`, `_neoPhonCohort`, `_neoPhonCohortDist`,
+donc l'assemblé/jointe/**OS-arb**/muette) lit un cache `_neoWBL` **bâti une fois depuis `OMEGA_LEX4.words[]`** et
+**jamais invalidé**. Or Trexquant (`_trexq_removeWord`) et le harnais (`ab_cohort` `filtered`) ne retirent le mot
+que du **`len_index`**. Donc le mot "retiré" **restait dans la cohorte** → le declare voyait la réponse. Le
+"hors-lexique" était en réalité **in-lexique déguisé**.
+
+**Preuve (mesurée, même protocole, cohorte reconstruite SANS les mots-test) :**
+| régime | cohorte "telle quelle" (fuite) | VRAI OOV (cohorte sans mot-test) |
+|---|---|---|
+| config cohorte-jointe + OS-arb | **98,3 % / 95,0 %** (≈ le "97 %") | **33,3 % / 33,3 %** |
+→ **fuite ≈ 62-65 pts.** Le **vrai OOV est ~33 %** (sous les repères SOTA 50-68 %) : la généralisation **sublexicale
+pure** d'OMEGA est **faible**, pas exceptionnelle. ~~« OS-arb 96,7 % OOV, optimum hors-lexique, +24 pts »~~ = **artefact de la fuite**.
+
+**Corrigé (2026-06-18).** `_neoEnsureWBL()` bâtit l'index cohorte depuis **`len_index`** (respecte les retraits) +
+invalidation du cache (changement de référence ; `_trexq_*` annulent `_neoWBL`). **In-lexique inchangé** (len_index
+plein = mêmes mots) ; Trexquant aveugle enfin vraiment la cohorte.
+
+**Conséquence sur l'audit.** TOUT chiffre "OOV/Trexquant cheat-free" antérieur à ce fix est **suspect** : §1.1
+(« cohort-board OOV ~78-85 %, coût ~7,5 pts »), §1.5 (« cohorte-jointe seule 94,8 % » — *in-lexique*, OK), et la MAJ
+Trexquant de `CONFIG_REFERENCE`. À **re-mesurer** avec le fix avant tout chiffre OOV. Le in-lexique (§1.6, DUAL/OS-arb
+~96-99 %) n'est **pas** touché (cohorte pleine = comportement voulu en jeu normal).
+
+<details><summary>Table falsifiée (archive)</summary>
+
+| OOV (Trexquant) — ❌ FAUX | winrate | err | coups |
 |---|---|---|---|
-| cohorte-jointe (base) | 72,5 % | 3,16 | 9,21 |
-| + DUAL (lexical) | 75,0 % | 3,30 | 9,28 |
-| **+ OS-arb (fiabilité)** | **96,7 %** | **2,00** | **8,12** |
-| + DUAL + OS-arb (la config combinée) | 96,7 % | 2,00 | 8,12 |
-
-**Verdict — l'arbitrage OS est l'optimum HORS-LEXIQUE (inverse du in-lexique).** OS-arb bat la cascade de **+24,2 pts** (à chaque graine [+21,7, +26,7]), avec **moins d'erreurs ET moins de coups** — barrière §6.4 franchie nettement. Et OS-arb **ne perd quasi rien en OOV** (96,7 % vs 96,8 % in-lexique §1.6) alors que cascade/DUAL **s'effondrent** (~73-75 %). **Mécanisme (le pourquoi, §1) :** OS-arb pondère par **fiabilité relative** des 2 voies DRC → en OOV la voie **lexicale** (cohorte sans le mot) a une fiabilité basse → μ→**sublexicale** (jointe) → robuste. La **cascade** à seuil fixe (jointe conf 0,30) s'abstient et retombe sur la cognition ortho (faible OOV) ; **DUAL** (reconnaisseur lexical MAP) reconnaît un **voisin faux** → mais n'est qu'un **filet** : seul il n'apporte que **+2,5** (pas nuisible — *correction d'un appel smoke N=12 « DUAL fait chuter », qui était du bruit*).
-
-**Cascade = pas un arbitrage** (`omega-pendu.html:7187-7291`) : DUAL écrit `proposed` en premier, le bloc NEO (recall→OS-arb→assemblé) tourne **après** et l'**écrase** quand il déclenche. Donc **DUAL + OS-arb = OS-arb** (identique : 96,7 %, 8,12 coups) — pas de conflit, OS-arb domine ; DUAL y est **neutre/poids mort**. ⚠️ **OS-arb exige `M_NEO_PHON_COHORT_ENABLED` ON** (gate 7237) : si la cohorte board-dérivée est OFF, OS-arb est **inerte** → retour cascade (~9,2-9,3 coups). **Donc des coups ≈ 9,3 en Trexquant = signe que OS-arb ne s'engage pas (cohorte OFF), PAS un bug du declare.**
-
-**Décision proposée (à arbitrer Rem) :** garder **DUAL en in-lexique** (optimum §1.6) ; activer **OS-arb (+ cohorte board)** pour **Trexquant/OOV** où il est l'optimum mesuré. N=120 ici → **confirmer N=400/4 graines** avant un chiffre headline (la magnitude absolue 96,7 % OOV reste à reproduire ; le **relatif** OS-arb≫cascade est, lui, robuste à chaque graine).
+| cohorte-jointe | 72,5 % | 3,16 | 9,21 |
+| + DUAL | 75,0 % | 3,30 | 9,28 |
+| + OS-arb | 96,7 % | 2,00 | 8,12 |
+</details>
 
 ---
 
