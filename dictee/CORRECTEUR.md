@@ -42,8 +42,13 @@ Le cœur du correcteur (détecter + corriger sans corrigé) **marche, avec 0 fau
 discriminateur propre. C'est constructible **sur l'existant** (levier d'accord + `phono_homophones.json`), sans le
 lexique 34 Mo (nécessaire seulement pour la couche « typo / non-mot » et pour élargir `is_verb`).
 
-## Suite (jonctions, dans l'ordre)
-1. **Élargir `is_verb`** via Lexique4 `cgram` (verbe/nom/adj…) → débloque a/à, et/est, on/ont + scale. *(dépend du lexique 34 Mo hors-repo.)*
-2. **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → détection des fautes non-homophones.
-3. **UI semi-directe** dans l'app : réutiliser le panneau « ✍️ Dictée diag » → mode « colle ton texte », surligne +
-   propose + affiche le **stade**. OFF-inerte, R66.
+## Suite (jonctions) — état
+1. ✅ **Plus de règles + couverture verbale élargie** (étape 1) : liste blanche `vlike` + peu/peux/peut, ce/se → 22/24, 0 FP.
+2. ✅ **UI semi-directe** (étape 2) : bouton « 🩹 Correcteur » dans l'app — colle ton texte, souligne les fautes
+   (survol = correction), liste + **stade**, correction en semi-direct (débounce). OFF-inerte, R66. Parité JS↔Python vérifiée.
+3. 🟡 **Lexique4 `cgram`** (étape 3, **branchement prêt**) : `build_cgram.py` extrait les formes verbales (colonne cgram)
+   → `cgram_verbs.json`, que `vlike` charge automatiquement (sinon repli liste blanche). **Bloqué** tant que le
+   `Lexique4.tsv` (34 Mo, hors-repo) n'est pas en `/tmp/lex4/` → lève alors a/à, et/est, on/ont (verbes hors liste) + scale.
+   Reste : embarquer `cgram_verbs.json` dans l'IIFE app (mêmes formes côté navigateur).
+4. ⬜ **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → fautes non-homophones (nécessite le lexique).
+5. ⬜ **Double voie grammaire** (ascendante/descendante) : voir `DICTEE_ROADMAP.md` / discussion en cours.

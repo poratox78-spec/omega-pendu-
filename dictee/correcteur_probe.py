@@ -52,12 +52,25 @@ finit finissent etudie etudient quitte quittent calme creuse vend vendent
 """.split())
 
 
+# Étape 3 : si dictee/cgram_verbs.json existe (généré par build_cgram.py depuis Lexique4), on l'utilise
+# en PLUS de la liste blanche (couverture verbale complète). Sinon, repli transparent sur la liste blanche.
+_CGRAM_PATH = os.path.join(HERE, 'cgram_verbs.json')
+VERB_LEX = set(COMMON_VERBS)
+CGRAM_LOADED = False
+if os.path.exists(_CGRAM_PATH):
+    try:
+        VERB_LEX |= set(json.load(open(_CGRAM_PATH, encoding='utf-8')))
+        CGRAM_LOADED = True
+    except Exception:
+        pass
+
+
 def vlike(T, i):
-    """Verbe EN CONTEXTE, couverture élargie : levier dictée (is_verb) OU liste blanche fréquente."""
+    """Verbe EN CONTEXTE : levier dictée (is_verb) OU lexique verbal (cgram si présent, sinon liste blanche)."""
     if i < 0 or i >= len(T): return False
     if is_verb(T, i): return True
     w = deacc(T[i].lower())
-    return (w in COMMON_VERBS) and not (i > 0 and T[i-1].lower() in NUM_DET)  # « le porte » reste un nom
+    return (w in VERB_LEX) and not (i > 0 and T[i-1].lower() in NUM_DET)  # « le porte » reste un nom
 
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
@@ -194,7 +207,8 @@ CASES = [
 
 
 def main():
-    print("=== PROBE CORRECTEUR — homophones grammaticaux, SANS corrigé (détection + correction) ===\n")
+    print("=== PROBE CORRECTEUR — homophones grammaticaux, SANS corrigé (détection + correction) ===")
+    print(f"  couverture verbale : {'Lexique4 cgram (' + str(len(VERB_LEX)) + ' formes)' if CGRAM_LOADED else 'liste blanche stopgap (cgram absent — voir build_cgram.py)'}\n")
 
     # 1) FAUX POSITIFS sur les 30 phrases CORRECTES du corpus
     fp_corpus = []
