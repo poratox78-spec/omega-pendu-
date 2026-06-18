@@ -1,0 +1,21 @@
+{
+  "_source": "Jeu de validation HELD-OUT (vocabulaire neuf, distinct du corpus dictée et des 24 témoins). Confusions choisies d'après les erreurs FR documentées comme les plus fréquentes (Projet Voltaire ; cegep ; instacorrect : -er/-é, a/à, ce/se, laquelle/lequel). Sert à mesurer la GÉNÉRALISATION du correcteur (les règles sont contextuelles, pas lexicales). Pour de vraies copies en ligne : voir fetch_gec_corpus.py (juancavallotti/multilingual-gec, ~67k FR).",
+  "_format": "[phrase_correcte, mot_declencheur, forme_fautive_injectee, confusion]",
+  "cases": [
+    ["Mon oncle a réparé la clôture", "a", "à", "a/à"],
+    ["Nous partons à la montagne", "à", "a", "a/à"],
+    ["Le facteur oublie son sac", "son", "sont", "son/sont"],
+    ["Les voisins sont absents", "sont", "son", "son/sont"],
+    ["On regarde le ciel", "On", "Ont", "on/ont"],
+    ["Les coureurs ont soif", "ont", "on", "on/ont"],
+    ["Les fermiers nourrissent leurs bêtes", "leurs", "leur", "leur/leurs"],
+    ["Je leur raconte une blague", "leur", "leurs", "leur/leurs"],
+    ["Tu dois ranger ta valise", "ranger", "rangé", "-é/-er"],
+    ["Elle a dessiné un cheval", "dessiné", "dessiner", "-é/-er"],
+    ["Tu peux rester ici", "peux", "peut", "peu/peux/peut"],
+    ["Il reste peu de farine", "peu", "peut", "peu/peux/peut"],
+    ["Mon cousin se repose", "se", "ce", "ce/se"],
+    ["Je choisis ce cadeau", "ce", "se", "ce/se"],
+    ["La forêt est sombre", "est", "et", "et/est"]
+  ]
+}

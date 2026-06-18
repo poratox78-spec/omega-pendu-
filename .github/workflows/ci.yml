@@ -7,10 +7,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.x' }
-      - name: Mesure du diagnostic de dictée (phrases)
+      - name: Mesure du diagnostic de dictée (phrases) + levier grammaire
         run: python3 dictee/diag_sentence.py
+      - name: Correcteur dys (détection + correction, sans corrigé)
+        run: python3 dictee/correcteur_probe.py
+      - name: Validation held-out (vocabulaire neuf)
+        run: python3 dictee/eval_externe.py
+      - name: Boucle descendante (apprend le lexique de genre)
+        run: python3 dictee/descending_probe.py
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Vérif syntaxe du bloc dictée intégré (app)
+      - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)
         run: |
-          node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc dictée se compile');"
+          node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc dictée+correcteur se compile');"

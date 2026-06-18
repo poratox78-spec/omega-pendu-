@@ -18,6 +18,8 @@ dictionnaire, mais comme une **architecture cognitive** sous une contrainte fond
 | Hors-lexique, ortho seul | ~22 % | faiblesse réelle : généralisation sous-lexicale |
 | Plafond oracle (lexique complet) | 98,7 % | la cible *exclue* par doctrine |
 
+> *Nuance d'honnêteté : le 97,5 % cheat-free vaut pour le **scoring-lettre** (aucun lookup dictionnaire pour choisir une lettre). La voie de déclaration « assemblée » lit le **son** du mot cible (`w.p`, prémisse « mot entendu », légitime en dictée) ; pour un cheat-free **intégral** sans aucune lecture du mot, activer la cohorte board-dérivée (rapport §17.5).*
+
 La contribution n'est **pas** un record de winrate (les solveurs lexicaux égalent le score
 in-lexique) — c'est une **méthode** : mesurer avant de croire, falsifier avant de garder,
 distinguer la cognition de l'oracle ; et une cartographie de ce qui généralise (la séquence
@@ -28,7 +30,11 @@ phon→ortho) et de ce qui se heurte à des murs (la capacité du concept).
 Ouvrir **`app/omega-pendu.html`** dans n'importe quel navigateur. Application monolithique
 autonome (code + lexique inlinés), aucun serveur, aucune dépendance.
 
+> ⚠️ **Au démarrage, tous les interrupteurs sont OFF** (le moteur joue alors à ≈ 2,6 %). Cliquez
+> **« ⚙️ Config optimale »** (preset cheat-free, rapport §8.3) **avant** ▶ Start / ▶▶ Auto.
+
 - **▶ Start** lance une partie (mot saisi, ou aléatoire si vide).
+- **⚙️ Config optimale** active la configuration cheat-free de référence (≈ 97,5 % in-lexique).
 - Le panneau de bascules compose la configuration cognitive (voies ortho/phon, OS, bPC, déclarations…).
 - **🎯 Mode Trexquant (hors-lexique)** : quand il est ON, chaque nouvelle partie retire le mot tiré
   du dictionnaire interne (cohorte et recall aveugles) → on regarde OMEGA résoudre du **vrai mot neuf**

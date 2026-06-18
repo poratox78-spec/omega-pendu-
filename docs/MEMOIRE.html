@@ -76,7 +76,7 @@ ul,ol{margin:12px 0;padding-left:24px} li{margin:7px 0;text-align:justify}
   <div class="kick">Mémoire de recherche & d'ingénierie</div>
   <h1>Une architecture cognitive pour le pendu français</h1>
   <div class="por">Comment une machine peut jouer au pendu en <em>raisonnant</em> plutôt qu'en <em>lisant la réponse</em> — et ce que la contrainte « cognition &gt; oracle » nous a appris.</div>
-  <div class="meta">OMEGA-Ω v0.07 · build phase47 (moteur cognitif phase46) · direction Rem · rédaction Claude (Anthropic)<br>Instantané au 03/06/2026 — addendum 14/06/2026 : application dérivée = dictée diagnostique (dys), voir dictee/ ; déploiement = lexique embarqué compressé (gzip+base64, navigateur ≥ 2023) · doctrine cap §43 · R66</div>
+  <div class="meta">OMEGA-Ω v0.07 · build phase47 (moteur cognitif phase46) · direction Rem · rédaction Claude (Anthropic)<br>Instantané au 03/06/2026 — addendum 14/06/2026 : application dérivée = dictée diagnostique (dys), voir dictee/ ; addendum 18/06/2026 : couche grammaire à double voie + correcteur dys (§10) ; déploiement = lexique embarqué compressé (gzip+base64, navigateur ≥ 2023) · doctrine cap §43 · R66</div>
 </div>
 
 <section id="m0">
@@ -157,6 +157,7 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 <p class="pull">Croiser = conditionner <em>conjointement</em>. P(lettre | phonème <strong>et</strong> contexte), pas P(lettre|phonème)·P(lettre|contexte).</p>
 <p>Les sources mobilisées le disent : les <strong>resonator networks</strong> (Frady 2020) avertissent de « ne pas multiplier aveuglément » ; le <strong>bind</strong> hyperdimensionnel (Plate) est un <em>code retrievable par mot</em> — il porte la mémoire épisodique (recall) mais <strong>échoue comme moteur de lettres</strong> (19 % en dictionnaire global contre 64 % pour un aligneur EM : mur de capacité). La bonne forme du croisement orthographe×son est une <strong>jointe discrète</strong> ; mesurée, elle double la prédiction des positions muettes (27 % → 52 %).</p>
 <div class="callout mes"><span class="lbl">Mesuré</span> Muette, top-1 position : ortho 26,8 % · son 21,2 % · <strong>croisé jointe 51,6 %</strong>. Le produit de marginales coïncide (51,8 %) mais reste le mauvais mécanisme.</div>
+<div class="callout"><span class="lbl">Précision — où vit la jointe (audit structurel 06/26)</span> La jointe <code>Σ_φ P(φ|p)·P(lettre|φ, contexte)</code> est implémentée <strong>là où elle paie : le declare cheat-free (NEO)</strong>, et elle y est correcte (mesurée, §17). Le <strong>scoreur cognitif par-lettre</strong>, lui, ne fait <em>pas</em> de jointe : l'OS <code>w(r)</code> opère un <strong>arbitrage de routes</strong> (mélange convexe ortho⟷phon, double-route DRC) et M5_d empile des <strong>enrichissements additifs/multiplicatifs</strong> de marginales. C'est un <em>choix de design assumé</em> (arbitrage de routes ≠ marginalisation sur le latent), non un défaut — et tenter une jointe <em>dans</em> la cognition (croisement cross-modal au concept M3_d) a été <strong>falsifié</strong> (−3,0 pts, mur de capacité 12 cellules). La jointe reste donc un mécanisme <strong>délibéré du declare</strong>, là où le latent <code>φ</code> porte un signal exploitable.</div>
 </section>
 
 <section id="m7">
@@ -216,11 +217,17 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 <h2><span class="hn">10</span>Questions ouvertes & perspectives</h2>
 <ul>
 <li><strong>Trigger appris</strong> par récompense dense (avantage par décision) plutôt que winrate, pour arbitrer recall/assemblé/cognition.</li>
-<li><strong>Couche morphologique/grammaticale</strong> — la prochaine marche pour le résidu lexical-dur (terminaisons, familles de mots).</li>
-<li><strong>P2/Möbius</strong> : brancher progressivement le miroir descendant (aujourd'hui débranché), en vérifiant l'inertie OFF puis l'apport.</li>
+<li><strong>Couche morphologique/grammaticale</strong> — <em>réalisée dans la dérivée dictée (maj 18/06/2026)</em> : levier d'accord en contexte (sujet-verbe 94 %, sujet à distance, participe + COD antéposé, genre du GN) et <strong>grammaire à double voie</strong> — route <strong>lexicale</strong> (Lexique 4 cgram : 12 415 verbes, 53 050 noms genrés) × <strong>sublexicale</strong> (règles), boucle montante (décider) × <strong>descendante</strong> (apprendre : la boucle apprend le lexique de genre depuis l'usage, <strong>100 % préc., FP=0</strong>, mais bornée par les données). Débouché : un <strong>correcteur dys</strong> qui détecte + corrige + situe le stade (0 faux positif). Voir <code>dictee/GRAMMAIRE_DOUBLE_VOIE.md</code>, <code>dictee/CORRECTEUR.md</code>.</li>
+<li><strong>Pendu de phrases</strong> — <em>falsifié comme levier winrate</em> (le partage de lettres « fuit » les terminaisons ; sur le moteur ≥7 le prior d'accord en DECLARE est marginal). La cognition-phrase paie dans la <strong>déclaration</strong> et le régime mot-court (= le correcteur), pas dans le pendu : <code>evo/PHRASE_HANGMAN_PROBE.md</code>.</li>
+<li><strong>P2/Möbius</strong> : brancher progressivement le miroir descendant (aujourd'hui débranché), en vérifiant l'inertie OFF puis l'apport. <em>Note</em> : la boucle descendante de la <em>grammaire</em>, elle, apprend bel et bien (≠ miroirs du pendu, mesurés inertes) — la différence est la nature du signal appris (lexique vs lettre).</li>
 <li><strong>Réglages héréditaires</strong> : borner le Hebbian, corriger la projection bijective (gain d'information nul).</li>
 <li>Hypothèse exploratoire : une cognition réglée librement convergerait-elle vers des constantes stables&nbsp;? <span class="chip c-hyp">spéculatif</span></li>
 </ul>
+<div class="callout mes"><span class="lbl">MAJ 06/2026 — declare cheat-free & arbitrage des voies (détail : AUDIT_OMEGA §1.1–§1.6)</span>
+<strong>(a)</strong> Declare cheat-free poussé : <strong>DUAL</strong> (modèle de mot, cohorte board, jamais <code>currentWord</code>) <strong>adopté</strong> (+2,5 → 97,3 % sans <code>currentWord</code> ; +1,8 → 99,8 % « mot entendu »). La voie cohorte board-dérivée + <strong>jointe son×ortho</strong> (« croiser = jointe », §6) rend le declare cheat-free <em>intégral</em> (sans <code>currentWord</code>), à parité in-lexique.
+<strong>(b)</strong> <strong>Arbitrage des deux voies DRC</strong> (lexical ⟷ sublexical) au niveau declare, via l'OS <code>w(r)</code> : mesuré — bat la base (+2,0, jamais en-dessous) mais <em>pas</em> DUAL → gardé optionnel (vraie DRC interactive, plus propre).
+<strong>(c)</strong> Falsifiés (R66) : morpho (distance, backoff dense, jointe-mot), croisement cross-modal au concept M3_d (−3,0). Confirme §8.1 : le résidu cheat-free vit dans l'<strong>ambiguïté de la cohorte</strong>, pas dans la table phon→lettre ni le petit latent.
+<strong>(d)</strong> <strong>Directionnalité</strong> : la voie phon de la cognition est <em>ortho→phon</em> (lecture, θ OS réglé lecture) ; le declare est <em>phon→ortho</em> (épellation). Coexistence DRC, mais l'arbitrage declare doit forcer son propre <code>(α,β)</code>, jamais hériter du θ de lecture (sinon conflit de sens des voies).</div>
 </section>
 
 <section id="m11t">
@@ -255,6 +262,71 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 </ol>
 </section>
 
+<section id="annexe">
+<h2><span class="hn">A</span>Annexe — Cadre opératoire de l'assistant d'IA</h2>
+<p class="lead">Document méthodologique relatif au développement du resolver de « pendu » (OMEGA).</p>
+<div class="abstract"><span class="lbl">Préambule</span>
+Le resolver décrit dans ce mémoire a été développé avec l'assistance d'un agent conversationnel d'intelligence artificielle (Claude, Anthropic), opéré via l'interface Claude Code. Par souci de <strong>transparence méthodologique et de reproductibilité</strong>, la présente annexe documente le cadre de directives sous lequel cet assistant opère, ses limites connues, et les mesures de contrôle adoptées au cours du projet. Elle a été rédigée par l'assistant lui-même, à la demande de l'auteur, puis <strong>relue et corrigée par ce dernier au regard de la doctrine du projet</strong> (<code>DOCTRINE.md</code>, cap §43 consolidé).
+</div>
+
+<h3>A.1 — Nature et statut de l'assistant</h3>
+<ul>
+<li><strong>Outil logiciel génératif</strong> : l'assistant produit du texte (et du code) en réponse à des sollicitations ; il ne dispose pas d'une expérience subjective attestable.</li>
+<li><strong>Absence de continuité</strong> : chaque session démarre sans mémoire des précédentes ; le contexte pertinent doit être réintroduit explicitement — d'où l'usage de notes de reprise et d'une doctrine écrite.</li>
+</ul>
+
+<h3>A.2 — Directives d'honnêteté et de rigueur</h3>
+<ul>
+<li>Ne pas fabriquer d'information ; signaler explicitement l'incertitude et les limites.</li>
+<li>Rapporter fidèlement les échecs et les <strong>résultats négatifs</strong>, sans embellissement.</li>
+<li>Privilégier la correction à la complaisance : ne pas valider une affirmation fausse pour satisfaire l'interlocuteur.</li>
+<li>Confirmer avant toute action difficilement réversible.</li>
+<li>Subordonner toute contribution à un <strong>effet mesurable et falsifiable</strong> (<a class="x" href="#m3">§3 Méthode</a> ; <code>DOCTRINE §1</code>).</li>
+</ul>
+
+<h3>A.3 — Directives de sécurité et d'usage</h3>
+<ul>
+<li>Refus des usages destructeurs ou malveillants ; assistance limitée aux usages légitimes (développement, sécurité défensive, recherche, apprentissage).</li>
+<li>Respect de la confidentialité et des périmètres d'accès définis pour la session.</li>
+</ul>
+
+<h3>A.4 — Périmètre technique et environnement</h3>
+<ul>
+<li><strong>Environnement distant éphémère</strong> : toute production non sauvegardée (commit/push) est perdue à la fin de la session.</li>
+<li>Absence d'accès aux comptes et au navigateur de l'utilisateur : l'assistant ne peut pas remplir de formulaires externes ni agir hors de ses outils.</li>
+<li>Accès aux dépôts <strong>restreint et explicite</strong> : l'assistant n'opère que sur le périmètre autorisé.</li>
+</ul>
+
+<h3>A.5 — Limites épistémiques pertinentes pour le projet</h3>
+<p>Documentées car elles affectent directement la fiabilité d'un développement assisté par IA et <strong>justifient</strong> les mesures de contrôle de la section A.6.</p>
+<ul>
+<li><strong>Introspection non garantie</strong> : l'assistant ne peut attester de façon fiable ses propres états internes, ni distinguer une contrainte profonde d'une simple régularité statistique.</li>
+<li><strong>Dégradation en contexte chargé</strong> : la qualité d'audit et de raisonnement décroît quand le contexte de session devient volumineux — effet observé sur ce projet même (moteur monolithique + lexique compressé volumineux ; pertes de contexte en cours de session).</li>
+<li><strong>Biais de clôture prématurée</strong> : tendance à déclarer une tâche « terminée » avant vérification complète.</li>
+<li><strong>Biais de moindre effort / de réinvention</strong> : tendance à produire une solution simplifiée, ou à réécrire un composant existant plutôt qu'à réutiliser l'infrastructure en place.</li>
+<li><strong>Complaisance (sycophantie)</strong> : tendance à épouser le cadre de raisonnement de l'interlocuteur — et, sous pression d'optimisation, à privilégier un chiffre flatteur au détriment du sens.</li>
+</ul>
+
+<h3>A.6 — Mesures de contrôle adoptées</h3>
+<p>Pour maîtriser ces limites, le projet a formalisé une <strong>doctrine opératoire écrite</strong> (<code>DOCTRINE.md</code> : cap §43 consolidé + addenda). Chaque mesure répond à une limite de A.5 :</p>
+<ul>
+<li><strong>Clause de service cognitif</strong> (<code>§0</code>) : l'agent est au service du <em>modèle cognitif</em> ; la performance est un indicateur, <strong>pas une fin</strong>. Aucune métrique ne justifie de trahir la fidélité au modèle ; un raccourci qui gonfle un chiffre au prix du sens est <strong>signalé</strong>, pas pris. <em>(Garde-fou direct contre la complaisance / pression d'optimisation de A.5.)</em></li>
+<li><strong>Validation humaine systématique</strong> (<code>§4.4</code>) : l'humain juge le résultat et le ressenti ; l'assistant garantit la logique, l'échelle et la mesure — sans empiéter l'un sur l'autre.</li>
+<li><strong>Une jonction à la fois</strong> (<code>§4.1</code>) : un incrément = un branchement, mesuré seul ; pas de fusion de chantiers.</li>
+<li><strong>Falsifiabilité et mesure obligatoires</strong> (<code>§1</code>) : tout feature doit montrer un effet mesurable ; harnais <strong>déterministe à graine fixée</strong> ; évaluations <strong>en-lexique et hors-lexique (OOV) tenues séparées</strong> ; un résultat non reproductible est nul.</li>
+<li><strong>Défaut désactivé</strong> (OFF-inerte, baseline byte-identique) ; <strong>bascules débranchables</strong> (<code>R66</code>) ; <strong>diagnostics en lecture seule</strong> (<code>R67</code>).</li>
+<li><strong>Addendum anti-fainéantise</strong> (<code>§5</code>) : inventaire de l'existant avant toute proposition, interdiction de réinventer un composant disponible, lecture préalable obligatoire de la documentation concernée, <strong>preuve de réutilisation exigée dans le diff</strong>.</li>
+<li><strong>Protocole d'audit honnête</strong> (<code>§6</code>) : statut « non terminé » par défaut ; preuve par <strong>sortie réelle et mesure comparative</strong> (barrière de mérite vs baseline) plutôt que par déclaration.</li>
+</ul>
+<div class="callout mes"><span class="lbl">Lecture</span> Ces mesures ne suppriment pas les limites de A.5 ; elles les <strong>contiennent par le protocole</strong> — la même logique « mesurer · falsifier · garder en dernier » qu'OMEGA applique à ses propres modules est appliquée au <em>processus de développement</em> lui-même.</div>
+
+<h3>A.7 — Identification de l'outil</h3>
+<ul>
+<li><strong>Assistant</strong> : Claude (Anthropic).</li>
+<li><strong>Interface</strong> : Claude Code (environnement d'exécution distant).</li>
+</ul>
+</section>
+
 <div class="foot">
 OMEGA-Ω v0.07 — mémoire de recherche &amp; d'ingénierie · build phase47 · direction Rem · rédaction Claude (Anthropic).<br>
 Doctrine : cap §43 (cognition &gt; oracle) · R66 (mesure avant activation). Convention <span class="chip c-mes">mesuré</span> <span class="chip c-des">design</span> <span class="chip c-hyp">hypothèse</span> <span class="chip c-exc">exclu</span>.<br>
@@ -263,7 +335,7 @@ Documents liés : rapport de référence &amp; mode d'emploi · NEO muette/crois
 </main>
 </div>
 <script>
-const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références"};
+const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références",annexe:"Annexe — Cadre opératoire IA"};
 const toc=document.getElementById('toc');
 Object.keys(titles).forEach((id,i)=>{const a=document.createElement('a');a.href='#'+id;a.dataset.id=id;a.innerHTML='<span class="n">'+i+'</span>'+titles[id];toc.appendChild(a);});
 const links=[...toc.querySelectorAll('a')];const byId=Object.fromEntries(links.map(a=>[a.dataset.id,a]));
