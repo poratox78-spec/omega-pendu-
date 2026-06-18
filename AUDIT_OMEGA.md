@@ -401,6 +401,47 @@ Trexquant de `CONFIG_REFERENCE`. À **re-mesurer** avec le fix avant tout chiffr
 | + OS-arb | 96,7 % | 2,00 | 8,12 |
 </details>
 
+### 1.7 — Pourquoi le VRAI OOV est si bas (~33 %) — et le FIX (n-gram de lettres, 33→59 %) — 2026-06-18
+
+Question de Rem : « avec bigrammes/trigrammes + cognition, l'hybride DEVRAIT faire mieux que 33 %. Trouve pourquoi. »
+Et : « lexique ≠ mot » (le lexique porte des stats sous-lexicales, pas que des mots entiers). Mesuré (moteur corrigé
+`_neoWBL`, VRAI OOV, warmup 200 / test 60 / 2 graines sauf indication ; **N=120, SE≈±4 pts**) :
+
+| condition (VRAI OOV) | winrate | coups |
+|---|---|---|
+| **baseline n-gram TRIVIAL** (positionnel uni/bi/tri, **pré-calculé du lexique**, mots-test exclus) | **57,5 %** | — |
+| OMEGA hybride complet (voie phon + cognition + NEO) | **32,5 %** | 9,9 |
+| OMEGA cognition SEULE (declares OFF) | **8,3 %** | 10,2 |
+| OMEGA hybride, warmup **1500** (vs 200) | **23,3 %** | 9,9 |
+| **OMEGA hybride + voie n-gram de lettres ON (le FIX)** | **59,2 %** | **9,6** |
+
+**Diagnostic (mécanisme, §1) — le signal EST dans le lexique (57,5 % par un n-gram trivial), OMEGA le gaspille :**
+1. **Stats sous-lexicales apprises DU JEU, pas du lexique.** `_neoCR`/`_neoCRS`/g2p sont remis à `{}` à l'init et
+   remplis **post-partie** (≈200 mots au warmup) — vs un n-gram qui pré-calcule sur ~250k mots. Famine de données.
+2. **Médiation par PHONÈMES** (son→phonème→graphème) = un saut lossy ; le n-gram reste en espace LETTRES (ce qu'EST
+   l'orthographe du lexique).
+3. **La cognition ne généralise pas en sous-lexical** (8 % seule) — concept/position = détecteurs globaux/longueur
+   (§1.4.2). ~2/3 de l'archi = poids mort pour l'OOV.
+4. **« Plus de données = pire »** (32,5 %→23,3 % de warmup 200→1500) : un composant appris-du-jeu **sur-s'engage** sur
+   les patterns typiques → faux sur les mots OOV atypiques.
+
+**⚠️ Hypothèse CORRIGÉE (honnêteté §6).** J'avais d'abord attribué (4) au **recall** (mémorisation k-NN sur mots
+entiers). **Mesure : FAUX.** recall OFF donne 30,8 % (w200) / 21,7 % (w1500) ≈ recall ON (32,5/23,3) → **le recall
+n'est NI le dégradeur NI un gros contributeur**, et la dégradation persiste sans lui. La cause exacte de (4) reste
+**non isolée** (probablement la table jointe phonème→lettre `_neoCRS` qui sur-s'engage en se remplissant ; à N=120
+une part est du bruit). À mesurer (jointe/θ figés) si on veut la trancher — mais c'est rendu **secondaire** par le fix.
+
+**FIX livré (`M_NEO_LETTER_NGRAM`, OFF-inerte, R66).** `_neoEnsureNG()`/`_neoLetterNgram()` : n-gram positionnel de
+lettres (backoff tri→bi→uni) **pré-calculé depuis `len_index`** (respecte Trexquant ; cheat-free : board révélé +
+stats agrégées du lexique, jamais `currentWord` ; 1 mot/250k = non récupérable). Branché dans la cascade declare.
+**Mesuré : 32,5 → 59,2 % OOV (+26,7 pts), moins de coups (9,9→9,6)**, au-dessus du baseline trivial (57,5 %) et dans la
+bande SOTA (~50-65 %, cf. `docs/HANGMAN_SOTA.md`). **Immunisé contre (4)** : il n'apprend pas du jeu → pas de
+dégradation avec les parties. P1 (recall ON) = P2 (recall OFF) = 59,2 % : une fois le n-gram en tête, il porte la
+décision. **Le levier = AGRÉGATION (n-gram du lexique), pas MÉMORISATION ni apprentissage-par-jeu.**
+
+**À faire** : décider du défaut (le brancher dans la config OOV/Trexquant ? le croiser avec la cohorte-jointe via OS-arb ?),
+confirmer N=400/4 graines, et isoler proprement la cause de (4) si on veut comprendre la dégradation à fond.
+
 ---
 
 ## 2. Findings structurels (par sévérité)

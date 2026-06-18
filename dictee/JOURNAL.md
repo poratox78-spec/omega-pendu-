@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-06-18 — Pourquoi l'OOV est bas + FIX n-gram de lettres (33→59 %) + recall innocenté (AUDIT §1.7)
+
+Suite Rem : « l'hybride DEVRAIT faire mieux que 33 %, lexique ≠ mot, trouve pourquoi ». Mesuré (vrai OOV, N=120) :
+- n-gram TRIVIAL pré-calculé du lexique = **57,5 %** → le signal EST là, OMEGA le gaspille.
+- Causes : stats sous-lexicales **apprises du jeu** (~200 mots, pas du lexique) · **médiées par phonèmes** (lossy) ·
+  cognition **8 %** (ne généralise pas) · « plus de données = pire » (32,5→23,3 % de warmup 200→1500).
+- **FIX** `M_NEO_LETTER_NGRAM` (OFF-inerte) : n-gram positionnel de lettres pré-calculé depuis `len_index`
+  (cheat-free, respecte Trexquant). **32,5 → 59,2 % OOV (+26,7 pts), moins de coups.** Immunisé contre la dégradation.
+- **⚠️ Correction honnête** : j'avais accusé le **recall** (mémorisation) de la dégradation « plus de données = pire ».
+  **Mesure : FAUX** — recall OFF ≈ recall ON (30,8/21,7 vs 32,5/23,3), la dégradation persiste sans lui. Cause exacte
+  non isolée (probablement `_neoCRS` jointe qui sur-s'engage ; part de bruit à N=120). Rendu secondaire par le fix.
+- Leçon : le levier OOV = **AGRÉGATION** (n-gram du lexique), pas mémorisation ni apprentissage-par-jeu. Cf. `docs/HANGMAN_SOTA.md`.
+
+---
+
 ## 2026-06-18 — ⛔ FUITE COHORTE trouvée (Rem avait raison) : "97 % OOV" = bidon, vrai OOV ~33 % — CORRIGÉ
 
 Rem : « 97 % Trexquant impossible, le système triche ». **Exact.** Audit du code → bug `_neoWBL` :
