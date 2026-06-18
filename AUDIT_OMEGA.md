@@ -193,6 +193,27 @@ Lecture : (a) M1_m **ne discrimine le mot qu'à hauteur de la fréquence brute**
 
 → **Conséquence pour la décision de défaut.** Le débat ON/OFF est secondaire (les deux ~égaux) ; le vrai sujet est **en amont** : (i) le concept M3_d/M3_m discrimine-t-il les lettres, ou est-il lui-même un détecteur de longueur (S2) ? (ii) faut-il **câbler** la correction concept/position → lettre (et dans quel sens, ortho↔phon) ? Prochain pas instrumenté : mesurer si `M3_m`/`M2_m` portent un signal **spécifique au mot** (sinon recâbler M1_m ne sert à rien — la racine serait le concept, audit §3 prédiction-masquée).
 
+#### 1.4.2 — Diag amont (concept/position) + statut documenté — 2026-06-17 · H2 CONFIRMÉE
+
+Diagnostic `evo/diag_mirror.js` (R67, cognition, warmup 200 / test 80) — le concept/position portent-ils un signal **spécifique au mot** (H1) ou sont-ils **globaux/longueur** (H2) ?
+
+| Mesure | Résultat | Lecture |
+|---|---|---|
+| (A) cellules concept vivantes | **7/12** ; cellule **#10 domine 79 %** | 1 concept pour presque tout |
+| (B) test détecteur de longueur | **1 cellule modale (#10) sur 6 longueurs** (56–87 %) | signature **détecteur de longueur** |
+| (C) `M3_d.output` norme | **0,000** | sous bPC le concept ne passe pas par `M3_d.output` (découplé) |
+| (D) `M2_m.zonePenalty` variance inter-mots | **2,1·10⁻⁶ ≈ 0** | position **globale** aussi |
+
+**Verdict : H2.** Concept et position sont **globaux/longueur**, pas spécifiques au mot. **Recâbler M1_m←M3_m/M2_m ne propagerait rien** — la racine est le **mur de capacité des 12 cellules** (S2/§3), pas la connexion de M1_m.
+
+**Déjà documenté + solution essayée/falsifiée (réponse « appliquée ou non ») :**
+- `notes/M3D-reconnexion-FALSIFIE.md` (03/06) mesurait déjà le collapse (cross-mot cosine **0,9479**, 1 cellule 35/39, 9/12 mortes ; `M3_d.output=0` sous bPC). Mes chiffres le **reproduisent**.
+- Solution tentée = **câbler concept→M4** (le mot rappelé injecté comme concept dans le scoring) → **FALSIFIÉE −1,33**, *« contamine le scoring-lettre… le chemin concept→M4 est le mauvais endroit. Ne pas reproposer. »* **Revertée, non appliquée.**
+- Principe Rem documenté (`notes/NEO-muette-croisement.md`) = celui de cette session : *« si ça ne rend pas au système, on a mal câblé, pas l'approche »* ; la fix-câblage qui a marché là = le **trigger** (gate sur l'incertitude cognition) → rend la brique **neutre**, pas un levier.
+- **Non essayé** : prédiction-masquée des 12 cellules (audit §3) — mais **même mur de capacité** (AUC familiarité 0,64 à K=12). Le flux qui marche est documenté : **phon→ortho** (assemblé +5,28) et **declare** (recall +1,76), pas concept→lettre.
+
+→ **Bilan jonction M1_m.** Mécanisme prouvé + amont diagnostiqué + littérature interne croisée : M1_m ne peut pas gagner ses 0,1 (prior fréquence redondant) **et** la « réparation par connexion » est un **cul-de-sac documenté** (concept global + concept→scoring falsifié). Le toggle R66 reste l'acquis net (débranchable + mesuré). Décisions ouvertes pour Rem : (a) défaut OFF (mécanisme-justifié, plus simple) ; (b) tenter la prédiction-masquée §3 (haut risque, mur de capacité) ; (c) pivot **sens du flux phon→ortho** (la force mesurée).
+
 ---
 
 ## 2. Findings structurels (par sévérité)
