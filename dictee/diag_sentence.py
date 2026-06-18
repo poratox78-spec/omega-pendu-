@@ -18,6 +18,15 @@ def governor_number(T,idx):
         if w in NUM_PRON: return (T[j],NUM_PRON[w])
         if w in NUM_DET:  return (T[j],NUM_DET[w])
     return None
+# POS-contexte (léger) : formes verbales finies/aux du corpus (deacc, sans participes = accord à part).
+VERB_FORMS={'dort','jouent','boit','court','lit','met','mangeons','ecrit','chantent','repetent','creuse',
+            'porte','prennent','sont','vend','eteignent','galopent','faut','finisses','etudient','tombent',
+            'est','aurait','restions','cachait','quittent','calme','attendaient','furent','poursuivirent','avons','a'}
+def is_verb(T,idx):
+    """Verbe EN CONTEXTE : forme verbale connue ET non précédée d'un déterminant.
+    Résout l'homographie nom/verbe du français : « le lit/la porte » (nom) vs « papa lit/elle porte » (verbe)."""
+    if not (0<=idx<len(T)) or deacc(T[idx].lower()) not in VERB_FORMS: return False
+    return not (idx>0 and T[idx-1].lower() in NUM_DET)
 def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
 def norm(w):
     """graphème → pseudo-son (approx) : 2 graphies qui normalisent pareil = soundalike (surface)."""
@@ -45,17 +54,16 @@ def is_accord(t,s):
     ra,rb=a[p:],b[p:]
     return (ra!=rb) and all(c in INFL for c in ra+rb)
 
-def accord_type(t,s):
-    """Type d'accord (GRAINE du levier grammaire — heuristique SANS POS, donc approximative).
-    nombre (pluriel -s/-x) · verbal (3e pers. pluriel -ent/-nt, ou -t) · genre (féminin -e). Le levier
-    grammaire complet exigera la catégorie grammaticale (POS) + l'accord à distance (sujet-verbe, participe)."""
+def accord_type(t,s,verb=False):
+    """Type d'accord. Avec POS-contexte (`verb`) : verbal prime (désambigue genre -e vs verbal -e).
+    Sinon par le suffixe : nombre (-s/-x) · genre (-e). nt/-t résiduel → verbal."""
+    if verb: return 'verbal'
     a,b=deacc(t.lower()),deacc(s.lower()); p=0
     while p<len(a) and p<len(b) and a[p]==b[p]: p+=1
-    ra,rb=a[p:],b[p:]; suf=ra+rb
-    if ra.endswith('nt') or rb.endswith('nt'): return 'verbal'   # -ent / -nt (3e pers. pluriel)
+    suf=a[p:]+b[p:]
     if 's' in suf or 'x' in suf: return 'nombre'                 # pluriel -s/-x
-    if 't' in suf: return 'verbal'                               # -t (verbe/participe)
-    if 'e' in suf: return 'genre'                                # féminin -e (ambigu verbal sg sans POS)
+    if suf.endswith('nt') or 't' in suf: return 'verbal'        # -ent/-nt/-t sans POS (rare hors verbe)
+    if 'e' in suf: return 'genre'                                # féminin -e
     return 'flexion'
 
 def diag_word(t,s,fam):
@@ -107,11 +115,12 @@ def diagnose_sentence(cible, eleve, fam):
             facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
         fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
-        if 'accord' in types:                                  # LEVIER GRAMMAIRE
-            fact['accord_type']=accord_type(t,s)
+        if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte)
+            verb=is_verb(T,ti)                                 # nom/verbe désambiguïsé par le contexte
+            fact['accord_type']=accord_type(t,s,verb)
             gov=governor_number(T,ti)                          # remonte au sujet/gouverneur (contexte phrase)
             if gov:
-                rel='sujet-verbe' if fact['accord_type']=='verbal' else 'groupe nominal'
+                rel='sujet-verbe' if verb else 'groupe nominal'
                 fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
                 fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
             else:
@@ -258,11 +267,19 @@ if __name__=='__main__':
                     fa=next((x for x in f if x.get('mot')==w and 'accord' in x.get('types',[])),None)
                     if fa:
                         gv_tot+=1; gv_ok+=1 if fa.get('grammaire') else 0
-                        if accord_type(w,h)=='verbal': sv_tot+=1; sv_ok+=1 if fa.get('grammaire')=='sujet-verbe' else 0
+                        if is_verb(T,i): sv_tot+=1; sv_ok+=1 if fa.get('grammaire')=='sujet-verbe' else 0
                     break
     print('=== levier GRAMMAIRE (accord en CONTEXTE — la dictée de phrases paie) ===')
     print(f"  gouverneur (sujet/GN) identifié sur erreur d'accord : {gv_ok}/{gv_tot} = {100*gv_ok/max(1,gv_tot):.0f}%")
-    print(f"  accord SUJET-VERBE détecté (sur accords verbaux)     : {sv_ok}/{sv_tot} = {100*sv_ok/max(1,sv_tot):.0f}%")
+    print(f"  accord SUJET-VERBE détecté (verbe en contexte)      : {sv_ok}/{sv_tot} = {100*sv_ok/max(1,sv_tot):.0f}%")
+    # POS-contexte : désambiguïsation nom/verbe des homographes (le piège du français)
+    homo=[(0,'lit','nom'),(4,'lit','verbe'),(2,'verre','nom'),(12,'porte','verbe'),(26,'calme','verbe')]
+    print('  désambiguïsation homographes nom/verbe :', end=' ')
+    for idx,word,exp in homo:
+        T=toks(SENT[idx]['text']); pos=[k for k,w in enumerate(T) if w.lower()==word]
+        got='verbe' if (pos and is_verb(T,pos[0])) else 'nom'
+        print(f"{word}@{idx}={got}{'✓' if got==exp else '✗('+exp+')'}", end='  ')
+    print()
 
     # démo (par mot + STADE)
     print('\n--- démo ---')
