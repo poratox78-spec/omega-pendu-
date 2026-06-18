@@ -1270,6 +1270,13 @@ footer {
         <div class="toggle-desc">mélange convexe sublexical⟷lexical · alternative propre à la cascade</div>
       </div>
     </div>
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_LETTER_NGRAM" title="🔠 NEO · n-gram de LETTRES (sublexicale pré-calculée) : tables positionnelles uni/bi/tri PRÉ-CALCULÉES depuis TOUT le lexique (len_index) au 1er usage — PAS apprises du jeu, PAS médiées par phonèmes. À chaque position blanche : backoff trigramme(voisins révélés)→bigramme→unigramme, somme des probas, tire la lettre non essayée la plus probable. Cheat-free (board révélé + stats agrégées du lexique, jamais le mot caché ; respecte Trexquant via len_index). Conçu après l'audit OOV : un n-gram trivial fait ~57% OOV vs ~33% pour l'hybride (la cognition généralise ~8% seule, le recall MÉMORISE et empire avec les données) — AUDIT_OMEGA §1.7. OFF-inerte par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🔠 NEO · n-gram de lettres (pré-calculé)</div>
+        <div class="toggle-desc">stats positionnelles du lexique (≠ apprises du jeu) · cible le vrai OOV</div>
+      </div>
+    </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
@@ -6151,9 +6158,46 @@ let M_NEO_OS_ARB = false;                    // ARBITRAGE OS niveau DECLARE : m�
 let M_NEO_OS_ARB_CONF = 0.0;                 // seuil sur la lettre mélangée (0 = tire la meilleure non essayée)
 let M_NEO_OS_ARB_ALPHA = 1.0;                // (α,β) PROPRES à l'arbitrage DECLARE (≠ θ de lecture). Défaut 1/1 = forme neutre μ=r/(1+r) → byte-identique à l'ancien comportement. Mesurables (balayage R66, AUDIT_OMEGA §1.6).
 let M_NEO_OS_ARB_BETA = 1.0;                 // β<1 → favorise la voie lexicale (cohorte) ; β>1 → favorise la sublexicale (jointe) ; α = raideur de la bascule sur r=sigLex/sigSub.
+let M_NEO_LETTER_NGRAM = false;             // VOIE N-GRAM DE LETTRES (sublexicale pure) : tables positionnelles uni/bi/tri PRÉ-CALCULÉES depuis tout le lexique (len_index) — pas apprises du jeu. Cheat-free (lit le board révélé + stats agrégées du lexique, jamais currentWord caché). OFF-inerte (R66). Conçu après l'audit OOV : un n-gram trivial fait ~57% OOV vs hybride 33% (AUDIT_OMEGA §1.7).
+let M_NEO_LETTER_NGRAM_CONF = 0.0;          // seuil sur le score-lettre (0 = tire la meilleure lettre non essayée)
 let _neoWF = null;                           // cache word→fréquence (voie lexicale, board-dérivé légitime pour DECLARE)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 let _neoWBLsrc = null;                       // référence len_index ayant servi à bâtir _neoWBL (invalidation du cache)
+// === VOIE N-GRAM DE LETTRES (sublexicale pure, PRÉ-CALCULÉE du lexique) — réponse à l'audit OOV (§1.7) ===
+// Pourquoi : OMEGA apprenait ses stats sous-lexicales DU JEU (tables _neoCR/_neoCRS remplies post-partie, ~200 mots)
+// + médiées par phonèmes (lossy) + polluées par le recall (mémorisation). Un n-gram de LETTRES pré-calculé sur tout
+// le lexique fait ~57% OOV (mesuré) vs ~33% pour l'hybride. Ici on l'expose en voie cheat-free, OFF-inerte.
+let _neoNG = null, _neoNGsrc = null;         // {uni,bl,br,tri} n-grams positionnels de lettres (clé "L|pos[|voisin]") → dist(26)
+function _neoEnsureNG(){
+  if (_neoNG && _neoNGsrc === OMEGA_LEX4.len_index) return;
+  _neoNG = { uni:{}, bl:{}, br:{}, tri:{} }; _neoNGsrc = OMEGA_LEX4.len_index;
+  const add = (o,k,c) => { (o[k] || (o[k] = new Float64Array(26)))[c]++; };
+  const addWord = (w) => { const L = w.length; for (let p=0;p<L;p++){ const c=w.charCodeAt(p)-65; if(c<0||c>=26) continue;
+    add(_neoNG.uni, L+'|'+p, c);
+    if (p>0) add(_neoNG.bl, L+'|'+p+'|'+w[p-1], c);
+    if (p<L-1) add(_neoNG.br, L+'|'+p+'|'+w[p+1], c);
+    if (p>0 && p<L-1) add(_neoNG.tri, L+'|'+p+'|'+w[p-1]+'|'+w[p+1], c); } };
+  const LI = OMEGA_LEX4.len_index, WD = OMEGA_LEX4.words;       // depuis len_index = respecte Trexquant (vrai OOV) ; cheat-free (stats agrégées, 1 mot/250k = négligeable et non récupérable)
+  if (LI) { for (const key in LI) { const arr = LI[key]; for (let i=0;i<arr.length;i++){ const w=WD[arr[i]]; if (w&&w.m) addWord(w.m); } } }
+  else { for (const w of WD) { if (w&&w.m) addWord(w.m); } }
+}
+function _neoLetterNgram(){                  // décide une lettre via le n-gram de lettres (backoff tri→bi→uni positionnel). Rend une lettre ou null.
+  _neoEnsureNG(); const L = currentWord.length, NG = _neoNG;
+  const score = new Float64Array(26);
+  for (let p=0;p<L;p++){ if (revealedMask[p]) continue;
+    const left = (p>0 && revealedMask[p-1]) ? currentWord.charAt(p-1) : null;   // voisins = positions RÉVÉLÉES seulement (public)
+    const right = (p<L-1 && revealedMask[p+1]) ? currentWord.charAt(p+1) : null;
+    let d = null;
+    if (left && right) d = NG.tri[L+'|'+p+'|'+left+'|'+right];
+    if (!d && left) d = NG.bl[L+'|'+p+'|'+left];
+    if (!d && right) d = NG.br[L+'|'+p+'|'+right];
+    if (!d) d = NG.uni[L+'|'+p];
+    if (!d) continue; let s=0; for (let x=0;x<26;x++) s+=d[x]; if (s<=0) continue;
+    for (let x=0;x<26;x++) if (!alreadyTried[x]) score[x] += d[x]/s;
+  }
+  let best=-1, bl=-1; for (let x=0;x<26;x++){ if (alreadyTried[x]) continue; if (score[x]>best){ best=score[x]; bl=x; } }
+  return (bl>=0 && best>M_NEO_LETTER_NGRAM_CONF) ? String.fromCharCode(65+bl) : null;
+}
 function _neoEnsureWBL(){
   // AUDIT-FIX (2026-06-18) : bâtir l'index cohorte depuis OMEGA_LEX4.len_index (RESPECTE les retraits Trexquant/
   // filtrés), PAS depuis words[]. Bug trouvé : _neoWBL était caché depuis words[] → Trexquant retirait du len_index
@@ -7245,6 +7289,10 @@ function omegaStep() {
         if (_ncompat && _nrc.margin > M_DECLARE_NEO_RECALL_MARGIN) {
           for (let p = 0; p < _nrc.w.length; p++) { const li = _nrc.w.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li] && !revealedMask[p]) { proposed = _nrc.w.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.rH++; } break; } }
         }
+      }
+      if (M_NEO_LETTER_NGRAM && !_neoDone) {   // VOIE N-GRAM DE LETTRES (sublexicale pré-calculée du lexique) — cheat-free, OFF-inerte
+        const _lg = _neoLetterNgram();
+        if (_lg) { proposed = _lg; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }
       if (M_NEO_OS_ARB && M_NEO_PHON_COHORT_ENABLED && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical)
         const _ar = _neoDeclareOSmix();
@@ -9271,13 +9319,13 @@ let _trexqRemoved = null;  // {key,pos,id} mot retiré du len_index (mode Trexqu
 function _trexq_restore(){
   try{ if(_trexqRemoved && typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
     const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){ console.error('[trexq] restore len_index échec — lexique possiblement amputé:', e); }
-  _neoWBL=null;   // AUDIT-FIX : invalider le cache cohorte (splice in-place garde la même référence len_index)
+  _neoWBL=null; _neoNG=null;   // AUDIT-FIX : invalider les caches cohorte + n-gram (splice in-place garde la même référence len_index)
   _trexqRemoved=null;
 }
 function _trexq_removeWord(word){
   try{ if(typeof OMEGA_LEX4==='undefined'||!OMEGA_LEX4||!OMEGA_LEX4.words||!OMEGA_LEX4.len_index) return false;
     const key=String(word.length); const arr=OMEGA_LEX4.len_index[key]; if(!arr) return false;
-    for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; _neoWBL=null; return true; } }
+    for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; _neoWBL=null; _neoNG=null; return true; } }
   }catch(e){ console.error('[trexq] removeWord échec:', e); }
   return false;
 }
