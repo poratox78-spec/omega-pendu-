@@ -229,7 +229,9 @@ Diagnostic `evo/diag_mirror.js` (R67, cognition, warmup 200 / test 80) — le co
 
 Robuste 3 graines : GAP NET = **+0,028 / +0,020 / +0,028** (12345/777/2024), variance 1,5–1,8·10⁻³.
 
-**Verdict (tranche la thèse « sens des flux »).** Le miroir **ortho** descendant ne porte que de la fréquence (mort, M1_m) ; le miroir **phon** descendant porte un signal **spécifique au mot, au-delà de la fréquence** (+0,02–0,03). **C'est la confirmation que la direction phon→ortho est la bonne** (cohérent assemblé +5,28, mémoire). Nuances honnêtes avant tout chantier : (i) `M4_phon_m` est **déjà consommé** (3590) quand la voie phon est active → le signal est déjà partiellement utilisé ; le gain à chercher = le **router/pondérer** mieux, ou réveiller les dormants `M2/M1_phon_m` *sur la voie phon* (à mesurer, pas acquis) ; (ii) effet **winrate** non encore mesuré (ici = discrimination de lettres, pas Δ victoires) ; (iii) le bug d'init impose de re-mesurer les A/B voie-phon avec init correct. Outil : `evo/diag_phonm.js`.
+**Verdict (tranche la thèse « sens des flux »).** Le miroir **ortho** descendant ne porte que de la fréquence (mort, M1_m) ; le miroir **phon** descendant porte un signal **spécifique au mot, au-delà de la fréquence** (+0,02–0,03). **C'est la confirmation que la direction phon→ortho porte un signal là où l'ortho n'en porte pas** (cohérent assemblé +5,28, mémoire). Nuances honnêtes : (i) `M4_phon_m` est **déjà consommé** (3590) quand la voie phon est active → le signal est déjà partiellement utilisé ; (ii) le bug d'init impose de re-mesurer les A/B voie-phon avec init correct (fait, §1.4.4). Outil : `evo/diag_phonm.js`.
+
+**(a) MESURÉ — le signal phon descendant ne se traduit PAS en winrate (`evo/ab_phonfb.js`, 2026-06-17).** A/B `M_PHON_FEEDBACK` ON vs OFF, voie phon active (init corrigé), cognition, in-lex K=1, warmup 200 / test 100, 8 graines : **ON 91,4 % · OFF 91,8 % · Δ −0,4** · par graine `[+2,−1,+1,−6,−1,+1,+2,−1]` (4 gains / 4 pertes). **Le signal +0,028 existe (discrimination réelle) mais est winrate-inert** — comme M1_m. Le routage actuel (biais multiplicatif 3590) ne le convertit pas en victoires (cognition + OS tranchent déjà la lettre sans lui). → réveiller les dormants `M2/M1_phon_m` est *a fortiori* peu prometteur (l'effectif `M4_phon_m` n'aide déjà pas).
 
 #### 1.4.4 — Dette d'intégrité : repro §1.2/§1.3 (jointe) re-mesurée voie phon ACTIVE → l'avantage DISPARAÎT — 2026-06-17
 
@@ -247,6 +249,17 @@ Conséquence directe du bug §1.4.3, traitée avant tout nouveau chantier (« b 
 **Verdict.** Le « +2,5 / jamais en-dessous » du §1.2/§1.3 (qui justifiait l'adoption de la **jointe cheat-free**) était un **artefact du harnais voie-phon-inerte**. Voie phon active : **jointe ≈ argmax** (−0,4, perd 3/8). **L'adoption de la jointe est à rouvrir.** Bornes honnêtes : (a) **affecté** = repros headless in-lexique (§1.2/§1.3) ; **OOV §1.1 non affecté** (CFG_OOV met la voie phon OFF volontairement) ; (b) ça **n'infirme pas le principe** doctrinal « croiser = jointe » (§3) — seulement *cette preuve empirique* ; (c) le **bench in-page** (UI) ré-init la voie phon au toggle → potentiellement OK, c'est la **mesure headless** qui était fausse. Rejouable : `node evo/ab_cohort.js inlex 200 100 12345,777,2024,99,2025,7,314,1000`.
 
 > ⚠️ **Marqueur sur §1.1/§1.2/§1.3** : les chiffres in-lexique de ces sous-sections (et la conclusion « jointe adoptée ») ont été obtenus **voie phon inerte** (bug §1.4.3). À relire à la lumière de §1.4.4. L'OOV (§1.1) reste valide.
+
+#### Bilan §1.4 — les voies descendantes (miroir) : motif unique
+
+Investigation lancée sur l'intuition Rem « M1_m/M3_m mal connectés, problème de connexions et de sens des flux ». Mesuré, bout à bout :
+
+1. **Miroir ortho `M1_m`** (0,1) : prior de fréquence global, redondant, **winrate-inert** → défaut **OFF** (§1.4.1).
+2. **Concept/position `M3_m`/`M2_m`** : globaux/détecteurs de longueur (1 cellule = 79 %) ; réparation concept→M4 **déjà falsifiée** (−1,33, §1.4.2).
+3. **Miroir phon `M4_phon_m`** : porte un vrai signal **spécifique au mot** (+0,028, ≠ ortho) **mais winrate-inert** dans le routage actuel (§1.4.3 + (a) §1.4.3).
+4. **Bonus** : la correction du bug d'init a montré que l'**adoption de la jointe** reposait sur un harnais voie-phon-inerte → **à rouvrir** (§1.4.4).
+
+**Motif unique (cohérent avec la doctrine et les notes) :** *aucune des voies descendantes ne convertit en winrate, quelle que soit la direction.* Le signal qui gagne est **ascendant** — assemblé phon→ortho (+5,28) et recall (+1,76), via le **declare**, pas via la correction descendante (cf. `M3D-reconnexion-FALSIFIE` : « le chemin concept→M4 est le mauvais endroit »). La thèse « sens des flux » de Rem est **validée et bornée** : la bonne direction *porte* bien plus de signal côté phon, mais c'est l'**ascendant** (décode), pas le **descendant** (miroir), qui fait gagner. Conséquence : les dormants `M2/M1_phon_m` = **hygiène S3** (pas de levier attendu) ; chantier winrate = côté **ascendant/declare** (déjà la force d'OMEGA).
 
 ---
 
