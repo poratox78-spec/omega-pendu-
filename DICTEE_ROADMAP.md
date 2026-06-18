@@ -4,6 +4,15 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-06-18) — où on en est
+- ✅ **Dictée de phrases** (`diag_sentence.py`) : familles **100 %** ; intégrée app (« ✍️ Dictée diag »).
+- ✅ **Levier grammaire** : sujet-verbe (94 %), sujet à distance, participe (être / avoir+COD antéposé), **genre du GN** (déterminant + **route lexicale** `lexical_gender`), homographes nom/verbe, **stades développementaux**.
+- ✅ **Correcteur dys** (`correcteur_probe.py` + app « 🩹 Correcteur ») : détecte+corrige **sans corrigé**, **0 FP** ; 22/24 in-corpus, **12/15 held-out** (vocabulaire neuf). UI clic-pour-corriger + stade.
+- ✅ **Lexique4 reçu** → `build_cgram.py` : verbes (12 415) + genre (53 050) + **sous-ensemble HF embarqué** dans l'app.
+- ✅ **Grammaire double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) : route lexicale (cgram) + boucle **descendante** (apprend le lexique de genre, 100 % préc., FP=0, *data-bound*).
+- ❌ **FALSIFIÉ** : pendu de phrases comme levier winrate (`evo/PHRASE_HANGMAN_PROBE.md`) — banc, pas débouché.
+- ⏳ **Prochain goulot = DONNÉES** : vraies copies corrigées (orthophonistes / corpus en ligne `fetch_gec_corpus.py`) → valident le correcteur ET nourrissent la boucle descendante.
+
 ## Pourquoi cette direction (rappel décision)
 - La **force mesurée** d'OMEGA est **phon→ortho** (70 % hors-lexique, 97-98 % en lexique) — la dictée *est* cette tâche.
 - Son **profil de défaite est une signature de dyslexie phonologique** (§11.2 mémoire : 96 % des défaites = paire phonétiquement proche ; **58 % voisée/sourde** P/B, T/D, K/G, F/V, S/Z).

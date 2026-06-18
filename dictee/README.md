@@ -42,6 +42,12 @@ La dictée diagnostique est un **panneau additif** du fichier OMEGA unique (bout
 
 > **MAJ 2026-06-14 — cadre = DICTÉE DE PHRASES** (audit : la dictée de mots isolés est mal posée pour 84 % des mots à cause des homophones/accords). Le moteur de référence est `diag_sentence.py` (corpus `sentences.json`), intégré dans `app/omega-pendu.html` (panneau « ✍️ Dictée diag », mode phrases). Les fichiers mot-isolé (`diagnostic.py`, `test_set.tsv`, `word_pool.json`) sont **legacy**.
 
+## Correcteur dys & grammaire à double voie
+- **Levier grammaire** (dans `diag_sentence.py`) : accord en contexte (sujet-verbe, sujet à distance, participe être/avoir+COD, **genre du GN** + route lexicale `lexical_gender`), homographes nom/verbe, **stades développementaux**.
+- **Correcteur** : `correcteur_probe.py` (détecte+corrige les homophones grammaticaux **sans corrigé**, 0 FP) ; panneau app « 🩹 Correcteur » (clic-pour-corriger + stade). Détail : `CORRECTEUR.md`.
+- **Lexique4 → cgram** : `build_cgram.py` génère `cgram_verbs.json` / `cgram_gender.json` / `cgram_hf.json` (embarqué app). Régénérer : `python3 dictee/build_cgram.py` (attend `/tmp/lex4/Lexique4.tsv`).
+- **Double voie** : `GRAMMAIRE_DOUBLE_VOIE.md` (route lexicale × sublexicale, boucle montante × descendante `descending_probe.py`). Held-out : `eval_externe.py` ; loader corpus en ligne : `fetch_gec_corpus.py`.
+
 ## Validation terrain (vraies copies dys)
 - `build_validation_sheet.py` → génère `validation_terrain.html` : fiche imprimable (protocole anonymisé · feuille examinateur avec grille de relevé expert↔outil · feuille élève en lignes vierges · synthèse + taux d'accord). Régénérer : `python3 dictee/build_validation_sheet.py`, puis ouvrir l'HTML au navigateur (Ctrl+P pour imprimer/PDF). Sert à **mesurer l'accord** entre le diagnostic automatique et le jugement de l'orthophoniste (doctrine §4 : le juge est humain).
 
