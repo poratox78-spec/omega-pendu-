@@ -10,23 +10,47 @@ INFL=set('setxn')
 NUM_DET={'le':'sg','la':'sg','un':'sg','une':'sg','ce':'sg','cet':'sg','cette':'sg','mon':'sg','ton':'sg','son':'sg','ma':'sg','ta':'sg','sa':'sg','notre':'sg','votre':'sg','leur':'sg',
          'les':'pl','des':'pl','ces':'pl','mes':'pl','tes':'pl','ses':'pl','nos':'pl','vos':'pl','leurs':'pl'}
 NUM_PRON={'je':'sg','tu':'sg','il':'sg','elle':'sg','on':'sg','nous':'pl','vous':'pl','ils':'pl','elles':'pl'}
-def governor_number(T,idx):
+PREP={'de','à','a','du','des','au','aux','sur','dans','par','pour','avec','sans','sous','chez','vers','près','pres',
+      'travers','malgré','malgre','dès','entre','depuis','contre'}   # (2) déterminant après prép = PP, pas le sujet
+def governor_number(T,idx,skip_pp=False):
     """Gouverneur d'accord = pronom sujet ou déterminant le plus proche À GAUCHE → (mot, nombre).
-    Donne le NOMBRE du sujet/du GN (le contexte de la phrase = la raison d'être de la dictée de PHRASES)."""
+    (2) skip_pp : pour un VERBE/participe-être, saute les déterminants de groupe prépositionnel
+        (« le ver DE LA terre creuse » → sujet = « le ver », pas « la terre »)."""
     for j in range(idx-1,-1,-1):
         w=T[j].lower()
         if w in NUM_PRON: return (T[j],NUM_PRON[w])
-        if w in NUM_DET:  return (T[j],NUM_DET[w])
+        if w in NUM_DET:
+            if skip_pp and j>0 and deacc(T[j-1].lower()) in PREP: continue   # det de PP → on cherche le vrai sujet
+            return (T[j],NUM_DET[w])
     return None
-# POS-contexte (léger) : formes verbales finies/aux du corpus (deacc, sans participes = accord à part).
+# POS-contexte : formes verbales finies/aux du corpus (deacc). (3) + repli morphologique pour scaler hors-corpus.
 VERB_FORMS={'dort','jouent','boit','court','lit','met','mangeons','ecrit','chantent','repetent','creuse',
             'porte','prennent','sont','vend','eteignent','galopent','faut','finisses','etudient','tombent',
             'est','aurait','restions','cachait','quittent','calme','attendaient','furent','poursuivirent','avons','a'}
+VERB_SUF=('ons','ez','aient','ait','erent','irent','issent')   # (3) suffixes verbaux peu ambigus (PAS -ent : adverbes/noms)
+NOTVERB={'longtemps','ensemble','vraiment','souvent','comment','patiemment','rapidement'}
 def is_verb(T,idx):
-    """Verbe EN CONTEXTE : forme verbale connue ET non précédée d'un déterminant.
-    Résout l'homographie nom/verbe du français : « le lit/la porte » (nom) vs « papa lit/elle porte » (verbe)."""
-    if not (0<=idx<len(T)) or deacc(T[idx].lower()) not in VERB_FORMS: return False
+    """Verbe EN CONTEXTE : forme verbale (lexique corpus OU repli morphologique) ET non précédée d'un déterminant.
+    Résout l'homographie nom/verbe : « le lit/la porte » (nom) vs « papa lit/elle porte » (verbe)."""
+    if not (0<=idx<len(T)): return False
+    w=deacc(T[idx].lower())
+    known = (w in VERB_FORMS) or (w not in NOTVERB and len(w)>3 and any(w.endswith(s) for s in VERB_SUF))
+    if not known: return False
     return not (idx>0 and T[idx-1].lower() in NUM_DET)
+# (1) PARTICIPE PASSÉ : agrée avec le SUJET via être, invariable via avoir (sauf COD antéposé).
+AUX_ETRE={'est','sont','furent','fut','etait','etaient','sera','seront','suis','es','sommes','etes','soit'}
+AUX_AVOIR={'a','ont','avons','avez','ai','as','avait','avaient','aurait','aura','auront','aurais','eu'}
+PART_FORMS={'arrive','arrives','arrivee','arrivees','peint','peints','peinte','peintes','cueilli','cueillie',
+            'cueillis','cueillies','trouve','trouves','trouvee','trouvees','prefere','preferes','preferee',
+            'preferees','abandonne','abandonnes','abandonnee','abandonnees'}
+def is_participle(T,idx): return 0<=idx<len(T) and deacc(T[idx].lower()) in PART_FORMS
+def find_aux(T,idx):
+    """Auxiliaire le plus proche à gauche (fenêtre courte) d'un participe → 'etre' | 'avoir' | None."""
+    for j in range(idx-1,max(-1,idx-5),-1):
+        w=deacc(T[j].lower())
+        if w in AUX_ETRE: return 'etre'
+        if w in AUX_AVOIR: return 'avoir'
+    return None
 def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
 def norm(w):
     """graphème → pseudo-son (approx) : 2 graphies qui normalisent pareil = soundalike (surface)."""
@@ -116,15 +140,27 @@ def diagnose_sentence(cible, eleve, fam):
         types=diag_word(t,s,fam.get(t.lower(),[]))
         fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
         if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte)
-            verb=is_verb(T,ti)                                 # nom/verbe désambiguïsé par le contexte
-            fact['accord_type']=accord_type(t,s,verb)
-            gov=governor_number(T,ti)                          # remonte au sujet/gouverneur (contexte phrase)
-            if gov:
-                rel='sujet-verbe' if verb else 'groupe nominal'
-                fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
-                fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
+            if is_participle(T,ti):                            # (1) PARTICIPE PASSÉ
+                aux=find_aux(T,ti); fact['accord_type']='participe'
+                if aux=='etre':
+                    gov=governor_number(T,ti,skip_pp=True)     # (2) accord avec le SUJET (à distance)
+                    fact['grammaire']='participe passé (être)'
+                    if gov: fact['gouverneur'],fact['gouv_nombre']=gov[0],gov[1]; fact['msg']+=f' (participe passé avec être : accord avec le sujet « {gov[0]} » {gov[1]})'
+                    else:   fact['msg']+=' (participe passé avec être : accord avec le sujet)'
+                elif aux=='avoir':
+                    fact['grammaire']='participe passé (avoir)'; fact['msg']+=' (participe passé avec avoir : invariable, sauf COD antéposé)'
+                else:
+                    fact['grammaire']='participe passé'; fact['msg']+=' (participe passé)'
             else:
-                fact['msg']+=f' (accord: {fact["accord_type"]})'
+                verb=is_verb(T,ti)                             # nom/verbe désambiguïsé par le contexte
+                fact['accord_type']=accord_type(t,s,verb)
+                gov=governor_number(T,ti,skip_pp=verb)         # (2) verbe → vrai sujet (saute les PP)
+                if gov:
+                    rel='sujet-verbe' if verb else 'groupe nominal'
+                    fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
+                    fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
+                else:
+                    fact['msg']+=f' (accord: {fact["accord_type"]})'
         facts.append(fact)
     return facts
 
@@ -280,6 +316,24 @@ if __name__=='__main__':
         got='verbe' if (pos and is_verb(T,pos[0])) else 'nom'
         print(f"{word}@{idx}={got}{'✓' if got==exp else '✗('+exp+')'}", end='  ')
     print()
+    # (1) participe passé détecté ? (sur les participes du corpus à homophone flexionnel)
+    pp_tot=pp_ok=0
+    for e in SENT:
+        T=toks(e['text']); fam=e['fam']
+        for i,w in enumerate(T):
+            if not is_participle(T,i): continue
+            for h in fam.get(w.lower(),[]):
+                if h.lower()!=w.lower() and is_accord(w,h):
+                    f=diagnose_sentence(e['text'],' '.join(T[:i]+[h]+T[i+1:]),fam)
+                    fa=next((x for x in f if x.get('mot')==w),None)
+                    if fa: pp_tot+=1; pp_ok+=1 if fa.get('grammaire','').startswith('participe') else 0
+                    break
+    print(f"  (1) participe passé détecté : {pp_ok}/{pp_tot}")
+    # (2) sujet à distance (PP déterminé intercalé) — démo synthétique : le bon NOMBRE n'est trouvé qu'avec skip_pp
+    Td=toks("Les vers de la terre creusent")    # sujet pluriel « Les vers », PP « de la terre » (sg) intercalé
+    vi=[k for k,w in enumerate(Td) if w.lower()=='creusent'][0]
+    g0=governor_number(Td,vi); g1=governor_number(Td,vi,skip_pp=True)
+    print(f"  (2) sujet à distance « Les vers de la terre creusent » : sans skip={g0} (faux) · skip_pp={g1} (vrai sujet)")
 
     # démo (par mot + STADE)
     print('\n--- démo ---')
