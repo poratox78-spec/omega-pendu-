@@ -68,7 +68,37 @@ Balayage (eps, conf), baseline P0 (sans accord) = 89 lettres pour tout déclarer
 **→ meilleure config sûre : eps=0,10 conf=0,80 → +9,0 %, 0 fausse déclaration.** Le mou **bat** le dur (+6,7 %)
 ET est principiel : comme eps>0 ne retire jamais la vraie cible, on règle la vitesse sans jamais inventer (≠ argmax).
 
-## Prochaine jonction — sur le VRAI moteur (honnêteté : c'est un build, pas un réglage)
+## Mode phrase sur le VRAI moteur — MESURÉ (et c'est une falsification utile)
+Construit : (1) monolithe — flag `M_DECLARE_ACCORD_PRIOR_ENABLED` (défaut OFF, R66 byte-identique) + hook
+`_omega_accordPriorFn` qui multiplie le poids des candidats dans `_omega_declareBestCandidate` (jointe §3,
+poids ∈ ]0,1], jamais 0) ; (2) harnais `evo/phrase_engine_bench.js` qui joue chaque mot **≥7** d'une phrase
+avec la **vraie route lexicale + vraies fréquences**, prior d'accord OFF vs ON, sur les 30 phrases.
+
+| conf | gagnés OFF→ON | erreurs OFF→ON |
+|---|---|---|
+| 0.65 | 51→49 (**−2**) | 174→174 (0) |
+| 0.75 | 49→50 (**+1**) | 203→197 (**−6**) |
+| 0.85 | 47→49 (**+2**) | 199→210 (**+11**) |
+| 0.95 | 43→45 (**+2**) | 211→219 (**+8**) |
+(64 mots ≥7 joués, dont 55 accord-décidables.)
+
+**Verdict honnête : effet MARGINAL et non robuste.** Au mieux +2 gagnés/64 (~+3 %) à conf élevée, mais souvent
+au prix de +erreurs, et **négatif** à conf basse. **Le +9 % du probe NE se transfère PAS au vrai moteur.**
+
+### Pourquoi (le mécanisme, sans quoi un Δ ne vaut rien)
+1. **Le moteur exclut les mots < 7 lettres** (`const MIN_WORD_LEN=7`, lexique embarqué ≥7) — c'est exactement
+   là que l'accord **décide** (verte/vert, chat/chats, dort/dors). Sur les ≥7, la longueur+motif désambiguïsent déjà.
+2. **La fréquence lexicale réelle `w.f` domine déjà** : pour un mot long, elle concentre la masse sur la bonne
+   forme ; l'accord ajoute peu, et parfois **lutte** contre la fréquence (d'où les +erreurs à conf élevée).
+3. DECLARE seul fait déjà l'essentiel du travail sur les ≥7 (8→47–56 gagnés/64) : l'accord y est redondant.
+
+### Conséquence (doctrine §0/§6 : le pendu est une unité de mesure, pas le but)
+La valeur du levier accord est **DIAGNOSTIQUE** (la dictée, livrée) et vit dans le **régime mot-court**, pas dans
+le DECLARE ≥7 du moteur. Hook gardé **OFF-inerte** (R66), documenté comme mesuré-marginal — comme `M1_m` :
+on ne garde pas actif ce qui ne se mesure pas. **L'idée « pendu de phrases unique » est tranchée par la mesure :
+la cognition phrase paie en DÉCLARATION et sur les mots courts — pas dans le moteur ≥7 actuel.**
+
+## (Référence) Prochaine jonction envisagée avant mesure — sur le VRAI moteur (build, pas réglage)
 Le moteur joue des **mots isolés** : il n'a **pas de mode phrase** ni de contexte inter-mots. Câbler ce prior dans
 les briques DECLARE (`M_WORD_DECLARE` / `M_BPC_DECLARE`) suppose donc d'abord **un mode phrase** (jouer les mots
 d'une phrase en partageant un contexte + exposer la distribution de candidats du DECLARE pour la pondérer par

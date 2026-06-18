@@ -1824,6 +1824,8 @@ const M_WORD_DECLARE_MAX_CANDIDATES = 1;   // seuil de certitude (1 = sûr, chea
 let M_WORD_DECLARE_CONF = 1.0;             // Brique 1b : seuil de confiance — 1.0 = 100% sûr (candidat unique, inerte) ; <1.0 = PARI sur le candidat top (masse f ≥ conf)
 let M_BPC_DECLARE_ENABLED = false;          // Brique 1c (27/05) : declare BPC — combine freq × M3_d.cLetterScore (concept). Necessite M_BPC_M3D_ENABLED ON.
 let M_BPC_DECLARE_CONF    = 0.60;           // seuil confiance bpc (top1_score / sum_scores >= conf -> declare)
+let M_DECLARE_ACCORD_PRIOR_ENABLED = false; // Jonction PHRASE : pondère les candidats de _omega_declareBestCandidate par un prior d'ACCORD molle (jointe §3, contexte phrase). MESURÉ MARGINAL (evo/phrase_engine_bench.js) : ≤+2 gagnés/64, parfois +erreurs ; le moteur exclut les mots <7 où l'accord décide, et w.f domine déjà sur les ≥7. DÉFAUT OFF (baseline byte-identique). La valeur du levier accord est DIAGNOSTIQUE (dictée), pas dans le DECLARE ≥7.
+let _omega_accordPriorFn = null;            // (mot)->poids accord ∈ ]0,1] (fixé par le harnais phrase selon le gouverneur révélé) ; null/OFF = inerte.
 let M3_D_BYPASS_ENABLED = false;            // DIAGNOSTIC falsification R66 : ON => concept M3_d muet (cLetterScore=0 + output->null vers M_S). OFF = inerte (baseline byte-identique).
 let M_TREXQUANT_MODE_ENABLED = false;       // Mode jouable : à chaque Nouvelle partie, le mot tiré est retiré du len_index (cohorte/recall aveugles) → OMEGA le résout HORS-LEXIQUE (généralisation phon→ortho). Restauré au tour suivant. OFF par défaut.
 let M_IG_SELECT_ENABLED = false;           // Brique 2 : sélection par gain d'information (Lindley 1956, ex-v0.06)
@@ -5988,7 +5990,8 @@ function _omega_declareBestCandidate(currentWord, revealedMask, alreadyTried, co
       }
     }
     if (!ok) continue;
-    const wt = (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001;   // poids = fréquence lexicale
+    let wt = (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001;   // poids = fréquence lexicale
+    if (M_DECLARE_ACCORD_PRIOR_ENABLED && _omega_accordPriorFn) wt *= _omega_accordPriorFn(wMot);  // jonction phrase : × prior accord (jointe §3) — OFF = inerte
     sumW += wt;
     if (wt > bestW) { bestW = wt; bestMot = wMot; }
   }
