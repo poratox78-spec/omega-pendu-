@@ -51,7 +51,28 @@ filtre dur sur la politique gloutonne).
 distinctif et **mesurable**, c'est un solveur qui **comprend la phrase à partir de moins d'information** grâce à la
 morphosyntaxe. Le bon banc n'est pas les lettres fausses (le jeu les fuit) mais la **déclaration**.
 
-## Prochaine jonction (si on continue)
-Câbler le prior d'accord, **en version molle (jointe §3)**, dans la brique **DECLARE** du moteur
-(`M_WORD_DECLARE` / `M_BPC_DECLARE`), mesuré contre le baseline DECLARE actuel (débranchable, défaut OFF, R66).
-C'est là que les +6,7 % (probablement plus en mou) deviennent du winrate/erreurs réels du pendu.
+## Jonction §3 livrée : DECLARE MOU (jointe) > filtre dur (argmax)
+Remplacé le filtre dur par un **posterior** `P(cand) ∝ poids`, où l'incompatible vaut **eps (jamais 0)** ; on déclare
+un mot quand `max posterior ≥ conf`. Banc à **ordre de révélation fixe** (les deux bras révèlent les lettres dans le
+même ordre → ablation pure du prior, sans l'effet de bord de la politique gloutonne qui causait le −1 en métrique 2).
+
+Balayage (eps, conf), baseline P0 (sans accord) = 89 lettres pour tout déclarer :
+
+| eps | conf | reveals P1 | Δ vs P0 | fausses déclarations |
+|----|----|----|----|----|
+| 0.10 | 0.80 | 81 | **+8 (+9,0 %)** | 0 ✅ |
+| 0.10 | 0.85–0.90 | 82 | +7 (+7,9 %) | 0 ✅ |
+| 0.20 | 0.80 | 82 | +7 (+7,9 %) | 0 ✅ |
+| (conf/eps élevés) | | 89 | +0 % | 0 ✅ (revient au baseline) |
+
+**→ meilleure config sûre : eps=0,10 conf=0,80 → +9,0 %, 0 fausse déclaration.** Le mou **bat** le dur (+6,7 %)
+ET est principiel : comme eps>0 ne retire jamais la vraie cible, on règle la vitesse sans jamais inventer (≠ argmax).
+
+## Prochaine jonction — sur le VRAI moteur (honnêteté : c'est un build, pas un réglage)
+Le moteur joue des **mots isolés** : il n'a **pas de mode phrase** ni de contexte inter-mots. Câbler ce prior dans
+les briques DECLARE (`M_WORD_DECLARE` / `M_BPC_DECLARE`) suppose donc d'abord **un mode phrase** (jouer les mots
+d'une phrase en partageant un contexte + exposer la distribution de candidats du DECLARE pour la pondérer par
+l'accord). C'est une **fonctionnalité**, pas une jonction — débranchable, défaut OFF, R66 (baseline byte-identique).
+Plan : (1) harnais phrase autour du moteur (`evo/`), (2) hook prior externe OFF-inerte dans `_omega_declareBestCandidate`,
+(3) mesure DECLARE baseline vs +accord-mou. Plafond visé = ~+9 % (lettres pour « comprendre » la phrase).
+À décider : ce plafond justifie-t-il le mode phrase dans le monolithe ?

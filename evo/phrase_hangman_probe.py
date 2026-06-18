@@ -76,42 +76,41 @@ def is_accord_target(T, i):
     return True
 
 
-def agreement_filter(cands, T, i):
-    """Garde, dans la cohorte, les candidats COMPATIBLES avec l'accord déduit du contexte révélé.
-    N'exclut que l'INCOMPATIBLE (ne jette jamais la vraie cible si l'accord est correct). Retourne (cohorte_filtrée, applique?)."""
+def cand_compatible(c, T, i):
+    """Le candidat (terminaison) est-il COMPATIBLE avec l'accord déduit du contexte ? True si compatible OU non-décidable
+    (cible de classe fermée, gouverneur absent, 1re/2e pers.). Ne renvoie False que sur un INCOMPATIBLE net."""
     if not is_accord_target(T, i):
-        return cands, False
-    verb = D.is_verb(T, i) or D.is_participle(T, i)
-    if verb:
+        return True
+    sig = cand_signature(c)
+    if D.is_verb(T, i) or D.is_participle(T, i):
         gov = D.governor_number(T, i, skip_pp=True)
         if not gov:
-            return cands, False
+            return True
         tok, num = gov[0].lower(), gov[1]
-        if tok in ('je', 'tu', 'nous', 'vous'):          # 1re/2e pers. : règle de terminaison moins nette → on s'abstient
-            return cands, False
-        keep = []
-        for c in cands:
-            sig = cand_signature(c)
-            if num == 'sg' and (sig['v3pl'] or sig['plur']):   # 3e sg : jamais -nt (3pl) ni -s (1/2sg)
-                continue
-            if num == 'pl' and not sig['v3pl']:                # 3e pl : terminaison -nt obligatoire
-                continue
-            keep.append(c)
-        return (keep if keep else cands), (len(keep) != len(cands) and len(keep) > 0)
+        if tok in ('je', 'tu', 'nous', 'vous'):          # 1re/2e pers. : règle de terminaison moins nette → neutre
+            return True
+        if num == 'sg' and (sig['v3pl'] or sig['plur']):  # 3e sg : jamais -nt (3pl) ni -s (1/2sg)
+            return False
+        if num == 'pl' and not sig['v3pl']:               # 3e pl : terminaison -nt obligatoire
+            return False
+        return True
     else:
         gov = D.governor_number(T, i)
         if not gov:
-            return cands, False
+            return True
         num = gov[1]
-        keep = []
-        for c in cands:
-            sig = cand_signature(c)
-            if num == 'pl' and not sig['plur']:           # GN pluriel : nom/adj marqué -s/-x
-                continue
-            if num == 'sg' and sig['plur']:               # GN singulier : pas de -s/-x
-                continue
-            keep.append(c)
-        return (keep if keep else cands), (len(keep) != len(cands) and len(keep) > 0)
+        if num == 'pl' and not sig['plur']:               # GN pluriel : nom/adj marqué -s/-x
+            return False
+        if num == 'sg' and sig['plur']:                   # GN singulier : pas de -s/-x
+            return False
+        return True
+
+
+def agreement_filter(cands, T, i):
+    """Filtre DUR (cap §3 = argmax, gardé pour la métrique 2 / comparaison) : ne garde que le compatible."""
+    keep = [c for c in cands if cand_compatible(c, T, i)]
+    applied = 0 < len(keep) < len(cands)
+    return (keep if keep else cands), applied
 
 
 def consistent(cand, true, revealed, tried):
@@ -217,6 +216,77 @@ def play(text, fam, use_prior):
             'reveals_to_pin': reveals_to_pin, 'pinned_at_zero': pinned_at_zero, 'nwords': len(words)}
 
 
+def phrase_reveal_order(words):
+    """Ordre CANONIQUE de révélation des lettres (partagé par les deux bras → ablation pure du prior, sans
+    confusion liée à la politique gloutonne) : couverture phrase décroissante, puis fréquence FR."""
+    from collections import Counter
+    cnt = Counter()
+    for w in words:
+        for c in set(w):
+            cnt[c] += 1
+    return sorted(cnt, key=lambda L: (-cnt[L], FREQ_RANK.get(L, 99)))
+
+
+def soft_declare(text, fam, eps, conf, use_prior):
+    """DECLARE MOU (cap §3 — jointe, pas argmax) : posterior P(cand) ∝ poids, incompatible = eps (JAMAIS 0).
+    On déclare un mot quand max posterior ≥ conf. Mesure : lettres révélées avant que TOUS soient déclarés,
+    et déclarations FAUSSES. Même ordre de révélation pour les deux bras (ablation pure)."""
+    T = D.toks(text)
+    words = [board(w) for w in T]
+    cand_sets = [candidates(w, fam) for w in T]
+    order = phrase_reveal_order(words)
+    revealed = [[False] * len(w) for w in words]
+    tried = set()
+    declared = [False] * len(words)
+    dtime = [None] * len(words)
+    misdeclare = 0
+
+    def try_declare(wi, rd):
+        nonlocal misdeclare
+        if declared[wi]:
+            return
+        coh = [c for c in cand_sets[wi] if consistent(c, words[wi], revealed[wi], tried)]
+        if not coh:
+            coh = [words[wi]]
+        wts = [(1.0 if cand_compatible(c, T, wi) else eps) if use_prior else 1.0 for c in coh]
+        s = sum(wts)
+        bi = max(range(len(coh)), key=lambda k: wts[k])
+        post = wts[bi] / s if s > 0 else 0.0
+        if post >= conf:
+            declared[wi] = True
+            dtime[wi] = rd
+            if coh[bi] != words[wi]:
+                misdeclare += 1
+
+    for wi in range(len(words)):
+        try_declare(wi, 0)
+    rd = 0
+    for L in order:
+        for wi in range(len(words)):
+            for p in range(len(words[wi])):
+                if words[wi][p] == L:
+                    revealed[wi][p] = True
+        tried.add(L)
+        rd += 1
+        for wi in range(len(words)):
+            try_declare(wi, rd)
+        if all(declared):
+            break
+    for wi in range(len(words)):
+        if dtime[wi] is None:
+            dtime[wi] = rd
+    return {'reveals_all': max(dtime) if dtime else 0, 'sum_declare': sum(dtime),
+            'misdeclare': misdeclare, 'nwords': len(words)}
+
+
+def soft_totals(eps, conf, use_prior):
+    ra = sd = mis = 0
+    for e in SENT:
+        r = soft_declare(e['text'], e['fam'], eps, conf, use_prior)
+        ra += r['reveals_all']; sd += r['sum_declare']; mis += r['misdeclare']
+    return ra, sd, mis
+
+
 def main():
     err0 = err1 = pin0 = pin1 = pz0 = pz1 = acc = nwords = mis0 = mis1 = 0
     per = []
@@ -247,9 +317,28 @@ def main():
         print('     phrases où le prior fait identifier plus tôt :')
         for d, txt, x, y in sorted(per, reverse=True)[:8]:
             print(f'        Δ={d:+d}  (pin {x}→{y})  « {txt} »')
-    print('\n  Lecture : Métrique 1 ≈ 0 attendu (le jeu fuit les fins). Si Métrique 2 Δ>0,')
-    print('            le prior d\'accord fait « comprendre la phrase » à partir de MOINS de lettres')
-    print('            → la valeur est dans la DÉCLARATION, pas l\'évitement de lettres fausses (§0 : cognition mesurable).')
+    # -- Métrique 3 : DECLARE MOU (jointe §3, pas argmax) — même ordre de révélation, balayage (eps, conf) --
+    base_ra, base_sd, _ = soft_totals(0.15, 0.85, use_prior=False)   # P0 = uniforme (déclare à cohorte=1)
+    print('\n  -- Métrique 3 : DECLARE MOU (jointe §3) vs argmax dur — banc à ordre de révélation FIXE --')
+    print(f'     baseline P0 (sans accord) : reveals→tout-déclaré = {base_ra}')
+    print('     eps  conf | reveals(P1)  Δ vs P0      déclarations fausses')
+    best = None
+    for eps in (0.10, 0.20, 0.30):
+        for conf in (0.80, 0.85, 0.90, 0.95):
+            ra, sd, mis = soft_totals(eps, conf, use_prior=True)
+            d = base_ra - ra
+            mark = '✅' if mis == 0 else '⚠️'
+            print(f'     {eps:.2f} {conf:.2f} |   {ra:4d}      {d:+4d} ({d/max(1,base_ra)*100:+5.1f} %)   {mis} {mark}')
+            if mis == 0 and (best is None or ra < best[2]):
+                best = (eps, conf, ra, d)
+    if best:
+        print(f'     → meilleure config SÛRE (0 fausse déclaration) : eps={best[0]:.2f} conf={best[1]:.2f} '
+              f'→ {best[3]:+d} lettres ({best[3]/max(1,base_ra)*100:+.1f} %)')
+    print('\n  Lecture :')
+    print('   · Métrique 1 ≈ 0 : le pendu de phrases FUIT les fins (mauvais banc pour le prior).')
+    print('   · Métrique 2/3 > 0 : le prior d\'accord fait « comprendre la phrase » à partir de MOINS de lettres')
+    print('     → la valeur est dans la DÉCLARATION (briques DECLARE), pas l\'évitement de lettres fausses (§0).')
+    print('   · §3 : le DECLARE MOU (jointe, eps>0) ne retire jamais la vraie cible → réglable SANS déclaration fausse.')
 
 
 if __name__ == '__main__':
