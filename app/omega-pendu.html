@@ -530,6 +530,10 @@ body::before {
 .toggle-item.cfg-optim.on { border-color: #2ea043; background: rgba(46,160,67,0.12); }
 .toggle-item.cfg-triche { border-left: 3px solid #e5534b; }
 .toggle-item.cfg-triche.on { border-color: #e5534b; background: rgba(229,83,75,0.14); }
+.toggle-item.cfg-option { border-left: 3px solid #3b82f6; }
+.toggle-item.cfg-option.on { border-color: #3b82f6; background: rgba(59,130,246,0.12); }
+.toggle-item.cfg-orange { border-left: 3px solid #e8920c; }
+.toggle-item.cfg-orange.on { border-color: #e8920c; background: rgba(232,146,12,0.13); }
 .toggle-switch {
   width: 28px;
   height: 16px;
@@ -711,6 +715,13 @@ footer {
   font-family: var(--mono);
 }
 .canary { font-style: italic; margin-top: 6px; opacity: 0.6; }
+/* status-pill (état chargement lexique) + barre meta — restaurés (AUDIT_STRUCTUREL §U3) */
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 6px; font-family: var(--mono); font-size: 11px; color: var(--fg-mute); }
+.meta strong { color: var(--fg-dim); }
+.status-pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-family: var(--mono); font-size: 10.5px; font-weight: 600; border: 1px solid var(--border); color: var(--fg-mute); }
+.status-pill.gray { color: var(--fg-mute); border-color: var(--border); background: rgba(110,118,129,.10); }
+.status-pill.green { color: var(--green); border-color: var(--green); background: rgba(163,217,119,.12); }
+.status-pill.red { color: var(--red); border-color: var(--red); background: rgba(244,113,116,.12); }
 </style>
 <!-- ═══════════════════════════════════════════════════════════════
      LEXIQUE 4 EMBEDDED · 20 000 mots top-freq · 2.78 MB minified
@@ -777,6 +788,7 @@ footer {
     <div class="game-controls">
       <input type="text" class="input-word" id="input-word" placeholder="Mot à deviner (≥7 lettres)" maxlength="20">
       <button class="btn primary" onclick="ui_startGame()">▶ Start</button>
+      <button class="btn primary" onclick="applyReferenceConfig()" title="Active la configuration optimale CHEAT-FREE (preset rapport §8.3). À cliquer en premier : au démarrage tous les interrupteurs sont OFF (≈ 2,6 %).">⚙️ Config optimale</button>
       <button class="btn" onclick="ui_runStep()">+1 Tick</button>
       <button class="btn" onclick="ui_runUntilEnd()">▶▶ Auto</button>
       <button class="btn danger" onclick="ui_abortGame()">Abort</button>
@@ -1132,7 +1144,7 @@ footer {
         <div class="toggle-desc">concept M3_d -&gt; declare mot — CONF: <input id="bpc-declare-conf" type="number" value="0.95" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_BPC_DECLARE_CONF=Math.max(0,Math.min(1,parseFloat(this.value)||0.95))"> (sweet 0,95)</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_DECLARE_DUAL_ENABLED" title="🦴 Declare DUAL (cheat-free) : declare via le board-buffer (coups publics revelees), JAMAIS currentWord. Cohort board + fusion freq x ortho(bigramme lex4) x phon(AQUA g2p). Force une lettre du mot MAP si posterior >= conf. Mesure config cognition : +5 pts (93,7 -> 98,7%), avgErr 2,29 -> 1,51." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-optim" data-toggle="M_DECLARE_DUAL_ENABLED" title="🦴 Declare DUAL (cheat-free) : declare via le board-buffer (coups publics revelees), JAMAIS currentWord. Cohort board + fusion freq x ortho(bigramme lex4) x phon(AQUA g2p). Force une lettre du mot MAP si posterior >= conf. ADOPTÉ 16/06 dans la config cheat-free (AUDIT §1.5) : +1,8 → 99,8% (mot entendu) / +2,5 → 97,3% (sans currentWord), 4 graines, jamais en-dessous. Reconnaissance in-lexique (neutre OOV)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🦴 Declare DUAL (cheat-free)</div>
@@ -1146,7 +1158,7 @@ footer {
         <div class="toggle-desc">anti-béquille · OS θ + miroir + phon ← lettre cognitive</div>
       </div>
     </div>
-    <div class="toggle-item cfg-optim" data-toggle="M_OS_LEARNING_ENABLED" title="θ · Interrupteur maître autorisant l'OS à apprendre ses paramètres θ=(α,β). Active les boutons Train θ / Sweep β." onclick="ui_toggle(this)">
+    <div class="toggle-item" data-toggle="M_OS_LEARNING_ENABLED" title="θ · Interrupteur maître autorisant l'OS à apprendre ses paramètres θ=(α,β). Active les boutons Train θ / Sweep β." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">θ · Apprentissage</div>
@@ -1195,7 +1207,7 @@ footer {
         <div class="toggle-desc">reconnaissance VSA · banc appris en jouant</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_EMERGENT_ASSEMBLED_ENABLED" title="Declare emergent (phon vers ortho) : sur une position sonore ou le phoneme implique fortement un graphe (conf > 0.75), force ce graphe. Decodage assemble, generalise au mot jamais vu. Utilise w.p (proto-langage, config forte). Apprend en jouant si g2p online ON, sinon batch. OFF par defaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-orange" data-toggle="M_EMERGENT_ASSEMBLED_ENABLED" title="Declare emergent (phon vers ortho) : sur une position sonore ou le phoneme implique fortement un graphe (conf > 0.75), force ce graphe. Decodage assemble, generalise au mot jamais vu. Utilise w.p (proto-langage, config forte). Apprend en jouant si g2p online ON, sinon batch. OFF par defaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧬 Declare émergent · phon→ortho</div>
@@ -1223,7 +1235,7 @@ footer {
         <div class="toggle-desc">reconnaît un mot vécu · 100% sur répété</div>
       </div>
     </div>
-    <div class="toggle-item cfg-optim" data-toggle="M_NEO_ASSEMBLED_ENABLED" title="NEO · voie assemblée phon→ortho MASQUÉE : décode les positions sonores via L2[phonème]. align masqué (pas de graphème caché), w.p = entrée légitime. Généralise au mot neuf (+5 pts). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-orange" data-toggle="M_NEO_ASSEMBLED_ENABLED" title="NEO · voie assemblée phon→ortho MASQUÉE : décode les positions sonores via L2[phonème]. align masqué (pas de graphème caché), w.p = entrée légitime. Généralise au mot neuf (+5 pts). Nécessite le maître NEO ON." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🧬 NEO · assemblé (phon→ortho)</div>
@@ -1237,18 +1249,25 @@ footer {
         <div class="toggle-desc">board-derived · élague les lettres impossibles</div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. GARDE DE PURETÉ : ne tire que si ≥ seuil de la cohorte s'accorde sur le phonème (sinon la cognition décide) → évite l'override confiant-mais-faux. Mesuré : PARITÉ du vrai son in-lexique (97 %), coût OOV ~7 pts seulement. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_PHON_COHORT_ENABLED" title="🔊 NEO · son board-dérivé (cohorte phonologique) : le SON décodé par l'assemblée ET la muette vient du consensus phonémique des mots board-compatibles (même longueur, matchent le révélé), au lieu de wp.get(mot). Supprime toute lecture du son du mot caché — modèle fidèle du joueur humain qui « sonne » ce qu'il voit. Cheat-free intégral. GARDE DE PURETÉ : ne tire que si ≥ seuil de la cohorte s'accorde sur le phonème (sinon la cognition décide) → évite l'override confiant-mais-faux. Mesuré : PARITÉ du vrai son in-lexique (97 %), coût OOV ~7 pts seulement. Nécessite NEO + assemblé (et/ou muette) ON. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔊 NEO · son board-dérivé (cohorte)</div>
         <div class="toggle-desc">cheat-free · parité vrai-son in-lexique · garde pureté ≥ <input id="neo-phoncohort-purity" type="number" value="0.50" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_PURITY=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
       </div>
     </div>
-    <div class="toggle-item" data-toggle="M_NEO_PHON_COHORT_JOINTE" title="🔗 NEO · jointe son×ortho : remplace l'argmax du son board-dérivé par la JOINTE P(lettre | distribution phonème cohorte molle, voisins ortho révélés) — table _neoCRS apprise en descendant (doctrine « croiser = jointe, pas argmax/produit », mémoire §6/§17.3). Mesuré in-lexique K=1 : 96,5 % vs argmax 94,3 % (4 graines, +2,2 pts, cheat-free), réduit l'écart au son-lu de −3,7 à −1,5. Nécessite NEO + assemblé + son board-dérivé ON. OFF par défaut." onclick="ui_toggle(this)">
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_PHON_COHORT_JOINTE" title="🔗 NEO · jointe son×ortho : remplace l'argmax du son board-dérivé par la JOINTE P(lettre | distribution phonème cohorte molle, voisins ortho révélés) — table _neoCRS apprise en descendant (doctrine « croiser = jointe, pas argmax/produit », mémoire §6/§17.3). Mesuré in-lexique K=1 : 96,5 % vs argmax 94,3 % (4 graines, +2,2 pts, cheat-free), réduit l'écart au son-lu de −3,7 à −1,5. Nécessite NEO + assemblé + son board-dérivé ON. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
         <div class="toggle-label">🔗 NEO · jointe son×ortho (croisée)</div>
         <div class="toggle-desc">croiser, pas argmax · +2,2 pts vs argmax (K=1) · seuil <input id="neo-jointe-conf" type="number" value="0.30" step="0.05" min="0" max="1" style="width:46px" onclick="event.stopPropagation()" oninput="M_NEO_PHON_COHORT_JOINTE_CONF=Math.max(0,Math.min(1,parseFloat(this.value)||0))"></div>
+      </div>
+    </div>
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_OS_ARB" title="🧭 NEO · arbitrage OS des 2 voies DRC : remplace la cascade either/or par un MÉLANGE CONVEXE — sublexicale (jointe phon→ortho) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step réutilisé (forme w(r)=r^α/(β+r^α), forcée α=β=1 neutre, DÉCOUPLÉE du θ de lecture ortho→phon de la cognition → pas de conflit de sens). Nécessite NEO + son board-dérivé (cohorte) ON. Mesuré sans currentWord (K=1, 4 graines) : +2,0 vs base (jamais en-dessous, moins de coups/erreurs), ≈ DUAL (96,8 vs 97,3, dans le bruit) mais plus propre (vraie DRC interactive) et ~2× plus rapide. Cheat-free. OFF par défaut (alternative à DUAL, non adoptée — AUDIT §1.6)." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🧭 NEO · arbitrage OS (2 voies DRC)</div>
+        <div class="toggle-desc">mélange convexe sublexical⟷lexical · alternative propre à la cascade</div>
       </div>
     </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
@@ -1334,14 +1353,12 @@ footer {
   <div class="legacy-debug-content">
 
 <header>
-  <h1>OMEGA<span class="o">-Ω</span> v2-α0 BLUEPRINT<span class="v">Jour 1' refactor — fidélité §6.6 blueprint (M1_d LDIM=512 + D1-D5 + stubs M2/M3/M4/M5)</span></h1>
-  <div class="sub">Jour 2 livré · Substrat phonétique B1 (14 features × 26 lettres + ortho HRR α=0.85, β=0.15) + I3 consolidation lente E2 + verrou anti-double-tick + auxiliaires collectObservedLetters/computeAvgPhonemesForLetter — fondation Jour 1 mergée 17 fixes — patch R40 30/04/2026 (7 fixes) — patch R41 01/05/2026 (11 fixes : alpha-asymmetry, decode-LDIM, last-letter-eHistory, m3-stale-output, bench-init-uncond, smoke-restart, zoneEMA-consume, pair1-publish, doExchange-retire, letterTried-type, currentPhonState-normalize) — patch R42 01/05/2026 (10 fixes : M1d-brain-phase, M4d-deepcopy, AZ-strict-validation, M3D-threshold-lower, M2d-double-init-removed, R41-7-comment-fix, channel-publish-isolation, smoke-doubletick-deterministic, hash-projection-permutation-doc, smoke-brain-divergence) — patch R43 01/05/2026 (6 fixes : M5d-wire-omegaStep, startNewGame-atomic-validation, M4d-M5d-output-reset-init, M5d-T-gap-factor-recalibrate, M5d-fallback-by-freq, M5d-doublecheck-dead-removed)</div>
+  <h1>OMEGA<span class="o">-Ω</span><span class="v">architecture cognitive du pendu français — « cognition &gt; oracle »</span></h1>
+  <div class="sub">Double route orthographe/phonologie (DRC) sur substrat hyperdimensionnel · déclaration émergente <em>cheat-free</em> · discipline mesure &amp; falsification (R66). Détails : mémoire &amp; rapport de référence.</div>
   <div class="meta">
-    <span>SDIM = <strong>1024</strong></span>
-    <span>14 canaux MVP</span>
-    <span>16/16 bloquants résolus</span>
-    <span>v2 BLUEPRINT — refactor 🅑 acté F153 (acquis Jour 1-3 préservés)</span>
-    <span>Source : <strong>v4 FINAL §3, §6, §7, §18</strong></span>
+    <span>concept <strong>1024D</strong> · lexical 512D</span>
+    <span>~97,5 % cheat-free in-lexique</span>
+    <span>Lexique 4 · CC BY-SA 4.0</span>
     <span id="status-pill" class="status-pill gray">non chargé</span>
   </div>
 </header>
@@ -1823,7 +1840,7 @@ let M_WORD_DECLARE_ENABLED = false;        // Brique 1 : déclarer si 1 seul can
 const M_WORD_DECLARE_MAX_CANDIDATES = 1;   // seuil de certitude (1 = sûr, cheat-free)
 let M_WORD_DECLARE_CONF = 1.0;             // Brique 1b : seuil de confiance — 1.0 = 100% sûr (candidat unique, inerte) ; <1.0 = PARI sur le candidat top (masse f ≥ conf)
 let M_BPC_DECLARE_ENABLED = false;          // Brique 1c (27/05) : declare BPC — combine freq × M3_d.cLetterScore (concept). Necessite M_BPC_M3D_ENABLED ON.
-let M_BPC_DECLARE_CONF    = 0.60;           // seuil confiance bpc (top1_score / sum_scores >= conf -> declare)
+let M_BPC_DECLARE_CONF    = 0.95;           // seuil confiance bpc — aligné sur l'UI (champ/fallback/tooltip « sweet 0,95 »), corrige la désync AUDIT_STRUCTUREL §U1 ; toggle OFF par défaut → baseline inchangée
 let M_DECLARE_ACCORD_PRIOR_ENABLED = false; // Jonction PHRASE : pondère les candidats de _omega_declareBestCandidate par un prior d'ACCORD molle (jointe §3, contexte phrase). MESURÉ MARGINAL (evo/phrase_engine_bench.js) : ≤+2 gagnés/64, parfois +erreurs ; le moteur exclut les mots <7 où l'accord décide, et w.f domine déjà sur les ≥7. DÉFAUT OFF (baseline byte-identique). La valeur du levier accord est DIAGNOSTIQUE (dictée), pas dans le DECLARE ≥7.
 let _omega_accordPriorFn = null;            // (mot)->poids accord ∈ ]0,1] (fixé par le harnais phrase selon le gouverneur révélé) ; null/OFF = inerte.
 let M3_D_BYPASS_ENABLED = false;            // DIAGNOSTIC falsification R66 : ON => concept M3_d muet (cLetterScore=0 + output->null vers M_S). OFF = inerte (baseline byte-identique).
@@ -6130,6 +6147,11 @@ let M_NEO_PHON_COHORT_CAP = 4000;           // borne perf : nb max de mots-cohor
 let M_NEO_PHON_COHORT_PURITY = 0.5;         // GARDE : ne tirer un phonème consensus que si ≥ cette fraction de la cohorte est d'accord (sinon '_' → cognition décide). Évite l'override confiant-mais-faux. Mesuré : parité vrai-son in-lexique (97%), coût OOV ~7 pts.
 let M_NEO_PHON_COHORT_JOINTE = false;       // JOINTE (vs argmax) : croise la distribution phonème (cohorte molle) avec le contexte ortho révélé via _neoCRS appris descendant. OFF par défaut (OFF-inerte).
 let M_NEO_PHON_COHORT_JOINTE_CONF = 0.30;   // seuil de tir de la jointe (score = proba molle, échelle ≠ argmax). Sweet spot mesuré in-lexique K=1 (96,5% vs argmax 94,3%, 4 graines).
+let M_NEO_OS_ARB = false;                    // ARBITRAGE OS niveau DECLARE : mélange les 2 voies DRC — sublexicale (jointe) ⟷ lexicale (cohorte pondérée fréquence) — via M_OS_v07_step (forme w(r)=r^α/(β+r^α) prouvée, mélange CONVEXE pondéré par fiabilité relative), au lieu de la cascade either/or. Cheat-free, sans currentWord. OFF-inerte.
+let M_NEO_OS_ARB_CONF = 0.0;                 // seuil sur la lettre mélangée (0 = tire la meilleure non essayée)
+let M_NEO_OS_ARB_ALPHA = 1.0;                // (α,β) PROPRES à l'arbitrage DECLARE (≠ θ de lecture). Défaut 1/1 = forme neutre μ=r/(1+r) → byte-identique à l'ancien comportement. Mesurables (balayage R66, AUDIT_OMEGA §1.6).
+let M_NEO_OS_ARB_BETA = 1.0;                 // β<1 → favorise la voie lexicale (cohorte) ; β>1 → favorise la sublexicale (jointe) ; α = raideur de la bascule sur r=sigLex/sigSub.
+let _neoWF = null;                           // cache word→fréquence (voie lexicale, board-dérivé légitime pour DECLARE)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 function _neoCohortMasks(){                  // masques de lettres possibles par position, dérivés du board révélé (cheat-free)
   if (!_neoWBL) { _neoWBL = {}; for (const w of OMEGA_LEX4.words) { if (w && w.m) { const L = w.m.length; (_neoWBL[L] || (_neoWBL[L] = [])).push(w.m); } } }
@@ -6190,6 +6212,48 @@ function _neoPhonCohortDist(){            // par position : distribution MOLLE {
   }
   if (!used) return null;
   return { dist: acc, used: used };
+}
+function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niveau declare : (1−μ)·sublexicale + μ·lexicale, μ=r^α/(β+r^α). Réutilise M_OS_v07_step. Cheat-free, sans currentWord. Rend une lettre ou null.
+  const _pcd = _neoPhonCohortDist(); if (!_pcd) return null;
+  const G = _emrg_initOnline(); const _L2 = G.getL2();
+  if (!_neoWF) { _neoWF = new Map(); for (const w of OMEGA_LEX4.words) if (w && w.m) _neoWF.set(w.m, (typeof w.f === 'number' && w.f > 0) ? w.f : 0.001); }
+  const L = currentWord.length;
+  // voie SUBLEXICALE : distribution lettre = max sur positions non révélées de la jointe (Σ_φ Pcoh·CR)
+  const sub = new Float64Array(26);
+  for (let p = 0; p < L; p++) { if (revealedMask[p]) continue; const _dist = _pcd.dist[p]; let _tot = 0; for (const k in _dist) _tot += _dist[k]; if (_tot <= 0) continue;
+    const _Lj = (p>0 && revealedMask[p-1]) ? currentWord.charAt(p-1) : '#'; const _Rj = (p<L-1 && revealedMask[p+1]) ? currentWord.charAt(p+1) : '#';
+    const _sc = new Float64Array(26);
+    for (const _ph in _dist) { if (_ph === '_') continue; const _w = _dist[_ph]/_tot;
+      const _ksj = [_ph+'|'+_Lj+'|'+_Rj, _ph+'|'+_Lj, _ph+'|#|'+_Rj, _ph]; let _cj = null, _sj = 0;
+      for (let _ki=0;_ki<_ksj.length;_ki++){ const _cc=_neoCRS[_ksj[_ki]]; if(_cc){ let _ss=0; for(let q=0;q<26;q++)_ss+=_cc[q]; if(_ss>=3){_cj=_cc;_sj=_ss;break;} if(!_cj){_cj=_cc;_sj=_ss;} } }
+      if (_cj && _sj>0) { for (let x=0;x<26;x++) _sc[x] += _w*(_cj[x]/_sj); } else { const _l2=_L2[_ph]; if(_l2){ for(let x=0;x<26;x++) _sc[x] += _w*_l2[x]; } }
+    }
+    for (let x=0;x<26;x++) if (_sc[x] > sub[x]) sub[x] = _sc[x];
+  }
+  // voie LEXICALE : distribution lettre = cohorte board pondérée fréquence (cohort model, Marslen-Wilson 1978)
+  const lex = new Float64Array(26);
+  const absent = []; for (let x=0;x<26;x++){ if(!alreadyTried[x]) continue; let seen=false; for(let p=0;p<L;p++) if(revealedMask[p]&&currentWord.charCodeAt(p)-65===x){seen=true;break;} if(!seen) absent.push(String.fromCharCode(65+x)); }
+  const cand = _neoWBL[L];
+  if (cand) { let used = 0;
+    for (let i=0;i<cand.length && used<M_NEO_PHON_COHORT_CAP;i++){ const m = cand[i];
+      let ok = true; for (let p=0;p<L;p++){ if(revealedMask[p] && m.charCodeAt(p)!==currentWord.charCodeAt(p)){ ok=false; break; } } if(!ok) continue;
+      if (absent.length){ let bad=false; for(let a=0;a<absent.length;a++) if(m.indexOf(absent[a])>=0){bad=true;break;} if(bad) continue; }
+      used++; const f = _neoWF.get(m) || 0.001; const seen = new Uint8Array(26);
+      for (let p=0;p<L;p++){ if(revealedMask[p]) continue; const c=m.charCodeAt(p)-65; if(c>=0&&c<26&&!seen[c]){ seen[c]=1; lex[c]+=f; } }
+    }
+  }
+  let ssub=0,slex=0; for(let x=0;x<26;x++){ssub+=sub[x];slex+=lex[x];}
+  if (ssub<=0 && slex<=0) return null;
+  if (ssub>0) for(let x=0;x<26;x++) sub[x]/=ssub; if (slex>0) for(let x=0;x<26;x++) lex[x]/=slex;   // distributions L1
+  let sigSub=0,sigLex=0; for(let x=0;x<26;x++){ if(sub[x]>sigSub)sigSub=sub[x]; if(lex[x]>sigLex)sigLex=lex[x]; }   // fiabilité = piqué de chaque voie
+  const _o=M_OS_v07.output,_r=M_OS_v07.r,_m=M_OS_v07.mu,_a=M_OS_v07.alpha,_b=M_OS_v07.beta;   // save (ne pas perturber la cognition)
+  M_OS_v07.alpha=M_NEO_OS_ARB_ALPHA; M_OS_v07.beta=M_NEO_OS_ARB_BETA;   // (α,β) PROPRES au declare (défaut 1/1 = forme neutre μ=r/(1+r)), DÉCOUPLÉS du θ de LECTURE (ortho→phon) de la cognition — évite le conflit de sens des voies (le declare est phon→ortho). Mesurables (§1.6).
+  const _mix = M_OS_v07_step(sub, sigSub||1e-9, lex, sigLex||1e-9);   // RÉUTILISE l'OS : (1−μ)·sub + μ·lex, μ=r^α/(β+r^α), r=sigLex/sigSub
+  const mix = Float64Array.from(_mix);
+  M_OS_v07.alpha=_a; M_OS_v07.beta=_b; M_OS_v07.output=_o; M_OS_v07.r=_r; M_OS_v07.mu=_m;   // restore
+  let best=-1, bestL=-1; for (let x=0;x<26;x++){ if(alreadyTried[x]) continue; if(mix[x]>best){ best=mix[x]; bestL=x; } }
+  if (bestL>=0 && best>M_NEO_OS_ARB_CONF) return String.fromCharCode(65+bestL);
+  return null;
 }
 let M_LEARN_FROM_COGNITION_ENABLED = false;   // fix bequille : apprenants <- lettre cognitive (pre-declare), pas la jouee
 var _DECL2 = (function () {
@@ -6702,75 +6766,7 @@ function M_S_sleep_replay() {
   OS._phonGraphLock.consolidating = false;
 }
 
-/**
- * === I61 A.3 — eSleepReplay (DÉPRÉCIÉ F199 — 🔴 DEAD POST-F199 NEVER CALLED) ===
- * Cap Rem 02/05 : "Sleep ne doit concerner QUE le cerveau Semantic/Shared"
- * F197 implémentait sleep replay sur Service E (eHistoryDual/eWeightsDual) = ERREUR architecturale.
- * F199 corrige en migrant vers M_S_sleep_replay (cerveau sémantique).
- *
- * 🚨 STATUT POST-F207 AUDIT (02/05 ~17h00) :
- *   - SLEEP_REPLAY_ENABLED = false (REVERT empirique F197 -24.1 pts)
- *   - Cette fonction eSleepReplay() N'EST JAMAIS APPELÉE en runtime productif
- *   - Variable _sleepReplayCount jamais lue ailleurs (incrémentée seulement ici)
- *   - Code conservé pour traçabilité R59 corrigée stricte + référence historique
- *   - Représente ~70L dead code MAIS PAS supprimable sans perte trace V7-α1.6.6 → F199
- *   - Étape 6 refonte structurelle : décider conservation R59 vs purge.
- */
-function eSleepReplay() {
-  if (!SLEEP_REPLAY_ENABLED || !_omegaIsSleeping) return;
-  
-  const asleepIdx = 1 - eAwakeIdx;  // cerveau endormi
-  const traces = eHistoryDual[asleepIdx];
-  if (!traces || traces.length < SLEEP_REPLAY_N_TRACES) return;
-
-  // Verrou anti-race condition F/E2/I61 (R5 mitigation F194)
-  if (OS._phonGraphLock.consolidating) return;
-  OS._phonGraphLock.consolidating = true;
-
-  // Neuromodulation par OS_mod (équivalent globalFitness V7-α1.6.4 / F96)
-  // Plus conservateur que awake : [0.7, 1.3] vs [0.5, 1.5] (F196 leçon 5)
-  let _gfModReplay = 1.0;
-  if (typeof OS._lastModSignal === 'string') {
-    if (OS._lastModSignal === 'tighten')      _gfModReplay = SLEEP_REPLAY_NEUROMOD_MAX;
-    else if (OS._lastModSignal === 'relax')   _gfModReplay = SLEEP_REPLAY_NEUROMOD_MIN;
-  }
-
-  // Replay des N traces les plus récentes (LIFO) sur eWeights[asleepIdx]
-  const lr = SLEEP_REPLAY_LR * _gfModReplay;
-  for (let i = 0; i < SLEEP_REPLAY_N_TRACES && i < traces.length; i++) {
-    const trace = traces[traces.length - 1 - i];
-    if (!trace || !trace.phonState) continue;
-    
-    // Re-Hebbian sur eWeights[asleepIdx] (cerveau endormi consolidant)
-    for (let d = 0; d < SDIM; d++) {
-      eWeightsDual[asleepIdx][d] += lr * trace.phonState[d];
-    }
-
-    // Réinjection HRR conditionnelle dans phonGraphMap (cohérent F91 + caveat F79)
-    // α=0.005 anti-pollution v3.16. Faible amplitude, conditionnelle au sleep.
-    if (trace.letter && typeof trace.letter === 'string') {
-      const idx = trace.letter.charCodeAt(0) - 65;
-      if (idx >= 0 && idx < 26 && phonGraphMap && phonGraphMap[idx]) {
-        for (let d = 0; d < SDIM; d++) {
-          phonGraphMap[idx][d] += lr * trace.phonState[d];
-        }
-        if (typeof normalizeInPlace === 'function') {
-          normalizeInPlace(phonGraphMap[idx]);
-        }
-      }
-    }
-  }
-
-  _sleepReplayCount++;
-
-  if (OS.channels.has('OS_phonGraphMap_update')) {
-    OS.channels.get('OS_phonGraphMap_update').publish(
-      { source: 'I61_replay', asleepIdx: asleepIdx, neuromod: _gfModReplay }, OS.t
-    );
-  }
-
-  OS._phonGraphLock.consolidating = false;
-}
+/* eSleepReplay() retiré (AUDIT_STRUCTUREL §V1) : DEAD POST-F199, jamais appelé ; le replay au sommeil vit dans M_S_sleep_replay (cerveau sémantique). */
 
 function eConsolidatePhonGraph() {
   // (1) Anti-double-consolidation au même tick (résout R3)
@@ -7237,6 +7233,10 @@ function omegaStep() {
         if (_ncompat && _nrc.margin > M_DECLARE_NEO_RECALL_MARGIN) {
           for (let p = 0; p < _nrc.w.length; p++) { const li = _nrc.w.charCodeAt(p) - 65; if (li >= 0 && li < 26 && !alreadyTried[li] && !revealedMask[p]) { proposed = _nrc.w.charAt(p); _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.rF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.rH++; } break; } }
         }
+      }
+      if (M_NEO_OS_ARB && M_NEO_PHON_COHORT_ENABLED && !_neoDone) {   // ARBITRAGE OS des 2 voies DRC (remplace la cascade jointe par un mélange convexe sublexical⟷lexical)
+        const _ar = _neoDeclareOSmix();
+        if (_ar) { proposed = _ar; _neoDone = true; if (typeof _neoDbg !== 'undefined') { _neoDbg.aF++; if (currentWord.indexOf(proposed) >= 0) _neoDbg.aH++; } }
       }
       if ((M_NEO_ASSEMBLED_ENABLED || M_NEO_MUTE_ENABLED) && !_neoDone) {   // (2)(3) assemblee sonore + muette ortho — alignement MASQUE partage
         const _G = _emrg_initOnline(); const _L2 = _G.getL2();
@@ -8841,8 +8841,8 @@ function ui_renderBpcHealth() {
 }
 
 // === Toggle handling ===
-function ui_initToggles() {
-  const ALLOWED_TOGGLES = [
+// Liste UNIQUE des toggles pilotables (factorisée — AUDIT_STRUCTUREL §V5 ; était dupliquée verbatim dans ui_initToggles ET ui_toggle).
+const ALLOWED_TOGGLES = [
     'L01_A1_M2_ORTHO_ENABLED',
     'L01_A2_M4_LEX4_ENABLED',
     'L01_A3_M5M_WORDLEX4_ENABLED',
@@ -8865,52 +8865,39 @@ function ui_initToggles() {
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
-  ];
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+];
+function ui_initToggles() {
   document.querySelectorAll('.toggle-item').forEach(item => {
     const name = item.dataset.toggle;
     if (ALLOWED_TOGGLES.indexOf(name) === -1) return;
-    try {
-      const value = eval(name);
-      if (value) item.classList.add('on');
-    } catch (e) {
-      // toggle inconnu : ignorer
-    }
+    let value = false;
+    try { value = !!eval(name); if (value) item.classList.add('on'); }
+    catch (e) { console.warn('[toggle] init : nom whitelisté non déclaré :', name, e); }   // §1.7 : ne plus avaler en silence (un throw ici = vraie incohérence)
+    // Accessibilité (AUDIT_STRUCTUREL §U2 — cible dys) : focusable + annonçable + pilotable au clavier
+    item.setAttribute('role', 'switch');
+    item.setAttribute('tabindex', '0');
+    item.setAttribute('aria-checked', value ? 'true' : 'false');
+    const _lbl = item.querySelector('.toggle-label');
+    if (_lbl && !item.getAttribute('aria-label')) item.setAttribute('aria-label', _lbl.textContent.trim());
+    if (!item.dataset.a11yKey) { item.dataset.a11yKey = '1'; item.addEventListener('keydown', function(e){ if (e.key === ' ' || e.key === 'Enter' || e.key === 'Spacebar') { e.preventDefault(); ui_toggle(item); } }); }
   });
+  if (typeof ui_syncAssembledColor === 'function') ui_syncAssembledColor();   // couleur assemblé selon l'état cohorte au chargement
 }
 
+function ui_syncAssembledColor(){   // M_NEO_ASSEMBLED dynamique : ORANGE (lit le son wp.get(currentWord) = mot entendu) si cohorte OFF ; VERT (cheat-free, son board-dérivé) si M_NEO_PHON_COHORT ON
+  var el = document.querySelector('[data-toggle="M_NEO_ASSEMBLED_ENABLED"]'); if (!el || !el.classList) return;
+  var cohort = (typeof M_NEO_PHON_COHORT_ENABLED !== 'undefined') && M_NEO_PHON_COHORT_ENABLED;
+  el.classList.remove('cfg-orange'); el.classList.remove('cfg-optim');
+  el.classList.add(cohort ? 'cfg-optim' : 'cfg-orange');
+}
 function ui_toggle(item) {
   const name = item.dataset.toggle;
 
   // R48 honnête : maintenant les toggles sont des `let` (mode 2 livré 02/05),
   // donc mutables runtime. Mais accès via window[name] pour set est subtil
   // car les `let` top-level ne deviennent pas propriétés de window en strict mode.
-  // Solution : eval ciblé restreint aux 7 noms whitelistés.
-  const ALLOWED_TOGGLES = [
-    'L01_A1_M2_ORTHO_ENABLED',
-    'L01_A2_M4_LEX4_ENABLED',
-    'L01_A3_M5M_WORDLEX4_ENABLED',
-    'L01_A4_M4M_DECOMP_ENABLED',
-    'L01_A5_M2M_POSITIONAL_ENABLED',
-    'L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
-    'L01_B2_MOBIUS_ENABLED',
-    'M5_D_M1_M_ENABLED',
-    'M_VOIE_PHON_ENABLED', 'M_OS_V07_ENABLED', 'M4_PHON_USE_P_ENABLED', 'M_SUBSTRAT_ORTHO_PURE_ENABLED',
-    'M_PHON_FEEDBACK_ENABLED',
-    'M_WORD_DECLARE_ENABLED',
-    'M_IG_SELECT_ENABLED',
-    'M_IG_PSUCCESS_ENABLED',
-    'M_BPC_M3D_ENABLED',
-    'M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED','M_BPC_DECLARE_ENABLED',
-    'M_OS_LEARNING_ENABLED',
-    'M_OS_LEARNING_GUARD_1_BOUNDED', 'M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT',
-    'M_OS_LEARNING_GUARD_3_MDL_REGUL', 'M_OS_LEARNING_GUARD_4_COHERENCE',
-    'M_OS_LEARNING_ONLINE_ENABLED',
-    'M_DECLARE_DUAL_ENABLED',
-    'M_LEARN_FROM_COGNITION_ENABLED',
-    'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
-  ];
+  // Solution : eval ciblé restreint aux noms whitelistés — ALLOWED_TOGGLES = constante module unique (factorisée, AUDIT_STRUCTUREL §V5).
   if (ALLOWED_TOGGLES.indexOf(name) === -1) {
     ui_log('ERROR', 'Toggle inconnu : ' + name);
     return;
@@ -8926,6 +8913,7 @@ function ui_toggle(item) {
   // Update visuel
   if (newValue) item.classList.add('on');
   else item.classList.remove('on');
+  item.setAttribute('aria-checked', newValue ? 'true' : 'false');   // a11y (AUDIT_STRUCTUREL §U2)
 
   ui_log('CONFIG', name.replace('L01_', '').replace('_ENABLED', '') + ' = ' + newValue);
 
@@ -8940,6 +8928,10 @@ function ui_toggle(item) {
     var _gp = document.getElementById('neo-g2p-pen');
     M_NEO_G2P_EXP_PEN = _gp ? Math.max(0, parseFloat(_gp.value) || 0.5) : 0.5;
     ui_log('NEO G2P', 'g2p révélé+pénalité ACTIVE · pén = ' + M_NEO_G2P_EXP_PEN);
+  }
+  if (name === 'M_NEO_PHON_COHORT_ENABLED') {   // bascule le bleu cohorte → recolorer l'assemblé (orange si lit le son, vert si cohorte cheat-free)
+    ui_syncAssembledColor();
+    ui_log('NEO', 'assemblé recoloré : ' + (M_NEO_PHON_COHORT_ENABLED ? 'VERT (cheat-free, son board-dérivé)' : 'ORANGE (lit le son du mot)'));
   }
   if (name === 'M_VOIE_PHON_ENABLED' || name === 'M_SUBSTRAT_ORTHO_PURE_ENABLED') {
     try {
@@ -9031,6 +9023,29 @@ function ui_startGame() {
   } catch (e) {
     ui_log('ERROR', e.message);
     ui_setStatus('error', 'ERROR');
+  }
+}
+
+function applyReferenceConfig() {
+  // Preset 1-clic : configuration optimale CHEAT-FREE (rapport §8.3 / CONFIG_REFERENCE, 97,5 % in-lexique).
+  // N'altère PAS le boot (la baseline reste OFF-inerte au chargement) : c'est une action explicite de l'utilisateur.
+  try {
+    const ON = ['L01_A4_M4M_DECOMP_ENABLED','L01_A5_M2M_POSITIONAL_ENABLED','L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
+      'M_VOIE_PHON_ENABLED','M_OS_V07_ENABLED','M4_PHON_USE_P_ENABLED','M_SUBSTRAT_ORTHO_PURE_ENABLED','M_PHON_FEEDBACK_ENABLED',
+      'M_BPC_M3D_ENABLED','M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED',
+      'M_OS_LEARNING_ENABLED','M_OS_LEARNING_GUARD_1_BOUNDED','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT','M_OS_LEARNING_GUARD_3_MDL_REGUL','M_OS_LEARNING_GUARD_4_COHERENCE',
+      'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_DECLARE_DUAL_ENABLED'];
+    ON.forEach(function(n){ if (ALLOWED_TOGGLES.indexOf(n) >= 0) { try { eval(n + ' = true'); } catch(e){ console.warn('[preset]', n, e); } } });
+    if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
+    if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
+    if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
+    if (typeof ui_renderGame === 'function') ui_renderGame();
+    if (typeof ui_renderMath === 'function') ui_renderMath();
+    if (typeof ui_renderStats === 'function') ui_renderStats();
+    if (typeof ui_log === 'function') ui_log('CONFIG', 'Config optimale cheat-free activée (preset §8.3, 23 ON) — prêt : ▶ Start ou ▶▶ Auto (~97,5 % in-lexique).');
+    if (typeof ui_setStatus === 'function') ui_setStatus('live', 'CONFIG OPTIMALE');
+  } catch (e) {
+    if (typeof ui_log === 'function') ui_log('ERROR', 'applyReferenceConfig: ' + e.message);
   }
 }
 
@@ -9241,14 +9256,14 @@ function _omega_distStats(arr) {
 let _trexqRemoved = null;  // {key,pos,id} mot retiré du len_index (mode Trexquant), à restaurer au tour suivant
 function _trexq_restore(){
   try{ if(_trexqRemoved && typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
-    const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){}
+    const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){ console.error('[trexq] restore len_index échec — lexique possiblement amputé:', e); }
   _trexqRemoved=null;
 }
 function _trexq_removeWord(word){
   try{ if(typeof OMEGA_LEX4==='undefined'||!OMEGA_LEX4||!OMEGA_LEX4.words||!OMEGA_LEX4.len_index) return false;
     const key=String(word.length); const arr=OMEGA_LEX4.len_index[key]; if(!arr) return false;
     for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; return true; } }
-  }catch(e){}
+  }catch(e){ console.error('[trexq] removeWord échec:', e); }
   return false;
 }
 function _omega_trexquant_bench(testN, warmupN, seed){
@@ -9260,13 +9275,19 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     bpc:M_BPC_M3D_ENABLED,bpcr:M_BPC_READOUT_COUPLE_ENABLED,osl:M_OS_LEARNING_ONLINE_ENABLED,g1:M_OS_LEARNING_GUARD_1_BOUNDED,g2:M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT,g3:M_OS_LEARNING_GUARD_3_MDL_REGUL,g4:M_OS_LEARNING_GUARD_4_COHERENCE,
     vp:M_VOIE_PHON_ENABLED,p4:M4_PHON_USE_P_ENABLED,pf:M_PHON_FEEDBACK_ENABLED,prc:M_PHON_READOUT_COUPLE_ENABLED,pcb:M_PHON_CONCEPT_BIND_ENABLED,
     nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,npc:M_NEO_PHON_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,
-    conf:(typeof M_DECLARE_NEO_CONF!=='undefined'?M_DECLARE_NEO_CONF:null)};
+    conf:(typeof M_DECLARE_NEO_CONF!=='undefined'?M_DECLARE_NEO_CONF:null),
+    seed0:(typeof _omegaSeed!=='undefined'?_omegaSeed:null),rng0:(typeof _omegaRng!=='undefined'?_omegaRng:null),
+    osa:(typeof M_OS_v07!=='undefined'&&M_OS_v07?M_OS_v07.alpha:null),osb:(typeof M_OS_v07!=='undefined'&&M_OS_v07?M_OS_v07.beta:null)};
   function restore(){ OMEGA_LEX4.len_index=origLI;
     L01_A4_M4M_DECOMP_ENABLED=S.a4;L01_A5_M2M_POSITIONAL_ENABLED=S.a5;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=S.a6;L01_B2_MOBIUS_ENABLED=S.b2;M_OS_V07_ENABLED=S.os;M_SUBSTRAT_ORTHO_PURE_ENABLED=S.sub;
     M_BPC_M3D_ENABLED=S.bpc;M_BPC_READOUT_COUPLE_ENABLED=S.bpcr;M_OS_LEARNING_ONLINE_ENABLED=S.osl;M_OS_LEARNING_GUARD_1_BOUNDED=S.g1;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=S.g2;M_OS_LEARNING_GUARD_3_MDL_REGUL=S.g3;M_OS_LEARNING_GUARD_4_COHERENCE=S.g4;
     M_VOIE_PHON_ENABLED=S.vp;M4_PHON_USE_P_ENABLED=S.p4;M_PHON_FEEDBACK_ENABLED=S.pf;M_PHON_READOUT_COUPLE_ENABLED=S.prc;M_PHON_CONCEPT_BIND_ENABLED=S.pcb;
     M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_PHON_COHORT_ENABLED=S.npc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;
-    if(S.conf!=null)M_DECLARE_NEO_CONF=S.conf; }
+    if(S.conf!=null)M_DECLARE_NEO_CONF=S.conf;
+    if(S.seed0!=null)_omegaSeed=S.seed0; if(S.rng0)_omegaRng=S.rng0;
+    if(typeof initOmegaGlobals==='function')initOmegaGlobals();
+    if(typeof M_OS_v07!=='undefined'&&M_OS_v07){ if(S.osa!=null)M_OS_v07.alpha=S.osa; if(S.osb!=null)M_OS_v07.beta=S.osb; }
+    if(typeof ui_attachGameEndSub==='function')ui_attachGameEndSub(); }
   function L(m,c){ if(typeof _logOut==='function')_logOut('bench-out',m,c||''); else console.log(m); }
   try{
     const W=OMEGA_LEX4.words, valid=[];
@@ -9297,7 +9318,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     L('  phon\u2192ortho cohorte \u00b7 son BOARD-d\u00e9riv\u00e9     : '+cohort.toFixed(1)+' %  (\u0394 '+(cohort-casc>=0?'+':'')+(cohort-casc).toFixed(1)+' pts vs son-mot, cheat-free \u00b7 plus lent)','');
     L('  ortho seul (comparable lettre-seule std)   : '+orth.toFixed(1)+' %','dim');
     L('  rep\u00e8res SOTA Trexquant : baseline ~50 % \u00b7 bons solveurs ~65-68 % (sans son)','dim');
-    L('  \u2192 relance \u00ab Nouvelle partie \u00bb (l\'\u00e9tat a servi \u00e0 la mesure).','dim');
+    L('  \u2192 \u00e9tat restaur\u00e9 (lexique, toggles, \u03b8, RNG) apr\u00e8s la mesure.','dim');
   }catch(e){ restore(); L('ERR '+e.message,'dim'); }
 }
 
@@ -11249,27 +11270,28 @@ window.addEventListener('DOMContentLoaded', () => {
   var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones lexicaux.',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal (le palier le plus tardif).'};
   function stageOfFact(types){var best=-1;(types||[]).forEach(function(t){var st=STAGE_FAM[t];if(st){var k=STAGE_ORDER.indexOf(st);if(k>best)best=k;}});return best<0?null:STAGE_ORDER[best];}
   function developmental(F){var c={},tot=0,i;for(i=0;i<STAGE_ORDER.length;i++)c[STAGE_ORDER[i]]=0;F.forEach(function(f){var st=stageOfFact(f.types);if(st){c[st]++;tot++;}});if(!tot)return null;for(i=0;i<STAGE_ORDER.length;i++)if(c[STAGE_ORDER[i]]>0)return{stade:STAGE_ORDER[i]};return null;}
+  function esc(x){return String(x).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
   function diagnoseSentence(cible,eleve,fam){var T=toks(cible),S=toks(eleve),F=[],ti=-1;
     align(T,S).forEach(function(op){var k=op[0],t=op[1],s=op[2];
-      if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+s+' ».'});return;}
+      if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+esc(s)+' ».'});return;}
       ti++;
       if(k==='match')return;
-      if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+t+' ».'});return;}
+      if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+esc(t)+' ».'});return;}
       var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
-      var fact={types:ty,msg:'« '+s+' » → « '+t+' » : '+ty.join(', ')};
+      var fact={types:ty,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.join(', ')};
       if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
         if(isParticiple(T,idx)){var aux=findAux(T,idx);
-          if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+g1[0]+' » ('+nb(g1[1])+')':'');}
+          if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+esc(g1[0])+' » ('+nb(g1[1])+')':'');}
           else if(aux==='avoir'){var cod=findCodAntepose(T,idx);   // COD antéposé (relatif « que ») → accord
             if(cod){var d=[];if(cod[1])d.push(cod[1]==='f'?'féminin':'masculin');if(cod[2])d.push(cod[2]==='pl'?'pluriel':'singulier');
-              fact.gram='participe passé avec avoir : COD antéposé « '+cod[0]+' »'+(d.length?' ('+d.join(' ')+')':'')+' → accorder « '+t+' »';}
+              fact.gram='participe passé avec avoir : COD antéposé « '+esc(cod[0])+' »'+(d.length?' ('+d.join(' ')+')':'')+' → accorder « '+esc(t)+' »';}
             else fact.gram='participe passé avec avoir : invariable (COD placé après)';}
           else fact.gram='participe passé';
         } else {var verb=isVerb(T,idx),at=accordType(t,s,verb);
           if(at==='genre'&&!verb){var gg=governorGender(T,idx)||(typeof lexicalGender==='function'?lexicalGender(T,idx):null);   // déterminant genré, sinon route lexicale (nom-tête)
-            fact.gram=gg?('accord en genre : « '+gg[0]+' » '+(gg[1]==='f'?'féminin':'masculin')+' → accorder « '+t+' »'):'accord en genre';
+            fact.gram=gg?('accord en genre : « '+esc(gg[0])+' » '+(gg[1]==='f'?'féminin':'masculin')+' → accorder « '+esc(t)+' »'):'accord en genre';
           } else {var g=governorNumber(T,idx,verb);
-            if(g)fact.gram=(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+g[0]+' » '+nb(g[1])+' → accorder « '+t+' »';
+            if(g)fact.gram=(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+esc(g[0])+' » '+nb(g[1])+' → accorder « '+esc(t)+' »';
           }
         }
       }
@@ -11309,7 +11331,7 @@ window.addEventListener('DOMContentLoaded', () => {
       :F.map(function(x){var c=COL[x.types[0]]||'#777';var tags=x.types.map(function(t){return LBL[t]||t;}).join(', ');
         return '<div class="vdd-fact" style="border-left:5px solid '+c+'">'+x.msg.replace(/: [^:]*$/,': <b>'+tags+'</b>')+(x.gram?'<br><span class="vdd-sc">→ '+x.gram+'</span>':'')+'</div>';}).join('');
     if(!ok){var dev=developmental(F);if(dev)html+='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdd-sc">'+STAGE_MSG[dev.stade]+'</span></div>';}
-    if(!ok)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase correcte : <span class="vdd-truth">'+cur.text+'</span></div>';
+    if(!ok)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase correcte : <span class="vdd-truth">'+esc(cur.text)+'</span></div>';
     F.forEach(function(x){x.types.forEach(function(t){if(ERRFAM.indexOf(t)>=0)PROF[t]=(PROF[t]||0)+1;});});try{localStorage.setItem('vdd_profile',JSON.stringify(PROF));}catch(e){}$('vdd-fb').innerHTML=html;$('vdd-score').textContent=nG+' / '+nT;renderProf();renderHist();}
   btn.onclick=function(){ov.classList.add('on');if(!cur)pick();else $('vdd-ans').focus();};
   $('vdd-x').onclick=function(){ov.classList.remove('on');};
