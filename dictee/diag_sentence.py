@@ -33,6 +33,19 @@ def is_accord(t,s):
     ra,rb=a[p:],b[p:]
     return (ra!=rb) and all(c in INFL for c in ra+rb)
 
+def accord_type(t,s):
+    """Type d'accord (GRAINE du levier grammaire — heuristique SANS POS, donc approximative).
+    nombre (pluriel -s/-x) · verbal (3e pers. pluriel -ent/-nt, ou -t) · genre (féminin -e). Le levier
+    grammaire complet exigera la catégorie grammaticale (POS) + l'accord à distance (sujet-verbe, participe)."""
+    a,b=deacc(t.lower()),deacc(s.lower()); p=0
+    while p<len(a) and p<len(b) and a[p]==b[p]: p+=1
+    ra,rb=a[p:],b[p:]; suf=ra+rb
+    if ra.endswith('nt') or rb.endswith('nt'): return 'verbal'   # -ent / -nt (3e pers. pluriel)
+    if 's' in suf or 'x' in suf: return 'nombre'                 # pluriel -s/-x
+    if 't' in suf: return 'verbal'                               # -t (verbe/participe)
+    if 'e' in suf: return 'genre'                                # féminin -e (ambigu verbal sg sans POS)
+    return 'flexion'
+
 def diag_word(t,s,fam):
     """t=cible, s=élève (mots). fam=liste homophones de t. -> liste de types."""
     if s.lower()==t.lower(): return []
@@ -78,23 +91,28 @@ def diagnose_sentence(cible, eleve, fam):
         if op=='del': facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
         if op=='ins': facts.append({'mot':s,'types':['mot_en_trop'],'msg':f'Mot en trop : « {s} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
-        facts.append({'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'})
+        fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
+        if 'accord' in types:                                  # graine grammaire : préciser le type d'accord
+            fact['accord_type']=accord_type(t,s); fact['msg']+=f' (accord: {fact["accord_type"]})'
+        facts.append(fact)
     return facts
 
 # === Diagnostic DÉVELOPPEMENTAL (stades) — additif, réutilise diag_word ===
 # Fondé sur Ferreiro (genèse de l'écriture) via Berliocchi (2022) + typologie dysorthographique
 # (phonologique / lexicale-surface / morphosyntaxique). Chaque famille révèle le PALIER non maîtrisé.
 STAGE_OF = {
-    'phonologique':  ['voisee_sourde','inversion','ajout'],   # le SON mal perçu/segmenté (conscience phonémique)
-    'alphabetique':  ['surface','accent'],                    # écrit "comme ça sonne", pas l'ortho conventionnelle
-    'orthographique':['muette','accord','homophone'],         # règles sans indice sonore (dernier palier)
+    'phonologique':    ['voisee_sourde','inversion','ajout'], # le SON mal perçu/segmenté (conscience phonémique)
+    'alphabetique':    ['surface','accent'],                  # écrit "comme ça sonne", pas l'ortho conventionnelle
+    'lexical':         ['muette','homophone'],                # orthographe du MOT : lettres muettes lexicales, homophone lexical
+    'morphosyntaxique':['accord'],                            # GRAMMAIRE : accords (genre/nombre/verbal), sans indice sonore — apex
 }
-STAGE_ORDER = ['phonologique','alphabetique','orthographique']  # du plus amont au plus avancé
+STAGE_ORDER = ['phonologique','alphabetique','lexical','morphosyntaxique']  # du plus amont au plus avancé
 FAM2STAGE = {f:st for st,fs in STAGE_OF.items() for f in fs}
 STAGE_MSG = {
-    'phonologique':  "travaille le SON (conscience phonémique) : confusions sourde/sonore, inversions, lettres en trop.",
-    'alphabetique':  "écrit « comme ça sonne » : il faut passer du son à l'orthographe conventionnelle (accents, graphies).",
-    'orthographique':"maîtrise le son→lettre ; reste l'orthographe sans indice sonore : lettres muettes, accords, homophones.",
+    'phonologique':    "travaille le SON (conscience phonémique) : confusions sourde/sonore, inversions, lettres en trop.",
+    'alphabetique':    "écrit « comme ça sonne » : il faut passer du son à l'orthographe conventionnelle (accents, graphies).",
+    'lexical':         "maîtrise le son→lettre ; reste l'orthographe du MOT : lettres muettes, homophones lexicaux.",
+    'morphosyntaxique':"orthographe lexicale OK ; reste la GRAMMAIRE : accords en genre/nombre/verbal (le palier le plus tardif).",
 }
 
 def stage_of_fact(types):
@@ -182,12 +200,17 @@ if __name__=='__main__':
                     w2=w.lower().replace(a,b,1)
                     if w2!=w.lower() and norm(w2)==norm(w): return T[:i]+[w2]+T[i+1:]
         return None
-    def first_ortho(T,fam):
+    def first_lexical(T,fam):   # homophone LEXICAL (non flexionnel)
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
-                if h.lower()!=w.lower(): return T[:i]+[h]+T[i+1:]
+                if h.lower()!=w.lower() and not is_accord(w,h) and deacc(h)!=deacc(w.lower()): return T[:i]+[h]+T[i+1:]
         return None
-    builders={'phonologique':first_vs_swap,'alphabetique':first_surface,'orthographique':first_ortho}
+    def first_morpho(T,fam):    # accord (flexionnel) = grammaire
+        for i,w in enumerate(T):
+            for h in fam.get(w.lower(),[]):
+                if h.lower()!=w.lower() and is_accord(w,h): return T[:i]+[h]+T[i+1:]
+        return None
+    builders={'phonologique':first_vs_swap,'alphabetique':first_surface,'lexical':first_lexical,'morphosyntaxique':first_morpho}
     print('=== diagnostic par STADE (élève "pur" par stade) ===')
     for exp,build in builders.items():
         facts_all=[]
@@ -196,7 +219,11 @@ if __name__=='__main__':
             if S: facts_all+=[f for f in diagnose_sentence(e['text'],' '.join(S),e['fam']) if f.get('types')]
         dx=developmental_diagnosis(facts_all)
         flag='OK' if dx['stade']==exp else 'X'
-        print(f"  élève '{exp:14}' (n={sum(dx['counts'].values())} erreurs) → diagnostiqué « {dx['stade']} »  {flag}  {dx['counts']}")
+        extra=''
+        if exp=='morphosyntaxique':   # graine grammaire : répartition des types d'accord
+            at={}; [at.__setitem__(f['accord_type'],at.get(f['accord_type'],0)+1) for f in facts_all if f.get('accord_type')]
+            extra=f"  · types d'accord : {at}"
+        print(f"  élève '{exp:16}' (n={sum(dx['counts'].values())}) → « {dx['stade']} »  {flag}{extra}")
 
     # démo (par mot + STADE)
     print('\n--- démo ---')
