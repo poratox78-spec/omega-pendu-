@@ -231,6 +231,23 @@ Robuste 3 graines : GAP NET = **+0,028 / +0,020 / +0,028** (12345/777/2024), var
 
 **Verdict (tranche la thèse « sens des flux »).** Le miroir **ortho** descendant ne porte que de la fréquence (mort, M1_m) ; le miroir **phon** descendant porte un signal **spécifique au mot, au-delà de la fréquence** (+0,02–0,03). **C'est la confirmation que la direction phon→ortho est la bonne** (cohérent assemblé +5,28, mémoire). Nuances honnêtes avant tout chantier : (i) `M4_phon_m` est **déjà consommé** (3590) quand la voie phon est active → le signal est déjà partiellement utilisé ; le gain à chercher = le **router/pondérer** mieux, ou réveiller les dormants `M2/M1_phon_m` *sur la voie phon* (à mesurer, pas acquis) ; (ii) effet **winrate** non encore mesuré (ici = discrimination de lettres, pas Δ victoires) ; (iii) le bug d'init impose de re-mesurer les A/B voie-phon avec init correct. Outil : `evo/diag_phonm.js`.
 
+#### 1.4.4 — Dette d'intégrité : repro §1.2/§1.3 (jointe) re-mesurée voie phon ACTIVE → l'avantage DISPARAÎT — 2026-06-17
+
+Conséquence directe du bug §1.4.3, traitée avant tout nouveau chantier (« b puis a », Rem). `ab_cohort.js` corrigé (config avant init + garde anti-inerte). Repro **in-lexique K=1**, warmup 200 / test 100, **8 graines** {12345,777,2024,99,2025,7,314,1000}, voie phon **réellement active** (selfTests OK) :
+
+| condition | moyenne 8 graines | §1.3 documenté (voie phon **inerte**) |
+|---|---|---|
+| son-lu (triche) | 98,5 % | 98,0 % |
+| cohorte **argmax** | **95,3 %** | 92,5 % |
+| cohorte **jointe** @0,30 | **94,9 %** | 95,0 % |
+| **Δ jointe − argmax** | **−0,4 pt** (3 gains / 2 nuls / 3 pertes) | **+2,5 (jamais sous)** |
+
+Δ par graine : `[+0,+3,+1,−4,+0,−3,+1,−1]`. **La voie phon active fait surtout monter l'argmax (92,5→95,3), ce qui efface l'avantage de la jointe.**
+
+**Verdict.** Le « +2,5 / jamais en-dessous » du §1.2/§1.3 (qui justifiait l'adoption de la **jointe cheat-free**) était un **artefact du harnais voie-phon-inerte**. Voie phon active : **jointe ≈ argmax** (−0,4, perd 3/8). **L'adoption de la jointe est à rouvrir.** Bornes honnêtes : (a) **affecté** = repros headless in-lexique (§1.2/§1.3) ; **OOV §1.1 non affecté** (CFG_OOV met la voie phon OFF volontairement) ; (b) ça **n'infirme pas le principe** doctrinal « croiser = jointe » (§3) — seulement *cette preuve empirique* ; (c) le **bench in-page** (UI) ré-init la voie phon au toggle → potentiellement OK, c'est la **mesure headless** qui était fausse. Rejouable : `node evo/ab_cohort.js inlex 200 100 12345,777,2024,99,2025,7,314,1000`.
+
+> ⚠️ **Marqueur sur §1.1/§1.2/§1.3** : les chiffres in-lexique de ces sous-sections (et la conclusion « jointe adoptée ») ont été obtenus **voie phon inerte** (bug §1.4.3). À relire à la lumière de §1.4.4. L'OOV (§1.1) reste valide.
+
 ---
 
 ## 2. Findings structurels (par sévérité)
