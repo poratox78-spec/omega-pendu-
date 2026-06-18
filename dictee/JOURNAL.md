@@ -5,18 +5,24 @@
 
 ---
 
-## 2026-06-18 — Pourquoi l'OOV est bas + FIX n-gram de lettres (33→59 %) + recall innocenté (AUDIT §1.7)
+## 2026-06-18 — LE VRAI PROBLÈME : cognition/apprentissage ne généralisent pas + FIX n-gram (N=400 : 50→66 %) — AUDIT §1.7/§1.8
 
-Suite Rem : « l'hybride DEVRAIT faire mieux que 33 %, lexique ≠ mot, trouve pourquoi ». Mesuré (vrai OOV, N=120) :
-- n-gram TRIVIAL pré-calculé du lexique = **57,5 %** → le signal EST là, OMEGA le gaspille.
-- Causes : stats sous-lexicales **apprises du jeu** (~200 mots, pas du lexique) · **médiées par phonèmes** (lossy) ·
-  cognition **8 %** (ne généralise pas) · « plus de données = pire » (32,5→23,3 % de warmup 200→1500).
-- **FIX** `M_NEO_LETTER_NGRAM` (OFF-inerte) : n-gram positionnel de lettres pré-calculé depuis `len_index`
-  (cheat-free, respecte Trexquant). **32,5 → 59,2 % OOV (+26,7 pts), moins de coups.** Immunisé contre la dégradation.
-- **⚠️ Correction honnête** : j'avais accusé le **recall** (mémorisation) de la dégradation « plus de données = pire ».
-  **Mesure : FAUX** — recall OFF ≈ recall ON (30,8/21,7 vs 32,5/23,3), la dégradation persiste sans lui. Cause exacte
-  non isolée (probablement `_neoCRS` jointe qui sur-s'engage ; part de bruit à N=120). Rendu secondaire par le fix.
-- Leçon : le levier OOV = **AGRÉGATION** (n-gram du lexique), pas mémorisation ni apprentissage-par-jeu. Cf. `docs/HANGMAN_SOTA.md`.
+Suite Rem : « le pendu n'est qu'une MESURE ; OMEGA ne gagne ni par mémorisation ni par apprentissage-par-jeu — vrai
+problème, trouve cause + solution ». Mesuré (vrai OOV) :
+- baseline n-gram TRIVIAL du lexique = **57,5 %** ; **OMEGA cognition SEULE = ~8 %** → le signal est dans le lexique,
+  la cognition ne le capte pas.
+- **FIX** `M_NEO_LETTER_NGRAM` (OFF-inerte) : n-gram positionnel de lettres pré-calculé depuis `len_index` (cheat-free,
+  respecte Trexquant). **N=400 (4 graines) : hybride 50,0 → 66,0 % (+16 pts, gagne à chaque graine), moins de coups.**
+- **CAUSE de fond** : généraliser = **agréger** la structure du lexique. OMEGA apprend par **récompense-par-partie +
+  mémoire** (~200 mots vus), goulot 12 cellules, **pas de câblage concept→lettre** (§1.4.2). Mauvais paradigme + capacité + câblage.
+- **SOLUTION** : désintriquer ORACLE (lire la réponse, triche) / AGRÉGATION (stats du lexique = substrat légitime) /
+  COGNITION (Δ par-dessus). Thèse → « la cognition ajoute-t-elle un Δ au-dessus du substrat n-gram ? ». Étapes : (1) substrat
+  agrégé (one-pass lexique, lettres+phonèmes) ; (2) mesurer Δ cognition ; (3) si oui, capacité+câblage (§3). Détail AUDIT §1.8.
+- **⚠️ DEUX corrections honnêtes (petit-N over-read)** : (a) « recall tue la généralisation » = FAUX (recall OFF ≈ ON).
+  (b) « plus de données = pire » = **bruit, non confirmé** (w1500 full=jointe OFF=θ OFF=23,3 % IDENTIQUE ; baseline w200=50 %
+  à N=400). Le vrai problème n'est PAS une dégradation, c'est que la cognition ne généralise pas (8 %).
+- Leçon transverse : OMEGA généralise par **AGRÉGATION DE STRUCTURE** (déjà le paradigme gagnant du correcteur dys :
+  cgram/conjugaison), pas par récompense ni mémoire. Cf. `docs/HANGMAN_SOTA.md`.
 
 ---
 

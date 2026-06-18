@@ -401,46 +401,87 @@ Trexquant de `CONFIG_REFERENCE`. À **re-mesurer** avec le fix avant tout chiffr
 | + OS-arb | 96,7 % | 2,00 | 8,12 |
 </details>
 
-### 1.7 — Pourquoi le VRAI OOV est si bas (~33 %) — et le FIX (n-gram de lettres, 33→59 %) — 2026-06-18
+### 1.7 — Pourquoi le VRAI OOV est bas — et le FIX (n-gram de lettres, +16 pts) — 2026-06-18
 
-Question de Rem : « avec bigrammes/trigrammes + cognition, l'hybride DEVRAIT faire mieux que 33 %. Trouve pourquoi. »
+Question de Rem : « avec bigrammes/trigrammes + cognition, l'hybride DEVRAIT faire mieux. Trouve pourquoi. »
 Et : « lexique ≠ mot » (le lexique porte des stats sous-lexicales, pas que des mots entiers). Mesuré (moteur corrigé
-`_neoWBL`, VRAI OOV, warmup 200 / test 60 / 2 graines sauf indication ; **N=120, SE≈±4 pts**) :
+`_neoWBL`, VRAI OOV). ⚠️ Les chiffres test=60×2 (N=120) se sont révélés **bruités** ; les chiffres **robustes = N=400
+(4 graines × test 100)**.
 
-| condition (VRAI OOV) | winrate | coups |
-|---|---|---|
-| **baseline n-gram TRIVIAL** (positionnel uni/bi/tri, **pré-calculé du lexique**, mots-test exclus) | **57,5 %** | — |
-| OMEGA hybride complet (voie phon + cognition + NEO) | **32,5 %** | 9,9 |
-| OMEGA cognition SEULE (declares OFF) | **8,3 %** | 10,2 |
-| OMEGA hybride, warmup **1500** (vs 200) | **23,3 %** | 9,9 |
-| **OMEGA hybride + voie n-gram de lettres ON (le FIX)** | **59,2 %** | **9,6** |
+| condition (VRAI OOV) | winrate | coups | N |
+|---|---|---|---|
+| **baseline n-gram TRIVIAL** (positionnel uni/bi/tri, **pré-calculé du lexique**, mots-test exclus) | **57,5 %** | — | 120 |
+| OMEGA hybride (voie phon + cognition + NEO) — **robuste** | **50,0 %** [57,55,46,42] | 9,4 | **400** |
+| OMEGA **hybride + n-gram de lettres ON (le FIX)** — **robuste** | **66,0 %** [73,63,65,63] | **9,2** | **400** |
+| OMEGA cognition SEULE (declares OFF) | **~8 %** | 10,2 | 120 |
 
-**Diagnostic (mécanisme, §1) — le signal EST dans le lexique (57,5 % par un n-gram trivial), OMEGA le gaspille :**
+**Diagnostic (mécanisme, §1) — le signal EST dans le lexique (n-gram 57,5–66 %), OMEGA le sous-exploite :**
 1. **Stats sous-lexicales apprises DU JEU, pas du lexique.** `_neoCR`/`_neoCRS`/g2p sont remis à `{}` à l'init et
-   remplis **post-partie** (≈200 mots au warmup) — vs un n-gram qui pré-calcule sur ~250k mots. Famine de données.
+   remplis **post-partie** (≈200 mots au warmup) — vs un n-gram qui pré-calcule sur ~250k mots.
 2. **Médiation par PHONÈMES** (son→phonème→graphème) = un saut lossy ; le n-gram reste en espace LETTRES (ce qu'EST
    l'orthographe du lexique).
-3. **La cognition ne généralise pas en sous-lexical** (8 % seule) — concept/position = détecteurs globaux/longueur
-   (§1.4.2). ~2/3 de l'archi = poids mort pour l'OOV.
-4. **« Plus de données = pire »** (32,5 %→23,3 % de warmup 200→1500) : un composant appris-du-jeu **sur-s'engage** sur
-   les patterns typiques → faux sur les mots OOV atypiques.
-
-**⚠️ Hypothèse CORRIGÉE (honnêteté §6).** J'avais d'abord attribué (4) au **recall** (mémorisation k-NN sur mots
-entiers). **Mesure : FAUX.** recall OFF donne 30,8 % (w200) / 21,7 % (w1500) ≈ recall ON (32,5/23,3) → **le recall
-n'est NI le dégradeur NI un gros contributeur**, et la dégradation persiste sans lui. La cause exacte de (4) reste
-**non isolée** (probablement la table jointe phonème→lettre `_neoCRS` qui sur-s'engage en se remplissant ; à N=120
-une part est du bruit). À mesurer (jointe/θ figés) si on veut la trancher — mais c'est rendu **secondaire** par le fix.
+3. **La cognition ne généralise pas en sous-lexical** (~8 % seule) — concept/position = détecteurs globaux/longueur
+   (§1.4.2). Les ~50 % de l'hybride viennent de la **cohorte-jointe (agrégation de voisins du lexique)**, PAS de la cognition.
+**⚠️ DEUX hypothèses RETRACTÉES (honnêteté §6 — petit-N over-read).**
+- (a) « **recall** (mémorisation k-NN) tue la généralisation » : **FAUX**. recall OFF ≈ recall ON (30,8/21,7 vs 32,5/23,3).
+- (b) « **plus de données = pire** » (warmup 200→1500) : **NON CONFIRMÉ = bruit**. À w1500, **full = jointe OFF =
+  θ OFF = 23,3 % IDENTIQUE à la décimale** → aucun composant (jointe/θ/recall) n'est attribuable ; et le baseline w200
+  vaut **50 %** à N=400 (pas 32,5 %) avec une variance graine énorme [42-57]. Le « 32→23 » comparait des **jeux-test
+  différents** à petit-N. Donc : **pas de dégradation réelle démontrée.** Le vrai problème n'est PAS une dégradation —
+  c'est que **la cognition ne généralise pas du tout (8 %) ; seule l'agrégation gagne.**
 
 **FIX livré (`M_NEO_LETTER_NGRAM`, OFF-inerte, R66).** `_neoEnsureNG()`/`_neoLetterNgram()` : n-gram positionnel de
 lettres (backoff tri→bi→uni) **pré-calculé depuis `len_index`** (respecte Trexquant ; cheat-free : board révélé +
 stats agrégées du lexique, jamais `currentWord` ; 1 mot/250k = non récupérable). Branché dans la cascade declare.
-**Mesuré : 32,5 → 59,2 % OOV (+26,7 pts), moins de coups (9,9→9,6)**, au-dessus du baseline trivial (57,5 %) et dans la
-bande SOTA (~50-65 %, cf. `docs/HANGMAN_SOTA.md`). **Immunisé contre (4)** : il n'apprend pas du jeu → pas de
-dégradation avec les parties. P1 (recall ON) = P2 (recall OFF) = 59,2 % : une fois le n-gram en tête, il porte la
-décision. **Le levier = AGRÉGATION (n-gram du lexique), pas MÉMORISATION ni apprentissage-par-jeu.**
+**Mesuré N=400 : 50,0 → 66,0 % OOV (+16 pts, GAGNE à chaque graine), moins de coups (9,4→9,2)**, au-dessus du baseline
+trivial (57,5 %) et dans/au-dessus de la bande SOTA (cf. `docs/HANGMAN_SOTA.md`). **Le levier = AGRÉGATION (n-gram du
+lexique), pas mémorisation ni apprentissage-par-jeu.**
 
-**À faire** : décider du défaut (le brancher dans la config OOV/Trexquant ? le croiser avec la cohorte-jointe via OS-arb ?),
-confirmer N=400/4 graines, et isoler proprement la cause de (4) si on veut comprendre la dégradation à fond.
+---
+
+### 1.8 — LE VRAI PROBLÈME (Rem) : « le pendu n'est qu'une mesure ; OMEGA ne gagne ni par mémorisation ni par apprentissage-par-jeu » — 2026-06-18
+
+Recadrage de Rem : le n-gram **corrige la MESURE** (pendu OOV 50→66 %) mais **par AGRÉGATION** (statistiques pré-calculées
+du lexique) — c'est un **substrat/oracle**, PAS la cognition d'OMEGA. Le résultat de fond, sur la seule mesure chiffrée :
+**rien dans la cognition ni dans l'apprentissage-par-jeu d'OMEGA ne généralise** ; seules gagnent la **recherche
+lexicale** (cohorte/oracle) et l'**agrégation** (n-gram). La thèse « cognition > oracle » est donc **fausse aujourd'hui**.
+
+**CAUSE (le pourquoi, mécanisme — mesuré + lecture du code).** Généraliser ici = **agréger** la structure contexte→lettre
+du lexique. OMEGA apprend par **récompense-par-partie (RL) + mémoire (recall)** sur ~200 parties, via un goulot de 12
+cellules, sans chemin concept→lettre. Trois causes emboîtées :
+1. **Paradigme.** Compter une fois le lexique (n-gram) = 57,5 % ; apprendre en jouant (cognition seule) = 8 %.
+   L'apprentissage-par-jeu n'accumule pas la distribution ; il part de 0 et voit ~200 mots (`_neoCR/_neoCRS/g2p`
+   remplis post-partie), au lieu des ~250k du lexique. **Mauvais paradigme pour la généralisation.**
+2. **Capacité.** 12 cellules-concept ne peuvent pas porter les milliers de régularités contexte→lettre (§1.4.2 / S2 :
+   concept & position = détecteurs globaux/longueur, variance par-mot ≈ 0).
+3. **Câblage.** Le concept **n'atteint jamais** la décision-lettre (§1.4 : prises parallèles sur la récompense ; M1_m =
+   prior de fréquence corr 0,999). Même appris, le concept ne peut pas influencer le choix de lettre.
+
+**SOLUTION (proposée).** *Geste clé : désintriquer 3 choses confondues.*
+- **ORACLE** = lire la réponse (cohorte AVEC le mot, `wp.get`) → triche, à bannir.
+- **AGRÉGATION** = stats GÉNÉRALES du lexique (n-gram contexte→lettre) → **PAS une triche** (savoir général, comme
+  l'orthographe intériorisée d'un lecteur). → doit être le **SUBSTRAT**.
+- **COGNITION** = la valeur AJOUTÉE par-dessus le substrat (les mots atypiques que la statistique rate).
+
+→ La thèse devient **« la cognition ajoute-t-elle un Δ par-dessus le bon substrat statistique ? »** (falsifiable).
+Étapes, ordre logique :
+1. **Adopter l'agrégation comme substrat, bien faite** (« *lire* le lexique, pas *jouer* ») : bâtir les représentations
+   contexte→lettre (et phonème→lettre) par **un passage sur tout le lexique**, pas par récompense. Reste de
+   l'apprentissage (modèles prédictifs internes), bon paradigme. Le n-gram livré en est l'instance minimale ; étendre :
+   **semer `_neoCRS`/g2p** par cette agrégation one-pass (lettres + phonèmes) puis raffiner par jeu si Δ>0.
+2. **Mesurer le Δ de la cognition PAR-DESSUS le substrat n-gram** (~66 %). Δ≈0 → verdict honnête (la cognition n'aide
+   pas sur cette mesure) ; Δ>0 → la valeur cognitive est là (mots durs). C'est le **vrai test de la thèse du projet**.
+3. **Si la cognition doit ajouter** → attaquer **capacité + câblage** (§3) : substrat > 12 cellules encodant le contexte
+   sous-lexical, et **câbler concept→lettre**. On saurait *si ça vaut le coup* grâce au Δ de l'étape 2.
+
+**Cohérence projet :** le **correcteur dys** gagne déjà par **agrégation** (cgram, table de conjugaison = comptage du
+lexique ; FP=0) ; la double-voie dictée = lexicale (agrégation) × sublexicale (règles). **L'agrégation est déjà le
+paradigme gagnant côté dictée ; seul le moteur pendu était resté sur l'apprentissage-par-jeu.** Leçon transverse :
+**OMEGA généralise par AGRÉGATION DE STRUCTURE, pas par récompense ni mémoire.**
+
+**Décision en attente (Rem) :** (1) défaut du n-gram (le brancher en config OOV/Trexquant ? le croiser avec la
+cohorte-jointe via OS-arb plutôt qu'en cascade ?) ; (2) étape 2 (mesurer Δ cognition sur substrat) ; (3) si oui, §3
+(capacité/câblage).
 
 ---
 
