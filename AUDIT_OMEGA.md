@@ -491,13 +491,26 @@ double-voie ne marche pas ». Re-testé **fair** (vrai OOV, test 100×2) :
 | cognition seule (vrai OOV) | winrate |
 |---|---|
 | REF (M1_m co-décision OFF) | 10,5 % |
-| **+ M1_m ON** (descendant ortho→décision branché) | 11,0 % |
-| + M1_m ON + voie phon poussée (OS sur double-voie) | 11,0 % |
+| + M1_m ON (descendant ortho→décision branché) | 11,0 % |
+| + M1_m ON + voie phon poussée | 11,0 % |
+| **MAXIMALE** : double-voie ortho COMPLÈTE (M4_m letterPenalty + M2_m zonePenalty + M1_m letterScore + **Möbius B2**) + phon (M4_phon_m feedback + readout + bind) + **OS arbitre**, 0 declare, 0 n-gram (3 graines) | **10,7 %** |
 
-→ Brancher le descendant dans la décision = **+0,5 pt (bruit)**. **Pas de sous-estimation** : la cognition reste
-**~11 %** OOV, double-voie engagée. Confirme §1.4 (le descendant n'atteint pas la décision) **par la mesure**.
-**Verdict A : la cognition ajoute ~0 par-dessus le substrat** (cognition 11 % ≪ n-gram 66 %). « cognition > oracle »
-est **faux pour l'OOV** ; la généralisation vient de l'**agrégation**, pas de la cognition.
+→ Garde-fou de Rem (« test partiel : que phon + que M1_m ; la vraie double-voie ortho+phon + OS qui arbitre »).
+**Re-mesuré MAXIMAL** (tout le descendant qui EXISTE + Möbius + OS) = **10,7 %**, identique au partiel. **Donc pas une
+sous-estimation du test** : la cognition complète plafonne à ~11 % OOV.
+
+**POURQUOI (architecture, d'après les schémas double-voie) :** le descendant **ne réinjecte que des PRIORS GLOBAUX**,
+jamais des **conditionnels contextuels** (P(lettre | voisins révélés) = le signal n-gram) :
+- M4_m `letterPenalty` = homéostasie vers la fréquence inverse (global) ; M2_m `zonePenalty` = positionnel (global) ;
+  M1_m `letterScore` = prior de fréquence (corr 0,999, §1.4.1) — **trois priors globaux, zéro contexte**.
+- Le **miroir phon est TRONQUÉ par construction** (schéma) : `M2_phon_m`/`M1_phon_m` **jamais construits**,
+  `M3_phon_m` **observationnel** (lit le hub, n'écrit pas) ; seul `M4_phon_m` letterPenalty réinjecte → la voie qui
+  *pourrait* porter le contexte **phonotactique** est coupée.
+- Le concept M3 (12 cellules ortho / 1024D phon) = détecteur **global/longueur** (§1.4.2 / S2).
+→ **Aucun chemin descendant ne porte le conditionnel contexte→lettre** que la généralisation exige. D'où ~11 %, et
+d'où la nécessité d'un **mécanisme d'agrégation SÉPARÉ** (n-gram). **C (si un jour)** = construire un descendant qui
+porte le **contextuel** (compléter le miroir phon `M2/M1_phon_m` pour le phonotactique, ou réinjecter un conditionnel
+appris), PAS juste élargir M3.
 
 **B — n-gram = voie OOV-only, branchée.** Le n-gram **écrase la cohorte en in-lexique** (il ignore que le mot EST là)
 → à n'activer **qu'en OOV/Trexquant**. **Mesuré in-lexique : OFF 97,5 % → ON 69,5 %** (le n-gram générique remplace
