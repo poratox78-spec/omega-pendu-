@@ -18,8 +18,11 @@
 | **lexicale (grammaire)** | lookup POS/genre/nombre du mot (Lexique4 `cgram`) | exact sur les mots **attestés** | route lexicale (mot connu) |
 | **sublexicale (grammaire)** | inférer POS/accord depuis la **morphologie + le contexte** (terminaisons, gouverneur) | **généralise** aux mots inconnus | route GPC (non-mots) |
 
-État actuel : on a surtout la **sublexicale** (règles `decide(T,i)`, `vlike` morphologique). La **lexicale** est
-*branchée mais bloquée* (`build_cgram.py` → `cgram_verbs.json`, en attente du lexique 34 Mo).
+État actuel : **sublexicale** (règles `decide(T,i)`, `vlike`) **+ lexicale LIVRÉE** — lexique reçu →
+`build_cgram.py` produit `cgram_verbs.json` (12 415 verbes) et `cgram_gender.json` (53 050 noms genrés non ambigus).
+**Route lexicale du GENRE mesurée 3/3** (`diag_sentence.lexical_gender` : décide le genre quand le déterminant
+est neutre — leur/notre — là où on s'abstenait ; familles 100 % intactes, FP-safe). *Leçon homographes* : la
+membership verbale brute doit être **croisée au contexte** (jointe §3), pas un drapeau is-verbe.
 **Croisement = jointe (§3, pas argmax)** : `P(forme|contexte) ∝ P_lexicale × P_sublexicale`. Mot connu → la
 lexicale tranche ; mot inconnu → la sublexicale porte. C'est exactement ce qui lèverait le mur actuel
 (couverture verbale partielle → a/à, et/est, ce/se).

@@ -62,6 +62,26 @@ def governor_gender(T,idx):
         if w in GEN_DET: return (T[j],GEN_DET[w])
         if w in NUM_DET or w in NUM_PRON: return None     # plur. non genré / pronom → genre non porté
     return None
+# ROUTE LEXICALE du genre (double voie §lexicale) : genre du NOM-tête via Lexique4 (cgram_gender.json),
+# quand le déterminant ne marque pas le genre (les/des/absent). Chargé si présent, sinon inerte (repli déterminant).
+_GENDER_PATH=os.path.join(HERE,'cgram_gender.json')
+try: GENDER_LEX=json.load(open(_GENDER_PATH,encoding='utf-8')) if os.path.exists(_GENDER_PATH) else {}
+except Exception: GENDER_LEX={}
+def lexical_gender(T,idx):
+    """Genre du nom-tête du GN lu dans le lexique (route lexicale) : nom le plus proche à gauche (adjectif postposé,
+    « robes vertes ») puis à droite (antéposé, « belles robes »), sans franchir préposition/pronom. None si absent/ambigu."""
+    if not GENDER_LEX: return None
+    for j in range(idx-1,max(-1,idx-4),-1):
+        w=T[j].lower()
+        if w in NUM_PRON or deacc(w) in PREP: break
+        g=GENDER_LEX.get(deacc(w))
+        if g in ('m','f'): return (T[j],g)
+    for j in range(idx+1,min(len(T),idx+3)):
+        w=T[j].lower()
+        if w in NUM_PRON or deacc(w) in PREP: break
+        g=GENDER_LEX.get(deacc(w))
+        if g in ('m','f'): return (T[j],g)
+    return None
 def find_cod_antepose(T,idx):
     """Règle de l'accord du participe avec AVOIR : il s'accorde avec le COD s'il est ANTÉPOSÉ.
     Cas régulier = relatif « que/qu' » à gauche → l'antécédent (GN avant le relatif) est le COD.
@@ -189,7 +209,7 @@ def diagnose_sentence(cible, eleve, fam):
                 verb=is_verb(T,ti)                             # nom/verbe désambiguïsé par le contexte
                 at=accord_type(t,s,verb); fact['accord_type']=at
                 if at=='genre' and not verb:                  # chaîne du GN : ACCORD EN GENRE (« une robe vert »)
-                    gg=governor_gender(T,ti)
+                    gg=governor_gender(T,ti) or lexical_gender(T,ti)   # déterminant genré, sinon route lexicale (nom-tête)
                     if gg:
                         gl='féminin' if gg[1]=='f' else 'masculin'
                         fact['gouverneur'],fact['gouv_genre'],fact['grammaire']=gg[0],gg[1],'groupe nominal (genre)'
@@ -409,6 +429,19 @@ if __name__=='__main__':
     Tg=toks("Elle porte une robe verte")        # « une robe vert » : genre du GN porté par « une » (pas par « Elle »)
     ai=[k for k,w in enumerate(Tg) if w.lower()=='verte'][0]
     print(f"  chaîne du GN « une robe vert(e) » : gouverneur genre = {governor_gender(Tg,ai)} (skippe le pronom « Elle »)")
+    # === ROUTE LEXICALE du genre : décider le genre quand le DÉTERMINANT ne le marque pas (leur/notre/des…) ===
+    print(f"  route lexicale du genre : lexique = {('chargé, '+str(len(GENDER_LEX))+' noms') if GENDER_LEX else 'ABSENT (cgram_gender.json — repli déterminant seul)'}")
+    lex_cases=[("Leur grande maison brûle","grande","grand","f"),     # « leur » neutre → genre via le nom « maison » (f)
+               ("Notre petite voiture roule","petite","petit","f"),
+               ("Leur chien noir dort","noir","noire","m")]
+    for txt,adj,bad,exp in lex_cases:
+        T=toks(txt); i=[k for k,w in enumerate(T) if w.lower()==adj.lower()][0]
+        det=governor_gender(T,i); lex=lexical_gender(T,i)            # déterminant seul (None) vs route lexicale
+        f=diagnose_sentence(txt,' '.join(T[:i]+[bad]+T[i+1:]),{adj.lower():[bad,adj]})
+        fa=next((x for x in f if x.get('mot')==adj),None)
+        got=fa.get('gouv_genre') if fa else None
+        flag=('· lexique absent' if not GENDER_LEX else ('✓' if got==exp else '✗'))
+        print(f"    {flag} « {txt} » : déterminant seul={det} → abstention · lexique={lex} → genre décidé={got}")
 
     # démo (par mot + STADE)
     print('\n--- démo ---')
