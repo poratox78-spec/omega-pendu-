@@ -46,9 +46,14 @@ lexique 34 Mo (nécessaire seulement pour la couche « typo / non-mot » et pour
 1. ✅ **Plus de règles + couverture verbale élargie** (étape 1) : liste blanche `vlike` + peu/peux/peut, ce/se → 22/24, 0 FP.
 2. ✅ **UI semi-directe** (étape 2) : bouton « 🩹 Correcteur » dans l'app — colle ton texte, souligne les fautes
    (survol = correction), liste + **stade**, correction en semi-direct (débounce). OFF-inerte, R66. Parité JS↔Python vérifiée.
-3. 🟡 **Lexique4 `cgram`** (étape 3, **branchement prêt**) : `build_cgram.py` extrait les formes verbales (colonne cgram)
-   → `cgram_verbs.json`, que `vlike` charge automatiquement (sinon repli liste blanche). **Bloqué** tant que le
-   `Lexique4.tsv` (34 Mo, hors-repo) n'est pas en `/tmp/lex4/` → lève alors a/à, et/est, on/ont (verbes hors liste) + scale.
-   Reste : embarquer `cgram_verbs.json` dans l'IIFE app (mêmes formes côté navigateur).
+3. ✅ **Lexique4 `cgram`** (étape 3, **fait**) : lexique reçu → `build_cgram.py` → `cgram_verbs.json` (**12 415 formes
+   verbales**, freq≥0.5), chargé automatiquement par `vlike` (sinon repli liste blanche).
+   **Mesuré** : couverture verbale complète pour le **texte réel** (la liste blanche en raterait des milliers) ;
+   FP toujours **0**. MAIS sur le jeu-témoin contrived : 21/24 (vs 22/24 liste blanche) car cgram fait passer les
+   **homographes nom+verbe** (livre, porte, trouve, calme, lit…) pour des verbes → trompe la règle faible `ce/se`.
+   **Leçon (= design double-voie)** : la route lexicale cgram doit être **croisée avec le contexte (jointe §3)**, pas
+   utilisée comme drapeau « est-un-verbe » brut. L'app garde la liste blanche compacte ; le probe Python utilise cgram.
+   **Vrai gisement non exploité : les colonnes `7_Genre` / `8_Nombre`** → une route lexicale du GENRE (accord
+   nom/adjectif) qu'on ne sait PAS faire aujourd'hui (on n'infère le genre que via le déterminant).
 4. ⬜ **Couche typo** : mot hors-lexique → plus proches voisins (édition + phon) → fautes non-homophones (nécessite le lexique).
 5. ⬜ **Double voie grammaire** (ascendante/descendante) : voir `DICTEE_ROADMAP.md` / discussion en cours.
