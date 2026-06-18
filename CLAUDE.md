@@ -4,6 +4,8 @@
 > **⚖️ DOCTRINE PRIORITAIRE — lire AVANT de coder : `DOCTRINE.md`** (cap §43 consolidé : §0 clause de service · §1 falsifiabilité/mesure · §2 R66/R67 · §3 doctrine probabiliste = jointe `Σ_φ P(φ|p)·P(lettre|φ,contexte)`, pas argmax · §4 une jonction à la fois · **§5 anti-fainéantise** (inventaire+réutiliser l'existant) · §6 audit honnête « défaut = pas terminé »).
 > Docs de fond : `docs/MEMOIRE.html`, `docs/rapport-mode-emploi.html` (§18 = dictée). Plan : `DICTEE_ROADMAP.md`.
 > Journal le plus à jour : `dictee/JOURNAL.md`. Audit transverse : `AUDIT_PROJET.md` · audit moteur : `AUDIT_OMEGA.md`.
+>
+> ⛔ **NE JAMAIS lire en entier dans le contexte** (sature la fenêtre → compactage permanent / « reprise » à chaque message) : `app/omega-pendu.html` (~5 Mo, ~1,3 M tokens), `dictee/phono_homophones.json` (~2,1 Mo sur 1 ligne), `Lexique4.tsv` (34 Mo). **Méthode obligatoire** : `Grep` pour localiser, puis `Read` avec `offset`/`limit` sur la **plage utile uniquement** ; les gros JSON/TSV se **traitent par script** (ex. `python3 dictee/diag_sentence.py`), jamais en lecture directe.
 
 ## Ce dépôt contient 4 choses
 1. **OMEGA-Ω** — moteur cognitif de **pendu français** (`app/omega-pendu.html`, monolithique). Doctrine **« cognition > oracle »** + **R66** (mesurer/falsifier avant de garder ; tout module OFF par défaut, baseline byte-identique). Détails : `docs/MEMOIRE.html` + `docs/rapport-mode-emploi.html`.
