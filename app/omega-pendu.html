@@ -11221,13 +11221,44 @@ window.addEventListener('DOMContentLoaded', () => {
       else{ops.push(['ins',null,S[j-1]]);j--;}}
     ops.reverse();return ops;
   }
-  function diagnoseSentence(cible,eleve,fam){var T=toks(cible),S=toks(eleve),F=[];
+  // ===== LEVIER GRAMMAIRE + STADES développementaux (port de diag_sentence.py) =====
+  var NUM_DET={le:'sg',la:'sg',un:'sg',une:'sg',ce:'sg',cet:'sg',cette:'sg',mon:'sg',ton:'sg',son:'sg',ma:'sg',ta:'sg',sa:'sg',notre:'sg',votre:'sg',leur:'sg',les:'pl',des:'pl',ces:'pl',mes:'pl',tes:'pl',ses:'pl',nos:'pl',vos:'pl',leurs:'pl'};
+  var NUM_PRON={je:'sg',tu:'sg',il:'sg',elle:'sg',on:'sg',nous:'pl',vous:'pl',ils:'pl',elles:'pl'};
+  var PREP={de:1,'à':1,a:1,du:1,des:1,au:1,aux:1,sur:1,dans:1,par:1,pour:1,avec:1,sans:1,sous:1,chez:1,vers:1,'près':1,pres:1,travers:1,'malgré':1,malgre:1,'dès':1,entre:1,depuis:1,contre:1};
+  function governorNumber(T,idx,skipPP){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();if(NUM_PRON[w])return[T[j],NUM_PRON[w]];if(NUM_DET[w]){if(skipPP&&j>0&&PREP[deacc(T[j-1].toLowerCase())])continue;return[T[j],NUM_DET[w]];}}return null;}
+  var VERB_FORMS={dort:1,jouent:1,boit:1,court:1,lit:1,met:1,mangeons:1,ecrit:1,chantent:1,repetent:1,creuse:1,porte:1,prennent:1,sont:1,vend:1,eteignent:1,galopent:1,faut:1,finisses:1,etudient:1,tombent:1,est:1,aurait:1,restions:1,cachait:1,quittent:1,calme:1,attendaient:1,furent:1,poursuivirent:1,avons:1,a:1};
+  var VERB_SUF=['ons','ez','aient','ait','erent','irent','issent'];var NOTVERB={longtemps:1,ensemble:1,vraiment:1,souvent:1,comment:1,patiemment:1,rapidement:1};
+  function isVerb(T,idx){if(idx<0||idx>=T.length)return false;var w=deacc(T[idx].toLowerCase());var known=VERB_FORMS[w]||(!NOTVERB[w]&&w.length>3&&VERB_SUF.some(function(s){return w.slice(-s.length)===s;}));if(!known)return false;return !(idx>0&&NUM_DET[T[idx-1].toLowerCase()]);}
+  var AUX_ETRE={est:1,sont:1,furent:1,fut:1,etait:1,etaient:1,sera:1,seront:1,suis:1,es:1,sommes:1,etes:1,soit:1};
+  var AUX_AVOIR={a:1,ont:1,avons:1,avez:1,ai:1,as:1,avait:1,avaient:1,aurait:1,aura:1,auront:1,aurais:1,eu:1};
+  var PART_FORMS={arrive:1,arrives:1,arrivee:1,arrivees:1,peint:1,peints:1,peinte:1,peintes:1,cueilli:1,cueillie:1,cueillis:1,cueillies:1,trouve:1,trouves:1,trouvee:1,trouvees:1,prefere:1,preferes:1,preferee:1,preferees:1,abandonne:1,abandonnes:1,abandonnee:1,abandonnees:1};
+  function isParticiple(T,idx){return idx>=0&&idx<T.length&&!!PART_FORMS[deacc(T[idx].toLowerCase())];}
+  function findAux(T,idx){for(var j=idx-1;j>=Math.max(0,idx-4);j--){var w=deacc(T[j].toLowerCase());if(AUX_ETRE[w])return'etre';if(AUX_AVOIR[w])return'avoir';}return null;}
+  function nb(x){return x==='pl'?'pluriel':'singulier';}
+  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',muette:'lexical',homophone:'lexical',accord:'morphosyntaxique'};
+  var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
+  var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
+  var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones lexicaux.',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal (le palier le plus tardif).'};
+  function stageOfFact(types){var best=-1;(types||[]).forEach(function(t){var st=STAGE_FAM[t];if(st){var k=STAGE_ORDER.indexOf(st);if(k>best)best=k;}});return best<0?null:STAGE_ORDER[best];}
+  function developmental(F){var c={},tot=0,i;for(i=0;i<STAGE_ORDER.length;i++)c[STAGE_ORDER[i]]=0;F.forEach(function(f){var st=stageOfFact(f.types);if(st){c[st]++;tot++;}});if(!tot)return null;for(i=0;i<STAGE_ORDER.length;i++)if(c[STAGE_ORDER[i]]>0)return{stade:STAGE_ORDER[i]};return null;}
+  function diagnoseSentence(cible,eleve,fam){var T=toks(cible),S=toks(eleve),F=[],ti=-1;
     align(T,S).forEach(function(op){var k=op[0],t=op[1],s=op[2];
+      if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+s+' ».'});return;}
+      ti++;
       if(k==='match')return;
       if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+t+' ».'});return;}
-      if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+s+' ».'});return;}
-      var ty=diagWord(t,s,(fam[t.toLowerCase()]||[]));
-      F.push({types:ty,msg:'« '+s+' » → « '+t+' » : '+ty.join(', ')});});
+      var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
+      var fact={types:ty,msg:'« '+s+' » → « '+t+' » : '+ty.join(', ')};
+      if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
+        if(isParticiple(T,idx)){var aux=findAux(T,idx);
+          if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+g1[0]+' » ('+nb(g1[1])+')':'');}
+          else if(aux==='avoir')fact.gram='participe passé avec avoir : invariable (sauf COD placé avant)';
+          else fact.gram='participe passé';
+        } else {var verb=isVerb(T,idx),g=governorNumber(T,idx,verb);
+          if(g)fact.gram=(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+g[0]+' » '+nb(g[1])+' → accorder « '+t+' »';
+        }
+      }
+      F.push(fact);});
     return F;
   }
   var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',autre:'#777'};
@@ -11261,7 +11292,8 @@ window.addEventListener('DOMContentLoaded', () => {
     var F=diagnoseSentence(cur.text,att,cur.fam);answered=true;nT++;var ok=F.length===0;if(ok)nG++;HIST.n++;if(ok)HIST.ok++;try{localStorage.setItem('vdd_hist',JSON.stringify(HIST));}catch(e){}
     var html=ok?'<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6"><b>✓ Phrase correcte !</b></div>'
       :F.map(function(x){var c=COL[x.types[0]]||'#777';var tags=x.types.map(function(t){return LBL[t]||t;}).join(', ');
-        return '<div class="vdd-fact" style="border-left:5px solid '+c+'">'+x.msg.replace(/: [^:]*$/,': <b>'+tags+'</b>')+'</div>';}).join('');
+        return '<div class="vdd-fact" style="border-left:5px solid '+c+'">'+x.msg.replace(/: [^:]*$/,': <b>'+tags+'</b>')+(x.gram?'<br><span class="vdd-sc">→ '+x.gram+'</span>':'')+'</div>';}).join('');
+    if(!ok){var dev=developmental(F);if(dev)html+='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdd-sc">'+STAGE_MSG[dev.stade]+'</span></div>';}
     if(!ok)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase correcte : <span class="vdd-truth">'+cur.text+'</span></div>';
     F.forEach(function(x){x.types.forEach(function(t){if(ERRFAM.indexOf(t)>=0)PROF[t]=(PROF[t]||0)+1;});});try{localStorage.setItem('vdd_profile',JSON.stringify(PROF));}catch(e){}$('vdd-fb').innerHTML=html;$('vdd-score').textContent=nG+' / '+nT;renderProf();renderHist();}
   btn.onclick=function(){ov.classList.add('on');if(!cur)pick();else $('vdd-ans').focus();};
