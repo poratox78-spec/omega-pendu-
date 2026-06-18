@@ -1514,7 +1514,7 @@ const M4_M_PENALTY_AMOUNT = 0.05;     // ajout par miss
 const M4_M_HOMEO_RATE     = 0.005;    // vitesse retour vers target (anti-overshoot)
 const M4_M_MIN_TARGET     = 0.02;     // plancher absolu pour TOUTES les lettres (Lecture B)
 const M4_M_INV_FREQ_BIAS  = 5.0;      // amplification rare/fréquent (×6 différentiel)
-const M4_M_HOMEO_V2_ENABLED = true;   // toggle Phase 3 v2 (Lecture B) vs Phase 2 baseline
+let M4_M_HOMEO_V2_ENABLED = true;   // toggle Phase 3 v2 (Lecture B = homéostasie-fréquence) vs Phase 2 baseline (decay→0, un-ancré). `let` (pas const) pour A/B mesurable (AUDIT_OMEGA §3.2 : tester M1_m sans ancre-fréquence). Défaut true = byte-identique.
 const M4_M_SAT_SCALE      = 0.5;      // échelle saturation tanh sur gap (dès gap > 0.15 visible)
 
 // === Étape C Phase 3 v2 (F178) — Modulation contextuelle PENALTY_AMOUNT par winRate ===

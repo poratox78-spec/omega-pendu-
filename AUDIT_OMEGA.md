@@ -345,7 +345,20 @@ Décomposition mesurée (`evo/diag_rwr.js`, voie phon active, 3 graines) du GAP 
 1. **Marginal non-ancré à la fréquence (~2/3 du gain : +0,087 au-dessus de la fréquence).** `rwR` accumule la récompense par lettre avec **décroissance vers 0** (`rwR += LR·reward·a`, `×(1−R_DECAY)`) → il apprend « les lettres qui apparaissent **et gagnent** ». `M4_m.letterPenalty` (M1_m) est au contraire **homéostasé vers une cible de FRÉQUENCE** (`M4_m_step` 5340 : `lp += (letterTarget−lp)·rate` ; plancher = letterTarget) → son signal appris est **continuellement relavé vers la fréquence** (d'où corr 0,999, §1.4.1). **C'est l'homéostasie-fréquence qui tue M1_m**, pas seulement le fait d'être marginal.
 2. **Conditionnement sur la forme (~1/3 : +0,041).** `rwR` est une **matrice 26×12** → `cLetterScore = a·rwR[l]` conditionne sur le **pattern d'activation** (la forme du mot) = `P(lettre | forme)`. `letterPenalty` (vecteur 26) ne peut exprimer que `P(lettre)`. C'est la doctrine §3 (conditionnel/jointe > marginale) **au niveau du mécanisme**.
 
-**Bilan (b) :** M1_m cumule **deux handicaps** — marginal **ET** ancré-fréquence ; `rwR` n'a **aucun** des deux (marginal appris non-ancré + conditionnement sur la forme). Piste falsifiable **non faite** : un miroir ortho **sans homéostasie-fréquence** (décroissance vers 0) récupérerait-il le +0,087 marginal ? — à mesurer seulement si on veut ressusciter un miroir ortho.
+**Bilan (b) :** M1_m cumule **deux handicaps** — marginal **ET** ancré-fréquence ; `rwR` n'a **aucun** des deux. Piste : un miroir ortho **sans homéostasie-fréquence** récupérerait-il le +0,087 ?
+
+#### 3.2.1 — Test « M1_m sans homéostasie » — FALSIFIÉ (2026-06-17)
+
+Toggle `M4_M_HOMEO_V2_ENABLED` passé `const`→`let` (défaut true byte-identique) pour A/B. Mesure (`evo/diag_m1m_homeo.js`, voie phon active, 3 graines) du GAP NET de `M1_m.letterScore`, ancre-fréquence ON vs OFF (baseline decay→0) :
+
+| | 12345 | 777 | 2024 |
+|---|---|---|---|
+| HOMEO_V2 **ON** (ancré fréquence) | −0,000 | −0,000 | −0,000 |
+| HOMEO_V2 **OFF** (un-ancré decay→0) | **−0,026** | **−0,027** | **−0,026** |
+
+**Résultat : l'inverse de l'attendu.** Un-ancrer M1_m ne donne **pas** +0,087, il donne **−0,026** (discrimination *négative*). L'ancre-fréquence **aidait** (gardait M1_m ≈ fréquence, ~0) ; la retirer **empire**.
+
+**Correction de ma décomposition §3.2 (honnêteté §6).** Le « PLAT +0,087 » de rwR (`mean(a)·Σ_c rwR[l]`) **n'est PAS un marginal par-lettre pur** : `Σ_c rwR[l][c]` agrège un apprentissage **pondéré par l'activation** (`rwR += reward·a[c]`) → il encode **déjà de la forme**. Un vrai signal par-lettre (M1_m un-ancré = compteur de ratés brut, **sans pondération-forme**) sur-pénalise les lettres rares *du mot courant* → négatif. **La vraie cause du succès de rwR n'est donc PAS « non-ancré + conditionné »** mais **« apprentissage pondéré-forme à la source » (`reward·a`), irréductible à toute règle par-lettre** (ancrée ou non). **Conséquence : M1_m (structure 26) ne peut PAS être ressuscité — il faut la matrice (forme). Piste close.** (`M4_M_HOMEO_V2_ENABLED` reste `let`, défaut ON ; OFF mesuré pire → ne pas adopter.)
 
 ---
 
