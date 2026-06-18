@@ -216,6 +216,21 @@ Diagnostic `evo/diag_mirror.js` (R67, cognition, warmup 200 / test 80) — le co
 
 **DÉCIDÉ (Rem, 2026-06-17) : défaut `M5_D_M1_M_ENABLED = false`** (OFF). Justifié par le *mécanisme* (pas un Δ bruité) : OFF est plus simple et égal-ou-meilleur (réf égalité, cognition +1,3). Le toggle reste (ON réactivable pour A/B). (b) prédiction-masquée §3 = écartée court-terme (même mur de capacité) ; (c) **prochaine jonction = sens du flux phon→ortho** (la force mesurée, +5,28 assemblé) — instrumenter la voie phon descendante (dont les dormants M2/M1_phon_m du §1.4).
 
+#### 1.4.3 — Sens du flux : le miroir PHON descendant porte un signal spécifique au mot (≠ ortho) — 2026-06-17
+
+**Bug de harnais corrigé d'abord (honnêteté §1.7 « pas de null muet »).** Les buffers de la voie phon (`M4_phon_m.letterPenalty`…) ne sont alloués **que si `M_VOIE_PHON_ENABLED` est vrai à `initOmegaGlobals`** (app `if(M_VOIE_PHON_ENABLED)` ~2768). Or `evo/*` faisait `init()` **puis** config → voie phon **inerte** (buffers null). Un 1er `diag_phonm` a affiché `0,0000`/`0` = **artefact null**, *retiré*. Corrigé : config **avant** init (+ garde dure anti-null). ⚠️ **Implication** : `ab_m1m`/`ab_cohort` tournaient voie phon **inerte** — la mesure M1_m (ortho, buffers inconditionnels) **tient**, mais les bases « cognition »/« référence » citées étaient **ortho+NEO sans voie phon active** ; les reproductions §1.3 sont à re-vérifier avec init correct (séparé).
+
+**Mesure contrôlée (voie phon active, cognition, warmup 200 / test 80).** Score-lettre = `1 − letterPenalty` (sens de consommation 3590). Contrôle = gap de la **fréquence** (`1 − M4_m.letterTarget`) sur la même pondération in/out :
+
+| Miroir descendant | GAP brut (in−out) | GAP fréquence (contrôle) | **GAP NET** | variance inter-mots |
+|---|---|---|---|---|
+| **ortho `M1_m`** (§1.4.1) | +0,0216 | +0,0229 | **≈ 0** (pur fréquence → mort) | ~1·10⁻⁵ |
+| **phon `M4_phon_m`** | +0,0497 | +0,0222 | **+0,0276** | 1,53·10⁻³ |
+
+Robuste 3 graines : GAP NET = **+0,028 / +0,020 / +0,028** (12345/777/2024), variance 1,5–1,8·10⁻³.
+
+**Verdict (tranche la thèse « sens des flux »).** Le miroir **ortho** descendant ne porte que de la fréquence (mort, M1_m) ; le miroir **phon** descendant porte un signal **spécifique au mot, au-delà de la fréquence** (+0,02–0,03). **C'est la confirmation que la direction phon→ortho est la bonne** (cohérent assemblé +5,28, mémoire). Nuances honnêtes avant tout chantier : (i) `M4_phon_m` est **déjà consommé** (3590) quand la voie phon est active → le signal est déjà partiellement utilisé ; le gain à chercher = le **router/pondérer** mieux, ou réveiller les dormants `M2/M1_phon_m` *sur la voie phon* (à mesurer, pas acquis) ; (ii) effet **winrate** non encore mesuré (ici = discrimination de lettres, pas Δ victoires) ; (iii) le bug d'init impose de re-mesurer les A/B voie-phon avec init correct. Outil : `evo/diag_phonm.js`.
+
 ---
 
 ## 2. Findings structurels (par sévérité)

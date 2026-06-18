@@ -27,31 +27,45 @@ const CFG_COG = [
   for(let i=valid.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=valid[i];valid[i]=valid[j];valid[j]=t;}
   const trainW=valid.slice(testN,testN+warmupN).map(i=>W[i].m), testW=valid.slice(0,testN).map(i=>W[i].m);
 
+  // ORDRE CRITIQUE : les buffers de la voie phon (M4_phon_m.letterPenalty…) ne sont alloués
+  //   QUE si M_VOIE_PHON_ENABLED est vrai à initOmegaGlobals (app ligne ~2768 : if(M_VOIE_PHON_ENABLED)).
+  //   Donc on pose les toggles AVANT init, puis on re-pose après (défensif), puis on RESET.
+  ev(CFG_COG);
   ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
   ev(CFG_COG);
-  if(ev("typeof M4_phon_m")==='undefined'){console.error('ERR M4_phon_m absent');process.exit(1);}
+  // GARDE DURE anti-null (pas de null muet — doctrine §1.7) : si le buffer phon n'existe pas, on s'arrête.
+  if(ev("!(typeof M4_phon_m!=='undefined' && M4_phon_m && M4_phon_m.letterPenalty instanceof Float32Array)")){
+    console.error('ERR: M4_phon_m.letterPenalty NON alloué après init voie phon — mesure impossible, abort.'); process.exit(1);
+  }
   ev('globalThis.__start=function(w){startNewGame(w);};globalThis.__step=function(){omegaStep();};globalThis.__state=function(){return{active:gameActive,tried:Array.prototype.slice.call(alreadyTried)};};');
-  // score-like phon = 1 - letterPenalty (sens de consommation en 3590)
-  ev('globalThis.__pls=function(){var lp=(M4_phon_m&&M4_phon_m.letterPenalty)?M4_phon_m.letterPenalty:null;if(!lp)return null;var o=[];for(var l=0;l<26;l++)o.push(1-lp[l]);return o;};');
+  // score-like phon = 1 - letterPenalty (sens de consommation en 3590). lp garanti non-null par la garde ci-dessus.
+  ev('globalThis.__pls=function(){var lp=M4_phon_m.letterPenalty;var o=[];for(var l=0;l<26;l++)o.push(1-lp[l]);return o;};');
+  // CONTRÔLE fréquence (même run) : prior 1 - M4_m.letterTarget (= la fréquence FR, allouée inconditionnellement).
+  ev('globalThis.__freq=function(){var t=M4_m.letterTarget,o=[];for(var l=0;l<26;l++)o.push(1-t[l]);return o;};');
 
   ev(`_omegaRng=makeMulberry32(${seed});`);
   for(const w of trainW){global.__start(w);let sf=300;while(global.__state().active&&sf-->0)global.__step();}
 
-  let inSum=0,inN=0,outSum=0,outN=0; const tick0=[];
+  const freq = global.__freq();   // référence fréquence (constante)
+  let inSum=0,inN=0,outSum=0,outN=0, inF=0,outF=0; const tick0=[];
   for(const w of testW){
     global.__start(w); const ws=new Set(w.split('').map(c=>c.charCodeAt(0)-65)); let sf=300,first=true;
     while(global.__state().active&&sf-->0){
       const st=global.__state(); const pls=global.__pls();
-      if(pls){ if(first){tick0.push(pls.slice());first=false;} for(let l=0;l<26;l++){ if(st.tried[l])continue; if(ws.has(l)){inSum+=pls[l];inN++;}else{outSum+=pls[l];outN++;} } }
+      if(pls){ if(first){tick0.push(pls.slice());first=false;} for(let l=0;l<26;l++){ if(st.tried[l])continue; if(ws.has(l)){inSum+=pls[l];inN++;inF+=freq[l];}else{outSum+=pls[l];outN++;outF+=freq[l];} } }
       global.__step();
     }
   }
   const inM=inSum/Math.max(1,inN), outM=outSum/Math.max(1,outN);
+  const inMF=inF/Math.max(1,inN), outMF=outF/Math.max(1,outN);          // même pondération in/out que pls
+  const gapPhon=inM-outM, gapFreq=inMF-outMF, gapNet=gapPhon-gapFreq;
   let crossVar=0; if(tick0.length){ for(let l=0;l<26;l++){let m=0;for(const v of tick0)m+=v[l];m/=tick0.length;let s=0;for(const v of tick0)s+=(v[l]-m)*(v[l]-m);crossVar+=s/tick0.length;} crossVar/=26; }
 
   console.log(`\n=== DIAGNOSTIC phon DESCENDANT — M4_phon_m.letterPenalty (cognition, warmup ${warmupN}/test ${testN}, seed ${seed}) ===\n`);
-  console.log(`(1) DISCRIMINATION du mot : score-like(1−lp) in-word ${inM.toFixed(4)} · out-word ${outM.toFixed(4)} · GAP ${(inM-outM>=0?'+':'')}${(inM-outM).toFixed(4)}`);
-  console.log(`(2) variance de (1−lp)[l] ENTRE mots au tick 0 = ${crossVar.toExponential(2)}  ${crossVar<1e-4?'(≈0 ⇒ vecteur GLOBAL : même biais quel que soit le mot)':'(varie selon le mot)'}`);
-  console.log(`\nLecture : si GAP ≈ 0 et variance ≈ 0 → le miroir phon DESCENDANT est lui aussi un BIAIS GLOBAL (comme M1_m).`);
-  console.log(`Alors le seul levier phon→ortho spécifique au mot est l'ASCENDANT (assemblé NEO), pas la correction descendante.`);
+  console.log(`(1) DISCRIMINATION du mot : score-like(1−lp) in-word ${inM.toFixed(4)} · out-word ${outM.toFixed(4)} · GAP ${(gapPhon>=0?'+':'')}${gapPhon.toFixed(4)}`);
+  console.log(`    CONTRÔLE fréquence (même in/out) : GAP fréquence ${(gapFreq>=0?'+':'')}${gapFreq.toFixed(4)}`);
+  console.log(`    → GAP NET (phon − fréquence) = ${(gapNet>=0?'+':'')}${gapNet.toFixed(4)}  ${Math.abs(gapNet)<0.005?'(≈0 ⇒ ne porte QUE de la fréquence, comme M1_m)':'(≠0 ⇒ porte un signal AU-DELÀ de la fréquence — spécifique au mot)'}`);
+  console.log(`(2) variance de (1−lp)[l] ENTRE mots au tick 0 = ${crossVar.toExponential(2)}  ${crossVar<1e-4?'(≈0 ⇒ vecteur GLOBAL)':'(varie selon le mot)'}`);
+  console.log(`\nLecture : si GAP NET ≈ 0 → biais global (fréquence), comme M1_m. Si GAP NET > 0 ET variance > 0 → le miroir`);
+  console.log(`phon descendant porte un signal phon→ortho spécifique au mot que l'ortho n'a pas (≠ M1_m) → piste réelle.`);
 })().catch(e=>{console.error('ERR',e&&e.stack||e);process.exit(1);});
