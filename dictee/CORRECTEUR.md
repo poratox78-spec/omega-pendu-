@@ -42,6 +42,15 @@ Le cœur du correcteur (détecter + corriger sans corrigé) **marche, avec 0 fau
 discriminateur propre. C'est constructible **sur l'existant** (levier d'accord + `phono_homophones.json`), sans le
 lexique 34 Mo (nécessaire seulement pour la couche « typo / non-mot » et pour élargir `is_verb`).
 
+## Validation indépendante (held-out) & collecte en ligne
+- **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
+  et des témoins), confusions choisies d'après les erreurs FR documentées comme fréquentes. → **12/15 détection+correction,
+  **0 faux positif** : les règles **généralisent** (elles sont contextuelles, pas mémorisées) et cgram porte la
+  couverture verbale au-delà du corpus. *(A révélé un vrai bug `son/sont` — règle passée de `is_verb` stub à `vlike` cgram.)*
+- **Collecte en ligne** : sources ouvertes repérées — `juancavallotti/multilingual-gec` (~67 k phrases FR),
+  GitHub Typo Corpus, Lang-8. Loader prêt : `fetch_gec_corpus.py`. ⚠️ Dans la session cloud, l'égress vers
+  `datasets-server.huggingface.co` est **bloqué** (allowlist) → le loader tourne là où l'égress l'autorise.
+
 ## Suite (jonctions) — état
 1. ✅ **Plus de règles + couverture verbale élargie** (étape 1) : liste blanche `vlike` + peu/peux/peut, ce/se → 22/24, 0 FP.
 2. ✅ **UI semi-directe** (étape 2) : bouton « 🩹 Correcteur » dans l'app — colle ton texte, souligne les fautes

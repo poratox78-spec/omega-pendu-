@@ -99,7 +99,7 @@ def rule_son_sont(T, i):
     if lw not in ('son', 'sont'): return None
     if i == 0: return 'son'                                             # début de phrase déclarative → possessif
     pl = T[i-1].lower()
-    if is_verb(T, i-1) or pl in PREP or pl in ('et', 'ou', 'ni'):       # complément après verbe/préposition/conj → possessif
+    if vlike(T, i-1) or pl in PREP or pl in ('et', 'ou', 'ni'):         # complément après verbe/préposition/conj → possessif
         return 'son'
     return 'sont'                                                       # précédé du sujet (nom/adj/ils-elles) → verbe être 3pl
 
