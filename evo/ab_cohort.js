@@ -71,12 +71,20 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
 
   // une condition = reset complet + config + flags cohorte/jointe, warmup (lexique plein) puis test.
+  // ORDRE CRITIQUE (corrigé 2026-06-17, AUDIT §1.4.3) : les buffers de la voie phon ne sont alloués
+  //   QUE si M_VOIE_PHON_ENABLED est vrai À initOmegaGlobals (app ~2768). Donc config AVANT init,
+  //   puis ré-application défensive après init, sinon la voie phon tourne INERTE (buffers null) en silence.
   function runCond(seed, sets, { cohort, jointe }) {
+    ev(oov ? CFG_OOV : CFG_INLEX);                            // (1) toggles d'abord → init bâtit la voie phon
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
-    ev(oov ? CFG_OOV : CFG_INLEX);
+    ev(oov ? CFG_OOV : CFG_INLEX);                            // (2) ré-applique après init (défensif)
     ev(`M_NEO_PHON_COHORT_ENABLED=${!!cohort};M_NEO_PHON_COHORT_JOINTE=${!!jointe};`);
+    // garde anti-inerte : si la voie phon est censée être ON, ses buffers DOIVENT exister (sinon §1.4.3 null muet).
+    if (ev("M_VOIE_PHON_ENABLED && !(typeof M1_phon!=='undefined' && M1_phon && M1_phon.output)")) {
+      throw new Error('voie phon ON mais buffers non alloués — ordre d\'init cassé (AUDIT §1.4.3)');
+    }
     LEX.len_index = origLI;                                   // warmup : lexique plein (le mot vécu est légitime en descendant)
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);

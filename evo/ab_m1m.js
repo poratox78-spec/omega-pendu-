@@ -62,12 +62,17 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
 
   // une condition = reset complet + config + flag M1_m, warmup puis test (in-lexique : lexique plein partout).
+  // ORDRE CRITIQUE (AUDIT §1.4.3) : config AVANT init (buffers voie phon bâtis si flag vrai), ré-applique après.
   function runCond(seed, sets, cfg, m1m) {
+    ev(cfg);                                                  // (1) toggles d'abord → init bâtit la voie phon
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`
       + `if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}`);
-    ev(cfg);
+    ev(cfg);                                                  // (2) ré-applique après init (défensif)
     ev(`M5_D_M1_M_ENABLED=${!!m1m};`);
+    if (ev("M_VOIE_PHON_ENABLED && !(typeof M1_phon!=='undefined' && M1_phon && M1_phon.output)")) {
+      throw new Error('voie phon ON mais buffers non alloués — ordre d\'init cassé (AUDIT §1.4.3)');
+    }
     LEX.len_index = origLI;
     ev(`_omegaRng=makeMulberry32(${seed});`);
     for (let i = 0; i < sets.trainW.length; i++) play(sets.trainW[i]);
