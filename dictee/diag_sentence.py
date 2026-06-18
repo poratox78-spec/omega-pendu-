@@ -6,6 +6,18 @@ random.seed(42)
 HERE=os.path.dirname(os.path.abspath(__file__))
 VS={'b':'p','p':'b','d':'t','t':'d','g':'k','k':'g','v':'f','f':'v','z':'s','s':'z'}
 INFL=set('setxn')
+# Levier GRAMMAIRE : nombre porté par les mots-outils (classe fermée, fiable sans POS complet).
+NUM_DET={'le':'sg','la':'sg','un':'sg','une':'sg','ce':'sg','cet':'sg','cette':'sg','mon':'sg','ton':'sg','son':'sg','ma':'sg','ta':'sg','sa':'sg','notre':'sg','votre':'sg','leur':'sg',
+         'les':'pl','des':'pl','ces':'pl','mes':'pl','tes':'pl','ses':'pl','nos':'pl','vos':'pl','leurs':'pl'}
+NUM_PRON={'je':'sg','tu':'sg','il':'sg','elle':'sg','on':'sg','nous':'pl','vous':'pl','ils':'pl','elles':'pl'}
+def governor_number(T,idx):
+    """Gouverneur d'accord = pronom sujet ou déterminant le plus proche À GAUCHE → (mot, nombre).
+    Donne le NOMBRE du sujet/du GN (le contexte de la phrase = la raison d'être de la dictée de PHRASES)."""
+    for j in range(idx-1,-1,-1):
+        w=T[j].lower()
+        if w in NUM_PRON: return (T[j],NUM_PRON[w])
+        if w in NUM_DET:  return (T[j],NUM_DET[w])
+    return None
 def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
 def norm(w):
     """graphème → pseudo-son (approx) : 2 graphies qui normalisent pareil = soundalike (surface)."""
@@ -85,15 +97,25 @@ def align(T,S):
     ops.reverse(); return ops
 
 def diagnose_sentence(cible, eleve, fam):
-    T,S=toks(cible),toks(eleve); facts=[]
+    T,S=toks(cible),toks(eleve); facts=[]; ti=-1
     for op,t,s in align(T,S):
+        if op=='ins':
+            facts.append({'mot':s,'types':['mot_en_trop'],'msg':f'Mot en trop : « {s} ».'}); continue
+        ti+=1                                                   # match/sub/del avancent dans la cible
         if op=='match': continue
-        if op=='del': facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
-        if op=='ins': facts.append({'mot':s,'types':['mot_en_trop'],'msg':f'Mot en trop : « {s} ».'}); continue
+        if op=='del':
+            facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
         fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
-        if 'accord' in types:                                  # graine grammaire : préciser le type d'accord
-            fact['accord_type']=accord_type(t,s); fact['msg']+=f' (accord: {fact["accord_type"]})'
+        if 'accord' in types:                                  # LEVIER GRAMMAIRE
+            fact['accord_type']=accord_type(t,s)
+            gov=governor_number(T,ti)                          # remonte au sujet/gouverneur (contexte phrase)
+            if gov:
+                rel='sujet-verbe' if fact['accord_type']=='verbal' else 'groupe nominal'
+                fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
+                fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
+            else:
+                fact['msg']+=f' (accord: {fact["accord_type"]})'
         facts.append(fact)
     return facts
 
@@ -224,6 +246,23 @@ if __name__=='__main__':
             at={}; [at.__setitem__(f['accord_type'],at.get(f['accord_type'],0)+1) for f in facts_all if f.get('accord_type')]
             extra=f"  · types d'accord : {at}"
         print(f"  élève '{exp:16}' (n={sum(dx['counts'].values())}) → « {dx['stade']} »  {flag}{extra}")
+
+    # === levier GRAMMAIRE : sur une erreur d'accord, remonte-t-on au sujet/gouverneur ? accord sujet-verbe ? ===
+    gv_tot=gv_ok=sv_tot=sv_ok=0
+    for e in SENT:
+        T=toks(e['text']); fam=e['fam']
+        for i,w in enumerate(T):
+            for h in fam.get(w.lower(),[]):
+                if h.lower()!=w.lower() and is_accord(w,h):
+                    f=diagnose_sentence(e['text'],' '.join(T[:i]+[h]+T[i+1:]),fam)
+                    fa=next((x for x in f if x.get('mot')==w and 'accord' in x.get('types',[])),None)
+                    if fa:
+                        gv_tot+=1; gv_ok+=1 if fa.get('grammaire') else 0
+                        if accord_type(w,h)=='verbal': sv_tot+=1; sv_ok+=1 if fa.get('grammaire')=='sujet-verbe' else 0
+                    break
+    print('=== levier GRAMMAIRE (accord en CONTEXTE — la dictée de phrases paie) ===')
+    print(f"  gouverneur (sujet/GN) identifié sur erreur d'accord : {gv_ok}/{gv_tot} = {100*gv_ok/max(1,gv_tot):.0f}%")
+    print(f"  accord SUJET-VERBE détecté (sur accords verbaux)     : {sv_ok}/{sv_tot} = {100*sv_ok/max(1,sv_tot):.0f}%")
 
     # démo (par mot + STADE)
     print('\n--- démo ---')
