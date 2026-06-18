@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-06-18 — Levier grammaire : chaîne du GN, l'accord en GENRE
+
+### Quoi
+Quatrième pièce du levier grammaire (après sujet-verbe, sujet à distance, participe passé) :
+**l'accord en genre dans le groupe nominal** — l'erreur dys classique « une robe **vert** ».
+
+- `GEN_DET` : déterminants **genrés** (le/un/ce/cet/mon/ton/son/au/du = m · la/une/cette/ma/ta/sa = f). Classe fermée, fiable sans POS.
+- `governor_gender(T,idx)` : remonte au déterminant genré le plus proche à gauche → `(mot,'m'|'f')`.
+  **Abstention** si on croise un déterminant non-genré (les/des/leur) ou un pronom (on a quitté le GN).
+- Branche GN de `diagnose_sentence` : quand `accord_type=='genre'` (et pas un verbe), on diagnostique le genre
+  (« accord en genre : « une » féminin → accorder « verte ») au lieu du nombre.
+
+### Mesuré (`python3 dictee/diag_sentence.py`)
+- Familles **100 %** inchangées · gouverneur identifié sur erreur d'accord **82 %→84 %** (138/164 : les accords en genre trouvent maintenant leur gouverneur genré).
+- **Chaîne du GN — genre : 7/7** quand un déterminant genré gouverne ; **abstention 6/6** quand il n'y en a pas
+  (pronom « Il/tu », « leur tour » non genré, début de phrase). *Le « 7/13 » naïf cachait 6 abstentions correctes :
+  il n'y a pas de genre à accorder sans déterminant genré — un Δ sans le pourquoi ne vaut rien.*
+- Démo synthétique « Elle porte une robe vert(e) » → gouverneur genre = `('une','f')` : **skippe le pronom « Elle »**
+  (le genre vient du déterminant du GN, pas du sujet).
+
+### App (port vérifié)
+`governorGender` + `GEN_DET` + `accordType` portés dans l'IIFE dictée (OFF-inerte, R66 baseline intacte).
+Parité JS↔Python vérifiée sur 5 phrases + accordType (genre/nombre/verbal) : identique. CI (python + compile du bloc) OK.
+
+---
+
 ## 2026-06-13 — Décision de direction + Phase 0 livrée
 
 ### Décision

@@ -11234,6 +11234,9 @@ window.addEventListener('DOMContentLoaded', () => {
   var PART_FORMS={arrive:1,arrives:1,arrivee:1,arrivees:1,peint:1,peints:1,peinte:1,peintes:1,cueilli:1,cueillie:1,cueillis:1,cueillies:1,trouve:1,trouves:1,trouvee:1,trouvees:1,prefere:1,preferes:1,preferee:1,preferees:1,abandonne:1,abandonnes:1,abandonnee:1,abandonnees:1};
   function isParticiple(T,idx){return idx>=0&&idx<T.length&&!!PART_FORMS[deacc(T[idx].toLowerCase())];}
   function findAux(T,idx){for(var j=idx-1;j>=Math.max(0,idx-4);j--){var w=deacc(T[j].toLowerCase());if(AUX_ETRE[w])return'etre';if(AUX_AVOIR[w])return'avoir';}return null;}
+  var GEN_DET={le:'m',un:'m',ce:'m',cet:'m',mon:'m',ton:'m',son:'m',au:'m',du:'m',la:'f',une:'f',cette:'f',ma:'f',ta:'f',sa:'f'};
+  function governorGender(T,idx){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();if(GEN_DET[w])return[T[j],GEN_DET[w]];if(NUM_DET[w]||NUM_PRON[w])return null;}return null;}
+  function accordType(t,s,verb){if(verb)return'verbal';var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;var suf=a.slice(p)+b.slice(p);if(suf.indexOf('s')>=0||suf.indexOf('x')>=0)return'nombre';if(suf.slice(-2)==='nt'||suf.indexOf('t')>=0)return'verbal';if(suf.indexOf('e')>=0)return'genre';return'flexion';}
   function nb(x){return x==='pl'?'pluriel':'singulier';}
   var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',muette:'lexical',homophone:'lexical',accord:'morphosyntaxique'};
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
@@ -11254,8 +11257,12 @@ window.addEventListener('DOMContentLoaded', () => {
           if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+g1[0]+' » ('+nb(g1[1])+')':'');}
           else if(aux==='avoir')fact.gram='participe passé avec avoir : invariable (sauf COD placé avant)';
           else fact.gram='participe passé';
-        } else {var verb=isVerb(T,idx),g=governorNumber(T,idx,verb);
-          if(g)fact.gram=(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+g[0]+' » '+nb(g[1])+' → accorder « '+t+' »';
+        } else {var verb=isVerb(T,idx),at=accordType(t,s,verb);
+          if(at==='genre'&&!verb){var gg=governorGender(T,idx);   // chaîne du GN : accord en GENRE (« une robe vert »)
+            fact.gram=gg?('accord en genre : « '+gg[0]+' » '+(gg[1]==='f'?'féminin':'masculin')+' → accorder « '+t+' »'):'accord en genre';
+          } else {var g=governorNumber(T,idx,verb);
+            if(g)fact.gram=(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+g[0]+' » '+nb(g[1])+' → accorder « '+t+' »';
+          }
         }
       }
       F.push(fact);});

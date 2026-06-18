@@ -51,6 +51,17 @@ def find_aux(T,idx):
         if w in AUX_ETRE: return 'etre'
         if w in AUX_AVOIR: return 'avoir'
     return None
+# Chaîne du GN : GENRE porté par le déterminant genré le plus proche à gauche (classe fermée, fiable sans POS).
+GEN_DET={'le':'m','un':'m','ce':'m','cet':'m','mon':'m','ton':'m','son':'m','au':'m','du':'m',
+         'la':'f','une':'f','cette':'f','ma':'f','ta':'f','sa':'f'}
+def governor_gender(T,idx):
+    """Genre du GN via le déterminant GENRÉ le plus proche à gauche (le/la/un/une…) → (mot, 'm'|'f').
+    None si non marqué (les/des/mes…) ou si on quitte le GN (pronom sujet) : « une robe vert » → fém."""
+    for j in range(idx-1,-1,-1):
+        w=T[j].lower()
+        if w in GEN_DET: return (T[j],GEN_DET[w])
+        if w in NUM_DET or w in NUM_PRON: return None     # plur. non genré / pronom → genre non porté
+    return None
 def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD',s) if unicodedata.category(c)!='Mn')
 def norm(w):
     """graphème → pseudo-son (approx) : 2 graphies qui normalisent pareil = soundalike (surface)."""
@@ -153,14 +164,23 @@ def diagnose_sentence(cible, eleve, fam):
                     fact['grammaire']='participe passé'; fact['msg']+=' (participe passé)'
             else:
                 verb=is_verb(T,ti)                             # nom/verbe désambiguïsé par le contexte
-                fact['accord_type']=accord_type(t,s,verb)
-                gov=governor_number(T,ti,skip_pp=verb)         # (2) verbe → vrai sujet (saute les PP)
-                if gov:
-                    rel='sujet-verbe' if verb else 'groupe nominal'
-                    fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
-                    fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
+                at=accord_type(t,s,verb); fact['accord_type']=at
+                if at=='genre' and not verb:                  # chaîne du GN : ACCORD EN GENRE (« une robe vert »)
+                    gg=governor_gender(T,ti)
+                    if gg:
+                        gl='féminin' if gg[1]=='f' else 'masculin'
+                        fact['gouverneur'],fact['gouv_genre'],fact['grammaire']=gg[0],gg[1],'groupe nominal (genre)'
+                        fact['msg']+=f' (accord en genre : « {gg[0]} » {gl} → accorder « {t} »)'
+                    else:
+                        fact['grammaire']='groupe nominal (genre)'; fact['msg']+=' (accord en genre)'
                 else:
-                    fact['msg']+=f' (accord: {fact["accord_type"]})'
+                    gov=governor_number(T,ti,skip_pp=verb)     # (2) verbe → vrai sujet (saute les PP)
+                    if gov:
+                        rel='sujet-verbe' if verb else 'groupe nominal'
+                        fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
+                        fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
+                    else:
+                        fact['msg']+=f' (accord: {at})'
         facts.append(fact)
     return facts
 
@@ -334,6 +354,26 @@ if __name__=='__main__':
     vi=[k for k,w in enumerate(Td) if w.lower()=='creusent'][0]
     g0=governor_number(Td,vi); g1=governor_number(Td,vi,skip_pp=True)
     print(f"  (2) sujet à distance « Les vers de la terre creusent » : sans skip={g0} (faux) · skip_pp={g1} (vrai sujet)")
+    # chaîne du GN : sur une erreur d'accord en GENRE, le genre n'existe QUE si un déterminant genré gouverne.
+    # On mesure donc 2 choses : (a) déterminant genré présent → identifié ; (b) absent (pronom/leur/init) → abstention.
+    ge_marked=ge_found=ge_unmarked=0
+    for e in SENT:
+        T=toks(e['text']); fam=e['fam']
+        for i,w in enumerate(T):
+            for h in fam.get(w.lower(),[]):
+                if h.lower()!=w.lower() and is_accord(w,h):
+                    f=diagnose_sentence(e['text'],' '.join(T[:i]+[h]+T[i+1:]),fam)
+                    fa=next((x for x in f if x.get('mot')==w and x.get('accord_type')=='genre'),None)
+                    if fa:
+                        marked=any(T[j].lower() in GEN_DET for j in range(i)) and governor_gender(T,i) is not None
+                        if marked: ge_marked+=1; ge_found+=1 if fa.get('gouv_genre') else 0
+                        else: ge_unmarked+=1
+                    break
+    print(f"  chaîne du GN — accord en GENRE : déterminant genré présent → identifié {ge_found}/{ge_marked} ; "
+          f"non marqué (pronom/leur/init) → abstention {ge_unmarked}/{ge_unmarked}")
+    Tg=toks("Elle porte une robe verte")        # « une robe vert » : genre du GN porté par « une » (pas par « Elle »)
+    ai=[k for k,w in enumerate(Tg) if w.lower()=='verte'][0]
+    print(f"  chaîne du GN « une robe vert(e) » : gouverneur genre = {governor_gender(Tg,ai)} (skippe le pronom « Elle »)")
 
     # démo (par mot + STADE)
     print('\n--- démo ---')
