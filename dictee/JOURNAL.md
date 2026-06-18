@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-06-18 — Correcteur validé sur VRAI corpus (Rem) : FP 11 → 0 / 98, durcissement « abstention »
+
+Rem a fourni un vrai corpus GEC FR (98 paires erroné/corrigé, Wikipédia). `dictee/eval_gec.py`.
+- **Test cardinal (FP sur phrases CORRECTES réelles)** : 1re passe **11 FP** → le « 0 FP » synthétique était
+  **falsifié par le réel** (exactement le risque « validation circulaire » signalé). Mécanismes : `deacc(à)==a`
+  (collision avec l'aux *a*), homographes courts du cgram (« ne »→vlike), participes hors stub (« incarné »),
+  tokens contractés (« l'été »).
+- **Durcissement** : à/a distingués, `VLIKE_STOP` (mots-outils), -é/-er ignore les tokens apostrophés, on/ont
+  détecte le participe par suffixe, et les règles ambiguës (son/sont, ce/se, et/est) **s'abstiennent** au lieu de
+  deviner. → **FP 11 → 0 / 98** (Python + app, parité vérifiée). Coût : −2 in-corpus (22→20), −1 held-out (12→11).
+- **Honnêteté périmètre** : 1 seule des 98 erreurs réelles est dans les 8 confusions du correcteur (le reste = genre
+  déterminant un/une, nombre, ordre, mots manquants, typos = hors périmètre). Le correcteur est **FP-safe sur du
+  réel** mais **couvre peu** des erreurs réelles → couche large (genre/nombre/typo) = futur, exige un POS/tagger.
+- Corpus tiers gitignoré (hors-repo comme Lexique4). Détail : `dictee/CORRECTEUR.md`.
+
+---
+
 ## 2026-06-18 — Boucle DESCENDANTE de la grammaire : apprendre le lexique de genre (100 % préc., FP=0, data-bound)
 
 Seconde moitié de la double voie (après la route lexicale). `dictee/descending_probe.py` : la boucle descendante

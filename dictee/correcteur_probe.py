@@ -17,7 +17,7 @@ import os, sys, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import diag_sentence as D
-from diag_sentence import deacc, toks, is_verb, is_participle, governor_number, NUM_DET, PREP
+from diag_sentence import deacc, toks, is_verb, is_participle, governor_number, NUM_DET, NUM_PRON, PREP
 
 SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
 
@@ -76,7 +76,15 @@ def vlike(T, i):
     if i < 0 or i >= len(T): return False
     if is_verb(T, i): return True
     w = deacc(T[i].lower())
+    if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
     return (w in VERB_LEX) and not (i > 0 and T[i-1].lower() in NUM_DET)  # « le porte » reste un nom
+
+
+# cgram (12 k formes) contient des homographes COURTS de mots-outils (« ne », « le », « la », « on »…) qui
+# faisaient mordre les règles à tort sur du texte réel. On les exclut de la détection verbale (mesuré : -FP).
+VLIKE_STOP = (set(NUM_DET) | set(NUM_PRON) |
+              {'ne', 'me', 'te', 'se', 'le', 'la', 'les', "l'", 'en', 'y', 'que', 'qu', 'qui',
+               'si', 'ou', 'et', 'ni', 'car', 'or', 'ce', 'ces', 'de', 'des', 'du'})
 
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
@@ -91,12 +99,15 @@ def is_plural_noun(T, j):
 # ---------- règles : decide(T,i) -> forme correcte (orthographe) | None ----------
 def rule_e_er(T, i):
     w = T[i]; lw = w.lower()
+    if "'" in lw: return None                          # token contracté (l'été, d'…) → pas un verbe -er/-é
     if lw.endswith('é'):              forms = (w, w[:-1] + 'er')          # tapé = participe
     elif deacc(lw).endswith('er') and len(lw) > 3: forms = (w[:-2] + 'é', w)  # tapé = infinitif
     else: return None
+    if i == 0: return None
+    praw = T[i-1].lower()
+    if praw == 'à': return forms[1]                    # « à » = PRÉPOSITION → infinitif (≠ « a » avoir : deacc les confondait)
     p = prev(T, i)
-    if p is None: return None
-    if p in AUX:                 return forms[0]      # auxiliaire → participe -é
+    if p in AUX:                 return forms[0]      # auxiliaire (a/ont/est…) → participe -é
     if p in PREP or p in MODAL:  return forms[1]      # préposition/semi-aux → infinitif -er
     return None
 
@@ -107,14 +118,18 @@ def rule_son_sont(T, i):
     pl = T[i-1].lower()
     if vlike(T, i-1) or pl in PREP or pl in ('et', 'ou', 'ni'):         # complément après verbe/préposition/conj → possessif
         return 'son'
-    return 'sont'                                                       # précédé du sujet (nom/adj/ils-elles) → verbe être 3pl
+    if pl in ('ils', 'elles') or is_plural_noun(T, i-1):               # sujet PLURIEL net → verbe être 3pl
+        return 'sont'
+    return None                                                        # ambigu (nom isolé, énumération « son X, son Y ») → s'abstenir
 
 def rule_on_ont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
     p = prev(T, i)
     if p in ('ils', 'elles') or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
-    if is_participle(T, i+1): return 'ont'
+    nx = T[i+1].lower() if i+1 < len(T) else ''
+    if nx.endswith('é') or nx.endswith('és') or nx.endswith('ée') or nx.endswith('ées') or is_participle(T, i+1):
+        return 'ont'                                                    # avoir + participe (« ont incarné ») → 3pl
     if vlike(T, i+1):         return 'on'                               # « on » sujet + verbe
     return None
 
@@ -138,13 +153,9 @@ def rule_et_est(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('et', 'est'): return None
     p = prev(T, i)
-    sg_subj = p in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'ça', 'qui') or \
-              (i > 0 and T[i-1].lower() not in NUM_DET and not is_plural_noun(T, i-1) and
-               i > 1 and T[i-2].lower() in NUM_DET and NUM_DET[T[i-2].lower()] == 'sg')   # « le chat _ »
-    if sg_subj and i+1 < len(T):
-        n = deacc(T[i+1].lower())
-        if is_participle(T, i+1) or T[i+1].lower() not in NUM_DET:      # suivi d'un attribut → être
-            return 'est'
+    if p not in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'qui'): return None   # exige un PRONOM sujet net (sinon « le roi, et … » → FP)
+    if i+1 < len(T) and (is_participle(T, i+1) or T[i+1].lower() not in NUM_DET):
+        return 'est'                                                       # pronom sujet + attribut → être 3sg
     return None
 
 def rule_peu(T, i):
@@ -162,10 +173,12 @@ def rule_ce_se(T, i):
     if lw not in ('ce', 'se'): return None
     if i+1 >= len(T): return None
     nd = deacc(T[i+1].lower())
-    if nd in ('qui', 'que', 'dont') or nd in AUX or nd in ('sont', 'est'):
-        return 'ce'                                                    # ce qui/que/dont · c'est · ce sont
-    if vlike(T, i+1): return 'se'                                      # se + verbe pronominal
-    return 'ce'                                                        # ce + nom (démonstratif)
+    if nd in ('qui', 'que', 'dont'): return 'ce'                       # ce qui/que/dont
+    if nd in AUX or nd in ('sont', 'est'): return None                # « ce sont » vs « se sont déroulés », c'est vs s'est : ambigu → s'abstenir
+    isv = vlike(T, i+1); isn = nd in D.GENDER_LEX
+    if isv and not isn: return 'se'                                    # verbe PUR → se (pronominal)
+    if isn and not isv: return 'ce'                                    # nom PUR → ce (démonstratif)
+    return None                                                       # homographe (livre…)/inconnu → s'abstenir
 
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""

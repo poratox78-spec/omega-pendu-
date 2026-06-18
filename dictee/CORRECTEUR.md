@@ -52,6 +52,23 @@ lexicale → règle **non branchée** (FP=0 cardinal). La route lexicale du genr
 (`diag_sentence.lexical_gender`, mesurée 3/3) où elle ne se déclenche que sur une erreur d'accord déjà détectée.
 `cgram_adj.json` est conservé comme **asset** pour un futur correcteur à tagger.
 
+## Validation sur VRAI corpus (Rem, 98 paires GEC FR) — FP 0 après durcissement
+Corpus réel fourni (`dictee/corpus_gec_fr.jsonl`, hors-repo) → `dictee/eval_gec.py`. **Test cardinal = faux positifs
+sur les 98 phrases CORRECTES** (texte Wikipédia réel, multi-clauses).
+- 1re passe : **11 FP** (0,11/phrase) → le « 0 FP » synthétique était optimiste, le réel l'a **falsifié**.
+- Mécanismes trouvés : (a) `deacc("à")=="a"` collisionnait avec l'auxiliaire *a* (→ « à décider » lu « a décidé ») ;
+  (b) cgram (12 k) contient des **homographes courts** de mots-outils (« ne », « le »…) → `vlike` mordait ;
+  (c) `PART_FORMS` stub rate les vrais participes (« incarné ») → `on/ont` ; tokens contractés (« l'été »).
+- Durcissement : à/a distingués (token original), `VLIKE_STOP` (mots-outils exclus de la détection verbale), tokens
+  apostrophés ignorés en -é/-er, `on/ont` détecte le participe par suffixe, et surtout **les règles ambiguës
+  (`son/sont`, `ce/se`, `et/est`) ABSTIENNENT au lieu de deviner** (un correcteur ne doit pas toucher au juste).
+- Résultat : **FP 11 → 0 / 98** (Python ET app, parité vérifiée). Coût : −2 détections in-corpus (22→20), −1 held-out
+  (12→11) sur des témoins ambigus — échange assumé (FP=0 est cardinal).
+- **Périmètre vs réel** : sur ces 98 paires, **1 seule** erreur tombe dans les 8 confusions du correcteur (le reste =
+  genre du déterminant un/une, nombre, ordre des mots, mots manquants, typos — **hors périmètre**). Honnête : le
+  correcteur est **FP-safe sur du réel** mais **couvre une petite part** des erreurs réelles → la couche large
+  (genre déterminant, nombre, typo) reste à faire et exige un POS/tagger.
+
 ## Validation indépendante (held-out) & collecte en ligne
 - **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
   et des témoins), confusions choisies d'après les erreurs FR documentées comme fréquentes. → **12/15 détection+correction,
