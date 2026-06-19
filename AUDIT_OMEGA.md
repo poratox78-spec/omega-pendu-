@@ -681,6 +681,46 @@ au-delà est neuronal-lourd, déféré.
 
 ---
 
+### 1.12 — C NEURONAL LOURD attaqué (arbitrage Rem « go ») : le transformer profond REJOINT le n-gram, ne le bat pas (encore) — 2026-06-19
+
+Rem a autorisé le C lourd déféré au §1.11. Construit `evo/heavy_c_probe.js` : un **transformer** (cross-attention
+query→contexte révélé, multi-têtes + FFN résiduel, profondeur `NLAYERS`), entraîné par **prédiction masquée** sur le
+lexique, comparé au **gap-aware** (§1.10) sur le **même** held-out OOV top-1 que `learned_c_probe.js` (§5 réutilisation).
+Gradient **validé par différences finies** (err rel < 1e-5, NL=1..3). Optimisation : **mini-batch** (gradient moyenné +
+clip global) indispensable — le pas-par-mot stagne (lr bas) ou diverge (lr haut) ; profondeur ≥ 2 exige lr abaissé
+(0,008→0,006) faute de LayerNorm.
+
+**Trajectoire mesurée (held-out OOV top-1, rev 0,3/0,4/0,5, graine 99887), Δ vs gap-aware :**
+
+| modèle | Δ (moy.) | lecture |
+|---|---|---|
+| attention 1 tête | ≈ **−12** | ≈ moyenne molle, sous-capacité |
+| 1 bloc (MHA+FFN), 20k mots | ≈ **−6** | l'architecture ferme la moitié |
+| 1 bloc, **plein lexique 83k** | ≈ **−6,7** | **data inutile → capacité-bound, pas data-bound** |
+| 2 blocs (stable, lr 0,008) | ≈ **−2,2** | la **PROFONDEUR** est le levier |
+| **3 blocs + 40k, lr 0,006** | ≈ **−0,3** | **parité** : 29,4/32,1/34,1 vs gap 29,8/32,5/34,2 |
+
+**Verdict (§6.4 barrière de mérite).** Chaque marche de profondeur ~**divise l'écart par deux** (−12 → −6 → −2,2 → −0,3).
+À 3 blocs le transformer **REJOINT** le n-gram de comptes mais **ne le bat pas** (Δ encore < 0, marginal). Le gap-aware
+reste **non battu** par un modèle appris à ce budget — et il est **gratuit** (zéro entraînement/poids, instantané) là où
+le transformer coûte ~40 k poids à embarquer + un forward par décision + persistance IndexedDB.
+
+**Lecture honnête (§0 ; §1.11 confirmé empiriquement).** §1.11 prédisait « ~3-5 pts jusqu'à SOTA via attention lourde,
+déféré car le gain ne paie pas l'opacité ». Mesuré : l'attention lourde **converge vers** le n-gram (≈ parité), elle ne
+le dépasse pas franchement ; franchir Δ > 0 **robuste** (multi-graines, pas une) exigerait encore (4+ blocs, plein
+lexique, `d` plus grand, LayerNorm/warmup), pour un gain **marginal** (~+0,5-1 pt top-1) au prix d'un modèle **opaque +
+persistant**. C'est le compromis que §0 (« la performance est un indicateur, pas une fin ») et la thèse « cognition >
+oracle = léger/interprétable » déconseillent **sans arbitrage explicite**.
+
+**Décision (en attente de Rem).** (a) **pousser** une dernière marche (4 blocs + plein lexique + LayerNorm) pour franchir
+Δ > 0 robuste puis **câbler** `_neoHeavyCDist()` (3ᵉ voie sublexicale de `_neoDeclareOSmix`, OFF-inerte, drop-in du
+n-gram) + persistance **IndexedDB** des poids (justifiée §1.9/§1.11 « poids appris ») — gain marginal, modèle lourd ;
+OU (b) **s'arrêter à la parité mesurée** : le n-gram gap-aware (gratuit, interprétable) reste le plancher d'agrégation ET
+le plafond pratique ; le C lourd est **mesuré équivalent, non supérieur**. Sonde rejouable :
+`node evo/heavy_c_probe.js [graine] [trainN] [epochs] [d] [lr]` (env `HEADS`/`LAYERS`/`BATCH`/`CLIP`).
+
+---
+
 ## 2. Findings structurels (par sévérité)
 
 ### 🟠 S1 — Le chemin de décision réel ≠ le récit architectural *(vérifié)*
