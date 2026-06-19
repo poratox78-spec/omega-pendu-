@@ -1277,6 +1277,20 @@ footer {
         <div class="toggle-desc">stats positionnelles du lexique (≠ apprises du jeu) · cible le vrai OOV</div>
       </div>
     </div>
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_OS_ARB_NGRAM" title="🔁 NEO · n-gram ARBITRÉ OS (AUDIT §1.9) : remplace le either/or de la cascade — le n-gram agrégé devient la VOIE SUBLEXICALE d'un mélange convexe (M_OS_v07_step) avec la cohorte board (voie lexicale). La fiabilité (piqué de chaque distribution) BASCULE AUTO par régime : in-lexique la cohorte gagne (~97 %), OOV le n-gram gagne (~60 %), SANS switch manuel. Nécessite « NEO · arbitrage OS » (M_NEO_OS_ARB) ON ; pas besoin de la cohorte phon. Mesuré N=400 ×3 graines. Cheat-free, OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🔁 NEO · n-gram arbitré OS (auto-régime)</div>
+        <div class="toggle-desc">sub=n-gram, lex=cohorte · bascule auto fiabilité · in-lex≈cohorte, OOV≈n-gram (§1.9) · requiert arbitrage OS ON</div>
+      </div>
+    </div>
+    <div class="toggle-item cfg-option" data-toggle="M_NEO_NGRAM_GAP" title="🧩 NEO · n-gram GAP-AWARE — C, 1er levier cognitif > substrat (AUDIT §1.10) : le n-gram ne lisait que les voisins IMMÉDIATS (p±1), or 42-54 % des positions cachées n'en ont AUCUN → il tombait à l'unigramme alors que le board révèle des lettres plus loin. GAP utilise le plus proche voisin RÉVÉLÉ à distance 1..4 (garde le trigramme joint si les 2 adjacents sont là). Mesuré N=400 ×3 graines : OOV +2 pts (≈63-65 %, bande SOTA), coût in-lex nul. S'applique à la voie n-gram (cascade OU arbitrée OS). Build ~1 s lazy/session. Cheat-free, OFF par défaut." onclick="ui_toggle(this)">
+      <div class="toggle-switch"></div>
+      <div>
+        <div class="toggle-label">🧩 NEO · n-gram gap-aware (C)</div>
+        <div class="toggle-desc">plus proche voisin révélé à distance 1..4 · +2 pts OOV, coût in-lex nul (§1.10) · 1er gain cognitif > substrat</div>
+      </div>
+    </div>
     <div class="toggle-item cfg-optim" data-toggle="M_NEO_G2P_EXP_ENABLED" title="🧪 NEO · g2p révélé + pénalité (cheat-free strict) : la table phon→graphe n'apprend QUE des positions RÉVÉLÉES du mot joué (l'expérience gagnée en partie), jamais l'orthographe complète post-partie ; pénalité bornée sur les lettres fausses essayées. Mesuré = même niveau que l'ancien g2p (98,9 %) mais sans absorber le mot entier. Remplace learn() par learnExp() en fin de partie. Pén par défaut 0,5. OFF par défaut." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
       <div>
@@ -8971,7 +8985,7 @@ const ALLOWED_TOGGLES = [
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
 ];
 function ui_initToggles() {
   document.querySelectorAll('.toggle-item').forEach(item => {
