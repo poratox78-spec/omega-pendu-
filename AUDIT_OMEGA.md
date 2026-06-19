@@ -1,6 +1,6 @@
 # Audit structurel — moteur OMEGA-Ω (pendu) — 2026-06-15
 
-Audit **du moteur cognitif** (`app/omega-pendu.html`), distinct de l'audit monorepo (`AUDIT_PROJET.md`).
+Audit **du moteur cognitif** (`app/omega-pendu.html`), distinct de l'audit monorepo (`CLAUDE.md`).
 Méthode : lecture **du code** (pas seulement des docs `docs/MEMOIRE.html` / `docs/rapport-mode-emploi.html`) ; chaque point « vérifié » renvoie à une ligne. Doctrine de référence : **cap §43 (cognition > oracle)** + **R66 (mesurer/falsifier avant de garder ; OFF-inerte)**.
 
 ---
@@ -98,7 +98,7 @@ L'argmax du §1.1 était **fainéant** : il jette la distribution de phonème ET
 
 **Morpho jonction #1 (distance-de-fin) — FALSIFIÉ (R66, §6.4 barrière de mérite).** Tenté : ajouter `e` = distance-de-fin au contexte de la jointe (`_neoCRS`, clés `φ|eE|G|D`, `φ|eE|D` prepended). Mesuré K=1, 4 graines (warmup 200 / test 100) : jointe **+morpho 96,0 %** vs jointe **bigramme 97,0 %** (−1,0 pt, perd dans 3/4 graines). Cause : `e` **fragmente `_neoCRS`** (cellules trop creuses à warmup 200 → estimations bruitées) et reste un **proxy grossier** (ne capte pas le *contenu* du suffixe). **Reverté** (pas de cimetière). Piste morpho suivante (jonction séparée) : contexte = **suffixe révélé / segment AQUA `SEG`** (le contenu, pas la distance).
 
-**Morpho jonction #2 (backoff DENSE depuis le lexique) — NET-NEUTRE / bruit (R66, §6.4) — 2026-06-16.** Leçon de #1 : la cause de l'échec = **données creuses** de `_neoCRS` à warmup 200 (pas le type de contexte) ; et le `g2p` de `_DECL2` sort en **IPA** ≠ **SAMPA** de la voie assemblée NEO (ne se clavent pas sans couche de conversion). Tenté (toggle `M_NEO_MORPHO`, OFF-inerte) : quand la cellule jointe apprise est creuse, **backoff vers une table `phonème|G|D` DENSE construite une fois depuis tout le lexique** (via `align`/SAMPA, mêmes clés/backoffs que `_neoCRS`) au lieu du `L2` plat marginal — cheat-free (savoir phonotactique général, comme `L2` ; jamais `currentWord`). Mesuré K=1, 4 graines (warmup 200 / test 100, config `CONFIG_REFERENCE.md` épinglée) : jointe **bigramme 95,0 %** [97,97,97,89] vs **+morpho dense 95,3 %** [97,95,99,90] → Δ moyen **+0,3** mais **[+0,0, −2,0, +2,0, +1,0]** (perd à la graine 777) = **dans le bruit** (SE ≈ ±2 à N=100). Diagnostic : le résidu de la voie cohorte n'est **pas** dans le backoff (la jointe décide surtout là où elle a du signal ; les vraies pertes — ex. graine 99 à **89‑90 %** alors que le son‑lu fait 98 — viennent de l'**ambiguïté cohorte** sur des mots durs, pas du choix `L2`‑vs‑dense). **Reverté** (app + mode de mesure ; barrière de mérite non franchie, pas de cimetière). **Conclusion morpho :** le levier du résidu cheat-free est la **puissance/qualité de la cohorte** (et les graines dures), pas un raffinement du backoff phonème→lettre. La piste SEG‑contenu reste non testée (exigerait une couche IPA↔SAMPA), mais ce négatif suggère un ROI faible tant que le résidu vit dans la cohorte, pas dans la table phon→graphe.
+**Morpho jonction #2 (backoff DENSE depuis le lexique) — NET-NEUTRE / bruit (R66, §6.4) — 2026-06-16.** Leçon de #1 : la cause de l'échec = **données creuses** de `_neoCRS` à warmup 200 (pas le type de contexte) ; et le `g2p` de `_DECL2` sort en **IPA** ≠ **SAMPA** de la voie assemblée NEO (ne se clavent pas sans couche de conversion). Tenté (toggle `M_NEO_MORPHO`, OFF-inerte) : quand la cellule jointe apprise est creuse, **backoff vers une table `phonème|G|D` DENSE construite une fois depuis tout le lexique** (via `align`/SAMPA, mêmes clés/backoffs que `_neoCRS`) au lieu du `L2` plat marginal — cheat-free (savoir phonotactique général, comme `L2` ; jamais `currentWord`). Mesuré K=1, 4 graines (warmup 200 / test 100, config `CONFIG_TOGGLES.md` épinglée) : jointe **bigramme 95,0 %** [97,97,97,89] vs **+morpho dense 95,3 %** [97,95,99,90] → Δ moyen **+0,3** mais **[+0,0, −2,0, +2,0, +1,0]** (perd à la graine 777) = **dans le bruit** (SE ≈ ±2 à N=100). Diagnostic : le résidu de la voie cohorte n'est **pas** dans le backoff (la jointe décide surtout là où elle a du signal ; les vraies pertes — ex. graine 99 à **89‑90 %** alors que le son‑lu fait 98 — viennent de l'**ambiguïté cohorte** sur des mots durs, pas du choix `L2`‑vs‑dense). **Reverté** (app + mode de mesure ; barrière de mérite non franchie, pas de cimetière). **Conclusion morpho :** le levier du résidu cheat-free est la **puissance/qualité de la cohorte** (et les graines dures), pas un raffinement du backoff phonème→lettre. La piste SEG‑contenu reste non testée (exigerait une couche IPA↔SAMPA), mais ce négatif suggère un ROI faible tant que le résidu vit dans la cohorte, pas dans la table phon→graphe.
 
 ### 1.3 Reproduction indépendante (R66, §1.2 falsifiabilité / §6.3 preuve) — 2026-06-16
 
@@ -209,9 +209,9 @@ Diagnostic `evo/diag_mirror.js` (R67, cognition, warmup 200 / test 80) — le co
 **Verdict : H2.** Concept et position sont **globaux/longueur**, pas spécifiques au mot. **Recâbler M1_m←M3_m/M2_m ne propagerait rien** — la racine est le **mur de capacité des 12 cellules** (S2/§3), pas la connexion de M1_m.
 
 **Déjà documenté + solution essayée/falsifiée (réponse « appliquée ou non ») :**
-- `notes/M3D-reconnexion-FALSIFIE.md` (03/06) mesurait déjà le collapse (cross-mot cosine **0,9479**, 1 cellule 35/39, 9/12 mortes ; `M3_d.output=0` sous bPC). Mes chiffres le **reproduisent**.
+- `notes/MOTEUR_HISTORIQUE.md §E` (03/06) mesurait déjà le collapse (cross-mot cosine **0,9479**, 1 cellule 35/39, 9/12 mortes ; `M3_d.output=0` sous bPC). Mes chiffres le **reproduisent**.
 - Solution tentée = **câbler concept→M4** (le mot rappelé injecté comme concept dans le scoring) → **FALSIFIÉE −1,33**, *« contamine le scoring-lettre… le chemin concept→M4 est le mauvais endroit. Ne pas reproposer. »* **Revertée, non appliquée.**
-- Principe Rem documenté (`notes/NEO-muette-croisement.md`) = celui de cette session : *« si ça ne rend pas au système, on a mal câblé, pas l'approche »* ; la fix-câblage qui a marché là = le **trigger** (gate sur l'incertitude cognition) → rend la brique **neutre**, pas un levier.
+- Principe Rem documenté (`notes/MOTEUR_HISTORIQUE.md §C-D`) = celui de cette session : *« si ça ne rend pas au système, on a mal câblé, pas l'approche »* ; la fix-câblage qui a marché là = le **trigger** (gate sur l'incertitude cognition) → rend la brique **neutre**, pas un levier.
 - **Non essayé** : prédiction-masquée des 12 cellules (audit §3) — mais **même mur de capacité** (AUC familiarité 0,64 à K=12). Le flux qui marche est documenté : **phon→ortho** (assemblé +5,28) et **declare** (recall +1,76), pas concept→lettre.
 
 → **Bilan jonction M1_m.** Mécanisme prouvé + amont diagnostiqué + littérature interne croisée : M1_m ne peut pas gagner ses 0,1 (prior fréquence redondant) **et** la « réparation par connexion » est un **cul-de-sac documenté** (concept global + concept→scoring falsifié). Le toggle R66 reste l'acquis net (débranchable + mesuré).
@@ -261,14 +261,14 @@ Investigation lancée sur l'intuition Rem « M1_m/M3_m mal connectés, problème
 3. **Miroir phon `M4_phon_m`** : porte un vrai signal **spécifique au mot** (+0,028, ≠ ortho) **mais winrate-inert** dans le routage actuel (§1.4.3 + (a) §1.4.3).
 4. **Bonus** : la correction du bug d'init a montré que l'**adoption de la jointe** reposait sur un harnais voie-phon-inerte → **à rouvrir** (§1.4.4).
 
-**Motif unique (cohérent avec la doctrine et les notes) :** *aucune des voies descendantes ne convertit en winrate, quelle que soit la direction.* Le signal qui gagne est **ascendant** — assemblé phon→ortho (+5,28) et recall (+1,76), via le **declare**, pas via la correction descendante (cf. `M3D-reconnexion-FALSIFIE` : « le chemin concept→M4 est le mauvais endroit »). La thèse « sens des flux » de Rem est **validée et bornée** : la bonne direction *porte* bien plus de signal côté phon, mais c'est l'**ascendant** (décode), pas le **descendant** (miroir), qui fait gagner. Conséquence : les dormants `M2/M1_phon_m` = **hygiène S3** (pas de levier attendu) ; chantier winrate = côté **ascendant/declare** (déjà la force d'OMEGA).
+**Motif unique (cohérent avec la doctrine et les notes) :** *aucune des voies descendantes ne convertit en winrate, quelle que soit la direction.* Le signal qui gagne est **ascendant** — assemblé phon→ortho (+5,28) et recall (+1,76), via le **declare**, pas via la correction descendante (cf. `MOTEUR_HISTORIQUE §E` : « le chemin concept→M4 est le mauvais endroit »). La thèse « sens des flux » de Rem est **validée et bornée** : la bonne direction *porte* bien plus de signal côté phon, mais c'est l'**ascendant** (décode), pas le **descendant** (miroir), qui fait gagner. Conséquence : les dormants `M2/M1_phon_m` = **hygiène S3** (pas de levier attendu) ; chantier winrate = côté **ascendant/declare** (déjà la force d'OMEGA).
 
 ---
 ### 1.4·b (fil declare, ex-PR #6) Le declare cheat-free ne croise pas les deux routes — et croiser AU concept (M3_d) dégrade (R66) — 2026-06-16
 
 **Vérifié (code).** Le declare NEO (7210-7248) combine ses voies en **cascade « soit l'un soit l'autre »** : recall → SINON assemblé (phon→ortho) → SINON muette (ortho-contexte). **Pas de jointe entre voies**, et **une seule direction** (phon→ortho ; aucune voie ortho→phon). Il **n'utilise ni le hub concept `M_S`** (fusion amodale M3_ortho+M3_phon, 1771/5062) **ni les branches descendantes** (`M3_phon_m_step` renforce les `conceptCells` partagées, 3854) — il court-circuite le croisement par le concept, *la* mécanique OMEGA. (La cognition **par-lettre**, elle, croise bien via `M_S`/OS `w(r)` — c'est le ~98 % de base.)
 
-**Testé (R66).** Réveil du croisement dormant `M_BPC_CROSSMODAL` (M3_d perçoit `M1_d ⊕ M1_phon`, hub-and-spoke Rogers 2004, bPC descendant ; poids `bpcW_phon` alloués mais OFF, 2827). Mesuré K=1, 4 graines (config `CONFIG_REFERENCE` épinglée, régime son-lu) :
+**Testé (R66).** Réveil du croisement dormant `M_BPC_CROSSMODAL` (M3_d perçoit `M1_d ⊕ M1_phon`, hub-and-spoke Rogers 2004, bPC descendant ; poids `bpcW_phon` alloués mais OFF, 2827). Mesuré K=1, 4 graines (config `CONFIG_TOGGLES` épinglée, régime son-lu) :
 
 | | 12345 | 777 | 2024 | 99 | moy. |
 |---|---|---|---|---|---|
@@ -282,7 +282,7 @@ Investigation lancée sur l'intuition Rem « M1_m/M3_m mal connectés, problème
 
 ### 1.5 Pousser le declare cheat-free SANS currentWord — exploration complète (R66) — 2026-06-16
 
-Question : combler le trou du declare **sans aucune lecture de `currentWord`** (cohorte-jointe seule = **94,8 %** vs son-lu/«mot entendu» 98,0 %, K=1 4 graines). Comparaison **DUAL (`_DECL2`, niveau mot, freq×ortho×phon) vs NEO** (per-lettre, sans fréquence) : NEO **n'exploite ni la fréquence ni un posterior-mot** — c'est ce qui manquait. Tous les variants mesurés (in-lexique K=1, warmup 200/test 100, config `CONFIG_REFERENCE` épinglée) :
+Question : combler le trou du declare **sans aucune lecture de `currentWord`** (cohorte-jointe seule = **94,8 %** vs son-lu/«mot entendu» 98,0 %, K=1 4 graines). Comparaison **DUAL (`_DECL2`, niveau mot, freq×ortho×phon) vs NEO** (per-lettre, sans fréquence) : NEO **n'exploite ni la fréquence ni un posterior-mot** — c'est ce qui manquait. Tous les variants mesurés (in-lexique K=1, warmup 200/test 100, config `CONFIG_TOGGLES` épinglée) :
 
 | Variant ajouté à la cohorte-jointe (sans CW) | Δ moy. | par graine | doctrine | verdict |
 |---|---|---|---|---|
@@ -295,7 +295,7 @@ Question : combler le trou du declare **sans aucune lecture de `currentWord`** (
 
 **Conclusion (honnête).** Le seul gain robuste vient de **DUAL** : un **modèle de mot** (prior fréquence × plausibilités intrinsèques ortho/phon du mot, par produit). Décomposé : ~moitié fréquence (propre mais bruitée), ~moitié ortho/phon (qui *stabilise*). **Aucun variant doctrinalement pur n'égale le +2,5** — la jointe, excellente *par lettre* (adoptée §1.2), est mauvaise *multipliée sur le mot*. Le « produit » de DUAL est le *pattern* que §3.1 déconseille, mais (a) au niveau **mot-declare** (≠ croisement per-lettre visé par §3.1/§3.2), (b) c'est de la **reconnaissance in-lexique** (la cohorte contient le vrai mot → s'effondre en OOV, non mesuré ici). 
 
-**Statut : DUAL ADOPTÉ (arbitrage humain, 16/06/2026, §0/§4.4)** — option (c). `M_DECLARE_DUAL` passe **ON dans la config de référence cheat-free** (`docs/CONFIG_REFERENCE.md`, MAJ 16/06) : +1,8 → 99,8 % mot-entendu / +2,5 → 97,3 % sans-currentWord, stable, cheat-free, declare niveau-mot (pas d'entorse §3.1, qui vise le per-lettre). Défaut moteur **OFF** (baseline byte-identique ; activé dans le preset). *(Alternatives écartées : (b) fréquence-seule +1,3 bruité ; (d) base 94,8.)* Repro : `node evo/ab_cohort.js dual|dualncw 200 100 12345,777,2024,99`.
+**Statut : DUAL ADOPTÉ (arbitrage humain, 16/06/2026, §0/§4.4)** — option (c). `M_DECLARE_DUAL` passe **ON dans la config de référence cheat-free** (`docs/CONFIG_TOGGLES.md`, MAJ 16/06) : +1,8 → 99,8 % mot-entendu / +2,5 → 97,3 % sans-currentWord, stable, cheat-free, declare niveau-mot (pas d'entorse §3.1, qui vise le per-lettre). Défaut moteur **OFF** (baseline byte-identique ; activé dans le preset). *(Alternatives écartées : (b) fréquence-seule +1,3 bruité ; (d) base 94,8.)* Repro : `node evo/ab_cohort.js dual|dualncw 200 100 12345,777,2024,99`.
 **Reste honnête (non clos) :** l'effet **OOV (Trexquant)** de DUAL n'est **pas mesuré** — DUAL étant de la reconnaissance in-lexique, on attend ~0 en OOV ; à vérifier avant tout chiffre hors-lexique.
 
 ### 1.6 Lecture à la lumière de la littérature — et chantier futur : l'arbitrage des deux voies (R66) — 2026-06-16
@@ -389,7 +389,7 @@ plein = mêmes mots) ; Trexquant aveugle enfin vraiment la cohorte.
 
 **Conséquence sur l'audit.** TOUT chiffre "OOV/Trexquant cheat-free" antérieur à ce fix est **suspect** : §1.1
 (« cohort-board OOV ~78-85 %, coût ~7,5 pts »), §1.5 (« cohorte-jointe seule 94,8 % » — *in-lexique*, OK), et la MAJ
-Trexquant de `CONFIG_REFERENCE`. À **re-mesurer** avec le fix avant tout chiffre OOV. Le in-lexique (§1.6, DUAL/OS-arb
+Trexquant de `CONFIG_TOGGLES`. À **re-mesurer** avec le fix avant tout chiffre OOV. Le in-lexique (§1.6, DUAL/OS-arb
 ~96-99 %) n'est **pas** touché (cohorte pleine = comportement voulu en jeu normal).
 
 <details><summary>Table falsifiée (archive)</summary>
@@ -515,7 +515,7 @@ appris), PAS juste élargir M3.
 **B — n-gram = voie OOV-only, branchée.** Le n-gram **écrase la cohorte en in-lexique** (il ignore que le mot EST là)
 → à n'activer **qu'en OOV/Trexquant**. **Mesuré in-lexique : OFF 97,5 % → ON 69,5 %** (le n-gram générique remplace
 la cohorte qui a le mot) → **OFF en jeu normal, obligatoire**. Livré : voie `M_NEO_LETTER_NGRAM` recommandée ON pour
-Trexquant/OOV (CONFIG_REFERENCE), et **ajoutée au bench Trexquant in-app** (4e ligne « n-gram de lettres »). Pas de
+Trexquant/OOV (CONFIG_TOGGLES), et **ajoutée au bench Trexquant in-app** (4e ligne « n-gram de lettres »). Pas de
 croisement OS-arb nécessaire (A montre que rien n'ajoute au n-gram → cascade simple suffit ; OS-arb resterait utile
 seulement si une 2e voie apportait un Δ, ce qui n'est pas le cas ici).
 
@@ -808,7 +808,7 @@ Le 97,5 % = 4 graines × 120 = **480 parties** ; R66 recommande ≥ 200 × 4. Pl
 ## 3. M3_d — PEUT-ÊTRE UTILE (hors winrate) : reclassement §0 + diagnostic + piste
 
 **⚠️ Reclassement (Rem, 2026-06-17) — la doctrine §0 prime sur le winrate.** Tout ce qui suit (et le rapport §12 « chantier clos ») jugeait M3_d à l'aune du **winrate du pendu**. Or le pendu n'est qu'un **banc d'essai** ; le système est un **modèle cognitif** (clause §0 : *la performance est un indicateur, pas une fin*). **Conclusion révisée : M3_d n'est ni « mort » ni « à clore » — il est *winrate-inert* (mesuré, solide) MAIS PEUT-ÊTRE UTILE hors-winrate**, à juger sur la **fidélité cognitive** et son rôle dans la **dictée**.
-- *Solide (inchangé)* : M3_d code surtout la **forme/longueur** (S2 ; diag `evo/diag_mirror.js` : cellule #10 = 79 %) ; **aucune entrée sens/contexte** (EXP_M3D_FALSIFIE) → **latent de FORME, pas de sens** ; banc→scoring-lettre falsifié (−1,33, §1.4.2).
+- *Solide (inchangé)* : M3_d code surtout la **forme/longueur** (S2 ; diag `evo/diag_mirror.js` : cellule #10 = 79 %) ; **aucune entrée sens/contexte** (dictee/README.md (§ Falsifié M3_d)) → **latent de FORME, pas de sens** ; banc→scoring-lettre falsifié (−1,33, §1.4.2).
 - *Rouvert (§0)* : (1) **fidélité structurelle** — M3_d *est* la couche-concept du modèle double-route/triangle (hub-and-spoke Rogers/Patterson) ; le retirer briserait la fidélité → §0 mandate de le garder. (2) **dictée** — un latent de **forme** = candidat **signal de stade précoce** (Ferreiro pré-syllabique/syllabique : préserver la silhouette/longueur du mot, *KAP*→canapé) ; le *défaut* « ne voit que la forme » devient un *signal*. (3) **familiarité** faible (AUC 0,64→0,98), bornée (le banc fait mieux).
 - *Garde §1 (anti-hype)* : « peut-être utile » n'est **pas** « utile ». Il faut un **effet mesurable sur la bonne tâche** (la **dictée**, pas le pendu). Tant que non mesuré là → statut = **hypothèse vivante**, pas chantier clos. (Frontière : utilité possible = **forme/morpho**, jamais sémantique/homophone — déjà falsifié.)
 

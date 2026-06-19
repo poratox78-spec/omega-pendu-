@@ -109,4 +109,4 @@ Voir le fichier [`NOTICE`](NOTICE) pour l'attribution complète.
 
 - [**`dictee/`**](dictee/) — **dictée diagnostique** (cible *dys / troubles de l'écrit*) bâtie sur la double route d'OMEGA : dictée de phrases, diagnostic multi-étiquette (accent · sourde/sonore · muette · ajout · inversion · homophone · accord · surface) + remédiation. Intégrée dans `app/omega-pendu.html` (panneau « ✍️ Dictée diag »). Voir [`dictee/README.md`](dictee/README.md), [`DICTEE_ROADMAP.md`](DICTEE_ROADMAP.md).
 - [**`evo/`**](evo/) — *workstream exploratoire* : OMEGA apprend à coder (se copier ; le pendu sert de test de fitness). Voir [`evo/EVO_ROADMAP.md`](evo/EVO_ROADMAP.md).
-- Audit transverse : [`AUDIT_PROJET.md`](AUDIT_PROJET.md).
+- Audit transverse : `CLAUDE.md` (§ Audit projet).

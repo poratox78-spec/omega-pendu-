@@ -525,7 +525,7 @@ body::before {
 }
 .toggle-item:hover { border-color: var(--border); }
 .toggle-item.on { border-color: var(--accent-line); background: var(--accent-soft); }
-/* Repère config (audit toggles 2026-06-18, docs/AUDIT_TOGGLES.md) : 🟢 VERT = cheat-free (ne lit que le révélé/len_index, OOV-honnête) · 🔵 BLEU = option cheat-free non-défaut (cohorte board ; fuite _neoWBL corrigée) · 🟠 ORANGE = lit le SON du mot entier (wp.get = « mot entendu », triche au pendu pur ; assemblé+muette dynamiques selon cohorte) · 🔴 ROUGE = béquille lexicale dico (A1/A2/A3). Visible ON comme OFF. */
+/* Repère config (audit toggles 2026-06-18, docs/CONFIG_TOGGLES.md) : 🟢 VERT = cheat-free (ne lit que le révélé/len_index, OOV-honnête) · 🔵 BLEU = option cheat-free non-défaut (cohorte board ; fuite _neoWBL corrigée) · 🟠 ORANGE = lit le SON du mot entier (wp.get = « mot entendu », triche au pendu pur ; assemblé+muette dynamiques selon cohorte) · 🔴 ROUGE = béquille lexicale dico (A1/A2/A3). Visible ON comme OFF. */
 .toggle-item.cfg-optim { border-left: 3px solid #2ea043; }
 .toggle-item.cfg-optim.on { border-color: #2ea043; background: rgba(46,160,67,0.12); }
 .toggle-item.cfg-triche { border-left: 3px solid #e5534b; }
@@ -9186,7 +9186,7 @@ function ui_startGame() {
 }
 
 function applyReferenceConfig() {
-  // Preset 1-clic : configuration optimale CHEAT-FREE (rapport §8.3 / CONFIG_REFERENCE, 97,5 % in-lexique).
+  // Preset 1-clic : configuration optimale CHEAT-FREE (rapport §8.3 / docs/CONFIG_TOGGLES.md, 97,5 % in-lexique).
   // N'altère PAS le boot (la baseline reste OFF-inerte au chargement) : c'est une action explicite de l'utilisateur.
   try {
     const ON = ['L01_A4_M4M_DECOMP_ENABLED','L01_A5_M2M_POSITIONAL_ENABLED','L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',

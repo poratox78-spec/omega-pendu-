@@ -232,7 +232,7 @@ mineur : données localStorage non versionnées (pas de migration de schéma).
 
 ---
 
-## 4. Réconciliation avec `AUDIT_OMEGA.md` et `CONFIG_REFERENCE.md`
+## 4. Réconciliation avec `AUDIT_OMEGA.md` et `CONFIG_TOGGLES.md`
 
 **🟡 Dérive de numérotation à corriger dans AUDIT_OMEGA.** Les pointeurs de lignes ont dérivé de **+50 à +120**.
 Vraies lignes mesurées : `cStep` = **6465** (et non 6343 — qui est `computeLex4LetterScores`), `M_S_step` = 5694,
@@ -249,7 +249,7 @@ sorties n'ont aucun consommateur** ; et `M4_phon_m` **est** consommé (3601). *(
 M3_d.output » non retrouvée — le normalize est sur `M3_m.output` 5508 ; la non-bornitude réelle est sur `cLetterScore`,
 offset défensif 6006.)*
 
-**🟡 `CONFIG_REFERENCE.md` périmé sur le compte de toggles.** Il énumère **« 39 toggles »** ; le code en expose **42**
+**🟡 `CONFIG_TOGGLES.md` périmé sur le compte de toggles.** Il énumère **« 39 toggles »** ; le code en expose **42**
 dans l'UI — les 3 « bleus » cheat-free (`M_NEO_PHON_COHORT_ENABLED`, `M_NEO_PHON_COHORT_JOINTE`, `M_NEO_OS_ARB`) sont dans
 le code (decl. 6120/6123/6125, UI 1237/1244/1251, ALLOWED 8908) mais **absents de l'énumération** (cités en prose seulement).
 Aucun toggle listé n'est inexistant. 3 toggles orphelins d'UI (modifiables source seulement, voulus) : `M_BPC_CROSSMODAL`
@@ -266,7 +266,7 @@ Aucun toggle listé n'est inexistant. 3 toggles orphelins d'UI (modifiables sour
 | 3 | **Faire remonter les catch muets** qui mutent le lexique (E1, 9294/9301) sous `ui_log('ERROR')` | robustesse | faible | 🟠 |
 | 4 | **`_omega_trexquant_bench` : restaurer l'état** en `finally` (initOmegaGlobals + seed + θ) comme ses pairs (R1) | repro/R67 | faible | 🟠 |
 | 5 | **Corriger la désync** `bpc-declare-conf` (U1) ; init UI ← valeurs moteur au boot | exactitude | faible | 🟠 |
-| 6 | **Mettre à jour les docs** : renuméroter AUDIT_OMEGA (+50/+120), corriger §S4, passer CONFIG_REFERENCE à « 42 » (§4) | doc↔code | faible | 🟡 |
+| 6 | **Mettre à jour les docs** : renuméroter AUDIT_OMEGA (+50/+120), corriger §S4, passer CONFIG_TOGGLES à « 42 » (§4) | doc↔code | faible | 🟡 |
 | 7 | **Accessibilité** : `role=switch`/`aria`/clavier sur les toggles + `aria-live` sur le jeu (U2), contrastes (U3) — *cible dys* | inclusivité | moyen | 🟡 |
 | 8 | **CI anti-régression** : un smoke seedé qui *assert* cognition seule ≥ 90 % et +NEO ≥ 97 % (le risque #1 §S3 : aucun test ne garde le winrate) | régression | moyen | 🟡 |
 | 9 | **Factoriser** : 1 seule `ALLOWED_TOGGLES`, 1 seule boucle de jeu, 1 seule jointe sublexicale (V5) ; remplacer `eval` par une Map (G1) | dette | moyen | 🟡 |
