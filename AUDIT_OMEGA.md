@@ -732,8 +732,26 @@ graine/régime = **bruit** (SE seed-to-seed ≈ ±1 pt). **Aucun régime n'est p
 ≈ 0. La barrière de mérite (« ≥ baseline à *chaque* graine, moyenne > 0 ») **n'est pas atteinte**. → Le C lourd 4 blocs
 est **mesuré équivalent au n-gram de comptes, pas supérieur**.
 
+#### Test WINRATE à CONFIG OPTIMALE (vrai moteur) — la critique « tests caducs : top-1/masques/hors-pipeline » traitée — 2026-06-19
+
+Critique de Rem (juste, doctrine §1 « sur le jeu réel, pas un proxy ») : le top-1 sur masques aléatoires hors-pipeline
+est caduc. Test refait **valide** : C lourd câblé comme **voie sublexicale de `_neoDeclareOSmix`** (flag `M_NEO_C_HEAVY`,
+remplace le n-gram ; **parité moteur↔sonde vérifiée EXACTE**, `evo/heavy_c_parity.js`), **config optimale** de référence
+(`evo/heavy_c_winrate.js`, mêmes CFG que `ab_cohort`), **winrate sur vraies parties**, in-lex ET OOV séparés, 3 graines
+(C entraîné 4 blocs/40k, masques aléatoires) :
+
+| régime | voie gap-aware | voie C lourd | Δ (C−gap) | §6.4 |
+|---|---|---|---|---|
+| in-lexique | 97,1 % | 97,5 % | +0,4 (+2,5/0/−1,3) | NON (bruit — cohorte domine, voie sublex. ~inerte) |
+| **OOV** | **58,3 %** | **57,1 %** | **−1,3** (+2,5/−5,0/−1,3) | **NON (perd 2/3 graines)** |
+
+→ Sur la **vraie métrique** (winrate, pipeline complet, config optimale), le C lourd **ne bat pas** le gap-aware (OOV
+−1,3 moy, perd 2/3 graines ; in-lex = bruit). Le proxy top-1 ne mentait pas, mais c'est maintenant établi sur le winrate.
+**Réserve restante (honnête)** : ce C est entraîné sur **masques aléatoires** ; il reste à l'entraîner sur la **vraie
+distribution d'états de jeu** (self-play OOV, ~10⁴ parties) avant verdict définitif sur l'OOV — seul levier non épuisé.
+
 **Conclusion (§0, §1.11 confirmé empiriquement).** L'attention lourde **converge vers** le gap-aware (parité dans le
-bruit, du 3 blocs au 4 blocs ×3 graines) **sans le dépasser de façon fiable**. Le n-gram gap-aware (gratuit, zéro poids,
+bruit, du 3 blocs au 4 blocs ×3 graines, **confirmée au winrate à config optimale**) **sans le dépasser de façon fiable**. Le n-gram gap-aware (gratuit, zéro poids,
 interprétable, déjà câblé) reste le **plancher d'agrégation ET le plafond pratique**. **Décision : ne RIEN câbler** — pas
 de `_neoHeavyCDist()`, pas d'IndexedDB. Le coût (≈40k poids embarqués + forward/décision + persistance + opacité) ne se
 justifie pas pour un gain mesuré nul-dans-le-bruit. Aller au-delà = SOTA-scale hors-ligne (gros modèle, LayerNorm/warmup,

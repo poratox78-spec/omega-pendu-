@@ -47,6 +47,15 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
   { const rr = rng(SAMPLE ^ 0x1234); for(let i=train.length-1;i>0;i--){const j=Math.floor(rr()*(i+1));const t=train[i];train[i]=train[j];train[j]=t;} if(train.length>TRAIN_N) train = train.slice(0,TRAIN_N); }
   console.log('train='+train.length+' test='+testW.length+'  d='+D+' epochs='+EPOCHS+' lr='+LR+' seed='+SAMPLE);
 
+  // STATES=<fichier> : entraîner sur de VRAIS états de jeu (harvest_states.js) au lieu de masques aléatoires.
+  // Réponse à « entraîne le C sur 10 000 vraies parties » — la distribution de révélation réelle (ordre stratégique).
+  let realStates=null;
+  if(process.env.STATES){ const lines=require('fs').readFileSync(process.env.STATES,'utf8').split('\n'); realStates=[];
+    for(const ln of lines){ const sp=ln.indexOf(' '); if(sp<0)continue; const w=ln.slice(0,sp), mk=ln.slice(sp+1).trim();
+      if(!w||w.length!==mk.length||!/^[A-Z]+$/.test(w))continue; const rev=new Array(w.length); let h=0;
+      for(let i=0;i<w.length;i++){ rev[i]=mk.charCodeAt(i)===49; if(!rev[i])h++; } if(h>0) realStates.push({w,rev}); }
+    console.log('états réels chargés : '+realStates.length+' (entraînement sur distribution de jeu réelle)'); }
+
   // ================== BASELINE gap-aware (copie fidèle de learned_c_probe.js / §1.10) ==================
   const uni={}, Ld={}, Rd={}, GMAXD=8;
   const add=(o,k,c)=>{ (o[k]||(o[k]=new Float64Array(26)))[c]++; };
@@ -213,15 +222,17 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
     adamStep(Gf);
   }
   const rt = rng(SAMPLE ^ 0xF00D);
-  const order = train.map((_,i)=>i);
+  const N = realStates ? realStates.length : train.length;
+  const order = new Array(N); for(let i=0;i<N;i++)order[i]=i;
   for(let ep=0; ep<EPOCHS; ep++){
     for(let i=order.length-1;i>0;i--){const j=Math.floor(rt()*(i+1));const t=order[i];order[i]=order[j];order[j]=t;}
     let lsum=0, lcnt=0; let Go=newGrads(), qn=0, bw=0;
     for(let oi=0; oi<order.length; oi++){
-      const w=train[order[oi]], L=w.length;
-      const rho=0.2+0.6*rt(); const rev=new Array(L); let nrev=0; for(let q=0;q<L;q++){rev[q]=rt()<rho; if(rev[q])nrev++;}
-      if(nrev===L){ rev[Math.floor(rt()*L)]=false; }
-      let used=0;
+      let w, rev;
+      if(realStates){ const st=realStates[order[oi]]; w=st.w; rev=st.rev; }    // VRAI état de jeu (mask figé)
+      else { w=train[order[oi]]; const L=w.length; const rho=0.2+0.6*rt(); rev=new Array(L); let nrev=0;
+        for(let q=0;q<L;q++){rev[q]=rt()<rho; if(rev[q])nrev++;} if(nrev===L){ rev[Math.floor(rt()*L)]=false; } }
+      const L=w.length; let used=0;
       for(let k=0;k<L && used<NQ;k++){ const p=Math.floor(rt()*L); if(rev[p])continue; const y=w.charCodeAt(p)-65; if(y<0||y>=26)continue;
         const fwd=forward(w,rev,p); lsum+=backward(fwd,y,Go); lcnt++; used++; qn++; }
       bw++;
