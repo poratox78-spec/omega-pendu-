@@ -6177,6 +6177,8 @@ let M_NEO_LETTER_NGRAM = false;             // VOIE N-GRAM DE LETTRES (sublexica
 let M_NEO_LETTER_NGRAM_CONF = 0.0;          // seuil sur le score-lettre (0 = tire la meilleure lettre non essayée)
 let M_NEO_NGRAM_GAP = false;                // C (cognition au-dessus du substrat, AUDIT §1.10) : n-gram GAP-AWARE — utilise le plus proche voisin RÉVÉLÉ à distance 1..MAXD, pas seulement l'adjacent. Cause mesurée : 42-54% des positions cachées n'ont AUCUN voisin immédiat → le moteur tombait à l'unigramme alors que le board révèle des lettres plus loin. Garde le trigramme JOINT quand les 2 adjacents sont là (meilleur), sinon produit des marginales à distance. OFF-inerte (R66).
 const _NEO_NGRAM_MAXD = 4;                   // portée gap-aware (mesuré : d≤4 capte l'essentiel)
+let M_NEO_C_HEAVY = false;                   // C NEURONAL LOURD (transformer appris, AUDIT §1.12) comme voie sublexicale du declare OS, EN REMPLACEMENT du n-gram gap-aware. OFF-inerte (R66) : sans poids (_neoHeavyC null) la fonction rend null → comportement inchangé. Poids injectés hors-ligne (sonde evo/heavy_c_probe.js SAVE → harnais evo/heavy_c_winrate.js). Cheat-free : lit board révélé + longueur, jamais currentWord caché.
+let _neoHeavyC = null;                        // poids du C lourd : {cfg:{D,H,NL,DFF,R,NREL,LMAX,MASK,VTOK}, E,Prel,Qp,Qr, Lyr:[{Wq,Wk,Wv,Wo,W1,b1,W2,b2}], Wc,bc} (Arrays plats). null = OFF-inerte.
 let _neoWF = null;                           // cache word→fréquence (voie lexicale, board-dérivé légitime pour DECLARE)
 let _neoWBL = null;                         // mots du lexique indexés par longueur (cache)
 let _neoWBLsrc = null;                       // référence len_index ayant servi à bâtir _neoWBL (invalidation du cache)
@@ -6250,6 +6252,41 @@ function _neoLetterNgram(){                  // décide une lettre via le n-gram
   const score = _neoLetterNgramDist(); if (!score) return null;
   let best=-1, bl=-1; for (let x=0;x<26;x++){ if (alreadyTried[x]) continue; if (score[x]>best){ best=score[x]; bl=x; } }
   return (bl>=0 && best>M_NEO_LETTER_NGRAM_CONF) ? String.fromCharCode(65+bl) : null;
+}
+function _neoHeavyCDist(){                    // C LOURD (transformer) : distribution lettre (26) agrégée sur positions cachées — MIROIR EXACT du forward de evo/heavy_c_probe.js (cross-attn query→contexte révélé, multi-têtes + FFN résiduel, NL blocs). Cheat-free (révélé + longueur). Rend Float64Array(26) ou null. OFF-inerte si _neoHeavyC null.
+  const M=_neoHeavyC; if(!M) return null;
+  const c=M.cfg, D=c.D,H=c.H,NL=c.NL,DFF=c.DFF,R=c.R,LMAX=c.LMAX,MASK=c.MASK, DH=D/H, invSqDH=1/Math.sqrt(DH);
+  const L=currentWord.length;
+  const clampRel=(d)=>{ let r=d; if(r<-R)r=-R; else if(r>R)r=R; return r+R; };
+  const clampL=(i)=>i<0?0:(i>=LMAX?LMAX-1:i);
+  const mv=(Mat,x,dout,din)=>{ const y=new Float64Array(dout); for(let o=0;o<dout;o++){ let s=0; const b=o*din; for(let i=0;i<din;i++)s+=Mat[b+i]*x[i]; y[o]=s; } return y; };
+  const score=new Float64Array(26); let any=false;
+  for(let p=0;p<L;p++){ if(revealedMask[p]) continue;
+    const u=new Float64Array(D), eM=MASK*D, qpB=clampL(p)*D, qrB=clampL(L-1-p)*D;
+    for(let i=0;i<D;i++) u[i]=M.E[eM+i]+M.Qp[qpB+i]+M.Qr[qrB+i];
+    const xs=[]; const push=(tok,relIdx)=>{ const x=new Float64Array(D), eB=tok*D, rB=relIdx*D; for(let i=0;i<D;i++)x[i]=M.E[eB+i]+M.Prel[rB+i]; xs.push(x); };
+    push(MASK, R);
+    for(let q=0;q<L;q++){ if(q===p||!revealedMask[q]) continue; push(currentWord.charCodeAt(q)-65, clampRel(q-p)); }
+    const n=xs.length; let qv=u;
+    for(let l=0;l<NL;l++){ const P=M.Lyr[l];
+      const qf=mv(P.Wq,qv,D,D); const K=[],V=[]; for(let t=0;t<n;t++){ K.push(mv(P.Wk,xs[t],D,D)); V.push(mv(P.Wv,xs[t],D,D)); }
+      const ctx=new Float64Array(D);
+      for(let h=0;h<H;h++){ const off=h*DH; const sc=new Float64Array(n); let mx=-1e9;
+        for(let t=0;t<n;t++){ let s=0; const tk=K[t]; for(let i=0;i<DH;i++)s+=qf[off+i]*tk[off+i]; s*=invSqDH; sc[t]=s; if(s>mx)mx=s; }
+        let z=0; for(let t=0;t<n;t++){ sc[t]=Math.exp(sc[t]-mx); z+=sc[t]; } for(let t=0;t<n;t++)sc[t]/=z;
+        for(let t=0;t<n;t++){ const a=sc[t], tv=V[t]; for(let i=0;i<DH;i++)ctx[off+i]+=a*tv[off+i]; } }
+      const aatt=mv(P.Wo,ctx,D,D); const r1=new Float64Array(D); for(let i=0;i<D;i++)r1[i]=qv[i]+aatt[i];
+      const hpre=mv(P.W1,r1,DFF,D); for(let j=0;j<DFF;j++)hpre[j]+=P.b1[j];
+      const hrel=new Float64Array(DFF); for(let j=0;j<DFF;j++)hrel[j]=hpre[j]>0?hpre[j]:0;
+      const f=mv(P.W2,hrel,D,DFF); for(let i=0;i<D;i++)f[i]+=P.b2[i];
+      const z2=new Float64Array(D); for(let i=0;i<D;i++)z2[i]=r1[i]+f[i]; qv=z2;
+    }
+    const lo=new Float64Array(26); for(let y=0;y<26;y++){ let s=M.bc[y]; const b=y*D; for(let i=0;i<D;i++)s+=M.Wc[b+i]*qv[i]; lo[y]=s; }
+    let lm=-1e9; for(let y=0;y<26;y++)if(lo[y]>lm)lm=lo[y]; let zp=0; const pr=new Float64Array(26);
+    for(let y=0;y<26;y++){ pr[y]=Math.exp(lo[y]-lm); zp+=pr[y]; } for(let y=0;y<26;y++)pr[y]/=zp;
+    for(let x=0;x<26;x++) if(!alreadyTried[x]){ score[x]+=pr[x]; any=true; }
+  }
+  return any?score:null;
 }
 function _neoEnsureWBL(){
   // AUDIT-FIX (2026-06-18) : bâtir l'index cohorte depuis OMEGA_LEX4.len_index (RESPECTE les retraits Trexquant/
@@ -6331,7 +6368,7 @@ function _neoDeclareOSmix(){              // ARBITRAGE OS des 2 voies DRC au niv
   // voie SUBLEXICALE : n-gram agrégé (si _useNG) — sinon jointe phon-cohorte (Σ_φ Pcoh·CR, max sur positions non révélées)
   const sub = new Float64Array(26);
   if (_useNG) {
-    const _ng = _neoLetterNgramDist(); if (_ng) for (let x=0;x<26;x++) sub[x] = _ng[x];   // distribution n-gram = la voie sublexicale agrégée du lexique (généralise)
+    const _ng = M_NEO_C_HEAVY ? _neoHeavyCDist() : _neoLetterNgramDist(); if (_ng) for (let x=0;x<26;x++) sub[x] = _ng[x];   // voie sublexicale agrégée : C lourd appris (§1.12) si M_NEO_C_HEAVY, sinon n-gram du lexique (généralise)
   } else {
     const G = _emrg_initOnline(); const _L2 = G.getL2();
     for (let p = 0; p < L; p++) { if (revealedMask[p]) continue; const _dist = _pcd.dist[p]; let _tot = 0; for (const k in _dist) _tot += _dist[k]; if (_tot <= 0) continue;
@@ -8985,7 +9022,7 @@ const ALLOWED_TOGGLES = [
     'M_DECLARE_DUAL_ENABLED',
     'M_LEARN_FROM_COGNITION_ENABLED',
     'M_EMERGENT_DECLARE_ENABLED','M_EMERGENT_ASSEMBLED_ENABLED','M_EMERGENT_G2P_ONLINE',
-    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
+    'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_LETTER_NGRAM','M_NEO_OS_ARB_NGRAM','M_NEO_NGRAM_GAP','M_NEO_C_HEAVY','M_NEO_G2P_EXP_ENABLED','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_TREXQUANT_MODE_ENABLED'
 ];
 function ui_initToggles() {
   document.querySelectorAll('.toggle-item').forEach(item => {

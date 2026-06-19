@@ -244,4 +244,15 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
     console.log('  '+rho+'    '+g.toFixed(2)+'%      '+h.toFixed(2)+'%        '+(h-g>=0?'+':'')+(h-g).toFixed(2));
   }
   console.log('\n→ barrière de mérite (§6.4) : le C lourd ne se câble dans le moteur que si Δ > 0 ROBUSTE.');
+
+  // ---- export des poids (SAVE=chemin) : pour câbler _neoHeavyCDist() dans le moteur ----
+  if (process.env.SAVE) {
+    const fs=require('fs');
+    const A=(x)=>Array.from(x);
+    const out={ cfg:{D,H,NL,DFF,R,NREL,LMAX,MASK,VTOK}, E:A(E),Prel:A(Prel),Qp:A(Qp),Qr:A(Qr),
+      Lyr:Lyr.map(o=>({Wq:A(o.Wq),Wk:A(o.Wk),Wv:A(o.Wv),Wo:A(o.Wo),W1:A(o.W1),b1:A(o.b1),W2:A(o.W2),b2:A(o.b2)})),
+      Wc:A(Wc), bc:A(bc) };
+    fs.writeFileSync(process.env.SAVE, JSON.stringify(out));
+    console.log('poids exportés → '+process.env.SAVE+'  ('+(fs.statSync(process.env.SAVE).size/1024).toFixed(0)+' Ko, '+params.reduce((a,p)=>a+p.length,0)+' params)');
+  }
 })().catch(e=>{console.error(e&&e.stack||e);process.exit(1);});
