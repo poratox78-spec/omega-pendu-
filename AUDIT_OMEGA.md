@@ -747,11 +747,29 @@ remplace le n-gram ; **parité moteur↔sonde vérifiée EXACTE**, `evo/heavy_c_
 
 → Sur la **vraie métrique** (winrate, pipeline complet, config optimale), le C lourd **ne bat pas** le gap-aware (OOV
 −1,3 moy, perd 2/3 graines ; in-lex = bruit). Le proxy top-1 ne mentait pas, mais c'est maintenant établi sur le winrate.
-**Réserve restante (honnête)** : ce C est entraîné sur **masques aléatoires** ; il reste à l'entraîner sur la **vraie
-distribution d'états de jeu** (self-play OOV, ~10⁴ parties) avant verdict définitif sur l'OOV — seul levier non épuisé.
+
+#### Levier « entraîner sur de VRAIES parties » (10⁴ parties, critique #1 de Rem) — testé, RECUL net — 2026-06-19
+
+Dernier levier non épuisé : entraîner le C sur la **vraie distribution d'états de jeu** (révélation stratégique), pas des
+masques aléatoires. `evo/harvest_states.js` : self-play OOV à config optimale, masks réels enregistrés, **mots de test
+exclus (anti-fuite)**. Récolte : 5 000 parties → **36 356 états réels / 5 299 mots distincts** (le self-play à config
+optimale est lent, ~1,6 s/partie → couverture lexicale limitée). C réentraîné dessus (4 blocs, parité moteur vérifiée),
+re-test winrate à config optimale, mêmes 3 graines :
+
+| C entraîné sur… | mots distincts | OOV : voie C | Δ (C−gap) | §6.4 |
+|---|---|---|---|---|
+| masques aléatoires | 40 000 | 57,1 % | −1,3 (perd 2/3) | NON |
+| **états réels** | **5 299** | **43,8 %** | **−14,6 (−15/−8,8/−20, perd 3/3)** | **NON (RECUL)** |
+
+**Diagnostic (mécanisme).** Le réalisme des masks **n'aide pas** ; la **couverture lexicale réduite** (5 299 vs 40 000)
+fait **sur-apprendre** un vocabulaire étroit → généralisation OOV effondrée. Pour l'OOV, ce qui compte est la **couverture
+sous-lexicale** (beaucoup de mots), pas la distribution de révélation. Restaurer la couverture en gardant des masks réels
+exigerait ~40k+ parties harvestées (~17 h au débit actuel) — et, au mieux, ne **rejoindrait** que la parité du random-mask
+(le C converge vers le n-gram quelle que soit l'entrée). Levier épuisé.
 
 **Conclusion (§0, §1.11 confirmé empiriquement).** L'attention lourde **converge vers** le gap-aware (parité dans le
-bruit, du 3 blocs au 4 blocs ×3 graines, **confirmée au winrate à config optimale**) **sans le dépasser de façon fiable**. Le n-gram gap-aware (gratuit, zéro poids,
+bruit, du 3 blocs au 4 blocs ×3 graines, **confirmée au winrate à config optimale** ; l'entraînement sur états réels la
+**dégrade** par manque de couverture) **sans le dépasser de façon fiable**. Le n-gram gap-aware (gratuit, zéro poids,
 interprétable, déjà câblé) reste le **plancher d'agrégation ET le plafond pratique**. **Décision : ne RIEN câbler** — pas
 de `_neoHeavyCDist()`, pas d'IndexedDB. Le coût (≈40k poids embarqués + forward/décision + persistance + opacité) ne se
 justifie pas pour un gain mesuré nul-dans-le-bruit. Aller au-delà = SOTA-scale hors-ligne (gros modèle, LayerNorm/warmup,
