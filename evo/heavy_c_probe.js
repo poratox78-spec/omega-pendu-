@@ -59,13 +59,14 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
     let pos=null; if(nl&&nr){pos=new Float64Array(26);let s=0;for(let x=0;x<26;x++){pos[x]=nl[x]*nr[x];s+=pos[x];}if(s>0){for(let x=0;x<26;x++)pos[x]/=s;}else pos=nl;} else pos=nl||nr;
     if(!pos) pos=nz(uni[L+'|'+p]); if(!pos)return -1; let a=-1,b=-1; for(let x=0;x<26;x++)if(pos[x]>a){a=pos[x];b=x;} return b; }
 
-  // ================== C LOURD : transformer 1 bloc (MULTI-TÊTES + FFN résiduel) ==================
-  // Capacité : le single-tête plafonne (≈ moyenne) ; gap-aware utilise gauche ET droite. H têtes
-  // forment plusieurs motifs d'attention (≈ neighbors), + FFN = la capacité non-linéaire du bloc
-  // transformer. Init seedée (déterminisme §1).
+  // ================== C LOURD : transformer NLAYERS blocs (cross-attn query→contexte) ==================
+  // Données inutiles (20k≈83k, Δ≈−6) → capacité-bound, pas data-bound. Levier restant = PROFONDEUR :
+  // empiler des blocs (query raffiné en cascade sur le contexte révélé fixe). Chaque bloc = MHA + FFN
+  // résiduels (poids propres). Init seedée (§1). Gradient grad-checké (différences finies).
   const H    = +process.env.HEADS || 4;        // têtes d'attention
   const DH   = D / H; if (!Number.isInteger(DH)) throw new Error('D doit être divisible par HEADS');
   const DFF  = +process.env.DFF || 2*D;        // dim cachée FFN
+  const NL   = +process.env.LAYERS || 2;       // profondeur (nombre de blocs)
   const ri = rng(SAMPLE ^ 0xABCDEF);
   const randn = () => { let u=0,v=0; while(u===0)u=ri(); while(v===0)v=ri(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
   const mat = (n, sd) => { const a=new Float64Array(n); for(let i=0;i<n;i++)a[i]=randn()*sd; return a; };
@@ -73,18 +74,25 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
   const Prel = mat(NREL*D, 0.1);     // position relative clé→requête
   const Qp   = mat(LMAX*D, 0.1);     // feature requête : distance au bord gauche (p)
   const Qr   = mat(LMAX*D, 0.1);     // feature requête : distance au bord droit (L-1-p)
-  const Wq=mat(D*D,1/Math.sqrt(D)), Wk=mat(D*D,1/Math.sqrt(D)), Wv=mat(D*D,1/Math.sqrt(D));
-  const Wo=mat(D*D,1/Math.sqrt(D));                    // proj sortie attention (D→D, résiduel)
-  const W1=mat(DFF*D,1/Math.sqrt(D)), b1=new Float64Array(DFF);
-  const W2=mat(D*DFF,1/Math.sqrt(DFF)), b2=new Float64Array(D);
+  // poids par bloc l : {Wq,Wk,Wv,Wo,W1,b1,W2,b2}
+  const Lyr=[]; const params=[E,Prel,Qp,Qr];
+  for(let l=0;l<NL;l++){ const o={ Wq:mat(D*D,1/Math.sqrt(D)),Wk:mat(D*D,1/Math.sqrt(D)),Wv:mat(D*D,1/Math.sqrt(D)),
+      Wo:mat(D*D,1/Math.sqrt(D)),W1:mat(DFF*D,1/Math.sqrt(D)),b1:new Float64Array(DFF),W2:mat(D*DFF,1/Math.sqrt(DFF)),b2:new Float64Array(D) };
+    Lyr.push(o); params.push(o.Wq,o.Wk,o.Wv,o.Wo,o.W1,o.b1,o.W2,o.b2); }
   const Wc=mat(26*D,1/Math.sqrt(D)), bc=new Float64Array(26);  // classifieur final
-  const params=[E,Prel,Qp,Qr,Wq,Wk,Wv,Wo,W1,b1,W2,b2,Wc,bc];
+  params.push(Wc,bc);
+  // gradients miroir (mêmes objets layer → tableaux de grad)
+  function newGrads(){ const gLyr=[]; const g=[new Float64Array(E.length),new Float64Array(Prel.length),new Float64Array(Qp.length),new Float64Array(Qr.length)];
+    for(let l=0;l<NL;l++){ const o={Wq:new Float64Array(D*D),Wk:new Float64Array(D*D),Wv:new Float64Array(D*D),Wo:new Float64Array(D*D),
+      W1:new Float64Array(DFF*D),b1:new Float64Array(DFF),W2:new Float64Array(D*DFF),b2:new Float64Array(D)};
+      gLyr.push(o); g.push(o.Wq,o.Wk,o.Wv,o.Wo,o.W1,o.b1,o.W2,o.b2); }
+    g.push(new Float64Array(26*D),new Float64Array(26)); return {g,gLyr,gWc:g[g.length-2],gbc:g[g.length-1]}; }
   // Adam
   const mAd=params.map(p=>new Float64Array(p.length)), vAd=params.map(p=>new Float64Array(p.length));
   let adamT=0; const B1=0.9,B2=0.999,EPS=1e-8;
   function adamStep(grads){ adamT++; const c1=1-Math.pow(B1,adamT), c2=1-Math.pow(B2,adamT);
-    for(let k=0;k<params.length;k++){ const p=params[k],g=grads[k],m=mAd[k],v=vAd[k];
-      for(let i=0;i<p.length;i++){ const gi=g[i]; m[i]=B1*m[i]+(1-B1)*gi; v[i]=B2*v[i]+(1-B2)*gi*gi;
+    for(let k=0;k<params.length;k++){ const p=params[k],gg=grads[k],m=mAd[k],v=vAd[k];
+      for(let i=0;i<p.length;i++){ const gi=gg[i]; m[i]=B1*m[i]+(1-B1)*gi; v[i]=B2*v[i]+(1-B2)*gi*gi;
         p[i]-=LR*(m[i]/c1)/(Math.sqrt(v[i]/c2)+EPS); } } }
   const zerosLike=()=>params.map(p=>new Float64Array(p.length));
 
@@ -93,85 +101,86 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
   function matvec(M,x,dout,din){ const y=new Float64Array(dout); for(let o=0;o<dout;o++){ let s=0; const b=o*din; for(let i=0;i<din;i++)s+=M[b+i]*x[i]; y[o]=s; } return y; }
   const invSqDH=1/Math.sqrt(DH);
 
+  // un BLOC : entrée query qin(D) + tokens (x partagés) → sortie z2(D). Renvoie cache pour backward.
+  function blockFwd(qin, toks, P){
+    const n=toks.length;
+    const qf=matvec(P.Wq,qin,D,D);
+    const K=[],V=[]; for(let t=0;t<n;t++){ K.push(matvec(P.Wk,toks[t].x,D,D)); V.push(matvec(P.Wv,toks[t].x,D,D)); }
+    const ctx=new Float64Array(D); const attnAll=[];
+    for(let h=0;h<H;h++){ const off=h*DH; const sc=new Float64Array(n); let mxs=-1e9;
+      for(let t=0;t<n;t++){ let s=0; const tk=K[t]; for(let i=0;i<DH;i++)s+=qf[off+i]*tk[off+i]; s*=invSqDH; sc[t]=s; if(s>mxs)mxs=s; }
+      let z=0; for(let t=0;t<n;t++){ sc[t]=Math.exp(sc[t]-mxs); z+=sc[t]; } for(let t=0;t<n;t++)sc[t]/=z;
+      for(let t=0;t<n;t++){ const a=sc[t], tv=V[t]; for(let i=0;i<DH;i++)ctx[off+i]+=a*tv[off+i]; }
+      attnAll.push(sc); }
+    const a_att=matvec(P.Wo,ctx,D,D);
+    const r1=new Float64Array(D); for(let i=0;i<D;i++)r1[i]=qin[i]+a_att[i];
+    const hpre=matvec(P.W1,r1,DFF,D); for(let j=0;j<DFF;j++)hpre[j]+=P.b1[j];
+    const hrel=new Float64Array(DFF); for(let j=0;j<DFF;j++)hrel[j]=hpre[j]>0?hpre[j]:0;
+    const f=matvec(P.W2,hrel,D,DFF); for(let i=0;i<D;i++)f[i]+=P.b2[i];
+    const z2=new Float64Array(D); for(let i=0;i<D;i++)z2[i]=r1[i]+f[i];
+    return {z2, cache:{qin,qf,K,V,ctx,attnAll,r1,hpre,hrel,n}};
+  }
+  // backward d'un bloc : dz2 → {dqin, dx[t] accumulé}, + grads poids dans GP
+  function blockBwd(dz2, cache, P, GP, dxAcc){
+    const {qin,qf,K,V,ctx,attnAll,r1,hpre,hrel,n}=cache;
+    const dr1=new Float64Array(D); for(let i=0;i<D;i++)dr1[i]=dz2[i]; const df=dz2;
+    const dhrel=new Float64Array(DFF);
+    for(let o=0;o<D;o++){ const b=o*DFF; const dfo=df[o]; GP.b2[o]+=dfo; for(let j=0;j<DFF;j++){ GP.W2[b+j]+=dfo*hrel[j]; dhrel[j]+=P.W2[b+j]*dfo; } }
+    const dhpre=new Float64Array(DFF); for(let j=0;j<DFF;j++)dhpre[j]=hpre[j]>0?dhrel[j]:0;
+    for(let o=0;o<DFF;o++){ const b=o*D; const dh=dhpre[o]; GP.b1[o]+=dh; for(let i=0;i<D;i++){ GP.W1[b+i]+=dh*r1[i]; dr1[i]+=P.W1[b+i]*dh; } }
+    const dqin=new Float64Array(D); for(let i=0;i<D;i++)dqin[i]=dr1[i];   // résiduel 1
+    const dctx=new Float64Array(D);
+    for(let o=0;o<D;o++){ const b=o*D; const da=dr1[o]; for(let i=0;i<D;i++){ GP.Wo[b+i]+=da*ctx[i]; dctx[i]+=P.Wo[b+i]*da; } }
+    const dqf=new Float64Array(D);
+    const dK=Array.from({length:n},()=>new Float64Array(D)), dV=Array.from({length:n},()=>new Float64Array(D));
+    for(let h=0;h<H;h++){ const off=h*DH; const attn=attnAll[h]; const dattn=new Float64Array(n);
+      for(let t=0;t<n;t++){ let da=0; const tv=V[t]; for(let i=0;i<DH;i++)da+=dctx[off+i]*tv[off+i]; dattn[t]=da;
+        const a=attn[t]; for(let i=0;i<DH;i++)dV[t][off+i]+=a*dctx[off+i]; }
+      let sdot=0; for(let t=0;t<n;t++)sdot+=attn[t]*dattn[t];
+      for(let t=0;t<n;t++){ const ds=attn[t]*(dattn[t]-sdot); const tk=K[t];
+        for(let i=0;i<DH;i++){ dqf[off+i]+=ds*invSqDH*tk[off+i]; dK[t][off+i]+=ds*invSqDH*qf[off+i]; } } }
+    for(let t=0;t<n;t++){ const xt=toks_ref[t].x; const dxt=dxAcc[t];
+      for(let o=0;o<D;o++){ const b=o*D; const dko=dK[t][o], dvo=dV[t][o];
+        for(let i=0;i<D;i++){ GP.Wk[b+i]+=xt[i]*dko; GP.Wv[b+i]+=xt[i]*dvo; dxt[i]+=P.Wk[b+i]*dko+P.Wv[b+i]*dvo; } } }
+    for(let o=0;o<D;o++){ const b=o*D; const dq=dqf[o]; for(let i=0;i<D;i++){ GP.Wq[b+i]+=qin[i]*dq; dqin[i]+=P.Wq[b+i]*dq; } }
+    return dqin;
+  }
+  let toks_ref=null;  // tokens du forward courant (partagés entre blocs pour dx)
+
   function forward(w, rev, p){
     const L=w.length;
     const u=new Float64Array(D); const eM=MASK*D, qpB=clampL(p)*D, qrB=clampL(L-1-p)*D;
     for(let i=0;i<D;i++) u[i]=E[eM+i]+Qp[qpB+i]+Qr[qrB+i];
-    const qf=matvec(Wq,u,D,D);                   // requête (D) → têtes par tranches dh
     const toks=[];
     const pushTok=(tok,relIdx)=>{ const x=new Float64Array(D); const eB=tok*D, rB=relIdx*D;
-      for(let i=0;i<D;i++)x[i]=E[eB+i]+Prel[rB+i];
-      const k=matvec(Wk,x,D,D), v=matvec(Wv,x,D,D);
-      toks.push({tok,relB:rB,eB,x,k,v}); };
+      for(let i=0;i<D;i++)x[i]=E[eB+i]+Prel[rB+i]; toks.push({tok,relB:rB,eB,x}); };
     pushTok(MASK, R);
     for(let q=0;q<L;q++){ if(q===p||!rev[q])continue; pushTok(w.charCodeAt(q)-65, clampRel(q-p)); }
-    const n=toks.length;
-    // attention multi-têtes → ctx (D)
-    const ctx=new Float64Array(D); const attnAll=[];   // attnAll[h] = Float64Array(n)
-    for(let h=0;h<H;h++){ const off=h*DH;
-      const sc=new Float64Array(n); let mxs=-1e9;
-      for(let t=0;t<n;t++){ let s=0; const tk=toks[t].k; for(let i=0;i<DH;i++)s+=qf[off+i]*tk[off+i]; s*=invSqDH; sc[t]=s; if(s>mxs)mxs=s; }
-      let z=0; for(let t=0;t<n;t++){ sc[t]=Math.exp(sc[t]-mxs); z+=sc[t]; } for(let t=0;t<n;t++)sc[t]/=z;
-      for(let t=0;t<n;t++){ const a=sc[t], tv=toks[t].v; for(let i=0;i<DH;i++)ctx[off+i]+=a*tv[off+i]; }
-      attnAll.push(sc);
-    }
-    const a_att=matvec(Wo,ctx,D,D);              // proj sortie attention
-    const r1=new Float64Array(D); for(let i=0;i<D;i++)r1[i]=u[i]+a_att[i];   // résiduel 1
-    // FFN
-    const hpre=matvec(W1,r1,DFF,D); for(let j=0;j<DFF;j++)hpre[j]+=b1[j];
-    const hrel=new Float64Array(DFF); for(let j=0;j<DFF;j++)hrel[j]=hpre[j]>0?hpre[j]:0;
-    const f=matvec(W2,hrel,D,DFF); for(let i=0;i<D;i++)f[i]+=b2[i];
-    const z2=new Float64Array(D); for(let i=0;i<D;i++)z2[i]=r1[i]+f[i];      // résiduel 2
-    const logits=new Float64Array(26); for(let y=0;y<26;y++){ let s=bc[y]; const b=y*D; for(let i=0;i<D;i++)s+=Wc[b+i]*z2[i]; logits[y]=s; }
+    let q=u; const caches=[];
+    for(let l=0;l<NL;l++){ const r=blockFwd(q, toks, Lyr[l]); caches.push(r.cache); q=r.z2; }
+    const z=q;
+    const logits=new Float64Array(26); for(let y=0;y<26;y++){ let s=bc[y]; const b=y*D; for(let i=0;i<D;i++)s+=Wc[b+i]*z[i]; logits[y]=s; }
     let lm=-1e9; for(let y=0;y<26;y++)if(logits[y]>lm)lm=logits[y]; let zp=0; const prob=new Float64Array(26);
     for(let y=0;y<26;y++){ prob[y]=Math.exp(logits[y]-lm); zp+=prob[y]; } for(let y=0;y<26;y++)prob[y]/=zp;
-    return {prob, z2, r1, hpre, hrel, ctx, qf, u, toks, attnAll, p, L, n};
+    return {prob, z, u, toks, caches, p, L};
   }
 
-  function backward(fwd, y, G){
-    const [gE,gPrel,gQp,gQr,gWq,gWk,gWv,gWo,gW1,gb1,gW2,gb2,gWc,gbc]=G;
-    const {prob,z2,r1,hpre,hrel,ctx,qf,u,toks,attnAll,p,L,n}=fwd;
+  function backward(fwd, y, Gobj){
+    const {g,gLyr,gWc,gbc}=Gobj;
+    const [gE,gPrel,gQp,gQr]=g;
+    const {prob,z,u,toks,caches,p,L}=fwd;
     const loss=-Math.log(Math.max(prob[y],1e-12));
     const dlog=new Float64Array(26); for(let k2=0;k2<26;k2++)dlog[k2]=prob[k2]-(k2===y?1:0);
-    // Wc, bc, dz2
-    const dz2=new Float64Array(D);
-    for(let k2=0;k2<26;k2++){ const dl=dlog[k2]; gbc[k2]+=dl; const b=k2*D; for(let i=0;i<D;i++){ gWc[b+i]+=dl*z2[i]; dz2[i]+=dl*Wc[b+i]; } }
-    // z2 = r1 + f → dr1 = dz2 (via résiduel) + (chemin FFN) ; df = dz2
-    const dr1=new Float64Array(D); for(let i=0;i<D;i++)dr1[i]=dz2[i];
-    const df=dz2;
-    // f = W2·hrel + b2
-    const dhrel=new Float64Array(DFF);
-    for(let o=0;o<D;o++){ const b=o*DFF; const dfo=df[o]; gb2[o]+=dfo; for(let j=0;j<DFF;j++){ gW2[b+j]+=dfo*hrel[j]; dhrel[j]+=W2[b+j]*dfo; } }
-    // relu
-    const dhpre=new Float64Array(DFF); for(let j=0;j<DFF;j++)dhpre[j]=hpre[j]>0?dhrel[j]:0;
-    // hpre = W1·r1 + b1
-    for(let o=0;o<DFF;o++){ const b=o*D; const dh=dhpre[o]; gb1[o]+=dh; for(let i=0;i<D;i++){ gW1[b+i]+=dh*r1[i]; dr1[i]+=W1[b+i]*dh; } }
-    // r1 = u + a_att → du += dr1 ; da_att = dr1
-    const du=new Float64Array(D); for(let i=0;i<D;i++)du[i]=dr1[i];
-    // a_att = Wo·ctx → dctx
-    const dctx=new Float64Array(D);
-    for(let o=0;o<D;o++){ const b=o*D; const da=dr1[o]; for(let i=0;i<D;i++){ gWo[b+i]+=da*ctx[i]; dctx[i]+=Wo[b+i]*da; } }
-    // attention multi-têtes backward
-    const dqf=new Float64Array(D);
-    const dk=Array.from({length:n},()=>new Float64Array(D)), dv=Array.from({length:n},()=>new Float64Array(D));
-    for(let h=0;h<H;h++){ const off=h*DH; const attn=attnAll[h];
-      const dattn=new Float64Array(n);
-      for(let t=0;t<n;t++){ let da=0; const tv=toks[t].v; for(let i=0;i<DH;i++)da+=dctx[off+i]*tv[off+i]; dattn[t]=da;
-        const a=attn[t]; for(let i=0;i<DH;i++)dv[t][off+i]+=a*dctx[off+i]; }
-      let sdot=0; for(let t=0;t<n;t++)sdot+=attn[t]*dattn[t];
-      for(let t=0;t<n;t++){ const dscore=attn[t]*(dattn[t]-sdot); const tk=toks[t].k;
-        for(let i=0;i<DH;i++){ dqf[off+i]+=dscore*invSqDH*tk[off+i]; dk[t][off+i]+=dscore*invSqDH*qf[off+i]; } }
-    }
-    // par token : dWk/dWv += x⊗dk/dv ; dx → E,Prel
-    for(let t=0;t<n;t++){ const tt=toks[t]; const dx=new Float64Array(D);
-      for(let o=0;o<D;o++){ const b=o*D; const dko=dk[t][o], dvo=dv[t][o];
-        for(let i=0;i<D;i++){ gWk[b+i]+=tt.x[i]*dko; gWv[b+i]+=tt.x[i]*dvo; dx[i]+=Wk[b+i]*dko+Wv[b+i]*dvo; } }
-      for(let i=0;i<D;i++){ gE[tt.eB+i]+=dx[i]; gPrel[tt.relB+i]+=dx[i]; }
-    }
-    // dWq += u⊗dqf ; du += Wq^T dqf
-    for(let o=0;o<D;o++){ const b=o*D; const dq=dqf[o]; for(let i=0;i<D;i++){ gWq[b+i]+=u[i]*dq; du[i]+=Wq[b+i]*dq; } }
+    const dz=new Float64Array(D);
+    for(let k2=0;k2<26;k2++){ const dl=dlog[k2]; gbc[k2]+=dl; const b=k2*D; for(let i=0;i<D;i++){ gWc[b+i]+=dl*z[i]; dz[i]+=dl*Wc[b+i]; } }
+    const n=toks.length; const dxAcc=Array.from({length:n},()=>new Float64Array(D));
+    toks_ref=toks;
+    let dcur=dz;
+    for(let l=NL-1;l>=0;l--){ dcur=blockBwd(dcur, caches[l], Lyr[l], gLyr[l], dxAcc); }
+    // dcur = du (grad de l'entrée query u) ; dxAcc[t] = grad des embeddings token
     const eM=MASK*D, qpB=clampL(p)*D, qrB=clampL(L-1-p)*D;
-    for(let i=0;i<D;i++){ gE[eM+i]+=du[i]; gQp[qpB+i]+=du[i]; gQr[qrB+i]+=du[i]; }
+    for(let i=0;i<D;i++){ gE[eM+i]+=dcur[i]; gQp[qpB+i]+=dcur[i]; gQr[qrB+i]+=dcur[i]; }
+    for(let t=0;t<n;t++){ const tt=toks[t], dxt=dxAcc[t]; for(let i=0;i<D;i++){ gE[tt.eB+i]+=dxt[i]; gPrel[tt.relB+i]+=dxt[i]; } }
     return loss;
   }
 
@@ -179,15 +188,16 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
   if (process.env.GCHECK) {
     const w='ORDINATEUR'.slice(0,9), L=w.length; const rev=new Array(L); for(let q=0;q<L;q++)rev[q]=(q%2===0); rev[3]=false;
     const p=3, y=w.charCodeAt(p)-65;
-    const G=zerosLike(); backward(forward(w,rev,p),y,G);
-    const names=['E','Prel','Qp','Qr','Wq','Wk','Wv','Wo','W1','b1','W2','b2','Wc','bc']; const eps=1e-5;
+    const Go=newGrads(); backward(forward(w,rev,p),y,Go); const Gf=Go.g;
+    const names=['E','Prel','Qp','Qr']; for(let l=0;l<NL;l++) names.push('L'+l+'.Wq','L'+l+'.Wk','L'+l+'.Wv','L'+l+'.Wo','L'+l+'.W1','L'+l+'.b1','L'+l+'.W2','L'+l+'.b2'); names.push('Wc','bc');
+    const eps=1e-5;
     for(let k=0;k<params.length;k++){ const P=params[k]; let maxrel=0;
       for(let t=0;t<Math.min(6,P.length);t++){ const idx=Math.floor((t*9973)%P.length); const o=P[idx];
         P[idx]=o+eps; const lp=-Math.log(Math.max(forward(w,rev,p).prob[y],1e-12));
         P[idx]=o-eps; const lm=-Math.log(Math.max(forward(w,rev,p).prob[y],1e-12)); P[idx]=o;
-        const num=(lp-lm)/(2*eps), ana=G[k][idx]; const rel=Math.abs(num-ana)/(Math.abs(num)+Math.abs(ana)+1e-9);
+        const num=(lp-lm)/(2*eps), ana=Gf[k][idx]; const rel=Math.abs(num-ana)/(Math.abs(num)+Math.abs(ana)+1e-9);
         if(rel>maxrel)maxrel=rel; }
-      console.log('  grad-check '+names[k].padEnd(5)+' max rel err = '+maxrel.toExponential(2)); }
+      console.log('  grad-check '+names[k].padEnd(7)+' max rel err = '+maxrel.toExponential(2)); }
     process.exit(0);
   }
 
@@ -196,28 +206,28 @@ function rng(seed){ let s = seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0;
   // gradient sur BATCH mots avant chaque pas Adam, + clip de norme → stable à lr raisonnable.
   const BATCH = +process.env.BATCH || 64;
   const CLIP  = +process.env.CLIP  || 5.0;
-  function clipAndStep(G, qn){
+  function clipAndStep(Gf, qn){
     if(qn<=0) return; const inv=1/qn;
-    let nrm=0; for(const g of G){ for(let i=0;i<g.length;i++){ g[i]*=inv; nrm+=g[i]*g[i]; } }
-    nrm=Math.sqrt(nrm); if(nrm>CLIP){ const s=CLIP/nrm; for(const g of G) for(let i=0;i<g.length;i++)g[i]*=s; }
-    adamStep(G);
+    let nrm=0; for(const g of Gf){ for(let i=0;i<g.length;i++){ g[i]*=inv; nrm+=g[i]*g[i]; } }
+    nrm=Math.sqrt(nrm); if(nrm>CLIP){ const s=CLIP/nrm; for(const g of Gf) for(let i=0;i<g.length;i++)g[i]*=s; }
+    adamStep(Gf);
   }
   const rt = rng(SAMPLE ^ 0xF00D);
   const order = train.map((_,i)=>i);
   for(let ep=0; ep<EPOCHS; ep++){
     for(let i=order.length-1;i>0;i--){const j=Math.floor(rt()*(i+1));const t=order[i];order[i]=order[j];order[j]=t;}
-    let lsum=0, lcnt=0; let G=zerosLike(), qn=0, bw=0;
+    let lsum=0, lcnt=0; let Go=newGrads(), qn=0, bw=0;
     for(let oi=0; oi<order.length; oi++){
       const w=train[order[oi]], L=w.length;
       const rho=0.2+0.6*rt(); const rev=new Array(L); let nrev=0; for(let q=0;q<L;q++){rev[q]=rt()<rho; if(rev[q])nrev++;}
       if(nrev===L){ rev[Math.floor(rt()*L)]=false; }
       let used=0;
       for(let k=0;k<L && used<NQ;k++){ const p=Math.floor(rt()*L); if(rev[p])continue; const y=w.charCodeAt(p)-65; if(y<0||y>=26)continue;
-        const fwd=forward(w,rev,p); lsum+=backward(fwd,y,G); lcnt++; used++; qn++; }
+        const fwd=forward(w,rev,p); lsum+=backward(fwd,y,Go); lcnt++; used++; qn++; }
       bw++;
-      if(bw>=BATCH){ clipAndStep(G,qn); G=zerosLike(); qn=0; bw=0; }
+      if(bw>=BATCH){ clipAndStep(Go.g,qn); Go=newGrads(); qn=0; bw=0; }
     }
-    if(qn>0) clipAndStep(G,qn);
+    if(qn>0) clipAndStep(Go.g,qn);
     process.stdout.write('  epoch '+(ep+1)+'/'+EPOCHS+'  loss '+(lsum/Math.max(lcnt,1)).toFixed(3)+'\n');
   }
   function heavyPred(w,rev,p){ const f=forward(w,rev,p); let a=-1,b=-1; for(let y=0;y<26;y++)if(f.prob[y]>a){a=f.prob[y];b=y;} return b; }
