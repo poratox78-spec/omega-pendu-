@@ -200,3 +200,17 @@ Supprime le compromis OOV-only de la cascade. Au lieu d'un either/or, le n-gram 
 - α,β défaut **1/1** (neutre, mesurable). Reste **OFF par défaut** (R66). Bench Trexquant : **5e ligne « n-gram ARBITRÉ OS »**.
 - **Persistance** : table n-gram = ~440 ms lazy/session (29 k clés) → IndexedDB **non implémenté** (prématuré ; foyer
   réservé à une table apprise future, le « C » cognitif `§1.8.2`).
+
+### 🧩 `M_NEO_NGRAM_GAP` — C : n-gram GAP-AWARE (1er levier cognitif > substrat) — 2026-06-19
+Le n-gram ne lisait que les voisins **immédiats** (p±1) ; or **42-54 % des positions cachées n'ont aucun voisin immédiat**
+(mesuré) → il tombait à l'unigramme alors que le board révèle des lettres **plus loin**. `M_NEO_NGRAM_GAP` utilise le
+**plus proche voisin révélé à distance 1..4** (garde le trigramme JOINT si les 2 adjacents sont là ; sinon produit des
+marginales à distance ; backoff uni).
+- **Activation** : se combine à la voie OS (`M_NEO_OS_ARB + M_NEO_OS_ARB_NGRAM + M_NEO_NGRAM_GAP`) ou à la cascade.
+- **Mesuré (N=400, 3 graines, `AUDIT_OMEGA §1.10`)** : **OOV +2 pts** (60,8/62,8/52 → 63,3/64,8/54), **in-lex ±0,5
+  (coût nul)**. OOV ~63-65 % = dans la bande SOTA. **Premier gain cognitif mesuré AU-DESSUS du plancher n-gram.**
+- **Falsifié avant lui (ne pas refaire)** : lissage par le substrat `letterVecsSDIM` (NUIT — mauvais type de structure,
+  confirme §1.8.2) ; pooling position-relative suffixe/préfixe (rescousse ~0 %, le trigramme absolu manque <0,6 %).
+- Build ~1 s lazy/session (10 k clés d=2..4). **OFF par défaut** (R66). Bench Trexquant : **6e ligne « + GAP-AWARE (C) »**.
+- **Reste** : le C *appris* (représentation distribuée par erreur de prédiction sur le contexte complet, non-adjacents
+  inclus) — seul chemin vers la borne SOTA ; c'est là que la persistance IndexedDB de poids deviendrait justifiée.

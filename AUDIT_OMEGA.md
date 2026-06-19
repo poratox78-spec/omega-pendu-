@@ -598,6 +598,51 @@ il fournit le plancher d'agrégation contre lequel juger tout gain cognitif futu
 
 ---
 
+### 1.10 — C livré : 1er levier cognitif qui BAT le substrat n-gram (gap-aware) — 2026-06-19
+
+Rem : « enchaîne C ». Objectif (lit. + §1.8.2) : une représentation qui **généralise AU-DESSUS** du n-gram, mesurée.
+Méthode doctrine : **mesurer la place de C avant de bâtir** (§1), **une jonction** (§4), **réutiliser l'existant** (§5).
+
+**Étape 1 — la place de C (ablation d'ordre, OOV, N=400, 2 graines).** uni 31-38 % → +bi 49-52 % → +tri 61-63 %
+(monotone, gros pas). Le contexte paie fort. Couverture des positions cachées (~40 % révélé) : **tri seulement 12,5 %
+dispo**, **~40 % retombent à l'unigramme**. → place réelle pour généraliser le contexte.
+
+**Étape 2 — DEUX hypothèses cognitives FALSIFIÉES (mesuré, négatifs nets, confirment §1.8.2) :**
+- **Lissage par le SUBSTRAT** (réutiliser la représentation-lettre apprise, `letterVecsSDIM`, comme noyau de
+  similarité pour combler les contextes rares) → **NUIT** (top-1 36,0 % → 34,6/32,3/24,5 % quand τ monte). La
+  représentation de la cognition encode des **traits forme/phon**, **pas** « prédit une lettre suivante similaire ».
+  *C'est exactement le diagnostic §1.8.2 : la carte cognitive est du mauvais TYPE de structure.*
+- **Pooling POSITION-RELATIVE** (suffixe/préfixe poolé sur longueurs, abstraction morphologique) → **légèrement pire**
+  (53,8 → 50,5 %), **rescousse ~0 %**. Cause : les 2 voisins révélés, le trigramme absolu **manque <0,6 %** du temps —
+  donc **pas un mur de sparsité lexicale**.
+
+**Étape 3 — le VRAI mur = état-de-jeu, et le fix qui MARCHE (gap-aware).** Reframe par la mesure : le n-gram ne lisait
+que les voisins **immédiats** (p±1), or **42-54 % des positions cachées n'ont AUCUN voisin immédiat** (mesuré) → chute à
+l'unigramme alors que le board révèle des lettres **plus loin** (p±2..4) **ignorées**. Fix `M_NEO_NGRAM_GAP` : utilise le
+**plus proche voisin révélé à distance 1..4** (garde le trigramme JOINT quand les 2 adjacents sont là ; sinon produit des
+marginales à distance ; backoff uni). Prototype held-out : **+1,3 à +2,9 pts top-1**, robuste.
+
+**Mesuré WINRATE (voie n-gram arbitrée OS, gap OFF→ON, N=400, 3 graines) :**
+
+| régime | gap OFF | **gap ON (C)** |
+|---|---|---|
+| OOV | 60,8 / 62,8 / 52,0 | **63,3 / 64,8 / 54,0** (**+2,5 / +2,0 / +2,0**) |
+| in-lex | 97,0 / 98,8 / 96,3 | 97,5 / 98,3 / 96,8 (±0,5 = bruit) |
+
+→ **+2 pts OOV robustes, coût in-lex nul.** **Premier levier cognitif mesuré au-dessus du plancher d'agrégation**
+(OOV ~63-65 %, dans la bande SOTA 65-68 %). Honnêteté (§6) : c'est une **agrégation plus riche** (n-gram utilisant plus
+de contexte du board), **pas** encore une représentation distribuée APPRISE — mais c'est bien « le concept encode PLUS
+de contexte », et c'est ce que les hypothèses « réutiliser la carte existante » (substrat, relatif) ont **échoué** à
+faire. Coût build : ~1 s lazy/session (10 k clés d=2..4), voie OFF par défaut (R66, baseline byte-identique vérifiée :
+fitness défaut 10 %/9,3 inchangé). Bench Trexquant : 6e ligne « + GAP-AWARE (C) ».
+
+**Reste (le C *appris*, plus profond)** : une représentation **distribuée apprise par erreur de prédiction** sur le
+contexte complet du board (lettres non-adjacentes incluses) — au-delà de ce que capte le n-gram gap-aware. C'est le seul
+chemin restant pour aller vers la borne SOTA, et c'est là que la **persistance IndexedDB** de poids appris deviendrait
+justifiée (cf. §1.9). À mesurer **au-dessus** des ~63-65 % du gap-aware.
+
+---
+
 ## 2. Findings structurels (par sévérité)
 
 ### 🟠 S1 — Le chemin de décision réel ≠ le récit architectural *(vérifié)*
