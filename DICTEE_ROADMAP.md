@@ -6,7 +6,7 @@
 
 ## ÉTAT (2026-06-18) — où on en est
 - ✅ **Dictée de phrases** (`diag_sentence.py`) : familles **100 %** ; intégrée app (« ✍️ Dictée diag »).
-- ✅ **Levier grammaire** : sujet-verbe (94 %), sujet à distance, participe (être / avoir+COD antéposé), **genre du GN** (déterminant + **route lexicale** `lexical_gender`), homographes nom/verbe, **stades développementaux**.
+- ✅ **Levier grammaire** : sujet-verbe (gouverneur identifié sur **94 %** des accords verbaux du *diagnostic* `diag_sentence.py` ; le *correcteur*, lui = **11/11 held-out vocab neuf, FP=0** — deux mesures distinctes, pas un écart), sujet à distance, participe (être / avoir+COD antéposé), **genre du GN** (déterminant + **route lexicale** `lexical_gender`), homographes nom/verbe, **stades développementaux**.
 - ✅ **Correcteur dys** (`correcteur_probe.py` + app « 🩹 Correcteur ») : détecte+corrige **sans corrigé**, **0 FP** ; 22/24 in-corpus, **12/15 held-out** (vocabulaire neuf). UI clic-pour-corriger + stade.
 - ✅ **Lexique4 reçu** → `build_cgram.py` : verbes (12 415) + genre (53 050) + **sous-ensemble HF embarqué** dans l'app.
 - ✅ **Grammaire double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) : route lexicale (cgram) + boucle **descendante** (apprend le lexique de genre, 100 % préc., FP=0, *data-bound*).
