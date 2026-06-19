@@ -699,6 +699,7 @@ clip global) indispensable — le pas-par-mot stagne (lr bas) ou diverge (lr hau
 | 1 bloc, **plein lexique 83k** | ≈ **−6,7** | **data inutile → capacité-bound, pas data-bound** |
 | 2 blocs (stable, lr 0,008) | ≈ **−2,2** | la **PROFONDEUR** est le levier |
 | **3 blocs + 40k, lr 0,006** | ≈ **−0,3** | **parité** : 29,4/32,1/34,1 vs gap 29,8/32,5/34,2 |
+| **4 blocs + 40k, lr 0,004, 3 graines** | ≈ **0 (bruit)** | **pas de franchissement robuste** (cf. test ci-dessous) |
 
 **Verdict (§6.4 barrière de mérite).** Chaque marche de profondeur ~**divise l'écart par deux** (−12 → −6 → −2,2 → −0,3).
 À 3 blocs le transformer **REJOINT** le n-gram de comptes mais **ne le bat pas** (Δ encore < 0, marginal). Le gap-aware
@@ -712,12 +713,34 @@ lexique, `d` plus grand, LayerNorm/warmup), pour un gain **marginal** (~+0,5-1 p
 persistant**. C'est le compromis que §0 (« la performance est un indicateur, pas une fin ») et la thèse « cognition >
 oracle = léger/interprétable » déconseillent **sans arbitrage explicite**.
 
-**Décision (en attente de Rem).** (a) **pousser** une dernière marche (4 blocs + plein lexique + LayerNorm) pour franchir
-Δ > 0 robuste puis **câbler** `_neoHeavyCDist()` (3ᵉ voie sublexicale de `_neoDeclareOSmix`, OFF-inerte, drop-in du
-n-gram) + persistance **IndexedDB** des poids (justifiée §1.9/§1.11 « poids appris ») — gain marginal, modèle lourd ;
-OU (b) **s'arrêter à la parité mesurée** : le n-gram gap-aware (gratuit, interprétable) reste le plancher d'agrégation ET
-le plafond pratique ; le C lourd est **mesuré équivalent, non supérieur**. Sonde rejouable :
-`node evo/heavy_c_probe.js [graine] [trainN] [epochs] [d] [lr]` (env `HEADS`/`LAYERS`/`BATCH`/`CLIP`).
+#### Test du franchissement (4 blocs, 3 graines) — TRANCHÉ : pas de franchissement robuste — 2026-06-19
+
+Arbitrage Rem : « prouver le franchissement, mesure seule » (pas de câblage). 4 blocs, 40k mots, lr 0,004, 18 epochs,
+3 graines {99887, 12345, 777} — entraînements stables (aucune divergence). Δ = C-lourd − gap-aware :
+
+| Δ par graine | rev 0,3 | rev 0,4 | rev 0,5 |
+|---|---|---|---|
+| 99887 | −0,99 | −0,50 | +1,37 |
+| 12345 | −1,41 | +1,78 | +1,65 |
+| 777   | **+0,46** | **−0,81** | **−0,33** |
+| **moyenne** | −0,65 | +0,16 | +0,90 |
+| graines positives | 1/3 | 1/3 | 2/3 |
+
+**Verdict (§6.4) : NON franchi.** Les 2 premières graines suggéraient un gain en contexte riche (rev ≥ 0,4), **mais la
+3ᵉ (777) inverse le motif** (positive au clairsemé, négative au riche). Les Δ oscillent de ±1,4 autour de zéro selon
+graine/régime = **bruit** (SE seed-to-seed ≈ ±1 pt). **Aucun régime n'est positif sur les 3 graines** ; la moyenne est
+≈ 0. La barrière de mérite (« ≥ baseline à *chaque* graine, moyenne > 0 ») **n'est pas atteinte**. → Le C lourd 4 blocs
+est **mesuré équivalent au n-gram de comptes, pas supérieur**.
+
+**Conclusion (§0, §1.11 confirmé empiriquement).** L'attention lourde **converge vers** le gap-aware (parité dans le
+bruit, du 3 blocs au 4 blocs ×3 graines) **sans le dépasser de façon fiable**. Le n-gram gap-aware (gratuit, zéro poids,
+interprétable, déjà câblé) reste le **plancher d'agrégation ET le plafond pratique**. **Décision : ne RIEN câbler** — pas
+de `_neoHeavyCDist()`, pas d'IndexedDB. Le coût (≈40k poids embarqués + forward/décision + persistance + opacité) ne se
+justifie pas pour un gain mesuré nul-dans-le-bruit. Aller au-delà = SOTA-scale hors-ligne (gros modèle, LayerNorm/warmup,
+beaucoup de compute) pour ~3-5 pts top-1 au mieux — non justifié par la doctrine « cognition > oracle = léger/interprétable »
+tant que la mesure ne montre pas un Δ robuste. Sonde rejouable : `node evo/heavy_c_probe.js [graine] [trainN] [epochs]
+[d] [lr]` (env `HEADS`/`LAYERS`/`BATCH`/`CLIP`). **Baseline moteur byte-identique : rien n'a été modifié dans
+`app/omega-pendu.html` (chantier 100 % en sonde `evo/`).**
 
 ---
 
