@@ -643,6 +643,44 @@ justifiée (cf. §1.9). À mesurer **au-dessus** des ~63-65 % du gap-aware.
 
 ---
 
+### 1.11 — C APPRIS attaqué → le C *léger* appris est FALSIFIÉ (le n-gram gap-aware est le plafond pratique) — 2026-06-19
+
+Rem : « attaque ce C appris ». Fait : sonde `evo/learned_c_probe.js` — une représentation **apprise par prédiction
+masquée** (codage prédictif + CLS) utilisant **tout le contexte révélé** (non-adjacents inclus), vs le n-gram gap-aware
+(§1.10), sur états de jeu **identiques** (held-out OOV, top-1, 2 graines).
+
+**Quatre variantes testées, TOUTES perdent contre gap-aware (mesuré) :**
+
+| méthode | rev .3 / .4 / .5 (graine 99887) | nature |
+|---|---|---|
+| **gap-aware (le moteur §1.10)** | **30,3 / 32,2 / 35,0** | counts, nearest revealed neighbor L×R |
+| GATE-appris (reliabilité/distance, ~8 params) | 27,9 / 30,1 / 32,9 | **appris** (produit d'experts pondéré) |
+| POE-all (tous les voisins) | 28,7 / 29,8 / 32,6 | counts, produit d'experts |
+| maxent log-linéaire (features de décalage) | 21,9 / 23,4 / 25,7 | **appris**, additif |
+
+(Robuste graine 271828 : gap 27,5/30,7/33,8 > GATE 24,6/27,7/31,7 > POE > maxent. Plus d'epochs **empire** le maxent.)
+
+**Pourquoi (cause mesurée, pas hypothèse).** Le **plus proche voisin révélé domine** ; **combiner plus de cues NUIT** :
+- les lettres révélées sont **CORRÉLÉES** → l'indépendance (produit/somme) **sur-compte** et amplifie les erreurs ;
+- les cues **lointains sont non-informatifs** — le GATE l'**apprend tout seul** : α(d) = **0,71 / 0,33 / 0,04 / 0 / 0…**
+  (la fiabilité s'effondre après d=2). Optimalement gaté, l'appris **converge vers** « utilise le plus proche » =
+  gap-aware, sans le dépasser. L'additif (maxent) est pire encore (dilue le cue fort par les faibles).
+
+**Verdict (§6).** Le **C léger appris est falsifié** — c'est le 3e/4e/5e candidat cognitif tombé (après substrat-lissage
+§1.10, position-relative §1.10, et ici maxent/GATE/POE). Le **gap-aware est le plafond pratique de la famille n-gram**
+(OOV ~63-65 %, déjà dans la bande SOTA 65-68 %). **Battre gap exige un modèle des CORRÉLATIONS entre lettres révélées**
+= attention/RNN (Hopfield moderne = attention, lit. §4) — **lourd, opaque, entraînement hors-ligne**, contre la doctrine
+« cognition > oracle » (léger/interprétable) et pour seulement **~3-5 pts** jusqu'à la borne SOTA. **Décision : NE PAS
+bâtir** le réseau lourd sans arbitrage explicite de Rem (mesure-avant-bâtir : le gain ne paie pas le coût/l'opacité).
+C'est là — et seulement là — qu'une **persistance IndexedDB** de poids appris serait justifiée.
+
+**Synthèse du chantier OOV/C** : agrégation (n-gram, §1.7) → arbitrage OS auto par fiabilité (§1.9) → gap-aware =
+1er gain cognitif réel (§1.10, +2 OOV) → C appris léger falsifié (§1.11). La thèse « cognition > oracle » tient pour
+l'**usage plus riche du contexte** (gap-aware), **pas** pour une représentation distribuée apprise *légère* ; le seul
+au-delà est neuronal-lourd, déféré.
+
+---
+
 ## 2. Findings structurels (par sévérité)
 
 ### 🟠 S1 — Le chemin de décision réel ≠ le récit architectural *(vérifié)*
