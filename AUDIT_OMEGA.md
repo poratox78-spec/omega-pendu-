@@ -554,6 +554,50 @@ nature de la représentation), pas un re-câblage. Confirme §1.8 par la mesure 
 
 ---
 
+### 1.9 — FIX livré (A+B) : le n-gram agrégé branché comme VOIE SUBLEXICALE de l'arbitrage OS — 2026-06-19
+
+Rem : « go code » — décision approuvée : *le n-gram agrégé, branché comme voie sublexicale dans l'arbitrage OS
+(pondéré par fiabilité), structurellement natif, meilleur dans les deux régimes sans switch manuel.*
+
+**Le problème de la cascade n-gram (§1.7).** `M_NEO_LETTER_NGRAM` est un **either/or** : si le n-gram tire une lettre,
+il **court-circuite** la cohorte board. Conséquence mesurée : il **gagne l'OOV** (+pts) mais **sacrifie l'in-lexique**
+(62 % vs 96 % de la cohorte). On ne veut pas choisir : l'in-lex doit rester ~97 %, l'OOV monter à ~60 %.
+
+**Le fix (R66, OFF-inerte) — `M_NEO_OS_ARB_NGRAM`.** Au lieu d'un either/or, on **fusionne** deux voies dans
+`_neoDeclareOSmix` via l'OS déjà prouvé (`M_OS_v07_step`, mélange convexe pondéré par fiabilité μ=r^α/(β+r^α)) :
+- **voie SUBLEXICALE = n-gram agrégé** (`_neoLetterNgramDist`, refactor commun avec `_neoLetterNgram`) — généralise,
+- **voie LEXICALE = cohorte board pondérée fréquence** (inchangée) — précise quand le mot est connu.
+La **fiabilité = le piqué (max) de chaque distribution**. In-lexique la cohorte converge → piquée → elle gagne ;
+OOV la cohorte se vide / s'aplatit → le n-gram gagne. **La bascule est automatique, par régime, sans switch.** Le mode
+n-gram ne dépend plus de la cohorte phon (gate élargie `M_NEO_OS_ARB && (M_NEO_PHON_COHORT_ENABLED || M_NEO_OS_ARB_NGRAM)`)
+et ne **bail plus** si la cohorte phon est vide (le cas OOV où le n-gram doit décider).
+
+**Mesuré (3 graines d'échantillon, N=400 mots 7-12 lettres, `/tmp/measure_osng.js`) :**
+
+| voie sublexicale | IN-LEXIQUE | OOV (mot retiré du len_index) |
+|---|---|---|
+| jointe phon-cohorte (OS arb, défaut) | 96,0 / 96,3 / 97,0 | 30,5 / 27,3 / 30,8 |
+| n-gram **CASCADE** (either/or, §1.7) | 62,0 / 59,5 / 64,0 | 59,0 / 56,0 / 62,0 |
+| **n-gram VOIE OS (le fix)** | **97,0 / 96,3 / 98,8** | **60,8 / 52,0 / 63,0** |
+
+→ **Meilleur ou à égalité dans les DEUX régimes**, config unique : in-lex ≈ jointe (≫ cascade), OOV ≈ cascade (≫ jointe).
+La voie OS **récupère** le winrate in-lex de la cohorte ET le winrate OOV du n-gram. C'est A (mesurer le substrat
+agrégé) **et** B (le câbler par défaut pour l'OOV via la fiabilité) en un seul mécanisme structurellement natif.
+
+**Coûts / honnêteté (§6).** (1) α,β défaut **1/1** (forme neutre) — aucune sur-optimisation ; un balayage β>1 pourrait
+grappiller l'OOV mais on garde le neutre mesurable. (2) Build de la table n-gram = **~440 ms lazy, une fois/session**
+(29 k clés, ~6 Mo en mémoire), voie **OFF par défaut** → **persistance IndexedDB jugée prématurée** : 440 ms paresseux
+ne justifient pas une couche async de sérialisation de 29 k Float64Array (et 6 Mo > 5 Mo de localStorage). IndexedDB
+**reste le bon foyer SI** la table grossit ou devient *apprise* (le futur « C »). (3) Exposé via le **bench Trexquant**
+(5e ligne « n-gram ARBITRÉ OS ») — le bench ne mesure que l'OOV, donc la parité in-lex vient du script ci-dessus.
+(4) Baseline byte-identique vérifiée : tous les nouveaux flags OFF → fitness défaut inchangé (10 %, 9,3 coups).
+
+**Reste (déféré, le vrai C cognitif §1.8.2)** : que le **concept M3_d encode le contexte-lettre** (spokes contextuels
+riches + erreur de prédiction entrelacée), mesuré **au-dessus** du substrat n-gram. Le n-gram OS est la **rampe d'accès** :
+il fournit le plancher d'agrégation contre lequel juger tout gain cognitif futur.
+
+---
+
 ## 2. Findings structurels (par sévérité)
 
 ### 🟠 S1 — Le chemin de décision réel ≠ le récit architectural *(vérifié)*

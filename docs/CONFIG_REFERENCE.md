@@ -183,7 +183,20 @@ lexique), PAS de la cognition (mesurée ~11 % seule, double-voie pleinement enga
 - **🔠 `M_NEO_LETTER_NGRAM` (bleu, cheat-free)** : n-gram positionnel de lettres uni/bi/tri **pré-calculé depuis tout
   le lexique** (≠ appris du jeu, ≠ médié par phonèmes). **Mesuré N=400 (vrai OOV) : 50,0 → 66,0 % (+16 pts, chaque
   graine), moins de coups.** Dans/au-dessus de la bande SOTA (cf. `docs/HANGMAN_SOTA.md`).
-- **Régime** : **ON pour OOV/Trexquant** ; **OFF en jeu normal** (in-lexique mesuré 97,5 % OFF → 69,5 % ON : il écrase
-  la cohorte qui contient déjà le mot). C'est une voie **OOV-only**.
+- **Régime (mode CASCADE)** : **ON pour OOV/Trexquant** ; **OFF en jeu normal** (in-lexique mesuré 97,5 % OFF → 69,5 %
+  ON : il écrase la cohorte qui contient déjà le mot). En cascade c'est une voie **OOV-only** (either/or).
 - Reste **OFF par défaut** dans le moteur (R66, baseline byte-identique) ; à activer dans le preset Trexquant.
-- Visible aussi dans le **bench Trexquant in-app** (bouton 🎯 → 4e ligne « n-gram de lettres »).
+- Visible aussi dans le **bench Trexquant in-app** (bouton 🎯 → 4e ligne « n-gram de lettres en CASCADE »).
+
+### 🔁 `M_NEO_OS_ARB_NGRAM` — n-gram ARBITRÉ OS (le fix « pas de switch ») — 2026-06-19
+Supprime le compromis OOV-only de la cascade. Au lieu d'un either/or, le n-gram devient la **voie sublexicale** d'un
+**mélange convexe** (OS `M_OS_v07_step`, pondéré par fiabilité) avec la **cohorte board** (voie lexicale). La fiabilité
+(piqué de chaque distribution) **bascule automatiquement par régime** : in-lexique la cohorte gagne, OOV le n-gram gagne.
+- **Activation** : `M_NEO_OS_ARB = true` **+** `M_NEO_OS_ARB_NGRAM = true` (pas besoin de `M_NEO_PHON_COHORT_ENABLED`).
+- **Mesuré (N=400, 3 graines, `AUDIT_OMEGA §1.9`)** : **in-lex 96-99 %** (≈ cohorte, ≫ cascade 62 %) **·
+  OOV 52-63 %** (≈ cascade, ≫ jointe 30 %). **Meilleur ou à égalité dans les DEUX régimes, config unique.**
+- **Recommandé** comme voie OOV par défaut **à la place** de la cascade `M_NEO_LETTER_NGRAM` : pas de pénalité in-lex,
+  donc activable sans risque même quand on ignore si le mot est dans le lexique.
+- α,β défaut **1/1** (neutre, mesurable). Reste **OFF par défaut** (R66). Bench Trexquant : **5e ligne « n-gram ARBITRÉ OS »**.
+- **Persistance** : table n-gram = ~440 ms lazy/session (29 k clés) → IndexedDB **non implémenté** (prématuré ; foyer
+  réservé à une table apprise future, le « C » cognitif `§1.8.2`).
