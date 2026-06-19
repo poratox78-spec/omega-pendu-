@@ -3,6 +3,9 @@
 Audit **du moteur cognitif** (`app/omega-pendu.html`), distinct de l'audit monorepo (`CLAUDE.md`).
 Méthode : lecture **du code** (pas seulement des docs `docs/MEMOIRE.html` / `docs/rapport-mode-emploi.html`) ; chaque point « vérifié » renvoie à une ligne. Doctrine de référence : **cap §43 (cognition > oracle)** + **R66 (mesurer/falsifier avant de garder ; OFF-inerte)**.
 
+> **Docs moteur liés** (consolidés 2026-06-19) : sécu/UI/hygiène code → `AUDIT_STRUCTUREL.md` · config & matrice triche par toggle → `docs/CONFIG_TOGGLES.md` · design cognition/mémoire + verdict du C → `docs/COGNITION_DESIGN.md` · historique notes (NEO, muette, M3_d falsifié, cheat) → `notes/MOTEUR_HISTORIQUE.md` · repères SOTA → `docs/HANGMAN_SOTA.md`.
+> ⚠️ Les **numéros de ligne** cités ci-dessous ont dérivé (+30 à +120 lignes depuis la compression du lexique) — fiables comme *ancrage relatif*, à re-localiser par `Grep` avant édition (cf. `AUDIT_STRUCTUREL §4`).
+
 ---
 
 ## 0. Cadre doctrinal vérifié — la double voie (à ne pas confondre)

@@ -813,6 +813,12 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 <li>Paramètres numériques NEO pas encore pilotables en UI (seuls les 6 toggles le sont).</li>
 <li>Puissance 4 graines × 120 ; R66 suggère ≥ 200 × 4 pour resserrer (directions stables).</li>
 </ul>
+
+<h3>17.7 — MAJ 06/2026 — OOV honnête, voie n-gram, et le « C » cognitif <span class="chip c-mes">mesuré</span></h3>
+<div class="callout"><span class="lbl">⛔ Rétractation OOV + le vrai levier (détail : <code>AUDIT_OMEGA §1.6.1–§1.12</code> · config : <code>docs/CONFIG_TOGGLES.md</code>)</span>
+<p><strong>(a) Fuite cohorte.</strong> Le « ~97 % hors-lexique » antérieur était une <strong>fuite</strong> (cache <code>_neoWBL</code> non invalidé : le mot « retiré » restait dans la cohorte). Corrigé. <strong>Vrai OOV ≈ 33 %</strong> (généralisation sublexicale pure) ; <strong>cognition seule ≈ 11 %</strong>. La cognition <em>ne généralise pas</em> en sous-lexical ; le levier OOV est l'<strong>agrégation de la structure du lexique</strong>.</p>
+<p><strong>(b) Voie n-gram (nouveaux toggles).</strong> <code>M_NEO_LETTER_NGRAM</code> (n-gram positionnel pré-calculé, cheat-free) ≈ 57-66 % OOV ; <code>M_NEO_OS_ARB_NGRAM</code> le branche comme <strong>voie sublexicale de l'arbitrage OS</strong> (bascule auto : in-lex ~97 % / OOV ~60 %, config unique) ; <code>M_NEO_NGRAM_GAP</code> (plus proche voisin révélé d=1..4) ajoute <strong>+2 pts OOV</strong> (~63-65 %, bande SOTA) = 1er gain cognitif > substrat. Tous OFF par défaut (R66).</p>
+<p><strong>(c) Le « C » appris — falsifié comme franchissement.</strong> Le C <em>léger</em> (maxent/GATE/POE) et le C <em>lourd</em> (transformer, hook <code>M_NEO_C_HEAVY</code> OFF-inerte) ont été construits et mesurés : le lourd <strong>converge vers</strong> le n-gram gap-aware sans le battre (winrate à config optimale : <strong>parité</strong>, OOV Δ ≈ −1,3 ; entraîné sur de vraies parties = <strong>recul</strong> par couverture lexicale). <strong>Le n-gram gap-aware (gratuit, interprétable) reste le plafond pratique</strong> — « cognition > oracle = léger/interprétable » confirmé. Design d'un futur organe (hub d'arbitrage appris) : <code>docs/COGNITION_DESIGN.md</code>.</p></div>
 </section>
 
 <div class="foot">
@@ -823,8 +829,8 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 </div><!-- /doc -->
 <section id="s18">
 <h2><span class="hn">18</span>Dictée diagnostique (application dys)</h2>
-<p><strong>Objectif.</strong> Application dérivée ciblant les <strong>troubles de l'écrit (dys)</strong>, bâtie sur la <strong>double route</strong> phon↔ortho du moteur. Le moteur diagnostique <em>le type</em> de chaque faute d'orthographe et oriente l'entraînement. Détails &amp; mesures reproductibles dans <code>dictee/</code> (JOURNAL, README, AUDIT, EXP_M3D_FALSIFIE).</p>
-<p><strong>Cadre = dictée de PHRASES.</strong> Mesuré : sur des mots isolés, <strong>84&nbsp;%</strong> des mots ont des homophones (surtout flexionnels) → indécidables au son seul. La phrase fournit le <strong>contexte</strong> : le mot cible étant connu, <strong>homophones et accords deviennent des erreurs gradables</strong> — <em>sans</em> M3_d (l'expérience « M3_d désambiguïse les homophones » a été <strong>falsifiée au design</strong> : M3_d encode l'ortho/le son, aucune entrée sens/contexte ; cf. <code>dictee/EXP_M3D_FALSIFIE.md</code>).</p>
+<p><strong>Objectif.</strong> Application dérivée ciblant les <strong>troubles de l'écrit (dys)</strong>, bâtie sur la <strong>double route</strong> phon↔ortho du moteur. Le moteur diagnostique <em>le type</em> de chaque faute d'orthographe et oriente l'entraînement. Détails &amp; mesures reproductibles dans <code>dictee/</code> (JOURNAL, README — qui inclut l'audit fermé + le M3_d falsifié —, CORRECTEUR, GRAMMAIRE_DOUBLE_VOIE).</p>
+<p><strong>Cadre = dictée de PHRASES.</strong> Mesuré : sur des mots isolés, <strong>84&nbsp;%</strong> des mots ont des homophones (surtout flexionnels) → indécidables au son seul. La phrase fournit le <strong>contexte</strong> : le mot cible étant connu, <strong>homophones et accords deviennent des erreurs gradables</strong> — <em>sans</em> M3_d (l'expérience « M3_d désambiguïse les homophones » a été <strong>falsifiée au design</strong> : M3_d encode l'ortho/le son, aucune entrée sens/contexte ; cf. <code>dictee/README.md</code> § « Falsifié M3_d »).</p>
 <p><strong>Familles d'erreurs</strong> (typologie dysorthographique : phonologique · lexicale-surface · sémantique/morpho), multi-étiquette :</p>
 <ul>
 <li><strong>accent</strong> (é/è/ê) · <strong>voisée/sourde</strong> (p·b, t·d, k·g, f·v, s·z) · <strong>inversion</strong> · <strong>lettre muette</strong> · <strong>lettre en trop</strong></li>
