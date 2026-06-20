@@ -15,6 +15,10 @@ jobs:
         run: python3 dictee/eval_externe.py
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
+      - name: Extraction des tables g2p depuis l'app (route sublexicale)
+        run: python3 dictee/build_g2p_tables.py
+      - name: Décomposeur « à la Lexique 4 » — mesure (in-lexique ⟂ OOV, seed 42)
+        run: python3 dictee/decompose.py --measure
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)
