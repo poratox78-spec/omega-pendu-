@@ -44,4 +44,15 @@ const SP = globalThis.__sp;
     f.forEach(x => console.log('    [' + x.tier + '] ' + x.word + ' → ' + x.sugg));
     if (!f.length) console.log('    (rien)');
   }
+  // assertions (CI) — non-régression
+  const fail = [];
+  if (!SP.ready() || SP.nwords() < 50000) fail.push('lexique speller non chargé (' + SP.nwords() + ')');
+  const correct = SP.spell('Le petit garçon mange une pomme rouge dans le jardin.');
+  if (correct.length) fail.push('FP sur phrase correcte : ' + JSON.stringify(correct));
+  const fen = SP.spell('la fenetre est ouverte').find(x => x.word.toLowerCase() === 'fenetre');
+  if (!fen || fen.sugg !== 'fenêtre' || fen.tier !== 'auto') fail.push('fenetre→fenêtre (auto) attendu, eu ' + JSON.stringify(fen));
+  const les = SP.spell('la leson du jour').find(x => x.word.toLowerCase() === 'leson');
+  if (!les || les.sugg !== 'leçon') fail.push('leson→leçon attendu, eu ' + JSON.stringify(les));
+  if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
+  console.log('\n✓ OK : lexique chargé, AUTO FP=0 sur phrase correcte, fenetre→fenêtre (auto), leson→leçon.');
 })().catch(e => { console.error(e); process.exit(1); });

@@ -9,6 +9,27 @@
 Il **détecte + corrige + situe l'erreur dans un STADE développemental** (phono → alphabétique → lexical →
 morphosyntaxique) pour la **remédiation dys**. Angle pédagogique, cible n°1 du projet — pas « encore un correcteur ».
 
+## Couche ORTHOGRAPHIQUE (non-mots / accents / typos / phonétique) — temps réel
+Au-delà des règles grammaticales : un vrai correcteur orthographique qui corrige les **non-mots** (formes absentes
+du lexique). Hybride, dans l'app (panneau « 🩹 Correcteur », debounce 350 ms = temps réel) :
+- **Couche ortho** (`dictee/speller_probe.py` ; miroir JS dans l'app) : pour un non-mot, cherche le meilleur
+  candidat dans le lexique COMPLET — **restauration d'accents** (deacc→accentué) + **distance d'édition 1** +
+  **route PHONÉTIQUE** (clé `phon_key` : ph→f, ç→s, qu→k, finales muettes… ; cible dys = fautes phonologiques).
+  Classement : accent d'abord, puis **match phonétique**, puis fréquence.
+- **2 niveaux de confiance** (choix produit : auto-corriger le sûr) :
+  - **AUTO** (remplace seul) : restauration d'accent NON ambiguë + dominante (≥3 lettres). Toujours **même
+    longueur** → curseur préservé. Ex. `fenetre→fenêtre`, `derniere→dernière`. **FP=0 mesuré** (cardinal : change
+    le texte en silence).
+  - **FLAG** (souligne bleu, clic) : candidat plausible incertain. Ex. `leson→leçon`, `gato→gâteau`,
+    `téléfone→téléphone`, `Lannée→l'année`. FP FLAG = mots rares/OOV/noms propres → non destructif.
+- **Abstention** : mot valide (→ couche grammaire), nom propre (majuscule hors début), néologisme sans voisin.
+- **Embarqué** : bloc `speller-lex-gz` (92 743 formes accentuées + freq, gzip+base64 0,56 Mo, décompressé via
+  DecompressionStream). Généré par `dictee/build_speller_lex.py`. Le moteur JS = miroir exact du Python.
+- **Mesuré** (vrai corpus GEC, 98 phrases) : **AUTO FP=0/98** ; non-mots corrigés exactement **58 %** ;
+  FLAG-FP=13 (OOV/rares, non destructif). Vérifié headless (`dictee/test_speller_app.js`, en CI).
+- **Frontière restante** : homophones que seul le contexte tranche (`fote→faut|faute`, `gross→gros|grosse`) →
+  fusion candidat-speller × accord grammatical (hybride) = chantier suivant.
+
 ## Le seul vrai inconnu, mesuré : détecter/corriger SANS corrigé
 La dictée connaît la cible ; un correcteur non → il doit **inférer l'intention**. Probe : `dictee/correcteur_probe.py`
 (`python3 dictee/correcteur_probe.py`). Pour chaque homophone grammatical, une règle `decide(T,i)` tranche la bonne
