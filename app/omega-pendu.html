@@ -11389,7 +11389,7 @@ window.addEventListener('DOMContentLoaded', () => {
     w=w.replace(/eaux|eau/g,'o').replace(/aux|au/g,'o');w=w.replace(/ai|ei|ais|ait|aient/g,'e').replace(/y/g,'i');
     w=w.replace(/([aeiouéèêàâô])s([aeiouéèêàâô])/g,'$1z$2');w=w.replace(/h/g,'');w=deacc(w);
     w=w.replace(/(.)\1/g,'$1').replace(/(ent|s|t|d|x|p|e)$/,'').replace(/(.)\1/g,'$1');return w;}
-  function toks(s){return (s.match(/[A-Za-zÀ-ÿ']+/g)||[]);}
+  function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ']+/g)||[]);}
   function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}
   function isAccord(t,s){var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;
     while(p<a.length&&p<b.length&&a[p]===b[p])p++; var r=a.slice(p)+b.slice(p);
@@ -11583,7 +11583,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
-  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿ']+/g,o='',last=0,m,idx=0,fm={};flags.forEach(function(f){fm[f.i]=f;});while((m=re.exec(text))){o+=esc(text.slice(last,m.index));var f=fm[idx];o+=f?'<span class="vdc-bad'+(f.name==='orthographe'?' vdc-orth':'')+'" data-i="'+idx+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(m[0])+'</span>':esc(m[0]);last=m.index+m[0].length;idx++;}o+=esc(text.slice(last));return o;}
+  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ']+/g,o='',last=0,m,idx=0,fm={};flags.forEach(function(f){fm[f.i]=f;});while((m=re.exec(text))){o+=esc(text.slice(last,m.index));var f=fm[idx];o+=f?'<span class="vdc-bad'+(f.name==='orthographe'?' vdc-orth':'')+'" data-i="'+idx+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(m[0])+'</span>':esc(m[0]);last=m.index+m[0].length;idx++;}o+=esc(text.slice(last));return o;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — miroir de dictee/speller_probe.py =====
   function deaccS(s){return s.replace(/œ/g,'oe').replace(/Œ/g,'OE').replace(/æ/g,'ae').replace(/Æ/g,'AE').normalize('NFD').replace(/[̀-ͯ]/g,'');}
@@ -11624,8 +11624,8 @@ window.addEventListener('DOMContentLoaded', () => {
   function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(DET_G[t])return DET_G[t];var g=GENDER_PURE[t];if(g==='m'||g==='f')return g;}return null;}
   function sCtxNumber(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t])return SDET_NUM[t];}return null;}
   function spellToken(tok,atStart,T,idx){
-    if(!SP.ready)return null;var low=tok.toLowerCase();if(low.length<2||!isAlphaS(low))return null;
-    if(SP.WORDS.has(low))return null;                                  // mot valide → couche grammaire
+    if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
+    if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
     if(tok[0]!==tok[0].toLowerCase()&&!atStart)return null;            // nom propre (majuscule hors début)
     var d=deaccS(low);
     if(low.length>2&&SELIDE[low[0]]&&SVOW[deaccS(low[1])[0]]){var rest=low.slice(1);
@@ -11646,6 +11646,7 @@ window.addEventListener('DOMContentLoaded', () => {
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py)return py-px;
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
     var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
+    if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent (évite Nathalie→natalité)
     if(cg&&(SP.POS[w1]||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
     if(f1<0.1)return null;
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
@@ -11677,10 +11678,10 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px"></div></div>';
   document.body.appendChild(cov);
   var _flags=[];
-  function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿ']+/g,m,idx=0,res='',last=0;
+  function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿœŒ']+/g,m,idx=0,res='',last=0;
     while((m=re.exec(t))){res+=t.slice(last,m.index)+(idx===k?sugg:m[0]);last=m.index+m[0].length;idx++;}
     res+=t.slice(last);$('vdc-in').value=res;runCorr();}
-  function _spans(t){var re=/[A-Za-zÀ-ÿ']+/g,m,idx=0,sp={};while((m=re.exec(t))){sp[idx]=[m.index,m.index+m[0].length];idx++;}return sp;}
+  function _spans(t){var re=/[A-Za-zÀ-ÿœŒ']+/g,m,idx=0,sp={};while((m=re.exec(t))){sp[idx]=[m.index,m.index+m[0].length];idx++;}return sp;}
   function applyAutos(autos){var ta=$('vdc-in'),t=ta.value,cur=(ta.selectionStart==null?t.length:ta.selectionStart),sp=_spans(t);
     var ap=autos.filter(function(f){var s=sp[f.i];return s&&!(cur>=s[0]&&cur<=s[1]);});   // jamais le mot sous le curseur (en cours de frappe)
     if(!ap.length)return false;ap.sort(function(a,b){return sp[a.i][0]-sp[b.i][0];});

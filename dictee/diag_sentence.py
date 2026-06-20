@@ -108,7 +108,7 @@ def norm(w):
     w=w.replace('h',''); w=deacc(w)
     w=re.sub(r'(.)\1',r'\1',w); w=re.sub(r'(ent|s|t|d|x|p|e)$','',w); w=re.sub(r'(.)\1',r'\1',w)
     return w
-def toks(s): return re.findall(r"[A-Za-zÀ-ÿ']+", s)
+def toks(s): return re.findall(r"[A-Za-zÀ-ÿœŒ']+", s)   # inclut œ/Œ (hors plage À-ÿ) — sinon « œuf »/« sœur » se cassent
 def subseq(a,b):
     i=0
     for c in b:

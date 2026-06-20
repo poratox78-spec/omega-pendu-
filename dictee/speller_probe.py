@@ -154,7 +154,7 @@ class Speller:
 
     def correct_token(self, tok, at_start=False, toks=None, idx=None):
         """-> (action 'auto'|'flag', suggestion) ou None. toks/idx = contexte (accord genre/nombre)."""
-        low = tok.lower()
+        low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')   # normalise la ligature (cœur→coeur : lexique en digraphe)
         if len(low) < 2 or not all(deacc(ch) in ALPHA for ch in low): return None
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
@@ -187,6 +187,7 @@ class Speller:
                                         1 if phon_key(kv[0]) == pk else 0, nmatch(kv[0]), kv[1][1]),
                         reverse=True)
         (w1, (p1, f1)) = ranked[0]
+        if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         if cg and 'A' in self.POS.get(w1, ()):                  # bascule réservée aux ADJECTIFS (évite nom « élève » → « élevée »)
