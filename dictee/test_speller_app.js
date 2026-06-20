@@ -67,6 +67,10 @@ const SP = globalThis.__sp;
   if (!el1 || el1.sugg !== 'élève') fail.push('un eleve→élève (nom après dét.) attendu, eu ' + JSON.stringify(el1));
   const el2 = SP.spell('le niveau est tres eleve').find(x => x.word.toLowerCase() === 'eleve');
   if (!el2 || el2.sugg !== 'élevé') fail.push('tres eleve→élevé (adj après adverbe) attendu, eu ' + JSON.stringify(el2));
+  // élision-espace (fusion de 2 tokens)
+  const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
+  if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));
+  if (SP.spell('il est très content').some(x => x.name === 'élision')) fail.push('FP élision sur texte correct');
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });

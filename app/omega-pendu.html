@@ -11583,7 +11583,13 @@ window.addEventListener('DOMContentLoaded', () => {
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
-  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ']+/g,o='',last=0,m,idx=0,fm={};flags.forEach(function(f){fm[f.i]=f;});while((m=re.exec(text))){o+=esc(text.slice(last,m.index));var f=fm[idx];o+=f?'<span class="vdc-bad'+(f.name==='orthographe'?' vdc-orth':'')+'" data-i="'+idx+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(m[0])+'</span>':esc(m[0]);last=m.index+m[0].length;idx++;}o+=esc(text.slice(last));return o;}
+  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ']+/g,o='',last=0,m,fm={},T=[];flags.forEach(function(f){fm[f.i]=f;});
+    while((m=re.exec(text)))T.push([m.index,m.index+m[0].length,m[0]]);
+    for(var k=0;k<T.length;k++){o+=esc(text.slice(last,T[k][0]));var f=fm[k];
+      if(f&&f.span===2&&k+1<T.length){o+='<span class="vdc-bad vdc-orth" data-i="'+k+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(text.slice(T[k][0],T[k+1][1]))+'</span>';last=T[k+1][1];k++;}
+      else if(f){o+='<span class="vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':'')+'" data-i="'+k+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(T[k][2])+'</span>';last=T[k][1];}
+      else{o+=esc(T[k][2]);last=T[k][1];}}
+    o+=esc(text.slice(last));return o;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — miroir de dictee/speller_probe.py =====
   function deaccS(s){return s.replace(/œ/g,'oe').replace(/Œ/g,'OE').replace(/æ/g,'ae').replace(/Æ/g,'AE').normalize('NFD').replace(/[̀-ͯ]/g,'');}
@@ -11655,7 +11661,16 @@ window.addEventListener('DOMContentLoaded', () => {
     if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
     return['flag',w1];}
   function spellText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i);
-    if(r&&r[1]!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r[1],name:'orthographe',tier:r[0]});}return out;}
+    if(r&&r[1]!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r[1],name:'orthographe',tier:r[0]});}
+    if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
+      var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
+      for(var i=0;i<P.length-1;i++){if(done[i]||done[i+1])continue;
+        if(!/^\s+$/.test(text.slice(P[i][1],P[i+1][0])))continue;   // écart non purement blanc (apostrophe ' ou ’ déjà là, ponctuation) → déjà élidé
+        var a=P[i][2].toLowerCase(),b=P[i+1][2].toLowerCase(),vow=/^[aeiouyh]/.test(deaccS(b));
+        if(a==='aujourd'&&b==='hui'){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'hui",name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
+        else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
+      out.sort(function(x,y){return x.i-y.i;});}
+    return out;}
 
   var cst=document.createElement('style');
   cst.textContent='#vdc-btn{position:fixed;right:14px;bottom:62px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#7a4fb5;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
@@ -11678,9 +11693,10 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px"></div></div>';
   document.body.appendChild(cov);
   var _flags=[];
-  function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿœŒ']+/g,m,idx=0,res='',last=0;
-    while((m=re.exec(t))){res+=t.slice(last,m.index)+(idx===k?sugg:m[0]);last=m.index+m[0].length;idx++;}
-    res+=t.slice(last);$('vdc-in').value=res;runCorr();}
+  function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿœŒ']+/g,m,T=[];while((m=re.exec(t)))T.push([m.index,m.index+m[0].length]);
+    if(k>=T.length){runCorr();return;}var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}
+    var end=(f&&f.span===2&&k+1<T.length)?k+1:k;
+    $('vdc-in').value=t.slice(0,T[k][0])+sugg+t.slice(T[end][1]);runCorr();}
   function _spans(t){var re=/[A-Za-zÀ-ÿœŒ']+/g,m,idx=0,sp={};while((m=re.exec(t))){sp[idx]=[m.index,m.index+m[0].length];idx++;}return sp;}
   function applyAutos(autos){var ta=$('vdc-in'),t=ta.value,cur=(ta.selectionStart==null?t.length:ta.selectionStart),sp=_spans(t);
     var ap=autos.filter(function(f){var s=sp[f.i];return s&&!(cur>=s[0]&&cur<=s[1]);});   // jamais le mot sous le curseur (en cours de frappe)
