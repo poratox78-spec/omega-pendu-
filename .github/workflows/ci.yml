@@ -27,6 +27,8 @@ jobs:
         run: python3 dictee/build_p2g.py
       - name: Cognition phono→ortho — mesure (HELD-OUT top-k + croisement ortho)
         run: python3 dictee/p2g.py --measure
+      - name: Régression décomposeur + cognition (asserts + seuils mesurés)
+        run: python3 dictee/test_decompose.py
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)
