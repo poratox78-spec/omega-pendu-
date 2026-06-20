@@ -39,3 +39,5 @@ jobs:
       - name: Vérif syntaxe du bloc « Décompose » (script séparé, app)
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc décompose se compile (séparé du correcteur)');"
+      - name: Smoke anti-régression du MOTEUR (cognition cheat-free + NEO, seedé) — AUDIT_COMPLET CI1
+        run: node evo/ci_smoke.js
