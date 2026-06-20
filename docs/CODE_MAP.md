@@ -14,7 +14,9 @@
 ## 1. Vue d'ensemble
 
 - **Un seul `<script>`** non encapsulé : ~500 globaux top-level (`let`/`const`/`function`). Pas de modules.
-- **Au boot, tout est OFF** sauf `M4_PHON_USE_P_ENABLED` (rapport §6). La **config de référence** (preset 1-clic
+- **Au boot, le seul *levier togglable* ON est `M4_PHON_USE_P_ENABLED`** (rapport §6) — mais la **baseline cognitive
+  tourne quand même** : pipeline `cStep` M1_d→M5_d + hub `M_S` (`M_S_ENABLED` est un `const = true`, l.1610, assert I40
+  l.7588). Ce qui défaut-OFF = les **leviers / declares additifs** (R66). La **config de référence** (preset 1-clic
   `applyReferenceConfig`, ~l.9188) allume ~20 toggles cheat-free → **97,5 % in-lex** (K=1).
 - **Deux régimes à ne jamais confondre** : in-lexique (cohorte contient le mot, ~97 %) vs OOV/Trexquant (mot retiré
   de `len_index`, généralisation sublexicale).
@@ -66,16 +68,21 @@ entier `wp.get(currentWord)`) ? **Oui → triche.** Catégories :
 - 🟠 **« mot entendu »** : lit le SON du mot entier (`wp.get`) — triche au pendu pur, légitime en dictée.
 - 🔴 **béquille grise** : injecte la fréquence du dico dans le scoring-lettre (A1/A2/A3).
 
-### Les 4 sites `wp.get(currentWord)` (le SON du mot caché)
+### Les sites lisant le SON du mot entier (`wp.get`) — census exhaustif (5)
+> Seuls **3** écrivent littéralement `wp.get(currentWord)` (7138/7368/7402). S4/S5 lisent `wp.get(word)`, où `word`
+> **est** `currentWord` passé par l'appelant (l.7137 : `if (M_NEO_G2P_EXP_ENABLED) learnExp(currentWord,…) else learn(currentWord)`).
+
 | Site | Ligne ~ | Contexte | Montant/Descendant | Statut |
 |---|---|---|---|---|
 | S1 | 7138 | `endCurrentGame` — apprentissage table muette jointe | **descendant** | 🟢 légitime |
 | S2 | 7368 | `M_EMERGENT_ASSEMBLED` — décision (assemblé phon→ortho) | **montant** | 🟠 mot-entendu |
 | S3 | 7402 | `M_NEO_ASSEMBLED` — décision (défaut) | **montant** | 🟠 (→ 🟢 si `M_NEO_PHON_COHORT` ON) |
-| S4 | 6141 | `learnExp` g2p révélé-seul — apprentissage | **descendant** | 🟢 légitime |
+| S4 | 6141 | `learnExp(word,…)` — g2p révélé-seul (branche EXP) | **descendant** | 🟢 légitime |
+| S5 | 6139 | `learn(word)` — g2p (branche non-EXP, sœur de S4) | **descendant** | 🟢 légitime |
 
-→ **Seuls S2/S3 sont au montant** ⇒ le 97,5 % cheat-free repose sur la prémisse « mot entendu » **tant que**
-`M_NEO_PHON_COHORT` est OFF ; ON, l'assemblé NEO passe au son **board-dérivé** (`_neoPhonCohort`, 🟢 intégral).
+→ **Seuls S2/S3 (7368/7402) sont au montant** ⇒ le 97,5 % cheat-free repose sur la prémisse « mot entendu » **tant
+que** `M_NEO_PHON_COHORT` est OFF ; ON, l'assemblé NEO passe au son **board-dérivé** (`_neoPhonCohort`, 🟢 intégral).
+S1/S4/S5 sont des lectures d'**apprentissage** (post-décision, wake-sleep) → légitimes même au pendu pur.
 
 ### Autres sites à connaître
 - **A1/A2/A3** (🔴) : `L01_A2_M4_LEX4` injecte la fréquence du dico dans le scoring-lettre (`computeLex4LetterScores`,
