@@ -342,11 +342,42 @@ def rule_genre_adj(T, i):
         return alt
     return None
 
+# ---------- Accord GENRE déterminant→nom (route lexicale : déterminant figé × cgram_gender) ----------
+# Le « gros du réel » (corpus GEC) : « un adhésion »→une, « la fondateur »→le, « Ma appartement »→Mon.
+# Différent de rule_genre_adj (NON branchée, FP-insûre) : ici le déterminant a un genre CERTAIN, et on
+# n'accepte qu'un NOM PUR juste après (genre non ambigu, NI adjectif NI verbe) → écarte le/la pronom-objet
+# (« je le vois » : vois=verbe), les homographes (poste, tour, livre : hors cgram_gender), les adjectifs.
+DET_GENDER = {'un':'m','une':'f','le':'m','la':'f','ce':'m','cet':'m','cette':'f',
+              'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f'}
+DET_ALT = {('un','f'):'une',('une','m'):'un',('le','f'):'la',('la','m'):'le',
+           ('ce','f'):'cette',('cet','f'):'cette',('cette','m'):'ce',
+           ('mon','f'):'ma',('ma','m'):'mon',('ton','f'):'ta',('ta','m'):'ton',
+           ('son','f'):'sa',('sa','m'):'son'}
+
+def _keepcase(src, sugg):
+    return sugg[:1].upper() + sugg[1:] if src[:1].isupper() else sugg
+
+def rule_det_gender(T, i):
+    lw = deacc(T[i].lower())
+    if lw not in DET_GENDER or "'" in T[i].lower(): return None
+    if i + 1 >= len(T): return None
+    g_det = DET_GENDER[lw]
+    nxt_raw = T[i+1].lower()
+    if "'" in nxt_raw: return None                                  # élision (l'arbre) → genre caché, abstention
+    nd = deacc(nxt_raw)
+    if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) / non-mot → abstention
+    if nd not in D.GENDER_LEX: return None                          # nom inconnu / ambigu (poste, tour…) → abstention (FP=0)
+    if nd in VERB_LEX or nd in ADJ_LEX: return None                # homographe verbe (le/la pronom) ou adjectif → abstention
+    if D.GENDER_LEX[nd] == g_det: return None                      # accord OK → ne pas toucher
+    sugg = DET_ALT.get((lw, D.GENDER_LEX[nd]))
+    return _keepcase(T[i], sugg) if sugg else None
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se),
          ('accord sujet-verbe', rule_accord_sv),
-         ('accord sujet-verbe', rule_accord_sv_noun)]   # accord SV (pronom puis nom) en dernier ; rule_genre_adj NON branchée
+         ('accord sujet-verbe', rule_accord_sv_noun),
+         ('genre déterminant', rule_det_gender)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
 def correct(text):
@@ -396,6 +427,11 @@ CASES = [
     ("Les enfants jouent dehors", "jouent", "joue", "accord sujet-verbe"),
     ("Les oiseaux chantent", "chantent", "chante", "accord sujet-verbe"),
     ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
+    # accord GENRE déterminant→nom (route lexicale cgram_gender) — noms PURS non ambigus
+    ("Il a un chien", "un", "une", "genre déterminant"),
+    ("Elle habite une maison", "une", "un", "genre déterminant"),
+    ("Le jardin est vert", "Le", "La", "genre déterminant"),
+    ("Il regarde la montagne", "la", "le", "genre déterminant"),
 ]
 
 

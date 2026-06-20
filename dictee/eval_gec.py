@@ -40,6 +40,9 @@ def confusion_kind(bad, good):
     if lb == lg: return None
     for k, s in PAIRS8.items():
         if lb in s and lg in s: return k
+    for s in ({'un', 'une'}, {'le', 'la'}, {'ce', 'cette'}, {'cet', 'cette'},
+              {'mon', 'ma'}, {'ton', 'ta'}, {'son', 'sa'}):   # genre du déterminant (un/une, le/la…)
+        if lb in s and lg in s: return 'genre déterminant'
     sb, sg = e_er_stem(bad), e_er_stem(good)
     if sb is not None and sg is not None and sb == sg: return '-é/-er'
     if _verb_lemmas(bad) & _verb_lemmas(good):    # même lemme verbal, forme différente → accord/conjugaison
