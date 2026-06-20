@@ -391,9 +391,20 @@ def rule_det_gender(T, i):
     sugg = DET_ALT.get((lw, g_noun))
     return _keepcase(T[i], sugg) if sugg else None
 
+
+def rule_mais_mes(T, i):
+    """« mais » devant un NOM (≠ prép/dét/pronom/verbe) → « mes » (« mais lunettes »→« mes lunettes »). FP=0 mesuré
+    (garde PREP : « Mais, sous… » abstenu car sous=préposition). Homophone dys fréquent, hors des 8 d'origine."""
+    if deacc(T[i].lower()) != 'mais' or i + 1 >= len(T):
+        return None
+    nx = T[i + 1].lower(); dn = deacc(nx)
+    if dn in PREP or nx in NUM_DET or dn in NUM_PRON or dn in VERB_LEX:
+        return None                                    # pas prép/déterminant/pronom/verbe
+    return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se),
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
