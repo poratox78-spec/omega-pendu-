@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-06-20 — VOLET LLM démarré (correcteur, opt-in en ligne) — 1re brique
+
+Les 3 fronts butent — **mesuré** — sur le CONTEXTE (correcteur : did-you-mean falsifié ; décodeur : g2p-sur-typo ;
+trexquant : morpho = 0 Δ sur n-gram). Conclusion de Rem actée : **le levier partout = le LLM**. On démarre par le
+**correcteur** (douleur réelle).
+
+**Plafond démontré** (moi = LLM) sur la phrase qui mettait les règles à zéro : « je sui dan le voiture, et j'est
+bouliées mais lunettes » → **« Je suis dans la voiture, et j'ai oublié mes lunettes. »** = **6/6** corrections (sui→suis,
+dan→dans, le→la voiture, j'est→j'ai, bouliées→oublié, mais→mes) **contre 0/6 pour les règles**. Le plafond est réel.
+
+**Faisabilité env** : égress vers les API LLM **ouvert** (api.anthropic.com/openai joignables, ≠ Drive/HF bloqués) ;
+**aucune clé embarquée** utilisable → l'**utilisateur apporte sa clé**. ⇒ approche **hybride opt-in EN LIGNE**.
+
+**Doctrine / vie privée** : le correcteur dys promet « hors-ligne, aucune donnée envoyée ». Le LLM **casse** cette
+promesse → la 1re brique est **OFF par défaut**, **opt-in explicite** (pas de clé = aucun appel réseau, vérifié), pour
+un futur mode UI **déclaré** (consentement).
+
+**1re brique livrée** : `dictee/llm_correcteur.py` — le **prompt dys** soigné (conservateur : corrige sans reformuler,
+sortie JSON `{corrige, fautes:[{ecrit,correct,famille}]}`) + appel endpoint **OpenAI-compatible** (env `LLM_API_URL/
+LLM_API_KEY/LLM_MODEL`) + harnais **`--eval`** (récall + **FP cardinal sur le `good`** du GEC, à comparer aux règles
+`eval_gec.py`). Non câblé dans l'app, pas en CI (dépend clé/réseau).
+**Suite** : (1) mesurer récall/FP réel du LLM sur le GEC (avec clé) ; (2) intégration app = panneau opt-in + consentement,
+LLM en **surcouche du FLAG** (les règles restent la base hors-ligne) ; (3) arbitrer le modèle (qualité × coût × local).
+
+---
+
 ## 2026-06-20 — TREXQUANT : la MORPHO/décompose n'aide pas l'OOV (FALSIFIÉ) — réponse à la thèse §1.8
 
 Rem : « décompose préparé pour le mode trexquant, voir si utile ». Mesuré (`evo/trexq_morpho_probe.py`, standalone,
