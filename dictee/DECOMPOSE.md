@@ -84,6 +84,20 @@ le split TRAIN, mesurée sur le split TEST** (pas de fuite) :
 - ⏳ **Pistes suivantes** : compressibilité de la base (elle va être riche), couche de **cognition
   probabiliste / croisement** (§3, jointe `Σ_φ P(φ|p)·P(·|φ,contexte)`).
 
+## Compressibilité de la base (mesuré — `compress_probe.py`)
+La base de décomposition « va être riche » → **est-elle compressible ? Oui, fortement** (n=50 000 mots) :
+
+| représentation | taille | o/mot | ratio |
+|---|---|---|---|
+| JSON brut minifié | 8,7 Mo | 178 | 1× |
+| gzip -9 | 1,1 Mo | 22,6 | 7,9× |
+| **factorisé (colonnes) + gzip** | 512 Ko | 10,5 | **17×** |
+
+- Le layout **factorisé** (colonnes `phono | cv | cgram…`) double le gain vs dict par-mot (gzip exploite la redondance).
+- **51 % des phonos in-lexique sont reconstructibles par le g2p amélioré** → ne stocker que les **irréguliers**
+  (lexique d'exceptions = logique double-voie : les règles couvrent le régulier). Entropie 4,63 bits/phonème.
+- Embed app possible via le **même gzip+base64** que `OMEGA_LEX4` (bloc `lex4-data-gz`, `DecompressionStream`).
+
 ## Licence
 Dérive de **Lexique 4** (New et al., 2026 ; *Behavior Research Methods* 58(5), 140) → **CC BY-SA 4.0**
 (comme `phono_homophones.json`, `cgram_*.json`). `g2p_tables.json` provient du moteur OMEGA (briques PHON).
