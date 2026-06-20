@@ -17,7 +17,9 @@ et **propose** la forme décidée.
 
 ### Résultat (détection ET correction, faite une seule fois) — après étape 1 (couverture élargie)
 - **Faux positifs sur 30 phrases CORRECTES : 0** ✅ (condition n°1 : ne pas « corriger » du texte juste).
-- **Détection + correction : 22/24** témoins (était 13/16 avant l'élargissement verbal).
+- **Détection + correction : 21/24** témoins avec `cgram` (défaut du dépôt, le fichier est commité) ;
+  **22/24** avec la liste blanche compacte (cf. étape 3) — était 13/16 avant l'élargissement verbal.
+  *(L'écart 22→21 vient des homographes nom+verbe que `cgram` fait passer pour verbes — cf. étape 3.)*
 
 | confusion | fp | détection | correction |
 |---|---|---|---|

@@ -50,7 +50,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 2. **NEO cheat-free par construction** : recall lié au **révélé** seul ; assemblé **masqué** ; cohorte **board-dérivée** → aucune déclaration ne lit le mot caché.
 3. Apprentissage (θ, readouts, banc, g2p) = **descendant**, post-décision → légitime.
 
-## Configuration EXACTE des 39 toggles (énumération complète)
+## Configuration EXACTE des 42 toggles (énumération complète)
 
 | # | Toggle | État | Note |
 |---|---|---|---|
@@ -93,8 +93,11 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | 37 | `M_NEO_MUTE_ENABLED` | OFF | optionnel (neutre) |
 | 38 | `M_NEO_TRIGGER_ENABLED` | OFF | optionnel (neutre) |
 | 39 | `M_TREXQUANT_MODE_ENABLED` | OFF | mode test hors-lexique uniquement |
+| 40 | `M_NEO_PHON_COHORT_ENABLED` | OFF | 🔵 cheat-free option : son **board-dérivé** (consensus cohorte) au lieu de `wp.get(currentWord)` — supprime la lecture du son du mot caché |
+| 41 | `M_NEO_PHON_COHORT_JOINTE` | OFF | 🔵 jointe son×ortho `_neoCRS` (« croiser = jointe » §3, +2,2 vs argmax) ; nécessite le son board-dérivé ON |
+| 42 | `M_NEO_OS_ARB` | OFF | 🔵 arbitrage OS des 2 voies DRC (alternative propre à la cascade ; +2,0 vs base mais **ne bat pas DUAL** → non adopté, AUDIT_OMEGA §1.6) |
 
-**23 ON / 16 OFF** (online learning OFF après mesure ; g2p révélé+pénalité ON ; **DUAL adopté 16/06 — cf. MAJ en fin de doc**). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`, `M_NEO_G2P_EXP_PEN=0,5` ; DUAL : `M_DECLARE_DUAL_CONF=0,85`, `WORTHO=0,50`, `WPHON=0,25`.
+**23 ON / 19 OFF** (online learning OFF après mesure ; g2p révélé+pénalité ON ; **DUAL adopté 16/06 — cf. MAJ en fin de doc** ; les 3 toggles 🔵 #40-42 sont des options cheat-free OFF par défaut). Paramètres NEO : `M_DECLARE_NEO_CONF=0,75`, `M_DECLARE_NEO_RECALL_MARGIN=0,20`, `M_NEO_G2P_EXP_PEN=0,5` ; DUAL : `M_DECLARE_DUAL_CONF=0,85`, `WORTHO=0,50`, `WPHON=0,25`.
 Résultat mesuré (notes NEO, 4 graines×120) : base 91,5/93,8 → **+NEO 97,50 % (K=1) / 98,82 % (K=3)**, cheat-free.
 
 ## Notice UI — config optimale par LIBELLÉ AFFICHÉ (ce qu'on voit dans l'app)
