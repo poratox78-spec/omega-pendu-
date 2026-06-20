@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-06-20 — Cap verrouillé (moteur=consommable, NOTRE couche dys=produit) + LA COLLE + Grammalecte PROUVÉ faisable
+
+**Recadrage (Rem, verrouillé `POSTIT.md`)** : le moteur de correction est un **consommable interchangeable** ; **NOTRE
+cognition dys est LE PRODUIT**. On ne devient pas un wrapper. Un moteur externe **complète / remplace les *règles*** (la
+corvée faible), **jamais notre travail** (famille→stade→remédiation). Conséquence : on **arrête de grinder les règles**,
+on **branche le meilleur moteur**, on **investit la couche dys**.
+
+**LA COLLE livrée** (commit `1c60750`) : dans le panneau IA, la sortie du moteur (LLM → champ `famille`) est mappée
+vers nos **familles canoniques** → `developmental()` → **STADE affiché PAR-DESSUS** les corrections. Réutilise
+`stageOfFact`/`developmental`/`STAGE_LBL` existants (§5). **Même point d'entrée pour Grammalecte** (rule-id→famille).
+Engine-agnostic = c'est le seul code qui compte vraiment.
+
+**Grammalecte — faisabilité PROUVÉE (pas supposée)** :
+- SDK navigateur récupéré (plugin ONLYOFFICE) ; **égress GitHub OK**. API = `new GrammarChecker(path,…,"fr")` →
+  `parseAndSpellcheck()` → `{nStart, nEnd, aSuggestions, sMessage}` (offsets exacts = idéal pour nos soulignements).
+- **Exécuté headless** (sandbox = scope navigateur, **sans fetch**, dico nourri en objet JSON) : spellchecker chargé
+  avec le **vrai dico 490 045 entrées**, suggestions **excellentes** : `fenetre→fenêtre`, `leson→leçon`,
+  `aujourdhui→aujourd'hui` ✓ (`bouliées` reste dur pour le spellchecker seul = grammaire/contexte).
+- **Modules = `<script>` classiques** (pas ES) → s'inlinent en **un bloc concaténé** (eval scope partagé, contexte
+  SANS `exports` = comportement navigateur). **Données** (dico 3,6 M · conj 366 K · phonet 405 K · mfsp 189 K) =
+  fetchées via **`helpers.loadFile(path)`** → **un seul point à patcher** pour les servir depuis des blobs embarqués ;
+  règles `gc_rules_graph.js` (3,4 M) = JS inline.
+- **Taille** : embed gzippé ≈ **+3 Mo** (app ~11-12 Mo). **Licence : GPL-3.0** acceptée (Rem) → l'app distribuée
+  devient GPL-3.0 ; ajouter `NOTICE` + `licenses/Grammalecte.license` au moment de l'embed.
+
+**PLAN D'EMBED** (de-risqué, reste à faire) : (1) concaténer les ~18 modules en 1 `<script>` ; (2) embarquer dico +
+conj/phonet/mfsp/locutions en gzip+base64 (comme nos lexiques) ; (3) patcher `helpers.loadFile` → blobs embarqués +
+injecter le dico dans le SpellChecker ; (4) `parseAndSpellcheck` → mapper `nStart/nEnd/aSuggestions/type` → notre
+overlay + **familles/stades** (la colle) ; (5) Web Worker pour les longs textes ; (6) `NOTICE` GPL.
+
+---
+
 ## 2026-06-20 — VOLET LLM démarré (correcteur, opt-in en ligne) — 1re brique
 
 Les 3 fronts butent — **mesuré** — sur le CONTEXTE (correcteur : did-you-mean falsifié ; décodeur : g2p-sur-typo ;
