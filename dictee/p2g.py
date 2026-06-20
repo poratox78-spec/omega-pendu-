@@ -19,6 +19,8 @@ sys.path.insert(0, HERE)
 import decompose as D
 
 LAMBDA = float(os.environ.get('P2G_LAMBDA', '1.0'))      # poids du prior ortho dans le croisement
+BLEX = float(os.environ.get('P2G_LEX', '3.0'))           # bonus LEXICALITÉ : graphie qui EST un vrai mot
+LEX = set(D.W2P)                                          # ensemble des vraies graphies du lexique
 _P = os.path.join(HERE, 'p2g_table.json')
 _RAW = json.load(open(_P, encoding='utf-8')) if os.path.exists(_P) else {'table': {}}
 TABLE = _RAW.get('table', {})
@@ -57,9 +59,11 @@ def ortho_logp(spelling):
     return lp / max(1, len(s) - 1)
 
 
-def decode(phono, k=10, beam=80, lam=None):
-    """Beam émission, puis re-classement par la JOINTE émission + lam·prior_ortho (croisement §3)."""
+def decode(phono, k=10, beam=80, lam=None, blex=None):
+    """Beam émission, puis re-classement par la JOINTE émission + lam·prior_ortho + blex·lexicalité
+    (croisement §3 : route SON × route ORTHO × est-ce un vrai mot)."""
     lam = LAMBDA if lam is None else lam
+    bl = BLEX if blex is None else blex
     if not phono: return []
     n = len(phono); layer = {0: [(0.0, '')]}
     for pos in range(n):
@@ -77,7 +81,7 @@ def decode(phono, k=10, beam=80, lam=None):
         if sp not in agg or lp > agg[sp]: agg[sp] = lp
     if not agg: return []
     cand = sorted(agg.items(), key=lambda x: -x[1])[:40]  # croisement sur les meilleures hypothèses d'émission
-    scored = [(sp, em + lam * ortho_logp(sp)) for sp, em in cand]
+    scored = [(sp, em + lam * ortho_logp(sp) + (bl if sp in LEX else 0.0)) for sp, em in cand]
     mx = max(s for _, s in scored); Z = sum(math.exp(s - mx) for _, s in scored)
     return [(sp, math.exp(s - mx) / Z) for sp, s in sorted(scored, key=lambda x: -x[1])[:k]]
 
@@ -88,14 +92,15 @@ def measure(seed=42, n_test=4000):
     _, test = D.inlex_split(seed); test = test[:n_test]
     print(f"=== COGNITION phono→ortho — HELD-OUT (test={len(test)}, seed={seed}) ===")
     print("    « donné le SON, la vraie ORTHOGRAPHE est-elle proposée ? » (top-k)")
-    for tag, lam in (('émission seule (lam=0)', 0.0), (f'+ prior ortho croisé (lam={LAMBDA})', LAMBDA)):
+    for tag, lam, bl in (('émission seule', 0.0, 0.0), ('+ prior ortho croisé', LAMBDA, 0.0),
+                         (f'+ lexicalité (β={BLEX})', LAMBDA, BLEX)):
         t1 = t3 = t5 = t10 = 0
         for w in test:
-            res = decode(D.W2P[w], k=10, lam=lam); spell = [s for s, _ in res]; tgt = w.lower()
+            res = decode(D.W2P[w], k=10, lam=lam, blex=bl); spell = [s for s, _ in res]; tgt = w.lower()
             r = (spell.index(tgt) + 1) if tgt in spell else 0
             t1 += (r == 1); t3 += (1 <= r <= 3); t5 += (1 <= r <= 5); t10 += (r >= 1)
         N = len(test)
-        print(f"    [{tag:34}] top-1 {100*t1/N:5.1f}%  top-3 {100*t3/N:5.1f}%  top-5 {100*t5/N:5.1f}%  top-10 {100*t10/N:5.1f}%")
+        print(f"    [{tag:24}] top-1 {100*t1/N:5.1f}%  top-3 {100*t3/N:5.1f}%  top-5 {100*t5/N:5.1f}%  top-10 {100*t10/N:5.1f}%")
     homoph = sum(max(0, D.GROUP.get(D.W2P[w], 1) - 1) for w in test) / len(test)
     print(f"    (ambiguïté intrinsèque : {homoph:.2f} homophone(s) Lexique/mot → plafond top-1 < 100%)")
     for w in ('eau', 'oiseau', 'chat', 'maison', 'bateau'):       # phono RÉEL des mots connus
