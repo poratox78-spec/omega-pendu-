@@ -24,3 +24,5 @@ jobs:
         run: node dictee/parity_corr.js
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
         run: node dictee/test_speller_app.js
+      - name: Moteur correcteur standalone (sans UI/DOM)
+        run: node dictee/correcteur.js
