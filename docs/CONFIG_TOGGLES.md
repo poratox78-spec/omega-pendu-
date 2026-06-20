@@ -3,6 +3,16 @@
 > **Consolidation (2026-06-19)** de `CONFIG_REFERENCE.md` (preset cheat-free) + `AUDIT_TOGGLES.md` (matrice de triche).
 > Critère doctrinal unique de triche : **le code lit-il le mot caché pour DÉCIDER ?** (lecture pour MESURER = légitime
 > R67 ; lecture pour DÉCIDER = triche). Source de vérité du preset UI/CI. Mesures : `AUDIT_OMEGA.md`.
+>
+> **MAJ 2026-06-20 (audit régression + cheat-free strict).** Deux corrections sur `applyReferenceConfig()` :
+> 1. **Préréglage DÉTERMINISTE** — le bouton était ADDITIF (allumait la liste ON sans éteindre le reste). Un toggle
+>    expérimental laissé ON (ex. `M_NEO_LETTER_NGRAM`) **survivait** au préréglage → mesuré **100 %→60 % in-lex**
+>    (« tâtonne »). Le bouton remet désormais **tout ALLOWED hors-ON à false** + `_trexq_restore()`.
+> 2. **Preset cheat-free STRICT** — l'assemblé/muette étaient 🟠 (lisaient `wp.get(currentWord)` = son du mot). Le preset
+>    allume désormais `M_NEO_PHON_COHORT` (+ `JOINTE`, `OS_ARB`, `MUTE`, `TRIGGER`) → assemblé/muette 🟢 board-dérivés.
+>    `M_DECLARE_DUAL` retiré du preset (préempté par `OS_ARB`, cf §4). Coût honnête : in-lex 100→**~97 %** (= la cible
+>    cheat-free §1 « sans currentWord » 97,3 %, le 100 % était la triche mot-entendu) ; OOV sans n-gram ≈26 %, **avec
+>    n-gram 52-63 %** (régime OOV = §6, voies n-gram à activer en plus).
 
 ---
 
@@ -52,7 +62,7 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | `M_PHON_READOUT_COUPLE` | **ON** | idem côté phon. | 🟢 |
 | `M_PHON_CONCEPT_BIND` | **ON** | readout phon sur concept lié aux révélées. | 🟢 revealed-aware |
 | `M_BPC_DECLARE` | OFF | déclare via le concept M3_d (cLetterScore). | 🟢 (sans `currentWord`) |
-| `M_DECLARE_DUAL` | **ON** (preset) | declare niveau-mot : cohorte board × freq × ortho × phon. **Adopté 16/06**. | 🟢 `len_index` + révélé, OOV-honnête |
+| `M_DECLARE_DUAL` | OFF (preset cheat-free) | declare niveau-mot : cohorte board × freq × ortho × phon. **Retiré 20/06** : `OS_ARB` le préempte (§4). | 🟢 `len_index` + révélé, OOV-honnête |
 | `M_LEARN_FROM_COGNITION` | OFF | les apprenants apprennent de la lettre cognitive. | 🟢 apprentissage |
 | `M_OS_LEARNING` (+ 4 gardes) | **ON** | autorise l'OS à apprendre θ=(α,β) (borné·audit·MDL·cohérence). | 🟢 apprentissage |
 | `M_OS_LEARNING_ONLINE` | OFF | SPSA en ligne. **Mesuré : aucun gain + dérive** → OFF. | 🟢 (mais nuit) |
@@ -61,13 +71,13 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | `M_EMERGENT_G2P_ONLINE` | OFF | g2p appris en jouant (post-partie). | 🟢 apprentissage |
 | `M_DECLARE_NEO` (maître) | **ON** | recall + assemblé + cohorte (+ muette/trigger). | 🟢 **ssi** cohorte/board-dérivé ON |
 | `M_NEO_RECALL` | **ON** | recall adressée : board révélé + banc. | 🟢 |
-| `M_NEO_ASSEMBLED` | **ON** | décode positions sonores (phon→ortho masqué). | ⚠️ 🟢 si `M_NEO_PHON_COHORT` ON ; 🟠 si OFF (`wp.get`) |
+| `M_NEO_ASSEMBLED` | **ON** | décode positions sonores (phon→ortho masqué). | 🟢 (board-dérivé : `M_NEO_PHON_COHORT` ON dans le preset) |
 | `M_NEO_COHORT` | **ON** | filtre : lettre autorisée si ≥1 mot board-compatible. | 🟢 (corrigé `_neoEnsureWBL`) |
-| `M_NEO_PHON_COHORT` | OFF (bleu) | son **board-dérivé** (consensus cohorte) au lieu de `wp.get`. | 🟢 (c'était LA fuite — corrigé) |
-| `M_NEO_PHON_COHORT_JOINTE` | OFF (bleu) | jointe P(lettre\|phonème cohorte, voisins révélés). | 🟢 (corrigé) — *adoption rouverte §1.4.4* |
-| `M_NEO_OS_ARB` | OFF (bleu) | mélange convexe sublexical⟷lexical (cohorte). | 🟢 (corrigé) |
+| `M_NEO_PHON_COHORT` | **ON** (preset, 20/06) | son **board-dérivé** (consensus cohorte) au lieu de `wp.get`. **Anti-triche : revalide assemblé+muette en 🟢.** | 🟢 (c'était LA fuite — corrigé) |
+| `M_NEO_PHON_COHORT_JOINTE` | **ON** (preset, 20/06) | jointe P(lettre\|phonème cohorte, voisins révélés). | 🟢 (corrigé) |
+| `M_NEO_OS_ARB` | **ON** (preset, 20/06) | mélange convexe sublexical⟷lexical (cohorte). Préempte DUAL (§4). | 🟢 (corrigé) |
 | `M_NEO_G2P_EXP` | **ON** | g2p **révélé-seul** + pénalité 0,5 (cheat-free strict). | 🟢 apprentissage (révélé only) |
-| `M_NEO_MUTE` / `M_NEO_TRIGGER` | OFF | muette par le son (croisée) ; trigger = gate sur l'incertitude. | 🟢 (neutres, cf. MOTEUR_HISTORIQUE §D) |
+| `M_NEO_MUTE` / `M_NEO_TRIGGER` | **ON** (preset, 20/06) | muette par le son (croisée, board-dérivée) ; trigger = gate sur l'incertitude. | 🟢 (neutres, cf. MOTEUR_HISTORIQUE §D) |
 | `M_NEO_LETTER_NGRAM` | OFF (OOV) | n-gram de lettres pré-calculé du lexique (cascade OOV-only). | 🟢 agrégation lexique |
 | `M_NEO_OS_ARB_NGRAM` | OFF (OOV) | n-gram = voie sublexicale de l'arbitrage OS (auto-régime). | 🟢 |
 | `M_NEO_NGRAM_GAP` | OFF (OOV) | n-gram **gap-aware** (plus proche voisin révélé d=1..4). | 🟢 |
@@ -90,13 +100,18 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
   déguisé). **Corrigé** ; l'in-lexique n'est pas affecté.
 - **θ × gardes × online** : online OFF → θ n'apprend pas en live (voulu, online dégrade) ; le batch Train θ reste possible.
 
-## 5. Preset UI cheat-free (par libellé affiché)
+## 5. Preset UI cheat-free STRICT (par libellé affiché) — `applyReferenceConfig()`, MAJ 20/06
+> Le bouton est **déterministe** : il allume la liste ON ET **éteint explicitement tout le reste** (n-gram, C lourd,
+> émergents, online, Trexquant…). Un toggle laissé ON ne survit plus au préréglage.
+
 **ON** : A4 · A5 · A6 · φ Voie Phon · φ OS v07 · φ Croisement p · φ Substrat pur · φ Feedback ↓ · bPC M3_d · Couplage
 readout · Couplage readout φ · Concept lié φ · θ Apprentissage + 4 gardes · 🧩 Declare NEO maître · 🔁 recall · 🧬 assemblé
-· 🎯 cohorte · 🧪 g2p révélé (pén 0,5) · 🦴 Declare DUAL.
+· 🎯 cohorte · **🟢 son board-dérivé (cohorte phon)** · **🔗 jointe phon×ortho** · **🔁 arbitrage OS** · **🔇 muette** ·
+**🎚️ trigger** · 🧪 g2p révélé (pén 0,5).
 **OFF** : θ EN LIGNE · A1/A2/A3 · B2 · 🎯 Declare mot · 🧠 InfoGain · IG×P(succès) · 🎯 Declare BPC · 🧠 Apprendre depuis
-cognition · declares émergents · g2p online · 🔇 muette · 🎚️ trigger · 🎯 Mode Trexquant.
-Paramètres : `NEO_CONF=0,75` · `RECALL_MARGIN=0,20` · `G2P_EXP_PEN=0,5` · DUAL `CONF=0,85`/`WORTHO=0,50`/`WPHON=0,25`.
+cognition · declares émergents · g2p online · **🦴 Declare DUAL** (préempté par arbitrage OS, §4) · 🔠/🔁/🧩 voies n-gram
+(régime OOV, §6) · 🧪 C lourd · 🎯 Mode Trexquant.
+Paramètres : `NEO_CONF=0,75` · `RECALL_MARGIN=0,20` · `G2P_EXP_PEN=0,5` · `PHON_COHORT_JOINTE_CONF=0,30`.
 
 **g2p révélé + pénalité (adopté 14/06)** : `learnExp` n'apprend que des positions révélées (≠ mot complet) + pénalité
 bornée. Falsification : ancien 98,9 % · révélé-seul sans pénalité 98,3 % · révélé-seul + pén 0,5 = **98,9 %** → adopté

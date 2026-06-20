@@ -4,6 +4,17 @@
 > sans repartir de zéro ni refaire des impasses déjà mesurées. Daté **2026-06-17**, branche
 > `claude/stoic-knuth-5mt7sr` (PR #6). Le chantier dictée et le dossier Lexique 4 sont **hors scope ici**
 > (voir `dictee/` et `dossier-lexique4/`).
+>
+> **MAJ 2026-06-20 — branche `claude/cool-curie-ctnvhi` (PR #9).** Audit d'une régression ressentie (« tâtonne /
+> marche moins bien ») sur la version 155k. Cause **trouvée et corrigée** (2 commits) :
+> 1. **`applyReferenceConfig()` était ADDITIF** → un toggle expérimental laissé ON (ex. `M_NEO_LETTER_NGRAM`) survivait
+>    au préréglage : mesuré **100 %→60 % in-lex**. Rendu **déterministe** (éteint tout hors-ON + `_trexq_restore`).
+> 2. **Preset rendu cheat-free STRICT** : `M_NEO_PHON_COHORT` (+jointe/os-arb/muette/trigger) allumé → assemblé/muette
+>    board-dérivés (avant : 🟠 lisaient `wp.get(currentWord)`) ; `M_DECLARE_DUAL` retiré (préempté par OS_ARB).
+>    Coût honnête : in-lex 100→**~97 %** (la cible cheat-free) ; OOV sans n-gram ~26 %, **avec n-gram 52-63 %** (§6).
+> Vérifs lexique : **aucun saut de colonne** (155k intègre, `len_index` complet, `.g`=CGram cohérent old↔new) ; cartes
+> bi/trigramme + M3_d **non périmés** (rebâtis/réinit au runtime). Détail à jour : `docs/CONFIG_TOGGLES.md`.
+> Reste ouvert (non bloquant) : OLD20 absent du panneau Décompose (lexique réduit), commentaire « w.g genre » trompeur.
 
 ---
 
