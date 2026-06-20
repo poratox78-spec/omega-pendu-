@@ -5,7 +5,7 @@
 #   (2) DÉTECTION/CORRECTION sur les erreurs DANS LE PÉRIMÈTRE du correcteur (homophones grammaticaux), repérées
 #       en diffant bad↔good. (Le corpus contient surtout des erreurs HORS périmètre : genre du déterminant un/une,
 #       nombre, ordre des mots, mots manquants, typos — le correcteur ne les vise pas, c'est attendu.)
-# Données tierces (hors-repo, comme Lexique4) : dictee/corpus_gec_fr.jsonl (via fetch_gec_corpus.py ou fourni).
+# Données tierces : dictee/corpus_gec_fr.jsonl (suivi dans le repo ; provenance à confirmer ; régénérable via fetch_gec_corpus.py).
 # Lancer : python3 dictee/eval_gec.py
 import os, sys, json
 HERE = os.path.dirname(os.path.abspath(__file__))

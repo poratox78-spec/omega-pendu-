@@ -5,6 +5,62 @@
 
 ---
 
+## 2026-06-20 — Couche SPELLER ortho (AUTO/FLAG) + hybride + genre déterminant + stress-test FP + CONSOLIDATION (rattrapage §6)
+
+> Entrée de rattrapage : le journal s'était arrêté au 18/06 ; cet arc (couche orthographique du correcteur,
+> 18→20/06) vivait dans `CORRECTEUR.md` + les commits mais **pas dans le journal** (trou §6). Comblé ici.
+> Détail complet : `dictee/CORRECTEUR.md`.
+
+### Couche ORTHOGRAPHIQUE — non-mots (`speller_probe.py` + miroir JS dans l'app)
+Au-delà des homophones grammaticaux : un vrai correcteur de **non-mots** (formes absentes du lexique), temps réel
+(panneau « 🩹 Correcteur », debounce 350 ms). Candidats = **restauration d'accent** (deacc→accentué, prio 2) +
+**edit-1** (prio 1) + **route phonétique** (`phon_key` : ph→f, ç→s, qu→k, finales muettes… ; cible dys, prio 0).
+- **2 niveaux** : **AUTO** (remplace seul, accent-only dominant ≥3 lettres, même longueur → curseur préservé,
+  `fenetre→fenêtre`) — **cardinal FP=0** ; **FLAG** (souligne, clic) candidat incertain (`leson→leçon`, `gato→gâteau`).
+- **Embarqué** : bloc `speller-lex-gz` (92 743 formes accentuées + freq, gzip+base64 0,56 Mo). Miroir JS = exact du Python.
+- **Mesuré (GEC 98 phrases)** : **AUTO FP=0/98** ; non-mots corrigés exactement **58 %** ; FLAG-FP=12 (OOV/rares, non destructif).
+
+### HYBRIDE — la voie grammaire désambiguïse les candidats du speller
+Accord genre/nombre du contexte (déterminant/nom-tête proche, en sautant les copules) + **bascule de paire
+d'adjectif** (`cgram_adj`) → `fote→faute`, `gross→grosse`, `premiere→premier`, `blanch→blanche`. Accord = **bonus
+jamais pénalité** (ne casse pas l'AUTO accent). Câblé Python **et** app, parité vérifiée, **AUTO FP=0 préservé**.
+
+### Genre DÉTERMINANT (`rule_det_gender`) — la catégorie dominante du réel
+Déterminant à genre certain (un/une/le/la/ce/cet/cette/mon/ma/ton/ta/son/sa) + **nom PUR** juste après (champ `gn` =
+genre non ambigu MOINS verbes MOINS adjectifs) → genre(dét)≠genre(nom) → corrige. **GEC : FP=0/98, 17/27 détectés+
+corrigés**. Câblé app (`rDetGenre`), parité EXACTE. (≠ `rule_genre_adj` adjectifs, qui reste NON branchée, FP-insûre.)
+
+### Intégration SANS l'app (sans UI/DOM)
+`dictee/correcteur.js` (lié à l'app, source unique = monolithe) + `build_correcteur.js` → `correcteur.standalone.js`
+(bake, HTML non requis, **2,16 Mo** : 48 Ko code + 2,11 Mo données ; PAS le lexique 5,5 Mo du pendu). En CI.
+
+### STRESS-TEST « les deux » (20/06) — 3 vrais FP corrigés, edit-2 falsifié, élision-espace livrée
+- **FP éliminés** (sur texte correct → cardinal FP=0) : (a) **ligature œ** (`cœur→coeur` : normalise œ→oe avant lookup) ;
+  (b) **nom propre en tête** (`Nathalie→natalité` BLOQUÉ : mot capitalisé → seule la restauration d'accent autorisée) ;
+  (c) **`pome`→paumée** (collision genre nom/adj : `_gender` n'utilise la table adjectif que si POS='A' → garde anti-déacc).
+- **(A) edit-distance 2 : FALSIFIÉ par mesure** — 59 ms/mot (injouable temps réel), n'attrape **aucun** cas dur
+  (`mangont`/`doi`/`pié` : un candidat distance-1 gagne, le bon mot reste noyé), et ajoute du bruit (FLAG-FP 8→10).
+  **Non câblé** (comme les garde-fous NbHomoph/Preval). Trace négatif = R66/§6.4.
+- **(B) ÉLISION-ESPACE : livrée** — `c est`→`c'est`, `j ai`→`j'ai`, `qu il`→`qu'il`, `aujourd hui`→`aujourd'hui`.
+  Fusion de **2 tokens** (flag `span:2`, renderCorr/applyFix). Détection : lettre d'élision + mot voyelle valide,
+  écart purement blanc (apostrophe typographique déjà là → pas de FP). **5/5 élisions, 0 FP, parité OK.** En CI.
+- **Cas restants (honnête)** : `balon`/`tan`/`voudrai` = **vrais mots** → le speller n'y touche pas (les corriger =
+  « did you mean » contextuel = terrain déjà **falsifié** côté POS naïf, risque FP). `doi→doigt`/`pié→pied`/
+  `mangont→mangeons` = distance 2 **+** lettres muettes (clé phon `dwag`≠`dwa`) → exigent un modèle contexte/fréquence
+  (ré-ordonner vrai-mot-rare → mot-fréquent-proche) **mesuré contre FP=0 sur le GEC** = jonction 7 de `CORRECTEUR.md`,
+  **reportée** (la doctrine §1 interdit de la câbler sans mesure).
+
+### CONSOLIDATION (20/06) — PR #9 synchronisée avec main
+- PR #10 (« décomposeur à la Lexique 4 ») mergée dans `main` → PR #9 (correcteur) mergée avec `origin/main` (main
+  désormais ancêtre, mergeable proprement). `app/omega-pendu.html` + `CLAUDE.md` auto-mergés (panneaux Décompose et
+  Correcteur coexistent). CI = **union** (décompose + correcteur/speller), **vérifiée verte en local** (18 étapes).
+- **Corpus GEC réintégré** : PR #9 l'avait sorti du repo (`hors-repo`, provenance à confirmer) ; PR #10 l'a committé
+  (`dictee/corpus_gec_fr.jsonl`, 98 paires) → on s'aligne sur l'état canonique de `main`. ⚠️ Provenance/licence du
+  corpus **toujours à confirmer** (texte type Wikipédia) — à retirer si besoin. Docs `eval_gec.py`/`CORRECTEUR.md`
+  réconciliées (« hors-repo » → « suivi dans le repo »).
+
+---
+
 ## 2026-06-18 — LE VRAI PROBLÈME : cognition/apprentissage ne généralisent pas + FIX n-gram (N=400 : 50→66 %) — AUDIT §1.7/§1.8
 
 Suite Rem : « le pendu n'est qu'une MESURE ; OMEGA ne gagne ni par mémorisation ni par apprentissage-par-jeu — vrai

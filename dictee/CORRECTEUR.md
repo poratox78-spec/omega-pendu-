@@ -89,7 +89,7 @@ lexicale → règle **non branchée** (FP=0 cardinal). La route lexicale du genr
 `cgram_adj.json` est conservé comme **asset** pour un futur correcteur à tagger.
 
 ## Validation sur VRAI corpus (Rem, 98 paires GEC FR) — FP 0 après durcissement
-Corpus réel fourni (`dictee/corpus_gec_fr.jsonl`, hors-repo) → `dictee/eval_gec.py`. **Test cardinal = faux positifs
+Corpus réel fourni (`dictee/corpus_gec_fr.jsonl`, **suivi dans le repo** depuis PR #10 — provenance à confirmer) → `dictee/eval_gec.py`. **Test cardinal = faux positifs
 sur les 98 phrases CORRECTES** (texte Wikipédia réel, multi-clauses).
 - 1re passe : **11 FP** (0,11/phrase) → le « 0 FP » synthétique était optimiste, le réel l'a **falsifié**.
 - Mécanismes trouvés : (a) `deacc("à")=="a"` collisionnait avec l'auxiliaire *a* (→ « à décider » lu « a décidé ») ;
