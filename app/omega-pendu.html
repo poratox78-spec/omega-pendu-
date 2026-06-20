@@ -792,7 +792,7 @@ footer {
       <button class="btn" onclick="ui_runStep()">+1 Tick</button>
       <button class="btn" onclick="ui_runUntilEnd()">▶▶ Auto</button>
       <button class="btn danger" onclick="ui_abortGame()">Abort</button>
-      <button class="btn" onclick="ui_resetLearning()" title="Remet l'apprentissage à froid : re-init substrats + stats (moteur cold)">🧹 Reset</button>
+      <button class="btn" id="btn-reset-engine" onclick="ui_resetLearning()" title="Remet le moteur À FROID (cold) : re-init substrats + stats + apprentissage de session. ⚠️ À cliquer après avoir changé un toggle EN COURS DE SESSION — sinon l'état appris reste « contaminé » et la même config ne rejoue pas pareil (le moteur apprend en jouant). Voir AUDIT_BASELINE.md §8.">🔄 Reset moteur</button>
       <button class="btn" onclick="omega_runMeasurementExport(200, 12345)" title="Mesure A/B/C (200 parties, seed 12345) + export JSON">📊 Mesure</button>
       <button class="btn" onclick="omega_runDriverComparisonExport(200, 12345)" title="Compare les 3 drivers de W phon (candidates/r_lagged/fixed) + export JSON">🔬 Drivers</button>
       <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;opacity:.85;margin-left:4px">θ pas<input id="train-steps" type="number" value="15" min="1" max="200" style="width:46px">batch<input id="train-batch" type="number" value="150" min="20" max="2000" style="width:54px">seed<input id="train-seed" type="number" value="12345" style="width:68px"></span>
@@ -9111,6 +9111,9 @@ function ui_toggle(item) {
       ui_onLex4Loaded(false);
     });
   }
+
+  // §8 contamination : un toggle a changé → l'état de session n'est plus « propre ». Recommande visuellement le reset.
+  if (typeof ui_markEngineDirty === 'function') ui_markEngineDirty();
 }
 
 // === Callback Lex4 chargé ===
@@ -9220,7 +9223,24 @@ function ui_resetLearning() {
     if (typeof ui_renderGame === 'function') ui_renderGame();
     if (typeof ui_renderStats === 'function') ui_renderStats();
     if (typeof ui_renderVoies === 'function') ui_renderVoies();
+    ui_clearEngineDirty();   // état propre → l'indicateur « reset recommandé » disparaît
   } catch (e) { ui_log('ERROR', 'reset: ' + e.message); }
+}
+
+// Indicateur de CONTAMINATION de session (AUDIT_BASELINE.md §8) : changer un toggle pendant qu'on a joué laisse de
+// l'état appris ; on signale visuellement que « 🔄 Reset moteur » est recommandé pour une mesure propre. PUREMENT
+// indicatif (UI) — n'altère NI le moteur NI la décision (R66 : hot-path inchangé).
+function ui_markEngineDirty() {
+  try {
+    const b = document.getElementById('btn-reset-engine');
+    if (b) { b.style.outline = '2px solid #d9822b'; b.textContent = '🔄 Reset moteur ⚠️'; }
+  } catch (e) {}
+}
+function ui_clearEngineDirty() {
+  try {
+    const b = document.getElementById('btn-reset-engine');
+    if (b) { b.style.outline = ''; b.textContent = '🔄 Reset moteur'; }
+  } catch (e) {}
 }
 
 function ui_renderVoies() {

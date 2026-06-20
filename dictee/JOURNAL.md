@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-06-20 — ✅ Correctif contamination : bouton « 🔄 Reset moteur » (option 1, choix Rem)
+
+Le bouton existait déjà (`ui_resetLearning` = `initOmegaGlobals` + reset stats). **Vérifié** : restaure exactement le
+cold (contaminé `ab00eea9` → après Reset `666f0f81`). C'était un problème de **découvrabilité**. Ajouté (additif, UI
+seulement, **winrate banc inchangé 12,0 %**) : bouton renommé « 🔄 Reset moteur » + titre explicite + **indicateur
+visuel** (`ui_markEngineDirty` flague le bouton `⚠️`+contour à chaque changement de toggle ; `ui_clearEngineDirty` au
+reset). Options teardown-auto/auto-reset laissées en réserve. Détail : `../AUDIT_BASELINE.md §8.5`.
+
 ## 2026-06-20 — ⚠️ CONTAMINATION à la désactivation des toggles — CONFIRMÉE (Rem avait raison)
 
 Rem : « vérifie la **désactivation** des toggles, il y a une **contamination**, c'est sûr ». Test dynamique

@@ -202,19 +202,26 @@ Trois états de référence mesurés :
   6f9fe61↔HEAD** (§7.1). La contamination **n'a pas été introduite** par le travail lexique/décompose — elle est
   ancienne ; elle a juste été **remarquée maintenant**.
 
-## 8.5 Recommandations
+## 8.5 Recommandations — ✅ CORRECTIF APPLIQUÉ (option 1, choix de Rem)
 - 🔒 **Mesure reproductible = RECHARGER la page entre deux configs** (jamais comparer en basculant dans une session). Le
   banc le fait déjà ; toute comparaison interactive doit suivre la même règle.
-- 🛠️ **Correctif possible (à décider — NE PAS toucher la base sans accord)** : (a) bouton **« 🔄 Reset moteur »**
-  (= `initOmegaGlobals()` à la demande, état propre garanti) ; (b) rendre la **désactivation symétrique** (teardown de
-  l'état appris) pour les toggles de learning/declare ; (c) a minima **avertir dans l'UI** que changer un toggle après avoir
-  joué nécessite un reset. **Choix de Rem requis.**
-- 📌 Ce n'est **pas un bug de régression** (rien n'a empiré) mais une **propriété de reproductibilité** : OMEGA est
-  **session-stateful** (il apprend en jouant) → « même config » ⇒ « mêmes résultats » **uniquement depuis un chargement frais**.
+- ✅ **Le bouton « 🔄 Reset moteur » EXISTE et est VÉRIFIÉ** : `ui_resetLearning()` = `initOmegaGlobals()` + reset stats →
+  **restaure exactement le cold** (mesuré : contaminé `ab00eea9` → après Reset `666f0f81` = cold). C'était donc un
+  problème de **découvrabilité**, pas de capacité.
+- ✅ **Découvrabilité ajoutée (additif, R66-safe — UI seulement, jamais le hot-path)** : (1) le bouton est **renommé/clarifié**
+  (« 🔄 Reset moteur », titre explicite « à cliquer après avoir changé un toggle en cours de session ») ; (2) **indicateur
+  visuel** : changer un toggle (`ui_toggle`) **flague le bouton** (`⚠️` + contour orange via `ui_markEngineDirty`) pour
+  rappeler le reset ; effacé par le reset (`ui_clearEngineDirty`). Winrate du banc **inchangé** (12,0 % / 4,92 — décision
+  intacte).
+- 🛠️ Options NON retenues (laissées en réserve) : (b) teardown symétrique automatique à la désactivation ; (c) auto-reset.
+  Rem a choisi le **contrôle manuel** (option 1).
+- 📌 Ce n'est **pas un bug de régression** mais une **propriété de reproductibilité** : OMEGA est **session-stateful** (il
+  apprend en jouant) → « même config » ⇒ « mêmes résultats » **uniquement depuis un chargement frais OU après « 🔄 Reset moteur »**.
 
 ## 8.6 Verdict global (mémo)
 - **Winrate** (§0) : pas de régression (banc frais).
 - **Structure statique** (§7) : flux/toggles/archi byte-identiques, aucune dérive.
 - **Désactivation dynamique** (§8) : **contamination CONFIRMÉE en interactif** (reset dur voie/substrat · résidu
-  d'apprentissage), **pré-existante**, **banc immunisé**. → **Rem avait raison sur la contamination.** Reste à décider
-  d'un correctif (8.5).
+  d'apprentissage), **pré-existante**, **banc immunisé**. → **Rem avait raison sur la contamination.** **Correctif
+  appliqué (option 1)** : bouton « 🔄 Reset moteur » vérifié (restaure le cold) + indicateur visuel de contamination
+  au changement de toggle (§8.5).
