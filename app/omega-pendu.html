@@ -11569,6 +11569,12 @@ window.addEventListener('DOMContentLoaded', () => {
     var nx=T[i+1].toLowerCase(),dn=deacc(nx);
     if(PREP[dn]||NUM_DET[nx]||NUM_PRON[dn]||vlike(T,i+1))return null;   // pas prép/déterminant/pronom/verbe
     return GENDER_PURE[dn]?ckeepcase(T[i],'mes'):null;}                  // le mot suivant est un nom genré connu
+  // « j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est »). Devant un déterminant
+  // → « j'ai » : l'élision j' exclut « je suis » (consonne, ne s'élide pas) ⇒ forme à voyelle = avoir présent ;
+  // confusion phono ai/est (/e/≈/ɛ/). Adj/participe = aux ambigu → abstention (contexte=LLM). MÊME logique que
+  // correcteur_probe.rule_jest → parité. FP=0 (jamais valide ; déterminant→avoir certain).
+  function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;
+    return NUM_DET[T[i+1].toLowerCase()]?ckeepcase(T[i],"j'ai"):null;}
   // Accord SUJET-VERBE (route lexicale cgram_conj) — sujet PRONOM (personne/nombre certains), borné FP=0.
   var SUBJ_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],ils:['3','p'],elles:['3','p']};
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
@@ -11605,7 +11611,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rDetGenre(T,i){var lw=deacc(T[i].toLowerCase());if(!DET_G[lw]||T[i].toLowerCase().indexOf("'")>=0)return null;if(i+1>=T.length)return null;
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
-  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
+  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
   function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ']+/g,o='',last=0,m,fm={},T=[];flags.forEach(function(f){fm[f.i]=f;});
     while((m=re.exec(text)))T.push([m.index,m.index+m[0].length,m[0]]);

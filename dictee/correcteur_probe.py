@@ -402,9 +402,20 @@ def rule_mais_mes(T, i):
         return None                                    # pas prép/déterminant/pronom/verbe
     return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
 
+def rule_jest(T, i):
+    """« j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est »). Devant un déterminant
+    → « j'ai » : l'élision j' exclut « je suis » (consonne, ne s'élide pas) ⇒ forme à voyelle = avoir présent ;
+    confusion phono ai/est (/e/≈/ɛ/). FP=0 (jamais valide ; détermin.→avoir certain). Adj/participe = choix
+    d'auxiliaire ambigu (« j'est content/allé ») → abstention (contexte = LLM)."""
+    if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
+        return None
+    return _keepcase(T[i], "j'ai") if T[i + 1].lower() in NUM_DET else None
+
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
+         ("j'est/j'ai", rule_jest),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)

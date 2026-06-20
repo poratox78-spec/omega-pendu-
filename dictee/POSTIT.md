@@ -20,7 +20,7 @@
 ## ✅ FAIT (mesuré + poussé)
 | Brique | État | Chiffre clé |
 |---|---|---|
-| **Règles MAISON améliorées** (nos données) | livré | **genre relâché** `le voiture→la` (Python+**APP**, +0,19 Mo) · **mais→mes** (Python+**APP**, parité+FP=0) · **FP TOTAL = 0/98 GEC** |
+| **Règles MAISON améliorées** (nos données) | livré | **genre relâché** `le voiture→la` (Python+**APP**, +0,19 Mo) · **mais→mes** · **j'est→j'ai** (avoir/être, déterminant-gardé) — Python+**APP**, parité+**FP TOTAL = 0/98 GEC** |
 | **3 pistes « sans contexte »** | **FALSIFIÉES** (sondes+CI) | did-you-mean · phonème (g2p-sur-typo) · morpho→trexquant (thèse §1.8) |
 | **LA COLLE** (notre couche dys) | **câblée** | sortie moteur (LLM `famille`) → **STADE dys affiché** par-dessus (engine-agnostic) |
 | **Remédiation ciblée PAR FAMILLE** | **livré** | table `REMED` (8 stratégies orthophonie ancrées double-route) → `remedBlock` aux **3 sorties + profil** ; correctif stade règles (homophone≠accord) |

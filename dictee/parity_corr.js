@@ -53,7 +53,10 @@ const PHRASES = [
   'un livre intéressant', 'la tour est haute',
   // mais/mes : détection (mais + nom genré) + abstention adversariale (prép / verbe-homographe / pronom)
   'et j\'ai bouliées mais lunettes', 'mais voiture est rouge', 'il dort mais porte un sac', 'il lit mais marche vite',
-  'Mais sous la table', 'mais je viens', 'il rit mais pleure souvent', 'mais place est prise', 'mais cause des ennuis'
+  'Mais sous la table', 'mais je viens', 'il rit mais pleure souvent', 'mais place est prise', 'mais cause des ennuis',
+  // j'est/j'ai : détection devant déterminant (→ j'ai) + abstention ambiguë (adj/participe = aux → LLM) + non-FP
+  'j\'est le poisse de oartir à la monagne', 'j\'est un chien', 'J\'est la chance', 'j\'est content', 'j\'est allé à Paris',
+  'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien'
 ];
 
 // flags Python via un petit pont

@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-06-20 — Règle « j'est → j'ai » (confusion avoir/être, phono) — signalée par Rem
+
+**Cas** (copie réelle Rem) : `j'est le poisse de oartir à la monagne`. Le correcteur attrapait `le→la`,
+`oartir→partir`, `monagne→montagne` mais **ratait `j'est`**. Diagnostic Rem : « problème verbe avoir et être
+surement phono ».
+
+**Pourquoi raté** : `toks` inclut l'apostrophe → `j'est` = **un seul token** ; `rAccordSV` (et les autres)
+**abandonnent dès qu'un token contient `'`** (pour ne pas casser `c'est`/`qu'est`/`l'est`). Donc `j'est` filait.
+
+**Décision (FP=0)** : la **détection** de `j'est` est toujours sûre (jamais valide en français). La **correction**
+`j'ai` vs `je suis` est ambiguë EN GÉNÉRAL — **sauf** que l'élision tranche : « je suis » ne s'élide jamais (consonne
+/s/), donc `j'…` vise une forme à voyelle ⇒ présent d'**avoir** (`ai`, /e/≈/ɛ/ avec `est`). **Devant un déterminant**
+(`j'est le/un…`) c'est certain → `j'ai`. Sur **adjectif/participe** (`j'est content/allé` = choix d'auxiliaire) →
+**abstention** (contexte = LLM, ligne doctrinale du projet).
+
+**Livré** : `rule_jest` (Python `correcteur_probe.py`) + `rJest` (app), enregistrées après `mais/mes`. Famille =
+homophone (stade lexical) → tip de remplacement adapté (`j'ai`→`j'avais` ?). **Mesuré** : Python OK sur 8 cas
+(`j'est le/un…`→`j'ai` ; `content`/`allé`/`c'est`/`qu'est-ce`/`j'ai` → rien) ; **FP=0** maintenu (30 phrases +
+témoins + **98 GEC réelles**) ; `parity_corr.js` étendu de 8 cas → **app ⊆ Python sur 67 phrases** ; speller inchangé.
+
+**Reste contexte → LLM** : `j'est content`→`je suis content`, `j'est allé`→`je suis allé` (auxiliaire), `je sui`,
+`bouliées`. C'est exactement la frontière hors-ligne/contexte déjà cartographiée.
+
+---
+
 ## 2026-06-20 — Couche dys ENRICHIE : remédiation ciblée PAR FAMILLE (le produit)
 
 **Le produit** = `famille → stade → REMÉDIATION ciblée`. Jusqu'ici : famille→stade OK, mais la « remédiation » se
