@@ -9197,7 +9197,13 @@ function applyReferenceConfig() {
       'M_BPC_M3D_ENABLED','M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED',
       'M_OS_LEARNING_ENABLED','M_OS_LEARNING_GUARD_1_BOUNDED','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT','M_OS_LEARNING_GUARD_3_MDL_REGUL','M_OS_LEARNING_GUARD_4_COHERENCE',
       'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_DECLARE_DUAL_ENABLED'];
-    ON.forEach(function(n){ if (ALLOWED_TOGGLES.indexOf(n) >= 0) { try { eval(n + ' = true'); } catch(e){ console.warn('[preset]', n, e); } } });
+    // DÉTERMINISTE (AUDIT régression) : le préréglage est un RESET COMPLET vers la config mesurée-optimale,
+    // PAS un ajout. Tout toggle ALLOWED hors liste ON — voies expérimentales (n-gram de lettres, n-gram arbitré OS,
+    // n-gram gap-aware, C lourd, cohorte phon), Trexquant, etc. — est explicitement remis à FALSE. Sinon un toggle
+    // laissé ON survit au préréglage et dégrade le jeu : mesuré 100 %→60 % in-lex avec « n-gram de lettres » seul
+    // (« tâtonne / fait plus d'erreurs »). Le bouton garantit désormais la config exacte mesurée (~97,5 % in-lex).
+    ALLOWED_TOGGLES.forEach(function(n){ try { eval(n + ' = ' + (ON.indexOf(n) >= 0 ? 'true' : 'false')); } catch(e){ console.warn('[preset]', n, e); } });
+    if (typeof _trexq_restore === 'function') { try { _trexq_restore(); } catch(e){} }   // soigne un lexique amputé par un tour Trexquant précédent
     if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
     if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
     if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
