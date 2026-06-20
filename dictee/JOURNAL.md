@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-06-20 — Cas durs classe A : route PHONÈME réelle — ne bat pas la baseline (g2p-sur-typo non fiable)
+
+Suite de la classe A (`doi→doigt`, `pié→pied` : le bon mot n'est pas candidat par `phon_key` crue). Tenté la **route
+phonème réelle** : indexer le lexique par son **vrai SAMPA** (`phono_homophones.json`, committé) + dériver le phonème
+du typo via **g2p** (`decompose.sublexical_phon`), puis préférer le candidat dont le SAMPA = g2p(input). Mécanique
+testée : « un accent doit préserver le son » (démoter `pie` si son SAMPA ≠ g2p(`pié`), promouvoir `pied`).
+
+**En principe, ça marche** : g2p(`pié`)=/pje/ = `pied` (/pje/) **≠** `pie` (/pi/) → désambiguïsé. La route isole aussi
+correctement les **vraies ambiguïtés** (`doi`=/dwa/ = dois/doit/doigt ; `tan`/`balon`/`voudrai` = vrais homophones du
+voisin) → ne pas deviner = FP=0 respecté.
+
+**Mais sur le GEC (le juge), 5 variantes mesurées — AUCUNE ne bat la baseline** : recall **7/13** inchangé, et la
+**confiance AUTO chute (2→0)**. Les cas « gagnés » (`pié→pied`) **ne sont pas dans le corpus** → j'optimisais des
+**anecdotes**, pas la mesure (piège doctrine §1/§6.4).
+- **Cause racine = g2p-sur-typo non fiable** : drop du `e` muet (`cafe`→/kaf/ ≠ café /kafe/), du schwa (`fenetre`
+  `fnEtR` vs `f°nEtR`), qualités vocaliques (`telefon` vs `telefOn`). → exiger un match phonétique **démote les
+  restaurations d'accent AUTO légitimes** (café/fenêtre = la feature FP=0 la plus précieuse).
+- Tentatives de sauvetage mesurées et épuisées : préfixe-tolérant (récupère café mais pas fenêtre), rival = edit-1
+  seulement, **normalisation de notation** (`°`/`E`/`O`) → **réintroduit des collisions** (`pié→pieu`).
+
+**Verdict (barrière de mérite §6.4)** : ne bat pas la baseline → **NON câblé**. `pié→pied` est résoluble *en principe*
+mais bloqué par la **qualité de g2p sur les mots mal orthographiés**. Le vrai fix (ouvert) : embarquer le **phonème
+réel par mot** (rebuild `speller-lex` avec `2_Phono` de Lexique4) **+ un g2p aligné sur cette notation** — exige
+Lexique4, et même là la fiabilité g2p-sur-typo reste la question ouverte. Cohérent avec le plafond « sans-contexte »
+des deux classes (cf. entrée did-you-mean).
+
+---
+
 ## 2026-06-20 — « DID YOU MEAN » fréquence : FALSIFIÉ (mesuré, jonction 7 classe vrai-mot)
 
 Reprise de la piste laissée ouverte par le stress-test : corriger un **vrai mot rare** (que le speller ne touche pas,
