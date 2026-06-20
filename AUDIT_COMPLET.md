@@ -101,11 +101,17 @@ la lecture du son du mot (régime « mot entendu », déjà documenté).
   couplage 0,20) mais **aucun `Number.isFinite`/`throw [FATAL]`** ne garde `cLetterScore`, `a[c]`,
   ni la matrice `rwR` — alors que `M_OS_v07_step`, `M4_phon_step`, `M5_phon_step` **throw** sur
   non-fini. C'est **le seul chemin décisionnel non fail-loud**. Couplé à :
-- **🟠 B6 — `bpcW`/`bpcW_phon` Hebbian non bornés (eng1.js:2880).**
+- **🟢 B6 — `bpcW` Hebbian « non borné » → FALSIFIÉ par la mesure (eng1.js:2880).**
   `w[i] += LR·ac·(m2[i]-m2hat[i])` : aucun clamp ni normalisation (le commentaire reconnaît la
   dérive « vers 2000+ parties »). `M_BPC_R_DECAY` borne `rwR` mais **rien** ne borne `bpcW` →
-  `‖bpcW‖` peut dériver → `a[c]` explose → `cLetterScore` non borné → (avec B5) **NaN propagé
-  silencieusement au scoring**. Confirme/précise `AUDIT_OMEGA §S2` côté bPC.
+  `‖bpcW‖` *pourrait* dériver → `a[c]` exploser → `cLetterScore` non borné.
+  **MESURÉ (2026-06-20, R67, config réf., 2500 parties seed 12345)** : `‖bpcW‖` **NE diverge PAS** —
+  s'auto-stabilise à **~1,1** (0,67 → ~1,1, **plat dès ~900 parties, inchangé jusqu'à 2400**),
+  activations bornées (< 0,7). Cause : l'objectif est une **reconstruction** (`m2−m2hat` s'annule
+  quand l'autoencodeur converge), **pas du Hebbian pur** → naturellement **auto-régularisant**.
+  → **Borner `bpcW` est INUTILE** (un cap serait inerte, ou distordrait la représentation convergée) ;
+  la garde **fail-loud (B5 / fix #4)** suffit comme filet contre un NaN hypothétique. La crainte
+  « dérive sur 2000+ parties » d'`AUDIT_OMEGA §S2` est **non réalisée en pratique** (mesure : `/tmp/diag_bpcw.js`).
 - **🟡 B7 — `omegaRand` fallback `Math.random()` (eng1.js:946 ≈ orig 2385).** Jamais déclenché en
   pratique (`initOmegaGlobals` pose toujours `_omegaRng`), mais le claim « tout `Math.random`
   non-seedé supprimé » reste inexact (`§R2`). Tout appel à `omegaRand` **avant** init = non
@@ -362,11 +368,11 @@ omega_key_chat_v1` (fil en clair, **documenté** §7) ; le relais ne voit **que*
 | 1 | **Accessibilité dys** : `aria-live` sur `#vdd-fb`/`#vdc-out`/`#vdk-prev` + `tabindex`/`role`/`keydown` sur `.vdc-bad` | 🔴 | moyen |
 | 2 | **`esc` unique 5-car.** (dédupliquer, restaurer `'`) + **feature-detect `speechSynthesis`** avec repli | 🟠 | faible |
 | 3 | **`diag_bpc.js:73`** : verdict signé (pas `abs`) — *validité scientifique* | 🟠 | trivial |
-| 4 | **bPC fail-loud** : garde de finitude sur `cLetterScore`/`a`/`rwR` + **borner `bpcW`** | 🟠 | faible |
+| 4 | **bPC fail-loud** : garde finitude `cLetterScore` ✅ **fait** (fix #4) · borner `bpcW` = **falsifié par mesure** (ne diverge pas — B6) → abandonné | 🟢 | — |
 | 5 | **Bench trexquant R67** : restore en `finally` + figer `M_LEARN_FROM_COGNITION` ; `_trexq_restore` : `ui_log` + ne nuller `_trexqRemoved` qu'après réinsertion | 🟠 | faible |
 | 6 | **omega-key HMAC** : vraie clé HKDF sur PBKDF2/BPUF, ou retirer la couche trompeuse | 🟠 | faible |
 | 7 | **Docs** : D2 obsolète (M1_m débranché), headline `22/24→21/24`, `lexicalGender` HF≠cgram, `CONFIG_REFERENCE` 39→42 | 🟠 | faible |
-| 8 | **CI anti-régression moteur** : smoke seedé assert cognition≥90 % / +NEO≥97 % | 🟠 | moyen |
+| 8 | **CI anti-régression moteur** ✅ **fait** (`evo/ci_smoke.js` : assert cognition ≥ 84 / +NEO ≥ 93, dans `ci.yml`) | 🟢 | — |
 | 9 | **Builders Python** : `--dry-run`/garde ; `decompose.py` corriger le cas dupliqué + démo non-persistante | 🟡 | faible |
 | 10 | **Hygiène** : retirer `pairConv`/dormants/code mort ; factoriser le protocole `evo/` ; `eval`→Map ; expliciter l'ordre de cascade | 🟡 | moyen |
 
