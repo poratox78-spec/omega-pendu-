@@ -35,10 +35,11 @@ verbatim du correcteur app, **parité ⊆ Python, FP=0**, en CI). Barre flottant
 **stade + remédiation**. Charger `extension/` via `chrome://extensions` (mode développeur). **Phase 2** = speller
 (typos) + Nano (contexte) · **Phase 3** = clavier virtuel / zone universelle.
 
-## ⚠️ OUVERT — baseline moteur (NE PAS oublier)
-Rem : « la base à ne pas toucher a **peut-être** bougé, résultats **peut-être** différents — n'invente pas ». Fait : le
-**lexique moteur embarqué** a changé (83k→155k, `9d3763c` ; mb réintégré, `3ff98c1`) dans la fenêtre décompose, et le
-banc `fitness_harness` lit ce lexique → **audit profond à faire** (`AUDIT_BASELINE.md`). **Ne PAS « réparer » sans A/B.**
+## ✅ AUDIT baseline moteur — FAIT, pas de régression (`AUDIT_BASELINE.md`)
+A/B mesuré `6f9fe61`(83k) vs HEAD(155k), même harnais : **code moteur byte-identique** · winrate **in-lex 10,0%↔10,3%**
+(bruit) · **mots fixes 9,8%=9,8%** · **mots nouveaux OOV/in-lex 12,5%=12,5%**. ⇒ lexique = **superset pur, winrate-INERTE**.
+La seule « différence de résultats » = `pick()` échantillonne d'autres mots (cosmétique). **Garder le 155k, rien à réparer.**
+(Réserve : Trexquant OOV officiel pas rejoué headless ; régression peu probable vu l'inertie mesurée.)
 
 ## ⏳ EN COURS / EN ATTENTE
 1. **Tester l'extension chez Rem** (Chrome, mode développeur) : charger `extension/`, écrire dans un champ.

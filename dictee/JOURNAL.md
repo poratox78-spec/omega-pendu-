@@ -5,7 +5,17 @@
 
 ---
 
-## 2026-06-20 — ⚠️ Signalement baseline moteur (Rem) → mémo `AUDIT_BASELINE.md` (à auditer plus tard)
+## 2026-06-20 — ✅ Audit baseline moteur LANCÉ → pas de régression (mesuré)
+
+A/B `6f9fe61`(83k) vs HEAD(155k), **même harnais figé**, headless : (1) **code moteur byte-identique** (les 17 lignes
+qui diffèrent = panneau correcteur/dictée, jamais le hot-path pendu → R66 OK) ; (2) **in-lex** 5 graines n=400 :
+**10,0 % ↔ 10,3 %** (bruit), err/p identique ; (3) **mêmes mots fixes** : **9,8 % = 9,8 %** ; (4) **mots nouveaux**
+(OOV-83k / in-lex-155k) : **12,5 % = 12,5 %**. Lexique = **83k ⊂ 155k** (superset pur). ⇒ le changement de lexique est
+**WINRATE-INERTE** ; ce que tu as vu de « différent » = `_omega_pickWords` échantillonne d'autres mots (cosmétique), +
+une fenêtre où le banc **plantait** (bloc speller `text/plain`, réparé par `3ff98c1`). **Rien à réparer, garder le 155k.**
+Détail + réserve Trexquant : `../AUDIT_BASELINE.md` §0.
+
+## 2026-06-20 — ⚠️ Signalement baseline moteur (Rem) → mémo `AUDIT_BASELINE.md`
 
 Rem signale : « la **base à ne pas toucher** a **peut-être** été modifiée, je n'ai **peut-être** plus les mêmes
 résultats — n'invente pas. Depuis **décompose** + un **ajustement trexquant**. Audit structurel profond à faire. »

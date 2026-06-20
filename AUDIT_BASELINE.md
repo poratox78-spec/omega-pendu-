@@ -1,8 +1,39 @@
-# 🔎 AUDIT BASELINE — signalement « la base a peut-être bougé » (À FAIRE PLUS TARD)
+# 🔎 AUDIT BASELINE — signalement « la base a peut-être bougé »
 
-> **Statut : OUVERT · NON CONFIRMÉ · à auditer plus tard.** Mémo de documentation, pas un diagnostic clos.
-> **Ne rien « réparer » sans mesure A/B.** Ne pas toucher la base pendant l'instruction.
+> **Statut : AUDIT FAIT (2026-06-20) · AUCUNE RÉGRESSION MESURÉE · moteur intact.** Voir §0.
 > Doctrine concernée : **R66** (« baseline byte-identique au repos », CLAUDE.md §1 · DICTEE_ROADMAP §24 · REPRISE_MOTEUR §69).
+
+## 0. RÉSULTAT DE L'AUDIT (mesuré, A/B `6f9fe61` 83k vs HEAD 155k, **même harnais figé**)
+**Conclusion : le changement de lexique (83k→155k) est WINRATE-INERTE ; le code moteur est BYTE-IDENTIQUE. Pas de régression.**
+
+| Test (mesuré headless) | 83k (`6f9fe61`) | 155k (HEAD) | Lecture |
+|---|---|---|---|
+| **Code moteur** (diff JS hors lexique) | — | — | **0 ligne moteur changée** ; les 17 lignes qui diffèrent sont **toutes** du panneau correcteur/dictée (`vdc-`/`vdd-`, additif/évolutif), **jamais le hot-path pendu** → **R66 respecté** |
+| **Bench in-lex** (5 graines, n=400, `O.pick`) | **10,00 %** · err/p 4,91 | **10,30 %** · err/p 4,91 | écart **dans le bruit** (par graine : +1,0/−0,8/+2,0/+0,8/−1,5) ; err/p **identique** |
+| **Mêmes mots FIXES communs** (400, len 7-20) | **9,8 %** | **9,8 %** | **identique** → le devineur ne change pas sur des mots donnés |
+| **Mots NOUVEAUX** (400, OOV-83k / in-lex-155k) | **12,5 %** | **12,5 %** | **identique** → savoir un mot « in-lex » vs « OOV » ne change PAS le winrate au config par défaut |
+| **Composition lexique** | 83 605 mots | 155 493 (**83k ⊂ 155k**, +71 888) | **superset pur, rien supprimé** ; le 155k inclut des mots courts/fonctionnels que le 83k filtrait |
+
+**Ce qui change réellement, et pourquoi tu as pu voir « des résultats différents »** :
+- `_omega_pickWords(n,seed)` **échantillonne dans le lexique** → à graine égale, le 155k tire un **mix de mots différent**
+  (composition + 71 888 nouveaux). Donc un `node evo/fitness_harness.js` brut **affiche un nombre légèrement différent**
+  (10,0 → 10,3 %) parce qu'il **teste d'autres mots**, **pas** parce que le moteur a changé. C'est **cosmétique**.
+- **Fenêtre cassée** : entre `d5a7efe` (ajout du bloc speller `text/plain`) et `3ff98c1` (« fix harnais evo »), le banc
+  **plantait** (SyntaxError : il évaluait le bloc données comme du JS). Le `3ff98c1` ne fait que **réparer le banc**
+  (exclusion des blocs données) — **n'altère pas l'eval du moteur**. Si tu as lancé le banc dans cette fenêtre tu avais
+  un **crash**, pas un chiffre → autre source possible de « plus les mêmes résultats ».
+
+**Réserve honnête** : tout ceci est mesuré au **config par défaut** (modules cognitifs au repos) et sur le **bench in-lex** +
+un proxy OOV (« mots nouveaux »). Le **bench Trexquant OOV officiel** (bouton « 🎯 », 6 erreurs, dict externe) **n'a pas été
+rejoué headless** ici — mais le code moteur étant byte-identique et le devineur inerte au lexique (12,5 %=12,5 % in-lex vs OOV),
+une régression Trexquant est **peu probable**. À rejouer si tu veux fermer ce point à 100 %.
+
+**Décision** : **ne rien « réparer »** — il n'y a rien à réparer. Le passage 155k (commit `9d3763c`, « base lexicale
+COMPLÈTE ») est **intentionnel, non destructif (superset), winrate-inerte**. Garder le 155k.
+
+---
+<details><summary>Mémo d'origine (signalement + plan, conservé)</summary>
+
 
 ## 1. Le signalement (Rem, 2026-06-20)
 > « on a un problème sur notre base à ne pas toucher, elle l'a été. Je n'ai **peut-être** plus les mêmes résultats —
@@ -51,3 +82,5 @@ Sous-hypothèses possibles (non mesurées) :
 - Base : `app/omega-pendu.html` (bloc `lex4-data-gz` ~L731). Banc : `evo/fitness_harness.js`, `evo/measure_lex_bylen.js`.
 - Audit moteur existant : `AUDIT_OMEGA.md` · reprise : `REPRISE_MOTEUR.md` · SOTA/baseline Trexquant ~18 % OOV : `docs/HANGMAN_SOTA.md`.
 - Commits clés : `6f9fe61` (avant) · `9d3763c` (83k→155k) · `3ff98c1` (mb + harnais) · `dd3a4e4` (sonde trexquant, read-only).
+
+</details>
