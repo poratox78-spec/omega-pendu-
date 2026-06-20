@@ -9256,15 +9256,17 @@ function _omega_distStats(arr) {
 
 let _trexqRemoved = null;  // {key,pos,id} mot retiré du len_index (mode Trexquant), à restaurer au tour suivant
 function _trexq_restore(){
-  try{ if(_trexqRemoved && typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
-    const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){ console.error('[trexq] restore len_index échec — lexique possiblement amputé:', e); }
-  _trexqRemoved=null;
+  if(!_trexqRemoved) return;
+  try{ if(typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
+    const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } }
+    _trexqRemoved=null;   // n'efface la trace qu'APRES reinsertion reussie (AUDIT_COMPLET B4 : sinon mot perdu + lexique ampute en silence)
+  }catch(e){ const _m='[trexq] restore len_index echec — lexique ampute, trace CONSERVEE pour reessai: '+(e&&e.message||e); if(typeof ui_log==='function')ui_log('ERROR',_m); console.error(_m); }
 }
 function _trexq_removeWord(word){
   try{ if(typeof OMEGA_LEX4==='undefined'||!OMEGA_LEX4||!OMEGA_LEX4.words||!OMEGA_LEX4.len_index) return false;
     const key=String(word.length); const arr=OMEGA_LEX4.len_index[key]; if(!arr) return false;
     for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; return true; } }
-  }catch(e){ console.error('[trexq] removeWord échec:', e); }
+  }catch(e){ const _m='[trexq] removeWord echec: '+(e&&e.message||e); if(typeof ui_log==='function')ui_log('ERROR',_m); console.error(_m); }
   return false;
 }
 function _omega_trexquant_bench(testN, warmupN, seed){
@@ -9275,7 +9277,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
   const S = {a4:L01_A4_M4M_DECOMP_ENABLED,a5:L01_A5_M2M_POSITIONAL_ENABLED,a6:L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED,b2:L01_B2_MOBIUS_ENABLED,os:M_OS_V07_ENABLED,sub:M_SUBSTRAT_ORTHO_PURE_ENABLED,
     bpc:M_BPC_M3D_ENABLED,bpcr:M_BPC_READOUT_COUPLE_ENABLED,osl:M_OS_LEARNING_ONLINE_ENABLED,g1:M_OS_LEARNING_GUARD_1_BOUNDED,g2:M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT,g3:M_OS_LEARNING_GUARD_3_MDL_REGUL,g4:M_OS_LEARNING_GUARD_4_COHERENCE,
     vp:M_VOIE_PHON_ENABLED,p4:M4_PHON_USE_P_ENABLED,pf:M_PHON_FEEDBACK_ENABLED,prc:M_PHON_READOUT_COUPLE_ENABLED,pcb:M_PHON_CONCEPT_BIND_ENABLED,
-    nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,npc:M_NEO_PHON_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,
+    nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,npc:M_NEO_PHON_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,lfc:(typeof M_LEARN_FROM_COGNITION_ENABLED!=='undefined'?M_LEARN_FROM_COGNITION_ENABLED:null),dual:(typeof M_DECLARE_DUAL_ENABLED!=='undefined'?M_DECLARE_DUAL_ENABLED:null),g2pe:(typeof M_NEO_G2P_EXP_ENABLED!=='undefined'?M_NEO_G2P_EXP_ENABLED:null),njt:(typeof M_NEO_PHON_COHORT_JOINTE!=='undefined'?M_NEO_PHON_COHORT_JOINTE:null),narb:(typeof M_NEO_OS_ARB!=='undefined'?M_NEO_OS_ARB:null),
     conf:(typeof M_DECLARE_NEO_CONF!=='undefined'?M_DECLARE_NEO_CONF:null),
     seed0:(typeof _omegaSeed!=='undefined'?_omegaSeed:null),rng0:(typeof _omegaRng!=='undefined'?_omegaRng:null),
     osa:(typeof M_OS_v07!=='undefined'&&M_OS_v07?M_OS_v07.alpha:null),osb:(typeof M_OS_v07!=='undefined'&&M_OS_v07?M_OS_v07.beta:null)};
@@ -9283,7 +9285,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     L01_A4_M4M_DECOMP_ENABLED=S.a4;L01_A5_M2M_POSITIONAL_ENABLED=S.a5;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=S.a6;L01_B2_MOBIUS_ENABLED=S.b2;M_OS_V07_ENABLED=S.os;M_SUBSTRAT_ORTHO_PURE_ENABLED=S.sub;
     M_BPC_M3D_ENABLED=S.bpc;M_BPC_READOUT_COUPLE_ENABLED=S.bpcr;M_OS_LEARNING_ONLINE_ENABLED=S.osl;M_OS_LEARNING_GUARD_1_BOUNDED=S.g1;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=S.g2;M_OS_LEARNING_GUARD_3_MDL_REGUL=S.g3;M_OS_LEARNING_GUARD_4_COHERENCE=S.g4;
     M_VOIE_PHON_ENABLED=S.vp;M4_PHON_USE_P_ENABLED=S.p4;M_PHON_FEEDBACK_ENABLED=S.pf;M_PHON_READOUT_COUPLE_ENABLED=S.prc;M_PHON_CONCEPT_BIND_ENABLED=S.pcb;
-    M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_PHON_COHORT_ENABLED=S.npc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;
+    M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_PHON_COHORT_ENABLED=S.npc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;if(S.lfc!=null)M_LEARN_FROM_COGNITION_ENABLED=S.lfc;if(S.dual!=null)M_DECLARE_DUAL_ENABLED=S.dual;if(S.g2pe!=null)M_NEO_G2P_EXP_ENABLED=S.g2pe;if(S.njt!=null)M_NEO_PHON_COHORT_JOINTE=S.njt;if(S.narb!=null)M_NEO_OS_ARB=S.narb;
     if(S.conf!=null)M_DECLARE_NEO_CONF=S.conf;
     if(S.seed0!=null)_omegaSeed=S.seed0; if(S.rng0)_omegaRng=S.rng0;
     if(typeof initOmegaGlobals==='function')initOmegaGlobals();
@@ -9304,7 +9306,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
       if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
       baseCfg();
       M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
-      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=(assembled&&!!phonCohort);M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
+      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=(assembled&&!!phonCohort);M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_LEARN_FROM_COGNITION_ENABLED=false;M_DECLARE_DUAL_ENABLED=false;M_NEO_G2P_EXP_ENABLED=false;M_NEO_PHON_COHORT_JOINTE=false;M_NEO_OS_ARB=false;/* AUDIT_COMPLET B1 : pin reproductible (avant: pris de l'etat UI -> mesure non deterministe) */
       if(assembled && typeof M_DECLARE_NEO_CONF!=='undefined' && conf!=null) M_DECLARE_NEO_CONF=conf;
       OMEGA_LEX4.len_index=origLI; _omegaRng=makeMulberry32(seed); for(let i=0;i<trainW.length;i++) play(trainW[i]);
       OMEGA_LEX4.len_index=filtered; let win=0; for(let i=0;i<testW.length;i++){ if(play(testW[i])) win++; }
@@ -9313,14 +9315,13 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     const casc=runCond(true,0.60,false);
     const cohort=runCond(true,0.60,true);
     const orth=runCond(false,null,false);
-    restore();
     L('— '+testN+' mots hors-lexique (\u22657 lettres), budget 6, graine '+seed+', warmup '+warmupN+' mots —','dim');
     L('  phon\u2192ortho cascade \u00b7 son du MOT (wp.get)  : '+casc.toFixed(1)+' %','');
     L('  phon\u2192ortho cohorte \u00b7 son BOARD-d\u00e9riv\u00e9     : '+cohort.toFixed(1)+' %  (\u0394 '+(cohort-casc>=0?'+':'')+(cohort-casc).toFixed(1)+' pts vs son-mot, cheat-free \u00b7 plus lent)','');
     L('  ortho seul (comparable lettre-seule std)   : '+orth.toFixed(1)+' %','dim');
     L('  rep\u00e8res SOTA Trexquant : baseline ~50 % \u00b7 bons solveurs ~65-68 % (sans son)','dim');
     L('  \u2192 \u00e9tat restaur\u00e9 (lexique, toggles, \u03b8, RNG) apr\u00e8s la mesure.','dim');
-  }catch(e){ restore(); L('ERR '+e.message,'dim'); }
+  }catch(e){ L('ERR '+e.message,'dim'); }finally{ restore(); }
 }
 
 function _omega_pickWords(n, seed) {
