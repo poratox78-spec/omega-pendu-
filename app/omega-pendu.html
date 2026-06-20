@@ -11755,6 +11755,10 @@ window.addEventListener('DOMContentLoaded', () => {
       var fs=o.fautes||[];
       if(!fs.length)html+='<div class="vdc-sc">L\'IA ne signale aucune faute.</div>';
       fs.forEach(function(f){html+='<div class="vdc-fact vdc-iaf" data-e="'+esc(f.ecrit||'')+'" data-c="'+esc(f.correct||'')+'" style="cursor:pointer;border-left-color:#6a3d9a">« '+esc(f.ecrit||'')+' » → <b>« '+esc(f.correct||'')+' »</b> <span class="vdc-sc">['+esc(f.famille||'ia')+'] — clique pour appliquer</span></div>';});
+      // ===== NOTRE COUCHE DYS (engine-agnostic) sur la sortie du moteur : famille moteur → notre stade développemental =====
+      var ENGINE_FAM2TYPE={accent:'accent',muette:'muette',accord:'accord',conjugaison:'accord',homophone:'homophone',phonetique:'surface',voisee_sourde:'voisee_sourde'};
+      var dev=developmental(fs.map(function(f){var t=ENGINE_FAM2TYPE[(f.famille||'').toLowerCase()];return {types:t?[t]:[]};}));
+      if(dev)html+='<div class="vdc-fact" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+' <i>(diagnostic dys OMEGA — par-dessus le moteur)</i></span></div>';
       out.innerHTML=html;
       var all=$('vdc-ia-all');if(all)all.onclick=function(){$('vdc-in').value=o.corrige||text;runCorr();$('vdc-ia-out').innerHTML='';};
       var nodes=out.querySelectorAll('.vdc-iaf');for(var z=0;z<nodes.length;z++){nodes[z].onclick=function(){iaApplyWord(this.getAttribute('data-e'),this.getAttribute('data-c'));};}
