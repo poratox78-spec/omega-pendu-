@@ -93,8 +93,47 @@ def edits1(d):
     return res
 
 class Speller:
+    DET_G = {'un':'m','une':'f','le':'m','la':'f','du':'m','au':'m','ce':'m','cet':'m','cette':'f',
+             'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f','quel':'m','quelle':'f'}
+    DET_NUM = {'le':'s','la':'s','un':'s','une':'s','ce':'s','cet':'s','cette':'s','mon':'s','ma':'s',
+               'ton':'s','ta':'s','son':'s','sa':'s','les':'p','des':'p','ces':'p','mes':'p','tes':'p',
+               'ses':'p','nos':'p','vos':'p','leurs':'p'}
     def __init__(self):
         self.WORDS, self.FREQ, self.D2A, self.PHON = load_lexicon()
+        here = os.path.dirname(os.path.abspath(__file__))
+        def _load(name):
+            fp = os.path.join(here, name)
+            try: return json.load(open(fp, encoding='utf-8')) if os.path.exists(fp) else {}
+            except Exception: return {}
+        self.ADJ = _load('cgram_adj.json')         # forme_déacc -> [genre, contrepartie accentuée]
+        self.GEN = _load('cgram_gender.json')       # nom_déacc -> genre (non ambigu)
+
+    def _gender(self, w):
+        """genre d'un candidat accentué : adjectif (paire) ou nom. None si inconnu/ambigu."""
+        a = self.ADJ.get(deacc(w))
+        return a[0] if a else self.GEN.get(deacc(w))
+
+    COPULA = set('est sont suis es sommes etes etait etaient etais sera seront serai soit fut furent '
+                 'parait paraissait semble semblait devient deviennent reste restent'.split())
+    def _ctx_gender(self, toks, idx):
+        """genre imposé par le contexte : déterminant proche, sinon nom-tête proche (≤4 tokens avant).
+        Saute les copules (est/sont/semble…) : le genre d'un attribut vient du SUJET, pas du verbe
+        (et « est » est un nom homographe — l'est — qui polluerait cgram_gender)."""
+        if not toks or idx is None: return None
+        for j in range(idx - 1, max(-1, idx - 5), -1):
+            t = deacc(toks[j].lower())
+            if t in self.COPULA: continue
+            if t in self.DET_G: return self.DET_G[t]
+            g = self.GEN.get(t)
+            if g: return g
+        return None
+
+    def _ctx_number(self, toks, idx):
+        if not toks or idx is None: return None
+        for j in range(idx - 1, max(-1, idx - 4), -1):
+            t = deacc(toks[j].lower())
+            if t in self.DET_NUM: return self.DET_NUM[t]
+        return None
 
     def _cands(self, low, d):
         """forme accentuée -> meilleure (priorité, freq). 2 = accent-only, 1 = edit-1, 0 = phonétique (FLAG)."""
@@ -108,8 +147,8 @@ class Speller:
             c[w] = max(c.get(w, (-1, 0)), (0, self.FREQ[w]))
         return c
 
-    def correct_token(self, tok, at_start=False):
-        """-> (action 'auto'|'flag', suggestion) ou None."""
+    def correct_token(self, tok, at_start=False, toks=None, idx=None):
+        """-> (action 'auto'|'flag', suggestion) ou None. toks/idx = contexte (accord genre/nombre)."""
         low = tok.lower()
         if len(low) < 2 or not all(deacc(ch) in ALPHA for ch in low): return None
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
@@ -125,11 +164,23 @@ class Speller:
         cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)
-        # tri : restauration d'accent d'abord, puis MATCH PHONÉTIQUE (le bon candidat dys), puis fréquence
+        cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
+        def gmatch(w):
+            g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
+        def nmatch(w):
+            return 1 if (cn and ((cn == 'p') == (deacc(w).endswith(('s', 'x'))))) else 0
+        # tri : accent d'abord, puis ACCORD GENRE (grammaire), puis match phonétique, puis ACCORD NOMBRE, puis fréquence
         ranked = sorted(cands.items(),
-                        key=lambda kv: (1 if kv[1][0] == 2 else 0, 1 if phon_key(kv[0]) == pk else 0, kv[1][1]),
+                        key=lambda kv: (1 if kv[1][0] == 2 else 0, gmatch(kv[0]),
+                                        1 if phon_key(kv[0]) == pk else 0, nmatch(kv[0]), kv[1][1]),
                         reverse=True)
         (w1, (p1, f1)) = ranked[0]
+        # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
+        # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
+        if cg:
+            a = self.ADJ.get(deacc(w1))
+            if a and a[0] != cg and a[1] in cands and self._gender(a[1]) == cg:
+                return ('flag', a[1])
         if f1 < FLAG_FREQ: return None                          # meilleur candidat trop rare → abstention
         f2 = ranked[1][1][1] if len(ranked) > 1 else 0.0
         # AUTO : accent-only dominant (priorité 2, fréquent, sans rival proche) OU edit-1 vers un mot très dominant
@@ -142,8 +193,9 @@ class Speller:
 
     def correct_text(self, text):
         out = []; starts = self._sentence_starts(text)
-        for m in TOK.finditer(text):
-            r = self.correct_token(m.group(0), at_start=(m.start() in starts))
+        ms = list(TOK.finditer(text)); toks = [m.group(0) for m in ms]
+        for i, m in enumerate(ms):
+            r = self.correct_token(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
             if r and r[1] != m.group(0).lower():
                 out.append((m.start(), m.group(0), r[1], r[0]))
         return out
