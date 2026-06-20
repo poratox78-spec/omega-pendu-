@@ -114,13 +114,16 @@ S1/S4/S5 sont des lectures d'**apprentissage** (post-décision, wake-sleep) → 
 | Étage | Ligne | Écrit | Consommateur réel | Effectif ? |
 |---|---|---|---|---|
 | `M5_m_step` | 5308 | reward {HIT +1/MISS −0,5/WIN +2/LOSE −1} | tous les étages sous lui | ✅ source |
-| `M4_m_step` | 5357 | `letterPenalty[26]` (homéostasie vers la **fréquence inverse**) | M1_m | ✅ |
-| `M3_m_step` | 5491 | **anti-Hebbian sur conceptCells** (seul miroir qui écrit le concept) | hub M_S (poids 0,5) + OS_diss | ⚠️ effet winrate ~0 |
-| `M2_m_step` | 5569 | `zonePenalty[16]` | **personne** (canal M2, pas de retour vers M2_d) | ⚫ inerte |
+| `M4_m_step` | 5357 | `letterPenalty[26]` (homéostasie vers la **fréquence inverse**) | M1_m + OS_diss (canal c, l.2152) | ✅ |
+| `M3_m_step` | 5491 | **anti-Hebbian sur conceptCells** (seul miroir qui écrit le concept) | hub M_S (poids 0,5) + OS_diss (canal b, l.2129) | ⚠️ effet winrate ~0 |
+| `M2_m_step` | 5569 | `zonePenalty[16]` (+ écrit `M2_m.output`) | **OS_diss (canal a, l.2113)** — *pas* « personne » | 🔵 observationnel |
 | `M1_m_step` | 5635 | `letterScore = 1 − penalty` (≈ **prior de fréquence**, corr 0,999) | M5_d **si `M5_D_M1_M_ENABLED`** (poids 0,1) | ⚠️ co-décideur, **falsifié → défaut OFF** (§1.4.1) |
 
 → **Aucune voie descendante ne convertit en winrate** (le signal gagnant est *ascendant* : assemblé +5,28, recall
-+1,76, via le declare). `M1_m`/`M2_m.output` sont inertes ; `M1_m` co-décide à 0,1 mais ne porte que la fréquence.
++1,76, via le declare). `M1_m.output` est inerte (seul `M1_m.letterScore` est lu) ; `M2_m.output`/`M3_m.output`/
+`M4_m.letterPenalty` ne nourrissent que la **télémétrie OS_diss** (`OS.step`, l.2101, calculée 1×/100 ticks → quasi
+jamais dans une partie de ~6-26 coups) — donc winrate-inertes mais **lues**, pas « personne ». `M1_m` co-décide à 0,1
+(si `M5_D_M1_M_ENABLED`) mais ne porte que la fréquence.
 
 ### 4.3 M3_d — DEUX chemins exclusifs (`M_BPC_M3D`)
 - **bPC ON (réf.)** : encode depuis M1_d, MAJ par erreur de reconstruction ; **`M3_d.output` est mis à 0** (l.~4639,
