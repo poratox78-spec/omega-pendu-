@@ -85,6 +85,7 @@ if (require.main === module) {
     const f1 = c.correct('une grosse fote');
     if (!f1.find(x => x.word.toLowerCase() === 'fote' && x.sugg === 'faute')) fail.push('fote→faute attendu');
     if (c.correct('Le petit garçon mange une pomme rouge.').length) fail.push('FP sur phrase correcte');
+    if (c.correct('Il préfère le café au thé le matin.').length) fail.push('FP « thé »→« ther » (-é/-er sans verbe)');
     if (fail.length) { console.error('\n✗ ' + fail.join(' ; ')); process.exit(1); }
     console.log('\n✓ moteur standalone OK (sans UI/DOM) : grammaire + orthographe + hybride.');
   })().catch(e => { console.error(e); process.exit(1); });
