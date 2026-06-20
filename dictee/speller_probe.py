@@ -38,11 +38,48 @@ def load_lexicon():
             except ValueError: fr = 0.0
             if fr > FREQ.get(w, -1): FREQ[w] = fr
             WORDS.add(w)
+    PHON = defaultdict(list)
     for w in WORDS:
         DEACC2ACC[deacc(w)].append(w)
+        if FREQ[w] >= FLAG_FREQ:                   # index phonétique : mots pas trop rares (limite les collisions)
+            PHON[phon_key(w)].append(w)
     for d in DEACC2ACC:
         DEACC2ACC[d].sort(key=lambda w: -FREQ[w])
-    return WORDS, FREQ, DEACC2ACC
+    for k in PHON:
+        PHON[k].sort(key=lambda w: -FREQ[w])
+    return WORDS, FREQ, DEACC2ACC, PHON
+
+def phon_key(s):
+    """Clé phonétique française approximative : deux mots qui SONNENT pareil → même clé.
+    But : rapprocher « fote »≈« faute », « leson »≈« leçon », « ortografe »≈« orthographe ». Approximatif
+    (collisions ver/vert/verre attendues) → usage FLAG seulement, classé par fréquence."""
+    s = s.lower().replace('œ', 'oe').replace('æ', 'ae').replace('ç', 's')
+    s = deacc(s)
+    s = s.replace('ph', 'f').replace('sch', 'ch').replace('th', 't')
+    s = s.replace('ch', '§').replace('gn', '¤')                 # digraphes → placeholders
+    s = s.replace('qu', 'k').replace('gu', 'g')
+    s = s.replace('eau', 'o').replace('aux', 'o').replace('au', 'o')
+    s = s.replace('ou', 'u').replace('eu', 'e').replace('oeu', 'e')
+    s = s.replace('ai', 'e').replace('ei', 'e').replace('ay', 'e').replace('ey', 'e')
+    s = s.replace('oi', 'wa')
+    res = []
+    for j, ch in enumerate(s):
+        nx = s[j + 1] if j + 1 < len(s) else ''
+        if ch == 'c':   res.append('s' if nx in 'eiy§' else 'k')
+        elif ch == 'g': res.append('j' if nx in 'eiy' else 'g')
+        elif ch == 'h': pass                                    # h muet
+        elif ch == 'x': res.append('ks')
+        elif ch in 'zs': res.append('s')
+        elif ch == 'y': res.append('i')
+        elif ch == 'w': res.append('v')
+        else: res.append(ch)
+    s = ''.join(res).replace('§', '§').replace('¤', 'nj')        # gn≈nj ; ch reste distinct (§)
+    out = []                                                     # collapse doublons
+    for ch in s:
+        if not out or out[-1] != ch: out.append(ch)
+    s = ''.join(out)
+    while s and s[-1] in 'est': s = s[:-1]                       # consonnes/e finales souvent muettes
+    return s
 
 def edits1(d):
     sp = [(d[:i], d[i:]) for i in range(len(d) + 1)]
@@ -57,16 +94,18 @@ def edits1(d):
 
 class Speller:
     def __init__(self):
-        self.WORDS, self.FREQ, self.D2A = load_lexicon()
+        self.WORDS, self.FREQ, self.D2A, self.PHON = load_lexicon()
 
-    def _cands(self, d):
-        """forme accentuée -> meilleure (priorité, freq). priorité 2 = accent-only, 1 = edit-1."""
+    def _cands(self, low, d):
+        """forme accentuée -> meilleure (priorité, freq). 2 = accent-only, 1 = edit-1, 0 = phonétique (FLAG)."""
         c = {}
         for w in self.D2A.get(d, []):
-            c[w] = max(c.get(w, (0, 0)), (2, self.FREQ[w]))
+            c[w] = max(c.get(w, (-1, 0)), (2, self.FREQ[w]))
         for e in edits1(d):
             for w in self.D2A.get(e, []):
-                c[w] = max(c.get(w, (0, 0)), (1, self.FREQ[w]))
+                c[w] = max(c.get(w, (-1, 0)), (1, self.FREQ[w]))
+        for w in self.PHON.get(phon_key(low), [])[:8]:          # voisins phonétiques (FLAG) — limités, classés freq
+            c[w] = max(c.get(w, (-1, 0)), (0, self.FREQ[w]))
         return c
 
     def correct_token(self, tok, at_start=False):
@@ -83,9 +122,13 @@ class Speller:
             if rest in self.WORDS:
                 pre = "qu'" if low[0] == 'q' else low[0] + "'"
                 return ('flag', pre + rest)                     # élision = FLAG (sûr mais on laisse l'utilisateur valider)
-        cands = self._cands(d)
+        cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
-        ranked = sorted(cands.items(), key=lambda kv: (kv[1][0], kv[1][1]), reverse=True)
+        pk = phon_key(low)
+        # tri : restauration d'accent d'abord, puis MATCH PHONÉTIQUE (le bon candidat dys), puis fréquence
+        ranked = sorted(cands.items(),
+                        key=lambda kv: (1 if kv[1][0] == 2 else 0, 1 if phon_key(kv[0]) == pk else 0, kv[1][1]),
+                        reverse=True)
         (w1, (p1, f1)) = ranked[0]
         if f1 < FLAG_FREQ: return None                          # meilleur candidat trop rare → abstention
         f2 = ranked[1][1][1] if len(ranked) > 1 else 0.0
