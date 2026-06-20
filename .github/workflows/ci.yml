@@ -45,6 +45,12 @@ jobs:
         run: node dictee/parity_corr.js
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
         run: node dictee/test_speller_app.js
+      - name: Extension — extraction des lexiques depuis l'app (assets)
+        run: python3 extension/build_assets.py
+      - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)
+        run: node extension/parity_core.js
+      - name: Extension — syntaxe dys-core / content / popup
+        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js
       - name: Moteur correcteur standalone (sans UI/DOM)
         run: node dictee/correcteur.js
       - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)

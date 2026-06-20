@@ -29,9 +29,17 @@
 | **Chrome Nano (local)** | **câblé dans l'app** | case 🧠 → Prompt API hors-ligne, **sans clé/égress** · JSON contraint · même COLLE (stade) · à mesurer chez Rem |
 | ~~Grammalecte~~ | **ÉCARTÉ** | données redondantes + GPL → on garde nos règles (option 3) |
 
+## 🧩 EXTENSION CHROME (`extension/`, pivot produit — phase 1 livrée)
+**Objectif (Rem)** : corriger **dans n'importe quel champ**, hors-ligne. Moteur = **réutilisé** (`dys-core.js` = copie
+verbatim du correcteur app, **parité ⊆ Python, FP=0**, en CI). Barre flottante → clic = corrige **dans le champ** +
+**stade + remédiation**. Charger `extension/` via `chrome://extensions` (mode développeur). **Phase 2** = speller
+(typos) + Nano (contexte) · **Phase 3** = clavier virtuel / zone universelle.
+
 ## ⏳ EN COURS / EN ATTENTE
-1. **Mesurer Chrome Nano chez Rem** (je ne peux pas l'exécuter en conteneur) : qualité + FP sur `je sui dan le voiture…` dans **Chrome/Edge ≥ 138** (case 🧠). C'est le livrable *contexte* hors-ligne.
-2. **Couche dys — suite** : la **remédiation par famille** est livrée (1ʳᵉ brique). Pistes d'après : remédiation **par stade global** (parcours), suivi **longitudinal** du profil, exercices générés ciblés (pas que rejeu).
+1. **Tester l'extension chez Rem** (Chrome, mode développeur) : charger `extension/`, écrire dans un champ.
+2. **Mesurer Chrome Nano chez Rem** (je ne peux pas l'exécuter en conteneur) : qualité + FP dans **Chrome/Edge ≥ 138**.
+3. **Phase 2 extension** : porter le speller (non-mots/accents) + Nano dans `dys-core.js`/`content.js`.
+4. **Couche dys — suite** : remédiation **par stade global**, suivi **longitudinal**, exercices générés.
 
 ## 🧭 Carte mentale (mesurée)
 - **Limite partout = le CONTEXTE** (3 falsifications). Ce qui est faisable **hors-ligne sur nos données** = fait (genre, mais/mes, FP=0) ; le reste (`je sui`, `j'est`, `bouliées`) = **contexte → LLM**.

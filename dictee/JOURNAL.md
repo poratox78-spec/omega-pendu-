@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-06-20 — PIVOT PRODUIT : extension Chrome « correcteur dys partout » (socle + moteur, phase 1)
+
+**Demande (Rem)** : « corriger le texte directement dans la zone de saisie », **partout** (n'importe quel champ),
+hors-ligne (« c'est chiant cette histoire de en ligne »). Repli prévu : clavier virtuel / zone de saisie universelle
+pour les champs où l'injection est impossible. → nouveau dossier **`extension/`** (MV3).
+
+**Principe verrouillé** : on **réutilise notre moteur mesuré** (§5), on ne le réécrit pas. Le probe Python reste la
+**référence** ; l'extension devient un **3ᵉ miroir parité-testé** (comme l'app).
+
+**Livré (phase 1, ce socle)** :
+- `build_assets.py` → extrait les lexiques de l'app vers `extension/assets/` (`vdc-lex.json` 1,5 Mo,
+  `gender-relaxed.tsv.gz` 140 Ko, `speller.tsv.gz` 452 Ko — source unique régénérable, CC BY-SA 4.0).
+- `dys-core.js` = **copie VERBATIM** du moteur correcteur de l'app (règles homophones + accord SV + genre +
+  `j'est→j'ai`) + couche dys (stades, remédiation), **sans DOM**, lexiques chargés depuis les assets
+  (fetch + DecompressionStream). API : `correctText`, `diagnose(text)` (→ flags + stade + remédiation), `loadLex`.
+- `content.js` → s'accroche aux champs (`textarea`/`input`/`contenteditable`), **barre flottante** près du champ :
+  clic sur une faute (ou « tout corriger ») = corrige **DANS le champ**. Affiche **stade + remédiation**. FP=0.
+- `popup` (activer/désactiver), `content.css` (styles isolés), `README.md`, `manifest.json` (MV3, `<all_urls>`).
+- `parity_core.js` : **dys-core ⊆ Python sur 52 phrases, aucun FP propre** (1 écart de couverture HF connu).
+  Ajouté à la **CI** (+ syntaxe + build_assets).
+
+**Vérifié headless** : parité OK, `diagnose` correct sur copies réelles (`j'est le poisse…` → j'ai + le→la,
+stade lexical ; `les enfants joue` → jouent, morphosyntaxique ; `le voiture` → la). **Test réel = charger
+`extension/` dans Chrome** (mode développeur).
+
+**Phase 2** : couche orthographe (non-mots/accents : `oartir→partir`, `monagne→montagne`) via `speller.tsv.gz` +
+**Gemini Nano** (contexte, hors-ligne). **Phase 3** : clavier virtuel / zone universelle (repli injection).
+
+---
+
 ## 2026-06-20 — Règle « j'est → j'ai » (confusion avoir/être, phono) — signalée par Rem
 
 **Cas** (copie réelle Rem) : `j'est le poisse de oartir à la monagne`. Le correcteur attrapait `le→la`,
