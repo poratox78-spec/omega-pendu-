@@ -23,6 +23,7 @@
 | **Règles MAISON améliorées** (nos données) | livré | **genre relâché** `le voiture→la` (Python+**APP**, +0,19 Mo) · **mais→mes** (Python+**APP**, parité+FP=0) · **FP TOTAL = 0/98 GEC** |
 | **3 pistes « sans contexte »** | **FALSIFIÉES** (sondes+CI) | did-you-mean · phonème (g2p-sur-typo) · morpho→trexquant (thèse §1.8) |
 | **LA COLLE** (notre couche dys) | **câblée** | sortie moteur (LLM `famille`) → **STADE dys affiché** par-dessus (engine-agnostic) |
+| **Remédiation ciblée PAR FAMILLE** | **livré** | table `REMED` (8 stratégies orthophonie ancrées double-route) → `remedBlock` aux **3 sorties + profil** ; correctif stade règles (homophone≠accord) |
 | **Plafond LLM** | mesuré (moi = modèle fort) | **récall ~total · FP≈1-2/30** (gold GEC parfois faux) — `je sui dan le voiture…` = **6/6** |
 | **LLM opt-in** | **câblé dans l'app** | OFF par défaut · clé dans l'UI · OpenAI-compatible → marche aussi **local (Ollama)** |
 | **Chrome Nano (local)** | **câblé dans l'app** | case 🧠 → Prompt API hors-ligne, **sans clé/égress** · JSON contraint · même COLLE (stade) · à mesurer chez Rem |
@@ -30,7 +31,7 @@
 
 ## ⏳ EN COURS / EN ATTENTE
 1. **Mesurer Chrome Nano chez Rem** (je ne peux pas l'exécuter en conteneur) : qualité + FP sur `je sui dan le voiture…` dans **Chrome/Edge ≥ 138** (case 🧠). C'est le livrable *contexte* hors-ligne.
-2. **Couche dys à enrichir** (familles→stades→**remédiation**) = là où on investit (le produit).
+2. **Couche dys — suite** : la **remédiation par famille** est livrée (1ʳᵉ brique). Pistes d'après : remédiation **par stade global** (parcours), suivi **longitudinal** du profil, exercices générés ciblés (pas que rejeu).
 
 ## 🧭 Carte mentale (mesurée)
 - **Limite partout = le CONTEXTE** (3 falsifications). Ce qui est faisable **hors-ligne sur nos données** = fait (genre, mais/mes, FP=0) ; le reste (`je sui`, `j'est`, `bouliées`) = **contexte → LLM**.

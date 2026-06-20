@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-06-20 — Couche dys ENRICHIE : remédiation ciblée PAR FAMILLE (le produit)
+
+**Le produit** = `famille → stade → REMÉDIATION ciblée`. Jusqu'ici : famille→stade OK, mais la « remédiation » se
+réduisait au **rejeu** (répétition de la famille la plus ratée). Manquait l'**instruction** : *quoi faire* face à
+chaque type d'erreur. Ajouté (§5 réutilise `STAGE_FAM`/`developmental`) :
+
+- **Table `REMED`** (8 familles → 1 stratégie d'orthophonie ancrée double-route/stades) : voisée-sourde = main sur la
+  gorge ; inversion = syllabation doigt G→D ; ajout = compter les sons ; surface = mot-modèle (graphies du même son) ;
+  accent = é fermé/è ouvert à voix haute ; muette = mot de la même famille (petit→petitE) ; homophone = test de
+  remplacement (a→avait) ; accord = qui commande (sujet/déterminant).
+- **`remedFams(F)`** = familles présentes **au stade visé** (maillon le plus tôt non acquis) ; **`remedBlock(F,cls)`**
+  = bloc HTML « 🛠️ Remédiation ciblée », affiché **par-dessus le stade aux 3 sorties** (dictée · correcteur règles ·
+  correcteur IA) + dans le **profil persistant** (« on travaille : X » → la stratégie, qui complète le rejeu).
+- **Bonus correctif** : le correcteur-règles classait **toutes** les fautes en `accord` (stade faussé en
+  morphosyntaxique). Corrigé : nom de règle → famille (`son/sont`, `a/à`… = **homophone/lexical** ; seuls SV & genre =
+  **accord/morphosyntaxique**) → stade ET remédiation justes.
+
+**Honnêteté (§1/§6)** : contenu **pédagogique ancré** (Ferreiro/Berliocchi, double route), **pas** une détection
+mesurable — aucune métrique revendiquée. Vérifié : bloc compile ; `remedFams` testé sur 7 cas (chaque famille →
+bon stade/tip ; mix → stade le plus tôt ; clean → vide) ; `parity_corr.js`/`test_speller_app.js` inchangés
+(la remédiation ne touche pas la détection).
+
+---
+
 ## 2026-06-20 — Chrome local (Gemini Nano) câblé dans le panneau IA — hors-ligne, sans clé
 
 **Pourquoi** (Rem) : « chrome est utilisé par bcp donc on par chrome ». Le LLM = plafond *contexte* ; Gemini Nano
