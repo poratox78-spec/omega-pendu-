@@ -11413,8 +11413,10 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdc-render').addEventListener('click',function(e){var s=e.target.closest('.vdc-bad');if(!s)return;var k=+s.getAttribute('data-i');var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}if(f)applyFix(k,f.sugg);});  // clic = applique la correction
   $('vdc-lis').addEventListener('change',function(){$('vdc-card').classList.toggle('lisible',$('vdc-lis').checked);});
 })();
+</script>
 
-// ===== 🔤 DÉCOMPOSE — fiche de décomposition « à la Lexique 4 » (SON et ORTHO), OFF-inerte (R66) =====
+<script>
+// ===== 🔤 DÉCOMPOSE — fiche de décomposition « à la Lexique 4 » (SON et ORTHO), OFF-inerte (R66) — SCRIPT SÉPARÉ (zéro adjacence avec le correcteur) =====
 // Lit/apprend un mot (ou un texte) et le décompose en SON (phono) ET ORTHO (graphèmes/syllabes).
 // Route SUBLEXICALE = _DECL2.g2p() — le g2p du moteur (briques AQUA-PHOTON v3), réutilisé tel quel.
 // Route LEXICALE = OMEGA_LEX4 embarqué (w.p phono, w.g genre ; mots ASCII ≥7 lettres). Overlay ACCENTS
