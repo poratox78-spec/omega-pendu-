@@ -26,9 +26,12 @@ du lexique). Hybride, dans l'app (panneau « 🩹 Correcteur », debounce 350 ms
 - **Embarqué** : bloc `speller-lex-gz` (92 743 formes accentuées + freq, gzip+base64 0,56 Mo, décompressé via
   DecompressionStream). Généré par `dictee/build_speller_lex.py`. Le moteur JS = miroir exact du Python.
 - **Mesuré** (vrai corpus GEC, 98 phrases) : **AUTO FP=0/98** ; non-mots corrigés exactement **58 %** ;
-  FLAG-FP=13 (OOV/rares, non destructif). Vérifié headless (`dictee/test_speller_app.js`, en CI).
-- **Frontière restante** : homophones que seul le contexte tranche (`fote→faut|faute`, `gross→gros|grosse`) →
-  fusion candidat-speller × accord grammatical (hybride) = chantier suivant.
+  FLAG-FP=12 (OOV/rares, non destructif). Vérifié headless (`dictee/test_speller_app.js`, en CI).
+- **HYBRIDE (fait)** : la **voie grammaire désambiguïse les candidats du speller** par accord genre/nombre du
+  contexte (déterminant/nom-tête proche, en sautant les copules est/sont/semble) + **bascule de paire d'adjectif**
+  (`cgram_adj`). Résultat : `fote→faute`, `gross→grosse`, `premiere→premier`, `blanch→blanche` (le genre du
+  contexte tranche), sans casser l'AUTO accent. Accord = bonus (jamais pénalité). Câblé Python **et** app (champ
+  embarqué `a` = paires adjectif), parité vérifiée. AUTO FP=0 préservé.
 
 ## Le seul vrai inconnu, mesuré : détecter/corriger SANS corrigé
 La dictée connaît la cible ; un correcteur non → il doit **inférer l'intention**. Probe : `dictee/correcteur_probe.py`
