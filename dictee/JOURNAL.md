@@ -29,6 +29,18 @@ LLM_API_KEY/LLM_MODEL`) + harnais **`--eval`** (récall + **FP cardinal sur le `
 **Suite** : (1) mesurer récall/FP réel du LLM sur le GEC (avec clé) ; (2) intégration app = panneau opt-in + consentement,
 LLM en **surcouche du FLAG** (les règles restent la base hors-ligne) ; (3) arbitrer le modèle (qualité × coût × local).
 
+**MAJ — plafond mesuré (1) + intégration app (2) faites :**
+- **Plafond** (Claude Opus = correcteur, échantillon GEC : 30 correctes + 16 fautives) : **récall ~total** (genre/accord/
+  conjugaison/élision/typo = les familles où les règles font 0), **FP ≈ 1/30** (souvent défendable ; **découverte : le
+  gold GEC contient des fautes** — ex. « l'orthographe ancien » → ancienne — donc le FP est *sous-estimé contre ce gold*).
+  Verdict : à qualité forte, volet **massivement justifié** ; seul risque = sur-correction (faible, modèle fort + prompt strict).
+- **Intégration app** : panneau 🩹 Correcteur, section **« 🤖 IA (en ligne, opt-in) »** — checkbox OFF par défaut +
+  avertissement vie privée + clé/endpoint/modèle saisis dans l'UI (localStorage, jamais committé) + bouton **« ✨ Corriger
+  avec l'IA »** (pas d'appel à chaque frappe = coût maîtrisé). Sortie : phrase corrigée (« appliquer tout ») + fautes
+  cliquables par mot, **par-dessus** les soulignements hors-ligne (les règles restent la base ; aucun `fetch` sans opt-in
+  explicite). Bloc compile (CI `new Function`), parité + speller intacts. Appel **OpenAI-compatible** (miroir de
+  `dictee/llm_correcteur.py`). **Reste (3)** : arbitrer le modèle bon-marché (FP réel via `--eval`, avec clé).
+
 ---
 
 ## 2026-06-20 — TREXQUANT : la MORPHO/décompose n'aide pas l'OOV (FALSIFIÉ) — réponse à la thèse §1.8

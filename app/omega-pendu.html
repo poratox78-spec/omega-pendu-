@@ -11690,7 +11690,16 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdc-sc">Colle ou écris ton texte : les fautes grammaticales (homophones a/à, son/sont… <b>et accord sujet-verbe</b> : « Je doit »→dois, « On ont »→a) sont <b>soulignées</b> — <b>clique dessus pour appliquer la correction</b>. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
    +'<div class="vdc-sc" style="margin-top:6px"><label><input type="checkbox" id="vdc-lis"> Police lisible (dys)</label></div>'
    +'<textarea id="vdc-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea>'
-   +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px"></div></div>';
+   +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px"></div>'
+   +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
+   +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-ia-on"> 🤖 Correction par IA (en ligne, opt-in)</label>'
+   +'<div class="vdc-sc" style="color:#a33;margin-top:2px">⚠️ En ligne : le texte est envoyé à un service externe (ce n\'est plus hors-ligne). La clé est stockée sur cet appareil uniquement.</div>'
+   +'<div id="vdc-ia-cfg" style="display:none;margin-top:6px">'
+   +'<input id="vdc-ia-url" placeholder="endpoint OpenAI-compatible (.../v1/chat/completions)" style="width:100%;box-sizing:border-box;margin:2px 0">'
+   +'<input id="vdc-ia-key" type="password" placeholder="clé API (de préférence révocable)" style="width:100%;box-sizing:border-box;margin:2px 0">'
+   +'<input id="vdc-ia-model" placeholder="modèle (ex. gpt-4o-mini, claude-…)" style="width:100%;box-sizing:border-box;margin:2px 0">'
+   +'<button id="vdc-ia-go" style="margin-top:4px">✨ Corriger avec l\'IA</button>'
+   +'</div><div id="vdc-ia-out" style="margin-top:6px"></div></div></div>';
   document.body.appendChild(cov);
   var _flags=[];
   function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿœŒ']+/g,m,T=[];while((m=re.exec(t)))T.push([m.index,m.index+m[0].length]);
@@ -11722,6 +11731,40 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdc-in').addEventListener('input',function(){clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct
   $('vdc-render').addEventListener('click',function(e){var s=e.target.closest('.vdc-bad');if(!s)return;var k=+s.getAttribute('data-i');var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}if(f)applyFix(k,f.sugg);});  // clic = applique la correction
   $('vdc-lis').addEventListener('change',function(){$('vdc-card').classList.toggle('lisible',$('vdc-lis').checked);});
+  // ===== Couche IA (opt-in, EN LIGNE) — OFF par défaut ; surcouche cliquable des règles hors-ligne =====
+  var IA_SYS='Tu es un correcteur orthographique et grammatical du français, spécialisé pour les troubles de l\'écrit (dyslexie, dysorthographie). On te donne le texte d\'un élève. Règles STRICTES : '
+   +'1) Corrige UNIQUEMENT les vraies fautes (orthographe, accents, lettres muettes, accord genre/nombre, conjugaison, homophones, mots phonétiquement déformés ex. bouliées->oublié). '
+   +'2) NE REFORMULE PAS : ne change ni le style ni l\'ordre des mots ni la ponctuation correcte ; ne complète pas la phrase ; si un mot est déjà juste, n\'y touche pas. '
+   +'3) Pour chaque mot corrigé, donne le mot écrit, le mot correct, et la famille (accent, muette, accord, conjugaison, homophone, phonetique, autre). '
+   +'Réponds UNIQUEMENT en JSON strict : {"corrige":"<phrase entièrement corrigée>","fautes":[{"ecrit":"<mot tapé>","correct":"<mot corrigé>","famille":"<famille>"}]}';
+  function iaSave(){try{localStorage.setItem('vdd_ia',JSON.stringify({on:$('vdc-ia-on').checked,url:$('vdc-ia-url').value,key:$('vdc-ia-key').value,model:$('vdc-ia-model').value}));}catch(e){}}
+  function iaLoad(){try{var c=JSON.parse(localStorage.getItem('vdd_ia')||'{}');$('vdc-ia-on').checked=!!c.on;if(c.url)$('vdc-ia-url').value=c.url;if(c.key)$('vdc-ia-key').value=c.key;if(c.model)$('vdc-ia-model').value=c.model;$('vdc-ia-cfg').style.display=$('vdc-ia-on').checked?'block':'none';}catch(e){}}
+  function iaApplyWord(e,c){var t=$('vdc-in').value;var re=new RegExp('(^|[^A-Za-zÀ-ÿœŒ])('+e.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![A-Za-zÀ-ÿœŒ])');var m=re.exec(t);if(m){var at=m.index+m[1].length;$('vdc-in').value=t.slice(0,at)+c+t.slice(at+e.length);runCorr();}}
+  function iaRun(){
+    var url=$('vdc-ia-url').value.trim(),key=$('vdc-ia-key').value.trim(),model=$('vdc-ia-model').value.trim()||'gpt-4o-mini',out=$('vdc-ia-out'),text=$('vdc-in').value;
+    if(!url||!key){out.innerHTML='<div class="vdc-sc" style="color:#a33">Renseigne l\'endpoint et la clé API.</div>';return;}
+    if(!text.trim()){out.innerHTML='';return;}
+    out.innerHTML='<div class="vdc-sc">⏳ IA en cours…</div>';
+    fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:model,temperature:0,response_format:{type:'json_object'},messages:[{role:'system',content:IA_SYS},{role:'user',content:'Texte de l\'élève :\n'+text}]})})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      var c=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+      if(!c){out.innerHTML='<div class="vdc-sc" style="color:#a33">'+esc(j&&j.error?('Erreur API : '+(j.error.message||j.error)):'Réponse inattendue.')+'</div>';return;}
+      var o;try{o=JSON.parse(c);}catch(e){out.innerHTML='<div class="vdc-sc" style="color:#a33">Réponse non-JSON : '+esc(String(c).slice(0,160))+'</div>';return;}
+      var html='<div class="vdc-fact" style="border-left-color:#6a3d9a;background:#f3eaf8"><b>🤖 Proposition IA :</b> « '+esc(o.corrige||text)+' » <button id="vdc-ia-all" style="margin-left:6px">appliquer tout</button></div>';
+      var fs=o.fautes||[];
+      if(!fs.length)html+='<div class="vdc-sc">L\'IA ne signale aucune faute.</div>';
+      fs.forEach(function(f){html+='<div class="vdc-fact vdc-iaf" data-e="'+esc(f.ecrit||'')+'" data-c="'+esc(f.correct||'')+'" style="cursor:pointer;border-left-color:#6a3d9a">« '+esc(f.ecrit||'')+' » → <b>« '+esc(f.correct||'')+' »</b> <span class="vdc-sc">['+esc(f.famille||'ia')+'] — clique pour appliquer</span></div>';});
+      out.innerHTML=html;
+      var all=$('vdc-ia-all');if(all)all.onclick=function(){$('vdc-in').value=o.corrige||text;runCorr();$('vdc-ia-out').innerHTML='';};
+      var nodes=out.querySelectorAll('.vdc-iaf');for(var z=0;z<nodes.length;z++){nodes[z].onclick=function(){iaApplyWord(this.getAttribute('data-e'),this.getAttribute('data-c'));};}
+    })
+    .catch(function(e){out.innerHTML='<div class="vdc-sc" style="color:#a33">Échec réseau/IA : '+esc(String(e&&e.message||e))+'</div>';});
+  }
+  $('vdc-ia-on').addEventListener('change',function(){$('vdc-ia-cfg').style.display=this.checked?'block':'none';if(!this.checked)$('vdc-ia-out').innerHTML='';iaSave();});
+  ['vdc-ia-url','vdc-ia-key','vdc-ia-model'].forEach(function(id){var el=$(id);if(el)el.addEventListener('change',iaSave);});
+  $('vdc-ia-go').addEventListener('click',iaRun);
+  iaLoad();
 })();
 </script>
 
