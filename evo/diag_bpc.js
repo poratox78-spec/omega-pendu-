@@ -70,5 +70,7 @@ const CFG = [
   for(const L of lens){const cc=byLen[L].cc,n=byLen[L].n;const top=Object.keys(cc).map(k=>({k:+k,v:cc[k]})).sort((a,b)=>b.v-a.v)[0];console.log(`      len ${L} (n=${String(n).padStart(4)}) → #${top.k} à ${(100*top.v/n).toFixed(0)}%`);}
   console.log(`(S) cLetterScore (readout concept, couplé 0,20) :`);
   console.log(`    GAP brut in−out = ${(gapCls>=0?'+':'')}${gapCls.toFixed(4)} · GAP fréquence (contrôle) = ${(gapFreq>=0?'+':'')}${gapFreq.toFixed(4)} · GAP NET = ${(gapNet>=0?'+':'')}${gapNet.toFixed(4)}`);
-  console.log(`    ${Math.abs(gapNet)<0.02*Math.abs(gapFreq||1)+0.003?'→ ≈ fréquence : le concept readout ne discrimine PAS le mot au-delà de la fréquence (comme M1_m)':'→ porte un signal AU-DELÀ de la fréquence (spécifique au mot)'}`);
+  // Verdict SIGNÉ : « au-delà » seulement si gapNet est POSITIVEMENT au-dessus de la fréquence d'une marge.
+  // (un gapNet négatif = readout anti-discriminant → ne porte PAS de signal-mot ; l'ancien test `abs()` le classait à tort « au-delà ».)
+  console.log(`    ${gapNet>0.02*Math.abs(gapFreq||1)+0.003?'→ porte un signal AU-DELÀ de la fréquence (spécifique au mot)':'→ ≈ fréquence (ou en-dessous) : le concept readout ne discrimine PAS le mot au-delà de la fréquence (comme M1_m)'}`);
 })().catch(e=>{console.error('ERR',e&&e.stack||e);process.exit(1);});
