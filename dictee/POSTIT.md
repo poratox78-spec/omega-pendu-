@@ -35,6 +35,11 @@ verbatim du correcteur app, **parité ⊆ Python, FP=0**, en CI). Barre flottant
 **stade + remédiation**. Charger `extension/` via `chrome://extensions` (mode développeur). **Phase 2** = speller
 (typos) + Nano (contexte) · **Phase 3** = clavier virtuel / zone universelle.
 
+## ⚠️ OUVERT — baseline moteur (NE PAS oublier)
+Rem : « la base à ne pas toucher a **peut-être** bougé, résultats **peut-être** différents — n'invente pas ». Fait : le
+**lexique moteur embarqué** a changé (83k→155k, `9d3763c` ; mb réintégré, `3ff98c1`) dans la fenêtre décompose, et le
+banc `fitness_harness` lit ce lexique → **audit profond à faire** (`AUDIT_BASELINE.md`). **Ne PAS « réparer » sans A/B.**
+
 ## ⏳ EN COURS / EN ATTENTE
 1. **Tester l'extension chez Rem** (Chrome, mode développeur) : charger `extension/`, écrire dans un champ.
 2. **Mesurer Chrome Nano chez Rem** (je ne peux pas l'exécuter en conteneur) : qualité + FP dans **Chrome/Edge ≥ 138**.

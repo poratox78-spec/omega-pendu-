@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-06-20 — ⚠️ Signalement baseline moteur (Rem) → mémo `AUDIT_BASELINE.md` (à auditer plus tard)
+
+Rem signale : « la **base à ne pas toucher** a **peut-être** été modifiée, je n'ai **peut-être** plus les mêmes
+résultats — n'invente pas. Depuis **décompose** + un **ajustement trexquant**. Audit structurel profond à faire. »
+
+**Documenté, RIEN corrigé** (mémo dédié `../AUDIT_BASELINE.md`). Fait vérifiable trouvé (non interprété) : le **bloc
+lexique moteur** `lex4-data-gz` de l'app a été **changé 2×** dans la fenêtre — `9d3763c` (**83 605→155 493 mots**) et
+`3ff98c1` (réintègre `mb` + **fix harnais evo**). Or `evo/fitness_harness.js` **tire les mots de test ET le savoir du
+devineur de ce lexique** (L17/L53) ⇒ changer le lexique **change mécaniquement** le winrate du banc. **Hypothèse n°1 à
+VÉRIFIER** (A/B winrate `6f9fe61` vs HEAD, harnais constant, ≥4 graines) — **non mesuré ici, ne pas conclure, ne pas
+revenir au 83k sans mesure**. Détail + plan d'audit : `../AUDIT_BASELINE.md`.
+
+---
+
 ## 2026-06-20 — PIVOT PRODUIT : extension Chrome « correcteur dys partout » (socle + moteur, phase 1)
 
 **Demande (Rem)** : « corriger le texte directement dans la zone de saisie », **partout** (n'importe quel champ),
