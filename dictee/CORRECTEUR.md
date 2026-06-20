@@ -102,6 +102,29 @@ le levier d'accord existait déjà côté DIAGNOSTIC, ici on le retourne en CORR
 - **Hors portée (honnête)** : « ils **ont** content » n'est PAS flagué — « ont » s'accorde avec « ils » (avoir 3pl) ;
   l'erreur réelle est avoir↔être (sémantique) + « content »→« contents » (accord adjectif) — deux autres chantiers.
 
+## Accord GENRE déterminant→nom (`rule_det_gender`) — la catégorie dominante du réel
+- Le **corpus GEC réel** le montre : le genre du déterminant (« un adhésion »→une, « la fondateur »→le, « Ma
+  appartement »→Mon) est l'erreur **la plus fréquente** — PR #7/#9 la classaient hors-périmètre. La **complétude**
+  de `cgram_gender` (53 050 noms, récupérée du Lexique4 complet) la rend attaquable.
+- Mécanique, bornée **FP=0** : déterminant à genre certain (un/une/le/la/ce/cet/cette/mon/ma/ton/ta/son/sa) + **nom
+  PUR** juste après → genre(dét)≠genre(nom) → corrige. « Pur » = champ embarqué **`gn`** (genre non ambigu **MOINS
+  verbes MOINS adjectifs**, pré-filtré au build avec les lexiques pleins) → écarte le/la pronom-objet (« je le
+  vois »), les homographes (« porte »=verbe, « rouge »=adj, « poste »/« tour » ambigus), l'élision (l'). Distinct de
+  `rule_genre_adj` (adjectifs), qui reste **NON branchée** (FP-insûre sans POS) — la contrainte déterminant×nom-pur suffit.
+- **Mesuré** sur le vrai GEC (98 paires) : **FP=0/98** ; genre déterminant **17/27 détectés+corrigés**. Périmètre
+  in-scope 13→40, détection 3→20. **Câblé dans l'app** (JS `rDetGenre`) avec **parité EXACTE** (même `gn`, même
+  logique ; 50 phrases, app == Python). vdc-lex porte `gn` (46 712 noms purs).
+
+## FALSIFIÉ — garde-fous NbHomoph/Preval en abstention (ne pas refaire)
+Idée écartée : utiliser `24_NbHomoph` / `33_Preval` (récupérés du Lexique) pour **abstenir** et « remplacer les
+listes manuelles » (`VLIKE_STOP`). **Falsifié par mesure** :
+- **NbHomoph est incompatible** avec ce correcteur : ses déclencheurs SONT des homophones (sont/est/ont/on/a/peut/
+  leur/dois/joue… **tous** dans le set NbHomoph≥2) — c'est sa raison d'être. Abstenir sur les homophones **tue
+  toutes les règles** (et perdrait 6/20 détections genre-dét) pour **zéro gain** (FP déjà 0).
+- **Preval est neutre** : 0 des noms détectés est peu-connu → aucun FP évité, aucune détection perdue.
+→ Le FP étant déjà 0, une abstention de plus ne peut que **coûter du rappel**. Données `cgram_guard.json` **gardées
+comme artefact** (usage possible dans une future détection de typo/mot-rare), **non câblées** dans le correcteur.
+
 ## Validation indépendante (held-out) & collecte en ligne
 - **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
   et des témoins), confusions choisies d'après les erreurs FR documentées comme fréquentes. → **12/15 détection+correction,
