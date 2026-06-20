@@ -9,7 +9,7 @@
    [ MOTEUR de correction ]  ← interchangeable, le meilleur dispo
        règles MAISON (nos données)  = hors-ligne, FP=0, dans l'app — AMÉLIORÉES (genre, mais/mes…)
        (Grammalecte ÉCARTÉ : ses données sont REDONDANTES avec les nôtres + GPL-3.0 → option 3 retenue)
-       LLM / modèle local           = plafond CONTEXTE (cloud opt-in · Ollama local · WebLLM · Chrome Nano)
+       LLM / modèle local           = plafond CONTEXTE (cloud opt-in · Ollama local · **Chrome Nano câblé** · WebLLM)
                     │  produit des erreurs (offsets, suggestions, FAMILLE)
                     ▼
    [ NOTRE COUCHE DYS ]  ← LE PRODUIT, jamais remplacé, agnostique au moteur
@@ -25,10 +25,11 @@
 | **LA COLLE** (notre couche dys) | **câblée** | sortie moteur (LLM `famille`) → **STADE dys affiché** par-dessus (engine-agnostic) |
 | **Plafond LLM** | mesuré (moi = modèle fort) | **récall ~total · FP≈1-2/30** (gold GEC parfois faux) — `je sui dan le voiture…` = **6/6** |
 | **LLM opt-in** | **câblé dans l'app** | OFF par défaut · clé dans l'UI · OpenAI-compatible → marche aussi **local (Ollama)** |
+| **Chrome Nano (local)** | **câblé dans l'app** | case 🧠 → Prompt API hors-ligne, **sans clé/égress** · JSON contraint · même COLLE (stade) · à mesurer chez Rem |
 | ~~Grammalecte~~ | **ÉCARTÉ** | données redondantes + GPL → on garde nos règles (option 3) |
 
 ## ⏳ EN COURS / EN ATTENTE
-1. **Finir le volet LLM = mesurer le livrable** → besoin de **toi** : un **modèle à tester** (clé cloud OpenAI/Mistral, **ou** Ollama local). Je t'ai guidé ; à choisir.
+1. **Mesurer Chrome Nano chez Rem** (je ne peux pas l'exécuter en conteneur) : qualité + FP sur `je sui dan le voiture…` dans **Chrome/Edge ≥ 138** (case 🧠). C'est le livrable *contexte* hors-ligne.
 2. **Port app de `mais→mes`** (trivial, réutilise GENDER_PURE déjà chargé) — pas encore fait.
 3. **Couche dys à enrichir** (familles→stades→**remédiation**) = là où on investit (le produit).
 

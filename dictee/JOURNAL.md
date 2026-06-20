@@ -5,6 +5,30 @@
 
 ---
 
+## 2026-06-20 — Chrome local (Gemini Nano) câblé dans le panneau IA — hors-ligne, sans clé
+
+**Pourquoi** (Rem) : « chrome est utilisé par bcp donc on par chrome ». Le LLM = plafond *contexte* ; Gemini Nano
+**intégré au navigateur** (Prompt API) le donne **hors-ligne, gratuit, sans clé, sans égress** → cohérent avec la
+cible dys (vie privée des copies d'élèves) et la doctrine (moteur = consommable, **notre couche dys = produit**).
+
+**Livré** (app, panneau « 🩹 Correcteur » → « 🤖 Correction par IA ») :
+- Case **🧠 Chrome local (Gemini Nano)** : cochée → masque les champs cloud (`iaCloudVis`), persistée (`vdd_ia.chrome`).
+- `iaRunChrome()` = Prompt API **conforme spec** : `LanguageModel.availability/create/prompt/destroy`,
+  `expectedInputs/Outputs languages:['fr']`, **sortie JSON contrainte** `responseConstraint:IA_SCHEMA`
+  (`omitResponseConstraintInput`), moniteur de **téléchargement** (1ʳᵉ fois), repli `self.ai`/`window.ai.languageModel`.
+- **Même rendu, même COLLE** : `iaRender`/`iaParse` factorisés → cloud ET Chrome passent par notre `developmental()`
+  → **STADE dys affiché par-dessus** (engine-agnostic, §5 réutilisation). Le bouton dispatch selon la case.
+- Messages d'indispo explicites (Chrome/Edge ≥ 138, flag `prompt-api-for-gemini-nano`, Firefox/Safari → Cloud/Ollama).
+
+**Vérifié ici** : bloc correcteur **compile** (`new Function`, 68 k chars), **parité** app⊆Python OK (`parity_corr.js`),
+spell app OK (`test_speller_app.js`). **Non testable en conteneur** (pas de Chrome/Nano headless) → **mesure réelle =
+chez Rem dans Chrome** (qualité + FP du Nano sur `je sui dan le voiture…`). Cloud/Ollama inchangés (toujours opt-in).
+
+**Note Grammalecte** : la faisabilité reste prouvée (entrée plus bas) mais **écartée** (option 3 : données redondantes +
+GPL ; on garde MIT). Chrome Nano = la voie *contexte* retenue côté navigateur, sans dépendance ni changement de licence.
+
+---
+
 ## 2026-06-20 — Cap verrouillé (moteur=consommable, NOTRE couche dys=produit) + LA COLLE + Grammalecte PROUVÉ faisable
 
 **Recadrage (Rem, verrouillé `POSTIT.md`)** : le moteur de correction est un **consommable interchangeable** ; **NOTRE
