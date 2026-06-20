@@ -13,7 +13,8 @@ incrémental persistant).
 | Brique réutilisée | Rôle |
 |---|---|
 | `g2p_tables.json` ← **extrait de `app/omega-pendu.html`** par `build_g2p_tables.py` | tables AQUA-PHOTON v3 (route **sublexicale** g→p, hésitation latente §3) — **mêmes** tables que le moteur |
-| `phono_homophones.json` (43 580 groupes, clé = phono SAMPA Lexique) | route **lexicale** du SON (exacte) + **nbhomoph** |
+| `phono_homophones.json` (43 580 groupes, clé = phono SAMPA Lexique) | route **lexicale** du SON (exacte) + **nbhomoph** + **vérité-terrain** d'apprentissage |
+| `g2p_corrections.json` ← **appris** par `build_g2p_corrections.py` (boucle descendante) | corrige les erreurs systématiques du g2p, par alignement g↔p sur Lexique (TRAIN) |
 | `cgram_gender/verbs/adj.json` (dérivés Lexique 4) | route **lexicale** de cgram / genre |
 | `diag_sentence.deacc / toks / norm` | tokenisation + normaliseur de surface (imports directs) |
 
@@ -27,9 +28,15 @@ C'est la **grammaire à double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) appliquée à
 incrémente `vu`. On lit aussi des **textes** (`--read` / `--read-file`) : le lexique accumule fréquences
 et inventaire phonèmes/graphèmes. *(Fichier d'état non versionné — cf. `.gitignore`.)*
 
+## Route sublexicale améliorée (3 leviers mesurés)
+1. **SEG enrichi** : la segmentation du moteur (43) est étendue de **8 segments** (`ti, sc, sh, oy, ay, ail, cqu, ueil`) **retenus après mesure** (`ion, ue, oui`… testés et **écartés** car ils dégradent). Le moteur pendu garde son SEG (R66) ; seul le décomposeur l'étend.
+2. **Correction apprise (boucle descendante)** : `build_g2p_corrections.py` aligne (DP monotone) le g2p au phono Lexique sur le split TRAIN, apprend `(graphème, contexte)→phonème` (support≥20, pureté≥0,75 ⇒ 667 règles), corrige les erreurs systématiques (o/ɔ, finales…).
+3. **Syllabation par règles** (attaque maximale) : `wa-zo`, `na-sj§`, `che → S°-vo` ; l'**orthosyll** est calqué sur le phonologique (`oi-seau`, `na-tion`, `beau-coup`).
+
 ## Lancer
 ```
 python3 dictee/build_g2p_tables.py          # (1 fois) extrait les tables g2p de l'app
+python3 dictee/build_g2p_corrections.py     # (1 fois) apprend la table de correction (TRAIN)
 python3 dictee/decompose.py "chevaux"       # décompose un mot (son ET ortho)
 python3 dictee/decompose.py --read "Le chat boit du lait."   # lit un texte et APPREND
 python3 dictee/decompose.py --read-file texte.txt
@@ -48,30 +55,34 @@ Exemple (`chevaux`, OOV de `phono_homophones` → route sublexicale ; cgram via 
   GRAM   cgram : NOM (lexicale) · genre : masculin · nombre : pluriel · homophones : 0
 ```
 
-## Mesure (doctrine §1 — falsifiable, in-lexique ⟂ OOV ; `seed=42`, n=3000)
-Route **sublexicale** confrontée à la vérité-terrain (phono Lexique des mots in-lexique) :
+## Mesure (doctrine §1 — falsifiable, **HELD-OUT** in-lexique ⟂ OOV ; `seed=42`, test=4000)
+Route **sublexicale** confrontée à la vérité-terrain (phono Lexique), **table de correction apprise sur
+le split TRAIN, mesurée sur le split TEST** (pas de fuite) :
 
-| | phono exact | fidélité phonémique | nbphons exact |
+| étage | phono exact | fidélité phonémique | nbphons exact |
 |---|---|---|---|
-| **avec overlay accents** | **46,4 %** | **88,0 %** | 75,7 % |
-| sans overlay (port brut app) | 28,6 % | 81,7 % | 75,7 % |
+| (1) g2p moteur brut (SEG=43) | 48,6 % | 88,4 % | 76,0 % |
+| (2) + SEG enrichi (+8 segments) | 50,9 % | 89,1 % | 77,0 % |
+| **(3) + correction apprise (boucle descendante)** | **52,4 %** | **89,5 %** | 77,6 % |
 
-- **Ablation falsifiable** : l'overlay accents (é→/e/, è→/ɛ/, ç→/s/…) fait passer les mots accentués de
-  **0 % → 50 %** d'exactitude (le g2p de l'app, pensé pour le pendu ASCII, rendait `?` sur les accents).
-- **OOV** (tenu séparé, §1.3) : 100 % produisent un phono ; pas de vérité-terrain → on ne reporte que
-  couverture/confiance (confiance moyenne ≈ 0,67).
-- **Garde-fous** (§1.5) : cas connus reproduits (`chat→Sa`, `cheval→S°val`, `oiseau→wazo`, `examen→Egzam5`…).
+- **Δ total = +3,7 points** d'exactitude (et +1,1 de fidélité phonémique), entièrement **mesuré en held-out**.
+- **Ablation accents** (sur l'étage 3) : l'overlay (é→/e/, ç→/s/…) vaut **+0,5 pt** (le g2p de l'app, pensé
+  pour le pendu ASCII, rendait `?` sur les accents — l'overlay est appliqué **côté décomposeur**, moteur intact).
+- **OOV** (tenu séparé, §1.3) : 100 % produisent un phono ; pas de vérité-terrain → couverture/confiance
+  seulement (confiance moyenne ≈ 0,68).
+- **Garde-fous** (§1.5) : `chat→Sa`, `cheval→S°val`, `oiseau→wazo`, `examen→Egzam5`, **`nation→nasj§`** (OK).
 
 ## Audit honnête (§6) — ce qui marche / ce qui reste
 - ✅ **Route lexicale** du son exacte par construction (mot connu → phono Lexique + nbhomoph corrects).
-  ✅ **Décompo graphèmes/syllabes/CV** + **cgram/genre** lexicaux opérationnels. ✅ **Apprend** (FP=0) mesuré.
-- ⚠️ **Route sublexicale = 46 % exact / 88 % phonémique** : c'est le **plafond du g2p heuristique** repris
-  tel quel (port **fidèle**, §A5 — pas d'amélioration silencieuse). Sources d'erreur : `o/ɔ` (observe→`opsERv`),
-  `e` muet isolé (`le`→`/l/` au lieu de `/l°/`), digrammes hors `SEG` (`ti`→/sj/ non déclenché : `nation`).
-- ⏳ **Pistes** (jonctions futures, chacune mesurée seule) : enrichir `SEG` (ti/sc/ay…), apprendre la
-  correspondance IPA→SAMPA par alignement (façon boucle descendante), syllabation par règles (attaque
-  maximale) plutôt qu'approchée. La **route lexicale couvrant les mots fréquents**, le sublexical ne sert
-  que l'**OOV** — d'où le choix double voie.
+  ✅ **Décompo graphèmes/syllabes(son+ortho)/CV** + **cgram/genre** lexicaux. ✅ **Apprend** (FP=0) mesuré.
+  ✅ **3 leviers sublexicaux** (SEG enrichi · correction apprise · syllabation par règles) **mesurés net-positifs**.
+- ⚠️ **Route sublexicale = 52 % exact / 89,5 % phonémique** (held-out) : plafond restant du g2p heuristique.
+  Erreurs résiduelles : `o/ɔ` non systématisé, schwa final isolé, contextes rares hors-règles.
+- ⚠️ **Le panneau app n'a PAS encore ces 3 leviers** : il garde le `_DECL2.g2p` brut (engine SEG, sans
+  correction) en sublexical + la route lexicale `OMEGA_LEX4` (exacte, ≥7 lettres). Parité app = jonction à venir
+  (la table de correction est liée à la segmentation enrichie : il faut porter SEG_EXTRA dans le panneau).
+- ⏳ **Pistes suivantes** : compressibilité de la base (elle va être riche), couche de **cognition
+  probabiliste / croisement** (§3, jointe `Σ_φ P(φ|p)·P(·|φ,contexte)`).
 
 ## Licence
 Dérive de **Lexique 4** (New et al., 2026 ; *Behavior Research Methods* 58(5), 140) → **CC BY-SA 4.0**

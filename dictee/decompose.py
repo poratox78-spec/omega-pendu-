@@ -39,8 +39,12 @@ if not os.path.exists(TABLES_PATH):
     sys.exit("[decompose] g2p_tables.json absent. Lance d'abord : python3 dictee/build_g2p_tables.py")
 _T = json.load(open(TABLES_PATH, encoding='utf-8'))
 VOW, NASAL, DBL = _T['VOW'], set(_T['NASAL']), set(_T['DBL'])
-SEG = sorted(_T['SEG'], key=lambda s: -len(s))          # maximal munch (déjà trié, on re-fige)
 COND, ENTSIL = _T['COND'], set(_T['ENTSIL'])
+# SEG du moteur (43) ENRICHI de 8 segments mesurés net-positifs en held-out (+2.23 pts d'exactitude ;
+# 'ti'→/sj/ seul vaut +1.4). Le moteur pendu garde SON SEG intact (R66) ; seul le décomposeur l'étend.
+# 'ion','ue','oui'… ont été TESTÉS et ÉCARTÉS (ils dégradent) — cf. build_g2p_corrections.py / DECOMPOSE.md.
+SEG_EXTRA = ['ueil', 'cqu', 'ail', 'sc', 'sh', 'oy', 'ay', 'ti']
+SEG = sorted(set(_T['SEG']) | set(SEG_EXTRA), key=lambda s: -len(s))
 
 # ── overlay ACCENTS (extension assumée : le g2p de l'app, pensé pour le pendu ASCII, rend '?'
 #    sur é/è/ç… ; on ajoute les valeurs non ambiguës. Effet MESURÉ en ablation, cf. --measure). ──
@@ -72,6 +76,11 @@ def _load_json(name, default):
 GENDER = _load_json('cgram_gender.json', {})            # mot(deacc) → 'm'/'f'  (noms non ambigus)
 VERBS = set(_load_json('cgram_verbs.json', []))         # formes verbales (deacc)
 ADJ = _load_json('cgram_adj.json', {})                  # forme(deacc) → [genre, contrepartie]
+# CORRECTION APPRISE (boucle descendante, build_g2p_corrections.py) : (graphème\tnextchar) → chunk SAMPA gold.
+# Apprise par alignement g2p↔phono Lexique sur le split TRAIN ; corrige les erreurs systématiques du g2p
+# (o/ɔ, finales…). Mesurée en HELD-OUT (~+2 pts sur SEG enrichi). Inerte si le fichier est absent.
+_CORR_RAW = _load_json('g2p_corrections.json', {})
+CORR = _CORR_RAW.get('table', {}) if isinstance(_CORR_RAW, dict) else {}
 
 # ── IPA (sortie g2p) → SAMPA Lexique : 1 caractère SAMPA = 1 phonème (donc len = nbphons) ──
 IPA2SAMPA = {
@@ -100,14 +109,16 @@ def ipa_to_sampa(ph_ipa):
     return ''.join(out)
 
 # ── ROUTE SUBLEXICALE : portage FIDÈLE du g2p() de l'app (briques AQUA-PHOTON v3) ──
-def g2p(word, accents=True):
+def g2p(word, accents=True, seg=None):
     """graphème→phonème déterministe + hésitation `h` (latent §3). Renvoie la liste des pas
-    {g: graphème, ph: phonème IPA, h: hésitation}. `accents` active l'overlay é/è/ç (sinon '?')."""
+    {g: graphème, ph: phonème IPA, h: hésitation}. `accents` active l'overlay é/è/ç (sinon '?').
+    `seg` permet une segmentation alternative (ablation : SEG moteur vs SEG enrichi)."""
+    segs = seg if seg is not None else SEG
     w = KEEP.sub('', word.lower())
     steps, i = [], 0
     while i < len(w):
         g = None
-        for cand in SEG:                                 # maximal munch sur les segments connus
+        for cand in segs:                                # maximal munch sur les segments connus
             if not w.startswith(cand, i):
                 continue
             after = w[i + len(cand)] if i + len(cand) < len(w) else '#'
@@ -141,46 +152,68 @@ def g2p(word, accents=True):
                 steps[k]['ph'], steps[k]['h'] = '∅', 0.02; break
     return steps
 
-def sublexical_phon(word, accents=True):
-    """Décompo sublexicale → (sampa, ipa, graphèmes[{g,ph_sampa,h}], hesitation_moyenne)."""
-    steps = g2p(word, accents=accents)
+def sublexical_phon(word, accents=True, correct=True, seg=None):
+    """Décompo sublexicale → (sampa, ipa, graphèmes[{g,ph_sampa,h}], hesitation_moyenne).
+    `correct` applique la table de correction apprise (boucle descendante) ; `seg` = segmentation."""
+    steps = g2p(word, accents=accents, seg=seg)
+    w = KEEP.sub('', word.lower())
     graph = []
     sampa_parts, ipa_parts, hs = [], [], []
+    i = 0
     for st in steps:
+        g = st['g']
+        nxt = w[i + len(g)] if i + len(g) < len(w) else '#'; i += len(g)
         sp = ipa_to_sampa(st['ph'])
-        graph.append({'g': st['g'], 'ph': sp, 'ipa': '' if st['ph'] == '∅' else st['ph'], 'h': st['h']})
+        if correct and CORR:                             # correction apprise (graphème, contexte droit)
+            sp = CORR.get(g + '\t' + nxt, sp)
+        graph.append({'g': g, 'ph': sp, 'ipa': '' if st['ph'] == '∅' else st['ph'], 'h': st['h']})
         sampa_parts.append(sp); ipa_parts.append('' if st['ph'] == '∅' else st['ph']); hs.append(st['h'])
     sampa = ''.join(sampa_parts)
     hmean = sum(hs) / len(hs) if hs else 0.0
     return sampa, ''.join(ipa_parts), graph, hmean
 
-# ── syllabes (SON) : noyaux = voyelles SAMPA ; nbsyll = nb de noyaux (robuste). Découpe = repère
-#    « attaque maximale » légère (illustratif, marqué approx). ──
+# ── syllabes (SON) par RÈGLES (principe de l'attaque maximale) : noyaux = voyelles SAMPA ;
+#    nbsyll = nb de noyaux (invariant). La frontière laisse à la syllabe suivante l'attaque LÉGALE
+#    la plus longue (C+liquide(+glide), C+glide, C, glide) ; le reste forme la coda précédente. ──
+LIQ = set('lR'); GLIDE = set('jw8')
+def _legal_onset(s):
+    if len(s) == 1: return True                          # une consonne ou un glide = attaque licite
+    if len(s) == 2: return (s[1] in LIQ and s[0] not in LIQ | GLIDE) or (s[1] in GLIDE and s[0] not in GLIDE)
+    if len(s) == 3: return s[2] in GLIDE and s[1] in LIQ and s[0] not in LIQ | GLIDE   # ex. /pri j/ → onset 'prj'? (rare)
+    return False
+def _onset_len(cluster):
+    for L in (3, 2, 1):                                  # plus longue attaque légale en suffixe du cluster
+        if L <= len(cluster) and _legal_onset(cluster[-L:]): return L
+    return min(1, len(cluster))
 def syllabify_sampa(sampa):
     nuclei = [i for i, c in enumerate(sampa) if c in SAMPA_VOW]
     if not nuclei:
-        return [sampa] if sampa else [], 0
-    sylls, start = [], 0
+        return ([sampa] if sampa else []), 0
+    cuts = [0]
     for k in range(len(nuclei) - 1):
         a, b = nuclei[k], nuclei[k + 1]
-        cons = b - a - 1                                 # consonnes entre deux noyaux
-        cut = b if cons <= 1 else b - 1                  # 0/1 C → V.CV ; ≥2 C → VC.CV (attaque = dernière C)
-        sylls.append(sampa[start:cut]); start = cut
-    sylls.append(sampa[start:])
+        cluster = sampa[a + 1:b]                          # consonnes/glides entre deux noyaux
+        cuts.append(b - _onset_len(cluster) if cluster else a + 1)   # attaque max à droite ; hiatus → coupe après a
+    cuts.append(len(sampa))
+    sylls = [sampa[cuts[i]:cuts[i + 1]] for i in range(len(cuts) - 1)]
     return sylls, len(nuclei)
 
-# ── syllabes (ORTHO) : on aligne les graphèmes sur les noyaux phonologiques (orthosyll Lexique) ──
+# ── syllabes (ORTHO, orthosyll Lexique) : on CALQUE le découpage orthographique sur les syllabes
+#    PHONOLOGIQUES (mêmes frontières) — chaque graphème va dans la syllabe de son 1er phonème ;
+#    un graphème muet (∅) reste avec la syllabe courante (ex. le « x » final de chevaux). ──
 def syllabify_ortho(graph):
-    nuclei = [i for i, gp in enumerate(graph) if any(c in SAMPA_VOW for c in gp['ph'])]
-    if not nuclei:
+    sylls, _ = syllabify_sampa(''.join(gp['ph'] for gp in graph))
+    if not sylls:
         return [''.join(gp['g'] for gp in graph)] if graph else []
-    sylls, start = [], 0
-    for k in range(len(nuclei) - 1):
-        a, b = nuclei[k], nuclei[k + 1]
-        cut = b if (b - a - 1) <= 1 else b - 1
-        sylls.append(''.join(graph[x]['g'] for x in range(start, cut))); start = cut
-    sylls.append(''.join(graph[x]['g'] for x in range(start, len(graph))))
-    return sylls
+    syl_of = []                                          # position phonémique → index de syllabe
+    for si, s in enumerate(sylls):
+        syl_of += [si] * len(s)
+    out = [''] * len(sylls); pos = 0
+    for gp in graph:
+        si = syl_of[pos] if pos < len(syl_of) else len(sylls) - 1
+        out[si] += gp['g']; pos += len(gp['ph'])
+    out = [s for s in out if s]
+    return out or [''.join(gp['g'] for gp in graph)]
 
 # ── route LEXICALE de la catégorie grammaticale (cgram / genre) ──
 def lexical_gram(word):
@@ -319,41 +352,45 @@ def _lev(a, b):
             prev = cur
     return dp[m]
 
-def measure(n=3000, seed=42):
-    random.seed(seed)
-    pool = [w for w in W2P if w.isalpha()]               # mots in-lexique (clé phono = vérité-terrain)
-    sample = random.sample(pool, min(n, len(pool)))
-    print(f"=== MESURE route SUBLEXICALE (g2p) vs phono Lexique — IN-LEXIQUE (n={len(sample)}, seed={seed}) ===")
-    for label, acc in (('avec overlay accents', True), ('SANS overlay (port brut app)', False)):
-        exact = phon_ok = nph_ok = 0; tot_ed = tot_ph = 0
-        exact_acc = tot_acc = exact_noacc = tot_noacc = 0
-        for w in sample:
-            gold = W2P[w]
-            pred, _, _, _ = sublexical_phon(w, accents=acc)
-            ed = _lev(pred, gold)
-            exact += (pred == gold); tot_ed += ed; tot_ph += len(gold)
-            phon_ok += (ed == 0); nph_ok += (len(pred) == len(gold))
-            has_acc = any(c in ACC for c in w)
-            if has_acc: tot_acc += 1; exact_acc += (pred == gold)
-            else: tot_noacc += 1; exact_noacc += (pred == gold)
-        N = len(sample)
-        print(f"  [{label}]")
-        print(f"    phono EXACT (SAMPA)      : {exact}/{N} = {100*exact/N:.1f}%")
-        print(f"    distance phonème moyenne : {tot_ed/N:.3f}  ·  fidélité phonémique = {100*(1-tot_ed/max(1,tot_ph)):.1f}%")
-        print(f"    nbphons exact            : {nph_ok}/{N} = {100*nph_ok/N:.1f}%")
-        print(f"    exact | mots accentués   : {exact_acc}/{tot_acc} = {100*exact_acc/max(1,tot_acc):.1f}%"
-              f"   ·  non accentués : {exact_noacc}/{tot_noacc} = {100*exact_noacc/max(1,tot_noacc):.1f}%")
-    # OOV (tenu SÉPARÉ §1.3) : mots sans phono Lexique → pas de vérité-terrain, on mesure couverture/confiance
+def inlex_split(seed=42, test_frac=0.2):
+    """Partage déterministe des mots in-lexique en TRAIN (apprend la correction) / TEST (mesure).
+    Garantit que la table de correction n'est PAS mesurée sur ses données d'apprentissage (§1.3)."""
+    pool = [w for w in W2P if w.isalpha()]
+    rnd = random.Random(seed); rnd.shuffle(pool)
+    cut = int(len(pool) * (1 - test_frac))
+    return pool[:cut], pool[cut:]
+
+def measure(seed=42, n_test=4000):
+    _, test = inlex_split(seed)
+    test = test[:n_test]
+    base_seg = sorted(set(_T['SEG']), key=lambda s: -len(s))   # SEG du moteur (sans enrichissement)
+    print(f"=== MESURE route SUBLEXICALE vs phono Lexique — HELD-OUT (test={len(test)}, seed={seed}) ===")
+    def run(tag, correct, seg, acc=True):
+        exact = nph = 0; tot_ed = tot_ph = 0
+        for w in test:
+            gold = W2P[w]; pred, _, _, _ = sublexical_phon(w, accents=acc, correct=correct, seg=seg)
+            exact += (pred == gold); tot_ed += _lev(pred, gold); tot_ph += len(gold); nph += (len(pred) == len(gold))
+        N = len(test)
+        print(f"  {tag:46} exact {100*exact/N:5.2f}%  ·  phonémique {100*(1-tot_ed/max(1,tot_ph)):5.2f}%  ·  nbphons {100*nph/N:5.1f}%")
+        return 100 * exact / N
+    a = run("(1) g2p moteur brut (SEG=43, sans correction)", False, base_seg)
+    b = run("(2)  + SEG enrichi (+8 segments mesurés)", False, SEG)
+    c = run("(3)  + correction apprise (boucle descendante)", True, SEG)
+    cstate = f"chargée, {len(CORR)} règles" if CORR else "ABSENTE → lance build_g2p_corrections.py"
+    print(f"  Δ total (3)−(1) : {c-a:+.2f} points d'exactitude   ·   table de correction : {cstate}")
+    # ablation ACCENTS (sur le meilleur étage) — l'overlay reste mesuré (§1)
+    na = run("    ablation : SANS overlay accents", True, SEG, acc=False)
+    print(f"    → overlay accents : {c-na:+.2f} pts")
+    # OOV (tenu SÉPARÉ §1.3) : pas de vérité-terrain → couverture/confiance seulement
+    rnd = random.Random(seed)
     oov = [w for w in VERBS if w not in W2P and w.isalpha()]
-    oov = random.sample(oov, min(1000, len(oov)))
+    oov = rnd.sample(oov, min(1000, len(oov)))
     conf = [decompose(w)['confiance'] for w in oov]
-    cov_gram = sum(1 for w in oov if lexical_gram(w)[0])
-    print(f"=== OOV (pas de phono Lexique — couverture/confiance seulement, n={len(oov)}) ===")
-    print(f"    route sublexicale : 100% produisent un phono · confiance moyenne {sum(conf)/max(1,len(conf)):.3f}")
-    print(f"    route lexicale cgram couvre : {cov_gram}/{len(oov)} = {100*cov_gram/max(1,len(oov)):.0f}% (ce sont des verbes)")
-    # garde-fous (§1.5) : le port doit reproduire des cas connus
+    print(f"=== OOV (sans phono Lexique — couverture/confiance, n={len(oov)}) ===")
+    print(f"    sublexical : 100% produisent un phono · confiance moyenne {sum(conf)/max(1,len(conf)):.3f} · cgram couvre 100% (verbes)")
+    # garde-fous (§1.5) : cas connus reproduits
     CHK = {'chat': 'Sa', 'cheval': 'S°val', 'oiseau': 'wazo', 'maison': 'mEz§', 'examen': 'Egzam5',
-           'beau': 'bo', 'rouge': 'RuZ', 'lui': 'l8i'}
+           'beau': 'bo', 'rouge': 'RuZ', 'lui': 'l8i', 'nation': 'nasj§'}
     bad = [(w, sublexical_phon(w)[0], g) for w, g in CHK.items() if sublexical_phon(w)[0] != g]
     print("=== garde-fous (cas connus) ===", "OK" if not bad else f"ÉCHECS : {bad}")
 

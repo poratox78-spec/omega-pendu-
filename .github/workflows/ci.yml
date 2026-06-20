@@ -17,7 +17,9 @@ jobs:
         run: python3 dictee/descending_probe.py
       - name: Extraction des tables g2p depuis l'app (route sublexicale)
         run: python3 dictee/build_g2p_tables.py
-      - name: Décomposeur « à la Lexique 4 » — mesure (in-lexique ⟂ OOV, seed 42)
+      - name: Boucle descendante — apprend la correction g2p (TRAIN)
+        run: python3 dictee/build_g2p_corrections.py
+      - name: Décomposeur « à la Lexique 4 » — mesure (HELD-OUT, in-lexique ⟂ OOV, seed 42)
         run: python3 dictee/decompose.py --measure
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
