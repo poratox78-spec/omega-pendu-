@@ -106,7 +106,10 @@ def main():
             if fr is not None and fr < MINFREQ:
                 dropped_freq += 1; continue
             e = {'m': m}
-            for k in ('p','l','g','f','fl','cd','old','pld','syll','cvo','cvp','puo','pup','mb','ms','md','prev','rt','nbhomoph','nbhomog'):
+            allcols = ('p','l','g','f','fl','cd','old','pld','syll','cvo','cvp','puo','pup','mb','ms','md','prev','rt','nbhomoph','nbhomog')
+            keep = os.environ.get('KEEPCOLS', '')
+            cols = [c for c in allcols if c in keep.split(',')] if keep else allcols
+            for k in cols:
                 idx = ci.get(k, -1)
                 if idx is None or idx < 0: continue
                 if k in STR: v = fstr(row, idx)
