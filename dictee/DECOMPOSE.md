@@ -81,8 +81,8 @@ le split TRAIN, mesurée sur le split TEST** (pas de fuite) :
 - ⚠️ **Le panneau app n'a PAS encore ces 3 leviers** : il garde le `_DECL2.g2p` brut (engine SEG, sans
   correction) en sublexical + la route lexicale `OMEGA_LEX4` (exacte, ≥7 lettres). Parité app = jonction à venir
   (la table de correction est liée à la segmentation enrichie : il faut porter SEG_EXTRA dans le panneau).
-- ⏳ **Pistes suivantes** : compressibilité de la base (elle va être riche), couche de **cognition
-  probabiliste / croisement** (§3, jointe `Σ_φ P(φ|p)·P(·|φ,contexte)`).
+- ✅ **Compressibilité** mesurée (section ci-dessous : 7,9× gzip, 17× factorisé). ✅ **Cognition
+  phono→ortho** (jointe §3, croisement son×ortho) livrée : `p2g.py` / `dictee/P2G.md`.
 
 ## Compressibilité de la base (mesuré — `compress_probe.py`)
 La base de décomposition « va être riche » → **est-elle compressible ? Oui, fortement** (n=50 000 mots) :

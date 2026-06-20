@@ -352,6 +352,51 @@ def _lev(a, b):
             prev = cur
     return dp[m]
 
+# ── ALIGNEMENT graphème↔phonème (partagé : boucle descendante + cognition phono→ortho) ──
+def steps_of(word):
+    """[(graphème, caractère-suivant, phonème SAMPA prédit RAW)] via le g2p enrichi (sans correction)."""
+    st = g2p(word, accents=True, seg=SEG)
+    w = KEEP.sub('', word.lower()); out = []; i = 0
+    for s in st:
+        g = s['g']; nxt = w[i + len(g)] if i + len(g) < len(w) else '#'
+        out.append((g, nxt, ipa_to_sampa(s['ph']))); i += len(g)
+    return out
+
+def align_chunks(preds, gold):
+    """Partition MONOTONE de `gold` en len(preds) morceaux (0..3 car.) minimisant Σ _lev(pred_i, morceau_i).
+    Les prédictions g2p servent d'ancres → chaque graphème reçoit son morceau de phono gold."""
+    k, n = len(preds), len(gold); INF = 10 ** 9
+    dp = [[INF] * (n + 1) for _ in range(k + 1)]; bk = [[0] * (n + 1) for _ in range(k + 1)]; dp[0][0] = 0
+    for i in range(1, k + 1):
+        pr = preds[i - 1]
+        for p in range(n + 1):
+            best, bq = INF, 0
+            for q in range(max(0, p - 3), p + 1):
+                if dp[i - 1][q] >= INF: continue
+                c = dp[i - 1][q] + _lev(pr, gold[q:p])
+                if c < best: best, bq = c, q
+            dp[i][p] = best; bk[i][p] = bq
+    chunks = []; p = n
+    for i in range(k, 0, -1):
+        q = bk[i][p]; chunks.append(gold[q:p]); p = q
+    chunks.reverse(); return chunks
+
+def aligned_units(word):
+    """Unités d'alignement d'un mot in-lexique : liste de (morceau_phono, graphie) où les graphèmes
+    MUETS (∅) sont repliés sur le graphème prononcé voisin (précédent, sinon suivant). Base du p2g."""
+    if word not in W2P:
+        return None
+    S = steps_of(word); chunks = align_chunks([s[2] for s in S], W2P[word])
+    units = []; lead = ''
+    for (g, _, _), ch in zip(S, chunks):
+        if ch == '':                                     # graphème muet (lettre non prononcée)
+            if units: units[-1][1] += g                  # replie sur la graphie prononcée précédente
+            else: lead += g                              # muet en tête (h de homme) → graphème suivant
+        else:
+            units.append([ch, lead + g]); lead = ''
+    if lead and units: units[0][1] = lead + units[0][1]
+    return units
+
 def inlex_split(seed=42, test_frac=0.2):
     """Partage déterministe des mots in-lexique en TRAIN (apprend la correction) / TEST (mesure).
     Garantit que la table de correction n'est PAS mesurée sur ses données d'apprentissage (§1.3)."""

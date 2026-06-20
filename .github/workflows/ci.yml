@@ -21,6 +21,10 @@ jobs:
         run: python3 dictee/build_g2p_corrections.py
       - name: Décomposeur « à la Lexique 4 » — mesure (HELD-OUT, in-lexique ⟂ OOV, seed 42)
         run: python3 dictee/decompose.py --measure
+      - name: Cognition phono→ortho — apprend l'émission (build_p2g)
+        run: python3 dictee/build_p2g.py
+      - name: Cognition phono→ortho — mesure (HELD-OUT top-k + croisement ortho)
+        run: python3 dictee/p2g.py --measure
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)

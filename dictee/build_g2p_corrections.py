@@ -25,36 +25,6 @@ PURITY = float(os.environ.get('PURITY', '0.75'))         # part mini du morceau 
 TRAIN_CAP = int(os.environ.get('TRAIN_CAP', '80000'))    # plafond d'apprentissage (runtime)
 
 
-def steps_of(word):
-    """[(graphème, caractère-suivant, phonème SAMPA prédit RAW)] via le g2p enrichi (sans correction)."""
-    st = D.g2p(word, accents=True, seg=D.SEG)
-    w = D.KEEP.sub('', word.lower()); out = []; i = 0
-    for s in st:
-        g = s['g']; nxt = w[i + len(g)] if i + len(g) < len(w) else '#'
-        out.append((g, nxt, D.ipa_to_sampa(s['ph']))); i += len(g)
-    return out
-
-
-def align_chunks(preds, gold):
-    """Partition MONOTONE de `gold` en len(preds) morceaux (0..3 car.) minimisant Σ lev(pred_i, morceau_i).
-    Les prédictions servent d'ancres : là où le g2p est juste, le morceau gold = la prédiction."""
-    k, n = len(preds), len(gold); INF = 10 ** 9
-    dp = [[INF] * (n + 1) for _ in range(k + 1)]; bk = [[0] * (n + 1) for _ in range(k + 1)]; dp[0][0] = 0
-    for i in range(1, k + 1):
-        pr = preds[i - 1]
-        for p in range(n + 1):
-            best, bq = INF, 0
-            for q in range(max(0, p - 3), p + 1):
-                if dp[i - 1][q] >= INF: continue
-                c = dp[i - 1][q] + D._lev(pr, gold[q:p])
-                if c < best: best, bq = c, q
-            dp[i][p] = best; bk[i][p] = bq
-    chunks = []; p = n
-    for i in range(k, 0, -1):
-        q = bk[i][p]; chunks.append(gold[q:p]); p = q
-    chunks.reverse(); return chunks
-
-
 def main():
     if not D.W2P:
         print("[corr] phono_homophones.json absent — rien à apprendre."); return 1
@@ -62,7 +32,7 @@ def main():
     train = train[:TRAIN_CAP]
     counts = defaultdict(Counter)
     for w in train:
-        S = steps_of(w); chunks = align_chunks([s[2] for s in S], D.W2P[w])
+        S = D.steps_of(w); chunks = D.align_chunks([s[2] for s in S], D.W2P[w])  # helpers partagés (decompose)
         for (g, nxt, _), ch in zip(S, chunks):
             counts[(g, nxt)][ch] += 1
     table = {}; kept = dropped = 0
