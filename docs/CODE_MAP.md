@@ -4,6 +4,10 @@
 > But : savoir **ce qui triche / ne triche pas par site**, **le sens des voies** (qui lit la sortie de qui), **comment
 > les toggles sont câblés aux fonctions**, et à quoi sert chaque fonction. Complète les audits (qui pointent des
 > *findings*) par une *cartographie*. Établi 2026-06-19 (4 cartographies de code croisées).
+> **Audit d'ancrage 2026-06-20** : chaque claim falsifiable re-vérifié contre le source — 32/32 ancres de fonction,
+> 10/10 declares, 7/7 réfs toggles §6, lignes de décl. §7, formule OS (l.3818-3827), `_neoDeclareOSmix` α=β découplé
+> (l.6402-6406), poids co-décideurs (0,7/0,3 M4_d · 0,5 hub · 0,20 readout · 0,3 phonGraph · 0,1 M1_m), M1_d révélé-seul
+> (l.4128). Corrigés : census `wp.get` (§3, 5 sites), boot (§1, `M_S_ENABLED` const), `M2_m`→OS_diss (§4.2), caveat bPC M4_d.
 >
 > ⚠️ **Numéros de ligne** : indicatifs (le fichier a dérivé de +30 à +120 lignes). Les utiliser comme **ancrage
 > relatif** ; re-localiser par `Grep` du nom de fonction avant toute édition.
@@ -107,7 +111,7 @@ S1/S4/S5 sont des lectures d'**apprentissage** (post-décision, wake-sleep) → 
 | `M1_d_step` | 4089 | perception : lie position×lettre révélée (HRR, 5 sous-cerveaux, LDIM 512) | currentWord aux positions révélées, `letterVecs`, (M1_m si Möbius) | `M1_d.output` | M2_d_step | 🟢 |
 | `M2_d_step` | 4184 | spatialise en 16 zones (chapeau mexicain) — **lave le signe → ne code que la longueur** | M1_d.output | `M2_d.output`, zones | M3_d_step | 🟢 |
 | `M3_d_step` | 4299 | concept 12 cellules (bPC autoencodeur OU Hebbian) | M2_d/M1_d.output | `M3_d.output`, `cLetterScore`, conceptCells | M_S, M4_d, M5_d (cLetterScore) | 🟢 (voir 4.3) |
-| `M4_d_step` | 4799 | candidats lettre = cosine(concept, letterVecs)×0,7 + freq×0,3 (+ A2 si ON) | M3_d.output, `letterVecs`, LETTER_FREQ | `M4_d.output` (top-K) | M5_d_step | 🟢 (🔴 si A2) |
+| `M4_d_step` | 4799 | candidats = cos(concept,letterVecs)×**0,7** (`M4_D_W_COSINE`) + freq×**0,3** (`M4_D_W_FREQ`) (+A2 si ON). ⚠️ **sous bPC** (réf.) : `wCos→0,3` (l.4866) **et** concept=`M3_d.output`=0 → terme cos **nul** → M4_d devient *freq-seul* ; le concept rentre via `cLetterScore`@M5_d (§4.3) | M3_d.output, `letterVecs`, LETTER_FREQ | `M4_d.output` (top-K) | M5_d_step | 🟢 (🔴 si A2) |
 | `M5_d_step` | 4919 | décision softmax (température adaptative) + co-décideurs | M4_d candidates, `alreadyTried`, M_S, phonGraphMap, M1_m, cLetterScore | `M5_d.output` {letter,gap} | omegaStep (proposed) | 🟢 |
 
 ### 4.2 Voie ortho DESCENDANTE (miroir, apprendre) — après `penduEvaluate`
