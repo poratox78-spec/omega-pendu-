@@ -46,7 +46,11 @@ const PHRASES = [
   // accord sujet-verbe à sujet NOM (déterminant pluriel) + gardes FP
   'les enfants joue dans le jardin et ils ont content', 'Les oiseaux chante le matin', 'Les voitures roule vite',
   'les chats mange', 'Les chevaux galopent à travers les champs', 'Mon frère et ma sœur sont arrivés',
-  'le chat les regarde', 'la préparation des plats est longue', 'Les enfants jouent dehors'
+  'le chat les regarde', 'la préparation des plats est longue', 'Les enfants jouent dehors',
+  // accord GENRE déterminant→nom : détection (un/une, le/la) + abstention (nom ambigu/homographe) + non-FP
+  'Il a une chien', 'Elle ouvre un maison', 'la fondateur', 'un mer de nuages', 'le montagne',
+  'Il a un chien', 'Elle habite une maison', 'Le jardin est vert', 'il prend la porte', 'je le vois partir',
+  'un livre intéressant', 'la tour est haute'
 ];
 
 // flags Python via un petit pont

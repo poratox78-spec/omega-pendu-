@@ -357,6 +357,15 @@ DET_ALT = {('un','f'):'une',('une','m'):'un',('le','f'):'la',('la','m'):'le',
 def _keepcase(src, sugg):
     return sugg[:1].upper() + sugg[1:] if src[:1].isupper() else sugg
 
+# Genre de NOMS PURS (cgram_hf.json 'gn' = genre non ambigu MOINS verbes MOINS adjectifs). MÊME source que
+# l'app (vdc-lex 'gn') → parité EXACTE. Pré-filtré : pas de re-vérif verbe/adjectif (les homographes « porte »,
+# « rouge » sont déjà exclus). Si cgram_hf absent : pas de règle genre-déterminant (abstention totale).
+GENDER_PURE = {}
+_HF_PATH = os.path.join(HERE, 'cgram_hf.json')
+if os.path.exists(_HF_PATH):
+    try: GENDER_PURE = json.load(open(_HF_PATH, encoding='utf-8')).get('gn', {})
+    except Exception: pass
+
 def rule_det_gender(T, i):
     lw = deacc(T[i].lower())
     if lw not in DET_GENDER or "'" in T[i].lower(): return None
@@ -365,11 +374,10 @@ def rule_det_gender(T, i):
     nxt_raw = T[i+1].lower()
     if "'" in nxt_raw: return None                                  # élision (l'arbre) → genre caché, abstention
     nd = deacc(nxt_raw)
-    if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) / non-mot → abstention
-    if nd not in D.GENDER_LEX: return None                          # nom inconnu / ambigu (poste, tour…) → abstention (FP=0)
-    if nd in VERB_LEX or nd in ADJ_LEX: return None                # homographe verbe (le/la pronom) ou adjectif → abstention
-    if D.GENDER_LEX[nd] == g_det: return None                      # accord OK → ne pas toucher
-    sugg = DET_ALT.get((lw, D.GENDER_LEX[nd]))
+    if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) → abstention
+    g_noun = GENDER_PURE.get(nd)
+    if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
+    sugg = DET_ALT.get((lw, g_noun))
     return _keepcase(T[i], sugg) if sugg else None
 
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),

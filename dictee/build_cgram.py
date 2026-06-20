@@ -213,10 +213,14 @@ def main():
     hcc = {lem: {mt: s for mt, s in conj_c[lem].items() if mt in HF_TENSES}
            for lem in hc_need if lem in conj_c}
     hcc = {lem: m for lem, m in hcc.items() if m}
-    hf = {'v': hv, 'g': hg, 'cj': {'f': hcf, 'c': hcc}}    # embed app = verbes + genre + conjugaison (accord sujet-verbe)
+    # gn = genre de NOMS PURS (non ambigu MOINS verbes MOINS adjectifs) — pour la règle genre-déterminant de l'app.
+    # Pré-filtré avec les lexiques PLEINS (verbs 12k, adj 16k) → l'app n'a qu'à tester l'appartenance : jamais
+    # d'homographe nom/verbe (« porte ») ni nom/adjectif → parité garantie app ⊆ Python (rule_det_gender).
+    hgn = {w: g for w, g in gender.items() if w not in verbs and w not in adj}
+    hf = {'v': hv, 'g': hg, 'gn': hgn, 'cj': {'f': hcf, 'c': hcc}}   # embed app = verbes + genre HF + genre noms purs + conjugaison
     json.dump(hf, open(OUT_HF, 'w', encoding='utf-8', newline=''), ensure_ascii=False, separators=(',', ':'))
     sz = os.path.getsize(OUT_HF)
-    print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés + {len(hcf)} formes conj → {OUT_HF}  ({sz//1024} Ko)")
+    print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés HF + {len(hgn)} noms purs genrés (gn) + {len(hcf)} formes conj → {OUT_HF}  ({sz//1024} Ko)")
     print("        vlike + governor_gender + accord sujet-verbe les chargeront automatiquement.")
     return 0
 
