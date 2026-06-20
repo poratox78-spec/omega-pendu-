@@ -50,7 +50,10 @@ const PHRASES = [
   // accord GENRE déterminant→nom : détection (un/une, le/la) + abstention (nom ambigu/homographe) + non-FP
   'Il a une chien', 'Elle ouvre un maison', 'la fondateur', 'un mer de nuages', 'le montagne',
   'Il a un chien', 'Elle habite une maison', 'Le jardin est vert', 'il prend la porte', 'je le vois partir',
-  'un livre intéressant', 'la tour est haute'
+  'un livre intéressant', 'la tour est haute',
+  // mais/mes : détection (mais + nom genré) + abstention adversariale (prép / verbe-homographe / pronom)
+  'et j\'ai bouliées mais lunettes', 'mais voiture est rouge', 'il dort mais porte un sac', 'il lit mais marche vite',
+  'Mais sous la table', 'mais je viens', 'il rit mais pleure souvent', 'mais place est prise', 'mais cause des ennuis'
 ];
 
 // flags Python via un petit pont
