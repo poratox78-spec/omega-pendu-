@@ -4336,6 +4336,7 @@ function M3_d_step() {
       const cs = M3_d.cLetterScore;
       for (let l = 0; l < 26; l++) { let sc = 0; const row = M3_d.rwR[l]; for (let c = 0; c < N_CONCEPT_CELLS; c++) sc += a[c] * row[c]; cs[l] = sc; }
       if (M3_D_BYPASS_ENABLED) { for (let l = 0; l < 26; l++) cs[l] = 0; }   // M3_D_BYPASS : concept muet (readout + declare)
+      for (let l = 0; l < 26; l++) { if (!Number.isFinite(cs[l])) throw new Error('[M3_d.cLetterScore][FATAL] readout ' + l + ' non-fini'); }   // fail-loud (AUDIT_COMPLET B5) : un NaN/Inf du readout bPC ne se propage plus en silence au scoring-lettre
       // memoriser concept + nb revele pour le prochain tick
       if (!M3_d._lastA) M3_d._lastA = new Float32Array(N_CONCEPT_CELLS);
       for (let c = 0; c < N_CONCEPT_CELLS; c++) M3_d._lastA[c] = a[c];
