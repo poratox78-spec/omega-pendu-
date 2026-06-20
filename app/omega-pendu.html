@@ -9196,17 +9196,24 @@ function applyReferenceConfig() {
       'M_VOIE_PHON_ENABLED','M_OS_V07_ENABLED','M4_PHON_USE_P_ENABLED','M_SUBSTRAT_ORTHO_PURE_ENABLED','M_PHON_FEEDBACK_ENABLED',
       'M_BPC_M3D_ENABLED','M_BPC_READOUT_COUPLE_ENABLED','M_PHON_READOUT_COUPLE_ENABLED','M_PHON_CONCEPT_BIND_ENABLED',
       'M_OS_LEARNING_ENABLED','M_OS_LEARNING_GUARD_1_BOUNDED','M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT','M_OS_LEARNING_GUARD_3_MDL_REGUL','M_OS_LEARNING_GUARD_4_COHERENCE',
-      'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_G2P_EXP_ENABLED','M_DECLARE_DUAL_ENABLED'];
+      'M_DECLARE_NEO_ENABLED','M_NEO_RECALL_ENABLED','M_NEO_ASSEMBLED_ENABLED','M_NEO_COHORT_ENABLED','M_NEO_PHON_COHORT_ENABLED','M_NEO_PHON_COHORT_JOINTE','M_NEO_OS_ARB','M_NEO_MUTE_ENABLED','M_NEO_TRIGGER_ENABLED','M_NEO_G2P_EXP_ENABLED'];
+    // CHEAT-FREE (correction Rem) : M_NEO_PHON_COHORT_ENABLED = l'anti-triche — sans lui, l'assemblé (et la muette)
+    //   lisent wp.get(currentWord) = le SON du mot caché (triche). Avec lui, le son vient du consensus de la cohorte
+    //   board-compatible (jamais le mot). Il REVALIDE donc 2 toggles (assemblé + muette) en cheat-free (vert).
+    //   + JOINTE (croise phonème×ortho, pas argmax) · + OS_ARB (mélange DRC sub⟷lex) · + MUETTE/TRIGGER (gate cognition).
+    //   M_DECLARE_DUAL retiré : redondant avec DECLARE_NEO (NEO le préempte quand confiant). Coût honnête mesuré :
+    //   in-lex 100→94-99 % (on retire la lecture du son), OOV/Trexquant 39→26 % (la triche payait surtout là).
     // DÉTERMINISTE (AUDIT régression) : le préréglage est un RESET COMPLET vers la config mesurée-optimale,
-    // PAS un ajout. Tout toggle ALLOWED hors liste ON — voies expérimentales (n-gram de lettres, n-gram arbitré OS,
-    // n-gram gap-aware, C lourd, cohorte phon), Trexquant, etc. — est explicitement remis à FALSE. Sinon un toggle
+    // PAS un ajout. Tout toggle ALLOWED hors liste ON — voies n-gram (n-gram de lettres, n-gram arbitré OS,
+    // n-gram gap-aware, C lourd), Trexquant, émergents, etc. — est explicitement remis à FALSE. Sinon un toggle
     // laissé ON survit au préréglage et dégrade le jeu : mesuré 100 %→60 % in-lex avec « n-gram de lettres » seul
-    // (« tâtonne / fait plus d'erreurs »). Le bouton garantit désormais la config exacte mesurée (~97,5 % in-lex).
+    // (« tâtonne / fait plus d'erreurs »). Le bouton garantit désormais la config exacte mesurée.
     ALLOWED_TOGGLES.forEach(function(n){ try { eval(n + ' = ' + (ON.indexOf(n) >= 0 ? 'true' : 'false')); } catch(e){ console.warn('[preset]', n, e); } });
     if (typeof _trexq_restore === 'function') { try { _trexq_restore(); } catch(e){} }   // soigne un lexique amputé par un tour Trexquant précédent
     if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
     if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
     if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
+    if (typeof ui_syncAssembledColor === 'function') ui_syncAssembledColor();   // assemblé/muette → VERT (cheat-free, cohorte phon ON)
     if (typeof ui_renderGame === 'function') ui_renderGame();
     if (typeof ui_renderMath === 'function') ui_renderMath();
     if (typeof ui_renderStats === 'function') ui_renderStats();
