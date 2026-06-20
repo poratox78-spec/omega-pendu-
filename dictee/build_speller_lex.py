@@ -20,23 +20,29 @@ def main():
     if not os.path.exists(LEX):
         print(f"Lexique introuvable ({LEX})"); return 1
     best = {}                       # mot accentué (minuscule) -> freq max
+    pos = {}                        # mot accentué -> set POS {'N','V','A'} (désambiguïsation d'accent par contexte)
     with open(LEX, encoding='utf-8') as f:
         r = csv.reader(f, delimiter='\t'); H = next(r)
         ci = {h.lower(): i for i, h in enumerate(H)}
         cm = next(i for h, i in ci.items() if 'mot' in h)
         cf = next(i for h, i in ci.items() if 'freqortho' in h)
+        cg = next(i for h, i in ci.items() if 'cgram' in h and 'ortho' not in h)
         for row in r:
-            if len(row) <= max(cm, cf): continue
+            if len(row) <= max(cm, cf, cg): continue
             w = (row[cm] or '').strip().lower()
             if not w or len(w) < 2 or not all(deacc(c) in ALPHA for c in w): continue
             try: fr = float((row[cf] or '0').replace(',', '.'))
             except ValueError: fr = 0.0
             if fr < MINFREQ: continue
             if fr > best.get(w, -1.0): best[w] = fr
+            cgr = (row[cg] or '').strip().upper()
+            p = 'N' if cgr.startswith('NOM') else ('V' if (cgr.startswith('VER') or cgr.startswith('AUX')) else ('A' if cgr.startswith('ADJ') else None))
+            if p: pos.setdefault(w, set()).add(p)
     lines = []
     for w in sorted(best):
         fm = max(1, round(best[w] * 1000))     # freq en milli (entier compact)
-        lines.append(f"{w}\t{fm}")
+        pp = ''.join(sorted(pos.get(w, ())))    # POS (ex. NV, VA) ou vide
+        lines.append(f"{w}\t{fm}\t{pp}")
     raw = ('\n'.join(lines)).encode('utf-8')
     gz = gzip.compress(raw, 9)
     b64 = base64.b64encode(gz)

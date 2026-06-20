@@ -60,6 +60,11 @@ const SP = globalThis.__sp;
   if (!fau || fau.sugg !== 'faute') fail.push('fote→faute (genre contexte) attendu, eu ' + JSON.stringify(fau));
   const pre = SP.spell('le premiere pays').find(x => x.word.toLowerCase() === 'premiere');
   if (!pre || pre.sugg !== 'premier') fail.push('premiere→premier (bascule paire) attendu, eu ' + JSON.stringify(pre));
+  // désambiguïsation d'accent par POS du contexte
+  const el1 = SP.spell('un eleve serieux').find(x => x.word.toLowerCase() === 'eleve');
+  if (!el1 || el1.sugg !== 'élève') fail.push('un eleve→élève (nom après dét.) attendu, eu ' + JSON.stringify(el1));
+  const el2 = SP.spell('le niveau est tres eleve').find(x => x.word.toLowerCase() === 'eleve');
+  if (!el2 || el2.sugg !== 'élevé') fail.push('tres eleve→élevé (adj après adverbe) attendu, eu ' + JSON.stringify(el2));
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });

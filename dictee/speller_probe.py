@@ -24,20 +24,24 @@ def deacc(s):
 TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ]+")          # inclut œ/æ (sinon « sœur » casse en s/ur)
 
 def load_lexicon():
-    WORDS, FREQ, DEACC2ACC = set(), {}, defaultdict(list)
+    WORDS, FREQ, DEACC2ACC, POS = set(), {}, defaultdict(list), defaultdict(set)
     with open(LEX, encoding='utf-8') as f:
         r = csv.reader(f, delimiter='\t'); H = next(r)
         ci = {h.lower(): i for i, h in enumerate(H)}
         cm = next(i for h, i in ci.items() if 'mot' in h)
         cf = next(i for h, i in ci.items() if 'freqortho' in h)
+        cg = next(i for h, i in ci.items() if 'cgram' in h and 'ortho' not in h)
         for row in r:
-            if len(row) <= max(cm, cf): continue
+            if len(row) <= max(cm, cf, cg): continue
             w = (row[cm] or '').strip().lower()
             if not w or len(w) < 2 or not all(deacc(c) in ALPHA for c in w): continue
             try: fr = float((row[cf] or '0').replace(',', '.'))
             except ValueError: fr = 0.0
             if fr > FREQ.get(w, -1): FREQ[w] = fr
             WORDS.add(w)
+            cgr = (row[cg] or '').strip().upper()
+            p = 'N' if cgr.startswith('NOM') else ('V' if (cgr.startswith('VER') or cgr.startswith('AUX')) else ('A' if cgr.startswith('ADJ') else None))
+            if p: POS[w].add(p)
     PHON = defaultdict(list)
     for w in WORDS:
         DEACC2ACC[deacc(w)].append(w)
@@ -47,7 +51,7 @@ def load_lexicon():
         DEACC2ACC[d].sort(key=lambda w: -FREQ[w])
     for k in PHON:
         PHON[k].sort(key=lambda w: -FREQ[w])
-    return WORDS, FREQ, DEACC2ACC, PHON
+    return WORDS, FREQ, DEACC2ACC, PHON, POS
 
 def phon_key(s):
     """Clé phonétique française approximative : deux mots qui SONNENT pareil → même clé.
@@ -98,8 +102,9 @@ class Speller:
     DET_NUM = {'le':'s','la':'s','un':'s','une':'s','ce':'s','cet':'s','cette':'s','mon':'s','ma':'s',
                'ton':'s','ta':'s','son':'s','sa':'s','les':'p','des':'p','ces':'p','mes':'p','tes':'p',
                'ses':'p','nos':'p','vos':'p','leurs':'p'}
+    ADVERB = set('tres si trop assez bien plus tout aussi moins fort peu'.split())   # contexte adjectif
     def __init__(self):
-        self.WORDS, self.FREQ, self.D2A, self.PHON = load_lexicon()
+        self.WORDS, self.FREQ, self.D2A, self.PHON, self.POS = load_lexicon()
         here = os.path.dirname(os.path.abspath(__file__))
         def _load(name):
             fp = os.path.join(here, name)
@@ -165,19 +170,26 @@ class Speller:
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)
         cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
+        exp_pos = None                                                       # POS attendu (désambiguïse l'accent : élève/élevé)
+        if toks and idx not in (None, 0):
+            pt = deacc(toks[idx - 1].lower())
+            if pt in self.DET_G or pt in self.DET_NUM: exp_pos = 'N'         # après déterminant → nom (un élève)
+            elif pt in self.ADVERB: exp_pos = 'A'                            # après adverbe → adjectif (très élevé)
+        def pmatch(w):
+            return 1 if (exp_pos and exp_pos in self.POS.get(w, ())) else 0
         def gmatch(w):
             g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
         def nmatch(w):
             return 1 if (cn and ((cn == 'p') == (deacc(w).endswith(('s', 'x'))))) else 0
-        # tri : accent d'abord, puis ACCORD GENRE (grammaire), puis match phonétique, puis ACCORD NOMBRE, puis fréquence
+        # tri : accent d'abord, puis POS du contexte (élève/élevé), puis accord GENRE, puis phonétique, puis NOMBRE, puis fréquence
         ranked = sorted(cands.items(),
-                        key=lambda kv: (1 if kv[1][0] == 2 else 0, gmatch(kv[0]),
+                        key=lambda kv: (1 if kv[1][0] == 2 else 0, pmatch(kv[0]), gmatch(kv[0]),
                                         1 if phon_key(kv[0]) == pk else 0, nmatch(kv[0]), kv[1][1]),
                         reverse=True)
         (w1, (p1, f1)) = ranked[0]
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
-        if cg:
+        if cg and 'A' in self.POS.get(w1, ()):                  # bascule réservée aux ADJECTIFS (évite nom « élève » → « élevée »)
             a = self.ADJ.get(deacc(w1))
             if a and a[0] != cg and a[1] in cands and self._gender(a[1]) == cg:
                 return ('flag', a[1])
