@@ -11415,5 +11415,95 @@ window.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
+<script>
+// ===== 🔤 DÉCOMPOSE — fiche de décomposition « à la Lexique 4 » (SON et ORTHO), OFF-inerte (R66) — SCRIPT SÉPARÉ (zéro adjacence avec le correcteur) =====
+// Lit/apprend un mot (ou un texte) et le décompose en SON (phono) ET ORTHO (graphèmes/syllabes).
+// Route SUBLEXICALE = _DECL2.g2p() — le g2p du moteur (briques AQUA-PHOTON v3), réutilisé tel quel.
+// Route LEXICALE = OMEGA_LEX4 embarqué (w.p phono, w.g genre ; mots ASCII ≥7 lettres). Overlay ACCENTS
+// appliqué CÔTÉ PANNEAU (le moteur reste intact). APPREND = lexique localStorage, FP=0 (lex jamais
+// dégradé par sublex). Pendant de dictee/decompose.py (mêmes routes, mêmes tables g2p).
+(function(){
+  if (typeof _DECL2==='undefined' || !_DECL2 || typeof _DECL2.g2p!=='function') return;   // sans moteur PHON → inerte
+  var I2S={'a':'a','e':'e','i':'i','o':'o','u':'u','y':'y','ɑ':'a','ɔ':'O','ɛ':'E','ø':'2','œ':'9','ə':'°','p':'p','b':'b','t':'t','d':'d','k':'k','ɡ':'g','g':'g','f':'f','v':'v','s':'s','z':'z','m':'m','n':'n','l':'l','ʁ':'R','ʃ':'S','ʒ':'Z','ɲ':'N','ŋ':'G','j':'j','w':'w','ɥ':'8','ɑ̃':'@','ɛ̃':'5','œ̃':'1','ɔ̃':'§'};
+  var ACC={'é':'e','è':'ɛ','ê':'ɛ','ë':'ɛ','à':'a','â':'a','ä':'a','ô':'o','ö':'o','î':'i','ï':'i','û':'y','ù':'y','ü':'y','ÿ':'i','ç':'s'};  // overlay (le g2p moteur rend '?' sur les accents)
+  var SVOW={}; 'aeiouyOE2°@519§'.split('').forEach(function(c){SVOW[c]=1;});
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function $(id){return document.getElementById(id);}
+  function ipa2sampa(ph){if(ph==='∅'||!ph)return'';var o='',i=0;while(i<ph.length){var t=ph[i];if(i+1<ph.length&&ph.charCodeAt(i+1)===0x303){t=ph[i]+ph[i+1];i+=2;}else i++;o+=(I2S[t]!=null?I2S[t]:t);}return o;}
+  function decompose(word){
+    var steps=_DECL2.g2p(word)||[],graph=[],sampa='',ipa='',hsum=0,i;
+    for(i=0;i<steps.length;i++){var raw=steps[i].ph;if((raw==='?'||!raw)&&ACC[steps[i].g]){raw=ACC[steps[i].g];}var sp=ipa2sampa(raw);graph.push({g:steps[i].g,ph:sp,ipa:(raw==='∅'?'':raw)});sampa+=sp;ipa+=(raw==='∅'?'':raw);hsum+=(steps[i].h||0);}
+    function sylls(units,vowOf){var nuc=[],k;for(k=0;k<units.length;k++)if(vowOf(k))nuc.push(k);if(!nuc.length)return units.length?[units.join('')]:[];var out=[],st=0;for(k=0;k<nuc.length-1;k++){var a=nuc[k],b=nuc[k+1],cut=(b-a-1)<=1?b:b-1;out.push(units.slice(st,cut).join(''));st=cut;}out.push(units.slice(st).join(''));return out;}
+    var sChars=sampa.split('');
+    var sson=sylls(sChars,function(k){return !!SVOW[sChars[k]];});
+    var gUnits=graph.map(function(x){return x.g;});
+    var sortho=sylls(gUnits,function(k){var ph=graph[k].ph,c;for(c=0;c<ph.length;c++)if(SVOW[ph[c]])return true;return false;});
+    var nbsyll=0,cv='';for(i=0;i<sampa.length;i++){var c=sampa[i];if(SVOW[c])nbsyll++;cv+=SVOW[c]?'V':(('jw8'.indexOf(c)>=0)?'G':'C');}
+    return {mot:word,graph:graph,sampa:sampa,ipa:ipa,nbphons:sampa.length,sson:sson,sortho:sortho,nbsyll:nbsyll,cv:cv,conf:Math.max(0,1-(steps.length?hsum/steps.length:0))};
+  }
+  // route LEXICALE (OMEGA_LEX4, mots ASCII ≥7 lettres) : phono w.p exacte + genre + homophones embarqués
+  var LEXMAP=null,PHCNT=null;
+  function deaccUp(w){return w.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');}
+  function buildLex(){LEXMAP=new Map();PHCNT=new Map();try{if(typeof OMEGA_LEX4!=='object'||!OMEGA_LEX4||!OMEGA_LEX4.words)return;var W=OMEGA_LEX4.words,i,w;for(i=0;i<W.length;i++){w=W[i];if(!w||!w.m)continue;if(!LEXMAP.has(w.m))LEXMAP.set(w.m,w);if(w.p)PHCNT.set(w.p,(PHCNT.get(w.p)||0)+1);}}catch(e){}}
+  function lexLookup(word){try{if(LEXMAP===null)buildLex();if(!LEXMAP)return null;var e=LEXMAP.get(deaccUp(word));if(!e||!e.p)return null;return {phono:e.p,genre:(e.g==='m'||e.g==='f')?e.g:null,nbhomoph:Math.max(0,(PHCNT.get(e.p)||1)-1),md:(e.md||''),mb:(e.mb||''),old:(typeof e.old==='number'?e.old:null),pld:(typeof e.pld==='number'?e.pld:null)};}catch(e){return null;}}
+  // APPREND (localStorage, FP=0 : une entrée 'lex' n'est jamais écrasée par 'sublex' ; l'usage renforce 'vu')
+  function loadLex(){try{return JSON.parse(localStorage.getItem('vdk_lex')||'{}');}catch(e){return {};}}
+  function learn(word,sampa,src){var L=loadLex(),w=word.toLowerCase(),p=L[w];if(p){p.vu=(p.vu||1)+1;if(!(p.src==='lex'&&src==='sublex')){p.sampa=sampa;p.src=src;}}else{L[w]={sampa:sampa,src:src,vu:1};}try{localStorage.setItem('vdk_lex',JSON.stringify(L));}catch(e){}return L[w];}
+  function lexCount(){return Object.keys(loadLex()).length;}
+  function fullCard(word){
+    var d=decompose(word),lx=lexLookup(word);
+    var al=d.graph.map(function(a){return '<span class="vdk-gp">'+esc(a.g)+'<small>'+esc(a.ph||'∅')+'</small></span>';}).join('');
+    var phon=lx?lx.phono:d.sampa, route=lx?'lexicale (moteur, ≥7 lettres)':'sublexicale (g2p — court/OOV)';
+    var diverge=(lx&&lx.phono!==d.sampa)?(' · prédiction sublexicale /'+esc(d.sampa)+'/'):'';
+    var genre=(lx&&lx.genre)?({m:'masculin',f:'féminin'}[lx.genre]):'—';
+    var homo=lx?(' · homophones (lex) : '+lx.nbhomoph):'';
+    var ap=loadLex()[word.toLowerCase()];
+    var morpho='';                                       // MORPHO + voisins Lexique 4 (mots ≥7 lettres, route lexicale)
+    if(lx){
+      var mtxt=lx.md?('morpho '+esc(lx.md)+((lx.mb&&lx.mb.toLowerCase()!==word.toLowerCase())?(' · base : '+esc(lx.mb)):'')):'';
+      var vois=(lx.old!=null)?('voisins OLD20 '+lx.old.toFixed(2)+(lx.pld!=null?(' · PLD20 '+lx.pld.toFixed(2)):'')):'';
+      if(mtxt||vois) morpho='<div class="vdk-sec"><span class="vdk-tag">LEX4</span> <span class="vdk-sc">'+mtxt+((mtxt&&vois)?' · ':'')+vois+'</span></div>';
+    }
+    return '<div class="vdk-c2"><div class="vdk-h">« '+esc(word)+' » <span class="vdk-sc">'+d.graph.length+' graphème(s) · '+phon.length+' phonème(s) · '+d.nbsyll+' syllabe(s)</span></div>'
+      +'<div class="vdk-sec"><span class="vdk-tag">ORTHO</span> '+al+'<div class="vdk-sc">syllabes : '+esc(d.sortho.join('-'))+'</div></div>'
+      +'<div class="vdk-sec"><span class="vdk-tag">SON</span> <span class="vdk-ph">/'+esc(phon)+'/</span> <span class="vdk-sc">[IPA '+esc(d.ipa||'∅')+'] · route '+route+esc(diverge)+'</span><div class="vdk-sc">syllabes : '+esc(d.sson.join('-'))+' · CV = '+esc(d.cv)+'</div></div>'
+      +'<div class="vdk-sec"><span class="vdk-tag">GRAM</span> <span class="vdk-sc">genre : '+genre+homo+(ap?(' · appris ×'+ap.vu+' ('+esc(ap.src)+')'):'')+'</span></div>'+morpho+'</div>';
+  }
+  function row(word){var d=decompose(word),lx=lexLookup(word),phon=lx?lx.phono:d.sampa;return '<tr><td>'+esc(word)+'</td><td>/'+esc(phon)+'/</td><td>'+phon.length+'</td><td>'+d.nbsyll+'</td><td>'+esc(d.cv)+'</td><td class="vdk-sc">'+(lx?'lex':'sublex')+'</td></tr>';}
+  function preview(){var toks=($('vdk-in').value.match(/[A-Za-zÀ-ÿ']+/g))||[],P=$('vdk-prev');
+    if(!toks.length){P.innerHTML='<div class="vdk-sc">Écris un mot (ou un texte). Décomposition en <b>SON</b> et <b>ORTHO</b>, façon Lexique 4. « 📖 Apprendre » mémorise (FP=0).</div>';return;}
+    if(toks.length===1){P.innerHTML=fullCard(toks[0]);}
+    else{P.innerHTML='<table class="vdk-tab"><tr><th>mot</th><th>phono</th><th>ph</th><th>syll</th><th>CV</th><th>route</th></tr>'+toks.map(row).join('')+'</table>';}}
+  function learnAll(){var toks=($('vdk-in').value.match(/[A-Za-zÀ-ÿ']+/g))||[];toks.forEach(function(w){var d=decompose(w),lx=lexLookup(w);learn(w,d.sampa,lx?'lex':'sublex');});$('vdk-stat').textContent=toks.length+' mot(s) appris · '+lexCount()+' au total';preview();}
+  var kst=document.createElement('style');
+  kst.textContent='#vdk-btn{position:fixed;right:14px;bottom:110px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#1f7a3d;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
+   +'#vdk-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdk-ov.on{display:flex}'
+   +'#vdk-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
+   +'#vdk-card h2{margin:.1em 0;font-size:20px}#vdk-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
+   +'#vdk-in{font:inherit;font-size:18px;padding:11px;width:100%;min-height:54px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
+   +'#vdk-prev{margin-top:12px}.vdk-sc{color:#6b6b6b;font-size:13px}.vdk-tag{display:inline-block;min-width:54px;font-weight:bold;color:#1f7a3d}'
+   +'.vdk-sec{padding:8px 10px;background:#fff;border-radius:9px;margin:7px 0;border-left:4px solid #1f7a3d}.vdk-h{font-size:17px;margin-bottom:4px}'
+   +'.vdk-gp{display:inline-block;text-align:center;margin:2px 5px 2px 0;padding:2px 6px;background:#eef6ef;border-radius:6px;font-size:17px}.vdk-gp small{display:block;color:#1f7a3d;font-size:12px}'
+   +'.vdk-ph{font-size:18px;font-weight:bold}.vdk-tab{width:100%;border-collapse:collapse;font-size:14px}.vdk-tab th,.vdk-tab td{border-bottom:1px solid #eee;padding:4px 6px;text-align:left}'
+   +'.vdk-row{display:flex;gap:8px;align-items:center;margin-top:10px}.vdk-row button{font:inherit;font-size:16px;padding:10px 15px;border:none;border-radius:10px;background:#1f7a3d;color:#fff;cursor:pointer}';
+  document.head.appendChild(kst);
+  var kbtn=document.createElement('button');kbtn.id='vdk-btn';kbtn.textContent='🔤 Décompose';document.body.appendChild(kbtn);
+  var kov=document.createElement('div');kov.id='vdk-ov';
+  kov.innerHTML='<div id="vdk-card"><button id="vdk-x">×</button><h2>🔤 Décompose — un mot « à la Lexique 4 »</h2>'
+   +'<div class="vdk-sc">Décomposition <b>SON</b> (phono) <b>et ORTHO</b> (graphèmes/syllabes), double voie : route <b>lexicale</b> (moteur, mots ≥7 lettres) et <b>sublexicale</b> (g2p du moteur, mots courts/inédits). Hors-ligne. Données Lexique 4 (New et al. 2026, CC BY-SA 4.0).</div>'
+   +'<textarea id="vdk-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="un mot… ou un texte (ex. : chevaux, dictée, oiseau)"></textarea>'
+   +'<div class="vdk-row"><button id="vdk-learn">📖 Apprendre</button><span class="vdk-sc" id="vdk-stat"></span></div>'
+   +'<div id="vdk-prev"></div></div>';
+  document.body.appendChild(kov);
+  var _kt;
+  kbtn.onclick=function(){kov.classList.add('on');$('vdk-in').focus();preview();$('vdk-stat').textContent=lexCount()+' mot(s) au lexique appris';};
+  $('vdk-x').onclick=function(){kov.classList.remove('on');};
+  kov.addEventListener('click',function(e){if(e.target===kov)kov.classList.remove('on');});
+  $('vdk-in').addEventListener('input',function(){clearTimeout(_kt);_kt=setTimeout(preview,250);});
+  $('vdk-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();learnAll();}});
+  $('vdk-learn').onclick=learnAll;
+})();
+</script>
+
 </body>
 </html>
