@@ -15,7 +15,7 @@ function loadEngine() {
   let js = '', lex = '';
   for (const m of parts) {
     if (/lex4-data-gz/.test(m[1])) lex = m[2];        // <script type=text/plain id=lex4-data-gz> (gzip+base64)
-    else if (/application\/json/.test(m[1])) continue; // <script type=application/json> (données, ex. vdc-lex) — pas du JS
+    else if (/application\/json/.test(m[1]) || /text\/plain/.test(m[1])) continue; // blocs DONNÉES (application/json ex. vdc-lex ; text/plain ex. speller-lex-gz) — pas du JS
     else js += '\n;\n' + m[2];
   }
   const stub = new Proxy(function(){}, { get:(t,p)=>{ if(p==='style')return {}; if(p==='textContent')return ''; if(p==='classList')return {add(){},remove(){},toggle(){},contains:()=>false}; if(p==='getContext')return ()=>stub; return stub; }, set:()=>true, apply:()=>stub, construct:()=>stub });

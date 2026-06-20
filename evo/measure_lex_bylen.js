@@ -15,7 +15,7 @@ function loadEngine(lexB64) {
   let js = '', lex = '';
   for (const m of parts) {
     if (/lex4-data-gz/.test(m[1])) lex = m[2];
-    else if (/application\/json/.test(m[1])) continue;
+    else if (/application\/json/.test(m[1]) || /text\/plain/.test(m[1])) continue; // blocs DONNÉES (vdc-lex, speller-lex-gz) — pas du JS
     else js += '\n;\n' + m[2];
   }
   if (lexB64) lex = lexB64;   // INJECTION

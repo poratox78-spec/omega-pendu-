@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-06-20 — Réintègre `mb` (base morpho) dans le lexique embarqué + fix harnais evo
+
+> Soulevé par Rem après la consolidation : « build_morpho régénère un morpho.json dégradé, alors que le lexique
+> est intégré à omega-pendu — vérifier. » Vérifié → cause trouvée → corrigé.
+
+**Cause (≠ ce que je croyais).** Pas un Lexique4 manquant : `build_morpho.py` lit le lexique **embarqué** (`lex4-data-gz`).
+Le vrai souci : commit `9d3763c` (PR #9) a re-embarqué le lexique COMPLET (83 605 → **155 493 mots**) via
+`build_engine_lex.py` avec `KEEPCOLS` **sans `mb`** (« colonne morpho-base sans consommateur »). Or `mb` **a** un
+consommateur : `morpho.json` / route lexicale du décomposeur (**PR #10**, parallèle). Le merge fait se rencontrer
+app-sans-`mb` × consommateur-de-`mb` → régénération dégradée (bases vidées, 0 `mb`).
+
+**Fix sans Lexique4 (egress Drive bloqué + connecteur MCP sature le contexte).** La donnée `mb` existait déjà dans
+l'app de `main` (19 341 mots). **Transplant** par script : on ajoute le champ `mb` aux entrées du lexique 155 k
+**sans réordonner `words`/`len_index`** (→ baseline moteur préservée ; `mb` est un champ que le pendu IGNORE, seul
+`build_morpho` le lit). App **+0,13 Mo** (8,32→8,45). `morpho.json` régénéré : **26 918 clés dont 18 227 avec base**
+(vs 20 523 committé, vs 0 dégradé) → **plus riche ET cohérent** app↔morpho.
+
+**Non-régression moteur MESURÉE** (`evo/measure_lex_bylen.js`) : 7→97,5 % · 8-9→100 % · 10-12→100 % · 13-15→100 %
+= identique à `9d3763c` (≤1 mot sur les 7 = bruit cohorte documenté). `mb` purement additif.
+
+**Bonus — bug pré-existant PR #9 corrigé.** `fitness_harness.js`/`measure_lex_bylen.js` castaient (SyntaxError)
+sur le bloc **`speller-lex-gz`** (`text/plain`, donnée base64, ajouté par PR #9, jamais exclu du concat-eval). Fix :
+exclure aussi les blocs data `text/plain` (1 ligne/harnais). Prouvé pré-existant (échec identique avant le transplant).
+CI complète verte (18 étapes).
+
+---
+
 ## 2026-06-20 — Couche SPELLER ortho (AUTO/FLAG) + hybride + genre déterminant + stress-test FP + CONSOLIDATION (rattrapage §6)
 
 > Entrée de rattrapage : le journal s'était arrêté au 18/06 ; cet arc (couche orthographique du correcteur,
