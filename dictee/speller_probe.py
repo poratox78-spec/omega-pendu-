@@ -114,9 +114,12 @@ class Speller:
         self.GEN = _load('cgram_gender.json')       # nom_déacc -> genre (non ambigu)
 
     def _gender(self, w):
-        """genre d'un candidat accentué : adjectif (paire) ou nom. None si inconnu/ambigu."""
-        a = self.ADJ.get(deacc(w))
-        return a[0] if a else self.GEN.get(deacc(w))
+        """genre d'un candidat accentué : adjectif (paire) SI c'est un adjectif, sinon nom. None si inconnu.
+        Le guard 'A' évite la collision déacc (« pomme » nom ≠ « pommé » adj → ne pas prendre le genre adj)."""
+        if 'A' in self.POS.get(w, ()):
+            a = self.ADJ.get(deacc(w))
+            if a: return a[0]
+        return self.GEN.get(deacc(w))
 
     COPULA = set('est sont suis es sommes etes etait etaient etais sera seront serai soit fut furent '
                  'parait paraissait semble semblait devient deviennent reste restent'.split())
@@ -171,10 +174,13 @@ class Speller:
         pk = phon_key(low)
         cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
         exp_pos = None                                                       # POS attendu (désambiguïse l'accent : élève/élevé)
-        if toks and idx not in (None, 0):
-            pt = deacc(toks[idx - 1].lower())
-            if pt in self.DET_G or pt in self.DET_NUM: exp_pos = 'N'         # après déterminant → nom (un élève)
-            elif pt in self.ADVERB: exp_pos = 'A'                            # après adverbe → adjectif (très élevé)
+        if toks and idx:
+            for j in range(idx - 1, max(-1, idx - 4), -1):                   # remonte en sautant les adjectifs (une BONNE pome → nom)
+                pt = deacc(toks[j].lower())
+                if pt in self.DET_G or pt in self.DET_NUM: exp_pos = 'N'; break   # déterminant → nom
+                if pt in self.ADVERB: exp_pos = 'A'; break                   # adverbe → adjectif (très élevé)
+                if pt in self.ADJ: continue                                  # adjectif intercalé → on continue vers le déterminant
+                break
         def pmatch(w):
             return 1 if (exp_pos and exp_pos in self.POS.get(w, ())) else 0
         def gmatch(w):
