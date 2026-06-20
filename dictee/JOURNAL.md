@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-06-20 — « DID YOU MEAN » fréquence : FALSIFIÉ (mesuré, jonction 7 classe vrai-mot)
+
+Reprise de la piste laissée ouverte par le stress-test : corriger un **vrai mot rare** (que le speller ne touche pas,
+`balon`/`tan`/`voudrai`) vers un voisin **plus fréquent**, gardé FLAG, FP chiffré sur le GEC. Mesuré sur le **lexique
+embarqué** (`speller-lex-gz`, sans Lexique4) + 98 paires GEC — `dictee/didyoumean_probe.py`.
+
+**Diagnostic des cas durs (dump des candidats) — DEUX classes distinctes :**
+- **Classe A** (`doi→doigt`, `mangont→mangeons`) : le bon mot **n'est même pas candidat** (distance-2 ET clé phon
+  différente à cause des lettres muettes : `doigt`=`dvag` ≠ `doi`=`dva`). Le re-ranking ne peut rien. → relève d'une
+  **clé phonétique sachant les finales muettes** (route phon), PAS du « did you mean ». Piste séparée, ouverte.
+- **Classe B** (`balon→ballon`, `tan→tant`, `voudrai→voudrais`) : input = **vrai mot** (faible freq) → speller renvoie
+  `None`. Le voisin fréquent EST candidat. C'est la cible « did you mean ».
+
+**Mesure classe B → FALSIFIÉ.** Aucun réglage n'atteint **FP=0** :
+- large (rare<seuil × dominant) : **8→58 FP** / 98 correctes pour **0→3 corrections** / 152 erreurs vrai-mot GEC.
+- stricte (edit-1 + phon-**identique** + dominant) : **3→10 FP** pour **0→1 correction**.
+- FP irréductibles = vrais mots rares à voisin fréquent phon-identique (`vainc→vain`, `coll→cool`, `absorbeur→absorber`,
+  `croît→crois`) — **indissociables d'un typo sans contexte**. Et `voudrai` (futur correct « je voudrai ») = un seuil
+  fréquence corrigerait du **juste**. *Nuance* : la stricte corrige bien `balon→ballon` et laisse `tan`/`voudrai`, mais
+  les 3 FP tuent le cardinal.
+→ **Conforme à la doctrine** (POS/contexte-naïf déjà falsifié) : la classe vrai-mot exige un **modèle de CONTEXTE**
+(LLM-grade) ; le C lourd transformer est déjà falsifié (CLAUDE.md). **Ne pas câbler.** Sonde `didyoumean_probe.py` gardée
+(assert : la falsification doit RESTER vraie). Détail : `CORRECTEUR.md` (§ FALSIFIÉ did-you-mean).
+
+---
+
 ## 2026-06-20 — Réintègre `mb` (base morpho) dans le lexique embarqué + fix harnais evo
 
 > Soulevé par Rem après la consolidation : « build_morpho régénère un morpho.json dégradé, alors que le lexique

@@ -161,6 +161,22 @@ listes manuelles » (`VLIKE_STOP`). **Falsifié par mesure** :
 → Le FP étant déjà 0, une abstention de plus ne peut que **coûter du rappel**. Données `cgram_guard.json` **gardées
 comme artefact** (usage possible dans une future détection de typo/mot-rare), **non câblées** dans le correcteur.
 
+## FALSIFIÉ — « did you mean » fréquence (jonction 7, classe vrai-mot-rare ; ne pas refaire)
+Idée (bilan stress-test) : corriger un **vrai mot rare** que le speller ne touche pas (`balon`, `tan`, `voudrai`)
+en le ré-ordonnant vers un voisin **plus fréquent** (`ballon`, `tant`, `voudrais`), gardé FLAG, FP chiffré sur le GEC.
+**Mesuré (`dictee/didyoumean_probe.py`, lexique embarqué + 98 paires GEC) → FALSIFIÉ** :
+- variante **large** (rare<seuil × voisin dominant) : **8→58 FP** / 98 correctes pour **0→3 corrections** / 152 erreurs vrai-mot.
+- variante **stricte** (edit-1 + phonétiquement **identique** + dominant) : **3→10 FP** pour **0→1 correction**.
+- **Aucun réglage n'atteint FP=0.** Les FP irréductibles sont de **vrais mots rares à voisin fréquent phon-identique**
+  (`vainc→vain`, `coll→cool`, `absorbeur→absorber`, `croît→crois`…) — **indissociables d'un typo SANS contexte**. Et
+  `voudrai` (= futur correct « je voudrai ») montre qu'un seuil de fréquence corrigerait du **juste**.
+→ La classe « vrai-mot-rare » exige un **modèle de CONTEXTE** (LLM-grade) ; le **C lourd transformer est déjà falsifié**
+(CLAUDE.md). **Ne pas câbler de règle fréquence.** *Nuance* : la variante stricte corrige `balon→ballon` ET laisse
+`tan`/`voudrai` (correctement), mais les 3 FP irréductibles tuent le cardinal FP=0. Sonde gardée (régression : la
+falsification doit **rester** vraie). **Classe A** (`doi→doigt`, `mangont→mangeons`) = problème **différent** : le bon mot
+n'est même pas candidat (distance-2 + lettres muettes, clé phon `doigt`=`dvag` ≠ `doi`=`dva`) → relève d'une **clé
+phonétique** sachant les finales muettes (route phon), pas du « did you mean ».
+
 ## Validation indépendante (held-out) & collecte en ligne
 - **Held-out** (`corpus_externe.json` + `eval_externe.py`) : 15 phrases à **vocabulaire neuf** (distinct du corpus
   et des témoins), confusions choisies d'après les erreurs FR documentées comme fréquentes. → **12/15 détection+correction,
