@@ -4336,7 +4336,6 @@ function M3_d_step() {
       const cs = M3_d.cLetterScore;
       for (let l = 0; l < 26; l++) { let sc = 0; const row = M3_d.rwR[l]; for (let c = 0; c < N_CONCEPT_CELLS; c++) sc += a[c] * row[c]; cs[l] = sc; }
       if (M3_D_BYPASS_ENABLED) { for (let l = 0; l < 26; l++) cs[l] = 0; }   // M3_D_BYPASS : concept muet (readout + declare)
-      for (let l = 0; l < 26; l++) { if (!Number.isFinite(cs[l])) throw new Error('[M3_d.cLetterScore][FATAL] readout ' + l + ' non-fini'); }   // fail-loud (AUDIT_COMPLET B5) : un NaN/Inf du readout bPC ne se propage plus en silence au scoring-lettre
       // memoriser concept + nb revele pour le prochain tick
       if (!M3_d._lastA) M3_d._lastA = new Float32Array(N_CONCEPT_CELLS);
       for (let c = 0; c < N_CONCEPT_CELLS; c++) M3_d._lastA[c] = a[c];
@@ -9256,17 +9255,15 @@ function _omega_distStats(arr) {
 
 let _trexqRemoved = null;  // {key,pos,id} mot retiré du len_index (mode Trexquant), à restaurer au tour suivant
 function _trexq_restore(){
-  if(!_trexqRemoved) return;
-  try{ if(typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
-    const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } }
-    _trexqRemoved=null;   // n'efface la trace qu'APRES reinsertion reussie (AUDIT_COMPLET B4 : sinon mot perdu + lexique ampute en silence)
-  }catch(e){ const _m='[trexq] restore len_index echec — lexique ampute, trace CONSERVEE pour reessai: '+(e&&e.message||e); if(typeof ui_log==='function')ui_log('ERROR',_m); console.error(_m); }
+  try{ if(_trexqRemoved && typeof OMEGA_LEX4!=='undefined' && OMEGA_LEX4 && OMEGA_LEX4.len_index){
+    const a=OMEGA_LEX4.len_index[_trexqRemoved.key]; if(a){ const at=(_trexqRemoved.pos>=0&&_trexqRemoved.pos<=a.length)?_trexqRemoved.pos:a.length; a.splice(at,0,_trexqRemoved.id); } } }catch(e){ console.error('[trexq] restore len_index échec — lexique possiblement amputé:', e); }
+  _trexqRemoved=null;
 }
 function _trexq_removeWord(word){
   try{ if(typeof OMEGA_LEX4==='undefined'||!OMEGA_LEX4||!OMEGA_LEX4.words||!OMEGA_LEX4.len_index) return false;
     const key=String(word.length); const arr=OMEGA_LEX4.len_index[key]; if(!arr) return false;
     for(let k=0;k<arr.length;k++){ const w=OMEGA_LEX4.words[arr[k]]; if(w && w.m===word){ const id=arr[k]; arr.splice(k,1); _trexqRemoved={key,pos:k,id}; return true; } }
-  }catch(e){ const _m='[trexq] removeWord echec: '+(e&&e.message||e); if(typeof ui_log==='function')ui_log('ERROR',_m); console.error(_m); }
+  }catch(e){ console.error('[trexq] removeWord échec:', e); }
   return false;
 }
 function _omega_trexquant_bench(testN, warmupN, seed){
@@ -9277,7 +9274,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
   const S = {a4:L01_A4_M4M_DECOMP_ENABLED,a5:L01_A5_M2M_POSITIONAL_ENABLED,a6:L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED,b2:L01_B2_MOBIUS_ENABLED,os:M_OS_V07_ENABLED,sub:M_SUBSTRAT_ORTHO_PURE_ENABLED,
     bpc:M_BPC_M3D_ENABLED,bpcr:M_BPC_READOUT_COUPLE_ENABLED,osl:M_OS_LEARNING_ONLINE_ENABLED,g1:M_OS_LEARNING_GUARD_1_BOUNDED,g2:M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT,g3:M_OS_LEARNING_GUARD_3_MDL_REGUL,g4:M_OS_LEARNING_GUARD_4_COHERENCE,
     vp:M_VOIE_PHON_ENABLED,p4:M4_PHON_USE_P_ENABLED,pf:M_PHON_FEEDBACK_ENABLED,prc:M_PHON_READOUT_COUPLE_ENABLED,pcb:M_PHON_CONCEPT_BIND_ENABLED,
-    nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,npc:M_NEO_PHON_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,lfc:(typeof M_LEARN_FROM_COGNITION_ENABLED!=='undefined'?M_LEARN_FROM_COGNITION_ENABLED:null),dual:(typeof M_DECLARE_DUAL_ENABLED!=='undefined'?M_DECLARE_DUAL_ENABLED:null),g2pe:(typeof M_NEO_G2P_EXP_ENABLED!=='undefined'?M_NEO_G2P_EXP_ENABLED:null),njt:(typeof M_NEO_PHON_COHORT_JOINTE!=='undefined'?M_NEO_PHON_COHORT_JOINTE:null),narb:(typeof M_NEO_OS_ARB!=='undefined'?M_NEO_OS_ARB:null),
+    nd:M_DECLARE_NEO_ENABLED,nr:M_NEO_RECALL_ENABLED,na:M_NEO_ASSEMBLED_ENABLED,nc:M_NEO_COHORT_ENABLED,npc:M_NEO_PHON_COHORT_ENABLED,nm:M_NEO_MUTE_ENABLED,nt:M_NEO_TRIGGER_ENABLED,ed:M_EMERGENT_DECLARE_ENABLED,
     conf:(typeof M_DECLARE_NEO_CONF!=='undefined'?M_DECLARE_NEO_CONF:null),
     seed0:(typeof _omegaSeed!=='undefined'?_omegaSeed:null),rng0:(typeof _omegaRng!=='undefined'?_omegaRng:null),
     osa:(typeof M_OS_v07!=='undefined'&&M_OS_v07?M_OS_v07.alpha:null),osb:(typeof M_OS_v07!=='undefined'&&M_OS_v07?M_OS_v07.beta:null)};
@@ -9285,7 +9282,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     L01_A4_M4M_DECOMP_ENABLED=S.a4;L01_A5_M2M_POSITIONAL_ENABLED=S.a5;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=S.a6;L01_B2_MOBIUS_ENABLED=S.b2;M_OS_V07_ENABLED=S.os;M_SUBSTRAT_ORTHO_PURE_ENABLED=S.sub;
     M_BPC_M3D_ENABLED=S.bpc;M_BPC_READOUT_COUPLE_ENABLED=S.bpcr;M_OS_LEARNING_ONLINE_ENABLED=S.osl;M_OS_LEARNING_GUARD_1_BOUNDED=S.g1;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=S.g2;M_OS_LEARNING_GUARD_3_MDL_REGUL=S.g3;M_OS_LEARNING_GUARD_4_COHERENCE=S.g4;
     M_VOIE_PHON_ENABLED=S.vp;M4_PHON_USE_P_ENABLED=S.p4;M_PHON_FEEDBACK_ENABLED=S.pf;M_PHON_READOUT_COUPLE_ENABLED=S.prc;M_PHON_CONCEPT_BIND_ENABLED=S.pcb;
-    M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_PHON_COHORT_ENABLED=S.npc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;if(S.lfc!=null)M_LEARN_FROM_COGNITION_ENABLED=S.lfc;if(S.dual!=null)M_DECLARE_DUAL_ENABLED=S.dual;if(S.g2pe!=null)M_NEO_G2P_EXP_ENABLED=S.g2pe;if(S.njt!=null)M_NEO_PHON_COHORT_JOINTE=S.njt;if(S.narb!=null)M_NEO_OS_ARB=S.narb;
+    M_DECLARE_NEO_ENABLED=S.nd;M_NEO_RECALL_ENABLED=S.nr;M_NEO_ASSEMBLED_ENABLED=S.na;M_NEO_COHORT_ENABLED=S.nc;M_NEO_PHON_COHORT_ENABLED=S.npc;M_NEO_MUTE_ENABLED=S.nm;M_NEO_TRIGGER_ENABLED=S.nt;M_EMERGENT_DECLARE_ENABLED=S.ed;
     if(S.conf!=null)M_DECLARE_NEO_CONF=S.conf;
     if(S.seed0!=null)_omegaSeed=S.seed0; if(S.rng0)_omegaRng=S.rng0;
     if(typeof initOmegaGlobals==='function')initOmegaGlobals();
@@ -9306,7 +9303,7 @@ function _omega_trexquant_bench(testN, warmupN, seed){
       if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
       baseCfg();
       M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
-      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=(assembled&&!!phonCohort);M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_LEARN_FROM_COGNITION_ENABLED=false;M_DECLARE_DUAL_ENABLED=false;M_NEO_G2P_EXP_ENABLED=false;M_NEO_PHON_COHORT_JOINTE=false;M_NEO_OS_ARB=false;/* AUDIT_COMPLET B1 : pin reproductible (avant: pris de l'etat UI -> mesure non deterministe) */
+      M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=assembled;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=(assembled&&!!phonCohort);M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
       if(assembled && typeof M_DECLARE_NEO_CONF!=='undefined' && conf!=null) M_DECLARE_NEO_CONF=conf;
       OMEGA_LEX4.len_index=origLI; _omegaRng=makeMulberry32(seed); for(let i=0;i<trainW.length;i++) play(trainW[i]);
       OMEGA_LEX4.len_index=filtered; let win=0; for(let i=0;i<testW.length;i++){ if(play(testW[i])) win++; }
@@ -9315,13 +9312,14 @@ function _omega_trexquant_bench(testN, warmupN, seed){
     const casc=runCond(true,0.60,false);
     const cohort=runCond(true,0.60,true);
     const orth=runCond(false,null,false);
+    restore();
     L('— '+testN+' mots hors-lexique (\u22657 lettres), budget 6, graine '+seed+', warmup '+warmupN+' mots —','dim');
     L('  phon\u2192ortho cascade \u00b7 son du MOT (wp.get)  : '+casc.toFixed(1)+' %','');
     L('  phon\u2192ortho cohorte \u00b7 son BOARD-d\u00e9riv\u00e9     : '+cohort.toFixed(1)+' %  (\u0394 '+(cohort-casc>=0?'+':'')+(cohort-casc).toFixed(1)+' pts vs son-mot, cheat-free \u00b7 plus lent)','');
     L('  ortho seul (comparable lettre-seule std)   : '+orth.toFixed(1)+' %','dim');
     L('  rep\u00e8res SOTA Trexquant : baseline ~50 % \u00b7 bons solveurs ~65-68 % (sans son)','dim');
     L('  \u2192 \u00e9tat restaur\u00e9 (lexique, toggles, \u03b8, RNG) apr\u00e8s la mesure.','dim');
-  }catch(e){ L('ERR '+e.message,'dim'); }finally{ restore(); }
+  }catch(e){ restore(); L('ERR '+e.message,'dim'); }
 }
 
 function _omega_pickWords(n, seed) {
@@ -11320,12 +11318,12 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
    +'<textarea id="vdd-ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="écris la phrase ici"></textarea>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
-   +'<div id="vdd-fb" style="margin-top:8px" aria-live="polite" role="status"></div><div id="vdd-prof" class="vdd-sc" style="margin-top:10px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
+   +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-prof" class="vdd-sc" style="margin-top:10px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
   var diff='facile',cur=null,nG=0,nT=0,answered=false;var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>':'')):'';}
   function poolFor(d){return SENT.filter(function(w){return w.d===d;});}
-  function say(){if(!cur)return;if(typeof speechSynthesis==='undefined'||typeof SpeechSynthesisUtterance==='undefined'){var f=$('vdd-fb');if(f)f.innerHTML='<div class="vdd-sc">🔇 Synthese vocale indisponible sur ce navigateur — fais-toi lire la phrase, puis ecris-la.</div>';return;}try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(cur.text);u.lang='fr-FR';u.rate=VR;speechSynthesis.speak(u);}catch(e){var f2=$('vdd-fb');if(f2)f2.innerHTML='<div class="vdd-sc">🔇 Lecture vocale impossible.</div>';}}
+  function say(){if(!cur)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(cur.text);u.lang='fr-FR';u.rate=VR;speechSynthesis.speak(u);}catch(e){}}
   function pick(){var p=poolFor(diff);var fo=focusFam();if(fo&&Math.random()<0.65){var pf=p.filter(function(w){return (w.traps||[]).indexOf(fo)>=0;});if(pf.length)p=pf;}cur=p[Math.floor(Math.random()*p.length)];answered=false;$('vdd-ans').value='';$('vdd-fb').innerHTML='';$('vdd-ans').focus();say();}
   function check(){if(!cur||answered)return;var att=$('vdd-ans').value;if(!att.trim())return;
     var F=diagnoseSentence(cur.text,att,cur.fam);answered=true;nT++;var ok=F.length===0;if(ok)nG++;HIST.n++;if(ok)HIST.ok++;try{localStorage.setItem('vdd_hist',JSON.stringify(HIST));}catch(e){}
@@ -11344,7 +11342,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ===== CORRECTEUR DYS (semi-direct) — port de dictee/correcteur_probe.py, réutilise le levier ci-dessus =====
   // Détecte + corrige des homophones grammaticaux SANS corrigé, et situe le STADE. OFF-inerte (bouton dédié).
-  /* esc(s) dedup (AUDIT_COMPLET B1) : la version 5-car definie plus haut, qui echappe aussi l'apostrophe, s'applique partout. */
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   var COMMON_VERBS={};("suis es est sommes etes sont etais etait etions etiez etaient sera seront fut furent serait soit "
     +"ai as a avons avez ont avais avait avaient aura auront aurait eu vais vas va allons allez vont allais allait ira iront alle aille "
     +"fais fait faisons faites font faisait fera fasse dis dit disons dites disent disait dira peux peut pouvons pouvez peuvent pouvait pourra pu puisse "
@@ -11375,7 +11373,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());if(nd==='qui'||nd==='que'||nd==='dont'||CAUX[nd]||nd==='sont'||nd==='est')return 'ce';if(vlike(T,i+1))return 'se';return 'ce';}
   var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
-  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿ']+/g,o='',last=0,m,idx=0,fm={};flags.forEach(function(f){fm[f.i]=f;});while((m=re.exec(text))){o+=esc(text.slice(last,m.index));var f=fm[idx];o+=f?'<span class="vdc-bad" data-i="'+idx+'" tabindex="0" role="button" aria-label="corriger '+esc(m[0])+' en '+esc(f.sugg)+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(m[0])+'</span>':esc(m[0]);last=m.index+m[0].length;idx++;}o+=esc(text.slice(last));return o;}
+  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿ']+/g,o='',last=0,m,idx=0,fm={};flags.forEach(function(f){fm[f.i]=f;});while((m=re.exec(text))){o+=esc(text.slice(last,m.index));var f=fm[idx];o+=f?'<span class="vdc-bad" data-i="'+idx+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(m[0])+'</span>':esc(m[0]);last=m.index+m[0].length;idx++;}o+=esc(text.slice(last));return o;}
 
   var cst=document.createElement('style');
   cst.textContent='#vdc-btn{position:fixed;right:14px;bottom:62px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#7a4fb5;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
@@ -11394,7 +11392,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdc-sc">Colle ou écris ton texte : les homophones grammaticaux fautifs sont <b>soulignés</b> — <b>clique dessus pour appliquer la correction</b>. Le <b>stade</b> est indiqué. Couverture verbale Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
    +'<div class="vdc-sc" style="margin-top:6px"><label><input type="checkbox" id="vdc-lis"> Police lisible (dys)</label></div>'
    +'<textarea id="vdc-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea>'
-   +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px" aria-live="polite" role="status"></div></div>';
+   +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px"></div></div>';
   document.body.appendChild(cov);
   var _flags=[];
   function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿ']+/g,m,idx=0,res='',last=0;
@@ -11413,7 +11411,6 @@ window.addEventListener('DOMContentLoaded', () => {
   cov.addEventListener('click',function(e){if(e.target===cov)cov.classList.remove('on');});
   $('vdc-in').addEventListener('input',function(){clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct
   $('vdc-render').addEventListener('click',function(e){var s=e.target.closest('.vdc-bad');if(!s)return;var k=+s.getAttribute('data-i');var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}if(f)applyFix(k,f.sugg);});  // clic = applique la correction
-  $('vdc-render').addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var s=e.target&&e.target.closest&&e.target.closest('.vdc-bad');if(!s)return;e.preventDefault();var k=+s.getAttribute('data-i');var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}if(f)applyFix(k,f.sugg);});  // clavier (Entree/Espace) = correction (accessibilite)
   $('vdc-lis').addEventListener('change',function(){$('vdc-card').classList.toggle('lisible',$('vdc-lis').checked);});
 })();
 </script>
@@ -11496,7 +11493,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdk-sc">Décomposition <b>SON</b> (phono) <b>et ORTHO</b> (graphèmes/syllabes), double voie : route <b>lexicale</b> (moteur, mots ≥7 lettres) et <b>sublexicale</b> (g2p du moteur, mots courts/inédits). Hors-ligne. Données Lexique 4 (New et al. 2026, CC BY-SA 4.0).</div>'
    +'<textarea id="vdk-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="un mot… ou un texte (ex. : chevaux, dictée, oiseau)"></textarea>'
    +'<div class="vdk-row"><button id="vdk-learn">📖 Apprendre</button><span class="vdk-sc" id="vdk-stat"></span></div>'
-   +'<div id="vdk-prev" aria-live="polite" role="status"></div></div>';
+   +'<div id="vdk-prev"></div></div>';
   document.body.appendChild(kov);
   var _kt;
   kbtn.onclick=function(){kov.classList.add('on');$('vdk-in').focus();preview();$('vdk-stat').textContent=lexCount()+' mot(s) au lexique appris';};
