@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-06-20 — ✅ Vérif APPRENTISSAGE (décompose-en-parallèle l'a-t-il modifié ?) → NON
+
+Rem : « quand on a regardé si décompose en parallèle apporte un delta, on a peut-être modifié l'apprentissage, vérifie ».
+Il a aussi pointé un **angle mort de §7.1** (diff = suppressions seules, pas les ajouts). Corrigé (`AUDIT_BASELINE.md §9`) :
+**diff BIDIRECTIONNEL complet du bloc moteur** 6f9fe61↔HEAD → **différence = uniquement les ~20 lignes du bouton reset
+ajoutées CETTE session**. Donc décompose a ajouté **0 ligne moteur** (panneaux séparés + donnée lexique seulement).
+Le hook delta accord `M_DECLARE_ACCORD_PRIOR` est **pré-existant** (identique 6f9fe61/HEAD), **doublement inerte** au boot
+(`=false` ET `_omega_accordPriorFn=null`), **lecture seule** (× un poids de declare, n'écrit aucun état appris ; posé que
+par le harnais phrase externe). Toggles dictée hors boucle ; panneau Décompose à état séparé (`vdk_lex`). Mesuré HEAD :
+apprentissage **actif** (cold≠warm) et **réinitialisable** (reset→cold). **Apprentissage intact.**
+
 ## 2026-06-20 — ✅ Correctif contamination : bouton « 🔄 Reset moteur » (option 1, choix Rem)
 
 Le bouton existait déjà (`ui_resetLearning` = `initOmegaGlobals` + reset stats). **Vérifié** : restaure exactement le

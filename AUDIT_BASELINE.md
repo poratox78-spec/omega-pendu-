@@ -3,7 +3,9 @@
 > **Statut : AUDIT FAIT (2026-06-20).** ① Winrate (§0) : **pas de régression** (banc frais). ② Structure statique (§7) :
 > flux/toggles/archi **byte-identiques** 6f9fe61↔HEAD, **aucune dérive**. ③ **Désactivation dynamique (§8) :
 > CONTAMINATION CONFIRMÉE en usage INTERACTIF** (reset dur voie/substrat · résidu d'apprentissage), **pré-existante**,
-> **banc immunisé** → Rem avait raison. Correctif à décider (§8.5).
+> **banc immunisé** → Rem avait raison. **Correctif appliqué** (bouton « 🔄 Reset moteur » + indicateur, §8.5).
+> ④ **Apprentissage (§9)** : diff **bidirectionnel complet** du bloc moteur → **0 ligne moteur touchée** par le travail
+> décompose ; hook accord doublement inerte + lecture seule ; apprentissage **intact/actif/réinitialisable**.
 > Doctrine concernée : **R66** (« baseline byte-identique au repos », CLAUDE.md §1 · DICTEE_ROADMAP §24 · REPRISE_MOTEUR §69).
 
 ## 0. RÉSULTAT DE L'AUDIT (mesuré, A/B `6f9fe61` 83k vs HEAD 155k, **même harnais figé**)
@@ -100,6 +102,9 @@ Sous-hypothèses possibles (non mesurées) :
 - **Code moteur** (tout le JS hors blocs données) : **byte-identique** sauf **17 lignes**, **toutes** du panneau
   correcteur/dictée (`vdc-`/`vdd-` : `toks`, `rEer`, `correctText`, `renderCorr`, `applyFix`, `CRULES`, `GENDER_MAP`…) —
   **0 ligne du moteur pendu** (ni `omegaStep`, ni `cStep`, ni les `declare`, ni un toggle).
+  > ⚠️ **Limite de ce diff (corrigée en §9)** : il ne listait que les **suppressions** (`comm -23`), **pas les ajouts**.
+  > Le **diff bidirectionnel complet du bloc moteur** (§9) confirme : aucun ajout moteur par décompose (seul ce
+  > session-ci a ajouté le bouton reset). Le bloc moteur est bien intègre.
 - **Défauts de toggles** : **73 déclarations** `let/var/const … = true|false` extraites des deux commits → **`diff` VIDE**
   = **aucun défaut de toggle n'a changé**. (Test direct « un module s'est-il allumé tout seul ? » → **non**.)
 - ⇒ Le **flux**, les **toggles** et l'**architecture** du moteur sont **identiques** avant/après la fenêtre décompose.
@@ -225,3 +230,42 @@ Trois états de référence mesurés :
   d'apprentissage), **pré-existante**, **banc immunisé**. → **Rem avait raison sur la contamination.** **Correctif
   appliqué (option 1)** : bouton « 🔄 Reset moteur » vérifié (restaure le cold) + indicateur visuel de contamination
   au changement de toggle (§8.5).
+
+---
+
+# 9. VÉRIF APPRENTISSAGE — « le travail décompose-en-parallèle a-t-il modifié l'apprentissage ? » (2026-06-20)
+
+> Demandé par Rem : « quand on a regardé si décompose en parallèle pouvait être utile (un delta), on a peut-être
+> modifié quelque chose → problème **peut-être avec l'apprentissage**, vérifie. » **Réponse mesurée : NON.**
+> ⚠️ Rem a aussi pointé un **angle mort réel de §7.1** : mon diff n'avait regardé que les **suppressions** (`comm -23`),
+> **pas les ajouts**. Corrigé ici par un **diff bidirectionnel complet du bloc moteur**.
+
+## 9.1 Diff COMPLET du bloc moteur (le `<script>` qui contient `omegaStep`), 6f9fe61 ↔ HEAD
+**Résultat : le bloc moteur ne diffère QUE des ~20 lignes ajoutées CETTE session** (le correctif reset §8.5 :
+`ui_markEngineDirty`/`ui_clearEngineDirty` + leurs appels). **Aucune autre ligne** — donc **tout l'apprentissage et toute
+la décision sont byte-identiques** 6f9fe61↔HEAD. **Le travail décompose n'a ajouté NI modifié AUCUN code moteur** (il a
+ajouté des **panneaux séparés** + changé la **donnée** lexique).
+
+## 9.2 Le hook « delta accord/décompose » = pré-existant, doublement inerte, lecture seule
+- `M_DECLARE_ACCORD_PRIOR_ENABLED` : présent **à l'identique dans 6f9fe61 ET HEAD** (pas ajouté par la fenêtre décompose).
+- Usage unique (L6032, dans `_omega_declareBestCandidate`) : `if (M_DECLARE_ACCORD_PRIOR_ENABLED && _omega_accordPriorFn)
+  wt *= _omega_accordPriorFn(wMot);` → **multiplie un poids de candidat** (lecture seule), **n'écrit JAMAIS d'état appris**.
+- **Doublement inerte au boot** : (a) `M_DECLARE_ACCORD_PRIOR_ENABLED = false` ; (b) `_omega_accordPriorFn = null`
+  (vérifié : « au boot = null »). La fonction n'est posée que par le **harnais phrase externe** (`evo/phrase_engine_bench.js`),
+  jamais en jeu normal. De plus `_omega_declareBestCandidate` ne tourne que si `M_WORD_DECLARE`/`M_BPC_DECLARE` (OFF).
+- `M_DICTEE_LEXICAL/SUBLEXICAL_ENABLED` : pré-existants (identiques), utilisés **uniquement** dans le panneau « dictée
+  oracle » (L8647-8715), **hors** boucle de jeu/apprentissage. OFF par défaut.
+- Panneau « 🔤 Décompose » : son `learn()` écrit dans **sa propre** clé `vdk_lex` (localStorage), **séparée** de l'état
+  moteur. Il **lit** `_DECL2.g2p()` (réutilisation read-only), n'écrit rien dans le moteur.
+
+## 9.3 L'apprentissage FONCTIONNE et se réinitialise (mesuré, HEAD)
+- **Actif** : jouer change l'état (cold `666f0f81` ≠ warm) → les apprenants tournent.
+- **Réinitialisable** : `ui_resetLearning()` ramène au cold `666f0f81` (§8).
+- Le hook accord est inerte (flag OFF + fn null) → **n'entre pas** dans la décision ni l'apprentissage en jeu normal.
+
+## 9.4 Verdict
+**Le chantier décompose/accord-en-parallèle n'a PAS touché l'apprentissage** : code moteur byte-identique (diff
+bidirectionnel complet), hook accord pré-existant + doublement inerte + lecture seule, toggles dictée hors boucle,
+panneau décompose à état séparé. L'apprentissage est **intact, actif, réinitialisable**. (La seule « contamination »
+reste celle du §8 — *jouer* avec un toggle ON, commune à TOUS les toggles, corrigée par « 🔄 Reset moteur » ; rien de
+spécifique à décompose.)
