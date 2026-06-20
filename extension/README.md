@@ -22,23 +22,29 @@ une **famille** → un **stade développemental** (phonologique → alphabétiqu
 ## Architecture
 | Fichier | Rôle |
 |---|---|
-| `dys-core.js` | **Le moteur** — copie **verbatim** des règles du correcteur de l'app (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) + couche dys (stades, remédiation). Sans DOM. |
-| `assets/` | Lexiques extraits de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz`). Régénérés par `build_assets.py`. Données Lexique 4 → **CC BY-SA 4.0**. |
-| `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur, **applique en place**. |
+| `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (stades, remédiation). Sans DOM. |
+| `assets/` | Lexiques extraits de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz` = 92 743 formes accentuées). Régénérés par `build_assets.py`. Données Lexique 4 → **CC BY-SA 4.0**. |
+| `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur (`diagnoseAll` = grammaire + orthographe), **applique en place** (gère la fusion de 2 tokens pour l'élision). |
 | `popup.html/js` | Réglages (activer/désactiver). |
-| `parity_core.js` | Test : `dys-core.js` ⊆ Python sur la batterie de référence (aucun FP propre). |
+| `parity_core.js` | Test grammaire : `dys-core.js` ⊆ Python sur la batterie de référence (aucun FP propre). |
+| `test_speller.js` | Test orthographe : AUTO FP=0, hybride (accord contexte), accent-POS (élève/élevé), élision **+ parité directe `dys-core.spell()` ≡ `app.spellText()`**. |
 
 ## Régénérer / tester
 ```bash
 python3 extension/build_assets.py      # ré-extrait les lexiques depuis l'app
-node    extension/parity_core.js        # parité extension ↔ Python (FP=0)
+node    extension/parity_core.js        # parité grammaire extension ↔ Python (FP=0)
+node    extension/test_speller.js       # orthographe : FP=0 + parité ext ≡ app
 ```
 
 ## Périmètre & limites (honnête)
-- **Couvert (hors-ligne, FP=0)** : homophones grammaticaux (a/à, son/sont, on/ont, et/est, ce/se, peu/peux/peut,
-  leur/leurs, é/er, mais/mes), **accord sujet-verbe**, **genre déterminant** (`le voiture→la`), **`j'est→j'ai`**.
-- **Phase 2 (à venir)** : couche **orthographe** (non-mots/accents : `oartir→partir`, `monagne→montagne`,
-  `leson→leçon`) via `assets/speller.tsv.gz` ; couche **contexte** via **Gemini Nano** (Chrome intégré, hors-ligne).
+- **Couvert (hors-ligne, FP=0)** :
+  - **Grammaire** : homophones (a/à, son/sont, on/ont, et/est, ce/se, peu/peux/peut, leur/leurs, é/er, mais/mes),
+    **accord sujet-verbe**, **genre déterminant** (`le voiture→la`), **`j'est→j'ai`**.
+  - **Orthographe** (✅ phase 2 livrée) : non-mots/accents/typos (`fenetre→fenêtre` **AUTO**, `leson→leçon`,
+    `oartir→partir`, `monagne→montagne` **FLAG**), désambiguïsation par le contexte (genre/nombre, POS : élève/élevé),
+    **élision** (`c est→c'est`, `lannée→l'année`). Bleu dans la barre ; AUTO = correction sûre marquée « · sûr ».
+- **Phase 2b (à venir)** : **auto-application silencieuse** des corrections AUTO (pour l'instant cliquables, par
+  prudence en champ vif) ; couche **contexte** via **Gemini Nano** (Chrome intégré, hors-ligne).
 - **Phase 3 (à venir)** : repli **clavier virtuel / zone de saisie universelle** pour les champs où l'injection
   directe est impossible (éditeurs riches, canvas).
 - `contenteditable` : supporté en **texte simple** ; les éditeurs riches (Gmail, Docs) = best-effort pour l'instant.

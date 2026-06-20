@@ -1,5 +1,6 @@
 // content.js — correcteur dys EN PLACE dans n'importe quel champ. Réutilise dys-core.js (le moteur mesuré).
-// Détecte les fautes du périmètre (homophones grammaticaux, accord sujet-verbe, genre déterminant, j'est→j'ai),
+// Détecte les fautes du périmètre — GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, j'est→j'ai)
+// ET ORTHOGRAPHE (non-mots/accents/typos : fenetre→fenêtre, leson→leçon, élision « c est »→« c'est ») —
 // affiche une barre flottante près du champ : on clique pour corriger DANS le champ. Situe le stade dys + remédiation.
 // FP=0 (mêmes règles que l'app/Python). Hors-ligne, aucune donnée envoyée.
 (function () {
@@ -13,10 +14,13 @@
 
   // charge les lexiques depuis les assets de l'extension (fetch + DecompressionStream, comme l'app)
   try {
+    var spellerUrl = chrome.runtime.getURL('assets/speller.tsv.gz');
     DC.loadLex({
       vdc: chrome.runtime.getURL('assets/vdc-lex.json'),
-      genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz')
+      genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
+      speller: spellerUrl
     }).then(function () { if (active) schedule(active); });
+    if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
   } catch (e) {}
 
   // ===== cible éditable =====
@@ -51,14 +55,15 @@
   function spans(text) { var m, s = []; TOKRE.lastIndex = 0; while ((m = TOKRE.exec(text))) s.push([m.index, m.index + m[0].length]); return s; }
   function applyOne(el, flag) {
     var t = getText(el), sp = spans(t), s = sp[flag.i]; if (!s) return;
-    var nt = t.slice(0, s[0]) + flag.sugg + t.slice(s[1]);
+    var e = sp[flag.i + (flag.span ? flag.span - 1 : 0)] || s;   // élision : la suggestion fusionne 2 tokens (« c est »→« c'est »)
+    var nt = t.slice(0, s[0]) + flag.sugg + t.slice(e[1]);
     setText(el, nt, s[0] + flag.sugg.length);
     schedule(el);
   }
   function applyAll(el, flags) {
     var t = getText(el), sp = spans(t);
     var ord = flags.slice().sort(function (a, b) { return b.i - a.i; });   // droite→gauche : indices stables
-    ord.forEach(function (f) { var s = sp[f.i]; if (s) t = t.slice(0, s[0]) + f.sugg + t.slice(s[1]); });
+    ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]); });
     setText(el, t);
     schedule(el);
   }
@@ -95,8 +100,9 @@
       + '<button class="omdys-x" title="masquer">×</button></div>';
     h += '<div class="omdys-list">';
     dg.flags.forEach(function (f, k) {
-      h += '<div class="omdys-item" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
-        + ' <span class="omdys-fam">[' + esc(f.name) + ']</span></div>';
+      var orth = /orthographe|[ée]lision/.test(f.name || '');   // bleu = orthographe (non-mot/accent) ; rouge = grammaire
+      h += '<div class="omdys-item' + (orth ? ' omdys-orth' : '') + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
+        + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : '') + ']</span></div>';
     });
     h += '</div>';
     if (dg.stade) {
@@ -118,7 +124,7 @@
     if (!CFG.enabled || !DC.isReady() || !el || el !== active || dismissed.has(el)) return;
     var text = getText(el);
     if (!text || !text.trim()) { hideBar(); return; }
-    var dg = DC.diagnose(text);
+    var dg = DC.diagnoseAll ? DC.diagnoseAll(text) : DC.diagnose(text);   // grammaire + orthographe (non-mots/accents)
     if (!dg.flags.length) { hideBar(); return; }
     render(el, dg);
   }
