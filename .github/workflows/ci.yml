@@ -15,11 +15,30 @@ jobs:
         run: python3 dictee/eval_externe.py
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
+      - name: Extraction des tables g2p depuis l'app (route sublexicale)
+        run: python3 dictee/build_g2p_tables.py
+      - name: Extraction de la morphologie Lexique 4 (md/mb) depuis l'app
+        run: python3 dictee/build_morpho.py
+      - name: Boucle descendante — apprend la correction g2p (TRAIN)
+        run: python3 dictee/build_g2p_corrections.py
+      - name: Décomposeur « à la Lexique 4 » — mesure (HELD-OUT, in-lexique ⟂ OOV, seed 42)
+        run: python3 dictee/decompose.py --measure
+      - name: Cognition phono→ortho — apprend l'émission (build_p2g)
+        run: python3 dictee/build_p2g.py
+      - name: Cognition phono→ortho — mesure (HELD-OUT top-k + croisement ortho)
+        run: python3 dictee/p2g.py --measure
+      - name: Régression décomposeur + cognition (asserts + seuils mesurés)
+        run: python3 dictee/test_decompose.py
+      - name: Décomposition parallèle 3 voies (ortho/phon/grammaire) sur corpus réel
+        run: python3 dictee/decompose_corpus.py --show
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc dictée+correcteur se compile');"
+      - name: Vérif syntaxe du bloc « Décompose » (script séparé, app)
+        run: |
+          node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc décompose se compile (séparé du correcteur)');"
       - name: Parité correcteur APP↔Python (homophones + accord sujet-verbe)
         run: node dictee/parity_corr.js
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
