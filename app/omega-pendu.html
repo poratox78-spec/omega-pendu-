@@ -11443,7 +11443,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var LEXMAP=null,PHCNT=null;
   function deaccUp(w){return w.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');}
   function buildLex(){LEXMAP=new Map();PHCNT=new Map();try{if(typeof OMEGA_LEX4!=='object'||!OMEGA_LEX4||!OMEGA_LEX4.words)return;var W=OMEGA_LEX4.words,i,w;for(i=0;i<W.length;i++){w=W[i];if(!w||!w.m)continue;if(!LEXMAP.has(w.m))LEXMAP.set(w.m,w);if(w.p)PHCNT.set(w.p,(PHCNT.get(w.p)||0)+1);}}catch(e){}}
-  function lexLookup(word){try{if(LEXMAP===null)buildLex();if(!LEXMAP)return null;var e=LEXMAP.get(deaccUp(word));if(!e||!e.p)return null;return {phono:e.p,genre:(e.g==='m'||e.g==='f')?e.g:null,nbhomoph:Math.max(0,(PHCNT.get(e.p)||1)-1)};}catch(e){return null;}}
+  function lexLookup(word){try{if(LEXMAP===null)buildLex();if(!LEXMAP)return null;var e=LEXMAP.get(deaccUp(word));if(!e||!e.p)return null;return {phono:e.p,genre:(e.g==='m'||e.g==='f')?e.g:null,nbhomoph:Math.max(0,(PHCNT.get(e.p)||1)-1),md:(e.md||''),mb:(e.mb||''),old:(typeof e.old==='number'?e.old:null),pld:(typeof e.pld==='number'?e.pld:null)};}catch(e){return null;}}
   // APPREND (localStorage, FP=0 : une entrée 'lex' n'est jamais écrasée par 'sublex' ; l'usage renforce 'vu')
   function loadLex(){try{return JSON.parse(localStorage.getItem('vdk_lex')||'{}');}catch(e){return {};}}
   function learn(word,sampa,src){var L=loadLex(),w=word.toLowerCase(),p=L[w];if(p){p.vu=(p.vu||1)+1;if(!(p.src==='lex'&&src==='sublex')){p.sampa=sampa;p.src=src;}}else{L[w]={sampa:sampa,src:src,vu:1};}try{localStorage.setItem('vdk_lex',JSON.stringify(L));}catch(e){}return L[w];}
@@ -11456,10 +11456,16 @@ window.addEventListener('DOMContentLoaded', () => {
     var genre=(lx&&lx.genre)?({m:'masculin',f:'féminin'}[lx.genre]):'—';
     var homo=lx?(' · homophones (lex) : '+lx.nbhomoph):'';
     var ap=loadLex()[word.toLowerCase()];
+    var morpho='';                                       // MORPHO + voisins Lexique 4 (mots ≥7 lettres, route lexicale)
+    if(lx){
+      var mtxt=lx.md?('morpho '+esc(lx.md)+((lx.mb&&lx.mb.toLowerCase()!==word.toLowerCase())?(' · base : '+esc(lx.mb)):'')):'';
+      var vois=(lx.old!=null)?('voisins OLD20 '+lx.old.toFixed(2)+(lx.pld!=null?(' · PLD20 '+lx.pld.toFixed(2)):'')):'';
+      if(mtxt||vois) morpho='<div class="vdk-sec"><span class="vdk-tag">LEX4</span> <span class="vdk-sc">'+mtxt+((mtxt&&vois)?' · ':'')+vois+'</span></div>';
+    }
     return '<div class="vdk-c2"><div class="vdk-h">« '+esc(word)+' » <span class="vdk-sc">'+d.graph.length+' graphème(s) · '+phon.length+' phonème(s) · '+d.nbsyll+' syllabe(s)</span></div>'
       +'<div class="vdk-sec"><span class="vdk-tag">ORTHO</span> '+al+'<div class="vdk-sc">syllabes : '+esc(d.sortho.join('-'))+'</div></div>'
       +'<div class="vdk-sec"><span class="vdk-tag">SON</span> <span class="vdk-ph">/'+esc(phon)+'/</span> <span class="vdk-sc">[IPA '+esc(d.ipa||'∅')+'] · route '+route+esc(diverge)+'</span><div class="vdk-sc">syllabes : '+esc(d.sson.join('-'))+' · CV = '+esc(d.cv)+'</div></div>'
-      +'<div class="vdk-sec"><span class="vdk-tag">GRAM</span> <span class="vdk-sc">genre : '+genre+homo+(ap?(' · appris ×'+ap.vu+' ('+esc(ap.src)+')'):'')+'</span></div></div>';
+      +'<div class="vdk-sec"><span class="vdk-tag">GRAM</span> <span class="vdk-sc">genre : '+genre+homo+(ap?(' · appris ×'+ap.vu+' ('+esc(ap.src)+')'):'')+'</span></div>'+morpho+'</div>';
   }
   function row(word){var d=decompose(word),lx=lexLookup(word),phon=lx?lx.phono:d.sampa;return '<tr><td>'+esc(word)+'</td><td>/'+esc(phon)+'/</td><td>'+phon.length+'</td><td>'+d.nbsyll+'</td><td>'+esc(d.cv)+'</td><td class="vdk-sc">'+(lx?'lex':'sublex')+'</td></tr>';}
   function preview(){var toks=($('vdk-in').value.match(/[A-Za-zÀ-ÿ']+/g))||[],P=$('vdk-prev');
