@@ -29,6 +29,8 @@ jobs:
         run: python3 dictee/p2g.py --measure
       - name: Régression décomposeur + cognition (asserts + seuils mesurés)
         run: python3 dictee/test_decompose.py
+      - name: Décomposition parallèle 3 voies (ortho/phon/grammaire) sur corpus réel
+        run: python3 dictee/decompose_corpus.py --show
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Vérif syntaxe du bloc dictée+correcteur intégré (app)
