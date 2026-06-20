@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-06-20 — ✅ Audit STRUCTUREL complet (flux · toggles · architecture) → aucune dérive
+
+Rem pas convaincu par l'A/B winrate → audit **structurel**. Mesuré sur le CODE (`AUDIT_BASELINE.md §7`) :
+- **17 lignes** seulement diffèrent 6f9fe61↔HEAD, **toutes** correcteur/dictée (`vdc-`/`vdd-`), **0 ligne moteur** ;
+- **73 défauts de toggles** extraits des 2 commits → **`diff` VIDE** (aucun défaut n'a flippé) ;
+- **flux** `omegaStep` (cStep 5-modules ortho → voie phon → OS v07 → cascade declare) **byte-identique** ; au boot tous
+  les **maîtres** declare sont OFF → baseline = cognition pure (R66 OK, gating par maître) ;
+- finding mineur : `CONFIG_TOGGLES.md §3` disait « tout OFF sauf M4_PHON_USE_P » alors que `M_NEO_ASSEMBLED/RECALL`=true
+  mais **inertes** (maître `M_DECLARE_NEO` OFF) → doc **précisée**.
+**Verdict : structure intacte, rien à réparer.** Détail : `../AUDIT_BASELINE.md §7`.
+
 ## 2026-06-20 — ✅ Audit baseline moteur LANCÉ → pas de régression (mesuré)
 
 A/B `6f9fe61`(83k) vs HEAD(155k), **même harnais figé**, headless : (1) **code moteur byte-identique** (les 17 lignes

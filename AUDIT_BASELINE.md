@@ -1,6 +1,7 @@
 # 🔎 AUDIT BASELINE — signalement « la base a peut-être bougé »
 
-> **Statut : AUDIT FAIT (2026-06-20) · AUCUNE RÉGRESSION MESURÉE · moteur intact.** Voir §0.
+> **Statut : AUDIT FAIT (2026-06-20) · AUCUNE RÉGRESSION MESURÉE · moteur intact.** Winrate → §0 · **Structurel complet
+> (flux · tous les toggles · architecture) → §7** : flux/toggles/archi **byte-identiques** 6f9fe61↔HEAD, aucune dérive.
 > Doctrine concernée : **R66** (« baseline byte-identique au repos », CLAUDE.md §1 · DICTEE_ROADMAP §24 · REPRISE_MOTEUR §69).
 
 ## 0. RÉSULTAT DE L'AUDIT (mesuré, A/B `6f9fe61` 83k vs HEAD 155k, **même harnais figé**)
@@ -84,3 +85,72 @@ Sous-hypothèses possibles (non mesurées) :
 - Commits clés : `6f9fe61` (avant) · `9d3763c` (83k→155k) · `3ff98c1` (mb + harnais) · `dd3a4e4` (sonde trexquant, read-only).
 
 </details>
+
+---
+
+# 7. AUDIT STRUCTUREL COMPLET — flux · tous les toggles · architecture (2026-06-20)
+
+> Demandé par Rem (« pas convaincu [par l'A/B winrate], audit structurel complet : flux, all toggles, architecture »).
+> **Méthode** : extraction du CODE réel (grep/diff sur `app/omega-pendu.html`), confronté à `docs/CONFIG_TOGGLES.md` +
+> `docs/CODE_MAP.md`. A/B **structurel** `6f9fe61` (avant fenêtre) vs HEAD. **Verdict : structure intacte, aucune dérive.**
+
+## 7.1 Intégrité structurelle 6f9fe61 ↔ HEAD (le test de dérive)
+- **Code moteur** (tout le JS hors blocs données) : **byte-identique** sauf **17 lignes**, **toutes** du panneau
+  correcteur/dictée (`vdc-`/`vdd-` : `toks`, `rEer`, `correctText`, `renderCorr`, `applyFix`, `CRULES`, `GENDER_MAP`…) —
+  **0 ligne du moteur pendu** (ni `omegaStep`, ni `cStep`, ni les `declare`, ni un toggle).
+- **Défauts de toggles** : **73 déclarations** `let/var/const … = true|false` extraites des deux commits → **`diff` VIDE**
+  = **aucun défaut de toggle n'a changé**. (Test direct « un module s'est-il allumé tout seul ? » → **non**.)
+- ⇒ Le **flux**, les **toggles** et l'**architecture** du moteur sont **identiques** avant/après la fenêtre décompose.
+  Les seuls changements de la fenêtre : **donnée lexique** (83k→155k, superset), **panneaux dys additifs**, **extension** (dossier neuf).
+
+## 7.2 Toggles — inventaire complet (46 UI + internes) et défauts au boot (R66)
+- **46 toggles exposés UI** (`data-toggle=`), **~73 drapeaux/params** au total. **Quasi tous `= false` au boot.**
+- **Défauts `= true`** (vérifiés code) et leur statut R66 :
+  | Drapeau `true` au boot | Nature | Baseline byte-identique ? |
+  |---|---|---|
+  | `M4_PHON_USE_P_ENABLED` | croisement prior phon (champ p) | ✅ exception documentée (CONFIG_TOGGLES §3) |
+  | `M_NEO_ASSEMBLED_ENABLED`, `M_NEO_RECALL_ENABLED` | sous-briques NEO | ✅ **inertes** : maître `M_DECLARE_NEO_ENABLED = false` → le bloc NEO ne s'exécute pas |
+  | `M_S_ENABLED`, `M4_M_CONTEXTUAL/OS_MOD_ENABLED`, `M5_D_PHONGRAPH_ENABLED`, `M4_M_HOMEO_V2_ENABLED` | **cœur baseline** (const, fusion/M4_m/M5_d), pas des « modules » expérimentaux | ✅ c'est la baseline elle-même (commentaire code : « Défaut true = byte-identique ») |
+- **Mécanisme R66 réel = gating par MAÎTRE**, pas « tous les sous-drapeaux à false ». Les chemins expérimentaux (declares,
+  voie phon, OS v07, n-gram/gap/heavy-C) sont éteints par leurs **maîtres** (`M_DECLARE_NEO`, `M_DECLARE_DUAL`,
+  `M_BPC_M3D`, `M_BPC_DECLARE`, `M_WORD_DECLARE`, `M_VOIE_PHON`, `M_OS_V07`, `M_TREXQUANT_MODE` = **tous OFF**).
+- ⚠️ **Écart doc↔code constaté (mineur, non bloquant)** : `CONFIG_TOGGLES.md §3` écrit « tout OFF au boot **sauf
+  M4_PHON_USE_P** ». En réalité `M_NEO_ASSEMBLED`/`M_NEO_RECALL` (+ consts cœur) sont `true` mais **inertes par gating**.
+  La baseline reste byte-identique ; la phrase du doc est juste **imprécise**. → recommandation : préciser « OFF **ou
+  inerte par maître OFF** ».
+
+## 7.3 Flux de décision (vérifié dans `omegaStep`, L7225)
+```
+omegaStep()
+ ├─ cStep(currentWord, revealedMask)        // pipeline ORTHO 5 modules M1_d→M2_d→M3_d→M4_d→M5_d (blueprint §6.6)
+ ├─ détecteurs OS (saturation / novelty)
+ └─ si gameActive :
+     proposed = M5_d.output.letter           // décision cognitive (softmax top-K concept↔lettre + prior fréq)
+        └ fallback pickLetterPhonGraph si M5_d non frais
+     si M_VOIE_PHON ON :  voie PHON (shadow) ; si M_OS_V07 ON :  OS combine ortho+phon → override proposed
+     _cogProposed = proposed                  // lettre cognitive FIGÉE avant tout declare (anti-béquille)
+     ── CASCADE DECLARE (chaque bloc GATÉ par son maître, "le dernier qui parle gagne", _neoDone bloque la suite) ──
+       Brique1  M_WORD_DECLARE   (OFF) → _omega_declareCandidate / BestCandidate
+       Brique1c M_BPC_DECLARE    (OFF, requiert M_BPC_M3D) → _omega_declareBestCandidateBPC
+       DUAL     M_DECLARE_DUAL   (OFF) → _DECL2.declare (board-buffer, jamais currentWord)
+       ÉMERGENT M_EMERGENT_*     (OFF)
+       NEO      M_DECLARE_NEO    (OFF) → recall → n-gram → OS-arb → assemblé → muette  (cascade interne, _neoDone)
+```
+**Au boot (tous maîtres OFF) : la cascade declare est entièrement éteinte → `proposed` = la lettre cognitive M5_d.**
+C'est **la baseline**. Le code de `omegaStep`/`cStep`/des `declare` est **byte-identique** 6f9fe61↔HEAD (cf. §7.1).
+
+## 7.4 Architecture (carte, cf. `docs/CODE_MAP.md`)
+- **Double route DRC** : voie **ORTHO** (pipeline `M1_d…M5_d` via `cStep`) ∥ voie **PHON** (SAMPA, `M_VOIE_PHON`) —
+  fusionnées par l'**OS v07** (`M_OS_V07`/`M_OS_v07_step`, forme w(r)=r^α/(β+r^α)).
+- **Couche DECLARE** (niveau MOT) **par-dessus** la décision-lettre : cascade prioritaire DUAL→émergent→NEO, **additive**,
+  **OFF-inerte** par défaut.
+- **Lexique** `OMEGA_LEX4` (`words[]` + `len_index`) = **donnée** lue par la cognition lexicale et `_omega_pickWords`
+  (cf. §0 : c'est CE bloc qui a grossi 83k→155k, winrate-inerte).
+- **Apprentissage** `M_OS_LEARNING` (+ 4 gardes) ON-mais-batch ; `…_ONLINE` OFF (SPSA dégrade, mesuré).
+
+## 7.5 Verdict structurel
+**Aucune dérive structurelle.** Flux, 73 défauts de toggles, et architecture moteur **byte-identiques** 6f9fe61↔HEAD ;
+R66 respecté (baseline = cognition pure, declares OFF-inertes par maître). Seuls changements de la fenêtre : **donnée
+lexique** (superset, §0), **panneaux dys additifs** (17 lignes, hors moteur), **extension** (dossier neuf). **Rien à
+réparer côté structure.** Unique action de suivi (cosmétique, non bloquante) : préciser la phrase « tout OFF au boot » de
+`docs/CONFIG_TOGGLES.md §3` (cf. §7.2). **Réserve inchangée** : Trexquant OOV officiel non rejoué headless (§0).

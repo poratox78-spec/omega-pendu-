@@ -74,8 +74,11 @@ Cheat-free, **niveau du declare manuel** (~98,8 %). Plafond oracle (exclu par do
 | `M_NEO_C_HEAVY` | OFF | C lourd (transformer) en voie sublexicale. **Mesuré §1.12 : parité, non câblé.** | 🟢 (poids `_neoHeavyC` null par défaut = inerte) |
 | `M_TREXQUANT_MODE` | OFF | retire le mot du lexique → test hors-lexique (honnête après fix). | mode test |
 
-> **Décompte** : ~41 toggles bascule + paramètres. Tout **OFF par défaut au boot** sauf `M4_PHON_USE_P` ; le preset
-> ci-dessus allume la config cheat-free. Repère couleur UI : 🟢 optimale · 🔵 cheat-free optionnel · 🟠 lit le son du mot ·
+> **Décompte** : ~41 toggles bascule + paramètres (46 `data-toggle` UI, ~73 drapeaux/params au total). Au boot, tout est
+> **OFF — ou INERTE par maître OFF** : exception `M4_PHON_USE_P` (`true`) ; et `M_NEO_ASSEMBLED`/`M_NEO_RECALL` sont `true`
+> mais **inertes** car le maître `M_DECLARE_NEO` est OFF (vérifié code, `AUDIT_BASELINE.md §7.2`). Les consts cœur
+> (`M_S`, `M4_M_*`, `M5_D_PHONGRAPH`, `M4_M_HOMEO_V2` = `true`) **sont** la baseline (pas des modules). Baseline byte-identique
+> garantie par le **gating maître**, pas par « tous les sous-drapeaux à false ». Le preset ci-dessus allume la config cheat-free. Repère couleur UI : 🟢 optimale · 🔵 cheat-free optionnel · 🟠 lit le son du mot ·
 > 🔴 triche grise (A1/A2/A3).
 
 ## 4. Interactions importantes
