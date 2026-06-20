@@ -9,6 +9,18 @@
 Il **détecte + corrige + situe l'erreur dans un STADE développemental** (phono → alphabétique → lexical →
 morphosyntaxique) pour la **remédiation dys**. Angle pédagogique, cible n°1 du projet — pas « encore un correcteur ».
 
+## Intégration SANS l'app (sans UI/DOM) — empreinte vérifiée
+Le moteur (grammaire + orthographe + hybride) s'intègre ailleurs **sans le jeu, sans l'UI, sans le DOM** :
+- **Python** : déjà standalone — `from speller_probe import Speller; Speller().correct_text(t)` et `import correcteur_probe`.
+- **JS, liée à l'app** : `dictee/correcteur.js` — `const c = await require('./dictee/correcteur').create(); c.correct(t)`.
+  Réutilise le monolithe comme **source unique** (extrait la tranche moteur, bouchon DOM minimal) → zéro drift.
+- **JS, autonome (HTML non requis)** : `node dictee/build_correcteur.js` bake moteur + lexiques dans **un seul
+  fichier** (`correcteur.standalone.js`, ~2,5 Mo) → `const C=require('./correcteur.standalone.js'); await C.init(); C.correct(t)`.
+- **Empreinte mesurée** : 48 Ko de code + **2,11 Mo de données** (grammaire `cgram_hf` 1,55 Mo + orthographe
+  `speller-lex` 0,56 Mo). **PAS besoin** du lexique moteur du pendu (`lex4-data-gz`, 5,52 Mo) ni du code du jeu →
+  intégration **2,16 Mo** vs app 8,25 Mo. Runtime : `DecompressionStream/atob/Blob/Response` (Node ≥18 / navigateur).
+- API : `correct(t)` (fusion) · `grammar(t)` (règles seules) · `spell(t)` (orthographe seule) → `[{i,word,sugg,name,tier}]`.
+
 ## Couche ORTHOGRAPHIQUE (non-mots / accents / typos / phonétique) — temps réel
 Au-delà des règles grammaticales : un vrai correcteur orthographique qui corrige les **non-mots** (formes absentes
 du lexique). Hybride, dans l'app (panneau « 🩹 Correcteur », debounce 350 ms = temps réel) :

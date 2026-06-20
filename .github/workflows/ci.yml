@@ -26,3 +26,7 @@ jobs:
         run: node dictee/test_speller_app.js
       - name: Moteur correcteur standalone (sans UI/DOM)
         run: node dictee/correcteur.js
+      - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)
+        run: |
+          node dictee/build_correcteur.js /tmp/correcteur.standalone.js
+          node -e "const C=require('/tmp/correcteur.standalone.js');C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');console.log('bake OK');});"
