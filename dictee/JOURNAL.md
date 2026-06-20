@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-06-20 — TREXQUANT : la MORPHO/décompose n'aide pas l'OOV (FALSIFIÉ) — réponse à la thèse §1.8
+
+Rem : « décompose préparé pour le mode trexquant, voir si utile ». Mesuré (`evo/trexq_morpho_probe.py`, standalone,
+OOV par construction : test retiré du train, morpho apprise sur le train seul) — réponse à la **thèse ouverte
+AUDIT §1.8** (« la cognition/structure ajoute-t-elle un Δ AU-DESSUS du substrat n-gram ? »).
+
+| variante (winrate OOV, 500 mots held-out) | % |
+|---|---|
+| **A — n-gram de lettres seul (le substrat §1.7)** | **69,4** |
+| n-gram + morpho (affixes de `morpho.json`) ×1 | 69,4 (bruit) |
+| n-gram + morpho ×4 / ×12 | 67,8 / 65,8 (**dégrade**) |
+| morpho **seule** | 22,6 |
+
+**Verdict : FALSIFIÉ — la morpho n'ajoute aucun Δ** (au mieux +0 ; poids fort → ça empire ; seule = faible). **Cause** :
+le n-gram capte **déjà** la structure d'affixes (forward = préfixes, backward = suffixes) → la morpho explicite est
+**redondante**. Conforme §1.8 et au motif déjà falsifié (C léger/lourd = parité avec le substrat) : **le levier OOV
+au-delà du n-gram est le CONTEXTE (LLM), pas la décomposition**. La morpho/décompose **reste utile pour la DICTÉE**
+(diagnostic dys, route lexicale du décomposeur) — pas pour le pendu OOV. Sonde gardée (assert : la falsification doit
+rester vraie). Cohérent avec la conclusion de Rem : *« c'est notre limite partout → LLM »* (trexquant, décodeur, correcteur).
+
+---
+
 ## 2026-06-20 — Cas durs classe A : route PHONÈME réelle — ne bat pas la baseline (g2p-sur-typo non fiable)
 
 Suite de la classe A (`doi→doigt`, `pié→pied` : le bon mot n'est pas candidat par `phon_key` crue). Tenté la **route
