@@ -366,6 +366,16 @@ _HF_PATH = os.path.join(HERE, 'cgram_hf.json')
 if os.path.exists(_HF_PATH):
     try: GENDER_PURE = json.load(open(_HF_PATH, encoding='utf-8')).get('gn', {})
     except Exception: pass
+# RELAXATION (mesurée FP=0, +1 GEC) : on ÉTEND aux noms verbe-homographes (« voiture », « table ») que « gn »
+# excluait, via cgram_gender_relaxed.json = cgram_gender MOINS les adjectifs POS 'A' (épicènes inclus → « jeune »
+# exclu, FP « sa jeune fille » bordé). Source unique = build_gender_relaxed.py (mêmes données pour l'app).
+_GREL_PATH = os.path.join(HERE, 'cgram_gender_relaxed.json')
+if os.path.exists(_GREL_PATH):
+    try:
+        _grel = json.load(open(_GREL_PATH, encoding='utf-8'))
+        for _w, _g in _grel.items():
+            GENDER_PURE.setdefault(_w, _g)          # union : garde gn, ajoute les noms purs supplémentaires
+    except Exception: pass
 
 def rule_det_gender(T, i):
     lw = deacc(T[i].lower())
