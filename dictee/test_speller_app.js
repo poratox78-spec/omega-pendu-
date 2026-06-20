@@ -1,0 +1,47 @@
+// Test headless du correcteur ORTHOGRAPHIQUE de l'app : extrait l'IIFE dictée jusqu'à spellText,
+// décompresse le lexique embarqué (speller-lex-gz), et exécute spellText sur des phrases.
+const fs = require('fs'), path = require('path');
+const HTML = path.join(__dirname, '..', 'app', 'omega-pendu.html');
+const html = fs.readFileSync(HTML, 'utf8');
+
+const i0 = html.indexOf('mode PHRASES');
+const start = html.indexOf('(function(){', i0);
+const spIdx = html.indexOf('function spellText', start);
+const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
+if (start < 0 || spIdx < 0 || cut < 0) { console.error('extraction échouée'); process.exit(2); }
+const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size};})();';
+
+const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
+const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
+
+const stub = new Proxy(function(){}, { get(t,k){ if(k==='style')return {}; if(k==='classList')return {add(){},remove(){},toggle(){},contains:()=>false}; return stub; }, set:()=>true, apply:()=>stub });
+global.document = { getElementById:(id)=> id==='vdc-lex' ? {textContent:vdc} : id==='speller-lex-gz' ? {textContent:spl} : stub,
+  createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
+global.window = global; global.navigator = { userAgent:'node' };
+global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
+global.speechSynthesis = { speak(){}, cancel(){}, getVoices:()=>[] };
+global.SpeechSynthesisUtterance = function(){ return stub; };
+
+try { (0, eval)(code); } catch (e) { console.error('IIFE eval échoué :', e.message); process.exit(2); }
+const SP = globalThis.__sp;
+
+(async () => {
+  await SP.load();
+  console.log('lexique speller chargé :', SP.nwords(), 'mots | ready=', SP.ready());
+  const tests = [
+    'Le chat a mangé la leson daujourdhui',
+    'une grosse fote dortografe',
+    'la fenetre est ouverte le matin',
+    'Lannée derniere il a achete une voiture',
+    'il a manjé son gato au téléfone',
+    'le maron sone faux',
+    // ne doit RIEN toucher (phrase correcte)
+    'Le petit garçon mange une pomme rouge dans le jardin.'
+  ];
+  for (const t of tests) {
+    const f = SP.spell(t);
+    console.log('\n» ' + t);
+    f.forEach(x => console.log('    [' + x.tier + '] ' + x.word + ' → ' + x.sugg));
+    if (!f.length) console.log('    (rien)');
+  }
+})().catch(e => { console.error(e); process.exit(1); });
