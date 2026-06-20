@@ -20,11 +20,14 @@ import decompose as D
 import diag_sentence as G
 
 CORPUS = os.path.join(HERE, 'corpus_gec_fr.jsonl')
+FUNC = set(('le la les un une des du de au aux à en dans ce cet cette ces mon ma mes ton ta tes son sa ses '
+            'notre nos votre vos leur leurs et est ou où ni car mais donc or que qui ne se s '
+            'très tres plus moins trop bien assez aussi peu si tout').split())     # + adverbes de degré (mots invariables)
 
 
 def role_contexte(T, i):
     """Voie GRAMMAIRE EN CONTEXTE (descriptive) : rôle du mot dans la phrase. Réutilise les leviers
-    de diag_sentence (is_verb, gouverneurs de genre/nombre). Décrit — ne corrige pas."""
+    de diag_sentence (is_verb, gouverneur de genre via DÉTERMINANT genré — fiable). Décrit — ne corrige pas."""
     w = T[i].lower(); parts = []
     if w in G.NUM_PRON:   parts.append('pronom-sujet(' + G.NUM_PRON[w] + ')')
     elif w in G.NUM_DET:  parts.append('déterminant(' + G.NUM_DET[w] + ')')
@@ -33,11 +36,26 @@ def role_contexte(T, i):
         gov = G.governor_number(T, i, skip_pp=True)
         parts.append('verbe' + (' ← sujet « ' + gov[0] + ' » ' + gov[1] if gov else ''))
     else:
-        gg = G.governor_gender(T, i) or G.lexical_gender(T, i)
+        gg = G.governor_gender(T, i)                    # déterminant genré seulement (pas lexical_gender → moins de bruit)
         gn = G.governor_number(T, i)
         if gg: parts.append(('féminin' if gg[1] == 'f' else 'masculin') + ' ← « ' + gg[0] + ' »')
         if gn: parts.append(gn[1] + ' ← « ' + gn[0] + ' »')
     return ' · '.join(parts) if parts else '—'
+
+
+def role_tag(T, i):
+    """Étiquette grammaticale COMPACTE (en contexte) pour STOCKAGE dans la base. None si rien de sûr."""
+    w = T[i].lower()
+    if w in G.NUM_PRON:        return 'pronom-sujet'
+    if w in G.NUM_DET:         return 'déterminant'
+    if G.deacc(w) in G.PREP:   return 'préposition'
+    if G.is_verb(T, i):        return 'verbe'
+    if w in FUNC:              return 'mot-outil'         # conjonctions/invariables (et/en/ou…) → pas d'accord parasite
+    gg = G.governor_gender(T, i)
+    if gg:                     return 'accord-' + gg[1]   # accord-m / accord-f (genre porté par un déterminant)
+    gn = G.governor_number(T, i)
+    if gn:                     return 'accord-' + gn[1]   # accord-sg / accord-pl
+    return None
 
 
 def parallel(T, i):
@@ -45,7 +63,7 @@ def parallel(T, i):
     w = T[i]; r = D.decompose(w)
     ortho = '-'.join(r['syll_ortho']) + f"  ({r['nblettres']} l, {r['graphemes'].__len__()} graph.)"
     phon = '/' + r['phono'] + '/  ' + '-'.join(r['syll_phon']) + f"  CV={r['cv']}"
-    cg = '/'.join(r['cgram']) or '—'
+    cg = 'mot-outil' if w.lower() in FUNC else ('/'.join(r['cgram']) or '—')  # mot-outil → pas de cgram bruité (de→NOM)
     g = {'m': ' m', 'f': ' f'}.get(r['genre'], '')
     morph = ('  morpho ' + '+'.join(r['morpho'])) if r.get('morpho') else ''
     gram = f"{cg}{g} {r['nombre']}{morph}  ·  rôle : {role_contexte(T, i)}"
@@ -64,8 +82,9 @@ def enrich_base(rows):
     """Lit les phrases CORRECTES du corpus et apprend chaque mot dans la base (FP=0)."""
     lex = D.load_learned(); n = 0
     for r in rows:
-        for tok in G.toks(r.get('good', '')):
-            if D.learn_word(lex, tok):
+        T = G.toks(r.get('good', ''))
+        for i, tok in enumerate(T):
+            if D.learn_word(lex, tok, role=role_tag(T, i)):   # stocke la grammaire EN CONTEXTE dans la base
                 n += 1; lex['_meta']['lus'] += 1
     D.save_learned(lex)
     return n, len([k for k in lex if k != '_meta'])

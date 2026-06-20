@@ -243,12 +243,15 @@ _SUF = ['isation', 'ation', 'ition', 'ement', 'ible', 'able', 'ment', 'tion', 's
         'iste', 'isme', 'ique', 'aire', 'ance', 'ence', 'eur', 'age', 'ure', 'ite', 'eux', 'ive', 'er', 'ir',
         'ee', 'es', 'ais', 'ait', 'ant', 'ent', 'if']
 def _sublex_morpho(word):
-    """Repli sublexical : pèle un préfixe + un suffixe connus si la racine reste ≥3 lettres. None si rien."""
+    """Repli sublexical CONSERVATEUR : pèle d'abord un SUFFIXE (signal fiable, racine restante ≥4) ; ne
+    pèle un préfixe QUE si un suffixe a été trouvé — évite les faux découpages type « importante → im+portante »
+    (pas de suffixe dans la liste → on s'abstient). None si moins de 2 morphèmes."""
     root = deacc(word.lower()); pref = suf = None
-    for p in sorted(_PREF, key=len, reverse=True):
-        if root.startswith(p) and len(root) - len(p) >= 3: pref = p; root = root[len(p):]; break
     for s in sorted(_SUF, key=len, reverse=True):
-        if root.endswith(s) and len(root) - len(s) >= 3: suf = s; root = root[:-len(s)]; break
+        if root.endswith(s) and len(root) - len(s) >= 4: suf = s; root = root[:-len(s)]; break
+    if suf:
+        for p in sorted(_PREF, key=len, reverse=True):
+            if root.startswith(p) and len(root) - len(p) >= 4: pref = p; root = root[len(p):]; break
     parts = [x for x in (pref, root, suf) if x]
     return parts if len(parts) >= 2 else None
 def morpho_of(word):
@@ -335,10 +338,11 @@ def _entry(rec):
             'nombre': rec['nombre'], 'nbhomoph': rec['nbhomoph'],
             'src': rec['src_phon'], 'gram_src': rec['gram_src']}
 
-def learn_word(lex, word, accents=True):
+def learn_word(lex, word, accents=True, role=None):
     """Apprend (ou renforce) un mot. RÈGLE FP=0 : une entrée LEXICALE sûre n'est jamais
     dégradée par une prédiction sublexicale ; lex remplace sublex (montée en sûreté) ;
-    l'usage répété incrémente `vu`. Renvoie ('neuf'|'renforce'|'promu')."""
+    l'usage répété incrémente `vu`. `role` (optionnel) = étiquette grammaticale EN CONTEXTE
+    accumulée dans la base (apprend la grammaire d'usage). Renvoie ('neuf'|'renforce'|'promu')."""
     rec = decompose(word, accents=accents)
     w = rec['mot']
     if not rec['graphemes']:
@@ -356,6 +360,9 @@ def learn_word(lex, word, accents=True):
         else:
             prev['vu'] = vu; status = 'renforce'
     lex[w]['dernier'] = lex['_meta']['lus']
+    if role:                                             # GRAMMAIRE EN CONTEXTE stockée dans la base (compteur par rôle)
+        r = lex[w].setdefault('roles', {})
+        r[role] = r.get(role, 0) + 1
     # inventaire d'usage (apprend la distribution des phonèmes/graphèmes vus)
     for c in rec['phono']:
         lex['_meta']['phon_inv'][c] = lex['_meta']['phon_inv'].get(c, 0) + 1
@@ -492,7 +499,9 @@ def show_lex():
     print(f"  sources : {by_src}")
     top = sorted(words.items(), key=lambda kv: -kv[1].get('vu', 0))[:12]
     for w, v in top:
-        print(f"  {w:16} vu×{v.get('vu',1):<3} /{v['phono']}/  {('/'.join(v['cgram']) if v['cgram'] else '—')}  ({v['src']})")
+        roles = v.get('roles')
+        rstr = ('  rôles ' + ' '.join(f"{k}:{n}" for k, n in sorted(roles.items(), key=lambda x: -x[1]))) if roles else ''
+        print(f"  {w:16} vu×{v.get('vu',1):<3} /{v['phono']}/  {('/'.join(v['cgram']) if v['cgram'] else '—')}  ({v['src']}){rstr}")
     pinv = sorted(meta.get('phon_inv', {}).items(), key=lambda kv: -kv[1])[:10]
     print("  phonèmes les plus fréquents :", ' '.join(f"{p}:{c}" for p, c in pinv))
 
