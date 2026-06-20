@@ -1,7 +1,9 @@
 # 🔎 AUDIT BASELINE — signalement « la base a peut-être bougé »
 
-> **Statut : AUDIT FAIT (2026-06-20) · AUCUNE RÉGRESSION MESURÉE · moteur intact.** Winrate → §0 · **Structurel complet
-> (flux · tous les toggles · architecture) → §7** : flux/toggles/archi **byte-identiques** 6f9fe61↔HEAD, aucune dérive.
+> **Statut : AUDIT FAIT (2026-06-20).** ① Winrate (§0) : **pas de régression** (banc frais). ② Structure statique (§7) :
+> flux/toggles/archi **byte-identiques** 6f9fe61↔HEAD, **aucune dérive**. ③ **Désactivation dynamique (§8) :
+> CONTAMINATION CONFIRMÉE en usage INTERACTIF** (reset dur voie/substrat · résidu d'apprentissage), **pré-existante**,
+> **banc immunisé** → Rem avait raison. Correctif à décider (§8.5).
 > Doctrine concernée : **R66** (« baseline byte-identique au repos », CLAUDE.md §1 · DICTEE_ROADMAP §24 · REPRISE_MOTEUR §69).
 
 ## 0. RÉSULTAT DE L'AUDIT (mesuré, A/B `6f9fe61` 83k vs HEAD 155k, **même harnais figé**)
@@ -148,9 +150,71 @@ C'est **la baseline**. Le code de `omegaStep`/`cStep`/des `declare` est **byte-i
   (cf. §0 : c'est CE bloc qui a grossi 83k→155k, winrate-inerte).
 - **Apprentissage** `M_OS_LEARNING` (+ 4 gardes) ON-mais-batch ; `…_ONLINE` OFF (SPSA dégrade, mesuré).
 
-## 7.5 Verdict structurel
+## 7.5 Verdict structurel (statique)
 **Aucune dérive structurelle.** Flux, 73 défauts de toggles, et architecture moteur **byte-identiques** 6f9fe61↔HEAD ;
 R66 respecté (baseline = cognition pure, declares OFF-inertes par maître). Seuls changements de la fenêtre : **donnée
 lexique** (superset, §0), **panneaux dys additifs** (17 lignes, hors moteur), **extension** (dossier neuf). **Rien à
 réparer côté structure.** Unique action de suivi (cosmétique, non bloquante) : préciser la phrase « tout OFF au boot » de
 `docs/CONFIG_TOGGLES.md §3` (cf. §7.2). **Réserve inchangée** : Trexquant OOV officiel non rejoué headless (§0).
+
+---
+
+# 8. ⚠️ CONTAMINATION D'ÉTAT À LA DÉSACTIVATION — CONFIRMÉE (test dynamique, 2026-06-20)
+
+> Demandé par Rem (« vérifie aussi la **désactivation** des toggles, s'ils se désactivent bien — il y a une
+> **contamination** quelque part, c'est sûr »). **Il avait raison.** Le défaut byte-identique au boot (§7) ne prouve PAS
+> que **ON→OFF restaure la baseline**. Test dynamique → **deux contaminations réelles, en usage interactif.**
+
+## 8.1 Protocole (déterministe, reproduit à l'identique)
+Moteur chargé frais, on capture la **séquence exacte de lettres** jouée sur un set de mots fixe (hash djb2).
+Trois états de référence mesurés :
+- **cold** (frais, mesure immédiate) = `666f0f81`
+- **warm** (frais → joue le set → mesure le set, **rien touché**) = `b1257f00`  ← *jouer SUFFIT à changer l'état : le moteur APPREND en cours de partie.*
+- on compare chaque parcours « toggle ON → joue → toggle OFF → mesure » à **warm** (même historique de jeu).
+
+## 8.2 Résultats mesurés (reproduits 2×, déterministes)
+| Parcours | hash | vs attendu | Lecture |
+|---|---|---|---|
+| **flip ON→OFF sans jouer**, les **46 toggles** | tous `666f0f81` | = cold ✅ | le **mécanisme** de bascule est propre (rien construit/laissé si on ne joue pas) |
+| `M_VOIE_PHON` seul (ON→joue→OFF) | `666f0f81` | = **cold** ❌ | **RESET DUR** : le toggle appelle `initOmegaGlobals()` (L9097) → **efface tout l'apprentissage de la session** |
+| `M_SUBSTRAT_ORTHO_PURE` seul | `666f0f81` | = **cold** ❌ | idem (même branche `initOmegaGlobals`) |
+| θ-apprentissage (`M_OS_V07+M_OS_LEARNING+gardes+ONLINE`) | `8d973926` | ≠ warm ❌ | **RÉSIDU** : jouer avec θ ON entraîne les apprenants persistants sur une autre trajectoire ; OFF ne les restaure pas |
+| `M_DECLARE_NEO` seul | `286431bf` | ≠ warm ❌ | **RÉSIDU** : le declare NEO change le jeu pendant ON → les apprenants baseline (homéostasie M4_m, rwR…) gardent l'état altéré |
+
+`leftON=[]` partout → les **drapeaux** reviennent bien à `false` ; c'est l'**ÉTAT APPRIS** qui ne revient pas.
+
+## 8.3 Les deux mécanismes (cause racine, vérifiée code)
+1. **RESET DUR** — `ui_toggle('M_VOIE_PHON'|'M_SUBSTRAT')` appelle **`initOmegaGlobals()`** (L9095-9101), **à l'activation
+   ET à la désactivation**. C'est un **rebuild complet** → il **efface l'apprentissage accumulé** de la session (homéostasie,
+   poids reward, θ…). Après avoir basculé ces 2 toggles, le moteur **« oublie » la partie en cours de session** → résultats
+   différents pour la « même » config.
+2. **RÉSIDU D'APPRENTISSAGE** — le moteur est **session-stateful** : il **apprend en jouant** (déjà visible : cold≠warm).
+   Un toggle de *learning/declare* (θ, NEO, bPC readout, g2p online…) change les **coups joués** pendant qu'il est ON →
+   les apprenants **toujours-ON** (M4_m homéostasie, rwR) finissent dans un autre état. Le remettre OFF **stoppe sa
+   contribution directe mais n'annule pas** l'état déjà appris → la config nominale « tout OFF » ne rejoue PAS comme la baseline.
+
+## 8.4 Portée — IMPORTANT (ce qui est touché, ce qui ne l'est pas)
+- ✅ **Le banc `evo/fitness_harness.js` est IMMUNISÉ** : il fait `loadEngine()` **frais à chaque run** → état cold
+  déterministe. **C'est pourquoi l'A/B winrate (§0) était propre** et reste valable.
+- ❌ **L'usage INTERACTIF (l'app) est touché** : basculer des toggles puis jouer dans **la même session** ne revient pas à
+  la baseline. **C'est très probablement la source du « je n'ai plus les mêmes résultats »** ressenti par Rem.
+- 🕓 **PRÉ-EXISTANT, pas la fenêtre décompose** : ces deux mécanismes vivent dans du code moteur **byte-identique
+  6f9fe61↔HEAD** (§7.1). La contamination **n'a pas été introduite** par le travail lexique/décompose — elle est
+  ancienne ; elle a juste été **remarquée maintenant**.
+
+## 8.5 Recommandations
+- 🔒 **Mesure reproductible = RECHARGER la page entre deux configs** (jamais comparer en basculant dans une session). Le
+  banc le fait déjà ; toute comparaison interactive doit suivre la même règle.
+- 🛠️ **Correctif possible (à décider — NE PAS toucher la base sans accord)** : (a) bouton **« 🔄 Reset moteur »**
+  (= `initOmegaGlobals()` à la demande, état propre garanti) ; (b) rendre la **désactivation symétrique** (teardown de
+  l'état appris) pour les toggles de learning/declare ; (c) a minima **avertir dans l'UI** que changer un toggle après avoir
+  joué nécessite un reset. **Choix de Rem requis.**
+- 📌 Ce n'est **pas un bug de régression** (rien n'a empiré) mais une **propriété de reproductibilité** : OMEGA est
+  **session-stateful** (il apprend en jouant) → « même config » ⇒ « mêmes résultats » **uniquement depuis un chargement frais**.
+
+## 8.6 Verdict global (mémo)
+- **Winrate** (§0) : pas de régression (banc frais).
+- **Structure statique** (§7) : flux/toggles/archi byte-identiques, aucune dérive.
+- **Désactivation dynamique** (§8) : **contamination CONFIRMÉE en interactif** (reset dur voie/substrat · résidu
+  d'apprentissage), **pré-existante**, **banc immunisé**. → **Rem avait raison sur la contamination.** Reste à décider
+  d'un correctif (8.5).

@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-06-20 — ⚠️ CONTAMINATION à la désactivation des toggles — CONFIRMÉE (Rem avait raison)
+
+Rem : « vérifie la **désactivation** des toggles, il y a une **contamination**, c'est sûr ». Test dynamique
+(`AUDIT_BASELINE.md §8`, séquences de jeu hashées, reproduites 2×) : le moteur est **session-stateful** (il apprend en
+jouant : cold `666f0f81` ≠ warm `b1257f00`). Deux contaminations réelles **en interactif** :
+1. **RESET DUR** — basculer `M_VOIE_PHON`/`M_SUBSTRAT` appelle `initOmegaGlobals()` (ON **et** OFF) → **efface tout
+   l'apprentissage de la session** (retour cold `666f0f81`).
+2. **RÉSIDU** — activer un toggle learning/declare (θ via `M_OS_LEARNING`+`M_OS_V07`, ou `M_DECLARE_NEO`), **jouer**, le
+   désactiver → les apprenants persistants gardent l'état (hash `8d973926`/`286431bf` ≠ warm). Les **drapeaux** reviennent
+   à false (`leftON=[]`), mais **l'état appris non**.
+**Portée** : le **banc `fitness_harness` est IMMUNISÉ** (load frais à chaque run → A/B §0 valable) ; seul l'**usage
+interactif** est touché = très probablement la source du « plus les mêmes résultats ». **PRÉ-EXISTANT** (code byte-identique
+6f9fe61↔HEAD), pas la fenêtre décompose. **Pas une régression** mais une **repro** : « même config » ⇒ « mêmes résultats »
+**seulement depuis un chargement frais**. Correctif proposé (§8.5) : bouton Reset moteur / teardown symétrique / avertir UI
+— **choix de Rem requis, base non touchée**.
+
 ## 2026-06-20 — ✅ Audit STRUCTUREL complet (flux · toggles · architecture) → aucune dérive
 
 Rem pas convaincu par l'A/B winrate → audit **structurel**. Mesuré sur le CODE (`AUDIT_BASELINE.md §7`) :

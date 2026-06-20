@@ -35,7 +35,14 @@ verbatim du correcteur app, **parité ⊆ Python, FP=0**, en CI). Barre flottant
 **stade + remédiation**. Charger `extension/` via `chrome://extensions` (mode développeur). **Phase 2** = speller
 (typos) + Nano (contexte) · **Phase 3** = clavier virtuel / zone universelle.
 
-## ✅ AUDIT baseline moteur — FAIT, pas de régression (`AUDIT_BASELINE.md`)
+## ⚠️ CONTAMINATION désactivation toggles — CONFIRMÉE (`AUDIT_BASELINE.md §8`)
+Rem avait raison. Le moteur est **session-stateful** (apprend en jouant). En **interactif** : (1) basculer
+`M_VOIE_PHON`/`M_SUBSTRAT` = `initOmegaGlobals()` → **efface l'apprentissage de la session** ; (2) un toggle learning/declare
+activé+joué+désactivé **laisse un résidu** (drapeau OFF mais état appris persistant). **Banc immunisé** (load frais), donc
+A/B §0 valable ; seul l'usage app est touché. **Pré-existant** (pas la fenêtre décompose), **pas une régression** mais une
+**repro**. Règle : **recharger la page entre 2 configs**. Correctif (bouton Reset / teardown / warn) = **choix de Rem**.
+
+## ✅ AUDIT baseline moteur — FAIT, pas de régression sur banc (`AUDIT_BASELINE.md`)
 A/B mesuré `6f9fe61`(83k) vs HEAD(155k), même harnais : **code moteur byte-identique** · winrate **in-lex 10,0%↔10,3%**
 (bruit) · **mots fixes 9,8%=9,8%** · **mots nouveaux OOV/in-lex 12,5%=12,5%**. ⇒ lexique = **superset pur, winrate-INERTE**.
 La seule « différence de résultats » = `pick()` échantillonne d'autres mots (cosmétique). **Garder le 155k, rien à réparer.**
