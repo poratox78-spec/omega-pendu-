@@ -217,7 +217,7 @@ def main():
     # Pré-filtré avec les lexiques PLEINS (verbs 12k, adj 16k) → l'app n'a qu'à tester l'appartenance : jamais
     # d'homographe nom/verbe (« porte ») ni nom/adjectif → parité garantie app ⊆ Python (rule_det_gender).
     hgn = {w: g for w, g in gender.items() if w not in verbs and w not in adj}
-    hf = {'v': hv, 'g': hg, 'gn': hgn, 'cj': {'f': hcf, 'c': hcc}}   # embed app = verbes + genre HF + genre noms purs + conjugaison
+    hf = {'v': hv, 'g': hg, 'gn': hgn, 'a': adj, 'cj': {'f': hcf, 'c': hcc}}   # embed app = verbes + genre HF + genre noms purs + paires adjectif (accord speller) + conjugaison
     json.dump(hf, open(OUT_HF, 'w', encoding='utf-8', newline=''), ensure_ascii=False, separators=(',', ':'))
     sz = os.path.getsize(OUT_HF)
     print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés HF + {len(hgn)} noms purs genrés (gn) + {len(hcf)} formes conj → {OUT_HF}  ({sz//1024} Ko)")

@@ -35,6 +35,8 @@ const SP = globalThis.__sp;
     'Lannée derniere il a achete une voiture',
     'il a manjé son gato au téléfone',
     'le maron sone faux',
+    // HYBRIDE : la grammaire désambiguïse le candidat (genre du contexte)
+    'il a une grosse fote', 'le premiere pays', 'une voiture blanch',
     // ne doit RIEN toucher (phrase correcte)
     'Le petit garçon mange une pomme rouge dans le jardin.'
   ];
@@ -53,6 +55,11 @@ const SP = globalThis.__sp;
   if (!fen || fen.sugg !== 'fenêtre' || fen.tier !== 'auto') fail.push('fenetre→fenêtre (auto) attendu, eu ' + JSON.stringify(fen));
   const les = SP.spell('la leson du jour').find(x => x.word.toLowerCase() === 'leson');
   if (!les || les.sugg !== 'leçon') fail.push('leson→leçon attendu, eu ' + JSON.stringify(les));
+  // hybride : accord du contexte
+  const fau = SP.spell('il a une grosse fote').find(x => x.word.toLowerCase() === 'fote');
+  if (!fau || fau.sugg !== 'faute') fail.push('fote→faute (genre contexte) attendu, eu ' + JSON.stringify(fau));
+  const pre = SP.spell('le premiere pays').find(x => x.word.toLowerCase() === 'premiere');
+  if (!pre || pre.sugg !== 'premier') fail.push('premiere→premier (bascule paire) attendu, eu ' + JSON.stringify(pre));
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
-  console.log('\n✓ OK : lexique chargé, AUTO FP=0 sur phrase correcte, fenetre→fenêtre (auto), leson→leçon.');
+  console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });
