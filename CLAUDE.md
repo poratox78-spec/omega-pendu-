@@ -40,7 +40,7 @@ Cadre tranché (audit) : **dictée de phrases** (le contexte rend homophones ET 
 
 ## Données & licence
 - `Lexique4.tsv` (33 Mo, 188 863 mots, 37 col. — `1_Mot`, `2_Phono`, `5_Cgram`, `7_Genre`, `8_Nombre`, `24_NbHomoph`…) **hors-repo** (sur Drive de Rem ; fourni en session → `/tmp/lex4/Lexique4.tsv`). Sert à **régénérer** index/corpus (`build_cgram.py`, etc.).
-- **Licence données = CC BY-SA 4.0**. Citer : *New, B., Pallier, C., Schalchli, G., Bourgin, J., & Gimenes, M. (2026). Lexique 4… Behavior Research Methods, 58(5), 140.* Fichiers dérivés (donc aussi **CC BY-SA 4.0**) : `sentences.json`, `phono_homophones.json`, `cgram_verbs.json`, `cgram_gender.json`, `cgram_adj.json`, `cgram_conj.json`, `cgram_hf.json`, `corpus_externe.json`, `legacy/*`. Détail : `NOTICE`.
+- **Licence données = CC BY-SA 4.0**. Citer : *New, B., Pallier, C., Schalchli, G., Bourgin, J., & Gimenes, M. (2026). Lexique 4… Behavior Research Methods, 58(5), 140.* Fichiers dérivés (donc aussi **CC BY-SA 4.0**) : `sentences.json`, `phono_homophones.json`, `cgram_verbs.json`, `cgram_gender.json`, `cgram_adj.json`, `cgram_conj.json`, `cgram_hf.json`, `cgram_words.json`, `cgram_guard.json`, `cgram_det.json`, `corpus_externe.json`, `legacy/*`, **bloc `lex4-data-gz` de l'app** (lexique moteur complet). Détail : `NOTICE`.
 
 ## Comment lancer
 - `python3 dictee/diag_sentence.py` → diagnostic de phrases + levier grammaire (autonome ; charge cgram si présent).

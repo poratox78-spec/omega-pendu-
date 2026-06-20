@@ -72,11 +72,20 @@ def main():
         c_nombre = find_col(header, 'nombre')            # 8_Nombre : s / p
         c_info = find_col(header, 'infover', 'info')     # 9_InfoVER : mode:temps:personne (CSV)
         c_freq = find_col(header, 'freqortho', 'freqfilms', 'freq')
+        c_homoph = find_col(header, 'nbhomoph')          # 24_NbHomoph : garde-fou FP (mot à homophones → abstention)
+        c_preval = find_col(header, 'preval')            # 33_Preval : prévalence % (mot rare/inconnu → abstention)
         if min(c_mot, c_gram) < 0:
             print(f"[cgram] colonnes introuvables (mot={c_mot}, cgram={c_gram}). En-tête : {header[:8]}…")
             return 2
         verbs = {}                                       # forme VER → fréquence max
         n = 0
+        allwords = {}                                    # INVENTAIRE COMPLET : forme_déacc → fréquence max (reconnaissance : ne jamais flaguer un vrai mot)
+        det = {}                                          # DÉTERMINANTS genrés : forme_déacc → genre (closed-class fiable)
+        guard_homoph = set()                              # garde-fou : formes à ≥2 homophones (abstention)
+        guard_lowprev = {}                                # forme_déacc → prévalence (mots peu connus)
+        # déterminants closed-class fiables (Lexique tague mal « le=NOM, la=ADJ:m » : on fige la table sûre)
+        DET_GENDER = {'un':'m','une':'f','le':'m','la':'f','du':'m','au':'m','ce':'m','cet':'m','cette':'f',
+                      'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f','quel':'m','quelle':'f'}
         gset = {}                                        # forme NOM → {genres vus} (écarte l'ambigu)
         gfreq = {}                                       # forme NOM → fréquence max
         adjp = {}                                         # (lemme, nombre) → {'m':forme_acc, 'f':forme_acc}
@@ -95,7 +104,22 @@ def main():
             if c_freq >= 0 and c_freq < len(row):
                 try: fr = float((row[c_freq] or '0').replace(',', '.'))
                 except ValueError: pass
-            if cg.startswith('VER') and fr >= FREQ_MIN:   # VER = verbe (toutes formes fléchies)
+            # INVENTAIRE COMPLET (toutes catégories, toutes fréquences) : reconnaissance, ne pas flaguer un vrai mot
+            allwords[w] = max(allwords.get(w, 0.0), fr)
+            # garde-fous FP (colonnes natives Lexique)
+            if c_homoph >= 0 and c_homoph < len(row):
+                try:
+                    if int((row[c_homoph] or '0').strip() or 0) >= 2: guard_homoph.add(w)
+                except ValueError: pass
+            if c_preval >= 0 and c_preval < len(row):
+                pv = (row[c_preval] or '').strip().replace(',', '.')
+                if pv:
+                    try: guard_lowprev[w] = min(guard_lowprev.get(w, 100.0), float(pv))
+                    except ValueError: pass
+            # déterminants genrés (closed-class fige, Lexique trop bruité sur ces mots-outils)
+            if w in DET_GENDER:
+                det[w] = DET_GENDER[w]
+            if cg.startswith('VER') and fr >= FREQ_MIN:   # VER = verbe (toutes formes fléchies). NB : être/avoir sont double-taggés VER+AUX dans Lexique → déjà couverts (vérifié : ajouter 'AUX' = no-op).
                 verbs[w] = max(verbs.get(w, 0.0), fr); n += 1
                 # table de conjugaison (accord sujet-verbe) — lectures finies à sujet (ind/sub/cnd)
                 if c_info >= 0 and c_info < len(row) and c_lemme >= 0:
@@ -157,6 +181,21 @@ def main():
             del adj[w]
     json.dump(adj, open(OUT_ADJ, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[adj] {len(adj)} formes adjectivales genrées (épicènes/ambigus écartés) → {OUT_ADJ}")
+
+    # === INVENTAIRE COMPLET + garde-fous + déterminants (récupération « tous les mots ») ===
+    OUT_WORDS = os.path.join(HERE, 'cgram_words.json')     # reconnaissance : toutes les formes (ne pas flaguer un vrai mot)
+    OUT_GUARD = os.path.join(HERE, 'cgram_guard.json')     # garde-fous FP natifs (homophones / faible prévalence)
+    OUT_DET   = os.path.join(HERE, 'cgram_det.json')        # déterminants genrés (un/une, ce/cette…)
+    words_sorted = sorted(allwords)
+    json.dump(words_sorted, open(OUT_WORDS, 'w', encoding='utf-8'), ensure_ascii=False)
+    print(f"[words] INVENTAIRE COMPLET : {len(words_sorted)} formes (toutes catégories/fréquences) → {OUT_WORDS}")
+    LOWPREV = 30.0                                          # < 30 % de gens connaissent → mot marginal (abstention)
+    guard = {'homoph': sorted(guard_homoph),
+             'lowprev': sorted(w for w, p in guard_lowprev.items() if p < LOWPREV)}
+    json.dump(guard, open(OUT_GUARD, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    print(f"[guard] FP : {len(guard['homoph'])} formes à homophones + {len(guard['lowprev'])} formes peu connues (<{LOWPREV}%) → {OUT_GUARD}")
+    json.dump(det, open(OUT_DET, 'w', encoding='utf-8'), ensure_ascii=False)
+    print(f"[det] {len(det)} déterminants genrés (closed-class) → {OUT_DET}")
 
     # === sous-ensemble HAUTE-FRÉQUENCE, embarquable dans l'app (IIFE) ===
     hv = sorted([w for w, fr in verbs.items() if fr >= HF_FREQ])
