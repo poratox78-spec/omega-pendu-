@@ -16,11 +16,17 @@ incrémental persistant).
 | `phono_homophones.json` (43 580 groupes, clé = phono SAMPA Lexique) | route **lexicale** du SON (exacte) + **nbhomoph** + **vérité-terrain** d'apprentissage |
 | `g2p_corrections.json` ← **appris** par `build_g2p_corrections.py` (boucle descendante) | corrige les erreurs systématiques du g2p, par alignement g↔p sur Lexique (TRAIN) |
 | `cgram_gender/verbs/adj.json` (dérivés Lexique 4) | route **lexicale** de cgram / genre |
+| `morpho.json` ← **décodé d'OMEGA_LEX4** par `build_morpho.py` (champs `md`/`mb` Lexique 4) | route **lexicale** de la **MORPHOLOGIE** (base + affixes) ; 20 523 mots |
 | `diag_sentence.deacc / toks / norm` | tokenisation + normaliseur de surface (imports directs) |
 
 C'est la **grammaire à double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) appliquée à la *décomposition* :
 - **SON** = phono **lexicale** (SAMPA Lexique, exacte) × phono **sublexicale** (g2p, pour l'**OOV**).
 - **ORTHO** = découpage en **graphèmes** + **syllabes orthographiques** (alignées sur les noyaux phonologiques).
+- **MORPHO** = base + affixes (route **lexicale** `md/mb` de Lexique 4, ex. `portable → port + able [/port(er).able]`)
+  × repli **sublexical** par affixes connus (`antibrouillage → anti + brouill + age`). Couverture test :
+  ~14 % lexicale, ~54 % sublexicale.
+
+**Validé contre la vérité Lexique** (OMEGA_LEX4 décodé, 64 634 mots) : **nbsyll = 100 %** · CV = convention `cvp` (désaccords = 3 entrées à diacritiques `:`/`'`).
 
 ## « Apprend » (boucle descendante, cf. `descending_probe.py` — data-bound, **FP=0**)
 `learned_lex.json` grandit à chaque mot lu. Règle cardinale : **une source LEXICALE sûre n'est jamais

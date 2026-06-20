@@ -17,6 +17,8 @@ jobs:
         run: python3 dictee/descending_probe.py
       - name: Extraction des tables g2p depuis l'app (route sublexicale)
         run: python3 dictee/build_g2p_tables.py
+      - name: Extraction de la morphologie Lexique 4 (md/mb) depuis l'app
+        run: python3 dictee/build_morpho.py
       - name: Boucle descendante — apprend la correction g2p (TRAIN)
         run: python3 dictee/build_g2p_corrections.py
       - name: Décomposeur « à la Lexique 4 » — mesure (HELD-OUT, in-lexique ⟂ OOV, seed 42)

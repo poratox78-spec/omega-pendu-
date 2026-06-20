@@ -232,6 +232,34 @@ def nombre_heuristic(word):
     d = deacc(word.lower())
     return 'p' if d.endswith(('s', 'x')) else 's'
 
+# ── MORPHOLOGIE (décompo « comme Lexique 4 ») : route LEXICALE md/mb (morpho.json, build_morpho.py)
+#    × repli SUBLEXICAL par affixes (double voie de la morpho). ──
+MORPHO = _load_json('morpho.json', {})                  # mot(deacc) → [base, md_brut]
+def _parse_md(md):
+    """« /port(er).able » → ['port','able'] (parenthèse = lemme, retirée ; '.' = affixe ; '/' = composé gardé)."""
+    return [re.sub(r'\(.*?\)', '', p) for p in md.lstrip('/').split('.') if re.sub(r'\(.*?\)', '', p)]
+_PREF = ['contre', 'entre', 'anti', 'auto', 'para', 'sous', 'des', 'pre', 'sur', 're', 'de', 'in', 'im', 'co']
+_SUF = ['isation', 'ation', 'ition', 'ement', 'ible', 'able', 'ment', 'tion', 'sion', 'teur', 'trice', 'euse',
+        'iste', 'isme', 'ique', 'aire', 'ance', 'ence', 'eur', 'age', 'ure', 'ite', 'eux', 'ive', 'er', 'ir',
+        'ee', 'es', 'ais', 'ait', 'ant', 'ent', 'if']
+def _sublex_morpho(word):
+    """Repli sublexical : pèle un préfixe + un suffixe connus si la racine reste ≥3 lettres. None si rien."""
+    root = deacc(word.lower()); pref = suf = None
+    for p in sorted(_PREF, key=len, reverse=True):
+        if root.startswith(p) and len(root) - len(p) >= 3: pref = p; root = root[len(p):]; break
+    for s in sorted(_SUF, key=len, reverse=True):
+        if root.endswith(s) and len(root) - len(s) >= 3: suf = s; root = root[:-len(s)]; break
+    parts = [x for x in (pref, root, suf) if x]
+    return parts if len(parts) >= 2 else None
+def morpho_of(word):
+    """(morphèmes, base, md_brut, source) — route lexicale si connue, sinon repli sublexical, sinon None."""
+    rec = MORPHO.get(deacc(word.lower()))
+    if rec:
+        mb, md = rec[0], rec[1]
+        return (_parse_md(md) if md else [mb]), mb, md, 'lex'
+    sub = _sublex_morpho(word)
+    return (sub, max(sub, key=len), '', 'sublex') if sub else (None, '', '', None)  # base = racine (plus longue)
+
 # ── DÉCOMPOSITION complète (un mot) : double voie SON+ORTHO, façon Lexique 4 ──
 def decompose(word, accents=True):
     w = word.strip().lower()
@@ -252,6 +280,8 @@ def decompose(word, accents=True):
     # GRAMMAIRE — route lexicale (cgram/genre) + nombre sublexical
     cats, genre = lexical_gram(w)
     gram_src = 'lex' if cats else 'sublex'
+    # MORPHOLOGIE — route lexicale (md/mb Lexique 4) × repli sublexical (affixes)
+    morphs, base, md, morpho_src = morpho_of(w)
     rec = {
         'mot': w, 'nblettres': len(letters),
         'graphemes': [gp['g'] for gp in graph],
@@ -260,6 +290,7 @@ def decompose(word, accents=True):
         'nbphons': len(phono), 'syll_phon': syll_phon, 'nbsyll': nbsyll, 'cv': cv,
         'cgram': cats, 'genre': genre, 'nombre': nombre_heuristic(w),
         'nbhomoph': nbhomoph, 'gram_src': gram_src,
+        'morpho': morphs, 'base': base, 'morpho_md': md, 'morpho_src': morpho_src,
         'sublex_phono': sub_sampa,                       # toujours la prédiction sublexicale (pour audit/learn)
         'hesitation': round(hmean, 3), 'confiance': round(max(0.0, 1.0 - hmean), 3),
         'alignement': [{'g': gp['g'], 'ph': gp['ph']} for gp in graph],
@@ -284,6 +315,11 @@ def fmt(rec):
     nb = {'s': 'singulier', 'p': 'pluriel'}[rec['nombre']]
     src = 'lexicale' if rec['gram_src'] == 'lex' else 'sublexicale'
     L.append(f"  GRAM   cgram : {gram} ({src}) · genre : {g} · nombre : {nb} · homophones : {rec['nbhomoph']}")
+    if rec.get('morpho'):
+        ms = 'lexicale' if rec['morpho_src'] == 'lex' else 'sublexicale (affixes)'
+        md = f"   [{rec['morpho_md']}]" if rec.get('morpho_md') else ''
+        base = f" · base : {rec['base']}" if rec.get('base') and rec['base'].lower() != rec['mot'] else ''
+        L.append(f"  MORPHO {' + '.join(rec['morpho'])}{md}{base}  ({ms})")
     return '\n'.join(L)
 
 # ── APPREND : lexique appris incrémental (boucle descendante, FP=0) ──
@@ -433,6 +469,11 @@ def measure(seed=42, n_test=4000):
     conf = [decompose(w)['confiance'] for w in oov]
     print(f"=== OOV (sans phono Lexique — couverture/confiance, n={len(oov)}) ===")
     print(f"    sublexical : 100% produisent un phono · confiance moyenne {sum(conf)/max(1,len(conf)):.3f} · cgram couvre 100% (verbes)")
+    # couverture MORPHO (route lexicale md/mb × repli sublexical affixes)
+    mlex = sum(1 for w in test if (morpho_of(w)[3] == 'lex'))
+    msub = sum(1 for w in test if (morpho_of(w)[3] == 'sublex'))
+    print(f"    MORPHO sur le test : lexicale {100*mlex/len(test):.0f}% · repli sublexical {100*msub/len(test):.0f}% "
+          f"· sans morpho {100*(len(test)-mlex-msub)/len(test):.0f}% (mots mono-morphème)")
     # garde-fous (§1.5) : cas connus reproduits
     CHK = {'chat': 'Sa', 'cheval': 'S°val', 'oiseau': 'wazo', 'maison': 'mEz§', 'examen': 'Egzam5',
            'beau': 'bo', 'rouge': 'RuZ', 'lui': 'l8i', 'nation': 'nasj§'}
