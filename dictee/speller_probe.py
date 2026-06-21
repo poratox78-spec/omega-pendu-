@@ -7,6 +7,7 @@
 # Ressources : Lexique4 (forme accentuée + fréquence). Phonétique = étape suivante.
 import os, sys, csv, json, unicodedata, re
 from collections import defaultdict
+from functools import cmp_to_key
 
 LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
@@ -152,6 +153,7 @@ class Speller:
             for w in self.D2A.get(e, []):
                 c[w] = max(c.get(w, (-1, 0)), (1, self.FREQ[w]))
         for w in self.PHON.get(phon_key(low), [])[:8]:          # voisins phonétiques (FLAG) — limités, classés freq
+            if abs(len(deacc(w)) - len(d)) > 1: continue        # garde-longueur : phonétique trop éloigné écarté (trist→tristesse, autent→hautaine)
             c[w] = max(c.get(w, (-1, 0)), (0, self.FREQ[w]))
         return c
 
@@ -187,11 +189,24 @@ class Speller:
             g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
         def nmatch(w):
             return 1 if (cn and ((cn == 'p') == (deacc(w).endswith(('s', 'x'))))) else 0
-        # tri : accent d'abord, puis POS du contexte (élève/élevé), puis accord GENRE, puis phonétique, puis NOMBRE, puis fréquence
-        ranked = sorted(cands.items(),
-                        key=lambda kv: (1 if kv[1][0] == 2 else 0, pmatch(kv[0]), gmatch(kv[0]),
-                                        1 if phon_key(kv[0]) == pk else 0, nmatch(kv[0]), kv[1][1]),
-                        reverse=True)
+        # tri : accent d'abord, puis POS du contexte (élève/élevé), puis accord GENRE, puis DOMINANCE (edits1 ≫ phonétique),
+        #       puis phonétique, puis NOMBRE, puis fréquence. cmp (pas key) car la dominance est PAIRWISE.
+        def _cmp(a, b):
+            (wx, (px_, fx)), (wy, (py_, fy)) = a, b
+            ax, ay = (1 if px_ == 2 else 0), (1 if py_ == 2 else 0)
+            if ax != ay: return ay - ax
+            qx, qy = pmatch(wx), pmatch(wy)
+            if qx != qy: return qy - qx
+            gx, gy = gmatch(wx), gmatch(wy)
+            if gx != gy: return gy - gx
+            if px_ == 1 and py_ == 0 and fx >= 10 * fy: return -1   # dominance : edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
+            if py_ == 1 and px_ == 0 and fy >= 10 * fx: return 1
+            phx, phy = (1 if phon_key(wx) == pk else 0), (1 if phon_key(wy) == pk else 0)
+            if phx != phy: return phy - phx
+            nx, ny = nmatch(wx), nmatch(wy)
+            if nx != ny: return ny - nx
+            return -1 if fx > fy else (1 if fx < fy else 0)
+        ranked = sorted(cands.items(), key=cmp_to_key(_cmp))
         (w1, (p1, f1)) = ranked[0]
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie

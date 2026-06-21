@@ -165,7 +165,7 @@
       if(SP.WORDS.has(rest))return['flag',(low[0]==='q'?"qu'":low[0]+"'")+rest];}
     var cand={},i,j,w,arr;arr=SP.D2A[d]||[];for(i=0;i<arr.length;i++){w=arr[i];cand[w]=[2,SP.FREQ[w]];}
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=SP.D2A[e1[i]];if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,SP.FREQ[w]];}}
-    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(!cand[w])cand[w]=[0,SP.FREQ[w]];}
+    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>1)continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur : un candidat phonétique trop éloigné (trist→tristesse, autent→hautaine) ne compte pas
     var keys=Object.keys(cand);if(!keys.length)return null;var pk=phonKey(low);
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
@@ -176,6 +176,8 @@
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy)return qy-qx;
       var gx=gm(x),gy=gm(y);if(gx!==gy)return gy-gx;
+      if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
+      if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py)return py-px;
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
     var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
