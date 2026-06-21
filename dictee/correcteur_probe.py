@@ -139,10 +139,13 @@ def rule_e_er(T, i):
     if deacc(forms[1].lower()) not in VERB_LEX: return None   # forms[1] = infinitif -er ; doit être un VRAI verbe (sinon « thé »→« ther » : FP)
     if i == 0: return None
     praw = T[i-1].lower()
-    if praw == 'à': return forms[1]                    # « à » = PRÉPOSITION → infinitif (≠ « a » avoir : deacc les confondait)
+    if praw == 'à' or T[i-1] == 'A': return forms[1]   # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
     if p in AUX:                 return forms[0]      # auxiliaire (a/ont/est…) → participe -é
-    if p in PREP or p in MODAL:  return forms[1]      # préposition/semi-aux → infinitif -er
+    if p in PREP:
+        if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
+        return forms[1]                              # préposition → infinitif -er
+    if p in MODAL:               return forms[1]
     return None
 
 def rule_son_sont(T, i):
