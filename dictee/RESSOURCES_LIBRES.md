@@ -48,6 +48,39 @@
 
 ---
 
+## 5. Mesures réalisées (2026-06-21, session cloud)
+
+> Égress de la session : **seul GitHub est ouvert** (raw 200) ; **HF / ORTOLANG / INRIA / PyPI / NCBI = bloqués (403)**.
+> Donc tout ce qui vit sur GitHub a pu être tiré et mesuré ici ; le reste (E-CALM/Lang-8/HF) reste **à faire en local**.
+
+**(1) Données — FP=0 sur du réel confirmé.** `eval_gec.py` sur les **98 paires GEC réelles** (`corpus_gec_fr.jsonl`,
+déjà en repo) : **0 faux positif** sur les 98 phrases correctes — y compris **après la clôture de paradigme** (+2076
+formes). Volume supplémentaire (E-CALM ~4500 écrits scolaires, Lang-8 FR) = à tirer **en local** (ORTOLANG/HF bloqués).
+
+**(2) Banc Grammalecte** (`dictee/bench_grammalecte.py`, outil externe GPL **lancé** pas copié). Build hors-ligne OK
+depuis le mirror GitHub `Pofilo/grammalecte` (recette dans l'en-tête du script ; le dict DAWG compile, thésaurus stubé).
+Sur les 98 paires :
+
+| | touche au CORRECT | flague le FAUTIF |
+|---|---|---|
+| Grammalecte (large, inclut typo/style) | **62/98** | 80/98 |
+| **Notre correcteur** (FP=0 cardinal) | **0/98** | 22/98 |
+
+→ chiffre notre **positionnement dys** : Grammalecte couvre plus (recall) mais **touche souvent au juste** ; nous =
+périmètre étroit mais **PRÉCISION (FP=0)** + **stade développemental**. *(Caveat : le 62/98 inclut typo/apostrophes/style,
+pas que de la vraie grammaire — comparaison indicative.)*
+
+**(3) Lefff — gain de couverture mesuré** (`dictee/eval_lefff_coverage.py`, données Lefff hors-repo). Noms genrés
+non ambigus : **Lefff 78 033** vs cgram full 53 050 (HF embarqué 46 712). **+37 187 noms** que notre cgram complet n'a
+pas, et **accord 99,3 %** avec nous sur l'intersection (40 846). → Lefff comblerait largement le gap **genre déterminant**
+(route lexicale du nom-tête) de façon fiable. ⚠️ **Intégration = arbitrage licence** (LGPL-LR ≠ CC BY-SA redistribution).
+
+**Outils livrés (reproductibles, absence-safe = exit 0 sans données → CI-safe)** : `bench_grammalecte.py`,
+`eval_lefff_coverage.py`. Les deux **lisent** des ressources externes (GPL/LGPL-LR) sans les **embarquer** → pas
+d'entorse licence ; ils **mesurent**, on décide ensuite.
+
+---
+
 ### Sources
 - LanguageTool — https://github.com/languagetool-org/languagetool · https://languagetool.org/spellchecking-french
 - Grammalecte / dicollecte — https://alternativeto.net/software/grammalecte/about/ · https://github.com/FrancoisCapon/GrammalecteDictionariesWithoutOptionalDataFields
