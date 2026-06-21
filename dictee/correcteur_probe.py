@@ -42,6 +42,11 @@ DET_SKIP = {'plus','moins','tres','bien','trop','assez','aussi','si','autre','au
             'vieux','vieil','vieille','long','longue','large','simple','super','superbe','primaire','double','triple',
             'sous','pour','contre','par','sans','avec','entre','vers','mi','demi','semi','pseudo','quasi','ex',
             'porte','montre','des','les','de','le'}
+# Marqueurs de sujet PLURIEL (pour bloquer « sont »→« son » quand le sujet pluriel est à distance).
+PLURAL_MARK = {'ils','elles','nous','vous','les','des','ces','mes','tes','ses','nos','vos','leurs','plusieurs',
+               'quelques','certains','certaines','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','plupart'}
+_CLAUSE_BREAK = {'et','ou','mais','car','donc','or','ni','que','qui','quand','lorsque','puisque','comme','si',
+                 '.',',',';',':','!','?','(',')','«','»'}
 
 # Couverture verbale élargie SANS le lexique 34 Mo : liste BLANCHE de formes fréquentes (exactes → 0 FP par
 # sur-généralisation). Stopgap avant Lexique4 cgram (étape 3). Désaccentué, minuscule.
@@ -105,6 +110,13 @@ VLIKE_STOP = (set(NUM_DET) | set(NUM_PRON) |
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
 def nxt(T, i):  return deacc(T[i+1].lower()) if i+1 < len(T) else None
+def _plural_before(T, i):
+    """Un marqueur de sujet PLURIEL apparaît-il avant le mot i, dans la même proposition (≤6 tokens, sans frontière) ?"""
+    for j in range(i-1, max(-1, i-7), -1):
+        w = deacc(T[j].lower())
+        if w in _CLAUSE_BREAK: break
+        if w in PLURAL_MARK: return True
+    return False
 def is_plural_noun(T, j):
     if j < 0 or j >= len(T): return False
     dw = deacc(T[j].lower())
@@ -133,6 +145,7 @@ def rule_son_sont(T, i):
     if lw not in ('son', 'sont'): return None
     if i == 0: return 'son'                                             # début de phrase déclarative → possessif
     pl = T[i-1].lower()
+    if lw == 'sont' and _plural_before(T, i): return 'sont'             # sujet pluriel À DISTANCE (« Les moments … sont ») → « sont » correct, jamais « son »
     if vlike(T, i-1) or pl in PREP or pl in ('et', 'ou', 'ni'):         # complément après verbe/préposition/conj → possessif
         return 'son'
     if pl in ('ils', 'elles') or is_plural_noun(T, i-1):               # sujet PLURIEL net → verbe être 3pl
@@ -161,6 +174,7 @@ def rule_leur_leurs(T, i):
 
 def rule_a_aa(T, i):
     if deacc(T[i].lower()) != 'a': return None
+    if T[i] == T[i].upper() and T[i] != T[i].lower(): return None      # « A » majuscule (sigle/lettre « Serie A » ; « À » en tête) → abstention (FP)
     p = prev(T, i)
     if p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg → avoir
     if i+1 < len(T) and is_participle(T, i+1):            return 'a'    # « a mangé » (aux)
