@@ -1,5 +1,11 @@
 # Correcteur dys (semi-direct) — direction & probe de faisabilité
 
+> ⚠️ **REQUALIFICATION « FP=0 » (mesuré 2026-06-21).** Le « FP=0 » de ce correcteur valait sur les **batteries
+> curées** (30 phrases + 98 GEC, courtes/simples). Mesuré sur **16 342 vraies phrases correctes** (UD French),
+> le taux de faux positifs réel était **6,0 %**, ramené à **~2,5 %** par 5 lots de durcissement FP-safe
+> (`dictee/fp_stress_test.py` ; détail `JOURNAL.md`). **Formulation correcte : « FP=0 sur batterie ; ~2,5 % sur
+> français encyclopédique réel, en baisse »** (le domaine *dys* — phrases courtes — est plus bas, mais pas 0).
+
 > Idée (Rem) : une fois le levier d'accord en place, en faire un **correcteur orthographique dys** « semi-direct ».
 > Recadrage clé : le correcteur **roule sur le moteur de DICTÉE** (`diag_sentence.py`), pas sur le pendu — il traite
 > donc **toutes les longueurs** (le `MIN_WORD_LEN=7` du pendu ne s'applique pas), et vit dans le **régime mot-court**
@@ -74,8 +80,8 @@ sûre ; `est→et` exige détecter un parallélisme de noms, sémantique) et `ce
 **Lexique4 `cgram` (étape 3)** remplacera la liste blanche → couverture verbale complète + scaling hors-corpus.
 
 ## Verdict
-Le cœur du correcteur (détecter + corriger sans corrigé) **marche, avec 0 faux positif** sur les confusions à
-discriminateur propre. C'est constructible **sur l'existant** (levier d'accord + `phono_homophones.json`), sans le
+Le cœur du correcteur (détecter + corriger sans corrigé) **marche, avec 0 faux positif sur batterie** (curée) et
+**~2,5 % sur français réel** (UD French, après durcissement — cf. note en tête) sur les confusions à discriminateur propre. C'est constructible **sur l'existant** (levier d'accord + `phono_homophones.json`), sans le
 lexique 34 Mo (nécessaire seulement pour la couche « typo / non-mot » et pour élargir `is_verb`).
 
 ## Accord en genre dans le CORRECTEUR — tenté, mesuré FP-insûr, NON branché (§6)
