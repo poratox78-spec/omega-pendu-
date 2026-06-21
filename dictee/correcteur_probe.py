@@ -34,6 +34,14 @@ INVAR_NOUN = {'pays','temps','prix','poids','corps','fois','mois','cas','bras','
               'os','puits','bus','virus','tennis','colis','devis','permis','compromis','paradis','velours','dais'}
 MAIS_STOP = {'pas','plus','moins','point','rien','tout','tres','jamais','surtout','aussi','encore','toujours',
              'comment','pourquoi','peu','trop','bien','non','oui','si','assez','enfin','donc','car','alors','ici','la'}
+# Genre déterminant : mots qui suivent le déterminant SANS être le nom-tête (adverbe/comparatif/adjectif/prép/préfixe).
+# La règle ne doit PAS les prendre pour le nom (« la plus belle », « une autre fois », « sa propre voie ») → abstention.
+DET_SKIP = {'plus','moins','tres','bien','trop','assez','aussi','si','autre','autres','meme','propre','seul','seule',
+            'tel','telle','certain','certaine','tout','toute','grand','grande','petit','petite','gros','grosse','beau',
+            'bel','belle','bon','bonne','nouveau','nouvel','nouvelle','premier','premiere','dernier','derniere','jeune',
+            'vieux','vieil','vieille','long','longue','large','simple','super','superbe','primaire','double','triple',
+            'sous','pour','contre','par','sans','avec','entre','vers','mi','demi','semi','pseudo','quasi','ex',
+            'porte','montre','des','les','de','le'}
 
 # Couverture verbale élargie SANS le lexique 34 Mo : liste BLANCHE de formes fréquentes (exactes → 0 FP par
 # sur-généralisation). Stopgap avant Lexique4 cgram (étape 3). Désaccentué, minuscule.
@@ -397,6 +405,7 @@ def rule_det_gender(T, i):
     if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) → abstention
     if lw in ('son', 'mon', 'ton') and nd[:1] in 'aeiouyh':        # son/mon/ton OBLIGATOIRES devant voyelle/h (son amie,
         return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
+    if T[i+1][:1].isupper() or nd in DET_SKIP: return None         # nom propre/étranger (capitalisé) OU adverbe/adj/prép. avant le vrai nom-tête → abstention (FP)
     g_noun = GENDER_PURE.get(nd)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
