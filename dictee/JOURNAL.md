@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-06-21 — ⚠️ STRESS-TEST FP à grande échelle : « FP=0 » est SUR-ESTIMÉ (≈6 % sur du vrai français) + 1er durcissement
+
+En cherchant des ressources libres (`RESSOURCES_LIBRES.md`), tiré **UD French GSD** (treebank gold, GitHub) →
+**16 342 phrases correctes réelles**. Passé le correcteur dessus (`dictee/fp_stress_test.py`, R67) : **FP = 6,02 %**
+(983/16342). **Notre « FP=0 » ne valait que sur les batteries curées** (30 phrases + 98 GEC, courtes/simples) — sur du
+français réel divers (Wikipédia/critiques : noms propres, structures formelles, mots étrangers), il **casse la garde
+cardinale**. Ventilation : genre déterminant 477 · on/ont 138 · a/à 115 · son/sont 101 · -é/-er 90 · mais/mes 53 ·
+leur/leurs 31 · accord SV 25 · et/est 8 · ce/se 3.
+
+**Reframe (doctrine §6) :** le vrai chantier du correcteur n'est PAS d'ajouter de la couverture (Lefff +37k noms,
+et/est, ce/se = mineurs ici) mais de **DURCIR les FAUX POSITIFS**. La couverture *augmenterait* le FP.
+
+**1er durcissement livré (FP-safe, 3 moteurs) :** `son/mon/ton` + nom à initiale **voyelle/h** → **abstention**
+(« son Histoire », « son amie », « son indépendance » sont CORRECTS — le possessif masculin est obligatoire devant
+voyelle, même au féminin). Mesuré : retire la classe « possessif-voyelle » (23/75 des FP genre sur dev+test) ; batterie
+**FP 0/36**, genre **4/4**, parités app⊆Python & ext⊆Python intactes, bake FP-check OK. Outil garde permanent :
+`fp_stress_test.py` (UDFR local, `FP_MAX=` = seuil d'échec, absence-safe).
+
+**Reste (classes FP à durcir, priorisées par volume) :** genre sur noms ambigus/propres/étrangers (tour, la Pan Am),
+son/sont avec sujet pluriel (« les moments … sont »), on/ont après ponctuation (« …, on trouve »), mais/mes en tête de
+phrase (« Mais comment »), accord SV sur entité nommée (« Les Andalouses est »). Caveat honnête : UD = français
+encyclopédique, pas de l'écrit dys ; le FP réel-domaine est plus bas, mais plusieurs classes toucheraient aussi un apprenant.
+
+---
+
 ## 2026-06-21 — Correcteur : clôture de paradigme de la conjugaison embarquée (écart de couverture accord ext↔Python comblé, FP=0)
 
 La parité `extension/parity_core.js` montrait **1 écart de couverture** : « Les voitures roule vite » → Python corrige

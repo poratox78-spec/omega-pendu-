@@ -386,6 +386,8 @@ def rule_det_gender(T, i):
     if "'" in nxt_raw: return None                                  # élision (l'arbre) → genre caché, abstention
     nd = deacc(nxt_raw)
     if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) → abstention
+    if lw in ('son', 'mon', 'ton') and nd[:1] in 'aeiouyh':        # son/mon/ton OBLIGATOIRES devant voyelle/h (son amie,
+        return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
     g_noun = GENDER_PURE.get(nd)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
