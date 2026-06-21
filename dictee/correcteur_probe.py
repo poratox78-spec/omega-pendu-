@@ -27,6 +27,14 @@ MODAL = {'veux','veut','veulent','peux','peut','peuvent','dois','doit','doivent'
          'vient','viens','allons','allez','laisse','laissent','semble','ose','vais','pour','sans','afin','de'}
 AUX = set(D.AUX_ETRE) | set(D.AUX_AVOIR)
 
+# Durcissement FP (mesuré sur UD French, cf. fp_stress_test.py). Noms INVARIABLES en -s/-x (« leur pays » = sg, pas
+# « leurs ») et mots-outils/adverbes homographes d'un nom (« mais pas », « mais comment » = conjonction, pas « mes »).
+INVAR_NOUN = {'pays','temps','prix','poids','corps','fois','mois','cas','bras','dos','nez','choix','voix','croix',
+              'bois','univers','succes','progres','repas','avis','sens','cours','concours','discours','jus','tas',
+              'os','puits','bus','virus','tennis','colis','devis','permis','compromis','paradis','velours','dais'}
+MAIS_STOP = {'pas','plus','moins','point','rien','tout','tres','jamais','surtout','aussi','encore','toujours',
+             'comment','pourquoi','peu','trop','bien','non','oui','si','assez','enfin','donc','car','alors','ici','la'}
+
 # Couverture verbale élargie SANS le lexique 34 Mo : liste BLANCHE de formes fréquentes (exactes → 0 FP par
 # sur-généralisation). Stopgap avant Lexique4 cgram (étape 3). Désaccentué, minuscule.
 COMMON_VERBS = set("""
@@ -140,6 +148,7 @@ def rule_leur_leurs(T, i):
     if i+1 >= len(T): return None
     if is_verb(T, i+1): return 'leur'                                   # pronom (invariable) : « je leur parle »
     dn = deacc(T[i+1].lower())
+    if dn in INVAR_NOUN: return 'leur'                                  # nom invariable en -s/-x (« leur pays » = sg) → jamais « leurs »
     return 'leurs' if (dn.endswith('s') or dn.endswith('x')) else 'leur'  # déterminant : accord avec le nom
 
 def rule_a_aa(T, i):
@@ -400,6 +409,8 @@ def rule_mais_mes(T, i):
     if deacc(T[i].lower()) != 'mais' or i + 1 >= len(T):
         return None
     nx = T[i + 1].lower(); dn = deacc(nx)
+    if dn in MAIS_STOP:                                 # adverbe/mot-outil (homographe nom : « pas », « point ») → « mais »
+        return None                                    #   conjonction, jamais « mes » (« mais pas »/« mais comment » corrects)
     if dn in PREP or nx in NUM_DET or dn in NUM_PRON or dn in VERB_LEX:
         return None                                    # pas prép/déterminant/pronom/verbe
     return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
