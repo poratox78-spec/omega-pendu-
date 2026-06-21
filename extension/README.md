@@ -42,9 +42,11 @@ node    extension/test_speller.js       # orthographe : FP=0 + parité ext ≡ a
     **accord sujet-verbe**, **genre déterminant** (`le voiture→la`), **`j'est→j'ai`**.
   - **Orthographe** (✅ phase 2 livrée) : non-mots/accents/typos (`fenetre→fenêtre` **AUTO**, `leson→leçon`,
     `oartir→partir`, `monagne→montagne` **FLAG**), désambiguïsation par le contexte (genre/nombre, POS : élève/élevé),
-    **élision** (`c est→c'est`, `lannée→l'année`). Bleu dans la barre ; AUTO = correction sûre marquée « · sûr ».
-- **Phase 2b (à venir)** : **auto-application silencieuse** des corrections AUTO (pour l'instant cliquables, par
-  prudence en champ vif) ; couche **contexte** via **Gemini Nano** (Chrome intégré, hors-ligne).
+    **élision** (`c est→c'est`, `lannée→l'année`). Bleu dans la barre.
+- **AUTO appliqué EN SILENCE** (comme l'app, `applyAutos`) : les corrections sûres (FP=0, ex. `fenetre→fenêtre`,
+  `le gateau→gâteau`) se corrigent toutes seules — **sauf le mot sous le curseur** (en cours de frappe), et le
+  curseur est repositionné. Les **FLAG** incertaines restent **cliquables** (soulignées, « · sûr » si AUTO en attente).
+- **Phase 2b (à venir)** : couche **contexte** via **Gemini Nano** (Chrome intégré, hors-ligne).
 - **Phase 3 (à venir)** : repli **clavier virtuel / zone de saisie universelle** pour les champs où l'injection
   directe est impossible (éditeurs riches, canvas).
 - `contenteditable` : supporté en **texte simple** ; les éditeurs riches (Gmail, Docs) = best-effort pour l'instant.

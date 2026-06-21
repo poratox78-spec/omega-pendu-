@@ -120,11 +120,27 @@
     })(items[z]);
   }
 
+  // AUTO (orthographe sûre, FP=0) : appliquée EN SILENCE — jamais le mot sous le curseur (en cours de frappe). Miroir applyAutos de l'app.
+  function applyAutos(el, autos) {
+    var t = getText(el), sp = spans(t), cur = null;
+    try { cur = el.selectionStart; } catch (e) {}
+    if (cur == null) cur = t.length;
+    var ap = autos.filter(function (f) { var s = sp[f.i]; return s && !(cur >= s[0] && cur <= s[1]); });
+    if (!ap.length) return false;
+    ap.sort(function (a, b) { return sp[a.i][0] - sp[b.i][0]; });
+    var res = '', last = 0, delta = 0;
+    ap.forEach(function (f) { var s = sp[f.i]; res += t.slice(last, s[0]) + f.sugg; last = s[1]; if (s[1] <= cur) delta += f.sugg.length - (s[1] - s[0]); });
+    res += t.slice(last);
+    setText(el, res, cur + delta);   // dispatch 'input' → re-run : ne resteront que les FLAG (+ autos sous le curseur)
+    return true;
+  }
   function run(el) {
     if (!CFG.enabled || !DC.isReady() || !el || el !== active || dismissed.has(el)) return;
     var text = getText(el);
     if (!text || !text.trim()) { hideBar(); return; }
     var dg = DC.diagnoseAll ? DC.diagnoseAll(text) : DC.diagnose(text);   // grammaire + orthographe (non-mots/accents)
+    var autos = dg.flags.filter(function (f) { return f.tier === 'auto'; });
+    if (autos.length && applyAutos(el, autos)) return;                    // AUTO sûr → corrigé tout seul
     if (!dg.flags.length) { hideBar(); return; }
     render(el, dg);
   }
