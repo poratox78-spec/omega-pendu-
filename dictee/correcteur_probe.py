@@ -403,19 +403,28 @@ def rule_mais_mes(T, i):
     return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
 
 def rule_jest(T, i):
-    """« j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est »). Devant un déterminant
-    → « j'ai » : l'élision j' exclut « je suis » (consonne, ne s'élide pas) ⇒ forme à voyelle = avoir présent ;
-    confusion phono ai/est (/e/≈/ɛ/). FP=0 (jamais valide ; détermin.→avoir certain). Adj/participe = choix
-    d'auxiliaire ambigu (« j'est content/allé ») → abstention (contexte = LLM)."""
+    """« j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est »). Devant un déterminant,
+    OU devant « été »/« eu » (participes des auxiliaires, toujours conjugués avec AVOIR : « j'ai été », jamais
+    « je suis été ») → « j'ai ». FP=0 (jamais valide ; ces contextes → avoir certain). Autre adj/participe = choix
+    d'auxiliaire ambigu (« j'est content/allé » → être) → abstention (contexte = LLM)."""
     if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
         return None
-    return _keepcase(T[i], "j'ai") if T[i + 1].lower() in NUM_DET else None
+    dn = deacc(T[i + 1].lower())
+    if T[i + 1].lower() in NUM_DET or dn in ('ete', 'eu'):
+        return _keepcase(T[i], "j'ai")
+    return None
+
+
+def rule_cai(T, i):
+    """« c'ai » (c' + ai) est TOUJOURS invalide → « c'est » : confusion avoir/être (le « vice-versa » de j'est→j'ai).
+    FP=0 (« c'ai » n'existe jamais en français)."""
+    return _keepcase(T[i], "c'est") if deacc(T[i].lower()) == "c'ai" else None
 
 
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
-         ("j'est/j'ai", rule_jest),
+         ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
