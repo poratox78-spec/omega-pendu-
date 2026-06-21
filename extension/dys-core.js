@@ -214,6 +214,7 @@
   function diagnoseAll(text){var gf=correctText(text),sf=SP.ready?spellText(text):[];        // grammaire + orthographe fusionnés + stade
     var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;});   // grammaire prioritaire par token (parité app)
     var flags=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
+    var _cov={};flags.forEach(function(f){if(f.span===2)_cov[f.i+1]=1;});flags=flags.filter(function(f){return !_cov[f.i];});   // un token couvert par une élision (span 2) ne compte pas 2× (parité AUDIT #4)
     var facts=flagsToFacts(flags),dev=developmental(facts),rem=remedFams(facts);
     return {flags:flags,grammar:gf,spell:sf,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
             remed:rem?rem.fams.map(function(t){return REMED[t];}):[]};}
