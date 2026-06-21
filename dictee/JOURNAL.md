@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-06-21 — Durcissement FP du correcteur : 6,02 % → 2,74 % sur UD French (4 lots, recall + parité intacts)
+
+Suite du stress-test (« FP=0 » sur-estimé). 4 lots de gardes **FP-safe** (abstention pure, jamais de nouvelle
+correction), chacun **mesuré + commité séparément**, porté en parité **Python ref + app + extension dys-core**.
+Mesuré sur **16 342 phrases correctes** (UD French GSD) : **FP 6,02 % → 2,74 %** (447/16342, plus que ÷2).
+
+| lot | garde | par-règle (16k) |
+|---|---|---|
+| 1 | leur/leurs **invariables** (-s/-x : pays, temps) · mais/mes **adverbes** (pas, comment) | leur 31→23 · mais 53→13 |
+| 2 | genre : nom suivant **capitalisé** (propre/étranger) · **non-nom-tête** (plus, autre, propre, sous… via DET_SKIP) | genre **477→91** |
+| 3 | son/sont : **sujet pluriel à distance** (`_plural_before`) · a/à : **« A » majuscule** | son/sont 101→38 |
+| 4 | on/ont : **participes irréguliers** (ont pu/fait/eu = avoir, IRREG_PART) — calibré pour garder le témoin « Ont mange » | on/ont 138→79 |
+
+Garde-fous à chaque lot : batterie **FP 0/36**, recall des familles **conservé** (on/ont 5/5, genre 4/4, son/sont 3/3,
+a/à 3/3, leur/leurs 3/3), parités **app⊆Python & ext⊆Python** intactes, app compile. La garde **« ont+verbe→abstention »
+a été ÉCARTÉE** (lot 0) car elle cassait 2 témoins — remplacée par IRREG_PART (lot 4, recall préservé) : leçon = chaque
+garde FP doit prouver FP↓ **ET** recall conservé.
+
+**Reste (classes plus dures, ROI décroissant, à faire ensuite)** : a/à 97 (mécanisme prép/avoir ambigu sans POS),
+-é/-er 90 (noms-homographes de participes : « un arrêté », « un traité »), genre 91 (noms ambigus/propres résiduels),
+on/ont 79 (« …, on trouve » : `on` sujet après ponctuation). Garde permanente : `fp_stress_test.py` (`FP_MAX=`).
+⚠️ Docs (`README`, `CORRECTEUR.md`, rapport §18) disent encore « FP=0 » → à requalifier (« FP=0 sur batterie ;
+2,7 % sur français encyclopédique réel, en baisse »).
+
+---
+
 ## 2026-06-21 — ⚠️ STRESS-TEST FP à grande échelle : « FP=0 » est SUR-ESTIMÉ (≈6 % sur du vrai français) + 1er durcissement
 
 En cherchant des ressources libres (`RESSOURCES_LIBRES.md`), tiré **UD French GSD** (treebank gold, GitHub) →
