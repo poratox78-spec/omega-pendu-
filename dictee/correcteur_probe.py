@@ -47,6 +47,11 @@ PLURAL_MARK = {'ils','elles','nous','vous','les','des','ces','mes','tes','ses','
                'quelques','certains','certaines','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','plupart'}
 _CLAUSE_BREAK = {'et','ou','mais','car','donc','or','ni','que','qui','quand','lorsque','puisque','comme','si',
                  '.',',',';',':','!','?','(',')','«','»'}
+# Participes passés IRRÉGULIERS (ne finissent pas en -é ; is_participle les rate) → « ont pu/fait/eu » = avoir, pas « on ».
+IRREG_PART = {'eu','pu','du','su','vu','lu','tenu','venu','devenu','revenu','voulu','valu','fallu','connu','reconnu',
+              'paru','apparu','disparu','couru','recu','deçu','dequ','mort','fait','refait','dit','redit','ecrit',
+              'decrit','mis','remis','permis','promis','pris','appris','compris','surpris','ouvert','offert','couvert',
+              'souffert','peri','acquis','conquis','assis','vecu','plu','cru','bu','tu'}
 
 # Couverture verbale élargie SANS le lexique 34 Mo : liste BLANCHE de formes fréquentes (exactes → 0 FP par
 # sur-généralisation). Stopgap avant Lexique4 cgram (étape 3). Désaccentué, minuscule.
@@ -158,8 +163,8 @@ def rule_on_ont(T, i):
     p = prev(T, i)
     if p in ('ils', 'elles') or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
     nx = T[i+1].lower() if i+1 < len(T) else ''
-    if nx.endswith('é') or nx.endswith('és') or nx.endswith('ée') or nx.endswith('ées') or is_participle(T, i+1):
-        return 'ont'                                                    # avoir + participe (« ont incarné ») → 3pl
+    if nx.endswith('é') or nx.endswith('és') or nx.endswith('ée') or nx.endswith('ées') or is_participle(T, i+1) or deacc(nx) in IRREG_PART:
+        return 'ont'                                                    # avoir + participe (« ont incarné », « ont pu/fait/eu ») → 3pl, jamais « on »
     if vlike(T, i+1):         return 'on'                               # « on » sujet + verbe
     return None
 
