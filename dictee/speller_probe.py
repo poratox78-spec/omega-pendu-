@@ -165,6 +165,7 @@ class Speller:
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
         d = deacc(low)
+        if not re.search(r'[aeiouy]', d): return None   # pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
         # élision : « lannée »→« l'année », « dautres »→« d'autres » (consonne d'élision + mot voyelle/h valide)
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]
@@ -223,7 +224,7 @@ class Speller:
         if len(d) >= 3 and accent_only and dominant: return ('auto', w1)
         if len(d) >= 3 and p1 == 2 and f1 >= AUTO_FREQ and len([1 for _w,(p,_f) in ranked if p == 2]) == 1:
             return ('auto', w1)                                 # une seule restauration d'accent possible → sûr
-        return ('flag', w1)
+        return ('flag', w1) if (len(d) >= 4 and f1 >= AUTO_FREQ) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
 
     def correct_text(self, text):
         out = []; starts = self._sentence_starts(text)
