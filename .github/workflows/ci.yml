@@ -45,6 +45,8 @@ jobs:
         run: node dictee/parity_corr.js
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
         run: node dictee/test_speller_app.js
+      - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)
+        run: python3 dictee/close_conj_paradigm.py --check
       - name: Extension — extraction des lexiques depuis l'app (assets)
         run: python3 extension/build_assets.py
       - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)

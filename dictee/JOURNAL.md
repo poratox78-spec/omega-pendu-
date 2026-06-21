@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-06-21 — Correcteur : clôture de paradigme de la conjugaison embarquée (écart de couverture accord ext↔Python comblé, FP=0)
+
+La parité `extension/parity_core.js` montrait **1 écart de couverture** : « Les voitures roule vite » → Python corrige
+`roule→roulent` (accord sujet-verbe), l'extension/app **ratent**. Cause **mesurée** : le sous-ensemble HF embarqué
+(`vdc-lex.cj`) garde `cj.f['roule']` (3s) mais **pas `cj.f['roulent']`** (3p), alors que `cj.c['rouler']['ind:pre']['3p']='roulent'`
+existe. La règle d'accord produit bien `roulent` mais sa **garde d'auto-vérification** `svReads(sugg)` échoue (forme
+absente) → abstention. Le probe Python, lui, charge `cgram_conj.json` **complet** (a `roulent`). C'était un **défaut de
+clôture de paradigme** : filtrage par fréquence de `cj.f` sans garantir que toute forme **suggérable** par `cj.c` y figure.
+
+- **Fix à la source** (`build_cgram.py`) : après construction du sous-ensemble HF, **clôture** — toute forme-suggestion
+  de `cj.c` est ajoutée à `cj.f` (lectures filtrées présent/imparfait) depuis `cj_f` complet.
+- **Fix des artefacts en repo (sans le TSV hors-repo)** : `dictee/close_conj_paradigm.py` complète le bloc `vdc-lex` de
+  l'app depuis `cgram_conj.json` (idempotent ; `--check` = garde CI). **+2076 formes** dans `cj.f` (2010→4086) ; propagé à
+  l'extension via `build_assets.py` (source unique = l'app).
+- **Mesuré** : parité **coverage gap 1→0** ; **508/1088 lemmes HF** ont désormais leur 3p vérifiable ; généralisation
+  **held-out 50/60** (« Les gens \<V-3sg\> » hors batterie) corrigés 3sg→3p, **0 flag hors-cible**. FP=0 conservé partout
+  (parité ext⊆Python & app⊆Python, `correcteur_probe` 0/36, speller AUTO FP=0, bake FP-check). Garde CI ajoutée
+  (`close_conj_paradigm.py --check`). Gap restant `parity_corr` = **genre déterminant** (pré-existant, hors scope).
+
+---
+
 ## 2026-06-20 — ✅ Vérif APPRENTISSAGE (décompose-en-parallèle l'a-t-il modifié ?) → NON
 
 Rem : « quand on a regardé si décompose en parallèle apporte un delta, on a peut-être modifié l'apprentissage, vérifie ».
