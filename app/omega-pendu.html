@@ -11670,7 +11670,22 @@ window.addEventListener('DOMContentLoaded', () => {
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
     var _pp=posOf(nd);if(_pp&&(_pp[0]!=='NOM'||_pp[1]>1))return null;            // POS 155k : suivant ≠ NOM, ou homographe multiple (nbhomog>1 : « tour »/« livre ») → abstention (FP)
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
-  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
+  // accord PLURIEL du NOM (déterminant pluriel + nom singulier) — MÊME logique que correcteur_probe.rule_noun_plural (parité)
+  var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée = NUM_DET pluriel (parité Python) ; SDET_NUM défini plus bas (ordre)
+  var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1};
+  function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[n+'s'];                          // pluriel ANCRÉ dans le lexique (pas « oiseaus »)
+    if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');                                            // cheval→chevaux (bals vérifié d'abord)
+    if(/au$|eu$/.test(dn))cands.push(n+'x');                                                      // oiseau/jeu→+x
+    for(var k=0;k<cands.length;k++){var v=posOf(cands[k]);if(v&&v[0]==='NOM')return cands[k];}return null;}
+  function rNounPlural(T,i){if(i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;       // déterminant pluriel juste avant
+    var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;       // nom propre / capitalisé → abstention (FP)
+    var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null; // trop court (kg/cm) / déjà pluriel / invariant
+    var v=posOf(n);if(!(v&&v[0]==='NOM'&&v[1]===0))return null;                                    // NOM PUR sans homographe (nbhomog=0) → FP-safe (exclut porte/livre/rouge + « les » pronom)
+    var nx=i+1<T.length?T[i+1]:'';
+    if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var vx=posOf(nx); // nom composé (hit parade / vice président / tour opérateur) :
+      if(vx&&vx[0]==='NOM'&&!ADJP[deacc(nx.toLowerCase())])return null;}                           //   nom+nom → abstention (« français » = adj → pas un composé)
+    var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
+  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord pluriel nom',rNounPlural]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
   function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ']+/g,o='',last=0,m,fm={},T=[];flags.forEach(function(f){fm[f.i]=f;});
     while((m=re.exec(text)))T.push([m.index,m.index+m[0].length,m[0]]);

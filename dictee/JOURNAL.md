@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-06-22 — NOUVEAU LEVIER : accord PLURIEL du nom (« des ami »→amis), la faute dys n°1 — app + Python
+
+Suite directe du test terrain. La classe manquante n°1 (« les enfant », « des difficulté ») est branchée :
+`rule_noun_plural` / `rNounPlural`. **Déterminant pluriel** (les/des/ces/mes/tes/ses/nos/vos/leurs, classe fermée)
++ **nom singulier** → pluriel. Bornage FP-safe + **pluriel ancré dans le lexique** (§5, réutilise le 155k embarqué) :
+
+- **filtre nom** = `POS==NOM ∧ nbhomog==0` (lexique 155k via `pos_of`/`posOf`) → exclut les **homographes** verbe/adj
+  (« les **porte** »=verbe, « les **rouge** », « les **livre** ») ET le pronom « les » (« il les porte »). FP-safe.
+- **pluralisation vérifiée** : on génère +s / −al→−aux / −au-eu→+x et on ne garde que la forme qui **existe comme NOM**
+  dans le 155k → « oiseau→oiseaux », « cheval→chevaux », « journal→journaux », « festival→festivals » (pas « oiseaus » ;
+  « bal→bals » car +s vérifié d'abord, pas « baux »). Toutes les formes plurielles (même irrégulières) sont dans le 155k.
+- gardes FP : capitalisé (propre), déjà pluriel (−s/−x/−z), trop court (unité kg/cm : len<3), pluriels latins
+  (`NOUN_PL_STOP` = minima/maxima/media/data…), **nom composé** (« hit parade », « vice président », « tour opérateur »
+  = nom+nom → 1er invariable → abstention ; exception adj-nom « les département **français** » → corrigé).
+
+**Mesuré UD French (16 342 phrases)** : règle = **22 « FP »**, dont **~18 sont de VRAIS accords ratés du corpus gold**
+(« les fournisseur d'accès », « les conseil de », « ces robot l'ont »…) = bonnes prises ; ~4 vrais FP (anglicismes
+mono/plug/single/people). **22 < genre 61 < on/ont 79 < a/à 97** : la règle est la plus précise. FP global **2,35→2,46 %**.
+Batterie **FP 0/40**, recall pluriel **4/4** (4 cas ajoutés). **Parité app≡Python EXACTE** (`parity_corr` : harnais
+charge désormais OMEGA_LEX4 pour exercer `posOf` ; 13 phrases pluriel ajoutées, 0 flag propre app).
+
+**Limite honnête (FP-safe assumé)** : « des **ami** » (nbhomog=1), « les **faute** » (tagué VER), « des **pomme** »
+(nbhomog=1) → **abstenus** (homographes). Récupérables plus tard avec une garde « forme-verbale-conjuguée » (cgram_conj).
+**Extension = SUITE** : `dys-core` n'a pas `posOf` (que le SET pos-abstain) → la règle pluriel exige un asset noms-purs
+dédié (à faire) ; `parity_core` reste vert (ext ⊆ Python = écart de couverture). Pour l'instant : **app oui, extension non**.
+
+---
+
 ## 2026-06-22 — Test terrain (phrase dys réelle) : 1 bug réparé (élision speller), 1 levier mesuré-rejeté (−é/−er verbes)
 
 Rem teste le panneau « 🩹 Correcteur » de l'app sur une phrase dys spontanée (« j'ai des ami qui sont partie à la

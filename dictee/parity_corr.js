@@ -2,9 +2,13 @@
 // (DOM bouchonné), et compare ses flags à ceux du probe Python (correcteur_probe.py) sur une batterie de phrases.
 // Garantit que la règle d'accord sujet-verbe (et les 8 homophones) se comportent pareil dans l'app et le probe.
 // Lancer : node dictee/parity_corr.js
-const fs = require('fs'), path = require('path'), cp = require('child_process');
+const fs = require('fs'), path = require('path'), cp = require('child_process'), zlib = require('zlib');
 const HERE = __dirname, HTML = path.join(HERE, '..', 'app', 'omega-pendu.html');
 const html = fs.readFileSync(HTML, 'utf8');
+
+// charge le gros lexique embarqué (OMEGA_LEX4) : posOf() en a besoin pour la garde genre ET l'accord pluriel du nom
+const _lx = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';
+if (_lx) { try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(_lx.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {} }
 
 // 1) extraire l'IIFE jusqu'à correctText, refermer en exposant correctText
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
@@ -56,7 +60,11 @@ const PHRASES = [
   'Mais sous la table', 'mais je viens', 'il rit mais pleure souvent', 'mais place est prise', 'mais cause des ennuis',
   // j'est/j'ai : détection devant déterminant (→ j'ai) + abstention ambiguë (adj/participe = aux → LLM) + non-FP
   'j\'est le poisse de oartir à la monagne', 'j\'est un chien', 'J\'est la chance', 'j\'est content', 'j\'est allé à Paris',
-  'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien'
+  'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien',
+  // accord pluriel du nom (déterminant pluriel + nom singulier) : cibles + pièges (homographe/composé/pronom)
+  'les enfant joue', 'des oiseau dans le ciel', 'les cheval galopent', 'il a des difficulté', 'des journal locaux',
+  'les département français', 'des hit parades', 'il les porte', 'il les livre à domicile', 'les rouge vif',
+  'les enfants sont là', 'je les vois', 'des chat noirs'
 ];
 
 // flags Python via un petit pont

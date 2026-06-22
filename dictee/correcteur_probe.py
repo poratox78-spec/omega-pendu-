@@ -478,13 +478,45 @@ def rule_cai(T, i):
     return _keepcase(T[i], "c'est") if deacc(T[i].lower()) == "c'ai" else None
 
 
+# ---------- Accord PLURIEL du NOM (déterminant pluriel + nom singulier) — la faute dys n°1 ----------
+PLURAL_DET = {w for w, v in NUM_DET.items() if v == 'pl'}   # ces/des/les/leurs/mes/nos/ses/tes/vos (classe fermée, fiable)
+
+def _pluralize_noun(n):
+    """Pluriel ANCRÉ DANS LE LEXIQUE (pas de « oiseaus ») : on génère +s / -al→-aux / -au-eu→+x, on ne garde
+    que la forme qui EXISTE comme NOM dans le lexique 155k. +s d'abord (bal→bals, pas « baux »)."""
+    dn = deacc(n.lower()); cands = [n + 's']
+    if dn.endswith('al'): cands.append(n[:-2] + 'aux')          # cheval→chevaux (mais bals vérifié d'abord)
+    if dn.endswith('au') or dn.endswith('eu'): cands.append(n + 'x')   # oiseau/jeu→+x (-eau finit par -au)
+    for c in cands:
+        v = pos_of(c)
+        if v and v[0] == 'NOM': return c                       # forme vérifiée = vrai pluriel nominal
+    return None
+
+NOUN_PL_STOP = {'minima', 'maxima', 'media', 'data', 'extra', 'intra', 'euros'}   # pluriels latins / invariables déjà pluriels
+
+def rule_noun_plural(T, i):
+    if i == 0 or prev(T, i) not in PLURAL_DET: return None      # déterminant pluriel juste avant
+    n = T[i]
+    if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
+    dn = deacc(n.lower())
+    if len(dn) < 3 or dn[-1] in 'sxz' or dn in NOUN_PL_STOP: return None   # trop court (unité kg/cm) / déjà pluriel / invariant
+    v = pos_of(n)                                               # POS 155k (lexique embarqué)
+    if not (v and v[0] == 'NOM' and v[2] == 0): return None     # NOM PUR sans homographe (nbhomog=0) → FP-safe : exclut
+    nx = T[i + 1] if i + 1 < len(T) else ''                     #   « les porte/livre/rouge » (verbe/adj-homographes) et « les » pronom
+    if nx[:1].islower() and nx.isalpha():                       # nom composé (« hit parade », « vice président », « tour opérateur ») :
+        vx = pos_of(nx)                                         #   nom + nom → 1er élément souvent invariable → abstention
+        if vx and vx[0] == 'NOM' and deacc(nx.lower()) not in ADJ_LEX: return None   # (« français » = adj-nom → PAS un composé : « les département français » corrigé)
+    pl = _pluralize_noun(n)
+    return pl if (pl and deacc(pl.lower()) != dn) else None
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
-         ('genre déterminant', rule_det_gender)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
+         ('genre déterminant', rule_det_gender),
+         ('accord pluriel nom', rule_noun_plural)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
 def correct(text):
@@ -534,6 +566,11 @@ CASES = [
     ("Les enfants jouent dehors", "jouent", "joue", "accord sujet-verbe"),
     ("Les oiseaux chantent", "chantent", "chante", "accord sujet-verbe"),
     ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
+    # accord PLURIEL du NOM (déterminant pluriel + nom singulier → pluriel ancré dans le lexique)
+    ("Les enfants jouent", "enfants", "enfant", "accord pluriel nom"),
+    ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
+    ("Les chevaux galopent", "chevaux", "cheval", "accord pluriel nom"),
+    ("Il a des difficultés", "difficultés", "difficulté", "accord pluriel nom"),
     # accord GENRE déterminant→nom (route lexicale cgram_gender) — noms PURS non ambigus
     ("Il a un chien", "un", "une", "genre déterminant"),
     ("Elle habite une maison", "une", "un", "genre déterminant"),
