@@ -37,15 +37,18 @@ def main():
         open(os.path.join(OUT, fname), 'wb').write(base64.b64decode(raw))
 
     # POS-abstain (genre) : SET des formes où POS≠NOM ∨ nbhomog>1, dérivé de cgram_pos.json (= même lexique que l'app/Python).
-    # L'app/Python lisent OMEGA_LEX4 ; l'extension (sans le lexique) charge ce SET → parité exacte du guard genre.
+    # NOM-nbhomog (accord pluriel) : MAP form->nbhomog des formes POS=NOM-dominantes (≡ posOf()[0]=='NOM' + nbhomog).
+    # L'app/Python lisent OMEGA_LEX4 ; l'extension (sans le lexique) charge ces dérivés → parité exacte des gardes.
     assets = ['vdc-lex.json', 'gender-relaxed.tsv.gz', 'speller.tsv.gz']
     if os.path.exists(POS):
         pos = json.load(open(POS, encoding='utf-8'))
         ab = sorted(w for w, v in pos.items() if v[0] != 'NOM' or (len(v) > 2 and v[2] > 1))
         gzip.open(os.path.join(OUT, 'pos-abstain.txt.gz'), 'wb', compresslevel=9).write(('\n'.join(ab)).encode('utf-8'))
-        assets.append('pos-abstain.txt.gz')
+        nm = sorted((w, v[2] if len(v) > 2 else 0) for w, v in pos.items() if v[0] == 'NOM')
+        gzip.open(os.path.join(OUT, 'nom-nbhomog.txt.gz'), 'wb', compresslevel=9).write(('\n'.join('%s\t%d' % (w, nb) for w, nb in nm)).encode('utf-8'))
+        assets += ['pos-abstain.txt.gz', 'nom-nbhomog.txt.gz']
     else:
-        print("  ⚠️ cgram_pos.json absent — lancer build_pos.py d'abord (asset POS non régénéré)")
+        print("  ⚠️ cgram_pos.json absent — lancer build_pos.py d'abord (assets POS/NOM non régénérés)")
 
     for f in assets:
         p = os.path.join(OUT, f)

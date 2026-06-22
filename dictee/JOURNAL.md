@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-06-22 — Accord pluriel : PORTÉ dans l'extension (3 moteurs à parité) + relâche nbhomog mesurée-REJETÉE
+
+Suite du levier pluriel. Deux demandes de Rem : (1) porter à l'extension, (2) récupérer « des ami »/« les faute ».
+
+**(1) Extension — FAIT, parité exacte.** `dys-core` n'a pas `posOf` (que des SET/MAP dérivés). Nouvel asset
+`nom-nbhomog.txt.gz` (163 Ko, 55 746 formes POS=NOM-dominantes → `form\tnbhomog`, généré par `build_assets.py`
+depuis `cgram_pos.json` = MÊME source que l'app/Python). `rNounPlural` y lit : nom-pur = `NOM_MAP.get(dn)===0`
+(≡ `posOf[0]=='NOM' ∧ nbhomog==0`), vérif pluriel = `NOM_MAP.has(cand)`, composé = `NOM_MAP.has(nx) ∧ !ADJP[nx]`.
+**Parité `parity_core` : ext ⊆ Python, 0 écart** sur 63 phrases (11 pluriel ajoutées) → l'extension corrige le pluriel
+**à l'identique** de l'app (enfant→enfants, oiseau→oiseaux, cheval→chevaux ; « il les porte »/« les rouge » abstenus).
+Les **3 moteurs** ont maintenant le levier. `content.js` charge l'asset ; `parity_core` l'injecte.
+
+**(2) Récupérer « des ami »/« les faute » — MESURÉ, REJETÉ.** Relâché le filtre `nbhomog==0` → `nbhomog<=1` (sauf
+forme verbale `CONJ_F`, car l'homographe ADJ « ami »=nation amie pluralise pareil). Résultat : **FP 22→47**
+(adj-homographes « les rouge »→rouges…) ET « des ami » **toujours raté** (« amis » est ADJ-dominant dans le lexique
+→ échoue la vérif NOM du pluriel). Verdict : pas FP-safe, et la donnée ne le supporte pas. **Reverté**, note in-code.
+« des ami »/« les faute »/« des pomme » restent **abstenus** (homographes verbe/adj) — limite FP-safe assumée.
+
+État : accord pluriel du nom = **app + Python + extension**, parité exacte, FP-safe (22 « FP » UD dont ~18 vraies prises).
+
+---
+
 ## 2026-06-22 — NOUVEAU LEVIER : accord PLURIEL du nom (« des ami »→amis), la faute dys n°1 — app + Python
 
 Suite directe du test terrain. La classe manquante n°1 (« les enfant », « des difficulté ») est branchée :

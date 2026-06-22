@@ -12,9 +12,12 @@ const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json')
 const grText = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender-relaxed.tsv.gz'))).toString('utf8');
 DYSCORE.setLex(vdc, grText);
 DYSCORE.setPosAbstain(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'pos-abstain.txt.gz'))).toString('utf8'));   // POS 155k (parité genre avec l'app/Python)
+DYSCORE.setNomMap(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'nom-nbhomog.txt.gz'))).toString('utf8'));       // NOM-nbhomog (parité accord pluriel du nom)
 
-// 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est)
+// 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est + pluriel du nom)
 const PHRASES = [
+  'les enfant joue', 'des oiseau dans le ciel', 'les cheval galopent', 'il a des difficulté', 'des journal locaux',
+  'les département français', 'des hit parades', 'il les porte', 'il les livre à domicile', 'les rouge vif', 'des chat noirs',
   'Les enfant joue dans le jardin et il sont content. Je doit manger. On ont gagné. à mon avis.',
   'Je doit partir', 'Tu doit venir', 'Il ont faim', 'Elles a faim', 'On ont gagné', 'Ils doit manger',
   'Je peux venir', 'Tu manges bien', 'Il nous voit', 'Nous mangeons', 'Vous êtes prêts', 'Il y a un chat',

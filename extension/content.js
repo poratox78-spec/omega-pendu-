@@ -16,14 +16,17 @@
   try {
     var spellerUrl = chrome.runtime.getURL('assets/speller.tsv.gz');
     var posUrl = chrome.runtime.getURL('assets/pos-abstain.txt.gz');
+    var nomUrl = chrome.runtime.getURL('assets/nom-nbhomog.txt.gz');
     DC.loadLex({
       vdc: chrome.runtime.getURL('assets/vdc-lex.json'),
       genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
       speller: spellerUrl,
-      pos: posUrl
+      pos: posUrl,
+      nom: nomUrl
     }).then(function () { if (active) schedule(active); });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
     if (DC.loadPosAbstain) DC.loadPosAbstain(posUrl).then(function () { if (active) schedule(active); });  // re-render quand le POS (genre) est prêt
+    if (DC.loadNomMap) DC.loadNomMap(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand l'accord pluriel du nom est prêt
   } catch (e) {}
 
   // ===== cible éditable =====

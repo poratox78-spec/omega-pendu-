@@ -134,7 +134,26 @@
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
     if(POS_ABSTAIN&&POS_ABSTAIN.has(nd))return null;                              // POS 155k : suivant ≠ NOM, ou homographe multiple (« tour »/« livre ») → abstention (FP)
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
-  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
+  // accord PLURIEL du NOM — MÊME logique que correcteur_probe.rule_noun_plural / rNounPlural (parité). nbhomog via NOM_MAP (asset nom-nbhomog).
+  var NOM_MAP=null;   // form_déacc -> nbhomog (formes POS=NOM-dominantes) ; ≡ posOf(w)[0]==='NOM' (présence) + nbhomog (valeur)
+  function _applyNomMap(t){NOM_MAP=new Map();var L=t.split('\n');for(var i=0;i<L.length;i++){var p=L[i].split('\t');if(p[0])NOM_MAP.set(p[0],+p[1]);}}
+  function loadNomMap(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+    var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+    _applyNomMap(await new Response(st).text());return true;}catch(e){return false;}})();}
+  var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée (parité NUM_DET pluriel)
+  var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1};
+  function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[n+'s'];                  // pluriel ANCRÉ dans le lexique (NOM_MAP)
+    if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');if(/au$|eu$/.test(dn))cands.push(n+'x');
+    for(var k=0;k<cands.length;k++){if(NOM_MAP.has(deacc(cands[k].toLowerCase())))return cands[k];}return null;}
+  function rNounPlural(T,i){if(!NOM_MAP||i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;
+    var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
+    var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
+    if(NOM_MAP.get(dn)!==0)return null;                                                       // NOM-dominant ∧ nbhomog==0 (exclut porte/livre/rouge + « les » pronom)
+    var nx=i+1<T.length?T[i+1]:'';
+    if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());
+      if(NOM_MAP.has(dnx)&&!ADJP[dnx])return null;}                                           // nom composé (nom+nom ; adj « français » → pas un composé)
+    var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
+  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord pluriel nom',rNounPlural]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
@@ -253,9 +272,10 @@
   // ===== chargement lexiques =====
   var _ready=false,_loading=null;
   function setLex(vd,genderRelaxedText,spellerTSV){_applyVdc(vd||{});if(genderRelaxedText)_applyGenderRelaxed(genderRelaxedText);if(spellerTSV)_applySpellerTSV(spellerTSV);_ready=true;}
-  function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz) }
+  function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz), nom:url(.gz) }
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
     if(urls&&urls.pos)loadPosAbstain(urls.pos);            // POS-abstain (genre) : additif, indépendant
+    if(urls&&urls.nom)loadNomMap(urls.nom);               // NOM-nbhomog (accord pluriel du nom) : additif, indépendant
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -277,6 +297,7 @@
     flagsToFacts:flagsToFacts, REMED:REMED, STAGE_LBL:STAGE_LBL, STAGE_MSG:STAGE_MSG, STAGE_FAM:STAGE_FAM,
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, setPosAbstain:_applyPosAbstain, loadPosAbstain:loadPosAbstain,
+    setNomMap:_applyNomMap, loadNomMap:loadNomMap,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));

@@ -506,8 +506,10 @@ def rule_noun_plural(T, i):
     dn = deacc(n.lower())
     if len(dn) < 3 or dn[-1] in 'sxz' or dn in NOUN_PL_STOP: return None   # trop court (unité kg/cm) / déjà pluriel / invariant
     v = pos_of(n)                                               # POS 155k (lexique embarqué)
-    if not (v and v[0] == 'NOM' and v[2] == 0): return None     # NOM PUR sans homographe (nbhomog=0) → FP-safe : exclut
-    nx = T[i + 1] if i + 1 < len(T) else ''                     #   « les porte/livre/rouge » (verbe/adj-homographes) et « les » pronom
+    if not (v and v[0] == 'NOM' and v[2] == 0): return None     # NOM PUR sans homographe (nbhomog=0) → FP-safe : exclut « les porte/livre/rouge »
+    # NB (mesuré, rejeté) : relâcher à nbhomog<=1 (sauf forme verbale CONJ_F) → FP 22→47 (adj-homographes « les rouge »…)
+    # et ne récupère même pas « des ami » (« amis » = ADJ-dominant → échoue la vérif NOM). « des ami/les faute » restent abstenus.
+    nx = T[i + 1] if i + 1 < len(T) else ''                     #   (verbe/adj-homographes) et le pronom « les »
     if nx[:1].islower() and nx.isalpha():                       # nom composé (« hit parade », « vice président », « tour opérateur ») :
         vx = pos_of(nx)                                         #   nom + nom → 1er élément souvent invariable → abstention
         if vx and vx[0] == 'NOM' and deacc(nx.lower()) not in ADJ_LEX: return None   # (« français » = adj-nom → PAS un composé : « les département français » corrigé)
