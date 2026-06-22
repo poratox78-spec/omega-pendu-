@@ -121,10 +121,18 @@
   var DET_G={un:'m',une:'f',le:'m',la:'f',ce:'m',cet:'m',cette:'f',mon:'m',ma:'f',ton:'m',ta:'f',son:'m',sa:'f'};
   var DET_A={'un|f':'une','une|m':'un','le|f':'la','la|m':'le','ce|f':'cette','cet|f':'cette','cette|m':'ce','mon|f':'ma','ma|m':'mon','ton|f':'ta','ta|m':'ton','son|f':'sa','sa|m':'son'};
   function ckeepcase(src,sg){var c=src.charAt(0);return (c!==c.toLowerCase())?sg.charAt(0).toUpperCase()+sg.slice(1):sg;}
+  // POS-tagger 155k : SET « abstain » (formes où POS≠NOM ∨ nbhomog>1) dérivé du même lexique que l'app/Python (asset gzip).
+  var POS_ABSTAIN=null;
+  function _applyPosAbstain(t){POS_ABSTAIN=new Set();var L=t.split('\n');for(var i=0;i<L.length;i++){if(L[i])POS_ABSTAIN.add(L[i]);}}
+  function loadPosAbstain(url){          // extension : fetch l'asset gzip (mirror speller). Node/test : setPosAbstain direct.
+    return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+      var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+      _applyPosAbstain(await new Response(st).text());return true;}catch(e){return false;}})();}
   function rDetGenre(T,i){var lw=deacc(T[i].toLowerCase());if(!DET_G[lw]||T[i].toLowerCase().indexOf("'")>=0)return null;if(i+1>=T.length)return null;
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
+    if(POS_ABSTAIN&&POS_ABSTAIN.has(nd))return null;                              // POS 155k : suivant ≠ NOM, ou homographe multiple (« tour »/« livre ») → abstention (FP)
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
@@ -232,8 +240,9 @@
   // ===== chargement lexiques =====
   var _ready=false,_loading=null;
   function setLex(vd,genderRelaxedText,spellerTSV){_applyVdc(vd||{});if(genderRelaxedText)_applyGenderRelaxed(genderRelaxedText);if(spellerTSV)_applySpellerTSV(spellerTSV);_ready=true;}
-  function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz) }
+  function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz) }
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
+    if(urls&&urls.pos)loadPosAbstain(urls.pos);            // POS-abstain (genre) : additif, indépendant
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -254,7 +263,7 @@
     correctText:correctText, diagnose:diagnose, developmental:developmental, remedFams:remedFams,
     flagsToFacts:flagsToFacts, REMED:REMED, STAGE_LBL:STAGE_LBL, STAGE_MSG:STAGE_MSG, STAGE_FAM:STAGE_FAM,
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
-    spellerReady:function(){return SP.ready;},
+    spellerReady:function(){return SP.ready;}, setPosAbstain:_applyPosAbstain, loadPosAbstain:loadPosAbstain,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));

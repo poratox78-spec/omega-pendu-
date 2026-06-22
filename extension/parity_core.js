@@ -11,6 +11,7 @@ const DYSCORE = global.DYSCORE;
 const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json'), 'utf8'));
 const grText = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender-relaxed.tsv.gz'))).toString('utf8');
 DYSCORE.setLex(vdc, grText);
+DYSCORE.setPosAbstain(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'pos-abstain.txt.gz'))).toString('utf8'));   // POS 155k (parité genre avec l'app/Python)
 
 // 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est)
 const PHRASES = [

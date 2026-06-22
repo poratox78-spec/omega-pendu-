@@ -13,7 +13,7 @@
 // (Pour un livrable 100 % indépendant du HTML, il suffit de figer la tranche extraite dans un fichier ; ici on la
 //  lit à la volée pour rester synchrone avec l'app — la parité est garantie par construction.)
 'use strict';
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const APP_DEFAULT = path.join(__dirname, '..', 'app', 'omega-pendu.html');
 
 function _extract(html) {
@@ -25,7 +25,8 @@ function _extract(html) {
     ';globalThis.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,ready:function(){return SP.ready;}};})();';
   const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
   const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
-  return { code, vdc, spl };
+  const lex = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';   // gros lexique (POS, genre…)
+  return { code, vdc, spl, lex };
 }
 
 function _domShim(vdc, spl) {
@@ -41,8 +42,12 @@ function _domShim(vdc, spl) {
 
 async function create(opts = {}) {
   const html = fs.readFileSync(opts.appHtml || APP_DEFAULT, 'utf8');
-  const { code, vdc, spl } = _extract(html);
+  const { code, vdc, spl, lex } = _extract(html);
   _domShim(vdc, spl);
+  if (lex) {                                        // RÉUTILISE le gros lexique du pendu : OMEGA_LEX4 (POS 155k) pour le guard genre — parité avec l'app
+    try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(lex.replace(/\s/g, ''), 'base64')).toString('utf8')); }
+    catch (e) { /* POS indisponible → le guard POS se replie (abstention seulement via DET_SKIP/capitalisé) */ }
+  }
   (0, eval)(code);
   const E = globalThis.__corrEngine;
   if (!E) throw new Error('correcteur.js : moteur non exposé');

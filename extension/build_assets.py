@@ -6,11 +6,12 @@
 #   - speller-lex-gz (gzip TSV  form\tfreq\tPOS) = orthographe (non-mots/accents)     -> assets/speller.tsv.gz
 # Données dérivées Lexique 4 → CC BY-SA 4.0 (voir NOTICE).
 #   python3 extension/build_assets.py
-import os, re, base64
+import os, re, base64, json, gzip
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'app', 'omega-pendu.html')
 OUT = os.path.join(HERE, 'assets')
+POS = os.path.join(HERE, '..', 'dictee', 'cgram_pos.json')   # POS 155k (build_pos.py) — extension n'a pas OMEGA_LEX4
 
 
 def block(html, bid):
@@ -35,7 +36,18 @@ def main():
         raw = re.sub(r'\s', '', block(html, bid))
         open(os.path.join(OUT, fname), 'wb').write(base64.b64decode(raw))
 
-    for f in ['vdc-lex.json', 'gender-relaxed.tsv.gz', 'speller.tsv.gz']:
+    # POS-abstain (genre) : SET des formes où POS≠NOM ∨ nbhomog>1, dérivé de cgram_pos.json (= même lexique que l'app/Python).
+    # L'app/Python lisent OMEGA_LEX4 ; l'extension (sans le lexique) charge ce SET → parité exacte du guard genre.
+    assets = ['vdc-lex.json', 'gender-relaxed.tsv.gz', 'speller.tsv.gz']
+    if os.path.exists(POS):
+        pos = json.load(open(POS, encoding='utf-8'))
+        ab = sorted(w for w, v in pos.items() if v[0] != 'NOM' or (len(v) > 2 and v[2] > 1))
+        gzip.open(os.path.join(OUT, 'pos-abstain.txt.gz'), 'wb', compresslevel=9).write(('\n'.join(ab)).encode('utf-8'))
+        assets.append('pos-abstain.txt.gz')
+    else:
+        print("  ⚠️ cgram_pos.json absent — lancer build_pos.py d'abord (asset POS non régénéré)")
+
+    for f in assets:
         p = os.path.join(OUT, f)
         print("  %-26s %7.0f Ko" % (f, os.path.getsize(p) / 1024))
     print("[build_assets] OK -> " + OUT)
