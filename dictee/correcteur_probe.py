@@ -145,6 +145,9 @@ def rule_e_er(T, i):
     elif deacc(lw).endswith('er') and len(lw) > 3: forms = (w[:-2] + 'é', w)  # tapé = infinitif
     else: return None
     if deacc(forms[1].lower()) not in VERB_LEX: return None   # forms[1] = infinitif -er ; doit être un VRAI verbe (sinon « thé »→« ther » : FP)
+    # NB (mesuré, rejeté) : élargir aux verbes du lexique 155k (POS=VER) — même borné à AVOIR — fait remonter le FP
+    # (-é/-er 53→74 sur UD : « le traité/marché/côté » nom → infinitif). La règle exige du CONTEXTE (nom vs participe),
+    # pas l'appartenance lexicale. Couverture verbale = COMMON_VERBS ∪ cgram_verbs (curée). Cf. JOURNAL 2026-06-22.
     if i == 0: return None
     praw = T[i-1].lower()
     if praw == 'à' or T[i-1] == 'A': return forms[1]   # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif

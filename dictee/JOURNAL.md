@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-06-22 — Test terrain (phrase dys réelle) : 1 bug réparé (élision speller), 1 levier mesuré-rejeté (−é/−er verbes)
+
+Rem teste le panneau « 🩹 Correcteur » de l'app sur une phrase dys spontanée (« j'ai des ami qui sont partie à la
+plage sent moi… des faute d'othographes parse que j'ai été coder »). Verdict : **« Aucune faute détectée »** — mauvais.
+Diagnostic mot par mot (mesuré via `dictee/correcteur.js`, le moteur de l'app headless) :
+
+| classe | exemples | statut |
+|---|---|---|
+| **accord pluriel du NOM** | des **ami**, des **difficulté**, les **faute** | ❌ règle **inexistante** (3/8) — c'est LE prochain levier |
+| accord participe passé | sont **partie**→partis | ❌ hors-périmètre |
+| homophone hors-liste | **sent**/sans, **parse**/parce | ❌ hors-périmètre (parse = vrai mot → exige contexte) |
+| non-mot **élidé** | d'**othographes** | ⚠️ **BUG réparé** (voir ci-dessous) |
+| −é/−er, verbe rare | a **coder**→codé | ⚠️ couverture verbe — **mesuré, pas réparable sans contexte** |
+
+**(1) Élision speller — RÉPARÉ** (`054aa60`). `toks()` garde l'apostrophe → « d'othographes » = **1 token** jamais
+ré-analysé. Fix : détacher le préfixe d'élision connu (d'/l'/j'/qu'… via `SELIDE`) et analyser le reste. Gardes
+anti-faux-ami : (a) la correction doit **garder une voyelle/h initiale** (« l'aramel »→« caramel » casserait
+l'élision → abstention ; trouvé sur UD), (b) hors AUTO, seule une correction **accent-seul ou distance ≤1** est
+proposée (le phonétique distant « othographe→autographe », orthographe rare freq=41 vs autographe 1639, = faux ami →
+abstention). Élisions correctes (l'orthographe, c'est) → reste connu → abstention. Mesuré **4000 phrases UD : 5 flags
+élidés, tous de VRAIS typos** (l'extention→l'extension, l'economie→l'économie…). App + extension à parité (`test_speller` ≡).
+
+**(2) −é/−er — élargir la couverture verbe : MESURÉ, REJETÉ.** « il a coder » échoue car « coder » n'est pas dans
+`COMMON_VERBS`/`cgram_verbs`. Tenté de réutiliser le POS 155k (§5) : accepter forms[1] si **POS=VER**. Naïf → FP
+**53→98** (« il est **fier** »→fié : être+adjectif). Borné à **AVOIR seul** (« avoir+adj » n'existe pas) → FP **98→74**,
+toujours **+21** : « le **traité**/**marché**/**côté** » (nom) → infinitif. Verdict : comme a/à, la règle −é/−er exige
+le **CONTEXTE** (nom vs participe), pas l'appartenance lexicale. **Reverté**, note in-code. Couverture verbe = liste curée.
+
+**Leçon** : le correcteur a un **rappel étroit** par conception (FP=0 d'abord, liste de règles fixe). Sur de l'écrit dys
+spontané, la faute n°1 — **l'accord pluriel du nom** — n'existe pas. C'est le **prochain levier** (a tout dans le lexique :
+POS=NOM 155k + pluriels Lexique 4), à border FP-safe comme le genre + mesurer sur UD French.
+
+---
+
 ## 2026-06-22 — POS-tagger 155k (réutilise le lexique du pendu) + lot 5 −é/−er : FP 2,74 % → 2,35 % sur UD French
 
 Suite directe des 4 lots. Deux leviers FP-safe de plus, mesurés sur les **16 342 phrases correctes** (UD French) :
