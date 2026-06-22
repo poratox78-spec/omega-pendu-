@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-06-22 — Accord SV sujet-nom : relâcher `dk==0` via le posterior — MESURÉ, REJETÉ (ne pas refaire)
+
+Enchaînement auto suivant : `rule_accord_sv_noun` exige le déterminant pluriel **en tête** (`dk==0`). Hypothèse :
+cette restriction venait du *manque de lexique de noms* → le posterior NOUN_POST pourrait la lever et récupérer les
+cas en milieu de phrase (« Hier les oiseaux chante », « et les chats mange »). **Mesuré (sonde `/tmp`, UD French)** :
+relâcher à `dk>0` (avec garde « aucun nom confiant avant le dét. » + nom-tête posterior) → **+18 FP** pour **2 patterns**
+récupérés. FP dominants **non réparables par le posterior** : (a) « entre »→entrent ×8 (préposition lue comme verbe
+entrer — c'est *précisément* ce que `dk==0` bloquait) ; (b) « est/était→sont » (le dét. pluriel gouverne un nom mais
+le verbe s'accorde avec un sujet **singulier** à distance — indécidable sans parse). **Conclusion** : `dk==0` n'est PAS
+un défaut de lexique, c'est une garde structurelle justifiée (homographes prép/verbe + sujet distant). NON câblé. La
+sonde est jetable (non versionnée). **Bilan des 3 enchaînements §3** : pluriel ✅, genre ✅, accord SV sujet-nom ❌.
+
+---
+
 ## 2026-06-22 — GARDE §3 ÉTENDUE au GENRE (FP 61→42, « le faute »→la) + pos-abstain SUPPRIMÉ
 
 Enchaînement auto après le pluriel. Mesuré AVANT câblage (sonde inline) : la garde genre `POS≠NOM ∨ nbhomog>1`
