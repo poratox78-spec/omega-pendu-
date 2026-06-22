@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-06-22 — SONDE §3 « pyramide » : posterior fréquentiel > garde plate (récupère « des ami » FP-safe)
+
+Idée de Rem : la dictée lit une *tranche plate* du lexique, le pendu empile les niveaux (pyramide). Audit du
+lexique embarqué : **11 dims réelles** (`m p g f prev pld md mb l nbhomoph nbhomog`) ; OLD20/syll/cvo/cvp **déclarés
+mais à 0 %** (`old` câblé à vide dans `lexLookup`, doc corrigé). TSV complet (37 col.) fourni → `/tmp/lex4`.
+
+**Sonde `dictee/pyramide_probe.py` (OFF-inerte, mesure seule, ne touche ni moteur ni assets).** Remplace la garde
+DURE du pluriel du nom (`nbhomog==0 ∧ POS==NOM ∧ ¬CONJ_F`, qui ratait ami/voiture/pomme/faute) par le **posterior §3**
+`P(POS|forme)=ΣFreqMot(POS)/ΣFreqMot` (le `Σ_φ`, croiser ≠ argmax). Garde : tire ssi `P(NOM)≥τ ∧ P(VER)<ε`.
+
+**Découverte clé : le POS embarqué est BUGGÉ** — `amis`→ADJ (posterior 85,5 % NOM), `pommes`/`faute`→VER (posterior
+99,5/99,7 % NOM). Le posterior fréquentiel est **strictement plus juste**. ami/pomme étaient bloqués par l'ancre du
+pluriel (qui vérifiait via `pos_of` embarqué faux) → ancrer le pluriel via le posterior aussi → récupérés.
+
+**Mesuré (sweep ε, FP sur UD French 16 342 ph.)** : à **ε=0.01** → **+3 récupérations** (ami, voiture, faute) pour
+**+1 seul FP** (`terre→terres` dans « terre-neuviers », artefact tiret). Rappel : la relaxation plate du matin
+coûtait **+25 FP** et ne récupérait PAS ami. **La pyramide réussit là où la garde plate échouait.**
+
+Sous-gain durable **FP-safe pur** (indépendant de la garde permissive) : **régénérer `cgram_pos` via le POS
+fréquentiel-dominant** (corrige amis/pommes/faute) → aide genre + pluriel + toute règle POS-gardée, 0 FP nouveau.
+⏳ Décision Rem : (a) câbler la garde §3 à ε=0.01 (asset posterior, 3 moteurs+parité) ? (b) d'abord juste régénérer
+le POS ? (c) en rester à la sonde mesurée ? Lancer : `LEX4=/tmp/lex4/Lexique4.tsv UDFR=/tmp/udfr python3 dictee/pyramide_probe.py`.
+
+---
+
 ## 2026-06-22 — Accord pluriel : PORTÉ dans l'extension (3 moteurs à parité) + relâche nbhomog mesurée-REJETÉE
 
 Suite du levier pluriel. Deux demandes de Rem : (1) porter à l'extension, (2) récupérer « des ami »/« les faute ».
