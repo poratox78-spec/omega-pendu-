@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-06-22 — POS-tagger 155k (réutilise le lexique du pendu) + lot 5 −é/−er : FP 2,74 % → 2,35 % sur UD French
+
+Suite directe des 4 lots. Deux leviers FP-safe de plus, mesurés sur les **16 342 phrases correctes** (UD French) :
+**FP 2,74 % → 2,35 %** (447 → **384/16342**). Toujours **abstention pure** (jamais de nouvelle correction).
+
+**Lot 5 — −é/−er noms-homographes de participes** (`15a5b40`). Beaucoup de FP −é/−er sont des **noms** homographes
+d'un participe (« un arrêt**é** », « un trait**é** », « un employ**é** », « le pass**é** ») : la règle voulait écrire
+`-er`. Garde : si le mot est un **nom** connu (`cgram_gender`/`GENDER_LEX`) précédé d'un déterminant → abstention.
+Tentative **a/à** (cgram + participes irréguliers) **REVERTÉE** : backfire mesuré (12 → 18 FP, cas « à été… »), gardé
+seulement la garde « A » majuscule du lot 3. Effet : **−é/−er 90 → 53**.
+
+**POS-tagger 155k extrait du lexique EMBARQUÉ** (`056a1db` fondation + `b64feb6` câblage 3 moteurs). §5 anti-
+réinvention : le pendu embarque déjà `OMEGA_LEX4` (155 493 mots, champ `g` = cgram, `nbhomog`) — `build_pos.py`
+en extrait `cgram_pos.json = {forme:[POS,freq,nbhomog]}` (réutilise le décodeur de `build_morpho.py`, **aucune
+nouvelle dépendance**, gitignored car régénéré en CI). Branché en **garde du genre déterminant** (`rule_det_gender` /
+`rDetGenre`) : on n'avait que la contrainte « nom-pur `gn` » ; on **abstient** désormais aussi si le mot après le
+déterminant a **POS ≠ NOM** OU **nbhomog > 1** (homographe nom/verbe/adj : « la **droite** », « un **boucher** »).
+Effet : **genre déterminant 91 → 61**.
+
+**Parité 3 moteurs — exacte, par construction** (tous dérivent du MÊME lexique) :
+| moteur | source POS | garde |
+|---|---|---|
+| `correcteur_probe.py` (réf) | `cgram_pos.json` | `pos_of()` : abstient si POS≠NOM ∨ nbhomog>1 |
+| app `omega-pendu.html` | `OMEGA_LEX4` direct (index `posOf`) | `rDetGenre` idem |
+| `extension/dys-core.js` | asset `pos-abstain.txt.gz` (237 Ko, SET des formes à abstenir) | `POS_ABSTAIN.has(nd)` |
+| `correcteur.js` (headless) | décompresse `lex4-data-gz` → `OMEGA_LEX4` | (parité Python en CI) |
+
+`build_assets.py` régénère l'asset `pos-abstain` depuis `cgram_pos.json` (formes POS≠NOM ∨ nbhomog>1). CI : étape
+`build_pos.py` **avant** `build_assets.py`, puis `close_conj_paradigm --check` + parités.
+
+**Garde-fous (re-mesurés ce jour)** : batterie **FP 0/36**, recall des familles **intact** (genre 4/4, on/ont 5/5,
+son/sont 3/3, a/à 3/3, leur/leurs 3/3, −é/−er 3/3, accord SV 8/8+8/8), **parité app⊆Python OK** (1 écart de
+couverture = lexique HF), **parité ext⊆Python OK** (0 écart). **CI verte** sur PR #9 (`b64feb6`, 2 jobs `dictee`).
+
+| règle | après 4 lots | maintenant | levier |
+|---|---|---|---|
+| −é/−er | 90 | **53** | lot 5 : noms-homographes de participes (cgram_gender) |
+| genre déterminant | 91 | **61** | POS-port : abstient si mot-après POS≠NOM ∨ nbhomog>1 |
+| a/à | 97 | 97 | (tentative revertée — exige le contexte prép/avoir) |
+| on/ont | 79 | 79 | (« …, on trouve » : `on` sujet après ponctuation) |
+| **total** | **447 (2,74 %)** | **384 (2,35 %)** | |
+
+**Reste (ROI décroissant, exige un modèle de CONTEXTE, pas l'appartenance lexicale)** : a/à 97 (prép/avoir),
+on/ont 79 (sujet après ponctuation), genre 61 (noms ambigus/propres résiduels), −é/−er 53. Garde permanente :
+`fp_stress_test.py` (`FP_MAX=`). Le domaine *dys* (phrases courtes) reste plus bas que ces 2,35 % encyclopédiques.
+
+---
+
 ## 2026-06-21 — Durcissement FP du correcteur : 6,02 % → 2,74 % sur UD French (4 lots, recall + parité intacts)
 
 Suite du stress-test (« FP=0 » sur-estimé). 4 lots de gardes **FP-safe** (abstention pure, jamais de nouvelle

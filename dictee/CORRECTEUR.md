@@ -1,10 +1,11 @@
 # Correcteur dys (semi-direct) — direction & probe de faisabilité
 
-> ⚠️ **REQUALIFICATION « FP=0 » (mesuré 2026-06-21).** Le « FP=0 » de ce correcteur valait sur les **batteries
+> ⚠️ **REQUALIFICATION « FP=0 » (mesuré 2026-06-21/22).** Le « FP=0 » de ce correcteur valait sur les **batteries
 > curées** (30 phrases + 98 GEC, courtes/simples). Mesuré sur **16 342 vraies phrases correctes** (UD French),
-> le taux de faux positifs réel était **6,0 %**, ramené à **~2,5 %** par 5 lots de durcissement FP-safe
-> (`dictee/fp_stress_test.py` ; détail `JOURNAL.md`). **Formulation correcte : « FP=0 sur batterie ; ~2,5 % sur
-> français encyclopédique réel, en baisse »** (le domaine *dys* — phrases courtes — est plus bas, mais pas 0).
+> le taux de faux positifs réel était **6,0 %**, ramené à **2,35 %** par 5 lots de durcissement + un **POS-tagger
+> 155k** (réutilise le lexique embarqué du pendu), tous **FP-safe = abstention pure** (`dictee/fp_stress_test.py` ;
+> détail `JOURNAL.md`). **Formulation correcte : « FP=0 sur batterie ; ~2,5 % sur français encyclopédique réel,
+> en baisse »** (le domaine *dys* — phrases courtes — est plus bas, mais pas 0).
 
 > Idée (Rem) : une fois le levier d'accord en place, en faire un **correcteur orthographique dys** « semi-direct ».
 > Recadrage clé : le correcteur **roule sur le moteur de DICTÉE** (`diag_sentence.py`), pas sur le pendu — il traite
@@ -156,6 +157,15 @@ le levier d'accord existait déjà côté DIAGNOSTIC, ici on le retourne en CORR
 - **Mesuré** sur le vrai GEC (98 paires) : **FP=0/98** ; genre déterminant **17/27 détectés+corrigés**. Périmètre
   in-scope 13→40, détection 3→20. **Câblé dans l'app** (JS `rDetGenre`) avec **parité EXACTE** (même `gn`, même
   logique ; 50 phrases, app == Python). vdc-lex porte `gn` (46 712 noms purs).
+- **Garde POS-155k (durcissement FP, 2026-06-22)** : sur du **français réel** (UD French), le genre déterminant était
+  la catégorie de FP n°1 (« la **droite** », « un **boucher** », « une **garde** » = homographes nom/verbe/adj que
+  `gn` ne filtrait pas tous). §5 anti-réinvention : le pendu embarque déjà `OMEGA_LEX4` (155 493 mots, champ `g` =
+  cgram, `nbhomog`) → `dictee/build_pos.py` en extrait `cgram_pos.json = {forme:[POS,freq,nbhomog]}` (aucune nouvelle
+  dépendance). `rule_det_gender` / `rDetGenre` **abstient** désormais aussi si le mot après le déterminant a
+  **POS ≠ NOM** OU **nbhomog > 1**. Effet mesuré : genre déterminant **91 → 61 FP** sur les 16 342 phrases, **recall
+  intact** (batterie genre 4/4). **Parité 3 moteurs par construction** (même lexique) : app lit `OMEGA_LEX4` direct ;
+  l'extension charge l'asset `pos-abstain.txt.gz` (SET des formes à abstenir, `build_assets.py`) ; `correcteur.js`
+  décompresse `lex4-data-gz`. CI : `build_pos.py` avant `build_assets.py`, puis les parités `parity_corr`/`parity_core`.
 
 ## FALSIFIÉ — garde-fous NbHomoph/Preval en abstention (ne pas refaire)
 Idée écartée : utiliser `24_NbHomoph` / `33_Preval` (récupérés du Lexique) pour **abstenir** et « remplacer les
