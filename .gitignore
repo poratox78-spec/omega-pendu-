@@ -1,3 +1,6 @@
 __pycache__/
 dictee/learned_lex.json
 cgram_pos.json
+
+# bundle de test (build output, régénérable via dist/make_test_bundle.sh)
+dist/omega-correcteur-dys-test.zip
