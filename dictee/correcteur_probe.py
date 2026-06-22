@@ -486,18 +486,33 @@ def rule_cai(T, i):
 # ---------- Accord PLURIEL du NOM (déterminant pluriel + nom singulier) — la faute dys n°1 ----------
 PLURAL_DET = {w for w, v in NUM_DET.items() if v == 'pl'}   # ces/des/les/leurs/mes/nos/ses/tes/vos (classe fermée, fiable)
 
+# POSTERIOR §3 sur la lecture POS latente — P(POS|forme) en pour-mille (cgram_noun_post.json, dérivé du TSV par build_noun_post.py).
+# Remplace la garde binaire nbhomog==0 ∧ POS==NOM du pluriel : on tire ssi P(NOM)≥τ ∧ P(VER)<ε (le danger = masse VERBE, pas « a un homographe »).
+NOUN_POST = {}
+try:
+    with open(os.path.join(HERE, 'cgram_noun_post.json'), encoding='utf-8') as _f:
+        NOUN_POST = json.load(_f)
+except (OSError, ValueError):
+    NOUN_POST = {}
+PL_TAU_M, PL_EPS_M, PL_ANCHOR_M = 500, 10, 300   # P(NOM)≥0.5 / P(VER)<0.01 / ancre P(NOM)≥0.3 (en ‰) — mesuré ε=0.01 : +3 récup., +1 FP (UD)
+
+def _noun_gate(n):                                              # §3 : nom-dominant ET masse verbe négligeable
+    p = NOUN_POST.get(deacc(n.lower()))
+    return bool(p) and p[0] >= PL_TAU_M and p[1] < PL_EPS_M
+
 def _pluralize_noun(n):
-    """Pluriel ANCRÉ DANS LE LEXIQUE (pas de « oiseaus ») : on génère +s / -al→-aux / -au-eu→+x, on ne garde
-    que la forme qui EXISTE comme NOM dans le lexique 155k. +s d'abord (bal→bals, pas « baux »)."""
+    """Pluriel ANCRÉ DANS LE POSTERIOR (pas de « oiseaus ») : +s / -al→-aux / -au-eu→+x, on garde la forme dont
+    la part NOM ≥ 30 % (le pos_of EMBARQUÉ est FAUX pour amis=ADJ/pommes=VER → l'ancre fréquentielle les récupère)."""
     dn = deacc(n.lower()); cands = [n + 's']
     if dn.endswith('al'): cands.append(n[:-2] + 'aux')          # cheval→chevaux (mais bals vérifié d'abord)
     if dn.endswith('au') or dn.endswith('eu'): cands.append(n + 'x')   # oiseau/jeu→+x (-eau finit par -au)
     for c in cands:
-        v = pos_of(c)
-        if v and v[0] == 'NOM': return c                       # forme vérifiée = vrai pluriel nominal
+        p = NOUN_POST.get(deacc(c.lower()))
+        if p and p[0] >= PL_ANCHOR_M: return c                 # forme plurielle majoritairement NOM dans le lexique
     return None
 
-NOUN_PL_STOP = {'minima', 'maxima', 'media', 'data', 'extra', 'intra', 'euros'}   # pluriels latins / invariables déjà pluriels
+NOUN_PL_STOP = {'minima', 'maxima', 'media', 'data', 'extra', 'intra', 'euros',
+                'quanta', 'addenda', 'errata', 'curricula', 'strata'}   # pluriels latins / invariables déjà pluriels
 
 def rule_noun_plural(T, i):
     if i == 0 or prev(T, i) not in PLURAL_DET: return None      # déterminant pluriel juste avant
@@ -505,14 +520,13 @@ def rule_noun_plural(T, i):
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 3 or dn[-1] in 'sxz' or dn in NOUN_PL_STOP: return None   # trop court (unité kg/cm) / déjà pluriel / invariant
-    v = pos_of(n)                                               # POS 155k (lexique embarqué)
-    if not (v and v[0] == 'NOM' and v[2] == 0): return None     # NOM PUR sans homographe (nbhomog=0) → FP-safe : exclut « les porte/livre/rouge »
-    # NB (mesuré, rejeté) : relâcher à nbhomog<=1 (sauf forme verbale CONJ_F) → FP 22→47 (adj-homographes « les rouge »…)
-    # et ne récupère même pas « des ami » (« amis » = ADJ-dominant → échoue la vérif NOM). « des ami/les faute » restent abstenus.
-    nx = T[i + 1] if i + 1 < len(T) else ''                     #   (verbe/adj-homographes) et le pronom « les »
+    if not _noun_gate(n): return None                           # GARDE §3 : P(NOM)≥0.5 ∧ P(VER)<0.01 (posterior fréquentiel) — exclut
+    #   « les porte/livre » (masse verbe) et « les rouge » (ADJ-dom, P(NOM)<0.5) ; récupère ami/voiture/faute que la garde nbhomog ratait.
+    #   (Ancien : nbhomog==0 ∧ POS==NOM lu sur le tag DUR embarqué — faux pour faute=VER/amis=ADJ. Relaxe naïve nbhomog<=1 = REJETÉE, +25 FP.)
+    nx = T[i + 1] if i + 1 < len(T) else ''
     if nx[:1].islower() and nx.isalpha():                       # nom composé (« hit parade », « vice président », « tour opérateur ») :
-        vx = pos_of(nx)                                         #   nom + nom → 1er élément souvent invariable → abstention
-        if vx and vx[0] == 'NOM' and deacc(nx.lower()) not in ADJ_LEX: return None   # (« français » = adj-nom → PAS un composé : « les département français » corrigé)
+        pp = NOUN_POST.get(deacc(nx.lower()))                   #   nom + nom → 1er élément souvent invariable → abstention
+        if pp and pp[0] >= PL_TAU_M and deacc(nx.lower()) not in ADJ_LEX: return None   # (« français » = adj-nom → PAS un composé : « les département français » corrigé)
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
 

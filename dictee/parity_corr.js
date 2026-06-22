@@ -6,9 +6,13 @@ const fs = require('fs'), path = require('path'), cp = require('child_process'),
 const HERE = __dirname, HTML = path.join(HERE, '..', 'app', 'omega-pendu.html');
 const html = fs.readFileSync(HTML, 'utf8');
 
-// charge le gros lexique embarqué (OMEGA_LEX4) : posOf() en a besoin pour la garde genre ET l'accord pluriel du nom
+// charge le gros lexique embarqué (OMEGA_LEX4) : posOf() en a besoin pour la garde genre
 const _lx = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';
 if (_lx) { try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(_lx.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {} }
+
+// POSTERIOR §3 du pluriel (bloc noun-post-gz) : seed le global OMEGA_NOUN_POST (l'app le lit comme NOUN_POST) → teste rNounPlural en parité
+const _np = (html.match(/<script type="text\/plain" id="noun-post-gz">([^<]*)<\/script>/) || [])[1] || '';
+if (_np) { try { globalThis.OMEGA_NOUN_POST = {}; zlib.gunzipSync(Buffer.from(_np.replace(/\s/g, ''), 'base64')).toString('utf8').split('\n').forEach(l => { const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_NOUN_POST[p[0]] = [+p[1], +p[2]]; }); } catch (e) {} }
 
 // 1) extraire l'IIFE jusqu'à correctText, refermer en exposant correctText
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));

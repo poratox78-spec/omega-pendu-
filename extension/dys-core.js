@@ -134,24 +134,26 @@
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
     if(POS_ABSTAIN&&POS_ABSTAIN.has(nd))return null;                              // POS 155k : suivant ≠ NOM, ou homographe multiple (« tour »/« livre ») → abstention (FP)
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
-  // accord PLURIEL du NOM — MÊME logique que correcteur_probe.rule_noun_plural / rNounPlural (parité). nbhomog via NOM_MAP (asset nom-nbhomog).
-  var NOM_MAP=null;   // form_déacc -> nbhomog (formes POS=NOM-dominantes) ; ≡ posOf(w)[0]==='NOM' (présence) + nbhomog (valeur)
-  function _applyNomMap(t){NOM_MAP=new Map();var L=t.split('\n');for(var i=0;i<L.length;i++){var p=L[i].split('\t');if(p[0])NOM_MAP.set(p[0],+p[1]);}}
-  function loadNomMap(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+  // accord PLURIEL du NOM — MÊME logique que correcteur_probe.rule_noun_plural (parité). GARDE §3 = posterior P(POS|forme) en ‰ (asset noun-post).
+  var NOUN_POST=null;   // form_déacc -> [nom‰, ver‰] (depuis FreqMot du TSV) ; remplace nbhomog : tire ssi P(NOM)≥0.5 ∧ P(VER)<0.01
+  var PL_TAU_M=500,PL_EPS_M=10,PL_ANCHOR_M=300;   // P(NOM)≥0.5 / P(VER)<0.01 / ancre 0.3 (mesuré ε=0.01 : +3 récup. ami/voiture/faute, +1 FP UD)
+  function _applyNounPost(t){NOUN_POST=new Map();var L=t.split('\n');for(var i=0;i<L.length;i++){var p=L[i].split('\t');if(p.length>=3)NOUN_POST.set(p[0],[+p[1],+p[2]]);}}
+  function loadNounPost(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
     var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
-    _applyNomMap(await new Response(st).text());return true;}catch(e){return false;}})();}
+    _applyNounPost(await new Response(st).text());return true;}catch(e){return false;}})();}
   var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée (parité NUM_DET pluriel)
-  var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1};
-  function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[n+'s'];                  // pluriel ANCRÉ dans le lexique (NOM_MAP)
+  var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1,quanta:1,addenda:1,errata:1,curricula:1,strata:1};
+  function _nounGate(dn){var p=NOUN_POST&&NOUN_POST.get(dn);return !!p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M;}
+  function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[n+'s'];                  // pluriel ANCRÉ dans le POSTERIOR (part NOM≥30 %)
     if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');if(/au$|eu$/.test(dn))cands.push(n+'x');
-    for(var k=0;k<cands.length;k++){if(NOM_MAP.has(deacc(cands[k].toLowerCase())))return cands[k];}return null;}
-  function rNounPlural(T,i){if(!NOM_MAP||i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;
+    for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_ANCHOR_M)return cands[k];}return null;}
+  function rNounPlural(T,i){if(!NOUN_POST||i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
-    if(NOM_MAP.get(dn)!==0)return null;                                                       // NOM-dominant ∧ nbhomog==0 (exclut porte/livre/rouge + « les » pronom)
+    if(!_nounGate(dn))return null;                                                            // GARDE §3 : P(NOM)≥0.5 ∧ P(VER)<0.01 (exclut porte/livre verbe + rouge ADJ-dom + « les » pronom)
     var nx=i+1<T.length?T[i+1]:'';
-    if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());
-      if(NOM_MAP.has(dnx)&&!ADJP[dnx])return null;}                                           // nom composé (nom+nom ; adj « français » → pas un composé)
+    if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);
+      if(pp&&pp[0]>=PL_TAU_M&&!ADJP[dnx])return null;}                                        // nom composé (nom+nom ; adj « français » → pas un composé)
     var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
   var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord pluriel nom',rNounPlural]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
@@ -275,7 +277,7 @@
   function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz), nom:url(.gz) }
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
     if(urls&&urls.pos)loadPosAbstain(urls.pos);            // POS-abstain (genre) : additif, indépendant
-    if(urls&&urls.nom)loadNomMap(urls.nom);               // NOM-nbhomog (accord pluriel du nom) : additif, indépendant
+    if(urls&&urls.nom)loadNounPost(urls.nom);             // posterior §3 du pluriel du nom (noun-post) : additif, indépendant
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -297,7 +299,7 @@
     flagsToFacts:flagsToFacts, REMED:REMED, STAGE_LBL:STAGE_LBL, STAGE_MSG:STAGE_MSG, STAGE_FAM:STAGE_FAM,
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, setPosAbstain:_applyPosAbstain, loadPosAbstain:loadPosAbstain,
-    setNomMap:_applyNomMap, loadNomMap:loadNomMap,
+    setNounPost:_applyNounPost, loadNounPost:loadNounPost,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));

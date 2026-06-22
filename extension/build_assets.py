@@ -37,18 +37,24 @@ def main():
         open(os.path.join(OUT, fname), 'wb').write(base64.b64decode(raw))
 
     # POS-abstain (genre) : SET des formes où POS≠NOM ∨ nbhomog>1, dérivé de cgram_pos.json (= même lexique que l'app/Python).
-    # NOM-nbhomog (accord pluriel) : MAP form->nbhomog des formes POS=NOM-dominantes (≡ posOf()[0]=='NOM' + nbhomog).
-    # L'app/Python lisent OMEGA_LEX4 ; l'extension (sans le lexique) charge ces dérivés → parité exacte des gardes.
+    # noun-post (accord pluriel) : MAP form->[nom‰,ver‰] = posterior §3 P(POS|forme), dérivé de cgram_noun_post.json (FreqMot du TSV).
+    # L'app embarque ces données ; l'extension (sans le lexique) charge ces dérivés → parité exacte des gardes.
     assets = ['vdc-lex.json', 'gender-relaxed.tsv.gz', 'speller.tsv.gz']
     if os.path.exists(POS):
         pos = json.load(open(POS, encoding='utf-8'))
         ab = sorted(w for w, v in pos.items() if v[0] != 'NOM' or (len(v) > 2 and v[2] > 1))
         gzip.open(os.path.join(OUT, 'pos-abstain.txt.gz'), 'wb', compresslevel=9).write(('\n'.join(ab)).encode('utf-8'))
-        nm = sorted((w, v[2] if len(v) > 2 else 0) for w, v in pos.items() if v[0] == 'NOM')
-        gzip.open(os.path.join(OUT, 'nom-nbhomog.txt.gz'), 'wb', compresslevel=9).write(('\n'.join('%s\t%d' % (w, nb) for w, nb in nm)).encode('utf-8'))
-        assets += ['pos-abstain.txt.gz', 'nom-nbhomog.txt.gz']
+        assets.append('pos-abstain.txt.gz')
     else:
-        print("  ⚠️ cgram_pos.json absent — lancer build_pos.py d'abord (assets POS/NOM non régénérés)")
+        print("  ⚠️ cgram_pos.json absent — lancer build_pos.py d'abord (asset POS non régénéré)")
+    NPOST = os.path.join(HERE, '..', 'dictee', 'cgram_noun_post.json')
+    if os.path.exists(NPOST):
+        npost = json.load(open(NPOST, encoding='utf-8'))
+        rows = sorted('%s\t%d\t%d' % (w, v[0], v[1]) for w, v in npost.items())
+        gzip.open(os.path.join(OUT, 'noun-post.txt.gz'), 'wb', compresslevel=9).write(('\n'.join(rows)).encode('utf-8'))
+        assets.append('noun-post.txt.gz')
+    else:
+        print("  ⚠️ cgram_noun_post.json absent — lancer build_noun_post.py d'abord (asset pluriel non régénéré)")
 
     for f in assets:
         p = os.path.join(OUT, f)

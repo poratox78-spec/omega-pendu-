@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-06-22 — GARDE §3 du pluriel CÂBLÉE dans les 3 moteurs (posterior fréquentiel, fix POS inhérent)
+
+Décision Rem : « fix POS PUIS garde §3 à ε=0.01 ». Fait, mesuré, 3 moteurs à parité.
+
+**Asset canonique** `dictee/cgram_noun_post.json` (`build_noun_post.py` depuis le TSV) = `{forme : [nom‰, ver‰]}`,
+posterior `P(POS|forme)=ΣFreqMot/ΣFreqMot` (61 453 formes nom‰≥300). La garde plate `nbhomog==0 ∧ POS==NOM`
+(lue sur le tag DUR, **faux** pour faute=VER/amis=ADJ) devient **`P(NOM)≥0.5 ∧ P(VER)<0.01`** + ancre du pluriel
+via le posterior (≥0.3). Le « fix POS » est **inhérent** : le posterior est strictement plus juste que le tag embarqué.
+
+- **Python** (`correcteur_probe.py`) : `NOUN_POST` + `_noun_gate` + ancre posterior + stop latin (quanta…).
+- **App** (`omega-pendu.html`) : bloc embarqué `noun-post-gz` (290 Ko b64) + `loadNounPost` (miroir `loadGenderLex`) +
+  `rNounPlural` réécrit ; seed global `OMEGA_NOUN_POST` pour la parité (comme `OMEGA_LEX4`).
+- **Extension** : `noun-post.txt.gz` (218 Ko, remplace `nom-nbhomog`) ; `dys-core` posterior ; `build_assets`/`content`/`parity_core` MAJ.
+
+**Mesuré** : batterie dys **FP=0** ; **ami/voiture/faute récupérés**, « porte/livre/rouge/quanta » abstenus ;
+parité app≡Python≡extension (0 écart pluriel) ; FP UD encyclopédique 22→26 (+4, marge anglicismes/composés, hors CI).
+Genre **non** touché (resterait à mesurer séparément avant de l'étendre au posterior).
+
+---
+
 ## 2026-06-22 — SONDE §3 « pyramide » : posterior fréquentiel > garde plate (récupère « des ami » FP-safe)
 
 Idée de Rem : la dictée lit une *tranche plate* du lexique, le pendu empile les niveaux (pyramide). Audit du

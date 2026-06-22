@@ -12,7 +12,7 @@ const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json')
 const grText = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender-relaxed.tsv.gz'))).toString('utf8');
 DYSCORE.setLex(vdc, grText);
 DYSCORE.setPosAbstain(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'pos-abstain.txt.gz'))).toString('utf8'));   // POS 155k (parité genre avec l'app/Python)
-DYSCORE.setNomMap(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'nom-nbhomog.txt.gz'))).toString('utf8'));       // NOM-nbhomog (parité accord pluriel du nom)
+DYSCORE.setNounPost(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'noun-post.txt.gz'))).toString('utf8'));        // posterior §3 (parité accord pluriel du nom)
 
 // 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est + pluriel du nom)
 const PHRASES = [
