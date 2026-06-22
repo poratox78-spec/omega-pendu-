@@ -14,11 +14,14 @@ def deacc(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 
-def main():
-    src = open(APP, encoding='utf-8').read()
+def extract(app=APP):
+    """POS 155k depuis le lexique EMBARQUÉ (sans cgram_pos.json) → { forme_déacc : [POS, freq, nbhomog] }.
+    Exposé pour que correcteur_probe.py s'en serve en REPLI quand cgram_pos.json n'est pas encore généré
+    (CI : parité lancée avant build_pos ; ou checkout frais) — MÊME source que l'app → parité garantie."""
+    src = open(app, encoding='utf-8').read()
     m = re.search(r'id="lex4-data-gz"[^>]*>([A-Za-z0-9+/=\s]+?)</script>', src)
     if not m:
-        print("[pos] bloc lex4-data-gz introuvable"); return 2
+        return {}
     W = json.loads(gzip.decompress(base64.b64decode(re.sub(r'\s', '', m.group(1)))).decode('utf-8'))['words']
     pos = {}
     for w in W:
@@ -26,6 +29,13 @@ def main():
         if not k or k in pos:
             continue                                   # 1re occurrence = la plus fréquente (ordre lexique)
         pos[k] = [w.get('g', ''), round(w.get('f', 0.0), 2), w.get('nbhomog', 0)]
+    return pos
+
+
+def main():
+    pos = extract()
+    if not pos:
+        print("[pos] bloc lex4-data-gz introuvable"); return 2
     json.dump(pos, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     print(f"[pos] {len(pos)} formes → {OUT}  ({os.path.getsize(OUT)//1024} Ko)")
     return 0

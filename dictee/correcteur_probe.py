@@ -102,6 +102,11 @@ POS_LEX = {}
 if os.path.exists(_POS_PATH):
     try: POS_LEX = json.load(open(_POS_PATH, encoding='utf-8'))
     except Exception: POS_LEX = {}
+if not POS_LEX:                                        # repli §5 : cgram_pos.json absent (CI avant build_pos / checkout frais)
+    try:                                               # → extraire du lexique EMBARQUÉ (MÊME source que l'app posOf) → parité garantie
+        from build_pos import extract as _pos_extract
+        POS_LEX = _pos_extract()
+    except Exception: POS_LEX = {}
 def pos_of(w): return POS_LEX.get(deacc(w.lower()))
 
 
