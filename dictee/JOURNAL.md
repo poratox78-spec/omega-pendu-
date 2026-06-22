@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-06-22 — FP homophones : on/ont −27 (suivant décisif) + a/à −5 (garde posterior) — 3 moteurs
+
+Enchaînement auto sur les 2 plus gros postes de FP. **Échantillonné les vrais FP sur UD** pour trouver le pattern :
+- **on/ont (79 FP)** : « professeurs **on** trouve », « comme **on** dit » → la garde `is_plural_noun(prev)` tirait « ont »
+  alors que le mot **suivant** est un verbe fini présent. FIX (1 ligne, en TÊTE) : suivant = verbe fini en **-e** (trouve/
+  mange, jamais un PP) → « on » décisif. Mesuré : **79→52 (−27), 0 nouveau FP, recall intact**. (Tentative plus large —
+  retirer `IRREG_PART` du test PP — REJETÉE : +36 FP, casse « ont pu/eu/fait ». La forme ambiguë « dit » reste un résiduel.)
+- **a/à (97 FP, 90 = a→à)** : « l'entreprise **a** douze », « la voiture **a** quatre » → `vlike(prev)` tirait « à »
+  sur des noms à homographe verbal. FIX : ne pas suggérer « à » si le mot avant « a » est un **NOM confiant** au posterior
+  (`P(NOM)≥0.5 ∧ P(VER)<0.01`, NOUN_POST déjà chargé). Mesuré : **97→92 (−5), 0 nouveau FP, 0 perte recall** (va/pense/
+  cherche a→à gardés). Garde *stricte* (ver<10) choisie pour ne pas rater « maison a vendre »→à.
+
+3 moteurs (Python `_reads`/`NOUN_POST`, app/ext `svReads`/`NOUN_POST`), parité app≡Python≡extension, batterie dys FP=0.
+**Total FP UD : 2.46%→2.18%** (cumulé avec pluriel/genre/§3 de la session). Le posterior sert maintenant 4 règles.
+
+---
+
 ## 2026-06-22 — Accord SV sujet-nom : relâcher `dk==0` via le posterior — MESURÉ, REJETÉ (ne pas refaire)
 
 Enchaînement auto suivant : `rule_accord_sv_noun` exige le déterminant pluriel **en tête** (`dk==0`). Hypothèse :

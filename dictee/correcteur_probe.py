@@ -179,9 +179,10 @@ def rule_son_sont(T, i):
 def rule_on_ont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
+    nx = T[i+1].lower() if i+1 < len(T) else ''
+    if nx.endswith('e') and not nx.endswith('ée') and _reads(nx): return 'on'   # « on » + verbe FINI présent en -e (trouve/mange) → « on » (ont ne précède JAMAIS un verbe fini) ; fixe « professeurs on trouve »→ont
     p = prev(T, i)
     if p in ('ils', 'elles') or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
-    nx = T[i+1].lower() if i+1 < len(T) else ''
     if nx.endswith('é') or nx.endswith('és') or nx.endswith('ée') or nx.endswith('ées') or is_participle(T, i+1) or deacc(nx) in IRREG_PART:
         return 'ont'                                                    # avoir + participe (« ont incarné », « ont pu/fait/eu ») → 3pl, jamais « on »
     if vlike(T, i+1):         return 'on'                               # « on » sujet + verbe
@@ -202,7 +203,10 @@ def rule_a_aa(T, i):
     p = prev(T, i)
     if p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg → avoir
     if i+1 < len(T) and is_participle(T, i+1):            return 'a'    # « a mangé » (aux)
-    if vlike(T, i-1):                                     return 'à'    # après un verbe (« va à ») → préposition
+    if vlike(T, i-1):                                                  # après un verbe (« va à ») → préposition
+        pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
+        if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return None  # « l'entreprise a », « la voiture a » → avoir, pas « à » (fixe ~10 FP a→à)
+        return 'à'
     return None
 
 def rule_et_est(T, i):
