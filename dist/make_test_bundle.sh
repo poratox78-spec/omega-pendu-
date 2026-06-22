@@ -17,7 +17,7 @@ cp "$ROOT/dist/LISEZ-MOI-TEST.md" "$STAGE/LISEZ-MOI-TEST.md"
 for f in manifest.json dys-core.js content.js content.css popup.html popup.js README.md; do
   cp "$ROOT/extension/$f" "$STAGE/extension/$f"
 done
-cp "$ROOT"/extension/assets/{vdc-lex.json,gender-relaxed.tsv.gz,speller.tsv.gz,pos-abstain.txt.gz,noun-post.txt.gz} "$STAGE/extension/assets/"
+cp "$ROOT"/extension/assets/{vdc-lex.json,gender-relaxed.tsv.gz,speller.tsv.gz,noun-post.txt.gz} "$STAGE/extension/assets/"
 cp "$ROOT/app/omega-pendu.html" "$STAGE/app/omega-pendu.html"
 
 # 3) zip

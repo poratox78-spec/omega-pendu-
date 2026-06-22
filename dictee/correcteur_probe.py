@@ -444,9 +444,9 @@ def rule_det_gender(T, i):
     if lw in ('son', 'mon', 'ton') and nd[:1] in 'aeiouyh':        # son/mon/ton OBLIGATOIRES devant voyelle/h (son amie,
         return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
     if T[i+1][:1].isupper() or nd in DET_SKIP: return None         # nom propre/étranger (capitalisé) OU adverbe/adj/prép. avant le vrai nom-tête → abstention (FP)
-    _pp = pos_of(nd)                                               # POS 155k (lexique embarqué) : le suivant doit être un NOM NON homographe
-    if _pp and (_pp[0] != 'NOM' or _pp[2] > 1): return None        #   POS≠NOM (adv/adj/verbe/dét) OU homographe multiple (nbhomog>1 : « tour », « livre ») → abstention (FP)
-    g_noun = GENDER_PURE.get(nd)
+    _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le suivant doit être CONFIDEMMENT un NOM
+    if not (_pp and _pp[0] >= PL_TAU_M and _pp[1] < PL_EPS_M): return None   # OOV / P(NOM)<0.5 / P(VER)≥0.01 → abstention (corrige faute=VER : freq dit NOM ; + FP 71→49 sur UD)
+    g_noun = GENDER_PURE.get(nd)                                   #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
     return _keepcase(T[i], sugg) if sugg else None

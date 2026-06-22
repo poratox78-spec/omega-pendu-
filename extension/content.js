@@ -15,18 +15,15 @@
   // charge les lexiques depuis les assets de l'extension (fetch + DecompressionStream, comme l'app)
   try {
     var spellerUrl = chrome.runtime.getURL('assets/speller.tsv.gz');
-    var posUrl = chrome.runtime.getURL('assets/pos-abstain.txt.gz');
     var nomUrl = chrome.runtime.getURL('assets/noun-post.txt.gz');
     DC.loadLex({
       vdc: chrome.runtime.getURL('assets/vdc-lex.json'),
       genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
       speller: spellerUrl,
-      pos: posUrl,
       nom: nomUrl
     }).then(function () { if (active) schedule(active); });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
-    if (DC.loadPosAbstain) DC.loadPosAbstain(posUrl).then(function () { if (active) schedule(active); });  // re-render quand le POS (genre) est prêt
-    if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior du pluriel du nom est prêt
+    if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior (genre + pluriel) est prêt
   } catch (e) {}
 
   // ===== cible éditable =====

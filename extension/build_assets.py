@@ -11,7 +11,6 @@ import os, re, base64, json, gzip
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'app', 'omega-pendu.html')
 OUT = os.path.join(HERE, 'assets')
-POS = os.path.join(HERE, '..', 'dictee', 'cgram_pos.json')   # POS 155k (build_pos.py) — extension n'a pas OMEGA_LEX4
 
 
 def block(html, bid):
@@ -36,17 +35,9 @@ def main():
         raw = re.sub(r'\s', '', block(html, bid))
         open(os.path.join(OUT, fname), 'wb').write(base64.b64decode(raw))
 
-    # POS-abstain (genre) : SET des formes où POS≠NOM ∨ nbhomog>1, dérivé de cgram_pos.json (= même lexique que l'app/Python).
-    # noun-post (accord pluriel) : MAP form->[nom‰,ver‰] = posterior §3 P(POS|forme), dérivé de cgram_noun_post.json (FreqMot du TSV).
-    # L'app embarque ces données ; l'extension (sans le lexique) charge ces dérivés → parité exacte des gardes.
+    # noun-post (genre ET accord pluriel) : MAP form->[nom‰,ver‰] = posterior §3 P(POS|forme), dérivé de cgram_noun_post.json (FreqMot du TSV).
+    # L'app embarque ces données ; l'extension (sans le lexique) charge ce dérivé → parité exacte des gardes. (pos-abstain supprimé : remplacé par le posterior.)
     assets = ['vdc-lex.json', 'gender-relaxed.tsv.gz', 'speller.tsv.gz']
-    if os.path.exists(POS):
-        pos = json.load(open(POS, encoding='utf-8'))
-        ab = sorted(w for w, v in pos.items() if v[0] != 'NOM' or (len(v) > 2 and v[2] > 1))
-        gzip.open(os.path.join(OUT, 'pos-abstain.txt.gz'), 'wb', compresslevel=9).write(('\n'.join(ab)).encode('utf-8'))
-        assets.append('pos-abstain.txt.gz')
-    else:
-        print("  ⚠️ cgram_pos.json absent — lancer build_pos.py d'abord (asset POS non régénéré)")
     NPOST = os.path.join(HERE, '..', 'dictee', 'cgram_noun_post.json')
     if os.path.exists(NPOST):
         npost = json.load(open(NPOST, encoding='utf-8'))

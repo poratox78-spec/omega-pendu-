@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-06-22 — GARDE §3 ÉTENDUE au GENRE (FP 61→42, « le faute »→la) + pos-abstain SUPPRIMÉ
+
+Enchaînement auto après le pluriel. Mesuré AVANT câblage (sonde inline) : la garde genre `POS≠NOM ∨ nbhomog>1`
+(tag dur) devient le posterior `P(NOM)≥0.5 ∧ P(VER)<0.01` (variante **stricte** : OOV→abstient ; le « fallthrough »
+testé = pire, +22 FP). **Strict mesuré : FP genre 71→49 standalone, 61→42 canonique (UD)** — un gain NET (moins de
+FP) ET « le faute »→la récupéré (faute=VER au tag, 99,7 % NOM en freq). L'ambiguïté de GENRE (« tour » m+f) reste
+couverte par `GENDER_PURE` (pas besoin de nbhomog). 3 moteurs : `rule_det_gender`/`rDetGenre` lisent `NOUN_POST`.
+
+**Conséquence hygiène** : genre+pluriel utilisant tous deux le posterior, **tout l'appareil pos-abstain est MORT**
+→ supprimé de l'extension : asset `pos-abstain.txt.gz` (237 Ko, shippé aux users), `POS_ABSTAIN`/loader/exports,
+refs `build_assets`/`content`/`parity_core`/bundle. (App `posOf` + Python `pos_of`/`cgram_pos`/`build_pos` gardés :
+`pos_of` sert encore à `pyramide_probe`.) Batterie dys **FP=0**, parité app≡Python≡extension, suite verte.
+
+---
+
 ## 2026-06-22 — GARDE §3 du pluriel CÂBLÉE dans les 3 moteurs (posterior fréquentiel, fix POS inhérent)
 
 Décision Rem : « fix POS PUIS garde §3 à ε=0.01 ». Fait, mesuré, 3 moteurs à parité.
