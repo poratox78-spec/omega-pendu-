@@ -30,6 +30,7 @@ const PHRASES = [
   'il rit mais pleure souvent', 'mais place est prise',
   'j\'est le poisse de oartir à la monagne', 'j\'est un chien', 'J\'est la chance', 'j\'est content',
   'j\'est allé à Paris', 'j\'est de la peine', 'j\'est du mal', 'j\'est venu hier', 'j\'est de Paris',
+  "j'sais que c'est vrai", "Personne n'sait où il est", "qu'tu viennes", "l'homme est là", "d'abord",
   'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien'
 ];
 

@@ -502,6 +502,24 @@ def rule_cai(T, i):
     return _keepcase(T[i], "c'est") if deacc(T[i].lower()) == "c'ai" else None
 
 
+# Élision fautive DEVANT CONSONNE : une forme élidée n'est valide que devant voyelle → devant consonne = TOUJOURS
+# faute (FP=0 STRUCTUREL). Clitiques DÉTERMINISTES uniquement (j'/n'/m'/d'/c'/qu') → parité triviale (aucun lexique).
+# EXCLUS : t' (te/tu), s' (se/si) ambigus ; l' (le/la = genre) ; h (« l'homme » = h muet, élision correcte) ; y (« j'y »).
+_ELIDE = {"j'": 'je', "n'": 'ne', "m'": 'me', "d'": 'de', "c'": 'ce', "qu'": 'que'}
+_ELIDE_CONS = set("bcdfgjklmnpqrstvwxz")
+
+
+def rule_elide(T, i):
+    w = T[i]; lw = w.lower()
+    for pre, full in _ELIDE.items():
+        if lw.startswith(pre):
+            rest = w[len(pre):]
+            if rest and deacc(rest[0].lower()) in _ELIDE_CONS:    # rest commence par une consonne (≠ voyelle/h/y) → de-élide
+                return _keepcase(w, full + ' ' + rest)
+            return None                                           # devant voyelle/h = élision correcte → stop
+    return None
+
+
 # ---------- Accord PLURIEL du NOM (déterminant pluriel + nom singulier) — la faute dys n°1 ----------
 PLURAL_DET = {w for w, v in NUM_DET.items() if v == 'pl'}   # ces/des/les/leurs/mes/nos/ses/tes/vos (classe fermée, fiable)
 
@@ -552,7 +570,7 @@ def rule_noun_plural(T, i):
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
-         ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai),
+         ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),

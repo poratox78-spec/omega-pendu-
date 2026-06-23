@@ -5,6 +5,13 @@
 
 ---
 
+## 2026-06-24 — ÉLISION FP-safe (j'sais→je sais, 3 moteurs) + cadrage du BESCHERELLE (conjugaison)
+
+Mesure §1 : sur **26 fautes GEC réelles**, les règles n'en attrapent que **5** (4 genre + 1 MAUVAISE « monde→mondes »). Ratées = élision, conjugaison (personne), nombre, ordre des mots, mot manquant, accord adjectif. Les FP-safe faisables :
+- **ÉLISION livrée (3 moteurs)** : `rule_elide`/`rElide` — clitique élidé devant CONSONNE = toujours faute → **FP=0 STRUCTUREL** → de-élide. Clitiques DÉTERMINISTES `j'/n'/m'/d'/c'/qu'` (→ je/ne/me/de/ce/que) ⇒ **parité triviale (aucun lexique)**. EXCLUS : `t'/s'` (te/tu, se/si ambigus), `l'` (le/la = genre, différé), `h` (« l'homme » muet → élision correcte), `y` (« j'y »). Mesuré : prend `j'sais→je sais`, `n'sait→ne`, `m'détestons→me`, `qu'tu→que tu` ; **FP=0 sur 10 contrôles** (« l'homme »/« l'eau »/« j'y »/« d'abord »). Ajouté à `--check` (CI) + batteries parité. **dev.sh 26/26**.
+- **BESCHERELLE (cadré, non livré — décision produit)** : « Ils détestons »→détestent raté car la **FORME** « détestons » (1pl) manque de la table HF (8018 formes ≈ freq≥1) bien que le lemme `détester` y soit (déteste/détestent). Compléter les paradigmes (Lexique4 = **87 497 formes VER** ; freq≥0.5 = 11 754) catcherait ces accords de personne — au **COÛT d'embarquement** (table conj. ×1.5 à ×3 dans `vdc-lex`). En attente d'arbitrage taille-monolithe. (1re/2e pers. nombre + nous/vous = abstentions de design, anti-FP.)
+- Hors-portée (contexte/LLM, cf. suite 3) : ordre des mots, mot manquant, accord adjectif.
+
 ## 2026-06-23 (suite 3) — point (c) : plafond du correcteur-CONTEXTE (LLM = Claude) mesuré À L'AVEUGLE
 
 Le LLM opt-in (déjà câblé : cloud / Chrome Nano) est la seule voie pour les limites de CONTEXTE (et/est, ce/se, accord SV à sujet nom, avoir↔être, + tout le hors-périmètre). Mesuré **directement (je suis le modèle)** sur du RÉEL non fabriqué (corpus GEC), protocole **aveugle** (corrigé sans voir le gold, tally par script) :

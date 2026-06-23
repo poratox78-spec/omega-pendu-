@@ -80,8 +80,14 @@ def _check():
               ("j'est venu hier", "je suis"), ("j'est de la peine", "j'ai"), ("j'est du mal", "j'ai"),
               ("j'est des soucis", "j'ai"), ("j'est un chien", "j'ai")]
     abstain = ["j'est de Paris", "j'est entendu le tonnerre"]                       # aux ambigu → « j'est » NON flagué
-    nofp = ["Le chat mange une pomme.", "je suis content", "j'ai de la peine"]      # texte correct → 0 flag
+    nofp = ["Le chat mange une pomme.", "je suis content", "j'ai de la peine",
+            "l'homme est là", "j'aime le café", "n'est-ce pas", "d'abord il faut"]  # texte correct (élision OK) → 0 flag
+    elide = [("J'sais que c'est vrai", "J'sais", "Je sais"), ("Personne n'sait", "n'sait", "ne sait"),
+             ("qu'tu viennes", "qu'tu", "que tu")]                                  # élision fautive devant consonne
     bad = []
+    for s, wtok, sug in elide:
+        if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):
+            bad.append(f"{s!r} → élision {wtok!r}→{sug!r} non détectée")
     for s, exp in expect:
         got = next((f[2] for f in C.correct(s) if deacc(f[1].lower()) == "j'est"), None)
         if got != exp: bad.append(f"{s!r} → attendu {exp!r}, obtenu {got!r}")
@@ -94,7 +100,7 @@ def _check():
         print("✗ recall_probe --check : régression(s) du correcteur :")
         for b in bad: print("    " + b)
         sys.exit(1)
-    print(f"✓ recall_probe --check : {len(expect) + len(abstain) + len(nofp)} comportements clés OK (j'est être/avoir + FP)")
+    print(f"✓ recall_probe --check : {len(expect) + len(abstain) + len(nofp) + len(elide)} comportements clés OK (j'est être/avoir + élision + FP)")
 
 
 def main():
