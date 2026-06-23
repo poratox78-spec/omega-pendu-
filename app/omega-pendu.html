@@ -11829,19 +11829,38 @@ window.addEventListener('DOMContentLoaded', () => {
    +'.vdc-bad{background:#fde2e2;border-bottom:3px solid #c0392b;border-radius:3px;padding:0 1px;cursor:pointer}.vdc-bad:hover{background:#fbcaca}'
    +'.vdc-bad.vdc-orth{background:#e6eefc;border-bottom-color:#2a6f97}.vdc-bad.vdc-orth:hover{background:#d2e2fb}'
    +'.vdc-fact{padding:8px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff;border-left:5px solid #c0392b}.vdc-sc{color:#6b6b6b;font-size:13px}'
-   +'#vdc-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}';
+   +'#vdc-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'
+   +'#vdc-set{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}'
+   +'#vdc-set button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid #cfc4ab;border-radius:8px;background:#fff;color:#333;cursor:pointer;min-height:34px}'
+   +'#vdc-set button[aria-pressed=true]{background:#2a6f97;color:#fff;border-color:#2a6f97}'
+   +'body.dys-dark #vdc-card,body.dys-dark #vdd-card,body.dys-dark #vdk-card{background:#1c232c;color:#e8edf2}'
+   +'body.dys-dark #vdc-card h2,body.dys-dark #vdc-x{color:#e8edf2}'
+   +'body.dys-dark #vdc-in,body.dys-dark #vdc-render{background:#10161d;color:#e8edf2;border-color:#33414f}'
+   +'body.dys-dark .vdc-fact{background:#10161d}body.dys-dark #vdc-set button{background:#10161d;color:#e8edf2;border-color:#33414f}'
+   +'body.dys-dark #vdc-set button[aria-pressed=true]{background:#3b82c4;border-color:#3b82c4}'
+   +'body.dys-dark .vdc-bad{background:#3a1d1d}body.dys-dark .vdc-bad.vdc-orth{background:#16283d}'
+   +'body.dys-cb .vdc-bad{background:#fce6cf;border-bottom-color:#d9760b}body.dys-cb .vdc-bad:hover{background:#f9d6ac}'
+   +'body.dys-cb .vdc-fact{border-left-color:#d9760b}'
+   +'body.dys-cb .vdc-bad.vdc-orth{background:#d8e7f4;border-bottom-color:#1f6cb0}body.dys-cb .vdc-bad.vdc-orth:hover{background:#c2d9ef}'
+   +'body.dys-dark.dys-cb .vdc-bad{background:#3a2912}body.dys-dark.dys-cb .vdc-bad.vdc-orth{background:#12283f}';
   document.head.appendChild(cst);
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
   var cov=document.createElement('div');cov.id='vdc-ov';
-  cov.innerHTML='<div id="vdc-card"><button id="vdc-x">×</button><h2>🩹 Correcteur dys — semi-direct</h2>'
+  cov.innerHTML='<div id="vdc-card" role="dialog" aria-modal="true" aria-label="Correcteur dys"><button id="vdc-x" aria-label="Fermer">×</button><h2>🩹 Correcteur dys — semi-direct</h2>'
    +'<div class="vdc-sc">Colle ou écris ton texte : les fautes grammaticales (homophones a/à, son/sont… <b>et accord sujet-verbe</b> : « Je doit »→dois, « On ont »→a) sont <b>soulignées</b> — <b>clique dessus pour appliquer la correction</b>. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
-   +'<div class="vdc-sc" style="margin-top:6px"><label><input type="checkbox" id="vdc-lis"> Police lisible (dys)</label></div>'
-   +'<textarea id="vdc-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea>'
-   +'<div id="vdc-render"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px"></div><div id="vdc-out" style="margin-top:4px"></div>'
+   +'<div id="vdc-set" role="group" aria-label="Réglages d\'affichage">'
+   +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
+   +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
+   +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Police dys</button>'
+   +'</div>'
+   +'<textarea id="vdc-in" aria-label="Texte à corriger" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea>'
+   +'<div id="vdc-render" aria-live="polite"></div><div id="vdc-count" class="vdc-sc" style="margin-top:8px" aria-live="polite"></div><div id="vdc-out" style="margin-top:4px"></div>'
    +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
    +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-ia-on"> 🤖 Correction par IA (opt-in)</label>'
    +'<div id="vdc-ia-cfg" style="display:none;margin-top:6px">'
-   +'<label style="display:block;margin-bottom:4px"><input type="checkbox" id="vdc-ia-chrome"> 🧠 Chrome local (Gemini Nano) — hors-ligne, gratuit, sans clé</label>'
+   +'<div class="vdc-sc" style="margin-bottom:3px;font-weight:600">Moteur (au choix) :</div>'
+   +'<label style="display:block;margin-bottom:3px"><input type="radio" name="vdc-ia-mode" id="vdc-ia-chrome"> 🧠 Chrome local (Gemini Nano) — hors-ligne, gratuit, sans clé</label>'
+   +'<label style="display:block;margin-bottom:4px"><input type="radio" name="vdc-ia-mode" id="vdc-ia-cloudr" checked> ☁️ Cloud / API (OpenAI-compatible, Ollama…) — config ci-dessous</label>'
    +'<div id="vdc-ia-cloud">'
    +'<div class="vdc-sc" style="color:#a33">⚠️ Cloud/Ollama : le texte est envoyé à l\'endpoint (Ollama local = reste sur ta machine). Clé stockée sur cet appareil.</div>'
    +'<input id="vdc-ia-url" placeholder="endpoint OpenAI-compatible (.../v1/chat/completions)" style="width:100%;box-sizing:border-box;margin:2px 0">'
@@ -11881,10 +11900,32 @@ window.addEventListener('DOMContentLoaded', () => {
     $('vdc-out').innerHTML=html;}
   var _ct;cbtn.onclick=function(){cov.classList.add('on');$('vdc-in').focus();loadSpellerLex();loadGenderLex();loadNounPost();runCorr();};
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
+  cov.addEventListener('keydown',function(e){if(e.key==='Escape')cov.classList.remove('on');});   // Échap ferme la modale (clavier/accessibilité)
   cov.addEventListener('click',function(e){if(e.target===cov)cov.classList.remove('on');});
   $('vdc-in').addEventListener('input',function(){clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct
   $('vdc-render').addEventListener('click',function(e){var s=e.target.closest('.vdc-bad');if(!s)return;var k=+s.getAttribute('data-i');var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}if(f)applyFix(k,f.sugg);});  // clic = applique la correction
-  $('vdc-lis').addEventListener('change',function(){$('vdc-card').classList.toggle('lisible',$('vdc-lis').checked);});
+  // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
+  (function(){
+    var THEMES=['auto','light','dark'],TLABEL={auto:'🌗 Thème : auto',light:'☀️ Thème : clair',dark:'🌙 Thème : sombre'};
+    var st={theme:'auto',cb:false,lis:false};
+    try{st=Object.assign(st,JSON.parse(localStorage.getItem('dysDisplay')||'{}'));}catch(e){}
+    var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):{matches:false};
+    function eff(){return st.theme==='auto'?(mq.matches?'dark':'light'):st.theme;}
+    function apply(){
+      document.body.classList.toggle('dys-dark',eff()==='dark');
+      document.body.classList.toggle('dys-cb',!!st.cb);
+      var c=$('vdc-card');if(c)c.classList.toggle('lisible',!!st.lis);
+      var bt=$('vdc-theme');if(bt){bt.textContent=TLABEL[st.theme];bt.setAttribute('aria-pressed',st.theme!=='auto');}
+      var bc=$('vdc-cb');if(bc)bc.setAttribute('aria-pressed',!!st.cb);
+      var bl=$('vdc-lis');if(bl)bl.setAttribute('aria-pressed',!!st.lis);
+    }
+    function save(){try{localStorage.setItem('dysDisplay',JSON.stringify(st));}catch(e){}}
+    var bt=$('vdc-theme');if(bt)bt.addEventListener('click',function(){st.theme=THEMES[(THEMES.indexOf(st.theme)+1)%3];apply();save();});
+    var bc=$('vdc-cb');if(bc)bc.addEventListener('click',function(){st.cb=!st.cb;apply();save();});
+    var bl=$('vdc-lis');if(bl)bl.addEventListener('click',function(){st.lis=!st.lis;apply();save();});
+    if(mq.addEventListener)mq.addEventListener('change',function(){if(st.theme==='auto')apply();});
+    apply();
+  })();
   // ===== Couche IA (opt-in, EN LIGNE) — OFF par défaut ; surcouche cliquable des règles hors-ligne =====
   var IA_SYS='Tu es un correcteur orthographique et grammatical du français, spécialisé pour les troubles de l\'écrit (dyslexie, dysorthographie). On te donne le texte d\'un élève. Règles STRICTES : '
    +'1) Corrige UNIQUEMENT les vraies fautes (orthographe, accents, lettres muettes, accord genre/nombre, conjugaison, homophones, mots phonétiquement déformés ex. bouliées->oublié). '
@@ -11894,7 +11935,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var IA_SCHEMA={type:'object',required:['corrige','fautes'],additionalProperties:false,properties:{corrige:{type:'string'},fautes:{type:'array',items:{type:'object',required:['ecrit','correct','famille'],additionalProperties:false,properties:{ecrit:{type:'string'},correct:{type:'string'},famille:{type:'string',enum:['accent','muette','accord','conjugaison','homophone','phonetique','autre']}}}}}};
   function iaCloudVis(){var cl=$('vdc-ia-cloud');if(cl)cl.style.display=$('vdc-ia-chrome').checked?'none':'block';}
   function iaSave(){try{localStorage.setItem('vdd_ia',JSON.stringify({on:$('vdc-ia-on').checked,chrome:$('vdc-ia-chrome').checked,url:$('vdc-ia-url').value,key:$('vdc-ia-key').value,model:$('vdc-ia-model').value}));}catch(e){}}
-  function iaLoad(){try{var c=JSON.parse(localStorage.getItem('vdd_ia')||'{}');$('vdc-ia-on').checked=!!c.on;$('vdc-ia-chrome').checked=!!c.chrome;if(c.url)$('vdc-ia-url').value=c.url;if(c.key)$('vdc-ia-key').value=c.key;if(c.model)$('vdc-ia-model').value=c.model;$('vdc-ia-cfg').style.display=$('vdc-ia-on').checked?'block':'none';iaCloudVis();}catch(e){}}
+  function iaLoad(){try{var c=JSON.parse(localStorage.getItem('vdd_ia')||'{}');$('vdc-ia-on').checked=!!c.on;$('vdc-ia-chrome').checked=!!c.chrome;$('vdc-ia-cloudr').checked=!c.chrome;if(c.url)$('vdc-ia-url').value=c.url;if(c.key)$('vdc-ia-key').value=c.key;if(c.model)$('vdc-ia-model').value=c.model;$('vdc-ia-cfg').style.display=$('vdc-ia-on').checked?'block':'none';iaCloudVis();}catch(e){}}
   function iaApplyWord(e,c){var t=$('vdc-in').value;var re=new RegExp('(^|[^A-Za-zÀ-ÿœŒ])('+e.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')(?![A-Za-zÀ-ÿœŒ])');var m=re.exec(t);if(m){var at=m.index+m[1].length;$('vdc-in').value=t.slice(0,at)+c+t.slice(at+e.length);runCorr();}}
   // rendu COMMUN (cloud + Chrome) : proposition + fautes cliquables + NOTRE STADE DYS (engine-agnostic) par-dessus
   function iaRender(o,text){
@@ -11948,6 +11989,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   $('vdc-ia-on').addEventListener('change',function(){$('vdc-ia-cfg').style.display=this.checked?'block':'none';if(!this.checked)$('vdc-ia-out').innerHTML='';iaSave();});
   $('vdc-ia-chrome').addEventListener('change',function(){iaCloudVis();iaSave();});
+  $('vdc-ia-cloudr').addEventListener('change',function(){iaCloudVis();iaSave();});   // radio Cloud ↔ Chrome (choix explicite, plus de case cachée)
   ['vdc-ia-url','vdc-ia-key','vdc-ia-model'].forEach(function(id){var el=$(id);if(el)el.addEventListener('change',iaSave);});
   $('vdc-ia-go').addEventListener('click',function(){if($('vdc-ia-chrome').checked)iaRunChrome();else iaRun();});
   iaLoad();
