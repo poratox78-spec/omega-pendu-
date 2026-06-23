@@ -70,7 +70,33 @@ def load_sentences():
     return out
 
 
+def _check():
+    """Garde anti-régression CI (déterministe) : comportements clés du correcteur (levier être/avoir « j'est »
+    + contrôles FP). Exit 1 si l'un régresse. Réf. Python (les parités garantissent app≡extension)."""
+    expect = [("j'est content", "je suis"), ("J'est malade", "Je suis"), ("j'est allé à Paris", "je suis"),
+              ("j'est venu hier", "je suis"), ("j'est de la peine", "j'ai"), ("j'est du mal", "j'ai"),
+              ("j'est des soucis", "j'ai"), ("j'est un chien", "j'ai")]
+    abstain = ["j'est de Paris", "j'est entendu le tonnerre"]                       # aux ambigu → « j'est » NON flagué
+    nofp = ["Le chat mange une pomme.", "je suis content", "j'ai de la peine"]      # texte correct → 0 flag
+    bad = []
+    for s, exp in expect:
+        got = next((f[2] for f in C.correct(s) if deacc(f[1].lower()) == "j'est"), None)
+        if got != exp: bad.append(f"{s!r} → attendu {exp!r}, obtenu {got!r}")
+    for s in abstain:
+        if any(deacc(f[1].lower()) == "j'est" for f in C.correct(s)): bad.append(f"{s!r} → ne devrait PAS flaguer « j'est »")
+    for s in nofp:
+        fl = C.correct(s)
+        if fl: bad.append(f"{s!r} → FAUX POSITIF : {fl}")
+    if bad:
+        print("✗ recall_probe --check : régression(s) du correcteur :")
+        for b in bad: print("    " + b)
+        sys.exit(1)
+    print(f"✓ recall_probe --check : {len(expect) + len(abstain) + len(nofp)} comportements clés OK (j'est être/avoir + FP)")
+
+
 def main():
+    if '--check' in sys.argv:
+        return _check()
     dump_path = sys.argv[sys.argv.index('--dump') + 1] if '--dump' in sys.argv else None
     sents = load_sentences()
     n_pr = sum(1 for _, s in sents if s == 'propre'); n_gc = len(sents) - n_pr

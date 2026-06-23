@@ -25,6 +25,7 @@ command -v node    >/dev/null && echo "  node $(node --version)" || { echo "  �
 echo "── Python : dictée + correcteur (sans Lexique4.tsv) ──"
 run "diag phrases"                 python3 dictee/diag_sentence.py
 run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
+run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
 run "held-out vocab neuf"          python3 dictee/eval_externe.py
 run "boucle descendante (genre)"   python3 dictee/descending_probe.py
 run "did-you-mean FALSIFIÉ"        python3 dictee/didyoumean_probe.py
