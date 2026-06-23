@@ -61,3 +61,5 @@ jobs:
         run: |
           node dictee/build_correcteur.js /tmp/correcteur.standalone.js
           node -e "const C=require('/tmp/correcteur.standalone.js');C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');console.log('bake OK');});"
+      - name: Smoke anti-régression du MOTEUR (cognition cheat-free + NEO, seedé) — AUDIT_COMPLET CI1
+        run: node evo/ci_smoke.js
