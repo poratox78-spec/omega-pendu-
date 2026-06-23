@@ -11,6 +11,11 @@ const cases = JSON.parse(fs.readFileSync(CORPUS, 'utf8'));
 const deacc = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 // ---------- moteur APP (pendu) : OMEGA_LEX4 155k + noun-post + correctText de l'IIFE (cf. parity_corr.js) ----------
+// ⚠️ CAVEAT (mesuré 2026-06-23) : on n'extrait l'IIFE que jusqu'à correctText (~l.11700) → les loaders ASYNC de l'app
+// (loadGenderLex/loadSpellerLex, déclenchés au CLIC du bouton correcteur) ne tournent PAS ici. Le GENRE-relâché
+// (bloc gdet-lex-gz, 46432 entrées) n'est donc PAS appliqué au moteur APP de ce harnais → la colonne APP SOUS-ESTIME
+// le rappel GENRE/speller. Données RUNTIME identiques app≡extension≡Python (build_assets extrait l'asset extension
+// DU bloc app) → la colonne EXT est la référence fidèle pour le genre. (La parité réelle est garantie par parity_*.)
 function loadApp() {
   const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
   const _lx = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';
