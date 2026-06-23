@@ -468,16 +468,26 @@ def rule_mais_mes(T, i):
         return None                                    # pas prép/déterminant/pronom/verbe
     return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
 
+# Adjectifs prédicatifs PURS (≠ verbe/nom/participe) — « j'est <adj> » → « je suis <adj> » (être copule). Liste
+# CLOSE volontaire = PARITÉ stricte app/extension/Python (pas de divergence de lexique HF). Désaccentué.
+CADJ = set("content contente contents contentes malade malades triste tristes heureux heureuse heureuses "
+           "pret prete prets pretes libre libres seul seule seuls seules fier fiere fiers fieres".split())
+
+
 def rule_jest(T, i):
-    """« j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est »). Devant un déterminant,
-    OU devant « été »/« eu » (participes des auxiliaires, toujours conjugués avec AVOIR : « j'ai été », jamais
-    « je suis été ») → « j'ai ». FP=0 (jamais valide ; ces contextes → avoir certain). Autre adj/participe = choix
-    d'auxiliaire ambigu (« j'est content/allé » → être) → abstention (contexte = LLM)."""
+    """« j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est ») → la règle ne se
+    déclenche que sur « j'est », donc FP=0 STRUCTUREL (jamais dans du texte correct). Seule la SUGGESTION doit
+    être sûre, d'où des contextes non ambigus uniquement :
+      • déterminant OU « été »/« eu » (avoir certain : « j'ai un chien », « j'ai été ») → « j'ai » ;
+      • ADJECTIF PUR (être copule, non ambigu : « j'est content » → « je suis content ») → « je suis » ;
+      • autre participe (avoir/être ambigu : « j'est entendu/allé ») → abstention (sélection d'auxiliaire = contexte)."""
     if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
         return None
-    dn = deacc(T[i + 1].lower())
-    if T[i + 1].lower() in NUM_DET or dn in ('ete', 'eu'):
+    nxt = T[i + 1]; dn = deacc(nxt.lower())
+    if nxt.lower() in NUM_DET or dn in ('ete', 'eu'):
         return _keepcase(T[i], "j'ai")
+    if dn in CADJ:                                       # être copule devant adjectif prédicatif PUR (liste close = parité 3 moteurs) → je suis
+        return _keepcase(T[i], "je suis")
     return None
 
 

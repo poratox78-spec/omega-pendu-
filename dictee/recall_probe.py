@@ -30,6 +30,10 @@ FAMILIES = {
     'ce/se':          ['ce', 'se'],
     'et/est':         ['et', 'est'],
     'peu/peux/peut':  ['peu', 'peux', 'peut'],
+    # --- être / avoir : règles grammaticales + ressemblance PHONÉTIQUE (cible dys) ---
+    "j'ai/j'est":     ["j'ai", "j'est"],       # avoir 1sg vs *être (malformation phon. /ʒe/~/ʒɛ/)
+    'a/as·avoir':     ['a', 'as'],             # avoir 3sg/2sg, phon. identiques /a/ → accord personne
+    'est/es·être':    ['est', 'es'],           # être 3sg/2sg, phon. identiques /ɛ/ → accord personne
 }
 SOURCES = ['propre', 'gec']
 _URL = re.compile(r'https?://|www\.', re.I)

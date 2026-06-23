@@ -5,6 +5,13 @@
 
 ---
 
+## 2026-06-23 (suite) — être/avoir : « j'est » + adjectif → « je suis » (3 moteurs, parité stricte)
+
+Cible Rem : confusions être/avoir (règles + ressemblance phonétique `/ʒe/~/ʒɛ/`) avec **app pendu ≡ extension**.
+- **Mesuré d'abord** (recall_probe + familles être/avoir `j'ai/j'est`, `a/as`, `est/es`) : la **parité app≡extension est déjà tenue** (APP==EXT sur toutes les familles). Les ratés être/avoir sont **100 % à sujet NOM** (« La fillette as », « Sami es ») = mur SV distant déféré (pas FP-safe), PAS un trou lexical → le Lexique4 plus riche n'y change rien.
+- **Levier propre livré** : `rule_jest`/`rJest` étendue — `j'est` (jamais valide → **FP=0 STRUCTUREL**, la règle ne se déclenche que sur `j'est`) + **adjectif prédicatif PUR** → « je suis » (« j'est content »→« je suis content »). Liste **CLOSE `CADJ` identique dans les 3 moteurs** (content/malade/triste/heureux/prêt/libre/seul/fier…) → parité stricte, pas de divergence de lexique HF. Participe ambigu (« j'est allé/entendu ») = abstention conservée (sélection d'auxiliaire = contexte). Déterminant/été/eu → « j'ai » (inchangé).
+- **Validé** : `j'est content`→`je suis` (et `J'est`→`Je suis`), `j'est allé`→abstention, `j'est un chien`→`j'ai`, FP control vide ; **`dev.sh` 25/25** (parity_corr + parity_core verts = 3 moteurs d'accord). Reste hors-portée (limite) : `j'est <participe avoir>` (« j'est entendu »→j'ai) = sélection d'auxiliaire, et l'accord SV à sujet NOM.
+
 ## 2026-06-23 — RAPPEL mesuré à l'échelle (harnais recall_probe) + 2 falsifications (§6)
 
 Mesure du **rappel** (faux négatif), sous-chiffré jusqu'ici (témoins curés ~90 % = trompeurs). Nouvel outillage **lecture seule** (R67) : `recall_probe.py` (injection contrôlée d'homophones dans des phrases CORRECTES, ventilé par famille ET par source) + `recall_probe.js` (rejeu du même corpus dans les 2 moteurs JS — app pendu / extension), réutilise `correcteur_probe.correct` + `diag_sentence` (§5).

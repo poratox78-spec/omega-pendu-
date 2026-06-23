@@ -88,9 +88,12 @@
     if(MAIS_STOP[dn])return null;   // adverbe/mot-outil homographe d'un nom (« mais pas »/« mais comment ») → conjonction, pas « mes »
     if(PREP[dn]||NUM_DET[nx]||NUM_PRON[dn]||vlike(T,i+1))return null;
     return GENDER_PURE[dn]?ckeepcase(T[i],'mes'):null;}
-  function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide
+  var CADJ={content:1,contente:1,contents:1,contentes:1,malade:1,malades:1,triste:1,tristes:1,heureux:1,heureuse:1,heureuses:1,pret:1,prete:1,prets:1,pretes:1,libre:1,libres:1,seul:1,seule:1,seuls:1,seules:1,fier:1,fiere:1,fiers:1,fieres:1};   // adj prédicatifs purs (liste CLOSE = parité 3 moteurs)
+  function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel
     var dn=deacc(T[i+1].toLowerCase());
-    return (NUM_DET[T[i+1].toLowerCase()]||dn==='ete'||dn==='eu')?ckeepcase(T[i],"j'ai"):null;}   // j'est un/le… ou j'est été/eu → j'ai (avoir)
+    if(NUM_DET[T[i+1].toLowerCase()]||dn==='ete'||dn==='eu')return ckeepcase(T[i],"j'ai");   // j'est un/le… ou été/eu → j'ai (avoir certain)
+    if(CADJ[dn])return ckeepcase(T[i],"je suis");   // être copule devant adjectif pur → je suis (« j'est content »)
+    return null;}   // autre participe (allé/entendu) = aux ambigu → abstention
   function rCai(T,i){return deacc(T[i].toLowerCase())==="c'ai"?ckeepcase(T[i],"c'est"):null;}   // « c'ai » jamais valide (avoir au lieu d'être) → c'est
   var SUBJ_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],ils:['3','p'],elles:['3','p']};
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
