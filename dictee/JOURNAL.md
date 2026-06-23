@@ -5,6 +5,12 @@
 
 ---
 
+## 2026-06-23 (suite 2) — points (a)+(d) : garde rappel en CI + mesure genre → ÉCART de parité app < extension
+
+- **(d) garde anti-régression CI** : `recall_probe.py --check` (13 comportements déterministes du levier `j'est` être/avoir + contrôles FP, exit 1 si régression), câblé dans `dev.sh` (**26 checks**) + `ci.yml`.
+- **(a) familles d'ACCORD au harnais** : genre déterminant (un/une, le/la) ajouté à `recall_probe` (swap propre). Rappel genre : **propre 65-67 %, GEC 52 %**. **DÉCOUVERTE parité** : sur le genre, **app pendu 51-53 % < extension 56 % ≈ Python 56 %**. Cause **confirmée (grep)** : l'app **n'embarque PAS** `gender-relaxed` (aucun `_applyGenderRelaxed`), alors que l'extension charge `gender-relaxed.tsv.gz` et Python `cgram_gender_relaxed.json` (large). Les `parity_*` restent vertes (invariant = app/ext ⊆ Python → une COUVERTURE moindre passe), **mais les 2 versions ne sont pas au même point sur le genre**. `CORRECTEUR.md` dit pourtant « mêmes données pour l'app » → **gap à combler** (≠ choix). **Fix** : embarquer un bloc `gender-relaxed` compressé dans l'app + `_applyGenderRelaxed` (comme l'extension). ⚠️ touche le monolithe (asset embarqué) → à valider.
+- Reste : pluriel nom + accord SV = transformation morpho (pas un swap) → injecteur dédié à faire. (b) DATA / (c) LLM-Nano = egress / opt-in navigateur (hors local).
+
 ## 2026-06-23 (suite) — être/avoir : « j'est » + adjectif → « je suis » (3 moteurs, parité stricte)
 
 Cible Rem : confusions être/avoir (règles + ressemblance phonétique `/ʒe/~/ʒɛ/`) avec **app pendu ≡ extension**.

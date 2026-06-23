@@ -34,6 +34,9 @@ FAMILIES = {
     "j'ai/j'est":     ["j'ai", "j'est"],       # avoir 1sg vs *être (malformation phon. /ʒe/~/ʒɛ/)
     'a/as·avoir':     ['a', 'as'],             # avoir 3sg/2sg, phon. identiques /a/ → accord personne
     'est/es·être':    ['est', 'es'],           # être 3sg/2sg, phon. identiques /ɛ/ → accord personne
+    # --- accord en GENRE du déterminant : le 155k EST branché ici (GENDER_PURE + posterior noun-post) ---
+    'genre un/une':   ['un', 'une'],           # « un maison »→une (swap propre : un/une = déterminants)
+    'genre le/la':    ['le', 'la'],            # « le voiture »→la (⚠ le/la = aussi PRONOM → ratés illusoires « je le/la vois »)
 }
 SOURCES = ['propre', 'gec']
 _URL = re.compile(r'https?://|www\.', re.I)
