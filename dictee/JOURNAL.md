@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-06-24 (suite) — BESCHERELLE livré (paradigmes complets) + élision durcie → FP UD 2,18 → 2,17 %
+
+« Durcir d'abord » (Rem) : le Bescherelle ajoute du rappel SANS monter le FP. Pipeline reproductible
+(`build_cgram` → `inject_vdc.py` (NOUVEAU) → `build_assets`), parité 3 moteurs, batterie FP=0.
+- **BESCHERELLE livré** : table de conjugaison construite pour TOUTES les formes (découplée de `FREQ_MIN`) →
+  « Ils **détestons** »→détestent, « réunissons »→réunissent (formes 1pl rares auparavant absentes). **Durci** :
+  (a) seul **indicatif PRÉSENT + IMPARFAIT** (exclut passé simple/futur/subj/cnd → tue « tentèrent/fut/appris→apprit »)
+  (b) **participes exclus** de la reconnaissance (déployé/donnés = participe/adj, pas verbe SV)
+  (c) `CONJ_STOP={entre,contre}` (prépositions homographes de verbes rares). **Effet net : SV FP 25→22** (MIEUX que
+  baseline). Coût : app vdc-lex 1,55→1,84 Mo (+288 Ko) ; `cgram_conj.json` 0,65→2,03 Mo (Python, non embarqué).
+  `inject_vdc.py` = injecteur app←cgram_hf (le bloc vdc-lex était maintenu à la main).
+- **ÉLISION durcie** : les 5 FP UD (`N'Dour`/`M'Tioua`/`N'Zalat` noms propres + `rock n'roll` + `m'sieur`) tués par
+  garde **« pas de de-élision devant MAJUSCULE »** (nom propre) + stoplist `{n'roll, m'sieur}`. **élision FP : 5→0.**
+- **RÉSULTAT : FP UD 2,18 % → 2,17 %** (355/16342) — Bescherelle + élision AJOUTENT du rappel ET BAISSENT le FP.
+  Résiduel SV inchangé = « Les Andalouses est »→sont (nom propre pluriel-apparent, pré-existant).
+
 ## 2026-06-24 — ÉLISION FP-safe (j'sais→je sais, 3 moteurs) + cadrage du BESCHERELLE (conjugaison)
 
 Mesure §1 : sur **26 fautes GEC réelles**, les règles n'en attrapent que **5** (4 genre + 1 MAUVAISE « monde→mondes »). Ratées = élision, conjugaison (personne), nombre, ordre des mots, mot manquant, accord adjectif. Les FP-safe faisables :

@@ -27,6 +27,10 @@ HF_FREQ = float(os.environ.get('HF_FREQ', '5'))        # seuil du sous-ensemble 
 # `9_InfoVER` donne mode:temps:personne ; `8_Nombre` donne le nombre (la personne d'InfoVER n'a pas le nombre).
 FINITE = {'ind', 'sub', 'cnd'}
 PART_END = ('é', 'és', 'ée', 'ées')   # participes mal tagués « présent » (j'ai joué → ind:pre:1) : écartés des slots présents
+# Mots-outils (PRÉPOSITIONS) qui sont aussi des formes verbales RARES (entrer/contrer) → exclus de la table de
+# RECONNAISSANCE conj : sinon « entre l'UFE et les universités… »→entrent = FP sur UD (mesuré : entre ×6, contre ×3).
+# On perd « il entre »→entrent (très rare) pour préserver le FP-safety. PAS « a » (= avoir, essentiel à on/ont, a/à).
+CONJ_STOP = {'entre', 'contre'}
 
 
 def deacc(s):
@@ -119,10 +123,13 @@ def main():
             # déterminants genrés (closed-class fige, Lexique trop bruité sur ces mots-outils)
             if w in DET_GENDER:
                 det[w] = DET_GENDER[w]
-            if cg.startswith('VER') and fr >= FREQ_MIN:   # VER = verbe (toutes formes fléchies). NB : être/avoir sont double-taggés VER+AUX dans Lexique → déjà couverts (vérifié : ajouter 'AUX' = no-op).
-                verbs[w] = max(verbs.get(w, 0.0), fr); n += 1
+            if cg.startswith('VER'):                       # VER = verbe. être/avoir double-taggés VER+AUX → déjà couverts.
+                if fr >= FREQ_MIN:                          # vlike (couverture verbale) garde le seuil de fréquence
+                    verbs[w] = max(verbs.get(w, 0.0), fr); n += 1
+                # BESCHERELLE : la table de conjugaison ci-dessous est construite pour TOUTES les formes (SANS seuil) —
+                # « détestons » (1pl, freq<0.5) est nécessaire à l'accord de PERSONNE bien que rare → paradigmes COMPLETS.
                 # table de conjugaison (accord sujet-verbe) — lectures finies à sujet (ind/sub/cnd)
-                if c_info >= 0 and c_info < len(row) and c_lemme >= 0:
+                if c_info >= 0 and c_info < len(row) and c_lemme >= 0 and w not in CONJ_STOP:
                     form = row[c_mot].strip(); form_lw = form.lower()
                     lem = deacc(row[c_lemme].strip().lower())
                     nb = row[c_nombre].strip().lower()[:1] if 0 <= c_nombre < len(row) else ''
@@ -131,15 +138,17 @@ def main():
                     fin = []
                     for tag in row[c_info].split(','):
                         pp = tag.split(':')
-                        if len(pp) == 3 and pp[0] in FINITE and pp[2] in ('1', '2', '3'):
+                        # BESCHERELLE durci : SEUL l'indicatif PRÉSENT + IMPARFAIT (les temps de l'accord SV courant) —
+                        # exclut passé simple/futur/subj/cnd (homographes rares « tentèrent/fut/appris→apprit » = FP UD).
+                        if len(pp) == 3 and pp[0] == 'ind' and pp[1] in ('pre', 'imp') and pp[2] in ('1', '2', '3'):
                             fin.append((pp[0] + ':' + pp[1], pp[2]))
                     spec = len(fin)                                          # moins de tags = forme plus spécifique (fiable)
                     is_part = form_lw.endswith(PART_END)
-                    if not is_inf:
+                    if not is_inf and not is_part:                          # exclut les PARTICIPES (déployé/donnés = participe/adj, pas verbe SV → FP)
                         for mt, per in fin:
                             nn = nb or derive_number(form_lw, per)          # nombre donné, sinon déduit (-ons/-ez/-ent…)
                             cj_f.setdefault(w, set()).add(f"{lem};{mt};{per};{nn}")
-                            if nn in ('s', 'p') and not (is_part and mt.endswith(':pre')):
+                            if nn in ('s', 'p'):
                                 slot = per + nn; d = cj_c.setdefault(lem, {}).setdefault(mt, {})
                                 if slot not in d or (spec, -fr) < (d[slot][2], -d[slot][1]):   # min spécificité, puis max fréq
                                     d[slot] = (form, fr, spec)

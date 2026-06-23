@@ -507,16 +507,20 @@ def rule_cai(T, i):
 # EXCLUS : t' (te/tu), s' (se/si) ambigus ; l' (le/la = genre) ; h (« l'homme » = h muet, élision correcte) ; y (« j'y »).
 _ELIDE = {"j'": 'je', "n'": 'ne', "m'": 'me', "d'": 'de', "c'": 'ce', "qu'": 'que'}
 _ELIDE_CONS = set("bcdfgjklmnpqrstvwxz")
+_ELIDE_STOP = {"n'roll", "m'sieur"}   # emprunt (rock n'roll) / familier (m'sieur = monsieur) : ne pas de-élider
 
 
 def rule_elide(T, i):
     w = T[i]; lw = w.lower()
+    if lw in _ELIDE_STOP:
+        return None
     for pre, full in _ELIDE.items():
         if lw.startswith(pre):
             rest = w[len(pre):]
-            if rest and deacc(rest[0].lower()) in _ELIDE_CONS:    # rest commence par une consonne (≠ voyelle/h/y) → de-élide
+            # de-élide ssi rest commence par une consonne MINUSCULE (≠ voyelle/h/y ; ≠ NOM PROPRE « N'Dour »/« M'Tioua »)
+            if rest and rest[0].islower() and deacc(rest[0].lower()) in _ELIDE_CONS:
                 return _keepcase(w, full + ' ' + rest)
-            return None                                           # devant voyelle/h = élision correcte → stop
+            return None
     return None
 
 
