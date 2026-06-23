@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-06-23 — RAPPEL mesuré à l'échelle (harnais recall_probe) + 2 falsifications (§6)
+
+Mesure du **rappel** (faux négatif), sous-chiffré jusqu'ici (témoins curés ~90 % = trompeurs). Nouvel outillage **lecture seule** (R67) : `recall_probe.py` (injection contrôlée d'homophones dans des phrases CORRECTES, ventilé par famille ET par source) + `recall_probe.js` (rejeu du même corpus dans les 2 moteurs JS — app pendu / extension), réutilise `correcteur_probe.correct` + `diag_sentence` (§5).
+- **Rappel réf. Python — corpus PROPRE (dys court, filtré URLs/longueur) : 56 %** (19/34) vs **GEC encyclopédique 27 %** (21/79) → le domaine compte ×2 ; les témoins sur-estimaient. Par famille (propre) : on/ont & leur/leurs **100 %** · a/à 67 % · son/sont & peu/peux 50 % · **ce/se 33 %, et/est 0 % = ABSTENTION par design (limite contexte, FP-safe), pas un bug**. Rappel sur erreurs RÉELLES (`eval_gec` in-scope) = 50 %, dominé genre/SV.
+- **2 versions ≈ à parité** (rejeu : app 27 % / ext 27 % / Python 29 %) : écart HF↔complet minuscule (on/ont 100→88, a/à 32→29). L'app embarque `OMEGA_LEX4` 155k mais son rappel homophone = celui de l'extension HF → **la grosse table n'est PAS utilisée par les règles d'homophones** (seulement par les gardes genre/pluriel).
+- **FALSIFIÉ A** : régénérer `cgram_noun_post.json` depuis Lexique4 complet = **identique** (61 453 = 61 453) → asset déjà pleine-couverture, régénérer n'apporte rien.
+- **FALSIFIÉ B** (levier posterior 155k/Lexique4 pour `son/sont`) : inspection des 8 ratés → sujet pluriel **DISTANT** (mur FP de l'accord SV déjà déféré) ou ratés synthétiques illusoires (tronqués/URLs), **pas** un trou de couverture. Le Lexique4 plus riche (InfoVER/FreqMot par lecture) ne débloque PAS `son/sont` FP-safe — goulot = contexte/structure, pas lexique. **Ne pas construire** (= grinder une limite connue).
+- FP UD inchangé (**2,18 %**, ventilé : a/à 92 · -é/-er 53 · on/ont 52 · genre 42 · son/sont 38…). `Lexique4.tsv.xz` fourni en local, **hors-repo** (`.gitignore`). Outillage local : Python 3.13 + Node 24 ; `dev.sh` rendu portable Windows (PYTHONUTF8 + bake temp portable), **25/25 local & CI**.
+
 ## 2026-06-22 — FP homophones : on/ont −27 (suivant décisif) + a/à −5 (garde posterior) — 3 moteurs
 
 Enchaînement auto sur les 2 plus gros postes de FP. **Échantillonné les vrais FP sur UD** pour trouver le pattern :
