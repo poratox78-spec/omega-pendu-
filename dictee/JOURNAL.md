@@ -1123,3 +1123,20 @@ Parité JS↔Python vérifiée sur 5 phrases + accordType (genre/nombre/verbal) 
 - **Vérifié** : CI syntaxe (`new Function`) OK ; **parité Python** testée sur les helpers portés — homographes nom/verbe 5/5, gouverneur+skip_pp, participe/findAux, `developmental` → mêmes résultats que `diag_sentence.py`. Aucune référence pendante. Baseline pendu intacte (additif IIFE).
 - **Les 4 points enchaînés livrés** : (1) participe passé, (2) sujet à distance, (3) scaling morpho, (4) portage app.
 - **Suite** : grammaire — accord du GN multi-mots (déterminant-nom-adjectifs en chaîne), participe passé avec COD antéposé, vrai tagger/Lexique4-`cgram` pour scaler le corpus ; validation terrain (orthophonistes).
+
+---
+
+## 2026-06-20 — Décomposeur « à la Lexique 4 » : base de décomposition (son/ortho/morpho/grammaire) + cognition phono→ortho
+
+Demande : *« un truc qui lit et apprend des mots, les décompose comme dans Lexique 4 »*. Livré comme **base de décomposition** (décrit, ne corrige pas), en réutilisant l'existant OMEGA (doctrine §A2/A4). **Mesuré held-out** (seed 42, test=4000), gardé par CI + asserts. **PR #10 mergée dans `main`** (`d7d65b5`).
+
+- **`decompose.py` — double voie SON · ORTHO · MORPHO**, qui apprend (`learned_lex.json`, **FP=0**). SON = phono lexicale (`phono_homophones.json`, exacte) × sublexicale (`g2p()` de l'app **extrait** en `g2p_tables.json`). ORTHO = graphèmes + syllabes (alignées noyaux). MORPHO = route lexicale `md/mb` (`morpho.json`, décodé d'OMEGA_LEX4, 20 523 mots) × repli sublexical affixes.
+- **Route sublexicale améliorée +3,7 pts** (échelle held-out) : **48,6 %** (g2p brut) → **50,9 %** (+SEG enrichi, 8 segments **mesurés**, `ion/ue/oui` testés et **écartés**) → **52,4 %** (+correction apprise par **boucle descendante** : alignement DP g↔phono Lexique sur TRAIN, 667 règles, `build_g2p_corrections.py`). Syllabation par **règles** (attaque maximale, son+ortho calqués).
+- **Croisé/validé contre la vérité Lexique** (OMEGA_LEX4 décodé, 64 634 mots) : ma **nbsyll = 100 %** du `syll` gold ; mon CV = convention `cvp` (désaccords = diacritiques `:`/`'` seuls).
+- **Cognition phono→ortho** (`p2g.py` + `P2G.md`) — **l'inverse** (son→écriture, *le* point dur dys). Jointe **§3** : beam-search marginalisant la segmentation latente, **triple croisement** émission × prior ortho bigramme × **lexicalité**. Held-out : top-1 **26,7 %** · top-3 **64 %** · top-5 **73 %** (lexicalité = gros levier ; plafond bridé par 2,3 homophones/son ; **fréquence testée et rejetée**, §6.4). Dette §A2 consignée : le moteur a déjà `L2[φ]→graphème` (+5,28 OOV), `_neoCRS`, `_neoDeclareOSmix`.
+- **Décompo PARALLÈLE 3 voies** (`decompose_corpus.py`) : ORTHO ∥ PHON ∥ GRAMMAIRE (cgram/genre/nombre/morpho **+ rôle en contexte** via `diag_sentence`). **Lit le corpus réel** `corpus_gec_fr.jsonl` (98 paires, fourni en local) → enrichit la base (1487 mots → 770 distincts) ; **grammaire en contexte STOCKÉE** (`learn_word(role=…)` → compteurs : `la→{déterminant:61}`, `est→{verbe:25}`, `important→{accord-sg}`).
+- **Compressibilité de la base** (`compress_probe.py`) : 7,9× gzip, **17× factorisé** ; 51 % des phonos déductibles par g2p → lexique d'exceptions.
+- **Panneau app « 🔤 Décompose »** (IIFE OFF-inerte, réutilise `_DECL2.g2p` + `OMEGA_LEX4` md/mb/OLD20/PLD20). Isolé dans un **`<script>` séparé** → **zéro adjacence** avec le correcteur (le correcteur — `correcteur_probe.py` et panneau `vdc` — **jamais touché**, prouvé byte-identique).
+- **ACCENTS** : solution **déjà présente** (lookup en lexique `1_Mot` + phonème porte l'accent `PHON_TO_LETTERS`) — appliquée par decompose/p2g, rien à réinventer.
+- **Garde-fous** : `test_decompose.py` (21 asserts + seuils held-out qui font échouer la CI). CI : `build_g2p_tables`/`build_morpho`/`build_g2p_corrections`/`decompose --measure`/`build_p2g`/`p2g --measure`/`test_decompose`/`decompose_corpus --show` + compile des 2 blocs app.
+- **Audit honnête** : sublexical plafonné ~52 % (g2p heuristique) ; p2g top-1 ~27 % (homophonie). Suite possible : brancher p2g dans la dictée (proposer les graphies sur un son), réutiliser `L2`, nourrir la base de plus de données réelles.
