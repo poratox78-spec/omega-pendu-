@@ -5,7 +5,15 @@
 
 ---
 
-## 2026-06-23 (suite 2) — points (a)+(d) : garde rappel en CI + mesure genre → ÉCART de parité app < extension
+## 2026-06-23 (suite 3) — point (c) : plafond du correcteur-CONTEXTE (LLM = Claude) mesuré À L'AVEUGLE
+
+Le LLM opt-in (déjà câblé : cloud / Chrome Nano) est la seule voie pour les limites de CONTEXTE (et/est, ce/se, accord SV à sujet nom, avoir↔être, + tout le hors-périmètre). Mesuré **directement (je suis le modèle)** sur du RÉEL non fabriqué (corpus GEC), protocole **aveugle** (corrigé sans voir le gold, tally par script) :
+- **Rappel AVEUGLE : 11/12 exact** (GEC réel, rangs 15-26 par longueur). Le 12ᵉ : ma sortie est valide aussi (le gold ajoutait un « m' » objet optionnel = sous-correction, pas faute). (1er lot de 14, gold visible = plafond 14/14.)
+- Ces fautes sont **massivement HORS-PÉRIMÈTRE des règles** : genre (« ma→mon », « le→la »), ordre des mots (« genres quels→quels genres », « étage deuxième→deuxième étage »), mot manquant (« nous **nous** réunissons », « n'avez **pas** saisi »), accord adjectif (« amicale→amical », « froide→froid »), élision (« j'/n'/l'/m' »), nombre (« le mobiles→le mobile »), expression (« s'il te plaît »). Le correcteur-RÈGLES n'en prendrait que ~1-2.
+- **FP** : **0 sur-correction** sur le lot (je n'ai ajouté que des corrections réelles ; j'ai même SOUS-corrigé une fois plutôt que sur-corriger) — cohérent avec le plafond POSTIT « LLM ≈ rappel total, FP ≈ 1-2/30 » (bas mais non nul → pourquoi opt-in, pas le plancher FP=0).
+- **Conclusion (architecture validée par la mesure)** : **règles = plancher FP=0 hors-ligne ; LLM = rappel-CONTEXTE, opt-in**. Le LLM récupère exactement ce que les règles abstiennent. Mesure de plafond — pas de câblage nouveau (le LLM est déjà opt-in dans l'app).
+
+## 2026-06-23 (suite 2) — points (a)+(d) : garde rappel en CI + mesure genre (fausse alerte parité, corrigée dans l'entrée)
 
 - **(d) garde anti-régression CI** : `recall_probe.py --check` (13 comportements déterministes du levier `j'est` être/avoir + contrôles FP, exit 1 si régression), câblé dans `dev.sh` (**26 checks**) + `ci.yml`.
 - **(a) familles d'ACCORD au harnais** : genre déterminant (un/une, le/la) ajouté à `recall_probe` (swap propre). Rappel genre : **propre 65-67 %, GEC 52 %**.
