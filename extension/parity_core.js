@@ -29,7 +29,8 @@ const PHRASES = [
   'et j\'ai bouliées mais lunettes', 'mais voiture est rouge', 'il dort mais porte un sac', 'Mais sous la table',
   'il rit mais pleure souvent', 'mais place est prise',
   'j\'est le poisse de oartir à la monagne', 'j\'est un chien', 'J\'est la chance', 'j\'est content',
-  'j\'est allé à Paris', 'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien'
+  'j\'est allé à Paris', 'j\'est de la peine', 'j\'est du mal', 'j\'est venu hier', 'j\'est de Paris',
+  'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien'
 ];
 
 // 3) flags Python

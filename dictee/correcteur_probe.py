@@ -472,21 +472,26 @@ def rule_mais_mes(T, i):
 # CLOSE volontaire = PARITÉ stricte app/extension/Python (pas de divergence de lexique HF). Désaccentué.
 CADJ = set("content contente contents contentes malade malades triste tristes heureux heureuse heureuses "
            "pret prete prets pretes libre libres seul seule seuls seules fier fiere fiers fieres".split())
+# Participes de verbes d'ÊTRE (non ambigus, sans collision déacc — « né »/« mort »/« passé » exclus : homographes) :
+# « j'est allé » → « je suis allé ». Liste CLOSE = parité 3 moteurs.
+ETRE_PP = set("alle allee alles allees venu venue venus venues parti partie partis parties "
+              "arrive arrivee arrives arrivees devenu devenue devenus devenues revenu revenue revenus revenues".split())
+PART_ART = {'le', 'la', "l'", 'les', 'un', 'une'}   # article après « de » → partitif AVOIR (« j'ai de la peine »)
 
 
 def rule_jest(T, i):
-    """« j'est » (élision j' + est) est TOUJOURS invalide (« je » ne prend jamais « est ») → la règle ne se
-    déclenche que sur « j'est », donc FP=0 STRUCTUREL (jamais dans du texte correct). Seule la SUGGESTION doit
-    être sûre, d'où des contextes non ambigus uniquement :
-      • déterminant OU « été »/« eu » (avoir certain : « j'ai un chien », « j'ai été ») → « j'ai » ;
-      • ADJECTIF PUR (être copule, non ambigu : « j'est content » → « je suis content ») → « je suis » ;
-      • autre participe (avoir/être ambigu : « j'est entendu/allé ») → abstention (sélection d'auxiliaire = contexte)."""
+    """« j'est » (j' + est) n'est JAMAIS valide → la règle ne se déclenche que sur « j'est », donc FP=0 STRUCTUREL.
+    Suggestion bornée aux contextes SÛRS : déterminant / « été »-« eu » / partitif (du, des, de+article) → « j'ai »
+    (avoir) ; adjectif PUR ou participe de verbe d'ÊTRE → « je suis ». Participe d'AVOIR (« j'est entendu ») ou
+    « de » + nom propre (« j'est de Paris ») = auxiliaire ambigu → abstention (contexte)."""
     if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
         return None
-    nxt = T[i + 1]; dn = deacc(nxt.lower())
-    if nxt.lower() in NUM_DET or dn in ('ete', 'eu'):
+    nxt = T[i + 1]; nl = nxt.lower(); dn = deacc(nl)
+    if nl in NUM_DET or dn in ('ete', 'eu') or dn in ('du', 'des'):                 # avoir certain (déterminant / été-eu / partitif du-des)
         return _keepcase(T[i], "j'ai")
-    if dn in CADJ:                                       # être copule devant adjectif prédicatif PUR (liste close = parité 3 moteurs) → je suis
+    if nl in ('de', "d'") and i + 2 < len(T) and T[i + 2].lower() in PART_ART:      # « j'ai de la peine » (partitif de+article)
+        return _keepcase(T[i], "j'ai")
+    if dn in CADJ or dn in ETRE_PP:                     # adjectif PUR ou participe de verbe d'ÊTRE → je suis (liste close = parité 3 moteurs)
         return _keepcase(T[i], "je suis")
     return None
 

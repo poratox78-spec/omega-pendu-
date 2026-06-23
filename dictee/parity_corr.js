@@ -64,6 +64,7 @@ const PHRASES = [
   'Mais sous la table', 'mais je viens', 'il rit mais pleure souvent', 'mais place est prise', 'mais cause des ennuis',
   // j'est/j'ai : détection devant déterminant (→ j'ai) + abstention ambiguë (adj/participe = aux → LLM) + non-FP
   'j\'est le poisse de oartir à la monagne', 'j\'est un chien', 'J\'est la chance', 'j\'est content', 'j\'est allé à Paris',
+  'j\'est de la peine', 'j\'est du mal', 'j\'est venu hier', 'j\'est de Paris', 'j\'est entendu le tonnerre',
   'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien',
   // accord pluriel du nom (déterminant pluriel + nom singulier) : cibles + pièges (homographe/composé/pronom)
   'les enfant joue', 'des oiseau dans le ciel', 'les cheval galopent', 'il a des difficulté', 'des journal locaux',
