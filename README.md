@@ -57,6 +57,15 @@ dans un seul fichier HTML (passphrases françaises, AES-GCM-256, Double Ratchet 
 Il réutilise le substrat OMEGA comme source d'identité/entropie et confie toute la cryptographie à WebCrypto.
 Voir [`omega-key/README.md`](omega-key/README.md) et le rapport [`omega-key/docs/RAPPORT_MODE_EMPLOI.html`](omega-key/docs/RAPPORT_MODE_EMPLOI.html).
 
+## Aussi dans ce dépôt — Correcteur dys (dictée + extension)
+
+La **double voie** d'OMEGA appliquée à l'écrit : un **correcteur dys** hors-ligne (grammaire + orthographe
+non-mots/accents/typos, **FP=0**, en **parité** Python ↔ app ↔ extension), avec **aide-frappe** (complétion accentuée
+du mot en cours) et une **boucle d'apprentissage** (profil dys unifié → dictée adaptative → courbe de progrès).
+- Dans l'app `app/omega-pendu.html` : panneaux **🩹 Correcteur** et **✍️ Dictée diag**.
+- Partout sur le web : [`extension/`](extension/) (Chrome MV3) — voir [`extension/README.md`](extension/README.md).
+- Feuille de route & état : [`DICTEE_ROADMAP.md`](DICTEE_ROADMAP.md) · journal : [`dictee/JOURNAL.md`](dictee/JOURNAL.md).
+
 ## Doctrine & méthode
 
 - **Cap §43 (cognition > oracle)** : les modules cognitifs ne lisent `currentWord` qu'aux positions
