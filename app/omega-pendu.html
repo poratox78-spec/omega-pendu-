@@ -12233,14 +12233,15 @@ window.addEventListener('DOMContentLoaded', () => {
   var st=document.createElement('style');
   st.textContent='#vdo-btn{position:fixed;right:14px;bottom:158px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#5b3a9e;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdo-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdo-ov.on{display:flex}'
-   +'#vdo-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
-   +'#vdo-card h2{margin:.1em 0;font-size:20px}#vdo-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
-   +'#vdo-in{font:inherit;font-size:18px;padding:11px;width:100%;min-height:90px;border:2px solid #ddd0f0;border-radius:10px;background:#fff;margin-top:10px}'
-   +'#vdo-hint{margin-top:12px;min-height:40px}.vdo-sc{color:#6b6b6b;font-size:13px}'
-   +'.vdo-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 9px;background:#fff;border-radius:9px;margin:6px 0;border-left:4px solid #5b3a9e}'
-   +'.vdo-lab{font-weight:bold;color:#5b3a9e;min-width:96px;font-size:14px}'
-   +'.vdo-chip{font:inherit;font-size:16px;padding:5px 11px;border:1px solid #ddd0f0;border-radius:8px;background:#f3eefc;color:#3a2370;cursor:pointer}'
-   +'.vdo-chip:hover{background:#e6dcf7}.vdo-chip.vdo-top{background:#5b3a9e;color:#fff;border-color:#5b3a9e;font-weight:bold}';
+   +'#vdo-card{background:#fdf6e3 !important;color:#1a1a1a !important;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
+   +'#vdo-card *{color:inherit}'   /* défaut : tout le texte de la carte hérite du sombre #1a1a1a (bat le var(--fg) clair de l\'app) */
+   +'#vdo-card h2{margin:.1em 0;font-size:21px;color:#1a1a1a !important}#vdo-card b{color:#000 !important}#vdo-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666 !important}'
+   +'#vdo-in{font:inherit;font-size:19px;padding:11px;width:100%;min-height:90px;border:2px solid #ddd0f0;border-radius:10px;background:#fff !important;color:#111 !important;margin-top:10px;-webkit-text-fill-color:#111}#vdo-in::placeholder{color:#9a8fb0 !important;-webkit-text-fill-color:#9a8fb0}'
+   +'#vdo-hint{margin-top:12px;min-height:40px}.vdo-sc{color:#444 !important;font-size:14px}'
+   +'.vdo-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;background:#fff !important;border-radius:9px;margin:6px 0;border-left:4px solid #5b3a9e}'
+   +'.vdo-lab{font-weight:bold;color:#5b3a9e !important;min-width:96px;font-size:15px}'
+   +'.vdo-chip{font:inherit;font-size:17px;padding:6px 12px;border:1px solid #c9b8ea;border-radius:8px;background:#f3eefc !important;color:#2a1a55 !important;cursor:pointer}'
+   +'.vdo-chip:hover{background:#e6dcf7 !important}.vdo-chip.vdo-top{background:#5b3a9e !important;color:#fff !important;border-color:#5b3a9e;font-weight:bold}';
   document.head.appendChild(st);
   var btn=document.createElement('button'); btn.id='vdo-btn'; btn.textContent='✍️ Aide-frappe'; document.body.appendChild(btn);
   var ov=document.createElement('div'); ov.id='vdo-ov';
