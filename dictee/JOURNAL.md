@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-06-24 (suite 4) — oracle saisie : voie sublexicale = n-gram MOTEUR + route AUTOCOMPLETE gap-aware
+
+Deux raccordements de `evo/saisie_oracle.js` au moteur (§5/A2 : réutiliser, pas réinventer) :
+- **Voie sublexicale = n-gram du MOTEUR** (`_neoNG` via `_neoEnsureNG`, bâti du lexique 155k — la table de l'OOV
+  du pendu) au lieu d'une trigramme maison ; scorer engine-side `__sx` (backoff tri→bi→uni). Voie sublexicale
+  seule (≈ OOV) = **21 %** (bas, attendu ; seule voie quand la lexicale rend 0).
+- **Route AUTOCOMPLETE / gap-fill** : `predictWord(L,rev)` réplique par-position la logique **gap-aware** de
+  `_neoLetterNgramDist` (voisin RÉVÉLÉ le plus proche à distance 1..MAXD via `Ld/Rd`/`_neoEnsureNGgap` ; tri-joint
+  si 2 adjacents, sinon produit des marginales, backoff uni). Mesuré (1 position /3 révélée, trous distance 1-2) :
+  **lettres-trou 34 %** (≫ hasard 4 %), mot exact 1 % — bas car board ultra-clairsemé (régime cognitif pur). Voie
+  du NOVEL ; la lexicale (cohorte préfixe top-3 89 %) reste le cheval de bataille in-lexique.
+Bilan oracle : double voie arbitrée, les DEUX voies branchées sur le moteur. Câblage UI = suite.
+
 ## 2026-06-24 (suite 3) — étape 3 : ORACLE DE SAISIE bâti (double voie arbitrée) — evo/saisie_oracle.js
 
 Le pendu comme oracle de saisie/typo = la **DOUBLE VOIE arbitrée** d'OMEGA appliquée à la frappe (Leçon 79 du mémoire :

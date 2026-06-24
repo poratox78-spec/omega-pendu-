@@ -71,6 +71,24 @@ async function makeOracle(O) {
         if(!nb&&p>0)nb=NG.bl[L+'|'+p+'|'+w[p-1]]; if(!nb&&p<L-1)nb=NG.br[L+'|'+p+'|'+w[p+1]]; if(!nb)nb=NG.uni[L+'|'+p];
         var s=0; if(nb)for(var x=0;x<26;x++)s+=nb[x]; lp+=Math.log(((nb?nb[c]:0)+0.5)/((s||0)+13)); }
       return lp/L; }); }; return 1; })()`);
+  // PRÉDICTEUR GAP-AWARE (autocomplete / remplissage de trous) : réplique la logique par-position de
+  // `_neoLetterNgramDist` du moteur (voisin RÉVÉLÉ le plus proche à distance 1..MAXD, tri-joint si 2 adjacents).
+  const _gapOK = O.evalIn(`(function(){ if(typeof _neoEnsureNG==='undefined') return 0; _neoEnsureNG(); if(typeof _neoEnsureNGgap!=='undefined')_neoEnsureNGgap();
+    globalThis.__predGaps=function(L,rev){ var NG=_neoNG, MAXD=(typeof _NEO_NGRAM_MAXD!=='undefined'?_NEO_NGRAM_MAXD:4), x;
+      var nz=function(d){ if(!d) return null; var s=0; for(x=0;x<26;x++)s+=d[x]; if(s<=0) return null; var o=new Float64Array(26); for(x=0;x<26;x++)o[x]=d[x]/s; return o; };
+      var lt=function(q,dd,c){ return dd===1?NG.bl[L+'|'+q+'|'+c]:(NG.Ld?NG.Ld[L+'|'+q+'|'+dd+'|'+c]:null); };
+      var rt=function(q,dd,c){ return dd===1?NG.br[L+'|'+q+'|'+c]:(NG.Rd?NG.Rd[L+'|'+q+'|'+dd+'|'+c]:null); };
+      var out=rev.slice();
+      for (var p=0;p<L;p++){ if (out[p]) continue;
+        var ld=0,lc=null,dd; for(dd=1;dd<=MAXD;dd++){ if(p-dd>=0&&rev[p-dd]){ld=dd;lc=rev[p-dd];break;} }
+        var rd=0,rc=null; for(dd=1;dd<=MAXD;dd++){ if(p+dd<L&&rev[p+dd]){rd=dd;rc=rev[p+dd];break;} }
+        var pos=null;
+        if(ld===1&&rd===1){ var t=NG.tri[L+'|'+p+'|'+lc+'|'+rc]; if(t)pos=nz(t); }
+        if(!pos){ var nl=ld?nz(lt(p,ld,lc)):null, nr=rd?nz(rt(p,rd,rc)):null;
+          if(nl&&nr){ var pr=new Float64Array(26),s=0; for(x=0;x<26;x++){pr[x]=nl[x]*nr[x];s+=pr[x];} if(s>0){for(x=0;x<26;x++)pr[x]/=s;pos=pr;}else pos=nl; } else pos=nl||nr; }
+        if(!pos)pos=nz(NG.uni[L+'|'+p]); if(!pos){ out[p]='?'; continue; }
+        var bi=-1,bv=-1; for(x=0;x<26;x++)if(pos[x]>bv){bv=pos[x];bi=x;} out[p]=String.fromCharCode(65+bi); }
+      return out.join(''); }; return 1; })()`);
   const F = Object.create(null), D2A = Object.create(null), PHON = Object.create(null);
   const TRI = Object.create(null), TRItot = Object.create(null);   // trigrammes de caractères (voie sublexicale)
   for (const [m, f] of lex) {
@@ -126,7 +144,10 @@ async function makeOracle(O) {
     return S;                                                      // aucun candidat lexical → voie sublexicale (régime OOV)
   }
 
-  return { suggest, lexicale, sublexicale, F, _evalEngine: O.evalIn };
+  // AUTOCOMPLETE / GAP-FILL : prédit les positions non révélées d'un mot (gap-aware moteur). rev = tableau
+  // longueur L de chars MAJUSCULES déacc ou null. -> mot complété (MAJUSCULES).
+  function predictWord(L, rev) { return _gapOK ? O.evalIn(`__predGaps(${L},${JSON.stringify(rev)})`) : null; }
+  return { suggest, lexicale, sublexicale, predictWord, F, _evalEngine: O.evalIn };
 }
 
 module.exports = { makeOracle, phonKey, lev, edits1 };
@@ -153,6 +174,18 @@ if (require.main === module) (async () => {
     console.log(`  voie SUBLEXICALE seule (≈ régime OOV) : ${(100 * subOk / subN).toFixed(0)} %  [${(o.sublexicale('zzqxd') || {}).route || '?'}]`);
     // démo OOV : mot retiré du lexique → la voie lexicale échoue, la sublexicale propose
     console.log('  démo : qiu->', JSON.stringify(o.suggest('qiu')), ' | ortografe->', JSON.stringify(o.suggest('ortografe')).slice(0, 80));
+  } else if (process.argv.includes('--autocomplete')) {
+    const words = Object.keys(o.F).filter(w => o.F[w] >= 5 && da(w).length >= 6 && /^[a-z]+$/.test(da(w)))
+                        .sort((a, b) => o.F[b] - o.F[a]).slice(0, 400);
+    let n = 0, exact = 0, lhit = 0, ltot = 0;
+    for (const t of words) { const u = da(t).toUpperCase(), L = u.length;
+      const rev = new Array(L).fill(null); for (let p = 0; p < L; p += 3) rev[p] = u[p];   // 1 position /3 révélée → trous à distance 1-2 = gap-aware
+      const pred = o.predictWord(L, rev); if (!pred) continue; n++;
+      if (pred === u) exact++;
+      for (let p = 0; p < L; p++) if (!rev[p]) { ltot++; if (pred[p] === u[p]) lhit++; }
+    }
+    console.log(`=== AUTOCOMPLETE / GAP-FILL (gap-aware MOTEUR) n=${n} ===`);
+    console.log(`  1 position /3 révélée (trous distance 1-2) : mot exact ${(100 * exact / n).toFixed(0)} % · lettres-trou ${(100 * lhit / ltot).toFixed(0)} %`);
   } else {
     for (const t of (process.argv.slice(2).length ? process.argv.slice(2) : ['qiu', 'ortografe', 'fenetr', 'maintnant']))
       console.log(t, '->', JSON.stringify(o.suggest(t)));
