@@ -11566,7 +11566,7 @@ window.addEventListener('DOMContentLoaded', () => {
   st.textContent='#vdd-btn{position:fixed;right:14px;bottom:14px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#2a6f97;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdd-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdd-ov.on{display:flex}'
    +'#vdd-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,600px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
-   +'#vdd-card h2{margin:.1em 0;font-size:20px}#vdd-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
+   +'#vdd-card h2{margin:.1em 0;font-size:20px;color:#222}#vdd-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
    +'.vdd-diff button{font:inherit;font-size:14px;padding:6px 13px;border:1px solid #e6dcc3;background:#fff;border-radius:20px;cursor:pointer;margin-right:6px}.vdd-diff button.on{background:#2a6f97;color:#fff;border-color:#2a6f97}'
    +'#vdd-ans{font:inherit;font-size:19px;line-height:1.5;padding:11px;width:100%;min-height:70px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
    +'.vdd-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.vdd-row button{font:inherit;font-size:16px;padding:10px 15px;border:none;border-radius:10px;background:#2a6f97;color:#fff;cursor:pointer}.vdd-row button.g{background:#fff;color:#222;border:1px solid #e6dcc3}'
@@ -11891,23 +11891,23 @@ window.addEventListener('DOMContentLoaded', () => {
   cst.textContent='#vdc-btn{position:fixed;right:14px;bottom:62px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#7a4fb5;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdc-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdc-ov.on{display:flex}'
    +'#vdc-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
-   +'#vdc-card h2{margin:.1em 0;font-size:20px}#vdc-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
+   +'#vdc-card h2{margin:.1em 0;font-size:20px;color:#222}#vdc-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
    +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:90px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
    +'#vdc-render{font-size:18px;line-height:1.9;margin-top:10px;padding:10px;background:#fff;border-radius:10px;border:1px solid #eee;min-height:30px}'
    +'.vdc-bad{background:#fde2e2;border-bottom:3px solid #c0392b;border-radius:3px;padding:0 1px;cursor:pointer}.vdc-bad:hover{background:#fbcaca}'
    +'.vdc-bad.vdc-orth{background:#e6eefc;border-bottom-color:#2a6f97}.vdc-bad.vdc-orth:hover{background:#d2e2fb}'
    +'.vdc-fact{padding:8px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff;border-left:5px solid #c0392b}.vdc-sc{color:#444;font-size:13px}'
    +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'   /* aide-frappe : complétions du mot en cours */
-   +'.vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* TOUTES les chips violet plein, lisibles à l\'identique */
-   +'.vdc-comp:hover{background:#492f80}.vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré (pas par le contraste) */
-   +'body.dys-dark .vdc-comp{background:#7c5bc0;color:#fff;border-color:#6a4caf}body.dys-dark .vdc-comp:hover{background:#6a4caf}body.dys-dark .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #b9a3e6}'
+   +'#vdc-card .vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* scopé #vdc-card : bat le global button:not(.btn) (0,1,1) qui fuyait une couleur claire */
+   +'#vdc-card .vdc-comp:hover{background:#492f80;color:#fff}#vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré */
+   +'body.dys-dark #vdc-card .vdc-comp{background:#7c5bc0;color:#fff;border-color:#6a4caf}body.dys-dark #vdc-card .vdc-comp:hover{background:#6a4caf;color:#fff}body.dys-dark #vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #b9a3e6}'
    +'#vdc-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'
    +'#vdc-set{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}'
    +'#vdc-set button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid #cfc4ab;border-radius:8px;background:#fff;color:#333;cursor:pointer;min-height:34px}'
    +'#vdc-set button[aria-pressed=true]{background:#2a6f97;color:#fff;border-color:#2a6f97}'
    +'body.dys-dark #vdc-card,body.dys-dark #vdd-card,body.dys-dark #vdk-card{background:#1c232c;color:#e8edf2}'
    +'body.dys-dark .vdc-sc,body.dys-dark .vdd-sc,body.dys-dark .vdk-sc{color:#b4bdc7}'   /* texte secondaire lisible sur carte sombre (le #444 clair y serait invisible) */
-   +'body.dys-dark #vdc-card h2,body.dys-dark #vdc-x{color:#e8edf2}'
+   +'body.dys-dark #vdc-card h2,body.dys-dark #vdd-card h2,body.dys-dark #vdk-card h2,body.dys-dark #vdc-x{color:#e8edf2}'
    +'body.dys-dark #vdc-in,body.dys-dark #vdc-render{background:#10161d;color:#e8edf2;border-color:#33414f}'
    +'body.dys-dark .vdc-fact{background:#10161d}body.dys-dark #vdc-set button{background:#10161d;color:#e8edf2;border-color:#33414f}'
    +'body.dys-dark #vdc-set button[aria-pressed=true]{background:#3b82c4;border-color:#3b82c4}'
@@ -12167,7 +12167,7 @@ window.addEventListener('DOMContentLoaded', () => {
   kst.textContent='#vdk-btn{position:fixed;right:14px;bottom:110px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#1f7a3d;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdk-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdk-ov.on{display:flex}'
    +'#vdk-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
-   +'#vdk-card h2{margin:.1em 0;font-size:20px}#vdk-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
+   +'#vdk-card h2{margin:.1em 0;font-size:20px;color:#222}#vdk-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
    +'#vdk-in{font:inherit;font-size:18px;padding:11px;width:100%;min-height:54px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
    +'#vdk-prev{margin-top:12px}.vdk-sc{color:#444;font-size:13px}.vdk-tag{display:inline-block;min-width:54px;font-weight:bold;color:#1f7a3d}'
    +'.vdk-sec{padding:8px 10px;background:#fff;border-radius:9px;margin:7px 0;border-left:4px solid #1f7a3d}.vdk-h{font-size:17px;margin-bottom:4px}'
