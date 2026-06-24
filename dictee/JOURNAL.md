@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-06-24 (suite 8) — aide-frappe FONDUE dans le correcteur (app + extension), panneau ✍️ retiré
+
+Demande de Rem : l'aide-frappe dans le correcteur ET l'extension, pas un panneau séparé. Étude de faisabilité :
+le correcteur (app `vdc` + extension `content.js`) EST déjà une aide-frappe temps-réel avec accents (même speller
+`SP.D2A`/`PHON`, `sEdits1` avec transposition, AUTO silencieux + barre/flags cliquables). La correction faisait
+donc DOUBLON. Seul manquait le **neuf** = la **COMPLÉTION prédictive**.
+- **Retiré** l'IIFE `vdo` (panneau ✍️ séparé) de l'app.
+- **Ajouté `complete(prefix)`** (préfixe → mots plus longs, trié fréquence, **accentué nativement** car `SP.D2A`
+  l'est) aux DEUX moteurs : app correcteur (`vdc-complete`, chips, **Tab** accepte la 1re) et extension
+  (`dys-core.js` → `DYSCORE.complete` ; section violette dans la barre flottante, clic insère ; pas de hijack Tab
+  sur sites tiers — seule différence app/ext, par prudence).
+- **HORS PARITÉ** : une complétion n'est PAS un flag FP=0 → ne touche pas `flags-ext ⊆ flags-Python`. Vérifié :
+  `dev.sh` **26/26** (parité app↔Py et ext↔Py vertes). Test fonctionnel ext : caf→café, ecol→école,
+  telep→téléphone, franc→français, recev→recevoir.
+- n-gram + sublexical OOV restent app-only (besoin moteur), non portés (marginaux). evo/saisie_oracle.js conservé
+  (labo/mesure).
+
 ## 2026-06-24 (suite 7) — aide-frappe : RESTAURATION D'ACCENTS (solution embarquée speller)
 
 Bug remonté par Rem : les suggestions sortaient SANS accents. Cause = `OMEGA_LEX4.m` est **déaccentué MAJUSCULE**

@@ -297,11 +297,24 @@
     return _loading;
   }
 
+  // ===== COMPLÉTION (aide-frappe) — mots plus longs pour un préfixe. HORS PARITÉ (suggestion d'UI, pas un flag FP=0).
+  // Réutilise le speller accentué SP (D2A = déacc→formes accentuées, déjà trié fréquence). Identique app.
+  var _compKeys=null;
+  function complete(prefix){
+    if(!SP.ready)return [];var p=deaccS(String(prefix).toLowerCase());if(p.length<2||!isAlphaS(p))return [];
+    if(_compKeys===null)_compKeys=Object.keys(SP.D2A).sort();
+    var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
+    var out=[],i=lo,k,forms,w;
+    while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
+      for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length)out.push(w);}i++;if(out.length>800)break;}
+    out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
+    var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
+    return res;}
   global.DYSCORE={
     correctText:correctText, diagnose:diagnose, developmental:developmental, remedFams:remedFams,
     flagsToFacts:flagsToFacts, REMED:REMED, STAGE_LBL:STAGE_LBL, STAGE_MSG:STAGE_MSG, STAGE_FAM:STAGE_FAM,
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
-    spellerReady:function(){return SP.ready;},
+    spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}
   };

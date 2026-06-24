@@ -21,3 +21,8 @@
 .omdys-fam{ color:#777; font-size:11px; }
 .omdys-stade{ margin-top:6px; padding:5px 7px; border-left:4px solid #2a6f97; background:#eaf2f8; border-radius:4px; font-size:12px; }
 .omdys-remed{ margin-top:4px; padding:5px 7px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:4px; font-size:12px; }
+/* aide-frappe : complétions du mot en cours (violet, distinct du rouge grammaire / bleu orthographe) */
+.omdys-comp{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px; }
+.omdys-clab{ color:#5b3a9e; font-size:11px; font-weight:700; }
+.omdys-cbtn{ cursor:pointer; border:1px solid #b8a8e0; background:#f3eefc; color:#3a2370; border-radius:6px; padding:3px 9px; font-size:13px; }
+.omdys-cbtn:hover{ background:#e6dcf7; }

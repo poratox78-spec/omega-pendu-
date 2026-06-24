@@ -53,6 +53,23 @@
     }
   }
 
+  // ===== complétion (aide-frappe) : mot SOUS LE CURSEUR — réutilise DC.complete (speller accentué). Identique app. =====
+  var WCH = /[A-Za-zÀ-ÖØ-öø-ÿœŒ']/;
+  function caretOf(el) { var tag = (el.tagName || '').toLowerCase(); if (tag === 'textarea' || tag === 'input') { try { return el.selectionStart; } catch (e) { return null; } } return null; }   // contenteditable : pas de complétion (caret complexe)
+  function wordAt(v, pos) { var s = pos, e = pos; while (s > 0 && WCH.test(v[s - 1])) s--; while (e < v.length && WCH.test(v[e])) e++; return { word: v.slice(s, e), start: s, end: e }; }
+  function computeComps(el) {
+    if (!DC.complete) return []; var pos = caretOf(el); if (pos == null) return [];
+    var v = getText(el), w = wordAt(v, pos);
+    if (!w.word || pos !== w.end || w.word.length < 2) return [];   // seulement en FIN de mot (préfixe en cours de frappe)
+    return DC.complete(w.word);
+  }
+  function applyComplete(el, repl) {
+    var tag = (el.tagName || '').toLowerCase(); if ((tag !== 'textarea' && tag !== 'input') || !repl) return;
+    var v = el.value, pos = caretOf(el); if (pos == null) pos = v.length; var w = wordAt(v, pos); if (!w.word) return;
+    if (/^[A-ZÀ-Ö]/.test(w.word)) repl = repl.charAt(0).toUpperCase() + repl.slice(1);   // garde la majuscule initiale
+    setText(el, v.slice(0, w.start) + repl + v.slice(w.end), w.start + repl.length);   // setText dispatch 'input' → re-run
+  }
+
   // ===== application des corrections (réutilise le découpage tokens du moteur) =====
   var TOKRE = /[A-Za-zÀ-ÿœŒ']+/g;
   function spans(text) { var m, s = []; TOKRE.lastIndex = 0; while ((m = TOKRE.exec(text))) s.push([m.index, m.index + m[0].length]); return s; }
@@ -95,19 +112,24 @@
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  function render(el, dg) {
+  function render(el, dg, comps) {
     var b = ensureBar();
-    var h = '<div class="omdys-head"><b>🩹 Correcteur dys</b>'
-      + '<span class="omdys-n">' + dg.flags.length + '</span>'
-      + '<button class="omdys-all">tout corriger</button>'
-      + '<button class="omdys-x" title="masquer">×</button></div>';
-    h += '<div class="omdys-list">';
-    dg.flags.forEach(function (f, k) {
-      var orth = /orthographe|[ée]lision/.test(f.name || '');   // bleu = orthographe (non-mot/accent) ; rouge = grammaire
-      h += '<div class="omdys-item' + (orth ? ' omdys-orth' : '') + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
-        + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : '') + ']</span></div>';
-    });
-    h += '</div>';
+    var h = '<div class="omdys-head"><b>🩹 Correcteur dys</b>';
+    if (dg.flags.length) h += '<span class="omdys-n">' + dg.flags.length + '</span><button class="omdys-all">tout corriger</button>';
+    h += '<button class="omdys-x" title="masquer">×</button></div>';
+    if (dg.flags.length) {
+      h += '<div class="omdys-list">';
+      dg.flags.forEach(function (f, k) {
+        var orth = /orthographe|[ée]lision/.test(f.name || '');   // bleu = orthographe (non-mot/accent) ; rouge = grammaire
+        h += '<div class="omdys-item' + (orth ? ' omdys-orth' : '') + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
+          + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : '') + ']</span></div>';
+      });
+      h += '</div>';
+    }
+    if (comps && comps.length) {   // aide-frappe : complétions du mot en cours (clic pour insérer)
+      h += '<div class="omdys-comp"><span class="omdys-clab">➡️ compléter</span>'
+        + comps.map(function (a) { return '<button class="omdys-cbtn" data-w="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>';
+    }
     if (dg.stade) {
       h += '<div class="omdys-stade"><b>Stade : ' + esc(dg.stadeLbl) + '</b><br>' + esc(dg.stadeMsg) + '</div>';
       if (dg.remed && dg.remed.length) h += '<div class="omdys-remed"><b>🛠️ Remédiation</b><br>' + dg.remed.map(esc).join('<br>') + '</div>';
@@ -116,11 +138,15 @@
     b.style.display = 'block';
     place(el);
     b.querySelector('.omdys-x').onclick = function () { dismissed.add(el); hideBar(); };
-    b.querySelector('.omdys-all').onclick = function () { applyAll(el, dg.flags); };
+    var allb = b.querySelector('.omdys-all'); if (allb) allb.onclick = function () { applyAll(el, dg.flags); };
     var items = b.querySelectorAll('.omdys-item');
     for (var z = 0; z < items.length; z++) (function (node) {
       node.onclick = function () { applyOne(el, dg.flags[+node.getAttribute('data-k')]); };
     })(items[z]);
+    var cbs = b.querySelectorAll('.omdys-cbtn');
+    for (var c = 0; c < cbs.length; c++) (function (node) {
+      node.onclick = function () { applyComplete(el, node.getAttribute('data-w')); };
+    })(cbs[c]);
   }
 
   // AUTO (orthographe sûre, FP=0) : appliquée EN SILENCE — jamais le mot sous le curseur (en cours de frappe). Miroir applyAutos de l'app.
@@ -144,8 +170,9 @@
     var dg = DC.diagnoseAll ? DC.diagnoseAll(text) : DC.diagnose(text);   // grammaire + orthographe (non-mots/accents)
     var autos = dg.flags.filter(function (f) { return f.tier === 'auto'; });
     if (autos.length && applyAutos(el, autos)) return;                    // AUTO sûr → corrigé tout seul
-    if (!dg.flags.length) { hideBar(); return; }
-    render(el, dg);
+    var comps = computeComps(el);                                         // aide-frappe : complétions du mot en cours
+    if (!dg.flags.length && !comps.length) { hideBar(); return; }
+    render(el, dg, comps);
   }
 
   // ===== orchestration =====
