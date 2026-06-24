@@ -11580,7 +11580,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
    +'<textarea id="vdd-ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="écris la phrase ici"></textarea>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
-   +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-prof" class="vdd-sc" style="margin-top:10px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
+   +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (défini avant) — résout les refs nues même dans les harnais d'extraction (window bouchonné)

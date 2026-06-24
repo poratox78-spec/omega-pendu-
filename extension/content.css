@@ -24,5 +24,5 @@
 /* aide-frappe : complétions du mot en cours (violet, distinct du rouge grammaire / bleu orthographe) */
 .omdys-comp{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px; }
 .omdys-clab{ color:#5b3a9e; font-size:11px; font-weight:700; }
-.omdys-cbtn{ cursor:pointer; border:1px solid #b8a8e0; background:#f3eefc; color:#3a2370; border-radius:6px; padding:3px 9px; font-size:13px; }
-.omdys-cbtn:hover{ background:#e6dcf7; }
+.omdys-cbtn{ cursor:pointer; border:1px solid #4a2f85; background:#5b3a9e; color:#fff; border-radius:6px; padding:3px 9px; font-size:13px; }   /* violet plein = identique à l'app (lisible, robuste au CSS du site hôte) */
+.omdys-cbtn:hover{ background:#492f80; color:#fff; }

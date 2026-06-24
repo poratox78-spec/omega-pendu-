@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-06-24 (suite 10) — boucle : seuil de variété, lisibilité UI, audit macro
+
+- **Variété dans `pick()`** (anti-démotivation) : tirage PONDÉRÉ sur `DysProfile.ranked()` (plusieurs faiblesses, pas
+  que la #1), 55 % ciblé / 45 % libre, anti-répétition (jamais 3× la même famille de suite). Mesuré 2000 tirages :
+  46 % libre, ciblage réparti, max 2 consécutifs.
+- **Lisibilité (récurrent, mémorisé)** : fini le texte/couleur pâle sur le crème des panneaux dys.
+  - `.vdc/.vdd/.vdk-sc` gris #6b6b6b → **#444** (+ override sombre #b4bdc7).
+  - Chips de complétion correcteur : toutes violet plein lisibles (1re marquée par liseré, pas par contraste).
+  - **Cause racine trouvée** : le `<style>` global fuit du clair — `h2{color:var(--fg)}` et `button:not(.btn){}`
+    (spécif. 0,1,1) battent une classe nue → titres + chips clairs. Fix = **scoper sous l'ID de carte**
+    (`#vdc-card .vdc-comp`, `#vdc-card h2{color:#222}`) + override thème sombre. Mémo `dys-ui-contrast`.
+- **Audit macro** (rien de cassé ; git propre, dev.sh 26/26, pas de TODO/debug, `complete()` identique app/ext) :
+  - chips extension alignées sur l'app (violet plein) ;
+  - **doublon de profil retiré** : l'ancien encart `vdd-prof` (comptes + argmax) supprimé, le `vdd-uprof` unifié
+    (taux + cible + sparkline) le remplace (évite deux « on travaille » contradictoires) ; `PROF`/`renderProf`
+    legacy laissés inertes (dette mineure, lignes denses).
+  - `evo/saisie_oracle.js` = labo/mesure orphelin assumé (n-gram/sublexical/autocomplete non portés en prod).
+
 ## 2026-06-24 (suite 9) — boucle d'apprentissage : PROFIL DYS UNIFIÉ (dictée + correcteur) + courbe de progrès
 
 Suite à l'extrapolation (le pendu n'entre PAS dans la boucle famille-dys : deviner des lettres ≠ écrire, et il joue
