@@ -10153,13 +10153,14 @@ window.addEventListener('DOMContentLoaded', () => {
     P.log.push({f:fam,e:erred,s:source==='corrector'?'c':'d'}); if(P.log.length>800)P.log.shift(); save(); }
   function rate(fam){ var x=P.fam[fam]; if(!x||!x.att)return null; return (x.err+0.5)/(x.att+1); }   // taux lissé (Laplace), dictée
   function recentRate(fam,k){ k=k||12; var c=0,e=0,i; for(i=P.log.length-1;i>=0&&c<k;i--)if(P.log[i].f===fam&&P.log[i].s==='d'){c++;e+=P.log[i].e;} return c?e/c:null; }
-  function weakest(minAtt){ minAtt=minAtt||4; var best=null,bv=-1,i,fam,x,r,score;
+  function ranked(minAtt){ minAtt=minAtt||4; var out=[],i,fam,x,r,score;
     for(i=0;i<FAMS.length;i++){ fam=FAMS[i]; x=P.fam[fam]; if(!x)continue; r=rate(fam);
       if(r!=null&&x.att>=minAtt){score=r+Math.min(0.25,(x.cerr||0)*0.03);}              // dictée MESURÉE (gold) prime + urgence rédaction (≤+0.25)
       else if((x.cerr||0)>=3){score=0.5+Math.min(0.3,((x.cerr||0)-3)*0.04);}            // vu SEULEMENT en rédaction → priorité moyenne, montante avec la fréquence
       else continue;
-      if(score>bv){bv=score;best=fam;} }
-    return best; }
+      out.push({fam:fam,score:score}); }
+    out.sort(function(a,b){return b.score-a.score;}); return out; }
+  function weakest(minAtt){ var r=ranked(minAtt); return r.length?r[0].fam:null; }
   function spark(fam,buckets){ buckets=buckets||8; var seg=[],i; for(i=0;i<P.log.length;i++)if(P.log[i].f===fam&&P.log[i].s==='d')seg.push(P.log[i].e);
     if(seg.length<3)return ''; var per=Math.ceil(seg.length/buckets),pts=[],b,j,s,c;
     for(b=0;b<seg.length;b+=per){s=0;c=0;for(j=b;j<b+per&&j<seg.length;j++){s+=seg[j];c++;}pts.push(s/c);}
@@ -10169,7 +10170,7 @@ window.addEventListener('DOMContentLoaded', () => {
     out.push({fam:fam,att:x.att,err:x.err,cerr:x.cerr||0,rate:rate(fam),recent:recentRate(fam),spark:spark(fam)}); }
     out.sort(function(a,b){return (b.rate||0)-(a.rate||0);}); return out; }
   function reset(){ P={fam:{},log:[]}; save(); }
-  window.DysProfile={rec:rec,rate:rate,recentRate:recentRate,weakest:weakest,spark:spark,summary:summary,reset:reset,FAMS:FAMS};
+  window.DysProfile={rec:rec,rate:rate,recentRate:recentRate,weakest:weakest,ranked:ranked,spark:spark,summary:summary,reset:reset,FAMS:FAMS};
 })();
 </script>
 
@@ -11593,7 +11594,18 @@ window.addEventListener('DOMContentLoaded', () => {
     el.innerHTML='<div style="margin-top:8px;border-top:1px solid #d0c8b0;padding-top:6px"><b>📈 Profil dys unifié</b> <span class="vdd-sc">(dictée + correcteur · taux d\'erreur par famille, ↓=tu progresses)</span>'+(wk?'<br><b>🎯 on travaille : '+(LBL[wk]||wk)+'</b>':'')+rows+'</div>';}
   function poolFor(d){return SENT.filter(function(w){return w.d===d;});}
   function say(){if(!cur)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(cur.text);u.lang='fr-FR';u.rate=VR;speechSynthesis.speak(u);}catch(e){}}
-  function pick(){var p=poolFor(diff);var fo=(DysProfile&&DysProfile.weakest())||focusFam();if(fo&&Math.random()<0.65){var pf=p.filter(function(w){return (w.traps||[]).indexOf(fo)>=0;});if(pf.length)p=pf;}cur=p[Math.floor(Math.random()*p.length)];answered=false;$('vdd-ans').value='';$('vdd-fb').innerHTML='';$('vdd-ans').focus();say();}
+  var _lastFam=null,_lastN=0;
+  function pick(){var p=poolFor(diff),fo=null;
+    var rk=(DysProfile&&DysProfile.ranked)?DysProfile.ranked():null;
+    if(rk&&rk.length){ if(Math.random()<0.55){                                        // 55% ciblé → 45% LIBRE (variété + réussites = anti-démotivation)
+        var cand=rk.filter(function(r){return !(r.fam===_lastFam&&_lastN>=2);});       // seuil de variété : jamais 3× la même famille de suite
+        if(!cand.length)cand=rk;
+        var tot=0;cand.forEach(function(r){tot+=r.score;});var x=Math.random()*tot,acc=0,i; // tirage PONDÉRÉ : varie parmi les faiblesses, pas que la #1
+        for(i=0;i<cand.length;i++){acc+=cand[i].score;if(x<=acc){fo=cand[i].fam;break;}} }
+    } else if(!DysProfile){ fo=(Math.random()<0.65?focusFam():null); }                 // repli si module absent (ancien comportement)
+    if(fo){var pf=p.filter(function(w){return (w.traps||[]).indexOf(fo)>=0;});if(pf.length)p=pf;}
+    _lastN=(fo&&fo===_lastFam)?_lastN+1:(fo?1:0);_lastFam=fo;
+    cur=p[Math.floor(Math.random()*p.length)];answered=false;$('vdd-ans').value='';$('vdd-fb').innerHTML='';$('vdd-ans').focus();say();}
   function check(){if(!cur||answered)return;var att=$('vdd-ans').value;if(!att.trim())return;
     var F=diagnoseSentence(cur.text,att,cur.fam);answered=true;nT++;var ok=F.length===0;if(ok)nG++;HIST.n++;if(ok)HIST.ok++;try{localStorage.setItem('vdd_hist',JSON.stringify(HIST));}catch(e){}
     var html=ok?'<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6"><b>✓ Phrase correcte !</b></div>'
@@ -11886,8 +11898,9 @@ window.addEventListener('DOMContentLoaded', () => {
    +'.vdc-bad.vdc-orth{background:#e6eefc;border-bottom-color:#2a6f97}.vdc-bad.vdc-orth:hover{background:#d2e2fb}'
    +'.vdc-fact{padding:8px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff;border-left:5px solid #c0392b}.vdc-sc{color:#6b6b6b;font-size:13px}'
    +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'   /* aide-frappe : complétions du mot en cours */
-   +'.vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #b8a8e0;border-radius:8px;background:rgba(91,58,158,.10);color:inherit;cursor:pointer}'
-   +'.vdc-comp:hover{background:rgba(91,58,158,.22)}.vdc-comp.vdc-comp-top{background:rgba(91,58,158,.30);font-weight:bold}'
+   +'.vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #b8a8e0;border-radius:8px;background:#efe7fb;color:#3a2370;cursor:pointer}'
+   +'.vdc-comp:hover{background:#e2d4f7}.vdc-comp.vdc-comp-top{background:#5b3a9e;color:#fff;border-color:#5b3a9e;font-weight:bold}'
+   +'body.dys-dark .vdc-comp{background:#2a2140;color:#e7dcff;border-color:#5b3a9e}body.dys-dark .vdc-comp:hover{background:#382a55}body.dys-dark .vdc-comp.vdc-comp-top{background:#7c5bc0;color:#fff;border-color:#7c5bc0}'
    +'#vdc-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'
    +'#vdc-set{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}'
    +'#vdc-set button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid #cfc4ab;border-radius:8px;background:#fff;color:#333;cursor:pointer;min-height:34px}'
