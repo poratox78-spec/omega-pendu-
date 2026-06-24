@@ -62,6 +62,15 @@ function edits1(d) {                                   // delete / transpose / r
 async function makeOracle(O) {
   O = O || loadEngine(); if (O.loadLex) await O.loadLex();
   const lex = O.evalIn(`OMEGA_LEX4.words.map(w=>[w.m.toLowerCase(), w.f||0])`);
+  // VOIE SUBLEXICALE = n-gram positionnel du MOTEUR (`_neoNG`, bâti du lexique 155k via len_index, la table qui
+  // fait l'OOV ~57-65 % du pendu) — §5/A2 : on RÉUTILISE le n-gram du moteur, pas une trigramme maison. Backoff tri→bi→uni.
+  const _ngOK = O.evalIn(`(function(){ if(typeof _neoEnsureNG==='undefined') return 0; _neoEnsureNG();
+    globalThis.__sx=function(arr){ var NG=_neoNG; return arr.map(function(w){ w=w.toUpperCase(); var L=w.length,lp=0;
+      for(var p=0;p<L;p++){ var c=w.charCodeAt(p)-65; if(c<0||c>=26) return -1e9;
+        var nb=(p>0&&p<L-1)?NG.tri[L+'|'+p+'|'+w[p-1]+'|'+w[p+1]]:null;
+        if(!nb&&p>0)nb=NG.bl[L+'|'+p+'|'+w[p-1]]; if(!nb&&p<L-1)nb=NG.br[L+'|'+p+'|'+w[p+1]]; if(!nb)nb=NG.uni[L+'|'+p];
+        var s=0; if(nb)for(var x=0;x<26;x++)s+=nb[x]; lp+=Math.log(((nb?nb[c]:0)+0.5)/((s||0)+13)); }
+      return lp/L; }); }; return 1; })()`);
   const F = Object.create(null), D2A = Object.create(null), PHON = Object.create(null);
   const TRI = Object.create(null), TRItot = Object.create(null);   // trigrammes de caractères (voie sublexicale)
   for (const [m, f] of lex) {
@@ -99,13 +108,13 @@ async function makeOracle(O) {
     return { sugg: best, dist: bd, conf, route: 'lexicale', alts: cands.slice(0, 5) };
   }
 
-  function sublexicale(token) {                                     // voie SUBLEXICALE (OOV) : meilleure graphie par trigrammes
+  function sublexicale(token) {                                     // voie SUBLEXICALE (OOV) : meilleure graphie par n-gram MOTEUR
     const d = da(token.toLowerCase());
-    let best = null, bl = -Infinity;
-    for (const e of edits1(d)) {                                    // graphies voisines (vraies OU non) scorées orthographe
-      const s = triLP(e); if (s > bl) { bl = s; best = e; }
-    }
-    return { sugg: best, conf: 0.3, route: 'sublexicale', score: bl };
+    const cands = [...edits1(d)].filter(w => w.length >= 2);         // graphies voisines (vraies OU non) scorées orthographe
+    if (!cands.length) return null;
+    const scores = _ngOK ? O.evalIn(`__sx(${JSON.stringify(cands)})`) : cands.map(triLP);   // n-gram du moteur (réutilisé) ; repli trigramme local
+    let bi = 0; for (let i = 1; i < cands.length; i++) if (scores[i] > scores[bi]) bi = i;
+    return { sugg: cands[bi], conf: 0.3, route: _ngOK ? 'sublexicale(n-gram moteur)' : 'sublexicale(local)', score: scores[bi] };
   }
 
   function suggest(token) {                                         // ARBITRAGE par fiabilité (in-lex ⟶ lexicale ; OOV ⟶ sublexicale)
@@ -132,14 +141,16 @@ if (require.main === module) (async () => {
       if (k === 0)[a[j], a[j - 1]] = [a[j - 1], a[j]]; else if (k === 1) a.splice(j, 1);
       else if (k === 2) a.splice(j, 0, a[j]); else a[j] = ({ f: 'ph', t: 'th', k: 'qu', s: 'c', o: 'au' })[a[j]] || a[j] + a[j];
       return a.join(''); };
-    let n = 0, top1 = 0, byRoute = {};
+    let n = 0, top1 = 0, byRoute = {}, subN = 0, subOk = 0;
     for (const t of words) { const ty = mk(t); if (ty in o.F) continue; n++;
       const r = o.suggest(ty); const ok = r && da(r.sugg) === da(t); if (ok) top1++;
       const rt = r ? r.route : 'rien'; byRoute[rt] = byRoute[rt] || [0, 0]; byRoute[rt][0]++; if (ok) byRoute[rt][1]++;
+      const s = o.sublexicale(ty); subN++; if (s && da(s.sugg) === da(t)) subOk++;   // voie SUBLEXICALE seule = régime OOV simulé (n-gram moteur, sans le lexique)
     }
     console.log(`=== ORACLE SAISIE — typos variés (cible in-lexique) n=${n} ===`);
-    console.log(`  top-1 GLOBAL : ${(100 * top1 / n).toFixed(0)} %`);
-    for (const rt in byRoute) console.log(`    voie ${rt.padEnd(20)} : ${byRoute[rt][1]}/${byRoute[rt][0]} (${(100 * byRoute[rt][1] / byRoute[rt][0]).toFixed(0)} %)`);
+    console.log(`  top-1 GLOBAL (arbitrage 2 voies) : ${(100 * top1 / n).toFixed(0)} %`);
+    for (const rt in byRoute) console.log(`    voie ${rt.padEnd(26)} : ${byRoute[rt][1]}/${byRoute[rt][0]} (${(100 * byRoute[rt][1] / byRoute[rt][0]).toFixed(0)} %)`);
+    console.log(`  voie SUBLEXICALE seule (≈ régime OOV) : ${(100 * subOk / subN).toFixed(0)} %  [${(o.sublexicale('zzqxd') || {}).route || '?'}]`);
     // démo OOV : mot retiré du lexique → la voie lexicale échoue, la sublexicale propose
     console.log('  démo : qiu->', JSON.stringify(o.suggest('qiu')), ' | ortografe->', JSON.stringify(o.suggest('ortografe')).slice(0, 80));
   } else {
