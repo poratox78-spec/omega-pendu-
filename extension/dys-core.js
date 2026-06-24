@@ -224,7 +224,7 @@
       if(SP.WORDS.has(rest))return['flag',(low[0]==='q'?"qu'":low[0]+"'")+rest];}
     var cand={},i,j,w,arr;arr=SP.D2A[d]||[];for(i=0;i<arr.length;i++){w=arr[i];cand[w]=[2,SP.FREQ[w]];}
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=SP.D2A[e1[i]];if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,SP.FREQ[w]];}}
-    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>1)continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur : un candidat phonétique trop éloigné (trist→tristesse, autent→hautaine) ne compte pas
+    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>2||deaccS(w).charAt(0)!==d.charAt(0))continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur (Δ≤2)+MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe) ; bloque trist→tristesse (Δ4)/autent→hautaine (initiale)
     var keys=Object.keys(cand);if(!keys.length)return null;var pk=phonKey(low);
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)

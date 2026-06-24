@@ -153,7 +153,7 @@ class Speller:
             for w in self.D2A.get(e, []):
                 c[w] = max(c.get(w, (-1, 0)), (1, self.FREQ[w]))
         for w in self.PHON.get(phon_key(low), [])[:8]:          # voisins phonétiques (FLAG) — limités, classés freq
-            if abs(len(deacc(w)) - len(d)) > 1: continue        # garde-longueur : phonétique trop éloigné écarté (trist→tristesse, autent→hautaine)
+            if abs(len(deacc(w)) - len(d)) > 2 or deacc(w)[:1] != d[:1]: continue   # garde-longueur (Δ≤2) + MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe : th/ph) ; bloque trist→tristesse (Δ4) et autent→hautaine (initiale a≠h)
             c[w] = max(c.get(w, (-1, 0)), (0, self.FREQ[w]))
         return c
 

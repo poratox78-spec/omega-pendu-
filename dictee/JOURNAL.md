@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-06-24 (suite 2) — speller : multi-édit phonétique silencieux (ortografe→orthographe), 3 moteurs
+
+Fautes de frappe (étape 2). **Speller déjà bon** (FP=0, accent/transposition/omission/doublement/adjacent/phon).
+- **Multi-édit livré** : garde-longueur de `_cands` (phonétique) passée de **Δ≤1 à Δ≤2 + MÊME initiale** → laisse passer
+  le multi-édit à lettres silencieuses (clé phon identique mais +2 lettres : `ortografe→orthographe` th/ph, `simfonie→symphonie`,
+  `teatre→théâtre`) ; bloque toujours `trist→tristesse` (Δ4) et `autent→hautaine` (initiale a≠h). **GEC FP=0** ;
+  **UD 240→231** (la garde initiale retire même des FP préexistants). 3 moteurs, parité verte, dev.sh 26/26.
+- **Désambiguïsation mot-court par fréquence : FALSIFIÉ** (testé, reverté) : `qiu` a ≥2 mots réels à edit-1 → soit
+  sur-flague le junk (von→vont, two→to : +19 FP UD), soit abstient (= actuel). L'abstention du speller est *juste* ;
+  les mots courts ambigus + la queue typo = **bornés par le CONTEXTE** → étape 3 (pendu-oracle).
+
 ## 2026-06-24 (suite) — BESCHERELLE livré (paradigmes complets) + élision durcie → FP UD 2,18 → 2,17 %
 
 « Durcir d'abord » (Rem) : le Bescherelle ajoute du rappel SANS monter le FP. Pipeline reproductible
