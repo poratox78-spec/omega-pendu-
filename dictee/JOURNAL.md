@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-06-24 (suite 3) — étape 3 : ORACLE DE SAISIE bâti (double voie arbitrée) — evo/saisie_oracle.js
+
+Le pendu comme oracle de saisie/typo = la **DOUBLE VOIE arbitrée** d'OMEGA appliquée à la frappe (Leçon 79 du mémoire :
+la force vient de l'ENSEMBLE, pas d'une voie isolée). Réutilise `OMEGA_LEX4` (155k + phon `.p`) — §5, pas de réinvention.
+- **Voie LEXICALE** (in-lexique) : cohorte (clé phon ∪ edit-1), classée **DISTANCE Damerau → anagramme → fréquence**.
+  Mesuré **~84 % top-1** sur typos variés ; `qiu→qui`, `ortografe→orthographe`, `recevior→recevoir`, `teléfone→téléphone`,
+  `maintnant→maintenant`. (Damerau = transposition à dist 1 ; anagramme départage `qiu`→qui pas qu.)
+- **Voie SUBLEXICALE** (OOV) : trigrammes de caractères appris du même lexique (la voie qui généralise hors-lexique).
+  Faible seule mais **SEULE voie sur l'OOV** (la lexicale y rend 0) — d'où la double voie.
+- **ARBITRAGE par fiabilité** (distance≤2 ∨ même clé phon, ∧ candidat dominant) : lexicale si confiante, sinon sublexicale —
+  bascule auto par régime, comme l'OS du moteur (`M_NEO_OS_ARB`). Swap futur : `_neoLetterNgramDist` gap-aware (déjà OFF-inerte).
+- **Progression mesurée** (= preuve de l'ensemble) : anagramme-freq 11 % → phon 44 % → +edit 78 % → +distance/Damerau **84-87 %**.
+- Nouveau module `evo/` (zéro impact sur le correcteur 3-moteurs). Câblage UI (aide-frappe / suggestion typo dys) = suite.
+
 ## 2026-06-24 (suite 2) — speller : multi-édit phonétique silencieux (ortografe→orthographe), 3 moteurs
 
 Fautes de frappe (étape 2). **Speller déjà bon** (FP=0, accent/transposition/omission/doublement/adjacent/phon).
