@@ -12096,5 +12096,174 @@ window.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
+<script>
+// ===== ✍️ AIDE-FRAPPE (oracle de saisie) — port de evo/saisie_oracle.js, OFF-inerte (R66), SCRIPT SÉPARÉ (zéro adjacence avec le correcteur) =====
+// Aide à la frappe dys TEMPS RÉEL : pendant qu'on tape, suggère la CORRECTION du mot en cours (typo) et des
+// COMPLÉTIONS. Architecture = la DOUBLE VOIE arbitrée du pendu (mémoire §4.2, Leçon 79 : la force vient de
+// l'ENSEMBLE) appliquée à la saisie. Réutilise OMEGA_LEX4 (155k + phon) et le n-gram du MOTEUR (_neoNG via
+// _neoEnsureNG ; scorer interne, backoff tri→bi→uni) — §5/A2 : pas de réinvention. Isolé : ne lit/écrit JAMAIS
+// le correcteur ni la baseline ; n'apparaît qu'au clic du bouton (R66 OFF-default).
+(function(){
+  if (typeof OMEGA_LEX4==='undefined' || !OMEGA_LEX4 || !OMEGA_LEX4.words) return;   // sans lexique → inerte
+  function $(id){return document.getElementById(id);}
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  var ALPHA='abcdefghijklmnopqrstuvwxyz';
+  function da(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'');}
+  function phonKey(s){                                  // clé phonétique FR approx (miroir saisie_oracle.phonKey)
+    s=da(s.toLowerCase()).replace(/ç/g,'s');
+    s=s.replace(/ph/g,'f').replace(/th/g,'t').replace(/ch/g,'§').replace(/qu/g,'k').replace(/gu/g,'g')
+       .replace(/eau|aux|au/g,'o').replace(/ou/g,'u').replace(/ai|ei|ay/g,'e').replace(/oi/g,'wa');
+    var r='',i,c,n;
+    for(i=0;i<s.length;i++){ c=s[i]; n=s[i+1]||'';
+      if(c==='c')r+=(/[eiy§]/.test(n)?'s':'k');
+      else if(c==='g')r+=(/[eiy]/.test(n)?'j':'g');
+      else if(c==='h')continue;
+      else if(c==='x')r+='ks'; else if('zs'.indexOf(c)>=0)r+='s';
+      else if(c==='y')r+='i'; else if(c==='w')r+='v'; else r+=c; }
+    var o='',k; for(k=0;k<r.length;k++) if(o[o.length-1]!==r[k]) o+=r[k];
+    while(o&&'est'.indexOf(o[o.length-1])>=0) o=o.slice(0,-1);
+    return o;
+  }
+  function lev(a,b){                                    // Levenshtein-Damerau (déaccentué)
+    a=da(a); b=da(b); var m=a.length,n=b.length,i,j;
+    var d=[]; for(i=0;i<=m;i++){ d[i]=new Array(n+1); d[i][0]=i; } for(j=0;j<=n;j++) d[0][j]=j;
+    for(i=1;i<=m;i++) for(j=1;j<=n;j++){
+      d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+      if(i>1&&j>1&&a[i-1]===b[j-2]&&a[i-2]===b[j-1]) d[i][j]=Math.min(d[i][j],d[i-2][j-2]+1);   // transposition adjacente = 1 (qiu↔qui)
+    }
+    return d[m][n];
+  }
+  function edits1(d){                                   // delete / transpose / replace / insert
+    var r=new Set(),i,a,b,ci,c;
+    for(i=0;i<=d.length;i++){ a=d.slice(0,i); b=d.slice(i);
+      if(b) r.add(a+b.slice(1));
+      if(b.length>1) r.add(a+b[1]+b[0]+b.slice(2));
+      for(ci=0;ci<ALPHA.length;ci++){ c=ALPHA[ci]; r.add(a+c+b); if(b) r.add(a+c+b.slice(1)); } }
+    return r;
+  }
+  // VOIE SUBLEXICALE / cue lexical = n-gram positionnel du MOTEUR (_neoNG via _neoEnsureNG). Backoff tri→bi→uni.
+  var _NG=null;
+  function ensureNG(){ if(_NG!==null) return _NG;
+    try{ if(typeof _neoEnsureNG!=='undefined'){ _neoEnsureNG(); _NG=(typeof _neoNG!=='undefined'&&_neoNG)?_neoNG:false; } else _NG=false; }
+    catch(e){ _NG=false; } return _NG; }
+  function sxScore(arr){ var NG=ensureNG(); if(!NG) return null;
+    return arr.map(function(w){ w=w.toUpperCase(); var L=w.length,lp=0,p,x;
+      for(p=0;p<L;p++){ var c=w.charCodeAt(p)-65; if(c<0||c>=26) return -1e9;
+        var nb=(p>0&&p<L-1)?NG.tri[L+'|'+p+'|'+w[p-1]+'|'+w[p+1]]:null;
+        if(!nb&&p>0)nb=NG.bl[L+'|'+p+'|'+w[p-1]]; if(!nb&&p<L-1)nb=NG.br[L+'|'+p+'|'+w[p+1]]; if(!nb)nb=NG.uni[L+'|'+p];
+        var s=0; if(nb)for(x=0;x<26;x++)s+=nb[x]; lp+=Math.log(((nb?nb[c]:0)+0.5)/((s||0)+13)); }
+      return lp/L; }); }
+  // INDICES oracle (bâtis UNE fois, paresseux) : fréquence, déacc→formes, phon→formes, clés triées (complétion préfixe).
+  var F=null,D2A=null,PHON=null,DKEYS=null, RE=/^[a-zàâäéèêëîïôöùûüÿç]+$/;
+  function buildIdx(){ F=Object.create(null); D2A=Object.create(null); PHON=Object.create(null);
+    var W=OMEGA_LEX4.words,i,e,m,f,d,k;
+    for(i=0;i<W.length;i++){ e=W[i]; if(!e||!e.m) continue; m=e.m.toLowerCase(); if(!RE.test(m)) continue; f=e.f||0;
+      if(!(m in F)||f>F[m]) F[m]=f; d=da(m); (D2A[d]||(D2A[d]=[])).push(m); k=phonKey(m); (PHON[k]||(PHON[k]=[])).push(m); }
+    DKEYS=Object.keys(D2A).sort(); }
+  function lexicale(token){                             // voie LEXICALE : cohorte phon∪edit-1, distance Damerau → anagramme → (freq + n-gram)
+    var low=token.toLowerCase(), d=da(low);
+    var C=new Set(PHON[phonKey(low)]||[]);
+    edits1(d).forEach(function(ed){ var arr=D2A[ed]; if(arr) arr.forEach(function(w){ C.add(w); }); });
+    var cands=[]; C.forEach(function(w){ if(w!==low) cands.push(w); });
+    if(!cands.length) return null;
+    var dk=d.split('').sort().join(''); function ana(w){ return da(w).split('').sort().join('')===dk?1:0; }
+    var ng=sxScore(cands.map(da)), ngm=new Map(); cands.forEach(function(w,i){ ngm.set(w, ng?ng[i]:0); });
+    function cue(w){ return Math.log(F[w]+1)+0.6*ngm.get(w); }   // CUE = freq + n-gramme du moteur (départage les candidats)
+    cands.sort(function(x,y){ return (lev(d,da(x))-lev(d,da(y)))||(ana(y)-ana(x))||(cue(y)-cue(x)); });
+    var best=cands[0], bd=lev(d,da(best)), f2=cands[1]?F[cands[1]]:0;
+    var close=(bd<=2||phonKey(low)===phonKey(best))?1:0;
+    var conf=close*(F[best]>=1?1:0)*(f2===0||F[best]>=3*f2?1:0.6);
+    return {sugg:best,dist:bd,conf:conf,route:'lexicale',alts:cands.slice(0,5)};
+  }
+  function sublexicale(token){                          // voie SUBLEXICALE (OOV) : meilleure graphie par n-gram MOTEUR
+    var d=da(token.toLowerCase()), cands=[];
+    edits1(d).forEach(function(w){ if(w.length>=2) cands.push(w); }); if(!cands.length) return null;
+    var scores=sxScore(cands); if(!scores) return null;   // sans n-gram moteur → pas de voie sublexicale
+    var bi=0,i; for(i=1;i<cands.length;i++) if(scores[i]>scores[bi]) bi=i;
+    return {sugg:cands[bi],conf:0.3,route:'sublexicale(n-gram moteur)'};
+  }
+  function suggest(token){                              // ARBITRAGE par fiabilité (in-lex → lexicale ; OOV → sublexicale)
+    if(token.toLowerCase() in F) return null;           // déjà un vrai mot → rien à corriger
+    var Lx=lexicale(token);
+    if(Lx&&Lx.conf>=1) return Lx;
+    var S=sublexicale(token);
+    if(Lx) return (Lx.conf>=0.6)?Lx:{sugg:Lx.sugg,dist:Lx.dist,conf:Lx.conf,route:'lexicale(incertain)',alts:Lx.alts,sublex:S?S.sugg:null};
+    return S;
+  }
+  function complete(prefix){                            // COMPLÉTION préfixe (cohorte) : mots plus longs commençant par le préfixe, top fréquence
+    if(DKEYS===null) return [];
+    var p=da(prefix.toLowerCase()); if(p.length<2) return [];
+    var lo=0,hi=DKEYS.length,mid; while(lo<hi){ mid=(lo+hi)>>1; if(DKEYS[mid]<p) lo=mid+1; else hi=mid; }
+    var out=[],i=lo,k,forms,w;
+    while(i<DKEYS.length && DKEYS[i].slice(0,p.length)===p){ forms=D2A[DKEYS[i]];
+      for(k=0;k<forms.length;k++){ w=forms[k]; if(da(w).length>p.length) out.push(w); } i++; if(out.length>500) break; }
+    out.sort(function(a,b){ return (F[b]||0)-(F[a]||0); });
+    var seen=Object.create(null),res=[]; for(i=0;i<out.length&&res.length<5;i++){ if(!seen[out[i]]){ seen[out[i]]=1; res.push(out[i]); } }
+    return res;
+  }
+  // ---- UI ----
+  var WCH=/[A-Za-zÀ-ÖØ-öø-ÿ']/;
+  function wordAt(v,pos){ var s=pos,e=pos;
+    while(s>0 && WCH.test(v[s-1])) s--; while(e<v.length && WCH.test(v[e])) e++;
+    return {word:v.slice(s,e),start:s,end:e}; }
+  var _active=null;
+  function chip(w,cls){ return '<button class="vdo-chip'+cls+'" data-w="'+esc(w)+'">'+esc(w)+'</button>'; }
+  function render(){ var ta=$('vdo-in'), box=$('vdo-hint'); if(!ta||!box) return;
+    var w=wordAt(ta.value, ta.selectionStart); _active=null;
+    if(!w.word || da(w.word).length<2){ box.innerHTML='<span class="vdo-sc">Tape un mot — corrections (Tab) et complétions s’affichent ici en direct.</span>'; return; }
+    var html='', corr=suggest(w.word);
+    if(corr && corr.sugg && da(corr.sugg)!==da(w.word)){ _active=corr.sugg;
+      var alts=(corr.alts&&corr.alts.length)?corr.alts:[corr.sugg];
+      var chips=alts.slice(0,5).map(function(a,i){ return chip(a,(i===0?' vdo-top':'')); }).join('');
+      html+='<div class="vdo-row"><span class="vdo-lab">✏️ correction</span>'+chips
+           +'<span class="vdo-sc"> · '+esc(corr.route)+(corr.dist!=null?(' d'+corr.dist):'')+' · <b>Tab</b></span></div>'; }
+    var comp=complete(w.word);
+    if(comp.length){ if(!_active) _active=comp[0];
+      html+='<div class="vdo-row"><span class="vdo-lab">➡️ complétion</span>'+comp.map(function(a){ return chip(a,''); }).join('')+'</div>'; }
+    box.innerHTML = html || '<span class="vdo-sc">« '+esc(w.word)+' » — rien à proposer.</span>';
+  }
+  function accept(repl){ if(!repl) return; var ta=$('vdo-in'), v=ta.value, w=wordAt(v,ta.selectionStart);
+    if(!w.word) return;
+    if(/^[A-ZÀ-Ö]/.test(w.word)) repl=repl.charAt(0).toUpperCase()+repl.slice(1);   // garde la majuscule initiale
+    ta.value=v.slice(0,w.start)+repl+v.slice(w.end);
+    var np=w.start+repl.length; ta.setSelectionRange(np,np); ta.focus(); render();
+  }
+  var st=document.createElement('style');
+  st.textContent='#vdo-btn{position:fixed;right:14px;bottom:158px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#5b3a9e;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
+   +'#vdo-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdo-ov.on{display:flex}'
+   +'#vdo-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,640px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
+   +'#vdo-card h2{margin:.1em 0;font-size:20px}#vdo-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
+   +'#vdo-in{font:inherit;font-size:18px;padding:11px;width:100%;min-height:90px;border:2px solid #ddd0f0;border-radius:10px;background:#fff;margin-top:10px}'
+   +'#vdo-hint{margin-top:12px;min-height:40px}.vdo-sc{color:#6b6b6b;font-size:13px}'
+   +'.vdo-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 9px;background:#fff;border-radius:9px;margin:6px 0;border-left:4px solid #5b3a9e}'
+   +'.vdo-lab{font-weight:bold;color:#5b3a9e;min-width:96px;font-size:14px}'
+   +'.vdo-chip{font:inherit;font-size:16px;padding:5px 11px;border:1px solid #ddd0f0;border-radius:8px;background:#f3eefc;color:#3a2370;cursor:pointer}'
+   +'.vdo-chip:hover{background:#e6dcf7}.vdo-chip.vdo-top{background:#5b3a9e;color:#fff;border-color:#5b3a9e;font-weight:bold}';
+  document.head.appendChild(st);
+  var btn=document.createElement('button'); btn.id='vdo-btn'; btn.textContent='✍️ Aide-frappe'; document.body.appendChild(btn);
+  var ov=document.createElement('div'); ov.id='vdo-ov';
+  ov.innerHTML='<div id="vdo-card"><button id="vdo-x" aria-label="Fermer">×</button><h2>✍️ Aide-frappe dys — oracle de saisie</h2>'
+   +'<div class="vdo-sc">Tape : pour le mot en cours, l’oracle propose une <b>correction</b> de typo et des <b>complétions</b>. <b>Tab</b> accepte la 1re ; clique une autre. Double voie du pendu : <b>lexicale</b> (cohorte 155k + n-gram moteur) et <b>sublexicale</b> (n-gram, mots inédits). Hors-ligne.</div>'
+   +'<textarea id="vdo-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="écris ici… (ex. : qiu, ortografe, maintnant, recevior)"></textarea>'
+   +'<div id="vdo-hint"></div></div>';
+  document.body.appendChild(ov);
+  var _t;
+  function openPanel(){ ov.classList.add('on');
+    if(F===null){ $('vdo-hint').innerHTML='<span class="vdo-sc">⏳ préparation du lexique (155k mots)…</span>';
+      setTimeout(function(){ buildIdx(); ensureNG(); $('vdo-in').focus(); render(); },30); }
+    else { $('vdo-in').focus(); render(); } }
+  btn.onclick=openPanel;
+  $('vdo-x').onclick=function(){ ov.classList.remove('on'); };
+  ov.addEventListener('click',function(e){ if(e.target===ov) ov.classList.remove('on'); });
+  $('vdo-in').addEventListener('input',function(){ clearTimeout(_t); _t=setTimeout(render,140); });
+  $('vdo-in').addEventListener('click',function(){ clearTimeout(_t); _t=setTimeout(render,80); });
+  $('vdo-in').addEventListener('keydown',function(e){
+    if(e.key==='Tab' && _active){ e.preventDefault(); accept(_active); }
+    else if(e.key==='Escape'){ ov.classList.remove('on'); } });
+  $('vdo-hint').addEventListener('click',function(e){ var t=e.target;
+    if(t && t.classList && t.classList.contains('vdo-chip')){ e.preventDefault(); accept(t.getAttribute('data-w')); } });
+})();
+</script>
+
 </body>
 </html>

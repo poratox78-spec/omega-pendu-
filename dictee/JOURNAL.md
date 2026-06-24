@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-06-24 (suite 6) — oracle CÂBLÉ dans l'UI : panneau « ✍️ Aide-frappe » (app)
+
+Port de `evo/saisie_oracle.js` dans `app/omega-pendu.html` comme **IIFE isolé `vdo-*`** (calqué sur le panneau
+Décompose `vdk` : SCRIPT SÉPARÉ, zéro adjacence avec le correcteur ; R66 OFF-default = inerte tant que le bouton
+n'est pas cliqué). Bouton flottant à `bottom:158px` (sous Décompose).
+- **Temps réel** : pour le mot sous le curseur → **correction** de typo (chips, Tab accepte la 1re) + **complétions**
+  préfixe (cohorte triée fréquence). Double voie arbitrée : lexicale (cohorte phon∪edit-1, distance Damerau →
+  anagramme → freq+n-gram) et sublexicale (n-gram moteur, OOV).
+- **Réutilise** OMEGA_LEX4 (155k, indices F/D2A/PHON bâtis 1× au 1er ouvrir) + `_neoNG` via `_neoEnsureNG` (scorer
+  interne, backoff tri→bi→uni) — §5/A2, pas de réinvention. Ne touche jamais le correcteur ni la baseline moteur.
+- **Vérifs** : (1) charge headless sans erreur (`fitness_harness.loadEngine`) ; (2) logique = port fidèle du evo
+  validé 85 % ; (3) glu DOM unit-testée 7/7 (frontière de mot, curseur intra-mot, majuscule préservée, accents) ;
+  (4) `dev.sh` **26/26 vert**. Smoke-test navigateur non fait (preview MCP bloqué : `launch.json` doit vivre dans
+  `C:\Program Files\Git` en lecture seule) — à confirmer en ouvrant l'app et le bouton ✍️.
+- Extension : non câblée (paradigme content-script ≠ overlay app) — suite éventuelle.
+
 ## 2026-06-24 (suite 5) — oracle : stats bi/trigramme DANS la voie lexicale (départage les candidats)
 
 Jusqu'ici les n-grammes ne servaient qu'aux voies cognitives (sublexicale, autocomplete). Branchés aussi sur le
