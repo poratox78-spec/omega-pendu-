@@ -19,12 +19,19 @@ une **famille** → un **stade développemental** (phonologique → alphabétiqu
    `le voiture`, `il son contents`). Une barre apparaît : clique une faute (ou **tout corriger**) → c'est appliqué
    **dans le champ**.
 
+## Aide-frappe (complétion)
+Pendant la frappe, pour le mot **sous le curseur**, la barre propose aussi des **complétions** — mots plus longs du
+même préfixe, triés par fréquence et **accentués** (`recev` → `recevoir`, `télé` → `téléphone`). Clique pour insérer.
+Réutilise le **même** lexique accentué (`speller.tsv.gz`) que la correction. **Hors périmètre de parité** : une
+complétion est une suggestion d'UI, pas un *flag* FP=0 (l'invariant `flags ⊆ Python` n'est donc pas concerné).
+La même complétion existe dans l'app (panneau « 🩹 Correcteur », **Tab** = accepter la 1re).
+
 ## Architecture
 | Fichier | Rôle |
 |---|---|
-| `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (stades, remédiation). Sans DOM. |
+| `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (stades, remédiation) + **`complete()`** (complétion préfixe accentuée, hors parité). Sans DOM. |
 | `assets/` | Lexiques extraits de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz` = 92 743 formes accentuées). Régénérés par `build_assets.py`. Données Lexique 4 → **CC BY-SA 4.0**. |
-| `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur (`diagnoseAll` = grammaire + orthographe), **applique en place** (gère la fusion de 2 tokens pour l'élision). |
+| `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur (`diagnoseAll` = grammaire + orthographe), **applique en place** (gère la fusion de 2 tokens pour l'élision) ; affiche aussi les **complétions** du mot en cours (`DYSCORE.complete`). |
 | `popup.html/js` | Réglages (activer/désactiver). |
 | `parity_core.js` | Test grammaire : `dys-core.js` ⊆ Python sur la batterie de référence (aucun FP propre). |
 | `test_speller.js` | Test orthographe : AUTO FP=0, hybride (accord contexte), accent-POS (élève/élevé), élision **+ parité directe `dys-core.spell()` ≡ `app.spellText()`**. |
