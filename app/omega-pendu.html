@@ -12104,7 +12104,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // _neoEnsureNG ; scorer interne, backoff tri→bi→uni) — §5/A2 : pas de réinvention. Isolé : ne lit/écrit JAMAIS
 // le correcteur ni la baseline ; n'apparaît qu'au clic du bouton (R66 OFF-default).
 (function(){
-  if (typeof OMEGA_LEX4==='undefined' || !OMEGA_LEX4 || !OMEGA_LEX4.words) return;   // sans lexique → inerte
+  // NB : OMEGA_LEX4 est chargé en ASYNC (let = null au parse) — on NE gate PAS la création du bouton dessus
+  // (sinon il n'apparaît jamais). Le lexique est vérifié/chargé PARESSEUSEMENT à l'ouverture (openPanel).
+  if (typeof document==='undefined') return;
   function $(id){return document.getElementById(id);}
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
   var ALPHA='abcdefghijklmnopqrstuvwxyz';
@@ -12248,10 +12250,16 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div id="vdo-hint"></div></div>';
   document.body.appendChild(ov);
   var _t;
+  function lexReady(){ return typeof OMEGA_LEX4==='object' && OMEGA_LEX4 && OMEGA_LEX4.words; }
+  function ensureLexThenBuild(tries){ tries=tries||0;
+    if(lexReady()){ buildIdx(); ensureNG(); $('vdo-in').focus(); render(); return; }
+    if(tries===0){ try{ if(typeof loadOmegaLex4==='function') loadOmegaLex4(); }catch(e){} }   // déclenche le chargement async (idempotent : garde OMEGA_LEX4_LOADING)
+    if(tries>60){ $('vdo-hint').innerHTML='<span class="vdo-sc">⚠️ lexique indisponible — lance une partie de pendu une fois, puis rouvre.</span>'; return; }
+    setTimeout(function(){ ensureLexThenBuild(tries+1); }, 250); }
   function openPanel(){ ov.classList.add('on');
-    if(F===null){ $('vdo-hint').innerHTML='<span class="vdo-sc">⏳ préparation du lexique (155k mots)…</span>';
-      setTimeout(function(){ buildIdx(); ensureNG(); $('vdo-in').focus(); render(); },30); }
-    else { $('vdo-in').focus(); render(); } }
+    if(F!==null){ $('vdo-in').focus(); render(); return; }                                    // indices déjà bâtis
+    $('vdo-hint').innerHTML='<span class="vdo-sc">⏳ préparation du lexique (155k mots)…</span>';
+    setTimeout(function(){ ensureLexThenBuild(0); }, 20); }
   btn.onclick=openPanel;
   $('vdo-x').onclick=function(){ ov.classList.remove('on'); };
   ov.addEventListener('click',function(e){ if(e.target===ov) ov.classList.remove('on'); });
