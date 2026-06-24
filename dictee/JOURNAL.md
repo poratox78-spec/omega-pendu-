@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-06-24 (suite 9) — boucle d'apprentissage : PROFIL DYS UNIFIÉ (dictée + correcteur) + courbe de progrès
+
+Suite à l'extrapolation (le pendu n'entre PAS dans la boucle famille-dys : deviner des lettres ≠ écrire, et il joue
+sans accents → erreur de catégorie ; il ne contribue que par ses **données** lexique). Construit la vraie boucle,
+**app-only** (localStorage ≠ extension, contrainte sandbox assumée) :
+- **Module `window.DysProfile`** (nouveau `<script>` partagé) : `dys_profile_v3`. Source-aware — DICTÉE = pratique
+  supervisée → **att/err → taux par famille** (gold) ; CORRECTEUR = erreurs de rédaction réelles → tally `cerr`
+  (priorité, PAS un dénominateur, sinon taux faussé à ~100 %). `weakest()` = taux mesuré prioritaire, le correcteur
+  ne domine qu'avec beaucoup d'erreurs. `spark()` = taux par buckets dans le temps (courbe de progrès).
+- **Dictée** : `check()` alimente le profil (att par trap testée, err par famille) ; `pick()` cible désormais la
+  famille faible **unifiée** ; nouvel encart **📈 Profil dys unifié** (taux % + sparkline + ↓progrès + rédaction ×N).
+- **Correcteur** : `applyFix`/`applyAutos` enregistrent l'erreur confirmée (famille via `_corrFam`, accent détecté
+  par déacc-égalité). HORS PARITÉ (pas un flag).
+- **Piège corrigé** (prévu par l'extrapolation) : le correcteur ne loggue que des erreurs → l'inclure dans le taux
+  donnait « 88 % » faux. Résolu : taux = dictée seule, correcteur = tally séparé.
+- **Bugs harnais réglés** : `renderUProf()` appelé à l'init référait `window.DysProfile` (nu) → ReferenceError dans
+  parity_corr.js (window bouchonné) et le bake (pas de window). Fix = **alias local null-safe** `var DysProfile=
+  (typeof window!=='undefined'&&window.DysProfile)||null;` dans chaque IIFE + toutes les gardes via l'alias.
+- Vérifs : logique testée (A/B/C : taux prime / beaucoup d'erreurs réd. priment / progrès récent<global) ; `dev.sh`
+  **26/26** (parité app↔Py + bake verts).
+
 ## 2026-06-24 (suite 8) — aide-frappe FONDUE dans le correcteur (app + extension), panneau ✍️ retiré
 
 Demande de Rem : l'aide-frappe dans le correcteur ET l'extension, pas un panneau séparé. Étude de faisabilité :
