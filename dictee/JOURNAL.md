@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-06-24 (suite 5) — oracle : stats bi/trigramme DANS la voie lexicale (départage les candidats)
+
+Jusqu'ici les n-grammes ne servaient qu'aux voies cognitives (sublexicale, autocomplete). Branchés aussi sur le
+**cheval de bataille lexical** : le tri des candidats devient `distance → anagramme → CUE` où `CUE = log(freq) +
+0.6·n-gramme` (score `__sx` du moteur, backoff tri→bi→uni) au lieu de la **freq seule**. Le n-gramme tranche entre
+deux candidats que la fréquence confond (plausibilité orthographique).
+- **A/B mesuré** (n=442, `ORACLE_NONG=1` = baseline freq seule) : freq seule **84 %** (lex 370/422) → freq+n-gramme
+  **85 %** (lex **374/422**). +4 cas, +1 pp. `qiu→qui`, `ortografe→orthographe` toujours bons.
+- Itératif gauche→droite sur l'autocomplete TESTÉ puis **rejeté** : greedy propage les erreurs (32 % < 34 % du
+  gap-aware à voisins confirmés). Gardé : voisin gauche RÉVÉLÉ (robuste).
+Les n-grammes du moteur servent désormais les 3 voies (lexicale, sublexicale, autocomplete). FP-safe (evo/ isolé).
+
 ## 2026-06-24 (suite 4) — oracle saisie : voie sublexicale = n-gram MOTEUR + route AUTOCOMPLETE gap-aware
 
 Deux raccordements de `evo/saisie_oracle.js` au moteur (§5/A2 : réutiliser, pas réinventer) :

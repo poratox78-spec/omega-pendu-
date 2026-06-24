@@ -80,7 +80,7 @@ async function makeOracle(O) {
       var rt=function(q,dd,c){ return dd===1?NG.br[L+'|'+q+'|'+c]:(NG.Rd?NG.Rd[L+'|'+q+'|'+dd+'|'+c]:null); };
       var out=rev.slice();
       for (var p=0;p<L;p++){ if (out[p]) continue;
-        var ld=0,lc=null,dd; for(dd=1;dd<=MAXD;dd++){ if(p-dd>=0&&rev[p-dd]){ld=dd;lc=rev[p-dd];break;} }
+        var ld=0,lc=null,dd; for(dd=1;dd<=MAXD;dd++){ if(p-dd>=0&&rev[p-dd]){ld=dd;lc=rev[p-dd];break;} }   // voisin gauche RÉVÉLÉ (confirmé) — robuste vs greedy itératif (propage les erreurs)
         var rd=0,rc=null; for(dd=1;dd<=MAXD;dd++){ if(p+dd<L&&rev[p+dd]){rd=dd;rc=rev[p+dd];break;} }
         var pos=null;
         if(ld===1&&rd===1){ var t=NG.tri[L+'|'+p+'|'+lc+'|'+rc]; if(t)pos=nz(t); }
@@ -118,7 +118,11 @@ async function makeOracle(O) {
     const cands = [...C].filter(w => w !== low);
     if (!cands.length) return null;
     const dk = d.split('').sort().join(''), ana = w => (da(w).split('').sort().join('') === dk ? 1 : 0);   // même multiset = transposition (candidat fort, n'affecte pas les omissions)
-    cands.sort((x, y) => (lev(d, da(x)) - lev(d, da(y))) || (ana(y) - ana(x)) || (F[y] - F[x]));   // distance → anagramme (qiu→qui, pas qu) → freq
+    const ng = _ngOK ? O.evalIn(`__sx(${JSON.stringify(cands.map(da))})`) : null;   // plausibilité orthographique (tri/bi-gramme du MOTEUR) par candidat
+    const ngm = new Map(); cands.forEach((w, i) => ngm.set(w, ng ? ng[i] : 0));
+    const W_NG = (typeof process !== 'undefined' && process.env && process.env.ORACLE_NONG) ? 0 : 0.6;   // A/B : ORACLE_NONG=1 → freq seule (baseline)
+    const cue = w => Math.log(F[w] + 1) + W_NG * ngm.get(w);                          // CUE combiné : fréquence + n-gramme (les 2 stats), pas la freq seule
+    cands.sort((x, y) => (lev(d, da(x)) - lev(d, da(y))) || (ana(y) - ana(x)) || (cue(y) - cue(x)));   // distance → anagramme → (freq + bigramme/trigramme)
     const best = cands[0], bd = lev(d, da(best));
     const f2 = cands[1] ? F[cands[1]] : 0;
     const close = (bd <= 2 || phonKey(low) === phonKey(best)) ? 1 : 0;   // proche orthographe OU même son (ortografe→orthographe = phon identique, dist 3)
