@@ -12209,17 +12209,40 @@ window.addEventListener('DOMContentLoaded', () => {
     while(s>0 && WCH.test(v[s-1])) s--; while(e<v.length && WCH.test(v[e])) e++;
     return {word:v.slice(s,e),start:s,end:e}; }
   var _active=null;
+  // RESTAURATION D'ACCENTS (solution embarquée) : OMEGA_LEX4.m est DÉACCENTUÉ (le pendu joue sans accents), mais
+  // l'asset `speller-lex-gz` (lexique du correcteur orthographique) porte les formes ACCENTUÉES + fréquence. On
+  // décompresse le MÊME bloc DOM, indépendamment du correcteur (zéro adjacence), et on mappe déacc→accentué (top freq).
+  var ACC=null, _accFr=null, _accLoad=false;
+  function akey(w){ return da(w.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')); }
+  function loadAccentMap(){ if(ACC||_accLoad) return; _accLoad=true;
+    try{ var el=document.getElementById('speller-lex-gz'); if(!el||!el.textContent){ _accLoad=false; return; }
+      var bin=Uint8Array.from(atob(el.textContent.trim()),function(c){ return c.charCodeAt(0); });
+      var stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+      new Response(stream).text().then(function(txt){
+        ACC=Object.create(null); _accFr=Object.create(null);
+        var lines=txt.split('\n'),k,ln,pr,w,fr,d;
+        for(k=0;k<lines.length;k++){ ln=lines[k]; if(!ln) continue; pr=ln.split('\t'); if(pr.length<2) continue;
+          w=pr[0]; fr=parseInt(pr[1],10)||0; d=akey(w);
+          if(_accFr[d]===undefined||fr>_accFr[d]){ ACC[d]=w; _accFr[d]=fr; } }   // garde la forme accentuée la PLUS fréquente
+        _accLoad=false; render();                                              // re-render avec accents dès que prêt
+      }).catch(function(){ _accLoad=false; });
+    }catch(e){ _accLoad=false; }
+  }
+  function accentize(w){ if(!ACC||!w) return w; var a=ACC[akey(w)]; if(!a) return w;
+    if(/^[A-ZÀ-Ö]/.test(w)) a=a.charAt(0).toUpperCase()+a.slice(1); return a; }
+  function uniq(arr){ var s=Object.create(null),o=[],i; for(i=0;i<arr.length;i++){ if(!s[arr[i]]){ s[arr[i]]=1; o.push(arr[i]); } } return o; }
   function chip(w,cls){ return '<button class="vdo-chip'+cls+'" data-w="'+esc(w)+'">'+esc(w)+'</button>'; }
   function render(){ var ta=$('vdo-in'), box=$('vdo-hint'); if(!ta||!box) return;
     var w=wordAt(ta.value, ta.selectionStart); _active=null;
     if(!w.word || da(w.word).length<2){ box.innerHTML='<span class="vdo-sc">Tape un mot — corrections (Tab) et complétions s’affichent ici en direct.</span>'; return; }
     var html='', corr=suggest(w.word);
-    if(corr && corr.sugg && da(corr.sugg)!==da(w.word)){ _active=corr.sugg;
-      var alts=(corr.alts&&corr.alts.length)?corr.alts:[corr.sugg];
+    if(corr && corr.sugg && da(corr.sugg)!==da(w.word)){
+      var alts=uniq(((corr.alts&&corr.alts.length)?corr.alts:[corr.sugg]).map(accentize));   // formes ACCENTUÉES (solution embarquée speller)
+      _active=alts[0];
       var chips=alts.slice(0,5).map(function(a,i){ return chip(a,(i===0?' vdo-top':'')); }).join('');
       html+='<div class="vdo-row"><span class="vdo-lab">✏️ correction</span>'+chips
            +'<span class="vdo-sc"> · '+esc(corr.route)+(corr.dist!=null?(' d'+corr.dist):'')+' · <b>Tab</b></span></div>'; }
-    var comp=complete(w.word);
+    var comp=uniq(complete(w.word).map(accentize));
     if(comp.length){ if(!_active) _active=comp[0];
       html+='<div class="vdo-row"><span class="vdo-lab">➡️ complétion</span>'+comp.map(function(a){ return chip(a,''); }).join('')+'</div>'; }
     box.innerHTML = html || '<span class="vdo-sc">« '+esc(w.word)+' » — rien à proposer.</span>';
@@ -12253,7 +12276,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _t;
   function lexReady(){ return typeof OMEGA_LEX4==='object' && OMEGA_LEX4 && OMEGA_LEX4.words; }
   function ensureLexThenBuild(tries){ tries=tries||0;
-    if(lexReady()){ buildIdx(); ensureNG(); $('vdo-in').focus(); render(); return; }
+    if(lexReady()){ buildIdx(); ensureNG(); loadAccentMap(); $('vdo-in').focus(); render(); return; }
     if(tries===0){ try{ if(typeof loadOmegaLex4==='function') loadOmegaLex4(); }catch(e){} }   // déclenche le chargement async (idempotent : garde OMEGA_LEX4_LOADING)
     if(tries>60){ $('vdo-hint').innerHTML='<span class="vdo-sc">⚠️ lexique indisponible — lance une partie de pendu une fois, puis rouvre.</span>'; return; }
     setTimeout(function(){ ensureLexThenBuild(tries+1); }, 250); }

@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-06-24 (suite 7) — aide-frappe : RESTAURATION D'ACCENTS (solution embarquée speller)
+
+Bug remonté par Rem : les suggestions sortaient SANS accents. Cause = `OMEGA_LEX4.m` est **déaccentué MAJUSCULE**
+(« CAFE », « ECOLE », « TELEPHONE » — le pendu joue sans accents). Solution embarquée = l'asset `speller-lex-gz`
+(lexique du correcteur orthographique) qui porte les formes **accentuées + fréquence**.
+- L'IIFE `vdo` décompresse le **MÊME bloc DOM** indépendamment du correcteur (zéro adjacence) et bâtit `ACC`
+  déacc→accentué (forme la plus fréquente ; gère œ/æ). Appliqué à l'affichage ET à l'insertion (chips, Tab).
+- Vérifié sur l'asset réel (87 082 entrées) : cafe→café, ecole→école, telephone→téléphone, francais→français,
+  etre→être, probleme→problème… Chargé async à l'ouverture, re-render dès prêt (repli déacc si indispo).
+- Fixes UI antérieurs même jour : bouton invisible (garde `OMEGA_LEX4` au parse async → retirée, charge paresseuse) ;
+  lisibilité (thème sombre app déteignait → couleurs explicites `!important`, `-webkit-text-fill-color`).
+- `dev.sh` 26/26 vert · charge headless OK.
+
 ## 2026-06-24 (suite 6) — oracle CÂBLÉ dans l'UI : panneau « ✍️ Aide-frappe » (app)
 
 Port de `evo/saisie_oracle.js` dans `app/omega-pendu.html` comme **IIFE isolé `vdo-*`** (calqué sur le panneau
