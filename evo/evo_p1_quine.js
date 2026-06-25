@@ -52,27 +52,25 @@ function behavior(nm, orig, copy){
     console.log(`  ${nm.padEnd(22)} byte-exact ${r.exact?'✅':'❌'} · résidu ${String(r.resid).padStart(3)}/${String(r.total).padStart(3)} régénéré ${(100*(1-r.resid/r.total)).toFixed(0)}%`);
   }
   // ré-instancie TOUTE la clôture dans une portée partagée → les dépendances se résolvent
-  let fns=null, factErr=null;
-  // variables LIBRES de la clôture (au-delà des fonctions) : flags + buffers d'état. Fournies depuis le moteur.
-  const ENV={ DEBUG: ev('typeof DEBUG!=="undefined"?DEBUG:false'),
-              _shiftBuf: ev('typeof _shiftBuf!=="undefined"?_shiftBuf:null'),
-              SDIM: ev('typeof SDIM!=="undefined"?SDIM:1024') };
-  try{ fns=new Function('DEBUG','_shiftBuf','SDIM', rebuilts.join('\n')+'\n; return {'+closure.join(',')+'};')(ENV.DEBUG, ENV._shiftBuf, ENV.SDIM); }
-  catch(e){ factErr=e.message; }
-  const selfContained=['cosineSim','normalize'];
-  console.log('');
-  let coreOK=true, closOK=true;
-  if(factErr){ console.log(`  ré-instanciation : ❌ ${factErr}`); coreOK=false; closOK=false; }
-  else for(const nm of tests){
-    const b=behavior(nm, ev(nm), fns[nm]); const ok=(b==='identique');
-    if(selfContained.includes(nm)) coreOK=coreOK&&ok; else closOK=closOK&&ok;
-    console.log(`  ${nm.padEnd(22)} comportement ${b.padEnd(12)} ${ok?'✅':'⚠️'}`);
+  // INTERFACE auto-découverte par OBSERVATION RUNTIME (= la décision frontière module/AST : interface observée, pas parsée).
+  // On instancie+exécute ; à chaque « X is not defined », on fournit X depuis le moteur et on réessaie.
+  const env={}, discovered=[], behavRes={};
+  const build=()=>{ const ks=Object.keys(env); return new Function(...ks, rebuilts.join('\n')+'\n; return {'+closure.join(',')+'};')(...ks.map(k=>env[k])); };
+  let fns=null, behavOK=false, fatal='';
+  for(let attempt=0; attempt<40; attempt++){
+    try{ fns=build(); let allId=true;
+      for(const nm of tests){ const b=behavior(nm, ev(nm), fns[nm]); behavRes[nm]=b; if(b.startsWith('ERR:'))throw new Error(b.slice(4)); if(b!=='identique')allId=false; }
+      behavOK=allId; break;
+    }catch(e){ const m=/([A-Za-z_$][\w$]*) is not defined/.exec(e.message);
+      if(m && !(m[1] in env)){ env[m[1]]=ev(`typeof ${m[1]}!=="undefined"?${m[1]}:undefined`); discovered.push(m[1]); continue; }
+      fatal=e.message; break; }
   }
-  const quineOK=allByteOK&&coreOK;
-  console.log(`\n  reconstruction bPC byte-exacte : ${allByteOK?'✅ les 5 fonctions':'❌'}`);
-  console.log(`  ${quineOK?'✅ QUINE VÉRIFIÉ':'❌ échec'} : fonctions auto-contenues recopiées par bPC ET tournent à l'identique (cosineSim, normalize).`);
-  const closMsg = closOK ? '✅ tournent aussi (env fourni)' : '⚠️ exigent leur clôture complète (deps + globals + état) = la pyramide du graphe appel';
-  console.log(`  clôture (circularShift…) : ${closMsg}.`);
-  console.log(`  → reconstruction = prédiction+erreur (lossless, hors M3_d) ; une fonction runnable = un NŒUD + sa clôture, pas une ligne.`);
+  console.log('');
+  for(const nm of tests) console.log(`  ${nm.padEnd(22)} comportement ${(behavRes[nm]||'n/a').padEnd(12)} ${behavRes[nm]==='identique'?'✅':'⚠️'}`);
+  const quineOK=allByteOK && behavOK && !fatal;
+  console.log(`\n  reconstruction bPC byte-exacte : ${allByteOK?'✅ les '+closure.length+' fonctions':'❌'}`);
+  console.log(`  INTERFACE auto-découverte au runtime : { ${discovered.join(', ')||'(aucune — auto-contenu)'} }`);
+  console.log(`  ${quineOK?'✅ QUINE VÉRIFIÉ':'❌ '+(fatal||'comportement diffère')} : OMEGA recopie ses fonctions par bPC, DÉCOUVRE leur interface en s'exécutant, et tourne à l'identique.`);
+  console.log(`  → frontière tranchée : MODULE (clôture) + interface OBSERVÉE au runtime (aucun parser requis). Reconstruction lossless, hors M3_d.`);
   process.exit(quineOK?0:1);
 })().catch(e=>{console.error('ERR',e&&e.stack||e);process.exit(1);});
