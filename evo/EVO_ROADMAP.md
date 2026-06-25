@@ -75,7 +75,18 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   (6,16 bits/token) — **PLANCHER** (la vraie pyramide = AST/grammaire fait bien plus ; la dictée = 51 % sur tâche plus dure).
 - ⚠️ **Reframe du mécanisme de copie** : ce n'est PAS un bundle VSA de la ligne (mon erreur) — c'est **décomposer (pyramide)
   → régénérer le régulier par règles + stocker l'irrégulier compressé**. Le VSA ne sert qu'au **résidu irrégulier**, à son étage.
-- ⏳ **Prochaine brique** : le **vrai étage** — modèle structurel (AST / grammaire JS, ou ordre-n) → mesurer la fraction
-  régénérable réelle (version honnête du plancher 30 %), puis ne stocker/copier QUE les exceptions (+ gzip du résidu).
-- ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais ; (c) jalon **quine** (copier un bout de son propre code).
+- ✅ **P1 (e) — décomposeur HIÉRARCHIQUE (pyramide + double voie)** : `evo_p1_hier.js`, sur le propre code d'OMEGA (arbre
+  d'imbrication, profondeur max 9). **Squelette grammatical** (mots-clés+symboles) = **60,8 %** des tokens de contenu ;
+  **identifiants 7,2× dédup** (14 296 occ → 1 995 uniques, route lexicale = stocker 1 fois + références) ; **feuilles uniques
+  irréductibles = 6,0 %**. gzip (compression auto conservatrice) = **3,6×**. ⇒ **le mur K≈N était l'artefact du stockage
+  plat** : on stocke ~6 % de feuilles + recall, le reste = grammaire. Logique dictée (51 % / 17×), transposée au code.
+  *Honnêteté* : 60,8 % = la *part* structurelle (la grammaire donne la forme, le symbole exact coûte qq bits) ; le chiffre
+  atteignable « automatique » est le gzip 3,6× — un modèle qui *connaît* la grammaire JS ferait mieux.
+- 🔎 **Note M3_d (Rem : « M3_d, c'est pour les longueurs »)** : vérifié via `diag_bpc` — spécialisation longueur **partielle
+  et faible** (cell #4 domine len 0/9/10/12 à 35-44 % ; 7→#6, 8/11→#0) **+** signal spécifique-mot (GAP NET +0,12). Donc
+  « pour les longueurs » = *tendance*, pas un code propre, ni exclusif. Intention design (12 cellules ≈ plage de longueurs)
+  **à confirmer** ; dans la pyramide, longueur/taille = un étage du **squelette** (régulier).
+- ⏳ **Prochaine brique** : passer de la **mesure d'opportunité** à la **mécanique** — un régénérateur (grammaire) + recall
+  (vocab) qui **reconstruit** le code, vérifié par « ça tourne » (fitness pendu). = le jalon **quine** sur le bon paradigme.
+- ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais.
 - P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
