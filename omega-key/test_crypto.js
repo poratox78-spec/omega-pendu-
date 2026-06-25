@@ -151,6 +151,24 @@ const FROZEN = {
     }
   } catch (e) { ok('DR KAT sans erreur', false); console.log('     ' + e.message); }
 
+  console.log('=== CHIFFRÉ-AU-REPOS (historique chat) ===');
+  await O.deriveCryptoKeys('passphrase-stockage');
+  const rk = await O.evalIn('_chatRestKey()');
+  ok('clé de stockage dérivée (HKDF, sel fixe)', !!rk);
+  if (rk) {
+    const sample = JSON.stringify([{ dir: 'out', text: 'message secret', ts: '12:00' }]);
+    const iv = crypto.webcrypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.webcrypto.subtle.encrypt({ name: 'AES-GCM', iv }, rk, new TextEncoder().encode(sample));
+    ok('historique chiffré → déchiffré = identité', new TextDecoder().decode(await crypto.webcrypto.subtle.decrypt({ name: 'AES-GCM', iv }, rk, ct)) === sample);
+    await O.deriveCryptoKeys('passphrase-stockage');                 // même passphrase → même clé (relecture après rechargement)
+    const rkSame = await O.evalIn('_chatRestKey()');
+    ok('même passphrase → relit l\'historique (clé stable)', new TextDecoder().decode(await crypto.webcrypto.subtle.decrypt({ name: 'AES-GCM', iv }, rkSame, ct)) === sample);
+    await O.deriveCryptoKeys('AUTRE-passphrase');                    // autre passphrase → illisible
+    const rkOther = await O.evalIn('_chatRestKey()');
+    let locked = false; try { await crypto.webcrypto.subtle.decrypt({ name: 'AES-GCM', iv }, rkOther, ct); } catch (e) { locked = true; }
+    ok('autre passphrase → historique verrouillé (illisible)', locked);
+  }
+
   console.log(`\n${pass} pass, ${fail} fail`);
   process.exit(fail ? 1 : 0);
 })().catch(e => { console.error('ERREUR HARNAIS:', e); process.exit(2); });

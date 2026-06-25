@@ -66,9 +66,10 @@ intégrité (tag GCM). Le relais ne voit **jamais** le clair.
 
 **Réserves honnêtes** : le relais voit des métadonnées (salon/horaires/tailles) →
 auto-héberger ; le code de salon est une adresse, **pas un secret** ; le fil est
-stocké **en clair** localement (Effacer sur appareil partagé) ; la passphrase doit
-transiter par un canal sûr séparé ; **projet expérimental non audité** — pour des
-enjeux critiques, préférer un outil audité (Signal).
+**chiffré au repos** (AES-GCM, clé dérivée de la passphrase — re-saisir la passphrase
+le déverrouille) ; la passphrase doit transiter par un canal sûr séparé, et **le
+numéro de sécurité** se compare hors-bande contre un intercepteur ; **projet
+expérimental non audité** — pour des enjeux critiques, préférer un outil audité (Signal).
 
 Détails : `docs/RAPPORT_MODE_EMPLOI.html` §8 et `docs/MEMOIRE_TECHNIQUE.md` §7.
 
@@ -100,10 +101,10 @@ patch (`node --check` + simulation DOM ciblée) ; garder les chaînes insécable
 - La couche chat est un *habillage* du moteur (champs scratch `#enc-plain/#enc-cipher/#dec-result`).
 - `localStorage` toujours enrobé `try/catch`.
 
-**Fait** : tests crypto **automatisés en CI** (`omega-key/test_crypto.js`) · **gel des hashes** de listes · **numéro de sécurité (SAS) anti-MITM** sur le ratchet DH (comparable hors-bande).
+**Fait** : tests crypto **automatisés en CI** (`omega-key/test_crypto.js`, 37 assertions) · **gel des hashes** de listes · **numéro de sécurité (SAS) anti-MITM** sur le ratchet DH (comparable hors-bande) · **historique chiffré au repos** (AES-GCM, clé HKDF dérivée de la passphrase ; la passphrase déverrouille le fil au rechargement).
 
 **TODO priorisés** (voir mémoire §8) : handshake DH sur le relais (100 % sans
-copier-coller) ; temps réel SSE/`kv.watch` ; chiffré-au-repos / mode éphémère.
+copier-coller) ; temps réel SSE/`kv.watch`.
 
 ---
 
