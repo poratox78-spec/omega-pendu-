@@ -35,9 +35,12 @@
 
 <section><div class="wrap">
   <h2>Le banc d'essai&nbsp;: le pendu</h2>
-  <p>Deviner un mot français lettre par lettre, sous contrainte, est un test sévère de modèle de langue&nbsp;: il faut intégrer la structure orthographique, les voisins, la phonotactique. La configuration <strong>cheat-free intégrale</strong> (qui ne lit jamais le mot caché) atteint <strong>≈ 97,3 %</strong> de parties gagnées ; le plafond oracle (qui, lui, triche) est à 98,7 %.</p>
+  <p>Deviner un mot français lettre par lettre, sous contrainte, est un test sévère de modèle de langue&nbsp;: il faut intégrer la structure orthographique, les voisins, la phonotactique. La configuration <strong>cheat-free intégrale</strong> (qui ne lit jamais le mot caché — ni ses lettres, ni son son&nbsp;: cohorte «&nbsp;board-dérivée&nbsp;») atteint <strong>≈ 97,3 %</strong> de parties gagnées en lexique ; le plafond oracle (qui, lui, triche) est à 98,7 %.</p>
+  <p>Plus sévère encore&nbsp;: le <strong>hors-lexique</strong> (mot jamais vu, façon Trexquant). Sans dictionnaire où s'appuyer, la cognition <strong>cheat-free intégrale</strong> — sans même le son — gagne <strong>≈ 64 %</strong>, stable sur plusieurs graines. En tête-à-tête sur les <em>mêmes</em> mots, elle bat un étalon n-gram standard (46,7 %) de <strong>+17 points</strong> et se place dans la bande des bons solveurs (65-68 %)… <strong>dans un seul fichier HTML, sans entraînement ni GPU</strong>.</p>
   <div class="kpi">
-    <div><b>≈ 97,3 %</b><small>victoires, sans jamais lire le mot caché</small></div>
+    <div><b>≈ 97,3 %</b><small>victoires en lexique, sans jamais lire le mot caché</small></div>
+    <div><b>≈ 64 %</b><small>hors-lexique, cheat-free intégral (mot inédit)</small></div>
+    <div><b>+17 pts</b><small>vs étalon n-gram, sur le même jeu</small></div>
     <div><b>155 k</b><small>mots du lexique embarqué</small></div>
     <div><b>OFF</b><small>tous les modules par défaut (R66)</small></div>
   </div>
