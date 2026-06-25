@@ -122,7 +122,7 @@ const FROZEN = {
 
   console.log('=== DOUBLE RATCHET — session 2 parties (KAT) ===');
   try {
-    const dr = O.evalIn(`(typeof _drEnc!=='undefined') ? ({genDH:_drGenDH, pub:_drPub, initAlice:_drInitAlice, initBob:_drInitBob, enc:_drEnc, dec:_drDec, b2h:_b2h}) : null`);
+    const dr = O.evalIn(`(typeof _drEnc!=='undefined') ? ({genDH:_drGenDH, pub:_drPub, initAlice:_drInitAlice, initBob:_drInitBob, enc:_drEnc, dec:_drDec, b2h:_b2h, safetyNumber:(typeof _drSafetyNumber!=='undefined')?_drSafetyNumber:null}) : null`);
     if (!dr) { console.log('  (fonctions DR non exposées — KAT sauté)'); }
     else {
       await O.deriveCryptoKeys('passphrase-partagee-DR');
@@ -142,6 +142,12 @@ const FROZEN = {
       ok('messages hors-ordre / sautés (clés stockées)', dC === 'C' && dA === 'A' && dB === 'B');
       const x1 = await dr.enc(alice, 'meme'), x2 = await dr.enc(alice, 'meme');
       ok('clé éphémère par message (2 chiffrés du même clair diffèrent)', x1 !== x2);
+      if (dr.safetyNumber) {
+        const sas1 = await dr.safetyNumber(aPub, bPub), sas2 = await dr.safetyNumber(bPub, aPub);
+        ok('numéro de sécurité identique des 2 côtés (ordre indifférent)', sas1 === sas2 && /^\d{5}( \d{5}){4}$/.test(sas1));
+        const cPub = await dr.pub(await dr.genDH());
+        ok('numéro de sécurité différent pour un autre pair (anti-MITM)', (await dr.safetyNumber(aPub, cPub)) !== sas1);
+      } else ok('_drSafetyNumber exposé', false);
     }
   } catch (e) { ok('DR KAT sans erreur', false); console.log('     ' + e.message); }
 
