@@ -2351,6 +2351,7 @@ async function deriveCryptoKeys(seedStr){
     'raw', aesBytes, {name:'AES-GCM'}, false, ['encrypt','decrypt']
   )
   _keyMaterial = { aes: aesBytes, hmac: hmacBytes, master: masterHash }
+  if(typeof chatUnlock==='function') chatUnlock()   // déverrouille l'historique chiffré-au-repos
 
   return { aesBytes, hmacBytes, masterHash, derived }
 }
@@ -2779,6 +2780,7 @@ window.deriveSharedKey = async function(){
     if(sts){sts.className='key-status done';sts.textContent='CLÉ PARTAGÉE ACTIVE'}
     window._lastKey={hex:hexStr,passphrase:pp,fp}
     _keyMaterial={aes:rawKey,hmac:new Uint8Array(32),master:rawKey}
+    if(typeof chatUnlock==='function') chatUnlock()   // déverrouille l'historique chiffré-au-repos (passphrase → clé stable)
 
     const defaultSalt = (salt === 'OMEGA-KEY-2026')
     setShareStatus('pbkdf-status',
@@ -3312,9 +3314,41 @@ window.decryptMsg = decryptMsgDR
 
 // ── COUCHE CHAT (conversation) — habillage du moteur ; appelle window.encryptMsg/decryptMsg (routage standard/FS/DR) ──
 let _chatLog = []
-const _CHAT_KEY="omega_key_chat_v1"
-function _chatSave(){ try{ localStorage.setItem(_CHAT_KEY, JSON.stringify(_chatLog)) }catch(e){} }
-function _chatLoad(){ try{ const r=localStorage.getItem(_CHAT_KEY); if(r){ const a=JSON.parse(r); if(Array.isArray(a)) _chatLog=a } }catch(e){ _chatLog=[] } }
+const _CHAT_KEY="omega_key_chat_v1"              // ancien format EN CLAIR (migration → supprimé au 1er save chiffré)
+const _CHAT_KEY_ENC="omega_key_chat_enc_v1"      // CHIFFRÉ-AU-REPOS (AES-GCM, clé dérivée de la passphrase)
+const _CHAT_REST_SALT=new TextEncoder().encode('OMEGA-KEY-chat-at-rest-v1')
+let _chatEncBlob=null
+// Clé de stockage = HKDF(master, sel FIXE). En mode passphrase (deriveSharedKey), master = clé partagée
+// PBKDF2(passphrase,sel) → STABLE inter-sessions : on re-saisit la passphrase pour relire l'historique.
+async function _chatRestKey(){
+  if(!_keyMaterial?.master) return null
+  const kb=await hkdf(_keyMaterial.master, _CHAT_REST_SALT, 'chat-at-rest', 32)
+  return crypto.subtle.importKey('raw', kb, {name:'AES-GCM'}, false, ['encrypt','decrypt'])
+}
+async function _chatSave(){
+  try{
+    const sk=await _chatRestKey()
+    if(!sk) return                               // pas de clé → on NE persiste PAS en clair
+    const iv=crypto.getRandomValues(new Uint8Array(12))
+    const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv}, sk, new TextEncoder().encode(JSON.stringify(_chatLog))))
+    localStorage.setItem(_CHAT_KEY_ENC, btoa(String.fromCharCode(...iv,...ct)))
+    localStorage.removeItem(_CHAT_KEY)           // purge l'ancien clair
+  }catch(e){}
+}
+function _chatLoad(){                             // démarrage : on garde le blob chiffré, déchiffré après dérivation de clé
+  try{ _chatEncBlob=localStorage.getItem(_CHAT_KEY_ENC)||null }catch(e){ _chatEncBlob=null }
+  try{ const r=localStorage.getItem(_CHAT_KEY); if(r){ const a=JSON.parse(r); if(Array.isArray(a)) _chatLog=a } }catch(e){}   // migration ancien clair
+}
+async function chatUnlock(){                      // après dérivation de clé : déchiffre l'historique persistant
+  if(!_chatEncBlob) return
+  const sk=await _chatRestKey(); if(!sk) return
+  try{
+    const raw=Uint8Array.from(atob(_chatEncBlob),c=>c.charCodeAt(0))
+    const pt=new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:raw.slice(0,12)}, sk, raw.slice(12)))
+    const a=JSON.parse(pt); if(Array.isArray(a)) _chatLog=a
+    _chatEncBlob=null; if(typeof chatRender==='function') chatRender()
+  }catch(e){}                                    // mauvaise clé / corrompu → reste verrouillé
+}
 function _chatTime(){ const d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0") }
 function _esc(t){ return (t||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])) }
 function chatRefreshMode(){
@@ -3333,7 +3367,9 @@ function chatRefreshMode(){
 }
 function chatRender(){
   const box=document.getElementById("chat-thread"); if(!box) return
-  if(!_chatLog.length){ box.innerHTML='<div class="chat-empty">Aucun message.<br>Génère une clé, écris ton message, appuie sur ▶ : le chiffré est copié automatiquement pour ton correspondant.</div>' }
+  if(!_chatLog.length){ box.innerHTML = _chatEncBlob
+      ? '<div class="chat-empty">🔒 Historique chiffré sur cet appareil.<br>Dérive ta clé (même passphrase) pour le déverrouiller.</div>'
+      : '<div class="chat-empty">Aucun message.<br>Génère une clé, écris ton message, appuie sur ▶ : le chiffré est copié automatiquement pour ton correspondant.</div>' }
   else { box.innerHTML=_chatLog.map(m=>{ const tag=(m.dir==="out"?(m.via==="relay"?"→ envoyé · ":m.via==="fail"?"⚠ échec envoi · ":m.copied===true?"✓ copié · ":m.copied===false?"⚠ copie manuelle · ":""):""); return '<div class="chat-row '+m.dir+'"><div class="chat-bubble '+m.dir+'">'+_esc(m.text)+'<span class="chat-meta">'+tag+m.ts+'</span></div></div>' }).join("") }
   box.scrollTop=box.scrollHeight
   chatRefreshMode()
