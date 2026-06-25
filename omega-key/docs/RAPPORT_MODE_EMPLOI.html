@@ -8,11 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --paper:#F3EFE6; --paper-2:#EBE5D8; --ink:#1C1815; --ink-soft:#4A433B;
-  --line:#D8D0BF; --line-2:#C7BCA5;
-  --accent:#B0432B; --accent-2:#1E5A55; --gold:#9A7B22;
-  --ok:#1E5A55; --warn:#9A7B22; --exc:#9B3331; --info:#3C5A8A;
+:root{   /* SOMBRE PAR DÉFAUT */
+  --paper:#14181d; --paper-2:#1d242c; --ink:#e8e3d8; --ink-soft:#a39d92;
+  --line:#2c333d; --line-2:#3b434e;
+  --accent:#e07a5f; --accent-2:#5cc2b0; --gold:#d9b24a;
+  --ok:#5cc2b0; --warn:#d9b24a; --exc:#e07a6f; --info:#7ea6e8;
   --shadow:0 1px 0 rgba(0,0,0,.04),0 8px 26px -18px rgba(28,24,21,.5);
   --maxw:980px;
 }
@@ -51,7 +51,7 @@ code,kbd{font-family:"JetBrains Mono",monospace;font-size:.82em;background:var(-
 kbd{box-shadow:0 1px 0 var(--line-2)}
 pre{font-family:"JetBrains Mono",monospace;font-size:.8rem;line-height:1.5;background:#1C1815;color:#EBE5D8;border-radius:9px;padding:16px 18px;overflow:auto;margin:0 0 18px}
 pre .c{color:#9A8C73}
-.callout{border-radius:10px;padding:14px 16px 14px 18px;margin:0 0 18px;border:1px solid var(--line);box-shadow:var(--shadow);background:#fff8}
+.callout{border-radius:10px;padding:14px 16px 14px 18px;margin:0 0 18px;border:1px solid var(--line);box-shadow:var(--shadow);background:rgba(255,255,255,.05)}
 .callout.ok{border-left:4px solid var(--ok)}
 .callout.warn{border-left:4px solid var(--warn)}
 .callout.exc{border-left:4px solid var(--exc)}

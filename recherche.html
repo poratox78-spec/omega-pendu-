@@ -84,6 +84,7 @@
 <section id="omega-key"><div class="wrap">
   <h2>Un second dérivé : <strong>OMEGA·KEY</strong> — messagerie chiffrée</h2>
   <p>Le même moteur, pointé ailleurs : une <strong>messagerie chiffrée de bout en bout</strong> tenant dans <strong>un seul fichier HTML</strong>, hors-ligne. OMEGA fournit le <strong>lexique</strong> (passphrases françaises prononçables) ; <strong>toute la cryptographie repose sur la WebCrypto</strong> standard du navigateur — <em>aucun algorithme maison</em>.</p>
+  <p><b>Le chat.</b> Une carte <em>Conversation chiffrée</em> tient un <strong>fil de bulles</strong>, avec deux transports au choix : <strong>sans serveur</strong> — le message chiffré <strong>se copie tout seul</strong>, tu le colles à ton correspondant (et inversement) ; ou via un <strong>relais minimal</strong> (auto-hébergeable sur Deno Deploy en ~2 min) où, avec la même URL et le même code de salon des deux côtés, les messages circulent <strong>automatiquement, sans copier-coller</strong> — le relais ne transportant que du chiffré.</p>
   <ul class="clean">
     <li><b>Passphrases FR prononçables</b> — mots réels (12 bits/mot) ou pseudo-mots (8 bits/syllabe), entropie tirée de <code>crypto.getRandomValues</code>, <strong>sans biais modulo</strong> (listes en 2ⁿ, lecture de bits exacte — vérifié).</li>
     <li><b>Clé partagée</b> — PBKDF2-SHA256 <strong>310 000 itérations</strong> → AES-256-GCM, empreinte de clé vérifiable des deux côtés.</li>
