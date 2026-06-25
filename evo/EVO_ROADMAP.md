@@ -114,6 +114,11 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   décision** (test non vide). ⇒ **P1 « se copie » prouvé grandeur réelle**, sur du code de décision, dans le pendu vivant.
 - ✅ **P1 « SE COPIE » ESSENTIELLEMENT COMPLET** : (b)→(i) — substrat VSA 1024D · croisement · pyramide · bPC (prédire+résidu) ·
   quine fonction · frontière module + interface runtime · quine grandeur réelle (fitness préservé, falsifié). **Le mur §8.1 dissous.**
-- ⏳ **PROCHAINE PHASE — P2 « communiquent »** : 2 instances + tâche coopérative qui *paie* le langage = **pendu référentiel**
-  (A voit le mot, canal à **bande limitée**, B joue, reward partagé) → **protocole émergent** → fabriquent une nouvelle version → générations.
-- ⏳ **Reste P1** (mineur) : (a) config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
+- ✅ **P2 (a) — CRUX ÉTABLI & MESURÉ : le pendu référentiel PAIE la communication** : `evo_p2_referential.js`. A voit le mot,
+  « souffle » k lettres à B (canal = k symboles), B (moteur, cognition seule = marge) joue. Mesuré (150 mots len 8-12) :
+  **89,3 % (k=0) → 94,7 → 96,0 %** [A aléatoire] · **→ 98,7 → 100 %** [A malin = lettres rares]. (1) **communiquer PAIE**
+  (winrate ↑ avec la bande, sanity monotone ✅) ; (2) **le CONTENU compte** (malin > aléa **+4 pts** à bande égale) ⇒ un
+  **encodage optimal à APPRENDRE** = le gradient qui fait émerger un langage. *C'était LE crux de P2 (« quelle tâche paie ») — répondu.*
+- ⏳ **Prochaine brique P2** : A **APPREND** quoi envoyer (protocole émergent) — optimiser l'encodage du canal limité par le
+  reward partagé (winrate de B). Puis **P3** (générations, croisement).
+- ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
