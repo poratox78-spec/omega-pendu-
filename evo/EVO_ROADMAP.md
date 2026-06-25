@@ -100,7 +100,13 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   graphe d'appel + sa clôture** (la pyramide), pas une ligne — copier l'unité = copier sa clôture.
 - ✅ **P1 « se copie » PROUVÉ au niveau fonction** : reconstruction lossless (prédire+erreur) + exécution vérifiée. Le mur
   §8.1 (K≈N) était l'artefact du stockage plat ; bPC + clôture (pyramide) le résolvent — **sans M3_d**, conforme à la doc.
-- ⏳ **Prochaine brique** : (1) **monter d'un étage** — copier+exécuter une **unité pendu** entière (clôture auto-détectée),
-  fitness ≥ parent = le quine grandeur réelle ; (2) prédicteur **hiérarchique/AST** (régénère plus, grammaire plus petite).
+- ✅ **P1 (h) — frontière MODULE/AST TRANCHÉE (autonomie) + interface AUTO-DÉCOUVERTE** : `evo_p1_module.js` (graphe de deps →
+  clusters cohésifs : modules de **17/7/7/3/2 fn**) + `evo_p1_quine.js` amélioré. **Décision** : unité de copie = **MODULE**
+  (cluster, calculé du graphe — robuste) **+ INTERFACE** (symboles externes). **Aucun parser statique dispo** (acorn/esprima/
+  babel absents) → l'AST-lite **sur-compte** (fuite de scope, mesurée) ; l'interface EXACTE se **capture au RUNTIME** (catch
+  « X is not defined » → fournir depuis le moteur → réessayer). Le quine la **découvre seul** : interface de la clôture
+  `circularShift` = **`{ DEBUG, _shiftBuf }`** (byte-exact ✅ + comportement ✅). ⇒ copie **bornée** (module + interface observée),
+  pas l'explosion de clôture du monolithe. *C'est la pyramide au niveau module.*
+- ⏳ **Prochaine brique** : monter à une **unité pendu** réelle (cluster + interface auto-observée), **fitness ≥ parent** ; +
+  prédicteur **hiérarchique** (régénère plus). Puis **P2** — tâche coopérative qui *paie* le langage (pendu référentiel).
 - ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais.
-- **P2 (communiquent)** : débloqué dès que P1 grandeur-réelle tient — tâche coopérative qui *paie* le langage (pendu référentiel).
