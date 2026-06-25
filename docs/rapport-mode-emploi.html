@@ -8,17 +8,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{
-  --paper:#F3EFE6; --paper-2:#EBE5D8; --ink:#1C1815; --ink-soft:#4A433B;
-  --line:#D8D0BF; --line-2:#C7BCA5;
-  --accent:#B0432B;       /* terracotta / signal */
-  --accent-2:#1E5A55;     /* deep teal = design */
-  --gold:#9A7B22;
-  --mes:#1E5A55;          /* mesuré */
-  --des:#3C5A8A;          /* design */
-  --hyp:#9A7B22;          /* hypothèse */
-  --exc:#9B3331;          /* exclu / triche */
-  --shadow:0 1px 0 rgba(0,0,0,.04),0 8px 26px -18px rgba(28,24,21,.5);
+:root{   /* SOMBRE PAR DÉFAUT */
+  --paper:#14181d; --paper-2:#1d242c; --ink:#e8e3d8; --ink-soft:#a39d92;
+  --line:#2c333d; --line-2:#3b434e;
+  --accent:#e07a5f;       /* terracotta / signal */
+  --accent-2:#5cc2b0;     /* deep teal = design */
+  --gold:#d9b24a;
+  --mes:#5cc2b0;          /* mesuré */
+  --des:#7ea6e8;          /* design */
+  --hyp:#d9b24a;          /* hypothèse */
+  --exc:#e07a6f;          /* exclu / triche */
+  --shadow:0 1px 0 rgba(0,0,0,.2),0 8px 26px -18px rgba(0,0,0,.6);
   --maxw:980px;
 }
 *{box-sizing:border-box}
@@ -89,7 +89,7 @@ hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 .ui{font-family:"JetBrains Mono",monospace;font-size:.74em;color:var(--accent-2);background:rgba(30,90,85,.06);border:1px dashed var(--accent-2);border-radius:5px;padding:.05em .42em;white-space:normal;overflow-wrap:anywhere}
 .ui::before{content:"UI ";font-size:.78em;opacity:.6}
 /* boxes */
-.plain{background:linear-gradient(180deg,#FBF8F0,#F6F1E5);border:1px solid var(--line-2);border-left:4px solid var(--gold);
+.plain{background:linear-gradient(180deg,#20262e,#191e25);border:1px solid var(--line-2);border-left:4px solid var(--gold);
   border-radius:8px;padding:14px 18px;margin:14px 0;box-shadow:var(--shadow)}
 .plain .lbl{font-family:"JetBrains Mono",monospace;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);display:block;margin-bottom:4px}
 .plain p{margin:4px 0;font-size:.98rem}
@@ -116,7 +116,7 @@ td code{font-size:.8em}
 pre.ascii{font-family:"JetBrains Mono",monospace;font-size:.74rem;line-height:1.45;background:var(--ink);color:#E9E2D2;border-radius:10px;padding:18px 20px;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;max-width:100%;min-width:0;box-shadow:var(--shadow)}
 pre.ascii .h{color:#E0A86A}
 /* mark / search */
-mark.hit{background:#F4D58D;color:var(--ink);border-radius:2px;padding:0 1px}
+mark.hit{background:#F4D58D;color:#14181d;border-radius:2px;padding:0 1px}
 mark.hit.active{background:var(--accent);color:#fff}
 /* mode plain hides tech */
 body.mode-plain .tech{display:none!important}

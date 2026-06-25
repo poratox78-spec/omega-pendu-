@@ -12018,7 +12018,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
   (function(){
     var THEMES=['auto','light','dark'],TLABEL={auto:'🌗 Thème : auto',light:'☀️ Thème : clair',dark:'🌙 Thème : sombre'};
-    var st={theme:'auto',cb:false,lis:false};
+    var st={theme:'dark',cb:false,lis:false};   // sombre par défaut (l'utilisateur peut repasser clair/auto via le bouton 🌗)
     try{st=Object.assign(st,JSON.parse(localStorage.getItem('dysDisplay')||'{}'));}catch(e){}
     var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):{matches:false};
     function eff(){return st.theme==='auto'?(mq.matches?'dark':'light'):st.theme;}
