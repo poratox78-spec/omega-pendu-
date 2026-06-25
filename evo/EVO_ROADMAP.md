@@ -38,9 +38,15 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   relative de reconstruction ‖m1−m̂‖/‖m1‖, PLATE de len 7→15**. Donc **pas un mur de *longueur* mais un plafond de
   *fidélité*** : 12 cellules gardent le *gist*, perdent ~⅔ du signal exact, à toute longueur. **Δ rote test−train ≈ +0,035**
   (petit) ⇒ ce qu'il garde est **structurel, pas par cœur**. Précise la §8.1 : le mur de capacité est un *ceiling*, pas une dérive en longueur.
-- ⚠️ **Conséquence design (mesurée, pas supposée)** : une copie *fidèle* (« code équivalent qui tourne ») exige err→~0.
-  Le concept 12-cellules (readout couplé 0,20, lossy *par design*) **ne peut pas être le copieur tel quel**. Brique suivante
-  **avant** de câbler le mécanisme de copie : **fidélité vs `N_CONCEPT_CELLS`** (combien de cellules pour franchir 0,5 puis
-  0,2 ?), sinon un **autoencodeur de copie dédié** (hors du concept cognitif).
-- ⏳ **Reste** : (a) exposer la config de référence (~90 %) dans le harnais ; (c) jalon **quine** — *gated* derrière la capacité.
+- ✅ **P1 (b-bis) — copie sur le BON substrat (résolu, Rem avait raison)** : `evo_p1_vsa_copy.js` (2 graines, primitives
+  RÉELLES du moteur). La capacité de copie n'est **pas** dans le concept 12-cellules mais dans le **HDC/VSA 1024D** :
+  OMEGA encode déjà une séquence en hypervecteur via **`_emrg_bind`** (chaque lettre liée à sa position par `circularShift`,
+  bundle normalisé). Décodé (unbind `circularShiftInverse` + cleanup cosine sur `letterVecsSDIM`), il donne **~95 % de
+  lettres exactes, PLAT de len 7→22** (vs ~⅓ pour le concept) ; **mot exact** 83-85 %@7 → ~50 %@12 → ~30 %@15 → →0 @22.
+  ⇒ le « plafond » de (b) mesurait la **mauvaise couche** (goulot cognitif) ; la capacité était déjà là, dans M1/substrat 1024D.
+- ⚠️ **Limite restante = crosstalk VSA** (bundling additif), pas un plafond de substrat : l'erreur est la superposition,
+  qui croît avec la longueur. Pour une copie *fidèle* (« code qui tourne » = mot exact ~100 %), brique suivante : **battre le
+  crosstalk** — décodage **itératif / résonateur** (resonator network), **chunking** des longues séquences, ou **rappel
+  adressable** (`_emrg_recall` : exact pour les items déjà au banc, avec marge mesurée).
+- ⏳ **Reste** : (a) exposer la config de référence (~90 %) dans le harnais ; (c) jalon **quine** ; choisir le décodeur de copie (résonateur vs chunk vs rappel).
 - P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
