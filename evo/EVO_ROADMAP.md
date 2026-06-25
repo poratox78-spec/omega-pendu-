@@ -82,11 +82,19 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   plat** : on stocke ~6 % de feuilles + recall, le reste = grammaire. Logique dictée (51 % / 17×), transposée au code.
   *Honnêteté* : 60,8 % = la *part* structurelle (la grammaire donne la forme, le symbole exact coûte qq bits) ; le chiffre
   atteignable « automatique » est le gzip 3,6× — un modèle qui *connaît* la grammaire JS ferait mieux.
-- 🔎 **Note M3_d (Rem : « M3_d, c'est pour les longueurs »)** : vérifié via `diag_bpc` — spécialisation longueur **partielle
-  et faible** (cell #4 domine len 0/9/10/12 à 35-44 % ; 7→#6, 8/11→#0) **+** signal spécifique-mot (GAP NET +0,12). Donc
-  « pour les longueurs » = *tendance*, pas un code propre, ni exclusif. Intention design (12 cellules ≈ plage de longueurs)
-  **à confirmer** ; dans la pyramide, longueur/taille = un étage du **squelette** (régulier).
-- ⏳ **Prochaine brique** : passer de la **mesure d'opportunité** à la **mécanique** — un régénérateur (grammaire) + recall
-  (vocab) qui **reconstruit** le code, vérifié par « ça tourne » (fitness pendu). = le jalon **quine** sur le bon paradigme.
+- ✅ **M3_d RÉSOLU (Rem avait raison)** : la doc `docs/COGNITION_DESIGN.md` (commandée par Rem après le diag OOV) tranche —
+  M3_d reçoit un **« concept global/longueur » (§1.4.2)**, « **spoke pauvre = longueur** » (§1.8.2), **winrate-inerte**
+  (« M3_d tourne mais sa sortie est jetée » ; bypass = winrate identique), prescription **« ni construire dessus ni le
+  laisser décider »**. Donc « M3_d = longueur » = juste, et on **ne bâtit PAS** la copie sur M3_d. (Mon `diag_bpc` voyait la
+  spécialisation longueur faible/floue → c'est cohérent : spoke pauvre.)
+- ✅ **P1 (f) — RÉGÉNÉRATEUR par CODAGE PRÉDICTIF (bPC), reconstruction VÉRIFIÉE exacte** : `evo_p1_predcode.js`. Doc §3
+  (Rao&Ballard/Friston) : descendant = **prédictions**, montant = **erreur résiduelle**. Prédicteur **contextuel ordre-k**
+  (le bPC « fait correctement » prescrit ; **hors M3_d**) ; on n'encode que les **miss** ; on **reconstruit** et on **vérifie
+  l'identité exacte**. Résultat (propre code d'OMEGA, **lossless ✅ tous ordres**) : régénéré **ordre-2 61,5 % → ordre-5
+  90,5 %** ; résidu ordre-5 = **9,5 %** (gzip 15,8 Ko vs 43,6 brut). ⇒ **OMEGA se copie pour de vrai par prédiction+erreur**,
+  pas en stockant la ligne. Compromis résidu↔grammaire (contextes) = **MDL** (garde §3 du moteur).
+- ⏳ **Prochaine brique** : (1) prédicteur **hiérarchique/AST** (structure > contexte plat → régénère plus avec MOINS de
+  grammaire) ; (2) brancher la **fitness pendu** pour passer du lossless-**byte** au lossless-**comportement** (« ça tourne »,
+  le vrai critère roadmap) → le jalon **quine**.
 - ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais.
 - P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
