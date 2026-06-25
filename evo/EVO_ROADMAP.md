@@ -67,7 +67,15 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
     Cadrage « copier n'a pas besoin de 2ᵉ route », qui était faux).
   - **MULTIPLY ≥ ADD** constant sur les lignes dures (92,5 vs 92,1 %) → « **multiplier pour copier** » confirmé (marge petite
     car la route structure est grossière = classe de caractère ; une vraie route token l'élargirait).
-- ⏳ **Prochaine brique** : le vrai goulot du code long = **capacité du bundle** → **CHUNKING** (≤~40 car/chunk, chacun
-  ~parfait, recompose) + croisement par chunk ; et **route structure RÉELLE** (token-type via tokenizer, pas classe de car).
+- ✅ **P1 (d) — la PYRAMIDE, pas la ligne (réflexion dictée, Rem)** : `evo_p1_pyramid.js`. DECOMPOSE.md = hiérarchie
+  (graphèmes→syllabes→morphèmes) + **double voie** : les **règles** (sublexical) régénèrent le **régulier**, on ne **stocke
+  que l'irrégulier** (mesuré dictée : 51 % phonos reconstructibles, 4,63 bits/ph, **17× factorisé**). ⇒ mon bundle
+  char⊗position était une **LIGNE** (stockage plat K≈N = *le mur §8.1*). **La pyramide ne stocke que les exceptions → dissout
+  le mur.** Première mesure côté code (propre code evo/, held-out) : une règle **grossière ordre-2** régénère déjà **30 %**
+  (6,16 bits/token) — **PLANCHER** (la vraie pyramide = AST/grammaire fait bien plus ; la dictée = 51 % sur tâche plus dure).
+- ⚠️ **Reframe du mécanisme de copie** : ce n'est PAS un bundle VSA de la ligne (mon erreur) — c'est **décomposer (pyramide)
+  → régénérer le régulier par règles + stocker l'irrégulier compressé**. Le VSA ne sert qu'au **résidu irrégulier**, à son étage.
+- ⏳ **Prochaine brique** : le **vrai étage** — modèle structurel (AST / grammaire JS, ou ordre-n) → mesurer la fraction
+  régénérable réelle (version honnête du plancher 30 %), puis ne stocker/copier QUE les exceptions (+ gzip du résidu).
 - ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais ; (c) jalon **quine** (copier un bout de son propre code).
 - P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
