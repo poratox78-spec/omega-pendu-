@@ -1,15 +1,11 @@
-/* OMEGA-Ω — site. Accessible par défaut : contraste AA, clair/sombre auto (prefers-color-scheme),
-   colonne lisible, focus visibles, option police dys (lisible). Aucune dépendance. */
+/* OMEGA-Ω — site. SOMBRE PAR DÉFAUT (contraste AA), colonne lisible, focus visibles,
+   option police dys (lisible). Aucune dépendance. */
 :root{
-  --bg:#fbfaf7; --bg-2:#ffffff; --bg-3:#f1efe9; --line:#e3ddd0;
-  --fg:#23211c; --fg-2:#5d574a; --accent:#2a6f97; --accent-2:#1f7a3d;
-  --warn:#b06a00; --bad:#c0392b; --radius:14px; --maxw:760px;
+  --bg:#0d1117; --bg-2:#161b22; --bg-3:#1c232c; --line:#2a323c;
+  --fg:#e6edf3; --fg-2:#9aa4af; --accent:#5b8cf6; --accent-2:#a3d977;
+  --warn:#d8922e; --bad:#f47174; --radius:14px; --maxw:760px;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-}
-@media (prefers-color-scheme:dark){
-  :root{ --bg:#0d1117; --bg-2:#161b22; --bg-3:#1c232c; --line:#2a323c;
-         --fg:#e6edf3; --fg-2:#9aa4af; --accent:#5b8cf6; --accent-2:#a3d977; --bad:#f47174; }
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
