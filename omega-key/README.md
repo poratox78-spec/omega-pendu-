@@ -86,6 +86,11 @@ open('/tmp/k.js','w').write('\\n'.join(sc))"
 node --check /tmp/k.js
 ```
 
+**Tests crypto** (entropie passphrases · gel des listes · round-trip AES-GCM · KAT Double Ratchet · numéro de sécurité) :
+```bash
+node omega-key/test_crypto.js     # 33 assertions ; aussi lancé en CI via dev.sh
+```
+
 **Discipline** : prototyper sur copie `/tmp/` jetable ; vérifier après chaque
 patch (`node --check` + simulation DOM ciblée) ; garder les chaînes insécables en
 `word-break`/`overflow-wrap`.
@@ -95,9 +100,10 @@ patch (`node --check` + simulation DOM ciblée) ; garder les chaînes insécable
 - La couche chat est un *habillage* du moteur (champs scratch `#enc-plain/#enc-cipher/#dec-result`).
 - `localStorage` toujours enrobé `try/catch`.
 
+**Fait** : tests crypto **automatisés en CI** (`omega-key/test_crypto.js`) · **gel des hashes** de listes · **numéro de sécurité (SAS) anti-MITM** sur le ratchet DH (comparable hors-bande).
+
 **TODO priorisés** (voir mémoire §8) : handshake DH sur le relais (100 % sans
-copier-coller) ; temps réel SSE/`kv.watch` ; chiffré-au-repos / mode éphémère ;
-nettoyage wordlist + figer le hash ; tests automatisés en CI.
+copier-coller) ; temps réel SSE/`kv.watch` ; chiffré-au-repos / mode éphémère.
 
 ---
 

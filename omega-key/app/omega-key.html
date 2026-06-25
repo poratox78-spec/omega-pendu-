@@ -244,7 +244,7 @@ textarea.enc:focus{border-color:var(--cyan)}
 .btn-copy:hover{opacity:.7}
 .chat-card{margin-bottom:12px}
 .chat-mode{font-family:'Share Tech Mono';font-size:9px;letter-spacing:2px;padding:6px 9px;border:1px solid var(--dim);border-radius:3px;margin-bottom:8px;color:var(--muted)}
-.chat-thread{height:300px;overflow-y:auto;background:var(--bg);border:1px solid var(--dim);border-radius:4px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.chat-thread{height:clamp(220px,46vh,380px);overflow-y:auto;background:var(--bg);border:1px solid var(--dim);border-radius:4px;padding:10px;display:flex;flex-direction:column;gap:8px}
 .chat-row{display:flex}
 .chat-row.out{justify-content:flex-end}
 .chat-row.in{justify-content:flex-start}
@@ -543,7 +543,7 @@ input[type=range]{accent-color:var(--cyan);width:70px}
           <textarea class="chat-recv-input" id="chat-cipher" readonly style="border-color:rgba(255,170,0,.3)"></textarea>
           <button class="chat-btn" onclick="chatCopyCipher()" style="border-color:var(--amber);color:var(--amber);background:rgba(255,170,0,.06)">📋 RECOPIER LE CHIFFRÉ</button>
         </div>
-        <div class="chat-recv">
+        <div class="chat-recv" id="chat-recv-manual">
           <div class="enc-label">↓ MESSAGE REÇU DU CORRESPONDANT</div>
           <textarea class="chat-recv-input" id="chat-paste" placeholder="Colle ici le message reçu — déchiffré automatiquement" onpaste="setTimeout(chatReceive,0)"></textarea>
         </div>
@@ -621,6 +621,7 @@ input[type=range]{accent-color:var(--cyan);width:70px}
           <textarea class="enc" id="dr-peer-init" placeholder="Colle ici le code reçu du pair"  style="font-size:9px"></textarea>
           <button class="btn-share green" onclick="drEstablish()" style="width:100%;margin-top:6px">3 · ÉTABLIR LA SESSION</button>
           <div class="share-status" id="dr-status" style="margin-top:6px"></div>
+          <div id="dr-sas" style="display:none;margin-top:8px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:11px;line-height:1.5"></div>
         </div>
 
       <div class="ent-row" id="kp-ent"></div>
@@ -3247,6 +3248,16 @@ async function _drDec(st,b64){ const raw=Uint8Array.from(atob(b64.slice(3)),c=>c
   const key=await _drMkKey(r[1])
   return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv,additionalData:_drHdr(header.dh,header.PN,header.N)},key,ct)) }
 
+// Numéro de sécurité (SAS anti-MITM) : SHA-256 des DEUX clés publiques (triées → identique des 2 côtés).
+// À comparer hors-bande (voix/présentiel) ; s'il diffère, un intercepteur a substitué une clé à l'échange.
+async function _drSafetyNumber(pubA, pubB){
+  const ha=_b2h(pubA), hb=_b2h(pubB)
+  const lo = ha<hb?pubA:pubB, hi = ha<hb?pubB:pubA
+  const cat=new Uint8Array(lo.length+hi.length); cat.set(lo); cat.set(hi,lo.length)
+  const d=new Uint8Array(await crypto.subtle.digest('SHA-256',cat))
+  let s=''; for(let g=0;g<5;g++){ let v=0; for(let i=0;i<4;i++) v=v*256+d[g*4+i]; s+=(g?' ':'')+String(v%100000).padStart(5,'0') }
+  return s   // 5 groupes de 5 chiffres (~83 bits affichés, issus du SHA-256 complet)
+}
 window.drMakeInit = async function(){
   if(!_keyMaterial?.aes){ if(typeof log==='function') log('Génère d\'abord une clé partagée (passphrase)','err'); return }
   _drAnchor = await _drGenDH()
@@ -3264,6 +3275,11 @@ window.drEstablish = async function(){
     if(_b2h(myPub) < _b2h(peerPub)){ _drState=await _drInitBob(SK,_drAnchor); setShareStatus('dr-status','✓ Session établie (rôle B) — ratchet DH actif','ok') }
     else { _drState=await _drInitAlice(SK,peerPub); setShareStatus('dr-status','✓ Session établie (rôle A) — ratchet DH actif','ok') }
     if(typeof log==='function') log('🔗 Session ratchet DH établie — FS + post-compromission','ok')
+    const sas=await _drSafetyNumber(myPub,peerPub)
+    const sasEl=document.getElementById('dr-sas')
+    if(sasEl){ sasEl.style.display='block'
+      sasEl.innerHTML='<b>🔒 Numéro de sécurité</b> — compare-le avec ton correspondant par un <b>autre canal</b> (voix, en personne). Identique des deux côtés = aucun intercepteur ; différent = quelqu\'un a substitué une clé.'
+        +'<div style="font-family:monospace;font-size:16px;letter-spacing:2px;margin-top:6px;color:var(--accent-2,#5cc2b0)">'+sas+'</div>' }
   }catch(e){ setShareStatus('dr-status','✗ Échec : '+e.message,'err') }
 }
 
@@ -3308,7 +3324,12 @@ function chatRefreshMode(){
   else if(typeof _fsEnabled!=="undefined" && _fsEnabled){ t="🔐 FS · cliquet symétrique"; c="var(--green)" }
   else if(typeof _aesKey!=="undefined" && _aesKey){ t="🔒 AES-GCM 256 · clé partagée"; c="var(--amber)" }
   else { t="○ aucune clé — à générer/dériver"; c="var(--muted)" }
-  b.textContent=t; b.style.color=c
+  const relay = (typeof _relayConnected==="function" && _relayConnected())
+  b.textContent = t + (relay ? "  ·  🔌 liaison active (envoi/réception auto)" : "")
+  b.style.color = c
+  // ergonomie : en mode relais, le copier-coller manuel est inutile → on le masque (vrai feeling messagerie)
+  const man=document.getElementById("chat-recv-manual"); if(man) man.style.display = relay ? "none" : "block"
+  const cw=document.getElementById("chat-cipher-wrap"); if(cw && relay) cw.style.display="none"
 }
 function chatRender(){
   const box=document.getElementById("chat-thread"); if(!box) return
@@ -3405,12 +3426,14 @@ window.relayToggle = function(){
   const b=document.getElementById("relay-btn"); if(b) b.textContent="🔌 DÉCONNECTER"
   setShareStatus("relay-status","✓ Lié au salon « "+r+" » — réception auto (1,5 s)","ok")
   if(typeof log==="function") log("Liaison relais active","ok")
+  if(typeof chatRefreshMode==="function") chatRefreshMode()   // déclutter immédiat (masque le copier-coller manuel)
   relayPoll()
 }
 window.relayDisconnect = function(){
   if(_relayTimer){ clearInterval(_relayTimer); _relayTimer=null }
   const b=document.getElementById("relay-btn"); if(b) b.textContent="🔌 SE CONNECTER"
   setShareStatus("relay-status","○ Liaison coupée","err")
+  if(typeof chatRefreshMode==="function") chatRefreshMode()   // ré-affiche le copier-coller manuel
 }
 // Entrée = envoyer (Maj+Entrée = nouvelle ligne)
 document.addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey && document.activeElement && document.activeElement.id==="chat-input"){ e.preventDefault(); window.chatSend() } })
