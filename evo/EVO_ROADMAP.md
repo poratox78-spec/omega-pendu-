@@ -48,5 +48,14 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   qui croît avec la longueur. Pour une copie *fidèle* (« code qui tourne » = mot exact ~100 %), brique suivante : **battre le
   crosstalk** — décodage **itératif / résonateur** (resonator network), **chunking** des longues séquences, ou **rappel
   adressable** (`_emrg_recall` : exact pour les items déjà au banc, avec marge mesurée).
-- ⏳ **Reste** : (a) exposer la config de référence (~90 %) dans le harnais ; (c) jalon **quine** ; choisir le décodeur de copie (résonateur vs chunk vs rappel).
+- ✅ **P1 (b-ter) — le CROISEMENT bat l'addition (doctrine « OMEGA est un ensemble », Rem)** : `evo_p1_cross.js` (2 graines).
+  Décoder **deux routes de liage indépendantes** (shift ×1 et ×7) puis **conjuguer** leurs posteriors par position
+  (croisement = *intersection des contraintes*, **≠ ajouter du bundle**) relève le **mot exact** massivement :
+  len 11 **45→70-82 %**, len 13 **47-55→62-75 %**, len 15 **23-38→50-55 %**, len 18 **20-30→45-57 %**, len 22 **0-25→62 %** ;
+  lettres +1-5 pts. Les pics de crosstalk diffèrent entre routes → le croisement les annule. ⇒ « **ni addition ni
+  multiplication, c'est un croisement** » : *mesuré*.
+- ⏳ **Prochaine brique** : ici les 2 routes sont des permutations **arbitraires**. OMEGA a des routes qui **portent de la
+  structure** (phon × ortho × cohorte × voisins = le **vrai jointe** `M_NEO_PHON_COHORT_JOINTE`) → croiser **celles-là**
+  (info indépendante *réelle*, pas 2 vues random) devrait viser le mot exact ~100 %. Plus : chunking ≤7 / rappel `_emrg_recall`.
+- ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais ; (c) jalon **quine**.
 - P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
