@@ -1,0 +1,7 @@
+# En-têtes Cloudflare Pages / Netlify (ignoré par GitHub Pages — sans effet là-bas).
+/sw.js
+  Cache-Control: no-cache
+/manifest.json
+  Content-Type: application/manifest+json
+/app/omega-pendu.html
+  Cache-Control: public, max-age=3600

@@ -1,8 +1,10 @@
 # Mettre le site en ligne
 
-Le site est **statique** (3 fichiers à la racine : `index.html` = produit, `recherche.html` = recherche,
-`site.css`). Aucun build. Il fait des liens **relatifs** vers `app/omega-pendu.html` (l'app) et
-`docs/*.html` (mémoire/rapport) — donc il faut servir **tout le dépôt**, pas seulement le dossier du site.
+Le site est **statique** (`index.html` = produit, `recherche.html` = recherche, `site.css`, + le **PWA** :
+`manifest.json`, `sw.js`, `icon.svg`). Aucun build. Il fait des liens **relatifs** vers `app/omega-pendu.html`
+(l'app, ~9 Mo, **monolithe entier — pendu inclus**) et `docs/*.html` (mémoire/rapport) — donc il faut servir
+**tout le dépôt**, pas seulement le dossier du site. Chemins relatifs (`./`) → marche aussi bien sous le
+sous-chemin GitHub Pages que sur un domaine perso.
 
 > Remplace l'ancien `index.html` (qui redirigeait direct vers le jeu de pendu). Maintenant la page d'accueil
 > est le **correcteur** (produit), avec l'app à un clic et la **recherche** en 2ᵉ page.
@@ -22,9 +24,19 @@ Le site est **statique** (3 fichiers à la racine : `index.html` = produit, `rec
 - Tu obtiens une URL `*.netlify.app` (ou ton domaine).
 
 ## Option C — Tester en local
-Ouvre simplement `index.html` (double-clic). Tout marche en `file://` (liens relatifs).
+Ouvre simplement `index.html` (double-clic). Tout marche en `file://` (liens relatifs). *Le service-worker (PWA)
+est volontairement inactif en `file://`* — il ne s'active qu'en `http(s)`, sans erreur en local.
+
+## PWA — installable + hors-ligne (déjà câblé)
+`manifest.json` + `sw.js` (enregistré depuis `index.html` **et** l'app) rendent le site **installable** (icône
+bureau/mobile) et **hors-ligne** : le monolithe ~9 Mo se met en cache au 1er chargement (*stale-while-revalidate*),
+puis se sert **instantanément**. La compression du host (gzip GH Pages ≈ 3 Mo / brotli Cloudflare ≈ 2-2,5 Mo) fait
+le reste — « 9 Mo » réels transférés une seule fois.
+- **Pousser une mise à jour** aux visiteurs : incrémenter `V` en tête de `sw.js` (`omega-v1` → `omega-v2`) à chaque
+  déploiement (sinon l'ancien cache persiste).
+- `_headers` (Cloudflare/Netlify, ignoré par GH Pages) force `no-cache` sur `sw.js` et le bon MIME du manifest.
 
 ## Notes
-- L'app `app/omega-pendu.html` fait ~5-7 Mo&nbsp;: le **premier** chargement prend quelques secondes, puis c'est instantané. Pages/Netlify la servent sans souci.
+- L'app `app/omega-pendu.html` fait ~9 Mo (surtout du base64 → compresse ~3×)&nbsp;: le **premier** chargement prend quelques secondes, puis c'est instantané (cache + PWA). Pages/Netlify/Cloudflare la servent sans souci.
 - Pour que l'accueil soit visible sur la branche par défaut du dépôt, il faudra **fusionner la PR #9 dans `main`** (sinon configure Pages directement sur la branche `cool-curie`).
 - Contenu **à jour** au moment de l'écriture (juin 2026) ; pense à rafraîchir les chiffres si le correcteur évolue (source de vérité&nbsp;: `dictee/JOURNAL.md`).
