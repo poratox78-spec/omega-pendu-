@@ -119,6 +119,12 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   **89,3 % (k=0) → 94,7 → 96,0 %** [A aléatoire] · **→ 98,7 → 100 %** [A malin = lettres rares]. (1) **communiquer PAIE**
   (winrate ↑ avec la bande, sanity monotone ✅) ; (2) **le CONTENU compte** (malin > aléa **+4 pts** à bande égale) ⇒ un
   **encodage optimal à APPRENDRE** = le gradient qui fait émerger un langage. *C'était LE crux de P2 (« quelle tâche paie ») — répondu.*
-- ⏳ **Prochaine brique P2** : A **APPREND** quoi envoyer (protocole émergent) — optimiser l'encodage du canal limité par le
-  reward partagé (winrate de B). Puis **P3** (générations, croisement).
+- ✅ **P2 (b) — PROTOCOLE ÉMERGENT : un langage émerge du REWARD SEUL** : `evo_p2_emergent.js`. A part de `value=0`, explore,
+  apprend par **reward contrastif** (gain marginal = gagné-avec − gagné-sans) quoi envoyer. Résultat : winrate B **90,6 % → 97,5 %**
+  (epochs), held-out **96,7 %** (vs 94,7 % aléatoire, plafond 98,7 %). **Un code utile a émergé, jamais soufflé** — A envoie des
+  consonnes informatives (`UGMCZL`). *Nuance honnête* : A converge vers le **modérément rare (apprenable)**, pas le rarissime
+  (`WKJXYQ`, trop sparse → crédit non fiable, rho 0,15 **attendu**) ; le bon critère = le **winrate**, pas la corrélation à un
+  optimum injoignable. ⇒ **« inventer son langage » démontré, ancré dans la tâche.**
+- ⏳ **Prochaine brique** : politique **relative au mot** (ranker les lettres du mot) pour viser le plafond 98,7 % ; puis
+  **P3 (générations)** — une version qui parle à la précédente, croisement (`recordGene/breed/crossW`).
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
