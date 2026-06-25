@@ -92,8 +92,9 @@
     <li><b>Par message</b> — IV aléatoire 96 bits, intégrité par tag GCM. Le relais (optionnel, auto-hébergeable) ne voit <strong>jamais</strong> le clair.</li>
   </ul>
   <div class="promise" style="border-left-color:var(--bad)">
-    <h3 style="margin-top:0">⚠️ Expérimental — non audité</h3>
-    <p>Les briques sont standard et correctement employées (audit de surface : entropie WebCrypto, aucun <code>Math.random</code> dans le matériel de clé, IV uniques par message). <strong>Mais l'assemblage du protocole est fait main</strong> — ce n'est pas une bibliothèque éprouvée, et il <strong>n'a pas été audité</strong> par des cryptographes. Le relais voit des <strong>métadonnées</strong> (salon, horaires, tailles) ; le fil est stocké <strong>en clair en local</strong> ; la passphrase doit transiter par un <strong>canal sûr séparé</strong>. <strong>Pour de vrais secrets, utilise un outil audité comme <a href="https://signal.org">Signal</a>.</strong> OMEGA·KEY est une démonstration d'ingénierie, pas un produit de sécurité.</p>
+    <h3 style="margin-top:0">⚠️ Démo, pas un produit de sécurité</h3>
+    <p>Briques standard et bien employées (WebCrypto, IV uniques, pas de <code>Math.random</code> dans les clés) — <strong>mais le protocole est assemblé à la main et n'a pas été audité</strong>. Pour de vrais secrets, utilise <strong><a href="https://signal.org">Signal</a></strong>.</p>
+    <p class="small">À savoir : le relais voit les métadonnées (salon, horaires, tailles) · le fil est stocké en clair en local · la passphrase doit s'échanger par un canal sûr séparé.</p>
   </div>
   <p><a class="btn primary" href="omega-key/app/omega-key.html">Ouvrir OMEGA·KEY</a> <a class="btn ghost" href="omega-key/docs/RAPPORT_MODE_EMPLOI.html">Rapport / mode d'emploi</a></p>
 </div></section>
