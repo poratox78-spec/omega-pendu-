@@ -8,6 +8,9 @@
 ## Cadrage
 - **Tâche = COPIER** (reconstruction / autoencodage), pas deviner. Fit le substrat **bPC/M3_d** (autoencodeur
   à codage prédictif), et **contourne l'absence de phonologie** du code (copier n'a pas besoin de la 2ᵉ route).
+  > ⚠️ **Révisé par la mesure (voir État)** : (a) le bon substrat de copie est le **HDC/VSA 1024D** (`_emrg_bind`), *pas* le
+  > goulot M3_d 12-cellules ; (b) une **2ᵉ route AIDE** — le « phon du code » = la **structure syntaxique**, et la croiser
+  > (×) avec la surface remonte la fidélité. L'hypothèse « copier n'a pas besoin de 2ᵉ route » est donc **fausse**, mesuré.
 - **Unité = caractère.** Critère de copie = **« code équivalent qui tourne »** (vérifié par comportement, pas byte-identique).
 - **Langage = JavaScript** (OMEGA vit déjà en JS dans le navigateur → il peut **exécuter** ce qu'il copie → reward réel).
 
@@ -54,8 +57,17 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   len 11 **45→70-82 %**, len 13 **47-55→62-75 %**, len 15 **23-38→50-55 %**, len 18 **20-30→45-57 %**, len 22 **0-25→62 %** ;
   lettres +1-5 pts. Les pics de crosstalk diffèrent entre routes → le croisement les annule. ⇒ « **ni addition ni
   multiplication, c'est un croisement** » : *mesuré*.
-- ⏳ **Prochaine brique** : ici les 2 routes sont des permutations **arbitraires**. OMEGA a des routes qui **portent de la
-  structure** (phon × ortho × cohorte × voisins = le **vrai jointe** `M_NEO_PHON_COHORT_JOINTE`) → croiser **celles-là**
-  (info indépendante *réelle*, pas 2 vues random) devrait viser le mot exact ~100 %. Plus : chunking ≤7 / rappel `_emrg_recall`.
-- ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais ; (c) jalon **quine**.
+- ✅ **P1 (c) — PIVOT VERS LE CODE** : `evo_p1_code.js` (2 graines). On arrête de polir le mot (proxy non-transférable) ; on
+  copie du **vrai code** style-moteur. Équivalent phon/ortho **défini** : **surface** (caractère⊗position) × **structure**
+  (classe syntaxique de la position = le « phon » du code, indépendant de l'orthographe des identifiants). Mesuré :
+  - **code court (≤~50 car) : copie parfaite** (surface seule ~99-100 %) — *mieux* que les mots, car codebook `randomHRR`
+    **orthogonal** vs lettres volontairement confusables (`letterVecsSDIM`).
+  - **code long (107-120 car) : surface seule chute à ~72-80 %** → le bundle 1024D **sature au-delà de ~80-100 car**.
+  - **croisement surface×structure : +9 pts caractères (83→92 %)**, +3-4 lignes exactes ⇒ une **2ᵉ route AIDE** (révise le
+    Cadrage « copier n'a pas besoin de 2ᵉ route », qui était faux).
+  - **MULTIPLY ≥ ADD** constant sur les lignes dures (92,5 vs 92,1 %) → « **multiplier pour copier** » confirmé (marge petite
+    car la route structure est grossière = classe de caractère ; une vraie route token l'élargirait).
+- ⏳ **Prochaine brique** : le vrai goulot du code long = **capacité du bundle** → **CHUNKING** (≤~40 car/chunk, chacun
+  ~parfait, recompose) + croisement par chunk ; et **route structure RÉELLE** (token-type via tokenizer, pas classe de car).
+- ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais ; (c) jalon **quine** (copier un bout de son propre code).
 - P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
