@@ -33,6 +33,14 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
 
 ## État
 - ✅ **P1 keystone** : `fitness_harness.js` — instrument réel, **headless, déterministe, tri-critère**, sur le vrai moteur.
-- ⏳ **Prochain** : (a) exposer la **config de référence** (~90 %) dans le harnais ; (b) définir le **mécanisme de copie**
-  (ce qu'on branche sur bPC) + 1ʳᵉ **mesure de fidélité** ; (c) jalon **quine**.
-- Le reste (P2/P3) attend P1 prouvée — sinon on empile du non-mesuré.
+- ✅ **P1 (b) — 1ʳᵉ mesure de fidélité** : `evo_p1_fidelity.js` (2 graines {12345,777}, lecture seule, OFF-inerte). Verdict :
+  le substrat de copie **bPC (12 cellules) apprend en ligne** (‖bpcW‖ 2,27→2,79) mais **plafonne à ~0,65-0,75 d'erreur
+  relative de reconstruction ‖m1−m̂‖/‖m1‖, PLATE de len 7→15**. Donc **pas un mur de *longueur* mais un plafond de
+  *fidélité*** : 12 cellules gardent le *gist*, perdent ~⅔ du signal exact, à toute longueur. **Δ rote test−train ≈ +0,035**
+  (petit) ⇒ ce qu'il garde est **structurel, pas par cœur**. Précise la §8.1 : le mur de capacité est un *ceiling*, pas une dérive en longueur.
+- ⚠️ **Conséquence design (mesurée, pas supposée)** : une copie *fidèle* (« code équivalent qui tourne ») exige err→~0.
+  Le concept 12-cellules (readout couplé 0,20, lossy *par design*) **ne peut pas être le copieur tel quel**. Brique suivante
+  **avant** de câbler le mécanisme de copie : **fidélité vs `N_CONCEPT_CELLS`** (combien de cellules pour franchir 0,5 puis
+  0,2 ?), sinon un **autoencodeur de copie dédié** (hors du concept cognitif).
+- ⏳ **Reste** : (a) exposer la config de référence (~90 %) dans le harnais ; (c) jalon **quine** — *gated* derrière la capacité.
+- P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
