@@ -15,10 +15,13 @@ dictionnaire, mais comme une **architecture cognitive** sous une contrainte fond
 | Cognition cheat-free seule | ~90 % | sans lire le dictionnaire pour scorer une lettre |
 | **+ déclaration émergente (NEO)**, in-lexique | **97,5 % – 98,8 %** | au niveau des meilleurs solveurs lexicaux |
 | Hors-lexique (façon Trexquant), phon→ortho | **~70 %** | au niveau des bons solveurs, le mot étant *entendu* |
+| Hors-lexique **cheat-free intégral** (gap-aware, *sans* lire le son) | **~64 %** | cognition pure sur mot inédit — bande SOTA |
 | Hors-lexique, ortho seul | ~22 % | faiblesse réelle : généralisation sous-lexicale |
 | Plafond oracle (lexique complet) | 98,7 % | la cible *exclue* par doctrine |
 
 > *Nuance d'honnêteté : le 97,5 % cheat-free vaut pour le **scoring-lettre** (aucun lookup dictionnaire pour choisir une lettre). La voie de déclaration « assemblée » lit le **son** du mot cible (`w.p`, prémisse « mot entendu », légitime en dictée) ; pour un cheat-free **intégral** sans aucune lecture du mot, activer la cohorte board-dérivée (rapport §17.5).*
+>
+> *✓ **Stats revérifiées (06/2026)** en exécutant le bench du moteur lui-même (`_omega_trexquant_bench`, 3 graines, dans l'app) : in-lexique **~99 %**, OOV **gap-aware 64 % — stable sur les 3 graines** (bande SOTA, bons solveurs sans son 65-68 %). Mesure indépendante, cohérente avec le tableau.*
 
 La contribution n'est **pas** un record de winrate (les solveurs lexicaux égalent le score
 in-lexique) — c'est une **méthode** : mesurer avant de croire, falsifier avant de garder,
