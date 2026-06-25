@@ -93,8 +93,14 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   l'identité exacte**. Résultat (propre code d'OMEGA, **lossless ✅ tous ordres**) : régénéré **ordre-2 61,5 % → ordre-5
   90,5 %** ; résidu ordre-5 = **9,5 %** (gzip 15,8 Ko vs 43,6 brut). ⇒ **OMEGA se copie pour de vrai par prédiction+erreur**,
   pas en stockant la ligne. Compromis résidu↔grammaire (contextes) = **MDL** (garde §3 du moteur).
-- ⏳ **Prochaine brique** : (1) prédicteur **hiérarchique/AST** (structure > contexte plat → régénère plus avec MOINS de
-  grammaire) ; (2) brancher la **fitness pendu** pour passer du lossless-**byte** au lossless-**comportement** (« ça tourne »,
-  le vrai critère roadmap) → le jalon **quine**.
+- ✅ **P1 (g) — JALON QUINE VÉRIFIÉ** : `evo_p1_quine.js`. OMEGA lit le source de ses propres fonctions (`toString`), les
+  **recopie par codage prédictif** (bPC ordre-6, **hors M3_d**), les **ré-instancie avec leur CLÔTURE** (deps + globals
+  `DEBUG` + état `_shiftBuf` + `SDIM`), et elles **tournent à l'identique** sur entrées aléatoires (`cosineSim`, `normalize`,
+  `circularShift`, `circularShiftInverse` : byte-exact ✅ + comportement ✅). **Leçon** : une fonction runnable = un **nœud du
+  graphe d'appel + sa clôture** (la pyramide), pas une ligne — copier l'unité = copier sa clôture.
+- ✅ **P1 « se copie » PROUVÉ au niveau fonction** : reconstruction lossless (prédire+erreur) + exécution vérifiée. Le mur
+  §8.1 (K≈N) était l'artefact du stockage plat ; bPC + clôture (pyramide) le résolvent — **sans M3_d**, conforme à la doc.
+- ⏳ **Prochaine brique** : (1) **monter d'un étage** — copier+exécuter une **unité pendu** entière (clôture auto-détectée),
+  fitness ≥ parent = le quine grandeur réelle ; (2) prédicteur **hiérarchique/AST** (régénère plus, grammaire plus petite).
 - ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais.
-- P2/P3 attendent P1 prouvée — sinon on empile du non-mesuré.
+- **P2 (communiquent)** : débloqué dès que P1 grandeur-réelle tient — tâche coopérative qui *paie* le langage (pendu référentiel).
