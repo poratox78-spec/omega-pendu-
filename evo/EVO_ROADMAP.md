@@ -107,6 +107,13 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   « X is not defined » → fournir depuis le moteur → réessayer). Le quine la **découvre seul** : interface de la clôture
   `circularShift` = **`{ DEBUG, _shiftBuf }`** (byte-exact ✅ + comportement ✅). ⇒ copie **bornée** (module + interface observée),
   pas l'explosion de clôture du monolithe. *C'est la pyramide au niveau module.*
-- ⏳ **Prochaine brique** : monter à une **unité pendu** réelle (cluster + interface auto-observée), **fitness ≥ parent** ; +
-  prédicteur **hiérarchique** (régénère plus). Puis **P2** — tâche coopérative qui *paie* le langage (pendu référentiel).
-- ⏳ **Reste** : (a) config de référence (~90 %) dans le harnais.
+- ✅ **P1 (i) — QUINE GRANDEUR RÉELLE VÉRIFIÉ** : `evo_p1_realquine.js`. OMEGA recopie **5 fonctions de DÉCISION** (`cosineSim`,
+  `circularShift`×3, `normalize` — exercées par concept-bind/readout pendant le jeu) par bPC (**byte-exact ✅**), les **patche
+  dans le moteur vivant**, et le pendu **rejoue à fitness identique : winrate 93,3 % → 93,3 %**. Contrôle de **falsification** :
+  `cosineSim` corrompue (négation) → **winrate 90 % (CHANGE)** ⇒ les fonctions recopiées sont **réellement sur le chemin de
+  décision** (test non vide). ⇒ **P1 « se copie » prouvé grandeur réelle**, sur du code de décision, dans le pendu vivant.
+- ✅ **P1 « SE COPIE » ESSENTIELLEMENT COMPLET** : (b)→(i) — substrat VSA 1024D · croisement · pyramide · bPC (prédire+résidu) ·
+  quine fonction · frontière module + interface runtime · quine grandeur réelle (fitness préservé, falsifié). **Le mur §8.1 dissous.**
+- ⏳ **PROCHAINE PHASE — P2 « communiquent »** : 2 instances + tâche coopérative qui *paie* le langage = **pendu référentiel**
+  (A voit le mot, canal à **bande limitée**, B joue, reward partagé) → **protocole émergent** → fabriquent une nouvelle version → générations.
+- ⏳ **Reste P1** (mineur) : (a) config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
