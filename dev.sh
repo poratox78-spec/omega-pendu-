@@ -52,6 +52,9 @@ run "correcteur standalone"         node dictee/correcteur.js
 runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
 
+echo "── OMEGA·KEY (dérivé crypto) ──"
+run "omega-key crypto (entropie + gel listes + KAT Double Ratchet)" node omega-key/test_crypto.js
+
 echo "──────────────────────────────────────────"
 if [ "$FAIL" -eq 0 ]; then echo "✅ TOUT VERT — $PASS/$((PASS)) checks (= ce que voit la CI)."; else
   echo "❌ $FAIL échec(s) sur $((PASS+FAIL)) : ${FAILED[*]}"; fi
