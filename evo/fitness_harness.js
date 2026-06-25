@@ -14,9 +14,14 @@ function loadEngine() {
   const parts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)];
   let js = '', lex = '';
   for (const m of parts) {
-    if (/lex4-data-gz/.test(m[1])) lex = m[2];        // <script type=text/plain id=lex4-data-gz> (gzip+base64)
-    else if (/application\/json/.test(m[1])) continue; // <script type=application/json> (données, ex. vdc-lex) — pas du JS
-    else js += '\n;\n' + m[2];
+    if (/lex4-data-gz/.test(m[1])) { lex = m[2]; continue; }   // <script type=text/plain id=lex4-data-gz> (gzip+base64)
+    // Ne garder que les VRAIS blocs JS. Tout type non-JS (text/plain, application/json) = données embarquées
+    // (vdc-lex, speller-lex-gz, gdet-lex-gz…) → JAMAIS concaténer (sinon SyntaxError à l'eval). Robuste aux ajouts futurs.
+    const tm = m[1].match(/\btype\s*=\s*["']([^"']*)["']/i);
+    const type = tm ? tm[1].toLowerCase().trim() : '';
+    const isJS = type === '' || type === 'text/javascript' || type === 'application/javascript' || type === 'module';
+    if (!isJS) continue;
+    js += '\n;\n' + m[2];
   }
   const stub = new Proxy(function(){}, { get:(t,p)=>{ if(p==='style')return {}; if(p==='textContent')return ''; if(p==='classList')return {add(){},remove(){},toggle(){},contains:()=>false}; if(p==='getContext')return ()=>stub; return stub; }, set:()=>true, apply:()=>stub, construct:()=>stub });
   global.document = { getElementById:(id)=> id==='lex4-data-gz' ? {textContent:lex} : stub, head:stub, querySelector:()=>stub, querySelectorAll:()=>[], createElement:()=>stub, addEventListener(){}, body:stub, documentElement:stub, getElementsByTagName:()=>[] };

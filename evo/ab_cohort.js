@@ -49,7 +49,7 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
 
 (async () => {
   const mode = (process.argv[2] || 'inlex').toLowerCase();
-  const oov = (mode === 'oov');
+  const oov = (mode === 'oov' || mode === 'trexq');
   const warmupN = +(process.argv[3] || (oov ? 300 : 200));
   const testN   = +(process.argv[4] || (oov ?  80 : 100));
   const seeds   = (process.argv[5] || (oov ? '12345,777' : '12345,777,2024,99')).split(',').map(s => +s);
@@ -110,8 +110,15 @@ function pad(s, n){ s = String(s); while (s.length < n) s += ' '; return s; }
   }
 
   const conds = oov
-    ? [ { key: 'REF  son-lu (wp.get)        ', cohort: false, jointe: false },
-        { key: 'cohorte argmax + garde 0.5  ', cohort: true,  jointe: false } ]
+    ? (mode === 'trexq'
+      // RÉGIME TREXQUANT (hors-lexique) : mesure l'effet de DUAL (recon. lexicale) et de l'ARBITRAGE OS
+      // quand le mot est RETIRÉ du lexique — le « effet Trexquant non mesuré » de docs/CONFIG_REFERENCE.md §166.
+      ? [ { key: 'OOV cohorte-jointe (base)   ', cohort: true, jointe: true },
+          { key: 'OOV + DUAL (lexical)        ', cohort: true, jointe: true, dual: true },
+          { key: 'OOV + OS-arb (fiabilité)    ', cohort: true, jointe: true, osarb: true },
+          { key: 'OOV + DUAL + OS-arb (config)', cohort: true, jointe: true, dual: true, osarb: true } ]
+      : [ { key: 'REF  son-lu (wp.get)        ', cohort: false, jointe: false },
+          { key: 'cohorte argmax + garde 0.5  ', cohort: true,  jointe: false } ])
     : (mode === 'xmodal')
     ? [ { key: 'config réf. (cross-modal OFF)', cohort: false, jointe: false, xmodal: false },
         { key: 'config réf. + CROSS-MODAL ON ', cohort: false, jointe: false, xmodal: true  } ]

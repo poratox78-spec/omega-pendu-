@@ -34,6 +34,26 @@ C'est la **grammaire à double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) appliquée à
 incrémente `vu`. On lit aussi des **textes** (`--read` / `--read-file`) : le lexique accumule fréquences
 et inventaire phonèmes/graphèmes. *(Fichier d'état non versionné — cf. `.gitignore`.)*
 
+## Décomposition PARALLÈLE 3 voies & lecture du corpus réel (`decompose_corpus.py`)
+La base **décrit** (ne corrige pas — elle « ne peut pas se tromper »). Chaque mot est décomposé **en
+parallèle** sur trois voies, comme Lexique 4 sépare ortho / phono / morpho-grammaire :
+- **ORTHO** : graphèmes, syllabes orthographiques, nb de lettres.
+- **PHON** : phonèmes SAMPA, syllabes phonologiques, structure CV.
+- **GRAMMAIRE** : cgram / genre / nombre / morphologie (mot) **+ RÔLE EN CONTEXTE** (déterminant, verbe,
+  préposition, accord/gouverneur) via les leviers descriptifs de `diag_sentence`.
+
+`decompose_corpus.py` **lit le corpus réel** `corpus_gec_fr.jsonl` (98 paires GEC ; on n'utilise que les
+phrases **correctes** comme source de mots) et **enrichit la base** : 1487 mots → **770 distincts** (FP=0).
+La **grammaire en contexte est STOCKÉE** : `learn_word(role=…)` accumule un compteur de rôles par mot
+(`« la »→{déterminant:61}`, `« est »→{verbe:25}`, `« important »→{accord-sg}`), visible dans `--lex`.
+`--show` = aperçu parallèle en lecture seule ; `--phrase "…"` = une phrase de ton choix.
+
+## Accents — solution déjà présente (ne pas réinventer)
+Doctrine OMEGA (`JOURNAL §153`, `DICTEE_ROADMAP 1.1`, app `PHON_TO_LETTERS`) : **en lexique = lookup** du
+mot accentué (`1_Mot`, rien à reconstruire) ; **hors-lexique = le phonème porte l'accent** (é=/e/, è=/ɛ/).
+Le décomposeur l'applique déjà (route lexicale = lookup ; overlay g2p é→/e/, ç→/s/) et p2g émet des
+graphies **accentuées** apprises du lexique — donc aucun système d'accents à rajouter ici.
+
 ## Route sublexicale améliorée (3 leviers mesurés)
 1. **SEG enrichi** : la segmentation du moteur (43) est étendue de **8 segments** (`ti, sc, sh, oy, ay, ail, cqu, ueil`) **retenus après mesure** (`ion, ue, oui`… testés et **écartés** car ils dégradent). Le moteur pendu garde son SEG (R66) ; seul le décomposeur l'étend.
 2. **Correction apprise (boucle descendante)** : `build_g2p_corrections.py` aligne (DP monotone) le g2p au phono Lexique sur le split TRAIN, apprend `(graphème, contexte)→phonème` (support≥20, pureté≥0,75 ⇒ 667 règles), corrige les erreurs systématiques (o/ɔ, finales…).

@@ -1,0 +1,197 @@
+// evo/saisie_oracle.js — ORACLE DE SAISIE (aide à la frappe / correction de typo dys) bâti sur le PENDU.
+// Architecture = la DOUBLE VOIE arbitrée d'OMEGA (mémoire §4.2, Leçon 79 : la force vient de l'ENSEMBLE,
+// pas d'une voie isolée), appliquée à la saisie. Réutilise le lexique embarqué OMEGA_LEX4 (155k, +phon .p) du
+// moteur — §5 : pas de réinvention.
+//   • Voie LEXICALE   (régime in-lexique) : cohorte (phon-clé ∪ edit-1) du lexique, classée DISTANCE-au-typo
+//                       puis fréquence. Mesuré ~87 % top-1 sur typos variés (transpo/omission/doublement/phon).
+//   • Voie SUBLEXICALE (régime OOV / mot novel) : trigrammes de caractères appris du MÊME lexique (la voie qui
+//                       généralise hors-lexique) → vraisemblance orthographique. Faible seule, mais SEULE voie
+//                       sur l'OOV (la lexicale y rend 0) — d'où la double voie. (Swap futur : `_neoLetterNgramDist`
+//                       gap-aware du moteur — même idée, déjà câblée OFF-inerte.)
+//   • ARBITRAGE par FIABILITÉ : voie lexicale si CONFIANTE (distance≤2 ∧ candidat dominant) ; sinon sublexicale.
+//                       Bascule auto par régime, comme l'OS du moteur (M_NEO_OS_ARB).
+//
+// Usage :  const {makeOracle} = require('./evo/saisie_oracle.js'); const o = await makeOracle(); o.suggest("qiu");
+//          node evo/saisie_oracle.js --measure
+'use strict';
+const { loadEngine } = require('./fitness_harness.js');
+
+const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+const da = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+function phonKey(s) {                                  // clé phonétique FR approx (miroir de speller_probe.phon_key)
+  s = da(s.toLowerCase()).replace(/ç/g, 's');
+  s = s.replace(/ph/g, 'f').replace(/th/g, 't').replace(/ch/g, '§').replace(/qu/g, 'k').replace(/gu/g, 'g')
+       .replace(/eau|aux|au/g, 'o').replace(/ou/g, 'u').replace(/ai|ei|ay/g, 'e').replace(/oi/g, 'wa');
+  let r = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i], n = s[i + 1] || '';
+    if (c === 'c') r += (/[eiy§]/.test(n) ? 's' : 'k');
+    else if (c === 'g') r += (/[eiy]/.test(n) ? 'j' : 'g');
+    else if (c === 'h') continue;
+    else if (c === 'x') r += 'ks'; else if ('zs'.includes(c)) r += 's';
+    else if (c === 'y') r += 'i'; else if (c === 'w') r += 'v'; else r += c;
+  }
+  let o = ''; for (const c of r) if (o[o.length - 1] !== c) o += c;
+  while (o && 'est'.includes(o[o.length - 1])) o = o.slice(0, -1);
+  return o;
+}
+
+function lev(a, b) {                                   // Levenshtein (déaccentué)
+  a = da(a); b = da(b); const m = a.length, n = b.length;
+  const d = Array.from({ length: m + 1 }, (_, i) => { const r = new Array(n + 1).fill(0); r[0] = i; return r; });
+  for (let j = 0; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);   // DAMERAU : transposition adjacente = 1 (qiu↔qui)
+  }
+  return d[m][n];
+}
+
+function edits1(d) {                                   // delete / transpose / replace / insert
+  const r = new Set();
+  for (let i = 0; i <= d.length; i++) {
+    const a = d.slice(0, i), b = d.slice(i);
+    if (b) r.add(a + b.slice(1));
+    if (b.length > 1) r.add(a + b[1] + b[0] + b.slice(2));
+    for (const c of ALPHA) { r.add(a + c + b); if (b) r.add(a + c + b.slice(1)); }
+  }
+  return r;
+}
+
+async function makeOracle(O) {
+  O = O || loadEngine(); if (O.loadLex) await O.loadLex();
+  const lex = O.evalIn(`OMEGA_LEX4.words.map(w=>[w.m.toLowerCase(), w.f||0])`);
+  // VOIE SUBLEXICALE = n-gram positionnel du MOTEUR (`_neoNG`, bâti du lexique 155k via len_index, la table qui
+  // fait l'OOV ~57-65 % du pendu) — §5/A2 : on RÉUTILISE le n-gram du moteur, pas une trigramme maison. Backoff tri→bi→uni.
+  const _ngOK = O.evalIn(`(function(){ if(typeof _neoEnsureNG==='undefined') return 0; _neoEnsureNG();
+    globalThis.__sx=function(arr){ var NG=_neoNG; return arr.map(function(w){ w=w.toUpperCase(); var L=w.length,lp=0;
+      for(var p=0;p<L;p++){ var c=w.charCodeAt(p)-65; if(c<0||c>=26) return -1e9;
+        var nb=(p>0&&p<L-1)?NG.tri[L+'|'+p+'|'+w[p-1]+'|'+w[p+1]]:null;
+        if(!nb&&p>0)nb=NG.bl[L+'|'+p+'|'+w[p-1]]; if(!nb&&p<L-1)nb=NG.br[L+'|'+p+'|'+w[p+1]]; if(!nb)nb=NG.uni[L+'|'+p];
+        var s=0; if(nb)for(var x=0;x<26;x++)s+=nb[x]; lp+=Math.log(((nb?nb[c]:0)+0.5)/((s||0)+13)); }
+      return lp/L; }); }; return 1; })()`);
+  // PRÉDICTEUR GAP-AWARE (autocomplete / remplissage de trous) : réplique la logique par-position de
+  // `_neoLetterNgramDist` du moteur (voisin RÉVÉLÉ le plus proche à distance 1..MAXD, tri-joint si 2 adjacents).
+  const _gapOK = O.evalIn(`(function(){ if(typeof _neoEnsureNG==='undefined') return 0; _neoEnsureNG(); if(typeof _neoEnsureNGgap!=='undefined')_neoEnsureNGgap();
+    globalThis.__predGaps=function(L,rev){ var NG=_neoNG, MAXD=(typeof _NEO_NGRAM_MAXD!=='undefined'?_NEO_NGRAM_MAXD:4), x;
+      var nz=function(d){ if(!d) return null; var s=0; for(x=0;x<26;x++)s+=d[x]; if(s<=0) return null; var o=new Float64Array(26); for(x=0;x<26;x++)o[x]=d[x]/s; return o; };
+      var lt=function(q,dd,c){ return dd===1?NG.bl[L+'|'+q+'|'+c]:(NG.Ld?NG.Ld[L+'|'+q+'|'+dd+'|'+c]:null); };
+      var rt=function(q,dd,c){ return dd===1?NG.br[L+'|'+q+'|'+c]:(NG.Rd?NG.Rd[L+'|'+q+'|'+dd+'|'+c]:null); };
+      var out=rev.slice();
+      for (var p=0;p<L;p++){ if (out[p]) continue;
+        var ld=0,lc=null,dd; for(dd=1;dd<=MAXD;dd++){ if(p-dd>=0&&rev[p-dd]){ld=dd;lc=rev[p-dd];break;} }   // voisin gauche RÉVÉLÉ (confirmé) — robuste vs greedy itératif (propage les erreurs)
+        var rd=0,rc=null; for(dd=1;dd<=MAXD;dd++){ if(p+dd<L&&rev[p+dd]){rd=dd;rc=rev[p+dd];break;} }
+        var pos=null;
+        if(ld===1&&rd===1){ var t=NG.tri[L+'|'+p+'|'+lc+'|'+rc]; if(t)pos=nz(t); }
+        if(!pos){ var nl=ld?nz(lt(p,ld,lc)):null, nr=rd?nz(rt(p,rd,rc)):null;
+          if(nl&&nr){ var pr=new Float64Array(26),s=0; for(x=0;x<26;x++){pr[x]=nl[x]*nr[x];s+=pr[x];} if(s>0){for(x=0;x<26;x++)pr[x]/=s;pos=pr;}else pos=nl; } else pos=nl||nr; }
+        if(!pos)pos=nz(NG.uni[L+'|'+p]); if(!pos){ out[p]='?'; continue; }
+        var bi=-1,bv=-1; for(x=0;x<26;x++)if(pos[x]>bv){bv=pos[x];bi=x;} out[p]=String.fromCharCode(65+bi); }
+      return out.join(''); }; return 1; })()`);
+  const F = Object.create(null), D2A = Object.create(null), PHON = Object.create(null);
+  const TRI = Object.create(null), TRItot = Object.create(null);   // trigrammes de caractères (voie sublexicale)
+  for (const [m, f] of lex) {
+    if (!/^[a-zàâäéèêëîïôöùûüÿç]+$/.test(m)) continue;
+    if (!(m in F) || f > F[m]) F[m] = f;
+    const d = da(m); (D2A[d] || (D2A[d] = [])).push(m);
+    const k = phonKey(m); (PHON[k] || (PHON[k] = [])).push(m);
+    const g = '^^' + d + '$';                                       // trigrammes pondérés fréquence (lissés)
+    for (let i = 0; i < g.length - 2; i++) {
+      const t = g.slice(i, i + 3), c = t.slice(0, 2);
+      TRI[t] = (TRI[t] || 0) + 1; TRItot[c] = (TRItot[c] || 0) + 1;
+    }
+  }
+  const triLP = s => {                                              // log-vraisemblance orthographique d'une chaîne
+    const g = '^^' + da(s) + '$'; let lp = 0;
+    for (let i = 0; i < g.length - 2; i++) {
+      const t = g.slice(i, i + 3), c = t.slice(0, 2);
+      lp += Math.log(((TRI[t] || 0) + 0.5) / ((TRItot[c] || 0) + 0.5 * 26));
+    }
+    return lp / (g.length - 2);
+  };
+
+  function lexicale(token) {                                        // voie LEXICALE : cohorte phon∪edit, classée distance+freq
+    const low = token.toLowerCase(), d = da(low);
+    const C = new Set(PHON[phonKey(low)] || []);
+    for (const e of edits1(d)) for (const w of (D2A[e] || [])) C.add(w);
+    const cands = [...C].filter(w => w !== low);
+    if (!cands.length) return null;
+    const dk = d.split('').sort().join(''), ana = w => (da(w).split('').sort().join('') === dk ? 1 : 0);   // même multiset = transposition (candidat fort, n'affecte pas les omissions)
+    const ng = _ngOK ? O.evalIn(`__sx(${JSON.stringify(cands.map(da))})`) : null;   // plausibilité orthographique (tri/bi-gramme du MOTEUR) par candidat
+    const ngm = new Map(); cands.forEach((w, i) => ngm.set(w, ng ? ng[i] : 0));
+    const W_NG = (typeof process !== 'undefined' && process.env && process.env.ORACLE_NONG) ? 0 : 0.6;   // A/B : ORACLE_NONG=1 → freq seule (baseline)
+    const cue = w => Math.log(F[w] + 1) + W_NG * ngm.get(w);                          // CUE combiné : fréquence + n-gramme (les 2 stats), pas la freq seule
+    cands.sort((x, y) => (lev(d, da(x)) - lev(d, da(y))) || (ana(y) - ana(x)) || (cue(y) - cue(x)));   // distance → anagramme → (freq + bigramme/trigramme)
+    const best = cands[0], bd = lev(d, da(best));
+    const f2 = cands[1] ? F[cands[1]] : 0;
+    const close = (bd <= 2 || phonKey(low) === phonKey(best)) ? 1 : 0;   // proche orthographe OU même son (ortografe→orthographe = phon identique, dist 3)
+    const conf = close * (F[best] >= 1 ? 1 : 0) * (f2 === 0 || F[best] >= 3 * f2 ? 1 : 0.6);
+    return { sugg: best, dist: bd, conf, route: 'lexicale', alts: cands.slice(0, 5) };
+  }
+
+  function sublexicale(token) {                                     // voie SUBLEXICALE (OOV) : meilleure graphie par n-gram MOTEUR
+    const d = da(token.toLowerCase());
+    const cands = [...edits1(d)].filter(w => w.length >= 2);         // graphies voisines (vraies OU non) scorées orthographe
+    if (!cands.length) return null;
+    const scores = _ngOK ? O.evalIn(`__sx(${JSON.stringify(cands)})`) : cands.map(triLP);   // n-gram du moteur (réutilisé) ; repli trigramme local
+    let bi = 0; for (let i = 1; i < cands.length; i++) if (scores[i] > scores[bi]) bi = i;
+    return { sugg: cands[bi], conf: 0.3, route: _ngOK ? 'sublexicale(n-gram moteur)' : 'sublexicale(local)', score: scores[bi] };
+  }
+
+  function suggest(token) {                                         // ARBITRAGE par fiabilité (in-lex ⟶ lexicale ; OOV ⟶ sublexicale)
+    if (token.toLowerCase() in F) return null;                     // déjà un vrai mot → rien (la couche grammaire gère)
+    const L = lexicale(token);
+    if (L && L.conf >= 1) return L;                                 // voie lexicale confiante
+    const S = sublexicale(token);
+    if (L) return (L.conf >= 0.6) ? L : { ...L, route: 'lexicale(incertain)', sublex: S.sugg };   // lexicale faible : on garde mais on signale
+    return S;                                                      // aucun candidat lexical → voie sublexicale (régime OOV)
+  }
+
+  // AUTOCOMPLETE / GAP-FILL : prédit les positions non révélées d'un mot (gap-aware moteur). rev = tableau
+  // longueur L de chars MAJUSCULES déacc ou null. -> mot complété (MAJUSCULES).
+  function predictWord(L, rev) { return _gapOK ? O.evalIn(`__predGaps(${L},${JSON.stringify(rev)})`) : null; }
+  return { suggest, lexicale, sublexicale, predictWord, F, _evalEngine: O.evalIn };
+}
+
+module.exports = { makeOracle, phonKey, lev, edits1 };
+
+if (require.main === module) (async () => {
+  const o = await makeOracle();
+  if (process.argv.includes('--measure')) {
+    // jeu de typos variés sur des mots fréquents (cible IN-lexique → voie lexicale)
+    const words = Object.keys(o.F).filter(w => o.F[w] >= 5 && w.length >= 5 && /^[a-zàâäéèêëîïôöùûüç]+$/.test(w))
+                        .sort((a, b) => o.F[b] - o.F[a]).slice(0, 500);
+    const mk = t => { const a = da(t).split(''); const j = 2 + Math.floor((a.length - 3) / 2); const k = t.length % 4;
+      if (k === 0)[a[j], a[j - 1]] = [a[j - 1], a[j]]; else if (k === 1) a.splice(j, 1);
+      else if (k === 2) a.splice(j, 0, a[j]); else a[j] = ({ f: 'ph', t: 'th', k: 'qu', s: 'c', o: 'au' })[a[j]] || a[j] + a[j];
+      return a.join(''); };
+    let n = 0, top1 = 0, byRoute = {}, subN = 0, subOk = 0;
+    for (const t of words) { const ty = mk(t); if (ty in o.F) continue; n++;
+      const r = o.suggest(ty); const ok = r && da(r.sugg) === da(t); if (ok) top1++;
+      const rt = r ? r.route : 'rien'; byRoute[rt] = byRoute[rt] || [0, 0]; byRoute[rt][0]++; if (ok) byRoute[rt][1]++;
+      const s = o.sublexicale(ty); subN++; if (s && da(s.sugg) === da(t)) subOk++;   // voie SUBLEXICALE seule = régime OOV simulé (n-gram moteur, sans le lexique)
+    }
+    console.log(`=== ORACLE SAISIE — typos variés (cible in-lexique) n=${n} ===`);
+    console.log(`  top-1 GLOBAL (arbitrage 2 voies) : ${(100 * top1 / n).toFixed(0)} %`);
+    for (const rt in byRoute) console.log(`    voie ${rt.padEnd(26)} : ${byRoute[rt][1]}/${byRoute[rt][0]} (${(100 * byRoute[rt][1] / byRoute[rt][0]).toFixed(0)} %)`);
+    console.log(`  voie SUBLEXICALE seule (≈ régime OOV) : ${(100 * subOk / subN).toFixed(0)} %  [${(o.sublexicale('zzqxd') || {}).route || '?'}]`);
+    // démo OOV : mot retiré du lexique → la voie lexicale échoue, la sublexicale propose
+    console.log('  démo : qiu->', JSON.stringify(o.suggest('qiu')), ' | ortografe->', JSON.stringify(o.suggest('ortografe')).slice(0, 80));
+  } else if (process.argv.includes('--autocomplete')) {
+    const words = Object.keys(o.F).filter(w => o.F[w] >= 5 && da(w).length >= 6 && /^[a-z]+$/.test(da(w)))
+                        .sort((a, b) => o.F[b] - o.F[a]).slice(0, 400);
+    let n = 0, exact = 0, lhit = 0, ltot = 0;
+    for (const t of words) { const u = da(t).toUpperCase(), L = u.length;
+      const rev = new Array(L).fill(null); for (let p = 0; p < L; p += 3) rev[p] = u[p];   // 1 position /3 révélée → trous à distance 1-2 = gap-aware
+      const pred = o.predictWord(L, rev); if (!pred) continue; n++;
+      if (pred === u) exact++;
+      for (let p = 0; p < L; p++) if (!rev[p]) { ltot++; if (pred[p] === u[p]) lhit++; }
+    }
+    console.log(`=== AUTOCOMPLETE / GAP-FILL (gap-aware MOTEUR) n=${n} ===`);
+    console.log(`  1 position /3 révélée (trous distance 1-2) : mot exact ${(100 * exact / n).toFixed(0)} % · lettres-trou ${(100 * lhit / ltot).toFixed(0)} %`);
+  } else {
+    for (const t of (process.argv.slice(2).length ? process.argv.slice(2) : ['qiu', 'ortografe', 'fenetr', 'maintnant']))
+      console.log(t, '->', JSON.stringify(o.suggest(t)));
+  }
+})().catch(e => { console.error(e); process.exit(1); });

@@ -11,10 +11,14 @@ jobs:
         run: python3 dictee/diag_sentence.py
       - name: Correcteur dys (détection + correction, sans corrigé)
         run: python3 dictee/correcteur_probe.py
+      - name: Garde anti-régression rappel (levier j'est être/avoir + FP) — recall_probe --check
+        run: python3 dictee/recall_probe.py --check
       - name: Validation held-out (vocabulaire neuf)
         run: python3 dictee/eval_externe.py
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
+      - name: « did you mean » fréquence reste FALSIFIÉ (régression sur le cardinal FP=0)
+        run: python3 dictee/didyoumean_probe.py
       - name: Extraction des tables g2p depuis l'app (route sublexicale)
         run: python3 dictee/build_g2p_tables.py
       - name: Extraction de la morphologie Lexique 4 (md/mb) depuis l'app
@@ -39,3 +43,25 @@ jobs:
       - name: Vérif syntaxe du bloc « Décompose » (script séparé, app)
         run: |
           node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc décompose se compile (séparé du correcteur)');"
+      - name: Parité correcteur APP↔Python (homophones + accord sujet-verbe)
+        run: node dictee/parity_corr.js
+      - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
+        run: node dictee/test_speller_app.js
+      - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)
+        run: python3 dictee/close_conj_paradigm.py --check
+      - name: POS-tagger 155k extrait du lexique embarqué (build_pos)
+        run: python3 dictee/build_pos.py
+      - name: Extension — extraction des lexiques depuis l'app (assets)
+        run: python3 extension/build_assets.py
+      - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)
+        run: node extension/parity_core.js
+      - name: Extension — syntaxe dys-core / content / popup
+        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js
+      - name: Moteur correcteur standalone (sans UI/DOM)
+        run: node dictee/correcteur.js
+      - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)
+        run: |
+          node dictee/build_correcteur.js /tmp/correcteur.standalone.js
+          node -e "const C=require('/tmp/correcteur.standalone.js');C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');console.log('bake OK');});"
+      - name: Smoke anti-régression du MOTEUR (cognition cheat-free + NEO, seedé) — AUDIT_COMPLET CI1
+        run: node evo/ci_smoke.js

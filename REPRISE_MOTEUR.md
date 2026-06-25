@@ -4,6 +4,17 @@
 > sans repartir de zéro ni refaire des impasses déjà mesurées. Daté **2026-06-17**, branche
 > `claude/stoic-knuth-5mt7sr` (PR #6). Le chantier dictée et le dossier Lexique 4 sont **hors scope ici**
 > (voir `dictee/` et `dossier-lexique4/`).
+>
+> **MAJ 2026-06-20 — branche `claude/cool-curie-ctnvhi` (PR #9).** Audit d'une régression ressentie (« tâtonne /
+> marche moins bien ») sur la version 155k. Cause **trouvée et corrigée** (2 commits) :
+> 1. **`applyReferenceConfig()` était ADDITIF** → un toggle expérimental laissé ON (ex. `M_NEO_LETTER_NGRAM`) survivait
+>    au préréglage : mesuré **100 %→60 % in-lex**. Rendu **déterministe** (éteint tout hors-ON + `_trexq_restore`).
+> 2. **Preset rendu cheat-free STRICT** : `M_NEO_PHON_COHORT` (+jointe/os-arb/muette/trigger) allumé → assemblé/muette
+>    board-dérivés (avant : 🟠 lisaient `wp.get(currentWord)`) ; `M_DECLARE_DUAL` retiré (préempté par OS_ARB).
+>    Coût honnête : in-lex 100→**~97 %** (la cible cheat-free) ; OOV sans n-gram ~26 %, **avec n-gram 52-63 %** (§6).
+> Vérifs lexique : **aucun saut de colonne** (155k intègre, `len_index` complet, `.g`=CGram cohérent old↔new) ; cartes
+> bi/trigramme + M3_d **non périmés** (rebâtis/réinit au runtime). Détail à jour : `docs/CONFIG_TOGGLES.md`.
+> Reste ouvert (non bloquant) : OLD20 absent du panneau Décompose (lexique réduit), commentaire « w.g genre » trompeur.
 
 ---
 
@@ -18,7 +29,7 @@
    débranchable) · R67 (diagnostic en lecture seule).
 2. **Lire en entier** : `docs/MEMOIRE.html`, `docs/rapport-mode-emploi.html` (§4 OS `w(r)`, §6 croiser, §8.3 config,
    §12 état/limites, §17 declares NEO), `AUDIT_OMEGA.md` (audit cognitif), `AUDIT_STRUCTUREL.md` (audit code intégral),
-   `docs/CONFIG_REFERENCE.md`. « J'ai tout lu » doit être **vrai et vérifiable (cite les §)**.
+   `docs/CONFIG_TOGGLES.md`. « J'ai tout lu » doit être **vrai et vérifiable (cite les §)**.
 3. **Cadre cap §43** : la voie **montante** décide en **révélé seul** ; la voie **descendante** apprend
    **après** la partie (mot complet légitime). Lire `currentWord` au-delà du révélé **dans le montant** = triche.
 
@@ -147,7 +158,7 @@ lié à 3.2 (un substrat sain est un prérequis d'un M3_d utile). **Prérequis**
 
 ## 5. Outils, repères, conventions
 
-- **Config optimale cheat-free** : bouton **« ⚙️ Config optimale »** dans l'app (preset §8.3), ou `docs/CONFIG_REFERENCE.md`
+- **Config optimale cheat-free** : bouton **« ⚙️ Config optimale »** dans l'app (preset §8.3), ou `docs/CONFIG_TOGGLES.md`
   (23 ON). Au boot tout est OFF (~2,6 %). Régime mesuré : **97,5 % (K=1) / 98,8 % (K=3)** in-lexique ;
   **~97,3 %** « sans currentWord » (cohorte board + jointe) ; OOV phon→ortho ~70 %, ortho pur ~22 %.
 - **Harnais déterministe** : `node evo/ab_cohort.js <mode> 200 100 12345,777,2024,99`

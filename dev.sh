@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# dev.sh — vérifie en LOCAL que tout passe (miroir EXACT de .github/workflows/ci.yml).
+# « vert ici = vert en CI ». Aucune dépendance : Python 3.8+ (stdlib) et Node 18+, c'est tout.
+# Usage : ./dev.sh            (tout)
+#         ./dev.sh -q         (résumé seulement)
+set -u
+cd "$(dirname "$0")"
+export PYTHONUTF8="${PYTHONUTF8:-1}"  # Windows : stdout cp1252 → UnicodeEncodeError sur l'Unicode (→ ✓ ≈) ; no-op sous Linux/macOS (déjà UTF-8)
+Q="${1:-}"; PASS=0; FAIL=0; FAILED=()
+
+run() { # run "nom" cmd...
+  local name="$1"; shift
+  if out=$("$@" 2>&1); then PASS=$((PASS+1)); [ "$Q" = "-q" ] || printf "  ✓ %s\n" "$name"
+  else FAIL=$((FAIL+1)); FAILED+=("$name"); printf "  ✗ %s\n" "$name"; [ "$Q" = "-q" ] || printf "%s\n" "$out" | sed 's/^/      /' | tail -8; fi
+}
+runsh() { local name="$1"; shift  # pour une commande shell complète
+  if out=$(bash -c "$1" 2>&1); then PASS=$((PASS+1)); [ "$Q" = "-q" ] || printf "  ✓ %s\n" "$name"
+  else FAIL=$((FAIL+1)); FAILED+=("$name"); printf "  ✗ %s\n" "$name"; [ "$Q" = "-q" ] || printf "%s\n" "$out" | sed 's/^/      /' | tail -8; fi
+}
+
+echo "── Prérequis ──"
+command -v python3 >/dev/null && echo "  python3 $(python3 --version 2>&1 | awk '{print $2}')" || { echo "  ✗ python3 introuvable (installe Python 3.8+)"; exit 2; }
+command -v node    >/dev/null && echo "  node $(node --version)" || { echo "  ✗ node introuvable (installe Node 18+)"; exit 2; }
+
+echo "── Python : dictée + correcteur (sans Lexique4.tsv) ──"
+run "diag phrases"                 python3 dictee/diag_sentence.py
+run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
+run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
+run "held-out vocab neuf"          python3 dictee/eval_externe.py
+run "boucle descendante (genre)"   python3 dictee/descending_probe.py
+run "did-you-mean FALSIFIÉ"        python3 dictee/didyoumean_probe.py
+run "tables g2p (depuis l'app)"    python3 dictee/build_g2p_tables.py
+run "morpho md/mb (depuis l'app)"  python3 dictee/build_morpho.py
+run "correction g2p (train)"       python3 dictee/build_g2p_corrections.py
+run "décomposeur (held-out)"       python3 dictee/decompose.py --measure
+run "p2g build"                    python3 dictee/build_p2g.py
+run "p2g mesure (held-out)"        python3 dictee/p2g.py --measure
+run "régression décompo+p2g"       python3 dictee/test_decompose.py
+run "décompo 3 voies (corpus)"     python3 dictee/decompose_corpus.py --show
+run "clôture paradigme conj"       python3 dictee/close_conj_paradigm.py --check
+run "POS-tagger 155k (build_pos)"  python3 dictee/build_pos.py
+run "assets extension (build)"     python3 extension/build_assets.py
+
+echo "── Node : parité app/extension + syntaxe + standalone ──"
+runsh "syntaxe bloc dictée+correcteur (app)" "node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);\""
+runsh "syntaxe bloc Décompose (app)"          "node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);\""
+run "parité correcteur APP↔Python"  node dictee/parity_corr.js
+run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
+run "parité extension dys-core↔Py"  node extension/parity_core.js
+runsh "syntaxe extension (3 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js"
+run "correcteur standalone"         node dictee/correcteur.js
+runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
+run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
+
+echo "──────────────────────────────────────────"
+if [ "$FAIL" -eq 0 ]; then echo "✅ TOUT VERT — $PASS/$((PASS)) checks (= ce que voit la CI)."; else
+  echo "❌ $FAIL échec(s) sur $((PASS+FAIL)) : ${FAILED[*]}"; fi
+echo "ℹ️  build_* régénèrent des fichiers suivis (assets gz, tables) ; un 'git status' peut montrer des diffs de mtime — sans conséquence, 'git checkout -- <fichier>' pour nettoyer."
+exit $([ "$FAIL" -eq 0 ] && echo 0 || echo 1)

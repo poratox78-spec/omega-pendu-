@@ -4,9 +4,31 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
-## ÉTAT (2026-06-18) — où on en est
+## ÉTAT (2026-06-24) — où on en est
+
+Les **3 étapes** de la feuille de route sont faites ; l'oracle de saisie a été **fondu dans le correcteur**, et une
+**boucle d'apprentissage** ferme le cycle *diagnostic → pratique → re-mesure*.
+- ✅ **Étape 1 — Bescherelle** : table de conjugaison complète (`build_cgram.py` : ind. présent/imparfait, participes
+  exclus, `CONJ_STOP`) injectée dans l'app + l'extension. FP batterie **2,17 %** (≤ baseline).
+- ✅ **Étape 2 — fautes de frappe** : speller multi-édit (`ortografe→orthographe`), garde longueur + même initiale, FP=0.
+- ✅ **Étape 3 — pendu-oracle** : oracle de saisie **double voie** bâti sur le moteur (`evo/saisie_oracle.js` :
+  lexicale cohorte+Damerau+n-gram, sublexicale `_neoNG`, autocomplete gap-aware `_neoLetterNgramDist` — gardé en
+  **labo/mesure**), puis **fondu dans le correcteur** comme **COMPLÉTION temps-réel** (app « 🩹 Correcteur » +
+  extension), car le correcteur EST déjà l'aide-frappe (correction + accents en direct). Accents restaurés via le
+  speller embarqué (OMEGA_LEX4 est déaccentué).
+- ✅ **Boucle d'apprentissage** (app) : **profil dys unifié** (`DysProfile` : dictée = taux supervisé par famille +
+  correcteur = tally erreurs de rédaction) → **sélection de mots adaptative** dans la dictée (tirage pondéré, **seuil
+  de variété** 45 % libre, anti-répétition) → **courbe de progrès** (taux par famille + sparkline). Le **pendu reste
+  hors boucle** (deviner des lettres ≠ écrire ; il joue sans accents → erreur de catégorie).
+- ✅ **Garanties** : `dev.sh` **26/26**, **parité 3 moteurs** (Python `correcteur_probe.py` ↔ app ↔ extension
+  `dys-core.js`), **FP=0** cardinal, R66 OFF-inerte, contraste UI (lisibilité dys).
+- ⏳ **Limite assumée** : l'efficacité *pédagogique* de la boucle (pratique ciblée vs aléatoire fait-elle baisser
+  l'erreur plus vite ?) n'est **pas encore mesurée** — prochaine falsification (§1). Profil **app-only** (sandbox de
+  stockage ≠ extension). Détail chronologique : `dictee/JOURNAL.md` (suites 1 → 10).
+
+## ÉTAT (2026-06-18) — jalon précédent
 - ✅ **Dictée de phrases** (`diag_sentence.py`) : familles **100 %** ; intégrée app (« ✍️ Dictée diag »).
-- ✅ **Levier grammaire** : sujet-verbe (94 %), sujet à distance, participe (être / avoir+COD antéposé), **genre du GN** (déterminant + **route lexicale** `lexical_gender`), homographes nom/verbe, **stades développementaux**.
+- ✅ **Levier grammaire** : sujet-verbe (gouverneur identifié sur **94 %** des accords verbaux du *diagnostic* `diag_sentence.py` ; le *correcteur*, lui = **11/11 held-out vocab neuf, FP=0** — deux mesures distinctes, pas un écart), sujet à distance, participe (être / avoir+COD antéposé), **genre du GN** (déterminant + **route lexicale** `lexical_gender`), homographes nom/verbe, **stades développementaux**.
 - ✅ **Correcteur dys** (`correcteur_probe.py` + app « 🩹 Correcteur ») : détecte+corrige **sans corrigé**, **0 FP** ; 22/24 in-corpus, **12/15 held-out** (vocabulaire neuf). UI clic-pour-corriger + stade.
 - ✅ **Lexique4 reçu** → `build_cgram.py` : verbes (12 415) + genre (53 050) + **sous-ensemble HF embarqué** dans l'app.
 - ✅ **Grammaire double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) : route lexicale (cgram) + boucle **descendante** (apprend le lexique de genre, 100 % préc., FP=0, *data-bound*).

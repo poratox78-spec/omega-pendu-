@@ -55,8 +55,8 @@ La licence MIT s'applique pleinement à la LOGIQUE du code prise séparément
 ----------------------------------------
 Les fichiers de `dictee/` dérivés de Lexique 4 — `sentences.json`,
 `phono_homophones.json`, `cgram_verbs.json`, `cgram_gender.json`,
-`cgram_hf.json` (aussi embarqué dans `app/omega-pendu.html`, bloc
-`<script id="vdc-lex">`), `corpus_externe.json`, `legacy/test_set.tsv`,
-`legacy/word_pool.json` — sont des ŒUVRES DÉRIVÉES des données Lexique.
+`cgram_adj.json`, `cgram_conj.json`, `cgram_hf.json` (aussi embarqué dans
+`app/omega-pendu.html`, bloc `<script id="vdc-lex">`), `corpus_externe.json`,
+`legacy/test_set.tsv`, `legacy/word_pool.json` — sont des ŒUVRES DÉRIVÉES des données Lexique.
 À ce titre ils sont également diffusés sous CC BY-SA 4.0, avec l'attribution
 ci-dessus (citer Lexique 4, New et al. 2026).

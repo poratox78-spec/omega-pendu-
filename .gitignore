@@ -1,2 +1,10 @@
 __pycache__/
 dictee/learned_lex.json
+cgram_pos.json
+
+# Lexique 4 — source maître (hors-repo par doctrine : 34 Mo ; fourni en .xz local / Drive de Rem)
+Lexique4.tsv
+Lexique4.tsv.xz
+
+# bundle de test (build output, régénérable via dist/make_test_bundle.sh)
+dist/omega-correcteur-dys-test.zip

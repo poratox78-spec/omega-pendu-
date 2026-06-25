@@ -1,7 +1,10 @@
 # Audit structurel — moteur OMEGA-Ω (pendu) — 2026-06-15
 
-Audit **du moteur cognitif** (`app/omega-pendu.html`), distinct de l'audit monorepo (`AUDIT_PROJET.md`).
+Audit **du moteur cognitif** (`app/omega-pendu.html`), distinct de l'audit monorepo (`CLAUDE.md`).
 Méthode : lecture **du code** (pas seulement des docs `docs/MEMOIRE.html` / `docs/rapport-mode-emploi.html`) ; chaque point « vérifié » renvoie à une ligne. Doctrine de référence : **cap §43 (cognition > oracle)** + **R66 (mesurer/falsifier avant de garder ; OFF-inerte)**.
+
+> **Docs moteur liés** (consolidés 2026-06-19) : sécu/UI/hygiène code → `AUDIT_STRUCTUREL.md` · config & matrice triche par toggle → `docs/CONFIG_TOGGLES.md` · design cognition/mémoire + verdict du C → `docs/COGNITION_DESIGN.md` · historique notes (NEO, muette, M3_d falsifié, cheat) → `notes/MOTEUR_HISTORIQUE.md` · repères SOTA → `docs/HANGMAN_SOTA.md`.
+> ⚠️ Les **numéros de ligne** cités ci-dessous ont dérivé (+30 à +120 lignes depuis la compression du lexique) — fiables comme *ancrage relatif*, à re-localiser par `Grep` avant édition (cf. `AUDIT_STRUCTUREL §4`).
 
 ---
 
@@ -98,7 +101,7 @@ L'argmax du §1.1 était **fainéant** : il jette la distribution de phonème ET
 
 **Morpho jonction #1 (distance-de-fin) — FALSIFIÉ (R66, §6.4 barrière de mérite).** Tenté : ajouter `e` = distance-de-fin au contexte de la jointe (`_neoCRS`, clés `φ|eE|G|D`, `φ|eE|D` prepended). Mesuré K=1, 4 graines (warmup 200 / test 100) : jointe **+morpho 96,0 %** vs jointe **bigramme 97,0 %** (−1,0 pt, perd dans 3/4 graines). Cause : `e` **fragmente `_neoCRS`** (cellules trop creuses à warmup 200 → estimations bruitées) et reste un **proxy grossier** (ne capte pas le *contenu* du suffixe). **Reverté** (pas de cimetière). Piste morpho suivante (jonction séparée) : contexte = **suffixe révélé / segment AQUA `SEG`** (le contenu, pas la distance).
 
-**Morpho jonction #2 (backoff DENSE depuis le lexique) — NET-NEUTRE / bruit (R66, §6.4) — 2026-06-16.** Leçon de #1 : la cause de l'échec = **données creuses** de `_neoCRS` à warmup 200 (pas le type de contexte) ; et le `g2p` de `_DECL2` sort en **IPA** ≠ **SAMPA** de la voie assemblée NEO (ne se clavent pas sans couche de conversion). Tenté (toggle `M_NEO_MORPHO`, OFF-inerte) : quand la cellule jointe apprise est creuse, **backoff vers une table `phonème|G|D` DENSE construite une fois depuis tout le lexique** (via `align`/SAMPA, mêmes clés/backoffs que `_neoCRS`) au lieu du `L2` plat marginal — cheat-free (savoir phonotactique général, comme `L2` ; jamais `currentWord`). Mesuré K=1, 4 graines (warmup 200 / test 100, config `CONFIG_REFERENCE.md` épinglée) : jointe **bigramme 95,0 %** [97,97,97,89] vs **+morpho dense 95,3 %** [97,95,99,90] → Δ moyen **+0,3** mais **[+0,0, −2,0, +2,0, +1,0]** (perd à la graine 777) = **dans le bruit** (SE ≈ ±2 à N=100). Diagnostic : le résidu de la voie cohorte n'est **pas** dans le backoff (la jointe décide surtout là où elle a du signal ; les vraies pertes — ex. graine 99 à **89‑90 %** alors que le son‑lu fait 98 — viennent de l'**ambiguïté cohorte** sur des mots durs, pas du choix `L2`‑vs‑dense). **Reverté** (app + mode de mesure ; barrière de mérite non franchie, pas de cimetière). **Conclusion morpho :** le levier du résidu cheat-free est la **puissance/qualité de la cohorte** (et les graines dures), pas un raffinement du backoff phonème→lettre. La piste SEG‑contenu reste non testée (exigerait une couche IPA↔SAMPA), mais ce négatif suggère un ROI faible tant que le résidu vit dans la cohorte, pas dans la table phon→graphe.
+**Morpho jonction #2 (backoff DENSE depuis le lexique) — NET-NEUTRE / bruit (R66, §6.4) — 2026-06-16.** Leçon de #1 : la cause de l'échec = **données creuses** de `_neoCRS` à warmup 200 (pas le type de contexte) ; et le `g2p` de `_DECL2` sort en **IPA** ≠ **SAMPA** de la voie assemblée NEO (ne se clavent pas sans couche de conversion). Tenté (toggle `M_NEO_MORPHO`, OFF-inerte) : quand la cellule jointe apprise est creuse, **backoff vers une table `phonème|G|D` DENSE construite une fois depuis tout le lexique** (via `align`/SAMPA, mêmes clés/backoffs que `_neoCRS`) au lieu du `L2` plat marginal — cheat-free (savoir phonotactique général, comme `L2` ; jamais `currentWord`). Mesuré K=1, 4 graines (warmup 200 / test 100, config `CONFIG_TOGGLES.md` épinglée) : jointe **bigramme 95,0 %** [97,97,97,89] vs **+morpho dense 95,3 %** [97,95,99,90] → Δ moyen **+0,3** mais **[+0,0, −2,0, +2,0, +1,0]** (perd à la graine 777) = **dans le bruit** (SE ≈ ±2 à N=100). Diagnostic : le résidu de la voie cohorte n'est **pas** dans le backoff (la jointe décide surtout là où elle a du signal ; les vraies pertes — ex. graine 99 à **89‑90 %** alors que le son‑lu fait 98 — viennent de l'**ambiguïté cohorte** sur des mots durs, pas du choix `L2`‑vs‑dense). **Reverté** (app + mode de mesure ; barrière de mérite non franchie, pas de cimetière). **Conclusion morpho :** le levier du résidu cheat-free est la **puissance/qualité de la cohorte** (et les graines dures), pas un raffinement du backoff phonème→lettre. La piste SEG‑contenu reste non testée (exigerait une couche IPA↔SAMPA), mais ce négatif suggère un ROI faible tant que le résidu vit dans la cohorte, pas dans la table phon→graphe.
 
 ### 1.3 Reproduction indépendante (R66, §1.2 falsifiabilité / §6.3 preuve) — 2026-06-16
 
@@ -209,9 +212,9 @@ Diagnostic `evo/diag_mirror.js` (R67, cognition, warmup 200 / test 80) — le co
 **Verdict : H2.** Concept et position sont **globaux/longueur**, pas spécifiques au mot. **Recâbler M1_m←M3_m/M2_m ne propagerait rien** — la racine est le **mur de capacité des 12 cellules** (S2/§3), pas la connexion de M1_m.
 
 **Déjà documenté + solution essayée/falsifiée (réponse « appliquée ou non ») :**
-- `notes/M3D-reconnexion-FALSIFIE.md` (03/06) mesurait déjà le collapse (cross-mot cosine **0,9479**, 1 cellule 35/39, 9/12 mortes ; `M3_d.output=0` sous bPC). Mes chiffres le **reproduisent**.
+- `notes/MOTEUR_HISTORIQUE.md §E` (03/06) mesurait déjà le collapse (cross-mot cosine **0,9479**, 1 cellule 35/39, 9/12 mortes ; `M3_d.output=0` sous bPC). Mes chiffres le **reproduisent**.
 - Solution tentée = **câbler concept→M4** (le mot rappelé injecté comme concept dans le scoring) → **FALSIFIÉE −1,33**, *« contamine le scoring-lettre… le chemin concept→M4 est le mauvais endroit. Ne pas reproposer. »* **Revertée, non appliquée.**
-- Principe Rem documenté (`notes/NEO-muette-croisement.md`) = celui de cette session : *« si ça ne rend pas au système, on a mal câblé, pas l'approche »* ; la fix-câblage qui a marché là = le **trigger** (gate sur l'incertitude cognition) → rend la brique **neutre**, pas un levier.
+- Principe Rem documenté (`notes/MOTEUR_HISTORIQUE.md §C-D`) = celui de cette session : *« si ça ne rend pas au système, on a mal câblé, pas l'approche »* ; la fix-câblage qui a marché là = le **trigger** (gate sur l'incertitude cognition) → rend la brique **neutre**, pas un levier.
 - **Non essayé** : prédiction-masquée des 12 cellules (audit §3) — mais **même mur de capacité** (AUC familiarité 0,64 à K=12). Le flux qui marche est documenté : **phon→ortho** (assemblé +5,28) et **declare** (recall +1,76), pas concept→lettre.
 
 → **Bilan jonction M1_m.** Mécanisme prouvé + amont diagnostiqué + littérature interne croisée : M1_m ne peut pas gagner ses 0,1 (prior fréquence redondant) **et** la « réparation par connexion » est un **cul-de-sac documenté** (concept global + concept→scoring falsifié). Le toggle R66 reste l'acquis net (débranchable + mesuré).
@@ -261,14 +264,14 @@ Investigation lancée sur l'intuition Rem « M1_m/M3_m mal connectés, problème
 3. **Miroir phon `M4_phon_m`** : porte un vrai signal **spécifique au mot** (+0,028, ≠ ortho) **mais winrate-inert** dans le routage actuel (§1.4.3 + (a) §1.4.3).
 4. **Bonus** : la correction du bug d'init a montré que l'**adoption de la jointe** reposait sur un harnais voie-phon-inerte → **à rouvrir** (§1.4.4).
 
-**Motif unique (cohérent avec la doctrine et les notes) :** *aucune des voies descendantes ne convertit en winrate, quelle que soit la direction.* Le signal qui gagne est **ascendant** — assemblé phon→ortho (+5,28) et recall (+1,76), via le **declare**, pas via la correction descendante (cf. `M3D-reconnexion-FALSIFIE` : « le chemin concept→M4 est le mauvais endroit »). La thèse « sens des flux » de Rem est **validée et bornée** : la bonne direction *porte* bien plus de signal côté phon, mais c'est l'**ascendant** (décode), pas le **descendant** (miroir), qui fait gagner. Conséquence : les dormants `M2/M1_phon_m` = **hygiène S3** (pas de levier attendu) ; chantier winrate = côté **ascendant/declare** (déjà la force d'OMEGA).
+**Motif unique (cohérent avec la doctrine et les notes) :** *aucune des voies descendantes ne convertit en winrate, quelle que soit la direction.* Le signal qui gagne est **ascendant** — assemblé phon→ortho (+5,28) et recall (+1,76), via le **declare**, pas via la correction descendante (cf. `MOTEUR_HISTORIQUE §E` : « le chemin concept→M4 est le mauvais endroit »). La thèse « sens des flux » de Rem est **validée et bornée** : la bonne direction *porte* bien plus de signal côté phon, mais c'est l'**ascendant** (décode), pas le **descendant** (miroir), qui fait gagner. Conséquence : les dormants `M2/M1_phon_m` = **hygiène S3** (pas de levier attendu) ; chantier winrate = côté **ascendant/declare** (déjà la force d'OMEGA).
 
 ---
 ### 1.4·b (fil declare, ex-PR #6) Le declare cheat-free ne croise pas les deux routes — et croiser AU concept (M3_d) dégrade (R66) — 2026-06-16
 
 **Vérifié (code).** Le declare NEO (7210-7248) combine ses voies en **cascade « soit l'un soit l'autre »** : recall → SINON assemblé (phon→ortho) → SINON muette (ortho-contexte). **Pas de jointe entre voies**, et **une seule direction** (phon→ortho ; aucune voie ortho→phon). Il **n'utilise ni le hub concept `M_S`** (fusion amodale M3_ortho+M3_phon, 1771/5062) **ni les branches descendantes** (`M3_phon_m_step` renforce les `conceptCells` partagées, 3854) — il court-circuite le croisement par le concept, *la* mécanique OMEGA. (La cognition **par-lettre**, elle, croise bien via `M_S`/OS `w(r)` — c'est le ~98 % de base.)
 
-**Testé (R66).** Réveil du croisement dormant `M_BPC_CROSSMODAL` (M3_d perçoit `M1_d ⊕ M1_phon`, hub-and-spoke Rogers 2004, bPC descendant ; poids `bpcW_phon` alloués mais OFF, 2827). Mesuré K=1, 4 graines (config `CONFIG_REFERENCE` épinglée, régime son-lu) :
+**Testé (R66).** Réveil du croisement dormant `M_BPC_CROSSMODAL` (M3_d perçoit `M1_d ⊕ M1_phon`, hub-and-spoke Rogers 2004, bPC descendant ; poids `bpcW_phon` alloués mais OFF, 2827). Mesuré K=1, 4 graines (config `CONFIG_TOGGLES` épinglée, régime son-lu) :
 
 | | 12345 | 777 | 2024 | 99 | moy. |
 |---|---|---|---|---|---|
@@ -282,7 +285,7 @@ Investigation lancée sur l'intuition Rem « M1_m/M3_m mal connectés, problème
 
 ### 1.5 Pousser le declare cheat-free SANS currentWord — exploration complète (R66) — 2026-06-16
 
-Question : combler le trou du declare **sans aucune lecture de `currentWord`** (cohorte-jointe seule = **94,8 %** vs son-lu/«mot entendu» 98,0 %, K=1 4 graines). Comparaison **DUAL (`_DECL2`, niveau mot, freq×ortho×phon) vs NEO** (per-lettre, sans fréquence) : NEO **n'exploite ni la fréquence ni un posterior-mot** — c'est ce qui manquait. Tous les variants mesurés (in-lexique K=1, warmup 200/test 100, config `CONFIG_REFERENCE` épinglée) :
+Question : combler le trou du declare **sans aucune lecture de `currentWord`** (cohorte-jointe seule = **94,8 %** vs son-lu/«mot entendu» 98,0 %, K=1 4 graines). Comparaison **DUAL (`_DECL2`, niveau mot, freq×ortho×phon) vs NEO** (per-lettre, sans fréquence) : NEO **n'exploite ni la fréquence ni un posterior-mot** — c'est ce qui manquait. Tous les variants mesurés (in-lexique K=1, warmup 200/test 100, config `CONFIG_TOGGLES` épinglée) :
 
 | Variant ajouté à la cohorte-jointe (sans CW) | Δ moy. | par graine | doctrine | verdict |
 |---|---|---|---|---|
@@ -295,7 +298,7 @@ Question : combler le trou du declare **sans aucune lecture de `currentWord`** (
 
 **Conclusion (honnête).** Le seul gain robuste vient de **DUAL** : un **modèle de mot** (prior fréquence × plausibilités intrinsèques ortho/phon du mot, par produit). Décomposé : ~moitié fréquence (propre mais bruitée), ~moitié ortho/phon (qui *stabilise*). **Aucun variant doctrinalement pur n'égale le +2,5** — la jointe, excellente *par lettre* (adoptée §1.2), est mauvaise *multipliée sur le mot*. Le « produit » de DUAL est le *pattern* que §3.1 déconseille, mais (a) au niveau **mot-declare** (≠ croisement per-lettre visé par §3.1/§3.2), (b) c'est de la **reconnaissance in-lexique** (la cohorte contient le vrai mot → s'effondre en OOV, non mesuré ici). 
 
-**Statut : DUAL ADOPTÉ (arbitrage humain, 16/06/2026, §0/§4.4)** — option (c). `M_DECLARE_DUAL` passe **ON dans la config de référence cheat-free** (`docs/CONFIG_REFERENCE.md`, MAJ 16/06) : +1,8 → 99,8 % mot-entendu / +2,5 → 97,3 % sans-currentWord, stable, cheat-free, declare niveau-mot (pas d'entorse §3.1, qui vise le per-lettre). Défaut moteur **OFF** (baseline byte-identique ; activé dans le preset). *(Alternatives écartées : (b) fréquence-seule +1,3 bruité ; (d) base 94,8.)* Repro : `node evo/ab_cohort.js dual|dualncw 200 100 12345,777,2024,99`.
+**Statut : DUAL ADOPTÉ (arbitrage humain, 16/06/2026, §0/§4.4)** — option (c). `M_DECLARE_DUAL` passe **ON dans la config de référence cheat-free** (`docs/CONFIG_TOGGLES.md`, MAJ 16/06) : +1,8 → 99,8 % mot-entendu / +2,5 → 97,3 % sans-currentWord, stable, cheat-free, declare niveau-mot (pas d'entorse §3.1, qui vise le per-lettre). Défaut moteur **OFF** (baseline byte-identique ; activé dans le preset). *(Alternatives écartées : (b) fréquence-seule +1,3 bruité ; (d) base 94,8.)* Repro : `node evo/ab_cohort.js dual|dualncw 200 100 12345,777,2024,99`.
 **Reste honnête (non clos) :** l'effet **OOV (Trexquant)** de DUAL n'est **pas mesuré** — DUAL étant de la reconnaissance in-lexique, on attend ~0 en OOV ; à vérifier avant tout chiffre hors-lexique.
 
 ### 1.6 Lecture à la lumière de la littérature — et chantier futur : l'arbitrage des deux voies (R66) — 2026-06-16
@@ -365,6 +368,419 @@ Garde-fou ci-dessus levé : `M_NEO_OS_ARB_ALPHA`/`M_NEO_OS_ARB_BETA` ajoutés (O
 
 **Sanity** : le neutre (1,1) reproduit **96,8 %** pile (= §1.6 ci-dessus) → plomberie (α,β) validée. **Verdict (barrière §6.4) : aucun (α,β) ne bat DUAL, et biaiser vers la voie lexicale (β<1) *dégrade*** (96,5/96,0 < 96,8). L'hypothèse « pencher lexical → rejoindre DUAL » est **falsifiée** : le mélange convexe **par lettre** (`Σ` pondéré de la distribution-lettre cohorte) ne réplique pas la reconnaissance **MAP par mot** de DUAL — ce sont deux mécanismes de niveaux différents. **Le levier (α,β) propre est clos : la cascade + DUAL reste l'optimum mesuré.** Les params restent OFF-inerte (alternative DRC documentée, ~2× plus rapide, mais non meilleure). Plus rien à mesurer côté arbitrage des declares.
 
+### 1.6.1 — ⛔ RÉTRACTÉ : les chiffres "OOV/Trexquant" étaient FAUX (fuite cohorte `_neoWBL`) — 2026-06-18
+
+> **CE QUI SUIT (table + verdict) EST FALSIFIÉ. Conservé barré pour mémoire honnête (§6).** La cause : un **bug de
+> fuite** trouvé en auditant (challenge de Rem « 97 % OOV impossible, le système triche » — il avait raison).
+
+**Bug (`omega-pendu.html` _neoWBL).** La cohorte NEO (`_neoCohortMasks`, `_neoPhonCohort`, `_neoPhonCohortDist`,
+donc l'assemblé/jointe/**OS-arb**/muette) lit un cache `_neoWBL` **bâti une fois depuis `OMEGA_LEX4.words[]`** et
+**jamais invalidé**. Or Trexquant (`_trexq_removeWord`) et le harnais (`ab_cohort` `filtered`) ne retirent le mot
+que du **`len_index`**. Donc le mot "retiré" **restait dans la cohorte** → le declare voyait la réponse. Le
+"hors-lexique" était en réalité **in-lexique déguisé**.
+
+**Preuve (mesurée, même protocole, cohorte reconstruite SANS les mots-test) :**
+| régime | cohorte "telle quelle" (fuite) | VRAI OOV (cohorte sans mot-test) |
+|---|---|---|
+| config cohorte-jointe + OS-arb | **98,3 % / 95,0 %** (≈ le "97 %") | **33,3 % / 33,3 %** |
+→ **fuite ≈ 62-65 pts.** Le **vrai OOV est ~33 %** (sous les repères SOTA 50-68 %) : la généralisation **sublexicale
+pure** d'OMEGA est **faible**, pas exceptionnelle. ~~« OS-arb 96,7 % OOV, optimum hors-lexique, +24 pts »~~ = **artefact de la fuite**.
+
+**Corrigé (2026-06-18).** `_neoEnsureWBL()` bâtit l'index cohorte depuis **`len_index`** (respecte les retraits) +
+invalidation du cache (changement de référence ; `_trexq_*` annulent `_neoWBL`). **In-lexique inchangé** (len_index
+plein = mêmes mots) ; Trexquant aveugle enfin vraiment la cohorte.
+
+**Conséquence sur l'audit.** TOUT chiffre "OOV/Trexquant cheat-free" antérieur à ce fix est **suspect** : §1.1
+(« cohort-board OOV ~78-85 %, coût ~7,5 pts »), §1.5 (« cohorte-jointe seule 94,8 % » — *in-lexique*, OK), et la MAJ
+Trexquant de `CONFIG_TOGGLES`. À **re-mesurer** avec le fix avant tout chiffre OOV. Le in-lexique (§1.6, DUAL/OS-arb
+~96-99 %) n'est **pas** touché (cohorte pleine = comportement voulu en jeu normal).
+
+<details><summary>Table falsifiée (archive)</summary>
+
+| OOV (Trexquant) — ❌ FAUX | winrate | err | coups |
+|---|---|---|---|
+| cohorte-jointe | 72,5 % | 3,16 | 9,21 |
+| + DUAL | 75,0 % | 3,30 | 9,28 |
+| + OS-arb | 96,7 % | 2,00 | 8,12 |
+</details>
+
+### 1.7 — Pourquoi le VRAI OOV est bas — et le FIX (n-gram de lettres, +16 pts) — 2026-06-18
+
+Question de Rem : « avec bigrammes/trigrammes + cognition, l'hybride DEVRAIT faire mieux. Trouve pourquoi. »
+Et : « lexique ≠ mot » (le lexique porte des stats sous-lexicales, pas que des mots entiers). Mesuré (moteur corrigé
+`_neoWBL`, VRAI OOV). ⚠️ Les chiffres test=60×2 (N=120) se sont révélés **bruités** ; les chiffres **robustes = N=400
+(4 graines × test 100)**.
+
+| condition (VRAI OOV) | winrate | coups | N |
+|---|---|---|---|
+| **baseline n-gram TRIVIAL** (positionnel uni/bi/tri, **pré-calculé du lexique**, mots-test exclus) | **57,5 %** | — | 120 |
+| OMEGA hybride (voie phon + cognition + NEO) — **robuste** | **50,0 %** [57,55,46,42] | 9,4 | **400** |
+| OMEGA **hybride + n-gram de lettres ON (le FIX)** — **robuste** | **66,0 %** [73,63,65,63] | **9,2** | **400** |
+| OMEGA cognition SEULE (declares OFF) | **~8 %** | 10,2 | 120 |
+
+**Diagnostic (mécanisme, §1) — le signal EST dans le lexique (n-gram 57,5–66 %), OMEGA le sous-exploite :**
+1. **Stats sous-lexicales apprises DU JEU, pas du lexique.** `_neoCR`/`_neoCRS`/g2p sont remis à `{}` à l'init et
+   remplis **post-partie** (≈200 mots au warmup) — vs un n-gram qui pré-calcule sur ~250k mots.
+2. **Médiation par PHONÈMES** (son→phonème→graphème) = un saut lossy ; le n-gram reste en espace LETTRES (ce qu'EST
+   l'orthographe du lexique).
+3. **La cognition ne généralise pas en sous-lexical** (~8 % seule) — concept/position = détecteurs globaux/longueur
+   (§1.4.2). Les ~50 % de l'hybride viennent de la **cohorte-jointe (agrégation de voisins du lexique)**, PAS de la cognition.
+**⚠️ DEUX hypothèses RETRACTÉES (honnêteté §6 — petit-N over-read).**
+- (a) « **recall** (mémorisation k-NN) tue la généralisation » : **FAUX**. recall OFF ≈ recall ON (30,8/21,7 vs 32,5/23,3).
+- (b) « **plus de données = pire** » (warmup 200→1500) : **NON CONFIRMÉ = bruit**. À w1500, **full = jointe OFF =
+  θ OFF = 23,3 % IDENTIQUE à la décimale** → aucun composant (jointe/θ/recall) n'est attribuable ; et le baseline w200
+  vaut **50 %** à N=400 (pas 32,5 %) avec une variance graine énorme [42-57]. Le « 32→23 » comparait des **jeux-test
+  différents** à petit-N. Donc : **pas de dégradation réelle démontrée.** Le vrai problème n'est PAS une dégradation —
+  c'est que **la cognition ne généralise pas du tout (8 %) ; seule l'agrégation gagne.**
+
+**FIX livré (`M_NEO_LETTER_NGRAM`, OFF-inerte, R66).** `_neoEnsureNG()`/`_neoLetterNgram()` : n-gram positionnel de
+lettres (backoff tri→bi→uni) **pré-calculé depuis `len_index`** (respecte Trexquant ; cheat-free : board révélé +
+stats agrégées du lexique, jamais `currentWord` ; 1 mot/250k = non récupérable). Branché dans la cascade declare.
+**Mesuré N=400 : 50,0 → 66,0 % OOV (+16 pts, GAGNE à chaque graine), moins de coups (9,4→9,2)**, au-dessus du baseline
+trivial (57,5 %) et dans/au-dessus de la bande SOTA (cf. `docs/HANGMAN_SOTA.md`). **Le levier = AGRÉGATION (n-gram du
+lexique), pas mémorisation ni apprentissage-par-jeu.**
+
+---
+
+### 1.8 — LE VRAI PROBLÈME (Rem) : « le pendu n'est qu'une mesure ; OMEGA ne gagne ni par mémorisation ni par apprentissage-par-jeu » — 2026-06-18
+
+Recadrage de Rem : le n-gram **corrige la MESURE** (pendu OOV 50→66 %) mais **par AGRÉGATION** (statistiques pré-calculées
+du lexique) — c'est un **substrat/oracle**, PAS la cognition d'OMEGA. Le résultat de fond, sur la seule mesure chiffrée :
+**rien dans la cognition ni dans l'apprentissage-par-jeu d'OMEGA ne généralise** ; seules gagnent la **recherche
+lexicale** (cohorte/oracle) et l'**agrégation** (n-gram). La thèse « cognition > oracle » est donc **fausse aujourd'hui**.
+
+**CAUSE (le pourquoi, mécanisme — mesuré + lecture du code).** Généraliser ici = **agréger** la structure contexte→lettre
+du lexique. OMEGA apprend par **récompense-par-partie (RL) + mémoire (recall)** sur ~200 parties, via un goulot de 12
+cellules, sans chemin concept→lettre. Trois causes emboîtées :
+1. **Paradigme.** Compter une fois le lexique (n-gram) = 57,5 % ; apprendre en jouant (cognition seule) = 8 %.
+   L'apprentissage-par-jeu n'accumule pas la distribution ; il part de 0 et voit ~200 mots (`_neoCR/_neoCRS/g2p`
+   remplis post-partie), au lieu des ~250k du lexique. **Mauvais paradigme pour la généralisation.**
+2. **Capacité.** 12 cellules-concept ne peuvent pas porter les milliers de régularités contexte→lettre (§1.4.2 / S2 :
+   concept & position = détecteurs globaux/longueur, variance par-mot ≈ 0).
+3. **Câblage.** Le concept **n'atteint jamais** la décision-lettre (§1.4 : prises parallèles sur la récompense ; M1_m =
+   prior de fréquence corr 0,999). Même appris, le concept ne peut pas influencer le choix de lettre.
+
+**SOLUTION (proposée).** *Geste clé : désintriquer 3 choses confondues.*
+- **ORACLE** = lire la réponse (cohorte AVEC le mot, `wp.get`) → triche, à bannir.
+- **AGRÉGATION** = stats GÉNÉRALES du lexique (n-gram contexte→lettre) → **PAS une triche** (savoir général, comme
+  l'orthographe intériorisée d'un lecteur). → doit être le **SUBSTRAT**.
+- **COGNITION** = la valeur AJOUTÉE par-dessus le substrat (les mots atypiques que la statistique rate).
+
+→ La thèse devient **« la cognition ajoute-t-elle un Δ par-dessus le bon substrat statistique ? »** (falsifiable).
+Étapes, ordre logique :
+1. **Adopter l'agrégation comme substrat, bien faite** (« *lire* le lexique, pas *jouer* ») : bâtir les représentations
+   contexte→lettre (et phonème→lettre) par **un passage sur tout le lexique**, pas par récompense. Reste de
+   l'apprentissage (modèles prédictifs internes), bon paradigme. Le n-gram livré en est l'instance minimale ; étendre :
+   **semer `_neoCRS`/g2p** par cette agrégation one-pass (lettres + phonèmes) puis raffiner par jeu si Δ>0.
+2. **Mesurer le Δ de la cognition PAR-DESSUS le substrat n-gram** (~66 %). Δ≈0 → verdict honnête (la cognition n'aide
+   pas sur cette mesure) ; Δ>0 → la valeur cognitive est là (mots durs). C'est le **vrai test de la thèse du projet**.
+3. **Si la cognition doit ajouter** → attaquer **capacité + câblage** (§3) : substrat > 12 cellules encodant le contexte
+   sous-lexical, et **câbler concept→lettre**. On saurait *si ça vaut le coup* grâce au Δ de l'étape 2.
+
+**Cohérence projet :** le **correcteur dys** gagne déjà par **agrégation** (cgram, table de conjugaison = comptage du
+lexique ; FP=0) ; la double-voie dictée = lexicale (agrégation) × sublexicale (règles). **L'agrégation est déjà le
+paradigme gagnant côté dictée ; seul le moteur pendu était resté sur l'apprentissage-par-jeu.** Leçon transverse :
+**OMEGA généralise par AGRÉGATION DE STRUCTURE, pas par récompense ni mémoire.**
+
+**Décision en attente (Rem) :** (1) défaut du n-gram (le brancher en config OOV/Trexquant ? le croiser avec la
+cohorte-jointe via OS-arb plutôt qu'en cascade ?) ; (2) étape 2 (mesurer Δ cognition sur substrat) ; (3) si oui, §3
+(capacité/câblage).
+
+#### 1.8.1 — A (Δ cognition, mesuré FAIR) + B (défaut OOV) — 2026-06-18
+**A — la cognition ne contribue pas, même double-voie pleinement engagée.** Garde-fou de Rem : « tu as peut-être
+sous-estimé les doubles voies ; les voies descendantes ne participent pas directement à la décision ; OS sans
+double-voie ne marche pas ». Re-testé **fair** (vrai OOV, test 100×2) :
+
+| cognition seule (vrai OOV) | winrate |
+|---|---|
+| REF (M1_m co-décision OFF) | 10,5 % |
+| + M1_m ON (descendant ortho→décision branché) | 11,0 % |
+| + M1_m ON + voie phon poussée | 11,0 % |
+| **MAXIMALE** : double-voie ortho COMPLÈTE (M4_m letterPenalty + M2_m zonePenalty + M1_m letterScore + **Möbius B2**) + phon (M4_phon_m feedback + readout + bind) + **OS arbitre**, 0 declare, 0 n-gram (3 graines) | **10,7 %** |
+
+→ Garde-fou de Rem (« test partiel : que phon + que M1_m ; la vraie double-voie ortho+phon + OS qui arbitre »).
+**Re-mesuré MAXIMAL** (tout le descendant qui EXISTE + Möbius + OS) = **10,7 %**, identique au partiel. **Donc pas une
+sous-estimation du test** : la cognition complète plafonne à ~11 % OOV.
+
+**POURQUOI (architecture, d'après les schémas double-voie) :** le descendant **ne réinjecte que des PRIORS GLOBAUX**,
+jamais des **conditionnels contextuels** (P(lettre | voisins révélés) = le signal n-gram) :
+- M4_m `letterPenalty` = homéostasie vers la fréquence inverse (global) ; M2_m `zonePenalty` = positionnel (global) ;
+  M1_m `letterScore` = prior de fréquence (corr 0,999, §1.4.1) — **trois priors globaux, zéro contexte**.
+- Le **miroir phon est TRONQUÉ par construction** (schéma) : `M2_phon_m`/`M1_phon_m` **jamais construits**,
+  `M3_phon_m` **observationnel** (lit le hub, n'écrit pas) ; seul `M4_phon_m` letterPenalty réinjecte → la voie qui
+  *pourrait* porter le contexte **phonotactique** est coupée.
+- Le concept M3 (12 cellules ortho / 1024D phon) = détecteur **global/longueur** (§1.4.2 / S2).
+→ **Aucun chemin descendant ne porte le conditionnel contexte→lettre** que la généralisation exige. D'où ~11 %, et
+d'où la nécessité d'un **mécanisme d'agrégation SÉPARÉ** (n-gram). **C (si un jour)** = construire un descendant qui
+porte le **contextuel** (compléter le miroir phon `M2/M1_phon_m` pour le phonotactique, ou réinjecter un conditionnel
+appris), PAS juste élargir M3.
+
+**B — n-gram = voie OOV-only, branchée.** Le n-gram **écrase la cohorte en in-lexique** (il ignore que le mot EST là)
+→ à n'activer **qu'en OOV/Trexquant**. **Mesuré in-lexique : OFF 97,5 % → ON 69,5 %** (le n-gram générique remplace
+la cohorte qui a le mot) → **OFF en jeu normal, obligatoire**. Livré : voie `M_NEO_LETTER_NGRAM` recommandée ON pour
+Trexquant/OOV (CONFIG_TOGGLES), et **ajoutée au bench Trexquant in-app** (4e ligne « n-gram de lettres »). Pas de
+croisement OS-arb nécessaire (A montre que rien n'ajoute au n-gram → cascade simple suffit ; OS-arb resterait utile
+seulement si une 2e voie apportait un Δ, ce qui n'est pas le cas ici).
+
+**C reporté (cadrage Rem) :** ne PAS reconstruire la capacité de M3_d ; **garder M3_d tel quel** et confier la
+mémorisation/agrégation à un **mécanisme séparé** (le substrat n-gram EST ce mécanisme). Le câblage concept→lettre
+(§3) reste la frontière si un jour on veut que la *cognition* ajoute un Δ — mais A dit que ça n'urge pas.
+
+#### 1.8.2 — Carte sémantique (M_S / phonGraphMap) : trouvée, reconnectée, MESURÉE insuffisante — 2026-06-18
+Rem : « on a perdu la carte sémantique construite par la cognition, vérifier ; et surtout : suffisant ? »
+**Inventaire (§5, ce qui EXISTE) :**
+- **`phonGraphMap[26][SDIM]`** : carte apprise lettre↔contexte (F online + L2 vers substrat), **co-décideur actif**
+  (poids 0,3, `cosine(currentPhonState, phonGraphMap[l])`). **Pas sous-pondérée** (peut dominer le natif 0,05-0,15).
+- **`M_S`** (6e cerveau Sense/Semantic/Shared, Patterson 2007) : fusionne M1-M5, `M_S_ENABLED=true`. **= la carte sémantique.**
+- **`M2_phon_m`/`M1_phon_m`** : existent, stepés (3918/3941), **DORMANTS** (non consommés). Portent zonePenalty/letterScore = **priors globaux**.
+
+**La carte est PERDUE par un mécanisme précis** : bPC (`M_BPC_M3D`, config réf.) **zéroe `M3_d.output`** (4625, découplage)
+→ `currentPhonState = M3_d.output` (6585) **= 0** → le co-décideur phonGraphMap fait `cosine(0,·)=0` (**mort**), et M_S
+fusionne vers 0 **et** est *sauté* sous bPC (5110). Donc sous bPC, **toute la carte reçoit un vecteur-contexte nul**.
+
+**Mesuré (reconnexion par toggle, bPC OFF → carte vivante) :**
+| cognition MAX (vrai OOV, N=300) | winrate |
+|---|---|
+| bPC ON (carte morte, currentPhonState≈0) | 10,7 % |
+| **bPC OFF (carte VIVANTE : phonGraphMap + M_S actifs)** | **12,0 %** [11,11,14] |
+
+→ **+1,3 pt = bruit. La carte, même vivante, n'est PAS suffisante.** Pourquoi : phonGraphMap et M_S sont bâtis sur le
+**concept M3_d = détecteur global/longueur** (§1.4.2) → ils encodent la longueur, pas le **contexte-lettre** (le signal
+n-gram). **Décision : on N'implémente PAS le fix de dérive M_S** (measure-before-build : le candidat le plus fort donne
+déjà ~0). M2/M1_phon_m = priors globaux → prédits ~0 (cf. ortho M2_m/M1_m, §1.4.1 Δ≈0), non câblés. Möbius (B2) était
+**déjà ON** dans le test → sans effet.
+
+**Verdict consolidé** : reconnecter les pièces existantes (carte M_S, miroir phon, phonGraphMap) **ne suffit pas** —
+toutes vivent sur un concept global/longueur. Le vrai C = **que le concept M3_d encode le contexte-lettre** (capacité +
+nature de la représentation), pas un re-câblage. Confirme §1.8 par la mesure : le levier OOV est l'**agrégation**
+(n-gram), pas la cognition ni sa carte.
+
+---
+
+### 1.9 — FIX livré (A+B) : le n-gram agrégé branché comme VOIE SUBLEXICALE de l'arbitrage OS — 2026-06-19
+
+Rem : « go code » — décision approuvée : *le n-gram agrégé, branché comme voie sublexicale dans l'arbitrage OS
+(pondéré par fiabilité), structurellement natif, meilleur dans les deux régimes sans switch manuel.*
+
+**Le problème de la cascade n-gram (§1.7).** `M_NEO_LETTER_NGRAM` est un **either/or** : si le n-gram tire une lettre,
+il **court-circuite** la cohorte board. Conséquence mesurée : il **gagne l'OOV** (+pts) mais **sacrifie l'in-lexique**
+(62 % vs 96 % de la cohorte). On ne veut pas choisir : l'in-lex doit rester ~97 %, l'OOV monter à ~60 %.
+
+**Le fix (R66, OFF-inerte) — `M_NEO_OS_ARB_NGRAM`.** Au lieu d'un either/or, on **fusionne** deux voies dans
+`_neoDeclareOSmix` via l'OS déjà prouvé (`M_OS_v07_step`, mélange convexe pondéré par fiabilité μ=r^α/(β+r^α)) :
+- **voie SUBLEXICALE = n-gram agrégé** (`_neoLetterNgramDist`, refactor commun avec `_neoLetterNgram`) — généralise,
+- **voie LEXICALE = cohorte board pondérée fréquence** (inchangée) — précise quand le mot est connu.
+La **fiabilité = le piqué (max) de chaque distribution**. In-lexique la cohorte converge → piquée → elle gagne ;
+OOV la cohorte se vide / s'aplatit → le n-gram gagne. **La bascule est automatique, par régime, sans switch.** Le mode
+n-gram ne dépend plus de la cohorte phon (gate élargie `M_NEO_OS_ARB && (M_NEO_PHON_COHORT_ENABLED || M_NEO_OS_ARB_NGRAM)`)
+et ne **bail plus** si la cohorte phon est vide (le cas OOV où le n-gram doit décider).
+
+**Mesuré (3 graines d'échantillon, N=400 mots 7-12 lettres, `/tmp/measure_osng.js`) :**
+
+| voie sublexicale | IN-LEXIQUE | OOV (mot retiré du len_index) |
+|---|---|---|
+| jointe phon-cohorte (OS arb, défaut) | 96,0 / 96,3 / 97,0 | 30,5 / 27,3 / 30,8 |
+| n-gram **CASCADE** (either/or, §1.7) | 62,0 / 59,5 / 64,0 | 59,0 / 56,0 / 62,0 |
+| **n-gram VOIE OS (le fix)** | **97,0 / 96,3 / 98,8** | **60,8 / 52,0 / 63,0** |
+
+→ **Meilleur ou à égalité dans les DEUX régimes**, config unique : in-lex ≈ jointe (≫ cascade), OOV ≈ cascade (≫ jointe).
+La voie OS **récupère** le winrate in-lex de la cohorte ET le winrate OOV du n-gram. C'est A (mesurer le substrat
+agrégé) **et** B (le câbler par défaut pour l'OOV via la fiabilité) en un seul mécanisme structurellement natif.
+
+**Coûts / honnêteté (§6).** (1) α,β défaut **1/1** (forme neutre) — aucune sur-optimisation ; un balayage β>1 pourrait
+grappiller l'OOV mais on garde le neutre mesurable. (2) Build de la table n-gram = **~440 ms lazy, une fois/session**
+(29 k clés, ~6 Mo en mémoire), voie **OFF par défaut** → **persistance IndexedDB jugée prématurée** : 440 ms paresseux
+ne justifient pas une couche async de sérialisation de 29 k Float64Array (et 6 Mo > 5 Mo de localStorage). IndexedDB
+**reste le bon foyer SI** la table grossit ou devient *apprise* (le futur « C »). (3) Exposé via le **bench Trexquant**
+(5e ligne « n-gram ARBITRÉ OS ») — le bench ne mesure que l'OOV, donc la parité in-lex vient du script ci-dessus.
+(4) Baseline byte-identique vérifiée : tous les nouveaux flags OFF → fitness défaut inchangé (10 %, 9,3 coups).
+
+**Reste (déféré, le vrai C cognitif §1.8.2)** : que le **concept M3_d encode le contexte-lettre** (spokes contextuels
+riches + erreur de prédiction entrelacée), mesuré **au-dessus** du substrat n-gram. Le n-gram OS est la **rampe d'accès** :
+il fournit le plancher d'agrégation contre lequel juger tout gain cognitif futur.
+
+---
+
+### 1.10 — C livré : 1er levier cognitif qui BAT le substrat n-gram (gap-aware) — 2026-06-19
+
+Rem : « enchaîne C ». Objectif (lit. + §1.8.2) : une représentation qui **généralise AU-DESSUS** du n-gram, mesurée.
+Méthode doctrine : **mesurer la place de C avant de bâtir** (§1), **une jonction** (§4), **réutiliser l'existant** (§5).
+
+**Étape 1 — la place de C (ablation d'ordre, OOV, N=400, 2 graines).** uni 31-38 % → +bi 49-52 % → +tri 61-63 %
+(monotone, gros pas). Le contexte paie fort. Couverture des positions cachées (~40 % révélé) : **tri seulement 12,5 %
+dispo**, **~40 % retombent à l'unigramme**. → place réelle pour généraliser le contexte.
+
+**Étape 2 — DEUX hypothèses cognitives FALSIFIÉES (mesuré, négatifs nets, confirment §1.8.2) :**
+- **Lissage par le SUBSTRAT** (réutiliser la représentation-lettre apprise, `letterVecsSDIM`, comme noyau de
+  similarité pour combler les contextes rares) → **NUIT** (top-1 36,0 % → 34,6/32,3/24,5 % quand τ monte). La
+  représentation de la cognition encode des **traits forme/phon**, **pas** « prédit une lettre suivante similaire ».
+  *C'est exactement le diagnostic §1.8.2 : la carte cognitive est du mauvais TYPE de structure.*
+- **Pooling POSITION-RELATIVE** (suffixe/préfixe poolé sur longueurs, abstraction morphologique) → **légèrement pire**
+  (53,8 → 50,5 %), **rescousse ~0 %**. Cause : les 2 voisins révélés, le trigramme absolu **manque <0,6 %** du temps —
+  donc **pas un mur de sparsité lexicale**.
+
+**Étape 3 — le VRAI mur = état-de-jeu, et le fix qui MARCHE (gap-aware).** Reframe par la mesure : le n-gram ne lisait
+que les voisins **immédiats** (p±1), or **42-54 % des positions cachées n'ont AUCUN voisin immédiat** (mesuré) → chute à
+l'unigramme alors que le board révèle des lettres **plus loin** (p±2..4) **ignorées**. Fix `M_NEO_NGRAM_GAP` : utilise le
+**plus proche voisin révélé à distance 1..4** (garde le trigramme JOINT quand les 2 adjacents sont là ; sinon produit des
+marginales à distance ; backoff uni). Prototype held-out : **+1,3 à +2,9 pts top-1**, robuste.
+
+**Mesuré WINRATE (voie n-gram arbitrée OS, gap OFF→ON, N=400, 3 graines) :**
+
+| régime | gap OFF | **gap ON (C)** |
+|---|---|---|
+| OOV | 60,8 / 62,8 / 52,0 | **63,3 / 64,8 / 54,0** (**+2,5 / +2,0 / +2,0**) |
+| in-lex | 97,0 / 98,8 / 96,3 | 97,5 / 98,3 / 96,8 (±0,5 = bruit) |
+
+→ **+2 pts OOV robustes, coût in-lex nul.** **Premier levier cognitif mesuré au-dessus du plancher d'agrégation**
+(OOV ~63-65 %, dans la bande SOTA 65-68 %). Honnêteté (§6) : c'est une **agrégation plus riche** (n-gram utilisant plus
+de contexte du board), **pas** encore une représentation distribuée APPRISE — mais c'est bien « le concept encode PLUS
+de contexte », et c'est ce que les hypothèses « réutiliser la carte existante » (substrat, relatif) ont **échoué** à
+faire. Coût build : ~1 s lazy/session (10 k clés d=2..4), voie OFF par défaut (R66, baseline byte-identique vérifiée :
+fitness défaut 10 %/9,3 inchangé). Bench Trexquant : 6e ligne « + GAP-AWARE (C) ».
+
+**Reste (le C *appris*, plus profond)** : une représentation **distribuée apprise par erreur de prédiction** sur le
+contexte complet du board (lettres non-adjacentes incluses) — au-delà de ce que capte le n-gram gap-aware. C'est le seul
+chemin restant pour aller vers la borne SOTA, et c'est là que la **persistance IndexedDB** de poids appris deviendrait
+justifiée (cf. §1.9). À mesurer **au-dessus** des ~63-65 % du gap-aware.
+
+---
+
+### 1.11 — C APPRIS attaqué → le C *léger* appris est FALSIFIÉ (le n-gram gap-aware est le plafond pratique) — 2026-06-19
+
+Rem : « attaque ce C appris ». Fait : sonde `evo/learned_c_probe.js` — une représentation **apprise par prédiction
+masquée** (codage prédictif + CLS) utilisant **tout le contexte révélé** (non-adjacents inclus), vs le n-gram gap-aware
+(§1.10), sur états de jeu **identiques** (held-out OOV, top-1, 2 graines).
+
+**Quatre variantes testées, TOUTES perdent contre gap-aware (mesuré) :**
+
+| méthode | rev .3 / .4 / .5 (graine 99887) | nature |
+|---|---|---|
+| **gap-aware (le moteur §1.10)** | **30,3 / 32,2 / 35,0** | counts, nearest revealed neighbor L×R |
+| GATE-appris (reliabilité/distance, ~8 params) | 27,9 / 30,1 / 32,9 | **appris** (produit d'experts pondéré) |
+| POE-all (tous les voisins) | 28,7 / 29,8 / 32,6 | counts, produit d'experts |
+| maxent log-linéaire (features de décalage) | 21,9 / 23,4 / 25,7 | **appris**, additif |
+
+(Robuste graine 271828 : gap 27,5/30,7/33,8 > GATE 24,6/27,7/31,7 > POE > maxent. Plus d'epochs **empire** le maxent.)
+
+**Pourquoi (cause mesurée, pas hypothèse).** Le **plus proche voisin révélé domine** ; **combiner plus de cues NUIT** :
+- les lettres révélées sont **CORRÉLÉES** → l'indépendance (produit/somme) **sur-compte** et amplifie les erreurs ;
+- les cues **lointains sont non-informatifs** — le GATE l'**apprend tout seul** : α(d) = **0,71 / 0,33 / 0,04 / 0 / 0…**
+  (la fiabilité s'effondre après d=2). Optimalement gaté, l'appris **converge vers** « utilise le plus proche » =
+  gap-aware, sans le dépasser. L'additif (maxent) est pire encore (dilue le cue fort par les faibles).
+
+**Verdict (§6).** Le **C léger appris est falsifié** — c'est le 3e/4e/5e candidat cognitif tombé (après substrat-lissage
+§1.10, position-relative §1.10, et ici maxent/GATE/POE). Le **gap-aware est le plafond pratique de la famille n-gram**
+(OOV ~63-65 %, déjà dans la bande SOTA 65-68 %). **Battre gap exige un modèle des CORRÉLATIONS entre lettres révélées**
+= attention/RNN (Hopfield moderne = attention, lit. §4) — **lourd, opaque, entraînement hors-ligne**, contre la doctrine
+« cognition > oracle » (léger/interprétable) et pour seulement **~3-5 pts** jusqu'à la borne SOTA. **Décision : NE PAS
+bâtir** le réseau lourd sans arbitrage explicite de Rem (mesure-avant-bâtir : le gain ne paie pas le coût/l'opacité).
+C'est là — et seulement là — qu'une **persistance IndexedDB** de poids appris serait justifiée.
+
+**Synthèse du chantier OOV/C** : agrégation (n-gram, §1.7) → arbitrage OS auto par fiabilité (§1.9) → gap-aware =
+1er gain cognitif réel (§1.10, +2 OOV) → C appris léger falsifié (§1.11). La thèse « cognition > oracle » tient pour
+l'**usage plus riche du contexte** (gap-aware), **pas** pour une représentation distribuée apprise *légère* ; le seul
+au-delà est neuronal-lourd, déféré.
+
+---
+
+### 1.12 — C NEURONAL LOURD attaqué (arbitrage Rem « go ») : le transformer profond REJOINT le n-gram, ne le bat pas (encore) — 2026-06-19
+
+Rem a autorisé le C lourd déféré au §1.11. Construit `evo/heavy_c_probe.js` : un **transformer** (cross-attention
+query→contexte révélé, multi-têtes + FFN résiduel, profondeur `NLAYERS`), entraîné par **prédiction masquée** sur le
+lexique, comparé au **gap-aware** (§1.10) sur le **même** held-out OOV top-1 que `learned_c_probe.js` (§5 réutilisation).
+Gradient **validé par différences finies** (err rel < 1e-5, NL=1..3). Optimisation : **mini-batch** (gradient moyenné +
+clip global) indispensable — le pas-par-mot stagne (lr bas) ou diverge (lr haut) ; profondeur ≥ 2 exige lr abaissé
+(0,008→0,006) faute de LayerNorm.
+
+**Trajectoire mesurée (held-out OOV top-1, rev 0,3/0,4/0,5, graine 99887), Δ vs gap-aware :**
+
+| modèle | Δ (moy.) | lecture |
+|---|---|---|
+| attention 1 tête | ≈ **−12** | ≈ moyenne molle, sous-capacité |
+| 1 bloc (MHA+FFN), 20k mots | ≈ **−6** | l'architecture ferme la moitié |
+| 1 bloc, **plein lexique 83k** | ≈ **−6,7** | **data inutile → capacité-bound, pas data-bound** |
+| 2 blocs (stable, lr 0,008) | ≈ **−2,2** | la **PROFONDEUR** est le levier |
+| **3 blocs + 40k, lr 0,006** | ≈ **−0,3** | **parité** : 29,4/32,1/34,1 vs gap 29,8/32,5/34,2 |
+| **4 blocs + 40k, lr 0,004, 3 graines** | ≈ **0 (bruit)** | **pas de franchissement robuste** (cf. test ci-dessous) |
+
+**Verdict (§6.4 barrière de mérite).** Chaque marche de profondeur ~**divise l'écart par deux** (−12 → −6 → −2,2 → −0,3).
+À 3 blocs le transformer **REJOINT** le n-gram de comptes mais **ne le bat pas** (Δ encore < 0, marginal). Le gap-aware
+reste **non battu** par un modèle appris à ce budget — et il est **gratuit** (zéro entraînement/poids, instantané) là où
+le transformer coûte ~40 k poids à embarquer + un forward par décision + persistance IndexedDB.
+
+**Lecture honnête (§0 ; §1.11 confirmé empiriquement).** §1.11 prédisait « ~3-5 pts jusqu'à SOTA via attention lourde,
+déféré car le gain ne paie pas l'opacité ». Mesuré : l'attention lourde **converge vers** le n-gram (≈ parité), elle ne
+le dépasse pas franchement ; franchir Δ > 0 **robuste** (multi-graines, pas une) exigerait encore (4+ blocs, plein
+lexique, `d` plus grand, LayerNorm/warmup), pour un gain **marginal** (~+0,5-1 pt top-1) au prix d'un modèle **opaque +
+persistant**. C'est le compromis que §0 (« la performance est un indicateur, pas une fin ») et la thèse « cognition >
+oracle = léger/interprétable » déconseillent **sans arbitrage explicite**.
+
+#### Test du franchissement (4 blocs, 3 graines) — TRANCHÉ : pas de franchissement robuste — 2026-06-19
+
+Arbitrage Rem : « prouver le franchissement, mesure seule » (pas de câblage). 4 blocs, 40k mots, lr 0,004, 18 epochs,
+3 graines {99887, 12345, 777} — entraînements stables (aucune divergence). Δ = C-lourd − gap-aware :
+
+| Δ par graine | rev 0,3 | rev 0,4 | rev 0,5 |
+|---|---|---|---|
+| 99887 | −0,99 | −0,50 | +1,37 |
+| 12345 | −1,41 | +1,78 | +1,65 |
+| 777   | **+0,46** | **−0,81** | **−0,33** |
+| **moyenne** | −0,65 | +0,16 | +0,90 |
+| graines positives | 1/3 | 1/3 | 2/3 |
+
+**Verdict (§6.4) : NON franchi.** Les 2 premières graines suggéraient un gain en contexte riche (rev ≥ 0,4), **mais la
+3ᵉ (777) inverse le motif** (positive au clairsemé, négative au riche). Les Δ oscillent de ±1,4 autour de zéro selon
+graine/régime = **bruit** (SE seed-to-seed ≈ ±1 pt). **Aucun régime n'est positif sur les 3 graines** ; la moyenne est
+≈ 0. La barrière de mérite (« ≥ baseline à *chaque* graine, moyenne > 0 ») **n'est pas atteinte**. → Le C lourd 4 blocs
+est **mesuré équivalent au n-gram de comptes, pas supérieur**.
+
+#### Test WINRATE à CONFIG OPTIMALE (vrai moteur) — la critique « tests caducs : top-1/masques/hors-pipeline » traitée — 2026-06-19
+
+Critique de Rem (juste, doctrine §1 « sur le jeu réel, pas un proxy ») : le top-1 sur masques aléatoires hors-pipeline
+est caduc. Test refait **valide** : C lourd câblé comme **voie sublexicale de `_neoDeclareOSmix`** (flag `M_NEO_C_HEAVY`,
+remplace le n-gram ; **parité moteur↔sonde vérifiée EXACTE**, `evo/heavy_c_parity.js`), **config optimale** de référence
+(`evo/heavy_c_winrate.js`, mêmes CFG que `ab_cohort`), **winrate sur vraies parties**, in-lex ET OOV séparés, 3 graines
+(C entraîné 4 blocs/40k, masques aléatoires) :
+
+| régime | voie gap-aware | voie C lourd | Δ (C−gap) | §6.4 |
+|---|---|---|---|---|
+| in-lexique | 97,1 % | 97,5 % | +0,4 (+2,5/0/−1,3) | NON (bruit — cohorte domine, voie sublex. ~inerte) |
+| **OOV** | **58,3 %** | **57,1 %** | **−1,3** (+2,5/−5,0/−1,3) | **NON (perd 2/3 graines)** |
+
+→ Sur la **vraie métrique** (winrate, pipeline complet, config optimale), le C lourd **ne bat pas** le gap-aware (OOV
+−1,3 moy, perd 2/3 graines ; in-lex = bruit). Le proxy top-1 ne mentait pas, mais c'est maintenant établi sur le winrate.
+
+#### Levier « entraîner sur de VRAIES parties » (10⁴ parties, critique #1 de Rem) — testé, RECUL net — 2026-06-19
+
+Dernier levier non épuisé : entraîner le C sur la **vraie distribution d'états de jeu** (révélation stratégique), pas des
+masques aléatoires. `evo/harvest_states.js` : self-play OOV à config optimale, masks réels enregistrés, **mots de test
+exclus (anti-fuite)**. Récolte : 5 000 parties → **36 356 états réels / 5 299 mots distincts** (le self-play à config
+optimale est lent, ~1,6 s/partie → couverture lexicale limitée). C réentraîné dessus (4 blocs, parité moteur vérifiée),
+re-test winrate à config optimale, mêmes 3 graines :
+
+| C entraîné sur… | mots distincts | OOV : voie C | Δ (C−gap) | §6.4 |
+|---|---|---|---|---|
+| masques aléatoires | 40 000 | 57,1 % | −1,3 (perd 2/3) | NON |
+| **états réels** | **5 299** | **43,8 %** | **−14,6 (−15/−8,8/−20, perd 3/3)** | **NON (RECUL)** |
+
+**Diagnostic (mécanisme).** Le réalisme des masks **n'aide pas** ; la **couverture lexicale réduite** (5 299 vs 40 000)
+fait **sur-apprendre** un vocabulaire étroit → généralisation OOV effondrée. Pour l'OOV, ce qui compte est la **couverture
+sous-lexicale** (beaucoup de mots), pas la distribution de révélation. Restaurer la couverture en gardant des masks réels
+exigerait ~40k+ parties harvestées (~17 h au débit actuel) — et, au mieux, ne **rejoindrait** que la parité du random-mask
+(le C converge vers le n-gram quelle que soit l'entrée). Levier épuisé.
+
+**Conclusion (§0, §1.11 confirmé empiriquement).** L'attention lourde **converge vers** le gap-aware (parité dans le
+bruit, du 3 blocs au 4 blocs ×3 graines, **confirmée au winrate à config optimale** ; l'entraînement sur états réels la
+**dégrade** par manque de couverture) **sans le dépasser de façon fiable**. Le n-gram gap-aware (gratuit, zéro poids,
+interprétable, déjà câblé) reste le **plancher d'agrégation ET le plafond pratique**. **Décision : ne RIEN câbler** — pas
+de `_neoHeavyCDist()`, pas d'IndexedDB. Le coût (≈40k poids embarqués + forward/décision + persistance + opacité) ne se
+justifie pas pour un gain mesuré nul-dans-le-bruit. Aller au-delà = SOTA-scale hors-ligne (gros modèle, LayerNorm/warmup,
+beaucoup de compute) pour ~3-5 pts top-1 au mieux — non justifié par la doctrine « cognition > oracle = léger/interprétable »
+tant que la mesure ne montre pas un Δ robuste. Sonde rejouable : `node evo/heavy_c_probe.js [graine] [trainN] [epochs]
+[d] [lr]` (env `HEADS`/`LAYERS`/`BATCH`/`CLIP`). **Baseline moteur byte-identique : rien n'a été modifié dans
+`app/omega-pendu.html` (chantier 100 % en sonde `evo/`).**
+
 ---
 
 ## 2. Findings structurels (par sévérité)
@@ -395,7 +811,7 @@ Le 97,5 % = 4 graines × 120 = **480 parties** ; R66 recommande ≥ 200 × 4. Pl
 ## 3. M3_d — PEUT-ÊTRE UTILE (hors winrate) : reclassement §0 + diagnostic + piste
 
 **⚠️ Reclassement (Rem, 2026-06-17) — la doctrine §0 prime sur le winrate.** Tout ce qui suit (et le rapport §12 « chantier clos ») jugeait M3_d à l'aune du **winrate du pendu**. Or le pendu n'est qu'un **banc d'essai** ; le système est un **modèle cognitif** (clause §0 : *la performance est un indicateur, pas une fin*). **Conclusion révisée : M3_d n'est ni « mort » ni « à clore » — il est *winrate-inert* (mesuré, solide) MAIS PEUT-ÊTRE UTILE hors-winrate**, à juger sur la **fidélité cognitive** et son rôle dans la **dictée**.
-- *Solide (inchangé)* : M3_d code surtout la **forme/longueur** (S2 ; diag `evo/diag_mirror.js` : cellule #10 = 79 %) ; **aucune entrée sens/contexte** (EXP_M3D_FALSIFIE) → **latent de FORME, pas de sens** ; banc→scoring-lettre falsifié (−1,33, §1.4.2).
+- *Solide (inchangé)* : M3_d code surtout la **forme/longueur** (S2 ; diag `evo/diag_mirror.js` : cellule #10 = 79 %) ; **aucune entrée sens/contexte** (dictee/README.md (§ Falsifié M3_d)) → **latent de FORME, pas de sens** ; banc→scoring-lettre falsifié (−1,33, §1.4.2).
 - *Rouvert (§0)* : (1) **fidélité structurelle** — M3_d *est* la couche-concept du modèle double-route/triangle (hub-and-spoke Rogers/Patterson) ; le retirer briserait la fidélité → §0 mandate de le garder. (2) **dictée** — un latent de **forme** = candidat **signal de stade précoce** (Ferreiro pré-syllabique/syllabique : préserver la silhouette/longueur du mot, *KAP*→canapé) ; le *défaut* « ne voit que la forme » devient un *signal*. (3) **familiarité** faible (AUC 0,64→0,98), bornée (le banc fait mieux).
 - *Garde §1 (anti-hype)* : « peut-être utile » n'est **pas** « utile ». Il faut un **effet mesurable sur la bonne tâche** (la **dictée**, pas le pendu). Tant que non mesuré là → statut = **hypothèse vivante**, pas chantier clos. (Frontière : utilité possible = **forme/morpho**, jamais sémantique/homophone — déjà falsifié.)
 

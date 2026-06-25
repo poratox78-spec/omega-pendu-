@@ -1,15 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OMEGA Pendu</title>
-<meta http-equiv="refresh" content="0; url=app/omega-pendu.html">
-<link rel="canonical" href="app/omega-pendu.html">
-<script>location.replace('app/omega-pendu.html')</script>
-<style>body{font-family:system-ui,sans-serif;background:#050510;color:#ccc;display:flex;height:100vh;margin:0;align-items:center;justify-content:center;text-align:center}a{color:#4af}</style>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMEGA-Ω — un correcteur qui ne corrige jamais à tort</title>
+<meta name="description" content="Correcteur d'écriture pour la dyslexie et les troubles de l'écrit. Garde absolue : ne jamais souligner du juste (FP=0 sur batterie). Hors-ligne, gratuit, dans n'importe quel champ.">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="preload" as="document" href="app/omega-pendu.html">
 </head>
 <body>
-<p>Chargement du jeu…<br><a href="app/omega-pendu.html">Cliquer ici si rien ne se passe</a><br><small>(le jeu fait ~16 Mo, le premier chargement peut prendre quelques secondes)</small></p>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html" aria-current="page">Le correcteur</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Lisible</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Pour la dyslexie &amp; les troubles de l'écrit</span>
+  <h1>Un correcteur qui ne te corrige <em>jamais</em> à tort.</h1>
+  <p class="lead">La plupart des correcteurs soulignent du juste — et chez une personne dys, chaque fausse alerte ravive le sentiment d'échec. Ici la règle est inversée&nbsp;: <strong>ne rien signaler tant qu'on n'est pas sûr</strong>. C'est la garde absolue du projet.</p>
+  <div class="cta">
+    <a class="btn primary" href="app/omega-pendu.html">✍️ Essayer le correcteur</a>
+    <a class="btn ghost" href="#installer">Installer l'extension</a>
+  </div>
+  <p class="small">100&nbsp;% hors-ligne · aucune donnée envoyée · gratuit · open source · <span class="small">dans l'app, bouton « 🩹 Correcteur »</span></p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="promise">
+    <h2 style="margin-top:0">La promesse&nbsp;: zéro faux positif</h2>
+    <p>Sur sa batterie de test (phrases correctes + pièges), le correcteur ne signale <strong>aucune</strong> faute là où il n'y en a pas — c'est mesuré, pas promis. Sur du français encyclopédique réel (16&nbsp;342 phrases), le taux de fausse alerte est descendu à <strong>≈ 2&nbsp;%</strong> ; sur de l'écriture dys, plus bas encore. Quand il hésite, <strong>il se tait</strong>.</p>
+    <div class="kpi">
+      <div><b>0</b><small>faux positif sur la batterie dys</small></div>
+      <div><b>≈ 2 %</b><small>sur le français réel (en baisse continue)</small></div>
+      <div><b>3</b><small>moteurs identiques, vérifiés en parité</small></div>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Pour qui&nbsp;?</h2>
+  <div class="grid">
+    <div class="card"><span class="ico">🧒</span><h3>Personnes dys</h3><p>Écrire sans être noyé sous des corrections — et sans qu'on te reprenne à tort.</p></div>
+    <div class="card"><span class="ico">👩‍⚕️</span><h3>Orthophonistes</h3><p>Un outil qui <em>situe le stade</em> d'écriture et propose une remédiation, pas juste « faux / juste ».</p></div>
+    <div class="card"><span class="ico">👨‍👩‍👧</span><h3>Familles &amp; enseignants</h3><p>Un soutien doux à la maison ou en classe, gratuit et privé.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Ce qu'il corrige — en contexte, sans connaître la « bonne » phrase</h2>
+  <p>Il lit le contexte pour trancher ce qu'un correcteur de mots isolés ne peut pas&nbsp;:</p>
+  <div class="demo">
+    <p>« Les <span class="u-gram" title="accord">enfant</span> <span class="u-gram" title="accord sujet-verbe">joue</span> dans le jardin et il <span class="u-gram">sont</span> content. » <span class="arrow">→</span> les enfant<b>s</b> joue<b>nt</b>… il<b>s</b> sont</p>
+    <p>« Je <span class="u-gram">doit</span> partir, <span class="u-gram">on</span> <span class="u-gram" title="il/elle/on">ont</span> gagné. » · « le <span class="u-gram" title="genre">faute</span> » → la faute · « des <span class="u-gram" title="pluriel">ami</span> » → amis</p>
+    <p>Et les non-mots&nbsp;: « <span class="u-bad">fenetre</span> » → fenêtre · « <span class="u-bad">leson</span> » → leçon (souligné, à toi de cliquer).</p>
+  </div>
+  <ul class="clean" style="margin-top:18px">
+    <li><b>Homophones grammaticaux</b> — a/à, son/sont, on/ont, leur/leurs, -é/-er, ce/se, et/est…</li>
+    <li><b>Accord sujet-verbe</b> — « les oiseaux chante » → chantent (même à sujet-nom)</li>
+    <li><b>Genre &amp; pluriel</b> — « un maison » → une · « des oiseau » → oiseaux</li>
+    <li><b>Orthographe</b> — accents, fautes phonétiques, non-mots</li>
+    <li><b>Aide-frappe</b> — pendant que tu écris, <em>complétion</em> du mot en cours (accentuée) en plus de la correction</li>
+    <li><b>Le stade &amp; la remédiation</b> — où en est l'écriture, et quoi travailler ; un <em>profil de progrès</em> qui s'affine</li>
+  </ul>
+  <p class="small">Interface <em>semi-directe</em>&nbsp;: rien n'est changé automatiquement à ton insu — tu <strong>cliques</strong> sur ce que tu veux appliquer.</p>
+</div></section>
+
+<section id="installer"><div class="wrap">
+  <h2>L'utiliser</h2>
+  <div class="grid">
+    <div class="card"><span class="ico">🧩</span><h3>Extension navigateur</h3>
+      <p>Le correcteur dans <strong>n'importe quel champ de saisie</strong> (mail, réseaux, formulaires), hors-ligne.</p>
+      <p class="small">Aujourd'hui&nbsp;: <code>chrome://extensions</code> → Mode développeur → « Charger l'extension non empaquetée » → dossier <code>extension/</code> du dépôt. <em>(Publication sur le Chrome Web Store à venir.)</em></p>
+    </div>
+    <div class="card"><span class="ico">🌐</span><h3>Application web</h3>
+      <p>Colle ou écris ton texte ; tu cliques sur le bouton <strong>🩹 Correcteur</strong>. Rien ne quitte ton appareil. L'app inclut <strong>tout</strong>&nbsp;: correcteur, dictée diagnostique <em>et</em> le jeu de <strong>pendu cognitif</strong> dont elle est issue.</p>
+      <p><a class="btn primary" href="app/omega-pendu.html" style="margin-top:6px">Ouvrir l'app</a></p>
+      <p class="small"><strong>Installable</strong> (hors-ligne, sur le bureau/mobile) · réglages d'affichage&nbsp;: thème clair/sombre, palette daltonien, police dys.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Pourquoi lui faire confiance</h2>
+  <ul class="clean">
+    <li><b>Mesuré, pas bricolé</b> — chaque règle est testée sur du corpus réel ; les idées qui ne tiennent pas sont <em>rejetées et documentées</em>.</li>
+    <li><b>Trois moteurs identiques</b> — application, extension, et une référence Python, vérifiés en parité automatiquement.</li>
+    <li><b>Fondé sur la recherche</b> — bâti sur <strong>Lexique&nbsp;4</strong> (base lexicale du français, New, Pallier <i>et&nbsp;al.</i>, 2026) et sur des stades d'acquisition de l'écrit.</li>
+    <li><b>Privé par construction</b> — tout tourne sur ton appareil ; aucune donnée n'est envoyée.</li>
+  </ul>
+  <p>Le détail de la méthode, des mesures et des résultats négatifs&nbsp;: <a href="recherche.html">la page recherche →</a></p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="promise" style="border-left-color:var(--accent)">
+    <h2 style="margin-top:0">Vous êtes orthophoniste&nbsp;?</h2>
+    <p>L'outil est prêt, mais il lui manque l'essentiel&nbsp;: <strong>de vrais retours de terrain</strong>. Si vous accompagnez des personnes dys et accepteriez de l'essayer, votre regard vaut plus que n'importe quelle métrique. Une fiche d'essai imprimable existe déjà.</p>
+    <p><a class="btn ghost" href="https://github.com/poratox78-spec/omega-pendu-/issues">Prendre contact (via le dépôt)</a></p>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <p><strong>OMEGA-Ω</strong> — correcteur dys &amp; architecture cognitive. Code&nbsp;: MIT. Données dérivées de <strong>Lexique&nbsp;4</strong> (New, B., Pallier, C., Schalchli, G., Bourgin, J., &amp; Gimenes, M., 2026) — licence <strong>CC&nbsp;BY-SA&nbsp;4.0</strong>.</p>
+  <p><a href="recherche.html">Recherche</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Code source</a> · <a href="app/omega-pendu.html">Application</a></p>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
 </body>
 </html>
