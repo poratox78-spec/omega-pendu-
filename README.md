@@ -39,13 +39,15 @@ en relançant le moteur réel **et** un étalon n-gram standalone sur le jeu ide
 | OMEGA — cohorte lexicale, held-out | 24 % |
 | **OMEGA — cognition (gap-aware), cheat-free** | **64 %** |
 
-**Conclusions (calibrées, pas un tampon) :**
-- La cognition bat un étalon statistique propre de **+17 pts sur des mots identiques** — apport *mesuré*, pas supposé (plus d'inférence inter-benchmark).
-- **Reproductible** (64 % stable sur 3/3 graines) et **cheat-free** (l'étalon, lui, exploite le dictionnaire en plein).
-- *Plafond honnête* : l'étalon est un trigramme standard, **pas** le SOTA ML (réseaux entraînés). Un modèle plus lourd réduirait l'écart. « Bat les solveurs standards » : **prouvé** ; « bat les tout meilleurs ML » : **non testé** (demande un duel contre un vrai réseau).
-- **Ressources** : les solveurs à 65-68 % sont des réseaux entraînés sur GPU (pipeline + corpus massif). OMEGA atteint 64 % **dans un seul fichier HTML, sans entraînement ni GPU, dans un onglet**. Donc la bonne formulation n'est pas « il gagne plus » mais : **performance comparable aux meilleurs à une fraction des ressources — et supérieure nette aux solveurs standards.**
+**Ce que ça valide vraiment :**
 
-> **Verdict.** Méthode validée comme *reproductible*, *cheat-free*, *mesurablement meilleure qu'un étalon standard* (+17 pts, même jeu), et *compétitive avec le ML lourd pour un coût sans commune mesure*. Seul point non tranché : battre **strictement** le meilleur ML — faute d'un tête-à-tête contre un réseau entraîné.
+- ✅ **La méthode bat un étalon statistique propre** sur l'OOV français (+17 pts, même jeu). Validation directe de l'apport cognitif.
+- ✅ **Reproductible** (64 % stable 3/3 graines) et **cheat-free** (l'étalon, lui, exploite le dico en plein).
+- ⚠️ **Plafond honnête** : mon étalon est un trigramme standard, *pas* le SOTA ML (LSTM/transformer entraînés). Un modèle plus lourd réduirait l'écart. Donc « bat les solveurs standards » : **prouvé**. « Bat les tout meilleurs ML » : **non testé** (il faudrait en faire tourner un).
+
+**Et le point ressources** — il est juste, et c'est là qu'il pèse. Les solveurs qui montent à 65-68 %, ce sont des réseaux entraînés sur GPU, avec pipeline d'entraînement et corpus massif. OMEGA atteint 64 % dans un seul fichier HTML, sans entraînement, sans GPU, dans un onglet. La bonne formulation n'est donc pas « il gagne plus », c'est : **performance comparable aux meilleurs, à une fraction des ressources — et supérieure nette aux solveurs standards.** Ça, c'est défendable et mesuré.
+
+> **Verdict :** méthode validée comme reproductible, cheat-free, mesurablement meilleure qu'un étalon standard, et compétitive avec le ML lourd pour un coût sans commune mesure. Le seul « non » restant — *strictement* battre le meilleur ML — demande un duel contre un vrai réseau, que je ne peux pas monter ici.
 
 ## Lancer l'application
 
