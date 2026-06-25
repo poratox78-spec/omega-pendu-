@@ -101,10 +101,11 @@ patch (`node --check` + simulation DOM ciblée) ; garder les chaînes insécable
 - La couche chat est un *habillage* du moteur (champs scratch `#enc-plain/#enc-cipher/#dec-result`).
 - `localStorage` toujours enrobé `try/catch`.
 
-**Fait** : tests crypto **automatisés en CI** (`omega-key/test_crypto.js`, 37 assertions) · **gel des hashes** de listes · **numéro de sécurité (SAS) anti-MITM** sur le ratchet DH (comparable hors-bande) · **historique chiffré au repos** (AES-GCM, clé HKDF dérivée de la passphrase ; la passphrase déverrouille le fil au rechargement).
+**Fait** : tests crypto **automatisés en CI** (`omega-key/test_crypto.js`, 37 assertions) · **gel des hashes** de listes · **numéro de sécurité (SAS) anti-MITM** sur le ratchet DH (comparable hors-bande) · **historique chiffré au repos** (AES-GCM, clé HKDF dérivée de la passphrase) · **relais temps réel (SSE, `kv.watch`)** + **handshake DH automatique** (échange des clés publiques d'init via le relais, ratchet sans copier-coller — la substitution est détectée par le SAS).
 
-**TODO priorisés** (voir mémoire §8) : handshake DH sur le relais (100 % sans
-copier-coller) ; temps réel SSE/`kv.watch`.
+> ⚠️ **Le temps réel + handshake exigent de REDÉPLOYER le relais** (`server/omega-relay.ts` a un nouvel endpoint `GET /sse/{salon}`). Le client **détecte automatiquement** un relais sans SSE et **retombe sur le poll** (1,5 s) — donc rien ne casse en attendant le redéploiement.
+
+**TODO priorisés** (voir mémoire §8) : padding des tailles (métadonnées) ; nonce GCM par compteur (avec versionnage du format).
 
 ---
 

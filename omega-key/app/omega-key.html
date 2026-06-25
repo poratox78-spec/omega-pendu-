@@ -3420,12 +3420,12 @@ window.chatCopyCipher = function(){ const o=document.getElementById("chat-cipher
 window.chatClear = function(){ _chatLog=[]; chatRender(); const w=document.getElementById("chat-cipher-wrap"); if(w) w.style.display="none"; try{ localStorage.removeItem(_CHAT_KEY) }catch(e){} }
 
 // ── LIAISON RELAIS (transport sans copier-coller) — ne véhicule que le chiffré ──
-let _relayUrl="", _relayRoom="", _relayId="", _relaySince=0, _relayTimer=null
+let _relayUrl="", _relayRoom="", _relayId="", _relaySince=0, _relayTimer=null, _relayES=null
 const _relaySeen=new Set()
 const _relaySent=new Set()   // chiffrés émis par CE client → suppression d'écho (anti-usurpation : ne dépend plus du champ `id`, falsifiable)
 const _recvSeen=new Set()    // chiffrés déjà acceptés → rejet des rejeux/doublons exacts (tous modes, y compris AES-GCM seul)
 function _trackBounded(set,val,cap=400){ set.add(val); if(set.size>cap) set.delete(set.values().next().value) }
-function _relayConnected(){ return !!_relayTimer }
+function _relayConnected(){ return !!_relayTimer || !!_relayES }
 function _relayBase(){ return _relayUrl.replace(/\/+$/,"") }
 function relayRestore(){ try{ const r=localStorage.getItem("omega_relay"); if(r){ const o=JSON.parse(r); const ue=document.getElementById("relay-url"), re=document.getElementById("relay-room"); if(ue&&o.u) ue.value=o.u; if(re&&o.r) re.value=o.r } }catch(e){} }
 async function relaySend(cipher){
@@ -3433,20 +3433,58 @@ async function relaySend(cipher){
   const res=await fetch(_relayBase()+"/r/"+encodeURIComponent(_relayRoom),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:_relayId,m:cipher})})
   if(!res.ok) throw new Error("HTTP "+res.status)
 }
-async function relayPoll(){
+// Traitement d'UN message reçu (commun SSE + poll) : dédup, anti-écho, routage handshake/chiffré.
+async function _relayHandleMsg(m){
+  if(!m || !m.mid || _relaySeen.has(m.mid)) return
+  _relaySeen.add(m.mid)
+  if(typeof m.m!=="string" || _relaySent.has(m.m)) return          // notre propre écho (reconnu par le chiffré, pas par `id`)
+  if(m.m.startsWith("HS:")){ await relayOnHandshake(m.m.slice(3)); return }   // handshake DH (clé publique)
+  await chatReceiveCipher(m.m)                                     // déchiffre + ajoute au fil (rejeu/doublon filtrés)
+}
+async function relayPoll(){   // repli si le relais ne supporte pas SSE
   try{
     const res=await fetch(_relayBase()+"/r/"+encodeURIComponent(_relayRoom)+"?since="+_relaySince)
     if(!res.ok) return
     const data=await res.json()
     if(data && typeof data.now==="number") _relaySince=data.now
     if(!data || !Array.isArray(data.msgs)) return
-    for(const m of data.msgs){
-      if(!m || _relaySeen.has(m.mid)) continue
-      _relaySeen.add(m.mid)
-      if(_relaySent.has(m.m)) continue        // notre propre écho — reconnu par le chiffré, pas par `id` (usurpable par un tiers du salon)
-      await chatReceiveCipher(m.m)            // déchiffre + ajoute au fil (rejeu/doublon filtrés dans chatReceiveCipher)
-    }
+    for(const m of data.msgs) await _relayHandleMsg(m)
   }catch(e){ /* réseau : nouvel essai au prochain tick */ }
+}
+// HANDSHAKE DH automatique via le relais : on échange les clés PUBLIQUES d'init (préfixe "HS:").
+// Le NUMÉRO DE SÉCURITÉ (affiché après établissement) protège contre un intercepteur (MITM).
+async function relayHandshake(){
+  if(typeof _keyMaterial==="undefined" || !_keyMaterial || !_keyMaterial.aes) return   // pas de clé partagée → pas de DH
+  try{
+    if(!_drAnchor) await window.drMakeInit()
+    const mine=(document.getElementById("dr-my-init")?.value||"").trim()
+    if(mine) await relaySend("HS:"+mine)
+  }catch(e){ if(typeof log==="function") log("Handshake : "+e.message,"err") }
+}
+async function relayOnHandshake(peerB64){
+  if(typeof _drState!=="undefined" && _drState) return            // session déjà établie
+  try{
+    if(!_drAnchor){ await window.drMakeInit(); const mine=(document.getElementById("dr-my-init")?.value||"").trim(); if(mine) await relaySend("HS:"+mine) }
+    const pe=document.getElementById("dr-peer-init"); if(pe) pe.value=peerB64
+    await window.drEstablish()                                    // établit le ratchet DH + AFFICHE le numéro de sécurité
+    if(typeof log==="function") log("🔗 Handshake DH automatique — vérifie le numéro de sécurité","ok")
+    if(typeof chatRefreshMode==="function") chatRefreshMode()
+  }catch(e){ if(typeof log==="function") log("Handshake reçu : "+e.message,"err") }
+}
+function _relayStart(){   // tente SSE (temps réel) ; repli automatique sur le poll si le relais est ancien/sans SSE
+  let ready=false
+  try{
+    const es=new EventSource(_relayBase()+"/sse/"+encodeURIComponent(_relayRoom)+"?since="+_relaySince)
+    _relayES=es
+    const fallback=()=>{ if(ready || _relayES!==es) return
+      try{ es.close() }catch(e){} ; if(_relayES===es) _relayES=null
+      if(!_relayTimer){ _relayTimer=setInterval(relayPoll,1500); relayPoll() }
+      if(typeof log==="function") log("Relais sans SSE → mode poll (1,5 s) ; redéploie le relais pour le temps réel","err") }
+    const fbTimer=setTimeout(fallback,5000)
+    es.onmessage=async (ev)=>{ ready=true; clearTimeout(fbTimer)
+      try{ const d=JSON.parse(ev.data); if(d && d.ready) return; if(typeof d.ts==="number") _relaySince=Math.max(_relaySince,d.ts+1); await _relayHandleMsg(d) }catch(e){} }
+    es.onerror=()=>{ if(es.readyState===2){ clearTimeout(fbTimer); fallback() } }
+  }catch(e){ _relayTimer=setInterval(relayPoll,1500); relayPoll() }
 }
 window.relayToggle = function(){
   if(_relayConnected()) return window.relayDisconnect()
@@ -3458,14 +3496,15 @@ window.relayToggle = function(){
   _relayId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random())
   _relaySince=Date.now(); _relaySeen.clear()
   try{ localStorage.setItem("omega_relay", JSON.stringify({u,r})) }catch(e){}
-  _relayTimer=setInterval(relayPoll,1500)
+  _relayStart()
   const b=document.getElementById("relay-btn"); if(b) b.textContent="🔌 DÉCONNECTER"
-  setShareStatus("relay-status","✓ Lié au salon « "+r+" » — réception auto (1,5 s)","ok")
+  setShareStatus("relay-status","✓ Lié au salon « "+r+" » — temps réel (handshake DH auto)","ok")
   if(typeof log==="function") log("Liaison relais active","ok")
   if(typeof chatRefreshMode==="function") chatRefreshMode()   // déclutter immédiat (masque le copier-coller manuel)
-  relayPoll()
+  relayHandshake()   // échange auto des clés publiques d'init DH → ratchet sans copier-coller
 }
 window.relayDisconnect = function(){
+  if(_relayES){ try{ _relayES.close() }catch(e){} _relayES=null }
   if(_relayTimer){ clearInterval(_relayTimer); _relayTimer=null }
   const b=document.getElementById("relay-btn"); if(b) b.textContent="🔌 SE CONNECTER"
   setShareStatus("relay-status","○ Liaison coupée","err")
