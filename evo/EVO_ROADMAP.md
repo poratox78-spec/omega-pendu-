@@ -146,6 +146,17 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   `validatePhoneticInit` utilise `cosineSim` ; le ré-init ne récupère pas) → évolution fidèle exige une **isolation par variant
   (process séparé)** ; le spectre (reset par mutant) est fiable, la lignée cumulée non. *(2 artefacts attrapés : 20 % bénéfique
   fantôme par contamination, puis lignée à 8,3 % — retirés par honnêteté.)*
+- 🔑 **P3 — LE BON GÉNOME (Rem : « les gènes correspondent à quoi dans le réel d'OMEGA ? ») + littérature** : `evo_p3_genome.js`.
+  Contre-épreuve **mesurée** — même moteur/méthode, génome = **paramètres continus** (perturbation gaussienne d'un seuil/poids) :
+  **0 % létal · 13 % délétère · 57 % neutre · 30 % BÉNÉFIQUE** ; vs génome = **tokens du source** (P3+) : **75 % létal · 0 %
+  bénéfique**. ⇒ **l'évolvabilité dépend de la carte génotype→phénotype (la *représentation*), pas du moteur** — exactement
+  **Wagner & Altenberg (1996)** (modularité / faible pléiotropie ; « mutation pas universellement efficace sur les programmes »).
+  **Les gènes d'OMEGA = ses PARAMÈTRES/POIDS** (config, θ=α/β, poids M/bPC/readout, règles g2p appris), **PAS son source**
+  (brittle = piège GP classique). Le source = le *programme développemental* (reproduit par bPC) ; les gènes évolvables = les
+  params (cf. **NEAT** évolue les poids ; **Grammatical Evolution** garde le code syntaxiquement valide). Les **57 % neutres =
+  réseaux neutres** (Kimura ; Banzhaf) = carburant de la dérive/évolvabilité. ⇒ **P3(a) (gènes config) était au BON niveau ;
+  P3+ (source) au mauvais** — « ce qu'on faisait mal » identifié et mesuré. Croisement : splicer du source détruit les blocs
+  (pas de modularité) → croisement **blend/uniforme sur le génome param** (modulaire) est le bon opérateur.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 
 ---
