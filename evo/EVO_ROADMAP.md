@@ -167,36 +167,33 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   winrate maintenu** ⇒ les générations **trouvent une meilleure version** (les 30 % d'erreurs utiles exploitées). **✓ HELD-OUT
   validé** (`evo_p3_holdout.js`) : meilleur sur len-7 **non vus** (95,0 % / 1,195 vs réf 94,0 % / 1,275), neutre sur len 8-10
   (autre distrib) → **généralise, pas du tuning local**. C'est « inventer une meilleure version d'OMEGA », **proprement, sur le bon génome.**
-- ✅ **LE LOOP EVO — CŒUR (`evo_generations.js`)** : la vraie boucle de la vision. Deux **versions** d'OMEGA (génomes params)
-  **combinent leurs génomes** (« communiquent » → recombinaison **jugée par le pendu**) → fabriquent un **enfant MEILLEUR que ses
-  deux parents** (gén 1 : **90 %** vs parents 87,5 / 90 %, err ↓) ; on **croise les générations** (l'enfant se marie avec la
-  précédente). **✓ Held-out** (100 mots non vus) : champion évolué **97 % / err 1,1** vs référence **96 % / 1,17** → vraie
-  meilleure version. **Le pendu est le JUGE, pas la tâche.** ⟵ *Re-cadrage important (Rem)* : le thread **O1** (vote / routeur /
-  cascade / coordinateur) était une étude de *coordination SUR le pendu* — utile, mais **à côté du loop EVO** (j'avais confondu
-  la **fitness** avec la **tâche**, jusqu'à vouloir brancher de vraies versions pour *voter des coups de pendu*). **Le vrai EVO,
-  c'est ICI** : des versions qui se **combinent pour fabriquer la suivante**, le pendu en juge — `se copie → communiquent → générations`.
+- 🔹 **Illustration compacte du croisement (`evo_generations.js`)** : deux versions (génomes params) **combinent leurs gènes**, le **pendu
+  juge** l'enfant — une mini-démo *one-shot* (1 seed) de l'opérateur de P3. ⚠️ **Le résultat RIGOUREUX de P3 reste la LIGNÉE P3(b)** (8 gén,
+  held-out validé, ci-dessus) ; cette démo n'en est qu'une vue courte, et son « champion 97 % vs réf 96 % » **1-seed** est à lire comme tel
+  (le stress-test ci-dessous montre qu'il ne tient pas multi-seed — c'est une borne d'ampleur, pas un nouveau record).
+  *Note de cadrage (Rem)* : le thread **O1** (vote / routeur / cascade) est une étude de **coordination**, **à côté de l'A→Z** (P1→P2→P3) — un
+  **objectif futur** (backlog), pas une brique d'EVO démontrée. (J'avais confondu *fitness* et *tâche* en voulant brancher de vraies versions
+  pour « voter des coups » — O1 n'est pas la ligne `se copie → communiquent → générations`.)
 
-- ⚠️ **MUSCLE TEST (2026-06-26, gros échantillons + plusieurs seeds — `evo_p3_robust.js`, `evo_o1_robust.js`)** — *à la demande de Rem,
-  « muscler les preuves avant tout visuel ». Résultats qui CORRIGENT des affirmations ci-dessus :*
-  - **P3 — le gain est un WASH, pas un bond.** Sur **6 seeds** (paires de parents tirées au hasard), held-out 80 mots vs référence fixe :
-    l'enfant ≥ ses 2 parents **4/6** seulement, et surtout l'enfant vs **la référence** : **Δwinrate −0,18 pt**, **Δerreurs 0,000/partie** en
-    moyenne (bat la réf 4/6, perd 2/6). Le « champion 97 % vs réf 96 % » (gén 1, seed unique) était **spécifique à la seed**. Honnête :
-    *le croisement produit un enfant AU MOINS aussi bon, parfois un peu meilleur sur les erreurs, mais winrate quasi inchangé (saturé ~97 %).
-    Pas de « meilleure version d'OMEGA » robuste — un match nul contre une config de référence déjà tunée.*
-  - **O1 — la division du travail est FALSIFIÉE hors échantillon.** Stratégie fixe (routeur K=80) testée sur **300 mots × 6 seeds** :
-    l'équipe **PERD vs le meilleur monolithe sur 6/6 seeds**, Δ moyen **−2,95 pt**. Le « équipe 72,5 % > monolithe 67,5 % » était un
-    **sur-apprentissage** (K choisi sur les mêmes 80 mots). Le monolithe-cohorte est un **généraliste fort** que router à la main DÉGRADE.
-    (Et rappel : O1 reste un **proxy** — heuristiques, jamais `omegaStep`.)
-  - **Bilan muscle (in-lex)** : seul **P1 (se copie)** tient solidement (byte-exact + falsification, vrai moteur). **P2** = fait réel mais modeste
-    (une tâche fait *payer* un signal appris ; PAS deux instances qui dialoguent). **P3** = mécanisme OK, **ampleur ≈ nulle**. **O1** =
-    **négatif** (la coordination ne bat pas le généraliste). À ~97 % de winrate, OMEGA est **près d'un plafond** : peu de place pour « évoluer mieux ».
+- 🔬 **STRESS-TEST des AMPLEURS (2026-06-26 — Rem : « muscler les preuves avant le visuel » ; `evo_p3_robust.js`, `evo_o1_robust.js`)** —
+  *précise l'A→Z démontré (Bilan + audit ci-dessous), ne le falsifie pas :*
+  - **P3 in-lex — on ne dépasse pas une réf DÉJÀ TUNÉE (plafond), mais la lignée tient.** Croisement *one-shot* de parents aléatoires vs réf
+    tunée (6 seeds, held-out 80) = **match nul** (Δwinrate ≈ 0, Δerr ≈ 0). ⚠️ **N'infirme PAS la lignée P3(b)** (qui part d'une version *faible*,
+    err 1,40 → 1,163, held-out ✅) : au plafond in-lex (~97 %) il n'y a pas de marge pour battre une bonne réf, mais l'**évolution depuis un point
+    faible marche** (mesuré, P3(b)). Les deux sont vrais — c'est une **borne d'ampleur**, pas une falsification. Le « 97 vs 96 » 1-seed d'`evo_generations` était optimiste.
+  - **O1 (backlog, PAS l'A→Z) — la division ne généralise pas.** Routeur K=80 fixe, **300 mots × 6 seeds** : équipe **−2,95 pt vs monolithe,
+    0/6** (le « 72,5 % > 67,5 % » était sur-appris sur 80 mots). O1 reste un **proxy** (heuristiques, jamais `omegaStep`) et un **objectif futur** —
+    honnêtement négatif **pour le backlog**, sans toucher à EVO (P1/P2/P3).
+  - **Ce que ça change vraiment** : l'A→Z (P1 ✅ se copie, P2 ✅ communiquent, P3 ✅ générations) **tient** ; ce stress-test **borne les ampleurs
+    in-lex** (modestes, plafond ~97 %) et **écarte le backlog O1**. Le **vrai relief** est ailleurs → l'OOV ci-dessous.
 
-- ✅ **RETOURNEMENT OOV (2026-06-26 — idée de Rem : « chercher l'évolution où il reste du JEU » ; `evo_oov_*.js`)** : en hors-lexique
-  (Trexquant), OMEGA n'est **PAS au plafond** (~55-66 %) → le génome **a de la prise**. *D'abord* le bon terrain : la config OOV optimale est
+- ✅ **EXTENSION OOV de P3 — l'évolution EN GRAND, là où il reste de la marge (2026-06-26 — idée de Rem : « chercher l'évolution où il reste
+  du JEU » ; `evo_oov_*.js`)** : même mécanisme que P3 (sélection sur le génome param, le pendu juge), mais en **hors-lexique** (Trexquant) où
+  OMEGA n'est **PAS au plafond** (~55-66 %) → le génome **a de la prise**. *D'abord* le bon terrain : la config OOV optimale est
   **`OS_ARB` seul** (~63 %, le gap-aware **dégradait** ici ; pointeur toggles de Rem). *Puis* le levier : **`M_NEO_OS_ARB_CONF`** — monter le seuil
   de l'arbitrage sublexical fait **défférer les guesses peu sûrs** (au lieu de les jouer). **Mesure HORS ÉCHANTILLON** (valeur 0,30 choisie sur
-  seed 12345, testée sur **5 autres seeds**) : **+14,0 pt en moyenne (σ 1,1), 5/5 seeds**, ~58 % → **~72 %**. **Première vraie évolution d'OMEGA,
-  robuste et out-of-sample.** **✓ PARETO confirmé** (`evo_oov_pareto.js`, 3 seeds) : arbConf 0→0,30 = **+18 pt OOV ET +1,3 pt in-lex**
+  seed 12345, testée sur **5 autres seeds** + gros N 350 mots) : **+~17 pt en moyenne, 5/5 seeds**, ~57 % → **~74 %**. **Le gain d'évolution le
+  plus NET mesuré du projet** (P3 dans le régime à marge), robuste out-of-sample. **✓ PARETO confirmé** (`evo_oov_pareto.js`, 3 seeds) : arbConf 0→0,30 = **+18 pt OOV ET +1,3 pt in-lex**
   (meilleur partout, pire nulle part ; le défaut moteur `0,0` était sous-optimal). ⚠️ *Caveat restant* : l'absolu ~75-79 % OOV **dépasse la
   bande SOTA (65-68 %)** sur petits échantillons (100 mots) → à confirmer sur **gros N**. Le **gain relatif (Pareto) est solide**. ⟵ **La leçon** : l'évolution se voit là où il y a de la
   MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler les preuves + viser l'OOV) étaient justes.
@@ -211,6 +208,11 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
 **P3 générations** ✅ (sélection tri-critère + croisement améliorent la fitness de génération en génération). Reste : raffinements
 (politique relative au mot, variation par code bPC réel, prédicteur hiérarchique). *Tout mesuré, commité, honnête (y compris les
 erreurs de couche corrigées et le premier learner P2 qui échouait).*
+
+> **Stress-test + extension (26/06, Rem)** — *ne remet pas en cause l'A→Z, le précise* : les ampleurs **in-lex** sont **modestes**
+> (plafond ~97 %, gains sur la 2ᵉ clé/erreurs) et le **backlog O1 (groupe) ne généralise pas** (proxy, falsifié hors échantillon).
+> **Mais** l'évolution P3 donne un **gain NET en hors-lexique** — gène `M_NEO_OS_ARB_CONF`, **Pareto +~17 pt OOV**, robuste sur 10 seeds —
+> *là où il reste de la marge*. ⇒ **l'A→Z tient ; son plus haut relief est en OOV.** (Détail : bloc « stress-test » + « extension OOV » de l'État.)
 
 > **Audit indépendant (06/2026)** — re-run des 13 briques EVO et comparaison aux chiffres de cette roadmap : **fidèle, aucun
 > surclamage** ; tous les chiffres-titres reproduisent (souvent à la décimale). Corrigés depuis : quelques **absolus périmés**
