@@ -187,10 +187,20 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
     l'équipe **PERD vs le meilleur monolithe sur 6/6 seeds**, Δ moyen **−2,95 pt**. Le « équipe 72,5 % > monolithe 67,5 % » était un
     **sur-apprentissage** (K choisi sur les mêmes 80 mots). Le monolithe-cohorte est un **généraliste fort** que router à la main DÉGRADE.
     (Et rappel : O1 reste un **proxy** — heuristiques, jamais `omegaStep`.)
-  - **Bilan muscle** : seul **P1 (se copie)** tient solidement (byte-exact + falsification, vrai moteur). **P2** = fait réel mais modeste
+  - **Bilan muscle (in-lex)** : seul **P1 (se copie)** tient solidement (byte-exact + falsification, vrai moteur). **P2** = fait réel mais modeste
     (une tâche fait *payer* un signal appris ; PAS deux instances qui dialoguent). **P3** = mécanisme OK, **ampleur ≈ nulle**. **O1** =
     **négatif** (la coordination ne bat pas le généraliste). À ~97 % de winrate, OMEGA est **près d'un plafond** : peu de place pour « évoluer mieux ».
+
+- ✅ **RETOURNEMENT OOV (2026-06-26 — idée de Rem : « chercher l'évolution où il reste du JEU » ; `evo_oov_*.js`)** : en hors-lexique
+  (Trexquant), OMEGA n'est **PAS au plafond** (~55-66 %) → le génome **a de la prise**. *D'abord* le bon terrain : la config OOV optimale est
+  **`OS_ARB` seul** (~63 %, le gap-aware **dégradait** ici ; pointeur toggles de Rem). *Puis* le levier : **`M_NEO_OS_ARB_CONF`** — monter le seuil
+  de l'arbitrage sublexical fait **défférer les guesses peu sûrs** (au lieu de les jouer). **Mesure HORS ÉCHANTILLON** (valeur 0,30 choisie sur
+  seed 12345, testée sur **5 autres seeds**) : **+14,0 pt en moyenne (σ 1,1), 5/5 seeds**, ~58 % → **~72 %**. **Première vraie évolution d'OMEGA,
+  robuste et out-of-sample.** ⚠️ *Caveats* : ~72 % **dépasse la bande SOTA (65-68 %)** → absolu à confirmer (plus gros N, œil externe) ; effet
+  **in-lex** pas encore caractérisé ; 1 config. Mais le **gain relatif est solide**. ⟵ **La leçon** : l'évolution se voit là où il y a de la
+  MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler les preuves + viser l'OOV) étaient justes.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
+- ⏳ **Suite OOV** : caractériser l'effet in-lex d'`arbConf` (Pareto ou trade-off ?) ; balayer 0,30→0,60 ; plus gros N pour l'absolu.
 
 ---
 
