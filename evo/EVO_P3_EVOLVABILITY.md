@@ -54,7 +54,11 @@ Même moteur, même méthode (spectre de mutation, état remis à zéro entre é
   **Résultat mesuré** (8 générations, départ perturbé autour de la référence) : la référence donne err **1,40** / winrate 92,5 % ;
   la lignée **descend** à err **1,163** / winrate **95,0 %** — soit **−0,237 d'erreur SOUS la référence, winrate maintenu (mieux)**.
   ⇒ sur le bon génome, les générations **trouvent une meilleure version** (croisement blend + sélection exploitent les 30 %
-  d'erreurs utiles). *Caveat honnête : mesuré sur 80 mots len-7 ; une validation held-out confirmerait la généralisation.*
+  d'erreurs utiles).
+- **✓ Validé en HELD-OUT (`evo_p3_holdout.js`)** : le génome gagnant `{conf 0.48, marge 0.25, pén 0.71}` rejoué sur des mots
+  **non vus** — **len-7 frais : 95,0 % / err 1,195 vs réf 94,0 % / 1,275** (meilleur), et **len 8-10 (autre distribution) :
+  98,5 % / 0,890 vs réf 98,5 % / 0,895** (neutre, ne nuit pas). ⇒ **généralise : vraie meilleure version, pas du tuning local
+  au set d'entraînement.** L'amélioration est réelle dans le régime dur (len-7) et inoffensive ailleurs.
 
 ## Sources
 
