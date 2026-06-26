@@ -179,3 +179,30 @@ erreurs de couche corrigées et le premier learner P2 qui échouait).*
 > surclamage** ; tous les chiffres-titres reproduisent (souvent à la décimale). Corrigés depuis : quelques **absolus périmés**
 > (le corpus evo/ a grossi → rendus en ratios/%), `bits/token 6,16→~6`, et le **croisement len-22 (n=8)** clarifié comme
 > *seed-bruité, non concluant* (les gains du croisement restent robustes len 7→18). Raffinement P2+ ajouté (plafond 98,7 % atteint).
+
+---
+
+## Objectifs futurs (backlog — ⛔ NON faits, planifiés ; à mesurer avant de croire)
+
+### 🆕 O1 — TRAVAIL DE GROUPE / objectif commun (Rem)
+Passer des **2 instances** de P2 (pendu référentiel) à un **GROUPE** (N>2) qui coopère vers un **but partagé** : spécialisation de
+rôles, **division du travail**, résolution collective, consensus/vote. Construit sur P2 (langage émergent) + P3 (générations qui
+produisent des **versions spécialisées** susceptibles de coopérer).
+- **Crux (comme P2)** : quelle tâche **récompense la COOPÉRATION** — qu'un seul agent ne résout pas, mais que le groupe oui ?
+  (ex. problème trop dur en solo → division ; ou agrégation/vote qui bat le meilleur individu). Sans pression coopérative, pas de groupe.
+- **Première brique mesurable** : 1 tâche où la perf du groupe > meilleur solo (sinon le groupe est inutile), puis émergence de rôles.
+- Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
+
+### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
+Le pendu a été **la** fitness unique de tout EVO → risque de **spécialisation pendu**. Évaluer les versions sur une **SUITE de tâches**
+(le même substrat cognitif pointé ailleurs) — une version n'est « meilleure » que si elle **progresse sur la suite**, pas juste le pendu.
+- **Tâches candidates, déjà présentes dans le repo** : correcteur **dys** (FP=0), **décompo dictée** (`decompose.py`), **copie de
+  code** (P1), **complétion** de mots, généralisation **OOV/Trexquant**, **pendu de phrase** (`evo/PHRASE_HANGMAN_PROBE.md`).
+- **But** : tester la **généralité cognitive réelle** (cf. discussion « OMEGA global » : le noyau = double-route + arbitrage +
+  apprentissage gardé, pointé sur plusieurs canaux). Anti-overfit : la sélection P3 doit optimiser un **vecteur de fitness multi-tâches**, pas un scalaire pendu.
+- **Première brique** : un **harnais multi-tâches** (≥2 tâches scorées) + une fitness agrégée (Pareto ou pondérée) branchée sur la lignée P3.
+
+### Reportés (déjà identifiés)
+- **O3 — Génome plus riche** : évoluer les **poids** bPC/readout, **θ=(α,β)**, **règles g2p apprises** (pas seulement les 3 seuils NEO).
+- **O4 — Variation de code par GRAMMAIRE** : **Grammatical Evolution** → muter le source **sans le casser** (vs 75 % létal du source brut, cf. `EVO_P3_EVOLVABILITY.md`).
+- **O5 — Lignée P3 avec isolation par process** : pour évoluer du **code** (pas que des params) en multi-générations sans contamination d'état.
