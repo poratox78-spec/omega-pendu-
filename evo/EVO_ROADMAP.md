@@ -167,6 +167,14 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   winrate maintenu** ⇒ les générations **trouvent une meilleure version** (les 30 % d'erreurs utiles exploitées). **✓ HELD-OUT
   validé** (`evo_p3_holdout.js`) : meilleur sur len-7 **non vus** (95,0 % / 1,195 vs réf 94,0 % / 1,275), neutre sur len 8-10
   (autre distrib) → **généralise, pas du tuning local**. C'est « inventer une meilleure version d'OMEGA », **proprement, sur le bon génome.**
+- ✅ **LE LOOP EVO — CŒUR (`evo_generations.js`)** : la vraie boucle de la vision. Deux **versions** d'OMEGA (génomes params)
+  **combinent leurs génomes** (« communiquent » → recombinaison **jugée par le pendu**) → fabriquent un **enfant MEILLEUR que ses
+  deux parents** (gén 1 : **90 %** vs parents 87,5 / 90 %, err ↓) ; on **croise les générations** (l'enfant se marie avec la
+  précédente). **✓ Held-out** (100 mots non vus) : champion évolué **97 % / err 1,1** vs référence **96 % / 1,17** → vraie
+  meilleure version. **Le pendu est le JUGE, pas la tâche.** ⟵ *Re-cadrage important (Rem)* : le thread **O1** (vote / routeur /
+  cascade / coordinateur) était une étude de *coordination SUR le pendu* — utile, mais **à côté du loop EVO** (j'avais confondu
+  la **fitness** avec la **tâche**, jusqu'à vouloir brancher de vraies versions pour *voter des coups de pendu*). **Le vrai EVO,
+  c'est ICI** : des versions qui se **combinent pour fabriquer la suivante**, le pendu en juge — `se copie → communiquent → générations`.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 
 ---
