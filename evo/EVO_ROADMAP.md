@@ -200,6 +200,7 @@ produisent des **versions spécialisées** susceptibles de coopérer).
 - **Crux (comme P2)** : quelle tâche **récompense la COOPÉRATION** — qu'un seul agent ne résout pas, mais que le groupe oui ?
   (ex. problème trop dur en solo → division ; ou agrégation/vote qui bat le meilleur individu). Sans pression coopérative, pas de groupe.
 - **Première brique mesurable** : 1 tâche où la perf du groupe > meilleur solo (sinon le groupe est inutile), puis émergence de rôles.
+  ✓ **BASE posée (`evo_o1_group.js`)** : roster d'agents divers (score-lettre sur le vrai lexique) + **vote d'ensemble** (softmax) + mesure **groupe-vs-solo**. Mesuré (pendu len-7, budget serré) : le **groupe de 4 agents FORTS & divers = 70,0 %** vs **meilleur solo 68,3 %** → **la coopération PAIE (crux franchi)**, *modestement* (+1 mot/60, à robustifier sur plus d'agents/graines). **Nuance clé** : le groupe COMPLET (avec 2 agents faibles) retombe à 68,3 % — la coopération *naïve* est tirée vers le bas par les faibles. ⇒ prochaine étape : **pondérer par fiabilité** (ignorer les mauvais), puis **rôles / division du travail**.
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
 ### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
