@@ -198,7 +198,7 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   bande SOTA (65-68 %)** sur petits échantillons (100 mots) → à confirmer sur **gros N**. Le **gain relatif (Pareto) est solide**. ⟵ **La leçon** : l'évolution se voit là où il y a de la
   MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler les preuves + viser l'OOV) étaient justes.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
-- ⏳ **Suite OOV** : **gros N (300-400 mots)** pour nailer l'absolu (75 % tient-il ou régresse vers la bande ?) ; balayer arbConf 0,30→0,60 (optimum ?).
+- ✓ **Suite OOV (gros N fait)** : 350 mots × 2 seeds → l'absolu **TIENT** (~74 %, ne régresse pas). ⏳ reste : balayer arbConf 0,30→0,60 (optimum ?) ; œil externe sur l'absolu vs SOTA.
 
 ---
 
