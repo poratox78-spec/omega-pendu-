@@ -125,6 +125,12 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   consonnes informatives (`UGMCZL`). *Nuance honnête* : A converge vers le **modérément rare (apprenable)**, pas le rarissime
   (`WKJXYQ`, trop sparse → crédit non fiable, rho 0,15 **attendu**) ; le bon critère = le **winrate**, pas la corrélation à un
   optimum injoignable. ⇒ **« inventer son langage » démontré, ancré dans la tâche.**
+- ✅ **P2 (b+) — RAFFINEMENT : politique RELATIVE AU MOT → PLAFOND ATTEINT** : `evo_p2_emergent2.js`. Le learner global (b)
+  plafonnait à 96,7 % car une value **par lettre** ne capte pas « envoie la rare DU MOT ». Politique par **rang de rareté**
+  (relative au mot) + **softmax anti-lock-in** (1ʳᵉ version argmax se verrouillait sur un rang sous-optimal → diagnostiqué →
+  corrigé) : A apprend `value[rang 0]=40 ≫ autres` = « envoie la plus rare du mot », **éval held-out 98,7 % = le plafond P2(a)**.
+  ⇒ le plateau n'était **pas** un échec d'apprentissage mais une **limite de classe de politique** ; la bonne représentation
+  atteint l'optimum. *(Honnête : 1ʳᵉ tentative argmax 94,7 % — verrouillage — avant le fix softmax.)*
 - ✅ **P3 (a) — GÉNÉRATIONS & CROISEMENT (sélection mesurée)** : `evo_p3_generations.js`. Population de « versions » (génomes =
   params de cognition) sélectionnée par la **fitness tri-critère** (`fitterLex` : plancher winrate → min erreurs → min temps),
   **croisée** (crossover + mutation) sur 7 générations, mots len-7 (durs). Résultat : winrate **saturé à 100 %** (« plus de
