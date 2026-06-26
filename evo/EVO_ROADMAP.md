@@ -54,9 +54,12 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
 - ✅ **P1 (b-ter) — le CROISEMENT bat l'addition (doctrine « OMEGA est un ensemble », Rem)** : `evo_p1_cross.js` (2 graines).
   Décoder **deux routes de liage indépendantes** (shift ×1 et ×7) puis **conjuguer** leurs posteriors par position
   (croisement = *intersection des contraintes*, **≠ ajouter du bundle**) relève le **mot exact** massivement :
-  len 11 **45→70-82 %**, len 13 **47-55→62-75 %**, len 15 **23-38→50-55 %**, len 18 **20-30→45-57 %** *(gains robustes 7→18)* ; *(len 22 : n=8, trop peu — seed-bruité 25/62, non concluant)* ;
+  len 11 **45→70-82 %**, len 13 **47-55→62-75 %**, len 15 **23-38→50-55 %**, len 18 **20-30→45-57 %** ; *(len 22 : n=8, trop peu — non concluant)*.
   lettres +1-5 pts. Les pics de crosstalk diffèrent entre routes → le croisement les annule. ⇒ « **ni addition ni
   multiplication, c'est un croisement** » : *mesuré*.
+  ⚠️ **Robustesse multi-graines (sweep nuit, `EVO_ROBUSTNESS.md`)** : le gain du croisement est **SEED-DÉPENDANT** — net sur
+  2024/7 (+20 à +35 pts), mais **quasi nul sur seed 99** (routes pas assez indépendantes ce coup-là). À présenter comme un
+  **gain conditionnel à l'indépendance des routes**, *pas* garanti. (Le principe addition≠croisement tient ; le *chiffre* de gain, non universel.)
 - ✅ **P1 (c) — PIVOT VERS LE CODE** : `evo_p1_code.js` (2 graines). On arrête de polir le mot (proxy non-transférable) ; on
   copie du **vrai code** style-moteur. Équivalent phon/ortho **défini** : **surface** (caractère⊗position) × **structure**
   (classe syntaxique de la position = le « phon » du code, indépendant de l'orthographe des identifiants). Mesuré :
@@ -178,7 +181,13 @@ erreurs de couche corrigées et le premier learner P2 qui échouait).*
 > **Audit indépendant (06/2026)** — re-run des 13 briques EVO et comparaison aux chiffres de cette roadmap : **fidèle, aucun
 > surclamage** ; tous les chiffres-titres reproduisent (souvent à la décimale). Corrigés depuis : quelques **absolus périmés**
 > (le corpus evo/ a grossi → rendus en ratios/%), `bits/token 6,16→~6`, et le **croisement len-22 (n=8)** clarifié comme
-> *seed-bruité, non concluant* (les gains du croisement restent robustes len 7→18). Raffinement P2+ ajouté (plafond 98,7 % atteint).
+> *seed-bruité, non concluant*. Raffinement P2+ ajouté (plafond 98,7 % atteint).
+
+> **Sweep robustesse multi-graines (nuit 25→26/06, `evo/EVO_ROBUSTNESS.md`)** — **CI 27/27 ✅** (sans même le quirk bake) ;
+> 4/4 briques déterministes (quine, bon-génome, lignée, held-out) tiennent leur verdict ; `evo_p1_code`/`evo_p1_fidelity`
+> **stables** sur toutes les graines. **À nuancer** : le **mot exact aux grandes longueurs** (copie VSA brute) et surtout le
+> **gain du croisement** sont **partiellement seed-dépendants** (seed 99 les abaisse). Les claims *structurels* tiennent ; les
+> *chiffres de mot-exact long isolés* ne sont pas garantis — ne pas les citer hors contexte.
 
 ---
 
