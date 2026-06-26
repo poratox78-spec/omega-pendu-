@@ -47,6 +47,56 @@
 </div></section>
 
 <section><div class="wrap">
+  <h2>Quand OMEGA <em>évolue</em></h2>
+  <p>Au-delà de jouer, OMEGA peut <strong>se copier</strong>, <strong>varier</strong> et <strong>être sélectionné</strong> par le pendu lui-même&nbsp;: une <strong>boucle darwinienne</strong> sur un moteur cognitif. Il reconstruit son propre code de décision — la copie est <em>vérifiée à l'octet près</em>, et le pendu rejoue à l'identique — puis une variation le modifie, et la fitness du jeu garde le meilleur.</p>
+
+  <svg viewBox="0 0 760 252" role="img" style="width:100%;height:auto;margin:12px 0" xmlns="http://www.w3.org/2000/svg">
+    <title>La boucle évolutionnaire d'OMEGA</title>
+    <desc>Se reproduire (copie vérifiée), puis varier (le génome = les paramètres), puis sélectionner (la fitness du pendu), répété de génération en génération. Phases P1 se copie, P2 communiquent, P3 générations : faites ; travail de groupe et mesure multi-usage : à venir.</desc>
+    <defs><marker id="evah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b8cf6"/></marker></defs>
+    <g>
+      <rect x="75"  y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
+      <rect x="305" y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
+      <rect x="535" y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
+    </g>
+    <g text-anchor="middle" font-family="system-ui,-apple-system,sans-serif">
+      <text x="150" y="48" font-size="22">🧬</text><text x="150" y="74" font-size="12.5" font-weight="700" fill="#e6edf3">SE REPRODUIRE</text><text x="150" y="93" font-size="10" fill="#9aa4af">copie vérifiée ✓</text>
+      <text x="380" y="48" font-size="22">🎲</text><text x="380" y="74" font-size="12.5" font-weight="700" fill="#e6edf3">VARIER</text><text x="380" y="93" font-size="10" fill="#a3d977">génome = paramètres</text>
+      <text x="610" y="48" font-size="22">🎯</text><text x="610" y="74" font-size="12.5" font-weight="700" fill="#e6edf3">SÉLECTIONNER</text><text x="610" y="93" font-size="10" fill="#9aa4af">fitness du pendu</text>
+    </g>
+    <line x1="229" y1="64" x2="299" y2="64" stroke="#5b8cf6" stroke-width="1.5" marker-end="url(#evah)"/>
+    <line x1="459" y1="64" x2="529" y2="64" stroke="#5b8cf6" stroke-width="1.5" marker-end="url(#evah)"/>
+    <path d="M610,111 C610,168 150,168 150,114" fill="none" stroke="#5b8cf6" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#evah)"/>
+    <text x="380" y="158" text-anchor="middle" font-size="10.5" fill="#9aa4af" font-family="system-ui,sans-serif">génération suivante</text>
+    <g font-size="11" text-anchor="middle" font-family="system-ui,sans-serif">
+      <rect x="20"  y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="104" y="214" fill="#e6edf3" font-weight="600">P1 · se copie</text><text x="104" y="229" fill="#a3d977" font-size="9.5">quine vérifié ✓</text>
+      <rect x="204" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="288" y="214" fill="#e6edf3" font-weight="600">P2 · communiquent</text><text x="288" y="229" fill="#a3d977" font-size="9.5">langage émergent ✓</text>
+      <rect x="388" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="472" y="214" fill="#e6edf3" font-weight="600">P3 · générations</text><text x="472" y="229" fill="#a3d977" font-size="9.5">meilleure version ✓</text>
+      <rect x="572" y="196" width="168" height="40" rx="9" fill="none" stroke="#d8922e" stroke-width="1.1" stroke-dasharray="5 4"/><text x="656" y="214" fill="#d8922e" font-weight="600">demain</text><text x="656" y="229" fill="#d8922e" font-size="9.5">groupe · multi-usage</text>
+    </g>
+  </svg>
+
+  <p>Mais une mutation n'est <em>utile</em> que si l'on mute le <strong>bon niveau</strong>. Muter le <em>code source</em> casse presque tout — aucune amélioration possible. Muter les <em>paramètres</em> ouvre un paysage lisse où <strong>30 %</strong> des mutations sont bénéfiques&nbsp;: c'est l'<strong>évolvabilité</strong> (Wagner &amp; Altenberg, 1996). Basculez&nbsp;:</p>
+
+  <div class="evo-genome" data-g="src">
+    <div class="eg-tog">
+      <button type="button" data-set="src" class="on">muter le SOURCE</button>
+      <button type="button" data-set="par">muter les PARAMÈTRES</button>
+    </div>
+    <div class="eg-bars">
+      <div class="eg-row"><span class="eg-lab">💀 létales</span><div class="eg-track"><div class="eg-fill" data-k="letal" style="background:var(--bad,#f47174)"></div></div><span class="eg-val" data-v="letal"></span></div>
+      <div class="eg-row"><span class="eg-lab">🔻 délétères</span><div class="eg-track"><div class="eg-fill" data-k="delet" style="background:var(--warn,#d8922e)"></div></div><span class="eg-val" data-v="delet"></span></div>
+      <div class="eg-row"><span class="eg-lab">⚪ neutres</span><div class="eg-track"><div class="eg-fill" data-k="neutre" style="background:var(--fg-2,#9aa4af)"></div></div><span class="eg-val" data-v="neutre"></span></div>
+      <div class="eg-row"><span class="eg-lab">🔼 utiles</span><div class="eg-track"><div class="eg-fill" data-k="benef" style="background:var(--accent-2,#a3d977)"></div></div><span class="eg-val" data-v="benef"></span></div>
+    </div>
+    <div class="eg-hl">erreurs <b>utiles</b>&nbsp;: <span class="eg-big" data-v="benef"></span></div>
+    <p class="eg-vd"></p>
+  </div>
+
+  <p class="note">Mesuré bout-à-bout&nbsp;: <strong>P1</strong> se copie (quine vérifié), <strong>P2</strong> communiquent (un code émerge du seul reward), <strong>P3</strong> générations (une meilleure version trouvée, validée hors-échantillon). Certains chiffres aux grandes longueurs restent seed-dépendants — gardés tels quels. Détail&nbsp;: <code>evo/EVO_ROADMAP.md</code>, <code>evo/EVO_P3_EVOLVABILITY.md</code>.</p>
+</div></section>
+
+<section><div class="wrap">
   <h2>Le substrat partagé&nbsp;: la double route phono↔ortho</h2>
   <p>Pendu et correcteur sont la même machine pointée dans deux directions sur le canal <strong>son ↔ écriture</strong>&nbsp;:</p>
   <ul class="clean">
@@ -124,6 +174,18 @@
   function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
   try{if(localStorage.getItem(k))set(true);}catch(e){}
   t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+(function(){
+  var D={src:{letal:75,delet:3,neutre:23,benef:0,vd:"Génome = <b>tokens du source</b>&nbsp;: un changement touche tout (pléiotropie maximale) → 75&nbsp;% cassent, <b>0 erreur utile</b>. Paysage brisé."},
+         par:{letal:0,delet:13,neutre:57,benef:30,vd:"Génome = <b>paramètres / poids</b>&nbsp;: faible pléiotropie, paysage lisse → 0 létal, <b>30&nbsp;% d'erreurs utiles</b>. C'est l'évolvabilité."}};
+  var el=document.querySelector('.evo-genome'); if(!el)return;
+  function render(g){var d=D[g];el.setAttribute('data-g',g);
+    el.querySelectorAll('.eg-fill').forEach(function(f){f.style.width=d[f.dataset.k]+'%';});
+    el.querySelectorAll('[data-v]').forEach(function(s){s.textContent=d[s.dataset.v]+' %';});
+    el.querySelector('.eg-vd').innerHTML=d.vd;
+    el.querySelectorAll('.eg-tog button').forEach(function(b){b.classList.toggle('on',b.dataset.set===g);});}
+  el.querySelectorAll('.eg-tog button').forEach(function(b){b.addEventListener('click',function(){render(b.dataset.set);});});
+  render('src');
+})();
 </script>
 </body>
 </html>

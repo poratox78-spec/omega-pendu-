@@ -68,3 +68,23 @@ blockquote{margin:18px 0;padding:6px 0 6px 18px;border-left:4px solid var(--line
 footer{border-top:1px solid var(--line);margin-top:48px;padding:26px 0;color:var(--fg-2);font-size:14px}
 footer a{color:var(--fg-2)}
 code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:.92em;background:var(--bg-3);padding:1px 5px;border-radius:5px}
+
+/* — démo évolvabilité (recherche.html) — */
+.evo-genome{margin:16px 0;max-width:560px}
+.eg-tog{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.eg-tog button{font:inherit;font-size:14px;font-weight:600;padding:9px 15px;border-radius:9px;cursor:pointer;background:var(--bg-2);color:var(--fg-2);border:1.5px solid var(--line);min-height:38px}
+.eg-tog button:hover{color:var(--fg)}
+.evo-genome[data-g="src"] .eg-tog button.on{background:var(--bad);color:#0d1117;border-color:transparent}
+.evo-genome[data-g="par"] .eg-tog button.on{background:var(--accent-2);color:#0d1117;border-color:transparent}
+.eg-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:14px}
+.eg-row{display:grid;grid-template-columns:92px 1fr 46px;align-items:center;gap:10px;font-size:14px}
+.eg-lab{color:var(--fg-2);text-align:right}
+.eg-track{height:16px;border-radius:8px;background:var(--bg-3);overflow:hidden}
+.eg-fill{height:100%;width:0;border-radius:8px;transition:width .55s cubic-bezier(.2,.7,.2,1)}
+.eg-val{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg)}
+.eg-hl{text-align:center;font-size:15px;padding:11px;border-radius:11px;border:1px solid var(--line);background:var(--bg-2);margin-bottom:10px}
+.eg-big{font-family:var(--serif);font-size:28px;font-weight:800;vertical-align:-3px}
+.evo-genome[data-g="src"] .eg-big{color:var(--bad)}
+.evo-genome[data-g="par"] .eg-big{color:var(--accent-2)}
+.eg-vd{font-size:15px;color:var(--fg-2);margin:0;text-align:center;line-height:1.55}
+.eg-vd b{color:var(--fg)}
