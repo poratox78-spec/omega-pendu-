@@ -1,5 +1,11 @@
 # Pendu — les VRAIES règles des solveurs (état de l'art) & repère pour OMEGA
 
+> ⚠️ **PARTIELLEMENT PÉRIMÉ (mise à jour 2026-06-27).** Ce doc date du **18/06**, soit la **veille** du résultat **gap-aware**.
+> Sa conclusion §3.2 (« le vrai OOV d'OMEGA ~33 % est *sous* le plancher n-gram ~50 %, généralise *moins bien* qu'un n-gram »)
+> est **SUPERSÉDÉE** : la voie **n-gram gap-aware** (mesurée le 19/06, `AUDIT_OMEGA §1.10`) porte l'OOV cheat-free à **~63-65 %**,
+> soit **+17 pts AU-DESSUS** d'un étalon n-gram standard — c'est désormais la thèse du site public (`recherche.html`, README).
+> Le reste du doc (setup Trexquant, repères SOTA 50/65-68 %, les deux régimes) **reste valide** comme repère. Ne pas citer §3.2.
+
 > Recherche multi-sources (2026-06-18) sur les algorithmes réellement utilisés par les solveurs de pendu, pour
 > **benchmarker OMEGA en VRAI hors-lexique** (après la découverte de la fuite `_neoWBL` : le « 97 % OOV » était de
 > l'in-lexique déguisé — cf. `AUDIT_OMEGA §1.6.1`).
