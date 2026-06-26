@@ -175,6 +175,21 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   cascade / coordinateur) était une étude de *coordination SUR le pendu* — utile, mais **à côté du loop EVO** (j'avais confondu
   la **fitness** avec la **tâche**, jusqu'à vouloir brancher de vraies versions pour *voter des coups de pendu*). **Le vrai EVO,
   c'est ICI** : des versions qui se **combinent pour fabriquer la suivante**, le pendu en juge — `se copie → communiquent → générations`.
+
+- ⚠️ **MUSCLE TEST (2026-06-26, gros échantillons + plusieurs seeds — `evo_p3_robust.js`, `evo_o1_robust.js`)** — *à la demande de Rem,
+  « muscler les preuves avant tout visuel ». Résultats qui CORRIGENT des affirmations ci-dessus :*
+  - **P3 — le gain est un WASH, pas un bond.** Sur **6 seeds** (paires de parents tirées au hasard), held-out 80 mots vs référence fixe :
+    l'enfant ≥ ses 2 parents **4/6** seulement, et surtout l'enfant vs **la référence** : **Δwinrate −0,18 pt**, **Δerreurs 0,000/partie** en
+    moyenne (bat la réf 4/6, perd 2/6). Le « champion 97 % vs réf 96 % » (gén 1, seed unique) était **spécifique à la seed**. Honnête :
+    *le croisement produit un enfant AU MOINS aussi bon, parfois un peu meilleur sur les erreurs, mais winrate quasi inchangé (saturé ~97 %).
+    Pas de « meilleure version d'OMEGA » robuste — un match nul contre une config de référence déjà tunée.*
+  - **O1 — la division du travail est FALSIFIÉE hors échantillon.** Stratégie fixe (routeur K=80) testée sur **300 mots × 6 seeds** :
+    l'équipe **PERD vs le meilleur monolithe sur 6/6 seeds**, Δ moyen **−2,95 pt**. Le « équipe 72,5 % > monolithe 67,5 % » était un
+    **sur-apprentissage** (K choisi sur les mêmes 80 mots). Le monolithe-cohorte est un **généraliste fort** que router à la main DÉGRADE.
+    (Et rappel : O1 reste un **proxy** — heuristiques, jamais `omegaStep`.)
+  - **Bilan muscle** : seul **P1 (se copie)** tient solidement (byte-exact + falsification, vrai moteur). **P2** = fait réel mais modeste
+    (une tâche fait *payer* un signal appris ; PAS deux instances qui dialoguent). **P3** = mécanisme OK, **ampleur ≈ nulle**. **O1** =
+    **négatif** (la coordination ne bat pas le généraliste). À ~97 % de winrate, OMEGA est **près d'un plafond** : peu de place pour « évoluer mieux ».
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 
 ---
@@ -234,6 +249,8 @@ produisent des **versions spécialisées** susceptibles de coopérer).
   de cohorte**, 72,5 %) · CASCADE (chaîne de confiance, 65 % — **échoue**) · COORDINATEUR APPRIS (**reward-partie**, 72,5 %, émergent).
   **Le *mécanisme* compte moins que le SIGNAL qu'il utilise** : taille-de-cohorte et issue-de-partie sont *bons* ; correction-par-coup
   (myope) et top-fraction (cascade) sont *mauvais*. La coordination vaut ce que vaut son signal.
+  ⚠️ **CAVEAT (voir MUSCLE TEST plus haut)** : ces chiffres O1 (72,5 % etc.) viennent de **80 mots** et d'un K **sur-appris**. Sur
+  **300 mots × 6 seeds**, l'avantage de division **disparaît** (équipe −2,95 pt vs monolithe, 0/6). À ne PAS présenter comme un gain établi.
 - ⏳ **Suite O1** : brancher de **vraies versions OMEGA** (générations P3) comme agents ; le **langage P2** comme canal réel.
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
