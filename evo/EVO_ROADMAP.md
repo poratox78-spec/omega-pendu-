@@ -219,8 +219,14 @@ produisent des **versions spécialisées** susceptibles de coopérer).
   ⇒ le premier « échec » du point 3 était un **artefact de mauvais objectif** (j'optimisais « toucher des lettres », pas « gagner ») ;
   avec l'**issue de partie**, la coordination émergente **rejoint le hand-design**. **L'intégration O1+P2+P3 tient** (versions diverses
   + société + protocole *appris*) et le bon signal = **l'issue de PARTIE**. *(Bug attrapé : `g.add` oublié → boucle infinie ; corrigé.)*
-- ⏳ **Suite O1** : brancher de **vraies versions OMEGA** (générations P3) comme agents (pas des heuristiques proxy) ; le **langage P2**
-  comme canal de coordination réel (au lieu d'un routeur par bucket).
+- ✓ **Bonus — JOUER EN CASCADE (`evo_o1_cascade.js`)** : les agents en chaîne de priorité (façon *cascade des declares* d'OMEGA :
+  le 1er confiant tranche, sinon il cède). Mesuré : **65 % < monolithe 67,5 %** — *échoue*. POURQUOI : la cascade cède à l'ouvreur
+  dès que la cohorte n'est pas nette, mais l'ouvreur n'est bon **que très tôt** ; la confiance par *top-fraction* n'isole pas ce régime.
+- 🔑 **Synthèse O1 — 3 mécanismes de coordination, et LA leçon** : VOTE (ensemble, groupe>solo modeste) · ROUTEUR (gate par **taille
+  de cohorte**, 72,5 %) · CASCADE (chaîne de confiance, 65 % — **échoue**) · COORDINATEUR APPRIS (**reward-partie**, 72,5 %, émergent).
+  **Le *mécanisme* compte moins que le SIGNAL qu'il utilise** : taille-de-cohorte et issue-de-partie sont *bons* ; correction-par-coup
+  (myope) et top-fraction (cascade) sont *mauvais*. La coordination vaut ce que vaut son signal.
+- ⏳ **Suite O1** : brancher de **vraies versions OMEGA** (générations P3) comme agents ; le **langage P2** comme canal réel.
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
 ### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
