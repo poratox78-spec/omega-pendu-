@@ -209,8 +209,17 @@ produisent des **versions spécialisées** susceptibles de coopérer).
   cohorte) : **ouvreur** (positionnel/fréquence) tôt, **finisseur** (cohorte) tard. Mesuré (len-7, budget serré) : l'**équipe =
   72,5 %** > **meilleur monolithe 67,5 %** (+5 pts/4 mots), gain **robuste sur la plage K=20→150**. Le point-clé : l'**ouvreur
   seul = 2,5 %** (inutile isolé) mais **précieux dans l'équipe** — il couvre l'ouverture que la cohorte rate. *C'est la vraie
-  division : chaque rôle résout une phase que l'autre échoue.* Reste O1 : vraies versions OMEGA (générations P3) comme agents
-  + langage P2 comme canal de coordination.
+  division : chaque rôle résout une phase que l'autre échoue.*
+  ✓ **Point 3 — COORDINATION ÉMERGENTE (`evo_o1_emergent.js`)** : la société d'agents apprend, **du seul reward**, un protocole de
+  routage par phase (contexte = taille de cohorte) — le « langage » de P2 appliqué au groupe d'O1. **Honnête** : la **FIABILITÉ
+  émerge** (il ne route que vers des agents compétents, jamais les faibles) ; **mais la DIVISION subtile N'émerge PAS** — il ne
+  redécouvre pas qu'il faut l'**ouvreur (nul seul) TÔT**. Il **égale** le monolithe (67,5 %), sans atteindre le routeur câblé
+  (72,5 %). *Cause* : reward **par coup** (« lettre correcte ? ») **myope** — ne crédite pas la valeur *séquentielle* (l'ouvreur
+  qui prépare le finisseur). *Fix* : crédit au niveau **partie** (même défi de credit-assignment qu'en P2). ⇒ **l'intégration
+  O1+P2+P3 tient** (versions diverses + société + protocole de coordination *appris, pas codé*) ; la division subtile attend un
+  meilleur reward. *(Bug attrapé en route : `g.add` oublié dans l'entraînement → boucle infinie ; corrigé.)*
+- ⏳ **Suite O1** : reward au niveau partie pour faire émerger la division ; brancher de **vraies versions OMEGA** (générations P3)
+  comme agents (pas des heuristiques proxy) ; le **langage P2** comme canal de coordination réel.
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
 ### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
