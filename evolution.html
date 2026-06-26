@@ -3,39 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OMEGA-Ω — l'évolution : se copie, communique, fait des générations (en direct)</title>
-<meta name="description" content="La boucle évolutionnaire d'OMEGA : une sphère Ω se copie (P1), communique (P2), évolue par générations (P3). Animation fidèle aux mesures + run du VRAI moteur en direct sur le site déployé.">
+<title>OMEGA-Ω — l'évolution : regarde-le jouer, se copier, évoluer</title>
+<meta name="description" content="OMEGA joue le pendu sous tes yeux — le mot se remplit, les lettres tombent — pendant qu'il se copie (P1), communique (P2) et évolue (P3). Vrai moteur en direct sur le site déployé.">
 <link rel="stylesheet" href="site.css">
 <style>
   .ev-wrap{max-width:1000px}
-  .evo-stage{position:relative;border-radius:var(--radius,14px);background:radial-gradient(120% 90% at 50% 18%,#10161f,#0b0f15);border:1px solid var(--line,#2a323c);overflow:hidden}
-  .evo-stage canvas{display:block;width:100%;height:auto}
-  .evo-cap{position:absolute;left:0;right:0;bottom:0;padding:14px 18px 16px;background:linear-gradient(0deg,rgba(8,11,16,.93),rgba(8,11,16,0))}
-  .evo-cap .t{font-size:clamp(15px,2.4vw,19px);font-weight:700;color:var(--fg,#e6edf3);margin:0}
-  .evo-cap .s{font-size:clamp(12px,1.7vw,13.5px);color:var(--fg-2,#9aa4af);margin:3px 0 0;min-height:1.2em}
-  .evo-gen{position:absolute;top:12px;right:14px;font-size:12px;color:var(--fg-2,#9aa4af);background:rgba(8,11,16,.6);border:1px solid var(--line,#2a323c);border-radius:999px;padding:4px 11px}
-  .evo-gen b{color:var(--accent-2,#a3d977)}
-  .evo-live{position:absolute;top:12px;left:14px;font-size:11.5px;display:flex;align-items:center;gap:7px;color:var(--fg-2,#9aa4af);background:rgba(8,11,16,.6);border:1px solid var(--line,#2a323c);border-radius:999px;padding:4px 11px}
-  .evo-live .dot{width:8px;height:8px;border-radius:50%;background:#555}
-  .evo-live.on .dot{background:var(--bad,#f47174);animation:evp 1s infinite}@keyframes evp{50%{opacity:.3}}
-  .evo-live.ready .dot{background:var(--accent-2,#a3d977)}
-  .evo-strip{display:flex;gap:6px;margin:12px 0 4px}
-  .evo-strip .seg{flex:1;height:5px;border-radius:3px;background:var(--bg-3,#1c232c);overflow:hidden}
-  .evo-strip .seg>i{display:block;height:100%;width:0;background:var(--accent,#5b8cf6)}
-  .evo-strip .seg.done>i{width:100%!important;background:var(--accent-2,#a3d977)}
-  .evo-ctrl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0 2px}
-  .evo-ctrl button{font:inherit;font-size:13.5px;padding:8px 15px;border-radius:9px;cursor:pointer;background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600}
-  .evo-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
-  .evo-ctrl button:disabled{opacity:.5;cursor:default}
-  .evo-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
-  .evo-leg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--fg-2,#9aa4af);margin-top:10px}
-  .evo-leg span{display:inline-flex;align-items:center;gap:6px}.evo-leg i{width:11px;height:11px;border-radius:50%}
-  .evo-log{display:none;font-family:ui-monospace,monospace;font-size:12px;color:var(--fg-2,#9aa4af);background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c);border-radius:var(--radius,14px);padding:12px 14px;margin-top:12px;max-height:160px;overflow:auto;white-space:pre-wrap;line-height:1.55}
-  .evo-log.show{display:block} .evo-log b{color:var(--accent-2,#a3d977)} .evo-log .w{color:var(--accent,#5b8cf6)}
-  .evo-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
-  @media(max-width:620px){.evo-kpi{grid-template-columns:1fr}}
+  .hg-stage{position:relative;border-radius:var(--radius,14px);background:radial-gradient(120% 100% at 50% 0%,#141b25,#0b0f15);border:1px solid var(--line,#2a323c);padding:20px 20px 18px;overflow:hidden}
+  .hg-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .hg-phase{display:flex;gap:7px;flex-wrap:wrap}
+  .hg-phase .p{font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--line,#2a323c);color:var(--fg-2,#9aa4af)}
+  .hg-phase .p.on{border-color:var(--accent,#5b8cf6);color:var(--fg,#e6edf3);background:rgba(91,140,246,.12)}
+  .hg-phase .p.on b{color:var(--accent,#5b8cf6)}
+  .hg-gen{font-size:12px;color:var(--fg-2,#9aa4af)}.hg-gen b{color:var(--accent-2,#a3d977)}
+  .hg-live{font-size:11.5px;display:inline-flex;align-items:center;gap:6px;color:var(--fg-2,#9aa4af)}
+  .hg-live .dot{width:8px;height:8px;border-radius:50%;background:#555}.hg-live.on .dot{background:var(--bad,#f47174);animation:hgp 1s infinite}.hg-live.ready .dot{background:var(--accent-2,#a3d977)}@keyframes hgp{50%{opacity:.3}}
+  .hg-title{font-size:clamp(15px,2.3vw,18px);font-weight:700;color:var(--fg,#e6edf3);margin:10px 0 2px;min-height:1.3em}
+  .hg-sub{font-size:13px;color:var(--fg-2,#9aa4af);margin:0 0 16px;min-height:1.2em}
+  .hg-word{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:6px 0 16px;min-height:42px}
+  .hg-box{width:clamp(30px,6.4vw,46px);height:clamp(38px,7.6vw,56px);border-radius:9px;display:grid;place-items:center;
+    font-family:ui-monospace,monospace;font-weight:700;font-size:clamp(18px,3.4vw,26px);background:var(--bg-2,#161b22);border:1.5px solid var(--line,#2a323c);color:var(--fg,#e6edf3);transition:.2s}
+  .hg-box.empty{color:var(--line,#3a434f)}
+  .hg-box.fresh{border-color:var(--accent-2,#a3d977);color:var(--accent-2,#a3d977);box-shadow:0 0 0 3px rgba(163,217,121,.18)}
+  .hg-box.whis{border-color:var(--accent,#5b8cf6);color:var(--accent,#5b8cf6);box-shadow:0 0 0 3px rgba(91,140,246,.2)}
+  .hg-guesses{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:30px;margin-bottom:8px}
+  .hg-chip{display:grid;place-items:center;width:28px;height:28px;border-radius:7px;font-family:ui-monospace,monospace;font-weight:600;font-size:14px;opacity:0;transform:translateY(5px);animation:hgin .18s forwards}@keyframes hgin{to{opacity:1;transform:none}}
+  .hg-chip.hit{background:rgba(163,217,121,.18);color:var(--accent-2,#a3d977);border:1px solid rgba(163,217,121,.5)}
+  .hg-chip.miss{background:rgba(244,113,116,.16);color:var(--bad,#f47174);border:1px solid rgba(244,113,116,.5)}
+  .hg-chip.souffle{background:rgba(91,140,246,.16);color:var(--accent,#5b8cf6);border:1px dashed var(--accent,#5b8cf6)}
+  .hg-foot{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:30px}
+  .hg-badge{font-size:13px;font-weight:700;padding:5px 13px;border-radius:999px;opacity:0;transition:.25s}
+  .hg-badge.show{opacity:1}.hg-badge.win{background:rgba(163,217,121,.16);color:var(--accent-2,#a3d977)}.hg-badge.lose{background:rgba(244,113,116,.16);color:var(--bad,#f47174)}
+  .hg-stat{font-size:13px;color:var(--fg-2,#9aa4af)}.hg-stat b{color:var(--fg,#e6edf3);font-variant-numeric:tabular-nums}.hg-stat .g{color:var(--accent-2,#a3d977)}
+  .hg-wr{display:flex;align-items:flex-end;gap:18px;justify-content:center;margin:2px 0 12px}
+  .hg-wr .col{text-align:center}.hg-wr .bar{height:70px;width:42px;display:flex;align-items:flex-end;margin:0 auto}.hg-wr .bar>span{display:block;width:100%;border-radius:6px 6px 0 0;background:var(--fg-2,#9aa4af);transition:height .25s}
+  .hg-wr .col.evo .bar>span{background:var(--accent-2,#a3d977)} .hg-wr .v{font-weight:700;font-size:15px;color:var(--fg,#e6edf3);margin-top:4px} .hg-wr .l{font-size:11px;color:var(--fg-2,#9aa4af)}
+  .hg-ctrl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 2px}
+  .hg-ctrl button{font:inherit;font-size:13.5px;padding:8px 15px;border-radius:9px;cursor:pointer;background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600}
+  .hg-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
+  .hg-ctrl button:disabled{opacity:.5;cursor:default}.hg-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
+  .evo-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}@media(max-width:620px){.evo-kpi{grid-template-columns:1fr}}
   .evo-kpi .k{background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c);border-radius:var(--radius,14px);padding:13px 15px}
-  .evo-kpi .k b{display:block;font-size:20px;color:var(--fg,#e6edf3)} .evo-kpi .k small{color:var(--fg-2,#9aa4af);font-size:12px} .evo-kpi .k.green b{color:var(--accent-2,#a3d977)}
+  .evo-kpi .k b{display:block;font-size:20px;color:var(--fg,#e6edf3)}.evo-kpi .k small{color:var(--fg-2,#9aa4af);font-size:12px}.evo-kpi .k.green b{color:var(--accent-2,#a3d977)}
   #engineFrame{position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0}
 </style>
 </head>
@@ -54,42 +62,42 @@
 
 <main id="main">
 <section class="hero"><div class="wrap ev-wrap">
-  <span class="tag">Évolution · la boucle</span>
-  <h1>Une instance qui <em>se copie</em>, <em>communique</em>, fait des <em>générations</em>.</h1>
-  <p class="lead">Chaque <strong>sphère</strong> est un OMEGA. Tout part d'<strong>une</strong> sphère Ω&nbsp;: elle se <strong>copie</strong> (P1), les deux instances <strong>communiquent</strong> (P2), puis leurs <strong>génomes se croisent</strong> et le pendu <strong>sélectionne</strong> (P3) — qui se copie à son tour. L'animation rejoue les <strong>mesures réelles</strong>&nbsp;; le bouton <strong>« Lancer le vrai moteur »</strong> fait, lui, <strong>tourner OMEGA en direct</strong> (sur le site déployé).</p>
+  <span class="tag">Évolution · regarde-le jouer</span>
+  <h1>OMEGA <em>joue</em>, se <em>copie</em>, et <em>évolue</em> — sous tes yeux.</h1>
+  <p class="lead">Le mot se remplit, les lettres tombent (vert = trouvé, rouge = raté). Tu le vois <strong>se copier</strong> (P1, la copie rejoue à l'identique), <strong>communiquer</strong> (P2, un souffle le fait gagner), puis <strong>évoluer</strong> (P3, il gagne plus hors-lexique). Le bouton <strong>« Vrai moteur »</strong> fait jouer le <strong>vrai <code>omegaStep</code> en direct</strong> (site déployé).</p>
 </div></section>
 
 <section><div class="wrap ev-wrap">
-  <div class="evo-stage">
-    <canvas id="evoCanvas" width="1000" height="440" role="img" aria-label="Boucle évolutionnaire d'OMEGA : une sphère se copie, communique, fait des générations."></canvas>
-    <div class="evo-live" id="evoLive"><span class="dot"></span><span id="evoLiveT">moteur : —</span></div>
-    <div class="evo-gen">génération <b id="evoGen">1</b></div>
-    <div class="evo-cap"><p class="t" id="evoTitle">Ω</p><p class="s" id="evoSub">—</p></div>
+  <div class="hg-stage">
+    <div class="hg-top">
+      <div class="hg-phase" id="hgPhase"><span class="p"><b>P1</b> se copie</span><span class="p"><b>P2</b> communiquent</span><span class="p"><b>P3</b> générations</span></div>
+      <span class="hg-gen">génération <b id="hgGen">1</b> · <span class="hg-live" id="hgLive"><span class="dot"></span><span id="hgLiveT">moteur : —</span></span></span>
+    </div>
+    <p class="hg-title" id="hgTitle">Prêt</p>
+    <p class="hg-sub" id="hgSub">OMEGA va jouer…</p>
+    <div class="hg-word" id="hgWord"></div>
+    <div class="hg-guesses" id="hgGuesses"></div>
+    <div class="hg-wr" id="hgWr" style="display:none">
+      <div class="col"><div class="bar"><span id="hgWrB"></span></div><div class="v" id="hgWrBv">—</div><div class="l">base</div></div>
+      <div class="col evo"><div class="bar"><span id="hgWrE"></span></div><div class="v" id="hgWrEv">—</div><div class="l">évoluée</div></div>
+    </div>
+    <div class="hg-foot"><span class="hg-badge" id="hgBadge"></span><span class="hg-stat" id="hgStat"></span></div>
   </div>
-  <div class="evo-strip" id="evoStrip"></div>
-  <div class="evo-ctrl">
-    <button id="evoReal" disabled>▶ Vrai moteur (chargement…)</button>
-    <button class="ghost" id="evoPlay">⏸ Pause anim</button>
-    <button class="ghost" id="evoRestart">↺</button>
-    <span class="hint" id="evoHint">l'animation tourne en boucle — le vrai moteur calcule en direct sur le site déployé</span>
+  <div class="hg-ctrl">
+    <button id="hgReal" disabled>▶ Vrai moteur (chargement…)</button>
+    <button class="ghost" id="hgPlay">⏸ Pause</button>
+    <span class="hint" id="hgHint">la démo enchaîne des parties réelles capturées — le vrai moteur joue en direct sur le site déployé</span>
   </div>
-  <div class="evo-leg">
-    <span><i style="background:#5b8cf6"></i> Ω et sa copie (même code)</span>
-    <span><i style="background:#a3d977"></i> version évoluée</span>
-    <span><i style="background:#d8922e"></i> signal échangé</span>
-  </div>
-  <div class="evo-log" id="evoLog"></div>
 </div></section>
 
 <section><div class="wrap ev-wrap">
-  <h2>Ce que tu regardes — et pourquoi c'est <em>fidèle</em></h2>
-  <p>L'animation suit, dans l'ordre, les phases démontrées de la roadmap&nbsp;; chaque chiffre vient de la <strong>capture du vrai moteur</strong>. Le bouton <strong>« Lancer le vrai moteur »</strong> va plus loin&nbsp;: il intègre <code>app/omega-pendu.html</code> et fait <strong>réellement jouer</strong> <code>omegaStep</code> en direct (visible sur le site déployé&nbsp;; bloqué dans certaines previews/sandbox).</p>
+  <h2>Ce que tu regardes</h2>
   <div class="evo-kpi">
-    <div class="k"><b id="kpi1">—</b><small><strong>P1 · se copie</strong> — fonctions de décision reconstruites <em>à l'octet près</em> (bPC), le jumeau joue au même niveau.</small></div>
-    <div class="k"><b id="kpi2">—</b><small><strong>P2 · communiquent</strong> — A souffle une lettre <em>apprise</em>, le winrate de B monte. Un code émerge du reward seul.</small></div>
-    <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — sélection sur le génome. En lexique c'est saturé&nbsp;; le vrai gain est <em>hors-lexique</em>.</small></div>
+    <div class="k"><b id="kpi1">—</b><small><strong>P1 · se copie</strong> — la copie (reconstruite à l'octet près) rejoue <em>à l'identique</em>. Tu vois le jumeau gagner comme l'original.</small></div>
+    <div class="k"><b id="kpi2">—</b><small><strong>P2 · communiquent</strong> — A souffle la lettre rare ; B gagne là où, sans, il perdait. Le winrate monte.</small></div>
+    <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — hors-lexique, le gène <code>arbConf</code> fait gagner plus. L'évolution, là où il reste de la marge.</small></div>
   </div>
-  <p class="note">Honnêteté&nbsp;: en lexique OMEGA est au plafond (~97 %) — l'évolution se voit <strong>hors-lexique</strong>, où le gène <code>arbConf</code> donne <strong>+14 pt</strong> sur des graines neuves, sans rien coûter en lexique. Le <strong>travail de groupe (O1) n'est pas montré</strong>&nbsp;: mesuré, il ne tient pas hors échantillon (backlog). Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> (vrai <code>omegaStep</code>). Plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+  <p class="note">Honnêteté&nbsp;: en lexique OMEGA est au plafond (~97 %) — l'évolution se voit hors-lexique. Le <strong>travail de groupe (O1) n'est pas montré</strong> (mesuré, il ne tient pas hors échantillon). Parties réelles capturées sur <code>omegaStep</code> (<code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>)&nbsp;; le bouton « Vrai moteur » rejoue le vrai moteur en direct. Plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -108,150 +116,132 @@ function evJSON(id){return JSON.parse(document.getElementById(id).textContent);}
 (function(){
   var $=function(i){return document.getElementById(i);};
   var P1=evJSON('ev-data-p1'),P2=evJSON('ev-data-p2'),OV=evJSON('ev-data-oov');
-  var nFns=P1.functions.length, wOut=P2.aggregate.winrateWithout, wWith=P2.aggregate.winrateWith, oDelta=OV.outOfSample.meanDelta, oRef=OV.sweep[0].oov, oEvo=OV.pareto.oovEvolved;
-  $('kpi1').textContent='octet pour octet · '+nFns+' fn'; $('kpi2').textContent=wOut+'% → '+wWith+'%'; $('kpi3').textContent='+'+oDelta+' pt (OOV)';
+  $('kpi1').textContent='octet pour octet · '+P1.functions.length+' fn';
+  $('kpi2').textContent=P2.aggregate.winrateWithout+'% → '+P2.aggregate.winrateWith+'%';
+  $('kpi3').textContent='+'+OV.outOfSample.meanDelta+' pt (OOV)';
 
-  // ── visu sphères (état partagé démo / live) ──
-  var cv=$('evoCanvas'),ctx=cv.getContext('2d'),W=1000,H=440,DPR=Math.min(window.devicePixelRatio||1,2);
-  function resize(){var w=cv.clientWidth||1000;W=w;H=Math.round(w*0.44);cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
-  window.addEventListener('resize',resize);
-  var ST={copy:0,particle:0,child:0,childGlow:0,gen:1}, yaw=0,lastF=0;
-  function lp(a,b,t){return a+(b-a)*t;} function hex(h,a){return 'rgba('+[(h>>16)&255,(h>>8)&255,h&255].join(',')+','+a+')';}
-  function rotY(p,a){var c=Math.cos(a),s=Math.sin(a);return {x:p.x*c+p.z*s,y:p.y,z:-p.x*s+p.z*c};}
-  function proj(p){var f=560,sc=f/(f+p.z);return {x:W/2+p.x*sc,y:H/2+p.y*sc,sc:sc,z:p.z};}
-  var OPOS={x:0,y:-6,z:0},COPY={x:150,y:-4,z:34},CHILD={x:-28,y:118,z:-20},BLUE=0x5b8cf6,GREEN=0xa3d977,WARN=0xd8922e;
-  function sph(P,R,col,glow,al){var pr=proj(P),r=R*pr.sc;if(al<=.01)return;
-    if(glow>0){var hg=ctx.createRadialGradient(pr.x,pr.y,r*.5,pr.x,pr.y,r*2.6);hg.addColorStop(0,hex(col,.34*glow*al));hg.addColorStop(1,hex(col,0));ctx.fillStyle=hg;ctx.beginPath();ctx.arc(pr.x,pr.y,r*2.6,0,7);ctx.fill();}
-    var R0=(col>>16)&255,G0=(col>>8)&255,B0=col&255,g=ctx.createRadialGradient(pr.x-r*.34,pr.y-r*.4,r*.15,pr.x,pr.y,r);
-    g.addColorStop(0,'rgba('+Math.min(R0+90,255)+','+Math.min(G0+90,255)+','+Math.min(B0+90,255)+','+al+')');g.addColorStop(.55,'rgba('+R0+','+G0+','+B0+','+al+')');g.addColorStop(1,'rgba('+(R0*.35|0)+','+(G0*.35|0)+','+(B0*.35|0)+','+al+')');
-    ctx.fillStyle=g;ctx.beginPath();ctx.arc(pr.x,pr.y,r,0,7);ctx.fill();}
-  function lnk(a,b,al){var pa=proj(a),pb=proj(b);ctx.strokeStyle='rgba(120,150,200,'+al+')';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();}
-  function render(now){if(!lastF)lastF=now;var dt=Math.min((now-lastF)/1000,.05);lastF=now;yaw+=dt*.3;ctx.clearRect(0,0,W,H);
-    var cp={x:lp(OPOS.x,COPY.x,ST.copy),y:lp(OPOS.y,COPY.y,ST.copy),z:lp(OPOS.z,COPY.z,ST.copy)};
-    var ch={x:lp((OPOS.x+COPY.x)/2,CHILD.x,ST.child),y:lp((OPOS.y+COPY.y)/2,CHILD.y,ST.child),z:lp((OPOS.z+COPY.z)/2,CHILD.z,ST.child)};
-    if(ST.copy>.02)lnk(rotY(OPOS,yaw),rotY(cp,yaw),.22*ST.copy);
-    if(ST.child>.02){lnk(rotY(OPOS,yaw),rotY(ch,yaw),.18*ST.child);lnk(rotY(cp,yaw),rotY(ch,yaw),.18*ST.child);}
-    var arr=[{P:rotY(OPOS,yaw),R:30,c:BLUE,g:.5+.25*Math.sin(now/400),a:1,L:'Ω'}];
-    if(ST.copy>.02)arr.push({P:rotY(cp,yaw),R:26,c:BLUE,g:.22,a:Math.min(ST.copy*2,1),L:'Ω′'});
-    if(ST.child>.02)arr.push({P:rotY(ch,yaw),R:lp(18,30,ST.child),c:GREEN,g:.4+.6*ST.childGlow,a:1,L:'Ω'+(ST.gen+1)});
-    arr.sort(function(a,b){return b.P.z-a.P.z;});arr.forEach(function(o){sph(o.P,o.R,o.c,o.g,o.a);});
-    if(ST.particle>0){var pp=Math.abs((ST.particle%1)*2-1),sp={x:lp(OPOS.x,COPY.x,pp),y:lp(OPOS.y,COPY.y,pp)-Math.sin(pp*Math.PI)*24,z:lp(OPOS.z,COPY.z,pp)};
-      var pr=proj(rotY(sp,yaw)),r=5*pr.sc,gg=ctx.createRadialGradient(pr.x,pr.y,0,pr.x,pr.y,r*3);gg.addColorStop(0,hex(WARN,.9));gg.addColorStop(1,hex(WARN,0));ctx.fillStyle=gg;ctx.beginPath();ctx.arc(pr.x,pr.y,r*3,0,7);ctx.fill();ctx.fillStyle=hex(WARN,1);ctx.beginPath();ctx.arc(pr.x,pr.y,r,0,7);ctx.fill();}
-    arr.forEach(function(o){if(o.a>.3){var pr=proj(o.P);ctx.fillStyle='rgba(230,237,243,'+o.a*.9+')';ctx.font='600 13px system-ui';ctx.textAlign='center';ctx.fillText(o.L,pr.x,pr.y+4);}});
-    for(var k=0;k<Math.min(ST.gen-1,12);k++){ctx.fillStyle='rgba(163,217,121,'+(.25+.04*k)+')';ctx.beginPath();ctx.arc(18+k*15,H-14,4,0,7);ctx.fill();}
-    if(ST.gen>1){ctx.fillStyle='rgba(154,164,175,.7)';ctx.font='11px system-ui';ctx.textAlign='left';ctx.fillText('lignée',18,H-26);}
-    requestAnimationFrame(render);}
-  resize();requestAnimationFrame(render);
+  function setPhase(i){ var ps=$('hgPhase').children; for(var k=0;k<ps.length;k++)ps[k].className='p'+(k===i?' on':''); }
+  function setTitle(t,s){ $('hgTitle').textContent=t; if(s!=null)$('hgSub').innerHTML=s; }
+  function setGen(g){ $('hgGen').textContent=g; }
+  function boardFrom(word,reveal){ var s=''; for(var p=0;p<word.length;p++) s+=(reveal&&reveal.indexOf(word[p])>=0)?word[p]:'.'; return s; }
+  function drawWord(word,boardStr,fresh,whis){ var h='';
+    for(var p=0;p<word.length;p++){ var c=boardStr[p], cl='hg-box';
+      if(c==='.'){cl+=' empty';c='·';}
+      else if(fresh&&fresh.indexOf(p)>=0){cl+=' fresh';}
+      else if(whis&&word[p]===whis){cl+=' whis';}
+      h+='<div class="'+cl+'">'+c+'</div>'; }
+    $('hgWord').innerHTML=h; }
+  function resetGuesses(){ $('hgGuesses').innerHTML=''; }
+  function addGuess(L,kind){ var s=document.createElement('span'); s.className='hg-chip '+kind; s.textContent=L; $('hgGuesses').appendChild(s); }
+  function setBadge(win,show){ var b=$('hgBadge'); b.className='hg-badge '+(win?'win':'lose')+(show?' show':''); b.textContent=win?'GAGNÉ':'PERDU'; }
+  function setStat(h){ $('hgStat').innerHTML=h||''; }
+  function showWr(on){ $('hgWr').style.display=on?'flex':'none'; }
+  function setWr(base,evo){ $('hgWrB').style.height=Math.round(base/100*70)+'px'; $('hgWrE').style.height=Math.round(evo/100*70)+'px'; $('hgWrBv').textContent=base+' %'; $('hgWrEv').textContent=evo+' %'; }
 
-  function setCap(t,s){$('evoTitle').textContent=t;if(s!=null)$('evoSub').textContent=s;}
-  function setGen(g){ST.gen=g;$('evoGen').textContent=g;}
-  var strip=$('evoStrip');strip.innerHTML='<div class="seg"><i></i></div>'.repeat(3);var segs=[].slice.call(strip.children);
-  function seg(i,frac,done){if(i<0||i>2)return;segs[i].className='seg'+(done?' done':'');segs[i].firstChild.style.width=(frac*100)+'%';}
+  var paused=false, stopSeq=false, mode='demo';
+  function wait(ms){ return new Promise(function(r){ var t0=performance.now(); (function w(){ if(stopSeq)return r(); if(paused)return requestAnimationFrame(w); if(performance.now()-t0>=ms)return r(); requestAnimationFrame(w); })(); }); }
 
-  // ── DÉMO (timeline, légendes = chiffres capturés) ──
-  var PHD=[
-    {t:2.5,T:'Ω — une instance d’OMEGA',S:'un moteur cognitif vivant'},
-    {t:5.5,T:'P1 · se copie',S:nFns+' fonctions reconstruites à l’octet près → un jumeau'},
-    {t:8.5,T:'P2 · communiquent',S:'A souffle la lettre rare → winrate '+wOut+'% → '+wWith+'%'},
-    {t:12,T:'P3 · générations',S:'les génomes se croisent → +'+oDelta+' pt hors-lexique ('+oRef+'% → '+oEvo+'%)'},
-    {t:14,T:'…la nouvelle version se copie à son tour',S:'la boucle tourne, génération après génération'}
-  ];
-  var DCYCLE=14, demoT=0, demoOn=true, mode='demo';
-  function demoStep(dt){ if(mode!=='demo'||!demoOn)return; demoT+=dt; if(demoT>=DCYCLE){demoT-=DCYCLE;setGen(ST.gen+1);}
-    ST.copy=Math.max(0,Math.min((demoT-2.5)/0.9,1)); ST.particle=(demoT>=5.5&&demoT<8.5)?(ST.particle+dt*1.4):0;
-    var ca=Math.max(0,Math.min((demoT-8.5)/1.2,1)); ST.child=ca; ST.childGlow=ca;
-    if(demoT>=12){var f=Math.min((demoT-12)/2,1);ST.copy*=1-f*0.9;ST.child=Math.max(ST.child*(1-f),0);}
-    var i=0;for(;i<PHD.length;i++)if(demoT<PHD[i].t)break;i=Math.min(i,PHD.length-1);
-    setCap(PHD[i].T,PHD[i].S); for(var k=0;k<3;k++){var on=(k===0&&i>=1)||(k===1&&i>=2)||(k===2&&i>=3);seg(k,on?1:(i===k+1?(demoT-(PHD[k]?PHD[k].t:0)):0),i>k+1?true:(i===k+1));}
-    seg(0,demoT>=2.5?1:0,demoT>=5.5);seg(1,demoT>=5.5?Math.min((demoT-5.5)/3,1):0,demoT>=8.5);seg(2,demoT>=8.5?Math.min((demoT-8.5)/3.5,1):0,demoT>=12);
+  // rejoue une partie depuis des steps capturés [{L,hit,board}]
+  async function playSteps(word,steps,souffle,speed){ speed=speed||430;
+    resetGuesses(); var rev=souffle||''; drawWord(word, boardFrom(word,rev), [], souffle); if(souffle)addGuess(souffle,'souffle');
+    var prev=boardFrom(word,rev);
+    for(var i=0;i<steps.length;i++){ if(stopSeq)return; var st=steps[i], fresh=[];
+      for(var p=0;p<word.length;p++) if(st.board[p]!=='.'&&prev[p]==='.')fresh.push(p);
+      drawWord(word, st.board, fresh, souffle); addGuess(st.L, st.hit?'hit':'miss'); prev=st.board; await wait(speed); } }
+
+  async function demoCycle(){
+    while(!stopSeq && mode==='demo'){
+      setPhase(0); showWr(false); setBadge(true,false);
+      var m1=P1.matches[0];
+      setTitle('P1 · se copie — la copie rejoue à l’identique','le jumeau Ω′ (code reconstruit à l’octet près) joue « '+m1.word.toLowerCase()+' »');
+      setStat('jumeau · copie byte-exacte'); await playSteps(m1.word, m1.A.steps, null); if(stopSeq)return;
+      setBadge(m1.A.won,true); await wait(1100); if(stopSeq)return;
+
+      setPhase(1); var m2=null; for(var i=0;i<P2.matches.length;i++){ if(P2.matches[i].with.won&&!P2.matches[i].without.won){m2=P2.matches[i];break;} } m2=m2||P2.matches[0];
+      setBadge(true,false);
+      setTitle('P2 · communiquent — A souffle « '+m2.message+' », B gagne','sans ce souffle, B perdait cette grille');
+      setStat('avec le souffle appris'); await playSteps(m2.word, m2.with.steps, m2.message); if(stopSeq)return;
+      setBadge(m2.with.won,true); setStat('avec souffle : <b class="g">'+P2.aggregate.winrateWith+'%</b> · sans : <b>'+P2.aggregate.winrateWithout+'%</b>'); await wait(1300); if(stopSeq)return;
+
+      setPhase(2); setBadge(true,false); resetGuesses(); $('hgWord').innerHTML='';
+      setTitle('P3 · générations — il évolue hors-lexique','le gène arbConf le fait gagner plus sur des mots jamais vus');
+      showWr(true); var b0=OV.sweep[0].oov, e0=OV.pareto.oovEvolved; setWr(0,0);
+      for(var s=0;s<=1.0001;s+=0.05){ if(stopSeq)return; setWr(Math.round(b0*s), Math.round(e0*s)); setStat('hors-lexique · base '+Math.round(b0*s)+'% → évoluée '+Math.round(e0*s)+'%'); await wait(45); }
+      setStat('+'+OV.outOfSample.meanDelta+' pt en moyenne, sur des graines neuves'); setGen(parseInt($('hgGen').textContent)+1); await wait(1500); if(stopSeq)return;
+      showWr(false);
+    }
   }
-  // brancher la démo dans la boucle de rendu
-  (function tick(now){ if(!tick.l)tick.l=now; var dt=Math.min((now-tick.l)/1000,.05); tick.l=now; demoStep(dt); requestAnimationFrame(tick); })(performance.now());
+  $('hgPlay').onclick=function(){ paused=!paused; this.textContent=paused?'▶ Lire':'⏸ Pause'; };
 
-  $('evoPlay').onclick=function(){demoOn=!demoOn;this.textContent=demoOn?'⏸ Pause anim':'▶ Lire anim';};
-  $('evoRestart').onclick=function(){demoT=0;setGen(1);mode='demo';};
-
-  // ════════ VRAI MOTEUR EN DIRECT (enhancement gracieux, via iframe) ════════
-  var frame=$('engineFrame'),logEl=$('evoLog'),liveEl=$('evoLive'),liveT=$('evoLiveT'),engineReady=false,stopFlag=false;
-  function ev(code){return frame.contentWindow.eval(code);}
-  function log(h,clear){logEl.classList.add('show');logEl.innerHTML=(clear?'':logEl.innerHTML+'\n')+h;logEl.scrollTop=logEl.scrollHeight;}
-  function liveBadge(cls,txt){liveEl.className='evo-live'+(cls?' '+cls:'');liveT.textContent=txt;}
-  function nextFrame(){return new Promise(function(r){requestAnimationFrame(function(){r();});});}
-  function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
-  async function batched(items,fn,onP,b){b=b||14;for(var i=0;i<items.length;i++){if(stopFlag)throw 'stop';fn(items[i],i);if(i%b===b-1){onP&&onP(i+1,items.length);await nextFrame();}}onP&&onP(items.length,items.length);}
-
-  var CFG_SUB="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_VOIE_PHON_ENABLED=true;M_OS_V07_ENABLED=true;M4_PHON_USE_P_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_PHON_FEEDBACK_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_PHON_READOUT_COUPLE_ENABLED=true;M_PHON_CONCEPT_BIND_ENABLED=true;";
+  // ════ VRAI MOTEUR EN DIRECT ════
+  var frame=$('engineFrame'),liveEl=$('hgLive'),liveT=$('hgLiveT'),engineReady=false;
+  function ev(code){ return frame.contentWindow.eval(code); }
+  function liveBadge(cls,txt){ liveEl.className='hg-live'+(cls?' '+cls:''); liveT.textContent=txt; }
+  function nf(){ return new Promise(function(r){ requestAnimationFrame(function(){r();}); }); }
+  var CFG_SUB="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_VOIE_PHON_ENABLED=true;M_OS_V07_ENABLED=true;M4_PHON_USE_P_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_PHON_FEEDBACK_ENABLED=true;M_BPC_M3D_ENABLED=true;M_PHON_CONCEPT_BIND_ENABLED=true;";
   var CFG_P2=CFG_SUB+"M_DECLARE_NEO_ENABLED=false;";
-  var CFG_OOV="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=false;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=false;";
-  function injectHelpers(){ev('(function(){'+
+  var CFG_OOV="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=false;";
+  function inject(){ ev('(function(){'+
     'globalThis.__reset=function(){initOmegaGlobals();if(typeof _omega_OSL_reset==="function")_omega_OSL_reset();if(typeof M_OS_v07!=="undefined"&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}};'+
+    'globalThis.__gw="";'+
+    'globalThis.__board=function(){var s="";for(var p=0;p<__gw.length;p++)s+=revealedMask[p]?__gw[p]:".";return s;};'+
+    'globalThis.__newGame=function(w,msg){__gw=w;startNewGame(w);if(msg){var idx=msg.charCodeAt(0)-65;if(idx>=0&&idx<26){if(typeof alreadyTried!=="undefined")alreadyTried[idx]=true;for(var p=0;p<w.length;p++)if(w[p]===msg)revealedMask[p]=true;}}return __board();};'+
+    'globalThis.__step=function(){if(!gameActive)return {over:true,won:!!lastGameWon,board:__board(),L:null,hit:false};var b=alreadyTried.slice();omegaStep();var L=null,hit=false;for(var i=0;i<26;i++)if(alreadyTried[i]&&!b[i]){L=String.fromCharCode(65+i);hit=__gw.indexOf(L)>=0;break;}return {over:!gameActive,won:!!lastGameWon,board:__board(),L:L,hit:hit};};'+
     'globalThis.__play=function(w){try{startNewGame(w);}catch(e){return 0;}var sf=300;while(gameActive&&sf-->0){try{omegaStep();}catch(e){break;}}return lastGameWon?1:0;};'+
-    'globalThis.__playMsg=function(w,msg){startNewGame(w);if(msg){var idx=msg.charCodeAt(0)-65;if(idx>=0&&idx<26){if(typeof alreadyTried!=="undefined")alreadyTried[idx]=true;for(var p=0;p<w.length;p++)if(w[p]===msg)revealedMask[p]=true;}}var sf=300;while(gameActive&&sf-->0)omegaStep();return lastGameWon?1:0;};'+
     'globalThis.__words=function(minL,maxL,n,seed){var W=OMEGA_LEX4.words,v=[];for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(m&&m.length>=minL&&m.length<=maxL&&/^[A-Z]+$/.test(m))v.push(i);}var r=seed>>>0;for(var i2=v.length-1;i2>0;i2--){r=(r*1664525+1013904223)>>>0;var j=r%(i2+1),t=v[i2];v[i2]=v[j];v[j]=t;}globalThis.__vidx=v;return v.slice(0,n).map(function(k){return W[k].m;});};'+
     'globalThis.__freq=function(){var c=new Array(26).fill(0),W=OMEGA_LEX4.words;for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(!m)continue;for(var j=0;j<m.length;j++){var k=m.charCodeAt(j)-65;if(k>=0&&k<26)c[k]++;}}return c;};'+
     'globalThis.__oovStart=function(n,warm,seed){var W=OMEGA_LEX4.words;__words(7,12,n+warm,seed);var idx=__vidx,testIdx=idx.slice(0,n),trainIdx=idx.slice(n,n+warm),ts=new Set(testIdx);globalThis.__origLI=OMEGA_LEX4.len_index;globalThis.__filtLI={};for(var k in __origLI)__filtLI[k]=__origLI[k].filter(function(id){return !ts.has(id);});globalThis.__testW=testIdx.map(function(i){return W[i].m;});globalThis.__trainW=trainIdx.map(function(i){return W[i].m;});return __testW.length;};'+
-    '})()');}
+    '})()'); }
+  async function liveGame(word,souffle,cfg,speed){ ev('__reset();'); ev(cfg);
+    var b0=ev('__newGame('+JSON.stringify(word)+','+(souffle?JSON.stringify(souffle):'""')+')');
+    resetGuesses(); drawWord(word,b0,[],souffle); if(souffle)addGuess(souffle,'souffle'); var prev=b0;
+    for(var k=0;k<300;k++){ if(stopSeq)return {won:false}; var r=ev('__step()');
+      if(r.L){ var fresh=[]; for(var p=0;p<word.length;p++)if(r.board[p]!=='.'&&prev[p]==='.')fresh.push(p); drawWord(word,r.board,fresh,souffle); addGuess(r.L,r.hit?'hit':'miss'); prev=r.board; await wait(speed||340); }
+      if(r.over)return {won:r.won}; }
+    return {won:false}; }
 
-  var RE=/[A-Za-z_$][A-Za-z0-9_$]*|[0-9]+\.?[0-9]*|"[^"\n]*"|'[^'\n]*'|`[^`]*`|\s+|[^\sA-Za-z0-9_$]/g,ORD=6;
-  function tk(s){return s.match(RE)||[];}
-  function model(toks){var M={};for(var i=ORD;i<toks.length;i++){var c=toks.slice(i-ORD,i).join(''),m=M[c]||(M[c]={});m[toks[i]]=(m[toks[i]]||0)+1;}return M;}
-  function top1(M,c){var m=M[c];if(!m)return null;var b=null,bc=-1;for(var t in m)if(m[t]>bc){bc=m[t];b=t;}return b;}
-  function selfCopy(M,src){var toks=tk(src),hit=0,resid=[],hit2=new Array(toks.length),i;
-    for(i=ORD;i<toks.length;i++){var ok=(top1(M,toks.slice(i-ORD,i).join(''))===toks[i]);hit2[i]=ok;if(ok)hit++;else resid.push(toks[i]);}
-    var out=toks.slice(0,ORD),ri=0;for(i=ORD;i<toks.length;i++){var p=top1(M,out.slice(i-ORD,i).join(''));out.push(hit2[i]?p:resid[ri++]);}
-    return {rebuilt:out.join(''),exact:out.join('')===toks.join(''),hit:hit,total:toks.length-ORD};}
+  async function liveCycle(){
+    while(!stopSeq && mode==='live'){
+      inject();
+      setPhase(0); showWr(false); setBadge(true,false);
+      var g=parseInt($('hgGen').textContent);
+      var w1=ev('__words(7,9,1,'+(1000+g)+')')[0];
+      setTitle('P1 · se copie — le moteur joue (code byte-exact)','vrai omegaStep, en direct · « '+w1.toLowerCase()+' »'); setStat('partie réelle, en direct');
+      var r1=await liveGame(w1,null,CFG_SUB); if(stopSeq)return; setBadge(r1.won,true); await wait(900); if(stopSeq)return;
 
-  async function runReal(){
-    mode='live'; stopFlag=false; $('evoReal').disabled=true; liveBadge('on','calcul en direct'); logEl.classList.add('show'); logEl.innerHTML='';
-    ST.copy=0;ST.particle=0;ST.child=0;ST.childGlow=0;
-    try{
-      injectHelpers(); ev('__reset();');
-      // P1
-      seg(0,0);setCap('P1 · se copie (réel)','reconstruction byte-exacte d’une fonction de décision…');
-      log('<b>P1 — se copie.</b> reconstruction byte-exacte (prédiction + résidu)…');
-      var corpus=['cosineSim','normalize','circularShift','circularShiftInverse','circularShiftInPlace'].map(function(nm){try{return ev('(typeof '+nm+'==="function")?'+nm+'.toString():""');}catch(e){return '';}}).join('\n');
-      var c=selfCopy(model(tk(corpus)),ev('cosineSim.toString()'));
-      for(var s=0;s<=1.0001;s+=0.05){if(stopFlag)throw 'stop';ST.copy=s;seg(0,s);await nextFrame();}
-      ev('cosineSim = '+c.rebuilt); var ok=true;try{ev('void cosineSim(new Float32Array([1,2,3]),new Float32Array([1,2,3]))');}catch(e){ok=false;}
-      seg(0,1,true); log('  prédit '+Math.round(c.hit/c.total*100)+'% des tokens · <b>byte-exact '+(c.exact?'✓':'✗')+'</b> · re-branché'+(ok?' et tourne ✓':'')+'.');
-      setCap('P1 · se copie ✓','le jumeau Ω′ partage le même code, à l’octet près'); await sleep(450);
-      // P2
-      seg(1,0);setCap('P2 · communiquent (réel)','le moteur joue le pendu, avec et sans le souffle…');
-      log('<b>P2 — communiquent.</b> pendu référentiel, B = vrai moteur…'); ev('__reset();');ev(CFG_P2);
-      var freq=Array.prototype.slice.call(ev('__freq()')), P2N=30, p2w=Array.prototype.slice.call(ev('__words(8,12,'+P2N+',12345)'));
-      function rarest(w){var ds={},best=null,bf=1e18,i;for(i=0;i<w.length;i++)ds[w[i]]=1;for(var ch in ds){var f=freq[ch.charCodeAt(0)-65];if(f<bf){bf=f;best=ch;}}return best;}
-      var winW=0,winO=0; ST.particle=0.0001;
-      await batched(p2w,function(w){winW+=ev('__playMsg('+JSON.stringify(w)+','+JSON.stringify(rarest(w))+')');winO+=ev('__playMsg('+JSON.stringify(w)+',"")');},
-        function(d,t){seg(1,d/t);$('evoSub').textContent='partie '+d+'/'+t+' · AVEC '+Math.round(100*winW/d)+'% · SANS '+Math.round(100*winO/d)+'%';},6);
-      seg(1,1,true);ST.particle=0; var wa=Math.round(100*winW/P2N),wb=Math.round(100*winO/P2N);
-      log('  <b>'+wb+'%</b> sans → <b>'+wa+'%</b> avec le souffle (sur '+P2N+' mots, joués à l’instant).');
-      setCap('P2 · communiquent ✓','souffler la bonne lettre fait gagner B : '+wb+'% → '+wa+'%'); await sleep(450);
-      // P3
-      seg(2,0);setCap('P3 · générations (réel)','hors-lexique : on fait varier le gène arbConf…');
-      log('<b>P3 — générations.</b> hors-lexique, évolution du gène <span class="w">arbConf</span>…');
-      ev('__reset();');var P3N=40,WARM=70;ev('__oovStart('+P3N+','+WARM+',12345);');
-      async function oovRun(arb){ev('__reset();');ev(CFG_OOV);ev('if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF='+arb+';');
-        ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;');await batched(Array.prototype.slice.call(ev('__trainW')),function(w){ev('__play('+JSON.stringify(w)+')');},null,18);
-        ev('OMEGA_LEX4.len_index=__filtLI;_neoWBL=null;_neoNG=null;');var test=Array.prototype.slice.call(ev('__testW')),win=0;
-        await batched(test,function(w){win+=ev('__play('+JSON.stringify(w)+')');},function(d,t){var p=Math.round(100*win/d);ST.child=Math.min(ST.child+0.02,1);ST.childGlow=p/100;$('evoSub').textContent=(arb>0?'version évoluée':'version de base')+' · '+d+'/'+t+' mots OOV · '+p+'%';},6);
-        ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;');return Math.round(100*win/P3N);}
-      var base=await oovRun(0.0); log('  version de base : <b>'+base+'%</b> hors-lexique.'); ST.child=0;ST.childGlow=0;
-      var evo=await oovRun(0.30); seg(2,1,true); log('  version <b>évoluée</b> (arbConf 0,30) : <b>'+evo+'%</b> → <b>+'+(evo-base)+' pt</b>, en direct.');
-      setGen(ST.gen+1); setCap('P3 · générations ✓','la version évoluée gagne +'+(evo-base)+' pt hors-lexique — génération '+ST.gen);
-      log('<b>boucle bouclée</b> — tout a été calculé à l’instant par le vrai moteur.');
-    }catch(e){ if(e==='stop')log('— arrêté —'); else log('⚠️ '+(e&&e.message||e)); }
-    liveBadge('ready','moteur prêt'); $('evoReal').disabled=false; $('evoReal').textContent='▶ Relancer le vrai moteur';
-    mode='demo';
+      setPhase(1); setBadge(true,false);
+      var freq=Array.prototype.slice.call(ev('__freq()'));
+      var w2=ev('__words(8,12,1,'+(2000+g)+')')[0]; var ds={},best=null,bf=1e18;
+      for(var c=0;c<w2.length;c++)ds[w2[c]]=1; for(var ch in ds){var f=freq[ch.charCodeAt(0)-65];if(f<bf){bf=f;best=ch;}}
+      setTitle('P2 · communiquent — A souffle « '+best+' »','le moteur joue en direct, avec le souffle'); setStat('avec le souffle, en direct');
+      var r2=await liveGame(w2,best,CFG_P2); if(stopSeq)return; setBadge(r2.won,true); await wait(900); if(stopSeq)return;
+
+      setPhase(2); resetGuesses(); $('hgWord').innerHTML=''; setBadge(true,false);
+      setTitle('P3 · générations — il évolue hors-lexique','on mesure base vs évoluée, en direct'); showWr(true); setWr(0,0);
+      var P3N=24,WARM=50; ev('__oovStart('+P3N+','+WARM+',12345);'); var baseWr=0;
+      async function oov(arb,isEvo){ ev('__reset();');ev(CFG_OOV);ev('if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF='+arb+';');
+        ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); var tw=Array.prototype.slice.call(ev('__trainW'));
+        for(var i=0;i<tw.length;i++){ if(stopSeq)return 0; ev('__play('+JSON.stringify(tw[i])+')'); if(i%10===9)await nf(); }
+        ev('OMEGA_LEX4.len_index=__filtLI;_neoWBL=null;_neoNG=null;'); var test=Array.prototype.slice.call(ev('__testW')); var win=0;
+        for(var j=0;j<test.length;j++){ if(stopSeq)return 0; win+=ev('__play('+JSON.stringify(test[j])+')');
+          if(j%6===5){ var p=Math.round(100*win/(j+1)); if(isEvo)setWr(baseWr,p); else setWr(p,0); setStat('hors-lexique · '+(isEvo?'évoluée':'base')+' '+(j+1)+'/'+test.length+' · '+p+'%'); await nf(); } }
+        ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); return Math.round(100*win/test.length); }
+      baseWr=await oov(0.0,false); if(stopSeq)return; var evoWr=await oov(0.30,true); if(stopSeq)return;
+      setWr(baseWr,evoWr); setStat('hors-lexique · base <b>'+baseWr+'%</b> → évoluée <b class="g">'+evoWr+'%</b>  (+'+(evoWr-baseWr)+' pt, en direct)');
+      setGen(g+1); await wait(1700); showWr(false); if(stopSeq)return;
+    }
   }
 
-  // probe moteur — silencieux, sans mur d'erreur
   var tries=0;
   function probe(){ tries++; var n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
-    if(n>0){ engineReady=true; liveBadge('ready','moteur prêt · '+n.toLocaleString('fr')+' mots'); $('evoReal').disabled=false; $('evoReal').textContent='▶ Lancer le vrai moteur (A→Z)'; $('evoHint').textContent='clique pour faire tourner le VRAI moteur en direct (A→Z)'; }
-    else if(tries>40){ liveBadge('','moteur : non dispo ici'); $('evoReal').textContent='▶ Vrai moteur (sur le site déployé)'; $('evoHint').textContent='le run en direct est bloqué dans cette preview (sandbox) — il tourne sur le site déployé. L’animation, elle, reste fidèle aux mesures.'; }
+    if(n>0){ engineReady=true; liveBadge('ready','moteur prêt'); $('hgReal').disabled=false; $('hgReal').textContent='▶ Vrai moteur (en direct)'; $('hgHint').textContent='clique : OMEGA joue en direct (vrai omegaStep), A→Z'; }
+    else if(tries>40){ liveBadge('','moteur : site déployé'); $('hgReal').textContent='▶ Vrai moteur (site déployé)'; $('hgHint').textContent='le live est bloqué dans cette preview (sandbox) — il tourne sur le site déployé. Ici, ce sont de vraies parties capturées.'; }
     else { liveBadge('on','moteur : chargement…'); setTimeout(probe,500); } }
-  frame.addEventListener('load',function(){setTimeout(probe,300);}); setTimeout(probe,1500);
-  $('evoReal').onclick=function(){ if(engineReady) runReal(); };
+  frame.addEventListener('load',function(){ setTimeout(probe,300); }); setTimeout(probe,1500);
+
+  $('hgReal').onclick=function(){ if(!engineReady)return; stopSeq=true; setTimeout(function(){ stopSeq=false; mode='live'; $('hgReal').disabled=true; $('hgReal').textContent='● en direct'; liveBadge('on','en direct'); setGen(1); liveCycle(); },150); };
+
+  demoCycle();
 })();
 (function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
   function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
