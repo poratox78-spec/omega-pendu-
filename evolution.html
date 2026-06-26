@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMEGA-Ω — l'évolution : deux moteurs qui communiquent</title>
+<meta name="description" content="Deux instances d'OMEGA : l'une apprend à souffler une lettre, l'autre — le vrai moteur — joue le pendu. Rejeu fidèle des parties capturées (omegaStep), aucun chiffre inventé.">
+<link rel="stylesheet" href="site.css">
+<style>
+  /* ── viz référentielle P2 — namespacée .ev-* , thème du site ── */
+  .ev-wrap{max-width:1000px}
+  .ev-words{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
+  .ev-words button{font:inherit;font-size:13px;padding:6px 11px;border-radius:999px;cursor:pointer;
+    background:var(--bg-2,#161b22);color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);transition:.15s}
+  .ev-words button:hover{border-color:var(--accent,#5b8cf6)}
+  .ev-words button.on{background:var(--accent,#5b8cf6);border-color:var(--accent,#5b8cf6);color:#0d1117;font-weight:600}
+  .ev-words button .dec{color:var(--accent-2,#a3d977);font-weight:700}
+  .ev-words button.on .dec{color:#0d1117}
+
+  .ev-speaker{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0;padding:13px 15px;
+    background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c);border-radius:var(--radius,14px)}
+  .ev-av{font-size:26px;line-height:1}
+  .ev-sp-txt{flex:1;min-width:220px}
+  .ev-sp-txt b{color:var(--fg,#e6edf3)}
+  .ev-sp-txt small{color:var(--fg-2,#9aa4af);display:block;margin-top:2px;font-size:12px}
+  .ev-whisper{display:inline-flex;align-items:center;gap:8px}
+  .ev-arrow{color:var(--accent,#5b8cf6);font-size:18px}
+  .ev-msg{display:inline-grid;place-items:center;width:38px;height:44px;border-radius:9px;font-weight:700;font-size:22px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:rgba(91,140,246,.16);color:var(--accent,#5b8cf6);
+    border:1.5px solid var(--accent,#5b8cf6)}
+
+  .ev-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.ev-cols{grid-template-columns:1fr}}
+  .ev-col{padding:14px;border-radius:var(--radius,14px);background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c)}
+  .ev-col h3{margin:0 0 4px;font-size:14px;display:flex;align-items:center;gap:7px}
+  .ev-col .sub{color:var(--fg-2,#9aa4af);font-size:11.5px;margin:0 0 12px}
+  .ev-col.with{border-color:rgba(163,217,121,.45)}
+  .ev-col.without{border-color:rgba(244,113,116,.30)}
+
+  .ev-board{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(18px,3.3vw,27px);letter-spacing:.18em;
+    font-weight:600;color:var(--fg,#e6edf3);min-height:1.4em;margin:2px 0 12px;word-break:break-all}
+  .ev-board .px{color:var(--line,#3a434f)}
+  .ev-board .fresh{color:var(--accent-2,#a3d977)}
+  .ev-board .whis{color:var(--accent,#5b8cf6)}
+
+  .ev-chips{display:flex;flex-wrap:wrap;gap:5px;min-height:30px;margin-bottom:12px}
+  .ev-chip{display:grid;place-items:center;width:27px;height:27px;border-radius:7px;font-weight:600;font-size:14px;
+    font-family:ui-monospace,monospace;opacity:0;transform:translateY(4px);transition:.18s}
+  .ev-chip.show{opacity:1;transform:none}
+  .ev-chip.hit{background:rgba(163,217,121,.18);color:var(--accent-2,#a3d977);border:1px solid rgba(163,217,121,.5)}
+  .ev-chip.miss{background:rgba(244,113,116,.16);color:var(--bad,#f47174);border:1px solid rgba(244,113,116,.5)}
+  .ev-chip.whisper{background:rgba(91,140,246,.16);color:var(--accent,#5b8cf6);border:1px dashed var(--accent,#5b8cf6)}
+
+  .ev-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line,#2a323c);padding-top:10px}
+  .ev-err{font-size:12px;color:var(--fg-2,#9aa4af)}
+  .ev-err b{color:var(--bad,#f47174)}
+  .ev-badge{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px;opacity:.25}
+  .ev-badge.on{opacity:1}
+  .ev-badge.win{background:rgba(163,217,121,.16);color:var(--accent-2,#a3d977)}
+  .ev-badge.lose{background:rgba(244,113,116,.16);color:var(--bad,#f47174)}
+
+  .ev-ctrl{display:flex;gap:9px;align-items:center;margin:16px 0 6px;flex-wrap:wrap}
+  .ev-ctrl button{font:inherit;font-size:13.5px;padding:8px 16px;border-radius:9px;cursor:pointer;
+    background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600;transition:.15s}
+  .ev-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
+  .ev-ctrl button:hover{filter:brightness(1.08)}
+  .ev-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
+
+  .ev-metrics{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:8px}
+  @media(max-width:680px){.ev-metrics{grid-template-columns:1fr}}
+  .ev-card{padding:15px;border-radius:var(--radius,14px);background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c)}
+  .ev-card h3{margin:0 0 12px;font-size:13.5px}
+  .ev-wr{display:flex;align-items:flex-end;gap:18px}
+  .ev-wr .col{flex:1;text-align:center}
+  .ev-wr .bar{height:90px;display:flex;align-items:flex-end;justify-content:center}
+  .ev-wr .bar>span{display:block;width:46px;border-radius:7px 7px 0 0}
+  .ev-wr .without>span{background:var(--fg-2,#9aa4af)}
+  .ev-wr .with>span{background:var(--accent-2,#a3d977)}
+  .ev-wr .v{font-weight:700;font-size:18px;color:var(--fg,#e6edf3);margin-top:5px}
+  .ev-wr .l{font-size:11px;color:var(--fg-2,#9aa4af)}
+  .ev-gain{text-align:center;margin-top:8px;font-size:12.5px;color:var(--accent-2,#a3d977);font-weight:600}
+
+  .ev-ranks{display:flex;align-items:flex-end;gap:6px;height:90px;margin-bottom:6px}
+  .ev-ranks .r{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .ev-ranks .r .b{width:100%;border-radius:5px 5px 0 0;background:var(--line,#2a323c);min-height:2px}
+  .ev-ranks .r.top .b{background:var(--accent,#5b8cf6)}
+  .ev-ranks .r small{font-size:10px;color:var(--fg-2,#9aa4af);margin-top:4px}
+  .ev-spark{width:100%;height:54px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html">Le correcteur</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="evolution.html" aria-current="page">L'évolution</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Lisible</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap ev-wrap">
+  <span class="tag">Évolution · P2 communiquent</span>
+  <h1>Deux OMEGA&nbsp;: l'un <em>souffle</em>, l'autre <em>joue</em>.</h1>
+  <p class="lead">La vision EVO dit&nbsp;: OMEGA se copie, puis deux instances <strong>communiquent</strong>, puis les générations se croisent. Voici l'étage <strong>communication</strong>, pour de vrai&nbsp;: <strong>A</strong> voit le mot caché et a le droit de <strong>souffler une seule lettre</strong> à <strong>B</strong>. B, c'est le <strong>moteur OMEGA réel</strong> — il joue le pendu sans tricher. A <em>apprend</em> quelle lettre envoie le plus d'information. Ci-dessous, on <strong>rejoue les parties capturées</strong> (vraies lettres de <code>omegaStep</code>), pas une animation décorative.</p>
+</div></section>
+
+<section><div class="wrap ev-wrap">
+  <h2>Regarde-les jouer</h2>
+  <p class="note">Choisis un mot. <b>A</b> souffle la lettre qu'il a apprise (la plus <em>rare</em> du mot). Puis regarde <b>B</b> jouer la même grille <strong>avec</strong> et <strong>sans</strong> ce souffle. ⭐ = mots où le souffle change l'issue.</p>
+
+  <div class="ev-words" id="evWords"></div>
+
+  <div class="ev-speaker">
+    <span class="ev-av">🅰️</span>
+    <div class="ev-sp-txt">
+      <b>A (le parleur)</b> voit <code id="evWord">—</code> et souffle&nbsp;:
+      <span class="ev-whisper"><span class="ev-arrow">→</span><span class="ev-msg" id="evMsg">?</span><span class="ev-av">🅱️</span></span>
+      <small id="evWhy">la lettre la plus rare du mot — c'est le protocole que A a appris (value du rang #0 la plus haute).</small>
+    </div>
+  </div>
+
+  <div class="ev-cols">
+    <div class="ev-col with">
+      <h3>🅱️ AVEC le souffle</h3>
+      <p class="sub">B reçoit la lettre de A, puis joue le moteur réel.</p>
+      <div class="ev-board" id="evBoardW"></div>
+      <div class="ev-chips" id="evChipsW"></div>
+      <div class="ev-foot"><span class="ev-err" id="evErrW"></span><span class="ev-badge win" id="evBadgeW">GAGNÉ</span></div>
+    </div>
+    <div class="ev-col without">
+      <h3>🅱️ SANS le souffle</h3>
+      <p class="sub">Même moteur, même mot — mais sans aucun message.</p>
+      <div class="ev-board" id="evBoardO"></div>
+      <div class="ev-chips" id="evChipsO"></div>
+      <div class="ev-foot"><span class="ev-err" id="evErrO"></span><span class="ev-badge lose" id="evBadgeO">PERDU</span></div>
+    </div>
+  </div>
+
+  <div class="ev-ctrl">
+    <button id="evPlay">▶ Jouer</button>
+    <button class="ghost" id="evAll">⏭ Tout révéler</button>
+    <button class="ghost" id="evReset">↺ Rejouer</button>
+    <span class="hint" id="evHint"></span>
+  </div>
+</div></section>
+
+<section><div class="wrap ev-wrap">
+  <h2>Ce que ça donne, mesuré</h2>
+  <p class="note">Chiffres réels capturés sur le moteur (<code>evo/p2_capture.json</code>), aucune valeur inventée. B = cognition seule (NEO off) pour laisser de la marge au message.</p>
+  <div class="ev-metrics">
+    <div class="ev-card">
+      <h3>Winrate de B — sans vs avec le souffle <span style="color:var(--fg-2,#9aa4af);font-weight:400">(100 mots non vus)</span></h3>
+      <div class="ev-wr">
+        <div class="col without"><div class="bar"><span id="evWrO"></span></div><div class="v" id="evWrOv">—</div><div class="l">sans message</div></div>
+        <div class="col with"><div class="bar"><span id="evWrW"></span></div><div class="v" id="evWrWv">—</div><div class="l">avec message appris</div></div>
+      </div>
+      <div class="ev-gain" id="evGain"></div>
+    </div>
+    <div class="ev-card">
+      <h3>A a-t-il appris&nbsp;? <span style="color:var(--fg-2,#9aa4af);font-weight:400">value par rang de rareté</span></h3>
+      <div class="ev-ranks" id="evRanks"></div>
+      <p class="sub" style="color:var(--fg-2,#9aa4af);font-size:11.5px;margin:0">Le rang <b style="color:var(--accent,#5b8cf6)">#0</b> (la lettre la plus rare du mot) reçoit la value la plus haute&nbsp;: A a découvert l'encodage optimal du seul reward contrastif.</p>
+      <h3 style="margin:14px 0 4px">Winrate par epoch <span style="color:var(--fg-2,#9aa4af);font-weight:400">(bruité — c'est du RL)</span></h3>
+      <svg class="ev-spark" id="evSpark" viewBox="0 0 300 54" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px">Honnêteté&nbsp;: ce <strong>n'est pas</strong> les générations qui se croisent (ça, c'est <code>evo/evo_generations.js</code>, un autre étage). Ici on isole <strong>la communication</strong>&nbsp;: une instance apprend à <em>dire</em> quelque chose d'utile à une autre, et le pendu mesure que ça paie. Le canal est volontairement minuscule (1 lettre) pour qu'un <em>encodage</em> doive émerger. Détail&nbsp;: <code>evo/evo_p2_referential.js</code>, <code>evo/evo_p2_emergent2.js</code>, <code>evo/evo_p2_capture.js</code>.</p>
+  <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
+</div></section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <p><a href="index.html">Le correcteur</a> · <a href="recherche.html">La recherche</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Code source</a></p>
+</div></footer>
+
+<script id="ev-data" type="application/json">{"meta":{"task":"pendu référentiel P2","speaker":"A (apprend quoi souffler)","listener":"B = moteur OMEGA réel (omegaStep, cognition seule)","channel":"1 lettre","protocol":"A → la lettre la plus RARE du mot (appris)","wordLenRange":"8-12","fidelity":"100% omegaStep, aucune valeur inventée"},"learning":{"epochs":8,"perEpoch":70,"curve":[94.3,94.3,98.6,97.1,91.4,94.3,92.9,95.7],"valueByRank":[2.75,0,0,2,0.75,0,0,0],"preferredRank":0,"lr":0.25},"aggregate":{"pool":100,"winrateWithout":92,"winrateWith":97,"gain":5},"matches":[{"word":"PRETEXTERAI","message":"X","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"..E.EX.E...","wrong":0},{"L":"R","hit":true,"board":".RE.EX.ER..","wrong":0},{"L":"T","hit":true,"board":".RETEXTER..","wrong":0},{"L":"A","hit":true,"board":".RETEXTERA.","wrong":0},{"L":"P","hit":true,"board":"PRETEXTERA.","wrong":0},{"L":"S","hit":false,"board":"PRETEXTERA.","wrong":1}],"board0":"...........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"..E.E..E...","wrong":0},{"L":"R","hit":true,"board":".RE.E..ER..","wrong":0},{"L":"A","hit":true,"board":".RE.E..ERA.","wrong":0},{"L":"S","hit":false,"board":".RE.E..ERA.","wrong":1},{"L":"T","hit":true,"board":".RETE.TERA.","wrong":1},{"L":"P","hit":true,"board":"PRETE.TERA.","wrong":1},{"L":"C","hit":false,"board":"PRETE.TERA.","wrong":2},{"L":"I","hit":true,"board":"PRETE.TERAI","wrong":2},{"L":"N","hit":false,"board":"PRETE.TERAI","wrong":3},{"L":"O","hit":false,"board":"PRETE.TERAI","wrong":4},{"L":"L","hit":false,"board":"PRETE.TERAI","wrong":5}],"board0":"...........","wrong":5}},{"word":"INSIPIDE","message":"D","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"......DE","wrong":0},{"L":"A","hit":false,"board":"......DE","wrong":1},{"L":"I","hit":true,"board":"I..I.IDE","wrong":1},{"L":"N","hit":true,"board":"IN.I.IDE","wrong":1},{"L":"T","hit":false,"board":"IN.I.IDE","wrong":2},{"L":"S","hit":true,"board":"INSI.IDE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":true,"board":"I..I.I.E","wrong":0},{"L":"T","hit":false,"board":"I..I.I.E","wrong":1},{"L":"S","hit":true,"board":"I.SI.I.E","wrong":1},{"L":"N","hit":true,"board":"INSI.I.E","wrong":1},{"L":"A","hit":false,"board":"INSI.I.E","wrong":2},{"L":"R","hit":false,"board":"INSI.I.E","wrong":3},{"L":"O","hit":false,"board":"INSI.I.E","wrong":4},{"L":"L","hit":false,"board":"INSI.I.E","wrong":5}],"board0":"........","wrong":5}},{"word":"TYPHOIDES","message":"Y","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".Y.....E.","wrong":0},{"L":"I","hit":true,"board":".Y...I.E.","wrong":0},{"L":"A","hit":false,"board":".Y...I.E.","wrong":1},{"L":"S","hit":true,"board":".Y...I.ES","wrong":1},{"L":"O","hit":true,"board":".Y..OI.ES","wrong":1},{"L":"D","hit":true,"board":".Y..OIDES","wrong":1},{"L":"T","hit":true,"board":"TY..OIDES","wrong":1},{"L":"F","hit":false,"board":"TY..OIDES","wrong":2},{"L":"P","hit":true,"board":"TYP.OIDES","wrong":2}],"board0":".........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E.","wrong":0},{"L":"I","hit":true,"board":".....I.E.","wrong":0},{"L":"A","hit":false,"board":".....I.E.","wrong":1},{"L":"S","hit":true,"board":".....I.ES","wrong":1},{"L":"O","hit":true,"board":"....OI.ES","wrong":1},{"L":"D","hit":true,"board":"....OIDES","wrong":1},{"L":"T","hit":true,"board":"T...OIDES","wrong":1},{"L":"R","hit":false,"board":"T...OIDES","wrong":2},{"L":"N","hit":false,"board":"T...OIDES","wrong":3},{"L":"L","hit":false,"board":"T...OIDES","wrong":4},{"L":"U","hit":false,"board":"T...OIDES","wrong":5}],"board0":".........","wrong":5}},{"word":"ECLIPSEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"E...P.EE.","wrong":0},{"L":"I","hit":true,"board":"E..IP.EE.","wrong":0},{"L":"L","hit":true,"board":"E.LIP.EE.","wrong":0},{"L":"S","hit":true,"board":"E.LIPSEES","wrong":0}],"board0":".........","wrong":0},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"E.....EE.","wrong":0},{"L":"A","hit":false,"board":"E.....EE.","wrong":1},{"L":"O","hit":false,"board":"E.....EE.","wrong":2},{"L":"I","hit":true,"board":"E..I..EE.","wrong":2},{"L":"S","hit":true,"board":"E..I.SEES","wrong":2},{"L":"L","hit":true,"board":"E.LI.SEES","wrong":2},{"L":"R","hit":false,"board":"E.LI.SEES","wrong":3},{"L":"N","hit":false,"board":"E.LI.SEES","wrong":4},{"L":"T","hit":false,"board":"E.LI.SEES","wrong":5}],"board0":".........","wrong":5}},{"word":"GRAMMAGE","message":"G","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"G.....GE","wrong":0},{"L":"I","hit":false,"board":"G.....GE","wrong":1},{"L":"A","hit":true,"board":"G.A..AGE","wrong":1},{"L":"R","hit":true,"board":"GRA..AGE","wrong":1},{"L":"T","hit":false,"board":"GRA..AGE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":false,"board":".......E","wrong":1},{"L":"A","hit":true,"board":"..A..A.E","wrong":1},{"L":"S","hit":false,"board":"..A..A.E","wrong":2},{"L":"R","hit":true,"board":".RA..A.E","wrong":2},{"L":"B","hit":false,"board":".RA..A.E","wrong":3},{"L":"T","hit":false,"board":".RA..A.E","wrong":4},{"L":"N","hit":false,"board":".RA..A.E","wrong":5}],"board0":"........","wrong":5}},{"word":"PELVIENNE","message":"V","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.V.E..E","wrong":0},{"L":"R","hit":false,"board":".E.V.E..E","wrong":1},{"L":"I","hit":true,"board":".E.VIE..E","wrong":1},{"L":"N","hit":true,"board":".E.VIENNE","wrong":1},{"L":"L","hit":true,"board":".ELVIENNE","wrong":1}],"board0":".........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".E...E..E","wrong":0},{"L":"I","hit":true,"board":".E..IE..E","wrong":0},{"L":"R","hit":false,"board":".E..IE..E","wrong":1},{"L":"N","hit":true,"board":".E..IENNE","wrong":1},{"L":"L","hit":true,"board":".EL.IENNE","wrong":1},{"L":"S","hit":false,"board":".EL.IENNE","wrong":2},{"L":"A","hit":false,"board":".EL.IENNE","wrong":3},{"L":"T","hit":false,"board":".EL.IENNE","wrong":4},{"L":"O","hit":false,"board":".EL.IENNE","wrong":5}],"board0":".........","wrong":5}},{"word":"SATELLITE","message":"L","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...ELL..E","wrong":0},{"L":"A","hit":true,"board":".A.ELL..E","wrong":0},{"L":"I","hit":true,"board":".A.ELLI.E","wrong":0},{"L":"T","hit":true,"board":".ATELLITE","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"...E....E","wrong":0},{"L":"I","hit":true,"board":"...E..I.E","wrong":0},{"L":"A","hit":true,"board":".A.E..I.E","wrong":0},{"L":"T","hit":true,"board":".ATE..ITE","wrong":0},{"L":"S","hit":true,"board":"SATE..ITE","wrong":0}],"board0":".........","wrong":0}},{"word":"RESTAURERIEZ","message":"Z","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..EZ","wrong":0},{"L":"R","hit":true,"board":"RE....RER.EZ","wrong":0},{"L":"I","hit":true,"board":"RE....RERIEZ","wrong":0},{"L":"S","hit":true,"board":"RES...RERIEZ","wrong":0},{"L":"T","hit":true,"board":"REST..RERIEZ","wrong":0},{"L":"O","hit":false,"board":"REST..RERIEZ","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIEZ","wrong":1}],"board0":"............","wrong":1},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..E.","wrong":0},{"L":"R","hit":true,"board":"RE....RER.E.","wrong":0},{"L":"I","hit":true,"board":"RE....RERIE.","wrong":0},{"L":"S","hit":true,"board":"RES...RERIE.","wrong":0},{"L":"T","hit":true,"board":"REST..RERIE.","wrong":0},{"L":"O","hit":false,"board":"REST..RERIE.","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIE.","wrong":1},{"L":"N","hit":false,"board":"RESTA.RERIE.","wrong":2},{"L":"L","hit":false,"board":"RESTA.RERIE.","wrong":3},{"L":"U","hit":true,"board":"RESTAURERIE.","wrong":3}],"board0":"............","wrong":3}},{"word":"STIPULEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...P..EE.","wrong":0},{"L":"I","hit":true,"board":"..IP..EE.","wrong":0},{"L":"T","hit":true,"board":".TIP..EE.","wrong":0},{"L":"U","hit":true,"board":".TIPU.EE.","wrong":0},{"L":"L","hit":true,"board":".TIPULEE.","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"......EE.","wrong":0},{"L":"A","hit":false,"board":"......EE.","wrong":1},{"L":"I","hit":true,"board":"..I...EE.","wrong":1},{"L":"S","hit":true,"board":"S.I...EES","wrong":1},{"L":"T","hit":true,"board":"STI...EES","wrong":1},{"L":"U","hit":true,"board":"STI.U.EES","wrong":1},{"L":"L","hit":true,"board":"STI.ULEES","wrong":1},{"L":"M","hit":false,"board":"STI.ULEES","wrong":2}],"board0":".........","wrong":2}}]}</script>
+<script>
+(function(){
+  var DATA=JSON.parse(document.getElementById('ev-data').textContent);
+  var M=DATA.matches, cur=0, t=0, timer=null;
+  var $=function(id){return document.getElementById(id);};
+
+  // ── boards : dérive l'état initial (le souffle pré-révèle SA lettre côté AVEC) ──
+  function initBoard(word,msg){var s='';for(var p=0;p<word.length;p++)s+=(msg&&word[p]===msg)?word[p]:'.';return s;}
+  function renderBoard(el,word,boardStr,prevStr,msg){
+    var h='';
+    for(var p=0;p<word.length;p++){
+      var c=boardStr[p];
+      if(c==='.'){h+='<span class="px">·</span>';}
+      else if(msg&&c===msg){h+='<span class="whis">'+c+'</span>';}
+      else if(prevStr&&prevStr[p]==='.'){h+='<span class="fresh">'+c+'</span>';}
+      else{h+=c;}
+    }
+    el.innerHTML=h;
+  }
+
+  function wordChips(){
+    var w=$('evWords'); w.innerHTML='';
+    M.forEach(function(m,i){
+      var dec=(m.with.won&&!m.without.won);
+      var b=document.createElement('button');
+      b.innerHTML=(dec?'<span class="dec">⭐</span> ':'')+m.word.toLowerCase();
+      if(i===cur)b.className='on';
+      b.onclick=function(){cur=i;select();};
+      w.appendChild(b);
+    });
+  }
+
+  function select(){
+    stop();
+    [].forEach.call($('evWords').children,function(b,i){b.className=i===cur?'on':'';});
+    var m=M[cur];
+    $('evWord').textContent=m.word.toLowerCase();
+    $('evMsg').textContent=m.message;
+    reset();
+  }
+
+  function maxSteps(){var m=M[cur];return Math.max(m.with.steps.length,m.without.steps.length);}
+
+  function draw(){
+    var m=M[cur];
+    ['W','O'].forEach(function(side){
+      var data=side==='W'?m.with:m.without, msg=side==='W'?m.message:null;
+      var chips=$('evChips'+side), board=$('evBoard'+side), errEl=$('evErr'+side), badge=$('evBadge'+side);
+      // board à l'étape t (dernier step <= t)
+      var shown=Math.min(t,data.steps.length);
+      var bStr=shown>0?data.steps[shown-1].board:initBoard(m.word,msg);
+      var pStr=shown>1?data.steps[shown-2].board:initBoard(m.word,msg);
+      renderBoard(board,m.word,bStr,(shown>0?pStr:null),msg);
+      // chips
+      var h='';
+      if(msg){h+='<span class="ev-chip whisper show" title="soufflé par A">'+msg+'</span>';}
+      for(var i=0;i<data.steps.length;i++){var s=data.steps[i];
+        h+='<span class="ev-chip '+(s.hit?'hit':'miss')+(i<shown?' show':'')+'">'+s.L+'</span>';}
+      chips.innerHTML=h;
+      // erreurs + badge
+      var wrong=shown>0?data.steps[shown-1].wrong:0;
+      errEl.innerHTML='fautes : <b>'+wrong+'</b>';
+      var done=shown>=data.steps.length;
+      badge.className='ev-badge '+(data.won?'win':'lose')+(done?' on':'');
+      badge.textContent=data.won?'GAGNÉ':'PERDU';
+    });
+    $('evHint').textContent=t>=maxSteps()?'partie terminée — '+(M[cur].with.won&&!M[cur].without.won?'le souffle a sauvé la partie.':'(souffle non décisif sur ce mot)'):'coup '+t+' / '+maxSteps();
+  }
+
+  function step(){ if(t>=maxSteps()){stop();return;} t++; draw(); }
+  function play(){ stop(); if(t>=maxSteps())t=0; timer=setInterval(function(){ if(t>=maxSteps()){stop();return;} step(); },650); }
+  function stop(){ if(timer){clearInterval(timer);timer=null;} }
+  function reset(){ stop(); t=0; draw(); }
+  function all(){ stop(); t=maxSteps(); draw(); }
+
+  // ── métriques ──
+  function metrics(){
+    var a=DATA.aggregate;
+    var hO=Math.round(a.winrateWithout/100*90), hW=Math.round(a.winrateWith/100*90);
+    $('evWrO').style.height=hO+'px'; $('evWrW').style.height=hW+'px';
+    $('evWrOv').textContent=a.winrateWithout+' %'; $('evWrWv').textContent=a.winrateWith+' %';
+    $('evGain').textContent='+ '+a.gain+' points grâce au message appris';
+    // ranks
+    var vals=DATA.learning.valueByRank, mx=Math.max.apply(null,vals)||1, R=$('evRanks');
+    R.innerHTML='';
+    vals.slice(0,6).forEach(function(v,i){
+      var d=document.createElement('div'); d.className='r'+(i===DATA.learning.preferredRank?' top':'');
+      d.innerHTML='<div class="b" style="height:'+Math.round(Math.max(v,0)/mx*88)+'px"></div><small>#'+i+'</small>';
+      R.appendChild(d);
+    });
+    // sparkline
+    var c=DATA.learning.curve, n=c.length, lo=Math.min.apply(null,c)-1, hi=Math.max.apply(null,c)+1;
+    var pts=c.map(function(y,i){var x=i/(n-1)*300; var yy=54-(y-lo)/(hi-lo)*50-2; return x.toFixed(1)+','+yy.toFixed(1);}).join(' ');
+    $('evSpark').innerHTML='<polyline points="'+pts+'" fill="none" stroke="var(--accent,#5b8cf6)" stroke-width="1.6"/>'+
+      c.map(function(y,i){var x=i/(n-1)*300; var yy=54-(y-lo)/(hi-lo)*50-2; return '<circle cx="'+x.toFixed(1)+'" cy="'+yy.toFixed(1)+'" r="2" fill="var(--accent,#5b8cf6)"/>';}).join('');
+  }
+
+  $('evPlay').onclick=play; $('evAll').onclick=all; $('evReset').onclick=reset;
+  wordChips(); select(); metrics();
+})();
+// toggle police lisible — identique aux autres pages (classe .lisible + persistance omega_lisible)
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+</script>
+</body>
+</html>
