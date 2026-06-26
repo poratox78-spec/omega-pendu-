@@ -156,7 +156,13 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   params (cf. **NEAT** évolue les poids ; **Grammatical Evolution** garde le code syntaxiquement valide). Les **57 % neutres =
   réseaux neutres** (Kimura ; Banzhaf) = carburant de la dérive/évolvabilité. ⇒ **P3(a) (gènes config) était au BON niveau ;
   P3+ (source) au mauvais** — « ce qu'on faisait mal » identifié et mesuré. Croisement : splicer du source détruit les blocs
-  (pas de modularité) → croisement **blend/uniforme sur le génome param** (modulaire) est le bon opérateur.
+  (pas de modularité) → croisement **blend/uniforme sur le génome param** (modulaire) est le bon opérateur. Littérature + sources
+  documentées dans **`evo/EVO_P3_EVOLVABILITY.md`** (Wagner & Altenberg, Banzhaf/Hu, Grammatical Evolution, NEAT, Kimura).
+- ✅ **P3 (b) — LIGNÉE PROPRE sur le bon génome** : `evo_p3_lineage.js`. Lignée 8 générations sur le génome **param** (croisement
+  **blend** + mutation gaussienne, sélection tri-critère, état RAZ = indépendance ; pas d'isolation process car les params ne
+  corrompent pas l'init). Résultat : réf err **1,40** / 92,5 % → lignée err **1,163** / **95,0 %** = **−0,237 err SOUS la réf,
+  winrate maintenu** ⇒ les générations **trouvent une meilleure version** (les 30 % d'erreurs utiles exploitées). *Caveat : 80
+  mots len-7, held-out à confirmer.* C'est « inventer une meilleure version d'OMEGA », **proprement, sur le bon génome.**
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 
 ---
