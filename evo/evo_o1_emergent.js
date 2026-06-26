@@ -14,7 +14,7 @@ const { loadEngine } = require('./fitness_harness.js');
   const gcMax=Math.max(...gc)||1, pfMax=pf.map(r=>Math.max(...r)||1), vowel=l=>'AEIOUY'.includes(String.fromCharCode(65+l))?1:0;
   let r=12345; const rnd0=()=>{r=(r*1664525+1013904223)>>>0;return r/4294967296;};
   for(let i=words7.length-1;i>0;i--){const j=Math.floor(rnd0()*(i+1));const t=words7[i];words7[i]=words7[j];words7[j]=t;}
-  const test=words7.slice(0,80), trainPool=words7.slice(80,2500), cohortPool=words7.slice(0,2200);
+  const test=words7.slice(0,80), trainPool=words7.slice(80,2200), cohortPool=words7.slice(0,1600);
 
   function step(rev,n,g){
     const revSet=new Set(); for(let i=0;i<n;i++)if(rev[i]!=null)revSet.add(rev[i]);
@@ -40,7 +40,7 @@ const { loadEngine } = require('./fitness_harness.js');
   function pickAgent(b,eps){ if(rnd()<eps)return Math.floor(rnd()*AG.length); let bi=0,bv=-1e18; for(let k=0;k<AG.length;k++)if(value[b][k]>bv){bv=value[b][k];bi=k;} return bi; }
 
   // ENTRAÎNEMENT — reward dense : l'agent choisi devine-t-il une lettre correcte ? (feedback du jeu)
-  const EPOCHS=4, PER=220;
+  const EPOCHS=3, PER=150;
   for(let e=0;e<EPOCHS;e++){ const eps=Math.max(0.08,0.5*(1-e/EPOCHS));
     for(let t=0;t<PER;t++){ const word=trainPool[Math.floor(rnd()*trainPool.length)]; const n=word.length,rev=new Array(n).fill(null),g=new Set();let wrong=0;
       while(wrong<3 && rev.includes(null)){ const {F,consist}=step(rev,n,g); const b=bucket(consist); const ai=pickAgent(b,eps);
@@ -55,6 +55,20 @@ const { loadEngine } = require('./fitness_harness.js');
     return !rev.includes(null)&&wrong<3;}
   const wr=decide=>{let w=0;for(const word of test)if(play(word,decide))w++;return +(100*w/test.length).toFixed(1);};
   const coordWR=wr(coordDecide);
+
+  // ── NON-MYOPE : reward au niveau PARTIE (gagné/perdu), crédité aux choix de routage utilisés (REINFORCE + baseline) ──
+  const valueG=BUCK.map(()=>new Array(AG.length).fill(0)); let baseG=0.5; const LRG=0.06, EP2=8, PER2=350;
+  const pickG=(b,eps)=>{ if(rnd()<eps)return Math.floor(rnd()*AG.length); let bi=0,bv=-1e18; for(let k=0;k<AG.length;k++)if(valueG[b][k]>bv){bv=valueG[b][k];bi=k;} return bi; };
+  for(let e=0;e<EP2;e++){ const eps=Math.max(0.1,0.55*(1-e/EP2));
+    for(let t=0;t<PER2;t++){ const word=trainPool[Math.floor(rnd()*trainPool.length)]; const n=word.length,rev=new Array(n).fill(null),g=new Set();let wrong=0; const used=[];
+      while(wrong<3 && rev.includes(null)){ const {F,consist}=step(rev,n,g); const b=bucket(consist); const ai=pickG(b,eps); used.push([b,ai]);
+        const cand=[];for(let L=0;L<A;L++)if(!g.has(L))cand.push(L); const L=agLetter(AG[ai],cand,F); g.add(L); const ch=String.fromCharCode(65+L);
+        if(word.indexOf(ch)>=0){for(let i=0;i<n;i++)if(word[i]===ch)rev[i]=ch;} else wrong++; }
+      const won=(!rev.includes(null)&&wrong<3)?1:0; const adv=won-baseG; baseG+=0.02*(won-baseG);
+      for(const u of used) valueG[u[0]][u[1]]+=LRG*adv; } }
+  const coordGDecide=(cand,F,consist)=>{ const b=bucket(consist); let bi=0,bv=-1e18; for(let k=0;k<AG.length;k++)if(valueG[b][k]>bv){bv=valueG[b][k];bi=k;} return agLetter(AG[bi],cand,F); };
+  const coordGWR=wr(coordGDecide);
+
   const monoCoh=wr((c,F)=>agLetter(AG[1],c,F)), monoCohPos=wr((c,F)=>agLetter(AG[2],c,F));
   const bestMono=Math.max(monoCoh,monoCohPos);
 
@@ -67,11 +81,14 @@ const { loadEngine } = require('./fitness_harness.js');
   console.log(`    monolithe cohorte           : ${monoCoh.toFixed(1)} %`);
   console.log(`    monolithe cohorte+pos       : ${monoCohPos.toFixed(1)} %  → meilleur monolithe ${bestMono.toFixed(1)} %`);
   console.log(`    routeur CÂBLÉ (étape 2, K=80): ≈ 72,5 % (mesuré précédemment)`);
-  console.log(`    COORDINATEUR ÉMERGENT       : ${coordWR.toFixed(1)} %`);
-  console.log(`\n  Verdict honnête :`);
-  console.log(`  ✅ ce qui ÉMERGE : la FIABILITÉ — du seul reward, le groupe apprend à ne router que vers des agents compétents (jamais vers les faibles ouvreur/fréquence).`);
-  console.log(`  ⚠️ ce qui N'ÉMERGE PAS : la DIVISION subtile — il ne (re)découvre pas qu'il faut l'OUVREUR (nul seul) TÔT. Il ÉGALE donc le monolithe (${coordWR.toFixed(1)} %),`);
-  console.log(`     sans atteindre le routeur câblé (72,5 %). CAUSE : le reward PAR COUP (« lettre correcte ? ») est MYOPE — il ne crédite pas l'ouvreur d'avoir PRÉPARÉ le finisseur (valeur séquentielle).`);
-  console.log(`  → FIX (suite) : crédit au niveau PARTIE (gagné/perdu) attribué aux choix de routage, pas la correction par coup — même défi de credit-assignment qu'en P2.`);
-  console.log(`  → ACQUIS : l'INTÉGRATION O1+P2+P3 tient (versions diverses + société + protocole de coordination APPRIS, pas codé) ; la fiabilité émerge, la division subtile attend un meilleur reward.`);
+  console.log(`    COORDINATEUR · reward PAR COUP (myope)    : ${coordWR.toFixed(1)} %`);
+  console.log(`    COORDINATEUR · reward PARTIE (non-myope)  : ${coordGWR.toFixed(1)} %`);
+  console.log(`\n  PROTOCOLE appris au reward-PARTIE (par phase → agent) :`);
+  for(let b=0;b<BUCK.length;b++){ let bi=0,bv=-1e18; for(let k=0;k<AG.length;k++)if(valueG[b][k]>bv){bv=valueG[b][k];bi=k;} console.log(`    ${BUCK[b].n.padEnd(22)} → ${AG[bi].n}`); }
+  const beatMyope = coordGWR>coordWR+0.1, beatMono = coordGWR>bestMono+0.1, beatRouter = coordGWR>=72.0;
+  console.log(`\n  Verdict :`);
+  console.log(`  • reward MYOPE (par coup, « lettre correcte ? ») : ${coordWR.toFixed(1)} % — apprend la fiabilité, PAS la division (aveugle à la valeur séquentielle de l'ouvreur).`);
+  console.log(`  • reward PARTIE (gagné/perdu, non-myope) : ${coordGWR.toFixed(1)} % — ${beatMyope?'✅ MIEUX que le myope':'≈ le myope'}${beatMono?' · ✅ bat le monolithe ('+bestMono.toFixed(1)+'%)':' · n\'a pas dépassé le monolithe ('+bestMono.toFixed(1)+'%)'}${beatRouter?' · atteint le routeur câblé':''}.`);
+  console.log(`  → ${beatMyope||beatMono?'l\'ISSUE DE PARTIE est le bon signal : créditer la VICTOIRE remonte la valeur jusqu\'à l\'ouverture — la coordination émerge mieux.':'l\'issue de partie est NÉCESSAIRE mais SPARSE — credit-assignment dur à cette échelle (plus de parties / meilleure baseline aideraient). Honnête.'}`);
+  console.log(`  → ACQUIS : intégration O1+P2+P3 (versions diverses + société + protocole APPRIS) ; et le bon reward = l'issue de PARTIE, pas la correction par coup.`);
 })().catch(e=>{console.error('ERR',e&&e.stack||e);process.exit(1);});

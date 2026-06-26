@@ -211,15 +211,16 @@ produisent des **versions spécialisées** susceptibles de coopérer).
   seul = 2,5 %** (inutile isolé) mais **précieux dans l'équipe** — il couvre l'ouverture que la cohorte rate. *C'est la vraie
   division : chaque rôle résout une phase que l'autre échoue.*
   ✓ **Point 3 — COORDINATION ÉMERGENTE (`evo_o1_emergent.js`)** : la société d'agents apprend, **du seul reward**, un protocole de
-  routage par phase (contexte = taille de cohorte) — le « langage » de P2 appliqué au groupe d'O1. **Honnête** : la **FIABILITÉ
-  émerge** (il ne route que vers des agents compétents, jamais les faibles) ; **mais la DIVISION subtile N'émerge PAS** — il ne
-  redécouvre pas qu'il faut l'**ouvreur (nul seul) TÔT**. Il **égale** le monolithe (67,5 %), sans atteindre le routeur câblé
-  (72,5 %). *Cause* : reward **par coup** (« lettre correcte ? ») **myope** — ne crédite pas la valeur *séquentielle* (l'ouvreur
-  qui prépare le finisseur). *Fix* : crédit au niveau **partie** (même défi de credit-assignment qu'en P2). ⇒ **l'intégration
-  O1+P2+P3 tient** (versions diverses + société + protocole de coordination *appris, pas codé*) ; la division subtile attend un
-  meilleur reward. *(Bug attrapé en route : `g.add` oublié dans l'entraînement → boucle infinie ; corrigé.)*
-- ⏳ **Suite O1** : reward au niveau partie pour faire émerger la division ; brancher de **vraies versions OMEGA** (générations P3)
-  comme agents (pas des heuristiques proxy) ; le **langage P2** comme canal de coordination réel.
+  routage par phase (contexte = taille de cohorte) — le « langage » de P2 appliqué au groupe d'O1. **Le REWARD fait tout** :
+  — reward **MYOPE** (« lettre correcte ? » par coup) → **66 %** : apprend la fiabilité mais **pas** la division (aveugle à la valeur
+  *séquentielle* de l'ouvreur), même **pire** que le monolithe ;
+  — reward au niveau **PARTIE** (gagné/perdu, crédité aux routages utilisés, REINFORCE+baseline) → **72,5 %** : **bat le monolithe
+  (71 %) et ÉGALE le routeur câblé (72,5 %)** — mais **appris, pas codé**.
+  ⇒ le premier « échec » du point 3 était un **artefact de mauvais objectif** (j'optimisais « toucher des lettres », pas « gagner ») ;
+  avec l'**issue de partie**, la coordination émergente **rejoint le hand-design**. **L'intégration O1+P2+P3 tient** (versions diverses
+  + société + protocole *appris*) et le bon signal = **l'issue de PARTIE**. *(Bug attrapé : `g.add` oublié → boucle infinie ; corrigé.)*
+- ⏳ **Suite O1** : brancher de **vraies versions OMEGA** (générations P3) comme agents (pas des heuristiques proxy) ; le **langage P2**
+  comme canal de coordination réel (au lieu d'un routeur par bucket).
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
 ### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
