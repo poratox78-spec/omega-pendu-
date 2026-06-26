@@ -3,111 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OMEGA-Ω — l'évolution : se copie · communiquent · générations</title>
-<meta name="description" content="Les trois étages de la boucle EVO d'OMEGA, rejoués depuis la capture du vrai moteur (omegaStep) : P1 se copie (le jumeau), P2 communiquent (le souffle), P3 générations (le croisement). Aucun chiffre inventé.">
+<title>OMEGA-Ω — l'évolution : une instance qui se copie, communique, fait des générations</title>
+<meta name="description" content="La boucle évolutionnaire d'OMEGA en une animation : une sphère Ω se copie (P1), deux instances communiquent (P2), leurs génomes se croisent et sont sélectionnés par le pendu (P3). Chiffres réels (omegaStep).">
 <link rel="stylesheet" href="site.css">
 <style>
   .ev-wrap{max-width:1000px}
-  .ev-subnav{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
-  .ev-subnav a{font-size:13px;padding:6px 13px;border-radius:999px;text-decoration:none;
-    background:var(--bg-2,#161b22);color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c)}
-  .ev-subnav a:hover{border-color:var(--accent,#5b8cf6)}
-  .ev-subnav a b{color:var(--accent,#5b8cf6)}
-  .ev-act{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#5b8cf6);font-weight:700;margin:0 0 2px}
-
-  .ev-words{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
-  .ev-words button{font:inherit;font-size:13px;padding:6px 11px;border-radius:999px;cursor:pointer;
-    background:var(--bg-2,#161b22);color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);transition:.15s}
-  .ev-words button:hover{border-color:var(--accent,#5b8cf6)}
-  .ev-words button.on{background:var(--accent,#5b8cf6);border-color:var(--accent,#5b8cf6);color:#0d1117;font-weight:600}
-  .ev-words button .dec{color:var(--accent-2,#a3d977);font-weight:700}
-  .ev-words button.on .dec{color:#0d1117}
-
-  .ev-fns{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
-  .ev-fns .fn{font-family:ui-monospace,monospace;font-size:12.5px;padding:5px 10px;border-radius:8px;
-    background:rgba(163,217,121,.12);color:var(--accent-2,#a3d977);border:1px solid rgba(163,217,121,.4)}
-  .ev-fns .fn .x{opacity:.7;margin-left:5px}
-
-  .ev-speaker{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0;padding:13px 15px;
-    background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c);border-radius:var(--radius,14px)}
-  .ev-av{font-size:26px;line-height:1}
-  .ev-sp-txt{flex:1;min-width:220px}
-  .ev-sp-txt b{color:var(--fg,#e6edf3)}
-  .ev-sp-txt small{color:var(--fg-2,#9aa4af);display:block;margin-top:2px;font-size:12px}
-  .ev-whisper{display:inline-flex;align-items:center;gap:8px}
-  .ev-arrow{color:var(--accent,#5b8cf6);font-size:18px}
-  .ev-msg{display:inline-grid;place-items:center;width:38px;height:44px;border-radius:9px;font-weight:700;font-size:22px;
-    font-family:ui-monospace,monospace;background:rgba(91,140,246,.16);color:var(--accent,#5b8cf6);border:1.5px solid var(--accent,#5b8cf6)}
-
-  .ev-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:680px){.ev-cols{grid-template-columns:1fr}}
-  .ev-col{padding:14px;border-radius:var(--radius,14px);background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c)}
-  .ev-col h3{margin:0 0 4px;font-size:14px;display:flex;align-items:center;gap:7px}
-  .ev-col .sub{color:var(--fg-2,#9aa4af);font-size:11.5px;margin:0 0 12px}
-  .ev-col.with,.ev-col.twinA{border-color:rgba(163,217,121,.45)}
-  .ev-col.without,.ev-col.twinB{border-color:rgba(91,140,246,.35)}
-
-  .ev-board{font-family:ui-monospace,monospace;font-size:clamp(17px,3vw,25px);letter-spacing:.16em;font-weight:600;
-    color:var(--fg,#e6edf3);min-height:1.4em;margin:2px 0 12px;word-break:break-all}
-  .ev-board .px{color:var(--line,#3a434f)}
-  .ev-board .fresh{color:var(--accent-2,#a3d977)}
-  .ev-board .whis{color:var(--accent,#5b8cf6)}
-
-  .ev-chips{display:flex;flex-wrap:wrap;gap:5px;min-height:30px;margin-bottom:12px}
-  .ev-chip{display:grid;place-items:center;width:27px;height:27px;border-radius:7px;font-weight:600;font-size:14px;
-    font-family:ui-monospace,monospace;opacity:0;transform:translateY(4px);transition:.18s}
-  .ev-chip.show{opacity:1;transform:none}
-  .ev-chip.hit{background:rgba(163,217,121,.18);color:var(--accent-2,#a3d977);border:1px solid rgba(163,217,121,.5)}
-  .ev-chip.miss{background:rgba(244,113,116,.16);color:var(--bad,#f47174);border:1px solid rgba(244,113,116,.5)}
-  .ev-chip.whisper{background:rgba(91,140,246,.16);color:var(--accent,#5b8cf6);border:1px dashed var(--accent,#5b8cf6)}
-  .ev-chip.div{box-shadow:0 0 0 2px var(--warn,#d8922e)}
-
-  .ev-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line,#2a323c);padding-top:10px}
-  .ev-err{font-size:12px;color:var(--fg-2,#9aa4af)}
-  .ev-err b{color:var(--bad,#f47174)}
-  .ev-badge{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:999px;opacity:.25}
-  .ev-badge.on{opacity:1}
-  .ev-badge.win{background:rgba(163,217,121,.16);color:var(--accent-2,#a3d977)}
-  .ev-badge.lose{background:rgba(244,113,116,.16);color:var(--bad,#f47174)}
-
-  .ev-ctrl{display:flex;gap:9px;align-items:center;margin:16px 0 6px;flex-wrap:wrap}
-  .ev-ctrl button{font:inherit;font-size:13.5px;padding:8px 16px;border-radius:9px;cursor:pointer;
-    background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600;transition:.15s}
-  .ev-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
-  .ev-ctrl button:hover{filter:brightness(1.08)}
-  .ev-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
-
-  .ev-metrics{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;margin-top:8px}
-  @media(max-width:680px){.ev-metrics{grid-template-columns:1fr}}
-  .ev-card{padding:15px;border-radius:var(--radius,14px);background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c)}
-  .ev-card h3{margin:0 0 12px;font-size:13.5px}
-  .ev-wr{display:flex;align-items:flex-end;gap:14px}
-  .ev-wr .col{flex:1;text-align:center}
-  .ev-wr .bar{height:84px;display:flex;align-items:flex-end;justify-content:center}
-  .ev-wr .bar>span{display:block;width:42px;border-radius:7px 7px 0 0;background:var(--fg-2,#9aa4af)}
-  .ev-wr .hi>span{background:var(--accent-2,#a3d977)}
-  .ev-wr .mid>span{background:var(--accent,#5b8cf6)}
-  .ev-wr .v{font-weight:700;font-size:16px;color:var(--fg,#e6edf3);margin-top:5px}
-  .ev-wr .l{font-size:11px;color:var(--fg-2,#9aa4af)}
-  .ev-gain{text-align:center;margin-top:8px;font-size:12.5px;color:var(--accent-2,#a3d977);font-weight:600}
-
-  .ev-ranks{display:flex;align-items:flex-end;gap:6px;height:84px;margin-bottom:6px}
-  .ev-ranks .r{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-  .ev-ranks .r .b{width:100%;border-radius:5px 5px 0 0;background:var(--line,#2a323c);min-height:2px}
-  .ev-ranks .r.top .b{background:var(--accent,#5b8cf6)}
-  .ev-ranks .r small{font-size:10px;color:var(--fg-2,#9aa4af);margin-top:4px}
-  .ev-spark{width:100%;height:54px}
-
-  .eg-gene{margin:11px 0}
-  .eg-gene .gl{display:flex;justify-content:space-between;font-size:12px;color:var(--fg-2,#9aa4af);margin-bottom:5px}
-  .eg-gene .gl b{color:var(--fg,#e6edf3);font-weight:600}
-  .eg-track{position:relative;height:26px;border-radius:7px;background:var(--bg-3,#1c232c);border:1px solid var(--line,#2a323c)}
-  .eg-mk{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap}
-  .eg-mk.A{background:rgba(163,217,121,.18);color:var(--accent-2,#a3d977);border:1px solid rgba(163,217,121,.5)}
-  .eg-mk.B{background:rgba(91,140,246,.18);color:var(--accent,#5b8cf6);border:1px solid rgba(91,140,246,.5)}
-  .eg-mk.C{background:var(--warn,#d8922e);color:#0d1117;border:1px solid var(--warn,#d8922e);z-index:2}
-  .eg-leg{display:flex;gap:14px;font-size:11.5px;color:var(--fg-2,#9aa4af);margin-top:4px}
-  .eg-leg b.A{color:var(--accent-2,#a3d977)}.eg-leg b.B{color:var(--accent,#5b8cf6)}.eg-leg b.C{color:var(--warn,#d8922e)}
+  .evo-stage{position:relative;border-radius:var(--radius,14px);background:radial-gradient(120% 90% at 50% 20%,#10161f,#0b0f15);
+    border:1px solid var(--line,#2a323c);overflow:hidden}
+  .evo-stage canvas{display:block;width:100%;height:auto}
+  .evo-cap{position:absolute;left:0;right:0;bottom:0;padding:14px 18px 16px;
+    background:linear-gradient(0deg,rgba(8,11,16,.92),rgba(8,11,16,0))}
+  .evo-cap .t{font-size:clamp(15px,2.4vw,19px);font-weight:700;color:var(--fg,#e6edf3);margin:0}
+  .evo-cap .s{font-size:clamp(12px,1.7vw,13.5px);color:var(--fg-2,#9aa4af);margin:3px 0 0}
+  .evo-gen{position:absolute;top:12px;right:14px;font-size:12px;color:var(--fg-2,#9aa4af);
+    background:rgba(8,11,16,.6);border:1px solid var(--line,#2a323c);border-radius:999px;padding:4px 11px}
+  .evo-gen b{color:var(--accent-2,#a3d977)}
+  .evo-strip{display:flex;gap:6px;margin:12px 0 4px}
+  .evo-strip .seg{flex:1;height:5px;border-radius:3px;background:var(--bg-3,#1c232c);overflow:hidden}
+  .evo-strip .seg>i{display:block;height:100%;width:0;background:var(--accent,#5b8cf6);border-radius:3px}
+  .evo-strip .seg.on>i{background:var(--accent,#5b8cf6)} .evo-strip .seg.done>i{width:100%!important;background:var(--accent-2,#a3d977)}
+  .evo-ctrl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:8px 0 2px}
+  .evo-ctrl button{font:inherit;font-size:13.5px;padding:7px 15px;border-radius:9px;cursor:pointer;
+    background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600}
+  .evo-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
+  .evo-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
+  .evo-leg{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--fg-2,#9aa4af);margin-top:10px}
+  .evo-leg span{display:inline-flex;align-items:center;gap:6px}
+  .evo-leg i{width:11px;height:11px;border-radius:50%}
+  .evo-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+  @media(max-width:620px){.evo-kpi{grid-template-columns:1fr}}
+  .evo-kpi .k{background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c);border-radius:var(--radius,14px);padding:13px 15px}
+  .evo-kpi .k b{display:block;font-size:20px;color:var(--fg,#e6edf3)}
+  .evo-kpi .k small{color:var(--fg-2,#9aa4af);font-size:12px}
+  .evo-kpi .k.green b{color:var(--accent-2,#a3d977)}
 </style>
 </head>
 <body>
@@ -125,118 +53,39 @@
 
 <main id="main">
 <section class="hero"><div class="wrap ev-wrap">
-  <span class="tag">Évolution · la boucle EVO</span>
-  <h1>OMEGA <em>se copie</em>, <em>communique</em>, fait des <em>générations</em>.</h1>
-  <p class="lead">Trois étages, montés un par un, et ici <strong>rejoués depuis la capture du vrai moteur</strong> (les vraies lettres de <code>omegaStep</code>) — pas une animation décorative, aucun chiffre inventé. Le pendu n'est que le <strong>juge</strong>.</p>
-  <div class="ev-subnav">
-    <a href="#p1"><b>P1</b> · se copie</a>
-    <a href="#p2"><b>P2</b> · communiquent</a>
-    <a href="#p3"><b>P3</b> · générations</a>
-  </div>
+  <span class="tag">Évolution · la boucle</span>
+  <h1>Une instance qui <em>se copie</em>, <em>communique</em>, fait des <em>générations</em>.</h1>
+  <p class="lead">Chaque <strong>sphère</strong> est un OMEGA. Tout part d'<strong>une</strong> sphère Ω&nbsp;: elle se <strong>copie</strong> (P1), les deux instances <strong>communiquent</strong> (P2), puis leurs <strong>génomes se croisent</strong> et le pendu <strong>sélectionne</strong> la meilleure version (P3) — qui se copie à son tour. Un seul flux. Les chiffres affichés sont <strong>réels</strong> (capturés sur <code>omegaStep</code>).</p>
 </div></section>
 
-<section id="p1"><div class="wrap ev-wrap">
-  <p class="ev-act">Acte 1 — se copie</p>
-  <h2>Le <em>jumeau</em>, pas la photocopie</h2>
-  <p>OMEGA reconstruit ses propres fonctions de décision <strong>à l'octet près</strong> (codage prédictif bPC) et les rebranche dans le moteur vivant — le <strong>génome</strong> est copié fidèlement&nbsp;:</p>
-  <div class="ev-fns" id="p1Fns"></div>
-  <p>Mais deux instances du <em>même code</em> qui <strong>vivent leur propre partie</strong> (l'OS apprend en ligne) ne rejouent pas les mêmes coups — comme deux jumeaux. <strong>Même savoir-faire, discours propre.</strong> Choisis un mot et regarde-les jouer côte à côte&nbsp;: ⭐ = ils divergent, le contour <span style="color:var(--warn,#d8922e)">orange</span> marque un coup différent.</p>
-
-  <div class="ev-words" id="p1Words"></div>
-  <div class="ev-cols">
-    <div class="ev-col twinA">
-      <h3>🧬 Jumeau A <span style="color:var(--fg-2,#9aa4af);font-weight:400;font-size:12px">— état frais</span></h3>
-      <p class="sub">le code reconstruit, instance neuve.</p>
-      <div class="ev-board" id="p1BoardA"></div><div class="ev-chips" id="p1ChipsA"></div>
-      <div class="ev-foot"><span class="ev-err" id="p1ErrA"></span><span class="ev-badge win" id="p1BadgeA">GAGNÉ</span></div>
-    </div>
-    <div class="ev-col twinB">
-      <h3>🧬 Jumeau B <span style="color:var(--fg-2,#9aa4af);font-weight:400;font-size:12px">— a vécu 60 parties</span></h3>
-      <p class="sub">même code, mais l'OS a appris en chemin.</p>
-      <div class="ev-board" id="p1BoardB"></div><div class="ev-chips" id="p1ChipsB"></div>
-      <div class="ev-foot"><span class="ev-err" id="p1ErrB"></span><span class="ev-badge win" id="p1BadgeB">GAGNÉ</span></div>
-    </div>
+<section><div class="wrap ev-wrap">
+  <div class="evo-stage">
+    <canvas id="evoCanvas" width="1000" height="460" role="img" aria-label="Animation 3D de la boucle évolutionnaire d'OMEGA : une sphère se copie, communique, et fait des générations."></canvas>
+    <div class="evo-gen">génération <b id="evoGen">1</b></div>
+    <div class="evo-cap"><p class="t" id="evoTitle">Ω</p><p class="s" id="evoSub">—</p></div>
   </div>
-  <div class="ev-ctrl"><button id="p1Play">▶ Jouer</button><button class="ghost" id="p1All">⏭ Tout</button><button class="ghost" id="p1Reset">↺</button><span class="hint" id="p1Hint"></span></div>
-  <p class="note" id="p1Stat"></p>
-</div></section>
-
-<section id="p2"><div class="wrap ev-wrap">
-  <p class="ev-act">Acte 2 — communiquent</p>
-  <h2>L'un <em>souffle</em>, l'autre <em>joue</em></h2>
-  <p><strong>A</strong> voit le mot caché et a le droit de <strong>souffler une seule lettre</strong> à <strong>B</strong> (le moteur réel). A <em>apprend</em> quoi envoyer&nbsp;: la lettre la plus <strong>rare</strong> du mot. Regarde B jouer la même grille <strong>avec</strong> et <strong>sans</strong> ce souffle. ⭐ = le souffle change l'issue.</p>
-
-  <div class="ev-words" id="p2Words"></div>
-  <div class="ev-speaker">
-    <span class="ev-av">🅰️</span>
-    <div class="ev-sp-txt">
-      <b>A (le parleur)</b> voit <code id="p2Word">—</code> et souffle&nbsp;:
-      <span class="ev-whisper"><span class="ev-arrow">→</span><span class="ev-msg" id="p2Msg">?</span><span class="ev-av">🅱️</span></span>
-      <small>la lettre la plus rare du mot — le protocole appris (value du rang #0 la plus haute).</small>
-    </div>
+  <div class="evo-strip" id="evoStrip"></div>
+  <div class="evo-ctrl">
+    <button id="evoPlay">⏸ Pause</button>
+    <button class="ghost" id="evoRestart">↺ Recommencer</button>
+    <span class="hint">la boucle tourne en continu — chaque tour = une génération</span>
   </div>
-  <div class="ev-cols">
-    <div class="ev-col with">
-      <h3>🅱️ AVEC le souffle</h3><p class="sub">B reçoit la lettre, puis joue le moteur réel.</p>
-      <div class="ev-board" id="p2BoardW"></div><div class="ev-chips" id="p2ChipsW"></div>
-      <div class="ev-foot"><span class="ev-err" id="p2ErrW"></span><span class="ev-badge win" id="p2BadgeW">GAGNÉ</span></div>
-    </div>
-    <div class="ev-col without">
-      <h3>🅱️ SANS le souffle</h3><p class="sub">même moteur, même mot — sans message.</p>
-      <div class="ev-board" id="p2BoardO"></div><div class="ev-chips" id="p2ChipsO"></div>
-      <div class="ev-foot"><span class="ev-err" id="p2ErrO"></span><span class="ev-badge lose" id="p2BadgeO">PERDU</span></div>
-    </div>
-  </div>
-  <div class="ev-ctrl"><button id="p2Play">▶ Jouer</button><button class="ghost" id="p2All">⏭ Tout</button><button class="ghost" id="p2Reset">↺</button><span class="hint" id="p2Hint"></span></div>
-
-  <div class="ev-metrics" style="margin-top:16px">
-    <div class="ev-card">
-      <h3>Winrate de B — sans vs avec le souffle <span style="color:var(--fg-2,#9aa4af);font-weight:400">(100 mots non vus)</span></h3>
-      <div class="ev-wr">
-        <div class="col"><div class="bar"><span id="p2WrO"></span></div><div class="v" id="p2WrOv">—</div><div class="l">sans message</div></div>
-        <div class="col hi"><div class="bar"><span id="p2WrW"></span></div><div class="v" id="p2WrWv">—</div><div class="l">avec message</div></div>
-      </div>
-      <div class="ev-gain" id="p2Gain"></div>
-    </div>
-    <div class="ev-card">
-      <h3>A a-t-il appris&nbsp;? <span style="color:var(--fg-2,#9aa4af);font-weight:400">value par rang de rareté</span></h3>
-      <div class="ev-ranks" id="p2Ranks"></div>
-      <p class="sub" style="color:var(--fg-2,#9aa4af);font-size:11.5px;margin:0">Le rang <b style="color:var(--accent,#5b8cf6)">#0</b> (la plus rare du mot) reçoit la value la plus haute&nbsp;: l'encodage optimal a émergé du seul reward.</p>
-    </div>
-  </div>
-</div></section>
-
-<section id="p3"><div class="wrap ev-wrap">
-  <p class="ev-act">Acte 3 — générations</p>
-  <h2>L'évolution — et <em>où</em> elle se voit</h2>
-  <p>P3, c'est <strong>varier le génome</strong> (de vrais paramètres du moteur) et laisser le <strong>pendu sélectionner</strong>. Mais en <strong>lexique</strong>, OMEGA est à <strong>~97 %</strong> — au plafond&nbsp;: quasi aucune place pour « mieux » (la sélection y trouve une version au moins aussi bonne, mais le gain est minuscule). L'évolution se voit là où il reste du <strong>jeu</strong>&nbsp;: le <strong>hors-lexique</strong> (mot jamais vu, mode Trexquant), où OMEGA n'est qu'à ~57 %.</p>
-
-  <div class="ev-metrics">
-    <div class="ev-card">
-      <h3>Plafond vs marge</h3>
-      <div class="ev-wr">
-        <div class="col"><div class="bar"><span id="oovCeil"></span></div><div class="v" id="oovCeilV">—</div><div class="l">en lexique (saturé)</div></div>
-        <div class="col mid"><div class="bar"><span id="oovRoom"></span></div><div class="v" id="oovRoomV">—</div><div class="l">hors-lexique (marge)</div></div>
-      </div>
-      <p class="sub" style="color:var(--fg-2,#9aa4af);font-size:11.5px;margin:8px 0 0">À 97 %, Δ≈0 — rien à gagner. À ~57 %, le génome a <b>de la prise</b>.</p>
-    </div>
-    <div class="ev-card">
-      <h3>Le levier&nbsp;: <em>un seul gène</em> <code>arbConf</code></h3>
-      <p class="sub" style="color:var(--fg-2,#9aa4af);font-size:11.5px;margin:0 0 8px">Monter le seuil de l'arbitrage sublexical = faire <em>défférer</em> les coups peu sûrs. Le winrate OOV grimpe&nbsp;:</p>
-      <div class="ev-ranks" id="oovSweep"></div>
-    </div>
-  </div>
-
-  <div class="ev-card" style="margin-top:14px">
-    <h3>Robuste <em>hors échantillon</em>, et <em>Pareto</em></h3>
-    <p class="sub" style="color:var(--fg-2,#9aa4af);font-size:11.5px;margin:0 0 10px">La valeur du gène (0,30) a été choisie sur <strong>une</strong> graine, puis testée sur des graines <strong>neuves</strong> (réf <span style="color:var(--fg-2,#9aa4af)">○</span> → évolué <span style="color:var(--accent-2,#a3d977)">●</span>). Et on vérifie qu'on ne perd rien en lexique.</p>
-    <div id="oovOOS"></div>
-    <p class="ev-gain" id="oovPareto" style="text-align:left;margin-top:12px"></p>
+  <div class="evo-leg">
+    <span><i style="background:#5b8cf6"></i> Ω original / sa copie (même code)</span>
+    <span><i style="background:#a3d977"></i> nouvelle version (évoluée)</span>
+    <span><i style="background:#d8922e"></i> le signal échangé</span>
   </div>
 </div></section>
 
 <section><div class="wrap ev-wrap">
-  <p class="note">Honnêteté&nbsp;: une <strong>ligne A→Z</strong>, pas une démo magique. <strong>P1 se copie</strong> (génome byte-exact, jumeaux) → <strong>P2 communiquent</strong> (un signal appris paie la coopération) → <strong>P3 générations</strong> (sélection sur le génome). En <em>lexique</em> OMEGA est au plafond (~97 %)&nbsp;: l'évolution y est minuscule — elle se voit <strong>hors-lexique</strong>, où il reste de la marge (gène <code>arbConf</code>, <strong>+14 pt hors échantillon</strong>). Ce qui <em>n'est pas</em> ici&nbsp;: le travail de groupe (O1) — un objectif futur qui, mesuré, <em>ne tient pas</em>, donc on ne le montre pas. Tout rejoue <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> — produits par <code>evo/evo_p1_capture.js</code>, <code>evo_p2_capture.js</code>, <code>evo_oov_capture.js</code> sur le vrai moteur. Détail&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+  <h2>Ce que tu regardes — et pourquoi c'est <em>fidèle</em></h2>
+  <p>L'animation suit, dans l'ordre, les phases démontrées de la roadmap. À chaque étape, le chiffre affiché vient de la <strong>capture du vrai moteur</strong> — pas d'une animation décorative&nbsp;:</p>
+  <div class="evo-kpi">
+    <div class="k"><b id="kpi1">—</b><small><strong>P1 · se copie</strong> — fonctions de décision reconstruites <em>à l'octet près</em> (bPC), le jumeau joue au même niveau.</small></div>
+    <div class="k"><b id="kpi2">—</b><small><strong>P2 · communiquent</strong> — A souffle une lettre <em>apprise</em>, le winrate de B monte. Un code émerge du reward seul.</small></div>
+    <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — sélection sur le génome. En lexique c'est saturé&nbsp;; le vrai gain est <em>hors-lexique</em>.</small></div>
+  </div>
+  <p class="note">Honnêteté&nbsp;: en <em>lexique</em>, OMEGA est au plafond (~97 %) — l'évolution y est minuscule. Elle se voit <strong>hors-lexique</strong> (mot jamais vu), où le gène <code>arbConf</code> donne <strong>+14 pt</strong> sur des graines neuves, <em>sans rien coûter</em> en lexique. Ce qui <strong>n'est pas</strong> dans l'animation&nbsp;: le travail de groupe (O1) — un objectif futur qui, mesuré, <em>ne tient pas</em> hors échantillon&nbsp;; on ne le montre pas. Tout rejoue <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> (vrai <code>omegaStep</code>). Plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -246,104 +95,122 @@
 </div></footer>
 
 <script id="ev-data-p1" type="application/json">{"meta":{"phase":"P1 — se copie","what":"OMEGA reconstruit ses fonctions de DÉCISION à l'octet près (bPC) : le GÉNOME est copié","twin":"deux instances du MÊME code, vies différentes (l'OS apprend) → jumeaux : même compétence, discours propre","fidelity":"100% omegaStep + reconstruction réelle"},"functions":[{"name":"cosineSim","exact":true,"hit":25,"total":160},{"name":"circularShiftInPlace","exact":true,"hit":23,"total":328},{"name":"circularShift","exact":true,"hit":0,"total":40},{"name":"circularShiftInverse","exact":true,"hit":0,"total":19},{"name":"normalize","exact":true,"hit":30,"total":150}],"byteExact":true,"twins":{"A":{"wr":97.5,"err":2.775},"B":{"wr":100,"err":2.075},"sameCompetence":false},"matches":[{"word":"CORDEAU","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".OR.E..","wrong":1},{"L":"M","hit":false,"board":".OR.E..","wrong":2},{"L":"B","hit":false,"board":".OR.E..","wrong":3},{"L":"S","hit":false,"board":".OR.E..","wrong":4},{"L":"D","hit":true,"board":".ORDE..","wrong":4},{"L":"A","hit":true,"board":".ORDEA.","wrong":4},{"L":"U","hit":true,"board":".ORDEAU","wrong":4}]},"B":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".OR.E..","wrong":1},{"L":"M","hit":false,"board":".OR.E..","wrong":2},{"L":"B","hit":false,"board":".OR.E..","wrong":3},{"L":"S","hit":false,"board":".OR.E..","wrong":4},{"L":"A","hit":true,"board":".OR.EA.","wrong":4},{"L":"D","hit":true,"board":".ORDEA.","wrong":4},{"L":"C","hit":true,"board":"CORDEA.","wrong":4}]},"diverge":true,"sameOutcome":true},{"word":"ROUCOULAIS","A":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":"..........","wrong":1},{"L":"A","hit":true,"board":".......A..","wrong":1},{"L":"I","hit":true,"board":".......AI.","wrong":1},{"L":"O","hit":true,"board":".O..O..AI.","wrong":1},{"L":"R","hit":true,"board":"RO..O..AI.","wrong":1},{"L":"S","hit":true,"board":"RO..O..AIS","wrong":1},{"L":"U","hit":true,"board":"ROU.OU.AIS","wrong":1},{"L":"L","hit":true,"board":"ROU.OULAIS","wrong":1}]},"B":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":"..........","wrong":1},{"L":"I","hit":true,"board":"........I.","wrong":1},{"L":"A","hit":true,"board":".......AI.","wrong":1},{"L":"O","hit":true,"board":".O..O..AI.","wrong":1},{"L":"R","hit":true,"board":"RO..O..AI.","wrong":1},{"L":"S","hit":true,"board":"RO..O..AIS","wrong":1},{"L":"L","hit":true,"board":"RO..O.LAIS","wrong":1},{"L":"U","hit":true,"board":"ROU.OULAIS","wrong":1}]},"diverge":true,"sameOutcome":true},{"word":"PERSEIDES","A":{"won":true,"wrong":1,"steps":[{"L":"E","hit":true,"board":".E..E..E.","wrong":0},{"L":"R","hit":true,"board":".ER.E..E.","wrong":0},{"L":"T","hit":false,"board":".ER.E..E.","wrong":1},{"L":"S","hit":true,"board":".ERSE..ES","wrong":1},{"L":"I","hit":true,"board":".ERSEI.ES","wrong":1},{"L":"D","hit":true,"board":".ERSEIDES","wrong":1}]},"B":{"won":true,"wrong":1,"steps":[{"L":"E","hit":true,"board":".E..E..E.","wrong":0},{"L":"R","hit":true,"board":".ER.E..E.","wrong":0},{"L":"T","hit":false,"board":".ER.E..E.","wrong":1},{"L":"S","hit":true,"board":".ERSE..ES","wrong":1},{"L":"I","hit":true,"board":".ERSEI.ES","wrong":1},{"L":"D","hit":true,"board":".ERSEIDES","wrong":1}]},"diverge":false,"sameOutcome":true},{"word":"GRANDISSES","A":{"won":true,"wrong":0,"steps":[{"L":"E","hit":true,"board":"........E.","wrong":0},{"L":"I","hit":true,"board":".....I..E.","wrong":0},{"L":"A","hit":true,"board":"..A..I..E.","wrong":0},{"L":"S","hit":true,"board":"..A..ISSES","wrong":0},{"L":"R","hit":true,"board":".RA..ISSES","wrong":0},{"L":"D","hit":true,"board":".RA.DISSES","wrong":0},{"L":"G","hit":true,"board":"GRA.DISSES","wrong":0}]},"B":{"won":true,"wrong":0,"steps":[{"L":"E","hit":true,"board":"........E.","wrong":0},{"L":"I","hit":true,"board":".....I..E.","wrong":0},{"L":"A","hit":true,"board":"..A..I..E.","wrong":0},{"L":"S","hit":true,"board":"..A..ISSES","wrong":0},{"L":"R","hit":true,"board":".RA..ISSES","wrong":0},{"L":"D","hit":true,"board":".RA.DISSES","wrong":0},{"L":"G","hit":true,"board":"GRA.DISSES","wrong":0}]},"diverge":false,"sameOutcome":true},{"word":"COUPEUR","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".O..E.R","wrong":1},{"L":"U","hit":true,"board":".OU.EUR","wrong":1},{"L":"L","hit":false,"board":".OU.EUR","wrong":2},{"L":"D","hit":false,"board":".OU.EUR","wrong":3},{"L":"T","hit":false,"board":".OU.EUR","wrong":4},{"L":"P","hit":true,"board":".OUPEUR","wrong":4}]},"B":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".O..E.R","wrong":1},{"L":"U","hit":true,"board":".OU.EUR","wrong":1},{"L":"L","hit":false,"board":".OU.EUR","wrong":2},{"L":"D","hit":false,"board":".OU.EUR","wrong":3},{"L":"T","hit":false,"board":".OU.EUR","wrong":4},{"L":"P","hit":true,"board":".OUPEUR","wrong":4}]},"diverge":false,"sameOutcome":true},{"word":"EVALUABLE","A":{"won":false,"wrong":5,"steps":[{"L":"E","hit":true,"board":"E.......E","wrong":0},{"L":"A","hit":true,"board":"E.A..A..E","wrong":0},{"L":"T","hit":false,"board":"E.A..A..E","wrong":1},{"L":"L","hit":true,"board":"E.AL.A.LE","wrong":1},{"L":"U","hit":true,"board":"E.ALUA.LE","wrong":1},{"L":"S","hit":false,"board":"E.ALUA.LE","wrong":2},{"L":"I","hit":false,"board":"E.ALUA.LE","wrong":3},{"L":"R","hit":false,"board":"E.ALUA.LE","wrong":4},{"L":"N","hit":false,"board":"E.ALUA.LE","wrong":5}]},"B":{"won":false,"wrong":5,"steps":[{"L":"E","hit":true,"board":"E.......E","wrong":0},{"L":"A","hit":true,"board":"E.A..A..E","wrong":0},{"L":"T","hit":false,"board":"E.A..A..E","wrong":1},{"L":"L","hit":true,"board":"E.AL.A.LE","wrong":1},{"L":"U","hit":true,"board":"E.ALUA.LE","wrong":1},{"L":"I","hit":false,"board":"E.ALUA.LE","wrong":2},{"L":"S","hit":false,"board":"E.ALUA.LE","wrong":3},{"L":"N","hit":false,"board":"E.ALUA.LE","wrong":4},{"L":"R","hit":false,"board":"E.ALUA.LE","wrong":5}]},"diverge":true,"sameOutcome":true},{"word":"GIRELLE","A":{"won":false,"wrong":5,"steps":[{"L":"E","hit":true,"board":"...E..E","wrong":0},{"L":"A","hit":false,"board":"...E..E","wrong":1},{"L":"I","hit":true,"board":".I.E..E","wrong":1},{"L":"L","hit":true,"board":".I.ELLE","wrong":1},{"L":"F","hit":false,"board":".I.ELLE","wrong":2},{"L":"S","hit":false,"board":".I.ELLE","wrong":3},{"L":"N","hit":false,"board":".I.ELLE","wrong":4},{"L":"R","hit":true,"board":".IRELLE","wrong":4},{"L":"T","hit":false,"board":".IRELLE","wrong":5}]},"B":{"won":true,"wrong":5,"steps":[{"L":"E","hit":true,"board":"...E..E","wrong":0},{"L":"A","hit":false,"board":"...E..E","wrong":1},{"L":"I","hit":true,"board":".I.E..E","wrong":1},{"L":"L","hit":true,"board":".I.ELLE","wrong":1},{"L":"F","hit":false,"board":".I.ELLE","wrong":2},{"L":"S","hit":false,"board":".I.ELLE","wrong":3},{"L":"N","hit":false,"board":".I.ELLE","wrong":4},{"L":"R","hit":true,"board":".IRELLE","wrong":4},{"L":"T","hit":false,"board":".IRELLE","wrong":5}]},"diverge":false,"sameOutcome":false},{"word":"SORBITOL","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":false,"board":"........","wrong":1},{"L":"R","hit":true,"board":"..R.....","wrong":1},{"L":"A","hit":false,"board":"..R.....","wrong":2},{"L":"I","hit":true,"board":"..R.I...","wrong":2},{"L":"O","hit":true,"board":".OR.I.O.","wrong":2},{"L":"S","hit":true,"board":"SOR.I.O.","wrong":2},{"L":"T","hit":true,"board":"SOR.ITO.","wrong":2},{"L":"N","hit":false,"board":"SOR.ITO.","wrong":3},{"L":"L","hit":true,"board":"SOR.ITOL","wrong":3},{"L":"U","hit":false,"board":"SOR.ITOL","wrong":4}]},"B":{"won":true,"wrong":2,"steps":[{"L":"E","hit":false,"board":"........","wrong":1},{"L":"I","hit":true,"board":"....I...","wrong":1},{"L":"A","hit":false,"board":"....I...","wrong":2},{"L":"O","hit":true,"board":".O..I.O.","wrong":2},{"L":"R","hit":true,"board":".OR.I.O.","wrong":2},{"L":"L","hit":true,"board":".OR.I.OL","wrong":2},{"L":"T","hit":true,"board":".OR.ITOL","wrong":2},{"L":"S","hit":true,"board":"SOR.ITOL","wrong":2}]},"diverge":true,"sameOutcome":true},{"word":"RATISSA","A":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":".......","wrong":1},{"L":"A","hit":true,"board":".A....A","wrong":1},{"L":"I","hit":true,"board":".A.I..A","wrong":1},{"L":"S","hit":true,"board":".A.ISSA","wrong":1},{"L":"R","hit":true,"board":"RA.ISSA","wrong":1}]},"B":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":".......","wrong":1},{"L":"I","hit":true,"board":"...I...","wrong":1},{"L":"A","hit":true,"board":".A.I..A","wrong":1},{"L":"S","hit":true,"board":".A.ISSA","wrong":1},{"L":"R","hit":true,"board":"RA.ISSA","wrong":1}]},"diverge":true,"sameOutcome":true},{"word":"ENFOURNONS","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"E.........","wrong":0},{"L":"I","hit":false,"board":"E.........","wrong":1},{"L":"A","hit":false,"board":"E.........","wrong":2},{"L":"R","hit":true,"board":"E....R....","wrong":2},{"L":"S","hit":true,"board":"E....R...S","wrong":2},{"L":"N","hit":true,"board":"EN...RN.NS","wrong":2},{"L":"O","hit":true,"board":"EN.O.RNONS","wrong":2},{"L":"T","hit":false,"board":"EN.O.RNONS","wrong":3},{"L":"U","hit":true,"board":"EN.OURNONS","wrong":3},{"L":"L","hit":false,"board":"EN.OURNONS","wrong":4}]},"B":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"E.........","wrong":0},{"L":"I","hit":false,"board":"E.........","wrong":1},{"L":"A","hit":false,"board":"E.........","wrong":2},{"L":"R","hit":true,"board":"E....R....","wrong":2},{"L":"N","hit":true,"board":"EN...RN.N.","wrong":2},{"L":"O","hit":true,"board":"EN.O.RNON.","wrong":2},{"L":"S","hit":true,"board":"EN.O.RNONS","wrong":2},{"L":"T","hit":false,"board":"EN.O.RNONS","wrong":3},{"L":"L","hit":false,"board":"EN.O.RNONS","wrong":4},{"L":"U","hit":true,"board":"EN.OURNONS","wrong":4}]},"diverge":true,"sameOutcome":true}],"summary":{"nMatches":10,"nDiverge":6,"nSameOutcome":9}}</script>
-<script id="ev-data-p2" type="application/json">{"meta":{"task":"pendu référentiel P2","speaker":"A (apprend quoi souffler)","listener":"B = moteur OMEGA réel (omegaStep, cognition seule)","channel":"1 lettre","protocol":"A → la lettre la plus RARE du mot (appris)","wordLenRange":"8-12","fidelity":"100% omegaStep, aucune valeur inventée"},"learning":{"epochs":8,"perEpoch":70,"curve":[94.3,94.3,98.6,97.1,91.4,94.3,92.9,95.7],"valueByRank":[2.75,0,0,2,0.75,0,0,0],"preferredRank":0,"lr":0.25},"aggregate":{"pool":100,"winrateWithout":92,"winrateWith":97,"gain":5},"matches":[{"word":"PRETEXTERAI","message":"X","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"..E.EX.E...","wrong":0},{"L":"R","hit":true,"board":".RE.EX.ER..","wrong":0},{"L":"T","hit":true,"board":".RETEXTER..","wrong":0},{"L":"A","hit":true,"board":".RETEXTERA.","wrong":0},{"L":"P","hit":true,"board":"PRETEXTERA.","wrong":0},{"L":"S","hit":false,"board":"PRETEXTERA.","wrong":1}],"board0":"...........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"..E.E..E...","wrong":0},{"L":"R","hit":true,"board":".RE.E..ER..","wrong":0},{"L":"A","hit":true,"board":".RE.E..ERA.","wrong":0},{"L":"S","hit":false,"board":".RE.E..ERA.","wrong":1},{"L":"T","hit":true,"board":".RETE.TERA.","wrong":1},{"L":"P","hit":true,"board":"PRETE.TERA.","wrong":1},{"L":"C","hit":false,"board":"PRETE.TERA.","wrong":2},{"L":"I","hit":true,"board":"PRETE.TERAI","wrong":2},{"L":"N","hit":false,"board":"PRETE.TERAI","wrong":3},{"L":"O","hit":false,"board":"PRETE.TERAI","wrong":4},{"L":"L","hit":false,"board":"PRETE.TERAI","wrong":5}],"board0":"...........","wrong":5}},{"word":"INSIPIDE","message":"D","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"......DE","wrong":0},{"L":"A","hit":false,"board":"......DE","wrong":1},{"L":"I","hit":true,"board":"I..I.IDE","wrong":1},{"L":"N","hit":true,"board":"IN.I.IDE","wrong":1},{"L":"T","hit":false,"board":"IN.I.IDE","wrong":2},{"L":"S","hit":true,"board":"INSI.IDE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":true,"board":"I..I.I.E","wrong":0},{"L":"T","hit":false,"board":"I..I.I.E","wrong":1},{"L":"S","hit":true,"board":"I.SI.I.E","wrong":1},{"L":"N","hit":true,"board":"INSI.I.E","wrong":1},{"L":"A","hit":false,"board":"INSI.I.E","wrong":2},{"L":"R","hit":false,"board":"INSI.I.E","wrong":3},{"L":"O","hit":false,"board":"INSI.I.E","wrong":4},{"L":"L","hit":false,"board":"INSI.I.E","wrong":5}],"board0":"........","wrong":5}},{"word":"TYPHOIDES","message":"Y","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".Y.....E.","wrong":0},{"L":"I","hit":true,"board":".Y...I.E.","wrong":0},{"L":"A","hit":false,"board":".Y...I.E.","wrong":1},{"L":"S","hit":true,"board":".Y...I.ES","wrong":1},{"L":"O","hit":true,"board":".Y..OI.ES","wrong":1},{"L":"D","hit":true,"board":".Y..OIDES","wrong":1},{"L":"T","hit":true,"board":"TY..OIDES","wrong":1},{"L":"F","hit":false,"board":"TY..OIDES","wrong":2},{"L":"P","hit":true,"board":"TYP.OIDES","wrong":2}],"board0":".........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E.","wrong":0},{"L":"I","hit":true,"board":".....I.E.","wrong":0},{"L":"A","hit":false,"board":".....I.E.","wrong":1},{"L":"S","hit":true,"board":".....I.ES","wrong":1},{"L":"O","hit":true,"board":"....OI.ES","wrong":1},{"L":"D","hit":true,"board":"....OIDES","wrong":1},{"L":"T","hit":true,"board":"T...OIDES","wrong":1},{"L":"R","hit":false,"board":"T...OIDES","wrong":2},{"L":"N","hit":false,"board":"T...OIDES","wrong":3},{"L":"L","hit":false,"board":"T...OIDES","wrong":4},{"L":"U","hit":false,"board":"T...OIDES","wrong":5}],"board0":".........","wrong":5}},{"word":"ECLIPSEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"E...P.EE.","wrong":0},{"L":"I","hit":true,"board":"E..IP.EE.","wrong":0},{"L":"L","hit":true,"board":"E.LIP.EE.","wrong":0},{"L":"S","hit":true,"board":"E.LIPSEES","wrong":0}],"board0":".........","wrong":0},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"E.....EE.","wrong":0},{"L":"A","hit":false,"board":"E.....EE.","wrong":1},{"L":"O","hit":false,"board":"E.....EE.","wrong":2},{"L":"I","hit":true,"board":"E..I..EE.","wrong":2},{"L":"S","hit":true,"board":"E..I.SEES","wrong":2},{"L":"L","hit":true,"board":"E.LI.SEES","wrong":2},{"L":"R","hit":false,"board":"E.LI.SEES","wrong":3},{"L":"N","hit":false,"board":"E.LI.SEES","wrong":4},{"L":"T","hit":false,"board":"E.LI.SEES","wrong":5}],"board0":".........","wrong":5}},{"word":"GRAMMAGE","message":"G","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"G.....GE","wrong":0},{"L":"I","hit":false,"board":"G.....GE","wrong":1},{"L":"A","hit":true,"board":"G.A..AGE","wrong":1},{"L":"R","hit":true,"board":"GRA..AGE","wrong":1},{"L":"T","hit":false,"board":"GRA..AGE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":false,"board":".......E","wrong":1},{"L":"A","hit":true,"board":"..A..A.E","wrong":1},{"L":"S","hit":false,"board":"..A..A.E","wrong":2},{"L":"R","hit":true,"board":".RA..A.E","wrong":2},{"L":"B","hit":false,"board":".RA..A.E","wrong":3},{"L":"T","hit":false,"board":".RA..A.E","wrong":4},{"L":"N","hit":false,"board":".RA..A.E","wrong":5}],"board0":"........","wrong":5}},{"word":"PELVIENNE","message":"V","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.V.E..E","wrong":0},{"L":"R","hit":false,"board":".E.V.E..E","wrong":1},{"L":"I","hit":true,"board":".E.VIE..E","wrong":1},{"L":"N","hit":true,"board":".E.VIENNE","wrong":1},{"L":"L","hit":true,"board":".ELVIENNE","wrong":1}],"board0":".........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".E...E..E","wrong":0},{"L":"I","hit":true,"board":".E..IE..E","wrong":0},{"L":"R","hit":false,"board":".E..IE..E","wrong":1},{"L":"N","hit":true,"board":".E..IENNE","wrong":1},{"L":"L","hit":true,"board":".EL.IENNE","wrong":1},{"L":"S","hit":false,"board":".EL.IENNE","wrong":2},{"L":"A","hit":false,"board":".EL.IENNE","wrong":3},{"L":"T","hit":false,"board":".EL.IENNE","wrong":4},{"L":"O","hit":false,"board":".EL.IENNE","wrong":5}],"board0":".........","wrong":5}},{"word":"SATELLITE","message":"L","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...ELL..E","wrong":0},{"L":"A","hit":true,"board":".A.ELL..E","wrong":0},{"L":"I","hit":true,"board":".A.ELLI.E","wrong":0},{"L":"T","hit":true,"board":".ATELLITE","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"...E....E","wrong":0},{"L":"I","hit":true,"board":"...E..I.E","wrong":0},{"L":"A","hit":true,"board":".A.E..I.E","wrong":0},{"L":"T","hit":true,"board":".ATE..ITE","wrong":0},{"L":"S","hit":true,"board":"SATE..ITE","wrong":0}],"board0":".........","wrong":0}},{"word":"RESTAURERIEZ","message":"Z","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..EZ","wrong":0},{"L":"R","hit":true,"board":"RE....RER.EZ","wrong":0},{"L":"I","hit":true,"board":"RE....RERIEZ","wrong":0},{"L":"S","hit":true,"board":"RES...RERIEZ","wrong":0},{"L":"T","hit":true,"board":"REST..RERIEZ","wrong":0},{"L":"O","hit":false,"board":"REST..RERIEZ","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIEZ","wrong":1}],"board0":"............","wrong":1},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..E.","wrong":0},{"L":"R","hit":true,"board":"RE....RER.E.","wrong":0},{"L":"I","hit":true,"board":"RE....RERIE.","wrong":0},{"L":"S","hit":true,"board":"RES...RERIE.","wrong":0},{"L":"T","hit":true,"board":"REST..RERIE.","wrong":0},{"L":"O","hit":false,"board":"REST..RERIE.","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIE.","wrong":1},{"L":"N","hit":false,"board":"RESTA.RERIE.","wrong":2},{"L":"L","hit":false,"board":"RESTA.RERIE.","wrong":3},{"L":"U","hit":true,"board":"RESTAURERIE.","wrong":3}],"board0":"............","wrong":3}},{"word":"STIPULEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...P..EE.","wrong":0},{"L":"I","hit":true,"board":"..IP..EE.","wrong":0},{"L":"T","hit":true,"board":".TIP..EE.","wrong":0},{"L":"U","hit":true,"board":".TIPU.EE.","wrong":0},{"L":"L","hit":true,"board":".TIPULEE.","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"......EE.","wrong":0},{"L":"A","hit":false,"board":"......EE.","wrong":1},{"L":"I","hit":true,"board":"..I...EE.","wrong":1},{"L":"S","hit":true,"board":"S.I...EES","wrong":1},{"L":"T","hit":true,"board":"STI...EES","wrong":1},{"L":"U","hit":true,"board":"STI.U.EES","wrong":1},{"L":"L","hit":true,"board":"STI.ULEES","wrong":1},{"L":"M","hit":false,"board":"STI.ULEES","wrong":2}],"board0":".........","wrong":2}}]}</script><script id="ev-data-oov" type="application/json">{"meta":{"phase":"P3 — générations, régime OOV (le relief)","what":"sélection sur le génome param en hors-lexique (Trexquant), là où OMEGA n'est pas au plafond","gene":"M_NEO_OS_ARB_CONF","evolvedValue":0.3,"config":"OS_ARB seul","testN":120,"warmup":150,"fidelity":"100% omegaStep, caches invalidés au swap"},"ceilingInlex":97,"sweep":[{"arbConf":0,"oov":63.3},{"arbConf":0.15,"oov":75.8},{"arbConf":0.3,"oov":75},{"arbConf":0.45,"oov":70.8}],"pareto":{"seed":12345,"oovRef":63.3,"oovEvolved":75,"inlexRef":98.3,"inlexEvolved":97.5},"outOfSample":{"seeds":[7,101,333],"rows":[{"seed":7,"ref":57.5,"evolved":62.5},{"seed":101,"ref":53.3,"evolved":77.5},{"seed":333,"ref":53.3,"evolved":68.3}],"meanRef":56.8,"meanEvolved":70.8,"meanDelta":14,"nSeeds":4}}</script>
+<script id="ev-data-p2" type="application/json">{"meta":{"task":"pendu référentiel P2","speaker":"A (apprend quoi souffler)","listener":"B = moteur OMEGA réel (omegaStep, cognition seule)","channel":"1 lettre","protocol":"A → la lettre la plus RARE du mot (appris)","wordLenRange":"8-12","fidelity":"100% omegaStep, aucune valeur inventée"},"learning":{"epochs":8,"perEpoch":70,"curve":[94.3,94.3,98.6,97.1,91.4,94.3,92.9,95.7],"valueByRank":[2.75,0,0,2,0.75,0,0,0],"preferredRank":0,"lr":0.25},"aggregate":{"pool":100,"winrateWithout":92,"winrateWith":97,"gain":5},"matches":[{"word":"PRETEXTERAI","message":"X","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"..E.EX.E...","wrong":0},{"L":"R","hit":true,"board":".RE.EX.ER..","wrong":0},{"L":"T","hit":true,"board":".RETEXTER..","wrong":0},{"L":"A","hit":true,"board":".RETEXTERA.","wrong":0},{"L":"P","hit":true,"board":"PRETEXTERA.","wrong":0},{"L":"S","hit":false,"board":"PRETEXTERA.","wrong":1}],"board0":"...........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"..E.E..E...","wrong":0},{"L":"R","hit":true,"board":".RE.E..ER..","wrong":0},{"L":"A","hit":true,"board":".RE.E..ERA.","wrong":0},{"L":"S","hit":false,"board":".RE.E..ERA.","wrong":1},{"L":"T","hit":true,"board":".RETE.TERA.","wrong":1},{"L":"P","hit":true,"board":"PRETE.TERA.","wrong":1},{"L":"C","hit":false,"board":"PRETE.TERA.","wrong":2},{"L":"I","hit":true,"board":"PRETE.TERAI","wrong":2},{"L":"N","hit":false,"board":"PRETE.TERAI","wrong":3},{"L":"O","hit":false,"board":"PRETE.TERAI","wrong":4},{"L":"L","hit":false,"board":"PRETE.TERAI","wrong":5}],"board0":"...........","wrong":5}},{"word":"INSIPIDE","message":"D","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"......DE","wrong":0},{"L":"A","hit":false,"board":"......DE","wrong":1},{"L":"I","hit":true,"board":"I..I.IDE","wrong":1},{"L":"N","hit":true,"board":"IN.I.IDE","wrong":1},{"L":"T","hit":false,"board":"IN.I.IDE","wrong":2},{"L":"S","hit":true,"board":"INSI.IDE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":true,"board":"I..I.I.E","wrong":0},{"L":"T","hit":false,"board":"I..I.I.E","wrong":1},{"L":"S","hit":true,"board":"I.SI.I.E","wrong":1},{"L":"N","hit":true,"board":"INSI.I.E","wrong":1},{"L":"A","hit":false,"board":"INSI.I.E","wrong":2},{"L":"R","hit":false,"board":"INSI.I.E","wrong":3},{"L":"O","hit":false,"board":"INSI.I.E","wrong":4},{"L":"L","hit":false,"board":"INSI.I.E","wrong":5}],"board0":"........","wrong":5}},{"word":"TYPHOIDES","message":"Y","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".Y.....E.","wrong":0},{"L":"I","hit":true,"board":".Y...I.E.","wrong":0},{"L":"A","hit":false,"board":".Y...I.E.","wrong":1},{"L":"S","hit":true,"board":".Y...I.ES","wrong":1},{"L":"O","hit":true,"board":".Y..OI.ES","wrong":1},{"L":"D","hit":true,"board":".Y..OIDES","wrong":1},{"L":"T","hit":true,"board":"TY..OIDES","wrong":1},{"L":"F","hit":false,"board":"TY..OIDES","wrong":2},{"L":"P","hit":true,"board":"TYP.OIDES","wrong":2}],"board0":".........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E.","wrong":0},{"L":"I","hit":true,"board":".....I.E.","wrong":0},{"L":"A","hit":false,"board":".....I.E.","wrong":1},{"L":"S","hit":true,"board":".....I.ES","wrong":1},{"L":"O","hit":true,"board":"....OI.ES","wrong":1},{"L":"D","hit":true,"board":"....OIDES","wrong":1},{"L":"T","hit":true,"board":"T...OIDES","wrong":1},{"L":"R","hit":false,"board":"T...OIDES","wrong":2},{"L":"N","hit":false,"board":"T...OIDES","wrong":3},{"L":"L","hit":false,"board":"T...OIDES","wrong":4},{"L":"U","hit":false,"board":"T...OIDES","wrong":5}],"board0":".........","wrong":5}},{"word":"ECLIPSEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"E...P.EE.","wrong":0},{"L":"I","hit":true,"board":"E..IP.EE.","wrong":0},{"L":"L","hit":true,"board":"E.LIP.EE.","wrong":0},{"L":"S","hit":true,"board":"E.LIPSEES","wrong":0}],"board0":".........","wrong":0},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"E.....EE.","wrong":0},{"L":"A","hit":false,"board":"E.....EE.","wrong":1},{"L":"O","hit":false,"board":"E.....EE.","wrong":2},{"L":"I","hit":true,"board":"E..I..EE.","wrong":2},{"L":"S","hit":true,"board":"E..I.SEES","wrong":2},{"L":"L","hit":true,"board":"E.LI.SEES","wrong":2},{"L":"R","hit":false,"board":"E.LI.SEES","wrong":3},{"L":"N","hit":false,"board":"E.LI.SEES","wrong":4},{"L":"T","hit":false,"board":"E.LI.SEES","wrong":5}],"board0":".........","wrong":5}},{"word":"GRAMMAGE","message":"G","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"G.....GE","wrong":0},{"L":"I","hit":false,"board":"G.....GE","wrong":1},{"L":"A","hit":true,"board":"G.A..AGE","wrong":1},{"L":"R","hit":true,"board":"GRA..AGE","wrong":1},{"L":"T","hit":false,"board":"GRA..AGE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":false,"board":".......E","wrong":1},{"L":"A","hit":true,"board":"..A..A.E","wrong":1},{"L":"S","hit":false,"board":"..A..A.E","wrong":2},{"L":"R","hit":true,"board":".RA..A.E","wrong":2},{"L":"B","hit":false,"board":".RA..A.E","wrong":3},{"L":"T","hit":false,"board":".RA..A.E","wrong":4},{"L":"N","hit":false,"board":".RA..A.E","wrong":5}],"board0":"........","wrong":5}},{"word":"PELVIENNE","message":"V","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.V.E..E","wrong":0},{"L":"R","hit":false,"board":".E.V.E..E","wrong":1},{"L":"I","hit":true,"board":".E.VIE..E","wrong":1},{"L":"N","hit":true,"board":".E.VIENNE","wrong":1},{"L":"L","hit":true,"board":".ELVIENNE","wrong":1}],"board0":".........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".E...E..E","wrong":0},{"L":"I","hit":true,"board":".E..IE..E","wrong":0},{"L":"R","hit":false,"board":".E..IE..E","wrong":1},{"L":"N","hit":true,"board":".E..IENNE","wrong":1},{"L":"L","hit":true,"board":".EL.IENNE","wrong":1},{"L":"S","hit":false,"board":".EL.IENNE","wrong":2},{"L":"A","hit":false,"board":".EL.IENNE","wrong":3},{"L":"T","hit":false,"board":".EL.IENNE","wrong":4},{"L":"O","hit":false,"board":".EL.IENNE","wrong":5}],"board0":".........","wrong":5}},{"word":"SATELLITE","message":"L","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...ELL..E","wrong":0},{"L":"A","hit":true,"board":".A.ELL..E","wrong":0},{"L":"I","hit":true,"board":".A.ELLI.E","wrong":0},{"L":"T","hit":true,"board":".ATELLITE","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"...E....E","wrong":0},{"L":"I","hit":true,"board":"...E..I.E","wrong":0},{"L":"A","hit":true,"board":".A.E..I.E","wrong":0},{"L":"T","hit":true,"board":".ATE..ITE","wrong":0},{"L":"S","hit":true,"board":"SATE..ITE","wrong":0}],"board0":".........","wrong":0}},{"word":"RESTAURERIEZ","message":"Z","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..EZ","wrong":0},{"L":"R","hit":true,"board":"RE....RER.EZ","wrong":0},{"L":"I","hit":true,"board":"RE....RERIEZ","wrong":0},{"L":"S","hit":true,"board":"RES...RERIEZ","wrong":0},{"L":"T","hit":true,"board":"REST..RERIEZ","wrong":0},{"L":"O","hit":false,"board":"REST..RERIEZ","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIEZ","wrong":1}],"board0":"............","wrong":1},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..E.","wrong":0},{"L":"R","hit":true,"board":"RE....RER.E.","wrong":0},{"L":"I","hit":true,"board":"RE....RERIE.","wrong":0},{"L":"S","hit":true,"board":"RES...RERIE.","wrong":0},{"L":"T","hit":true,"board":"REST..RERIE.","wrong":0},{"L":"O","hit":false,"board":"REST..RERIE.","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIE.","wrong":1},{"L":"N","hit":false,"board":"RESTA.RERIE.","wrong":2},{"L":"L","hit":false,"board":"RESTA.RERIE.","wrong":3},{"L":"U","hit":true,"board":"RESTAURERIE.","wrong":3}],"board0":"............","wrong":3}},{"word":"STIPULEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...P..EE.","wrong":0},{"L":"I","hit":true,"board":"..IP..EE.","wrong":0},{"L":"T","hit":true,"board":".TIP..EE.","wrong":0},{"L":"U","hit":true,"board":".TIPU.EE.","wrong":0},{"L":"L","hit":true,"board":".TIPULEE.","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"......EE.","wrong":0},{"L":"A","hit":false,"board":"......EE.","wrong":1},{"L":"I","hit":true,"board":"..I...EE.","wrong":1},{"L":"S","hit":true,"board":"S.I...EES","wrong":1},{"L":"T","hit":true,"board":"STI...EES","wrong":1},{"L":"U","hit":true,"board":"STI.U.EES","wrong":1},{"L":"L","hit":true,"board":"STI.ULEES","wrong":1},{"L":"M","hit":false,"board":"STI.ULEES","wrong":2}],"board0":".........","wrong":2}}]}</script>
+<script id="ev-data-oov" type="application/json">{"meta":{"phase":"P3 — générations, régime OOV (le relief)","what":"sélection sur le génome param en hors-lexique (Trexquant), là où OMEGA n'est pas au plafond","gene":"M_NEO_OS_ARB_CONF","evolvedValue":0.3,"config":"OS_ARB seul","testN":120,"warmup":150,"fidelity":"100% omegaStep, caches invalidés au swap"},"ceilingInlex":97,"sweep":[{"arbConf":0,"oov":63.3},{"arbConf":0.15,"oov":75.8},{"arbConf":0.3,"oov":75},{"arbConf":0.45,"oov":70.8}],"pareto":{"seed":12345,"oovRef":63.3,"oovEvolved":75,"inlexRef":98.3,"inlexEvolved":97.5},"outOfSample":{"seeds":[7,101,333],"rows":[{"seed":7,"ref":57.5,"evolved":62.5},{"seed":101,"ref":53.3,"evolved":77.5},{"seed":333,"ref":53.3,"evolved":68.3}],"meanRef":56.8,"meanEvolved":70.8,"meanDelta":14,"nSeeds":4}}</script>
 <script>
 function evJSON(id){return JSON.parse(document.getElementById(id).textContent);}
-function evBoardFrom(word,reveal){var s='';for(var p=0;p<word.length;p++)s+=(reveal&&reveal.indexOf(word[p])>=0)?word[p]:'.';return s;}
-function evDrawBoard(el,word,boardStr,prevStr,special){var h='';for(var p=0;p<word.length;p++){var c=boardStr[p];
-  if(c==='.')h+='<span class="px">·</span>';
-  else if(special&&special.indexOf(c)>=0)h+='<span class="whis">'+c+'</span>';
-  else if(prevStr&&prevStr[p]==='.')h+='<span class="fresh">'+c+'</span>';
-  else h+=c;} el.innerHTML=h;}
-
-// ── ACTE 1 — P1 : jumeaux ──
 (function(){
-  var D=evJSON('ev-data-p1'), M=D.matches, cur=0, t=0, timer=null, $=function(i){return document.getElementById(i);};
-  $('p1Fns').innerHTML=D.functions.map(function(f){return '<span class="fn">'+f.name+'<span class="x">'+(f.exact?'✓ octet près':'✗')+'</span></span>';}).join('');
-  $('p1Stat').innerHTML='Génome reconstruit <b>à l\'octet près</b> ('+D.functions.length+' fonctions). Jumeau A&nbsp;: <b>'+D.twins.A.wr+'%</b> · jumeau B (a vécu)&nbsp;: <b>'+D.twins.B.wr+'%</b> — même savoir-faire. Discours&nbsp;: <b>'+D.summary.nDiverge+'/'+D.summary.nMatches+'</b> mots joués différemment, <b>'+D.summary.nSameOutcome+'/'+D.summary.nMatches+'</b> même issue. Le code est copié&nbsp;; la partie, vécue.';
-  function chips(){ $('p1Words').innerHTML=''; M.forEach(function(m,i){var b=document.createElement('button');
-    b.innerHTML=(m.diverge?'<span class="dec">⭐</span> ':'')+m.word.toLowerCase(); if(i===cur)b.className='on';
-    b.onclick=function(){cur=i;sel();}; $('p1Words').appendChild(b);}); }
-  function sel(){ stop(); [].forEach.call($('p1Words').children,function(b,i){b.className=i===cur?'on':'';}); t=0; draw(); }
-  function maxS(){var m=M[cur];return Math.max(m.A.steps.length,m.B.steps.length);}
-  function side(letter,data,shown,other){
-    var board=$('p1Board'+letter), chipsEl=$('p1Chips'+letter), errEl=$('p1Err'+letter), badge=$('p1Badge'+letter);
-    var bStr=shown>0?data.steps[shown-1].board:evBoardFrom(M[cur].word,''),pStr=shown>1?data.steps[shown-2].board:evBoardFrom(M[cur].word,'');
-    evDrawBoard(board,M[cur].word,bStr,shown>0?pStr:null,'');
-    var h='';for(var i=0;i<data.steps.length;i++){var s=data.steps[i];var diff=other&&other.steps[i]&&other.steps[i].L!==s.L;
-      h+='<span class="ev-chip '+(s.hit?'hit':'miss')+(diff?' div':'')+(i<shown?' show':'')+'">'+s.L+'</span>';}
-    chipsEl.innerHTML=h;
-    errEl.innerHTML='fautes : <b>'+(shown>0?data.steps[shown-1].wrong:0)+'</b>';
-    var done=shown>=data.steps.length; badge.className='ev-badge '+(data.won?'win':'lose')+(done?' on':''); badge.textContent=data.won?'GAGNÉ':'PERDU';
+  var P1=evJSON('ev-data-p1'), P2=evJSON('ev-data-p2'), OV=evJSON('ev-data-oov');
+  var nFns=P1.functions.length, twA=P1.twins.A.wr, twB=P1.twins.B.wr;
+  var wOut=P2.aggregate.winrateWithout, wWith=P2.aggregate.winrateWith;
+  var oDelta=OV.outOfSample.meanDelta, oRef=OV.sweep[0].oov, oEvo=OV.pareto.oovEvolved;
+
+  document.getElementById('kpi1').textContent='octet pour octet · '+nFns+' fn';
+  document.getElementById('kpi2').textContent=wOut+'% → '+wWith+'%';
+  document.getElementById('kpi3').textContent='+'+oDelta+' pt (OOV)';
+
+  // ── phases (temps en s) + sous-titres avec chiffres RÉELS ──
+  var PH=[
+    {t:2.5, T:'Ω — une instance d’OMEGA',           S:'un moteur cognitif vivant, qui raisonne sur la langue'},
+    {t:5.5, T:'P1 · se copie',                            S:nFns+' fonctions de décision reconstruites à l’octet près → un jumeau (même savoir-faire, jeu '+twA+'–'+twB+'%)'},
+    {t:8.5, T:'P2 · communiquent',                        S:'A souffle une lettre apprise à B → winrate '+wOut+'% → '+wWith+'%'},
+    {t:12,  T:'P3 · générations',                         S:'les génomes se croisent, le pendu sélectionne → +'+oDelta+' pt hors-lexique ('+oRef+'% → '+oEvo+'%)'},
+    {t:14,  T:'…la nouvelle version se copie à son tour', S:'la boucle tourne — génération après génération'}
+  ];
+  var CYCLE=14;
+  var strip=document.getElementById('evoStrip');
+  strip.innerHTML=PH.map(function(){return '<div class="seg"><i></i></div>';}).join('');
+  var segs=[].slice.call(strip.children);
+
+  var cv=document.getElementById('evoCanvas'), ctx=cv.getContext('2d');
+  var W=1000,H=460,DPR=Math.min(window.devicePixelRatio||1,2);
+  function resize(){ var w=cv.clientWidth||1000; W=w; H=Math.round(w*0.46); cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener('resize',resize);
+
+  function lp(a,b,t){return a+(b-a)*t;}
+  function cl(v,a,b){return v<a?a:v>b?b:v;}
+  function ease(t){return t<0?0:t>1?1:t*t*(3-2*t);}
+  function rotY(p,a){var c=Math.cos(a),s=Math.sin(a);return {x:p.x*c+p.z*s,y:p.y,z:-p.x*s+p.z*c};}
+  function proj(p){var f=560,sc=f/(f+p.z);return {x:W/2+p.x*sc,y:H/2+p.y*sc,sc:sc,z:p.z};}
+
+  var OPOS={x:0,y:-8,z:0}, COPY={x:148,y:-6,z:34}, CHILD={x:-26,y:120,z:-22};
+  function hex(h,a){return 'rgba('+[(h>>16)&255,(h>>8)&255,h&255].join(',')+','+a+')';}
+  function sphere(P,R,col,glow,alpha){
+    var pr=proj(P), r=R*pr.sc; if(alpha<=0.01)return;
+    if(glow>0){ var hg=ctx.createRadialGradient(pr.x,pr.y,r*0.5,pr.x,pr.y,r*2.6);
+      hg.addColorStop(0,hex(col,0.32*glow*alpha)); hg.addColorStop(1,hex(col,0));
+      ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(pr.x,pr.y,r*2.6,0,7); ctx.fill(); }
+    var g=ctx.createRadialGradient(pr.x-r*0.34,pr.y-r*0.4,r*0.15,pr.x,pr.y,r);
+    var R0=(col>>16)&255,G0=(col>>8)&255,B0=col&255;
+    g.addColorStop(0,'rgba('+Math.min(R0+90,255)+','+Math.min(G0+90,255)+','+Math.min(B0+90,255)+','+alpha+')');
+    g.addColorStop(0.55,'rgba('+R0+','+G0+','+B0+','+alpha+')');
+    g.addColorStop(1,'rgba('+(R0*0.35|0)+','+(G0*0.35|0)+','+(B0*0.35|0)+','+alpha+')');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(pr.x,pr.y,r,0,7); ctx.fill();
+    return pr;
   }
-  function draw(){var m=M[cur],sh=Math.min(t,99); side('A',m.A,Math.min(t,m.A.steps.length),m.B); side('B',m.B,Math.min(t,m.B.steps.length),m.A);
-    $('p1Hint').textContent=t>=maxS()?(m.diverge?'discours différent, même issue — des jumeaux.':'ici, parties identiques.'):'coup '+t+' / '+maxS();}
-  function stepf(){if(t>=maxS()){stop();return;}t++;draw();}
-  function stop(){if(timer){clearInterval(timer);timer=null;}}
-  $('p1Play').onclick=function(){stop();if(t>=maxS())t=0;timer=setInterval(function(){if(t>=maxS()){stop();return;}stepf();},650);};
-  $('p1All').onclick=function(){stop();t=maxS();draw();}; $('p1Reset').onclick=function(){stop();t=0;draw();};
-  chips(); sel();
-})();
+  function link(a,b,al){ var pa=proj(a),pb=proj(b); ctx.strokeStyle='rgba(120,150,200,'+al+')'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke(); }
+  function label(P,txt,al){ var pr=proj(P); ctx.fillStyle='rgba(230,237,243,'+al+')'; ctx.font='600 13px system-ui,sans-serif';
+    ctx.textAlign='center'; ctx.fillText(txt, pr.x, pr.y+4); }
 
-// ── ACTE 2 — P2 : souffle ──
-(function(){
-  var DATA=evJSON('ev-data-p2'), M=DATA.matches, cur=0, t=0, timer=null, $=function(i){return document.getElementById(i);};
-  function maxS(){var m=M[cur];return Math.max(m.with.steps.length,m.without.steps.length);}
-  function chips(){ $('p2Words').innerHTML=''; M.forEach(function(m,i){var dec=(m.with.won&&!m.without.won);var b=document.createElement('button');
-    b.innerHTML=(dec?'<span class="dec">⭐</span> ':'')+m.word.toLowerCase(); if(i===cur)b.className='on';
-    b.onclick=function(){cur=i;sel();}; $('p2Words').appendChild(b);}); }
-  function sel(){ stop(); [].forEach.call($('p2Words').children,function(b,i){b.className=i===cur?'on':'';});
-    $('p2Word').textContent=M[cur].word.toLowerCase(); $('p2Msg').textContent=M[cur].message; t=0; draw(); }
-  function side(suf,data,msg){ var shown=Math.min(t,data.steps.length);
-    var bStr=shown>0?data.steps[shown-1].board:evBoardFrom(M[cur].word,msg||''),pStr=shown>1?data.steps[shown-2].board:evBoardFrom(M[cur].word,msg||'');
-    evDrawBoard($('p2Board'+suf),M[cur].word,bStr,shown>0?pStr:null,msg||'');
-    var h=''; if(msg)h+='<span class="ev-chip whisper show">'+msg+'</span>';
-    for(var i=0;i<data.steps.length;i++){var s=data.steps[i];h+='<span class="ev-chip '+(s.hit?'hit':'miss')+(i<shown?' show':'')+'">'+s.L+'</span>';}
-    $('p2Chips'+suf).innerHTML=h;
-    $('p2Err'+suf).innerHTML='fautes : <b>'+(shown>0?data.steps[shown-1].wrong:0)+'</b>';
-    var done=shown>=data.steps.length,badge=$('p2Badge'+suf); badge.className='ev-badge '+(data.won?'win':'lose')+(done?' on':''); badge.textContent=data.won?'GAGNÉ':'PERDU';
+  var BLUE=0x5b8cf6, GREEN=0xa3d977, WARN=0xd8922e;
+  var playing=true, t=0, last=0, yaw=0, gen=1;
+
+  function phaseIdx(tt){ for(var i=0;i<PH.length;i++) if(tt<PH[i].t) return i; return PH.length-1; }
+  function setCap(){ var i=phaseIdx(t); document.getElementById('evoTitle').textContent=PH[i].T; document.getElementById('evoSub').textContent=PH[i].S;
+    for(var k=0;k<segs.length;k++){ var p0=k===0?0:PH[k-1].t, p1=PH[k].t; segs[k].className='seg'+(k<i?' done':k===i?' on':'');
+      var fill=k<i?1:k===i?cl((t-p0)/(p1-p0),0,1):0; segs[k].firstChild.style.width=(fill*100)+'%'; } }
+
+  function frame(now){
+    if(!last)last=now; var dt=Math.min((now-last)/1000,0.05); last=now;
+    if(playing){ t+=dt; yaw+=dt*0.32; if(t>=CYCLE){ t-=CYCLE; gen++; document.getElementById('evoGen').textContent=gen; } }
+    ctx.clearRect(0,0,W,H);
+
+    // construire la scène (positions/opacités = fonctions du temps de cycle)
+    var copyA=ease((t-2.5)/0.9), copyP={x:lp(OPOS.x,COPY.x,copyA),y:lp(OPOS.y,COPY.y,copyA),z:lp(OPOS.z,COPY.z,copyA)};
+    var childExist=t>=8.5, childA=ease((t-8.5)/1.2);
+    var mid={x:(OPOS.x+COPY.x)/2,y:(OPOS.y+COPY.y)/2,z:(OPOS.z+COPY.z)/2};
+    var childP={x:lp(mid.x,CHILD.x,childA),y:lp(mid.y,CHILD.y,childA),z:lp(mid.z,CHILD.z,childA)};
+    var fade=t>=12?ease((t-12)/2):0;                          // phase suivante : Ω+copie s'effacent, l'enfant revient au centre
+    var omAlpha=1-fade*0.85, cpAlpha=t>=2.5?(1-fade*0.85):0;
+    var childToCenter={x:lp(childP.x,OPOS.x,fade),y:lp(childP.y,OPOS.y,fade),z:lp(childP.z,OPOS.z,fade)};
+    var omP=rotY(OPOS,yaw), cpP=rotY(copyP,yaw), chP=rotY(childToCenter,yaw);
+
+    // liens
+    if(t>=2.5) link(rotY(OPOS,yaw),rotY(copyP,yaw),0.22*cpAlpha);
+    if(childExist){ link(rotY(OPOS,yaw),childP&&rotY(childToCenter,yaw),0.18); link(rotY(copyP,yaw),rotY(childToCenter,yaw),0.18); }
+
+    // sphères, triées par profondeur (z décroissant = loin d'abord)
+    var arr=[];
+    arr.push({P:omP,R:30,col:BLUE,glow:0.5+0.3*Math.sin(t*2),a:omAlpha,lab:'Ω'});
+    if(t>=2.5) arr.push({P:cpP,R:26,col:BLUE,glow:0.25,a:cpAlpha,lab:'Ω′'});
+    if(childExist){ var grow=lp(20,30,childA); arr.push({P:chP,R:lp(grow,30,fade),col:GREEN,glow:0.6+0.4*childA,a:1,lab:'Ω'+(gen+1)}); }
+    arr.sort(function(x,y){return y.P.z-x.P.z;});
+    arr.forEach(function(o){ sphere(o.P,o.R,o.col,o.glow,o.a); });
+
+    // signal P2 : une particule fait l'aller-retour Ω ↔ Ω′
+    if(t>=5.5&&t<8.5){ var u=(t-5.5)/3, pp=Math.abs(((u*3)%1)*2-1); // ping-pong ×3
+      var sp={x:lp(OPOS.x,COPY.x,pp),y:lp(OPOS.y,COPY.y,pp)-Math.sin(pp*Math.PI)*26,z:lp(OPOS.z,COPY.z,pp)};
+      var prp=proj(rotY(sp,yaw)); var pr=5*prp.sc;
+      var gg=ctx.createRadialGradient(prp.x,prp.y,0,prp.x,prp.y,pr*3); gg.addColorStop(0,hex(WARN,0.9)); gg.addColorStop(1,hex(WARN,0));
+      ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(prp.x,prp.y,pr*3,0,7); ctx.fill();
+      ctx.fillStyle=hex(WARN,1); ctx.beginPath(); ctx.arc(prp.x,prp.y,pr,0,7); ctx.fill(); }
+
+    // étiquettes au-dessus des sphères
+    arr.forEach(function(o){ if(o.a>0.3){ label({x:o.P.x,y:o.P.y- (o.R*proj(o.P).sc)-10/proj(o.P).sc + o.P.y*0, z:o.P.z}, o.lab, o.a*0.9); } });
+
+    // lignée (petites Ω en bas = générations passées)
+    for(var k=0;k<Math.min(gen-1,10);k++){ ctx.fillStyle='rgba(163,217,121,'+(0.25+0.05*k)+')'; ctx.beginPath(); ctx.arc(18+k*16,H-14,4,0,7); ctx.fill(); }
+    if(gen>1){ ctx.fillStyle='rgba(154,164,175,.7)'; ctx.font='11px system-ui'; ctx.textAlign='left'; ctx.fillText('lignée', 18, H-26); }
+
+    setCap();
+    requestAnimationFrame(frame);
   }
-  function draw(){ side('W',M[cur].with,M[cur].message); side('O',M[cur].without,null);
-    $('p2Hint').textContent=t>=maxS()?(M[cur].with.won&&!M[cur].without.won?'le souffle a sauvé la partie.':'(souffle non décisif ici)'):'coup '+t+' / '+maxS(); }
-  function stepf(){if(t>=maxS()){stop();return;}t++;draw();}
-  function stop(){if(timer){clearInterval(timer);timer=null;}}
-  $('p2Play').onclick=function(){stop();if(t>=maxS())t=0;timer=setInterval(function(){if(t>=maxS()){stop();return;}stepf();},650);};
-  $('p2All').onclick=function(){stop();t=maxS();draw();}; $('p2Reset').onclick=function(){stop();t=0;draw();};
-  var a=DATA.aggregate; $('p2WrO').style.height=Math.round(a.winrateWithout/100*82)+'px'; $('p2WrW').style.height=Math.round(a.winrateWith/100*82)+'px';
-  $('p2WrOv').textContent=a.winrateWithout+' %'; $('p2WrWv').textContent=a.winrateWith+' %'; $('p2Gain').textContent='+ '+a.gain+' points grâce au message appris';
-  var vals=DATA.learning.valueByRank, mx=Math.max.apply(null,vals)||1; $('p2Ranks').innerHTML='';
-  vals.slice(0,6).forEach(function(v,i){var d=document.createElement('div');d.className='r'+(i===DATA.learning.preferredRank?' top':'');
-    d.innerHTML='<div class="b" style="height:'+Math.round(Math.max(v,0)/mx*80)+'px"></div><small>#'+i+'</small>';$('p2Ranks').appendChild(d);});
-  chips(); sel();
-})();
+  resize(); requestAnimationFrame(frame);
 
-// ── ACTE 3 — P3 : l'évolution OOV (le relief) ──
-(function(){
-  var D=evJSON('ev-data-oov'), $=function(i){return document.getElementById(i);};
-  var room=D.sweep[0].oov;
-  // plafond vs marge
-  $('oovCeil').style.height=Math.round(D.ceilingInlex/100*82)+'px'; $('oovCeilV').textContent=D.ceilingInlex+' %';
-  $('oovRoom').style.height=Math.round(room/100*82)+'px'; $('oovRoomV').textContent=room+' %';
-  // le levier : sweep arbConf (barres verticales, on marque le pic)
-  var mx=Math.max.apply(null,D.sweep.map(function(s){return s.oov;}));
-  $('oovSweep').innerHTML=D.sweep.map(function(s){var top=Math.abs(s.oov-mx)<0.01;
-    return '<div class="r'+(top?' top':'')+'"><div class="b" style="height:'+Math.round(s.oov/100*72)+'px"></div><small>'+s.arbConf+'<br>'+s.oov+'%</small></div>';}).join('');
-  // out-of-sample : réf (gris) + gain (vert) par graine neuve
-  $('oovOOS').innerHTML=D.outOfSample.rows.map(function(r){var g=(r.evolved-r.ref).toFixed(1);
-    return '<div style="display:flex;align-items:center;gap:10px;margin:7px 0">'+
-      '<span style="width:58px;font-size:12px;color:var(--fg-2,#9aa4af)">seed '+r.seed+'</span>'+
-      '<div style="flex:1;height:14px;border-radius:7px;background:var(--bg-3,#1c232c);position:relative;border:1px solid var(--line,#2a323c);overflow:hidden">'+
-        '<div style="position:absolute;left:0;top:0;bottom:0;width:'+r.ref+'%;background:var(--fg-2,#9aa4af);opacity:.4"></div>'+
-        '<div style="position:absolute;left:'+r.ref+'%;top:0;bottom:0;width:'+g+'%;background:var(--accent-2,#a3d977)"></div>'+
-      '</div>'+
-      '<span style="width:140px;font-size:12px;text-align:right">'+r.ref+' → <b style="color:var(--accent-2,#a3d977)">'+r.evolved+'</b>% (+'+g+')</span></div>';
-  }).join('');
-  // verdict honnête : OOV gros gain hors échantillon ; in-lex neutre (ne coûte rien)
-  var dI=(D.pareto.inlexEvolved-D.pareto.inlexRef).toFixed(1);
-  $('oovPareto').innerHTML='✅ <b>+'+D.outOfSample.meanDelta+' pt</b> en moyenne sur '+D.outOfSample.nSeeds+' graines (hors échantillon : '+D.outOfSample.meanRef+'% → '+D.outOfSample.meanEvolved+'%). '+
-    'En lexique : '+D.pareto.inlexRef+' → '+D.pareto.inlexEvolved+'% ('+(dI>=0?'+':'')+dI+', inchangé dans le bruit) → <b>le gain OOV ne coûte rien</b>.';
+  document.getElementById('evoPlay').onclick=function(){ playing=!playing; this.textContent=playing?'⏸ Pause':'▶ Lire'; };
+  document.getElementById('evoRestart').onclick=function(){ t=0; gen=1; document.getElementById('evoGen').textContent=1; };
 })();
-
 // toggle police lisible — identique aux autres pages
 (function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
   function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
