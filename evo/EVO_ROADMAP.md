@@ -137,8 +137,15 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   marge » — *exactement le crux roadmap*) → la pression **bascule sur les erreurs** : **0,175 → 0,113 erreur/partie** (−0,062),
   par croisement. ⇒ **les générations améliorent la fitness via la 2ᵉ clé lexicographique** quand le winrate plafonne. La boucle
   *se-copie → versions → sélection → croisement* tourne.
-- ⏳ **Suite** : (P3+) brancher la **vraie copie bPC** comme opérateur de variation (muter le CODE, pas que les params) +
-  `recordGene/breed/crossW` du moteur ; viser **le plafond P2** (politique relative au mot). 
+- ✅ **P3+ — ÉVOLUTION DU CODE (spectre de mutation mesuré)** : `evo_p3_code_evo.js`. Boucle darwinienne sur le VRAI code :
+  reproduction = copie **bPC** (byte-exacte, quine) · variation = **mutation/croisement du source** d'une fonction de décision
+  (`cosineSim`) · sélection = **pendu**. Spectre de 40 mutations (état RAZ entre évals → indépendantes) : **75 % létales · 3 %
+  délétères · 23 % neutres (silencieuses) · 0 % bénéfiques** ⇒ la fitness pendu est un **vrai filtre sélectif sur le code**
+  (78 % dégradent ; 0 bénéfique = moteur déjà tuné ; 23 % silencieux = carburant de dérive neutre, ≈ mutations synonymes).
+  *Limite honnête (mesurée)* : une **lignée multi-générations en moteur vivant se contamine** (NaN dans l'état persistant ;
+  `validatePhoneticInit` utilise `cosineSim` ; le ré-init ne récupère pas) → évolution fidèle exige une **isolation par variant
+  (process séparé)** ; le spectre (reset par mutant) est fiable, la lignée cumulée non. *(2 artefacts attrapés : 20 % bénéfique
+  fantôme par contamination, puis lignée à 8,3 % — retirés par honnêteté.)*
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 
 ---
