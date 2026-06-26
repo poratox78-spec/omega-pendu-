@@ -196,11 +196,12 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   **`OS_ARB` seul** (~63 %, le gap-aware **dégradait** ici ; pointeur toggles de Rem). *Puis* le levier : **`M_NEO_OS_ARB_CONF`** — monter le seuil
   de l'arbitrage sublexical fait **défférer les guesses peu sûrs** (au lieu de les jouer). **Mesure HORS ÉCHANTILLON** (valeur 0,30 choisie sur
   seed 12345, testée sur **5 autres seeds**) : **+14,0 pt en moyenne (σ 1,1), 5/5 seeds**, ~58 % → **~72 %**. **Première vraie évolution d'OMEGA,
-  robuste et out-of-sample.** ⚠️ *Caveats* : ~72 % **dépasse la bande SOTA (65-68 %)** → absolu à confirmer (plus gros N, œil externe) ; effet
-  **in-lex** pas encore caractérisé ; 1 config. Mais le **gain relatif est solide**. ⟵ **La leçon** : l'évolution se voit là où il y a de la
+  robuste et out-of-sample.** **✓ PARETO confirmé** (`evo_oov_pareto.js`, 3 seeds) : arbConf 0→0,30 = **+18 pt OOV ET +1,3 pt in-lex**
+  (meilleur partout, pire nulle part ; le défaut moteur `0,0` était sous-optimal). ⚠️ *Caveat restant* : l'absolu ~75-79 % OOV **dépasse la
+  bande SOTA (65-68 %)** sur petits échantillons (100 mots) → à confirmer sur **gros N**. Le **gain relatif (Pareto) est solide**. ⟵ **La leçon** : l'évolution se voit là où il y a de la
   MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler les preuves + viser l'OOV) étaient justes.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
-- ⏳ **Suite OOV** : caractériser l'effet in-lex d'`arbConf` (Pareto ou trade-off ?) ; balayer 0,30→0,60 ; plus gros N pour l'absolu.
+- ⏳ **Suite OOV** : **gros N (300-400 mots)** pour nailer l'absolu (75 % tient-il ou régresse vers la bande ?) ; balayer arbConf 0,30→0,60 (optimum ?).
 
 ---
 
