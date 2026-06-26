@@ -214,4 +214,5 @@ Le pendu a été **la** fitness unique de tout EVO → risque de **spécialisati
 ### Reportés (déjà identifiés)
 - **O3 — Génome plus riche** : évoluer les **poids** bPC/readout, **θ=(α,β)**, **règles g2p apprises** (pas seulement les 3 seuils NEO).
 - **O4 — Variation de code par GRAMMAIRE** : **Grammatical Evolution** → muter le source **sans le casser** (vs 75 % létal du source brut, cf. `EVO_P3_EVOLVABILITY.md`).
+  ✓ **1ʳᵉ brique (`evo_p3_grammar.js`)** : une grammaire BNF (génome = codons) produit des heuristiques de pendu **100 % valides** vs **75 %** pour la mutation de source brute — *« muter sans casser » démontré*. La sélection converge vers la **bonne heuristique** (la cohorte). *Honnête* : pas de longue pente multi-gén ici (l'optimum « score = cohorte » est simple, atteint dès la gén 0) → reste à élargir l'**espace de features** (où combiner bat un seul signal) pour une vraie courbe évolutive.
 - **O5 — Lignée P3 avec isolation par process** : pour évoluer du **code** (pas que des params) en multi-générations sans contamination d'état.
