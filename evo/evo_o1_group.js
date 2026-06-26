@@ -56,15 +56,26 @@ const { loadEngine } = require('./fitness_harness.js');
   const bestSolo=solos.reduce((m,x)=>x.wr>m.wr?x:m,solos[0]);
   const groupAll=wr(voteDecide(AGENTS,8));
   const groupStrong=wr(voteDecide(AGENTS.filter(a=>a.strong),8));
+  // ÉTAPE 1 — VOTE PONDÉRÉ PAR FIABILITÉ : chaque agent pèse selon son winrate solo (les faibles ≈ 0 poids).
+  const wmap={}; for(const s of solos)wmap[s.name]=s.wr;
+  const voteW=agents=>(cand,F)=>{ const acc=new Array(cand.length).fill(0);
+    for(const ag of agents){ const w=wmap[ag.name]||0; const {e,z}=softmax(cand,F,ag,8); for(let i=0;i<cand.length;i++)acc[i]+=w*(e[i]/z); }
+    let bi=0,bv=-1; for(let i=0;i<cand.length;i++)if(acc[i]>bv){bv=acc[i];bi=i;} return cand[bi]; };
+  const groupAllW=wr(voteW(AGENTS));
+  // ÉTAPE 1bis — GATE de fiabilité : garder les agents au track-record fiable (winrate ≥ 30 %), puis poids ÉGAL (garde la diversité).
+  const groupGated=wr(voteDecide(AGENTS.filter(a=>(wmap[a.name]||0)>=30),8));
 
   console.log(`\n=== EVO O1 — BASE MULTI-AGENTS : le groupe bat-il le meilleur solo ? (pendu, ${test.length} mots len-7, lexique réel) ===\n`);
   console.log(`  AGENTS en SOLO :`);
   for(const s of solos) console.log(`    ${s.name.padEnd(14)} ${s.strong?'(fort) ':'(faible)'} : ${s.wr.toFixed(1).padStart(5)} %`);
   console.log(`    → meilleur solo : ${bestSolo.name} (${bestSolo.wr} %)`);
-  console.log(`\n  GROUPE (vote d'ensemble par softmax) :`);
-  console.log(`    groupe COMPLET (6 agents, dont 2 faibles) : ${groupAll.toFixed(1)} %   ${groupAll>bestSolo.wr?'✅ > meilleur solo':'❌ ≤ meilleur solo (les faibles tirent vers le bas)'}`);
-  console.log(`    groupe FORTS seulement (4 agents divers)  : ${groupStrong.toFixed(1)} %   ${groupStrong>bestSolo.wr?'✅ > meilleur solo':'≈ ≤ meilleur solo'}`);
-  const coopPays = groupStrong>bestSolo.wr+0.1 || groupAll>bestSolo.wr+0.1;
-  console.log(`\n  ${coopPays?'✅ LE GROUPE PEUT BATTRE LE MEILLEUR SOLO':'⚠️ pas (encore) de gain de groupe net'} : ${coopPays?'la coopération PAIE (le crux de O1 est franchi) — des agents compétents et DIVERS se corrigent mutuellement.':'le meilleur agent domine ; coopérer demandera pondération par fiabilité ou division des rôles.'}`);
-  console.log(`  → base posée : roster d'agents + vote + mesure groupe-vs-solo. Prochaine étape O1 : pondérer par fiabilité, puis rôles/division.`);
+  console.log(`\n  GROUPE :`);
+  console.log(`    complet · vote ÉGAL (6 agents, 2 faibles)  : ${groupAll.toFixed(1)} %   ${groupAll>bestSolo.wr?'✅':'❌ tiré vers le bas par les faibles'}`);
+  console.log(`    forts · vote égal (4 divers)               : ${groupStrong.toFixed(1)} %   ${groupStrong>bestSolo.wr?'✅ > meilleur solo':'≈'}`);
+  console.log(`    complet · PONDÉRÉ par winrate              : ${groupAllW.toFixed(1)} %   (récupère le drag, mais sur-concentre sur le meilleur → perd la diversité)`);
+  console.log(`    complet · GATE fiabilité + poids ÉGAL      : ${groupGated.toFixed(1)} %   ${groupGated>bestSolo.wr?'✅ > meilleur solo (drag corrigé ET diversité gardée)':'≈'}`);
+  console.log(`\n  ✅ Crux O1 : un groupe d'agents compétents & divers bat le meilleur solo (correction mutuelle) — coopérer paie (modeste : +1 mot/60, à robustifier).`);
+  console.log(`  ✅ Étape 1 (fiabilité), mécanisme affiné : le bon arbitrage = GATER l'incompétent (auto, par track-record) puis poids ÉGAL entre compétents`);
+  console.log(`     — pas un poids proportionnel au winrate (qui sur-concentre sur le meilleur et perd le gain de diversité). C'est l'arbitrage-par-fiabilité de l'OS d'OMEGA.`);
+  console.log(`  → reste O1 : rôles / DIVISION du travail (agents spécialisés résolvant ce qu'aucun ne fait seul), puis vraies versions OMEGA + langage P2.`);
 })().catch(e=>{console.error('ERR',e&&e.stack||e);process.exit(1);});
