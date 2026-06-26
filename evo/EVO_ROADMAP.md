@@ -161,8 +161,9 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
 - ✅ **P3 (b) — LIGNÉE PROPRE sur le bon génome** : `evo_p3_lineage.js`. Lignée 8 générations sur le génome **param** (croisement
   **blend** + mutation gaussienne, sélection tri-critère, état RAZ = indépendance ; pas d'isolation process car les params ne
   corrompent pas l'init). Résultat : réf err **1,40** / 92,5 % → lignée err **1,163** / **95,0 %** = **−0,237 err SOUS la réf,
-  winrate maintenu** ⇒ les générations **trouvent une meilleure version** (les 30 % d'erreurs utiles exploitées). *Caveat : 80
-  mots len-7, held-out à confirmer.* C'est « inventer une meilleure version d'OMEGA », **proprement, sur le bon génome.**
+  winrate maintenu** ⇒ les générations **trouvent une meilleure version** (les 30 % d'erreurs utiles exploitées). **✓ HELD-OUT
+  validé** (`evo_p3_holdout.js`) : meilleur sur len-7 **non vus** (95,0 % / 1,195 vs réf 94,0 % / 1,275), neutre sur len 8-10
+  (autre distrib) → **généralise, pas du tuning local**. C'est « inventer une meilleure version d'OMEGA », **proprement, sur le bon génome.**
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 
 ---
