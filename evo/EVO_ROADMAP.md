@@ -204,8 +204,13 @@ produisent des **versions spécialisées** susceptibles de coopérer).
   ✓ **Étape 1 — arbitrage par FIABILITÉ (faite)** : mécanisme affiné par la mesure — le bon réglage est de **GATER l'incompétent**
   (auto, par track-record : winrate ≥ seuil) puis **poids ÉGAL** entre compétents → groupe complet **70 %** > meilleur solo
   (drag corrigé ET diversité gardée). Le poids *proportionnel* au winrate, lui, sur-concentre sur le meilleur (68,3 %, perd la
-  diversité). ⇒ c'est l'**arbitrage-par-fiabilité que l'OS d'OMEGA fait déjà**. Reste O1 : **rôles / division du travail**
-  (agents spécialisés résolvant ce qu'aucun ne fait seul), puis vraies versions OMEGA (générations P3) + langage P2 comme canal.
+  diversité). ⇒ c'est l'**arbitrage-par-fiabilité que l'OS d'OMEGA fait déjà**.
+  ✓ **Étape 2 — DIVISION DU TRAVAIL (faite, `evo_o1_roles.js`)** : des spécialistes par PHASE + un **routeur** (par taille de
+  cohorte) : **ouvreur** (positionnel/fréquence) tôt, **finisseur** (cohorte) tard. Mesuré (len-7, budget serré) : l'**équipe =
+  72,5 %** > **meilleur monolithe 67,5 %** (+5 pts/4 mots), gain **robuste sur la plage K=20→150**. Le point-clé : l'**ouvreur
+  seul = 2,5 %** (inutile isolé) mais **précieux dans l'équipe** — il couvre l'ouverture que la cohorte rate. *C'est la vraie
+  division : chaque rôle résout une phase que l'autre échoue.* Reste O1 : vraies versions OMEGA (générations P3) comme agents
+  + langage P2 comme canal de coordination.
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
 ### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
