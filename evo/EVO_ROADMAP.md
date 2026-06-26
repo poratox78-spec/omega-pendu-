@@ -54,7 +54,7 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
 - ✅ **P1 (b-ter) — le CROISEMENT bat l'addition (doctrine « OMEGA est un ensemble », Rem)** : `evo_p1_cross.js` (2 graines).
   Décoder **deux routes de liage indépendantes** (shift ×1 et ×7) puis **conjuguer** leurs posteriors par position
   (croisement = *intersection des contraintes*, **≠ ajouter du bundle**) relève le **mot exact** massivement :
-  len 11 **45→70-82 %**, len 13 **47-55→62-75 %**, len 15 **23-38→50-55 %**, len 18 **20-30→45-57 %**, len 22 **0-25→62 %** ;
+  len 11 **45→70-82 %**, len 13 **47-55→62-75 %**, len 15 **23-38→50-55 %**, len 18 **20-30→45-57 %** *(gains robustes 7→18)* ; *(len 22 : n=8, trop peu — seed-bruité 25/62, non concluant)* ;
   lettres +1-5 pts. Les pics de crosstalk diffèrent entre routes → le croisement les annule. ⇒ « **ni addition ni
   multiplication, c'est un croisement** » : *mesuré*.
 - ✅ **P1 (c) — PIVOT VERS LE CODE** : `evo_p1_code.js` (2 graines). On arrête de polir le mot (proxy non-transférable) ; on
@@ -72,12 +72,12 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   que l'irrégulier** (mesuré dictée : 51 % phonos reconstructibles, 4,63 bits/ph, **17× factorisé**). ⇒ mon bundle
   char⊗position était une **LIGNE** (stockage plat K≈N = *le mur §8.1*). **La pyramide ne stocke que les exceptions → dissout
   le mur.** Première mesure côté code (propre code evo/, held-out) : une règle **grossière ordre-2** régénère déjà **30 %**
-  (6,16 bits/token) — **PLANCHER** (la vraie pyramide = AST/grammaire fait bien plus ; la dictée = 51 % sur tâche plus dure).
+  (≈6 bits/token) — **PLANCHER** (la vraie pyramide = AST/grammaire fait bien plus ; la dictée = 51 % sur tâche plus dure).
 - ⚠️ **Reframe du mécanisme de copie** : ce n'est PAS un bundle VSA de la ligne (mon erreur) — c'est **décomposer (pyramide)
   → régénérer le régulier par règles + stocker l'irrégulier compressé**. Le VSA ne sert qu'au **résidu irrégulier**, à son étage.
 - ✅ **P1 (e) — décomposeur HIÉRARCHIQUE (pyramide + double voie)** : `evo_p1_hier.js`, sur le propre code d'OMEGA (arbre
   d'imbrication, profondeur max 9). **Squelette grammatical** (mots-clés+symboles) = **60,8 %** des tokens de contenu ;
-  **identifiants 7,2× dédup** (14 296 occ → 1 995 uniques, route lexicale = stocker 1 fois + références) ; **feuilles uniques
+  **identifiants ~7× dédup** (route lexicale = stocker 1 fois + références) ; **feuilles uniques
   irréductibles = 6,0 %**. gzip (compression auto conservatrice) = **3,6×**. ⇒ **le mur K≈N était l'artefact du stockage
   plat** : on stocke ~6 % de feuilles + recall, le reste = grammaire. Logique dictée (51 % / 17×), transposée au code.
   *Honnêteté* : 60,8 % = la *part* structurelle (la grammaire donne la forme, le symbole exact coûte qq bits) ; le chiffre
@@ -91,7 +91,7 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   (Rao&Ballard/Friston) : descendant = **prédictions**, montant = **erreur résiduelle**. Prédicteur **contextuel ordre-k**
   (le bPC « fait correctement » prescrit ; **hors M3_d**) ; on n'encode que les **miss** ; on **reconstruit** et on **vérifie
   l'identité exacte**. Résultat (propre code d'OMEGA, **lossless ✅ tous ordres**) : régénéré **ordre-2 61,5 % → ordre-5
-  90,5 %** ; résidu ordre-5 = **9,5 %** (gzip 15,8 Ko vs 43,6 brut). ⇒ **OMEGA se copie pour de vrai par prédiction+erreur**,
+  90,5 %** ; résidu ordre-5 = **9,5 %** (gzip du résidu ≈ 0,4× le brut). ⇒ **OMEGA se copie pour de vrai par prédiction+erreur**,
   pas en stockant la ligne. Compromis résidu↔grammaire (contextes) = **MDL** (garde §3 du moteur).
 - ✅ **P1 (g) — JALON QUINE VÉRIFIÉ** : `evo_p1_quine.js`. OMEGA lit le source de ses propres fonctions (`toString`), les
   **recopie par codage prédictif** (bPC ordre-6, **hors M3_d**), les **ré-instancie avec leur CLÔTURE** (deps + globals
@@ -149,3 +149,8 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
 **P3 générations** ✅ (sélection tri-critère + croisement améliorent la fitness de génération en génération). Reste : raffinements
 (politique relative au mot, variation par code bPC réel, prédicteur hiérarchique). *Tout mesuré, commité, honnête (y compris les
 erreurs de couche corrigées et le premier learner P2 qui échouait).*
+
+> **Audit indépendant (06/2026)** — re-run des 13 briques EVO et comparaison aux chiffres de cette roadmap : **fidèle, aucun
+> surclamage** ; tous les chiffres-titres reproduisent (souvent à la décimale). Corrigés depuis : quelques **absolus périmés**
+> (le corpus evo/ a grossi → rendus en ratios/%), `bits/token 6,16→~6`, et le **croisement len-22 (n=8)** clarifié comme
+> *seed-bruité, non concluant* (les gains du croisement restent robustes len 7→18). Raffinement P2+ ajouté (plafond 98,7 % atteint).
