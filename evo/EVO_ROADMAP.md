@@ -125,6 +125,21 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   consonnes informatives (`UGMCZL`). *Nuance honnête* : A converge vers le **modérément rare (apprenable)**, pas le rarissime
   (`WKJXYQ`, trop sparse → crédit non fiable, rho 0,15 **attendu**) ; le bon critère = le **winrate**, pas la corrélation à un
   optimum injoignable. ⇒ **« inventer son langage » démontré, ancré dans la tâche.**
-- ⏳ **Prochaine brique** : politique **relative au mot** (ranker les lettres du mot) pour viser le plafond 98,7 % ; puis
-  **P3 (générations)** — une version qui parle à la précédente, croisement (`recordGene/breed/crossW`).
+- ✅ **P3 (a) — GÉNÉRATIONS & CROISEMENT (sélection mesurée)** : `evo_p3_generations.js`. Population de « versions » (génomes =
+  params de cognition) sélectionnée par la **fitness tri-critère** (`fitterLex` : plancher winrate → min erreurs → min temps),
+  **croisée** (crossover + mutation) sur 7 générations, mots len-7 (durs). Résultat : winrate **saturé à 100 %** (« plus de
+  marge » — *exactement le crux roadmap*) → la pression **bascule sur les erreurs** : **0,175 → 0,113 erreur/partie** (−0,062),
+  par croisement. ⇒ **les générations améliorent la fitness via la 2ᵉ clé lexicographique** quand le winrate plafonne. La boucle
+  *se-copie → versions → sélection → croisement* tourne.
+- ⏳ **Suite** : (P3+) brancher la **vraie copie bPC** comme opérateur de variation (muter le CODE, pas que les params) +
+  `recordGene/breed/crossW` du moteur ; viser **le plafond P2** (politique relative au mot). 
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
+
+---
+
+## Bilan (sessions juin 2026) — la vision démontrée bout-à-bout
+**P1 se copie** ✅ (bPC prédire+résidu, quine fonction/module/grandeur-réelle, fitness préservé+falsifié, mur §8.1 dissous) ·
+**P2 communiquent** ✅ (le pendu référentiel paie la communication ; protocole **émergent** : A invente un code du reward seul) ·
+**P3 générations** ✅ (sélection tri-critère + croisement améliorent la fitness de génération en génération). Reste : raffinements
+(politique relative au mot, variation par code bPC réel, prédicteur hiérarchique). *Tout mesuré, commité, honnête (y compris les
+erreurs de couche corrigées et le premier learner P2 qui échouait).*
