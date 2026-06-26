@@ -117,6 +117,10 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   décision** (test non vide). ⇒ **P1 « se copie » prouvé grandeur réelle**, sur du code de décision, dans le pendu vivant.
 - ✅ **P1 « SE COPIE » ESSENTIELLEMENT COMPLET** : (b)→(i) — substrat VSA 1024D · croisement · pyramide · bPC (prédire+résidu) ·
   quine fonction · frontière module + interface runtime · quine grandeur réelle (fitness préservé, falsifié). **Le mur §8.1 dissous.**
+  ⚠️ **Nuance honnête (audit 27/06)** : le lossless = **prédiction LÀ OÙ ELLE MARCHE + résidu mémorisé sinon**. Sur les fonctions courtes
+  (`circularShift`, `circularShiftInverse`), le prédicteur ordre-6 a **hit ≈ 0** (`p1_capture.json`) → elles sont reconstruites **~100 % par
+  résidu verbatim**, pas « par prédiction ». Le byte-exact tient (c'est mesuré), mais « se copie PAR PRÉDICTION » ne vaut vraiment que pour
+  `cosineSim`/`normalize` (hit 16-20 %). À dire tel quel : *copie fidèle = prédire ce qui est régulier, stocker le reste*.
 - ✅ **P2 (a) — CRUX ÉTABLI & MESURÉ : le pendu référentiel PAIE la communication** : `evo_p2_referential.js`. A voit le mot,
   « souffle » k lettres à B (canal = k symboles), B (moteur, cognition seule = marge) joue. Mesuré (150 mots len 8-12) :
   **89,3 % (k=0) → 94,7 → 96,0 %** [A aléatoire] · **→ 98,7 → 100 %** [A malin = lettres rares]. (1) **communiquer PAIE**
@@ -192,11 +196,12 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   OMEGA n'est **PAS au plafond** (~55-66 %) → le génome **a de la prise**. *D'abord* le bon terrain : la config OOV optimale est
   **`OS_ARB` seul** (~63 %, le gap-aware **dégradait** ici ; pointeur toggles de Rem). *Puis* le levier : **`M_NEO_OS_ARB_CONF`** — monter le seuil
   de l'arbitrage sublexical fait **défférer les guesses peu sûrs** (au lieu de les jouer). **Mesure HORS ÉCHANTILLON** (valeur 0,30 choisie sur
-  seed 12345, testée sur **5 autres seeds** + gros N 350 mots) : **+~17 pt en moyenne, 5/5 seeds**, ~57 % → **~74 %**. **Le gain d'évolution le
-  plus NET mesuré du projet** (P3 dans le régime à marge), robuste out-of-sample. **✓ PARETO confirmé** (`evo_oov_pareto.js`, 3 seeds) : arbConf 0→0,30 = **+18 pt OOV ET +1,3 pt in-lex**
-  (meilleur partout, pire nulle part ; le défaut moteur `0,0` était sous-optimal). ⚠️ *Caveat restant* : l'absolu ~75-79 % OOV **dépasse la
-  bande SOTA (65-68 %)** sur petits échantillons (100 mots) → à confirmer sur **gros N**. Le **gain relatif (Pareto) est solide**. ⟵ **La leçon** : l'évolution se voit là où il y a de la
-  MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler les preuves + viser l'OOV) étaient justes.
+  seed 12345, testée sur **5 autres seeds**) : **+14 pt en moyenne, 5/5 seeds out-of-sample**, **~57 % → ~71 %** (réf → évolué ; `evo_oov_evolve.js`,
+  `oov_capture.json`). **Le gain d'évolution le plus NET mesuré du projet** (P3 dans le régime à marge). **✓ in-lex NEUTRE** (le gain OOV ne coûte rien :
+  `evo_oov_pareto.js` 3 seeds → in-lex +1,3 ; capture 1 seed → −0,8 ; soit **≈ 0**). ⚠️ *Caveat* : l'absolu (~71 % à 5 seeds ; **gros N 2 seeds = ~74 %**)
+  **dépasse la bande SOTA (65-68 %)** sur petits échantillons → **à confirmer sur gros N / œil externe**. Le **gain relatif (+14, robuste) est solide**.
+  *(Nuance audit : `arbConf=0,30` n'est PAS l'optimum du sweep — `0,15` fait 75,8 % vs 75,0 % à seed 12345 ; le balayage fin reste à faire.)*
+  ⟵ **La leçon** : l'évolution se voit là où il y a de la MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler + viser l'OOV) étaient justes.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 - ✓ **Suite OOV (gros N fait)** : 350 mots × 2 seeds → l'absolu **TIENT** (~74 %, ne régresse pas). ⏳ reste : balayer arbConf 0,30→0,60 (optimum ?) ; œil externe sur l'absolu vs SOTA.
 
@@ -211,7 +216,7 @@ erreurs de couche corrigées et le premier learner P2 qui échouait).*
 
 > **Stress-test + extension (26/06, Rem)** — *ne remet pas en cause l'A→Z, le précise* : les ampleurs **in-lex** sont **modestes**
 > (plafond ~97 %, gains sur la 2ᵉ clé/erreurs) et le **backlog O1 (groupe) ne généralise pas** (proxy, falsifié hors échantillon).
-> **Mais** l'évolution P3 donne un **gain NET en hors-lexique** — gène `M_NEO_OS_ARB_CONF`, **Pareto +~17 pt OOV**, robuste sur 10 seeds —
+> **Mais** l'évolution P3 donne un **gain NET en hors-lexique** — gène `M_NEO_OS_ARB_CONF`, **+14 pt OOV** (5 seeds out-of-sample), in-lex ≈ 0 —
 > *là où il reste de la marge*. ⇒ **l'A→Z tient ; son plus haut relief est en OOV.** (Détail : bloc « stress-test » + « extension OOV » de l'État.)
 
 > **Audit indépendant (06/2026)** — re-run des 13 briques EVO et comparaison aux chiffres de cette roadmap : **fidèle, aucun
