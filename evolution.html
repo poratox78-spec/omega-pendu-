@@ -81,6 +81,7 @@
     <div class="ev-meta">
       <div>génération <b id="evGen">1</b></div>
       <div>population <b id="evPop">1</b></div>
+      <div>winrate OOV <b id="evWr">—</b></div>
       <div class="ev-live" id="evLive"><span class="dot"></span><span id="evLiveT">moteur : —</span></div>
     </div>
     <div class="ev-hud">
@@ -110,7 +111,7 @@
     <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — le gène <code>arbConf</code> évolue ; +14 pt hors-lexique (Pareto), de génération en génération.</small></div>
     <div class="k warn"><b id="kpi4">—</b><small><strong>O1 · groupe</strong> — exploré, mais <em>ne tient pas</em> hors échantillon (proxy). Montré honnêtement.</small></div>
   </div>
-  <p class="note">Le cycle suit la roadmap&nbsp;: <em>se copie → communiquent → fabriquent une nouvelle version → recommunique avec la précédente → croise les générations</em>. En lexique OMEGA est au plafond (~97 %)&nbsp;; l'évolution se voit <strong>hors-lexique</strong> (les sphères verdissent à mesure qu'<code>arbConf</code> tend vers 0,30). <strong>O1</strong> (travail de groupe) est représenté mais marqué <em>non concluant</em> — mesuré, il perd contre le meilleur solo hors échantillon. Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> ; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>. Le bouton « Vrai moteur » fait jouer <code>omegaStep</code> en direct (site déployé).</p>
+  <p class="note">Le cycle suit la roadmap&nbsp;: <em>se copie → communiquent → fabriquent une nouvelle version → recommunique avec la précédente → croise les générations</em>. <strong>Pas de bluff</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, <strong>chaque nouvelle version a un vrai génome et JOUE réellement le pendu</strong> hors-lexique (vrai <code>omegaStep</code>)&nbsp;— son <strong>winrate mesuré</strong> colore sa sphère (plus verte = meilleure), et la <strong>sélection garde la meilleure</strong>&nbsp;; <code>arbConf</code> évolue par mutation+sélection et le winrate du collectif monte <em>pour de vrai</em> (~57 % → ~74 %). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (clairement étiqueté « démo », pas live). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais marqué <em>non concluant</em> — mesuré, il perd contre le meilleur solo hors échantillon. Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> ; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -258,15 +259,30 @@ async function liveGame(word,souffle,cfg,speed){ ev('__reset();'); ev(cfg); var 
   resetGuess(); drawWord(word,b0,[],souffle); if(souffle)addGuess(souffle,'souffle'); var prev=b0;
   for(var k=0;k<300;k++){ if(stop)return {won:false}; var r=ev('__step()'); if(r.L){var fr=[];for(var p=0;p<word.length;p++)if(r.board[p]!=='.'&&prev[p]==='.')fr.push(p); drawWord(word,r.board,fr,souffle); addGuess(r.L,r.hit?'hit':'miss'); prev=r.board; await wait(speed||320);} if(r.over)return {won:r.won}; } return {won:false}; }
 
-/* ════════ LE CYCLE EVO (faithful) ════════ */
+/* ════════ génome réel + ÉVALUATION par omegaStep (mode live) ════════ */
+const OOVN=16, OOVW=36;
+function applyGenome(g){ ev('if(typeof M_DECLARE_NEO_CONF!=="undefined")M_DECLARE_NEO_CONF='+g.conf+';if(typeof M_DECLARE_NEO_RECALL_MARGIN!=="undefined")M_DECLARE_NEO_RECALL_MARGIN='+g.margin+';if(typeof M_NEO_G2P_EXP_PEN!=="undefined")M_NEO_G2P_EXP_PEN='+g.g2p+';if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF='+g.arb+';'); }
+async function showGameNoReset(word){ const b0=ev('__newGame('+JSON.stringify(word)+',"")'); resetGuess(); drawWord(word,b0,[],null); let prev=b0;
+  for(let k=0;k<300;k++){ if(stop)return {won:false}; const r=ev('__step()'); if(r.L){ const fr=[]; for(let p=0;p<word.length;p++)if(r.board[p]!=='.'&&prev[p]==='.')fr.push(p); drawWord(word,r.board,fr,null); addGuess(r.L,r.hit?'hit':'miss'); prev=r.board; await wait(300);} if(r.over)return {won:r.won}; } return {won:false}; }
+// joue VRAIMENT un génome hors-lexique → winrate réel ; montre la 1re partie au-dessus
+async function evalOOVLive(genome){ ev('__reset();'); ev(CFG_OOV); applyGenome(genome); ev('__oovStart('+OOVN+','+OOVW+',12345);');
+  ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); const tw=Array.prototype.slice.call(ev('__trainW'));
+  for(let i=0;i<tw.length;i++){ if(stop)return 0; ev('__play('+JSON.stringify(tw[i])+')'); if(i%9===8)await nf(); }
+  ev('OMEGA_LEX4.len_index=__filtLI;_neoWBL=null;_neoNG=null;'); const test=Array.prototype.slice.call(ev('__testW')); let win=0;
+  if(test.length){ const r=await showGameNoReset(test[0]); win+=r.won?1:0; $('evWr').textContent=Math.round(100*win)+' %'; }
+  for(let j=1;j<test.length;j++){ if(stop)return Math.round(100*win/Math.max(j,1)); win+=ev('__play('+JSON.stringify(test[j])+')'); if(j%4===3){ $('evWr').textContent=Math.round(100*win/(j+1))+' %'; await nf(); } }
+  ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); return Math.round(100*win/test.length); }
+function evoFromWr(wr){ return Math.max(0,Math.min(1,(wr-50)/26)); }
+function mutate(g){ return {conf:g.conf,margin:g.margin,g2p:g.g2p, arb:Math.max(0,Math.min(0.5, g.arb+(Math.random()*0.16-0.03)))}; }
+
+/* ════════ LE CYCLE EVO — RÉEL en live, capturé honnête en démo ════════ */
 async function cycle(){
-  // origine
-  const O=makeAgent(genPos(0,0,1),0,0); O.target=new THREE.Vector3(0,0,0);
+  const O=makeAgent(genPos(0,0,1),0,0); O.target=new THREE.Vector3(0,0,0); O.genome={conf:0.6,margin:0.2,g2p:0.5,arb:0.0};
   let lastGen=[O], allGen=[[O]], live=()=>mode==='live';
-  let arb=0.0;  // le génome qui évolue (arbConf 0 → 0,30)
+  let best={a:O, genome:O.genome, wr:null}, arbDemo=0, originDone=false;
   while(!stop){
     const g=gen;
-    const parent = lastGen[lastGen.length-1];
+    const parent = best.a;
     // ---- P1 · SE COPIE ----
     setPhase(0); setCap('P1 · se copie','les fonctions de décision sont reconstruites à l’octet près — le jumeau partage le même code');
     pNote('P1 — la copie (byte-exact) rejoue à l’identique');
@@ -280,21 +296,28 @@ async function cycle(){
     if(live()){ const w=ev('__words(8,12,1,'+(2000+g)+')')[0]; const fq=Array.prototype.slice.call(ev('__freq()')); const s=rarest(w,fq); await liveGame(w,s,CFG_P2); }
     else { var m2=null; for(var i=0;i<P2.matches.length;i++){if(P2.matches[i].with.won&&!P2.matches[i].without.won){m2=P2.matches[i];break;}} m2=m2||P2.matches[0]; await playSteps(m2.word,m2.with.steps,m2.message); }
     if(stop)return; await wait(500); if(stop)return;
-    // ---- P3 · GÉNÉRATIONS (croisement) ----
-    setPhase(2); arb=Math.min(0.30, arb+0.10); const evoT=Math.min(1, arb/0.30);
-    setCap('P3 · générations','les génomes se croisent → une nouvelle version ; le gène arbConf évolue ('+arb.toFixed(2)+') → meilleure hors-lexique');
-    pNote('P3 — hors-lexique, la version évoluée gagne plus');
-    const child=makeAgent(parent.pos.clone().lerp(copy.pos,0.5),g+1,evoT);
-    const cnt=lastGen.length+1; child.target=genPos(g, lastGen.length, cnt);
+    // ---- P3 · GÉNÉRATIONS : croisement + ÉVALUATION RÉELLE ----
+    setPhase(2);
+    const childGenome=mutate(best.genome);
+    const child=makeAgent(parent.pos.clone().lerp(copy.pos,0.5),g+1,parent.evoT); child.genome=childGenome;
+    child.target=genPos(g+1,0,1);
     addEdge(parent,child,0x3a6a9a); addEdge(copy,child,0x3a6a9a);
-    // recommunique avec la génération PRÉCÉDENTE + CROISE les générations
-    if(allGen.length>=1){ const prevGen=allGen[allGen.length-1]; for(const pv of prevGen){ emitParticles(pv,child,CROSS,5); } }
-    if(allGen.length>=2){ const older=allGen[allGen.length-2]; if(older[0]) addEdge(older[0],child,CROSS); } // croisement inter-générations
-    // mesure / jeu hors-lexique
-    if(live()){ ev('__oovStart(18,40,12345);');
-      async function oov(a){ ev('__reset();');ev(CFG_OOV);ev('if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF='+a+';'); ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); var tw=Array.prototype.slice.call(ev('__trainW')); for(var i=0;i<tw.length;i++){if(stop)return 0;ev('__play('+JSON.stringify(tw[i])+')');if(i%10===9)await nf();} ev('OMEGA_LEX4.len_index=__filtLI;_neoWBL=null;_neoNG=null;'); var test=Array.prototype.slice.call(ev('__testW')),win=0; for(var j=0;j<test.length;j++){if(stop)return 0;win+=ev('__play('+JSON.stringify(test[j])+')');} ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); return Math.round(100*win/test.length); }
-      const base=await oov(0.0); const evo=await oov(arb); setCap('P3 · générations','hors-lexique en direct · base '+base+'% → évoluée '+evo+'%  (+'+(evo-base)+' pt)'); setAgentEvo(child, evoT);
-    } else { const b=OV.sweep[0].oov, e=Math.round(b+(OV.pareto.oovEvolved-b)*evoT); setCap('P3 · générations','hors-lexique · base '+b+'% → évoluée '+e+'%  (gène arbConf '+arb.toFixed(2)+')'); setAgentEvo(child,evoT); await wait(700); }
+    if(allGen.length>=1){ for(const pv of allGen[allGen.length-1]) emitParticles(pv,child,CROSS,5); }
+    if(allGen.length>=2 && allGen[allGen.length-2][0]) addEdge(allGen[allGen.length-2][0],child,CROSS);
+    if(live()){
+      pNote('P3 — la nouvelle version JOUE le pendu hors-lexique (réel)');
+      if(!originDone){ setCap('P3 · générations','la version de base joue hors-lexique (réel)…'); const w0=await evalOOVLive(best.genome); if(stop)return; best.wr=w0; setAgentEvo(parent,evoFromWr(w0)); originDone=true; }
+      setCap('P3 · générations','nouvelle version (arbConf '+childGenome.arb.toFixed(2)+') joue hors-lexique, en direct…');
+      const wr=await evalOOVLive(childGenome); if(stop)return; setAgentEvo(child,evoFromWr(wr)); $('evWr').textContent=wr+' %';
+      if(best.wr==null || wr>=best.wr){ best={a:child,genome:childGenome,wr}; setCap('P3 · générations','✅ sélectionnée — meilleure version : '+wr+'% hors-lexique (gén '+(g+1)+')'); }
+      else { setCap('P3 · générations','version testée : '+wr+'% (≤ meilleure '+best.wr+'%) — non retenue'); }
+    } else {
+      pNote('P3 — hors-lexique (mesures réelles capturées · pas live)');
+      arbDemo=Math.min(0.30,arbDemo+0.10); const e=Math.round(OV.sweep[0].oov+(OV.pareto.oovEvolved-OV.sweep[0].oov)*(arbDemo/0.30));
+      setAgentEvo(child,arbDemo/0.30); $('evWr').textContent=e+' %';
+      setCap('P3 · générations','hors-lexique (capturé) · '+OV.sweep[0].oov+'% → '+e+'%  ·  démo');
+      best={a:child,genome:child.genome,wr:e}; await wait(700);
+    }
     if(stop)return;
     // O1 — GROUPE (toutes les 2 gén) : honnête, non concluant
     if(g%2===0 && agents.length>=4){ setPhase(3); setCap('O1 · travail de groupe','plusieurs versions coordonnent — exploré, mais NE TIENT PAS hors échantillon (proxy)');
