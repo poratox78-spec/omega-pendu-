@@ -3,47 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OMEGA-Ω — l'évolution : regarde-le jouer, se copier, évoluer</title>
-<meta name="description" content="OMEGA joue le pendu sous tes yeux — le mot se remplit, les lettres tombent — pendant qu'il se copie (P1), communique (P2) et évolue (P3). Vrai moteur en direct sur le site déployé.">
+<title>OMEGA-Ω — l'évolution : un collectif qui se copie, communique, et évolue</title>
+<meta name="description" content="La boucle EVO d'OMEGA en 3D (Three.js) : un collectif de sphères se copie (P1), communique (P2), croise ses générations (P3), explore le groupe (O1) — avec le pendu joué au-dessus et les vraies mesures (omegaStep).">
 <link rel="stylesheet" href="site.css">
 <style>
-  .ev-wrap{max-width:1000px}
-  .hg-stage{position:relative;border-radius:var(--radius,14px);background:radial-gradient(120% 100% at 50% 0%,#141b25,#0b0f15);border:1px solid var(--line,#2a323c);padding:20px 20px 18px;overflow:hidden}
-  .hg-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .hg-phase{display:flex;gap:7px;flex-wrap:wrap}
-  .hg-phase .p{font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--line,#2a323c);color:var(--fg-2,#9aa4af)}
-  .hg-phase .p.on{border-color:var(--accent,#5b8cf6);color:var(--fg,#e6edf3);background:rgba(91,140,246,.12)}
-  .hg-phase .p.on b{color:var(--accent,#5b8cf6)}
-  .hg-gen{font-size:12px;color:var(--fg-2,#9aa4af)}.hg-gen b{color:var(--accent-2,#a3d977)}
-  .hg-live{font-size:11.5px;display:inline-flex;align-items:center;gap:6px;color:var(--fg-2,#9aa4af)}
-  .hg-live .dot{width:8px;height:8px;border-radius:50%;background:#555}.hg-live.on .dot{background:var(--bad,#f47174);animation:hgp 1s infinite}.hg-live.ready .dot{background:var(--accent-2,#a3d977)}@keyframes hgp{50%{opacity:.3}}
-  .hg-title{font-size:clamp(15px,2.3vw,18px);font-weight:700;color:var(--fg,#e6edf3);margin:10px 0 2px;min-height:1.3em}
-  .hg-sub{font-size:13px;color:var(--fg-2,#9aa4af);margin:0 0 16px;min-height:1.2em}
-  .hg-word{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:6px 0 16px;min-height:42px}
-  .hg-box{width:clamp(30px,6.4vw,46px);height:clamp(38px,7.6vw,56px);border-radius:9px;display:grid;place-items:center;
-    font-family:ui-monospace,monospace;font-weight:700;font-size:clamp(18px,3.4vw,26px);background:var(--bg-2,#161b22);border:1.5px solid var(--line,#2a323c);color:var(--fg,#e6edf3);transition:.2s}
-  .hg-box.empty{color:var(--line,#3a434f)}
-  .hg-box.fresh{border-color:var(--accent-2,#a3d977);color:var(--accent-2,#a3d977);box-shadow:0 0 0 3px rgba(163,217,121,.18)}
-  .hg-box.whis{border-color:var(--accent,#5b8cf6);color:var(--accent,#5b8cf6);box-shadow:0 0 0 3px rgba(91,140,246,.2)}
-  .hg-guesses{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;min-height:30px;margin-bottom:8px}
-  .hg-chip{display:grid;place-items:center;width:28px;height:28px;border-radius:7px;font-family:ui-monospace,monospace;font-weight:600;font-size:14px;opacity:0;transform:translateY(5px);animation:hgin .18s forwards}@keyframes hgin{to{opacity:1;transform:none}}
-  .hg-chip.hit{background:rgba(163,217,121,.18);color:var(--accent-2,#a3d977);border:1px solid rgba(163,217,121,.5)}
-  .hg-chip.miss{background:rgba(244,113,116,.16);color:var(--bad,#f47174);border:1px solid rgba(244,113,116,.5)}
-  .hg-chip.souffle{background:rgba(91,140,246,.16);color:var(--accent,#5b8cf6);border:1px dashed var(--accent,#5b8cf6)}
-  .hg-foot{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;min-height:30px}
-  .hg-badge{font-size:13px;font-weight:700;padding:5px 13px;border-radius:999px;opacity:0;transition:.25s}
-  .hg-badge.show{opacity:1}.hg-badge.win{background:rgba(163,217,121,.16);color:var(--accent-2,#a3d977)}.hg-badge.lose{background:rgba(244,113,116,.16);color:var(--bad,#f47174)}
-  .hg-stat{font-size:13px;color:var(--fg-2,#9aa4af)}.hg-stat b{color:var(--fg,#e6edf3);font-variant-numeric:tabular-nums}.hg-stat .g{color:var(--accent-2,#a3d977)}
-  .hg-wr{display:flex;align-items:flex-end;gap:18px;justify-content:center;margin:2px 0 12px}
-  .hg-wr .col{text-align:center}.hg-wr .bar{height:70px;width:42px;display:flex;align-items:flex-end;margin:0 auto}.hg-wr .bar>span{display:block;width:100%;border-radius:6px 6px 0 0;background:var(--fg-2,#9aa4af);transition:height .25s}
-  .hg-wr .col.evo .bar>span{background:var(--accent-2,#a3d977)} .hg-wr .v{font-weight:700;font-size:15px;color:var(--fg,#e6edf3);margin-top:4px} .hg-wr .l{font-size:11px;color:var(--fg-2,#9aa4af)}
-  .hg-ctrl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 2px}
-  .hg-ctrl button{font:inherit;font-size:13.5px;padding:8px 15px;border-radius:9px;cursor:pointer;background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600}
-  .hg-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
-  .hg-ctrl button:disabled{opacity:.5;cursor:default}.hg-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
-  .evo-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}@media(max-width:620px){.evo-kpi{grid-template-columns:1fr}}
+  .ev-wrap{max-width:1040px}
+  .ev-stage{position:relative;border-radius:var(--radius,14px);overflow:hidden;border:1px solid var(--line,#2a323c);background:#000510;
+    height:min(74vh,640px)}
+  #c3{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .ev-fall{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--fg-2,#9aa4af);font-size:14px}
+  /* pendu joué AU-DESSUS des sphères */
+  .ev-pendu{position:absolute;left:0;right:0;top:0;padding:14px 16px 10px;background:linear-gradient(180deg,rgba(2,6,14,.82),rgba(2,6,14,.45) 70%,rgba(2,6,14,0));z-index:3;pointer-events:none}
+  .ev-pendu .pw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:7px}
+  .ev-box{width:clamp(24px,4.6vw,36px);height:clamp(30px,5.8vw,44px);border-radius:7px;display:grid;place-items:center;
+    font-family:ui-monospace,monospace;font-weight:700;font-size:clamp(15px,2.7vw,21px);background:rgba(12,18,26,.7);border:1.5px solid #223;color:#e6edf3;transition:.18s}
+  .ev-box.empty{color:#2a3340}.ev-box.fresh{border-color:#a3d977;color:#a3d977;box-shadow:0 0 0 2px rgba(163,217,121,.2)}
+  .ev-box.whis{border-color:#5b8cf6;color:#5b8cf6;box-shadow:0 0 0 2px rgba(91,140,246,.22)}
+  .ev-g{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;min-height:26px}
+  .ev-chip{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;font-family:ui-monospace,monospace;font-weight:600;font-size:12.5px;opacity:0;animation:evin .16s forwards}@keyframes evin{to{opacity:1}}
+  .ev-chip.hit{background:rgba(163,217,121,.18);color:#a3d977;border:1px solid rgba(163,217,121,.5)}
+  .ev-chip.miss{background:rgba(244,113,116,.16);color:#f47174;border:1px solid rgba(244,113,116,.5)}
+  .ev-chip.souffle{background:rgba(91,140,246,.16);color:#5b8cf6;border:1px dashed #5b8cf6}
+  .ev-pword{text-align:center;font-size:11.5px;color:#7c8a99;margin-top:4px;min-height:1.1em}
+  /* HUD bas */
+  .ev-hud{position:absolute;left:0;right:0;bottom:0;padding:14px 16px 16px;background:linear-gradient(0deg,rgba(2,6,14,.9),rgba(2,6,14,0));z-index:3}
+  .ev-phs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .ev-phs .p{font-size:11.5px;padding:4px 10px;border-radius:999px;border:1px solid #223;color:#7c8a99}
+  .ev-phs .p.on{border-color:var(--accent,#5b8cf6);color:#e6edf3;background:rgba(91,140,246,.14)}.ev-phs .p.on b{color:var(--accent,#5b8cf6)}
+  .ev-cap{font-size:clamp(14px,2.1vw,17px);font-weight:700;color:#e6edf3;margin:0}
+  .ev-sub{font-size:12.5px;color:#9aa4af;margin:3px 0 0;min-height:1.2em}
+  .ev-meta{position:absolute;top:12px;right:14px;z-index:3;font-size:12px;color:#9aa4af;text-align:right;line-height:1.5}
+  .ev-meta b{color:#a3d977}
+  .ev-live{display:inline-flex;align-items:center;gap:6px}.ev-live .dot{width:8px;height:8px;border-radius:50%;background:#555;vertical-align:middle}
+  .ev-live.on .dot{background:#f47174;animation:evp 1s infinite}.ev-live.ready .dot{background:#a3d977}@keyframes evp{50%{opacity:.3}}
+  .ev-ctrl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 2px}
+  .ev-ctrl button{font:inherit;font-size:13.5px;padding:8px 15px;border-radius:9px;cursor:pointer;background:var(--accent,#5b8cf6);color:#0d1117;border:0;font-weight:600}
+  .ev-ctrl button.ghost{background:transparent;color:var(--fg,#e6edf3);border:1px solid var(--line,#2a323c);font-weight:500}
+  .ev-ctrl button:disabled{opacity:.5;cursor:default}.ev-ctrl .hint{color:var(--fg-2,#9aa4af);font-size:12px}
+  .ev-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg-2,#9aa4af);margin-top:10px}
+  .ev-leg span{display:inline-flex;align-items:center;gap:6px}.ev-leg i{width:11px;height:11px;border-radius:50%}
+  .evo-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}@media(max-width:720px){.evo-kpi{grid-template-columns:repeat(2,1fr)}}@media(max-width:440px){.evo-kpi{grid-template-columns:1fr}}
   .evo-kpi .k{background:var(--bg-2,#161b22);border:1px solid var(--line,#2a323c);border-radius:var(--radius,14px);padding:13px 15px}
-  .evo-kpi .k b{display:block;font-size:20px;color:var(--fg,#e6edf3)}.evo-kpi .k small{color:var(--fg-2,#9aa4af);font-size:12px}.evo-kpi .k.green b{color:var(--accent-2,#a3d977)}
+  .evo-kpi .k b{display:block;font-size:19px;color:var(--fg,#e6edf3)}.evo-kpi .k small{color:var(--fg-2,#9aa4af);font-size:11.5px}
+  .evo-kpi .k.green b{color:var(--accent-2,#a3d977)}.evo-kpi .k.warn b{color:var(--warn,#d8922e)}
   #engineFrame{position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0}
 </style>
 </head>
@@ -62,42 +64,53 @@
 
 <main id="main">
 <section class="hero"><div class="wrap ev-wrap">
-  <span class="tag">Évolution · regarde-le jouer</span>
-  <h1>OMEGA <em>joue</em>, se <em>copie</em>, et <em>évolue</em> — sous tes yeux.</h1>
-  <p class="lead">Le mot se remplit, les lettres tombent (vert = trouvé, rouge = raté). Tu le vois <strong>se copier</strong> (P1, la copie rejoue à l'identique), <strong>communiquer</strong> (P2, un souffle le fait gagner), puis <strong>évoluer</strong> (P3, il gagne plus hors-lexique). Le bouton <strong>« Vrai moteur »</strong> fait jouer le <strong>vrai <code>omegaStep</code> en direct</strong> (site déployé).</p>
+  <span class="tag">Évolution · le collectif</span>
+  <h1>Un <em>collectif</em> qui se copie, communique, et <em>évolue</em>.</h1>
+  <p class="lead">Chaque sphère est une instance d'OMEGA. Une seule au départ&nbsp;: elle se <strong>copie</strong> (P1, byte-exact), les instances <strong>communiquent</strong> (P2), leurs génomes <strong>se croisent de génération en génération</strong> (P3) — la lignée grandit, les versions <strong>évoluent</strong> (plus vertes = meilleures hors-lexique). Au-dessus, le <strong>pendu se joue</strong> pour de vrai. Données <strong>réelles</strong> (<code>omegaStep</code>).</p>
 </div></section>
 
 <section><div class="wrap ev-wrap">
-  <div class="hg-stage">
-    <div class="hg-top">
-      <div class="hg-phase" id="hgPhase"><span class="p"><b>P1</b> se copie</span><span class="p"><b>P2</b> communiquent</span><span class="p"><b>P3</b> générations</span></div>
-      <span class="hg-gen">génération <b id="hgGen">1</b> · <span class="hg-live" id="hgLive"><span class="dot"></span><span id="hgLiveT">moteur : —</span></span></span>
+  <div class="ev-stage" id="evStage">
+    <canvas id="c3"></canvas>
+    <div class="ev-fall" id="evFall">Le rendu 3D (Three.js/WebGL) n'a pas pu démarrer ici (réseau/sandbox). Il s'affiche sur le site déployé ou un navigateur avec WebGL.</div>
+    <div class="ev-pendu">
+      <div class="pw" id="pWord"></div>
+      <div class="ev-g" id="pGuess"></div>
+      <div class="ev-pword" id="pNote">le pendu, joué par la version en cours</div>
     </div>
-    <p class="hg-title" id="hgTitle">Prêt</p>
-    <p class="hg-sub" id="hgSub">OMEGA va jouer…</p>
-    <div class="hg-word" id="hgWord"></div>
-    <div class="hg-guesses" id="hgGuesses"></div>
-    <div class="hg-wr" id="hgWr" style="display:none">
-      <div class="col"><div class="bar"><span id="hgWrB"></span></div><div class="v" id="hgWrBv">—</div><div class="l">base</div></div>
-      <div class="col evo"><div class="bar"><span id="hgWrE"></span></div><div class="v" id="hgWrEv">—</div><div class="l">évoluée</div></div>
+    <div class="ev-meta">
+      <div>génération <b id="evGen">1</b></div>
+      <div>population <b id="evPop">1</b></div>
+      <div class="ev-live" id="evLive"><span class="dot"></span><span id="evLiveT">moteur : —</span></div>
     </div>
-    <div class="hg-foot"><span class="hg-badge" id="hgBadge"></span><span class="hg-stat" id="hgStat"></span></div>
+    <div class="ev-hud">
+      <div class="ev-phs" id="evPhs"><span class="p"><b>P1</b> se copie</span><span class="p"><b>P2</b> communiquent</span><span class="p"><b>P3</b> générations</span><span class="p"><b>O1</b> groupe</span></div>
+      <p class="ev-cap" id="evCap">Initialisation…</p>
+      <p class="ev-sub" id="evSub">le moteur 3D démarre</p>
+    </div>
   </div>
-  <div class="hg-ctrl">
-    <button id="hgReal" disabled>▶ Vrai moteur (chargement…)</button>
-    <button class="ghost" id="hgPlay">⏸ Pause</button>
-    <span class="hint" id="hgHint">la démo enchaîne des parties réelles capturées — le vrai moteur joue en direct sur le site déployé</span>
+  <div class="ev-ctrl">
+    <button id="evReal" disabled>▶ Vrai moteur (chargement…)</button>
+    <button class="ghost" id="evPause">⏸ Pause</button>
+    <span class="hint" id="evHint">la lignée évolue en continu — chaque cycle = une génération · le pendu joue en vrai en direct sur le site déployé</span>
+  </div>
+  <div class="ev-leg">
+    <span><i style="background:#5b8cf6"></i> Ω et copies (base)</span>
+    <span><i style="background:#a3d977"></i> versions évoluées (meilleures OOV)</span>
+    <span><i style="background:#ffaa00"></i> communication</span>
+    <span><i style="background:#b48cf6"></i> croisement de générations</span>
   </div>
 </div></section>
 
 <section><div class="wrap ev-wrap">
-  <h2>Ce que tu regardes</h2>
+  <h2>Ce qui se joue — fidèle aux mesures</h2>
   <div class="evo-kpi">
-    <div class="k"><b id="kpi1">—</b><small><strong>P1 · se copie</strong> — la copie (reconstruite à l'octet près) rejoue <em>à l'identique</em>. Tu vois le jumeau gagner comme l'original.</small></div>
-    <div class="k"><b id="kpi2">—</b><small><strong>P2 · communiquent</strong> — A souffle la lettre rare ; B gagne là où, sans, il perdait. Le winrate monte.</small></div>
-    <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — hors-lexique, le gène <code>arbConf</code> fait gagner plus. L'évolution, là où il reste de la marge.</small></div>
+    <div class="k"><b id="kpi1">—</b><small><strong>P1 · se copie</strong> — fonctions de décision reconstruites à l'octet près (bPC) ; la copie rejoue à l'identique.</small></div>
+    <div class="k"><b id="kpi2">—</b><small><strong>P2 · communiquent</strong> — A souffle la lettre rare, B gagne là où il perdait. Un code émerge du reward.</small></div>
+    <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — le gène <code>arbConf</code> évolue ; +14 pt hors-lexique (Pareto), de génération en génération.</small></div>
+    <div class="k warn"><b id="kpi4">—</b><small><strong>O1 · groupe</strong> — exploré, mais <em>ne tient pas</em> hors échantillon (proxy). Montré honnêtement.</small></div>
   </div>
-  <p class="note">Honnêteté&nbsp;: en lexique OMEGA est au plafond (~97 %) — l'évolution se voit hors-lexique. Le <strong>travail de groupe (O1) n'est pas montré</strong> (mesuré, il ne tient pas hors échantillon). Parties réelles capturées sur <code>omegaStep</code> (<code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>)&nbsp;; le bouton « Vrai moteur » rejoue le vrai moteur en direct. Plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+  <p class="note">Le cycle suit la roadmap&nbsp;: <em>se copie → communiquent → fabriquent une nouvelle version → recommunique avec la précédente → croise les générations</em>. En lexique OMEGA est au plafond (~97 %)&nbsp;; l'évolution se voit <strong>hors-lexique</strong> (les sphères verdissent à mesure qu'<code>arbConf</code> tend vers 0,30). <strong>O1</strong> (travail de groupe) est représenté mais marqué <em>non concluant</em> — mesuré, il perd contre le meilleur solo hors échantillon. Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> ; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>. Le bouton « Vrai moteur » fait jouer <code>omegaStep</code> en direct (site déployé).</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -111,138 +124,205 @@
 <script id="ev-data-p1" type="application/json">{"meta":{"phase":"P1 — se copie","what":"OMEGA reconstruit ses fonctions de DÉCISION à l'octet près (bPC) : le GÉNOME est copié","twin":"deux instances du MÊME code, vies différentes (l'OS apprend) → jumeaux : même compétence, discours propre","fidelity":"100% omegaStep + reconstruction réelle"},"functions":[{"name":"cosineSim","exact":true,"hit":25,"total":160},{"name":"circularShiftInPlace","exact":true,"hit":23,"total":328},{"name":"circularShift","exact":true,"hit":0,"total":40},{"name":"circularShiftInverse","exact":true,"hit":0,"total":19},{"name":"normalize","exact":true,"hit":30,"total":150}],"byteExact":true,"twins":{"A":{"wr":97.5,"err":2.775},"B":{"wr":100,"err":2.075},"sameCompetence":false},"matches":[{"word":"CORDEAU","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".OR.E..","wrong":1},{"L":"M","hit":false,"board":".OR.E..","wrong":2},{"L":"B","hit":false,"board":".OR.E..","wrong":3},{"L":"S","hit":false,"board":".OR.E..","wrong":4},{"L":"D","hit":true,"board":".ORDE..","wrong":4},{"L":"A","hit":true,"board":".ORDEA.","wrong":4},{"L":"U","hit":true,"board":".ORDEAU","wrong":4}]},"B":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".OR.E..","wrong":1},{"L":"M","hit":false,"board":".OR.E..","wrong":2},{"L":"B","hit":false,"board":".OR.E..","wrong":3},{"L":"S","hit":false,"board":".OR.E..","wrong":4},{"L":"A","hit":true,"board":".OR.EA.","wrong":4},{"L":"D","hit":true,"board":".ORDEA.","wrong":4},{"L":"C","hit":true,"board":"CORDEA.","wrong":4}]},"diverge":true,"sameOutcome":true},{"word":"ROUCOULAIS","A":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":"..........","wrong":1},{"L":"A","hit":true,"board":".......A..","wrong":1},{"L":"I","hit":true,"board":".......AI.","wrong":1},{"L":"O","hit":true,"board":".O..O..AI.","wrong":1},{"L":"R","hit":true,"board":"RO..O..AI.","wrong":1},{"L":"S","hit":true,"board":"RO..O..AIS","wrong":1},{"L":"U","hit":true,"board":"ROU.OU.AIS","wrong":1},{"L":"L","hit":true,"board":"ROU.OULAIS","wrong":1}]},"B":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":"..........","wrong":1},{"L":"I","hit":true,"board":"........I.","wrong":1},{"L":"A","hit":true,"board":".......AI.","wrong":1},{"L":"O","hit":true,"board":".O..O..AI.","wrong":1},{"L":"R","hit":true,"board":"RO..O..AI.","wrong":1},{"L":"S","hit":true,"board":"RO..O..AIS","wrong":1},{"L":"L","hit":true,"board":"RO..O.LAIS","wrong":1},{"L":"U","hit":true,"board":"ROU.OULAIS","wrong":1}]},"diverge":true,"sameOutcome":true},{"word":"PERSEIDES","A":{"won":true,"wrong":1,"steps":[{"L":"E","hit":true,"board":".E..E..E.","wrong":0},{"L":"R","hit":true,"board":".ER.E..E.","wrong":0},{"L":"T","hit":false,"board":".ER.E..E.","wrong":1},{"L":"S","hit":true,"board":".ERSE..ES","wrong":1},{"L":"I","hit":true,"board":".ERSEI.ES","wrong":1},{"L":"D","hit":true,"board":".ERSEIDES","wrong":1}]},"B":{"won":true,"wrong":1,"steps":[{"L":"E","hit":true,"board":".E..E..E.","wrong":0},{"L":"R","hit":true,"board":".ER.E..E.","wrong":0},{"L":"T","hit":false,"board":".ER.E..E.","wrong":1},{"L":"S","hit":true,"board":".ERSE..ES","wrong":1},{"L":"I","hit":true,"board":".ERSEI.ES","wrong":1},{"L":"D","hit":true,"board":".ERSEIDES","wrong":1}]},"diverge":false,"sameOutcome":true},{"word":"GRANDISSES","A":{"won":true,"wrong":0,"steps":[{"L":"E","hit":true,"board":"........E.","wrong":0},{"L":"I","hit":true,"board":".....I..E.","wrong":0},{"L":"A","hit":true,"board":"..A..I..E.","wrong":0},{"L":"S","hit":true,"board":"..A..ISSES","wrong":0},{"L":"R","hit":true,"board":".RA..ISSES","wrong":0},{"L":"D","hit":true,"board":".RA.DISSES","wrong":0},{"L":"G","hit":true,"board":"GRA.DISSES","wrong":0}]},"B":{"won":true,"wrong":0,"steps":[{"L":"E","hit":true,"board":"........E.","wrong":0},{"L":"I","hit":true,"board":".....I..E.","wrong":0},{"L":"A","hit":true,"board":"..A..I..E.","wrong":0},{"L":"S","hit":true,"board":"..A..ISSES","wrong":0},{"L":"R","hit":true,"board":".RA..ISSES","wrong":0},{"L":"D","hit":true,"board":".RA.DISSES","wrong":0},{"L":"G","hit":true,"board":"GRA.DISSES","wrong":0}]},"diverge":false,"sameOutcome":true},{"word":"COUPEUR","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".O..E.R","wrong":1},{"L":"U","hit":true,"board":".OU.EUR","wrong":1},{"L":"L","hit":false,"board":".OU.EUR","wrong":2},{"L":"D","hit":false,"board":".OU.EUR","wrong":3},{"L":"T","hit":false,"board":".OU.EUR","wrong":4},{"L":"P","hit":true,"board":".OUPEUR","wrong":4}]},"B":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"....E..","wrong":0},{"L":"O","hit":true,"board":".O..E..","wrong":0},{"L":"N","hit":false,"board":".O..E..","wrong":1},{"L":"R","hit":true,"board":".O..E.R","wrong":1},{"L":"U","hit":true,"board":".OU.EUR","wrong":1},{"L":"L","hit":false,"board":".OU.EUR","wrong":2},{"L":"D","hit":false,"board":".OU.EUR","wrong":3},{"L":"T","hit":false,"board":".OU.EUR","wrong":4},{"L":"P","hit":true,"board":".OUPEUR","wrong":4}]},"diverge":false,"sameOutcome":true},{"word":"EVALUABLE","A":{"won":false,"wrong":5,"steps":[{"L":"E","hit":true,"board":"E.......E","wrong":0},{"L":"A","hit":true,"board":"E.A..A..E","wrong":0},{"L":"T","hit":false,"board":"E.A..A..E","wrong":1},{"L":"L","hit":true,"board":"E.AL.A.LE","wrong":1},{"L":"U","hit":true,"board":"E.ALUA.LE","wrong":1},{"L":"S","hit":false,"board":"E.ALUA.LE","wrong":2},{"L":"I","hit":false,"board":"E.ALUA.LE","wrong":3},{"L":"R","hit":false,"board":"E.ALUA.LE","wrong":4},{"L":"N","hit":false,"board":"E.ALUA.LE","wrong":5}]},"B":{"won":false,"wrong":5,"steps":[{"L":"E","hit":true,"board":"E.......E","wrong":0},{"L":"A","hit":true,"board":"E.A..A..E","wrong":0},{"L":"T","hit":false,"board":"E.A..A..E","wrong":1},{"L":"L","hit":true,"board":"E.AL.A.LE","wrong":1},{"L":"U","hit":true,"board":"E.ALUA.LE","wrong":1},{"L":"I","hit":false,"board":"E.ALUA.LE","wrong":2},{"L":"S","hit":false,"board":"E.ALUA.LE","wrong":3},{"L":"N","hit":false,"board":"E.ALUA.LE","wrong":4},{"L":"R","hit":false,"board":"E.ALUA.LE","wrong":5}]},"diverge":true,"sameOutcome":true},{"word":"GIRELLE","A":{"won":false,"wrong":5,"steps":[{"L":"E","hit":true,"board":"...E..E","wrong":0},{"L":"A","hit":false,"board":"...E..E","wrong":1},{"L":"I","hit":true,"board":".I.E..E","wrong":1},{"L":"L","hit":true,"board":".I.ELLE","wrong":1},{"L":"F","hit":false,"board":".I.ELLE","wrong":2},{"L":"S","hit":false,"board":".I.ELLE","wrong":3},{"L":"N","hit":false,"board":".I.ELLE","wrong":4},{"L":"R","hit":true,"board":".IRELLE","wrong":4},{"L":"T","hit":false,"board":".IRELLE","wrong":5}]},"B":{"won":true,"wrong":5,"steps":[{"L":"E","hit":true,"board":"...E..E","wrong":0},{"L":"A","hit":false,"board":"...E..E","wrong":1},{"L":"I","hit":true,"board":".I.E..E","wrong":1},{"L":"L","hit":true,"board":".I.ELLE","wrong":1},{"L":"F","hit":false,"board":".I.ELLE","wrong":2},{"L":"S","hit":false,"board":".I.ELLE","wrong":3},{"L":"N","hit":false,"board":".I.ELLE","wrong":4},{"L":"R","hit":true,"board":".IRELLE","wrong":4},{"L":"T","hit":false,"board":".IRELLE","wrong":5}]},"diverge":false,"sameOutcome":false},{"word":"SORBITOL","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":false,"board":"........","wrong":1},{"L":"R","hit":true,"board":"..R.....","wrong":1},{"L":"A","hit":false,"board":"..R.....","wrong":2},{"L":"I","hit":true,"board":"..R.I...","wrong":2},{"L":"O","hit":true,"board":".OR.I.O.","wrong":2},{"L":"S","hit":true,"board":"SOR.I.O.","wrong":2},{"L":"T","hit":true,"board":"SOR.ITO.","wrong":2},{"L":"N","hit":false,"board":"SOR.ITO.","wrong":3},{"L":"L","hit":true,"board":"SOR.ITOL","wrong":3},{"L":"U","hit":false,"board":"SOR.ITOL","wrong":4}]},"B":{"won":true,"wrong":2,"steps":[{"L":"E","hit":false,"board":"........","wrong":1},{"L":"I","hit":true,"board":"....I...","wrong":1},{"L":"A","hit":false,"board":"....I...","wrong":2},{"L":"O","hit":true,"board":".O..I.O.","wrong":2},{"L":"R","hit":true,"board":".OR.I.O.","wrong":2},{"L":"L","hit":true,"board":".OR.I.OL","wrong":2},{"L":"T","hit":true,"board":".OR.ITOL","wrong":2},{"L":"S","hit":true,"board":"SOR.ITOL","wrong":2}]},"diverge":true,"sameOutcome":true},{"word":"RATISSA","A":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":".......","wrong":1},{"L":"A","hit":true,"board":".A....A","wrong":1},{"L":"I","hit":true,"board":".A.I..A","wrong":1},{"L":"S","hit":true,"board":".A.ISSA","wrong":1},{"L":"R","hit":true,"board":"RA.ISSA","wrong":1}]},"B":{"won":true,"wrong":1,"steps":[{"L":"E","hit":false,"board":".......","wrong":1},{"L":"I","hit":true,"board":"...I...","wrong":1},{"L":"A","hit":true,"board":".A.I..A","wrong":1},{"L":"S","hit":true,"board":".A.ISSA","wrong":1},{"L":"R","hit":true,"board":"RA.ISSA","wrong":1}]},"diverge":true,"sameOutcome":true},{"word":"ENFOURNONS","A":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"E.........","wrong":0},{"L":"I","hit":false,"board":"E.........","wrong":1},{"L":"A","hit":false,"board":"E.........","wrong":2},{"L":"R","hit":true,"board":"E....R....","wrong":2},{"L":"S","hit":true,"board":"E....R...S","wrong":2},{"L":"N","hit":true,"board":"EN...RN.NS","wrong":2},{"L":"O","hit":true,"board":"EN.O.RNONS","wrong":2},{"L":"T","hit":false,"board":"EN.O.RNONS","wrong":3},{"L":"U","hit":true,"board":"EN.OURNONS","wrong":3},{"L":"L","hit":false,"board":"EN.OURNONS","wrong":4}]},"B":{"won":true,"wrong":4,"steps":[{"L":"E","hit":true,"board":"E.........","wrong":0},{"L":"I","hit":false,"board":"E.........","wrong":1},{"L":"A","hit":false,"board":"E.........","wrong":2},{"L":"R","hit":true,"board":"E....R....","wrong":2},{"L":"N","hit":true,"board":"EN...RN.N.","wrong":2},{"L":"O","hit":true,"board":"EN.O.RNON.","wrong":2},{"L":"S","hit":true,"board":"EN.O.RNONS","wrong":2},{"L":"T","hit":false,"board":"EN.O.RNONS","wrong":3},{"L":"L","hit":false,"board":"EN.O.RNONS","wrong":4},{"L":"U","hit":true,"board":"EN.OURNONS","wrong":4}]},"diverge":true,"sameOutcome":true}],"summary":{"nMatches":10,"nDiverge":6,"nSameOutcome":9}}</script>
 <script id="ev-data-p2" type="application/json">{"meta":{"task":"pendu référentiel P2","speaker":"A (apprend quoi souffler)","listener":"B = moteur OMEGA réel (omegaStep, cognition seule)","channel":"1 lettre","protocol":"A → la lettre la plus RARE du mot (appris)","wordLenRange":"8-12","fidelity":"100% omegaStep, aucune valeur inventée"},"learning":{"epochs":8,"perEpoch":70,"curve":[94.3,94.3,98.6,97.1,91.4,94.3,92.9,95.7],"valueByRank":[2.75,0,0,2,0.75,0,0,0],"preferredRank":0,"lr":0.25},"aggregate":{"pool":100,"winrateWithout":92,"winrateWith":97,"gain":5},"matches":[{"word":"PRETEXTERAI","message":"X","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"..E.EX.E...","wrong":0},{"L":"R","hit":true,"board":".RE.EX.ER..","wrong":0},{"L":"T","hit":true,"board":".RETEXTER..","wrong":0},{"L":"A","hit":true,"board":".RETEXTERA.","wrong":0},{"L":"P","hit":true,"board":"PRETEXTERA.","wrong":0},{"L":"S","hit":false,"board":"PRETEXTERA.","wrong":1}],"board0":"...........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"..E.E..E...","wrong":0},{"L":"R","hit":true,"board":".RE.E..ER..","wrong":0},{"L":"A","hit":true,"board":".RE.E..ERA.","wrong":0},{"L":"S","hit":false,"board":".RE.E..ERA.","wrong":1},{"L":"T","hit":true,"board":".RETE.TERA.","wrong":1},{"L":"P","hit":true,"board":"PRETE.TERA.","wrong":1},{"L":"C","hit":false,"board":"PRETE.TERA.","wrong":2},{"L":"I","hit":true,"board":"PRETE.TERAI","wrong":2},{"L":"N","hit":false,"board":"PRETE.TERAI","wrong":3},{"L":"O","hit":false,"board":"PRETE.TERAI","wrong":4},{"L":"L","hit":false,"board":"PRETE.TERAI","wrong":5}],"board0":"...........","wrong":5}},{"word":"INSIPIDE","message":"D","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"......DE","wrong":0},{"L":"A","hit":false,"board":"......DE","wrong":1},{"L":"I","hit":true,"board":"I..I.IDE","wrong":1},{"L":"N","hit":true,"board":"IN.I.IDE","wrong":1},{"L":"T","hit":false,"board":"IN.I.IDE","wrong":2},{"L":"S","hit":true,"board":"INSI.IDE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":true,"board":"I..I.I.E","wrong":0},{"L":"T","hit":false,"board":"I..I.I.E","wrong":1},{"L":"S","hit":true,"board":"I.SI.I.E","wrong":1},{"L":"N","hit":true,"board":"INSI.I.E","wrong":1},{"L":"A","hit":false,"board":"INSI.I.E","wrong":2},{"L":"R","hit":false,"board":"INSI.I.E","wrong":3},{"L":"O","hit":false,"board":"INSI.I.E","wrong":4},{"L":"L","hit":false,"board":"INSI.I.E","wrong":5}],"board0":"........","wrong":5}},{"word":"TYPHOIDES","message":"Y","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".Y.....E.","wrong":0},{"L":"I","hit":true,"board":".Y...I.E.","wrong":0},{"L":"A","hit":false,"board":".Y...I.E.","wrong":1},{"L":"S","hit":true,"board":".Y...I.ES","wrong":1},{"L":"O","hit":true,"board":".Y..OI.ES","wrong":1},{"L":"D","hit":true,"board":".Y..OIDES","wrong":1},{"L":"T","hit":true,"board":"TY..OIDES","wrong":1},{"L":"F","hit":false,"board":"TY..OIDES","wrong":2},{"L":"P","hit":true,"board":"TYP.OIDES","wrong":2}],"board0":".........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E.","wrong":0},{"L":"I","hit":true,"board":".....I.E.","wrong":0},{"L":"A","hit":false,"board":".....I.E.","wrong":1},{"L":"S","hit":true,"board":".....I.ES","wrong":1},{"L":"O","hit":true,"board":"....OI.ES","wrong":1},{"L":"D","hit":true,"board":"....OIDES","wrong":1},{"L":"T","hit":true,"board":"T...OIDES","wrong":1},{"L":"R","hit":false,"board":"T...OIDES","wrong":2},{"L":"N","hit":false,"board":"T...OIDES","wrong":3},{"L":"L","hit":false,"board":"T...OIDES","wrong":4},{"L":"U","hit":false,"board":"T...OIDES","wrong":5}],"board0":".........","wrong":5}},{"word":"ECLIPSEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"E...P.EE.","wrong":0},{"L":"I","hit":true,"board":"E..IP.EE.","wrong":0},{"L":"L","hit":true,"board":"E.LIP.EE.","wrong":0},{"L":"S","hit":true,"board":"E.LIPSEES","wrong":0}],"board0":".........","wrong":0},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":"E.....EE.","wrong":0},{"L":"A","hit":false,"board":"E.....EE.","wrong":1},{"L":"O","hit":false,"board":"E.....EE.","wrong":2},{"L":"I","hit":true,"board":"E..I..EE.","wrong":2},{"L":"S","hit":true,"board":"E..I.SEES","wrong":2},{"L":"L","hit":true,"board":"E.LI.SEES","wrong":2},{"L":"R","hit":false,"board":"E.LI.SEES","wrong":3},{"L":"N","hit":false,"board":"E.LI.SEES","wrong":4},{"L":"T","hit":false,"board":"E.LI.SEES","wrong":5}],"board0":".........","wrong":5}},{"word":"GRAMMAGE","message":"G","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"G.....GE","wrong":0},{"L":"I","hit":false,"board":"G.....GE","wrong":1},{"L":"A","hit":true,"board":"G.A..AGE","wrong":1},{"L":"R","hit":true,"board":"GRA..AGE","wrong":1},{"L":"T","hit":false,"board":"GRA..AGE","wrong":2}],"board0":"........","wrong":2},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".......E","wrong":0},{"L":"I","hit":false,"board":".......E","wrong":1},{"L":"A","hit":true,"board":"..A..A.E","wrong":1},{"L":"S","hit":false,"board":"..A..A.E","wrong":2},{"L":"R","hit":true,"board":".RA..A.E","wrong":2},{"L":"B","hit":false,"board":".RA..A.E","wrong":3},{"L":"T","hit":false,"board":".RA..A.E","wrong":4},{"L":"N","hit":false,"board":".RA..A.E","wrong":5}],"board0":"........","wrong":5}},{"word":"PELVIENNE","message":"V","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.V.E..E","wrong":0},{"L":"R","hit":false,"board":".E.V.E..E","wrong":1},{"L":"I","hit":true,"board":".E.VIE..E","wrong":1},{"L":"N","hit":true,"board":".E.VIENNE","wrong":1},{"L":"L","hit":true,"board":".ELVIENNE","wrong":1}],"board0":".........","wrong":1},"without":{"won":false,"steps":[{"L":"E","hit":true,"board":".E...E..E","wrong":0},{"L":"I","hit":true,"board":".E..IE..E","wrong":0},{"L":"R","hit":false,"board":".E..IE..E","wrong":1},{"L":"N","hit":true,"board":".E..IENNE","wrong":1},{"L":"L","hit":true,"board":".EL.IENNE","wrong":1},{"L":"S","hit":false,"board":".EL.IENNE","wrong":2},{"L":"A","hit":false,"board":".EL.IENNE","wrong":3},{"L":"T","hit":false,"board":".EL.IENNE","wrong":4},{"L":"O","hit":false,"board":".EL.IENNE","wrong":5}],"board0":".........","wrong":5}},{"word":"SATELLITE","message":"L","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...ELL..E","wrong":0},{"L":"A","hit":true,"board":".A.ELL..E","wrong":0},{"L":"I","hit":true,"board":".A.ELLI.E","wrong":0},{"L":"T","hit":true,"board":".ATELLITE","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"...E....E","wrong":0},{"L":"I","hit":true,"board":"...E..I.E","wrong":0},{"L":"A","hit":true,"board":".A.E..I.E","wrong":0},{"L":"T","hit":true,"board":".ATE..ITE","wrong":0},{"L":"S","hit":true,"board":"SATE..ITE","wrong":0}],"board0":".........","wrong":0}},{"word":"RESTAURERIEZ","message":"Z","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..EZ","wrong":0},{"L":"R","hit":true,"board":"RE....RER.EZ","wrong":0},{"L":"I","hit":true,"board":"RE....RERIEZ","wrong":0},{"L":"S","hit":true,"board":"RES...RERIEZ","wrong":0},{"L":"T","hit":true,"board":"REST..RERIEZ","wrong":0},{"L":"O","hit":false,"board":"REST..RERIEZ","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIEZ","wrong":1}],"board0":"............","wrong":1},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":".E.....E..E.","wrong":0},{"L":"R","hit":true,"board":"RE....RER.E.","wrong":0},{"L":"I","hit":true,"board":"RE....RERIE.","wrong":0},{"L":"S","hit":true,"board":"RES...RERIE.","wrong":0},{"L":"T","hit":true,"board":"REST..RERIE.","wrong":0},{"L":"O","hit":false,"board":"REST..RERIE.","wrong":1},{"L":"A","hit":true,"board":"RESTA.RERIE.","wrong":1},{"L":"N","hit":false,"board":"RESTA.RERIE.","wrong":2},{"L":"L","hit":false,"board":"RESTA.RERIE.","wrong":3},{"L":"U","hit":true,"board":"RESTAURERIE.","wrong":3}],"board0":"............","wrong":3}},{"word":"STIPULEES","message":"P","rarityRank":0,"with":{"won":true,"steps":[{"L":"E","hit":true,"board":"...P..EE.","wrong":0},{"L":"I","hit":true,"board":"..IP..EE.","wrong":0},{"L":"T","hit":true,"board":".TIP..EE.","wrong":0},{"L":"U","hit":true,"board":".TIPU.EE.","wrong":0},{"L":"L","hit":true,"board":".TIPULEE.","wrong":0}],"board0":".........","wrong":0},"without":{"won":true,"steps":[{"L":"E","hit":true,"board":"......EE.","wrong":0},{"L":"A","hit":false,"board":"......EE.","wrong":1},{"L":"I","hit":true,"board":"..I...EE.","wrong":1},{"L":"S","hit":true,"board":"S.I...EES","wrong":1},{"L":"T","hit":true,"board":"STI...EES","wrong":1},{"L":"U","hit":true,"board":"STI.U.EES","wrong":1},{"L":"L","hit":true,"board":"STI.ULEES","wrong":1},{"L":"M","hit":false,"board":"STI.ULEES","wrong":2}],"board0":".........","wrong":2}}]}</script>
 <script id="ev-data-oov" type="application/json">{"meta":{"phase":"P3 — générations, régime OOV (le relief)","what":"sélection sur le génome param en hors-lexique (Trexquant), là où OMEGA n'est pas au plafond","gene":"M_NEO_OS_ARB_CONF","evolvedValue":0.3,"config":"OS_ARB seul","testN":120,"warmup":150,"fidelity":"100% omegaStep, caches invalidés au swap"},"ceilingInlex":97,"sweep":[{"arbConf":0,"oov":63.3},{"arbConf":0.15,"oov":75.8},{"arbConf":0.3,"oov":75},{"arbConf":0.45,"oov":70.8}],"pareto":{"seed":12345,"oovRef":63.3,"oovEvolved":75,"inlexRef":98.3,"inlexEvolved":97.5},"outOfSample":{"seeds":[7,101,333],"rows":[{"seed":7,"ref":57.5,"evolved":62.5},{"seed":101,"ref":53.3,"evolved":77.5},{"seed":333,"ref":53.3,"evolved":68.3}],"meanRef":56.8,"meanEvolved":70.8,"meanDelta":14,"nSeeds":4}}</script>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.165/build/three.module.min.js"}}</script>
+<script type="module">
+const $=function(i){return document.getElementById(i);};
+const P1=JSON.parse($('ev-data-p1').textContent), P2=JSON.parse($('ev-data-p2').textContent), OV=JSON.parse($('ev-data-oov').textContent);
+$('kpi1').textContent='octet près · '+P1.functions.length+' fn';
+$('kpi2').textContent=P2.aggregate.winrateWithout+'% → '+P2.aggregate.winrateWith+'%';
+$('kpi3').textContent='+'+OV.outOfSample.meanDelta+' pt (OOV)';
+$('kpi4').textContent='non concluant';
+
+/* ════════ PENDU joué au-dessus (HTML overlay) ════════ */
+function boardFrom(w,rev){var s='';for(var p=0;p<w.length;p++)s+=(rev&&rev.indexOf(w[p])>=0)?w[p]:'.';return s;}
+function drawWord(word,boardStr,fresh,whis){var h='';for(var p=0;p<word.length;p++){var c=boardStr[p],cl='ev-box';
+  if(c==='.'){cl+=' empty';c='·';}else if(fresh&&fresh.indexOf(p)>=0){cl+=' fresh';}else if(whis&&word[p]===whis){cl+=' whis';}
+  h+='<div class="'+cl+'">'+c+'</div>';}$('pWord').innerHTML=h;}
+function resetGuess(){$('pGuess').innerHTML='';}
+function addGuess(L,k){var s=document.createElement('span');s.className='ev-chip '+k;s.textContent=L;$('pGuess').appendChild(s);}
+function pNote(t){$('pNote').textContent=t||'';}
+
+/* ════════ état + cycle ════════ */
+let paused=false, mode='demo', stop=false, gen=1, pop=1;
+function setGen(g){gen=g;$('evGen').textContent=g;} function setPop(n){pop=n;$('evPop').textContent=n;}
+function setPhase(i){var ps=$('evPhs').children;for(var k=0;k<ps.length;k++)ps[k].className='p'+(k===i?' on':'');}
+function setCap(t,s){$('evCap').textContent=t;if(s!=null)$('evSub').innerHTML=s;}
+function wait(ms){return new Promise(function(r){var t0=performance.now();(function w(){if(stop)return r();if(paused)return requestAnimationFrame(w);if(performance.now()-t0>=ms)return r();requestAnimationFrame(w);})();});}
+function nf(){return new Promise(function(r){requestAnimationFrame(()=>r());});}
+
+/* ════════ THREE.JS — le collectif 3D ════════ */
+let THREE, scene, cam, ren, agents=[], links, linkPos, linkCol, particles, ppos, pcol, plife, pfrom, pto, MAXP=240, pn=0, stars, raf=0;
+const BLUE=0x5b8cf6, GREEN=0xa3d977, AMBER=0xffaa00, CROSS=0xb48cf6;
+function lerpHex(a,b,t){var ar=(a>>16)&255,ag=(a>>8)&255,ab=a&255,br=(b>>16)&255,bg=(b>>8)&255,bb=b&255;
+  return ((ar+(br-ar)*t)<<16|(ag+(bg-ag)*t)<<8|(ab+(bb-ab)*t)|0);}
+
+async function initThree(){
+  try{ THREE = await import('three'); }catch(e){ $('evFall').style.display='flex'; $('c3').style.display='none'; setCap('Rendu 3D indisponible ici','le collectif s’affiche sur le site déployé (Three.js a besoin du réseau)'); return false; }
+  const cv=$('c3'), st=$('evStage');
+  scene=new THREE.Scene(); scene.background=new THREE.Color(0x000510); scene.fog=new THREE.FogExp2(0x000510,0.00055);
+  cam=new THREE.PerspectiveCamera(62, st.clientWidth/st.clientHeight, 0.1, 6000); cam.position.set(0,40,560);
+  ren=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false}); ren.setPixelRatio(Math.min(devicePixelRatio,2));
+  function resize(){ ren.setSize(st.clientWidth, st.clientHeight, false); cam.aspect=st.clientWidth/st.clientHeight; cam.updateProjectionMatrix(); }
+  resize(); window.addEventListener('resize',resize);
+  scene.add(new THREE.AmbientLight(0xffffff,1.0));
+  const pl=new THREE.PointLight(0x88bbff,1.2,3000); pl.position.set(200,300,500); scene.add(pl);
+  // étoiles
+  {const N=2600, sp=new Float32Array(N*3); for(let i=0;i<N;i++){sp[i*3]=(Math.random()-.5)*4200;sp[i*3+1]=(Math.random()-.5)*4200;sp[i*3+2]=(Math.random()-.5)*2600-700;}
+   const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(sp,3));
+   stars=new THREE.Points(g,new THREE.PointsMaterial({size:1.3,color:0x33485e})); scene.add(stars);}
+  // liens (lignes dynamiques)
+  const MAXL=260; linkPos=new Float32Array(MAXL*6); linkCol=new Float32Array(MAXL*6);
+  const lg=new THREE.BufferGeometry(); lg.setAttribute('position',new THREE.BufferAttribute(linkPos,3)); lg.setAttribute('color',new THREE.BufferAttribute(linkCol,3));
+  links=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.5})); links.frustumCulled=false; scene.add(links);
+  // particules de communication
+  ppos=new Float32Array(MAXP*3); pcol=new Float32Array(MAXP*3); plife=new Float32Array(MAXP); pfrom=new Array(MAXP); pto=new Array(MAXP);
+  const pg=new THREE.BufferGeometry(); pg.setAttribute('position',new THREE.BufferAttribute(ppos,3)); pg.setAttribute('color',new THREE.BufferAttribute(pcol,3));
+  particles=new THREE.Points(pg,new THREE.PointsMaterial({size:6,vertexColors:true,transparent:true,opacity:0.95,blending:THREE.AdditiveBlending,depthWrite:false})); particles.frustumCulled=false; scene.add(particles);
+  return true;
+}
+function makeAgent(pos,gen,evoT){
+  const col=lerpHex(BLUE,GREEN,evoT||0);
+  const geo=new THREE.IcosahedronGeometry(13,1);
+  const mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:0.9}));
+  mesh.position.copy(pos);
+  const core=new THREE.Mesh(new THREE.SphereGeometry(7,16,12),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.5}));
+  mesh.add(core);
+  // halo (sprite additif)
+  const ctx=document.createElement('canvas'); ctx.width=ctx.height=64; const g=ctx.getContext('2d');
+  const rg=g.createRadialGradient(32,32,0,32,32,32); rg.addColorStop(0,'rgba(255,255,255,.9)'); rg.addColorStop(.3,'rgba(180,210,255,.5)'); rg.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=rg; g.fillRect(0,0,64,64);
+  const tex=new THREE.CanvasTexture(ctx);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:col,transparent:true,opacity:0.6,blending:THREE.AdditiveBlending,depthWrite:false}));
+  halo.scale.set(60,60,1); mesh.add(halo);
+  scene.add(mesh);
+  const a={mesh,core,halo,gen,evoT:evoT||0,pos:pos.clone(),target:pos.clone(),born:performance.now(),pulse:Math.random()*6.28,fit:0.55+0.4*(evoT||0),col};
+  agents.push(a); setPop(agents.length); return a;
+}
+function setAgentEvo(a,evoT){ a.evoT=evoT; var c=lerpHex(BLUE,GREEN,evoT); a.col=c; a.mesh.material.color.setHex(c); a.core.material.color.setHex(c); a.halo.material.color.setHex(c); a.fit=0.55+0.4*evoT; }
+function emitParticles(from,to,col,n){ for(let i=0;i<(n||10);i++){ const idx=pn%MAXP; pn++; plife[idx]=Math.random()*0.3; pfrom[idx]=from; pto[idx]=to;
+  const c=new THREE.Color(col); pcol[idx*3]=c.r;pcol[idx*3+1]=c.g;pcol[idx*3+2]=c.b; } }
+// liens persistants (lignée + croisements) : on les recalcule chaque frame depuis agents[].edges
+let edges=[]; // {a,b,col}
+function addEdge(a,b,col){ edges.push({a,b,col}); }
+
+function renderFrame(now){
+  raf=requestAnimationFrame(renderFrame);
+  if(!scene)return;
+  const dt=0.016, t=now*0.001;
+  if(!paused){ scene.rotation.y += 0.0016; }
+  // agents : glisser vers cible, pulse, taille ∝ fitness
+  for(const a of agents){ a.pos.lerp(a.target,0.06); a.mesh.position.copy(a.pos); a.pulse+=dt*2;
+    const s=0.8+0.5*a.fit + 0.06*Math.sin(a.pulse); a.mesh.scale.setScalar(s); a.halo.material.opacity=0.35+0.35*a.fit; }
+  // liens
+  let li=0; for(const e of edges){ if(li>=260)break; const c=new THREE.Color(e.col);
+    linkPos[li*6]=e.a.pos.x;linkPos[li*6+1]=e.a.pos.y;linkPos[li*6+2]=e.a.pos.z; linkPos[li*6+3]=e.b.pos.x;linkPos[li*6+4]=e.b.pos.y;linkPos[li*6+5]=e.b.pos.z;
+    for(let k=0;k<2;k++){linkCol[li*6+k*3]=c.r;linkCol[li*6+k*3+1]=c.g;linkCol[li*6+k*3+2]=c.b;} li++; }
+  for(let j=li;j<260;j++){ linkPos[j*6]=linkPos[j*6+3]=0;linkPos[j*6+1]=linkPos[j*6+4]=0;linkPos[j*6+2]=linkPos[j*6+5]=0; }
+  links.geometry.attributes.position.needsUpdate=true; links.geometry.attributes.color.needsUpdate=true;
+  // particules
+  for(let i=0;i<MAXP;i++){ if(plife[i]>0&&plife[i]<1&&pfrom[i]&&pto[i]){ plife[i]+=dt*0.9; const u=plife[i]; const f=pfrom[i].pos, to=pto[i].pos;
+      ppos[i*3]=f.x+(to.x-f.x)*u; ppos[i*3+1]=f.y+(to.y-f.y)*u+Math.sin(u*Math.PI)*14; ppos[i*3+2]=f.z+(to.z-f.z)*u; if(plife[i]>=1)plife[i]=0; }
+    else { ppos[i*3+2]=99999; } }
+  particles.geometry.attributes.position.needsUpdate=true; particles.geometry.attributes.color.needsUpdate=true;
+  ren.render(scene,cam);
+}
+
+/* positionne les agents en couronnes par génération */
+function genPos(g, idx, count){ const R=70+g*46, ang=(idx/Math.max(count,1))*6.2832 + g*0.6, y=(g%2?1:-1)*(18+g*4);
+  return new THREE.Vector3(Math.cos(ang)*R, y + Math.sin(ang*1.3)*22, Math.sin(ang)*R*0.7); }
+
+/* ════════ MOTEUR DONNÉES : captures (démo) + live ════════ */
+const frame=$('engineFrame'); let engineReady=false;
+function ev(c){ return frame.contentWindow.eval(c); }
+function liveBadge(cls,txt){ $('evLive').className='ev-live'+(cls?' '+cls:''); $('evLiveT').textContent=txt; }
+function rarest(w,freq){var ds={},b=null,bf=1e18;for(var i=0;i<w.length;i++)ds[w[i]]=1;for(var ch in ds){var f=freq[ch.charCodeAt(0)-65];if(f<bf){bf=f;b=ch;}}return b;}
+// rejoue une partie (steps capturés) au-dessus des sphères
+async function playSteps(word,steps,souffle,speed){ speed=speed||360; resetGuess(); var rev=souffle||''; drawWord(word,boardFrom(word,rev),[],souffle); if(souffle)addGuess(souffle,'souffle'); var prev=boardFrom(word,rev);
+  for(var i=0;i<steps.length;i++){ if(stop)return; var st=steps[i],fr=[]; for(var p=0;p<word.length;p++)if(st.board[p]!=='.'&&prev[p]==='.')fr.push(p); drawWord(word,st.board,fr,souffle); addGuess(st.L,st.hit?'hit':'miss'); prev=st.board; await wait(speed);} }
+// live : un omegaStep par tick, au-dessus
+function injectHelpers(){ ev('(function(){'+
+ 'globalThis.__reset=function(){initOmegaGlobals();if(typeof _omega_OSL_reset==="function")_omega_OSL_reset();if(typeof M_OS_v07!=="undefined"&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}};'+
+ 'globalThis.__gw="";globalThis.__board=function(){var s="";for(var p=0;p<__gw.length;p++)s+=revealedMask[p]?__gw[p]:".";return s;};'+
+ 'globalThis.__newGame=function(w,msg){__gw=w;startNewGame(w);if(msg){var idx=msg.charCodeAt(0)-65;if(idx>=0&&idx<26){if(typeof alreadyTried!=="undefined")alreadyTried[idx]=true;for(var p=0;p<w.length;p++)if(w[p]===msg)revealedMask[p]=true;}}return __board();};'+
+ 'globalThis.__step=function(){if(!gameActive)return {over:true,won:!!lastGameWon,board:__board(),L:null,hit:false};var b=alreadyTried.slice();omegaStep();var L=null,hit=false;for(var i=0;i<26;i++)if(alreadyTried[i]&&!b[i]){L=String.fromCharCode(65+i);hit=__gw.indexOf(L)>=0;break;}return {over:!gameActive,won:!!lastGameWon,board:__board(),L:L,hit:hit};};'+
+ 'globalThis.__play=function(w){try{startNewGame(w);}catch(e){return 0;}var sf=300;while(gameActive&&sf-->0){try{omegaStep();}catch(e){break;}}return lastGameWon?1:0;};'+
+ 'globalThis.__words=function(a,z,n,sd){var W=OMEGA_LEX4.words,v=[];for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(m&&m.length>=a&&m.length<=z&&/^[A-Z]+$/.test(m))v.push(i);}var r=sd>>>0;for(var i2=v.length-1;i2>0;i2--){r=(r*1664525+1013904223)>>>0;var j=r%(i2+1),t=v[i2];v[i2]=v[j];v[j]=t;}globalThis.__vidx=v;return v.slice(0,n).map(function(k){return W[k].m;});};'+
+ 'globalThis.__freq=function(){var c=new Array(26).fill(0),W=OMEGA_LEX4.words;for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(!m)continue;for(var j=0;j<m.length;j++){var k=m.charCodeAt(j)-65;if(k>=0&&k<26)c[k]++;}}return c;};'+
+ 'globalThis.__oovStart=function(n,wm,sd){var W=OMEGA_LEX4.words;__words(7,12,n+wm,sd);var idx=__vidx,ti=idx.slice(0,n),tri=idx.slice(n,n+wm),ts=new Set(ti);globalThis.__origLI=OMEGA_LEX4.len_index;globalThis.__filtLI={};for(var k in __origLI)__filtLI[k]=__origLI[k].filter(function(id){return !ts.has(id);});globalThis.__testW=ti.map(function(i){return W[i].m;});globalThis.__trainW=tri.map(function(i){return W[i].m;});return __testW.length;};'+
+ '})()'); }
+const CFG_SUB="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_VOIE_PHON_ENABLED=true;M_OS_V07_ENABLED=true;M4_PHON_USE_P_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_PHON_FEEDBACK_ENABLED=true;M_BPC_M3D_ENABLED=true;M_PHON_CONCEPT_BIND_ENABLED=true;";
+const CFG_P2=CFG_SUB+"M_DECLARE_NEO_ENABLED=false;";
+const CFG_OOV="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=false;";
+async function liveGame(word,souffle,cfg,speed){ ev('__reset();'); ev(cfg); var b0=ev('__newGame('+JSON.stringify(word)+','+(souffle?JSON.stringify(souffle):'""')+')');
+  resetGuess(); drawWord(word,b0,[],souffle); if(souffle)addGuess(souffle,'souffle'); var prev=b0;
+  for(var k=0;k<300;k++){ if(stop)return {won:false}; var r=ev('__step()'); if(r.L){var fr=[];for(var p=0;p<word.length;p++)if(r.board[p]!=='.'&&prev[p]==='.')fr.push(p); drawWord(word,r.board,fr,souffle); addGuess(r.L,r.hit?'hit':'miss'); prev=r.board; await wait(speed||320);} if(r.over)return {won:r.won}; } return {won:false}; }
+
+/* ════════ LE CYCLE EVO (faithful) ════════ */
+async function cycle(){
+  // origine
+  const O=makeAgent(genPos(0,0,1),0,0); O.target=new THREE.Vector3(0,0,0);
+  let lastGen=[O], allGen=[[O]], live=()=>mode==='live';
+  let arb=0.0;  // le génome qui évolue (arbConf 0 → 0,30)
+  while(!stop){
+    const g=gen;
+    const parent = lastGen[lastGen.length-1];
+    // ---- P1 · SE COPIE ----
+    setPhase(0); setCap('P1 · se copie','les fonctions de décision sont reconstruites à l’octet près — le jumeau partage le même code');
+    pNote('P1 — la copie (byte-exact) rejoue à l’identique');
+    const copy=makeAgent(parent.pos.clone(),g,parent.evoT); copy.target=parent.pos.clone().add(new THREE.Vector3(46,8,10)); addEdge(parent,copy,0x2a5a8a);
+    if(live()){ const w=ev('__words(7,9,1,'+(1000+g)+')')[0]; const r=await liveGame(w,null,CFG_SUB); } else { await playSteps(P1.matches[0].word, P1.matches[0].A.steps, null); }
+    if(stop)return; await wait(500); if(stop)return;
+    // ---- P2 · COMMUNIQUENT ----
+    setPhase(1); setCap('P2 · communiquent','A souffle la lettre rare à B — un signal appris fait gagner ('+P2.aggregate.winrateWithout+'% → '+P2.aggregate.winrateWith+'%)');
+    pNote('P2 — avec le souffle, B gagne');
+    for(let t=0;t<7;t++){ emitParticles(parent,copy,AMBER,8); emitParticles(copy,parent,AMBER,6); for(const pg of lastGen) if(pg!==parent) emitParticles(parent,pg,AMBER,3); await wait(260); if(stop)return; }
+    if(live()){ const w=ev('__words(8,12,1,'+(2000+g)+')')[0]; const fq=Array.prototype.slice.call(ev('__freq()')); const s=rarest(w,fq); await liveGame(w,s,CFG_P2); }
+    else { var m2=null; for(var i=0;i<P2.matches.length;i++){if(P2.matches[i].with.won&&!P2.matches[i].without.won){m2=P2.matches[i];break;}} m2=m2||P2.matches[0]; await playSteps(m2.word,m2.with.steps,m2.message); }
+    if(stop)return; await wait(500); if(stop)return;
+    // ---- P3 · GÉNÉRATIONS (croisement) ----
+    setPhase(2); arb=Math.min(0.30, arb+0.10); const evoT=Math.min(1, arb/0.30);
+    setCap('P3 · générations','les génomes se croisent → une nouvelle version ; le gène arbConf évolue ('+arb.toFixed(2)+') → meilleure hors-lexique');
+    pNote('P3 — hors-lexique, la version évoluée gagne plus');
+    const child=makeAgent(parent.pos.clone().lerp(copy.pos,0.5),g+1,evoT);
+    const cnt=lastGen.length+1; child.target=genPos(g, lastGen.length, cnt);
+    addEdge(parent,child,0x3a6a9a); addEdge(copy,child,0x3a6a9a);
+    // recommunique avec la génération PRÉCÉDENTE + CROISE les générations
+    if(allGen.length>=1){ const prevGen=allGen[allGen.length-1]; for(const pv of prevGen){ emitParticles(pv,child,CROSS,5); } }
+    if(allGen.length>=2){ const older=allGen[allGen.length-2]; if(older[0]) addEdge(older[0],child,CROSS); } // croisement inter-générations
+    // mesure / jeu hors-lexique
+    if(live()){ ev('__oovStart(18,40,12345);');
+      async function oov(a){ ev('__reset();');ev(CFG_OOV);ev('if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF='+a+';'); ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); var tw=Array.prototype.slice.call(ev('__trainW')); for(var i=0;i<tw.length;i++){if(stop)return 0;ev('__play('+JSON.stringify(tw[i])+')');if(i%10===9)await nf();} ev('OMEGA_LEX4.len_index=__filtLI;_neoWBL=null;_neoNG=null;'); var test=Array.prototype.slice.call(ev('__testW')),win=0; for(var j=0;j<test.length;j++){if(stop)return 0;win+=ev('__play('+JSON.stringify(test[j])+')');} ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); return Math.round(100*win/test.length); }
+      const base=await oov(0.0); const evo=await oov(arb); setCap('P3 · générations','hors-lexique en direct · base '+base+'% → évoluée '+evo+'%  (+'+(evo-base)+' pt)'); setAgentEvo(child, evoT);
+    } else { const b=OV.sweep[0].oov, e=Math.round(b+(OV.pareto.oovEvolved-b)*evoT); setCap('P3 · générations','hors-lexique · base '+b+'% → évoluée '+e+'%  (gène arbConf '+arb.toFixed(2)+')'); setAgentEvo(child,evoT); await wait(700); }
+    if(stop)return;
+    // O1 — GROUPE (toutes les 2 gén) : honnête, non concluant
+    if(g%2===0 && agents.length>=4){ setPhase(3); setCap('O1 · travail de groupe','plusieurs versions coordonnent — exploré, mais NE TIENT PAS hors échantillon (proxy)');
+      pNote('O1 — groupe : testé, ne bat pas le meilleur solo');
+      const grp=agents.slice(-4); for(let t=0;t<6;t++){ for(let a=0;a<grp.length;a++)for(let b=a+1;b<grp.length;b++) emitParticles(grp[a],grp[b],0xd8922e,2); await wait(220); if(stop)return; } await wait(500); if(stop)return; }
+    // boucler : la nouvelle génération devient la lignée courante
+    lastGen=[child]; allGen.push(lastGen); if(allGen.length>6)allGen.shift();
+    setGen(g+1);
+    // limiter la population (fondre les plus vieilles)
+    if(agents.length>26){ const old=agents.shift(); scene.remove(old.mesh); setPop(agents.length); edges=edges.filter(e=>e.a!==old&&e.b!==old); }
+    await wait(600);
+  }
+}
+
+/* ════════ probe moteur + boot ════════ */
+let tries=0;
+function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
+  if(n>0){ engineReady=true; liveBadge('ready','moteur prêt'); $('evReal').disabled=false; $('evReal').textContent='▶ Vrai moteur (en direct)'; $('evHint').textContent='clique : le pendu au-dessus est joué par le VRAI omegaStep, en direct'; }
+  else if(tries>40){ liveBadge('','moteur : site déployé'); $('evReal').textContent='▶ Vrai moteur (site déployé)'; $('evHint').textContent='le live est bloqué dans cette preview (sandbox) — sur le site déployé, le pendu joue en vrai. Ici : vraies parties capturées.'; }
+  else { liveBadge('on','moteur : chargement…'); setTimeout(probe,500); } }
+frame.addEventListener('load',()=>setTimeout(probe,300)); setTimeout(probe,1500);
+
+$('evPause').onclick=function(){ paused=!paused; this.textContent=paused?'▶ Lire':'⏸ Pause'; };
+$('evReal').onclick=function(){ if(!engineReady)return; injectHelpers(); mode='live'; $('evReal').disabled=true; $('evReal').textContent='● en direct'; liveBadge('on','en direct'); };
+
+(async function boot(){ const ok=await initThree(); if(ok){ renderFrame(performance.now()); cycle(); } })();
+</script>
 <script>
-function evJSON(id){return JSON.parse(document.getElementById(id).textContent);}
-(function(){
-  var $=function(i){return document.getElementById(i);};
-  var P1=evJSON('ev-data-p1'),P2=evJSON('ev-data-p2'),OV=evJSON('ev-data-oov');
-  $('kpi1').textContent='octet pour octet · '+P1.functions.length+' fn';
-  $('kpi2').textContent=P2.aggregate.winrateWithout+'% → '+P2.aggregate.winrateWith+'%';
-  $('kpi3').textContent='+'+OV.outOfSample.meanDelta+' pt (OOV)';
-
-  function setPhase(i){ var ps=$('hgPhase').children; for(var k=0;k<ps.length;k++)ps[k].className='p'+(k===i?' on':''); }
-  function setTitle(t,s){ $('hgTitle').textContent=t; if(s!=null)$('hgSub').innerHTML=s; }
-  function setGen(g){ $('hgGen').textContent=g; }
-  function boardFrom(word,reveal){ var s=''; for(var p=0;p<word.length;p++) s+=(reveal&&reveal.indexOf(word[p])>=0)?word[p]:'.'; return s; }
-  function drawWord(word,boardStr,fresh,whis){ var h='';
-    for(var p=0;p<word.length;p++){ var c=boardStr[p], cl='hg-box';
-      if(c==='.'){cl+=' empty';c='·';}
-      else if(fresh&&fresh.indexOf(p)>=0){cl+=' fresh';}
-      else if(whis&&word[p]===whis){cl+=' whis';}
-      h+='<div class="'+cl+'">'+c+'</div>'; }
-    $('hgWord').innerHTML=h; }
-  function resetGuesses(){ $('hgGuesses').innerHTML=''; }
-  function addGuess(L,kind){ var s=document.createElement('span'); s.className='hg-chip '+kind; s.textContent=L; $('hgGuesses').appendChild(s); }
-  function setBadge(win,show){ var b=$('hgBadge'); b.className='hg-badge '+(win?'win':'lose')+(show?' show':''); b.textContent=win?'GAGNÉ':'PERDU'; }
-  function setStat(h){ $('hgStat').innerHTML=h||''; }
-  function showWr(on){ $('hgWr').style.display=on?'flex':'none'; }
-  function setWr(base,evo){ $('hgWrB').style.height=Math.round(base/100*70)+'px'; $('hgWrE').style.height=Math.round(evo/100*70)+'px'; $('hgWrBv').textContent=base+' %'; $('hgWrEv').textContent=evo+' %'; }
-
-  var paused=false, stopSeq=false, mode='demo';
-  function wait(ms){ return new Promise(function(r){ var t0=performance.now(); (function w(){ if(stopSeq)return r(); if(paused)return requestAnimationFrame(w); if(performance.now()-t0>=ms)return r(); requestAnimationFrame(w); })(); }); }
-
-  // rejoue une partie depuis des steps capturés [{L,hit,board}]
-  async function playSteps(word,steps,souffle,speed){ speed=speed||430;
-    resetGuesses(); var rev=souffle||''; drawWord(word, boardFrom(word,rev), [], souffle); if(souffle)addGuess(souffle,'souffle');
-    var prev=boardFrom(word,rev);
-    for(var i=0;i<steps.length;i++){ if(stopSeq)return; var st=steps[i], fresh=[];
-      for(var p=0;p<word.length;p++) if(st.board[p]!=='.'&&prev[p]==='.')fresh.push(p);
-      drawWord(word, st.board, fresh, souffle); addGuess(st.L, st.hit?'hit':'miss'); prev=st.board; await wait(speed); } }
-
-  async function demoCycle(){
-    while(!stopSeq && mode==='demo'){
-      setPhase(0); showWr(false); setBadge(true,false);
-      var m1=P1.matches[0];
-      setTitle('P1 · se copie — la copie rejoue à l’identique','le jumeau Ω′ (code reconstruit à l’octet près) joue « '+m1.word.toLowerCase()+' »');
-      setStat('jumeau · copie byte-exacte'); await playSteps(m1.word, m1.A.steps, null); if(stopSeq)return;
-      setBadge(m1.A.won,true); await wait(1100); if(stopSeq)return;
-
-      setPhase(1); var m2=null; for(var i=0;i<P2.matches.length;i++){ if(P2.matches[i].with.won&&!P2.matches[i].without.won){m2=P2.matches[i];break;} } m2=m2||P2.matches[0];
-      setBadge(true,false);
-      setTitle('P2 · communiquent — A souffle « '+m2.message+' », B gagne','sans ce souffle, B perdait cette grille');
-      setStat('avec le souffle appris'); await playSteps(m2.word, m2.with.steps, m2.message); if(stopSeq)return;
-      setBadge(m2.with.won,true); setStat('avec souffle : <b class="g">'+P2.aggregate.winrateWith+'%</b> · sans : <b>'+P2.aggregate.winrateWithout+'%</b>'); await wait(1300); if(stopSeq)return;
-
-      setPhase(2); setBadge(true,false); resetGuesses(); $('hgWord').innerHTML='';
-      setTitle('P3 · générations — il évolue hors-lexique','le gène arbConf le fait gagner plus sur des mots jamais vus');
-      showWr(true); var b0=OV.sweep[0].oov, e0=OV.pareto.oovEvolved; setWr(0,0);
-      for(var s=0;s<=1.0001;s+=0.05){ if(stopSeq)return; setWr(Math.round(b0*s), Math.round(e0*s)); setStat('hors-lexique · base '+Math.round(b0*s)+'% → évoluée '+Math.round(e0*s)+'%'); await wait(45); }
-      setStat('+'+OV.outOfSample.meanDelta+' pt en moyenne, sur des graines neuves'); setGen(parseInt($('hgGen').textContent)+1); await wait(1500); if(stopSeq)return;
-      showWr(false);
-    }
-  }
-  $('hgPlay').onclick=function(){ paused=!paused; this.textContent=paused?'▶ Lire':'⏸ Pause'; };
-
-  // ════ VRAI MOTEUR EN DIRECT ════
-  var frame=$('engineFrame'),liveEl=$('hgLive'),liveT=$('hgLiveT'),engineReady=false;
-  function ev(code){ return frame.contentWindow.eval(code); }
-  function liveBadge(cls,txt){ liveEl.className='hg-live'+(cls?' '+cls:''); liveT.textContent=txt; }
-  function nf(){ return new Promise(function(r){ requestAnimationFrame(function(){r();}); }); }
-  var CFG_SUB="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_VOIE_PHON_ENABLED=true;M_OS_V07_ENABLED=true;M4_PHON_USE_P_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_PHON_FEEDBACK_ENABLED=true;M_BPC_M3D_ENABLED=true;M_PHON_CONCEPT_BIND_ENABLED=true;";
-  var CFG_P2=CFG_SUB+"M_DECLARE_NEO_ENABLED=false;";
-  var CFG_OOV="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=false;";
-  function inject(){ ev('(function(){'+
-    'globalThis.__reset=function(){initOmegaGlobals();if(typeof _omega_OSL_reset==="function")_omega_OSL_reset();if(typeof M_OS_v07!=="undefined"&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}};'+
-    'globalThis.__gw="";'+
-    'globalThis.__board=function(){var s="";for(var p=0;p<__gw.length;p++)s+=revealedMask[p]?__gw[p]:".";return s;};'+
-    'globalThis.__newGame=function(w,msg){__gw=w;startNewGame(w);if(msg){var idx=msg.charCodeAt(0)-65;if(idx>=0&&idx<26){if(typeof alreadyTried!=="undefined")alreadyTried[idx]=true;for(var p=0;p<w.length;p++)if(w[p]===msg)revealedMask[p]=true;}}return __board();};'+
-    'globalThis.__step=function(){if(!gameActive)return {over:true,won:!!lastGameWon,board:__board(),L:null,hit:false};var b=alreadyTried.slice();omegaStep();var L=null,hit=false;for(var i=0;i<26;i++)if(alreadyTried[i]&&!b[i]){L=String.fromCharCode(65+i);hit=__gw.indexOf(L)>=0;break;}return {over:!gameActive,won:!!lastGameWon,board:__board(),L:L,hit:hit};};'+
-    'globalThis.__play=function(w){try{startNewGame(w);}catch(e){return 0;}var sf=300;while(gameActive&&sf-->0){try{omegaStep();}catch(e){break;}}return lastGameWon?1:0;};'+
-    'globalThis.__words=function(minL,maxL,n,seed){var W=OMEGA_LEX4.words,v=[];for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(m&&m.length>=minL&&m.length<=maxL&&/^[A-Z]+$/.test(m))v.push(i);}var r=seed>>>0;for(var i2=v.length-1;i2>0;i2--){r=(r*1664525+1013904223)>>>0;var j=r%(i2+1),t=v[i2];v[i2]=v[j];v[j]=t;}globalThis.__vidx=v;return v.slice(0,n).map(function(k){return W[k].m;});};'+
-    'globalThis.__freq=function(){var c=new Array(26).fill(0),W=OMEGA_LEX4.words;for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(!m)continue;for(var j=0;j<m.length;j++){var k=m.charCodeAt(j)-65;if(k>=0&&k<26)c[k]++;}}return c;};'+
-    'globalThis.__oovStart=function(n,warm,seed){var W=OMEGA_LEX4.words;__words(7,12,n+warm,seed);var idx=__vidx,testIdx=idx.slice(0,n),trainIdx=idx.slice(n,n+warm),ts=new Set(testIdx);globalThis.__origLI=OMEGA_LEX4.len_index;globalThis.__filtLI={};for(var k in __origLI)__filtLI[k]=__origLI[k].filter(function(id){return !ts.has(id);});globalThis.__testW=testIdx.map(function(i){return W[i].m;});globalThis.__trainW=trainIdx.map(function(i){return W[i].m;});return __testW.length;};'+
-    '})()'); }
-  async function liveGame(word,souffle,cfg,speed){ ev('__reset();'); ev(cfg);
-    var b0=ev('__newGame('+JSON.stringify(word)+','+(souffle?JSON.stringify(souffle):'""')+')');
-    resetGuesses(); drawWord(word,b0,[],souffle); if(souffle)addGuess(souffle,'souffle'); var prev=b0;
-    for(var k=0;k<300;k++){ if(stopSeq)return {won:false}; var r=ev('__step()');
-      if(r.L){ var fresh=[]; for(var p=0;p<word.length;p++)if(r.board[p]!=='.'&&prev[p]==='.')fresh.push(p); drawWord(word,r.board,fresh,souffle); addGuess(r.L,r.hit?'hit':'miss'); prev=r.board; await wait(speed||340); }
-      if(r.over)return {won:r.won}; }
-    return {won:false}; }
-
-  async function liveCycle(){
-    while(!stopSeq && mode==='live'){
-      inject();
-      setPhase(0); showWr(false); setBadge(true,false);
-      var g=parseInt($('hgGen').textContent);
-      var w1=ev('__words(7,9,1,'+(1000+g)+')')[0];
-      setTitle('P1 · se copie — le moteur joue (code byte-exact)','vrai omegaStep, en direct · « '+w1.toLowerCase()+' »'); setStat('partie réelle, en direct');
-      var r1=await liveGame(w1,null,CFG_SUB); if(stopSeq)return; setBadge(r1.won,true); await wait(900); if(stopSeq)return;
-
-      setPhase(1); setBadge(true,false);
-      var freq=Array.prototype.slice.call(ev('__freq()'));
-      var w2=ev('__words(8,12,1,'+(2000+g)+')')[0]; var ds={},best=null,bf=1e18;
-      for(var c=0;c<w2.length;c++)ds[w2[c]]=1; for(var ch in ds){var f=freq[ch.charCodeAt(0)-65];if(f<bf){bf=f;best=ch;}}
-      setTitle('P2 · communiquent — A souffle « '+best+' »','le moteur joue en direct, avec le souffle'); setStat('avec le souffle, en direct');
-      var r2=await liveGame(w2,best,CFG_P2); if(stopSeq)return; setBadge(r2.won,true); await wait(900); if(stopSeq)return;
-
-      setPhase(2); resetGuesses(); $('hgWord').innerHTML=''; setBadge(true,false);
-      setTitle('P3 · générations — il évolue hors-lexique','on mesure base vs évoluée, en direct'); showWr(true); setWr(0,0);
-      var P3N=24,WARM=50; ev('__oovStart('+P3N+','+WARM+',12345);'); var baseWr=0;
-      async function oov(arb,isEvo){ ev('__reset();');ev(CFG_OOV);ev('if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF='+arb+';');
-        ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); var tw=Array.prototype.slice.call(ev('__trainW'));
-        for(var i=0;i<tw.length;i++){ if(stopSeq)return 0; ev('__play('+JSON.stringify(tw[i])+')'); if(i%10===9)await nf(); }
-        ev('OMEGA_LEX4.len_index=__filtLI;_neoWBL=null;_neoNG=null;'); var test=Array.prototype.slice.call(ev('__testW')); var win=0;
-        for(var j=0;j<test.length;j++){ if(stopSeq)return 0; win+=ev('__play('+JSON.stringify(test[j])+')');
-          if(j%6===5){ var p=Math.round(100*win/(j+1)); if(isEvo)setWr(baseWr,p); else setWr(p,0); setStat('hors-lexique · '+(isEvo?'évoluée':'base')+' '+(j+1)+'/'+test.length+' · '+p+'%'); await nf(); } }
-        ev('OMEGA_LEX4.len_index=__origLI;_neoWBL=null;_neoNG=null;'); return Math.round(100*win/test.length); }
-      baseWr=await oov(0.0,false); if(stopSeq)return; var evoWr=await oov(0.30,true); if(stopSeq)return;
-      setWr(baseWr,evoWr); setStat('hors-lexique · base <b>'+baseWr+'%</b> → évoluée <b class="g">'+evoWr+'%</b>  (+'+(evoWr-baseWr)+' pt, en direct)');
-      setGen(g+1); await wait(1700); showWr(false); if(stopSeq)return;
-    }
-  }
-
-  var tries=0;
-  function probe(){ tries++; var n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
-    if(n>0){ engineReady=true; liveBadge('ready','moteur prêt'); $('hgReal').disabled=false; $('hgReal').textContent='▶ Vrai moteur (en direct)'; $('hgHint').textContent='clique : OMEGA joue en direct (vrai omegaStep), A→Z'; }
-    else if(tries>40){ liveBadge('','moteur : site déployé'); $('hgReal').textContent='▶ Vrai moteur (site déployé)'; $('hgHint').textContent='le live est bloqué dans cette preview (sandbox) — il tourne sur le site déployé. Ici, ce sont de vraies parties capturées.'; }
-    else { liveBadge('on','moteur : chargement…'); setTimeout(probe,500); } }
-  frame.addEventListener('load',function(){ setTimeout(probe,300); }); setTimeout(probe,1500);
-
-  $('hgReal').onclick=function(){ if(!engineReady)return; stopSeq=true; setTimeout(function(){ stopSeq=false; mode='live'; $('hgReal').disabled=true; $('hgReal').textContent='● en direct'; liveBadge('on','en direct'); setGen(1); liveCycle(); },150); };
-
-  demoCycle();
-})();
 (function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
   function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
   try{if(localStorage.getItem(k))set(true);}catch(e){}
