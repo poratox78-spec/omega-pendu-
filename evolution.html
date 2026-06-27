@@ -273,6 +273,7 @@ function injectHelpers(){ ev('(function(){'+
  'globalThis.__simGame=function(arb,souffle){if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF=arb;var w=__sim.testW[(Math.random()*__sim.testW.length)|0];startNewGame(w);var G={},pre=null;if(souffle){var rr=__simRare(w),ix=rr.charCodeAt(0)-65;if(ix>=0&&ix<26)alreadyTried[ix]=true;for(var p0=0;p0<w.length;p0++)if(w[p0]===rr)revealedMask[p0]=true;G[rr]=1;pre=rr;}function bd(){var s="";for(var p=0;p<w.length;p++)s+=G[w[p]]?w[p]:".";return s;}var steps=[{board:bd(),L:pre,hit:!!pre,wrong:0}],sf=60,wrong=0;while(gameActive&&sf-->0){var b=alreadyTried.slice();omegaStep();if(gameActive){var L=null,hit=false;for(var i=0;i<26;i++)if(alreadyTried[i]&&!b[i]){L=String.fromCharCode(65+i);hit=w.indexOf(L)>=0;break;}if(L){G[L]=1;if(!hit)wrong++;steps.push({board:bd(),L:L,hit:hit,wrong:wrong});}}else{if(lastGameWon){for(var q=0;q<w.length;q++)G[w[q]]=1;steps.push({board:bd(),L:null,hit:true,wrong:wrong});}else{wrong++;steps.push({board:bd(),L:null,hit:false,wrong:wrong});}}}return {word:w,souffle:pre,arb:Math.round(arb*100)/100,steps:steps,won:!!lastGameWon,wrong:wrong};};'+
  /* ── MESURE DE FITNESS ISOLÉE : le pendu JUGE en direct. À appeler APRÈS un reset propre (init+CFG+filtLI) depuis le pilote. ── */
  'globalThis.__simEvalCore=function(arb,souffle,K){if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF=arb;var win=0;for(var n=0;n<K;n++){var w=__sim.testW[n%__sim.testW.length];startNewGame(w);if(souffle){var rr=__simRare(w),ix=rr.charCodeAt(0)-65;if(ix>=0&&ix<26)alreadyTried[ix]=true;for(var p=0;p<w.length;p++)if(w[p]===rr)revealedMask[p]=true;}var sf=60;while(gameActive&&sf-->0)omegaStep();if(lastGameWon)win++;}return Math.round(1000*win/K)/10;};'+
+ 'globalThis.__simEvalChunk=function(arb,souffle,start,count){if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF=arb;var win=0,L=__sim.testW.length;for(var n=start;n<start+count;n++){var w=__sim.testW[n%L];startNewGame(w);if(souffle){var rr=__simRare(w),ix=rr.charCodeAt(0)-65;if(ix>=0&&ix<26)alreadyTried[ix]=true;for(var p=0;p<w.length;p++)if(w[p]===rr)revealedMask[p]=true;}var sf=60;while(gameActive&&sf-->0)omegaStep();if(lastGameWon)win++;}return win;};'+
  '})()'); }
 const CFG_SUB="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_VOIE_PHON_ENABLED=true;M_OS_V07_ENABLED=true;M4_PHON_USE_P_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_PHON_FEEDBACK_ENABLED=true;M_BPC_M3D_ENABLED=true;M_PHON_CONCEPT_BIND_ENABLED=true;";
 const CFG_P2=CFG_SUB+"M_DECLARE_NEO_ENABLED=false;";
@@ -400,14 +401,15 @@ async function liveSim(){
   ev('_omegaSeed=12345;_omegaRng=makeMulberry32(12345);initOmegaGlobals();'); ev(CFG_SIM); // config du harnais +14, apprentissage OFF
   let nW=0; try{ nW=ev('__simSetup(240,12345);'); }catch(e){ liveBadge('','sim : '+e.message); mode='demo'; cycle(); return; }
   $('pGrid').style.display='flex'; $('evPenduBox').style.display='none';
-  const CAP=14, EVK=30, pop=[]; const STEP_EVERY=2;
-  // ░░ LE PENDU JUGE EN DIRECT ░░ — fitness ISOLÉE d'un génome : reset propre (init+CFG+lexique filtré) puis EVK vraies parties OOV
-  async function evalGenome(arb,souffle){ liveBadge('on','⏳ le pendu juge ce génome — '+EVK+' vraies parties OOV isolées…'); await nf(); await nf(); let wr=60;
+  const CAP=14, EVK=72, pop=[]; const STEP_EVERY=2;   // 72 : plafond représentatif (~72 %, pas le 70,0 % du petit échantillon) ; 70 % impossible (50,4/72)
+  // ░░ LE PENDU JUGE EN DIRECT ░░ — fitness ISOLÉE : reset propre, puis EVK vraies parties OOV jouées EN CHUNKS (pas de gel ; l'état persiste = 1 vie)
+  async function evalGenome(arb,souffle){ liveBadge('on','⏳ le pendu juge ce génome — '+EVK+' vraies parties OOV isolées…'); await nf(); await nf(); let wins=0;
     try{ ev('initOmegaGlobals();'); ev(CFG_SIM);
       ev('if(typeof M_OS_v07!=="undefined"&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}if(__sim.filtLI)OMEGA_LEX4.len_index=__sim.filtLI;_neoWBL=null;_neoNG=null;');
-      wr=ev('__simEvalCore('+arb+','+(souffle?'true':'false')+','+EVK+')');
-    }catch(e){ wr=60; }
-    liveBadge('ready','moteur prêt · le pendu a jugé ('+EVK+' parties)'); return Math.round(wr); }
+      const sfl=(souffle?'true':'false');
+      for(let s=0;s<EVK;s+=15){ if(stop)break; const c=Math.min(15,EVK-s); wins+=ev('__simEvalChunk('+arb+','+sfl+','+s+','+c+')'); await nf(); }
+    }catch(e){ wins=Math.round(0.6*EVK); }
+    liveBadge('ready','moteur prêt · le pendu a jugé ('+EVK+' parties)'); return Math.round(100*wins/EVK); }
   function newGame(I){ try{ I.anim=ev('__simGame('+I.arb+','+(I.souffle?'true':'false')+')'); I.anim.idx=0; }catch(_){ I.anim={steps:[{board:'·',L:null,hit:false}],won:false,idx:0,word:''}; } }
   function reposition(){ for(let i=0;i<pop.length;i++){ pop[i].sphere.target=genPos(1+(pop[i].gen%3), i, pop.length); } }
   async function addMember(arb,souffle,g,parent){ const wr=await evalGenome(arb,souffle);     // ← le pendu juge AVANT de naître
