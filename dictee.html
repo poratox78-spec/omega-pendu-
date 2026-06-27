@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMEGA-Ω — La dictée diagnostique</title>
+<meta name="description" content="La dictée diagnostique d'OMEGA, en pleine page : des phrases graduées qui situent le stade d'écriture et ciblent ce qu'il faut travailler. 100% hors-ligne.">
+<link rel="canonical" href="https://poratox78-spec.github.io/omega-pendu-/dictee.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://poratox78-spec.github.io/omega-pendu-/dictee.html">
+<meta property="og:site_name" content="OMEGA-Ω">
+<meta property="og:title" content="OMEGA-Ω — La dictée diagnostique">
+<meta property="og:description" content="Des phrases graduées qui situent le stade d'écriture et ciblent ce qu'il faut travailler. Hors-ligne, privé, gratuit.">
+<meta property="og:image" content="https://poratox78-spec.github.io/omega-pendu-/icon.svg">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="icon.svg">
+<style>
+  html,body{height:100%;margin:0}
+  body{display:flex;flex-direction:column;background:var(--bg)}
+  header.top{flex:0 0 auto}
+  .tool-note{flex:0 0 auto;font:13px var(--sans);color:var(--fg-2);text-align:center;padding:7px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .tool-note strong{color:var(--fg)}
+  .tool-note a{color:var(--accent)}
+  .tool-wrap{flex:1 1 auto;position:relative;min-height:0;background:var(--bg)}
+  iframe.tool{width:100%;height:100%;border:0;display:block}
+  .tool-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--bg);color:var(--fg-2);font:15px var(--sans);text-align:center;padding:24px}
+  .tool-load .sp{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:tlspin .8s linear infinite}
+  @keyframes tlspin{to{transform:rotate(360deg)}}
+  .tool-load a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html">Le pendu</a>
+    <a href="correcteur.html">Le correcteur</a>
+    <a href="dictee.html" aria-current="page">La dictée</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="evolution.html">L'évolution</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+<div class="tool-note">✍️ <strong>La dictée diagnostique</strong>, en pleine page — des phrases graduées qui <strong>situent le stade d'écriture</strong> et ciblent quoi travailler. Hors-ligne, rien ne quitte ton appareil. · <a href="correcteur.html">le correcteur →</a></div>
+<div class="tool-wrap">
+  <iframe id="app" class="tool" src="app/omega-pendu.html" title="Dictée diagnostique OMEGA-Ω" loading="eager"></iframe>
+  <div class="tool-load" id="loading"><div class="sp"></div><div>Chargement de la dictée…</div></div>
+</div>
+<script>
+(function(){
+  var TOOL='vdd';   // correcteur (vdc) · dictée (vdd) · décompose (vdk)
+  var f=document.getElementById('app'), load=document.getElementById('loading');
+  function fail(msg){ load.innerHTML='<div>'+(msg||"L'outil tarde à charger.")+'</div><div><a href="app/omega-pendu.html">Ouvrir l\'application directement →</a></div>'; }
+  f.addEventListener('load', function(){
+    var doc; try{ doc=f.contentDocument||f.contentWindow.document; }catch(e){ fail('Outil non accessible ici.'); return; }
+    var n=0, iv=setInterval(function(){
+      var btn=doc.getElementById(TOOL+'-btn');
+      if(btn){
+        clearInterval(iv);
+        var s=doc.createElement('style');
+        s.textContent='#'+TOOL+'-ov{background:#0d1117!important;align-items:flex-start!important;padding:20px 0!important}'
+          +'#'+TOOL+'-card{width:min(96vw,1080px)!important;max-height:calc(100vh - 40px)!important;margin:0 auto!important}'
+          +'#vdc-btn,#vdd-btn,#vdk-btn{display:none!important}'
+          +'#'+TOOL+'-x{display:none!important}';
+        doc.head.appendChild(s);
+        try{ btn.click(); }catch(e){}
+        setTimeout(function(){ load.style.display='none'; }, 200);
+      } else if(++n>250){ clearInterval(iv); fail(); }
+    }, 80);
+  });
+})();
+</script>
+</body>
+</html>
