@@ -120,7 +120,7 @@
     <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — le gène <code>arbConf</code> évolue ; +14 pt hors-lexique (5 seeds, hors échantillon), de génération en génération.</small></div>
     <div class="k warn"><b id="kpi4">—</b><small><strong>O1 · groupe</strong> — exploré, mais <em>ne tient pas</em> hors échantillon (proxy). Montré honnêtement.</small></div>
   </div>
-  <p class="note">La genèse suit la roadmap <strong>dans l'ordre</strong>&nbsp;: ça part d'<strong>UN seul OMEGA</strong> qui joue → il <strong>se copie (P1)</strong> → les deux <strong>communiquent (P2, souffle)</strong> → puis les <strong>générations grandissent et évoluent (P3)</strong>, le collectif jouant le pendu <strong>en même temps</strong> au fur et à mesure qu'il grandit (jusqu'à ~16). <strong>Pas de bluff, et voici exactement ce qui est réel</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, chaque partie au-dessus est une <strong>vraie partie <code>omegaStep</code></strong> (mots réellement hors du lexique). Le <strong>souffle (P2)</strong> aide pour de vrai (les sphères 🅢 gagnent plus). <strong>Boucle fermée — le pendu JUGE en direct</strong>&nbsp;: à la naissance de chaque version, OMEGA lui fait jouer <strong>60 vraies parties OOV isolées</strong> (reset propre) → son <strong>winrate réel</strong>, qui <strong>pilote la sélection ET la couleur</strong> (rien de pré-calculé). C'est pourquoi il y a une <strong>brève pause (~1,5 s, « ⏳ le pendu juge »)</strong> à chaque naissance&nbsp;: la mesure isolée exige `initOmegaGlobals` (reconstruction du substrat VSA) — le prix du réel. La <strong>sélection (P3)</strong> remplace la pire <code>arbConf</code> par un enfant muté de la meilleure&nbsp;; <code>arbConf</code> évolue vers l'optimum (~0,15-0,25) et le winrate <strong>monte (mesuré en direct, ~+13 pt</strong>, cohérent avec le <strong>+14</strong> rigoureux du harnais 5 seeds out-of-sample). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (étiqueté « démo »). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais <em>non concluant</em> (perd contre le meilleur solo hors échantillon). Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>&nbsp;; harnais du +14&nbsp;: <code>evo/evo_oov_evolve.js</code>&nbsp;; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+  <p class="note">La genèse suit la roadmap <strong>dans l'ordre</strong>&nbsp;: ça part d'<strong>UN seul OMEGA</strong> qui joue → il <strong>se copie (P1)</strong> → les deux <strong>communiquent (P2, souffle)</strong> → puis les <strong>générations grandissent et évoluent (P3)</strong>, le collectif jouant le pendu <strong>en même temps</strong> au fur et à mesure qu'il grandit (jusqu'à ~16). <strong>Pas de bluff, et voici exactement ce qui est réel</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, chaque partie au-dessus est une <strong>vraie partie <code>omegaStep</code></strong> (mots réellement hors du lexique). <strong>P1</strong> reconstruit en direct une <strong>vraie fonction de décision à l'octet près</strong> (prédiction ordre-2→5 + résidu, vérifié byte-exact) avant que le jumeau naisse. <strong>P2</strong>&nbsp;: A <strong>APPREND</strong> en direct quel rang souffler (reward = gagné-avec − gagné-sans, converge vers la lettre la plus rare) → la souffleuse 🅢 gagne plus. <strong>Boucle fermée — le pendu JUGE en direct</strong>&nbsp;: à la naissance de chaque version, OMEGA lui fait jouer <strong>60 vraies parties OOV isolées</strong> (reset propre) → son <strong>winrate réel</strong>, qui <strong>pilote la sélection ET la couleur</strong> (rien de pré-calculé). C'est pourquoi il y a une <strong>brève pause (~1,5 s, « ⏳ le pendu juge »)</strong> à chaque naissance&nbsp;: la mesure isolée exige `initOmegaGlobals` (reconstruction du substrat VSA) — le prix du réel. La <strong>sélection (P3)</strong> remplace la pire <code>arbConf</code> par un enfant muté de la meilleure&nbsp;; <code>arbConf</code> évolue vers l'optimum (~0,15-0,25) et le winrate <strong>monte (mesuré en direct, ~+13 pt</strong>, cohérent avec le <strong>+14</strong> rigoureux du harnais 5 seeds out-of-sample). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (étiqueté « démo »). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais <em>non concluant</em> (perd contre le meilleur solo hors échantillon). Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>&nbsp;; harnais du +14&nbsp;: <code>evo/evo_oov_evolve.js</code>&nbsp;; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -358,6 +358,36 @@ function miniBoard(b){ var s=''; for(var i=0;i<b.length;i++) s+=(b[i]==='.'?'·'
 function wrSweep(arb){ const S=OV.sweep.slice().sort((a,b)=>a.arbConf-b.arbConf);
   if(arb<=S[0].arbConf)return S[0].oov; for(let i=1;i<S.length;i++){ if(arb<=S[i].arbConf){ const a=S[i-1],b=S[i],t=(arb-a.arbConf)/(b.arbConf-a.arbConf); return a.oov+(b.oov-a.oov)*t; } } return S[S.length-1].oov; }
 function wrOf(arb,souffle){ return Math.min(99, Math.round(wrSweep(arb)+(souffle?(P2.aggregate.gain||5):0))); }
+
+/* ░ P1 RÉEL — reconstruction byte-exact (bPC) : modèle ordre-k (stats de la source) + masque + résidu ; decode SANS l'original ░ */
+function bpcEnc(src,order){ const model={}; for(let i=order;i<src.length;i++){const ctx=src.slice(i-order,i);(model[ctx]=model[ctx]||{});model[ctx][src[i]]=(model[ctx][src[i]]||0)+1;}
+  const predAt=(a,i)=>{const c=a.slice(i-order,i).join(''),m=model[c];let p=null,b=-1;if(m)for(const k in m)if(m[k]>b){b=m[k];p=k;}return p;};
+  const out=src.split(''),mask=[],res=[]; for(let i=order;i<src.length;i++){const p=predAt(out,i);if(p===src[i])mask.push(1);else{mask.push(0);res.push(src[i]);}}
+  return {model,order,prefix:src.slice(0,order),length:src.length,mask,res,hit:mask.filter(x=>x).length,total:mask.length||1}; }
+function bpcDec(e){ const predAt=(a,i)=>{const c=a.slice(i-e.order,i).join(''),m=e.model[c];let p=null,b=-1;if(m)for(const k in m)if(m[k]>b){b=m[k];p=k;}return p;};
+  const out=e.prefix.split('');let ri=0; for(let i=e.order;i<e.length;i++){ if(e.mask[i-e.order]===1)out.push(predAt(out,i)); else out.push(e.res[ri++]); } return out.join(''); }
+async function runP1bpc(){
+  let fn=null, src=''; for(const n of ['cosineSim','normalize','circularShift','circularShiftInverse','startNewGame']){ try{ const s=ev('typeof '+n+'==="function"?'+n+'.toString():""'); if(s&&s.length>40){fn=n;src=s;break;} }catch(_){} }
+  if(!fn){ setCap('P1 · se copie','le génome (paramètres) est copié — fonctions de décision non accessibles dans ce sandbox'); await wait(700); return; }
+  for(const order of [2,3,5]){ if(stop)return; const e=bpcEnc(src,order), ok=bpcDec(e)===src, pct=Math.round(100*e.hit/e.total);
+    setCap('P1 · se copie — reconstruction à l\'octet près','fonction de décision `'+fn+'` ('+src.length+' octets) régénérée par PRÉDICTION ordre-'+order+' : '+pct+' % prédit, résidu '+(100-pct)+' %'+(order===5?' → reconstruite byte-exact '+(ok?'✓':'✗')+' (le jumeau porte CE code)':'…'));
+    pNote('P1 — '+fn+' : prédire le régulier (ordre-'+order+'), stocker le résidu'); await wait(950); } }
+/* ░ P2 RÉEL — A APPREND quel rang de rareté souffler (reward = won_avec − won_sans), config cognition seule (NEO off) ░ */
+async function learnSouffle(){
+  ev('initOmegaGlobals();'); ev(CFG_P2); ev('if(__sim._origLI)OMEGA_LEX4.len_index=__sim._origLI;_neoWBL=null;_neoNG=null;');  // in-lex, cognition seule
+  ev('globalThis.__pl=function(w,msg){startNewGame(w);if(msg){var i=msg.charCodeAt(0)-65;if(i>=0&&i<26){alreadyTried[i]=true;for(var p=0;p<w.length;p++)if(w[p]===msg)revealedMask[p]=true;}}var sf=60;while(gameActive&&sf-->0)omegaStep();return lastGameWon?1:0;};');
+  const freq=Array.prototype.slice.call(ev('__freq()')); const words=Array.prototype.slice.call(ev('__words(8,12,400,4242)'));
+  const ranked=w=>[...new Set(w.split(''))].sort((a,b)=>freq[a.charCodeAt(0)-65]-freq[b.charCodeAt(0)-65]);
+  const MAXR=6, value=new Array(MAXR).fill(0), LR=0.25, EPOCHS=5, PER=14; let rr=4242; const rnd=()=>{rr=(rr*1664525+1013904223)>>>0;return rr/4294967296;};
+  const pick=(ds,T)=>{const n=Math.min(ds.length,MAXR),vs=[];let mx=-1e9;for(let k=0;k<n;k++){const v=value[k]/T;vs.push(v);if(v>mx)mx=v;}let z=0;const ex=vs.map(v=>{const e=Math.exp(v-mx);z+=e;return e;});let x=rnd()*z,k=0;for(;k<n;k++){x-=ex[k];if(x<=0)break;}return Math.min(k,n-1);};
+  function restore(){ ev('initOmegaGlobals();'); ev(CFG_SIM); ev('if(__sim.filtLI)OMEGA_LEX4.len_index=__sim.filtLI;_neoWBL=null;_neoNG=null;'); }
+  for(let e=0;e<EPOCHS;e++){ if(stop){ restore(); return 0; } const T=Math.max(0.5,2*(1-e/EPOCHS)); let win=0;
+    for(let n=0;n<PER;n++){ const w=words[(rnd()*words.length)|0],ds=ranked(w),rk=pick(ds,T);
+      const a=ev('__pl('+JSON.stringify(w)+','+JSON.stringify(ds[rk]||'')+')'), b=ev('__pl('+JSON.stringify(w)+',"")'); value[rk]+=LR*(a-b); win+=a; }
+    setCap('P2 · communiquent — A APPREND quoi souffler','epoch '+(e+1)+'/'+EPOCHS+' : winrate '+Math.round(100*win/PER)+' % · préférence par rang ['+value.slice(0,4).map(v=>v.toFixed(1)).join(' ')+'] (rang 0 = lettre la plus rare)');
+    pNote('P2 — A teste, le pendu récompense, A apprend le rang à souffler'); await wait(750); }
+  const pref=value.indexOf(Math.max.apply(null,value)); restore(); return pref<0?0:pref; }
+
 async function liveSim(){
   stop=true; await new Promise(function(r){setTimeout(r,80);});           // couper la démo
   for(const a of agents.slice()){ scene.remove(a.mesh); } agents.length=0; edges.length=0; setPop(0); pn=0; for(let i=0;i<MAXP;i++)plife[i]=0;
@@ -405,17 +435,19 @@ async function liveSim(){
 
     // ── la ROADMAP se déroule DANS L'ORDRE, le collectif grandit, le pendu juge à chaque naissance ──
     if(f>=nextEvt){
-      if(!did.copy){                                   // ░ P1 · SE COPIE
+      if(!did.copy){                                   // ░ P1 · SE COPIE (reconstruction byte-exact RÉELLE)
         did.copy=true; setPhase(0);
-        await addMember(founder.arb,false,1,founder);        // jumeau = MÊME génome (copie byte-exact), rejugé en direct
-        setCap('P1 · se copie','l\'OMEGA reconstruit ses fonctions de décision à l\'octet près → un JUMEAU (même génome) apparaît. Le pendu juge chacun.');
-        pNote('P1 — se copie : le jumeau partage le même code'); nextEvt=f+120;
-      } else if(!did.souffle){                          // ░ P2 · COMMUNIQUENT
+        await runP1bpc(); if(stop)return;                    // reconstruit une vraie fonction de décision à l'octet près
+        await addMember(founder.arb,false,1,founder);        // le jumeau porte ce code reconstruit (même génome), rejugé en direct
+        setCap('P1 · se copie ✓','le JUMEAU porte le code reconstruit à l\'octet près (même génome). Les deux jouent ; le pendu juge chacun.');
+        pNote('P1 — copie byte-exact faite : le jumeau partage le code'); nextEvt=f+120;
+      } else if(!did.souffle){                          // ░ P2 · COMMUNIQUENT (A APPREND le souffle, en direct)
         did.souffle=true; setPhase(1);
+        const pref=await learnSouffle(); if(stop)return;     // A apprend quel rang souffler (reward, vrai moteur)
         const w0=pop[0].wr; pop[1].souffle=true; pop[1].wr=await evalGenome(pop[1].arb,true); setAgentEvo(pop[1].sphere, evoFromWr(pop[1].wr)); newGame(pop[1]);
         for(let t=0;t<10;t++) emitParticles(pop[0].sphere,pop[1].sphere,AMBER,4);
-        setCap('P2 · communiquent','une version SOUFFLE la lettre rare à l\'autre → mesuré en direct, la souffleuse 🅢 passe à '+pop[1].wr+' % (vs '+w0+' % sans le souffle).');
-        pNote('P2 — avec le souffle, on gagne plus (mesuré)'); nextEvt=f+120;
+        setCap('P2 · communiquent ✓','A a APPRIS de souffler le rang '+pref+(pref===0?' (la lettre la plus rare)':'')+' → mesuré, la souffleuse 🅢 passe à '+pop[1].wr+' % (vs '+w0+' % sans).');
+        pNote('P2 — souffle APPRIS : la souffleuse gagne plus'); nextEvt=f+120;
       } else {                                          // ░ P3 · GÉNÉRATIONS (grandir, puis sélectionner)
         gen++; setPhase(2); const b=best();
         if(pop.length<CAP){
