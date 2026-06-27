@@ -283,7 +283,20 @@ Le pendu a été **la** fitness unique de tout EVO → risque de **spécialisati
   code** (P1), **complétion** de mots, généralisation **OOV/Trexquant**, **pendu de phrase** (`evo/PHRASE_HANGMAN_PROBE.md`).
 - **But** : tester la **généralité cognitive réelle** (cf. discussion « OMEGA global » : le noyau = double-route + arbitrage +
   apprentissage gardé, pointé sur plusieurs canaux). Anti-overfit : la sélection P3 doit optimiser un **vecteur de fitness multi-tâches**, pas un scalaire pendu.
-- **Première brique** : un **harnais multi-tâches** (≥2 tâches scorées) + une fitness agrégée (Pareto ou pondérée) branchée sur la lignée P3.
+- ✅ **Première brique FAITE (`evo_o2_multitask.js`, vrai `omegaStep`, 2 graines)** : harnais **2 tâches** — pendu **in-lex** (rappel) + **OOV held-out** (généralisation, held-out propre façon bigN qui **HONORE le génome**). *Obstacle mesuré : le bench OOV NATIF `_omega_trexquant_bench` réinitialise la config (cohorte-OFF ne baisse pas la voie cohorte) → inutilisable par génome ; d'où le held-out explicite.* Résultat — la fitness est bien **2-D et les tâches DISSOCIENT** :
+
+  | génome | in-lex | OOV |
+  |---|---|---|
+  | phon+cohorte (champion in-lex) | 95,0 % | **46,4 %** |
+  | OS-arb n-gram | 96,2 % | 73,1 % |
+  | OS-arb + gap-aware | 96,1 % | **73,3 %** |
+  | phon + OS-arb | **98,8 %** | 70,5 % |
+
+  - **In-lex ~plafond pour tous (95-99 %, discrimine à peine) ; OOV s'étale 46→73 %** — c'est LÀ que les vraies différences sont.
+  - Le **« champion in-lex » (phon+cohorte) est un PIÈGE** : correct au pendu, **catastrophique en généralisation (46 %)**.
+  - Sélection scalaire « in-lex » → phon+OS-arb (98,8) ; scalaire « OOV » → OS-arb+gap (73,3) : **gagnants DIFFÉRENTS**. Front de **Pareto = 3/4**.
+  - ⇒ **un scalaire « pendu in-lex » est AVEUGLE à la généralisation** — exactement le risque « on ne mesure que le pendu ». La sélection P3 **doit** optimiser le **vecteur** (Pareto/pondéré), pas le scalaire. *(Caveat honnête : les absolus OOV ici, 180 mots × 2 graines, sont indicatifs/optimistes sur petit N (cf. bigN) ; le résultat est la DISSOCIATION relative, pas un nouvel absolu OOV.)*
+- ⏳ **Suite O2** : brancher ce vecteur sur la **lignée P3** (sélection multi-objectif réelle), puis élargir la suite à des usages **vraiment hors-pendu** (correcteur dys, décompo dictée, complétion) — chacun dans son harnais propre.
 
 ### Reportés (déjà identifiés)
 - **O3 — Génome plus riche** : évoluer les **poids** bPC/readout, **θ=(α,β)**, **règles g2p apprises** (pas seulement les 3 seuils NEO).
