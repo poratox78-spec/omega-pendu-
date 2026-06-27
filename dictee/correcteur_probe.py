@@ -449,7 +449,7 @@ def rule_det_gender(T, i):
         return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
     if T[i+1][:1].isupper() or nd in DET_SKIP: return None         # nom propre/étranger (capitalisé) OU adverbe/adj/prép. avant le vrai nom-tête → abstention (FP)
     _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le suivant doit être CONFIDEMMENT un NOM
-    if not (_pp and _pp[0] >= PL_TAU_M and _pp[1] < PL_EPS_M): return None   # OOV / P(NOM)<0.5 / P(VER)≥0.01 → abstention (corrige faute=VER : freq dit NOM ; + FP 71→49 sur UD)
+    if not (_pp and _pp[0] >= PL_TAU_M): return None   # GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée — mot après déterminant = NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000, gender_levers_ud.py)
     g_noun = GENDER_PURE.get(nd)                                   #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))

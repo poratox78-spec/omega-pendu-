@@ -11741,7 +11741,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
-    var _pp=NOUN_POST&&NOUN_POST[nd];if(!(_pp&&_pp[0]>=PL_TAU_M&&_pp[1]<PL_EPS_M))return null;   // GARDE §3 : suivant confidemment NOM (posterior) — corrige faute=VER, FP 61→42 (ambiguïté genre couverte par GENDER_PURE)
+    var _pp=NOUN_POST&&NOUN_POST[nd];if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe LEVÉE — un mot après un déterminant est un NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000 mesuré UD, gender_levers_ud.py)
     var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   // accord PLURIEL du NOM (déterminant pluriel + nom singulier) — MÊME logique que correcteur_probe.rule_noun_plural (parité)
   var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée = NUM_DET pluriel (parité Python) ; SDET_NUM défini plus bas (ordre)
