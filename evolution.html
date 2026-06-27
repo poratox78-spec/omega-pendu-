@@ -119,7 +119,7 @@
     <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — le gène <code>arbConf</code> évolue ; +14 pt hors-lexique (5 seeds, hors échantillon), de génération en génération.</small></div>
     <div class="k warn"><b id="kpi4">—</b><small><strong>O1 · groupe</strong> — exploré, mais <em>ne tient pas</em> hors échantillon (proxy). Montré honnêtement.</small></div>
   </div>
-  <p class="note">Le cycle suit la roadmap&nbsp;: <em>se copie → communiquent → croise les générations</em>, <strong>tout en même temps</strong> dans le collectif. <strong>Pas de bluff, et voici exactement ce qui est réel</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, les <strong>14 versions jouent le pendu hors-lexique EN MÊME TEMPS</strong> — chaque partie au-dessus est une <strong>vraie partie <code>omegaStep</code></strong> (mots réellement hors du lexique). Le <strong>souffle (P2)</strong> aide pour de vrai (les sphères 🅢 gagnent plus). Le <strong>winrate affiché par génome</strong> est sa valeur <strong>MESURÉE</strong> (balayage <code>arbConf</code>, <code>oov_capture.json</code>)&nbsp;: le mesurer <em>isolé en direct</em> pour 14 génomes coûterait <strong>~600 ms chacun</strong> (OMEGA reconstruit son substrat VSA à chaque remise à zéro propre) — donc on <strong>joue en direct</strong> et on <strong>colore avec la mesure propre</strong>. La <strong>sélection (P3)</strong> remplace la pire <code>arbConf</code> par un enfant de la meilleure&nbsp;; le winrate moyen du collectif <strong>monte vers l'optimum mesuré</strong> (<strong>~57 % → ~72 %</strong>, soit <strong>+14 pt</strong>, 5 seeds out-of-sample). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (étiqueté « démo »). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais <em>non concluant</em> (perd contre le meilleur solo hors échantillon). Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>&nbsp;; harnais du +14&nbsp;: <code>evo/evo_oov_evolve.js</code>&nbsp;; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+  <p class="note">La genèse suit la roadmap <strong>dans l'ordre</strong>&nbsp;: ça part d'<strong>UN seul OMEGA</strong> qui joue → il <strong>se copie (P1)</strong> → les deux <strong>communiquent (P2, souffle)</strong> → puis les <strong>générations grandissent et évoluent (P3)</strong>, le collectif jouant le pendu <strong>en même temps</strong> au fur et à mesure qu'il grandit (jusqu'à ~16). <strong>Pas de bluff, et voici exactement ce qui est réel</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, chaque partie au-dessus est une <strong>vraie partie <code>omegaStep</code></strong> (mots réellement hors du lexique). Le <strong>souffle (P2)</strong> aide pour de vrai (les sphères 🅢 gagnent plus). Le <strong>winrate affiché par génome</strong> est sa valeur <strong>MESURÉE</strong> (balayage <code>arbConf</code>, <code>oov_capture.json</code>)&nbsp;: le mesurer <em>isolé en direct</em> pour 14 génomes coûterait <strong>~600 ms chacun</strong> (OMEGA reconstruit son substrat VSA à chaque remise à zéro propre) — donc on <strong>joue en direct</strong> et on <strong>colore avec la mesure propre</strong>. La <strong>sélection (P3)</strong> remplace la pire <code>arbConf</code> par un enfant de la meilleure&nbsp;; le winrate moyen du collectif <strong>monte vers l'optimum mesuré</strong> (<strong>~57 % → ~72 %</strong>, soit <strong>+14 pt</strong>, 5 seeds out-of-sample). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (étiqueté « démo »). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais <em>non concluant</em> (perd contre le meilleur solo hors échantillon). Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>&nbsp;; harnais du +14&nbsp;: <code>evo/evo_oov_evolve.js</code>&nbsp;; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -359,48 +359,69 @@ async function liveSim(){
   stop=true; await new Promise(function(r){setTimeout(r,80);});           // couper la démo
   for(const a of agents.slice()){ scene.remove(a.mesh); } agents.length=0; edges.length=0; setPop(0); pn=0; for(let i=0;i<MAXP;i++)plife[i]=0;
   stop=false; mode='live';
-  const N=14;
   ev('_omegaSeed=12345;_omegaRng=makeMulberry32(12345);initOmegaGlobals();'); ev(CFG_SIM); // config du harnais +14, apprentissage OFF
   let nW=0; try{ nW=ev('__simSetup(240,12345);'); }catch(e){ liveBadge('','sim : '+e.message); mode='demo'; cycle(); return; }
-  // population : N génomes NAÏFS (arbConf ~0, le défaut du moteur) ; mutation+sélection vont DÉCOUVRIR l'optimum mesuré (~0,2-0,3)
-  const pop=[];
-  for(let i=0;i<N;i++){ const arb=Math.round((i%3===0?0.02:0)*100)/100, souffle=(i%4===0);
-    const a=makeAgent(genPos(1+(i%3),i,N),1,evoFromWr(wrOf(arb,souffle))); a.target=genPos(1+(i%3),i,N);
-    pop.push({arb, souffle, sphere:a, wins:0, games:0, anim:null, gen:1}); }
-  for(let i=0;i<N;i++) addEdge(pop[i].sphere, pop[(i+1)%N].sphere, 0x244a6a);
   $('pGrid').style.display='flex'; $('evPenduBox').style.display='none';
-  setPhase(2);
-  setCap('Collectif RÉEL — '+N+' versions jouent le pendu EN MÊME TEMPS','parties = VRAI omegaStep hors-lexique, en direct · winrate par génome = valeur MESURÉE (balayage arbConf) · la sélection fait évoluer arbConf vers l\'optimum');
-  pNote('P1 se copie · P2 souffle (gagne plus) · P3 sélection sur le winrate — en même temps');
-  // précalcule la 1re VRAIE partie de chaque génome (omegaStep), puis on les anime toutes ensemble
+  const CAP=16, pop=[]; const STEP_EVERY=2;
   function newGame(I){ try{ I.anim=ev('__simGame('+I.arb+','+(I.souffle?'true':'false')+')'); I.anim.idx=0; }catch(_){ I.anim={steps:[{board:'·',L:null,hit:false}],won:false,idx:0,word:''}; } }
-  for(const I of pop) newGame(I);
-  let f=0, gen=1, popMean=Math.round(pop.reduce((s,I)=>s+wrOf(I.arb,I.souffle),0)/pop.length);
-  $('evWr').textContent=popMean+' % (mesuré)';
-  const STEP_EVERY=2;                       // 1 lettre toutes les 2 frames (lisible)
-  let pending=0;                            // au plus 1 nouvelle partie (re)calculée par frame (perf)
+  function reposition(){ for(let i=0;i<pop.length;i++){ pop[i].sphere.target=genPos(1+(pop[i].gen%3), i, pop.length); } }
+  function addMember(arb,souffle,g,parent){ const a=makeAgent(parent?parent.sphere.pos.clone():new THREE.Vector3(0,0,0), g, evoFromWr(wrOf(arb,souffle)));
+    const I={arb:Math.round(arb*100)/100, souffle:!!souffle, sphere:a, wins:0, games:0, anim:null, gen:g}; pop.push(I); newGame(I);
+    if(parent){ addEdge(parent.sphere, a, parent.gen<g?CROSS:0x2a5a8a); emitParticles(parent.sphere,a,parent.gen<g?CROSS:BLUE,12); }
+    reposition(); setPop(pop.length); return I; }
+  const best=()=>{ let b=pop[0]; for(const I of pop) if(wrOf(I.arb,false)>wrOf(b.arb,false))b=I; return b; };
+  const worst=()=>{ let w=pop[0]; for(const I of pop) if(wrOf(I.arb,false)<wrOf(w.arb,false))w=I; return w; };
+  const mut=(arb)=>Math.max(0,Math.min(0.45, arb+(Math.random()*0.12-0.045)));
+  const mean=()=>Math.round(pop.reduce((s,I)=>s+wrOf(I.arb,I.souffle),0)/pop.length);
+
+  // ════ GENÈSE : au commencement, UN SEUL OMEGA, naïf (arbConf 0) ════
+  const founder=addMember(0.0,false,1,null); founder.sphere.target=new THREE.Vector3(0,0,0);
+  setPhase(0); setCap('Genèse — UN seul OMEGA','un unique OMEGA joue le pendu hors-lexique (vrai omegaStep). Il va se copier, puis le collectif va grandir et évoluer — P1 → P2 → P3.');
+  pNote('au commencement : un seul OMEGA joue');
+
+  let f=0, gen=1, nextEvt=70; const did={copy:false,souffle:false};
   while(!stop && mode==='live'){
-    let gh=''; pending=0;
+    // ── animation concurrente de TOUS les membres actuels (vraies parties omegaStep) ──
+    let gh='', pending=0;
     for(let i=0;i<pop.length;i++){ const I=pop[i], an=I.anim; if(!an){ if(pending<1){newGame(I);pending++;} continue; }
       const st=an.steps[Math.min(an.idx, an.steps.length-1)], wr=wrOf(I.arb,I.souffle);
-      gh+='<div class="mb'+(I.souffle?' s':'')+'" title="arbConf '+I.arb+(I.souffle?' · souffle P2':'')+' — '+(an.word||'')+'"><span class="mw">'+miniBoard(st.board)+'</span><span class="mr">'+wr+'%</span></div>';
-      if(f%STEP_EVERY===0){ an.idx++;
-        if(an.idx>=an.steps.length){ I.games++; if(an.won)I.wins++; if(pending<1){ newGame(I); pending++; } else I.anim=null; } }
+      gh+='<div class="mb'+(I.souffle?' s':'')+'" title="gén '+I.gen+' · arbConf '+I.arb+(I.souffle?' · souffle P2':'')+' — '+(an.word||'')+'"><span class="mw">'+miniBoard(st.board)+'</span><span class="mr">'+wr+'%</span></div>';
+      if(f%STEP_EVERY===0){ an.idx++; if(an.idx>=an.steps.length){ I.games++; if(an.won)I.wins++; if(pending<1){newGame(I);pending++;} else I.anim=null; } }
     }
     $('pGrid').innerHTML=gh;
-    if(f%6===0 && pop.length>2){ const i=(Math.random()*pop.length)|0, j=(Math.random()*pop.length)|0; if(i!==j) emitParticles(pop[i].sphere,pop[j].sphere,AMBER,3); }
-    // P3 — SÉLECTION (P1 copie + croisement) : la pire arbConf remplacée par un enfant muté de la meilleure (sur winrate MESURÉ)
-    if(f%80===0 && f>0){
-      let bi=0,wi=0; for(let i=0;i<pop.length;i++){ if(wrOf(pop[i].arb,false)>wrOf(pop[bi].arb,false))bi=i; if(wrOf(pop[i].arb,false)<wrOf(pop[wi].arb,false))wi=i; }
-      gen++; const oldArb=pop[wi].arb, bestArb=pop[bi].arb;
-      const childArb=Math.max(0,Math.min(0.45, bestArb + (Math.random()*0.12-0.05)));
-      emitParticles(pop[bi].sphere,pop[wi].sphere,CROSS,16); addEdge(pop[bi].sphere,pop[wi].sphere,CROSS); if(edges.length>60)edges.shift();
-      pop[wi].arb=Math.round(childArb*100)/100; pop[wi].wins=0; pop[wi].games=0; pop[wi].gen=gen; newGame(pop[wi]);
-      setAgentEvo(pop[wi].sphere, evoFromWr(wrOf(pop[wi].arb,pop[wi].souffle)));
-      popMean=Math.round(pop.reduce((s,I)=>s+wrOf(I.arb,I.souffle),0)/pop.length);
-      setGen(gen); $('evWr').textContent=popMean+' % (mesuré)';
-      setCap('Collectif RÉEL — génération '+gen+' (P3 sélection)','la pire (arbConf '+oldArb+') remplacée par un enfant de la meilleure (arbConf '+bestArb+') · winrate moyen MESURÉ du collectif '+popMean+' % — il monte vers l\'optimum (~+14 pt)');
+
+    // ── la ROADMAP se déroule DANS L'ORDRE, le collectif grandit ──
+    if(f>=nextEvt){
+      if(!did.copy){                                   // ░ P1 · SE COPIE
+        did.copy=true; setPhase(0);
+        addMember(founder.arb,false,1,founder);        // jumeau = MÊME génome (copie byte-exact)
+        setCap('P1 · se copie','l\'OMEGA reconstruit ses fonctions de décision à l\'octet près → un JUMEAU (même génome) apparaît. Les deux jouent.');
+        pNote('P1 — se copie : le jumeau partage le même code'); nextEvt=f+95;
+      } else if(!did.souffle){                          // ░ P2 · COMMUNIQUENT
+        did.souffle=true; setPhase(1);
+        pop[1].souffle=true; newGame(pop[1]); setAgentEvo(pop[1].sphere, evoFromWr(wrOf(pop[1].arb,true)));
+        for(let t=0;t<10;t++) emitParticles(pop[0].sphere,pop[1].sphere,AMBER,4);
+        setCap('P2 · communiquent','une version SOUFFLE la lettre rare à l\'autre (signal appris) → la souffleuse 🅢 gagne plus (+'+(P2.aggregate.gain||5)+' pt mesurés).');
+        pNote('P2 — avec le souffle, on gagne plus'); nextEvt=f+95;
+      } else {                                          // ░ P3 · GÉNÉRATIONS (grandir, puis sélectionner)
+        gen++; setPhase(2); const b=best();
+        if(pop.length<CAP){
+          const child=addMember(mut(b.arb), (pop.length%4===0), gen, b);
+          setCap('P3 · générations — gén '+gen+' · le collectif GRANDIT ('+pop.length+')','une nouvelle version naît du meilleur génome (arbConf '+child.arb+' ← '+b.arb+'), recombine + mute. winrate moyen MESURÉ '+mean()+' %.');
+        } else {
+          const w=worst(), oldArb=w.arb; const ca=mut(b.arb);
+          emitParticles(b.sphere,w.sphere,CROSS,16); addEdge(b.sphere,w.sphere,CROSS); if(edges.length>70)edges.shift();
+          w.arb=Math.round(ca*100)/100; w.gen=gen; w.wins=0; w.games=0; newGame(w); setAgentEvo(w.sphere, evoFromWr(wrOf(w.arb,w.souffle))); reposition();
+          setCap('P3 · générations — gén '+gen+' · sélection','la plus faible (arbConf '+oldArb+') remplacée par un enfant de la meilleure (arbConf '+w.arb+'). winrate moyen MESURÉ '+mean()+' % — il monte vers l\'optimum (+14 pt).');
+        }
+        pNote('P3 — générations : arbConf évolue, le winrate du collectif monte'); setGen(gen); $('evWr').textContent=mean()+' % (mesuré)';
+        if(gen%4===0 && pop.length>=4){ setPhase(3); const grp=pop.slice(-4);
+          for(let a=0;a<grp.length;a++)for(let c=a+1;c<grp.length;c++) emitParticles(grp[a].sphere,grp[c].sphere,0xd8922e,2);
+          setCap('O1 · travail de groupe','plusieurs versions coordonnent — exploré, mais NE TIENT PAS hors échantillon (proxy). Montré honnêtement.'); }
+        nextEvt=f+ (pop.length<CAP?70:85);
+      }
     }
+    if(f%6===0 && pop.length>2){ const i=(Math.random()*pop.length)|0, j=(Math.random()*pop.length)|0; if(i!==j) emitParticles(pop[i].sphere,pop[j].sphere,AMBER,2); }
     f++; await nf();
   }
 }
@@ -408,7 +429,7 @@ async function liveSim(){
 /* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS le 9 Mo ════════ */
 let tries=0, loading=false;
 function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
-  if(n>0){ engineReady=true; loading=false; liveBadge('ready','moteur prêt · '+n.toLocaleString('fr')+' mots'); injectHelpers(); $('evReal').textContent='● collectif en direct'; $('evHint').textContent='les '+14+' versions OMEGA jouent le pendu EN MÊME TEMPS (vrai omegaStep, hors-lexique)'; liveSim(); }
+  if(n>0){ engineReady=true; loading=false; liveBadge('ready','moteur prêt · '+n.toLocaleString('fr')+' mots'); injectHelpers(); $('evReal').textContent='● collectif en direct'; $('evHint').textContent='genèse : un OMEGA se copie (P1), souffle (P2), et le collectif grandit + évolue (P3) en jouant le pendu — vrai omegaStep'; liveSim(); }
   else if(tries>50){ loading=false; liveBadge('','moteur indisponible ici'); $('evReal').disabled=false; $('evReal').textContent='↻ Réessayer le vrai moteur'; $('evHint').textContent='le moteur n’a pas démarré ici (sandbox/hors-ligne) — réessaie, ou ouvre le site déployé. La démo (parties réelles capturées) continue.'; }
   else { liveBadge('on','chargement du moteur ~16 Mo…'); setTimeout(probe,500); } }
 
