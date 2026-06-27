@@ -158,8 +158,9 @@ let paused=false, mode='demo', stop=false, gen=1, pop=1;
 function setGen(g){gen=g;$('evGen').textContent=g;} function setPop(n){pop=n;$('evPop').textContent=n;}
 function setPhase(i){var ps=$('evPhs').children;for(var k=0;k<ps.length;k++)ps[k].className='p'+(k===i?' on':'');}
 function setCap(t,s){$('evCap').textContent=t;if(s!=null)$('evSub').innerHTML=s;}
-function wait(ms){return new Promise(function(r){var t0=performance.now();(function w(){if(stop)return r();if(paused)return requestAnimationFrame(w);if(performance.now()-t0>=ms)return r();requestAnimationFrame(w);})();});}
-function nf(){return new Promise(function(r){requestAnimationFrame(()=>r());});}
+/* nf()/wait() : robustes à l'arrière-plan (rAF gelé si onglet caché) → fallback setTimeout, ne hangent jamais */
+function wait(ms){return new Promise(function(r){var t0=performance.now();(function w(){if(stop)return r();if(paused)return setTimeout(w,80);if(performance.now()-t0>=ms)return r();setTimeout(w,Math.min(33,ms));})();});}
+function nf(){return new Promise(function(r){var done=false,f=function(){if(done)return;done=true;r();};requestAnimationFrame(f);setTimeout(f,50);});}
 
 /* ════════ THREE.JS — le collectif 3D ════════ */
 let THREE, scene, cam, ren, agents=[], links, linkPos, linkCol, particles, ppos, pcol, plife, pfrom, pto, MAXP=240, pn=0, stars, raf=0;
@@ -378,7 +379,7 @@ async function learnSouffle(){
   ev('globalThis.__pl=function(w,msg){startNewGame(w);if(msg){var i=msg.charCodeAt(0)-65;if(i>=0&&i<26){alreadyTried[i]=true;for(var p=0;p<w.length;p++)if(w[p]===msg)revealedMask[p]=true;}}var sf=60;while(gameActive&&sf-->0)omegaStep();return lastGameWon?1:0;};');
   const freq=Array.prototype.slice.call(ev('__freq()')); const words=Array.prototype.slice.call(ev('__words(8,12,400,4242)'));
   const ranked=w=>[...new Set(w.split(''))].sort((a,b)=>freq[a.charCodeAt(0)-65]-freq[b.charCodeAt(0)-65]);
-  const MAXR=6, value=new Array(MAXR).fill(0), LR=0.25, EPOCHS=5, PER=14; let rr=4242; const rnd=()=>{rr=(rr*1664525+1013904223)>>>0;return rr/4294967296;};
+  const MAXR=6, value=new Array(MAXR).fill(0), LR=0.25, EPOCHS=4, PER=10; let rr=4242; const rnd=()=>{rr=(rr*1664525+1013904223)>>>0;return rr/4294967296;};
   const pick=(ds,T)=>{const n=Math.min(ds.length,MAXR),vs=[];let mx=-1e9;for(let k=0;k<n;k++){const v=value[k]/T;vs.push(v);if(v>mx)mx=v;}let z=0;const ex=vs.map(v=>{const e=Math.exp(v-mx);z+=e;return e;});let x=rnd()*z,k=0;for(;k<n;k++){x-=ex[k];if(x<=0)break;}return Math.min(k,n-1);};
   function restore(){ ev('initOmegaGlobals();'); ev(CFG_SIM); ev('if(__sim.filtLI)OMEGA_LEX4.len_index=__sim.filtLI;_neoWBL=null;_neoNG=null;'); }
   for(let e=0;e<EPOCHS;e++){ if(stop){ restore(); return 0; } const T=Math.max(0.5,2*(1-e/EPOCHS)); let win=0;
@@ -395,7 +396,7 @@ async function liveSim(){
   ev('_omegaSeed=12345;_omegaRng=makeMulberry32(12345);initOmegaGlobals();'); ev(CFG_SIM); // config du harnais +14, apprentissage OFF
   let nW=0; try{ nW=ev('__simSetup(240,12345);'); }catch(e){ liveBadge('','sim : '+e.message); mode='demo'; cycle(); return; }
   $('pGrid').style.display='flex'; $('evPenduBox').style.display='none';
-  const CAP=14, EVK=60, pop=[]; const STEP_EVERY=2;
+  const CAP=14, EVK=30, pop=[]; const STEP_EVERY=2;
   // ░░ LE PENDU JUGE EN DIRECT ░░ — fitness ISOLÉE d'un génome : reset propre (init+CFG+lexique filtré) puis EVK vraies parties OOV
   async function evalGenome(arb,souffle){ liveBadge('on','⏳ le pendu juge ce génome — '+EVK+' vraies parties OOV isolées…'); await nf(); await nf(); let wr=60;
     try{ ev('initOmegaGlobals();'); ev(CFG_SIM);
