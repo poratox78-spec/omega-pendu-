@@ -14,7 +14,8 @@
   .ev-fall{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--fg-2,#9aa4af);font-size:14px}
   /* pendu joué AU-DESSUS des sphères */
   .ev-pendu{position:absolute;left:0;right:0;top:0;padding:14px 16px 10px;background:linear-gradient(180deg,rgba(2,6,14,.82),rgba(2,6,14,.45) 70%,rgba(2,6,14,0));z-index:3;pointer-events:none}
-  .ev-grid{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:none;flex-wrap:wrap;gap:5px 7px;justify-content:center;align-content:flex-start;max-width:94%;max-height:46%;overflow:hidden;z-index:4;pointer-events:none}
+  .ev-grid{position:absolute;left:14px;right:200px;top:12px;display:none;flex-wrap:wrap;gap:5px 7px;justify-content:flex-start;align-content:flex-start;max-height:62%;overflow:hidden;z-index:4;pointer-events:none}
+  @media(max-width:640px){.ev-grid{right:14px;top:108px;max-height:40%}}
   .ev-grid .mb{display:flex;align-items:center;gap:6px;background:rgba(4,13,26,.74);border:1px solid rgba(120,160,220,.22);border-radius:7px;padding:3px 8px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;backdrop-filter:blur(2px)}
   .ev-grid .mb.s{border-color:rgba(255,170,0,.55);box-shadow:0 0 9px rgba(255,170,0,.18)}
   .ev-grid .mw{letter-spacing:2.5px;color:#dce8f8}
@@ -39,7 +40,7 @@
   .ev-phs .p.on{border-color:var(--accent,#5b8cf6);color:#e6edf3;background:rgba(91,140,246,.14)}.ev-phs .p.on b{color:var(--accent,#5b8cf6)}
   .ev-cap{font-size:clamp(14px,2.1vw,17px);font-weight:700;color:#e6edf3;margin:0}
   .ev-sub{font-size:12.5px;color:#9aa4af;margin:3px 0 0;min-height:1.2em}
-  .ev-meta{position:absolute;top:12px;right:14px;z-index:3;font-size:12px;color:#9aa4af;text-align:right;line-height:1.5}
+  .ev-meta{position:absolute;top:12px;right:14px;max-width:182px;z-index:5;font-size:12px;color:#9aa4af;text-align:right;line-height:1.5}
   .ev-meta b{color:#a3d977}
   .ev-live{display:inline-flex;align-items:center;gap:6px}.ev-live .dot{width:8px;height:8px;border-radius:50%;background:#555;vertical-align:middle}
   .ev-live.on .dot{background:#f47174;animation:evp 1s infinite}.ev-live.ready .dot{background:#a3d977}@keyframes evp{50%{opacity:.3}}
@@ -389,7 +390,7 @@ async function liveSim(){
   // ════ GENÈSE : au commencement, UN SEUL OMEGA, naïf (arbConf 0) — son winrate est MESURÉ par le pendu ════
   const founder=await addMember(0.0,false,1,null); founder.sphere.target=new THREE.Vector3(0,0,0);
   setPhase(0); setCap('Genèse — UN seul OMEGA ('+founder.wr+' % mesuré)','un unique OMEGA joue le pendu hors-lexique (vrai omegaStep) ; son winrate est JUGÉ en direct. Il va se copier, puis le collectif grandit et évolue — P1 → P2 → P3.');
-  pNote('au commencement : un seul OMEGA joue (winrate jugé par le pendu)'); $('evWr').textContent='moy '+mean()+' % · meilleur '+best().wr+' % (mesuré)';
+  pNote('au commencement : un seul OMEGA joue (winrate jugé par le pendu)'); $('evWr').textContent='moy '+mean()+' % · best '+best().wr+' %';
 
   let f=0, gen=1, nextEvt=70; const did={copy:false,souffle:false};
   while(!stop && mode==='live'){
@@ -426,7 +427,7 @@ async function liveSim(){
           w.arb=Math.round(ca*100)/100; w.gen=gen; w.wr=await evalGenome(w.arb,w.souffle); newGame(w); setAgentEvo(w.sphere, evoFromWr(w.wr)); reposition();
           setCap('P3 · générations — gén '+gen+' · sélection','la plus faible (arbConf '+oldArb+', '+oldWr+' %) remplacée par un enfant de la meilleure (arbConf '+w.arb+' → '+w.wr+' % jugé). Moyenne collectif '+mean()+' %.');
         }
-        pNote('P3 — générations : arbConf évolue, le pendu juge, le winrate monte'); setGen(gen); $('evWr').textContent='moy '+mean()+' % · meilleur '+best().wr+' % (mesuré)';
+        pNote('P3 — générations : arbConf évolue, le pendu juge, le winrate monte'); setGen(gen); $('evWr').textContent='moy '+mean()+' % · best '+best().wr+' %';
         if(gen%4===0 && pop.length>=4){ setPhase(3); const grp=pop.slice(-4);
           for(let a=0;a<grp.length;a++)for(let c=a+1;c<grp.length;c++) emitParticles(grp[a].sphere,grp[c].sphere,0xd8922e,2);
           setCap('O1 · travail de groupe','plusieurs versions coordonnent — exploré, mais NE TIENT PAS hors échantillon (proxy). Montré honnêtement.'); }
