@@ -1,5 +1,7 @@
 # OMEGA-Ω — Une architecture cognitive pour le pendu français
 
+> *🇬🇧 [English version](README.en.md)*
+>
 > *Comment une machine peut jouer au pendu en **raisonnant** plutôt qu'en **lisant la réponse**.*
 >
 > *A cognitive architecture that plays French Hangman by reasoning, not by dictionary lookup.*
