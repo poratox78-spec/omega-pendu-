@@ -101,6 +101,22 @@
     <p>Il <strong>compresse le code aussi bien — un peu mieux même — que le français</strong>, et <strong>ne gagne rien</strong> quand on brouille la séquence. → le cœur transférable d'OMEGA est un <strong>compresseur de séquences structurées</strong>, <em>domaine-agnostique</em>&nbsp;: il marche partout où il y a de la structure, pas seulement en français. Puissant et général — mais c'est de la <strong>capture de structure, pas de la compréhension</strong> (ça, ce serait un LLM, un autre projet).</p>
     <p class="small">Mesuré de <strong>deux façons indépendantes</strong>, même verdict&nbsp;: reconstruction façon pendu (<code>evo_o2_crossdomain.js</code>) <em>et</em> compression en bits (<code>evo_o2_compression.js</code>).</p>
   </div>
+
+  <div class="promise" style="border-left-color:var(--warn)">
+    <h3 style="margin-top:0">Et le <em>sens</em>, alors&nbsp;? On a tenté — et voici la frontière.</h3>
+    <p>Un compresseur capture la <em>forme</em>, jamais le <em>sens</em>. Peut-on en ajouter un avant-goût&nbsp;? On a essayé la <strong>sémantique distributionnelle</strong> (« le sens = la compagnie qu'un mot fréquente », Firth) pour désambiguïser des homophones — méthode <strong>Golding&nbsp;&amp;&nbsp;Roth&nbsp;1999</strong> (prior&nbsp;×&nbsp;contexte, held-out, corpus UD réel). Le contexte <em>aide</em> — surtout les homophones grammaticaux (<code>son/sont</code> 55→88&nbsp;%, <code>ce/se</code> 53→76&nbsp;%, <code>et/est</code> 60→77&nbsp;%). <strong>Mais la précision plafonne à 77-88&nbsp;%.</strong></p>
+    <p>Or le correcteur a une garde absolue&nbsp;: <strong>FP=0</strong> — ne jamais souligner du juste. À 77-88&nbsp;% de précision, il créerait trop de fausses alertes. On a balayé le seuil de confiance pour trouver un <strong>filet FP-safe</strong>&nbsp;:</p>
+    <table class="o2-tab">
+      <thead><tr><th>seuil de confiance</th><th>recall</th><th>précision</th></tr></thead>
+      <tbody>
+        <tr><td>≥ 0,90</td><td>56&nbsp;%</td><td>91&nbsp;%</td></tr>
+        <tr><td>≥ 0,99</td><td>27&nbsp;%</td><td>96&nbsp;%</td></tr>
+        <tr class="o2-scr"><td><strong>FP = 0</strong> &nbsp;(conf &gt; 0,9999)</td><td><strong>1,6&nbsp;%</strong></td><td>100&nbsp;%</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Pas de filet&nbsp;:</strong> pour atteindre FP=0, le recall s'effondre à <strong>1,6&nbsp;%</strong> — le signal « sens » est trop bruité pour passer le portier. <em>Contraste mesuré</em>&nbsp;: le levier lexical du genre (propre) passe FP=0 <em>naturellement</em> — il a été câblé (+6&nbsp;pts de recall)&nbsp;; le sens statistique, lui, est recalé. → la <strong>compréhension</strong> reste hors-doctrine (ce serait un LLM). OMEGA maîtrise la <strong>forme</strong>&nbsp;; le sens est la <strong>frontière, assumée et chiffrée</strong>.</p>
+    <p class="small">Mesuré&nbsp;: <code>evo_o2_homophone_context.js</code> (désambiguïsation Golding&amp;Roth) · <code>evo_o2_sense_fpzero.js</code> (balayage FP=0).</p>
+  </div>
   <p class="small">Rejouable&nbsp;: <code>evo/evo_o1_real.js</code> · <code>evo_o2_multitask.js</code> · <code>evo_o2_crossdomain.js</code> · <code>evo_o2_compression.js</code> · plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
 
   <p>Mais une mutation n'est <em>utile</em> que si l'on mute le <strong>bon niveau</strong>. Muter le <em>code source</em> casse presque tout — aucune amélioration possible. Muter les <em>paramètres</em> ouvre un paysage lisse où <strong>30 %</strong> des mutations sont bénéfiques&nbsp;: c'est l'<strong>évolvabilité</strong> (Wagner &amp; Altenberg, 1996). Basculez&nbsp;:</p>
