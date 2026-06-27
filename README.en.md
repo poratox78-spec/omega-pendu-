@@ -14,9 +14,9 @@ lookup, but as a **cognitive architecture** under a founding constraint —
 |---|---|---|
 | Cheat-free cognition only | ~90% | without reading the dictionary to score a letter |
 | **+ emergent declaration (NEO)**, in-lexicon | **97.5% – 98.8%** | on par with the best lexical solvers |
-| Out-of-lexicon (Trexquant-style), phon→ortho | **~70%** | on par with good solvers, the word being *heard* |
-| Out-of-lexicon **fully cheat-free** (gap-aware, *without* reading the sound) | **~64%** | pure cognition on a novel word — SOTA band |
-| Out-of-lexicon, ortho only | ~22% | a real weakness: sub-lexical generalization |
+| Out-of-lexicon — cognition only | ≈ 11% | does **not** generalize sub-lexically |
+| Out-of-lexicon — pure sub-lexical orthography | ≈ 33% | the real weakness (to build: morpho layer) |
+| Out-of-lexicon **cheat-free** — **n-gram aggregation** path (~62%) + **gap-aware** | **≈ 64%** | SOTA band; +17 pts vs a naive n-gram (see head-to-head). *First real cognitive gain above the statistical substrate* |
 | Oracle ceiling (full lexicon) | 98.7% | the target *excluded* by doctrine |
 
 > *Honesty note: the 97.5% cheat-free holds for **letter-scoring** (no dictionary lookup to pick a letter). The "assembled" declaration path reads the **sound** of the target word (`w.p`, "word heard" premise, legitimate in dictation); for **fully** cheat-free play with no reading of the word at all, enable the board-derived cohort (report §17.5).*
@@ -37,7 +37,7 @@ re-running the real engine **and** a standalone n-gram baseline on the identical
 |---|---|
 | n-gram baseline (trigram + backoff) | 46.7% |
 | OMEGA — lexical cohort, held-out | 24% |
-| **OMEGA — cognition (gap-aware), cheat-free** | **64%** |
+| **OMEGA — n-gram aggregation + gap-aware (cheat-free)** | **64%** |
 
 **What this actually validates:**
 
