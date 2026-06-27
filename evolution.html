@@ -420,7 +420,7 @@ async function liveSim(){
   const best=()=>{ const P=breeders(); let b=P[0]; for(const I of P) if(I.wr>b.wr)b=I; return b; };   // sélection sur le VRAI winrate mesuré
   const worst=()=>{ const P=breeders(); let w=P[0]; for(const I of P) if(I.wr<w.wr)w=I; return w; };
   const mut=(arb)=>Math.max(0,Math.min(0.45, arb+(Math.random()*0.12-0.045)));
-  const mean=()=>Math.round(pop.reduce((s,I)=>s+I.wr,0)/pop.length);
+  const mean=()=>{ const B=breeders(); return Math.round(B.reduce((s,I)=>s+I.wr,0)/Math.max(B.length,1)); };  // moy sur les non-souffleurs (même ensemble que best) → best ≥ moy toujours
   const hud=()=>{ $('evWr').textContent='moy '+mean()+' % · best '+best().wr+' %'; if($('evArb'))$('evArb').textContent=best().arb.toFixed(2); };
 
   // ════ GENÈSE : au commencement, UN SEUL OMEGA, naïf (arbConf 0) — son winrate est MESURÉ par le pendu ════
