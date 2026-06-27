@@ -269,7 +269,11 @@ produisent des **versions spécialisées** susceptibles de coopérer).
   (myope) et top-fraction (cascade) sont *mauvais*. La coordination vaut ce que vaut son signal.
   ⚠️ **CAVEAT (voir MUSCLE TEST plus haut)** : ces chiffres O1 (72,5 % etc.) viennent de **80 mots** et d'un K **sur-appris**. Sur
   **300 mots × 6 seeds**, l'avantage de division **disparaît** (équipe −2,95 pt vs monolithe, 0/6). À ne PAS présenter comme un gain établi.
-- ⏳ **Suite O1** : brancher de **vraies versions OMEGA** (générations P3) comme agents ; le **langage P2** comme canal réel.
+- ✅ **Suite O1 — FAITE (`evo_o1_real.js`, 200 mots × 3 graines, vrai `omegaStep`) — verdict NÉGATIF, instructif.** De vraies versions (génomes de paramètres : conf NEO, recall margin, g2p, toggles cohorte/phon) au lieu des proxys :
+  - **(1) Vote pur par coup = non implémentable proprement** : pour faire voter K versions sur un MÊME board il faut forcer l'état ; or forcer `alreadyTried` ne reproduit PAS le « révélé » caché du moteur (sonde : forçage ≠ jeu naturel dès le 2ᵉ coup), et on ne lit pas le monolithe (doctrine). Mécanisme écarté.
+  - **(2) En lexique, RIEN à coordonner** : versions compétentes **96-97 %** (ref 96 · cohorte-OFF 97 · conf-bas 97 · g2p 97 · conf-haut 94,8 ; phon-OFF cassé 39), **regroupées sur 2,2 pts** (plafond ~97 %), **désaccord 1er coup ≤ 10 %**. Ni marge ni complémentarité → un groupe **ne peut pas** battre le meilleur solo (97 %). *Confirme AU VRAI MOTEUR la falsification hors-échantillon du proxy (MUSCLE TEST) : le « gain » proxy était un artefact d'agents-jouets faibles & divers.*
+  - **(3) La coordination utile est DÉJÀ INTERNE** : le bench OOV natif route entre voies par fiabilité — « **n-gram ARBITRÉ OS — bascule AUTO par régime, in-lex ≈ cohorte** » (+ gap-aware). C'est la division-du-travail-par-routeur, déjà DANS une version. Un groupe externe est **redondant**.
+  - ⇒ **O1 (coordination de groupe externe) est SUBSUMÉ par l'architecture** : de vraies versions sont fortes & semblables (pas de complémentarité), et le routage utile est l'arbitrage OS interne. **O1 clos** — la prémisse « groupe > meilleur solo » ne tient pas pour de vraies versions. *(Reste théorique : une tâche hors-pendu où les versions seraient vraiment complémentaires → c'est O2, pas O1.)*
 - Littérature à checker : communication émergente multi-agents (Foerster, Lazaridou), MARL coopératif, division du travail / intelligence collective.
 
 ### 🆕 O2 — MESURE MULTI-USAGE (autre fitness que le pendu) (Rem)
