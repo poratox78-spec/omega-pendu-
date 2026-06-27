@@ -32,6 +32,7 @@ Les **3 étapes** de la feuille de route sont faites ; l'oracle de saisie a ét�
 - ✅ **Correcteur dys** (`correcteur_probe.py` + app « 🩹 Correcteur ») : détecte+corrige **sans corrigé**, **0 FP** ; 22/24 in-corpus, **12/15 held-out** (vocabulaire neuf). UI clic-pour-corriger + stade.
 - ✅ **Lexique4 reçu** → `build_cgram.py` : verbes (12 415) + genre (53 050) + **sous-ensemble HF embarqué** dans l'app.
 - ✅ **Grammaire double voie** (`GRAMMAIRE_DOUBLE_VOIE.md`) : route lexicale (cgram) + boucle **descendante** (apprend le lexique de genre, 100 % préc., FP=0, *data-bound*).
+- ✅ **Accord en genre — chiffré sur UD réel** (`dictee/gender_probe_ud.py`, 355 k mots, genre/POS gold) : genre **déterminant** (actif) = **FP 0,09/1000** (FP-sûr) · **recall 67 %** (rate les noms homographes de verbes — abstention FP-safe assumée). Genre **adjectif** (désactivé, `rule_genre_adj`) = **3,37 FP/1000** → justifié. **Un POS-tagger n'en ôterait que ~48 %** (→ 1,76/1000, encore ~20× le déterminant) : l'accord adjectival exige la **PORTÉE** (nom-tête, étendue d'accord) = du **parsing**, pas qu'un tagger. → affine « en attente d'un tagger ».
 - ❌ **FALSIFIÉ** : pendu de phrases comme levier winrate (`evo/PHRASE_HANGMAN_PROBE.md`) — banc, pas débouché.
 - ⏳ **Prochain goulot = DONNÉES** : vraies copies corrigées (orthophonistes / corpus en ligne `fetch_gec_corpus.py`) → valident le correcteur ET nourrissent la boucle descendante.
 
