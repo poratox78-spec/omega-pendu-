@@ -296,7 +296,17 @@ Le pendu a été **la** fitness unique de tout EVO → risque de **spécialisati
   - Le **« champion in-lex » (phon+cohorte) est un PIÈGE** : correct au pendu, **catastrophique en généralisation (46 %)**.
   - Sélection scalaire « in-lex » → phon+OS-arb (98,8) ; scalaire « OOV » → OS-arb+gap (73,3) : **gagnants DIFFÉRENTS**. Front de **Pareto = 3/4**.
   - ⇒ **un scalaire « pendu in-lex » est AVEUGLE à la généralisation** — exactement le risque « on ne mesure que le pendu ». La sélection P3 **doit** optimiser le **vecteur** (Pareto/pondéré), pas le scalaire. *(Caveat honnête : les absolus OOV ici, 180 mots × 2 graines, sont indicatifs/optimistes sur petit N (cf. bigN) ; le résultat est la DISSOCIATION relative, pas un nouvel absolu OOV.)*
-- ⏳ **Suite O2** : brancher ce vecteur sur la **lignée P3** (sélection multi-objectif réelle), puis élargir la suite à des usages **vraiment hors-pendu** (correcteur dys, décompo dictée, complétion) — chacun dans son harnais propre.
+- ✅ **Généralité HORS-FRANÇAIS testée (`evo_o2_crossdomain.js`, 3 graines).** *« Le mécanisme fait-il autre chose que du pendu français, sans le lexique ? »* (Rem). Le moteur est câblé Lex4+phonologie FR → on réimplémente son **substrat** (cohorte + n-gram positionnel = le moteur OOV) **domaine-agnostique**, même tâche de reconstruction, sur **FR** (mots Lex4) vs **CODE** (identifiants des `.js` du repo, jamais le monolithe, pas Lex4) vs **CODE-brouillé** (contrôle : caractères mélangés, structure détruite). Gain du mécanisme sur sa baseline fréquence :
+
+  | domaine | gain mécanisme |
+  |---|---|
+  | FR | **+7,3** |
+  | CODE | **+6,1** |
+  | CODE-brouillé | **−1,9** |
+
+  - **Le mécanisme TRANSFÈRE au code presque aussi bien qu'au français**, et son apport **s'effondre à zéro** quand la structure est détruite → ce qui généralise = le **substrat statistique** (exploitation de structure de séquence), **domaine-agnostique**, pas du français.
+  - **Ce qui NE transfère PAS** = la **cognition française** (double-route phono↔ortho) : aucun analogue sur du code (pas de son). Le « cœur général » est un **reconstructeur de séquences structurées** ; la part proprement *cognitive* (phonologie) est un spécialiste français qui ne sort pas du français. *(Cohérent avec l'audit : l'OOV est porté par l'agrégation n-gram, pas la cognition pure ≈11 %.)*
+- ⏳ **Suite O2** : brancher le vecteur in-lex/OOV sur la **lignée P3** (sélection multi-objectif réelle) ; pour une vraie SUITE multi-usage, ajouter des tâches **hors substrat-séquence** (correcteur dys, décompo dictée, complétion) — chacune son harnais.
 
 ### Reportés (déjà identifiés)
 - **O3 — Génome plus riche** : évoluer les **poids** bPC/readout, **θ=(α,β)**, **règles g2p apprises** (pas seulement les 3 seuils NEO).
