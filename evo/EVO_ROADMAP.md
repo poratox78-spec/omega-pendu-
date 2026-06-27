@@ -306,6 +306,15 @@ Le pendu a été **la** fitness unique de tout EVO → risque de **spécialisati
 
   - **Le mécanisme TRANSFÈRE au code presque aussi bien qu'au français**, et son apport **s'effondre à zéro** quand la structure est détruite → ce qui généralise = le **substrat statistique** (exploitation de structure de séquence), **domaine-agnostique**, pas du français.
   - **Ce qui NE transfère PAS** = la **cognition française** (double-route phono↔ortho) : aucun analogue sur du code (pas de son). Le « cœur général » est un **reconstructeur de séquences structurées** ; la part proprement *cognitive* (phonologie) est un spécialiste français qui ne sort pas du français. *(Cohérent avec l'audit : l'OOV est porté par l'agrégation n-gram, pas la cognition pure ≈11 %.)*
+- ✅ **Compression (`evo_o2_compression.js`, 3 graines) — « retrouver les absents = PRÉDIRE = COMPRESSER » (Shannon, idée de Rem).** Le substrat (n-gram de caractères) en modèle prédictif → bits/caractère held-out :
+
+  | domaine | ordre-0 (fréquence) | modèle n-gram | structure capturée |
+  |---|---|---|---|
+  | FR | 3,98 b | 2,97 b | **−1,01 b/car** |
+  | CODE | 4,17 b | 3,05 b | **−1,12 b/car** |
+  | CODE-brouillé | 4,17 b | 4,41 b | **+0,24 b/car (RIEN)** |
+
+  - Le substrat **compresse le code aussi bien (un peu mieux) que le français**, et **ne compresse RIEN** quand la structure est détruite (il paie même le bruit, +0,24). Version **info-théorique** du test cross-domaine, même verdict : le cœur transférable est un **compresseur de séquences structurées**, domaine-agnostique — *pas* une compréhension. (« Prédire = compresser ».)
 - ⏳ **Suite O2** : brancher le vecteur in-lex/OOV sur la **lignée P3** (sélection multi-objectif réelle) ; pour une vraie SUITE multi-usage, ajouter des tâches **hors substrat-séquence** (correcteur dys, décompo dictée, complétion) — chacune son harnais.
 
 ### Reportés (déjà identifiés)
