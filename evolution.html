@@ -40,8 +40,11 @@
   .ev-phs .p.on{border-color:var(--accent,#5b8cf6);color:#e6edf3;background:rgba(91,140,246,.14)}.ev-phs .p.on b{color:var(--accent,#5b8cf6)}
   .ev-cap{font-size:clamp(14px,2.1vw,17px);font-weight:700;color:#e6edf3;margin:0}
   .ev-sub{font-size:12.5px;color:#9aa4af;margin:3px 0 0;min-height:1.2em}
-  .ev-meta{position:absolute;top:12px;right:14px;max-width:182px;z-index:5;font-size:12px;color:#9aa4af;text-align:right;line-height:1.5}
+  .ev-meta{position:absolute;top:12px;right:14px;max-width:190px;z-index:5;font-size:12px;color:#9aa4af;text-align:right;line-height:1.5}
   .ev-meta b{color:#a3d977}
+  .ev-meta .evk{color:#7c8794;font-size:10.5px;letter-spacing:.2px}
+  #evWr{white-space:nowrap;font-size:13px}
+  #evArb{color:#b48cf6}
   .ev-live{display:inline-flex;align-items:center;gap:6px}.ev-live .dot{width:8px;height:8px;border-radius:50%;background:#555;vertical-align:middle}
   .ev-live.on .dot{background:#f47174;animation:evp 1s infinite}.ev-live.ready .dot{background:#a3d977}@keyframes evp{50%{opacity:.3}}
   .ev-ctrl{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:12px 0 2px}
@@ -88,10 +91,11 @@
       <div class="ev-pword" id="pNote">le pendu, joué par la version en cours</div>
     </div>
     <div class="ev-meta">
-      <div>génération <b id="evGen">1</b></div>
-      <div>population <b id="evPop">1</b></div>
-      <div>winrate OOV <b id="evWr">—</b></div>
-      <div class="ev-live" id="evLive"><span class="dot"></span><span id="evLiveT">moteur : —</span></div>
+      <div>génération <b id="evGen">1</b> · population <b id="evPop">1</b></div>
+      <div class="evk">winrate hors-lexique</div>
+      <div><b id="evWr">—</b></div>
+      <div class="evk" style="margin-top:3px">gène <code>arbConf</code> <b id="evArb">—</b></div>
+      <div class="ev-live" id="evLive" style="margin-top:3px"><span class="dot"></span><span id="evLiveT">moteur : —</span></div>
     </div>
     <div class="ev-hud">
       <div class="ev-phs" id="evPhs"><span class="p"><b>P1</b> se copie</span><span class="p"><b>P2</b> communiquent</span><span class="p"><b>P3</b> générations</span><span class="p"><b>O1</b> groupe</span></div>
@@ -417,11 +421,12 @@ async function liveSim(){
   const worst=()=>{ const P=breeders(); let w=P[0]; for(const I of P) if(I.wr<w.wr)w=I; return w; };
   const mut=(arb)=>Math.max(0,Math.min(0.45, arb+(Math.random()*0.12-0.045)));
   const mean=()=>Math.round(pop.reduce((s,I)=>s+I.wr,0)/pop.length);
+  const hud=()=>{ $('evWr').textContent='moy '+mean()+' % · best '+best().wr+' %'; if($('evArb'))$('evArb').textContent=best().arb.toFixed(2); };
 
   // ════ GENÈSE : au commencement, UN SEUL OMEGA, naïf (arbConf 0) — son winrate est MESURÉ par le pendu ════
   const founder=await addMember(0.0,false,1,null); founder.sphere.target=new THREE.Vector3(0,0,0);
   setPhase(0); setCap('Genèse — UN seul OMEGA ('+founder.wr+' % mesuré)','un unique OMEGA joue le pendu hors-lexique (vrai omegaStep) ; son winrate est JUGÉ en direct. Il va se copier, puis le collectif grandit et évolue — P1 → P2 → P3.');
-  pNote('au commencement : un seul OMEGA joue (winrate jugé par le pendu)'); $('evWr').textContent='moy '+mean()+' % · best '+best().wr+' %';
+  pNote('au commencement : un seul OMEGA joue (winrate jugé par le pendu)'); hud();
 
   let f=0, gen=1, nextEvt=70; const did={copy:false,souffle:false};
   while(!stop && mode==='live'){
@@ -460,7 +465,7 @@ async function liveSim(){
           w.arb=Math.round(ca*100)/100; w.gen=gen; w.wr=await evalGenome(w.arb,w.souffle); newGame(w); setAgentEvo(w.sphere, evoFromWr(w.wr)); reposition();
           setCap('P3 · générations — gén '+gen+' · sélection','la plus faible (arbConf '+oldArb+', '+oldWr+' %) remplacée par un enfant de la meilleure (arbConf '+w.arb+' → '+w.wr+' % jugé). Moyenne collectif '+mean()+' %.');
         }
-        pNote('P3 — générations : arbConf évolue, le pendu juge, le winrate monte'); setGen(gen); $('evWr').textContent='moy '+mean()+' % · best '+best().wr+' %';
+        pNote('P3 — générations : arbConf évolue, le pendu juge, le winrate monte'); setGen(gen); hud();
         if(gen%4===0 && pop.length>=4){ setPhase(3); const grp=pop.slice(-4);
           for(let a=0;a<grp.length;a++)for(let c=a+1;c<grp.length;c++) emitParticles(grp[a].sphere,grp[c].sphere,0xd8922e,2);
           setCap('O1 · travail de groupe','plusieurs versions coordonnent — exploré, mais NE TIENT PAS hors échantillon (proxy). Montré honnêtement.'); }
