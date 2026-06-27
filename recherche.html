@@ -55,7 +55,7 @@
 
   <svg viewBox="0 0 760 252" role="img" style="width:100%;height:auto;margin:12px 0" xmlns="http://www.w3.org/2000/svg">
     <title>La boucle évolutionnaire d'OMEGA</title>
-    <desc>Se reproduire (copie vérifiée), puis varier (le génome = les paramètres), puis sélectionner (la fitness du pendu), répété de génération en génération. Phases P1 se copie, P2 communiquent, P3 générations : faites ; travail de groupe et mesure multi-usage : à venir.</desc>
+    <desc>Se reproduire (copie vérifiée), puis varier (le génome = les paramètres), puis sélectionner (la fitness du pendu), répété de génération en génération. Phases P1 se copie, P2 communiquent, P3 générations : faites ; travail de groupe (O1) et mesure multi-usage (O2) : testés — O1 négatif (subsumé par l'arbitrage interne), O2 révèle un compresseur de structure domaine-agnostique.</desc>
     <defs><marker id="evah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b8cf6"/></marker></defs>
     <g>
       <rect x="75"  y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
@@ -75,9 +75,16 @@
       <rect x="20"  y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="104" y="214" fill="#e6edf3" font-weight="600">P1 · se copie</text><text x="104" y="229" fill="#a3d977" font-size="9.5">quine vérifié ✓</text>
       <rect x="204" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="288" y="214" fill="#e6edf3" font-weight="600">P2 · communiquent</text><text x="288" y="229" fill="#a3d977" font-size="9.5">langage émergent ✓</text>
       <rect x="388" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="472" y="214" fill="#e6edf3" font-weight="600">P3 · générations</text><text x="472" y="229" fill="#a3d977" font-size="9.5">meilleure version ✓</text>
-      <rect x="572" y="196" width="168" height="40" rx="9" fill="none" stroke="#d8922e" stroke-width="1.1" stroke-dasharray="5 4"/><text x="656" y="214" fill="#d8922e" font-weight="600">demain</text><text x="656" y="229" fill="#d8922e" font-size="9.5">groupe · multi-usage</text>
+      <rect x="572" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#9aa4af" stroke-width="1.1"/><text x="656" y="214" fill="#e6edf3" font-weight="600">testés</text><text x="656" y="229" fill="#9aa4af" font-size="9.5">O1 groupe · O2 multi-usage</text>
     </g>
   </svg>
+
+  <p><strong>Deux pistes plus loin, désormais testées</strong> — et l'honnêteté prime sur l'effet&nbsp;:</p>
+  <ul class="clean">
+    <li><strong>Travail de groupe (O1) — négatif, assumé.</strong> Faire coopérer plusieurs versions ne bat <em>pas</em> la meilleure seule&nbsp;: de vraies versions sont fortes et trop semblables (toutes ~97&nbsp;% en lexique, désaccord ≤ 10&nbsp;%), et le routage utile est <em>déjà</em> l'arbitrage interne du moteur. La coordination externe est <strong>subsumée par l'architecture</strong>.</li>
+    <li><strong>Mesure multi-usage (O2) — positif, et révélateur.</strong> Mesurer le seul pendu en lexique est <em>aveugle</em>&nbsp;: lexique et hors-lexique <strong>dissocient</strong> (un génome champion au pendu peut être catastrophique en généralisation). Plus profond&nbsp;: en pointant le <em>substrat</em> sur du <strong>code</strong> (sans le lexique français) et en mesurant la <strong>compression</strong> — <em>prédire = compresser</em> — il compresse le code <strong>aussi bien que le français</strong> (~1,1 bit/caractère sous le hasard) et <strong>rien</strong> sur une séquence brouillée. Le cœur transférable d'OMEGA est donc un <strong>compresseur de séquences structurées</strong>, domaine-agnostique — puissant et général, mais c'est de la <em>capture de structure</em>, <strong>pas de la compréhension</strong>.</li>
+  </ul>
+  <p class="small">Rejouable&nbsp;: <code>evo/evo_o1_real.js</code> · <code>evo_o2_multitask.js</code> · <code>evo_o2_crossdomain.js</code> · <code>evo_o2_compression.js</code> · plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
 
   <p>Mais une mutation n'est <em>utile</em> que si l'on mute le <strong>bon niveau</strong>. Muter le <em>code source</em> casse presque tout — aucune amélioration possible. Muter les <em>paramètres</em> ouvre un paysage lisse où <strong>30 %</strong> des mutations sont bénéfiques&nbsp;: c'est l'<strong>évolvabilité</strong> (Wagner &amp; Altenberg, 1996). Basculez&nbsp;:</p>
 
