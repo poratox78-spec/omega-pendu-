@@ -8,3 +8,7 @@ Lexique4.tsv.xz
 
 # bundle de test (build output, régénérable via dist/make_test_bundle.sh)
 dist/omega-correcteur-dys-test.zip
+
+# corpus UD French-GSD (hors-repo : 25 Mo ; CC BY-SA 4.0 ; re-téléchargeable depuis
+# raw.githubusercontent.com/UniversalDependencies/UD_French-GSD/master/fr_gsd-ud-train.conllu)
+data_local/
