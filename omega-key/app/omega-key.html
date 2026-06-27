@@ -3537,9 +3537,11 @@ function _relayStart(){   // tente SSE (temps réel) ; repli automatique sur le 
 }
 window.relayToggle = function(){
   if(_relayConnected()) return window.relayDisconnect()
-  const u=(document.getElementById("relay-url")?.value||"").trim()
+  let u=(document.getElementById("relay-url")?.value||"").trim()
   const r=(document.getElementById("relay-room")?.value||"").trim()
-  if(!/^https?:\/\//.test(u)){ setShareStatus("relay-status","✗ URL du relais invalide (https://…)","err"); return }
+  if(u && !/^https?:\/\//i.test(u)) u="https://"+u                 // tolère l'oubli du protocole
+  if(!/^https?:\/\/.{3,}/.test(u)){ setShareStatus("relay-status","✗ URL du relais invalide — ex. https://mon-relais.deno.dev","err"); return }
+  const _ue=document.getElementById("relay-url"); if(_ue) _ue.value=u   // reflète l'URL normalisée
   if(!/^[A-Za-z0-9_-]{3,64}$/.test(r)){ setShareStatus("relay-status","✗ Code de salon invalide (3-64 car. A-Z a-z 0-9 _ -)","err"); return }
   _relayUrl=u; _relayRoom=r
   _relayId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random())
