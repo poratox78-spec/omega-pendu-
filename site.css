@@ -26,7 +26,7 @@ small,.small{font-size:15px;color:var(--fg-2)}
 /* en-tête */
 header.top{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);
   backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:5}
-header.top .wrap{display:flex;align-items:center;gap:16px;height:58px}
+header.top .wrap{display:flex;align-items:center;flex-wrap:wrap;gap:6px 16px;min-height:58px;padding:8px 0}
 .brand{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--fg);text-decoration:none}
 .brand b{color:var(--accent)}
 header.top nav{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
