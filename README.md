@@ -16,9 +16,9 @@ dictionnaire, mais comme une **architecture cognitive** sous une contrainte fond
 |---|---|---|
 | Cognition cheat-free seule | ~90 % | sans lire le dictionnaire pour scorer une lettre |
 | **+ déclaration émergente (NEO)**, in-lexique | **97,5 % – 98,8 %** | au niveau des meilleurs solveurs lexicaux |
-| Hors-lexique (façon Trexquant), phon→ortho | **~70 %** | au niveau des bons solveurs, le mot étant *entendu* |
-| Hors-lexique **cheat-free intégral** (gap-aware, *sans* lire le son) | **~64 %** | cognition pure sur mot inédit — bande SOTA |
-| Hors-lexique, ortho seul | ~22 % | faiblesse réelle : généralisation sous-lexicale |
+| Hors-lexique — cognition seule | ≈ 11 % | ne généralise **pas** en sous-lexical |
+| Hors-lexique — orthographe sous-lexicale pure | ≈ 33 % | la vraie faiblesse (à construire : couche morpho) |
+| Hors-lexique **cheat-free** — voie **n-gram d'agrégation** (~62 %) + **gap-aware** | **≈ 64 %** | bande SOTA ; +17 pts vs n-gram naïf (cf. tête-à-tête). *Premier gain cognitif réel au-dessus du substrat statistique* |
 | Plafond oracle (lexique complet) | 98,7 % | la cible *exclue* par doctrine |
 
 > *Nuance d'honnêteté : le 97,5 % cheat-free vaut pour le **scoring-lettre** (aucun lookup dictionnaire pour choisir une lettre). La voie de déclaration « assemblée » lit le **son** du mot cible (`w.p`, prémisse « mot entendu », légitime en dictée) ; pour un cheat-free **intégral** sans aucune lecture du mot, activer la cohorte board-dérivée (rapport §17.5).*
@@ -39,7 +39,7 @@ en relançant le moteur réel **et** un étalon n-gram standalone sur le jeu ide
 |---|---|
 | Étalon n-gram (trigramme + backoff) | 46,7 % |
 | OMEGA — cohorte lexicale, held-out | 24 % |
-| **OMEGA — cognition (gap-aware), cheat-free** | **64 %** |
+| **OMEGA — agrégation n-gram + gap-aware (cheat-free)** | **64 %** |
 
 **Ce que ça valide vraiment :**
 
