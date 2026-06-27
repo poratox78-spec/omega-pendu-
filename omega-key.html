@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMEGA·KEY — messagerie chiffrée dans un seul fichier</title>
+<meta name="description" content="Messagerie chiffrée de bout en bout dans un seul fichier HTML : passphrases françaises prononçables, AES-GCM-256, Double Ratchet, chat sans copier-coller. Dérivé du moteur cognitif OMEGA-Ω, crypto WebCrypto standard.">
+<link rel="stylesheet" href="site.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html">Le correcteur</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="evolution.html">L'évolution</a>
+    <a href="omega-key.html" aria-current="page">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Lisible</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Chiffrement · messagerie</span>
+  <h1>OMEGA·KEY — une messagerie chiffrée, dans <em>un seul fichier</em>.</h1>
+  <p class="lead">Chiffrement de bout en bout : <strong>passphrases françaises prononçables</strong>, <strong>AES-GCM-256</strong>, <strong>Double Ratchet</strong> (forward secrecy + post-compromission), et un <strong>chat sans copier-coller</strong> via un relais minimal. Aucune dépendance, aucun serveur propriétaire obligatoire — un fichier HTML qui marche hors-ligne.</p>
+  <div class="cta">
+    <a class="btn primary" href="omega-key/app/omega-key.html">Ouvrir l'app →</a>
+    <a class="btn ghost" href="omega-key/docs/RAPPORT_MODE_EMPLOI.html">Mode d'emploi</a>
+  </div>
+  <p class="note">⚠️ Projet <strong>expérimental, non audité</strong>. Pour de vrais secrets critiques, utilise un outil audité (Signal). Ici tout est <strong>honnête et vérifiable</strong> : crypto standard WebCrypto, tests en CI, réserves documentées noir sur blanc.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>L'idée</h2>
+  <p>OMEGA·KEY est le <strong>dérivé applicatif</strong> du moteur cognitif OMEGA-Ω. OMEGA fournit l'<strong>identité et l'entropie</strong> — l'espace sémantique partagé, les passphrases prononçables ; <strong>toute la cryptographie repose sur la WebCrypto standard</strong> du navigateur, <em>aucun algorithme maison</em>. Le saut : passer d'une clé purement « algorithmique » à une clé ancrée dans un <strong>langage cognitif partagé</strong>.</p>
+
+  <h2>Comment ça marche — 3 étapes</h2>
+  <div class="grid">
+    <div class="card"><span class="ico">🔑</span><h3>1 · Une clé partagée</h3><p>Les deux côtés entrent la <strong>même passphrase</strong> (+ le même sel). PBKDF2-SHA256, 310 000 itérations, dérive la <strong>même clé AES-256</strong> des deux côtés — <strong>sans jamais la transmettre</strong>. Empreinte vérifiable de part et d'autre.</p></div>
+    <div class="card"><span class="ico">💬</span><h3>2 · On discute</h3><p>Un fil de bulles, chiffré de bout en bout. Sans liaison, le chiffré se <strong>copie tout seul</strong> (à transmettre par n'importe quel canal). Avec le relais, les messages circulent <strong>automatiquement</strong>.</p></div>
+    <div class="card"><span class="ico">🔗</span><h3>3 · Ça s'auto-protège</h3><p><strong>Double Ratchet</strong> (ECDH P-256) : chaque message renouvelle la clé → <strong>forward secrecy</strong> (le passé reste sûr si une clé fuite) <strong>+ post-compromission</strong> (auto-guérison). Un <strong>numéro de sécurité</strong> se compare hors-bande contre un intercepteur.</p></div>
+  </div>
+
+  <h2>Ce qu'il y a dedans</h2>
+  <ul class="clean">
+    <li><strong>Passphrases FR prononçables</strong> — mots réels (12 bits/mot) ou pseudo-mots phonotactiques, entropie exacte <em>sans biais modulo</em>, tirée de la vraie aléa WebCrypto. La phrase <em>est</em> la clé.</li>
+    <li><strong>AES-GCM-256</strong> — chiffrement authentifié : confidentialité + intégrité (tag GCM).</li>
+    <li><strong>Double Ratchet DH</strong> — ECDH P-256, forward secrecy + post-compromission, numéro de sécurité anti-MITM.</li>
+    <li><strong>Relais minimal</strong> (Deno Deploy, gratuit, ~2 min) — transport éphémère qui ne voit <strong>jamais</strong> le clair, seulement du chiffré.</li>
+    <li><strong>Historique chiffré au repos</strong> — AES-GCM, clé dérivée de la passphrase ; reprise locale au rechargement.</li>
+  </ul>
+
+  <h2>Honnêteté — la sécurité, sans bluff</h2>
+  <div class="promise">
+    <p><strong>Protégé</strong> : le contenu est chiffré E2E (AES-GCM-256 + Ratchet DH → forward secrecy + post-compromission), intégrité par tag GCM. Le relais ne voit <strong>jamais</strong> le clair.</p>
+    <p><strong>Réserves assumées</strong> : le relais voit des <em>métadonnées</em> (salon, horaires, tailles) → auto-héberge-le ; le code de salon est une <em>adresse</em>, pas un secret ; la passphrase doit transiter par un canal sûr séparé ; le numéro de sécurité se compare hors-bande contre un MITM ; <strong>projet non audité</strong> — pour l'essentiel, Signal.</p>
+  </div>
+  <p class="small">Détails&nbsp;: <code>omega-key/docs/RAPPORT_MODE_EMPLOI.html</code> · <code>docs/MEMOIRE_TECHNIQUE.md</code>. Crypto <strong>testée en CI</strong> (<code>test_crypto.js</code>, 37 assertions&nbsp;: entropie, round-trip AES-GCM, KAT Double Ratchet, numéro de sécurité).</p>
+
+  <div class="cta"><a class="btn primary" href="omega-key/app/omega-key.html">Ouvrir OMEGA·KEY →</a></div>
+  <p><a class="btn ghost" href="index.html">← Retour à l'accueil</a></p>
+</div></section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <p><a href="index.html">Le correcteur</a> · <a href="recherche.html">La recherche</a> · <a href="evolution.html">L'évolution</a> · <a href="omega-key.html">OMEGA·KEY</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Code source</a></p>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+</script>
+</body>
+</html>
