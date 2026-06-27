@@ -10,40 +10,28 @@
 /* ── RESET & BASE ─────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:    #010810;
-  --bg2:   #020d18;
-  --bg3:   #030f1e;
-  --cyan:  #00d4ff;
-  --green: #00ff9f;
-  --amber: #ffaa00;
-  --red:   #ff3355;
-  --dim:   #163848;
-  --muted: #3d6878;
-  --text:  #7ec8dc;
-  --hi:    #c8e8f8;
+  /* palette alignée sur le site OMEGA·Ω (site.css) — noms conservés pour ne pas casser les règles */
+  --bg:    #0d1117;
+  --bg2:   #161b22;
+  --bg3:   #1c232c;
+  --cyan:  #5b8cf6;   /* = accent site (bleu) */
+  --green: #a3d977;   /* = accent-2 site */
+  --amber: #d8922e;   /* = warn site */
+  --red:   #f47174;   /* = bad site */
+  --dim:   #2a323c;   /* = lignes site */
+  --muted: #9aa4af;   /* = fg-2 site (lisible) */
+  --text:  #e6edf3;   /* = fg site */
+  --hi:    #ffffff;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono: ui-monospace,"SF Mono",Consolas,"IBM Plex Mono",monospace;
 }
 html,body{
   background:var(--bg); color:var(--text);
-  font-family:'IBM Plex Mono',monospace; font-size:11px;
-  min-height:100vh; overflow-x:hidden;
+  font-family:var(--sans); font-size:15px; line-height:1.55;
+  min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
 }
-
-/* Scanlines overlay */
-body::before{
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent, transparent 2px,
-    rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px
-  );
-}
-/* Grain */
-body::after{
-  content:''; position:fixed; inset:0; pointer-events:none; z-index:998;
-  opacity:.03;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px 200px;
-}
+/* (scanlines + grain retirés — lisibilité) */
 
 /* ── LAYOUT ───────────────────────────────────────────── */
 .shell{max-width:860px;margin:0 auto;padding:24px 16px}
@@ -379,6 +367,53 @@ input.share-input{height:36px}
 .btn-rst:hover{border-color:var(--text);color:var(--text)}
 .spd-label{font-size:9px;color:var(--muted);white-space:nowrap}
 input[type=range]{accent-color:var(--cyan);width:70px}
+
+/* ════════ ALIGNEMENT THÈME SITE OMEGA·Ω + LISIBILITÉ (refonte) ════════ */
+/* lisibilité : remonter les tailles minuscules (styles INLINE compris, via !important) */
+[style*="font-size:7px"]{font-size:11px!important}
+[style*="font-size:8px"]{font-size:12px!important}
+[style*="font-size:9px"]{font-size:12.5px!important}
+[style*="font-size:10px"]{font-size:13px!important}
+.ptitle,.kb-title,.key-status,.opt-toggle,.share-title,.enc-label,.enc-role,.chat-mode,.bf-title,.share-tab,.key-title,.logo-sub,.ver,.spd-label,.share-label,.ent-k,.ac-l,.btn-ctrl,.btn-share,.btn-enc,.btn-copy{font-size:12.5px!important;letter-spacing:.6px!important}
+.share-desc,.mrow,.bf-row,.bf-log,.log-panel,.gauge-meta,.key-qlabel,.pbkdf-strength,.chat-meta,.chat-empty,.ent-row,.bf-k,.bf-v,.mk,.mv{font-size:13px!important;letter-spacing:.2px!important;line-height:1.6!important}
+.key-hex,.hex-display,.key-fp,.pw-word{font-size:13px!important;font-family:var(--mono)!important}
+
+/* titres en serif (style site) */
+.ptitle,.bf-title,.key-title,.share-title,.kb-title,.logo{font-family:var(--serif)!important;color:var(--text)!important;font-weight:600;text-transform:none}
+.logo{font-size:25px!important;letter-spacing:1px!important;font-weight:700;text-decoration:none}
+.ptitle{border-left:3px solid var(--cyan)}
+.bf-title{color:var(--red)!important;border-left:3px solid var(--red)}
+
+/* panneaux → cartes du site (arrondi, contraste) */
+.panel,.key-panel,.share-panel,.bf-panel,.log-panel,.key-block,.chat-cipher-wrap{border-radius:14px!important;background:var(--bg2)!important;border:1px solid var(--dim)!important;overflow:visible}
+.key-block,.hex-display,.chat-thread{background:var(--bg3)!important}
+.key-panel,.share-panel{border-color:var(--dim)!important}
+.bf-panel{border-color:rgba(244,113,116,.45)!important}
+.key-panel::before{display:none}
+
+/* boutons → style site (arrondi, lisible, sans) */
+.btn-ctrl,.opt-toggle,.btn-generate,.btn-share,.btn-enc,.btn-copy,.chat-btn,.btn-bf{border-radius:10px!important;font-family:var(--sans)!important;font-weight:600;min-height:38px;transition:filter .15s,background .15s}
+.btn-generate,.chat-send,.chat-btn,.btn-bf{font-size:15px!important;letter-spacing:.3px!important}
+.btn-generate:not(:disabled){background:var(--cyan)!important;color:#0d1117!important;border:1px solid transparent!important}
+.btn-generate:not(:disabled):hover{filter:brightness(1.08);box-shadow:none}
+.chat-send{border-radius:10px!important;background:var(--cyan)!important;color:#0d1117!important;border:1px solid transparent!important}
+.opt-toggle.on{background:color-mix(in srgb,var(--amber) 18%,transparent)!important}
+.share-tab{border-radius:10px 10px 0 0!important;min-height:auto;font-family:var(--sans)!important}
+
+/* saisies lisibles */
+.chat-input,.chat-recv-input,.share-input,textarea.enc,#master-seed-input,.key-hex{color:var(--text)!important;border-radius:10px!important;font-family:var(--mono)!important;background:var(--bg3)!important}
+.chat-input,.chat-bubble{font-size:15px!important}
+.chat-bubble.out{background:color-mix(in srgb,var(--cyan) 15%,transparent)!important;border-color:color-mix(in srgb,var(--cyan) 42%,transparent)!important;color:var(--text)!important}
+.chat-bubble.in{background:var(--bg3)!important;border-color:var(--dim)!important;color:var(--text)!important}
+input[type=range]{accent-color:var(--cyan)}
+
+/* ── DEUX SURFACES co-égales : outil d'abord, moteur ensuite, sécurité en bas ── */
+.shell{display:flex;flex-direction:column;max-width:900px}
+.header{order:0;align-items:center}
+.surface-tool{order:1}.surface-cog{order:2}.surface-attack{order:3}
+.surface-head{font-family:var(--serif);font-size:23px;color:var(--text);margin:32px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--dim);display:flex;align-items:baseline;gap:11px}
+.surface-head .s-ico{font-size:20px;align-self:center}
+.surface-head small{font-family:var(--sans);font-size:14px;color:var(--muted);font-weight:400;letter-spacing:0}
 </style>
 </head>
 <body>
@@ -386,11 +421,14 @@ input[type=range]{accent-color:var(--cyan);width:70px}
 
   <div class="header">
     <div>
-      <div class="logo">OMEGA·KEY</div>
+      <a class="logo" href="../../omega-key.html">OMEGA·KEY</a>
       <div class="logo-sub">BEHAVIORAL PUF — COGNITIVE KEY GENERATOR</div>
     </div>
     <div class="ver">v0.17 · Sécurité durcie : sel aléatoire, anti-rejeu, anti-usurpation · Double Ratchet DH · Passphrase FR</div>
   </div>
+
+  <div class="surface surface-cog">
+  <div class="surface-head"><span class="s-ico">🧠</span> Le moteur cognitif <small>la source d'entropie</small></div>
 
   <!-- Controls -->
   <div class="ctrl-row">
@@ -446,6 +484,11 @@ input[type=range]{accent-color:var(--cyan);width:70px}
   </div>
 
   <!-- v0.7-phase1 : MASTER SEED PANEL ───────────────────────── -->
+  </div><!-- /surface-cog -->
+
+  <div class="surface surface-tool">
+  <div class="surface-head"><span class="s-ico">🔐</span> L'outil <small>générer une clé · chiffrer · discuter</small></div>
+
   <div class="key-panel" style="border-color:#f5a;margin-bottom:12px">
     <div class="key-header">
       <div class="key-title" style="color:#f5a">◈ MASTER SEED — ESPACE SÉMANTIQUE SECRET</div>
@@ -808,6 +851,11 @@ input[type=range]{accent-color:var(--cyan);width:70px}
     </div>
   </div>
 
+  </div><!-- /surface-tool -->
+
+  <div class="surface surface-attack">
+  <div class="surface-head"><span class="s-ico">🛡️</span> Sécurité <small>simulation d'attaque · journal</small></div>
+
   <!-- BRUTE FORCE PANEL -->
   <div class="bf-panel">
     <div class="bf-title">⚔ SIMULATION D'ATTAQUE — ANALYSE SÉCURITÉ BPUF</div>
@@ -820,6 +868,7 @@ input[type=range]{accent-color:var(--cyan);width:70px}
 
   <div class="log-panel" id="log"></div>
 
+  </div><!-- /surface-attack -->
 </div><!-- /shell -->
 
 <script type="module">
