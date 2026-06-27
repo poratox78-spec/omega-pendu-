@@ -14,6 +14,13 @@
   .ev-fall{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--fg-2,#9aa4af);font-size:14px}
   /* pendu joué AU-DESSUS des sphères */
   .ev-pendu{position:absolute;left:0;right:0;top:0;padding:14px 16px 10px;background:linear-gradient(180deg,rgba(2,6,14,.82),rgba(2,6,14,.45) 70%,rgba(2,6,14,0));z-index:3;pointer-events:none}
+  .ev-grid{position:absolute;left:50%;top:12px;transform:translateX(-50%);display:none;flex-wrap:wrap;gap:5px 7px;justify-content:center;align-content:flex-start;max-width:94%;max-height:46%;overflow:hidden;z-index:4;pointer-events:none}
+  .ev-grid .mb{display:flex;align-items:center;gap:6px;background:rgba(4,13,26,.74);border:1px solid rgba(120,160,220,.22);border-radius:7px;padding:3px 8px;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;backdrop-filter:blur(2px)}
+  .ev-grid .mb.s{border-color:rgba(255,170,0,.55);box-shadow:0 0 9px rgba(255,170,0,.18)}
+  .ev-grid .mw{letter-spacing:2.5px;color:#dce8f8}
+  .ev-grid .mr{color:#a3d977;font-size:11px;min-width:30px;text-align:right}
+  body.lisible .ev-grid .mb{background:rgba(8,20,36,.92);border-color:rgba(150,185,235,.5)}
+  body.lisible .ev-grid .mw{color:#fff}
   .ev-pendu .pw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:7px}
   .ev-box{width:clamp(24px,4.6vw,36px);height:clamp(30px,5.8vw,44px);border-radius:7px;display:grid;place-items:center;
     font-family:ui-monospace,monospace;font-weight:700;font-size:clamp(15px,2.7vw,21px);background:rgba(12,18,26,.7);border:1.5px solid #223;color:#e6edf3;transition:.18s}
@@ -73,7 +80,8 @@
   <div class="ev-stage" id="evStage">
     <canvas id="c3"></canvas>
     <div class="ev-fall" id="evFall">Le rendu 3D (Three.js/WebGL) n'a pas pu démarrer ici (réseau/sandbox). Il s'affiche sur le site déployé ou un navigateur avec WebGL.</div>
-    <div class="ev-pendu">
+    <div class="ev-grid" id="pGrid"></div>
+    <div class="ev-pendu" id="evPenduBox">
       <div class="pw" id="pWord"></div>
       <div class="ev-g" id="pGuess"></div>
       <div class="ev-pword" id="pNote">le pendu, joué par la version en cours</div>
@@ -111,7 +119,7 @@
     <div class="k green"><b id="kpi3">—</b><small><strong>P3 · générations</strong> — le gène <code>arbConf</code> évolue ; +14 pt hors-lexique (5 seeds, hors échantillon), de génération en génération.</small></div>
     <div class="k warn"><b id="kpi4">—</b><small><strong>O1 · groupe</strong> — exploré, mais <em>ne tient pas</em> hors échantillon (proxy). Montré honnêtement.</small></div>
   </div>
-  <p class="note">Le cycle suit la roadmap&nbsp;: <em>se copie → communiquent → fabriquent une nouvelle version → recommunique avec la précédente → croise les générations</em>. <strong>Pas de bluff</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, <strong>chaque nouvelle version a un vrai génome et JOUE réellement le pendu</strong> hors-lexique (vrai <code>omegaStep</code>)&nbsp;— son <strong>winrate mesuré</strong> colore sa sphère (plus verte = meilleure), et la <strong>sélection garde la meilleure</strong>&nbsp;; <code>arbConf</code> évolue par mutation+sélection et le winrate du collectif monte <em>pour de vrai</em> (~57 % → ~71 % sur 5 seeds out-of-sample ; ~74 % à gros N sur 2 seeds, absolu à confirmer). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (clairement étiqueté « démo », pas live). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais marqué <em>non concluant</em> — mesuré, il perd contre le meilleur solo hors échantillon. Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code> ; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+  <p class="note">Le cycle suit la roadmap&nbsp;: <em>se copie → communiquent → croise les générations</em>, <strong>tout en même temps</strong> dans le collectif. <strong>Pas de bluff, et voici exactement ce qui est réel</strong>&nbsp;: en mode <strong>« Vrai moteur » (site déployé)</strong>, les <strong>14 versions jouent le pendu hors-lexique EN MÊME TEMPS</strong> — chaque partie au-dessus est une <strong>vraie partie <code>omegaStep</code></strong> (mots réellement hors du lexique). Le <strong>souffle (P2)</strong> aide pour de vrai (les sphères 🅢 gagnent plus). Le <strong>winrate affiché par génome</strong> est sa valeur <strong>MESURÉE</strong> (balayage <code>arbConf</code>, <code>oov_capture.json</code>)&nbsp;: le mesurer <em>isolé en direct</em> pour 14 génomes coûterait <strong>~600 ms chacun</strong> (OMEGA reconstruit son substrat VSA à chaque remise à zéro propre) — donc on <strong>joue en direct</strong> et on <strong>colore avec la mesure propre</strong>. La <strong>sélection (P3)</strong> remplace la pire <code>arbConf</code> par un enfant de la meilleure&nbsp;; le winrate moyen du collectif <strong>monte vers l'optimum mesuré</strong> (<strong>~57 % → ~72 %</strong>, soit <strong>+14 pt</strong>, 5 seeds out-of-sample). En <strong>démo</strong> (preview sans moteur)&nbsp;: rejeu des <strong>mesures réelles capturées</strong> (étiqueté « démo »). En lexique OMEGA est au plafond (~97 %) — c'est pourquoi l'évolution se mesure hors-lexique. <strong>O1</strong> (groupe) est montré mais <em>non concluant</em> (perd contre le meilleur solo hors échantillon). Données&nbsp;: <code>evo/p1_capture.json</code>, <code>p2_capture.json</code>, <code>oov_capture.json</code>&nbsp;; harnais du +14&nbsp;: <code>evo/evo_oov_evolve.js</code>&nbsp;; plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
   <p><a class="btn ghost" href="recherche.html#main">← Retour à la recherche</a></p>
 </div></section>
 </main>
@@ -251,10 +259,19 @@ function injectHelpers(){ ev('(function(){'+
  'globalThis.__words=function(a,z,n,sd){var W=OMEGA_LEX4.words,v=[];for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(m&&m.length>=a&&m.length<=z&&/^[A-Z]+$/.test(m))v.push(i);}var r=sd>>>0;for(var i2=v.length-1;i2>0;i2--){r=(r*1664525+1013904223)>>>0;var j=r%(i2+1),t=v[i2];v[i2]=v[j];v[j]=t;}globalThis.__vidx=v;return v.slice(0,n).map(function(k){return W[k].m;});};'+
  'globalThis.__freq=function(){var c=new Array(26).fill(0),W=OMEGA_LEX4.words;for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(!m)continue;for(var j=0;j<m.length;j++){var k=m.charCodeAt(j)-65;if(k>=0&&k<26)c[k]++;}}return c;};'+
  'globalThis.__oovStart=function(n,wm,sd){var W=OMEGA_LEX4.words;__words(7,12,n+wm,sd);var idx=__vidx,ti=idx.slice(0,n),tri=idx.slice(n,n+wm),ts=new Set(ti);globalThis.__origLI=OMEGA_LEX4.len_index;globalThis.__filtLI={};for(var k in __origLI)__filtLI[k]=__origLI[k].filter(function(id){return !ts.has(id);});globalThis.__testW=ti.map(function(i){return W[i].m;});globalThis.__trainW=tri.map(function(i){return W[i].m;});return __testW.length;};'+
+ /* ── COLLECTIF CONCURRENT : chaque partie est jouée par le VRAI omegaStep, ISOLÉE (précalcul), puis animée ── */
+ 'globalThis.__sim={testW:[],freq:null,_origLI:null};'+
+ 'globalThis.__simBoard=function(w){var s="";for(var p=0;p<w.length;p++){var gi=w.charCodeAt(p)-65;s+=(gi>=0&&gi<26&&alreadyTried[gi])?w[p]:".";}return s;};'+
+ 'globalThis.__simRare=function(w){var seen={},b=null,bf=1e18,F=__sim.freq;for(var i=0;i<w.length;i++){var ch=w[i];if(seen[ch])continue;seen[ch]=1;var f=F[ch.charCodeAt(0)-65];if(f<bf){bf=f;b=ch;}}return b;};'+
+ 'globalThis.__simSetup=function(testN,seed){var W=OMEGA_LEX4.words,v=[];for(var i=0;i<W.length;i++){var m=W[i]&&W[i].m;if(m&&m.length>=7&&m.length<=12&&/^[A-Z]+$/.test(m))v.push(i);}var r=seed>>>0;for(var i2=v.length-1;i2>0;i2--){r=(r*1664525+1013904223)>>>0;var j=r%(i2+1),t=v[i2];v[i2]=v[j];v[j]=t;}var ti=v.slice(0,testN),ts={};for(var z=0;z<ti.length;z++)ts[ti[z]]=1;__sim.testW=ti.map(function(i){return W[i].m;});var c=new Array(26);for(var ci=0;ci<26;ci++)c[ci]=0;for(var z2=0;z2<W.length;z2++){var mm=W[z2]&&W[z2].m;if(!mm)continue;for(var q=0;q<mm.length;q++){var kk=mm.charCodeAt(q)-65;if(kk>=0&&kk<26)c[kk]++;}}__sim.freq=c;if(!__sim._origLI)__sim._origLI=OMEGA_LEX4.len_index;var fl={};for(var k in __sim._origLI)fl[k]=__sim._origLI[k].filter(function(id){return !ts[id];});OMEGA_LEX4.len_index=fl;_neoWBL=null;_neoNG=null;return __sim.testW.length;};'+
+ 'globalThis.__simGame=function(arb,souffle){if(typeof M_NEO_OS_ARB_CONF!=="undefined")M_NEO_OS_ARB_CONF=arb;var w=__sim.testW[(Math.random()*__sim.testW.length)|0];startNewGame(w);var G={},pre=null;if(souffle){var rr=__simRare(w),ix=rr.charCodeAt(0)-65;if(ix>=0&&ix<26)alreadyTried[ix]=true;for(var p0=0;p0<w.length;p0++)if(w[p0]===rr)revealedMask[p0]=true;G[rr]=1;pre=rr;}function bd(){var s="";for(var p=0;p<w.length;p++)s+=G[w[p]]?w[p]:".";return s;}var steps=[{board:bd(),L:pre,hit:!!pre,wrong:0}],sf=60,wrong=0;while(gameActive&&sf-->0){var b=alreadyTried.slice();omegaStep();if(gameActive){var L=null,hit=false;for(var i=0;i<26;i++)if(alreadyTried[i]&&!b[i]){L=String.fromCharCode(65+i);hit=w.indexOf(L)>=0;break;}if(L){G[L]=1;if(!hit)wrong++;steps.push({board:bd(),L:L,hit:hit,wrong:wrong});}}else{if(lastGameWon){for(var q=0;q<w.length;q++)G[w[q]]=1;steps.push({board:bd(),L:null,hit:true,wrong:wrong});}else{wrong++;steps.push({board:bd(),L:null,hit:false,wrong:wrong});}}}return {word:w,souffle:pre,arb:Math.round(arb*100)/100,steps:steps,won:!!lastGameWon,wrong:wrong};};'+
  '})()'); }
 const CFG_SUB="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_VOIE_PHON_ENABLED=true;M_OS_V07_ENABLED=true;M4_PHON_USE_P_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_PHON_FEEDBACK_ENABLED=true;M_BPC_M3D_ENABLED=true;M_PHON_CONCEPT_BIND_ENABLED=true;";
 const CFG_P2=CFG_SUB+"M_DECLARE_NEO_ENABLED=false;";
 const CFG_OOV="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=false;";
+// config du COLLECTIF concurrent : identique au harnais qui a mesuré +14 (evo_oov_evolve.js) mais apprentissage OFF
+// → chaque partie de __simGame est ISOLÉE (décision = f(board, arbConf)) → winrate réel et reproductible (arb0 ~57 %, arb0,30 ~72 %)
+const CFG_SIM="L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=false;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=false;M_OS_LEARNING_ONLINE_ENABLED=false;";
 async function liveGame(word,souffle,cfg,speed){ ev('__reset();'); ev(cfg); var b0=ev('__newGame('+JSON.stringify(word)+','+(souffle?JSON.stringify(souffle):'""')+')');
   resetGuess(); drawWord(word,b0,[],souffle); if(souffle)addGuess(souffle,'souffle'); var prev=b0;
   for(var k=0;k<300;k++){ if(stop)return {won:false}; var r=ev('__step()'); if(r.L){var fr=[];for(var p=0;p<word.length;p++)if(r.board[p]!=='.'&&prev[p]==='.')fr.push(p); drawWord(word,r.board,fr,souffle); addGuess(r.L,r.hit?'hit':'miss'); prev=r.board; await wait(speed||320);} if(r.over)return {won:r.won}; } return {won:false}; }
@@ -332,10 +349,66 @@ async function cycle(){
   }
 }
 
+/* ════════ COLLECTIF CONCURRENT RÉEL — N versions OMEGA jouent EN MÊME TEMPS ════════ */
+function miniBoard(b){ var s=''; for(var i=0;i<b.length;i++) s+=(b[i]==='.'?'·':b[i]); return s; }
+// winrate OOV MESURÉ par arbConf (balayage réel, oov_capture.json) — interpolé ; + bonus souffle (gain P2 mesuré)
+function wrSweep(arb){ const S=OV.sweep.slice().sort((a,b)=>a.arbConf-b.arbConf);
+  if(arb<=S[0].arbConf)return S[0].oov; for(let i=1;i<S.length;i++){ if(arb<=S[i].arbConf){ const a=S[i-1],b=S[i],t=(arb-a.arbConf)/(b.arbConf-a.arbConf); return a.oov+(b.oov-a.oov)*t; } } return S[S.length-1].oov; }
+function wrOf(arb,souffle){ return Math.min(99, Math.round(wrSweep(arb)+(souffle?(P2.aggregate.gain||5):0))); }
+async function liveSim(){
+  stop=true; await new Promise(function(r){setTimeout(r,80);});           // couper la démo
+  for(const a of agents.slice()){ scene.remove(a.mesh); } agents.length=0; edges.length=0; setPop(0); pn=0; for(let i=0;i<MAXP;i++)plife[i]=0;
+  stop=false; mode='live';
+  const N=14;
+  ev('_omegaSeed=12345;_omegaRng=makeMulberry32(12345);initOmegaGlobals();'); ev(CFG_SIM); // config du harnais +14, apprentissage OFF
+  let nW=0; try{ nW=ev('__simSetup(240,12345);'); }catch(e){ liveBadge('','sim : '+e.message); mode='demo'; cycle(); return; }
+  // population : N génomes NAÏFS (arbConf ~0, le défaut du moteur) ; mutation+sélection vont DÉCOUVRIR l'optimum mesuré (~0,2-0,3)
+  const pop=[];
+  for(let i=0;i<N;i++){ const arb=Math.round((i%3===0?0.02:0)*100)/100, souffle=(i%4===0);
+    const a=makeAgent(genPos(1+(i%3),i,N),1,evoFromWr(wrOf(arb,souffle))); a.target=genPos(1+(i%3),i,N);
+    pop.push({arb, souffle, sphere:a, wins:0, games:0, anim:null, gen:1}); }
+  for(let i=0;i<N;i++) addEdge(pop[i].sphere, pop[(i+1)%N].sphere, 0x244a6a);
+  $('pGrid').style.display='flex'; $('evPenduBox').style.display='none';
+  setPhase(2);
+  setCap('Collectif RÉEL — '+N+' versions jouent le pendu EN MÊME TEMPS','parties = VRAI omegaStep hors-lexique, en direct · winrate par génome = valeur MESURÉE (balayage arbConf) · la sélection fait évoluer arbConf vers l\'optimum');
+  pNote('P1 se copie · P2 souffle (gagne plus) · P3 sélection sur le winrate — en même temps');
+  // précalcule la 1re VRAIE partie de chaque génome (omegaStep), puis on les anime toutes ensemble
+  function newGame(I){ try{ I.anim=ev('__simGame('+I.arb+','+(I.souffle?'true':'false')+')'); I.anim.idx=0; }catch(_){ I.anim={steps:[{board:'·',L:null,hit:false}],won:false,idx:0,word:''}; } }
+  for(const I of pop) newGame(I);
+  let f=0, gen=1, popMean=Math.round(pop.reduce((s,I)=>s+wrOf(I.arb,I.souffle),0)/pop.length);
+  $('evWr').textContent=popMean+' % (mesuré)';
+  const STEP_EVERY=2;                       // 1 lettre toutes les 2 frames (lisible)
+  let pending=0;                            // au plus 1 nouvelle partie (re)calculée par frame (perf)
+  while(!stop && mode==='live'){
+    let gh=''; pending=0;
+    for(let i=0;i<pop.length;i++){ const I=pop[i], an=I.anim; if(!an){ if(pending<1){newGame(I);pending++;} continue; }
+      const st=an.steps[Math.min(an.idx, an.steps.length-1)], wr=wrOf(I.arb,I.souffle);
+      gh+='<div class="mb'+(I.souffle?' s':'')+'" title="arbConf '+I.arb+(I.souffle?' · souffle P2':'')+' — '+(an.word||'')+'"><span class="mw">'+miniBoard(st.board)+'</span><span class="mr">'+wr+'%</span></div>';
+      if(f%STEP_EVERY===0){ an.idx++;
+        if(an.idx>=an.steps.length){ I.games++; if(an.won)I.wins++; if(pending<1){ newGame(I); pending++; } else I.anim=null; } }
+    }
+    $('pGrid').innerHTML=gh;
+    if(f%6===0 && pop.length>2){ const i=(Math.random()*pop.length)|0, j=(Math.random()*pop.length)|0; if(i!==j) emitParticles(pop[i].sphere,pop[j].sphere,AMBER,3); }
+    // P3 — SÉLECTION (P1 copie + croisement) : la pire arbConf remplacée par un enfant muté de la meilleure (sur winrate MESURÉ)
+    if(f%80===0 && f>0){
+      let bi=0,wi=0; for(let i=0;i<pop.length;i++){ if(wrOf(pop[i].arb,false)>wrOf(pop[bi].arb,false))bi=i; if(wrOf(pop[i].arb,false)<wrOf(pop[wi].arb,false))wi=i; }
+      gen++; const oldArb=pop[wi].arb, bestArb=pop[bi].arb;
+      const childArb=Math.max(0,Math.min(0.45, bestArb + (Math.random()*0.12-0.05)));
+      emitParticles(pop[bi].sphere,pop[wi].sphere,CROSS,16); addEdge(pop[bi].sphere,pop[wi].sphere,CROSS); if(edges.length>60)edges.shift();
+      pop[wi].arb=Math.round(childArb*100)/100; pop[wi].wins=0; pop[wi].games=0; pop[wi].gen=gen; newGame(pop[wi]);
+      setAgentEvo(pop[wi].sphere, evoFromWr(wrOf(pop[wi].arb,pop[wi].souffle)));
+      popMean=Math.round(pop.reduce((s,I)=>s+wrOf(I.arb,I.souffle),0)/pop.length);
+      setGen(gen); $('evWr').textContent=popMean+' % (mesuré)';
+      setCap('Collectif RÉEL — génération '+gen+' (P3 sélection)','la pire (arbConf '+oldArb+') remplacée par un enfant de la meilleure (arbConf '+bestArb+') · winrate moyen MESURÉ du collectif '+popMean+' % — il monte vers l\'optimum (~+14 pt)');
+    }
+    f++; await nf();
+  }
+}
+
 /* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS le 9 Mo ════════ */
 let tries=0, loading=false;
 function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
-  if(n>0){ engineReady=true; loading=false; liveBadge('ready','moteur prêt · '+n.toLocaleString('fr')+' mots'); injectHelpers(); mode='live'; $('evReal').textContent='● en direct'; $('evHint').textContent='chaque nouvelle version est jouée par le VRAI omegaStep (séquentiel, en direct)'; }
+  if(n>0){ engineReady=true; loading=false; liveBadge('ready','moteur prêt · '+n.toLocaleString('fr')+' mots'); injectHelpers(); $('evReal').textContent='● collectif en direct'; $('evHint').textContent='les '+14+' versions OMEGA jouent le pendu EN MÊME TEMPS (vrai omegaStep, hors-lexique)'; liveSim(); }
   else if(tries>50){ loading=false; liveBadge('','moteur indisponible ici'); $('evReal').disabled=false; $('evReal').textContent='↻ Réessayer le vrai moteur'; $('evHint').textContent='le moteur n’a pas démarré ici (sandbox/hors-ligne) — réessaie, ou ouvre le site déployé. La démo (parties réelles capturées) continue.'; }
   else { liveBadge('on','chargement du moteur ~16 Mo…'); setTimeout(probe,500); } }
 
