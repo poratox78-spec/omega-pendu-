@@ -125,6 +125,8 @@
   try{if(localStorage.getItem(k))set(true);}catch(e){}
   t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
 if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+/* 🥚 easter egg caché : code Konami (↑ ↑ ↓ ↓ ← → ← → B A) → le jeu « Pendable » (un pendu croisé d'une autre vie) */
+(function(){var s=[38,38,40,40,37,39,37,39,66,65],i=0;addEventListener('keydown',function(e){i=(e.keyCode===s[i])?i+1:(e.keyCode===s[0]?1:0);if(i===s.length){i=0;location.href='pendable.html';}});})();
 </script>
 </body>
 </html>
