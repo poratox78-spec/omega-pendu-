@@ -892,10 +892,13 @@ const byId=Object.fromEntries(links.map(a=>[a.dataset.id,a]));
 const obs=new IntersectionObserver((es)=>{
   es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));
     const a=byId[e.target.id];if(a){a.classList.add('active');
-      /* only nudge the TOC on desktop; on mobile the drawer is off-canvas and
-         scrollIntoView would yank the whole page backwards */
-      if(window.innerWidth>880){const r=a.getBoundingClientRect(),pr=toc.getBoundingClientRect();
-        if(r.top<pr.top||r.bottom>pr.bottom)a.scrollIntoView({block:'nearest'});}
+      /* keep the active link visible by scrolling ONLY the #aside container — NEVER
+         scrollIntoView: it scrolls every scrollable ancestor up to the window, and at
+         the bottom of the page (sticky aside un-sticks) it yanks the whole page back up. */
+      if(window.innerWidth>880){const ar=document.getElementById('aside'),
+          r=a.getBoundingClientRect(),pr=ar.getBoundingClientRect();
+        if(r.top<pr.top)ar.scrollTop-=(pr.top-r.top)+8;
+        else if(r.bottom>pr.bottom)ar.scrollTop+=(r.bottom-pr.bottom)+8;}
     }}});
 },{rootMargin:'-10% 0px -80% 0px',threshold:0});
 document.querySelectorAll('section').forEach(s=>obs.observe(s));
