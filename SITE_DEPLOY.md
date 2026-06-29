@@ -1,18 +1,18 @@
 # Mettre le site en ligne
 
-Le site est **statique** (`index.html` = produit, `recherche.html` = recherche, `site.css`, + le **PWA** :
+Le site est **statique** (`index.html` = **le pendu** (accueil/vitrine), `correcteur.html`, `dictee.html`, `scrabidon.html`, `recherche.html`, `evolution.html`, `omega-key.html`, `site.css`, + le **PWA** :
 `manifest.json`, `sw.js`, `icon.svg`). Aucun build. Il fait des liens **relatifs** vers `app/omega-pendu.html`
 (l'app, ~9 Mo, **monolithe entier — pendu inclus**) et `docs/*.html` (mémoire/rapport) — donc il faut servir
 **tout le dépôt**, pas seulement le dossier du site. Chemins relatifs (`./`) → marche aussi bien sous le
 sous-chemin GitHub Pages que sur un domaine perso.
 
-> Remplace l'ancien `index.html` (qui redirigeait direct vers le jeu de pendu). Maintenant la page d'accueil
-> est le **correcteur** (produit), avec l'app à un clic et la **recherche** en 2ᵉ page.
+> La page d'accueil est **le pendu** (le solveur / vitrine), avec l'app jouable à un clic. Le **correcteur**,
+> la **dictée**, **Scrabidon**, la **recherche** et l'**évolution** ont chacun leur propre page (voir la nav).
 
 ## Option A — GitHub Pages (le plus simple, gratuit)
 1. Sur GitHub&nbsp;: **Settings → Pages**.
 2. **Source** = *Deploy from a branch*.
-3. **Branch** = `claude/cool-curie-ctnvhi` *(ou `main` une fois la PR #9 fusionnée)* · **Folder** = `/ (root)`.
+3. **Branch** = `main` *(branche déployée)* · **Folder** = `/ (root)`.
 4. Enregistre. L'URL apparaît au bout d'1-2 min&nbsp;:
    **https://poratox78-spec.github.io/omega-pendu-/**
 
@@ -20,7 +20,7 @@ sous-chemin GitHub Pages que sur un domaine perso.
 
 ## Option B — Netlify / Vercel (domaine perso facile)
 - Connecte le dépôt GitHub.
-- **Build command**&nbsp;: *(vide)* · **Publish directory**&nbsp;: `.` (racine) · **Branch**&nbsp;: `claude/cool-curie-ctnvhi`.
+- **Build command**&nbsp;: *(vide)* · **Publish directory**&nbsp;: `.` (racine) · **Branch**&nbsp;: `main`.
 - Tu obtiens une URL `*.netlify.app` (ou ton domaine).
 
 ## Option C — Tester en local
@@ -38,5 +38,5 @@ le reste — « 9 Mo » réels transférés une seule fois.
 
 ## Notes
 - L'app `app/omega-pendu.html` fait ~9 Mo (surtout du base64 → compresse ~3×)&nbsp;: le **premier** chargement prend quelques secondes, puis c'est instantané (cache + PWA). Pages/Netlify/Cloudflare la servent sans souci.
-- Pour que l'accueil soit visible sur la branche par défaut du dépôt, il faudra **fusionner la PR #9 dans `main`** (sinon configure Pages directement sur la branche `cool-curie`).
+- Le déploiement se fait depuis **`main`** (push direct) ; à chaque mise à jour visible, incrémenter `V` dans `sw.js` pour forcer le rafraîchissement du cache PWA.
 - Contenu **à jour** au moment de l'écriture (juin 2026) ; pense à rafraîchir les chiffres si le correcteur évolue (source de vérité&nbsp;: `dictee/JOURNAL.md`).
