@@ -10,6 +10,8 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 dictionnaire, mais comme une **architecture cognitive** sous une contrainte fondatrice —
 **« cognition > oracle »** : aucun module ne lit le mot caché ailleurs qu'aux positions révélées.
 
+> 🌐 **Site en ligne : [poratox78-spec.github.io/omega-pendu-](https://poratox78-spec.github.io/omega-pendu-/)** — la vitrine du **solveur de pendu**, plus les **outils de mots** dérivés (correcteur dys, dictée diagnostique, solveur de Scrabble *Scrabidon*) et les pages de **recherche** (méthode, évolution, résultats O1/O2).
+
 ## Résultat en un coup d'œil
 
 | Régime | Réussite | Note |
@@ -137,11 +139,11 @@ Voir le fichier [`NOTICE`](NOTICE) pour l'attribution complète.
 > remplacer la base lexicale par une source compatible.
 
 ---
-*Instantané au 03/06/2026 · build phase47 (moteur cognitif phase46).*
+*Instantané 06/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · Scrabidon · recherche · évolution) · recherche O1/O2 close · accord en genre déterminant amélioré (recall 67→73 %, FP=0 préservé).*
 
 
 ## Aussi dans ce dépôt
 
 - [**`dictee/`**](dictee/) — **dictée diagnostique** (cible *dys / troubles de l'écrit*) bâtie sur la double route d'OMEGA : dictée de phrases, diagnostic multi-étiquette (accent · sourde/sonore · muette · ajout · inversion · homophone · accord · surface) + remédiation. Intégrée dans `app/omega-pendu.html` (panneau « ✍️ Dictée diag »). Voir [`dictee/README.md`](dictee/README.md), [`DICTEE_ROADMAP.md`](DICTEE_ROADMAP.md).
-- [**`evo/`**](evo/) — *workstream exploratoire* : OMEGA apprend à coder (se copier ; le pendu sert de test de fitness). Voir [`evo/EVO_ROADMAP.md`](evo/EVO_ROADMAP.md).
+- [**`evo/`**](evo/) — *workstream EVO* : OMEGA **évolue** (P1 se copie byte-exact · P2 communiquent · P3 générations sous sélection, **+14 pt OOV**). **O1** (travail de groupe) : clos **négatif** — de vraies versions sont trop fortes & semblables, la coordination utile est déjà l'arbitrage interne du moteur. **O2** (multi-usage) : le substrat est un **compresseur de structure domaine-agnostique** — il compresse le **code** aussi bien que le français (et rien sur du brouillé), *capture de structure, pas compréhension* ; et le « sens » distributionnel est **recalé par la doctrine FP=0** (mesuré). Tout rejouable. Voir [`evo/EVO_ROADMAP.md`](evo/EVO_ROADMAP.md).
 - Audit transverse : `CLAUDE.md` (§ Audit projet).
