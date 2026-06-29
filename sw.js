@@ -4,7 +4,7 @@
 //    rejouer une réponse REDIRIGÉE pour une navigation — Chrome refuse et affiche une PAGE BLANCHE. On "reshape"
 //    donc toute réponse redirigée en réponse 200 propre avant de la mettre en cache / la renvoyer.
 // Chemins RELATIFS (./) → marche sous un sous-chemin (GitHub Pages) comme sur un domaine perso (Cloudflare).
-const V = 'omega-v17';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
+const V = 'omega-v18';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
 const CORE = ['./', './site.css', './manifest.json', './icon.svg'];   // UNIQUEMENT des ressources non redirigées (200)
 
 self.addEventListener('install', (e) => {
