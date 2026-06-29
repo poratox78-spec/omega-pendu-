@@ -8,6 +8,8 @@ OMEGA-Ω is a French Hangman engine (words ≥ 7 letters) built not as a diction
 lookup, but as a **cognitive architecture** under a founding constraint —
 **"cognition > oracle"**: no module reads the hidden word anywhere except at the revealed positions.
 
+> 🌐 **Live site: [poratox78-spec.github.io/omega-pendu-](https://poratox78-spec.github.io/omega-pendu-/)** — the **Hangman solver** showcase, plus the derived **word tools** (dyslexia corrector, diagnostic dictation, Scrabble solver *Scrabidon*) and the **research** pages (method, evolution, O1/O2 results).
+
 ## Result at a glance
 
 | Regime | Success | Note |
@@ -135,11 +137,11 @@ See the [`NOTICE`](NOTICE) file for full attribution.
 > replace the lexical base with a compatible source.
 
 ---
-*Snapshot as of 2026-06-03 · build phase47 (cognitive engine phase46).*
+*Snapshot 2026-06 · engine build phase47 · site deployed (hangman · corrector · dictation · Scrabidon · research · evolution) · O1/O2 research closed · determiner gender agreement improved (recall 67→73%, FP=0 preserved).*
 
 
 ## Also in this repo
 
 - [**`dictee/`**](dictee/) — **diagnostic dictation** (targeting *dyslexia / writing disorders*) built on OMEGA's dual route: sentence dictation, multi-label diagnosis (accent · voiced/voiceless · silent · insertion · inversion · homophone · agreement · surface) + remediation. Integrated in `app/omega-pendu.html` ("✍️ Diag dictation" panel). See [`dictee/README.md`](dictee/README.md), [`DICTEE_ROADMAP.md`](DICTEE_ROADMAP.md).
-- [**`evo/`**](evo/) — *exploratory workstream*: OMEGA learns to code (copying itself; Hangman serves as a fitness test). See [`evo/EVO_ROADMAP.md`](evo/EVO_ROADMAP.md).
+- [**`evo/`**](evo/) — *EVO workstream*: OMEGA **evolves** (P1 self-copies byte-exact · P2 communicate · P3 generations under selection, **+14 pt OOV**). **O1** (group work): closed **negative** — real versions are too strong & too similar, the useful coordination is already the engine's internal arbitration. **O2** (multi-use): the substrate is a **domain-agnostic structure compressor** — it compresses **code** as well as French (and nothing on scrambled input), *structure capture, not understanding*; and the distributional "meaning" signal is **gated out by the FP=0 doctrine** (measured). All replayable. See [`evo/EVO_ROADMAP.md`](evo/EVO_ROADMAP.md).
 - Cross-cutting audit: `CLAUDE.md` (§ Project audit).
