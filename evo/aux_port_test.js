@@ -20,4 +20,4 @@ const flags = s => corr(s).map(f => f.word + '→' + f.sugg + ' [' + f.name + ']
 console.log('=== DÉTECTION (doit corriger) ===');
 ['il est faim', 'il a allé à Paris', 'ils ont restés ici', 'on est 10 ans', 'tu es soif', 'vous ete là', 'nous avon faim', 'vous ave raison', 'nous étion là'].forEach(s => { const f = corr(s); console.log((f.length ? ' ✓ ' : ' ✗ ') + s + ' → ' + (flags(s).join(', ') || 'rien')); });
 console.log('\n=== FP (ne doit RIEN toucher) ===');
-['il a faim', 'il est content', 'il est allé', 'il est mort', 'il a tort', 'elle est restée', 'j\'ai été malade', 'il a eu peur', 'elle aurait préféré', 'nous avons un chien', 'ils sont partis'].forEach(s => { const f = corr(s); console.log((f.length ? ' FP! ' : ' ok  ') + s + (f.length ? ' → ' + flags(s).join(', ') : '')); });
+['Il a faim', 'Il est content', 'Il est allé', 'Il est mort', 'Il a tort', 'Elle est restée', 'J\'ai été malade', 'Il a eu peur', 'Elle aurait préféré', 'Nous avons un chien', 'Ils sont partis'].forEach(s => { const f = corr(s); console.log((f.length ? ' FP! ' : ' ok  ') + s + (f.length ? ' → ' + flags(s).join(', ') : '')); });
