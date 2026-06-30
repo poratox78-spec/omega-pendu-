@@ -64,6 +64,26 @@ const CURATED=[
   {forms:['teint','teints','thym','tain'], gloss:{'teint':'la couleur (peau)','thym':"l'herbe",'tain':'le ~ du miroir'}},
   {forms:['mante','mantes','menthe','menthes'], gloss:{'mante':'la ~ religieuse','menthe':'la plante'}},
   {forms:['héraut','hérauts','héros'], gloss:{'héraut':'le messager','héros':'le brave'}},
+  // — PARONYMES (confusables VISUELS, ≠ homophones ; curés + validés contre cgram_pos : présence + fréquence) —
+  {forms:['allusion','allusions','illusion','illusions'], gloss:{'allusion':'le sous-entendu (faire ~ à)','illusion':'la chose fausse · le mirage'}},
+  {forms:['éminent','éminente','éminents','imminent','imminente','imminents'], gloss:{'éminent':'remarquable, supérieur','imminent':'tout proche (qui va arriver)'}},
+  {forms:['conjecture','conjectures','conjoncture','conjonctures'], gloss:{'conjecture':'la supposition','conjoncture':'la situation du moment'}},
+  {forms:['effraction','effractions','infraction','infractions'], gloss:{'effraction':'entrée par force','infraction':'la violation de la loi'}},
+  {forms:['évoquer','évoque','évoqué','invoquer','invoque','invoqué'], gloss:{'évoquer':'rappeler, mentionner','invoquer':"appeler à l'aide · citer un motif"}},
+  {forms:['consommer','consomme','consommé','consumer','consume','consumé'], gloss:{'consommer':'utiliser, manger','consumer':'brûler, détruire'}},
+  {forms:['inclinaison','inclinaisons','inclination','inclinations'], gloss:{'inclinaison':"la pente, l'angle",'inclination':'le penchant, le goût'}},
+  {forms:['prolongation','prolongations','prolongement','prolongements'], gloss:{'prolongation':'de durée (temps)','prolongement':"d'espace · la suite"}},
+  {forms:['original','originale','originaux','originel','originelle','originels'], gloss:{'original':'inédit, singulier','originel':"d'origine (le péché ~)"}},
+  {forms:['littéral','littérale','littoral','littoraux'], gloss:{'littéral':'au sens exact, mot à mot','littoral':'le bord de mer'}},
+  {forms:['éruption','éruptions','irruption','irruptions'], gloss:{'éruption':'volcan · boutons','irruption':'entrée soudaine'}},
+  {forms:['partial','partiale','partiaux','partiel','partielle','partiels'], gloss:{'partial':'pas neutre, de parti pris','partiel':'incomplet, une partie'}},
+  {forms:['temporel','temporelle','temporaire','temporaires'], gloss:{'temporel':'relatif au temps','temporaire':'provisoire, momentané'}},
+  {forms:['notable','notables','notoire','notoires'], gloss:{'notable':'remarquable (un ~)','notoire':'connu de tous'}},
+  {forms:['cote','cotes','côte','côtes'], gloss:{'cote':'la cotation, la mesure','côte':"le bord de mer · l'os · la pente"}},
+  {forms:['roder','rode','rodé','rôder','rôde','rôdé'], gloss:{'roder':'mettre au point','rôder':'errer, traîner'}},
+  {forms:['pécheur','pécheurs','pêcheur','pêcheurs'], gloss:{'pécheur':'qui commet une faute','pêcheur':'qui pêche le poisson'}},
+  {forms:['recouvrer','recouvré','recouvrir','recouvert'], gloss:{'recouvrer':'récupérer, retrouver','recouvrir':'couvrir entièrement'}},
+  {forms:['vénéneux','vénéneuse','venimeux','venimeuse'], gloss:{'vénéneux':'plante/champignon toxique','venimeux':'animal à venin'}},
 ];
 
 function buildModel(){
