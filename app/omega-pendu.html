@@ -11762,7 +11762,29 @@ window.addEventListener('DOMContentLoaded', () => {
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var pp=NOUN_POST[deacc(nx.toLowerCase())]; // nom composé (hit parade / tour opérateur) :
       if(pp&&pp[0]>=PL_TAU_M&&!ADJP[deacc(nx.toLowerCase())])return null;}                         //   nom+nom → abstention (« français » = adj → pas un composé)
     var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
-  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord pluriel nom',rNounPlural]];
+  // === confusion d'USAGE être↔avoir + auxiliaire MAL ORTHOGRAPHIÉ (parité dictee/correcteur_probe.py) ===
+  var AVOIR_IDIOM={};'faim soif sommeil raison tort envie besoin peur'.split(' ').forEach(function(w){AVOIR_IDIOM[w]=1;});
+  var AUX_ETRE_PP={};'alle allee alles allees venu venue venus venues arrive arrivee arrives arrivees parti partie partis parties devenu devenue devenus devenues revenu revenue revenus revenues reste restee restes restees ne nee nes nees mort morte morts mortes decede decedee decedes decedees reparti repartie repartis'.split(' ').forEach(function(w){AUX_ETRE_PP[w]=1;});
+  var FULL_AUX={};'suis es est sommes etes sont etais etait etions etiez etaient fus fut fumes futes furent serai seras sera serons serez seront serais serait serions seriez seraient sois soit soyons soyez soient fusse fusses fussions fussiez fussent ai as a avons avez ont avais avait avions aviez avaient eus eut eumes eutes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eusse eusses eussions eussiez eussent'.split(' ').forEach(function(w){FULL_AUX[w]=1;});
+  function rAuxUsage(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var reads=svReads(T[i]);if(!reads.length)return null;
+    var lem={},k;for(k=0;k<reads.length;k++)lem[reads[k][0]]=1;if(!lem.etre&&!lem.avoir)return null;
+    var pn=svSubject(T,i);if(!pn&&i>0){var pv=deacc(T[i-1].toLowerCase());
+      if(pv==='nous'){for(k=0;k<reads.length;k++)if(reads[k][2]==='1'&&reads[k][3]==='p'){pn=['1','p'];break;}}
+      else if(pv==='vous'){for(k=0;k<reads.length;k++)if(reads[k][2]==='2'&&reads[k][3]==='p'){pn=['2','p'];break;}}}
+    if(!pn)return null;var per=pn[0],nb=pn[1];if(!svAgrees(reads,per,nb))return null;if(per==='1'&&nb==='s')return null;
+    var mts={};for(k=0;k<reads.length;k++)mts[reads[k][1]]=1;var mt=mts['ind:pre']?'ind:pre':(mts['ind:imp']?'ind:imp':null);if(!mt)return null;
+    var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';var age=(lem.etre&&(nxt==='ans'||nxt==='an'));
+    if(lem.etre&&(AVOIR_IDIOM[nxt]||age))return ((CONJ_C.avoir||{})[mt]||{})[per+nb]||null;
+    if(lem.avoir&&AUX_ETRE_PP[nxt])return ((CONJ_C.etre||{})[mt]||{})[per+nb]||null;return null;}
+  function svLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;var prev=[],cur,ja,jb;for(jb=0;jb<=b.length;jb++)prev[jb]=jb;for(ja=1;ja<=a.length;ja++){cur=[ja];for(jb=1;jb<=b.length;jb++)cur[jb]=Math.min(prev[jb]+1,cur[jb-1]+1,prev[jb-1]+(a.charAt(ja-1)!==b.charAt(jb-1)?1:0));prev=cur;}return prev[b.length];}
+  function svAuxTargets(per,nb){var out=[],vs=['etre','avoir'],ms=['ind:pre','ind:imp'],vi,mi,f;for(vi=0;vi<2;vi++)for(mi=0;mi<2;mi++){f=((CONJ_C[vs[vi]]||{})[ms[mi]]||{})[per+nb];if(f)out.push([deacc(f),vs[vi],f]);}return out;}
+  function rAuxMisspell(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<2||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w])return null;
+    var pn=svSubject(T,i),k;if(!pn&&i>0){var pv=deacc(T[i-1].toLowerCase());if(pv==='nous')pn=['1','p'];else if(pv==='vous')pn=['2','p'];}
+    if(!pn)return null;var per=pn[0],nb=pn[1];if(per==='1'&&nb==='s')return null;
+    var reads=svReads(T[i]);if(reads.length&&svAgrees(reads,per,nb))return null;
+    var tg=svAuxTargets(per,nb),bd=9,bf=null,bv=null,d;for(k=0;k<tg.length;k++){d=svLev(w,tg[k][0]);if(d<bd){bd=d;bf=tg[k][2];bv=tg[k][1];}else if(d===bd&&tg[k][1]!==bv)bv='AMBIG';}
+    if(!bf||bd>2||bv==='AMBIG')return null;if(reads.length&&bd>1)return null;if(w===deacc(bf.toLowerCase()))return null;return bf;}
+  var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell]];
   function correctText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
   var _VDCF=null,_VDCBF=null,_VDCW=4;
