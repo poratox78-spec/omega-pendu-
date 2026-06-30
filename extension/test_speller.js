@@ -38,6 +38,14 @@ if (!el2 || el2.sugg !== 'élevé') fail.push('tres eleve→élevé (adj après 
 const ce = sp('c est très bien').find(x => x.name === 'élision');
 if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));
 if (sp('il est très content').some(x => x.name === 'élision')) fail.push('FP élision sur texte correct');
+// ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
+const elg = find('il est trèèès content', 'trèèès');
+if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
+const elg2 = find('ouiii je viens', 'ouiii');
+if (!elg2 || elg2.sugg !== 'oui') fail.push('ouiii→oui attendu, eu ' + JSON.stringify(elg2));
+if (sp('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
+if (sp('la note AAA est haute').length) fail.push('FP acronyme AAA');
+if (sp('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
 
 // ---- (B) parité directe dys-core ⊆ app.spellText sur batterie orthographique (contexte neutre) ----
 let parityKO = 0;
