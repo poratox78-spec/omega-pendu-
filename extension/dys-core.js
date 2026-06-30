@@ -161,7 +161,7 @@
     var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
   var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc'.split(' ').forEach(function(w){ABBREV[w]=1;});
-  function _segInfo(text){var ss=[],bb=[],re=/[A-Za-zÀ-ÿœŒ']+/g,m,prev=0,k=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=(k===0)||/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));prev=m.index+m[0].length;k++;}return {ss:ss,bb:bb};}
+  function _segInfo(text){var ss=[],bb=[],re=/[A-Za-zÀ-ÿœŒ']+/g,m,prev=0,k=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));prev=m.index+m[0].length;k++;}return {ss:ss,bb:bb};}
   function rCapital(T,i){if(!_SEG||i>=_SEG.ss.length||!_SEG.ss[i])return null;var w=T[i],c=w.charAt(0);if(c.toUpperCase()===c)return null;if(i>0&&ABBREV[deacc(T[i-1].toLowerCase())])return null;return c.toUpperCase()+w.slice(1);}
   // === confusion d'USAGE être↔avoir + auxiliaire MAL ORTHOGRAPHIÉ (parité dictee/correcteur_probe.py) ===
   var AVOIR_IDIOM={};'faim soif sommeil raison tort envie besoin peur'.split(' ').forEach(function(w){AVOIR_IDIOM[w]=1;});

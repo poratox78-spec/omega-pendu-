@@ -288,7 +288,7 @@ def _seg_info(text):
     ss, bb, prev_end = [], [], 0
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
-        s = (k == 0) or any(c in gap for c in '.!?…')
+        s = any(c in gap for c in '.!?…')                        # début de phrase = APRÈS . ! ? (pas le 1er token : un fragment ne se capitalise pas)
         ss.append(s)
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
         prev_end = m.end()
@@ -778,11 +778,8 @@ CASES = [
     ("Vous êtes là", "êtes", "ete", "aux mal orthographié"),
     ("Nous avons un chien", "avons", "avon", "aux mal orthographié"),
     ("Ils sont contents", "sont", "son", "aux mal orthographié"),
-    # majuscule en début de phrase — cas en DÉBUT DE TEXTE (le harnais reconstruit sans ponctuation ; l'après-point
-    # est vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain)
-    ("Le chat dort", "Le", "le", "majuscule"),
-    ("Demain il fera beau", "Demain", "demain", "majuscule"),
-    ("Bonjour tout le monde", "Bonjour", "bonjour", "majuscule"),
+    # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
+    # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
 
 
