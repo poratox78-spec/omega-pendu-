@@ -217,6 +217,13 @@ mock réplique l'API), le parcours UI complet bout-à-bout sur 2 appareils.
 6. **TURN optionnel** si on veut réactiver WebRTC en complément du relais.
 7. **Vérif d'empreinte assistée** (mots-empreinte / QR) pour comparer les clés
    sans lire 16 hex.
+8. **Anti-spoofing homoglyphe de l'identité** *(différé — noté 30/06/2026)* : une
+   passphrase/identité affichée peut être usurpée **visuellement** par homoglyphes Unicode
+   (« а » cyrillique ≈ « a » latin, « о »/« е »…) → deux identités visuellement identiques,
+   octets différents. Parade : normalisation **NFKC** + algo **« skeleton »** des *confusables
+   Unicode* (replier chaque caractère sur son squelette canonique) **avant** comparaison/affichage
+   d'une identité, pour détecter/signaler la collision visuelle. Cadre : **intégrité d'identité,
+   pas de la censure**. (Issu de l'étude des techniques de modération de chat, juin 2026.)
 
 ---
 
