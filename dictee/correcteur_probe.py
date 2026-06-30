@@ -571,6 +571,41 @@ def rule_noun_plural(T, i):
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
 
+# ---------- Confusion d'homophones LEXICAUX (route « sens » @ haut seuil, FP=0 calibré CV) ----------
+# Homophones VRAIS (même SAMPA : père/paire=pER, moi/mois=mwa) → la phon est MUETTE, seul le CONTEXTE tranche
+# (≠ rules grammaticales, qui tranchent par l'accord). Modèle log-odds embarqué (dictee/lexical_confusion.json,
+# généré par build_lexical_confusion.js depuis UD) : on ne flague l'AUTRE graphie QUE si la force log-odds ≥ seuil T
+# calibré FP=0 (CV pire-cas + marge). Le prior seul ne franchit jamais T → abstention par défaut. Absent → no-op (parité sûre).
+_LC_PATH = os.path.join(HERE, 'lexical_confusion.json')
+LEXCONF = {}
+LC_WIN = 4
+if os.path.exists(_LC_PATH):
+    _lc = json.load(open(_LC_PATH, encoding='utf-8'))
+    LC_WIN = _lc.get('win', 4)
+    for _p in _lc.get('pairs', []):
+        LEXCONF[_p['x']] = _p
+        LEXCONF[_p['y']] = _p
+
+
+def rule_lexical_confusion(T, i):
+    z = T[i].lower()
+    p = LEXCONF.get(z)
+    if p is None:
+        return None
+    ctx = [T[j].lower() for j in range(max(0, i - LC_WIN), min(len(T), i + LC_WIN + 1)) if j != i]
+    if len(ctx) < 2:
+        return None
+    lo = p['prior']
+    llr = p['llr']
+    for w in ctx:
+        if w in llr:
+            lo += llr[w]
+    pred = p['y'] if lo > 0 else p['x']            # log-odds>0 → y ; sinon x
+    if pred != z and abs(lo) >= p['T']:            # ne flague que SÛR (force ≥ seuil FP=0)
+        return pred.capitalize() if T[i][:1].isupper() else pred
+    return None
+
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
@@ -578,7 +613,8 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
-         ('accord pluriel nom', rule_noun_plural)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
+         ('accord pluriel nom', rule_noun_plural),
+         ('confusion lexicale', rule_lexical_confusion)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
 def correct(text):
@@ -638,6 +674,11 @@ CASES = [
     ("Elle habite une maison", "une", "un", "genre déterminant"),
     ("Le jardin est vert", "Le", "La", "genre déterminant"),
     ("Il regarde la montagne", "la", "le", "genre déterminant"),
+    # confusion d'homophones LEXICAUX (route sens @ haut seuil, FP=0 — père/paire, moi/mois)
+    ("Il parle à son père", "père", "paire", "confusion lexicale"),
+    ("Range cette paire de gants", "paire", "père", "confusion lexicale"),
+    ("Le mois de mai arrive", "mois", "moi", "confusion lexicale"),
+    ("Tu peux compter sur moi", "moi", "mois", "confusion lexicale"),
 ]
 
 
