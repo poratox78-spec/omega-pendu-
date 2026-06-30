@@ -285,14 +285,40 @@ ABBREV = {'m', 'mme', 'mlle', 'mr', 'dr', 'pr', 'me', 'mgr', 'st', 'ste', 'etc',
 
 def _seg_info(text):
     import re
-    ss, bb, prev_end = [], [], 0
+    ss, bb, hy, prev_end = [], [], [], 0
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
         s = any(c in gap for c in '.!?…')                        # début de phrase = APRÈS . ! ? (pas le 1er token : un fragment ne se capitalise pas)
         ss.append(s)
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
+        hy.append('-' in gap)                                    # trait d'union avant (inversion « dit-il ») → anti-FP run-on
         prev_end = m.end()
-    return {'ss': ss, 'bb': bb}
+    return {'ss': ss, 'bb': bb, 'hy': hy}
+
+# ---------- C : RUN-ON (ponctuation manquante entre 2 propositions) — VIGILANCE (vert), n'impose pas. Conservateur, FP-mesuré.
+PRON_SUBJ = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
+             'nous': ('1', 'p'), 'vous': ('2', 'p'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
+CONJ_REL = {'et', 'ou', 'ni', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui', 'dont', 'quand',
+            'lorsque', 'comme', 'si', 'puisque', 'quoique', 'lequel', 'laquelle', 'pour', 'sans', 'a'}
+
+def _is_finite(w):
+    return any(r[1].split(':')[0] in ('ind', 'sub', 'cnd', 'cond', 'imp') for r in _reads(w))
+
+def runon_positions(text):
+    """Indices des pronoms-sujets qui démarrent une 2e proposition COLLÉE (verbe fini avant, sans séparateur)
+    → il manque sûrement une ponctuation AVANT ce pronom. Vert (le sens en dépend), n'impose rien."""
+    T = toks(text); seg = _seg_info(text); out = []
+    for i in range(2, len(T) - 1):
+        pn = PRON_SUBJ.get(deacc(T[i].lower()))
+        if not pn: continue
+        if seg['bb'][i] or seg['hy'][i]: continue                # ponctuation / trait d'union (inversion) avant → pas un run-on
+        if deacc(T[i - 1].lower()) in CONJ_REL: continue         # « et il », « qu'il »… → coordination/relative
+        if "'" in T[i - 1].lower() or "'" in T[i].lower(): continue
+        if not _is_finite(T[i - 1]): continue                    # fin de proposition 1 = verbe CONJUGUÉ
+        if not _is_finite(T[i + 1]): continue                    # proposition 2 = sujet(i) + verbe CONJUGUÉ(i+1)
+        if not _agrees(_reads(T[i + 1]), pn[0], pn[1]): continue  # le verbe 2 s'accorde avec le pronom → bien sujet+verbe
+        out.append(i)
+    return out
 
 def rule_capital(T, i):
     if _SEG is None or i >= len(_SEG['ss']) or not _SEG['ss'][i]: return None

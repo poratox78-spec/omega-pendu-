@@ -113,7 +113,7 @@
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  function render(el, dg, comps, vig) {
+  function render(el, dg, comps, vig, ro) {
     var b = ensureBar();
     var h = '<div class="omdys-head"><b>🩹 Correcteur dys</b>';
     if (dg.flags.length) h += '<span class="omdys-n">' + dg.flags.length + '</span><button class="omdys-all">tout corriger</button>';
@@ -134,6 +134,11 @@
     if (vig && vig.length) {   // couche VERTE : confusables — VIGILANCE (n'affirme pas une faute → pas de clic d'application)
       h += '<div class="omdys-vig"><div class="omdys-vlab">🟢 à vérifier — mots confusables</div>';
       vig.forEach(function (v) { h += '<div class="omdys-vitem">« ' + esc(v.word) + ' » — ' + esc(v.info) + '</div>'; });
+      h += '</div>';
+    }
+    if (ro && ro.length) {   // couche VERTE : run-on — ponctuation manquante entre 2 propositions (le sens en dépend)
+      h += '<div class="omdys-vig"><div class="omdys-vlab">🟢 à vérifier — ponctuation</div>';
+      ro.forEach(function (r) { h += '<div class="omdys-vitem">entre « ' + esc(r.a) + ' » et « ' + esc(r.b) + ' » — ponctuation manquante ? (virgule ou point selon le sens)</div>'; });
       h += '</div>';
     }
     if (dg.stade) {
@@ -178,8 +183,9 @@
     if (autos.length && applyAutos(el, autos)) return;                    // AUTO sûr → corrigé tout seul
     var comps = computeComps(el);                                         // aide-frappe : complétions du mot en cours
     var vig = DC.vigText ? DC.vigText(text) : [];                         // couche VERTE : confusables (vigilance, n'affirme pas)
-    if (!dg.flags.length && !comps.length && !vig.length) { hideBar(); return; }
-    render(el, dg, comps, vig);
+    var ro = DC.runonText ? DC.runonText(text) : [];                      // couche VERTE : run-on (ponctuation manquante entre 2 propositions)
+    if (!dg.flags.length && !comps.length && !vig.length && !ro.length) { hideBar(); return; }
+    render(el, dg, comps, vig, ro);
   }
 
   // ===== orchestration =====
