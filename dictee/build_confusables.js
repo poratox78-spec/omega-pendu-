@@ -84,6 +84,19 @@ const CURATED=[
   {forms:['pécheur','pécheurs','pêcheur','pêcheurs'], gloss:{'pécheur':'qui commet une faute','pêcheur':'qui pêche le poisson'}},
   {forms:['recouvrer','recouvré','recouvrir','recouvert'], gloss:{'recouvrer':'récupérer, retrouver','recouvrir':'couvrir entièrement'}},
   {forms:['vénéneux','vénéneuse','venimeux','venimeuse'], gloss:{'vénéneux':'plante/champignon toxique','venimeux':'animal à venin'}},
+  // — batch 2 (homophones + paronymes, validés cgram_pos) —
+  {forms:['près','prêt','prêts','prête','prêtes','pré','prés'], gloss:{'près':'proche (~ de)','prêt':'préparé · le prêt (crédit)','pré':'la prairie'}},
+  {forms:['chair','chairs','chaire','chaires','chère','chères','cher','chers'], gloss:{'chair':'la viande, la peau','chaire':'la tribune (prof, prêtre)','chère':'la nourriture · coûteuse','cher':'coûteux · aimé'}},
+  {forms:['différend','différends','différent','différente','différents'], gloss:{'différend':'le désaccord','différent':'≠ pareil'}},
+  {forms:['cession','cessions','session','sessions'], gloss:{'cession':'le transfert (céder)','session':'la séance, la période'}},
+  {forms:['parti','partis','partie','parties'], gloss:{'parti':'le ~ (politique) · le choix (prendre ~)','partie':'un morceau · le match'}},
+  {forms:['faîte','faîtes','fête','fêtes','faite','faites'], gloss:{'faîte':'le sommet','fête':'la célébration','faite':'(fait, faire)'}},
+  {forms:['golf','golfs','golfe','golfes'], gloss:{'golf':'le sport','golfe':'la baie (mer)'}},
+  {forms:['tribu','tribus','tribut','tributs'], gloss:{'tribu':'le clan','tribut':'la contribution (payer un ~)'}},
+  {forms:['filtre','filtres','philtre','philtres'], gloss:{'filtre':'qui filtre','philtre':"le ~ d'amour (potion)"}},
+  {forms:['étain','étains','éteint','éteinte','éteints'], gloss:{'étain':'le métal','éteint':'≠ allumé (éteindre)'}},
+  {forms:['prodige','prodiges','prodigue','prodigues'], gloss:{'prodige':'le miracle, le génie','prodigue':'dépensier, généreux'}},
+  {forms:['amnistie','amnisties','armistice','armistices'], gloss:{'amnistie':'le pardon (de peines)','armistice':"l'arrêt des combats"}},
 ];
 
 function buildModel(){
