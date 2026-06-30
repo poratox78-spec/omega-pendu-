@@ -89,6 +89,7 @@ OMEGA's **dual route** applied to writing: an offline **dyslexia corrector** (gr
 non-words/accents/typos, **FP=0**, in **parity** Python ↔ app ↔ extension), with **type-ahead** (accented
 completion of the current word) and a **learning loop** (unified dys profile → adaptive dictation → progress curve).
 **Two underline tiers**: *red* = **FP=0** corrections; **🟢 green** = *vigilance* on **confusable** words (homophones + paronyms, ~80 curated groups from Lexique), which does **not** assert an error — it shows the possibilities & senses (the distributional signal only *orders/attenuates*, never decides).
+- **Red (FP=0)**: grammatical homophones, **subject-verb agreement**, gender, plural, **être↔avoir usage** ("il est faim"→"il a faim", "il a allé"→"il est allé"), **misspelled auxiliary** ("vous ete"→"êtes"), **sentence-start capital**. **Green (vigilance)**: confusables + **run-on** (missing punctuation between two clauses — meaning-dependent).
 - In the `app/omega-pendu.html` app: **🩹 Corrector** and **✍️ Diag dictation** panels.
 - Everywhere on the web: [`extension/`](extension/) (Chrome MV3) — see [`extension/README.md`](extension/README.md).
 - Roadmap & status: [`DICTEE_ROADMAP.md`](DICTEE_ROADMAP.md) · journal: [`dictee/JOURNAL.md`](dictee/JOURNAL.md).
