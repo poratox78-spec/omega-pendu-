@@ -354,6 +354,61 @@ def rule_aux_usage(T, i):
     return None
 
 
+# ---------- Auxiliaire être/avoir MAL ORTHOGRAPHIÉ (faute dys n°1) : « je sui »→suis, « nous avon »→avons, « vous ete »→êtes
+# Après un sujet-pronom net, si le mot n'est PAS une forme valide accordée mais est à ≤2 éditions d'UNE forme être/avoir
+# accordée → on corrige. ABSTENTION si ambigu entre être et avoir (anti-swap) ou si c'est déjà un autre verbe valide.
+def _lev(a, b):
+    if abs(len(a) - len(b)) > 2: return 9
+    prev = list(range(len(b) + 1))
+    for ia, ca in enumerate(a, 1):
+        cur = [ia]
+        for jb, cb in enumerate(b, 1):
+            cur.append(min(prev[jb] + 1, cur[jb - 1] + 1, prev[jb - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+def _aux_targets(per, nb):                                       # formes être/avoir accordées (présent + imparfait) : (déacc, verbe, forme)
+    out = []
+    for v in ('etre', 'avoir'):
+        for m in ('ind:pre', 'ind:imp'):
+            f = CONJ_C.get(v, {}).get(m, {}).get(per + nb)
+            if f: out.append((deacc(f), v, f))
+    return out
+
+# TOUTES les formes être/avoir (tous temps, désaccentué) — un mot qui en fait partie est un aux VALIDE : ne jamais le « corriger »
+FULL_AUX = set((
+    'suis es est sommes etes sont etais etait etions etiez etaient fus fut fumes futes furent '
+    'serai seras sera serons serez seront serais serait serions seriez seraient sois soit soyons soyez soient '
+    'fusse fusses fussions fussiez fussent '       # participes (été/étant/eu/ayant) VOLONTAIREMENT exclus : juste après un
+    'ai as a avons avez ont avais avait avions aviez avaient eus eut eumes eutes eurent '   # pronom sujet, un participe seul = aux
+    'aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient '   # manquant/mal écrit → corrigible
+    'eusse eusses eussions eussiez eussent').split())
+
+def rule_aux_misspell(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower(): return None
+    w = deacc(T[i].lower())
+    if len(w) < 2 or not w.isalpha(): return None
+    if w in FULL_AUX: return None                                # déjà une forme être/avoir valide (cond./futur/subj…) → ne pas toucher
+    pn = _subject_before(T, i)
+    if pn is None and i > 0 and deacc(T[i - 1].lower()) in ('nous', 'vous'):
+        pn = ('1', 'p') if deacc(T[i - 1].lower()) == 'nous' else ('2', 'p')
+    if pn is None: return None
+    per, nb = pn
+    if per == '1' and nb == 's': return None                     # « je » → élision (j'ai) différée v2
+    reads = _reads(T[i])
+    if reads and _agrees(reads, per, nb): return None            # déjà une forme valide accordée → ne pas toucher
+    best_d, best_f, best_v = 9, None, None
+    for (dform, verb, aform) in _aux_targets(per, nb):
+        d = _lev(w, dform)
+        if d < best_d: best_d, best_f, best_v = d, aform, verb
+        elif d == best_d and verb != best_v: best_v = 'AMBIG'    # à égale distance d'être ET d'avoir → ambigu
+    if best_f is None or best_d > 2: return None
+    if best_v == 'AMBIG': return None                            # anti-swap : on ne devine pas être vs avoir
+    if reads and best_d > 1: return None                         # mot déjà reconnu (autre verbe) : n'y toucher que si TRÈS proche (≤1)
+    if w == deacc(best_f.lower()): return None
+    return best_f
+
+
 def _noun_subject_number(T, i):
     """Nombre du sujet-NOM avant le verbe i (3e personne). Saute les clitiques objets (« le chat LES regarde » :
     « les » = pronom, pas déterminant pluriel), puis prend le déterminant gouverneur (en sautant les dét. de
@@ -617,7 +672,8 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
          ('accord pluriel nom', rule_noun_plural),
-         ('usage être/avoir', rule_aux_usage)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
+         ('usage être/avoir', rule_aux_usage),
+         ('aux mal orthographié', rule_aux_misspell)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
 def correct(text):
@@ -685,6 +741,11 @@ CASES = [
     ("Il est allé à Paris", "est", "a", "usage être/avoir"),
     ("Elle est partie tôt", "est", "a", "usage être/avoir"),
     ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
+    # auxiliaire être/avoir mal orthographié (distance d'édition vers la forme accordée)
+    ("Nous sommes prêts", "sommes", "somme", "aux mal orthographié"),
+    ("Vous êtes là", "êtes", "ete", "aux mal orthographié"),
+    ("Nous avons un chien", "avons", "avon", "aux mal orthographié"),
+    ("Ils sont contents", "sont", "son", "aux mal orthographié"),
 ]
 
 
