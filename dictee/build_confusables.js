@@ -97,6 +97,10 @@ const CURATED=[
   {forms:['étain','étains','éteint','éteinte','éteints'], gloss:{'étain':'le métal','éteint':'≠ allumé (éteindre)'}},
   {forms:['prodige','prodiges','prodigue','prodigues'], gloss:{'prodige':'le miracle, le génie','prodigue':'dépensier, généreux'}},
   {forms:['amnistie','amnisties','armistice','armistices'], gloss:{'amnistie':'le pardon (de peines)','armistice':"l'arrêt des combats"}},
+  // — auto-gloss Wiktionnaire (AUCUN gloss manuel → rempli automatiquement depuis glosses_wiktionnaire.json) —
+  {forms:['subi','subis','subit','subite','subits']},
+  {forms:['décrépi','décrépie','décrépit','décrépite']},
+  {forms:['émigré','émigrés','immigré','immigrés']},
 ];
 
 function buildModel(){
@@ -121,9 +125,14 @@ function buildModel(){
 const M=buildModel();
 // NB propre compact : prior[f]=log freq · floor[f]=log P(mot inconnu|f) · top[f]={mot:log P(mot|f)} (les co-occurrents)
 // score(f|ctx)=prior[f]+Σ_w (top[f][w] sinon floor[f]) → tout mot du contexte compte (vu = poids, non-vu = plancher).
-const out={win:WIN, note:'Couche VERTE (vigilance, n\'affirme pas → hors FP=0). score(f|ctx)=prior[f]+Σ_w(ctx[f][w] ?? floor[f]) ; ordonne les possibilités. build: dictee/build_confusables.js', groups:[]};
+// glosses en REPLI depuis le Wiktionnaire (CC BY-SA) — utilisés quand aucun gloss CURÉ n'est fourni (manuel prioritaire).
+// Régénérer : node ... puis python3 dictee/build_glosses_wiktionnaire.py (réseau). Voir glosses_wiktionnaire.json.
+const WIKT=(function(){try{const j=JSON.parse(fs.readFileSync(path.join(__dirname,'glosses_wiktionnaire.json'),'utf8'));delete j._attribution;return j;}catch(e){return {};}})();
+const out={win:WIN, note:'Couche VERTE (vigilance, n\'affirme pas → hors FP=0). score(f|ctx)=prior[f]+Σ_w(ctx[f][w] ?? floor[f]) ; ordonne les possibilités. glosses : curés (build_confusables.js) sinon Wiktionnaire (CC BY-SA). build: dictee/build_confusables.js', groups:[]};
 for(const g of CURATED){
-  const grp={forms:g.forms, gloss:g.gloss};
+  const gloss={};                                  // curé d'abord, Wiktionnaire en repli, par forme
+  for(const f of g.forms){ const cg=(g.gloss||{})[f]; if(cg)gloss[f]=cg; else if(WIKT[f])gloss[f]=WIKT[f]; }
+  const grp={forms:g.forms, gloss:gloss};
   if(M){
     const present=g.forms.filter(f=>f.indexOf(' ')<0 && (M.freq.get(f)||0)>=MINF);
     if(present.length>=2){

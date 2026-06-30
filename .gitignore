@@ -1,6 +1,7 @@
 __pycache__/
 dictee/learned_lex.json
 cgram_pos.json
+dictee/glosses_cache.json   # wikitext brut mis en cache par build_glosses_wiktionnaire.py (réextraction) — la sortie glosses_wiktionnaire.json, elle, est versionnée
 
 # Lexique 4 — source maître (hors-repo par doctrine : 34 Mo ; fourni en .xz local / Drive de Rem)
 Lexique4.tsv

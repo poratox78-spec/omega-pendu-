@@ -60,3 +60,15 @@ Les fichiers de `dictee/` dérivés de Lexique 4 — `sentences.json`,
 `legacy/test_set.tsv`, `legacy/word_pool.json` — sont des ŒUVRES DÉRIVÉES des données Lexique.
 À ce titre ils sont également diffusés sous CC BY-SA 4.0, avec l'attribution
 ci-dessus (citer Lexique 4, New et al. 2026).
+
+5. DÉFINITIONS DES CONFUSABLES (couche verte « vigilance »)
+-----------------------------------------------------------
+Le fichier `dictee/glosses_wiktionnaire.json` (définitions courtes des mots
+confusables — homophones & paronymes — affichées en survol dans la couche
+verte du correcteur) contient des extraits du WIKTIONNAIRE (fr.wiktionary.org),
+diffusés sous Creative Commons Attribution - Partage dans les Mêmes Conditions
+4.0 (CC BY-SA 4.0), © les contributeurs du Wiktionnaire.
+
+    Attribution : « Définitions : Wiktionnaire (fr.wiktionary.org), CC BY-SA 4.0 »
+    Compatible avec la licence des données Lexique (même CC BY-SA 4.0).
+    Régénérable : python3 dictee/build_glosses_wiktionnaire.py
