@@ -275,12 +275,41 @@ def _reads(w):
     return r
 
 
+# ---------- Couche SEGMENTS (ponctuation + majuscules = sens/contexte) ----------
+# toks() jette la ponctuation : on recalcule, aligné sur toks, un drapeau par mot — début de phrase (après . ! ?) et
+# borne de proposition (, ; : …). Sert (A) à BORNER la détection du sujet & l'atténuation, (B) à corriger la majuscule
+# de début de phrase. _SEG est posé par correct() avant la passe de règles.
+_SEG = None
+ABBREV = {'m', 'mme', 'mlle', 'mr', 'dr', 'pr', 'me', 'mgr', 'st', 'ste', 'etc', 'cf', 'ex', 'vs', 'no', 'nos',
+          'art', 'av', 'bd', 'env', 'fig', 'vol', 'ed', 'p', 'pp', 'al', 'co', 'inc', 'ave', 'apr', 'jc'}
+
+def _seg_info(text):
+    import re
+    ss, bb, prev_end = [], [], 0
+    for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
+        gap = text[prev_end:m.start()]
+        s = (k == 0) or any(c in gap for c in '.!?…')
+        ss.append(s)
+        bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
+        prev_end = m.end()
+    return {'ss': ss, 'bb': bb}
+
+def rule_capital(T, i):
+    if _SEG is None or i >= len(_SEG['ss']) or not _SEG['ss'][i]: return None
+    w = T[i]
+    if not (w[:1].isalpha() and w[:1].islower()): return None    # déjà capitale / non-lettre
+    if i > 0 and deacc(T[i - 1].lower()) in ABBREV: return None   # après une abréviation (M. Dr etc.) → pas une vraie fin de phrase
+    return w[0].upper() + w[1:]
+
 def _subject_before(T, i):
-    """Remonte depuis i-1 en sautant les clitiques objets ; renvoie (personne, nombre) si un PRONOM sujet net précède."""
+    """Remonte depuis i-1 en sautant les clitiques objets ; renvoie (personne, nombre) si un PRONOM sujet net précède.
+    BORNE (A) : aucune frontière de proposition (ponctuation) entre le sujet et le verbe, sinon c'est une autre proposition."""
     j = i - 1; steps = 0
     while j >= 0 and steps < 3 and deacc(T[j].lower()) in CLITIC:
         j -= 1; steps += 1
     if j < 0: return None
+    if _SEG is not None and any(_SEG['bb'][m] for m in range(j + 1, min(i + 1, len(_SEG['bb'])))):
+        return None
     return SUBJ_PRON.get(deacc(T[j].lower()))
 
 
@@ -673,17 +702,20 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('genre déterminant', rule_det_gender),
          ('accord pluriel nom', rule_noun_plural),
          ('usage être/avoir', rule_aux_usage),
-         ('aux mal orthographié', rule_aux_misspell)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
+         ('aux mal orthographié', rule_aux_misspell),
+         ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
 def correct(text):
     """-> liste de (index, mot_tapé, suggestion, nom_règle) pour chaque mot jugé fautif."""
+    global _SEG
+    _SEG = _seg_info(text)                                        # ponctuation/majuscules (sens/contexte) pour la passe de règles
     T = toks(text); out = []
     for i in range(len(T)):
         for name, rule in RULES:
             dec = rule(T, i)
-            if dec is not None and dec.lower() != T[i].lower():
-                out.append((i, T[i], dec, name)); break
+            if dec is not None and dec != T[i] and (name == 'majuscule' or dec.lower() != T[i].lower()):
+                out.append((i, T[i], dec, name)); break   # 'majuscule' = changement de CASSE seule (le→Le), légitime
     return out
 
 
@@ -746,6 +778,11 @@ CASES = [
     ("Vous êtes là", "êtes", "ete", "aux mal orthographié"),
     ("Nous avons un chien", "avons", "avon", "aux mal orthographié"),
     ("Ils sont contents", "sont", "son", "aux mal orthographié"),
+    # majuscule en début de phrase — cas en DÉBUT DE TEXTE (le harnais reconstruit sans ponctuation ; l'après-point
+    # est vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain)
+    ("Le chat dort", "Le", "le", "majuscule"),
+    ("Demain il fera beau", "Demain", "demain", "majuscule"),
+    ("Bonjour tout le monde", "Bonjour", "bonjour", "majuscule"),
 ]
 
 
