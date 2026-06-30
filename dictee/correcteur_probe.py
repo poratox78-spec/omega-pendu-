@@ -127,6 +127,20 @@ VLIKE_STOP = (set(NUM_DET) | set(NUM_PRON) |
 
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
+
+def _is_ppl(w):
+    """Participe passé RÉEL (cadre auxiliaire avoir). Terminaison de participe ET infinitif reconstruit PRÉSENT dans le
+    lexique verbal → écarte les NOMS homographes en -é/-ée (actualité, portée-nom) qui faisaient exploser les FP."""
+    lw = w.lower(); d = deacc(lw)
+    if d in IRREG_PART or d in ('ete', 'eu'): return True             # vu/pu/eu/connu/mort/né… + été/eu
+    if lw.endswith('ées'):   stem, inf = deacc(lw[:-3]), 'er'
+    elif lw.endswith('ée'):  stem, inf = deacc(lw[:-2]), 'er'
+    elif lw.endswith('és'):  stem, inf = deacc(lw[:-2]), 'er'
+    elif lw.endswith('é'):   stem, inf = deacc(lw[:-1]), 'er'
+    elif d.endswith('is'):   stem, inf = deacc(lw[:-2]), 'ir'
+    elif d.endswith('i'):    stem, inf = deacc(lw[:-1]), 'ir'
+    else: return False                                               # -u/-us écartés : trop de noms homographes (revenu, contenu, menu, tissu) → FP a/à
+    return len(stem) >= 2 and (stem + inf) in VERB_LEX
 def nxt(T, i):  return deacc(T[i+1].lower()) if i+1 < len(T) else None
 def _plural_before(T, i):
     """Un marqueur de sujet PLURIEL apparaît-il avant le mot i, dans la même proposition (≤6 tokens, sans frontière) ?"""
@@ -168,27 +182,43 @@ def rule_e_er(T, i):
     if p in MODAL:               return forms[1]
     return None
 
+PLURAL_DET = {'les', 'des', 'ces', 'leurs', 'mes', 'tes', 'ses', 'nos', 'vos', 'quels', 'quelles',
+              'plusieurs', 'certains', 'certaines', 'quelques', 'aux'}   # déterminants/marqueurs PLURIEL (sujet pluriel)
+
 def rule_son_sont(T, i):
+    # Tranché par CE QUI SUIT (grammaire) : « son » = déterminant → précède un NOM SG ; « sont » = être 3pl →
+    # prédicat (adjectif/participe/adverbe/prép). Abstention dans l'ambigu → FP=0 (audit UD : l'ancien « verbe/prép/conj
+    # avant → son » flaguait « et sont compétents », « agressions sont susceptibles »).
     lw = deacc(T[i].lower())
     if lw not in ('son', 'sont'): return None
-    if i == 0: return 'son'                                             # début de phrase déclarative → possessif
-    pl = T[i-1].lower()
-    if lw == 'sont' and _plural_before(T, i): return 'sont'             # sujet pluriel À DISTANCE (« Les moments … sont ») → « sont » correct, jamais « son »
-    if vlike(T, i-1) or pl in PREP or pl in ('et', 'ou', 'ni'):         # complément après verbe/préposition/conj → possessif
-        return 'son'
-    if pl in ('ils', 'elles') or is_plural_noun(T, i-1):               # sujet PLURIEL net → verbe être 3pl
-        return 'sont'
-    return None                                                        # ambigu (nom isolé, énumération « son X, son Y ») → s'abstenir
+    nxt = deacc(T[i+1].lower()) if i+1 < len(T) else ''
+    nxt_noun_sg = (nxt in GENDER_PURE) and not (nxt.endswith('s') or nxt.endswith('x'))
+    plural_subj = (prev(T, i) in ('ils', 'elles')) or _plural_before(T, i) or is_plural_noun(T, i-1)
+    if not plural_subj:                                                # déterminant PLURIEL (les/des/ces/leurs…) avant, dans la MÊME proposition → sujet pluriel (« Les sources … sont », « Les Bahrites ou X sont »)
+        for j in range(i-1, max(-1, i-9), -1):
+            if _SEG is not None and (j+1) < len(_SEG['bb']) and _SEG['bb'][j+1]: break
+            if deacc(T[j].lower()) in PLURAL_DET: plural_subj = True; break
+    if lw == 'sont':
+        if plural_subj: return None                                    # sujet pluriel (proche ou à distance) → « sont » correct → ne pas toucher
+        if nxt_noun_sg: return 'son'                                   # « sont » + NOM SINGULIER direct (« il a perdu sont chien ») → possessif ; adj/participe/prép (« sont contents/partis/là ») → abstention
+        return None
+    # lw == 'son' → « sont » seulement dans le cadre NET « ils/elles son <prédicat> » (FP=0 ; le pluriel distant + « son » est trop ambigu : « son ancienne maison »)
+    if prev(T, i) in ('ils', 'elles') and nxt and not nxt_noun_sg:
+        return 'sont'                                                  # « ils son contents » → être 3pl
+    return None
 
 def rule_on_ont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
+    if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
     nx = T[i+1].lower() if i+1 < len(T) else ''
     if nx.endswith('e') and not nx.endswith('ée') and _reads(nx): return 'on'   # « on » + verbe FINI présent en -e (trouve/mange) → « on » (ont ne précède JAMAIS un verbe fini) ; fixe « professeurs on trouve »→ont
     p = prev(T, i)
-    if p in ('ils', 'elles') or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
-    if nx.endswith('é') or nx.endswith('és') or nx.endswith('ée') or nx.endswith('ées') or is_participle(T, i+1) or deacc(nx) in IRREG_PART:
-        return 'ont'                                                    # avoir + participe (« ont incarné », « ont pu/fait/eu ») → 3pl, jamais « on »
+    pr = deacc(T[i-1].lower()) if i > 0 else ''
+    glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
+    if p in ('ils', 'elles') or glued_pl or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
+    if i+1 < len(T) and _is_ppl(T[i+1]):
+        return 'ont'                                                    # avoir + participe (« ont grandi/incarné/pu/fait/eu ») → 3pl, jamais « on »
     if vlike(T, i+1):         return 'on'                               # « on » sujet + verbe
     return None
 
@@ -204,10 +234,12 @@ def rule_leur_leurs(T, i):
 def rule_a_aa(T, i):
     if deacc(T[i].lower()) != 'a': return None
     if T[i] == T[i].upper() and T[i] != T[i].lower(): return None      # « A » majuscule (sigle/lettre « Serie A » ; « À » en tête) → abstention (FP)
+    pb = _SEG['bb'][i] if (_SEG is not None and i < len(_SEG['bb'])) else False   # frontière de proposition AVANT (virgule…) → le mot d'avant ne gouverne pas (« qui, à 4°C » : « qui » n'est pas le sujet de « à »)
     p = prev(T, i)
-    if p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg → avoir
-    if i+1 < len(T) and is_participle(T, i+1):            return 'a'    # « a mangé » (aux)
-    if vlike(T, i-1):                                                  # après un verbe (« va à ») → préposition
+    if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg net (pas à travers une virgule) → avoir
+    if i+1 < len(T) and _is_ppl(T[i+1]):                  return 'a'    # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à »
+    if i+2 < len(T) and deacc(T[i+1].lower()).endswith('ment') and _is_ppl(T[i+2]): return 'a'   # « a + adverbe(-ment) + participe » (« a également exploité »)
+    if not pb and vlike(T, i-1):                                       # après un verbe (« va à »), même proposition → préposition
         pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
         if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return None  # « l'entreprise a », « la voiture a » → avoir, pas « à » (fixe ~10 FP a→à)
         return 'à'
@@ -216,8 +248,10 @@ def rule_a_aa(T, i):
 def rule_et_est(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('et', 'est'): return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant (« elle, et … ») → pas de sujet net
     p = prev(T, i)
     if p not in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'qui'): return None   # exige un PRONOM sujet net (sinon « le roi, et … » → FP)
+    if i+1 < len(T) and T[i+1][:1].isupper(): return None                  # « et Bob », « et Chris Udoh » → nom propre → conjonction, jamais « est »
     if i+1 < len(T) and (is_participle(T, i+1) or T[i+1].lower() not in NUM_DET):
         return 'est'                                                       # pronom sujet + attribut → être 3sg
     return None
@@ -622,6 +656,7 @@ def rule_mais_mes(T, i):
     (garde PREP : « Mais, sous… » abstenu car sous=préposition). Homophone dys fréquent, hors des 8 d'origine."""
     if deacc(T[i].lower()) != 'mais' or i + 1 >= len(T):
         return None
+    if i == 0 or (_SEG is not None and i < len(_SEG['ss']) and _SEG['ss'][i]): return None   # « Mais … » en tête de phrase = conjonction, jamais « mes »
     nx = T[i + 1].lower(); dn = deacc(nx)
     if dn in MAIS_STOP:                                 # adverbe/mot-outil (homographe nom : « pas », « point ») → « mais »
         return None                                    #   conjonction, jamais « mes » (« mais pas »/« mais comment » corrects)
@@ -732,14 +767,12 @@ def rule_noun_plural(T, i):
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
 
-# VIGILANCE (vert) — homophones PURS, dépendants du SENS, donc IMPOSSIBLES en rouge FP=0.
-# Audit UD (2026-06-30) : ~100 % FP en rouge (« a été »→à, « qu'ils ont »→on, conjonction « mais »→mes,
-# « sont susceptibles »→son). Déclassés : ils n'AFFIRMENT plus, ils SIGNALENT (« à vérifier »). Hors correct().
-VRULES = [('a/à', rule_a_aa), ('on/ont', rule_on_ont), ('son/sont', rule_son_sont),
-          ('mais/mes', rule_mais_mes), ('et/est', rule_et_est), ('ce/se', rule_ce_se),
-          ('peu/peux/peut', rule_peu)]
-
-RULES = [('-é/-er', rule_e_er), ('leur/leurs', rule_leur_leurs),
+# a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu : homophones À RÔLE GRAMMATICAL (verbe vs prép/det/conj).
+# Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
+# « vigilance verte » (= simplification). FP=0 par cadre syntaxique forcé (audit UD 2026-06-30 : durcis).
+RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
+         ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
@@ -748,19 +781,6 @@ RULES = [('-é/-er', rule_e_er), ('leur/leurs', rule_leur_leurs),
          ('usage être/avoir', rule_aux_usage),
          ('aux mal orthographié', rule_aux_misspell),
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
-
-
-def vigilance(text):
-    """Couche VERTE : homophones purs (VRULES) — n'affirme pas une faute, signale « à vérifier ». Hors FP=0, non lié à la parité."""
-    global _SEG
-    _SEG = _seg_info(text)
-    T = toks(text); out = []
-    for i in range(len(T)):
-        for (name, fn) in VRULES:
-            dec = fn(T, i)
-            if dec is not None and dec != T[i] and dec.lower() != T[i].lower():
-                out.append((i, T[i], dec, name)); break
-    return out
 
 
 def correct(text):
