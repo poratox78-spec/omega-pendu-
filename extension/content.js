@@ -24,6 +24,7 @@
     }).then(function () { if (active) schedule(active); });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
     if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior (genre + pluriel) est prêt
+    if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(function () { if (active) schedule(active); });  // couche VERTE vigilance (confusables)
   } catch (e) {}
 
   // ===== cible éditable =====
@@ -112,7 +113,7 @@
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  function render(el, dg, comps) {
+  function render(el, dg, comps, vig) {
     var b = ensureBar();
     var h = '<div class="omdys-head"><b>🩹 Correcteur dys</b>';
     if (dg.flags.length) h += '<span class="omdys-n">' + dg.flags.length + '</span><button class="omdys-all">tout corriger</button>';
@@ -129,6 +130,11 @@
     if (comps && comps.length) {   // aide-frappe : complétions du mot en cours (clic pour insérer)
       h += '<div class="omdys-comp"><span class="omdys-clab">➡️ compléter</span>'
         + comps.map(function (a) { return '<button class="omdys-cbtn" data-w="' + esc(a) + '">' + esc(a) + '</button>'; }).join('') + '</div>';
+    }
+    if (vig && vig.length) {   // couche VERTE : confusables — VIGILANCE (n'affirme pas une faute → pas de clic d'application)
+      h += '<div class="omdys-vig"><div class="omdys-vlab">🟢 à vérifier — mots confusables</div>';
+      vig.forEach(function (v) { h += '<div class="omdys-vitem">« ' + esc(v.word) + ' » — ' + esc(v.info) + '</div>'; });
+      h += '</div>';
     }
     if (dg.stade) {
       h += '<div class="omdys-stade"><b>Stade : ' + esc(dg.stadeLbl) + '</b><br>' + esc(dg.stadeMsg) + '</div>';
@@ -171,8 +177,9 @@
     var autos = dg.flags.filter(function (f) { return f.tier === 'auto'; });
     if (autos.length && applyAutos(el, autos)) return;                    // AUTO sûr → corrigé tout seul
     var comps = computeComps(el);                                         // aide-frappe : complétions du mot en cours
-    if (!dg.flags.length && !comps.length) { hideBar(); return; }
-    render(el, dg, comps);
+    var vig = DC.vigText ? DC.vigText(text) : [];                         // couche VERTE : confusables (vigilance, n'affirme pas)
+    if (!dg.flags.length && !comps.length && !vig.length) { hideBar(); return; }
+    render(el, dg, comps, vig);
   }
 
   // ===== orchestration =====
