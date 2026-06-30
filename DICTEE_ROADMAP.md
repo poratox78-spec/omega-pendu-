@@ -4,6 +4,13 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-06-30) — ponctuation, majuscule & run-on (sens/contexte)
+
+`toks()` jetait la ponctuation et les règles minusculaient → correcteur aveugle aux frontières. Nouvelle **couche segments** (`_segInfo` : drapeaux début-de-phrase après `.!?`, borne de proposition `,;:`, trait d'union), parité 3 moteurs :
+- **A — contexte borné** : `_subject_before`/`svSubject` s'arrête à une borne → le sujet (être/avoir, accord) ne traverse plus un `.`/`,` (réduit les FP).
+- **B — majuscule (rouge, FP=0)** : mot minuscule **après `.!?`** → capitale (« il pleut. **demain** »→Demain). **Jamais le 1er token** (fragment) — exigence du garde `recall_probe`. Filtre `correct()` relâché pour la casse seule. Garde abréviations (« M. dupont »).
+- **C — run-on (vert, vigilance)** : 2 propositions `pronom+verbe` collées sans séparateur (« il mange il dort ») → signale « ponctuation manquante ? » sans imposer (le sens en dépend → dissocié du rouge, comme tu l'as demandé). Conservateur : anti-inversion (`dit-il`), anti-coordination/relative (`et il`, `qu'il`), verbes finis requis + accord. Mesuré : détection ✓, **0 FP** (inversion/dislocation/relative/mono-proposition évités, 0/30 corpus). `runon_positions` (Python) / `_runonSet`/`runonText` (JS).
+
 ## ÉTAT (2026-06-30) — refonte être/avoir (faute dys n°1)
 
 Deux nouvelles règles **FP=0**, en **parité 3 moteurs** (Python réf → monolithe → extension), pour les fautes être/avoir (les verbes les plus fréquents) :

@@ -161,7 +161,11 @@
     var pl=pluralizeNoun(n);return (pl&&deacc(pl.toLowerCase())!==dn)?pl:null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
   var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc'.split(' ').forEach(function(w){ABBREV[w]=1;});
-  function _segInfo(text){var ss=[],bb=[],re=/[A-Za-zÀ-ÿœŒ']+/g,m,prev=0,k=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));prev=m.index+m[0].length;k++;}return {ss:ss,bb:bb};}
+  function _segInfo(text){var ss=[],bb=[],hy=[],re=/[A-Za-zÀ-ÿœŒ']+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy};}
+  // C : run-on (ponctuation manquante entre 2 propositions) — VIGILANCE (vert) ; conservateur, anti-inversion (trait d'union)
+  var RPRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']},RCONJ={};'et ou ni mais car donc or que qu qui dont quand lorsque comme si puisque quoique lequel laquelle pour sans a'.split(' ').forEach(function(w){RCONJ[w]=1;});
+  function _isFinite(w){var r=svReads(w),k;for(k=0;k<r.length;k++){var md=r[k][1].split(':')[0];if(md==='ind'||md==='sub'||md==='cnd'||md==='cond'||md==='imp')return true;}return false;}
+  function runonText(text){var T=toks(text),seg=_segInfo(text),out=[],i;for(i=2;i<T.length-1;i++){var pn=RPRON[deacc(T[i].toLowerCase())];if(!pn)continue;if(seg.bb[i]||seg.hy[i])continue;if(RCONJ[deacc(T[i-1].toLowerCase())])continue;if(T[i-1].toLowerCase().indexOf("'")>=0||T[i].toLowerCase().indexOf("'")>=0)continue;if(!_isFinite(T[i-1])||!_isFinite(T[i+1]))continue;if(!svAgrees(svReads(T[i+1]),pn[0],pn[1]))continue;out.push({a:T[i-1],b:T[i]});}return out;}
   function rCapital(T,i){if(!_SEG||i>=_SEG.ss.length||!_SEG.ss[i])return null;var w=T[i],c=w.charAt(0);if(c.toUpperCase()===c)return null;if(i>0&&ABBREV[deacc(T[i-1].toLowerCase())])return null;return c.toUpperCase()+w.slice(1);}
   // === confusion d'USAGE être↔avoir + auxiliaire MAL ORTHOGRAPHIÉ (parité dictee/correcteur_probe.py) ===
   var AVOIR_IDIOM={};'faim soif sommeil raison tort envie besoin peur'.split(' ').forEach(function(w){AVOIR_IDIOM[w]=1;});
@@ -358,6 +362,6 @@
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;},
-    vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables
+    vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));
