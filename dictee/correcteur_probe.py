@@ -281,19 +281,21 @@ def _reads(w):
 # de début de phrase. _SEG est posé par correct() avant la passe de règles.
 _SEG = None
 ABBREV = {'m', 'mme', 'mlle', 'mr', 'dr', 'pr', 'me', 'mgr', 'st', 'ste', 'etc', 'cf', 'ex', 'vs', 'no', 'nos',
-          'art', 'av', 'bd', 'env', 'fig', 'vol', 'ed', 'p', 'pp', 'al', 'co', 'inc', 'ave', 'apr', 'jc'}
+          'art', 'av', 'bd', 'env', 'fig', 'vol', 'ed', 'p', 'pp', 'al', 'co', 'inc', 'ave', 'apr', 'jc',
+          'subsp', 'ssp', 'var', 'sp', 'spp', 'gen', 'fam'}     # + abréviations latines (noms d'espèces : « L. delbrueckii subsp. bulgaricus »)
 
 def _seg_info(text):
     import re
-    ss, bb, hy, prev_end = [], [], [], 0
+    ss, bb, hy, cap, prev_end = [], [], [], [], 0
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
         s = any(c in gap for c in '.!?…')                        # début de phrase = APRÈS . ! ? (pas le 1er token : un fragment ne se capitalise pas)
         ss.append(s)
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
         hy.append('-' in gap)                                    # trait d'union avant (inversion « dit-il ») → anti-FP run-on
+        cap.append(s and '..' not in gap and not any(c.isdigit() for c in gap))   # MAJUSCULE : vraie fin de phrase — pas une ellipse « .. » ni un point de nombre/décimale
         prev_end = m.end()
-    return {'ss': ss, 'bb': bb, 'hy': hy}
+    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap}
 
 # ---------- C : RUN-ON (ponctuation manquante entre 2 propositions) — VIGILANCE (vert), n'impose pas. Conservateur, FP-mesuré.
 PRON_SUBJ = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
@@ -321,10 +323,11 @@ def runon_positions(text):
     return out
 
 def rule_capital(T, i):
-    if _SEG is None or i >= len(_SEG['ss']) or not _SEG['ss'][i]: return None
+    if _SEG is None or i >= len(_SEG['cap']) or not _SEG['cap'][i]: return None
     w = T[i]
     if not (w[:1].isalpha() and w[:1].islower()): return None    # déjà capitale / non-lettre
     if i > 0 and deacc(T[i - 1].lower()) in ABBREV: return None   # après une abréviation (M. Dr etc.) → pas une vraie fin de phrase
+    if i > 0 and len(deacc(T[i - 1].lower())) == 1: return None   # après une INITIALE (J. R. ou nom latin « L. casei ») → pas une fin de phrase
     return w[0].upper() + w[1:]
 
 def _subject_before(T, i):
@@ -439,11 +442,14 @@ FULL_AUX = set((
     'aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient '   # manquant/mal écrit → corrigible
     'eusse eusses eussions eussiez eussent').split())
 
+# Mots fréquents à ≤1 édition d'une forme aux longue (avec≈avez, avant≈avait…) mais qui ne sont JAMAIS un aux mutilé → ne pas corriger
+NON_AUX = set('avec avant apres dans pour sur sous vers chez sans mais donc alors aussi tres plus tout tous leur leurs cette cela elle elles entre selon ainsi'.split())
+
 def rule_aux_misspell(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None
     w = deacc(T[i].lower())
-    if len(w) < 2 or not w.isalpha(): return None
-    if w in FULL_AUX: return None                                # déjà une forme être/avoir valide (cond./futur/subj…) → ne pas toucher
+    if len(w) < 3 or not w.isalpha(): return None                # ≥3 lettres (les mots-outils courts « ne »/« le »/« se » ne sont jamais un aux mutilé)
+    if w in FULL_AUX or w in NON_AUX: return None                # déjà une forme être/avoir valide, ou un mot fréquent proche (avec/avant) → ne pas toucher
     pn = _subject_before(T, i)
     if pn is None and i > 0 and deacc(T[i - 1].lower()) in ('nous', 'vous'):
         pn = ('1', 'p') if deacc(T[i - 1].lower()) == 'nous' else ('2', 'p')
@@ -454,10 +460,11 @@ def rule_aux_misspell(T, i):
     if reads and _agrees(reads, per, nb): return None            # déjà une forme valide accordée → ne pas toucher
     best_d, best_f, best_v = 9, None, None
     for (dform, verb, aform) in _aux_targets(per, nb):
+        if len(dform) < 4: continue                              # SEULES les formes LONGUES (avons/êtes/étions/avait…) ; jamais a/as/ai/es : ces cibles courtes attrapent ne/le/se/me
         d = _lev(w, dform)
         if d < best_d: best_d, best_f, best_v = d, aform, verb
         elif d == best_d and verb != best_v: best_v = 'AMBIG'    # à égale distance d'être ET d'avoir → ambigu
-    if best_f is None or best_d > 2: return None
+    if best_f is None or best_d > 1: return None                 # distance ≤1 stricte (une seule lettre absente/fausse) — anti-FP à l'échelle
     if best_v == 'AMBIG': return None                            # anti-swap : on ne devine pas être vs avoir
     if reads and best_d > 1: return None                         # mot déjà reconnu (autre verbe) : n'y toucher que si TRÈS proche (≤1)
     if w == deacc(best_f.lower()): return None
