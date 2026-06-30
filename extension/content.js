@@ -113,7 +113,7 @@
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
-  function render(el, dg, comps, vig, ro) {
+  function render(el, dg, comps, vig, ro, homo) {
     var b = ensureBar();
     var h = '<div class="omdys-head"><b>🩹 Correcteur dys</b>';
     if (dg.flags.length) h += '<span class="omdys-n">' + dg.flags.length + '</span><button class="omdys-all">tout corriger</button>';
@@ -139,6 +139,11 @@
     if (ro && ro.length) {   // couche VERTE : run-on — ponctuation manquante entre 2 propositions (le sens en dépend)
       h += '<div class="omdys-vig"><div class="omdys-vlab">🟢 à vérifier — ponctuation</div>';
       ro.forEach(function (r) { h += '<div class="omdys-vitem">entre « ' + esc(r.a) + ' » et « ' + esc(r.b) + ' » — ponctuation manquante ? (virgule ou point selon le sens)</div>'; });
+      h += '</div>';
+    }
+    if (homo && homo.length) {   // couche VERTE : homophones purs (a/à, on/ont…) — VIGILANCE, le sens décide (déclassés du rouge FP=0, audit UD)
+      h += '<div class="omdys-vig"><div class="omdys-vlab">🟢 à vérifier — homophones</div>';
+      homo.forEach(function (v) { h += '<div class="omdys-vitem">« ' + esc(v.word) + ' » — peut-être « ' + esc(v.sugg) + ' » ? (le sens décide)</div>'; });
       h += '</div>';
     }
     if (dg.stade) {
@@ -184,8 +189,9 @@
     var comps = computeComps(el);                                         // aide-frappe : complétions du mot en cours
     var vig = DC.vigText ? DC.vigText(text) : [];                         // couche VERTE : confusables (vigilance, n'affirme pas)
     var ro = DC.runonText ? DC.runonText(text) : [];                      // couche VERTE : run-on (ponctuation manquante entre 2 propositions)
-    if (!dg.flags.length && !comps.length && !vig.length && !ro.length) { hideBar(); return; }
-    render(el, dg, comps, vig, ro);
+    var homo = DC.vigHomo ? DC.vigHomo(text) : [];                        // couche VERTE : homophones purs (a/à, on/ont…) déclassés du rouge (audit FP)
+    if (!dg.flags.length && !comps.length && !vig.length && !ro.length && !homo.length) { hideBar(); return; }
+    render(el, dg, comps, vig, ro, homo);
   }
 
   // ===== orchestration =====

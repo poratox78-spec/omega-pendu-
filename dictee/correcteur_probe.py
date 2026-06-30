@@ -143,12 +143,16 @@ def is_plural_noun(T, j):
 
 
 # ---------- règles : decide(T,i) -> forme correcte (orthographe) | None ----------
+# Noms fréquents en -é homographes d'un participe (marché/traité/combiné/exposé…) — JAMAIS un infinitif mutilé → abstention (FP UD)
+NOUN_E = set('marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split())
+
 def rule_e_er(T, i):
     w = T[i]; lw = w.lower()
     if "'" in lw: return None                          # token contracté (l'été, d'…) → pas un verbe -er/-é
     if lw.endswith('é'):              forms = (w, w[:-1] + 'er')          # tapé = participe
     elif deacc(lw).endswith('er') and len(lw) > 3: forms = (w[:-2] + 'é', w)  # tapé = infinitif
     else: return None
+    if deacc(forms[0].lower()) in NOUN_E: return None  # nom courant en -é (marché du travail, traité de Lyon, combiné nordique…) → pas une faute
     if deacc(forms[1].lower()) not in VERB_LEX: return None   # forms[1] = infinitif -er ; doit être un VRAI verbe (sinon « thé »→« ther » : FP)
     # NB (mesuré, rejeté) : élargir aux verbes du lexique 155k (POS=VER) — même borné à AVOIR — fait remonter le FP
     # (-é/-er 53→74 sur UD : « le traité/marché/côté » nom → infinitif). La règle exige du CONTEXTE (nom vs participe),
@@ -362,6 +366,8 @@ def rule_accord_sv(T, i):
     if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre':
         return None                                              # « peut-être » (adverbe), pas le verbe pouvoir
     if _agrees(reads, per, nb): return None                      # déjà d'accord → ne pas toucher
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
+        return None                                              # temps composé / passif (aux + participe : « auraient tenté », « sont-ils insérés ») → T[i] = participe, pas un verbe fini à accorder
     lemmas = {l for (l, _mt, _p, _n) in reads}
     if len(lemmas) != 1: return None                             # forme homographe inter-lemmes (vis=vivre/voir) → abstention
     lem = lemmas.pop()
@@ -509,8 +515,8 @@ def rule_accord_sv_noun(T, i):
     # conjonction, ou un VERBE intercalé APRÈS le nom-tête (sous-phrase « les feuilles TOMBENT, l'automne est ») → abstention.
     for m in range(dk + 1, i):
         tok = T[m]; dw = deacc(tok.lower())
-        if "'" in tok.lower() or dw in PREP or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS:
-            return None
+        if "'" in tok.lower() or dw in PREP or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS or dw in FULL_AUX:
+            return None                                                  # +aux (auraient/avait/sont…) entre le nom et le verbe → temps composé/passif → abstention
         if m > dk + 1 and _reads(tok):
             return None
     if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
@@ -726,9 +732,14 @@ def rule_noun_plural(T, i):
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
 
-RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
-         ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
+# VIGILANCE (vert) — homophones PURS, dépendants du SENS, donc IMPOSSIBLES en rouge FP=0.
+# Audit UD (2026-06-30) : ~100 % FP en rouge (« a été »→à, « qu'ils ont »→on, conjonction « mais »→mes,
+# « sont susceptibles »→son). Déclassés : ils n'AFFIRMENT plus, ils SIGNALENT (« à vérifier »). Hors correct().
+VRULES = [('a/à', rule_a_aa), ('on/ont', rule_on_ont), ('son/sont', rule_son_sont),
+          ('mais/mes', rule_mais_mes), ('et/est', rule_et_est), ('ce/se', rule_ce_se),
+          ('peu/peux/peut', rule_peu)]
+
+RULES = [('-é/-er', rule_e_er), ('leur/leurs', rule_leur_leurs),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
@@ -737,6 +748,19 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('usage être/avoir', rule_aux_usage),
          ('aux mal orthographié', rule_aux_misspell),
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
+
+
+def vigilance(text):
+    """Couche VERTE : homophones purs (VRULES) — n'affirme pas une faute, signale « à vérifier ». Hors FP=0, non lié à la parité."""
+    global _SEG
+    _SEG = _seg_info(text)
+    T = toks(text); out = []
+    for i in range(len(T)):
+        for (name, fn) in VRULES:
+            dec = fn(T, i)
+            if dec is not None and dec != T[i] and dec.lower() != T[i].lower():
+                out.append((i, T[i], dec, name)); break
+    return out
 
 
 def correct(text):
