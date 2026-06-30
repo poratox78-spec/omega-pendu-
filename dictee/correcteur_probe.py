@@ -316,6 +316,44 @@ def rule_accord_sv(T, i):
     return sugg
 
 
+# ---------- Confusion d'USAGE être ↔ avoir (faute dys courante) : « il est faim »→« il a faim », « il a allé »→« il est allé »
+# FP=0 par LISTES FERMÉES (un seul auxiliaire grammaticalement possible) : idiomes d'AVOIR, participes de verbes
+# INTRANSITIFS d'ÊTRE, l'âge. On ne swappe QUE sur ces déclencheurs ; l'aux doit DÉJÀ s'accorder (sinon rule_accord_sv).
+AVOIR_IDIOM = {'faim', 'soif', 'sommeil', 'raison', 'tort', 'envie', 'besoin', 'peur'}   # « être + X » impossible
+# participes de verbes INTRANSITIFS purs (« avoir + X » impossible). Set EXPLICITE déjà désaccentué (⚠️ un autre ETRE_PP
+# existe plus bas pour rule_jest → nom distinct AUX_ETRE_PP pour éviter la collision/écrasement de variable globale).
+AUX_ETRE_PP = {'alle', 'allee', 'alles', 'allees', 'venu', 'venue', 'venus', 'venues', 'arrive', 'arrivee', 'arrives', 'arrivees',
+               'parti', 'partie', 'partis', 'parties', 'devenu', 'devenue', 'devenus', 'devenues', 'revenu', 'revenue', 'revenus', 'revenues',
+               'reste', 'restee', 'restes', 'restees', 'ne', 'nee', 'nes', 'nees', 'mort', 'morte', 'morts', 'mortes',
+               'decede', 'decedee', 'decedes', 'decedees', 'reparti', 'repartie', 'repartis'}
+
+def rule_aux_usage(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower(): return None
+    reads = _reads(T[i])
+    if not reads: return None
+    lemmas = {l for (l, _mt, _p, _n) in reads}
+    if not ({'etre', 'avoir'} & lemmas): return None             # pas un auxiliaire être/avoir
+    pn = _subject_before(T, i)
+    if pn is None and i > 0:                                     # nous/vous SUJET : sûrs SEULEMENT si l'aux est la forme 1p/2p correspondante
+        pv = deacc(T[i - 1].lower())
+        if pv == 'nous' and any(p == '1' and n == 'p' for (_l, _m, p, n) in reads): pn = ('1', 'p')
+        elif pv == 'vous' and any(p == '2' and n == 'p' for (_l, _m, p, n) in reads): pn = ('2', 'p')
+    if pn is None: return None
+    per, nb = pn
+    if not _agrees(reads, per, nb): return None                  # l'aux s'accorde déjà (sinon = rule_accord_sv)
+    if per == '1' and nb == 's': return None                     # « je » → forme élidée (j'ai) → différé v2
+    mts = [mt for (_l, mt, _p, _n) in reads]
+    mt = 'ind:pre' if 'ind:pre' in mts else ('ind:imp' if 'ind:imp' in mts else None)
+    if mt is None: return None
+    nxt = deacc(T[i + 1].lower()) if i + 1 < len(T) else ''
+    age = ('etre' in lemmas and nxt in ('ans', 'an'))            # « être + [nombre] ans » (toks retire le chiffre) → AVOIR
+    if 'etre' in lemmas and (nxt in AVOIR_IDIOM or age):         # ÊTRE devant idiome d'avoir / âge → AVOIR
+        return CONJ_C.get('avoir', {}).get(mt, {}).get(per + nb)
+    if 'avoir' in lemmas and nxt in AUX_ETRE_PP:                 # AVOIR devant participe de verbe d'être → ÊTRE
+        return CONJ_C.get('etre', {}).get(mt, {}).get(per + nb)
+    return None
+
+
 def _noun_subject_number(T, i):
     """Nombre du sujet-NOM avant le verbe i (3e personne). Saute les clitiques objets (« le chat LES regarde » :
     « les » = pronom, pas déterminant pluriel), puis prend le déterminant gouverneur (en sautant les dét. de
@@ -578,7 +616,8 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
-         ('accord pluriel nom', rule_noun_plural)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
+         ('accord pluriel nom', rule_noun_plural),
+         ('usage être/avoir', rule_aux_usage)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
 def correct(text):
@@ -638,6 +677,14 @@ CASES = [
     ("Elle habite une maison", "une", "un", "genre déterminant"),
     ("Le jardin est vert", "Le", "La", "genre déterminant"),
     ("Il regarde la montagne", "la", "le", "genre déterminant"),
+    # confusion d'USAGE être↔avoir (listes fermées : idiomes d'avoir, verbes d'être, âge)
+    ("Il a faim", "a", "est", "usage être/avoir"),
+    ("Tu as raison", "as", "es", "usage être/avoir"),
+    ("Nous avons soif", "avons", "sommes", "usage être/avoir"),
+    ("Vous avez peur", "avez", "êtes", "usage être/avoir"),
+    ("Il est allé à Paris", "est", "a", "usage être/avoir"),
+    ("Elle est partie tôt", "est", "a", "usage être/avoir"),
+    ("Ils sont restés ici", "sont", "ont", "usage être/avoir"),
 ]
 
 
