@@ -4,6 +4,10 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-06-30) — couche verte « vigilance »
+
+Le correcteur a désormais **deux niveaux**. **Rouge** = corrections **FP=0** (inchangé, parité `flags ⊆ Python` app + extension). **🟢 Vert** = *vigilance* sur les mots **confusables** (homophones + paronymes, **~80 groupes** curés depuis Lexique 4, CC BY-SA) : survol = possibilités + sens. Il **n'affirme pas** de faute → **hors FP=0**, donc le signal distributionnel (sens) y sert enfin — **ordonner/atténuer, jamais trancher** (mesuré : confidemment faux sur « une *paire* de lunettes » → on **signale**, on ne corrige pas). Mineurs de candidats : `build_confusables_auto.py`, `paronyme_miner.py` (auto trop bruité → **curation**). Source unique : `build_confusables.js` → `embed_confusables.js` (monolithe) + `build_assets.py` (extension). *Antériorité : LanguageTool (LGPL, incompatible) & Merci-App (proprio) → rien emprunté, tout maison (Lexique).*
+
 ## ÉTAT (2026-06-24) — où on en est
 
 Les **3 étapes** de la feuille de route sont faites ; l'oracle de saisie a été **fondu dans le correcteur**, et une
