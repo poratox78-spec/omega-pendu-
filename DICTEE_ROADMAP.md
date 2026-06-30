@@ -4,6 +4,13 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-06-30) — refonte être/avoir (faute dys n°1)
+
+Deux nouvelles règles **FP=0**, en **parité 3 moteurs** (Python réf → monolithe → extension), pour les fautes être/avoir (les verbes les plus fréquents) :
+- **`rAuxUsage` — confusion d'usage être↔avoir** : « il **est** faim »→« il a faim », « il **a** allé »→« il est allé », « on **est** 10 ans »→« on a », « ils **ont** restés »→« sont ». FP=0 par **listes fermées** (idiomes d'avoir : faim/soif/raison/tort/envie/besoin/peur/sommeil ; participes de verbes intransitifs d'être : allé/venu/parti/resté/né/mort/devenu… ; âge). On ne swappe **que** là où un seul auxiliaire est possible ; **abstention** sinon → jamais de swap à l'aveugle.
+- **`rAuxMisspell` — auxiliaire mal orthographié** : « vous **ete** »→êtes, « nous **avon** »→avons, « vous **ave** »→avez, « nous **étion** »→étions. Distance d'édition ≤2 vers la forme accordée, garde `FULL_AUX` (toutes les formes valides tous temps — « aurait » intact), abstention si ambigu être↔avoir.
+- Sujet **pronom net** requis (`svSubject`, bornes de proposition) ; **`je` différé** (élision j'ai) ; nous/vous gérés. Mesuré : usage 12/12, ortho 4/5 ; **0 FP** (« il est mort/resté », « j'ai été », « il a eu peur », « elle aurait préféré » intacts). Tests : `evo/aux_port_test.js`, batteries dans `correcteur_probe.py`.
+
 ## ÉTAT (2026-06-30) — couche verte « vigilance »
 
 Le correcteur a désormais **deux niveaux**. **Rouge** = corrections **FP=0** (inchangé, parité `flags ⊆ Python` app + extension). **🟢 Vert** = *vigilance* sur les mots **confusables** (homophones + paronymes, **~80 groupes** curés depuis Lexique 4, CC BY-SA) : survol = possibilités + sens. Il **n'affirme pas** de faute → **hors FP=0**, donc le signal distributionnel (sens) y sert enfin — **ordonner/atténuer, jamais trancher** (mesuré : confidemment faux sur « une *paire* de lunettes » → on **signale**, on ne corrige pas). Mineurs de candidats : `build_confusables_auto.py`, `paronyme_miner.py` (auto trop bruité → **curation**). Source unique : `build_confusables.js` → `embed_confusables.js` (monolithe) + `build_assets.py` (extension). *Antériorité : LanguageTool (LGPL, incompatible) & Merci-App (proprio) → rien emprunté, tout maison (Lexique).* **Glosses (sens)** : curés (concis) sinon **auto-Wiktionnaire** (CC BY-SA, compatible — `build_glosses_wiktionnaire.py`, API par lots + cache) → un ajout de confusable sans gloss manuel est rempli automatiquement.
