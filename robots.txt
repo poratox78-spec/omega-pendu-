@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://poratox78-spec.github.io/omega-pendu-/sitemap.xml
+Sitemap: https://omega-pendu.pages.dev/sitemap.xml
