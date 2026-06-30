@@ -46,6 +46,24 @@ const CURATED=[
   {forms:['tache','taches','tâche','tâches'], gloss:{'tache':'la salissure','tâche':'le travail'}},
   {forms:['sang','sans','cent','cents','s’en','c’en'], gloss:{'sang':'le liquide vital','sans':'la privation','cent':'le nombre 100','s’en':"(s'en aller)"}},
   {forms:['plutôt','plus tôt'], gloss:{'plutôt':'de préférence','plus tôt':'avant dans le temps'}},
+  // — élargissement curé depuis phono_homophones (candidats minés par build_confusables_auto.py, triés à la main) —
+  {forms:['faim','fin','fins','feint','feints'], gloss:{'faim':"l'appétit",'fin':'≠ début · subtil','feint':'simulé (feindre)'}},
+  {forms:['cœur','coeur','cœurs','chœur','choeur','chœurs'], gloss:{'cœur':"l'organe · le centre",'coeur':"l'organe · le centre",'chœur':'la chorale','choeur':'la chorale'}},
+  {forms:['point','points','poing','poings'], gloss:{'point':'le ~ (.) · pas du tout','poing':'la main fermée'}},
+  {forms:['salle','salles','sale','sales'], gloss:{'salle':'la pièce','sale':'≠ propre'}},
+  {forms:['boulot','boulots','bouleau','bouleaux'], gloss:{'boulot':'le travail (fam.)','bouleau':"l'arbre"}},
+  {forms:['plan','plans','plant','plants'], gloss:{'plan':'le projet · le schéma','plant':'le jeune végétal'}},
+  {forms:['censé','censée','censés','sensé','sensée','sensés'], gloss:{'censé':'supposé (~ faire)','sensé':'raisonnable'}},
+  {forms:['cygne','cygnes','signe','signes'], gloss:{'cygne':"l'oiseau",'signe':'le geste · le symbole'}},
+  {forms:['cuir','cuirs','cuire'], gloss:{'cuir':'la matière','cuire':'(faire ~)'}},
+  {forms:['gène','gènes','gêne','gênes'], gloss:{'gène':'le ~ (ADN)','gêne':'le malaise · (gêner)'}},
+  {forms:['repaire','repaires','repère','repères'], gloss:{'repaire':'la cachette','repère':'le point de référence'}},
+  {forms:['martyr','martyrs','martyre','martyres'], gloss:{'martyr':'la personne','martyre':'le supplice'}},
+  {forms:['palais','palet','palets'], gloss:{'palais':'le château · la bouche','palet':'le disque (jeu)'}},
+  {forms:['selle','selles','sel','sels','scelle','scelles'], gloss:{'selle':'(cheval)','sel':'le condiment','scelle':'(sceller)'}},
+  {forms:['teint','teints','thym','tain'], gloss:{'teint':'la couleur (peau)','thym':"l'herbe",'tain':'le ~ du miroir'}},
+  {forms:['mante','mantes','menthe','menthes'], gloss:{'mante':'la ~ religieuse','menthe':'la plante'}},
+  {forms:['héraut','hérauts','héros'], gloss:{'héraut':'le messager','héros':'le brave'}},
 ];
 
 function buildModel(){
