@@ -4,6 +4,14 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-06-30) — AUDIT FP=0 à l'échelle (corpus UD) & re-tiering rouge↔vert
+
+Premier **vrai** test FP=0 : `correct()` sur **14 450 phrases correctes** d'UD (`# text` de `ud_fr_gsd-train.conllu` — tout flag = un FP). Verdict : le correcteur n'était **pas FP=0 à l'échelle** (**4,70 %**). Les batteries de 30–95 phrases ne pouvaient pas le voir. Deux fixes :
+- **Régression éliminée** (mes 2 dernières règles) : `aux mal orthographié` **241→0 FP** (« ne »→a, « le »→a : distance ≤2 vers a/as/ai/es → mots-outils courts. Corrigé : mot ≥3 lettres, cibles longues ≥4, distance ≤1, stoplist avec/avant) ; `majuscule` **180→35** (initiales « L. casei », ellipses `..`, décimales → flag `cap`, garde initiale, abrév. latines).
+- **Re-tiering rouge→vert** (classification manuelle de ~100 flags : **~82 % = vrais FP**, concentrés sur les homophones purs qui firent sur le mot correct fréquent — « a été »→à, conjonction « mais »→mes) : **a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu** descendus en **VIGILANCE verte** (dépendants du sens → impossibles en rouge FP=0). é/er durci (garde noms-en-é : marché/traité/combiné, **50→22**), accord-SV durci (garde aux+participe : « auraient tenté », **15→10**). Gardés rouges : accord pluriel nom (majoritairement de vraies fautes), genre, leur/leurs.
+
+**Résultat : ROUGE 4,70 %→0,92 % (Py) / 0,89 % (JS) | VERT homophones ~1,2 %.** 3 moteurs, parité app⊆Py & ext⊆Py OK, `recall_probe --check` OK. `VRULES`/`vigilance()` (Python), `VRULES`/`vigHomo`/`_vigHomo` (JS). Voir mémoire `corrector-fp0-at-scale`.
+
 ## ÉTAT (2026-06-30) — ponctuation, majuscule & run-on (sens/contexte)
 
 `toks()` jetait la ponctuation et les règles minusculaient → correcteur aveugle aux frontières. Nouvelle **couche segments** (`_segInfo` : drapeaux début-de-phrase après `.!?`, borne de proposition `,;:`, trait d'union), parité 3 moteurs :
