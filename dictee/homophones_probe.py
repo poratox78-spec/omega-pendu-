@@ -20,6 +20,12 @@
 #     près/prêt  -> « proche de »            (si OK → près)
 #     mais       -> « pourtant »             (si OK → mais)
 #     c'est      -> « cela est »             (si OK → c'est ; sinon s'est)
+#     ça/sa      -> « cela »                 (si OK → ça ; sinon sa = possessif devant nom)
+#     tout(famille, 4 rôles) :
+#         nom tout(s)/toux -> « ensemble(s) » (→ tout) | ajouter « vilaine » (→ toux)
+#         pronom tout/tous/toutes -> « cela / ils / elles » (avant verbe) ou EFFAÇABLE (après verbe)
+#         déterminant -> « le/la/les » ou « chaque »  (+ accord avec le NOM suivant)
+#         adverbe -> « tout à fait / complètement »  (invariable SAUF devant adj. fém. à consonne/h aspiré : toute(s))
 import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import correcteur_probe as C
@@ -44,6 +50,16 @@ GOLD_GRAMMATICAL = [
     ("Les poules son dans le jardin.", "son", "sont"),    # sujet NOM pluriel → raté aujourd'hui
     ("Le chien met sa patte.", "met", "ok"),
     ("Il mais son manteau.", "mais", "met"),              # met/mais — pas encore
+    # ça / sa  (pronom « ça »=cela vs déterminant possessif « sa »)
+    ("Ça ne me dérange pas.", "ça", "ok"),
+    ("Sa ne me dérange pas.", "sa", "ça"),                # sa→ça (test « cela »)
+    ("Sa maison est grande.", "sa", "ok"),
+    ("Ça maison est grande.", "ça", "sa"),                # ça→sa (devant un nom)
+    # tout / tous / toute / toutes  (déterminant — accord avec le nom suivant)
+    ("Je marche tous les jours.", "tous", "ok"),
+    ("Je marche tout les jours.", "tout", "tous"),        # tout→tous (det. devant « les jours »)
+    ("Tout le monde est là.", "tout", "ok"),
+    ("Toutes les fleurs sont fanées.", "toutes", "ok"),
 ]
 
 # Homophones LEXICAUX (même catégorie, sens pur) → territoire VERT (vigilance), JAMAIS rouge.

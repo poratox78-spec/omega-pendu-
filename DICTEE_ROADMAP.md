@@ -13,7 +13,7 @@ Première mesure du **rappel** (on n'avait testé que les FP). Trois sondes :
 
 **Piste (FP=0 par construction) :** coder les **astuces de substitution** du manuel — a/à→« avait », son/sont→« étaient », peu/peut→« pouvait », quel/quelle→« qu'il » + accord genre, près/prêt→« proche de », mais→« pourtant », c'est→« cela est ». Le test de substitution EST le garde FP=0, et il capte les **sujets-noms** que les cadres étroits ratent → gros gain de rappel sans FP.
 
-**Plan :** (1) réécrire a/à + son/sont via substitution ; (2) quel/quelle (qu'il + genre) ; (3) c'est/s'est, près/prêt, met/mais ; (4) lexicaux → vert ; (5) aligner `_isPpl` JS↔Python (les 21 FP de parité). Valider chaque ajout sur `homophones_probe.py` (rappel ↑, FP doit rester 0) + `fp_scale_probe`. Rien déployé sans décision (arbitrages FP↔rappel). Mémoire : `corrector-battery-findings`.
+**Plan :** (1) réécrire a/à + son/sont via substitution ; (2) quel/quelle (qu'il + genre) ; (3) c'est/s'est, près/prêt, met/mais, **ça/sa** (« cela ») ; (4) **famille tout/tous/toute(s)/toux** (4 rôles — nom « ensemble » / pronom « cela·ils·elles »·effaçable / déterminant « le-les·chaque » + accord / adverbe « tout à fait », invariable sauf devant adj. fém. consonne·h-aspiré : complexe, à part) ; (5) lexicaux → vert ; (6) aligner `_isPpl` JS↔Python (21 FP de parité). Valider chaque ajout sur `homophones_probe.py` (rappel ↑, FP=0) + `fp_scale_probe`. Rien déployé sans décision (arbitrages FP↔rappel). Mémoire : `corrector-battery-findings`. *(Réfs PDF fournies — ça/sa, lexicaux, grammaticaux — non lisibles ici : pas de `pdftoppm` ; à recoller en texte si besoin.)*
 
 ## ÉTAT (2026-06-30) — speller : collapse des répétitions (élongation)
 
