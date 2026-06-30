@@ -71,6 +71,14 @@ const SP = globalThis.__sp;
   const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
   if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));
   if (SP.spell('il est très content').some(x => x.name === 'élision')) fail.push('FP élision sur texte correct');
+  // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
+  const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
+  if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
+  const elg2 = SP.spell('ouiii je viens').find(x => x.word.toLowerCase() === 'ouiii');
+  if (!elg2 || elg2.sugg !== 'oui') fail.push('ouiii→oui attendu, eu ' + JSON.stringify(elg2));
+  if (SP.spell('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
+  if (SP.spell('la note AAA est haute').length) fail.push('FP acronyme AAA');
+  if (SP.spell('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });

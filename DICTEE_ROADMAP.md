@@ -4,6 +4,17 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-06-30) — speller : collapse des répétitions (élongation)
+
+Technique empruntée à la modération de chat (Wizebot & co — seul truc transférable, le reste on l'avait déjà). Le
+speller corrige l'**élongation** dys/casual (« trèèès »→très, « ouiii »→oui, « géniallll »→génial). **FP=0 structurel** :
+aucun mot FR valide n'a 3 lettres identiques d'affilée (vérifié : 7/92 743 du lexique, des onomatopées *brrr/grrr/zzz*),
+donc seul un **non-mot** déclenche → impossible de casser un mot valide. Collapse chaque run ≥3 vers 1 OU 2 lettres
+(« annnée »→année via la branche « 2 »), candidats filtrés par le lexique. **Gardes** : déjà-dans-le-lexique, **tout-majuscules**
+(acronyme AAA/FFFA), **chiffre romain** (VIII/XIIIe). **AUTO** si candidat unique, **FLAG** sinon. Mesuré : recall 15/15,
+**0 FP sur UD** (les 5 candidats UD étaient VIII/XIII/AAA… → neutralisés par les gardes). `sCollapse` (app + extension),
+asserts dans `test_speller_app.js` + `test_speller.js`.
+
 ## ÉTAT (2026-06-30) — AUDIT FP=0 à l'échelle (corpus UD) & re-tiering rouge↔vert
 
 Premier **vrai** test FP=0 : `correct()` sur **14 450 phrases correctes** d'UD (`# text` de `ud_fr_gsd-train.conllu` — tout flag = un FP). Verdict : le correcteur n'était **pas FP=0 à l'échelle** (**4,70 %**). Les batteries de 30–95 phrases ne pouvaient pas le voir. Deux fixes :
