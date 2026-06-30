@@ -4,6 +4,17 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-07-01) — batterie de tests correcteur : le RAPPEL est le vrai chantier
+
+Première mesure du **rappel** (on n'avait testé que les FP). Trois sondes :
+- **Injection d'homophones** (14 450 phrases UD, on remplace le bon mot par le fautif) : leur/leurs 95-97 % ✅ ; règles prudentes faibles (et/est ~13 %, à→a 32 %, sont→son 7 %, peu/peut ~35 %) ; **NON couverts** (ni rouge ni vert) : ou/où, la/là, du/dû, ces/ses, sur/sûr, quel/quelle.
+- **Parité à l'échelle** (Python vs JS) : **21 flags JS absents de Python** (a/à, on/ont, é/er) = FP déployés que la réf évite, cause = lexique verbal JS ⊊ Python (`_isPpl` rate des participes : « a débuté »→à). 0,14 %.
+- **Gold Acadomia** (`dictee/homophones_probe.py`, exercice corrigé d'un prof) : **1 faute /8 attrapée, 0 FP**. → **Le correcteur est FP=0 mais à RAPPEL pauvre sur les homophones de manuel** : les règles ne firent qu'après un **sujet-PRONOM** (« le bébé **à** », « les poules **son** » = sujets-noms → ratés).
+
+**Piste (FP=0 par construction) :** coder les **astuces de substitution** du manuel — a/à→« avait », son/sont→« étaient », peu/peut→« pouvait », quel/quelle→« qu'il » + accord genre, près/prêt→« proche de », mais→« pourtant », c'est→« cela est ». Le test de substitution EST le garde FP=0, et il capte les **sujets-noms** que les cadres étroits ratent → gros gain de rappel sans FP.
+
+**Plan :** (1) réécrire a/à + son/sont via substitution ; (2) quel/quelle (qu'il + genre) ; (3) c'est/s'est, près/prêt, met/mais ; (4) lexicaux → vert ; (5) aligner `_isPpl` JS↔Python (les 21 FP de parité). Valider chaque ajout sur `homophones_probe.py` (rappel ↑, FP doit rester 0) + `fp_scale_probe`. Rien déployé sans décision (arbitrages FP↔rappel). Mémoire : `corrector-battery-findings`.
+
 ## ÉTAT (2026-06-30) — speller : collapse des répétitions (élongation)
 
 Technique empruntée à la modération de chat (Wizebot & co — seul truc transférable, le reste on l'avait déjà). Le
