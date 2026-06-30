@@ -72,3 +72,15 @@ diffusés sous Creative Commons Attribution - Partage dans les Mêmes Conditions
     Attribution : « Définitions : Wiktionnaire (fr.wiktionary.org), CC BY-SA 4.0 »
     Compatible avec la licence des données Lexique (même CC BY-SA 4.0).
     Régénérable : python3 dictee/build_glosses_wiktionnaire.py
+
+6. CORPUS DE TEST FP À L'ÉCHELLE (garde-fou CI)
+-----------------------------------------------
+Le fichier `dictee/fp_scale_corpus.txt` (2500 phrases françaises correctes,
+servant à mesurer le taux de faux positifs du correcteur — voir
+`dictee/fp_scale_probe.py`) est un échantillon du treebank UD_French-GSD
+(Universal Dependencies), diffusé sous Creative Commons Attribution - Partage
+dans les Mêmes Conditions 4.0 (CC BY-SA 4.0).
+
+    Source : https://github.com/UniversalDependencies/UD_French-GSD
+    Attribution : « Phrases de test : UD_French-GSD (Universal Dependencies), CC BY-SA 4.0 »
+    Compatible avec la licence des données Lexique (même CC BY-SA 4.0).
