@@ -116,7 +116,8 @@
       </tbody>
     </table>
     <p><strong>Pas de filet&nbsp;:</strong> pour atteindre FP=0, le recall s'effondre à <strong>1,6&nbsp;%</strong> — le signal « sens » est trop bruité pour passer le portier. <em>Contraste mesuré</em>&nbsp;: le levier lexical du genre (propre) passe FP=0 <em>naturellement</em> — il a été câblé (+6&nbsp;pts de recall)&nbsp;; le sens statistique, lui, est recalé. → la <strong>compréhension</strong> reste hors-doctrine (ce serait un LLM). OMEGA maîtrise la <strong>forme</strong>&nbsp;; le sens est la <strong>frontière, assumée et chiffrée</strong>.</p>
-    <p class="small">Mesuré&nbsp;: <code>evo_o2_homophone_context.js</code> (désambiguïsation Golding&amp;Roth) · <code>evo_o2_sense_fpzero.js</code> (balayage FP=0).</p>
+    <p><strong>Nuance (cross-check LanguageTool, 06/2026)&nbsp;:</strong> ce « recalé » vaut pour les homophones <strong>grammaticaux</strong> (contextes partagés). Pour les homophones <strong>lexicaux</strong> — contextes quasi disjoints (<code>père/paire</code>, <code>moi/mois</code>) — le sens <strong>passe FP=0</strong>&nbsp;: recall <strong>18-62&nbsp;%</strong> (mesuré sur les 17 confusion sets que LanguageTool active). Le portier ne bloque que là où les contextes se <em>chevauchent</em> — exactement la frontière que LanguageTool trace aussi (il active le lexical, désactive le grammatical).</p>
+    <p class="small">Mesuré&nbsp;: <code>evo_o2_homophone_context.js</code> (désambiguïsation Golding&amp;Roth) · <code>evo_o2_sense_fpzero.js</code> (balayage FP=0, grammatical) · <code>evo_lt_confusion_fpzero.js</code> (les 17 paires lexicales de LanguageTool).</p>
   </div>
   <p class="small">Rejouable&nbsp;: <code>evo/evo_o1_real.js</code> · <code>evo_o2_multitask.js</code> · <code>evo_o2_crossdomain.js</code> · <code>evo_o2_compression.js</code> · plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
 
