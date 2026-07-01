@@ -603,11 +603,13 @@ def rule_genre_adj(T, i):
 # n'accepte qu'un NOM PUR juste après (genre non ambigu, NI adjectif NI verbe) → écarte le/la pronom-objet
 # (« je le vois » : vois=verbe), les homographes (poste, tour, livre : hors cgram_gender), les adjectifs.
 DET_GENDER = {'un':'m','une':'f','le':'m','la':'f','ce':'m','cet':'m','cette':'f',
-              'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f'}
+              'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f',
+              'quel':'m','quelle':'f'}   # quel/quelle = adjectifs interrogatifs/exclamatifs → accord de GENRE avec le nom-tête (« quel maison »→quelle)
 DET_ALT = {('un','f'):'une',('une','m'):'un',('le','f'):'la',('la','m'):'le',
            ('ce','f'):'cette',('cet','f'):'cette',('cette','m'):'ce',
            ('mon','f'):'ma',('ma','m'):'mon',('ton','f'):'ta',('ta','m'):'ton',
-           ('son','f'):'sa',('sa','m'):'son'}
+           ('son','f'):'sa',('sa','m'):'son',
+           ('quel','f'):'quelle',('quelle','m'):'quel'}
 
 def _keepcase(src, sugg):
     return sugg[:1].upper() + sugg[1:] if src[:1].isupper() else sugg
