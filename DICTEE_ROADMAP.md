@@ -12,9 +12,11 @@ Suite du chantier rappel : quatre règles homophones **FP=0** livrées (0 flag c
 - **c'est/s'est** — `[il/elle/on] + c'est + participe → s'est`. Le participe bloque la dislocation « elle c'est ma sœur » ; singulier only (pluriel = « se sont »). Raté mineur : adverbe intercalé (« on c'est bien amusé »).
 - **met/mais** — `je/tu/il/on/ils + mais → mettre` (met/mets/mettent). *elle/elles exclus* (pronom disjoint : « derrière elle mais… » ; garde PREP écartée car PREP incomplet → drop = blindé).
 
-**Différés (FP-risqués, doctrine FP=0), avec raison :** a/à+déterminant (« à une heure » vraie prép — mais le cadre **participe** « le chat à mangé »→a marche DÉJÀ via `rule_a_aa`, capte les sujets-noms) ; son/sont sujet-nom (« son » EST un nom : « le son la traverse » → la ruse clitique de ça/sa ne transfère pas).
+- **tout déterminant** (`rule_tout_det`/`rTout`, sw v56→v57, gold 9→10/15) — tout/toute (forme SINGULIÈRE) + déterminant + nom confiant → accord genre×nombre : « tout les jours »→tous, « toute les semaines »→toutes, « tout cette mascarade »→toute, « toute le pays »→tout. Nombre du déterminant, genre du nom (GENDER_PURE). *FP=0 : déclencheur SINGULIER only* → le quantifieur flottant (« ils ont tous une chambre ») est tjrs pluriel, jamais confondu. Gardes `TOUT_LSTOP` (prép/dét/idiomes) + frontière (un 1er jet large faisait 7 FP UD : idiomes « avant tout les… », « le tout, les… », flottant).
+
+**Différés (FP-risqués, doctrine FP=0), avec raison :** a/à+déterminant (« à une heure » vraie prép — mais le cadre **participe** « le chat à mangé »→a marche DÉJÀ via `rule_a_aa`, capte les sujets-noms) ; son/sont sujet-nom (« son » EST un nom : « le son la traverse » → la ruse clitique de ça/sa ne transfère pas) ; **tout ADVERBE** (« tout contente »→toute, invariable sauf adj. fém.+consonne/h-aspiré → exige lexique adj. fém. + liste h-aspiré) ; **tout sens inverse pluriel** (« tous le monde »→tout — quantifieur flottant) ; **tout PRONOM**.
 **Verrue pré-existante signalée** (hors périmètre homophones) : sur entrée fautive « X à mangé », `rule_e_er` propose AUSSI mangé→manger (interaction avec `rule_a_aa`) ; pas un FP sur texte correct.
-**Reste :** ça→sa inverse (ça+nom→sa, achievable) ; famille **tout/tous/toute(s)** (gros, 4 rôles, à trancher avec Rem) ; près/prêt & sont→son (FP-risqués). Puis « lecture en diagonale ».
+**Reste / à trancher :** jusqu'où pousser la famille tout (adverbe = travail + risque FP) ; ça→sa inverse (ça+nom→possessif, dépend du genre sa/son) ; près/prêt & sont→son (FP-risqués). Puis « lecture en diagonale ».
 
 ## ÉTAT (2026-07-01) — batterie de tests correcteur : le RAPPEL est le vrai chantier
 
