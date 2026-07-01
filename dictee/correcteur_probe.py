@@ -377,6 +377,29 @@ def rule_cest_sest(T, i):
     if i+1 < len(T) and _is_ppl(T[i+1]): return _keepcase(T[i], "s'est")
     return None
 
+_PP_ETRE3P = {'sont', 'etaient', 'seront', 'soient', 'furent', 'seraient'}
+_PP_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'y', 'en', 'se', 's', 'deja', 'toujours', 'aussi', 'bien', 'encore', 'tous', 'toutes', 'tout'}
+def rule_pp_etre(T, i):
+    """Participe passé en -é après « ils/elles + être » (pronom pluriel collé à l'aux, tolère ne…pas/adverbes) → accord
+    PLURIEL : ils→-és, elles→-ées. FP=0 mesuré sur 14 450 UD (l'ancre = le pronom pluriel adjacent à l'aux ; le mur du
+    sujet à distance/vouvoiement est évité). « ils sont transformé »→transformés, « elles sont allé »→allées."""
+    if not CONJ_LOADED or "'" in T[i].lower() or not T[i].lower().endswith('é'): return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ', 'AUX'): return None
+    a = None
+    for k in range(i-1, max(-1, i-4), -1):
+        dk = deacc(T[k].lower())
+        if dk in _PP_ETRE3P: a = k; break
+        if dk in _PP_MID: continue
+        return None
+    if a is None: return None
+    for k in range(a-1, max(-1, a-3), -1):
+        dk = deacc(T[k].lower())
+        if dk in ('ils', 'elles'): return _keepcase(T[i], T[i] + ('s' if dk == 'ils' else 'es'))
+        if dk in ('ne', 'n'): continue
+        return None
+    return None
+
 # ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
 # Le correcteur ne couvrait que 8 homophones ; les vraies copies dys ont surtout des accords (« Je doit », « On ont »,
 # « il sont »). On ajoute l'accord sujet-verbe pour les sujets PRONOMS (personne+nombre certains), borné FP=0 :
@@ -990,6 +1013,7 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_recover),
+         ('accord participe', rule_pp_etre),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),

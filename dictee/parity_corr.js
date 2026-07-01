@@ -81,7 +81,8 @@ const PHRASES = [
   'les enfants sont là', 'je les vois', 'des chat noirs',
   // accord SV « récupéré » : ils/elles + verbe mal conjugué absent du lexique (radical+ent = 3p) + non-FP
   'elles sente bon', 'ils parte demain', 'elles mette la table', 'ils dorme bien', 'elles sentent bon', 'ils partent demain',
-  'ils tienne bon', 'elles prenne le train', 'ils finisse tard', 'elles viennent ce soir', 'elles vies', 'elles vie'
+  'ils tienne bon', 'elles prenne le train', 'ils finisse tard', 'elles viennent ce soir', 'elles vies', 'elles vie',
+  'ils ne sont pas transformé', 'elles sont allé', 'ils sont partis'
 ];
 
 // flags Python via un petit pont
