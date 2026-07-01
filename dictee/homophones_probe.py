@@ -67,6 +67,17 @@ GOLD_GRAMMATICAL = [
     ("Je marche tout les jours.", "tout", "tous"),        # tout→tous (det. devant « les jours »)
     ("Tout le monde est là.", "tout", "ok"),
     ("Toutes les fleurs sont fanées.", "toutes", "ok"),
+    # être/avoir USAGE (fiches le-stylo-de-vero) — CAS DE RÉUSSITE : cadres fermés (idiome/âge/participe d'être)
+    ("Il est malade depuis trois jours.", "est", "ok"),
+    ("Tu as peur des loups ?", "as", "ok"),
+    ("Elle a 10 ans.", "a", "ok"),
+    ("Tu es peur des loups ?", "es", "as"),          # être+peur (idiome d'avoir) → attrapé
+    ("Nous sommes raison.", "sommes", "avons"),      # être+raison → attrapé
+    ("Elle est 10 ans.", "est", "a"),                # être+âge → attrapé
+    ("Il a allé au pré.", "a", "est"),               # avoir+allé (participe d'être) → attrapé
+    # hors cadre (copule/adj, possession) → NON déterminable FP=0, abstention correcte :
+    ("Il a malade.", "a", "ok"),                     # « avoir malade » : pas un cadre fermé → on s'abstient
+    ("Le fermier est un tracteur.", "est", "ok"),    # « être + nom » = copule valide → on s'abstient
 ]
 
 # Homophones LEXICAUX (même catégorie, sens pur) → territoire VERT (vigilance), JAMAIS rouge.
