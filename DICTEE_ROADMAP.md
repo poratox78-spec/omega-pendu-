@@ -16,7 +16,9 @@ Suite du chantier rappel : quatre règles homophones **FP=0** livrées (0 flag c
 
 **Différés (FP-risqués, doctrine FP=0), avec raison :** a/à+déterminant (« à une heure » vraie prép — mais le cadre **participe** « le chat à mangé »→a marche DÉJÀ via `rule_a_aa`, capte les sujets-noms) ; son/sont sujet-nom (« son » EST un nom : « le son la traverse » → la ruse clitique de ça/sa ne transfère pas) ; **tout ADVERBE** (« tout contente »→toute, invariable sauf adj. fém.+consonne/h-aspiré → exige lexique adj. fém. + liste h-aspiré) ; **tout sens inverse pluriel** (« tous le monde »→tout — quantifieur flottant) ; **tout PRONOM**.
 **Verrue pré-existante signalée** (hors périmètre homophones) : sur entrée fautive « X à mangé », `rule_e_er` propose AUSSI mangé→manger (interaction avec `rule_a_aa`) ; pas un FP sur texte correct.
-**Reste / à trancher :** jusqu'où pousser la famille tout (adverbe = travail + risque FP) ; ça→sa inverse (ça+nom→possessif, dépend du genre sa/son) ; près/prêt & sont→son (FP-risqués). Puis « lecture en diagonale ».
+- **ça→sa inverse** (`rule_ca_sa`/`rCaSa` 2e sens, sw v58, gold 10→11/15) — « ça » (pronom) ne précède jamais un nom nu → « ça + NOM confiant » → possessif : « ça maison »→sa, « ça vélo »→son, « ça amie »→son (sa+voyelle→son). Genre du nom (GENDER_PURE) ; garde nom STRICTE P(NOM)≥τ∧P(VER)<ε (écarte « ça marche »=verbe) ; frontière/sigle/élision abstenus. 0 flag UD.
+
+**Reste / à trancher :** famille tout — adverbe (« tout contente »→toute, invariable sauf fém.+consonne/h-aspiré → CADJ trop mince ~4 adj., travail+risque FP), sens inverse pluriel & pronom (quantifieur flottant) ; près/prêt & sont→son (FP-risqués). Puis **« lecture en diagonale »** (feature suivante fléchée, à définir).
 
 ## ÉTAT (2026-07-01) — batterie de tests correcteur : le RAPPEL est le vrai chantier
 
