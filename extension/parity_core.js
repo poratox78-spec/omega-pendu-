@@ -33,7 +33,8 @@ const PHRASES = [
   'j\'est allé à Paris', 'j\'est de la peine', 'j\'est du mal', 'j\'est venu hier', 'j\'est de Paris',
   "j'sais que c'est vrai", "Personne n'sait où il est", "qu'tu viennes", "l'homme est là", "d'abord",
   "Ils détestons les épinards", "Ils réunissons les gens", "Ils chantent faux",
-  'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien'
+  'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien',
+  'elles sente bon', 'ils parte demain', 'elles mette la table', 'elles sentent bon'
 ];
 
 // 3) flags Python
