@@ -51,6 +51,8 @@ jobs:
         run: node dictee/parity_pos.js
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
         run: node dictee/test_speller_app.js
+      - name: Benchmark dys réel (rappel plancher + FP=0 + garde anti-mauvaises-corrections)
+        run: node dictee/messy_probe.js --check
       - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)
         run: python3 dictee/close_conj_paradigm.py --check
       - name: POS-tagger 155k extrait du lexique embarqué (build_pos)

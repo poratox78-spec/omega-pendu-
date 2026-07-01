@@ -354,9 +354,11 @@ def rule_ce_se(T, i):
     if nd.endswith('ant') and len(nd) > 4: return None                 # participe présent/gérondif (se constituant, en chantant) → « se » réfléchi, jamais « ce »
     isv = vlike(T, i+1); isn = nd in D.GENDER_LEX
     if isv and not isn: return 'se'                                    # verbe PUR → se (pronominal)
-    if isn and not isv: return 'ce'                                    # nom PUR → ce (démonstratif)
     tg = pos_tags(T)                                                   # homographe (livre/marche…)/inconnu → le TAGGER (contexte) tranche
-    if tg is None or i+1 >= len(tg): return None
+    if tg is None or i+1 >= len(tg):
+        return 'ce' if (isn and not isv) else None                    # sans tagger : repli nom-pur → ce
+    # nom PUR → ce (démonstratif) SAUF si le tagger voit un VERBE (ex. « il se document[e] » : documenter absent du lexique verbal → isn/not-isv à tort) → on ne force PAS « ce »
+    if isn and not isv and tg[i+1] not in ('VERB', 'AUX'): return 'ce'
     if lw == 'se':                                                     # « se » réfléchi est TOUJOURS devant un verbe/clitique → « se » + NOM (hors participe -ant) = « ce » (démonstratif)
         return 'ce' if (tg[i+1] == 'NOUN' and not nd.endswith('ant')) else None
     # lw == 'ce' → « se » SEULEMENT si un SUJET précède (« il ce lave »→se) ; sinon « ce » = PRONOM IMPERSONNEL (ce serait, ce n'était, pour ce faire) → abstention

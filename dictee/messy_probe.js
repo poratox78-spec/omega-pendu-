@@ -87,17 +87,37 @@ const CORRECT = [
   "mon frère et ma sœur vont au marché tous les samedis.",
   "quand il fait beau, on va se promener dans le parc.",
 ];
+// MAUVAISES CORRECTIONS : sur une phrase fautive, un flag sur un mot-faute connu dont la suggestion ≠ gold =
+// correction FAUSSE qui DÉGRADE la copie (ex. « von »→« vos » au lieu de « vont »). C'est le risque le + nuisible
+// pour un dys, et il n'était gardé par AUCUN test (audit structurel, axe 4). On le mesure et on le plafonne.
+function wrongCount(fn) {
+  let wrong = 0; const ex = [];
+  for (const [s, exp] of CORPUS) {
+    const fl = fn(s), goldOf = {}; exp.forEach(([b, g]) => goldOf[norm(b)] = norm(g));
+    for (const k in fl) if (goldOf[k] !== undefined && norm(fl[k]) !== goldOf[k]) { wrong++; ex.push(k + '→' + fl[k] + ' (gold ' + goldOf[k] + ')'); }
+  }
+  return { wrong, ex };
+}
+const RECALL_FLOOR = 30, FP_MAX = 0, WRONG_MAX = 3;   // planchers/plafonds CI (marge sous le mesuré ; resserrer avec les gains)
 (async () => {
   await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
-  console.log('speller ready =', C.ready(), '\n');
-  score('FLAT (ancien)   ', flatCorr);
-  score('PYRAMIDE (itère)', pyramidCorr);
-  score('runCorr RÉEL (1 passe ortho→gram)', runCorrLike);
-  let fp = 0;
-  for (const s of CORRECT) {
-    const fl = runCorrLike(s);
-    const ks = Object.keys(fl);
-    if (ks.length) { fp += ks.length; console.log('  FP: « ' + s.slice(0,45) + '… » → ' + ks.map(k=>k+'→'+fl[k]).join(', ')); }
+  const check = process.argv.includes('--check');
+  if (!check) console.log('speller ready =', C.ready(), '\n');
+  if (!check) { score('FLAT (ancien)   ', flatCorr); score('PYRAMIDE (itère)', pyramidCorr); }
+  let expTot = 0; for (const [, e] of CORPUS) expTot += e.length;
+  const caught = score('runCorr RÉEL (1 passe ortho→gram)', runCorrLike);
+  const recall = 100 * caught / expTot;
+  let fp = 0; const fpEx = [];
+  for (const s of CORRECT) { const fl = runCorrLike(s), ks = Object.keys(fl); if (ks.length) { fp += ks.length; fpEx.push('« ' + s.slice(0,40) + '… » → ' + ks.map(k=>k+'→'+fl[k]).join(', ')); } }
+  const { wrong, ex } = wrongCount(runCorrLike);
+  console.log("\nFP sur corpus CORRECT (" + CORRECT.length + " ph) : " + fp); fpEx.forEach(e => console.log('  FP: ' + e));
+  console.log("Mauvaises corrections (mot-faute → ≠ gold) : " + wrong); ex.forEach(e => console.log('  WRONG: ' + e));
+  if (check) {
+    const fail = [];
+    if (recall < RECALL_FLOOR) fail.push("rappel " + recall.toFixed(0) + "% < plancher " + RECALL_FLOOR + "%");
+    if (fp > FP_MAX) fail.push("FP " + fp + " > " + FP_MAX + " sur corpus correct");
+    if (wrong > WRONG_MAX) fail.push("mauvaises corrections " + wrong + " > " + WRONG_MAX);
+    if (fail.length) { console.error("\n✗ messy_probe : " + fail.join(" ; ")); process.exit(1); }
+    console.log("\n✓ messy_probe : rappel " + recall.toFixed(0) + "% ≥ " + RECALL_FLOOR + "%, FP=" + fp + ", mauvaises corr.=" + wrong + " ≤ " + WRONG_MAX);
   }
-  console.log("\nFP sur corpus CORRECT (" + CORRECT.length + " phrases) : " + fp + " (doit être 0)");
-})().catch(e => console.log('ERR', e.message, e.stack));
+})().catch(e => { console.log('ERR', e.message, e.stack); process.exit(1); });
