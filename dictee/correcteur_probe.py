@@ -512,6 +512,35 @@ def rule_accord_sv(T, i):
     return sugg
 
 
+def rule_accord_sv_recover(T, i):
+    """« le pronom PLURIEL est révélateur » (idée Rem) : ils/elles + verbe MAL conjugué ABSENT du lexique
+    (« elles sente », forme subjonctive/dys que _reads ne connaît pas → rule_accord_sv est aveugle). Un sujet 3p
+    rend le verbe fautif quel que soit le mode (« qu'elles sente » = « sentent » aussi) → récupération FP=0 :
+    le pluriel présent finit en -ent, donc si (radical + ent) est une forme 3p CONFIRMÉE par le lexique, on corrige.
+    Mesuré : 0 flag sur 14 450 phrases UD correctes (le déclencheur exige une forme INCONNUE après ils/elles, que le
+    texte correct ne produit jamais)."""
+    if not CONJ_LOADED or "'" in T[i].lower(): return None
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None   # participe (temps composé) → pas un présent à accorder
+    dw = deacc(T[i].lower())
+    if len(dw) < 4 or _reads(T[i]): return None                  # forme CONNUE → rule_accord_sv s'en occupe déjà
+    if _subject_before(T, i) != ('3', 'p'): return None          # sujet-pronom PLURIEL net (ils/elles) uniquement — l'ancre fiable
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
+        return None                                              # aux + participe (« elles sont venue ») → pas ici
+    bases = []
+    if dw.endswith('es'): bases.append(dw[:-2])                  # « sentes » → sent
+    if dw.endswith('e'): bases.append(dw[:-1])                   # « sente »  → sent
+    for base in bases:
+        cand = base + 'ent'
+        if cand == dw: continue
+        # SÛR : n'accepter que la lecture 3e pers. STRICTEMENT PLURIELLE (n=='p'). ⚠️ -ent n'est PAS un gage de pluriel :
+        # « vient/tient/devient » = 3SG en -ent, et la famille venir a un nombre CORROMPU dans Lexique (vient tagué 'x',
+        # viennent tagué 's') → 'x' pas sûr non plus. n=='p' rejette vient/viennent → 0 mauvaise correction (« elles vies »
+        # ne devient PAS « vient »). Coût = famille venir/voir(x) ratée = raté SÛR (jamais un faux positif).
+        if len({l for (l, _mt, p, _n) in _reads(cand) if p == '3' and _n == 'p'}) == 1:
+            return _keepcase(T[i], cand)
+    return None
+
+
 # ---------- Confusion d'USAGE être ↔ avoir (faute dys courante) : « il est faim »→« il a faim », « il a allé »→« il est allé »
 # FP=0 par LISTES FERMÉES (un seul auxiliaire grammaticalement possible) : idiomes d'AVOIR, participes de verbes
 # INTRANSITIFS d'ÊTRE, l'âge. On ne swappe QUE sur ces déclencheurs ; l'aux doit DÉJÀ s'accorder (sinon rule_accord_sv).
@@ -648,10 +677,15 @@ def rule_accord_sv_noun(T, i):
     # conjonction, ou un VERBE intercalé APRÈS le nom-tête (sous-phrase « les feuilles TOMBENT, l'automne est ») → abstention.
     for m in range(dk + 1, i):
         tok = T[m]; dw = deacc(tok.lower())
-        if "'" in tok.lower() or dw in PREP or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS or dw in FULL_AUX:
-            return None                                                  # +aux (auraient/avait/sont…) entre le nom et le verbe → temps composé/passif → abstention
+        if "'" in tok.lower() or dw in PREP or dw == 'en' or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS or dw in FULL_AUX:
+            return None                                                  # +aux (auraient/avait/sont…) + « en » (PP/clitique : « pris EN compte ») entre le nom et le verbe → abstention
+        if any(ch in ',;:()[]«»"' for ch in tok):
+            return None                                                  # ponctuation intercalée = apposition/énumération (« Les établissements, résidence (demeure), … ») → abstention
         if m > dk + 1 and _reads(tok):
             return None
+    _tg = pos_tags(T)                                                    # apposition/énumération : ≥2 noms entre le déterminant et le
+    if _tg and sum(1 for m in range(dk + 1, i) if _tg[m] in ('NOUN', 'PROPN')) >= 2:  # verbe (« Les établissements, résidence, demeure… »)
+        return None                                                      # → le vrai verbe est ailleurs, un nom-homographe est pris pour verbe → abstention. (Adjectif toléré : « les grands chiens » = 1 nom.)
     if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
     lemmas = {l for (l, _mt, _p, _n) in p3}
     if len(lemmas) != 1: return None
@@ -950,6 +984,7 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
+         ('accord sujet-verbe', rule_accord_sv_recover),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
