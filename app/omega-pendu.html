@@ -11754,7 +11754,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(NUM_DET[nl]||dn==='ete'||dn==='eu'||dn==='du'||dn==='des')return ckeepcase(T[i],"j'ai");   // déterminant / été-eu / partitif du-des → j'ai
     if((nl==="de"||nl==="d'")&&i+2<T.length&&PART_ART[T[i+2].toLowerCase()])return ckeepcase(T[i],"j'ai");   // « j'ai de la peine »
     if(CADJ[dn]||ETRE_PP[dn])return ckeepcase(T[i],"je suis");   // adjectif pur ou participe d'être → je suis
-    return null;}   // participe d'avoir / de+nom propre = aux ambigu → abstention
+    if(_isPpl(T[i+1]))return ckeepcase(T[i],"j'ai");   // participe d'AVOIR (pris/mangé/vu…) → j'ai (ceux d'être sont déjà traités)
+    return null;}   // sinon (de+nom propre…) → abstention
   function rCai(T,i){return deacc(T[i].toLowerCase())==="c'ai"?ckeepcase(T[i],"c'est"):null;}   // « c'ai » jamais valide (avoir au lieu d'être) → c'est
   // Élision fautive DEVANT CONSONNE → de-élide (FP=0 structurel : élidé valide seulement devant voyelle). Clitiques
   // DÉTERMINISTES (j'/n'/m'/d'/c'/qu') = parité triviale (aucun lexique) ; t'/s'/l'/h/y exclus (ambigus / h muet « l'homme »). Miroir correcteur_probe.rule_elide.
@@ -11876,7 +11877,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!bf||bd>1||bv==='AMBIG')return null;if(reads.length&&bd>1)return null;if(w===deacc(bf.toLowerCase()))return null;return bf;}
   // a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu = homophones À RÔLE GRAMMATICAL → tranchés EN ROUGE par la grammaire (sujet, accord, segments, pronoms collés, cadre auxiliaire), pas en « vigilance verte ». FP=0 par cadre syntaxique forcé.
   var CRULES=[['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
-  function correctText(text){_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
+  function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
+  function correctText(text){_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
   var _VDCF=null,_VDCBF=null,_VDCW=4;
   function _vigLoad(){if(_VDCBF)return;_VDCBF={};try{var e=document.getElementById('vdc-confusables');if(e&&e.textContent){_VDCF=JSON.parse(e.textContent);_VDCW=_VDCF.win||4;_VDCF.groups.forEach(function(g){g.forms.forEach(function(f){if(f.indexOf(' ')<0)_VDCBF[f.toLowerCase()]=g;});});}}catch(e){_VDCF=null;}}
@@ -12053,7 +12055,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
     if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
-      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&(SP.POS[_cw]||'').indexOf(expPos)>=0&&(!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
+      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&(SP.POS[_cw]||'').indexOf(expPos)>=0&&(expPos==='V'||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
       if(_b&&_bf>=1.0)return['flag',_b];}   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève)
     return (d.length>=4&&f1>=1.0)?['flag',w1]:null;}   // durcir : assez long ET candidat fréquent — sinon abstention (moins, mais juste)
   function spellText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i);
@@ -12170,9 +12172,13 @@ window.addEventListener('DOMContentLoaded', () => {
     var cs=complete(w.word);if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   function runCorr(){var t=$('vdc-in').value;
-    var gf=correctText(t),sf=SP.ready?spellText(t):[];
+    var sf=SP.ready?spellText(t):[];
     if(SP.ready&&_corrDepth<8){var autos=sf.filter(function(f){return f.tier==='auto';});   // auto-corrige le sûr (AUDIT #3 : borné à 8 passes anti-boucle)
       if(autos.length){_corrDepth++;var _did=applyAutos(autos);_corrDepth--;if(_did)return;}}
+    // PYRAMIDE : la grammaire tourne sur le texte NETTOYÉ par l'orthographe (croise ortho×grammaire, casse la cascade : « j'est pri »→ pri→pris puis j'est→j'ai)
+    _SEG=_segInfo(t);var _T=toks(t),_Tc=_T.slice();
+    sf.forEach(function(f){if(f.span!==2&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // applique les corrections ortho 1:1 (hors élision) → voisins propres pour la grammaire
+    var gf=correctTokens(_Tc);gf.forEach(function(f){f.word=_T[f.i];});   // grammaire sur tokens nettoyés ; on réaffiche le mot ORIGINAL
     var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;});   // grammaire prioritaire par token
     _flags=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};_flags.forEach(function(f){if(f.span===2)_cov[f.i+1]=1;});_flags=_flags.filter(function(f){return !_cov[f.i];});   // AUDIT #4 : un token couvert par une élision (span 2) ne compte/s'affiche pas 2×
