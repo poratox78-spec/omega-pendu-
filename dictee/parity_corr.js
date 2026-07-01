@@ -14,6 +14,10 @@ if (_lx) { try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(
 const _np = (html.match(/<script type="text\/plain" id="noun-post-gz">([^<]*)<\/script>/) || [])[1] || '';
 if (_np) { try { globalThis.OMEGA_NOUN_POST = {}; zlib.gunzipSync(Buffer.from(_np.replace(/\s/g, ''), 'base64')).toString('utf8').split('\n').forEach(l => { const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_NOUN_POST[p[0]] = [+p[1], +p[2]]; }); } catch (e) {} }
 
+// POS-tagger HMM (bloc pos-hmm-gz) : seed le global OMEGA_POS_HMM (l'app le lit comme _HMM) → teste posTags en parité
+const _hm = (html.match(/<script type="text\/plain" id="pos-hmm-gz">([^<]*)<\/script>/) || [])[1] || '';
+if (_hm) { try { globalThis.OMEGA_POS_HMM = JSON.parse(zlib.gunzipSync(Buffer.from(_hm.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {} }
+
 // 1) extraire l'IIFE jusqu'à correctText, refermer en exposant correctText
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const ctIdx = html.indexOf('function correctText', start);

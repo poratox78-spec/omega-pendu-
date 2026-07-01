@@ -109,6 +109,57 @@ if not POS_LEX:                                        # repli §5 : cgram_pos.j
     except Exception: POS_LEX = {}
 def pos_of(w): return POS_LEX.get(deacc(w.lower()))
 
+# ---------- POS-tagger HMM (bigramme + Viterbi) — analyse de NATURE par le CONTEXTE (séquence), pas mot par mot ----------
+# Modèle appris sur le treebank UD French-GSD (CC BY-SA 4.0), exporté par build_pos_hmm.py → dictee/pos_hmm.json.
+# ~95 % strict / ~96 % pertinent (test tenu). MÊME modèle + MÊME Viterbi que les 2 moteurs JS → parité exacte.
+# Émission : mot vu (modèle) → repli lexique POS_LEX (déjà embarqué) → repli suffixe → repli capitale/prior. Sert de
+# CONTEXTE gaté aux règles (jamais une assertion aveugle) ; None si le modèle est absent (repli transparent).
+_HMM = None
+def _hmm_model():
+    global _HMM
+    if _HMM is None:
+        _HMM = {}
+        _p = os.path.join(HERE, 'pos_hmm.json')
+        if os.path.exists(_p):
+            try: _HMM = json.load(open(_p, encoding='utf-8'))
+            except Exception: _HMM = {}
+    return _HMM if _HMM.get('tags') else None
+
+def pos_tags(T):
+    """Séquence de tags UPOS pour les tokens T (Viterbi HMM). None si modèle absent. Réutilise POS_LEX pour les mots
+    hors-modèle (parité app/extension via posOf). Déterministe → parité exacte avec le port JS."""
+    M = _hmm_model()
+    if not M or not T: return None
+    tags = M['tags']; tr = M['trans']; em = M['emit']; suf = M['suf']; pri = M['prior']; FL = M['floor']
+    def lt(a, b): return tr.get(a, {}).get(b, FL)
+    def le(t, w):
+        lw = w.lower()
+        if (t == 'PUNCT' or t == 'SYM') and any(ch.isalpha() for ch in lw): return -100.0   # un mot alphabétique n'est JAMAIS ponctuation (interdit ferme)
+        e = em.get(lw)
+        if e is not None: return e.get(t, FL)                                               # émission apprise (mot vu ≥2 sur UD)
+        for k in (4, 3, 2):                                                                  # inconnu → backoff SUFFIXE (rien d'autre : parité 3 moteurs, pas de lexique POS externe)
+            if len(lw) >= k and lw[-k:] in suf:
+                d = suf[lw[-k:]]
+                return d.get(t, FL) + (0.0953 if (w[:1].isupper() and t == 'PROPN') else 0.0)   # ln(1.1)
+        return pri.get(t, FL) + (1.0986 if (w[:1].isupper() and t == 'PROPN') else 0.0)          # ln(3), capitale → PROPN
+    n = len(T); V = [{}]; bk = [{}]
+    for t in tags: V[0][t] = lt('<s>', t) + le(t, T[0]); bk[0][t] = '<s>'
+    for i in range(1, n):
+        V.append({}); bk.append({})
+        for t in tags:
+            et = le(t, T[i]); best = -1e18; bp = None
+            for pt in tags:
+                sc = V[i-1][pt] + lt(pt, t)
+                if sc > best: best, bp = sc, pt
+            V[i][t] = best + et; bk[i][t] = bp
+    best = -1e18; bt = None
+    for t in tags:
+        sc = V[n-1][t] + lt(t, '</s>')
+        if sc > best: best, bt = sc, t
+    seq = [bt]
+    for i in range(n-1, 0, -1): seq.append(bk[i][seq[-1]])
+    return seq[::-1]
+
 
 def vlike(T, i):
     """Verbe EN CONTEXTE : levier dictée (is_verb) OU lexique verbal (cgram si présent, sinon liste blanche)."""
@@ -150,15 +201,21 @@ def _plural_before(T, i):
         if w in PLURAL_MARK: return True
     return False
 def _clause_no_finite_verb(T, i):
-    """Aucun verbe FINI (lecture conjuguée) dans la proposition de i (bornes _SEG), hors T[i] ? Signal pilote
-    « analyse » : verbe-présence ~94 % fiable. Sur-détection (noms-verbes homographes) → abstention (jamais un FP)."""
+    """Aucun verbe dans la proposition de i (bornes _SEG), hors T[i] ? Verbe-présence via le TAGGER HMM (contexte) —
+    il tague « élèves/table/forme » NOUN par le contexte là où le repli `_reads` sur-détectait (→ ratés). Repli `_reads`
+    (sur-détection = abstention, jamais un FP) si le modèle est absent. Parité : pos_tags identique Py/app/extension."""
     n = len(T); lo, hi = 0, n
     if _SEG is not None:
         for j in range(i, 0, -1):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
         for j in range(i+1, n):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: hi = j; break
-    for j in range(lo, hi):
+    tg = pos_tags(T)
+    if tg is not None:
+        for j in range(lo, hi):
+            if j != i and tg[j] in ('VERB', 'AUX'): return False
+        return True
+    for j in range(lo, hi):                                        # repli (modèle absent) : lecture conjuguée `_reads`
         if j != i and _reads(T[j].lower()): return False
     return True
 

@@ -84,8 +84,10 @@
   var PLURAL_MARK={ils:1,elles:1,nous:1,vous:1,les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,plupart:1};
   var CLAUSE_BREAK={et:1,ou:1,mais:1,car:1,donc:1,or:1,ni:1,que:1,qui:1,quand:1,lorsque:1,puisque:1,comme:1,si:1,'.':1,',':1,';':1,':':1,'!':1,'?':1};
   function cplBefore(T,i){for(var j=i-1;j>=Math.max(0,i-6);j--){var w=deacc(T[j].toLowerCase());if(CLAUSE_BREAK[w])break;if(PLURAL_MARK[w])return true;}return false;}
-  function _clauseNoFiniteVerb(T,i){var n=T.length,lo=0,hi=n,j;   // aucun verbe FINI dans la proposition (bornes _SEG), hors T[i] ? (pilote analyse : verbe-présence ~94 %)
+  function _clauseNoFiniteVerb(T,i){var n=T.length,lo=0,hi=n,j;   // verbe-présence via le TAGGER HMM (contexte : élèves/table→NOUN) ; repli svReads si modèle absent
     if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}for(j=i+1;j<n;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
+    var tg=posTags(T);
+    if(tg){for(j=lo;j<hi;j++){if(j!==i&&(tg[j]==='VERB'||tg[j]==='AUX'))return false;}return true;}
     for(j=lo;j<hi;j++){if(j!==i&&svReads(T[j].toLowerCase()).length)return false;}
     return true;}
   function rSon(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='son'&&lw!=='sont')return null;   // tranché par CE QUI SUIT : son=det+nom sg ; sont=être 3pl+prédicat ; abstention sinon (FP=0)
@@ -212,6 +214,35 @@
   function loadNounPost(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
     var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
     _applyNounPost(await new Response(st).text());return true;}catch(e){return false;}})();}
+  // ---------- POS-tagger HMM (bigramme + Viterbi) — NATURE par le CONTEXTE. MÊME modèle + MÊME algo que Python (parité exacte).
+  var _HMM=null;
+  function setPosHmm(obj){_HMM=(obj&&obj.tags)?obj:null;}
+  function loadPosHmm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+    var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+    setPosHmm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
+  function posTags(T){
+    var M=_HMM;if(!M||!M.tags||!T||!T.length)return null;
+    var tags=M.tags,tr=M.trans,em=M.emit,suf=M.suf,pri=M.prior,FL=M.floor;
+    function lt(a,b){var r=tr[a];return (r&&b in r)?r[b]:FL;}
+    function cap(w){return w.charAt(0)!==w.charAt(0).toLowerCase();}
+    function le(t,w){
+      var lw=w.toLowerCase();
+      if((t==='PUNCT'||t==='SYM')&&/[a-zà-ÿ]/i.test(lw))return -100.0;
+      var e=em[lw];if(e!==undefined)return (t in e)?e[t]:FL;
+      for(var k=4;k>=2;k--){if(lw.length>=k){var sf=lw.slice(-k);if(suf[sf]!==undefined){var d=suf[sf];return ((t in d)?d[t]:FL)+((cap(w)&&t==='PROPN')?0.0953:0);}}}
+      return ((t in pri)?pri[t]:FL)+((cap(w)&&t==='PROPN')?1.0986:0);
+    }
+    var n=T.length,V=[{}],bk=[{}],i,j,t,pt;
+    for(i=0;i<tags.length;i++){t=tags[i];V[0][t]=lt('<s>',t)+le(t,T[0]);bk[0][t]='<s>';}
+    for(i=1;i<n;i++){V.push({});bk.push({});
+      for(j=0;j<tags.length;j++){t=tags[j];var et=le(t,T[i]),best=-1e18,bp=null;
+        for(var b=0;b<tags.length;b++){pt=tags[b];var sc=V[i-1][pt]+lt(pt,t);if(sc>best){best=sc;bp=pt;}}
+        V[i][t]=best+et;bk[i][t]=bp;}}
+    var best2=-1e18,bt=null;
+    for(i=0;i<tags.length;i++){t=tags[i];var sc2=V[n-1][t]+lt(t,'</s>');if(sc2>best2){best2=sc2;bt=t;}}
+    var seq=[bt];for(i=n-1;i>0;i--)seq.push(bk[i][seq[seq.length-1]]);
+    return seq.reverse();
+  }
   var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée (parité NUM_DET pluriel)
   var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1,quanta:1,addenda:1,errata:1,curricula:1,strata:1};
   function _nounGate(dn){var p=NOUN_POST&&NOUN_POST.get(dn);return !!p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M;}
@@ -392,6 +423,7 @@
   function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz), nom:url(.gz) }
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
     if(urls&&urls.nom)loadNounPost(urls.nom);             // posterior §3 du pluriel du nom (noun-post) : additif, indépendant
+    if(urls&&urls.hmm)loadPosHmm(urls.hmm);               // POS-tagger HMM (pos-hmm.json.gz) : additif, indépendant
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -442,6 +474,7 @@
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
+    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText
   };
