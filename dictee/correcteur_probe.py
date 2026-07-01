@@ -668,18 +668,20 @@ def rule_det_gender(T, i):
 TOUT_LSTOP = PREP | set(NUM_DET) | {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers',
                                     'durant', 'pendant', 'hormis', 'outre', 'moyennant', 'suivant', 'concernant'}
 def rule_tout_det(T, i):
-    # « tout/toute » (forme SINGULIÈRE) DÉTERMINANT devant un déterminant PLURIEL est une faute d'accord en nombre :
-    # « tout les jours »→tous, « toute les semaines »→toutes. Nombre = déterminant pluriel (les/des/ces…, classe fermée
-    # fiable) ; genre = nom-tête confiant (GENDER_PURE). FP=0 : « tout/toute + dét. pluriel » n'est jamais correct, et le
-    # quantifieur FLOTTANT (« ils ont tous une chambre ») est toujours PLURIEL → écarté en ne déclenchant que sur le
-    # singulier. Gardes : « tout » précédé d'une prép./déterminant/idiome (« avant tout les… », « le tout, les… ») OU
-    # séparé du déterminant par une frontière = autre rôle (pronom/nom/adverbe) → abstention.
-    # DIFFÉRÉ (FP-risqué) : accord de GENRE pur (« tout cette »→toute), sens inverse (« tous le monde »→tout), rôle
-    # ADVERBE (« tout contente »→toute, invariable sauf fém.+consonne), rôle PRONOM.
+    # « tout/toute » (forme SINGULIÈRE) DÉTERMINANT + déterminant + NOM confiant s'accorde en genre ET nombre avec son
+    # groupe : « tout les jours »→tous, « toute les semaines »→toutes (nombre) ; « tout cette mascarade »→toute, « toute
+    # le pays »→tout (genre). Nombre = déterminant (les/des→pl, le/la→sg ; classe fermée fiable) ; genre = nom-tête
+    # confiant (GENDER_PURE). FP=0 : on ne déclenche que sur le SINGULIER (tout/toute) — le quantifieur FLOTTANT
+    # (« ils ont tous une chambre ») est toujours PLURIEL, donc jamais confondu. Gardes : « tout » précédé d'une
+    # prép./déterminant/idiome (« avant tout les… », « le tout, les… ») OU séparé du déterminant par une frontière =
+    # autre rôle (pronom/nom/adverbe) → abstention.
+    # DIFFÉRÉ (FP-risqué) : sens inverse forme PLURIELLE (« tous le monde »→tout, « tous les actions »→toutes = quantifieur
+    # flottant), rôle ADVERBE (« tout contente »→toute, invariable sauf fém.+consonne/h-aspiré), rôle PRONOM.
     lw = deacc(T[i].lower())
     if lw not in ('tout', 'toute'): return None
     if i + 2 >= len(T): return None
-    if NUM_DET.get(deacc(T[i+1].lower())) != 'pl': return None     # le mot suivant doit être un DÉTERMINANT PLURIEL
+    num = NUM_DET.get(deacc(T[i+1].lower()))
+    if num is None: return None                                    # le mot suivant doit être un DÉTERMINANT (sinon autre rôle)
     if _SEG is not None and i+1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None   # frontière « tout | déterminant » (« le tout, les… ») → abstention
     if prev(T, i) in TOUT_LSTOP: return None                       # prép./dét./idiome avant « tout » → pronom/nom/adverbe, pas déterminant
     if "'" in T[i+2].lower(): return None                          # nom-tête élidé (l'…) → genre caché → abstention
@@ -688,7 +690,8 @@ def rule_tout_det(T, i):
     if not (pp and pp[0] >= PL_TAU_M): return None                 # le mot après le déterminant doit être un NOM confiant
     g = GENDER_PURE.get(nd)
     if g not in ('m', 'f'): return None                            # genre inconnu/ambigu → abstention
-    return _keepcase(T[i], 'tous' if g == 'm' else 'toutes')
+    target = ('tous' if g == 'm' else 'toutes') if num == 'pl' else ('tout' if g == 'm' else 'toute')
+    return _keepcase(T[i], target) if target != lw else None
 
 
 def rule_met_mais(T, i):
