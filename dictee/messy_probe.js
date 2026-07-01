@@ -66,9 +66,29 @@ function score(mode, fn) {
   console.log(mode + " : " + caught + "/" + expTot + " = " + (100*caught/expTot).toFixed(0) + "%");
   return caught;
 }
+// corpus CORRECT (phrases justes, dont mots courts/valides pièges) — le correcteur ne doit RIEN flaguer (FP=0)
+const CORRECT = [
+  "je suis allé à la plage pour ça, j'ai pris le train en marche.",
+  "un élève travaille dans la classe et ses amis lisent un livre.",
+  "il pleut souvent en automne mais le soleil revient vite.",
+  "elle a pris son sac puis elle est partie très tôt ce matin.",
+  "les fleurs sont belles et le chat dort sur le canapé.",
+  "nous avons vu un film et bu un café après le repas.",
+  "ce livre raconte une belle histoire que j'ai beaucoup aimée.",
+  "le prix du pain a augmenté mais la qualité reste bonne.",
+  "mon frère et ma sœur vont au marché tous les samedis.",
+  "quand il fait beau, on va se promener dans le parc.",
+];
 (async () => {
   await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
   console.log('speller ready =', C.ready(), '\n');
   score('FLAT (actuel)   ', flatCorr);
   score('PYRAMIDE (ortho→gram→itère)', pyramidCorr);
+  let fp = 0;
+  for (const s of CORRECT) {
+    const fl = flatCorr(s);
+    const ks = Object.keys(fl);
+    if (ks.length) { fp += ks.length; console.log('  FP: « ' + s.slice(0,45) + '… » → ' + ks.map(k=>k+'→'+fl[k]).join(', ')); }
+  }
+  console.log("\nFP sur corpus CORRECT (" + CORRECT.length + " phrases) : " + fp + " (doit être 0)");
 })().catch(e => console.log('ERR', e.message, e.stack));
