@@ -770,9 +770,20 @@ def rule_noun_plural(T, i):
 # a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu : homophones À RÔLE GRAMMATICAL (verbe vs prép/det/conj).
 # Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
 # « vigilance verte » (= simplification). FP=0 par cadre syntaxique forcé (audit UD 2026-06-30 : durcis).
+def rule_ca_sa(T, i):
+    # « sa » = déterminant possessif → précède TOUJOURS un nom. Un PRONOM CLITIQUE ne peut jamais suivre « sa »
+    # → c'est « ça » (« sa me fait rire », « sa se passe », « sa ne va pas »). FP=0 blindé (un clitique n'est pas un nom).
+    # NB : le cas « sa + verbe » (« sa va ») N'EST PAS ajouté — trop de noms féminins sont homographes d'un verbe en -er
+    # (marche, retraite, chronique, banque…) et le lexique de noms est incomplet → FP. Réservé (whitelist aller ?).
+    if deacc(T[i].lower()) != 'sa': return None                       # sens sa→ça (ça→sa différé)
+    if i + 1 >= len(T): return None
+    if deacc(T[i+1].lower()) in CLITIC:
+        return 'Ça' if T[i][:1].isupper() else 'ça'
+    return None
+
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('mais/mes', rule_mais_mes),
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('ça/sa', rule_ca_sa), ('mais/mes', rule_mais_mes),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
