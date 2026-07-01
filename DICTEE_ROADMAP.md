@@ -4,6 +4,18 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-07-01, reprise) — 4 règles homophones DÉPLOYÉES (rappel gold 5→9/15, FP=0)
+
+Suite du chantier rappel : quatre règles homophones **FP=0** livrées (0 flag chacune sur 14 450 UD ; parité app⊆Py & ext⊆Py ; `fp_scale` inchangé 1,96 % ; sw v52→v55).
+- **ça/sa** — `sa` + clitique → `ça` (un clitique n'est jamais un nom). *CLITIQUE-ONLY* ; `sa`+verbe (« sa va ») non couvert (noms-verbes homographes marche/banque… + lexique noms incomplet → FP).
+- **quel/quelle** — ajouté à DET_GENDER/DET_ALT (Py) + DET_G/DET_A (JS) → réutilise `rule_det_gender` (accord genre). Seul flag UD = vraie faute du corpus (« n'importe quel matière »).
+- **c'est/s'est** — `[il/elle/on] + c'est + participe → s'est`. Le participe bloque la dislocation « elle c'est ma sœur » ; singulier only (pluriel = « se sont »). Raté mineur : adverbe intercalé (« on c'est bien amusé »).
+- **met/mais** — `je/tu/il/on/ils + mais → mettre` (met/mets/mettent). *elle/elles exclus* (pronom disjoint : « derrière elle mais… » ; garde PREP écartée car PREP incomplet → drop = blindé).
+
+**Différés (FP-risqués, doctrine FP=0), avec raison :** a/à+déterminant (« à une heure » vraie prép — mais le cadre **participe** « le chat à mangé »→a marche DÉJÀ via `rule_a_aa`, capte les sujets-noms) ; son/sont sujet-nom (« son » EST un nom : « le son la traverse » → la ruse clitique de ça/sa ne transfère pas).
+**Verrue pré-existante signalée** (hors périmètre homophones) : sur entrée fautive « X à mangé », `rule_e_er` propose AUSSI mangé→manger (interaction avec `rule_a_aa`) ; pas un FP sur texte correct.
+**Reste :** ça→sa inverse (ça+nom→sa, achievable) ; famille **tout/tous/toute(s)** (gros, 4 rôles, à trancher avec Rem) ; près/prêt & sont→son (FP-risqués). Puis « lecture en diagonale ».
+
 ## ÉTAT (2026-07-01) — batterie de tests correcteur : le RAPPEL est le vrai chantier
 
 Première mesure du **rappel** (on n'avait testé que les FP). Trois sondes :
