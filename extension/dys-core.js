@@ -422,7 +422,12 @@
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST : candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte → flag même court/non-dominant (pri→pris, von→vont, pleu→pleut ; respecte le nombre)
       if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&(SP.POS[_cw]||'').indexOf(expPos)>=0&&(expPos==='V'||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
       if(_b&&_bf>=1.0)return['flag',_b];}
-    return (d.length>=4&&f1>=1.0)?['flag',w1]:null;}   // durcir : assez long ET candidat fréquent — sinon on s'abstient (moins, mais juste)
+    if(!(d.length>=4&&f1>=1.0))return null;
+    // CONFIANCE : n'AFFIRMER (rouge) que si sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son rang, dominant.
+    // Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille). Mesuré sur dictées réelles.
+    var firstOk=deaccS(w1).charAt(0)===d.charAt(0),nTop=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===p1)nTop++;
+    var confident=accentOnly||(p1>=1&&firstOk&&nTop===1&&dominant);
+    return [confident?'flag':'vigilance',w1];}
   function spellText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i);
     if(r&&r[1]!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r[1],name:'orthographe',tier:r[0]});}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
