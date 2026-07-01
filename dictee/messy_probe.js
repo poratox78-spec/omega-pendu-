@@ -32,24 +32,43 @@ const CORPUS = [
   ["il faut que tu vien avec moi demain matin", [['vien','viennes']]],
 ];
 
+const norm = w => w.toLowerCase().replace(/[^a-zà-ÿ']/gi, '');
+function applyFlags(s, flags) {   // remplace chaque mot fautif par sa suggestion (pour la couche suivante)
+  return s.replace(/[A-Za-zÀ-ÿ']+/g, w => (flags[norm(w)] && /^[a-zà-ÿ']+$/i.test(flags[norm(w)])) ? flags[norm(w)] : w);
+}
+function flatCorr(s) {   // ACTUEL (plat) : grammaire ∥ orthographe sur le même texte
+  const gf = C.corr(s), sf = C.ready() ? C.spell(s) : [];
+  const fl = {}; gf.forEach(f => fl[norm(f.word)] = f.sugg); sf.forEach(f => { if (!fl[norm(f.word)]) fl[norm(f.word)] = f.sugg; });
+  return fl;
+}
+function pyramidCorr(s) {   // PYRAMIDE : orthographe → applique → grammaire sur le nettoyé → itère (2 passes)
+  const fl = {};
+  let cur = s;
+  for (let pass = 0; pass < 3; pass++) {
+    const sf = C.ready() ? C.spell(cur) : [];
+    sf.forEach(f => { if (!fl[norm(f.word)]) fl[norm(f.word)] = f.sugg; });
+    const cleaned = applyFlags(cur, fl);
+    const gf = C.corr(cleaned);
+    let changed = false;
+    gf.forEach(f => { if (!fl[norm(f.word)]) { fl[norm(f.word)] = f.sugg; changed = true; } });
+    if (cleaned === cur && !changed) break;
+    cur = cleaned;
+  }
+  return fl;
+}
+function score(mode, fn) {
+  let expTot = 0, caught = 0;
+  for (const [s, exp] of CORPUS) {
+    const flags = fn(s);
+    const hits = exp.filter(([bad, good]) => flags[norm(bad)] && norm(flags[norm(bad)]) === norm(good));
+    expTot += exp.length; caught += hits.length;
+  }
+  console.log(mode + " : " + caught + "/" + expTot + " = " + (100*caught/expTot).toFixed(0) + "%");
+  return caught;
+}
 (async () => {
   await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
-  console.log('speller ready =', C.ready());
-  const norm = w => w.toLowerCase().replace(/[^a-zà-ÿ']/gi, '');
-  let expTot = 0, caught = 0, fp = 0;
-  for (const [s, exp] of CORPUS) {
-    const gf = C.corr(s), sf = C.ready() ? C.spell(s) : [];
-    const flags = {}; gf.forEach(f => flags[norm(f.word)] = f.sugg); sf.forEach(f => { if (!flags[norm(f.word)]) flags[norm(f.word)] = f.sugg; });
-    const expSet = new Set(exp.map(e => norm(e[0])));
-    const hits = exp.filter(([bad, good]) => flags[norm(bad)] && norm(flags[norm(bad)]) === norm(good));
-    const got = Object.keys(flags);
-    const falsePos = got.filter(w => !expSet.has(w));   // corrections sur des mots hors de la liste attendue (approx FP)
-    expTot += exp.length; caught += hits.length; fp += falsePos.length;
-    console.log("\n« " + s + " »");
-    console.log("  attrapé " + hits.length + "/" + exp.length + " : " + (hits.map(h=>h[0]+'→'+flags[norm(h[0])]).join(', ') || '—'));
-    const missed = exp.filter(([bad]) => !flags[norm(bad)] || norm(flags[norm(bad)]) !== norm(exp.find(e=>e[0]===bad)[1]));
-    if (missed.length) console.log("  RATÉ : " + missed.map(m=>m[0]+'→'+m[1]).join(', '));
-    if (falsePos.length) console.log("  FP?  : " + falsePos.map(w=>w+'→'+flags[w]).join(', '));
-  }
-  console.log("\n=== BASELINE : " + caught + "/" + expTot + " fautes attrapées (" + (100*caught/expTot).toFixed(0) + "%), " + fp + " corrections hors-liste ===");
+  console.log('speller ready =', C.ready(), '\n');
+  score('FLAT (actuel)   ', flatCorr);
+  score('PYRAMIDE (ortho→gram→itère)', pyramidCorr);
 })().catch(e => console.log('ERR', e.message, e.stack));
