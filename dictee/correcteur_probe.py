@@ -664,6 +664,19 @@ def rule_det_gender(T, i):
     return _keepcase(T[i], sugg) if sugg else None
 
 
+def rule_met_mais(T, i):
+    # « je/tu/il/on/ils » sont des clitiques sujets PURS : ils sont TOUJOURS suivis de leur verbe et ne peuvent JAMAIS
+    # être objet de préposition (c'est lui/eux/moi/toi qui le sont). Donc « [pronom] mais … » → forme de METTRE
+    # (« il mais son manteau »→met). FP=0 par construction. « elle/elles » sont EXCLUS : ils sont leur propre pronom
+    # disjoint (« derrière elle mais… », « avec elles mais… ») → « mais » y est la vraie conjonction (raté assumé).
+    if deacc(T[i].lower()) != 'mais': return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
+    p = prev(T, i)
+    if p in ('je', 'tu'):  return 'mets'
+    if p in ('il', 'on'):  return 'met'
+    if p == 'ils':         return 'mettent'
+    return None
+
 def rule_mais_mes(T, i):
     """« mais » devant un NOM (≠ prép/dét/pronom/verbe) → « mes » (« mais lunettes »→« mes lunettes »). FP=0 mesuré
     (garde PREP : « Mais, sous… » abstenu car sous=préposition). Homophone dys fréquent, hors des 8 d'origine."""
@@ -796,7 +809,8 @@ def rule_ca_sa(T, i):
 
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa), ('mais/mes', rule_mais_mes),
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
+         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
