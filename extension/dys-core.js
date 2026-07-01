@@ -194,8 +194,10 @@
     var sub=svNounSubjNum(T,i);if(!sub)return null;var nb=sub[0],dk=sub[1];
     if(nb!=='p'||dk!==0||i-dk<2)return null;
     for(var m=dk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());
-      if(tk.toLowerCase().indexOf("'")>=0||PREP[dw]||NUM_DET[tk.toLowerCase()]||NUM_PRON[dw]||CONJ_WORDS[dw]||FULL_AUX[dw])return null;
+      if(tk.toLowerCase().indexOf("'")>=0||PREP[dw]||dw==='en'||NUM_DET[tk.toLowerCase()]||NUM_PRON[dw]||CONJ_WORDS[dw]||FULL_AUX[dw])return null;   // « en » (PP/clitique : « pris EN compte ») → abstention
+      if(/[,;:()\[\]«»"]/.test(tk))return null;   // ponctuation intercalée = apposition/énumération → abstention
       if(m>dk+1&&svReads(tk).length)return null;}
+    var _tg=posTags(T),_nn=0;if(_tg){for(var _m=dk+1;_m<i;_m++)if(_tg[_m]==='NOUN'||_tg[_m]==='PROPN')_nn++;if(_nn>=2)return null;}   // ≥2 noms entre dét et verbe = apposition/énum → abstention (adjectif toléré)
     for(k=0;k<p3.length;k++)if(p3[k][3]==='p'||p3[k][3]==='x')return null;
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
     if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots['3'+nb];if(!sugg)return null;

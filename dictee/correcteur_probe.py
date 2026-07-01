@@ -710,10 +710,15 @@ def rule_accord_sv_noun(T, i):
     # conjonction, ou un VERBE intercalé APRÈS le nom-tête (sous-phrase « les feuilles TOMBENT, l'automne est ») → abstention.
     for m in range(dk + 1, i):
         tok = T[m]; dw = deacc(tok.lower())
-        if "'" in tok.lower() or dw in PREP or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS or dw in FULL_AUX:
-            return None                                                  # +aux (auraient/avait/sont…) entre le nom et le verbe → temps composé/passif → abstention
+        if "'" in tok.lower() or dw in PREP or dw == 'en' or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS or dw in FULL_AUX:
+            return None                                                  # +aux (auraient/avait/sont…) + « en » (PP/clitique : « pris EN compte ») entre le nom et le verbe → abstention
+        if any(ch in ',;:()[]«»"' for ch in tok):
+            return None                                                  # ponctuation intercalée = apposition/énumération (« Les établissements, résidence (demeure), … ») → abstention
         if m > dk + 1 and _reads(tok):
             return None
+    _tg = pos_tags(T)                                                    # apposition/énumération : ≥2 noms entre le déterminant et le
+    if _tg and sum(1 for m in range(dk + 1, i) if _tg[m] in ('NOUN', 'PROPN')) >= 2:  # verbe (« Les établissements, résidence, demeure… »)
+        return None                                                      # → le vrai verbe est ailleurs, un nom-homographe est pris pour verbe → abstention. (Adjectif toléré : « les grands chiens » = 1 nom.)
     if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
     lemmas = {l for (l, _mt, _p, _n) in p3}
     if len(lemmas) != 1: return None
