@@ -11782,7 +11782,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // aux+participe
     var bases=[];if(/es$/.test(dw))bases.push(dw.slice(0,-2));if(/e$/.test(dw))bases.push(dw.slice(0,-1));
     for(var b=0;b<bases.length;b++){var cand=bases[b]+'ent';if(cand===dw)continue;var r=svReads(cand),lems={},n=0,k;
-      for(k=0;k<r.length;k++)if(r[k][2]==='3'&&r[k][3]==='p'&&!lems[r[k][0]]){lems[r[k][0]]=1;n++;}
+      for(k=0;k<r.length;k++)if(r[k][2]==='3'&&!lems[r[k][0]]){lems[r[k][0]]=1;n++;}   // cand finit en -ent → 3e pers. = pluriel (ignore 8_Nombre bugué)
       if(n===1)return ckeepcase(T[i],cand);}
     return null;}
   // accord sujet-VERBE à sujet NOM (déterminant pluriel → verbe pluriel) — bornes FP=0 (cf. correcteur_probe.rule_accord_sv_noun)

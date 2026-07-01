@@ -594,7 +594,9 @@ def rule_accord_sv_recover(T, i):
     for base in bases:
         cand = base + 'ent'
         if cand == dw: continue
-        if len({l for (l, _mt, p, n) in _reads(cand) if p == '3' and n == 'p'}) == 1:  # radical+ent = 3p confirmée, lemme unique
+        # cand finit en -ent PAR CONSTRUCTION → une lecture 3e pers. y est FORCÉMENT plurielle (aucun 3s verbal ne finit en -ent)
+        # → on confirme sur la PERSONNE seule, en ignorant le 8_Nombre parfois bugué de Lexique (« viennent » tagué 's').
+        if len({l for (l, _mt, p, _n) in _reads(cand) if p == '3'}) == 1:  # radical+ent = forme 3e pers. connue, lemme unique
             return _keepcase(T[i], cand)
     return None
 
