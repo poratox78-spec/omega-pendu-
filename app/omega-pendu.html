@@ -12109,7 +12109,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return null;}
   // ACCORD PLURIEL (vigilance) : nom/adjectif au SINGULIER dans un GN introduit par un déterminant PLURIEL
   // (les/des/ces/mes…) → « accord pluriel à vérifier » (orange, non affirmatif). Direction de Rem (dys).
-  var PLDET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,divers:1,diverses:1};
+  var PLDET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,divers:1,diverses:1,autres:1};
   function _plu(w){if(/al$/.test(w))return w.slice(0,-2)+'aux';if(/(eau|au|eu)$/.test(w))return w+'x';return w+'s';}
   function pluralVig(T,tg,i){
     if(!tg||i>=tg.length)return null;
