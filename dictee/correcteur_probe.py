@@ -278,6 +278,17 @@ def rule_ce_se(T, i):
     if isn and not isv: return 'ce'                                    # nom PUR → ce (démonstratif)
     return None                                                       # homographe (livre…)/inconnu → s'abstenir
 
+def rule_cest_sest(T, i):
+    # « c'est » (ce+est, impersonnel) vs « s'est » (se+est, pronominal 3e sing.). FP=0 : un PRONOM SUJET SINGULIER
+    # (il/elle/on) collé devant « c'est » SUIVI d'un PARTICIPE ne peut être que « s'est » (« elle c'est levée »→s'est).
+    # Le participe bloque la dislocation familière « Elle c'est ma sœur » (c'est + NOM, pas participe) → abstention.
+    # Singulier seulement : au pluriel « ils/elles c'est » la bonne forme est « se sont », pas « s'est » → abstention.
+    if deacc(T[i].lower()) != "c'est": return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
+    if prev(T, i) not in ('il', 'elle', 'on'): return None
+    if i+1 < len(T) and _is_ppl(T[i+1]): return _keepcase(T[i], "s'est")
+    return None
+
 # ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
 # Le correcteur ne couvrait que 8 homophones ; les vraies copies dys ont surtout des accords (« Je doit », « On ont »,
 # « il sont »). On ajoute l'accord sujet-verbe pour les sujets PRONOMS (personne+nombre certains), borné FP=0 :
@@ -785,7 +796,7 @@ def rule_ca_sa(T, i):
 
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ('ça/sa', rule_ca_sa), ('mais/mes', rule_mais_mes),
+         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa), ('mais/mes', rule_mais_mes),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
