@@ -109,6 +109,62 @@ if not POS_LEX:                                        # repli §5 : cgram_pos.j
     except Exception: POS_LEX = {}
 def pos_of(w): return POS_LEX.get(deacc(w.lower()))
 
+# ---------- POS-tagger HMM (bigramme + Viterbi) — analyse de NATURE par le CONTEXTE (séquence), pas mot par mot ----------
+# Modèle appris sur le treebank UD French-GSD (CC BY-SA 4.0), exporté par build_pos_hmm.py → dictee/pos_hmm.json.
+# ~95 % strict / ~96 % pertinent (test tenu). MÊME modèle + MÊME Viterbi que les 2 moteurs JS → parité exacte.
+# Émission : mot vu (modèle) → repli lexique POS_LEX (déjà embarqué) → repli suffixe → repli capitale/prior. Sert de
+# CONTEXTE gaté aux règles (jamais une assertion aveugle) ; None si le modèle est absent (repli transparent).
+_HMM = None
+_L2U_HMM = {'NOM':'NOUN','VER':'VERB','ADJ':'ADJ','ADV':'ADV','PRE':'ADP','PRO':'PRON','ART':'DET','CON':'CCONJ','AUX':'AUX'}
+def _hmm_model():
+    global _HMM
+    if _HMM is None:
+        _HMM = {}
+        _p = os.path.join(HERE, 'pos_hmm.json')
+        if os.path.exists(_p):
+            try: _HMM = json.load(open(_p, encoding='utf-8'))
+            except Exception: _HMM = {}
+    return _HMM if _HMM.get('tags') else None
+
+def pos_tags(T):
+    """Séquence de tags UPOS pour les tokens T (Viterbi HMM). None si modèle absent. Réutilise POS_LEX pour les mots
+    hors-modèle (parité app/extension via posOf). Déterministe → parité exacte avec le port JS."""
+    M = _hmm_model()
+    if not M or not T: return None
+    tags = M['tags']; tr = M['trans']; em = M['emit']; suf = M['suf']; pri = M['prior']; FL = M['floor']
+    def lt(a, b): return tr.get(a, {}).get(b, FL)
+    def le(t, w):
+        lw = w.lower()
+        if (t == 'PUNCT' or t == 'SYM') and any(ch.isalpha() for ch in lw): return -100.0   # un mot alphabétique n'est JAMAIS ponctuation (interdit ferme)
+        e = em.get(lw)
+        if e is not None: return e.get(t, FL)
+        p = POS_LEX.get(deacc(lw))
+        if p:
+            lu = _L2U_HMM.get(p[0].split(':')[0])
+            if lu is not None: return -0.5 if t == lu else -4.0
+        for k in (4, 3, 2):
+            if len(lw) >= k and lw[-k:] in suf:
+                d = suf[lw[-k:]]
+                return d.get(t, FL) + (0.0953 if (w[:1].isupper() and t == 'PROPN') else 0.0)   # ln(1.1)
+        return pri.get(t, FL) + (1.0986 if (w[:1].isupper() and t == 'PROPN') else 0.0)          # ln(3)
+    n = len(T); V = [{}]; bk = [{}]
+    for t in tags: V[0][t] = lt('<s>', t) + le(t, T[0]); bk[0][t] = '<s>'
+    for i in range(1, n):
+        V.append({}); bk.append({})
+        for t in tags:
+            et = le(t, T[i]); best = -1e18; bp = None
+            for pt in tags:
+                sc = V[i-1][pt] + lt(pt, t)
+                if sc > best: best, bp = sc, pt
+            V[i][t] = best + et; bk[i][t] = bp
+    best = -1e18; bt = None
+    for t in tags:
+        sc = V[n-1][t] + lt(t, '</s>')
+        if sc > best: best, bt = sc, t
+    seq = [bt]
+    for i in range(n-1, 0, -1): seq.append(bk[i][seq[-1]])
+    return seq[::-1]
+
 
 def vlike(T, i):
     """Verbe EN CONTEXTE : levier dictée (is_verb) OU lexique verbal (cgram si présent, sinon liste blanche)."""
