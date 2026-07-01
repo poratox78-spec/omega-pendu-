@@ -11767,7 +11767,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
   function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}if(j<0)return null;if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
   function svAgrees(reads,per,nb){var k;if(per==='3'){for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return true;return false;}for(k=0;k<reads.length;k++)if(reads[k][2]===per)return true;return false;}  // 1re/2e pers : personne seule (tag nombre Lexique parfois faux : « peux »)
-  function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var reads=svReads(T[i]);if(!reads.length)return null;var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
+  function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]);if(!reads.length)return null;var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(deacc(T[i].toLowerCase())==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;   // « peut-être » (adverbe)
     if(svAgrees(reads,per,nb))return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux+participe) → T[i] = participe, pas un verbe fini à accorder
@@ -11780,6 +11780,7 @@ window.addEventListener('DOMContentLoaded', () => {
     for(var k=j;k>=0;k--){var w=deacc(T[k].toLowerCase());if(NUM_PRON[w])return null;
       if(NUM_DET[T[k].toLowerCase()]){if(k>0&&PREP[deacc(T[k-1].toLowerCase())])continue;return [NUM_DET[T[k].toLowerCase()]==='pl'?'p':'s',k];}}return null;}
   function rAccordSVnoun(T,i){if(T[i].toLowerCase().indexOf("'")>=0||T[i].toLowerCase()==='à')return null;
+    if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;   // participe → accord adjectival, pas verbal (destiné→destinés pas destinent)
     if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;if(svSubject(T,i)!=null)return null;
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
     var sub=svNounSubjNum(T,i);if(!sub)return null;var nb=sub[0],dk=sub[1];

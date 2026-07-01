@@ -489,6 +489,7 @@ def _agrees(reads, per, nb):
 
 def rule_accord_sv(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None        # forme élidée (j'ai) → hors v1
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None   # participe (mangé…) : accord adjectival/temps composé, pas présent (deacc é→e trompe)
     reads = _reads(T[i])
     if not reads: return None                                     # pas une forme verbale connue → abstention
     pn = _subject_before(T, i)
@@ -631,6 +632,7 @@ CONJ_WORDS = {'et', 'ou', 'ni', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui',
 
 def rule_accord_sv_noun(T, i):
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None     # PARTICIPE (destiné/déchargé…) : accord ADJECTIVAL (destinés), pas verbal (destinent) — deacc destiné→destine=destiner-3sg trompait la règle
     if i > 0 and T[i-1].lower() in NUM_DET: return None                 # déterminant juste avant → T[i] est un NOM (« les joue »)
     if _subject_before(T, i) is not None: return None                  # sujet pronom net → règle pronom (pas ici)
     p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']  # sujet-nom = 3e personne
