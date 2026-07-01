@@ -11759,8 +11759,8 @@ window.addEventListener('DOMContentLoaded', () => {
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]==='3'&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;if(!okk)return null;return sugg;}
   // Accord GENRE déterminant→nom (route lexicale gn = noms purs). MÊME logique/données que correcteur_probe.rule_det_gender
   // → parité exacte. gn pré-filtré (sans homographe verbe/adjectif) → simple test d'appartenance, FP=0.
-  var DET_G={un:'m',une:'f',le:'m',la:'f',ce:'m',cet:'m',cette:'f',mon:'m',ma:'f',ton:'m',ta:'f',son:'m',sa:'f'};
-  var DET_A={'un|f':'une','une|m':'un','le|f':'la','la|m':'le','ce|f':'cette','cet|f':'cette','cette|m':'ce','mon|f':'ma','ma|m':'mon','ton|f':'ta','ta|m':'ton','son|f':'sa','sa|m':'son'};
+  var DET_G={un:'m',une:'f',le:'m',la:'f',ce:'m',cet:'m',cette:'f',mon:'m',ma:'f',ton:'m',ta:'f',son:'m',sa:'f',quel:'m',quelle:'f'};
+  var DET_A={'un|f':'une','une|m':'un','le|f':'la','la|m':'le','ce|f':'cette','cet|f':'cette','cette|m':'ce','mon|f':'ma','ma|m':'mon','ton|f':'ta','ta|m':'ton','son|f':'sa','sa|m':'son','quel|f':'quelle','quelle|m':'quel'};
   function ckeepcase(src,sg){var c=src.charAt(0);return (c!==c.toLowerCase())?sg.charAt(0).toUpperCase()+sg.slice(1):sg;}
   // POS-tagger 155k : RÉUTILISE le gros lexique du pendu (OMEGA_LEX4) déjà chargé — index par forme déaccentuée
   // { forme : [cgram, nbhomog] }, 1re occurrence (la + fréquente). Construit paresseusement, mis en cache. (§5)
