@@ -94,8 +94,6 @@ def tag_sentence(words, M):
         lw = w.lower()
         if (t == 'PUNCT' or t == 'SYM') and any(ch.isalpha() for ch in lw): return -100.0
         if lw in em: return em[lw].get(t, FL)
-        lu = _lex_upos(w)
-        if lu is not None: return -0.5 if t == lu else -4.0
         for k in (4, 3, 2):
             if len(lw) >= k and lw[-k:] in suf:
                 d = suf[lw[-k:]]; cap = 1.1 if (w[:1].isupper() and t == 'PROPN') else 1.0
