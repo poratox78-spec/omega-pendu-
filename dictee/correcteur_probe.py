@@ -664,6 +664,33 @@ def rule_det_gender(T, i):
     return _keepcase(T[i], sugg) if sugg else None
 
 
+# Mots après lesquels « tout » n'est PAS un déterminant (prépositions, « le tout » = nom, idiomes « avant/après/en tout »).
+TOUT_LSTOP = PREP | set(NUM_DET) | {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers',
+                                    'durant', 'pendant', 'hormis', 'outre', 'moyennant', 'suivant', 'concernant'}
+def rule_tout_det(T, i):
+    # « tout/toute » (forme SINGULIÈRE) DÉTERMINANT devant un déterminant PLURIEL est une faute d'accord en nombre :
+    # « tout les jours »→tous, « toute les semaines »→toutes. Nombre = déterminant pluriel (les/des/ces…, classe fermée
+    # fiable) ; genre = nom-tête confiant (GENDER_PURE). FP=0 : « tout/toute + dét. pluriel » n'est jamais correct, et le
+    # quantifieur FLOTTANT (« ils ont tous une chambre ») est toujours PLURIEL → écarté en ne déclenchant que sur le
+    # singulier. Gardes : « tout » précédé d'une prép./déterminant/idiome (« avant tout les… », « le tout, les… ») OU
+    # séparé du déterminant par une frontière = autre rôle (pronom/nom/adverbe) → abstention.
+    # DIFFÉRÉ (FP-risqué) : accord de GENRE pur (« tout cette »→toute), sens inverse (« tous le monde »→tout), rôle
+    # ADVERBE (« tout contente »→toute, invariable sauf fém.+consonne), rôle PRONOM.
+    lw = deacc(T[i].lower())
+    if lw not in ('tout', 'toute'): return None
+    if i + 2 >= len(T): return None
+    if NUM_DET.get(deacc(T[i+1].lower())) != 'pl': return None     # le mot suivant doit être un DÉTERMINANT PLURIEL
+    if _SEG is not None and i+1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None   # frontière « tout | déterminant » (« le tout, les… ») → abstention
+    if prev(T, i) in TOUT_LSTOP: return None                       # prép./dét./idiome avant « tout » → pronom/nom/adverbe, pas déterminant
+    if "'" in T[i+2].lower(): return None                          # nom-tête élidé (l'…) → genre caché → abstention
+    nd = deacc(T[i+2].lower())
+    pp = NOUN_POST.get(nd)
+    if not (pp and pp[0] >= PL_TAU_M): return None                 # le mot après le déterminant doit être un NOM confiant
+    g = GENDER_PURE.get(nd)
+    if g not in ('m', 'f'): return None                            # genre inconnu/ambigu → abstention
+    return _keepcase(T[i], 'tous' if g == 'm' else 'toutes')
+
+
 def rule_met_mais(T, i):
     # « je/tu/il/on/ils » sont des clitiques sujets PURS : ils sont TOUJOURS suivis de leur verbe et ne peuvent JAMAIS
     # être objet de préposition (c'est lui/eux/moi/toi qui le sont). Donc « [pronom] mais … » → forme de METTRE
@@ -815,6 +842,7 @@ RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
+         ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
          ('usage être/avoir', rule_aux_usage),
          ('aux mal orthographié', rule_aux_misspell),
