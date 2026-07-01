@@ -26,6 +26,13 @@
 #         pronom tout/tous/toutes -> « cela / ils / elles » (avant verbe) ou EFFAÇABLE (après verbe)
 #         déterminant -> « le/la/les » ou « chaque »  (+ accord avec le NOM suivant)
 #         adverbe -> « tout à fait / complètement »  (invariable SAUF devant adj. fém. à consonne/h aspiré : toute(s))
+#   FAMILLES À ÉLISION (révélées par la fiche dys-positif — préposition vs pronom élidé, déterminable par structure) :
+#     dans / d'en   (dans + nom  |  d'en = de + en)
+#     sans / s'en   (sans + nom/que  |  s'en = se + en, devant verbe)
+#     ni / n'y      (ni ... ni  |  n'y = ne + y, devant verbe)
+#     si / s'y / ci (si = condition/adverbe  |  s'y = se + y  |  -ci = démonstratif)
+#     est / et      (être 3sg « est »  |  conjonction « et »)
+#     ou / où · la / là  (déjà repérés)
 import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import correcteur_probe as C
@@ -68,6 +75,14 @@ GOLD_LEXICAL_OK = [
     "La mer est agitée aujourd'hui.", "Le comte raconte une histoire.", "Il voudrait une paire de lunettes.",
     "Il faut tenir les rênes bien droites.", "Le cerf traverse la clairière.", "Prends un autre verre.",
     "La maison se trouve vers le parc.", "Nous entrons dans une nouvelle ère.", "Mon père rentre tard.",
+    # Phrases CORRECTES denses en homophones grammaticaux (fiches dys-positif / ça-sa) — must rester 0 rouge :
+    "Les chevaliers vont à la cour du roi et là ils content leurs aventures.",
+    "La reine a organisé une réception où des danseurs se sont produits.",
+    "Il rêve d'en faire son dîner ; il l'emporte dans son sac.",
+    "Elle s'en va de chez elle sans que sa mère ne s'en aperçoive.",
+    "Ils ne distinguent ni la côte ni les rochers ; rien n'y a fait.",
+    "Si le théâtre est ouvert, ils s'y rendront.",
+    "Il a oublié sa casquette ; regarde comme ça sent bon.",
 ]
 
 def norm(w): return re.sub(r"[^A-Za-zÀ-ÿ']", "", w).lower()
