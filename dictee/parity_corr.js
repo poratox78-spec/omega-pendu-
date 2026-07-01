@@ -80,7 +80,8 @@ const PHRASES = [
   'les département français', 'des hit parades', 'il les porte', 'il les livre à domicile', 'les rouge vif',
   'les enfants sont là', 'je les vois', 'des chat noirs',
   // accord SV « récupéré » : ils/elles + verbe mal conjugué absent du lexique (radical+ent = 3p) + non-FP
-  'elles sente bon', 'ils parte demain', 'elles mette la table', 'ils dorme bien', 'elles sentent bon', 'ils partent demain'
+  'elles sente bon', 'ils parte demain', 'elles mette la table', 'ils dorme bien', 'elles sentent bon', 'ils partent demain',
+  'ils vienne ce soir', 'elles prenne le train', 'ils finisse tard', 'elles viennent ce soir'
 ];
 
 // flags Python via un petit pont
