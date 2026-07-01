@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8')
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
-const code = html.slice(start, cut) + ';globalThis.__C={corr:correctText,spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,ready:()=>SP.ready};})();';
+const code = html.slice(start, cut) + ';globalThis.__C={corr:correctText,corrTok:correctTokens,toks:toks,segInfo:_segInfo,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,ready:()=>SP.ready};})();';
 
 function blob(id) { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; }
 const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
@@ -56,6 +56,14 @@ function pyramidCorr(s) {   // PYRAMIDE : orthographe → applique → grammaire
   }
   return fl;
 }
+function runCorrLike(s) {   // mime le NOUVEAU runCorr : ortho → applique 1:1 → grammaire sur tokens nettoyés
+  const sf = C.ready() ? C.spell(s) : [];
+  C.setSeg(s); const T = C.toks(s), Tc = T.slice();
+  sf.forEach(f => { const j = f.i; if (f.span !== 2 && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[j] = f.sugg; });
+  const gf = C.corrTok(Tc);
+  const fl = {}; gf.forEach(f => fl[norm(T[f.i])] = f.sugg); sf.forEach(f => { if (!fl[norm(f.word)]) fl[norm(f.word)] = f.sugg; });
+  return fl;
+}
 function score(mode, fn) {
   let expTot = 0, caught = 0;
   for (const [s, exp] of CORPUS) {
@@ -82,11 +90,12 @@ const CORRECT = [
 (async () => {
   await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
   console.log('speller ready =', C.ready(), '\n');
-  score('FLAT (actuel)   ', flatCorr);
-  score('PYRAMIDE (ortho→gram→itère)', pyramidCorr);
+  score('FLAT (ancien)   ', flatCorr);
+  score('PYRAMIDE (itère)', pyramidCorr);
+  score('runCorr RÉEL (1 passe ortho→gram)', runCorrLike);
   let fp = 0;
   for (const s of CORRECT) {
-    const fl = flatCorr(s);
+    const fl = runCorrLike(s);
     const ks = Object.keys(fl);
     if (ks.length) { fp += ks.length; console.log('  FP: « ' + s.slice(0,45) + '… » → ' + ks.map(k=>k+'→'+fl[k]).join(', ')); }
   }

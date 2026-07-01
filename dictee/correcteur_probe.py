@@ -831,6 +831,8 @@ def rule_jest(T, i):
         return _keepcase(T[i], "j'ai")
     if dn in CADJ or dn in ETRE_PP:                     # adjectif PUR ou participe de verbe d'ÊTRE → je suis (liste close = parité 3 moteurs)
         return _keepcase(T[i], "je suis")
+    if _is_ppl(nxt):                                    # participe d'AVOIR (pris/mangé/fait/vu…) — les participes d'ÊTRE sont déjà traités → j'ai
+        return _keepcase(T[i], "j'ai")
     return None
 
 
