@@ -115,7 +115,6 @@ def pos_of(w): return POS_LEX.get(deacc(w.lower()))
 # Émission : mot vu (modèle) → repli lexique POS_LEX (déjà embarqué) → repli suffixe → repli capitale/prior. Sert de
 # CONTEXTE gaté aux règles (jamais une assertion aveugle) ; None si le modèle est absent (repli transparent).
 _HMM = None
-_L2U_HMM = {'NOM':'NOUN','VER':'VERB','ADJ':'ADJ','ADV':'ADV','PRE':'ADP','PRO':'PRON','ART':'DET','CON':'CCONJ','AUX':'AUX'}
 def _hmm_model():
     global _HMM
     if _HMM is None:
@@ -137,16 +136,12 @@ def pos_tags(T):
         lw = w.lower()
         if (t == 'PUNCT' or t == 'SYM') and any(ch.isalpha() for ch in lw): return -100.0   # un mot alphabétique n'est JAMAIS ponctuation (interdit ferme)
         e = em.get(lw)
-        if e is not None: return e.get(t, FL)
-        p = POS_LEX.get(deacc(lw))
-        if p:
-            lu = _L2U_HMM.get(p[0].split(':')[0])
-            if lu is not None: return -0.5 if t == lu else -4.0
-        for k in (4, 3, 2):
+        if e is not None: return e.get(t, FL)                                               # émission apprise (mot vu ≥2 sur UD)
+        for k in (4, 3, 2):                                                                  # inconnu → backoff SUFFIXE (rien d'autre : parité 3 moteurs, pas de lexique POS externe)
             if len(lw) >= k and lw[-k:] in suf:
                 d = suf[lw[-k:]]
                 return d.get(t, FL) + (0.0953 if (w[:1].isupper() and t == 'PROPN') else 0.0)   # ln(1.1)
-        return pri.get(t, FL) + (1.0986 if (w[:1].isupper() and t == 'PROPN') else 0.0)          # ln(3)
+        return pri.get(t, FL) + (1.0986 if (w[:1].isupper() and t == 'PROPN') else 0.0)          # ln(3), capitale → PROPN
     n = len(T); V = [{}]; bk = [{}]
     for t in tags: V[0][t] = lt('<s>', t) + le(t, T[0]); bk[0][t] = '<s>'
     for i in range(1, n):
@@ -206,15 +201,21 @@ def _plural_before(T, i):
         if w in PLURAL_MARK: return True
     return False
 def _clause_no_finite_verb(T, i):
-    """Aucun verbe FINI (lecture conjuguée) dans la proposition de i (bornes _SEG), hors T[i] ? Signal pilote
-    « analyse » : verbe-présence ~94 % fiable. Sur-détection (noms-verbes homographes) → abstention (jamais un FP)."""
+    """Aucun verbe dans la proposition de i (bornes _SEG), hors T[i] ? Verbe-présence via le TAGGER HMM (contexte) —
+    il tague « élèves/table/forme » NOUN par le contexte là où le repli `_reads` sur-détectait (→ ratés). Repli `_reads`
+    (sur-détection = abstention, jamais un FP) si le modèle est absent. Parité : pos_tags identique Py/app/extension."""
     n = len(T); lo, hi = 0, n
     if _SEG is not None:
         for j in range(i, 0, -1):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
         for j in range(i+1, n):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: hi = j; break
-    for j in range(lo, hi):
+    tg = pos_tags(T)
+    if tg is not None:
+        for j in range(lo, hi):
+            if j != i and tg[j] in ('VERB', 'AUX'): return False
+        return True
+    for j in range(lo, hi):                                        # repli (modèle absent) : lecture conjuguée `_reads`
         if j != i and _reads(T[j].lower()): return False
     return True
 

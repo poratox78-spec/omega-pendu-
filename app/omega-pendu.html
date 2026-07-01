@@ -11668,8 +11668,10 @@ window.addEventListener('DOMContentLoaded', () => {
   var PLURAL_MARK={ils:1,elles:1,nous:1,vous:1,les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,plupart:1};
   var CLAUSE_BREAK={et:1,ou:1,mais:1,car:1,donc:1,or:1,ni:1,que:1,qui:1,quand:1,lorsque:1,puisque:1,comme:1,si:1,'.':1,',':1,';':1,':':1,'!':1,'?':1};
   function cplBefore(T,i){for(var j=i-1;j>=Math.max(0,i-6);j--){var w=deacc(T[j].toLowerCase());if(CLAUSE_BREAK[w])break;if(PLURAL_MARK[w])return true;}return false;}
-  function _clauseNoFiniteVerb(T,i){var n=T.length,lo=0,hi=n,j;   // aucun verbe FINI dans la proposition (bornes _SEG), hors T[i] ? (pilote analyse : verbe-présence ~94 %)
+  function _clauseNoFiniteVerb(T,i){var n=T.length,lo=0,hi=n,j;   // verbe-présence via le TAGGER HMM (contexte : élèves/table→NOUN) ; repli svReads si modèle absent
     if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}for(j=i+1;j<n;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
+    var tg=posTags(T);
+    if(tg){for(j=lo;j<hi;j++){if(j!==i&&(tg[j]==='VERB'||tg[j]==='AUX'))return false;}return true;}
     for(j=lo;j<hi;j++){if(j!==i&&svReads(T[j].toLowerCase()).length)return false;}
     return true;}
   function rSon(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='son'&&lw!=='sont')return null;   // tranché par CE QUI SUIT : son=det+nom sg ; sont=être 3pl+prédicat ; abstention sinon (FP=0)
@@ -11939,7 +11941,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if(typeof runCorr==='function')runCorr();
     }catch(e){}}
   // ---------- POS-tagger HMM (bigramme + Viterbi) — NATURE par le CONTEXTE. MÊME modèle + MÊME algo que Python & extension (parité).
-  var _HMM=null;
+  var _HMM=(typeof OMEGA_POS_HMM!=='undefined')?OMEGA_POS_HMM:null;   // seed injectable pour parité (comme OMEGA_NOUN_POST)
   async function loadPosHmm(){
     if(_HMM!==null)return;_HMM={};
     try{var el=document.getElementById('pos-hmm-gz');if(!el||!el.textContent)return;
