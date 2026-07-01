@@ -347,12 +347,22 @@ def rule_ce_se(T, i):
     if lw not in ('ce', 'se'): return None
     if i+1 >= len(T): return None
     nd = deacc(T[i+1].lower())
-    if nd in ('qui', 'que', 'dont'): return 'ce'                       # ce qui/que/dont
+    if nd in ('qui', 'que', 'dont', 'qu', "qu'"): return 'ce'         # ce qui/que/dont (+ élidé « qu' » : ce qu'il/qu'aurait)
     if nd in AUX or nd in ('sont', 'est'): return None                # « ce sont » vs « se sont déroulés », c'est vs s'est : ambigu → s'abstenir
+    if nd in CLITIC: return None                                       # « se le/la/lui/en/y/ne donne » : clitique → « se » pronominal (ou « ce n'était » impersonnel) → ne pas toucher
+    if nd in NUM_DET: return None                                      # « se une/le/des… » : déterminant, ni nom-tête ni verbe → abstention (texte corpus cassé)
+    if nd.endswith('ant') and len(nd) > 4: return None                 # participe présent/gérondif (se constituant, en chantant) → « se » réfléchi, jamais « ce »
     isv = vlike(T, i+1); isn = nd in D.GENDER_LEX
     if isv and not isn: return 'se'                                    # verbe PUR → se (pronominal)
     if isn and not isv: return 'ce'                                    # nom PUR → ce (démonstratif)
-    return None                                                       # homographe (livre…)/inconnu → s'abstenir
+    tg = pos_tags(T)                                                   # homographe (livre/marche…)/inconnu → le TAGGER (contexte) tranche
+    if tg is None or i+1 >= len(tg): return None
+    if lw == 'se':                                                     # « se » réfléchi est TOUJOURS devant un verbe/clitique → « se » + NOM (hors participe -ant) = « ce » (démonstratif)
+        return 'ce' if (tg[i+1] == 'NOUN' and not nd.endswith('ant')) else None
+    # lw == 'ce' → « se » SEULEMENT si un SUJET précède (« il ce lave »→se) ; sinon « ce » = PRONOM IMPERSONNEL (ce serait, ce n'était, pour ce faire) → abstention
+    if tg[i+1] in ('VERB', 'AUX') and prev(T, i) in ('il', 'elle', 'on', 'je', 'tu', 'ils', 'elles', 'qui'):
+        return 'se'
+    return None
 
 def rule_cest_sest(T, i):
     # « c'est » (ce+est, impersonnel) vs « s'est » (se+est, pronominal 3e sing.). FP=0 : un PRONOM SUJET SINGULIER

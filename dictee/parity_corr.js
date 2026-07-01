@@ -23,7 +23,10 @@ const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const ctIdx = html.indexOf('function correctText', start);
 const ctEnd = html.indexOf('return out;}', ctIdx) + 'return out;}'.length;
 if (start < 0 || ctIdx < 0 || ctEnd < 0) { console.error('extraction IIFE échouée'); process.exit(2); }
-const code = html.slice(start, ctEnd) + ';globalThis.__corr=correctText;})();';
+// étendre l'extraction pour inclure posTags/_HMM/loadPosHmm (définis APRÈS correctText) — rCe/rSon les appellent (contexte tagger)
+const ptIdx = html.indexOf('function posTags(T){', start);
+const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();', ptIdx)) + 1 : ctEnd;
+const code = html.slice(start, Math.max(ctEnd, ptEnd)) + ';globalThis.__corr=correctText;})();';
 
 // 2) embed vdc-lex pour getElementById
 const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/);
