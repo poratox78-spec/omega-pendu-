@@ -149,6 +149,19 @@ def _plural_before(T, i):
         if w in _CLAUSE_BREAK: break
         if w in PLURAL_MARK: return True
     return False
+def _clause_no_finite_verb(T, i):
+    """Aucun verbe FINI (lecture conjuguée) dans la proposition de i (bornes _SEG), hors T[i] ? Signal pilote
+    « analyse » : verbe-présence ~94 % fiable. Sur-détection (noms-verbes homographes) → abstention (jamais un FP)."""
+    n = len(T); lo, hi = 0, n
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+        for j in range(i+1, n):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: hi = j; break
+    for j in range(lo, hi):
+        if j != i and _reads(T[j].lower()): return False
+    return True
+
 def is_plural_noun(T, j):
     if j < 0 or j >= len(T): return False
     dw = deacc(T[j].lower())
@@ -202,9 +215,15 @@ def rule_son_sont(T, i):
         if plural_subj: return None                                    # sujet pluriel (proche ou à distance) → « sont » correct → ne pas toucher
         if nxt_noun_sg: return 'son'                                   # « sont » + NOM SINGULIER direct (« il a perdu sont chien ») → possessif ; adj/participe/prép (« sont contents/partis/là ») → abstention
         return None
-    # lw == 'son' → « sont » seulement dans le cadre NET « ils/elles son <prédicat> » (FP=0 ; le pluriel distant + « son » est trop ambigu : « son ancienne maison »)
+    # lw == 'son' → « sont » : cadre NET « ils/elles son <prédicat> » (FP=0)
     if prev(T, i) in ('ils', 'elles') and nxt and not nxt_noun_sg:
         return 'sont'                                                  # « ils son contents » → être 3pl
+    # PILOTE « analyse » — sujet NOM : groupe pluriel avant + « son » suivi d'une PRÉPOSITION (un déterminant possessif
+    # n'est JAMAIS suivi d'une prép ; le NOM « son » l'est mais est alors précédé d'un déterminant/prép, exclu) + AUCUN
+    # verbe fini dans la proposition (signal verbe-présence ~94 %) → « son » occupe le créneau verbe → « sont ».
+    # « Les poules son dans le jardin »→sont ; « Le son de la cloche résonne » : « son » précédé de « Le » ET verbe présent → abstention.
+    if plural_subj and (nxt in PREP or nxt == 'en') and prev(T, i) not in NUM_DET and prev(T, i) not in PREP and _clause_no_finite_verb(T, i):
+        return 'sont'                                                  # « en » (prép : en retard/en colère) inclus, hors PREP de base
     return None
 
 def rule_on_ont(T, i):
