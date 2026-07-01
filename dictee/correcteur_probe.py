@@ -13,7 +13,7 @@
 # Mesuré : faux positifs (sur les 30 phrases CORRECTES + cas témoins) · détection (faute injectée flaguée ?)
 #          · correction (la proposition est-elle la bonne ?). Réutilise diag_sentence (doctrine §5).
 # Lancer : python3 dictee/correcteur_probe.py
-import os, sys, json
+import os, sys, json, math
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import diag_sentence as D
@@ -159,6 +159,68 @@ def pos_tags(T):
     seq = [bt]
     for i in range(n-1, 0, -1): seq.append(bk[i][seq[-1]])
     return seq[::-1]
+
+# ---------- Classifieur de SUJET (régression logistique, UD nsubj) — CONFIANCE calibrée pour gater l'accord au FP=0 ----------
+# Modèle appris par build_subject_clf.py → dictee/subject_clf.json. subject_score(T, i) ∈ [0,1] = P(token i = sujet).
+# Features IDENTIQUES à build_subject_clf.py ET au port JS (subjScore) → parité. Réutilise pos_tags (contexte) + _reads (accord).
+_SUBJ = None
+_SUBJP = {'je','tu','il','elle','on','ils','elles','nous','vous','qui'}
+_PLUR_DET = {'les','des','ces','mes','tes','ses','nos','vos','leurs'}
+def _subj_model():
+    global _SUBJ
+    if _SUBJ is None:
+        _SUBJ = {}
+        _p = os.path.join(HERE, 'subject_clf.json')
+        if os.path.exists(_p):
+            try: _SUBJ = json.load(open(_p, encoding='utf-8'))
+            except Exception: _SUBJ = {}
+    return _SUBJ if _SUBJ.get('w') else None
+def _clause_starts(T):
+    st = [False]*len(T)
+    if T: st[0] = True
+    for i in range(1, len(T)):
+        if T[i-1] in (',', ';', ':') or (T[i-1] and T[i-1][0] in '.!?…»«()'): st[i] = True
+    return st
+def _subj_feats(T, tags, i, cs):
+    d = deacc(T[i].lower()); tg = tags[i]; f = {'bias': 1.0}
+    f['is_pron_subj'] = 1.0 if d in _SUBJP else 0.0
+    f['tag_PRON'] = 1.0 if tg == 'PRON' else 0.0
+    f['tag_NOUN'] = 1.0 if tg == 'NOUN' else 0.0
+    f['tag_PROPN'] = 1.0 if tg == 'PROPN' else 0.0
+    f['clause_init'] = 1.0 if cs[i] else 0.0
+    pt = tags[i-1] if i > 0 else '<s>'
+    f['prev_DET'] = 1.0 if pt == 'DET' else 0.0
+    f['prev_ADP'] = 1.0 if pt == 'ADP' else 0.0
+    f['prev_VERB'] = 1.0 if pt in ('VERB', 'AUX') else 0.0
+    f['prev_SCONJ'] = 1.0 if pt in ('SCONJ', 'CCONJ') else 0.0
+    f['prev_bos'] = 1.0 if i == 0 else 0.0
+    vafter = 0; vpos = None
+    for j in range(i+1, min(len(T), i+5)):
+        if tags[j] in ('VERB', 'AUX'): vafter = 1; vpos = j; break
+        if tags[j] == 'SCONJ': break
+    f['verb_after'] = float(vafter)
+    f['next_is_verb'] = 1.0 if (i+1 < len(T) and tags[i+1] in ('VERB', 'AUX')) else 0.0
+    f['verb_dist'] = (1.0/(vpos-i)) if vpos else 0.0
+    agree = 0
+    if vpos is not None:
+        cand_pl = d.endswith('s') or d.endswith('x') or (i > 0 and deacc(T[i-1].lower()) in _PLUR_DET) or d in ('ils','elles','nous','vous')
+        vr = _reads(T[vpos]); vnums = {n for (_l, _m, _p, n) in vr}
+        if vr and (('p' in vnums) == cand_pl or 'x' in vnums): agree = 1
+    f['agree_verb'] = float(agree)
+    f['pp_within2'] = 1.0 if (i >= 2 and tags[i-2] == 'ADP') else 0.0
+    f['prev2_DET'] = 1.0 if (i >= 2 and tags[i-2] == 'DET') else 0.0
+    f['cap'] = 1.0 if (i > 0 and T[i][:1].isupper()) else 0.0
+    return f
+_SUBJ_TAGS_CACHE = {}
+def subject_score(T, i):
+    """P(T[i] = sujet) ∈ [0,1] via la régression logistique ; None si modèle absent."""
+    M = _subj_model()
+    if not M: return None
+    tg = pos_tags(T)
+    if tg is None: return None
+    f = _subj_feats(T, tg, i, _clause_starts(T)); w = M['w']
+    z = sum(w.get(k, 0.0) * v for k, v in f.items())
+    return 1.0 / (1.0 + math.exp(-max(-30.0, min(30.0, z))))
 
 
 def vlike(T, i):
@@ -643,7 +705,7 @@ def rule_accord_sv_noun(T, i):
     # FP=0 SANS lexique de noms : déterminant PLURIEL (les/des/ces…) EN TÊTE de phrase (dk==0). En tête, aucun
     # génitif/PP/objet-de-verbe possible à gauche (rien ne précède) → on évite tous ces pièges (« la préparation
     # DES mahashi », « protéger LES infrastructures ») sans dépendre d'un lexique de noms (→ parité app↔Python).
-    if nb != 'p' or dk != 0 or i - dk < 2: return None                 # +il faut un nom-tête entre le déterminant et le verbe
+    if nb != 'p' or dk != 0 or i - dk < 2: return None                 # EN TÊTE de phrase seulement (FP=0) + nom-tête entre déterminant et verbe. (Le classifieur de sujet à 0.99 fuit mid-phrase à l'échelle — réservé au VERT.)
     # GARDE STRUCTURE : le nom-tête (dk+1, homographe « voitures » toléré) ; tout PP / 2e déterminant / pronom /
     # conjonction, ou un VERBE intercalé APRÈS le nom-tête (sous-phrase « les feuilles TOMBENT, l'automne est ») → abstention.
     for m in range(dk + 1, i):
