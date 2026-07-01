@@ -79,6 +79,11 @@ const SP = globalThis.__sp;
   if (SP.spell('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
   if (SP.spell('la note AAA est haute').length) fail.push('FP acronyme AAA');
   if (SP.spell('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
+  // VIGILANCE : mot inconnu du dico → souligné (tier vigilance), SANS FP sur texte correct ni noms propres
+  const vig = SP.spell('je voudrais en reamné demain').find(x => x.tier === 'vigilance');
+  if (!vig || vig.word.toLowerCase() !== 'reamné') fail.push('vigilance « reamné » (mot inconnu) attendu, eu ' + JSON.stringify(vig));
+  if (SP.spell('Le petit garçon mange une pomme rouge dans le jardin.').some(x => x.tier === 'vigilance')) fail.push('FP vigilance sur phrase correcte');
+  if (SP.spell('Nathalie habite à Bordeaux.').some(x => x.tier === 'vigilance')) fail.push('FP vigilance sur nom propre');
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });
