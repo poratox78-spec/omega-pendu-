@@ -84,6 +84,10 @@ const SP = globalThis.__sp;
   if (!vig || vig.word.toLowerCase() !== 'reamné') fail.push('vigilance « reamné » (mot inconnu) attendu, eu ' + JSON.stringify(vig));
   if (SP.spell('Le petit garçon mange une pomme rouge dans le jardin.').some(x => x.tier === 'vigilance')) fail.push('FP vigilance sur phrase correcte');
   if (SP.spell('Nathalie habite à Bordeaux.').some(x => x.tier === 'vigilance')) fail.push('FP vigilance sur nom propre');
+  // VIGILANCE homophone (contexte serré) : « ma mer »→mère, sans firer sur « la mer » / « le fer »
+  const hm = SP.spell('je ne sais pa comment fer à ma mer').filter(x => x.name === 'homophone à vérifier').map(x => x.word + '→' + x.sugg).sort().join(',');
+  if (hm !== 'fer→faire,mer→mère,pa→pas') fail.push('vigilance homophone attendue (pa/fer/mer), eu ' + hm);
+  if (SP.spell('la mer est belle et le fer est chaud').some(x => x.name === 'homophone à vérifier')) fail.push('FP vigilance homophone sur « la mer »/« le fer »');
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });
