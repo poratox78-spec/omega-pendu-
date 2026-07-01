@@ -4,6 +4,13 @@
 > (lexicale = mémoire/homophones · sublexicale = assemblage son→lettre). Visée : **dys / troubles
 > de l'écrit** (école, soutien, orthophonie en n°1). Document vivant — on ajuste à chaque jalon.
 
+## ÉTAT (2026-07-01, muscle) — ANALYSEUR de phrase : POS-tagger HMM déployé dans les 3 moteurs (sw v60)
+
+Idée de Rem : que le correcteur **identifie la nature/fonction de chaque mot** (guide officiel « Terminologie grammaticale ») pour s'en servir de **contexte**. Check littérature → la méthode établie est le **HMM + Viterbi** (~96-97 % FR ; TnT/HunPos), pas des règles ad hoc.
+- **Tagger HMM bigramme** entraîné sur le treebank **UD French-GSD** (CC BY-SA), `dictee/build_pos_hmm.py` → `dictee/pos_hmm.json` + `extension/assets/pos-hmm.json.gz` + blob embarqué app. **~95 % strict / ~96 % pertinent** sur test TENU (vs 88,5 % heuristique). Décodeur Viterbi **SANS POS_LEX** (émission apprise + suffixe + capitale) → `pos_tags`/`posTags` **identiques Python==extension==app**, parité verrouillée en CI (`dictee/parity_pos.js`).
+- **1er usage (contexte gaté) : son/sont sujet-nom** — `_clause_no_finite_verb` utilise le tagger au lieu de `_reads` (qui sur-détectait les verbes) → **récupère** « Les élèves/chats/joueurs son … »→sont (élèves/table/forme = homographes tagués NOUN par le contexte). 0 FP sur 14 450 UD (Python ET JS).
+- Mesuré PLAT : trigramme (le goulot est l'émission, pas les transitions), règles Constraint-Grammar post-Viterbi (Viterbi capte déjà). Sujet/COD en parseur général = 55-72 % → PAS FP=0 en aveugle ; usage = **contexte gaté** (fire net, sinon abstention), façon son/sont. Mémoire : `sentence-analysis-probe`.
+
 ## ÉTAT (2026-07-01, reprise) — 4 règles homophones DÉPLOYÉES (rappel gold 5→9/15, FP=0)
 
 Suite du chantier rappel : quatre règles homophones **FP=0** livrées (0 flag chacune sur 14 450 UD ; parité app⊆Py & ext⊆Py ; `fp_scale` inchangé 1,96 % ; sw v52→v55).
