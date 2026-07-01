@@ -11715,8 +11715,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if(NUM_DET[nd])return null;                                                  // ce/se + déterminant → abstention
     if(/ant$/.test(nd)&&nd.length>4)return null;                                 // participe présent → se réfléchi
     var isv=vlike(T,i+1),isn=!!GENDER_MAP[nd];
-    if(isv&&!isn)return 'se';if(isn&&!isv)return 'ce';
-    var tg=posTags(T);if(!tg||i+1>=tg.length)return null;                        // homographe/inconnu → tagger (contexte)
+    if(isv&&!isn)return 'se';
+    var tg=posTags(T);if(!tg||i+1>=tg.length)return (isn&&!isv)?'ce':null;       // sans tagger : repli nom-pur → ce
+    if(isn&&!isv&&tg[i+1]!=='VERB'&&tg[i+1]!=='AUX')return 'ce';                 // nom PUR confirmé (pas verbe au tagger) → ce ; sinon (« il se document[e] ») → ne pas forcer « ce »
     if(lw==='se')return (tg[i+1]==='NOUN')?'ce':null;                            // se + NOM → ce
     if((tg[i+1]==='VERB'||tg[i+1]==='AUX')){var p=cprev(T,i);if(p==='il'||p==='elle'||p==='on'||p==='je'||p==='tu'||p==='ils'||p==='elles'||p==='qui')return 'se';}   // ce + VERBE + SUJET pronom → se (sinon ce impersonnel)
     return null;}
