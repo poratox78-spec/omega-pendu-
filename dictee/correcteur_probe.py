@@ -624,7 +624,8 @@ def rule_aux_misspell(T, i):
         pn = ('1', 'p') if deacc(T[i - 1].lower()) == 'nous' else ('2', 'p')
     if pn is None: return None
     per, nb = pn
-    if per == '1' and nb == 's': return None                     # « je » → élision (j'ai) différée v2
+    # « je » (1sg) : les cibles COURTES avoir (ai) sont déjà écartées (len<4) ; on autorise les LONGUES (suis/étais/avais)
+    # → « je sui »→suis. (« je ai »=élision j'ai gérée ailleurs : ai est trop court pour être une cible ici.)
     reads = _reads(T[i])
     if reads and _agrees(reads, per, nb): return None            # déjà une forme valide accordée → ne pas toucher
     best_d, best_f, best_v = 9, None, None
