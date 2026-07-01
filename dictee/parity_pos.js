@@ -20,7 +20,7 @@ const BATT = [
 ];
 
 // --- Python : tags de référence ---
-const py = cp.execFileSync('python', ['-c', `
+const py = cp.execFileSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, r'${path.join(ROOT, 'dictee').replace(/\\/g, '\\\\')}')
 import correcteur_probe as C
@@ -34,7 +34,7 @@ require(path.join(ROOT, 'extension', 'dys-core.js'));
 const D = global.DYSCORE;
 D.setPosHmm(model);
 // toks Python vs toks extension peuvent différer ; on tague la MÊME séquence de tokens (celle de Python) pour comparer le DÉCODEUR.
-const pyToks = JSON.parse(cp.execFileSync('python', ['-c', `
+const pyToks = JSON.parse(cp.execFileSync('python3', ['-c', `
 import sys, json
 sys.path.insert(0, r'${path.join(ROOT, 'dictee').replace(/\\/g, '\\\\')}')
 import correcteur_probe as C
