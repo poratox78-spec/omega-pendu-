@@ -78,7 +78,9 @@ const PHRASES = [
   // accord pluriel du nom (déterminant pluriel + nom singulier) : cibles + pièges (homographe/composé/pronom)
   'les enfant joue', 'des oiseau dans le ciel', 'les cheval galopent', 'il a des difficulté', 'des journal locaux',
   'les département français', 'des hit parades', 'il les porte', 'il les livre à domicile', 'les rouge vif',
-  'les enfants sont là', 'je les vois', 'des chat noirs'
+  'les enfants sont là', 'je les vois', 'des chat noirs',
+  // accord SV « récupéré » : ils/elles + verbe mal conjugué absent du lexique (radical+ent = 3p) + non-FP
+  'elles sente bon', 'ils parte demain', 'elles mette la table', 'ils dorme bien', 'elles sentent bon', 'ils partent demain'
 ];
 
 // flags Python via un petit pont
