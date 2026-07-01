@@ -11667,6 +11667,10 @@ window.addEventListener('DOMContentLoaded', () => {
   var PLURAL_MARK={ils:1,elles:1,nous:1,vous:1,les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,plupart:1};
   var CLAUSE_BREAK={et:1,ou:1,mais:1,car:1,donc:1,or:1,ni:1,que:1,qui:1,quand:1,lorsque:1,puisque:1,comme:1,si:1,'.':1,',':1,';':1,':':1,'!':1,'?':1};
   function cplBefore(T,i){for(var j=i-1;j>=Math.max(0,i-6);j--){var w=deacc(T[j].toLowerCase());if(CLAUSE_BREAK[w])break;if(PLURAL_MARK[w])return true;}return false;}
+  function _clauseNoFiniteVerb(T,i){var n=T.length,lo=0,hi=n,j;   // aucun verbe FINI dans la proposition (bornes _SEG), hors T[i] ? (pilote analyse : verbe-présence ~94 %)
+    if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}for(j=i+1;j<n;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
+    for(j=lo;j<hi;j++){if(j!==i&&svReads(T[j].toLowerCase()).length)return false;}
+    return true;}
   function rSon(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='son'&&lw!=='sont')return null;   // tranché par CE QUI SUIT : son=det+nom sg ; sont=être 3pl+prédicat ; abstention sinon (FP=0)
     var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';
     var nxtNounSg=(!!GENDER_PURE[nxt])&&!(/s$/.test(nxt)||/x$/.test(nxt));
@@ -11674,6 +11678,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!pluralSubj){for(var j=i-1;j>i-9&&j>=0;j--){if(_SEG&&(j+1)<_SEG.bb.length&&_SEG.bb[j+1])break;if(PLURAL_DET[deacc(T[j].toLowerCase())]){pluralSubj=true;break;}}}
     if(lw==='sont'){if(pluralSubj)return null;if(nxtNounSg)return 'son';return null;}
     if((cprev(T,i)==='ils'||cprev(T,i)==='elles')&&nxt&&!nxtNounSg)return 'sont';
+    // PILOTE analyse — sujet NOM : pluriel avant + « son » suivi d'une PRÉP (ou « en ») + pas déterminant/prép avant + AUCUN verbe fini → sont
+    if(pluralSubj&&(PREP[nxt]||nxt==='en')&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&_clauseNoFiniteVerb(T,i))return 'sont';
     return null;}
   var IRREG_PART={eu:1,pu:1,du:1,su:1,vu:1,lu:1,tenu:1,venu:1,devenu:1,revenu:1,voulu:1,valu:1,fallu:1,connu:1,reconnu:1,paru:1,apparu:1,disparu:1,couru:1,recu:1,mort:1,fait:1,refait:1,dit:1,redit:1,ecrit:1,decrit:1,mis:1,remis:1,permis:1,promis:1,pris:1,appris:1,compris:1,surpris:1,ouvert:1,offert:1,couvert:1,souffert:1,peri:1,acquis:1,conquis:1,assis:1,vecu:1,plu:1,cru:1,bu:1,tu:1};
   function rOn(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
