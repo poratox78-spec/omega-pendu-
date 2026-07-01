@@ -594,9 +594,11 @@ def rule_accord_sv_recover(T, i):
     for base in bases:
         cand = base + 'ent'
         if cand == dw: continue
-        # cand finit en -ent PAR CONSTRUCTION → une lecture 3e pers. y est FORCÉMENT plurielle (aucun 3s verbal ne finit en -ent)
-        # → on confirme sur la PERSONNE seule, en ignorant le 8_Nombre parfois bugué de Lexique (« viennent » tagué 's').
-        if len({l for (l, _mt, p, _n) in _reads(cand) if p == '3'}) == 1:  # radical+ent = forme 3e pers. connue, lemme unique
+        # SÛR : n'accepter que la lecture 3e pers. STRICTEMENT PLURIELLE (n=='p'). ⚠️ -ent n'est PAS un gage de pluriel :
+        # « vient/tient/devient » = 3SG en -ent, et la famille venir a un nombre CORROMPU dans Lexique (vient tagué 'x',
+        # viennent tagué 's') → 'x' pas sûr non plus. n=='p' rejette vient/viennent → 0 mauvaise correction (« elles vies »
+        # ne devient PAS « vient »). Coût = famille venir/voir(x) ratée = raté SÛR (jamais un faux positif).
+        if len({l for (l, _mt, p, _n) in _reads(cand) if p == '3' and _n == 'p'}) == 1:
             return _keepcase(T[i], cand)
     return None
 

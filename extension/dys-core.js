@@ -191,7 +191,7 @@
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
     var bases=[];if(/es$/.test(dw))bases.push(dw.slice(0,-2));if(/e$/.test(dw))bases.push(dw.slice(0,-1));
     for(var b=0;b<bases.length;b++){var cand=bases[b]+'ent';if(cand===dw)continue;var r=svReads(cand),lems={},n=0,k;
-      for(k=0;k<r.length;k++)if(r[k][2]==='3'&&!lems[r[k][0]]){lems[r[k][0]]=1;n++;}   // cand finit en -ent → 3e pers. = pluriel (ignore 8_Nombre bugué)
+      for(k=0;k<r.length;k++)if(r[k][2]==='3'&&r[k][3]==='p'&&!lems[r[k][0]]){lems[r[k][0]]=1;n++;}   // n=='p' STRICT : -ent≠pluriel (vient/tient=3sg ; famille venir corrompue dans Lexique) → 0 mauvaise correction
       if(n===1)return ckeepcase(T[i],cand);}
     return null;}
   var CONJ_WORDS={};('et ou ni mais car donc or que qu qui quand comme si lorsque puisque dont lequel laquelle lesquels lesquelles').split(' ').forEach(function(w){CONJ_WORDS[w]=1;});
