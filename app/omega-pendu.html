@@ -11708,7 +11708,18 @@ window.addEventListener('DOMContentLoaded', () => {
     if(i+1<T.length){var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()&&c0===c0.toUpperCase())return null;}   // « et Bob », « et Chris » → nom propre → conjonction
     if(i+1<T.length&&(isParticiple(T,i+1)||!(T[i+1].toLowerCase() in NUM_DET)))return 'est';return null;}
   function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';return null;}
-  function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());if(nd==='qui'||nd==='que'||nd==='dont')return 'ce';if(CAUX[nd]||nd==='sont'||nd==='est')return null;var isv=vlike(T,i+1),isn=!!GENDER_MAP[nd];if(isv&&!isn)return 'se';if(isn&&!isv)return 'ce';return null;}
+  function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());
+    if(nd==='qui'||nd==='que'||nd==='dont'||nd==='qu'||nd==="qu'")return 'ce';   // ce qui/que/dont (+ élidé qu')
+    if(CAUX[nd]||nd==='sont'||nd==='est')return null;
+    if(CLITIC[nd])return null;                                                   // clitique/ne → se pronominal / ce impersonnel → abstention
+    if(NUM_DET[nd])return null;                                                  // ce/se + déterminant → abstention
+    if(/ant$/.test(nd)&&nd.length>4)return null;                                 // participe présent → se réfléchi
+    var isv=vlike(T,i+1),isn=!!GENDER_MAP[nd];
+    if(isv&&!isn)return 'se';if(isn&&!isv)return 'ce';
+    var tg=posTags(T);if(!tg||i+1>=tg.length)return null;                        // homographe/inconnu → tagger (contexte)
+    if(lw==='se')return (tg[i+1]==='NOUN')?'ce':null;                            // se + NOM → ce
+    if((tg[i+1]==='VERB'||tg[i+1]==='AUX')){var p=cprev(T,i);if(p==='il'||p==='elle'||p==='on'||p==='je'||p==='tu'||p==='ils'||p==='elles'||p==='qui')return 'se';}   // ce + VERBE + SUJET pronom → se (sinon ce impersonnel)
+    return null;}
   // « mais » devant un NOM genré (≠ prép/dét/pronom/verbe) → « mes » (« mais lunettes »→« mes lunettes »). MÊME
   // logique/données que correcteur_probe.rule_mais_mes (GENDER_PURE + gardes) → parité. FP=0 mesuré (verbe = vlike).
   function rCestSest(T,i){if(deacc(T[i].toLowerCase())!=="c'est")return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;if(i+1<T.length&&_isPpl(T[i+1])){var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}return null;}   // [il/elle/on]+c'est+participe → s'est (le participe bloque la dislocation « elle c'est ma sœur » ; singulier only, pluriel = « se sont »). FP=0 (0 flag sur UD).
