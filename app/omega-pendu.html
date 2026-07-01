@@ -11753,7 +11753,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel
     var nl=T[i+1].toLowerCase(),dn=deacc(nl);
     if(NUM_DET[nl]||dn==='ete'||dn==='eu'||dn==='du'||dn==='des')return ckeepcase(T[i],"j'ai");   // déterminant / été-eu / partitif du-des → j'ai
-    if((nl==="de"||nl==="d'")&&i+2<T.length&&PART_ART[T[i+2].toLowerCase()])return ckeepcase(T[i],"j'ai");   // « j'ai de la peine »
+    if(nl==="de"||nl==="d'"){var _n2=i+2<T.length?T[i+2]:'',_c0=_n2[0]||'';if(PART_ART[_n2.toLowerCase()]||(_c0&&_c0.toLowerCase()!==_c0.toUpperCase()&&_c0===_c0.toLowerCase()))return ckeepcase(T[i],"j'ai");return null;}   // possession → j'ai (de la peine / de tomates=nom commun) ; « de Paris » (nom propre) = origine « je suis de… » → abstention
     if(CADJ[dn]||ETRE_PP[dn])return ckeepcase(T[i],"je suis");   // adjectif pur ou participe d'être → je suis
     if(_isPpl(T[i+1]))return ckeepcase(T[i],"j'ai");   // participe d'AVOIR (pris/mangé/vu…) → j'ai (ceux d'être sont déjà traités)
     return null;}   // sinon (de+nom propre…) → abstention
@@ -12093,9 +12093,35 @@ window.addEventListener('DOMContentLoaded', () => {
     for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w).charAt(0)!==d.charAt(0))continue;if(SP.FREQ[w]>bf){bf=SP.FREQ[w];best=w;}}
     return (best&&best!==low)?best:'';                                      // '' = inconnu sans suggestion fiable (simple alerte)
   }
-  function spellText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+  // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
+  // (non affirmatif). Gardes étroites pour éviter les emplois légitimes (« la mer », « le fer », « papa »).
+  function homoVig(T,i){var w=deaccS(T[i].toLowerCase());if(w!=='mer'&&w!=='fer'&&w!=='pa')return null;
+    var p=i>0?deaccS(T[i-1].toLowerCase()):'';
+    if(w==='mer'&&(p==='ma'||p==='ta'||p==='sa'||p==='notre'||p==='votre'||p==='leur'))return 'mère';   // « ma mer »→mère (≠ « la/en/une mer »)
+    if(w==='fer'&&(p==='comment'||p==='pour'||p==='rien'||p==='quoi'))return 'faire';                    // « comment fer »→faire (≠ « le/du/en fer »)
+    if(w==='pa'&&(p==='ne'||p==='n'||p==='sais'||p==='sait'||p==='peux'||p==='peut'||p==='veux'||p==='veut'||p==='est'||p==='es'||p==='suis'||p==='vais'||p==='va'))return 'pas';   // « sais pa »/« ne … pa »→pas
+    return null;}
+  // ACCORD PLURIEL (vigilance) : nom/adjectif au SINGULIER dans un GN introduit par un déterminant PLURIEL
+  // (les/des/ces/mes…) → « accord pluriel à vérifier » (orange, non affirmatif). Direction de Rem (dys).
+  var PLDET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,divers:1,diverses:1};
+  function _plu(w){if(/al$/.test(w))return w.slice(0,-2)+'aux';if(/(eau|au|eu)$/.test(w))return w+'x';return w+'s';}
+  function pluralVig(T,tg,i){
+    if(!tg||i>=tg.length)return null;
+    var w=deaccS(T[i].toLowerCase());
+    if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
+    if(tg[i]!=='NOUN'&&tg[i]!=='ADJ')return null;
+    var c0=T[i][0];if(c0&&c0!==c0.toLowerCase())return null;           // nom propre
+    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());
+      if(PLDET[dj]){var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
+      if(tg[j]==='VERB'||tg[j]==='AUX'||tg[j]==='ADP'||tg[j]==='PUNCT'||PREP[dj])break;   // sorti du GN
+      if(tg[j]!=='NOUN'&&tg[j]!=='ADJ'&&tg[j]!=='DET')break;
+    }
+    return null;}
+  function spellText(text){var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:r[1],name:'orthographe',tier:r[0]});pushed=true;}
-    if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null)out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});}}
+    if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv)out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});}}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
       for(var i=0;i<P.length-1;i++){if(done[i]||done[i+1])continue;
