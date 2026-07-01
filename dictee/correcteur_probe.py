@@ -827,14 +827,31 @@ def rule_noun_plural(T, i):
 # Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
 # « vigilance verte » (= simplification). FP=0 par cadre syntaxique forcé (audit UD 2026-06-30 : durcis).
 def rule_ca_sa(T, i):
-    # « sa » = déterminant possessif → précède TOUJOURS un nom. Un PRONOM CLITIQUE ne peut jamais suivre « sa »
-    # → c'est « ça » (« sa me fait rire », « sa se passe », « sa ne va pas »). FP=0 blindé (un clitique n'est pas un nom).
-    # NB : le cas « sa + verbe » (« sa va ») N'EST PAS ajouté — trop de noms féminins sont homographes d'un verbe en -er
-    # (marche, retraite, chronique, banque…) et le lexique de noms est incomplet → FP. Réservé (whitelist aller ?).
-    if deacc(T[i].lower()) != 'sa': return None                       # sens sa→ça (ça→sa différé)
-    if i + 1 >= len(T): return None
-    if deacc(T[i+1].lower()) in CLITIC:
-        return 'Ça' if T[i][:1].isupper() else 'ça'
+    # Homophone « ça » (pronom démonstratif) ↔ « sa » (déterminant possessif). DEUX sens FP=0 :
+    #  • sa→ça : « sa » précède TOUJOURS un nom ; un PRONOM CLITIQUE ne peut jamais suivre « sa » → c'est « ça »
+    #    (« sa me fait rire », « sa se passe », « sa ne va pas »). FP=0 blindé (un clitique n'est pas un nom).
+    #  • ça→sa : « ça » (pronom) ne précède JAMAIS un nom nu (il précède verbe/adverbe/clitique) → « ça » + NOM confiant
+    #    = possessif : « ça maison »→sa, « ça vélo »→son, « ça amie »→son (sa+voyelle→son). Garde NOM STRICTE
+    #    (P(NOM)≥τ ∧ P(VER)<ε) → « ça marche/change » (verbe) écarté ; frontière/sigle/élision → abstention.
+    # NB : « sa + verbe » (« sa va ») non couvert (noms féminins homographes d'un verbe en -er : marche, banque…).
+    lw = deacc(T[i].lower())
+    if lw == 'sa':
+        if i + 1 < len(T) and deacc(T[i+1].lower()) in CLITIC:
+            return _keepcase(T[i], 'ça')
+        return None
+    if lw == 'ca':                                                    # « ça » (deacc) → sens ça→sa
+        if T[i] == T[i].upper() and T[i] != T[i].lower(): return None # « CA » sigle (chiffre d'affaires…) → abstention
+        if i + 1 >= len(T): return None
+        if _SEG is not None and i+1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None   # frontière « ça, X » → « ça » n'est pas déterminant → abstention
+        if "'" in T[i+1].lower(): return None
+        nd = deacc(T[i+1].lower())
+        pp = NOUN_POST.get(nd)
+        if not (pp and pp[0] >= PL_TAU_M and pp[1] < PL_EPS_M): return None   # NOM confiant ET pas verbe-homographe (« ça marche » = verbe)
+        if T[i+1][:1].lower() in 'aeiouyh': return _keepcase(T[i], 'son')     # voyelle/h → son (sa amie→son amie)
+        g = GENDER_PURE.get(nd)
+        if g == 'f': return _keepcase(T[i], 'sa')
+        if g == 'm': return _keepcase(T[i], 'son')
+        return None                                                  # genre inconnu (consonne) → abstention
     return None
 
 RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),

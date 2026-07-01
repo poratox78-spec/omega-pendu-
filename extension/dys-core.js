@@ -118,7 +118,18 @@
   function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';return null;}
   function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());if(nd==='qui'||nd==='que'||nd==='dont')return 'ce';if(CAUX[nd]||nd==='sont'||nd==='est')return null;var isv=vlike(T,i+1),isn=!!GENDER_MAP[nd];if(isv&&!isn)return 'se';if(isn&&!isv)return 'ce';return null;}
   function rCestSest(T,i){if(deacc(T[i].toLowerCase())!=="c'est")return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;if(i+1<T.length&&_isPpl(T[i+1])){var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}return null;}   // [il/elle/on]+c'est+participe → s'est (le participe bloque la dislocation « elle c'est ma sœur » ; singulier only, pluriel = « se sont »). FP=0 (0 flag sur UD).
-  function rCaSa(T,i){if(deacc(T[i].toLowerCase())!=='sa'||i+1>=T.length)return null;if(CLITIC[deacc(T[i+1].toLowerCase())]){var c=T[i].charAt(0);return c!==c.toLowerCase()?'Ça':'ça';}return null;}   // sa+clitique → ça (sa=possessif → précède un nom ; un clitique jamais). FP=0 blindé. « sa va » non couvert (noms-verbes homographes).
+  function rCaSa(T,i){var lw=deacc(T[i].toLowerCase());   // ça↔sa. sa+clitique→ça (un clitique n'est pas un nom) ; ça+NOM confiant→sa/son (ça ne précède jamais un nom nu). FP=0 (garde nom stricte P(NOM)≥τ∧P(VER)<ε). « sa va » non couvert.
+    if(lw==='sa'){if(i+1<T.length&&CLITIC[deacc(T[i+1].toLowerCase())])return ckeepcase(T[i],'ça');return null;}
+    if(lw==='ca'){
+      if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;   // « CA » sigle → abstention
+      if(i+1>=T.length)return null;
+      if(_SEG&&(i+1)<_SEG.bb.length&&_SEG.bb[i+1])return null;   // frontière « ça, X » → abstention
+      if(T[i+1].toLowerCase().indexOf("'")>=0)return null;
+      var nd=deacc(T[i+1].toLowerCase()),pp=NOUN_POST&&NOUN_POST.get(nd);
+      if(!(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M))return null;   // NOM confiant ET pas verbe-homographe (« ça marche »=verbe)
+      if('aeiouyh'.indexOf(T[i+1].charAt(0).toLowerCase())>=0)return ckeepcase(T[i],'son');   // voyelle/h → son
+      var g=GENDER_PURE[nd];if(g==='f')return ckeepcase(T[i],'sa');if(g==='m')return ckeepcase(T[i],'son');return null;}
+    return null;}
   function rMetMais(T,i){if(deacc(T[i].toLowerCase())!=='mais')return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'mets';if(p==='il'||p==='on')return 'met';if(p==='ils')return 'mettent';return null;}   // je/tu/il/on/ils = clitiques sujets PURS (jamais objet de prép) + « mais » → forme de METTRE. FP=0. elle/elles exclus (pronom disjoint : « derrière elle mais… »).
   function rMais(T,i){if(deacc(T[i].toLowerCase())!=='mais'||i+1>=T.length)return null;
     if(i===0||(_SEG&&i<_SEG.ss.length&&_SEG.ss[i]))return null;   // « Mais … » en tête de phrase = conjonction, jamais « mes »
