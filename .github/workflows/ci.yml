@@ -47,6 +47,8 @@ jobs:
           node -e "const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);console.log('OK: bloc décompose se compile (séparé du correcteur)');"
       - name: Parité correcteur APP↔Python (homophones + accord sujet-verbe)
         run: node dictee/parity_corr.js
+      - name: Parité POS-tagger HMM (Python == extension == app)
+        run: node dictee/parity_pos.js
       - name: Correcteur orthographique app (décompression + non-régression AUTO FP=0)
         run: node dictee/test_speller_app.js
       - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)

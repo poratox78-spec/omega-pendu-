@@ -46,6 +46,7 @@ echo "── Node : parité app/extension + syntaxe + standalone ──"
 runsh "syntaxe bloc dictée+correcteur (app)" "node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('mode PHRASES');if(i<0)throw new Error('bloc dictée introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);\""
 runsh "syntaxe bloc Décompose (app)"          "node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=h.indexOf('🔤 DÉCOMPOSE — fiche');if(i<0)throw new Error('bloc décompose introuvable');const b=h.slice(h.lastIndexOf('<script>',i)+8,h.indexOf('</script>',i));new Function(b);\""
 run "parité correcteur APP↔Python"  node dictee/parity_corr.js
+run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "parité extension dys-core↔Py"  node extension/parity_core.js
 runsh "syntaxe extension (3 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js"
