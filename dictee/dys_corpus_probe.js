@@ -38,9 +38,9 @@ function runCorrLike(s){const sf=C.ready()?C.spell(s):[];C.setSeg(s);const T=C.t
     for(const e of errs){ totErr++;
       const f=fl[e];
       if(!f){missed++;mrk.push(e+'=∅');}
-      else if(f.tier==='vigilance'&&norm(f.sugg)===e){vig++;mrk.push(e+'→🟠(inconnu)');}   // signalé sans suggestion (ne dégrade pas)
-      else if(ft.has(norm(f.sugg))){ if(f.tier==='vigilance'){vig++;mrk.push(e+'→🟠'+f.sugg);} else {red++;mrk.push(e+'→✅'+f.sugg);} }
-      else { wrong++; mrk.push(e+'→❌'+f.sugg); }
+      else if(f.tier==='vigilance'){vig++;mrk.push(e+'→🟠'+(norm(f.sugg)===e?'(à vérifier)':f.sugg));}   // ORANGE non affirmatif : ne dégrade JAMAIS la copie (bonne ou mauvaise piste)
+      else if(ft.has(norm(f.sugg))){red++;mrk.push(e+'→✅'+f.sugg);}   // rouge + bonne sugg = corrigé
+      else {wrong++;mrk.push(e+'→❌'+f.sugg);}   // ROUGE + mauvaise sugg = DÉGRADE (le seul vrai danger)
     }
     console.log('['+src+'] '+errs.length+' fautes | '+mrk.join('  '));
   }
