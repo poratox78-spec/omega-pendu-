@@ -18,6 +18,8 @@ Suite du chantier rappel : quatre règles homophones **FP=0** livrées (0 flag c
 **Verrue pré-existante signalée** (hors périmètre homophones) : sur entrée fautive « X à mangé », `rule_e_er` propose AUSSI mangé→manger (interaction avec `rule_a_aa`) ; pas un FP sur texte correct.
 - **ça→sa inverse** (`rule_ca_sa`/`rCaSa` 2e sens, sw v58, gold 10→11/15) — « ça » (pronom) ne précède jamais un nom nu → « ça + NOM confiant » → possessif : « ça maison »→sa, « ça vélo »→son, « ça amie »→son (sa+voyelle→son). Genre du nom (GENDER_PURE) ; garde nom STRICTE P(NOM)≥τ∧P(VER)<ε (écarte « ça marche »=verbe) ; frontière/sigle/élision abstenus. 0 flag UD.
 
+- **son/sont sujet-NOM** (`rule_son_sont` branche pilote, sw v59, gold 11→12/15) — 1er déblocage via l'**analyseur** : « GN pluriel + son + PRÉPOSITION (ou en) + AUCUN verbe fini dans la proposition » → sont (« Les poules son dans le jardin »→sont). Signal verbe-présence (`_clause_no_finite_verb`, ~94 % fiable ; sur-détection = raté safe). 0 flag UD Python ET JS. a/à sujet-nom NON déblocable ainsi (« à » trop souvent sans verbe : à+infinitif, locutions). Analyseur nature ~88,6 % / verbe ~94 % / sujet ~63 % (mur) — voir mémoire `sentence-analysis-probe`.
+
 **Reste / à trancher :** famille tout — adverbe (« tout contente »→toute, invariable sauf fém.+consonne/h-aspiré → CADJ trop mince ~4 adj., travail+risque FP), sens inverse pluriel & pronom (quantifieur flottant) ; près/prêt & sont→son (FP-risqués). Puis **« lecture en diagonale »** (feature suivante fléchée, à définir).
 
 ## ÉTAT (2026-07-01) — batterie de tests correcteur : le RAPPEL est le vrai chantier
