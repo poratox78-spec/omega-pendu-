@@ -71,7 +71,7 @@ const PHRASES = [
   'Mais sous la table', 'mais je viens', 'il rit mais pleure souvent', 'mais place est prise', 'mais cause des ennuis',
   // j'est/j'ai : détection devant déterminant (→ j'ai) + abstention ambiguë (adj/participe = aux → LLM) + non-FP
   'j\'est le poisse de oartir à la monagne', 'j\'est un chien', 'J\'est la chance', 'j\'est content', 'j\'est allé à Paris',
-  'j\'est de la peine', 'j\'est du mal', 'j\'est venu hier', 'j\'est de Paris', 'j\'est entendu le tonnerre',
+  'j\'est de la peine', 'j\'est du mal', 'j\'est venu hier', 'j\'est de Paris', 'j\'est entendu le tonnerre', 'j\'est de tomates fraiche',
   "j'sais que c'est vrai", "Personne n'sait où il est", "qu'tu viennes", "l'homme est là", "j'aime ça", "d'abord",
   "Ils détestons les épinards", "Ils réunissons les gens", "Vous chantez bien", "Ils chantent faux",
   'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien',

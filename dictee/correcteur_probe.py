@@ -927,8 +927,10 @@ def rule_jest(T, i):
     nxt = T[i + 1]; nl = nxt.lower(); dn = deacc(nl)
     if nl in NUM_DET or dn in ('ete', 'eu') or dn in ('du', 'des'):                 # avoir certain (déterminant / été-eu / partitif du-des)
         return _keepcase(T[i], "j'ai")
-    if nl in ('de', "d'") and i + 2 < len(T) and T[i + 2].lower() in PART_ART:      # « j'ai de la peine » (partitif de+article)
-        return _keepcase(T[i], "j'ai")
+    if nl in ('de', "d'"):                                                          # possession → j'ai : « j'ai de la peine » (partitif) ET « j'est de tomates » (de + nom COMMUN)
+        if i + 2 < len(T) and (T[i + 2].lower() in PART_ART or (T[i + 2][:1].isalpha() and not T[i + 2][:1].isupper())):
+            return _keepcase(T[i], "j'ai")
+        return None                                                                # « j'est de Paris » (de + nom PROPRE) = origine « je suis de… » → abstention
     if dn in CADJ or dn in ETRE_PP:                     # adjectif PUR ou participe de verbe d'ÊTRE → je suis (liste close = parité 3 moteurs)
         return _keepcase(T[i], "je suis")
     if _is_ppl(nxt):                                    # participe d'AVOIR (pris/mangé/fait/vu…) — les participes d'ÊTRE sont déjà traités → j'ai

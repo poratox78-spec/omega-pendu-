@@ -11753,7 +11753,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel
     var nl=T[i+1].toLowerCase(),dn=deacc(nl);
     if(NUM_DET[nl]||dn==='ete'||dn==='eu'||dn==='du'||dn==='des')return ckeepcase(T[i],"j'ai");   // déterminant / été-eu / partitif du-des → j'ai
-    if((nl==="de"||nl==="d'")&&i+2<T.length&&PART_ART[T[i+2].toLowerCase()])return ckeepcase(T[i],"j'ai");   // « j'ai de la peine »
+    if(nl==="de"||nl==="d'"){var _n2=i+2<T.length?T[i+2]:'',_c0=_n2[0]||'';if(PART_ART[_n2.toLowerCase()]||(_c0&&_c0.toLowerCase()!==_c0.toUpperCase()&&_c0===_c0.toLowerCase()))return ckeepcase(T[i],"j'ai");return null;}   // possession → j'ai (de la peine / de tomates=nom commun) ; « de Paris » (nom propre) = origine « je suis de… » → abstention
     if(CADJ[dn]||ETRE_PP[dn])return ckeepcase(T[i],"je suis");   // adjectif pur ou participe d'être → je suis
     if(_isPpl(T[i+1]))return ckeepcase(T[i],"j'ai");   // participe d'AVOIR (pris/mangé/vu…) → j'ai (ceux d'être sont déjà traités)
     return null;}   // sinon (de+nom propre…) → abstention
