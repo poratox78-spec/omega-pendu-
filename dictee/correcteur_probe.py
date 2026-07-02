@@ -525,16 +525,38 @@ _PP_SUBJ = {'il': ('s', 'm'), 'elle': ('s', 'f'), 'ils': ('p', 'm'), 'elles': ('
 _PP_AUX_P = {'sommes', 'etes', 'sont', 'etions', 'etiez', 'etaient', 'soyons', 'soyez', 'soient',
              'serons', 'serez', 'seront', 'furent'}                   # aux ÊTRE au PLURIEL (le reste = singulier)
 
+_PP_IRR_CONS = {'mort', 'ne'}     # participes irréguliers base consonne/é où base+{'',e,s,es} accorde (mort/morte, né/née)
+_PP_STOP = {'plus', 'bus', 'jus', 'obus', 'abus', 'virus', 'campus', 'sus', 'pus', 'rebus', 'blocus',
+            'us', 'refus', 'talus', 'surplus', 'processus', 'consensus'}   # -us adverbe/nom ≠ participe (« plus »→« plu » interdit)
+
+def _pp_base(w):
+    """Base MASC-SINGULIER d'un participe passé reconnu (à laquelle on ajoute e/s/es pour accorder), sinon None.
+    Couvre -er (allé), -ir (parti/sorti/fini : base+r ∈ verbes), -u irrégulier (venu/reçu… ∈ IRREG_PART), mort/né."""
+    lw = w.lower(); d = deacc(lw)
+    if d in _PP_STOP: return None
+    inf = _inf1(w)
+    if inf: return inf[:-2] + 'é'                                  # -er : base = radical+é
+    for suf, cut in (('ies', 3), ('ie', 2), ('is', 2), ('i', 1)):  # -ir : parti/partie/partis/parties
+        if lw.endswith(suf):
+            base = lw[:-cut] + 'i'
+            return base if deacc(base + 'r') in VERB_LEX else None
+    for suf, cut in (('ues', 3), ('ue', 2), ('us', 2), ('u', 1)):  # -u irrégulier : venu/venue/venus/venues
+        if lw.endswith(suf):
+            base = lw[:-cut] + 'u'
+            return base if deacc(base) in IRREG_PART else None
+    for suf, cut in (('es', 2), ('s', 1), ('e', 1)):               # mort/né (base consonne/é) : morte/morts/mortes…
+        if lw.endswith(suf) and deacc(lw[:-cut]) in _PP_IRR_CONS: return lw[:-cut]
+    return lw if d in _PP_IRR_CONS else None
+
 def rule_pp_etre(T, i):
-    """Accord du PARTICIPE PASSÉ (verbe -er) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
-    « elle est allé »→allée, « ils sont transformé »→transformés. Sujet = pronom fiable (il/elle/ils/elles/nous/je/tu ;
-    on/vous exclus car ambigus). Genre inconnu (je/tu/nous) → on GARDE le genre écrit (jamais de fém→masc forcé).
-    FP≈0 : ne se déclenche QUE si le participe est en DÉSACCORD (le texte correct est déjà accordé)."""
+    """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
+    « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
+    Sujet = pronom fiable (il/elle/ils/elles/nous/je/tu ; on/vous exclus car ambigus). Genre inconnu (je/tu/nous) →
+    on GARDE le genre écrit (jamais de fém→masc forcé). FP≈0 : ne se déclenche QUE si le participe est en DÉSACCORD."""
     lw = T[i].lower()
     if "'" in lw: return None
-    inf = _inf1(T[i])                                          # verbe -er (allez/aller/allé → aller) ; None sinon
-    if inf is None: return None
-    stem = inf[:-2]
+    base = _pp_base(T[i])                                      # base masc-sing du participe (tous groupes) ; None sinon
+    if base is None: return None
     a = None                                                   # auxiliaire ÊTRE en remontant (adverbes/clitiques tolérés)
     for k in range(i-1, max(-1, i-4), -1):
         dk = deacc(T[k].lower())
@@ -552,10 +574,9 @@ def rule_pp_etre(T, i):
     if _SEG is not None and sk < len(_SEG['hy']) and _SEG['hy'][sk]: return None   # « poursuit-il » : pronom d'inversion (incise) ≠ sujet → abstention
     num, gen = info
     if num != aux_num: return None                           # « elles est … » : aux et sujet en désaccord → l'erreur est ailleurs, abstention
-    if gen == '?':
-        gen = 'f' if lw.endswith(('ée', 'ées')) else 'm'      # genre inconnu → garder celui écrit
-    end = {'sm': 'é', 'sf': 'ée', 'pm': 'és', 'pf': 'ées'}[num + gen]
-    sugg = stem + end
+    if gen == '?':                                            # genre inconnu (je/tu/nous) → garder celui écrit
+        gen = 'f' if deacc(lw[:-1] if lw.endswith('s') else lw) == deacc(base) + 'e' else 'm'
+    sugg = base + {'sm': '', 'sf': 'e', 'pm': 's', 'pf': 'es'}[num + gen]
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
 # ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
@@ -1280,8 +1301,11 @@ CASES = [
     # le harnais 2b reconstruit sans trait d'union ; ils sont validés hors-CI par corpus_imperatif.jsonl, FP=0 sur UD)
     ("Soyons honnêtes entre nous", "soyons", "soyions", "impératif"),  # être impératif malformé (sans trait d'union)
     # accord du participe passé avec le sujet (être)
-    ("Nous sommes allés à Paris", "allés", "allé", "accord participe"),   # nous → pluriel
-    ("Elle est allée au marché", "allée", "allé", "accord participe"),    # elle → féminin
+    ("Nous sommes allés à Paris", "allés", "allé", "accord participe"),   # nous → pluriel (-er)
+    ("Elle est allée au marché", "allée", "allé", "accord participe"),    # elle → féminin (-er)
+    ("Elle est venue hier", "venue", "venu", "accord participe"),         # -u (venir)
+    ("Nous sommes partis tôt", "partis", "parti", "accord participe"),    # -ir (partir)
+    ("Elle est morte en hiver", "morte", "mort", "accord participe"),     # irrégulier (mourir)
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
