@@ -1080,6 +1080,66 @@ def rule_accord_sv_noun(T, i):
     return sugg
 
 
+def _sv_finish(T, i, per, nb, p_reads):
+    """Queue commune des règles d'accord sujet-verbe : corrige T[i] vers (per, nb) si désaccord ET forme confirmée.
+    p_reads = lectures de T[i] filtrées sur la personne `per`. Anti-bruit : lemme unique + suggestion re-vérifiée."""
+    if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p_reads): return None   # déjà d'accord
+    lemmas = {l for (l, _mt, _p, _n) in p_reads}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop()
+    mts = [mt for (_l, mt, _p, _n) in p_reads]
+    mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
+    if not sugg: return None
+    if not any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)):
+        return None
+    return sugg
+
+
+# ---------- Accord SUJET-VERBE à sujet PRONOM/QUANTIFIEUR indéfini (chacun, certains, plusieurs, personne…) ----------
+# Classe FERMÉE → FP=0 : le quantifieur-pronom impose le nombre (3e pers). On n'agit qu'en EMPLOI PRONOM (rien d'autre
+# qu'un clitique/négation entre lui et le verbe) et en TÊTE de proposition — l'emploi DÉTERMINANT (« certains jours sont »)
+# est laissé au parseur nominal (_np_subject via _QUANT_PL).
+_QP_SG = {'chacun', 'chacune', "quelqu'un", 'quiconque', 'personne', 'rien', 'aucun', 'aucune', 'nul', 'nulle'}
+_QP_PL = {'certains', 'certaines', 'plusieurs', 'tous', 'toutes'}
+_QP_DE_PL = {'plupart', 'beaucoup', 'peu', 'bien', 'tas', 'tant', 'nombre'}   # + de(s) N → pluriel (accord complément) ; « nombre » exigera « bon/grand nombre »
+_QP_GAP_OK = set(PREP) | {'entre', 'en'}                                       # tokens autorisés dans le complément « de(s)/d'entre … » entre le quantifieur et le verbe
+
+def rule_accord_sv_quant(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None
+    if i > 0 and deacc(T[i-1].lower()) in PREP: return None
+    if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre': return None
+    p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']
+    if not p3: return None
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    q = deacc(T[lo].lower()); nxt = deacc(T[lo+1].lower()) if lo + 1 < len(T) else ''
+    qend = lo                                                    # dernier indice du groupe-quantifieur (avant complément)
+    if q in _QP_SG:                nb = 's'                      # chacun/aucun/personne/rien… (peut être suivi de « des N » : chacun DES équipes → sg)
+    elif q in _QP_PL:             nb = 'p'                       # certains/plusieurs/tous… (peut être suivi de « d'entre eux »)
+    elif q in _QP_DE_PL and q != 'un':                          # beaucoup/peu/bien + de(s) N → pluriel (accord complément)
+        if nxt in ('de', 'des', 'd') or "'" in (T[lo+1].lower() if lo+1 < len(T) else '') and nxt[:1] == 'd': nb = 'p'
+        else: return None
+    elif q == 'la' and nxt == 'plupart':      nb = 'p'; qend = lo + 1   # « la plupart (des N) » → pluriel
+    elif q in ('tout', 'toute') and nxt in ('le', 'la'):        # « tout le monde / toute la classe » → collectif SINGULIER
+        nb = 's'; qend = lo + 1
+    else: return None
+    seen_prep = False                                           # un nom/déterminant n'est autorisé qu'APRÈS une préposition (vrai complément « de(s)/d'entre N ») ;
+    for m in range(qend + 1, i):                                # un nom nu juste après le quantifieur = emploi DÉTERMINANT (« certaines ANNÉES », « tous LE personnel ») → abstention
+        dm = deacc(T[m].lower()); tk = T[m].lower()
+        if dm in CLITIC or dm in ('ne', 'n'): continue
+        if dm in _QP_GAP_OK or ("'" in tk and dm[:1] == 'd'): seen_prep = True; continue   # de/des/d'/d'entre/à…
+        if seen_prep and (tk in NUM_DET or tg[m] in ('DET', 'NOUN', 'PROPN', 'PRON', 'ADJ', 'NUM')): continue   # [dét] nom/pronom/adj DU COMPLÉMENT
+        return None                                             # nom nu sans préposition / verbe / conj / ponctuation → abstention
+    return _sv_finish(T, i, '3', nb, p3)
+
+
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
     d = deacc(w.lower())
@@ -1384,6 +1444,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_recover),
          ('accord sujet-verbe', rule_accord_sv_noun),
+         ('accord sujet-verbe', rule_accord_sv_quant),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
@@ -1446,6 +1507,12 @@ CASES = [
     ("Le prix des matières premières a augmenté", "a", "ont", "accord sujet-verbe"),  # tête = prix (sing.), pas matières
     ("Le stock de pièces détachées diminue vite", "diminue", "diminuent", "accord sujet-verbe"),  # tête = stock (sing.)
     ("Les employés du service répondent", "répondent", "répond", "accord sujet-verbe"),  # tête = employés (plur.)
+    # accord sujet-verbe à sujet PRONOM/QUANTIFIEUR indéfini (classe fermée)
+    ("Chacun fait de son mieux", "fait", "font", "accord sujet-verbe"),               # chacun → 3e sing.
+    ("Certains pensent le contraire", "pensent", "pense", "accord sujet-verbe"),      # certains → 3e plur.
+    ("Tous savent la réponse", "savent", "sait", "accord sujet-verbe"),               # tous → 3e plur.
+    ("Tout le monde est content", "est", "sont", "accord sujet-verbe"),               # tout le monde → collectif sing.
+    ("La plupart des gens préfèrent partir", "préfèrent", "préfère", "accord sujet-verbe"),  # la plupart des N → plur.
     # accord PLURIEL du NOM (déterminant pluriel + nom singulier → pluriel ancré dans le lexique)
     ("Les enfants jouent", "enfants", "enfant", "accord pluriel nom"),
     ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
