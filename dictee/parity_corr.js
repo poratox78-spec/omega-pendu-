@@ -82,7 +82,8 @@ const PHRASES = [
   // accord SV « récupéré » : ils/elles + verbe mal conjugué absent du lexique (radical+ent = 3p) + non-FP
   'elles sente bon', 'ils parte demain', 'elles mette la table', 'ils dorme bien', 'elles sentent bon', 'ils partent demain',
   'ils tienne bon', 'elles prenne le train', 'ils finisse tard', 'elles viennent ce soir', 'elles vies', 'elles vie',
-  'ils ne sont pas transformé', 'elles sont allé', 'ils sont partis'
+  'ils ne sont pas transformé', 'elles sont allé', 'ils sont partis',
+  "Personne n'sait où il est", "Ils m'détestons", "je ai entendu l'tonnerre", "une œuvre d'art", "qu'elles viennent"
 ];
 
 // flags Python via un petit pont

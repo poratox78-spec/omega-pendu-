@@ -37,9 +37,11 @@ function runCorrLike(s){const sf=C.ready()?C.spell(s):[];C.setSeg(s);const T=C.t
     const mrk=[];
     for(const e of errs){ totErr++;
       const f=fl[e];
+      // sugg peut être multi-mots (dé-élision « n'sait »→« ne sait ») : correcte si TOUS ses mots sont dans la version corrigée
+      const okSugg=f&&String(f.sugg).split(/\s+/).every(x=>!norm(x)||ft.has(norm(x)));
       if(!f){missed++;mrk.push(e+'=∅');}
-      else if(f.tier==='vigilance'){vig++;mrk.push(e+'→🟠'+(norm(f.sugg)===e?'(à vérifier)':f.sugg));}   // ORANGE non affirmatif : ne dégrade JAMAIS la copie (bonne ou mauvaise piste)
-      else if(ft.has(norm(f.sugg))){red++;mrk.push(e+'→✅'+f.sugg);}   // rouge + bonne sugg = corrigé
+      else if(f.tier==='vigilance'){vig++;mrk.push(e+'→🟠'+(norm(f.sugg)===e?'(à vérifier)':f.sugg));}   // ORANGE non affirmatif : ne dégrade JAMAIS la copie
+      else if(okSugg){red++;mrk.push(e+'→✅'+f.sugg);}   // rouge + bonne sugg = corrigé
       else {wrong++;mrk.push(e+'→❌'+f.sugg);}   // ROUGE + mauvaise sugg = DÉGRADE (le seul vrai danger)
     }
     console.log('['+src+'] '+errs.length+' fautes | '+mrk.join('  '));
