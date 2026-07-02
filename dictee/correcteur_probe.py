@@ -558,19 +558,91 @@ _ADJ_DETM = {'le': 'm', 'un': 'm', 'ce': 'm', 'cet': 'm'}   # mon/ton/son EXCLUS
 _ADJ_DETF = {'la': 'f', 'une': 'f', 'cette': 'f', 'ma': 'f', 'ta': 'f', 'sa': 'f'}
 _ADJ_DETP = {'les', 'des', 'ces', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs'}
 _ADJ_STOP = {'sur', 'certain', 'seul', 'meme', 'propre', 'sacre', 'pauvre', 'grand', 'ancien', 'drole'}   # idiomes/épicènes/sens-variable
+# Mots tolérés ENTRE être et l'adjectif attribut : adverbes de degré + négation. PAS « en/y/se » (marqueurs de PP/pronom :
+# « est EN plein essor », « s'est fait ») qui indiquent que ce qui suit n'est pas un attribut du sujet.
+_ADJ_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'guere', 'point', 'tres', 'si', 'tout', 'toute', 'tous', 'toutes',
+            'bien', 'aussi', 'trop', 'peu', 'assez', 'plutot', 'moins', 'deja', 'toujours', 'encore', 'vraiment', 'fort'}
+
+def _adj_estem(lw):
+    """Radical dé-pluralisé finissant en -e (hors -é) : soit ÉPICÈNE (rouge/sale/jeune), soit forme DÉJÀ FÉMININE
+    (petite/verte). Dans les deux cas on n'accorde QUE le nombre, jamais les lettres du genre → tue le FP « sales→salées »
+    (lexique qui confond sale/salé) sans jamais dégrader (le nombre déjà bon ⇒ aucune correction). Renvoie le radical ou None."""
+    if lw.endswith('x'):                             s = lw[:-1]
+    elif lw.endswith('s') and not lw.endswith('ss'): s = lw[:-1]
+    else:                                            s = lw
+    return s if (s.endswith('e') and not s.endswith('é')) else None
 
 def _adj_agree(w, gender, num):
-    """Accorde l'adjectif w (∈ ADJ_LEX) en genre+nombre. Genre via la paire lexicale (sauf épicène en -e) ; nombre via +s (al→aux, eau/eu→x)."""
-    lw = w.lower(); g_adj, alt = ADJ_LEX[deacc(lw)]
-    epicene = lw.endswith('e') and not lw.endswith('é')       # rouge/grave/jaune = invariables en genre
-    base = w if (epicene or g_adj == gender) else alt         # bon genre (alt = forme de l'autre genre, accentuée)
+    """Accorde l'adjectif w (∈ ADJ_LEX) en genre+nombre. Radical en -e (épicène/féminin) → NOMBRE seul (genre inchangé) ;
+    sinon genre via la paire lexicale + nombre (al→aux, eau→x, sinon +s ; bleu→bleus)."""
+    lw = w.lower()
+    stem = _adj_estem(lw)
+    if stem is not None:                                      # rouge/sale/petite… : on garde le radical, accord de NOMBRE seul
+        return stem + 's' if num == 'p' else stem
+    g_adj, alt = ADJ_LEX[deacc(lw)]
+    base = w if g_adj == gender else alt                      # bon genre (alt = forme de l'autre genre, accentuée)
     if num == 'p':
         db = deacc(base.lower())
         if db[-1] in 'sx':               pass                 # déjà pluriel/invariable
         elif db.endswith('al'):          base = base[:-2] + 'aux'
-        elif db.endswith(('eau', 'eu')): base = base + 'x'
-        else:                            base = base + 's'
+        elif db.endswith('eau'):         base = base + 'x'    # beau→beaux, nouveau→nouveaux
+        else:                            base = base + 's'    # bleu→bleus (–eu prend –s), grand→grands…
     return base
+
+_NOUN_INVAR_S = {'cours', 'corps', 'temps', 'prix', 'bois', 'pays', 'mois', 'bras', 'dos', 'nez', 'puits',
+                 'univers', 'fois', 'poids', 'sens', 'tas', 'repas', 'concours', 'discours', 'parcours',
+                 'secours', 'velours', 'jus', 'os', 'gaz', 'choix', 'croix', 'voix', 'noix', 'faux', 'toux'}
+def _noun_gender(w, num='s'):
+    """Genre d'un NOM via GENDER_PURE (noms à genre non ambigu). Dé-pluralisation SEULEMENT si le sujet est marqué
+    pluriel (num=='p') et le mot n'est pas un invariable en -s (cours→cour(f) = faux ami). None sinon → abstention."""
+    d = deacc(w.lower())
+    g = GENDER_PURE.get(d)
+    if g in ('m', 'f'): return g                             # forme exacte (couvre singuliers + invariables cours/prix)
+    if num != 'p' or d in _NOUN_INVAR_S: return None         # singulier, ou invariable -s → pas de dé-pluralisation
+    if d.endswith('x') and len(d) > 2:                       # -eaux→-eau (bateaux→bateau)
+        g = GENDER_PURE.get(d[:-1]) or GENDER_PURE.get(d[:-1] + 'u')
+        if g in ('m', 'f'): return g
+    if d.endswith('s') and len(d) > 2:                       # pluriel régulier : toilettes→toilette, voitures→voiture
+        g = GENDER_PURE.get(d[:-1])
+        if g in ('m', 'f'): return g
+    return None
+
+# ---------- VRAI PARSEUR DE GROUPE-SUJET (tête du GN) ----------
+# Sert l'accord adjectif/participe attribut ET l'accord sujet-verbe : identifie le NOM-TÊTE du sujet placé AVANT le verbe,
+# en sautant les mots-écrans (compléments « de X » : « la couleur DE LA VOITURE est… » → tête = couleur, pas voiture) et
+# en s'abstenant sur les cas où le sujet n'est pas un [dét + nom] simple (coordination = genre mixte ; infinitif/proposition
+# = « s'assurer DE LA PENTE était crucial » → le dét « la » est précédé de « de » ⇒ PP, pas le sujet ⇒ abstention). FP-sûr.
+def _np_subject(T, tg, a):
+    """Sujet [déterminant + nom-tête] placé juste avant le verbe d'indice a. Renvoie {'idx','det','g','n'} ou None.
+    Bornes : proposition (_SEG). Abstention sur coordination (et/ou/ni), sujet-pronom (traité ailleurs), sujet-PP/infinitif
+    (déterminant précédé d'une préposition), nom-tête absent."""
+    lo = 0
+    if _SEG is not None:
+        for j in range(a, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    det_idx = None
+    j = a - 1
+    while j >= lo:
+        dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
+        if dj in ('et', 'ou', 'ni'): return None             # sujet coordonné → genre/nombre mixtes → abstention
+        if tgj in ('VERB', 'AUX'): break                     # frontière verbale : le GN sujet est à droite de j
+        if dj in NUM_PRON: break                             # sujet-pronom → route pronom (rule_adj_attr) / abstention ici
+        if tgj == 'DET' or dj in NUM_DET: det_idx = j        # on garde le déterminant le PLUS À GAUCHE (ouverture du GN)
+        j -= 1
+    if det_idx is None: return None
+    if det_idx - 1 >= lo and deacc(T[det_idx-1].lower()) in PREP:
+        return None                                          # « de la pente » : dét dans un PP ⇒ ce n'est pas le sujet ⇒ abstention
+    head = None                                              # nom-tête = 1er nom après le déterminant, AVANT tout complément « de X »
+    for k in range(det_idx + 1, a):
+        dk = deacc(T[k].lower())
+        if dk in PREP or "'" in T[k].lower() and dk[:1] == 'd': break   # entrée dans un complément → la tête est avant
+        if (tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN')) or dk in GENDER_PURE:
+            head = k; break
+    if head is None: return None
+    num = 'p' if NUM_DET.get(deacc(T[det_idx].lower())) == 'pl' else 's'
+    ddet = deacc(T[det_idx].lower())                          # genre : nom-tête (GENDER_PURE) sinon repli par le déterminant
+    g = _noun_gender(T[head], num) or _ADJ_DETM.get(ddet) or ('f' if ddet in _ADJ_DETF else None)  # le/un/ce→m, la/une/cette/ma/ta/sa→f (son/mon/ton EXCLUS : ambigus)
+    return {'idx': head, 'det': det_idx, 'g': g or '?', 'n': num}
 
 def rule_adj_attr(T, i):
     """Accord de l'ADJECTIF ATTRIBUT après ÊTRE, avec le sujet (« la voiture est bleu »→bleue,
@@ -584,22 +656,29 @@ def rule_adj_attr(T, i):
     if deacc(alt).endswith('ee') and not d.endswith('e'): return None   # « grave→gravée », « sale→salée » = participe contaminé, pas une paire de genre
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
+    if i+1 < len(T) and tg[i+1] in ('NOUN', 'PROPN'): return None      # adjectif ÉPITHÈTE d'un nom suivant (« en plein DÉVELOPPEMENT ») ≠ attribut du sujet → abstention
     a = None
     for k in range(i-1, max(-1, i-4), -1):
         dk = deacc(T[k].lower())
         if dk in _PP_ETRE_AUX: a = k; break
-        if dk in _PP_MID: continue
+        if dk in _ADJ_MID: continue                                    # adverbes/négation seulement ; « en/y/se » (marqueur de PP : « est EN plein essor ») coupe → abstention
         return None
     if a is None or a == 0: return None
     if _SEG is not None and (a-1) < len(_SEG['hy']) and _SEG['hy'][a-1]: return None   # inversion (est-il) ≠ sujet
-    for k in range(max(0, a-5), a):                                     # sujet coordonné (bec ET pattes) = genre mixte → abstention
-        if deacc(T[k].lower()) in ('et', 'ou', 'ni'): return None
     aux_num = 'p' if deacc(T[a].lower()) in _PP_AUX_P else 's'
+    epicene = _adj_estem(lw) is not None                               # radical en -e (rouge/sale/petite) → nombre seul, genre indifférent
     sp = deacc(T[a-1].lower())
-    if sp not in ('il', 'elle', 'ils', 'elles'): return None   # SUJET = pronom fiable seulement (nom-sujet = FP-risqué, backlog)
-    gender = 'f' if sp in ('elle', 'elles') else 'm'
-    num = 'p' if sp in ('ils', 'elles') else 's'
-    if num != aux_num: return None
+    if sp in ('il', 'elle', 'ils', 'elles'):                          # (1) sujet PRONOM fiable
+        gender = 'f' if sp in ('elle', 'elles') else 'm'
+        num = 'p' if sp in ('ils', 'elles') else 's'
+    else:                                                             # (2) sujet NOM via le VRAI PARSEUR (tête du GN, mots-écrans sautés)
+        subj = _np_subject(T, tg, a)                                 #     coordination/infinitif/PP → None (abstention FP-sûre)
+        if subj is None: return None
+        num = subj['n']; gender = subj['g']
+        if gender == '?':
+            if not epicene: return None                             # adjectif genré + genre du nom-tête inconnu → abstention
+            gender = 'm'                                            # épicène : seul le nombre compte
+    if num != aux_num: return None                                  # dét/pronom et aux en désaccord → l'erreur est ailleurs → abstention
     sugg = _adj_agree(w, gender, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
@@ -1365,6 +1444,12 @@ CASES = [
     ("Elle est contente", "contente", "content", "accord adjectif"),      # elle → féminin
     ("Ils sont nationaux", "nationaux", "national", "accord adjectif"),   # ils → pluriel (-al→-aux)
     ("Elles sont vertes", "vertes", "vert", "accord adjectif"),           # elles → féminin pluriel
+    # accord de l'adjectif attribut à sujet NOM (VRAI PARSEUR de tête de GN : mots-écrans « de X » sautés, FP=0 sur 14 450 UD)
+    ("La voiture est bleue", "bleue", "bleu", "accord adjectif"),         # nom-sujet féminin (genre via déterminant « la »)
+    ("La table est petite", "petite", "petit", "accord adjectif"),        # nom-sujet féminin
+    ("Les plats sont bons", "bons", "bon", "accord adjectif"),            # nom-sujet masculin pluriel
+    ("La couleur de la voiture est belle", "belle", "beau", "accord adjectif"),  # MOT-ÉCRAN : tête = couleur (f), pas voiture
+    ("La voiture de mon père est verte", "verte", "vert", "accord adjectif"),    # MOT-ÉCRAN : tête = voiture (f), pas père
     ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
