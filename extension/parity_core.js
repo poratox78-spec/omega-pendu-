@@ -34,7 +34,13 @@ const PHRASES = [
   "j'sais que c'est vrai", "Personne n'sait où il est", "qu'tu viennes", "l'homme est là", "d'abord",
   "Ils détestons les épinards", "Ils réunissons les gens", "Ils chantent faux",
   'c\'est bien', 'qu\'est-ce que tu fais', 'j\'ai un chien',
-  'elles sente bon', 'ils parte demain', 'elles mette la table', 'elles sentent bon', 'ils tienne bon', 'elles prenne le train', 'elles vies', 'ils ne sont pas transformé', 'elles sont allé'
+  'elles sente bon', 'ils parte demain', 'elles mette la table', 'elles sentent bon', 'ils tienne bon', 'elles prenne le train', 'elles vies', 'ils ne sont pas transformé', 'elles sont allé',
+  // accord SINGULIER du nom (déterminant singulier + nom pluriel → sing.) : cibles + pièges (invariant / nombre-écran / verbe)
+  'Le camps est installé', 'Un soucis de simplification', 'Chaque jours compte', 'La voitures rouge passe', 'Ce systemes marche',
+  'Le fils de Paul', 'Un temps magnifique', 'La paix règne', 'Le savons est bon', 'Il est né le 25 mars 1957', 'un des systèmes',
+  // FP homophones corrigés par WiCoPaCo (verrou anti-régression)
+  'On dit que le ciel est bleu', 'Le Ba fait souffrir ceux qui ont commis le mal', "L'état et le gouvernement ont investit",
+  'Ils ont une vie à durée limitée', 'Le chipset offre un son stéréo', 'Ils on grandi vite'
 ];
 
 // 3) flags Python

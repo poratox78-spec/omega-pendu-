@@ -824,7 +824,7 @@ ABBREV = {'m', 'mme', 'mlle', 'mr', 'dr', 'pr', 'me', 'mgr', 'st', 'ste', 'etc',
 
 def _seg_info(text):
     import re
-    ss, bb, hy, cap, prev_end = [], [], [], [], 0
+    ss, bb, hy, cap, dig, prev_end = [], [], [], [], [], 0
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
         s = any(c in gap for c in '.!?…')                        # début de phrase = APRÈS . ! ? (pas le 1er token : un fragment ne se capitalise pas)
@@ -832,8 +832,9 @@ def _seg_info(text):
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
         hy.append('-' in gap)                                    # trait d'union avant (inversion « dit-il ») → anti-FP run-on
         cap.append(s and '..' not in gap and not any(c.isdigit() for c in gap))   # MAJUSCULE : vraie fin de phrase — pas une ellipse « .. » ni un point de nombre/décimale
+        dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
         prev_end = m.end()
-    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap}
+    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig}
 
 # ---------- C : RUN-ON (ponctuation manquante entre 2 propositions) — VIGILANCE (vert), n'impose pas. Conservateur, FP-mesuré.
 PRON_SUBJ = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
@@ -1584,6 +1585,28 @@ def _pluralize_noun(n):
 NOUN_PL_STOP = {'minima', 'maxima', 'media', 'data', 'extra', 'intra', 'euros',
                 'quanta', 'addenda', 'errata', 'curricula', 'strata'}   # pluriels latins / invariables déjà pluriels
 
+# Sens INVERSE (plur→sing) : déterminant SINGULIER (classe fermée) collé à un nom au pluriel APPARENT.
+# En français correct, « un/le/la/ce/… + nom-pluriel » est TOUJOURS une faute → FP=0 par construction.
+_SING_DET = {'un', 'une', 'le', 'la', 'ce', 'cet', 'cette', 'mon', 'ma', 'ton', 'ta', 'son', 'sa', 'chaque', 'du', 'au'}
+# Noms INVARIABLES -s/-x (sing==plur) : leur « singularisation » naïve donne un autre lexème valide → piège → abstention.
+# (NOUN_POST/GENDER_PURE ne les distinguent pas ; les non-noms « très/sous/savons » sont écartés par _noun_gate.)
+_SG_STOP = INVAR_NOUN | _NOUN_INVAR_S | {
+    'fils', 'cours', 'paix', 'relais', 'taux', 'heros', 'mars', 'gaz', 'ours', 'sas', 'jus', 'mets',
+    'remords', 'secours', 'concours', 'discours', 'parcours', 'univers', 'velours', 'fois', 'deces',
+    'engrais', 'laps', 'cabas', 'fracas', 'matelas', 'lilas', 'ananas', 'compas', 'faux', 'roux', 'doux',
+    'epoux', 'noix', 'toux', 'flux', 'reflux', 'houx', 'courroux', 'index', 'larynx', 'pharynx', 'silex'}
+def _singularize_noun(n):
+    """Inverse de _pluralize_noun, ANCRÉ : -aux→-al, -x→∅, -s→∅ — on ne renvoie QUE si la forme singulière est un
+    NOM confiant (P(NOM)≥τ ∧ P(VER)<ε). Écarte automatiquement les invariants (temps→temp, prix→pri, époux→épou : pas des noms)."""
+    dn = deacc(n.lower()); cands = []
+    if dn.endswith('aux') and len(dn) > 4: cands.append(n[:-3] + 'al')   # chevaux→cheval, journaux→journal
+    if dn.endswith('x'): cands.append(n[:-1])                            # jeux→jeu, choux→chou, eaux→eau
+    if dn.endswith('s'): cands.append(n[:-1])                            # systèmes→système
+    for c in cands:
+        p = NOUN_POST.get(deacc(c.lower()))
+        if p and p[0] >= PL_TAU_M and p[1] < PL_EPS_M: return c
+    return None
+
 def rule_noun_plural(T, i):
     if i == 0 or prev(T, i) not in PLURAL_DET: return None      # déterminant pluriel juste avant
     n = T[i]
@@ -1599,6 +1622,21 @@ def rule_noun_plural(T, i):
         if pp and pp[0] >= PL_TAU_M and deacc(nx.lower()) not in ADJ_LEX: return None   # (« français » = adj-nom → PAS un composé : « les département français » corrigé)
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
+
+def rule_noun_singular(T, i):
+    if i == 0 or prev(T, i) not in _SING_DET: return None       # déterminant SINGULIER (classe fermée) juste avant
+    if _SEG is not None and i < len(_SEG['dig']) and _SEG['dig'][i]: return None   # NOMBRE-écran (« le 25 mars », « le 100 mètres ») → le déterminant ne gouverne pas ce nom → abstention (FP)
+    n = T[i]
+    if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
+    dn = deacc(n.lower())
+    if len(dn) < 4 or dn[-1] not in 'sx' or dn in _SG_STOP or dn in NOUN_PL_STOP: return None   # doit finir s/x (pluriel apparent) ; invariant/piège → abstention
+    if not _noun_gate(n): return None                           # le PLURIEL doit être NOM-dominant (P(NOM)≥τ ∧ P(VER)<ε) → écarte « le savons » (verbe), « un très » (adverbe), « un sous » (prép)
+    nx = T[i + 1] if i + 1 < len(T) else ''
+    if nx[:1].islower() and nx.isalpha():                       # nom composé (« le vice présidents ») : nom + NOM confiant NON-verbe → 1er souvent invariable → abstention
+        pp = NOUN_POST.get(deacc(nx.lower()))                   #   (P(VER)<ε : un VERBE qui suit — « chaque jours compte » — n'est PAS un composé)
+        if pp and pp[0] >= PL_TAU_M and pp[1] < PL_EPS_M and deacc(nx.lower()) not in ADJ_LEX: return None
+    sg = _singularize_noun(n)                                   # forme singulière ANCRÉE (nom confiant) — écarte les invariants (temps→temp)
+    return sg if (sg and deacc(sg.lower()) != dn) else None
 
 # a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu : homophones À RÔLE GRAMMATICAL (verbe vs prép/det/conj).
 # Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
@@ -1649,6 +1687,7 @@ RULES = [('élision inversée', rule_deselide),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
+         ('accord singulier nom', rule_noun_singular),
          ('usage être/avoir', rule_aux_usage),
          ('aux mal orthographié', rule_aux_misspell),
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
@@ -1731,6 +1770,11 @@ CASES = [
     ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
     ("Les chevaux galopent", "chevaux", "cheval", "accord pluriel nom"),
     ("Il a des difficultés", "difficultés", "difficulté", "accord pluriel nom"),
+    # accord SINGULIER du NOM (déterminant singulier + nom pluriel → singulier ancré) — miroir, FP=0 par construction
+    ("Le camp est installé", "camp", "camps", "accord singulier nom"),          # le + pluriel → singulier
+    ("Chaque jour compte", "jour", "jours", "accord singulier nom"),            # chaque + pluriel → singulier (verbe « compte » ≠ composé)
+    ("Une voiture rouge passe", "voiture", "voitures", "accord singulier nom"), # une + pluriel → singulier
+    ("Ce systeme fonctionne", "systeme", "systemes", "accord singulier nom"),   # ce + pluriel → singulier (sans accent, ancré)
     # accord GENRE déterminant→nom (route lexicale cgram_gender) — noms PURS non ambigus
     ("Il a un chien", "un", "une", "genre déterminant"),
     ("Elle habite une maison", "une", "un", "genre déterminant"),
