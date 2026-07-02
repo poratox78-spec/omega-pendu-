@@ -1140,6 +1140,65 @@ def rule_accord_sv_quant(T, i):
     return _sv_finish(T, i, '3', nb, p3)
 
 
+# ---------- Accord SUJET-VERBE dans une relative « QUI » : le verbe s'accorde avec l'ANTÉCÉDENT de « qui » ----------
+# « c'est MOI qui suis », « les PERSONNES qui participent », « ce sont EUX qui gèrent ». Antécédent = pronom disjoint /
+# démonstratif (personne+nombre certains) OU groupe nominal juste avant « qui » (3e pers., nombre via _np_subject). FP=0.
+_REL_ANT = {'moi': ('1', 's'), 'toi': ('2', 's'), 'lui': ('3', 's'), 'elle': ('3', 's'), 'soi': ('3', 's'),
+            'nous': ('1', 'p'), 'vous': ('2', 'p'), 'eux': ('3', 'p'), 'elles': ('3', 'p'),
+            'ce': ('3', 's'), 'celui': ('3', 's'), 'celle': ('3', 's'), 'ceux': ('3', 'p'), 'celles': ('3', 'p')}
+
+def rule_accord_sv_relatif(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None          # participe (accord adjectival)
+    reads = _reads(T[i])
+    if not reads: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    j = i - 1                                                                # remonter jusqu'à « qui » (sauter clitiques/négation)
+    while j >= 0 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in ('ne', 'n')): j -= 1
+    if j < 0 or deacc(T[j].lower()) != 'qui': return None
+    qk = j
+    if qk == 0: return None                                                 # « Qui vient ? » (interrogatif, sans antécédent) → abstention
+    ant = deacc(T[qk-1].lower())
+    if ant in _REL_ANT:
+        per, nb = _REL_ANT[ant]
+    else:                                                                   # antécédent NOMINAL = groupe [dét (+adj) + nom] JUSTE avant « qui » (nom le plus proche)
+        per = '3'; det = None; noun = None                                  # on remonte de qk-1 ; une PRÉPOSITION avant le déterminant = partitif/complément → attachement AMBIGU (« famille DE techniques qui ») → abstention
+        lo = 0
+        if _SEG is not None:
+            for jj in range(qk, 0, -1):
+                if jj < len(_SEG['bb']) and _SEG['bb'][jj]: lo = jj; break
+        m = qk - 1
+        while m >= lo:
+            dm = deacc(T[m].lower())
+            if "'" in T[m].lower(): return None                             # élision (d'un, l', qu'…) — souvent mistaguée (d'un→PROPN) → antécédent ambigu → abstention
+            if dm in PREP: return None                                      # « de techniques qui », « des Mamelouks qui » → antécédent ambigu → abstention
+            if tg[m] == 'DET' or dm in NUM_DET or dm in _QUANT_PL or dm in _QUANT_SG: det = m; break
+            if tg[m] in ('NOUN', 'PROPN'): noun = m; m -= 1; continue
+            if tg[m] in ('ADJ', 'ADV', 'NUM'): m -= 1; continue
+            return None                                                     # verbe/pronom/conj → pas un GN simple → abstention
+        if det is None or noun is None: return None
+        mm = det - 1                                                        # token AVANT le déterminant (adverbes antéposés sautés)
+        while mm > lo and tg[mm] == 'ADV': mm -= 1
+        if mm >= lo and deacc(T[mm].lower()) in PREP: return None           # « de CE type qui », « à LA musique qui » : GN = COMPLÉMENT → antécédent réel plus à gauche → abstention
+        if mm >= lo and deacc(T[mm].lower()) in ('et', 'ou', 'ni'): return None   # antécédent COORDONNÉ (« le tram ET le bus qui », « … et secondairement le maïs qui ») → pluriel ambigu → abstention
+        dd = deacc(T[det].lower())
+        if dd in NUM_DET:      nb = 'p' if NUM_DET[dd] == 'pl' else 's'
+        elif dd in _QUANT_PL:  nb = 'p'
+        elif dd in _QUANT_SG:  nb = 's'
+        else: return None
+    if any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in reads): return None   # déjà d'accord
+    lemmas = {l for (l, _mt, _p, _n) in reads}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop()
+    mts = [mt for (_l, mt, _p, _n) in reads]
+    mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
+    if not sugg: return None
+    if not any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)): return None
+    return sugg
+
+
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
     d = deacc(w.lower())
@@ -1445,6 +1504,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv_recover),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('accord sujet-verbe', rule_accord_sv_quant),
+         ('accord sujet-verbe', rule_accord_sv_relatif),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
@@ -1513,6 +1573,10 @@ CASES = [
     ("Tous savent la réponse", "savent", "sait", "accord sujet-verbe"),               # tous → 3e plur.
     ("Tout le monde est content", "est", "sont", "accord sujet-verbe"),               # tout le monde → collectif sing.
     ("La plupart des gens préfèrent partir", "préfèrent", "préfère", "accord sujet-verbe"),  # la plupart des N → plur.
+    # accord sujet-verbe dans une relative « qui » (accord avec l'antécédent)
+    ("Les personnes qui participent restent", "participent", "participe", "accord sujet-verbe"),  # antécédent = personnes (plur.)
+    ("Voici les articles qui manquent", "manquent", "manque", "accord sujet-verbe"),         # antécédent = articles (plur.)
+    ("Ce sont eux qui gèrent le dépôt", "gèrent", "gère", "accord sujet-verbe"),             # antécédent = eux (3e plur.)
     # accord PLURIEL du NOM (déterminant pluriel + nom singulier → pluriel ancré dans le lexique)
     ("Les enfants jouent", "enfants", "enfant", "accord pluriel nom"),
     ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
