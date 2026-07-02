@@ -96,7 +96,10 @@ const PHRASES = [
   'Le chat est noir', 'Elle est venue hier', 'La reprise est annoncée', 'Les plats sont bons',
   // terminaison -er/-é : gouverneur être (« a été fabriquer »), clitique réfléchi (« veut se séparé »), causatif (« fait déclaré »)
   'Il a été fabriquer par un dieu', 'Le pays veut se séparé du groupe', 'On va faire évolué le code',
-  'Il fait déclaré la guerre', 'Il ne faut pas utilisé de câble', 'Les origines de la cité remontent', 'Un fait divers tragique'
+  'Il fait déclaré la guerre', 'Il ne faut pas utilisé de câble', 'Les origines de la cité remontent', 'Un fait divers tragique',
+  // accord adjectif ÉPITHÈTE (article + nom + adj) : cibles + pièges (invariant / propre / coordination / épicène)
+  'Les domaines industriel progressent', 'Une décision mondial', 'La commission présidentiel est là',
+  'Le mois dernier fut chaud', 'Un cursus professionnel', 'La voiture rouge passe', 'Les sites allemand et français'
 ];
 
 // flags Python via un petit pont
