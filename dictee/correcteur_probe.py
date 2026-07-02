@@ -254,7 +254,10 @@ def rule_e_er(T, i):
     return None
 
 # --- Terminaisons -er / -é / -ez / -ai (verbe 1er groupe) tranchées par le GOUVERNEUR (test mordre/mordu) ---
-_AUX_AV = set(D.AUX_AVOIR) | {'avoir', 'avais', 'avaient', "j'ai"}    # cadre participe passé (avoir) ; « j'ai » = 1 token
+# cadre PARTICIPE PASSÉ : avoir ET être (« je suis allez »→allé, « elle est rentrez »→rentré). « j'ai » = 1 token.
+_AUX_AV = (set(D.AUX_AVOIR) | set(D.AUX_ETRE)
+           | {'avoir', 'avais', 'avaient', "j'ai", 'etre', 'etais', 'etait', 'etaient', 'etions', 'etiez',
+              'serai', 'seras', 'serez', 'serons', 'soient', 'sois'})
 _INF_GOV = {'de', 'pour', 'sans', 'afin'}                              # prépositions → infinitif (sous-ensemble SÛR de PREP)
 _FLEX_STOP = {'assez', 'chez', 'rez', 'nez', 'mai', 'quai', 'vrai', 'gai', 'essai', 'delai',
               'balai', 'geai', 'bai', 'lai', 'quinquennat'}            # homographes -ez/-ai non verbaux
@@ -1251,6 +1254,7 @@ CASES = [
     ("Vous signez le document", "signez", "signer", "terminaison -er/-é/-ez/-ai"),      # vous → -ez
     ("Demain je noterai le numéro", "noterai", "noté", "terminaison -er/-é/-ez/-ai"),   # je → futur -ai
     ("Vous avez classé les bordereaux", "classé", "classez", "terminaison -er/-é/-ez/-ai"),  # avez (avoir) → participe -é
+    ("Je suis allé à Paris", "allé", "allez", "terminaison -er/-é/-ez/-ai"),               # suis (être) → participe -é
     ("Il faut noter le numéro", "noter", "notez", "terminaison -er/-é/-ez/-ai"),          # il faut → infinitif -er
     ("S'il vous plaît, notez le numéro", "notez", "noté", "terminaison -er/-é/-ez/-ai"),  # s'il vous plaît → impératif -ez
     # impératif irrégulier jamais valide (les cas à trait d'union -s euphonique/pas-de-s ne sont pas testables ici :
