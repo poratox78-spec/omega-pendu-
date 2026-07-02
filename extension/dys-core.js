@@ -252,21 +252,35 @@
       if(n===1)return ckeepcase(T[i],cand);}
     return null;}
   var CONJ_WORDS={};('et ou ni mais car donc or que qu qui quand comme si lorsque puisque dont lequel laquelle lesquels lesquelles').split(' ').forEach(function(w){CONJ_WORDS[w]=1;});
-  function svNounSubjNum(T,i){var j=i-1,st=0;while(j>=0&&st<2&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}
-    for(var k=j;k>=0;k--){var w=deacc(T[k].toLowerCase());if(NUM_PRON[w])return null;
-      if(NUM_DET[T[k].toLowerCase()]){if(k>0&&PREP[deacc(T[k-1].toLowerCase())])continue;return [NUM_DET[T[k].toLowerCase()]==='pl'?'p':'s',k];}}return null;}
-  function rAccordSVnoun(T,i){if(T[i].toLowerCase().indexOf("'")>=0||T[i].toLowerCase()==='à')return null;
-    if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;   // participe → accord adjectival, pas verbal (destiné→destinés pas destinent)
-    if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;if(svSubject(T,i)!=null)return null;
+  // accord sujet-VERBE à sujet NOM via le VRAI PARSEUR _npSubject (sujet ÉLOIGNÉ, mots-écrans « de X ») — MIROIR correcteur_probe.rule_accord_sv_noun, FP=0
+  function rAccordSVnoun(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
+    if(/(é|és|ée|ées)$/.test(lw))return null;                                  // participe → accord adjectival
+    if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;                         // dét juste avant → T[i] = nom
+    if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;                     // verbe fini jamais gouverné par de/des/par/à… → nom homographe
+    var di=deacc(lw);
+    if(di==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;              // peut-être
+    if((di==='est'||di==='ai')&&i>0&&/^(nord|sud|ouest)$/.test(deacc(T[i-1].toLowerCase())))return null;   // « nord-est » cardinal
+    if(i>0&&/^\d+$/.test(T[i-1]))return null;                                  // désignation « 20 a »
+    if(i>0){var pv=T[i-1];if(pv.length>=2&&pv===pv.toUpperCase()&&pv!==pv.toLowerCase())return null;}       // sigle « WR a »
+    if(svSubject(T,i)!=null)return null;                                       // sujet pronom net → règle pronom
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
-    var sub=svNounSubjNum(T,i);if(!sub)return null;var nb=sub[0],dk=sub[1];
-    if(nb!=='p'||dk!==0||i-dk<2)return null;
-    for(var m=dk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());
-      if(tk.toLowerCase().indexOf("'")>=0||PREP[dw]||dw==='en'||NUM_DET[tk.toLowerCase()]||NUM_PRON[dw]||CONJ_WORDS[dw]||FULL_AUX[dw])return null;   // « en » (PP/clitique : « pris EN compte ») → abstention
-      if(/[,;:()\[\]«»"]/.test(tk))return null;   // ponctuation intercalée = apposition/énumération → abstention
-      if(m>dk+1&&svReads(tk).length)return null;}
-    var _tg=posTags(T),_nn=0;if(_tg){for(var _m=dk+1;_m<i;_m++)if(_tg[_m]==='NOUN'||_tg[_m]==='PROPN')_nn++;if(_nn>=2)return null;}   // ≥2 noms entre dét et verbe = apposition/énum → abstention (adjectif toléré)
-    for(k=0;k<p3.length;k++)if(p3[k][3]==='p'||p3[k][3]==='x')return null;
+    if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif
+    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;   // T[i] = verbe en contexte
+    var subj=_npSubject(T,tg,i);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;
+    var ddet=deacc(T[dk].toLowerCase());
+    if(!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, mistag → abstention)
+    if(_COLL_HEAD[deacc(T[hk].toLowerCase())])return null;                     // nom collectif/quantité → accord complément → abstention
+    var hc=T[hk].charAt(0);if(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase()))return null;   // nom-tête propre/titre
+    var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    for(var m=lo;m<i;m++){if(T[m].indexOf("'")>=0||T[m].indexOf('’')>=0)return null;}   // élision → clause complexe → abstention
+    for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                          // sujet EN TÊTE de proposition (adverbes antéposés seulement)
+    for(m=hk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());                // garde structure nom-tête → verbe : compléments prépositionnels SEULEMENT
+      if(CONJ_WORDS[dw])return null;                                           // coordination/relative
+      if(/[,;:()\[\]«»"]/.test(tk))return null;                               // ponctuation
+      if(/\d/.test(tk))return null;                                           // désignation alphanumérique
+      if(tg[m]==='VERB'||tg[m]==='AUX')return null;                           // verbe/aux intercalé = sous-phrase
+      if(NUM_DET[tk.toLowerCase()]&&!PREP[dw]&&!(m>0&&PREP[deacc(T[m-1].toLowerCase())]))return null;}   // 2e GN non prépositionnel
+    for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;      // déjà d'accord
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
     if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots['3'+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]==='3'&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;if(!okk)return null;return sugg;}
@@ -407,15 +421,23 @@
   var ADJ_DETM={le:'m',un:'m',ce:'m',cet:'m'},ADJ_DETF={la:1,une:1,cette:1,ma:1,ta:1,sa:1};
   var ADJ_MID={};'ne n pas plus jamais guere point tres si tout toute tous toutes bien aussi trop peu assez plutot moins deja toujours encore vraiment fort'.split(' ').forEach(function(w){ADJ_MID[w]=1;});
   var NOUN_INVAR_S={};'cours corps temps prix bois pays mois bras dos nez puits univers fois poids sens tas repas concours discours parcours secours velours jus os gaz choix croix voix noix faux toux'.split(' ').forEach(function(w){NOUN_INVAR_S[w]=1;});
+  var _QUANT_PL={};'plusieurs quelques certains certaines divers diverses maints maintes differents differentes beaucoup moults deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille'.split(' ').forEach(function(w){_QUANT_PL[w]=1;});
+  var _QUANT_SG={};'chaque aucun aucune nul nulle chacun chacune'.split(' ').forEach(function(w){_QUANT_SG[w]=1;});
+  var _COLL_HEAD={};'plupart majorite minorite nombre total partie moitie tiers quart ensemble reste quantite foule multitude infinite poignee kyrielle dizaine douzaine quinzaine vingtaine trentaine quarantaine cinquantaine soixantaine centaine millier million milliard brochette tapee flopee sorte espece genre'.split(' ').forEach(function(w){_COLL_HEAD[w]=1;});
+  var _NP_BREAK={};'que qu qui dont quand lorsque puisque parce comme si car mais donc or quoique lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_NP_BREAK[w]=1;});
   function _adjEstem(lw){var s;if(/x$/.test(lw))s=lw.slice(0,-1);else if(/s$/.test(lw)&&!/ss$/.test(lw))s=lw.slice(0,-1);else s=lw;return (/e$/.test(s)&&!/é$/.test(s))?s:null;}
   function _nounGender(w,num){var d=deacc(w.toLowerCase());var g=GENDER_PURE[d];if(g==='m'||g==='f')return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=GENDER_PURE[d.slice(0,-1)]||GENDER_PURE[d.slice(0,-1)+'u'];if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=GENDER_PURE[d.slice(0,-1)];if(g==='m'||g==='f')return g;}return null;}
   function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
-    var detIdx=-1;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(tgj==='VERB'||tgj==='AUX')break;if(NUM_PRON[dj])break;if(tgj==='DET'||NUM_DET[dj])detIdx=j;}
+    var detIdx=-1;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;if(tgj==='VERB'||tgj==='AUX')break;if(NUM_PRON[dj])break;if(tgj==='DET'||NUM_DET[dj])detIdx=j;}
     if(detIdx<0)return null;
     if(detIdx-1>=lo&&PREP[deacc(T[detIdx-1].toLowerCase())])return null;
     var head=-1;for(var k=detIdx+1;k<a;k++){var dk=deacc(T[k].toLowerCase());if(PREP[dk]||(T[k].toLowerCase().indexOf("'")>=0&&dk.charAt(0)==='d'))break;if((tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'))||(dk in GENDER_PURE)){head=k;break;}}
     if(head<0)return null;
-    var ddet=deacc(T[detIdx].toLowerCase());var num=NUM_DET[ddet]==='pl'?'p':'s';
+    var ddet=deacc(T[detIdx].toLowerCase()),num;
+    if(NUM_DET[ddet])num=NUM_DET[ddet]==='pl'?'p':'s';
+    else if(_QUANT_PL[ddet])num='p';
+    else if(_QUANT_SG[ddet])num='s';
+    else{var dh0=deacc(T[head].toLowerCase());if(NOUN_INVAR_S[dh0])return null;num=/[sx]$/.test(dh0)?'p':'s';}
     var g=_nounGender(T[head],num)||ADJ_DETM[ddet]||(ADJ_DETF[ddet]?'f':null);
     return {idx:head,det:detIdx,g:g||'?',n:num};}
   function _adjAgree(w,gender,num){var lw=w.toLowerCase();var stem=_adjEstem(lw);

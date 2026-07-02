@@ -592,6 +592,24 @@ def _adj_agree(w, gender, num):
 _NOUN_INVAR_S = {'cours', 'corps', 'temps', 'prix', 'bois', 'pays', 'mois', 'bras', 'dos', 'nez', 'puits',
                  'univers', 'fois', 'poids', 'sens', 'tas', 'repas', 'concours', 'discours', 'parcours',
                  'secours', 'velours', 'jus', 'os', 'gaz', 'choix', 'croix', 'voix', 'noix', 'faux', 'toux'}
+# Quantifieurs/déterminants PLURIELS hors NUM_DET (tagués DET mais absents de la classe fermée) → nombre = pluriel.
+_QUANT_PL = {'plusieurs', 'quelques', 'certains', 'certaines', 'divers', 'diverses', 'maints', 'maintes',
+             'differents', 'differentes', 'beaucoup', 'moults',
+             'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze',
+             'treize', 'quatorze', 'quinze', 'seize', 'vingt', 'trente', 'quarante', 'cinquante',
+             'soixante', 'cent', 'cents', 'mille'}
+_QUANT_SG = {'chaque', 'aucun', 'aucune', 'nul', 'nulle', 'chacun', 'chacune'}   # déterminants/quantifieurs SINGULIERS hors NUM_DET
+# Conjonctions relatives/subordonnées/coordonnées : bornent le GN sujet (ne pas remonter dans la proposition amont :
+# « un ordinaire QUE les Tchèques ont », « ce QUE les médecins interprètent » → sujet = après la conjonction).
+_NP_BREAK = {'que', 'qu', 'qui', 'dont', 'quand', 'lorsque', 'puisque', 'parce', 'comme', 'si', 'car',
+             'mais', 'donc', 'or', 'quoique', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
+# Noms COLLECTIFS / de quantité : l'accord se fait souvent avec le COMPLÉMENT (« la plupart des gens SONT »,
+# « une centaine d'illustrations ONT paru ») → règle d'accord spéciale, non décidable ici → abstention (FP=0).
+_COLL_HEAD = {'plupart', 'majorite', 'minorite', 'nombre', 'total', 'partie', 'moitie', 'tiers', 'quart',
+              'ensemble', 'reste', 'quantite', 'foule', 'multitude', 'infinite', 'poignee', 'kyrielle',
+              'dizaine', 'douzaine', 'quinzaine', 'vingtaine', 'trentaine', 'quarantaine', 'cinquantaine',
+              'soixantaine', 'centaine', 'millier', 'million', 'milliard', 'brochette', 'tapee', 'flopee',
+              'sorte', 'espece', 'genre'}
 def _noun_gender(w, num='s'):
     """Genre d'un NOM via GENDER_PURE (noms à genre non ambigu). Dé-pluralisation SEULEMENT si le sujet est marqué
     pluriel (num=='p') et le mot n'est pas un invariable en -s (cours→cour(f) = faux ami). None sinon → abstention."""
@@ -625,6 +643,7 @@ def _np_subject(T, tg, a):
     while j >= lo:
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
         if dj in ('et', 'ou', 'ni'): return None             # sujet coordonné → genre/nombre mixtes → abstention
+        if dj in _NP_BREAK: break                            # relative/subordonnée (que/qui/dont…) → GN sujet à droite (ne pas remonter dans la proposition amont)
         if tgj in ('VERB', 'AUX'): break                     # frontière verbale : le GN sujet est à droite de j
         if dj in NUM_PRON: break                             # sujet-pronom → route pronom (rule_adj_attr) / abstention ici
         if tgj == 'DET' or dj in NUM_DET: det_idx = j        # on garde le déterminant le PLUS À GAUCHE (ouverture du GN)
@@ -639,8 +658,14 @@ def _np_subject(T, tg, a):
         if (tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN')) or dk in GENDER_PURE:
             head = k; break
     if head is None: return None
-    num = 'p' if NUM_DET.get(deacc(T[det_idx].lower())) == 'pl' else 's'
-    ddet = deacc(T[det_idx].lower())                          # genre : nom-tête (GENDER_PURE) sinon repli par le déterminant
+    ddet = deacc(T[det_idx].lower())
+    if ddet in NUM_DET:     num = 'p' if NUM_DET[ddet] == 'pl' else 's'
+    elif ddet in _QUANT_PL: num = 'p'                         # plusieurs/quelques/certains/deux… (quantifieurs pluriels hors NUM_DET)
+    elif ddet in _QUANT_SG: num = 's'                         # chaque/aucun/nul → singulier (même si le nom-tête finit en -s : « chaque relais »)
+    else:                                                     # déterminant tagué DET mais hors listes → nombre via la morpho du nom-tête (invariables -s exclus)
+        dh = deacc(T[head].lower())
+        if dh in _NOUN_INVAR_S: return None
+        num = 'p' if dh[-1:] in 'sx' else 's'
     g = _noun_gender(T[head], num) or _ADJ_DETM.get(ddet) or ('f' if ddet in _ADJ_DETF else None)  # le/un/ce→m, la/une/cette/ma/ta/sa→f (son/mon/ton EXCLUS : ambigus)
     return {'idx': head, 'det': det_idx, 'g': g or '?', 'n': num}
 
@@ -999,32 +1024,49 @@ CONJ_WORDS = {'et', 'ou', 'ni', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui',
 
 
 def rule_accord_sv_noun(T, i):
+    """Accord SUJET-VERBE à sujet-NOM, via le VRAI PARSEUR de sujet (_np_subject) : gère le sujet ÉLOIGNÉ (mots-écrans
+    « de X ») que l'ancienne version (déterminant pluriel en tête seulement) ratait — « la liste des articles sont »→est,
+    « le prix des matières premières ont »→a, « les cartons dans le couloir gêne »→gênent. FP=0 : on n'autorise entre le
+    nom-tête et le verbe QUE des compléments prépositionnels ; coordination/relative, ponctuation, verbe/aux intercalé, ou
+    un 2e GN non prépositionnel → abstention (autre structure)."""
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
-    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None     # PARTICIPE (destiné/déchargé…) : accord ADJECTIVAL (destinés), pas verbal (destinent) — deacc destiné→destine=destiner-3sg trompait la règle
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None     # PARTICIPE (destiné…) : accord ADJECTIVAL, pas verbal
     if i > 0 and T[i-1].lower() in NUM_DET: return None                 # déterminant juste avant → T[i] est un NOM (« les joue »)
+    if i > 0 and deacc(T[i-1].lower()) in PREP: return None             # un verbe FINI n'est jamais gouverné par de/des/du/par/à… → T[i] = NOM homographe (« de contrôle », « par faute », « l'est »)
+    if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre': return None   # « peut-être » (adverbe), pas le verbe pouvoir
+    if deacc(T[i].lower()) in ('est', 'ai') and i > 0 and deacc(T[i-1].lower()) in ('nord', 'sud', 'ouest'): return None   # « nord-est »/« sud-est » : « est » = point cardinal (nom), pas le verbe
+    if i > 0 and T[i-1].isdigit(): return None                         # « WR 20 a », « A1 » : désignation alphanumérique → « a/est » n'est pas un verbe
+    if i > 0 and len(T[i-1]) >= 2 and T[i-1].isupper(): return None     # sigle TOUT-EN-MAJUSCULES avant (« WR a », « NGC A ») = désignation → « a/est » homographe, pas verbe
     if _subject_before(T, i) is not None: return None                  # sujet pronom net → règle pronom (pas ici)
     p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']  # sujet-nom = 3e personne
     if not p3: return None
-    sub = _noun_subject_number(T, i)
-    if sub is None: return None
-    nb, dk = sub
-    # FP=0 SANS lexique de noms : déterminant PLURIEL (les/des/ces…) EN TÊTE de phrase (dk==0). En tête, aucun
-    # génitif/PP/objet-de-verbe possible à gauche (rien ne précède) → on évite tous ces pièges (« la préparation
-    # DES mahashi », « protéger LES infrastructures ») sans dépendre d'un lexique de noms (→ parité app↔Python).
-    if nb != 'p' or dk != 0 or i - dk < 2: return None                 # +il faut un nom-tête entre le déterminant et le verbe
-    # GARDE STRUCTURE : le nom-tête (dk+1, homographe « voitures » toléré) ; tout PP / 2e déterminant / pronom /
-    # conjonction, ou un VERBE intercalé APRÈS le nom-tête (sous-phrase « les feuilles TOMBENT, l'automne est ») → abstention.
-    for m in range(dk + 1, i):
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
+        return None                                                    # temps composé/passif (aux + participe) → T[i] = participe, pas verbe fini
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None   # T[i] = VERBE EN CONTEXTE (écarte les noms/adjectifs homographes « de rechange », « par faute », « jeune âge »)
+    subj = _np_subject(T, tg, i)                                       # tête [dét + nom] du sujet, mots-écrans « de X » sautés
+    if subj is None: return None
+    nb = subj['n']; hk = subj['idx']; dk = subj['det']
+    ddet = deacc(T[dk].lower())
+    if ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention
+    if deacc(T[hk].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
+    if tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper()): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention
+    lo = 0                                                             # début de proposition (bornes _SEG)
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    for m in range(lo, i):                                             # apostrophe (élision l'/qu'/n'/d') dans la proposition → clause complexe (relative/sujet élidé) → abstention
+        if "'" in T[m] or "’" in T[m]: return None
+    for m in range(lo, dk):                                            # SUJET EN TÊTE DE PROPOSITION : seuls des adverbes antéposés avant le déterminant.
+        if tg[m] != 'ADV': return None                                #   sinon le GN détecté est un OBJET/complément d'un verbe amont (« qui composent LE SME sont »), pas le sujet → abstention
+    for m in range(hk + 1, i):                                         # GARDE STRUCTURE nom-tête → verbe : compléments prépositionnels SEULEMENT
         tok = T[m]; dw = deacc(tok.lower())
-        if "'" in tok.lower() or dw in PREP or dw == 'en' or tok.lower() in NUM_DET or dw in NUM_PRON or dw in CONJ_WORDS or dw in FULL_AUX:
-            return None                                                  # +aux (auraient/avait/sont…) + « en » (PP/clitique : « pris EN compte ») entre le nom et le verbe → abstention
-        if any(ch in ',;:()[]«»"' for ch in tok):
-            return None                                                  # ponctuation intercalée = apposition/énumération (« Les établissements, résidence (demeure), … ») → abstention
-        if m > dk + 1 and _reads(tok):
-            return None
-    _tg = pos_tags(T)                                                    # apposition/énumération : ≥2 noms entre le déterminant et le
-    if _tg and sum(1 for m in range(dk + 1, i) if _tg[m] in ('NOUN', 'PROPN')) >= 2:  # verbe (« Les établissements, résidence, demeure… »)
-        return None                                                      # → le vrai verbe est ailleurs, un nom-homographe est pris pour verbe → abstention. (Adjectif toléré : « les grands chiens » = 1 nom.)
+        if dw in CONJ_WORDS: return None                              # et/ou/qui/que/quand… (coordination/relative) → sujet ambigu → abstention
+        if any(ch in ',;:()[]«»"' for ch in tok): return None        # ponctuation = apposition/incise → abstention
+        if any(ch.isdigit() for ch in tok): return None              # désignation alphanumérique (« WR 20a », « A1 ») → « a/est » homographe, pas verbe → abstention
+        if tg and m < len(tg) and tg[m] in ('VERB', 'AUX'): return None   # verbe/aux intercalé = sous-phrase → le vrai sujet du verbe est ailleurs → abstention
+        if tok.lower() in NUM_DET and dw not in PREP and not (m > 0 and deacc(T[m-1].lower()) in PREP):
+            return None                                              # 2e GN NON prépositionnel (nouveau sujet) → abstention ; « des/du » (prép+dét) & « de la » tolérés
     if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
     lemmas = {l for (l, _mt, _p, _n) in p3}
     if len(lemmas) != 1: return None
@@ -1399,6 +1441,11 @@ CASES = [
     ("Les enfants jouent dehors", "jouent", "joue", "accord sujet-verbe"),
     ("Les oiseaux chantent", "chantent", "chante", "accord sujet-verbe"),
     ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
+    # accord sujet-verbe à sujet ÉLOIGNÉ (mots-écrans « de X » via le vrai parseur _np_subject) — FP=0 sur 14 450 UD
+    ("La liste des articles est longue", "est", "sont", "accord sujet-verbe"),        # tête = liste (sing.), pas articles
+    ("Le prix des matières premières a augmenté", "a", "ont", "accord sujet-verbe"),  # tête = prix (sing.), pas matières
+    ("Le stock de pièces détachées diminue vite", "diminue", "diminuent", "accord sujet-verbe"),  # tête = stock (sing.)
+    ("Les employés du service répondent", "répondent", "répond", "accord sujet-verbe"),  # tête = employés (plur.)
     # accord PLURIEL du NOM (déterminant pluriel + nom singulier → pluriel ancré dans le lexique)
     ("Les enfants jouent", "enfants", "enfant", "accord pluriel nom"),
     ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
