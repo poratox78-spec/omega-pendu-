@@ -11939,6 +11939,57 @@ window.addEventListener('DOMContentLoaded', () => {
     var lem=null,uni=true,mts={};for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
     if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
+  // accord sujet-VERBE à sujets COORDONNÉS (« le chat et le chien dorment ») — MIROIR correcteur_probe.rule_accord_sv_coord, FP=0
+  var _COORD_PRON={moi:'1',nous:'1',toi:'2',vous:'2',lui:'3',elle:'3',soi:'3',eux:'3',elles:'3'};
+  function rAccordSVcoord(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
+    if(/(é|és|ée|ées)$/.test(lw))return null;
+    if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
+    if(deacc(lw)==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;
+    var reads=svReads(T[i]);if(!reads.length)return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    var conjuncts=[[]],hasSep=false,m;
+    for(m=lo;m<i;m++){var dm=deacc(T[m].toLowerCase());
+      if(dm==='et'||dm==='ni'){conjuncts.push([]);hasSep=true;continue;}
+      if(dm==='ou'||dm==='mais'||dm==='car'||dm==='donc'||dm==='or'||dm==='que'||dm==='qu'||dm==='qui')return null;
+      if(T[m].toLowerCase().indexOf("'")>=0)return null;
+      if(tg[m]==='VERB'||tg[m]==='AUX'||PREP[dm])return null;
+      conjuncts[conjuncts.length-1].push(m);}
+    if(!hasSep||conjuncts.length<2)return null;
+    var perRank=3,hasCommon=false,c,cj,q;
+    for(c=0;c<conjuncts.length;c++){cj=conjuncts[c];if(!cj.length)return null;
+      var first=deacc(T[cj[0]].toLowerCase());
+      if(cj.length===1&&_COORD_PRON[first]){perRank=Math.min(perRank,parseInt(_COORD_PRON[first]));hasCommon=true;continue;}
+      if(tg[cj[0]]==='DET'||NUM_DET[T[cj[0]].toLowerCase()]){var hasN=false;for(q=0;q<cj.length;q++)if(tg[cj[q]]==='NOUN'||tg[cj[q]]==='PROPN')hasN=true;if(!hasN)return null;hasCommon=true;continue;}
+      if(tg[cj[0]]==='PROPN'){var allP=true;for(q=0;q<cj.length;q++)if(tg[cj[q]]!=='PROPN')allP=false;if(allP)continue;}
+      return null;}
+    if(!hasCommon)return null;
+    var per=''+perRank,nb='p',k;
+    for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return null;
+    var lem=null,uni=true,mts={};for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
+  // accord sujet-VERBE à sujet INFINITIF (« Trop manger nuit », « Fumer et boire sont ») — MIROIR correcteur_probe.rule_accord_sv_infinitif, FP=0
+  function _isInfinitive(w){var d=deacc(w.toLowerCase());return !!COMMON_VERBS[d]&&(/er$/.test(d)||/ir$/.test(d)||/re$/.test(d)||/oir$/.test(d));}
+  function rAccordSVinfinitif(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
+    if(/(é|és|ée|ées)$/.test(lw))return null;
+    var reads=svReads(T[i]),hasP3=false,k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')hasP3=true;if(!hasP3)return null;
+    if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    var s=lo;while(s<i&&tg[s]==='ADV')s++;
+    if(s>=i||!_isInfinitive(T[s]))return null;
+    var coordInf=false;
+    for(var m=s+1;m<i;m++){var dm=deacc(T[m].toLowerCase());
+      if((dm==='et'||dm==='ou')&&m+1<i&&_isInfinitive(T[m+1])){coordInf=true;continue;}
+      if(T[m].toLowerCase().indexOf("'")>=0)return null;
+      if(NUM_PRON[dm]||SUBJ_PRON[dm])return null;
+      if(_isInfinitive(T[m]))continue;
+      if(tg[m]==='VERB'||tg[m]==='AUX')return null;
+      if(CONJ_WORDS[dm])return null;}
+    var nb=coordInf?'p':'s';
+    var reads3=[];for(k=0;k<reads.length;k++)if(reads[k][2]==='3')reads3.push(reads[k]);
+    return _svFinish(T,i,'3',nb,reads3);}
   // Accord GENRE déterminant→nom (route lexicale gn = noms purs). MÊME logique/données que correcteur_probe.rule_det_gender
   // → parité exacte. gn pré-filtré (sans homographe verbe/adjectif) → simple test d'appartenance, FP=0.
   var DET_G={un:'m',une:'f',le:'m',la:'f',ce:'m',cet:'m',cette:'f',mon:'m',ma:'f',ton:'m',ta:'f',son:'m',sa:'f',quel:'m',quelle:'f'};
@@ -12099,7 +12150,7 @@ window.addEventListener('DOMContentLoaded', () => {
     else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;if(gender==='?'){if(!epi)return null;gender='m';}}
     if(num!==auxNum)return null;
     var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
   function correctText(text){_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */

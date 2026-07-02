@@ -1199,6 +1199,100 @@ def rule_accord_sv_relatif(T, i):
     return sugg
 
 
+# ---------- Accord SUJET-VERBE à sujets COORDONNÉS (« le chat et le chien dorment ») ----------
+# Sujet = plusieurs GN reliés par « et »/« ni » → verbe au PLURIEL. Personne : 1re (je/moi/nous) > 2e (tu/toi/vous) > 3e.
+# FP=0 : chaque conjoint DOIT être un GN net (commence par déterminant/nom propre et contient un nom, ou EST un pronom) ;
+# aucune préposition/verbe/autre conjonction dans la zone sujet (écarte coord. d'adjectifs « noir et blanc », de compléments
+# « le livre de Paul et Marie », d'objets postposés, de propositions « il mange et dort »).
+# Pronoms DISJOINTS seulement (peuvent être coordonnés : « toi ET moi ») — PAS les clitiques sujets je/tu/il/on
+# (« une cornue et ON distillait » : « on » est le sujet du verbe, pas un conjoint).
+_COORD_PRON = {'moi': '1', 'nous': '1', 'toi': '2', 'vous': '2', 'lui': '3', 'elle': '3', 'soi': '3', 'eux': '3', 'elles': '3'}
+
+def rule_accord_sv_coord(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None
+    if i > 0 and deacc(T[i-1].lower()) in PREP: return None
+    if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre': return None
+    reads = _reads(T[i])
+    if not reads: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    conjuncts = [[]]; has_sep = False                              # découpe la zone sujet [lo,i) en conjoints séparés par « et »/« ni »
+    for m in range(lo, i):
+        dm = deacc(T[m].lower())
+        if dm in ('et', 'ni'): conjuncts.append([]); has_sep = True; continue
+        if dm in ('ou', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui'): return None   # autre conjonction/relative → pas une coordination simple
+        if "'" in T[m].lower(): return None                        # élision (l'/d'/qu') → mistags fréquents → abstention
+        if tg[m] in ('VERB', 'AUX') or dm in PREP: return None     # verbe/préposition dans la zone sujet → pas une coordination de GN sujets
+        conjuncts[-1].append(m)
+    if not has_sep or len(conjuncts) < 2: return None
+    per_rank = 3; has_common = False                              # priorité de personne : 1 > 2 > 3 ; has_common = au moins un conjoint pronom OU introduit par un déterminant
+    for cj in conjuncts:
+        if not cj: return None                                     # conjoint vide
+        first = deacc(T[cj[0]].lower())
+        if len(cj) == 1 and first in _COORD_PRON:                  # conjoint = pronom (toi, moi, lui…)
+            per_rank = min(per_rank, int(_COORD_PRON[first])); has_common = True; continue
+        if tg[cj[0]] == 'DET' or T[cj[0]].lower() in NUM_DET:      # conjoint = [déterminant + … + nom]
+            if not any(tg[m] in ('NOUN', 'PROPN') for m in cj): return None
+            has_common = True; continue
+        if tg[cj[0]] == 'PROPN' and all(tg[m] == 'PROPN' for m in cj):
+            continue                                              # conjoint = nom(s) propre(s) NU(s) — toléré mais ne compte pas comme has_common
+        return None                                               # « noir et blanc » (adjectifs), etc. → abstention
+    if not has_common: return None                               # tous les conjoints sont des noms propres NUS → risque de nom composé (« Belcastel-et-Buc », place) → abstention
+    per, nb = str(per_rank), 'p'
+    if any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in reads): return None   # déjà d'accord
+    lemmas = {l for (l, _mt, _p, _n) in reads}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop()
+    mts = [mt for (_l, mt, _p, _n) in reads]
+    mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
+    if not sugg: return None
+    if not any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)): return None
+    return sugg
+
+
+# ---------- Accord SUJET-VERBE à sujet INFINITIF (« Trop manger nuit », « Fumer et boire sont mauvais ») ----------
+# Sujet = un INFINITIF en tête de proposition → verbe principal à la 3e SINGULIER ; deux infinitifs coordonnés → 3e PLURIEL.
+# FP=0 : proposition commençant par un infinitif (adverbes frontés tolérés), complément non-fini seulement (pas de verbe
+# fini ni de pronom sujet entre l'infinitif et le verbe principal). Les sujets-PROPOSITION « Que… » ne sont PAS traités.
+def _is_infinitive(w):
+    d = deacc(w.lower())
+    return d in VERB_LEX and (d.endswith('er') or d.endswith('ir') or d.endswith('re') or d.endswith('oir'))
+
+def rule_accord_sv_infinitif(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None
+    reads = _reads(T[i])
+    if not any(p == '3' for (_l, _mt, p, _n) in reads): return None
+    if i > 0 and deacc(T[i-1].lower()) in PREP: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    s = lo                                                        # sauter les adverbes frontés (« Trop manger »)
+    while s < i and tg[s] == 'ADV': s += 1
+    if s >= i or not _is_infinitive(T[s]): return None            # la proposition doit commencer par un INFINITIF (le sujet)
+    coord_inf = False
+    for m in range(s + 1, i):                                     # entre l'infinitif-sujet et le verbe principal : complément non-fini seulement
+        dm = deacc(T[m].lower())
+        if dm in ('et', 'ou') and m + 1 < i and _is_infinitive(T[m+1]): coord_inf = True; continue   # « fumer ET boire » → 2 infinitifs coordonnés → pluriel
+        if "'" in T[m].lower(): return None                      # élision → clause complexe → abstention
+        if dm in NUM_PRON or dm in SUBJ_PRON: return None        # pronom sujet → pas un sujet-infinitif
+        if _is_infinitive(T[m]): continue                        # infinitif enchaîné (« savoir écouter ») toléré
+        if tg[m] in ('VERB', 'AUX'): return None                 # verbe FINI intercalé → proposition (« que les prix augmentent ») → abstention
+        if dm in CONJ_WORDS: return None                         # conjonction/relative → abstention
+    nb = 'p' if coord_inf else 's'
+    reads3 = [r for r in reads if r[2] == '3']
+    return _sv_finish(T, i, '3', nb, reads3)
+
+
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
     d = deacc(w.lower())
@@ -1505,6 +1599,8 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('accord sujet-verbe', rule_accord_sv_quant),
          ('accord sujet-verbe', rule_accord_sv_relatif),
+         ('accord sujet-verbe', rule_accord_sv_coord),
+         ('accord sujet-verbe', rule_accord_sv_infinitif),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
@@ -1577,6 +1673,14 @@ CASES = [
     ("Les personnes qui participent restent", "participent", "participe", "accord sujet-verbe"),  # antécédent = personnes (plur.)
     ("Voici les articles qui manquent", "manquent", "manque", "accord sujet-verbe"),         # antécédent = articles (plur.)
     ("Ce sont eux qui gèrent le dépôt", "gèrent", "gère", "accord sujet-verbe"),             # antécédent = eux (3e plur.)
+    # accord sujet-verbe à sujets COORDONNÉS (X et Y → pluriel ; personne 1>2>3)
+    ("Le chat et le chien mangent la viande", "mangent", "mange", "accord sujet-verbe"),     # deux GN → 3e plur.
+    ("Toi et moi mangeons ensemble", "mangeons", "mange", "accord sujet-verbe"),             # toi + moi → 1re plur.
+    ("Ton frère et toi mangez trop", "mangez", "mange", "accord sujet-verbe"),               # frère + toi → 2e plur.
+    # accord sujet-verbe à sujet INFINITIF (infinitif → 3e sing. ; infinitifs coordonnés → 3e plur.)
+    ("Trop manger nuit à la santé", "nuit", "nuisent", "accord sujet-verbe"),                # infinitif sujet → 3e sing.
+    ("Réussir cet examen demande des efforts", "demande", "demandent", "accord sujet-verbe"),  # infinitif + objet → 3e sing.
+    ("Fumer et boire sont mauvais", "sont", "est", "accord sujet-verbe"),                    # deux infinitifs → 3e plur.
     # accord PLURIEL du NOM (déterminant pluriel + nom singulier → pluriel ancré dans le lexique)
     ("Les enfants jouent", "enfants", "enfant", "accord pluriel nom"),
     ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
