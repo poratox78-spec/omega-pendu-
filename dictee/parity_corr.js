@@ -93,7 +93,10 @@ const PHRASES = [
   // accord PARTICIPE après être à sujet NOM (branche _np_subject) : cibles + pièges (inversion / pronom élidé / sujet loin)
   'Le niveau de la population est estimée à trente pour cent', 'La biologie est apparu au vingtième siècle',
   'Le Brésil est composés de régions', 'La Bulgarie est connues pour ses monastères', 'Une partie du cours fut modifié',
-  'Le chat est noir', 'Elle est venue hier', 'La reprise est annoncée', 'Les plats sont bons'
+  'Le chat est noir', 'Elle est venue hier', 'La reprise est annoncée', 'Les plats sont bons',
+  // terminaison -er/-é : gouverneur être (« a été fabriquer »), clitique réfléchi (« veut se séparé »), causatif (« fait déclaré »)
+  'Il a été fabriquer par un dieu', 'Le pays veut se séparé du groupe', 'On va faire évolué le code',
+  'Il fait déclaré la guerre', 'Il ne faut pas utilisé de câble', 'Les origines de la cité remontent', 'Un fait divers tragique'
 ];
 
 // flags Python via un petit pont
