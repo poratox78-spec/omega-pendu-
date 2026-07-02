@@ -1256,6 +1256,43 @@ def rule_accord_sv_coord(T, i):
     return sugg
 
 
+# ---------- Accord SUJET-VERBE à sujet INFINITIF (« Trop manger nuit », « Fumer et boire sont mauvais ») ----------
+# Sujet = un INFINITIF en tête de proposition → verbe principal à la 3e SINGULIER ; deux infinitifs coordonnés → 3e PLURIEL.
+# FP=0 : proposition commençant par un infinitif (adverbes frontés tolérés), complément non-fini seulement (pas de verbe
+# fini ni de pronom sujet entre l'infinitif et le verbe principal). Les sujets-PROPOSITION « Que… » ne sont PAS traités.
+def _is_infinitive(w):
+    d = deacc(w.lower())
+    return d in VERB_LEX and (d.endswith('er') or d.endswith('ir') or d.endswith('re') or d.endswith('oir'))
+
+def rule_accord_sv_infinitif(T, i):
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None
+    reads = _reads(T[i])
+    if not any(p == '3' for (_l, _mt, p, _n) in reads): return None
+    if i > 0 and deacc(T[i-1].lower()) in PREP: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    s = lo                                                        # sauter les adverbes frontés (« Trop manger »)
+    while s < i and tg[s] == 'ADV': s += 1
+    if s >= i or not _is_infinitive(T[s]): return None            # la proposition doit commencer par un INFINITIF (le sujet)
+    coord_inf = False
+    for m in range(s + 1, i):                                     # entre l'infinitif-sujet et le verbe principal : complément non-fini seulement
+        dm = deacc(T[m].lower())
+        if dm in ('et', 'ou') and m + 1 < i and _is_infinitive(T[m+1]): coord_inf = True; continue   # « fumer ET boire » → 2 infinitifs coordonnés → pluriel
+        if "'" in T[m].lower(): return None                      # élision → clause complexe → abstention
+        if dm in NUM_PRON or dm in SUBJ_PRON: return None        # pronom sujet → pas un sujet-infinitif
+        if _is_infinitive(T[m]): continue                        # infinitif enchaîné (« savoir écouter ») toléré
+        if tg[m] in ('VERB', 'AUX'): return None                 # verbe FINI intercalé → proposition (« que les prix augmentent ») → abstention
+        if dm in CONJ_WORDS: return None                         # conjonction/relative → abstention
+    nb = 'p' if coord_inf else 's'
+    reads3 = [r for r in reads if r[2] == '3']
+    return _sv_finish(T, i, '3', nb, reads3)
+
+
 def _pure_adj(w):
     """Adjectif NON ambigu : forme adjectivale genrée qui n'est NI un verbe NI un nom (sinon homographe → FP)."""
     d = deacc(w.lower())
@@ -1563,6 +1600,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv_quant),
          ('accord sujet-verbe', rule_accord_sv_relatif),
          ('accord sujet-verbe', rule_accord_sv_coord),
+         ('accord sujet-verbe', rule_accord_sv_infinitif),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
@@ -1639,6 +1677,10 @@ CASES = [
     ("Le chat et le chien mangent la viande", "mangent", "mange", "accord sujet-verbe"),     # deux GN → 3e plur.
     ("Toi et moi mangeons ensemble", "mangeons", "mange", "accord sujet-verbe"),             # toi + moi → 1re plur.
     ("Ton frère et toi mangez trop", "mangez", "mange", "accord sujet-verbe"),               # frère + toi → 2e plur.
+    # accord sujet-verbe à sujet INFINITIF (infinitif → 3e sing. ; infinitifs coordonnés → 3e plur.)
+    ("Trop manger nuit à la santé", "nuit", "nuisent", "accord sujet-verbe"),                # infinitif sujet → 3e sing.
+    ("Réussir cet examen demande des efforts", "demande", "demandent", "accord sujet-verbe"),  # infinitif + objet → 3e sing.
+    ("Fumer et boire sont mauvais", "sont", "est", "accord sujet-verbe"),                    # deux infinitifs → 3e plur.
     # accord PLURIEL du NOM (déterminant pluriel + nom singulier → pluriel ancré dans le lexique)
     ("Les enfants jouent", "enfants", "enfant", "accord pluriel nom"),
     ("Des oiseaux chantent", "oiseaux", "oiseau", "accord pluriel nom"),
