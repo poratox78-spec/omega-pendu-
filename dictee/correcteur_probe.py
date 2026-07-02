@@ -753,6 +753,30 @@ def rule_adj_attr(T, i):
     sugg = _adj_agree(w, gender, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
+_EPI_ART = {'le': 's', 'la': 's', 'les': 'p', 'un': 's', 'une': 's', 'des': 'p',
+            'ce': 's', 'cet': 's', 'cette': 's', 'ces': 'p', 'du': 's'}   # articles à NOMBRE net (possessifs exclus : « leur » ambigu → FP mesuré)
+def rule_adj_epithet(T, i):
+    """Accord en GENRE×NOMBRE de l'ADJECTIF ÉPITHÈTE avec le nom qu'il suit : [ARTICLE + NOM(genre connu) + ADJ]
+    (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
+    jadis écarté, tenu FP=0 par : tagger ADJ, genre GENDER_PURE, NOMBRE via ARTICLE net, invariants(_SG_STOP)/nom
+    propre/coordination(et/ou)/figé(«de»)/épicène exclus. Mesuré 60→1 FP sur UD (le 1 = vraie faute)."""
+    if i < 2: return None
+    w = T[i]; lw = w.lower()
+    if "'" in lw or w[:1].isupper(): return None
+    d = deacc(lw)
+    if d not in ADJ_LEX or _adj_estem(lw) is not None: return None   # inconnu / épicène (radical -e : rouge/jeune) → pas de genre à trancher
+    if d in ('tout', 'tous', 'toute', 'toutes'): return None         # géré par rule_tout_det (rôle déterminant/adverbe/pronom)
+    if i+1 < len(T) and deacc(T[i+1].lower()) in ('de', 'et', 'ou', 'ni'): return None   # figé (« haut de gamme ») + coordination distributive (« sites allemand et français »)
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] != 'ADJ' or tg[i-1] != 'NOUN': return None
+    if T[i-1][:1].isupper(): return None                             # nom propre (capitalisé) → genre non fiable
+    dn = deacc(T[i-1].lower()); g = GENDER_PURE.get(dn)
+    if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
+    num = _EPI_ART.get(deacc(T[i-2].lower()))
+    if num is None: return None                                      # nombre NON net (pas d'article devant le nom) → abstention (écran/possessif)
+    sugg = _adj_agree(w, g, num)
+    return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+
 def rule_pp_etre(T, i):
     """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
     « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
@@ -1687,7 +1711,7 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
-         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord adjectif', rule_adj_attr), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -1838,6 +1862,10 @@ CASES = [
     ("Les plats sont bons", "bons", "bon", "accord adjectif"),            # nom-sujet masculin pluriel
     ("La couleur de la voiture est belle", "belle", "beau", "accord adjectif"),  # MOT-ÉCRAN : tête = couleur (f), pas voiture
     ("La voiture de mon père est verte", "verte", "vert", "accord adjectif"),    # MOT-ÉCRAN : tête = voiture (f), pas père
+    # accord de l'adjectif ÉPITHÈTE ([article + nom genre connu + adj] → genre×nombre, FP=0 très gardé)
+    ("La commission présidentielle est là", "présidentielle", "présidentiel", "accord adjectif épithète"),  # commission (f) → présidentielle
+    ("Les domaines industriels progressent", "industriels", "industriel", "accord adjectif épithète"),     # domaines (m,pl) → industriels
+    ("Une décision mondiale s'impose", "mondiale", "mondial", "accord adjectif épithète"),                 # décision (f) → mondiale
     ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
