@@ -11701,6 +11701,22 @@ window.addEventListener('DOMContentLoaded', () => {
     if(/ée$/.test(lw)&&tgt!=='part')return null;
     var sugg=forms[tgt];if(deacc(sugg)===d)return null;
     return ckeepcase(w,sugg);}
+  // IMPÉRATIF (motifs LOCAUX, FP≈0) — MIROIR correcteur_probe.rule_imperatif : -s euphonique en/y, pas de -s (trait d'union + pronom), irréguliers jamais valides
+  var _IMP_PRON={moi:1,toi:1,lui:1,le:1,la:1,les:1,leur:1};
+  var _IMP_IRR={soyions:'soyons',ayions:'ayons',soyiez:'soyez',ayiez:'ayez'};
+  function rImperatif(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw);
+    if(lw.indexOf("'")>=0)return null;
+    if(_IMP_IRR[d]){var s=_IMP_IRR[d];return (w.charAt(0)!==w.charAt(0).toLowerCase())?s.charAt(0).toUpperCase()+s.slice(1):s;}
+    var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):null;
+    if(!(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]))return null;
+    if(i>0&&(deacc(T[i-1].toLowerCase())==='ne'||T[i-1].toLowerCase()==="n'"||T[i-1].toLowerCase()==='n’'))return null;   // impératif négatif = pronom déplacé
+    if(nx==='en'||nx==='y'){
+      if(_SEG&&i+2<_SEG.hy.length&&_SEG.hy[i+2])return null;      // composé « danse-en-ligne »
+      if(d==='va')return w+'s';
+      if(/e$/.test(lw)&&!/es$/.test(lw)&&COMMON_VERBS[deacc(lw)])return w+'s';
+      return null;}
+    if(_IMP_PRON[nx]&&/es$/.test(lw)&&/e$/.test(lw.slice(0,-1))&&COMMON_VERBS[deacc(lw.slice(0,-1))])return w.slice(0,-1);
+    return null;}
   var PLURAL_MARK={ils:1,elles:1,nous:1,vous:1,les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,plupart:1};
   var CLAUSE_BREAK={et:1,ou:1,mais:1,car:1,donc:1,or:1,ni:1,que:1,qui:1,quand:1,lorsque:1,puisque:1,comme:1,si:1,'.':1,',':1,';':1,':':1,'!':1,'?':1};
   function cplBefore(T,i){for(var j=i-1;j>=Math.max(0,i-6);j--){var w=deacc(T[j].toLowerCase());if(CLAUSE_BREAK[w])break;if(PLURAL_MARK[w])return true;}return false;}
@@ -11944,7 +11960,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(a<0)return null;
     for(k=a-1;k>=0&&k>=a-2;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ils'||d2==='elles')return ckeepcase(T[i],T[i]+(d2==='ils'?'s':'es'));if(d2==='ne'||d2==='n')continue;return null;}
     return null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['terminaison -er/-é/-ez/-ai',rFlexionEr],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
   function correctText(text){_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
