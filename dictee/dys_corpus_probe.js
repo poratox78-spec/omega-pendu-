@@ -6,7 +6,7 @@
 // Usage : node dictee/dys_corpus_probe.js   (silencieux si le corpus local est absent — pas un check CI).
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
-const CORPUS = path.join(ROOT, 'data_local', 'dys_corpus_rem.jsonl');
+const CORPUS = process.argv[2] ? path.resolve(process.argv[2]) : path.join(ROOT, 'data_local', 'dys_corpus_rem.jsonl');   // défaut = corpus dys de Rem ; argv = autre corpus (ex. GEC {bad,good})
 if (!fs.existsSync(CORPUS)) { console.log('(corpus dys local absent — rien à mesurer)'); process.exit(0); }
 const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
@@ -28,7 +28,7 @@ function runCorrLike(s){const sf=C.ready()?C.spell(s):[];C.setSeg(s);const T=C.t
   const out={};for(const k in fl){const v=fl[k];out[k]=(typeof v==='string')?{sugg:v,tier:'red'}:v;}return out;}
 (async()=>{
   await C.loadSp(); if(C.loadNP)await C.loadNP(); if(C.loadG)await C.loadG(); if(C.loadH)await C.loadH();
-  const lines=fs.readFileSync(CORPUS,'utf8').split('\n').filter(Boolean).map(l=>JSON.parse(l));
+  const lines=fs.readFileSync(CORPUS,'utf8').split('\n').filter(Boolean).map(l=>{const o=JSON.parse(l);return {raw:o.raw!=null?o.raw:o.bad,fixed:o.fixed!=null?o.fixed:o.good,src:o.src||'gec'};});
   let totErr=0,red=0,vig=0,missed=0,wrong=0;
   for(const {raw,fixed,src} of lines){
     const rt=toksN(raw), ft=new Set(toksN(fixed));
