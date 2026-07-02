@@ -517,26 +517,46 @@ def rule_deselide(T, i):
         return _keepcase(w, ('le' if g == 'm' else 'la') + ' ' + rest)
     return _keepcase(w, _DESEL[pre] + ' ' + rest)
 
+_PP_ETRE_AUX = {'suis', 'es', 'est', 'sommes', 'etes', 'sont', 'etais', 'etait', 'etions', 'etiez', 'etaient',
+                'sera', 'seras', 'serez', 'serons', 'seront', 'sois', 'soit', 'soyons', 'soyez', 'soient',
+                'fut', 'furent', 'serais', 'serait'}
+_PP_SUBJ = {'il': ('s', 'm'), 'elle': ('s', 'f'), 'ils': ('p', 'm'), 'elles': ('p', 'f'),
+            'nous': ('p', '?'), 'je': ('s', '?'), 'tu': ('s', '?')}   # on/vous EXCLUS (nombre/personne ambigus)
+_PP_AUX_P = {'sommes', 'etes', 'sont', 'etions', 'etiez', 'etaient', 'soyons', 'soyez', 'soient',
+             'serons', 'serez', 'seront', 'furent'}                   # aux ÊTRE au PLURIEL (le reste = singulier)
+
 def rule_pp_etre(T, i):
-    """Participe passé en -é après « ils/elles + être » (pronom pluriel collé à l'aux, tolère ne…pas/adverbes) → accord
-    PLURIEL : ils→-és, elles→-ées. FP=0 mesuré sur 14 450 UD (l'ancre = le pronom pluriel adjacent à l'aux ; le mur du
-    sujet à distance/vouvoiement est évité). « ils sont transformé »→transformés, « elles sont allé »→allées."""
-    if not CONJ_LOADED or "'" in T[i].lower() or not T[i].lower().endswith('é'): return None
-    tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ', 'AUX'): return None
-    a = None
+    """Accord du PARTICIPE PASSÉ (verbe -er) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
+    « elle est allé »→allée, « ils sont transformé »→transformés. Sujet = pronom fiable (il/elle/ils/elles/nous/je/tu ;
+    on/vous exclus car ambigus). Genre inconnu (je/tu/nous) → on GARDE le genre écrit (jamais de fém→masc forcé).
+    FP≈0 : ne se déclenche QUE si le participe est en DÉSACCORD (le texte correct est déjà accordé)."""
+    lw = T[i].lower()
+    if "'" in lw: return None
+    inf = _inf1(T[i])                                          # verbe -er (allez/aller/allé → aller) ; None sinon
+    if inf is None: return None
+    stem = inf[:-2]
+    a = None                                                   # auxiliaire ÊTRE en remontant (adverbes/clitiques tolérés)
     for k in range(i-1, max(-1, i-4), -1):
         dk = deacc(T[k].lower())
-        if dk in _PP_ETRE3P: a = k; break
+        if dk in _PP_ETRE_AUX: a = k; break
         if dk in _PP_MID: continue
         return None
     if a is None: return None
+    aux_num = 'p' if deacc(T[a].lower()) in _PP_AUX_P else 's'
+    info = None; sk = -1                                      # sujet pronom avant l'aux (tolère ne/n')
     for k in range(a-1, max(-1, a-3), -1):
         dk = deacc(T[k].lower())
-        if dk in ('ils', 'elles'): return _keepcase(T[i], T[i] + ('s' if dk == 'ils' else 'es'))
         if dk in ('ne', 'n'): continue
-        return None
-    return None
+        info = _PP_SUBJ.get(dk); sk = k; break
+    if not info: return None
+    if _SEG is not None and sk < len(_SEG['hy']) and _SEG['hy'][sk]: return None   # « poursuit-il » : pronom d'inversion (incise) ≠ sujet → abstention
+    num, gen = info
+    if num != aux_num: return None                           # « elles est … » : aux et sujet en désaccord → l'erreur est ailleurs, abstention
+    if gen == '?':
+        gen = 'f' if lw.endswith(('ée', 'ées')) else 'm'      # genre inconnu → garder celui écrit
+    end = {'sm': 'é', 'sf': 'ée', 'pm': 'és', 'pf': 'ées'}[num + gen]
+    sugg = stem + end
+    return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
 # ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
 # Le correcteur ne couvrait que 8 homophones ; les vraies copies dys ont surtout des accords (« Je doit », « On ont »,
@@ -1157,7 +1177,7 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
-         ('-é/-er', rule_e_er), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -1166,7 +1186,6 @@ RULES = [('élision inversée', rule_deselide),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_recover),
-         ('accord participe', rule_pp_etre),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
@@ -1260,6 +1279,9 @@ CASES = [
     # impératif irrégulier jamais valide (les cas à trait d'union -s euphonique/pas-de-s ne sont pas testables ici :
     # le harnais 2b reconstruit sans trait d'union ; ils sont validés hors-CI par corpus_imperatif.jsonl, FP=0 sur UD)
     ("Soyons honnêtes entre nous", "soyons", "soyions", "impératif"),  # être impératif malformé (sans trait d'union)
+    # accord du participe passé avec le sujet (être)
+    ("Nous sommes allés à Paris", "allés", "allé", "accord participe"),   # nous → pluriel
+    ("Elle est allée au marché", "allée", "allé", "accord participe"),    # elle → féminin
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
