@@ -252,6 +252,92 @@ def rule_e_er(T, i):
     if p in MODAL:               return forms[1]
     return None
 
+# --- Terminaisons -er / -é / -ez / -ai (verbe 1er groupe) tranchées par le GOUVERNEUR (test mordre/mordu) ---
+_AUX_AV = set(D.AUX_AVOIR) | {'avoir', 'avais', 'avaient', "j'ai"}    # cadre participe passé (avoir) ; « j'ai » = 1 token
+_INF_GOV = {'de', 'pour', 'sans', 'afin'}                              # prépositions → infinitif (sous-ensemble SÛR de PREP)
+_FLEX_STOP = {'assez', 'chez', 'rez', 'nez', 'mai', 'quai', 'vrai', 'gai', 'essai', 'delai',
+              'balai', 'geai', 'bai', 'lai', 'quinquennat'}            # homographes -ez/-ai non verbaux
+# Noms FÉMININS en -ée homographes d'un participe (stem+er est un vrai verbe) → jamais un infinitif/verbe mutilé.
+NOUN_EE = {'fumee', 'pensee', 'entree', 'arrivee', 'portee', 'duree', 'montee', 'annee', 'idee', 'allee',
+           'vallee', 'poupee', 'epee', 'assemblee', 'tournee', 'poignee', 'rentree', 'traversee', 'chaussee',
+           'gelee', 'flambee', 'plongee', 'rangee', 'nuitee', 'veillee', 'bouchee', 'gorgee', 'cuilleree'}
+
+_FLEX_ADV = {'deja', 'bien', 'toujours', 'jamais', 'pas', 'plus', 'vraiment', 'encore', 'aussi', 'souvent',
+             'probablement', 'enfin', 'vite', 'trop', 'meme', 'presque', 'tres', 'tout', 'peut-etre'}   # adverbes intercalés à sauter
+
+def _inf1(w):
+    """Infinitif du 1er groupe reconstruit depuis une forme de surface -er/-é(s/e)/-ez/-erai, EN CONSERVANT LES ACCENTS
+    (la suggestion ne doit pas désaccentuer). None si ce n'est pas un vrai verbe en -er (le filtre VERB_LEX désaccentué
+    écarte berger/premier/nez/mai… = noms/adj homographes)."""
+    lw = w.lower(); d = deacc(lw)
+    if   lw.endswith('ées'): inf = lw[:-3] + 'er'
+    elif lw.endswith('ée'):  inf = lw[:-2] + 'er'
+    elif lw.endswith('és'):  inf = lw[:-2] + 'er'
+    elif lw.endswith('é'):   inf = lw[:-1] + 'er'
+    elif d.endswith('erai'): inf = lw[:-2]                             # futur 1sg : téléphonerai→téléphoner
+    elif d.endswith('ez') and len(d) > 3: inf = lw[:-2] + 'er'
+    elif d.endswith('er') and len(d) > 3: inf = lw
+    else: return None
+    return inf if len(inf) >= 4 and deacc(inf) in VERB_LEX else None
+
+def rule_flexion_er(T, i):
+    """-er / -é / -ez / -ai d'un verbe du 1er groupe, tranché par le GOUVERNEUR (méthode mordre/mordu) :
+    avoir → -é (participe) ; prépo (de/pour/sans/afin) ou modal (veut/peut/doit/va…) → -er (infinitif) ;
+    « vous »/inversion « -vous » → -ez (2e pl) ; « je » → -ai (futur 1sg). FP bornés : inf ∈ VERB_LEX, noms
+    homographes (NOUN_E/genre/stop) exclus, « vous » objet gardé (« je vais vous aider »=inf)."""
+    w = T[i]; lw = w.lower()
+    if "'" in lw or i == 0: return None
+    if w[:1].isupper() and not (_SEG is not None and i < len(_SEG['ss']) and _SEG['ss'][i]):
+        return None                               # mot capitalisé hors début de phrase = nom propre (Rodez, Pompée)
+    if _SEG is not None and i+1 < len(_SEG['hy']) and _SEG['hy'][i+1] and nxt(T, i) != 'vous':
+        return None                               # mot suivi d'un trait d'union = composé (cessez-le-feu) → sauf inversion « livré-vous »
+    inf = _inf1(w)
+    if inf is None: return None
+    d = deacc(lw)
+    if d in NOUN_E or d in _FLEX_STOP or d in NOUN_EE: return None   # noms homographes d'un participe (marché, fumée, portée…)
+    stem = inf[:-2]
+    forms = {'inf': inf, 'part': stem + 'é', 'p2pl': stem + 'ez', 'fut1': inf + 'ai'}
+    # catégorie de terminaison ACTUELLE — on ne réécrit pas si le mot est déjà dans la bonne classe (préserve l'accord : appliquées, classées)
+    def _cat(x):
+        if x.endswith(('ées', 'ée', 'és', 'é')): return 'part'
+        if deacc(x).endswith('erai') or deacc(x).endswith('ai'): return 'fut1'
+        if deacc(x).endswith('ez'): return 'p2pl'
+        if deacc(x).endswith('er'): return 'inf'
+        return None
+    cur = _cat(lw)
+    praw = T[i-1].lower(); p = deacc(praw)        # GOUVERNEUR IMMÉDIAT (adjacent) pour prépo/modal/vous/je : leurs cas réels sont collés
+    hyp_vous = (nxt(T, i) == 'vous' and _SEG is not None and i+1 < len(_SEG['hy']) and _SEG['hy'][i+1])
+    if hyp_vous:                                  # inversion « livré-vous ? »/« appeler-vous ? » (trait d'union) → -ez
+        tgt = 'p2pl'
+    elif praw == 'à' or T[i-1] == 'A' or T[i-1] == 'À':
+        tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
+    elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
+        tgt = 'part'
+    elif p in _INF_GOV or p in MODAL:             # prépo (de/pour/sans/afin)/modal → infinitif
+        tgt = 'inf'
+    elif praw == 'vous':                          # « vous » sujet → -ez  (OBJET si précédé d'un verbe : « saura vous conseiller »)
+        subj = (i == 1) or (_SEG is not None and i-1 < len(_SEG['bb']) and _SEG['bb'][i-1]) \
+               or (i >= 2 and deacc(T[i-2].lower()) == 'que')   # « …, vous » / « que vous » = sujet ; « et/qui vous » = objet
+        if not subj: return None
+        tgt = 'p2pl'
+    elif praw == 'je':                            # « je noté/noter » → futur -ai
+        tgt = 'fut1'
+    else:                                         # sinon : AVOIR avec adverbe(s) intercalé(s) uniquement (« a déjà écouter »→écouté)
+        g = i - 1
+        while g > 0 and deacc(T[g].lower()) in _FLEX_ADV: g -= 1
+        if g >= 0 and T[g].lower() != 'à' and (deacc(T[g].lower()) in _AUX_AV or T[g].lower() == "j'ai"):
+            tgt = 'part'                          # « à tout casser » : « à » désaccentué = « a » → NE PAS le prendre pour avoir
+        else:
+            return None
+    if cur == tgt: return None                    # déjà la bonne classe de terminaison (n'écrase pas un accord)
+    if lw.endswith(('és', 'ées')) and tgt in ('inf', 'p2pl', 'fut1'):
+        return None                               # participe/adj PLURIEL (achetés, présumés) = jamais un infinitif/-ez/-ai mutilé
+    if lw.endswith('ée') and tgt != 'part':
+        return None                               # -ée = nom/participe FÉMININ (donnée, poussée, mêlée) → jamais un infinitif/-ez/-ai
+    sugg = forms[tgt]
+    if deacc(sugg) == d: return None
+    return sugg[0].upper() + sugg[1:] if w[:1].isupper() else sugg
+
 PLURAL_DET = {'les', 'des', 'ces', 'leurs', 'mes', 'tes', 'ses', 'nos', 'vos', 'quels', 'quelles',
               'plusieurs', 'certains', 'certaines', 'quelques', 'aux'}   # déterminants/marqueurs PLURIEL (sujet pluriel)
 
@@ -1037,7 +1123,8 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
-         ('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
+         ('-é/-er', rule_e_er), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de),
@@ -1128,6 +1215,10 @@ CASES = [
     ("Ils sont contents", "sont", "son", "aux mal orthographié"),
     # du/de : « du » (=de+le) + article = impossible → « de »
     ("Il revient de la maison", "de", "du", "du/de"),
+    # terminaison -er/-é/-ez/-ai tranchée par le gouverneur (test mordre/mordu)
+    ("Vous signez le document", "signez", "signer", "terminaison -er/-é/-ez/-ai"),      # vous → -ez
+    ("Demain je noterai le numéro", "noterai", "noté", "terminaison -er/-é/-ez/-ai"),   # je → futur -ai
+    ("Vous avez classé les bordereaux", "classé", "classez", "terminaison -er/-é/-ez/-ai"),  # avez (avoir) → participe -é
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
