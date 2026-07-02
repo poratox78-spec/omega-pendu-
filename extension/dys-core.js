@@ -402,21 +402,39 @@
     if(gen==='?')gen=(deacc(lw.slice(-1)==='s'?lw.slice(0,-1):lw)===deacc(base)+'e')?'f':'m';
     var sugg=base+({sm:'',sf:'e',pm:'s',pf:'es'}[num+gen]);
     return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  // Accord de l'ADJECTIF ATTRIBUT après ÊTRE (sujet PRONOM) — MIROIR de correcteur_probe.rule_adj_attr (parité)
+  // Accord de l'ADJECTIF ATTRIBUT après ÊTRE (sujet PRONOM ou NOM via VRAI PARSEUR de tête de GN) — MIROIR de correcteur_probe (parité)
   var ADJ_STOP={};'sur certain seul meme propre sacre pauvre grand ancien drole'.split(' ').forEach(function(w){ADJ_STOP[w]=1;});
-  function _adjAgree(w,gender,num){var lw=w.toLowerCase(),p=ADJP[deacc(lw)],g=p[0],alt=p[1];
-    var epi=/e$/.test(lw)&&!/é$/.test(lw),base=(epi||g===gender)?w:alt;
-    if(num==='p'){var db=deacc(base.toLowerCase());if(/[sx]$/.test(db)){}else if(/al$/.test(db))base=base.slice(0,-2)+'aux';else if(/(eau|eu)$/.test(db))base=base+'x';else base=base+'s';}
+  var ADJ_DETM={le:'m',un:'m',ce:'m',cet:'m'},ADJ_DETF={la:1,une:1,cette:1,ma:1,ta:1,sa:1};
+  var ADJ_MID={};'ne n pas plus jamais guere point tres si tout toute tous toutes bien aussi trop peu assez plutot moins deja toujours encore vraiment fort'.split(' ').forEach(function(w){ADJ_MID[w]=1;});
+  var NOUN_INVAR_S={};'cours corps temps prix bois pays mois bras dos nez puits univers fois poids sens tas repas concours discours parcours secours velours jus os gaz choix croix voix noix faux toux'.split(' ').forEach(function(w){NOUN_INVAR_S[w]=1;});
+  function _adjEstem(lw){var s;if(/x$/.test(lw))s=lw.slice(0,-1);else if(/s$/.test(lw)&&!/ss$/.test(lw))s=lw.slice(0,-1);else s=lw;return (/e$/.test(s)&&!/é$/.test(s))?s:null;}
+  function _nounGender(w,num){var d=deacc(w.toLowerCase());var g=GENDER_PURE[d];if(g==='m'||g==='f')return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=GENDER_PURE[d.slice(0,-1)]||GENDER_PURE[d.slice(0,-1)+'u'];if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=GENDER_PURE[d.slice(0,-1)];if(g==='m'||g==='f')return g;}return null;}
+  function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    var detIdx=-1;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(tgj==='VERB'||tgj==='AUX')break;if(NUM_PRON[dj])break;if(tgj==='DET'||NUM_DET[dj])detIdx=j;}
+    if(detIdx<0)return null;
+    if(detIdx-1>=lo&&PREP[deacc(T[detIdx-1].toLowerCase())])return null;
+    var head=-1;for(var k=detIdx+1;k<a;k++){var dk=deacc(T[k].toLowerCase());if(PREP[dk]||(T[k].toLowerCase().indexOf("'")>=0&&dk.charAt(0)==='d'))break;if((tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'))||(dk in GENDER_PURE)){head=k;break;}}
+    if(head<0)return null;
+    var ddet=deacc(T[detIdx].toLowerCase());var num=NUM_DET[ddet]==='pl'?'p':'s';
+    var g=_nounGender(T[head],num)||ADJ_DETM[ddet]||(ADJ_DETF[ddet]?'f':null);
+    return {idx:head,det:detIdx,g:g||'?',n:num};}
+  function _adjAgree(w,gender,num){var lw=w.toLowerCase();var stem=_adjEstem(lw);
+    if(stem!==null)return num==='p'?stem+'s':stem;
+    var p=ADJP[deacc(lw)],g=p[0],alt=p[1];var base=(g===gender)?w:alt;
+    if(num==='p'){var db=deacc(base.toLowerCase());if(/[sx]$/.test(db)){}else if(/al$/.test(db))base=base.slice(0,-2)+'aux';else if(/eau$/.test(db))base=base+'x';else base=base+'s';}
     return base;}
   function rAdjAttr(T,i){var w=T[i],lw=w.toLowerCase();if(lw.indexOf("'")>=0)return null;var d=deacc(lw);
     if(!ADJP[d]||ADJ_STOP[d])return null;if(/ee$/.test(deacc(ADJP[d][1]))&&!/e$/.test(d))return null;
     var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
-    var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
+    if(i+1<T.length&&(tg[i+1]==='NOUN'||tg[i+1]==='PROPN'))return null;   // adjectif ÉPITHÈTE d'un nom suivant → abstention
+    var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(ADJ_MID[dk])continue;return null;}
     if(a<1)return null;
     if(_SEG&&(a-1)<_SEG.hy.length&&_SEG.hy[a-1])return null;
     var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
-    var sp=deacc(T[a-1].toLowerCase());if(sp!=='il'&&sp!=='elle'&&sp!=='ils'&&sp!=='elles')return null;
-    var gender=(sp==='elle'||sp==='elles')?'f':'m',num=(sp==='ils'||sp==='elles')?'p':'s';
+    var epi=_adjEstem(lw)!==null;
+    var sp=deacc(T[a-1].toLowerCase()),gender,num;
+    if(sp==='il'||sp==='elle'||sp==='ils'||sp==='elles'){gender=(sp==='elle'||sp==='elles')?'f':'m';num=(sp==='ils'||sp==='elles')?'p':'s';}
+    else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;if(gender==='?'){if(!epi)return null;gender='m';}}
     if(num!==auxNum)return null;
     var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
   var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
