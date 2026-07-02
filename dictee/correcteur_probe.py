@@ -341,6 +341,34 @@ def rule_flexion_er(T, i):
     if deacc(sugg) == d: return None
     return sugg[0].upper() + sugg[1:] if w[:1].isupper() else sugg
 
+# --- IMPÉRATIF : motifs LOCAUX (trait d'union + pronom) décidables sans détecter la modalité impérative globale ---
+_IMP_PRON = {'moi', 'toi', 'lui', 'le', 'la', 'les', 'leur'}   # pronoms post-impératif OBJET (hors en/y ; nous/vous EXCLUS = inversion « sommes-nous »/« êtes-vous »)
+_IMP_IRR = {'soyions': 'soyons', 'ayions': 'ayons', 'soyiez': 'soyez', 'ayiez': 'ayez'}   # formes JAMAIS valides → impératif être/avoir
+
+def rule_imperatif(T, i):
+    """Fautes d'impératif à MOTIF LOCAL (FP≈0, pas besoin de reconnaître la modalité globale) :
+    1) -s euphonique : « mange-en/-y »→manges-en, « va-y »→vas-y (verbe -er 2sg + trait d'union + en/y) ;
+    2) pas de -s : « donnes-lui/-moi… »→donne-lui (verbe -er + -es + trait d'union + pronom ≠ en/y) ;
+    3) irrégulier jamais valide : soyions/ayions/soyiez/ayiez → soyons/ayons/soyez/ayez."""
+    w = T[i]; lw = w.lower(); d = deacc(lw)
+    if "'" in lw: return None
+    if d in _IMP_IRR:                                              # 3) forme d'impératif malformée (jamais un mot)
+        s = _IMP_IRR[d]; return s[0].upper() + s[1:] if w[:1].isupper() else s
+    nx = nxt(T, i)                                                 # mot suivant (déaccentué)
+    hyp = _SEG is not None and i+1 < len(_SEG['hy']) and _SEG['hy'][i+1]
+    if not hyp: return None
+    if i > 0 and (deacc(T[i-1].lower()) == 'ne' or T[i-1].lower() in ("n'", "n’")):
+        return None                                               # impératif NÉGATIF (« ne touche-y pas ») : le pronom se déplace (N'y touche pas) → hors motif local
+    if nx in ('en', 'y'):                                          # 1) -s euphonique devant en/y
+        if _SEG is not None and i+2 < len(_SEG['hy']) and _SEG['hy'][i+2]: return None   # « danse-en-ligne » = composé → pas d'impératif
+        if d == 'va': return w + 's'                              # aller → vas-y/vas-en
+        if lw.endswith('e') and not lw.endswith('es') and deacc(lw) in VERB_LEX:
+            return w + 's'                                        # « mange »/« achète » (forme verbale connue) + en/y → +s
+        return None
+    if nx in _IMP_PRON and lw.endswith('es') and lw[:-1].endswith('e') and deacc(lw[:-1]) in VERB_LEX:
+        return w[:-1]                                             # 2) « donnes-lui »→donne-lui (verbe -er, retire le -s ; exclut prends-le)
+    return None
+
 PLURAL_DET = {'les', 'des', 'ces', 'leurs', 'mes', 'tes', 'ses', 'nos', 'vos', 'quels', 'quelles',
               'plusieurs', 'certains', 'certaines', 'quelques', 'aux'}   # déterminants/marqueurs PLURIEL (sujet pluriel)
 
@@ -1127,6 +1155,7 @@ def rule_ca_sa(T, i):
 
 RULES = [('élision inversée', rule_deselide),
          ('-é/-er', rule_e_er), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
@@ -1224,6 +1253,9 @@ CASES = [
     ("Vous avez classé les bordereaux", "classé", "classez", "terminaison -er/-é/-ez/-ai"),  # avez (avoir) → participe -é
     ("Il faut noter le numéro", "noter", "notez", "terminaison -er/-é/-ez/-ai"),          # il faut → infinitif -er
     ("S'il vous plaît, notez le numéro", "notez", "noté", "terminaison -er/-é/-ez/-ai"),  # s'il vous plaît → impératif -ez
+    # impératif irrégulier jamais valide (les cas à trait d'union -s euphonique/pas-de-s ne sont pas testables ici :
+    # le harnais 2b reconstruit sans trait d'union ; ils sont validés hors-CI par corpus_imperatif.jsonl, FP=0 sur UD)
+    ("Soyons honnêtes entre nous", "soyons", "soyions", "impératif"),  # être impératif malformé (sans trait d'union)
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
