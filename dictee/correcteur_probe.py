@@ -275,8 +275,10 @@ def rule_e_er(T, i):
 # --- Terminaisons -er / -é / -ez / -ai (verbe 1er groupe) tranchées par le GOUVERNEUR (test mordre/mordu) ---
 # cadre PARTICIPE PASSÉ : avoir ET être (« je suis allez »→allé, « elle est rentrez »→rentré). « j'ai » = 1 token.
 _AUX_AV = (set(D.AUX_AVOIR) | set(D.AUX_ETRE)
-           | {'avoir', 'avais', 'avaient', "j'ai", 'etre', 'etais', 'etait', 'etaient', 'etions', 'etiez',
+           | {'avoir', 'avais', 'avaient', "j'ai", 'etre', 'ete', 'etais', 'etait', 'etaient', 'etions', 'etiez',
               'serai', 'seras', 'serez', 'serons', 'soient', 'sois'})
+_FLEX_CLITIC = {'se', 'me', 'te'}   # clitiques réfléchis PURS à SAUTER pour trouver le vrai gouverneur (« veut se séparer »). le/la/les EXCLUS (ambigus déterminant : « la cité remonte »=NOM, FP)
+_CAUS = {'faire', 'fait', 'fais', 'faisait', 'faisaient', 'font', 'fera', 'feront', 'ferait'}   # causatif « faire + INFINITIF » (« fait déclarer », « faire évoluer ») → infinitif. Déclenché seulement si le mot SUIVANT est un verbe -er (« un fait divers » = adj, non touché)
 _INF_GOV = {'de', 'pour', 'sans', 'afin'}                              # prépositions → infinitif (sous-ensemble SÛR de PREP)
 _FLEX_STOP = {'assez', 'chez', 'rez', 'nez', 'mai', 'quai', 'vrai', 'gai', 'essai', 'delai',
               'balai', 'geai', 'bai', 'lai', 'quinquennat'}            # homographes -ez/-ai non verbaux
@@ -336,7 +338,7 @@ def rule_flexion_er(T, i):
         tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
     elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
         tgt = 'part'
-    elif p in _INF_GOV or p in MODAL:             # prépo (de/pour/sans/afin)/modal → infinitif
+    elif p in _INF_GOV or p in MODAL or p in _CAUS:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
         tgt = 'inf'
     elif praw == 'vous':                          # « vous » sujet → -ez  (OBJET si précédé d'un verbe : « saura vous conseiller »)
         subj = (i == 1) or (_SEG is not None and i-1 < len(_SEG['bb']) and _SEG['bb'][i-1]) \
@@ -347,11 +349,15 @@ def rule_flexion_er(T, i):
         tgt = 'fut1'
     elif p == 'plait' and i >= 2 and deacc(T[i-2].lower()) == 'vous':
         tgt = 'p2pl'                              # « s'il vous plaît, cherché »→cherchez (impératif 2e pl poli)
-    else:                                         # sinon : AVOIR avec adverbe(s) intercalé(s) uniquement (« a déjà écouter »→écouté)
+    else:                                         # gouverneur à DISTANCE : sauter adverbes ET clitiques objet/réfléchis
         g = i - 1
-        while g > 0 and deacc(T[g].lower()) in _FLEX_ADV: g -= 1
-        if g >= 0 and T[g].lower() != 'à' and (deacc(T[g].lower()) in _AUX_AV or T[g].lower() == "j'ai"):
-            tgt = 'part'                          # « à tout casser » : « à » désaccentué = « a » → NE PAS le prendre pour avoir
+        while g > 0 and deacc(T[g].lower()) in (_FLEX_ADV | _FLEX_CLITIC): g -= 1
+        if g < 0: return None
+        dg = deacc(T[g].lower()); graw = T[g].lower()
+        if graw != 'à' and (dg in _AUX_AV or graw == "j'ai"):
+            tgt = 'part'                          # avoir/être (+ clitique/adverbe) → participe (« a déjà écouter »→écouté). « à » désaccentué = « a » → NON
+        elif dg in _INF_GOV or dg in MODAL or dg in _CAUS:
+            tgt = 'inf'                           # prépo/modal/causatif (+ clitique) → infinitif (« veut se séparé »→séparer, « fait déclaré »→déclarer)
         else:
             return None
     if cur == tgt: return None                    # déjà la bonne classe de terminaison (n'écrase pas un accord)
