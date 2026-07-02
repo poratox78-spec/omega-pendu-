@@ -207,13 +207,18 @@ def main():
     print(f"[det] {len(det)} déterminants genrés (closed-class) → {OUT_DET}")
 
     # === sous-ensemble HAUTE-FRÉQUENCE, embarquable dans l'app (IIFE) ===
-    hv = sorted([w for w, fr in verbs.items() if fr >= HF_FREQ])
+    # VERBES : couverture COMPLÈTE embarquée (= cgram_verbs.json), pas le seuil HF. La règle -er/-é/-ez/-ai
+    # (rFlexionEr) et rEer dépendent de l'appartenance verbale ; avec le sous-ensemble HF (~3,5k) l'app ratait
+    # des verbes courants (imprimer, classer, réserver…) → app ⊊ Python. Coût : ~+250 Ko dans cgram_hf.json
+    # (les formes verbales compressent bien). Genre/adjectifs/conjugaison restent HF (volumineux). Parité app == Python sur les verbes.
+    hv = out
+    hv_hf = sorted([w for w, fr in verbs.items() if fr >= HF_FREQ])   # sous-ensemble HF pour la conjugaison embarquée (reste volumineuse)
     hg = {w: gender[w] for w in gender if gfreq.get(w, 0.0) >= HF_FREQ}
     # conjugaison embarquée : formes HF, temps présent + imparfait seulement (les 2 plus fréquents/dys ;
     # l'imparfait porte le classique -ais/-ait). Le probe Python garde la table COMPLÈTE (tous temps).
     HF_TENSES = {'ind:pre', 'ind:imp'}
     hcf = {}
-    for w in hv:
+    for w in hv_hf:
         rs = cj_f.get(w)
         if not rs: continue
         kept = [r for r in rs if r.split(';')[1] in HF_TENSES]
