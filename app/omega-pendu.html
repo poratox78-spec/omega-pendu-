@@ -11955,13 +11955,22 @@ window.addEventListener('DOMContentLoaded', () => {
     return ckeepcase(w,DESEL[pre]+' '+rest);}
   // participe passé -é après « ils/elles + être » (collé, tolère ne…pas) → accord pluriel : ils→-és, elles→-ées. FP=0 (cf. correcteur_probe.rule_pp_etre).
   var PPE3P={sont:1,etaient:1,seront:1,soient:1,furent:1,seraient:1},PPMID={ne:1,n:1,pas:1,plus:1,jamais:1,y:1,en:1,se:1,s:1,deja:1,toujours:1,aussi:1,bien:1,encore:1,tous:1,toutes:1,tout:1};
-  function rPpEtre(T,i){if(T[i].toLowerCase().indexOf("'")>=0||!/é$/.test(T[i].toLowerCase()))return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ'&&tg[i]!=='AUX'))return null;
-    var a=-1,k;for(k=i-1;k>=0&&k>=i-3;k--){var dk=deacc(T[k].toLowerCase());if(PPE3P[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
-    if(a<0)return null;
-    for(k=a-1;k>=0&&k>=a-2;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ils'||d2==='elles')return ckeepcase(T[i],T[i]+(d2==='ils'?'s':'es'));if(d2==='ne'||d2==='n')continue;return null;}
-    return null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  // Accord du PARTICIPE PASSÉ (-er) avec le SUJET après ÊTRE — MIROIR de correcteur_probe.rule_pp_etre (parité)
+  var PPE_AUX={},PPE_AUXP={},PPE_SUBJ={il:['s','m'],elle:['s','f'],ils:['p','m'],elles:['p','f'],nous:['p','?'],je:['s','?'],tu:['s','?']};
+  'suis es est sommes etes sont etais etait etions etiez etaient sera seras serez serons seront sois soit soyons soyez soient fut furent serais serait'.split(' ').forEach(function(w){PPE_AUX[w]=1;});
+  'sommes etes sont etions etiez etaient soyons soyez soient serons serez seront furent'.split(' ').forEach(function(w){PPE_AUXP[w]=1;});
+  function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
+    var inf=_inf1(T[i]);if(inf===null)return null;var stem=inf.slice(0,-2);
+    var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
+    if(a<0)return null;var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
+    var info=null,sk=-1;for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
+    if(!info)return null;
+    if(_SEG&&sk<_SEG.hy.length&&_SEG.hy[sk])return null;                         // « poursuit-il » = inversion, pas le sujet
+    var num=info[0],gen=info[1];if(num!==auxNum)return null;                     // aux/sujet en désaccord de nombre → abstention
+    if(gen==='?')gen=/ées?$/.test(lw)?'f':'m';
+    var sugg=stem+({sm:'é',sf:'ée',pm:'és',pf:'ées'}[num+gen]);
+    return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
   function correctText(text){_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
