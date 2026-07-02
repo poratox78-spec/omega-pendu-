@@ -548,6 +548,55 @@ def _pp_base(w):
         if lw.endswith(suf) and deacc(lw[:-cut]) in _PP_IRR_CONS: return lw[:-cut]
     return lw if d in _PP_IRR_CONS else None
 
+_ADJ_DETM = {'le': 'm', 'un': 'm', 'ce': 'm', 'cet': 'm'}   # mon/ton/son EXCLUS (son amie = fém devant voyelle)
+_ADJ_DETF = {'la': 'f', 'une': 'f', 'cette': 'f', 'ma': 'f', 'ta': 'f', 'sa': 'f'}
+_ADJ_DETP = {'les', 'des', 'ces', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs'}
+_ADJ_STOP = {'sur', 'certain', 'seul', 'meme', 'propre', 'sacre', 'pauvre', 'grand', 'ancien', 'drole'}   # idiomes/épicènes/sens-variable
+
+def _adj_agree(w, gender, num):
+    """Accorde l'adjectif w (∈ ADJ_LEX) en genre+nombre. Genre via la paire lexicale (sauf épicène en -e) ; nombre via +s (al→aux, eau/eu→x)."""
+    lw = w.lower(); g_adj, alt = ADJ_LEX[deacc(lw)]
+    epicene = lw.endswith('e') and not lw.endswith('é')       # rouge/grave/jaune = invariables en genre
+    base = w if (epicene or g_adj == gender) else alt         # bon genre (alt = forme de l'autre genre, accentuée)
+    if num == 'p':
+        db = deacc(base.lower())
+        if db[-1] in 'sx':               pass                 # déjà pluriel/invariable
+        elif db.endswith('al'):          base = base[:-2] + 'aux'
+        elif db.endswith(('eau', 'eu')): base = base + 'x'
+        else:                            base = base + 's'
+    return base
+
+def rule_adj_attr(T, i):
+    """Accord de l'ADJECTIF ATTRIBUT après ÊTRE, avec le sujet (« la voiture est bleu »→bleue,
+    « elles sont content »→contentes, « les murs sont blanc »→blancs). Gaté par le TAGGER (tg[i]==ADJ → écarte les
+    noms homographes blanche/vert…) + cadre être. Sujet = pronom (il/elle/ils/elles) ou [déterminant + nom]. FP≈0."""
+    w = T[i]; lw = w.lower()
+    if "'" in lw: return None
+    d = deacc(lw)
+    if d not in ADJ_LEX or d in _ADJ_STOP: return None
+    alt = ADJ_LEX[d][1]
+    if deacc(alt).endswith('ee') and not d.endswith('e'): return None   # « grave→gravée », « sale→salée » = participe contaminé, pas une paire de genre
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
+    a = None
+    for k in range(i-1, max(-1, i-4), -1):
+        dk = deacc(T[k].lower())
+        if dk in _PP_ETRE_AUX: a = k; break
+        if dk in _PP_MID: continue
+        return None
+    if a is None or a == 0: return None
+    if _SEG is not None and (a-1) < len(_SEG['hy']) and _SEG['hy'][a-1]: return None   # inversion (est-il) ≠ sujet
+    for k in range(max(0, a-5), a):                                     # sujet coordonné (bec ET pattes) = genre mixte → abstention
+        if deacc(T[k].lower()) in ('et', 'ou', 'ni'): return None
+    aux_num = 'p' if deacc(T[a].lower()) in _PP_AUX_P else 's'
+    sp = deacc(T[a-1].lower())
+    if sp not in ('il', 'elle', 'ils', 'elles'): return None   # SUJET = pronom fiable seulement (nom-sujet = FP-risqué, backlog)
+    gender = 'f' if sp in ('elle', 'elles') else 'm'
+    num = 'p' if sp in ('ils', 'elles') else 's'
+    if num != aux_num: return None
+    sugg = _adj_agree(w, gender, num)
+    return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+
 def rule_pp_etre(T, i):
     """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
     « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
@@ -1198,7 +1247,7 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
-         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord adjectif', rule_adj_attr), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -1306,6 +1355,10 @@ CASES = [
     ("Elle est venue hier", "venue", "venu", "accord participe"),         # -u (venir)
     ("Nous sommes partis tôt", "partis", "parti", "accord participe"),    # -ir (partir)
     ("Elle est morte en hiver", "morte", "mort", "accord participe"),     # irrégulier (mourir)
+    # accord de l'adjectif attribut après être (sujet pronom)
+    ("Elle est contente", "contente", "content", "accord adjectif"),      # elle → féminin
+    ("Ils sont nationaux", "nationaux", "national", "accord adjectif"),   # ils → pluriel (-al→-aux)
+    ("Elles sont vertes", "vertes", "vert", "accord adjectif"),           # elles → féminin pluriel
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
