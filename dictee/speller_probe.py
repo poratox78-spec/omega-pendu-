@@ -60,6 +60,13 @@ def phon_key(s):
     (collisions ver/vert/verre attendues) → usage FLAG seulement, classé par fréquence."""
     s = s.lower().replace('œ', 'oe').replace('æ', 'ae').replace('ç', 's')
     s = deacc(s)
+    # NASALES : voyelle+n/m NON suivie de voyelle/n/m → une classe nasale unique (rappel : « sertin »≈« certain »,
+    # « in/ain/ein/un »→/ɛ̃/=1 ; « an/en »→/ɑ̃/=2 ; « on »→/ɔ̃/=3). Préserve les non-nasales (animal, année, aime, pomme).
+    s = re.sub(r'oin(?![aeiouy])', 'w1', s)
+    s = re.sub(r'ien(?![aeiouy])', 'j1', s)
+    s = re.sub(r'(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])', '1', s)
+    s = re.sub(r'(?:an|am|en|em)(?![aeiouymn])', '2', s)
+    s = re.sub(r'(?:on|om)(?![aeiouymn])', '3', s)
     s = s.replace('ph', 'f').replace('sch', 'ch').replace('th', 't')
     s = s.replace('ch', '§').replace('gn', '¤')                 # digraphes → placeholders
     s = s.replace('qu', 'k').replace('gu', 'g')
