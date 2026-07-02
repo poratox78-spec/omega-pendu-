@@ -315,6 +315,36 @@
       if(seenPrep&&(NUM_DET[tk]||tg[m]==='DET'||tg[m]==='NOUN'||tg[m]==='PROPN'||tg[m]==='PRON'||tg[m]==='ADJ'||tg[m]==='NUM'))continue;
       return null;}
     return _svFinish(T,i,'3',nb,p3);}
+  // accord sujet-VERBE dans une relative « QUI » — MIROIR correcteur_probe.rule_accord_sv_relatif, FP=0
+  var _REL_ANT={moi:['1','s'],toi:['2','s'],lui:['3','s'],elle:['3','s'],soi:['3','s'],nous:['1','p'],vous:['2','p'],eux:['3','p'],elles:['3','p'],ce:['3','s'],celui:['3','s'],celle:['3','s'],ceux:['3','p'],celles:['3','p']};
+  function rAccordSVrelatif(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
+    if(/(é|és|ée|ées)$/.test(lw))return null;
+    var reads=svReads(T[i]);if(!reads.length)return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var j=i-1;while(j>=0&&(CLITIC[deacc(T[j].toLowerCase())]||deacc(T[j].toLowerCase())==='ne'||deacc(T[j].toLowerCase())==='n'))j--;
+    if(j<0||deacc(T[j].toLowerCase())!=='qui')return null;
+    var qk=j;if(qk===0)return null;
+    var ant=deacc(T[qk-1].toLowerCase()),per,nb,k;
+    if(_REL_ANT[ant]){per=_REL_ANT[ant][0];nb=_REL_ANT[ant][1];}
+    else{per='3';var det=-1,noun=-1,lo=0,jj;if(_SEG){for(jj=qk;jj>0;jj--){if(jj<_SEG.bb.length&&_SEG.bb[jj]){lo=jj;break;}}}
+      var m=qk-1;
+      while(m>=lo){var dm=deacc(T[m].toLowerCase());
+        if(T[m].toLowerCase().indexOf("'")>=0)return null;
+        if(PREP[dm])return null;
+        if(tg[m]==='DET'||NUM_DET[dm]||_QUANT_PL[dm]||_QUANT_SG[dm]){det=m;break;}
+        if(tg[m]==='NOUN'||tg[m]==='PROPN'){noun=m;m--;continue;}
+        if(tg[m]==='ADJ'||tg[m]==='ADV'||tg[m]==='NUM'){m--;continue;}
+        return null;}
+      if(det<0||noun<0)return null;
+      var mm=det-1;while(mm>lo&&tg[mm]==='ADV')mm--;
+      if(mm>=lo&&PREP[deacc(T[mm].toLowerCase())])return null;
+      if(mm>=lo&&['et','ou','ni'].indexOf(deacc(T[mm].toLowerCase()))>=0)return null;
+      var dd=deacc(T[det].toLowerCase());
+      if(NUM_DET[dd])nb=NUM_DET[dd]==='pl'?'p':'s';else if(_QUANT_PL[dd])nb='p';else if(_QUANT_SG[dd])nb='s';else return null;}
+    for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return null;
+    var lem=null,uni=true,mts={};for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
   var DET_G={un:'m',une:'f',le:'m',la:'f',ce:'m',cet:'m',cette:'f',mon:'m',ma:'f',ton:'m',ta:'f',son:'m',sa:'f',quel:'m',quelle:'f'};
   var DET_A={'un|f':'une','une|m':'un','le|f':'la','la|m':'le','ce|f':'cette','cet|f':'cette','cette|m':'ce','mon|f':'ma','ma|m':'mon','ton|f':'ta','ta|m':'ton','son|f':'sa','sa|m':'son','quel|f':'quelle','quelle|m':'quel'};
   function ckeepcase(src,sg){var c=src.charAt(0);return (c!==c.toLowerCase())?sg.charAt(0).toUpperCase()+sg.slice(1):sg;}
@@ -490,7 +520,7 @@
     else{var subj=_npSubject(T,tg,a);if(!subj)return null;num=subj.n;gender=subj.g;if(gender==='?'){if(!epi)return null;gender='m';}}
     if(num!==auxNum)return null;
     var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctText(text){_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
