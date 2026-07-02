@@ -24,7 +24,8 @@ SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
 # Verbes/mots-outils suivis d'un INFINITIF (pour -é/-er). PREP (de/à/pour/sans…) vient de diag_sentence.
 MODAL = {'veux','veut','veulent','peux','peut','peuvent','dois','doit','doivent','va','vais','vas','vont',
          'faut','sais','sait','aime','aimes','aiment','adore','espere','souhaite','prefere','preferent',
-         'vient','viens','allons','allez','laisse','laissent','semble','ose','vais','pour','sans','afin','de'}
+         'vient','viens','allons','allez','laisse','laissent','semble','ose','vais','pour','sans','afin','de',
+         'devons','devez','pouvons','pouvez','voulons','voulez'}   # modaux conjugués 1pl/2pl (+ infinitif)
 AUX = set(D.AUX_ETRE) | set(D.AUX_AVOIR)
 
 # Durcissement FP (mesuré sur UD French, cf. fp_stress_test.py). Noms INVARIABLES en -s/-x (« leur pays » = sg, pas
@@ -322,6 +323,8 @@ def rule_flexion_er(T, i):
         tgt = 'p2pl'
     elif praw == 'je':                            # « je noté/noter » → futur -ai
         tgt = 'fut1'
+    elif p == 'plait' and i >= 2 and deacc(T[i-2].lower()) == 'vous':
+        tgt = 'p2pl'                              # « s'il vous plaît, cherché »→cherchez (impératif 2e pl poli)
     else:                                         # sinon : AVOIR avec adverbe(s) intercalé(s) uniquement (« a déjà écouter »→écouté)
         g = i - 1
         while g > 0 and deacc(T[g].lower()) in _FLEX_ADV: g -= 1
@@ -1219,6 +1222,8 @@ CASES = [
     ("Vous signez le document", "signez", "signer", "terminaison -er/-é/-ez/-ai"),      # vous → -ez
     ("Demain je noterai le numéro", "noterai", "noté", "terminaison -er/-é/-ez/-ai"),   # je → futur -ai
     ("Vous avez classé les bordereaux", "classé", "classez", "terminaison -er/-é/-ez/-ai"),  # avez (avoir) → participe -é
+    ("Il faut noter le numéro", "noter", "notez", "terminaison -er/-é/-ez/-ai"),          # il faut → infinitif -er
+    ("S'il vous plaît, notez le numéro", "notez", "noté", "terminaison -er/-é/-ez/-ai"),  # s'il vous plaît → impératif -ez
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
