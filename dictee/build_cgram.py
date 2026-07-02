@@ -212,34 +212,14 @@ def main():
     # des verbes courants (imprimer, classer, réserver…) → app ⊊ Python. Coût : ~+250 Ko dans cgram_hf.json
     # (les formes verbales compressent bien). Genre/adjectifs/conjugaison restent HF (volumineux). Parité app == Python sur les verbes.
     hv = out
-    hv_hf = sorted([w for w, fr in verbs.items() if fr >= HF_FREQ])   # sous-ensemble HF pour la conjugaison embarquée (reste volumineuse)
     hg = {w: gender[w] for w in gender if gfreq.get(w, 0.0) >= HF_FREQ}
-    # conjugaison embarquée : formes HF, temps présent + imparfait seulement (les 2 plus fréquents/dys ;
-    # l'imparfait porte le classique -ais/-ait). Le probe Python garde la table COMPLÈTE (tous temps).
-    HF_TENSES = {'ind:pre', 'ind:imp'}
-    hcf = {}
-    for w in hv_hf:
-        rs = cj_f.get(w)
-        if not rs: continue
-        kept = [r for r in rs if r.split(';')[1] in HF_TENSES]
-        if kept: hcf[w] = '|'.join(sorted(kept))
-    hc_need = {r.split(';')[0] for rs in hcf.values() for r in rs.split('|')}
-    hcc = {lem: {mt: s for mt, s in conj_c[lem].items() if mt in HF_TENSES}
-           for lem in hc_need if lem in conj_c}
-    hcc = {lem: m for lem, m in hcc.items() if m}
-    # CLÔTURE DE PARADIGME (sinon écart de couverture vs Python) : toute forme que hcc peut SUGGÉRER
-    # (« roulent ») doit être dans hcf, car la règle d'accord se garde par auto-vérification svReads(sugg) —
-    # si la forme suggérée manque, l'accord n'est JAMAIS proposé (« Les voitures roule » resterait non corrigé).
-    # On ajoute les formes-suggestions manquantes avec leurs lectures (filtrées HF_TENSES) depuis cj_f complet.
-    for _mts in hcc.values():
-        for _slots in _mts.values():
-            for _form in _slots.values():
-                fw = deacc(_form.lower())
-                if fw in hcf: continue
-                rs = cj_f.get(fw)
-                if not rs: continue
-                kept = sorted(r for r in rs if r.split(';')[1] in HF_TENSES)
-                if kept: hcf[fw] = '|'.join(kept)
+    # conjugaison embarquée COMPLÈTE (choix Rem 2026-07-02 : « d'abord l'efficacité, on verra après pour le poids »).
+    # Auparavant sous-ensemble HF (verbes freq≥seuil × présent+imparfait) → l'app ratait les verbes hors-HF (« diminuer »,
+    # « imprimer »…) → app ⊊ Python sur l'accord sujet-verbe. On embarque désormais la table INTÉGRALE (= cgram_conj.json :
+    # tous verbes, tous temps) → app == Python sur la conjugaison. Clôture de paradigme automatique (toute forme
+    # suggérable est déjà dans conj_f). Coût : blob nettement plus lourd (poids assumé pour l'instant).
+    hcf = conj_f
+    hcc = conj_c
     # gn = genre de NOMS PURS (non ambigu MOINS verbes MOINS adjectifs) — pour la règle genre-déterminant de l'app.
     # Pré-filtré avec les lexiques PLEINS (verbs 12k, adj 16k) → l'app n'a qu'à tester l'appartenance : jamais
     # d'homographe nom/verbe (« porte ») ni nom/adjectif → parité garantie app ⊆ Python (rule_det_gender).

@@ -16,7 +16,7 @@ def main():
     if not (os.path.exists(APP) and os.path.exists(HF)):
         print(f"[inject] app ou cgram_hf.json introuvable"); return 1
     hf = open(HF, encoding='utf-8').read().strip()
-    app = open(APP, encoding='utf-8').read()
+    app = open(APP, encoding='utf-8', newline='').read()   # newline='' : PRÉSERVE les fins de ligne (CRLF) — sinon l'app passe en LF et diverge de l'extension (imp_probe : parité mover source)
     pat = re.compile(r'(<script type="application/json" id="vdc-lex">)(.*?)(</script>)', re.S)
     if not pat.search(app):
         print("[inject] bloc vdc-lex introuvable dans l'app"); return 2
