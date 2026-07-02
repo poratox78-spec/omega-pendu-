@@ -111,6 +111,7 @@
     else if(_INF_GOV[p]||MODAL[p])tgt='inf';
     else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj)return null;tgt='p2pl';}
     else if(praw==='je')tgt='fut1';
+    else if(p==='plait'&&i>=2&&deacc(T[i-2].toLowerCase())==='vous')tgt='p2pl';   // « s'il vous plaît, cherché »→cherchez
     else{var g=i-1;while(g>0&&_FLEX_ADV[deacc(T[g].toLowerCase())])g--;if(g>=0&&T[g].toLowerCase()!=='à'&&(_AUX_AV[deacc(T[g].toLowerCase())]||T[g].toLowerCase()==="j'ai"))tgt='part';else return null;}
     if(cur===tgt)return null;
     if(/(és|ées)$/.test(lw)&&(tgt==='inf'||tgt==='p2pl'||tgt==='fut1'))return null;
