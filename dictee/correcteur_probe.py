@@ -13,7 +13,7 @@
 # Mesuré : faux positifs (sur les 30 phrases CORRECTES + cas témoins) · détection (faute injectée flaguée ?)
 #          · correction (la proposition est-elle la bonne ?). Réutilise diag_sentence (doctrine §5).
 # Lancer : python3 dictee/correcteur_probe.py
-import os, sys, json
+import os, sys, json, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import diag_sentence as D
@@ -379,6 +379,24 @@ def rule_cest_sest(T, i):
 
 _PP_ETRE3P = {'sont', 'etaient', 'seront', 'soient', 'furent', 'seraient'}
 _PP_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'y', 'en', 'se', 's', 'deja', 'toujours', 'aussi', 'bien', 'encore', 'tous', 'toutes', 'tout'}
+_DESEL = {'j': 'je', 'n': 'ne', 'm': 'me', 't': 'te', 's': 'se', 'd': 'de', 'c': 'ce', 'qu': 'que'}
+_DESEL_VOW = set('aeiouyàâäéèêëîïôöùûüh') | {'œ', 'æ'}
+def rule_deselide(T, i):
+    """Élision INVERSÉE (faute dys) : « j'ne, n'sait, m'détestons, d'guerre »… Un proclitique élidé (j'/n'/m'/t'/s'/d'/c'/qu')
+    ne s'élide QUE devant voyelle ; devant CONSONNE = faute → on rétablit (je/ne/me/… + espace + mot). FP=0 (14 450 UD).
+    l' exclu (le/la ambigu) ; nom propre (reste capitalisé) et « d'œuvre » (œ = voyelle) préservés."""
+    w = T[i]; lw = w.lower()
+    if lw in ("m'sieur", "m'dame", "m'ame"): return None
+    m = re.match(r"^(qu|[jnmtsdcl])'(.+)$", lw)
+    if not m: return None
+    pre = m.group(1); rest = w[len(pre)+1:]
+    if not rest or rest[0].lower() in _DESEL_VOW or not rest[0].isalpha() or rest[:1].isupper(): return None
+    if pre == 'l':                                                    # « l' » + consonne → le/la selon le GENRE du nom (lexique) ; genre inconnu → abstention
+        g = GENDER_PURE.get(deacc(rest.lower()))
+        if g not in ('m', 'f'): return None
+        return _keepcase(w, ('le' if g == 'm' else 'la') + ' ' + rest)
+    return _keepcase(w, _DESEL[pre] + ' ' + rest)
+
 def rule_pp_etre(T, i):
     """Participe passé en -é après « ils/elles + être » (pronom pluriel collé à l'aux, tolère ne…pas/adverbes) → accord
     PLURIEL : ils→-és, elles→-ées. FP=0 mesuré sur 14 450 UD (l'ancre = le pronom pluriel adjacent à l'aux ; le mur du
@@ -1006,7 +1024,8 @@ def rule_ca_sa(T, i):
         return None                                                  # genre inconnu (consonne) → abstention
     return None
 
-RULES = [('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
+RULES = [('élision inversée', rule_deselide),
+         ('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes),
