@@ -11,6 +11,8 @@ jobs:
         run: python3 dictee/diag_sentence.py
       - name: Correcteur dys (détection + correction, sans corrigé)
         run: python3 dictee/correcteur_probe.py
+      - name: Mover impératif — référence Python == cas
+        run: python3 dictee/imperative_clitics.py
       - name: Garde anti-régression rappel (levier j'est être/avoir + FP) — recall_probe --check
         run: python3 dictee/recall_probe.py --check
       - name: Garde FP À L'ÉCHELLE (correcteur sur 2500 phrases correctes UD — plafond anti-régression, cf. audit 30/06)
@@ -53,6 +55,8 @@ jobs:
         run: node dictee/test_speller_app.js
       - name: Benchmark dys réel (rappel plancher + FP=0 + garde anti-mauvaises-corrections)
         run: node dictee/messy_probe.js --check
+      - name: Mover impératif (parité app==extension + corrections + FP=0)
+        run: node dictee/imp_probe.js --check
       - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)
         run: python3 dictee/close_conj_paradigm.py --check
       - name: POS-tagger 155k extrait du lexique embarqué (build_pos)

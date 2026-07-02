@@ -25,6 +25,7 @@ command -v node    >/dev/null && echo "  node $(node --version)" || { echo "  �
 echo "── Python : dictée + correcteur (sans Lexique4.tsv) ──"
 run "diag phrases"                 python3 dictee/diag_sentence.py
 run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
+run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
 run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
 run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check
 run "held-out vocab neuf"          python3 dictee/eval_externe.py
@@ -49,6 +50,7 @@ run "parité correcteur APP↔Python"  node dictee/parity_corr.js
 run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
+run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
 runsh "syntaxe extension (3 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js"
 run "correcteur standalone"         node dictee/correcteur.js
