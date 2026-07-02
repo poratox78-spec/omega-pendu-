@@ -155,13 +155,39 @@
     if(i+1<T.length&&pluralSubj&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&_ppBase(T[i+1])!==null&&/[sx]$/.test(nxt)&&_clauseNoFiniteVerb(T,i))return 'sont';   // « les enfants son partis »→sont
     return null;}
   var IRREG_PART={eu:1,pu:1,du:1,su:1,vu:1,lu:1,tenu:1,venu:1,devenu:1,revenu:1,voulu:1,valu:1,fallu:1,connu:1,reconnu:1,paru:1,apparu:1,disparu:1,couru:1,recu:1,mort:1,fait:1,refait:1,dit:1,redit:1,ecrit:1,decrit:1,mis:1,remis:1,permis:1,promis:1,pris:1,appris:1,compris:1,surpris:1,ouvert:1,offert:1,couvert:1,souffert:1,peri:1,acquis:1,conquis:1,assis:1,vecu:1,plu:1,cru:1,bu:1,tu:1};
+  // GARDE anti-FP (abstention seule) : participe passé au sens LARGE — -u/-i/-is/-it/-é des verbes -re/-oir/-ire/-uire
+  // que _isPpl (strict, anti-noms) écarte. Miroir _looks_ppl (correcteur_probe). Ne JAMAIS s'en servir pour DÉCIDER une correction.
+  function _looksPpl(w){if(_isPpl(w))return true;var lw=w.toLowerCase(),d=deacc(lw);if(d.length<3)return false;
+    if(IRREG_PART[d])return true;
+    if(/(ées|és|ée|é)$/.test(lw))return true;   // participe -é (orchestré) même si l'infinitif -er manque du lexique
+    if(/us$/.test(d))d=d.slice(0,-1);
+    if(/u$/.test(d)&&(COMMON_VERBS[d.slice(0,-1)+'re']||COMMON_VERBS[d+'re']||COMMON_VERBS[d.slice(0,-1)+'oir']))return true;   // vendu→vendre, conclu→conclure, voulu→vouloir
+    if(/(is|it)$/.test(d)){var b=d.slice(0,-2);if(COMMON_VERBS[b+'re']||COMMON_VERBS[b+'ire']||COMMON_VERBS[b+'uire']||COMMON_VERBS[b+'endre']||COMMON_VERBS[b+'ettre']||COMMON_VERBS[b+'aire'])return true;}   // commis/pris/déduit/écrit/dit/fait
+    if(/i$/.test(d)&&COMMON_VERBS[d.slice(0,-1)+'re'])return true;   // suivi→suivre
+    return false;}
+  var _PLURAL_CUE={et:1,ni:1,ils:1,elles:1,qui:1,ceux:1,celles:1,lesquels:1,lesquelles:1};
+  // évidence d'un sujet PLURIEL/coordonné/relatif à GAUCHE (garde ont→on), sans franchir de frontière de proposition. Miroir _plural_left.
+  function _pluralLeft(T,i){var j=i-1;for(var k=0;k<7;k++){if(j<0)return false;var wj=deacc(T[j].toLowerCase());
+    if(_PLURAL_CUE[wj]||cpl(T,j))return true;
+    if(_SEG&&j<_SEG.bb.length&&_SEG.bb[j])return false;j--;}return false;}
   function rOn(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // « avait-on », « peut-on » : trait d'union → pronom inversé
     var nx=i+1<T.length?T[i+1].toLowerCase():'';if(/e$/.test(nx)&&!/ée$/.test(nx)&&svReads(nx).length)return 'on';
-    var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
-    if(p==='ils'||p==='elles'||glued||cpl(T,i-1))return 'ont';
-    if(i+1<T.length&&_isPpl(T[i+1]))return 'ont';
-    if(vlike(T,i+1))return 'on';return null;}
+    // TÊTE de proposition (i==0 ou frontière avant) : le sujet à GAUCHE est d'une AUTRE proposition — contexte gauche INVALIDE (FP WiCoPaCo « …données. On pouvait… »)
+    var ci=(i===0)||(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]);
+    if(!ci){
+      var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
+      if(p==='ils'||p==='elles'||glued||cpl(T,i-1))return 'ont';
+      if(i+1<T.length&&_isPpl(T[i+1]))return 'ont';
+    }
+    if(vlike(T,i+1)){
+      if(lw==='ont'){
+        if(_looksPpl(T[i+1]))return null;   // « ont conclu/suivi/déduit/orchestré » = avoir 3pl + participe, jamais « on » (FP WiCoPaCo)
+        if(_pluralLeft(T,i))return null;    // sujet pluriel coordonné/relatif (« l'état et le gouvernement ont », « …qui…ont ») → « ont » correct (FP WiCoPaCo)
+      }
+      return 'on';
+    }
+    return null;}
   var INVAR_NOUN={pays:1,temps:1,prix:1,poids:1,corps:1,fois:1,mois:1,cas:1,bras:1,dos:1,nez:1,choix:1,voix:1,croix:1,bois:1,univers:1,succes:1,progres:1,repas:1,avis:1,sens:1,cours:1,concours:1,discours:1,jus:1,tas:1,os:1,puits:1,bus:1,virus:1,tennis:1,colis:1,devis:1,permis:1,compromis:1,paradis:1,velours:1,dais:1};
   var MAIS_STOP={pas:1,plus:1,moins:1,point:1,rien:1,tout:1,tres:1,jamais:1,surtout:1,aussi:1,encore:1,toujours:1,comment:1,pourquoi:1,peu:1,trop:1,bien:1,non:1,oui:1,si:1,assez:1,enfin:1,donc:1,car:1,alors:1,ici:1,la:1};
   var DET_SKIP={plus:1,moins:1,tres:1,bien:1,trop:1,assez:1,aussi:1,si:1,autre:1,autres:1,meme:1,propre:1,seul:1,seule:1,tel:1,telle:1,certain:1,certaine:1,tout:1,toute:1,grand:1,grande:1,petit:1,petite:1,gros:1,grosse:1,beau:1,bel:1,belle:1,bon:1,bonne:1,nouveau:1,nouvel:1,nouvelle:1,premier:1,premiere:1,dernier:1,derniere:1,jeune:1,vieux:1,vieil:1,vieille:1,long:1,longue:1,large:1,simple:1,super:1,superbe:1,primaire:1,double:1,triple:1,sous:1,pour:1,contre:1,par:1,sans:1,avec:1,entre:1,vers:1,mi:1,demi:1,semi:1,pseudo:1,quasi:1,ex:1,porte:1,montre:1,des:1,les:1,de:1,le:1};
@@ -169,7 +195,7 @@
   function rA(T,i){if(deacc(T[i].toLowerCase())!=='a')return null;if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;
     var pb=(_SEG&&i<_SEG.bb.length)?_SEG.bb[i]:false;var p=cprev(T,i);
     if(!pb&&(p==='il'||p==='elle'||p==='on'||p==='qui'||p==='ca'||p==='c'))return 'a';   // sujet 3sg net → avoir
-    if(i+1<T.length&&_isPpl(T[i+1]))return 'a';   // « a + participe » → auxiliaire AVOIR
+    if(i+1<T.length&&_isPpl(T[i+1])&&!/ee$/.test(deacc(T[i+1].toLowerCase())))return 'a';   // « a + participe » → auxiliaire AVOIR ; écarte le participe FÉMININ -ée (durée, entrée) = NOM (après AVOIR le participe n'accorde pas) → « à durée » reste préposition (FP WiCoPaCo)
     if(i+2<T.length&&/ment$/.test(deacc(T[i+1].toLowerCase()))&&_isPpl(T[i+2]))return 'a';
     if(!pb&&vlike(T,i-1)){var pv=i>0&&NOUN_POST?NOUN_POST.get(deacc(T[i-1].toLowerCase())):null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return null;return 'à';}return null;}
   function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')return null;
@@ -400,7 +426,9 @@
   var DET_A={'un|f':'une','une|m':'un','le|f':'la','la|m':'le','ce|f':'cette','cet|f':'cette','cette|m':'ce','mon|f':'ma','ma|m':'mon','ton|f':'ta','ta|m':'ton','son|f':'sa','sa|m':'son','quel|f':'quelle','quelle|m':'quel'};
   function ckeepcase(src,sg){var c=src.charAt(0);return (c!==c.toLowerCase())?sg.charAt(0).toUpperCase()+sg.slice(1):sg;}
   // GARDE du genre §3 : le NOM-test passe par _nounGate(NOUN_POST) — même posterior que le pluriel (l'ancien SET pos-abstain est supprimé).
+  var _POSS_DET={mon:1,ma:1,ton:1,ta:1,son:1,sa:1},_ART_BLOCK={un:1,une:1,le:1,la:1,les:1,du:1,des:1,au:1,aux:1,ce:1,cet:1,cette:1,ces:1,mon:1,ma:1,mes:1,ton:1,ta:1,tes:1,son:1,sa:1,ses:1,notre:1,nos:1,votre:1,vos:1,leur:1,leurs:1};   // le français n'empile JAMAIS article + possessif
   function rDetGenre(T,i){var lw=deacc(T[i].toLowerCase());if(!DET_G[lw]||T[i].toLowerCase().indexOf("'")>=0)return null;if(i+1>=T.length)return null;
+    if(_POSS_DET[lw]&&_ART_BLOCK[cprev(T,i)])return null;   // possessif précédé d'un article = NOM homographe (« un son », « le ton », « du son ») → jamais possessif → abstention (FP WiCoPaCo « un son stéréo »→sa)
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)

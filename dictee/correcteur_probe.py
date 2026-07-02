@@ -193,6 +193,25 @@ def _is_ppl(w):
     elif d.endswith('i'):    stem, inf = deacc(lw[:-1]), 'ir'
     else: return False                                               # -u/-us écartés : trop de noms homographes (revenu, contenu, menu, tissu) → FP a/à
     return len(stem) >= 2 and (stem + inf) in VERB_LEX
+
+def _looks_ppl(w):
+    """Participe passé au sens LARGE — GARDE anti-FP (abstention seule), PAS pour décider une correction.
+    Reconstruit aussi les -u/-i/-is/-it/-é des verbes en -re/-oir/-ire/-uire que _is_ppl (strict, anti-noms) écarte.
+    Sur-couvrir est SANS RISQUE ici : « ont + participe » = avoir 3pl, jamais « on » → au pire on rate une
+    correction ont→on rare. (Ne JAMAIS réutiliser pour une conversion : trop lâche, il attrape des noms en -é.)"""
+    if _is_ppl(w): return True
+    lw = w.lower(); d = deacc(lw)
+    if len(d) < 3: return False
+    if d in IRREG_PART: return True
+    if lw.endswith(('é', 'ée', 'és', 'ées')): return True            # participe en -é (orchestré) même si l'infinitif -er manque du lexique
+    if d.endswith('us'): d = d[:-1]
+    if d.endswith('u') and any(inf in VERB_LEX for inf in (d[:-1]+'re', d+'re', d[:-1]+'oir')):
+        return True                                                  # vendu→vendre, conclu→conclure, voulu→vouloir
+    if d.endswith(('is', 'it')) and any(inf in VERB_LEX for inf in (d[:-2]+'re', d[:-2]+'ire', d[:-2]+'uire', d[:-2]+'endre', d[:-2]+'ettre', d[:-2]+'aire')):
+        return True                                                  # commis→commettre, pris→prendre, déduit→déduire, écrit→écrire, dit→dire, fait→faire
+    if d.endswith('i') and (d[:-1]+'re') in VERB_LEX: return True    # suivi→suivre
+    return False
+
 def nxt(T, i):  return deacc(T[i+1].lower()) if i+1 < len(T) else None
 def _plural_before(T, i):
     """Un marqueur de sujet PLURIEL apparaît-il avant le mot i, dans la même proposition (≤6 tokens, sans frontière) ?"""
@@ -409,19 +428,40 @@ def rule_son_sont(T, i):
         return 'sont'
     return None
 
+_PLURAL_CUE = {'et', 'ni', 'ils', 'elles', 'qui', 'ceux', 'celles', 'lesquels', 'lesquelles'}
+def _plural_left(T, i):
+    """Évidence d'un sujet PLURIEL/coordonné/relatif dans la proposition à GAUCHE (garde ont→on). Scanne ≤7 tokens
+    sans franchir de frontière de proposition. « l'état ET le gouvernement ont », « populations…QUI…ont » : « ont »
+    est correct (pluriel) → ne pas rabattre en « on ». Abstention seule ⇒ FP-safe (n'invente aucune correction)."""
+    j = i - 1
+    for _ in range(7):
+        if j < 0: return False
+        wj = deacc(T[j].lower())
+        if wj in _PLURAL_CUE or is_plural_noun(T, j): return True
+        if _SEG is not None and j < len(_SEG['bb']) and _SEG['bb'][j]: return False   # début de proposition atteint → stop
+        j -= 1
+    return False
+
 def rule_on_ont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
     nx = T[i+1].lower() if i+1 < len(T) else ''
     if nx.endswith('e') and not nx.endswith('ée') and _reads(nx): return 'on'   # « on » + verbe FINI présent en -e (trouve/mange) → « on » (ont ne précède JAMAIS un verbe fini) ; fixe « professeurs on trouve »→ont
-    p = prev(T, i)
-    pr = deacc(T[i-1].lower()) if i > 0 else ''
-    glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
-    if p in ('ils', 'elles') or glued_pl or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
-    if i+1 < len(T) and _is_ppl(T[i+1]):
-        return 'ont'                                                    # avoir + participe (« ont grandi/incarné/pu/fait/eu ») → 3pl, jamais « on »
-    if vlike(T, i+1):         return 'on'                               # « on » sujet + verbe
+    # TÊTE de proposition (i==0 ou frontière avant) : le sujet à GAUCHE appartient à une AUTRE proposition — contexte
+    # gauche INVALIDE (« …des données. On pouvait… » : « données » n'est pas le sujet de « on »). FP WiCoPaCo mesuré.
+    ci = (i == 0) or (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i])
+    if not ci:
+        p = prev(T, i)
+        pr = deacc(T[i-1].lower()) if i > 0 else ''
+        glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
+        if p in ('ils', 'elles') or glued_pl or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
+        if i+1 < len(T) and _is_ppl(T[i+1]): return 'ont'              # avoir + participe (« les gens qui on grandi/incarné/pu ») → 3pl, jamais « on »
+    if vlike(T, i+1):
+        if lw == 'ont':
+            if _looks_ppl(T[i+1]): return None                         # « ont conclu/suivi/déduit/orchestré » = avoir 3pl + participe (même -u/-i/-is/-it/-é hors _is_ppl), jamais « on » (FP WiCoPaCo)
+            if _plural_left(T, i): return None                         # sujet pluriel coordonné/relatif à gauche (« l'état et le gouvernement ont », « …qui…ont ») → « ont » correct (FP WiCoPaCo)
+        return 'on'                                                    # « on » sujet + verbe
     return None
 
 def rule_leur_leurs(T, i):
@@ -439,7 +479,7 @@ def rule_a_aa(T, i):
     pb = _SEG['bb'][i] if (_SEG is not None and i < len(_SEG['bb'])) else False   # frontière de proposition AVANT (virgule…) → le mot d'avant ne gouverne pas (« qui, à 4°C » : « qui » n'est pas le sujet de « à »)
     p = prev(T, i)
     if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg net (pas à travers une virgule) → avoir
-    if i+1 < len(T) and _is_ppl(T[i+1]):                  return 'a'    # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à »
+    if i+1 < len(T) and _is_ppl(T[i+1]) and not deacc(T[i+1].lower()).endswith('ee'): return 'a'   # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à ». Écarte le participe FÉMININ -ée (durée, entrée, sortie) : après AVOIR le participe NE s'accorde PAS → « -ée » = NOM → « à durée limitée » reste préposition (FP WiCoPaCo)
     if i+2 < len(T) and deacc(T[i+1].lower()).endswith('ment') and _is_ppl(T[i+2]): return 'a'   # « a + adverbe(-ment) + participe » (« a également exploité »)
     if not pb and vlike(T, i-1):                                       # après un verbe (« va à »), même proposition → préposition
         pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
@@ -1360,10 +1400,15 @@ if os.path.exists(_GREL_PATH):
             GENDER_PURE.setdefault(_w, _g)          # union : garde gn, ajoute les noms purs supplémentaires
     except Exception: pass
 
+_POSS_DET = {'mon', 'ma', 'ton', 'ta', 'son', 'sa'}
+_ART_BLOCK = {'un', 'une', 'le', 'la', 'les', 'du', 'des', 'au', 'aux', 'ce', 'cet', 'cette', 'ces',
+              'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses',
+              'notre', 'nos', 'votre', 'vos', 'leur', 'leurs'}   # le français n'empile JAMAIS article + possessif
 def rule_det_gender(T, i):
     lw = deacc(T[i].lower())
     if lw not in DET_GENDER or "'" in T[i].lower(): return None
     if i + 1 >= len(T): return None
+    if lw in _POSS_DET and prev(T, i) in _ART_BLOCK: return None    # possessif précédé d'un article = NOM homographe (« un son », « le ton », « du son ») → jamais possessif → abstention (FP WiCoPaCo « un son stéréo »→sa)
     g_det = DET_GENDER[lw]
     nxt_raw = T[i+1].lower()
     if "'" in nxt_raw: return None                                  # élision (l'arbre) → genre caché, abstention
