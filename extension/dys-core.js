@@ -81,6 +81,42 @@
   function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;return j>0&&NUM_DET[T[j-1].toLowerCase()]==='pl';}
   var NOUN_E={};'marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split(' ').forEach(function(w){NOUN_E[w]=1;});
   function rEer(T,i){var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A')return f[1];var p=cprev(T,i);if(CAUX[p])return f[0];if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}
+  // -er/-é/-ez/-ai (verbe 1er groupe) tranché par le GOUVERNEUR (test mordre/mordu) — MIROIR de correcteur_probe.rule_flexion_er (parité)
+  var _AUX_AV={avoir:1,avais:1};Object.keys(AUX_AVOIR).forEach(function(k){_AUX_AV[k]=1;});
+  var _INF_GOV={de:1,pour:1,sans:1,afin:1};
+  var _FLEX_STOP={};'assez chez rez nez mai quai vrai gai essai delai balai geai bai lai quinquennat'.split(' ').forEach(function(w){_FLEX_STOP[w]=1;});
+  var NOUN_EE={};'fumee pensee entree arrivee portee duree montee annee idee allee vallee poupee epee assemblee tournee poignee rentree traversee chaussee gelee flambee plongee rangee nuitee veillee bouchee gorgee cuilleree'.split(' ').forEach(function(w){NOUN_EE[w]=1;});
+  var _FLEX_ADV={};'deja bien toujours jamais pas plus vraiment encore aussi souvent probablement enfin vite trop meme presque tres tout peut-etre'.split(' ').forEach(function(w){_FLEX_ADV[w]=1;});
+  function _inf1(w){var lw=w.toLowerCase(),d=deacc(lw),inf;
+    if(/ées$/.test(lw))inf=lw.slice(0,-3)+'er';else if(/ée$/.test(lw))inf=lw.slice(0,-2)+'er';
+    else if(/és$/.test(lw))inf=lw.slice(0,-2)+'er';else if(/é$/.test(lw))inf=lw.slice(0,-1)+'er';
+    else if(/erai$/.test(d))inf=lw.slice(0,-2);
+    else if(/ez$/.test(d)&&d.length>3)inf=lw.slice(0,-2)+'er';
+    else if(/er$/.test(d)&&d.length>3)inf=lw;else return null;
+    return (inf.length>=4&&COMMON_VERBS[deacc(inf)])?inf:null;}
+  function _catE(x){var d=deacc(x);if(/(ées|ée|és|é)$/.test(x))return 'part';if(/erai$/.test(d)||/ai$/.test(d))return 'fut1';if(/ez$/.test(d))return 'p2pl';if(/er$/.test(d))return 'inf';return null;}
+  function rFlexionEr(T,i){var w=T[i],lw=w.toLowerCase();
+    if(lw.indexOf("'")>=0||i===0)return null;
+    if(w.charAt(0)!==w.charAt(0).toLowerCase()&&!(_SEG&&i<_SEG.ss.length&&_SEG.ss[i]))return null;
+    var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):null;
+    if(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]&&nx!=='vous')return null;
+    var inf=_inf1(w);if(inf===null)return null;
+    var d=deacc(lw);if(NOUN_E[d]||_FLEX_STOP[d]||NOUN_EE[d])return null;
+    var stem=inf.slice(0,-2),forms={inf:inf,part:stem+'é',p2pl:stem+'ez',fut1:inf+'ai'},cur=_catE(lw);
+    var praw=T[i-1].toLowerCase(),p=deacc(praw),tgt;
+    var hypv=(nx==='vous'&&_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]);
+    if(hypv)tgt='p2pl';
+    else if(praw==='à'||T[i-1]==='A'||T[i-1]==='À')tgt='inf';
+    else if(_AUX_AV[p]||praw==="j'ai")tgt='part';
+    else if(_INF_GOV[p]||MODAL[p])tgt='inf';
+    else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj)return null;tgt='p2pl';}
+    else if(praw==='je')tgt='fut1';
+    else{var g=i-1;while(g>0&&_FLEX_ADV[deacc(T[g].toLowerCase())])g--;if(g>=0&&T[g].toLowerCase()!=='à'&&(_AUX_AV[deacc(T[g].toLowerCase())]||T[g].toLowerCase()==="j'ai"))tgt='part';else return null;}
+    if(cur===tgt)return null;
+    if(/(és|ées)$/.test(lw)&&(tgt==='inf'||tgt==='p2pl'||tgt==='fut1'))return null;
+    if(/ée$/.test(lw)&&tgt!=='part')return null;
+    var sugg=forms[tgt];if(deacc(sugg)===d)return null;
+    return ckeepcase(w,sugg);}
   var PLURAL_MARK={ils:1,elles:1,nous:1,vous:1,les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,plupart:1};
   var CLAUSE_BREAK={et:1,ou:1,mais:1,car:1,donc:1,or:1,ni:1,que:1,qui:1,quand:1,lorsque:1,puisque:1,comme:1,si:1,'.':1,',':1,';':1,':':1,'!':1,'?':1};
   function cplBefore(T,i){for(var j=i-1;j>=Math.max(0,i-6);j--){var w=deacc(T[j].toLowerCase());if(CLAUSE_BREAK[w])break;if(PLURAL_MARK[w])return true;}return false;}
@@ -331,7 +367,7 @@
     if(a<0)return null;
     for(k=a-1;k>=0&&k>=a-2;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ils'||d2==='elles')return ckeepcase(T[i],T[i]+(d2==='ils'?'s':'es'));if(d2==='ne'||d2==='n')continue;return null;}
     return null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['terminaison -er/-é/-ez/-ai',rFlexionEr],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctText(text){_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
