@@ -1,0 +1,32 @@
+{
+  "_note": "Cas PUBLICS (français générique) du mover impératif — verrou CI (app==extension==attendu, + no-fire FP=0). Pas de texte perso.",
+  "transform": [
+    ["Ne donne-moi pas ça maintenant.", "Ne me donne pas ça maintenant."],
+    ["Ne lève-toi pas tout de suite.", "Ne te lève pas tout de suite."],
+    ["Ne dis-lui rien pour l'instant.", "Ne lui dis rien pour l'instant."],
+    ["Ne prends-en pas trop.", "N'en prends pas trop."],
+    ["Ne touche-y pas.", "N'y touche pas."],
+    ["Ne montre-le pas aux autres.", "Ne le montre pas aux autres."],
+    ["N'oublie-le pas au bureau.", "Ne l'oublie pas au bureau."],
+    ["Ne rends-le-moi pas aujourd'hui.", "Ne me le rends pas aujourd'hui."],
+    ["Donne-moi-le tout de suite.", "Donne-le-moi tout de suite."],
+    ["Prête-moi-les pour la journée.", "Prête-les-moi pour la journée."],
+    ["Va-te-en tout de suite.", "Va-t'en tout de suite."],
+    ["Donne-me-en un peu.", "Donne-m'en un peu."],
+    ["Donne moi le livre.", "Donne-moi le livre."],
+    ["Suis moi jusqu'au bureau.", "Suis-moi jusqu'au bureau."],
+    ["Me passe le sel.", "Passe-moi le sel."]
+  ],
+  "nofire": [
+    "Le point final de la plate-forme serait bas.",
+    "Vous pensez que cela suffit.",
+    "Manger le poisson pêché dans l'étang est un enchantement.",
+    "Ne considérez-vous pas cela comme un désaveu ?",
+    "Il me donne le livre chaque matin.",
+    "Nous appelons son fils Raymond.",
+    "C'est pour la fête de la musique au Bataclan à moi.",
+    "Étant moi-même copropriétaire, je suis satisfaite.",
+    "Ne perdez-vous pas votre temps ?",
+    "La série a reçu un disque d'or."
+  ]
+}

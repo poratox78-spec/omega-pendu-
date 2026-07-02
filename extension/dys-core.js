@@ -495,6 +495,32 @@
     var firstOk=deaccS(w1).charAt(0)===d.charAt(0),nTop=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===p1)nTop++;
     var confident=accentOnly||(p1>=1&&firstOk&&nTop===1&&dominant);
     return [confident?'flag':'vigilance',w1];}
+  // MOVER SYNTAXIQUE de l'impératif — placement des pronoms clitiques (MIROIR de dictee/imperative_clitics.moves) → span:N
+  var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
+  function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
+  function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
+  function _impCap(o,n){return (o.charAt(0)!==o.charAt(0).toLowerCase())?n.charAt(0).toUpperCase()+n.slice(1):n;}
+  function _impAff(verb,pros){pros=pros.map(function(p){return p.toLowerCase();}).sort(function(a,b){function k(p){return _IMPCOD3[p]?0:_IMPADVP[p]?2:1;}return k(a)-k(b);});
+    var norm=[];for(var i=0;i<pros.length;i++){var p=pros[i],nx=pros[i+1];if(p==='me')p=_IMPADVP[nx]?"m'":'moi';else if(p==='te')p=_IMPADVP[nx]?"t'":'toi';norm.push(p);}
+    var out=verb;for(i=0;i<norm.length;i++)out+=(i>0&&norm[i-1].slice(-1)==="'")?norm[i]:'-'+norm[i];return out;}
+  function _impNeg(pros,verb,neg2){pros=pros.map(function(p){p=p.toLowerCase();return p==='moi'?'me':p==='toi'?'te':p;}).sort(function(a,b){function k(p){return _IMPWEAK[p]?0:_IMPCOD3[p]?1:_IMPCOI3[p]?2:p==='y'?3:4;}return k(a)-k(b);});
+    var seq=pros.concat([verb]),res=[];for(var i=0;i<seq.length;i++){var t=seq[i],nx=seq[i+1],l=t.toLowerCase();res.push((nx&&_IMPVOW.test(deacc(nx.charAt(0)))&&(l==='me'||l==='te'||l==='se'||l==='le'||l==='la'))?l.charAt(0)+"'":t);}
+    var ne=_IMPVOW.test(deacc(res[0].charAt(0)))?"n'":"ne",s=ne;for(i=0;i<res.length;i++)s+=(s.slice(-1)==="'")?res[i]:' '+res[i];return s+' '+neg2;}
+  function _impMoves(text){var out=[],taken=[],q=text.indexOf('?')>=0,rx,m;
+    function free(a,b){for(var k=a;k<b;k++)if(taken[k])return false;return true;}
+    function mark(a,b){for(var k=a;k<b;k++)taken[k]=true;}
+    function push(a,b,repl,nm){if(free(a,b)&&repl!==text.slice(a,b)){out.push([a,b,repl,nm]);mark(a,b);}}
+    if(!q){rx=new RegExp("\\b(?:[Nn]e\\s+|[Nn]'\\s*)([A-Za-zÀ-ÿ]+)((?:-"+_IMPCLI+")+)\\s+(pas|plus|jamais|rien|point)\\b","g");
+      while((m=rx.exec(text))){var verb=m[1],chain=m[2],neg2=m[3];if(!_impV(verb))continue;var pros=[];chain.split('-').filter(Boolean).forEach(function(p){pros=pros.concat(_impUn(p));});push(m.index,m.index+m[0].length,_impCap(m[0],_impNeg(pros,verb,neg2)),'impératif (pronom)');}}
+    rx=new RegExp("\\b([A-Za-zÀ-ÿ]+)((?:-"+_IMPCLI+"){2,3})(?![A-Za-zÀ-ÿ'])","g");
+    while((m=rx.exec(text))){var verb=m[1],chain=m[2];if(!_impV(verb))continue;var pros=[];chain.split('-').filter(Boolean).forEach(function(p){pros=pros.concat(_impUn(p));});push(m.index,m.index+m[0].length,_impCap(m[0],_impAff(verb,pros)),'impératif (pronom)');}
+    rx=new RegExp("\\b([A-Za-zÀ-ÿ]+)\\s+(les|le|la)\\s+(moi|toi|lui|nous)\\b","g");
+    while((m=rx.exec(text))){var verb=m[1],dv=deacc(verb.toLowerCase());if(!_impV(verb)||/ant$/.test(verb.toLowerCase())||_IMPNOTV[dv]||dv.length<3)continue;push(m.index,m.index+m[0].length,_impCap(m[0],_impAff(verb,[m[2],m[3]])),'impératif (pronom)');}
+    rx=/(^|[.!?…]\s+)([A-Za-zÀ-ÿ]+)\s+(moi|toi)\b(?![-'’]?\s*(?:même|meme))/g;
+    while((m=rx.exec(text))){var verb=m[2],dv=deacc(verb.toLowerCase());if(!_impV(verb)||/ant$/.test(verb.toLowerCase())||_IMPNOTV[dv]||dv.length<3)continue;var a=m.index+m[1].length,b=m.index+m[0].length,repl=_impCap(verb,verb+'-'+m[3].toLowerCase());push(a,b,repl,'impératif (pronom)');}
+    rx=/(^|[.!?…]\s+)([Mm]e|[Tt]e)\s+([A-Za-zà-ÿ]+)\b/g;
+    while((m=rx.exec(text))){var pron=m[2].toLowerCase(),verb=m[3];if(!_impV(verb)||/ant$/.test(verb.toLowerCase()))continue;var ton=pron==='me'?'moi':'toi',a=m.index+m[1].length,b=m.index+m[0].length;push(a,b,_impCap(m[2],verb+'-'+ton),'impératif (pronom)');}
+    out.sort(function(a,b){return a[0]-b[0];});return out;}
   function spellText(text){var T=toks(text),out=[];for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i);
     if(r&&r[1]!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r[1],name:'orthographe',tier:r[0]});}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
@@ -504,6 +530,11 @@
         var a=P[i][2].toLowerCase(),b=P[i+1][2].toLowerCase(),vow=/^[aeiouyh]/.test(deaccS(b));
         if(a==='aujourd'&&b==='hui'){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'hui",name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
         else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
+      var mv=_impMoves(text);
+      for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],Bx=mv[mi][1],ki=-1,kj=-1;
+        for(var k=0;k<P.length;k++){if(P[k][0]>=A&&P[k][1]<=Bx){if(ki<0)ki=k;kj=k;}}
+        if(ki<0)continue;var busy=false;for(k=ki;k<=kj;k++)if(done[k]){busy=true;break;}if(busy)continue;
+        out.push({i:ki,word:text.slice(P[ki][0],P[kj][1]),sugg:mv[mi][2],name:mv[mi][3],tier:'flag',span:kj-ki+1});for(k=ki;k<=kj;k++)done[k]=1;}
       out.sort(function(x,y){return x.i-y.i;});}
     return out;}
 
