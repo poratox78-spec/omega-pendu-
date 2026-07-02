@@ -463,6 +463,12 @@ def rule_son_sont(T, i):
     # « Les poules son dans le jardin »→sont ; « Le son de la cloche résonne » : « son » précédé de « Le » ET verbe présent → abstention.
     if plural_subj and (nxt in PREP or nxt == 'en') and prev(T, i) not in NUM_DET and prev(T, i) not in PREP and _clause_no_finite_verb(T, i):
         return 'sont'                                                  # « en » (prép : en retard/en colère) inclus, hors PREP de base
+    # sujet-NOM pluriel + « son » suivi d'un PRÉDICAT (participe/adjectif) + aucun verbe fini → « sont » (« les enfants son partis/noirs »→sont)
+    # PRÉDICAT après « son » (sujet-nom pluriel) : participe PLURIEL (« les enfants son partis/venus »→sont). Les adjectifs
+    # sont EXCLUS (trop de faux positifs : « son ancienne équipe », « son style, » = possessif + nom homographe d'adjectif).
+    if i+1 < len(T) and plural_subj and prev(T, i) not in NUM_DET and prev(T, i) not in PREP \
+       and _pp_base(T[i+1]) is not None and deacc(nxt).endswith(('s', 'x')) and _clause_no_finite_verb(T, i):
+        return 'sont'
     return None
 
 def rule_on_ont(T, i):
@@ -1421,6 +1427,7 @@ CASES = [
     ("Elle est contente", "contente", "content", "accord adjectif"),      # elle → féminin
     ("Ils sont nationaux", "nationaux", "national", "accord adjectif"),   # ils → pluriel (-al→-aux)
     ("Elles sont vertes", "vertes", "vert", "accord adjectif"),           # elles → féminin pluriel
+    ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
