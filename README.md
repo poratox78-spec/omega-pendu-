@@ -141,7 +141,7 @@ Voir le fichier [`NOTICE`](NOTICE) pour l'attribution complète.
 > remplacer la base lexicale par une source compatible.
 
 ---
-*Instantané 07/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · Scrabidon · recherche · évolution) · recherche O1/O2 close · correcteur re-validé sur WiCoPaCo (~45 k vraies fautes FR) : 3 FP homophones corrigés + règle « accord singulier du nom » (+435 corrections réelles), FP=0 préservé, parité 3 moteurs.*
+*Instantané 07/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · Scrabidon · recherche · évolution) · recherche O1/O2 close · correcteur re-validé sur WiCoPaCo (~45 k vraies fautes FR) : 3 FP homophones corrigés + 2 leviers de recall — « accord singulier du nom » (+435) et « accord du participe après être à sujet nom » (+405, ex. « le niveau … est estimée »→estimé) — FP=0 préservé, parité 3 moteurs.*
 
 
 ## Aussi dans ce dépôt

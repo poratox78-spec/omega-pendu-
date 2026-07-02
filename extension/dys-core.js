@@ -567,7 +567,18 @@
     var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
     if(a<0)return null;var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
     var info=null,sk=-1;for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
-    if(!info)return null;
+    if(!info){                                                                   // pas de sujet PRONOM → sujet NOM via le VRAI PARSEUR (miroir rule_pp_etre)
+      if(a>=1&&T[a-1].indexOf("'")>=0)return null;                              // pronom élidé (« qu'elle soit emmenée ») → abstention (FP)
+      var tgp=posTags(T);
+      if(!tgp||i>=tgp.length||(tgp[i]!=='VERB'&&tgp[i]!=='ADJ'))return null;     // participe RÉEL (tagger)
+      if(i+1<tgp.length&&tgp[i+1]==='DET')return null;                          // sujet POSTPOSÉ (« est annoncée la reprise ») → abstention (FP)
+      var sj=_npSubject(T,tgp,a);
+      if(sj===null||(sj.g!=='m'&&sj.g!=='f')||sj.n!==auxNum)return null;
+      if(a-sj.idx>5)return null;                                                // sujet trop loin de l'aux → abstention (FP)
+      for(var kk=sj.idx+1;kk<a;kk++){if(T[kk].charAt(0)!==T[kk].charAt(0).toLowerCase()&&kk<tgp.length&&(tgp[kk]==='NOUN'||tgp[kk]==='PROPN'))return null;}   // nom propre entre sujet et aux → ambigu (FP)
+      var sg2=base+({sm:'',sf:'e',pm:'s',pf:'es'}[sj.n+sj.g]);
+      return sg2.toLowerCase()!==lw?ckeepcase(T[i],sg2):null;
+    }
     if(_SEG&&sk<_SEG.hy.length&&_SEG.hy[sk])return null;
     var num=info[0],gen=info[1];if(num!==auxNum)return null;
     if(gen==='?')gen=(deacc(lw.slice(-1)==='s'?lw.slice(0,-1):lw)===deacc(base)+'e')?'f':'m';

@@ -769,7 +769,18 @@ def rule_pp_etre(T, i):
         dk = deacc(T[k].lower())
         if dk in ('ne', 'n'): continue
         info = _PP_SUBJ.get(dk); sk = k; break
-    if not info: return None
+    if not info:                                              # pas de sujet PRONOM → tenter le sujet NOM (VRAI PARSEUR de tête de GN, comme rule_adj_attr : mots-écrans sautés, coordination/infinitif/PP → abstention FP-sûre)
+        if a >= 1 and "'" in T[a-1]: return None               # pronom élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique, pas un nom → abstention (FP)
+        tg = pos_tags(T)
+        if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ'): return None   # participe RÉEL (tagger) → écarte les noms homographes (« les données sont… »)
+        if i+1 < len(tg) and tg[i+1] == 'DET': return None     # déterminant juste APRÈS le participe → sujet POSTPOSÉ (« est annoncée la reprise ») ou attribut → identification du sujet non fiable → abstention (FP)
+        subj = _np_subject(T, tg, a)
+        if subj is None or subj['g'] not in ('m', 'f') or subj['n'] != aux_num: return None   # sujet non résolu / genre inconnu / aux en désaccord → abstention
+        if a - subj['idx'] > 5: return None                    # sujet trop LOIN de l'aux → parseur peu fiable sur phrase longue (FP « dioxyde … est autorisé »)
+        for k in range(subj['idx']+1, a):                      # nom PROPRE/capitalisé entre le sujet et l'aux → sujet réel ambigu (FP « Plusieurs fois les Français sont forcés »)
+            if T[k][:1].isupper() and k < len(tg) and tg[k] in ('NOUN', 'PROPN'): return None
+        sugg = base + {'sm': '', 'sf': 'e', 'pm': 's', 'pf': 'es'}[subj['n'] + subj['g']]
+        return _keepcase(T[i], sugg) if sugg.lower() != lw else None
     if _SEG is not None and sk < len(_SEG['hy']) and _SEG['hy'][sk]: return None   # « poursuit-il » : pronom d'inversion (incise) ≠ sujet → abstention
     num, gen = info
     if num != aux_num: return None                           # « elles est … » : aux et sujet en désaccord → l'erreur est ailleurs, abstention

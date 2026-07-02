@@ -89,7 +89,11 @@ const PHRASES = [
   'Le fils de Paul', 'Un temps magnifique', 'La paix règne', 'Le savons est bon', 'Il est né le 25 mars 1957', 'un des systèmes',
   // FP homophones corrigés par WiCoPaCo (verrou anti-régression) : on/ont tête-de-proposition & relative/coordonné, a/à participe -ée, genre son après article
   'On dit que le ciel est bleu', 'Le Ba fait souffrir ceux qui ont commis le mal', "L'état et le gouvernement ont investit",
-  'Ils ont une vie à durée limitée', 'Le chipset offre un son stéréo', 'Ils on grandi vite'
+  'Ils ont une vie à durée limitée', 'Le chipset offre un son stéréo', 'Ils on grandi vite',
+  // accord PARTICIPE après être à sujet NOM (branche _np_subject) : cibles + pièges (inversion / pronom élidé / sujet loin)
+  'Le niveau de la population est estimée à trente pour cent', 'La biologie est apparu au vingtième siècle',
+  'Le Brésil est composés de régions', 'La Bulgarie est connues pour ses monastères', 'Une partie du cours fut modifié',
+  'Le chat est noir', 'Elle est venue hier', 'La reprise est annoncée', 'Les plats sont bons'
 ];
 
 // flags Python via un petit pont
