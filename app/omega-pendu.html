@@ -12124,7 +12124,12 @@ window.addEventListener('DOMContentLoaded', () => {
     return null;}
   // ACCORD PLURIEL (vigilance) : nom/adjectif au SINGULIER dans un GN introduit par un déterminant PLURIEL
   // (les/des/ces/mes…) → « accord pluriel à vérifier » (orange, non affirmatif). Direction de Rem (dys).
-  var PLDET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,divers:1,diverses:1};
+  var PLDET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,divers:1,diverses:1,autres:1};
+  // CARDINAUX ≥2 : forcent le pluriel du nom compté (« cinq kilo »→kilos, « soixante mètre »→mètres). ~0,06 % FP à
+  // l'échelle UD (loanwords minima/sestieri, composés à trait d'union), donc VIGILANCE orange, pas ROUGE.
+  var CARD={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1};
+  var CARDINV={cent:1,cents:1,mille:1,vingt:1,vingts:1,million:1,millions:1,milliard:1,milliards:1,demi:1,tiers:1};   // invariables/déjà-pluriel comme CIBLE → pas de +s naïf
+  var CARDSTOP={super:1,tout:1,tous:1,toute:1,toutes:1,mi:1,semi:1};   // préfixes/adverbes invariables collés au cardinal → jamais cible d'accord
   function _plu(w){if(/al$/.test(w))return w.slice(0,-2)+'aux';if(/(eau|au|eu)$/.test(w))return w+'x';return w+'s';}
   function pluralVig(T,tg,i){
     if(!tg||i>=tg.length)return null;
@@ -12134,6 +12139,12 @@ window.addEventListener('DOMContentLoaded', () => {
     var c0=T[i][0];if(c0&&c0!==c0.toLowerCase())return null;           // nom propre
     for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());
       if(PLDET[dj]){var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
+      if(CARD[dj]){                                                    // cardinal ≥2 + nom singulier → pluriel (à vérifier)
+        if(T[i].indexOf("'")>=0)return null;                          // élision (« quatre d'entre eux », « tous deux s'élèvent ») = pas un nom compté
+        if(CARDINV[w]||CARD[w]||CARDSTOP[w])return null;              // cible = autre nombre (« cent trente »)/invariable/préfixe (super, tout)
+        if(_SEG&&_SEG.hy&&_SEG.hy[i])return null;                      // « dix-septième » (ordinal composé au trait d'union)
+        if(svReads(T[i]).length)return null;                          // le mot est aussi une forme verbale connue → prudence (mal taggé)
+        var plc=_plu(T[i].toLowerCase());return plc!==T[i].toLowerCase()?ckeepcase(T[i],plc):null;}
       if(tg[j]==='VERB'||tg[j]==='AUX'||tg[j]==='ADP'||tg[j]==='PUNCT'||PREP[dj])break;   // sorti du GN
       if(tg[j]!=='NOUN'&&tg[j]!=='ADJ'&&tg[j]!=='DET')break;
     }
