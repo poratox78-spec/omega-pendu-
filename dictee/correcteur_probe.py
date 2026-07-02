@@ -948,6 +948,18 @@ def rule_mais_mes(T, i):
         return None                                    # pas prép/déterminant/pronom/verbe
     return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
 
+
+def rule_du_de(T, i):
+    """« du » = de+le : suivi d'un ARTICLE (la / l') c'est structurellement impossible → « de »
+    (« du la ferme »→« de la ferme », « du l'usine »→« de l'usine »). FP=0 mesuré (aucun « du la/l' »
+    en français correct, scan UD-GSD). Faute dys fréquente (du/de). « les » exclu (« du les »→« des » = 2 tokens)."""
+    if deacc(T[i].lower()) != 'du' or i + 1 >= len(T):
+        return None
+    nl = T[i + 1].lower()
+    if nl == 'la' or nl.startswith("l'") or nl.startswith("l’"):
+        return 'de'
+    return None
+
 # Adjectifs prédicatifs PURS (≠ verbe/nom/participe) — « j'est <adj> » → « je suis <adj> » (être copule). Liste
 # CLOSE volontaire = PARITÉ stricte app/extension/Python (pas de divergence de lexique HF). Désaccentué.
 CADJ = set("content contente contents contentes malade malades triste tristes heureux heureuse heureuses "
@@ -1090,7 +1102,7 @@ RULES = [('élision inversée', rule_deselide),
          ('-é/-er', rule_e_er), ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
-         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes),
+         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_recover),
@@ -1176,6 +1188,8 @@ CASES = [
     ("Vous êtes là", "êtes", "ete", "aux mal orthographié"),
     ("Nous avons un chien", "avons", "avon", "aux mal orthographié"),
     ("Ils sont contents", "sont", "son", "aux mal orthographié"),
+    # du/de : « du » (=de+le) + article = impossible → « de »
+    ("Il revient de la maison", "de", "du", "du/de"),
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]

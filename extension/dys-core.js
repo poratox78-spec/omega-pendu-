@@ -157,6 +157,8 @@
     if(MAIS_STOP[dn])return null;   // adverbe/mot-outil homographe d'un nom (« mais pas »/« mais comment ») → conjonction, pas « mes »
     if(PREP[dn]||NUM_DET[nx]||NUM_PRON[dn]||vlike(T,i+1))return null;
     return GENDER_PURE[dn]?ckeepcase(T[i],'mes'):null;}
+  // « du » (=de+le) + ARTICLE (la/l') = impossible → « de » (« du la ferme »→de la). FP=0 (scan UD). Faute dys du/de.
+  function rDuDe(T,i){if(deacc(T[i].toLowerCase())!=='du'||i+1>=T.length)return null;var nl=T[i+1].toLowerCase();return (nl==='la'||nl.indexOf("l'")===0||nl.indexOf('l’')===0)?ckeepcase(T[i],'de'):null;}
   var CADJ={content:1,contente:1,contents:1,contentes:1,malade:1,malades:1,triste:1,tristes:1,heureux:1,heureuse:1,heureuses:1,pret:1,prete:1,prets:1,pretes:1,libre:1,libres:1,seul:1,seule:1,seuls:1,seules:1,fier:1,fiere:1,fiers:1,fieres:1};   // adj prédicatifs purs (liste CLOSE = parité 3 moteurs)
   var ETRE_PP={alle:1,allee:1,alles:1,allees:1,venu:1,venue:1,venus:1,venues:1,parti:1,partie:1,partis:1,parties:1,arrive:1,arrivee:1,arrives:1,arrivees:1,devenu:1,devenue:1,devenus:1,devenues:1,revenu:1,revenue:1,revenus:1,revenues:1};   // participes de verbes d'ÊTRE (liste CLOSE)
   var PART_ART={le:1,la:1,"l'":1,les:1,un:1,une:1};   // article après « de » → partitif avoir
@@ -329,7 +331,7 @@
     if(a<0)return null;
     for(k=a-1;k>=0&&k>=a-2;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ils'||d2==='elles')return ckeepcase(T[i],T[i]+(d2==='ils'?'s':'es'));if(d2==='ne'||d2==='n')continue;return null;}
     return null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord participe',rPpEtre],['accord sujet-verbe',rAccordSVnoun],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctText(text){_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
