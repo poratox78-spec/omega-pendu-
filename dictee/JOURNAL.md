@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-03 — audit complet contre-vérifié + campagne de correctifs (PR #50-#66)
+
+- **Audit multi-agents** (8 sous-systèmes, contre-vérification adversariale) : 78 constats → **47 confirmés + 26 mineurs, 0 réfuté**. Verdict : le moteur était sous cloche (CI), la **couche de livraison** ne l'était pas.
+- **Correcteur — application par CONFIANCE** (PR #50-#55) : le texte source n'est plus jamais réécrit (overlay de surlignage SUR la saisie, corrigé dans un encadré séparé) ; sûr (FP=0) + candidats ortho (~79 % mesuré sur dys réel) appliqués par défaut, chaque mot = bascule annuler/réappliquer ; orange au clic. Leçon : « FP=0 sur texte parfait » = seuil pour toucher EN SILENCE, pas pour toucher — la réversibilité achète l'agressivité.
+- **Qualité des remplacements** (PR #56-#57, verrous CI) : « dehor »→dehors (lettre finale muette, FP=0/2 500 UD) ; garde de dominance ×20 (fini « tres »→« trés », « jamai »→« jamal ») ; ancre de genre = vrai mot (fini « chere »→« cher ») ; majuscule préservée (« Ecole »→« École »).
+- **Apostrophe typographique ’** (PR #58) : normalisée 1:1 dans les 3 moteurs — les claviers mobiles ne fabriquent plus de fausses fautes.
+- **Pédagogie** (PR #61) : gouverneur élidé (« l'automne » ≠ « les » d'une autre proposition), -ons nominal (« maisons » n'est plus un verbe), syllabation V.CV alignée (a-mi), stade agrégé PAR SESSION.
+- **Livraison** (PR #63-#65) : zip extension régénéré (53 commits de retard) + garde CI de fraîcheur ; sw.js sondé en CI ; précache reshape → hors-ligne réel sur Cloudflare (308) ; POS-tagger enfin chargé dans l'extension ; contenteditable non destructif ; « tout corriger » sans vigilance.
+- **OMEGA·KEY v0.19** (PR #62) : interop clé générée↔importée réparée, graine du pair validée (anti-XSS), zéro requête externe. test_crypto 37/37.
+- **Licence** : la base Lexique est **CC BY-SA 4.0** (dépôt officiel OpenLexicon, LICENSE-CC-BY-SA4.0.txt) — la LICENSE racine disait BY-NC à tort, corrigée.
+- FP-échelle courant : **2,04 %** (plafond CI 3 %). Détail de l'audit : `data_local/audit_omega_2026-07-03.json` (local).
+
+
 ## 2026-06-24 (suite 10) — boucle : seuil de variété, lisibilité UI, audit macro
 
 - **Variété dans `pick()`** (anti-démotivation) : tirage PONDÉRÉ sur `DysProfile.ranked()` (plusieurs faiblesses, pas

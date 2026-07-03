@@ -4,7 +4,7 @@
 //    rejouer une réponse REDIRIGÉE pour une navigation — Chrome refuse et affiche une PAGE BLANCHE. On "reshape"
 //    donc toute réponse redirigée en réponse 200 propre avant de la mettre en cache / la renvoyer.
 // Chemins RELATIFS (./) → marche sous un sous-chemin (GitHub Pages) comme sur un domaine perso (Cloudflare).
-const V = 'omega-v127';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
+const V = 'omega-v128';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
