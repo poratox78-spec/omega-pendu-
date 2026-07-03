@@ -69,7 +69,8 @@ def phon_key(s):
     s = re.sub(r'(?:an|am|en|em)(?![aeiouymn])', '2', s)
     s = re.sub(r'(?:on|om)(?![aeiouymn])', '3', s)
     s = s.replace('ph', 'f').replace('sch', 'ch').replace('th', 't')
-    s = s.replace('ch', '§').replace('gn', '¤')                 # digraphes → placeholders
+    s = re.sub(r'ch(?=[bcdfgjklmnpqrstvwxz])', 'k', s)          # ch DEVANT CONSONNE = /k/ (mots grecs : technologie, chrome, chlore, orchestre) ≠ /ʃ/
+    s = s.replace('ch', '§').replace('gn', '¤')                 # ch restant (devant voyelle) → /ʃ/ ; digraphes → placeholders
     s = s.replace('qu', 'k').replace('gu', 'g')
     s = s.replace('eau', 'o').replace('aux', 'o').replace('au', 'o')
     s = s.replace('ou', 'u').replace('eu', 'e').replace('oeu', 'e')
