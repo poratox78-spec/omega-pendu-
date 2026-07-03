@@ -12420,7 +12420,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // rang, et dominant. Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille,
     // fauxcille→fossiles). Mesuré sur les dictées réelles de Rem : supprime les mauvaises corrections sans perdre les sûres.
     var firstOk=deaccS(w1).charAt(0)===d.charAt(0),nTop=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===p1)nTop++;
-    var confident=accentOnly||(p1>=1&&firstOk&&nTop===1&&dominant);
+    var finalS=(p1>=1&&deaccS(w1).length===d.length+1&&deaccS(w1).slice(0,d.length)===d&&/[sx]$/.test(deaccS(w1)));   // faute dys « lettre finale muette » : candidat = original + s/x final (préfixe commun) → SÛR (FP=0 mesuré sur 2500 phrases UD ; dehor→dehors, alor→alors, moin→moins…) donc APPLIQUÉ, pas vigilance
+    var confident=accentOnly||finalS||(p1>=1&&firstOk&&nTop===1&&dominant);
     return [confident?'flag':'vigilance',w1];}
   // VIGILANCE : mot alphabétique ABSENT du dictionnaire (≠ nom propre / sigle / romain) → suspect, souligné orange,
   // NON affirmé (on n'impose rien). Rend le correcteur non-muet sur les non-mots dys (« reamné ») que le speller,
