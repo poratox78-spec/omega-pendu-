@@ -424,7 +424,7 @@ input[type=range]{accent-color:var(--cyan)}
       <a class="logo" href="../../omega-key.html">OMEGA·KEY</a>
       <div class="logo-sub">BEHAVIORAL PUF — COGNITIVE KEY GENERATOR</div>
     </div>
-    <div class="ver">v0.17 · Sécurité durcie : sel aléatoire, anti-rejeu, anti-usurpation · Double Ratchet DH · Passphrase FR</div>
+    <div class="ver">v0.18 · Sécurité durcie : sel aléatoire, anti-rejeu, anti-usurpation, anti-homoglyphe (messages), indice de dictée (passphrase) · Double Ratchet DH · Passphrase FR</div>
   </div>
 
   <div class="surface surface-cog">
@@ -636,6 +636,7 @@ input[type=range]{accent-color:var(--cyan)}
         <div id="dec-result-wrap" style="display:none">
           <div class="enc-label" style="color:var(--green);margin-top:2px">✓ MESSAGE DÉCHIFFRÉ</div>
           <div class="dec-result" id="dec-result"></div>
+          <div id="dec-homoglyph" style="margin-top:6px;font-size:10px;color:#e06c2b;line-height:1.4"></div>
           <button class="btn-copy" onclick="copyResult()">📋 COPIER LE RÉSULTAT</button>
         </div>
 
@@ -773,6 +774,7 @@ input[type=range]{accent-color:var(--cyan)}
           </div>
           <div id="pp-display" style="margin:10px 0;padding:12px;background:var(--bg3);border:1px solid var(--green);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--hi);word-break:break-word;letter-spacing:1px;min-height:20px">—</div>
           <div class="pbkdf-strength" id="pp-entropy" style="color:var(--muted)">génère une passphrase…</div>
+          <div id="pp-sosie" style="margin-top:6px;font-size:9px;color:#d99a00;line-height:1.4"></div>
           <div style="display:flex;gap:8px;margin-top:10px">
             <button class="btn-copy" onclick="copyPassphrase()" style="flex:1">📋 COPIER</button>
             <button class="btn-share green" onclick="usePassphraseForKey()" style="flex:1">🔑 DÉRIVER LA CLÉ AES</button>
@@ -2474,6 +2476,18 @@ async function encryptMsg(){
 }
 
 // ── DÉCHIFFREMENT AES-GCM ───────────────────────────────
+// Détecteur d'HOMOGLYPHES (intégrité d'affichage, PAS censure ni modification) : un message peut mêler l'alphabet
+// latin à des lettres d'un AUTRE alphabet qui leur ressemblent (cyrillique « а/о/е/р/с », grec « ο/α/ε », latin
+// pleine-chasse) pour usurper une identité ou piéger un lien. Le français légitime = latin + accents (Latin-1, non
+// concerné). On SIGNALE un mot qui MÊLE les alphabets (le russe pur ou un é accentué ne sont pas flaggés).
+const _HOMOG_RE=/[Ѐ-ӿͰ-ϿԀ-ԯＡ-ｚ]/;
+function _homoglyphWarn(text){
+  if(!text) return '';
+  const toks=String(text).normalize('NFKC').split(/\s+/);
+  for(let i=0;i<toks.length;i++){ if(/[A-Za-z]/.test(toks[i]) && _HOMOG_RE.test(toks[i]))
+    return '⚠ Caractères trompeurs : ce message mêle l\'alphabet latin à des lettres d\'un autre alphabet (cyrillique/grec…) qui leur ressemblent. Possible usurpation ou lien piégé — vérifie l\'expéditeur.'; }
+  return '';
+}
 async function decryptMsg(){
   if(!_aesKey){ log('Clé non générée — générez d\'abord','err'); return }
   const cipherB64 = document.getElementById('enc-cipher').value.trim()
@@ -2514,6 +2528,7 @@ async function decryptMsg(){
     const resEl = document.getElementById('dec-result')
     const resWrap = document.getElementById('dec-result-wrap')
     if(resEl) resEl.textContent = plainText
+    const hgEl = document.getElementById('dec-homoglyph'); if(hgEl) hgEl.textContent = _homoglyphWarn(plainText)   // intégrité d'affichage (additif, ne touche pas la crypto)
     if(resWrap) resWrap.style.display='block'
     // Animer l'apparition
     if(resEl){ resEl.style.opacity='0'; setTimeout(()=>resEl.style.transition='opacity .4s',10); setTimeout(()=>resEl.style.opacity='1',20) }
@@ -2637,6 +2652,14 @@ window.showTab = function(tab){
 
 // ── HANDLERS PASSPHRASE PRONONÇABLE ────────────────────────────────────────
 let _lastPassphrase = ''
+// SOSIES SONORES de la wordlist (précalculés avec la clé phonétique du correcteur OMEGA : 100 mots / 49 groupes).
+// Sert d'INDICE DE DICTÉE seulement — la passphrase (et donc la clé PBKDF2) n'est JAMAIS altérée. Dicter « cession »
+// vs « session », « auteurs » vs « hauteur » est ambigu à l'oral → on invite à épeler ces mots. (Entropie inchangée.)
+const _PP_SOSIE = {"abaisses":"abbayes abbesse","abbayes":"abaisses abbesse","abbesse":"abaisses abbayes","addition":"adition","adition":"addition","aisance":"essence","aisselle":"ecailles","asteure":"astheure","astheure":"asteure","auspices":"hospice","auteurs":"hauteur","avaient":"hawaien","caddies":"kaddish","caisson":"saisons","capella":"cappella","cappella":"capella","celeste":"sellette","cession":"session","cricket":"criquet","criquet":"cricket","deserts":"dessert","dessert":"deserts","ecailles":"aisselle","epaisse":"epeiste","epeiste":"epaisse","eskimos":"esquimau","esquimau":"eskimos","essence":"aisance","esthete":"zezette","gaillard":"gueulard","gehenne":"jeunesse","gueulard":"gaillard","hauteur":"auteurs","hawaien":"avaient","hospice":"auspices","hotesse":"osseuse","hunters":"interet","interet":"hunters","irakiens":"iraquien","iraquien":"irakiens","jeunesse":"gehenne","kaddish":"caddies","laissees":"layette","layette":"laissees","maffieux":"mafieux","mafieux":"maffieux","mallette":"maltais","maltais":"mallette","mecanos":"meccano","meccano":"mecanos","metayers":"metteur","metteur":"metayers","nenette":"neuneus","neuneus":"nenette","odieuse":"odyssee","odyssee":"odieuse","orgelet":"orgueil","orgueil":"orgelet","osseuse":"hotesse","paiement":"payement","payement":"paiement","paysans":"pesante","pesante":"paysans","pisseuse":"piteuse","piteuse":"pisseuse","rackets":"raquette","raiponce":"reponse","raquette":"rackets","rasoirs":"rassoir","rassoir":"rasoirs","reponse":"raiponce","saintete":"synthese","saisons":"caisson","samourai":"samurai","samurai":"samourai","saucisse":"societe","scatter":"skateur","sellette":"celeste","session":"cession","shuffle":"soufflet","skateur":"scatter","societe":"saucisse","soufflet":"shuffle","svastika":"swastika","swastika":"svastika","synthese":"saintete","tocards":"toquard","toquard":"tocards","traitee":"trayeuse","trayeuse":"traitee","tsigane":"tziganes","tziganes":"tsigane","vicaire":"visceres viseurs","visages":"vissage","visceres":"vicaire viseurs","viseurs":"vicaire visceres","vissage":"visages","yahourt":"yaourts","yaourts":"yahourt","zezette":"esthete"}
+function _ppSosieHint(words){
+  const hits=[]; (words||[]).forEach(function(w){ if(_PP_SOSIE[w]) hits.push('« '+w+' » (≈ '+_PP_SOSIE[w].split(' ').join(', ')+')'); })
+  return hits.length ? '🗣️ À l’oral, épelle ces mots (sosies sonores dans la liste) : '+hits.join(' · ') : ''
+}
 const _ppLabel = (bits)=> bits>=128?'très fort':bits>=96?'fort':bits>=72?'correct':'faible'
 const PSEUDO_SYLL = 3
 window.ppPreview = function(){
@@ -2654,6 +2677,7 @@ window.generatePassphrase = function(){
     const r = mode==='pseudo' ? genPseudoPassphrase(n, PSEUDO_SYLL) : genPassphrase(n)
     _lastPassphrase = r.words.join('-')   // forme canonique = tiret (1 jeton, sans ambiguïté)
     const disp = document.getElementById('pp-display'); if(disp) disp.textContent = _lastPassphrase
+    const sos = document.getElementById('pp-sosie'); if(sos) sos.textContent = (mode==='pseudo') ? '' : _ppSosieHint(r.words)   // indice de dictée (n'altère pas la passphrase)
     const ent = document.getElementById('pp-entropy')
     if(ent) ent.textContent = `${r.bits} bits · ${n} ${mode==='pseudo'?'pseudo-mots × '+PSEUDO_SYLL+' syll':'mots'} · ${_ppLabel(r.bits)}`
     if(typeof log==='function') log(`Passphrase (${mode}) : ${n} = ${r.bits} bits`,'ok')
