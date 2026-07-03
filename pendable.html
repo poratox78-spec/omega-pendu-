@@ -260,11 +260,11 @@ function roundWin(){
   $('ovWin').classList.remove('hide'); saveBest();
 }
 function roundLose(){
+  vibrate([90,60,90]); buildRecap($('dieRecap'),true);   // récap AVANT la révélation : révéler d'abord mettait tried[*]=1 → tous les mots « complets » → le filtre onlyMissing vidait le récap (audit 07/2026)
   // révéler la grille + plein pendu
   for(let i=0;i<225;i++) if(grid[i]) tried[grid[i]]=1; renderGrid();
   drawHangman($('deadman'),99,1);
   $('dieTxt').textContent='Tu as tenu '+round+' manche'+(round>1?'s':'')+' · '+score+' points.';
-  vibrate([90,60,90]); buildRecap($('dieRecap'),true);
   $('ovDie').classList.remove('hide'); saveBest();
 }
 
