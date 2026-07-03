@@ -19,6 +19,7 @@ def governor_number(T,idx,skip_pp=False):
     for j in range(idx-1,-1,-1):
         w=T[j].lower()
         if w in NUM_PRON: return (T[j],NUM_PRON[w])
+        if w.startswith("l'") and len(w)>2: return (T[j],'s')   # déterminant ÉLIDÉ : « l'automne » = le/la SINGULIER — sinon le scan traversait le GN élidé et enseignait le « les » d'une AUTRE proposition (« Quand les feuilles tombent, l'automne est arrivé » → les !) — audit 07/2026. (PAS « d' » : « d'énormes vagues » = des, pluriel.)
         if w in NUM_DET:
             if skip_pp and j>0 and deacc(T[j-1].lower()) in PREP: continue   # det de PP → on cherche le vrai sujet
             return (T[j],NUM_DET[w])
@@ -34,7 +35,12 @@ def is_verb(T,idx):
     Résout l'homographie nom/verbe : « le lit/la porte » (nom) vs « papa lit/elle porte » (verbe)."""
     if not (0<=idx<len(T)): return False
     w=deacc(T[idx].lower())
-    known = (w in VERB_FORMS) or (w not in NOTVERB and len(w)>3 and any(w.endswith(s) for s in VERB_SUF))
+    known = w in VERB_FORMS
+    if not known and w not in NOTVERB and len(w)>3 and any(w.endswith(s) for s in VERB_SUF):
+        if w.endswith('ons'):                             # -ons = TRÈS ambigu (maisons, raisons, saisons, garçons…) :
+            known = idx==0 or any(deacc(T[j].lower())=='nous' for j in range(max(0,idx-3),idx))   # verbe seulement si « nous » proche (ou impératif en tête) — audit 07/2026 (« maisons » expliqué accord sujet-verbe)
+        else:
+            known = True
     if not known: return False
     return not (idx>0 and T[idx-1].lower() in NUM_DET)
 # (1) PARTICIPE PASSÉ : agrée avec le SUJET via être, invariable via avoir (sauf COD antéposé).
