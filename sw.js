@@ -4,12 +4,19 @@
 //    rejouer une réponse REDIRIGÉE pour une navigation — Chrome refuse et affiche une PAGE BLANCHE. On "reshape"
 //    donc toute réponse redirigée en réponse 200 propre avant de la mettre en cache / la renvoyer.
 // Chemins RELATIFS (./) → marche sous un sous-chemin (GitHub Pages) comme sur un domaine perso (Cloudflare).
-const V = 'omega-v126';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
-const CORE = ['./', './site.css', './manifest.json', './icon.svg'];   // UNIQUEMENT des ressources non redirigées (200)
+const V = 'omega-v127';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
+// PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
+// jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
+// répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
+// L'app (11 Mo), pendable et scrabidon restent cachés À LA VISITE (poids).
+const CORE = ['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html',
+              './omega-key.html', './recherche.html', './evolution.html', './site.css', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(V).then((c) => c.addAll(CORE).catch(() => {})));   // best-effort
+  e.waitUntil(caches.open(V).then((c) => Promise.all(CORE.map(async (u) => {
+    try { const r = await fetch(u); if (r && r.ok) await c.put(u, r.redirected ? await reshape(r) : r); } catch (err) {}   // best-effort PAR ENTRÉE + reshape
+  }))));
 });
 
 self.addEventListener('activate', (e) => {

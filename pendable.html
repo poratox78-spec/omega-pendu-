@@ -297,4 +297,6 @@ function saveBest(){try{const k='penducroise_best';const cur=JSON.parse(localSto
 function showBest(){try{const cur=JSON.parse(localStorage.getItem('penducroise_best')||'{}');const b=cur[tier];
   $('best').textContent=b?('Record '+{facile:'Facile',moyen:'Moyen',dur:'Dur'}[tier]+' : '+b.r+' manches · '+b.s+' pts'):'';}catch(e){$('best').textContent='';}}
 document.querySelectorAll('.diff').forEach(b=>b.addEventListener('click',showBest)); showBest();
-</script><a href="index.html" title="Retour à OMEGA-Ω" style="position:fixed;left:12px;bottom:12px;z-index:2147483647;font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.72);padding:7px 12px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.4)">↩ OMEGA·Ω</a></body></html>
+</script><a href="index.html" title="Retour à OMEGA-Ω" style="position:fixed;left:12px;bottom:12px;z-index:2147483647;font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.72);padding:7px 12px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.4)">↩ OMEGA·Ω</a>
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body></html>

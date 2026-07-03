@@ -13,7 +13,10 @@ const v = src.match(/const V\s*=\s*'([^']+)'/);
 if (!v || !/^omega-v\d+$/.test(v[1])) fail.push('version V introuvable ou format inattendu (omega-vNNN) : ' + (v && v[1]));
 
 const core = src.match(/const CORE\s*=\s*\[([^\]]*)\]/);
-const WHITELIST = new Set(['./', './site.css', './manifest.json', './icon.svg']);
+// liste blanche du précache : les petites pages du site + assets. Les LOURDS (app 11 Mo, pendable, scrabidon)
+// sont volontairement exclus (cachés à la visite) — les précacher re-téléchargerait ~13 Mo à CHAQUE bump de version.
+const WHITELIST = new Set(['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html',
+  './omega-key.html', './recherche.html', './evolution.html', './site.css', './manifest.json', './icon.svg']);
 if (!core) fail.push('CORE introuvable');
 else for (const it of core[1].split(',').map(s => s.trim().replace(/^'|'$/g, '')).filter(Boolean)) {
   if (!WHITELIST.has(it)) fail.push('CORE contient une entrée hors liste blanche (risque 308 → cache empoisonné) : ' + it);

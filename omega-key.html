@@ -87,5 +87,7 @@
   try{if(localStorage.getItem(k))set(true);}catch(e){}
   t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
 </script>
+
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 </body>
 </html>
