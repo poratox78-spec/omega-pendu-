@@ -79,3 +79,7 @@ jobs:
         run: node omega-key/test_crypto.js
       - name: Scrabidon — moteur plateau (mots croisés sur le bon axe, CHATS proposé, bi-mots scorés)
         run: node dictee/scrabidon_probe.js
+      - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
+        run: python3 extension/build_zip.py --check
+      - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)
+        run: node dictee/sw_probe.js
