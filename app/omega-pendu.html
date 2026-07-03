@@ -12583,7 +12583,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
   var cov=document.createElement('div');cov.id='vdc-ov';
   cov.innerHTML='<div id="vdc-card" role="region" aria-label="Correcteur dys"><button id="vdc-x" aria-label="Retour à Omega">← Retour à Omega</button><h2>🩹 Correcteur dys — semi-direct</h2>'
-   +'<div class="vdc-sc">Colle ou écris ton texte : <b>il reste intact</b>. Les corrections sont <b>surlignées directement sur ton texte</b> — <b>vert</b> = déjà appliqué (accents, accord, homophones grammaticaux, genre, terminaisons), <b>orange/rouge</b> = à vérifier (candidats orthographe, mots confusables). <b>Clique n\'importe quel mot souligné</b> — sur ton texte ou dans l\'encadré « Texte corrigé » — pour <b>appliquer ou annuler</b>, dans les deux sens. Bouton <b>📋 Copier</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
+   +'<div class="vdc-sc">Colle ou écris ton texte : <b>il reste intact</b>. Sur ta saisie, on surligne seulement les <b>points à traiter</b> (<b>orange/rouge</b> : candidats orthographe, mots confusables). Le <b>texte corrigé</b> apparaît dans l\'encadré en dessous, avec les corrections déjà faites en <b>vert</b> (accents, accord, homophones grammaticaux, genre, terminaisons). <b>Clique n\'importe quel mot souligné</b> — sur ta saisie ou dans l\'encadré — pour <b>appliquer ou annuler</b>, dans les deux sens. Bouton <b>📋 Copier</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
    +'<div id="vdc-set" role="group" aria-label="Réglages d\'affichage">'
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
@@ -12639,10 +12639,11 @@ window.addEventListener('DOMContentLoaded', () => {
   function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},_RO=_runonSet(t);corrs.forEach(function(f){by[f.i]=f;});
     var o='',last=0,k;for(k=0;k<P.length;k++){o+=esc(t.slice(last,P[k][0]));var f=by[k];
       if(f){var end=(f.span>=2&&k+f.span-1<P.length)?k+f.span-1:k;var seg=t.slice(P[k][0],P[end][1]);
-        var disp=(corrected&&f.on)?f.sugg:seg;
+        if(!corrected&&f.on){o+=esc(seg);last=P[end][1];k=end;}   // ZONE DE SAISIE : pas de VERT sur l'original (trompeur — on y voit le mot faux) ; l'appliqué (vert) n'apparaît que dans l'encadré « Texte corrigé ». Seuls rouge/orange (à traiter) restent surlignés sur la saisie.
+        else{var disp=(corrected&&f.on)?f.sugg:seg;
         var cls=f.on?'vdc-on':('vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':'')));
         var ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
-        o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}
+        o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}}
       else if(_RO[k]){o+='<span class="vdc-vig" title="Ponctuation manquante ? deux propositions collées">'+esc(P[k][2])+'</span>';last=P[k][1];}
       else{var _vi=_vigInfo(P[k][2],_vigCtxOf(P,k));if(_vi){o+='<span class="vdc-vig" title="'+esc(_vi)+'">'+esc(P[k][2])+'</span>';}else{o+=esc(P[k][2]);}last=P[k][1];}}
     o+=esc(t.slice(last));return o;}
