@@ -141,7 +141,7 @@ Voir le fichier [`NOTICE`](NOTICE) pour l'attribution complète.
 > remplacer la base lexicale par une source compatible.
 
 ---
-*Instantané 07/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · Scrabidon · recherche · évolution) · recherche O1/O2 close · correcteur re-validé sur WiCoPaCo (~45 k vraies fautes FR) : 3 FP homophones corrigés + 4 leviers de recall (~960 corrections) — « accord singulier du nom » (+435), « participe après être à sujet nom » (+405), « terminaisons -er/-é/-ez » (+57), « accord adjectif épithète » (+114, le genre-adjectif enfin FP=0 grâce au POS-tagger) — FP=0 préservé, parité 3 moteurs.*
+*Instantané 07/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · Scrabidon · recherche · évolution) · recherche O1/O2 close · correcteur re-validé sur WiCoPaCo (~45 k vraies fautes FR) : 3 FP homophones corrigés + 4 leviers de recall (~960 corrections) — « accord singulier du nom » (+435), « participe après être à sujet nom » (+405), « terminaisons -er/-é/-ez » (+57), « accord adjectif épithète » (+114, le genre-adjectif enfin FP=0 grâce au POS-tagger) — FP=0 préservé, parité 3 moteurs. Puis confronté à un **corpus dys RÉEL** (78 textes, analyse Bodard 2020) qui valide la direction (43 % des fautes dys sont phonétiques → le canal phon est central, 38 % grammaticales → notre campagne vise juste) et ouvre la **fusion d'élision** (« lhopital »→l'hôpital, « dargen »→d'argent, classe dys absente de Wikipédia ; FP élision 10→7 sur UD).*
 
 
 ## Aussi dans ce dépôt

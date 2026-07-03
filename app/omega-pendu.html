@@ -12266,7 +12266,7 @@ window.addEventListener('DOMContentLoaded', () => {
     for(var k=0;k<sp.length;k++){a=sp[k][0];b=sp[k][1];if(b)res[a+b.slice(1)]=1;if(b.length>1)res[a+b[1]+b[0]+b.slice(2)]=1;
       for(ci=0;ci<26;ci++){c=String.fromCharCode(97+ci);res[a+c+b]=1;if(b)res[a+c+b.slice(1)]=1;}}return Object.keys(res);}
   var SP={ready:false,loading:false,WORDS:null,FREQ:{},D2A:{},PHON:{},POS:{}};
-  var SELIDE={l:1,m:1,t:1,s:1,n:1,d:1,c:1,j:1},SVOW={a:1,e:1,i:1,o:1,u:1,y:1,h:1};
+  var SELIDE={l:1,m:1,t:1,s:1,n:1,d:1,c:1,j:1},_SELIDE_ACC={l:1,d:1,j:1,c:1,s:1},SVOW={a:1,e:1,i:1,o:1,u:1,y:1,h:1};   // _SELIDE_ACC = préfixes SÛRS pour restauration d'accent (m'/t'/n' exclus : « metre »=mètre)
   async function loadSpellerLex(){
     if(SP.ready||SP.loading)return;SP.loading=true;
     try{var el=document.getElementById('speller-lex-gz');if(!el||!el.textContent){SP.loading=false;return;}
@@ -12376,8 +12376,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!/[aeiouy]/.test(d))return null;                               // pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
     if(/(.)\1\1/.test(low)&&!(tok===tok.toUpperCase()&&tok.length>=2)&&!/^[ivxlcdm]+(e|es|eme|emes|er|ers)?$/.test(d)){   // ÉLONGATION (pas acronyme AAA, pas chiffre romain VIII)
       var _ec=sCollapse(low);if(_ec)return _ec.length===1?['auto',_ec[0]]:['flag',_ec[0]];}
-    if(low.length>2&&SELIDE[low[0]]&&SVOW[deaccS(low[1])[0]]){var rest=low.slice(1);
-      if(SP.WORDS.has(rest))return['flag',(low[0]==='q'?"qu'":low[0]+"'")+rest];}
+    if(low.length>2&&SELIDE[low[0]]&&SVOW[deaccS(low[1])[0]]){var rest=low.slice(1),cw=SP.WORDS.has(rest)?rest:null;
+      if(cw===null&&_SELIDE_ACC[low[0]]&&rest.length>=4){var _acc=SP.D2A[deaccS(rest)]||[];for(var _k=0;_k<_acc.length;_k++){var _w=_acc[_k];if(SVOW[deaccS(_w)[0]]&&(SP.FREQ[_w]||0)>=2.0&&(cw===null||SP.FREQ[_w]>(SP.FREQ[cw]||0)))cw=_w;}}   // restauration d'accent (lhopital→l'hôpital) — préfixes sûrs
+      if(cw&&!(low[0]==='c'&&'ei'.indexOf(deaccS(cw)[0])<0))return['flag',low[0]+"'"+cw];}   // c' seulement devant e/i
     var cand={},i,j,w,arr;arr=SP.D2A[d]||[];for(i=0;i<arr.length;i++){w=arr[i];cand[w]=[2,SP.FREQ[w]];}
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=SP.D2A[e1[i]];if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,SP.FREQ[w]];}}
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>2||deaccS(w).charAt(0)!==d.charAt(0))continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur (Δ≤2)+MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe : th/ph) ; bloque trist→tristesse (Δ4)/autent→hautaine (initiale)

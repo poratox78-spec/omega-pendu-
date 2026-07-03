@@ -13,6 +13,7 @@ LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
+_ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
 VOWELS = set("aeiouyh")                        # le mot élidé commence par voyelle/h
 AUTO_FREQ = 1.0                                # fréquence min (occ/M) pour AUTO
 FLAG_FREQ = 0.1                                # fréquence min pour FLAG
@@ -175,10 +176,13 @@ class Speller:
         if not re.search(r'[aeiouy]', d): return None   # pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
         # élision : « lannée »→« l'année », « dautres »→« d'autres » (consonne d'élision + mot voyelle/h valide)
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
-            rest = low[1:]
-            if rest in self.WORDS:
-                pre = "qu'" if low[0] == 'q' else low[0] + "'"
-                return ('flag', pre + rest)                     # élision = FLAG (sûr mais on laisse l'utilisateur valider)
+            rest = low[1:]; cw = rest if rest in self.WORDS else None
+            if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
+                for w in self.D2A.get(deacc(rest), []):
+                    if deacc(w)[:1] in VOWELS and self.FREQ.get(w, 0) >= 2.0 and (cw is None or self.FREQ[w] > self.FREQ.get(cw, 0)):
+                        cw = w
+            if cw and not (low[0] == 'c' and deacc(cw)[:1] not in 'ei'):   # « c' » seulement devant e/i (c'est, c'était)
+                return ('flag', low[0] + "'" + cw)                     # élision = FLAG (sûr mais on laisse l'utilisateur valider)
         cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)
