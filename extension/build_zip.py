@@ -4,7 +4,20 @@
 # Audit 07/2026 : le zip distribué avait 53 commits de retard (fixes FP non livrés) et AUCUNE garde.
 #   python3 extension/build_zip.py            → (re)génère le zip à la racine du repo
 #   python3 extension/build_zip.py --check    → sort 1 si le zip ne correspond pas aux sources (mode CI)
-import io, os, sys, zipfile
+import gzip, io, os, sys, zipfile
+
+TEXT_EXT = ('.js', '.css', '.html', '.json', '.md', '.txt')
+
+def norm(name, data):
+    """Comparaison/écriture INDÉPENDANTE de la plateforme : le texte est normalisé en LF (un zip construit
+    sous Windows (CRLF) doit rester frais face à un checkout CI Linux (LF)) ; les .gz sont comparés sur leur
+    CONTENU décompressé (l'en-tête gzip embarque mtime/OS → régénérer les assets change les octets, pas le contenu)."""
+    if name.endswith('.gz'):
+        try: return gzip.decompress(data)
+        except Exception: return data
+    if name.endswith(TEXT_EXT):
+        return data.replace(b'\r\n', b'\n')
+    return data
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -32,7 +45,10 @@ def build():
             zi = zipfile.ZipInfo(arc, date_time=(2026, 1, 1, 0, 0, 0))   # horodatage FIXE → zip reproductible
             zi.compress_type = zipfile.ZIP_DEFLATED
             with open(path, 'rb') as f:
-                z.writestr(zi, f.read())
+                data = f.read()
+            if arc.endswith(TEXT_EXT):
+                data = data.replace(b'\r\n', b'\n')                       # livraison en LF quel que soit l'OS de build
+            z.writestr(zi, data)
     print('zip écrit :', ZIP, '(%d fichiers)' % len(entries))
 
 def check():
@@ -45,8 +61,8 @@ def check():
         for arc, path in entries.items():
             if arc not in names:
                 bad.append('MANQUANT dans le zip : ' + arc); continue
-            if z.read(arc) != open(path, 'rb').read():
-                bad.append('PÉRIMÉ (octets ≠ source) : ' + arc)
+            if norm(arc, z.read(arc)) != norm(arc, open(path, 'rb').read()):
+                bad.append('PÉRIMÉ (contenu ≠ source) : ' + arc)
         for n in names:
             if n not in entries:
                 bad.append('EN TROP dans le zip (pas une source livrée) : ' + n)
