@@ -756,7 +756,8 @@
     // CONFIANCE : n'AFFIRMER (rouge) que si sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son rang, dominant.
     // Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille). Mesuré sur dictées réelles.
     var firstOk=deaccS(w1).charAt(0)===d.charAt(0),nTop=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===p1)nTop++;
-    var confident=accentOnly||(p1>=1&&firstOk&&nTop===1&&dominant);
+    var finalS=(p1>=1&&deaccS(w1).length===d.length+1&&deaccS(w1).slice(0,d.length)===d&&/[sx]$/.test(deaccS(w1)));   // faute dys « lettre finale muette » : candidat = original + s/x final (préfixe commun) → SÛR (FP=0 mesuré sur 2500 phrases UD ; dehor→dehors, alor→alors, moin→moins…) donc APPLIQUÉ, pas vigilance
+    var confident=accentOnly||finalS||(p1>=1&&firstOk&&nTop===1&&dominant);
     return [confident?'flag':'vigilance',w1];}
   // MOVER SYNTAXIQUE de l'impératif — placement des pronoms clitiques (MIROIR de dictee/imperative_clitics.moves) → span:N
   var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
