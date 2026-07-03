@@ -10148,7 +10148,11 @@ window.addEventListener('DOMContentLoaded', () => {
    CORRECTEUR = erreurs en rédaction réelle (cerr → influence la priorité). Courbe de progrès = taux dans le temps
    (log chunké en buckets). Mesurable : taux RÉCENT < taux GLOBAL = progrès. App-only (localStorage ≠ extension). */
 (function(){
-  var KEY='dys_profile_v3', FAMS=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface'];
+  var KEY='dys_profile_v3', FAMS=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation'];
+  // AMORCE À FROID = fréquences des erreurs dys RÉELLES (Bodard 2020, RÉCITAL, sur corpus dys FR ; cf. rapport §18.5).
+  // Phonétisation ≈43 % (accent/muette/voisée-sourde), accord/conjugaison ≈27 %, homophone ≈11 %, segmentation ≈6 %,
+  // caractère (inversion/ajout/surface) ≈6 %. Guide la remédiation AVANT données perso ; dominée par les mesures dès qu'elles arrivent.
+  var PRIOR={accent:.15,muette:.15,voisee_sourde:.13,accord:.27,homophone:.11,segmentation:.06,inversion:.02,ajout:.03,surface:.04};
   var P; try{P=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){P=null;}
   if(!P||typeof P!=='object'||!P.fam){P={fam:{},log:[]};} if(!P.log)P.log=[];
   function fx(k){return P.fam[k]||(P.fam[k]={att:0,err:0,cerr:0});}
@@ -10159,10 +10163,10 @@ window.addEventListener('DOMContentLoaded', () => {
   function rate(fam){ var x=P.fam[fam]; if(!x||!x.att)return null; return (x.err+0.5)/(x.att+1); }   // taux lissé (Laplace), dictée
   function recentRate(fam,k){ k=k||12; var c=0,e=0,i; for(i=P.log.length-1;i>=0&&c<k;i--)if(P.log[i].f===fam&&P.log[i].s==='d'){c++;e+=P.log[i].e;} return c?e/c:null; }
   function ranked(minAtt){ minAtt=minAtt||4; var out=[],i,fam,x,r,score;
-    for(i=0;i<FAMS.length;i++){ fam=FAMS[i]; x=P.fam[fam]; if(!x)continue; r=rate(fam);
+    for(i=0;i<FAMS.length;i++){ fam=FAMS[i]; x=P.fam[fam]; r=x?rate(fam):null;
       if(r!=null&&x.att>=minAtt){score=r+Math.min(0.25,(x.cerr||0)*0.03);}              // dictée MESURÉE (gold) prime + urgence rédaction (≤+0.25)
-      else if((x.cerr||0)>=3){score=0.5+Math.min(0.3,((x.cerr||0)-3)*0.04);}            // vu SEULEMENT en rédaction → priorité moyenne, montante avec la fréquence
-      else continue;
+      else if(x&&(x.cerr||0)>=3){score=0.5+Math.min(0.3,((x.cerr||0)-3)*0.04);}         // vu SEULEMENT en rédaction → priorité moyenne, montante avec la fréquence
+      else{score=(PRIOR[fam]||0.02)*0.4;}                                               // AMORCE Bodard (cold-start) : sous toute mesure (≥0.17) → les données perso dominent dès qu'elles existent
       out.push({fam:fam,score:score}); }
     out.sort(function(a,b){return b.score-a.score;}); return out; }
   function weakest(minAtt){ var r=ranked(minAtt); return r.length?r[0].fam:null; }
@@ -11475,11 +11479,13 @@ window.addEventListener('DOMContentLoaded', () => {
     if(s.toLowerCase()===t.toLowerCase())return[];
     var dt=deacc(t.toLowerCase()),ds=deacc(s.toLowerCase()),o=[];
     if(dt===ds)o.push('accent');
+    var _seg=(dt.replace(/['’ \-]/g,'')===ds.replace(/['’ \-]/g,''))&&dt!==ds;   // diffère SEULEMENT par apostrophe/espace/trait d'union = SEGMENTATION (l'hôpital↔lhopital, du coup↔ducoup, rendez-vous↔rendezvous) — Bodard §18.5
+    if(_seg)o.push('segmentation');
     if(s.length===t.length){var d=[];for(var i=0;i<t.length;i++)if(t[i].toLowerCase()!==s[i].toLowerCase())d.push(i);
       if(d.length===1){var a=t[d[0]].toLowerCase(),b=s[d[0]].toLowerCase();if(VS[a]===b)o.push('voisee_sourde');}}
     if(dt.length===ds.length&&dt!==ds&&dt.split('').sort().join('')===ds.split('').sort().join(''))o.push('inversion');
-    if(ds.length<dt.length&&subseq(ds,dt))o.push('muette');
-    if(ds.length>dt.length&&subseq(dt,ds))o.push('ajout');
+    if(!_seg&&ds.length<dt.length&&subseq(ds,dt))o.push('muette');
+    if(!_seg&&ds.length>dt.length&&subseq(dt,ds))o.push('ajout');
     var fl=fam.map(function(x){return x.toLowerCase();});
     if(fl.indexOf(s.toLowerCase())>=0)o.push(isAccord(t,s)?'accord':'homophone');
     if(!o.length)o.push(norm(t)===norm(s)?'surface':'autre');
@@ -11514,7 +11520,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
   function accordType(t,s,verb){if(verb)return'verbal';var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;var suf=a.slice(p)+b.slice(p);if(suf.indexOf('s')>=0||suf.indexOf('x')>=0)return'nombre';if(suf.slice(-2)==='nt'||suf.indexOf('t')>=0)return'verbal';if(suf.indexOf('e')>=0)return'genre';return'flexion';}
   function nb(x){return x==='pl'?'pluriel':'singulier';}
-  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',muette:'lexical',homophone:'lexical',accord:'morphosyntaxique'};
+  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',muette:'lexical',homophone:'lexical',accord:'morphosyntaxique'};
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
   var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones lexicaux.',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal (le palier le plus tardif).'};
@@ -11531,7 +11537,8 @@ window.addEventListener('DOMContentLoaded', () => {
     accent:'Accents : é (fermé) et è/ê (ouvert) ne sonnent pas pareil. Dis le mot à voix haute pour choisir l’accent.',
     muette:'Lettre muette finale : trouve un mot de la MÊME FAMILLE où on l’entend (petit→petitE, tard→tardIf, chant→chantEr).',
     homophone:'Homophones : REMPLACE par un mot test (a→avait, et→et puis, son→le sien). Si la phrase tient encore, c’est la bonne forme.',
-    accord:'Accord : repère QUI COMMANDE (le sujet, le déterminant) et accorde en genre/nombre (les chats → jouENT ; la voiture → bleuE).'
+    accord:'Accord : repère QUI COMMANDE (le sujet, le déterminant) et accorde en genre/nombre (les chats → jouENT ; la voiture → bleuE).',
+    segmentation:'Découpage : un mot à voyelle « colle » à l’article/pronom élidé → sépare avec l’apostrophe (lhopital → l’hôpital, dargen → d’argent, cetait → c’était). Et « ducou » = deux mots (du coup).'
   };
   // familles présentes AU stade développemental visé (le maillon à travailler en priorité) → conseils dédupliqués
   function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},out=[];(F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(STAGE_FAM[t]===dev.stade&&!seen[t]){seen[t]=1;out.push(t);}});});return out.length?{stade:dev.stade,fams:out}:null;}
@@ -11565,8 +11572,8 @@ window.addEventListener('DOMContentLoaded', () => {
       F.push(fact);});
     return F;
   }
-  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',autre:'#777'};
-  var LBL={accord:'accord',homophone:'homophone',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',autre:'à vérifier'};
+  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',autre:'#777'};
+  var LBL={accord:'accord',homophone:'homophone',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (apostrophe/espace)',autre:'à vérifier'};
   var st=document.createElement('style');
   st.textContent='#vdd-btn{position:fixed;right:14px;bottom:14px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#2a6f97;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdd-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdd-ov.on{display:flex}'
@@ -12592,7 +12599,9 @@ window.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(cov);
   var _flags=[],_corrDepth=0;   // _corrDepth = garde anti-boucle de l'auto-correction (AUDIT #3)
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (évite ReferenceError dans les harnais d'extraction)
-  function _corrFam(n,w,sg){n=n||'';if(w&&sg&&deaccS(w.toLowerCase())===deaccS(String(sg).toLowerCase()))return 'accent';if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié)
+  function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
+    if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
+    if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié)
   function applyFix(k,sugg){var t=$('vdc-in').value,re=/[A-Za-zÀ-ÿœŒ']+/g,m,T=[];while((m=re.exec(t)))T.push([m.index,m.index+m[0].length]);
     if(k>=T.length){runCorr();return;}var f=null;for(var z=0;z<_flags.length;z++)if(_flags[z].i===k){f=_flags[z];break;}
     if(f&&DysProfile)DysProfile.rec(_corrFam(f.name,f.word,f.sugg),1,'corrector');   // erreur confirmée par l'utilisateur → profil unifié
