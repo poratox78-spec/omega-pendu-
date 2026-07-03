@@ -77,3 +77,5 @@ jobs:
         run: node evo/ci_smoke.js
       - name: OMEGA·KEY — crypto (entropie passphrases + gel des listes + KAT Double Ratchet)
         run: node omega-key/test_crypto.js
+      - name: Scrabidon — moteur plateau (mots croisés sur le bon axe, CHATS proposé, bi-mots scorés)
+        run: node dictee/scrabidon_probe.js
