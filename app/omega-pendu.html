@@ -12573,12 +12573,13 @@ window.addEventListener('DOMContentLoaded', () => {
    +'body.dys-dark #vdc-result{background:#0f2417;border-color:#3fa564;color:#e8edf2}'
    +'body.dys-dark .vdc-fact{background:#10161d}body.dys-dark #vdc-set button{background:#10161d;color:#e8edf2;border-color:#33414f}'
    +'body.dys-dark #vdc-set button[aria-pressed=true]{background:#3b82c4;border-color:#3b82c4}'
-   +'body.dys-dark .vdc-bad{background:#3a1d1d}body.dys-dark .vdc-bad.vdc-orth{background:#16283d}body.dys-dark .vdc-bad.vdc-vig{background:#3a2f12}'
-   +'body.dys-dark .vdc-on{background:#12331d;border-bottom-color:#3fa564}body.dys-dark .vdc-on:hover{background:#184b2b}body.dys-dark .vdc-flabel{color:#c8b98a}body.dys-dark .vdc-copy{background:#1c232c;color:#e8edf2;border-color:#33414f}body.dys-dark .vdc-copy:hover{background:#26303b}'
+   +'body.dys-dark .vdc-bad{background:#f6b6b6}body.dys-dark .vdc-bad.vdc-orth{background:#bcd6f5}body.dys-dark .vdc-bad.vdc-vig{background:#ffdd94}'   /* surlignage IDENTIQUE au mode clair (fonds pastel) en thème sombre */
+   +'body.dys-dark .vdc-on{background:#c9efd0;border-bottom-color:#1f7a3d}body.dys-dark .vdc-on:hover{background:#b3e6bd}body.dys-dark .vdc-flabel{color:#c8b98a}body.dys-dark .vdc-copy{background:#1c232c;color:#e8edf2;border-color:#33414f}body.dys-dark .vdc-copy:hover{background:#26303b}'
+   +'body.dys-dark .vdc-bad,body.dys-dark .vdc-on{color:#111}'   /* mot surligné = texte foncé sur le pastel (comme en mode clair) ; le reste du texte de la zone garde sa couleur claire */
    +'body.dys-cb .vdc-bad{background:#fce6cf;border-bottom-color:#d9760b}body.dys-cb .vdc-bad:hover{background:#f9d6ac}'
    +'body.dys-cb .vdc-fact{border-left-color:#d9760b}'
    +'body.dys-cb .vdc-bad.vdc-orth{background:#d8e7f4;border-bottom-color:#1f6cb0}body.dys-cb .vdc-bad.vdc-orth:hover{background:#c2d9ef}'
-   +'body.dys-dark.dys-cb .vdc-bad{background:#3a2912}body.dys-dark.dys-cb .vdc-bad.vdc-orth{background:#12283f}';
+   +'body.dys-dark.dys-cb .vdc-bad{background:#fce6cf}body.dys-dark.dys-cb .vdc-bad.vdc-orth{background:#d8e7f4}';
   document.head.appendChild(cst);
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
   var cov=document.createElement('div');cov.id='vdc-ov';
@@ -12639,8 +12640,10 @@ window.addEventListener('DOMContentLoaded', () => {
   function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},_RO=_runonSet(t);corrs.forEach(function(f){by[f.i]=f;});
     var o='',last=0,k;for(k=0;k<P.length;k++){o+=esc(t.slice(last,P[k][0]));var f=by[k];
       if(f){var end=(f.span>=2&&k+f.span-1<P.length)?k+f.span-1:k;var seg=t.slice(P[k][0],P[end][1]);
-        if(!corrected&&f.on){o+=esc(seg);last=P[end][1];k=end;}   // ZONE DE SAISIE : pas de VERT sur l'original (trompeur — on y voit le mot faux) ; l'appliqué (vert) n'apparaît que dans l'encadré « Texte corrigé ». Seuls rouge/orange (à traiter) restent surlignés sur la saisie.
-        else{var disp=(corrected&&f.on)?f.sugg:seg;
+        if(!corrected){   // ZONE DE SAISIE : JAMAIS de vert (clair ET sombre). Toute correction = faute sur l'original → nos couleurs rouge/orange (jamais vdc-on). On montre le mot original.
+          var clsS='vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':''));
+          o+='<span class="'+clsS+'" data-key="'+esc(f.key)+'" title="'+(f.on?'appliqué -> '+esc(f.sugg)+' — clique pour annuler':'clique pour appliquer -> '+esc(f.sugg))+'">'+esc(seg)+'</span>';last=P[end][1];k=end;}
+        else{var disp=f.on?f.sugg:seg;   // ENCADRÉ CORRIGÉ : vert = appliqué, rouge/orange = à vérifier
         var cls=f.on?'vdc-on':('vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':'')));
         var ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
         o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}}
