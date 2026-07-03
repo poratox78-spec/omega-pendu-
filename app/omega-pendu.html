@@ -12537,8 +12537,13 @@ window.addEventListener('DOMContentLoaded', () => {
    +'#vdc-ov{position:fixed;inset:0;z-index:100001;background:#efe7d3;display:none;overflow:auto}#vdc-ov.on{display:block}'   /* PLEINE PAGE opaque (plus de fond transparent → plus de miss-clic vers le pendu) */
    +'#vdc-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:100%;max-width:820px;min-height:100vh;margin:0 auto;box-sizing:border-box;overflow:auto;border-radius:0;padding:16px 20px 64px;position:relative}'
    +'#vdc-card h2{margin:.1em 0;font-size:20px;color:#222}#vdc-x{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbbf9e;background:#fff;font-size:15px;font-weight:600;cursor:pointer;color:#333;padding:8px 14px;border-radius:10px;margin-bottom:10px}#vdc-x:hover{background:#f3ecd8}'
-   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:90px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
-   +'#vdc-render{font-size:18px;line-height:1.9;margin-top:10px;padding:10px;background:#fff;border-radius:10px;border:1px solid #eee;min-height:30px}'
+   +'#vdc-editor{position:relative;margin-top:10px}'
+   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:110px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;box-sizing:border-box;position:relative;z-index:1;color:transparent;caret-color:#111;resize:vertical;display:block}'
+   +'#vdc-in::selection{background:#8ec5ff}'
+   +'#vdc-render{position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;pointer-events:none;background:transparent;color:#111;overflow:hidden;white-space:pre-wrap;overflow-wrap:break-word;font:inherit;font-size:18px;line-height:1.6;padding:11px;border:2px solid transparent;border-radius:10px;box-sizing:border-box}'   /* overlay : dessine le texte SURLIGNÉ par-dessus la textarea (texte transparent) — surlignage SUR la zone de frappe */
+   +'.vdc-flabel-big{font-size:15px}'
+   +'#vdc-render .vdc-on,#vdc-render .vdc-bad,#vdc-render .vdc-vig{pointer-events:auto}'   /* seuls les mots corrigés captent le clic ; le reste passe à la textarea (caret) */
+   +'#vdc-result{font-size:18px;line-height:1.7;padding:12px 14px;background:#f4fbf5;border:2px solid #1f7a3d;border-radius:10px;min-height:44px}'   /* vrai encadré « texte corrigé » (proéminent) */
    +'.vdc-bad{background:#f6b6b6;border-bottom:3px solid #b02020;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-bad:hover{background:#f29a9a}'   /* fonds SATURÉS (pastels trop pâles = illisibles) */
    +'.vdc-bad.vdc-orth{background:#bcd6f5;border-bottom-color:#1b5c86}.vdc-bad.vdc-orth:hover{background:#a3c6ef}'
    +'.vdc-bad.vdc-vig{background:#ffdd94;border-bottom:3px dashed #c8760a;font-weight:600}.vdc-bad.vdc-vig:hover{background:#ffd06f}'
@@ -12561,9 +12566,11 @@ window.addEventListener('DOMContentLoaded', () => {
    +'body.dys-dark #vdc-x{background:#10161d;color:#e8edf2;border-color:#33414f}body.dys-dark #vdc-x:hover{background:#20303f}'
    +'body.dys-dark .vdc-sc,body.dys-dark .vdd-sc,body.dys-dark .vdk-sc{color:#b4bdc7}'   /* texte secondaire lisible sur carte sombre (le #444 clair y serait invisible) */
    +'body.dys-dark #vdd-fb .vdd-fact,body.dys-dark #vdd-fb .vdd-fact *{color:#1a1a1a!important}'   /* dictée : le feedback a des fonds CLAIRS inline → texte foncé sinon illisible en thème sombre */
-   +'body.dys-dark .vdc-lite,body.dys-dark .vdc-lite *{color:#1a1a1a!important}'   /* correcteur : cartes Stade/Remédiation/IA à fond CLAIR inline → texte foncé forcé (sinon texte pâle sur crème = illisible) */
+   +'body.dys-dark .vdc-lite{background:#141c25!important;border-color:#33414f}body.dys-dark .vdc-lite,body.dys-dark .vdc-lite *{color:#e8edf2!important}'   /* correcteur : en mode SOMBRE les cartes Appliqué/À vérifier/Stade/Remédiation passent en fond SOMBRE + texte clair (on garde la bordure gauche colorée = catégorie), plus d\'îlots crème */
+   +'body.dys-dark .vdc-lite span[data-key]{background:#0f1620!important}'   /* les puces (chips) dans les cartes sombres : fond sombre (sinon texte clair sur puce blanche = invisible) ; la bordure colorée reste */
    +'body.dys-dark #vdc-card h2,body.dys-dark #vdd-card h2,body.dys-dark #vdk-card h2,body.dys-dark #vdc-x{color:#e8edf2}'
-   +'body.dys-dark #vdc-in,body.dys-dark #vdc-render{background:#10161d;color:#e8edf2;border-color:#33414f}'
+   +'body.dys-dark #vdc-in{background:#10161d;color:transparent;caret-color:#e8edf2;border-color:#33414f}body.dys-dark #vdc-render{background:transparent;color:#e8edf2;border-color:transparent}'
+   +'body.dys-dark #vdc-result{background:#0f2417;border-color:#3fa564;color:#e8edf2}'
    +'body.dys-dark .vdc-fact{background:#10161d}body.dys-dark #vdc-set button{background:#10161d;color:#e8edf2;border-color:#33414f}'
    +'body.dys-dark #vdc-set button[aria-pressed=true]{background:#3b82c4;border-color:#3b82c4}'
    +'body.dys-dark .vdc-bad{background:#3a1d1d}body.dys-dark .vdc-bad.vdc-orth{background:#16283d}body.dys-dark .vdc-bad.vdc-vig{background:#3a2f12}'
@@ -12576,17 +12583,16 @@ window.addEventListener('DOMContentLoaded', () => {
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
   var cov=document.createElement('div');cov.id='vdc-ov';
   cov.innerHTML='<div id="vdc-card" role="region" aria-label="Correcteur dys"><button id="vdc-x" aria-label="Retour à Omega">← Retour à Omega</button><h2>🩹 Correcteur dys — semi-direct</h2>'
-   +'<div class="vdc-sc">Colle ou écris ton texte : les fautes grammaticales (homophones a/à, son/sont… <b>et accord sujet-verbe</b> : « Je doit »→dois, « On ont »→a) sont <b>soulignées en rouge</b> — <b>clique dessus pour appliquer la correction</b>. Le <b>stade</b> est indiqué. Les mots <b>confusables</b> (homophones : père/paire, mer/mère…) sont soulignés en <b>vert pointillé</b> : <b>survole-les</b> pour voir les possibilités et leur sens — ce n\'est <b>pas</b> une faute, juste une invitation à vérifier. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
+   +'<div class="vdc-sc">Colle ou écris ton texte : <b>il reste intact</b>. Les corrections sont <b>surlignées directement sur ton texte</b> — <b>vert</b> = déjà appliqué (accents, accord, homophones grammaticaux, genre, terminaisons), <b>orange/rouge</b> = à vérifier (candidats orthographe, mots confusables). <b>Clique n\'importe quel mot souligné</b> — sur ton texte ou dans l\'encadré « Texte corrigé » — pour <b>appliquer ou annuler</b>, dans les deux sens. Bouton <b>📋 Copier</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
    +'<div id="vdc-set" role="group" aria-label="Réglages d\'affichage">'
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
    +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Police dys</button>'
    +'</div>'
-   +'<textarea id="vdc-in" aria-label="Texte à corriger" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea>'
+   +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> ; clique un mot pour appliquer / annuler</span></div>'
+   +'<div id="vdc-editor"><textarea id="vdc-in" aria-label="Texte à corriger" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea><div id="vdc-render" aria-live="polite"></div></div>'
    +'<div id="vdc-complete" aria-live="polite"></div>'
-   +'<div class="vdc-flabel">📝 Ton texte <span class="vdc-sc">(intact) — clique un mot souligné pour appliquer / annuler</span></div>'
-   +'<div id="vdc-render" aria-live="polite"></div>'
-   +'<div class="vdc-flabel">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copier</button></div>'
+   +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copier</button></div>'
    +'<div id="vdc-result" aria-live="polite"></div>'
    +'<div id="vdc-count" class="vdc-sc" style="margin-top:10px" aria-live="polite"></div><div id="vdc-out" style="margin-top:4px"></div>'
    +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
@@ -12673,7 +12679,8 @@ window.addEventListener('DOMContentLoaded', () => {
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   function runCorr(){var t=$('vdc-in').value;
     _corrs=SP.ready?_computeCorrs(t):[];
-    $('vdc-render').innerHTML=_renderView(t,_corrs,false);        // CADRE HAUT : ton texte ORIGINAL (intact), corrections soulignées
+    $('vdc-render').innerHTML=_renderView(t,_corrs,false);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
+    if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
     _lastCorrected=_correctedText(t,_corrs);
     var rz=$('vdc-result');if(rz)rz.innerHTML=_renderView(t,_corrs,true);   // CADRE BAS : le texte CORRIGÉ, soulignés cliquables (bascule)
     if(!t.trim()){$('vdc-count').innerHTML='';$('vdc-out').innerHTML='';return;}
@@ -12693,7 +12700,10 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
   cov.addEventListener('keydown',function(e){if(e.key==='Escape')cov.classList.remove('on');});   // Échap ferme (clavier/accessibilité)
   // (plus de fermeture au clic sur le fond : pleine page opaque + bouton « ← Retour à Omega » → zéro miss-clic vers le pendu)
-  $('vdc-in').addEventListener('input',function(){runComplete();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
+  function _paintPlain(){var rd=$('vdc-render');if(rd)rd.innerHTML=esc($('vdc-in').value);}   // repeint l'overlay en texte BRUT instantanément (le surlignage arrive au runCorr débounced) → pas de décalage texte/frappe
+  function _syncScroll(){var rd=$('vdc-render'),ta=$('vdc-in');if(rd&&ta){rd.scrollTop=ta.scrollTop;rd.scrollLeft=ta.scrollLeft;}}
+  $('vdc-in').addEventListener('input',function(){runComplete();_paintPlain();_syncScroll();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
+  $('vdc-in').addEventListener('scroll',_syncScroll);   // l'overlay suit le défilement de la textarea
   $('vdc-in').addEventListener('click',function(){runComplete();});                                  // déplacement du curseur → recalcule la complétion
   $('vdc-in').addEventListener('keyup',function(e){if(e.key&&e.key.indexOf('Arrow')===0||e.key==='Home'||e.key==='End')runComplete();});
   $('vdc-in').addEventListener('keydown',function(e){if(e.key==='Tab'&&_compFirst){e.preventDefault();_applyComplete(_compFirst);}});  // Tab = accepte la 1re complétion (aide-frappe)
