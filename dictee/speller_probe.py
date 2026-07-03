@@ -142,6 +142,7 @@ class Speller:
             t = deacc(toks[j].lower())
             if t in self.COPULA: continue
             if t in self.DET_G: return self.DET_G[t]
+            if toks[j].lower().replace('œ', 'oe').replace('æ', 'ae') not in self.WORDS: continue   # ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GEN déacc ← « trés » nom) → on continue vers le déterminant
             g = self.GEN.get(t)
             if g: return g
         return None
@@ -209,9 +210,15 @@ class Speller:
             ax, ay = (1 if px_ == 2 else 0), (1 if py_ == 2 else 0)
             if ax != ay: return ay - ax
             qx, qy = pmatch(wx), pmatch(wy)
-            if qx != qy: return qy - qx
+            if qx != qy:                                     # bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent
+                if qx > qy and py_ >= 1 and fy >= 20 * fx: return 1   # ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N
+                if qy > qx and px_ >= 1 and fx >= 20 * fy: return -1  # 18/M ne doit pas battre « très » 1435/M ; « jamal » vs « jamais »)
+                return qy - qx
             gx, gy = gmatch(wx), gmatch(wy)
-            if gx != gy: return gy - gx
+            if gx != gy:                                     # même garde sur le bonus GENRE (entrées de genre polluées)
+                if gx > gy and py_ >= 1 and fy >= 20 * fx: return 1
+                if gy > gx and px_ >= 1 and fx >= 20 * fy: return -1
+                return gy - gx
             if px_ == 1 and py_ == 0 and fx >= 10 * fy: return -1   # dominance : edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
             if py_ == 1 and px_ == 0 and fy >= 10 * fx: return 1
             phx, phy = (1 if phon_key(wx) == pk else 0), (1 if phon_key(wy) == pk else 0)
@@ -244,7 +251,10 @@ class Speller:
         for i, m in enumerate(ms):
             r = self.correct_token(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
             if r and r[1] != m.group(0).lower():
-                out.append((m.start(), m.group(0), r[1], r[0]))
+                sugg = r[1]
+                if m.group(0)[:1].isupper() and sugg[:1].islower():   # préserver la MAJUSCULE d'origine (« Ecole »→« École », pas « école »)
+                    sugg = sugg[0].upper() + sugg[1:]
+                out.append((m.start(), m.group(0), sugg, r[0]))
         return out
 
     @staticmethod
@@ -284,7 +294,7 @@ def main():
             if len(b) < 2 or not all(deacc(c) in ALPHA for c in b.lower()): continue
             nw += 1
             hit = next((v for v in flags.values() if v[0].lower() == b.lower()), None)
-            if hit and hit[1] == g.lower():
+            if hit and hit[1] == g:   # comparaison EXACTE (casse comprise) : la majuscule d'origine doit être préservée (« Ecole »→« École »)
                 if hit[2] == 'auto': okA += 1
                 else: okF += 1
             elif len(miss) < 16: miss.append((b, g, hit[1] if hit else None))

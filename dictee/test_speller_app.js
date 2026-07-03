@@ -88,6 +88,19 @@ const SP = globalThis.__sp;
   const hm = SP.spell('je ne sais pa comment fer à ma mer').filter(x => x.name === 'homophone à vérifier').map(x => x.word + '→' + x.sugg).sort().join(',');
   if (hm !== 'fer→faire,mer→mère,pa→pas') fail.push('vigilance homophone attendue (pa/fer/mer), eu ' + hm);
   if (SP.spell('la mer est belle et le fer est chaud').some(x => x.name === 'homophone à vérifier')) fail.push('FP vigilance homophone sur « la mer »/« le fer »');
+  // QUALITÉ DES REMPLACEMENTS (audit 07/2026) : le bonus POS/genre ne doit pas promouvoir une graphie polluée du
+  // lexique (« trés » N 18/M) contre un rival ≫20× plus fréquent (« très » 1435/M) — ni « jamal » contre « jamais ».
+  const tr1 = SP.spell('une tres bonne note').find(x => x.word.toLowerCase() === 'tres');
+  if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
+  const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');
+  if (!ch1 || ch1.sugg !== 'chère') fail.push('chere→chère (le token fautif « tres » ne doit plus ancrer un genre masculin) attendu, eu ' + JSON.stringify(ch1));
+  const jm1 = SP.spell('il ne la jamai vu').find(x => x.word.toLowerCase() === 'jamai');
+  if (jm1 && jm1.sugg === 'jamal') fail.push('jamai ne doit JAMAIS proposer « jamal » (prénom, 340× plus rare que jamais), eu ' + JSON.stringify(jm1));
+  // MAJUSCULE PRÉSERVÉE : la correction d'un mot capitalisé garde sa majuscule (« Ecole »→« École », « Lannée »→« L\'année »)
+  const ec1 = SP.spell('Ecole primaire.').find(x => x.word === 'Ecole');
+  if (!ec1 || ec1.sugg !== 'École') fail.push('Ecole→École (majuscule préservée) attendu, eu ' + JSON.stringify(ec1));
+  const la1 = SP.spell('Lannée passée').find(x => x.word === 'Lannée');
+  if (!la1 || la1.sugg !== "L'année") fail.push("Lannée→L'année (majuscule préservée) attendu, eu " + JSON.stringify(la1));
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });
