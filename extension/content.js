@@ -20,7 +20,8 @@
       vdc: chrome.runtime.getURL('assets/vdc-lex.json'),
       genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
       speller: spellerUrl,
-      nom: nomUrl
+      nom: nomUrl,
+      hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz')   // POS-tagger HMM : l'asset était LIVRÉ mais jamais chargé → ~7 règles rouges (accord/épithète via tagger) inertes dans le navigateur (audit 07/2026)
     }).then(function () { if (active) schedule(active); });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
     if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior (genre + pluriel) est prêt
@@ -37,21 +38,43 @@
     if (el.isContentEditable) return true;
     return false;
   }
-  function getText(el) {
-    var tag = (el.tagName || '').toLowerCase();
-    if (tag === 'textarea' || tag === 'input') return el.value;
-    return el.innerText || '';
+  function isCE(el) { var tag = (el.tagName || '').toLowerCase(); return tag !== 'textarea' && tag !== 'input'; }
+  // ===== contenteditable SANS destruction (audit 07/2026 : setText via textContent rasait gras/liens/paragraphes,
+  //       y compris en AUTO sans action utilisateur). On collecte les NŒUDS TEXTE (avec \n aux frontières de bloc/BR)
+  //       et on remplace CHIRURGICALEMENT dans le nœud concerné ; une correction à cheval sur deux nœuds (mot coupé
+  //       par un <b>) est simplement ignorée — on ne touche jamais à la structure. =====
+  var CE_BLOCK = { P: 1, DIV: 1, LI: 1, UL: 1, OL: 1, TABLE: 1, TR: 1, TD: 1, TH: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, BLOCKQUOTE: 1, PRE: 1, SECTION: 1, ARTICLE: 1 };
+  function ceCollect(el) {
+    var text = '', map = [];
+    (function walk(n) {
+      for (var c = n.firstChild; c; c = c.nextSibling) {
+        if (c.nodeType === 3) { map.push({ node: c, start: text.length, end: text.length + c.nodeValue.length }); text += c.nodeValue; }
+        else if (c.nodeType === 1) {
+          if (c.tagName === 'BR') { text += '\n'; continue; }
+          if (c.getAttribute && c.getAttribute('data-omdys')) continue;
+          walk(c);
+          if (CE_BLOCK[c.tagName]) text += '\n';
+        }
+      }
+    })(el);
+    return { text: text, map: map };
   }
-  function setText(el, txt, caret) {
-    var tag = (el.tagName || '').toLowerCase();
-    if (tag === 'textarea' || tag === 'input') {
-      el.value = txt;
-      try { if (caret != null) el.setSelectionRange(caret, caret); } catch (e) {}
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    } else {                              // contenteditable (plein texte ; éditeurs riches = best-effort)
-      el.textContent = txt;
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    }
+  function ceReplace(el, s, e, sugg) {
+    var col = ceCollect(el);
+    for (var k = 0; k < col.map.length; k++) { var m = col.map[k];
+      if (s >= m.start && e <= m.end) { var off = s - m.start, v = m.node.nodeValue;
+        m.node.nodeValue = v.slice(0, off) + sugg + v.slice(off + (e - s)); return true; } }
+    return false;                                            // à cheval sur 2 nœuds → on n'applique PAS (structure préservée)
+  }
+  function getText(el) {
+    if (!isCE(el)) return el.value;
+    return ceCollect(el).text;
+  }
+  function setText(el, txt, caret) {                          // input/textarea UNIQUEMENT (le contenteditable passe par ceReplace)
+    if (isCE(el)) return;
+    el.value = txt;
+    try { if (caret != null) el.setSelectionRange(caret, caret); } catch (e) {}
+    el.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
   // ===== complétion (aide-frappe) : mot SOUS LE CURSEUR — réutilise DC.complete (speller accentué). Identique app. =====
@@ -72,20 +95,30 @@
   }
 
   // ===== application des corrections (réutilise le découpage tokens du moteur) =====
-  var TOKRE = /[A-Za-zÀ-ÿœŒ']+/g;
+  var TOKRE = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;   // ’ typographique incluse : les spans (positions) restent alignés avec les tokens normalisés du moteur
   function spans(text) { var m, s = []; TOKRE.lastIndex = 0; while ((m = TOKRE.exec(text))) s.push([m.index, m.index + m[0].length]); return s; }
   function applyOne(el, flag) {
     var t = getText(el), sp = spans(t), s = sp[flag.i]; if (!s) return;
     var e = sp[flag.i + (flag.span ? flag.span - 1 : 0)] || s;   // élision : la suggestion fusionne 2 tokens (« c est »→« c'est »)
-    var nt = t.slice(0, s[0]) + flag.sugg + t.slice(e[1]);
-    setText(el, nt, s[0] + flag.sugg.length);
+    if (isCE(el)) {
+      if (ceReplace(el, s[0], e[1], flag.sugg)) el.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      var nt = t.slice(0, s[0]) + flag.sugg + t.slice(e[1]);
+      setText(el, nt, s[0] + flag.sugg.length);
+    }
     schedule(el);
   }
   function applyAll(el, flags) {
     var t = getText(el), sp = spans(t);
     var ord = flags.slice().sort(function (a, b) { return b.i - a.i; });   // droite→gauche : indices stables
-    ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]); });
-    setText(el, t);
+    if (isCE(el)) {
+      var did = false;
+      ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; if (ceReplace(el, s[0], e[1], f.sugg)) did = true; });
+      if (did) el.dispatchEvent(new Event('input', { bubbles: true }));
+    } else {
+      ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]); });
+      setText(el, t);
+    }
     schedule(el);
   }
 
@@ -121,9 +154,10 @@
     if (dg.flags.length) {
       h += '<div class="omdys-list">';
       dg.flags.forEach(function (f, k) {
+        var vigT = f.tier === 'vigilance';                        // orange pointillé = À VÉRIFIER (hors FP=0 : clic individuel possible, JAMAIS dans « tout corriger »)
         var orth = /orthographe|[ée]lision/.test(f.name || '');   // bleu = orthographe (non-mot/accent) ; rouge = grammaire
-        h += '<div class="omdys-item' + (orth ? ' omdys-orth' : '') + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
-          + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : '') + ']</span></div>';
+        h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
+          + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span></div>';
       });
       h += '</div>';
     }
@@ -149,7 +183,7 @@
     b.style.display = 'block';
     place(el);
     b.querySelector('.omdys-x').onclick = function () { dismissed.add(el); hideBar(); };
-    var allb = b.querySelector('.omdys-all'); if (allb) allb.onclick = function () { applyAll(el, dg.flags); };
+    var allb = b.querySelector('.omdys-all'); if (allb) allb.onclick = function () { applyAll(el, dg.flags.filter(function (f) { return f.tier !== 'vigilance'; })); };   // « tout corriger » = UNIQUEMENT le FP=0 (auto+flag) ; la vigilance reste au clic individuel explicite (audit 07/2026)
     var items = b.querySelectorAll('.omdys-item');
     for (var z = 0; z < items.length; z++) (function (node) {
       node.onclick = function () { applyOne(el, dg.flags[+node.getAttribute('data-k')]); };
@@ -167,6 +201,13 @@
     if (cur == null) cur = t.length;
     var ap = autos.filter(function (f) { var s = sp[f.i]; return s && !(cur >= s[0] && cur <= s[1]); });
     if (!ap.length) return false;
+    if (isCE(el)) {                                           // contenteditable : remplacement par nœud (droite→gauche), JAMAIS textContent global
+      var did = false;
+      ap.slice().sort(function (a, b) { return sp[b.i][0] - sp[a.i][0]; })
+        .forEach(function (f) { var s = sp[f.i]; if (ceReplace(el, s[0], s[1], f.sugg)) did = true; });
+      if (did) el.dispatchEvent(new Event('input', { bubbles: true }));
+      return did;
+    }
     ap.sort(function (a, b) { return sp[a.i][0] - sp[b.i][0]; });
     var res = '', last = 0, delta = 0;
     ap.forEach(function (f) { var s = sp[f.i]; res += t.slice(last, s[0]) + f.sugg; last = s[1]; if (s[1] <= cur) delta += f.sugg.length - (s[1] - s[0]); });

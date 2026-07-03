@@ -11470,7 +11470,7 @@ window.addEventListener('DOMContentLoaded', () => {
     w=w.replace(/eaux|eau/g,'o').replace(/aux|au/g,'o');w=w.replace(/ai|ei|ais|ait|aient/g,'e').replace(/y/g,'i');
     w=w.replace(/([aeiouéèêàâô])s([aeiouéèêàâô])/g,'$1z$2');w=w.replace(/h/g,'');w=deacc(w);
     w=w.replace(/(.)\1/g,'$1').replace(/(ent|s|t|d|x|p|e)$/,'').replace(/(.)\1/g,'$1');return w;}
-  function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ']+/g)||[]);}
+  function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).map(function(w){return w.replace(/[’ʼ]/g,"'");});}   // apostrophe TYPOGRAPHIQUE ’ (claviers mobiles) ≡ ' : même tokenisation, token normalisé pour le moteur (remplacement 1:1 → les positions/index restent alignés sur le texte original)
   function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}
   function isAccord(t,s){var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;
     while(p<a.length&&p<b.length&&a[p]===b[p])p++; var r=a.slice(p)+b.slice(p);
@@ -11506,10 +11506,16 @@ window.addEventListener('DOMContentLoaded', () => {
   var NUM_DET={le:'sg',la:'sg',un:'sg',une:'sg',ce:'sg',cet:'sg',cette:'sg',mon:'sg',ton:'sg',son:'sg',ma:'sg',ta:'sg',sa:'sg',notre:'sg',votre:'sg',leur:'sg',les:'pl',des:'pl',ces:'pl',mes:'pl',tes:'pl',ses:'pl',nos:'pl',vos:'pl',leurs:'pl'};
   var NUM_PRON={je:'sg',tu:'sg',il:'sg',elle:'sg',on:'sg',nous:'pl',vous:'pl',ils:'pl',elles:'pl'};
   var PREP={de:1,'à':1,a:1,du:1,des:1,au:1,aux:1,sur:1,dans:1,par:1,pour:1,avec:1,sans:1,sous:1,chez:1,vers:1,'près':1,pres:1,travers:1,'malgré':1,malgre:1,'dès':1,entre:1,depuis:1,contre:1};
-  function governorNumber(T,idx,skipPP){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();if(NUM_PRON[w])return[T[j],NUM_PRON[w]];if(NUM_DET[w]){if(skipPP&&j>0&&PREP[deacc(T[j-1].toLowerCase())])continue;return[T[j],NUM_DET[w]];}}return null;}
+  function governorNumber(T,idx,skipPP){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();if(NUM_PRON[w])return[T[j],NUM_PRON[w]];
+    if(w.length>2&&w.slice(0,2)==="l'")return[T[j],'s'];   // déterminant ÉLIDÉ : « l'automne » = le/la SINGULIER (sinon on traversait le GN et on enseignait le « les » d'une autre proposition) — miroir Python (PAS « d' » : « d'énormes » = des, pluriel)
+    if(NUM_DET[w]){if(skipPP&&j>0&&PREP[deacc(T[j-1].toLowerCase())])continue;return[T[j],NUM_DET[w]];}}return null;}
   var VERB_FORMS={dort:1,jouent:1,boit:1,court:1,lit:1,met:1,mangeons:1,ecrit:1,chantent:1,repetent:1,creuse:1,porte:1,prennent:1,sont:1,vend:1,eteignent:1,galopent:1,faut:1,finisses:1,etudient:1,tombent:1,est:1,aurait:1,restions:1,cachait:1,quittent:1,calme:1,attendaient:1,furent:1,poursuivirent:1,avons:1,a:1};
   var VERB_SUF=['ons','ez','aient','ait','erent','irent','issent'];var NOTVERB={longtemps:1,ensemble:1,vraiment:1,souvent:1,comment:1,patiemment:1,rapidement:1};
-  function isVerb(T,idx){if(idx<0||idx>=T.length)return false;var w=deacc(T[idx].toLowerCase());var known=VERB_FORMS[w]||(!NOTVERB[w]&&w.length>3&&VERB_SUF.some(function(s){return w.slice(-s.length)===s;}));if(!known)return false;return !(idx>0&&NUM_DET[T[idx-1].toLowerCase()]);}
+  function isVerb(T,idx){if(idx<0||idx>=T.length)return false;var w=deacc(T[idx].toLowerCase());var known=!!VERB_FORMS[w];
+    if(!known&&!NOTVERB[w]&&w.length>3&&VERB_SUF.some(function(s){return w.slice(-s.length)===s;})){
+      if(w.slice(-3)==='ons'){var hasNous=false,j;for(j=Math.max(0,idx-3);j<idx;j++)if(deacc(T[j].toLowerCase())==='nous')hasNous=true;known=(idx===0)||hasNous;}   // -ons TRÈS ambigu (maisons, raisons, garçons…) : verbe seulement si « nous » proche ou impératif en tête — miroir Python
+      else known=true;}
+    if(!known)return false;return !(idx>0&&NUM_DET[T[idx-1].toLowerCase()]);}
   var AUX_ETRE={est:1,sont:1,furent:1,fut:1,etait:1,etaient:1,sera:1,seront:1,suis:1,es:1,sommes:1,etes:1,soit:1};
   var AUX_AVOIR={a:1,ont:1,avons:1,avez:1,ai:1,as:1,avait:1,avaient:1,aurait:1,aura:1,auront:1,aurais:1,eu:1};
   var PART_FORMS={arrive:1,arrives:1,arrivee:1,arrivees:1,peint:1,peints:1,peinte:1,peintes:1,cueilli:1,cueillie:1,cueillis:1,cueillies:1,trouve:1,trouves:1,trouvee:1,trouvees:1,prefere:1,preferes:1,preferee:1,preferees:1,abandonne:1,abandonnes:1,abandonnee:1,abandonnees:1};
@@ -11596,7 +11602,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (défini avant) — résout les refs nues même dans les harnais d'extraction (window bouchonné)
-  var diff='facile',cur=null,nG=0,nT=0,answered=false;var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>'+(REMED[fo]?'<br><span style="font-size:.92em;color:#7a5c00">🛠️ '+REMED[fo]+'</span>':''):'')):'';}
+  var diff='facile',cur=null,nG=0,nT=0,answered=false,SESSF=[];var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>'+(REMED[fo]?'<br><span style="font-size:.92em;color:#7a5c00">🛠️ '+REMED[fo]+'</span>':''):'')):'';}
   function renderUProf(){var el=$('vdd-uprof');if(!el||!DysProfile)return;var s=DysProfile.summary();
     if(!s.length){el.innerHTML='';return;}var wk=DysProfile.weakest();
     var rows=s.map(function(r){var has=(r.rate!=null),pct=has?Math.round(r.rate*100):null,rec=(r.recent!=null?Math.round(r.recent*100):null);
@@ -11623,7 +11629,8 @@ window.addEventListener('DOMContentLoaded', () => {
     var html=ok?'<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6"><b>✓ Phrase correcte !</b></div>'
       :F.map(function(x){var c=COL[x.types[0]]||'#777';var tags=x.types.map(function(t){return LBL[t]||t;}).join(', ');
         return '<div class="vdd-fact" style="border-left:5px solid '+c+'">'+x.msg.replace(/: [^:]*$/,': <b>'+tags+'</b>')+(x.gram?'<br><span class="vdd-sc">→ '+x.gram+'</span>':'')+'</div>';}).join('');
-    if(!ok){var dev=developmental(F);if(dev)html+='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdd-sc">'+STAGE_MSG[dev.stade]+'</span></div>';html+=remedBlock(F,'vdd-fact');}
+    SESSF=SESSF.concat(F);   // le stade se juge AGRÉGÉ sur la session (référence Python developmental_diagnosis), pas sur 1-3 erreurs d'une phrase
+    if(!ok){var dev=developmental(SESSF);if(dev)html+='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>Stade (sur la session, '+nT+' phrase'+(nT>1?'s':'')+') : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdd-sc">'+STAGE_MSG[dev.stade]+'</span></div>';html+=remedBlock(SESSF,'vdd-fact');}
     if(!ok)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase correcte : <span class="vdd-truth">'+esc(cur.text)+'</span></div>';
     F.forEach(function(x){x.types.forEach(function(t){if(ERRFAM.indexOf(t)>=0)PROF[t]=(PROF[t]||0)+1;});});try{localStorage.setItem('vdd_profile',JSON.stringify(PROF));}catch(e){}
     if(DysProfile){var _es={};F.forEach(function(x){(x.types||[]).forEach(function(t){_es[t]=1;});});var _ts={};(cur.traps||[]).forEach(function(t){_ts[t]=1;});Object.keys(_es).forEach(function(t){_ts[t]=1;});Object.keys(_ts).forEach(function(t){DysProfile.rec(t,_es[t]?1:0,'dictee');});}  // profil unifié : att par trap testée, err par famille fautive (taux supervisé)
@@ -12099,7 +12106,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var sg=desingularizeNoun(n);return (sg&&deacc(sg.toLowerCase())!==dn)?sg:null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
   var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc subsp ssp var sp spp gen fam'.split(' ').forEach(function(w){ABBREV[w]=1;});
-  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],re=/[A-Za-zÀ-ÿœŒ']+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push(s&&gap.indexOf('..')<0&&!/\d/.test(gap));dig.push(/\d/.test(gap));prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig};}
+  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push(s&&gap.indexOf('..')<0&&!/\d/.test(gap));dig.push(/\d/.test(gap));prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig};}
   // C : run-on (ponctuation manquante entre 2 propositions) — VIGILANCE (vert) ; conservateur, anti-inversion (trait d'union)
   var RPRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']},RCONJ={};'et ou ni mais car donc or que qu qui dont quand lorsque comme si puisque quoique lequel laquelle pour sans a'.split(' ').forEach(function(w){RCONJ[w]=1;});
   function _isFinite(w){var r=svReads(w),k;for(k=0;k<r.length;k++){var md=r[k][1].split(':')[0];if(md==='ind'||md==='sub'||md==='cnd'||md==='cond'||md==='imp')return true;}return false;}
@@ -12232,7 +12239,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
   var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
-  function correctText(text){_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité)
+  function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité) ; ’ normalisée (1:1, offsets intacts)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
   var _VDCF=null,_VDCBF=null,_VDCW=4;
   function _vigLoad(){if(_VDCBF)return;_VDCBF={};try{var e=document.getElementById('vdc-confusables');if(e&&e.textContent){_VDCF=JSON.parse(e.textContent);_VDCW=_VDCF.win||4;_VDCF.groups.forEach(function(g){g.forms.forEach(function(f){if(f.indexOf(' ')<0)_VDCBF[f.toLowerCase()]=g;});});}}catch(e){_VDCF=null;}}
@@ -12350,7 +12357,9 @@ window.addEventListener('DOMContentLoaded', () => {
   var SAUXAV={};("a ai as ont avons avez avait avaient aura auront aurai aurais aurait eu ete j'ai j'est j'avais j'aurai").split(' ').forEach(function(w){SAUXAV[w]=1;});  // avoir + participe d'être + j'ai/j'est élidés : après → participe attendu
   var SSUBJP={};('je tu il elle on ils elles nous vous').split(' ').forEach(function(w){SSUBJP[w]=1;});   // pronom sujet : après → verbe fini attendu
   function sGender(w){var dw=deaccS(w);if((SP.POS[w]||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}  // table adj SEULEMENT si adjectif (évite collision pomme/pommé) ; sinon genre du nom
-  function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(DET_G[t])return DET_G[t];var g=GENDER_PURE[t];if(g==='m'||g==='f')return g;}return null;}
+  function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(DET_G[t])return DET_G[t];
+    if(!SP.WORDS.has(T[j].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')))continue;   // ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GENDER_PURE déacc ← « trés » nom) → on continue vers le déterminant
+    var g=GENDER_PURE[t];if(g==='m'||g==='f')return g;}return null;}
   function sCtxNumber(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t])return SDET_NUM[t];}return null;}
   function sEd1(a,b){var la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;   // distance d'édition ≤ 1 (bornée)
     if(la===lb){var n=0;for(var k=0;k<la;k++)if(a[k]!==b[k]&&++n>1)return false;return true;}
@@ -12398,8 +12407,14 @@ window.addEventListener('DOMContentLoaded', () => {
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
     function nm(x){return (cn&&((cn==='p')===/[sx]$/.test(deaccS(x))))?1:0;}
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
-      var qx=pm(x),qy=pm(y);if(qx!==qy)return qy-qx;
-      var gx=gm(x),gy=gm(y);if(gx!==gy)return gy-gx;
+      var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
+        if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
+        if(qy>qx&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;
+        return qy-qx;}
+      var gx=gm(x),gy=gm(y);if(gx!==gy){   // même garde sur le bonus GENRE (entrées de genre polluées)
+        if(gx>gy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
+        if(gy>gx&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;
+        return gy-gx;}
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py)return py-px;
@@ -12510,9 +12525,9 @@ window.addEventListener('DOMContentLoaded', () => {
   // VIGILANCE ou/où : « ou » (sans accent) + verbe de lieu (être/aller/se situer) → « où ? » (ambigu avec la coordination, donc orange)
   var _OUV={};'est sont etait etaient sera seront es vas va vais allons allez vont habite habites habitent habitait vis vit vivent'.split(' ').forEach(function(x){_OUV[x]=1;});
   function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
-    return (_OUV[nx]||nx==='se'||nx==='se')?'où':null;}
-  function spellText(text){_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
-    if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:r[1],name:'orthographe',tier:r[0]});pushed=true;}
+    return (_OUV[nx]||nx==='se'||nx==='ce')?'où':null;}   // « ce » = graphie dys fréquente de « se » (« ou ce trouve la gare »)
+  function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+    if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});pushed=true;}}
@@ -12539,11 +12554,12 @@ window.addEventListener('DOMContentLoaded', () => {
    +'#vdc-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:100%;max-width:820px;min-height:100vh;margin:0 auto;box-sizing:border-box;overflow:auto;border-radius:0;padding:16px 20px 64px;position:relative}'
    +'#vdc-card h2{margin:.1em 0;font-size:20px;color:#222}#vdc-x{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbbf9e;background:#fff;font-size:15px;font-weight:600;cursor:pointer;color:#333;padding:8px 14px;border-radius:10px;margin-bottom:10px}#vdc-x:hover{background:#f3ecd8}'
    +'#vdc-editor{position:relative;margin-top:10px}'
-   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:110px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;box-sizing:border-box;position:relative;z-index:1;color:transparent;caret-color:#111;resize:vertical;display:block}'
+   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:110px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;box-sizing:border-box;position:relative;z-index:1;color:transparent;caret-color:#111;resize:vertical;display:block;overflow-y:hidden}'
    +'#vdc-in::selection{background:#8ec5ff}'
    +'#vdc-render{position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;pointer-events:none;background:transparent;color:#111;overflow:hidden;white-space:pre-wrap;overflow-wrap:break-word;font:inherit;font-size:18px;line-height:1.6;padding:11px;border:2px solid transparent;border-radius:10px;box-sizing:border-box}'   /* overlay : dessine le texte SURLIGNÉ par-dessus la textarea (texte transparent) — surlignage SUR la zone de frappe */
    +'.vdc-flabel-big{font-size:15px}'
-   +'#vdc-render .vdc-on,#vdc-render .vdc-bad,#vdc-render .vdc-vig{pointer-events:auto}'   /* seuls les mots corrigés captent le clic ; le reste passe à la textarea (caret) */
+   +'#vdc-render [data-key]{pointer-events:auto}'   /* seuls les mots CLIQUABLES (bascule) captent le clic ; les soulignés informatifs (run-on, confusables sans data-key) laissent passer le clic vers la textarea (caret) */
+   +'#vdc-render .vdc-bad,#vdc-render .vdc-on,#vdc-render .vdc-vig{padding:0;font-weight:inherit;border-radius:0}'   /* OVERLAY : zéro delta de métrique (padding 2px + gras décalaient le texte vs la textarea) — fond + souligné suffisent */
    +'#vdc-result{font-size:18px;line-height:1.7;padding:12px 14px;background:#f4fbf5;border:2px solid #1f7a3d;border-radius:10px;min-height:44px}'   /* vrai encadré « texte corrigé » (proéminent) */
    +'.vdc-bad{background:#f6b6b6;border-bottom:3px solid #b02020;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-bad:hover{background:#f29a9a}'   /* fonds SATURÉS (pastels trop pâles = illisibles) */
    +'.vdc-bad.vdc-orth{background:#bcd6f5;border-bottom-color:#1b5c86}.vdc-bad.vdc-orth:hover{background:#a3c6ef}'
@@ -12612,7 +12628,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<button id="vdc-ia-go" style="margin-top:4px">✨ Corriger avec l\'IA</button>'
    +'</div><div id="vdc-ia-out" style="margin-top:6px"></div></div></div>';
   document.body.appendChild(cov);
-  var _corrs=[],_off={},_on={},_lastCorrected='';
+  var _corrs=[],_off={},_on={},_lastCorrected='',_recDone={};
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (évite ReferenceError dans les harnais d'extraction)
   function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
@@ -12622,11 +12638,11 @@ window.addEventListener('DOMContentLoaded', () => {
   //       ↔ annuler, dans les deux sens). Surcharges de bascule (_off/_on) clées par forme→forme (deacc) → survivent à
   //       l'édition ailleurs. Couche « appliquée par défaut » (jadis silencieuse) = accents + grammaire ROUGE span1 +
   //       candidats phonétiques span1 ; orange + élision/mover = au clic.
-  function _ckey(from,to){return deaccS(String(from).toLowerCase())+'|'+deaccS(String(to).toLowerCase());}   // séparateur | (non échappé en HTML, contrairement à >)
+  function _ckey(from,to){return deaccS(String(from).toLowerCase())+'|'+String(to).toLowerCase();}   // séparateur | (non échappé en HTML) ; la suggestion GARDE ses accents (sinon eleve→élève et eleve→élevé partagent la même clé et basculent ensemble)
   function _dfltOn(f){if(f.span>=2)return false;if(f.tier==='vigilance')return false;
     if(f.src==='g')return true;if(f.tier==='auto')return true;if(f.tier==='flag'&&f.name==='orthographe')return true;return false;}
   function _isOn(f){return _dfltOn(f)?!_off[f.key]:!!_on[f.key];}
-  function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ']+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}
+  function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}   // ’ dans la classe : mêmes frontières de tokens que toks() normalisé → index alignés entre analyse et rendu
   function _computeCorrs(t){var sf=SP.ready?spellText(t):[];
     _SEG=_segInfo(t);var _T=toks(t),_Tc=_T.slice();
     sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
@@ -12653,7 +12669,7 @@ window.addEventListener('DOMContentLoaded', () => {
     o+=esc(t.slice(last));return o;}
   function _toggleKey(key){var f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;
     if(f.on){if(_dfltOn(f))_off[key]=1;delete _on[key];}
-    else{if(!_dfltOn(f))_on[key]=1;delete _off[key];if(DysProfile)DysProfile.rec(_corrFam(f.name,f.word,f.sugg),1,'corrector');}
+    else{if(!_dfltOn(f))_on[key]=1;delete _off[key];if(DysProfile&&!_recDone[key]){_recDone[key]=1;DysProfile.rec(_corrFam(f.name,f.word,f.sugg),1,'corrector');}}   // profil : UNE fois par correction (re-basculer n'inflate plus cerr)
     runCorr();}
   function _corrClick(e){var s=e.target.closest('[data-key]');if(!s)return;_toggleKey(s.getAttribute('data-key'));}
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour le mot SOUS LE CURSEUR. HORS PARITÉ : suggestion d'UI
@@ -12661,7 +12677,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _compKeys=null,_compFirst=null;
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
   function complete(prefix){
-    if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase());if(p.length<2||!isAlphaS(p))return [];
+    if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_ckeys();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
@@ -12670,7 +12686,7 @@ window.addEventListener('DOMContentLoaded', () => {
     out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
-  var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ']/;
+  var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
   function _wordAt(v,pos){var s=pos,e=pos;while(s>0&&_WCH.test(v[s-1]))s--;while(e<v.length&&_WCH.test(v[e]))e++;return {word:v.slice(s,e),start:s,end:e};}
   function _applyComplete(repl){var ta=$('vdc-in'),v=ta.value,w=_wordAt(v,ta.selectionStart==null?v.length:ta.selectionStart);
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);
@@ -12682,7 +12698,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
     var cs=complete(w.word);if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
-  function runCorr(){var t=$('vdc-in').value;
+  function runCorr(){_autoGrow();var t=$('vdc-in').value;
     _corrs=SP.ready?_computeCorrs(t):[];
     $('vdc-render').innerHTML=_renderView(t,_corrs,false);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
     if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
@@ -12705,9 +12721,10 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
   cov.addEventListener('keydown',function(e){if(e.key==='Escape')cov.classList.remove('on');});   // Échap ferme (clavier/accessibilité)
   // (plus de fermeture au clic sur le fond : pleine page opaque + bouton « ← Retour à Omega » → zéro miss-clic vers le pendu)
+  function _autoGrow(){var ta=$('vdc-in');if(!ta||!ta.style)return;ta.style.height='auto';var h=Math.max(110,ta.scrollHeight||0);ta.style.height=h+'px';}   // la zone de saisie GRANDIT avec le texte : aucune scrollbar interne → la largeur utile reste celle de l'overlay (wraps identiques)
   function _paintPlain(){var rd=$('vdc-render');if(rd)rd.innerHTML=esc($('vdc-in').value);}   // repeint l'overlay en texte BRUT instantanément (le surlignage arrive au runCorr débounced) → pas de décalage texte/frappe
   function _syncScroll(){var rd=$('vdc-render'),ta=$('vdc-in');if(rd&&ta){rd.scrollTop=ta.scrollTop;rd.scrollLeft=ta.scrollLeft;}}
-  $('vdc-in').addEventListener('input',function(){runComplete();_paintPlain();_syncScroll();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
+  $('vdc-in').addEventListener('input',function(){runComplete();_autoGrow();_paintPlain();_syncScroll();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
   $('vdc-in').addEventListener('scroll',_syncScroll);   // l'overlay suit le défilement de la textarea
   $('vdc-in').addEventListener('click',function(){runComplete();});                                  // déplacement du curseur → recalcule la complétion
   $('vdc-in').addEventListener('keyup',function(e){if(e.key&&e.key.indexOf('Arrow')===0||e.key==='Home'||e.key==='End')runComplete();});
@@ -12716,7 +12733,7 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdc-render').addEventListener('click',_corrClick);   // clic sur un mot souligné (cadre HAUT) = bascule
   var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_corrClick);   // clic sur un mot souligné (cadre BAS) = bascule
   $('vdc-out').addEventListener('click',_corrClick);      // clic sur une puce d'annotation = bascule
-  var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){var txt=_lastCorrected||$('vdc-in').value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});}var o=_cp.textContent;_cp.textContent='✓ Copié';setTimeout(function(){_cp.textContent=o;},1200);});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
+  var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){clearTimeout(_ct);runCorr();var txt=_lastCorrected||$('vdc-in').value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});}var o=_cp.textContent;_cp.textContent='✓ Copié';setTimeout(function(){_cp.textContent=o;},1200);});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
   (function(){
     var THEMES=['auto','light','dark'],TLABEL={auto:'🌗 Thème : auto',light:'☀️ Thème : clair',dark:'🌙 Thème : sombre'};
@@ -12827,11 +12844,28 @@ window.addEventListener('DOMContentLoaded', () => {
   function decompose(word){
     var steps=_DECL2.g2p(word)||[],graph=[],sampa='',ipa='',hsum=0,i;
     for(i=0;i<steps.length;i++){var raw=steps[i].ph;if((raw==='?'||!raw)&&ACC[steps[i].g]){raw=ACC[steps[i].g];}var sp=ipa2sampa(raw);graph.push({g:steps[i].g,ph:sp,ipa:(raw==='∅'?'':raw)});sampa+=sp;ipa+=(raw==='∅'?'':raw);hsum+=(steps[i].h||0);}
-    function sylls(units,vowOf){var nuc=[],k;for(k=0;k<units.length;k++)if(vowOf(k))nuc.push(k);if(!nuc.length)return units.length?[units.join('')]:[];var out=[],st=0;for(k=0;k<nuc.length-1;k++){var a=nuc[k],b=nuc[k+1],cut=(b-a-1)<=1?b:b-1;out.push(units.slice(st,cut).join(''));st=cut;}out.push(units.slice(st).join(''));return out;}
+    // Syllabation = règle de la RÉFÉRENCE Python (decompose.syllabify) : entre deux noyaux, l'attaque LÉGALE la
+    // plus longue part À DROITE (C, C+liquide, C+glide, C+liquide+glide) ; hiatus → coupe après le 1er noyau.
+    // (L'ancienne règle mettait la consonne V.CV à GAUCHE : « ami »→« am-i » — faux, affiché comme pédagogie. Audit 07/2026.)
+    function sylls(units,vowOf,phOf){var LIQ={l:1,R:1},GLI={j:1,w:1,'8':1};
+      function leg(ps){if(ps.length===1)return true;
+        if(ps.length===2)return (LIQ[ps[1]]&&!LIQ[ps[0]]&&!GLI[ps[0]])||(GLI[ps[1]]&&!GLI[ps[0]]);
+        if(ps.length===3)return GLI[ps[2]]&&LIQ[ps[1]]&&!LIQ[ps[0]]&&!GLI[ps[0]];return false;}
+      var nuc=[],k;for(k=0;k<units.length;k++)if(vowOf(k))nuc.push(k);
+      if(!nuc.length)return units.length?[units.join('')]:[];
+      var out=[],st=0;
+      for(k=0;k<nuc.length-1;k++){var a=nuc[k],b=nuc[k+1],cut;
+        if(b-a-1===0)cut=a+1;
+        else{var L=0,t,x,ps,ok;for(t=3;t>=1;t--){if(t>b-a-1)continue;ps=[];ok=true;
+            for(x=b-t;x<b;x++){var p=phOf(x);if(!p){ok=false;break;}ps.push(p);}
+            if(ok&&leg(ps)){L=t;break;}}
+          cut=L?b-L:(phOf(b-1)?b-1:b);}   // au pire : 1 unité sonore à droite ; une unité MUETTE reste à gauche
+        out.push(units.slice(st,cut).join(''));st=cut;}
+      out.push(units.slice(st).join(''));return out;}
     var sChars=sampa.split('');
-    var sson=sylls(sChars,function(k){return !!SVOW[sChars[k]];});
+    var sson=sylls(sChars,function(k){return !!SVOW[sChars[k]];},function(k){return sChars[k];});
     var gUnits=graph.map(function(x){return x.g;});
-    var sortho=sylls(gUnits,function(k){var ph=graph[k].ph,c;for(c=0;c<ph.length;c++)if(SVOW[ph[c]])return true;return false;});
+    var sortho=sylls(gUnits,function(k){var ph=graph[k].ph,c;for(c=0;c<ph.length;c++)if(SVOW[ph[c]])return true;return false;},function(k){var ph=graph[k].ph;return ph?ph.charAt(0):'';});
     var nbsyll=0,cv='';for(i=0;i<sampa.length;i++){var c=sampa[i];if(SVOW[c])nbsyll++;cv+=SVOW[c]?'V':(('jw8'.indexOf(c)>=0)?'G':'C');}
     return {mot:word,graph:graph,sampa:sampa,ipa:ipa,nbphons:sampa.length,sson:sson,sortho:sortho,nbsyll:nbsyll,cv:cv,conf:Math.max(0,1-(steps.length?hsum/steps.length:0))};
   }

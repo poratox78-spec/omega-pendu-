@@ -30,3 +30,5 @@
 .omdys-vig{ margin-top:6px; }
 .omdys-vlab{ color:#1f7a3d; font-size:11px; font-weight:700; margin-bottom:3px; }
 .omdys-vitem{ padding:4px 6px; border-radius:6px; border-left:3px dotted #1f7a3d; background:#eef7ef; color:#234a35; font-size:12px; margin-bottom:3px; }
+.omdys-item.omdys-tvig{ border-left:3px dashed #e8920c; background:#fff8ea; }      /* tier vigilance = À VÉRIFIER (orange pointillé) — clic individuel possible, exclu de « tout corriger » */
+.omdys-item.omdys-tvig:hover{ background:#ffedc9; }

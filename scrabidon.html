@@ -209,9 +209,10 @@ function makeScorers(board,blankMask){
       // perpendiculaire à dir : si dir H, le croisé est vertical ; si V, horizontal
       const pd = dir?0:1; // direction du mot croisé (0=H,1=V)
       let sr=r, sc=c;
-      const step=(rr,cc,s)=> pd? [rr,cc+s] : [rr+s,cc];
-      // remonter
-      while(true){ const [pr,pc]= pd? [r,sc-1] : [sr-1,c]; if(pr<0||pc<0|| !board[pr*N+pc]) break; if(pd){sc--;}else{sr--;} }
+      // remonter — pd=1 : croisé VERTICAL → on remonte les LIGNES ; pd=0 : horizontal → les colonnes.
+      // (Les branches étaient INVERSÉES : le balayage suivait le même axe que le mot principal → croisés
+      //  jamais vus/scorés, coups légaux rejetés — audit 07/2026, verrou CI dictee/scrabidon_probe.js.)
+      while(true){ const [pr,pc]= pd? [sr-1,c] : [r,sc-1]; if(pr<0||pc<0|| !board[pr*N+pc]) break; if(pd){sr--;}else{sc--;} }
       // construire
       let word='', sum=0, hasNeighbor=false, wordMul=1;
       let rr=sr, cc=sc;
@@ -226,7 +227,7 @@ function makeScorers(board,blankMask){
         let v = placed? (VAL[letter]||0) : (blankMask[idx]?0:(VAL[letter]||0));
         if(placed){ const p=PREM[idx]; if(p===1)v*=2; else if(p===2)v*=3; else if(p===3)wordMul*=2; else if(p===4)wordMul*=3; }
         sum+=v; word+=letter;
-        if(pd){cc++;}else{rr++;}
+        if(pd){rr++;}else{cc++;}   // pd=1 (croisé vertical) avance en LIGNES ; pd=0 en colonnes (était inversé)
       }
       if(word.length<=1||!hasNeighbor) return null; // pas de mot croisé réel
       if(!DICT.has(word)) return false;
@@ -447,4 +448,6 @@ restoreState();
 
 restoreState();paintB();
 setMode('rack');
-</script><a href="index.html" title="Retour à OMEGA-Ω" style="position:fixed;left:12px;bottom:12px;z-index:2147483647;font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.78);padding:7px 12px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.4)">↩ OMEGA·Ω</a></body></html>
+</script><a href="index.html" title="Retour à OMEGA-Ω" style="position:fixed;left:12px;bottom:12px;z-index:2147483647;font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.78);padding:7px 12px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.4)">↩ OMEGA·Ω</a>
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body></html>

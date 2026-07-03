@@ -1,5 +1,7 @@
 # OMEGA-Ω — A cognitive architecture for French Hangman
 
+> **Snapshot notice (2026-07):** this English README lags the French one by ~1 month. For the latest (WiCoPaCo campaign, real-dys corpus findings, confidence-tiered auto-apply corrector, delivery CI guards), see [README.md](README.md).
+
 > *🇫🇷 [Version française](README.md)*
 >
 > *How a machine can play Hangman by **reasoning** rather than **reading the answer**.*

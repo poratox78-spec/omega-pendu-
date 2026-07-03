@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OMEGA·KEY</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<!-- Pas de police externe : « aucune donnée envoyée / hors-ligne » est un invariant — les piles de polices retombent sur le mono système (audit 07/2026 : le lien Google Fonts émettait IP/UA/Referer à chaque ouverture). -->
 <style>
 /* ── RESET & BASE ─────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
@@ -424,7 +423,7 @@ input[type=range]{accent-color:var(--cyan)}
       <a class="logo" href="../../omega-key.html">OMEGA·KEY</a>
       <div class="logo-sub">BEHAVIORAL PUF — COGNITIVE KEY GENERATOR</div>
     </div>
-    <div class="ver">v0.18 · Sécurité durcie : sel aléatoire, anti-rejeu, anti-usurpation, anti-homoglyphe (messages), indice de dictée (passphrase) · Double Ratchet DH · Passphrase FR</div>
+    <div class="ver">v0.19 · Interop clé générée↔importée réparée (HMAC nul = absent, réception tolérante), zéro requête externe (polices locales), graine du pair validée · Double Ratchet DH · Passphrase FR</div>
   </div>
 
   <div class="surface surface-cog">
@@ -2434,6 +2433,8 @@ function buildAlphabet(hmacBytes){
 }
 
 // ── CHIFFREMENT AES-GCM ─────────────────────────────────
+// matière HMAC « utilisable » = 32 octets NON tous nuls (l'import hex et PBKDF2 posent 32 zéros = clé publique → aucune authentification, et une asymétrie d'interop)
+function _hmacUsable(h){ return !!h && h.length === 32 && Array.prototype.some.call(h, b => b !== 0) }
 async function encryptMsg(){
   if(!_aesKey){ log('Clé non générée — générez d\'abord','err'); return }
   const plain = document.getElementById('enc-plain').value.trim()
@@ -2447,7 +2448,7 @@ async function encryptMsg(){
   // Défense en profondeur (AES-GCM a déjà auth tag, mais HMAC ajoute couche
   // cryptographique distincte utile pour rejet rapide + future auth multi-pairs)
   let hmacBytes = null
-  if(_keyMaterial?.hmac && _keyMaterial.hmac.length === 32){
+  if(_hmacUsable(_keyMaterial?.hmac)){   // matière TOUT-ZÉRO (clé importée/PBKDF2) = PAS de HMAC : en émettre un avec une clé publiquement nulle cassait l'interop générée↔importée et n'authentifiait rien (audit 07/2026)
     const hmacKey = await crypto.subtle.importKey(
       'raw', _keyMaterial.hmac,
       {name:'HMAC', hash:'SHA-256'}, false, ['sign']
@@ -2500,7 +2501,7 @@ async function decryptMsg(){
     // Format avec HMAC : iv(12) + ct+tag(min 16) + hmac(32)
     // Heuristique : si on a une hmacKey et le message fait au moins 60 bytes,
     // supposer HMAC présent
-    const hasHmacKey = _keyMaterial?.hmac && _keyMaterial.hmac.length === 32
+    const hasHmacKey = _hmacUsable(_keyMaterial?.hmac)
     let data, receivedMac = null
     if(hasHmacKey && bytes.length >= 60){
       // Tenter vérification HMAC
@@ -2522,7 +2523,20 @@ async function decryptMsg(){
     } else {
       data = bytes.slice(12)
     }
-    const dec   = await crypto.subtle.decrypt({name:'AES-GCM',iv}, _aesKey, data)
+    let dec
+    try {
+      dec = await crypto.subtle.decrypt({name:'AES-GCM',iv}, _aesKey, data)
+    } catch(e1) {
+      // INTEROP (audit 07/2026) : le message peut porter une queue HMAC(32) qu'on ne sait pas vérifier
+      // (émetteur à clé générée ↔ récepteur à clé importée/PBKDF2, ou matières différentes). AES-GCM
+      // authentifie de toute façon → on retente avec l'AUTRE découpage. Un mauvais découpage échoue
+      // proprement (tag GCM), donc la double tentative est sûre.
+      if(bytes.length >= 60){
+        const alt = (data.length === bytes.length - 12) ? bytes.slice(12, -32) : bytes.slice(12)
+        dec = await crypto.subtle.decrypt({name:'AES-GCM',iv}, _aesKey, alt)
+        receivedMac = null
+      } else { throw e1 }
+    }
     const plainText = new TextDecoder().decode(dec)
     // Afficher dans la zone résultat distincte
     const resEl = document.getElementById('dec-result')
@@ -3147,8 +3161,9 @@ async function p2pOnMessage(ev){
         if(match){
           resEl.innerHTML = '<span style="color:var(--green)">✓ SEEDS IDENTIQUES — espace sémantique partagé confirmé</span>'
         } else {
-          resEl.innerHTML = `<span style="color:var(--amber)">⚠ SEEDS DIFFÉRENTS — <button onclick="p2pAdoptPeerSeed('${peerData.seed}')" style="background:rgba(255,170,0,.1);border:1px solid var(--amber);color:var(--amber);padding:3px 8px;font-size:9px;cursor:pointer">ADOPTER LE SEED DU PAIR</button></span>`
-          window._p2pPeerFullSeed = peerData.seed
+          // la graine du PAIR = donnée réseau : jamais interpolée dans le HTML (XSS via onclick — audit 07/2026) ; le bouton lit window._p2pPeerFullSeed
+          resEl.innerHTML = `<span style="color:var(--amber)">⚠ SEEDS DIFFÉRENTS — <button onclick="p2pAdoptPeerSeed()" style="background:rgba(255,170,0,.1);border:1px solid var(--amber);color:var(--amber);padding:3px 8px;font-size:9px;cursor:pointer">ADOPTER LE SEED DU PAIR</button></span>`
+          window._p2pPeerFullSeed = String(peerData.seed || '')
         }
       }
     }
@@ -3160,6 +3175,7 @@ async function p2pOnMessage(ev){
 window.p2pAdoptPeerSeed = function(seed){
   if(!seed && window._p2pPeerFullSeed) seed = window._p2pPeerFullSeed
   if(!seed){ return }
+  if(!/^[0-9a-f]{16,128}$/i.test(String(seed))){ log('Seed du pair invalide (hex attendu) — adoption refusée','err'); return }   // donnée réseau : validée AVANT rebuildSemanticSpace (audit 07/2026)
   if(!confirm(`Adopter le seed du pair (${seedFingerprint(seed)}) ? L'état cognitif actuel sera perdu.`)) return
   rebuildSemanticSpace(seed)
   updateSeedUI()
