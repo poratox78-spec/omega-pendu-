@@ -11470,7 +11470,7 @@ window.addEventListener('DOMContentLoaded', () => {
     w=w.replace(/eaux|eau/g,'o').replace(/aux|au/g,'o');w=w.replace(/ai|ei|ais|ait|aient/g,'e').replace(/y/g,'i');
     w=w.replace(/([aeiouéèêàâô])s([aeiouéèêàâô])/g,'$1z$2');w=w.replace(/h/g,'');w=deacc(w);
     w=w.replace(/(.)\1/g,'$1').replace(/(ent|s|t|d|x|p|e)$/,'').replace(/(.)\1/g,'$1');return w;}
-  function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ']+/g)||[]);}
+  function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).map(function(w){return w.replace(/[’ʼ]/g,"'");});}   // apostrophe TYPOGRAPHIQUE ’ (claviers mobiles) ≡ ' : même tokenisation, token normalisé pour le moteur (remplacement 1:1 → les positions/index restent alignés sur le texte original)
   function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}
   function isAccord(t,s){var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;
     while(p<a.length&&p<b.length&&a[p]===b[p])p++; var r=a.slice(p)+b.slice(p);
@@ -12099,7 +12099,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var sg=desingularizeNoun(n);return (sg&&deacc(sg.toLowerCase())!==dn)?sg:null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
   var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc subsp ssp var sp spp gen fam'.split(' ').forEach(function(w){ABBREV[w]=1;});
-  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],re=/[A-Za-zÀ-ÿœŒ']+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push(s&&gap.indexOf('..')<0&&!/\d/.test(gap));dig.push(/\d/.test(gap));prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig};}
+  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push(s&&gap.indexOf('..')<0&&!/\d/.test(gap));dig.push(/\d/.test(gap));prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig};}
   // C : run-on (ponctuation manquante entre 2 propositions) — VIGILANCE (vert) ; conservateur, anti-inversion (trait d'union)
   var RPRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']},RCONJ={};'et ou ni mais car donc or que qu qui dont quand lorsque comme si puisque quoique lequel laquelle pour sans a'.split(' ').forEach(function(w){RCONJ[w]=1;});
   function _isFinite(w){var r=svReads(w),k;for(k=0;k<r.length;k++){var md=r[k][1].split(':')[0];if(md==='ind'||md==='sub'||md==='cnd'||md==='cond'||md==='imp')return true;}return false;}
@@ -12232,7 +12232,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
   var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
-  function correctText(text){_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité)
+  function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité) ; ’ normalisée (1:1, offsets intacts)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
   var _VDCF=null,_VDCBF=null,_VDCW=4;
   function _vigLoad(){if(_VDCBF)return;_VDCBF={};try{var e=document.getElementById('vdc-confusables');if(e&&e.textContent){_VDCF=JSON.parse(e.textContent);_VDCW=_VDCF.win||4;_VDCF.groups.forEach(function(g){g.forms.forEach(function(f){if(f.indexOf(' ')<0)_VDCBF[f.toLowerCase()]=g;});});}}catch(e){_VDCF=null;}}
@@ -12519,7 +12519,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _OUV={};'est sont etait etaient sera seront es vas va vais allons allez vont habite habites habitent habitait vis vit vivent'.split(' ').forEach(function(x){_OUV[x]=1;});
   function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
     return (_OUV[nx]||nx==='se'||nx==='se')?'où':null;}
-  function spellText(text){_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+  function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
@@ -12634,7 +12634,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function _dfltOn(f){if(f.span>=2)return false;if(f.tier==='vigilance')return false;
     if(f.src==='g')return true;if(f.tier==='auto')return true;if(f.tier==='flag'&&f.name==='orthographe')return true;return false;}
   function _isOn(f){return _dfltOn(f)?!_off[f.key]:!!_on[f.key];}
-  function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ']+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}
+  function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}   // ’ dans la classe : mêmes frontières de tokens que toks() normalisé → index alignés entre analyse et rendu
   function _computeCorrs(t){var sf=SP.ready?spellText(t):[];
     _SEG=_segInfo(t);var _T=toks(t),_Tc=_T.slice();
     sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
@@ -12669,7 +12669,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _compKeys=null,_compFirst=null;
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
   function complete(prefix){
-    if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase());if(p.length<2||!isAlphaS(p))return [];
+    if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_ckeys();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
@@ -12678,7 +12678,7 @@ window.addEventListener('DOMContentLoaded', () => {
     out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
-  var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ']/;
+  var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
   function _wordAt(v,pos){var s=pos,e=pos;while(s>0&&_WCH.test(v[s-1]))s--;while(e<v.length&&_WCH.test(v[e]))e++;return {word:v.slice(s,e),start:s,end:e};}
   function _applyComplete(repl){var ta=$('vdc-in'),v=ta.value,w=_wordAt(v,ta.selectionStart==null?v.length:ta.selectionStart);
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);

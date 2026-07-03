@@ -72,7 +72,7 @@
   }
 
   // ===== application des corrections (réutilise le découpage tokens du moteur) =====
-  var TOKRE = /[A-Za-zÀ-ÿœŒ']+/g;
+  var TOKRE = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;   // ’ typographique incluse : les spans (positions) restent alignés avec les tokens normalisés du moteur
   function spans(text) { var m, s = []; TOKRE.lastIndex = 0; while ((m = TOKRE.exec(text))) s.push([m.index, m.index + m[0].length]); return s; }
   function applyOne(el, flag) {
     var t = getText(el), sp = spans(t), s = sp[flag.i]; if (!s) return;

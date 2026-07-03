@@ -246,6 +246,7 @@ class Speller:
         return ('flag', w1) if (len(d) >= 4 and f1 >= AUTO_FREQ) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
 
     def correct_text(self, text):
+        text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique = droite (1:1)
         out = []; starts = self._sentence_starts(text)
         ms = list(TOK.finditer(text)); toks = [m.group(0) for m in ms]
         for i, m in enumerate(ms):

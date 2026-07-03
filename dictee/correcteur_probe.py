@@ -1735,6 +1735,7 @@ RULES = [('élision inversée', rule_deselide),
 
 
 def correct(text):
+    text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique (claviers mobiles) = apostrophe droite (1:1, offsets intacts)
     """-> liste de (index, mot_tapé, suggestion, nom_règle) pour chaque mot jugé fautif."""
     global _SEG
     _SEG = _seg_info(text)                                        # ponctuation/majuscules (sens/contexte) pour la passe de règles

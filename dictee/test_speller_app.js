@@ -101,6 +101,10 @@ const SP = globalThis.__sp;
   if (!ec1 || ec1.sugg !== 'École') fail.push('Ecole→École (majuscule préservée) attendu, eu ' + JSON.stringify(ec1));
   const la1 = SP.spell('Lannée passée').find(x => x.word === 'Lannée');
   if (!la1 || la1.sugg !== "L'année") fail.push("Lannée→L'année (majuscule préservée) attendu, eu " + JSON.stringify(la1));
+  // APOSTROPHE TYPOGRAPHIQUE ’ (claviers mobiles) ≡ ' : une phrase correcte avec ’ ne doit produire AUCUNE fausse faute
+  if (SP.spell('j’ai visité l’école aujourd’hui avec l’ami d’enfance').length) fail.push('FP apostrophe typographique ’ (phrase correcte flaguée)');
+  const ap1 = SP.spell('j’ai vu la fenetre').find(x => x.word.toLowerCase() === 'fenetre');
+  if (!ap1 || ap1.sugg !== 'fenêtre') fail.push('fenetre→fenêtre avec ’ dans le contexte attendu, eu ' + JSON.stringify(ap1));
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
 })().catch(e => { console.error(e); process.exit(1); });
