@@ -732,8 +732,8 @@
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
     if(T&&idx>0){var pt=deaccS(T[idx-1].toLowerCase());if(DET_G[pt]||SDET_NUM[pt])expPos='N';else if(SADVERB[pt])expPos='A';
-      else if(SCOPULA[pt]||SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // CONTEXTE VERBAL : après aux/copule/pronom-sujet → candidat VERBE (pri→pris, pleu→pleut). Bonus, jamais pénalité → FP-sûr.
-    function pm(x){return (expPos&&(SP.POS[x]||'').indexOf(expPos)>=0)?1:0;}
+      else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule/pronom-sujet → candidat VERBE (pri→pris, pleu→pleut). Bonus, jamais pénalité → FP-sûr.
+    function pm(x){if(!expPos)return 0;var ps=SP.POS[x]||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
     function nm(x){return (cn&&((cn==='p')===/[sx]$/.test(deaccS(x))))?1:0;}
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
@@ -758,7 +758,7 @@
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
     if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST : candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte → flag même court/non-dominant (pri→pris, von→vont, pleu→pleut ; respecte le nombre)
-      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&(SP.POS[_cw]||'').indexOf(expPos)>=0&&(expPos==='V'||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
+      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(expPos.indexOf('V')>=0||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
       if(_b&&_bf>=1.0)return['flag',_b];}
     if(!(d.length>=4&&f1>=1.0))return null;
     // CONFIANCE : n'AFFIRMER (rouge) que si sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son rang, dominant.

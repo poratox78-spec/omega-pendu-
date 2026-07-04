@@ -2734,6 +2734,7 @@ function initOmegaGlobals() {
   const sdim = SDIM;
 
   registerOmegaChannels();
+  if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();   // registerOmegaChannels fait channels.clear() → SANS ré-attache, les boutons debug (initOmegaGlobals/Reset/Bench) tuaient silencieusement les stats de jeu (audit 07/2026) ; idempotent, guardé (harnais headless sans UI)
 
   // === F209 — Reset cache PUBSUB + attach subscribers (refonte étape 6) ===
   // Mitigation R-A F93 anti-récidive : reset cache global propagé.
@@ -7130,6 +7131,9 @@ function startNewGame(word) {
 }
 
 function endCurrentGame(success) {
+  // exposition LECTURE SEULE pour les stats UI (audit 07/2026 : la lettre du tick final n'était jamais comptée —
+  // ce reset efface currentLetter/alreadyTried avant que ui_runStep puisse les lire). AUCUN flux cognitif n'y touche.
+  if (typeof window !== 'undefined') { try { window._omLastLetter = (typeof currentLetter === 'string' ? currentLetter : ''); window._omLastWord = (typeof currentWord === 'string' ? currentWord : ''); } catch (e) {} }
   if (M_EMERGENT_DECLARE_ENABLED && typeof currentWord==='string' && currentWord && /^[A-Z]+$/.test(currentWord) && currentWord.length>=7 && letterVecsSDIM && letterVecsSDIM[0] && !_emrgBank.has(currentWord)) {
     _emrgBank.set(currentWord, _emrg_bind(currentWord, null));
   }
@@ -9135,7 +9139,7 @@ function ui_onLex4Loaded(ok) {
 // === Game actions ===
 function ui_startGame() {
   const input = document.getElementById('input-word');
-  let word = input.value.trim().toUpperCase();
+  let word = input.value.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();   // TRANSLITTÉRER les accents (É→E), pas les supprimer : « ÉCLAIRAGE » lançait une partie sur « CLAIRAGE » sans prévenir (audit 07/2026) — même normalisation que la chaîne de build du lexique
   
   // Si vide : tirer un mot au hasard
   if (!word) {
@@ -9322,18 +9326,26 @@ function ui_runStep() {
   }
   try {
     const t0 = performance.now();
+    // Au tick FINAL, endCurrentGame() vide currentLetter/currentWord ET alreadyTried (anti-fuite patch-#1) avant
+    // qu'on puisse les lire → la lettre gagnante n'était JAMAIS comptée (un hit manquant par partie gagnée,
+    // systématique — audit 07/2026). endCurrentGame expose désormais la dernière lettre en LECTURE SEULE
+    // (_omLastLetter/_omLastWord, stats UI uniquement — aucun flux cognitif) ; on la consomme ici.
+    if (typeof window !== 'undefined') { window._omLastLetter = ''; window._omLastWord = ''; }
     omegaStep();
     const dt = performance.now() - t0;
     if (dt > 0) _ui_tickRate = 1000 / dt;
-    
+
     // Log letter tried
-    if (typeof currentLetter === 'string' && currentLetter) {
-      const lIdx = currentLetter.charCodeAt(0) - 65;
+    let _letter = (typeof currentLetter === 'string' && currentLetter) ? currentLetter : '';
+    let _word = (typeof currentWord === 'string' && currentWord) ? currentWord : '';
+    if (!_letter && typeof window !== 'undefined' && window._omLastLetter) { _letter = window._omLastLetter; _word = window._omLastWord || _word; window._omLastLetter = ''; }
+    if (_letter) {
+      const lIdx = _letter.charCodeAt(0) - 65;
       if (lIdx >= 0 && lIdx < 26) {
         _ui_letterHistogram[lIdx]++;
-        const inWord = currentWord.includes(currentLetter);
+        const inWord = _word.includes(_letter);
         _ui_letterStatus[lIdx] = inWord ? 'hit' : 'miss';
-        ui_log(inWord ? 'HIT' : 'MISS', currentLetter);
+        ui_log(inWord ? 'HIT' : 'MISS', _letter);
       }
     }
     
@@ -12402,8 +12414,8 @@ window.addEventListener('DOMContentLoaded', () => {
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
     if(T&&idx>0){var pt=deaccS(T[idx-1].toLowerCase());if(DET_G[pt]||SDET_NUM[pt])expPos='N';else if(SADVERB[pt])expPos='A';
-      else if(SCOPULA[pt]||SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // CONTEXTE VERBAL : après aux/copule (j'ai/été→participe) ou pronom-sujet (il→verbe) → candidat VERBE (pri→pris pas prix ; pleu→pleut pas peu). Bonus, jamais pénalité → FP-sûr.
-    function pm(x){return (expPos&&(SP.POS[x]||'').indexOf(expPos)>=0)?1:0;}
+      else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule (j'ai/été→participe) ou pronom-sujet (il→verbe) → candidat VERBE (pri→pris pas prix ; pleu→pleut pas peu). Bonus, jamais pénalité → FP-sûr.
+    function pm(x){if(!expPos)return 0;var ps=SP.POS[x]||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
     function nm(x){return (cn&&((cn==='p')===/[sx]$/.test(deaccS(x))))?1:0;}
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
@@ -12428,7 +12440,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
     if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST (robuste au tri corrompu par les voisins fautifs) : re-sélectionne le candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte, freq max
-      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&(SP.POS[_cw]||'').indexOf(expPos)>=0&&(expPos==='V'||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
+      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(expPos.indexOf('V')>=0||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}
       if(_b&&_bf>=1.0)return['flag',_b];}   // pri→pris, von→vont, pleu→pleut (plaît/pleure = édit>1, exclus) ; respecte le nombre (« un eleve »→élève)
     if(!(d.length>=4&&f1>=1.0))return null;   // trop court ou candidat rare → abstention
     // CONFIANCE : n'AFFIRMER (rouge) que si le candidat est sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son
@@ -12902,7 +12914,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!toks.length){P.innerHTML='<div class="vdk-sc">Écris un mot (ou un texte). Décomposition en <b>SON</b> et <b>ORTHO</b>, façon Lexique 4. « 📖 Apprendre » mémorise (FP=0).</div>';return;}
     if(toks.length===1){P.innerHTML=fullCard(toks[0]);}
     else{P.innerHTML='<table class="vdk-tab"><tr><th>mot</th><th>phono</th><th>ph</th><th>syll</th><th>CV</th><th>route</th></tr>'+toks.map(row).join('')+'</table>';}}
-  function learnAll(){var toks=($('vdk-in').value.match(/[A-Za-zÀ-ÿ']+/g))||[];toks.forEach(function(w){var d=decompose(w),lx=lexLookup(w);learn(w,d.sampa,lx?'lex':'sublex');});$('vdk-stat').textContent=toks.length+' mot(s) appris · '+lexCount()+' au total';preview();}
+  function learnAll(){var toks=($('vdk-in').value.match(/[A-Za-zÀ-ÿ']+/g))||[];toks.forEach(function(w){var d=decompose(w),lx=lexLookup(w);learn(w,lx?lx.phono:d.sampa,lx?'lex':'sublex');});$('vdk-stat').textContent=toks.length+' mot(s) appris · '+lexCount()+' au total';preview();}   // src='lex' ⇒ PHONO LEXICAL exact (pas la devinette g2p ~52 %) — miroir de decompose.learn_word Python ; sinon la garde anti-écrasement scellait un phono faux sous étiquette sûre (audit 07/2026)
   var kst=document.createElement('style');
   kst.textContent='#vdk-btn{position:fixed;right:14px;bottom:110px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#1f7a3d;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdk-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdk-ov.on{display:flex}'
