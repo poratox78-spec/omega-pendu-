@@ -1,6 +1,6 @@
 # OMEGA-Ω — CODE_MAP : wiki orienté code du moteur (pendu)
 
-> **Carte du code** de `app/omega-pendu.html` (monolithe ~11 600 lignes, ~244 fonctions, ~45 toggles whitelistés).
+> **Carte du code** de `app/omega-pendu.html` (monolithe ~12 900 lignes (07/2026), ~244 fonctions, ~45 toggles whitelistés).
 > But : savoir **ce qui triche / ne triche pas par site**, **le sens des voies** (qui lit la sortie de qui), **comment
 > les toggles sont câblés aux fonctions**, et à quoi sert chaque fonction. Complète les audits (qui pointent des
 > *findings*) par une *cartographie*. Établi 2026-06-19 (4 cartographies de code croisées).

@@ -1,5 +1,7 @@
 name: CI
-on: [push, pull_request]
+on:
+  push: { branches: [main] }   # une exécution sur main ; les PR passent par pull_request (fini le double run)
+  pull_request:
 jobs:
   dictee:
     runs-on: ubuntu-latest
