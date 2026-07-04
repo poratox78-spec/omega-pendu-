@@ -496,15 +496,15 @@ async function liveSim(){
   }
 }
 
-/* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS le 9 Mo ════════ */
+/* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS les ~11 Mo ════════ */
 let tries=0, loading=false;
 function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
   if(n>0){ engineReady=true; loading=false; liveBadge('ready','moteur prêt · '+n.toLocaleString('fr')+' mots'); injectHelpers(); $('evReal').textContent='● collectif en direct'; $('evHint').textContent='genèse : un OMEGA se copie (P1), souffle (P2), et le collectif grandit + évolue (P3) en jouant le pendu — vrai omegaStep'; liveSim(); }
   else if(tries>50){ loading=false; liveBadge('','moteur indisponible ici'); $('evReal').disabled=false; $('evReal').textContent='↻ Réessayer le vrai moteur'; $('evHint').textContent='le moteur n’a pas démarré ici (sandbox/hors-ligne) — réessaie, ou ouvre le site déployé. La démo (parties réelles capturées) continue.'; }
-  else { liveBadge('on','chargement du moteur ~16 Mo…'); setTimeout(probe,500); } }
+  else { liveBadge('on','chargement du moteur ~11 Mo…'); setTimeout(probe,500); } }
 
 $('evPause').onclick=function(){ paused=!paused; this.textContent=paused?'▶ Lire':'⏸ Pause'; };
-$('evReal').onclick=function(){ if(engineReady||loading)return; loading=true; tries=0; $('evReal').disabled=true; $('evReal').textContent='● chargement…'; liveBadge('on','chargement du moteur ~16 Mo…');
+$('evReal').onclick=function(){ if(engineReady||loading)return; loading=true; tries=0; $('evReal').disabled=true; $('evReal').textContent='● chargement…'; liveBadge('on','chargement du moteur ~11 Mo…');
   frame.addEventListener('load',()=>setTimeout(probe,300),{once:true}); frame.src='app/omega-pendu.html'; setTimeout(()=>{ if(!engineReady&&loading)probe(); },2800); };
 
 (async function boot(){ const ok=await initThree(); if(ok){ renderFrame(performance.now()); cycle(); } })();
