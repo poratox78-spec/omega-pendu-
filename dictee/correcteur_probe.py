@@ -861,13 +861,6 @@ if os.path.exists(_CONJ_PATH):
     except Exception:
         pass
 
-# Réparation Lexique : « veux »/« peux » (1re/2e pers. sing. en -x) sont mal étiquetées PLURIEL dans Lexique4 → les
-# slots 1s/2s manquent dans la table → « je veut »/« tu veut » n'étaient PAS corrigés (alors que « je doit »→dois marche).
-# On rétablit les cibles (FP=0 : n'ajoute que la bonne forme à suggérer ; « je veux » correct reste intact via _agrees).
-for _lem, _f in (('vouloir', 'veux'), ('pouvoir', 'peux')):
-    CONJ_C.setdefault(_lem, {}).setdefault('ind:pre', {})['1s'] = _f
-    CONJ_C[_lem]['ind:pre']['2s'] = _f
-
 SUBJ_PRON = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'),
              'on': ('3', 's'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
 CLITIC = {'ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous',
