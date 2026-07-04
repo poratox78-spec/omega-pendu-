@@ -425,7 +425,8 @@ async function liveSim(){
       ev('if(typeof M_OS_v07!=="undefined"&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}if(__sim.filtLI)OMEGA_LEX4.len_index=__sim.filtLI;_neoWBL=null;_neoNG=null;');
       const sfl=(souffle?'true':'false');
       for(let s=0;s<EVK;s+=15){ if(stop)break; const c=Math.min(15,EVK-s); wins+=ev('__simEvalChunk('+arb+','+sfl+','+s+','+c+')'); await nf(); }
-    }catch(e){ wins=Math.round(0.6*EVK); }
+    }catch(e){ try{ ev('initOmegaGlobals();'); ev(CFG_SIM); wins=0; for(let s=0;s<EVK;s+=15){ if(stop)break; const c=Math.min(15,EVK-s); wins+=ev('__simEvalChunk('+arb+','+(souffle?'true':'false')+','+s+','+c+')'); await nf(); }
+      }catch(e2){ wins=0; liveBadge('on','⚠ évaluation échouée pour ce génome — 0 % affiché comme ÉCHEC (aucune valeur inventée)'); } }   // AVANT (audit 07/2026) : le catch FABRIQUAIT 60 % présenté comme « jugé en direct »
     liveBadge('ready','moteur prêt · le pendu a jugé ('+EVK+' parties)'); return Math.round(100*wins/EVK); }
   function newGame(I){ try{ I.anim=ev('__simGame('+I.arb+','+(I.souffle?'true':'false')+')'); I.anim.idx=0; }catch(_){ I.anim={steps:[{board:'·',L:null,hit:false}],won:false,idx:0,word:''}; } }
   function reposition(){ for(let i=0;i<pop.length;i++){ pop[i].sphere.target=genPos(1+(pop[i].gen%3), i, pop.length); } }
@@ -496,6 +497,10 @@ async function liveSim(){
   }
 }
 
+/* ⚠ CHEMIN MORT (audit 07/2026) : les branches if(live()) de cycle() — et leur chaîne liveGame/evalOOVLive/
+   showGameNoReset/applyGenome/__simEvalCore/CFG_OOV/wrOf/wrSweep — sont INATTEIGNABLES (liveSim pose stop=true
+   avant mode='live'). Le mode réel passe UNIQUEMENT par liveSim()+CFG_SIM+__simEvalChunk : CFG_OOV n'est PAS la
+   config mesurée à l'écran. Suppression différée (hygiène) — ne pas s'en servir comme référence. */
 /* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS les ~11 Mo ════════ */
 let tries=0, loading=false;
 function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
