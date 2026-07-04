@@ -109,7 +109,7 @@ sys.path.insert(0, ${JSON.stringify(HERE)})
 import correcteur_probe as C
 ph = json.loads(sys.stdin.read())
 print(json.dumps([[(i, w, s, n) for (i, w, s, n) in C.correct(p)] for p in ph]))
-`], { input: JSON.stringify(PHRASES), encoding: 'utf8' });
+`], { input: JSON.stringify(PHRASES), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });   // Windows : stdin cp1252 → mojibake → faux KO (audit)
 if (py.status !== 0) { console.error('probe Python échoué :', py.stderr); process.exit(2); }
 const pyflags = JSON.parse(py.stdout);
 

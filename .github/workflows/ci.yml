@@ -67,6 +67,8 @@ jobs:
         run: python3 extension/build_assets.py
       - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)
         run: node extension/parity_core.js
+      - name: Extension — speller ext ≡ app (couche vigilance comprise)
+        run: node extension/test_speller.js
       - name: Extension — syntaxe dys-core / content / popup
         run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js
       - name: Moteur correcteur standalone (sans UI/DOM)

@@ -793,8 +793,67 @@
     rx=/(^|[.!?…]\s+)([Mm]e|[Tt]e)\s+([A-Za-zà-ÿ]+)\b/g;
     while((m=rx.exec(text))){var pron=m[2].toLowerCase(),verb=m[3];if(!_impV(verb)||/ant$/.test(verb.toLowerCase()))continue;var ton=pron==='me'?'moi':'toi',a=m.index+m[1].length,b=m.index+m[0].length;push(a,b,_impCap(m[2],verb+'-'+ton),'impératif (pronom)');}
     out.sort(function(a,b){return a[0]-b[0];});return out;}
-  function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");var T=toks(text),out=[];for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i);
-    if(r&&r[1]!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
+  // ===== COUCHE VIGILANCE (portée de l'app, à l'identique — audit 07/2026 : l'extension avait 4 couches de retard,
+  //       test_speller échouait au HEAD ; mêmes fonctions, mêmes données, même ordre de chaîne que l'app) =====
+function spellUnknown(tok,atStart,T,idx){
+    if(!SP.ready)return null;
+    var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+    if(low.length<3||!isAlphaS(low))return null;
+    if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
+    if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
+    var d=deaccS(low);
+    if(!/[aeiouy]/.test(d)||/^[ivxlcdm]+$/.test(d))return null;             // sigle sans voyelle / chiffre romain
+    var best=null,bf=-1,arr=(SP.D2A[d]||[]).slice(),i,j,w,a;                // candidat best-effort (accents + phonétique + édit-1), même initiale
+    var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length;i++)arr.push(pa[i]);
+    var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
+    for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w).charAt(0)!==d.charAt(0))continue;if(SP.FREQ[w]>bf){bf=SP.FREQ[w];best=w;}}
+    return (best&&best!==low)?best:'';                                      // '' = inconnu sans suggestion fiable (simple alerte)
+  }
+  // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
+  // (non affirmatif). Gardes étroites pour éviter les emplois légitimes (« la mer », « le fer », « papa »).
+  function homoVig(T,i){var w=deaccS(T[i].toLowerCase());if(w!=='mer'&&w!=='fer'&&w!=='pa')return null;
+    var p=i>0?deaccS(T[i-1].toLowerCase()):'';
+    if(w==='mer'&&(p==='ma'||p==='ta'||p==='sa'||p==='notre'||p==='votre'||p==='leur'))return 'mère';   // « ma mer »→mère (≠ « la/en/une mer »)
+    if(w==='fer'&&(p==='comment'||p==='pour'||p==='rien'||p==='quoi'))return 'faire';                    // « comment fer »→faire (≠ « le/du/en fer »)
+    if(w==='pa'&&(p==='ne'||p==='n'||p==='sais'||p==='sait'||p==='peux'||p==='peut'||p==='veux'||p==='veut'||p==='est'||p==='es'||p==='suis'||p==='vais'||p==='va'))return 'pas';   // « sais pa »/« ne … pa »→pas
+    return null;}
+  // ACCORD PLURIEL (vigilance) : nom/adjectif au SINGULIER dans un GN introduit par un déterminant PLURIEL
+  // (les/des/ces/mes…) → « accord pluriel à vérifier » (orange, non affirmatif). Direction de Rem (dys).
+  var PLDET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,quelques:1,certains:1,certaines:1,divers:1,diverses:1,autres:1};
+  // CARDINAUX ≥2 : forcent le pluriel du nom compté (« cinq kilo »→kilos, « soixante mètre »→mètres). ~0,06 % FP à
+  // l'échelle UD (loanwords minima/sestieri, composés à trait d'union), donc VIGILANCE orange, pas ROUGE.
+  var CARD={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1};
+  var CARDINV={cent:1,cents:1,mille:1,vingt:1,vingts:1,million:1,millions:1,milliard:1,milliards:1,demi:1,tiers:1};   // invariables/déjà-pluriel comme CIBLE → pas de +s naïf
+  var CARDSTOP={super:1,tout:1,tous:1,toute:1,toutes:1,mi:1,semi:1};   // préfixes/adverbes invariables collés au cardinal → jamais cible d'accord
+  function _plu(w){if(/al$/.test(w))return w.slice(0,-2)+'aux';if(/(eau|au|eu)$/.test(w))return w+'x';return w+'s';}
+  function pluralVig(T,tg,i){
+    if(!tg||i>=tg.length)return null;
+    var w=deaccS(T[i].toLowerCase());
+    if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
+    if(tg[i]!=='NOUN'&&tg[i]!=='ADJ')return null;
+    var c0=T[i][0];if(c0&&c0!==c0.toLowerCase())return null;           // nom propre
+    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());
+      if(PLDET[dj]){var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
+      if(CARD[dj]){                                                    // cardinal ≥2 + nom singulier → pluriel (à vérifier)
+        if(T[i].indexOf("'")>=0)return null;                          // élision (« quatre d'entre eux », « tous deux s'élèvent ») = pas un nom compté
+        if(CARDINV[w]||CARD[w]||CARDSTOP[w])return null;              // cible = autre nombre (« cent trente »)/invariable/préfixe (super, tout)
+        if(_SEG&&_SEG.hy&&_SEG.hy[i])return null;                      // « dix-septième » (ordinal composé au trait d'union)
+        if(svReads(T[i]).length)return null;                          // le mot est aussi une forme verbale connue → prudence (mal taggé)
+        var plc=_plu(T[i].toLowerCase());return plc!==T[i].toLowerCase()?ckeepcase(T[i],plc):null;}
+      if(tg[j]==='VERB'||tg[j]==='AUX'||tg[j]==='ADP'||tg[j]==='PUNCT'||PREP[dj])break;   // sorti du GN
+      if(tg[j]!=='NOUN'&&tg[j]!=='ADJ'&&tg[j]!=='DET')break;
+    }
+    return null;}
+  var _OUV={};'est sont etait etaient sera seront es vas va vais allons allez vont habite habites habitent habitait vis vit vivent'.split(' ').forEach(function(x){_OUV[x]=1;});
+  function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
+    return (_OUV[nx]||nx==='se'||nx==='ce')?'où':null;}   // « ce » = graphie dys fréquente de « se » (« ou ce trouve la gare »)
+  function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+    if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}
+    if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
       var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
       for(var i=0;i<P.length-1;i++){if(done[i]||done[i+1])continue;
@@ -883,7 +942,7 @@
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
     posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm,
-    toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;},
+    toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));
