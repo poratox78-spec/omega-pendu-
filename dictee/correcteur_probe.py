@@ -514,6 +514,18 @@ def rule_peu(T, i):
         return 'peu'                                                   # adverbe de quantité
     return None
 
+JE_CONFUS = {'ke', 'ge', 'ce', 'se'}          # sujet « je » mal écrit (clavier k↔j, /ʒ/→ge, ce/se démonstratif/réfléchi)
+JE_ETRE_1S = {'suis', 'serai', 'serais', 'fus'}   # ÊTRE 1re pers. sing. à INITIALE CONSONNE (« je X » correct sans élision)
+def rule_je_subject(T, i):
+    """Sujet « je » mal écrit devant ÊTRE en 1re pers. sing. : « ke/ge/ce/se + suis/serai/serais » → « je ».
+    Séquence IMPOSSIBLE en français correct (« ce suis », « se suis », « ke suis » n'existent jamais) →
+    FP=0 STRUCTUREL, vérifié 0 sur 2500 + 14 450 UD. EXCLUS : me/te/le/la/les/nous/vous (« je me suis »,
+    « je te suis », « je le suis » valides) ; formes à VOYELLE ai/étais/avais (élision « j' » requise → 2e temps)."""
+    if deacc(T[i].lower()) not in JE_CONFUS or i + 1 >= len(T): return None
+    if deacc(T[i + 1].lower()) in JE_ETRE_1S: return _keepcase(T[i], 'je')
+    return None
+
+
 def rule_ce_se(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('ce', 'se'): return None
@@ -1715,7 +1727,7 @@ RULES = [('élision inversée', rule_deselide),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
+         ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
@@ -1868,6 +1880,12 @@ CASES = [
     ("Les domaines industriels progressent", "industriels", "industriel", "accord adjectif épithète"),     # domaines (m,pl) → industriels
     ("Une décision mondiale s'impose", "mondiale", "mondial", "accord adjectif épithète"),                 # décision (f) → mondiale
     ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
+    # sujet « je » mal écrit devant être 1sg (séquence impossible → FP=0) : ke/ge/ce/se + suis/serais → je
+    ("je suis fatigué", "je", "ke", "sujet je"),                          # clavier k↔j
+    ("je suis content", "je", "ce", "sujet je"),                          # ce démonstratif ≠ sujet
+    ("je suis là", "je", "se", "sujet je"),                               # se réfléchi ≠ sujet
+    ("je suis prêt", "je", "ge", "sujet je"),                             # /ʒ/ → ge
+    ("je serais content", "je", "ke", "sujet je"),                        # forme serais (conditionnel)
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
