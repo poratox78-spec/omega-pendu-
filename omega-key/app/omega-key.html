@@ -494,9 +494,10 @@ input[type=range]{accent-color:var(--cyan)}
       <div class="key-status done" id="seed-status" style="background:rgba(255,85,170,.12);border-color:#f5a;color:#f5a">ACTIF</div>
     </div>
     <div style="font-size:9px;color:var(--muted);line-height:1.5;margin-bottom:10px">
-      Ce seed (128 bits hex) dérive l'encodage sémantique complet : _BIT_VECS (12 vecteurs HDC de base)
-      + LETTER_CODES (mapping A-Z → signature 6D). Les pairs doivent partager ce seed par canal sûr
-      pour parler le même langage cryptographique. <strong style="color:#f5a">Saut de crypto algorithmique → sémantique.</strong>
+      Ce seed (128 bits hex) dérive l'espace sémantique de la <strong>simulation cognitive</strong> (_BIT_VECS,
+      LETTER_CODES) — le partager permet à deux pairs d'avoir la <strong>même simulation</strong>.
+      <strong style="color:#f5a">Il ne protège PAS les messages</strong> : le trafic est chiffré uniquement par
+      AES-GCM / Double Ratchet (le seed n'est qu'une source d'entropie de la sim, pas une couche crypto).
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px">
       <input type="text" id="master-seed-input" 
@@ -2357,6 +2358,10 @@ function extractSeed(){
 }
 
 // ── HKDF SIMPLIFIÉ ──────────────────────────────────────
+// ATTENTION - ECART RFC 5869 assume (audit 07/2026) : l'extraction fait PRK = HMAC(key=IKM, msg=salt) - la RFC
+// specifie l'inverse (key=salt, msg=IKM). Les deux pairs utilisant CE code : zero casse d'interop, zero faiblesse
+// pratique (l'IKM secret sert de cle HMAC). NE PAS « corriger » : ca invaliderait les cles derivees des historiques
+// existants. Une vraie migration = crypto.subtle.deriveBits({name:'HKDF'}) + versionnage du format.
 async function hkdf(ikm, salt, info, length){
   const ikmKey = await crypto.subtle.importKey(
     'raw', ikm, {name:'HMAC',hash:'SHA-256'}, false, ['sign']
@@ -3513,6 +3518,9 @@ let _relayUrl="", _relayRoom="", _relayId="", _relaySince=0, _relayTimer=null, _
 const _relaySeen=new Set()
 const _relaySent=new Set()   // chiffrés émis par CE client → suppression d'écho (anti-usurpation : ne dépend plus du champ `id`, falsifiable)
 const _recvSeen=new Set()    // chiffrés déjà acceptés → rejet des rejeux/doublons exacts (tous modes, y compris AES-GCM seul)
+// PORTEE (audit 07/2026) : en mode AES-GCM de base, cette FENETRE BORNEE (400 entrees, eviction du plus ancien) est
+// la SEULE defense anti-rejeu - au-dela, un tres vieux chiffre rejoue serait re-accepte. L'anti-rejeu FORT (compteurs)
+// existe dans les modes Double Ratchet et FS : les activer pour les echanges sensibles.
 function _trackBounded(set,val,cap=400){ set.add(val); if(set.size>cap) set.delete(set.values().next().value) }
 function _relayConnected(){ return !!_relayTimer || !!_relayES }
 function _relayBase(){ return _relayUrl.replace(/\/+$/,"") }

@@ -10163,7 +10163,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var KEY='dys_profile_v3', FAMS=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation'];
   // AMORCE À FROID = fréquences des erreurs dys RÉELLES (Bodard 2020, RÉCITAL, sur corpus dys FR ; cf. rapport §18.5).
   // Phonétisation ≈43 % (accent/muette/voisée-sourde), accord/conjugaison ≈27 %, homophone ≈11 %, segmentation ≈6 %,
-  // caractère (inversion/ajout/surface) ≈6 %. Guide la remédiation AVANT données perso ; dominée par les mesures dès qu'elles arrivent.
+  // caractère (inversion/ajout/surface) = 0.09 codé (2+3+4 %) ; PRIOR somme 0.96 (pas 1, volontaire). Guide la remédiation AVANT données perso ; seuils 0.03/0.25/0.5/0.04/0.55/±8 = choix éditoriaux NON mesurés (audit 07/2026), calibration au JOURNAL si un jour mesurée.
   var PRIOR={accent:.15,muette:.15,voisee_sourde:.13,accord:.27,homophone:.11,segmentation:.06,inversion:.02,ajout:.03,surface:.04};
   var P; try{P=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){P=null;}
   if(!P||typeof P!=='object'||!P.fam){P={fam:{},log:[]};} if(!P.log)P.log=[];
@@ -10178,7 +10178,7 @@ window.addEventListener('DOMContentLoaded', () => {
     for(i=0;i<FAMS.length;i++){ fam=FAMS[i]; x=P.fam[fam]; r=x?rate(fam):null;
       if(r!=null&&x.att>=minAtt){score=r+Math.min(0.25,(x.cerr||0)*0.03);}              // dictée MESURÉE (gold) prime + urgence rédaction (≤+0.25)
       else if(x&&(x.cerr||0)>=3){score=0.5+Math.min(0.3,((x.cerr||0)-3)*0.04);}         // vu SEULEMENT en rédaction → priorité moyenne, montante avec la fréquence
-      else{score=(PRIOR[fam]||0.02)*0.4;}                                               // AMORCE Bodard (cold-start) : sous toute mesure (≥0.17) → les données perso dominent dès qu'elles existent
+      else{score=(PRIOR[fam]||0.02)*0.4;}                                               // AMORCE Bodard (cold-start). NB (audit 07/2026) : PAS « sous toute mesure » — une famille parfaite sur peu d'essais (score (0+0.5)/(att+1), min ~0.10) peut passer SOUS le prior accord (0.27×0.4=0.108) : une famille non mesurée peut être proposée avant une famille maîtrisée = EXPLORATION assumée, pas domination des données perso
       out.push({fam:fam,score:score}); }
     out.sort(function(a,b){return b.score-a.score;}); return out; }
   function weakest(minAtt){ var r=ranked(minAtt); return r.length?r[0].fam:null; }

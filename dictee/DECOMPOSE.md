@@ -75,13 +75,18 @@ Exemple (`chevaux`, OOV de `phono_homophones` → route sublexicale ; cgram via 
 ```
 « chevaux »  (7 lettres)
   ORTHO  graphèmes : ch→S  e→°  v→v  au→o  x→∅
-         syllabes  : chev-aux
+         syllabes  : che-vaux
   SON    phono     : /S°vo/   [IPA ʃəvo]   route sublexicale (g2p, OOV)
-         4 phonèmes · 2 syllabe(s) : S°v-o · CV=CVCV
+         4 phonèmes · 2 syllabe(s) : S°-vo · CV=CVCV
   GRAM   cgram : NOM (lexicale) · genre : masculin · nombre : pluriel · homophones : 0
 ```
 
 ## Mesure (doctrine §1 — falsifiable, **HELD-OUT** in-lexique ⟂ OOV ; `seed=42`, test=4000)
+
+> ⚠️ **Portée de la « route lexicale » du son** (audit 07/2026) : `W2P` ne couvre que les mots présents dans
+> `phono_homophones` (c.-à-d. AYANT des homophones) — la mesure « in-lexique » est donc tirée de cette
+> population-là, pas du lexique entier. Les chiffres restent exacts pour ce qu'ils mesurent ; ne pas les
+> généraliser à « tout mot du lexique ».
 Route **sublexicale** confrontée à la vérité-terrain (phono Lexique), **table de correction apprise sur
 le split TRAIN, mesurée sur le split TEST** (pas de fuite) :
 
