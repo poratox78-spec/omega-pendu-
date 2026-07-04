@@ -558,7 +558,19 @@ def rule_cest_sest(T, i):
     if deacc(T[i].lower()) != "c'est": return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
     if prev(T, i) not in ('il', 'elle', 'on'): return None
-    if i+1 < len(T) and _is_ppl(T[i+1]): return _keepcase(T[i], "s'est")
+    j = i + 1                                                        # sauter ne/pas/bien/déjà… (« elle c'est bien amusée ») → participe
+    while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in _PP_MID: j += 1
+    if j < len(T) and _is_ppl(T[j]): return _keepcase(T[i], "s'est")
+    return None
+
+
+def rule_sais(T, i):
+    """« je/tu + c'est/ces/ses/sait » → « sais » (savoir 1re/2e pers. sing.). Ces suites n'existent JAMAIS
+    en français correct (je/tu n'introduisent ni « c'est » ni un déterminant « ces/ses ») → FP=0 STRUCTUREL,
+    mesuré 0 sur 16 951 phrases UD correctes. « il/on + c'est » reste AMBIGU (sait vs s'est) → non couvert ici."""
+    if deacc(T[i].lower()) not in ("c'est", 'ces', 'ses', 'sait'): return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # « Moi, je… c'est » (dislocation) → abstention
+    if prev(T, i) in ('je', 'tu'): return _keepcase(T[i], 'sais')
     return None
 
 _PP_ETRE3P = {'sont', 'etaient', 'seront', 'soient', 'furent', 'seraient'}
@@ -1727,7 +1739,7 @@ RULES = [('élision inversée', rule_deselide),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
+         ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
@@ -1886,6 +1898,11 @@ CASES = [
     ("je suis là", "je", "se", "sujet je"),                               # se réfléchi ≠ sujet
     ("je suis prêt", "je", "ge", "sujet je"),                             # /ʒ/ → ge
     ("je serais content", "je", "ke", "sujet je"),                        # forme serais (conditionnel)
+    # famille /sɛ/ : je/tu + c'est/ces/ses/sait → sais (savoir) ; c'est → s'est à travers un adverbe
+    ("je sais nager", "sais", "c'est", "sais/sait"),                      # je c'est → je sais
+    ("tu sais la réponse", "sais", "ces", "sais/sait"),                   # tu ces → tu sais
+    ("je sais bien", "sais", "sait", "sais/sait"),                        # je sait → je sais (accord)
+    ("elle s'est bien amusée", "s'est", "c'est", "c'est/s'est"),          # elle c'est bien amusée → s'est (adverbe intercalé)
     # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
     # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
