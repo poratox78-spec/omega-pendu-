@@ -6,8 +6,6 @@
 <meta property="og:type" content="website"><meta property="og:url" content="https://omega-pendu.pages.dev/scrabidon"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Scrabidon — solveur & assistant de Scrabble français (gratuit, hors-ligne)"><meta property="og:description" content="Scrabidon : tes lettres deviennent tes meilleurs mots, avec ou sans plateau, et une caméra qui lit les tuiles. Solveur de Scrabble français, hors-ligne et gratuit."><meta property="og:image" content="https://omega-pendu.pages.dev/icon.svg">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="Scrabidon — solveur & assistant de Scrabble français"><meta name="twitter:description" content="Tes lettres deviennent tes meilleurs mots, avec ou sans plateau. Solveur de Scrabble français, hors-ligne et gratuit."><meta name="description" content="Scrabidon — l'assistant Scrabble d'OMEGA : tes lettres deviennent tes meilleurs mots, avec ou sans plateau, et une caméra qui lit les tuiles. Solveur de Scrabble, hors-ligne."><link rel="canonical" href="https://omega-pendu.pages.dev/scrabidon"><link rel="icon" href="icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--felt:#1d4536;--felt-l:#27604b;--wood:#e9d4a8;--wood-d:#caa96f;--wood-edge:#8a6a3a;--ink:#2a2018;--cream:#f4ead2;--gold:#e0b14e;
 --tw:#c0492f;--dw:#d98a86;--tl:#2f6f9e;--dl:#8fc0dd;--cell:#356252;--line:rgba(244,234,210,.13)}
@@ -72,7 +70,8 @@ input.fld::placeholder{color:#b7a279;font-size:15px;letter-spacing:.1em;text-tra
 #aim{position:absolute;top:4%;left:4%;width:92%;height:92%;pointer-events:none;border:2px solid rgba(224,177,78,.95);border-radius:4px;background:repeating-linear-gradient(0deg,transparent 0,transparent calc(6.6667% - 1px),rgba(224,177,78,.28) calc(6.6667% - 1px),rgba(224,177,78,.28) 6.6667%),repeating-linear-gradient(90deg,transparent 0,transparent calc(6.6667% - 1px),rgba(224,177,78,.28) calc(6.6667% - 1px),rgba(224,177,78,.28) 6.6667%)}
 .prog{font-size:12px;color:var(--gold);margin:4px 2px;min-height:15px}
 .c.ocr{outline:1px solid #2f6f9e}
-</style></head><body><div class="wrap">
+</style><link rel="apple-touch-icon" href="apple-touch-icon.png">
+</head><body><div class="wrap">
 <h1>Scrabble · <em>assistant</em></h1>
 <div class="sub">Tes lettres → tes meilleurs mots. Avec ou sans plateau.</div>
 
@@ -80,7 +79,7 @@ input.fld::placeholder{color:#b7a279;font-size:15px;letter-spacing:.1em;text-tra
 
 <!-- ===== MODE PLATEAU ===== -->
 <div id="panBoard" class="hide">
-  <div class="warn">⚠ Caméra : ouvre ce fichier comme <b>vraie page HTTPS</b> (pas l'aperçu). L'OCR est une <b>assistance</b> — corrige les cases avant « Trouver ». 1ʳᵉ ouverture : internet pour charger l'OCR.</div>
+  <div class="warn">⚠ Caméra : ouvre ce fichier comme <b>vraie page HTTPS</b> (pas l'aperçu). L'OCR <b>nécessite Internet</b> (il télécharge Tesseract.js depuis jsdelivr <em>au moment où tu cliques</em> — seul point du site qui contacte un serveur tiers ; rien d'autre ne quitte l'appareil, l'image reste locale). L'OCR est une <b>assistance</b> — corrige les cases avant « Trouver ». 1ʳᵉ ouverture : internet pour charger l'OCR.</div>
   <div class="cambtns"><button class="b1" id="camStart">📷 Démarrer la caméra</button><button class="b2" id="camCap" style="display:none">Capturer + lire</button></div>
   <div class="camwrap" id="camwrap"><video id="video" playsinline muted></video><div id="aim"></div></div>
   <div class="prog" id="prog"></div>
