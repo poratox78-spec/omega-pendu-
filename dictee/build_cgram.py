@@ -146,7 +146,11 @@ def main():
                     is_part = form_lw.endswith(PART_END)
                     if not is_inf and not is_part:                          # exclut les PARTICIPES (déployé/donnés = participe/adj, pas verbe SV → FP)
                         for mt, per in fin:
-                            nn = nb or derive_number(form_lw, per)          # nombre donné, sinon déduit (-ons/-ez/-ent…)
+                            # 1re/2e pers. : le nombre est PUREMENT morphologique (-ons/-ez = pluriel, sinon singulier).
+                            # La colonne 8_Nombre de Lexique est FAUSSE pour beaucoup de formes sing. (« veux »/« finis »/
+                            # « penses » taguées pluriel) → on l'IGNORE en 1re/2e pers. et on déduit de la terminaison.
+                            # (3e pers. : on garde 8_Nombre quand présent, la distinction il/ils y est moins morphologique.)
+                            nn = derive_number(form_lw, per) if per in ('1', '2') else (nb or derive_number(form_lw, per))
                             cj_f.setdefault(w, set()).add(f"{lem};{mt};{per};{nn}")
                             if nn in ('s', 'p'):
                                 slot = per + nn; d = cj_c.setdefault(lem, {}).setdefault(mt, {})
