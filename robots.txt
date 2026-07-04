@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://omega-pendu.pages.dev/sitemap.xml
+Sitemap: https://omegapendu.com/sitemap.xml
