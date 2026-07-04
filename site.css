@@ -88,3 +88,24 @@ code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:.92em;backg
 .evo-genome[data-g="par"] .eg-big{color:var(--accent-2)}
 .eg-vd{font-size:15px;color:var(--fg-2);margin:0;text-align:center;line-height:1.55}
 .eg-vd b{color:var(--fg)}
+
+/* ——— MOBILE (≤640px) : compacter en-tête + hero — sur petit écran les titres/nav mangeaient la moitié
+   de la page. Rien ci-dessous ne s'applique au-delà de 640px → la version PC est intacte par construction. ——— */
+@media (max-width:640px){
+  h1{font-size:26px;margin:.15em 0}                                   /* 30px (clamp min) → 26px : titre plus ramassé */
+  h2{font-size:21px;margin:1.2em 0 .4em;padding-top:.2em}
+  .hero{padding:18px 0 16px}                                          /* 54px de padding haut → 18px */
+  .hero .tag{font-size:13px}
+  .hero p.lead{font-size:17px;line-height:1.5}
+  .cta{gap:9px;margin:15px 0 4px}
+  .btn{padding:11px 16px;font-size:15px;min-height:44px}
+  /* nav : brand sur sa ligne, puis UNE seule ligne défilable horizontalement (au lieu de 3 lignes qui
+     empilent). En-tête sticky ramené de ~200px à ~90px → il ne mange plus la moitié de chaque écran. */
+  header.top .wrap{min-height:0;padding:7px 0;gap:6px 0}
+  header.top nav{margin-left:0;flex:1 0 100%;flex-wrap:nowrap;justify-content:flex-start;gap:4px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+  header.top nav::-webkit-scrollbar{display:none}
+  header.top nav a{flex:0 0 auto;white-space:nowrap;padding:6px 9px;font-size:14px}
+  #dys-toggle{flex:0 0 auto;font-size:13px;padding:5px 9px;min-height:30px}
+}
