@@ -863,7 +863,9 @@ function spellUnknown(tok,atStart,T,idx){
         if(!/^\s+$/.test(text.slice(P[i][1],P[i+1][0])))continue;
         var a=P[i][2].toLowerCase(),b=P[i+1][2].toLowerCase(),vow=/^[aeiouyh]/.test(deaccS(b));
         if(a==='aujourd'&&b==='hui'){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'hui",name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
-        else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
+        else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
+        // sujet « je » mal écrit + AVOIR/ÊTRE 1sg à initiale VOYELLE → « j'ai/j'étais » (« ke ai », « ce avais »). Séquence IMPOSSIBLE (FP=0). Miroir app.
+        else if(vow&&(a==='ke'||a==='ge'||a==='ce'||a==='se')&&/^(ai|avais|aurai|aurais|etais|eus|eusse|aie)$/.test(deaccS(b))){out.push({i:i,word:P[i][2],sugg:(/^[A-ZÀ-Ö]/.test(P[i][2])?"J'":"j'")+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
       var mv=_impMoves(text);
       for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],Bx=mv[mi][1],ki=-1,kj=-1;
         for(var k=0;k<P.length;k++){if(P[k][0]>=A&&P[k][1]<=Bx){if(ki<0)ki=k;kj=k;}}

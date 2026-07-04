@@ -71,6 +71,13 @@ const SP = globalThis.__sp;
   const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
   if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));
   if (SP.spell('il est très content').some(x => x.name === 'élision')) fail.push('FP élision sur texte correct');
+  // sujet « je » mal écrit + aux voyelle → « j'ai/j'étais » (ke/ge/ce/se + ai/avais/étais…) — merge span:2
+  const kai = SP.spell('ke ai un chien').find(x => x.name === 'élision');
+  if (!kai || kai.sugg !== "j'ai" || kai.span !== 2) fail.push("ke ai→j'ai (merge sujet+aux voyelle) attendu, eu " + JSON.stringify(kai));
+  const set = SP.spell('se étais là').find(x => x.name === 'élision');
+  if (!set || set.sugg !== "j'étais" || set.span !== 2) fail.push("se étais→j'étais attendu, eu " + JSON.stringify(set));
+  if (SP.spell('tu as un chien').some(x => x.name === 'élision')) fail.push('FP j-aux sur « tu as » (correct)');
+  if (SP.spell('ce aigle vole haut').some(x => x.name === 'élision')) fail.push('FP j-aux sur « ce aigle » (pas un aux)');
   // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
   const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
   if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
