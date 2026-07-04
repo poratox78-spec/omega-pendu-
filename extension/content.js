@@ -22,7 +22,9 @@
       speller: spellerUrl,
       nom: nomUrl,
       hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz')   // POS-tagger HMM : l'asset était LIVRÉ mais jamais chargé → ~7 règles rouges (accord/épithète via tagger) inertes dans le navigateur (audit 07/2026)
-    }).then(function () { if (active) schedule(active); });
+    }).then(function () { if (active) schedule(active);
+      try { chrome.storage.local.set({ omdysStatus: { ready: !!(DC.isReady && DC.isReady()), words: (DC.lexSize ? DC.lexSize() : null) } }); } catch (e) {}   // état pour le popup
+    }).catch(function (e) { try { chrome.storage.local.set({ omdysStatus: { ready: false, error: String(e && e.message || e) } }); } catch (e2) {} });
     if (DC.loadSpellerLex) DC.loadSpellerLex(spellerUrl).then(function () { if (active) schedule(active); });  // re-render quand l'orthographe (non-mots/accents) est prête
     if (DC.loadNounPost) DC.loadNounPost(nomUrl).then(function () { if (active) schedule(active); });  // re-render quand le posterior (genre + pluriel) est prêt
     if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(function () { if (active) schedule(active); });  // couche VERTE vigilance (confusables)
