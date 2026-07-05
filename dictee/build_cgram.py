@@ -97,6 +97,8 @@ def main():
         adjfreq = {}                                      # déacc(forme ADJ) → fréquence max
         cj_f = {}                                          # forme_déacc → {"lemme;mode:temps;pers;nombre"} (toutes lectures finies)
         cj_c = {}                                          # lemme → mode:temps → slot(« 3s ») → (forme_acc, freq, spécificité)
+        cj_x = {}                                          # 3e pers. AMBIGUË (vient/rient) → lemme → mt → [(forme,freq,spéc)] (promotion 3s ci-dessous)
+        inf_acc = {}                                       # lemme → infinitif ACCENTUÉ (pour dériver le 3s des -er réguliers rares)
         for row in rdr:
             if len(row) <= max(c_mot, c_gram):
                 continue
@@ -135,6 +137,8 @@ def main():
                     nb = row[c_nombre].strip().lower()[:1] if 0 <= c_nombre < len(row) else ''
                     nb = nb if nb in ('s', 'p') else ''                     # '' = à déduire de la morphologie
                     is_inf = (w == lem)                                      # forme = lemme → INFINITIF (ses tags finis = artefacts Lexique « chanter:ind:pre:2 ») → écarté
+                    if is_inf:
+                        inf_acc.setdefault(lem, form)                        # infinitif accentué mémorisé (dérivation 3s des -er réguliers)
                     fin = []
                     for tag in row[c_info].split(','):
                         pp = tag.split(':')
@@ -146,10 +150,16 @@ def main():
                     is_part = form_lw.endswith(PART_END)
                     if not is_inf and not is_part:                          # exclut les PARTICIPES (déployé/donnés = participe/adj, pas verbe SV → FP)
                         for mt, per in fin:
-                            # 1re/2e pers. : le nombre est PUREMENT morphologique (-ons/-ez = pluriel, sinon singulier).
-                            # La colonne 8_Nombre de Lexique est FAUSSE pour beaucoup de formes sing. (« veux »/« finis »/
-                            # « penses » taguées pluriel) → on l'IGNORE en 1re/2e pers. et on déduit de la terminaison.
-                            # (3e pers. : on garde 8_Nombre quand présent, la distinction il/ils y est moins morphologique.)
+                            # Nombre PUREMENT morphologique en 1re/2e pers. (-ons/-ez=pluriel, sinon sing.) ET en 3e pers.
+                            # -ent/-ont (long -ent = pluriel régulier). La colonne 8_Nombre de Lexique est FAUSSE pour beaucoup
+                            # (« veux »/« finis » sing. tagués plur. ; « viennent » plur. tagué sing.) → on la contourne là où
+                            # la morphologie tranche. Le -ient/-ent COURT reste 'x' (vient 3sg ↔ rient 3pl) → promu en 3s plus bas.
+                            if per == '3' and (form_lw.endswith('ent') or form_lw.endswith('ont')):
+                                # 3e pers. -ent/-ont : ambiguë 3sg↔3pl (il consent ↔ ils chantent/consentent) → DIFFÉRÉE.
+                                # Sa lecture cj_f est posée par la RÉSOLUTION (3p/3s exact, par longueur), PAS 'x' : sinon
+                                # « ont »/« sont » agréeraient à tort avec un sujet 3sg (« il ont »→a ne serait plus détecté).
+                                cj_x.setdefault(lem, {}).setdefault(mt, []).append((form, fr, spec))
+                                continue
                             nn = derive_number(form_lw, per) if per in ('1', '2') else (nb or derive_number(form_lw, per))
                             cj_f.setdefault(w, set()).add(f"{lem};{mt};{per};{nn}")
                             if nn in ('s', 'p'):
@@ -187,6 +197,52 @@ def main():
                 _pres[_slot] = (_sg, 0.0, 97)
                 cj_f.setdefault(deacc(_sg.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};s")
 
+    # RÉSOLUTION 3s/3p des formes 3e pers. en -ent/-ont (différées en 'x' : ambiguës 3sg↔3pl). Par lemme : la PLUS
+    # LONGUE = 3p (chantent, consentent, viennent) ; une STRICTEMENT plus courte = 3s (consent, vient). Tôt (avant la
+    # dérivation -er) pour que le 3p soit dispo. Idempotente. FP-safe : « rient » (seule forme, rire) ne devient jamais un 3s.
+    for _lem, _xd in cj_x.items():
+        _xs = _xd.get('ind:pre')
+        if not _xs:
+            continue
+        _pres = cj_c.setdefault(_lem, {}).setdefault('ind:pre', {})
+        _uniq = sorted({f for f, _fr, _sp in _xs}, key=len)
+        _long = _uniq[-1]
+        if '3p' not in _pres:
+            _pres['3p'] = (_long, 0.0, 96)
+            cj_f.setdefault(deacc(_long.lower()), set()).add(f"{_lem};ind:pre;3;p")
+        if '3s' not in _pres and len(_uniq) >= 2 and _uniq[0] != _long:
+            _pres['3s'] = (_uniq[0], 0.0, 96)
+            cj_f.setdefault(deacc(_uniq[0].lower()), set()).add(f"{_lem};ind:pre;3;s")
+
+    # 3s des -er RÉGULIERS rares non attestés (« accole », « acidifie ») : dérivé de l'infinitif ACCENTUÉ
+    # (accoler→accole, créer→crée). EXCLUS les -er à radical changeant (appeler→appelle, mener→mène, payer→paie, aérer→
+    # aère…) — non dérivables du seul infinitif → abstention. Débloque ensuite 1s/2s/3p (boucle régulière ci-dessous).
+    def _er_stem_change(l):
+        if l.endswith(('eler', 'eter', 'yer')):
+            return True
+        return len(l) >= 4 and l[-4] == 'e' and l[-3] in 'bcdfghjklmnpqrstvz' and l.endswith('er')
+    _s3er = 0
+    for _lem in list(cj_c.keys()):
+        _pres = cj_c[_lem].get('ind:pre')
+        if _pres is None or '3s' in _pres or not _lem.endswith('er') or _lem == 'aller':
+            continue
+        _f = None
+        if '2s' in _pres:                                       # 2s partage le radical TONIQUE du 3s (appelles→appelle) → sûr même à radical changeant, accent préservé
+            _f = _pres['2s'][0][:-1]
+        elif not _er_stem_change(_lem):                         # radical STABLE → 3s dérivable de n'importe quelle forme attestée (accent préservé)
+            if _lem in inf_acc:
+                _f = inf_acc[_lem][:-1]                         # accoler→accole, créer→crée
+            elif '2p' in _pres and _pres['2p'][0].endswith('ez'):
+                _f = _pres['2p'][0][:-2] + 'e'                  # bariolez→bariole
+            elif '1p' in _pres and _pres['1p'][0].endswith('ons'):
+                _f = _pres['1p'][0][:-3] + 'e'                  # bariolons→bariole
+            elif '3p' in _pres and _pres['3p'][0].endswith('ent'):
+                _f = _pres['3p'][0][:-3] + 'e'                  # bariolent→bariole
+        if _f:
+            _pres['3s'] = (_f, 0.0, 95)
+            cj_f.setdefault(deacc(_f.lower()), set()).add(f"{_lem};ind:pre;3;s")
+            _s3er += 1
+
     # COMPLÉTION DE PARADIGME PRÉSENT (verbes RÉGULIERS) — Lexique n'atteste pas toujours « je/tu » des verbes rares
     # (« tu adoubes »). Pour un -er régulier (hors « aller ») la forme est DÉTERMINISTE : 1s = 3s, 2s = 3s+s ; pour un
     # -ir 2e groupe (3s en -it) : 1s = 2s = 3s sans -t, +s (finit→finis). On reconstruit ces cases manquantes — une
@@ -201,15 +257,36 @@ def main():
         _f3 = _pres['3s'][0]
         _der = {}
         if _lem.endswith('er') and _lem != 'aller' and _f3.endswith('e'):
-            _der = {'1s': _f3, '2s': _f3 + 's'}
+            _der = {'1s': _f3, '2s': _f3 + 's', '3p': _f3 + 'nt'}          # parle → parles, parlent
         elif _lem.endswith('ir') and _f3.endswith('it'):
             _s = _f3[:-1] + 's'
-            _der = {'1s': _s, '2s': _s}
+            _der = {'1s': _s, '2s': _s, '3p': _f3[:-1] + 'ssent'}          # finit → finis, finissent
         for _slot, _form in _der.items():
             if _slot not in _pres:
                 _pres[_slot] = (_form, 0.0, 99)
-                cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};s")
+                cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};{_slot[1]}")
                 _fill += 1
+    # RÉSOLUTION 3s/3p des formes 3e pers. en -ent/-ont (différées en 'x' car ambiguës 3sg↔3pl). Par lemme : la forme la
+    # PLUS LONGUE = 3p (chantent, consentent, viennent) ; une forme STRICTEMENT plus courte = 3s (consent, vient). Si une
+    # seule forme (rient) → 3p par défaut, le 3s reste éventuellement une forme non-ent déjà slottée (rit). FP-safe : on
+    # ne tranche 3s que quand la longueur départage réellement ; « rient » (rire) ne devient JAMAIS un 3s inventé.
+    _p3 = 0
+    for _lem, _xd in cj_x.items():
+        _xs = _xd.get('ind:pre')
+        if not _xs:
+            continue
+        _pres = cj_c.setdefault(_lem, {}).setdefault('ind:pre', {})
+        _uniq = sorted({f for f, _fr, _sp in _xs}, key=len)
+        _long = _uniq[-1]
+        if '3p' not in _pres:
+            _pres['3p'] = (_long, 0.0, 96)
+            cj_f.setdefault(deacc(_long.lower()), set()).add(f"{_lem};ind:pre;3;p")
+            _p3 += 1
+        if '3s' not in _pres and len(_uniq) >= 2 and _uniq[0] != _long:
+            _pres['3s'] = (_uniq[0], 0.0, 96)
+            cj_f.setdefault(deacc(_uniq[0].lower()), set()).add(f"{_lem};ind:pre;3;s")
+            _p3 += 1
+
     # COMPOSÉ → BASE : un préfixé se conjugue EXACTEMENT comme sa base (advenir←venir, démettre←mettre, élire←lire).
     # Pour un verbe encore incomplet, on cherche le PLUS LONG verbe-base (déjà complet en 1s+2s) qui est un suffixe du
     # lemme ET dont le 3s préfixé reconstitue le 3s du composé → on copie ses 1s/2s avec le même préfixe (accentué,
@@ -219,7 +296,7 @@ def main():
         bases = sorted([l for l, m in cj_c.items() if {'1s', '2s', '3s'} <= set(m.get('ind:pre', {}))], key=len)
         for _lem, _mts in cj_c.items():
             _pres = _mts.get('ind:pre')
-            if not _pres or '3s' not in _pres or ('1s' in _pres and '2s' in _pres):
+            if not _pres or '3s' not in _pres or {'1s', '2s', '3p'} <= set(_pres):
                 continue
             _l3 = _pres['3s'][0]; _dl3 = deacc(_l3.lower())
             for _b in reversed(bases):
@@ -231,11 +308,11 @@ def main():
                 _pref = _l3[:len(_l3) - len(_b3)]
                 if deacc((_pref + _b3).lower()) != _dl3:
                     continue
-                for _slot in ('1s', '2s'):
+                for _slot in ('1s', '2s', '3p'):
                     if _slot not in _pres and _slot in _bp:
                         _form = _pref + _bp[_slot][0]
                         _pres[_slot] = (_form, 0.0, 98)
-                        cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};s")
+                        cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};{_slot[1]}")
                         n += 1
                 break
         return n
