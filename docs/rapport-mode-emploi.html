@@ -875,14 +875,6 @@ Le tout sur une <strong>couche segments</strong> (ponctuation/majuscules = borne
 <div class="note"><strong>Généralité du substrat — ce que le mécanisme est, au fond (O2, 06/2026).</strong> Pointé hors du français (sur du <strong>code</strong>, sans Lex4), le substrat d'agrégation reconstruit et <strong>compresse</strong> les séquences <em>aussi bien que le français</em> (~1,1 bit/caractère sous le hasard) et <strong>rien</strong> sur une séquence brouillée — « prédire = compresser ». Le cœur transférable d'OMEGA est donc un <strong>compresseur de séquences structurées</strong>, domaine-agnostique ; la cognition française (double-route phonologique) ne transfère pas (pas de « son » dans du code). Puissant et général, mais <em>capture de structure</em>, pas <em>compréhension</em>. <em>(Travail de groupe O1 = négatif, subsumé par l'arbitrage interne.)</em> Détail&nbsp;: <code>recherche.html</code>, <code>evo/EVO_ROADMAP.md</code>, scripts <code>evo/evo_o2_*.js</code>.</div>
 
 <p class="tech"><strong>Limites (honnêtes).</strong> Validation encore <strong>synthétique + held-out</strong> — pas de copies d'élèves réelles (validation terrain orthophonistes / corpus FR en ligne <code>fetch_gec_corpus.py</code> = à faire ; elles valident <em>et</em> nourrissent la boucle descendante). Couverture verbale du correcteur via liste blanche + cgram (homographes : croiser au contexte). Accord en genre — <strong>mesuré sur UD réel</strong> (<code>dictee/gender_probe_ud.py</code>, 355 k mots gold)&nbsp;: déterminant <strong>validé et amélioré</strong> (recall <strong>67→73&nbsp;%</strong>, FP 0,10/1000 — garde verbe-homographe levée, câblé en parité sur les 3 moteurs, FP=0 batterie intact)&nbsp;; adjectif <strong>désactivé à raison</strong> (3,37 FP/1000) — un POS-tagger n'en ôterait que ~48&nbsp;% (→ 1,76/1000, encore ~20× le déterminant), car l'accord adjectival exige la <strong>portée</strong> (nom-tête, étendue) = du parsing, pas qu'un simple tagger. Normaliseur « surface » approximatif.</p>
-
-<div class="note" style="border-color:var(--gold);text-align:center;margin-top:36px">
-  <strong style="color:var(--gold)">🥚 Tu as lu jusqu'au bout.</strong> Respect — c'est rare. Voilà ta récompense, tape&nbsp;:
-  <div style="font-family:'JetBrains Mono',monospace;font-size:1.3em;letter-spacing:.16em;margin:12px 0;color:var(--ink)">↑ ↑ ↓ ↓ ← → ← → B A</div>
-  <span style="font-size:.85em;color:var(--ink-soft)">le <strong>code Konami</strong> — il réveille un petit secret d'avant OMEGA.</span>
-</div>
-<script>/* 🥚 code Konami → jeu « Pendable » (la récompense de fin de lecture) */
-(function(){var s=[38,38,40,40,37,39,37,39,66,65],i=0;addEventListener('keydown',function(e){i=(e.keyCode===s[i])?i+1:(e.keyCode===s[0]?1:0);if(i===s.length){i=0;location.href='../pendable.html';}});})();</script>
 </section>
 </main>
 </div><!-- /wrap -->
