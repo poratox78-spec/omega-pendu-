@@ -26,6 +26,10 @@ MODAL = {'veux','veut','veulent','peux','peut','peuvent','dois','doit','doivent'
          'faut','sais','sait','aime','aimes','aiment','adore','espere','souhaite','prefere','preferent',
          'vient','viens','allons','allez','laisse','laissent','semble','ose','vais','pour','sans','afin','de',
          'devons','devez','pouvons','pouvez','voulons','voulez'}   # modaux conjugués 1pl/2pl (+ infinitif)
+# Marqueurs de FUTUR (désaccentués) : « je + verbe » ne se décide en futur -ai que si l'un d'eux est présent.
+# Sinon « je noté/retourné » est AMBIGU (futur « je noterai » vs passé à auxiliaire tombé « j'ai noté ») → abstention (FP-safe).
+FUTURE_MARK = {'demain','bientot','prochain','prochaine','prochains','prochaines','ulterieurement',
+               'dorenavant','desormais','tantot'}
 AUX = set(D.AUX_ETRE) | set(D.AUX_AVOIR)
 
 # Durcissement FP (mesuré sur UD French, cf. fp_stress_test.py). Noms INVARIABLES en -s/-x (« leur pays » = sg, pas
@@ -345,7 +349,8 @@ def rule_flexion_er(T, i):
                or (i >= 2 and deacc(T[i-2].lower()) == 'que')   # « …, vous » / « que vous » = sujet ; « et/qui vous » = objet
         if not subj: return None
         tgt = 'p2pl'
-    elif praw == 'je':                            # « je noté/noter » → futur -ai
+    elif praw == 'je':                            # « je noté/noter » → futur -ai SEULEMENT si marqueur de futur présent
+        if not any(deacc(t.lower()) in FUTURE_MARK for t in T): return None   # sinon ambigu (passé à auxiliaire tombé « j'ai noté ») → abstention FP-safe
         tgt = 'fut1'
     elif p == 'plait' and i >= 2 and deacc(T[i-2].lower()) == 'vous':
         tgt = 'p2pl'                              # « s'il vous plaît, cherché »→cherchez (impératif 2e pl poli)
