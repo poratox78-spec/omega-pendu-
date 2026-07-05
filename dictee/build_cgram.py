@@ -171,6 +171,82 @@ def main():
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[cgram] {len(out)} formes verbales (sur {n} lignes VER, freq≥{FREQ_MIN}) → {OUT}")
 
+    # SEED des IRRÉGULIERS rares que Lexique n'atteste pas en 1re/2e pers. sing. — table de référence VÉRIFIÉE
+    # (conjugaison standard ; 1s = 2s pour tous). Les autres (défectifs/impersonnels : falloir, pleuvoir, seoir,
+    # sourdre, braire, raire, bruire, éclore, s'ensuivre, messeoir) n'ont PAS de « je/tu » → absents à dessein (preuve).
+    _SEED_SG = {
+        'advenir': 'adviens', 'survenir': 'surviens', 'suivre': 'suis', 'vetir': 'vêts', 'devetir': 'dévêts',
+        'croitre': 'croîs', 'decroitre': 'décroîs', 'ceindre': 'ceins', 'enceindre': 'enceins', 'empreindre': 'empreins',
+        'circoncire': 'circoncis', 'confire': 'confis', 'induire': 'induis', 'epandre': 'épands',
+        'enquerir': 'enquiers', 'rementir': 'remens', 'clore': 'clos', 'enclore': 'enclos',
+    }
+    for _lem, _sg in _SEED_SG.items():
+        _pres = cj_c.setdefault(_lem, {}).setdefault('ind:pre', {})
+        for _slot in ('1s', '2s'):
+            if _slot not in _pres:
+                _pres[_slot] = (_sg, 0.0, 97)
+                cj_f.setdefault(deacc(_sg.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};s")
+
+    # COMPLÉTION DE PARADIGME PRÉSENT (verbes RÉGULIERS) — Lexique n'atteste pas toujours « je/tu » des verbes rares
+    # (« tu adoubes »). Pour un -er régulier (hors « aller ») la forme est DÉTERMINISTE : 1s = 3s, 2s = 3s+s ; pour un
+    # -ir 2e groupe (3s en -it) : 1s = 2s = 3s sans -t, +s (finit→finis). On reconstruit ces cases manquantes — une
+    # faute reste une faute même sur un verbe rare. JAMAIS les irréguliers (-re/-oir/-ir 3e groupe), où fabriquer la
+    # forme serait une FAUSSE suggestion (abstention > erreur). Les formes reconstruites vont aussi dans cj_f (lectures)
+    # pour passer l'auto-vérification de rule_accord_sv. spec=99 (priorité minimale) : une vraie forme Lexique l'emporte.
+    _fill = 0
+    for _lem, _mts in cj_c.items():
+        _pres = _mts.get('ind:pre')
+        if not _pres or '3s' not in _pres:
+            continue
+        _f3 = _pres['3s'][0]
+        _der = {}
+        if _lem.endswith('er') and _lem != 'aller' and _f3.endswith('e'):
+            _der = {'1s': _f3, '2s': _f3 + 's'}
+        elif _lem.endswith('ir') and _f3.endswith('it'):
+            _s = _f3[:-1] + 's'
+            _der = {'1s': _s, '2s': _s}
+        for _slot, _form in _der.items():
+            if _slot not in _pres:
+                _pres[_slot] = (_form, 0.0, 99)
+                cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};s")
+                _fill += 1
+    # COMPOSÉ → BASE : un préfixé se conjugue EXACTEMENT comme sa base (advenir←venir, démettre←mettre, élire←lire).
+    # Pour un verbe encore incomplet, on cherche le PLUS LONG verbe-base (déjà complet en 1s+2s) qui est un suffixe du
+    # lemme ET dont le 3s préfixé reconstitue le 3s du composé → on copie ses 1s/2s avec le même préfixe (accentué,
+    # relu sur les FORMES). Autoritatif : ce sont les formes réelles de la base (Lexique), pas une invention.
+    def _cx(v):   # itère : passe base tant que ça remplit (une base fraîchement complétée en débloque d'autres)
+        n = 0
+        bases = sorted([l for l, m in cj_c.items() if {'1s', '2s', '3s'} <= set(m.get('ind:pre', {}))], key=len)
+        for _lem, _mts in cj_c.items():
+            _pres = _mts.get('ind:pre')
+            if not _pres or '3s' not in _pres or ('1s' in _pres and '2s' in _pres):
+                continue
+            _l3 = _pres['3s'][0]; _dl3 = deacc(_l3.lower())
+            for _b in reversed(bases):
+                if _b == _lem or len(_b) < 4 or not _lem.endswith(_b):
+                    continue
+                _bp = cj_c[_b]['ind:pre']; _b3 = _bp['3s'][0]; _db3 = deacc(_b3.lower())
+                if not _dl3.endswith(_db3):
+                    continue
+                _pref = _l3[:len(_l3) - len(_b3)]
+                if deacc((_pref + _b3).lower()) != _dl3:
+                    continue
+                for _slot in ('1s', '2s'):
+                    if _slot not in _pres and _slot in _bp:
+                        _form = _pref + _bp[_slot][0]
+                        _pres[_slot] = (_form, 0.0, 98)
+                        cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};s")
+                        n += 1
+                break
+        return n
+    _cx_total = 0
+    while True:
+        _k = _cx(0)
+        _cx_total += _k
+        if not _k:
+            break
+    print(f"[conj] complétion : +{_fill} régulières (-er/-ir) + {_cx_total} composées (base) reconstruites")
+
     # table de conjugaison (accord sujet-verbe) : f = forme→lectures ; c = lemme→temps→slot→forme
     # chaque lecture = « lemme;mode:temps;personne;nombre » ; lectures séparées par « | ».
     conj_f = {k: '|'.join(sorted(v)) for k, v in cj_f.items()}
