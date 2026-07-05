@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Solveur de pendu cognitif français — devine les mots sans les lire | OMEGA-Ω</title>
-<meta name="description" content="Solveur de pendu cognitif français (pendu / hangman solver) : il raisonne — sons, orthographe, voisins — au lieu de consulter un oracle. ≈97% en lexique, ≈64% hors-lexique, cheat-free, dans un seul fichier HTML, sans GPU.">
+<title>Correcteur dys & solveur de pendu cognitif — gratuit, hors-ligne | OMEGA-Ω</title>
+<meta name="description" content="OMEGA-Ω : un correcteur d'écriture pour la dyslexie qui ne souligne jamais du juste — 0 faux positif mesuré, hors-ligne, gratuit, open source. Né d'un solveur de pendu cognitif qui devine les mots français sans jamais les lire.">
 <link rel="canonical" href="https://omegapendu.com/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://omegapendu.com/">
 <meta property="og:site_name" content="OMEGA-Ω">
 <meta property="og:locale" content="fr_FR">
-<meta property="og:title" content="Solveur de pendu cognitif français (hangman solver, cheat-free) | OMEGA-Ω">
-<meta property="og:description" content="Solveur de pendu cognitif français : raisonner plutôt que tricher. ≈97% en lexique, ≈64% hors-lexique, cheat-free, dans un seul fichier HTML — sans entraînement ni GPU.">
+<meta property="og:title" content="Correcteur dys (zéro faux positif) & pendu cognitif — gratuit, hors-ligne | OMEGA-Ω">
+<meta property="og:description" content="Un correcteur d'écriture pour la dyslexie qui ne souligne jamais du juste (0 faux positif mesuré), né d'un solveur de pendu qui raisonne. Hors-ligne, gratuit, open source.">
 <meta property="og:image" content="https://omegapendu.com/icon-512.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
 <meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Solveur de pendu cognitif français (hangman solver) | OMEGA-Ω">
-<meta name="twitter:description" content="Solveur de pendu français cheat-free : ≈97% en lexique, ≈64% hors-lexique, dans un seul fichier HTML, sans GPU.">
+<meta name="twitter:title" content="Correcteur dys sans faux positif & pendu cognitif | OMEGA-Ω">
+<meta name="twitter:description" content="Correcteur d'écriture pour la dyslexie — ne souligne jamais du juste (0 faux positif), hors-ligne, gratuit. Né d'un solveur de pendu cognitif.">
 <link rel="stylesheet" href="site.css">
 <meta name="theme-color" content="#0d1117">
 <link rel="manifest" href="manifest.json">
@@ -31,7 +31,7 @@
 <link rel="alternate" hreflang="fr" href="https://omegapendu.com/">
 <link rel="alternate" hreflang="en" href="https://omegapendu.com/en/">
 <link rel="alternate" hreflang="x-default" href="https://omegapendu.com/">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://omegapendu.com/#website","name":"OMEGA-Ω","url":"https://omegapendu.com/","inLanguage":"fr","publisher":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"}},{"@type":"WebApplication","name":"Solveur de pendu cognitif français","url":"https://omegapendu.com/","applicationCategory":"GameApplication","operatingSystem":"Web","browserRequirements":"HTML5","inLanguage":"fr","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Solveur de pendu français qui raisonne (sons, orthographe, voisins) au lieu de consulter un dictionnaire — cheat-free, dans un seul fichier HTML, hors-ligne.","publisher":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://omegapendu.com/#website","name":"OMEGA-Ω","url":"https://omegapendu.com/","inLanguage":"fr","publisher":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"}},{"@type":"SoftwareApplication","name":"Correcteur dys OMEGA-Ω","url":"https://omegapendu.com/correcteur","applicationCategory":"EducationalApplication","applicationSubCategory":"Correcteur orthographique et grammatical","operatingSystem":"Web (Chrome, Edge, Firefox)","browserRequirements":"HTML5","inLanguage":"fr","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Correcteur d'écriture pour la dyslexie et les troubles de l'écrit : ne signale jamais du juste (0 faux positif mesuré). Grammaire en contexte, orthographe, accents, aide à la frappe. Hors-ligne, gratuit, open source.","publisher":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"}},{"@type":"WebApplication","name":"Solveur de pendu cognitif français","url":"https://omegapendu.com/","applicationCategory":"GameApplication","operatingSystem":"Web","browserRequirements":"HTML5","inLanguage":"fr","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Solveur de pendu français qui raisonne (sons, orthographe, voisins) au lieu de consulter un dictionnaire — cheat-free, dans un seul fichier HTML, hors-ligne.","publisher":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"}}]}</script>
 </head>
 <body>
 <a class="skip" href="#main">Aller au contenu</a>
@@ -54,15 +54,23 @@
 
 <main id="main">
 <section class="hero"><div class="wrap">
-  <span class="tag">Solveur de pendu cognitif · cheat-free · sans entraînement</span>
-  <h1>Une machine qui <em>devine</em> les mots français — sans jamais les lire.</h1>
-  <p class="lead">OMEGA joue au pendu en <strong>raisonnant</strong> sur la langue — sons, orthographe, lettres déjà tombées — plutôt qu'en consultant un dictionnaire-oracle. La configuration de référence ne lit <em>jamais</em> le mot caché. Le tout tient dans <strong>un seul fichier HTML</strong>, <strong>sans entraînement ni GPU</strong>, et rivalise avec les meilleurs solveurs.</p>
+  <span class="tag">Correcteur d'écriture pour la dyslexie · gratuit · hors-ligne · sans faux positif</span>
+  <h1>Un correcteur pour la dyslexie — porté par une machine qui <em>raisonne</em> le français.</h1>
+  <p class="lead">OMEGA-Ω est d'abord un <strong>correcteur d'écriture pour la dyslexie</strong>, avec une garde absolue&nbsp;: <strong>ne jamais souligner du juste</strong> (0 faux positif mesuré). Il est né d'un <strong>solveur de pendu cognitif</strong> qui devine les mots français <em>sans jamais les lire</em> — la même cognition de la langue, sons↔orthographe↔contexte, sert les deux. Le tout tient dans <strong>un seul fichier HTML</strong>, hors-ligne, sans GPU.</p>
   <div class="cta">
-    <a class="btn primary" href="app/omega-pendu.html">▶️ Voir le pendu jouer</a>
-    <a class="btn ghost" href="docs/rapport-mode-emploi.html">📖 Le mode d'emploi</a>
+    <a class="btn primary" href="correcteur.html">✍️ Ouvrir le correcteur</a>
+    <a class="btn ghost" href="app/omega-pendu.html">▶️ Voir le pendu jouer</a>
     <a class="btn ghost" href="recherche.html">Lire la recherche</a>
   </div>
-  <p class="small">100&nbsp;% dans le navigateur · hors-ligne · open source · « cognition&nbsp;&gt;&nbsp;oracle » — la valeur est dans le raisonnement, pas dans la triche.</p>
+  <p class="small">100&nbsp;% dans le navigateur · hors-ligne · open source · « cognition&nbsp;&gt;&nbsp;oracle » — la même discipline (mesurer ou rejeter) porte le correcteur et le pendu.</p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="promise" style="border-left-color:var(--accent)">
+    <h2 style="margin-top:0">Le correcteur — écrire sans peur de la faute</h2>
+    <p>Un <strong>correcteur d'écriture pour la dyslexie</strong> et les troubles de l'écrit, avec une garde absolue&nbsp;: <strong>ne jamais souligner du juste</strong> — 0 faux positif mesuré, verrouillé en test continu. Grammaire en contexte, orthographe, accents, homophones, aide à la frappe. <strong>100&nbsp;% hors-ligne</strong>, rien ne quitte ton appareil.</p>
+    <p><a class="btn primary" href="correcteur.html">✍️ Découvrir le correcteur →</a> <a class="btn ghost" href="correcteur-outil.html">Ouvrir l'outil plein écran</a></p>
+  </div>
 </div></section>
 
 <section><div class="wrap">
@@ -118,13 +126,6 @@
   </div>
 </div></section>
 
-<section><div class="wrap">
-  <div class="promise" style="border-left-color:var(--accent)">
-    <h2 style="margin-top:0">Et de ce moteur est né un correcteur dys</h2>
-    <p>La même cognition de la langue — sons, orthographe, contexte — sert un <strong>correcteur d'écriture pour la dyslexie</strong>, avec une garde absolue&nbsp;: <strong>ne jamais souligner du juste</strong>. C'est le débouché appliqué du pendu.</p>
-    <p><a class="btn primary" href="correcteur.html">Découvrir le correcteur →</a></p>
-  </div>
-</div></section>
 </main>
 
 <footer><div class="wrap">
