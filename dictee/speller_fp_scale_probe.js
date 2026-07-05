@@ -50,6 +50,12 @@ const RED_ORTHO_MAX = 40;   // seuil de régression (ortho AFFIRMATIF) — à aj
     orthoRed.slice(0,40).forEach(f=>console.log('    '+f.word+'→'+f.sugg+' ['+f.tier+']  « '+f.ctx+' »'));
     if(orthoRed.length>40) console.log('    … +'+(orthoRed.length-40)+' autres');
   }
+  const vigOrtho = vig.filter(f=>f.name==='orthographe');
+  if(vigOrtho.length){
+    console.log('  --- ortho VIGILANCE (orange, échantillon) ---');
+    vigOrtho.slice(0,30).forEach(f=>console.log('    '+f.word+'→'+f.sugg+'  « '+f.ctx+' »'));
+    if(vigOrtho.length>30) console.log('    … +'+(vigOrtho.length-30)+' autres');
+  }
   if(CHECK){
     if(orthoRed.length > RED_ORTHO_MAX){ console.log('✗ ortho affirmatif '+orthoRed.length+' > seuil '+RED_ORTHO_MAX); process.exit(1); }
     console.log('✓ ortho affirmatif '+orthoRed.length+' ≤ seuil '+RED_ORTHO_MAX);
