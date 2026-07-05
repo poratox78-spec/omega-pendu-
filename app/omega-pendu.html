@@ -1898,12 +1898,12 @@ const M5_PHON_W_AFF = 0.3;                             // poids résonance artic
 // Formule corrigée (audit E1/E2, validée Rem) : μ(r) = r^α / (β + r^α) ∈ [0,1], mélange bien posé.
 //   r = signal_phon / signal_ortho.  r→0 : μ→0 (ortho pur) ; r→∞ : μ→1 (phon pur) ; r=1,α=β=1 : μ=0.5.
 //   score_combiné[l] = (1−μ)·score_ortho[l] + μ·score_phon[l].
-// Cas cosmologique analytique = (α=1, β=1). Test transdisciplinaire : `(α,β)` apprises convergent-elles vers (1,1) ?
+// Cas analytique auto-dual = (α=1, β=1). Test : `(α,β)` apprises convergent-elles vers (1,1) ?
 let M_OS_v07 = { output: null, r: 0, mu: 0, alpha: 1.0, beta: 1.0 };
 const M_OS_V07_ENABLED_DEFAULT = false;
 let M_OS_V07_ENABLED = false;               // 🔴 OFF — master combinaison OS (le wiring playStep = 4.2, sort du shadow)
 // §6.4 — apprentissage de (α,β) + 4 garde-fous, tous défaut OFF (analytique pur par défaut)
-let M_OS_LEARNING_ENABLED = false;          // master apprentissage (α,β) — test convergence cosmologique
+let M_OS_LEARNING_ENABLED = false;          // master apprentissage (α,β) — test convergence vers (1,1)
 let M_OS_LEARNING_GUARD_1_BOUNDED = false;  // famille paramétrique bornée
 let M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT = false; // alerte si |appris − analytique| > seuil
 let M_OS_LEARNING_GUARD_3_MDL_REGUL = false;// régularisation parcimonie ||θ−θ0||²
@@ -3810,7 +3810,7 @@ function _zMarginSignal(arr) {
  *   r  = signal_phon / signal_ortho
  *   μ  = r^α / (β + r^α)   ∈ [0,1]   (mélange bien posé)
  *   score_combiné[l] = (1−μ)·score_ortho[l] + μ·score_phon[l]
- * (α, β) = paramètres ; (1,1) = cas cosmologique analytique w(r) = −r/(1+r) au signe près.
+ * (α, β) = paramètres ; (1,1) = cas analytique auto-dual, μ(r) = r/(1+r) (fixe sous r→1/r).
  * SHADOW : calcule la combinaison, ne pilote PAS la décision tant que M_OS_V07_ENABLED + wiring playStep (4.2).
  * @returns {Float32Array} M_OS_v07.output (26)
  */
@@ -9596,7 +9596,7 @@ function _omega_runCondition(words, seed, voieOn, osOn, orthoOnly) {
   };
 }
 
-// ===== Phase 3.6 — Apprentissage de θ=(α,β) (test cosmologique §6.5/6.6) =====
+// ===== Phase 3.6 — Apprentissage de θ=(α,β) (test d'auto-dualité) =====
 
 /** Évalue winrate(θ) + cohérence sur un batch de mots (θ injecté après cold-init). */
 function _omega_winrateAtTheta(words, seed, alpha, beta) {
@@ -9688,7 +9688,7 @@ function omega_trainTheta(steps, batchN, seed, theta0) {
   steps  = steps  || 25;
   batchN = batchN || 150;
   seed   = (seed == null) ? 12345 : seed;
-  theta0 = theta0 || { alpha: 1.0, beta: 1.0 };   // test cosmologique : départ du point analytique
+  theta0 = theta0 || { alpha: 1.0, beta: 1.0 };   // départ du point analytique auto-dual
   if (typeof M_OS_LEARNING_ENABLED !== 'undefined' && !M_OS_LEARNING_ENABLED) {
     if (typeof ui_log === 'function') ui_log('TRAIN θ', 'master M_OS_LEARNING OFF — active-le pour entraîner');
     return { steps: 0, thetaInit: theta0, thetaFinal: theta0, trajectory: [], skipped: true };
