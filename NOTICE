@@ -84,3 +84,17 @@ dans les Mêmes Conditions 4.0 (CC BY-SA 4.0).
     Source : https://github.com/UniversalDependencies/UD_French-GSD
     Attribution : « Phrases de test : UD_French-GSD (Universal Dependencies), CC BY-SA 4.0 »
     Compatible avec la licence des données Lexique (même CC BY-SA 4.0).
+
+
+7. VALIDATION CROISÉE DE LA CONJUGAISON (LEFFF)
+-----------------------------------------------
+La table de conjugaison (`dictee/cgram_conj.json`, dérivée de Lexique 4) a été
+CROISÉE avec le LEFFF (Lexique des Formes Fléchies du Français ; B. Sagot, INRIA)
+pour valider l'indicatif présent, corriger quelques confusions de personne de
+Lexique et combler des trous de paradigme. Le LEFFF est diffusé sous licence
+LGPL-LR. Les données LEFFF ne sont PAS redistribuées : seules quelques formes
+conjuguées (faits linguistiques, ~0,03 % de la ressource) en ont été dérivées.
+
+    Source : http://alpage.inria.fr/~sagot/lefff.html
+    Attribution : « Conjugaison validée avec le LEFFF (B. Sagot, INRIA), LGPL-LR »
+    Régénérable : LEFFF=/chemin/lefff-3.4.mlex python3 dictee/build_cgram.py

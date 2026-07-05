@@ -324,6 +324,46 @@ def main():
             break
     print(f"[conj] complétion : +{_fill} régulières (-er/-ir) + {_cx_total} composées (base) reconstruites")
 
+    # ─── CROISEMENT LEFFF (validation indépendante du présent) ─── OPTIONNEL : données LEFFF hors-repo (LGPL-LR ; INRIA).
+    # LEFFF (~500k formes) est INDÉPENDANT de Lexique 4 → on CROISE l'indicatif présent : on CORRIGE nos formes là où LEFFF
+    # (autoritaire) diverge — surtout les confusions de personne dues à la colonne 8_Nombre de Lexique (« dites » rangé en
+    # 2s au lieu de 2p, « entres » en 1s…) — et on COMBLE les trous des lemmes que LEFFF couvre (radicaux changeants exclus
+    # de la dérivation : budgeter→budgète…). Filtre anti-bruit : la forme LEFFF doit démarrer comme le lemme (écarte
+    # « raller→rva »). Les formes conjuguées sont des FAITS ; lecture seule ; attribution LEFFF (voir NOTICE).
+    _LEFFF = os.environ.get('LEFFF', 'C:/tmp/lefff/lefff-3.4.mlex')
+    if os.path.exists(_LEFFF):
+        import re as _re2
+        _rx = _re2.compile(r'^([A-Za-z]+)([123]+)([sp])$')
+        _lef = {}
+        for _ln in open(_LEFFF, encoding='utf-8', errors='ignore'):
+            _p = _ln.rstrip('\n').split('\t')
+            if len(_p) < 4 or _p[1] != 'v':
+                continue
+            _m = _rx.match(_p[3])
+            if not _m or 'P' not in _m.group(1):
+                continue
+            _dl = deacc(_p[2].lower())
+            for _per in _m.group(2):
+                _lef.setdefault((_dl, _per, _m.group(3)), _p[0].lower())
+        _fix = _add = 0
+        for _lem, _mts in cj_c.items():
+            _pres = _mts.setdefault('ind:pre', {})
+            for _per in ('1', '2', '3'):
+                for _num in ('s', 'p'):
+                    _lf = _lef.get((_lem, _per, _num))
+                    if not _lf or deacc(_lf)[:2] != _lem[:2]:          # anti-bruit : LEFFF doit démarrer comme le lemme
+                        continue
+                    _cur = _pres.get(_per + _num)
+                    if _cur is None:
+                        _pres[_per + _num] = (_lf, 0.0, 94); _add += 1
+                        cj_f.setdefault(deacc(_lf), set()).add(f"{_lem};ind:pre;{_per};{_num}")
+                    elif deacc(_cur[0].lower()) != deacc(_lf):         # désaccord réel → LEFFF (corrige le bruit 8_Nombre de Lexique)
+                        _pres[_per + _num] = (_lf, 0.0, 93); _fix += 1
+                        cj_f.setdefault(deacc(_lf), set()).add(f"{_lem};ind:pre;{_per};{_num}")
+        print(f"[lefff] croisement présent : {_fix} formes corrigées + {_add} trous comblés (LEFFF hors-repo, LGPL-LR)")
+    else:
+        print(f"[lefff] {_LEFFF} absent → pas de croisement (données hors-repo). Table = dérivation Lexique seule.")
+
     # table de conjugaison (accord sujet-verbe) : f = forme→lectures ; c = lemme→temps→slot→forme
     # chaque lecture = « lemme;mode:temps;personne;nombre » ; lectures séparées par « | ».
     conj_f = {k: '|'.join(sorted(v)) for k, v in cj_f.items()}
