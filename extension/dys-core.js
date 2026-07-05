@@ -225,8 +225,9 @@
   // « je/tu + c'est/ces/ses/sait » → « sais » (savoir) : suites IMPOSSIBLES en français correct → FP=0 (0/16951 UD). « il/on c'est » reste ambigu → non couvert. Miroir app.
   function rSais(T,i){var d=deacc(T[i].toLowerCase());if(d!=="c'est"&&d!=='ces'&&d!=='ses'&&d!=='sait')return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);return (p==='je'||p==='tu')?ckeepcase(T[i],'sais'):null;}
   function rCestSest(T,i){if(deacc(T[i].toLowerCase())!=="c'est")return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;if(j<T.length&&_isPpl(T[j])){var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}return null;}   // [il/elle/on]+c'est(+adverbe)+participe → s'est (« elle c'est bien amusée »). FP=0.
+  var _SA_NONNOUN={je:1,tu:1,il:1,elle:1,on:1,ils:1,elles:1,nous:1,vous:1,y:1,en:1,ne:1};   // ne peuvent jamais suivre le possessif « sa »
   function rCaSa(T,i){var lw=deacc(T[i].toLowerCase());   // ça↔sa. sa+clitique→ça (un clitique n'est pas un nom) ; ça+NOM confiant→sa/son (ça ne précède jamais un nom nu). FP=0 (garde nom stricte P(NOM)≥τ∧P(VER)<ε). « sa va » non couvert.
-    if(lw==='sa'){if(i+1<T.length&&CLITIC[deacc(T[i+1].toLowerCase())])return ckeepcase(T[i],'ça');return null;}
+    if(lw==='sa'){if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+1<T.length){var _nt=T[i+1].toLowerCase(),_nd=deacc(_nt);if(CLITIC[_nd]||_SA_NONNOUN[_nd]||_nt.indexOf("'")>=0)return ckeepcase(T[i],'ça');}return null;}
     if(lw==='ca'){
       if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;   // « CA » sigle → abstention
       if(i+1>=T.length)return null;

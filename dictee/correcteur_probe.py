@@ -1711,6 +1711,7 @@ def rule_noun_singular(T, i):
 # a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu : homophones À RÔLE GRAMMATICAL (verbe vs prép/det/conj).
 # Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
 # « vigilance verte » (= simplification). FP=0 par cadre syntaxique forcé (audit UD 2026-06-30 : durcis).
+_SA_NONNOUN = {'je','tu','il','elle','on','ils','elles','nous','vous','y','en','ne'}   # pronoms sujets/clitiques qui ne peuvent JAMAIS suivre le possessif « sa »
 def rule_ca_sa(T, i):
     # Homophone « ça » (pronom démonstratif) ↔ « sa » (déterminant possessif). DEUX sens FP=0 :
     #  • sa→ça : « sa » précède TOUJOURS un nom ; un PRONOM CLITIQUE ne peut jamais suivre « sa » → c'est « ça »
@@ -1721,8 +1722,13 @@ def rule_ca_sa(T, i):
     # NB : « sa + verbe » (« sa va ») non couvert (noms féminins homographes d'un verbe en -er : marche, banque…).
     lw = deacc(T[i].lower())
     if lw == 'sa':
-        if i + 1 < len(T) and deacc(T[i+1].lower()) in CLITIC:
-            return _keepcase(T[i], 'ça')
+        if T[i] == T[i].upper() and T[i] != T[i].lower(): return None   # « SA » (société anonyme…) → abstention
+        if i + 1 < len(T):
+            nt = T[i+1].lower(); nd = deacc(nt)
+            # « sa » possessif précède TOUJOURS un nom : suivi d'un clitique, d'un pronom sujet, ou d'un mot ÉLIDÉ
+            # (jamais « sa l'/j'/d'… », ni « sa amie » = « son amie ») → ce n'est pas « sa » mais « ça ». FP=0 structurel.
+            if nd in CLITIC or nd in _SA_NONNOUN or "'" in nt:
+                return _keepcase(T[i], 'ça')
         return None
     if lw == 'ca':                                                    # « ça » (deacc) → sens ça→sa
         if T[i] == T[i].upper() and T[i] != T[i].lower(): return None # « CA » sigle (chiffre d'affaires…) → abstention
