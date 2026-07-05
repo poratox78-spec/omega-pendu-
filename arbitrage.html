@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La géométrie de l'arbitrage — OMEGA</title>
+<meta name="description" content="La géométrie de la loi d'arbitrage du pendu cognitif OMEGA : loi logistique, ruban de Möbius, surfaces mesurées, selle hyperbolique.">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0a0c12">
+<link rel="icon" href="icon.svg">
+<style>
+  :root{
+    --ground:#0a0c12; --panel:#12151f; --panel2:#171b28; --hair:#232838; --hair2:#2e3550;
+    --ink:#e8e9f0; --mut:#8b90a6; --dim:#5f6580;
+    --ortho:#4fd1c5; --phon:#e6b450; --sym:#9b8cff; --mirror:#e57bd8; --bal:#f4f0e6;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,'Cascadia Code','Segoe UI Mono','SF Mono',Menlo,Consolas,monospace;
+  }
+  html{background:var(--ground)}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    background-image:radial-gradient(1200px 600px at 70% -10%, #14182a 0%, rgba(20,24,42,0) 60%);}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 22px 80px;}
+  a{color:var(--ortho)}
+  .back{display:inline-block;color:var(--mut);font-family:var(--mono);font-size:12px;text-decoration:none;padding:22px 0 0;letter-spacing:.04em}
+  .back:hover{color:var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--sym);margin:0 0 14px}
+  h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,6vw,60px);line-height:1.02;letter-spacing:-.015em;margin:0 0 18px;text-wrap:balance}
+  h2{font-family:var(--serif);font-weight:500;font-size:26px;letter-spacing:-.01em;margin:0 0 6px}
+  .lede{font-size:19px;color:#c7cbdb;max-width:65ch;margin:0 0 26px}
+  .lede em{font-style:italic;color:var(--ink)}
+  .mast{padding:24px 0 30px;border-bottom:1px solid var(--hair)}
+  .identity{font-family:var(--mono);font-size:clamp(17px,2.6vw,24px);color:var(--ink);background:var(--panel);
+    border:1px solid var(--hair2);border-radius:12px;padding:16px 20px;display:inline-block}
+  .identity .a{color:var(--phon)} .identity .b{color:var(--sym)}
+  section{padding:44px 0;border-bottom:1px solid var(--hair)}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin:0 0 10px}
+  .note{color:var(--mut);font-size:15px;max-width:64ch}
+  .panel{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:18px 20px}
+  .controls{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-bottom:14px}
+  .ctl{display:flex;align-items:center;gap:11px;flex:1;min-width:210px}
+  .ctl label{font-family:var(--mono);font-size:15px;color:var(--mut);width:16px}
+  .ctl output{font-family:var(--mono);font-size:15px;color:var(--ink);min-width:38px;text-align:right}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--hair2);border-radius:3px;flex:1;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--ground)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--ground)}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut);cursor:pointer;font-family:var(--sans)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px 18px;margin:2px 0 8px;font-size:12.5px;color:var(--mut);font-family:var(--mono)}
+  .legend span{display:flex;align-items:center;gap:7px}
+  .swatch{width:16px;height:0;border-top:2px solid}
+  .readout{font-family:var(--mono);font-size:13.5px;color:#c7cbdb;background:var(--panel2);border:1px solid var(--hair);border-radius:10px;padding:11px 13px;margin-top:12px;line-height:1.7}
+  .grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
+  .statbox{font-family:var(--mono);font-size:13.5px;color:#c7cbdb;line-height:1.85}
+  .statbox .stat{display:flex;justify-content:space-between;border-bottom:1px dashed var(--hair2);padding:6px 0}
+  .statbox .stat b{color:var(--ink);font-weight:500}
+  .surf{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .hm{display:grid;grid-template-columns:26px repeat(5,1fr);gap:3px}
+  .hc{display:flex;align-items:center;justify-content:center;height:32px;border-radius:4px;font-family:var(--mono);font-size:12px}
+  .ha{display:flex;align-items:center;justify-content:center;height:32px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .cap{font-size:12px;color:var(--dim);margin-top:8px;font-family:var(--mono)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+  .card{background:var(--panel2);border:1px solid var(--hair);border-radius:12px;padding:14px 15px}
+  .card .k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+  .card .v{font-family:var(--serif);font-size:30px;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .card .s{font-size:12.5px;color:var(--mut)}
+  .verdict{padding:44px 0 0;border:none}
+  .verdict p{font-size:17px;color:#c7cbdb;max-width:66ch}
+  .prov{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:22px;line-height:1.8}
+  canvas{display:block;width:100%;height:100%}
+  .fade{opacity:0;transform:translateY(8px);animation:rise .7s ease forwards}
+  @media(prefers-reduced-motion:reduce){.fade{animation:none;opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(max-width:720px){.grid2,.surf{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <a class="back" href="index.html">← OMEGA</a>
+  <header class="mast">
+    <p class="eyebrow">OMEGA-Ω · digression mathématique</p>
+    <h1>La géométrie de l'arbitrage</h1>
+    <p class="lede">Le pendu cognitif tranche entre deux voies — <em>orthographe</em> et <em>phonologie</em> — par une loi logistique. À son point canonique, cette loi se réduit à une forme auto-duale à zéro paramètre. Voici cette géométrie, rendue manipulable — et l'honnêteté sur ce qu'elle vaut.</p>
+    <div class="identity">μ<span class="a">₍₁,₁₎</span>(r) = <span class="b">r/(1+r)</span></div>
+  </header>
+
+  <section class="fade">
+    <p class="kicker">1 — la loi vivante</p>
+    <h2>μ = σ(α·ln r − ln β)</h2>
+    <p class="note">r = signal<sub>phon</sub> ⁄ signal<sub>ortho</sub>. μ est le poids donné au phon. Bouge α (la netteté de la décision) et β (le biais). La courbe grise ne bouge pas : c'est le cas (1,1), le point auto-dual de la loi.</p>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel">
+        <div class="controls">
+          <div class="ctl"><label>α</label><input type="range" id="al" min="0.1" max="4" step="0.05" value="1"><output id="alo">1.00</output></div>
+          <div class="ctl"><label>β</label><input type="range" id="be" min="0.1" max="4" step="0.05" value="1"><output id="beo">1.00</output></div>
+          <label class="toggle"><input type="checkbox" id="mob"> miroir Möbius r→1/r</label>
+        </div>
+        <div class="legend">
+          <span><span class="swatch" style="border-color:var(--phon)"></span>μ courant</span>
+          <span><span class="swatch" style="border-color:var(--sym);border-style:dashed"></span>(1,1) = r/(1+r)</span>
+          <span><span class="swatch" style="border-color:var(--mirror);border-style:dashed"></span>miroir</span>
+          <span><span class="swatch" style="border-color:var(--bal)"></span>équilibre r*</span>
+        </div>
+        <div style="position:relative;height:270px"><canvas id="cv" role="img" aria-label="Courbe de la loi d'arbitrage mu selon log r."></canvas></div>
+        <div class="readout" id="ro"></div>
+      </div>
+      <div class="panel">
+        <p class="kicker" style="margin-bottom:12px">le point auto-dual</p>
+        <div class="statbox">
+          <div style="font-size:16px;color:var(--ink);margin-bottom:10px">à (1,1) : μ(r) = r ⁄ (1+r)</div>
+          <div class="stat"><span>paramètres</span><b>0</b></div>
+          <div class="stat"><span>point fixe r→1/r</span><b>r = 1</b></div>
+          <div class="stat"><span>μ au point fixe</span><b>0,5</b></div>
+          <div class="stat"><span>cohérence</span><b>maximale</b></div>
+          <div class="stat"><span>sélectionné par</span><b>parcimonie (MDL)</b></div>
+          <p class="note" style="font-size:13px;margin-top:14px;color:var(--mut)">(1,1) est le seul θ invariant par l'involution r→1/r ⟺ μ→1−μ : la loi s'y regarde dans le miroir sans changer. Zéro paramètre, pas un ajustement — un point de <b style="color:var(--sym);font-weight:400">symétrie et d'économie</b>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">le ruban</p>
+    <h2>Une seule surface, un seul bord</h2>
+    <p class="note">L'arbitrage ortho↔phon est un ruban de Möbius. Suis le bord bicolore : teal (ortho) passe par l'or (phon) et revient sur lui-même — une seule frontière, les deux voies sont inséparables. La ligne violette est l'axe β=1 ; les deux billes, le couplage par l'involution r→1/r. Glisse pour tourner.</p>
+    <div class="panel" style="margin-top:16px"><div style="position:relative;height:440px;border-radius:12px;overflow:hidden;background:radial-gradient(120% 120% at 60% 12%, rgba(155,140,255,.06), rgba(0,0,0,0) 55%)"><canvas id="c3mob" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div></div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">2 — ce qui porte vraiment</p>
+    <h2>Deux faces, chacune souveraine chez elle</h2>
+    <p class="note">Winrate par voie et régime — record vérifié 06/2026, 3 graines. L'ortho règne sur le connu ; le phon remonte le hors-lexique de +14 à +18 points. La bascule est réelle : pas de face vassale.</p>
+    <div class="panel" style="margin-top:18px"><div style="position:relative;height:210px"><canvas id="vb" role="img" aria-label="Winrate par voie et regime."></canvas></div></div>
+
+    <h2 style="margin-top:34px">Les surfaces mesurées</h2>
+    <p class="note">Balayage θ réel (graine 12345, N=40). À gauche le winrate, à droite la cohérence 4·E[μ(1−μ)]. Le contour marque (1,1) ; le liseré violet, l'axe Möbius β=1.</p>
+    <div class="surf" style="margin-top:16px">
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:10px">WINRATE (%)</div><div class="hm" id="hmW"></div><div class="cap">optimum vers le coin phon · (1,1)=75 · harnais confondu, retiré comme fitness</div></div>
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:10px">COHÉRENCE</div><div class="hm" id="hmC"></div><div class="cap">crête sur β≈1 = axe Möbius · les deux voies engagées</div></div>
+    </div>
+    <h2 style="margin-top:36px">Les mêmes surfaces, en relief</h2>
+    <p class="note">Le winrate et la cohérence comme du terrain. Le pic monte vers le coin phon ; la crête de cohérence court le long de β=1 — l'axe Möbius. Le mât violet marque (1,1) : sur la crête, jamais sur le pic. Glisse pour tourner.</p>
+    <div class="surf" style="margin-top:16px">
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">WINRATE — relief</div><div style="position:relative;height:300px"><canvas id="c3win" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div></div>
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">COHÉRENCE — relief</div><div style="position:relative;height:300px"><canvas id="c3coh" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div></div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">3 — la forme de l'espace</p>
+    <h2>Une géométrie hyperbolique</h2>
+    <p class="note">L'espace des paramètres θ=(α, ln β) porte la métrique de Fisher g = E_r[μ(1−μ)·((ln r)², −ln r ; −ln r, 1)]. Chaque ellipse est la métrique locale ; sa teinte suit g_ββ. La courbure est négative partout — le long de β=1 on glisse librement (symétrie), s'en écarter coûte.</p>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel"><div style="position:relative;height:300px"><canvas id="fz" role="img" aria-label="Champ d'ellipses de la metrique de Fisher, courbure negative."></canvas></div></div>
+      <div>
+        <div class="cards">
+          <div class="card"><div class="k">courbure K(1,1)</div><div class="v" style="color:var(--sym)">−0,37</div><div class="s">&lt; 0 → hyperbolique</div></div>
+          <div class="card"><div class="k">g<sub>ββ</sub></div><div class="v" style="color:var(--ortho)">= coh ⁄ 4</div><div class="s">la garde OMEGA est une composante de Fisher</div></div>
+          <div class="card"><div class="k">optimum winrate</div><div class="v" style="color:var(--phon)">0,94</div><div class="s">coin phon, 3 graines (σ=0,01)</div></div>
+          <div class="card"><div class="k">au point (1,1)</div><div class="v">0,75</div><div class="s">symétrie, pas fitness</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:18px"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">LA SELLE HYPERBOLIQUE — modèle local au voisinage de (1,1)</div><div style="position:relative;height:360px"><canvas id="c3sad" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div><div style="font-size:11px;color:var(--dim);margin-top:6px;font-family:var(--mono)">selle = K&lt;0 · ligne claire = géodésique β=1 · point or = (1,1) · illustration locale (pas d'embedding global — Hilbert)</div></div>
+  </section>
+
+  <footer class="verdict fade">
+    <p class="kicker">verdict</p>
+    <h2>(1,1) n'est pas un sommet de performance</h2>
+    <p>C'est un point de <b style="color:var(--sym);font-weight:400">symétrie</b> : l'axe fixe de l'involution Möbius r→1/r, la crête de la cohérence, et le point auto-dual de la loi — tous les trois au même endroit, posés là par parcimonie (le prior MDL), jamais par le winrate. La coïncidence tient donc au niveau où elle est réelle : <b style="color:var(--ink);font-weight:400">forme + symétrie + économie</b>, pas fitness. Et l'involution <em>échange</em> les deux voies (ortho ⇄ phon) sans les identifier — deux faces non identiques, et c'est justement ça qui est fidèle à un Möbius.</p>
+    <p class="prov">données réelles · balayage θ mesuré (graine 12345) · winrate par voie = record vérifié 06/2026, 3 graines · le balayage θ est un instrument confondu pour l'attribution de voie (bras ortho estropié) → retiré comme claim de fitness, conservé pour la FORME.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var C={ink:'#e8e9f0',mut:'#8b90a6',dim:'#5f6580',hair:'#232838',hair2:'#2e3550',
+    ortho:'#4fd1c5',phon:'#e6b450',sym:'#9b8cff',mirror:'#e57bd8',bal:'#f4f0e6'};
+  function sig(x){return 1/(1+Math.exp(-x));}
+  function fit(cv){var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);return[x,w,h];}
+  if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;};}
+
+  var cv=document.getElementById('cv'),al=document.getElementById('al'),be=document.getElementById('be'),
+      alo=document.getElementById('alo'),beo=document.getElementById('beo'),mob=document.getElementById('mob'),ro=document.getElementById('ro');
+  function curveDraw(){
+    var a=parseFloat(al.value),b=parseFloat(be.value),o=fit(cv),x=o[0],w=o[1],h=o[2];
+    var pL=32,pR=14,pT=10,pB=26,X0=pL,X1=w-pR,Y0=h-pB,Y1=pT,PH=Y0-Y1,lo=-4,hi=4;
+    function xOf(l){return X0+(l-lo)/(hi-lo)*(X1-X0);} function yOf(m){return Y0-m*PH;}
+    x.strokeStyle=C.hair;x.lineWidth=1;x.fillStyle=C.dim;x.font='11px '+"ui-monospace,monospace";
+    [0,0.5,1].forEach(function(m){var y=yOf(m);x.beginPath();x.moveTo(X0,y);x.lineTo(X1,y);x.stroke();x.textAlign='right';x.textBaseline='middle';x.fillText(m.toFixed(1),X0-5,y);});
+    x.strokeStyle=C.hair2;x.beginPath();x.moveTo(xOf(0),Y1);x.lineTo(xOf(0),Y0);x.stroke();
+    x.fillStyle=C.dim;x.textAlign='center';x.textBaseline='top';x.fillText('ortho ←   r=1   → phon',(X0+X1)/2,Y0+7);
+    function cu(fn,col,dash,wd){x.beginPath();x.lineWidth=wd;x.strokeStyle=col;x.setLineDash(dash||[]);for(var i=0;i<=240;i++){var l=lo+(hi-lo)*i/240,m=fn(l),px=xOf(l),py=yOf(m);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();x.setLineDash([]);}
+    cu(function(l){return sig(l);},C.sym,[5,4],1.6);
+    if(mob.checked)cu(function(l){return 1-sig(a*(-l)-Math.log(b));},C.mirror,[4,4],1.6);
+    cu(function(l){return sig(a*l-Math.log(b));},C.phon,[],2.4);
+    var ls=Math.log(b)/a;
+    if(ls>=lo&&ls<=hi){x.strokeStyle=C.bal;x.lineWidth=1.1;x.setLineDash([2,3]);x.beginPath();x.moveTo(xOf(ls),Y1);x.lineTo(xOf(ls),Y0);x.stroke();x.setLineDash([]);x.fillStyle=C.bal;x.beginPath();x.arc(xOf(ls),yOf(0.5),3.4,0,7);x.fill();}
+    var rs=Math.pow(b,1/a),ax=Math.abs(b-1)<0.03?'β=1 : axe fixe de l’involution (miroir = courbe)':'β≠1 : le miroir Möbius s’écarte';
+    ro.innerHTML='α='+a.toFixed(2)+' · β='+b.toFixed(2)+' · r* = β^(1/α) = '+rs.toFixed(2)+' (μ=0,5) — '+ax+'.';
+    alo.textContent=a.toFixed(2);beo.textContent=b.toFixed(2);
+  }
+  al.oninput=curveDraw;be.oninput=curveDraw;mob.onchange=curveDraw;
+
+  var WIN=[[.925,.900,.600,.325,.250],[.925,.925,.700,.375,.325],[.900,.900,.750,.825,.525],[.900,.850,.825,.725,.725],[.850,.825,.825,.850,.775]];
+  var COH=[[.5323,.7669,.9331,.8716,.6568],[.4424,.6419,.7781,.8005,.6694],[.3488,.4675,.5695,.5814,.5679],[.2558,.3033,.3181,.3854,.3915],[.1692,.1821,.1823,.1844,.2005]];
+  var LAB=['.25','.5','1','2','4'];
+  function mix(A,B,t){t=Math.max(0,Math.min(1,t));return'rgb('+Math.round(A[0]+(B[0]-A[0])*t)+','+Math.round(A[1]+(B[1]-A[1])*t)+','+Math.round(A[2]+(B[2]-A[2])*t)+')';}
+  function hmap(el,data,lo,dark,bright,tmin,tmax,fmt){
+    el.innerHTML='';var c=document.createElement('div');c.className='ha';el.appendChild(c);
+    LAB.forEach(function(l,j){var d=document.createElement('div');d.className='ha';d.textContent='β'+l;if(j===2){d.style.color=C.sym;}el.appendChild(d);});
+    data.forEach(function(row,i){var la=document.createElement('div');la.className='ha';la.textContent='α'+LAB[i];el.appendChild(la);
+      row.forEach(function(v,j){var t=(v-tmin)/(tmax-tmin);var cell=document.createElement('div');cell.className='hc';cell.style.background=mix(dark,bright,t);cell.style.color=t>0.5?'#0a0c12':C.ink;cell.textContent=fmt(v);
+        if(i===2&&j===2){cell.style.outline='2px solid '+C.ink;cell.style.outlineOffset='-2px';}
+        if(j===2)cell.style.boxShadow='inset 0 0 0 1px '+C.sym;
+        el.appendChild(cell);});});
+  }
+  hmap(document.getElementById('hmW'),WIN,0,[58,44,20],[230,180,80],0.25,0.95,function(v){return Math.round(v*100);});
+  hmap(document.getElementById('hmC'),COH,0,[18,58,52],[79,209,197],0.15,0.95,function(v){return v.toFixed(2);});
+
+  var bars=[{lab:'in-lex · cohorte ortho',v:99,c:C.ortho},{lab:'OOV · ortho seule ≈ baseline',v:50,c:C.dim},{lab:'OOV · phon n-gram, gap-aware',v:64,c:'#c99a3a'},{lab:'OOV · n-gram arbitré OS',v:68,c:C.phon}];
+  var vb=document.getElementById('vb');
+  function barDraw(){var o=fit(vb),x=o[0],w=o[1],h=o[2],X0=12,X1=w-32,Y0=6,Y1=h-20;
+    function xf(v){return X0+v/100*(X1-X0);}
+    x.fillStyle='rgba(155,140,255,.14)';x.fillRect(xf(65),Y0,xf(68)-xf(65),Y1-Y0);
+    x.strokeStyle=C.hair2;x.setLineDash([4,4]);x.beginPath();x.moveTo(xf(50),Y0);x.lineTo(xf(50),Y1);x.stroke();x.setLineDash([]);
+    x.fillStyle=C.dim;x.font='11px ui-monospace,monospace';x.textAlign='center';x.textBaseline='top';[0,50,100].forEach(function(t){x.fillText(t,xf(t),Y1+5);});
+    var st=(Y1-Y0)/bars.length;
+    bars.forEach(function(b,i){var top=Y0+i*st,by=top+16,bh=14;
+      x.fillStyle=C.mut;x.font='12px ui-monospace,monospace';x.textAlign='left';x.textBaseline='alphabetic';x.fillText(b.lab,X0,top+12);
+      x.fillStyle='#1b2030';x.beginPath();x.roundRect(X0,by,X1-X0,bh,4);x.fill();
+      x.fillStyle=b.c;x.beginPath();x.roundRect(X0,by,Math.max(xf(b.v)-X0,4),bh,4);x.fill();
+      x.fillStyle=C.ink;x.textBaseline='middle';x.fillText(b.v+'%',xf(b.v)+6,by+bh/2+1);});
+  }
+
+  var AX=[0.35,0.5,0.7,1.0,1.5,2.1,3.0],BX=[-1.5,-1.0,-0.5,0,0.5,1.0,1.5],amin=0.35,amax=3.0,bmin=-1.5,bmax=1.5;
+  var Sg=[];for(var i=0;i<41;i++){var s=-4+8*i/40;Sg.push([s,Math.exp(-s*s/(2*2.25))]);}
+  function met(a,c){var g11=0,g12=0,g22=0;for(var k=0;k<Sg.length;k++){var s=Sg[k][0],mu=sig(a*s-c),wk=mu*(1-mu)*Sg[k][1];g11+=wk*s*s;g12+=-wk*s;g22+=wk;}return[g11,g12,g22];}
+  function eig(a,b,c){var T=a+c,d=Math.sqrt(((a-c)/2)*((a-c)/2)+b*b);return[T/2+d,T/2-d,0.5*Math.atan2(2*b,a-c)];}
+  var fz=document.getElementById('fz'),fn=[],g2min=1e9,g2max=-1e9,rmax=0;
+  for(var i2=0;i2<AX.length;i2++)for(var j2=0;j2<BX.length;j2++){var m=met(AX[i2],BX[j2]),e=eig(m[0],m[1],m[2]),a1=1/Math.sqrt(Math.max(e[0],1e-6)),a2=1/Math.sqrt(Math.max(e[1],1e-6));rmax=Math.max(rmax,a1,a2);g2min=Math.min(g2min,m[2]);g2max=Math.max(g2max,m[2]);fn.push({a:AX[i2],b:BX[j2],a1:a1,a2:a2,phi:e[2],g:m[2]});}
+  function fisher(){var o=fit(fz),x=o[0],w=o[1],h=o[2],pL=30,pR=14,pT=12,pB=26,X0=pL,X1=w-pR,Y0=h-pB,Y1=pT;
+    function xf(a){return X0+(a-amin)/(amax-amin)*(X1-X0);} function yf(b){return Y0-(b-bmin)/(bmax-bmin)*(Y0-Y1);}
+    var dx=(X1-X0)/(AX.length-1),dy=(Y0-Y1)/(BX.length-1),mR=0.44*Math.min(dx,dy),sc=mR/rmax;
+    x.strokeStyle=C.hair2;x.lineWidth=1.3;x.setLineDash([5,4]);x.beginPath();x.moveTo(X0,yf(0));x.lineTo(X1,yf(0));x.stroke();x.setLineDash([]);
+    x.fillStyle=C.mut;x.font='11px ui-monospace,monospace';x.textAlign='left';x.textBaseline='bottom';x.fillText('β=1 : géodésique de symétrie',X0+4,yf(0)-4);
+    x.textAlign='center';x.textBaseline='top';x.fillStyle=C.dim;x.fillText('α (pente)',(X0+X1)/2,Y0+8);
+    fn.forEach(function(nd){var px=xf(nd.a),py=yf(nd.b),col=mix([40,70,66],[79,209,197],(nd.g-g2min)/(g2max-g2min+1e-9));
+      x.save();x.translate(px,py);x.rotate(-nd.phi);x.beginPath();x.ellipse(0,0,Math.max(nd.a1*sc,1),Math.max(nd.a2*sc,1),0,0,6.283);x.strokeStyle=col;x.lineWidth=1.6;x.stroke();x.globalAlpha=.12;x.fillStyle=col;x.fill();x.globalAlpha=1;x.restore();});
+    var cx=xf(1),cy=yf(0);x.beginPath();x.arc(cx,cy,5,0,6.283);x.fillStyle=C.sym;x.fill();x.strokeStyle=C.ink;x.lineWidth=1.4;x.stroke();
+    x.fillStyle=C.sym;x.textAlign='left';x.textBaseline='bottom';x.fillText('(1,1)',cx+8,cy-2);
+  }
+
+  function all(){curveDraw();barDraw();fisher();}
+  all();window.addEventListener('resize',all);
+})();
+</script>
+
+<script>
+(function(){
+  var TEAL=[79,209,197],GOLD=[230,180,80],INDIGO=[84,78,120];
+  var WIN=[[.925,.900,.600,.325,.250],[.925,.925,.700,.375,.325],[.900,.900,.750,.825,.525],[.900,.850,.825,.725,.725],[.850,.825,.825,.850,.775]];
+  var COH=[[.5323,.7669,.9331,.8716,.6568],[.4424,.6419,.7781,.8005,.6694],[.3488,.4675,.5695,.5814,.5679],[.2558,.3033,.3181,.3854,.3915],[.1692,.1821,.1823,.1844,.2005]];
+  function mix(a,b,t){t=t<0?0:t>1?1:t;return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+  function rgbs(c,s){s=s==null?1:s;return'rgb('+((c[0]*s)|0)+','+((c[1]*s)|0)+','+((c[2]*s)|0)+')';}
+  var LIGHT=(function(){var v=[0.3,0.55,0.75],l=Math.hypot(v[0],v[1],v[2]);return[v[0]/l,v[1]/l,v[2]/l];})();
+  function rotp(p,rx,ry){var cy=Math.cos(ry),sy=Math.sin(ry),x=p[0]*cy+p[2]*sy,z=-p[0]*sy+p[2]*cy,y=p[1],cx=Math.cos(rx),sx=Math.sin(rx);return[x,y*cx-z*sx,y*sx+z*cx];}
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,insts=[];
+  function Inst(id,scene,opt){
+    var cv=document.getElementById(id);if(!cv){return;}opt=opt||{};
+    var st={cv:cv,ctx:cv.getContext('2d'),scene:scene,rx:opt.rx==null?0.6:opt.rx,ry:opt.ry==null?0.5:opt.ry,auto:(opt.auto!==false)&&!reduce,drag:false,px:0,py:0,D:opt.D||7,foc:opt.foc||3.5,phase:0,spin:opt.spin||0.004};
+    cv.addEventListener('pointerdown',function(e){st.drag=true;st.px=e.clientX;st.py=e.clientY;cv.style.cursor='grabbing';});
+    window.addEventListener('pointerup',function(){if(st.drag){st.drag=false;cv.style.cursor='grab';}});
+    window.addEventListener('pointermove',function(e){if(!st.drag){return;}st.ry+=(e.clientX-st.px)*0.008;st.rx+=(e.clientY-st.py)*0.008;st.rx=Math.max(-1.45,Math.min(1.45,st.rx));st.px=e.clientX;st.py=e.clientY;});
+    insts.push(st);
+  }
+  function draw(st){
+    var cv=st.cv,ctx=st.ctx,dpr=Math.min(window.devicePixelRatio||1,2),W=cv.clientWidth,H=cv.clientHeight;if(!W||!H){return;}
+    if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;}
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    var cxp=W/2,cyp=H/2,fpx=st.foc*Math.min(W,H)/6,rx=st.rx,ry=st.ry,D=st.D;
+    function proj(p){var zc=p[2]+D,s=fpx/zc;return[cxp+p[0]*s,cyp-p[1]*s,zc];}
+    var quads=st.scene.quads(st),arr=[],i;
+    for(i=0;i<quads.length;i++){var Q=quads[i],r0=rotp(Q.p[0],rx,ry),r1=rotp(Q.p[1],rx,ry),r2=rotp(Q.p[2],rx,ry),r3=rotp(Q.p[3],rx,ry),p0=proj(r0),p1=proj(r1),p2=proj(r2),p3=proj(r3),ux=r1[0]-r0[0],uy=r1[1]-r0[1],uz=r1[2]-r0[2],vx=r3[0]-r0[0],vy=r3[1]-r0[1],vz=r3[2]-r0[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,nl=Math.hypot(nx,ny,nz)||1,dd=(nx*LIGHT[0]+ny*LIGHT[1]+nz*LIGHT[2])/nl;if(Q.both){dd=Math.abs(dd);}
+      arr.push({z:(p0[2]+p1[2]+p2[2]+p3[2])/4,pts:[p0,p1,p2,p3],col:Q.c,sh:0.3+0.7*Math.max(0,dd)});}
+    arr.sort(function(a,b){return b.z-a.z;});
+    for(i=0;i<arr.length;i++){var it=arr[i],c=rgbs(it.col,it.sh);ctx.beginPath();ctx.moveTo(it.pts[0][0],it.pts[0][1]);ctx.lineTo(it.pts[1][0],it.pts[1][1]);ctx.lineTo(it.pts[2][0],it.pts[2][1]);ctx.lineTo(it.pts[3][0],it.pts[3][1]);ctx.closePath();ctx.fillStyle=c;ctx.strokeStyle=c;ctx.lineWidth=0.6;ctx.fill();ctx.stroke();}
+    var lines=st.scene.lines?st.scene.lines(st):[],li,s2;
+    for(li=0;li<lines.length;li++){var L=lines[li],pj=[];for(s2=0;s2<L.pts.length;s2++){pj.push(proj(rotp(L.pts[s2],rx,ry)));}ctx.lineWidth=L.w||1.5;ctx.globalAlpha=L.alpha==null?1:L.alpha;for(s2=0;s2<pj.length-1;s2++){ctx.beginPath();ctx.moveTo(pj[s2][0],pj[s2][1]);ctx.lineTo(pj[s2+1][0],pj[s2+1][1]);ctx.strokeStyle=L.cols?rgbs(L.cols[s2]):L.color;ctx.stroke();}ctx.globalAlpha=1;}
+    var dots=st.scene.dots?st.scene.dots(st):[],di;
+    for(di=0;di<dots.length;di++){var Dt=dots[di],pr=proj(rotp(Dt.p,rx,ry)),rr=Math.max((Dt.r||0.1)*fpx/pr[2],1.5);ctx.beginPath();ctx.arc(pr[0],pr[1],rr,0,6.283);ctx.fillStyle=Dt.color;ctx.fill();}
+  }
+  function frame(){var i;for(i=0;i<insts.length;i++){var st=insts[i];if(st.auto&&!st.drag){st.ry+=st.spin;}st.phase+=reduce?0:0.02;try{draw(st);}catch(e){}}requestAnimationFrame(frame);}
+
+  function mobius(){
+    var R=2.3,Wd=0.8,Nu=110,Nv=11,quads=[],i,j;
+    function P(i,j){var u=i/Nu*Math.PI*2,hu=u/2,v=-Wd+2*Wd*j/Nv,rad=R+v*Math.cos(hu);return[rad*Math.cos(u),v*Math.sin(hu),rad*Math.sin(u)];}
+    for(i=0;i<Nu;i++){for(j=0;j<Nv;j++){quads.push({p:[P(i,j),P(i+1,j),P(i+1,j+1),P(i,j+1)],c:INDIGO,both:true});}}
+    var bpts=[],bcols=[],tot=2*(Nu+1),k=0,pp,vs,u,hu,v,rad,s,tt;
+    for(pp=0;pp<2;pp++){vs=pp?-1:1;for(i=0;i<=Nu;i++){u=i/Nu*Math.PI*2;hu=u/2;v=vs*Wd;rad=R+v*Math.cos(hu);bpts.push([rad*Math.cos(u),v*Math.sin(hu),rad*Math.sin(u)]);s=k/(tot-1);tt=0.5-0.5*Math.cos(2*Math.PI*s);bcols.push(mix(TEAL,GOLD,tt));k++;}}
+    var cpts=[];for(i=0;i<=Nu;i++){u=i/Nu*Math.PI*2;cpts.push([R*Math.cos(u),0,R*Math.sin(u)]);}
+    return{quads:function(){return quads;},lines:function(){return[{pts:bpts,cols:bcols,w:2.5},{pts:cpts,color:'rgb(155,140,255)',w:1.4,alpha:0.85}];},dots:function(st){var t=st.phase;function bd(o){var uu=t+o;return[R*Math.cos(uu),0,R*Math.sin(uu)];}return[{p:bd(0),color:'#d9cfff',r:0.14},{p:bd(Math.PI),color:'#d9cfff',r:0.14}];}};
+  }
+  function terrain(data,lo,hi,cL,cH){
+    var N=20,span=2.2,i,j;
+    function bil(ai,bi){var i0=Math.floor(ai),j0=Math.floor(bi),i1=Math.min(i0+1,4),j1=Math.min(j0+1,4),fi=ai-i0,fj=bi-j0;return data[i0][j0]*(1-fi)*(1-fj)+data[i1][j0]*fi*(1-fj)+data[i0][j1]*(1-fi)*fj+data[i1][j1]*fi*fj;}
+    function P(gi,gj){var ai=gi/N*4,bi=gj/N*4,v=bil(ai,bi),t=(v-lo)/(hi-lo);return{p:[(ai-2)/2*span,-0.62+1.24*t,(bi-2)/2*span],t:t};}
+    var grid=[];for(i=0;i<=N;i++){grid.push([]);for(j=0;j<=N;j++){grid[i].push(P(i,j));}}
+    var quads=[];for(i=0;i<N;i++){for(j=0;j<N;j++){var a=grid[i][j],b=grid[i+1][j],c=grid[i+1][j+1],d=grid[i][j+1];quads.push({p:[a.p,b.p,c.p,d.p],c:mix(cL,cH,(a.t+b.t+c.t+d.t)/4),both:true});}}
+    var top=grid[N/2][N/2],post=[[0,-0.62,0],top.p],ridge=[];for(i=0;i<=N;i++){ridge.push(grid[i][N/2].p);}
+    return{quads:function(){return quads;},lines:function(){return[{pts:ridge,color:'rgb(155,140,255)',w:1.6,alpha:0.75},{pts:post,color:'rgb(217,207,255)',w:2}];},dots:function(){return[{p:top.p,color:'#d9cfff',r:0.13}];}};
+  }
+  function saddle(){
+    var N=24,S=1.9,h=0.85,i,j;
+    function P(gi,gj){var x=-S+2*S*gi/N,y=-S+2*S*gj/N,X=x/S,Y=y/S,hgt=h*(X*X-Y*Y);return{p:[x,hgt,y],t:(hgt+h)/(2*h)};}
+    var grid=[];for(i=0;i<=N;i++){grid.push([]);for(j=0;j<=N;j++){grid[i].push(P(i,j));}}
+    var lo=[40,36,70],hi=[170,150,255],quads=[];
+    for(i=0;i<N;i++){for(j=0;j<N;j++){var a=grid[i][j],b=grid[i+1][j],c=grid[i+1][j+1],d=grid[i][j+1];quads.push({p:[a.p,b.p,c.p,d.p],c:mix(lo,hi,(a.t+b.t+c.t+d.t)/4),both:true});}}
+    var beta1=[],axis=[];for(i=0;i<=N;i++){beta1.push(grid[i][N/2].p);axis.push(grid[N/2][i].p);}
+    return{quads:function(){return quads;},lines:function(){return[{pts:beta1,color:'rgb(232,227,255)',w:2.2},{pts:axis,color:'rgb(120,110,170)',w:1.3,alpha:0.7}];},dots:function(){return[{p:[0,0,0],color:'#eda100',r:0.15}];}};
+  }
+  Inst('c3mob',mobius(),{rx:0.6,ry:0.4,D:6.2,foc:3.8,spin:0.004});
+  Inst('c3win',terrain(WIN,0.25,0.95,[58,44,20],[230,180,80]),{rx:0.98,ry:0.7,D:5.8,foc:4.4,spin:0.005});
+  Inst('c3coh',terrain(COH,0.15,0.95,[18,58,52],[79,209,197]),{rx:0.98,ry:0.7,D:5.8,foc:4.4,spin:0.005});
+  Inst('c3sad',saddle(),{rx:0.82,ry:0.5,D:6.0,foc:4.0,spin:0.004});
+  function paintAll(){var i;for(i=0;i<insts.length;i++){try{draw(insts[i]);}catch(e){}}}
+  function boot(){paintAll();requestAnimationFrame(frame);}
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){paintAll();}});
+  if(document.readyState==='loading'){window.addEventListener('DOMContentLoaded',boot);}else{boot();}
+})();
+</script>
+
+</body>
+</html>

@@ -12,10 +12,10 @@
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Solveur de pendu cognitif français (hangman solver, cheat-free) | OMEGA-Ω">
 <meta property="og:description" content="Solveur de pendu cognitif français : raisonner plutôt que tricher. ≈97% en lexique, ≈64% hors-lexique, cheat-free, dans un seul fichier HTML — sans entraînement ni GPU.">
-<meta property="og:image" content="https://omegapendu.com/icon-512.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
+<meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
 <meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Solveur de pendu cognitif français (hangman solver) | OMEGA-Ω">
@@ -134,7 +134,7 @@
   <script>(function(){var u='poratox78',h='gmail',t='com',e=u+'@'+h+'.'+t,a=document.querySelector('a.cmail');if(a){a.href='mailto:'+e;a.textContent='✉ '+e;}})();</script>
   <p class="small" style="margin-top:8px">Du même auteur — <a href="https://vivarium-ei1.pages.dev/vivarium" target="_blank" rel="noopener"><strong>Vivarium&nbsp;↗</strong></a>&nbsp;: un tir tactique en escouade où <strong>l'IA est le sujet, pas un gadget</strong>. L'escouade adverse <em>apprend en jouant</em>, les créatures <em>évoluent</em> de génération en génération&nbsp;— la difficulté monte par <em>adaptation</em>, jamais par gonflage de stats. Fait main, zéro IA générative.</p>
   <style>.egg-hint{opacity:.38;font-size:1.2em;text-decoration:none;transition:opacity .25s}.egg-hint:hover{opacity:1}</style>
-  <p style="text-align:center;margin-top:18px"><a class="egg-hint" href="pendable.html" title="↑ ↑ ↓ ↓ ← → ← → B A" aria-label="un petit secret">🥚</a></p>
+  <p style="text-align:center;margin-top:18px"><a class="egg-hint" href="arbitrage.html" title="un petit secret" aria-label="un petit secret">🥚</a></p>
 </div></footer>
 
 <script>
@@ -142,9 +142,6 @@
   function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
   try{if(localStorage.getItem(k))set(true);}catch(e){}
   t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
-if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
-/* 🥚 easter egg caché : code Konami (↑ ↑ ↓ ↓ ← → ← → B A) → le jeu « Pendable » (un pendu croisé d'une autre vie) */
-(function(){var s=[38,38,40,40,37,39,37,39,66,65],i=0;addEventListener('keydown',function(e){i=(e.keyCode===s[i])?i+1:(e.keyCode===s[0]?1:0);if(i===s.length){i=0;location.href='pendable.html';}});})();
-</script>
+if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 </body>
 </html>
