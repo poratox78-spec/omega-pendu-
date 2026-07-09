@@ -23,7 +23,7 @@ const norm=w=>w.toLowerCase().replace(/[^a-zà-ÿ']/gi,'');
 function toksN(s){return (s.match(/[A-Za-zÀ-ÿ']+/g)||[]).map(norm).filter(Boolean);}
 function runCorrLike(s){const sf=C.ready()?C.spell(s):[];C.setSeg(s);const T=C.toks(s),Tc=T.slice();
   sf.forEach(f=>{const j=f.i;if(f.span!==2&&f.sugg&&f.tier!=='vigilance'&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))Tc[j]=f.sugg;});
-  const gf=C.corrTok(Tc);const fl={};gf.forEach(f=>fl[norm(T[f.i])]=f.sugg);
+  const cur=Tc.slice(),gbt={};for(let it=0;it<4;it++){const g2=C.corrTok(cur);let add=false;for(const g of g2){if(gbt[g.i]!=null)continue;gbt[g.i]=g;add=true;if((g.span==null||g.span<2)&&g.tier!=='vigilance'&&g.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(g.sugg))cur[g.i]=g.sugg;}if(!add)break;}const gf=Object.keys(gbt).map(k=>gbt[k]);const fl={};gf.forEach(f=>fl[norm(T[f.i])]=f.sugg);
   sf.forEach(f=>{if(fl[norm(f.word)]==null)fl[norm(f.word)]={sugg:f.sugg,tier:f.tier};});
   const out={};for(const k in fl){const v=fl[k];out[k]=(typeof v==='string')?{sugg:v,tier:'red'}:v;}return out;}
 (async()=>{

@@ -12666,7 +12666,13 @@ window.addEventListener('DOMContentLoaded', () => {
   function _computeCorrs(t){var sf=SP.ready?spellText(t):[];
     _SEG=_segInfo(t);var _T=toks(t),_Tc=_T.slice();
     sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
-    var gf=correctTokens(_Tc);gf.forEach(function(f){f.word=_T[f.i];f.src='g';});
+    // ---- CASCADE : re-tourner la grammaire sur ses PROPRES corrections (point fixe, garde FP=0) ----
+    var _cur=_Tc.slice(),_gbt={},_it,_gf2,_gj,_g2,_add;
+    for(_it=0;_it<4;_it++){_gf2=correctTokens(_cur);_add=false;
+      for(_gj=0;_gj<_gf2.length;_gj++){_g2=_gf2[_gj];if(_gbt[_g2.i]!=null)continue;_gbt[_g2.i]=_g2;_add=true;
+        if((_g2.span==null||_g2.span<2)&&_g2.tier!=='vigilance'&&_g2.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(_g2.sugg))_cur[_g2.i]=_g2.sugg;}   // propage le ROUGE span1 mono-mot -> alimente la passe suivante
+      if(!_add)break;}
+    var gf=Object.keys(_gbt).map(function(k){return _gbt[k];});gf.forEach(function(f){f.word=_T[f.i];f.src='g';});
     var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null){f.src='s';byTok[f.i]=f;}});   // grammaire prioritaire par token
     var list=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};list.forEach(function(f){if(f.span>=2)for(var c=1;c<f.span;c++)_cov[f.i+c]=1;});list=list.filter(function(f){return !_cov[f.i];});
