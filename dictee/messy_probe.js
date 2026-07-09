@@ -60,7 +60,13 @@ function runCorrLike(s) {   // mime le NOUVEAU runCorr : ortho → applique 1:1 
   const sf = C.ready() ? C.spell(s) : [];
   C.setSeg(s); const T = C.toks(s), Tc = T.slice();
   sf.forEach(f => { const j = f.i; if (f.span !== 2 && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[j] = f.sugg; });
-  const gf = C.corrTok(Tc);
+  // CASCADE (miroir de _computeCorrs) : re-tourner la grammaire sur ses PROPRES corrections jusqu'à point fixe (propage le ROUGE span1)
+  const cur = Tc.slice(), gbt = {};
+  for (let it = 0; it < 4; it++) { const g2 = C.corrTok(cur); let add = false;
+    for (const g of g2) { if (gbt[g.i] != null) continue; gbt[g.i] = g; add = true;
+      if ((g.span == null || g.span < 2) && g.tier !== 'vigilance' && g.sugg && /^[A-Za-zÀ-ÿ']+$/.test(g.sugg)) cur[g.i] = g.sugg; }
+    if (!add) break; }
+  const gf = Object.keys(gbt).map(k => gbt[k]);
   const fl = {}; gf.forEach(f => fl[norm(T[f.i])] = f.sugg); sf.forEach(f => { if (!fl[norm(f.word)]) fl[norm(f.word)] = f.sugg; });
   return fl;
 }
@@ -98,7 +104,7 @@ function wrongCount(fn) {
   }
   return { wrong, ex };
 }
-const RECALL_FLOOR = 30, FP_MAX = 0, WRONG_MAX = 3;   // planchers/plafonds CI (marge sous le mesuré ; resserrer avec les gains)
+const RECALL_FLOOR = 45, FP_MAX = 0, WRONG_MAX = 3;   // planchers/plafonds CI (marge sous le mesuré ; resserrer avec les gains) — 45 après la CASCADE (mesuré 50%)
 (async () => {
   await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
   const check = process.argv.includes('--check');
