@@ -12572,12 +12572,12 @@ window.addEventListener('DOMContentLoaded', () => {
    +'#vdc-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:100%;max-width:820px;min-height:100vh;margin:0 auto;box-sizing:border-box;overflow:auto;border-radius:0;padding:16px 20px 64px;position:relative}'
    +'#vdc-card h2{margin:.1em 0;font-size:20px;color:#222}#vdc-x{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbbf9e;background:#fff;font-size:15px;font-weight:600;cursor:pointer;color:#333;padding:8px 14px;border-radius:10px;margin-bottom:10px}#vdc-x:hover{background:#f3ecd8}'
    +'#vdc-editor{position:relative;margin-top:10px}'
-   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:110px;border:2px solid #e6dcc3;border-radius:10px;background:transparent;box-sizing:border-box;position:relative;z-index:3;color:transparent;caret-color:#111;resize:vertical;display:block;overflow-y:hidden}'
+   +'#vdc-in{font:inherit;font-size:18px;line-height:1.6;padding:11px;width:100%;min-height:110px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;box-sizing:border-box;color:#111;caret-color:#111;display:block;white-space:pre-wrap;overflow-wrap:break-word;outline:none;cursor:text}#vdc-in:empty:before{content:attr(data-ph);color:#9a8f73;pointer-events:none}'
    +'#vdc-in::selection{background:#8ec5ff}'
    +'#vdc-render{position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;pointer-events:none;background:#fff;color:#111;overflow:hidden;white-space:pre-wrap;overflow-wrap:break-word;font:inherit;font-size:18px;line-height:1.6;padding:11px;border:2px solid transparent;border-radius:10px;box-sizing:border-box}'   /* overlay : dessine le texte SURLIGNÉ par-dessus la textarea (texte transparent) — surlignage SUR la zone de frappe */
    +'.vdc-flabel-big{font-size:15px}'
    +'#vdc-render [data-key]{pointer-events:none}'   /* seuls les mots CLIQUABLES (bascule) captent le clic ; les soulignés informatifs (run-on, confusables sans data-key) laissent passer le clic vers la textarea (caret) */
-   +'#vdc-render .vdc-bad,#vdc-render .vdc-on,#vdc-render .vdc-vig{padding:0;font-weight:inherit;border-radius:0}'   /* OVERLAY : zéro delta de métrique (padding 2px + gras décalaient le texte vs la textarea) — fond + souligné suffisent */
+   +'#vdc-in .vdc-bad,#vdc-in .vdc-on,#vdc-in .vdc-vig{padding:0;font-weight:inherit;border-radius:0;cursor:text}'   /* OVERLAY : zéro delta de métrique (padding 2px + gras décalaient le texte vs la textarea) — fond + souligné suffisent */
    +'#vdc-result{font-size:18px;line-height:1.7;padding:12px 14px;background:#f4fbf5;border:2px solid #1f7a3d;border-radius:10px;min-height:44px}'   /* vrai encadré « texte corrigé » (proéminent) */
    +'.vdc-bad{background:#f6b6b6;border-bottom:3px solid #b02020;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-bad:hover{background:#f29a9a}'   /* fonds SATURÉS (pastels trop pâles = illisibles) */
    +'.vdc-bad.vdc-orth{background:#bcd6f5;border-bottom-color:#1b5c86}.vdc-bad.vdc-orth:hover{background:#a3c6ef}'
@@ -12605,7 +12605,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'body.dys-dark .vdc-lite{background:#141c25!important;border-color:#33414f}body.dys-dark .vdc-lite,body.dys-dark .vdc-lite *{color:#e8edf2!important}'   /* correcteur : en mode SOMBRE les cartes Appliqué/À vérifier/Stade/Remédiation passent en fond SOMBRE + texte clair (on garde la bordure gauche colorée = catégorie), plus d\'îlots crème */
    +'body.dys-dark .vdc-lite span[data-key]{background:#0f1620!important}'   /* les puces (chips) dans les cartes sombres : fond sombre (sinon texte clair sur puce blanche = invisible) ; la bordure colorée reste */
    +'body.dys-dark #vdc-card h2,body.dys-dark #vdd-card h2,body.dys-dark #vdk-card h2,body.dys-dark #vdc-x{color:#e8edf2}'
-   +'body.dys-dark #vdc-in{background:transparent;color:transparent;caret-color:#9b6dd6;border-color:#33414f}body.dys-dark #vdc-render{background:#10161d;color:#e8edf2;border-color:transparent}'
+   +'body.dys-dark #vdc-in{background:#10161d;color:#e8edf2;caret-color:#9b6dd6;border-color:#33414f}body.dys-dark #vdc-in:empty:before{color:#6b7683}'
    +'body.dys-dark #vdc-result{background:#0f2417;border-color:#3fa564;color:#e8edf2}'
    +'body.dys-dark .vdc-fact{background:#10161d}body.dys-dark #vdc-set button{background:#10161d;color:#e8edf2;border-color:#33414f}'
    +'body.dys-dark #vdc-set button[aria-pressed=true]{background:#3b82c4;border-color:#3b82c4}'
@@ -12628,7 +12628,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Police dys</button>'
    +'</div>'
    +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
-   +'<div id="vdc-editor"><textarea id="vdc-in" aria-label="Texte à corriger" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ex. : Les enfant joue dans le jardin et il sont content."></textarea><div id="vdc-render" aria-live="polite"></div></div>'
+   +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
    +'<div id="vdc-complete" aria-live="polite"></div>'
    +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copier</button></div>'
    +'<div id="vdc-result" aria-live="polite"></div>'
@@ -12732,7 +12732,7 @@ window.addEventListener('DOMContentLoaded', () => {
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
     _corrs=SP.ready?_computeCorrs(t):[];
-    $('vdc-render').innerHTML=_renderView(t,_corrs,false);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
+    var _ceoff=_ceCaret($('vdc-in'));$('vdc-in').innerHTML=_renderView(t,_corrs,false);_ceSetCaret($('vdc-in'),_ceoff);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
     if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
     _lastCorrected=_correctedText(t,_corrs);
     var rz=$('vdc-result');if(rz)rz.innerHTML=_renderView(t,_corrs,true);
@@ -12754,17 +12754,28 @@ window.addEventListener('DOMContentLoaded', () => {
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
   cov.addEventListener('keydown',function(e){if(e.key==='Escape'){var c=$('vdc-cardpop');if(c&&c.style.display==='block'){_hideCard();return;}cov.classList.remove('on');}});   // Échap ferme (clavier/accessibilité)
   // (plus de fermeture au clic sur le fond : pleine page opaque + bouton « ← Retour à Omega » → zéro miss-clic vers le pendu)
-  function _autoGrow(){var ta=$('vdc-in');if(!ta||!ta.style)return;ta.style.height='auto';var h=Math.max(110,ta.scrollHeight||0);ta.style.height=h+'px';}   // la zone de saisie GRANDIT avec le texte : aucune scrollbar interne → la largeur utile reste celle de l'overlay (wraps identiques)
-  function _paintPlain(){var rd=$('vdc-render');if(rd)rd.innerHTML=esc($('vdc-in').value);}   // repeint l'overlay en texte BRUT instantanément (le surlignage arrive au runCorr débounced) → pas de décalage texte/frappe
-  function _syncScroll(){var rd=$('vdc-render'),ta=$('vdc-in');if(rd&&ta){rd.scrollTop=ta.scrollTop;rd.scrollLeft=ta.scrollLeft;}}
-  $('vdc-in').addEventListener('input',function(){runComplete();_autoGrow();_paintPlain();_syncScroll();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
+  function _ceText(el){return el?el.textContent:'';}
+  function _ceCaret(el){var s=window.getSelection();if(!s||!s.rangeCount)return null;var r=s.getRangeAt(0);if(!el.contains(r.endContainer))return null;var pre=r.cloneRange();pre.selectNodeContents(el);pre.setEnd(r.endContainer,r.endOffset);return pre.toString().length;}
+  function _ceSetCaret(el,off){if(el==null||off==null)return;var s=window.getSelection(),r=document.createRange(),cnt=0,done=false;(function w(n){for(var c=n.firstChild;c&&!done;c=c.nextSibling){if(c.nodeType===3){var L=c.nodeValue.length;if(cnt+L>=off){r.setStart(c,Math.max(0,Math.min(L,off-cnt)));done=true;return;}cnt+=L;}else w(c);}})(el);if(done)r.collapse(true);else{r.selectNodeContents(el);r.collapse(false);}try{s.removeAllRanges();s.addRange(r);}catch(e){}}
+  function _autoGrow(){}   // la zone de saisie GRANDIT avec le texte : aucune scrollbar interne → la largeur utile reste celle de l'overlay (wraps identiques)
+  function _paintPlain(){}   // repeint l'overlay en texte BRUT instantanément (le surlignage arrive au runCorr débounced) → pas de décalage texte/frappe
+  function _syncScroll(){}
+  (function(){var _ce=$('vdc-in');if(!_ce)return;
+   Object.defineProperty(_ce,'value',{configurable:true,get:function(){return _ceText(this);},set:function(v){this.textContent=(v==null?'':String(v));}});
+   Object.defineProperty(_ce,'selectionStart',{configurable:true,get:function(){var c=_ceCaret(this);return c==null?_ceText(this).length:c;}});
+   _ce.setSelectionRange=function(a){_ceSetCaret(this,a);};
+   function _ceInsertText(txt){var s=window.getSelection();if(!s||!s.rangeCount)return;var rg=s.getRangeAt(0);rg.deleteContents();var tn=document.createTextNode(txt);rg.insertNode(tn);rg.setStartAfter(tn);rg.setEndAfter(tn);rg.collapse(true);s.removeAllRanges();s.addRange(rg);_ce.dispatchEvent(new Event('input',{bubbles:true}));}   // insère un NŒUD TEXTE (garde les \n : execCommand insertText les avale ; sinon coller multi-ligne = tout sur une ligne)
+   _ce.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();_ceInsertText('\n');}});
+   _ce.addEventListener('paste',function(e){e.preventDefault();var t='';try{t=(e.clipboardData||window.clipboardData).getData('text/plain');}catch(_){}if(t)_ceInsertText(t.replace(/\r\n?/g,'\n'));});
+  })();
+  $('vdc-in').addEventListener('input',function(){runComplete();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
   $('vdc-in').addEventListener('scroll',_syncScroll);   // l'overlay suit le défilement de la textarea
   $('vdc-in').addEventListener('click',function(){runComplete();});                                  // déplacement du curseur → recalcule la complétion
   $('vdc-in').addEventListener('keyup',function(e){if(e.key&&e.key.indexOf('Arrow')===0||e.key==='Home'||e.key==='End')runComplete();});
   $('vdc-in').addEventListener('keydown',function(e){if(e.key==='Tab'&&_compFirst){e.preventDefault();_applyComplete(_compFirst);}});  // Tab = accepte la 1re complétion (aide-frappe)
   $('vdc-complete').addEventListener('click',function(e){var b=e.target.closest('.vdc-comp');if(b)_applyComplete(b.getAttribute('data-w'));});
-  $('vdc-render').addEventListener('click',_corrClick);   // clic sur un mot souligné (cadre HAUT) = bascule
-  var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);   // clic sur un mot souligné (cadre BAS) = bascule
+  // (Piste A : la zone du HAUT est 100% éditable — le clic y place le curseur, il ne bascule plus la correction ; l'action passe par la carte du cadre BAS)
+  var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
   $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce d'annotation = bascule
   var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){clearTimeout(_ct);runCorr();var txt=_lastCorrected||$('vdc-in').value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});}var o=_cp.textContent;_cp.textContent='✓ Copié';setTimeout(function(){_cp.textContent=o;},1200);});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
