@@ -12722,7 +12722,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function _wordAt(v,pos){var s=pos,e=pos;while(s>0&&_WCH.test(v[s-1]))s--;while(e<v.length&&_WCH.test(v[e]))e++;return {word:v.slice(s,e),start:s,end:e};}
   function _applyComplete(repl){var ta=$('vdc-in'),v=ta.value,w=_wordAt(v,ta.selectionStart==null?v.length:ta.selectionStart);
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);
-    ta.value=v.slice(0,w.start)+repl+v.slice(w.end);var np=w.start+repl.length;try{ta.setSelectionRange(np,np);}catch(e){}
+    ta.value=v.slice(0,w.start)+repl+v.slice(w.end);var np=w.start+repl.length;if(ta.value.charAt(np)===' ')np++;try{ta.setSelectionRange(np,np);}catch(e){}
     ta.focus();runComplete();runCorr();}
   function runComplete(){var box=$('vdc-complete');if(!box)return;var ta=$('vdc-in');_compFirst=null;
     if(!SP.ready){box.innerHTML='';return;}
