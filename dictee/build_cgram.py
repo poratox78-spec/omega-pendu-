@@ -61,11 +61,37 @@ def find_col(header, *needles):
     return -1
 
 
+def scan_pure_passe_simple(path):
+    """Formes (déacc) dont la SEULE lecture est le passé simple (ind:pas) — ni autre temps, ni nom/adjectif.
+    « devint/parut/inspira/suivirent » = PURES → sûres pour l'orange. « fut/dit/mis/but/pris/plus » = HOMOGRAPHES
+    (présent/nom/imparfait) → EXCLUES (sinon flood orange). On agrège TOUTES les lectures (toute fréquence) : une
+    seule lecture non-PS suffit à écarter la forme (conservateur = FP-safe, choix A de Rem)."""
+    cats = {}          # forme_déacc → {cat[:3]}
+    vtenses = {}       # forme_déacc → {mode:temps}
+    with open(path, encoding='utf-8') as f:
+        rdr = csv.reader(f, delimiter='\t'); header = next(rdr)
+        c_mot = find_col(header, 'mot'); c_gram = find_col(header, 'cgram', 'gram'); c_info = find_col(header, 'infover', 'info')
+        for row in rdr:
+            if len(row) <= max(c_mot, c_gram, c_info): continue
+            w = deacc(row[c_mot].strip().lower())
+            if not (w and all('a' <= ch <= 'z' for ch in w)): continue
+            cats.setdefault(w, set()).add(row[c_gram].strip().upper()[:3])
+            if row[c_gram].strip().upper().startswith('VER'):
+                for tag in (row[c_info] or '').split(','):
+                    pp = tag.split(':')
+                    if len(pp) == 3 and pp[2] in ('1', '2', '3'): vtenses.setdefault(w, set()).add(pp[0] + ':' + pp[1])
+    # PS 3s « -it/-a/-ut » déacc → collision avec le subjonctif imparfait 3s « -ît/-ât/-ût » (devint↔devînt) : BÉNIGNE
+    # (même suggestion d'accord, tous deux littéraires, PAS un homographe présent/nom qui inonde) → tolérée dans le pur.
+    pure = {w for w, tn in vtenses.items() if 'ind:pas' in tn and tn <= {'ind:pas', 'sub:imp'} and cats.get(w, set()) <= {'VER'}}
+    return pure
+
+
 def main():
     if not os.path.exists(LEX_PATH):
         print(f"[cgram] Lexique4 introuvable ({LEX_PATH}).")
         print("        Le correcteur reste sur sa liste blanche (vlike). Place le .tsv et relance.")
         return 1
+    PURE_PS = scan_pure_passe_simple(LEX_PATH)   # passé simple SANS homographe (devint/parut/suivirent) → orange FP-safe
     with open(LEX_PATH, encoding='utf-8') as f:
         rdr = csv.reader(f, delimiter='\t')
         header = next(rdr)
@@ -152,7 +178,8 @@ def main():
                         if len(pp) == 3 and pp[2] in ('1', '2', '3') and (
                                 (pp[0] == 'ind' and pp[1] in ('pre', 'imp', 'fut'))
                                 or pp[0] == 'cnd'
-                                or (pp[0] == 'sub' and pp[1] == 'pre')):
+                                or (pp[0] == 'sub' and pp[1] == 'pre')
+                                or (pp[0] == 'ind' and pp[1] == 'pas' and w in PURE_PS and fr >= FREQ_MIN)):   # passé simple : forme PURE (non homographe) ET assez fréquente (freq≥0.5) → orange FP-safe, sans gonfler l'embed de formes littéraires rares
                             fin.append((pp[0] + ':' + pp[1], pp[2]))
                     spec = len(fin)                                          # moins de tags = forme plus spécifique (fiable)
                     is_part = form_lw.endswith(PART_END)
@@ -294,7 +321,7 @@ def main():
     for _lem, _xd in cj_x.items():
         _imp = {f for f, _fr, _sp in _xd.get('ind:imp', [])}
         for _mt, _xs in _xd.items():
-            if _mt not in ('ind:pre', 'cnd:pre', 'sub:pre', 'ind:fut') or not _xs:   # ind:fut : 3p en -ont (seront/auront)
+            if _mt not in ('ind:pre', 'cnd:pre', 'sub:pre', 'ind:fut', 'ind:pas') or not _xs:   # ind:fut : 3p en -ont ; ind:pas : 3p en -èrent/-irent
                 continue
             _pres = cj_c.setdefault(_lem, {}).setdefault(_mt, {})
             _forms = {f for f, _fr, _sp in _xs}
