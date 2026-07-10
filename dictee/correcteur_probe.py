@@ -1704,6 +1704,34 @@ def rule_du_de(T, i):
     return None
 
 
+_ETRE_SUR = {'est', 'es', 'suis', 'sommes', 'etes', 'sont', 'etais', 'etait', 'etions', 'etiez', 'etaient',
+             'sera', 'serai', 'seras', 'serait', 'serais', 'soit', 'suis'}
+
+def rule_la_la(T, i):
+    """« la » (article/pronom) vs « là » (adverbe de lieu). « être + la » en FIN de proposition → là
+    (« je suis la »→là, « il est la »→là). FP=0 : après être, l'article « la » précède TOUJOURS un nom
+    (« c'est la vie ») → en fin de proposition c'est l'adverbe « là ». Mesuré : 0 « être+la+fin » sur 2500 UD."""
+    if deacc(T[i].lower()) != 'la' or "'" in T[i].lower(): return None
+    if prev(T, i) not in _ETRE_SUR: return None                         # juste après une forme d'être
+    n = nxt(T, i)
+    if n is None or (_SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]):   # fin de proposition
+        return _keepcase(T[i], 'là')
+    return None
+
+
+def rule_sur_sur(T, i):
+    """« sur » (préposition) vs « sûr » (adjectif = certain). « être/bien + sur + de/que » ou fin de proposition → sûr
+    (« je suis sur de moi »→sûr, « tu es sur ? »→sûr, « bien sur que oui »→bien sûr). FP=0 : la préposition « sur »
+    précède un GN (« sur la table », « bien sur le sol ») — jamais « de/que » ni une frontière juste après un attribut."""
+    if deacc(T[i].lower()) != 'sur' or "'" in T[i].lower(): return None
+    p = prev(T, i)
+    if p not in _ETRE_SUR and p != 'bien': return None                  # contexte ATTRIBUT : après être (ou l'idiome « bien sûr »)
+    n = nxt(T, i)
+    if n in ('de', "d'", 'que', "qu'") or n is None: return _keepcase(T[i], 'sûr')   # « sûr de/que » ou fin
+    if _SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]: return _keepcase(T[i], 'sûr')   # frontière (ponctuation) juste après
+    return None
+
+
 def rule_du_du(T, i):
     """« du » (de+le) vs « dû » (participe de DEVOIR). « avoir + du + INFINITIF » → dû (« j'ai du partir »→dû,
     « il a du travailler »→dû). FP=0 : le partitif « du » précède un NOM, JAMAIS un infinitif ; et « avoir + dû +
@@ -1904,7 +1932,7 @@ RULES = [('élision inversée', rule_deselide),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
-         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du),
+         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_recover),
@@ -2032,6 +2060,8 @@ CASES = [
     # du/de : « du » (=de+le) + article = impossible → « de »
     ("Il revient de la maison", "de", "du", "du/de"),
     ("j'ai dû partir tôt", "dû", "du", "du/dû"),                          # avoir + du + infinitif → dû (participe de devoir)
+    ("je suis sûr de moi", "sûr", "sur", "sur/sûr"),                       # être + sur + de → sûr (adjectif certain)
+    ("je suis là", "là", "la", "la/là"),                                   # être + la + fin → là (adverbe de lieu)
     # terminaison -er/-é/-ez/-ai tranchée par le gouverneur (test mordre/mordu)
     ("Vous signez le document", "signez", "signer", "terminaison -er/-é/-ez/-ai"),      # vous → -ez
     ("Demain je noterai le numéro", "noterai", "noté", "terminaison -er/-é/-ez/-ai"),   # je → futur -ai

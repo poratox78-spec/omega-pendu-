@@ -73,6 +73,9 @@ const SP = globalThis.__sp;
   const mjc = SP.spell('je manje une pomme').find(x => x.word.toLowerCase() === 'manje');   // CONTRÔLE hors-aux : présent, PAS participe
   if (mjc && mjc.sugg === 'mangé') fail.push('je manje NE doit PAS devenir mangé (hors auxiliaire), eu ' + JSON.stringify(mjc));
   const pri = SP.spell("j'ai pri le train").find(x => x.word.toLowerCase() === 'pri');   // GARDE anti-régression : irrégulier -s, pas -é
+  const ouv = SP.spell('il sait ou je vais').find(x => x.name === 'ou/où à vérifier');   // ou + pronom sujet → où (vigilance orange)
+  if (!ouv || ouv.sugg !== 'où') fail.push('il sait ou je vais → ou/où vigilance attendue, eu ' + JSON.stringify(ouv));
+  if (SP.spell('un café ou un thé').some(x => x.name === 'ou/où à vérifier')) fail.push('FP ou/où sur conjonction correcte (café ou thé)');
   if (pri && pri.sugg === 'prié') fail.push("j'ai pri ne doit PAS devenir prié (participe irrégulier = pris), eu " + JSON.stringify(pri));
   // élision-espace (fusion de 2 tokens)
   const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
