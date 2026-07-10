@@ -1646,12 +1646,31 @@ def rule_tout_det(T, i):
     return _keepcase(T[i], target) if target != lw else None
 
 
+_MET_LEFT_SUBJ = {'il', 'elle', 'on', 'ce', 'ca', 'qui', 'celui', 'celle', 'chacun', 'nul', 'quiconque'}   # sujets 3sg possibles de « met »
+_MET_RIGHT_CLAUSE = {'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles', 'ce', 'ca',
+                     "j'ai", "j'avais", "j'aurai", "j'aurais"}   # un pronom sujet (ou j'ai fusionné) OUVRE une nouvelle proposition → « mais »
+
 def rule_met_mais(T, i):
+    d = deacc(T[i].lower())
+    # --- met → mais : « met » (mettre 3sg) EXIGE un sujet 3sg à sa gauche ; sans lui, c'est la conjonction « mais »
+    #     (« je voulais venir met j'ai pas pu »→mais). FP=0 : abstention dès qu'un sujet 3sg / clitique objet / GN
+    #     précède (« il met », « le facteur met », « il y met des fleurs ») ; on n'AFFIRME que si une NOUVELLE
+    #     proposition (pronom sujet) suit — là « met » ne peut être le verbe et « mais » a un sens.
+    if d == 'met':
+        if T[i][:1].isupper() or i == 0: return None                   # « Met/Mets » en tête = impératif → abstention
+        p = prev(T, i)
+        if p is None or p in _MET_LEFT_SUBJ or p in CLITIC: return None # sujet 3sg / clitique objet à gauche → « met » EST le verbe
+        tg = pos_tags(T)
+        if tg and i-1 < len(tg) and tg[i-1] in ('NOUN', 'PROPN', 'DET', 'NUM'): return None   # GN sujet à gauche → verbe
+        if T[i-1][:1].isupper(): return None                           # nom propre sujet à gauche → verbe
+        if nxt(T, i) in _MET_RIGHT_CLAUSE:                             # une nouvelle proposition suit → « mais »
+            return _keepcase(T[i], 'mais')
+        return None
     # « je/tu/il/on/ils » sont des clitiques sujets PURS : ils sont TOUJOURS suivis de leur verbe et ne peuvent JAMAIS
     # être objet de préposition (c'est lui/eux/moi/toi qui le sont). Donc « [pronom] mais … » → forme de METTRE
     # (« il mais son manteau »→met). FP=0 par construction. « elle/elles » sont EXCLUS : ils sont leur propre pronom
     # disjoint (« derrière elle mais… », « avec elles mais… ») → « mais » y est la vraie conjonction (raté assumé).
-    if deacc(T[i].lower()) != 'mais': return None
+    if d != 'mais': return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
     p = prev(T, i)
     if p in ('je', 'tu'):  return 'mets'
@@ -1927,6 +1946,8 @@ CASES = [
     ("Il mange un peu de pain", "peu", "peut", "peu/peux/peut"),
     ("Le chat se trouve là", "se", "ce", "ce/se"),
     ("Il prend ce livre", "ce", "se", "ce/se"),
+    ("Je voulais venir mais il est parti", "mais", "met", "met/mais"),    # met→mais : « met » sans sujet 3sg à gauche + proposition qui suit
+    ("Il met son manteau", "met", "mais", "met/mais"),                    # mais→met : « il mais »→met (sens inverse)
     ("On mange ensemble", "On", "Ont", "on/ont"),
     ("Ils ont fini leur travail", "ont", "on", "on/ont"),
     # accord SUJET-VERBE (route lexicale cgram_conj) — sujet pronom, personne/nombre certains
