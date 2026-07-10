@@ -43,6 +43,20 @@ const C = globalThis.__C;
     if (got !== expect) fail.push(`[${s}] → ${got ? JSON.stringify(r[0].sugg) : 'aucun'} (attendu ${expect ? sugg : 'aucun'})`);
     else if (expect && (r[0].sugg || '').toLowerCase() !== sugg) fail.push(`[${s}] → sugg ${r[0].sugg} ≠ ${sugg}`);
   }
-  if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe :\n  ' + fail.join('\n  ')); process.exit(1); }
-  console.log(`✓ OK : vigilance accord sujet-verbe (orange) — ${CASES.filter(c=>c[1]).length} déclenchements mid-phrase, ${CASES.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
+  // ACCORD PARTICIPE après être 3pl (« les élèves sont arrivé »→arrivés) — orange, FP=0 (seul flag UD = vraie faute « sont remplacé »)
+  const pe = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord participe à vérifier'); };
+  const PE = [
+    ['les élèves sont arrivé', true, 'arrivés'],
+    ['les travaux sont terminé', true, 'terminés'],
+    ['les élèves sont arrivés', false, null],   // déjà accordé
+    ['il est arrivé hier', false, null],         // singulier (est) hors 3pl
+    ['ils se sont succédé', false, null],        // pronominal → participe invariable
+  ];
+  for (const [s, expect, sugg] of PE) {
+    const r = pe(s), got = r.length > 0;
+    if (got !== expect) fail.push(`[participe ${s}] → ${got ? JSON.stringify(r[0].sugg) : 'aucun'} (attendu ${expect ? sugg : 'aucun'})`);
+    else if (expect && (r[0].sugg || '') !== sugg) fail.push(`[participe ${s}] → sugg ${r[0].sugg} ≠ ${sugg}`);
+  }
+  if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe :\n  ' + fail.join('\n  ')); process.exit(1); }
+  console.log(`✓ OK : vigilance accord sujet-verbe + participe (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();
