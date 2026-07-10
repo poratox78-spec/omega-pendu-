@@ -324,6 +324,7 @@
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]==='3'&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;if(!okk)return null;return sugg;}
   // accord sujet-VERBE à sujet PRONOM/QUANTIFIEUR indéfini — MIROIR correcteur_probe.rule_accord_sv_quant, FP=0
   var _QP_SG={};'chacun chacune quiconque personne rien aucun aucune nul nulle'.split(' ').forEach(function(w){_QP_SG[w]=1;});_QP_SG["quelqu'un"]=1;
+  var _DISTRIB_AMBIG={};'chacun chacune aucun aucune nul nulle'.split(' ').forEach(function(w){_DISTRIB_AMBIG[w]=1;});  // tolérance sing/plur « chacun/aucun/nul de(s)/d' + pluriel » (Grévisse) → abstention. PAS personne/rien (strict sing)
   var _QP_PL={};'certains certaines plusieurs tous toutes'.split(' ').forEach(function(w){_QP_PL[w]=1;});
   var _QP_DE_PL={};'plupart beaucoup peu bien tas tant nombre'.split(' ').forEach(function(w){_QP_DE_PL[w]=1;});
   var _QP_GAP_OK={entre:1,en:1};Object.keys(PREP).forEach(function(w){_QP_GAP_OK[w]=1;});
@@ -340,6 +341,7 @@
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var q=deacc(T[lo].toLowerCase()),nxt=(lo+1<T.length)?deacc(T[lo+1].toLowerCase()):'',qend=lo,nb;
+    if(_DISTRIB_AMBIG[q]&&(nxt==='de'||nxt==='des'||(lo+1<T.length&&/^d['’]/.test(T[lo+1].toLowerCase()))))return null;   // « chacun/aucun/nul de(s)/d' + pluriel » : sing OU plur admis → abstention (FP=0)
     if(_QP_SG[q])nb='s';
     else if(_QP_PL[q])nb='p';
     else if(_QP_DE_PL[q]){if(nxt==='de'||nxt==='des'||nxt==='d'||(lo+1<T.length&&T[lo+1].toLowerCase().indexOf("'")>=0&&nxt.charAt(0)==='d'))nb='p';else return null;}

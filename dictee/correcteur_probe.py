@@ -1326,6 +1326,10 @@ def _sv_finish(T, i, per, nb, p_reads):
 # qu'un clitique/négation entre lui et le verbe) et en TÊTE de proposition — l'emploi DÉTERMINANT (« certains jours sont »)
 # est laissé au parseur nominal (_np_subject via _QUANT_PL).
 _QP_SG = {'chacun', 'chacune', "quelqu'un", 'quiconque', 'personne', 'rien', 'aucun', 'aucune', 'nul', 'nulle'}
+# Distributifs À TOLÉRANCE sing/plur quand suivis IMMÉDIATEMENT d'un complément « de(s)/d'(entre) + PLURIEL »
+# (Grévisse : « aucun d'eux ne SERA / ne SERONT », « chacune de ces équipes AFFRONTE / AFFRONTENT » = les deux admis).
+# personne/rien/quelqu'un/quiconque N'EN sont PAS (strictement sing même avec complément) → la règle stricte les garde.
+_DISTRIB_AMBIG = {'chacun', 'chacune', 'aucun', 'aucune', 'nul', 'nulle'}
 _QP_PL = {'certains', 'certaines', 'plusieurs', 'tous', 'toutes'}
 _QP_DE_PL = {'plupart', 'beaucoup', 'peu', 'bien', 'tas', 'tant', 'nombre'}   # + de(s) N → pluriel (accord complément) ; « nombre » exigera « bon/grand nombre »
 _QP_GAP_OK = set(PREP) | {'entre', 'en'}                                       # tokens autorisés dans le complément « de(s)/d'entre … » entre le quantifieur et le verbe
@@ -1346,6 +1350,8 @@ def rule_accord_sv_quant(T, i):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
     q = deacc(T[lo].lower()); nxt = deacc(T[lo+1].lower()) if lo + 1 < len(T) else ''
     qend = lo                                                    # dernier indice du groupe-quantifieur (avant complément)
+    if q in _DISTRIB_AMBIG and (nxt in ('de', 'des') or (lo + 1 < len(T) and T[lo+1].lower().startswith(("d'", 'd’')))):
+        return None                                             # tolérance sing/plur « chacun/aucun/nul de(s)/d' + pluriel » → n'impose aucun nombre (FP=0)
     if q in _QP_SG:                nb = 's'                      # chacun/aucun/personne/rien… (peut être suivi de « des N » : chacun DES équipes → sg)
     elif q in _QP_PL:             nb = 'p'                       # certains/plusieurs/tous… (peut être suivi de « d'entre eux »)
     elif q in _QP_DE_PL and q != 'un':                          # beaucoup/peu/bien + de(s) N → pluriel (accord complément)
