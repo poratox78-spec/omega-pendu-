@@ -12724,7 +12724,7 @@ window.addEventListener('DOMContentLoaded', () => {
   //       l'édition ailleurs. Couche « appliquée par défaut » (jadis silencieuse) = accents + grammaire ROUGE span1 +
   //       candidats phonétiques span1 ; orange + élision/mover = au clic.
   function _ckey(from,to){return deaccS(String(from).toLowerCase())+'|'+String(to).toLowerCase();}   // séparateur | (non échappé en HTML) ; la suggestion GARDE ses accents (sinon eleve→élève et eleve→élevé partagent la même clé et basculent ensemble)
-  function _dfltOn(f){if(f.span>=2)return false;if(f.tier==='vigilance')return false;
+  function _dfltOn(f){if(f._fuseOn!=null)return f._fuseOn;if(f.span>=2)return false;if(f.tier==='vigilance')return false;
     if(f.src==='g')return true;if(f.tier==='auto')return true;if(f.tier==='flag'&&f.name==='orthographe')return true;return false;}
   function _isOn(f){return _dfltOn(f)?!_off[f.key]:!!_on[f.key];}
   function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}   // ’ dans la classe : mêmes frontières de tokens que toks() normalisé → index alignés entre analyse et rendu
@@ -12738,7 +12738,10 @@ window.addEventListener('DOMContentLoaded', () => {
         if((_g2.span==null||_g2.span<2)&&_g2.tier!=='vigilance'&&_g2.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(_g2.sugg))_cur[_g2.i]=_g2.sugg;}   // propage le ROUGE span1 mono-mot -> alimente la passe suivante
       if(!_add)break;}
     var gf=Object.keys(_gbt).map(function(k){return _gbt[k];});gf.forEach(function(f){f.word=_T[f.i];f.src='g';});
-    var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null){f.src='s';byTok[f.i]=f;}});   // grammaire prioritaire par token
+    var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null){f.src='s';byTok[f.i]=f;}
+      else if(f.span>=2&&(byTok[f.i].span==null||byTok[f.i].span<2)&&byTok[f.i].tier!=='vigilance'&&typeof f.sugg==='string'&&typeof byTok[f.i].sugg==='string'){   // COLLISION : grammaire mono-mot (majuscule/accent) sur le 1er mot d'un span:2 speller (espacement/répétition/trait) → FUSIONNER, sinon l'espace/tiret est perdu (« bonjour,je »→« Bonjour,je »)
+        var _gm=byTok[f.i],_ow=_T[f.i];
+        if(f.sugg.slice(0,_ow.length)===_ow){f.sugg=_gm.sugg+f.sugg.slice(_ow.length);f.src='s';f._fuseOn=_dfltOn(_gm);byTok[f.i]=f;}}});   // le span reprend la correction grammaire en préfixe (→« Bonjour, je ») et hérite son défaut on/off
     var list=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};list.forEach(function(f){if(f.span>=2)for(var c=1;c<f.span;c++)_cov[f.i+c]=1;});list=list.filter(function(f){return !_cov[f.i];});
     list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});return list.filter(function(f){return !_ignored[f.key];});}
