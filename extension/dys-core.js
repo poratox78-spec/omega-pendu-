@@ -157,6 +157,7 @@
     if(i+1<T.length&&pluralSubj&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&_ppBase(T[i+1])!==null&&/[sx]$/.test(nxt)&&_clauseNoFiniteVerb(T,i))return 'sont';   // « les enfants son partis »→sont
     return null;}
   var IRREG_PART={eu:1,pu:1,du:1,su:1,vu:1,lu:1,tenu:1,venu:1,devenu:1,revenu:1,voulu:1,valu:1,fallu:1,connu:1,reconnu:1,paru:1,apparu:1,disparu:1,couru:1,recu:1,mort:1,fait:1,refait:1,dit:1,redit:1,ecrit:1,decrit:1,mis:1,remis:1,permis:1,promis:1,pris:1,appris:1,compris:1,surpris:1,ouvert:1,offert:1,couvert:1,souffert:1,peri:1,acquis:1,conquis:1,assis:1,vecu:1,plu:1,cru:1,bu:1,tu:1};
+  var _PP_U_EXTRA={abattu:1,accouru:1,advenu:1,apercu:1,appartenu:1,attendu:1,battu:1,chu:1,combattu:1,conclu:1,concu:1,confondu:1,contenu:1,convaincu:1,convenu:1,corrompu:1,cousu:1,debattu:1,dechu:1,decu:1,defendu:1,deplu:1,depourvu:1,descendu:1,detendu:1,detenu:1,elu:1,emu:1,entendu:1,entretenu:1,etendu:1,exclu:1,fendu:1,fondu:1,foutu:1,interrompu:1,intervenu:1,maintenu:1,mordu:1,obtenu:1,parcouru:1,parvenu:1,pendu:1,percu:1,perdu:1,pondu:1,pourvu:1,pretendu:1,prevenu:1,prevu:1,promu:1,reapparu:1,recousu:1,redevenu:1,reelu:1,relu:1,rendu:1,repandu:1,repondu:1,resolu:1,retenu:1,revendu:1,revu:1,rompu:1,secouru:1,soutenu:1,souvenu:1,survecu:1,survenu:1,suspendu:1,tendu:1,tondu:1,tordu:1,vaincu:1,vendu:1,vetu:1};   /* PP -u accord (SÉPARÉ d'IRREG_PART pour garder l'abstention « j'est entendu ») */
   // GARDE anti-FP (abstention seule) : participe passé au sens LARGE — -u/-i/-is/-it/-é des verbes -re/-oir/-ire/-uire
   // que _isPpl (strict, anti-noms) écarte. Miroir _looks_ppl (correcteur_probe). Ne JAMAIS s'en servir pour DÉCIDER une correction.
   function _looksPpl(w){if(_isPpl(w))return true;var lw=w.toLowerCase(),d=deacc(lw);if(d.length<3)return false;
@@ -579,7 +580,7 @@
     if(PP_STOP[d])return null;
     var inf=_inf1(w);if(inf)return inf.slice(0,-2)+'é';
     if((m=/(ies|ie|is|i)$/.exec(lw))){cut={ies:3,ie:2,is:2,i:1}[m[1]];base=lw.slice(0,-cut)+'i';return COMMON_VERBS[deacc(base+'r')]?base:null;}
-    if((m=/(ues|ue|us|u)$/.exec(lw))){cut={ues:3,ue:2,us:2,u:1}[m[1]];base=lw.slice(0,-cut)+'u';return IRREG_PART[deacc(base)]?base:null;}
+    if((m=/(ues|ue|us|u)$/.exec(lw))){cut={ues:3,ue:2,us:2,u:1}[m[1]];base=lw.slice(0,-cut)+'u';return (IRREG_PART[deacc(base)]||_PP_U_EXTRA[deacc(base)])?base:null;}
     if((m=/(es|s|e)$/.exec(lw))){cut={es:2,s:1,e:1}[m[1]];if(PP_IRR_CONS[deacc(lw.slice(0,-cut))])return lw.slice(0,-cut);}
     return PP_IRR_CONS[d]?lw:null;}
   /* === Accord du PARTICIPE PASSÉ avec AVOIR + COD ANTÉPOSÉ (relatif « que ») — miroir rule_pp_avoir_cod (parité) === */

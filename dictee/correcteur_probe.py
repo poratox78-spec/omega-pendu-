@@ -57,6 +57,17 @@ IRREG_PART = {'eu','pu','du','su','vu','lu','tenu','venu','devenu','revenu','vou
               'paru','apparu','disparu','couru','recu','deçu','dequ','mort','fait','refait','dit','redit','ecrit',
               'decrit','mis','remis','permis','promis','pris','appris','compris','surpris','ouvert','offert','couvert',
               'souffert','peri','acquis','conquis','assis','vecu','plu','cru','bu','tu'}
+# PP en -u fréquents SUPPLÉMENTAIRES (Lexique4, par:pas, freq≥0.5) pour l'ACCORD du participe (rule_pp_etre / rule_pp_avoir_cod
+# via _pp_base) : « intervenu/parvenu/survenu/obtenu/attendu/entendu/mordu/descendu… ». SÉPARÉ d'IRREG_PART À DESSEIN :
+# _is_ppl (règle « j'est ») consulte IRREG_PART SEUL, pour GARDER son abstention sur « j'est entendu » (avoir↔passif ambigu,
+# cf. recall_probe). Mesuré Δ+0 FP sur 2500 UD. (Idéal futur : dériver ces bases de Lexique dans build_cgram, cf. doctrine.)
+_PP_U_EXTRA = {'abattu','accouru','advenu','apercu','appartenu','attendu','battu','chu','combattu','conclu','concu',
+               'confondu','contenu','convaincu','convenu','corrompu','cousu','debattu','dechu','decu','defendu','deplu',
+               'depourvu','descendu','detendu','detenu','elu','emu','entendu','entretenu','etendu','exclu','fendu',
+               'fondu','foutu','interrompu','intervenu','maintenu','mordu','obtenu','parcouru','parvenu','pendu','percu',
+               'perdu','pondu','pourvu','pretendu','prevenu','prevu','promu','reapparu','recousu','redevenu','reelu',
+               'relu','rendu','repandu','repondu','resolu','retenu','revendu','revu','rompu','secouru','soutenu',
+               'souvenu','survecu','survenu','suspendu','tendu','tondu','tordu','vaincu','vendu','vetu'}
 
 # Couverture verbale élargie SANS le lexique 34 Mo : liste BLANCHE de formes fréquentes (exactes → 0 FP par
 # sur-généralisation). Stopgap avant Lexique4 cgram (étape 3). Désaccentué, minuscule.
@@ -624,7 +635,7 @@ def _pp_base(w):
     for suf, cut in (('ues', 3), ('ue', 2), ('us', 2), ('u', 1)):  # -u irrégulier : venu/venue/venus/venues
         if lw.endswith(suf):
             base = lw[:-cut] + 'u'
-            return base if deacc(base) in IRREG_PART else None
+            return base if (deacc(base) in IRREG_PART or deacc(base) in _PP_U_EXTRA) else None
     for suf, cut in (('es', 2), ('s', 1), ('e', 1)):               # mort/né (base consonne/é) : morte/morts/mortes…
         if lw.endswith(suf) and deacc(lw[:-cut]) in _PP_IRR_CONS: return lw[:-cut]
     return lw if d in _PP_IRR_CONS else None
