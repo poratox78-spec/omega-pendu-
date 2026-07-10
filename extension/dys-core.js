@@ -291,7 +291,7 @@
     return null;}
   var CONJ_WORDS={};('et ou ni mais car donc or que qu qui quand comme si lorsque puisque dont lequel laquelle lesquels lesquelles').split(' ').forEach(function(w){CONJ_WORDS[w]=1;});
   // accord sujet-VERBE à sujet NOM via le VRAI PARSEUR _npSubject (sujet ÉLOIGNÉ, mots-écrans « de X ») — MIROIR correcteur_probe.rule_accord_sv_noun, FP=0
-  function rAccordSVnoun(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
+  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;   // vig=true : jumeau ORANGE (retire la garde clause-init) pour la vigilance sujet-verbe mid-phrase
     if(/(é|és|ée|ées)$/.test(lw))return null;                                  // participe → accord adjectival
     if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;                         // dét juste avant → T[i] = nom
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;                     // verbe fini jamais gouverné par de/des/par/à… → nom homographe
@@ -311,7 +311,7 @@
     var hc=T[hk].charAt(0);if(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase()))return null;   // nom-tête propre/titre
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){if(T[m].indexOf("'")>=0||T[m].indexOf('’')>=0)return null;}   // élision → clause complexe → abstention
-    for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                          // sujet EN TÊTE de proposition (adverbes antéposés seulement)
+    if(!vig)for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) ; RETIRÉ en mode vig (orange couvre le mid-phrase)
     for(m=hk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());                // garde structure nom-tête → verbe : compléments prépositionnels SEULEMENT
       if(CONJ_WORDS[dw])return null;                                           // coordination/relative
       if(/[,;:()\[\]«»"]/.test(tk))return null;                               // ponctuation
@@ -897,6 +897,8 @@ function spellUnknown(tok,atStart,T,idx){
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (rouge = sujet en tête FP=0 ; orange = le reste). DOCTRINE : doute → orange, jamais silence. Fusion grammaire-prioritaire : le rouge gagne au même token.
+      if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
       var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
