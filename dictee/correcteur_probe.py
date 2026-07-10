@@ -1820,6 +1820,14 @@ try:
         NOUN_POST = json.load(_f)
 except (OSError, ValueError):
     NOUN_POST = {}
+# Formes NOM attestées STRICTEMENT plurielles dans Lexique4 (cgram_plural.json, build_cgram) — vrais pluriels, invariables
+# (fils/paix/taux) et pluriels à nombre vide EXCLUS. Sert la voie RELÂCHÉE de rule_noun_singular (« la boites »).
+PLURAL_NOUNS = set()
+try:
+    with open(os.path.join(HERE, 'cgram_plural.json'), encoding='utf-8') as _f:
+        PLURAL_NOUNS = set(json.load(_f))
+except (OSError, ValueError):
+    PLURAL_NOUNS = set()
 PL_TAU_M, PL_EPS_M, PL_ANCHOR_M = 500, 10, 300   # P(NOM)≥0.5 / P(VER)<0.01 / ancre P(NOM)≥0.3 (en ‰) — mesuré ε=0.01 : +3 récup., +1 FP (UD)
 
 def _noun_gate(n):                                              # §3 : nom-dominant ET masse verbe négligeable
@@ -1885,13 +1893,22 @@ def rule_noun_singular(T, i):
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 4 or dn[-1] not in 'sx' or dn in _SG_STOP or dn in NOUN_PL_STOP: return None   # doit finir s/x (pluriel apparent) ; invariant/piège → abstention
-    if not _noun_gate(n): return None                           # le PLURIEL doit être NOM-dominant (P(NOM)≥τ ∧ P(VER)<ε) → écarte « le savons » (verbe), « un très » (adverbe), « un sous » (prép)
     nx = T[i + 1] if i + 1 < len(T) else ''
     if nx[:1].islower() and nx.isalpha():                       # nom composé (« le vice présidents ») : nom + NOM confiant NON-verbe → 1er souvent invariable → abstention
         pp = NOUN_POST.get(deacc(nx.lower()))                   #   (P(VER)<ε : un VERBE qui suit — « chaque jours compte » — n'est PAS un composé)
         if pp and pp[0] >= PL_TAU_M and pp[1] < PL_EPS_M and deacc(nx.lower()) not in ADJ_LEX: return None
-    sg = _singularize_noun(n)                                   # forme singulière ANCRÉE (nom confiant) — écarte les invariants (temps→temp)
-    return sg if (sg and deacc(sg.lower()) != dn) else None
+    if _noun_gate(n):                                           # VOIE FRÉQUENTIELLE : le PLURIEL est NOM-dominant (P(NOM)≥τ ∧ P(VER)<ε) → « une voitures »→voiture
+        sg = _singularize_noun(n)                              #   forme singulière ANCRÉE (nom confiant) — écarte les invariants (temps→temp)
+        if sg and deacc(sg.lower()) != dn: return sg
+    # VOIE RELÂCHÉE : pluriel homographe d'un VERBE (« la boites » = boiter 3sg) que le posterior fréquentiel écarte à
+    # tort. Le déterminant singulier + le TAGGER (contexte → NOUN) + le LEXIQUE (forme STRICTEMENT plurielle, singulier
+    # connu) le tranchent. FP=0 mesuré (UD) : mois écartés par le singulier non-nom (mars→mar), composés par le trait d'union.
+    if dn.endswith('s') and dn in PLURAL_NOUNS and dn[:-1] in GENDER_PURE:
+        if _SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None   # composé à trait d'union (« la sous-famille »)
+        tg = pos_tags(T)
+        if tg and i < len(tg) and tg[i] == 'NOUN':
+            return n[:-1]                                       # -s retiré, accents/casse préservés (« boîtes »→« boîte »)
+    return None
 
 # a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu : homophones À RÔLE GRAMMATICAL (verbe vs prép/det/conj).
 # Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
