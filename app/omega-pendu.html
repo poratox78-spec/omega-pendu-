@@ -12558,6 +12558,21 @@ window.addEventListener('DOMContentLoaded', () => {
       if(tg[j]!=='NOUN'&&tg[j]!=='ADJ'&&tg[j]!=='DET')break;
     }
     return null;}
+  // ACCORD PARTICIPE après ÊTRE 3pl (« les élèves sont arrivé »→arrivés) → VIGILANCE orange. Le participe (tagué VERB,
+  // hors nom/adj homographe en -té) après « sont/étaient/furent/êtes » s'accorde au sujet pluriel. Le TROU des adj est
+  // déjà pris (pluralVig/adj-attr) ; ici les PARTICIPES tagués VERB. Gardes MESURÉES (UD, 2 FP→~0) : pronominal exclu
+  // (« se sont succédé » invariable), être IMMÉDIAT (pas de scan lointain), nom/adj homographe exclu. Genre : elles→f, sinon m (à vérifier).
+  function participeEtreVig(T,tg,i){
+    if(!tg||i<1||i>=tg.length||tg[i]!=='VERB')return null;
+    var w=T[i];if(!/é$/.test(w.toLowerCase()))return null;
+    var dd=deaccS(w.toLowerCase());if(dd.length<4||GENDER_PURE[dd])return null;
+    var a=-1;for(var j=i-1;j>=0&&j>=i-2;j--){var dj=deaccS(T[j].toLowerCase());
+      if(dj==='sont'||dj==='etaient'||dj==='furent'||dj==='seront'||dj==='etes'){a=j;break;}
+      if(tg[j]!=='ADV')return null;}
+    if(a<1)return null;
+    var pvw=T[a-1].toLowerCase();if(deaccS(pvw)==='se'||pvw.indexOf("'")>=0)return null;
+    var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deaccS(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
+    return w+(fem?'es':'s');}
   // ACCORD SUJET-VERBE à sujet-NOM MID-phrase (« Ce matin, les clients acceptait »→acceptaient) → VIGILANCE orange.
   // Le det pluriel peut être dans un titre/apposition/PP (~0,03 % FP mesuré) → pas assez sûr pour le ROUGE, mais idéal
   // en « à vérifier ». Gaté sur clause-init (dk après frontière _SEG, dk≠0 = le début-phrase est déjà rouge via rAccordSVnoun).
@@ -12598,6 +12613,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){out.push({i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (le rouge se limite au sujet en tête = FP=0 ; l'orange couvre le reste). DOCTRINE : doute → orange, jamais silence. Le rouge gagne au même token (fusion grammaire-prioritaire).
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}

@@ -904,11 +904,25 @@ function spellUnknown(tok,atStart,T,idx){
   var _OUV={};'est sont etait etaient sera seront es vas va vais allons allez vont habite habites habitent habitait vis vit vivent'.split(' ').forEach(function(x){_OUV[x]=1;});
   function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
     return (_OUV[nx]||nx==='se'||nx==='ce'||nx==='je'||nx==='tu'||nx==='il'||nx==='elle'||nx==='nous'||nx==='vous'||nx==='ils'||nx==='elles')?'où':null;}   // + « ou » + pronom sujet (ou je/il/tu…) → où probable (relatif/interrogatif) ; 'on' EXCLU (« ou on…, ou on… » either/or). ORANGE (à vérifier), 0 faux sur 2500 UD.   // « ce » = graphie dys fréquente de « se » (« ou ce trouve la gare »)
+  // ACCORD PARTICIPE après ÊTRE 3pl (« les élèves sont arrivé »→arrivés) → VIGILANCE orange. Miroir app : participe (VERB,
+  // hors nom/adj homographe -té) après sont/étaient/furent/êtes → accord pluriel. Gardes mesurées : pronominal/être-immédiat/homographe.
+  function participeEtreVig(T,tg,i){
+    if(!tg||i<1||i>=tg.length||tg[i]!=='VERB')return null;
+    var w=T[i];if(!/é$/.test(w.toLowerCase()))return null;
+    var dd=deacc(w.toLowerCase());if(dd.length<4||GENDER_PURE[dd])return null;
+    var a=-1;for(var j=i-1;j>=0&&j>=i-2;j--){var dj=deacc(T[j].toLowerCase());
+      if(dj==='sont'||dj==='etaient'||dj==='furent'||dj==='seront'||dj==='etes'){a=j;break;}
+      if(tg[j]!=='ADV')return null;}
+    if(a<1)return null;
+    var pvw=T[a-1].toLowerCase();if(deacc(pvw)==='se'||pvw.indexOf("'")>=0)return null;
+    var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
+    return w+(fem?'es':'s');}
   function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){out.push({i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (rouge = sujet en tête FP=0 ; orange = le reste). DOCTRINE : doute → orange, jamais silence. Fusion grammaire-prioritaire : le rouge gagne au même token.
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
