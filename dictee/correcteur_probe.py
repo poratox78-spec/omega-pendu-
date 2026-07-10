@@ -1703,6 +1703,20 @@ def rule_du_de(T, i):
         return 'de'
     return None
 
+
+def rule_du_du(T, i):
+    """« du » (de+le) vs « dû » (participe de DEVOIR). « avoir + du + INFINITIF » → dû (« j'ai du partir »→dû,
+    « il a du travailler »→dû). FP=0 : le partitif « du » précède un NOM, JAMAIS un infinitif ; et « avoir + dû +
+    infinitif » = devoir. Gain sur le trou du/dû (homophone dys fréquent, non couvert avant)."""
+    if deacc(T[i].lower()) != 'du' or "'" in T[i].lower() or i + 1 >= len(T): return None
+    if not _is_infinitive(T[i + 1]): return None                        # « du » + INFINITIF (écarte « du pain/courage » = partitif + nom)
+    for k in range(i - 1, max(-1, i - 4), -1):                          # auxiliaire AVOIR en remontant (adverbes/négation tolérés)
+        tk = T[k].lower(); dk = deacc(tk)
+        if dk in _AVOIR_AUX or tk in _AVOIR_JE: return _keepcase(T[i], 'dû')
+        if dk in _PP_MID: continue
+        return None
+    return None
+
 # Adjectifs prédicatifs PURS (≠ verbe/nom/participe) — « j'est <adj> » → « je suis <adj> » (être copule). Liste
 # CLOSE volontaire = PARITÉ stricte app/extension/Python (pas de divergence de lexique HF). Désaccentué.
 CADJ = set("content contente contents contentes malade malades triste tristes heureux heureuse heureuses "
@@ -1890,7 +1904,7 @@ RULES = [('élision inversée', rule_deselide),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
-         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de),
+         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_accord_sv_recover),
@@ -2017,6 +2031,7 @@ CASES = [
     ("Ils sont contents", "sont", "son", "aux mal orthographié"),
     # du/de : « du » (=de+le) + article = impossible → « de »
     ("Il revient de la maison", "de", "du", "du/de"),
+    ("j'ai dû partir tôt", "dû", "du", "du/dû"),                          # avoir + du + infinitif → dû (participe de devoir)
     # terminaison -er/-é/-ez/-ai tranchée par le gouverneur (test mordre/mordu)
     ("Vous signez le document", "signez", "signer", "terminaison -er/-é/-ez/-ai"),      # vous → -ez
     ("Demain je noterai le numéro", "noterai", "noté", "terminaison -er/-é/-ez/-ai"),   # je → futur -ai
