@@ -164,6 +164,18 @@
     <div class="panel" style="margin-top:18px"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">LA SELLE HYPERBOLIQUE — modèle local au voisinage de (1,1)</div><div style="position:relative;height:360px"><canvas id="c3sad" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div><div style="font-size:11px;color:var(--dim);margin-top:6px;font-family:var(--mono)">selle = K&lt;0 · ligne claire = géodésique β=1 · point or = (1,1) · illustration locale (pas d'embedding global — Hilbert)</div></div>
   </section>
 
+  <section class="fade">
+    <p class="kicker">la même loi, trois moteurs</p>
+    <h2>Arbitrer entre deux voies — partout</h2>
+    <p class="note">Cette loi n'est pas propre au pendu. Le même arbitrage <b style="color:var(--ortho);font-weight:400">ortho</b> ↔ <b style="color:var(--phon);font-weight:400">phon / contexte</b> gouverne trois moteurs. C'est le <b>modèle du canal bruité</b> (noisy-channel, Kernighan–Church–Gale 1990) : choisir le mot w = argmax P(w)·P(s|w)<sup>λ</sup> — où λ règle le poids d'une voie contre l'autre. <b>λ, c'est le α</b> de la courbe plus haut ; (1,1) est le poids neutre.</p>
+    <div class="cards" style="margin-top:18px">
+      <div class="card"><div class="k">le pendu — choix de la lettre</div><div class="v" style="font-size:15px;color:var(--phon)">arbitre OS</div><div class="s">μ(r)=r<sup>α</sup>/(β+r<sup>α</sup>), r = signal phon ⁄ signal ortho, θ=(1,1) neutre. C'est la loi ci-dessus. <b>Mesuré</b> (les surfaces winrate/cohérence).</div></div>
+      <div class="card"><div class="k">la dictée — épellation</div><div class="v" style="font-size:15px;color:var(--ortho)">décodeur p2g</div><div class="s">croise émission(son) × prior(ortho) sur la segmentation latente — le canal bruité, inversé (phon→ortho). <b>Mesuré</b> (tenu à l'écart).</div></div>
+      <div class="card"><div class="k">le correcteur — choix du candidat</div><div class="v" style="font-size:15px;color:var(--sym)">la frontière</div><div class="s">pèse proximité d'édition, fréquence et contexte grammatical. Aujourd'hui à <b>seuils réglés à la main</b> ; la loi les remplacerait par une seule courbe.</div></div>
+    </div>
+    <p class="note" style="font-size:13px;margin-top:14px;color:var(--mut)">Honnêteté (banc 07/2026) : sur le correcteur, l'arbitrage de principe <b>égale</b> les seuils réglés à la main — sans les battre encore. Le mur y est le <b>modèle de canal orthographique</b> (pièges de fréquence), pas le poids. La forme est juste ; la calibration reste ouverte.</p>
+  </section>
+
   <footer class="verdict fade">
     <p class="kicker">verdict</p>
     <h2>(1,1) n'est pas un sommet de performance</h2>
