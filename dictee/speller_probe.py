@@ -173,6 +173,8 @@ class Speller:
         """-> (action 'auto'|'flag', suggestion) ou None. toks/idx = contexte (accord genre/nombre)."""
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')   # normalise la ligature (cœur→coeur : lexique en digraphe)
         if len(low) < 2 or not all(deacc(ch) in ALPHA for ch in low): return None
+        _oel = {'soeur': 'sœur', 'soeurs': 'sœurs', 'coeur': 'cœur', 'coeurs': 'cœurs', 'choeur': 'chœur', 'choeurs': 'chœurs', 'oeuf': 'œuf', 'oeufs': 'œufs', 'oeuvre': 'œuvre', 'oeuvres': 'œuvres', 'boeuf': 'bœuf', 'boeufs': 'bœufs', 'oeil': 'œil', 'voeu': 'vœu', 'voeux': 'vœux', 'noeud': 'nœud', 'noeuds': 'nœuds', 'moeurs': 'mœurs', 'manoeuvre': 'manœuvre', 'manoeuvres': 'manœuvres', 'oeillet': 'œillet', 'oeillets': 'œillets', 'oesophage': 'œsophage', 'foetus': 'fœtus'}
+        if low in _oel and 'œ' not in tok and 'Œ' not in tok: return ('flag', _oel[low])   # LIGATURE œ (« soeur »→« sœur »). Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app/ext.
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
