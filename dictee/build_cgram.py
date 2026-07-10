@@ -150,7 +150,7 @@ def main():
                         # attrape « je serait »→serais, « que tu fait »→fasses). EXCLUS car FP mesurés : passé simple (ind:pas :
                         # « tentèrent/fut/apprit » homographes rares) et futur (ind:fut : Δ+1 « aucun d'eux ne seront »=tolérance).
                         if len(pp) == 3 and pp[2] in ('1', '2', '3') and (
-                                (pp[0] == 'ind' and pp[1] in ('pre', 'imp'))
+                                (pp[0] == 'ind' and pp[1] in ('pre', 'imp', 'fut'))
                                 or pp[0] == 'cnd'
                                 or (pp[0] == 'sub' and pp[1] == 'pre')):
                             fin.append((pp[0] + ':' + pp[1], pp[2]))
@@ -294,7 +294,7 @@ def main():
     for _lem, _xd in cj_x.items():
         _imp = {f for f, _fr, _sp in _xd.get('ind:imp', [])}
         for _mt, _xs in _xd.items():
-            if _mt not in ('ind:pre', 'cnd:pre', 'sub:pre') or not _xs:
+            if _mt not in ('ind:pre', 'cnd:pre', 'sub:pre', 'ind:fut') or not _xs:   # ind:fut : 3p en -ont (seront/auront)
                 continue
             _pres = cj_c.setdefault(_lem, {}).setdefault(_mt, {})
             _forms = {f for f, _fr, _sp in _xs}
