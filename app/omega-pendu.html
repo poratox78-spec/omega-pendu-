@@ -12379,7 +12379,9 @@ window.addEventListener('DOMContentLoaded', () => {
       var obj=JSON.parse(await new Response(st).text());if(obj&&obj.tags)_HMM=obj;
       if(typeof runCorr==='function')runCorr();
     }catch(e){}}
+  var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
+    if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
     var M=_HMM;if(!M||!M.tags||!T||!T.length)return null;
     var tags=M.tags,tr=M.trans,em=M.emit,suf=M.suf,pri=M.prior,FL=M.floor;
     function lt(a,b){var r=tr[a];return (r&&b in r)?r[b]:FL;}
@@ -12400,7 +12402,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var best2=-1e18,bt=null;
     for(i=0;i<tags.length;i++){t=tags[i];var sc2=V[n-1][t]+lt(t,'</s>');if(sc2>best2){best2=sc2;bt=t;}}
     var seq=[bt];for(i=n-1;i>0;i--)seq.push(bk[i][seq[seq.length-1]]);
-    return seq.reverse();
+    var _r=seq.reverse();if(_tgCache&&T)_tgCache.set(T,_r);return _r;
   }
   // VOIE GRAMMAIRE dans le speller (accord genre/nombre du contexte) — miroir Python
   var SDET_NUM={le:'s',la:'s',un:'s',une:'s',ce:'s',cet:'s',cette:'s',mon:'s',ma:'s',ton:'s',ta:'s',son:'s',sa:'s',les:'p',des:'p',ces:'p',mes:'p',tes:'p',ses:'p',nos:'p',vos:'p',leurs:'p'};
