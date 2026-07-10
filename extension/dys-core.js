@@ -276,7 +276,7 @@
     if(svAgrees(reads,per,nb))return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux+participe) → T[i]=participe, pas un verbe fini à accorder
     var lem=null,k,mts={},uni=true;for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     if(!svAgrees(svReads(sugg),per,nb))return null;return sugg;}
   // « le pronom PLURIEL est révélateur » (Rem) : ils/elles + verbe mal conjugué ABSENT du lexique (« elles sente ») →
   // radical+ent = forme 3p confirmée → on corrige. FP=0 (cf. correcteur_probe.rule_accord_sv_recover).
@@ -320,7 +320,7 @@
       if(NUM_DET[tk.toLowerCase()]&&!PREP[dw]&&!(m>0&&PREP[deacc(T[m-1].toLowerCase())]))return null;}   // 2e GN non prépositionnel
     for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;      // déjà d'accord
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots['3'+nb];if(!sugg)return null;
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];if(mt==='ind:pas'&&!vig)return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots['3'+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]==='3'&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;if(!okk)return null;return sugg;}
   // accord sujet-VERBE à sujet PRONOM/QUANTIFIEUR indéfini — MIROIR correcteur_probe.rule_accord_sv_quant, FP=0
   var _QP_SG={};'chacun chacune quiconque personne rien aucun aucune nul nulle'.split(' ').forEach(function(w){_QP_SG[w]=1;});_QP_SG["quelqu'un"]=1;
@@ -330,7 +330,7 @@
   var _QP_GAP_OK={entre:1,en:1};Object.keys(PREP).forEach(function(w){_QP_GAP_OK[w]=1;});
   function _svFinish(T,i,per,nb,p3){var k;for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
   function rAccordSVquant(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
     if(/(é|és|ée|ées)$/.test(lw))return null;
@@ -384,7 +384,7 @@
       if(NUM_DET[dd])nb=NUM_DET[dd]==='pl'?'p':'s';else if(_QUANT_PL[dd])nb='p';else if(_QUANT_SG[dd])nb='s';else return null;}
     for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return null;
     var lem=null,uni=true,mts={};for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
   // accord sujet-VERBE à sujets COORDONNÉS — MIROIR correcteur_probe.rule_accord_sv_coord, FP=0
   var _COORD_PRON={moi:'1',nous:'1',toi:'2',vous:'2',lui:'3',elle:'3',soi:'3',eux:'3',elles:'3'};
@@ -414,7 +414,7 @@
     var per=''+perRank,nb='p',k;
     for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return null;
     var lem=null,uni=true,mts={};for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
   // accord sujet-VERBE à sujet INFINITIF — MIROIR correcteur_probe.rule_accord_sv_infinitif, FP=0
   function _isInfinitive(w){var d=deacc(w.toLowerCase());return !!COMMON_VERBS[d]&&(/er$/.test(d)||/ir$/.test(d)||/re$/.test(d)||/oir$/.test(d));}
