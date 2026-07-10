@@ -12609,6 +12609,13 @@ window.addEventListener('DOMContentLoaded', () => {
       for(var si=0;si<P.length-1;si++){if(done[si]||done[si+1])continue;
         var sgap=text.slice(P[si][1],P[si+1][0]);if(!/^[,;:?!]$/.test(sgap))continue;var sw1=P[si][2],sw2=P[si+1][2];
         out.push({i:si,word:sw1,sugg:(sgap===','?sw1+', '+sw2:sw1+' '+sgap+' '+sw2),name:'espacement',tier:'flag',span:2});done[si]=done[si+1]=1;}
+      // TRAIT D'UNION manquant dans une LOCUTION FIGÉE non-ambiguë (« au dessus »→« au-dessus », « là bas »→« là-bas », « ci joint »→« ci-joint »). FP=0 mesuré : liste CURÉE d'expressions dont la forme sans trait n'a AUCUNE lecture correcte (les ambiguës « peut être »=verbe, « belle mère »=adj+nom sont EXCLUES). Clé = deacc(« w1 w2 ») → forme canonique accentuée.
+      var _HYPHLOC={'au dessus':'au-dessus','au dessous':'au-dessous','au dela':'au-delà','la bas':'là-bas','la haut':'là-haut','la dessus':'là-dessus','la dessous':'là-dessous','la dedans':'là-dedans','ci dessus':'ci-dessus','ci dessous':'ci-dessous','ci contre':'ci-contre','ci joint':'ci-joint','ci jointe':'ci-jointe','ci apres':'ci-après','ci git':'ci-gît','par dessus':'par-dessus','par dessous':'par-dessous','week end':'week-end','week ends':'week-ends','porte monnaie':'porte-monnaie'};
+      for(var hli=0;hli<P.length-1;hli++){if(done[hli]||done[hli+1])continue;
+        if(!/^\s+$/.test(text.slice(P[hli][1],P[hli+1][0])))continue;
+        var hlk=deaccS(P[hli][2].toLowerCase())+' '+deaccS(P[hli+1][2].toLowerCase()),hlv=_HYPHLOC[hlk];if(!hlv)continue;
+        if(P[hli][2][0]!==P[hli][2][0].toLowerCase())hlv=hlv.charAt(0).toUpperCase()+hlv.slice(1);
+        out.push({i:hli,word:P[hli][2],sugg:hlv,name:"trait d'union",tier:'flag',span:2});done[hli]=done[hli+1]=1;}
       // MOVER impératif : corrections multi-tokens (placement des pronoms) → span:N
       var mv=_impMoves(text);
       for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],B=mv[mi][1],ki=-1,kj=-1;
