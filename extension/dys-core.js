@@ -469,7 +469,9 @@
   function loadPosHmm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
     var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
     setPosHmm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
+  var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
+    if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
     var M=_HMM;if(!M||!M.tags||!T||!T.length)return null;
     var tags=M.tags,tr=M.trans,em=M.emit,suf=M.suf,pri=M.prior,FL=M.floor;
     function lt(a,b){var r=tr[a];return (r&&b in r)?r[b]:FL;}
@@ -490,7 +492,7 @@
     var best2=-1e18,bt=null;
     for(i=0;i<tags.length;i++){t=tags[i];var sc2=V[n-1][t]+lt(t,'</s>');if(sc2>best2){best2=sc2;bt=t;}}
     var seq=[bt];for(i=n-1;i>0;i--)seq.push(bk[i][seq[seq.length-1]]);
-    return seq.reverse();
+    var _r=seq.reverse();if(_tgCache&&T)_tgCache.set(T,_r);return _r;
   }
   var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée (parité NUM_DET pluriel)
   var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1,quanta:1,addenda:1,errata:1,curricula:1,strata:1};
