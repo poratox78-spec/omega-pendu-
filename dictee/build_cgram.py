@@ -94,6 +94,7 @@ def main():
         gfreq = {}                                       # forme NOM → fréquence max
         nom_lem_g = {}                                    # lemme → {genres nets} : hériter le genre des formes à genre VIDE (Lexique4)
         nom_empty = []                                    # (forme_déacc, lemme_déacc) des NOMs à genre VIDE → complétés par héritage de lemme
+        nom_num = {}                                       # forme NOM → {nombres attestés} : 'p' STRICT (jamais 's') = vrai pluriel (règle accord dét↔nom, FP=0)
         adjp = {}                                         # (lemme, nombre) → {'m':forme_acc, 'f':forme_acc}
         adjg = {}                                         # déacc(forme ADJ) → {genres vus} (écarte l'ambigu)
         adjfreq = {}                                      # déacc(forme ADJ) → fréquence max
@@ -171,6 +172,8 @@ def main():
             if cg.startswith('NOM'):
                 g = row[c_genre].strip().lower() if (0 <= c_genre < len(row)) else ''
                 lem = deacc(row[c_lemme].strip().lower()) if (0 <= c_lemme < len(row)) else ''
+                _nb = row[c_nombre].strip().lower()[:1] if (0 <= c_nombre < len(row)) else ''
+                if _nb in ('s', 'p'): nom_num.setdefault(w, set()).add(_nb)   # nombre attesté (pour « la boites » : dét sg + nom pluriel)
                 if g in ('m', 'f'):                       # genre marqué dans le lexique
                     gset.setdefault(w, set()).add(g)
                     gfreq[w] = max(gfreq.get(w, 0.0), fr)
@@ -386,6 +389,15 @@ def main():
     json.dump(gender, open(OUT_GENDER, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[gender] {len(gender)} noms à genre non ambigu (+{amb} ambigus écartés : tour, livre…) → {OUT_GENDER}")
 
+    # NOMBRE : formes NOM attestées STRICTEMENT pluriel ('p' et jamais 's') = vrais pluriels. Les invariables (fils, paix,
+    # taux, relais…) et les pluriels à nombre VIDE dans Lexique4 sont ÉCARTÉS → on ne flague que le certain (FP=0).
+    # Sert la règle « accord déterminant↔nom » (« la boites » : dét singulier + nom pluriel). Cf. sœur/genre (#115) : même
+    # discipline — on n'affirme que ce que Lexique atteste, on s'abstient sur le vide.
+    OUT_PLURAL = os.path.join(HERE, 'cgram_plural.json')
+    plural = sorted(w for w, ns in nom_num.items() if ns == {'p'})
+    json.dump(plural, open(OUT_PLURAL, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    print(f"[plural] {len(plural)} formes NOM strictement pluriel (accord dét↔nom) → {OUT_PLURAL}")
+
     # adjectifs : paires genre (forme → [genre, contrepartie de l'autre genre, même nombre]). Épicènes/ambigus écartés (FP=0).
     adj = {}
     for (lem, nb), d in adjp.items():
@@ -431,10 +443,13 @@ def main():
     # Pré-filtré avec les lexiques PLEINS (verbs 12k, adj 16k) → l'app n'a qu'à tester l'appartenance : jamais
     # d'homographe nom/verbe (« porte ») ni nom/adjectif → parité garantie app ⊆ Python (rule_det_gender).
     hgn = {w: g for w, g in gender.items() if w not in verbs and w not in adj}
-    hf = {'v': hv, 'g': hg, 'gn': hgn, 'a': adj, 'cj': {'f': hcf, 'c': hcc}}   # embed app = verbes + genre HF + genre noms purs + paires adjectif (accord speller) + conjugaison
+    # gp = pluriels STRICTS haute-fréquence, dé-pluralisables (singulier connu dans gender) — règle « la boites » de l'app.
+    # On GARDE les homographes verbaux (« boites » = boiter 2sg) : le tagger tranche à l'exécution (dét→NOUN). FP-safe.
+    hgp = sorted(w for w in plural if gfreq.get(w, 0.0) >= HF_FREQ and w[:-1] in gender)
+    hf = {'v': hv, 'g': hg, 'gn': hgn, 'a': adj, 'cj': {'f': hcf, 'c': hcc}, 'gp': hgp}   # + gp = noms pluriels HF (accord dét↔nom)
     json.dump(hf, open(OUT_HF, 'w', encoding='utf-8', newline=''), ensure_ascii=False, separators=(',', ':'))
     sz = os.path.getsize(OUT_HF)
-    print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés HF + {len(hgn)} noms purs genrés (gn) + {len(hcf)} formes conj → {OUT_HF}  ({sz//1024} Ko)")
+    print(f"[HF] embarquable (freq≥{HF_FREQ}) : {len(hv)} verbes + {len(hg)} noms genrés HF + {len(hgn)} noms purs genrés (gn) + {len(hgp)} pluriels (gp) + {len(hcf)} formes conj → {OUT_HF}  ({sz//1024} Ko)")
     print("        vlike + governor_gender + accord sujet-verbe les chargeront automatiquement.")
     return 0
 
