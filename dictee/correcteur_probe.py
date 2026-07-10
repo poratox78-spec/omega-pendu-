@@ -1601,10 +1601,16 @@ def rule_det_gender(T, i):
     if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) → abstention
     if lw in ('son', 'mon', 'ton') and nd[:1] in 'aeiouyh':        # son/mon/ton OBLIGATOIRES devant voyelle/h (son amie,
         return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
-    if T[i+1][:1].isupper() or nd in DET_SKIP: return None         # nom propre/étranger (capitalisé) OU adverbe/adj/prép. avant le vrai nom-tête → abstention (FP)
-    _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le suivant doit être CONFIDEMMENT un NOM
+    if T[i+1][:1].isupper(): return None                           # nom propre/étranger (capitalisé) → abstention (FP)
+    hi = i + 1                                                      # indice du NOM-TÊTE (défaut = mot suivant)
+    _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le NOM-TÊTE doit être CONFIDEMMENT un NOM
+    if lw in ('quel', 'quelle') and not (_pp and _pp[0] >= PL_TAU_M):   # « quel/quelle + ADJECTIF antéposé + nom » : sauter UN adjectif sûr (tagger) → nom-tête (« quel belle journée »→quelle)
+        tgq = pos_tags(T)
+        if tgq and i+2 < len(T) and i+1 < len(tgq) and tgq[i+1] == 'ADJ' and "'" not in T[i+2].lower() and not T[i+2][:1].isupper():
+            hi = i + 2; _pp = NOUN_POST.get(deacc(T[hi].lower()))
+    if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if not (_pp and _pp[0] >= PL_TAU_M): return None   # GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée — mot après déterminant = NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000, gender_levers_ud.py)
-    g_noun = GENDER_PURE.get(nd)                                   #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
+    g_noun = GENDER_PURE.get(deacc(T[hi].lower()))                 #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
     return _keepcase(T[i], sugg) if sugg else None
@@ -1973,6 +1979,8 @@ CASES = [
     ("Elle habite une maison", "une", "un", "genre déterminant"),
     ("Le jardin est vert", "Le", "La", "genre déterminant"),
     ("Il regarde la montagne", "la", "le", "genre déterminant"),
+    ("Quelle belle journée", "Quelle", "Quel", "genre déterminant"),        # quel/quelle À TRAVERS un adjectif antéposé → nom-tête fém
+    ("Quel joli paysage", "Quel", "Quelle", "genre déterminant"),           # nom-tête masc à travers l'adjectif
     # confusion d'USAGE être↔avoir (listes fermées : idiomes d'avoir, verbes d'être, âge)
     ("Il a faim", "a", "est", "usage être/avoir"),
     ("Tu as raison", "as", "es", "usage être/avoir"),
