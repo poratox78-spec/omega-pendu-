@@ -88,6 +88,13 @@ const SP = globalThis.__sp;
   if (!set || set.sugg !== "j'étais" || set.span !== 2) fail.push("se étais→j'étais attendu, eu " + JSON.stringify(set));
   if (SP.spell('tu as un chien').some(x => x.name === 'élision')) fail.push('FP j-aux sur « tu as » (correct)');
   if (SP.spell('ce aigle vole haut').some(x => x.name === 'élision')) fail.push('FP j-aux sur « ce aigle » (pas un aux)');
+  // RÉPÉTITION de mot (« le le »→« le », span:2) — FP=0 (0/2500 UD) : denylist doublements légitimes + nom propre redoublé exclus
+  const rp = SP.spell('le le chat dort').find(x => x.name === 'répétition');
+  if (!rp || rp.sugg !== 'le' || rp.span !== 2) fail.push("le le→le (répétition span:2) attendu, eu " + JSON.stringify(rp));
+  if (!SP.spell('je pense que que tu viens').some(x => x.name === 'répétition')) fail.push('répétition « que que » attendue');
+  if (SP.spell('nous nous lavons les mains').some(x => x.name === 'répétition')) fail.push('FP répétition « nous nous » (réfléchi légitime)');
+  if (SP.spell('il va à Bora Bora').some(x => x.name === 'répétition')) fail.push('FP répétition « Bora Bora » (nom propre redoublé)');
+  if (SP.spell('très très bien joué').some(x => x.name === 'répétition')) fail.push('FP répétition « très très » (intensif légitime)');
   // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
   const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
   if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
