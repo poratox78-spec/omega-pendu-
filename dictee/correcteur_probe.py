@@ -848,6 +848,120 @@ def rule_pp_etre(T, i):
     sugg = base + {'sm': '', 'sf': 'e', 'pm': 's', 'pf': 'es'}[num + gen]
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
+# ---------- Accord du PARTICIPE PASSÉ avec AVOIR + COD ANTÉPOSÉ (relatif « que ») ----------
+# Règle du PP avec avoir : le participe s'accorde en genre+nombre avec le COMPLÉMENT D'OBJET DIRECT
+# UNIQUEMENT s'il est placé AVANT le verbe. Déclencheur SÛR (FP=0) : [NOM genré+nombré] que/qu'
+# [pronom sujet] [avoir] [PP en désaccord] → « les fleurs que j'ai cueilli »→cueillies, « la lettre qu'il a écrit »→écrite.
+# On NE touche JAMAIS : le COI (« à qui / dont / auquel » n'ouvrent pas « que » → jamais déclenché), les verbes
+# INTRANSITIFS/de mesure (« que » = circonstant, pas COD : « les heures que j'ai dormi ») et la COMPLÉTIVE « que »
+# après un nom de parole/pensée (« la certitude que j'ai gagné » : gagné invariable) → listes STOP. Antécédent = même
+# parseur de GN que le relatif « qui » (dét (+adj) + nom ; préposition/coordination avant ⇒ COD ambigu ⇒ abstention).
+_AVOIR_AUX = {'ai', 'as', 'a', 'avons', 'avez', 'ont', 'avais', 'avait', 'avions', 'aviez', 'avaient',
+              'aurai', 'auras', 'aura', 'aurons', 'aurez', 'auront', 'aurais', 'aurait', 'aurions', 'auriez', 'auraient'}
+_AVOIR_JE = {"j'ai", "j'avais", "j'aurai", "j'aurais"}          # « j' » (sujet je) FUSIONNÉ avec l'aux avoir (1 seul token)
+_QUE_SUBJ = {"qu'il", "qu'elle", "qu'on", "qu'ils", "qu'elles"}  # « que » (objet) FUSIONNÉ avec le sujet clitique (1 seul token)
+_COD_SUBJ = {'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles'}   # sujet entre « que » et l'aux ⇒ « que » est OBJET
+# PP de verbes INTRANSITIFS / de MESURE / à COI (base masc-sing déaccentuée) : « que » y est circonstant ou complément
+# indirect ⇒ JAMAIS d'accord avec un COD (« les heures que j'ai dormi », « la personne que j'ai téléphoné »).
+_PP_COD_STOP = {'menti', 'ri', 'souri', 'plu', 'deplu', 'nui', 'suffi', 'dormi', 'regne', 'existe', 'marche',
+                'vecu', 'couru', 'coute', 'valu', 'pese', 'dure', 'reussi', 'echoue', 'appartenu', 'resiste',
+                'survecu', 'nage', 'voyage', 'travaille', 'circule', 'evolue', 'rode', 'erre',
+                'parle', 'repondu', 'telephone', 'obei', 'ressemble', 'renonce', 'participe', 'assiste',
+                'succede', 'procede', 'remedie', 'convenu', 'nui', 'menace', 'songe', 'reve'}
+# Noms de PAROLE / PENSÉE / FAIT : « que » après eux peut être COMPLÉTIF (conjonction) ⇒ le nom n'est pas le COD ⇒ abstention.
+_COMPLETIVE_ANT = {'fait', 'faits', 'idee', 'idees', 'preuve', 'preuves', 'nouvelle', 'nouvelles', 'espoir', 'espoirs',
+                   'crainte', 'craintes', 'peur', 'peurs', 'certitude', 'certitudes', 'conviction', 'convictions',
+                   'impression', 'impressions', 'sentiment', 'sentiments', 'hypothese', 'hypotheses', 'theorie',
+                   'principe', 'principes', 'regle', 'regles', 'condition', 'conditions', 'promesse', 'promesses',
+                   'garantie', 'garanties', 'risque', 'risques', 'chance', 'chances', 'possibilite', 'probabilite',
+                   'sensation', 'sensations', 'illusion', 'illusions', 'pensee', 'pensees', 'reve', 'reves',
+                   'souvenir', 'souvenirs', 'doute', 'doutes', 'soupcon', 'signe', 'signes', 'raison', 'raisons', 'espere'}
+
+
+def _pp_accord(base, nb, g):
+    """Forme accordée d'un participe passé (masc-sing = base). Gère la base en -s (pris/mis/assis) : masc pluriel = base."""
+    if nb == 's': return base if g == 'm' else base + 'e'
+    if g == 'm': return base if base.endswith('s') else base + 's'
+    return base + 'es'
+
+# Participes passés IRRÉGULIERS TRANSITIFS fréquents (bases masc-sing accentuées) que _pp_base ne couvre pas (-t/-s/-u
+# irréguliers). Verbes intransitifs/COI EXCLUS (dans _PP_COD_STOP). Chaque forme fléchie (déacc) → base masc-sing.
+_IRR_PP_BASES = ("écrit décrit fait refait dit redit conduit construit produit détruit instruit cuit "
+                 "ouvert offert couvert découvert souffert peint éteint atteint joint craint "
+                 "pris mis appris compris surpris repris assis acquis conquis requis "
+                 "entendu perdu vendu rendu attendu défendu descendu tendu mordu tordu cousu résolu "
+                 "vu revu lu relu tenu obtenu retenu soutenu détenu maintenu "
+                 "connu reconnu vaincu convaincu aperçu déçu conçu perçu parcouru").split()
+_IRR_PP = {}
+for _b in _IRR_PP_BASES:
+    for _f in (_b, _b + 'e', (_b if _b.endswith('s') else _b + 's'), _b + 'es'):
+        _IRR_PP.setdefault(deacc(_f), _b)
+
+
+def rule_pp_avoir_cod(T, i):
+    lw = T[i].lower()
+    if "'" in lw: return None
+    base = _pp_base(T[i])
+    if base is None: base = _IRR_PP.get(deacc(lw))    # participe irrégulier -t/-s/-u (écrit/pris/entendu…) hors _pp_base
+    if base is None: return None
+    if deacc(base) in _PP_COD_STOP: return None                     # verbe intransitif/mesure/COI ⇒ « que » circonstant/indirect, pas COD
+    a = None; a_is_je = False                                       # auxiliaire AVOIR en remontant (adverbes/négation tolérés)
+    for k in range(i - 1, max(-1, i - 4), -1):
+        tk = T[k].lower(); dk = deacc(tk)
+        if dk in _AVOIR_AUX: a = k; break
+        if tk in _AVOIR_JE: a = k; a_is_je = True; break            # « j'ai » = je+ai fusionné (le sujet est dans le token)
+        if dk in _PP_MID: continue
+        return None
+    if a is None: return None
+    q = None                                                        # position du token « que » (ou du token qu'+sujet fusionné)
+    if a_is_je:                                                     # « … que j'ai <PP> » : « que » juste avant « j'ai »
+        if a - 1 < 0 or deacc(T[a - 1].lower()) != 'que': return None
+        q = a - 1
+    else:                                                          # aux séparé ⇒ le sujet est AVANT (fusionné « qu'il » OU pronom + « que »)
+        b = a - 1
+        while b >= 0 and deacc(T[b].lower()) in ('ne', 'n'): b -= 1
+        if b < 0: return None
+        tb = T[b].lower()
+        if tb in _QUE_SUBJ:                                        # « … lettre qu'il a <PP> » : que+sujet fusionnés ⇒ antécédent avant ce token
+            q = b
+        elif deacc(tb) in _COD_SUBJ:                               # « … livres que tu as <PP> » : pronom sujet séparé, « que » juste avant
+            if b - 1 < 0 or deacc(T[b - 1].lower()) != 'que': return None
+            q = b - 1
+        else:
+            return None
+    lo = 0
+    if _SEG is not None:
+        for jj in range(q, 0, -1):
+            if jj < len(_SEG['bb']) and _SEG['bb'][jj]: lo = jj; break
+    tg = pos_tags(T)
+    if not tg: return None
+    det = None; noun = None                                         # antécédent nominal : [dét (+adj) + nom] juste avant « que »
+    m = q - 1
+    while m >= lo:
+        dm = deacc(T[m].lower())
+        if "'" in T[m].lower(): return None                         # élision (l'/d'…) ⇒ souvent mistaguée ⇒ antécédent ambigu ⇒ abstention
+        if dm in PREP: return None                                  # « de X que » complément ⇒ COD ambigu ⇒ abstention
+        if m < len(tg) and (tg[m] == 'DET' or dm in NUM_DET): det = m; break
+        if m < len(tg) and tg[m] in ('NOUN', 'PROPN'): noun = m; m -= 1; continue
+        if m < len(tg) and tg[m] in ('ADJ', 'ADV', 'NUM'): m -= 1; continue
+        return None                                                 # verbe/pronom/conj ⇒ pas un GN simple ⇒ abstention
+    if det is None or noun is None: return None
+    mm = det - 1                                                    # préposition/coordination avant le déterminant ⇒ antécédent ambigu
+    while mm > lo and mm < len(tg) and tg[mm] == 'ADV': mm -= 1
+    if mm >= lo and deacc(T[mm].lower()) in PREP: return None
+    if mm >= lo and deacc(T[mm].lower()) in ('et', 'ou', 'ni'): return None
+    nd = deacc(T[noun].lower())
+    if nd in _COMPLETIVE_ANT: return None                           # nom de parole/pensée ⇒ « que » peut être complétif ⇒ abstention
+    dd = deacc(T[det].lower())
+    if dd in NUM_DET: nb = 'p' if NUM_DET[dd] == 'pl' else 's'
+    else: return None
+    g = _noun_gender(T[noun], nb)
+    if g not in ('m', 'f'): return None
+    if i < len(tg) and tg[i] == 'NOUN': return None                 # le tagger le voit comme un NOM confiant (« les données que… ») ⇒ homographe ⇒ abstention (PROPN = repli mot inconnu, on laisse : la morphologie a déjà validé le participe)
+    sugg = _pp_accord(base, nb, g)
+    return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+
+
 # ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
 # Le correcteur ne couvrait que 8 homophones ; les vraies copies dys ont surtout des accords (« Je doit », « On ont »,
 # « il sont »). On ajoute l'accord sujet-verbe pour les sujets PRONOMS (personne+nombre certains), borné FP=0 :
@@ -1487,10 +1601,16 @@ def rule_det_gender(T, i):
     if len(nd) < 2 or not nd.isalpha(): return None                # fragment (œ cassé en « s »/« ur » par toks) → abstention
     if lw in ('son', 'mon', 'ton') and nd[:1] in 'aeiouyh':        # son/mon/ton OBLIGATOIRES devant voyelle/h (son amie,
         return None                                                # son Histoire) — correct même au féminin → JAMAIS un FP
-    if T[i+1][:1].isupper() or nd in DET_SKIP: return None         # nom propre/étranger (capitalisé) OU adverbe/adj/prép. avant le vrai nom-tête → abstention (FP)
-    _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le suivant doit être CONFIDEMMENT un NOM
+    if T[i+1][:1].isupper(): return None                           # nom propre/étranger (capitalisé) → abstention (FP)
+    hi = i + 1                                                      # indice du NOM-TÊTE (défaut = mot suivant)
+    _pp = NOUN_POST.get(nd)                                        # GARDE §3 (posterior fréquentiel) : le NOM-TÊTE doit être CONFIDEMMENT un NOM
+    if lw in ('quel', 'quelle') and not (_pp and _pp[0] >= PL_TAU_M):   # « quel/quelle + ADJECTIF antéposé + nom » : sauter UN adjectif sûr (tagger) → nom-tête (« quel belle journée »→quelle)
+        tgq = pos_tags(T)
+        if tgq and i+2 < len(T) and i+1 < len(tgq) and tgq[i+1] == 'ADJ' and "'" not in T[i+2].lower() and not T[i+2][:1].isupper():
+            hi = i + 2; _pp = NOUN_POST.get(deacc(T[hi].lower()))
+    if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if not (_pp and _pp[0] >= PL_TAU_M): return None   # GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée — mot après déterminant = NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000, gender_levers_ud.py)
-    g_noun = GENDER_PURE.get(nd)                                   #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
+    g_noun = GENDER_PURE.get(deacc(T[hi].lower()))                 #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
     return _keepcase(T[i], sugg) if sugg else None
@@ -1746,7 +1866,7 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
-         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -1859,6 +1979,8 @@ CASES = [
     ("Elle habite une maison", "une", "un", "genre déterminant"),
     ("Le jardin est vert", "Le", "La", "genre déterminant"),
     ("Il regarde la montagne", "la", "le", "genre déterminant"),
+    ("Quelle belle journée", "Quelle", "Quel", "genre déterminant"),        # quel/quelle À TRAVERS un adjectif antéposé → nom-tête fém
+    ("Quel joli paysage", "Quel", "Quelle", "genre déterminant"),           # nom-tête masc à travers l'adjectif
     # confusion d'USAGE être↔avoir (listes fermées : idiomes d'avoir, verbes d'être, âge)
     ("Il a faim", "a", "est", "usage être/avoir"),
     ("Tu as raison", "as", "es", "usage être/avoir"),
@@ -1890,6 +2012,12 @@ CASES = [
     ("Elle est venue hier", "venue", "venu", "accord participe"),         # -u (venir)
     ("Nous sommes partis tôt", "partis", "parti", "accord participe"),    # -ir (partir)
     ("Elle est morte en hiver", "morte", "mort", "accord participe"),     # irrégulier (mourir)
+    # accord du PARTICIPE avec AVOIR + COD ANTÉPOSÉ (relatif « que ») — s'accorde avec l'objet placé AVANT
+    ("les erreurs que nous avons faites", "faites", "fait", "accord participe (COD avoir)"),        # fém pluriel, aux séparé
+    ("la voiture qu'elle a achetée", "achetée", "acheté", "accord participe (COD avoir)"),          # fém sing, qu'elle fusionné
+    ("les photos que vous avez prises", "prises", "pris", "accord participe (COD avoir)"),          # irrégulier -s (prendre)
+    ("la chanson que j'ai entendue", "entendue", "entendu", "accord participe (COD avoir)"),        # irrégulier -u, j'ai fusionné
+    ("les fleurs que j'ai cueillies", "cueillies", "cueilli", "accord participe (COD avoir)"),      # -ir, fém pluriel
     # accord de l'adjectif attribut après être (sujet pronom)
     ("Elle est contente", "contente", "content", "accord adjectif"),      # elle → féminin
     ("Ils sont nationaux", "nationaux", "national", "accord adjectif"),   # ils → pluriel (-al→-aux)

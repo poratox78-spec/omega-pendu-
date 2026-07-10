@@ -439,9 +439,9 @@
     if(_POSS_DET[lw]&&_ART_BLOCK[cprev(T,i)])return null;   // possessif précédé d'un article = NOM homographe (« un son », « le ton », « du son ») → jamais possessif → abstention (FP WiCoPaCo « un son stéréo »→sa)
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
-    var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()||DET_SKIP[nd])return null;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
-    var _pp=NOUN_POST&&NOUN_POST.get(nd);if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée (sans toucher _nounGate, partagé pluriel) — mot après déterminant = NOM même si verbe-homographe (recall +6 pts, FP 0,09→0,10/1000, gender_levers_ud.py)
-    var gn=GENDER_PURE[nd];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
+    var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase())return null;var hi=i+1;   // nom propre/étranger capitalisé → abstention (FP) ; hi = indice du NOM-TÊTE (défaut = mot suivant)
+    var _pp=NOUN_POST&&NOUN_POST.get(nd);if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST.get(deacc(T[hi].toLowerCase()));}}if(hi===i+1&&DET_SKIP[nd])return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // « quel/quelle + ADJECTIF antéposé + nom » : saut d'un adjectif sûr → nom-tête. GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée (sans toucher _nounGate, partagé pluriel) — mot après déterminant = NOM même si verbe-homographe (recall +6 pts, FP 0,09→0,10/1000, gender_levers_ud.py)
+    var gn=GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
     var num=NUM_DET[deacc(T[i+1].toLowerCase())];if(!num)return null;
@@ -570,6 +570,38 @@
     if((m=/(ues|ue|us|u)$/.exec(lw))){cut={ues:3,ue:2,us:2,u:1}[m[1]];base=lw.slice(0,-cut)+'u';return IRREG_PART[deacc(base)]?base:null;}
     if((m=/(es|s|e)$/.exec(lw))){cut={es:2,s:1,e:1}[m[1]];if(PP_IRR_CONS[deacc(lw.slice(0,-cut))])return lw.slice(0,-cut);}
     return PP_IRR_CONS[d]?lw:null;}
+  /* === Accord du PARTICIPE PASSÉ avec AVOIR + COD ANTÉPOSÉ (relatif « que ») — miroir rule_pp_avoir_cod (parité) === */
+  var AVOIR_AUX={ai:1,as:1,a:1,avons:1,avez:1,ont:1,avais:1,avait:1,avions:1,aviez:1,avaient:1,aurai:1,auras:1,aura:1,aurons:1,aurez:1,auront:1,aurais:1,aurait:1,aurions:1,auriez:1,auraient:1};
+  var AVOIR_JE={"j'ai":1,"j'avais":1,"j'aurai":1,"j'aurais":1};
+  var QUE_SUBJ={"qu'il":1,"qu'elle":1,"qu'on":1,"qu'ils":1,"qu'elles":1};
+  var COD_SUBJ={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1};
+  var PP_COD_STOP={menti:1,ri:1,souri:1,plu:1,deplu:1,nui:1,suffi:1,dormi:1,regne:1,existe:1,marche:1,vecu:1,couru:1,coute:1,valu:1,pese:1,dure:1,reussi:1,echoue:1,appartenu:1,resiste:1,survecu:1,nage:1,voyage:1,travaille:1,circule:1,evolue:1,rode:1,erre:1,parle:1,repondu:1,telephone:1,obei:1,ressemble:1,renonce:1,participe:1,assiste:1,succede:1,procede:1,remedie:1,convenu:1,menace:1,songe:1,reve:1};
+  var COMPLETIVE_ANT={fait:1,faits:1,idee:1,idees:1,preuve:1,preuves:1,nouvelle:1,nouvelles:1,espoir:1,espoirs:1,crainte:1,craintes:1,peur:1,peurs:1,certitude:1,certitudes:1,conviction:1,convictions:1,impression:1,impressions:1,sentiment:1,sentiments:1,hypothese:1,hypotheses:1,theorie:1,principe:1,principes:1,regle:1,regles:1,condition:1,conditions:1,promesse:1,promesses:1,garantie:1,garanties:1,risque:1,risques:1,chance:1,chances:1,possibilite:1,probabilite:1,sensation:1,sensations:1,illusion:1,illusions:1,pensee:1,pensees:1,reve:1,reves:1,souvenir:1,souvenirs:1,doute:1,doutes:1,soupcon:1,signe:1,signes:1,raison:1,raisons:1,espere:1};
+  function _ppAccord(base,nb,g){if(nb==='s')return g==='m'?base:base+'e';if(g==='m')return base.charAt(base.length-1)==='s'?base:base+'s';return base+'es';}
+  var IRR_PP={};(function(){var B="écrit décrit fait refait dit redit conduit construit produit détruit instruit cuit ouvert offert couvert découvert souffert peint éteint atteint joint craint pris mis appris compris surpris repris assis acquis conquis requis entendu perdu vendu rendu attendu défendu descendu tendu mordu tordu cousu résolu vu revu lu relu tenu obtenu retenu soutenu détenu maintenu connu reconnu vaincu convaincu aperçu déçu conçu perçu parcouru".split(' ');for(var x=0;x<B.length;x++){var b=B[x],fs=[b,b+'e',(b.charAt(b.length-1)==='s'?b:b+'s'),b+'es'];for(var y=0;y<fs.length;y++){var kk=deacc(fs[y]);if(IRR_PP[kk]===undefined)IRR_PP[kk]=b;}}})();
+  function rPpAvoirCod(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
+    var base=_ppBase(T[i]);if(base===null){base=(IRR_PP[deacc(lw)]!==undefined?IRR_PP[deacc(lw)]:null);}if(base===null)return null;
+    if(PP_COD_STOP[deacc(base)])return null;
+    var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
+    if(a<0)return null;
+    var q=-1;
+    if(aje){if(a-1<0||deacc(T[a-1].toLowerCase())!=='que')return null;q=a-1;}
+    else{var bk=a-1;while(bk>=0&&(deacc(T[bk].toLowerCase())==='ne'||deacc(T[bk].toLowerCase())==='n'))bk--;if(bk<0)return null;var tb=T[bk].toLowerCase();if(QUE_SUBJ[tb]){q=bk;}else if(COD_SUBJ[deacc(tb)]){if(bk-1<0||deacc(T[bk-1].toLowerCase())!=='que')return null;q=bk-1;}else return null;}
+    var lo=0,jj;if(_SEG){for(jj=q;jj>0;jj--){if(jj<_SEG.bb.length&&_SEG.bb[jj]){lo=jj;break;}}}
+    var tg=posTags(T);if(!tg)return null;
+    var det=-1,noun=-1,m=q-1;
+    while(m>=lo){var dm=deacc(T[m].toLowerCase());if(T[m].toLowerCase().indexOf("'")>=0)return null;if(PREP[dm])return null;if(m<tg.length&&(tg[m]==='DET'||NUM_DET[dm])){det=m;break;}if(m<tg.length&&(tg[m]==='NOUN'||tg[m]==='PROPN')){noun=m;m--;continue;}if(m<tg.length&&(tg[m]==='ADJ'||tg[m]==='ADV'||tg[m]==='NUM')){m--;continue;}return null;}
+    if(det<0||noun<0)return null;
+    var mm=det-1;while(mm>lo&&mm<tg.length&&tg[mm]==='ADV')mm--;
+    if(mm>=lo&&PREP[deacc(T[mm].toLowerCase())])return null;
+    if(mm>=lo){var dmm=deacc(T[mm].toLowerCase());if(dmm==='et'||dmm==='ou'||dmm==='ni')return null;}
+    var nd=deacc(T[noun].toLowerCase());if(COMPLETIVE_ANT[nd])return null;
+    var dd=deacc(T[det].toLowerCase());if(!NUM_DET[dd])return null;var nb=NUM_DET[dd]==='pl'?'p':'s';
+    var g=_nounGender(T[noun],nb);if(g!=='m'&&g!=='f')return null;
+    if(i<tg.length&&tg[i]==='NOUN')return null;
+    var sugg=_ppAccord(base,nb,g);
+    return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;
+  }
   function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null)return null;
     var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
@@ -650,7 +682,7 @@
     var num=_EPI_ART[deacc(T[i-2].toLowerCase())];
     if(!num)return null;                                                             // nombre non net → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec!=null&&dec!==T[i]&&(CRULES[r][0]==='majuscule'||dec.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:dec,name:CRULES[r][0]});break;}}}return out;}
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
