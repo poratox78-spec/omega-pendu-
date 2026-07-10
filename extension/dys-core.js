@@ -917,6 +917,10 @@ function spellUnknown(tok,atStart,T,idx){
         if(!/^\s+$/.test(text.slice(P[ri][1],P[ri+1][0])))continue;var ra=P[ri][2],rb=P[ri+1][2];
         if(ra.toLowerCase()!==rb.toLowerCase()||/^[A-ZÀ-Ö]/.test(rb)||_REPOK[deaccS(ra.toLowerCase())])continue;
         out.push({i:ri,word:ra,sugg:ra,name:'répétition',tier:'flag',span:2});done[ri]=done[ri+1]=1;}
+      // ESPACEMENT français : deux mots COLLÉS par une ponctuation → on insère l'espace. FP=0 mesuré (0/2500 UD). Le POINT « . » est EXCLU (URLs « Zappos.com », abréviations) ; les chiffres ne sont pas capturés par le regex-mot → nombres/heures (« 1,2 », « 17:30 ») saufs d'office. Virgule = espace APRÈS ; « ; : ? ! » = espace AVANT+APRÈS (typo FR).
+      for(var si=0;si<P.length-1;si++){if(done[si]||done[si+1])continue;
+        var sgap=text.slice(P[si][1],P[si+1][0]);if(!/^[,;:?!]$/.test(sgap))continue;var sw1=P[si][2],sw2=P[si+1][2];
+        out.push({i:si,word:sw1,sugg:(sgap===','?sw1+', '+sw2:sw1+' '+sgap+' '+sw2),name:'espacement',tier:'flag',span:2});done[si]=done[si+1]=1;}
       var mv=_impMoves(text);
       for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],Bx=mv[mi][1],ki=-1,kj=-1;
         for(var k=0;k<P.length;k++){if(P[k][0]>=A&&P[k][1]<=Bx){if(ki<0)ki=k;kj=k;}}

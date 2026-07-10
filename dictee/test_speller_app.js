@@ -95,6 +95,14 @@ const SP = globalThis.__sp;
   if (SP.spell('nous nous lavons les mains').some(x => x.name === 'répétition')) fail.push('FP répétition « nous nous » (réfléchi légitime)');
   if (SP.spell('il va à Bora Bora').some(x => x.name === 'répétition')) fail.push('FP répétition « Bora Bora » (nom propre redoublé)');
   if (SP.spell('très très bien joué').some(x => x.name === 'répétition')) fail.push('FP répétition « très très » (intensif légitime)');
+  // ESPACEMENT français : mots collés par ponctuation → espace(s). FP=0 (0/2500 UD). Point « . » exclu (URLs), chiffres saufs (non capturés par le regex-mot).
+  const sp1 = SP.spell('bonjour,je vais').find(x => x.name === 'espacement');
+  if (!sp1 || sp1.sugg !== 'bonjour, je' || sp1.span !== 2) fail.push("bonjour,je→bonjour, je (espacement) attendu, eu " + JSON.stringify(sp1));
+  const sp2 = SP.spell('Ça va?Il part').find(x => x.name === 'espacement');
+  if (!sp2 || sp2.sugg !== 'va ? Il') fail.push("va?Il→va ? Il attendu, eu " + JSON.stringify(sp2));
+  if (SP.spell('visite Zappos.com souvent').some(x => x.name === 'espacement')) fail.push('FP espacement sur URL (point « . » exclu)');
+  if (SP.spell('à 17:30 précises').some(x => x.name === 'espacement')) fail.push('FP espacement sur heure (chiffres)');
+  if (SP.spell('ok, très bien').some(x => x.name === 'espacement')) fail.push('FP espacement sur texte déjà espacé');
   // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
   const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
   if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
