@@ -67,6 +67,13 @@ const SP = globalThis.__sp;
   if (!el1 || el1.sugg !== 'élève') fail.push('un eleve→élève (nom après dét.) attendu, eu ' + JSON.stringify(el1));
   const el2 = SP.spell('le niveau est tres eleve').find(x => x.word.toLowerCase() === 'eleve');
   if (!el2 || el2.sugg !== 'élevé') fail.push('tres eleve→élevé (adj après adverbe) attendu, eu ' + JSON.stringify(el2));
+  // PARTICIPE APRÈS AUXILIAIRE : le dys écrit le présent (-e) là où l'aux impose le participe (-é) du même verbe
+  const mj = SP.spell('il a manje une pomme').find(x => x.word.toLowerCase() === 'manje');
+  if (!mj || mj.sugg !== 'mangé') fail.push('il a manje→mangé (participe après aux) attendu, eu ' + JSON.stringify(mj));
+  const mjc = SP.spell('je manje une pomme').find(x => x.word.toLowerCase() === 'manje');   // CONTRÔLE hors-aux : présent, PAS participe
+  if (mjc && mjc.sugg === 'mangé') fail.push('je manje NE doit PAS devenir mangé (hors auxiliaire), eu ' + JSON.stringify(mjc));
+  const pri = SP.spell("j'ai pri le train").find(x => x.word.toLowerCase() === 'pri');   // GARDE anti-régression : irrégulier -s, pas -é
+  if (pri && pri.sugg === 'prié') fail.push("j'ai pri ne doit PAS devenir prié (participe irrégulier = pris), eu " + JSON.stringify(pri));
   // élision-espace (fusion de 2 tokens)
   const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
   if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));
