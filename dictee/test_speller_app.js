@@ -77,6 +77,14 @@ const SP = globalThis.__sp;
   if (!ouv || ouv.sugg !== 'où') fail.push('il sait ou je vais → ou/où vigilance attendue, eu ' + JSON.stringify(ouv));
   if (SP.spell('un café ou un thé').some(x => x.name === 'ou/où à vérifier')) fail.push('FP ou/où sur conjonction correcte (café ou thé)');
   if (pri && pri.sugg === 'prié') fail.push("j'ai pri ne doit PAS devenir prié (participe irrégulier = pris), eu " + JSON.stringify(pri));
+  // AUDIBILITÉ : la finale /e/ ÉCRITE (é) est entendue → préférer le candidat à finale audible, PAS le -e muet plus fréquent (piège de fréquence)
+  [['manjé', 'mangé'], ['doné', 'donné'], ['apelé', 'appelé'], ['arivé', 'arrivé']].forEach(function (p) {
+    const r = SP.spell(p[0]).find(x => x.word.toLowerCase() === p[0]);
+    if (!r || r.sugg !== p[1]) fail.push('audibilité ' + p[0] + '→' + p[1] + ' attendu (finale audible), eu ' + JSON.stringify(r));
+  });
+  ['tapé', 'trouvé', 'café', 'été'].forEach(function (w) {   // CONTRÔLE : mot VALIDE à finale é → jamais corrigé (FP=0)
+    if (SP.spell(w).some(x => x.word.toLowerCase() === w)) fail.push('FP audibilité sur mot valide ' + w);
+  });
   // élision-espace (fusion de 2 tokens)
   const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
   if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));

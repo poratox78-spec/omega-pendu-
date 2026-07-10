@@ -192,6 +192,7 @@ class Speller:
         cands = self._cands(low, d)
         if not cands: return None                               # aucun voisin → néologisme/nom propre → abstention
         pk = phon_key(low)
+        inp_aud = low.endswith('é')                                         # AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
         cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
         exp_pos = None                                                       # POS attendu (désambiguïse l'accent : élève/élevé)
         if toks and idx:
@@ -203,6 +204,8 @@ class Speller:
                 break
         def pmatch(w):
             return 1 if (exp_pos and exp_pos in self.POS.get(w, ())) else 0
+        def fin_aud(w):                                                     # finale AUDIBLE /e/ (é/ée/és/er/ez/ai…) vs -e/-es MUET
+            return 1 if re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait)$', w) else 0
         def gmatch(w):
             g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
         def nmatch(w):
@@ -223,6 +226,9 @@ class Speller:
                 if gx > gy and py_ >= 1 and fy >= 20 * fx: return 1
                 if gy > gx and px_ >= 1 and fx >= 20 * fy: return -1
                 return gy - gx
+            if inp_aud:                                          # AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer un candidat à finale AUDIBLE
+                fax, fay = fin_aud(wx), fin_aud(wy)              #   (mangé/donné) au -e MUET (mange/donne), AVANT la dominance de fréquence. Ancrer sur l'entendu.
+                if fax != fay: return fay - fax
             if px_ == 1 and py_ == 0 and fx >= 10 * fy: return -1   # dominance : edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
             if py_ == 1 and px_ == 0 and fy >= 10 * fx: return 1
             phx, phy = (1 if phon_key(wx) == pk else 0), (1 if phon_key(wy) == pk else 0)
