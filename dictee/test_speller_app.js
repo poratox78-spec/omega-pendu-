@@ -103,6 +103,13 @@ const SP = globalThis.__sp;
   if (SP.spell('visite Zappos.com souvent').some(x => x.name === 'espacement')) fail.push('FP espacement sur URL (point « . » exclu)');
   if (SP.spell('à 17:30 précises').some(x => x.name === 'espacement')) fail.push('FP espacement sur heure (chiffres)');
   if (SP.spell('ok, très bien').some(x => x.name === 'espacement')) fail.push('FP espacement sur texte déjà espacé');
+  // TRAIT D'UNION locution figée (« au dessus »→« au-dessus ») — FP=0 (liste curée non-ambiguë ; « peut être » verbe EXCLU)
+  const th1 = SP.spell('il est au dessus de tout').find(x => x.name === "trait d'union");
+  if (!th1 || th1.sugg !== 'au-dessus' || th1.span !== 2) fail.push("au dessus→au-dessus attendu, eu " + JSON.stringify(th1));
+  const th2 = SP.spell('regarde la bas là').find(x => x.name === "trait d'union");
+  if (!th2 || th2.sugg !== 'là-bas') fail.push("la bas→là-bas attendu, eu " + JSON.stringify(th2));
+  if (!SP.spell('ci joint le document').some(x => x.sugg === 'ci-joint')) fail.push('ci joint→ci-joint attendu');
+  if (SP.spell('il peut être malade demain').some(x => x.name === "trait d'union")) fail.push("FP trait d'union « peut être » (ambigu = verbe pouvoir+être)");
   // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
   const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
   if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
