@@ -92,6 +92,8 @@ def main():
                       'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f','quel':'m','quelle':'f'}
         gset = {}                                        # forme NOM → {genres vus} (écarte l'ambigu)
         gfreq = {}                                       # forme NOM → fréquence max
+        nom_lem_g = {}                                    # lemme → {genres nets} : hériter le genre des formes à genre VIDE (Lexique4)
+        nom_empty = []                                    # (forme_déacc, lemme_déacc) des NOMs à genre VIDE → complétés par héritage de lemme
         adjp = {}                                         # (lemme, nombre) → {'m':forme_acc, 'f':forme_acc}
         adjg = {}                                         # déacc(forme ADJ) → {genres vus} (écarte l'ambigu)
         adjfreq = {}                                      # déacc(forme ADJ) → fréquence max
@@ -166,11 +168,15 @@ def main():
                                 slot = per + nn; d = cj_c.setdefault(lem, {}).setdefault(mt, {})
                                 if slot not in d or (spec, -fr) < (d[slot][2], -d[slot][1]):   # min spécificité, puis max fréq
                                     d[slot] = (form, fr, spec)
-            if cg.startswith('NOM') and c_genre >= 0 and c_genre < len(row):
-                g = row[c_genre].strip().lower()
+            if cg.startswith('NOM'):
+                g = row[c_genre].strip().lower() if (0 <= c_genre < len(row)) else ''
+                lem = deacc(row[c_lemme].strip().lower()) if (0 <= c_lemme < len(row)) else ''
                 if g in ('m', 'f'):                       # genre marqué dans le lexique
                     gset.setdefault(w, set()).add(g)
                     gfreq[w] = max(gfreq.get(w, 0.0), fr)
+                    if lem: nom_lem_g.setdefault(lem, set()).add(g)   # le lemme retient les genres nets de ses formes
+                elif g == '' and lem:                     # genre STRICTEMENT vide ('') : donnée manquante → hérité du lemme ci-dessous (soeur/oeuf/oeil).
+                    nom_empty.append((w, lem))            #   'e' (ÉPICÈNE : un/une élève) = IGNORÉ, comme l'ancien build — jamais de genre unique (FP=0).
             if cg.startswith('ADJ') and min(c_genre, c_lemme, c_nombre) >= 0 and max(c_genre, c_lemme, c_nombre) < len(row):
                 g = row[c_genre].strip().lower(); nb = (row[c_nombre].strip().lower()[:1] or '')
                 if g in ('m', 'f') and nb in ('s', 'p'):
@@ -371,6 +377,10 @@ def main():
     json.dump({'f': conj_f, 'c': conj_c}, open(OUT_CONJ, 'w', encoding='utf-8', newline=''),
               ensure_ascii=False, separators=(',', ':'))
     print(f"[conj] {len(conj_f)} formes / {len(conj_c)} lemmes (accord sujet-verbe) → {OUT_CONJ}  ({os.path.getsize(OUT_CONJ)//1024} Ko)")
+    for _w, _lem in nom_empty:                            # HÉRITAGE DE GENRE PAR LEMME : Lexique4 laisse le genre VIDE sur ~458
+        _gl = nom_lem_g.get(_lem)                         #   formes (soeur, oeuf, oeil…) alors que le lemme est net (soeurs=f).
+        if _gl and len(_gl) == 1 and _w not in gset:      #   On complète sans jamais écraser un genre déjà attesté (FP=0).
+            gset[_w] = set(_gl)
     gender = {w: list(gs)[0] for w, gs in gset.items() if len(gs) == 1}   # NON ambigu seulement (FP=0)
     amb = sum(1 for gs in gset.values() if len(gs) > 1)
     json.dump(gender, open(OUT_GENDER, 'w', encoding='utf-8'), ensure_ascii=False)
