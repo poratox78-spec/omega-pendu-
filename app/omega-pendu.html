@@ -12461,6 +12461,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=SP.D2A[e1[i]];if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,SP.FREQ[w]];}}
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>2||deaccS(w).charAt(0)!==d.charAt(0))continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur (Δ≤2)+MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe : th/ph) ; bloque trist→tristesse (Δ4)/autent→hautaine (initiale)
     var keys=Object.keys(cand);if(!keys.length)return null;var pk=phonKey(low);
+    var inpAud=/é$/.test(low);                                        // AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
     var expPos=null;                                                   // POS attendu (désambiguïse l'accent : élève/élevé)
     if(T&&idx>0){var pt=deaccS(T[idx-1].toLowerCase());if(DET_G[pt]||SDET_NUM[pt])expPos='N';else if(SADVERB[pt])expPos='A';
@@ -12468,6 +12469,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function pm(x){if(!expPos)return 0;var ps=SP.POS[x]||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
     function nm(x){return (cn&&((cn==='p')===/[sx]$/.test(deaccS(x))))?1:0;}
+    function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
         if(qx>qy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
@@ -12477,6 +12479,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if(gx>gy&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;
         if(gy>gx&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;
         return gy-gx;}
+      if(inpAud){var fax=fin_aud(x),fay=fin_aud(y);if(fax!==fay)return fay-fax;}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer un candidat à finale AUDIBLE (mangé) au -e MUET (mange), AVANT la dominance de fréquence
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py)return py-px;
