@@ -1409,6 +1409,7 @@ def rule_accord_sv_relatif(T, i):
             if tg[m] in ('ADJ', 'ADV', 'NUM'): m -= 1; continue
             return None                                                     # verbe/pronom/conj → pas un GN simple → abstention
         if det is None or noun is None: return None
+        if tg[noun] == 'PROPN' or (noun > 0 and T[noun][:1].isupper()): return None   # antécédent PROPRE/TITRE (« la revue Les Facettes qui », « les Maroons qui ») = nombre non fiable → abstention (même garde que rule_accord_sv_noun)
         mm = det - 1                                                        # token AVANT le déterminant (adverbes antéposés sautés)
         while mm > lo and tg[mm] == 'ADV': mm -= 1
         if mm >= lo and deacc(T[mm].lower()) in PREP: return None           # « de CE type qui », « à LA musique qui » : GN = COMPLÉMENT → antécédent réel plus à gauche → abstention

@@ -376,6 +376,7 @@
         if(tg[m]==='ADJ'||tg[m]==='ADV'||tg[m]==='NUM'){m--;continue;}
         return null;}
       if(det<0||noun<0)return null;
+      if(tg[noun]==='PROPN'||(noun>0&&T[noun].charAt(0)!==T[noun].charAt(0).toLowerCase()))return null;   // antécédent PROPRE/TITRE (« la revue Les Facettes qui ») = nombre non fiable → abstention (même garde que rAccordSVnoun)
       var mm=det-1;while(mm>lo&&tg[mm]==='ADV')mm--;
       if(mm>=lo&&PREP[deacc(T[mm].toLowerCase())])return null;
       if(mm>=lo&&['et','ou','ni'].indexOf(deacc(T[mm].toLowerCase()))>=0)return null;
