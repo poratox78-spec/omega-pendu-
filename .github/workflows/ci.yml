@@ -19,6 +19,8 @@ jobs:
         run: python3 dictee/recall_probe.py --check
       - name: Garde FP À L'ÉCHELLE (correcteur sur 2500 phrases correctes UD — plafond anti-régression, cf. audit 30/06)
         run: python3 dictee/fp_scale_probe.py --check
+      - name: Garde FP SPELLER à l'échelle (ortho affirmatif sur 2500 UD — plafond anti-régression, baseline post-resserrage #107/#112)
+        run: node dictee/speller_fp_scale_probe.js --check
       - name: Validation held-out (vocabulaire neuf)
         run: python3 dictee/eval_externe.py
       - name: Boucle descendante (apprend le lexique de genre)
