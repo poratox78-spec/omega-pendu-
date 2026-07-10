@@ -49,6 +49,7 @@ runsh "syntaxe bloc Décompose (app)"          "node -e \"const fs=require('fs')
 run "parité correcteur APP↔Python"  node dictee/parity_corr.js
 run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
+run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigilance.js
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
