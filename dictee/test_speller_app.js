@@ -114,6 +114,11 @@ const SP = globalThis.__sp;
   if (SP.spell('cette hypothèse fut postulée').find(x => x.word.toLowerCase() === 'postulée')) fail.push('FP: « postulée » (participe valide) ne doit pas être corrigé');
   if (SP.spell('il entretint la flamme').find(x => x.word.toLowerCase() === 'entretint')) fail.push('FP: « entretint » (passé simple valide) ne doit pas être corrigé');
   if (SP.spell("un armet de chevalier").find(x => x.word.toLowerCase() === 'armet')) fail.push('FP: « armet » (casque, mot valide) ne doit pas être corrigé');
+  // LIGATURE œ : « soeur »→« sœur » (liste fermée oe=œ, FP=0) ; garde : pas de re-flag si déjà en œ, pas de faux sur « coexister »
+  const oe1 = SP.spell('ma soeur est là').find(x => x.word.toLowerCase() === 'soeur');
+  if (!oe1 || oe1.sugg !== 'sœur') fail.push("soeur→sœur (ligature œ) attendu, eu " + JSON.stringify(oe1));
+  if (SP.spell('ma sœur est là').some(x => x.name === 'orthographe')) fail.push('FP ligature : « sœur » déjà correct re-flaggé');
+  if (SP.spell('ils vont coexister ensemble').some(x => x.name === 'orthographe')) fail.push('FP ligature : « coexister » (pas un mot œ) touché');
   // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
   const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
   if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));

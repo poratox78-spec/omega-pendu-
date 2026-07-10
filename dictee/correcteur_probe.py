@@ -1584,6 +1584,10 @@ if os.path.exists(_GREL_PATH):
         for _w, _g in _grel.items():
             GENDER_PURE.setdefault(_w, _g)          # union : garde gn, ajoute les noms purs supplémentaires
     except Exception: pass
+# GENRE des noms en œ (clé déaccentuée « oe ») manquants du lexique gn (couverture incohérente : cœur présent,
+# sœur/œuf/œuvre/œil absents) → débloque « mon soeur »→ma sœur + accord genre. FP=0 (genres corrects, union). Miroir app + ext.
+for _w, _g in {'soeur': 'f', 'soeurs': 'f', 'coeur': 'm', 'coeurs': 'm', 'oeuf': 'm', 'oeufs': 'm', 'oeuvre': 'f', 'oeuvres': 'f', 'boeuf': 'm', 'boeufs': 'm', 'voeu': 'm', 'voeux': 'm', 'noeud': 'm', 'noeuds': 'm', 'oeil': 'm', 'moeurs': 'f', 'manoeuvre': 'f', 'manoeuvres': 'f', 'oeillet': 'm', 'oeillets': 'm', 'oesophage': 'm', 'foetus': 'm'}.items():
+    GENDER_PURE.setdefault(_w, _g)
 
 _POSS_DET = {'mon', 'ma', 'ton', 'ta', 'son', 'sa'}
 _ART_BLOCK = {'un', 'une', 'le', 'la', 'les', 'du', 'des', 'au', 'aux', 'ce', 'cet', 'cette', 'ces',

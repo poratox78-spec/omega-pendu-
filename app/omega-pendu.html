@@ -11666,6 +11666,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Lexiques HAUTE-FRÉQUENCE embarqués (Lexique4 cgram, bloc #vdc-lex) : couverture verbale + GENRE > liste blanche. Repli si absent.
   var GENDER_MAP={},GENDER_PURE={},ADJP={};var CONJ_F={},CONJ_C={};   // GENDER_PURE=genre noms purs (gn) ; ADJP=paires adjectif (a) pour l'accord speller ; CONJ_*=conjugaison
   try{var _vlx=document.getElementById('vdc-lex');if(!_vlx||!_vlx.textContent){console.warn('[correcteur] bloc vdc-lex absent → accord sujet-verbe + genre désactivés (AUDIT #2)');}else{var _vd=JSON.parse(_vlx.textContent||'{}');(_vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=_vd.g||{};GENDER_PURE=_vd.gn||{};ADJP=_vd.a||{};var _cj=_vd.cj||{};CONJ_F=_cj.f||{};CONJ_C=_cj.c||{};}}catch(e){console.warn('[correcteur] vdc-lex illisible → accord/genre dégradés (AUDIT #2):',e&&e.message);}
+  var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];   // GENRE des noms en œ (clé déaccentuée « oe ») manquants du lexique gn (couverture incohérente : cœur présent, sœur/œuf/œuvre/œil absents) → débloque « mon soeur »→ma sœur + accord genre. FP=0 (genres corrects, union sans écrasement). Miroir ext + Python.
   function lexicalGender(T,idx){if(!GENDER_MAP)return null;var j,w,g;   // genre du nom-tête via le lexique (déterminant neutre)
     for(j=idx-1;j>=Math.max(0,idx-3);j--){w=T[j].toLowerCase();if(NUM_PRON[w]||PREP[deacc(w)])break;g=GENDER_MAP[deacc(w)];if(g==='m'||g==='f')return[T[j],g];}
     for(j=idx+1;j<Math.min(T.length,idx+3);j++){w=T[j].toLowerCase();if(NUM_PRON[w]||PREP[deacc(w)])break;g=GENDER_MAP[deacc(w)];if(g==='m'||g==='f')return[T[j],g];}
@@ -12441,7 +12442,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
-    var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
+    var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
+    var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
+    if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur » (le « e dans le o »). Liste FERMÉE de mots où oe=œ → FP=0 (coexister/moelle/poème non touchés). Garde : ne pas re-flaguer un mot DÉJÀ écrit avec œ. Débloque aussi le genre (« mon soeur »→ma sœur via GENDER_PURE oe).
+    if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
     if(tok[0]!==tok[0].toLowerCase()&&!atStart)return null;            // nom propre (majuscule hors début)
     var d=deaccS(low);
     if(!/[aeiouy]/.test(d))return null;                               // pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
