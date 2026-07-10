@@ -110,6 +110,10 @@ const SP = globalThis.__sp;
   if (!th2 || th2.sugg !== 'là-bas') fail.push("la bas→là-bas attendu, eu " + JSON.stringify(th2));
   if (!SP.spell('ci joint le document').some(x => x.sugg === 'ci-joint')) fail.push('ci joint→ci-joint attendu');
   if (SP.spell('il peut être malade demain').some(x => x.name === "trait d'union")) fail.push("FP trait d'union « peut être » (ambigu = verbe pouvoir+être)");
+  // LISTE BLANCHE : mots VALIDES absents du lexique que le speller éditait à tort → protégés (« mauvais candidat sur mot valide »)
+  if (SP.spell('cette hypothèse fut postulée').find(x => x.word.toLowerCase() === 'postulée')) fail.push('FP: « postulée » (participe valide) ne doit pas être corrigé');
+  if (SP.spell('il entretint la flamme').find(x => x.word.toLowerCase() === 'entretint')) fail.push('FP: « entretint » (passé simple valide) ne doit pas être corrigé');
+  if (SP.spell("un armet de chevalier").find(x => x.word.toLowerCase() === 'armet')) fail.push('FP: « armet » (casque, mot valide) ne doit pas être corrigé');
   // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
   const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
   if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));

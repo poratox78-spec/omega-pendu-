@@ -53,6 +53,8 @@ def load_lexicon():
         DEACC2ACC[d].sort(key=lambda w: -FREQ[w])
     for k in PHON:
         PHON[k].sort(key=lambda w: -FREQ[w])
+    for w in ('postulée', 'postulées', 'entretint', 'entretinrent', 'armet', 'armets'):   # MOTS VALIDES manquants du lexique que le speller éditait à tort (« mauvais candidat sur mot valide ») → protégés (WORDS ⇒ ni correction ni vigilance). FP=0 : vrais mots FR ; liste extensible. (miroir app/ext)
+        WORDS.add(w)
     return WORDS, FREQ, DEACC2ACC, PHON, POS
 
 def phon_key(s):
