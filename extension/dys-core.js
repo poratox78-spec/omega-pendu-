@@ -911,6 +911,12 @@ function spellUnknown(tok,atStart,T,idx){
         else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
         // sujet « je » mal écrit + AVOIR/ÊTRE 1sg à initiale VOYELLE → « j'ai/j'étais » (« ke ai », « ce avais »). Séquence IMPOSSIBLE (FP=0). Miroir app.
         else if(vow&&(a==='ke'||a==='ge'||a==='ce'||a==='se')&&/^(ai|avais|aurai|aurais|etais|eus|eusse|aie)$/.test(deaccS(b))){out.push({i:i,word:P[i][2],sugg:(/^[A-ZÀ-Ö]/.test(P[i][2])?"J'":"j'")+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
+      // RÉPÉTITION de mot : « le le »→« le » (mot adjacent IDENTIQUE, écart BLANC). FP=0 mesuré (0/2500 UD) : denylist des doublements légitimes (nous nous, très très, oui oui…) + 2e mot non-capitalisé (nom propre redoublé « Bora Bora ») ; le trait d'union (« cha-cha ») est déjà exclu par l'écart-blanc.
+      var _REPOK={nous:1,vous:1,si:1,non:1,oui:1,tres:1,bien:1,la:1,ha:1,he:1,ho:1,hi:1,eh:1,hein:1,na:1,tut:1,cha:1};
+      for(var ri=0;ri<P.length-1;ri++){if(done[ri]||done[ri+1])continue;
+        if(!/^\s+$/.test(text.slice(P[ri][1],P[ri+1][0])))continue;var ra=P[ri][2],rb=P[ri+1][2];
+        if(ra.toLowerCase()!==rb.toLowerCase()||/^[A-ZÀ-Ö]/.test(rb)||_REPOK[deaccS(ra.toLowerCase())])continue;
+        out.push({i:ri,word:ra,sugg:ra,name:'répétition',tier:'flag',span:2});done[ri]=done[ri+1]=1;}
       var mv=_impMoves(text);
       for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],Bx=mv[mi][1],ki=-1,kj=-1;
         for(var k=0;k<P.length;k++){if(P[k][0]>=A&&P[k][1]<=Bx){if(ki<0)ki=k;kj=k;}}
