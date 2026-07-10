@@ -22,7 +22,7 @@ global.document={getElementById:(id)=>B[id]!==undefined&&B[id]!==''?{textContent
 global.window=global;global.navigator={userAgent:'node'};global.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
 (0,eval)(code); const C=globalThis.__C;
 const CHECK = process.argv.includes('--check');
-const RED_ORTHO_MAX = 40;   // seuil de régression (ortho AFFIRMATIF) — à ajuster après baseline
+const RED_ORTHO_MAX = 45;   // BASELINE verrouillée 2026-07-10 après resserrage (élision PR#107 + liste blanche PR#112) : 45 affirmatifs ortho sur 2500 UD = ~24 VRAIS typos du corpus + ~21 FP résiduels (étranger the/dirección + coupes trait d'union anglo/1er, laissés sciemment). GARDE ANTI-RÉGRESSION : toute HAUSSE = nouveau FP speller à inspecter (baisser le seuil quand on en tue).
 (async()=>{
   await C.loadSp(); if(C.loadNP)await C.loadNP(); if(C.loadG)await C.loadG(); if(C.loadH)await C.loadH();
   if(!C.ready()){ console.log('speller non chargé — abandon'); process.exit(2); }
