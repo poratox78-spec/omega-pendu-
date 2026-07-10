@@ -145,9 +145,14 @@ def main():
                     fin = []
                     for tag in row[c_info].split(','):
                         pp = tag.split(':')
-                        # BESCHERELLE durci : SEUL l'indicatif PRÉSENT + IMPARFAIT (les temps de l'accord SV courant) —
-                        # exclut passé simple/futur/subj/cnd (homographes rares « tentèrent/fut/appris→apprit » = FP UD).
-                        if len(pp) == 3 and pp[0] == 'ind' and pp[1] in ('pre', 'imp') and pp[2] in ('1', '2', '3'):
+                        # BESCHERELLE : indicatif PRÉSENT + IMPARFAIT + CONDITIONNEL + SUBJONCTIF PRÉSENT.
+                        # MESURÉ sur 2500 UD (scratchpad/measure_conj_tenses.py) : cnd = Δ+0 FP, sub:pre = Δ+0 FP (FP-safe,
+                        # attrape « je serait »→serais, « que tu fait »→fasses). EXCLUS car FP mesurés : passé simple (ind:pas :
+                        # « tentèrent/fut/apprit » homographes rares) et futur (ind:fut : Δ+1 « aucun d'eux ne seront »=tolérance).
+                        if len(pp) == 3 and pp[2] in ('1', '2', '3') and (
+                                (pp[0] == 'ind' and pp[1] in ('pre', 'imp'))
+                                or pp[0] == 'cnd'
+                                or (pp[0] == 'sub' and pp[1] == 'pre')):
                             fin.append((pp[0] + ':' + pp[1], pp[2]))
                     spec = len(fin)                                          # moins de tags = forme plus spécifique (fiable)
                     is_part = form_lw.endswith(PART_END)
@@ -279,22 +284,34 @@ def main():
     # PLUS LONGUE = 3p (chantent, consentent, viennent) ; une forme STRICTEMENT plus courte = 3s (consent, vient). Si une
     # seule forme (rient) → 3p par défaut, le 3s reste éventuellement une forme non-ent déjà slottée (rit). FP-safe : on
     # ne tranche 3s que quand la longueur départage réellement ; « rient » (rire) ne devient JAMAIS un 3s inventé.
+    # ind:pre + cnd:pre + sub:pre : le 3p en -ent (seraient/soient/fassent) est différé en cj_x comme l'indicatif → même
+    # résolution par longueur, sinon « ils serais »→seraient n'aurait pas de slot 3p (recall perdu). Le 3s cnd/sub finit en
+    # -ait/-e/-t (jamais -ent) → hors cj_x, donc _uniq ne contient que le 3p → aucun 3s inventé (FP-safe).
+    # GARDE mistag Lexique : une forme d'IMPARFAIT (« étaient » = ind:imp:3) parfois taguée aussi sub:pre:3 → l'imparfait
+    # 3p (-aient) ne COÏNCIDE JAMAIS avec un vrai sub/cnd 3p (soient/seraient) → on écarte les formes ind:imp des buckets
+    # subjonctif/conditionnel (sinon « étaient »>« soient » par longueur volerait le slot 3p du subjonctif). ind:pre intact.
     _p3 = 0
     for _lem, _xd in cj_x.items():
-        _xs = _xd.get('ind:pre')
-        if not _xs:
-            continue
-        _pres = cj_c.setdefault(_lem, {}).setdefault('ind:pre', {})
-        _uniq = sorted({f for f, _fr, _sp in _xs}, key=len)
-        _long = _uniq[-1]
-        if '3p' not in _pres:
-            _pres['3p'] = (_long, 0.0, 96)
-            cj_f.setdefault(deacc(_long.lower()), set()).add(f"{_lem};ind:pre;3;p")
-            _p3 += 1
-        if '3s' not in _pres and len(_uniq) >= 2 and _uniq[0] != _long:
-            _pres['3s'] = (_uniq[0], 0.0, 96)
-            cj_f.setdefault(deacc(_uniq[0].lower()), set()).add(f"{_lem};ind:pre;3;s")
-            _p3 += 1
+        _imp = {f for f, _fr, _sp in _xd.get('ind:imp', [])}
+        for _mt, _xs in _xd.items():
+            if _mt not in ('ind:pre', 'cnd:pre', 'sub:pre') or not _xs:
+                continue
+            _pres = cj_c.setdefault(_lem, {}).setdefault(_mt, {})
+            _forms = {f for f, _fr, _sp in _xs}
+            if _mt in ('cnd:pre', 'sub:pre'):
+                _forms -= _imp
+            if not _forms:
+                continue
+            _uniq = sorted(_forms, key=len)
+            _long = _uniq[-1]
+            if '3p' not in _pres:
+                _pres['3p'] = (_long, 0.0, 96)
+                cj_f.setdefault(deacc(_long.lower()), set()).add(f"{_lem};{_mt};3;p")
+                _p3 += 1
+            if '3s' not in _pres and len(_uniq) >= 2 and _uniq[0] != _long:
+                _pres['3s'] = (_uniq[0], 0.0, 96)
+                cj_f.setdefault(deacc(_uniq[0].lower()), set()).add(f"{_lem};{_mt};3;s")
+                _p3 += 1
 
     # COMPOSÉ → BASE : un préfixé se conjugue EXACTEMENT comme sa base (advenir←venir, démettre←mettre, élire←lire).
     # Pour un verbe encore incomplet, on cherche le PLUS LONG verbe-base (déjà complet en 1s+2s) qui est un suffixe du
