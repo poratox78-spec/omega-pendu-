@@ -1093,6 +1093,7 @@ def rule_accord_sv(T, i):
     lem = lemmas.pop()
     mts = [mt for (_l, mt, _p, _n) in reads]
     mt = 'ind:pre' if 'ind:pre' in mts else mts[0]               # temps cible = présent si dispo, sinon le temps tapé
+    if mt == 'ind:pas': return None                             # passé simple : hors ROUGE (→ vigilance ORANGE app/ext), cohérent avec _sv_finish
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
     if not sugg: return None
     if not _agrees(_reads(sugg), per, nb):
@@ -1298,6 +1299,7 @@ def rule_accord_sv_noun(T, i):
     lem = lemmas.pop()
     mts = [mt for (_l, mt, _p, _n) in p3]
     mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    if mt == 'ind:pas': return None                             # passé simple : hors ROUGE (mur du sujet « inspira les débats »→inspirèrent) → vigilance ORANGE (app/ext)
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get('3' + nb)
     if not sugg: return None
     if not any(p == '3' and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)):
@@ -1314,6 +1316,7 @@ def _sv_finish(T, i, per, nb, p_reads):
     lem = lemmas.pop()
     mts = [mt for (_l, mt, _p, _n) in p_reads]
     mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    if mt == 'ind:pas': return None                             # passé simple JAMAIS en ROUGE (mur du sujet : « inspira les débats »→inspirèrent) → vigilance ORANGE (app/ext) seulement
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
     if not sugg: return None
     if not any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)):
@@ -1425,6 +1428,7 @@ def rule_accord_sv_relatif(T, i):
     lem = lemmas.pop()
     mts = [mt for (_l, mt, _p, _n) in reads]
     mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    if mt == 'ind:pas': return None                             # passé simple → hors ROUGE (vigilance ORANGE app/ext)
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
     if not sugg: return None
     if not any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)): return None
@@ -1482,6 +1486,7 @@ def rule_accord_sv_coord(T, i):
     lem = lemmas.pop()
     mts = [mt for (_l, mt, _p, _n) in reads]
     mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
+    if mt == 'ind:pas': return None                             # passé simple → hors ROUGE (vigilance ORANGE app/ext)
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
     if not sugg: return None
     if not any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in _reads(sugg)): return None

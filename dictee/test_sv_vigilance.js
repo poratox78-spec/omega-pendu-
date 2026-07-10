@@ -31,8 +31,10 @@ const C = globalThis.__C;
     ['Je pense que les enfants joue dehors', true, 'jouent'],
     ['Les voitures roule vite',              true, 'roulent'],
     ['Il dit que les voisins parle fort',    true, 'parlent'],
+    ['Je pense que les soldats devint courageux', true, 'devinrent'],   // passé simple PUR (devint) : gaté en ROUGE → surgit en ORANGE
     // NO-FIRE : texte correct (aucune fausse vigilance)
     ['Les enfants jouent dehors',            false, null],
+    ['Il devint plus fort avec le temps',    false, null],             // PS correct (il+devint 3s) → aucune fausse vigilance ; « fut/dit/mis » homographes exclus du lexique PS → pas de flood
     ['Je pense que le chien dort',           false, null],
     ['Le chat mange sa croquette',           false, null],
     ['Les élèves de la classe travaillent',  false, null],
