@@ -85,6 +85,12 @@ const SP = globalThis.__sp;
   ['tapé', 'trouvé', 'café', 'été'].forEach(function (w) {   // CONTRÔLE : mot VALIDE à finale é → jamais corrigé (FP=0)
     if (SP.spell(w).some(x => x.word.toLowerCase() === w)) fail.push('FP audibilité sur mot valide ' + w);
   });
+  // AUDIBILITÉ FINALE MUETTE : le dys écrit ce qu'il ENTEND (« accor » /akɔʁ/), la finale muette -d/-t/-s tombe → restaurer
+  // la complétion ≫20× dominante malgré l'asymétrie phon_key (strippe 'est' pas 'd' → « accort »(0) matche, pas « accord »(975)).
+  [['un accor de paix', 'accor', 'accord'], ['un gran monsieur', 'gran', 'grand'], ['son regar noir', 'regar', 'regard']].forEach(function (p) {
+    const r = SP.spell(p[0]).find(x => x.word.toLowerCase() === p[1]);
+    if (!r || r.sugg !== p[2]) fail.push('audibilité finale muette ' + p[1] + '→' + p[2] + ' attendu, eu ' + JSON.stringify(r));
+  });
   // élision-espace (fusion de 2 tokens)
   const ce = SP.spell('c est très bien').find(x => x.name === 'élision');
   if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));

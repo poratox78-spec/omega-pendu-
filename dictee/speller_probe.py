@@ -232,7 +232,12 @@ class Speller:
             if px_ == 1 and py_ == 0 and fx >= 10 * fy: return -1   # dominance : edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
             if py_ == 1 and px_ == 0 and fy >= 10 * fx: return 1
             phx, phy = (1 if phon_key(wx) == pk else 0), (1 if phon_key(wy) == pk else 0)
-            if phx != phy: return phy - phx
+            if phx != phy:                                   # AUDIBILITÉ finale muette : garde de dominance (miroir pmatch/gmatch).
+                # phon_key strippe les finales muettes 'est' mais PAS 'd' → « accort »(0) phon-matche « accor », pas « accord »(975).
+                # Un rival ≫20× plus fréquent (accord) écrase le phon-match d'un junk rare (accort) → restaure la finale muette -d.
+                if phx > phy and py_ >= 1 and fy >= 20 * fx: return 1
+                if phy > phx and px_ >= 1 and fx >= 20 * fy: return -1
+                return phy - phx
             nx, ny = nmatch(wx), nmatch(wy)
             if nx != ny: return ny - nx
             return -1 if fx > fy else (1 if fx < fy else 0)
