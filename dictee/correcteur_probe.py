@@ -817,6 +817,35 @@ def rule_adj_epithet(T, i):
     sugg = _adj_agree(w, g, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
+def _pp_coord_subject(T, tg, a):
+    """Sujet COORDONNÉ « X et/ni Y » juste avant l'aux ÊTRE (position a) → 'p' (pluriel), sinon None. Mêmes gardes FP=0
+    que rule_accord_sv_coord (conjoint = pronom disjoint / [dét+nom] / nom(s) propre(s) nu(s) ; aucun verbe/prép/autre
+    conjonction dans la zone sujet). NB : ici on TOLÈRE les conjoints noms-propres nus (« Luc et Samuel ») — à MESURER
+    (le risque = nom composé « Belcastel-et-Buc »)."""
+    lo = 0
+    if _SEG is not None:
+        for j in range(a, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    conjuncts = [[]]; has_sep = False
+    for m in range(lo, a):
+        dm = deacc(T[m].lower())
+        if dm in ('et', 'ni'): conjuncts.append([]); has_sep = True; continue
+        if dm in ('ou', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui'): return None
+        if "'" in T[m].lower(): return None
+        if m >= len(tg) or tg[m] in ('VERB', 'AUX') or dm in PREP: return None
+        conjuncts[-1].append(m)
+    if not has_sep or len(conjuncts) < 2: return None
+    for cj in conjuncts:
+        if not cj: return None
+        first = deacc(T[cj[0]].lower())
+        if len(cj) == 1 and first in _COORD_PRON: continue                      # pronom disjoint (toi/moi/lui/eux…)
+        if tg[cj[0]] == 'DET' or T[cj[0]].lower() in NUM_DET:                    # [dét (+adj) + nom]
+            if not any(tg[m] in ('NOUN', 'PROPN') for m in cj): return None
+            continue
+        if tg[cj[0]] in ('NOUN', 'PROPN') and all(tg[m] in ('NOUN', 'PROPN', 'ADJ') for m in cj): continue   # nom(s) propre(s)/commun(s) nu(s)
+        return None
+    return 'p'
+
 def rule_pp_etre(T, i):
     """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
     « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
@@ -845,7 +874,13 @@ def rule_pp_etre(T, i):
         if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ'): return None   # participe RÉEL (tagger) → écarte les noms homographes (« les données sont… »)
         if i+1 < len(tg) and tg[i+1] == 'DET': return None     # déterminant juste APRÈS le participe → sujet POSTPOSÉ (« est annoncée la reprise ») ou attribut → identification du sujet non fiable → abstention (FP)
         subj = _np_subject(T, tg, a)
-        if subj is None or subj['g'] not in ('m', 'f') or subj['n'] != aux_num: return None   # sujet non résolu / genre inconnu / aux en désaccord → abstention
+        if subj is None:                                          # sujet nominal simple non résolu → tenter le sujet COORDONNÉ « X et Y sont » (pluriel, genre écrit gardé comme le chemin « nous »)
+            if aux_num == 'p' and _pp_coord_subject(T, tg, a) == 'p':
+                gen = 'f' if deacc(lw[:-1] if lw.endswith('s') else lw) == deacc(base) + 'e' else 'm'
+                sugg = base + ('es' if gen == 'f' else 's')
+                return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+            return None
+        if subj['g'] not in ('m', 'f') or subj['n'] != aux_num: return None   # genre inconnu / aux en désaccord → abstention
         if a - subj['idx'] > 5: return None                    # sujet trop LOIN de l'aux → parseur peu fiable sur phrase longue (FP « dioxyde … est autorisé »)
         for k in range(subj['idx']+1, a):                      # nom PROPRE/capitalisé entre le sujet et l'aux → sujet réel ambigu (FP « Plusieurs fois les Français sont forcés »)
             if T[k][:1].isupper() and k < len(tg) and tg[k] in ('NOUN', 'PROPN'): return None
