@@ -12217,6 +12217,22 @@ window.addEventListener('DOMContentLoaded', () => {
     var sugg=_ppAccord(base,nb,g);
     return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;
   }
+  function _ppCoordSubject(T,tg,a){var lo=0,jj;if(_SEG){for(jj=a;jj>0;jj--){if(jj<_SEG.bb.length&&_SEG.bb[jj]){lo=jj;break;}}}
+    var cjs=[[]],hasSep=false,m;
+    for(m=lo;m<a;m++){var dm=deacc(T[m].toLowerCase());
+      if(dm==='et'||dm==='ni'){cjs.push([]);hasSep=true;continue;}
+      if(dm==='ou'||dm==='mais'||dm==='car'||dm==='donc'||dm==='or'||dm==='que'||dm==='qu'||dm==='qui')return null;
+      if(T[m].toLowerCase().indexOf("'")>=0)return null;
+      if(m>=tg.length||tg[m]==='VERB'||tg[m]==='AUX'||PREP[dm])return null;
+      cjs[cjs.length-1].push(m);}
+    if(!hasSep||cjs.length<2)return null;
+    for(var c=0;c<cjs.length;c++){var cj=cjs[c];if(!cj.length)return null;var first=deacc(T[cj[0]].toLowerCase());
+      if(cj.length===1&&_COORD_PRON[first])continue;
+      if(tg[cj[0]]==='DET'||NUM_DET[T[cj[0]].toLowerCase()]){var hn=false,k;for(k=0;k<cj.length;k++)if(tg[cj[k]]==='NOUN'||tg[cj[k]]==='PROPN')hn=true;if(!hn)return null;continue;}
+      var allNP=true,k2;for(k2=0;k2<cj.length;k2++)if(tg[cj[k2]]!=='NOUN'&&tg[cj[k2]]!=='PROPN'&&tg[cj[k2]]!=='ADJ')allNP=false;
+      if((tg[cj[0]]==='NOUN'||tg[cj[0]]==='PROPN')&&allNP)continue;
+      return null;}
+    return 'p';}   // sujet coordonné « X et Y sont » → pluriel (MIROIR _pp_coord_subject)
   function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null)return null;
     var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
@@ -12228,7 +12244,8 @@ window.addEventListener('DOMContentLoaded', () => {
       if(!tgp||i>=tgp.length||(tgp[i]!=='VERB'&&tgp[i]!=='ADJ'))return null;     // participe RÉEL (tagger) → écarte les noms homographes
       if(i+1<tgp.length&&tgp[i+1]==='DET')return null;                          // déterminant après le participe → sujet POSTPOSÉ (« est annoncée la reprise ») → abstention (FP)
       var sj=_npSubject(T,tgp,a);
-      if(sj===null||(sj.g!=='m'&&sj.g!=='f')||sj.n!==auxNum)return null;
+      if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var gcp=(/e$/.test(lw)&&!/é$/.test(lw))?'f':'m',sgp=base+(gcp==='f'?'es':'s');return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}return null;}   // sujet COORDONNÉ « X et Y sont » → pluriel, genre écrit gardé (miroir Python)
+      if((sj.g!=='m'&&sj.g!=='f')||sj.n!==auxNum)return null;
       if(a-sj.idx>5)return null;                                                // sujet trop LOIN de l'aux → parseur peu fiable (FP)
       for(var kk=sj.idx+1;kk<a;kk++){if(T[kk].charAt(0)!==T[kk].charAt(0).toLowerCase()&&kk<tgp.length&&(tgp[kk]==='NOUN'||tgp[kk]==='PROPN'))return null;}   // nom propre entre sujet et aux → ambigu (FP)
       var sg2=base+({sm:'',sf:'e',pm:'s',pf:'es'}[sj.n+sj.g]);
