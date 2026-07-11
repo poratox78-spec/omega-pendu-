@@ -60,7 +60,11 @@ def load_lexicon():
 def phon_key(s):
     """Clé phonétique française approximative : deux mots qui SONNENT pareil → même clé.
     But : rapprocher « fote »≈« faute », « leson »≈« leçon », « ortografe »≈« orthographe ». Approximatif
-    (collisions ver/vert/verre attendues) → usage FLAG seulement, classé par fréquence."""
+    (collisions ver/vert/verre attendues) → usage FLAG seulement, classé par fréquence.
+    ⚠️ NE PAS remplacer par un IPA/G2P « fidèle » : MESURÉ-RÉFUTÉ (gold dys 28 paires, 2026-07) — collision
+    typo↔correct = 85 % avec CETTE clé approximative vs 67 % avec le vrai IPA Lexique. L'IPA préserve les finales
+    (faute /fot/, commerce /komɛʁs/) que le dys LAISSE TOMBER ; l'approximation lossy des DEUX côtés EST la feature.
+    (Idem swap G2P pendu, réfuté « trop fidèle ». Le mur d'accuracy = canal ORTHOGRAPHIQUE/fréquence, pas phonétique.)"""
     s = s.lower().replace('œ', 'oe').replace('æ', 'ae').replace('ç', 's')
     s = deacc(s)
     # NASALES : voyelle+n/m NON suivie de voyelle/n/m → une classe nasale unique (rappel : « sertin »≈« certain »,
