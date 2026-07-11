@@ -1052,6 +1052,8 @@ ABBREV = {'m', 'mme', 'mlle', 'mr', 'dr', 'pr', 'me', 'mgr', 'st', 'ste', 'etc',
           'art', 'av', 'bd', 'env', 'fig', 'vol', 'ed', 'p', 'pp', 'al', 'co', 'inc', 'ave', 'apr', 'jc',
           'subsp', 'ssp', 'var', 'sp', 'spp', 'gen', 'fam'}     # + abréviations latines (noms d'espèces : « L. delbrueckii subsp. bulgaricus »)
 
+_TLD_CAP = {'com', 'net', 'org', 'fr', 'io', 'co', 'eu', 'de', 'uk', 'be', 'ca', 'ch', 'us', 'info', 'edu', 'gov', 'biz', 'tv', 'me', 'app'}  # point de DOMAINE (commentcamarche.net) ≠ fin de phrase → pas de majuscule sur le TLD
+
 def _seg_info(text):
     import re
     ss, bb, hy, cap, dig, prev_end = [], [], [], [], [], 0
@@ -1061,7 +1063,8 @@ def _seg_info(text):
         ss.append(s)
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
         hy.append('-' in gap)                                    # trait d'union avant (inversion « dit-il ») → anti-FP run-on
-        cap.append(s and '..' not in gap and not any(c.isdigit() for c in gap))   # MAJUSCULE : vraie fin de phrase — pas une ellipse « .. » ni un point de nombre/décimale
+        _dom = ('.' in gap and not any(c.isspace() for c in gap) and m.group().lower() in _TLD_CAP)   # « .net/.com » collé (point de domaine, pas de fin de phrase) → jamais capitaliser le TLD
+        cap.append(s and '..' not in gap and not any(c.isdigit() for c in gap) and not _dom)   # MAJUSCULE : vraie fin de phrase — pas une ellipse « .. », un point de nombre/décimale, ni un point de DOMAINE (URL)
         dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
         prev_end = m.end()
     return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig}
