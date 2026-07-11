@@ -73,6 +73,24 @@ diffusés sous Creative Commons Attribution - Partage dans les Mêmes Conditions
     Compatible avec la licence des données Lexique (même CC BY-SA 4.0).
     Régénérable : python3 dictee/build_glosses_wiktionnaire.py
 
+6. LEXIQUE COMPLÉMENTAIRE (couche orthographique / anti-flood « mot inconnu »)
+------------------------------------------------------------------------------
+Le fichier `dictee/wikt_lex_fr.tsv` (mots français absents de Lexique 4 —
+noms, adjectifs, adverbes rares — avec POS, genre et prononciation IPA) est
+EXTRAIT du WIKTIONNAIRE français via le dump Wiktextract de kaikki.org
+(`kaikki.org-dictionary-French.jsonl`), diffusé sous CC BY-SA 4.0,
+© les contributeurs du Wiktionnaire. Ces formes sont ajoutées au lexique du
+correcteur orthographique (bloc `<script id="speller-lex-gz">` de l'app + asset
+`extension/assets/speller.tsv.gz`), qui combine donc Lexique 4 (New et al. 2026)
+et le Wiktionnaire — tous deux CC BY-SA 4.0 → le bloc reste CC BY-SA 4.0.
+
+    Attribution : « Lexique du correcteur : Lexique 4 (New et al. 2026) +
+      Wiktionnaire (fr.wiktionary.org, via kaikki.org), CC BY-SA 4.0 »
+    Régénérable : python3 dictee/build_wikt_lex.py <kaikki.jsonl> <Lexique4.tsv.xz> <out>
+      puis   cat Lexique4.tsv dictee/wikt_lex_fr.tsv > Lexique4_aug.tsv
+             LEX4=Lexique4_aug.tsv MINFREQ=0 python3 dictee/build_speller_lex.py
+             SPELLER_B64=…/speller_lex.b64 python3 dictee/inject_speller.py
+
 6. CORPUS DE TEST FP À L'ÉCHELLE (garde-fou CI)
 -----------------------------------------------
 Le fichier `dictee/fp_scale_corpus.txt` (2500 phrases françaises correctes,
