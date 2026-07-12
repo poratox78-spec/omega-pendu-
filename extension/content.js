@@ -90,10 +90,12 @@
     return DC.complete(w.word);
   }
   function applyComplete(el, repl) {
-    var tag = (el.tagName || '').toLowerCase(); if ((tag !== 'textarea' && tag !== 'input') || !repl) return;
-    var v = el.value, pos = caretOf(el); if (pos == null) pos = v.length; var w = wordAt(v, pos); if (!w.word) return;
+    if (!repl) return;
+    var tag = (el.tagName || '').toLowerCase();
+    var v = getText(el), pos = caretOf(el); if (pos == null) pos = v.length; var w = wordAt(v, pos); if (!w.word) return;
     if (/^[A-ZÀ-Ö]/.test(w.word)) repl = repl.charAt(0).toUpperCase() + repl.slice(1);   // garde la majuscule initiale
-    setText(el, v.slice(0, w.start) + repl + v.slice(w.end), w.start + repl.length);   // setText dispatch 'input' → re-run
+    if (tag === 'textarea' || tag === 'input') { setText(el, v.slice(0, w.start) + repl + v.slice(w.end), w.start + repl.length); }   // setText dispatch 'input' → re-run
+    else if (ceReplace(el, w.start, w.end, repl)) { el.dispatchEvent(new Event('input', { bubbles: true })); }   // contenteditable (Twitch/Discord…) : ceReplace = mêmes offsets getText/ceCollect que les corrections → aide-frappe applicable partout
   }
 
   // ===== application des corrections (réutilise le découpage tokens du moteur) =====
