@@ -81,7 +81,21 @@
 
   // ===== complétion (aide-frappe) : mot SOUS LE CURSEUR — réutilise DC.complete (speller accentué). Identique app. =====
   var WCH = /[A-Za-zÀ-ÖØ-öø-ÿœŒ']/;
-  function caretOf(el) { var tag = (el.tagName || '').toLowerCase(); if (tag === 'textarea' || tag === 'input') { try { return el.selectionStart; } catch (e) { return null; } } return null; }   // contenteditable : pas de complétion (caret complexe)
+  function caretOf(el) {
+    var tag = (el.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'input') { try { return el.selectionStart; } catch (e) { return null; } }
+    // contenteditable : mappe le curseur DOM → offset dans ceCollect.text (MÊMES coords que getText/ceReplace → complétion affichée ET applicable partout, Twitch/Discord inclus)
+    var sel; try { sel = (el.ownerDocument || document).getSelection(); } catch (e) { return null; }
+    if (!sel || !sel.rangeCount) return null;
+    var r = sel.getRangeAt(0); if (!r.collapsed) return null;                                   // sélection en cours (non vide) → pas de complétion
+    var node = r.endContainer, off = r.endOffset;
+    if (node !== el && !el.contains(node)) return null;                                          // curseur hors de ce champ
+    var col = ceCollect(el);
+    if (node.nodeType === 3) { for (var k = 0; k < col.map.length; k++) if (col.map[k].node === node) return col.map[k].start + off; return null; }   // nœud texte (cas frappe) : offset direct
+    var child = node.childNodes[off];                                                           // nœud élément : curseur AVANT childNodes[off]
+    if (child) for (var j = 0; j < col.map.length; j++) { var mn = col.map[j].node; if (mn === child || (child.contains && child.contains(mn))) return col.map[j].start; }
+    return col.text.length;                                                                     // sinon : fin du texte
+  }
   function wordAt(v, pos) { var s = pos, e = pos; while (s > 0 && WCH.test(v[s - 1])) s--; while (e < v.length && WCH.test(v[e])) e++; return { word: v.slice(s, e), start: s, end: e }; }
   function computeComps(el) {
     if (!DC.complete) return []; var pos = caretOf(el); if (pos == null) return [];
