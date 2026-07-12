@@ -235,17 +235,37 @@
   var timer = null;
   function schedule(el) { clearTimeout(timer); timer = setTimeout(function () { run(el); }, 400); }
 
+  // Champ actif observé : les ÉDITEURS RICHES (Slate.js = chat Twitch/Discord, Draft.js = ancien Twitter,
+  // ProseMirror = Reddit…) appliquent la frappe via leur modèle interne et ne laissent PAS toujours remonter
+  // un événement 'input' jusqu'à document → nos écoutes focusin/input ratent la frappe et la barre n'apparaît
+  // jamais (bug « rien sur Twitch » alors que le moteur est prêt). On ajoute deux filets, débouncés comme le
+  // reste (400 ms), qui ne changent QUE le moment du scan — jamais son résultat (moteur/FP=0/parité intacts) :
+  //   1) MutationObserver sur le contenteditable focalisé : capte la mutation DOM que Slate produit à chaque
+  //      frappe/collage, même sans 'input' qui bulle.  2) keyup : filet clavier (keyup remonte, lui).
+  var mo = null;
+  function observeActive(el) {
+    if (mo) { mo.disconnect(); mo = null; }
+    if (el && isCE(el) && typeof MutationObserver !== 'undefined') {   // uniquement contenteditable (les <input>/<textarea> passent déjà par 'input')
+      mo = new MutationObserver(function () { if (active) schedule(active); });
+      mo.observe(el, { childList: true, characterData: true, subtree: true });
+    }
+  }
+  function stopObserve() { if (mo) { mo.disconnect(); mo = null; } }
+
   document.addEventListener('focusin', function (e) {
     var el = e.target;
-    if (isEditable(el)) { active = el; dismissed.delete(el); schedule(el); }
+    if (isEditable(el)) { active = el; dismissed.delete(el); observeActive(el); schedule(el); }
   }, true);
   document.addEventListener('input', function (e) {
     if (e.target === active && isEditable(e.target)) { dismissed.delete(active); schedule(active); }
   }, true);
+  document.addEventListener('keyup', function (e) {   // filet éditeurs riches : 'input' peut ne pas remonter (Slate/Draft/ProseMirror), keyup si
+    if (active && isEditable(active) && (e.target === active || active.contains(e.target))) schedule(active);
+  }, true);
   document.addEventListener('focusout', function (e) {
     if (e.target === active) { setTimeout(function () {
       var a = document.activeElement;
-      if (!bar || !bar.contains(a)) hideBar();          // garde la barre si on clique dedans
+      if (!bar || !bar.contains(a)) { hideBar(); stopObserve(); }   // garde la barre si on clique dedans ; sinon on stoppe l'observateur
     }, 150); }
   }, true);
   window.addEventListener('scroll', function () { if (active && bar && bar.style.display !== 'none') place(active); }, true);
