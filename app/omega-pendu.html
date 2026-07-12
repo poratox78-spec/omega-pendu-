@@ -12830,11 +12830,14 @@ window.addEventListener('DOMContentLoaded', () => {
     if(_corrs.length<2){nv.hidden=true;return;} nv.hidden=false;
     if(_navIdx>=_corrs.length||_navIdx<0)_navIdx=0;
     var ps=$('vdc-navpos');if(ps)ps.textContent=(_navIdx+1)+' / '+_corrs.length;}
+  function _navHiliteIn(container,ky){if(!container)return null;var sp=container.querySelectorAll('[data-key]'),i,t=null;
+    for(i=0;i<sp.length;i++){sp[i].classList.remove('vdc-cur');if(sp[i].getAttribute('data-key')===ky)t=sp[i];}
+    if(t)t.classList.add('vdc-cur');return t;}
   function _navGo(d){if(_corrs.length<2)return;_navIdx=(_navIdx+d+_corrs.length)%_corrs.length;
     var ps=$('vdc-navpos');if(ps)ps.textContent=(_navIdx+1)+' / '+_corrs.length;
-    var rz=$('vdc-result');if(!rz)return;var sp=rz.querySelectorAll('[data-key]'),i,tgt=null,ky=_corrs[_navIdx].key;
-    for(i=0;i<sp.length;i++){sp[i].classList.remove('vdc-cur');if(sp[i].getAttribute('data-key')===ky)tgt=sp[i];}
-    if(tgt){tgt.classList.add('vdc-cur');tgt.scrollIntoView({block:'center',behavior:'smooth'});}}
+    var ky=_corrs[_navIdx].key;
+    var tin=_navHiliteIn($('vdc-in'),ky),tres=_navHiliteIn($('vdc-result'),ky);   // surligne la faute courante DANS LA SAISIE (là où l'œil est) ET dans le corrigé — sinon « ◂▸ » semblait ne rien faire
+    var tgt=tin||tres;if(tgt)tgt.scrollIntoView({block:'center',behavior:'smooth'});}
   // ===== PISTE A : carte d'action au clic sur un mot du CORRIGE. La saisie du haut reste 100% editable.
   var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
@@ -12916,7 +12919,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
     var cs=complete(w.word);if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
+  var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
+    if(t.length>_CORR_MAX){_corrs=[];_navRender();$('vdc-count').innerHTML='';var _rzL=$('vdc-result');if(_rzL)_rzL.innerHTML='';$('vdc-out').innerHTML='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea;font-size:14px">📏 <b>Texte trop long</b> ('+t.length.toLocaleString('fr-FR')+' caractères) pour la correction en temps réel. Au-delà de ~'+_CORR_MAX.toLocaleString('fr-FR')+' caractères, corrige par sections (un paragraphe à la fois). Ton texte n’est pas modifié.</div>';return;}   // #UI plafond MESURÉ (Chrome) : au-delà, le rendu O(n) de milliers de spans FIGE l'onglet (~30k). Dégradation douce, texte intact.
     _corrs=SP.ready?_computeCorrs(t):[];
     var _ceoff=_ceCaret($('vdc-in'));$('vdc-in').innerHTML=_renderView(t,_corrs,false);_ceSetCaret($('vdc-in'),_ceoff);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
     if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
