@@ -696,18 +696,28 @@ _COLL_HEAD = {'plupart', 'majorite', 'minorite', 'nombre', 'total', 'partie', 'm
               'dizaine', 'douzaine', 'quinzaine', 'vingtaine', 'trentaine', 'quarantaine', 'cinquantaine',
               'soixantaine', 'centaine', 'millier', 'million', 'milliard', 'brochette', 'tapee', 'flopee',
               'sorte', 'espece', 'genre'}
-def _noun_gender(w, num='s'):
+def _noun_gender(w, num='s', full=False):
     """Genre d'un NOM via GENDER_PURE (noms à genre non ambigu). Dé-pluralisation SEULEMENT si le sujet est marqué
-    pluriel (num=='p') et le mot n'est pas un invariable en -s (cours→cour(f) = faux ami). None sinon → abstention."""
+    pluriel (num=='p') et le mot n'est pas un invariable en -s (cours→cour(f) = faux ami). None sinon → abstention.
+    full=True : quand GENDER_PURE échoue, retombe sur le lexique COMPLET D.GENDER_LEX (inclut les homographes
+    verbe/nom : pomme/livre/lettre) — sûr UNIQUEMENT si l'appelant a déjà confirmé un antécédent [dét + NOM]
+    (le contexte tranche l'homographie ; sinon on FP). Fix C : débloque l'accord du participe sur pomme/etc."""
     d = deacc(w.lower())
-    g = GENDER_PURE.get(d)
-    if g in ('m', 'f'): return g                             # forme exacte (couvre singuliers + invariables cours/prix)
+    def src(x):
+        gg = GENDER_PURE.get(x)
+        if gg in ('m', 'f'): return gg
+        if full:
+            gg = GENDER_FULL.get(x)
+            if gg in ('m', 'f'): return gg
+        return None
+    g = src(d)
+    if g: return g                                           # forme exacte (couvre singuliers + invariables cours/prix)
     if num != 'p' or d in _NOUN_INVAR_S: return None         # singulier, ou invariable -s → pas de dé-pluralisation
     if d.endswith('x') and len(d) > 2:                       # -eaux→-eau (bateaux→bateau)
-        g = GENDER_PURE.get(d[:-1]) or GENDER_PURE.get(d[:-1] + 'u')
+        g = src(d[:-1]) or src(d[:-1] + 'u')
         if g in ('m', 'f'): return g
     if d.endswith('s') and len(d) > 2:                       # pluriel régulier : toilettes→toilette, voitures→voiture
-        g = GENDER_PURE.get(d[:-1])
+        g = src(d[:-1])
         if g in ('m', 'f'): return g
     return None
 
@@ -1001,7 +1011,7 @@ def rule_pp_avoir_cod(T, i):
     dd = deacc(T[det].lower())
     if dd in NUM_DET: nb = 'p' if NUM_DET[dd] == 'pl' else 's'
     else: return None
-    g = _noun_gender(T[noun], nb)
+    g = _noun_gender(T[noun], nb, full=True)                        # antécédent = [dét (+adj) + NOM] confirmé (tagger+position) → lexique complet OK (homographes)
     if g not in ('m', 'f'): return None
     if i < len(tg) and tg[i] == 'NOUN': return None                 # le tagger le voit comme un NOM confiant (« les données que… ») ⇒ homographe ⇒ abstention (PROPN = repli mot inconnu, on laisse : la morphologie a déjà validé le participe)
     sugg = _pp_accord(base, nb, g)
@@ -1677,10 +1687,12 @@ def _keepcase(src, sugg):
 # Genre de NOMS PURS (cgram_hf.json 'gn' = genre non ambigu MOINS verbes MOINS adjectifs). MÊME source que
 # l'app (vdc-lex 'gn') → parité EXACTE. Pré-filtré : pas de re-vérif verbe/adjectif (les homographes « porte »,
 # « rouge » sont déjà exclus). Si cgram_hf absent : pas de règle genre-déterminant (abstention totale).
-GENDER_PURE = {}
+GENDER_PURE = {}; GENDER_FULL = {}
 _HF_PATH = os.path.join(HERE, 'cgram_hf.json')
 if os.path.exists(_HF_PATH):
-    try: GENDER_PURE = json.load(open(_HF_PATH, encoding='utf-8')).get('gn', {})
+    try:
+        _hf = json.load(open(_HF_PATH, encoding='utf-8'))
+        GENDER_PURE = _hf.get('gn', {}); GENDER_FULL = _hf.get('g', {})   # 'g' = genre des noms verbe-homographes (pomme/ferme/forme) = vd.g/GENDER_MAP de l'app → Fix C, MÊME source (parité)
     except Exception: pass
 # RELAXATION (mesurée FP=0, +1 GEC) : on ÉTEND aux noms verbe-homographes (« voiture », « table ») que « gn »
 # excluait, via cgram_gender_relaxed.json = cgram_gender MOINS les adjectifs POS 'A' (épicènes inclus → « jeune »
