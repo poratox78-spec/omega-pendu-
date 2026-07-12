@@ -610,7 +610,7 @@
     if(mm>=lo){var dmm=deacc(T[mm].toLowerCase());if(dmm==='et'||dmm==='ou'||dmm==='ni')return null;}
     var nd=deacc(T[noun].toLowerCase());if(COMPLETIVE_ANT[nd])return null;
     var dd=deacc(T[det].toLowerCase());if(!NUM_DET[dd])return null;var nb=NUM_DET[dd]==='pl'?'p':'s';
-    var g=_nounGender(T[noun],nb);if(g!=='m'&&g!=='f')return null;
+    var g=_nounGender(T[noun],nb,true);if(g!=='m'&&g!=='f')return null;   // Fix C : antécédent confirmé → GENDER_MAP OK
     if(i<tg.length&&tg[i]==='NOUN')return null;
     var sugg=_ppAccord(base,nb,g);
     return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;
@@ -683,7 +683,7 @@
   var _COLL_HEAD={};'plupart majorite minorite nombre total partie moitie tiers quart ensemble reste quantite foule multitude infinite poignee kyrielle dizaine douzaine quinzaine vingtaine trentaine quarantaine cinquantaine soixantaine centaine millier million milliard brochette tapee flopee sorte espece genre'.split(' ').forEach(function(w){_COLL_HEAD[w]=1;});
   var _NP_BREAK={};'que qu qui dont quand lorsque puisque parce comme si car mais donc or quoique lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_NP_BREAK[w]=1;});
   function _adjEstem(lw){var s;if(/x$/.test(lw))s=lw.slice(0,-1);else if(/s$/.test(lw)&&!/ss$/.test(lw))s=lw.slice(0,-1);else s=lw;return (/e$/.test(s)&&!/é$/.test(s))?s:null;}
-  function _nounGender(w,num){var d=deacc(w.toLowerCase());var g=GENDER_PURE[d];if(g==='m'||g==='f')return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=GENDER_PURE[d.slice(0,-1)]||GENDER_PURE[d.slice(0,-1)+'u'];if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=GENDER_PURE[d.slice(0,-1)];if(g==='m'||g==='f')return g;}return null;}
+  function _nounGender(w,num,full){var d=deacc(w.toLowerCase());function src(x){var g=GENDER_PURE[x];if(g==='m'||g==='f')return g;if(full){g=GENDER_MAP[x];if(g==='m'||g==='f')return g;}return null;}var g=src(d);if(g)return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=src(d.slice(0,-1))||src(d.slice(0,-1)+'u');if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=src(d.slice(0,-1));if(g==='m'||g==='f')return g;}return null;}   // full=true (Fix C) : antécédent [dét+NOM] confirmé → retombe sur GENDER_MAP (noms homographes pomme/ferme), sinon FP
   function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var detIdx=-1;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;if(tgj==='VERB'||tgj==='AUX')break;if(NUM_PRON[dj])break;if(tgj==='DET'||NUM_DET[dj])detIdx=j;}
     if(detIdx<0)return null;
