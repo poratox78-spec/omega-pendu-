@@ -957,7 +957,7 @@ function spellUnknown(tok,atStart,T,idx){
     var pvw=T[a-1].toLowerCase();if(deacc(pvw)==='se'||pvw.indexOf("'")>=0)return null;
     var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
     return w+(fem?'es':'s');}
-  function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
@@ -998,6 +998,7 @@ function spellUnknown(tok,atStart,T,idx){
         if(ki<0)continue;var busy=false;for(k=ki;k<=kj;k++)if(done[k]){busy=true;break;}if(busy)continue;
         out.push({i:ki,word:text.slice(P[ki][0],P[kj][1]),sugg:mv[mi][2],name:mv[mi][3],tier:'flag',span:kj-ki+1});for(k=ki;k<=kj;k++)done[k]=1;}
       out.sort(function(x,y){return x.i-y.i;});}
+    if(capital&&T.length>=2&&/^[a-zà-ÿœ]/.test(T[0])&&!out.some(function(f){return f.i===0;}))out.push({i:0,word:T[0],sugg:T[0].charAt(0).toUpperCase()+T[0].slice(1),name:'majuscule initiale à vérifier',tier:'vigilance'});   // capital=true (correcteur SEULEMENT, pas en direct) : 1er mot minuscule sans autre correction → ORANGE
     return out;}
 
   // ===== couche dys au-dessus des flags (nom de règle → famille → stade) =====

@@ -53,6 +53,11 @@ if (!elg2 || elg2.sugg !== 'oui') fail.push('ouiii→oui attendu, eu ' + JSON.st
 if (sp('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
 if (sp('la note AAA est haute').length) fail.push('FP acronyme AAA');
 if (sp('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
+// MAJUSCULE INITIALE (vigilance) — CORRECTEUR SEULEMENT (capital=true) ; OFF en direct/extension (défaut) pour ne pas nagger chaque message minuscule
+const majOn = DC.spellText('les choses sont belles', true).find(x => x.name === 'majuscule initiale à vérifier');
+if (!majOn || majOn.sugg !== 'Les' || majOn.tier !== 'vigilance') fail.push('majuscule (capital=true) « les »→« Les » attendu, eu ' + JSON.stringify(majOn));
+if (DC.spellText('les choses sont belles').some(x => x.name === 'majuscule initiale à vérifier')) fail.push('FP majuscule sans capital (doit être OFF par défaut = direct)');
+if (DC.spellText('Les choses sont belles', true).some(x => x.name === 'majuscule initiale à vérifier')) fail.push('FP majuscule sur début déjà capitalisé');
 
 // ---- (B) parité directe dys-core ⊆ app.spellText sur batterie orthographique (contexte neutre) ----
 let parityKO = 0;
