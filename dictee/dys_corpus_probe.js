@@ -8,7 +8,7 @@ const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
 const CORPUS = process.argv[2] ? path.resolve(process.argv[2]) : path.join(ROOT, 'data_local', 'dys_corpus_rem.jsonl');   // défaut = corpus dys de Rem ; argv = autre corpus (ex. GEC {bad,good})
 if (!fs.existsSync(CORPUS)) { console.log('(corpus dys local absent — rien à mesurer)'); process.exit(0); }
-const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
+const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;

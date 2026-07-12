@@ -6,7 +6,7 @@
 const fs = require('fs'), path = require('path');
 const ROOT = path.join(__dirname, '..');
 const CHECK = process.argv.includes('--check');
-const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
+const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
 const ext = fs.readFileSync(path.join(ROOT, 'extension', 'dys-core.js'), 'utf8');
 
 function impBlock(src) {           // extrait le bloc _impMoves (helpers inclus) : de « var _IMPVOW= » à la fin de _impMoves

@@ -47,10 +47,11 @@ def closure_additions(cjf, cjc, full_f):
 def main(argv):
     check = '--check' in argv
     html = open(APP, encoding='utf-8').read()
-    m = re.search(r'(<script type="application/json" id="vdc-lex">)(.*?)(</script>)', html, re.S)
+    import gzip, base64
+    m = re.search(r'(<script type="text/plain" id="vdc-lex-gz">)(.*?)(</script>)', html, re.S)   # #30 : bloc gzip désormais
     if not m:
-        print('bloc vdc-lex introuvable dans l\'app'); return 2
-    vdc = json.loads(m.group(2))
+        print('bloc vdc-lex-gz introuvable dans l\'app'); return 2
+    vdc = json.loads(gzip.decompress(base64.b64decode(re.sub(r'\s', '', m.group(2)))).decode('utf-8'))
     full = json.load(open(CONJ, encoding='utf-8'))
     cj = vdc.get('cj') or {}
     cjf, cjc = cj.get('f') or {}, cj.get('c') or {}
@@ -68,9 +69,9 @@ def main(argv):
     cjf.update(add)
     cj['f'] = cjf
     vdc['cj'] = cj
-    new_block = json.dumps(vdc, ensure_ascii=False, separators=(',', ':'))
-    html2 = html[:m.start(2)] + new_block + html[m.end(2):]
-    open(APP, 'w', encoding='utf-8').write(html2)
+    new_b64 = base64.b64encode(gzip.compress(json.dumps(vdc, ensure_ascii=False, separators=(',', ':')).encode('utf-8'), 9)).decode('ascii')   # #30 : re-gzip
+    html2 = html[:m.start(2)] + new_b64 + html[m.end(2):]
+    open(APP, 'w', encoding='utf-8', newline='').write(html2)
     print(f'[close_conj] +{len(add)} formes ajoutées à cj.f (clôture) ; cj.f : {len(cjf) - len(add)} → {len(cjf)}.')
     return 0
 

@@ -3,7 +3,7 @@
 // Mesure : fautes attrapées / fautes attendues, + FP (corrections sur des mots corrects). Baseline pour la refonte pyramidale.
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const ROOT = path.join(__dirname, '..');
-const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
+const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
 
 // --- extraire l'IIFE dictée jusqu'à spellText (inclut correctText + posTags + spellText) ---
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);

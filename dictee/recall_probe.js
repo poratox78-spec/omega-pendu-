@@ -17,7 +17,7 @@ const deacc = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCas
 // le rappel GENRE/speller. Données RUNTIME identiques app≡extension≡Python (build_assets extrait l'asset extension
 // DU bloc app) → la colonne EXT est la référence fidèle pour le genre. (La parité réelle est garantie par parity_*.)
 function loadApp() {
-  const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
+  const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
   const _lx = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';
   if (_lx) { try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(_lx.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {} }
   const _np = (html.match(/<script type="text\/plain" id="noun-post-gz">([^<]*)<\/script>/) || [])[1] || '';
