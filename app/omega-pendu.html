@@ -12662,7 +12662,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _OUV={};'est sont etait etaient sera seront es vas va vais allons allez vont habite habites habitent habitait vis vit vivent'.split(' ').forEach(function(x){_OUV[x]=1;});
   function ouVig(T,i){if(T[i].toLowerCase()!=='ou'||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
     return (_OUV[nx]||nx==='se'||nx==='ce'||nx==='je'||nx==='tu'||nx==='il'||nx==='elle'||nx==='nous'||nx==='vous'||nx==='ils'||nx==='elles')?'où':null;}   // + « ou » + pronom sujet (ou je/il/tu…) → où probable (relatif/interrogatif) ; 'on' EXCLU (« ou on…, ou on… » either/or). ORANGE (à vérifier), 0 faux sur 2500 UD.   // « ce » = graphie dys fréquente de « se » (« ou ce trouve la gare »)
-  function spellText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
@@ -12704,6 +12704,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if(ki<0)continue;var busy=false;for(k=ki;k<=kj;k++)if(done[k]){busy=true;break;}if(busy)continue;
         out.push({i:ki,word:text.slice(P[ki][0],P[kj][1]),sugg:mv[mi][2],name:mv[mi][3],tier:'flag',span:kj-ki+1});for(k=ki;k<=kj;k++)done[k]=1;}
       out.sort(function(x,y){return x.i-y.i;});}
+    if(capital&&T.length>=2&&/^[a-zà-ÿœ]/.test(T[0])&&!out.some(function(f){return f.i===0;}))out.push({i:0,word:T[0],sugg:T[0].charAt(0).toUpperCase()+T[0].slice(1),name:'majuscule initiale à vérifier',tier:'vigilance'});   // capital=true (correcteur SEULEMENT) : 1er mot minuscule sans autre correction → ORANGE
     return out;}
 
   var cst=document.createElement('style');
@@ -12804,7 +12805,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(f.src==='g')return true;if(f.tier==='auto')return true;if(f.tier==='flag'&&f.name==='orthographe')return true;return false;}
   function _isOn(f){return _dfltOn(f)?!_off[f.key]:!!_on[f.key];}
   function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}   // ’ dans la classe : mêmes frontières de tokens que toks() normalisé → index alignés entre analyse et rendu
-  function _computeCorrs(t){var sf=SP.ready?spellText(t):[];
+  function _computeCorrs(t){var sf=SP.ready?spellText(t,true):[];   // correcteur = capital ON (vigilance majuscule initiale) ; le live/extension reste OFF
     _SEG=_segInfo(t);var _T=toks(t),_Tc=_T.slice();
     sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
     // ---- CASCADE : re-tourner la grammaire sur ses PROPRES corrections (point fixe, garde FP=0) ----
@@ -12906,6 +12907,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'mot inconnu':"ce mot n'est pas reconnu — vérifie l'orthographe.",
     'homophone à vérifier':"ces mots se prononcent pareil mais s'écrivent différemment.",
     'ou/où à vérifier':"« ou » = un choix ; « où » = le lieu (où vas-tu ?).",
+    'majuscule initiale à vérifier':"une phrase commence par une majuscule.",
     'accord pluriel nom':"après un déterminant pluriel, le nom prend un -s."};
   function _explain(f){var e=_EXPL[f.name]||'';if(f.name==='orthographe'&&f.sugg)e="même son, orthographe corrigée : « "+f.sugg+" ».";return e;}
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
