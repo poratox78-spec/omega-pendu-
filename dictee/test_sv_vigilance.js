@@ -6,7 +6,7 @@
 // Charge le stack complet (vdc-lex→CONJ_C, speller-lex, pos-hmm→tagger, noun-post, gdet) et exécute spellText.
 const fs = require('fs'), path = require('path');
 const HTML = path.join(__dirname, '..', 'app', 'omega-pendu.html');
-const html = fs.readFileSync(HTML, 'utf8');
+const html = fs.readFileSync(HTML, 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;

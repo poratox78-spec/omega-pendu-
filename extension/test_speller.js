@@ -57,7 +57,7 @@ if (sp('une pomme immense').length) fail.push('FP double-lettre valide (pomme/im
 // ---- (B) parité directe dys-core ⊆ app.spellText sur batterie orthographique (contexte neutre) ----
 let parityKO = 0;
 try {
-  const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
+  const html = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8'); try{globalThis.OMEGA_VDC=require('../dictee/blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
   const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
   const spIdx = html.indexOf('function spellText', start);
   const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;

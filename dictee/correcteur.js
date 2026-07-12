@@ -41,7 +41,7 @@ function _domShim(vdc, spl) {
 }
 
 async function create(opts = {}) {
-  const html = fs.readFileSync(opts.appHtml || APP_DEFAULT, 'utf8');
+  const html = fs.readFileSync(opts.appHtml || APP_DEFAULT, 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
   const { code, vdc, spl, lex } = _extract(html);
   _domShim(vdc, spl);
   if (lex) {                                        // RÉUTILISE le gros lexique du pendu : OMEGA_LEX4 (POS 155k) pour le guard genre — parité avec l'app

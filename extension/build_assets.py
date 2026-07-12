@@ -26,8 +26,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     html = open(APP, encoding='utf-8').read()
 
-    # vdc-lex = JSON brut (déjà lisible) -> recompacté tel quel
-    vdc = block(html, 'vdc-lex')
+    # vdc-lex : dans l'app c'est désormais un bloc GZIP (vdc-lex-gz, #30 −3,93 Mo) → on le DÉCOMPRESSE en JSON brut
+    # pour l'asset extension (dys-core lit vdc-lex.json en clair — inchangé côté extension).
+    vdc = gzip.decompress(base64.b64decode(re.sub(r'\s', '', block(html, 'vdc-lex-gz')))).decode('utf-8')
     open(os.path.join(OUT, 'vdc-lex.json'), 'w', encoding='utf-8').write(vdc)
 
     # vdc-confusables = JSON brut (couche VERTE « vigilance » : confusables + indice contexte) -> tel quel

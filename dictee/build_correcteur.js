@@ -11,7 +11,7 @@ const fs = require('fs'), path = require('path'), os = require('os');
 const APP = path.join(__dirname, '..', 'app', 'omega-pendu.html');
 const OUT = process.argv[2] || path.join(os.tmpdir(), 'correcteur.standalone.js');
 
-const html = fs.readFileSync(APP, 'utf8');
+const html = fs.readFileSync(APP, 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
@@ -19,7 +19,7 @@ if (start < 0 || spIdx < 0 || cut < 0) { console.error('extraction moteur échou
 let slice = html.slice(start, cut);
 // l'IIFE moteur reçoit le DOM bouchon + dépendances en paramètres (au lieu des globals)
 slice = slice.replace('(function(){', '(function(document,localStorage,speechSynthesis,SpeechSynthesisUtterance){');
-const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
+const vdc = JSON.stringify(globalThis.OMEGA_VDC || {});   // #30 : vdc-lex-gz décompressé (via blobgz, ligne 14) → baké en clair dans le standalone
 const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
 
 const out =
@@ -34,6 +34,7 @@ var __stub=new Proxy(function(){},{get:function(t,k){if(k==='style')return{};if(
 var __doc={getElementById:function(id){return id==='vdc-lex'?{textContent:__VDC__}:id==='speller-lex-gz'?{textContent:__SPL__}:__stub;},createElement:function(){return __stub;},body:__stub,head:__stub,addEventListener:function(){},querySelector:function(){return null;},querySelectorAll:function(){return[];}};
 var __ls={getItem:function(){return null;},setItem:function(){},removeItem:function(){}};
 var __ss={speak:function(){},cancel:function(){},getVoices:function(){return[];}};
+var OMEGA_VDC=JSON.parse(__VDC__);   // #30 : seed sync des maps grammaire (le moteur lit OMEGA_VDC, plus de bloc JSON en clair dans l'app)
 ${slice};root.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,ready:function(){return SP.ready;}};})(__doc,__ls,__ss,function(){return __stub;});
 var E=root.__corrEngine;
 var api={

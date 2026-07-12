@@ -4,7 +4,7 @@
 // Lancer : node dictee/parity_corr.js
 const fs = require('fs'), path = require('path'), cp = require('child_process'), zlib = require('zlib');
 const HERE = __dirname, HTML = path.join(HERE, '..', 'app', 'omega-pendu.html');
-const html = fs.readFileSync(HTML, 'utf8');
+const html = fs.readFileSync(HTML, 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
 
 // charge le gros lexique embarqué (OMEGA_LEX4) : posOf() en a besoin pour la garde genre
 const _lx = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';
