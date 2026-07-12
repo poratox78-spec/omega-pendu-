@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
+
+> Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
+
+- **Accord sujet-verbe à la racine** (#82-86, #123-125, #127) : classe « je veut / tu finit » réparée à la SOURCE (défaut Lexique 8_Nombre) ; présent je/tu + il/elle/on + ils/elles complété ; validé LEFFF (99,77→99,99 %). Conditionnel + subjonctif présent + **futur en ROUGE FP=0** ; passé simple → **orange** (formes pures) ; garde distributive « aucun/chacun de + pluriel ».
+- **Participe passé / COD / homophones grammaticaux** (#89-90, #100-101, #104-105, #117, #120-121, #129-130, #139, #141) : COD antéposé « que » (→ accord) ; quel/quelle ; met→mais (2 sens) ; sa→ça ; **du→dû** (avoir+inf) ; **ou/où** (orange) + **sur/sûr** + **la/là** (rouge FP=0) ; accord dét↔nom (« la boites »→orange) ; être 3pl (« sont arrivé »→orange) ; PP être en -u ; sujet coordonné (« Luc et Samuel sont parti »→partis) ; **dont→invariable** (« parlées »→parlé) ; **COD sur noms verbe-homographes** (« la pomme que j'ai mangé »→mangée).
+- **Speller / audibilité / lexique** (#91-92, #103, #107, #112, #114-115, #119, #131-132, #134) : banc FP speller à l'échelle (2500 UD) ; artefacts d'accent vétés (trés→très) ; **participe après auxiliaire** (grammaire-informe-speller, FP=0) ; élision reste-commun ; liste blanche mot-valide ; **ligature œ** (soeur→sœur) + genre œ ; complétude genre par lemme (+147) ; **audibilité : la finale /e/ écrite (é) bat la fréquence** (pièges cassés) ; **Wiktionnaire** — anti-flood « mot inconnu » −56 % + 21 847 noms genrés (fusion FP=0) ; audibilité finale muette (accor→accord).
+- **Nouvelles catégories** (#106, #109-111) : orange accord SV mid-phrase (doctrine doute→orange) ; répétition de mot (« le le ») ; espacement FR (« bonjour,je ») ; trait d'union figé (« au dessus »→au-dessus).
+- **Perf / robustesse** (#108, #136) : mémoïsation POS O(n²)→O(n) (longs textes) ; **vdc-lex gzip async, app 13→9 Mo** (−3,93 Mo, chantier #30 clos).
+- **UI correcteur** (#94-99, #116, #118, #122, #135, #137) : saisie éditable + carte d'action sur le corrigé ; fixes curseur (police dys, curseur violet visible sur correction, espace fantôme) ; zone de saisie contenteditable ; fusion majuscule/accent + span:2 ; **nav ◂▸ + compteur sûres/à-vérifier** (+ surlignage dans la saisie, plafond anti-gel 20 000 car.) ; **« 💡 Pourquoi ? »** (règle expliquée par correction) ; la majuscule n'attaque plus les TLD (net→Net).
+- **Extension — le correcteur PARTOUT** (#138, #142-143) : barre visible dans les éditeurs riches Slate/Draft/ProseMirror (**chat Twitch/Discord**) via MutationObserver+keyup ; **aide-frappe** applicable (#142) puis **AFFICHÉE** (#143) en contenteditable — mapping `caretOf`→offset `ceCollect` (mêmes coords que `getText`/`ceReplace`) ; **version 0.2.2→0.2.3** (figée depuis #138 → discipline : bumper à chaque PR extension). Zip régénéré, en ligne, **vérifié end-to-end dans Chrome** (affiche + applique en contenteditable).
+- **Théorie / doc** (#87-88, #102, #133) : easter egg → **géométrie de l'arbitrage** (`arbitrage.html`) ; purge cosmo/Konami ; la même loi noisy-channel gouverne pendu (OS) + dictée (p2g) + correcteur ; phon_key — ne pas swap vers IPA fidèle (mesuré-réfuté).
+- **➡️ PROCHAIN (décidé 13/07)** : **arbitrage speller×grammaire pondéré par l'AUDIBILITÉ** contre le gate de dominance fréquentielle. Le banc `scratchpad/joint_bench.js` (#39) a mesuré : le rerank joint **naïf ÉGALE** le hand-tuné, ne le bat pas ; le levier **non-testé** = l'audible bat le fréquent (ex. manjé→mangé, car le -é final est audible). Mesurer (banc + FP=0 UD 2500 + parité) **avant** de shipper. Puis dictée (classée bonne, ne pas recalibrer).
+
+---
+
 ## 2026-07-03 — audit complet contre-vérifié + campagne de correctifs (PR #50-#66)
 
 - **Audit multi-agents** (8 sous-systèmes, contre-vérification adversariale) : 78 constats → **47 confirmés + 26 mineurs, 0 réfuté**. Verdict : le moteur était sous cloche (CI), la **couche de livraison** ne l'était pas.
