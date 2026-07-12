@@ -1008,6 +1008,53 @@ def rule_pp_avoir_cod(T, i):
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
 
+# ---------- Participe passé avec AVOIR + relatif « dont » (COI) ⇒ INVARIABLE ----------
+# « dont » remplace TOUJOURS un complément « de X » (jamais un COD) ⇒ le participe conjugué avec AVOIR reste
+# INVARIABLE (masc-sing = forme de base). « les choses dont je t'ai parlées »→parlé (défait l'hypercorrection).
+# FP=0 garanti par la grammaire (dont n'est jamais COD) ; garde-fous : AVOIR seul (être/pronominal accordent avec
+# le SUJET ⇒ exclus), « dont » gouverne dans la MÊME proposition (_SEG borne), abstention si un « que » (COD
+# antéposé) précède le participe (c'est alors rule_pp_avoir_cod qui gouverne l'accord, pas « dont »).
+_ETRE_FORMS_DONT = set(D.AUX_ETRE) | {'etais', 'etait', 'etions', 'etiez', 'etaient', 'fus', 'fut', 'fumes',
+                                      'serai', 'seras', 'sera', 'serons', 'serez', 'seront', 'sois', 'soit', 'soient'}
+def _tok_conj_is(tok, forms):
+    """Forme conjuguée dans `forms` ? Gère le clitique fusionné (j'ai / t'ai / l'a → partie après l'apostrophe)."""
+    d = deacc(tok.lower())
+    if d in forms: return True
+    if "'" in tok: return deacc(tok.lower().rsplit("'", 1)[-1]) in forms
+    return False
+
+# Participes de verbes INTRANSITIFS en « de » (deacc, base masc-sing) : « dont » = LEUR complément « de » ⇒ ils
+# n'ont JAMAIS de COD ⇒ le participe est TOUJOURS invariable. Whitelist = FP=0 (les verbes transitifs comme
+# donner/traiter/écrire sont exclus : là « dont » peut être adverbial et le participe accorde avec un vrai COD).
+_PP_DONT_DE = {'parle', 'reve', 'doute', 'joui', 'profite', 'beneficie', 'herite', 'dispose', 'temoigne',
+               'raffole', 'decoule', 'resulte', 'accouche'}
+def rule_pp_avoir_dont(T, i):
+    lw = T[i].lower()
+    if "'" in lw: return None
+    base = _pp_base(T[i])
+    if base is None: base = _IRR_PP.get(deacc(lw))
+    if base is None: return None
+    if deacc(base) not in _PP_DONT_DE: return None                  # whitelist verbes intransitifs-« de » → FP=0
+    if deacc(base) == deacc(lw): return None                        # déjà invariable (masc-sing) → rien à défaire
+    a = None                                                        # auxiliaire AVOIR PROCHE (≤3 tokens, ne saute que _PP_MID)
+    for k in range(i - 1, max(-1, i - 4), -1):
+        tk = T[k]; dk = deacc(tk.lower())
+        if dk == 'ete' or _tok_conj_is(tk, _ETRE_FORMS_DONT): return None   # « a été <PP> » passif / pronominal → accorde avec le sujet
+        if _tok_conj_is(tk, _AVOIR_AUX): a = k; break                       # avoir (y compris fusionné j'ai/t'ai/l'ai)
+        if dk in _PP_MID: continue
+        return None
+    if a is None: return None
+    lo = 0                                                          # borne de proposition à gauche de l'aux
+    if _SEG is not None:
+        for jj in range(a, 0, -1):
+            if jj < len(_SEG['bb']) and _SEG['bb'][jj]: lo = jj; break
+    for k in range(a - 1, lo - 1, -1):                             # « dont » gouverne dans la même proposition
+        dk = deacc(T[k].lower())
+        if dk == 'que' or T[k].lower().startswith("qu'"): return None
+        if dk == 'dont': return _keepcase(T[i], base)
+    return None
+
+
 # ---------- Accord SUJET-VERBE (route lexicale Lexique4 : cgram_conj.json) ----------
 # Le correcteur ne couvrait que 8 homophones ; les vraies copies dys ont surtout des accords (« Je doit », « On ont »,
 # « il sont »). On ajoute l'accord sujet-verbe pour les sujets PRONOMS (personne+nombre certains), borné FP=0 :
@@ -2009,7 +2056,7 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
-         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -2165,6 +2212,8 @@ CASES = [
     ("la voiture qu'elle a achetée", "achetée", "acheté", "accord participe (COD avoir)"),          # fém sing, qu'elle fusionné
     ("les photos que vous avez prises", "prises", "pris", "accord participe (COD avoir)"),          # irrégulier -s (prendre)
     ("la chanson que j'ai entendue", "entendue", "entendu", "accord participe (COD avoir)"),        # irrégulier -u, j'ai fusionné
+    ("les choses dont je t'ai parlé", "parlé", "parlées", "accord participe (dont)"),               # « dont » = COI → participe INVARIABLE (défait l'hypercorrection)
+    ("la femme dont il a rêvé", "rêvé", "rêvées", "accord participe (dont)"),                        # rêver de → invariable
     ("les fleurs que j'ai cueillies", "cueillies", "cueilli", "accord participe (COD avoir)"),      # -ir, fém pluriel
     # accord de l'adjectif attribut après être (sujet pronom)
     ("Elle est contente", "contente", "content", "accord adjectif"),      # elle → féminin
