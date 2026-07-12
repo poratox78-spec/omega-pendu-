@@ -2,7 +2,7 @@
 // détection (usage + aux mal orthographié) + non-FP sur du correct. Lancer : node evo/aux_port_test.js
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const HTML = path.join(__dirname, '..', 'app', 'omega-pendu.html');
-const html = fs.readFileSync(HTML, 'utf8');
+const html = fs.readFileSync(HTML, 'utf8'); try{globalThis.OMEGA_VDC=require("../dictee/blobgz").vdcSeed(html);}catch(e){}
 const lx = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';
 if (lx) { try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(lx.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {} }
 const np = (html.match(/<script type="text\/plain" id="noun-post-gz">([^<]*)<\/script>/) || [])[1] || '';
