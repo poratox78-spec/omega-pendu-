@@ -12830,11 +12830,14 @@ window.addEventListener('DOMContentLoaded', () => {
     if(_corrs.length<2){nv.hidden=true;return;} nv.hidden=false;
     if(_navIdx>=_corrs.length||_navIdx<0)_navIdx=0;
     var ps=$('vdc-navpos');if(ps)ps.textContent=(_navIdx+1)+' / '+_corrs.length;}
+  function _navHiliteIn(container,ky){if(!container)return null;var sp=container.querySelectorAll('[data-key]'),i,t=null;
+    for(i=0;i<sp.length;i++){sp[i].classList.remove('vdc-cur');if(sp[i].getAttribute('data-key')===ky)t=sp[i];}
+    if(t)t.classList.add('vdc-cur');return t;}
   function _navGo(d){if(_corrs.length<2)return;_navIdx=(_navIdx+d+_corrs.length)%_corrs.length;
     var ps=$('vdc-navpos');if(ps)ps.textContent=(_navIdx+1)+' / '+_corrs.length;
-    var rz=$('vdc-result');if(!rz)return;var sp=rz.querySelectorAll('[data-key]'),i,tgt=null,ky=_corrs[_navIdx].key;
-    for(i=0;i<sp.length;i++){sp[i].classList.remove('vdc-cur');if(sp[i].getAttribute('data-key')===ky)tgt=sp[i];}
-    if(tgt){tgt.classList.add('vdc-cur');tgt.scrollIntoView({block:'center',behavior:'smooth'});}}
+    var ky=_corrs[_navIdx].key;
+    var tin=_navHiliteIn($('vdc-in'),ky),tres=_navHiliteIn($('vdc-result'),ky);   // surligne la faute courante DANS LA SAISIE (là où l'œil est) ET dans le corrigé — sinon « ◂▸ » semblait ne rien faire
+    var tgt=tin||tres;if(tgt)tgt.scrollIntoView({block:'center',behavior:'smooth'});}
   // ===== PISTE A : carte d'action au clic sur un mot du CORRIGE. La saisie du haut reste 100% editable.
   var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
