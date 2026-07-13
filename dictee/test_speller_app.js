@@ -92,6 +92,12 @@ const SP = globalThis.__sp;
   const cpPome = SP.complete('pome'); if (cpPome.some(w => (w || '').toLowerCase() === 'pomerol')) fail.push('aide-frappe: « pome » ne doit PLUS proposer « pomerol » (rare), eu ' + JSON.stringify(cpPome));
   const cpBon = SP.complete('bonjou'); if (!cpBon.includes('bonjour')) fail.push('aide-frappe: « bonjou » doit toujours proposer « bonjour », eu ' + JSON.stringify(cpBon));
   if (!SP.complete('cha').length) fail.push('aide-frappe: « cha » doit proposer des mots courants (chance…), eu []');
+  // DOUBLE-CONSONNE simplifiée (faute dys fréquente) : restauration PRIORITAIRE sur l'élision et la fréquence, FP=0
+  [['laisé', 'laissé'], ['pome', 'pomme'], ['carote', 'carotte'], ['aporté', 'apporté']].forEach(function (p) {
+    var r = SP.spell(p[0]).find(function (x) { return x.word.toLowerCase() === p[0]; });
+    if (!r || r.sugg !== p[1]) fail.push('double-consonne ' + p[0] + '→' + p[1] + ' attendu, eu ' + JSON.stringify(r));
+  });
+  if (SP.spell('lecole').every(function (x) { return x.sugg !== "l'école"; })) fail.push("CONTRÔLE: l'élision réelle lecole→l'école ne doit PAS être cassée par la double-consonne");
   ['tapé', 'trouvé', 'café', 'été'].forEach(function (w) {   // CONTRÔLE : mot VALIDE à finale é → jamais corrigé (FP=0)
     if (SP.spell(w).some(x => x.word.toLowerCase() === w)) fail.push('FP audibilité sur mot valide ' + w);
   });

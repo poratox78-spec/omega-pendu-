@@ -185,6 +185,16 @@ class Speller:
         d = deacc(low)
         if not re.search(r'[aeiouy]', d): return None   # pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
         # élision : « lannée »→« l'année », « dautres »→« d'autres » (consonne d'élision + mot voyelle/h valide)
+        # DOUBLE-CONSONNE simplifiée = faute dys TRÈS fréquente (laisé→laissé, pome→pomme, carote→carotte, aporté→apporté,
+        # décolé→décollé) : si doubler UNE consonne interne donne un mot COMMUN (freq≥3) qui GARDE la finale saisie →
+        # restauration PRIORITAIRE (sur l'élision ET la route fréquence). Non-mots seulement (les vrais mots sont déjà sortis).
+        _dblw = None; _dblf = 0.0
+        for _q in range(1, len(low) - 1):
+            if deacc(low[_q]) not in 'bcdfglmnprst': continue
+            _cd = low[:_q + 1] + low[_q] + low[_q + 1:]
+            _f = self.FREQ.get(_cd, 0.0) if _cd in self.WORDS else 0.0
+            if _f >= 3.0 and _f > _dblf: _dblw = _cd; _dblf = _f
+        if _dblw: return ('flag', _dblw)
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]; cw = rest if (rest in self.WORDS and len(rest) >= 5 and self.FREQ.get(rest, 0) >= 1.0) else None   # reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
             if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
