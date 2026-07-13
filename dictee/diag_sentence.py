@@ -139,6 +139,18 @@ def accord_type(t,s,verb=False):
     if 'e' in suf: return 'genre'                                # féminin -e
     return 'flexion'
 
+# Homophones GRAMMATICAUX (mots-outils dont la confusion se tranche par la FONCTION : verbe/préposition/déterminant…)
+# vs homophones LEXICAUX (ver/vert/verre : choix par le SENS). Set = formes DÉACCENTUÉES ; règle = grammatical si l'un OU
+# l'autre des deux mots de la paire est un mot-outil (reconnaître le mot grammatical = la compétence morphosyntaxique).
+_GRAM_HOMO = {
+    'a','as','et','est','es','ai','ais','ait','son','sont','sons','on','ont','ce','se','ces','ses','sais','sait',
+    'ou','la','las','les','lez','leur','leurs','mais','mes','met','mets','mai','maie','mon','mont','monts','ma','ta',
+    'sa','ca','quel','quelle','quels','quelles','peu','peut','peux','si','ci','dont','donc','ni','dans','sans','quand',
+    'quant','pres','pret','prets','du','dus','dut','due','dues','des','plus','au','aux','tout','tous','sur',
+}
+def _homo_gram(t,s):
+    return deacc(t.lower()) in _GRAM_HOMO or deacc(s.lower()) in _GRAM_HOMO
+
 def diag_word(t,s,fam):
     """t=cible, s=élève (mots). fam=liste homophones de t. -> liste de types."""
     if s.lower()==t.lower(): return []
@@ -153,7 +165,7 @@ def diag_word(t,s,fam):
     if len(ds)<len(dt) and subseq(ds,dt): out.append('muette')
     if len(ds)>len(dt) and subseq(dt,ds): out.append('ajout')
     if s.lower() in (x.lower() for x in fam):
-        out.append('accord' if is_accord(t,s) else 'homophone')
+        out.append('accord' if is_accord(t,s) else ('homophone_gram' if _homo_gram(t,s) else 'homophone_lex'))   # grammatical (a/à, son/sont → morphosyntaxique) vs lexical (ver/vert → lexical)
     if not out: out.append('surface' if norm(t)==norm(s) else 'autre')
     return out
 
@@ -239,16 +251,16 @@ def diagnose_sentence(cible, eleve, fam):
 STAGE_OF = {
     'phonologique':    ['voisee_sourde','inversion','ajout'], # le SON mal perçu/segmenté (conscience phonémique)
     'alphabetique':    ['surface','accent'],                  # écrit "comme ça sonne", pas l'ortho conventionnelle
-    'lexical':         ['muette','homophone'],                # orthographe du MOT : lettres muettes lexicales, homophone lexical
-    'morphosyntaxique':['accord'],                            # GRAMMAIRE : accords (genre/nombre/verbal), sans indice sonore — apex
+    'lexical':         ['muette','homophone_lex','homophone'],# orthographe du MOT : lettres muettes, homophone LEXICAL (ver/vert) ; 'homophone' nu = repli lexical
+    'morphosyntaxique':['accord','homophone_gram'],           # GRAMMAIRE : accords ET homophones GRAMMATICAUX (a/à, son/sont) — apex, sans indice sonore
 }
 STAGE_ORDER = ['phonologique','alphabetique','lexical','morphosyntaxique']  # du plus amont au plus avancé
 FAM2STAGE = {f:st for st,fs in STAGE_OF.items() for f in fs}
 STAGE_MSG = {
     'phonologique':    "travaille le SON (conscience phonémique) : confusions sourde/sonore, inversions, lettres en trop.",
     'alphabetique':    "écrit « comme ça sonne » : il faut passer du son à l'orthographe conventionnelle (accents, graphies).",
-    'lexical':         "maîtrise le son→lettre ; reste l'orthographe du MOT : lettres muettes, homophones lexicaux.",
-    'morphosyntaxique':"orthographe lexicale OK ; reste la GRAMMAIRE : accords en genre/nombre/verbal (le palier le plus tardif).",
+    'lexical':         "maîtrise le son→lettre ; reste l'orthographe du MOT : lettres muettes, homophones LEXICAUX (ver/vert/verre).",
+    'morphosyntaxique':"orthographe lexicale OK ; reste la GRAMMAIRE : accords en genre/nombre/verbal ET homophones grammaticaux (a/à, son/sont) — le palier le plus tardif.",
 }
 
 def stage_of_fact(types):
@@ -297,13 +309,13 @@ if __name__=='__main__':
                     S=[h if t==w else t for t in T]; f=diagnose_sentence(e['text'],' '.join(S),fam)
                     rec('accord', any('accord' in x['types'] for x in f)); done=True; break
             if done: break
-        # homophone lexical
+        # homophone (lexical OU grammatical) — un type 'homophone_*' doit être détecté
         done=False
         for w in T:
             for h in fam.get(w.lower(),[]):
                 if not is_accord(w,h) and deacc(h)!=deacc(w.lower()):
                     S=[h if t==w else t for t in T]; f=diagnose_sentence(e['text'],' '.join(S),fam)
-                    rec('homophone', any('homophone' in x['types'] for x in f)); done=True; break
+                    rec('homophone', any(ty.startswith('homophone') for x in f for ty in x['types'])); done=True; break
             if done: break
         # omission
         if len(T)>3:
@@ -336,10 +348,10 @@ if __name__=='__main__':
                     w2=w.lower().replace(a,b,1)
                     if w2!=w.lower() and norm(w2)==norm(w): return T[:i]+[w2]+T[i+1:]
         return None
-    def first_lexical(T,fam):   # homophone LEXICAL (non flexionnel)
+    def first_lexical(T,fam):   # homophone LEXICAL (non flexionnel ET non grammatical : ver/vert, pas son/sont)
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
-                if h.lower()!=w.lower() and not is_accord(w,h) and deacc(h)!=deacc(w.lower()): return T[:i]+[h]+T[i+1:]
+                if h.lower()!=w.lower() and not is_accord(w,h) and deacc(h)!=deacc(w.lower()) and not _homo_gram(w,h): return T[:i]+[h]+T[i+1:]
         return None
     def first_morpho(T,fam):    # accord (flexionnel) = grammaire
         for i,w in enumerate(T):
