@@ -430,6 +430,7 @@ def rule_son_sont(T, i):
             if _SEG is not None and (j+1) < len(_SEG['bb']) and _SEG['bb'][j+1]: break
             if deacc(T[j].lower()) in PLURAL_DET: plural_subj = True; break
     if lw == 'sont':
+        if prev(T, i) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous'): return None   # après un PRONOM SUJET, « sont » est le VERBE (« il sont là »), JAMAIS le possessif « son » (« il son X » est agrammatical) → ne pas proposer « son » ; le pronom sing (il/elle) est corrigé par rule_il_ils. Fixe « il sont là »→« il son là » et le sont→son de « il et elle sont »
         if plural_subj: return None                                    # sujet pluriel (proche ou à distance) → « sont » correct → ne pas toucher
         if nxt_noun_sg: return 'son'                                   # « sont » + NOM SINGULIER direct (« il a perdu sont chien ») → possessif ; adj/participe/prép (« sont contents/partis/là ») → abstention
         return None
