@@ -309,4 +309,37 @@
     }, 150); }
   }, true);
   window.addEventListener('scroll', function () { if (active && bar && bar.style.display !== 'none') place(active); }, true);
+
+  // ===== CLIC DROIT : corriger le mot sous le curseur via le menu contextuel (service worker) =====
+  function rcOffset(el, e) {                                                    // offset du clic dans le texte du champ
+    var tag = (el.tagName || '').toLowerCase();
+    if (tag === 'textarea' || tag === 'input') { try { return el.selectionStart; } catch (_) { return null; } }   // Chrome place le curseur au clic droit
+    var node, off;
+    try { var r = document.caretRangeFromPoint(e.clientX, e.clientY); if (!r) return null; node = r.startContainer; off = r.startOffset; } catch (_) { return null; }   // chat : point → curseur
+    if (node !== el && !el.contains(node)) return null;
+    var col = ceCollect(el);
+    if (node.nodeType === 3) { for (var k = 0; k < col.map.length; k++) if (col.map[k].node === node) return col.map[k].start + off; return null; }
+    var child = node.childNodes[off]; if (child) for (var j = 0; j < col.map.length; j++) { var mn = col.map[j].node; if (mn === child || (child.contains && child.contains(mn))) return col.map[j].start; }
+    return col.text.length;
+  }
+  var _rcFix = null;
+  function rcMenu(title, enabled) { try { chrome.runtime.sendMessage({ type: 'omdys-menu', title: title || '🩹 Correcteur dys — aucune correction ici', enabled: !!enabled }); } catch (e) {} }
+  document.addEventListener('contextmenu', function (e) {                       // avant l'affichage du menu : calcule la correction du mot cliqué, pousse le libellé au SW
+    _rcFix = null;
+    try {
+      var el = active;
+      if (!el || !isEditable(el) || !DC.isReady || !DC.isReady() || !DC.diagnoseAll) { rcMenu('', false); return; }
+      if (el.contains && e.target !== el && !el.contains(e.target)) { rcMenu('', false); return; }   // seulement dans le champ actif
+      var off = rcOffset(el, e); if (off == null) { rcMenu('', false); return; }
+      var t = getText(el), sp = spans(t), ti = -1;
+      for (var k = 0; k < sp.length; k++) if (off >= sp[k][0] && off <= sp[k][1]) { ti = k; break; }
+      if (ti < 0) { rcMenu('', false); return; }
+      var dg = DC.diagnoseAll(t), flag = null;
+      for (var m = 0; m < dg.flags.length; m++) if (dg.flags[m].i === ti && dg.flags[m].tier !== 'vigilance') { flag = dg.flags[m]; break; }   // corrections SÛRES (rouge/bleu) ; l'orange reste dans la barre
+      if (!flag) { rcMenu('', false); return; }
+      _rcFix = { el: el, flag: flag };
+      rcMenu('🩹 « ' + flag.word + ' » → « ' + flag.sugg + ' »', true);
+    } catch (err) { rcMenu('', false); }
+  }, true);
+  try { chrome.runtime.onMessage.addListener(function (msg) { if (msg && msg.type === 'omdys-apply-rc' && _rcFix) { applyOne(_rcFix.el, _rcFix.flag); _rcFix = null; } }); } catch (e) {}   // clic du menu → applique
 })();

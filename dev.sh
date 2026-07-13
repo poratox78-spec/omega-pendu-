@@ -55,7 +55,7 @@ run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_p
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
 node extension/test_speller.js
-runsh "syntaxe extension (3 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js"
+runsh "syntaxe extension (4 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js && node --check extension/background.js"
 run "correcteur standalone"         node dictee/correcteur.js
 runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js

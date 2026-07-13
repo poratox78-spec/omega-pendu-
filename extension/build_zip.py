@@ -24,7 +24,7 @@ ROOT = os.path.dirname(HERE)
 ZIP  = os.path.join(ROOT, 'omega-correcteur-dys.zip')
 
 # fichiers LIVRÉS (le zip = ce qu'un utilisateur installe ; les harnais de dev restent hors zip)
-FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'popup.html', 'popup.js', 'README.md']
+FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'background.js', 'popup.html', 'popup.js', 'README.md']
 EXCLUDE_DIRS = set()
 
 def shipped():
