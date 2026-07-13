@@ -900,10 +900,11 @@ function spellUnknown(tok,atStart,T,idx){
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
     var d=deaccS(low);
     if(!/[aeiouy]/.test(d)||/^[ivxlcdm]+$/.test(d))return null;             // sigle sans voyelle / chiffre romain
-    var best=null,bf=-1,arr=(SP.D2A[d]||[]).slice(),i,j,w,a;                // candidat best-effort (accents + phonétique + édit-1), même initiale
+    var best=null,bf=-1,ba=-1,arr=(SP.D2A[d]||[]).slice(),i,j,w,a;          // candidat best-effort (accents + phonétique + édit-1), même initiale
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length;i++)arr.push(pa[i]);
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
-    for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w).charAt(0)!==d.charAt(0))continue;if(SP.FREQ[w]>bf){bf=SP.FREQ[w];best=w;}}
+    var _iaU=/é$/.test(low);                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent. Miroir app. Orange hors FP=0.
+    for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_au>ba||(_au===ba&&_fq>bf)){ba=_au;bf=_fq;best=w;}}
     return (best&&best!==low)?best:'';                                      // '' = inconnu sans suggestion fiable (simple alerte)
   }
   // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
