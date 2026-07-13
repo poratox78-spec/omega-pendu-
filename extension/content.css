@@ -1,36 +1,60 @@
 /* Barre flottante du correcteur dys — styles isolés (préfixe omdys), z-index très haut, indépendants du site hôte. */
+/* Les tailles enfant sont en EM (relatives à .omdys-bar) → 3 crans de taille en changeant une seule valeur. */
 .omdys-bar{
   position:absolute; z-index:2147483646; box-sizing:border-box;
   font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
   color:#1a1a1a; background:#ffffff; border:1px solid #c9c9c9; border-radius:10px;
   box-shadow:0 6px 24px rgba(0,0,0,.18); padding:8px 10px; max-width:420px; text-align:left;
 }
+.omdys-bar.omdys-sz-m{ font-size:15px; max-width:480px; }    /* MOYEN  (réglage popup) */
+.omdys-bar.omdys-sz-g{ font-size:18px; max-width:560px; }    /* GRAND  (réglage popup) — accessibilité dys */
 .omdys-bar *{ box-sizing:border-box; }
 .omdys-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-.omdys-head b{ font-size:13px; }
-.omdys-n{ background:#2a6f97; color:#fff; border-radius:10px; padding:0 7px; font-size:11px; font-weight:700; }
-.omdys-all{ margin-left:auto; cursor:pointer; border:1px solid #2a6f97; background:#eaf2f8; color:#1f4e6b; border-radius:6px; padding:2px 8px; font-size:12px; }
+.omdys-head b{ font-size:1em; }
+.omdys-n{ background:#2a6f97; color:#fff; border-radius:10px; padding:0 7px; font-size:.85em; font-weight:700; }
+.omdys-all{ margin-left:auto; cursor:pointer; border:1px solid #2a6f97; background:#eaf2f8; color:#1f4e6b; border-radius:6px; padding:2px 8px; font-size:.92em; }
 .omdys-all:hover{ background:#d8e8f3; }
-.omdys-undo{ cursor:pointer; border:1px solid #b8860b; background:#fdf6e3; color:#8a6d0b; border-radius:6px; padding:2px 8px; font-size:12px; }   /* filet « annuler tout corriger » — ton ambre = retour en arrière */
+.omdys-undo{ cursor:pointer; border:1px solid #b8860b; background:#fdf6e3; color:#8a6d0b; border-radius:6px; padding:2px 8px; font-size:.92em; }   /* filet « annuler tout corriger » — ton ambre = retour en arrière */
 .omdys-undo:hover{ background:#f7ecc9; }
-.omdys-x{ cursor:pointer; border:none; background:transparent; color:#888; font-size:16px; line-height:1; padding:0 2px; }
+.omdys-x{ cursor:pointer; border:none; background:transparent; color:#888; font-size:1.23em; line-height:1; padding:0 2px; }
 .omdys-x:hover{ color:#333; }
 .omdys-list{ display:flex; flex-direction:column; gap:3px; }
 .omdys-item{ cursor:pointer; padding:4px 6px; border-radius:6px; border-left:3px solid #c0392b; background:#fcf3f2; }
 .omdys-item:hover{ background:#f6e2df; }
 .omdys-item.omdys-orth{ border-left-color:#2a6f97; background:#eef5fb; }          /* orthographe (non-mot/accent) = bleu */
 .omdys-item.omdys-orth:hover{ background:#dcebf7; }
-.omdys-fam{ color:#777; font-size:11px; }
-.omdys-stade{ margin-top:6px; padding:5px 7px; border-left:4px solid #2a6f97; background:#eaf2f8; border-radius:4px; font-size:12px; }
-.omdys-remed{ margin-top:4px; padding:5px 7px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:4px; font-size:12px; }
+.omdys-fam{ color:#777; font-size:.85em; }
+.omdys-stade{ margin-top:6px; padding:5px 7px; border-left:4px solid #2a6f97; background:#eaf2f8; border-radius:4px; font-size:.92em; }
+.omdys-remed{ margin-top:4px; padding:5px 7px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:4px; font-size:.92em; }
 /* aide-frappe : complétions du mot en cours (violet, distinct du rouge grammaire / bleu orthographe) */
 .omdys-comp{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px; }
-.omdys-clab{ color:#5b3a9e; font-size:11px; font-weight:700; }
-.omdys-cbtn{ cursor:pointer; border:1px solid #4a2f85; background:#5b3a9e; color:#fff; border-radius:6px; padding:3px 9px; font-size:13px; }   /* violet plein = identique à l'app (lisible, robuste au CSS du site hôte) */
+.omdys-clab{ color:#5b3a9e; font-size:.85em; font-weight:700; }
+.omdys-cbtn{ cursor:pointer; border:1px solid #4a2f85; background:#5b3a9e; color:#fff; border-radius:6px; padding:3px 9px; font-size:1em; }   /* violet plein = identique à l'app (lisible, robuste au CSS du site hôte) */
 .omdys-cbtn:hover{ background:#492f80; color:#fff; }
 /* couche VERTE : vigilance (mots confusables) — n'affirme PAS une faute, juste « vérifie le sens » ; non-cliquable */
 .omdys-vig{ margin-top:6px; }
-.omdys-vlab{ color:#1f7a3d; font-size:11px; font-weight:700; margin-bottom:3px; }
-.omdys-vitem{ padding:4px 6px; border-radius:6px; border-left:3px dotted #1f7a3d; background:#eef7ef; color:#234a35; font-size:12px; margin-bottom:3px; }
+.omdys-vlab{ color:#1f7a3d; font-size:.85em; font-weight:700; margin-bottom:3px; }
+.omdys-vitem{ padding:4px 6px; border-radius:6px; border-left:3px dotted #1f7a3d; background:#eef7ef; color:#234a35; font-size:.92em; margin-bottom:3px; }
 .omdys-item.omdys-tvig{ border-left:3px dashed #e8920c; background:#fff8ea; }      /* tier vigilance = À VÉRIFIER (orange pointillé) — clic individuel possible, exclu de « tout corriger » */
 .omdys-item.omdys-tvig:hover{ background:#ffedc9; }
+
+/* ===== MODE SOMBRE (réglage popup) — les bords colorés (rouge/bleu/orange/vert) restent, les fonds passent en teinte sombre translucide, texte clair (règle dys : jamais de texte pâle sur crème). ===== */
+.omdys-bar.omdys-dark{ color:#e6edf3; background:#161b22; border-color:#2f3a45; box-shadow:0 6px 24px rgba(0,0,0,.55); }
+.omdys-dark .omdys-item{ background:rgba(192,57,43,.22); }
+.omdys-dark .omdys-item:hover{ background:rgba(192,57,43,.34); }
+.omdys-dark .omdys-item.omdys-orth{ background:rgba(42,111,151,.26); }
+.omdys-dark .omdys-item.omdys-orth:hover{ background:rgba(42,111,151,.38); }
+.omdys-dark .omdys-item.omdys-tvig{ background:rgba(232,146,12,.20); }
+.omdys-dark .omdys-item.omdys-tvig:hover{ background:rgba(232,146,12,.32); }
+.omdys-dark .omdys-vitem{ background:rgba(31,122,61,.22); color:#cdeccf; }
+.omdys-dark .omdys-fam{ color:#9aa4af; }
+.omdys-dark .omdys-stade{ background:rgba(42,111,151,.22); }
+.omdys-dark .omdys-remed{ background:rgba(184,134,11,.18); }
+.omdys-dark .omdys-all{ background:#1d3f54; color:#cfe6f5; border-color:#3a6f97; }
+.omdys-dark .omdys-all:hover{ background:#265267; }
+.omdys-dark .omdys-undo{ background:#3a3016; color:#f0d98a; border-color:#b8860b; }
+.omdys-dark .omdys-undo:hover{ background:#4a3e1d; }
+.omdys-dark .omdys-x{ color:#9aa4af; }
+.omdys-dark .omdys-x:hover{ color:#e6edf3; }
+.omdys-dark .omdys-clab{ color:#b39ae0; }
+.omdys-dark .omdys-vlab{ color:#5fbf82; }

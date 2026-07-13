@@ -15,5 +15,9 @@
     cb.addEventListener('change', function () {
       chrome.storage.local.set({ enabled: cb.checked });
     });
+    var sz = document.getElementById('om-size'), dk = document.getElementById('om-dark');   // accessibilité : taille de texte + mode sombre de la barre
+    chrome.storage.local.get(['omSize', 'omDark'], function (o) { if (sz) sz.value = (o && o.omSize) || 'p'; if (dk) dk.checked = !!(o && o.omDark); });
+    if (sz) sz.addEventListener('change', function () { chrome.storage.local.set({ omSize: sz.value }); });
+    if (dk) dk.addEventListener('change', function () { chrome.storage.local.set({ omDark: dk.checked }); });
   } catch (e) {}
 })();
