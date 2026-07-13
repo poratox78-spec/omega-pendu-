@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OMEGA-Ω — Correcteur dys",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "Correcteur orthographique ET grammatical pour les troubles de l'écrit (dys). Hors-ligne, dans n'importe quel champ. Non-mots/accents auto-corrigés (FP=0), homophones et accords soulignés, stade développemental.",
   "permissions": [
     "storage",

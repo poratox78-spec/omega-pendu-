@@ -423,7 +423,8 @@ def rule_son_sont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('son', 'sont'): return None
     nxt = deacc(T[i+1].lower()) if i+1 < len(T) else ''
-    nxt_noun_sg = (nxt in GENDER_PURE) and not (nxt.endswith('s') or nxt.endswith('x'))
+    nxt_raw = T[i+1].lower() if i+1 < len(T) else ''
+    nxt_noun_sg = (nxt in GENDER_PURE) and not (nxt.endswith('s') or nxt.endswith('x')) and nxt_raw not in ('là', 'çà')   # « là »/« çà » ACCENTUÉS = adverbes ; leur déacc « la »/« ca » percute la NOTE de musique (GENDER_PURE) → « sont là » n'est PAS « sont+nom » (fixe le FP « le chat et le chien sont là »→son)
     plural_subj = (prev(T, i) in ('ils', 'elles')) or _plural_before(T, i) or is_plural_noun(T, i-1)
     if not plural_subj:                                                # déterminant PLURIEL (les/des/ces/leurs…) avant, dans la MÊME proposition → sujet pluriel (« Les sources … sont », « Les Bahrites ou X sont »)
         for j in range(i-1, max(-1, i-9), -1):
@@ -516,6 +517,8 @@ def rule_et_est(T, i):
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant (« elle, et … ») → pas de sujet net
     p = prev(T, i)
     if p not in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'qui'): return None   # exige un PRONOM sujet net (sinon « le roi, et … » → FP)
+    if i+1 < len(T) and deacc(T[i+1].lower()) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous', 'moi', 'toi', 'lui', 'eux', 'soi'):
+        return None                                                        # « il et elle », « lui et moi » : un pronom sujet suit → sujet COORDONNÉ, jamais « est » (« il est elle » est agrammatical) → « et » reste la conjonction
     if i+1 < len(T) and T[i+1][:1].isupper(): return None                  # « et Bob », « et Chris Udoh » → nom propre → conjonction, jamais « est »
     if i+1 < len(T) and (is_participle(T, i+1) or T[i+1].lower() not in NUM_DET):
         return 'est'                                                       # pronom sujet + attribut → être 3sg
@@ -2136,6 +2139,7 @@ CASES = [
     ("Il veut manger la soupe", "manger", "mangé", "-é/-er"),
     ("Elle a préféré rester", "préféré", "préférer", "-é/-er"),
     ("Il met son manteau", "son", "sont", "son/sont"),
+    ("Le chat et le chien sont là", "sont", "son", "son/sont"),             # FP-GUARD : sujet coordonné singulier + « sont là » (là≠note « la ») → « sont » NE doit PAS devenir « son »
     ("Les enfants sont contents", "sont", "son", "son/sont"),
     ("Mes amis sont gentils", "sont", "son", "son/sont"),
     ("Ils ont mangé la tarte", "ont", "on", "on/ont"),
@@ -2149,6 +2153,7 @@ CASES = [
     ("Il pense à son chien", "à", "a", "a/à"),
     ("Le chat est noir", "est", "et", "et/est"),
     ("Le chien et le chat jouent", "et", "est", "et/est"),
+    ("Il et elle sont là", "et", "est", "et/est"),                          # FP-GUARD : « il et elle » = sujet coordonné (pronom après « et ») → « et » NE doit PAS devenir « est »
     ("Je peux venir demain", "peux", "peut", "peu/peux/peut"),
     ("Il peut venir demain", "peut", "peux", "peu/peux/peut"),
     ("Il mange un peu de pain", "peu", "peut", "peu/peux/peut"),
