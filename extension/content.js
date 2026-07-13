@@ -126,8 +126,11 @@
     }
     schedule(el);
   }
+  var _undoSnap = null;   // filet de sécurité « tout corriger » : {el, ce, nodes:[[textNode,val]] (CE) | val (textarea), after}
   function applyAll(el, flags) {
     var t = getText(el), sp = spans(t);
+    var beforeVal = isCE(el) ? null : el.value;                                   // SNAPSHOT avant d'appliquer (pour l'undo)
+    var beforeNodes = isCE(el) ? ceCollect(el).map.map(function (m) { return [m.node, m.node.nodeValue]; }) : null;   // CE : valeurs des nœuds texte (ceReplace ne change JAMAIS la structure → restaurable chirurgicalement, sûr en Slate)
     var ord = flags.slice().sort(function (a, b) { return b.i - a.i; });   // droite→gauche : indices stables
     if (isCE(el)) {
       var did = false;
@@ -137,7 +140,17 @@
       ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]); });
       setText(el, t);
     }
+    _undoSnap = { el: el, ce: isCE(el), nodes: beforeNodes, val: beforeVal, after: getText(el) };   // « annuler » proposé tant que le champ tient EXACTEMENT le résultat de tout-corriger
     schedule(el);
+  }
+  function undoAll() {                                                            // revient AVANT « tout corriger » (rend le texte sur du dense mal corrigé : « von ont l'école »→retour)
+    if (!_undoSnap) return; var s = _undoSnap; _undoSnap = null;
+    try {
+      if (s.ce) { s.nodes.forEach(function (p) { try { p[0].nodeValue = p[1]; } catch (e) {} }); }
+      else { s.el.value = s.val; }
+      s.el.dispatchEvent(new Event('input', { bubbles: true })); try { s.el.focus(); } catch (e) {}
+    } catch (e) {}
+    schedule(s.el);
   }
 
   // ===== barre flottante =====
@@ -168,6 +181,8 @@
     var b = ensureBar();
     var h = '<div class="omdys-head"><b>🩹 Correcteur dys</b>';
     if (dg.flags.length) h += '<span class="omdys-n">' + dg.flags.length + '</span><button class="omdys-all">tout corriger</button>';
+    if (_undoSnap && _undoSnap.el === el && getText(el) === _undoSnap.after) h += '<button class="omdys-undo" title="revenir avant « tout corriger »">↩ annuler</button>';   // FILET : « tout corriger » réversible tant que le champ n'a pas été ré-édité
+    else if (_undoSnap && _undoSnap.el === el) _undoSnap = null;                  // champ ré-édité → snapshot périmé
     h += '<button class="omdys-x" title="masquer">×</button></div>';
     if (dg.flags.length) {
       h += '<div class="omdys-list">';
@@ -201,7 +216,8 @@
     b.style.display = 'block';
     place(el);
     b.querySelector('.omdys-x').onclick = function () { dismissed.add(el); hideBar(); };
-    var allb = b.querySelector('.omdys-all'); if (allb) allb.onclick = function () { applyAll(el, dg.flags.filter(function (f) { return f.tier !== 'vigilance'; })); };   // « tout corriger » = UNIQUEMENT le FP=0 (auto+flag) ; la vigilance reste au clic individuel explicite (audit 07/2026)
+    var allb = b.querySelector('.omdys-all'); if (allb) allb.onclick = function () { applyAll(el, dg.flags.filter(function (f) { return f.tier !== 'vigilance'; })); };
+    var undb = b.querySelector('.omdys-undo'); if (undb) undb.onclick = function () { undoAll(); };   // filet de sécurité tout-corriger   // « tout corriger » = UNIQUEMENT le FP=0 (auto+flag) ; la vigilance reste au clic individuel explicite (audit 07/2026)
     var items = b.querySelectorAll('.omdys-item');
     for (var z = 0; z < items.length; z++) (function (node) {
       node.onclick = function () { applyOne(el, dg.flags[+node.getAttribute('data-k')]); };

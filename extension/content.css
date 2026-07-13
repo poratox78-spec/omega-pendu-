@@ -11,6 +11,8 @@
 .omdys-n{ background:#2a6f97; color:#fff; border-radius:10px; padding:0 7px; font-size:11px; font-weight:700; }
 .omdys-all{ margin-left:auto; cursor:pointer; border:1px solid #2a6f97; background:#eaf2f8; color:#1f4e6b; border-radius:6px; padding:2px 8px; font-size:12px; }
 .omdys-all:hover{ background:#d8e8f3; }
+.omdys-undo{ cursor:pointer; border:1px solid #b8860b; background:#fdf6e3; color:#8a6d0b; border-radius:6px; padding:2px 8px; font-size:12px; }   /* filet « annuler tout corriger » — ton ambre = retour en arrière */
+.omdys-undo:hover{ background:#f7ecc9; }
 .omdys-x{ cursor:pointer; border:none; background:transparent; color:#888; font-size:16px; line-height:1; padding:0 2px; }
 .omdys-x:hover{ color:#333; }
 .omdys-list{ display:flex; flex-direction:column; gap:3px; }
