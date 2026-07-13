@@ -85,6 +85,9 @@ const SP = globalThis.__sp;
   // ...ET EN CONTEXTE D'AUXILIAIRE : la ré-sélection context-first ne doit PAS réécraser l'audibilité par la fréquence (mangé 55 < mange 76)
   const mja = SP.spell('il a manjé une pomme').find(x => x.word.toLowerCase() === 'manjé');
   if (!mja || mja.sugg !== 'mangé') fail.push('il a manjé→mangé (audibilité + context-first) attendu, eu ' + JSON.stringify(mja));
+  // AUDIBILITÉ ORANGE : non-mot RARE (gold freq<1 → le rouge s'abstient), l'orange « à vérifier » doit proposer l'AUDIBLE, pas le muet plus fréquent (affole 1.4 > affolé 0.7)
+  const afo = SP.spell('il a afolé le chien').find(x => x.word.toLowerCase() === 'afolé');
+  if (!afo || afo.sugg !== 'affolé') fail.push('afolé → orange audible « affolé » attendu (pas le muet « affole »), eu ' + JSON.stringify(afo));
   ['tapé', 'trouvé', 'café', 'été'].forEach(function (w) {   // CONTRÔLE : mot VALIDE à finale é → jamais corrigé (FP=0)
     if (SP.spell(w).some(x => x.word.toLowerCase() === w)) fail.push('FP audibilité sur mot valide ' + w);
   });
