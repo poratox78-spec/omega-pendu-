@@ -82,6 +82,9 @@ const SP = globalThis.__sp;
     const r = SP.spell(p[0]).find(x => x.word.toLowerCase() === p[0]);
     if (!r || r.sugg !== p[1]) fail.push('audibilité ' + p[0] + '→' + p[1] + ' attendu (finale audible), eu ' + JSON.stringify(r));
   });
+  // ...ET EN CONTEXTE D'AUXILIAIRE : la ré-sélection context-first ne doit PAS réécraser l'audibilité par la fréquence (mangé 55 < mange 76)
+  const mja = SP.spell('il a manjé une pomme').find(x => x.word.toLowerCase() === 'manjé');
+  if (!mja || mja.sugg !== 'mangé') fail.push('il a manjé→mangé (audibilité + context-first) attendu, eu ' + JSON.stringify(mja));
   ['tapé', 'trouvé', 'café', 'été'].forEach(function (w) {   // CONTRÔLE : mot VALIDE à finale é → jamais corrigé (FP=0)
     if (SP.spell(w).some(x => x.word.toLowerCase() === w)) fail.push('FP audibilité sur mot valide ' + w);
   });
