@@ -292,7 +292,9 @@
     return null;}
   var CONJ_WORDS={};('et ou ni mais car donc or que qu qui quand comme si lorsque puisque dont lequel laquelle lesquels lesquelles').split(' ').forEach(function(w){CONJ_WORDS[w]=1;});
   // accord sujet-VERBE à sujet NOM via le VRAI PARSEUR _npSubject (sujet ÉLOIGNÉ, mots-écrans « de X ») — MIROIR correcteur_probe.rule_accord_sv_noun, FP=0
-  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;   // vig=true : jumeau ORANGE (retire la garde clause-init) pour la vigilance sujet-verbe mid-phrase
+  function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
+    if(deacc(lw)==='a'&&i+1<T.length){var _dn=deacc(T[i+1].toLowerCase());if(_dn==='la'||_dn==='le'||_dn==='les'||_dn.slice(0,2)==="l'")return null;}   // « a » + article défini (la/le/les/l') → préposition « à » trop plausible → a→ont s'abstient ; indéfini reste. Miroir Python/app.
+    // vig=true : jumeau ORANGE (retire la garde clause-init) pour la vigilance sujet-verbe mid-phrase
     if(/(é|és|ée|ées)$/.test(lw))return null;                                  // participe → accord adjectival
     if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;                         // dét juste avant → T[i] = nom
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;                     // verbe fini jamais gouverné par de/des/par/à… → nom homographe
