@@ -1189,6 +1189,10 @@ def rule_accord_sv(T, i):
     pn = _subject_before(T, i)
     if pn is None: return None                                    # pas de sujet-pronom net → abstention
     per, nb = pn
+    if per == '3' and nb == 's' and deacc(T[i].lower()) in _V3PL_SURE:   # « il/elle » (sing) + verbe SÛR 3pl (sont/ont/vont/font) : le « s » MUET de ils/elles est tombé → c'est le PRONOM la faute (rule_il_ils), pas le verbe → NE PAS fixer le verbe (sinon « il sont »→« ils est »)
+        _pp = deacc(T[i-1].lower()) if i > 0 else ''
+        if _pp in ('ne', 'n') and i > 1: _pp = deacc(T[i-2].lower())
+        if _pp in ('il', 'elle'): return None
     if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre':
         return None                                              # « peut-être » (adverbe), pas le verbe pouvoir
     if _agrees(reads, per, nb): return None                      # déjà d'accord → ne pas toucher
@@ -1205,6 +1209,22 @@ def rule_accord_sv(T, i):
     if not _agrees(_reads(sugg), per, nb):
         return None                                             # garde : la suggestion doit VRAIMENT s'accorder (anti-bruit Lexique)
     return sugg
+
+
+_V3PL_SURE = {'sont', 'ont', 'vont', 'font'}   # 3e pluriel irréguliers NON ambigus (jamais nom/adj, jamais 3sg)
+
+def rule_il_ils(T, i):
+    """AUDIBILITÉ sur le SUJET : « il/elle » + verbe SANS AMBIGUÏTÉ 3e pluriel → le « s » de ils/elles est MUET (le dys le
+    laisse tomber), le verbe audible est fiable → corriger le PRONOM, pas le verbe. « il sont »→« ils sont ». FP=0 :
+    « il/elle + verbe-3pl » n'existe pas en français correct. rule_accord_sv s'abstient en miroir (pas de « ils est »)."""
+    lw = deacc(T[i].lower())
+    if lw not in ('il', 'elle'): return None
+    if i > 0 and (deacc(T[i-1].lower()) in ('et', 'ou', 'ni') or ',' in T[i-1]): return None   # sujet COORDONNÉ (« Paul et elle sont », « il et elle sont ») → le pluriel du verbe est DÉJÀ correct → ne pas toucher le pronom
+    j = i + 1
+    if j < len(T) and deacc(T[j].lower()) in ('ne', 'n'): j += 1         # « il ne sont pas »
+    if j >= len(T) or deacc(T[j].lower()) not in _V3PL_SURE: return None  # verbe SÛR 3pl (sont/ont/vont/font) uniquement → FP=0 sans dépendre du tagger ; les -ent (mangent) restent au fix-verbe (à couvrir plus tard)
+    s = 'ils' if lw == 'il' else 'elles'
+    return s[0].upper() + s[1:] if T[i][:1].isupper() else s
 
 
 def rule_accord_sv_recover(T, i):
@@ -2079,6 +2099,7 @@ RULES = [('élision inversée', rule_deselide),
          ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
+         ('accord sujet-verbe', rule_il_ils),
          ('accord sujet-verbe', rule_accord_sv_recover),
          ('accord sujet-verbe', rule_accord_sv_noun),
          ('accord sujet-verbe', rule_accord_sv_quant),
@@ -2150,6 +2171,8 @@ CASES = [
     ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
     ("les enfants a l'école", "a", "ont", "accord sujet-verbe"),             # « a l'école » = « à l'école » (locatif, article défini) → a→ont NE doit PAS tirer (ambigu avec la préposition « à »)
     ("les filles a la maison", "a", "ont", "accord sujet-verbe"),            # idem « à la maison »
+    ("Ils sont contents", "ils", "il", "accord sujet-verbe"),               # « il sont »→« ils sont » : le « s » MUET de « ils » est tombé → corriger le PRONOM (pas le verbe → « ils est »)
+    ("Paul et elle vont bien", "elle", "elles", "accord sujet-verbe"),      # CONTRÔLE coordination : « et elle vont » = sujet coordonné, pluriel DÉJÀ correct → « elle » ne doit PAS devenir « elles »
     # accord sujet-verbe à sujet ÉLOIGNÉ (mots-écrans « de X » via le vrai parseur _np_subject) — FP=0 sur 14 450 UD
     ("La liste des articles est longue", "est", "sont", "accord sujet-verbe"),        # tête = liste (sing.), pas articles
     ("Le prix des matières premières a augmenté", "a", "ont", "accord sujet-verbe"),  # tête = prix (sing.), pas matières
