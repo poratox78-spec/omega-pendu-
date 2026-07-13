@@ -7,9 +7,9 @@ const html = fs.readFileSync(HTML, 'utf8'); try{globalThis.OMEGA_VDC=require('./
 const i0 = html.indexOf('mode PHRASES');
 const start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
-const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
+const cut = html.indexOf('return res;}', spIdx) + 'return res;}'.length;   // jusqu'à la fin de complete() (aide-frappe) pour la garder aussi
 if (start < 0 || spIdx < 0 || cut < 0) { console.error('extraction échouée'); process.exit(2); }
-const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size};})();';
+const code = html.slice(start, cut) + ';globalThis.__sp={load:loadSpellerLex,spell:spellText,complete:complete,ready:()=>SP.ready,nwords:()=>SP.WORDS&&SP.WORDS.size};})();';
 
 const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
 const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
@@ -88,6 +88,10 @@ const SP = globalThis.__sp;
   // AUDIBILITÉ ORANGE : non-mot RARE (gold freq<1 → le rouge s'abstient), l'orange « à vérifier » doit proposer l'AUDIBLE, pas le muet plus fréquent (affole 1.4 > affolé 0.7)
   const afo = SP.spell('il a afolé le chien').find(x => x.word.toLowerCase() === 'afolé');
   if (!afo || afo.sugg !== 'affolé') fail.push('afolé → orange audible « affolé » attendu (pas le muet « affole »), eu ' + JSON.stringify(afo));
+  // AIDE-FRAPPE — plancher de fréquence (≥1) : ne propose QUE des mots courants. Sur une faute, pas de bruit rare qui CONTREDIT la correction (pome→pomerol vs correction pome→pomme).
+  const cpPome = SP.complete('pome'); if (cpPome.some(w => (w || '').toLowerCase() === 'pomerol')) fail.push('aide-frappe: « pome » ne doit PLUS proposer « pomerol » (rare), eu ' + JSON.stringify(cpPome));
+  const cpBon = SP.complete('bonjou'); if (!cpBon.includes('bonjour')) fail.push('aide-frappe: « bonjou » doit toujours proposer « bonjour », eu ' + JSON.stringify(cpBon));
+  if (!SP.complete('cha').length) fail.push('aide-frappe: « cha » doit proposer des mots courants (chance…), eu []');
   ['tapé', 'trouvé', 'café', 'été'].forEach(function (w) {   // CONTRÔLE : mot VALIDE à finale é → jamais corrigé (FP=0)
     if (SP.spell(w).some(x => x.word.toLowerCase() === w)) fail.push('FP audibilité sur mot valide ' + w);
   });
