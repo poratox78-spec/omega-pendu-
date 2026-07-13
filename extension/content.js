@@ -155,12 +155,20 @@
 
   // ===== barre flottante =====
   var bar = null, active = null, dismissed = new WeakSet();
+  // ===== réglages d'accessibilité (popup → chrome.storage.local) : taille de texte + mode sombre de la barre =====
+  var _omSize = 'p', _omDark = false;
+  function applyBarPrefs() { if (!bar) return; bar.classList.toggle('omdys-sz-m', _omSize === 'm'); bar.classList.toggle('omdys-sz-g', _omSize === 'g'); bar.classList.toggle('omdys-dark', !!_omDark); }
+  try {
+    chrome.storage.local.get(['omSize', 'omDark'], function (o) { if (o) { _omSize = o.omSize || 'p'; _omDark = !!o.omDark; } applyBarPrefs(); });
+    chrome.storage.onChanged.addListener(function (ch, area) { if (area !== 'local') return; if (ch.omSize) _omSize = ch.omSize.newValue || 'p'; if (ch.omDark) _omDark = !!ch.omDark.newValue; applyBarPrefs(); });   // live : changer dans le popup se reflète sans recharger
+  } catch (e) {}
   function hideBar() { if (bar) bar.style.display = 'none'; }
   function ensureBar() {
     if (bar) return bar;
     bar = document.createElement('div');
     bar.className = 'omdys-bar';
     bar.setAttribute('data-omdys', '1');
+    applyBarPrefs();
     bar.addEventListener('mousedown', function (e) { e.preventDefault(); });   // garde le focus dans le champ
     document.documentElement.appendChild(bar);
     return bar;
