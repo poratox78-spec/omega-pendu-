@@ -1362,6 +1362,9 @@ def rule_accord_sv_noun(T, i):
     nom-tête et le verbe QUE des compléments prépositionnels ; coordination/relative, ponctuation, verbe/aux intercalé, ou
     un 2e GN non prépositionnel → abstention (autre structure)."""
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
+    if deacc(T[i].lower()) == 'a' and i + 1 < len(T):                   # « a » + ARTICLE DÉFINI (la/le/les/l') → la préposition « à » est trop plausible (« les enfants a la maison / a l'école » = « à la/à l' », locatif) → a→ont S'ABSTIENT (ambigu). L'INDÉFINI (une/un/des) reste → possession (« ont une pomme »).
+        _dn = deacc(T[i + 1].lower())
+        if _dn in ('la', 'le', 'les') or _dn[:2] == "l'": return None
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None     # PARTICIPE (destiné…) : accord ADJECTIVAL, pas verbal
     if i > 0 and T[i-1].lower() in NUM_DET: return None                 # déterminant juste avant → T[i] est un NOM (« les joue »)
     if i > 0 and deacc(T[i-1].lower()) in PREP: return None             # un verbe FINI n'est jamais gouverné par de/des/du/par/à… → T[i] = NOM homographe (« de contrôle », « par faute », « l'est »)
@@ -2145,6 +2148,8 @@ CASES = [
     ("Les enfants jouent dehors", "jouent", "joue", "accord sujet-verbe"),
     ("Les oiseaux chantent", "chantent", "chante", "accord sujet-verbe"),
     ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
+    ("les enfants a l'école", "a", "ont", "accord sujet-verbe"),             # « a l'école » = « à l'école » (locatif, article défini) → a→ont NE doit PAS tirer (ambigu avec la préposition « à »)
+    ("les filles a la maison", "a", "ont", "accord sujet-verbe"),            # idem « à la maison »
     # accord sujet-verbe à sujet ÉLOIGNÉ (mots-écrans « de X » via le vrai parseur _np_subject) — FP=0 sur 14 450 UD
     ("La liste des articles est longue", "est", "sont", "accord sujet-verbe"),        # tête = liste (sing.), pas articles
     ("Le prix des matières premières a augmenté", "a", "ont", "accord sujet-verbe"),  # tête = prix (sing.), pas matières
