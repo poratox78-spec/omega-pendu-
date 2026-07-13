@@ -12924,7 +12924,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
     while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
-      for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length)out.push(w);}i++;if(out.length>800)break;}
+      for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER DE FRÉQUENCE (≥1) : l'aide-frappe ne propose QUE des mots courants. Sur une faute (« pome ») les seuls préfixe-matches sont rares (pomerol 0.1…) → liste vide → la CORRECTION prend le relais (pome→pomme), plus de bruit/contradiction. Mesuré : garde bonjour/chance/enfants… tue pomerol/poméranien.
     out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
