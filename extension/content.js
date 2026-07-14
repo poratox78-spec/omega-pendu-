@@ -61,11 +61,21 @@
     })(el);
     return { text: text, map: map };
   }
-  function ceReplace(el, s, e, sugg) {
+  function ceReplace(el, s, e, sugg, viaInput) {
     var col = ceCollect(el);
     for (var k = 0; k < col.map.length; k++) { var m = col.map[k];
-      if (s >= m.start && e <= m.end) { var off = s - m.start, v = m.node.nodeValue;
-        m.node.nodeValue = v.slice(0, off) + sugg + v.slice(off + (e - s)); return true; } }
+      if (s >= m.start && e <= m.end) { var off = s - m.start;
+        if (viaInput) {                                     // ÉDITEURS RICHES (Slate/Draft/ProseMirror = Twitch/Discord/Reddit) : appliquer via SÉLECTION + insertText → passe par le pipeline de l'éditeur → la correction PERSISTE. Une mutation directe du nœud est ANNULÉE par le framework au refocus (il re-rend depuis son modèle interne).
+          try {
+            var doc = el.ownerDocument || document, sel = doc.getSelection(), rg = doc.createRange();
+            rg.setStart(m.node, off); rg.setEnd(m.node, off + (e - s));
+            sel.removeAllRanges(); sel.addRange(rg);
+            try { el.focus({ preventScroll: true }); } catch (_) { try { el.focus(); } catch (_2) {} }
+            if (doc.execCommand && doc.execCommand('insertText', false, sugg)) return true;
+          } catch (_) {}
+        }
+        try { var v = m.node.nodeValue; m.node.nodeValue = v.slice(0, off) + sugg + v.slice(off + (e - s)); return true; } catch (_) { return false; }   // repli : mutation directe du nœud (contenteditable simple, non géré par un framework)
+      } }
     return false;                                            // à cheval sur 2 nœuds → on n'applique PAS (structure préservée)
   }
   function getText(el) {
@@ -119,7 +129,7 @@
     var t = getText(el), sp = spans(t), s = sp[flag.i]; if (!s) return;
     var e = sp[flag.i + (flag.span ? flag.span - 1 : 0)] || s;   // élision : la suggestion fusionne 2 tokens (« c est »→« c'est »)
     if (isCE(el)) {
-      if (ceReplace(el, s[0], e[1], flag.sugg)) el.dispatchEvent(new Event('input', { bubbles: true }));
+      if (ceReplace(el, s[0], e[1], flag.sugg, true)) el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
       var nt = t.slice(0, s[0]) + flag.sugg + t.slice(e[1]);
       setText(el, nt, s[0] + flag.sugg.length);
@@ -134,7 +144,7 @@
     var ord = flags.slice().sort(function (a, b) { return b.i - a.i; });   // droite→gauche : indices stables
     if (isCE(el)) {
       var did = false;
-      ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; if (ceReplace(el, s[0], e[1], f.sugg)) did = true; });
+      ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; if (ceReplace(el, s[0], e[1], f.sugg, true)) did = true; });
       if (did) el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
       ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]); });
