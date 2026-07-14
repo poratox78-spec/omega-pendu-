@@ -35,13 +35,14 @@ var __doc={getElementById:function(id){return id==='vdc-lex'?{textContent:__VDC_
 var __ls={getItem:function(){return null;},setItem:function(){},removeItem:function(){}};
 var __ss={speak:function(){},cancel:function(){},getVoices:function(){return[];}};
 var OMEGA_VDC=JSON.parse(__VDC__);   // #30 : seed sync des maps grammaire (le moteur lit OMEGA_VDC, plus de bloc JSON en clair dans l'app)
-${slice};root.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,ready:function(){return SP.ready;}};})(__doc,__ls,__ss,function(){return __stub;});
+${slice};root.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,toks:toks,ready:function(){return SP.ready;}};})(__doc,__ls,__ss,function(){return __stub;});
 var E=root.__corrEngine;
 var api={
   ready:function(){return E.ready();},
   init:function(){return E.loadSpellerLex();},                 // décompresse le lexique ortho (async, à appeler 1×)
   grammar:function(t){return E.correctText(t);},
   spell:function(t){return E.spellText(t);},
+  tokens:function(t){return E.toks(t);},                        // tokeniseur du moteur (mappe l'index de flag → position dans le texte)
   correct:function(t){var gf=E.correctText(t),sf=E.ready()?E.spellText(t):[],byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;});return Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});}
 };
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.Correcteur=api;
