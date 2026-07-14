@@ -175,11 +175,15 @@
   }
   function place(el) {
     var r = el.getBoundingClientRect(), b = ensureBar();
-    var top = r.bottom + 6, left = r.left;
     var maxw = Math.min(420, window.innerWidth - 16);
     b.style.maxWidth = maxw + 'px';
-    if (left + maxw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - maxw - 8);
-    if (top + 60 > window.innerHeight) top = Math.max(8, r.top - 6 - 200);
+    var bh = b.offsetHeight || 80, bw = b.offsetWidth || maxw;   // HAUTEUR RÉELLE (barre déjà remplie) → ne plus deviner 200px
+    var left = r.left;
+    if (left + bw > window.innerWidth - 8) left = Math.max(8, window.innerWidth - bw - 8);
+    var below = r.bottom + 6, above = r.top - bh - 6, top;       // sous le champ si ça tient, sinon au-dessus (bas de barre 6px AU-DESSUS du champ → JAMAIS de chevauchement)
+    if (below + bh <= window.innerHeight - 8) top = below;
+    else if (above >= 8) top = above;
+    else top = (window.innerHeight - r.bottom >= r.top) ? below : Math.max(8, above);   // ni l'un ni l'autre : côté le plus grand, clampé
     b.style.top = (top + window.scrollY) + 'px';
     b.style.left = (left + window.scrollX) + 'px';
   }
