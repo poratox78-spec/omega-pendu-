@@ -1,3 +1,0 @@
-# Artefact généré (build_correcteur_html.js) : garder LF partout pour que la garde CI
-# de fraîcheur (--check) matche le blob quel que soit l'OS (autocrlf ne le convertit pas).
-correcteur-hors-ligne.html text eol=lf
