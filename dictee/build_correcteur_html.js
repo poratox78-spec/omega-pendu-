@@ -227,7 +227,8 @@ const HTML = `<!doctype html>
 
 if (CHECK) {
   const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
-  if (cur !== HTML) {
+  const norm = function (s) { return s.replace(/\r\n/g, '\n'); };   // insensible aux fins de ligne (autocrlf=true sous Windows convertit le working copy)
+  if (norm(cur) !== norm(HTML)) {
     console.error('✗ ' + path.basename(OUT) + ' obsolète — régénère : node dictee/build_correcteur_html.js');
     process.exit(1);
   }
