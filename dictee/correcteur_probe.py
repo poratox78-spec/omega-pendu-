@@ -821,6 +821,7 @@ def rule_adj_epithet(T, i):
     if d not in ADJ_LEX or _adj_estem(lw) is not None: return None   # inconnu / épicène (radical -e : rouge/jeune) → pas de genre à trancher
     if d in ('tout', 'tous', 'toute', 'toutes'): return None         # géré par rule_tout_det (rôle déterminant/adverbe/pronom)
     if i+1 < len(T) and deacc(T[i+1].lower()) in ('de', 'et', 'ou', 'ni'): return None   # figé (« haut de gamme ») + coordination distributive (« sites allemand et français »)
+    if d in ('bon', 'meilleur') and i+1 < len(T) and deacc(T[i+1].lower()) == 'marche': return None   # locution INVARIABLE « (bon/meilleur) marché » (« des vêtements bon marché ») — pas un adjectif accordable
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] != 'ADJ' or tg[i-1] != 'NOUN': return None
     if T[i-1][:1].isupper(): return None                             # nom propre (capitalisé) → genre non fiable
@@ -927,7 +928,9 @@ _PP_COD_STOP = {'menti', 'ri', 'souri', 'plu', 'deplu', 'nui', 'suffi', 'dormi',
                 'vecu', 'couru', 'coute', 'valu', 'pese', 'dure', 'reussi', 'echoue', 'appartenu', 'resiste',
                 'survecu', 'nage', 'voyage', 'travaille', 'circule', 'evolue', 'rode', 'erre',
                 'parle', 'repondu', 'telephone', 'obei', 'ressemble', 'renonce', 'participe', 'assiste',
-                'succede', 'procede', 'remedie', 'convenu', 'nui', 'menace', 'songe', 'reve'}
+                'succede', 'procede', 'remedie', 'convenu', 'nui', 'menace', 'songe', 'reve',
+                'fallu', 'pu'}    # TOUJOURS invariables : falloir (impersonnel) + pouvoir (objet = infinitif, jamais COD direct) — cf. « les efforts qu'il a fallu/pu » (pièges Voltaire). PAS du/su/voulu qui, eux, PEUVENT s'accorder.
+_PP_PERCEPTION = {'vu', 'entendu', 'senti', 'regarde', 'ecoute', 'apercu', 'laisse', 'envoye'}   # PP de perception/factitif : + INFINITIF = accord ambigu (l'antécédent fait OU subit l'action) → abstention
 # Noms de PAROLE / PENSÉE / FAIT : « que » après eux peut être COMPLÉTIF (conjonction) ⇒ le nom n'est pas le COD ⇒ abstention.
 _COMPLETIVE_ANT = {'fait', 'faits', 'idee', 'idees', 'preuve', 'preuves', 'nouvelle', 'nouvelles', 'espoir', 'espoirs',
                    'crainte', 'craintes', 'peur', 'peurs', 'certitude', 'certitudes', 'conviction', 'convictions',
@@ -965,6 +968,7 @@ def rule_pp_avoir_cod(T, i):
     if base is None: base = _IRR_PP.get(deacc(lw))    # participe irrégulier -t/-s/-u (écrit/pris/entendu…) hors _pp_base
     if base is None: return None
     if deacc(base) in _PP_COD_STOP: return None                     # verbe intransitif/mesure/COI ⇒ « que » circonstant/indirect, pas COD
+    if deacc(base) in _PP_PERCEPTION and i+1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX: return None   # PP de perception/factitif + INFINITIF (« les airs que j'ai entendu jouer ») : l'antécédent SUBIT l'infinitif → accord AMBIGU (piège Voltaire) → abstention FP-safe
     a = None; a_is_je = False                                       # auxiliaire AVOIR en remontant (adverbes/négation tolérés)
     for k in range(i - 1, max(-1, i - 4), -1):
         tk = T[k].lower(); dk = deacc(tk)
