@@ -195,7 +195,12 @@ def diagnose_sentence(cible, eleve, fam):
         if op=='ins':
             facts.append({'mot':s,'types':['mot_en_trop'],'msg':f'Mot en trop : « {s} ».'}); continue
         ti+=1                                                   # match/sub/del avancent dans la cible
-        if op=='match': continue
+        if op=='match':
+            if t!=s:                                            # même mot à la CASSE près (align insensible à la casse) → faute de casse (réf connue → 0 FP)
+                manque=t[:1].isupper() and s[:1].islower()
+                facts.append({'mot':t,'tentative':s,'types':['majuscule'],
+                              'msg':(f'« {s} » → « {t} » : il manque la majuscule.' if manque else f'« {s} » → « {t} » : pas de majuscule ici.')})
+            continue
         if op=='del':
             facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
