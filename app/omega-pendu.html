@@ -11485,6 +11485,10 @@ window.addEventListener('DOMContentLoaded', () => {
   function isAccord(t,s){var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;
     while(p<a.length&&p<b.length&&a[p]===b[p])p++; var r=a.slice(p)+b.slice(p);
     if(a.slice(p)===b.slice(p))return false; for(var k=0;k<r.length;k++)if(!INFL[r[k]])return false; return true;}
+  // Homophones GRAMMATICAUX (mots-outils, tranchés par la FONCTION : a/à, son/sont, ces/ses) vs LEXICAUX (ver/vert : par le SENS).
+  // Formes DÉACCENTUÉES ; grammatical si l'un OU l'autre mot de la paire est un mot-outil (reconnaître le mot grammatical = compétence morphosyntaxique).
+  var GRAM_HOMO={a:1,as:1,et:1,est:1,es:1,ai:1,ais:1,ait:1,son:1,sont:1,sons:1,on:1,ont:1,ce:1,se:1,ces:1,ses:1,sais:1,sait:1,ou:1,la:1,las:1,les:1,lez:1,leur:1,leurs:1,mais:1,mes:1,met:1,mets:1,mai:1,maie:1,mon:1,mont:1,monts:1,ma:1,ta:1,sa:1,ca:1,quel:1,quelle:1,quels:1,quelles:1,peu:1,peut:1,peux:1,si:1,ci:1,dont:1,donc:1,ni:1,dans:1,sans:1,quand:1,quant:1,pres:1,pret:1,prets:1,du:1,dus:1,dut:1,due:1,dues:1,des:1,plus:1,au:1,aux:1,tout:1,tous:1,sur:1};
+  function homoGram(t,s){return !!(GRAM_HOMO[deacc(t.toLowerCase())]||GRAM_HOMO[deacc(s.toLowerCase())]);}
   function diagWord(t,s,fam){
     if(s.toLowerCase()===t.toLowerCase())return[];
     var dt=deacc(t.toLowerCase()),ds=deacc(s.toLowerCase()),o=[];
@@ -11497,7 +11501,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!_seg&&ds.length<dt.length&&subseq(ds,dt))o.push('muette');
     if(!_seg&&ds.length>dt.length&&subseq(dt,ds))o.push('ajout');
     var fl=fam.map(function(x){return x.toLowerCase();});
-    if(fl.indexOf(s.toLowerCase())>=0)o.push(isAccord(t,s)?'accord':'homophone');
+    if(fl.indexOf(s.toLowerCase())>=0)o.push(isAccord(t,s)?'accord':(homoGram(t,s)?'homophone_gram':'homophone_lex'));   // grammatical (a/à, son/sont → morphosyntaxique) vs lexical (ver/vert → lexical)
     if(!o.length)o.push(norm(t)===norm(s)?'surface':'autre');
     return o;
   }
@@ -11536,10 +11540,10 @@ window.addEventListener('DOMContentLoaded', () => {
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
   function accordType(t,s,verb){if(verb)return'verbal';var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;var suf=a.slice(p)+b.slice(p);if(suf.indexOf('s')>=0||suf.indexOf('x')>=0)return'nombre';if(suf.slice(-2)==='nt'||suf.indexOf('t')>=0)return'verbal';if(suf.indexOf('e')>=0)return'genre';return'flexion';}
   function nb(x){return x==='pl'?'pluriel':'singulier';}
-  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone:'lexical',accord:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique)
+  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique) ; homophone LEXICAL (ver/vert) = lexical ; homophone GRAMMATICAL (a/à, son/sont) = morphosyntaxique ; 'homophone' nu = repli lexical
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
-  var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones lexicaux.',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal (le palier le plus tardif).'};
+  var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones LEXICAUX (ver/vert/verre).',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal ET homophones grammaticaux (a/à, son/sont) — le palier le plus tardif.'};
   function stageOfFact(types){var best=-1;(types||[]).forEach(function(t){var st=STAGE_FAM[t];if(st){var k=STAGE_ORDER.indexOf(st);if(k>best)best=k;}});return best<0?null:STAGE_ORDER[best];}
   function developmental(F){var c={},tot=0,i;for(i=0;i<STAGE_ORDER.length;i++)c[STAGE_ORDER[i]]=0;F.forEach(function(f){var st=stageOfFact(f.types);if(st){c[st]++;tot++;}});if(!tot)return null;for(i=0;i<STAGE_ORDER.length;i++)if(c[STAGE_ORDER[i]]>0)return{stade:STAGE_ORDER[i]};return null;}
   // REMÉDIATION ciblée PAR FAMILLE (le PRODUIT : famille→stade→remédiation). Stratégies classiques d'orthophonie
@@ -11552,7 +11556,9 @@ window.addEventListener('DOMContentLoaded', () => {
     surface:'Écrit « comme ça sonne » : compare au mot MODÈLE (carte-mot). Un même son a plusieurs graphies (/s/ → s, ss, c, ç).',
     accent:'Accents : é (fermé) et è/ê (ouvert) ne sonnent pas pareil. Dis le mot à voix haute pour choisir l’accent.',
     muette:'Lettre muette finale : trouve un mot de la MÊME FAMILLE où on l’entend (petit→petitE, tard→tardIf, chant→chantEr).',
-    homophone:'Homophones : REMPLACE par un mot test (a→avait, et→et puis, son→le sien). Si la phrase tient encore, c’est la bonne forme.',
+    homophone_gram:'Homophones grammaticaux (a/à, et/est, son/sont, ces/ses…) : REMPLACE par une forme sûre — si ça tient, c’est un VERBE. a→avait (sinon à) · et→et puis (sinon est→était) · son→mon/ton (sinon sont→étaient) · on→il (sinon ont→avaient) · ces→ces …-là (sinon ses→les siens).',
+    homophone_lex:'Homophones lexicaux (ver/vers/vert/verre, sceau/seau) : c’est le SENS qui décide, pas la grammaire. Remplace par un mot de la même FAMILLE ou un synonyme (verre→du verre, vert→verdure, vers→direction, sceau→sceller).',
+    homophone:'Homophones grammaticaux : REMPLACE par une forme sûre (a→avait, et→et puis, son→mon/ton). Si la phrase tient, c’est la bonne forme.',
     accord:'Accord : repère QUI COMMANDE (le sujet, le déterminant) et accorde en genre/nombre (les chats → jouENT ; la voiture → bleuE).',
     segmentation:'Découpage : un mot à voyelle « colle » à l’article/pronom élidé → sépare avec l’apostrophe (lhopital → l’hôpital, dargen → d’argent, cetait → c’était). Et « ducou » = deux mots (du coup).',
     majuscule:'Majuscule : une phrase commence TOUJOURS par une majuscule (et les noms propres aussi). Repère le début (après un point) et mets la capitale.'
@@ -11569,7 +11575,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if(k==='match')return;
       if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+esc(t)+' ».'});return;}
       var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
-      var fact={types:ty,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.join(', ')};
+      var fact={types:ty,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
       if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
         if(isParticiple(T,idx)){var aux=findAux(T,idx);
           if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+esc(g1[0])+' » ('+nb(g1[1])+')':'');}
@@ -11590,8 +11596,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(T.length&&S.length){var _t0=T[0],_s0=S[0];if(/^[A-ZÀ-ÖØ-Þ]/.test(_t0)&&/^[a-zà-öø-ÿ]/.test(_s0)&&_t0.toLowerCase()===_s0.toLowerCase())F.unshift({types:['majuscule'],msg:'« '+esc(_s0)+' » → « '+esc(_t0)+' » : une phrase commence par une majuscule.'});}   // MAJUSCULE INITIALE : mot 1 correct mais en minuscule → l'align l'a matché (insensible casse) ; on le signale (sinon « ✓ correcte » alors que la majuscule manque)
     return F;
   }
-  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',majuscule:'#b8860b',autre:'#777'};
-  var LBL={accord:'accord',homophone:'homophone',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (apostrophe/espace)',majuscule:'majuscule initiale',autre:'à vérifier'};
+  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',homophone_gram:'#b23b3b',homophone_lex:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',majuscule:'#b8860b',autre:'#777'};
+  var LBL={accord:'accord',homophone:'homophone',homophone_gram:'homophone grammatical',homophone_lex:'homophone lexical',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (apostrophe/espace)',majuscule:'majuscule initiale',autre:'à vérifier'};
   var st=document.createElement('style');
   st.textContent='#vdd-btn{position:fixed;right:14px;bottom:14px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#2a6f97;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdd-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdd-ov.on{display:flex}'
@@ -11644,7 +11650,7 @@ window.addEventListener('DOMContentLoaded', () => {
     SESSF=SESSF.concat(F);   // le stade se juge AGRÉGÉ sur la session (référence Python developmental_diagnosis), pas sur 1-3 erreurs d'une phrase
     if(!ok){var dev=developmental(SESSF);if(dev)html+='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>Stade (sur la session, '+nT+' phrase'+(nT>1?'s':'')+') : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdd-sc">'+STAGE_MSG[dev.stade]+'</span></div>';html+=remedBlock(SESSF,'vdd-fact');}
     if(!ok)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase correcte : <span class="vdd-truth">'+esc(cur.text)+'</span></div>';
-    F.forEach(function(x){x.types.forEach(function(t){if(ERRFAM.indexOf(t)>=0)PROF[t]=(PROF[t]||0)+1;});});try{localStorage.setItem('vdd_profile',JSON.stringify(PROF));}catch(e){}
+    F.forEach(function(x){x.types.forEach(function(t){if(t==='homophone_gram'||t==='homophone_lex')t='homophone';if(ERRFAM.indexOf(t)>=0)PROF[t]=(PROF[t]||0)+1;});});try{localStorage.setItem('vdd_profile',JSON.stringify(PROF));}catch(e){}
     if(DysProfile){var _es={};F.forEach(function(x){(x.types||[]).forEach(function(t){_es[t]=1;});});var _ts={};(cur.traps||[]).forEach(function(t){_ts[t]=1;});Object.keys(_es).forEach(function(t){_ts[t]=1;});Object.keys(_ts).forEach(function(t){DysProfile.rec(t,_es[t]?1:0,'dictee');});}  // profil unifié : att par trap testée, err par famille fautive (taux supervisé)
     $('vdd-fb').innerHTML=html;$('vdd-score').textContent=nG+' / '+nT;renderProf();renderHist();renderUProf();}
   btn.onclick=function(){ov.classList.add('on');if(!cur)pick();else $('vdd-ans').focus();renderUProf();};
@@ -12974,7 +12980,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var html=_rest;
     if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique pour annuler)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
     if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique pour appliquer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
-    var devF=_corrs.map(function(f){return {types:[/accord|genre/.test(f.name||'')?'accord':'homophone']};});   // homophones vs vrais accords
+    var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm]};});   // famille dys → stade ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX (morphosyntaxique)
     var dev=developmental(devF);
     if(dev)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+'</span></div>';
     html+=remedBlock(devF,'vdc-fact');
