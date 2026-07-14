@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{ --fs:15px; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font:var(--fs)/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; color:#1a1a1a; background:#fff; }
+  header{ background:#2a6f97; color:#fff; padding:9px 12px; display:flex; align-items:center; gap:8px; position:sticky; top:0; }
+  header b{ font-size:1.05em; }
+  header .st{ margin-left:auto; font-size:.8em; opacity:.9; }
+  .wrap{ padding:10px; }
+  textarea#omdys-ta{ width:100%; min-height:140px; resize:vertical; font:inherit; padding:9px 10px; border:1px solid #c9c9c9; border-radius:9px; line-height:1.6; }
+  textarea#omdys-ta:focus{ outline:2px solid #2a6f97; border-color:#2a6f97; }
+  .acts{ display:flex; gap:8px; align-items:center; margin:9px 0; flex-wrap:wrap; }
+  .acts button{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; }
+  #omdys-fixall{ background:#1f7a3d; color:#fff; }
+  #omdys-fixall:disabled{ background:#b9c6bd; cursor:default; }
+  #omdys-copy{ background:#2a6f97; color:#fff; }
+  #omdys-copy.ok{ background:#1f7a3d; }
+  #omdys-count{ color:#666; font-size:.9em; }
+  .mir{ display:flex; align-items:center; gap:6px; font-size:.85em; color:#555; margin-bottom:8px; }
+  .corr{ display:flex; flex-direction:column; gap:4px; }
+  .item{ cursor:pointer; padding:5px 8px; border-radius:7px; border-left:3px solid #c0392b; background:#fcf3f2; }
+  .item:hover{ background:#f6e2df; }
+  .item.orth{ border-left-color:#2a6f97; background:#eef5fb; }
+  .item.orth:hover{ background:#dcebf7; }
+  .item.tvig{ border-left:3px dashed #e8920c; background:#fff8ea; }
+  .fam{ color:#777; font-size:.82em; }
+  .why,.tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
+  .why:hover,.tts:hover{ opacity:1; }
+  .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
+  .stade{ margin-top:8px; padding:6px 9px; border-left:4px solid #2a6f97; background:#eaf2f8; border-radius:5px; font-size:.92em; }
+  .remed{ margin-top:5px; padding:6px 9px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:5px; font-size:.92em; }
+  .ok-msg{ color:#1f7a3d; font-weight:700; padding:6px 2px; }
+  .foot{ margin-top:12px; padding-top:9px; border-top:1px solid #e3e3e3; color:#8a94a0; font-size:.82em; }
+</style>
+</head>
+<body>
+<header><b>🩹 Correcteur dys</b><span class="st" id="omdys-st">chargement…</span></header>
+<div class="wrap">
+  <label class="mir"><input type="checkbox" id="omdys-mirror" checked> Recopier ce que je tape sur la page</label>
+  <textarea id="omdys-ta" placeholder="Écris ou colle ton texte ici — ou tape dans un champ de la page, il se recopie ici. Puis clique les corrections et « Copier »."></textarea>
+  <div class="acts">
+    <button id="omdys-fixall" disabled>✓ Tout corriger</button>
+    <button id="omdys-copy">📋 Copier</button>
+    <span id="omdys-count"></span>
+  </div>
+  <div class="corr" id="omdys-corr"></div>
+  <div id="omdys-stade"></div>
+  <div class="foot">Hors-ligne · aucune donnée envoyée. Moteur identique à l'app (FP=0). Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux.</div>
+</div>
+<script src="dys-core.js"></script>
+<script src="sidepanel.js"></script>
+</body>
+</html>
