@@ -809,6 +809,8 @@ def rule_adj_attr(T, i):
 
 _EPI_ART = {'le': 's', 'la': 's', 'les': 'p', 'un': 's', 'une': 's', 'des': 'p',
             'ce': 's', 'cet': 's', 'cette': 's', 'ces': 'p', 'du': 's'}   # articles à NOMBRE net (possessifs exclus : « leur » ambigu → FP mesuré)
+_COLOR_ADJ = {'bleu', 'vert', 'gris', 'blanc', 'noir', 'brun', 'violet', 'jaune', 'rouge', 'rose',
+              'orange', 'marron', 'roux', 'blond', 'pourpre', 'mauve', 'beige', 'fauve'}   # couleurs : INVARIABLES en composé (bleu clair) ou dérivées de nom (vert pomme) → abstention si suivies d'un ADJ/NOM qualificatif
 def rule_adj_epithet(T, i):
     """Accord en GENRE×NOMBRE de l'ADJECTIF ÉPITHÈTE avec le nom qu'il suit : [ARTICLE + NOM(genre connu) + ADJ]
     (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
@@ -824,6 +826,7 @@ def rule_adj_epithet(T, i):
     if d in ('bon', 'meilleur') and i+1 < len(T) and deacc(T[i+1].lower()) == 'marche': return None   # locution INVARIABLE « (bon/meilleur) marché » (« des vêtements bon marché ») — pas un adjectif accordable
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] != 'ADJ' or tg[i-1] != 'NOUN': return None
+    if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN'): return None   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
     if T[i-1][:1].isupper(): return None                             # nom propre (capitalisé) → genre non fiable
     dn = deacc(T[i-1].lower()); g = GENDER_PURE.get(dn)
     if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
