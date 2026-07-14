@@ -1042,7 +1042,9 @@ function spellUnknown(tok,atStart,T,idx){
       return 'Astuce : remplace par « '+h[0]+' ». « '+(a>0?'…':'')+win.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
     var n=f.name||'';
     if(/\(dont\)/.test(n))return '« dont » reprend un complément avec « de » : le participe passé reste invariable (les fleurs dont il a parlé).';   // AVANT le gouverneur : « dont » = participe INVARIABLE, pas d'accord (sinon indice contradictoire)
-    if((/accord/.test(n)&&!/é\/er|grammatical|dont/.test(n))||/genre/.test(n)){
+    if(/\(COD/.test(n))return 'Avec « avoir », le participe s\'accorde avec le COD placé AVANT (les fleurs que j\'ai cueillies) — pas avec le sujet.';   // gouverneur = COD antéposé, pas le sujet
+    if(/tout/.test(n))return '« tout » s\'accorde avec le nom qui SUIT (tous les jours, toutes les nuits).';   // s'accorde avec ce qui suit, pas avec un mot d'avant
+    if((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)){
       var g=null,lab='';
       if(/genre/.test(n)){var gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
       if(!g){var gn=governorNumber(T,i,isVerb(T,i)||isParticiple(T,i));if(gn){g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
