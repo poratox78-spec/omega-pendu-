@@ -11973,7 +11973,7 @@ window.addEventListener('DOMContentLoaded', () => {
     align(T,S).forEach(function(op){var k=op[0],t=op[1],s=op[2];
       if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+esc(s)+' ».'});return;}
       ti++;
-      if(k==='match')return;
+      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
       if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+esc(t)+' ».'});return;}
       var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
       var fact={types:ty,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
@@ -11994,7 +11994,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
       F.push(fact);});
-    if(T.length&&S.length){var _t0=T[0],_s0=S[0];if(/^[A-ZÀ-ÖØ-Þ]/.test(_t0)&&/^[a-zà-öø-ÿ]/.test(_s0)&&_t0.toLowerCase()===_s0.toLowerCase())F.unshift({types:['majuscule'],msg:'« '+esc(_s0)+' » → « '+esc(_t0)+' » : une phrase commence par une majuscule.'});}   // MAJUSCULE INITIALE : mot 1 correct mais en minuscule → l'align l'a matché (insensible casse) ; on le signale (sinon « ✓ correcte » alors que la majuscule manque)
+    // (majuscule mot-1 désormais gérée par le contrôle de casse général dans la boucle align — couvre aussi les noms propres en milieu de phrase) // MAJUSCULE INITIALE : mot 1 correct mais en minuscule → l'align l'a matché (insensible casse) ; on le signale (sinon « ✓ correcte » alors que la majuscule manque)
     return F;
   }
   var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',homophone_gram:'#b23b3b',homophone_lex:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',majuscule:'#b8860b',autre:'#777'};
