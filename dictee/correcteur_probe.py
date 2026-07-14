@@ -907,6 +907,10 @@ def rule_pp_etre(T, i):
     if _SEG is not None and sk < len(_SEG['hy']) and _SEG['hy'][sk]: return None   # « poursuit-il » : pronom d'inversion (incise) ≠ sujet → abstention
     num, gen = info
     if num != aux_num: return None                           # « elles est … » : aux et sujet en désaccord → l'erreur est ailleurs, abstention
+    refl = deacc(T[sk].lower()) == 'se' or (sk >= 1 and deacc(T[sk-1].lower()) in _PP_SUBJ)   # pronominal RÉFLÉCHI : « se » (ou pronom doublé « nous nous »/« vous vous »)
+    if refl and i+1 < len(T):                                # pronominal + COD après (nom/déterminant) → « se » = COI, PP INVARIABLE (« nous nous sommes rendu service », « ils se sont lavé les mains ») ; n'affecte PAS « devenus médecins » (non pronominal)
+        tgn = pos_tags(T)
+        if tgn and i+1 < len(tgn) and tgn[i+1] in ('NOUN', 'DET'): return None
     if gen == '?':                                            # genre inconnu (je/tu/nous) → garder celui écrit
         gen = 'f' if deacc(lw[:-1] if lw.endswith('s') else lw) == deacc(base) + 'e' else 'm'
     sugg = base + {'sm': '', 'sf': 'e', 'pm': 's', 'pf': 'es'}[num + gen]

@@ -685,7 +685,7 @@
       return sg2.toLowerCase()!==lw?ckeepcase(T[i],sg2):null;
     }
     if(_SEG&&sk<_SEG.hy.length&&_SEG.hy[sk])return null;
-    var num=info[0],gen=info[1];if(num!==auxNum)return null;
+    var num=info[0],gen=info[1];if(num!==auxNum)return null;var _refl=(deacc(T[sk].toLowerCase())==='se')||(sk>=1&&PPE_SUBJ[deacc(T[sk-1].toLowerCase())]);if(_refl&&i+1<T.length){var _tgn=posTags(T);if(_tgn&&i+1<_tgn.length&&(_tgn[i+1]==='NOUN'||_tgn[i+1]==='DET'))return null;}   // pronominal réfléchi COI + COD après → PP INVARIABLE
     if(gen==='?')gen=(deacc(lw.slice(-1)==='s'?lw.slice(0,-1):lw)===deacc(base)+'e')?'f':'m';
     var sugg=base+({sm:'',sf:'e',pm:'s',pf:'es'}[num+gen]);
     return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
