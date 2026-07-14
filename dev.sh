@@ -24,6 +24,7 @@ command -v node    >/dev/null && echo "  node $(node --version)" || { echo "  �
 
 echo "── Python : dictée + correcteur (sans Lexique4.tsv) ──"
 run "diag phrases"                 python3 dictee/diag_sentence.py
+run "dictée SENT (app==json, 0 FP)" python3 dictee/sentences_parity.py
 run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
 run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
 run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
