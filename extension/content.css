@@ -26,6 +26,8 @@
 .omdys-fam{ color:#777; font-size:.85em; }
 .omdys-why{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 2px; opacity:.7; vertical-align:middle; }
 .omdys-why:hover{ opacity:1; }
+.omdys-tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 2px; opacity:.7; vertical-align:middle; }
+.omdys-tts:hover{ opacity:1; }
 .omdys-astuce{ margin-top:4px; padding:4px 7px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:4px; font-size:.9em; color:#22303c; line-height:1.4; }
 .omdys-dark .omdys-astuce{ background:rgba(90,162,230,.16); color:#cfe0f0; }
 .omdys-stade{ margin-top:6px; padding:5px 7px; border-left:4px solid #2a6f97; background:#eaf2f8; border-radius:4px; font-size:.92em; }

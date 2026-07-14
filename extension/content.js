@@ -200,7 +200,7 @@
         h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
           + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span>'
           + (f.hint ? '<button class="omdys-why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
-          + (f.hint ? '<div class="omdys-astuce" data-k="' + k + '" hidden>' + esc(f.hint) + '</div>' : '')
+          + (f.hint ? '<div class="omdys-astuce" data-k="' + k + '" hidden>' + esc(f.hint) + ' <button class="omdys-tts" data-k="' + k + '" type="button" title="écouter l\'explication">🔊</button></div>' : '')
           + '</div>';
       });
       h += '</div>';
@@ -237,6 +237,11 @@
     for (var wq = 0; wq < whys.length; wq++) (function (btn) {   // 💡 = révèle l'astuce contextuelle AU CLIC (masquée par défaut)
       btn.onclick = function (ev) { ev.stopPropagation(); var as = b.querySelector('.omdys-astuce[data-k="' + btn.getAttribute('data-k') + '"]'); if (as) as.hidden = !as.hidden; };
     })(whys[wq]);
+    var tts = b.querySelectorAll('.omdys-tts');
+    for (var tq = 0; tq < tts.length; tq++) (function (btn) {   // 🔊 = lit l'explication à voix haute (dys : entendre > lire) — speechSynthesis natif, hors-ligne
+      btn.onclick = function (ev) { ev.stopPropagation(); var f = dg.flags[+btn.getAttribute('data-k')]; if (!f) return;
+        try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(('« ' + f.word + ' » devient « ' + f.sugg + ' ». ' + (f.hint || '')).replace(/\s+/g, ' ').trim()); u.lang = 'fr-FR'; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {} };
+    })(tts[tq]);
     var cbs = b.querySelectorAll('.omdys-cbtn');
     for (var c = 0; c < cbs.length; c++) (function (node) {
       node.onclick = function () { applyComplete(el, node.getAttribute('data-w')); };
