@@ -1041,7 +1041,8 @@ function spellUnknown(tok,atStart,T,idx){
     if(h){var a=Math.max(0,i-2),b=Math.min(T.length,i+3),win=T.slice(a,b);win[i-a]=h[0];
       return 'Astuce : remplace par « '+h[0]+' ». « '+(a>0?'…':'')+win.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
     var n=f.name||'';
-    if((/accord/.test(n)&&!/é\/er|grammatical/.test(n))||/genre/.test(n)){
+    if(/\(dont\)/.test(n))return '« dont » reprend un complément avec « de » : le participe passé reste invariable (les fleurs dont il a parlé).';   // AVANT le gouverneur : « dont » = participe INVARIABLE, pas d'accord (sinon indice contradictoire)
+    if((/accord/.test(n)&&!/é\/er|grammatical|dont/.test(n))||/genre/.test(n)){
       var g=null,lab='';
       if(/genre/.test(n)){var gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
       if(!g){var gn=governorNumber(T,i,isVerb(T,i)||isParticiple(T,i));if(gn){g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
