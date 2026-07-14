@@ -12814,9 +12814,12 @@ window.addEventListener('DOMContentLoaded', () => {
   (function(){var _vc=document.createElement('div');_vc.id='vdc-cardpop';cov.appendChild(_vc);})();
   var _corrs=[],_off={},_on={},_lastCorrected='',_recDone={},_ignored={},_navIdx=0;
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (évite ReferenceError dans les harnais d'extraction)
-  function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
+  function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');
+    if(/majuscule/.test(n))return 'majuscule';                              // majuscule initiale = CONVENTION (stade alphabétique), pas un accent
+    if(/r[ée]p[ée]tition/.test(n))return 'repetition';                      // mot doublé = lapsus d'attention → hors-stade (pas une famille orthographique)
+    if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
-    if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié)
+    if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface|inconnu/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié) ; « mot inconnu » = graphie non résolue → surface
   // ===== MODÈLE NON DESTRUCTIF : le texte SOURCE (vdc-in) n'est JAMAIS réécrit. On calcule les corrections, on affiche
   //       l'ORIGINAL souligné (cadre haut) + le CORRIGÉ souligné (cadre bas) ; chaque mot souligné = une BASCULE (appliquer
   //       ↔ annuler, dans les deux sens). Surcharges de bascule (_off/_on) clées par forme→forme (deacc) → survivent à
@@ -12880,7 +12883,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var tin=_navHiliteIn($('vdc-in'),ky),tres=_navHiliteIn($('vdc-result'),ky);   // surligne la faute courante DANS LA SAISIE (là où l'œil est) ET dans le corrigé — sinon « ◂▸ » semblait ne rien faire
     var tgt=tin||tres;if(tgt)tgt.scrollIntoView({block:'center',behavior:'smooth'});}
   // ===== PISTE A : carte d'action au clic sur un mot du CORRIGE. La saisie du haut reste 100% editable.
-  var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone'};
+  var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
   var _EXPL={
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",
