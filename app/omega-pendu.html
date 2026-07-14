@@ -12920,6 +12920,7 @@ window.addEventListener('DOMContentLoaded', () => {
     "c'ai/c'est":"« c'est » = cela est (pas « c'ai »).",
     'accord participe':"avec être, le participe s'accorde avec le sujet.",
     'accord participe (COD avoir)':"avec avoir, le participe s'accorde avec le COD placé avant.",
+    'accord participe (dont)':"« dont » reprend un complément avec « de » : le participe passé reste invariable (les fleurs dont il a parlé).",
     'accord adjectif':"l'adjectif s'accorde en genre et en nombre avec le nom.",
     'accord adjectif épithète':"l'adjectif s'accorde avec le nom qu'il accompagne.",
     'impératif':"à l'impératif, un trait d'union relie le verbe et le pronom (donne-moi).",
@@ -12945,7 +12946,12 @@ window.addEventListener('DOMContentLoaded', () => {
     'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],
     'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],
     'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)']};
-  function _ctxHint(f){var h=_HPROBE[f.name];if(!h)return '';var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';
+  function _accHint(f,i){var n=f.name||'';if(!((/accord/.test(n)&&!/é\/er|grammatical|dont/.test(n))||/genre/.test(n)))return '';   // ACCORD : le GOUVERNEUR (sujet/déterminant) qui commande, avec le mot réel de la phrase. EXCLUT « dont » : le participe y est INVARIABLE, pas d'accord de gouverneur (sinon indice contradictoire) — expliqué par _EXPL['accord participe (dont)'].
+    var verb=isVerb(_curToks,i),at=accordType(f.sugg||'',f.word||'',verb),g=null,lab='';
+    if(at==='genre'){var gg=governorGender(_curToks,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
+    if(!g){var gn=governorNumber(_curToks,i,verb||isParticiple(_curToks,i));if(gn){g=gn[0];lab=nb(gn[1]);}}
+    return g?('C\'est « '+esc(g)+' » ('+lab+') qui commande → on accorde « '+esc(f.sugg)+' ».'):'';}
+  function _ctxHint(f){var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';var h=_HPROBE[f.name];if(!h)return _accHint(f,i);
     var a=Math.max(0,i-2),b=Math.min(_curToks.length,i+3),win=_curToks.slice(a,b);win[i-a]=h[0];   // remplace le mot par le probe
     var pre=a>0?'…':'',suf=b<_curToks.length?'…':'';
     return 'Astuce : remplace par « '+esc(h[0])+' ». « '+pre+esc(win.join(' '))+suf+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}

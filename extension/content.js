@@ -198,7 +198,10 @@
         var vigT = f.tier === 'vigilance';                        // orange pointillé = À VÉRIFIER (hors FP=0 : clic individuel possible, JAMAIS dans « tout corriger »)
         var orth = /orthographe|[ée]lision/.test(f.name || '');   // bleu = orthographe (non-mot/accent) ; rouge = grammaire
         h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
-          + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span></div>';
+          + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span>'
+          + (f.hint ? '<button class="omdys-why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
+          + (f.hint ? '<div class="omdys-astuce" data-k="' + k + '" hidden>' + esc(f.hint) + '</div>' : '')
+          + '</div>';
       });
       h += '</div>';
     }
@@ -228,8 +231,12 @@
     var undb = b.querySelector('.omdys-undo'); if (undb) undb.onclick = function () { undoAll(); };   // filet de sécurité tout-corriger   // « tout corriger » = UNIQUEMENT le FP=0 (auto+flag) ; la vigilance reste au clic individuel explicite (audit 07/2026)
     var items = b.querySelectorAll('.omdys-item');
     for (var z = 0; z < items.length; z++) (function (node) {
-      node.onclick = function () { applyOne(el, dg.flags[+node.getAttribute('data-k')]); };
+      node.onclick = function (ev) { if (ev.target.closest('.omdys-why') || ev.target.closest('.omdys-astuce')) return; applyOne(el, dg.flags[+node.getAttribute('data-k')]); };   // clic sur 💡/astuce n'APPLIQUE pas (non invasif)
     })(items[z]);
+    var whys = b.querySelectorAll('.omdys-why');
+    for (var wq = 0; wq < whys.length; wq++) (function (btn) {   // 💡 = révèle l'astuce contextuelle AU CLIC (masquée par défaut)
+      btn.onclick = function (ev) { ev.stopPropagation(); var as = b.querySelector('.omdys-astuce[data-k="' + btn.getAttribute('data-k') + '"]'); if (as) as.hidden = !as.hidden; };
+    })(whys[wq]);
     var cbs = b.querySelectorAll('.omdys-cbtn');
     for (var c = 0; c < cbs.length; c++) (function (node) {
       node.onclick = function () { applyComplete(el, node.getAttribute('data-w')); };
