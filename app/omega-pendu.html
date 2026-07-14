@@ -13350,7 +13350,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],
     'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],
     'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)']};
-  function _accHint(f,i){var n=f.name||'';if(!((/accord/.test(n)&&!/é\/er|grammatical|dont/.test(n))||/genre/.test(n)))return '';   // ACCORD : le GOUVERNEUR (sujet/déterminant) qui commande, avec le mot réel de la phrase. EXCLUT « dont » : le participe y est INVARIABLE, pas d'accord de gouverneur (sinon indice contradictoire) — expliqué par _EXPL['accord participe (dont)'].
+  function _accHint(f,i){var n=f.name||'';if(!((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)))return '';   // EXCLUT aussi COD-avoir (gouverneur = COD antéposé, pas le sujet) et « tout » (s'accorde avec le nom qui SUIT) : le gouverneur remonté en arrière y serait FAUX/contradictoire → on garde l'explication _EXPL statique (correcte)   // ACCORD : le GOUVERNEUR (sujet/déterminant) qui commande, avec le mot réel de la phrase. EXCLUT « dont » : le participe y est INVARIABLE, pas d'accord de gouverneur (sinon indice contradictoire) — expliqué par _EXPL['accord participe (dont)'].
     var verb=isVerb(_curToks,i),at=accordType(f.sugg||'',f.word||'',verb),g=null,lab='';
     if(at==='genre'){var gg=governorGender(_curToks,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
     if(!g){var gn=governorNumber(_curToks,i,verb||isParticiple(_curToks,i));if(gn){g=gn[0];lab=nb(gn[1]);}}
