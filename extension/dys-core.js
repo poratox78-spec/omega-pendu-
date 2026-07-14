@@ -685,7 +685,7 @@
       return sg2.toLowerCase()!==lw?ckeepcase(T[i],sg2):null;
     }
     if(_SEG&&sk<_SEG.hy.length&&_SEG.hy[sk])return null;
-    var num=info[0],gen=info[1];if(num!==auxNum)return null;
+    var num=info[0],gen=info[1];if(num!==auxNum)return null;var _refl=(deacc(T[sk].toLowerCase())==='se')||(sk>=1&&PPE_SUBJ[deacc(T[sk-1].toLowerCase())]);if(_refl&&i+1<T.length){var _tgn=posTags(T);if(_tgn&&i+1<_tgn.length&&(_tgn[i+1]==='NOUN'||_tgn[i+1]==='DET'))return null;}   // pronominal réfléchi COI + COD après → PP INVARIABLE
     if(gen==='?')gen=(deacc(lw.slice(-1)==='s'?lw.slice(0,-1):lw)===deacc(base)+'e')?'f':'m';
     var sugg=base+({sm:'',sf:'e',pm:'s',pf:'es'}[num+gen]);
     return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
@@ -734,13 +734,14 @@
     var sugg=_adjAgree(w,gender,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
   // Accord de l'ADJECTIF ÉPITHÈTE ([article + nom genre connu + adj]) — MIROIR rule_adj_epithet (parité). FP=0 très gardé.
   var _EPI_ART={le:'s',la:'s',les:'p',un:'s',une:'s',des:'p',ce:'s',cet:'s',cette:'s',ces:'p',du:'s'};
+  var _COLOR_ADJ={bleu:1,vert:1,gris:1,blanc:1,noir:1,brun:1,violet:1,jaune:1,rouge:1,rose:1,orange:1,marron:1,roux:1,blond:1,pourpre:1,mauve:1,beige:1,fauve:1};   // couleur composée/dérivée = INVARIABLE
   function rAdjEpithet(T,i){if(i<2)return null;var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
     var d=deacc(lw);
     if(!ADJP[d]||_adjEstem(lw)!==null)return null;                                   // inconnu / épicène → pas de genre
     if(d==='tout'||d==='tous'||d==='toute'||d==='toutes')return null;
     if(i+1<T.length){var nx=deacc(T[i+1].toLowerCase());if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni')return null;if((deacc(lw)==='bon'||deacc(lw)==='meilleur')&&nx==='marche')return null;}   // figé + coordination distributive
-    var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ'||tg[i-1]!=='NOUN')return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ'||tg[i-1]!=='NOUN')return null;if(_COLOR_ADJ[deacc(lw)]&&i+1<tg.length&&(tg[i+1]==='ADJ'||tg[i+1]==='NOUN'))return null;
     if(T[i-1].charAt(0)!==T[i-1].charAt(0).toLowerCase())return null;                 // nom propre
     var dn=deacc(T[i-1].toLowerCase()),g=GENDER_PURE[dn];
     if((g!=='m'&&g!=='f')||_SG_STOP[dn])return null;                                  // genre connu ET pas invariant
