@@ -284,6 +284,7 @@
     return true;
   }
   function run(el) {
+    try { if (el && isEditable(el) && chrome.runtime && chrome.runtime.id) chrome.runtime.sendMessage({ type: 'omdys-mirror', text: getText(el) }, function () { void chrome.runtime.lastError; }); } catch (e) {}   // MIROIR → panneau latéral (sens unique champ→panneau ; indépendant de la barre in-place)
     if (!CFG.enabled || !DC.isReady() || !el || el !== active || dismissed.has(el)) return;
     var text = getText(el);
     if (!text || !text.trim()) { hideBar(); return; }

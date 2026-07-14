@@ -12,6 +12,9 @@ function createMenu() {
 chrome.runtime.onInstalled.addListener(createMenu);
 chrome.runtime.onStartup.addListener(createMenu);
 
+// clic sur l'icône de l'extension → ouvre le PANNEAU LATÉRAL (le correcteur "surface propre", F12-style)
+try { chrome.sidePanel && chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(function () {}); } catch (e) {}
+
 // le content script (contextmenu) pousse le libellé du mot sous le curseur (« 🩹 « von » → « vont » ») + activé/grisé
 chrome.runtime.onMessage.addListener(function (msg) {
   if (msg && msg.type === 'omdys-menu') {
