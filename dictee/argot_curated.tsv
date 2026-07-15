@@ -1,0 +1,52 @@
+# Jargon ABSENT du dump Wiktionnaire — liste CURÉE À LA MAIN (le dump EN/French rate le gaming pur et les
+# acronymes du handicap). Complète dictee/argot_lex.tsv, mêmes gardes appliquées par build_argot_lex.py :
+# accent-retiré (masquerait un typo), collision-typo mesurée sur corpus, zéro vulgarité/insulte/discrimination.
+# Format : mot<TAB>POS<TAB>genre<TAB>catégorie      (POS : N/A/V/R/I/O — genre : m/f/vide=épicène ou non-nom)
+#
+# REJETÉS par les gardes, motif (ne pas réintroduire sans re-mesurer) :
+#   meta  → « méta » sans accent : l'ajouter masquerait la correction de l'accent.
+#   gank  → vu 2× comme FAUTE RÉELLE dans les corpus (corrigé en « gang »).
+#   fluid → inventé, pas un terme attesté ; « fluide » à 1 édition → risque pour rien.
+#   zbi   → vulgaire (règle Rem : pas de vulgarité).
+#   mdrr / ptdrr → allongement EXPRESSIF de mdr/ptdr : ça se règle par une règle (mdrrrr…), pas par une liste.
+#
+# --- vocabulaire dys / handicap / école (le plus important : « dys » était corrigé en « dis » !) ---
+dys	N		handicap
+tdah	N	m	handicap
+ulis	N	f	handicap
+aesh	N		handicap
+segpa	N	f	école
+qcm	N	m	école
+# --- gaming / Twitch ---
+noob	N	m	gaming
+tryhard	N	m	gaming
+spawn	N	m	gaming
+loot	N	m	gaming
+buff	N	m	gaming
+farm	N	m	gaming
+stuff	N	m	gaming
+pex	N	m	gaming
+pvp	N	m	gaming
+pve	N	m	gaming
+mmo	N	m	gaming
+fps	N	m	gaming
+rpg	N	m	gaming
+speedrun	N	m	gaming
+viewer	N	m	gaming
+emote	N	f	gaming
+cheater	N	m	gaming
+feed	N	m	gaming
+ragequit	N	m	gaming
+laggy	A		gaming
+gg	I		gaming
+wp	I		gaming
+glhf	I		gaming
+afk	R		gaming
+# --- abréviations réseau ---
+vnr	A		réseau
+tkt	I		réseau
+jsp	I		réseau
+jpp	I		réseau
+wsh	I		réseau
+frr	N	m	réseau
+oklm	R		réseau
