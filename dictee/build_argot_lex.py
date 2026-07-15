@@ -15,6 +15,9 @@
 #         MAIS on GARDE `alt-of` + `abbreviation` (« bg » = *abbreviation of beau gosse*, bjr, ajd) = abréviations
 #         légitimes, PAS des fautes. (Un filtre edit-1 naïf a été essayé puis REJETÉ : il jetait askip→skip,
 #         bg→bu, bjr→bar, crush→crash — des mots DIFFÉRENTS, pas des doublons. 120/146 tués pour rien.)
+#     (5) SUPPLÉMENT CURÉ (argot_curated.tsv) : le dump EN/French rate le gaming pur (noob/tryhard/spawn) ET
+#         les acronymes du handicap. MESURÉ sur le corpus réel de Rem : « dys » était corrigé en « dis » (ROUGE) —
+#         un outil POUR les dys qui casse le mot « dys ». Mêmes gardes appliquées à la liste curée.
 #     (4) VULGARITÉ / INSULTE / DISCRIMINATION — Rem, 2026-07-15 : « pas de vulgarité ou d'insulte c'est plus
 #         sûr, à part ceux qui existent dans le dictionnaire ; je n'accepte aucun de raciste ou discriminant ».
 #       a. tags Wiktionnaire `vulgar` / `derogatory` → JETÉ (anglaiser, enconner, ptn, tg, puta, tana, tartir…)
@@ -30,18 +33,20 @@
 #         « lea » = 4/4 un typo pour la/les → jeté. Les 140 autres : ZÉRO collision réelle (le voisinage edit-1
 #         d'un mot fréquent — 99/141 en ont un — est du risque THÉORIQUE, le corpus le réfute).
 #
-#   Usage : KAIKKI=/chemin/kaikki-fr.jsonl python3 dictee/build_argot_lex.py
+#   Usage : KAIKKI=/chemin/kaikki-fr.jsonl LEX4=/chemin/Lexique4.tsv python3 dictee/build_argot_lex.py
 #   (kaikki : télécharger l'extraction frwiktionary sur kaikki.org/frwiktionary — le dump EN/French marche aussi
 #    mais rate le gaming pur : clutch/tryhard/noob/spawn/lag → à compléter par une petite liste curée.)
 import os, sys, json, gzip, unicodedata, re, collections
 HERE = os.path.dirname(__file__)
 KAIKKI = os.environ.get('KAIKKI', os.path.join(HERE, '..', 'kaikki-fr.jsonl'))
-SPELLER = os.path.join(HERE, '..', 'extension', 'assets', 'speller.tsv.gz')
+LEX4 = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')        # BASE hors-repo (Lexique 4)
+WIKT = os.path.join(HERE, 'wikt_lex_fr.tsv')                     # augmentation Wiktionnaire déjà livrée
 OUT = os.path.join(HERE, 'argot_lex.tsv')
 POSMAP = {'noun': 'N', 'adj': 'A', 'verb': 'V', 'adv': 'R', 'intj': 'I', 'name': 'N', 'pron': 'O'}
 # Sortie n°2 = argot_rows.tsv, schéma Lexique4 37 col (pendant EXACT de wikt_rows.tsv dans build_wikt_lex.py) :
 # c'est le SEUL chemin d'intégration — tous les build_* consomment un Lexique4 augmenté, rien n'est bricolé à côté.
 OUT_L4 = os.path.join(HERE, 'argot_rows.tsv')
+CURATED = os.path.join(HERE, 'argot_curated.tsv')   # (5) supplément curé à la main (gaming + handicap)
 CG = {'N': 'NOM', 'A': 'ADJ', 'V': 'VER', 'R': 'ADV', 'I': 'INT', 'O': 'PRO'}
 NC = 37
 CI = {'Mot': 0, 'Phono_IPA': 2, 'Lemme': 3, 'Cgram': 4, 'CgramOrtho': 5, 'Genre': 6, 'Nombre': 7,
@@ -73,10 +78,19 @@ def deacc(s): return ''.join(c for c in unicodedata.normalize('NFD', s) if unico
 def main():
     if not os.path.exists(KAIKKI):
         print(f"kaikki introuvable ({KAIKKI}) — voir kaikki.org/frwiktionary"); return 1
+    # « déjà connu » se mesure sur la BASE (Lexique4 + wikt_lex_fr), PAS sur le speller LIVRÉ : celui-ci contient
+    # déjà nos ajouts précédents → le script ne verrait que le résidu et se viderait à chaque run (mesuré : 109→40
+    # au 2e passage). La base, elle, ne bouge pas ⇒ sortie REPRODUCTIBLE, et l'exception « au dictionnaire »
+    # (bœuf/nœud via boeuf/noeud) reste vraie puisqu'ils sont dans Lexique4.
+    if not os.path.exists(LEX4):
+        print(f"Lexique4 introuvable ({LEX4}) — LEX4=/chemin/Lexique4.tsv (hors-repo)"); return 1
     have = set(); deacc_acc = set()
-    for l in gzip.open(SPELLER, 'rt', encoding='utf-8'):
-        w = l.split('\t', 1)[0].lower(); have.add(w)
-        if deacc(w) != w: deacc_acc.add(deacc(w))          # squelettes déacc des mots accentués → anti-typo
+    for src in (LEX4, WIKT):
+        for l in open(src, encoding='utf-8'):
+            w = l.split('\t', 1)[0].lower().strip()
+            if not w or w.startswith('1_'): continue        # en-tête Lexique4
+            have.add(w)
+            if deacc(w) != w: deacc_acc.add(deacc(w))       # squelettes déacc des mots accentués → anti-typo
     cand = {}; filtered = 0; dbl = 0; coll = 0; bad = {}
     for line in open(KAIKKI, encoding='utf-8'):
         try: e = json.loads(line)
@@ -106,6 +120,19 @@ def main():
         nb = 'p' if ('plural' in un and 'singular' not in un) else ('s' if 'singular' in un else '')
         ipa = next((s.get('ipa', '') for s in e.get('sounds', []) if s.get('ipa')), '')
         cand[w] = (pos, g, nb, ipa.strip('/[] '), (e.get('lemma') or w))
+    # (5) SUPPLÉMENT CURÉ : le dump rate le gaming pur et les acronymes du handicap (« dys » était corrigé en
+    # « dis » — mesuré sur le corpus réel de Rem). MÊMES gardes : accent-retiré + collision-typo + pas de vulgarité.
+    cur = 0
+    if os.path.exists(CURATED):
+        for l in open(CURATED, encoding='utf-8'):
+            if l.startswith('#') or not l.strip(): continue
+            p = l.rstrip('\n').split('\t')
+            w = p[0].strip()
+            if w in have or w in cand: continue
+            if deacc(w) == w and w in deacc_acc: filtered += 1; continue
+            if w in COLLIDE or w in DROP_GLOSS: bad[w] = 'curé mais rejeté par une garde'; continue
+            cand[w] = (p[1].strip(), (p[2].strip() if len(p) > 2 else ''), '', '', w)
+            cur += 1
     rows = sorted((w, v[0]) for w, v in cand.items())
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write('# Argot/anglicismes contemporains — Wiktionnaire FR via kaikki.org (CC BY-SA). Whitelist speller : mot<TAB>freq_milli<TAB>POS.\n')
@@ -125,7 +152,7 @@ def main():
             f.write('\t'.join(row) + '\r\n')
     ng = sum(1 for v in cand.values() if v[1]); ni = sum(1 for v in cand.values() if v[3])
     print(f"écrit {OUT_L4} : {len(cand)} lignes schéma Lexique4 (genre : {ng}, IPA : {ni})")
-    print(f"écrit {OUT} : {len(rows)} termes | jetés : {dbl} doublons (alt-of), {filtered} accents-retirés, {coll} collisions-typo, {len(bad)} vulgaire/insulte/discriminant | POS : {dict(collections.Counter(p for _, p in rows))}")
+    print(f"écrit {OUT} : {len(rows)} termes | jetés : {dbl} doublons (alt-of), {filtered} accents-retirés, {coll} collisions-typo, {len(bad)} vulgaire/insulte/discriminant | +{cur} curés | POS : {dict(collections.Counter(p for _, p in rows))}")
     print("\n=== JETÉS pour vulgarité / insulte / discrimination (%d) ===" % len(bad))
     for w, why in sorted(bad.items()): print(f"  {w:<13}{why}")
     return 0
