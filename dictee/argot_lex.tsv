@@ -1,5 +1,5 @@
 # Argot/anglicismes contemporains — Wiktionnaire FR via kaikki.org (CC BY-SA). Whitelist speller : mot<TAB>freq_milli<TAB>POS.
-# freq=1 (basse) : le mot est CONNU (plus flaggé comme non-mot) mais reste un candidat de correction faible. Filtre anti-typo appliqué (exclu les formes = mot accentué sans ses accents).
+# freq=1 (basse) : mot CONNU (plus flaggé non-mot) mais candidat de correction faible. Filtre anti-typo appliqué. RELIRE avant injection FP=0.
 airbnbiser	1	V
 ajd	1	R
 anglaiser	1	V
@@ -9,7 +9,6 @@ bg	1	N
 bicraver	1	V
 binger	1	V
 bjr	1	I
-blogguer	1	V
 blèche	1	A
 boob	1	N
 bouillaver	1	V
@@ -34,7 +33,6 @@ dead	1	V
 deader	1	V
 discrétos	1	R
 divulgâcher	1	V
-djeune	1	N
 docteuse	1	N
 doss	1	N
 dsl	1	I
@@ -73,12 +71,10 @@ jouse	1	V
 jousent	1	V
 jouses	1	V
 jtm	1	I
-khalass	1	V
+khalass	1	I
 khey	1	N
 kho	1	N
-koi	1	O
 laune	1	N
-lea	1	O
 life	1	N
 lolement	1	R
 légumiser	1	V
@@ -88,7 +84,7 @@ merdu	1	A
 mif	1	N
 mollarder	1	V
 moula	1	N
-mrd	1	I
+mrd	1	N
 nèg	1	N
 nétiquette	1	N
 nœud	1	N
@@ -112,12 +108,11 @@ pégu	1	N
 pénave	1	V
 pétou	1	N
 quicher	1	V
-quiffer	1	V
 rember	1	V
 ribouler	1	V
 rodave	1	V
 rougepiluler	1	V
-sah	1	I
+sah	1	A
 seum	1	N
 ship	1	N
 slt	1	I
@@ -143,6 +138,5 @@ wallah	1	I
 we	1	I
 wi	1	I
 wlh	1	I
-ww	1	I
 zoulette	1	N
 étudianx	1	N
