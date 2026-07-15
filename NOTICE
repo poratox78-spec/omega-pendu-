@@ -84,6 +84,15 @@ correcteur orthographique (bloc `<script id="speller-lex-gz">` de l'app + asset
 `extension/assets/speller.tsv.gz`), qui combine donc Lexique 4 (New et al. 2026)
 et le Wiktionnaire — tous deux CC BY-SA 4.0 → le bloc reste CC BY-SA 4.0.
 
+Les fichiers `dictee/argot_lex.tsv` (liste relue, lisible) et
+`dictee/argot_rows.tsv` (mêmes entrées au schéma Lexique 4, avec POS, genre et
+IPA) proviennent de la MÊME source et de la même licence : argot contemporain
+et anglicismes extraits du Wiktionnaire français via kaikki.org, CC BY-SA 4.0,
+© les contributeurs du Wiktionnaire. Ils alimentent le même bloc speller (qui
+reste donc CC BY-SA 4.0). Vulgarité, insultes et termes racistes ou
+discriminants en sont exclus — voir les filtres documentés dans
+`dictee/build_argot_lex.py`.
+
     Attribution : « Lexique du correcteur : Lexique 4 (New et al. 2026) +
       Wiktionnaire (fr.wiktionary.org, via kaikki.org), CC BY-SA 4.0 »
     Régénérable : python3 dictee/build_wikt_lex.py <kaikki.jsonl> <Lexique4.tsv.xz> <out>
