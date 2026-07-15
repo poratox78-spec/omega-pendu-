@@ -39,6 +39,14 @@ KAIKKI = os.environ.get('KAIKKI', os.path.join(HERE, '..', 'kaikki-fr.jsonl'))
 SPELLER = os.path.join(HERE, '..', 'extension', 'assets', 'speller.tsv.gz')
 OUT = os.path.join(HERE, 'argot_lex.tsv')
 POSMAP = {'noun': 'N', 'adj': 'A', 'verb': 'V', 'adv': 'R', 'intj': 'I', 'name': 'N', 'pron': 'O'}
+# Sortie n°2 = argot_rows.tsv, schéma Lexique4 37 col (pendant EXACT de wikt_rows.tsv dans build_wikt_lex.py) :
+# c'est le SEUL chemin d'intégration — tous les build_* consomment un Lexique4 augmenté, rien n'est bricolé à côté.
+OUT_L4 = os.path.join(HERE, 'argot_rows.tsv')
+CG = {'N': 'NOM', 'A': 'ADJ', 'V': 'VER', 'R': 'ADV', 'I': 'INT', 'O': 'PRO'}
+NC = 37
+CI = {'Mot': 0, 'Phono_IPA': 2, 'Lemme': 3, 'Cgram': 4, 'CgramOrtho': 5, 'Genre': 6, 'Nombre': 7,
+      'FreqMot': 9, 'FreqOrtho': 10, 'FreqLemme': 11}
+FLOOR = '0.05'   # plancher : passe MINFREQ du speller sans jamais dominer un vrai mot comme candidat
 TIGHT = {'slang', 'internet', 'text-messaging', 'neologism'}   # tags SERRÉS (pas "informal"/"colloquial" = trop large)
 COLLIDE = {'lea'}   # (3) collisions MESURÉES avec un vrai typo du corpus — voir l'en-tête
 BAD_TAGS = {'vulgar', 'derogatory'}   # (4a) signal Wiktionnaire
@@ -90,12 +98,33 @@ def main():
         if w in DROP_GLOSS: bad[w] = DROP_GLOSS[w]; continue             # (4c) refus net, tags insuffisants
         if any(ts & BAD_TAGS for ts in tagsets) and not in_dict:         # (4a/4b)
             bad[w] = 'tag ' + ','.join(sorted(set().union(*tagsets) & BAD_TAGS)); continue
-        cand.setdefault(w, pos)
-    rows = sorted(cand.items())
+        if w in cand: continue
+        # « les types, les genres et tout et tout » (Rem) : POS + genre + IPA + lemme, pris à la source
+        un = set().union(*tagsets) if tagsets else set()
+        g = ('m' if 'masculine' in un else 'f' if 'feminine' in un else '') if pos == 'N' else ''
+        if 'masculine' in un and 'feminine' in un: g = ''      # épicène/ambigu → pas de genre (FP=0)
+        nb = 'p' if ('plural' in un and 'singular' not in un) else ('s' if 'singular' in un else '')
+        ipa = next((s.get('ipa', '') for s in e.get('sounds', []) if s.get('ipa')), '')
+        cand[w] = (pos, g, nb, ipa.strip('/[] '), (e.get('lemma') or w))
+    rows = sorted((w, v[0]) for w, v in cand.items())
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
         f.write('# Argot/anglicismes contemporains — Wiktionnaire FR via kaikki.org (CC BY-SA). Whitelist speller : mot<TAB>freq_milli<TAB>POS.\n')
         f.write('# freq=1 (basse) : mot CONNU (plus flaggé non-mot) mais candidat de correction faible. Filtre anti-typo appliqué. RELIRE avant injection FP=0.\n')
         for w, p in rows: f.write(f'{w}\t1\t{p}\n')
+    # sortie n°2 : lignes au schéma Lexique4 → `cat Lexique4.tsv wikt_lex_fr.tsv argot_rows.tsv` = source du build
+    # ⚠️ LIGATURE œ : le lexique speller la stocke en `oe` (soeur/coeur/boeuf) et le MOTEUR normalise œ→oe avant
+    # de consulter SP.WORDS (dys-core `deaccS` + lookup L796). `build_speller_lex` jette d'ailleurs tout mot hors
+    # a-z (NFD ne décompose PAS œ : c'est une lettre, pas un o accentué) → sans ce mapping, frœur partait en
+    # silence. bœuf/nœud sont déjà couverts par boeuf/noeud ⇒ dédupliqués par le build (freq réelle conservée).
+    with open(OUT_L4, 'w', encoding='utf-8', newline='') as f:
+        for w, (p, g, nb, ipa, lem) in sorted(cand.items()):
+            row = [''] * NC
+            row[CI['Mot']] = w.replace('œ', 'oe'); row[CI['Phono_IPA']] = ipa; row[CI['Lemme']] = lem.replace('œ', 'oe')
+            row[CI['Cgram']] = CG[p]; row[CI['CgramOrtho']] = CG[p]; row[CI['Genre']] = g; row[CI['Nombre']] = nb
+            row[CI['FreqMot']] = FLOOR; row[CI['FreqOrtho']] = FLOOR; row[CI['FreqLemme']] = FLOOR
+            f.write('\t'.join(row) + '\r\n')
+    ng = sum(1 for v in cand.values() if v[1]); ni = sum(1 for v in cand.values() if v[3])
+    print(f"écrit {OUT_L4} : {len(cand)} lignes schéma Lexique4 (genre : {ng}, IPA : {ni})")
     print(f"écrit {OUT} : {len(rows)} termes | jetés : {dbl} doublons (alt-of), {filtered} accents-retirés, {coll} collisions-typo, {len(bad)} vulgaire/insulte/discriminant | POS : {dict(collections.Counter(p for _, p in rows))}")
     print("\n=== JETÉS pour vulgarité / insulte / discrimination (%d) ===" % len(bad))
     for w, why in sorted(bad.items()): print(f"  {w:<13}{why}")
