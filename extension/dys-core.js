@@ -1014,6 +1014,32 @@ function spellUnknown(tok,atStart,T,idx){
     var pvw=T[a-1].toLowerCase();if(deacc(pvw)==='se'||pvw.indexOf("'")>=0)return null;
     var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
     return w+(fem?'es':'s');}
+  // VIGILANCE accord IMPARFAIT (personne+nombre), gate AUDIBLE : verbe imparfait + gouverneur RELÂCHÉ en désaccord +
+  // forme correcte HOMOPHONE (-ais/-ait/-aient /ɛ/) → orange. Résiduel (sujet non parsable). MIROIR app + scratchpad. 0 flood/2500 UD.
+  var _NEGV={pas:1,plus:1,jamais:1,rien:1,point:1};
+  function _govRelax(T,i){var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    var jj=i-1,s=0;while(jj>=lo&&s<3&&(CLITIC[deacc(T[jj].toLowerCase())]||_NEGV[deacc(T[jj].toLowerCase())])){jj--;s++;}
+    if(jj>=lo){var pw=deacc(T[jj].toLowerCase());if(SUBJ_PRON[pw])return SUBJ_PRON[pw];}
+    for(var k=i-1;k>=lo;k--){var dk=deacc(T[k].toLowerCase());
+      if(CONJ_WORDS[dk])return null;
+      if(SUBJ_PRON[dk])return SUBJ_PRON[dk];
+      if(k>0&&NUM_DET[T[k-1].toLowerCase()]){var nb=(NUM_DET[T[k-1].toLowerCase()]==='pl'||/[sx]$/.test(dk))?'p':'s';return['3',nb];}}
+    return null;}
+  function imparfaitVig(T,i,tg){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw.length<3)return null;
+    var reads=svReads(T[i]),imp=[],k;for(k=0;k<reads.length;k++){var rk=reads[k];if(rk[1].indexOf('imp')>=0&&rk[1].indexOf('ind')>=0)imp.push(rk);}
+    if(!imp.length)return null;
+    if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
+    if(i>0&&NUM_DET[T[i-1].toLowerCase()])return null;
+    if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
+    if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    if(i+1<T.length&&SUBJ_PRON[deacc(T[i+1].toLowerCase())])return null;
+    var pn=_govRelax(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
+    for(k=0;k<imp.length;k++)if(imp[k][2]===per&&(imp[k][3]===nb||imp[k][3]==='x'))return null;
+    var lem=null,uni=true;for(k=0;k<imp.length;k++){if(lem===null)lem=imp[k][0];else if(lem!==imp[k][0])uni=false;}
+    if(!uni||lem===null)return null;
+    var slots=(CONJ_C[lem]||{})['ind:imp'];if(!slots)return null;var sugg=slots[per+nb];if(!sugg||sugg===lw)return null;
+    if(phonKey(sugg)!==phonKey(lw))return null;
+    return sugg;}
   function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir app.
     var r=spellToken(T[i],i===0,T,i),pushed=false;
@@ -1024,6 +1050,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){out.push({i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (rouge = sujet en tête FP=0 ; orange = le reste). DOCTRINE : doute → orange, jamais silence. Fusion grammaire-prioritaire : le rouge gagne au même token.
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
       var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
