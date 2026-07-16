@@ -34,10 +34,14 @@ def lsc(w, p2, p1, n1, n2): return math.log(0.5*p_fwd(w, p2, p1) + 0.5*p_bwd(w, 
 # ---- routes → distribution sur le nombre {s,p} ----
 def _vote(x, c): return (0.5+0.5*c, 0.5-0.5*c) if x == 's' else ((0.5-0.5*c, 0.5+0.5*c) if x == 'p' else (0.5, 0.5))
 def _elided_sing(w): return w[:2] == "l'"            # « l'X » = déterminant élidé le/la (JAMAIS les) → sujet SINGULIER. Sans ça les routes rataient le token collé et remontaient à un pluriel lointain (« les rapports mais l'entreprise contactera »→contacteront).
-def _num_at(F, k):                                   # nombre du sujet en tête k : élision « l'X » (sing.) OU déterminant connu F[k-1] ; sinon None
+_NUM_PL = set("deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille plusieurs".split())  # déterminants numéraux cardinaux ≥2 + « plusieurs » → sujet PLURIEL (« trois enfants qui vivent » ne doit plus floder ; « sept équipes décideront » attrapé)
+def _num_at(F, k):                                   # nombre du sujet en tête k : élision « l'X » (sing.), numéral (plur.), OU déterminant connu F[k-1] ; sinon None
     if _elided_sing(F[k]): return 's'
-    if k > 0 and SP.deacc(F[k-1]) in NUM_DET:
-        return 'p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's'
+    if k > 0:
+        dk = SP.deacc(F[k-1])
+        if dk in _NUM_PL: return 'p'
+        if dk in NUM_DET:
+            return 'p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's'
     return None
 def R1(F, vi):
     for k in range(vi-1, -1, -1):
