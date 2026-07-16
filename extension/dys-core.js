@@ -586,6 +586,17 @@
     if(!c0||DESELV[c0.toLowerCase()]||c0.toLowerCase()===c0.toUpperCase()||c0===c0.toUpperCase())return null;
     if(pre==='l'){var g=GENDER_PURE[deacc(rest.toLowerCase())]||GENDER_MAP[deacc(rest.toLowerCase())];if(g!=='m'&&g!=='f')return null;return ckeepcase(w,(g==='m'?'le':'la')+' '+rest);}
     return ckeepcase(w,DESEL[pre]+' '+rest);}
+  // « ête » (non-mot) → être/êtes/es/été. Le SON ne tranche pas (« trés→très » = même échange d'aperture qu'on VEUT ;
+  // « ête→été » qu'on ne veut PAS) → seul le CONTEXTE tranche (littérature : rescorage LM ; LanguageTool défère le
+  // non-mot à l'humain). Version locale du confusion-set : avoir→été, vous→êtes, tu→es, modal/prép→être ; sinon ORANGE.
+  var ETRE_CONJ={je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'êtes',ils:'sont',elles:'sont'};
+  function rEteEtre(T,i){var w=T[i],m=w.toLowerCase().match(/^(n')?ête$/);if(!m)return null;var pre=m[1]||'';
+    function keep(core){return ckeepcase(w,pre+core);}
+    var p=i>0?deacc(T[i-1].toLowerCase()):'',praw=i>0?T[i-1].toLowerCase():'';
+    if(AVOIR_AUX[p]||AVOIR_JE[praw])return keep('été');            // avoir + été (« j'ai été »)
+    if(ETRE_CONJ[p])return keep(ETRE_CONJ[p]);                     // pronom sujet → conjugaison d'être (il→est, vous→êtes…)
+    if(MODAL[p]||PREP[p])return keep('être');                      // infinitif (« veux/de/pour être »)
+    return {sugg:pre+'être',vig:1};}                               // contexte ambigu → ORANGE « être ? » (à vérifier)
   var PPMID={ne:1,n:1,pas:1,plus:1,jamais:1,y:1,en:1,se:1,s:1,deja:1,toujours:1,aussi:1,bien:1,encore:1,tous:1,toutes:1,tout:1};
   // Accord du PARTICIPE PASSÉ (-er) avec le SUJET après ÊTRE — MIROIR de correcteur_probe.rule_pp_etre (parité)
   var PPE_AUX={},PPE_AUXP={},PPE_SUBJ={il:['s','m'],elle:['s','f'],ils:['p','m'],elles:['p','f'],nous:['p','?'],je:['s','?'],tu:['s','?']};
@@ -748,7 +759,7 @@
     var num=_EPI_ART[deacc(T[i-2].toLowerCase())];
     if(!num)return null;                                                             // nombre non net → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg});break;}}}return out;}   // {sugg,vig:1} → tier vigilance (orange) ; string = rouge
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
@@ -977,7 +988,9 @@ function spellUnknown(tok,atStart,T,idx){
     var pvw=T[a-1].toLowerCase();if(deacc(pvw)==='se'||pvw.indexOf("'")>=0)return null;
     var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
     return w+(fem?'es':'s');}
-  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){var r=spellToken(T[i],i===0,T,i),pushed=false;
+  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){
+    if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir app.
+    var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
     if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}

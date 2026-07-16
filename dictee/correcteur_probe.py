@@ -613,6 +613,27 @@ def rule_deselide(T, i):
         return _keepcase(w, ('le' if g == 'm' else 'la') + ' ' + rest)
     return _keepcase(w, _DESEL[pre] + ' ' + rest)
 
+_ETRE_CONJ = {'je': 'suis', 'tu': 'es', 'il': 'est', 'elle': 'est', 'on': 'est',
+              'nous': 'sommes', 'vous': 'êtes', 'ils': 'sont', 'elles': 'sont'}
+
+def rule_ete_etre(T, i):
+    """« ête » (non-mot) → être/êtes/es/été selon le CONTEXTE. Le son ne tranche pas (« trés→très » = même échange
+    d'aperture qu'on veut ; « ête→été » qu'on ne veut pas) ; seul le contexte le fait (littérature : rescorage LM ;
+    LanguageTool défère le non-mot à l'humain). avoir→été, pronom sujet→conjugaison d'être, sinon→être. Le speller
+    JS (app/ext) est court-circuité sur « ête » pour laisser cette règle décider ; Python n'a pas de speller.
+    L'app marque l'ambigu en ORANGE ; Python est rouge-seul (la clé de parité ignore le tier)."""
+    m = re.match(r"^(n')?ête$", T[i].lower())
+    if not m:
+        return None
+    pre = m.group(1) or ''
+    p = deacc(T[i - 1].lower()) if i > 0 else ''
+    praw = T[i - 1].lower() if i > 0 else ''
+    if p in _AVOIR_AUX or praw in _AVOIR_JE:
+        return _keepcase(T[i], pre + 'été')                       # avoir + été (« j'ai été »)
+    if p in _ETRE_CONJ:
+        return _keepcase(T[i], pre + _ETRE_CONJ[p])               # pronom sujet → conjugaison d'être
+    return _keepcase(T[i], pre + 'être')                          # modal/prép/ambigu → infinitif (app : ORANGE si ambigu)
+
 _PP_ETRE_AUX = {'suis', 'es', 'est', 'sommes', 'etes', 'sont', 'etais', 'etait', 'etions', 'etiez', 'etaient',
                 'sera', 'seras', 'serez', 'serons', 'seront', 'sois', 'soit', 'soyons', 'soyez', 'soient',
                 'fut', 'furent', 'serais', 'serait'}
@@ -2106,6 +2127,7 @@ def rule_ca_sa(T, i):
     return None
 
 RULES = [('élision inversée', rule_deselide),
+         ('être (ête)', rule_ete_etre),
          ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
