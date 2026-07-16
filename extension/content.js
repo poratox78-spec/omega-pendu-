@@ -8,7 +8,11 @@
   var DC = self.DYSCORE || window.DYSCORE;
   if (!DC) return;                       // moteur absent → inerte
 
-  var CFG = { enabled: true };
+  // UNE SEULE ZONE DE CORRECTION : la bulle in-place est DÉSACTIVÉE par défaut (Rem 07/2026 — le panneau latéral est
+  // plus lisible, porte plus d'info, et n'a pas les murs structurels de l'in-place : bulle qui couvre la saisie,
+  // correction effacée au reclic par Slate/Draft). Ré-activable d'un clic depuis le panneau. Ce drapeau NE coupe QUE
+  // la bulle + la correction auto dans le champ ; le MIROIR (envoyé avant ce test dans run) et le clic droit vivent.
+  var CFG = { enabled: false };
   try { chrome.storage && chrome.storage.local.get(['enabled'], function (o) { if (o && typeof o.enabled === 'boolean') CFG.enabled = o.enabled; }); } catch (e) {}
   try { chrome.storage && chrome.storage.onChanged && chrome.storage.onChanged.addListener(function (ch) { if (ch.enabled) { CFG.enabled = ch.enabled.newValue; if (!CFG.enabled) hideBar(); else schedule(active); } }); } catch (e) {}
 

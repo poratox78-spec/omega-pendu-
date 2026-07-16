@@ -34,19 +34,56 @@
   .remed{ margin-top:5px; padding:6px 9px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:5px; font-size:.92em; }
   .ok-msg{ color:#1f7a3d; font-weight:700; padding:6px 2px; }
   .foot{ margin-top:12px; padding-top:9px; border-top:1px solid #e3e3e3; color:#8a94a0; font-size:.82em; }
+  /* aide-frappe : complétions du mot sous le curseur (portée de la barre flottante) */
+  .comps{ display:flex; gap:5px; flex-wrap:wrap; align-items:center; margin:7px 0; }
+  .comps .lab{ color:#666; font-size:.85em; }
+  .cbtn{ font:inherit; font-size:.9em; border:1px solid #2a6f97; background:#eef5fb; color:#1b4b68; border-radius:6px; padding:2px 9px; cursor:pointer; }
+  .cbtn:hover{ background:#2a6f97; color:#fff; }
+  /* couche VERTE : n'affirme pas une faute → aucun clic d'application */
+  .vig{ margin-top:8px; padding:6px 9px; border-left:4px solid #1f7a3d; background:#eefaf1; border-radius:5px; font-size:.9em; }
+  .vlab{ font-weight:700; color:#1f7a3d; margin-bottom:3px; }
+  .vitem{ color:#28483a; }
+  #omdys-undo{ background:#8a94a0; color:#fff; }
+  /* accessibilité (réglages ex-popup, devenus injoignables quand l'icône a basculé sur le panneau) */
+  .prefs{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:.85em; color:#555; margin-bottom:8px;
+          padding-bottom:8px; border-bottom:1px solid #eee; }
+  .prefs select{ font:inherit; font-size:.95em; }
+  body.dark{ background:#14181c; color:#e8edf2; }
+  body.dark textarea#omdys-ta{ background:#1d2329; color:#e8edf2; border-color:#3a444e; }
+  body.dark .item{ background:#2a1e1d; }
+  body.dark .item.orth{ background:#16242f; }
+  body.dark .item.tvig{ background:#2b2412; }
+  body.dark .astuce{ background:#16242f; color:#cfe0ee; }
+  body.dark .stade{ background:#16242f; }
+  body.dark .remed{ background:#2b2412; color:#f0e2bd; }
+  body.dark .vig{ background:#14251b; }
+  body.dark .vitem{ color:#bfe0cc; }
+  body.dark .cbtn{ background:#16242f; color:#9fc6e0; }
+  body.dark .prefs, body.dark .mir, body.dark #omdys-count{ color:#9aa7b4; }
+  body.dark .foot{ color:#7c8894; border-top-color:#2a333c; }
 </style>
 </head>
 <body>
 <header><b>🩹 Correcteur dys</b><span class="st" id="omdys-st">chargement…</span></header>
 <div class="wrap">
+  <div class="prefs">
+    <label>Texte
+      <select id="omdys-size"><option value="p">normal</option><option value="m">grand</option><option value="g">très grand</option></select>
+    </label>
+    <label><input type="checkbox" id="omdys-dark"> Sombre</label>
+    <label title="La bulle flottante dans la page. Décochée : ce panneau est la SEULE zone de correction."><input type="checkbox" id="omdys-bubble"> Bulle dans la page</label>
+  </div>
   <label class="mir"><input type="checkbox" id="omdys-mirror" checked> Recopier ce que je tape sur la page</label>
   <textarea id="omdys-ta" placeholder="Écris ou colle ton texte ici — ou tape dans un champ de la page, il se recopie ici. Puis clique les corrections et « Copier »."></textarea>
   <div class="acts">
     <button id="omdys-fixall" disabled>✓ Tout corriger</button>
+    <button id="omdys-undo" hidden>↩ Annuler</button>
     <button id="omdys-copy">📋 Copier</button>
     <span id="omdys-count"></span>
   </div>
+  <div class="comps" id="omdys-comps"></div>
   <div class="corr" id="omdys-corr"></div>
+  <div id="omdys-vig"></div>
   <div id="omdys-stade"></div>
   <div class="foot">Hors-ligne · aucune donnée envoyée. Moteur identique à l'app (FP=0). Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux.</div>
 </div>

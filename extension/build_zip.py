@@ -24,7 +24,9 @@ ROOT = os.path.dirname(HERE)
 ZIP  = os.path.join(ROOT, 'omega-correcteur-dys.zip')
 
 # fichiers LIVRÉS (le zip = ce qu'un utilisateur installe ; les harnais de dev restent hors zip)
-FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'background.js', 'popup.html', 'popup.js', 'sidepanel.html', 'sidepanel.js', 'README.md']
+# popup.html/popup.js RETIRÉS : depuis 0.3.0 l'icône ouvre le PANNEAU (default_popup enlevé du manifest) → le popup
+# était devenu INJOIGNABLE, et ses réglages (taille de texte, sombre) livrés en code mort. Ils vivent dans le panneau.
+FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'background.js', 'sidepanel.html', 'sidepanel.js', 'README.md']
 EXCLUDE_DIRS = set()
 
 def shipped():
