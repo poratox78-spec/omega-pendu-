@@ -58,7 +58,9 @@ const PHRASES = [
   "je c'est pas", 'tu ces content', 'je sait nager', "elle c'est bien amusée", "il c'est levé",
   'tu sais la réponse', 'ces enfants jouent', 'ses livres sont là', "c'est vrai", "elle s'est bien amusée", "je sais que c'est bon",
   // accord SV vouloir (slot 1s/2s réparé — Lexique mis-étiquetait « veux » pluriel) : cibles + pièges corrects
-  'je veut partir', 'tu veut venir', 'il veut partir', 'je veux partir', 'nous voulons partir'
+  'je veut partir', 'tu veut venir', 'il veut partir', 'je veux partir', 'nous voulons partir',
+  // -ais→-ait : personne (verbe imparfait 1sg sous sujet-nom 3sg) — cibles + pièges corrects (je/tu, pluriel)
+  'Mon collègue vérifiais les comptes', 'Le technicien réparais la machine', 'Je gardais le secret', 'Tu regardais la télévision', 'Les responsables installais tout'
 ];
 
 // 3) flags Python
