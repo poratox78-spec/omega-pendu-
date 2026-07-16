@@ -112,8 +112,8 @@
           <div class="stat"><span>point fixe r→1/r</span><b>r = 1</b></div>
           <div class="stat"><span>μ au point fixe</span><b>0,5</b></div>
           <div class="stat"><span>cohérence</span><b>maximale</b></div>
-          <div class="stat"><span>sélectionné par</span><b>parcimonie (MDL)</b></div>
-          <p class="note" style="font-size:13px;margin-top:14px;color:var(--mut)">(1,1) est le seul θ invariant par l'involution r→1/r ⟺ μ→1−μ : la loi s'y regarde dans le miroir sans changer. Zéro paramètre, pas un ajustement — un point de <b style="color:var(--sym);font-weight:400">symétrie et d'économie</b>.</p>
+          <div class="stat"><span>épinglé par</span><b>β=1 ∧ α=1</b></div>
+          <p class="note" style="font-size:13px;margin-top:14px;color:var(--mut)">L'involution r→1/r ⟺ μ→1−μ fixe tout l'axe β=1 (∀α) : la loi s'y regarde dans le miroir sans changer. Ce qui épingle (1,1) sur cet axe, c'est α=1 — la seule valeur qui fait de μ = r<sup>α</sup>⁄(1+r<sup>α</sup>) une homographie (Möbius) de r. Donc (1,1) = β=1 (auto-dual) ∧ α=1 (homographie) : une <b style="color:var(--sym);font-weight:400">conjonction</b>, pas une symétrie unique. Zéro paramètre.</p>
         </div>
       </div>
     </div>
@@ -179,7 +179,7 @@
   <footer class="verdict fade">
     <p class="kicker">verdict</p>
     <h2>(1,1) n'est pas un sommet de performance</h2>
-    <p>C'est un point de <b style="color:var(--sym);font-weight:400">symétrie</b> : l'axe fixe de l'involution Möbius r→1/r, la crête de la cohérence, et le point auto-dual de la loi — tous les trois au même endroit, posés là par parcimonie (le prior MDL), jamais par le winrate. La coïncidence tient donc au niveau où elle est réelle : <b style="color:var(--ink);font-weight:400">forme + symétrie + économie</b>, pas fitness. Et l'involution <em>échange</em> les deux voies (ortho ⇄ phon) sans les identifier — deux faces non identiques, et c'est justement ça qui est fidèle à un Möbius.</p>
+    <p>C'est un point de <b style="color:var(--sym);font-weight:400">symétrie</b> : l'axe fixe de l'involution Möbius r→1/r est toute la droite β=1 (auto-duale ∀α), et α=1 y rend la loi homographique — la crête de la cohérence tombe exactement à leur croisement. Posé par la structure (le MDL confirme, il ne décide plus seul), jamais par le winrate. La coïncidence tient donc au niveau où elle est réelle : <b style="color:var(--ink);font-weight:400">forme + symétrie + économie</b>, pas fitness. Et l'involution <em>échange</em> les deux voies (ortho ⇄ phon) sans les identifier — deux faces non identiques, et c'est justement ça qui est fidèle à un Möbius.</p>
     <p class="prov">données réelles · balayage θ mesuré (graine 12345) · winrate par voie = record vérifié 06/2026, 3 graines · le balayage θ est un instrument confondu pour l'attribution de voie (bras ortho estropié) → retiré comme claim de fitness, conservé pour la FORME.</p>
   </footer>
 </div>
