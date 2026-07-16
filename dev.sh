@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# dev.sh — vérifie en LOCAL que tout passe (miroir EXACT de .github/workflows/ci.yml).
-# « vert ici = vert en CI ». Aucune dépendance : Python 3.8+ (stdlib) et Node 18+, c'est tout.
+# dev.sh — vérifie en LOCAL que tout passe. Miroir de .github/workflows/ci.yml — et ce n'est plus une promesse
+# en commentaire : dictee/ci_parity_probe.py (lancé ici ET en CI) ÉCHOUE si un script tourne d'un côté et pas
+# de l'autre. Les deux listes avaient dérivé en silence (sw_probe absent en local, popup.js fantôme en CI).
+# Aucune dépendance : Python 3.8+ (stdlib) et Node 18+, c'est tout.
 # Usage : ./dev.sh            (tout)
 #         ./dev.sh -q         (résumé seulement)
 set -u
@@ -55,17 +57,23 @@ run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigil
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
-node extension/test_speller.js
+run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 runsh "syntaxe extension (4 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js"
 run "correcteur standalone"         node dictee/correcteur.js
 runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
+run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js
+
+echo "── LIVRAISON ──"
+run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
+run "service worker (version+empreinte, précache, purge)" node dictee/sw_probe.js
+run "parité dev.sh ↔ ci.yml (anti-dérive)" python3 dictee/ci_parity_probe.py
 
 echo "── OMEGA·KEY (dérivé crypto) ──"
 run "omega-key crypto (entropie + gel listes + KAT Double Ratchet)" node omega-key/test_crypto.js
 
 echo "──────────────────────────────────────────"
-if [ "$FAIL" -eq 0 ]; then echo "✅ TOUT VERT — $PASS/$((PASS)) checks (= ce que voit la CI)."; else
+if [ "$FAIL" -eq 0 ]; then echo "✅ TOUT VERT — $PASS/$((PASS+FAIL)) checks (parité dev.sh↔CI vérifiée par ci_parity_probe)."; else
   echo "❌ $FAIL échec(s) sur $((PASS+FAIL)) : ${FAILED[*]}"; fi
 echo "ℹ️  build_* régénèrent des fichiers suivis (assets gz, tables) ; un 'git status' peut montrer des diffs de mtime — sans conséquence, 'git checkout -- <fichier>' pour nettoyer."
 exit $([ "$FAIL" -eq 0 ] && echo 0 || echo 1)

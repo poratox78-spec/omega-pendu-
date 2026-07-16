@@ -69,6 +69,12 @@ jobs:
         run: python3 extension/build_assets.py
       - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)
         run: node extension/parity_core.js
+      - name: Dictée — SENT app == sentences.json + 0 FP
+        run: python3 dictee/sentences_parity.py
+      - name: Vigilance accord sujet-verbe (orange mid-phrase)
+        run: node dictee/test_sv_vigilance.js
+      - name: Garde anti-dérive — dev.sh lance bien ce que lance la CI
+        run: python3 dictee/ci_parity_probe.py
       - name: Extension — speller ext ≡ app (couche vigilance comprise)
         run: node extension/test_speller.js
       - name: Extension — syntaxe dys-core / content / background / sidepanel
