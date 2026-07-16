@@ -50,7 +50,7 @@
   if (DC) try {
     var sp = chrome.runtime.getURL('assets/speller.tsv.gz'), nom = chrome.runtime.getURL('assets/noun-post.txt.gz');
     DC.loadLex({ vdc: chrome.runtime.getURL('assets/vdc-lex.json'), genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
-                 speller: sp, nom: nom, hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz') })
+                 speller: sp, nom: nom, hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz'), osLm: chrome.runtime.getURL('assets/os-subj-lm.json.gz') })
       .then(function () { ready = true; stEl.textContent = 'prêt'; runNow(); })
       .catch(function (e) { stEl.textContent = 'erreur moteur'; });
     if (DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
