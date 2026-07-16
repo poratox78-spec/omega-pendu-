@@ -93,6 +93,11 @@ reste donc CC BY-SA 4.0). Vulgarité, insultes et termes racistes ou
 discriminants en sont exclus — voir les filtres documentés dans
 `dictee/build_argot_lex.py`.
 
+Le fichier `dictee/participle_rows.tsv` (participes passés accordés — féminin/
+pluriel dont le masculin -é est déjà présent) provient de la même source et
+licence : Wiktionnaire français via kaikki.org, CC BY-SA 4.0, © les
+contributeurs du Wiktionnaire. Il alimente le même bloc speller (CC BY-SA 4.0).
+
     Attribution : « Lexique du correcteur : Lexique 4 (New et al. 2026) +
       Wiktionnaire (fr.wiktionary.org, via kaikki.org), CC BY-SA 4.0 »
     Régénérable : python3 dictee/build_wikt_lex.py <kaikki.jsonl> <Lexique4.tsv.xz> <out>
