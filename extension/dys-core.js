@@ -515,6 +515,9 @@
   function loadPosHmm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
     var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
     setPosHmm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
+  function loadOsLm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();   // LM OS-sujet (os-subj-lm.json.gz) : setOsLm hoisté (défini plus bas)
+    var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+    setOsLm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
   var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
     if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
@@ -1040,6 +1043,41 @@ function spellUnknown(tok,atStart,T,idx){
     var slots=(CONJ_C[lem]||{})['ind:imp'];if(!slots)return null;var sugg=slots[per+nb];if(!sugg||sugg===lw)return null;
     if(phonKey(sugg)!==phonKey(lw))return null;
     return sugg;}
+  // ===== OS-SUJET (chantier « accord par arbitrage du sujet ») — LM porte-confiance + 4 routes + mix OS μ=r/(1+r) =====
+  // MIROIR dictee/os_subject_probe.py. ORANGE « accord verbe à vérifier » sur le RÉSIDUEL (sujet non parsable finement,
+  // « de N » inclus) que le rouge/imparfaitVig ne touchent pas. Le LM (R4) porte la CONFIANCE qui rend le gating utile.
+  var _OSLM=null, _OS_TAU=0.85;
+  function setOsLm(m){
+    if(!m||!m.uni){_OSLM=null;return;}
+    function sums(tab){var s={},k,w,t;for(k in tab){t=0;for(w in tab[k])t+=tab[k][w];s[k]=t;}return s;}
+    _OSLM={uni:m.uni,N:m.N,tf:m.tf,tb:m.tb,bf:m.bf,bb:m.bb,sTF:sums(m.tf),sTB:sums(m.tb),sBF:sums(m.bf),sBB:sums(m.bb),Vu:Object.keys(m.uni).length+1};
+  }
+  function _osPuni(w){return ((_OSLM.uni[w]||0)+0.5)/(_OSLM.N+0.5*_OSLM.Vu);}
+  function _osPfwd(w,p2,p1){var L=_OSLM,key=p2+'\t'+p1,d=L.tf[key],db=L.bf[p1];
+    return 0.6*(d?((d[w]||0)/L.sTF[key]):0)+0.3*(db?((db[w]||0)/L.sBF[p1]):0)+0.1*_osPuni(w);}
+  function _osPbwd(w,n1,n2){var L=_OSLM,key=n1+'\t'+n2,d=L.tb[key],db=L.bb[n1];
+    return 0.6*(d?((d[w]||0)/L.sTB[key]):0)+0.3*(db?((db[w]||0)/L.sBB[n1]):0)+0.1*_osPuni(w);}
+  function _osLsc(w,p2,p1,n1,n2){return Math.log(0.5*_osPfwd(w,p2,p1)+0.5*_osPbwd(w,n1,n2)+1e-12);}
+  function _osVote(x,c){return x==='s'?[0.5+0.5*c,0.5-0.5*c]:(x==='p'?[0.5-0.5*c,0.5+0.5*c]:[0.5,0.5]);}
+  function _osR1(F,vi){for(var k=vi-1;k>0;k--){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined)return _osVote((NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s',0.85);}return [0.5,0.5];}
+  function _osR2(F,vi){var k=vi-1,last=null;while(k>=0){if(k>0){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined){last=(NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s';var d2=(k-2>=0)?deacc(F[k-2]):'';if(k-2>=0&&(d2==='de'||d2==='des'||d2==='du'||d2==="d'")){k-=2;continue;}return _osVote(last,0.9);}}k--;}return last?_osVote(last,0.7):[0.5,0.5];}
+  function _osR3(F,vi){for(var k=vi-1;k>0;k--){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined){if(k-2>=0&&PREP[deacc(F[k-2])])continue;return _osVote((NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s',0.85);}}return [0.5,0.5];}
+  function _osR4(F,vi,f3s,f3p){if(!f3s||!f3p)return [0.5,0.5];
+    var p2=vi>=2?F[vi-2]:'<s>',p1=vi>=1?F[vi-1]:'<s>',n1=vi+1<F.length?F[vi+1]:'</s>',n2=vi+2<F.length?F[vi+2]:'</s>';
+    var ss=_osLsc(f3s,p2,p1,n1,n2),sp=_osLsc(f3p,p2,p1,n1,n2),mx=Math.max(ss,sp),es=Math.exp(ss-mx),ep=Math.exp(sp-mx),Z=es+ep;return [es/Z,ep/Z];}
+  function _osMix(ds){var i,ws=[],Z=0,ps=0,pp=0;for(i=0;i<ds.length;i++){ws[i]=Math.abs(ds[i][0]-ds[i][1])+1e-6;Z+=ws[i];}for(i=0;i<ds.length;i++){ps+=ws[i]*ds[i][0];pp+=ws[i]*ds[i][1];}ps/=Z;pp/=Z;return [ps>=pp?'s':'p',Math.abs(ps-pp)];}
+  function _osVinfo(form){var rd=svReads(form),p3=[],k;for(k=0;k<rd.length;k++)if(rd[k][2]==='3')p3.push(rd[k]);
+    if(!p3.length)return null;var lem=p3[0][0],mts={};for(k=0;k<p3.length;k++)mts[p3[k][1]]=1;var mt=mts['ind:pre']?'ind:pre':p3[0][1];
+    var nums={};for(k=0;k<p3.length;k++)if(p3[k][1]===mt)nums[p3[k][3]]=1;
+    var vn=(nums.s&&!nums.p)?'s':((nums.p&&!nums.s)?'p':'?');var sl=(CONJ_C[lem]||{})[mt]||{};return [lem,mt,vn,sl['3s'],sl['3p']];}
+  function osVerbVig(T,i,tg){if(!_OSLM)return null;
+    var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
+    if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;   // GATE POS : écarte les noms/adj homographes de verbes (« la côte », « influent », « la pêche ») = vrais FP. Mesuré −17 flood/−2 recall. MIROIR os_subject_probe.detect.
+    var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
+    var r=_osMix([_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)]);
+    if(r[1]<_OS_TAU||r[0]===vn)return null;
+    return r[0]==='p'?f3p:f3s;}
+  function osProbe(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),tg=posTags(T)||[],out=[],i,s;for(i=0;i<T.length;i++){s=osVerbVig(T,i,tg);if(s&&s.toLowerCase()!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:s});}return out;}   // sonde OS-seule (parité vs os_subject_probe.py)
   function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir app.
     var r=spellToken(T[i],i===0,T,i),pushed=false;
@@ -1051,6 +1089,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (rouge = sujet en tête FP=0 ; orange = le reste). DOCTRINE : doute → orange, jamais silence. Fusion grammaire-prioritaire : le rouge gagne au même token.
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
       var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
@@ -1135,6 +1174,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
     if(urls&&urls.nom)loadNounPost(urls.nom);             // posterior §3 du pluriel du nom (noun-post) : additif, indépendant
     if(urls&&urls.hmm)loadPosHmm(urls.hmm);               // POS-tagger HMM (pos-hmm.json.gz) : additif, indépendant
+    if(urls&&urls.osLm)loadOsLm(urls.osLm);               // LM OS-sujet (os-subj-lm.json.gz) : additif, orange accord verbe
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -1185,7 +1225,7 @@ function spellUnknown(tok,atStart,T,idx){
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
-    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm,
+    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, osProbe:osProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText
   };

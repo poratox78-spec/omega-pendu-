@@ -69,6 +69,8 @@ jobs:
         run: python3 extension/build_assets.py
       - name: Extension — parité moteur dys-core ↔ Python (aucun FP propre)
         run: node extension/parity_core.js
+      - name: Parité OS-sujet 3 moteurs (orange « accord verbe à vérifier »)
+        run: node dictee/parity_os.js
       - name: Dictée — SENT app == sentences.json + 0 FP
         run: python3 dictee/sentences_parity.py
       - name: Vigilance accord sujet-verbe (orange mid-phrase)

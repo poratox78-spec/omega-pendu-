@@ -25,7 +25,8 @@
       genderRelaxed: chrome.runtime.getURL('assets/gender-relaxed.tsv.gz'),
       speller: spellerUrl,
       nom: nomUrl,
-      hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz')   // POS-tagger HMM : l'asset était LIVRÉ mais jamais chargé → ~7 règles rouges (accord/épithète via tagger) inertes dans le navigateur (audit 07/2026)
+      hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz'),   // POS-tagger HMM : l'asset était LIVRÉ mais jamais chargé → ~7 règles rouges (accord/épithète via tagger) inertes dans le navigateur (audit 07/2026)
+      osLm: chrome.runtime.getURL('assets/os-subj-lm.json.gz')   // LM OS-sujet : orange « accord verbe à vérifier » sur le résiduel « de N »
     }).then(function () { if (active) schedule(active);
       try { chrome.storage.local.set({ omdysStatus: { ready: !!(DC.isReady && DC.isReady()), words: (DC.lexSize ? DC.lexSize() : null) } }); } catch (e) {}   // état pour le popup
     }).catch(function (e) { try { chrome.storage.local.set({ omdysStatus: { ready: false, error: String(e && e.message || e) } }); } catch (e2) {} });
