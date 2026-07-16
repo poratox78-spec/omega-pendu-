@@ -1472,6 +1472,52 @@ def rule_accord_sv_noun(T, i):
     return sugg
 
 
+def rule_ais_ait(T, i):
+    """Accord SUJET-VERBE en PERSONNE : verbe à l'imparfait écrit en 1re/2e pers. sing. (-ais) mais gouverné par un
+    sujet-NOM 3e pers. sing. → 3e pers. (-ait). Comble le trou de rule_accord_sv_noun, qui ne prend QUE les lectures
+    p==3 (accord de NOMBRE) : l'erreur de PERSONNE « le responsable installais »→installait lui échappe. -ais/-ait
+    homophones (/ɛ/) → audible-fiable. FP=0 : mêmes gardes structurelles que rule_accord_sv_noun + PAS de sujet
+    pronom (je/tu « je gardais » correct) + sujet SINGULIER strict (sinon -aient)."""
+    w = T[i].lower()
+    if not CONJ_LOADED or "'" in w or not deacc(w).endswith('ais'): return None
+    rd = _reads(w)
+    imp = [(l, mt, p, n) for (l, mt, p, n) in rd if p in ('1', '2') and n == 's' and 'imp' in mt and 'ind' in mt]
+    if not imp: return None                                   # 1sg/2sg IMPARFAIT indicatif (pas l'impératif : 'imp' sans 'ind')
+    if any(p == '3' for (l, mt, p, n) in rd): return None     # lit aussi 3e pers → ambigu → abstention
+    if _subject_before(T, i) is not None: return None         # sujet pronom (je/tu/il…) → « je gardais » correct → abstention
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    subj = _np_subject(T, tg, i)
+    if subj is None or subj['n'] != 's': return None          # sujet-NOM SINGULIER (le pluriel donnerait -aient)
+    hk = subj['idx']; dk = subj['det']
+    ddet = deacc(T[dk].lower())
+    if ddet not in NUM_DET and ddet not in _QUANT_SG: return None
+    if deacc(T[hk].lower()) in _COLL_HEAD: return None
+    if tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper()): return None
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    for m in range(lo, i):
+        if "'" in T[m] or "’" in T[m]: return None            # élision dans la proposition → clause complexe → abstention
+    for m in range(lo, dk):
+        if tg[m] != 'ADV': return None                        # sujet en tête de proposition (que des adverbes antéposés)
+    for m in range(hk + 1, i):                                # nom-tête → verbe : compléments prépositionnels seulement
+        tok = T[m]; dw = deacc(tok.lower())
+        if dw in CONJ_WORDS: return None
+        if any(ch in ',;:()[]«»"' for ch in tok): return None
+        if tg and m < len(tg) and tg[m] in ('VERB', 'AUX'): return None
+        if tok.lower() in NUM_DET and dw not in PREP and not (m > 0 and deacc(T[m-1].lower()) in PREP): return None
+    lemmas = {l for (l, mt, p, n) in imp}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop()
+    sugg = CONJ_C.get(lem, {}).get('ind:imp', {}).get('3s')
+    if not sugg or sugg == w: return None
+    if not any(p == '3' and (n == 's' or n == 'x') for (l, mt, p, n) in _reads(sugg)): return None
+    return sugg
+
+
 def _sv_finish(T, i, per, nb, p_reads):
     """Queue commune des règles d'accord sujet-verbe : corrige T[i] vers (per, nb) si désaccord ET forme confirmée.
     p_reads = lectures de T[i] filtrées sur la personne `per`. Anti-bruit : lemme unique + suggestion re-vérifiée."""
@@ -2139,6 +2185,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_il_ils),
          ('accord sujet-verbe', rule_accord_sv_recover),
          ('accord sujet-verbe', rule_accord_sv_noun),
+         ('accord sujet-verbe', rule_ais_ait),
          ('accord sujet-verbe', rule_accord_sv_quant),
          ('accord sujet-verbe', rule_accord_sv_relatif),
          ('accord sujet-verbe', rule_accord_sv_coord),
@@ -2208,6 +2255,10 @@ CASES = [
     ("Les enfants jouent dehors", "jouent", "joue", "accord sujet-verbe"),
     ("Les oiseaux chantent", "chantent", "chante", "accord sujet-verbe"),
     ("Les voitures roulent vite", "roulent", "roule", "accord sujet-verbe"),
+    ("Mon collègue vérifiait les comptes", "vérifiait", "vérifiais", "accord sujet-verbe"),   # -ais→-ait : personne (1sg sous sujet-nom 3sg)
+    ("Le technicien réparait la machine", "réparait", "réparais", "accord sujet-verbe"),       # -ais→-ait
+    ("Je gardais le secret", "gardais", "gardait", "accord sujet-verbe"),                      # FP-GUARD : sujet PRONOM « je » → « gardais » correct, NE doit PAS devenir « gardait »
+    ("Tu regardais la télévision", "regardais", "regardait", "accord sujet-verbe"),            # FP-GUARD : pronom « tu » → « regardais » correct
     ("les enfants a l'école", "a", "ont", "accord sujet-verbe"),             # « a l'école » = « à l'école » (locatif, article défini) → a→ont NE doit PAS tirer (ambigu avec la préposition « à »)
     ("les filles a la maison", "a", "ont", "accord sujet-verbe"),            # idem « à la maison »
     ("Ils sont contents", "ils", "il", "accord sujet-verbe"),               # « il sont »→« ils sont » : le « s » MUET de « ils » est tombé → corriger le PRONOM (pas le verbe → « ils est »)
