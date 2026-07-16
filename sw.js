@@ -54,13 +54,17 @@ self.addEventListener('fetch', (e) => {
   const isPage = req.mode === 'navigate';
   e.respondWith(caches.open(V).then(async (cache) => {
     if (isPage) {                                                          // ── réseau d'abord ──
-      const res = await fetch(req).catch(() => null);
+      const res = await fetch(req.url, { redirect: 'follow' }).catch(() => null);   // req.url + follow, PAS fetch(req) : une requête de NAVIGATION porte redirect:'manual' → sur une redirection Cloudflare le SW recevait un opaqueredirect (ok=false), tombait sur le repli et servait l'INDEX à la place de la page (scrabidon/pendable non précachées → accueil). Suivre les redirections rend un vrai 200.
       if (res && res.ok) {
         const clean = res.redirected ? await reshape(res) : res;           // jamais de réponse redirigée (page blanche)
         cache.put(req, clean.clone()).catch(() => {});
         return clean;
       }
-      return (await cache.match(req)) || (await cache.match('./')) || Response.error();   // hors-ligne → cache
+      const cached = await cache.match(req);                               // hors-ligne : la page elle-même si cachée
+      if (cached) return cached;
+      const path = new URL(req.url).pathname;                              // dernier recours : le shell UNIQUEMENT pour la racine — NE JAMAIS servir l'index à la place d'une AUTRE page
+      if (path === '/' || path.endsWith('/index.html')) return (await cache.match('./')) || Response.error();
+      return Response.error();
     }
     const cached = await cache.match(req);                                 // ── cache d'abord (lourds) ──
     if (cached) { e.waitUntil(revalidate(cache, req)); return cached; }
