@@ -12,6 +12,7 @@ import speller_probe as SP
 import correcteur_probe as C
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONJ_C = C.CONJ_C; NUM_DET = getattr(C, 'NUM_DET', {}); PREP = getattr(C, 'PREP', set())
+FULL_AUX = getattr(C, 'FULL_AUX', set()); CLITIC = getattr(C, 'CLITIC', set()); SUBJ_PRON = getattr(C, 'SUBJ_PRON', {})
 TOK = re.compile(r"[a-zA-Zà-ÿœæ'\-]+")
 def tk(s): return [w.lower() for w in TOK.findall(s.replace('’', "'"))]
 
@@ -32,24 +33,33 @@ def lsc(w, p2, p1, n1, n2): return math.log(0.5*p_fwd(w, p2, p1) + 0.5*p_bwd(w, 
 
 # ---- routes → distribution sur le nombre {s,p} ----
 def _vote(x, c): return (0.5+0.5*c, 0.5-0.5*c) if x == 's' else ((0.5-0.5*c, 0.5+0.5*c) if x == 'p' else (0.5, 0.5))
+def _elided_sing(w): return w[:2] == "l'"            # « l'X » = déterminant élidé le/la (JAMAIS les) → sujet SINGULIER. Sans ça les routes rataient le token collé et remontaient à un pluriel lointain (« les rapports mais l'entreprise contactera »→contacteront).
+def _num_at(F, k):                                   # nombre du sujet en tête k : élision « l'X » (sing.) OU déterminant connu F[k-1] ; sinon None
+    if _elided_sing(F[k]): return 's'
+    if k > 0 and SP.deacc(F[k-1]) in NUM_DET:
+        return 'p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's'
+    return None
 def R1(F, vi):
     for k in range(vi-1, -1, -1):
-        if k > 0 and SP.deacc(F[k-1]) in NUM_DET: return _vote('p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's', 0.85)
+        x = _num_at(F, k)
+        if x: return _vote(x, 0.85)
     return (0.5, 0.5)
 def R2(F, vi):
     k = vi-1; last = None
     while k >= 0:
-        if k > 0 and SP.deacc(F[k-1]) in NUM_DET:
-            last = 'p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's'
+        x = _num_at(F, k)
+        if x:
+            last = x
             if k-2 >= 0 and SP.deacc(F[k-2]) in ('de', 'des', 'du', "d'"): k -= 2; continue
             return _vote(last, 0.9)
         k -= 1
     return _vote(last, 0.7) if last else (0.5, 0.5)
 def R3(F, vi):
     for k in range(vi-1, -1, -1):
-        if k > 0 and SP.deacc(F[k-1]) in NUM_DET:
-            if k-2 >= 0 and SP.deacc(F[k-2]) in PREP: continue
-            return _vote('p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's', 0.85)
+        x = _num_at(F, k)
+        if x:
+            if not _elided_sing(F[k]) and k-2 >= 0 and SP.deacc(F[k-2]) in PREP: continue
+            return _vote(x, 0.85)
     return (0.5, 0.5)
 def R4(F, vi, f3s, f3p):
     if not f3s or not f3p: return (0.5, 0.5)
@@ -69,10 +79,29 @@ def _vinfo(form):
     nums = set(n for l, m, n in p3 if m == mt); vn = 's' if nums == {'s'} else ('p' if nums == {'p'} else '?')
     sl = CONJ_C.get(lem, {}).get(mt, {}); return (lem, mt, vn, sl.get('3s'), sl.get('3p'))
 
+_OS_CLI = CLITIC                                     # skip clitiques/négation pour trouver le sujet-pronom (jeu identique Python↔JS)
+def _pron_before(F, vi):                             # sujet PRONOM net (je/tu/il/elle/on/ils/elles) en sautant clitiques + « ne » → géré par la règle PRONOM, pas l'OS-noms
+    j = vi - 1; steps = 0
+    while j >= 0 and steps < 4 and SP.deacc(F[j]) in _OS_CLI: j -= 1; steps += 1
+    return SUBJ_PRON.get(SP.deacc(F[j])) if j >= 0 else None
+def _guard_ok(F, vi):
+    """gardes STRUCTURELLES (miroir de rule_accord_sv_noun/rule_ais_ait) que le port OS avait perdues → floodaient sur
+    passé composé/participe/sujet-pronom (mesuré sur registre chat : flood 3,5 %→0 %, recall inchangé). Indépendantes du sujet-OS."""
+    w = F[vi]
+    if "'" in w: return False                                                     # verbe élidé (n'est…) → autre structure
+    if w.endswith(('é', 'és', 'ée', 'ées')): return False                         # PARTICIPE (contacté, embrassé) : accord ADJECTIVAL, pas verbal
+    if vi > 0 and F[vi-1] in NUM_DET: return False                               # déterminant avant → T[vi] = NOM (« les joue »)
+    if vi > 0 and SP.deacc(F[vi-1]) in PREP: return False                        # préposition avant → nom homographe (« de contrôle »)
+    if (vi >= 1 and SP.deacc(F[vi-1]) in FULL_AUX) or (vi >= 2 and SP.deacc(F[vi-2]) in FULL_AUX): return False  # temps composé (aux + participe : « ont contacté », « a montré »)
+    if _pron_before(F, vi) is not None: return False                            # sujet pronom net (je/elle…) → « je ne me trompe », « elle m'a… »
+    return True
+
 def detect(F, vi, tau=0.85, tg=None):
     """rend (forme accordée suggérée, confiance) si le verbe F[vi] désaccorde le sujet-OS au-dessus de τ, sinon None.
+    _guard_ok : gardes structurelles (participe/aux/dét/prép/sujet-pronom) — miroir des règles sœurs.
     tg (POS-tags de F) : GATE POS — écarte les noms/adj homographes de verbes (« la côte », « influent », « la pêche »)
     que _vinfo prend à tort pour des verbes = vrais FP (mesuré : −17 flood pour −2 recall). tg passé par le moteur."""
+    if not _guard_ok(F, vi): return None
     vi_ = _vinfo(F[vi])
     if not vi_: return None
     lem, mt, vn, f3s, f3p = vi_
