@@ -13183,9 +13183,11 @@ window.addEventListener('DOMContentLoaded', () => {
     return 0.6*(d?((d[w]||0)/L.sTB[key]):0)+0.3*(db?((db[w]||0)/L.sBB[n1]):0)+0.1*_osPuni(w);}
   function _osLsc(w,p2,p1,n1,n2){return Math.log(0.5*_osPfwd(w,p2,p1)+0.5*_osPbwd(w,n1,n2)+1e-12);}
   function _osVote(x,c){return x==='s'?[0.5+0.5*c,0.5-0.5*c]:(x==='p'?[0.5-0.5*c,0.5+0.5*c]:[0.5,0.5]);}
-  function _osR1(F,vi){for(var k=vi-1;k>0;k--){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined)return _osVote((NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s',0.85);}return [0.5,0.5];}
-  function _osR2(F,vi){var k=vi-1,last=null;while(k>=0){if(k>0){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined){last=(NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s';var d2=(k-2>=0)?deacc(F[k-2]):'';if(k-2>=0&&(d2==='de'||d2==='des'||d2==='du'||d2==="d'")){k-=2;continue;}return _osVote(last,0.9);}}k--;}return last?_osVote(last,0.7):[0.5,0.5];}
-  function _osR3(F,vi){for(var k=vi-1;k>0;k--){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined){if(k-2>=0&&PREP[deacc(F[k-2])])continue;return _osVote((NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s',0.85);}}return [0.5,0.5];}
+  function _osElidedSing(w){return w.slice(0,2)==="l'";}   // « l'X » = déterminant élidé le/la (jamais les) → sujet SINGULIER (token collé que les routes rataient → elles remontaient à un pluriel lointain)
+  function _osNumAt(F,k){if(_osElidedSing(F[k]))return 's';if(k>0){var dd=deacc(F[k-1]);if(NUM_DET[dd]!==undefined)return (NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s';}return null;}
+  function _osR1(F,vi){for(var k=vi-1;k>=0;k--){var x=_osNumAt(F,k);if(x)return _osVote(x,0.85);}return [0.5,0.5];}
+  function _osR2(F,vi){var k=vi-1,last=null;while(k>=0){var x=_osNumAt(F,k);if(x){last=x;var d2=(k-2>=0)?deacc(F[k-2]):'';if(k-2>=0&&(d2==='de'||d2==='des'||d2==='du'||d2==="d'")){k-=2;continue;}return _osVote(last,0.9);}k--;}return last?_osVote(last,0.7):[0.5,0.5];}
+  function _osR3(F,vi){for(var k=vi-1;k>=0;k--){var x=_osNumAt(F,k);if(x){if(!_osElidedSing(F[k])&&k-2>=0&&PREP[deacc(F[k-2])])continue;return _osVote(x,0.85);}}return [0.5,0.5];}
   function _osR4(F,vi,f3s,f3p){if(!f3s||!f3p)return [0.5,0.5];
     var p2=vi>=2?F[vi-2]:'<s>',p1=vi>=1?F[vi-1]:'<s>',n1=vi+1<F.length?F[vi+1]:'</s>',n2=vi+2<F.length?F[vi+2]:'</s>';
     var ss=_osLsc(f3s,p2,p1,n1,n2),sp=_osLsc(f3p,p2,p1,n1,n2),mx=Math.max(ss,sp),es=Math.exp(ss-mx),ep=Math.exp(sp-mx),Z=es+ep;return [es/Z,ep/Z];}
@@ -13194,10 +13196,20 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!p3.length)return null;var lem=p3[0][0],mts={};for(k=0;k<p3.length;k++)mts[p3[k][1]]=1;var mt=mts['ind:pre']?'ind:pre':p3[0][1];
     var nums={};for(k=0;k<p3.length;k++)if(p3[k][1]===mt)nums[p3[k][3]]=1;
     var vn=(nums.s&&!nums.p)?'s':((nums.p&&!nums.s)?'p':'?');var sl=(CONJ_C[lem]||{})[mt]||{};return [lem,mt,vn,sl['3s'],sl['3p']];}
+  function _osPronBefore(F,vi){var j=vi-1,st=0;while(j>=0&&st<4&&CLITIC[deacc(F[j])]){j--;st++;}return j>=0?(SUBJ_PRON[deacc(F[j])]||null):null;}
+  function _osGuardOk(F,vi){var w=F[vi];   // gardes STRUCTURELLES (miroir rAccordSVnoun/rAisAit) perdues au port OS → floodaient sur passé composé/participe/sujet-pronom. Mesuré registre chat : flood 3,5%→0%, recall inchangé.
+    if(w.indexOf("'")>=0)return false;                                             // verbe élidé (n'est…)
+    if(/(é|és|ée|ées)$/.test(w))return false;                                      // PARTICIPE (contacté, embrassé) : accord ADJECTIVAL, pas verbal
+    if(vi>0&&NUM_DET[F[vi-1]]!==undefined)return false;                            // déterminant avant → NOM
+    if(vi>0&&PREP[deacc(F[vi-1])])return false;                                    // préposition avant → nom homographe
+    if((vi>=1&&FULL_AUX[deacc(F[vi-1])])||(vi>=2&&FULL_AUX[deacc(F[vi-2])]))return false;   // temps composé (aux + participe : « ont contacté », « a montré »)
+    if(_osPronBefore(F,vi)!==null)return false;                                    // sujet pronom net (je/elle…)
+    return true;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;
+    var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
+    if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
     if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;   // GATE POS : noms/adj homographes = vrais FP (−17 flood)
-    var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
     var r=_osMix([_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)]);
     if(r[1]<_OS_TAU||r[0]===vn)return null;
     return r[0]==='p'?f3p:f3s;}
