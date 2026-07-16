@@ -71,8 +71,8 @@ jobs:
         run: node extension/parity_core.js
       - name: Extension — speller ext ≡ app (couche vigilance comprise)
         run: node extension/test_speller.js
-      - name: Extension — syntaxe dys-core / content / popup
-        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/popup.js
+      - name: Extension — syntaxe dys-core / content / background / sidepanel
+        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js
       - name: Moteur correcteur standalone (sans UI/DOM)
         run: node dictee/correcteur.js
       - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)
