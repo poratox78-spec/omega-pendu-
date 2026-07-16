@@ -9,8 +9,42 @@ const fail = [];
 
 try { new Function(src); } catch (e) { fail.push('syntaxe sw.js : ' + e.message); }
 
+// VERSION = numéro + EMPREINTE DU CONTENU (omega-vNNN-xxxxxxxx). Avant, V était un simple numéro « à incrémenter
+// à CHAQUE déploiement » : MESURÉ, il n'a pas bougé pendant 70 commits touchant le site (dernier bump 2026-07-05)
+// → les clients gardaient un cache figé, seul Ctrl+Shift+R montrait le site réel. Une consigne en commentaire ne
+// tient pas ; l'empreinte, si. Si le site change et que V ne suit pas, CE CHECK ÉCHOUE et donne la valeur à poser.
+// Régénérer : node dictee/sw_probe.js --fix
+// Périmètre = les fichiers PRÉCACHÉS (CORE), pas l'app 11 Mo : c'est là que la péremption mord (ils sont figés au
+// moment de l'install et n'en bougent qu'au changement de V). L'app est cachée à la visite et se rafraîchit par
+// revalidation (ETag → 304) ; l'inclure ici coupleraît sw.js à CHAQUE injection de lexique — conflit dans toutes
+// les PR pour un bump dont l'app n'a pas besoin.
+const HASHED = ['index.html', 'correcteur.html', 'correcteur-outil.html', 'dictee.html', 'omega-key.html',
+                'recherche.html', 'evolution.html', 'site.css', 'manifest.json', 'icon.svg'];
+// ⚠️ NORMALISER LES FINS DE LIGNE AVANT DE HACHER, sinon l'empreinte dépend de l'OS et la CI diverge du poste :
+// le dépôt a des fins de ligne MIXTES en base (index.html/site.css en LF, mais dictee.html/omega-key.html/
+// evolution.html en CRLF), et sans .gitattributes un checkout Windows convertit encore. Mesuré : disque Windows
+// a599b4ee vs Linux/CI a69a31f5 sur des fichiers pourtant identiques. CRLF→LF des deux côtés ⇒ même empreinte.
+const crypto = require('crypto');
+const h = crypto.createHash('sha256');
+for (const f of HASHED) {
+  const p = path.join(__dirname, '..', f);
+  if (fs.existsSync(p)) h.update(Buffer.from(fs.readFileSync(p, 'latin1').replace(/\r\n/g, '\n'), 'latin1'));
+}
+const SITE_HASH = h.digest('hex').slice(0, 8);
+
 const v = src.match(/const V\s*=\s*'([^']+)'/);
-if (!v || !/^omega-v\d+$/.test(v[1])) fail.push('version V introuvable ou format inattendu (omega-vNNN) : ' + (v && v[1]));
+if (!v || !/^omega-v\d+(-[0-9a-f]{8})?$/.test(v[1])) {
+  fail.push('version V introuvable ou format inattendu (omega-vNNN-xxxxxxxx) : ' + (v && v[1]));
+} else if (v[1].split('-')[2] !== SITE_HASH) {                 // absente (ancien format) ou périmée
+  const next = 'omega-v' + (parseInt(v[1].match(/v(\d+)/)[1], 10) + 1) + '-' + SITE_HASH;
+  if (process.argv.includes('--fix')) {
+    fs.writeFileSync(path.join(__dirname, '..', 'sw.js'), src.replace(/const V\s*=\s*'[^']+'/, "const V = '" + next + "'"));
+    console.log('✓ sw.js : V régénéré → ' + next + ' (le site avait changé)');
+    process.exit(0);
+  }
+  fail.push('le SITE a changé mais V ne suit pas → les clients garderaient le vieux cache.\n    ' +
+            'attendu : ' + next + '   (corriger : node dictee/sw_probe.js --fix)');
+}
 
 const core = src.match(/const CORE\s*=\s*\[([^\]]*)\]/);
 // liste blanche du précache : les petites pages du site + assets. Les LOURDS (app 11 Mo, pendable, scrabidon)

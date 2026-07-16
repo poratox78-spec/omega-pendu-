@@ -4,7 +4,10 @@
 //    rejouer une réponse REDIRIGÉE pour une navigation — Chrome refuse et affiche une PAGE BLANCHE. On "reshape"
 //    donc toute réponse redirigée en réponse 200 propre avant de la mettre en cache / la renvoyer.
 // Chemins RELATIFS (./) → marche sous un sous-chemin (GitHub Pages) comme sur un domaine perso (Cloudflare).
-const V = 'omega-v145';   // ⬅️ incrémenter à CHAQUE déploiement pour pousser une mise à jour aux clients
+// V = numéro + EMPREINTE du contenu du site. NE PAS éditer à la main : `node dictee/sw_probe.js --fix` le régénère,
+// et le même probe ÉCHOUE en CI si le site a changé sans que V suive. (L'ancienne consigne « incrémenter à chaque
+// déploiement » n'a pas tenu : mesuré, V est resté figé pendant 70 commits touchant le site — d'où le cache périmé.)
+const V = 'omega-v148-6852ed1c';
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
@@ -38,15 +41,32 @@ function revalidate(cache, req) {
   }).catch(() => {});
 }
 
+// STRATÉGIE — deux régimes, parce que « frais » et « léger » ne se règlent pas pareil :
+//  • PAGES (navigations, ~180 Ko) → RÉSEAU D'ABORD, repli cache si hors-ligne. Le cache-first servait la page
+//    de la visite PRÉCÉDENTE : on voyait le site avec un tour de retard, et seul un Ctrl+Shift+R montrait le vrai
+//    (bug remonté par Rem 07/2026 : la section téléchargement de correcteur.html n'apparaissait jamais). Une page
+//    fait quelques Ko → la fraîcheur vaut largement l'aller-retour réseau, et le hors-ligne reste garanti.
+//  • RESTE (app 11 Mo, css, icônes) → cache-first + revalidation en fond. Le poids interdit le réseau d'abord ;
+//    la revalidation est peu coûteuse (Cache-Control + ETag → 304 si inchangé) et rafraîchit pour la visite d'après.
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  const isPage = req.mode === 'navigate';
   e.respondWith(caches.open(V).then(async (cache) => {
-    const cached = await cache.match(req);
-    if (cached) { e.waitUntil(revalidate(cache, req)); return cached; }    // cache-first (le cache est TOUJOURS "propre")
+    if (isPage) {                                                          // ── réseau d'abord ──
+      const res = await fetch(req).catch(() => null);
+      if (res && res.ok) {
+        const clean = res.redirected ? await reshape(res) : res;           // jamais de réponse redirigée (page blanche)
+        cache.put(req, clean.clone()).catch(() => {});
+        return clean;
+      }
+      return (await cache.match(req)) || (await cache.match('./')) || Response.error();   // hors-ligne → cache
+    }
+    const cached = await cache.match(req);                                 // ── cache d'abord (lourds) ──
+    if (cached) { e.waitUntil(revalidate(cache, req)); return cached; }
     const res = await fetch(req).catch(() => null);
-    if (!res) return (req.mode === 'navigate' ? await cache.match('./') : null) || Response.error();   // secours hors-ligne
-    const clean = res.redirected ? await reshape(res) : res;               // jamais de réponse redirigée
+    if (!res) return Response.error();
+    const clean = res.redirected ? await reshape(res) : res;
     if (res.ok) cache.put(req, clean.clone()).catch(() => {});
     return clean;
   }));
