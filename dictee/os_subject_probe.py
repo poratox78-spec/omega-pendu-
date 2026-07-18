@@ -35,14 +35,26 @@ def lsc(w, p2, p1, n1, n2): return math.log(0.5*p_fwd(w, p2, p1) + 0.5*p_bwd(w, 
 def _vote(x, c): return (0.5+0.5*c, 0.5-0.5*c) if x == 's' else ((0.5-0.5*c, 0.5+0.5*c) if x == 'p' else (0.5, 0.5))
 def _elided_sing(w): return w[:2] == "l'"            # « l'X » = déterminant élidé le/la (JAMAIS les) → sujet SINGULIER. Sans ça les routes rataient le token collé et remontaient à un pluriel lointain (« les rapports mais l'entreprise contactera »→contacteront).
 _NUM_PL = set("deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille plusieurs".split())  # déterminants numéraux cardinaux ≥2 + « plusieurs » → sujet PLURIEL (« trois enfants qui vivent » ne doit plus floder ; « sept équipes décideront » attrapé)
-def _num_at(F, k):                                   # nombre du sujet en tête k : élision « l'X » (sing.), numéral (plur.), OU déterminant connu F[k-1] ; sinon None
+_PL_DET2 = set("des certains certaines quelques divers diverses maints maintes".split())              # déterminants PLURIELS hors numéraux (« des constructeurs proposent », « certains fabricants »)
+_PL_PHRASE = set("nombreux nombreuses beaucoup plupart".split())                                      # « de nombreux/nombreuses X », « beaucoup de X », « la plupart des X » → PLURIEL (PAS « nombre » : « au nombre variable » = sing)
+def _num_at(F, k):                                   # nombre du sujet en tête k : élision « l'X » (sing.), numéral/dét-pluriel (plur.), OU déterminant connu F[k-1] ; sinon None
     if _elided_sing(F[k]): return 's'
     if k > 0:
         dk = SP.deacc(F[k-1])
-        if dk in _NUM_PL: return 'p'
+        if dk in _NUM_PL or dk in _PL_DET2 or dk in _PL_PHRASE: return 'p'
         if dk in NUM_DET:
             return 'p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's'
     return None
+def _coord_plural(F, vi):                            # sujet COORDONNÉ « N et N » avant le verbe, même proposition, PAS dans un PP « de X et Y » → PLURIEL (structure sûre ; l'OS floodait faute de cette route)
+    lo = 0
+    if C._SEG is not None:
+        for j in range(vi, 0, -1):
+            if j < len(C._SEG['bb']) and C._SEG['bb'][j]: lo = j; break
+    for k in range(vi-1, lo, -1):
+        if SP.deacc(F[k]) == 'et' and k+1 < vi:
+            if any(k-d >= lo and SP.deacc(F[k-d]) in ('de', 'des', 'du', "d'") for d in (1, 2, 3)): continue  # « de X et Y » = coordination DANS un complément → pas le sujet
+            return True
+    return False
 def R1(F, vi):
     for k in range(vi-1, -1, -1):
         x = _num_at(F, k)
@@ -111,7 +123,14 @@ def detect(F, vi, tau=0.85, tg=None):
     lem, mt, vn, f3s, f3p = vi_
     if vn == '?' or not f3s or not f3p: return None
     if tg is not None and (vi >= len(tg) or tg[vi] not in ('VERB', 'AUX')): return None
-    num, conf = os_mix([R1(F, vi), R2(F, vi), R3(F, vi), R4(F, vi, f3s, f3p)])
+    ds = [R1(F, vi), R2(F, vi), R3(F, vi), R4(F, vi, f3s, f3p)]
+    ws = [_peak(d) + 1e-6 for d in ds]
+    ws[3] *= 0.4                                          # LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence (préfère le sing.), ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
+    if _coord_plural(F, vi):                              # route COORDINATION : sujet « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
+        ds.append((0.02, 0.98)); ws.append(max(ws) + 1.0)
+    Z = sum(ws)
+    ps = sum(w * d[0] for w, d in zip(ws, ds)) / Z; pp = sum(w * d[1] for w, d in zip(ws, ds)) / Z
+    num = 's' if ps >= pp else 'p'; conf = abs(ps - pp)
     if conf < tau or num == vn: return None
     return (f3p if num == 'p' else f3s, conf)
 
