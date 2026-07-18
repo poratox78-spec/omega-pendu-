@@ -1508,6 +1508,77 @@ def rule_accord_sv_noun(T, i):
     return sugg
 
 
+_POST_PL = ({'les', 'des', 'ces', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs', 'plusieurs', 'quelques', 'certains', 'certaines', 'divers', 'diverses', 'maints', 'maintes'}
+            | set('deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille'.split()))   # déterminants PLURIELS ouvrant un sujet postposé (set EXPLICITE partagé mot-à-mot avec app+ext pour la parité — pas _QUANT_PL qui diverge entre moteurs)
+_UNACC = set('arriver venir revenir rester demeurer exister subsister survenir surgir apparaitre disparaitre naitre tomber entrer sortir partir passer figurer suivre resulter decouler compter regner circuler'.split())   # verbes INACCUSATIFS/présentatifs (déaccentués) : admettent un sujet postposé (« Vient/Arrivait les X ») ≠ impératif transitif (« Invite les X »)
+_INV_WH = {'que', 'qu', 'ou', 'combien', 'comment', 'quand', 'pourquoi', 'quel', 'quelle', 'quels', 'quelles'}
+_INV_ADV = set('ainsi ici la alors ensuite aussi puis enfin bientot partout dedans dehors dessus dessous'.split())   # adverbes frontaux d'inversion (déaccentués)
+
+def _postpose_plural(T, tg, k, hi):
+    """GN sujet postposé à partir de k : déterminant PLURIEL/numéral + (adjectifs) + nom-tête → True si pluriel net."""
+    if k >= hi: return False
+    d0 = deacc(T[k].lower()); num = None
+    if d0 in _POST_PL: num = True
+    elif T[k].lower() in NUM_DET: num = NUM_DET.get(T[k].lower()) == 'pl'
+    else: return False
+    if not num: return False
+    for m in range(k + 1, min(hi, k + 5)):                             # nom-tête = 1er NOM après le det, en SAUTANT les adjectifs
+        if m < len(tg) and tg[m] in ('NOUN', 'PROPN'): return True
+        if deacc(T[m].lower()) in PREP: return False
+    return False
+
+def rule_accord_postpose(T, i):
+    """Accord SUJET-VERBE à sujet POSTPOSÉ (inversion). Quand l'ORDRE change (idée de Rem), on INVERSE la recherche du
+    sujet : scan AVANT. Déclencheur d'inversion = tête de proposition = PP/adverbe/interrogatif, OU verbe INACCUSATIF en
+    début de PHRASE ; ET aucun sujet préverbal (pronom/expletif/relatif/l'X/nom-sujet) ; sujet postposé PLURIEL + verbe
+    3sg → 3pl. FP=0 mesuré (0/2500 UD). « Sur la table reposait les dossiers »→reposaient, « Vient ensuite les vérifications
+    »→viennent, « Que pense les clients »→pensent, « où est rangées les archives »→sont (saut du participe passif)."""
+    if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None   # « à » (prép.) ≠ « a » (avoir) — déacc les confond
+    if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None    # PARTICIPE (accord adjectival, pas verbal)
+    if i > 0 and T[i-1].lower() in NUM_DET: return None                # déterminant avant → T[i] = NOM
+    if i > 0 and deacc(T[i-1].lower()) in PREP: return None            # préposition avant → nom homographe
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None   # temps composé
+    if _subject_before(T, i) is not None: return None                 # sujet pronom net → règle pronom
+    p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']
+    if not p3: return None
+    if not any(n == 's' for (_l, _mt, _p, n) in p3): return None       # verbe 3SG (sinon rien à accorder au pluriel)
+    if any(n == 'p' or n == 'x' for (_l, _mt, _p, n) in p3): return None   # déjà pluriel / ambigu → abstention (FP-safe)
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    lo = 0; hi = len(T)
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+        for j in range(i + 1, len(T)):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: hi = j; break
+    if _np_subject(T, tg, i) is not None: return None                 # sujet-nom PRÉVERBAL → pas une inversion
+    for k in range(lo, i):                                            # expletif/impersonnel + relatif-sujet + l'X préverbal = sujet avant → pas inversion
+        dk = deacc(T[k].lower())
+        if dk in ('il', 'ce', 'c', 'on', 'ca', 'cela', 'ceci', 'qui', 'dont', 'lequel', 'laquelle', 'lesquels', 'lesquelles'): return None
+        if dk in ('et', 'ou', 'ni'): return None                      # verbe COORDONNÉ (« La bureaucratie … et affecte des pans ») = 2e conjoint d'un sujet amont, pas une inversion
+        if (dk == 'l' or T[k].lower().startswith("l'")) and (k == lo or deacc(T[k-1].lower()) not in PREP): return None
+    lem0 = p3[0][0]                                                    # DÉCLENCHEUR d'inversion — DOIT ouvrir la PHRASE (une virgule mi-phrase = parenthèse « …siècle contenait » ⇒ le vrai sujet est avant)
+    ss = _SEG['ss'] if _SEG is not None else None
+    if not (lo == 0 or (ss is not None and lo < len(ss) and ss[lo])): return None
+    if i == lo:                                                       # verbe EN TÊTE : seul cas = présentatif inaccusatif (pas « a des origines » : « a » matche « à » via déacc)
+        if deacc(lem0) not in _UNACC: return None
+    else:
+        head = deacc(T[lo].lower())
+        if not (head in PREP or head in _INV_WH or T[lo].lower() in _INV_WH or head in _INV_ADV or (lo < len(tg) and tg[lo] == 'ADV') or head in ('comme', 'quand', 'lorsque')): return None
+    k = i + 1                                                          # scan AVANT : sauter adverbes postverbaux + participe passif (« est rangées les archives »)
+    while k < hi and k < len(tg) and (tg[k] == 'ADV' or (tg[k] in ('VERB', 'ADJ') and T[k].lower().endswith(('é', 'és', 'ée', 'ées')))): k += 1
+    if not _postpose_plural(T, tg, k, hi): return None
+    lemmas = {l for (l, _mt, _p, _n) in p3}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop(); mts = [mt for (_l, mt, _p, _n) in p3]
+    mt = 'ind:pre' if 'ind:pre' in mts else ('ind:imp' if 'ind:imp' in mts else mts[0])
+    if mt == 'ind:pas': return None
+    sugg = CONJ_C.get(lem, {}).get(mt, {}).get('3p')
+    if not sugg: return None
+    if not any(p == '3' and (n == 'p' or n == 'x') for (_l, _mt, p, n) in _reads(sugg)): return None
+    return sugg
+
+
 def rule_ais_ait(T, i):
     """Accord SUJET-VERBE en PERSONNE : verbe à l'imparfait écrit en 1re/2e pers. sing. (-ais) mais gouverné par un
     sujet-NOM 3e pers. sing. → 3e pers. (-ait). Comble le trou de rule_accord_sv_noun, qui ne prend QUE les lectures
@@ -2226,6 +2297,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv_relatif),
          ('accord sujet-verbe', rule_accord_sv_coord),
          ('accord sujet-verbe', rule_accord_sv_infinitif),
+         ('accord sujet-verbe', rule_accord_postpose),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
