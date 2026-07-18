@@ -67,6 +67,9 @@ const PHRASES = [
   // accord SV — VERBE homographe raté par l'émission HMM (filet _di ∉ GENDER/ADJP) : cibles + contrôles (nom homographe → abstention)
   'Les problèmes signalés persiste encore', 'Les tuyaux sous la maison fuit', 'Les articles de la loi précise les règles',
   'Les cours du soir attirent du monde', 'Le reste du groupe est parti', 'Les parts de marché augmentent', 'Les critiques du film sont sévères',
+  // filet homographe ÉTENDU aux règles SV sœurs (coord/quant/postpose) + contrôles FP (prép/dét-avant : Entre/un modèle)
+  'Les cris et les rires persiste', 'Beaucoup de dossiers empile', 'Ainsi persiste les rumeurs',
+  'Entre les deux guerres il enseigne les maths', 'Le consortium veut entretenir un modèle',
   'le chat les regarde', 'la préparation des plats est longue', 'Les enfants jouent dehors',
   // accord GENRE déterminant→nom : détection (un/une, le/la) + abstention (nom ambigu/homographe) + non-FP
   'Il a une chien', 'Elle ouvre un maison', 'la fondateur', 'un mer de nuages', 'le montagne',
