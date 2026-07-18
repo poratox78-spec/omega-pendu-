@@ -12171,7 +12171,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rSon(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='son'&&lw!=='sont')return null;   // tranché par CE QUI SUIT : son=det+nom sg ; sont=être 3pl+prédicat ; abstention sinon (FP=0)
     var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';
     var _nxr=i+1<T.length?T[i+1].toLowerCase():'';
-    var nxtNounSg=(!!GENDER_PURE[nxt])&&!(/s$/.test(nxt)||/x$/.test(nxt))&&_nxr!=='là'&&_nxr!=='çà';   // « là »/« çà » accentués = adverbes ; leur déacc « la »/« ca » percute la NOTE (GENDER_PURE) → « sont là » n'est pas « sont+nom » (FP « le chat et le chien sont là »→son)
+    var nxtNounSg=_nounGate(nxt)&&!(/s$/.test(nxt)||/x$/.test(nxt))&&_nxr!=='là'&&_nxr!=='çà';   // NOM SG derrière = posterior §3 `_nounGate` (P(NOM)≥τ ∧ P(VER)<ε), PAS GENDER_PURE brut : « bien »/« à »/« de » y figurent → FP « …et… sont bien décidées »→son ; _nounGate les écarte, garde chien/frère/ami. « là »/« çà » accentués = adverbes, exclus.
     var pluralSubj=(cprev(T,i)==='ils'||cprev(T,i)==='elles')||cplBefore(T,i)||cpl(T,i-1);
     if(!pluralSubj){for(var j=i-1;j>i-9&&j>=0;j--){if(_SEG&&(j+1)<_SEG.bb.length&&_SEG.bb[j+1])break;if(PLURAL_DET[deacc(T[j].toLowerCase())]){pluralSubj=true;break;}}}
     if(lw==='sont'){var _sp=cprev(T,i);if(_sp==='il'||_sp==='elle'||_sp==='on'||_sp==='ils'||_sp==='elles'||_sp==='je'||_sp==='tu'||_sp==='nous'||_sp==='vous')return null;   // après un PRONOM SUJET, « sont » est le VERBE (« il sont là »), jamais le possessif ; laisse rIlIls corriger il→ils
@@ -12274,7 +12274,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var nx=T[i+1].toLowerCase(),dn=deacc(nx);
     if(MAIS_STOP[dn])return null;   // adverbe/mot-outil homographe d'un nom (« mais pas »/« mais comment ») → conjonction, pas « mes »
     if(PREP[dn]||NUM_DET[nx]||NUM_PRON[dn]||vlike(T,i+1))return null;   // pas prép/déterminant/pronom/verbe
-    return GENDER_PURE[dn]?ckeepcase(T[i],'mes'):null;}                  // le mot suivant est un nom genré connu
+    return (_nounGate(dn)&&(/s$/.test(dn)||/x$/.test(dn)))?ckeepcase(T[i],'mes'):null;}   // NOM (posterior §3 `_nounGate`, pas GENDER_PURE brut) ET PLURIEL : « mes » possessif PLURIEL → « mes attention »/« mes budget » (sg) agrammatical ; vrais catches pluriels (mes lunettes/parents/yeux)
   // « du » (=de+le) + ARTICLE (la/l') = structurellement impossible → « de » (« du la ferme »→de la, « du l'usine »→de l'). FP=0 (scan UD). Faute dys du/de.
   function rDuDe(T,i){if(deacc(T[i].toLowerCase())!=='du'||i+1>=T.length)return null;var nl=T[i+1].toLowerCase();return (nl==='la'||nl.indexOf("l'")===0||nl.indexOf('l’')===0)?ckeepcase(T[i],'de'):null;}
   function rDuDu(T,i){if(deacc(T[i].toLowerCase())!=='du'||T[i].toLowerCase().indexOf("'")>=0||i+1>=T.length)return null;if(!_isInfinitive(T[i+1]))return null;for(var k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]||AVOIR_JE[tk])return ckeepcase(T[i],'dû');if(PPMID[dk])continue;return null;}return null;}   // « avoir + du + INFINITIF » → dû (participe de devoir) ; partitif du+NOM intact ⇒ FP=0
