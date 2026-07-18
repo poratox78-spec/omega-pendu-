@@ -112,6 +112,47 @@ def _guard_ok(F, vi):
     if _pron_before(F, vi) is not None: return False                            # sujet pronom net (je/elle…) → « je ne me trompe », « elle m'a… »
     return True
 
+_ADV_ACC = set('là ici ainsi alors ensuite aussi puis enfin bientôt partout dedans dehors dessus dessous'.split())  # adverbes frontaux d'inversion, ACCENTUÉS (« là »≠« la » : tk garde les accents → pas de collision det/adverbe comme dans le rouge)
+def _R_postpose(F, vi, tg):
+    """Route SUJET POSTPOSÉ (inversion) : quand l'ORDRE change (idée de Rem #198), on cherche le sujet AVANT (scan APRÈS le
+    verbe). Déclencheur d'inversion en tête de proposition = adverbe frontal / interrogatif / PP ; ET aucun sujet-pronom
+    préverbal ; sujet postposé PLURIEL après (saut adverbes+participe passif). ACCENT-AWARE (là/à ≠ la/a) → pas besoin du
+    `_np_subject` du rouge (qui bloquait les cas objet-de-PP) : le déclencheur accentué suffit. Rend (ps,pp) ou None."""
+    lo = 0
+    if C._SEG is not None:
+        for j in range(vi, 0, -1):
+            if j < len(C._SEG['bb']) and C._SEG['bb'][j]: lo = j; break
+    acc = F[lo]; d = C.deacc(acc)
+    if not (acc in _ADV_ACC or (lo < len(tg) and tg[lo] == 'ADV') or acc in _INV_WH or d in _INV_WH
+            or (d in PREP and acc != 'a' and acc != 'la') or acc in ('comme', 'quand', 'lorsque')): return None
+    for k in range(lo, vi):                                   # sujet-pronom/expletif/relatif/coordination préverbal → pas une inversion
+        dk = C.deacc(F[k])
+        if dk in ('il', 'elle', 'elles', 'ils', 'ce', 'c', 'on', 'ca', 'cela', 'ceci', 'qui', 'dont', 'je', 'tu', 'nous', 'vous', 'lequel', 'laquelle', 'lesquels', 'lesquelles'): return None
+        if dk in ('et', 'ou', 'ni'): return None
+    hi = len(F)
+    if C._SEG is not None:
+        for j in range(vi + 1, len(F)):
+            if j < len(C._SEG['bb']) and C._SEG['bb'][j]: hi = j; break
+    k = vi + 1                                                # scan AVANT (après le verbe) : sauter adverbes + participe passif
+    while k < hi and k < len(tg) and (tg[k] == 'ADV' or (tg[k] in ('VERB', 'ADJ') and F[k].endswith(('é', 'és', 'ée', 'ées')))): k += 1
+    if C._postpose_plural(F, tg, k, hi): return (0.03, 0.97)  # sujet postposé PLURIEL net
+    return None
+
+_INV_WH = getattr(C, '_INV_WH', set())
+
+def _verb_ctx(tg, F, vi):
+    """GATE POS de l'OS + filet homographe ÉTROIT. VERB/AUX net, OU verbe-forme mistaguée NOUN/X (PAS ADJ/PROPN : jeune/Bee
+    = flood) NI nom (GENDER_FULL) NI adj (ADJ_LEX) NI préposition, et pas précédée d'un dét/prép. Récupère « les rumeurs
+    circule » (circule tagué NOUN par l'émission HMM à 2 %) SANS le flood des épicènes/propres. Mesuré : +1 recall / +0
+    flood vs le gate VERB/AUX seul. Plus ÉTROIT que le _verb_or_homograph des règles rouges (l'OS scanne large, moins gardé)."""
+    if vi >= len(tg): return False
+    if tg[vi] in ('VERB', 'AUX'): return True
+    if tg[vi] not in ('NOUN', 'X'): return False
+    d = C.deacc(F[vi].lower())
+    if d in C.GENDER_FULL or d in C.ADJ_LEX or d in PREP: return False
+    if vi > 0 and (F[vi-1].lower() in NUM_DET or C.deacc(F[vi-1].lower()) in PREP): return False
+    return bool(C._reads(F[vi]))
+
 def detect(F, vi, tau=0.85, tg=None):
     """rend (forme accordée suggérée, confiance) si le verbe F[vi] désaccorde le sujet-OS au-dessus de τ, sinon None.
     _guard_ok : gardes structurelles (participe/aux/dét/prép/sujet-pronom) — miroir des règles sœurs.
@@ -122,7 +163,13 @@ def detect(F, vi, tau=0.85, tg=None):
     if not vi_: return None
     lem, mt, vn, f3s, f3p = vi_
     if vn == '?' or not f3s or not f3p: return None
-    if tg is not None and (vi >= len(tg) or tg[vi] not in ('VERB', 'AUX')): return None
+    if tg is not None and not _verb_ctx(tg, F, vi): return None
+    if tg is not None:                                        # SUJET POSTPOSÉ (inversion) : mode dédié qui DOMINE (ordre inversé → scan avant)
+        pp_ = _R_postpose(F, vi, tg)
+        if pp_ is not None:
+            num = 's' if pp_[0] >= pp_[1] else 'p'; conf = abs(pp_[0] - pp_[1])
+            if conf < tau or num == vn: return None
+            return (f3p if num == 'p' else f3s, conf)
     ds = [R1(F, vi), R2(F, vi), R3(F, vi), R4(F, vi, f3s, f3p)]
     ws = [_peak(d) + 1e-6 for d in ds]
     ws[3] *= 0.4                                          # LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence (préfère le sing.), ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
@@ -140,6 +187,14 @@ if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'floodflags':   # mode PARITÉ (self-contained, fp_scale committé) : dump les flags OS sur fp_scale[:1500] → comparé aux moteurs JS par dictee/parity_os.js
         flags = []
         for s in fp[:1500]:
+            F = tk(s); C._SEG = C._seg_info(s); tg = C.pos_tags(F)
+            for i in range(len(F)):
+                r = detect(F, i, TAU, tg)
+                if r and r[0] != F[i]: flags.append([F[i], r[0]])
+        print(json.dumps(sorted(flags), ensure_ascii=False)); sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == 'probeflags':   # mode PARITÉ batterie : phrases JSON sur stdin → flags OS (lock du comportement postposé/homographe cross-moteurs)
+        flags = []
+        for s in json.loads(sys.stdin.read()):
             F = tk(s); C._SEG = C._seg_info(s); tg = C.pos_tags(F)
             for i in range(len(F)):
                 r = detect(F, i, TAU, tg)

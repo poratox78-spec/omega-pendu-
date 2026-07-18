@@ -48,9 +48,22 @@ const appProbe = globalThis.__osProbe;
 if (typeof appProbe !== 'function') { console.error('osProbe app non exposé'); process.exit(2); }
 let appFlags = []; for (const s of fp) for (const f of appProbe(s)) appFlags.push([f.word, f.sugg]);
 
+// 4) batterie postposé/homographe (lock du nouveau comportement #1 gate + #2 routes inversées) — 3 moteurs doivent s'accorder
+const BATT = ["Ainsi s'achève les travaux de rénovation.", "Là s'entassait des palettes.", 'Que devient les anciens modèles ?',
+  'Sur la table reposait les dossiers.', 'Les rumeurs circule vite.',
+  'Le chat dort sur le canapé.', 'Ainsi va la vie.', 'La compétition rassemble les meilleurs clubs.'];   // cibles postposées/homographe + contrôles (« Ainsi va la vie » sing, « La compétition rassemble les clubs » sujet préverbal = ne pas flaguer)
+let pyBatt;
+try { pyBatt = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'os_subject_probe.py'), 'probeflags'],
+  { input: JSON.stringify(BATT), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) })); }
+catch (e) { console.error('probeflags échoué : ' + e.message); process.exit(2); }
+let extBatt = []; for (const s of BATT) for (const f of D.osProbe(s)) extBatt.push([f.word, f.sugg]);
+let appBatt = []; for (const s of BATT) for (const f of appProbe(s)) appBatt.push([f.word, f.sugg]);
+const okB = norm(pyBatt) === norm(extBatt) && norm(pyBatt) === norm(appBatt);
+
 // comparaison
 const nPy = norm(py), nExt = norm(extFlags), nApp = norm(appFlags);
 const okExt = nPy === nExt, okApp = nPy === nApp;
 console.log('parité OS-sujet (fp_scale) : Python=' + py.length + ' flags | extension=' + extFlags.length + (okExt ? ' ✓' : ' ✗ ÉCART') + ' | app=' + appFlags.length + (okApp ? ' ✓' : ' ✗ ÉCART'));
-if (okExt && okApp) { console.log('✅ PARITÉ OS 3 moteurs OK'); process.exit(0); }
+console.log('parité OS batterie postposé : Python=' + pyBatt.length + ' | ext=' + extBatt.length + ' | app=' + appBatt.length + (okB ? ' ✓' : ' ✗ ÉCART'));
+if (okExt && okApp && okB) { console.log('✅ PARITÉ OS 3 moteurs OK'); process.exit(0); }
 console.error('✗ DIVERGENCE parité OS-sujet (JS ≠ référence Python)'); process.exit(1);
