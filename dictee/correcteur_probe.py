@@ -1130,6 +1130,31 @@ if os.path.exists(_CONJ_PATH):
     except Exception:
         pass
 
+
+_REG_3PL = (('ind:imp', 'ait', 'aient'), ('cnd:pre', 'ait', 'aient'), ('ind:fut', 'ra', 'ront'))   # 3pl DÉTERMINISTE (0 exception FR) : imparfait/conditionnel 3s -ait→-aient · futur 3s -ra→-ront
+
+def _fill_reg_3pl(cjc, cjf):
+    """CLÔTURE 3PL RÉGULIÈRE. build_cgram envoyait tout « -aient » dans le bucket ambigu (finit par « -ient ») et sa
+    résolution 3s/3p saute ind:imp → imparfait 3pl ABSENT partout (3551 lemmes : « les enfants jouait » non corrigé,
+    « étaient » lu étayer) ; conditionnel/futur 3pl partiellement couverts (filtre HF). Ces 3pl sont DÉTERMINISTES →
+    on les reconstruit du 3s au chargement, à l'identique dans les 3 moteurs (parité)."""
+    for lem, mts in cjc.items():
+        for mt, suf3s, suf3p in _REG_3PL:
+            slot = mts.get(mt)
+            if not slot: continue
+            f3s = slot.get('3s')
+            if isinstance(f3s, (list, tuple)): f3s = f3s[0]
+            if not f3s or '3p' in slot or not f3s.endswith(suf3s): continue
+            f3p = f3s[:-len(suf3s)] + suf3p
+            slot['3p'] = f3p
+            key = deacc(f3p.lower()); reading = lem + ';' + mt + ';3;p'
+            cur = cjf.get(key)
+            if not cur: cjf[key] = reading
+            elif reading not in cur: cjf[key] = cur + '|' + reading
+
+if CONJ_LOADED:
+    _fill_reg_3pl(CONJ_C, CONJ_F)
+
 SUBJ_PRON = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'),
              'on': ('3', 's'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
 CLITIC = {'ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous',

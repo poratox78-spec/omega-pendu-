@@ -307,6 +307,22 @@ def main():
                 _pres[_slot] = (_form, 0.0, 99)
                 cj_f.setdefault(deacc(_form.lower()), set()).add(f"{_lem};ind:pre;{_slot[0]};{_slot[1]}")
                 _fill += 1
+    # CLÔTURE 3PL RÉGULIÈRE (déterministe, ZÉRO exception FR) : imparfait/conditionnel 3s « -ait » → 3p « -aient » ;
+    # futur 3s « -ra » → 3p « -ront ». derive_number envoie tout « -aient » dans le bucket ambigu (finit par « -ient »)
+    # et la résolution ci-dessous SAUTE ind:imp → 3p imparfait manquant pour TOUS les lemmes (« les enfants jouait »
+    # non corrigé, « étaient » lu étayer) ; cnd:pre/ind:fut 3p partiels (filtre HF). On les reconstruit du 3s.
+    _imp3 = 0
+    for _lem, _mts in cj_c.items():
+        for _mt, _s3, _p3 in (('ind:imp', 'ait', 'aient'), ('cnd:pre', 'ait', 'aient'), ('ind:fut', 'ra', 'ront')):
+            _sl = _mts.get(_mt)
+            if not _sl or '3p' in _sl: continue
+            _f3s = _sl.get('3s')
+            _f3s = _f3s[0] if isinstance(_f3s, (list, tuple)) else _f3s
+            if not _f3s or not _f3s.endswith(_s3): continue
+            _f3p = _f3s[:-len(_s3)] + _p3
+            _sl['3p'] = (_f3p, 0.0, 97)
+            cj_f.setdefault(deacc(_f3p.lower()), set()).add(f"{_lem};{_mt};3;p")
+            _imp3 += 1
     # RÉSOLUTION 3s/3p des formes 3e pers. en -ent/-ont (différées en 'x' car ambiguës 3sg↔3pl). Par lemme : la forme la
     # PLUS LONGUE = 3p (chantent, consentent, viennent) ; une forme STRICTEMENT plus courte = 3s (consent, vient). Si une
     # seule forme (rient) → 3p par défaut, le 3s reste éventuellement une forme non-ent déjà slottée (rit). FP-safe : on
