@@ -1471,7 +1471,9 @@ def rule_accord_sv_noun(T, i):
         return None                                                    # temps composé/passif (aux + participe) → T[i] = participe, pas verbe fini
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None   # T[i] = VERBE EN CONTEXTE (écarte les noms/adjectifs homographes « de rechange », « par faute », « jeune âge »)
-    subj = _np_subject(T, tg, i)                                       # tête [dét + nom] du sujet, mots-écrans « de X » sautés
+    _vs = i                                                            # sauter les clitiques objets avant le verbe (« nous parviendra », « m'inquiètent ») pour atteindre le sujet
+    while _vs - 1 >= 0 and deacc(T[_vs-1].lower()) in CLITIC: _vs -= 1
+    subj = _np_subject(T, tg, _vs)                                     # tête [dét + nom] du sujet, mots-écrans « de X » sautés
     if subj is None: return None
     nb = subj['n']; hk = subj['idx']; dk = subj['det']
     ddet = deacc(T[dk].lower())
@@ -1482,8 +1484,8 @@ def rule_accord_sv_noun(T, i):
     if _SEG is not None:
         for j in range(i, 0, -1):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
-    for m in range(lo, i):                                             # apostrophe (élision l'/qu'/n'/d') dans la proposition → clause complexe (relative/sujet élidé) → abstention
-        if "'" in T[m] or "’" in T[m]: return None
+    for m in range(lo, i):                                             # RELATIVE ÉLIDÉE « qu' » dans la proposition → sujet ambigu → abstention (élision bénigne « de l'X », clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
+        if T[m].lower().startswith(("qu'", "qu’")): return None
     for m in range(lo, dk):                                            # SUJET EN TÊTE DE PROPOSITION : seuls des adverbes antéposés avant le déterminant.
         if tg[m] != 'ADV': return None                                #   sinon le GN détecté est un OBJET/complément d'un verbe amont (« qui composent LE SME sont »), pas le sujet → abstention
     for m in range(hk + 1, i):                                         # GARDE STRUCTURE nom-tête → verbe : compléments prépositionnels SEULEMENT
