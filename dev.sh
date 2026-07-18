@@ -58,6 +58,7 @@ run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_p
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
 run "parité OS-sujet 3 moteurs (accord verbe orange)" node dictee/parity_os.js
+run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesses.js
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 runsh "syntaxe extension (4 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js"
 run "correcteur standalone"         node dictee/correcteur.js

@@ -71,6 +71,8 @@ jobs:
         run: node extension/parity_core.js
       - name: Parité OS-sujet 3 moteurs (orange « accord verbe à vérifier »)
         run: node dictee/parity_os.js
+      - name: Parité ces/ses 3 moteurs (vigilance-enseignante)
+        run: node dictee/parity_cesses.js
       - name: Dictée — SENT app == sentences.json + 0 FP
         run: python3 dictee/sentences_parity.py
       - name: Vigilance accord sujet-verbe (orange mid-phrase)
