@@ -12387,13 +12387,13 @@ window.addEventListener('DOMContentLoaded', () => {
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux + participe)
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;   // T[i] = verbe en contexte (écarte noms/adjectifs homographes)
-    var subj=_npSubject(T,tg,i);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;
+    var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
     var ddet=deacc(T[dk].toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, ou mistag → abstention)
     if(_COLL_HEAD[deacc(T[hk].toLowerCase())])return null;                     // nom collectif/quantité (plupart/majorité/centaine…) → accord complément → abstention
     var hc=T[hk].charAt(0);if(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase()))return null;   // nom-tête propre/titre → nombre non fiable
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
-    for(var m=lo;m<i;m++){if(T[m].indexOf("'")>=0||T[m].indexOf('’')>=0)return null;}   // élision (l'/qu'/n'/d') → clause complexe → abstention
+    for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
     if(!vig)for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) — sinon GN = objet amont ; RETIRÉ en mode vig (orange couvre le mid-phrase)
     for(m=hk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());                // garde structure nom-tête → verbe : compléments prépositionnels SEULEMENT
       if(CONJ_WORDS[dw])return null;                                           // et/ou/qui/que… (coordination/relative)
