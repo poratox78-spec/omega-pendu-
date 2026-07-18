@@ -1205,6 +1205,7 @@ function spellUnknown(tok,atStart,T,idx){
   function spell(text){return SP.ready?spellText(text):[];}                                  // flags orthographe (auto/flag) seuls
   // HINT CONTEXTUEL (identique app) : homophone = test de substitution fenêtré ±2 mots ; accord = gouverneur réel. Texte BRUT (content.js échappe).
   var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)']};
+  function _suggVerbNum(w){var rd=svReads(w),hp=false,hs=false,k;for(k=0;k<rd.length;k++){if(rd[k][2]!=='3')continue;if(rd[k][3]==='p'||rd[k][3]==='x')hp=true;else if(rd[k][3]==='s')hs=true;}return (hp&&!hs)?'pl':((hs&&!hp)?'sg':null);}   // nombre de la forme SUGGÉRÉE lue comme verbe 3e pers. ('pl'/'sg'/null) — détecte le gouverneur ARRIÈRE contradictoire (miroir app)
   function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';
     var h=_HPROBE[f.name];
     if(h){var a=Math.max(0,i-2),b=Math.min(T.length,i+3),win=T.slice(a,b);win[i-a]=h[0];
@@ -1217,7 +1218,9 @@ function spellUnknown(tok,atStart,T,idx){
     if((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)){
       var g=null,lab='';
       if(/genre/.test(n)){var gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
-      if(!g){var gn=governorNumber(T,i,isVerb(T,i)||isParticiple(T,i));if(gn){g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
+      if(!g){var gn=governorNumber(T,i,isVerb(T,i)||isParticiple(T,i));
+        if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné (rPostpose…) : contrôleur EN AVANT ; gouverneur arrière contredit la suggestion (nombre ≠) → pas d'indice contradictoire (miroir app _accHint)
+          g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
       if(g)return 'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+(f.sugg||'')+' ».';}
     return '';}
   function diagnoseAll(text){var gf=correctText(text),sf=SP.ready?spellText(text):[];        // grammaire + orthographe fusionnés + stade
