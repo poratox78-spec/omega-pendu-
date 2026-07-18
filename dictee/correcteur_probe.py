@@ -1450,6 +1450,20 @@ CONJ_WORDS = {'et', 'ou', 'ni', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui',
               'lorsque', 'puisque', 'dont', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
 
 
+def _verb_or_homograph(tg, T, i):
+    """T[i] est-il un VERBE en contexte pour les règles d'accord SV ? VERB/AUX net, OU forme finie homographe ratée par
+    l'émission HMM (elle ne couvre qu'~2 % des formes → « persiste »/« bloque »/« signale » mistagués NOM/ADJ) : forme
+    connue (_reads) mais ABSENTE des lexiques nom (GENDER_FULL) ET adj (ADJ_LEX). Les homographes-noms CONNUS
+    (gêne/reste/jeune) → False (tranchés par le contexte). Filet PARTAGÉ par les règles d'accord SV (sv_noun/postpose/
+    quant/relatif/coord/ais_ait) ; les gardes propres à chaque règle bornent le contexte. Déterministe → parité 3 moteurs."""
+    if i >= len(tg): return False
+    if tg[i] in ('VERB', 'AUX'): return True
+    d = deacc(T[i].lower())
+    if d in GENDER_FULL or d in ADJ_LEX or d in PREP: return False        # nom/adj/PRÉPOSITION homographe connu (« entre »/« modèle ») → tranché par le contexte, pas le verbe
+    if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return False   # déterminant/préposition juste avant → T[i] est un NOM (« un modèle », « de rechange »)
+    return bool(_reads(T[i]))
+
+
 def rule_accord_sv_noun(T, i):
     """Accord SUJET-VERBE à sujet-NOM, via le VRAI PARSEUR de sujet (_np_subject) : gère le sujet ÉLOIGNÉ (mots-écrans
     « de X ») que l'ancienne version (déterminant pluriel en tête seulement) ratait — « la liste des articles sont »→est,
@@ -1473,10 +1487,7 @@ def rule_accord_sv_noun(T, i):
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
         return None                                                    # temps composé/passif (aux + participe) → T[i] = participe, pas verbe fini
     tg = pos_tags(T)
-    if not tg or i >= len(tg): return None
-    if tg[i] not in ('VERB', 'AUX'):                                   # tagger dit non-verbe ; filet homographe (l'émission HMM ne couvre que ~2 % des formes verbales → « persiste »/« bloque » ratés)
-        _di = deacc(T[i].lower())
-        if _di in GENDER_FULL or _di in ADJ_LEX: return None           # nom/adj homographe CONNU (gêne/reste/jeune) → tranché par le contexte, on s'abstient ; sinon forme finie (p3 exigé) absente des lexiques = verbe raté par le tagger, les gardes structure ci-dessous tranchent
+    if not tg or not _verb_or_homograph(tg, T, i): return None        # T[i] = verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM à 2 %, absent des lexiques nom/adj), borné par les gardes structure ci-dessous
     _vs = i                                                            # sauter les clitiques objets avant le verbe (« nous parviendra », « m'inquiètent ») pour atteindre le sujet
     while _vs - 1 >= 0 and deacc(T[_vs-1].lower()) in CLITIC: _vs -= 1
     subj = _np_subject(T, tg, _vs)                                     # tête [dét + nom] du sujet, mots-écrans « de X » sautés
@@ -1552,7 +1563,7 @@ def rule_accord_postpose(T, i):
     if not any(n == 's' for (_l, _mt, _p, n) in p3): return None       # verbe 3SG (sinon rien à accorder au pluriel)
     if any(n == 'p' or n == 'x' for (_l, _mt, _p, n) in p3): return None   # déjà pluriel / ambigu → abstention (FP-safe)
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    if not tg or not _verb_or_homograph(tg, T, i): return None
     lo = 0; hi = len(T)
     if _SEG is not None:
         for j in range(i, 0, -1):
@@ -1602,7 +1613,7 @@ def rule_ais_ait(T, i):
     if _subject_before(T, i) is not None: return None         # sujet pronom (je/tu/il…) → « je gardais » correct → abstention
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    if not tg or not _verb_or_homograph(tg, T, i): return None
     subj = _np_subject(T, tg, i)
     if subj is None or subj['n'] != 's': return None          # sujet-NOM SINGULIER (le pluriel donnerait -aient)
     hk = subj['idx']; dk = subj['det']
@@ -1672,7 +1683,7 @@ def rule_accord_sv_quant(T, i):
     if not p3: return None
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    if not tg or not _verb_or_homograph(tg, T, i): return None
     lo = 0
     if _SEG is not None:
         for j in range(i, 0, -1):
@@ -1713,7 +1724,7 @@ def rule_accord_sv_relatif(T, i):
     reads = _reads(T[i])
     if not reads: return None
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    if not tg or not _verb_or_homograph(tg, T, i): return None
     j = i - 1                                                                # remonter jusqu'à « qui » (sauter clitiques/négation)
     while j >= 0 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in ('ne', 'n')): j -= 1
     if j < 0 or deacc(T[j].lower()) != 'qui': return None
@@ -1778,7 +1789,7 @@ def rule_accord_sv_coord(T, i):
     reads = _reads(T[i])
     if not reads: return None
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    if not tg or not _verb_or_homograph(tg, T, i): return None
     lo = 0
     if _SEG is not None:
         for j in range(i, 0, -1):
@@ -1834,7 +1845,7 @@ def rule_accord_sv_infinitif(T, i):
     if not any(p == '3' for (_l, _mt, p, _n) in reads): return None
     if i > 0 and deacc(T[i-1].lower()) in PREP: return None
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None
+    if not tg or not _verb_or_homograph(tg, T, i): return None
     lo = 0
     if _SEG is not None:
         for j in range(i, 0, -1):

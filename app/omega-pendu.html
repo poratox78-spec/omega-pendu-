@@ -12343,6 +12343,12 @@ window.addEventListener('DOMContentLoaded', () => {
   var _INV_WH={};'que qu ou combien comment quand pourquoi quel quelle quels quelles'.split(' ').forEach(function(w){_INV_WH[w]=1;});
   var _INV_ADV={};'ainsi ici la alors ensuite aussi puis enfin bientot partout dedans dehors dessus dessous'.split(' ').forEach(function(w){_INV_ADV[w]=1;});
   function _postposePlural(T,tg,k,hi){if(k>=hi)return false;var d0=deacc(T[k].toLowerCase()),num=null;if(_POST_PL[d0])num=true;else if(NUM_DET[T[k].toLowerCase()]!==undefined)num=(NUM_DET[T[k].toLowerCase()]==='pl');else return false;if(!num)return false;for(var m=k+1;m<Math.min(hi,k+5);m++){if(m<tg.length&&(tg[m]==='NOUN'||tg[m]==='PROPN'))return true;if(PREP[deacc(T[m].toLowerCase())])return false;}return false;}
+  // Filet homographe PARTAGÉ (miroir Python _verb_or_homograph) : T[i] est-il un VERBE en contexte pour les règles
+  // d'accord SV ? VERB/AUX net, OU forme finie ratée par l'émission HMM (~2 % des formes) — connue (svReads) mais NI nom
+  // (GENDER_MAP) NI adj (ADJP) NI préposition (PREP), et pas précédée d'un dét/prép. Homographes-noms (gêne/reste) → false.
+  function _verbOrHomograph(tg,T,i){if(i>=tg.length)return false;if(tg[i]==='VERB'||tg[i]==='AUX')return true;
+    var d=deacc(T[i].toLowerCase());if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;
+    if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||PREP[deacc(T[i-1].toLowerCase())]))return false;return svReads(T[i]).length>0;}
   function rPostpose(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;   // accord SUJET-VERBE à sujet POSTPOSÉ (inversion) : ordre changé → scan AVANT. FP=0 mesuré. Miroir Python rule_accord_postpose.
     if(/(é|és|ée|ées)$/.test(lw))return null;
     if(i>0&&NUM_DET[T[i-1].toLowerCase()]!==undefined)return null;
@@ -12352,7 +12358,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
     var hasS=false,hasPX=false;for(k=0;k<p3.length;k++){if(p3[k][3]==='s')hasS=true;if(p3[k][3]==='p'||p3[k][3]==='x')hasPX=true;}
     if(!hasS||hasPX)return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var lo=0,hi=T.length,j;
     if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}for(j=i+1;j<T.length;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
     if(_npSubject(T,tg,i)!=null)return null;
@@ -12386,8 +12392,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(svSubject(T,i)!=null)return null;                                       // sujet pronom net → règle pronom
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux + participe)
-    var tg=posTags(T);if(!tg||i>=tg.length)return null;
-    if(tg[i]!=='VERB'&&tg[i]!=='AUX'){var _di=deacc(T[i].toLowerCase());if(GENDER_MAP[_di]||ADJP[_di])return null;}   // filet homographe : l'émission HMM (~2 % des formes) rate « persiste »/« bloque »/« signale » (→NOM/ADJ) ; nom/adj CONNU (gêne/reste/jeune) → abstention, les gardes structure ci-dessous tranchent. Miroir Python rule_accord_sv_noun.
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;   // T[i]=verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM), borné par les gardes structure ci-dessous
     var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
     var ddet=deacc(T[dk].toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, ou mistag → abstention)
@@ -12415,7 +12420,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!imp.length||has3)return null;                                          // 1sg/2sg IMPARFAIT indicatif (pas impératif), non ambigu 3e pers
     if(svSubject(T,i)!=null)return null;                                       // sujet pronom (je/tu…) → « je gardais » correct → abstention
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var subj=_npSubject(T,tg,i);if(!subj||subj.n!=='s')return null;            // sujet-NOM SINGULIER (le pluriel → -aient)
     var hk=subj.idx,dk=subj.det,ddet=deacc(T[dk].toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_SG[ddet])return null;
@@ -12449,7 +12454,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(deacc(lw)==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var q=deacc(T[lo].toLowerCase()),nxt=(lo+1<T.length)?deacc(T[lo+1].toLowerCase()):'',qend=lo,nb;
     if(_DISTRIB_AMBIG[q]&&(nxt==='de'||nxt==='des'||(lo+1<T.length&&/^d['’]/.test(T[lo+1].toLowerCase()))))return null;   // « chacun/aucun/nul de(s)/d' + pluriel » : sing OU plur admis → abstention (FP=0)
@@ -12471,7 +12476,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rAccordSVrelatif(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
     if(/(é|és|ée|ées)$/.test(lw))return null;
     var reads=svReads(T[i]);if(!reads.length)return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var j=i-1;while(j>=0&&(CLITIC[deacc(T[j].toLowerCase())]||deacc(T[j].toLowerCase())==='ne'||deacc(T[j].toLowerCase())==='n'))j--;
     if(j<0||deacc(T[j].toLowerCase())!=='qui')return null;
     var qk=j;if(qk===0)return null;
@@ -12504,7 +12509,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
     if(deacc(lw)==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;
     var reads=svReads(T[i]);if(!reads.length)return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var conjuncts=[[]],hasSep=false,m;
     for(m=lo;m<i;m++){var dm=deacc(T[m].toLowerCase());
@@ -12533,7 +12538,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(/(é|és|ée|ées)$/.test(lw))return null;
     var reads=svReads(T[i]),hasP3=false,k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')hasP3=true;if(!hasP3)return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var s=lo;while(s<i&&tg[s]==='ADV')s++;
     if(s>=i||!_isInfinitive(T[s]))return null;
