@@ -136,6 +136,7 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 </ul>
 <h3>4.2 — Deux voies, un arbitre</h3>
 <p>Conformément à la <strong>double route</strong> de la lecture (Coltheart, DRC) : une voie <strong>orthographique</strong> et une voie <strong>phonologique</strong> (en SAMPA, à partir de <code>w.p</code>) raisonnent en parallèle. L'<strong>OS v07</strong> les arbitre pour trancher. Une couche de <strong>saillance</strong> (M_S) fusionne le concept dans le scoring. Le tout est régulé par un apprentissage en ligne borné (4 garde-fous).</p>
+<p><strong>Au-delà de deux voies — précisément.</strong> Cette arbitration ortho⟷phon est celle du <em>pendu</em>. Le correcteur dérivé (<a class="x" href="#m10">§10</a>) fait raisonner <strong>trois routes</strong> — orthographe, phonologie et <strong>grammaire</strong> — mais elles se combinent par des <strong>mécanismes distincts</strong>, pas un seul <code>μ</code> uniforme&nbsp;: l'OS arbitre ortho⟷phon dans le speller, la <strong>grammaire</strong> se fond par une <strong>cascade de priorité</strong> (le rouge FP=0 gagne au même token), et l'<strong>accord par arbitrage OS du sujet</strong> arbitre à son tour ses propres sous-routes (plus-proche nom · tête avant «&nbsp;de&nbsp;» · hors-PP · cohérence-LM). Le DRC à deux voies décrit le pendu&nbsp;; OMEGA pris en entier arbitre davantage — par plusieurs voies d'arbitrage, non par une seule. <em>Résultat propre au projet, sans emprunt.</em></p>
 </section>
 
 <section id="m5">
