@@ -1134,11 +1134,27 @@ function spellUnknown(tok,atStart,T,idx){
     if((vi>=1&&FULL_AUX[deacc(F[vi-1])])||(vi>=2&&FULL_AUX[deacc(F[vi-2])]))return false;   // temps composé (aux + participe : « ont contacté », « a montré »)
     if(_osPronBefore(F,vi)!==null)return false;                                    // sujet pronom net (je/elle…) → « je ne me trompe », « elle m'a… »
     return true;}
+  var _osAdvAcc={};'là ici ainsi alors ensuite aussi puis enfin bientôt partout dedans dehors dessus dessous'.split(' ').forEach(function(w){_osAdvAcc[w]=1;});   // adverbes frontaux d'inversion ACCENTUÉS (là≠la : toks garde les accents)
+  var _osInvWh={};'que qu ou combien comment quand pourquoi quel quelle quels quelles'.split(' ').forEach(function(w){_osInvWh[w]=1;});   // interrogatifs (déaccentués : ou=où) = _INV_WH
+  function _osVerbCtx(tg,F,vi){if(vi>=tg.length)return false;if(tg[vi]==='VERB'||tg[vi]==='AUX')return true;   // GATE POS + filet homographe ÉTROIT (NOUN/X seul, pas ADJ/PROPN=flood jeune/Bee) — miroir Python _verb_ctx : +1 recall/0 flood
+    if(tg[vi]!=='NOUN'&&tg[vi]!=='X')return false;var d=deacc(F[vi]);
+    if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;
+    if(vi>0&&(NUM_DET[F[vi-1]]!==undefined||PREP[deacc(F[vi-1])]))return false;return svReads(F[vi]).length>0;}
+  function _osRPostpose(F,vi,tg){var lo=0,j;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // SUJET POSTPOSÉ (inversion, idée Rem #198) — miroir _R_postpose : trigger accent-aware + scan APRÈS le verbe, 0 flood
+    var acc=F[lo],d=deacc(acc);
+    if(!(_osAdvAcc[acc]||(lo<tg.length&&tg[lo]==='ADV')||_osInvWh[acc]||_osInvWh[d]||(PREP[d]&&acc!=='a'&&acc!=='la')||acc==='comme'||acc==='quand'||acc==='lorsque'))return null;
+    for(var k=lo;k<vi;k++){var dk=deacc(F[k]);
+      if(dk==='il'||dk==='elle'||dk==='elles'||dk==='ils'||dk==='ce'||dk==='c'||dk==='on'||dk==='ca'||dk==='cela'||dk==='ceci'||dk==='qui'||dk==='dont'||dk==='je'||dk==='tu'||dk==='nous'||dk==='vous'||dk==='lequel'||dk==='laquelle'||dk==='lesquels'||dk==='lesquelles')return null;
+      if(dk==='et'||dk==='ou'||dk==='ni')return null;}
+    var hi=F.length;if(_SEG){for(j=vi+1;j<F.length;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
+    var kk=vi+1;while(kk<hi&&kk<tg.length&&(tg[kk]==='ADV'||((tg[kk]==='VERB'||tg[kk]==='ADJ')&&/(é|és|ée|ées)$/.test(F[kk]))))kk++;
+    if(_postposePlural(F,tg,kk,hi))return [0.03,0.97];return null;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;
     var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
-    if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;   // GATE POS : écarte les noms/adj homographes de verbes (« la côte », « influent », « la pêche ») = vrais FP. Mesuré −17 flood/−2 recall. MIROIR os_subject_probe.detect.
+    if(!tg||!_osVerbCtx(tg,F,i))return null;   // GATE POS + filet homographe étroit (miroir _verb_ctx)
+    if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:f3s;}}   // sujet postposé : mode dédié DOMINE
     var ds=[_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)],ws=[],q;for(q=0;q<ds.length;q++)ws[q]=Math.abs(ds[q][0]-ds[q][1])+1e-6;ws[3]*=0.4;   // LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence sing., ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if(_osCoordPlural(F,i)){ds.push([0.02,0.98]);var mw=0;for(q=0;q<ws.length;q++)if(ws[q]>mw)mw=ws[q];ws.push(mw+1.0);}   // route COORDINATION : « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
     var Zw=0,ps=0,pp=0;for(q=0;q<ds.length;q++)Zw+=ws[q];for(q=0;q<ds.length;q++){ps+=ws[q]*ds[q][0];pp+=ws[q]*ds[q][1];}ps/=Zw;pp/=Zw;var rn=ps>=pp?'s':'p',rc=Math.abs(ps-pp);
