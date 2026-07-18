@@ -424,7 +424,7 @@ def rule_son_sont(T, i):
     if lw not in ('son', 'sont'): return None
     nxt = deacc(T[i+1].lower()) if i+1 < len(T) else ''
     nxt_raw = T[i+1].lower() if i+1 < len(T) else ''
-    nxt_noun_sg = (nxt in GENDER_PURE) and not (nxt.endswith('s') or nxt.endswith('x')) and nxt_raw not in ('là', 'çà')   # « là »/« çà » ACCENTUÉS = adverbes ; leur déacc « la »/« ca » percute la NOTE de musique (GENDER_PURE) → « sont là » n'est PAS « sont+nom » (fixe le FP « le chat et le chien sont là »→son)
+    nxt_noun_sg = _noun_gate(nxt) and not (nxt.endswith('s') or nxt.endswith('x')) and nxt_raw not in ('là', 'çà')   # NOM SG derrière = posterior §3 `_noun_gate` (P(NOM)≥τ ∧ P(VER)<ε), PAS l'appartenance brute à GENDER_PURE : « bien »/« à »/« de » sont dans GENDER_PURE (note de musique, homographes) → FP « …et… sont bien décidées »→son ; _noun_gate les écarte (NOUN_POST absent) et garde les vrais noms (chien/frère/ami). « là »/« çà » accentués = adverbes, exclus.
     plural_subj = (prev(T, i) in ('ils', 'elles')) or _plural_before(T, i) or is_plural_noun(T, i-1)
     if not plural_subj:                                                # déterminant PLURIEL (les/des/ces/leurs…) avant, dans la MÊME proposition → sujet pluriel (« Les sources … sont », « Les Bahrites ou X sont »)
         for j in range(i-1, max(-1, i-9), -1):
@@ -1918,7 +1918,7 @@ def rule_mais_mes(T, i):
         return None                                    #   conjonction, jamais « mes » (« mais pas »/« mais comment » corrects)
     if dn in PREP or nx in NUM_DET or dn in NUM_PRON or dn in VERB_LEX:
         return None                                    # pas prép/déterminant/pronom/verbe
-    return 'mes' if dn in GENDER_PURE else None        # le mot suivant est un nom genré connu
+    return 'mes' if (_noun_gate(dn) and dn.endswith(('s', 'x'))) else None   # NOM (posterior §3 `_noun_gate`, pas GENDER_PURE brut) ET PLURIEL : « mes » est le possessif PLURIEL → « mes attention »/« mes budget » (sg) est agrammatical (FP « raffinée mais attention »→mes) ; les vrais catches sont pluriels (mes lunettes/parents/amis/yeux)
 
 
 def rule_du_de(T, i):
