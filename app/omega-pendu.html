@@ -13532,10 +13532,13 @@ window.addEventListener('DOMContentLoaded', () => {
     'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],
     'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],
     'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)']};
+  function _suggVerbNum(w){var rd=svReads(w),hp=false,hs=false,k;for(k=0;k<rd.length;k++){if(rd[k][2]!=='3')continue;if(rd[k][3]==='p'||rd[k][3]==='x')hp=true;else if(rd[k][3]==='s')hs=true;}return (hp&&!hs)?'pl':((hs&&!hp)?'sg':null);}   // nombre de la forme SUGGÉRÉE lue comme verbe 3e pers. ('pl'/'sg'/null si non-verbe/ambigu) — détecte le gouverneur ARRIÈRE contradictoire
   function _accHint(f,i){var n=f.name||'';if(!((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)))return '';   // EXCLUT aussi COD-avoir (gouverneur = COD antéposé, pas le sujet) et « tout » (s'accorde avec le nom qui SUIT) : le gouverneur remonté en arrière y serait FAUX/contradictoire → on garde l'explication _EXPL statique (correcte)   // ACCORD : le GOUVERNEUR (sujet/déterminant) qui commande, avec le mot réel de la phrase. EXCLUT « dont » : le participe y est INVARIABLE, pas d'accord de gouverneur (sinon indice contradictoire) — expliqué par _EXPL['accord participe (dont)'].
     var verb=isVerb(_curToks,i),at=accordType(f.sugg||'',f.word||'',verb),g=null,lab='';
     if(at==='genre'){var gg=governorGender(_curToks,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
-    if(!g){var gn=governorNumber(_curToks,i,verb||isParticiple(_curToks,i));if(gn){g=gn[0];lab=nb(gn[1]);}}
+    if(!g){var gn=governorNumber(_curToks,i,verb||isParticiple(_curToks,i));
+      if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné (rPostpose…) : le contrôleur est EN AVANT ; le gouverneur remonté en arrière contredit la suggestion (nombre ≠) → on retombe sur _EXPL générique, pas un mot faux
+        g=gn[0];lab=nb(gn[1]);}}
     return g?('C\'est « '+esc(g)+' » ('+lab+') qui commande → on accorde « '+esc(f.sugg)+' ».'):'';}
   function _ctxHint(f){var i=f.i;if(typeof i!=='number'||!_curToks||i>=_curToks.length)return '';var h=_HPROBE[f.name];if(!h)return _accHint(f,i);
     var a=Math.max(0,i-2),b=Math.min(_curToks.length,i+3),win=_curToks.slice(a,b);win[i-a]=h[0];   // remplace le mot par le probe
