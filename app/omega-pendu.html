@@ -12399,7 +12399,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if(CONJ_WORDS[dw])return null;                                           // et/ou/qui/que… (coordination/relative)
       if(/[,;:()\[\]«»"]/.test(tk))return null;                               // ponctuation = apposition/incise
       if(/\d/.test(tk))return null;                                           // désignation alphanumérique
-      if(tg[m]==='VERB'||tg[m]==='AUX')return null;                           // verbe/aux intercalé = sous-phrase
+      if((tg[m]==='VERB'||tg[m]==='AUX')&&!(/(é|és|ée|ées)$/.test(T[m].toLowerCase())&&!(m>0&&tg[m-1]==='AUX')))return null;   // verbe FINI intercalé = sous-phrase → abstention ; participe-épithète (non précédé d'aux) toléré (miroir _npSubject)
       if(NUM_DET[tk.toLowerCase()]&&!PREP[dw]&&!(m>0&&PREP[deacc(T[m-1].toLowerCase())]))return null;}   // 2e GN non prépositionnel
     for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;      // déjà d'accord
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
@@ -12788,7 +12788,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function _adjEstem(lw){var s;if(/x$/.test(lw))s=lw.slice(0,-1);else if(/s$/.test(lw)&&!/ss$/.test(lw))s=lw.slice(0,-1);else s=lw;return (/e$/.test(s)&&!/é$/.test(s))?s:null;}   // radical -e (épicène/déjà féminin) → accord de NOMBRE seul (anti-FP « sales→salées »)
   function _nounGender(w,num,full){var d=deacc(w.toLowerCase());function src(x){var g=GENDER_PURE[x];if(g==='m'||g==='f')return g;if(full){g=GENDER_MAP[x];if(g==='m'||g==='f')return g;}return null;}var g=src(d);if(g)return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=src(d.slice(0,-1))||src(d.slice(0,-1)+'u');if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=src(d.slice(0,-1));if(g==='m'||g==='f')return g;}return null;}   // full=true (Fix C) : antécédent [dét+NOM] confirmé → GENDER_MAP (noms homographes pomme/ferme)
   function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // tête [dét + nom] du sujet AVANT le verbe a ; mots-écrans « de X » sautés ; coord/PP/infinitif → null
-    var detIdx=-1;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;if(tgj==='VERB'||tgj==='AUX')break;if(NUM_PRON[dj])break;if(tgj==='DET'||NUM_DET[dj])detIdx=j;}
+    var detIdx=-1;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;break;}if(NUM_PRON[dj])break;if(tgj==='DET'||NUM_DET[dj])detIdx=j;}
     if(detIdx<0)return null;
     if(detIdx-1>=lo&&PREP[deacc(T[detIdx-1].toLowerCase())])return null;   // « de la pente » : dét dans un PP ⇒ pas le sujet ⇒ abstention
     var head=-1;for(var k=detIdx+1;k<a;k++){var dk=deacc(T[k].toLowerCase());if(PREP[dk]||(T[k].toLowerCase().indexOf("'")>=0&&dk.charAt(0)==='d'))break;if((tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'))||(dk in GENDER_PURE)){head=k;break;}}

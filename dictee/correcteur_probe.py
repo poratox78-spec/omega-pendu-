@@ -776,7 +776,10 @@ def _np_subject(T, tg, a):
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
         if dj in ('et', 'ou', 'ni'): return None             # sujet coordonné → genre/nombre mixtes → abstention
         if dj in _NP_BREAK: break                            # relative/subordonnée (que/qui/dont…) → GN sujet à droite (ne pas remonter dans la proposition amont)
-        if tgj in ('VERB', 'AUX'): break                     # frontière verbale : le GN sujet est à droite de j
+        if tgj in ('VERB', 'AUX'):                           # frontière verbale : le GN sujet est à droite de j…
+            if T[j].lower().endswith(('é', 'és', 'ée', 'ées')) and not (j-1 >= lo and tg and j-1 < len(tg) and tg[j-1] == 'AUX'):
+                j -= 1; continue                             # …SAUF participe-épithète (relative réduite « cartons EMPILÉS dans… ») non précédé d'un aux = adjectif, pas le verbe → sauter vers le nom-tête
+            break
         if dj in NUM_PRON: break                             # sujet-pronom → route pronom (rule_adj_attr) / abstention ici
         if tgj == 'DET' or dj in NUM_DET: det_idx = j        # on garde le déterminant le PLUS À GAUCHE (ouverture du GN)
         j -= 1
@@ -1493,7 +1496,7 @@ def rule_accord_sv_noun(T, i):
         if dw in CONJ_WORDS: return None                              # et/ou/qui/que/quand… (coordination/relative) → sujet ambigu → abstention
         if any(ch in ',;:()[]«»"' for ch in tok): return None        # ponctuation = apposition/incise → abstention
         if any(ch.isdigit() for ch in tok): return None              # désignation alphanumérique (« WR 20a », « A1 ») → « a/est » homographe, pas verbe → abstention
-        if tg and m < len(tg) and tg[m] in ('VERB', 'AUX'): return None   # verbe/aux intercalé = sous-phrase → le vrai sujet du verbe est ailleurs → abstention
+        if tg and m < len(tg) and tg[m] in ('VERB', 'AUX') and not (T[m].lower().endswith(('é', 'és', 'ée', 'ées')) and not (m > 0 and tg[m-1] == 'AUX')): return None   # verbe FINI intercalé = sous-phrase → abstention ; MAIS participe-épithète (« cartons empilés dans… gêne ») non précédé d'un aux = adjectif réduit → toléré (miroir du saut dans _np_subject)
         if tok.lower() in NUM_DET and dw not in PREP and not (m > 0 and deacc(T[m-1].lower()) in PREP):
             return None                                              # 2e GN NON prépositionnel (nouveau sujet) → abstention ; « des/du » (prép+dét) & « de la » tolérés
     if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
