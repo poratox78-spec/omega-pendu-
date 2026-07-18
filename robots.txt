@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
 
+# Apps autonomes très lourdes (mono-fichier, plusieurs Mo) : inutiles à explorer (jamais indexées),
+# et leur transfert fait percevoir le site comme lent/surchargé → Google reporte l'exploration du reste
+# (« Détectée non indexée »). Bloquer leur CRAWL libère le budget pour les pages de contenu.
+# N'affecte NI les utilisateurs NI le PWA hors-ligne (robots.txt ne concerne que les robots).
+Disallow: /app/
+Disallow: /omega-key/app/
+
 Sitemap: https://omegapendu.com/sitemap.xml
