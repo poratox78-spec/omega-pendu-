@@ -1006,6 +1006,13 @@ function spellUnknown(tok,atStart,T,idx){
     return (_OUV[nx]||nx==='se'||nx==='ce'||nx==='je'||nx==='tu'||nx==='il'||nx==='elle'||nx==='nous'||nx==='vous'||nx==='ils'||nx==='elles')?'où':null;}   // + « ou » + pronom sujet (ou je/il/tu…) → où probable (relatif/interrogatif) ; 'on' EXCLU (« ou on…, ou on… » either/or). ORANGE (à vérifier), 0 faux sur 2500 UD.   // « ce » = graphie dys fréquente de « se » (« ou ce trouve la gare »)
   // ACCORD PARTICIPE après ÊTRE 3pl (« les élèves sont arrivé »→arrivés) → VIGILANCE orange. Miroir app : participe (VERB,
   // hors nom/adj homographe -té) après sont/étaient/furent/êtes → accord pluriel. Gardes mesurées : pronominal/être-immédiat/homographe.
+  // ===== VIGILANCE-ENSEIGNANTE ces/ses (carte chaud-froid POS-free, baké dictee/ces_ses_model.json ; miroir dictee/cesses_probe.py) =====
+  // NE corrige JAMAIS — TRIGGER : |score|>tau ET la carte DESACCORDE l'ecrit -> « ces ou ses ? » (l'auteur tranche, l'encart enseigne). tau serre = pas de fatigue.
+  var CESSES_MODEL={"lr":{"nx2=</s>":-1.2058,"nx2=années":1.5686,"nx2=au":-1.03,"nx2=aux":-1.03,"nx2=avec":-1.197,"nx2=ce":-1.6766,"nx2=dans":-1.4483,"nx2=de":-0.7072,"nx2=en":-1.3401,"nx2=est":0.5206,"nx2=et":-0.8556,"nx2=il":-2.5639,"nx2=le":-1.3401,"nx2=les":0.47,"nx2=mais":-0.6862,"nx2=n'ont":1.3679,"nx2=ne":1.8788,"nx2=ont":0.8701,"nx2=par":0.7802,"nx2=peuvent":2.4666,"nx2=pour":-0.8293,"nx2=qui":0.7802,"nx2=se":1.2248,"nx2=sur":-2.4387,"nx2=un":-1.6766,"nx2=une":1.1166,"nx2=à":-1.3957,"nx2=étaient":1.0578,"nx=activités":-0.5191,"nx=affaires":-1.6766,"nx=amis":-2.5639,"nx=armes":0.7802,"nx=autres":-1.6766,"nx=avions":0.7802,"nx=clients":-2.2956,"nx=cours":-1.6766,"nx=coéquipiers":-1.6766,"nx=derniers":3.9329,"nx=dernières":1.5686,"nx=dessins":-1.6766,"nx=deux":1.3679,"nx=débuts":-2.9495,"nx=enfants":-2.1286,"nx=essais":-1.6766,"nx=fonctions":-1.3401,"nx=habitants":-2.4387,"nx=idées":-0.578,"nx=liens":-0.578,"nx=limites":-1.6766,"nx=membres":-1.3401,"nx=nouveaux":2.4666,"nx=nouvelles":0.6058,"nx=négociations":2.2152,"nx=origines":-1.6766,"nx=parents":-2.5639,"nx=partisans":-1.6766,"nx=plans":0.7802,"nx=plus":-1.6766,"nx=portes":-2.1286,"nx=poèmes":-1.9279,"nx=premiers":-2.1286,"nx=propres":-2.8662,"nx=prédécesseurs":-1.6766,"nx=recherches":-1.9279,"nx=relations":-1.6766,"nx=romans":-1.6766,"nx=régions":2.4666,"nx=services":-0.8293,"nx=trois":0.8571,"nx=troupes":-1.6766,"nx=yeux":-1.9279,"nx=écrits":-0.578,"nx=études":-1.8509,"nx=îles":2.2152,"nx=œuvres":-2.5639,"pos=deb":0.7308,"pos=mil":-0.6877,"pv=<s>":0.9915,"pv=après":-0.578,"pv=avec":-2.4387,"pv=chez":0.7802,"pv=des":0.7802,"pv=durant":0.7802,"pv=dès":-1.6766,"pv=entre":1.7357,"pv=et":-4.1733,"pv=faire":-1.6766,"pv=fait":-1.6766,"pv=mais":-0.578,"pv=par":-1.3401,"pv=pas":-2.1286,"pv=pendant":-1.6766,"pv=pour":-0.7766,"pv=pris":-1.6766,"pv=si":0.7802,"pv=toutes":-1.0657,"pv=à":-1.6232},"prior":-0.6587,"prune":[0.4,3],"src":"UD French-GSD (CC BY-SA 4.0)","tau":2.5};
+  function _cesFeats(F,i){var n=F.length;return ['nx='+(i+1<n?F[i+1]:'</s>'),'nx2='+(i+2<n?F[i+2]:'</s>'),'pv='+(i>0?F[i-1]:'<s>'),'pos='+(i<=1?'deb':'mil')];}
+  function _cesScore(F,i){var s=CESSES_MODEL.prior,fs=_cesFeats(F,i),k;for(k=0;k<fs.length;k++){if(CESSES_MODEL.lr[fs[k]]!==undefined)s+=CESSES_MODEL.lr[fs[k]];}return s;}
+  function cesVig(T,i){var w=T[i].toLowerCase();if(w!=='ces'&&w!=='ses')return null;var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());var s=_cesScore(F,i),pred=s>=0?'ces':'ses';return (Math.abs(s)>CESSES_MODEL.tau&&pred!==w)?pred:null;}
+  function cesProbe(text){text=String(text).replace(/[’ʼ]/g,"'");var T=toks(text),out=[],i,r;for(i=0;i<T.length;i++){r=cesVig(T,i);if(r&&r!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r});}return out;}
   function participeEtreVig(T,tg,i){
     if(!tg||i<1||i>=tg.length||tg[i]!=='VERB')return null;
     var w=T[i];if(!/é$/.test(w.toLowerCase()))return null;
@@ -1103,6 +1110,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
+    if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
       var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
@@ -1161,6 +1169,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(h){var a=Math.max(0,i-2),b=Math.min(T.length,i+3),win=T.slice(a,b);win[i-a]=h[0];
       return 'Astuce : remplace par « '+h[0]+' ». « '+(a>0?'…':'')+win.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
     var n=f.name||'';
+    if(n.indexOf('ces/ses')>=0)return '« ces » = ces choses-là, on montre (ces livres) ; « ses » = les siens, à lui ou elle (il range ses livres). Qui possède ?';   // carte chaud-froid : l'auteur tranche, l'encart enseigne
     if(/\(dont\)/.test(n))return '« dont » reprend un complément avec « de » : le participe passé reste invariable (les fleurs dont il a parlé).';   // AVANT le gouverneur : « dont » = participe INVARIABLE, pas d'accord (sinon indice contradictoire)
     if(/\(COD/.test(n))return 'Avec « avoir », le participe s\'accorde avec le COD placé AVANT (les fleurs que j\'ai cueillies) — pas avec le sujet.';   // gouverneur = COD antéposé, pas le sujet
     if(/tout/.test(n))return '« tout » s\'accorde avec le nom qui SUIT (tous les jours, toutes les nuits).';   // s'accorde avec ce qui suit, pas avec un mot d'avant
@@ -1238,7 +1247,7 @@ function spellUnknown(tok,atStart,T,idx){
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
-    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, osProbe:osProbe,
+    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText
   };
