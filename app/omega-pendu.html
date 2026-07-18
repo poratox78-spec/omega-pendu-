@@ -12386,7 +12386,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(svSubject(T,i)!=null)return null;                                       // sujet pronom net → règle pronom
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux + participe)
-    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='AUX'))return null;   // T[i] = verbe en contexte (écarte noms/adjectifs homographes)
+    var tg=posTags(T);if(!tg||i>=tg.length)return null;
+    if(tg[i]!=='VERB'&&tg[i]!=='AUX'){var _di=deacc(T[i].toLowerCase());if(GENDER_MAP[_di]||ADJP[_di])return null;}   // filet homographe : l'émission HMM (~2 % des formes) rate « persiste »/« bloque »/« signale » (→NOM/ADJ) ; nom/adj CONNU (gêne/reste/jeune) → abstention, les gardes structure ci-dessous tranchent. Miroir Python rule_accord_sv_noun.
     var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
     var ddet=deacc(T[dk].toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, ou mistag → abstention)

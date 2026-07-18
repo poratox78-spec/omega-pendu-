@@ -1473,7 +1473,10 @@ def rule_accord_sv_noun(T, i):
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
         return None                                                    # temps composé/passif (aux + participe) → T[i] = participe, pas verbe fini
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'AUX'): return None   # T[i] = VERBE EN CONTEXTE (écarte les noms/adjectifs homographes « de rechange », « par faute », « jeune âge »)
+    if not tg or i >= len(tg): return None
+    if tg[i] not in ('VERB', 'AUX'):                                   # tagger dit non-verbe ; filet homographe (l'émission HMM ne couvre que ~2 % des formes verbales → « persiste »/« bloque » ratés)
+        _di = deacc(T[i].lower())
+        if _di in GENDER_FULL or _di in ADJ_LEX: return None           # nom/adj homographe CONNU (gêne/reste/jeune) → tranché par le contexte, on s'abstient ; sinon forme finie (p3 exigé) absente des lexiques = verbe raté par le tagger, les gardes structure ci-dessous tranchent
     _vs = i                                                            # sauter les clitiques objets avant le verbe (« nous parviendra », « m'inquiètent ») pour atteindre le sujet
     while _vs - 1 >= 0 and deacc(T[_vs-1].lower()) in CLITIC: _vs -= 1
     subj = _np_subject(T, tg, _vs)                                     # tête [dét + nom] du sujet, mots-écrans « de X » sautés
