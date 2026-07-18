@@ -497,14 +497,25 @@ def rule_leur_leurs(T, i):
     if dn in INVAR_NOUN: return 'leur'                                  # nom invariable en -s/-x (« leur pays » = sg) → jamais « leurs »
     return 'leurs' if (dn.endswith('s') or dn.endswith('x')) else 'leur'  # déterminant : accord avec le nom
 
+_PP_NOUN_HOMO = {'mort', 'fait', 'part', 'point'}   # noms homographes d'un participe → « à » PRÉPOSITION (condamnée à mort, tout à fait, à part, à point) ; le tagger tranche NOM vs VERB
+
+def _aa_inverted(T, i):
+    """Le pronom sujet en i-1 est-il INVERSÉ (« avait-il à cela », post-verbe / trait d'union) ? → pas un sujet PRÉVERBAL de « a » (FP à→a)."""
+    if i - 2 < 0: return False
+    hy = _SEG.get('hy', []) if _SEG is not None else []
+    return vlike(T, i - 2) or (i - 1 < len(hy) and hy[i - 1])
+
 def rule_a_aa(T, i):
     if deacc(T[i].lower()) != 'a': return None
     if T[i] == T[i].upper() and T[i] != T[i].lower(): return None      # « A » majuscule (sigle/lettre « Serie A » ; « À » en tête) → abstention (FP)
     pb = _SEG['bb'][i] if (_SEG is not None and i < len(_SEG['bb'])) else False   # frontière de proposition AVANT (virgule…) → le mot d'avant ne gouverne pas (« qui, à 4°C » : « qui » n'est pas le sujet de « à »)
+    tg = pos_tags(T)                                                   # POS PLEINE-PHRASE : sépare les FAUX participes (nom homographe / -ment nominal) du vrai participe → tue les FP à→a par élimination
     p = prev(T, i)
-    if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça"): return 'a'   # sujet 3sg net (pas à travers une virgule) → avoir
-    if i+1 < len(T) and _is_ppl(T[i+1]) and not deacc(T[i+1].lower()).endswith('ee'): return 'a'   # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à ». Écarte le participe FÉMININ -ée (durée, entrée, sortie) : après AVOIR le participe NE s'accorde PAS → « -ée » = NOM → « à durée limitée » reste préposition (FP WiCoPaCo)
-    if i+2 < len(T) and deacc(T[i+1].lower()).endswith('ment') and _is_ppl(T[i+2]): return 'a'   # « a + adverbe(-ment) + participe » (« a également exploité »)
+    if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça") and not _aa_inverted(T, i): return 'a'   # sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
+    if i+1 < len(T) and _is_ppl(T[i+1]) and not deacc(T[i+1].lower()).endswith('ee'):   # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à ». Écarte -ée FÉMININ (après AVOIR le pp NE s'accorde PAS → « -ée » = NOM → « à durée limitée » reste préposition)
+        dn = deacc(T[i+1].lower()); nt = tg[i+1] if (tg and i+1 < len(tg)) else ''
+        if not (dn in _PP_NOUN_HOMO and nt == 'NOUN'): return 'a'     # …SAUF nom-homographe tagué NOM (« condamnée à mort », « tout à fait ») = « à » préposition, pas le verbe « a »
+    if i+2 < len(T) and deacc(T[i+1].lower()).endswith('ment') and (tg and i+1 < len(tg) and tg[i+1] == 'ADV') and _is_ppl(T[i+2]): return 'a'   # « a + ADVERBE(-ment) RÉEL + participe » (« a également exploité ») ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
     if not pb and vlike(T, i-1):                                       # après un verbe (« va à »), même proposition → préposition
         pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
         if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return None  # « l'entreprise a », « la voiture a » → avoir, pas « à » (fixe ~10 FP a→à)
