@@ -731,7 +731,9 @@ _COLL_HEAD = {'plupart', 'majorite', 'minorite', 'nombre', 'total', 'partie', 'm
               'ensemble', 'reste', 'quantite', 'foule', 'multitude', 'infinite', 'poignee', 'kyrielle',
               'dizaine', 'douzaine', 'quinzaine', 'vingtaine', 'trentaine', 'quarantaine', 'cinquantaine',
               'soixantaine', 'centaine', 'millier', 'million', 'milliard', 'brochette', 'tapee', 'flopee',
-              'sorte', 'espece', 'genre'}
+              'sorte', 'espece', 'genre',
+              'bande', 'groupe', 'tas', 'serie', 'masse', 'nuee', 'troupe', 'ribambelle', 'cohorte',   # collectifs courants (accord de sens ambigu : « la bande de X arrivent » AUSSI valide → abstention)
+              'myriade', 'pleiade', 'armee', 'meute', 'horde', 'essaim', 'tripotee', 'ramassis', 'foultitude', 'palanquee'}
 def _noun_gender(w, num='s', full=False):
     """Genre d'un NOM via GENDER_PURE (noms à genre non ambigu). Dé-pluralisation SEULEMENT si le sujet est marqué
     pluriel (num=='p') et le mot n'est pas un invariable en -s (cours→cour(f) = faux ami). None sinon → abstention.
