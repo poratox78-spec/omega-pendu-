@@ -12965,6 +12965,9 @@ window.addEventListener('DOMContentLoaded', () => {
       for(ci=0;ci<26;ci++){c=String.fromCharCode(97+ci);res[a+c+b]=1;if(b)res[a+c+b.slice(1)]=1;}}return Object.keys(res);}
   var SP={ready:false,loading:false,WORDS:null,FREQ:{},D2A:{},PHON:{},POS:{}};
   var SELIDE={l:1,m:1,t:1,s:1,n:1,d:1,c:1,j:1},_SELIDE_ACC={l:1,d:1,j:1,c:1,s:1},SVOW={a:1,e:1,i:1,o:1,u:1,y:1,h:1};   // _SELIDE_ACC = préfixes SÛRS pour restauration d'accent (m'/t'/n' exclus : « metre »=mètre)
+  // tokens courts NON-FRANÇAIS à ne JAMAIS corriger : mots anglais fréquents dans du texte FR (the→thé) + « er » = résidu
+  // d'ordinal « 1er » (le chiffre effacé laisse « er »→« ère »). Aucune collision FR (mais/or/on/en/a/ni exclus). Miroir ext.
+  var _SPELL_KEEP={the:1,and:1,of:1,with:1,is:1,are:1,was:1,were:1,this:1,that:1,from:1,they:1,you:1,your:1,its:1,new:1,world:1,er:1};
   async function loadSpellerLex(){
     if(SP.ready||SP.loading)return;SP.loading=true;
     try{var el=document.getElementById('speller-lex-gz');if(!el||!el.textContent){SP.loading=false;return;}
@@ -13091,6 +13094,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur » (le « e dans le o »). Liste FERMÉE de mots où oe=œ → FP=0 (coexister/moelle/poème non touchés). Garde : ne pas re-flaguer un mot DÉJÀ écrit avec œ. Débloque aussi le genre (« mon soeur »→ma sœur via GENDER_PURE oe).
     if(SP.WORDS.has(low))return null;                                  // mot valide (œuf→oeuf normalisé) → couche grammaire
+    if(_SPELL_KEEP[low])return null;                                   // mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ne pas corriger (FP sur texte FR à mots anglais)
     if(tok[0]!==tok[0].toLowerCase()&&!atStart)return null;            // nom propre (majuscule hors début)
     var d=deaccS(low);
     if(!/[aeiouy]/.test(d))return null;                               // pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
@@ -13157,6 +13161,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
     if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
     if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
     var d=deaccS(low);
