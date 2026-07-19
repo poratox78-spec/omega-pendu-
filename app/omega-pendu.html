@@ -12545,7 +12545,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]!==undefined||PREP[deacc(T[i-1].toLowerCase())]))return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // passé composé
     var q=null;for(k=i-1;k>=0;k--){var wk=T[k].toLowerCase();
-      if(wk==='que'||wk==="qu'"||wk==='qu'||wk.indexOf("qu'")===0){q=k;break;}
+      if(wk==='que'||wk==="qu'"||wk==='qu'||wk==='dont'||wk==='où'||wk.indexOf("qu'")===0){q=k;break;}   // « où » ACCENTUÉ = relatif (≠ « ou » conjonction)
       var dk=deacc(wk);if(dk==='et'||dk==='ou'||dk==='ni'||dk==='mais'||dk==='car'||dk==='donc'||dk==='or')break;}
     if(q===null||q<2||q>=i-1)return null;
     if(!_relFinBetween(T,tg,q,i))return null;
