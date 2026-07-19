@@ -116,6 +116,9 @@ const PHRASES = [
   'Le niveau de la population est estimée à trente pour cent', 'La biologie est apparu au vingtième siècle',
   'Le Brésil est composés de régions', 'La Bulgarie est connues pour ses monastères', 'Une partie du cours fut modifié',
   'Le chat est noir', 'Elle est venue hier', 'La reprise est annoncée', 'Les plats sont bons',
+  // PP perception/factitif + INFINITIF = INVARIABLE (piège Voltaire, FP cru trouvé par Rem) : cibles invariables + contrôles (accord normal SANS infinitif)
+  'ma belle-mère se les était vu confisquer à la douane', "les gens que j'ai fait venir", "elle s'est fait avoir", "elle s'est laissé tomber", "les airs que j'ai entendu jouer",
+  "les erreurs que j'ai fait", "les fleurs que j'ai cueilli", 'elle est venu hier',
   // terminaison -er/-é : gouverneur être (« a été fabriquer »), clitique réfléchi (« veut se séparé »), causatif (« fait déclaré »)
   'Il a été fabriquer par un dieu', 'Le pays veut se séparé du groupe', 'On va faire évolué le code',
   'Il fait déclaré la guerre', 'Il ne faut pas utilisé de câble', 'Les origines de la cité remontent', 'Un fait divers tragique',

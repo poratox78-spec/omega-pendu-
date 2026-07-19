@@ -910,6 +910,7 @@ def rule_pp_etre(T, i):
     if "'" in lw: return None
     base = _pp_base(T[i])                                      # base masc-sing du participe (tous groupes) ; None sinon
     if base is None: return None
+    if deacc(base) in _PP_PERCEPTION and i+1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX: return None   # « s'est vu/fait/laissé/entendu + INFINITIF » → PP INVARIABLE (piège Voltaire : « se les était vu confisquer », « elle s'est fait avoir »)
     a = None                                                   # auxiliaire ÊTRE en remontant (adverbes/clitiques tolérés)
     for k in range(i-1, max(-1, i-4), -1):
         dk = deacc(T[k].lower())
@@ -974,7 +975,7 @@ _PP_COD_STOP = {'menti', 'ri', 'souri', 'plu', 'deplu', 'nui', 'suffi', 'dormi',
                 'parle', 'repondu', 'telephone', 'obei', 'ressemble', 'renonce', 'participe', 'assiste',
                 'succede', 'procede', 'remedie', 'convenu', 'nui', 'menace', 'songe', 'reve',
                 'fallu', 'pu'}    # TOUJOURS invariables : falloir (impersonnel) + pouvoir (objet = infinitif, jamais COD direct) — cf. « les efforts qu'il a fallu/pu » (pièges Voltaire). PAS du/su/voulu qui, eux, PEUVENT s'accorder.
-_PP_PERCEPTION = {'vu', 'entendu', 'senti', 'regarde', 'ecoute', 'apercu', 'laisse', 'envoye'}   # PP de perception/factitif : + INFINITIF = accord ambigu (l'antécédent fait OU subit l'action) → abstention
+_PP_PERCEPTION = {'vu', 'entendu', 'senti', 'regarde', 'ecoute', 'apercu', 'laisse', 'envoye', 'fait'}   # PP de perception/factitif : + INFINITIF = accord ambigu (l'antécédent fait OU subit l'action) → abstention ; « fait »+inf = causatif TOUJOURS invariable (« que j'ai fait venir », « s'est fait avoir »)
 # Noms de PAROLE / PENSÉE / FAIT : « que » après eux peut être COMPLÉTIF (conjonction) ⇒ le nom n'est pas le COD ⇒ abstention.
 _COMPLETIVE_ANT = {'fait', 'faits', 'idee', 'idees', 'preuve', 'preuves', 'nouvelle', 'nouvelles', 'espoir', 'espoirs',
                    'crainte', 'craintes', 'peur', 'peurs', 'certitude', 'certitudes', 'conviction', 'convictions',
