@@ -318,7 +318,8 @@
   // d'accord SV ? VERB/AUX net, OU forme finie ratée par l'émission HMM (~2 % des formes) — connue (svReads) mais NI nom
   // (GENDER_MAP) NI adj (ADJP) NI préposition (PREP), et pas précédée d'un dét/prép. Homographes-noms (gêne/reste) → false.
   function _verbOrHomograph(tg,T,i){if(i>=tg.length)return false;if(tg[i]==='VERB'||tg[i]==='AUX')return true;
-    var d=deacc(T[i].toLowerCase());if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;
+    var d=deacc(T[i].toLowerCase());if(_INVAR_COLOR[d])return false;   // couleur/matière invariable (« des gants crème », « bleu marine ») → jamais un verbe
+    if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||PREP[deacc(T[i-1].toLowerCase())]))return false;return svReads(T[i]).length>0;}
   function rPostpose(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;   // accord SUJET-VERBE à sujet POSTPOSÉ (inversion) : ordre changé → scan AVANT. FP=0 mesuré. Miroir Python rule_accord_postpose.
     if(/(é|és|ée|ées)$/.test(lw))return null;
@@ -431,7 +432,7 @@
     if(_QP_SG[q])nb='s';
     else if(_QP_PL[q])nb='p';
     else if(_QP_DE_PL[q]){if(nxt==='de'||nxt==='des'||nxt==='d'||(lo+1<T.length&&T[lo+1].toLowerCase().indexOf("'")>=0&&nxt.charAt(0)==='d'))nb='p';else return null;}
-    else if(q==='la'&&nxt==='plupart'){nb='p';qend=lo+1;}
+    else if(q==='la'&&nxt==='plupart'){qend=lo+1;var c2=(lo+2<T.length)?deacc(T[lo+2].toLowerCase()):'',c3=(lo+3<T.length)?deacc(T[lo+3].toLowerCase()):'';nb=(c2==='du'||(c2==='de'&&(c3==='la'||c3==='l')))?'s':'p';}   // « la plupart DU temps » (sing) ≠ « la plupart DES gens » (plur)
     else if((q==='tout'||q==='toute')&&(nxt==='le'||nxt==='la')){nb='s';qend=lo+1;}
     else return null;
     var seenPrep=false;
@@ -580,7 +581,7 @@
     if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
   // accord sujet-VERBE à sujet INFINITIF — MIROIR correcteur_probe.rule_accord_sv_infinitif, FP=0
-  function _isInfinitive(w){var d=deacc(w.toLowerCase());return !!COMMON_VERBS[d]&&(/er$/.test(d)||/ir$/.test(d)||/re$/.test(d)||/oir$/.test(d));}
+  function _isInfinitive(w){var d=deacc(w.toLowerCase());return !!COMMON_VERBS[d]&&(/er$/.test(d)||/ir$/.test(d)||/re$/.test(d)||/oir$/.test(d))&&svReads(w).length===0;}   // vrai infinitif = AUCUNE lecture finie (« nombre »/« offre » = formes conjuguées en -re → pas des infinitifs)
   function rAccordSVinfinitif(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
     if(/(é|és|ée|ées)$/.test(lw))return null;
     var reads=svReads(T[i]),hasP3=false,k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')hasP3=true;if(!hasP3)return null;
@@ -896,6 +897,7 @@
   // Accord de l'ADJECTIF ÉPITHÈTE ([article + nom genre connu + adj]) — MIROIR rule_adj_epithet (parité). FP=0 très gardé.
   var _EPI_ART={le:'s',la:'s',les:'p',un:'s',une:'s',des:'p',ce:'s',cet:'s',cette:'s',ces:'p',du:'s'};
   var _COLOR_ADJ={bleu:1,vert:1,gris:1,blanc:1,noir:1,brun:1,violet:1,jaune:1,rouge:1,rose:1,orange:1,marron:1,roux:1,blond:1,pourpre:1,mauve:1,beige:1,fauve:1};   // couleur composée/dérivée = INVARIABLE
+  var _INVAR_COLOR={};'creme marine saumon emeraude turquoise kaki bordeaux ivoire ebene moutarde brique ocre indigo azur cerise framboise lavande prune olive caramel chocolat noisette paille sable bronze cuivre acajou corail grenat aubergine abricot peche citron lilas anthracite ardoise taupe champagne rouille safran pistache amande menthe crevette nacre perle'.split(' ').forEach(function(w){_INVAR_COLOR[w]=1;});   // couleurs/matières dérivées de nom = INVARIABLES (miroir Python _INVAR_COLOR)
   function rAdjEpithet(T,i){if(i<2)return null;var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
     var d=deacc(lw);

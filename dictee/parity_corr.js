@@ -80,6 +80,10 @@ const PHRASES = [
   // accord SV à travers une INCISE (sujet interrompu par une parenthèse à virgules, rule_accord_incise) : cibles + contrôles (énumération, de-N en tête, sujet sing., antéposition locative, incise verbale/pronom)
   'les livres, malgré leur prix, reste chers', 'les élèves, malgré la fatigue, travaille bien', 'les moteurs, sous la pluie, chauffe vite', 'les acteurs, connus du public, joue faux',
   'le prix des vacances, lui, reste élevé', 'le train, les jours de grève, arrive en retard', 'dans les jardins, la fleur pousse', 'les chiens, les chats, les oiseaux vivent ici', 'les prix, semble-t-il, augmente', 'les enfants et les parents, ravis, applaudissent',
+  // COULEURS/MATIÈRES invariables (nom/fruit/pierre + composées) : filet SV ne doit PLUS les prendre pour des verbes (_INVAR_COLOR)
+  'des gants crème', 'des chemises bleu marine', 'des rideaux émeraude', 'des nappes saumon', 'une écharpe turquoise', 'des reflets cuivre', 'des tons olive', 'des murs ocre',
+  // QUANTIFIEUR « la plupart DU/DES » + verbe (nombre du complément) + « nombre de N » nu (pluriel) : cibles + FP tués
+  'la plupart des gens pensent le contraire', 'la plupart du temps suffit amplement', 'nombre de spécialistes doutent encore', 'la majorité des élèves réussissent', 'la plupart du gâteau a disparu',
   // filet homographe ÉTENDU aux règles SV sœurs (coord/quant/postpose) + contrôles FP (prép/dét-avant : Entre/un modèle)
   'Les cris et les rires persiste', 'Beaucoup de dossiers empile', 'Ainsi persiste les rumeurs',
   'Entre les deux guerres il enseigne les maths', 'Le consortium veut entretenir un modèle',
