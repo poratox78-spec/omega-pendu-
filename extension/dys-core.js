@@ -499,6 +499,32 @@
     var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3'+n1];
     return (sug&&sug.toLowerCase()!==w)?sug:null;
   }
+  var _REL_STOP={};('que qui quoi dont je tu il elle on ils elles nous vous ce ca ça cela ceci me te se le la les lui leur y en '+
+    'et ou ni mais or car donc ne pas plus moins tres bien des dès lors depuis parce afin tandis alors pendant apres avant sans pour').split(' ').forEach(function(w){_REL_STOP[w]=1;});
+  function _relFinBetween(T,tg,a,b){   // verbe fini embarqué dans ]a,b[ : discriminant relatif-objet (2 verbes) vs complétif (1 verbe)
+    for(var k=a+1;k<b;k++){var wk=T[k].toLowerCase();if(/(é|és|ée|ées)$/.test(wk))continue;
+      if(_verbOrHomograph(tg,T,k)){var rd=svReads(T[k]);for(var z=0;z<rd.length;z++){var mt=rd[z][1];if(mt==='ind:pre'||mt==='ind:imp'||mt==='ind:fut'||mt==='cnd:pre'||mt==='sub:pre')return true;}}}
+    return false;
+  }
+  function rAccordRelObj(T,i){   // récupère le sujet via une RELATIVE-OBJET « que » (famille sujet non-adjacent, après #207) — miroir Python rule_accord_rel_obj, FP=0
+    var w=T[i].toLowerCase();
+    if(w.indexOf("'")>=0||/(é|és|ée|ées)$/.test(w))return null;
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
+    var rd=svReads(T[i]),r2=[],k;for(k=0;k<rd.length;k++)if(rd[k][2]==='3'&&(rd[k][1]==='ind:pre'||rd[k][1]==='ind:imp'))r2.push(rd[k]);
+    if(!r2.length||_vnum3(T[i])!=='s')return null;                                         // cible = verbe 3sg (dir. audible : pluriel manquant)
+    if(i>0&&(NUM_DET[T[i-1].toLowerCase()]!==undefined||PREP[deacc(T[i-1].toLowerCase())]))return null;
+    if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // passé composé
+    var q=null;for(k=i-1;k>=0;k--){var wk=T[k].toLowerCase();
+      if(wk==='que'||wk==="qu'"||wk==='qu'||wk.indexOf("qu'")===0){q=k;break;}
+      var dk=deacc(wk);if(dk==='et'||dk==='ou'||dk==='ni'||dk==='mais'||dk==='car'||dk==='donc'||dk==='or')break;}
+    if(q===null||q<2||q>=i-1)return null;
+    if(!_relFinBetween(T,tg,q,i))return null;
+    var ant=T[q-1].toLowerCase(),det=T[q-2].toLowerCase();
+    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;                                       // antécédent = dét PLURIEL audible + nom réel
+    var mt='ind:imp';for(k=0;k<r2.length;k++)if(r2[k][1]==='ind:pre'){mt='ind:pre';break;}
+    var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3p'];
+    return (sug&&sug.toLowerCase()!==w)?sug:null;
+  }
   function rAccordSVcoord(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
     if(/(é|és|ée|ées)$/.test(lw))return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
@@ -856,7 +882,7 @@
     var num=_EPI_ART[deacc(T[i-2].toLowerCase())];
     if(!num)return null;                                                             // nombre non net → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg});break;}}}return out;}   // {sugg,vig:1} → tier vigilance (orange) ; string = rouge
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====

@@ -2350,6 +2350,50 @@ def rule_accord_verb_coord(T, i):
     sug = CONJ_C.get(lem, {}).get(mt, {}).get('3' + n1)
     return sug if (sug and sug.lower() != w) else None
 
+# antécédent de « que » interdit : mots-outils + TÊTES de subordonnants (« dès/lors/parce/afin/bien/tandis/alors/pendant/après/avant que »)
+_REL_STOP = set('que qui quoi dont je tu il elle on ils elles nous vous ce ca ça cela ceci me te se le la les lui leur y en '
+                'et ou ni mais or car donc ne pas plus moins tres bien des dès lors depuis parce afin tandis alors pendant apres avant sans pour'.split())
+
+def _rel_fin_between(T, tg, a, b):
+    """un verbe fini embarqué existe-t-il dans ]a, b[ ? Discriminant relatif-objet (2 verbes : « que JE VOIS joue »)
+    vs complétif (1 seul verbe : « que les chats dorment » → pas de verbe entre « que » et la cible)."""
+    for k in range(a + 1, b):
+        wk = T[k].lower()
+        if wk.endswith(('é', 'és', 'ée', 'ées')): continue
+        if _verb_or_homograph(tg, T, k) and [r for r in _reads(T[k]) if r[1] in ('ind:pre', 'ind:imp', 'ind:fut', 'cnd:pre', 'sub:pre')]:
+            return True
+    return False
+
+def rule_accord_rel_obj(T, i):
+    """Accord SUJET-VERBE par RÉCUPÉRATION du sujet via une RELATIVE-OBJET (famille « sujet non-adjacent » de Rem, après
+    #207/coordination). « les enfants QUE je vois joue »→jouent : le sujet de « joue » = l'antécédent « les enfants »
+    (AVANT « que »), séparé du verbe par la relative « que je vois ». Cadre : V=T[i] verbe fini 3e pers. (ind:pre/imp)
+    SINGULIER homographe-safe ; « que » avant lui avec un VERBE FINI embarqué entre les deux (sépare le relatif du
+    complétif « que les chats dorment ») ; antécédent = déterminant PLURIEL audible (« les/des ») + nom réel juste avant
+    « que ». Direction audible seulement (dét pluriel entendu, -ent muet) → pluriel. Filet homographe partagé (#204/#205)
+    écarte les noms-verbes (« la fatigue », « le reste »). _REL_STOP bloque les subordonnants (dès/parce que…). FP=0
+    mesuré (0/2500 UD, 0/10 pièges retors)."""
+    w = T[i].lower()
+    if not CONJ_LOADED or "'" in w or w.endswith(('é', 'és', 'ée', 'ées')): return None
+    tg = pos_tags(T)
+    if not tg or not _verb_or_homograph(tg, T, i): return None
+    r2 = [r for r in _reads(T[i]) if r[2] == '3' and r[1] in ('ind:pre', 'ind:imp')]
+    if not r2 or _vnum3(T[i]) != 's': return None                            # cible = verbe 3sg (dir. audible : pluriel manquant)
+    if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return None
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
+    q = None
+    for k in range(i-1, -1, -1):
+        wk = T[k].lower()
+        if wk in ('que', "qu'", 'qu') or wk.startswith("qu'"): q = k; break
+        if deacc(wk) in ('et', 'ou', 'ni', 'mais', 'car', 'donc', 'or'): break
+    if q is None or q < 2 or q >= i - 1: return None
+    if not _rel_fin_between(T, tg, q, i): return None
+    ant = T[q-1].lower(); det = T[q-2].lower()
+    if det not in PLURAL_DET or ant in _REL_STOP: return None                # antécédent = dét PLURIEL audible + nom réel
+    lem = r2[0][0]; mt = 'ind:pre' if 'ind:pre' in {r[1] for r in r2} else 'ind:imp'
+    sug = CONJ_C.get(lem, {}).get(mt, {}).get('3p')
+    return sug if (sug and sug.lower() != w) else None
+
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
@@ -2371,6 +2415,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv_infinitif),
          ('accord sujet-verbe', rule_accord_postpose),
          ('accord sujet-verbe', rule_accord_verb_coord),
+         ('accord sujet-verbe', rule_accord_rel_obj),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
@@ -2459,6 +2504,10 @@ CASES = [
     ("Les personnes qui participent restent", "participent", "participe", "accord sujet-verbe"),  # antécédent = personnes (plur.)
     ("Voici les articles qui manquent", "manquent", "manque", "accord sujet-verbe"),         # antécédent = articles (plur.)
     ("Ce sont eux qui gèrent le dépôt", "gèrent", "gère", "accord sujet-verbe"),             # antécédent = eux (3e plur.)
+    # accord sujet-verbe via RELATIVE-OBJET « que » (sujet récupéré de l'antécédent, séparé par la relative) — famille non-adjacent
+    ("Les enfants que je vois jouent", "jouent", "joue", "accord sujet-verbe"),              # antécédent = enfants (plur.), écran « que je vois »
+    ("Les gens que je connais viennent", "viennent", "vient", "accord sujet-verbe"),         # antécédent = gens (hors-lexique) → dét « les » audible suffit
+    ("Les erreurs que le prof corrige persistent", "persistent", "persiste", "accord sujet-verbe"),  # sujet embarqué 3sg « le prof » ≠ sujet du verbe cible
     # accord sujet-verbe à sujets COORDONNÉS (X et Y → pluriel ; personne 1>2>3)
     ("Le chat et le chien mangent la viande", "mangent", "mange", "accord sujet-verbe"),     # deux GN → 3e plur.
     ("Toi et moi mangeons ensemble", "mangeons", "mange", "accord sujet-verbe"),             # toi + moi → 1re plur.
