@@ -848,6 +848,14 @@ _EPI_ART = {'le': 's', 'la': 's', 'les': 'p', 'un': 's', 'une': 's', 'des': 'p',
             'ce': 's', 'cet': 's', 'cette': 's', 'ces': 'p', 'du': 's'}   # articles à NOMBRE net (possessifs exclus : « leur » ambigu → FP mesuré)
 _COLOR_ADJ = {'bleu', 'vert', 'gris', 'blanc', 'noir', 'brun', 'violet', 'jaune', 'rouge', 'rose',
               'orange', 'marron', 'roux', 'blond', 'pourpre', 'mauve', 'beige', 'fauve'}   # couleurs : INVARIABLES en composé (bleu clair) ou dérivées de nom (vert pomme) → abstention si suivies d'un ADJ/NOM qualificatif
+# COULEURS/MATIÈRES dérivées de NOM (fruit/pierre/matière) = adjectif INVARIABLE (« des gants crème », « bleu marine »).
+# Beaucoup ont une lecture VERBE fantôme (crème→crémer, marine→mariner, olive→oliver) ET sont absents de GENDER_FULL →
+# le filet homographe les prend pour des verbes et les accorde (« des gants crème »→crèment). Ce set les rend invariables.
+_INVAR_COLOR = {'creme', 'marine', 'saumon', 'emeraude', 'turquoise', 'kaki', 'bordeaux', 'ivoire', 'ebene',
+                'moutarde', 'brique', 'ocre', 'indigo', 'azur', 'cerise', 'framboise', 'lavande', 'prune', 'olive',
+                'caramel', 'chocolat', 'noisette', 'paille', 'sable', 'bronze', 'cuivre', 'acajou', 'corail', 'grenat',
+                'aubergine', 'abricot', 'peche', 'citron', 'lilas', 'anthracite', 'ardoise', 'taupe', 'champagne',
+                'rouille', 'safran', 'pistache', 'amande', 'menthe', 'crevette', 'brique', 'nacre', 'perle', 'ivoire'}
 def rule_adj_epithet(T, i):
     """Accord en GENRE×NOMBRE de l'ADJECTIF ÉPITHÈTE avec le nom qu'il suit : [ARTICLE + NOM(genre connu) + ADJ]
     (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
@@ -1462,6 +1470,7 @@ def _verb_or_homograph(tg, T, i):
     if i >= len(tg): return False
     if tg[i] in ('VERB', 'AUX'): return True
     d = deacc(T[i].lower())
+    if d in _INVAR_COLOR: return False                                    # couleur/matière invariable (« des gants crème », « bleu marine ») tag NOUN → jamais un verbe (lecture crémer/mariner fantôme)
     if d in GENDER_FULL or d in ADJ_LEX or d in PREP: return False        # nom/adj/PRÉPOSITION homographe connu (« entre »/« modèle ») → tranché par le contexte, pas le verbe
     if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return False   # déterminant/préposition juste avant → T[i] est un NOM (« un modèle », « de rechange »)
     return bool(_reads(T[i]))
@@ -1700,7 +1709,11 @@ def rule_accord_sv_quant(T, i):
     elif q in _QP_DE_PL and q != 'un':                          # beaucoup/peu/bien + de(s) N → pluriel (accord complément)
         if nxt in ('de', 'des', 'd') or "'" in (T[lo+1].lower() if lo+1 < len(T) else '') and nxt[:1] == 'd': nb = 'p'
         else: return None
-    elif q == 'la' and nxt == 'plupart':      nb = 'p'; qend = lo + 1   # « la plupart (des N) » → pluriel
+    elif q == 'la' and nxt == 'plupart':                               # « la plupart » : nombre = celui du COMPLÉMENT (« des gens » pluriel VS « du temps »/« de la classe » singulier)
+        qend = lo + 1
+        c2 = deacc(T[lo+2].lower()) if lo + 2 < len(T) else ''
+        c3 = deacc(T[lo+3].lower()) if lo + 3 < len(T) else ''
+        nb = 's' if (c2 == 'du' or (c2 == 'de' and c3 in ('la', 'l')) or c2 == 'dul') else 'p'   # « la plupart du temps suffit » (sing) ≠ « la plupart des gens pensent » (plur) ; sans complément → pluriel (« la plupart pensent »)
     elif q in ('tout', 'toute') and nxt in ('le', 'la'):        # « tout le monde / toute la classe » → collectif SINGULIER
         nb = 's'; qend = lo + 1
     else: return None
@@ -1839,7 +1852,8 @@ def rule_accord_sv_coord(T, i):
 # fini ni de pronom sujet entre l'infinitif et le verbe principal). Les sujets-PROPOSITION « Que… » ne sont PAS traités.
 def _is_infinitive(w):
     d = deacc(w.lower())
-    return d in VERB_LEX and (d.endswith('er') or d.endswith('ir') or d.endswith('re') or d.endswith('oir'))
+    if d not in VERB_LEX or not (d.endswith('er') or d.endswith('ir') or d.endswith('re') or d.endswith('oir')): return False
+    return not _reads(w)          # vrai infinitif = AUCUNE lecture finie conjuguée (« manger »/« vendre »/« offrir » : _reads=[]) ; « nombre »/« offre »/« livre » (formes conjuguées en -re) ont des lectures finies → PAS des infinitifs (FP « nombre de spécialistes doutent »)
 
 def rule_accord_sv_infinitif(T, i):
     if not CONJ_LOADED or "'" in T[i].lower() or T[i].lower() == 'à': return None
@@ -2548,6 +2562,8 @@ CASES = [
     ("Tous savent la réponse", "savent", "sait", "accord sujet-verbe"),               # tous → 3e plur.
     ("Tout le monde est content", "est", "sont", "accord sujet-verbe"),               # tout le monde → collectif sing.
     ("La plupart des gens préfèrent partir", "préfèrent", "préfère", "accord sujet-verbe"),  # la plupart des N → plur.
+    ("La plupart du temps suffit", "suffit", "suffisent", "accord sujet-verbe"),             # la plupart DU (sing.) → sing. (FP « la plupart du temps suffisent » tué)
+    ("Nombre de spécialistes doutent", "doutent", "doute", "accord sujet-verbe"),            # « nombre de N » nu → pluriel (FP « nombre… doute » tué : « nombre » n'est pas un infinitif-sujet)
     # accord sujet-verbe dans une relative « qui » (accord avec l'antécédent)
     ("Les personnes qui participent restent", "participent", "participe", "accord sujet-verbe"),  # antécédent = personnes (plur.)
     ("Voici les articles qui manquent", "manquent", "manque", "accord sujet-verbe"),         # antécédent = articles (plur.)
