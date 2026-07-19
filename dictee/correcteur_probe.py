@@ -2396,6 +2396,50 @@ def rule_accord_rel_obj(T, i):
     sug = CONJ_C.get(lem, {}).get(mt, {}).get('3p')
     return sug if (sug and sug.lower() != w) else None
 
+def rule_accord_incise(T, i):
+    """Accord SUJET-VERBE quand une INCISE sépare le sujet du verbe (famille « sujet non-adjacent » de Rem, après
+    #207/#209/#210). « les livres, malgré leur prix, reste chers »→restent : le sujet « les livres » et son verbe « reste »
+    sont dans la MÊME proposition, interrompue par l'incise « , malgré leur prix, ». Les règles SV ordinaires s'abstiennent
+    car la virgule met bb[i]=True (contexte gauche vide). Cadre : V=T[i] fini 3e pers. (ind:pre/imp) SINGULIER
+    homographe-safe, JUSTE après une virgule (bb[i] ∧ ¬ss[i]) ; incise = ]m, i[ délimitée par la virgule d'ouverture m
+    (frontière précédente, non début-de-phrase), ≤7 tokens. ANCRE FP=0 = déterminant PLURIEL AUDIBLE en TÊTE de la
+    proposition-sujet (T[lo]) : tue le trou « de N » (« le prix DES vacances, lui, reste » : « des » n'est pas en tête,
+    « le » l'est → abstention) ET l'antéposition locative (« dans les jardins, … »). Gardes : l'incise DOIT commencer par
+    un mot FONCTIONNEL (prép/adverbe/participe/subordonnant) — un nom nu = ÉNUMÉRATION (« établissement, résidence, cité,
+    … correspondent ») → abstention ; AUCUN verbe fini dans la proposition-sujet (sinon le GN est un OBJET). Direction
+    audible seulement (pluriel manquant). FP=0 mesuré (0/2500 UD, 0/8+0/12 pièges retors énumération/apposition/locatif)."""
+    w = T[i].lower()
+    if not CONJ_LOADED or "'" in w or w.endswith(('é', 'és', 'ée', 'ées')): return None
+    if _SEG is None: return None
+    bb, ss = _SEG['bb'], _SEG['ss']
+    if i >= len(bb) or not bb[i] or ss[i]: return None                        # V juste après une virgule (frontière ≠ début de phrase)
+    tg = pos_tags(T)
+    if not tg or not _verb_or_homograph(tg, T, i): return None
+    r2 = [r for r in _reads(T[i]) if r[2] == '3' and r[1] in ('ind:pre', 'ind:imp')]
+    if not r2 or _vnum3(T[i]) != 's': return None                            # cible = verbe 3sg (dir. audible)
+    if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return None
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
+    m = None                                                                 # virgule d'OUVERTURE de l'incise
+    for j in range(i-1, 0, -1):
+        if ss[j]: return None                                                # début de phrase avant l'ouverture → pas une incise
+        if bb[j]: m = j; break
+    if m is None or m < 2 or (i - m) > 7: return None
+    im = T[m].lower()                                                        # l'incise commence par un mot FONCTIONNEL (sinon = énumération de noms)
+    if not (deacc(im) in PREP or (m < len(tg) and tg[m] in ('ADP', 'ADV', 'SCONJ')) or im.endswith(('é', 'és', 'ée', 'ées'))):
+        return None
+    lo = 0                                                                   # début de la proposition-sujet (avant l'incise)
+    for j in range(m-1, 0, -1):
+        if bb[j]: lo = j; break
+    if deacc(T[lo].lower()) not in PLURAL_DET: return None                   # ANCRE : dét PLURIEL audible EN TÊTE
+    hasnoun = False
+    for k in range(lo+1, m):
+        if (k < len(tg) and tg[k] in ('NOUN', 'PROPN')) or deacc(T[k].lower()) in GENDER_PURE: hasnoun = True
+        if k < len(tg) and tg[k] in ('VERB', 'AUX'): return None            # verbe fini avant l'incise → le GN est un OBJET → abstention
+    if not hasnoun: return None
+    lem = r2[0][0]; mt = 'ind:pre' if 'ind:pre' in {r[1] for r in r2} else 'ind:imp'
+    sug = CONJ_C.get(lem, {}).get(mt, {}).get('3p')
+    return sug if (sug and sug.lower() != w) else None
+
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
@@ -2418,6 +2462,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_postpose),
          ('accord sujet-verbe', rule_accord_verb_coord),
          ('accord sujet-verbe', rule_accord_rel_obj),
+         ('accord sujet-verbe', rule_accord_incise),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
@@ -2512,6 +2557,9 @@ CASES = [
     ("Les erreurs que le prof corrige persistent", "persistent", "persiste", "accord sujet-verbe"),  # sujet embarqué 3sg « le prof » ≠ sujet du verbe cible
     ("Les sujets dont on parle intéressent", "intéressent", "intéresse", "accord sujet-verbe"),      # relatif « dont » (jamais complétif) → antécédent-avant
     ("Les endroits où on va coûtent cher", "coûtent", "coûte", "accord sujet-verbe"),                # relatif « où » ACCENTUÉ (≠ conjonction « ou »)
+    # accord sujet-verbe à travers une INCISE (sujet interrompu par une parenthèse à virgules, rule_accord_incise)
+    ("Les livres, malgré leur prix, restent chers", "restent", "reste", "accord sujet-verbe"),       # incise « malgré leur prix » entre sujet et verbe
+    ("Les élèves, malgré la fatigue, travaillent bien", "travaillent", "travaille", "accord sujet-verbe"),  # ancre = dét pluriel en tête, incise PREP
     # accord sujet-verbe à sujets COORDONNÉS (X et Y → pluriel ; personne 1>2>3)
     ("Le chat et le chien mangent la viande", "mangent", "mange", "accord sujet-verbe"),     # deux GN → 3e plur.
     ("Toi et moi mangeons ensemble", "mangeons", "mange", "accord sujet-verbe"),             # toi + moi → 1re plur.
