@@ -11,7 +11,10 @@ import os, json, unicodedata
 HERE = os.path.dirname(os.path.abspath(__file__))
 HF = os.path.join(HERE, 'cgram_hf.json')
 NP = os.path.join(HERE, 'cgram_noun_post.json')
-WK = os.path.join(HERE, 'wikt_lex_fr.tsv')
+# TOUTES les sources d'augmentation au schéma Lexique4 (col0=Mot, col4=Cgram, col6=Genre) — pas seulement wikt :
+# argot_rows/argot_curated portent aussi des genres (crush/buff/cheater…) ; participles = 0 genre mais inclus (future-proof).
+# « le moins de trou possible » : toute source ajoutée au speller passe son genre ici sans travail supplémentaire.
+SRCS = [os.path.join(HERE, f) for f in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'argot_curated.tsv', 'participle_rows.tsv')]
 
 def deacc(s):
     s = s.replace('œ', 'oe').replace('æ', 'ae')
@@ -21,14 +24,16 @@ def main():
     hf = json.load(open(HF, encoding='utf-8'))
     np = json.load(open(NP, encoding='utf-8'))
     gn = hf['gn']; verbs = set(hf.get('v', [])); adj = set(hf.get('a', {}))
-    # genres wikt pur-nom (col0=Mot, col4=Cgram, col6=Genre) — agrège, écarte l'ambigu
+    # genres pur-nom (col0=Mot, col4=Cgram, col6=Genre) de TOUTES les sources — agrège, écarte l'ambigu (genre non net entre sources)
     wg = {}; amb = set()
-    for ln in open(WK, encoding='utf-8'):
-        c = ln.rstrip('\n').split('\t')
-        if len(c) > 6 and c[4] == 'NOM' and c[6] in ('m', 'f'):
-            dw = deacc(c[0].lower())
-            if dw in wg and wg[dw] != c[6]: amb.add(dw)
-            wg[dw] = c[6]
+    for src in SRCS:
+        if not os.path.exists(src): continue
+        for ln in open(src, encoding='utf-8'):
+            c = ln.rstrip('\n').split('\t')
+            if len(c) > 6 and c[4] == 'NOM' and c[6] in ('m', 'f'):
+                dw = deacc(c[0].lower())
+                if dw in wg and wg[dw] != c[6]: amb.add(dw)
+                wg[dw] = c[6]
     for dw in amb: wg.pop(dw, None)
     add_gn = add_np = skip = 0
     for dw, g in sorted(wg.items()):
