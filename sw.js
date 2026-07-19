@@ -7,13 +7,13 @@
 // V = numéro + EMPREINTE du contenu du site. NE PAS éditer à la main : `node dictee/sw_probe.js --fix` le régénère,
 // et le même probe ÉCHOUE en CI si le site a changé sans que V suive. (L'ancienne consigne « incrémenter à chaque
 // déploiement » n'a pas tenu : mesuré, V est resté figé pendant 70 commits touchant le site — d'où le cache périmé.)
-const V = 'omega-v151-951da591';
+const V = 'omega-v153-f2a67799';
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
 // L'app (11 Mo), pendable et scrabidon restent cachés À LA VISITE (poids).
 const CORE = ['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html',
-              './omega-key.html', './recherche.html', './evolution.html', './site.css', './manifest.json', './icon.svg'];
+              './omega-key.html', './recherche.html', './toile.html', './evolution.html', './site.css', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
