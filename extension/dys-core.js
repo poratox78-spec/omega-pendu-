@@ -1113,7 +1113,9 @@ function spellUnknown(tok,atStart,T,idx){
     if(tg[i]!=='NOUN'&&tg[i]!=='ADJ')return null;
     var c0=T[i][0];if(c0&&c0!==c0.toLowerCase())return null;           // nom propre
     for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());
-      if(PLDET[dj]){var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
+      if(PLDET[dj]){
+        if(svReads(T[i]).length||_COLOR_ADJ[w]||_INVAR_COLOR[w])return null;   // verbe mistagué NOUN (« les chats mangent »→mangents) ou couleur INVARIABLE (« yeux marron », « gants crème ») → jamais pluralisés (miroir garde CARD ci-dessous + sets couleur)
+        var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
       if(CARD[dj]){                                                    // cardinal ≥2 + nom singulier → pluriel (à vérifier)
         if(T[i].indexOf("'")>=0)return null;                          // élision (« quatre d'entre eux », « tous deux s'élèvent ») = pas un nom compté
         if(CARDINV[w]||CARD[w]||CARDSTOP[w])return null;              // cible = autre nombre (« cent trente »)/invariable/préfixe (super, tout)
