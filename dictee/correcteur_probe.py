@@ -2365,14 +2365,16 @@ def _rel_fin_between(T, tg, a, b):
     return False
 
 def rule_accord_rel_obj(T, i):
-    """Accord SUJET-VERBE par RÉCUPÉRATION du sujet via une RELATIVE-OBJET (famille « sujet non-adjacent » de Rem, après
-    #207/coordination). « les enfants QUE je vois joue »→jouent : le sujet de « joue » = l'antécédent « les enfants »
-    (AVANT « que »), séparé du verbe par la relative « que je vois ». Cadre : V=T[i] verbe fini 3e pers. (ind:pre/imp)
-    SINGULIER homographe-safe ; « que » avant lui avec un VERBE FINI embarqué entre les deux (sépare le relatif du
-    complétif « que les chats dorment ») ; antécédent = déterminant PLURIEL audible (« les/des ») + nom réel juste avant
-    « que ». Direction audible seulement (dét pluriel entendu, -ent muet) → pluriel. Filet homographe partagé (#204/#205)
-    écarte les noms-verbes (« la fatigue », « le reste »). _REL_STOP bloque les subordonnants (dès/parce que…). FP=0
-    mesuré (0/2500 UD, 0/10 pièges retors)."""
+    """Accord SUJET-VERBE par RÉCUPÉRATION du sujet via une RELATIVE à antécédent-avant (famille « sujet non-adjacent » de
+    Rem, après #207/coordination). « les enfants QUE je vois joue »→jouent : le sujet de « joue » = l'antécédent « les
+    enfants » (AVANT le relatif), séparé du verbe par la relative « que je vois ». Ancres : « que » (objet), « dont »
+    (de-relatif) et « où » (locatif/temporel) — TOUS à antécédent-avant. « dont »/« où » sont TOUJOURS relatifs (jamais
+    complétifs), plus propres que « que » ; « où » exigé ACCENTUÉ (le « ou » conjonction ne compte pas). Cadre : V=T[i]
+    verbe fini 3e pers. (ind:pre/imp) SINGULIER homographe-safe ; ancre avant lui avec un VERBE FINI embarqué entre les
+    deux (sépare le relatif du complétif « que les chats dorment ») ; antécédent = déterminant PLURIEL audible (« les/des »)
+    + nom réel juste avant l'ancre. Direction audible seulement (dét pluriel entendu, -ent muet) → pluriel. Filet
+    homographe partagé (#204/#205) écarte les noms-verbes (« la fatigue », « le reste »). _REL_STOP bloque les
+    subordonnants (dès/parce que…). FP=0 mesuré (0/2500 UD, 0/10+0/10 pièges retors que+dont+où)."""
     w = T[i].lower()
     if not CONJ_LOADED or "'" in w or w.endswith(('é', 'és', 'ée', 'ées')): return None
     tg = pos_tags(T)
@@ -2384,7 +2386,7 @@ def rule_accord_rel_obj(T, i):
     q = None
     for k in range(i-1, -1, -1):
         wk = T[k].lower()
-        if wk in ('que', "qu'", 'qu') or wk.startswith("qu'"): q = k; break
+        if wk in ('que', "qu'", 'qu', 'dont', 'où') or wk.startswith("qu'"): q = k; break   # « où » ACCENTUÉ = relatif (≠ « ou » conjonction, borne ci-dessous)
         if deacc(wk) in ('et', 'ou', 'ni', 'mais', 'car', 'donc', 'or'): break
     if q is None or q < 2 or q >= i - 1: return None
     if not _rel_fin_between(T, tg, q, i): return None
@@ -2508,6 +2510,8 @@ CASES = [
     ("Les enfants que je vois jouent", "jouent", "joue", "accord sujet-verbe"),              # antécédent = enfants (plur.), écran « que je vois »
     ("Les gens que je connais viennent", "viennent", "vient", "accord sujet-verbe"),         # antécédent = gens (hors-lexique) → dét « les » audible suffit
     ("Les erreurs que le prof corrige persistent", "persistent", "persiste", "accord sujet-verbe"),  # sujet embarqué 3sg « le prof » ≠ sujet du verbe cible
+    ("Les sujets dont on parle intéressent", "intéressent", "intéresse", "accord sujet-verbe"),      # relatif « dont » (jamais complétif) → antécédent-avant
+    ("Les endroits où on va coûtent cher", "coûtent", "coûte", "accord sujet-verbe"),                # relatif « où » ACCENTUÉ (≠ conjonction « ou »)
     # accord sujet-verbe à sujets COORDONNÉS (X et Y → pluriel ; personne 1>2>3)
     ("Le chat et le chien mangent la viande", "mangent", "mange", "accord sujet-verbe"),     # deux GN → 3e plur.
     ("Toi et moi mangeons ensemble", "mangeons", "mange", "accord sujet-verbe"),             # toi + moi → 1re plur.
