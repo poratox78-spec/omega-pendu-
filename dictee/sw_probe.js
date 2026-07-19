@@ -19,7 +19,7 @@ try { new Function(src); } catch (e) { fail.push('syntaxe sw.js : ' + e.message)
 // revalidation (ETag → 304) ; l'inclure ici coupleraît sw.js à CHAQUE injection de lexique — conflit dans toutes
 // les PR pour un bump dont l'app n'a pas besoin.
 const HASHED = ['index.html', 'correcteur.html', 'correcteur-outil.html', 'dictee.html', 'omega-key.html',
-                'recherche.html', 'toile.html', 'evolution.html', 'site.css', 'manifest.json', 'icon.svg'];
+                'recherche.html', 'toile.html', 'arbitrage.html', 'evolution.html', 'site.css', 'manifest.json', 'icon.svg'];
 // ⚠️ NORMALISER LES FINS DE LIGNE AVANT DE HACHER, sinon l'empreinte dépend de l'OS et la CI diverge du poste :
 // le dépôt a des fins de ligne MIXTES en base (index.html/site.css en LF, mais dictee.html/omega-key.html/
 // evolution.html en CRLF), et sans .gitattributes un checkout Windows convertit encore. Mesuré : disque Windows
@@ -50,7 +50,7 @@ const core = src.match(/const CORE\s*=\s*\[([^\]]*)\]/);
 // liste blanche du précache : les petites pages du site + assets. Les LOURDS (app 11 Mo, pendable, scrabidon)
 // sont volontairement exclus (cachés à la visite) — les précacher re-téléchargerait ~13 Mo à CHAQUE bump de version.
 const WHITELIST = new Set(['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html',
-  './omega-key.html', './recherche.html', './toile.html', './evolution.html', './site.css', './manifest.json', './icon.svg']);
+  './omega-key.html', './recherche.html', './toile.html', './arbitrage.html', './evolution.html', './site.css', './manifest.json', './icon.svg']);
 if (!core) fail.push('CORE introuvable');
 else for (const it of core[1].split(',').map(s => s.trim().replace(/^'|'$/g, '')).filter(Boolean)) {
   if (!WHITELIST.has(it)) fail.push('CORE contient une entrée hors liste blanche (risque 308 → cache empoisonné) : ' + it);
