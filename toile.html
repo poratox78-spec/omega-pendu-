@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>La toile du correcteur OMEGA-Ω</title>
+<style>
+  :root{
+    --bg:#15120d; --panel:#1e1a13; --panel2:#25201743; --line:#332c20;
+    --text:#ece4d3; --muted:#9d9480; --faint:#6b6353;
+    --gold:#d0a54c; --slate:#7098c4; --violet:#a98bd6; --teal:#57b09b;
+    --rouge:#e2504a; --orange:#e8a247; --center:#efe7d4;
+    --edge:#4a4130;
+    --shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f4efe3; --panel:#fbf8f0; --panel2:#efe8d8aa; --line:#e0d7c2;
+      --text:#2b2417; --muted:#6f6752; --faint:#a49a82;
+      --gold:#a67c22; --slate:#3f6690; --violet:#7c56b0; --teal:#2e8069;
+      --rouge:#c53b34; --orange:#c07a15; --center:#2b2417;
+      --edge:#cdc2a6; --shadow:0 8px 30px rgba(120,100,60,.18);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15120d; --panel:#1e1a13; --panel2:#25201743; --line:#332c20;
+    --text:#ece4d3; --muted:#9d9480; --faint:#6b6353;
+    --gold:#d0a54c; --slate:#7098c4; --violet:#a98bd6; --teal:#57b09b;
+    --rouge:#e2504a; --orange:#e8a247; --center:#efe7d4; --edge:#4a4130;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4efe3; --panel:#fbf8f0; --panel2:#efe8d8aa; --line:#e0d7c2;
+    --text:#2b2417; --muted:#6f6752; --faint:#a49a82;
+    --gold:#a67c22; --slate:#3f6690; --violet:#7c56b0; --teal:#2e8069;
+    --rouge:#c53b34; --orange:#c07a15; --center:#2b2417; --edge:#cdc2a6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+  .mono{font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+  #wrap{position:fixed;inset:0}
+  canvas{display:block;position:absolute;inset:0}
+  header{position:absolute;top:0;left:0;right:0;padding:18px 22px 40px;
+    pointer-events:none;background:linear-gradient(180deg,var(--bg) 8%,transparent);z-index:3}
+  h1{margin:0;font-family:Georgia,"Times New Roman",serif;font-weight:600;
+    font-size:clamp(20px,2.4vw,30px);letter-spacing:-.01em;text-wrap:balance}
+  h1 .om{color:var(--rouge)}
+  .sub{margin:5px 0 0;color:var(--muted);font-size:13.5px;max-width:60ch;line-height:1.5}
+  .sub b{color:var(--text);font-weight:600}
+  /* legend + filters */
+  #ui{position:absolute;left:16px;bottom:16px;z-index:4;display:flex;flex-direction:column;gap:10px;
+    max-width:min(280px,44vw)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
+  .lg-title{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .fam{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:4px 6px;border-radius:7px;
+    cursor:pointer;user-select:none;transition:background .15s;color:var(--muted)}
+  .fam:hover{background:var(--panel2)}
+  .fam.on{color:var(--text)}
+  .fam.off{opacity:.38}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 22%,transparent)}
+  .fam .n{margin-left:auto;font-size:10.5px;color:var(--faint)}
+  /* detail panel */
+  #detail{position:absolute;right:16px;top:88px;z-index:4;width:min(320px,46vw);
+    opacity:0;transform:translateY(-6px);transition:opacity .2s,transform .2s;pointer-events:none}
+  #detail.show{opacity:1;transform:none}
+  #detail .tag{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    padding:2px 8px;border-radius:20px;color:#fff;font-weight:600}
+  #detail h3{margin:9px 0 3px;font-size:17px;letter-spacing:-.01em}
+  #detail .meta{color:var(--muted);font-size:12.5px;line-height:1.55;margin:6px 0 0}
+  #detail .links{margin:11px 0 0;border-top:1px solid var(--line);padding-top:9px}
+  #detail .links .lt{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+  #detail .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);
+    padding:2px 4px;margin:1px 3px 1px 0}
+  #detail .chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+  .hint{position:absolute;right:16px;bottom:16px;z-index:4;color:var(--faint);font-size:11.5px;text-align:right;
+    pointer-events:none}
+  kbd{font-family:ui-monospace,monospace;background:var(--panel2);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;font-size:11px;color:var(--muted)}
+  @media (max-width:640px){ #detail{top:auto;bottom:180px;right:12px;left:12px;width:auto} .hint{display:none} }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+  <header>
+    <h1>La toile du correcteur <span class="om">OMEGA·Ω</span></h1>
+    <p class="sub">Tout est interconnecté : chaque <b>règle</b> se nourrit de <b>lexiques</b>, de <b>moteurs</b> et de <b>signaux de contexte</b> pour trancher entre <b style="color:var(--rouge)">rouge</b> (correction sûre, FP = 0) et <b style="color:var(--orange)">orange</b> (vigilance, doute). Survole un nœud pour éclairer ses fils.</p>
+  </header>
+
+  <div id="ui">
+    <div class="card">
+      <p class="lg-title">Familles — clic pour filtrer</p>
+      <div id="legend"></div>
+    </div>
+  </div>
+
+  <div id="detail" class="card"></div>
+  <div class="hint">glisse pour déplacer un nœud · <kbd>survol</kbd> éclaire la toile</div>
+</div>
+
+<script>
+"use strict";
+const FAM = {
+  source:  {label:"Sources lexicales", c:getComputedStyle(document.documentElement).getPropertyValue('--gold')},
+  struct:  {label:"Structures de données", c:0},
+  engine:  {label:"Moteurs", c:0},
+  ctx:     {label:"Signaux de contexte", c:0},
+  rouge:   {label:"Règles rouges (FP=0)", c:0},
+  orange:  {label:"Règles oranges (vigilance)", c:0},
+  out:     {label:"Sortie", c:0},
+};
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function famColor(f){return {source:cssv('--gold'),struct:cssv('--slate'),engine:cssv('--violet'),ctx:cssv('--teal'),rouge:cssv('--rouge'),orange:cssv('--orange'),out:cssv('--center')}[f];}
+
+// ---- LE MODÈLE (vérifié dans le code, 2026-07) ----
+const N = [
+  {id:'core', f:'out', r:26, label:'Correcteur', desc:"Pipeline pyramidal : orthographe → analyse (tagger) → grammaire, en cascade jusqu'au point fixe. 3 moteurs en parité stricte : Python (référence), app monolithe, extension."},
+  // sources
+  {id:'lex4', f:'source', r:15, label:'Lexique4', desc:"Base CC BY-SA, 37 colonnes (Mot·IPA·Lemme·POS·Genre·Nombre·Freq). Source unique dont dérivent conj / genre / speller."},
+  {id:'wikt', f:'source', r:15, label:'Wiktionnaire', desc:"46 018 lignes kaikki (CC BY-SA). Tue 56 % du flood « mot inconnu ». Une passe : mot·POS·genre·IPA·nombre."},
+  {id:'argot', f:'source', r:11, label:'Argot / anglicismes', desc:"146 + 52 termes curés (Twitch/Discord + handicap : dys, tdah, aesh). Éthique : pas d'insulte, glose relue une par une."},
+  {id:'part', f:'source', r:11, label:'Participes accordés', desc:"3 049 participes fléchis (dallée/dallés) — fin du FP « dallées→d'allées »."},
+  {id:'ud', f:'source', r:12, label:'Treebank UD', desc:"French-GSD : entraîne le tagger HMM (UPOS + deprel). CC BY-SA. 2 500 phrases = garde FP=0 à l'échelle."},
+  // structures
+  {id:'spw', f:'struct', r:15, label:'SP.WORDS', desc:"214 685 mots connus. La garde anti-flood du speller : un mot connu n'est jamais « inconnu »."},
+  {id:'gn', f:'struct', r:14, label:'GENDER · gn', desc:"68 746 genres (21 847 wikt + 56 argot). Nourrit l'accord genre du déterminant et de l'adjectif."},
+  {id:'conj', f:'struct', r:14, label:'CONJ_C', desc:"Paradigme complet (Bescherelle) : lemme × mode × personne × nombre. Émet les formes de correction verbale."},
+  {id:'hmm', f:'struct', r:13, label:'POS-HMM', desc:"Modèle bigramme Viterbi (155 k), ~95 % d'exactitude. Émission apprise + backoff suffixe."},
+  {id:'np', f:'struct', r:12, label:'NOUN_POST', desc:"Posterior P(nom)/P(verbe) par forme — gate §3 des accords genre/pluriel."},
+  {id:'ipa', f:'struct', r:11, label:'IPA · phon_key', desc:"Clé phonétique approximative (lossy). Le vrai IPA a été mesuré-réfuté : les fautes dys SONT phonétiquement approximatives."},
+  {id:'colL', f:'struct', r:10, label:'_INVAR_COLOR', desc:"48 couleurs/matières invariables (crème, marine, émeraude). Empêchent le filet SV et la vigilance pluriel de les prendre pour des verbes/noms."},
+  // moteurs
+  {id:'tag', f:'engine', r:16, label:'Tagger HMM', desc:"Viterbi. Donne la NATURE de chaque mot en contexte. Le sujet plafonne à ~94 % = le mur syntaxique (hors parseur)."},
+  {id:'spell', f:'engine', r:15, label:'Speller', desc:"Canal bruité (édition + phon_key). Émet ortho (rouge/orange) + spans multi-tokens (répétition, espacement, trait d'union, élision)."},
+  {id:'os', f:'engine', r:13, label:'OS-sujet', desc:"Arbitrage μ = r/(1+r) : fiabilité = piqué de la distribution. Trouve le sujet éloigné en ORANGE là où le parseur s'abstient."},
+  {id:'filet', f:'engine', r:12, label:'_verb_or_homograph', desc:"Filet partagé : récupère les verbes que l'émission HMM rate (persiste/signale), tout en écartant noms/adj/couleurs connus."},
+  // contexte
+  {id:'det', f:'ctx', r:13, label:'Déterminant audible', desc:"« les/des » = pluriel ENTENDU, fiable. Ancre l'accord même quand la marque du verbe (-ent) est muette."},
+  {id:'subjN', f:'ctx', r:14, label:'Sujet non-adjacent', desc:"Idée de Rem : le sujet se retrouve même loin — via le verbe coordonné, la relative (que/dont/où), l'incise. 4 leviers FP=0."},
+  {id:'audi', f:'ctx', r:12, label:'Audibilité', desc:"Le dys écrit ce qu'il ENTEND. On ancre sur l'audible (le/la/les, voyelles), on répare le muet (-s/-ent/accents)."},
+  {id:'seg', f:'ctx', r:12, label:'Ponctuation · _SEG', desc:"bb (frontière proposition), ss (phrase), hy (trait d'union), dig (nombre effacé). Détecte l'incise, borne les recherches de sujet."},
+  {id:'postype', f:'ctx', r:11, label:'Type POS', desc:"La nature (nom/verbe/adj/dét) gate quasi toutes les règles : désambiguïse les homographes (la marche : nom vs verbe)."},
+  // règles rouges
+  {id:'sv', f:'rouge', r:15, label:'Accord sujet-verbe', desc:"Famille : sv_noun, coord (#207), rel_obj que/dont/où (#209/210), incise (#211), quantifieur, relatif qui, postposé, -ais→-ait."},
+  {id:'pp', f:'rouge', r:13, label:'Accord participe', desc:"pp_être (sujet), pp_avoir + COD antéposé (que), dont. Perception/factitif + infinitif = INVARIABLE (#212 : s'est vu confisquer)."},
+  {id:'genre', f:'rouge', r:12, label:'Accord genre', desc:"Déterminant→nom, adjectif attribut & épithète. Couleurs composées (bleu marine) invariables."},
+  {id:'term', f:'rouge', r:11, label:'Terminaisons', desc:"-é/-er/-ez/-ai (mordre/mordu, marqueurs je/vous), impératif (-s euphonique, va-y)."},
+  {id:'homo', f:'rouge', r:14, label:'Homophones', desc:"son/sont, on/ont, a/à, et/est, ce/se, c'est/s'est, ça/sa, met/mais, du/dû, sur/sûr, la/là, peu/peut, leur/leurs, sais/sait…"},
+  {id:'nom', f:'rouge', r:11, label:'Accord du nom', desc:"Pluriel (les enfant→enfants) et singulier (le camps→camp) ancrés dans le lexique."},
+  {id:'span', f:'rouge', r:12, label:'Spans speller', desc:"Répétition (le le→le), espacement FR (mot,mot), trait d'union (au dessus), élision (l'/d'). Corrections multi-tokens."},
+  // règles oranges
+  {id:'plu', f:'orange', r:12, label:'Vigilance pluriel', desc:"Après dét pluriel, propose le pluriel du nom/adj — SANS toucher verbes mistagués ni couleurs invariables (fix audit #215)."},
+  {id:'osv', f:'orange', r:11, label:'Vigilance OS-sujet', desc:"Le sujet éloigné trouvé par l'OS → accord verbe en orange (jamais affirmé, le mur syntaxique interdit le rouge)."},
+  {id:'homov', f:'orange', r:11, label:'Vigilance homophone', desc:"ces/ses, ou/où, imparfait résiduel : signalés « à vérifier » quand la grammaire seule ne tranche pas."},
+  {id:'unk', f:'orange', r:11, label:'Mot inconnu', desc:"Non-mot hors SP.WORDS → candidat orange. 78 % de vrais typos sur le corpus dys réel ; le lexique large éteint le reste."},
+  // sortie
+  {id:'ROUGE', f:'out', r:16, label:'ROUGE', desc:"Correction affirmative. Doctrine : FP = 0, mesuré sur 2 500 phrases UD correctes. Une faute de grammaire est rouge, jamais tue par paresse."},
+  {id:'ORANGE', f:'out', r:16, label:'ORANGE', desc:"Vigilance « à vérifier ». Réponse au doute (jamais le silence) : priver un dys d'une piste parce qu'on n'est « pas sûr » = discrimination."},
+];
+const E = [
+  // sources -> structures
+  ['lex4','spw'],['lex4','gn'],['lex4','conj'],['lex4','ipa'],['wikt','spw'],['wikt','gn'],['wikt','ipa'],
+  ['argot','spw'],['argot','gn'],['part','spw'],['ud','hmm'],['ud','core'],
+  // structures -> engines
+  ['spw','spell'],['hmm','tag'],['conj','sv'],['conj','pp'],['conj','term'],['gn','genre'],['np','genre'],['np','gn'],
+  ['ipa','spell'],['colL','filet'],['colL','plu'],
+  // engines internal / -> rules
+  ['tag','filet'],['tag','core'],['spell','core'],['os','core'],['filet','sv'],
+  ['tag','sv'],['tag','pp'],['tag','genre'],['tag','homo'],['tag','nom'],['tag','plu'],
+  ['spell','span'],['spell','unk'],['os','osv'],
+  // context -> rules
+  ['det','genre'],['det','nom'],['det','plu'],['det','sv'],['subjN','sv'],['subjN','osv'],
+  ['audi','homo'],['audi','sv'],['audi','term'],['seg','span'],['seg','sv'],['seg','core'],
+  ['postype','homo'],['postype','sv'],['postype','genre'],['postype','filet'],
+  // rules -> output
+  ['sv','ROUGE'],['pp','ROUGE'],['genre','ROUGE'],['term','ROUGE'],['homo','ROUGE'],['nom','ROUGE'],['span','ROUGE'],
+  ['plu','ORANGE'],['osv','ORANGE'],['homov','ORANGE'],['unk','ORANGE'],
+  ['ROUGE','core'],['ORANGE','core'],
+  // cross links (la toile)
+  ['gn','genre'],['subjN','seg'],['os','subjN'],['homov','homo'],
+];
+const byId = Object.fromEntries(N.map(n=>[n.id,n]));
+const adj = {}; N.forEach(n=>adj[n.id]=new Set());
+E.forEach(([a,b])=>{adj[a].add(b);adj[b].add(a);});
+
+// ---- layout / physics ----
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let W,H,DPR;
+function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0);}
+resize();addEventListener('resize',resize);
+// seed positions radially by family ring
+const RINGS={out:0,engine:.42,struct:.6,ctx:.62,source:.95,rouge:.8,orange:.86};
+let seed=7;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280;}
+N.forEach((n,i)=>{
+  if(n.id==='core'){n.x=0;n.y=0;}
+  else{const ring=RINGS[n.f]??.7;const ang=rnd()*Math.PI*2;const rad=(120+ring*260);n.x=Math.cos(ang)*rad;n.y=Math.sin(ang)*rad;}
+  n.vx=0;n.vy=0;
+});
+byId.ROUGE.x=170;byId.ROUGE.y=150;byId.ORANGE.x=-170;byId.ORANGE.y=160;
+const famOff=new Set(); // families filtered out
+let hoverId=null,dragId=null,pinned=null;
+let cam={x:0,y:0,s:1},tx=0,ty=0;
+
+function visible(n){return !famOff.has(n.f);}
+function step(){
+  const K=0.0009, REP=2600, LINK=0.015, LEN=118, CENTER=0.0016;
+  for(const n of N){ if(n===dragNode) continue;
+    for(const m of N){ if(n===m) continue;
+      let dx=n.x-m.x,dy=n.y-m.y,d2=dx*dx+dy*dy+0.01;let d=Math.sqrt(d2);
+      let f=REP/d2; n.vx+=dx/d*f; n.vy+=dy/d*f;
+    }
+    n.vx-=n.x*CENTER; n.vy-=n.y*CENTER;
+  }
+  for(const [a,b] of E){const p=byId[a],q=byId[b];let dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy)||.01;
+    let f=(d-LEN)*LINK; if(p!==dragNode){p.vx+=dx/d*f;p.vy+=dy/d*f;} if(q!==dragNode){q.vx-=dx/d*f;q.vy-=dy/d*f;}
+  }
+  for(const n of N){ if(n===dragNode) continue; n.vx*=0.86;n.vy*=0.86;n.x+=n.vx*.9;n.y+=n.vy*.9; }
+  byId.core.x*=.8;byId.core.y*=.8; // gently hold center
+}
+let dragNode=null;
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2+cam.x, cy=H/2+cam.y+18;
+  const hl = hoverId||pinned;
+  const near = hl? adj[hl] : null;
+  // edges
+  ctx.lineWidth=1;
+  for(const [a,b] of E){const p=byId[a],q=byId[b];if(!visible(p)||!visible(q))continue;
+    const active = hl && (a===hl||b===hl);
+    ctx.beginPath();ctx.moveTo(cx+p.x,cy+p.y);
+    // slight curve
+    const mx=(p.x+q.x)/2, my=(p.y+q.y)/2;
+    ctx.quadraticCurveTo(cx+mx, cy+my, cx+q.x,cy+q.y);
+    if(active){ctx.strokeStyle=famColor(byId[a===hl?b:a].f);ctx.globalAlpha=.85;ctx.lineWidth=1.6;}
+    else{ctx.strokeStyle=cssv('--edge');ctx.globalAlpha=hl?.10:.34;ctx.lineWidth=1;}
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+  // nodes
+  for(const n of N){ if(!visible(n))continue;
+    const c=famColor(n.f);
+    const dim = hl && n.id!==hl && !near.has(n.id);
+    const x=cx+n.x,y=cy+n.y;
+    ctx.globalAlpha=dim?.22:1;
+    // glow
+    if(!dim){ctx.beginPath();ctx.arc(x,y,n.r+7,0,7);ctx.fillStyle=c;ctx.globalAlpha=dim?.05:(n.id===hl?.26:.12);ctx.fill();ctx.globalAlpha=1;}
+    ctx.beginPath();ctx.arc(x,y,n.r,0,7);
+    ctx.fillStyle=(n.f==='out')?cssv('--panel'):c;
+    ctx.globalAlpha=dim?.28:1;ctx.fill();
+    if(n.f==='out'){ctx.lineWidth=2.2;ctx.strokeStyle=(n.id==='ROUGE')?cssv('--rouge'):(n.id==='ORANGE')?cssv('--orange'):cssv('--center');ctx.stroke();}
+    // label
+    ctx.globalAlpha=dim?.3:1;
+    ctx.fillStyle=(n.f==='out' && n.id!=='core')?(n.id==='ROUGE'?cssv('--rouge'):cssv('--orange')):cssv('--text');
+    if(n.f==='out'){ctx.font='700 '+(n.id==='core'?14:12)+'px system-ui';}
+    else ctx.font='600 11.5px system-ui';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    const ly=y+n.r+4;
+    ctx.fillText(n.label, x, ly);
+  }
+  ctx.globalAlpha=1;
+}
+function tick(){step();draw();requestAnimationFrame(tick);}
+tick();
+
+// ---- interaction ----
+function pick(mx,my){const cx=W/2+cam.x,cy=H/2+cam.y+18;let best=null,bd=1e9;
+  for(const n of N){if(!visible(n))continue;const dx=mx-(cx+n.x),dy=my-(cy+n.y);const d=dx*dx+dy*dy;const rr=(n.r+8)**2;if(d<rr&&d<bd){bd=d;best=n;}}return best;}
+cv.addEventListener('mousemove',e=>{
+  if(dragNode){const cx=W/2+cam.x,cy=H/2+cam.y+18;dragNode.x=e.clientX-cx;dragNode.y=e.clientY-cy;dragNode.vx=dragNode.vy=0;return;}
+  const n=pick(e.clientX,e.clientY);const id=n?n.id:null;
+  cv.style.cursor=n?'pointer':'default';
+  if(id!==hoverId){hoverId=id;if(id)showDetail(byId[id]);else if(!pinned)hideDetail();}
+});
+cv.addEventListener('mousedown',e=>{const n=pick(e.clientX,e.clientY);if(n){dragNode=n;pinned=n.id;showDetail(n);}});
+addEventListener('mouseup',()=>{dragNode=null;});
+cv.addEventListener('click',e=>{const n=pick(e.clientX,e.clientY);if(!n){pinned=null;hideDetail();}});
+// touch
+cv.addEventListener('touchstart',e=>{const t=e.touches[0];const n=pick(t.clientX,t.clientY);if(n){dragNode=n;pinned=n.id;hoverId=n.id;showDetail(n);e.preventDefault();}},{passive:false});
+cv.addEventListener('touchmove',e=>{if(dragNode){const t=e.touches[0];const cx=W/2+cam.x,cy=H/2+cam.y+18;dragNode.x=t.clientX-cx;dragNode.y=t.clientY-cy;dragNode.vx=dragNode.vy=0;e.preventDefault();}},{passive:false});
+cv.addEventListener('touchend',()=>{dragNode=null;});
+
+const detail=document.getElementById('detail');
+function showDetail(n){
+  const c=famColor(n.f);
+  const neigh=[...adj[n.id]].map(id=>byId[id]);
+  const chips=neigh.map(m=>`<span class="chip" style="--c:${famColor(m.f)}">${m.label}</span>`).join('');
+  detail.style.setProperty('--c',c);
+  detail.innerHTML=`<span class="tag" style="background:${c}">${FAM[n.f].label}</span>
+    <h3>${n.label}</h3><p class="meta">${n.desc}</p>
+    <div class="links"><div class="lt">Relié à — ${neigh.length}</div>${chips}</div>`;
+  detail.classList.add('show');
+}
+function hideDetail(){detail.classList.remove('show');}
+
+// legend
+const counts={};N.forEach(n=>counts[n.f]=(counts[n.f]||0)+1);
+const legend=document.getElementById('legend');
+Object.entries(FAM).forEach(([k,v])=>{
+  const d=document.createElement('div');d.className='fam on';d.dataset.f=k;
+  d.innerHTML=`<span class="dot" style="--c:${famColor(k)};background:${famColor(k)}"></span>${v.label}<span class="n">${counts[k]||0}</span>`;
+  d.onclick=()=>{if(famOff.has(k)){famOff.delete(k);d.classList.remove('off');d.classList.add('on');}else{famOff.add(k);d.classList.add('off');d.classList.remove('on');}};
+  legend.appendChild(d);
+});
+// re-read colors on theme change
+const mo=new MutationObserver(()=>{document.querySelectorAll('.fam .dot').forEach((el,i)=>{const k=Object.keys(FAM)[i];el.style.background=famColor(k);el.style.setProperty('--c',famColor(k));});});
+mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+
+</body>
+</html>
