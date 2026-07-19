@@ -12504,6 +12504,31 @@ window.addEventListener('DOMContentLoaded', () => {
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
   // accord sujet-VERBE à sujets COORDONNÉS (« le chat et le chien dorment ») — MIROIR correcteur_probe.rule_accord_sv_coord, FP=0
   var _COORD_PRON={moi:'1',nous:'1',toi:'2',vous:'2',lui:'3',elle:'3',soi:'3',eux:'3',elles:'3'};
+  var _coordSubjW={};'je tu il elle on ils elles nous vous ça ca ce c cela ceci qui que dont'.split(' ').forEach(function(w){_coordSubjW[w]=1;});
+  function _vnum3(w){var rs=svReads(w),ns={},k;for(k=0;k<rs.length;k++)if(rs[k][2]==='3'&&(rs[k][1]==='ind:pre'||rs[k][1]==='ind:imp'))ns[rs[k][3]]=1;if(!ns.s&&!ns.p)return null;return (ns.p&&!ns.s)?'p':((ns.s&&!ns.p)?'s':null);}   // nombre du verbe 3e pers. ind:pre/imp, non ambigu
+  function rAccordVerbCoord(T,i){   // récupère le sujet via le VERBE COORDONNÉ (idée Rem : le sujet est dans le verbe frère) — miroir Python rule_accord_verb_coord, FP=0
+    var w=T[i].toLowerCase();
+    if(w.indexOf("'")>=0||/(é|és|ée|ées)$/.test(w))return null;                          // participe
+    var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
+    var rd=svReads(T[i]),r2=[],k;for(k=0;k<rd.length;k++)if(rd[k][2]==='3'&&(rd[k][1]==='ind:pre'||rd[k][1]==='ind:imp'))r2.push(rd[k]);
+    if(!r2.length)return null;
+    var vn2=_vnum3(T[i]);if(vn2===null)return null;
+    if(i>0&&(NUM_DET[T[i-1].toLowerCase()]!==undefined||PREP[deacc(T[i-1].toLowerCase())]))return null;
+    if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // passé composé
+    var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    var ci=null;for(k=i-1;k>=lo;k--){var dk=deacc(T[k].toLowerCase());if(dk==='et'||dk==='ou'||dk==='ni'){ci=k;break;}}
+    if(ci===null)return null;
+    for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;}   // nouveau sujet entre conj et V2 → V2 a le sien
+    var v1=null;for(k=ci-1;k>=lo;k--){
+      if(!/(é|és|ée|ées)$/.test(T[k].toLowerCase())&&_verbOrHomograph(tg,T,k)&&_vnum3(T[k])!==null){v1=k;break;}
+      var d=deacc(T[k].toLowerCase());if(GENDER_MAP[d]||ADJP[d])break;                    // vrai nom/adj avant la conj → coordination NOMINALE
+    }
+    if(v1===null)return null;
+    var n1=_vnum3(T[v1]);if(n1===null||n1===vn2)return null;
+    var mt='ind:imp';for(k=0;k<r2.length;k++)if(r2[k][1]==='ind:pre'){mt='ind:pre';break;}
+    var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3'+n1];
+    return (sug&&sug.toLowerCase()!==w)?sug:null;
+  }
   function rAccordSVcoord(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;
     if(/(é|és|ée|ées)$/.test(lw))return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
@@ -12841,7 +12866,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var num=_EPI_ART[deacc(T[i-2].toLowerCase())];
     if(!num)return null;                                                             // nombre non net (pas d'article) → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg});break;}}}return out;}   // une règle peut renvoyer {sugg,vig:1} → tier vigilance (orange), sinon string = rouge
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité) ; ’ normalisée (1:1, offsets intacts)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */

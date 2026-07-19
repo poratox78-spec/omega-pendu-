@@ -2298,6 +2298,57 @@ def rule_ca_sa(T, i):
         return None                                                  # genre inconnu (consonne) → abstention
     return None
 
+_COORD_SUBJW = set('je tu il elle on ils elles nous vous ça ca ce c cela ceci qui que dont'.split())   # entre la conj et V2 : présence d'un de ces mots = V2 a son propre sujet → pas une coordination de verbes
+
+def _vnum3(w):
+    """Nombre du verbe FINI en 3e personne indicatif présent/imparfait (s/p), NON ambigu ; sinon None."""
+    rs = [r for r in _reads(w) if r[2] == '3' and r[1] in ('ind:pre', 'ind:imp')]
+    if not rs: return None
+    nums = {r[3] for r in rs}
+    return 'p' if nums == {'p'} else ('s' if nums == {'s'} else None)
+
+def rule_accord_verb_coord(T, i):
+    """Accord SUJET-VERBE par RÉCUPÉRATION du sujet via le VERBE COORDONNÉ (idée de Rem : le sujet n'est pas toujours à
+    côté — le verbe frère le porte). « les chats mangent et dort »→dorment : « dort » n'a pas de sujet adjacent, mais V1
+    « mangent » (3pl) donne le nombre du sujet PARTAGÉ. Cadre : V2=T[i] verbe fini 3e pers. (ind:pre/imp) homographe-safe,
+    précédé de « et/ou/ni » SANS nouveau sujet entre (dét+nom, pronom, impersonnel) ; V1 = 1er verbe fini avant la conj,
+    nombre 3e pers. net ≠ celui de V2. Filet homographe sur les DEUX verbes (récupère « volent et chante » mistagués).
+    Gardes : participe (-é), passé composé (aux avant), coordination NOMINALE (vrai nom/adj avant la conj → « et » coord
+    de noms, pas de verbes). FP=0 mesuré (0/2500 UD)."""
+    w = T[i].lower()
+    if not CONJ_LOADED or "'" in w or w.endswith(('é', 'és', 'ée', 'ées')): return None    # participe = accord adjectival
+    tg = pos_tags(T)
+    if not tg or not _verb_or_homograph(tg, T, i): return None
+    r2 = [r for r in _reads(T[i]) if r[2] == '3' and r[1] in ('ind:pre', 'ind:imp')]
+    if not r2: return None
+    vn2 = _vnum3(T[i])
+    if vn2 is None: return None
+    if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return None   # dét/prép avant → nom homographe
+    if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None   # passé composé
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    ci = None
+    for k in range(i-1, lo-1, -1):
+        if deacc(T[k].lower()) in ('et', 'ou', 'ni'): ci = k; break
+    if ci is None: return None
+    for m in range(ci+1, i):                                    # entre la conj et V2 : aucun sujet → sinon V2 a le sien
+        if T[m].lower() in NUM_DET or deacc(T[m].lower()) in _COORD_SUBJW: return None
+    v1 = None                                                   # V1 = 1er verbe fini avant la conj (filet homographe inclus) ; s'arrête sur un vrai nom/adj (coord nominale)
+    for k in range(ci-1, lo-1, -1):
+        if not T[k].lower().endswith(('é', 'és', 'ée', 'ées')) and _verb_or_homograph(tg, T, k) and _vnum3(T[k]) is not None:
+            v1 = k; break
+        d = deacc(T[k].lower())
+        if d in GENDER_FULL or d in ADJ_LEX: break
+    if v1 is None: return None
+    n1 = _vnum3(T[v1])
+    if n1 is None or n1 == vn2: return None
+    lem = r2[0][0]; mt = 'ind:pre' if 'ind:pre' in {r[1] for r in r2} else 'ind:imp'
+    sug = CONJ_C.get(lem, {}).get(mt, {}).get('3' + n1)
+    return sug if (sug and sug.lower() != w) else None
+
+
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
          ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
@@ -2317,6 +2368,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_sv_coord),
          ('accord sujet-verbe', rule_accord_sv_infinitif),
          ('accord sujet-verbe', rule_accord_postpose),
+         ('accord sujet-verbe', rule_accord_verb_coord),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord pluriel nom', rule_noun_plural),
