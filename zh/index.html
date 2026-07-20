@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OMEGA 中文 — prototype</title>
+<style>
+  :root{ --bg:#12151c; --card:#1c2130; --ink:#eef1f7; --mut:#9aa6bd; --line:#2c3346; --acc:#5b8cff; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:16px/1.6 system-ui,'Segoe UI',Roboto,Arial,sans-serif;padding:40px 16px 60px}
+  .wrap{max-width:640px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 2px}
+  h1 .zh{font-size:30px;margin-right:8px}
+  .sub{color:var(--mut);font-size:14px;margin:0 0 6px}
+  .egg{color:var(--mut);font-size:13px;margin:0 0 26px}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--card);
+         border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:12px 0;transition:border-color .2s}
+  a.card:hover{border-color:var(--acc)}
+  .card .t{font-size:20px}
+  .card .t .zh{font-size:24px;margin-right:8px}
+  .card .d{color:var(--mut);font-size:14px;margin-top:4px}
+  .back{display:inline-block;margin-top:24px;color:var(--mut);font-size:14px}
+  .note{margin-top:22px;color:var(--mut);font-size:12px;line-height:1.7;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="zh">OMEGA 中文</span></h1>
+  <p class="sub">Le trio OMEGA porté en chinois — dictée, correcteur, pendu.</p>
+  <p class="egg">🥚 Tu as trouvé l'easter egg. Ceci est un <b>prototype expérimental</b>, pas encore un produit fini.</p>
+
+  <a class="card" href="dictee-zh.html">
+    <div class="t"><span class="zh">听写</span>Dictée chinoise</div>
+    <div class="d">Audio → écris les caractères → correction au caractère (别字 = bon son, mauvais caractère) → phrase suivante adaptée à tes fautes. Besoin d'une voix chinoise installée pour l'audio.</div>
+  </a>
+
+  <a class="card" href="correcteur-zh.html">
+    <div class="t"><span class="zh">别字校对</span>Correcteur homophone</div>
+    <div class="d">Colle du texte → il repère les 别字 et propose le bon caractère. Noisy-channel façon OMEGA, 0 faux positif rouge mesuré.</div>
+  </a>
+
+  <a class="card" href="pendu-zh.html">
+    <div class="t"><span class="zh">拼音猜词</span>Pendu pinyin</div>
+    <div class="d">Devine le mot chinois écrit en pinyin. Solveur cognitif intégré (100 % vs 19 % pour le naïf).</div>
+  </a>
+
+  <a class="back" href="../index.html">← retour à OMEGA</a>
+
+  <p class="note">
+    Prototype de faisabilité — 100 % local, aucune donnée envoyée. Contenu de sources autoritaires
+    (Unihan, CC-CEDICT, CFDICT, HSK, Tatoeba). Non référencé (noindex) : c'est une gemme cachée, pas une page publiée.
+  </p>
+</div>
+</body>
+</html>
