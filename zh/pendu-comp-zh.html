@@ -69,7 +69,8 @@
   </div>
 
   <p class="foot">
-    <b>Mesuré :</b> sans l'indice sonore, ce jeu est insoluble (naïf 0 %, cognitif seul 3 %) ; avec le son, le solveur atteint <b>85 % à 6 vies</b> et 95 % à 10.
+    <b>Mesuré :</b> sans l'indice sonore, ce jeu est insoluble (3 % à 6 vies). Avec la syllabe seule, le solveur monte à 85 % ;
+    <b>avec le TON</b>, à <b>97,5 % à 6 vies</b> et 99,4 % à 10. Le ton n'est pas un ornement : il divise le vivier par 2,6 (11,3 → 4,3 candidats).
     Autrement dit <b>le son détermine le caractère</b> — et 82 % des vraies fautes chinoises gardent le son juste en ratant la forme (mesuré sur 20 221 fautes, CSCD-NS).
     C'est exactement l'écart que ce jeu fait travailler.<br>
     Données : IDS (décomposition), Unihan, CFDICT, HSK. 100 % local, aucune donnée envoyée.
@@ -87,9 +88,10 @@ let cur, need, revealed, tried, wrong, over;
 
 // palette intelligente : les composants qui apparaissent dans les caractères DE MÊME SON
 // (c'est le raisonnement 形声 : le son oriente vers le composant phonétique) + radicaux fréquents.
+// Le son est pris AVEC LE TON : sans ton, 123 caractères avaient un composant nécessaire hors palette.
 function palette(target){
-  const snd = T[target].tl, set = new Set();
-  for (const k of KEYS) if (T[k].tl === snd) T[k].k.forEach(c => set.add(c));
+  const snd = T[target].py, set = new Set();
+  for (const k of KEYS) if (T[k].py === snd) T[k].k.forEach(c => set.add(c));
   for (const c of COMPS) { if (set.size >= 40) break; set.add(c); }
   const arr = [...set];
   arr.sort((a,b) => COMPS.indexOf(a) - COMPS.indexOf(b));
@@ -140,7 +142,7 @@ function finish(win){
   const t = T[cur];
   let lesson = `<b>${cur}</b> = ` + t.k.map(c => `${c}${CFR[c] ? ' <span style="color:var(--mut)">(' + CFR[c] + ')</span>' : ''}`).join(' + ');
   if (t.phon && t.k.includes(t.phon))
-    lesson += `<br>Le composant <b>${t.phon}</b> porte le <b>son</b> (${t.tl}).`;
+    lesson += `<br>Le composant <b>${t.phon}</b> porte le <b>son</b> (${t.py}).`;
   if (t.rad && t.k.includes(t.rad) && t.rad !== t.phon)
     lesson += ` Le radical <b>${t.rad}</b>${CFR[t.rad] ? ' (' + CFR[t.rad] + ')' : ''} donne le <b>sens</b>.`;
   $('reveal').style.display='';
@@ -155,8 +157,8 @@ $('solve').onclick = () => {
   $('log').textContent = '';
   const step = () => {
     if (over) return;
-    const snd = T[cur].tl, n = need.size;
-    let pool = KEYS.filter(k => T[k].k.length === n && T[k].tl === snd);
+    const snd = T[cur].py, n = need.size;
+    let pool = KEYS.filter(k => T[k].k.length === n && T[k].py === snd);
     if (!pool.length) pool = KEYS.filter(k => T[k].k.length === n);
     const cand = pool.filter(k => [...revealed].every(r => T[k].k.includes(r))
                               && ![...tried].some(g => !revealed.has(g) && T[k].k.includes(g)));
