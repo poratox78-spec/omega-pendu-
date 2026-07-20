@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>听写 · dictée chinoise (test OMEGA)</title>
+<style>
+  :root{ --bg:#12151c; --card:#1c2130; --ink:#eef1f7; --mut:#9aa6bd; --line:#2c3346;
+         --ok:#2ecc71; --homo:#f5a623; --bad:#ff5a5a; --acc:#5b8cff; --acc2:#7c5cff; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:16px/1.5 system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+       padding:24px 16px 60px}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 2px;letter-spacing:.3px}
+  h1 .zh{font-size:26px;margin-right:8px}
+  .sub{color:var(--mut);font-size:13px;margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{font:inherit;color:var(--ink);background:#242b3d;border:1px solid var(--line);
+         border-radius:10px;padding:9px 14px;cursor:pointer}
+  button:hover{border-color:var(--acc)}
+  button.primary{background:linear-gradient(180deg,var(--acc),#4b78e6);border:0;font-weight:600}
+  button.play{font-size:18px;padding:14px 22px}
+  button:disabled{opacity:.4;cursor:default}
+  .hintbtns button.on{background:#2f3a58;border-color:var(--acc)}
+  .hint{margin-top:12px;min-height:26px;font-size:20px;letter-spacing:2px;color:var(--mut)}
+  .hint b{color:var(--ink)}
+  .frhint{color:var(--acc);font-size:15px}
+  .zone{font-size:34px;min-height:56px;letter-spacing:6px;padding:10px 12px;border:1px dashed var(--line);
+        border-radius:10px;background:#0e1118;margin:6px 0;word-break:break-all}
+  .zone:empty::before{content:'écris ici (clavier chinois) ou clique les tuiles';font-size:14px;color:var(--mut);letter-spacing:normal}
+  input.free{width:100%;font-size:26px;letter-spacing:4px;padding:10px 12px;background:#0e1118;
+             color:var(--ink);border:1px solid var(--line);border-radius:10px}
+  .tiles{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .tile{font-size:26px;padding:6px 14px;border-radius:10px;background:#242b3d;border:1px solid var(--line);cursor:pointer;user-select:none}
+  .tile:active{transform:translateY(1px)}
+  .result{font-size:34px;letter-spacing:8px;margin:6px 0}
+  .result .c{padding:0 2px;border-radius:4px}
+  .c.ok{color:var(--ok)}
+  .c.homo{color:#12151c;background:var(--homo);border-radius:6px}
+  .c.bad{color:#12151c;background:var(--bad);border-radius:6px}
+  .c.miss{color:var(--bad);text-decoration:line-through;opacity:.8}
+  .c.ins{color:var(--mut);text-decoration:underline;font-size:24px}
+  .diag{margin-top:12px;font-size:14px}
+  .diag .lg{display:inline-block;margin-right:14px}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+  ul.errs{margin:10px 0 0;padding-left:0;list-style:none;font-size:14px}
+  ul.errs li{padding:4px 0;border-top:1px solid var(--line)}
+  ul.errs .tag{font-size:12px;padding:1px 7px;border-radius:20px;margin-right:8px}
+  .tag.homo{background:var(--homo);color:#12151c}
+  .tag.bad{background:var(--bad);color:#12151c}
+  .tag.miss{background:#39415a;color:var(--ink)}
+  .tag.ins{background:#39415a;color:var(--ink)}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--mut)}
+  .stats b{color:var(--ink);font-size:20px;display:block}
+  .weak{margin-top:10px;font-size:14px;color:var(--mut)}
+  .weak .wc{display:inline-block;font-size:22px;margin:0 3px;padding:2px 7px;border-radius:7px;background:#2a2030;border:1px solid #5a3a2a}
+  .foot{color:var(--mut);font-size:12px;margin-top:22px;line-height:1.7}
+  code{background:#0e1118;padding:1px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="zh">听写</span>dictée chinoise <span style="color:var(--mut);font-weight:400;font-size:15px">— test OMEGA</span></h1>
+  <p class="sub">audio → écris les caractères → scoring au caractère (别字 = bon son / mauvais caractère) → phrase suivante adaptée à tes fautes.</p>
+
+  <!-- ÉCOUTE -->
+  <div class="card">
+    <div class="row">
+      <button class="play primary" id="play">▶ Écouter</button>
+      <button id="replay">↻ Réécouter</button>
+      <label style="color:var(--mut);font-size:14px">vitesse
+        <input type="range" id="rate" min="0.5" max="1" step="0.1" value="0.8" style="vertical-align:middle">
+      </label>
+      <span style="flex:1"></span>
+      <span class="hintbtns row">
+        <button id="tpy">拼 pinyin</button>
+        <button id="tfr">sens FR</button>
+      </span>
+    </div>
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <!-- ÉCRITURE -->
+  <div class="card">
+    <input class="free" id="free" placeholder="écris ici avec un clavier chinois…" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div style="text-align:center;color:var(--mut);font-size:13px;margin:8px 0 2px">— ou sans clavier chinois, clique les caractères —</div>
+    <div class="zone" id="zone"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" id="check">Vérifier</button>
+      <button id="back">⌫ effacer</button>
+      <button id="next" disabled>Suivante ▶</button>
+    </div>
+  </div>
+
+  <!-- RÉSULTAT -->
+  <div class="card" id="rescard" style="display:none">
+    <div style="color:var(--mut);font-size:13px;margin-bottom:4px">correction</div>
+    <div class="result" id="result"></div>
+    <div class="diag">
+      <span class="lg"><span class="sw" style="background:var(--ok)"></span>correct</span>
+      <span class="lg"><span class="sw" style="background:var(--homo)"></span>别字 (bon son, mauvais caractère)</span>
+      <span class="lg"><span class="sw" style="background:var(--bad)"></span>faux</span>
+    </div>
+    <ul class="errs" id="errs"></ul>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="card">
+    <div class="stats">
+      <div>phrases<b id="s-rounds">0</b></div>
+      <div>caractères justes<b id="s-acc">—</b></div>
+      <div>别字 homophones<b id="s-homo">0</b></div>
+      <div>niveau<b id="s-lvl">1</b></div>
+    </div>
+    <div class="weak" id="weak"></div>
+  </div>
+
+  <p class="foot">
+    Test de faisabilité — pas de sauvegarde, pas de réseau, 100 % local.<br>
+    <b>Chaîne éprouvée :</b> TTS <code>SpeechSynthesis zh-CN</code> · scoring aligné (édit-distance) · détection homophone via pinyin sans ton + groupes de confusion 别字 curés · picker adaptatif (biais vers tes caractères faibles + boost 别字), calqué sur DysProfile.<br>
+    <b>Limites du proto :</b> détection 别字 limitée aux caractères de la banque ; l'indice pinyin ne gère pas le ton des polyphones (得/地 particules = « de » neutre, affiché « dé/dì ») — ce que la couche grammaire du futur correcteur réglera ; audio dépend d'une voix chinoise installée.
+  </p>
+</div>
+
+<script>
+const DATA = {"bank": [{"han": "请关门。", "fr": "Fermez la porte, s'il vous plaît.", "lvl": 1, "py": "qǐng guān mén"}, {"han": "你忙吗？", "fr": "Es-tu occupé ?", "lvl": 1, "py": "nǐ máng ma"}, {"han": "吃过了没？", "fr": "Est-ce que tu as déjà mangé ?", "lvl": 1, "py": "chī guò le méi"}, {"han": "我没有钱。", "fr": "Je n'ai pas d'argent.", "lvl": 1, "py": "wǒ méi yǒu qián"}, {"han": "请叫医生。", "fr": "Appelez un médecin, s'il vous plaît.", "lvl": 1, "py": "qǐng jiào yī shēng"}, {"han": "我想家了。", "fr": "J'ai le mal du pays.", "lvl": 1, "py": "wǒ xiǎng jiā le"}, {"han": "人不吃人。", "fr": "Les hommes ne se mangent pas entre eux.", "lvl": 1, "py": "rén bù chī rén"}, {"han": "你睡得好吗？", "fr": "As-tu bien dormi ?", "lvl": 1, "py": "nǐ shuì dé hǎo ma"}, {"han": "那天谢谢你。", "fr": "Merci pour l'autre jour.", "lvl": 1, "py": "nà tiān xiè xiè nǐ"}, {"han": "不要错过机会。", "fr": "Ne laisse pas passer la chance.", "lvl": 1, "py": "bú yào cuò guò jī huì"}, {"han": "我等着出租车。", "fr": "J'attendais un taxi.", "lvl": 1, "py": "wǒ děng zhe chū zū chē"}, {"han": "我想再睡一会。", "fr": "Je veux dormir encore un peu.", "lvl": 1, "py": "wǒ xiǎng zài shuì yī huì"}, {"han": "他住在苹果里面。", "fr": "Il habite dans une pomme.", "lvl": 1, "py": "tā zhù zài píng guǒ lǐ miàn"}, {"han": "他给谁打的电话？", "fr": "À qui téléphone-t-il ?", "lvl": 1, "py": "tā gěi shuí dǎ dī diàn huà"}, {"han": "我再也不能等了。", "fr": "Je ne peux pas attendre plus longtemps.", "lvl": 1, "py": "wǒ zài yě bù néng děng le"}, {"han": "那儿是什么天气？", "fr": "Quel temps fait-il là-bas ?", "lvl": 1, "py": "nà ér shì shén me tiān qì"}, {"han": "他喜欢住在东京。", "fr": "Il aime vivre à Tokyo.", "lvl": 1, "py": "tā xǐ huān zhù zài dōng jīng"}, {"han": "这儿有人说日语吗？", "fr": "Est-ce que quelqu'un ici parle japonais ?", "lvl": 1, "py": "zhè ér yǒu rén shuō rì yǔ ma"}, {"han": "他不会再来这儿了。", "fr": "Il ne vient plus ici.", "lvl": 1, "py": "tā bú huì zài lái zhè ér le"}, {"han": "明天是我的休息日。", "fr": "Demain est mon jour de congé.", "lvl": 1, "py": "míng tiān shì wǒ de xiū xī rì"}, {"han": "我有空。", "fr": "Je suis libre.", "lvl": 2, "py": "wǒ yǒu kòng"}, {"han": "她上夜校。", "fr": "Elle prend des cours du soir.", "lvl": 2, "py": "tā shàng yè xiào"}, {"han": "这是谁啊？", "fr": "Qui est-ce ?", "lvl": 2, "py": "zhè shì shuí a"}, {"han": "一直向前走！", "fr": "Allez toujours tout droit !", "lvl": 2, "py": "yì zhí xiàng qián zǒu"}, {"han": "今晚谁发言？", "fr": "Qui va parler ce soir ?", "lvl": 2, "py": "jīn wǎn shuí fā yán"}, {"han": "我来自中国。", "fr": "Je suis venu de la Chine.", "lvl": 2, "py": "wǒ lái zì zhōng guó"}, {"han": "别那么着急。", "fr": "Ne vous inquiétez pas comme ça.", "lvl": 2, "py": "bié nà me zhe jí"}, {"han": "我刚来到这里。", "fr": "Je viens juste d'arriver ici.", "lvl": 2, "py": "wǒ gāng lái dào zhè lǐ"}, {"han": "我们没必要急。", "fr": "Nous n'avions pas besoin de nous presser.", "lvl": 2, "py": "wǒ men méi bì yào jí"}, {"han": "信是写给谁的？", "fr": "À l'attention de qui la lettre était-elle écrite ?", "lvl": 2, "py": "xìn shì xiě gěi shéi de"}, {"han": "他已经离开了。", "fr": "Il est déjà parti.", "lvl": 2, "py": "tā yǐ jīng lí kāi le"}, {"han": "你每天跑步吗？", "fr": "Cours-tu quotidiennement ?", "lvl": 2, "py": "nǐ měi tiān pǎo bù ma"}, {"han": "他篮球打得很好。", "fr": "Il est bon au basketball.", "lvl": 2, "py": "tā lán qiú dǎ dé hěn hǎo"}, {"han": "那一位是什么人？", "fr": "Qui est cette personne ?", "lvl": 2, "py": "nà yī wèi shì shén me rén"}, {"han": "她的英文比我好。", "fr": "Son anglais à elle est meilleur que le mien.", "lvl": 2, "py": "tā de yīng wén bǐ wǒ hǎo"}, {"han": "昨天他写了一封信。", "fr": "Hier, il a écrit une lettre.", "lvl": 2, "py": "zuó tiān tā xiě le yī fēng xìn"}, {"han": "这个女孩样子变了。", "fr": "Cette fille a changé de look.", "lvl": 2, "py": "zhè ge nǚ hái yàng zi biàn le"}, {"han": "你的学业怎么样了?", "fr": "Comment se passent tes études ?", "lvl": 2, "py": "nǐ de xué yè zěn me yàng le"}, {"han": "老师说明了词的意思。", "fr": "L'instituteur nous expliqua la signification du mot.", "lvl": 2, "py": "lǎo shī shuō míng le cí de yì si"}, {"han": "我能为您做些什么吗？", "fr": "Puis-je faire quelque chose pour vous ?", "lvl": 2, "py": "wǒ néng wèi nín zuò xiē shén me ma"}, {"han": "我很担心你。", "fr": "Je me fais du souci pour vous.", "lvl": 3, "py": "wǒ hěn dān xīn nǐ"}, {"han": "美国我没去过。", "fr": "Je ne suis jamais allé en Amérique.", "lvl": 3, "py": "měi guó wǒ méi qù guò"}, {"han": "旧杂志卖完了。", "fr": "Les anciens magazines sont tous vendus.", "lvl": 3, "py": "jiù zá zhì mài wán le"}, {"han": "支票是纸做的。", "fr": "Les chèques sont en papier.", "lvl": 3, "py": "zhī piào shì zhǐ zuò de"}, {"han": "我做事该果断。", "fr": "Je devrais arrêter la procrastination.", "lvl": 3, "py": "wǒ zuò shì gāi guǒ duàn"}, {"han": "这些百合花很香。", "fr": "Ces lis sentent bon.", "lvl": 3, "py": "zhè xiē bǎi hé huā hěn xiāng"}, {"han": "迟做总比不做好。", "fr": "Mieux vaut tard que jamais.", "lvl": 3, "py": "chí zuò zǒng bǐ bù zuò hǎo"}, {"han": "我养了一只母猫。", "fr": "Je m'occupe d'une chatte.", "lvl": 3, "py": "wǒ yǎng le yī zhī mǔ māo"}, {"han": "你这么说很失礼。", "fr": "C'est grossier de ta part de dire ça.", "lvl": 3, "py": "nǐ zhè me shuō hěn shī lǐ"}, {"han": "信的内容是什么？", "fr": "De quoi parle la lettre ?", "lvl": 3, "py": "xìn de nèi róng shì shén me"}, {"han": "我要他提行李箱。", "fr": "Je lui ai fait porter la valise.", "lvl": 3, "py": "wǒ yào tā tí xíng lǐ xiāng"}, {"han": "我最近着迷于法语。", "fr": "Je suis obsédée par le français ces derniers temps.", "lvl": 3, "py": "wǒ zuì jìn zháo mí yú fǎ yǔ"}, {"han": "您曾经见过考拉吗？", "fr": "Avez-vous déjà vu un koala ?", "lvl": 3, "py": "nín céng jīng jiàn guò kǎo lā ma"}, {"han": "他成为了一个警察。", "fr": "Il est devenu policier.", "lvl": 3, "py": "tā chéng wéi le yí gè jǐng chá"}, {"han": "你其实没必要带伞。", "fr": "Tu n'avais pas besoin de prendre un parapluie avec toi.", "lvl": 3, "py": "nǐ qí shí méi bì yào dài sǎn"}, {"han": "我不知道她结婚了。", "fr": "J'ignorais qu'elle fut mariée.", "lvl": 3, "py": "wǒ bù zhī dào tā jié hūn le"}, {"han": "我该打扫房间吗 ?", "fr": "Dois-je faire la chambre ?", "lvl": 3, "py": "wǒ gāi dǎ sǎo fáng jiān ma"}, {"han": "现在我有些许头痛。", "fr": "J'ai un léger mal de tête à présent.", "lvl": 3, "py": "xiàn zài wǒ yǒu xiē xǔ tóu tòng"}, {"han": "他跟他的父母同住。", "fr": "Il vit avec ses parents.", "lvl": 3, "py": "tā gēn tā de fù mǔ tóng zhù"}, {"han": "请你给我指点一下。", "fr": "Peux-tu me montrer la direction s'il te plaît ?", "lvl": 3, "py": "qǐng nǐ gěi wǒ zhǐ diǎn yī xià"}, {"han": "你骗人！", "fr": "Tu plaisantes !", "lvl": 4, "py": "nǐ piàn rén"}, {"han": "我有姊妹。", "fr": "J'ai des sœurs.", "lvl": 4, "py": "wǒ yǒu zǐ mèi"}, {"han": "你能來嗎？", "fr": "Peux-tu venir ?", "lvl": 4, "py": "nǐ néng lái ma"}, {"han": "祝你好運。", "fr": "Je te souhaite beaucoup de chance.", "lvl": 4, "py": "zhù nǐ hǎo yùn"}, {"han": "吸烟有害。", "fr": "Fumer tue.", "lvl": 4, "py": "xī yān yǒu hài"}, {"han": "他賣車子。", "fr": "Il vend des voitures.", "lvl": 4, "py": "tā mài chē zi"}, {"han": "他靠著牆。", "fr": "Il s'appuyait contre le mur.", "lvl": 4, "py": "tā kào zhù qiáng"}, {"han": "他们猎狐。", "fr": "Ils chassaient les renards.", "lvl": 4, "py": "tā men liè hú"}, {"han": "我要你切腹。", "fr": "Je veux que tu te suicides par seppuku.", "lvl": 4, "py": "wǒ yào nǐ qiè fù"}, {"han": "她在趕時間。", "fr": "Elle était pressée.", "lvl": 4, "py": "tā zài gǎn shí jiān"}, {"han": "電話正在響。", "fr": "Le téléphone sonne.", "lvl": 4, "py": "diàn huà zhèng zài xiǎng"}, {"han": "九點鐘鎖門。", "fr": "La porte est verrouillée à neuf heures.", "lvl": 4, "py": "jiǔ diǎn zhōng suǒ mén"}, {"han": "我不放果酱。", "fr": "Je ne mets pas de confiture.", "lvl": 4, "py": "wǒ bù fàng guǒ jiàng"}, {"han": "三思而後行！", "fr": "Pense avant d'agir !", "lvl": 4, "py": "sān sī ér hòu xíng"}, {"han": "今晚會很冷。", "fr": "Il va faire froid ce soir.", "lvl": 4, "py": "jīn wǎn huì hěn lěng"}, {"han": "珍外出購物。", "fr": "Jane est sortie faire du shopping.", "lvl": 4, "py": "zhēn wài chū gòu wù"}, {"han": "他害怕死亡。", "fr": "Il a peur de la mort.", "lvl": 4, "py": "tā hài pà sǐ wáng"}, {"han": "誰喜歡戰爭?", "fr": "Qui aime la guerre ?", "lvl": 4, "py": "shuí xǐ huān zhàn zhēng"}, {"han": "請確認帳單。", "fr": "Mettez ça sur la note.", "lvl": 4, "py": "qǐng què rèn zhàng dān"}, {"han": "你可以進來。", "fr": "Tu peux entrer.", "lvl": 4, "py": "nǐ kě yǐ jìn lái"}], "charPinyin": {"一": "yi", "三": "san", "上": "shang", "下": "xia", "不": "bu", "业": "ye", "东": "dong", "个": "ge", "中": "zhong", "为": "wei", "么": "me", "九": "jiu", "也": "ye", "买": "mai", "了": "le", "事": "shi", "于": "yu", "些": "xie", "亡": "wang", "京": "jing", "人": "ren", "什": "shen", "今": "jin", "他": "ta", "以": "yi", "们": "men", "休": "xiu", "会": "hui", "伞": "san", "位": "wei", "住": "zhu", "作": "zuo", "你": "ni", "來": "lai", "信": "xin", "做": "zuo", "儿": "er", "关": "guan", "其": "qi", "养": "yang", "内": "nei", "再": "zai", "写": "xie", "冷": "leng", "出": "chu", "切": "qie", "刚": "gang", "别": "bie", "到": "dao", "前": "qian", "医": "yi", "卖": "mai", "去": "qu", "发": "fa", "变": "bian", "只": "zhi", "叫": "jiao", "可": "ke", "吃": "chi", "合": "he", "同": "tong", "向": "xiang", "吗": "ma", "吸": "xi", "哪": "na", "啊": "a", "喜": "xi", "單": "dan", "嗎": "ma", "国": "guo", "在": "zai", "地": "di", "坐": "zuo", "外": "wai", "夜": "ye", "天": "tian", "失": "shi", "头": "tou", "女": "nv", "她": "ta", "好": "hao", "妹": "mei", "姊": "zi", "婚": "hun", "子": "zi", "学": "xue", "孩": "hai", "它": "ta", "完": "wan", "实": "shi", "害": "hai", "家": "jia", "容": "rong", "察": "cha", "封": "feng", "己": "ji", "已": "yi", "师": "shi", "带": "dai", "帳": "zhang", "开": "kai", "很": "hen", "後": "hou", "得": "de", "心": "xin", "必": "bi", "志": "zhi", "忙": "mang", "怎": "zen", "怕": "pa", "思": "si", "急": "ji", "总": "zong", "息": "xi", "您": "nin", "想": "xiang", "意": "yi", "成": "cheng", "我": "wo", "戰": "zhan", "房": "fang", "打": "da", "扫": "sao", "担": "dan", "拉": "la", "指": "zhi", "提": "ti", "支": "zhi", "放": "fang", "文": "wen", "断": "duan", "日": "ri", "旧": "jiu", "明": "ming", "昨": "zuo", "是": "shi", "時": "shi", "晚": "wan", "曾": "ceng", "最": "zui", "會": "hui", "有": "you", "机": "ji", "杂": "za", "李": "li", "来": "lai", "果": "guo", "校": "xiao", "样": "yang", "欢": "huan", "歡": "huan", "正": "zheng", "步": "bu", "死": "si", "母": "mu", "每": "mei", "比": "bi", "气": "qi", "没": "mei", "法": "fa", "点": "dian", "烟": "yan", "爭": "zheng", "父": "fu", "牆": "qiang", "物": "wu", "狐": "hu", "猎": "lie", "猫": "mao", "现": "xian", "珍": "zhen", "球": "qiu", "生": "sheng", "电": "dian", "画": "hua", "痛": "tong", "百": "bai", "的": "de", "直": "zhi", "着": "zhe", "睡": "shui", "知": "zhi", "確": "que", "礼": "li", "祝": "zhu", "票": "piao", "离": "li", "租": "zu", "空": "kong", "等": "deng", "箱": "xiang", "篮": "lan", "纸": "zhi", "经": "jing", "结": "jie", "给": "gei", "美": "mei", "老": "lao", "考": "kao", "而": "er", "能": "neng", "腹": "fu", "自": "zi", "花": "hua", "英": "ying", "苹": "ping", "著": "zhu", "行": "xing", "要": "yao", "见": "jian", "言": "yan", "話": "hua", "認": "ren", "誰": "shui", "請": "qing", "警": "jing", "许": "xu", "词": "ci", "话": "hua", "该": "gai", "语": "yu", "说": "shuo", "请": "qing", "谁": "shui", "谢": "xie", "賣": "mai", "購": "gou", "走": "zou", "趕": "gan", "跑": "pao", "跟": "gen", "車": "che", "车": "che", "过": "guo", "近": "jin", "这": "zhe", "迟": "chi", "迷": "mi", "進": "jin", "運": "yun", "道": "dao", "那": "na", "酱": "jiang", "里": "li", "鎖": "suo", "鐘": "zhong", "钱": "qian", "错": "cuo", "門": "men", "間": "jian", "门": "men", "间": "jian", "電": "dian", "靠": "kao", "面": "mian", "響": "xiang", "香": "xiang", "骗": "pian", "點": "dian"}, "confuse": [["的", "得", "地"], ["在", "再"], ["他", "她", "它"], ["是", "事"], ["做", "作", "坐"], ["买", "卖"], ["那", "哪"], ["已", "己"], ["话", "画"], ["很", "跟"]]};
+
+const isHan = c => c >= '一' && c <= '鿿';
+const PY = DATA.charPinyin;
+const CONF = {}; (DATA.confuse||[]).forEach((g,i)=>g.forEach(c=>{CONF[c]=i;}));
+// même son (pinyin sans ton) OU même groupe de confusion 别字 curé → traité comme homophone.
+const homoEq = (a,b) => (!!PY[a] && PY[a]===PY[b]) || (CONF[a]!==undefined && CONF[a]===CONF[b]);
+
+// ── état / profil (calqué DysProfile) ──
+const profile = { charMiss:{}, homo:0, rounds:0, hanTotal:0, hanOk:0, maxLvl:1, lastIdx:-1 };
+
+// ── audio ──
+let voices = [];
+function loadVoices(){ voices = speechSynthesis.getVoices().filter(v=>/^zh/i.test(v.lang)); }
+loadVoices(); if(speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=loadVoices;
+function speak(text){
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='zh-CN'; u.rate=parseFloat(document.getElementById('rate').value);
+  if(voices[0]) u.voice=voices[0];
+  speechSynthesis.speak(u);
+}
+
+// ── alignement par édit-distance (match/sub/indel) ──
+function align(t, u){
+  const n=t.length, m=u.length;
+  const d=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+  for(let i=0;i<=n;i++) d[i][0]=i;
+  for(let j=0;j<=m;j++) d[0][j]=j;
+  for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+    const sub = d[i-1][j-1] + (t[i-1]===u[j-1]?0:1);
+    d[i][j]=Math.min(sub, d[i-1][j]+1, d[i][j-1]+1);
+  }
+  const ops=[]; let i=n,j=m;
+  while(i>0||j>0){
+    if(i>0&&j>0 && d[i][j]===d[i-1][j-1]+(t[i-1]===u[j-1]?0:1)){
+      ops.push({t:t[i-1],u:u[j-1],type:t[i-1]===u[j-1]?'ok':'sub'}); i--;j--;
+    } else if(i>0 && d[i][j]===d[i-1][j]+1){ ops.push({t:t[i-1],u:null,type:'miss'}); i--; }
+    else { ops.push({t:null,u:u[j-1],type:'ins'}); j--; }
+  }
+  return ops.reverse();
+}
+function classify(op){
+  if(op.type==='sub' && op.u && op.t && homoEq(op.t,op.u)) return 'homo';
+  return op.type;
+}
+
+// ── tuiles : caractères de la cible + homophones-distracteurs (permet de PRODUIRE un 别字) ──
+function buildTiles(han){
+  const chars = [...han].filter(isHan);
+  const set = new Set(chars);
+  for(const c of chars) for(const k in PY) if(k!==c && homoEq(c,k)) set.add(k);
+  const arr=[...set];
+  for(let i=arr.length-1;i>0;i--){ const j=(i*7+3)%(i+1); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+
+// ── picker adaptatif : biais vers caractères faibles + boost 别字, limité au niveau ──
+const HOMO_CHARS = new Set(Object.keys(PY).filter(k=>Object.keys(PY).some(o=>o!==k&&homoEq(k,o))));
+function pickNext(){
+  const cand = DATA.bank.map((s,idx)=>({s,idx})).filter(o=>o.s.lvl<=profile.maxLvl && o.idx!==profile.lastIdx);
+  let best=null, bestScore=-1;
+  cand.forEach(({s,idx})=>{
+    let sc=0;
+    for(const c of s.han){ if(!isHan(c)) continue;
+      sc += (profile.charMiss[c]||0)*3;
+      if(profile.homo>0 && HOMO_CHARS.has(c)) sc += 1.5;
+    }
+    sc += ((idx*13+profile.rounds*5)%7)/10;
+    if(sc>bestScore){bestScore=sc;best=idx;}
+  });
+  if(best===null) best = cand.length? cand[0].idx : 0;
+  return best;
+}
+
+// ── boucle ──
+let cur = null, curIdx = -1;
+function newRound(idx){
+  curIdx = idx; cur = DATA.bank[idx];
+  document.getElementById('free').value='';
+  document.getElementById('zone').textContent='';
+  document.getElementById('rescard').style.display='none';
+  document.getElementById('next').disabled=true;
+  document.getElementById('hint').innerHTML='';
+  document.getElementById('tpy').classList.remove('on');
+  document.getElementById('tfr').classList.remove('on');
+  const tiles=document.getElementById('tiles'); tiles.innerHTML='';
+  buildTiles(cur.han).forEach(c=>{
+    const b=document.createElement('div'); b.className='tile'; b.textContent=c;
+    b.onclick=()=>{ document.getElementById('zone').textContent += c; };
+    tiles.appendChild(b);
+  });
+  document.getElementById('s-lvl').textContent = profile.maxLvl;
+  setTimeout(()=>speak(cur.han), 250);
+}
+
+function currentInput(){
+  const free=document.getElementById('free').value.trim();
+  if(free) return [...free].filter(isHan).join('');
+  return [...document.getElementById('zone').textContent].filter(isHan).join('');
+}
+
+function check(){
+  const target=[...cur.han].filter(isHan).join('');
+  const user=currentInput();
+  const ops=align(target,user);
+  const res=document.getElementById('result'); res.innerHTML='';
+  const errs=[]; let ok=0, han=0, homoN=0;
+  ops.forEach(op=>{
+    const cls=classify(op); const span=document.createElement('span');
+    if(cls==='ok'){ span.className='c ok'; span.textContent=op.t; ok++; han++; }
+    else if(cls==='homo'){ span.className='c homo'; span.textContent=op.u; han++; homoN++;
+      errs.push({tag:'homo',txt:`别字 : tu as écrit <b>${op.u}</b> (${PY[op.u]||'?'}) au lieu de <b>${op.t}</b> — même son, mauvais caractère`}); markMiss(op.t); }
+    else if(cls==='sub'){ span.className='c bad'; span.textContent=op.u; han++;
+      errs.push({tag:'bad',txt:`faux : <b>${op.u}</b> au lieu de <b>${op.t}</b>`}); markMiss(op.t); }
+    else if(cls==='miss'){ span.className='c miss'; span.textContent=op.t; han++;
+      errs.push({tag:'miss',txt:`oublié : <b>${op.t}</b> (${PY[op.t]||'?'})`}); markMiss(op.t); }
+    else if(cls==='ins'){ span.className='c ins'; span.textContent=op.u;
+      errs.push({tag:'ins',txt:`en trop : <b>${op.u}</b>`}); }
+    res.appendChild(span);
+  });
+  profile.rounds++; profile.hanTotal+=han; profile.hanOk+=ok; profile.homo+=homoN;
+  const acc = han? ok/han : 1;
+  if(acc>=0.8 && profile.maxLvl<4) profile.maxLvl++;
+  else if(acc<0.5 && profile.maxLvl>1) profile.maxLvl--;
+  profile.lastIdx = curIdx;
+  renderProfile();
+  const ul=document.getElementById('errs'); ul.innerHTML='';
+  if(!errs.length){ ul.innerHTML='<li style="color:var(--ok)">✓ tout juste</li>'; }
+  errs.forEach(e=>{ const li=document.createElement('li');
+    li.innerHTML=`<span class="tag ${e.tag}">${e.tag==='homo'?'别字':e.tag==='bad'?'faux':e.tag==='miss'?'oubli':'ajout'}</span>${e.txt}`;
+    ul.appendChild(li); });
+  document.getElementById('rescard').style.display='';
+  document.getElementById('next').disabled=false;
+}
+function markMiss(c){ if(c&&isHan(c)) profile.charMiss[c]=(profile.charMiss[c]||0)+1; }
+
+function renderProfile(){
+  document.getElementById('s-rounds').textContent=profile.rounds;
+  document.getElementById('s-acc').textContent = profile.hanTotal? Math.round(100*profile.hanOk/profile.hanTotal)+'%':'—';
+  document.getElementById('s-homo').textContent=profile.homo;
+  document.getElementById('s-lvl').textContent=profile.maxLvl;
+  const weak=Object.entries(profile.charMiss).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const w=document.getElementById('weak');
+  w.innerHTML = weak.length ? 'caractères faibles → poussés dans les prochaines phrases : '
+      + weak.map(([c,n])=>`<span class="wc" title="raté ${n}×">${c}</span>`).join('') : '';
+}
+
+// ── câblage UI ──
+document.getElementById('play').onclick   = ()=>speak(cur.han);
+document.getElementById('replay').onclick = ()=>speak(cur.han);
+document.getElementById('check').onclick  = check;
+document.getElementById('next').onclick   = ()=>newRound(pickNext());
+document.getElementById('back').onclick   = ()=>{
+  const z=document.getElementById('zone'); const f=document.getElementById('free');
+  if(f.value){ f.value=f.value.slice(0,-1); } else { z.textContent=z.textContent.slice(0,-1); }
+};
+document.getElementById('tpy').onclick = e=>{ e.target.classList.toggle('on'); syncHint(); };
+document.getElementById('tfr').onclick = e=>{ e.target.classList.toggle('on'); syncHint(); };
+function syncHint(){
+  const parts=[];
+  if(document.getElementById('tpy').classList.contains('on')) parts.push('拼 <b>'+cur.py+'</b>');
+  if(document.getElementById('tfr').classList.contains('on')) parts.push('<span class="frhint">'+cur.fr+'</span>');
+  document.getElementById('hint').innerHTML = parts.join(' &nbsp;·&nbsp; ');
+}
+document.getElementById('free').addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
+
+newRound(0);
+</script>
+</body>
+</html>
