@@ -142,7 +142,7 @@ function finish(win){
   const t = T[cur];
   let lesson = `<b>${cur}</b> = ` + t.k.map(c => `${c}${CFR[c] ? ' <span style="color:var(--mut)">(' + CFR[c] + ')</span>' : ''}`).join(' + ');
   if (t.phon && t.k.includes(t.phon))
-    lesson += `<br>Le composant <b>${t.phon}</b> porte le <b>son</b> (${t.py}).`;
+    lesson += `<br>Le composant <b>${t.phon}</b> donne surtout la <b>rime</b> de <b>${t.py}</b> — mesuré : le composant prédit la rime dans 44 % des cas, la syllabe entière dans 31 %, et le <b>ton</b> beaucoup moins. Le composant t'oriente ; le ton, il faut l'entendre.`;
   if (t.rad && t.k.includes(t.rad) && t.rad !== t.phon)
     lesson += ` Le radical <b>${t.rad}</b>${CFR[t.rad] ? ' (' + CFR[t.rad] + ')' : ''} donne le <b>sens</b>.`;
   $('reveal').style.display='';
