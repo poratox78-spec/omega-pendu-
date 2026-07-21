@@ -320,6 +320,45 @@ def _inf1(w):
     else: return None
     return inf if len(inf) >= 4 and deacc(inf) in VERB_LEX else None
 
+_E_PPL_STOP = {'cause', 'envie', 'affaire', 'affaires', 'confiance', 'honte', 'hate', 'chance', 'peine',
+               'conscience', 'connaissance', 'tendance', 'coutume', 'estime', 'importance', 'influence',
+               'crainte', 'cure', 'grace', 'force', 'partie', 'suite', 'tete', 'course', 'prise', 'charge'}
+
+
+def rule_e_ppl(T, i):
+    """AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé, « a utilise »→utilisé).
+    Le dys écrit la forme qu'il ENTEND (/truv/) ; après un auxiliaire, une forme FINIE est structurellement
+    impossible — seul le participe peut suivre. rule_e_er ne voyait que -é↔-er, jamais le présent nu.
+    Garde de couverture : le verbe doit être dans VERB_LEX (jeu CURÉ) — le commentaire de rule_e_er
+    documente qu'élargir au lexique 155k fait monter les FP (53→74 sur UD). On ne rouvre pas ça."""
+    w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if "'" in lw or not dl.endswith('e') or lw.endswith('é') or lw.endswith('ée'): return None
+    if len(dl) < 4: return None
+    if deacc((w[:-1] + 'er').lower()) not in VERB_LEX: return None      # vrai verbe du 1er groupe, jeu curé
+    if dl in NOUN_E or dl in _E_PPL_STOP: return None                   # locution « avoir + nom NU » (« a envie de », « a cause de ») → jamais un participe
+    if dl in D.GENDER_LEX:
+        # NOM homographe (commande, place, garde, écoute…). Après un auxiliaire, un nom NU n'existe qu'en
+        # LOCUTION ; un vrai complément exige un DÉTERMINANT. Le déterminant est AUDIBLE, donc fiable :
+        #   « a commande LES rapports » → participe      « a envie DE partir » → nom
+        nx = deacc(T[i+1].lower()) if i + 1 < len(T) else ''
+        if nx not in NUM_DET and nx not in DET_GENDER: return None
+    if dl in PREP or dl in MODAL: return None                           # mot-outil homographe (« a ENTRE autres participé ») : « entre » est une préposition, pas un verbe
+    if i == 0: return None
+    # AVOIR SEULEMENT. Après ÊTRE, une forme en -e est presque toujours un ADJECTIF (« est infecte »,
+    # « est sèche », « est célèbre », « est égale ») : mesuré, ÊTRE apportait l'essentiel des 70 FP.
+    if deacc(T[i-1].lower()) not in D.AUX_AVOIR: return None
+    # « à » se DÉACCENTUE en « a » : sans ce test la préposition passait pour l'auxiliaire et
+    # « à BASE de » devenait « à basé de » (11 FP à elle seule).
+    if 'à' in T[i-1].lower(): return None
+    # « A » MAJUSCULE n'est pas le verbe avoir : titre étranger (« A Place For Paedophiles ») ou sigle
+    # coupé au point (« Bubendorff S.A. installe »). Deux des trois derniers FP venaient de là.
+    if i - 1 > 0 and T[i-1][:1].isupper(): return None
+    if w[:1].isupper(): return None                                     # un participe après avoir n'est pas capitalisé en cours de phrase
+    # « est a base de » : ÊTRE suivi de AVOIR-3sg est impossible — ce « a » est un « à » mal accentué.
+    if i >= 2 and deacc(T[i-2].lower()) in AUX: return None
+    return _keepcase(w, w[:-1] + 'é')
+
+
 def rule_flexion_er(T, i):
     """-er / -é / -ez / -ai d'un verbe du 1er groupe, tranché par le GOUVERNEUR (méthode mordre/mordu) :
     avoir → -é (participe) ; prépo (de/pour/sans/afin) ou modal (veut/peut/doit/va…) → -er (infinitif) ;
@@ -2603,7 +2642,7 @@ def rule_accord_incise(T, i):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
