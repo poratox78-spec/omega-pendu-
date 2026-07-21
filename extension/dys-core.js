@@ -775,14 +775,17 @@
     if(/x$/.test(dn))cands.push(n.slice(0,-1));
     if(/s$/.test(dn))cands.push(n.slice(0,-1));
     for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M)return cands[k];}return null;}
-  function rNounSing(T,i){if(!NOUN_POST||i===0||!_SING_DET[deacc(T[i-1].toLowerCase())])return null;   // déterminant SINGULIER juste avant (et posterior chargé)
+  function rNounSing(T,i){if(!NOUN_POST)return null;
+    var _pre='';
+    if(_elidKind(T[i])==='det'){if(!/s$/.test(deacc(_headText(T[i]).toLowerCase())))return null;_pre=T[i].slice(0,T[i].length-_headText(T[i]).length);T=T.slice();T[i]=_headText(T[i]);}
+    else if(i===0||!_SING_DET[deacc(T[i-1].toLowerCase())])return null;   // déterminant SINGULIER juste avant (et posterior chargé)
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → abstention
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;           // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;   // pluriel apparent ; invariant/piège
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);   // nom composé : nom + NOM confiant NON-verbe → abstention
       if(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M&&!ADJP[dnx])return null;}
-    if(_nounGate(dn)){var sg=desingularizeNoun(n);if(sg&&deacc(sg.toLowerCase())!==dn)return sg;}       // VOIE FRÉQUENTIELLE : pluriel NOM-dominant → « une voitures »→voiture
+    if(_nounGate(dn)){var sg=desingularizeNoun(n);if(sg&&deacc(sg.toLowerCase())!==dn)return _pre+sg;}       // VOIE FRÉQUENTIELLE : pluriel NOM-dominant → « une voitures »→voiture
     if(/s$/.test(dn)&&NOUN_PLURAL[dn]&&GENDER_PURE[dn.slice(0,-1)]!==undefined){                       // VOIE RELÂCHÉE : pluriel homographe verbal (« la boites »=boiter 3sg) tranché par dét sing + tagger + lexique
       if(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;                                           // composé à trait d'union (« la sous-famille »)
       var _tgS=posTags(T);if(_tgS&&i<_tgS.length&&_tgS[i]==='NOUN')return {sugg:n.slice(0,-1),vig:1};}    // -s retiré. ORANGE (à vérifier) : direction ambiguë (la boîte OU les boîtes ?) — décision Rem. Miroir app.

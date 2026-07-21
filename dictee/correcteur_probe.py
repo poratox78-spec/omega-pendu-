@@ -2495,7 +2495,20 @@ def rule_noun_plural(T, i):
     return pl if (pl and deacc(pl.lower()) != dn) else None
 
 def rule_noun_singular(T, i):
-    if i == 0 or prev(T, i) not in _SING_DET: return None       # déterminant SINGULIER (classe fermée) juste avant
+    # DÉTERMINANT ÉLIDÉ : « de l'hommes » n'a PAS de déterminant séparé — il est COLLÉ au nom, et « l' »
+    # est toujours SINGULIER. La faute est alors DANS le token ; on corrige donc le token ENTIER, en
+    # réémettant le préfixe élidé devant le nom singularisé (« l'hommes » → « l'homme »).
+    _pre = ''
+    if _elid_kind(T[i]) == 'det':
+        # Après « l' », un nom en -X est quasi toujours INVARIABLE (prix, voix, choix, apex, index) :
+        # le déterminant élidé ne dit rien du nombre, donc on ne prend QUE le -s. Mesuré : sans ça
+        # « l'apex » devenait « l'ape » — et « ape » EXISTE au lexique, donc un test « mot connu »
+        # n'aurait pas suffi.
+        if not deacc(_head_text(T[i]).lower()).endswith('s'): return None
+        _pre = T[i][:len(T[i]) - len(_head_text(T[i]))]
+        T = list(T); T[i] = _head_text(T[i])
+    elif i == 0 or prev(T, i) not in _SING_DET:
+        return None                                             # déterminant SINGULIER (classe fermée) juste avant
     if _SEG is not None and i < len(_SEG['dig']) and _SEG['dig'][i]: return None   # NOMBRE-écran (« le 25 mars », « le 100 mètres ») → le déterminant ne gouverne pas ce nom → abstention (FP)
     n = T[i]
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
@@ -2507,7 +2520,7 @@ def rule_noun_singular(T, i):
         if pp and pp[0] >= PL_TAU_M and pp[1] < PL_EPS_M and deacc(nx.lower()) not in ADJ_LEX: return None
     if _noun_gate(n):                                           # VOIE FRÉQUENTIELLE : le PLURIEL est NOM-dominant (P(NOM)≥τ ∧ P(VER)<ε) → « une voitures »→voiture
         sg = _singularize_noun(n)                              #   forme singulière ANCRÉE (nom confiant) — écarte les invariants (temps→temp)
-        if sg and deacc(sg.lower()) != dn: return sg
+        if sg and deacc(sg.lower()) != dn: return _pre + sg
     # VOIE RELÂCHÉE : pluriel homographe d'un VERBE (« la boites » = boiter 3sg) que le posterior fréquentiel écarte à
     # tort. Le déterminant singulier + le TAGGER (contexte → NOUN) + le LEXIQUE (forme STRICTEMENT plurielle, singulier
     # connu) le tranchent. FP=0 mesuré (UD) : mois écartés par le singulier non-nom (mars→mar), composés par le trait d'union.
@@ -2515,7 +2528,7 @@ def rule_noun_singular(T, i):
         if _SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None   # composé à trait d'union (« la sous-famille »)
         tg = pos_tags(T)
         if tg and i < len(tg) and tg[i] == 'NOUN':
-            return n[:-1]                                       # -s retiré, accents/casse préservés (« boîtes »→« boîte »)
+            return _pre + n[:-1]                                # -s retiré, accents/casse préservés (« boîtes »→« boîte »)
     return None
 
 # a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu : homophones À RÔLE GRAMMATICAL (verbe vs prép/det/conj).
