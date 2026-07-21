@@ -12959,7 +12959,7 @@ window.addEventListener('DOMContentLoaded', () => {
     s=s.replace(/oeu/g,'e').replace(/ou/g,'u').replace(/eu/g,'e').replace(/ai/g,'e').replace(/ei/g,'e').replace(/ay/g,'e').replace(/ey/g,'e').replace(/oi/g,'wa');
     var res='';for(var j=0;j<s.length;j++){var ch=s[j],nx=s[j+1]||'';
       if(ch==='c')res+=('eiy§'.indexOf(nx)>=0?'s':'k');else if(ch==='g')res+=('eiy'.indexOf(nx)>=0?'j':'g');
-      else if(ch==='h'){}else if(ch==='x')res+='ks';else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else res+=ch;}
+      else if(ch==='h'){}else if(ch==='x')res+=(j===s.length-1?'':'ks');   /* -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi) */else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else res+=ch;}
     s=res.replace(/¤/g,'nj');var out='';for(var k=0;k<s.length;k++){if(s[k]!==out[out.length-1])out+=s[k];}s=out;
     while(s.length&&'est'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);return s;}
   function sEdits1(d){var res={},i,ci,c,a,b,sp=[];for(i=0;i<=d.length;i++)sp.push([d.slice(0,i),d.slice(i)]);
@@ -13172,7 +13172,8 @@ window.addEventListener('DOMContentLoaded', () => {
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length;i++)arr.push(pa[i]);
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++)arr.push(a[j]);}
     var _iaU=/é$/.test(low);                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent (affole). Orange = « à vérifier », jamais affirmé → hors FP=0.
-    for(i=0;i<arr.length;i++){w=arr[i];if(deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_au>ba||(_au===ba&&_fq>bf)){ba=_au;bf=_fq;best=w;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
+    var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
+    for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}   // clé : audibilité d'abord (si saisie audible), puis fréquence
     return (best&&best!==low)?best:'';                                      // '' = inconnu sans suggestion fiable (simple alerte)
   }
   // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
