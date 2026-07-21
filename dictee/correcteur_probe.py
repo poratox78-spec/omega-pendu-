@@ -2623,6 +2623,7 @@ def rule_accord_verb_coord(T, i):
     if ci is None: return None
     for m in range(ci+1, i):                                    # entre la conj et V2 : aucun sujet → sinon V2 a le sien
         if T[m].lower() in NUM_DET or deacc(T[m].lower()) in _COORD_SUBJW: return None
+        if _elid_kind(T[m]) == 'det': return None               # DÉTERMINANT ÉLIDÉ = un NOUVEAU sujet, invisible des listes parce que COLLÉ au nom : « … et l'oxydation réduit » a son propre sujet et ne doit PAS emprunter le nombre au verbe frère (FP mesuré : réduit → réduisent)
     v1 = None                                                   # V1 = 1er verbe fini avant la conj (filet homographe inclus) ; s'arrête sur un vrai nom/adj (coord nominale)
     for k in range(ci-1, lo-1, -1):
         if not T[k].lower().endswith(('é', 'és', 'ée', 'ées')) and _verb_or_homograph(tg, T, k) and _vnum3(T[k]) is not None:
