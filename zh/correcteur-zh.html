@@ -139,7 +139,16 @@
     // vérifiées à la main (买/卖 est monde B et n'a produit aucun FP à l'échelle).
     const PYT = MODEL.charPyT || null;
     const toneGate = MODEL.params.toneGate !== false && !!PYT;
-    const KEYOF = (toneGate ? PYT : PY) || PYT;   // charPy (sans ton) retiré du modèle : 41 Ko morts
+    // Les cles SANS ton se DERIVENT des clés tonées (on ote les diacritiques) : aucune donnee
+    // supplementaire, et surtout la porte redevient TESTABLE. En retirant charPy pour gagner
+    // 41 Ko j'avais rendu la porte du ton impossible a couper -- le repli `|| PYT` la forçait
+    // toujours active, et les deux configurations rendaient le meme chiffre. Une egalite
+    // parfaite entre deux configurations est un signal de panne, jamais de neutralite.
+    const _bare = s => s ? s.normalize('NFD').replace(/[̄́̌̀]/g, '')
+                            .replace('ü', 'u').toLowerCase() : s;
+    let KEYOF = PYT;
+    if (!toneGate && PYT) { KEYOF = {}; for (const c in PYT) KEYOF[c] = _bare(PYT[c]); }
+    else if (!PYT) KEYOF = PY;
     const homoIndex = {};
     for (const c in KEYOF) (homoIndex[KEYOF[c]] = homoIndex[KEYOF[c]] || []).push(c);
 
