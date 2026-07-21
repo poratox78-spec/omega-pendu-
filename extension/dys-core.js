@@ -1008,7 +1008,7 @@
   var _COLOR_ADJ={bleu:1,vert:1,gris:1,blanc:1,noir:1,brun:1,violet:1,jaune:1,rouge:1,rose:1,orange:1,marron:1,roux:1,blond:1,pourpre:1,mauve:1,beige:1,fauve:1};   // couleur composée/dérivée = INVARIABLE
   var _INVAR_COLOR={};'creme marine saumon emeraude turquoise kaki bordeaux ivoire ebene moutarde brique ocre indigo azur cerise framboise lavande prune olive caramel chocolat noisette paille sable bronze cuivre acajou corail grenat aubergine abricot peche citron lilas anthracite ardoise taupe champagne rouille safran pistache amande menthe crevette nacre perle'.split(' ').forEach(function(w){_INVAR_COLOR[w]=1;});   // couleurs/matières dérivées de nom = INVARIABLES (miroir Python _INVAR_COLOR)
   function rAdjEpithet(T,i){var _el=(i>=1&&_elidKind(T[i-1])==='det');
-    if(_el&&_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+    if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(i<2&&!_el)return null;var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
     var d=deacc(lw);
