@@ -2469,12 +2469,21 @@ _SG_STOP = INVAR_NOUN | _NOUN_INVAR_S | {
     'remords', 'secours', 'concours', 'discours', 'parcours', 'univers', 'velours', 'fois', 'deces',
     'engrais', 'laps', 'cabas', 'fracas', 'matelas', 'lilas', 'ananas', 'compas', 'faux', 'roux', 'doux',
     'epoux', 'noix', 'toux', 'flux', 'reflux', 'houx', 'courroux', 'index', 'larynx', 'pharynx', 'silex'}
+_PL_OUX_PL = {'bijoux', 'cailloux', 'choux', 'genoux', 'hiboux', 'joujoux', 'poux'}   # pluriels en -oux (liste close, miroir de _PL_OUX)
+
+
 def _singularize_noun(n):
     """Inverse de _pluralize_noun, ANCRÉ : -aux→-al, -x→∅, -s→∅ — on ne renvoie QUE si la forme singulière est un
     NOM confiant (P(NOM)≥τ ∧ P(VER)<ε). Écarte automatiquement les invariants (temps→temp, prix→pri, époux→épou : pas des noms)."""
     dn = deacc(n.lower()); cands = []
     if dn.endswith('aux') and len(dn) > 4: cands.append(n[:-3] + 'al')   # chevaux→cheval, journaux→journal
-    if dn.endswith('x'): cands.append(n[:-1])                            # jeux→jeu, choux→chou, eaux→eau
+    # -X : SEULEMENT les familles qui forment vraiment leur pluriel en -x (miroir exact de
+    # _pluralize_noun) — -eaux/-eux et la liste close en -oux. Un -x hors de ces familles est la
+    # marque d'un INVARIABLE (prix, voix, choix, taux, apex, index) : le retirer fabrique un mot.
+    # Mesuré : sans cette restriction « cet apex » devenait « ape » — et « ape » est un NOM confiant
+    # du posterior, donc l'ancre ne l'écartait pas. C'est la FORME, pas le lexique, qui tranche.
+    if (dn.endswith('eaux') or dn.endswith('eux') or deacc((n[:-1] + 'x').lower()) in _PL_OUX_PL):
+        cands.append(n[:-1])                                             # chapeaux→chapeau, cheveux→cheveu, choux→chou
     if dn.endswith('s'): cands.append(n[:-1])                            # systèmes→système
     for c in cands:
         p = NOUN_POST.get(deacc(c.lower()))

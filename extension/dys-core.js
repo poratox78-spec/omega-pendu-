@@ -772,9 +772,10 @@
   // Sens INVERSE (plur→sing) : déterminant SINGULIER (classe fermée) collé à un nom pluriel = TOUJOURS une faute → FP=0 par construction. Miroir rule_noun_singular.
   var _SING_DET={un:1,une:1,le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,chaque:1,du:1,au:1};
   var _SG_STOP={};('ananas avis bois bras bus cabas cas choix colis compas compromis concours corps courroux cours croix dais deces devis discours dos doux engrais epoux faux fils flux fois fracas gaz heros houx index jus laps larynx lilas mars matelas mets mois nez noix os ours paix paradis parcours pays permis pharynx poids prix progres puits reflux relais remords repas roux sas secours sens silex succes tas taux temps tennis toux univers velours virus voix').split(' ').forEach(function(w){_SG_STOP[w]=1;});   // invariants -s/-x (sing==plur) : la singularisation naïve donne un autre lexème → piège
+  var _PL_OUX_PL={bijoux:1,cailloux:1,choux:1,genoux:1,hiboux:1,joujoux:1,poux:1};
   function desingularizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[];   // inverse ancré : -aux→-al, -x→∅, -s→∅ ; ne renvoie QUE si la forme sing. est un NOM confiant
     if(/aux$/.test(dn)&&dn.length>4)cands.push(n.slice(0,-3)+'al');
-    if(/x$/.test(dn))cands.push(n.slice(0,-1));
+    if(/eaux$|eux$/.test(dn)||_PL_OUX_PL[deacc((n.slice(0,-1)+'x').toLowerCase())])cands.push(n.slice(0,-1));
     if(/s$/.test(dn))cands.push(n.slice(0,-1));
     for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M)return cands[k];}return null;}
   function rNounSing(T,i){if(!NOUN_POST)return null;
