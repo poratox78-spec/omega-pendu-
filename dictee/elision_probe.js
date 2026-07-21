@@ -48,7 +48,7 @@ function correctAll(text){
 //   node dictee/elision_probe.js              liste les regles aveugles
 //   node dictee/elision_probe.js --check      echoue si le compte depasse le plafond (garde CI)
 const path2 = require('path');
-const CEILING = Number(process.env.CEILING || 24);   // etat mesure au 2026-07-21 : 24 angles morts (41 avant les primitives d'elision). Ce plafond ne doit que BAISSER.
+const CEILING = Number(process.env.CEILING || 21);   // etat mesure au 2026-07-21 : 21 angles morts (41 avant les primitives d'elision). Ce plafond ne doit que BAISSER.
 const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
 
 (async () => {
@@ -102,6 +102,11 @@ const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
     for (const r of new Set([...na, ...nb])) if (!(na.has(r) && nb.has(r)) && !PAR_DESIGN[r]) {
       by[r] = by[r] || { n: 0, ex: null };
       by[r].n++; vu = true; if (!by[r].ex) by[r].ex = s.slice(0, 92);
+      if (process.env.RULE === r && by[r].n <= 8) {
+        const fa = a.filter(f => f.name === r).map(f => f.word + '>' + f.sugg).join(',') || '(rien)';
+        const fb = b.filter(f => f.name === r).map(f => f.word + '>' + f.sugg).join(',') || '(rien)';
+        console.log('    elide: ' + fa + '  ||  non-elide: ' + fb);
+        console.log('      ' + s.slice(0, 108)); }
     }
     if (vu) n++;
   }

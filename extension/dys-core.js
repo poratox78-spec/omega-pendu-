@@ -461,12 +461,12 @@
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;
     var subj=_npSubject(T,tg,i);if(!subj||subj.n!=='s')return null;
-    var hk=subj.idx,dk=subj.det,ddet=deacc(T[dk].toLowerCase());
+    var hk=subj.idx,dk=subj.det,ddet=deacc(subj.dtxt.toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_SG[ddet])return null;
     if(_COLL_HEAD[deacc(subj.htxt.toLowerCase())])return null;
     var hc=T[hk].charAt(0);if(!subj.elid&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
-    for(var m=lo;m<i;m++){if(T[m].indexOf("'")>=0||T[m].indexOf('’')>=0)return null;}
+    for(var m=lo;m<i;m++){if(_elidKind(T[m])==='pron')return null;}
     for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}
     for(m=hk+1;m<i;m++){var tkw=T[m],dw=deacc(tkw.toLowerCase());
       if(CONJ_WORDS[dw])return null;
