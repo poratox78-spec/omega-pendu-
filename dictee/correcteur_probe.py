@@ -2207,6 +2207,11 @@ def _noun_gate(n):                                              # §3 : nom-domi
     p = NOUN_POST.get(deacc(n.lower()))
     return bool(p) and p[0] >= PL_TAU_M and p[1] < PL_EPS_M
 
+def _noun_gate_n(n):                                            # variante SANS veto verbal : reservee aux
+    """determinants pluriels NON AMBIGUS (voir rule_noun_plural)."""
+    p = NOUN_POST.get(deacc(n.lower())) if NOUN_POST else None
+    return bool(p) and p[0] >= PL_TAU_M
+
 def _pluralize_noun(n):
     """Pluriel ANCRÉ DANS LE POSTERIOR (pas de « oiseaus ») : +s / -al→-aux / -au-eu→+x, on garde la forme dont
     la part NOM ≥ 30 % (le pos_of EMBARQUÉ est FAUX pour amis=ADJ/pommes=VER → l'ancre fréquentielle les récupère)."""
@@ -2249,7 +2254,13 @@ def rule_noun_plural(T, i):
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 3 or dn[-1] in 'sxz' or dn in NOUN_PL_STOP: return None   # trop court (unité kg/cm) / déjà pluriel / invariant
-    if not _noun_gate(n): return None                           # GARDE §3 : P(NOM)≥0.5 ∧ P(VER)<0.01 (posterior fréquentiel) — exclut
+    # GARDE §3 : P(NOM)≥0,5 ∧ P(VER)<0,01 — exclut porte/livre (verbe) et rouge (ADJ-dom).
+    # MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos — jamais pronoms),
+    # un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
+    # AUDIBLE donc fiable. Le veto P(VER) y est redondant — il bloquait « des moule », « des porte ».
+    # « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
+    _pd = deacc(T[i - 1].lower())
+    if not (_noun_gate_n(n) if _pd not in ('les', 'leurs') else _noun_gate(n)): return None
     #   « les porte/livre » (masse verbe) et « les rouge » (ADJ-dom, P(NOM)<0.5) ; récupère ami/voiture/faute que la garde nbhomog ratait.
     #   (Ancien : nbhomog==0 ∧ POS==NOM lu sur le tag DUR embarqué — faux pour faute=VER/amis=ADJ. Relaxe naïve nbhomog<=1 = REJETÉE, +25 FP.)
     nx = T[i + 1] if i + 1 < len(T) else ''
