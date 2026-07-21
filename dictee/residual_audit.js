@@ -15,7 +15,7 @@ const stub=new Proxy(function(){},{get(t,k){if(k==='style')return{};if(k==='clas
 global.document={getElementById:(id)=>B[id]!==undefined&&B[id]!==''?{textContent:B[id]}:stub,createElement:()=>stub,body:stub,head:stub,addEventListener(){},querySelector:()=>null,querySelectorAll:()=>[]};
 global.window=global;global.navigator={userAgent:'node'};global.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
 (0,eval)(code); const C=globalThis.__C;
-const RE=/[A-Za-zÀ-ÿœŒ']+/g;
+const RE=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
 function pos(t){const P=[];let m;while((m=RE.exec(t)))P.push([m.index,m.index+m[0].length]);return P;}
 const norm=w=>w.toLowerCase().replace(/[^a-zà-ÿœ' -]/gi,'').trim();
 function toksN(s){return (s.match(RE)||[]).map(x=>x.toLowerCase()).filter(Boolean);}
@@ -38,7 +38,7 @@ function correctAll(text){
 //   node dictee/residual_audit.js
 // Corpus locaux (data_local/, gitignores) ; sortie : RATES (silence) puis MAL CORRIGES (erreur active).
 const path2=require('path');
-const RE2=/[A-Za-zÀ-ÿœŒ']+/g, tk=s=>(s.match(RE2)||[]).map(x=>x.toLowerCase());
+const RE2=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g, tk=s=>(s.match(RE2)||[]).map(x=>x.toLowerCase());
 (async()=>{ await C.loadSp(); await C.loadG(); await C.loadNP(); await C.loadH();
   const RATE={}, MAL={}, CASSE={};
   for(const f of ['dys_corpus_rem.jsonl','corpus_gec_fr.jsonl','corpus_gec100.jsonl','corpus_multi1000.jsonl']){

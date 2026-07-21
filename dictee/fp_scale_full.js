@@ -15,7 +15,7 @@ const stub=new Proxy(function(){},{get(t,k){if(k==='style')return{};if(k==='clas
 global.document={getElementById:(id)=>B[id]!==undefined&&B[id]!==''?{textContent:B[id]}:stub,createElement:()=>stub,body:stub,head:stub,addEventListener(){},querySelector:()=>null,querySelectorAll:()=>[]};
 global.window=global;global.navigator={userAgent:'node'};global.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
 (0,eval)(code); const C=globalThis.__C;
-const RE=/[A-Za-zÀ-ÿœŒ']+/g;
+const RE=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
 function pos(t){const P=[];let m;while((m=RE.exec(t)))P.push([m.index,m.index+m[0].length]);return P;}
 const norm=w=>w.toLowerCase().replace(/[^a-zà-ÿœ' -]/gi,'').trim();
 function toksN(s){return (s.match(RE)||[]).map(x=>x.toLowerCase()).filter(Boolean);}
