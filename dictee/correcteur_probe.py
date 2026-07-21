@@ -1274,11 +1274,13 @@ def rule_pp_avoir_cod(T, i):
             if jj < len(_SEG['bb']) and _SEG['bb'][jj]: lo = jj; break
     tg = pos_tags(T)
     if not tg: return None
-    det = None; noun = None                                         # antécédent nominal : [dét (+adj) + nom] juste avant « que »
+    det = None; noun = None; _elid_ant = False                      # antécédent nominal : [dét (+adj) + nom] juste avant « que »
     m = q - 1
     while m >= lo:
         dm = deacc(T[m].lower())
-        if "'" in T[m].lower(): return None                         # élision (l'/d'…) ⇒ souvent mistaguée ⇒ antécédent ambigu ⇒ abstention
+        if _elid_kind(T[m]) == 'det':                               # « l'affection qu'elle aurait eu » : le déterminant ET le nom sont dans LE MÊME token. La prémisse de l'ancien veto (« élision souvent mistaguée ») est PÉRIMÉE depuis que l'émission du tagger passe par la tête (PR#264). « l' » est toujours SINGULIER.
+            det = m; noun = m; _elid_ant = True; break
+        if "'" in T[m].lower(): return None                         # AUTRE élision (d'/qu'…) ⇒ antécédent réellement ambigu ⇒ abstention
         if dm in PREP: return None                                  # « de X que » complément ⇒ COD ambigu ⇒ abstention
         if m < len(tg) and (tg[m] == 'DET' or dm in NUM_DET): det = m; break
         if m < len(tg) and tg[m] in ('NOUN', 'PROPN'): noun = m; m -= 1; continue
@@ -1289,12 +1291,15 @@ def rule_pp_avoir_cod(T, i):
     while mm > lo and mm < len(tg) and tg[mm] == 'ADV': mm -= 1
     if mm >= lo and deacc(T[mm].lower()) in PREP: return None
     if mm >= lo and deacc(T[mm].lower()) in ('et', 'ou', 'ni'): return None
-    nd = deacc(T[noun].lower())
+    _ant = _head_text(T[noun]) if _elid_ant else T[noun]            # antécédent élidé : le NOM est la partie après l'apostrophe
+    nd = deacc(_ant.lower())
     if nd in _COMPLETIVE_ANT: return None                           # nom de parole/pensée ⇒ « que » peut être complétif ⇒ abstention
-    dd = deacc(T[det].lower())
-    if dd in NUM_DET: nb = 'p' if NUM_DET[dd] == 'pl' else 's'
-    else: return None
-    g = _noun_gender(T[noun], nb, full=True)                        # antécédent = [dét (+adj) + NOM] confirmé (tagger+position) → lexique complet OK (homographes)
+    if _elid_ant: nb = 's'                                          # « les » ne s'élide jamais ⇒ « l' » est certainement SINGULIER
+    else:
+        dd = deacc(T[det].lower())
+        if dd in NUM_DET: nb = 'p' if NUM_DET[dd] == 'pl' else 's'
+        else: return None
+    g = _noun_gender(_ant, nb, full=True)                        # antécédent = [dét (+adj) + NOM] confirmé (tagger+position) → lexique complet OK (homographes)
     if g not in ('m', 'f'): return None
     if i < len(tg) and tg[i] == 'NOUN': return None                 # le tagger le voit comme un NOM confiant (« les données que… ») ⇒ homographe ⇒ abstention (PROPN = repli mot inconnu, on laisse : la morphologie a déjà validé le participe)
     sugg = _pp_accord(base, nb, g)
