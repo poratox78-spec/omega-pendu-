@@ -1037,7 +1037,13 @@
       else if(SCOPULA[pt])expPos='VA';else if(SAUXAV[pt]||SSUBJP[pt])expPos='V';}   // copule = attribut POSSIBLE : V OU A (« je suis trist »→triste, pas seulement « je suis allé ») — audit 07/2026   // CONTEXTE VERBAL : après aux/copule/pronom-sujet → candidat VERBE (pri→pris, pleu→pleut). Bonus, jamais pénalité → FP-sûr.
     function pm(x){if(!expPos)return 0;var ps=SP.POS[x]||'';for(var q=0;q<expPos.length;q++)if(ps.indexOf(expPos.charAt(q))>=0)return 1;return 0;}   // expPos peut être multi-POS ('VA' après copule)
     function gm(x){var g=sGender(x);return (cg&&g&&g===cg)?1:0;}       // bonus genre (jamais pénalité)
-    function nm(x){return (cn&&((cn==='p')===/[sx]$/.test(deaccS(x))))?1:0;}
+    function sInvarS(x){var w=x.toLowerCase();if(!/[sxz]$/.test(w))return false;   // NOM/ADJ INVARIABLE en -s/-x/-z : sa forme est la MEME au singulier et au pluriel (noix, voix, prix, croix, choix, temps, bras, heureux) => compatible avec un determinant SINGULIER. Sans ca, le filtre de nombre lisait le -x final comme une marque de pluriel et ecartait « noix » apres « la/une » (« la nois »→fois au lieu de noix).
+      var st=w.slice(0,-1);if(SP.WORDS&&SP.WORDS.has(st)&&/[NA]/.test(SP.POS[st]||''))return false;   // le radical est lui-meme un NOM/ADJ => la forme EST un pluriel (chats/chat, bijoux/bijou, boites/boite)
+      if(/aux$/.test(w)&&SP.WORDS&&SP.WORDS.has(w.slice(0,-3)+'al'))return false;   // pluriel en -aux d'un nom en -al (journaux/journal, chevaux/cheval)
+      if(w==='yeux'||w==='cieux'||w==='aieux'||w==='æieux'||w==='aïeux')return false;   // pluriels irreguliers (radical introuvable)
+      return true;}
+    function nmP(x){return sInvarS(x)?null:/[sx]$/.test(deaccS(x));}   // nombre PORTE par la forme : null = invariable (compatible des deux cotes)
+    function nm(x){if(!cn)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
     function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
@@ -1063,8 +1069,9 @@
     if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
     var _aux=false;if(T){var _z=idx-1;while(_z>=0){var _dz=deaccS(T[_z].toLowerCase());if(SAUXAV[_dz]||SCOPULA[_dz]){_aux=true;break;}if(_dz==='ne'||_dz==='n'||_dz==='pas'||_dz==='plus'||_dz==='jamais'||_dz==='bien'||_dz==='tres'||_dz==='deja'||_dz==='toujours'||_dz==='y'||_dz==='en'||_dz==='tout'){_z--;continue;}break;}}
     if(_aux&&/e$/.test(w1)&&!/é$/.test(w1)){var _pe=w1.slice(0,-1)+'é';if(cand[_pe]&&cand[_pe][1]>=1.0)return['flag',_pe];}   // PARTICIPE APRÈS AUXILIAIRE avoir/être : le dys écrit le PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du MÊME verbe — « il a manje/manjé »→mangé. Ne touche QUE le présent -e (jamais pris/fait/vu en -s/-t/-u) ⇒ FP=0.
+    var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
     if(expPos){var _b=null,_bf=0;for(i=0;i<keys.length;i++){var _cw=keys[i];   // CONTEXTE-FIRST : candidat édit-1/accent + MÊME clé phonétique + POS attendu + NOMBRE du contexte → flag même court/non-dominant (pri→pris, von→vont, pleu→pleut ; respecte le nombre)
-      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||((cn==='p')===/[sx]$/.test(deaccS(_cw))))&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale audible (é) → context-first ne re-choisit QUE des candidats à finale audible (manjé→mangé). Miroir app.
+      if(cand[_cw][0]>=1&&phonKey(_cw)===pk&&pm(_cw)&&(!inpAud||fin_aud(_cw))&&(expPos.indexOf('V')>=0||!cn||nmP(_cw)===null||((cn==='p')===nmP(_cw)))&&(!_cgd||!sGender(_cw)||sGender(_cw)===_cgd)&&cand[_cw][1]>_bf){_b=_cw;_bf=cand[_cw][1];}}   // AUDIBILITÉ : saisie à finale audible (é) → context-first ne re-choisit QUE des candidats à finale audible (manjé→mangé). Miroir app.
       if(_b&&_bf>=1.0)return['flag',_b];}
     if(!(d.length>=4&&f1>=1.0))return null;
     // CONFIANCE : n'AFFIRMER (rouge) que si sûr — accent pur, OU édit-1 gardant la 1re lettre, SEUL de son rang, dominant.
