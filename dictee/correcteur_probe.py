@@ -628,28 +628,49 @@ def rule_je_subject(T, i):
     return None
 
 
+def rule_des_des(T, i):
+    """« des » écrit pour « dès » — 50 occurrences mesurées, 2 formes seulement, toutes deux
+    STRUCTURELLEMENT IMPOSSIBLES en français, donc FP=0 par construction :
+      « des que »   → « des » est de+les, un déterminant pluriel ; « que » n'est pas un nom.
+      « des l'X »   → un déterminant ne peut pas être suivi d'un autre déterminant élidé.
+    Toute autre configuration : abstention (« des livres », « des l… » n'existe pas autrement)."""
+    if deacc(T[i].lower()) != 'des': return None
+    if i + 1 >= len(T): return None
+    nxt = T[i+1]; nd = deacc(nxt.lower())
+    if nd == 'que': return _keepcase(T[i], 'dès')
+    if re.match(r"^l['’].", nxt.lower()): return _keepcase(T[i], 'dès')
+    return None
+
+
 def rule_ce_se(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('ce', 'se'): return None
     if i+1 >= len(T): return None
     nd = deacc(T[i+1].lower())
-    if nd in ('qui', 'que', 'dont', 'qu', "qu'"): return 'ce'         # ce qui/que/dont (+ élidé « qu' » : ce qu'il/qu'aurait)
+    if nd in ('qui', 'que', 'dont', 'qu', "qu'"): return _keepcase(T[i], 'ce')         # ce qui/que/dont (+ élidé « qu' » : ce qu'il/qu'aurait)
     if nd in AUX or nd in ('sont', 'est'): return None                # « ce sont » vs « se sont déroulés », c'est vs s'est : ambigu → s'abstenir
     if nd in CLITIC: return None                                       # « se le/la/lui/en/y/ne donne » : clitique → « se » pronominal (ou « ce n'était » impersonnel) → ne pas toucher
     if nd in NUM_DET: return None                                      # « se une/le/des… » : déterminant, ni nom-tête ni verbe → abstention (texte corpus cassé)
     if nd.endswith('ant') and len(nd) > 4: return None                 # participe présent/gérondif (se constituant, en chantant) → « se » réfléchi, jamais « ce »
     isv = vlike(T, i+1); isn = nd in D.GENDER_LEX
-    if isv and not isn: return 'se'                                    # verbe PUR → se (pronominal)
+    if isv and not isn: return _keepcase(T[i], 'se')                                    # verbe PUR → se (pronominal)
     tg = pos_tags(T)                                                   # homographe (livre/marche…)/inconnu → le TAGGER (contexte) tranche
     if tg is None or i+1 >= len(tg):
-        return 'ce' if (isn and not isv) else None                    # sans tagger : repli nom-pur → ce
+        return _keepcase(T[i], 'ce') if (isn and not isv) else None                    # sans tagger : repli nom-pur → ce
     # nom PUR → ce (démonstratif) SAUF si le tagger voit un VERBE (ex. « il se document[e] » : documenter absent du lexique verbal → isn/not-isv à tort) → on ne force PAS « ce »
-    if isn and not isv and tg[i+1] not in ('VERB', 'AUX'): return 'ce'
+    if isn and not isv and tg[i+1] not in ('VERB', 'AUX'): return _keepcase(T[i], 'ce')
     if lw == 'se':                                                     # « se » réfléchi est TOUJOURS devant un verbe/clitique → « se » + NOM (hors participe -ant) = « ce » (démonstratif)
-        return 'ce' if (tg[i+1] == 'NOUN' and not nd.endswith('ant')) else None
+        if tg[i+1] == 'NOUN' and not nd.endswith('ant'): return _keepcase(T[i], 'ce')
+        # LE TAGGER EST CONTAMINÉ PAR LA FAUTE ELLE-MÊME. Dans « Se matin, la livraison est arrivée »
+        # il étiquette « matin » VERB — parce que « se » prédit un verbe. Un tagger conditionné sur le
+        # token fautif ne peut pas arbitrer la faute de ce token. Le posterior NOUN_POST, lui, est
+        # SANS CONTEXTE (prior lexical), donc immunisé : matin/jour/soir/moment = P(NOM) 1000‰ et
+        # P(VER) 0‰, tandis que livre/porte/marche/ferme restent ambigus et continuent de s'abstenir.
+        if not nd.endswith('ant') and _noun_gate(nd): return _keepcase(T[i], 'ce')
+        return None
     # lw == 'ce' → « se » SEULEMENT si un SUJET précède (« il ce lave »→se) ; sinon « ce » = PRONOM IMPERSONNEL (ce serait, ce n'était, pour ce faire) → abstention
     if tg[i+1] in ('VERB', 'AUX') and prev(T, i) in ('il', 'elle', 'on', 'je', 'tu', 'ils', 'elles', 'qui'):
-        return 'se'
+        return _keepcase(T[i], 'se')
     return None
 
 def rule_cest_sest(T, i):
@@ -2560,7 +2581,8 @@ RULES = [('élision inversée', rule_deselide),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
-         ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
+         ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
+         ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais),
          ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
