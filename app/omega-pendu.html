@@ -13048,7 +13048,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var poss=g.forms.filter(function(f){return f.indexOf(' ')<0;}).map(function(f){return (g.gloss&&g.gloss[f])?f+' ('+g.gloss[f]+')':f;}).join(' · ');
     return 'Mot confusable (vérifie le sens) — '+poss;}
   function _vigCtxOf(T,k){var c=[],a=Math.max(0,k-_VDCW),b=Math.min(T.length-1,k+_VDCW);for(var j=a;j<=b;j++)if(j!==k)c.push(T[j][2].toLowerCase());return c;}
-  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ']+/g,o='',last=0,m,fm={},T=[],_RO=_runonSet(text);flags.forEach(function(f){fm[f.i]=f;});
+  function renderCorr(text,flags){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,o='',last=0,m,fm={},T=[],_RO=_runonSet(text);flags.forEach(function(f){fm[f.i]=f;});
     while((m=re.exec(text)))T.push([m.index,m.index+m[0].length,m[0]]);
     for(var k=0;k<T.length;k++){o+=esc(text.slice(last,T[k][0]));var f=fm[k];
       if(f&&f.span>=2&&k+f.span-1<T.length){var _ke=k+f.span-1;o+='<span class="vdc-bad vdc-orth" data-i="'+k+'" title="clique pour corriger → '+esc(f.sugg)+'">'+esc(text.slice(T[k][0],T[_ke][1]))+'</span>';last=T[_ke][1];k=_ke;}
@@ -13507,7 +13507,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
-      var er=/[A-Za-zÀ-ÿœŒ']+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
+      var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
       for(var i=0;i<P.length-1;i++){if(done[i]||done[i+1])continue;
         if(!/^\s+$/.test(text.slice(P[i][1],P[i+1][0])))continue;   // écart non purement blanc (apostrophe ' ou ’ déjà là, ponctuation) → déjà élidé
         var a=P[i][2].toLowerCase(),b=P[i+1][2].toLowerCase(),vow=/^[aeiouyh]/.test(deaccS(b));
