@@ -416,10 +416,10 @@
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;   // T[i]=verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM), borné par les gardes structure ci-dessous
     var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
-    var ddet=deacc(T[dk].toLowerCase());
+    var ddet=deacc(subj.dtxt.toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, mistag → abstention)
-    if(_COLL_HEAD[deacc(T[hk].toLowerCase())])return null;                     // nom collectif/quantité → accord complément → abstention
-    var hc=T[hk].charAt(0);if(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase()))return null;   // nom-tête propre/titre
+    if(_COLL_HEAD[deacc(subj.htxt.toLowerCase())])return null;                     // nom collectif/quantité → accord complément → abstention
+    var hc=T[hk].charAt(0);if(!subj.elid&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   // nom-tête propre/titre
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
     if(!vig)for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) ; RETIRÉ en mode vig (orange couvre le mid-phrase)
@@ -445,8 +445,8 @@
     var subj=_npSubject(T,tg,i);if(!subj||subj.n!=='s')return null;
     var hk=subj.idx,dk=subj.det,ddet=deacc(T[dk].toLowerCase());
     if(!NUM_DET[ddet]&&!_QUANT_SG[ddet])return null;
-    if(_COLL_HEAD[deacc(T[hk].toLowerCase())])return null;
-    var hc=T[hk].charAt(0);if(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase()))return null;
+    if(_COLL_HEAD[deacc(subj.htxt.toLowerCase())])return null;
+    var hc=T[hk].charAt(0);if(!subj.elid&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){if(T[m].indexOf("'")>=0||T[m].indexOf('’')>=0)return null;}
     for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}
@@ -905,7 +905,7 @@
     if(a<0)return null;var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
     var info=null,sk=-1;for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
     if(!info){                                                                   // pas de sujet PRONOM → sujet NOM via le VRAI PARSEUR (miroir rule_pp_etre)
-      if(a>=1&&T[a-1].indexOf("'")>=0)return null;                              // pronom élidé (« qu'elle soit emmenée ») → abstention (FP)
+      if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.                              // pronom élidé (« qu'elle soit emmenée ») → abstention (FP)
       var tgp=posTags(T);
       if(!tgp||i>=tgp.length||(tgp[i]!=='VERB'&&tgp[i]!=='ADJ'))return null;     // participe RÉEL (tagger)
       if(i+1<tgp.length&&tgp[i+1]==='DET')return null;                          // sujet POSTPOSÉ (« est annoncée la reprise ») → abstention (FP)
@@ -934,13 +934,25 @@
   function _adjEstem(lw){var s;if(/x$/.test(lw))s=lw.slice(0,-1);else if(/s$/.test(lw)&&!/ss$/.test(lw))s=lw.slice(0,-1);else s=lw;return (/e$/.test(s)&&!/é$/.test(s))?s:null;}
   function _nounGender(w,num,full){var d=deacc(w.toLowerCase());function src(x){var g=GENDER_PURE[x];if(g==='m'||g==='f')return g;if(full){g=GENDER_MAP[x];if(g==='m'||g==='f')return g;}return null;}var g=src(d);if(g)return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=src(d.slice(0,-1))||src(d.slice(0,-1)+'u');if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=src(d.slice(0,-1));if(g==='m'||g==='f')return g;}return null;}   // full=true (Fix C) : antécédent [dét+NOM] confirmé → retombe sur GENDER_MAP (noms homographes pomme/ferme), sinon FP
   var _COLLECTIF={};('plupart majorite minorite moitie ensemble totalite reste nombre quantite foule dizaine douzaine centaine millier tas infinite serie groupe partie').split(' ').forEach(function(w){_COLLECTIF[w]=1;});
+  var _ELID_DET=/^l['’](.+)$/i, _ELID_PRON=/['’](ils|elles|il|elle|on|je|tu|nous|vous)$/;
+  function _elidKind(tok){var t=tok.toLowerCase();   // PRIMITIVE PARTAGÉE : que cache un token à apostrophe ? 'pron' (qu'ils, s'il) | 'det' (l'équipe) | null. Sans elle, les règles posent un veto EN BLOC sur l'apostrophe — ce qui écarte les pronoms élidés (souhaité) MAIS AUSSI les déterminants élidés (angle mort mesuré : 41 divergences par elision_probe).
+    if(_ELID_PRON.test(deacc(t)))return 'pron';
+    if(_ELID_DET.test(t))return 'det';
+    return (t.indexOf("'")>=0||t.indexOf('’')>=0)?'pron':null;}   // autre contraction (d', qu', n') : prudence, on garde le veto
   function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
-    var detIdx=-1,_sp=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
+    var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
+      if(_ELID_DET.test(T[j].toLowerCase())&&!(tg&&j<tg.length&&tg[j]==='VERB')){   // DÉCOLLER L'ÉLISION : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
+        if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
+        continue;}
       var _pj=(PREP[dj]||dj==='en'||(T[j].toLowerCase().indexOf("'")>=0&&dj.charAt(0)==='d'));if(_pj)_sp=true;   // « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
-      if(tgj==='DET'||NUM_DET[dj]){if(detIdx<0||_sp){detIdx=j;_sp=_pj;}}}   // On remonte au déterminant le PLUS À GAUCHE, mais SEULEMENT à travers un lien « de » — c'est POUR ÇA que la remontée existe (« les enfants DE la voisine » a sa tête à GAUCHE). Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet (FP mesuré). Un 2e GN à gauche SANS lien « de » est ADVERBIAL, pas le sujet. Et une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_sp gardé vrai) : elle ouvre un complément, donc un vrai déterminant plus à gauche doit pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).   // On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ». C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à GAUCHE. Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré). Un second GN à gauche SANS lien « de » est un GN ADVERBIAL (« ce matin », « la semaine dernière »), pas le sujet ⇒ on garde le déterminant le plus PROCHE du verbe.
+      if(tgj==='DET'||NUM_DET[dj]){if(detIdx<0||_sp){detIdx=j;_sp=_pj;_elid=false;}}}   // On remonte au déterminant le PLUS À GAUCHE, mais SEULEMENT à travers un lien « de » — c'est POUR ÇA que la remontée existe (« les enfants DE la voisine » a sa tête à GAUCHE). Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet (FP mesuré). Un 2e GN à gauche SANS lien « de » est ADVERBIAL, pas le sujet. Et une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_sp gardé vrai) : elle ouvre un complément, donc un vrai déterminant plus à gauche doit pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).   // On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ». C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à GAUCHE. Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré). Un second GN à gauche SANS lien « de » est un GN ADVERBIAL (« ce matin », « la semaine dernière »), pas le sujet ⇒ on garde le déterminant le plus PROCHE du verbe.
     if(detIdx<0)return null;
     if(PREP[deacc(T[detIdx].toLowerCase())]&&detIdx-1>=lo&&tg&&detIdx-1<tg.length&&(tg[detIdx-1]==='NOUN'||tg[detIdx-1]==='PROPN'))return null;   // Un déterminant qui est AUSSI une préposition contractée (du/des/au/aux) et qui suit un NOM ouvre un COMPLÉMENT, pas le sujet : « de nombreux pouvoirs DU GOUVERNEUR ont été délégués », « 50 000 Allemands DU WARTHELAND ont péri ». Aucun vrai déterminant plus à gauche ⇒ la remontée ne peut pas réparer ⇒ abstention.
     if(detIdx-1>=lo&&PREP[deacc(T[detIdx-1].toLowerCase())])return null;
+    if(_elid){var _h=_ELID_DET.exec(T[detIdx].toLowerCase())[1];   // « l'équipe » : le déterminant ET la tête sont le MÊME token
+      var _g=_nounGender(_h,'s')||GENDER_PURE[deacc(_h)];
+      if(_g!=='m'&&_g!=='f')return null;   // genre inconnu → on ne sait pas rendre le déterminant → abstention
+      return {idx:detIdx,det:detIdx,g:_g,n:'s',elid:true,dtxt:(_g==='f'?'la':'le'),htxt:_h};}
     var head=-1;for(var k=detIdx+1;k<a;k++){var dk=deacc(T[k].toLowerCase());if(PREP[dk]||(T[k].toLowerCase().indexOf("'")>=0&&dk.charAt(0)==='d'))break;if((tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'))||(dk in GENDER_PURE)){head=k;break;}}
     if(head<0)return null;
     if(_COLLECTIF[deacc(T[head].toLowerCase())])return null;   // NOM COLLECTIF (« la plupart ONT gardé », « la majorité sont ») : l'accord se fait au SENS, singulier ET pluriel sont corrects ⇒ abstention
@@ -950,7 +962,7 @@
     else if(_QUANT_SG[ddet])num='s';
     else{var dh0=deacc(T[head].toLowerCase());if(NOUN_INVAR_S[dh0])return null;num=/[sx]$/.test(dh0)?'p':'s';}
     var g=_nounGender(T[head],num)||ADJ_DETM[ddet]||(ADJ_DETF[ddet]?'f':null);
-    return {idx:head,det:detIdx,g:g||'?',n:num};}
+    return {idx:head,det:detIdx,g:g||'?',n:num,elid:false,dtxt:T[detIdx],htxt:T[head]};}
   function _adjAgree(w,gender,num){var lw=w.toLowerCase();var stem=_adjEstem(lw);
     if(stem!==null)return num==='p'?stem+'s':stem;
     var p=ADJP[deacc(lw)],g=p[0],alt=p[1];var base=(g===gender)?w:alt;

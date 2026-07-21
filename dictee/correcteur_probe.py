@@ -895,6 +895,21 @@ def _noun_gender(w, num='s', full=False):
 # en sautant les mots-écrans (compléments « de X » : « la couleur DE LA VOITURE est… » → tête = couleur, pas voiture) et
 # en s'abstenant sur les cas où le sujet n'est pas un [dét + nom] simple (coordination = genre mixte ; infinitif/proposition
 # = « s'assurer DE LA PENTE était crucial » → le dét « la » est précédé de « de » ⇒ PP, pas le sujet ⇒ abstention). FP-sûr.
+_ELID_DET = re.compile(r"^l['’](.+)$")   # « l'X » = déterminant élidé + nom-tête dans UN SEUL token
+_ELID_PRON = re.compile(r"['’](ils|elles|il|elle|on|je|tu|nous|vous)$")   # pronom ELIDE colle : qu'ils, s'il, lorsqu'elle
+
+
+def _elid_kind(tok):
+    """Que cache un token a apostrophe ? 'pron' (qu'ils, s'il) | 'det' (l'equipe) | None.
+    PRIMITIVE PARTAGEE : sans elle, les regles posent un veto EN BLOC sur l'apostrophe -- ce qui ecarte
+    les pronoms elides (souhaite) MAIS AUSSI les determinants elides (angle mort mesure : 41 divergences,
+    et 27 vetos-en-bloc rien que dans ce fichier)."""
+    t = tok.lower()
+    if _ELID_PRON.search(deacc(t)): return 'pron'
+    if _ELID_DET.match(t): return 'det'
+    return 'pron' if ("'" in t or "’" in t) else None   # autre contraction (d', qu', n') : prudence, on garde le veto
+
+
 _COLLECTIF = set('''plupart majorite minorite moitie ensemble totalite reste nombre quantite foule dizaine douzaine centaine millier tas infinite serie groupe partie'''.split())   # accord « au sens » toléré : ces têtes acceptent le verbe au pluriel
 
 
@@ -908,6 +923,7 @@ def _np_subject(T, tg, a):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
     det_idx = None
     _seen_prep = False
+    _elid = False
     j = a - 1
     while j >= lo:
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
@@ -922,6 +938,15 @@ def _np_subject(T, tg, a):
             break                                            # PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
         _pj = (dj in PREP or dj == 'en' or ("'" in T[j].lower() and dj.startswith('d')))
         if _pj: _seen_prep = True   # « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
+        if _ELID_DET.match(T[j].lower()) and (tg is None or j >= len(tg) or tg[j] != 'VERB'):
+            # PRIMITIVE : DÉCOLLER L'ÉLISION. « l'équipe » est UN SEUL token, donc ni le tagger ni les
+            # listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui
+            # toutes les règles d'accord qui en dépendent (23 divergences mesurées par elision_probe).
+            # Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là,
+            # simplement collée. On la rend au parseur au lieu de la redécouvrir règle par règle.
+            if det_idx is None or _seen_prep:
+                det_idx = j; _seen_prep = False; _elid = True
+            j -= 1; continue
         if tgj == 'DET' or dj in NUM_DET:
             # On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ».
             # C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à gauche
@@ -933,7 +958,7 @@ def _np_subject(T, tg, a):
             # gardé vrai) : elle ouvre un COMPLÉMENT, donc un vrai déterminant plus à gauche doit
             # pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).
             if det_idx is None or _seen_prep:
-                det_idx = j; _seen_prep = _pj
+                det_idx = j; _seen_prep = _pj; _elid = False
         j -= 1
     if det_idx is None: return None
     # Un déterminant qui est AUSSI une préposition contractée (du/des/au/aux) et qui suit un NOM ouvre un
@@ -944,6 +969,12 @@ def _np_subject(T, tg, a):
             and tg and det_idx - 1 < len(tg) and tg[det_idx-1] in ('NOUN', 'PROPN')): return None
     if det_idx - 1 >= lo and deacc(T[det_idx-1].lower()) in PREP:
         return None                                          # « de la pente » : dét dans un PP ⇒ ce n'est pas le sujet ⇒ abstention
+    if _elid:                                                # « l'équipe » : le déterminant ET la tête sont le MÊME token
+        _h = _ELID_DET.match(T[det_idx].lower()).group(1)
+        _g = _noun_gender(_h, 's') or GENDER_PURE.get(deacc(_h))
+        if _g not in ('m', 'f'): return None                 # genre inconnu → on ne sait pas rendre le déterminant → abstention
+        return {'idx': det_idx, 'det': det_idx, 'g': _g, 'n': 's', 'elid': True,
+                'dtxt': ('la' if _g == 'f' else 'le'), 'htxt': _h}
     head = None                                              # nom-tête = 1er nom après le déterminant, AVANT tout complément « de X »
     for k in range(det_idx + 1, a):
         dk = deacc(T[k].lower())
@@ -961,7 +992,8 @@ def _np_subject(T, tg, a):
         if dh in _NOUN_INVAR_S: return None
         num = 'p' if dh[-1:] in 'sx' else 's'
     g = _noun_gender(T[head], num) or _ADJ_DETM.get(ddet) or ('f' if ddet in _ADJ_DETF else None)  # le/un/ce→m, la/une/cette/ma/ta/sa→f (son/mon/ton EXCLUS : ambigus)
-    return {'idx': head, 'det': det_idx, 'g': g or '?', 'n': num}
+    return {'idx': head, 'det': det_idx, 'g': g or '?', 'n': num, 'elid': False,
+            'dtxt': T[det_idx], 'htxt': T[head]}   # TEXTES explicites : les consommateurs ne re-derivent plus le determinant et la tete depuis T[], ce qui est exactement la ou l'elision se perdait
 
 def rule_adj_attr(T, i):
     """Accord de l'ADJECTIF ATTRIBUT après ÊTRE, avec le sujet (« la voiture est bleu »→bleue,
@@ -1090,7 +1122,7 @@ def rule_pp_etre(T, i):
         if dk in ('ne', 'n'): continue
         info = _PP_SUBJ.get(dk); sk = k; break
     if not info:                                              # pas de sujet PRONOM → tenter le sujet NOM (VRAI PARSEUR de tête de GN, comme rule_adj_attr : mots-écrans sautés, coordination/infinitif/PP → abstention FP-sûre)
-        if a >= 1 and "'" in T[a-1]: return None               # pronom élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique, pas un nom → abstention (FP)
+        if a >= 1 and _elid_kind(T[a-1]) == 'pron': return None   # PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
         tg = pos_tags(T)
         if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ'): return None   # participe RÉEL (tagger) → écarte les noms homographes (« les données sont… »)
         if i+1 < len(tg) and tg[i+1] == 'DET': return None     # déterminant juste APRÈS le participe → sujet POSTPOSÉ (« est annoncée la reprise ») ou attribut → identification du sujet non fiable → abstention (FP)
@@ -1662,10 +1694,10 @@ def rule_accord_sv_noun(T, i):
     subj = _np_subject(T, tg, _vs)                                     # tête [dét + nom] du sujet, mots-écrans « de X » sautés
     if subj is None: return None
     nb = subj['n']; hk = subj['idx']; dk = subj['det']
-    ddet = deacc(T[dk].lower())
+    ddet = deacc(subj['dtxt'].lower())
     if ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention
-    if deacc(T[hk].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
-    if tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper()): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention
+    if deacc(subj['htxt'].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
+    if not subj['elid'] and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention
     lo = 0                                                             # début de proposition (bornes _SEG)
     if _SEG is not None:
         for j in range(i, 0, -1):
@@ -1786,10 +1818,10 @@ def rule_ais_ait(T, i):
     subj = _np_subject(T, tg, i)
     if subj is None or subj['n'] != 's': return None          # sujet-NOM SINGULIER (le pluriel donnerait -aient)
     hk = subj['idx']; dk = subj['det']
-    ddet = deacc(T[dk].lower())
+    ddet = deacc(subj['dtxt'].lower())
     if ddet not in NUM_DET and ddet not in _QUANT_SG: return None
-    if deacc(T[hk].lower()) in _COLL_HEAD: return None
-    if tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper()): return None
+    if deacc(subj['htxt'].lower()) in _COLL_HEAD: return None
+    if not subj['elid'] and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None
     lo = 0
     if _SEG is not None:
         for j in range(i, 0, -1):
