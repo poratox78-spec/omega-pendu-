@@ -152,6 +152,15 @@ def pos_tags(T):
         lw = w.lower()
         if (t == 'PUNCT' or t == 'SYM') and any(ch.isalpha() for ch in lw): return -100.0   # un mot alphabétique n'est JAMAIS ponctuation (interdit ferme)
         e = em.get(lw)
+        if e is None:
+            # DÉTERMINANT ÉLIDÉ : « l'article » est UN token pour nous, DEUX pour le modèle (appris sur
+            # UD, qui les sépare). Hors-vocabulaire, il retombait sur le backoff SUFFIXE puis sur le
+            # prior « majuscule → PROPN ». Et comme Viterbi est GLOBAL, une seule forme collée DÉGRADE
+            # l'étiquetage de TOUTE la phrase : « le responsable commandent l'article » faisait taguer
+            # « commandent » NOUN. L'émission d'un « l'X » est celle de X — le déterminant ne porte pas
+            # le contenu lexical.
+            _m = _ELID_DET.match(lw)
+            if _m: e = em.get(_m.group(1))
         if e is not None: return e.get(t, FL)                                               # émission apprise (mot vu ≥2 sur UD)
         for k in (4, 3, 2):                                                                  # inconnu → backoff SUFFIXE (rien d'autre : parité 3 moteurs, pas de lexique POS externe)
             if len(lw) >= k and lw[-k:] in suf:

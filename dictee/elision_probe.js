@@ -48,7 +48,7 @@ function correctAll(text){
 //   node dictee/elision_probe.js              liste les regles aveugles
 //   node dictee/elision_probe.js --check      echoue si le compte depasse le plafond (garde CI)
 const path2 = require('path');
-const CEILING = Number(process.env.CEILING || 5);   // etat mesure au 2026-07-21 : 5 angles morts (41 avant les primitives d'elision). Ce plafond ne doit que BAISSER.
+const CEILING = Number(process.env.CEILING || 3);   // etat mesure au 2026-07-21 : 3 angles morts (41 avant les primitives d'elision). Ce plafond ne doit que BAISSER.
 const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
 
 (async () => {

@@ -13154,7 +13154,9 @@ window.addEventListener('DOMContentLoaded', () => {
     function le(t,w){
       var lw=w.toLowerCase();
       if((t==='PUNCT'||t==='SYM')&&/[a-zà-ÿ]/i.test(lw))return -100.0;
-      var e=em[lw];if(e!==undefined)return (t in e)?e[t]:FL;
+      var e=em[lw];
+      if(e===undefined){var _me=_ELID_DET.exec(lw);if(_me)e=em[_me[1]];}   // DÉTERMINANT ÉLIDÉ : « l'article » est UN token pour nous, DEUX pour le modèle (appris sur UD, qui les sépare). Hors-vocabulaire il retombait sur le backoff SUFFIXE puis sur le prior « majuscule → PROPN » — et comme Viterbi est GLOBAL, une seule forme collée DÉGRADE l'étiquetage de TOUTE la phrase. L'émission d'un « l'X » est celle de X.
+      if(e!==undefined)return (t in e)?e[t]:FL;
       for(var k=4;k>=2;k--){if(lw.length>=k){var sf=lw.slice(-k);if(suf[sf]!==undefined){var d=suf[sf];return ((t in d)?d[t]:FL)+((cap(w)&&t==='PROPN')?0.0953:0);}}}
       return ((t in pri)?pri[t]:FL)+((cap(w)&&t==='PROPN')?1.0986:0);
     }
