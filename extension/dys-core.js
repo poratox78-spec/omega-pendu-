@@ -557,7 +557,7 @@
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var ci=null;for(k=i-1;k>=lo;k--){var dk=deacc(T[k].toLowerCase());if(dk==='et'||dk==='ou'||dk==='ni'){ci=k;break;}}
     if(ci===null)return null;
-    for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;}
+    for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;if(_elidKind(T[m])==='det')return null;}
     var v1=null;for(k=ci-1;k>=lo;k--){
       if(!/(é|és|ée|ées)$/.test(T[k].toLowerCase())&&_verbOrHomograph(tg,T,k)&&_vnum3(T[k])!==null){v1=k;break;}
       var d=deacc(T[k].toLowerCase());if(GENDER_MAP[d]||ADJP[d])break;
