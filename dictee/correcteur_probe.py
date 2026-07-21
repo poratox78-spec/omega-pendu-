@@ -466,10 +466,39 @@ def _plural_left(T, i):
         j -= 1
     return False
 
+_LELID_STOP = {'un', 'une', 'autre', 'autres', 'on', 'uns'}   # « l'un et l'autre ont… » : pronoms indéfinis, pas des noms-têtes de sujet singulier
+
+
 def rule_on_ont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
+    if lw == 'ont':
+        # « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut
+        # pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres,
+        # sinon le raccourci « mot suivant en -e » tranche le premier (« L'équipe ont rencontre » → « on rencontre »).
+        _tgo = pos_tags(T)
+        _so = _np_subject(T, _tgo, i) if _tgo else None
+        # tête du GN COLLÉE au verbe : exigence qui écarte l'écran « de N » (« l'ensemble DES PARTICIPANTS ont »,
+        # usage toléré), piège mesuré de cette famille. Sujet nominal SINGULIER ⇒ l'auxiliaire est « a » (avoir 3sg).
+        # Débloque aussi le BLOCAGE MUTUEL : « ont modifier » n'était corrigible d'aucun côté ; « a » posé, la
+        # règle du participe tire au tour suivant.
+        if _so is not None and _so['idx'] == i - 1:
+            return None if _so["n"] == "p" else _keepcase(T[i], "a")
+        _cib = (i == 0) or (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i])
+        if _so is None and i > 0 and not _cib:
+            # ÉLISION : « L'équipe » est UN SEUL token, donc _np_subject n'y voit aucun déterminant et s'abstient.
+            # Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) — l'information est là, juste collée.
+            # MESURÉ : sans garde, cette branche coûte 4 FP sur UD (« de l'auteur, ont été publiées » sujet
+            # POSTPOSÉ, « de l'homme, ont été unanimes » incise, « et l'étalonnage ont été » coordination,
+            # « de l'album ont eu lieu » écran prépositionnel). Les quatre sont exactement ce que _np_subject
+            # garde déjà — on lui emprunte ses gardes au lieu d'en inventer : pas de préposition ni de
+            # coordination avant le GN, et pas de frontière de proposition entre lui et le verbe.
+            _el = re.match(r"^l['’](.+)$", T[i-1].lower())
+            _lft = deacc(T[i-2].lower()) if i >= 2 else ''
+            if _el and deacc(_el.group(1)) not in _LELID_STOP and _lft not in PREP and _lft not in ('et', 'ou', 'ni'):
+                _pe = NOUN_POST.get(deacc(_el.group(1))) if NOUN_POST else None
+                if _pe and _pe[0] >= PL_TAU_M: return _keepcase(T[i], "a")
     nx = T[i+1].lower() if i+1 < len(T) else ''
     if nx.endswith('e') and not nx.endswith('ée') and _reads(nx): return 'on'   # « on » + verbe FINI présent en -e (trouve/mange) → « on » (ont ne précède JAMAIS un verbe fini) ; fixe « professeurs on trouve »→ont
     # TÊTE de proposition (i==0 ou frontière avant) : le sujet à GAUCHE appartient à une AUTRE proposition — contexte
