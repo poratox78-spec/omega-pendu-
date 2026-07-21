@@ -2212,10 +2212,21 @@ def _noun_gate_n(n):                                            # variante SANS 
     p = NOUN_POST.get(deacc(n.lower())) if NOUN_POST else None
     return bool(p) and p[0] >= PL_TAU_M
 
+_PL_OUX = {'bijou', 'caillou', 'chou', 'genou', 'hibou', 'joujou', 'pou'}          # -ou qui prend -x
+_PL_AILAUX = {'bail', 'corail', 'émail', 'soupirail', 'travail', 'vantail', 'vitrail'}   # -ail -> -aux
+
 def _pluralize_noun(n):
     """Pluriel ANCRÉ DANS LE POSTERIOR (pas de « oiseaus ») : +s / -al→-aux / -au-eu→+x, on garde la forme dont
     la part NOM ≥ 30 % (le pos_of EMBARQUÉ est FAUX pour amis=ADJ/pommes=VER → l'ancre fréquentielle les récupère)."""
-    dn = deacc(n.lower()); cands = [n + 's']
+    dn = deacc(n.lower()); lw = n.lower(); cands = []
+    # Les DEUX familles d'exceptions du pluriel francais, en listes CLOSES (apprises par coeur a
+    # l'ecole, elles ne s'etendent pas). Sans elles le moteur produisait un FAUX pluriel :
+    # « des travail » -> « travails », « des corail » -> « corails » — pire que se taire.
+    # Elles passent AVANT le +s ; l'ancre du posterior reste le juge final.
+    # « email » SANS accent est laisse de cote : c'est le courriel, pluriel « emails ».
+    if dn in _PL_OUX: cands.append(n + 'x')                     # les sept en -oux
+    if lw in _PL_AILAUX: cands.append(n[:-3] + 'aux')           # travail->travaux (forme ACCENTUEE : email/email)
+    cands.append(n + 's')
     if dn.endswith('al'): cands.append(n[:-2] + 'aux')          # cheval→chevaux (mais bals vérifié d'abord)
     if dn.endswith('au') or dn.endswith('eu'): cands.append(n + 'x')   # oiseau/jeu→+x (-eau finit par -au)
     for c in cands:
