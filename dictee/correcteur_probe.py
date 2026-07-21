@@ -938,6 +938,21 @@ def _np_subject(T, tg, a):
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
         if dj in ('et', 'ou', 'ni'): return None             # sujet coordonné → genre/nombre mixtes → abstention
         if dj in _NP_BREAK: break                            # relative/subordonnée (que/qui/dont…) → GN sujet à droite (ne pas remonter dans la proposition amont)
+        if _ELID_DET.match(T[j].lower()):
+            # Ce test passe AVANT la frontière VERBALE ci-dessous : sur un token COLLÉ le tagger est
+            # CONTAMINÉ — il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas ».
+            # PAS de garde « le tagger ne dit pas VERB » : sur un token COLLÉ le tagger est justement
+            # contaminé — il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »
+            # et dans « En urgence, l'entreprise commandaient ». C'est le GENRE du lexique (sans
+            # contexte) qui décide plus bas : genre inconnu (« l'a », « l'ont », « l'on ») → abstention.
+            # PRIMITIVE : DÉCOLLER L'ÉLISION. « l'équipe » est UN SEUL token, donc ni le tagger ni les
+            # listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui
+            # toutes les règles d'accord qui en dépendent (23 divergences mesurées par elision_probe).
+            # Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là,
+            # simplement collée. On la rend au parseur au lieu de la redécouvrir règle par règle.
+            if det_idx is None or _seen_prep:
+                det_idx = j; _seen_prep = False; _elid = True
+            j -= 1; continue
         if tgj in ('VERB', 'AUX'):                           # frontière verbale : le GN sujet est à droite de j…
             if T[j].lower().endswith(('é', 'és', 'ée', 'ées')) and not (j-1 >= lo and tg and j-1 < len(tg) and tg[j-1] == 'AUX'):
                 j -= 1; continue                             # …SAUF participe-épithète (relative réduite « cartons EMPILÉS dans… ») non précédé d'un aux = adjectif, pas le verbe → sauter vers le nom-tête
@@ -947,15 +962,6 @@ def _np_subject(T, tg, a):
             break                                            # PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
         _pj = (dj in PREP or dj == 'en' or ("'" in T[j].lower() and dj.startswith('d')))
         if _pj: _seen_prep = True   # « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
-        if _ELID_DET.match(T[j].lower()) and (tg is None or j >= len(tg) or tg[j] != 'VERB'):
-            # PRIMITIVE : DÉCOLLER L'ÉLISION. « l'équipe » est UN SEUL token, donc ni le tagger ni les
-            # listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui
-            # toutes les règles d'accord qui en dépendent (23 divergences mesurées par elision_probe).
-            # Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là,
-            # simplement collée. On la rend au parseur au lieu de la redécouvrir règle par règle.
-            if det_idx is None or _seen_prep:
-                det_idx = j; _seen_prep = False; _elid = True
-            j -= 1; continue
         if tgj == 'DET' or dj in NUM_DET:
             # On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ».
             # C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à gauche
