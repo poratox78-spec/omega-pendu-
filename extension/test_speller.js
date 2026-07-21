@@ -66,16 +66,18 @@ try {
   const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
   const spIdx = html.indexOf('function spellText', start);
   const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
-  const code = html.slice(start, cut) + ';globalThis.__app={load:loadSpellerLex,spell:spellText};})();';
+  const code = html.slice(start, cut) + ';globalThis.__app={load:loadSpellerLex,loadG:loadGenderLex,spell:spellText};})();';
   const splBlk = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
   const vdcBlk = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
+  const gdtBlk = (html.match(/<script type="text\/plain" id="gdet-lex-gz">([^<]*)<\/script>/) || [])[1] || '';   // EGALITE D EQUIPEMENT : l extension charge gender-relaxed via setLex, pas l app ici. MESURE : l ecart reel est de 1 625 entrees (68 751 -> 70 376), le gros du genre venant deja de la graine vdc-lex — mais comparer deux moteurs inegalement equipes ne prouve rien, meme d un cheveu.
+  if (!gdtBlk.trim()) { console.error('HARNAIS KO : bloc gdet-lex-gz introuvable dans app/omega-pendu.html — la parite serait mesuree a equipement INEGAL, donc a vide'); process.exit(1); }   // c est ce bloc qui peut casser EN SILENCE (renommage/retypage du script) : une egalite parfaite entre deux configurations est un signal d echec, jamais une neutralite
   const stub = new Proxy(function(){}, { get(t,k){ if(k==='classList')return {add(){},remove(){},toggle(){},contains:()=>false}; if(k==='style')return{}; return stub; }, set:()=>true, apply:()=>stub });
-  global.document = { getElementById:(id)=> id==='vdc-lex'?{textContent:vdcBlk}: id==='speller-lex-gz'?{textContent:splBlk}:stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
+  global.document = { getElementById:(id)=> id==='vdc-lex'?{textContent:vdcBlk}: id==='speller-lex-gz'?{textContent:splBlk}: id==='gdet-lex-gz'?{textContent:gdtBlk}:stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
   global.window = global; global.navigator = { userAgent:'node' }; global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
   global.speechSynthesis = { speak(){}, cancel(){}, getVoices:()=>[] }; global.SpeechSynthesisUtterance = function(){return stub;};
   (0, eval)(code);
   (async () => {
-    await global.__app.load();
+    await global.__app.load(); await global.__app.loadG();   // meme equipement des deux cotes (speller + genre relache)
     const BAT = ['fenetre cassée','le gateau','une pome','monagne','oartir','telefone','dortografe','maron',
                  'le chat dort sur le canapé','la fenêtre est ouverte','un texte parfaitement correct ici','daujourdhui','je suis trist','il galère autent','vraimet trist autent'];
     const key = f => f.i + '|' + String(f.word).toLowerCase() + '|' + String(f.sugg).toLowerCase() + '|' + f.tier;
