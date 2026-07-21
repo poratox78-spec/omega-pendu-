@@ -31,39 +31,27 @@ function correctAll(text){
   let t=text; for(const r of chosen) t=t.slice(0,r[0])+r[2]+t.slice(r[1]);
   return t;
 }
-// residual_audit.js — AUDIT DES RESIDUS : ce que le moteur COMPLET rate ou corrige MAL, groupe par famille.
-// Complement de battery.js : la batterie donne un TAUX, celui-ci donne la LISTE des familles a attaquer,
-// triee par frequence. C'est lui qui a exhibe « ont -> on (gold a) » 40 fois — un francais impossible que
-// l'agregat de la batterie noyait dans « 91 degradees ».
-//   node dictee/residual_audit.js
-// Corpus locaux (data_local/, gitignores) ; sortie : RATES (silence) puis MAL CORRIGES (erreur active).
-const path2=require('path');
-const RE2=/[A-Za-zÀ-ÿœŒ']+/g, tk=s=>(s.match(RE2)||[]).map(x=>x.toLowerCase());
-(async()=>{ await C.loadSp(); await C.loadG(); await C.loadNP(); await C.loadH();
-  const RATE={}, MAL={}, CASSE={};
-  for(const f of ['dys_corpus_rem.jsonl','corpus_gec_fr.jsonl','corpus_gec100.jsonl','corpus_multi1000.jsonl']){
-    const p=path2.join(ROOT,'data_local',f); if(!fs.existsSync(p))continue;
-    for(const l of fs.readFileSync(p,'utf8').split('\n').filter(Boolean)){
-      const o=JSON.parse(l); const bad=o.bad!=null?o.bad:o.raw, good=o.good!=null?o.good:o.fixed;
-      if(bad==null||good==null)continue;
-      const B=tk(bad),G=tk(good),O=tk(correctAll(bad));
-      if(B.length!==G.length||O.length!==G.length)continue;      // alignement 1-1 seulement
-      for(let i=0;i<G.length;i++){
-        if(B[i]===G[i]){                                          // le token etait CORRECT dans la saisie...
-          if(O[i]!==G[i]){const ck=B[i]+' -> '+O[i];CASSE[ck]=(CASSE[ck]||0)+1;}   // ...et le moteur l'a CASSE. Angle mort de la v1 : elle n'examinait que les tokens deja FAUTIFS, donc une correction qui detruit du correct AU MILIEU d'une phrase fautive restait invisible — et fp_scale_probe ne la voit pas non plus, il ne tourne que sur du texte 100 % correct. C'est exactement la zone ou vit le texte d'un dys.
-          continue;}
-        if(O[i]===G[i])continue;                                  // corrigee
-        const k=B[i]+' → '+G[i];
-        if(O[i]===B[i])RATE[k]=(RATE[k]||0)+1; else MAL[B[i]+' → '+O[i]+' (gold '+G[i]+')']=(MAL[B[i]+' → '+O[i]+' (gold '+G[i]+')']||0)+1;
-      }
-    }
-  }
-  const srt=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]);
-  const tot=o=>Object.values(o).reduce((a,b)=>a+b,0);
-  console.log('=== RATES (le moteur se TAIT) : '+tot(RATE)+' occurrences, '+Object.keys(RATE).length+' types ===');
-  for(const [k,n] of srt(RATE).slice(0,45))console.log('  '+String(n).padStart(4)+'  '+k);
-  console.log('\n=== MAL CORRIGES (le moteur se TROMPE) : '+tot(MAL)+' occurrences ===');
-  for(const [k,n] of srt(MAL).slice(0,25))console.log('  '+String(n).padStart(4)+'  '+k);
-  console.log('\n=== CASSES (le token etait CORRECT, le moteur l a detruit) : '+tot(CASSE)+' occurrences ===');
-  for(const [k,n] of srt(CASSE).slice(0,25))console.log('  '+String(n).padStart(4)+'  '+k);
+// fp_scale_full.js — FP de la GRAMMAIRE a la PLUS GRANDE echelle disponible : les 14 450 phrases du
+// UD French-GSD train, lues directement du .conllu. C'est 5,8x le corpus de fp_scale_probe.py (2 500).
+// POURQUOI : une regle peut afficher FP=0 sur 2 500 phrases simplement parce que son mot-cible n'y
+// apparait presque pas. « mai » : 15 occurrences dans les 2 500, 103 dans les 14 450 — et trois
+// variantes qui semblaient propres a 2 500 se sont revelees fausses a 14 450.
+//   node dictee/fp_scale_full.js            (RULE=mai/mais pour isoler une regle)
+// Corpus local (data_local/ud_fr_gsd-train.conllu, gitignore).
+const path2 = require('path');
+(async () => {
+  await C.loadSp(); await C.loadG(); await C.loadNP(); await C.loadH();
+  const conllu = path2.join(ROOT, 'data_local', 'ud_fr_gsd-train.conllu');
+  if (!fs.existsSync(conllu)) { console.log('(corpus UD absent — sonde ignoree)'); return; }
+  const sents = fs.readFileSync(conllu, 'utf8').split(String.fromCharCode(10))
+    .filter(l => l.startsWith('# text = ')).map(l => l.slice(9).trim()).filter(Boolean);
+  const only = process.env.RULE || null;
+  let tot = 0; const by = {};
+  for (const s of sents) { C.setSeg(s);
+    for (const f of C.gram(s)) { if (only && f.name !== only) continue;
+      tot++; by[f.name] = (by[f.name] || 0) + 1; } }
+  console.log('=== FP GRAMMAIRE a l echelle — ' + sents.length + ' phrases UD French-GSD (train) ===');
+  console.log('  flags sur du texte CORRECT : ' + tot + '  (' + (100 * tot / sents.length).toFixed(2) + '% des phrases)');
+  for (const [k, v] of Object.entries(by).sort((a, b) => b[1] - a[1]))
+    console.log('    ' + String(v).padStart(5) + '  ' + k);
 })();

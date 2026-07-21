@@ -466,6 +466,48 @@ def _plural_left(T, i):
         j -= 1
     return False
 
+# « mai » (le mois) écrit à la place de « mais » (la conjonction) — 92 occurrences dans les corpus,
+# le plus gros silence mesuré par residual_audit.js. Même famille que rule_met_mais, autre graphie.
+_MOIS = {'janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre',
+         'octobre', 'novembre', 'decembre'}
+# contextes où « mai » est le MOIS : préposition/déterminant/quantifieur de date à gauche. « er » y figure
+# parce que le tokeniseur jette les chiffres : « le 1er mai » arrive comme [le, er, mai].
+_MAI_DATE_LEFT = {'en', 'de', 'du', 'des', 'depuis', 'jusqu', 'mi', 'debut', 'fin', 'courant', 'entre',
+                  'avant', 'apres', 'vers', 'le', 'ce', 'cet', 'cette', 'au', 'aux', 'pour', 'd',
+                  'premier', 'premiere', 'dernier', 'er', 'ler', 'et', 'ou', 'ni', 'que', 'qui',
+                  'dont', 'si', 'comme', 'puis'}
+# ouvertures de proposition à droite : la conjonction « mais » introduit une SECONDE proposition
+_MAI_OPEN = {'je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles', 'ce', 'ca', 'cela', 'ceci',
+             'le', 'la', 'les', 'un', 'une', 'des', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa',
+             'ses', 'notre', 'nos', 'votre', 'vos', 'leur', 'leurs', 'cet', 'cette', 'ces',
+             'ne', 'n', 'pas', 'plus', 'rien', 'jamais', 'aussi', 'encore', 'toujours', 'cependant',
+             'pourtant', 'surtout', 'enfin', 'donc', 'alors', 'ici', 'y', 'en', 'tout', 'tous',
+             'chacun', 'personne', 'quelques', 'certains', 'beaucoup', 'peu'}
+
+
+def rule_mai_mais(T, i):
+    if deacc(T[i].lower()) != 'mai': return None
+    if i == 0: return None                                              # en tête : « Mai 68 » ; et une conjonction a besoin d'une proposition AVANT
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # début de proposition
+    if i + 1 >= len(T): return None                                     # rien à droite : pas de seconde proposition
+    p = deacc(T[i-1].lower())
+    if p in _MAI_DATE_LEFT or p in _MOIS: return None                   # « en mai », « le 1er mai », « avril mai »
+    nxt, n = T[i+1], deacc(T[i+1].lower())
+    if n in _MOIS: return None                                          # « mai juin juillet »
+    # ÉLISION : « l'équipe » est UN SEUL token — sans ce test on perdait 10 des 92 cas (même angle mort
+    # que la règle on/ont). Le déterminant est là, juste collé.
+    if not (n in _MAI_OPEN or re.match(r"^(l|j|c|n|s|qu)['’]", nxt.lower())): return None
+    # une CONJONCTION joint deux propositions : il faut un verbe conjugué à GAUCHE, dans la même
+    # proposition. Écarte « Paris, mai 1968 : la révolution » (aucun verbe) que UD ne contient pas mais
+    # qui passerait sans ça.
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    if not any(vlike(T, j) for j in range(lo, i)): return None
+    return _keepcase(T[i], 'mais')
+
+
 _LELID_STOP = {'un', 'une', 'autre', 'autres', 'on', 'uns'}   # « l'un et l'autre ont… » : pronoms indéfinis, pas des noms-têtes de sujet singulier
 
 
@@ -2519,7 +2561,8 @@ RULES = [('élision inversée', rule_deselide),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
-         ('met/mais', rule_met_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
+         ('met/mais', rule_met_mais),
+         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_il_ils),
