@@ -874,15 +874,15 @@
     else{var bk=a-1;while(bk>=0&&(deacc(T[bk].toLowerCase())==='ne'||deacc(T[bk].toLowerCase())==='n'))bk--;if(bk<0)return null;var tb=T[bk].toLowerCase();if(QUE_SUBJ[tb]){q=bk;}else if(COD_SUBJ[deacc(tb)]){if(bk-1<0||deacc(T[bk-1].toLowerCase())!=='que')return null;q=bk-1;}else return null;}
     var lo=0,jj;if(_SEG){for(jj=q;jj>0;jj--){if(jj<_SEG.bb.length&&_SEG.bb[jj]){lo=jj;break;}}}
     var tg=posTags(T);if(!tg)return null;
-    var det=-1,noun=-1,m=q-1;
-    while(m>=lo){var dm=deacc(T[m].toLowerCase());if(T[m].toLowerCase().indexOf("'")>=0)return null;if(PREP[dm])return null;if(m<tg.length&&(tg[m]==='DET'||NUM_DET[dm])){det=m;break;}if(m<tg.length&&(tg[m]==='NOUN'||tg[m]==='PROPN')){noun=m;m--;continue;}if(m<tg.length&&(tg[m]==='ADJ'||tg[m]==='ADV'||tg[m]==='NUM')){m--;continue;}return null;}
+    var det=-1,noun=-1,_elidAnt=false,m=q-1;
+    while(m>=lo){var dm=deacc(T[m].toLowerCase());if(_elidKind(T[m])==='det'){det=m;noun=m;_elidAnt=true;break;}if(T[m].toLowerCase().indexOf("'")>=0)return null;if(PREP[dm])return null;if(m<tg.length&&(tg[m]==='DET'||NUM_DET[dm])){det=m;break;}if(m<tg.length&&(tg[m]==='NOUN'||tg[m]==='PROPN')){noun=m;m--;continue;}if(m<tg.length&&(tg[m]==='ADJ'||tg[m]==='ADV'||tg[m]==='NUM')){m--;continue;}return null;}
     if(det<0||noun<0)return null;
     var mm=det-1;while(mm>lo&&mm<tg.length&&tg[mm]==='ADV')mm--;
     if(mm>=lo&&PREP[deacc(T[mm].toLowerCase())])return null;
     if(mm>=lo){var dmm=deacc(T[mm].toLowerCase());if(dmm==='et'||dmm==='ou'||dmm==='ni')return null;}
-    var nd=deacc(T[noun].toLowerCase());if(COMPLETIVE_ANT[nd])return null;
-    var dd=deacc(T[det].toLowerCase());if(!NUM_DET[dd])return null;var nb=NUM_DET[dd]==='pl'?'p':'s';
-    var g=_nounGender(T[noun],nb,true);if(g!=='m'&&g!=='f')return null;   // Fix C : antécédent confirmé → GENDER_MAP OK
+    var _ant=_elidAnt?_headText(T[noun]):T[noun],nd=deacc(_ant.toLowerCase());if(COMPLETIVE_ANT[nd])return null;
+    var dd=_elidAnt?null:deacc(T[det].toLowerCase());if(!_elidAnt&&!NUM_DET[dd])return null;var nb=_elidAnt?'s':(NUM_DET[dd]==='pl'?'p':'s');
+    var g=_nounGender(_ant,nb,true);if(g!=='m'&&g!=='f')return null;   // Fix C : antécédent confirmé → GENDER_MAP OK
     if(i<tg.length&&tg[i]==='NOUN')return null;
     var sugg=_ppAccord(base,nb,g);
     return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;
