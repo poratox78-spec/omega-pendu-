@@ -936,7 +936,13 @@
       if(ch==='c')res+=('eiy§'.indexOf(nx)>=0?'s':'k');else if(ch==='g')res+=('eiy'.indexOf(nx)>=0?'j':'g');
       else if(ch==='h'){}else if(ch==='x')res+=(j===s.length-1?'':'ks');   /* -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi) */else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else res+=ch;}
     s=res.replace(/¤/g,'nj');var out='';for(var k=0;k<s.length;k++){if(s[k]!==out[out.length-1])out+=s[k];}s=out;
-    while(s.length&&'est'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);return s;}
+    // FINALES MUETTES — le « e » final est muet MAIS il REND SONORE la consonne devant.
+    // L'ancienne boucle rasait e/s/t : « faute » /fot/ et « faut » /fo/ tombaient tous deux sur
+    // « fo », alors qu'ils ne se prononcent PAS pareil (relevé par Rem).
+    if(s.slice(-1)==='s')s=s.slice(0,-1);
+    if(s.slice(-1)==='e')s=s.slice(0,-1);
+    else while(s.length&&'st'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);
+    return s;}
   function sEdits1(d){var res={},i,ci,c,a,b,sp=[];for(i=0;i<=d.length;i++)sp.push([d.slice(0,i),d.slice(i)]);
     for(var k=0;k<sp.length;k++){a=sp[k][0];b=sp[k][1];if(b)res[a+b.slice(1)]=1;if(b.length>1)res[a+b[1]+b[0]+b.slice(2)]=1;
       for(ci=0;ci<26;ci++){c=String.fromCharCode(97+ci);res[a+c+b]=1;if(b)res[a+c+b.slice(1)]=1;}}return Object.keys(res);}
@@ -1037,7 +1043,15 @@
       if(inpAud){var fax=fin_aud(x),fay=fin_aud(y);if(fax!==fay)return fay-fax;}   // AUDIBILITÉ : saisie à finale /e/ écrite (é) → préférer finale AUDIBLE au -e MUET, AVANT la dominance de fréquence
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
-      var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;return py-px;}   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
+      // AUDIBILITÉ vs FRÉQUENCE. Un rival ≫20× plus fréquent écrasait l'homophone — garde conçue
+      // contre le JUNK rare qui matche par coïncidence phonétique. Mais elle frappait aussi les
+      // vrais mots : « nois » (/nwa/) devenait « nous » (/nu/) parce que « nous » est fréquent,
+      // alors que « noix » (14,5) n'a rien de junk. On borne : l'écrasement ne vaut que si
+      // l'homophone est VRAIMENT rare (< 1,0). Le dys a ENTENDU le son : c'est le signal fiable.
+      var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){
+        if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1]&&cand[x][1]<1.0)return 1;
+        if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1]&&cand[y][1]<1.0)return -1;
+        return py-px;}
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
     var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent

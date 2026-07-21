@@ -88,7 +88,7 @@ def phon_key(s):
         if ch == 'c':   res.append('s' if nx in 'eiy§' else 'k')
         elif ch == 'g': res.append('j' if nx in 'eiy' else 'g')
         elif ch == 'h': pass                                    # h muet
-        elif ch == 'x': res.append('ks')
+        elif ch == 'x': res.append('' if j == len(s) - 1 else 'ks')   # -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi)
         elif ch in 'zs': res.append('s')
         elif ch == 'y': res.append('i')
         elif ch == 'w': res.append('v')
@@ -98,7 +98,13 @@ def phon_key(s):
     for ch in s:
         if not out or out[-1] != ch: out.append(ch)
     s = ''.join(out)
-    while s and s[-1] in 'est': s = s[:-1]                       # consonnes/e finales souvent muettes
+    # FINALES MUETTES — le « e » final est muet MAIS il REND SONORE la consonne devant.
+    # L'ancienne boucle rasait e/s/t : « faute » /fot/ et « faut » /fo/ tombaient tous deux sur
+    # « fo », alors qu'ils ne se prononcent PAS pareil (relevé par Rem).
+    if s.endswith('s'): s = s[:-1]                               # -s pluriel muet
+    if s.endswith('e'): s = s[:-1]                               # -e muet : la consonne devant SE PRONONCE -> stop
+    else:
+        while s and s[-1] in 'st': s = s[:-1]                    # consonne finale muette (faut/vent)
     return s
 
 def edits1(d):
