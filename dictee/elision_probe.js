@@ -48,7 +48,7 @@ function correctAll(text){
 //   node dictee/elision_probe.js              liste les regles aveugles
 //   node dictee/elision_probe.js --check      echoue si le compte depasse le plafond (garde CI)
 const path2 = require('path');
-const CEILING = Number(process.env.CEILING || 41);   // etat mesure au 2026-07-21 : 41 angles morts, dans 5 regles d'accord. Ce plafond ne doit que BAISSER.
+const CEILING = Number(process.env.CEILING || 29);   // etat mesure au 2026-07-21 : 29 angles morts (41 avant la primitive _elidKind). Ce plafond ne doit que BAISSER.
 const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
 
 (async () => {
@@ -76,15 +76,24 @@ const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
     const g = C.gender ? C.gender(w) : null; if (g !== 'm' && g !== 'f') return m;
     const d = (g === 'f' ? 'cette' : 'cet'); return (l === 'L' ? d[0].toUpperCase() + d.slice(1) : d) + ' ' + w;
   });
-  const key = fl => fl.map(f => f.name + ':' + f.word + '>' + f.sugg).sort().join('|');
+  // Le temoin « cet X » remplace UN token par DEUX : tous les index GLISSENT apres chaque remplacement,
+  // et les gardes de distance ("sujet trop loin de l'aux") divergent alors LEGITIMEMENT. On compare donc
+  // sur des index REMAPPES vers la phrase d'origine, sinon on compte des artefacts de la sonde comme
+  // des angles morts du moteur.
+  const RTOK = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
+  const cuts = s => { const t = s.match(RTOK) || []; const c = [];
+    t.forEach((w, k) => { if (/^[lL]['’]./.test(w) && unglue(w) !== w) c.push(k); }); return c; };
+  const remap = (idx, c) => { let d = 0; for (const k of c) if (idx > k + d) d++; return idx - d; };
+  const key = (fl, c) => fl.map(f => remap(f.i, c || []) + ':' + f.name + '>' + f.sugg).sort().join('|');
   const by = {}; let n = 0, tested = 0;
   for (const s of sents) {
     if (!/['’]/.test(s)) continue;
     const u = unglue(s); if (u === s) continue;
     tested++;
+    const cc = cuts(s);
     C.setSeg(s); const a = C.gram(s);
     C.setSeg(u); const b = C.gram(u);
-    if (key(a) === key(b)) continue;
+    if (key(a, []) === key(b, cc)) continue;
     let vu = false;
     const na = new Set(a.map(f => f.name)), nb = new Set(b.map(f => f.name));
     // Regles dont le DECLENCHEUR EST l'elision : « des l'X »->des accentue n'a pas d'equivalent
