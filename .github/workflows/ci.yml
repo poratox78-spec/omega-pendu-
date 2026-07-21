@@ -59,6 +59,8 @@ jobs:
         run: node dictee/test_speller_app.js
       - name: Benchmark dys réel (rappel plancher + FP=0 + garde anti-mauvaises-corrections)
         run: node dictee/messy_probe.js --check
+      - name: Angle mort ÉLISION (test différentiel l'X vs cet/cette X — plafond qui ne doit que baisser)
+        run: node dictee/elision_probe.js --check
       - name: Mover impératif (parité app==extension + corrections + FP=0)
         run: node dictee/imp_probe.js --check
       - name: Clôture de paradigme de la conjugaison embarquée (accord sujet-verbe vérifiable)
