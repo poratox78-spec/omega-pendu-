@@ -1845,7 +1845,7 @@ def rule_ais_ait(T, i):
         for j in range(i, 0, -1):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
     for m in range(lo, i):
-        if "'" in T[m] or "’" in T[m]: return None            # élision dans la proposition → clause complexe → abstention
+        if _elid_kind(T[m]) == 'pron': return None            # une élision de PRONOM (qu'il, s'il, d'un…) signale une clause complexe → abstention. AVANT : veto sur TOUTE apostrophe, ce qui écartait « L'entreprise transportais » — un déterminant élidé n'est pas une complexité, c'est un sujet.
     for m in range(lo, dk):
         if tg[m] != 'ADV': return None                        # sujet en tête de proposition (que des adverbes antéposés)
     for m in range(hk + 1, i):                                # nom-tête → verbe : compléments prépositionnels seulement
