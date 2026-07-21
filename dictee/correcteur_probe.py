@@ -2146,6 +2146,11 @@ def rule_jest(T, i):
         return _keepcase(T[i], "je suis")
     if _is_ppl(nxt):                                    # participe d'AVOIR (pris/mangé/fait/vu…) — les participes d'ÊTRE sont déjà traités → j'ai
         return _keepcase(T[i], "j'ai")
+    m = re.match(r'^(.*?)(?:ez|er)$', dn)               # BLOCAGE MUTUEL « j'est mangez » : cette règle attend un participe, la règle -ez/-é attend un
+    if m and len(m.group(1)) >= 2:                      # auxiliaire correct → aucune ne démarre. Or « j'est » n'est JAMAIS valide : si le mot suivant est
+        pp = m.group(1) + 'é'                           # une forme verbale en -ez/-er, l'auxiliaire visé est certain. On tranche ; l'itération corrige -ez
+        if _is_ppl(pp):                                 # ensuite. FP=0 conservé (« j'est » toujours fautif ; ETRE_PP sépare je suis / j'ai).
+            return _keepcase(T[i], "je suis" if deacc(pp) in ETRE_PP else "j'ai")
     return None
 
 
