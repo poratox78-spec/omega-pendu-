@@ -899,6 +899,15 @@ _ELID_DET = re.compile(r"^l['’](.+)$")   # « l'X » = déterminant élidé + 
 _ELID_PRON = re.compile(r"['’](ils|elles|il|elle|on|je|tu|nous|vous)$")   # pronom ELIDE colle : qu'ils, s'il, lorsqu'elle
 
 
+def _head_text(tok):
+    """Le NOM porte par un token, elision decollee : « L'allegation » -> « allegation ».
+    PRIMITIVE : la majuscule d'un nom elide en tete de phrase appartient au DETERMINANT, pas au nom.
+    Les regles qui testaient tok[:1].isupper() pour ecarter un nom PROPRE ecartaient donc tout nom
+    commun elide en tete de phrase (8 divergences mesurees par elision_probe sur l'adjectif epithete)."""
+    m = _ELID_DET.match(tok.lower())
+    return tok[len(tok) - len(m.group(1)):] if m else tok
+
+
 def _elid_kind(tok):
     """Que cache un token a apostrophe ? 'pron' (qu'ils, s'il) | 'det' (l'equipe) | None.
     PRIMITIVE PARTAGEE : sans elle, les regles posent un veto EN BLOC sur l'apostrophe -- ce qui ecarte
@@ -1050,7 +1059,15 @@ def rule_adj_epithet(T, i):
     (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
     jadis écarté, tenu FP=0 par : tagger ADJ, genre GENDER_PURE, NOMBRE via ARTICLE net, invariants(_SG_STOP)/nom
     propre/coordination(et/ou)/figé(«de»)/épicène exclus. Mesuré 60→1 FP sur UD (le 1 = vraie faute)."""
-    if i < 2: return None
+    # ÉLISION : « L'allégation naturel » n'a que DEUX tokens — l'article est COLLÉ au nom. Le patron
+    # [ARTICLE + NOM + ADJ] du cas général ne s'applique pas, mais l'information y est toute :
+    # « l' » = article défini SINGULIER, et le nom est la partie après l'apostrophe.
+    _el = (i >= 1 and _elid_kind(T[i-1]) == 'det')
+    # Un ÉPITHÈTE est dans le MÊME segment que son nom. « L'allégation « naturel » est floue » : le
+    # tokeniseur jette les guillemets, donc « naturel » (une MENTION) devient l'épithète apparent de
+    # « allégation ». _SEG.bb marque déjà les guillemets et virgules — il suffisait de le consulter.
+    if _el and _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    if i < 2 and not _el: return None
     w = T[i]; lw = w.lower()
     if "'" in lw or w[:1].isupper(): return None
     d = deacc(lw)
@@ -1059,12 +1076,13 @@ def rule_adj_epithet(T, i):
     if i+1 < len(T) and deacc(T[i+1].lower()) in ('de', 'et', 'ou', 'ni'): return None   # figé (« haut de gamme ») + coordination distributive (« sites allemand et français »)
     if d in ('bon', 'meilleur') and i+1 < len(T) and deacc(T[i+1].lower()) == 'marche': return None   # locution INVARIABLE « (bon/meilleur) marché » (« des vêtements bon marché ») — pas un adjectif accordable
     tg = pos_tags(T)
-    if not tg or i >= len(tg) or tg[i] != 'ADJ' or tg[i-1] != 'NOUN': return None
+    if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
+    if tg[i-1] != 'NOUN' and not _el: return None   # sur un nom ÉLIDÉ le tagger dit PROPN (majuscule de l'article en tête de phrase) : c'est le genre du lexique qui fait foi ci-dessous
     if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN'): return None   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
-    if T[i-1][:1].isupper(): return None                             # nom propre (capitalisé) → genre non fiable
-    dn = deacc(T[i-1].lower()); g = GENDER_PURE.get(dn)
+    if _head_text(T[i-1])[:1].isupper(): return None                 # nom propre (capitalisé) → genre non fiable. ÉLISION DÉCOLLÉE : « L'allégation » en tête de phrase porte la majuscule du DÉTERMINANT, pas du nom — la tester ici écartait tout nom commun élidé.
+    dn = deacc(_head_text(T[i-1]).lower()); g = GENDER_PURE.get(dn)
     if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
-    num = _EPI_ART.get(deacc(T[i-2].lower()))
+    num = 's' if _el else (_EPI_ART.get(deacc(T[i-2].lower())) if i >= 2 else None)   # « l' » ne s'élide qu'au SINGULIER (« les » ne s'élide jamais) : le nombre est certain
     if num is None: return None                                      # nombre NON net (pas d'article devant le nom) → abstention (écran/possessif)
     sugg = _adj_agree(w, g, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
