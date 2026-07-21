@@ -1072,7 +1072,7 @@ def rule_adj_epithet(T, i):
     # Un ÉPITHÈTE est dans le MÊME segment que son nom. « L'allégation « naturel » est floue » : le
     # tokeniseur jette les guillemets, donc « naturel » (une MENTION) devient l'épithète apparent de
     # « allégation ». _SEG.bb marque déjà les guillemets et virgules — il suffisait de le consulter.
-    if _el and _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # garde GÉNÉRALE (pas seulement le cas élidé) : un épithète est dans le MÊME segment que son nom
     if i < 2 and not _el: return None
     w = T[i]; lw = w.lower()
     if "'" in lw or w[:1].isupper(): return None
