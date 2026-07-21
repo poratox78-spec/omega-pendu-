@@ -12296,6 +12296,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(nl==="de"||nl==="d'"){var _n2=i+2<T.length?T[i+2]:'',_c0=_n2[0]||'';if(PART_ART[_n2.toLowerCase()]||(_c0&&_c0.toLowerCase()!==_c0.toUpperCase()&&_c0===_c0.toLowerCase()))return ckeepcase(T[i],"j'ai");return null;}   // possession → j'ai (de la peine / de tomates=nom commun) ; « de Paris » (nom propre) = origine « je suis de… » → abstention
     if(CADJ[dn]||ETRE_PP[dn])return ckeepcase(T[i],"je suis");   // adjectif pur ou participe d'être → je suis
     if(_isPpl(T[i+1]))return ckeepcase(T[i],"j'ai");   // participe d'AVOIR (pris/mangé/vu…) → j'ai (ceux d'être sont déjà traités)
+    var _mz=dn.match(/^(.*?)(?:ez|er)$/);if(_mz&&_mz[1].length>=2){var _pp=_mz[1]+'é';   // BLOCAGE MUTUEL « j'est mangez » : rJest attend un participe, la règle -ez/-é attend un auxiliaire correct → aucune ne démarre. Or « j'est » n'est JAMAIS valide : si le mot suivant est une forme verbale en -ez/-er, l'auxiliaire visé est certain. On tranche ; l'itération du pipeline corrige -ez ensuite. FP=0 conservé (« j'est » toujours fautif ; ETRE_PP sépare je suis / j'ai).
+      if(_isPpl(_pp))return ckeepcase(T[i],ETRE_PP[deacc(_pp)]?"je suis":"j'ai");}
     return null;}   // sinon (de+nom propre…) → abstention
   function rCai(T,i){return deacc(T[i].toLowerCase())==="c'ai"?ckeepcase(T[i],"c'est"):null;}   // « c'ai » jamais valide (avoir au lieu d'être) → c'est
   // Élision fautive DEVANT CONSONNE → de-élide (FP=0 structurel : élidé valide seulement devant voyelle). Clitiques
