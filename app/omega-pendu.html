@@ -12676,6 +12676,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Remplace nbhomog==0 ∧ POS==NOM (lu sur posOf, tag DUR souvent FAUX : faute=VER/amis=ADJ) → récupère ami/voiture/faute. Parité correcteur_probe.
   var NOUN_POST=(typeof OMEGA_NOUN_POST!=='undefined')?OMEGA_NOUN_POST:null,PL_TAU_M=500,PL_EPS_M=10,PL_ANCHOR_M=300;   // forme_déacc -> [nom‰,ver‰] (seed injectable pour parité, comme OMEGA_LEX4) ; seuils mesurés (ε=0.01 : +3 récup., +1 FP UD)
   function _nounGate(n){var p=NOUN_POST&&NOUN_POST[deacc(n.toLowerCase())];return !!p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M;}
+  function _nounGateN(n){var p=NOUN_POST&&NOUN_POST[deacc(n.toLowerCase())];return !!p&&p[0]>=PL_TAU_M;}   // variante SANS veto verbal : réservée aux déterminants pluriels non ambigus (voir rNounPlural)
   function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[n+'s'];                          // pluriel ANCRÉ dans le POSTERIOR (part NOM≥30 % ; posOf faux pour amis/pommes)
     if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');                                            // cheval→chevaux (bals vérifié d'abord)
     if(/au$|eu$/.test(dn))cands.push(n+'x');                                                      // oiseau/jeu→+x
@@ -12683,7 +12684,14 @@ window.addEventListener('DOMContentLoaded', () => {
   function rNounPlural(T,i){if(!NOUN_POST||i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;   // déterminant pluriel juste avant (et posterior chargé)
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;       // nom propre / capitalisé → abstention (FP)
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null; // trop court (kg/cm) / déjà pluriel / invariant
-    if(!_nounGate(n))return null;                                                                  // GARDE §3 : P(NOM)≥0.5 ∧ P(VER)<0.01 → exclut porte/livre (verbe) + rouge (ADJ-dom)
+    // GARDE §3 : P(NOM)≥0,5 ∧ P(VER)<0,01 → exclut porte/livre (verbe) + rouge (ADJ-dom).
+    // MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos — jamais pronoms),
+    // un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
+    // AUDIBLE donc fiable (doctrine d'audibilité). Le veto P(VER) y est redondant et coûteux — il
+    // bloquait « des moule », « des porte », « des livre », tous des noms évidents dans ce cadre.
+    // « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
+    var _pd=deacc(T[i-1].toLowerCase()),_sur=(_pd!=='les'&&_pd!=='leurs');
+    if(!(_sur?_nounGateN(n):_nounGate(n)))return null;
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var pp=NOUN_POST[deacc(nx.toLowerCase())]; // nom composé (hit parade / tour opérateur) :
       if(pp&&pp[0]>=PL_TAU_M&&!ADJP[deacc(nx.toLowerCase())])return null;}                         //   nom+nom → abstention (« français » = adj → pas un composé)

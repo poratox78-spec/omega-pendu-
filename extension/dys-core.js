@@ -669,13 +669,20 @@
   var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée (parité NUM_DET pluriel)
   var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1,quanta:1,addenda:1,errata:1,curricula:1,strata:1};
   function _nounGate(dn){var p=NOUN_POST&&NOUN_POST.get(dn);return !!p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M;}
+  function _nounGateN(dn){var p=NOUN_POST&&NOUN_POST.get(dn);return !!p&&p[0]>=PL_TAU_M;}   // variante SANS veto verbal : réservée aux déterminants pluriels non ambigus (voir rNounPlural)
   function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),cands=[n+'s'];                  // pluriel ANCRÉ dans le POSTERIOR (part NOM≥30 %)
     if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');if(/au$|eu$/.test(dn))cands.push(n+'x');
     for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_ANCHOR_M)return cands[k];}return null;}
   function rNounPlural(T,i){if(!NOUN_POST||i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
-    if(!_nounGate(dn))return null;                                                            // GARDE §3 : P(NOM)≥0.5 ∧ P(VER)<0.01 (exclut porte/livre verbe + rouge ADJ-dom + « les » pronom)
+    // GARDE §3 : P(NOM)≥0,5 ∧ P(VER)<0,01 (exclut porte/livre verbe + rouge ADJ-dom).
+    // MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos — jamais pronoms),
+    // un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
+    // AUDIBLE donc fiable. Le veto P(VER) y est redondant — il bloquait « des moule », « des porte ».
+    // « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
+    var _pd=deacc(T[i-1].toLowerCase()),_sur=(_pd!=='les'&&_pd!=='leurs');
+    if(!(_sur?_nounGateN(dn):_nounGate(dn)))return null;
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);
       if(pp&&pp[0]>=PL_TAU_M&&!ADJP[dnx])return null;}                                        // nom composé (nom+nom ; adj « français » → pas un composé)
