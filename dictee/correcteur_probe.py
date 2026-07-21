@@ -856,6 +856,9 @@ def _noun_gender(w, num='s', full=False):
 # en sautant les mots-écrans (compléments « de X » : « la couleur DE LA VOITURE est… » → tête = couleur, pas voiture) et
 # en s'abstenant sur les cas où le sujet n'est pas un [dét + nom] simple (coordination = genre mixte ; infinitif/proposition
 # = « s'assurer DE LA PENTE était crucial » → le dét « la » est précédé de « de » ⇒ PP, pas le sujet ⇒ abstention). FP-sûr.
+_COLLECTIF = set('''plupart majorite minorite moitie ensemble totalite reste nombre quantite foule dizaine douzaine centaine millier tas infinite serie groupe partie'''.split())   # accord « au sens » toléré : ces têtes acceptent le verbe au pluriel
+
+
 def _np_subject(T, tg, a):
     """Sujet [déterminant + nom-tête] placé juste avant le verbe d'indice a. Renvoie {'idx','det','g','n'} ou None.
     Bornes : proposition (_SEG). Abstention sur coordination (et/ou/ni), sujet-pronom (traité ailleurs), sujet-PP/infinitif
@@ -865,6 +868,7 @@ def _np_subject(T, tg, a):
         for j in range(a, 0, -1):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
     det_idx = None
+    _seen_prep = False
     j = a - 1
     while j >= lo:
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
@@ -875,9 +879,30 @@ def _np_subject(T, tg, a):
                 j -= 1; continue                             # …SAUF participe-épithète (relative réduite « cartons EMPILÉS dans… ») non précédé d'un aux = adjectif, pas le verbe → sauter vers le nom-tête
             break
         if dj in NUM_PRON: break                             # sujet-pronom → route pronom (rule_adj_attr) / abstention ici
-        if tgj == 'DET' or dj in NUM_DET: det_idx = j        # on garde le déterminant le PLUS À GAUCHE (ouverture du GN)
+        if "'" in T[j].lower() and re.search(r"(ils|elles|il|elle|on|je|tu|nous|vous)$", dj):
+            break                                            # PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
+        _pj = (dj in PREP or dj == 'en' or ("'" in T[j].lower() and dj.startswith('d')))
+        if _pj: _seen_prep = True   # « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
+        if tgj == 'DET' or dj in NUM_DET:
+            # On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ».
+            # C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à gauche
+            # (« enfants »), pas à droite. Sans la condition, « Ce matin la livraison est arrivée »
+            # remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré).
+            # Un second GN à gauche SANS lien « de » est un GN adverbial (« ce matin », « la semaine
+            # dernière »), pas le sujet : on garde alors le déterminant le plus PROCHE du verbe.
+            # Une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_seen_prep
+            # gardé vrai) : elle ouvre un COMPLÉMENT, donc un vrai déterminant plus à gauche doit
+            # pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).
+            if det_idx is None or _seen_prep:
+                det_idx = j; _seen_prep = _pj
         j -= 1
     if det_idx is None: return None
+    # Un déterminant qui est AUSSI une préposition contractée (du/des/au/aux) et qui suit un NOM ouvre un
+    # COMPLÉMENT, pas le sujet : « de nombreux pouvoirs DU GOUVERNEUR ont été délégués », « 50 000
+    # Allemands DU WARTHELAND ont péri ». Aucun vrai déterminant n'existe plus à gauche (le numéral est
+    # invisible pour le tokeniseur), donc la remontée ne peut pas réparer — on s'abstient.
+    if (deacc(T[det_idx].lower()) in PREP and det_idx - 1 >= lo
+            and tg and det_idx - 1 < len(tg) and tg[det_idx-1] in ('NOUN', 'PROPN')): return None
     if det_idx - 1 >= lo and deacc(T[det_idx-1].lower()) in PREP:
         return None                                          # « de la pente » : dét dans un PP ⇒ ce n'est pas le sujet ⇒ abstention
     head = None                                              # nom-tête = 1er nom après le déterminant, AVANT tout complément « de X »
@@ -887,6 +912,7 @@ def _np_subject(T, tg, a):
         if (tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN')) or dk in GENDER_PURE:
             head = k; break
     if head is None: return None
+    if deacc(T[head].lower()) in _COLLECTIF: return None   # NOM COLLECTIF (« la plupart ONT gardé », « la majorité sont ») : l'accord se fait au SENS, singulier ET pluriel sont corrects → abstention
     ddet = deacc(T[det_idx].lower())
     if ddet in NUM_DET:     num = 'p' if NUM_DET[ddet] == 'pl' else 's'
     elif ddet in _QUANT_PL: num = 'p'                         # plusieurs/quelques/certains/deux… (quantifieurs pluriels hors NUM_DET)
