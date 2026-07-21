@@ -84,7 +84,27 @@
   function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;return !!COMMON_VERBS[w]&&!(i>0&&NUM_DET[T[i-1].toLowerCase()]);}
   function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;return j>0&&NUM_DET[T[j-1].toLowerCase()]==='pl';}
   var NOUN_E={};'marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split(' ').forEach(function(w){NOUN_E[w]=1;});
-  function rEer(T,i){var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A')return f[1];var p=cprev(T,i);if(CAUX[p])return f[0];if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}
+  // ---- PRIMITIVE PARTAGÉE : CANONICALISER CE QU'ON ÉMET ----------------------------------------
+  // Une règle qui FABRIQUE une forme par concaténation part du mot tel qu'il a été SAISI — donc avec
+  // ses accents manquants. « il a ecouter » -> « ecouté », qui n'existe pas. Mesuré : 5 non-mots
+  // fabriqués par la seule règle -é/-er (ecouté, controlé, reparé, preferé, repeté). 22 sites du
+  // moteur fabriquent ainsi une forme ; un seul passait par un canonicaliseur avant ce commit.
+  function _canonW(w,supposeFautif){
+    if(!supposeFautif&&SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(w.toLowerCase()))return w;   // ⚠ NE JAMAIS TOUCHER UN MOT DÉJÀ CORRECT. Sans ce test, « marché » (correct) est remplacé par « marche » (homographe déaccentué PLUS FRÉQUENT) : mesuré, FP 301 -> 977 et 68 tokens cassés. Le canonicaliseur RÉPARE un accent manquant, il ne rejuge pas une orthographe valide.
+    var a=(SP&&SP.D2A)?SP.D2A[deacc(w.toLowerCase())]:null;   // formes dont la version déaccentuée est celle saisie
+    if(!a||!a.length)return w;
+    if(!supposeFautif&&a.length!==1)return w;   // en mode DÉFAUT on exige UNE SEULE candidate : sinon on arbitrerait entre rivaux, ce qui n'est plus de la réparation d'accent (mesuré : « le plus fréquent » y coûte +2 FP sur 14 450). En mode supposeFautif la règle a déjà tranché par le contexte, l'arbitrage par fréquence est légitime.
+    var c=a[0];
+    return (w.charAt(0)===w.charAt(0).toUpperCase()&&w.charAt(0)!==w.charAt(0).toLowerCase())?c.charAt(0).toUpperCase()+c.slice(1):c;}
+  // DEUX MODES, et la différence est réelle — ne pas la gommer :
+  //   défaut          le mot est pris tel qu'il est écrit ; s'il est valide on n'y touche pas
+  //                   (« marché » ne doit pas devenir « marche »).
+  //   supposeFautif   la règle a DÉJÀ établi par son contexte que la forme est fautive ; le mot peut
+  //                   être « valide » et néanmoins mal accentué (« il a repare » : « repare » existe,
+  //                   mais après un auxiliaire c'est « réparé » qu'il faut).
+  function _emit(src,fn,supposeFautif){var c=fn(_canonW(src,supposeFautif));   // transformation appliquée au radical CANONIQUE, puis on n'émet QUE si le résultat est un mot connu
+    if(SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(c.toLowerCase()))return null;return c;}
+  function rEer(T,i){var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A')return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});var p=cprev(T,i);if(CAUX[p])return _emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
   // -er/-é/-ez/-ai (verbe 1er groupe) tranché par le GOUVERNEUR (test mordre/mordu) — MIROIR de correcteur_probe.rule_flexion_er (parité)
   var _AUX_AV={avoir:1,avais:1,avaient:1,etre:1,ete:1,etais:1,etait:1,etaient:1,etions:1,etiez:1,serai:1,seras:1,serez:1,serons:1,soient:1,sois:1};Object.keys(AUX_AVOIR).forEach(function(k){_AUX_AV[k]=1;});Object.keys(AUX_ETRE).forEach(function(k){_AUX_AV[k]=1;});   // participe : avoir ET être (« je suis allez »→allé, « a été fabriquer »→fabriqué)
   var _FLEX_CLITIC={se:1,me:1,te:1};   // clitiques réfléchis PURS sautés pour trouver le vrai gouverneur (« veut se séparer »). le/la/les EXCLUS (ambigus déterminant)
@@ -243,10 +263,8 @@
     if(i-1>0&&T[i-1].charAt(0)!==T[i-1].charAt(0).toLowerCase())return null;   // « A » MAJUSCULE n'est pas le verbe avoir : titre étranger (« A Place For Paedophiles ») ou sigle coupé au point (« Bubendorff S.A. installe »)
     if(w.charAt(0)!==w.charAt(0).toLowerCase())return null;   // un participe après avoir n'est pas capitalisé en cours de phrase
     if(i>=2&&CAUX[deacc(T[i-2].toLowerCase())])return null;   // « est a base de » : ÊTRE suivi de AVOIR-3sg est impossible — ce « a » est un « à » mal accentué
-    var _bs=w,_al=(SP&&SP.D2A)?SP.D2A[deacc(lw)]:null;
-    if(_al&&_al.length)_bs=_al[0];   // RECONSTRUIRE SUR LE RADICAL ACCENTUÉ. « repare » est dans le lexique (donc la garde d'entrée passe) et « reparé » aussi (verbe rare) — la règle produisait donc « reparé » là où il faut « réparé ». D2A rend les formes dont la version DÉACCENTUÉE est celle saisie, triées par fréquence : sa tête donne le radical correctement accentué.
-    var _sg=_bs.slice(0,-1)+'é';
-    if(SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(_sg.toLowerCase()))return null;   // et on n'émet QUE si le participe obtenu est un mot connu   // N'ÉMETTRE QU'UN MOT CONNU. « repare » est dans le lexique (donc la garde d'entrée passe) mais « reparé » n'existe pas — il faut « réparé ». Sans ce test la règle fabriquait 5 non-mots mesurés (repare→reparé, reserve→reservé). Le speller, lui, a le lexique ACCENTUÉ et corrigera « repare »→« répare » ; le tour suivant du pipeline fera le participe.
+    var _sg=_emit(w,function(x){return x.slice(0,-1)+'é';},true);   // PRIMITIVE PARTAGÉE, mode « forme déjà établie fautive par le contexte » : « il a repare » -> « réparé » (et non « reparé », qui existe mais n'est pas le mot voulu)
+    if(_sg===null)return null;
     return ckeepcase(w,_sg);}
   function rDesDes(T,i){if(deacc(T[i].toLowerCase())!=='des')return null;if(i+1>=T.length)return null;   // « des » écrit pour « dès ». Deux formes seulement dans les 50 cas mesurés, toutes deux STRUCTURELLEMENT IMPOSSIBLES en français ⇒ FP=0 par construction.
     var nr=T[i+1],nd2=deacc(nr.toLowerCase());
