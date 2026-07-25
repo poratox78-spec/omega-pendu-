@@ -1134,7 +1134,7 @@ def rule_pp_epithet_number(T, i):
     complément partitif « (un) de [dét] N » à gauche, genre du nom CONNU."""
     w = T[i]; lw = w.lower()
     if "'" in lw or not w[:1].islower(): return None
-    if not lw.endswith('é') or not _is_ppl(w): return None          # forme masc-sing d'un participe RÉEL (infinitif ∈ lexique)
+    if not (lw.endswith('é') or lw.endswith('i')) or not _is_ppl(w): return None   # masc-sing d'un participe RÉEL -é/-i (fini/rempli) ; -is exclu (mis/mise = /mi/≠/miz/ audible) — endswith('i') l'écarte déjà
     if i < 2 or deacc(T[i-2].lower()) not in PLURAL_DET: return None
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ') or tg[i-1] != 'NOUN': return None   # -é = participe (taggé VERB), tête = nom
@@ -2987,6 +2987,7 @@ CASES = [
     ("Une décision mondiale s'impose", "mondiale", "mondial", "accord adjectif épithète"),                 # décision (f) → mondiale
     ("Les colis expédiés partent demain", "expédiés", "expédié", "accord participe épithète"),             # colis (m,pl) → expédiés (-é homophone, audible-safe)
     ("Les commandes annulées reviennent", "annulées", "annulé", "accord participe épithète"),              # commandes (f,pl) → annulées
+    ("Les travaux finis sont livrés", "finis", "fini", "accord participe épithète"),                       # -i : travaux (m,pl) → finis (fini=finie=finis=finies homophones)
     ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
     # sujet « je » mal écrit devant être 1sg (séquence impossible → FP=0) : ke/ge/ce/se + suis/serais → je
     ("je suis fatigué", "je", "ke", "sujet je"),                          # clavier k↔j
