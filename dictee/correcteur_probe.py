@@ -1124,6 +1124,32 @@ def rule_adj_number(T, i):
     return _keepcase(w, w + 's')
 
 
+def rule_pp_epithet_number(T, i):
+    """Accord du PARTICIPE PASSÉ épithète en -é (masc-sing) après un déterminant PLURIEL : « les colis expédié »→expédiés,
+    « les commandes annulé »→annulées. AUDIBLE-SAFE : toutes les formes -é d'un participe sont HOMOPHONES (expédié =
+    expédiée = expédiés = expédiées = /ekspedje/) → n'accorde que des marques MUETTES (doctrine d'audibilité). Le -é n'est
+    JAMAIS une forme finie (le fini serait « expédient »/« expédie ») → pas de confusion verbe-sujet (≠ le champ de mines
+    -e). Gardes FP=0 (mesuré 2500=0 / 14450=1 qui est un Typo=Yes du treebank) : participe RÉEL (_is_ppl), déterminant
+    pluriel + nom taggé, PAS de virgule/frontière AVANT (clause réduite/apposition) ni APRÈS (énumération), PAS de
+    complément partitif « (un) de [dét] N » à gauche, genre du nom CONNU."""
+    w = T[i]; lw = w.lower()
+    if "'" in lw or not w[:1].islower(): return None
+    if not lw.endswith('é') or not _is_ppl(w): return None          # forme masc-sing d'un participe RÉEL (infinitif ∈ lexique)
+    if i < 2 or deacc(T[i-2].lower()) not in PLURAL_DET: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ') or tg[i-1] != 'NOUN': return None   # -é = participe (taggé VERB), tête = nom
+    if _SEG and i < len(_SEG['bb']) and _SEG['bb'][i]: return None      # virgule/frontière AVANT = clause réduite/apposition (« film, tourné en 1999 »)
+    if _SEG and i+1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None  # virgule/frontière APRÈS = énumération distributive
+    nx = deacc(T[i+1].lower()) if i+1 < len(T) else ''
+    if nx in ('de', 'et', 'ou', 'ni', 'que'): return None
+    if i >= 3 and deacc(T[i-3].lower()) in ('de', "d'") and tg[i-3] == 'ADP': return None   # « (un) de [dét] N adj » : N = complément partitif, l'accord suit la tête (sing)
+    if i >= 3 and deacc(T[i-2].lower()) in ('des', 'aux') and tg[i-3] in ('NOUN', 'PROPN'): return None
+    g = _noun_gender(T[i-1], 'p', full=True)                        # antécédent [dét+NOM] confirmé → full sûr
+    if g not in ('m', 'f'): return None
+    tgt = _pp_accord(lw, 'p', g)
+    return _keepcase(w, tgt) if tgt != lw else None
+
+
 def _pp_coord_subject(T, tg, a):
     """Sujet COORDONNÉ « X et/ni Y » juste avant l'aux ÊTRE (position a) → 'p' (pluriel), sinon None. Mêmes gardes FP=0
     que rule_accord_sv_coord (conjoint = pronom disjoint / [dét+nom] / nom(s) propre(s) nu(s) ; aucun verbe/prép/autre
@@ -2757,7 +2783,7 @@ def rule_accord_incise(T, i):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -2959,6 +2985,8 @@ CASES = [
     ("La commission présidentielle est là", "présidentielle", "présidentiel", "accord adjectif épithète"),  # commission (f) → présidentielle
     ("Les domaines industriels progressent", "industriels", "industriel", "accord adjectif épithète"),     # domaines (m,pl) → industriels
     ("Une décision mondiale s'impose", "mondiale", "mondial", "accord adjectif épithète"),                 # décision (f) → mondiale
+    ("Les colis expédiés partent demain", "expédiés", "expédié", "accord participe épithète"),             # colis (m,pl) → expédiés (-é homophone, audible-safe)
+    ("Les commandes annulées reviennent", "annulées", "annulé", "accord participe épithète"),              # commandes (f,pl) → annulées
     ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
     # sujet « je » mal écrit devant être 1sg (séquence impossible → FP=0) : ke/ge/ce/se + suis/serais → je
     ("je suis fatigué", "je", "ke", "sujet je"),                          # clavier k↔j
