@@ -1102,6 +1102,27 @@ def rule_adj_epithet(T, i):
     sugg = _adj_agree(w, g, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
+_EPICENE_ADJ = set("""acceptable admirable adorable agreable aimable alimentaire atroce bizarre capable celebre comparable complementaire comprehensible confortable considerable convenable coriace coupable credible dense desagreable difficile digne disponible drole durable efficace effroyable enorme epouvantable facile faible fantastique favorable feroce fiable fidele formidable fragile honnete honorable horrible humide imaginaire immense immobile impeccable impossible imprevisible improbable inacceptable incapable incroyable indisponible inevitable insensible insupportable intense intime inutile invincible invisible involontaire irresistible irresponsable jeune lamentable magnifique malhonnete mince miserable mobile modeste obligatoire ordinaire paisible pitoyable populaire possible preferable previsible prioritaire probable rapide rare redoutable reglementaire remarquable respectable responsable riche robuste scolaire secondaire semblable sensible similaire simple sincere sobre sociable solaire solide spectaculaire splendide sublime superbe supplementaire susceptible tenace terrible timide tranquille ultime unique universitaire utile valable vaste veritable visible volontaire vulnerable""".split())   # LISTE CLOSE DÉACCENTUÉE d'adjectifs ÉPICÈNES (masc=fém), hand-vérifiés sans homographe nom/verbe. -s pluriel MUET → accord de NOMBRE audible-safe. Comparé sur deacc(mot). Auto-génération impossible (fuit les féminins -euse) → liste close comme _PL_OUX.   # LISTE CLOSE d'adjectifs ÉPICÈNES (masc=fém), hand-vérifiés sans homographe nom/verbe. Le -s pluriel est MUET → accord de NOMBRE audible-safe (doctrine : le dys omet la marque inaudible). L'auto-génération depuis POS_LEX fuit les féminins en -euse et les noms → liste close, comme _PL_OUX.
+
+
+def rule_adj_number(T, i):
+    """Accord de NOMBRE de l'adjectif épithète ÉPICÈNE après un déterminant PLURIEL (« les contrats fragile »→fragiles).
+    Épicène = pas de flip de genre possible → jamais de FP « sales→salées » (audible), et liste close → jamais un nom/verbe.
+    Gardes : déterminant pluriel net, nom-tête taggé, pas de verbe (_reads), pas de locution/coordination à droite,
+    pas d'attachement « N des N adj »."""
+    w = T[i]; lw = w.lower(); d = deacc(lw)
+    if "'" in lw or not w[:1].islower(): return None
+    if d not in _EPICENE_ADJ: return None                           # LISTE CLOSE (FP=0 par construction)
+    if i < 2 or deacc(T[i-2].lower()) not in PLURAL_DET: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] != 'ADJ' or tg[i-1] != 'NOUN': return None
+    if _reads(w): return None                                       # homographe verbal éventuel → écarté
+    nx = deacc(T[i+1].lower()) if i+1 < len(T) else ''
+    if nx in ('de', 'et', 'ou', 'ni', 'que'): return None          # locution figée / coordination distributive
+    if i >= 3 and deacc(T[i-2].lower()) in ('des', 'aux') and tg[i-3] in ('NOUN', 'PROPN'): return None   # « N des N adj » : l'adj porte sur la tête, pas le complément
+    return _keepcase(w, w + 's')
+
+
 def _pp_coord_subject(T, tg, a):
     """Sujet COORDONNÉ « X et/ni Y » juste avant l'aux ÊTRE (position a) → 'p' (pluriel), sinon None. Mêmes gardes FP=0
     que rule_accord_sv_coord (conjoint = pronom disjoint / [dét+nom] / nom(s) propre(s) nu(s) ; aucun verbe/prép/autre
@@ -2735,7 +2756,7 @@ def rule_accord_incise(T, i):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
