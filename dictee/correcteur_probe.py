@@ -1116,7 +1116,8 @@ def rule_adj_number(T, i):
     if i < 2 or deacc(T[i-2].lower()) not in PLURAL_DET: return None
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] != 'ADJ' or tg[i-1] != 'NOUN': return None
-    if _reads(w): return None                                       # homographe verbal éventuel → écarté
+    # NB : pas de garde _reads ici — le tagger ADJ + appartenance à _EPICENE_ADJ (adjectif CONNU) répond déjà « qui est-ce qui ? »
+    # → l'homographe verbal (conforme/calme) est tranché comme ADJECTIF par le contexte ; +s (marque muette) reste juste.
     nx = deacc(T[i+1].lower()) if i+1 < len(T) else ''
     if nx in ('de', 'et', 'ou', 'ni', 'que'): return None          # locution figée / coordination distributive
     if _SEG and i+1 < len(_SEG['bb']) and _SEG['bb'][i+1]: return None   # virgule/frontière APRÈS l'adj = ÉNUMÉRATION distributive (« les crises économique, financière… ») → singulier correct
@@ -1746,7 +1747,7 @@ def _verb_or_homograph(tg, T, i):
     if tg[i] in ('VERB', 'AUX'): return True
     d = deacc(T[i].lower())
     if d in _INVAR_COLOR: return False                                    # couleur/matière invariable (« des gants crème », « bleu marine ») tag NOUN → jamais un verbe (lecture crémer/mariner fantôme)
-    if d in GENDER_FULL or d in ADJ_LEX or d in PREP: return False        # nom/adj/PRÉPOSITION homographe connu (« entre »/« modèle ») → tranché par le contexte, pas le verbe
+    if d in GENDER_FULL or d in ADJ_LEX or d in _EPICENE_ADJ or d in PREP: return False   # nom/adj(genré OU épicène)/PRÉPOSITION homographe connu (« entre »/« modèle »/« conforme ») → « qui est-ce qui ? » : pas le verbe, l'adjectif tranché par le contexte
     if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return False   # déterminant/préposition juste avant → T[i] est un NOM (« un modèle », « de rechange »)
     return bool(_reads(T[i]))
 
@@ -2988,6 +2989,7 @@ CASES = [
     ("Les colis expédiés partent demain", "expédiés", "expédié", "accord participe épithète"),             # colis (m,pl) → expédiés (-é homophone, audible-safe)
     ("Les commandes annulées reviennent", "annulées", "annulé", "accord participe épithète"),              # commandes (f,pl) → annulées
     ("Les travaux finis sont livrés", "finis", "fini", "accord participe épithète"),                       # -i : travaux (m,pl) → finis (fini=finie=finis=finies homophones)
+    ("Les articles conformes passent", "conformes", "conforme", "accord adjectif épithète"),               # épicène homographe-verbe : « qui est-ce qui ? » → adj → conformes (PAS le verbe conforment)
     ("Les enfants sont partis", "sont", "son", "son/sont"),               # sujet-nom pluriel + participe → sont
     # sujet « je » mal écrit devant être 1sg (séquence impossible → FP=0) : ke/ge/ce/se + suis/serais → je
     ("je suis fatigué", "je", "ke", "sujet je"),                          # clavier k↔j

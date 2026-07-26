@@ -16310,7 +16310,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // (GENDER_MAP) NI adj (ADJP) NI préposition (PREP), et pas précédée d'un dét/prép. Homographes-noms (gêne/reste) → false.
   function _verbOrHomograph(tg,T,i){if(i>=tg.length)return false;if(tg[i]==='VERB'||tg[i]==='AUX')return true;
     var d=deacc(T[i].toLowerCase());if(_INVAR_COLOR[d])return false;   // couleur/matière invariable (« des gants crème », « bleu marine ») → jamais un verbe
-    if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;
+    if(GENDER_MAP[d]||ADJP[d]||_EPICENE_ADJ[d]||PREP[d])return false;   // adj épicène homographe (« conforme »/« calme ») = « qui est-ce qui ? » → l'adjectif, pas le verbe
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||PREP[deacc(T[i-1].toLowerCase())]))return false;return svReads(T[i]).length>0;}
   function rPostpose(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw==='à')return null;   // accord SUJET-VERBE à sujet POSTPOSÉ (inversion) : ordre changé → scan AVANT. FP=0 mesuré. Miroir Python rule_accord_postpose.
     if(/(é|és|ée|ées)$/.test(lw))return null;
@@ -16921,7 +16921,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!_EPICENE_ADJ[d])return null;
     if(i<2||!PLURAL_DET[deacc(T[i-2].toLowerCase())])return null;
     var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ'||tg[i-1]!=='NOUN')return null;
-    if(svReads(w).length)return null;                                                 // homographe verbal → écarté
+    // garde svReads retirée : tagger ADJ + _EPICENE_ADJ (adjectif connu) tranchent l'homographe verbal → +s muet reste juste
     var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';
     if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni'||nx==='que')return null;if(_SEG&&(i+1)<_SEG.bb.length&&_SEG.bb[i+1])return null;            // locution figée / coordination distributive
     if(i>=3&&(deacc(T[i-2].toLowerCase())==='des'||deacc(T[i-2].toLowerCase())==='aux')&&(tg[i-3]==='NOUN'||tg[i-3]==='PROPN'))return null;   // « N des N adj » : l'adj porte sur la tête
