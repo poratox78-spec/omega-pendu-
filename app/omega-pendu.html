@@ -15921,7 +15921,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var _DS_COL=['#c0392b','#1f5fa8'];   // rouge sombre / bleu sombre
   function _dsColor(text){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,out='',last=0,m,t=0;
     while((m=re.exec(text))){out+=esc(text.slice(last,m.index));
-      var syls=_dsSyl(m[0]);for(var k=0;k<syls.length;k++){out+='<span style="color:'+_DS_COL[t%2]+'">'+esc(syls[k])+'</span>';t++;}
+      var syls=_dsSyl(m[0]);for(var k=0;k<syls.length;k++){out+='<span style="color:'+_DS_COL[t%2]+'!important">'+esc(syls[k])+'</span>';t++;}   // !important INLINE : la phrase-modèle révélée vit dans « #vdd-fb .vdd-fact » dont le thème SOMBRE force color:#1a1a1a!important sur tous les descendants — sans !important inline, les couleurs alternées rouge/bleu seraient écrasées (option « Syllabes en couleur » inopérante en mode sombre = défaut)
       last=m.index+m[0].length;}
     out+=esc(text.slice(last));return out;}
   function _dsModel(text){return SYLCOL?_dsColor(text):esc(text);}
@@ -17544,6 +17544,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'body.dys-dark .vdc-sc,body.dys-dark .vdd-sc,body.dys-dark .vdk-sc{color:#b4bdc7}'   /* texte secondaire lisible sur carte sombre (le #444 clair y serait invisible) */
    +'body.dys-dark #vdd-fb .vdd-fact,body.dys-dark #vdd-fb .vdd-fact *{color:#1a1a1a!important}'   /* dictée : le feedback a des fonds CLAIRS inline → texte foncé sinon illisible en thème sombre */
    +'body.dys-dark .vdc-lite{background:#141c25!important;border-color:#33414f}body.dys-dark .vdc-lite,body.dys-dark .vdc-lite *{color:#e8edf2!important}'   /* correcteur : en mode SOMBRE les cartes Appliqué/À vérifier/Stade/Remédiation passent en fond SOMBRE + texte clair (on garde la bordure gauche colorée = catégorie), plus d\'îlots crème */
+   +'body.dys-dark #vdd-fb .vdc-lite,body.dys-dark #vdd-fb .vdc-lite *{color:#e8edf2!important}'   /* dictée : la carte Remédiation (classe « vdd-fact vdc-lite ») a un fond SOMBRE (règle ci-dessus) — sans ce rappel elle hérite du texte FONCÉ forcé par « #vdd-fb .vdd-fact * » (même spécificité, mais placé avant) → foncé sur foncé = INVISIBLE. Ici on ré-impose le texte clair (spécificité égale, source plus tardive → gagne). */
    +'body.dys-dark .vdc-lite span[data-key]{background:#0f1620!important}'   /* les puces (chips) dans les cartes sombres : fond sombre (sinon texte clair sur puce blanche = invisible) ; la bordure colorée reste */
    +'body.dys-dark #vdc-card h2,body.dys-dark #vdd-card h2,body.dys-dark #vdk-card h2,body.dys-dark #vdc-x{color:#e8edf2}'
    +'body.dys-dark #vdc-in{background:#10161d;color:#e8edf2;caret-color:#9b6dd6;border-color:#33414f}body.dys-dark #vdc-in:empty:before{color:#6b7683}'
