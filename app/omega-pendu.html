@@ -16766,9 +16766,13 @@ window.addEventListener('DOMContentLoaded', () => {
   var COMPLETIVE_ANT={fait:1,faits:1,idee:1,idees:1,preuve:1,preuves:1,nouvelle:1,nouvelles:1,espoir:1,espoirs:1,crainte:1,craintes:1,peur:1,peurs:1,certitude:1,certitudes:1,conviction:1,convictions:1,impression:1,impressions:1,sentiment:1,sentiments:1,hypothese:1,hypotheses:1,theorie:1,principe:1,principes:1,regle:1,regles:1,condition:1,conditions:1,promesse:1,promesses:1,garantie:1,garanties:1,risque:1,risques:1,chance:1,chances:1,possibilite:1,probabilite:1,sensation:1,sensations:1,illusion:1,illusions:1,pensee:1,pensees:1,reve:1,reves:1,souvenir:1,souvenirs:1,doute:1,doutes:1,soupcon:1,signe:1,signes:1,raison:1,raisons:1,espere:1};
   function _ppAccord(base,nb,g){if(nb==='s')return g==='m'?base:base+'e';if(g==='m')return base.charAt(base.length-1)==='s'?base:base+'s';return base+'es';}
   var IRR_PP={};(function(){var B="écrit décrit fait refait dit redit conduit construit produit détruit instruit cuit ouvert offert couvert découvert souffert peint éteint atteint joint craint pris mis appris compris surpris repris assis acquis conquis requis entendu perdu vendu rendu attendu défendu descendu tendu mordu tordu cousu résolu vu revu lu relu tenu obtenu retenu soutenu détenu maintenu connu reconnu vaincu convaincu aperçu déçu conçu perçu parcouru".split(' ');for(var x=0;x<B.length;x++){var b=B[x],fs=[b,b+'e',(b.charAt(b.length-1)==='s'?b:b+'s'),b+'es'];for(var y=0;y<fs.length;y++){var kk=deacc(fs[y]);if(IRR_PP[kk]===undefined)IRR_PP[kk]=b;}}})();
+  var PP_INVAR_ALWAYS={voulu:1,pu:1,du:1};   // voulu/pu/dû : régissent un infinitif élidé → TOUJOURS invariable (Grevisse)
+  var TEMPORAL_ANT={};('fois jour jours journee journees matin matinee soir soiree annee annees semaine semaines mois heure heures an ans nuit nuits instant instants moment moments epoque epoques minute minutes seconde secondes hiver ete automne printemps siecle siecles').split(' ').forEach(function(w){TEMPORAL_ANT[w]=1;});   // antécédent temporel → « que » circonstant, pas COD
   function rPpAvoirCod(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null){base=(IRR_PP[deacc(lw)]!==undefined?IRR_PP[deacc(lw)]:null);}if(base===null)return null;
     if(PP_COD_STOP[deacc(base)])return null;if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;
+    if(PP_INVAR_ALWAYS[deacc(base)])return null;                     // voulu/pu/dû → invariable
+    if(i+1<T.length&&(T[i+1].toLowerCase()==='à'||deacc(T[i+1].toLowerCase())==='de'||deacc(T[i+1].toLowerCase())==="d'")&&i+2<T.length&&_isInfinitive(T[i+2]))return null;   // PP + à/de + INFINITIF (« eu à traiter », « décidé de modifier ») → invariable
     var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
     if(a<0)return null;
     var q=-1;
@@ -16782,7 +16786,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var mm=det-1;while(mm>lo&&mm<tg.length&&tg[mm]==='ADV')mm--;
     if(mm>=lo&&PREP[deacc(T[mm].toLowerCase())])return null;
     if(mm>=lo){var dmm=deacc(T[mm].toLowerCase());if(dmm==='et'||dmm==='ou'||dmm==='ni')return null;}
-    var _ant=_elidAnt?_headText(T[noun]):T[noun],nd=deacc(_ant.toLowerCase());if(COMPLETIVE_ANT[nd])return null;
+    var _ant=_elidAnt?_headText(T[noun]):T[noun],nd=deacc(_ant.toLowerCase());if(COMPLETIVE_ANT[nd])return null;if(TEMPORAL_ANT[nd])return null;   // antécédent temporel (« la fois que j'ai vu ») → « que » circonstant, pas COD
     var dd=_elidAnt?null:deacc(T[det].toLowerCase());if(!_elidAnt&&!NUM_DET[dd])return null;var nb=_elidAnt?'s':(NUM_DET[dd]==='pl'?'p':'s');
     var g=_nounGender(_ant,nb,true);if(g!=='m'&&g!=='f')return null;   // Fix C : antécédent confirmé → GENDER_MAP OK
     if(i<tg.length&&tg[i]==='NOUN')return null;

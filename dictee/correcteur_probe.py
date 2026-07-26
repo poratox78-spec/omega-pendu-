@@ -1264,6 +1264,14 @@ _COMPLETIVE_ANT = {'fait', 'faits', 'idee', 'idees', 'preuve', 'preuves', 'nouve
                    'sensation', 'sensations', 'illusion', 'illusions', 'pensee', 'pensees', 'reve', 'reves',
                    'souvenir', 'souvenirs', 'doute', 'doutes', 'soupcon', 'signe', 'signes', 'raison', 'raisons', 'espere'}
 
+# PP TOUJOURS INVARIABLES : régissent un infinitif ÉLIDÉ (« les efforts que j'ai pu/dû/voulu [faire] »)
+# → jamais d'accord avec l'antécédent (Grevisse). FP-safe : ces 3 verbes ne s'accordent jamais en COD antéposé.
+_PP_INVAR_ALWAYS = {'voulu', 'pu', 'du'}
+# Antécédents TEMPORELS : « la fois/le jour… QUE j'ai vu » → « que » ADVERBIAL (circonstant), PAS le COD → PP invariable.
+_TEMPORAL_ANT = set(("fois jour jours journee journees matin matinee soir soiree annee annees semaine semaines mois "
+                     "heure heures an ans nuit nuits instant instants moment moments epoque epoques minute minutes "
+                     "seconde secondes hiver ete automne printemps siecle siecles").split())
+
 
 def _pp_accord(base, nb, g):
     """Forme accordée d'un participe passé (masc-sing = base). Gère la base en -s (pris/mis/assis) : masc pluriel = base."""
@@ -1293,6 +1301,8 @@ def rule_pp_avoir_cod(T, i):
     if base is None: return None
     if deacc(base) in _PP_COD_STOP: return None                     # verbe intransitif/mesure/COI ⇒ « que » circonstant/indirect, pas COD
     if deacc(base) in _PP_PERCEPTION and i+1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX: return None   # PP de perception/factitif + INFINITIF (« les airs que j'ai entendu jouer ») : l'antécédent SUBIT l'infinitif → accord AMBIGU (piège Voltaire) → abstention FP-safe
+    if deacc(base) in _PP_INVAR_ALWAYS: return None                 # voulu/pu/dû : régissent un infinitif élidé → TOUJOURS invariable (« que j'ai voulu [donner] »)
+    if i+1 < len(T) and T[i+1].lower() in ('à', 'de', "d'") and i+2 < len(T) and _is_infinitive(T[i+2]): return None   # PP + à/de + INFINITIF (« que j'ai eu à traiter », « décidé de modifier ») : l'antécédent est objet de l'infinitif → invariable (≠ « écrites à Marie » où « à » introduit un nom)
     a = None; a_is_je = False                                       # auxiliaire AVOIR en remontant (adverbes/négation tolérés)
     for k in range(i - 1, max(-1, i - 4), -1):
         tk = T[k].lower(); dk = deacc(tk)
@@ -1343,6 +1353,7 @@ def rule_pp_avoir_cod(T, i):
     _ant = _head_text(T[noun]) if _elid_ant else T[noun]            # antécédent élidé : le NOM est la partie après l'apostrophe
     nd = deacc(_ant.lower())
     if nd in _COMPLETIVE_ANT: return None                           # nom de parole/pensée ⇒ « que » peut être complétif ⇒ abstention
+    if nd in _TEMPORAL_ANT: return None                             # antécédent temporel (« la fois que j'ai vu ») ⇒ « que » circonstant, pas COD ⇒ abstention
     if _elid_ant: nb = 's'                                          # « les » ne s'élide jamais ⇒ « l' » est certainement SINGULIER
     else:
         dd = deacc(T[det].lower())
