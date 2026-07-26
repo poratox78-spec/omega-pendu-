@@ -1863,6 +1863,9 @@ def _postpose_plural(T, tg, k, hi):
         if deacc(T[m].lower()) in PREP: return False
     return False
 
+_CPT_LOC = set(("tient tiens tenons tenez tiennent tenu tenais tenait tenaient tenir "
+                "rend rends rendons rendez rendent rendu rendait rendaient rendre "
+                "prend prends prennent prenons prenez pris prendre").split())   # tenir/rendre/prendre COMPTE (locution : compte = NOM)
 def rule_accord_postpose(T, i):
     """Accord SUJET-VERBE à sujet POSTPOSÉ (inversion). Quand l'ORDRE change (idée de Rem), on INVERSE la recherche du
     sujet : scan AVANT. Déclencheur d'inversion = tête de proposition = PP/adverbe/interrogatif, OU verbe INACCUSATIF en
@@ -1873,6 +1876,8 @@ def rule_accord_postpose(T, i):
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None    # PARTICIPE (accord adjectival, pas verbal)
     if i > 0 and T[i-1].lower() in NUM_DET: return None                # déterminant avant → T[i] = NOM
     if i > 0 and deacc(T[i-1].lower()) in PREP: return None            # préposition avant → nom homographe
+    if i > 0 and deacc(T[i-1].lower()) == 'ci': return None            # « ci-joint/ci-inclus/ci-annexé » = adverbial INVARIABLE, pas un verbe postposé
+    if deacc(T[i].lower()) == 'compte' and i > 0 and deacc(T[i-1].lower()) in _CPT_LOC: return None   # locution « tenir/rendre/prendre compte » : compte = NOM
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None   # temps composé
     if _subject_before(T, i) is not None: return None                 # sujet pronom net → règle pronom
     p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']
