@@ -627,6 +627,8 @@ def _aa_inverted(T, i):
 def rule_a_aa(T, i):
     if deacc(T[i].lower()) != 'a': return None
     if T[i] == T[i].upper() and T[i] != T[i].lower(): return None      # « A » majuscule (sigle/lettre « Serie A » ; « À » en tête) → abstention (FP)
+    if i+2 < len(T) and deacc(T[i+1].lower()) == 't' and deacc(T[i+2].lower()) in ('il', 'elle', 'on', 'ils', 'elles'): return None   # « a-t-il/elle/on » : « t » euphonique = INVERSION → « a » est le VERBE avoir, jamais « à » (le -t- n'apparaît qu'après un verbe)
+    if i > 0 and i+1 < len(T) and deacc(T[i-1].lower()) == 'tout' and deacc(T[i+1].lower()) == 'fait': return None   # locution « tout à fait » : « à » invariable (« tout a fait » n'existe pas) → jamais « a »
     pb = _SEG['bb'][i] if (_SEG is not None and i < len(_SEG['bb'])) else False   # frontière de proposition AVANT (virgule…) → le mot d'avant ne gouverne pas (« qui, à 4°C » : « qui » n'est pas le sujet de « à »)
     tg = pos_tags(T)                                                   # POS PLEINE-PHRASE : sépare les FAUX participes (nom homographe / -ment nominal) du vrai participe → tue les FP à→a par élimination
     p = prev(T, i)
