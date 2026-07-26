@@ -1069,6 +1069,21 @@ _INVAR_COLOR = {'creme', 'marine', 'saumon', 'emeraude', 'turquoise', 'kaki', 'b
                 'caramel', 'chocolat', 'noisette', 'paille', 'sable', 'bronze', 'cuivre', 'acajou', 'corail', 'grenat',
                 'aubergine', 'abricot', 'peche', 'citron', 'lilas', 'anthracite', 'ardoise', 'taupe', 'champagne',
                 'rouille', 'safran', 'pistache', 'amande', 'menthe', 'crevette', 'brique', 'nacre', 'perle', 'ivoire'}
+# LOCUTIONS FIGÉES où l'adjectif est INVARIABLE (« une caméra dernier cri », « des films grand public »).
+_ADJ_INVAR_LOC = {'dernier cri', 'grand public', 'grand angle', 'grand ouvert', 'nouveau ne', 'moyen age'}
+# Adjectifs employés ADVERBIALEMENT → INVARIABLES : « plein les yeux », « haut placées », « large ouvertes ».
+# Détection : suivis d'un déterminant (plein la tête) OU d'un participe/adjectif (haut placé) → emploi adverbial.
+_ADV_ADJ_INVAR = {'plein', 'haut', 'large', 'fort', 'bas', 'net', 'clair', 'court', 'droit', 'franc'}
+def _adj_acc_ok(lw, d):
+    """La forme TAPÉE (accentuée) est-elle bien l'une des 2 formes accentuées de la paire ADJ_LEX ?
+    La clé ADJ_LEX est DÉACCENTUÉE → collision « teinté »↔« teinte » (teinté n'est ni « teinte » ni « teint »
+    de la paire teint/teinte) → sinon rule_adj_epithet corrige « teinté »→« teint » sur du CORRECT."""
+    e = ADJ_LEX.get(d)
+    if not e: return True
+    alt = e[1]; p = ADJ_LEX.get(deacc(alt.lower()))
+    ka = p[1] if p else None                                         # forme accentuée de la clé = alt du partenaire (symétrie)
+    if ka is None: return True                                       # paire non symétrique → ne bloque pas (comportement d'origine)
+    return lw == ka.lower() or lw == alt.lower()
 def rule_adj_epithet(T, i):
     """Accord en GENRE×NOMBRE de l'ADJECTIF ÉPITHÈTE avec le nom qu'il suit : [ARTICLE + NOM(genre connu) + ADJ]
     (« la règle présidentiel »→présidentielle, « les domaines industriel »→industriels). Le territoire genre-adjectif
@@ -1087,11 +1102,14 @@ def rule_adj_epithet(T, i):
     if "'" in lw or w[:1].isupper(): return None
     d = deacc(lw)
     if d not in ADJ_LEX or _adj_estem(lw) is not None: return None   # inconnu / épicène (radical -e : rouge/jeune) → pas de genre à trancher
+    if not _adj_acc_ok(lw, d): return None                           # collision d'accent déacc (« teinté »≠paire teint/teinte) → forme réelle hors paire → abstention
     if d in ('tout', 'tous', 'toute', 'toutes'): return None         # géré par rule_tout_det (rôle déterminant/adverbe/pronom)
     if i+1 < len(T) and deacc(T[i+1].lower()) in ('de', 'et', 'ou', 'ni'): return None   # figé (« haut de gamme ») + coordination distributive (« sites allemand et français »)
     if d in ('bon', 'meilleur') and i+1 < len(T) and deacc(T[i+1].lower()) == 'marche': return None   # locution INVARIABLE « (bon/meilleur) marché » (« des vêtements bon marché ») — pas un adjectif accordable
+    if i+1 < len(T) and (d + ' ' + deacc(T[i+1].lower())) in _ADJ_INVAR_LOC: return None   # locution figée invariable (« dernier cri », « grand public »)
     tg = pos_tags(T)
     if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
+    if d in _ADV_ADJ_INVAR and i+1 < len(tg) and (tg[i+1] in ('DET', 'VERB', 'ADJ') or _elid_kind(T[i+1]) == 'det'): return None   # emploi ADVERBIAL invariable : « plein les yeux »/« haut la main » (dét après) OU « haut placées »/« large ouvertes » (participe/adj après)
     if tg[i-1] != 'NOUN' and not _el: return None   # sur un nom ÉLIDÉ le tagger dit PROPN (majuscule de l'article en tête de phrase) : c'est le genre du lexique qui fait foi ci-dessous
     if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN'): return None   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
     if _head_text(T[i-1])[:1].isupper(): return None                 # nom propre (capitalisé) → genre non fiable. ÉLISION DÉCOLLÉE : « L'allégation » en tête de phrase porte la majuscule du DÉTERMINANT, pas du nom — la tester ici écartait tout nom commun élidé.
