@@ -16316,6 +16316,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if(/(é|és|ée|ées)$/.test(lw))return null;
     if(i>0&&NUM_DET[T[i-1].toLowerCase()]!==undefined)return null;
     if(i>0&&PREP[deacc(T[i-1].toLowerCase())])return null;
+    if(i>0&&deacc(T[i-1].toLowerCase())==='ci')return null;   // « ci-joint/ci-inclus/ci-annexé » = adverbial INVARIABLE, pas un verbe postposé
+    if(deacc(T[i].toLowerCase())==='compte'&&i>0&&/^(tient|tiens|tenons|tenez|tiennent|tenu|tenais|tenait|tenaient|tenir|rend|rends|rendons|rendez|rendent|rendu|rendait|rendaient|rendre|prend|prends|prennent|prenons|prenez|pris|prendre)$/.test(deacc(T[i-1].toLowerCase())))return null;   // locution « tenir/rendre/prendre compte » : compte = NOM
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;
     if(svSubject(T,i)!=null)return null;
     var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
