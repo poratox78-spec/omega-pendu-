@@ -1512,7 +1512,8 @@ def _seg_info(text):
         bb.append(s or any(c in gap for c in ',;:()«»"–—\n'))
         hy.append('-' in gap)                                    # trait d'union avant (inversion « dit-il ») → anti-FP run-on
         _dom = ('.' in gap and not any(c.isspace() for c in gap) and m.group().lower() in _TLD_CAP)   # « .net/.com » collé (point de domaine, pas de fin de phrase) → jamais capitaliser le TLD
-        cap.append(s and '..' not in gap and not any(c.isdigit() for c in gap) and not _dom)   # MAJUSCULE : vraie fin de phrase — pas une ellipse « .. », un point de nombre/décimale, ni un point de DOMAINE (URL)
+        _capp = ('.' in gap and any(c.isspace() for c in gap))   # MAJUSCULE = seulement après un POINT suivi d'une espace ; PAS ! ? … (souvent milieu de phrase : interjection « Ah! comme », inversion « viendra-t-il? je », suspension « … », = quasi 100 % de FP mesurés banc OQLF/BDL) ni un point de DOMAINE collé « oqlf.gouv » (pas d'espace)
+        cap.append(_capp and '..' not in gap and not any(c.isdigit() for c in gap) and not _dom)   # MAJUSCULE : vraie fin de phrase (point + espace) — pas une ellipse « .. », un point de nombre/décimale, ni un point de DOMAINE (URL)
         dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
         prev_end = m.end()
     return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig}
@@ -3038,8 +3039,9 @@ CASES = [
     ("tu sais la réponse", "sais", "ces", "sais/sait"),                   # tu ces → tu sais
     ("je sais bien", "sais", "sait", "sais/sait"),                        # je sait → je sais (accord)
     ("elle s'est bien amusée", "s'est", "c'est", "c'est/s'est"),          # elle c'est bien amusée → s'est (adverbe intercalé)
-    # majuscule : seulement APRÈS . ! ? (jamais le 1er token = fragment). Non testable par ce harnais (il reconstruit
-    # sans ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
+    # majuscule : seulement APRÈS un POINT + espace (PAS ! ? … = souvent milieu de phrase : interjection/inversion/suspension ;
+    # ni domaine collé « oqlf.gouv »). Jamais le 1er token = fragment. Non testable par ce harnais (il reconstruit sans
+    # ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
 ]
 
 
