@@ -1316,6 +1316,34 @@ function spellUnknown(tok,atStart,T,idx){
       if(SUBJ_PRON[dk])return SUBJ_PRON[dk];
       if(k>0&&NUM_DET[T[k-1].toLowerCase()]){var nb=(NUM_DET[T[k-1].toLowerCase()]==='pl'||/[sx]$/.test(dk))?'p':'s';return['3',nb];}}
     return null;}
+  // VIGILANCE ORANGE « accord genre à vérifier » — miroir app. Flip de genre adjectif épithète (audible, hors FP=0
+  // : ~8 vrais FP/14450 homographes nom/rattachement) → « qui est-ce qui, il ou elle ? » à confirmer. Réutilise ADJP.
+  var _ADVQ_G={peu:1,si:1,plus:1,moins:1,tres:1,trop:1,tout:1,toute:1,aussi:1,assez:1,bien:1,fort:1,plutot:1,tellement:1,mal:1};
+  function _accOkG(lw,d){var e=ADJP[d];if(!e)return false;var alt=e[1],p=ADJP[deacc(alt.toLowerCase())],ka=p?p[1]:null;
+    if(ka===null)return false;return lw===ka.toLowerCase()||lw===alt.toLowerCase();}
+  function _adjAgreeG(w,gender,num){var d=deacc(w.toLowerCase()),e=ADJP[d];if(!e)return w;var base=(e[0]===gender)?w:e[1];
+    if(num==='p'){var db=deacc(base.toLowerCase()),lc=db.charAt(db.length-1);if(lc==='s'||lc==='x'){}else if(db.slice(-2)==='al')base=base.slice(0,-2)+'aux';else if(db.slice(-3)==='eau')base=base+'x';else base=base+'s';}return base;}
+  function genreAdjVig(T,i,tg){var _el=(i>=1&&_elidKind(T[i-1])==='det');
+    if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+    if(i<2&&!_el)return null;var w=T[i],lw=w.toLowerCase();
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
+    var d=deacc(lw);
+    if(!ADJP[d]||_adjEstem(lw)===null)return null;
+    if(_EPICENE_ADJ[d])return null;
+    if(!_accOkG(lw,d))return null;
+    if(d==='tout'||d==='tous'||d==='toute'||d==='toutes')return null;
+    if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
+    if(tg[i-1]!=='NOUN'&&!_el)return null;
+    if(_ADVQ_G[deacc(T[i-1].toLowerCase())])return null;
+    if(i+1<tg.length&&tg[i+1]==='NOUN')return null;
+    if(i+1<T.length){var nx=deacc(T[i+1].toLowerCase());if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni'||nx==='que')return null;}
+    if(_COLOR_ADJ[d]&&i+1<tg.length&&(tg[i+1]==='ADJ'||tg[i+1]==='NOUN'))return null;
+    if(_headText(T[i-1]).charAt(0)!==_headText(T[i-1]).charAt(0).toLowerCase())return null;
+    var dn=deacc(_headText(T[i-1]).toLowerCase()),g=GENDER_PURE[dn];
+    if((g!=='m'&&g!=='f')||_SG_STOP[dn])return null;
+    var num=_el?'s':(i>=2?_EPI_ART[deacc(T[i-2].toLowerCase())]:null);
+    if(!num)return null;
+    var sugg=_adjAgreeG(w,g,num);return sugg.toLowerCase()!==lw?sugg:null;}
   function imparfaitVig(T,i,tg){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw.length<3)return null;
     var reads=svReads(T[i]),imp=[],k;for(k=0;k<reads.length;k++){var rk=reads[k];if(rk[1].indexOf('imp')>=0&&rk[1].indexOf('ind')>=0)imp.push(rk);}
     if(!imp.length)return null;
@@ -1411,6 +1439,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
+    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'});pushed=true;}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
