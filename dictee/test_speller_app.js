@@ -140,6 +140,12 @@ const SP = globalThis.__sp;
   if (!th2 || th2.sugg !== 'là-bas') fail.push("la bas→là-bas attendu, eu " + JSON.stringify(th2));
   if (!SP.spell('ci joint le document').some(x => x.sugg === 'ci-joint')) fail.push('ci joint→ci-joint attendu');
   if (SP.spell('il peut être malade demain').some(x => x.name === "trait d'union")) fail.push("FP trait d'union « peut être » (ambigu = verbe pouvoir+être)");
+  // PLÉONASMES / redondances (catégorie Grammalecte) → ORANGE (vigilance), liste close non-ambiguë, jamais de retrait d'office
+  const pl1 = SP.spell("il faut prévoir à l'avance").find(x => x.name === 'pléonasme');
+  if (!pl1 || pl1.sugg !== 'prévoir' || pl1.span !== 3 || pl1.tier !== 'vigilance') fail.push("prévoir à l'avance→prévoir (pléonasme orange span:3) attendu, eu " + JSON.stringify(pl1));
+  const pl2 = SP.spell('ne monte pas monter en haut').find(x => x.name === 'pléonasme');
+  if (!pl2 || pl2.sugg !== 'monter') fail.push('monter en haut→monter (pléonasme) attendu, eu ' + JSON.stringify(pl2));
+  if (SP.spell('il faut prévoir le budget du mois').some(x => x.name === 'pléonasme')) fail.push('FP pléonasme sur texte sain « prévoir le budget »');
   // LISTE BLANCHE : mots VALIDES absents du lexique que le speller éditait à tort → protégés (« mauvais candidat sur mot valide »)
   if (SP.spell('cette hypothèse fut postulée').find(x => x.word.toLowerCase() === 'postulée')) fail.push('FP: « postulée » (participe valide) ne doit pas être corrigé');
   if (SP.spell('il entretint la flamme').find(x => x.word.toLowerCase() === 'entretint')) fail.push('FP: « entretint » (passé simple valide) ne doit pas être corrigé');

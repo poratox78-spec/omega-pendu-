@@ -17499,6 +17499,16 @@ window.addEventListener('DOMContentLoaded', () => {
         var hlk=deaccS(P[hli][2].toLowerCase())+' '+deaccS(P[hli+1][2].toLowerCase()),hlv=_HYPHLOC[hlk];if(!hlv)continue;
         if(P[hli][2][0]!==P[hli][2][0].toLowerCase())hlv=hlv.charAt(0).toUpperCase()+hlv.slice(1);
         out.push({i:hli,word:P[hli][2],sugg:hlv,name:"trait d'union",tier:'flag',span:2});done[hli]=done[hli+1]=1;}
+      // PLÉONASMES / redondances (catégorie Grammalecte « redondances », liste CLOSE non-ambiguë) → ORANGE « à vérifier », JAMAIS de retrait d'office (le resserrement est stylistique). FP-safe (orange + liste fermée). Fenêtre 3 puis 2 mots, séparés par du BLANC pur. La couverture large est un DÛ (cf. doctrine : ne pas se limiter au nom de l'axe dys).
+      var _PLEO={"au jour d'aujourd'hui":"aujourd'hui","monter en haut":"monter","descendre en bas":"descendre","sortir dehors":"sortir","reculer en arriere":"reculer","avancer en avant":"avancer","prevoir a l'avance":"prévoir","comme par exemple":"par exemple","voire meme":"voire","puis ensuite":"ensuite","car en effet":"car"};
+      for(var qi=0;qi<P.length-1;qi++){if(done[qi])continue;var qfound=null,qlen=0;
+        for(var qn=Math.min(3,P.length-qi);qn>=2;qn--){var qok=true;
+          for(var qk=0;qk<qn-1;qk++)if(!/^\s+$/.test(text.slice(P[qi+qk][1],P[qi+qk+1][0]))){qok=false;break;}
+          if(!qok)continue;var qseq=[];for(var qk2=0;qk2<qn;qk2++)qseq.push(deaccS(P[qi+qk2][2].toLowerCase()));
+          var qv=_PLEO[qseq.join(' ')];if(qv){qfound=qv;qlen=qn;break;}}
+        if(!qfound)continue;var qbusy=false;for(var qk3=0;qk3<qlen;qk3++)if(done[qi+qk3]){qbusy=true;break;}if(qbusy)continue;
+        if(P[qi][2][0]!==P[qi][2][0].toLowerCase())qfound=qfound.charAt(0).toUpperCase()+qfound.slice(1);
+        out.push({i:qi,word:text.slice(P[qi][0],P[qi+qlen-1][1]),sugg:qfound,name:'pléonasme',tier:'vigilance',span:qlen});for(var qk4=0;qk4<qlen;qk4++)done[qi+qk4]=1;}
       // MOVER impératif : corrections multi-tokens (placement des pronoms) → span:N
       var mv=_impMoves(text);
       for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],B=mv[mi][1],ki=-1,kj=-1;
