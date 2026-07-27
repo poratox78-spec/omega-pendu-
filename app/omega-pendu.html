@@ -17637,12 +17637,35 @@ window.addEventListener('DOMContentLoaded', () => {
         if(f.sugg.slice(0,_ow.length)===_ow){f.sugg=_gm.sugg+f.sugg.slice(_ow.length);f.src='s';f._fuseOn=_dfltOn(_gm);byTok[f.i]=f;}}});   // le span reprend la correction grammaire en préfixe (→« Bonjour, je ») et hérite son défaut on/off
     var list=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};list.forEach(function(f){if(f.span>=2)for(var c=1;c<f.span;c++)_cov[f.i+c]=1;});list=list.filter(function(f){return !_cov[f.i];});
-    list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});return list.filter(function(f){return !_ignored[f.key];});}
-  function _correctedText(t,corrs){var P=_tokPos(t),by={};corrs.forEach(function(f){by[f.i]=f;});
-    var out='',last=0,k;for(k=0;k<P.length;k++){var f=by[k];if(f&&f.on){var end=(f.span>=2&&k+f.span-1<P.length)?k+f.span-1:k;out+=t.slice(last,P[k][0])+f.sugg;last=P[end][1];k=end;}}
+    list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});
+    var _typ=_typoScan(t);_typ.forEach(function(f){f.key='T'+f.cs+'|'+f.sugg;f.word=f.from;f.on=!!_on[f.key];});   // typo = clé ancrée CARACTÈRE (préfixe 'T', pas de collision avec les clés mot) ; orange → défaut OFF, ON si l'utilisateur applique ; f.word=from pour la carte/DysProfile
+    return list.concat(_typ).filter(function(f){return !_ignored[f.key];});}
+  // TYPOGRAPHIE (catégorie Grammalecte) — flags ANCRÉS AUX CARACTÈRES (dans les espaces/bords, pas les mots) : guillemets droits « " » → «/» et points de suspension « ... » → « … ». ORANGE (préférence, jamais forcé). FP-safe : gardes chiffre (pouces 5"), contexte ouvrant/fermant net. Vit hors du système mot-à-mot → traité UNIQUEMENT dans les espaces au rendu (le cœur mot-flag est intact).
+  function _typoScan(t){var out=[],m,re1=/\.{3,}/g;
+    while((m=re1.exec(t))){var _p=t[m.index-1]||'',_n=t[m.index+m[0].length]||'';if(/[0-9]/.test(_p)&&/[0-9]/.test(_n))continue;   // « 1...2 » (rare) → pas touché
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:'…',name:'typographie',tier:'vigilance',typo:1});}
+    for(var i=0;i<t.length;i++){if(t[i]!=='"')continue;var nx=t[i+1]||'',pv=t[i-1]||'';
+      if(/[0-9]/.test(pv)||/[0-9]/.test(nx))continue;   // pouces/dimensions « 5" » → pas un guillemet
+      var wa=/[A-Za-zÀ-ÿœŒ]/.test(nx),wb=/[A-Za-zÀ-ÿœŒ]/.test(pv);
+      if(wa&&!wb)out.push({cs:i,ce:i+1,from:'"',sugg:'« ',name:'typographie',tier:'vigilance',typo:1});
+      else if(wb&&!wa)out.push({cs:i,ce:i+1,from:'"',sugg:' »',name:'typographie',tier:'vigilance',typo:1});}
+    return out;}
+  function _correctedText(t,corrs){var P=_tokPos(t),ed=[];
+    corrs.forEach(function(f){if(!f.on)return;
+      if(f.typo){ed.push([f.cs,f.ce,f.sugg]);}
+      else if(f.i<P.length){var end=(f.span>=2&&f.i+f.span-1<P.length)?f.i+f.span-1:f.i;ed.push([P[f.i][0],P[end][1],f.sugg]);}});
+    ed.sort(function(a,b){return a[0]-b[0];});
+    var out='',last=0;ed.forEach(function(e){if(e[0]<last)return;out+=t.slice(last,e[0])+e[2];last=e[1];});
     out+=t.slice(last);return out;}
-  function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},_RO=_runonSet(t);corrs.forEach(function(f){by[f.i]=f;});
-    var o='',last=0,k;for(k=0;k<P.length;k++){o+=esc(t.slice(last,P[k][0]));var f=by[k];
+  function _typoGapHtml(g,base,byCs,corrected){var ks=Object.keys(byCs).map(Number).filter(function(c){return c>=base&&c<base+g.length;}).sort(function(a,b){return a-b;});
+    if(!ks.length)return esc(g);var o='',lp=0;   // lp = position relative dans g ; splice les corrections typo (guillemets/points de suspension) DANS l'espace, sans toucher au rendu mot
+    ks.forEach(function(cs){var f=byCs[cs],r0=cs-base,r1=f.ce-base;if(r0<lp)return;o+=esc(g.slice(lp,r0));
+      var seg=g.slice(r0,r1),disp=(corrected&&f.on)?f.sugg:seg,cls=(corrected&&f.on)?'vdc-on':'vdc-bad vdc-vig',
+      ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
+      o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';lp=r1;});
+    o+=esc(g.slice(lp));return o;}
+  function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},byCs={},_RO=_runonSet(t);corrs.forEach(function(f){if(f.typo)byCs[f.cs]=f;else by[f.i]=f;});
+    var o='',last=0,k;for(k=0;k<P.length;k++){o+=_typoGapHtml(t.slice(last,P[k][0]),last,byCs,corrected);var f=by[k];
       if(f){var end=(f.span>=2&&k+f.span-1<P.length)?k+f.span-1:k;var seg=t.slice(P[k][0],P[end][1]);
         if(!corrected){   // ZONE DE SAISIE : JAMAIS de vert (clair ET sombre). Toute correction = faute sur l'original → nos couleurs rouge/orange (jamais vdc-on). On montre le mot original.
           var clsS='vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':''));
@@ -17653,7 +17676,7 @@ window.addEventListener('DOMContentLoaded', () => {
         o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}}
       else if(_RO[k]){o+='<span class="vdc-vig" title="Ponctuation manquante ? deux propositions collées">'+esc(P[k][2])+'</span>';last=P[k][1];}
       else{var _vi=_vigInfo(P[k][2],_vigCtxOf(P,k));if(_vi){o+='<span class="vdc-vig" title="'+esc(_vi)+'">'+esc(P[k][2])+'</span>';}else{o+=esc(P[k][2]);}last=P[k][1];}}
-    o+=esc(t.slice(last));return o;}
+    o+=_typoGapHtml(t.slice(last),last,byCs,corrected);return o;}
   function _toggleKey(key){var f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;
     if(f.on){if(_dfltOn(f))_off[key]=1;delete _on[key];}
     else{if(!_dfltOn(f))_on[key]=1;delete _off[key];if(DysProfile&&!_recDone[key]){_recDone[key]=1;DysProfile.rec(_corrFam(f.name,f.word,f.sugg),1,'corrector');}}   // profil : UNE fois par correction (re-basculer n'inflate plus cerr)
