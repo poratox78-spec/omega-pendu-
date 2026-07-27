@@ -1445,6 +1445,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir app.
     var _an=_ANGLICISME[T[i].toLowerCase()];if(_an){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],_an),name:'anglicisme',tier:'vigilance'});continue;}   // anglicisme → ORANGE, court-circuite le speller
     if(T[i]==='Mr'||T[i]==='Mrs'){out.push({i:i,word:T[i],sugg:T[i]==='Mr'?'M.':'Mme',name:'abréviation',tier:'vigilance'});continue;}   // « Mr/Mrs »→« M./Mme » (miroir app)
+    if(/^opportunités?$/i.test(T[i])){var _n1=(i+1<T.length)?T[i+1].toLowerCase():'';if(_n1==='de'||/^d'/.test(_n1)){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],/s$/i.test(T[i])?'occasions':'occasion'),name:'anglicisme',tier:'vigilance'});continue;}}   // faux-ami « opportunité de »→« occasion » (miroir app), ORANGE
     var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
