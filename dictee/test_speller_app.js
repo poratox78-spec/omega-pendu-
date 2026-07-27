@@ -160,6 +160,10 @@ const SP = globalThis.__sp;
   if (!od2 || od2.sugg !== 're') fail.push('1ère→1re (ordinal) attendu, eu ' + JSON.stringify(od2));
   if (SP.spell("l'ère glaciaire a duré").some(x => x.name === 'nombre')) fail.push("FP ordinal « l'ère » (nom, pas précédé d'un chiffre)");
   if (SP.spell('il fait de même ici').some(x => x.name === 'nombre')) fail.push('FP ordinal « même » (un seul token)');
+  // FAUX-AMI NOM « opportunité de »→« occasion » (gate sur « de/d' » ; les faux-amis VERBES restent hors scope = mur de conjugaison)
+  const fa1 = SP.spell('saisir une opportunité de partir').find(x => x.word.toLowerCase() === 'opportunité');
+  if (!fa1 || fa1.name !== 'anglicisme' || fa1.sugg !== 'occasion') fail.push('opportunité de→occasion (faux-ami) attendu, eu ' + JSON.stringify(fa1));
+  if (SP.spell('une belle opportunité pour lui').some(x => x.name === 'anglicisme')) fail.push("FP faux-ami « opportunité pour » (pas suivi de « de » → pas de gate)");
   // LISTE BLANCHE : mots VALIDES absents du lexique que le speller éditait à tort → protégés (« mauvais candidat sur mot valide »)
   if (SP.spell('cette hypothèse fut postulée').find(x => x.word.toLowerCase() === 'postulée')) fail.push('FP: « postulée » (participe valide) ne doit pas être corrigé');
   if (SP.spell('il entretint la flamme').find(x => x.word.toLowerCase() === 'entretint')) fail.push('FP: « entretint » (passé simple valide) ne doit pas être corrigé');
