@@ -1515,6 +1515,7 @@ function spellUnknown(tok,atStart,T,idx){
     // classification IDENTIQUE à _corrFam de l'app (flag → famille → stade)
     if(/majuscule/.test(n))t='majuscule';                                    // convention → alphabétique
     else if(/r[ée]p[ée]tition/.test(n))t='repetition';                       // lapsus → hors-stade
+    else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
     else if(w&&sg&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)
     else if(/accord|genre/.test(n))t='accord';

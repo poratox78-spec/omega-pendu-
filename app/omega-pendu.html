@@ -17619,6 +17619,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');
     if(/majuscule/.test(n))return 'majuscule';                              // majuscule initiale = CONVENTION (stade alphabétique), pas un accent
     if(/r[ée]p[ée]tition/.test(n))return 'repetition';                      // mot doublé = lapsus d'attention → hors-stade (pas une famille orthographique)
+    if(/typographie/.test(n))return 'typo';if(/nombre/.test(n))return 'nombre';if(/anglicisme/.test(n))return 'anglicisme';if(/abr[ée]viation/.test(n))return 'abreviation';if(/pl[ée]onasme/.test(n))return 'pleonasme';   // catégories STYLE (élargissement 07/2026) : name-based, AVANT les heuristiques accent/segmentation (sinon la sug « « » (avec espace) → 'segmentation') → libellé de carte correct + AUCUNE ne compte pour le stade dys (hors STAGE_FAM), miroir de l'exclusion typo de l'extension
     if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
     if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface|inconnu/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié) ; « mot inconnu » = graphie non résolue → surface
@@ -17708,7 +17709,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var tin=_navHiliteIn($('vdc-in'),ky),tres=_navHiliteIn($('vdc-result'),ky);   // surligne la faute courante DANS LA SAISIE (là où l'œil est) ET dans le corrigé — sinon « ◂▸ » semblait ne rien faire
     var tgt=tin||tres;if(tgt)tgt.scrollIntoView({block:'center',behavior:'smooth'});}
   // ===== PISTE A : carte d'action au clic sur un mot du CORRIGE. La saisie du haut reste 100% editable.
-  var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition'};
+  var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition',typo:'Typographie',nombre:'Nombre',anglicisme:'Anglicisme',abreviation:'Abréviation',pleonasme:'Redondance'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
   var _EXPL={
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",
