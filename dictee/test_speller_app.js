@@ -146,6 +146,11 @@ const SP = globalThis.__sp;
   const pl2 = SP.spell('ne monte pas monter en haut').find(x => x.name === 'pléonasme');
   if (!pl2 || pl2.sugg !== 'monter') fail.push('monter en haut→monter (pléonasme) attendu, eu ' + JSON.stringify(pl2));
   if (SP.spell('il faut prévoir le budget du mois').some(x => x.name === 'pléonasme')) fail.push('FP pléonasme sur texte sain « prévoir le budget »');
+  // ANGLICISMES franglais non-mots → ORANGE, PRIORITÉ sur le speller (sinon « checker » mé-corrigé). Faux-amis homographes exclus (flood).
+  const an1 = SP.spell('je vais checker le code').find(x => x.word.toLowerCase() === 'checker');
+  if (!an1 || an1.name !== 'anglicisme' || an1.sugg !== 'vérifier' || an1.tier !== 'vigilance') fail.push('checker→vérifier (anglicisme orange, priorité speller) attendu, eu ' + JSON.stringify(an1));
+  if (!SP.spell('peux-tu booker la salle').some(x => x.name === 'anglicisme' && x.sugg === 'réserver')) fail.push('booker→réserver (anglicisme) attendu');
+  if (SP.spell('je veux vérifier et chercher').some(x => x.name === 'anglicisme')) fail.push('FP anglicisme sur mots FR sains « vérifier/chercher »');
   // LISTE BLANCHE : mots VALIDES absents du lexique que le speller éditait à tort → protégés (« mauvais candidat sur mot valide »)
   if (SP.spell('cette hypothèse fut postulée').find(x => x.word.toLowerCase() === 'postulée')) fail.push('FP: « postulée » (participe valide) ne doit pas être corrigé');
   if (SP.spell('il entretint la flamme').find(x => x.word.toLowerCase() === 'entretint')) fail.push('FP: « entretint » (passé simple valide) ne doit pas être corrigé');
