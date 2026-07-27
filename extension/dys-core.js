@@ -1444,6 +1444,7 @@ function spellUnknown(tok,atStart,T,idx){
   function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir app.
     var _an=_ANGLICISME[T[i].toLowerCase()];if(_an){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],_an),name:'anglicisme',tier:'vigilance'});continue;}   // anglicisme → ORANGE, court-circuite le speller
+    if(T[i]==='Mr'||T[i]==='Mrs'){out.push({i:i,word:T[i],sugg:T[i]==='Mr'?'M.':'Mme',name:'abréviation',tier:'vigilance'});continue;}   // « Mr/Mrs »→« M./Mme » (miroir app)
     var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
@@ -1493,6 +1494,12 @@ function spellUnknown(tok,atStart,T,idx){
         if(!qfound)continue;var qbusy=false;for(var qk3=0;qk3<qlen;qk3++)if(done[qi+qk3]){qbusy=true;break;}if(qbusy)continue;
         if(P[qi][2][0]!==P[qi][2][0].toLowerCase())qfound=qfound.charAt(0).toUpperCase()+qfound.slice(1);
         out.push({i:qi,word:text.slice(P[qi][0],P[qi+qlen-1][1]),sugg:qfound,name:'pléonasme',tier:'vigilance',span:qlen});for(var qk4=0;qk4<qlen;qk4++)done[qi+qk4]=1;}
+      // ORDINAUX (miroir app) : « 1ère/2ème »→« 1re/2e » (suffixe précédé d'un CHIFFRE ; garde « l'ère »/« même »). ORANGE.
+      var _ORD={ere:'re',eres:'res',eme:'e',emes:'es',ieme:'e',iemes:'es'};
+      for(var di=0;di<P.length;di++){var _os=_ORD[deaccS(P[di][2].toLowerCase())];
+        if(_os&&P[di][0]>0&&/[0-9]/.test(text.charAt(P[di][0]-1))){
+          for(var dj=out.length-1;dj>=0;dj--)if(out[dj].i===di&&(out[dj].span==null||out[dj].span<2))out.splice(dj,1);   // l'ordinal PRIME sur un « mot inconnu » posé sur « ème » (toks a jeté le chiffre)
+          out.push({i:di,word:P[di][2],sugg:_os,name:'nombre',tier:'vigilance'});done[di]=1;}}
       var mv=_impMoves(text);
       for(var mi=0;mi<mv.length;mi++){var A=mv[mi][0],Bx=mv[mi][1],ki=-1,kj=-1;
         for(var k=0;k<P.length;k++){if(P[k][0]>=A&&P[k][1]<=Bx){if(ki<0)ki=k;kj=k;}}
