@@ -151,6 +151,15 @@ const SP = globalThis.__sp;
   if (!an1 || an1.name !== 'anglicisme' || an1.sugg !== 'vérifier' || an1.tier !== 'vigilance') fail.push('checker→vérifier (anglicisme orange, priorité speller) attendu, eu ' + JSON.stringify(an1));
   if (!SP.spell('peux-tu booker la salle').some(x => x.name === 'anglicisme' && x.sugg === 'réserver')) fail.push('booker→réserver (anglicisme) attendu');
   if (SP.spell('je veux vérifier et chercher').some(x => x.name === 'anglicisme')) fail.push('FP anglicisme sur mots FR sains « vérifier/chercher »');
+  // ABRÉVIATIONS « Mr/Mrs »→« M./Mme » (title-case exact) + ORDINAUX « 2ème/1ère »→« 2e/1re » (suffixe précédé d'un chiffre) → ORANGE
+  const ab1 = SP.spell('Mr Dupont est là').find(x => x.word === 'Mr');
+  if (!ab1 || ab1.name !== 'abréviation' || ab1.sugg !== 'M.') fail.push('Mr→M. (abréviation) attendu, eu ' + JSON.stringify(ab1));
+  const od1 = SP.spell('la 2ème place').find(x => x.name === 'nombre');
+  if (!od1 || od1.sugg !== 'e') fail.push('2ème→2e (ordinal, suffixe→e) attendu, eu ' + JSON.stringify(od1));
+  const od2 = SP.spell('la 1ère fois').find(x => x.name === 'nombre');
+  if (!od2 || od2.sugg !== 're') fail.push('1ère→1re (ordinal) attendu, eu ' + JSON.stringify(od2));
+  if (SP.spell("l'ère glaciaire a duré").some(x => x.name === 'nombre')) fail.push("FP ordinal « l'ère » (nom, pas précédé d'un chiffre)");
+  if (SP.spell('il fait de même ici').some(x => x.name === 'nombre')) fail.push('FP ordinal « même » (un seul token)');
   // LISTE BLANCHE : mots VALIDES absents du lexique que le speller éditait à tort → protégés (« mauvais candidat sur mot valide »)
   if (SP.spell('cette hypothèse fut postulée').find(x => x.word.toLowerCase() === 'postulée')) fail.push('FP: « postulée » (participe valide) ne doit pas être corrigé');
   if (SP.spell('il entretint la flamme').find(x => x.word.toLowerCase() === 'entretint')) fail.push('FP: « entretint » (passé simple valide) ne doit pas être corrigé');
