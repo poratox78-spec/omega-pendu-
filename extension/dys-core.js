@@ -1534,6 +1534,16 @@ function spellUnknown(tok,atStart,T,idx){
           g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
       if(g)return 'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+(f.sugg||'')+' ».';}
     return '';}
+  // TYPOGRAPHIE (catégorie Grammalecte) — flags ANCRÉS CARACTÈRE (guillemets droits " → «/», points de suspension ... → …). Miroir app _typoScan. ORANGE. FP-safe : garde chiffre (pouces 5"), contexte ouvrant/fermant. content.js applyOne gère la branche {cs,ce}.
+  function _typoScan(text){var out=[],m,re1=/\.{3,}/g;
+    while((m=re1.exec(text))){var _p=text[m.index-1]||'',_n=text[m.index+m[0].length]||'';if(/[0-9]/.test(_p)&&/[0-9]/.test(_n))continue;
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:'…',name:'typographie',tier:'vigilance',typo:1});}
+    for(var i=0;i<text.length;i++){if(text[i]!=='"')continue;var nx=text[i+1]||'',pv=text[i-1]||'';
+      if(/[0-9]/.test(pv)||/[0-9]/.test(nx))continue;
+      var wa=/[A-Za-zÀ-ÿœŒ]/.test(nx),wb=/[A-Za-zÀ-ÿœŒ]/.test(pv);
+      if(wa&&!wb)out.push({cs:i,ce:i+1,from:'"',sugg:'« ',name:'typographie',tier:'vigilance',typo:1});
+      else if(wb&&!wa)out.push({cs:i,ce:i+1,from:'"',sugg:' »',name:'typographie',tier:'vigilance',typo:1});}
+    return out;}
   function diagnoseAll(text){var gf=correctText(text),sf=SP.ready?spellText(text):[];        // grammaire + orthographe fusionnés + stade
     var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;
       else if(f.span>=2&&(byTok[f.i].span==null||byTok[f.i].span<2)&&byTok[f.i].tier!=='vigilance'&&typeof f.sugg==='string'&&typeof byTok[f.i].sugg==='string'&&typeof f.word==='string'&&f.sugg.slice(0,f.word.length)===f.word){f.sugg=byTok[f.i].sugg+f.sugg.slice(f.word.length);byTok[f.i]=f;}});   // COLLISION grammaire mono-mot (majuscule) sur le 1er mot d'un span:2 speller → FUSIONNER (parité app _computeCorrs), sinon l'espace/tiret est perdu
@@ -1541,7 +1551,8 @@ function spellUnknown(tok,atStart,T,idx){
     var _cov={};flags.forEach(function(f){if(f.span===2)_cov[f.i+1]=1;});flags=flags.filter(function(f){return !_cov[f.i];});   // un token couvert par une élision (span 2) ne compte pas 2× (parité AUDIT #4)
     var _Tt=toks(text);flags.forEach(function(f){var hh=ctxHint(f,_Tt);if(hh)f.hint=hh;});   // hint contextuel par correction (affiché AU CLIC dans content.js)
     var facts=flagsToFacts(flags),dev=developmental(facts),rem=remedFams(facts);
-    return {flags:flags,grammar:gf,spell:sf,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
+    var _typ=_typoScan(text);_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts/stade (pas une faute de stade) ; ajoutée aux flags pour rendu+clic
+    return {flags:flags.concat(_typ),grammar:gf,spell:sf,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
             remed:rem?rem.fams.map(function(t){return REMED[t];}):[]};}
 
   // ===== chargement lexiques =====

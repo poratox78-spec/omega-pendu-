@@ -131,13 +131,14 @@
   var TOKRE = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;   // ’ typographique incluse : les spans (positions) restent alignés avec les tokens normalisés du moteur
   function spans(text) { var m, s = []; TOKRE.lastIndex = 0; while ((m = TOKRE.exec(text))) s.push([m.index, m.index + m[0].length]); return s; }
   function applyOne(el, flag) {
-    var t = getText(el), sp = spans(t), s = sp[flag.i]; if (!s) return;
-    var e = sp[flag.i + (flag.span ? flag.span - 1 : 0)] || s;   // élision : la suggestion fusionne 2 tokens (« c est »→« c'est »)
+    var t = getText(el), s0, e1;
+    if (flag && flag.typo) { s0 = flag.cs; e1 = flag.ce; }   // TYPOGRAPHIE : correction ancrée CARACTÈRE (guillemets/points de suspension) — pas de token, on remplace directement [cs,ce]
+    else { var sp = spans(t), s = sp[flag.i]; if (!s) return; var e = sp[flag.i + (flag.span ? flag.span - 1 : 0)] || s; s0 = s[0]; e1 = e[1]; }   // élision : la suggestion fusionne 2 tokens (« c est »→« c'est »)
     if (isCE(el)) {
-      if (ceReplace(el, s[0], e[1], flag.sugg, true)) el.dispatchEvent(new Event('input', { bubbles: true }));
+      if (ceReplace(el, s0, e1, flag.sugg, true)) el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
-      var nt = t.slice(0, s[0]) + flag.sugg + t.slice(e[1]);
-      setText(el, nt, s[0] + flag.sugg.length);
+      var nt = t.slice(0, s0) + flag.sugg + t.slice(e1);
+      setText(el, nt, s0 + flag.sugg.length);
     }
     schedule(el);
   }
