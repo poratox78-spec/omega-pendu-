@@ -7,6 +7,7 @@ import json, re, os, sys, unicodedata
 HERE = os.path.dirname(__file__)
 sys.path.insert(0, HERE)
 import diag_sentence as D
+import build_dictee as B   # annotation CANONIQUE : le corpus stocké doit == build() (anti-dérive)
 
 FAMS = {'accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation','liaison'}
 def has_accent(s): return any(unicodedata.category(c) == 'Mn' for c in unicodedata.normalize('NFD', s))
@@ -34,6 +35,13 @@ for s in src:
     fp = D.diagnose_sentence(t, t, {k.lower(): v for k, v in s.get('fam', {}).items()})
     if fp:
         errs.append(f"FAUX POSITIF sur la bonne réponse ({[f.get('types') for f in fp]}) : {t}")
+    # ANNOTATION CANONIQUE : traps/fam DOIVENT être exactement la sortie de build_dictee.build (pas de dérive
+    # manuelle ni de version périmée). Régénérer via build() si ça casse (les phrases s'annotent, ne se bricolent pas).
+    canon = B.build(s.get('text', ''), s.get('d', ''))
+    if canon['traps'] != s.get('traps'):
+        errs.append(f"traps NON CANONIQUES (build={canon['traps']} ≠ stocké={s.get('traps')}) : {t}")
+    if canon['fam'] != s.get('fam'):
+        errs.append(f"fam NON CANONIQUE (build ≠ stocké) : {t}")
 
 if errs:
     print("✗ GARDE DICTÉE : %d problème(s)" % len(errs))
