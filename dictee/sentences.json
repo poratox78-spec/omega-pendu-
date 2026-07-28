@@ -74,6 +74,7 @@
 "traps": [
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -132,6 +133,7 @@
 "traps": [
 "accord",
 "homophone",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -382,6 +384,7 @@
 "traps": [
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -418,6 +421,7 @@
 "accent",
 "accord",
 "homophone",
+"liaison",
 "muette"
 ]
 },
@@ -659,6 +663,7 @@
 "accent",
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -740,6 +745,7 @@
 "traps": [
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -791,6 +797,7 @@
 "accent",
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -1007,6 +1014,7 @@
 "accent",
 "accord",
 "homophone",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -1563,6 +1571,7 @@
 "accent",
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -1670,6 +1679,7 @@
 "accent",
 "accord",
 "homophone",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -1823,6 +1833,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -2094,6 +2105,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -2302,6 +2314,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -2401,6 +2414,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -2451,6 +2465,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -2553,6 +2568,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -3296,6 +3312,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -3446,6 +3463,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -3615,6 +3633,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -3844,6 +3863,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4063,6 +4083,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4105,6 +4126,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4163,6 +4185,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4243,6 +4266,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4408,6 +4432,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4623,6 +4648,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4782,6 +4808,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4945,6 +4972,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -4994,6 +5022,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -5150,6 +5179,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -5195,6 +5225,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -5298,6 +5329,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -5391,6 +5423,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -5460,6 +5493,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -5555,6 +5589,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -5745,6 +5780,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -5941,6 +5977,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -6074,6 +6111,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -6351,6 +6389,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -6445,6 +6484,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -6584,6 +6624,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -6672,6 +6713,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -6993,6 +7035,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7129,6 +7172,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7167,6 +7211,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7216,6 +7261,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7297,6 +7343,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -7392,6 +7439,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7472,6 +7520,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7565,6 +7614,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7599,6 +7649,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7667,6 +7718,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7740,6 +7792,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -7895,6 +7948,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -8575,6 +8629,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -8678,6 +8733,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -8926,6 +8982,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -9002,6 +9059,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9164,6 +9222,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9344,6 +9403,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9528,6 +9588,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9640,6 +9701,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9722,6 +9784,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -9796,6 +9859,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9832,6 +9896,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -9998,6 +10063,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -10198,6 +10264,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -10762,6 +10829,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11367,6 +11435,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11455,6 +11524,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11660,6 +11730,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11756,6 +11827,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11789,6 +11861,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11817,6 +11890,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -11855,6 +11929,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -12174,6 +12249,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "voisee_sourde"
 ]
@@ -12726,6 +12802,7 @@
 "ajout",
 "homophone",
 "inversion",
+"liaison",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -13045,6 +13122,618 @@
 "inversion",
 "muette",
 "segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Les enfants aiment les animaux.",
+"d": "facile",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"enfants": [
+"enfans",
+"enfant"
+],
+"aiment": [
+"aime",
+"aimes",
+"emme",
+"emmes",
+"hem",
+"hème"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Nous avons deux amis.",
+"d": "facile",
+"fam": {
+"Nous": [
+"noue",
+"nouent",
+"noues"
+],
+"avons": [
+"havons"
+],
+"amis": [
+"ami",
+"amie",
+"amies",
+"ammi"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Vous avez un grand ami.",
+"d": "facile",
+"fam": {
+"Vous": [
+"voue",
+"vouent",
+"voues"
+],
+"avez": [
+"ave",
+"avé",
+"havai",
+"haver",
+"havez"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun",
+"huns",
+"uns"
+],
+"grand": [
+"grand'",
+"grands"
+],
+"ami": [
+"amie",
+"amies",
+"amis",
+"ammi"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Mes amis sont ici.",
+"d": "facile",
+"fam": {
+"Mes": [
+"maye",
+"mée"
+],
+"amis": [
+"ami",
+"amie",
+"amies",
+"ammi"
+],
+"sont": [
+"son",
+"sons"
+],
+"ici": [
+"içi"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les hommes sont arrivés.",
+"d": "facile",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"hommes": [
+"hom",
+"homme"
+],
+"sont": [
+"son",
+"sons"
+],
+"arrivés": [
+"arriver",
+"arrivez",
+"arrivè",
+"arrivé",
+"arrivée",
+"arrivées"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "On entend les avions.",
+"d": "facile",
+"fam": {
+"On": [
+"hon",
+"ont"
+],
+"entend": [
+"antan",
+"antant",
+"entant",
+"entends",
+"hantant"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"avions": [
+"avion"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les élèves ont un examen.",
+"d": "facile",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"élèves": [
+"élève",
+"élèvent"
+],
+"ont": [
+"hon",
+"on"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun",
+"huns",
+"uns"
+],
+"examen": [
+"examens"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Ils ont un petit ours.",
+"d": "facile",
+"fam": {
+"Ils": [
+"hile",
+"il",
+"ile",
+"iles",
+"île",
+"îles"
+],
+"ont": [
+"hon",
+"on"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun",
+"huns",
+"uns"
+],
+"petit": [
+"petits"
+],
+"ours": [
+"ourse",
+"ourses"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les oiseaux ont un nid.",
+"d": "facile",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"oiseaux": [
+"oiseau"
+],
+"ont": [
+"hon",
+"on"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun",
+"huns",
+"uns"
+],
+"nid": [
+"ni",
+"nids",
+"nie",
+"nient",
+"nies"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Tu as deux enfants.",
+"d": "facile",
+"fam": {
+"Tu": [
+"tue",
+"tuent",
+"tues",
+"tus",
+"tut",
+"tût"
+],
+"as": [
+"a",
+"ah",
+"asse",
+"asses",
+"ha",
+"hâ",
+"à"
+],
+"enfants": [
+"enfans",
+"enfant"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les anciens amis se retrouvent souvent.",
+"d": "moyen",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"anciens": [
+"ancien"
+],
+"amis": [
+"ami",
+"amie",
+"amies",
+"ammi"
+],
+"retrouvent": [
+"retrouve",
+"retrouves"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les grands arbres abritent les oiseaux.",
+"d": "moyen",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"grands": [
+"grand",
+"grand'"
+],
+"arbres": [
+"arbre"
+],
+"abritent": [
+"abrite",
+"abrites"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"oiseaux": [
+"oiseau"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Vous avez toujours un bon avis.",
+"d": "moyen",
+"fam": {
+"Vous": [
+"voue",
+"vouent",
+"voues"
+],
+"avez": [
+"ave",
+"avé",
+"havai",
+"haver",
+"havez"
+],
+"un": [
+"ain",
+"ein",
+"eins",
+"hain",
+"hein",
+"hun",
+"huns",
+"uns"
+],
+"bon": [
+"bond",
+"bonds",
+"bons"
+],
+"avis": [
+"avi",
+"avie",
+"avient",
+"avit"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Les petits enfants adorent les histoires.",
+"d": "moyen",
+"fam": {
+"Les": [
+"lez",
+"lé",
+"lés"
+],
+"petits": [
+"petit"
+],
+"enfants": [
+"enfans",
+"enfant"
+],
+"adorent": [
+"adore",
+"adores"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"histoires": [
+"histoire"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "On aperçoit les immenses avions.",
+"d": "moyen",
+"fam": {
+"On": [
+"hon",
+"ont"
+],
+"aperçoit": [
+"aperçois"
+],
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"immenses": [
+"immense"
+],
+"avions": [
+"avion"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
+"voisee_sourde"
+]
+},
+{
+"text": "Nous avons visité deux anciens châteaux.",
+"d": "moyen",
+"fam": {
+"Nous": [
+"noue",
+"nouent",
+"noues"
+],
+"avons": [
+"havons"
+],
+"visité": [
+"visiter",
+"visitez",
+"visitée",
+"visitées",
+"visités"
+],
+"anciens": [
+"ancien"
+],
+"châteaux": [
+"château"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"liaison",
+"muette",
 "voisee_sourde"
 ]
 }
