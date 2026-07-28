@@ -23,7 +23,9 @@
 "sures",
 "surs",
 "sûr",
-"sûre"
+"sûre",
+"sûres",
+"sûrs"
 ],
 "lit": [
 "li",
@@ -31,12 +33,15 @@
 "lient",
 "lies",
 "lis",
-"lits"
+"lits",
+"lée"
 ]
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -45,7 +50,7 @@
 "text": "Les enfants jouent dans le jardin.",
 "d": "facile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -73,7 +78,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
@@ -83,7 +90,7 @@
 "text": "Elle boit de l'eau dans un verre.",
 "d": "facile",
 "fam": {
-"elle": [
+"Elle": [
 "aile",
 "ailes",
 "elles",
@@ -94,17 +101,6 @@
 "boit": [
 "bois",
 "boua"
-],
-"l": [
-"l'"
-],
-"eau": [
-"au",
-"aulx",
-"aux",
-"eaux",
-"haut",
-"hauts"
 ],
 "dans": [
 "dam",
@@ -119,7 +115,9 @@
 "eins",
 "hain",
 "hein",
-"hun"
+"hun",
+"huns",
+"uns"
 ],
 "verre": [
 "vair",
@@ -132,7 +130,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "segmentation",
@@ -155,7 +155,9 @@
 "courent",
 "coures",
 "courre",
-"courres"
+"courres",
+"cours",
+"courts"
 ],
 "vite": [
 "vites",
@@ -165,7 +167,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -174,7 +178,7 @@
 "text": "Papa lit une histoire le soir.",
 "d": "facile",
 "fam": {
-"papa": [
+"Papa": [
 "papas"
 ],
 "lit": [
@@ -183,7 +187,8 @@
 "lient",
 "lies",
 "lis",
-"lits"
+"lits",
+"lée"
 ],
 "une": [
 "hune",
@@ -200,15 +205,18 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
-"muette"
+"inversion",
+"muette",
+"voisee_sourde"
 ]
 },
 {
 "text": "Les fleurs rouges sont belles.",
 "d": "facile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -237,7 +245,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -246,7 +256,7 @@
 "text": "Il met ses chaussures et son manteau.",
 "d": "facile",
 "fam": {
-"il": [
+"Il": [
 "hile",
 "ile",
 "iles",
@@ -275,7 +285,8 @@
 "ait",
 "eh",
 "est",
-"hé"
+"hé",
+"é"
 ],
 "son": [
 "sons",
@@ -288,15 +299,18 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
-"muette"
+"inversion",
+"muette",
+"voisee_sourde"
 ]
 },
 {
 "text": "Nous mangeons une bonne soupe.",
 "d": "facile",
 "fam": {
-"nous": [
+"Nous": [
 "noue",
 "nouent",
 "noues"
@@ -316,7 +330,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -325,7 +341,7 @@
 "text": "La maîtresse écrit au tableau.",
 "d": "facile",
 "fam": {
-"la": [
+"La": [
 "las",
 "là"
 ],
@@ -346,7 +362,11 @@
 "eau",
 "eaux",
 "haut",
-"hauts"
+"hauts",
+"ho",
+"o",
+"oh",
+"ô"
 ],
 "tableau": [
 "tableaux"
@@ -355,7 +375,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -364,7 +386,7 @@
 "text": "Les oiseaux chantent le matin.",
 "d": "facile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -383,7 +405,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
@@ -393,7 +417,7 @@
 "text": "Les élèves répètent la leçon difficile.",
 "d": "moyen",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -420,9 +444,12 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
-"muette"
+"muette",
+"voisee_sourde"
 ]
 },
 {
@@ -454,7 +481,9 @@
 "eins",
 "hain",
 "hein",
-"hun"
+"hun",
+"huns",
+"uns"
 ],
 "trou": [
 "troue",
@@ -468,7 +497,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -477,7 +508,7 @@
 "text": "Elle porte une jolie robe verte.",
 "d": "moyen",
 "fam": {
-"elle": [
+"Elle": [
 "aile",
 "ailes",
 "elles",
@@ -510,7 +541,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -519,7 +552,7 @@
 "text": "Ils prennent leurs cahiers et leurs crayons.",
 "d": "moyen",
 "fam": {
-"ils": [
+"Ils": [
 "hile",
 "il",
 "ile",
@@ -550,7 +583,8 @@
 "ait",
 "eh",
 "est",
-"hé"
+"hé",
+"é"
 ],
 "crayons": [
 "crayon"
@@ -558,15 +592,18 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
-"muette"
+"inversion",
+"muette",
+"voisee_sourde"
 ]
 },
 {
 "text": "La fillette a cueilli des fraises mûres.",
 "d": "moyen",
 "fam": {
-"la": [
+"La": [
 "las",
 "là"
 ],
@@ -599,12 +636,16 @@
 "mures",
 "murs",
 "mûr",
-"mûre"
+"mûre",
+"mûrs"
 ]
 },
 "traps": [
+"accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -613,7 +654,7 @@
 "text": "Mon frère et ma sœur sont arrivés ensemble.",
 "d": "moyen",
 "fam": {
-"mon": [
+"Mon": [
 "mone",
 "mont",
 "monts"
@@ -627,21 +668,14 @@
 "ait",
 "eh",
 "est",
-"hé"
+"hé",
+"é"
 ],
 "ma": [
 "makimono",
 "mas",
 "mât",
 "mâts"
-],
-"s": [
-"aces",
-"aisse",
-"esse",
-"esses",
-"hesse",
-"ès"
 ],
 "sont": [
 "son",
@@ -662,7 +696,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
@@ -686,7 +722,8 @@
 "dus",
 "dut",
 "dû",
-"dûs"
+"dûs",
+"dût"
 ],
 "pain": [
 "pains",
@@ -702,7 +739,8 @@
 "ait",
 "eh",
 "est",
-"hé"
+"hé",
+"é"
 ],
 "des": [
 "dé",
@@ -713,8 +751,11 @@
 ]
 },
 "traps": [
+"accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -723,7 +764,7 @@
 "text": "Ces grandes maisons blanches sont anciennes.",
 "d": "moyen",
 "fam": {
-"ces": [
+"Ces": [
 "cé",
 "sers",
 "ses"
@@ -744,7 +785,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
@@ -754,7 +797,7 @@
 "text": "Nous avons trouvé un trésor près de la rivière.",
 "d": "moyen",
 "fam": {
-"nous": [
+"Nous": [
 "noue",
 "nouent",
 "noues"
@@ -776,7 +819,9 @@
 "eins",
 "hain",
 "hein",
-"hun"
+"hun",
+"huns",
+"uns"
 ],
 "trésor": [
 "trésors"
@@ -796,7 +841,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
@@ -806,7 +853,7 @@
 "text": "Les pompiers éteignent le feu rapidement.",
 "d": "moyen",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -828,7 +875,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -837,7 +886,7 @@
 "text": "Les chevaux galopent à travers les champs immenses.",
 "d": "difficile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -853,6 +902,11 @@
 "ha",
 "hâ"
 ],
+"les": [
+"lez",
+"lé",
+"lés"
+],
 "champs": [
 "champ",
 "chand",
@@ -864,8 +918,11 @@
 ]
 },
 "traps": [
+"accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -874,7 +931,7 @@
 "text": "Il faut que tu finisses tes devoirs avant de jouer.",
 "d": "difficile",
 "fam": {
-"il": [
+"Il": [
 "hile",
 "ile",
 "iles",
@@ -923,7 +980,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -932,7 +991,7 @@
 "text": "Les scientifiques étudient les phénomènes naturels étranges.",
 "d": "difficile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -943,6 +1002,11 @@
 "étudient": [
 "étudie",
 "étudies"
+],
+"les": [
+"lez",
+"lé",
+"lés"
 ],
 "phénomènes": [
 "phénomène"
@@ -959,15 +1023,18 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
-"muette"
+"inversion",
+"muette",
+"voisee_sourde"
 ]
 },
 {
 "text": "Quand les feuilles tombent, l'automne est arrivé.",
 "d": "difficile",
 "fam": {
-"quand": [
+"Quand": [
 "camp",
 "camps",
 "can",
@@ -987,19 +1054,17 @@
 "tombe",
 "tombes"
 ],
-"l": [
-"l'"
-],
-"automne": [
-"automnes"
-],
 "est": [
 "ai",
 "ais",
 "ait",
 "eh",
 "este",
-"estes"
+"estes",
+"ests",
+"et",
+"hé",
+"é"
 ],
 "arrivé": [
 "arriver",
@@ -1013,7 +1078,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "segmentation",
@@ -1024,7 +1091,7 @@
 "text": "Elle aurait préféré que nous restions plus longtemps.",
 "d": "difficile",
 "fam": {
-"elle": [
+"Elle": [
 "aile",
 "ailes",
 "elles",
@@ -1063,8 +1130,11 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
-"muette"
+"inversion",
+"muette",
+"voisee_sourde"
 ]
 },
 {
@@ -1095,7 +1165,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1104,7 +1176,7 @@
 "text": "Les bateaux quittent le port dès que la tempête se calme.",
 "d": "difficile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -1146,7 +1218,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1178,7 +1252,9 @@
 },
 "traps": [
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1187,7 +1263,7 @@
 "text": "Ces magnifiques tableaux furent peints il y a deux siècles.",
 "d": "difficile",
 "fam": {
-"ces": [
+"Ces": [
 "cé",
 "sers",
 "ses"
@@ -1239,7 +1315,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1276,8 +1354,11 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
-"muette"
+"inversion",
+"muette",
+"voisee_sourde"
 ]
 },
 {
@@ -1318,7 +1399,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1327,7 +1410,7 @@
 "text": "La fée préfère le café.",
 "d": "facile",
 "fam": {
-"la": [
+"La": [
 "las",
 "là"
 ],
@@ -1347,7 +1430,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1356,7 +1441,7 @@
 "text": "Papa a réparé le vélo.",
 "d": "facile",
 "fam": {
-"papa": [
+"Papa": [
 "papas"
 ],
 "a": [
@@ -1381,8 +1466,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
-"muette",
+"inversion",
 "voisee_sourde"
 ]
 },
@@ -1390,7 +1476,7 @@
 "text": "Mon frère achète des légumes au marché.",
 "d": "moyen",
 "fam": {
-"mon": [
+"Mon": [
 "mone",
 "mont",
 "monts"
@@ -1419,7 +1505,9 @@
 "haut",
 "hauts",
 "ho",
-"o"
+"o",
+"oh",
+"ô"
 ],
 "marché": [
 "marcher",
@@ -1434,7 +1522,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1483,7 +1573,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "segmentation",
 "voisee_sourde"
@@ -1519,7 +1611,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1528,7 +1622,7 @@
 "text": "Les élèves âgés préfèrent étudier tôt le matin.",
 "d": "difficile",
 "fam": {
-"les": [
+"Les": [
 "lez",
 "lé",
 "lés"
@@ -1570,7 +1664,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
@@ -1580,7 +1676,7 @@
 "text": "Après la tempête, le pêcheur récupéra son filet déchiré.",
 "d": "difficile",
 "fam": {
-"après": [
+"Après": [
 "apprêt",
 "apprêts"
 ],
@@ -1621,7 +1717,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "muette",
 "voisee_sourde"
 ]
@@ -1630,7 +1728,7 @@
 "text": "Cet écrivain célèbre a rédigé un récit passionnant.",
 "d": "difficile",
 "fam": {
-"cet": [
+"Cet": [
 "cette",
 "sept",
 "set",
@@ -1678,7 +1776,9 @@
 "traps": [
 "accent",
 "accord",
+"ajout",
 "homophone",
+"inversion",
 "liaison",
 "muette",
 "voisee_sourde"
