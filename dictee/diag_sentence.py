@@ -156,14 +156,16 @@ def diag_word(t,s,fam):
     if s.lower()==t.lower(): return []
     dt,ds=deacc(t.lower()),deacc(s.lower()); out=[]
     if dt==ds and s.lower()!=t.lower(): out.append('accent')
+    _seg=(re.sub(r"['’ \-]",'',dt)==re.sub(r"['’ \-]",'',ds)) and dt!=ds   # diffère SEULEMENT par apostrophe/espace/trait d'union = SEGMENTATION (l'hôpital↔lhopital, du coup↔ducoup) — MIROIR app diagWord l.22372, Bodard §18.5
+    if _seg: out.append('segmentation')
     if len(s)==len(t):
         d=[i for i in range(len(t)) if t[i].lower()!=s[i].lower()]
         if len(d)==1:
             a,b=t[d[0]].lower(),s[d[0]].lower()
             if VS.get(a)==b: out.append('voisee_sourde')
     if len(dt)==len(ds) and dt!=ds and sorted(dt)==sorted(ds): out.append('inversion')
-    if len(ds)<len(dt) and subseq(ds,dt): out.append('muette')
-    if len(ds)>len(dt) and subseq(dt,ds): out.append('ajout')
+    if not _seg and len(ds)<len(dt) and subseq(ds,dt): out.append('muette')   # !_seg : une apostrophe retirée n'est PAS une lettre muette (miroir app)
+    if not _seg and len(ds)>len(dt) and subseq(dt,ds): out.append('ajout')
     if s.lower() in (x.lower() for x in fam):
         out.append('accord' if is_accord(t,s) else ('homophone_gram' if _homo_gram(t,s) else 'homophone_lex'))   # grammatical (a/à, son/sont → morphosyntaxique) vs lexical (ver/vert → lexical)
     if not out: out.append('surface' if norm(t)==norm(s) else 'autre')

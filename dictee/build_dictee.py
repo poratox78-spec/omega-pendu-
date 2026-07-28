@@ -45,6 +45,7 @@ def cand_variants(w):
     if lw.endswith('e') and len(lw) > 3: c.append(lw[:-1])            # e muet final
     if len(lw) >= 3: c.append(lw[:2] + lw[1] + lw[2:])                # ajout (lettre doublée)
     if len(lw) >= 4: L = list(lw); L[1], L[2] = L[2], L[1]; c.append(''.join(L))   # inversion
+    if "'" in lw: c.append(lw.replace("'", ""))                       # élision fusionnée (l'ami->lami) = SEGMENTATION (diag_word _seg)
     return c
 
 SURFACE = ('accent', 'voisee_sourde', 'inversion', 'muette', 'ajout', 'homophone', 'accord')
@@ -69,7 +70,7 @@ def build(text, d):
                     traps.add(ty)
         for v in cand_variants(w):
             for ty in D.diag_word(w, v, f):
-                if ty in SURFACE: traps.add(ty)
+                if ty in SURFACE or ty == 'segmentation': traps.add(ty)   # segmentation = piège de découpage (élision), hors SURFACE
     return {'text': text, 'd': d, 'fam': fam, 'traps': sorted(traps)}
 
 if __name__ == '__main__':
