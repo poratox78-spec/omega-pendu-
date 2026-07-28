@@ -133,6 +133,7 @@
 "accord",
 "homophone",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -1007,6 +1008,7 @@
 "accord",
 "homophone",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -1475,6 +1477,7 @@
 "accord",
 "homophone",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -2599,6 +2602,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -2715,6 +2719,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -2848,6 +2853,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -2944,6 +2950,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -3122,6 +3129,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -3399,6 +3407,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -3754,6 +3763,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -4703,6 +4713,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -4863,6 +4874,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -5043,6 +5055,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -5097,6 +5110,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -5137,6 +5151,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -5181,6 +5196,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -5376,6 +5392,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -5729,6 +5746,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -6456,6 +6474,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -6921,6 +6940,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -7016,6 +7036,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -7061,6 +7082,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -7249,6 +7271,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -7275,6 +7298,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -7610,6 +7634,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -8376,6 +8401,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -8901,6 +8927,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -9459,6 +9486,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -9695,6 +9723,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -9844,6 +9873,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -10334,6 +10364,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -10599,6 +10630,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -11902,6 +11934,7 @@
 "homophone",
 "inversion",
 "muette",
+"segmentation",
 "voisee_sourde"
 ]
 },
@@ -12142,6 +12175,876 @@
 "homophone",
 "inversion",
 "muette",
+"voisee_sourde"
+]
+},
+{
+"text": "L'oiseau chante dans l'arbre.",
+"d": "facile",
+"fam": {
+"chante": [
+"chantent",
+"chantes"
+],
+"dans": [
+"dam",
+"dams",
+"dens",
+"dent",
+"dents"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "J'aime les fleurs du jardin.",
+"d": "facile",
+"fam": {
+"les": [
+"lez",
+"lé",
+"lés"
+],
+"fleurs": [
+"fleur",
+"fleure",
+"fleurent",
+"fleures"
+],
+"du": [
+"due",
+"dues",
+"dus",
+"dut",
+"dû",
+"dûs",
+"dût"
+],
+"jardin": [
+"jardins"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'enfant joue avec l'eau.",
+"d": "facile",
+"fam": {
+"joue": [
+"jouent",
+"joues",
+"joug",
+"jougs"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Aujourd'hui, il fait beau.",
+"d": "facile",
+"fam": {
+"il": [
+"hile",
+"ile",
+"iles",
+"ils",
+"île",
+"îles"
+],
+"fait": [
+"fais",
+"faits",
+"faix",
+"fay"
+],
+"beau": [
+"bau",
+"baud",
+"baux",
+"beaux",
+"bot",
+"bots"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'école ouvre à huit heures.",
+"d": "facile",
+"fam": {
+"ouvre": [
+"ouvrent",
+"ouvres"
+],
+"à": [
+"a",
+"ah",
+"as",
+"ha",
+"hâ"
+],
+"huit": [
+"huits"
+],
+"heures": [
+"h",
+"heur",
+"heure",
+"heurs",
+"heurt",
+"heurts"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Elle n'aime pas l'orage.",
+"d": "facile",
+"fam": {
+"Elle": [
+"aile",
+"ailes",
+"elles",
+"hèle",
+"hèlent",
+"hèles"
+],
+"pas": [
+"pa"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "C'est l'heure du dîner.",
+"d": "facile",
+"fam": {
+"du": [
+"due",
+"dues",
+"dus",
+"dut",
+"dû",
+"dûs",
+"dût"
+],
+"dîner": [
+"dinai",
+"diner",
+"diners",
+"dinez",
+"diné",
+"dinée",
+"dîners",
+"dînez",
+"dîné",
+"dînés"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'ami de Léa habite ici.",
+"d": "facile",
+"fam": {
+"habite": [
+"habitent",
+"habites"
+],
+"ici": [
+"içi"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "J'ai vu l'écureuil dans l'herbe.",
+"d": "facile",
+"fam": {
+"vu": [
+"vue",
+"vues",
+"vus"
+],
+"dans": [
+"dam",
+"dams",
+"dens",
+"dent",
+"dents"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'avion vole au-dessus des nuages.",
+"d": "facile",
+"fam": {
+"vole": [
+"vol",
+"volent",
+"voles",
+"vols"
+],
+"au": [
+"aulx",
+"aux",
+"eau",
+"eaux",
+"haut",
+"hauts",
+"ho",
+"o",
+"oh",
+"ô"
+],
+"des": [
+"dé",
+"dés"
+],
+"nuages": [
+"nuage"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'abeille butine près de l'étang.",
+"d": "facile",
+"fam": {
+"butine": [
+"butinent",
+"butines"
+],
+"près": [
+"prêt",
+"prêts"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "N'oublie pas d'arroser l'arbuste.",
+"d": "facile",
+"fam": {
+"pas": [
+"pa"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'infirmière s'occupe des malades avec douceur.",
+"d": "moyen",
+"fam": {
+"des": [
+"dé",
+"dés"
+],
+"malades": [
+"malade"
+],
+"douceur": [
+"douceurs"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Aujourd'hui, l'orchestre répète jusqu'au soir.",
+"d": "moyen",
+"fam": {
+"répète": [
+"répètent",
+"répètes"
+],
+"soir": [
+"soire",
+"soirs"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'artiste peint l'horizon d'une main sûre.",
+"d": "moyen",
+"fam": {
+"peint": [
+"pain",
+"pains",
+"peins",
+"peints",
+"pin",
+"pins"
+],
+"main": [
+"mains",
+"maint",
+"maints"
+],
+"sûre": [
+"sur",
+"sure",
+"surent",
+"sures",
+"surs",
+"sûr",
+"sûres",
+"sûrs"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Lorsqu'il pleut, l'escargot sort de sa coquille.",
+"d": "moyen",
+"fam": {
+"pleut": [
+"pleus"
+],
+"sort": [
+"saure",
+"sore",
+"sores",
+"sors",
+"sorts"
+],
+"sa": [
+"sas",
+"ça",
+"çà"
+],
+"coquille": [
+"coquilles"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'aventurier s'élance vers l'inconnu.",
+"d": "moyen",
+"fam": {
+"vers": [
+"vair",
+"ver",
+"verre",
+"verres",
+"vert",
+"verts"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Puisqu'il insiste, j'accepte l'invitation.",
+"d": "moyen",
+"fam": {
+"insiste": [
+"insistent",
+"insistes"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'histoire de cet homme m'a beaucoup ému.",
+"d": "moyen",
+"fam": {
+"cet": [
+"cette",
+"sept",
+"set",
+"sets",
+"sette"
+],
+"homme": [
+"hom",
+"hommes"
+],
+"beaucoup": [
+"bcp"
+],
+"ému": [
+"émue",
+"émues",
+"émus",
+"émut"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Quelqu'un a laissé l'imprimante allumée.",
+"d": "moyen",
+"fam": {
+"Quelqu'un": [
+"qqn"
+],
+"a": [
+"ah",
+"as",
+"ha",
+"hâ",
+"à"
+],
+"laissé": [
+"laisser",
+"laissée",
+"laissées",
+"laissés"
+],
+"allumée": [
+"allumer",
+"allumez",
+"allumé",
+"allumées",
+"allumés"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'automne arrive et l'hirondelle s'envole.",
+"d": "moyen",
+"fam": {
+"arrive": [
+"arrivent",
+"arrives"
+],
+"et": [
+"ai",
+"ais",
+"ait",
+"eh",
+"est",
+"hé",
+"é"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'ingénieur vérifie l'ensemble des câbles.",
+"d": "moyen",
+"fam": {
+"vérifie": [
+"vérifient",
+"vérifies"
+],
+"des": [
+"dé",
+"dés"
+],
+"câbles": [
+"câble",
+"câblent"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'orage a duré jusqu'à l'aube.",
+"d": "moyen",
+"fam": {
+"a": [
+"ah",
+"as",
+"ha",
+"hâ",
+"à"
+],
+"duré": [
+"durer",
+"durez",
+"durée",
+"durées",
+"durés"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "J'observe l'araignée qui tisse sa toile.",
+"d": "moyen",
+"fam": {
+"qui": [
+"chi",
+"khi",
+"quis",
+"quit"
+],
+"tisse": [
+"tissent",
+"tisses"
+],
+"sa": [
+"sas",
+"ça",
+"çà"
+],
+"toile": [
+"toiles"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Lorsqu'ils eurent fini, l'assemblée s'était dispersée.",
+"d": "difficile",
+"fam": {
+"eurent": [
+"hure",
+"hures",
+"ure",
+"ures"
+],
+"fini": [
+"finie",
+"finies",
+"finis",
+"finit",
+"finît"
+],
+"dispersée": [
+"disperser",
+"dispersez",
+"dispersé",
+"dispersées",
+"dispersés"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Bien qu'il fût tard, l'équipe poursuivit l'expérience.",
+"d": "difficile",
+"fam": {
+"Bien": [
+"biens"
+],
+"fût": [
+"fus",
+"fut",
+"futs",
+"fûts"
+],
+"tard": [
+"tare",
+"tares"
+],
+"poursuivit": [
+"poursuivi",
+"poursuivie",
+"poursuivies",
+"poursuivis",
+"poursuivît"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'orateur affirma qu'aucun d'entre eux n'abandonnerait.",
+"d": "difficile",
+"fam": {
+"eux": [
+"e",
+"euh",
+"heu",
+"oeufs"
+]
+},
+"traps": [
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Il semblait qu'aujourd'hui l'espoir renaissait enfin.",
+"d": "difficile",
+"fam": {
+"Il": [
+"hile",
+"ile",
+"iles",
+"ils",
+"île",
+"îles"
+],
+"semblait": [
+"semblaient",
+"semblais"
+],
+"renaissait": [
+"renaissaient",
+"renaissais"
+]
+},
+"traps": [
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "L'historienne expliqua qu'autrefois l'écriture s'apprenait ainsi.",
+"d": "difficile",
+"fam": {},
+"traps": [
+"accent",
+"ajout",
+"inversion",
+"muette",
+"segmentation",
+"voisee_sourde"
+]
+},
+{
+"text": "Jusqu'à l'horizon s'étendaient d'immenses champs d'oliviers.",
+"d": "difficile",
+"fam": {
+"champs": [
+"champ",
+"chand",
+"chant",
+"chants"
+]
+},
+"traps": [
+"accent",
+"accord",
+"ajout",
+"homophone",
+"inversion",
+"muette",
+"segmentation",
 "voisee_sourde"
 ]
 }
