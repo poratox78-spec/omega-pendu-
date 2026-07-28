@@ -50,6 +50,18 @@ def cand_variants(w):
 
 SURFACE = ('accent', 'voisee_sourde', 'inversion', 'muette', 'ajout', 'homophone', 'accord')
 
+# Mots (DÉACCENTUÉS) après lesquels une liaison est standard (déterminant/pronom/prép/adv/adj prénominal
+# à finale muette + verbe fréquent) : ne tague le piège LIAISON que sur de VRAIS sites de liaison, pas
+# n'importe quelle consonne+voyelle (sinon sur-tag comme ajout/inversion). La DÉTECTION (diag_sentence)
+# reste, elle, permissive (licence par la finale). Suivi d'un mot à voyelle initiale = piège possible.
+LIAISON_TRIG = {
+    'les','des','ces','mes','tes','ses','nos','vos','leurs','aux','un','deux','trois','six','dix',
+    'plusieurs','certains','quels','quelles','tout','tous','quelques','mon','ton','son','cet',
+    'nous','vous','ils','elles','on','en','dans','sans','sous','chez','tres','plus','trop','bien','moins','mieux',
+    'petit','petits','grand','grands','gros','bon','bons','mauvais','premier','dernier','ancien',
+    'est','sont','ont','vont','font',
+}
+
 def build(text, d):
     T = D.toks(text)
     fam = {}
@@ -71,6 +83,10 @@ def build(text, d):
         for v in cand_variants(w):
             for ty in D.diag_word(w, v, f):
                 if ty in SURFACE or ty == 'segmentation': traps.add(ty)   # segmentation = piège de découpage (élision), hors SURFACE
+    for i in range(len(T) - 1):                                           # LIAISON : mot déclencheur + mot suivant à voyelle initiale
+        if D.deacc(T[i].lower()) in LIAISON_TRIG:
+            dw2 = D.deacc(T[i+1].lower())
+            if dw2 and dw2[0] in 'aeiouyh': traps.add('liaison'); break
     return {'text': text, 'd': d, 'fam': fam, 'traps': sorted(traps)}
 
 if __name__ == '__main__':

@@ -10159,11 +10159,11 @@ window.addEventListener('DOMContentLoaded', () => {
    CORRECTEUR = erreurs en rédaction réelle (cerr → influence la priorité). Courbe de progrès = taux dans le temps
    (log chunké en buckets). Mesurable : taux RÉCENT < taux GLOBAL = progrès. App-only (localStorage ≠ extension). */
 (function(){
-  var KEY='dys_profile_v3', FAMS=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation'];
+  var KEY='dys_profile_v3', FAMS=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation','liaison'];
   // AMORCE À FROID = fréquences des erreurs dys RÉELLES (Bodard 2020, RÉCITAL, sur corpus dys FR ; cf. rapport §18.5).
-  // Phonétisation ≈43 % (accent/muette/voisée-sourde), accord/conjugaison ≈27 %, homophone ≈11 %, segmentation ≈6 %,
-  // caractère (inversion/ajout/surface) = 0.09 codé (2+3+4 %) ; PRIOR somme 0.96 (pas 1, volontaire). Guide la remédiation AVANT données perso ; seuils 0.03/0.25/0.5/0.04/0.55/±8 = choix éditoriaux NON mesurés (audit 07/2026), calibration au JOURNAL si un jour mesurée.
-  var PRIOR={accent:.15,muette:.15,voisee_sourde:.13,accord:.27,homophone:.11,segmentation:.06,inversion:.02,ajout:.03,surface:.04};
+  // Phonétisation ≈43 % (accent/muette/voisée-sourde), accord/conjugaison ≈27 %, homophone ≈11 %, segmentation ≈6 %, liaison ≈2 % (les zamis),
+  // caractère (inversion/ajout/surface) = 0.09 codé (2+3+4 %) ; PRIOR somme ~0.98 (pas 1, volontaire). Guide la remédiation AVANT données perso ; seuils 0.03/0.25/0.5/0.04/0.55/±8 = choix éditoriaux NON mesurés (audit 07/2026), calibration au JOURNAL si un jour mesurée.
+  var PRIOR={accent:.15,muette:.15,voisee_sourde:.13,accord:.27,homophone:.11,segmentation:.06,inversion:.02,ajout:.03,surface:.04,liaison:.02};
   var P; try{P=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){P=null;}
   if(!P||typeof P!=='object'||!P.fam){P={fam:{},log:[]};} if(!P.log)P.log=[];
   function fx(k){return P.fam[k]||(P.fam[k]={att:0,err:0,cerr:0});}
@@ -10276,6 +10276,7 @@ window.addEventListener('DOMContentLoaded', () => {
   "traps": [
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -10334,6 +10335,7 @@ window.addEventListener('DOMContentLoaded', () => {
   "traps": [
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -10584,6 +10586,7 @@ window.addEventListener('DOMContentLoaded', () => {
   "traps": [
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -10620,6 +10623,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "homophone",
+   "liaison",
    "muette"
   ]
  },
@@ -10861,6 +10865,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -10942,6 +10947,7 @@ window.addEventListener('DOMContentLoaded', () => {
   "traps": [
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -10993,6 +10999,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -11209,6 +11216,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -11765,6 +11773,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -11872,6 +11881,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "homophone",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -12025,6 +12035,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -12296,6 +12307,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -12504,6 +12516,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -12603,6 +12616,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -12653,6 +12667,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -12755,6 +12770,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -13498,6 +13514,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -13648,6 +13665,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -13817,6 +13835,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14046,6 +14065,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14265,6 +14285,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14307,6 +14328,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14365,6 +14387,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14445,6 +14468,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14610,6 +14634,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14825,6 +14850,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -14984,6 +15010,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -15147,6 +15174,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -15196,6 +15224,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -15352,6 +15381,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -15397,6 +15427,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -15500,6 +15531,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -15593,6 +15625,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -15662,6 +15695,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -15757,6 +15791,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -15947,6 +15982,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -16143,6 +16179,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -16276,6 +16313,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -16553,6 +16591,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -16647,6 +16686,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -16786,6 +16826,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -16874,6 +16915,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17195,6 +17237,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17331,6 +17374,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17369,6 +17413,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17418,6 +17463,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17499,6 +17545,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -17594,6 +17641,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17674,6 +17722,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17767,6 +17816,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17801,6 +17851,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17869,6 +17920,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -17942,6 +17994,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -18097,6 +18150,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -18777,6 +18831,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -18880,6 +18935,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -19128,6 +19184,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -19204,6 +19261,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -19366,6 +19424,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -19546,6 +19605,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -19730,6 +19790,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -19842,6 +19903,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -19924,6 +19986,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -19998,6 +20061,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -20034,6 +20098,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -20200,6 +20265,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -20400,6 +20466,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -20964,6 +21031,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -21569,6 +21637,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -21657,6 +21726,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -21862,6 +21932,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -21958,6 +22029,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -21991,6 +22063,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -22019,6 +22092,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -22057,6 +22131,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -22376,6 +22451,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "voisee_sourde"
   ]
@@ -22928,6 +23004,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "ajout",
    "homophone",
    "inversion",
+   "liaison",
    "muette",
    "segmentation",
    "voisee_sourde"
@@ -23249,6 +23326,618 @@ window.addEventListener('DOMContentLoaded', () => {
    "segmentation",
    "voisee_sourde"
   ]
+ },
+ {
+  "text": "Les enfants aiment les animaux.",
+  "d": "facile",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "enfants": [
+    "enfans",
+    "enfant"
+   ],
+   "aiment": [
+    "aime",
+    "aimes",
+    "emme",
+    "emmes",
+    "hem",
+    "hème"
+   ],
+   "les": [
+    "lez",
+    "lé",
+    "lés"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Nous avons deux amis.",
+  "d": "facile",
+  "fam": {
+   "Nous": [
+    "noue",
+    "nouent",
+    "noues"
+   ],
+   "avons": [
+    "havons"
+   ],
+   "amis": [
+    "ami",
+    "amie",
+    "amies",
+    "ammi"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Vous avez un grand ami.",
+  "d": "facile",
+  "fam": {
+   "Vous": [
+    "voue",
+    "vouent",
+    "voues"
+   ],
+   "avez": [
+    "ave",
+    "avé",
+    "havai",
+    "haver",
+    "havez"
+   ],
+   "un": [
+    "ain",
+    "ein",
+    "eins",
+    "hain",
+    "hein",
+    "hun",
+    "huns",
+    "uns"
+   ],
+   "grand": [
+    "grand'",
+    "grands"
+   ],
+   "ami": [
+    "amie",
+    "amies",
+    "amis",
+    "ammi"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Mes amis sont ici.",
+  "d": "facile",
+  "fam": {
+   "Mes": [
+    "maye",
+    "mée"
+   ],
+   "amis": [
+    "ami",
+    "amie",
+    "amies",
+    "ammi"
+   ],
+   "sont": [
+    "son",
+    "sons"
+   ],
+   "ici": [
+    "içi"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Les hommes sont arrivés.",
+  "d": "facile",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "hommes": [
+    "hom",
+    "homme"
+   ],
+   "sont": [
+    "son",
+    "sons"
+   ],
+   "arrivés": [
+    "arriver",
+    "arrivez",
+    "arrivè",
+    "arrivé",
+    "arrivée",
+    "arrivées"
+   ]
+  },
+  "traps": [
+   "accent",
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "On entend les avions.",
+  "d": "facile",
+  "fam": {
+   "On": [
+    "hon",
+    "ont"
+   ],
+   "entend": [
+    "antan",
+    "antant",
+    "entant",
+    "entends",
+    "hantant"
+   ],
+   "les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "avions": [
+    "avion"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Les élèves ont un examen.",
+  "d": "facile",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "élèves": [
+    "élève",
+    "élèvent"
+   ],
+   "ont": [
+    "hon",
+    "on"
+   ],
+   "un": [
+    "ain",
+    "ein",
+    "eins",
+    "hain",
+    "hein",
+    "hun",
+    "huns",
+    "uns"
+   ],
+   "examen": [
+    "examens"
+   ]
+  },
+  "traps": [
+   "accent",
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Ils ont un petit ours.",
+  "d": "facile",
+  "fam": {
+   "Ils": [
+    "hile",
+    "il",
+    "ile",
+    "iles",
+    "île",
+    "îles"
+   ],
+   "ont": [
+    "hon",
+    "on"
+   ],
+   "un": [
+    "ain",
+    "ein",
+    "eins",
+    "hain",
+    "hein",
+    "hun",
+    "huns",
+    "uns"
+   ],
+   "petit": [
+    "petits"
+   ],
+   "ours": [
+    "ourse",
+    "ourses"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Les oiseaux ont un nid.",
+  "d": "facile",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "oiseaux": [
+    "oiseau"
+   ],
+   "ont": [
+    "hon",
+    "on"
+   ],
+   "un": [
+    "ain",
+    "ein",
+    "eins",
+    "hain",
+    "hein",
+    "hun",
+    "huns",
+    "uns"
+   ],
+   "nid": [
+    "ni",
+    "nids",
+    "nie",
+    "nient",
+    "nies"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Tu as deux enfants.",
+  "d": "facile",
+  "fam": {
+   "Tu": [
+    "tue",
+    "tuent",
+    "tues",
+    "tus",
+    "tut",
+    "tût"
+   ],
+   "as": [
+    "a",
+    "ah",
+    "asse",
+    "asses",
+    "ha",
+    "hâ",
+    "à"
+   ],
+   "enfants": [
+    "enfans",
+    "enfant"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Les anciens amis se retrouvent souvent.",
+  "d": "moyen",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "anciens": [
+    "ancien"
+   ],
+   "amis": [
+    "ami",
+    "amie",
+    "amies",
+    "ammi"
+   ],
+   "retrouvent": [
+    "retrouve",
+    "retrouves"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Les grands arbres abritent les oiseaux.",
+  "d": "moyen",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "grands": [
+    "grand",
+    "grand'"
+   ],
+   "arbres": [
+    "arbre"
+   ],
+   "abritent": [
+    "abrite",
+    "abrites"
+   ],
+   "les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "oiseaux": [
+    "oiseau"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Vous avez toujours un bon avis.",
+  "d": "moyen",
+  "fam": {
+   "Vous": [
+    "voue",
+    "vouent",
+    "voues"
+   ],
+   "avez": [
+    "ave",
+    "avé",
+    "havai",
+    "haver",
+    "havez"
+   ],
+   "un": [
+    "ain",
+    "ein",
+    "eins",
+    "hain",
+    "hein",
+    "hun",
+    "huns",
+    "uns"
+   ],
+   "bon": [
+    "bond",
+    "bonds",
+    "bons"
+   ],
+   "avis": [
+    "avi",
+    "avie",
+    "avient",
+    "avit"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Les petits enfants adorent les histoires.",
+  "d": "moyen",
+  "fam": {
+   "Les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "petits": [
+    "petit"
+   ],
+   "enfants": [
+    "enfans",
+    "enfant"
+   ],
+   "adorent": [
+    "adore",
+    "adores"
+   ],
+   "les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "histoires": [
+    "histoire"
+   ]
+  },
+  "traps": [
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "On aperçoit les immenses avions.",
+  "d": "moyen",
+  "fam": {
+   "On": [
+    "hon",
+    "ont"
+   ],
+   "aperçoit": [
+    "aperçois"
+   ],
+   "les": [
+    "lez",
+    "lé",
+    "lés"
+   ],
+   "immenses": [
+    "immense"
+   ],
+   "avions": [
+    "avion"
+   ]
+  },
+  "traps": [
+   "accent",
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
+ },
+ {
+  "text": "Nous avons visité deux anciens châteaux.",
+  "d": "moyen",
+  "fam": {
+   "Nous": [
+    "noue",
+    "nouent",
+    "noues"
+   ],
+   "avons": [
+    "havons"
+   ],
+   "visité": [
+    "visiter",
+    "visitez",
+    "visitée",
+    "visitées",
+    "visités"
+   ],
+   "anciens": [
+    "ancien"
+   ],
+   "châteaux": [
+    "château"
+   ]
+  },
+  "traps": [
+   "accent",
+   "accord",
+   "ajout",
+   "homophone",
+   "inversion",
+   "liaison",
+   "muette",
+   "voisee_sourde"
+  ]
  }
 ];
   var VS={b:'p',p:'b',d:'t',t:'d',g:'k',k:'g',v:'f',f:'v',z:'s',s:'z'};
@@ -23319,7 +24008,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
   function accordType(t,s,verb){if(verb)return'verbal';var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;var suf=a.slice(p)+b.slice(p);if(suf.indexOf('s')>=0||suf.indexOf('x')>=0)return'nombre';if(suf.slice(-2)==='nt'||suf.indexOf('t')>=0)return'verbal';if(suf.indexOf('e')>=0)return'genre';return'flexion';}
   function nb(x){return x==='pl'?'pluriel':'singulier';}
-  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique) ; homophone LEXICAL (ver/vert) = lexical ; homophone GRAMMATICAL (a/à, son/sont) = morphosyntaxique ; 'homophone' nu = repli lexical
+  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',liaison:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique) ; homophone LEXICAL (ver/vert) = lexical ; homophone GRAMMATICAL (a/à, son/sont) = morphosyntaxique ; 'homophone' nu = repli lexical
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
   var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones LEXICAUX (ver/vert/verre).',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal ET homophones grammaticaux (a/à, son/sont) — le palier le plus tardif.'};
@@ -23340,6 +24029,7 @@ window.addEventListener('DOMContentLoaded', () => {
     homophone:'Homophones grammaticaux : REMPLACE par une forme sûre (a→avait, et→et puis, son→mon/ton). Si la phrase tient, c’est la bonne forme.',
     accord:'Accord : repère QUI COMMANDE (le sujet, le déterminant) et accorde en genre/nombre (les chats → jouENT ; la voiture → bleuE).',
     segmentation:'Découpage : un mot à voyelle « colle » à l’article/pronom élidé → sépare avec l’apostrophe (lhopital → l’hôpital, dargen → d’argent, cetait → c’était). Et « ducou » = deux mots (du coup).',
+    liaison:'Liaison : le son que tu entends ENTRE deux mots (les‿z‿amis, un‿n‿ami, petit‿t‿ami) appartient au PREMIER mot, il ne s’écrit PAS sur le second → écris « les amis », pas « les zamis ». Coupe bien : « les » puis « amis ».',
     majuscule:'Majuscule : une phrase commence TOUJOURS par une majuscule (et les noms propres aussi). Repère le début (après un point) et mets la capitale.'
   };
   // familles présentes AU stade développemental visé (le maillon à travailler en priorité) → conseils dédupliqués
@@ -23347,6 +24037,14 @@ window.addEventListener('DOMContentLoaded', () => {
   function remedBlock(F,cls){var r=remedFams(F);if(!r)return '';var tips=r.fams.map(function(t){return REMED[t];}).filter(Boolean);if(!tips.length)return '';
     return '<div class="'+cls+' vdc-lite" style="border-left:5px solid #b8860b;background:#fdf6e3;margin-top:4px;padding:6px 8px"><b>🛠️ Remédiation ciblée</b><br><span style="font-size:.92em">'+tips.join('<br>')+'</span></div>';}
   function esc(x){return String(x).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+  var LIAISON_LIC={z:'sxz',t:'dt',n:'n',r:'r',p:'p'};   // consonne de liaison AUDIBLE -> finales du mot précédent qui la licencient
+  function isLiaison(prev,t,s){   // consonne de liaison écrite en tête du mot suivant (les amis->les zamis) — MIROIR Python is_liaison
+    if(!prev)return false;
+    var dt=deacc(t.toLowerCase()),ds=deacc(s.toLowerCase());
+    if(ds.length!==dt.length+1||ds.slice(1)!==dt||!dt||'aeiouyh'.indexOf(dt[0])<0)return false;
+    var pd=deacc(prev.toLowerCase());
+    return !!LIAISON_LIC[ds[0]]&&!!pd&&LIAISON_LIC[ds[0]].indexOf(pd[pd.length-1])>=0;
+  }
   function diagnoseSentence(cible,eleve,fam){var T=toks(cible),S=toks(eleve),F=[],ti=-1;
     align(T,S).forEach(function(op){var k=op[0],t=op[1],s=op[2];
       if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+esc(s)+' ».'});return;}
@@ -23354,6 +24052,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
       if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+esc(t)+' ».'});return;}
       var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
+      if(idx>=1&&isLiaison(T[idx-1],t,s))ty=['liaison'];   // consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
       var fact={types:ty,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
       if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
         if(isParticiple(T,idx)){var aux=findAux(T,idx);
@@ -23375,8 +24074,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // (majuscule mot-1 désormais gérée par le contrôle de casse général dans la boucle align — couvre aussi les noms propres en milieu de phrase) // MAJUSCULE INITIALE : mot 1 correct mais en minuscule → l'align l'a matché (insensible casse) ; on le signale (sinon « ✓ correcte » alors que la majuscule manque)
     return F;
   }
-  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',homophone_gram:'#b23b3b',homophone_lex:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',majuscule:'#b8860b',autre:'#777'};
-  var LBL={accord:'accord',homophone:'homophone',homophone_gram:'homophone grammatical',homophone_lex:'homophone lexical',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (apostrophe/espace)',majuscule:'majuscule initiale',autre:'à vérifier'};
+  var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',homophone_gram:'#b23b3b',homophone_lex:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',liaison:'#0f7a6a',majuscule:'#b8860b',autre:'#777'};
+  var LBL={accord:'accord',homophone:'homophone',homophone_gram:'homophone grammatical',homophone_lex:'homophone lexical',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (apostrophe/espace)',liaison:'liaison (les zamis)',majuscule:'majuscule initiale',autre:'à vérifier'};
   var st=document.createElement('style');
   st.textContent='#vdd-btn{position:fixed;right:14px;bottom:14px;z-index:100000;font:15px sans-serif;padding:10px 14px;border:none;border-radius:24px;background:#2a6f97;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3)}'
    +'#vdd-ov{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}#vdd-ov.on{display:flex}'
@@ -25215,7 +25914,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var tin=_navHiliteIn($('vdc-in'),ky),tres=_navHiliteIn($('vdc-result'),ky);   // surligne la faute courante DANS LA SAISIE (là où l'œil est) ET dans le corrigé — sinon « ◂▸ » semblait ne rien faire
     var tgt=tin||tres;if(tgt)tgt.scrollIntoView({block:'center',behavior:'smooth'});}
   // ===== PISTE A : carte d'action au clic sur un mot du CORRIGE. La saisie du haut reste 100% editable.
-  var _VFAM={accent:'Accent',segmentation:'Découpage',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition',typo:'Typographie',nombre:'Nombre',anglicisme:'Anglicisme',abreviation:'Abréviation',pleonasme:'Redondance'};
+  var _VFAM={accent:'Accent',segmentation:'Découpage',liaison:'Liaison',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition',typo:'Typographie',nombre:'Nombre',anglicisme:'Anglicisme',abreviation:'Abréviation',pleonasme:'Redondance'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
   var _EXPL={
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",

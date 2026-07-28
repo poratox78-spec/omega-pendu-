@@ -8,7 +8,7 @@ HERE = os.path.dirname(__file__)
 sys.path.insert(0, HERE)
 import diag_sentence as D
 
-FAMS = {'accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation'}
+FAMS = {'accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','segmentation','liaison'}
 def has_accent(s): return any(unicodedata.category(c) == 'Mn' for c in unicodedata.normalize('NFD', s))
 
 errs = []

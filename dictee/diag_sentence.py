@@ -151,6 +151,19 @@ _GRAM_HOMO = {
 def _homo_gram(t,s):
     return deacc(t.lower()) in _GRAM_HOMO or deacc(s.lower()) in _GRAM_HOMO
 
+_LIAISON_LIC = {'z': 'sxz', 't': 'dt', 'n': 'n', 'r': 'r', 'p': 'p'}   # consonne de liaison AUDIBLE -> finales du mot précédent qui la licencient (s/x/z->z, d/t->t...)
+_LIAISON_VOW = set('aeiouyh')
+def is_liaison(prev, t, s):
+    """Faute de LIAISON : la consonne de liaison audible est écrite en tête du mot suivant
+    (les amis->les zamis, petit ami->petit tami, nous avons->nous zavons). `prev` = mot CIBLE
+    précédent (sa finale muette licencie la liaison). Réf de dictée connue -> 0 FP.
+    MIROIR app isLiaison."""
+    if not prev: return False
+    dt, ds = deacc(t.lower()), deacc(s.lower())
+    if len(ds) != len(dt) + 1 or ds[1:] != dt or not dt or dt[0] not in _LIAISON_VOW: return False
+    pd = deacc(prev.lower())
+    return ds[0] in _LIAISON_LIC and bool(pd) and pd[-1] in _LIAISON_LIC[ds[0]]
+
 def diag_word(t,s,fam):
     """t=cible, s=élève (mots). fam=liste homophones de t. -> liste de types."""
     if s.lower()==t.lower(): return []
@@ -206,6 +219,7 @@ def diagnose_sentence(cible, eleve, fam):
         if op=='del':
             facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
+        if ti>=1 and is_liaison(T[ti-1],t,s): types=['liaison']   # consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
         fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
         if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte)
             if is_participle(T,ti):                            # (1) PARTICIPE PASSÉ
@@ -257,7 +271,7 @@ def diagnose_sentence(cible, eleve, fam):
 # (phonologique / lexicale-surface / morphosyntaxique). Chaque famille révèle le PALIER non maîtrisé.
 STAGE_OF = {
     'phonologique':    ['voisee_sourde','inversion','ajout'], # le SON mal perçu/segmenté (conscience phonémique)
-    'alphabetique':    ['surface','accent'],                  # écrit "comme ça sonne", pas l'ortho conventionnelle
+    'alphabetique':    ['surface','accent','segmentation','liaison'],   # écrit "comme ça sonne" / mauvais découpage : graphies, accents, apostrophe (l'ami), liaison (les zamis)
     'lexical':         ['muette','homophone_lex','homophone'],# orthographe du MOT : lettres muettes, homophone LEXICAL (ver/vert) ; 'homophone' nu = repli lexical
     'morphosyntaxique':['accord','homophone_gram'],           # GRAMMAIRE : accords ET homophones GRAMMATICAUX (a/à, son/sont) — apex, sans indice sonore
 }
