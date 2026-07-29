@@ -177,6 +177,49 @@
     copyBtn.classList.add('ok'); copyBtn.textContent = '✓ Copié'; setTimeout(function () { copyBtn.classList.remove('ok'); copyBtn.textContent = '📋 Copier'; }, 1400);
   };
 
+  // ---- SAISIE VOCALE (opt-in, VOIE A : Web Speech du navigateur = service cloud, ex. Google) --------------------
+  // Le correcteur reste 100 % hors-ligne ; SEULE la transcription vocale sort (audio → service du navigateur).
+  // Consentement explicite (case à cocher persistée) AVANT tout accès micro ; le texte transcrit tombe dans la
+  // textarea → correction + « Copier » déjà en place. UI-only : aucun impact sur le moteur ni la parité 3 moteurs.
+  var micBtn = document.getElementById('omdys-mic'), voiceCb = document.getElementById('omdys-voice-ok');
+  var SR = self.SpeechRecognition || self.webkitSpeechRecognition;
+  var rec = null, recording = false;
+  function voiceStatus(m) { stEl.textContent = m; }
+  function setVoiceEnabled(on) { micBtn.disabled = !(on && SR); if (!on && recording) stopRec(); }
+  if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
+  try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; setVoiceEnabled(on); }); } catch (e) {}
+  voiceCb.addEventListener('change', function () {
+    try { chrome.storage.local.set({ omVoice: voiceCb.checked }); } catch (e) {}
+    setVoiceEnabled(voiceCb.checked);
+    // pré-demande la permission micro à l'activation → l'invite du navigateur s'affiche de façon fiable (MV3)
+    if (voiceCb.checked && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) { st.getTracks().forEach(function (t) { t.stop(); }); }).catch(function () {});
+  });
+  function stopRec() { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} }
+  function startRec() {
+    if (!SR || !voiceCb.checked) return;
+    try {
+      rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
+      var base = ta.value;
+      rec.onresult = function (ev) {
+        var fin = '', intr = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) { var r = ev.results[i]; if (r.isFinal) fin += r[0].transcript; else intr += r[0].transcript; }
+        var sep = function (b) { return b && !/\s$/.test(b) ? ' ' : ''; };
+        if (fin) base += sep(base) + fin.trim();
+        ta.value = base + (intr ? sep(base) + intr.trim() : '');
+        voiceStatus('🎤 écoute…');
+      };
+      rec.onerror = function (ev) {
+        var m = ({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible', 'no-speech': 'rien entendu', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible' })[ev.error] || ('erreur vocale : ' + ev.error);
+        stopRec(); voiceStatus(m); setTimeout(function () { if (ready) voiceStatus('prêt'); }, 2800);
+      };
+      rec.onend = function () { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); ta.value = base; runNow(); if (ready) voiceStatus('prêt'); };
+      recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec'); voiceStatus('🎤 écoute…');
+      rec.start();
+    } catch (e) { stopRec(); voiceStatus('micro indisponible'); }
+  }
+  micBtn.addEventListener('click', function () { if (recording) stopRec(); else startRec(); ta.focus(); });
+
   // ---- MIROIR : ce que l'utilisateur tape dans un champ de la page se recopie ici (sens UNIQUE) ----
   chrome.runtime.onMessage.addListener(function (msg) {
     if (!msg || msg.type !== 'omdys-mirror') return;
