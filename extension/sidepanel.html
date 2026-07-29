@@ -44,6 +44,16 @@
   .vlab{ font-weight:700; color:#1f7a3d; margin-bottom:3px; }
   .vitem{ color:#28483a; }
   #omdys-undo{ background:#8a94a0; color:#fff; }
+  /* SAISIE VOCALE (opt-in, voie A : Web Speech du navigateur) */
+  .voicerow{ display:flex; gap:8px; align-items:center; margin:8px 0 4px; flex-wrap:wrap; }
+  #omdys-mic{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; background:#7a4fb5; color:#fff; }
+  #omdys-mic:disabled{ background:#c3b8d6; cursor:default; }
+  #omdys-mic.rec{ background:#c0392b; animation:ompulse 1s infinite; }
+  @keyframes ompulse{ 0%,100%{ opacity:1; } 50%{ opacity:.5; } }
+  .voicecfg{ font-size:.9em; color:#555; display:flex; align-items:center; gap:5px; cursor:pointer; }
+  .vnote{ font-size:.8em; color:#6a5b2e; background:#fff8ea; border-left:3px solid #e8920c; border-radius:5px; padding:6px 9px; margin:0 0 8px; line-height:1.45; }
+  body.dark .voicecfg{ color:#9aa7b4; }
+  body.dark .vnote{ background:#2b2412; color:#f0e2bd; }
   /* accessibilité (réglages ex-popup, devenus injoignables quand l'icône a basculé sur le panneau) */
   .prefs{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:.85em; color:#555; margin-bottom:8px;
           padding-bottom:8px; border-bottom:1px solid #eee; }
@@ -75,6 +85,11 @@
   </div>
   <label class="mir"><input type="checkbox" id="omdys-mirror" checked> Recopier ce que je tape sur la page</label>
   <textarea id="omdys-ta" placeholder="Écris ou colle ton texte ici — ou tape dans un champ de la page, il se recopie ici. Puis clique les corrections et « Copier »."></textarea>
+  <div class="voicerow">
+    <button id="omdys-mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
+    <label class="voicecfg"><input type="checkbox" id="omdys-voice-ok"> Activer la dictée vocale</label>
+  </div>
+  <div class="vnote">🔒 La dictée vocale envoie l'audio de ton micro au <b>service vocal de ton navigateur (Google)</b> pour le transcrire en texte — c'est le <b>seul</b> moment où quelque chose sort de ta machine. Le correcteur, lui, reste 100 % hors-ligne. Désactivable à tout moment.</div>
   <div class="acts">
     <button id="omdys-fixall" disabled>✓ Tout corriger</button>
     <button id="omdys-undo" hidden>↩ Annuler</button>
@@ -85,7 +100,7 @@
   <div class="corr" id="omdys-corr"></div>
   <div id="omdys-vig"></div>
   <div id="omdys-stade"></div>
-  <div class="foot">Hors-ligne · aucune donnée envoyée. Moteur identique à l'app (FP=0). Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux.</div>
+  <div class="foot">Correcteur : 100 % hors-ligne, aucune donnée envoyée (moteur identique à l'app, FP=0). Seule la <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux.</div>
 </div>
 <script src="dys-core.js"></script>
 <script src="sidepanel.js"></script>
