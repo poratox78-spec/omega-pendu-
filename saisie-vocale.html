@@ -90,9 +90,13 @@
   function inject(t){
     if(!appDoc) return; var inp=appDoc.getElementById('vdc-in'); if(!inp) return;
     var cur=inp.textContent||''; inp.textContent=(cur+(cur&&!/\s$/.test(cur)?' ':'')+t).trim();
-    try{ inp.focus(); }catch(e){}
+    // NE PAS focus #vdc-in ici : ça rendrait le focus à l'iframe pendant la dictée. Le correcteur se met à jour
+    // sur l'événement 'input' sans avoir besoin du focus.
     try{ inp.dispatchEvent(new f.contentWindow.Event('input',{bubbles:true})); }catch(e){ try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){} }
   }
+  // SpeechRecognition exige que le document du HAUT ait le focus ; or le correcteur (iframe) met le curseur dans
+  // #vdc-in en s'ouvrant → sinon 'not-allowed'. On rend donc le focus au document du haut avant de démarrer.
+  function focusTop(){ try{ if(appDoc&&appDoc.activeElement&&appDoc.activeElement.blur) appDoc.activeElement.blur(); }catch(e){} try{ window.focus(); }catch(e){} try{ mic.focus(); }catch(e){} }
   // ---- Web Speech (page https normale = fiable, ≠ panneau d'extension) ----
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recording=false;
   function setOn(on){ mic.disabled=!(on&&SR); }
@@ -106,9 +110,10 @@
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){ s.getTracks().forEach(function(t){t.stop();}); }).catch(function(){});
   });
   function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec) rec.stop(); }catch(e){} }
-  function start(){
+  function start(retry){
     if(!SR){ st('non supporté — utilise Chrome/Edge'); return; }
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
+    focusTop();
     try{
       rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
       var tr={a:0,s:0}, err='';
@@ -119,7 +124,8 @@
       rec.onerror=function(ev){ err=ev.error||'inconnue'; };
       rec.onend=function(){
         recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec');
-        if(err) st(({'not-allowed':'micro refusé — autorise-le dans le navigateur','service-not-allowed':'service vocal indisponible — utilise Google Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
+        if(err==='not-allowed' && !retry){ setTimeout(function(){ focusTop(); start(true); }, 250); return; }   // le focus n'était pas encore rendu → 1 réessai après refocus
+        if(err) st(({'not-allowed':'micro bloqué — clique dans la page (hors du correcteur) puis réessaie ; sinon recharge (F5)','service-not-allowed':'service vocal indisponible — utilise Google Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
         else if(tr.a&&!tr.s) st('rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans Chrome');
         else st('prêt — clique « Copier » dans le correcteur');
       };
@@ -127,7 +133,7 @@
       rec.start();
     }catch(e){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); st('démarrage impossible : '+((e&&e.name)||'erreur')); }
   }
-  mic.addEventListener('click', function(){ if(recording) stop(); else start(); });
+  mic.addEventListener('click', function(){ if(recording) stop(); else start(false); });
 })();
 </script>
 <script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
