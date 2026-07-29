@@ -307,12 +307,20 @@ def run(wav, show=False):
     if text and text[-1] not in '.!?': text += '.'
     return text
 
-def record(sec):
+def list_devices():
+    try: import sounddevice as sd
+    except ImportError: die("pip install sounddevice")
+    print('Périphériques d’ENTRÉE (utilise le numéro avec --device N) :')
+    for i, d in enumerate(sd.query_devices()):
+        if d['max_input_channels'] > 0: print('  %2d  %s' % (i, d['name']))
+
+def record(sec, device=None):
     try: import sounddevice as sd, soundfile as sf
     except ImportError:
         die("Pour --record : pip install sounddevice soundfile\n(ou passe un fichier WAV en argument)")
-    print('🎤 parle maintenant (%d s)…' % sec, file=sys.stderr)
-    a = sd.rec(int(sec * 16000), samplerate=16000, channels=1); sd.wait()
+    dev = sd.query_devices(device)['name'] if device is not None else 'micro par défaut'
+    print('🎤 parle maintenant (%d s) — %s…' % (sec, dev), file=sys.stderr)
+    a = sd.rec(int(sec * 16000), samplerate=16000, channels=1, device=device); sd.wait()
     path = os.path.join(tempfile.gettempdir(), 'omega_asr_rec.wav')
     sf.write(path, a, 16000); return path
 
@@ -320,9 +328,12 @@ def main():
     ap = argparse.ArgumentParser(description="OMEGA ASR local (voie B, sans Google)")
     ap.add_argument('wav', nargs='?', help='fichier audio WAV (16 kHz mono de préférence)')
     ap.add_argument('--record', type=float, metavar='SEC', help='enregistrer SEC secondes du micro')
+    ap.add_argument('--device', type=int, metavar='N', help='numéro du micro (voir --list-devices)')
+    ap.add_argument('--list-devices', action='store_true', help='lister les micros disponibles et quitter')
     ap.add_argument('--show', action='store_true', help='montrer les étapes intermédiaires')
     args = ap.parse_args()
-    wav = record(args.record) if args.record else args.wav
+    if args.list_devices: list_devices(); return
+    wav = record(args.record, args.device) if args.record else args.wav
     if not wav: die("Donne un fichier WAV, ou --record SEC.")
     if not os.path.exists(wav): die("Fichier introuvable : " + wav)
     global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LU, L2, L3, PAD, BAR
