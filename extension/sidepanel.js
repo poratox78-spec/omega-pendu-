@@ -187,13 +187,19 @@
   function voiceStatus(m) { stEl.textContent = m; }
   function setVoiceEnabled(on) { micBtn.disabled = !(on && SR); if (!on && recording) stopRec(); }
   if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
-  try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; setVoiceEnabled(on); }); } catch (e) {}
+  try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; if (on) mirCb.checked = false; setVoiceEnabled(on); }); } catch (e) {}
+  // EXCLUSION MUTUELLE voix ↔ miroir : les deux écrivent dans la MÊME textarea et se battaient (il fallait décocher/recocher).
+  // Activer l'un désactive l'autre. Le miroir lit `mirCb.checked` en direct (l.~185) → le décocher le coupe aussitôt.
   voiceCb.addEventListener('change', function () {
+    if (voiceCb.checked && mirCb.checked) mirCb.checked = false;
     try { chrome.storage.local.set({ omVoice: voiceCb.checked }); } catch (e) {}
     setVoiceEnabled(voiceCb.checked);
     // pré-demande la permission micro à l'activation → l'invite du navigateur s'affiche de façon fiable (MV3)
     if (voiceCb.checked && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
       navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) { st.getTracks().forEach(function (t) { t.stop(); }); }).catch(function () {});
+  });
+  mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix
+    if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
   function stopRec() { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} }
   function startRec() {
