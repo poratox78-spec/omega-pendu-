@@ -40,6 +40,8 @@
   .item.tvig{border-left:3px dashed #e8920c;background:color-mix(in srgb,#e8920c 12%,var(--bg-2))}
   .item b{color:var(--fg)} .fam{color:var(--fg-2);font-size:.82em}
   .ok-msg{color:#1f9d55;font-weight:700;padding:6px 2px}
+  .vig{margin-top:8px;padding:7px 10px;border-left:4px solid #e8920c;background:color-mix(in srgb,#e8920c 12%,var(--bg-2));border-radius:8px;font-size:.92em}
+  .vig b{color:var(--fg)} .vig .vi{color:var(--fg-2);margin-top:3px}
 </style>
 </head>
 <body>
@@ -62,13 +64,14 @@
     <span class="vst" id="vst">chargement du correcteur…</span>
   </div>
   <div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
-  <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici. Ou écris/colle. Puis clique les corrections et « Copier »."></textarea>
+  <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici (majuscules remises automatiquement). Puis clique les corrections rouges, « Tout corriger », et « Copier »."></textarea>
   <div class="acts">
     <button id="fixall" disabled>✓ Tout corriger</button>
     <button id="copy">📋 Copier</button>
     <span id="count"></span>
   </div>
   <div class="corr" id="corr"></div>
+  <div id="vig"></div>
   <div id="stade"></div>
 </main>
 <script src="extension/dys-core.js"></script>
@@ -78,8 +81,11 @@
   var DC=self.DYSCORE||window.DYSCORE;
   var ta=document.getElementById('ta'), corr=document.getElementById('corr'), cntEl=document.getElementById('count'),
       fixBtn=document.getElementById('fixall'), copyBtn=document.getElementById('copy'), stadeEl=document.getElementById('stade'),
-      mic=document.getElementById('mic'), von=document.getElementById('von'), vst=document.getElementById('vst');
+      vigEl=document.getElementById('vig'), mic=document.getElementById('mic'), von=document.getElementById('von'), vst=document.getElementById('vst');
   function st(m){ vst.textContent=m; }
+  // VOIX : la reconnaissance sort du texte tout en minuscules → OMEGA remet la majuscule en début de phrase
+  // (début du texte + après . ! ? … et après un saut de ligne). C'est LE gros apport sur de la dictée.
+  function capitalize(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   var TOKRE=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
   function spans(t){ var m,s=[]; TOKRE.lastIndex=0; while((m=TOKRE.exec(t)))s.push([m.index,m.index+m[0].length]); return s; }
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -100,7 +106,7 @@
   function diagnose(t){ try{ return DC && DC.diagnoseAll ? DC.diagnoseAll(t) : {flags:[]}; }catch(e){ return {flags:[]}; } }
   function applyFlag(f){ var t=ta.value, s=spans(t)[f.i]; if(!s)return; var e=spans(t)[f.i+(f.span?f.span-1:0)]||s; ta.value=t.slice(0,s[0])+f.sugg+t.slice(e[1]); runNow(); }
   function applyAll(){ var flags=(lastDg.flags||[]).filter(function(f){return f.tier!=='vigilance';}); var t=ta.value, sp2=spans(t);
-    flags.slice().sort(function(a,b){return b.i-a.i;}).forEach(function(f){ var s=sp2[f.i]; if(!s)return; var e=sp2[f.i+(f.span?f.span-1:0)]||s; t=t.slice(0,s[0])+f.sugg+t.slice(e[1]); }); ta.value=t; runNow(); }
+    flags.slice().sort(function(a,b){return b.i-a.i;}).forEach(function(f){ var s=sp2[f.i]; if(!s)return; var e=sp2[f.i+(f.span?f.span-1:0)]||s; t=t.slice(0,s[0])+f.sugg+t.slice(e[1]); }); ta.value=capitalize(t); runNow(); }
 
   function render(dg){
     lastDg=dg||{flags:[]}; var flags=lastDg.flags||[];
@@ -113,7 +119,14 @@
     corr.innerHTML=h;
     var items=corr.querySelectorAll('.item');
     for(var z=0;z<items.length;z++)(function(node){ node.onclick=function(){ applyFlag(flags[+node.getAttribute('data-k')]); }; })(items[z]);
-    stadeEl.innerHTML=(ta.value.trim()&&!flags.length)?'<div class="ok-msg">✓ Aucune faute détectée.</div>':'';
+    // couches ORANGE « à vérifier » : mots confusables (vigText) + ponctuation manquante (runonText)
+    var vg='', txt=ta.value;
+    var conf=(DC&&DC.vigText&&txt.trim())?DC.vigText(txt):[];
+    var ro=(DC&&DC.runonText&&txt.trim())?DC.runonText(txt):[];
+    if(conf.length){ vg+='<div class="vig"><b>🟠 À vérifier — mots qui se confondent</b>'; conf.forEach(function(v){ vg+='<div class="vi">« '+esc(v.word)+' » — '+esc(v.info)+'</div>'; }); vg+='</div>'; }
+    if(ro.length){ vg+='<div class="vig"><b>🟠 À vérifier — ponctuation</b>'; ro.forEach(function(r){ vg+='<div class="vi">entre « '+esc(r.a)+' » et « '+esc(r.b)+' » — une virgule ou un point&nbsp;?</div>'; }); vg+='</div>'; }
+    vigEl.innerHTML=vg;
+    stadeEl.innerHTML=(ta.value.trim()&&!flags.length&&!conf.length&&!ro.length)?'<div class="ok-msg">✓ Rien à signaler.</div>':'';
   }
   var timer=null;
   function runNow(){ if(!ready)return; render(diagnose(ta.value)); }
@@ -143,7 +156,7 @@
       rec.onresult=function(ev){ var fin='',intr=''; for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal)fin+=r[0].transcript; else intr+=r[0].transcript; }
         var sep=function(b){return b&&!/\s$/.test(b)?' ':'';}; if(fin)base+=sep(base)+fin.trim(); ta.value=base+(intr?sep(base)+intr.trim():''); st('🎤 transcription…'); };
       rec.onerror=function(ev){ err=ev.error||'inconnue'; };
-      rec.onend=function(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); runNow();
+      rec.onend=function(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); ta.value=capitalize(ta.value); runNow();
         if(err) st(({'not-allowed':'micro refusé — autorise-le pour ce site','service-not-allowed':'service vocal indisponible — utilise Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
         else if(tr.a&&!tr.s) st('rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans Chrome');
         else st('prêt — clique « Copier »'); };
