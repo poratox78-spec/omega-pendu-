@@ -17,11 +17,9 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
   html,body{height:100%;margin:0}
-  body{display:flex;flex-direction:column;background:var(--bg)}
+  body{display:flex;flex-direction:column;background:var(--bg);overflow:hidden}   /* seul l'outil défile → pas de double scrollbar, le menu reste visible */
   header.top{flex:0 0 auto}
-  .tool-note{flex:0 0 auto;font:13px var(--sans);color:var(--fg-2);text-align:center;padding:7px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
-  .tool-note strong{color:var(--fg)} .tool-note a{color:var(--accent)}
-  .vbar{flex:0 0 auto;display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:9px 14px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .vbar{flex:0 0 auto;display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:var(--bg-2);border-bottom:1px solid var(--line)}
   #mic{font:inherit;font-weight:700;border:0;border-radius:9px;padding:9px 17px;cursor:pointer;background:#7a4fb5;color:#fff;font-size:15px}
   #mic:disabled{background:#8a7ba6;cursor:default;opacity:.75}
   #mic.rec{background:#c0392b;animation:vpulse 1s infinite}
@@ -51,13 +49,12 @@
     <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
   </nav>
 </div></header>
-<div class="tool-note">🎤 <strong>Saisie vocale</strong> — dicte ton message, OMEGA le corrige, puis clique « Copier » et colle dans ton chat. · <a href="correcteur.html">← le correcteur</a></div>
 <div class="vbar">
   <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
   <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
-  <span class="vst" id="vst"></span>
+  <span class="vst" id="vst">🎤 dicte → OMEGA corrige → « Copier » → colle dans ton chat</span>
 </div>
-<div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal de ton navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Google&nbsp;Chrome / Edge</b> ; pense à choisir le bon micro par défaut (casque&nbsp;?) dans les réglages.</div>
+<div class="vnote"><span class="lock">🔒</span> L'audio part au <b>service vocal du navigateur (Google)</b> pour la transcription ; la correction reste <b>100&nbsp;% locale</b>. Chrome/Edge · choisis le bon micro par défaut (casque&nbsp;?).</div>
 <div class="tool-wrap">
   <iframe id="app" class="tool" src="app/omega-pendu.html" title="Correcteur OMEGA-Ω" loading="eager"></iframe>
   <div class="tool-load" id="loading"><div class="sp"></div><div>Chargement du correcteur…</div></div>
