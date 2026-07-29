@@ -207,17 +207,24 @@
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
       rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      var base = ta.value, gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
+      var base = ta.value, gotAny = false, lastErr = '', tr = { a: 0, s: 0 }, finals = {};
       rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
       rec.onaudiostart = function () { tr.a = 1; };
       rec.onspeechstart = function () { tr.s = 1; voiceStatus('🎤 je t’entends…'); };
+      // Android ré-émet les segments DÉJÀ finalisés à chaque événement (resultIndex peu fiable) : on les
+      // stocke PAR INDEX (overwrite) puis on reconstruit — sinon « base += fin » ré-ajoute chaque mot = tapé plusieurs fois.
       rec.onresult = function (ev) {
-        var fin = '', intr = '';
-        for (var i = ev.resultIndex; i < ev.results.length; i++) { var r = ev.results[i]; if (r.isFinal) fin += r[0].transcript; else intr += r[0].transcript; }
-        var sep = function (b) { return b && !/\s$/.test(b) ? ' ' : ''; };
-        if (fin) { base += sep(base) + fin.trim(); gotAny = true; }
-        if (intr) gotAny = true;
-        ta.value = base + (intr ? sep(base) + intr.trim() : '');
+        var intr = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var r = ev.results[i];
+          if (r.isFinal) finals[i] = r[0].transcript.trim(); else intr += r[0].transcript;
+        }
+        var parts = []; if (base.trim()) parts.push(base.trim());
+        var ks = Object.keys(finals).map(Number).sort(function (a, b) { return a - b; });
+        for (var k = 0; k < ks.length; k++) { if (finals[ks[k]]) parts.push(finals[ks[k]]); }
+        if (intr.trim()) parts.push(intr.trim());
+        if (ks.length || intr.trim()) gotAny = true;
+        ta.value = parts.join(' ');
         voiceStatus('🎤 transcription…');
       };
       rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
