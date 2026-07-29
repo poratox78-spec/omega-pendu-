@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Saisie vocale dys — parle, corrige, copie | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/saisie-vocale"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Saisie vocale dys — parle, corrige, copie | OMEGA-Ω"><meta property="og:description" content="Dicte ton message à la voix, OMEGA le corrige, tu copies et tu colles dans ton chat. Pratique pour les dys sur Twitch/Discord."><meta property="og:image" content="https://omegapendu.com/icon.svg">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Saisie vocale dys — parle, corrige, copie | OMEGA-Ω"><meta name="twitter:description" content="Dicte ton message, OMEGA le corrige, tu copies.">
+<meta name="description" content="Écris à la voix : dicte ton message, OMEGA le corrige (FP=0, hors-ligne), tu copies et tu colles dans ton chat. Pratique pour les dys sur Twitch/Discord.">
+<link rel="canonical" href="https://omegapendu.com/saisie-vocale">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  html,body{height:100%;margin:0}
+  body{display:flex;flex-direction:column;background:var(--bg)}
+  header.top{flex:0 0 auto}
+  .tool-note{flex:0 0 auto;font:13px var(--sans);color:var(--fg-2);text-align:center;padding:7px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .tool-note strong{color:var(--fg)} .tool-note a{color:var(--accent)}
+  .vbar{flex:0 0 auto;display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:9px 14px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  #mic{font:inherit;font-weight:700;border:0;border-radius:9px;padding:9px 17px;cursor:pointer;background:#7a4fb5;color:#fff;font-size:15px}
+  #mic:disabled{background:#8a7ba6;cursor:default;opacity:.75}
+  #mic.rec{background:#c0392b;animation:vpulse 1s infinite}
+  @keyframes vpulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .vbar .cfg{font:14px var(--sans);color:var(--fg-2);display:flex;align-items:center;gap:6px;cursor:pointer}
+  .vbar .vst{font:13px var(--sans);color:var(--fg-2);margin-left:auto;min-height:1em}
+  .vnote{flex:0 0 auto;font:12.5px var(--sans);color:var(--fg-2);padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--line);line-height:1.5}
+  .vnote b{color:var(--fg)} .vnote .lock{color:var(--accent)}
+  .tool-wrap{flex:1 1 auto;position:relative;min-height:0;background:var(--bg)}
+  iframe.tool{width:100%;height:100%;border:0;display:block}
+  .tool-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--bg);color:var(--fg-2);font:15px var(--sans);text-align:center;padding:24px}
+  .tool-load .sp{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:tlspin .8s linear infinite}
+  @keyframes tlspin{to{transform:rotate(360deg)}}
+  .tool-load a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html">Le pendu</a>
+    <a href="correcteur.html">Le correcteur</a>
+    <a href="dictee.html">La dictée</a>
+    <a href="saisie-vocale.html" aria-current="page">Saisie vocale</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+<div class="tool-note">🎤 <strong>Saisie vocale</strong> — dicte ton message, OMEGA le corrige, puis clique « Copier » et colle dans ton chat. · <a href="correcteur.html">← le correcteur</a></div>
+<div class="vbar">
+  <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
+  <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
+  <span class="vst" id="vst"></span>
+</div>
+<div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal de ton navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Google&nbsp;Chrome / Edge</b> ; pense à choisir le bon micro par défaut (casque&nbsp;?) dans les réglages.</div>
+<div class="tool-wrap">
+  <iframe id="app" class="tool" src="app/omega-pendu.html" title="Correcteur OMEGA-Ω" loading="eager"></iframe>
+  <div class="tool-load" id="loading"><div class="sp"></div><div>Chargement du correcteur…</div></div>
+</div>
+<script>
+(function(){
+  var f=document.getElementById('app'), load=document.getElementById('loading');
+  var mic=document.getElementById('mic'), von=document.getElementById('von'), vst=document.getElementById('vst');
+  var appDoc=null;
+  function st(m){ vst.textContent=m; }
+  function fail(msg){ load.innerHTML='<div>'+(msg||"L'outil tarde à charger.")+'</div><div><a href="app/omega-pendu.html">Ouvrir l\'application directement →</a></div>'; }
+  // ouvre le correcteur (vdc) dans l'iframe — même mécanique que correcteur-outil.html
+  f.addEventListener('load', function(){
+    var doc; try{ doc=f.contentDocument||f.contentWindow.document; }catch(e){ fail('Outil non accessible ici.'); return; }
+    var n=0, iv=setInterval(function(){
+      var btn=doc.getElementById('vdc-btn');
+      if(btn){
+        clearInterval(iv);
+        var s=doc.createElement('style');
+        s.textContent='#vdc-ov{background:#0d1117!important;align-items:flex-start!important;padding:20px 0!important}'
+          +'#vdc-card{width:min(96vw,1080px)!important;max-height:calc(100vh - 40px)!important;margin:0 auto!important}'
+          +'#vdc-in{min-height:32vh!important;font-size:19px!important}#vdc-render{min-height:14vh!important}'
+          +'#vdc-btn,#vdd-btn,#vdk-btn{display:none!important}#vdc-x{display:none!important}';
+        doc.head.appendChild(s);
+        try{ btn.click(); }catch(e){}
+        appDoc=doc;
+        setTimeout(function(){ load.style.display='none'; }, 200);
+      } else if(++n>250){ clearInterval(iv); fail(); }
+    }, 80);
+  });
+  // injecte le texte dicté dans le champ du correcteur (#vdc-in contenteditable) → correction + Copier de l'app
+  function inject(t){
+    if(!appDoc) return; var inp=appDoc.getElementById('vdc-in'); if(!inp) return;
+    var cur=inp.textContent||''; inp.textContent=(cur+(cur&&!/\s$/.test(cur)?' ':'')+t).trim();
+    try{ inp.focus(); }catch(e){}
+    try{ inp.dispatchEvent(new f.contentWindow.Event('input',{bubbles:true})); }catch(e){ try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){} }
+  }
+  // ---- Web Speech (page https normale = fiable, ≠ panneau d'extension) ----
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recording=false;
+  function setOn(on){ mic.disabled=!(on&&SR); }
+  if(!SR){ von.disabled=true; st('reconnaissance vocale : utilise Google Chrome ou Edge'); }
+  try{ von.checked=localStorage.getItem('omVoiceSite')==='1'; }catch(e){}
+  setOn(von.checked);
+  von.addEventListener('change', function(){
+    try{ localStorage.setItem('omVoiceSite', von.checked?'1':'0'); }catch(e){}
+    setOn(von.checked);
+    if(von.checked&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
+      navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){ s.getTracks().forEach(function(t){t.stop();}); }).catch(function(){});
+  });
+  function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec) rec.stop(); }catch(e){} }
+  function start(){
+    if(!SR){ st('non supporté — utilise Chrome/Edge'); return; }
+    if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
+    try{
+      rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
+      var tr={a:0,s:0}, err='';
+      rec.onstart=function(){ st('🎤 micro ouvert — parle…'); };
+      rec.onaudiostart=function(){ tr.a=1; };
+      rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
+      rec.onresult=function(ev){ var fin=''; for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal) fin+=r[0].transcript; } if(fin){ inject(fin.trim()); st('🎤 transcription… (parle ou clique Stop)'); } };
+      rec.onerror=function(ev){ err=ev.error||'inconnue'; };
+      rec.onend=function(){
+        recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec');
+        if(err) st(({'not-allowed':'micro refusé — autorise-le dans le navigateur','service-not-allowed':'service vocal indisponible — utilise Google Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
+        else if(tr.a&&!tr.s) st('rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans Chrome');
+        else st('prêt — clique « Copier » dans le correcteur');
+      };
+      recording=true; mic.textContent='⏹ Stop'; mic.classList.add('rec'); st('🎤 démarrage…');
+      rec.start();
+    }catch(e){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); st('démarrage impossible : '+((e&&e.name)||'erreur')); }
+  }
+  mic.addEventListener('click', function(){ if(recording) stop(); else start(); });
+})();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body>
+</html>
