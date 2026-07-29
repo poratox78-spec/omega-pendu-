@@ -281,7 +281,7 @@ def assemble(words, pauses):           # ponctuation prosodique (virgules) + maj
     text = ' '.join(parts).replace(' ,', ',')
     return text[:1].upper() + text[1:] if text else text
 
-def run(wav, show=False):
+def run(wav, dbg=None):
     raw = transcribe(wav)
     if not raw: return ''
     # découpe en phrases sur les grosses pauses (niveau point)
@@ -290,14 +290,14 @@ def run(wav, show=False):
         if cur and b * FR_MS >= PERIOD_MS: sents.append(cur); cur = []
         cur.append((w, b))
     if cur: sents.append(cur)
-    if show:
-        print('  phonèmes :', ' '.join(w for w, _ in raw))
-        print('  pauses ms:', [b * FR_MS for _, b in raw])
+    if dbg is not None:
+        dbg.append('phonèmes : ' + ' '.join(w for w, _ in raw))
+        dbg.append('pauses ms: ' + str([b * FR_MS for _, b in raw]))
     out = []
     for sent in sents:
         phs = [w for w, _ in sent]; pauses = [b for _, b in sent]
         dec = viterbi([cands(w) for w in phs])
-        if show: print('  décodé   :', ' '.join(dec))
+        if dbg is not None: dbg.append('décodé   : ' + ' '.join(dec))
         dec = agree(dec)
         dec = correcteur(dec)
         # pauses réalignées sur dec (même longueur que phs sauf mots vides filtrés)
@@ -324,6 +324,18 @@ def record(sec, device=None):
     path = os.path.join(tempfile.gettempdir(), 'omega_asr_rec.wav')
     sf.write(path, a, 16000); return path
 
+def init():
+    """Charge le modèle acoustique + l'index + le LM (une fois). Réutilisable par l'interface graphique."""
+    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LU, L2, L3, PAD, BAR
+    if AM is not None: return
+    TORCH, PROC, AM = load_am()
+    PAD = PROC.tokenizer.pad_token_id
+    BAR = PROC.tokenizer.convert_tokens_to_ids('|')
+    PH2W, FREQ, POS = build_index()
+    BYLEN = defaultdict(list)
+    for ph in PH2W: BYLEN[len(ph)].append(ph)
+    LU, L2, L3 = load_lm()
+
 def main():
     ap = argparse.ArgumentParser(description="OMEGA ASR local (voie B, sans Google)")
     ap.add_argument('wav', nargs='?', help='fichier audio WAV (16 kHz mono de préférence)')
@@ -336,15 +348,12 @@ def main():
     wav = record(args.record, args.device) if args.record else args.wav
     if not wav: die("Donne un fichier WAV, ou --record SEC.")
     if not os.path.exists(wav): die("Fichier introuvable : " + wav)
-    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LU, L2, L3, PAD, BAR
-    TORCH, PROC, AM = load_am()
-    PAD = PROC.tokenizer.pad_token_id
-    BAR = PROC.tokenizer.convert_tokens_to_ids('|')
-    PH2W, FREQ, POS = build_index()
-    BYLEN = defaultdict(list)
-    for ph in PH2W: BYLEN[len(ph)].append(ph)
-    LU, L2, L3 = load_lm()
-    print('\n' + run(wav, show=args.show) + '\n')
+    init()
+    dbg = [] if args.show else None
+    text = run(wav, dbg=dbg)
+    if dbg:
+        for l in dbg: print('  ' + l)
+    print('\n' + text + '\n')
 
 if __name__ == '__main__':
     main()
