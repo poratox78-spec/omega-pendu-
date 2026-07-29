@@ -149,12 +149,17 @@
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
     try{
       rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
-      var base=ta.value, tr={a:0,s:0}, err='';
+      var base=ta.value, tr={a:0,s:0}, err='', finals={};
       rec.onstart=function(){ st('🎤 micro ouvert — parle…'); };
       rec.onaudiostart=function(){ tr.a=1; };
       rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
-      rec.onresult=function(ev){ var fin='',intr=''; for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal)fin+=r[0].transcript; else intr+=r[0].transcript; }
-        var sep=function(b){return b&&!/\s$/.test(b)?' ':'';}; if(fin)base+=sep(base)+fin.trim(); ta.value=base+(intr?sep(base)+intr.trim():''); st('🎤 transcription…'); };
+      rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android (mot tapé plusieurs fois quand les segments finalisés sont ré-émis)
+        for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal)finals[i]=r[0].transcript.trim(); else intr+=r[0].transcript; }
+        var parts=[]; if(base.trim())parts.push(base.trim());
+        var ks=Object.keys(finals).map(Number).sort(function(a,b){return a-b;});
+        for(var k=0;k<ks.length;k++){ if(finals[ks[k]])parts.push(finals[ks[k]]); }
+        if(intr.trim())parts.push(intr.trim());
+        ta.value=parts.join(' '); st('🎤 transcription…'); };
       rec.onerror=function(ev){ err=ev.error||'inconnue'; };
       rec.onend=function(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); ta.value=capitalize(ta.value); runNow();
         if(err) st(({'not-allowed':'micro refusé — autorise-le pour ce site','service-not-allowed':'service vocal indisponible — utilise Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
