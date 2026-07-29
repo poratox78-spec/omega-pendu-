@@ -15,27 +15,32 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
 <style>
-  html,body{height:100%;margin:0}
-  body{display:flex;flex-direction:column;background:var(--bg);overflow:hidden}   /* seul l'outil défile → pas de double scrollbar, le menu reste visible */
-  header.top{flex:0 0 auto}
-  .vbar{flex:0 0 auto;display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:var(--bg-2);border-bottom:1px solid var(--line)}
-  #mic{font:inherit;font-weight:700;border:0;border-radius:9px;padding:9px 17px;cursor:pointer;background:#7a4fb5;color:#fff;font-size:15px}
+  main.sv{max-width:860px;margin:0 auto;padding:16px 18px 40px}
+  .vbar{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin:6px 0 4px}
+  #mic{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;background:#7a4fb5;color:#fff;font-size:16px}
   #mic:disabled{background:#8a7ba6;cursor:default;opacity:.75}
   #mic.rec{background:#c0392b;animation:vpulse 1s infinite}
   @keyframes vpulse{0%,100%{opacity:1}50%{opacity:.5}}
   .vbar .cfg{font:14px var(--sans);color:var(--fg-2);display:flex;align-items:center;gap:6px;cursor:pointer}
-  .vbar .vst{font:13px var(--sans);color:var(--fg-2);margin-left:auto;min-height:1em}
-  .vnote{flex:0 0 auto;font:12.5px var(--sans);color:var(--fg-2);padding:7px 14px;background:var(--bg);border-bottom:1px solid var(--line);line-height:1.5}
+  .vbar .vst{font:13px var(--sans);color:var(--fg-2);margin-left:auto;min-height:1em;text-align:right}
+  .vnote{font:12.5px var(--sans);color:var(--fg-2);background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin:6px 0 12px;line-height:1.5}
   .vnote b{color:var(--fg)} .vnote .lock{color:var(--accent)}
-  .tool-wrap{flex:1 1 auto;position:relative;min-height:0;background:var(--bg)}
-  iframe.tool{width:100%;height:100%;border:0;display:block}
-  .tool-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--bg);color:var(--fg-2);font:15px var(--sans);text-align:center;padding:24px}
-  .tool-load .sp{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:tlspin .8s linear infinite}
-  @keyframes tlspin{to{transform:rotate(360deg)}}
-  .tool-load a{color:var(--accent)}
+  textarea#ta{width:100%;min-height:34vh;resize:vertical;font:17px/1.6 var(--sans);padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--bg-2);color:var(--fg)}
+  textarea#ta:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .acts{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}
+  .acts button{font:inherit;font-weight:700;border:0;border-radius:9px;padding:9px 15px;cursor:pointer}
+  #fixall{background:#1f7a3d;color:#fff}#fixall:disabled{background:#5c6b60;cursor:default}
+  #copy{background:var(--accent);color:#08222f}#copy.ok{background:#1f7a3d;color:#fff}
+  #count{color:var(--fg-2);font-size:.92em}
+  .corr{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+  .item{cursor:pointer;padding:7px 10px;border-radius:8px;border-left:3px solid #c0392b;background:color-mix(in srgb,#c0392b 12%,var(--bg-2))}
+  .item.orth{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--bg-2))}
+  .item.tvig{border-left:3px dashed #e8920c;background:color-mix(in srgb,#e8920c 12%,var(--bg-2))}
+  .item b{color:var(--fg)} .fam{color:var(--fg-2);font-size:.82em}
+  .ok-msg{color:#1f9d55;font-weight:700;padding:6px 2px}
 </style>
-<script src="nav.js" defer></script>
 </head>
 <body>
 <header class="top"><div class="wrap">
@@ -50,90 +55,103 @@
     <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
   </nav>
 </div></header>
-<div class="vbar">
-  <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
-  <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
-  <span class="vst" id="vst">🎤 dicte → OMEGA corrige → « Copier » → colle dans ton chat</span>
-</div>
-<div class="vnote"><span class="lock">🔒</span> L'audio part au <b>service vocal du navigateur (Google)</b> pour la transcription ; la correction reste <b>100&nbsp;% locale</b>. Chrome/Edge · choisis le bon micro par défaut (casque&nbsp;?).</div>
-<div class="tool-wrap">
-  <iframe id="app" class="tool" src="app/omega-pendu.html" title="Correcteur OMEGA-Ω" loading="eager"></iframe>
-  <div class="tool-load" id="loading"><div class="sp"></div><div>Chargement du correcteur…</div></div>
-</div>
+<main class="sv">
+  <div class="vbar">
+    <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
+    <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
+    <span class="vst" id="vst">chargement du correcteur…</span>
+  </div>
+  <div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
+  <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici. Ou écris/colle. Puis clique les corrections et « Copier »."></textarea>
+  <div class="acts">
+    <button id="fixall" disabled>✓ Tout corriger</button>
+    <button id="copy">📋 Copier</button>
+    <span id="count"></span>
+  </div>
+  <div class="corr" id="corr"></div>
+  <div id="stade"></div>
+</main>
+<script src="extension/dys-core.js"></script>
 <script>
 (function(){
-  var f=document.getElementById('app'), load=document.getElementById('loading');
-  var mic=document.getElementById('mic'), von=document.getElementById('von'), vst=document.getElementById('vst');
-  var appDoc=null;
+  'use strict';
+  var DC=self.DYSCORE||window.DYSCORE;
+  var ta=document.getElementById('ta'), corr=document.getElementById('corr'), cntEl=document.getElementById('count'),
+      fixBtn=document.getElementById('fixall'), copyBtn=document.getElementById('copy'), stadeEl=document.getElementById('stade'),
+      mic=document.getElementById('mic'), von=document.getElementById('von'), vst=document.getElementById('vst');
   function st(m){ vst.textContent=m; }
-  function fail(msg){ load.innerHTML='<div>'+(msg||"L'outil tarde à charger.")+'</div><div><a href="app/omega-pendu.html">Ouvrir l\'application directement →</a></div>'; }
-  // ouvre le correcteur (vdc) dans l'iframe — même mécanique que correcteur-outil.html
-  f.addEventListener('load', function(){
-    var doc; try{ doc=f.contentDocument||f.contentWindow.document; }catch(e){ fail('Outil non accessible ici.'); return; }
-    var n=0, iv=setInterval(function(){
-      var btn=doc.getElementById('vdc-btn');
-      if(btn){
-        clearInterval(iv);
-        var s=doc.createElement('style');
-        s.textContent='#vdc-ov{background:#0d1117!important;align-items:flex-start!important;padding:20px 0!important}'
-          +'#vdc-card{width:min(96vw,1080px)!important;max-height:calc(100vh - 40px)!important;margin:0 auto!important}'
-          +'#vdc-in{min-height:32vh!important;font-size:19px!important}#vdc-render{min-height:14vh!important}'
-          +'#vdc-btn,#vdd-btn,#vdk-btn{display:none!important}#vdc-x{display:none!important}';
-        doc.head.appendChild(s);
-        try{ btn.click(); }catch(e){}
-        appDoc=doc;
-        setTimeout(function(){ load.style.display='none'; }, 200);
-      } else if(++n>250){ clearInterval(iv); fail(); }
-    }, 80);
-  });
-  // injecte le texte dicté dans le champ du correcteur (#vdc-in contenteditable) → correction + Copier de l'app
-  function inject(t){
-    if(!appDoc) return; var inp=appDoc.getElementById('vdc-in'); if(!inp) return;
-    var cur=inp.textContent||''; inp.textContent=(cur+(cur&&!/\s$/.test(cur)?' ':'')+t).trim();
-    // NE PAS focus #vdc-in ici : ça rendrait le focus à l'iframe pendant la dictée. Le correcteur se met à jour
-    // sur l'événement 'input' sans avoir besoin du focus.
-    try{ inp.dispatchEvent(new f.contentWindow.Event('input',{bubbles:true})); }catch(e){ try{ inp.dispatchEvent(new Event('input',{bubbles:true})); }catch(_){} }
+  var TOKRE=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
+  function spans(t){ var m,s=[]; TOKRE.lastIndex=0; while((m=TOKRE.exec(t)))s.push([m.index,m.index+m[0].length]); return s; }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  // ---- moteur (identique à l'extension : dys-core + assets partagés) ----
+  var ready=false, A='extension/assets/';
+  if(DC) try{
+    var sp=A+'speller.tsv.gz', nom=A+'noun-post.txt.gz';
+    DC.loadLex({ vdc:A+'vdc-lex.json', genderRelaxed:A+'gender-relaxed.tsv.gz', speller:sp, nom:nom, hmm:A+'pos-hmm.json.gz', osLm:A+'os-subj-lm.json.gz' })
+      .then(function(){ ready=true; st('prêt'); runNow(); }).catch(function(){ st('correcteur indisponible'); });
+    if(DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
+    if(DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
+    if(DC.loadConfusables) DC.loadConfusables(A+'confusables.json').then(runNow);
+  }catch(e){ st('erreur moteur'); }
+  else st('moteur absent');
+
+  var lastDg={flags:[]};
+  function diagnose(t){ try{ return DC && DC.diagnoseAll ? DC.diagnoseAll(t) : {flags:[]}; }catch(e){ return {flags:[]}; } }
+  function applyFlag(f){ var t=ta.value, s=spans(t)[f.i]; if(!s)return; var e=spans(t)[f.i+(f.span?f.span-1:0)]||s; ta.value=t.slice(0,s[0])+f.sugg+t.slice(e[1]); runNow(); }
+  function applyAll(){ var flags=(lastDg.flags||[]).filter(function(f){return f.tier!=='vigilance';}); var t=ta.value, sp2=spans(t);
+    flags.slice().sort(function(a,b){return b.i-a.i;}).forEach(function(f){ var s=sp2[f.i]; if(!s)return; var e=sp2[f.i+(f.span?f.span-1:0)]||s; t=t.slice(0,s[0])+f.sugg+t.slice(e[1]); }); ta.value=t; runNow(); }
+
+  function render(dg){
+    lastDg=dg||{flags:[]}; var flags=lastDg.flags||[];
+    var redn=flags.filter(function(f){return f.tier!=='vigilance';}).length;
+    fixBtn.disabled=!redn;
+    cntEl.textContent=flags.length?(flags.length+' correction'+(flags.length>1?'s':'')):(ta.value.trim()?'✓ rien à corriger':'');
+    var h='';
+    flags.forEach(function(f,k){ var vig=f.tier==='vigilance', orth=/orthographe|[ée]lision/.test(f.name||'');
+      h+='<div class="item'+(vig?' tvig':(orth?' orth':''))+'" data-k="'+k+'">« '+esc(f.word)+' » → <b>« '+esc(f.sugg)+' »</b> <span class="fam">['+esc(f.name)+(vig?' · à vérifier':'')+']</span></div>'; });
+    corr.innerHTML=h;
+    var items=corr.querySelectorAll('.item');
+    for(var z=0;z<items.length;z++)(function(node){ node.onclick=function(){ applyFlag(flags[+node.getAttribute('data-k')]); }; })(items[z]);
+    stadeEl.innerHTML=(ta.value.trim()&&!flags.length)?'<div class="ok-msg">✓ Aucune faute détectée.</div>':'';
   }
-  // SpeechRecognition exige que le document du HAUT ait le focus ; or le correcteur (iframe) met le curseur dans
-  // #vdc-in en s'ouvrant → sinon 'not-allowed'. On rend donc le focus au document du haut avant de démarrer.
-  function focusTop(){ try{ if(appDoc&&appDoc.activeElement&&appDoc.activeElement.blur) appDoc.activeElement.blur(); }catch(e){} try{ window.focus(); }catch(e){} try{ mic.focus(); }catch(e){} }
-  // ---- Web Speech (page https normale = fiable, ≠ panneau d'extension) ----
+  var timer=null;
+  function runNow(){ if(!ready)return; render(diagnose(ta.value)); }
+  function schedule(){ clearTimeout(timer); timer=setTimeout(runNow,300); }
+  ta.addEventListener('input',schedule);
+  fixBtn.onclick=function(){ applyAll(); ta.focus(); };
+  copyBtn.onclick=function(){ try{ navigator.clipboard.writeText(ta.value); }catch(e){ ta.select(); try{ document.execCommand('copy'); }catch(_){} }
+    copyBtn.classList.add('ok'); copyBtn.textContent='✓ Copié'; setTimeout(function(){ copyBtn.classList.remove('ok'); copyBtn.textContent='📋 Copier'; },1400); };
+
+  // ---- Web Speech (page normale, PAS d'iframe → pas de vol de focus, ≠ ancienne version) ----
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recording=false;
   function setOn(on){ mic.disabled=!(on&&SR); }
-  if(!SR){ von.disabled=true; st('reconnaissance vocale : utilise Google Chrome ou Edge'); }
+  if(!SR){ von.disabled=true; }
   try{ von.checked=localStorage.getItem('omVoiceSite')==='1'; }catch(e){}
   setOn(von.checked);
-  von.addEventListener('change', function(){
-    try{ localStorage.setItem('omVoiceSite', von.checked?'1':'0'); }catch(e){}
-    setOn(von.checked);
-    if(von.checked&&navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)
-      navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){ s.getTracks().forEach(function(t){t.stop();}); }).catch(function(){});
-  });
-  function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec) rec.stop(); }catch(e){} }
-  function start(retry){
-    if(!SR){ st('non supporté — utilise Chrome/Edge'); return; }
+  von.addEventListener('change',function(){ try{ localStorage.setItem('omVoiceSite',von.checked?'1':'0'); }catch(e){} setOn(von.checked); });
+  function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec)rec.stop(); }catch(e){} }
+  function start(){
+    if(!SR){ st('reconnaissance : utilise Chrome ou Edge'); return; }
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
-    focusTop();
     try{
       rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
-      var tr={a:0,s:0}, err='';
+      var base=ta.value, tr={a:0,s:0}, err='';
       rec.onstart=function(){ st('🎤 micro ouvert — parle…'); };
       rec.onaudiostart=function(){ tr.a=1; };
       rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
-      rec.onresult=function(ev){ var fin=''; for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal) fin+=r[0].transcript; } if(fin){ inject(fin.trim()); st('🎤 transcription… (parle ou clique Stop)'); } };
+      rec.onresult=function(ev){ var fin='',intr=''; for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal)fin+=r[0].transcript; else intr+=r[0].transcript; }
+        var sep=function(b){return b&&!/\s$/.test(b)?' ':'';}; if(fin)base+=sep(base)+fin.trim(); ta.value=base+(intr?sep(base)+intr.trim():''); st('🎤 transcription…'); };
       rec.onerror=function(ev){ err=ev.error||'inconnue'; };
-      rec.onend=function(){
-        recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec');
-        if(err==='not-allowed' && !retry){ setTimeout(function(){ focusTop(); start(true); }, 250); return; }   // le focus n'était pas encore rendu → 1 réessai après refocus
-        if(err) st(({'not-allowed':'micro bloqué — clique dans la page (hors du correcteur) puis réessaie ; sinon recharge (F5)','service-not-allowed':'service vocal indisponible — utilise Google Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
+      rec.onend=function(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); runNow();
+        if(err) st(({'not-allowed':'micro refusé — autorise-le pour ce site','service-not-allowed':'service vocal indisponible — utilise Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
         else if(tr.a&&!tr.s) st('rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans Chrome');
-        else st('prêt — clique « Copier » dans le correcteur');
-      };
+        else st('prêt — clique « Copier »'); };
       recording=true; mic.textContent='⏹ Stop'; mic.classList.add('rec'); st('🎤 démarrage…');
       rec.start();
     }catch(e){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); st('démarrage impossible : '+((e&&e.name)||'erreur')); }
   }
-  mic.addEventListener('click', function(){ if(recording) stop(); else start(false); });
+  mic.addEventListener('click',function(){ if(recording)stop(); else start(); });
 })();
 </script>
 <script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
