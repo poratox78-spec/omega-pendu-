@@ -197,26 +197,36 @@
   });
   function stopRec() { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} }
   function startRec() {
-    if (!SR || !voiceCb.checked) return;
+    if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
+    if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
       rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      var base = ta.value;
+      var base = ta.value, gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
+      rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
+      rec.onaudiostart = function () { tr.a = 1; };
+      rec.onspeechstart = function () { tr.s = 1; voiceStatus('🎤 je t’entends…'); };
       rec.onresult = function (ev) {
         var fin = '', intr = '';
         for (var i = ev.resultIndex; i < ev.results.length; i++) { var r = ev.results[i]; if (r.isFinal) fin += r[0].transcript; else intr += r[0].transcript; }
         var sep = function (b) { return b && !/\s$/.test(b) ? ' ' : ''; };
-        if (fin) base += sep(base) + fin.trim();
+        if (fin) { base += sep(base) + fin.trim(); gotAny = true; }
+        if (intr) gotAny = true;
         ta.value = base + (intr ? sep(base) + intr.trim() : '');
-        voiceStatus('🎤 écoute…');
+        voiceStatus('🎤 transcription…');
       };
-      rec.onerror = function (ev) {
-        var m = ({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible', 'no-speech': 'rien entendu', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible' })[ev.error] || ('erreur vocale : ' + ev.error);
-        stopRec(); voiceStatus(m); setTimeout(function () { if (ready) voiceStatus('prêt'); }, 2800);
+      rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
+      rec.onend = function () {
+        recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
+        runNow();   // NE PAS effacer : on garde le texte affiché (finals + dernier interim)
+        if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
+        else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
+        else if (ready) voiceStatus('prêt');
       };
-      rec.onend = function () { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); ta.value = base; runNow(); if (ready) voiceStatus('prêt'); };
-      recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec'); voiceStatus('🎤 écoute…');
+      recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec'); voiceStatus('🎤 démarrage…');
       rec.start();
-    } catch (e) { stopRec(); voiceStatus('micro indisponible'); }
+      // filet : si dans 1,5 s rien n'a démarré (ni onstart, ni onerror, ni onend), le prévenir
+      setTimeout(function () { if (recording && stEl.textContent.indexOf('démarrage') >= 0) voiceStatus('le micro tarde à répondre… vérifie l’autorisation et le micro par défaut de Chrome'); }, 1500);
+    } catch (e) { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); voiceStatus('démarrage impossible : ' + ((e && (e.name + ' — ' + e.message)) || 'erreur inconnue')); }
   }
   micBtn.addEventListener('click', function () { if (recording) stopRec(); else startRec(); ta.focus(); });
 
