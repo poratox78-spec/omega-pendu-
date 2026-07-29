@@ -99,13 +99,22 @@ code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:.92em;backg
   .hero p.lead{font-size:17px;line-height:1.5}
   .cta{gap:9px;margin:15px 0 4px}
   .btn{padding:11px 16px;font-size:15px;min-height:44px}
-  /* nav : brand sur sa ligne, puis UNE seule ligne défilable horizontalement (au lieu de 3 lignes qui
-     empilent). En-tête sticky ramené de ~200px à ~90px → il ne mange plus la moitié de chaque écran. */
+  /* nav : compaction de l'en-tête (le déroulé de la nav est géré par le menu hamburger, cf. plus bas) */
   header.top .wrap{min-height:0;padding:7px 0;gap:6px 0}
-  header.top nav{margin-left:0;flex:1 0 100%;flex-wrap:nowrap;justify-content:flex-start;gap:4px;
-    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-    -webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
-  header.top nav::-webkit-scrollbar{display:none}
-  header.top nav a{flex:0 0 auto;white-space:nowrap;padding:6px 9px;font-size:14px}
   #dys-toggle{flex:0 0 auto;font-size:13px;padding:5px 9px;min-height:30px}
 }
+
+/* ——— MENU HAMBURGER : la nav (devenue longue) se replie derrière un bouton ☰ en haut à droite, à TOUTES
+   les largeurs (nav.js injecte le bouton ; ici le style + l'état ouvert/fermé, dropdown ancré à droite du .wrap). ——— */
+header.top .wrap{position:relative}
+.navtoggle{margin-left:auto;display:inline-flex;flex-direction:column;justify-content:center;gap:5px;
+  width:44px;height:40px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);cursor:pointer}
+.navtoggle span{display:block;width:100%;height:2px;background:var(--fg);border-radius:2px;transition:transform .2s,opacity .2s}
+.navtoggle[aria-expanded=true] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.navtoggle[aria-expanded=true] span:nth-child(2){opacity:0}
+.navtoggle[aria-expanded=true] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+header.top nav{position:absolute;top:calc(100% + 6px);right:0;margin:0;flex-direction:column;align-items:stretch;
+  gap:2px;min-width:210px;max-width:min(88vw,300px);padding:8px;background:var(--bg-2);border:1px solid var(--line);
+  border-radius:12px;box-shadow:0 14px 38px rgba(0,0,0,.35);display:none;z-index:70;max-height:calc(100vh - 72px);overflow-y:auto}
+header.top.nav-open nav{display:flex}
+header.top nav a{padding:10px 12px;font-size:15px;border-radius:8px}
