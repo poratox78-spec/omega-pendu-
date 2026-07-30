@@ -22,6 +22,7 @@ Usage :
     python dictee/asr_voix.py  mon_audio.wav --show  # montre les étapes intermédiaires
 """
 import os, sys, math, gzip, json, pickle, tempfile, argparse
+import numpy as np
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -32,9 +33,11 @@ from correcteur_probe import deacc
 
 MODEL = 'Cnam-LMSSC/wav2vec2-french-phonemizer'
 SPELLER = os.path.join(HERE, '..', 'extension', 'assets', 'speller.tsv.gz')
-LM_PATH = os.path.join(HERE, 'os_subj_lm.json.gz')
+LM_PATH = os.path.join(HERE, 'os_subj_lm.json.gz')   # petit LM : MESURÉ > gros LM WiCoPaCo sur registre chat (piège de fréquence Wikipédia) — cf build_asr_lm.py
 FR_MS = 20                       # ~20 ms / frame (wav2vec2 base)
-COMMA_MS, PERIOD_MS = 190, 500   # seuils de silence mesurés (virgule ~320, point ~1000, intra <180)
+COMMA_MS, PERIOD_MS = 190, 750   # seuils de silence (virgule ~320 ; POINT ~1000+ : au-dessus de 750 pour ne PAS couper sur une respiration intra-phrase ~500 ms qui ferait un faux « ? »)
+STRIDE = 320                     # échantillons par frame wav2vec2 (20 ms @ 16 kHz) : frame -> position audio
+QRISE = 4.0                      # demi-tons : fin de phrase qui MONTE d'au moins ça -> « ? » (mesuré : questions +9/+17, affirmations <+4,5)
 
 # ── IPA (vocab du modèle) -> SAMPA OMEGA ──
 IPA2O = {'a': 'a', 'ɑ': 'a', 'ɐ': 'a', 'ɒ': 'O', 'e': 'e', 'ɛ': 'E', 'ɜ': 'E', 'ə': '°', 'i': 'i', 'ɪ': 'i',
@@ -156,18 +159,38 @@ def cands(seg, A=6, K=18):
         out = [(w, -A * d) for w, d in lst]
     _RC[seg] = out; return out
 
+LAM = 1.0                              # poids du LM en shallow-fusion (émission-son + LAM·LM) — réglable
 def viterbi(seq):                      # décodage trigramme (émission + LM)
     beam = {('<s>', '<s>'): (0.0, ['<s>', '<s>'])}
     for cs in seq:
         nb = {}
         for (p2, p1), (sc, path) in beam.items():
             for sp, em in cs:
-                v = sc + em + L3(sp, p2, p1); nk = (p1, sp)
+                v = sc + em + LAM * L3(sp, p2, p1); nk = (p1, sp)
                 if nk not in nb or v > nb[nk][0]: nb[nk] = (v, path + [sp])
         beam = nb or beam
     return max(beam.values(), key=lambda x: x[0])[1][2:]
 
-def transcribe(wav):                   # -> [(sampa_mot, silence_avant_frames)]
+def _f0(a, sr=16000, win=.04, hop=.01, fmin=75, fmax=350):   # pitch par autocorrélation (zéro modèle)
+    w = int(win * sr); h = int(hop * sr); out = []
+    for i in range(0, max(0, len(a) - w), h):
+        fr = a[i:i + w].astype(float); fr = (fr - fr.mean()) * np.hanning(w)
+        if np.sqrt((fr ** 2).mean()) < .006: out.append(0.); continue
+        ac = np.correlate(fr, fr, 'full')[w - 1:]
+        lo = int(sr / fmax); hi = min(int(sr / fmin), len(ac) - 1)
+        if hi <= lo: out.append(0.); continue
+        lag = lo + int(np.argmax(ac[lo:hi]))
+        out.append(sr / lag if lag > 0 and ac[lag] > .3 * ac[0] else 0.)
+    return np.array(out)
+
+def _pitch_rise(a):                    # montée de pitch en fin de segment (demi-tons ; >0 = monte)
+    v = _f0(a); v = v[v > 0]
+    if len(v) < 6: return 0.
+    m = len(v); tail = v[-max(3, m // 5):]; body = v[:-max(3, m // 5)]
+    if not len(body) or np.median(body) <= 0: return 0.
+    return 12 * math.log2(np.median(tail) / np.median(body))
+
+def transcribe(wav):                   # -> [(sampa_mot, silence_avant_frames, frame_début, frame_fin)]
     import soundfile as sf
     a, sr = sf.read(wav)
     if getattr(a, 'ndim', 1) > 1: a = a.mean(1)
@@ -187,19 +210,21 @@ def transcribe(wav):                   # -> [(sampa_mot, silence_avant_frames)]
                 o = IPA2O.get(t)
                 if o: out.append(o)
         return ''.join(out)
-    words = []; cur = []; sil = 0; hasbar = False; before = 0
+    words = []; cur = []; sil = 0; hasbar = False; before = 0; fi = 0; cstart = None
     for i in ids:
         if i == PAD or i == BAR:
             sil += 1
             if i == BAR: hasbar = True
         else:
             if sil > 0 and hasbar:
-                if cur: words.append((to_sampa(cur), before))
-                cur = []; before = sil
+                if cur: words.append((to_sampa(cur), before, cstart, fi))
+                cur = []; before = sil; cstart = None
             sil = 0; hasbar = False
+            if cstart is None: cstart = fi
             cur.append(i)
-    if cur: words.append((to_sampa(cur), before))
-    return [(w, b) for w, b in words if w]
+        fi += 1
+    if cur: words.append((to_sampa(cur), before, cstart, fi))
+    return [(w, b, s, e) for w, b, s, e in words if w]
 
 # ── parseur de sujet MODE-CONFIANCE (cf. asr-phon-route) ──
 PLURAL_DET = getattr(C, 'PLURAL_DET', {'les', 'des', 'ces', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs'})
@@ -282,30 +307,54 @@ def assemble(words, pauses):           # ponctuation prosodique (virgules) + maj
     return text[:1].upper() + text[1:] if text else text
 
 def run(wav, dbg=None):
+    import soundfile as sf
     raw = transcribe(wav)
     if not raw: return ''
+    a, _ = sf.read(wav)
+    if getattr(a, 'ndim', 1) > 1: a = a.mean(1)
+    a = a.astype('float32')
     # découpe en phrases sur les grosses pauses (niveau point)
     sents, cur = [], []
-    for k, (w, b) in enumerate(raw):
-        if cur and b * FR_MS >= PERIOD_MS: sents.append(cur); cur = []
-        cur.append((w, b))
+    for w in raw:
+        if cur and w[1] * FR_MS >= PERIOD_MS: sents.append(cur); cur = []
+        cur.append(w)
     if cur: sents.append(cur)
     if dbg is not None:
-        dbg.append('phonèmes : ' + ' '.join(w for w, _ in raw))
-        dbg.append('pauses ms: ' + str([b * FR_MS for _, b in raw]))
+        dbg.append('phonèmes : ' + ' '.join(w[0] for w in raw))
+        dbg.append('pauses ms: ' + str([w[1] * FR_MS for w in raw]))
     out = []
     for sent in sents:
-        phs = [w for w, _ in sent]; pauses = [b for _, b in sent]
+        phs = [w[0] for w in sent]; pauses = [w[1] for w in sent]
         dec = viterbi([cands(w) for w in phs])
         if dbg is not None: dbg.append('décodé   : ' + ' '.join(dec))
         dec = agree(dec)
         dec = correcteur(dec)
-        # pauses réalignées sur dec (même longueur que phs sauf mots vides filtrés)
         pz = pauses[:len(dec)] + [0] * max(0, len(dec) - len(pauses))
-        out.append(assemble(dec, pz))
-    text = '. '.join(out)
-    if text and text[-1] not in '.!?': text += '.'
-    return text
+        # PITCH -> « ? » : si la fin de la phrase monte assez (mesuré sur l'audio de la phrase)
+        span = a[sent[0][2] * STRIDE: sent[-1][3] * STRIDE]
+        rise = _pitch_rise(span)
+        term = '?' if rise >= QRISE else '.'
+        if dbg is not None: dbg.append('  pitch %+.1f 1/2t -> %s' % (rise, term))
+        out.append(assemble(dec, pz) + term)
+    return ' '.join(out)
+
+# ── Front-end WHISPER LOCAL (poids ouverts, PAS Google) — mesuré 98 % sur voix dys réelle, ponctuation
+#    + majuscules + « ? » inclus (small). Écrase la voie phon (81 %) pour un usage réel ; la voie phon
+#    reste la preuve de recherche. Whisper sort déjà du français propre → correcteur OMEGA superflu ici. ──
+_WMODEL = {}
+def whisper_load(size='small'):
+    from faster_whisper import WhisperModel
+    if size not in _WMODEL:
+        _WMODEL[size] = WhisperModel(size, device='cpu', compute_type='int8')
+    return _WMODEL[size]
+
+def whisper_transcribe(wav, size='small'):
+    import soundfile as sf
+    m = whisper_load(size)
+    a, sr = sf.read(wav)
+    if getattr(a, 'ndim', 1) > 1: a = a.mean(1)
+    segs, _ = m.transcribe(a.astype('float32'), language='fr', beam_size=5)
+    return ' '.join(s.text.strip() for s in segs).strip()
 
 def list_devices():
     try: import sounddevice as sd

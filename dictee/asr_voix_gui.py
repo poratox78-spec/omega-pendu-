@@ -79,12 +79,11 @@ class GUI:
     def set_status(self, s, color=ACCENT): self._ui(lambda: self.status.config(text=s, fg=color))
 
     def _load(self):
+        self.set_status("chargement de Whisper local… (télécharge ~460 Mo au 1er lancement)")
         try:
-            A.init()
-        except SystemExit as e:
-            self.set_status("erreur : " + str(e), 'red'); return
+            A.whisper_load()   # moteur local (poids ouverts, PAS Google) — mesuré 98 %
         except Exception as e:
-            self.set_status("erreur de chargement : " + str(e), 'red'); return
+            self.set_status("Whisper indisponible (" + str(e) + ") — pip install faster-whisper", 'red'); return
         self.ready = True
         self._ui(lambda: self.btn.config(state='normal'))
         self.set_status("prêt — choisis ton micro et clique Enregistrer", OK)
@@ -102,9 +101,9 @@ class GUI:
             self.set_status("🎤 parle maintenant… (%d s)" % sec, ACCENT)
             a = sd.rec(int(sec * 16000), samplerate=16000, channels=1, device=dev); sd.wait()
             path = os.path.join(tempfile.gettempdir(), 'omega_asr_gui.wav'); sf.write(path, a, 16000)
-            self.set_status("traitement…")
-            dbg = []; text = A.run(path, dbg=dbg)
-            self._ui(lambda: self._show(text, dbg))
+            self.set_status("traitement… (Whisper local)")
+            text = A.whisper_transcribe(path)
+            self._ui(lambda: self._show(text, []))
             self.set_status("prêt — reparle quand tu veux", OK)
         except Exception as e:
             self.set_status("erreur : " + str(e), 'red')
