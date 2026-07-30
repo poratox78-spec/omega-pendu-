@@ -66,7 +66,7 @@ def load_am():
 
 # ── index de prononciation (homophones + voisins) sur les 214 k du speller ──
 def build_index():
-    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v3.pkl')   # v3 : + mots à apostrophe au rappel
+    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v4.pkl')   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
     if os.path.exists(cache):
         return pickle.load(open(cache, 'rb'))
     print('… construction de l’index de prononciation (une fois)', file=sys.stderr)
@@ -84,6 +84,25 @@ def build_index():
                     o = IPA2O.get(ch)
                     if o: out.append(o)
         return ''.join(out)
+    # prononciations Wiktionnaire IPA (dictee/wikt_lex_fr.tsv, col 3) — plus précises que g2p pour les mots couverts
+    WIKT = {}
+    wp = os.path.join(HERE, 'wikt_lex_fr.tsv')
+    if os.path.exists(wp):
+        for line in open(wp, encoding='utf-8'):
+            c = line.rstrip('\n').split('\t')
+            if len(c) >= 3 and c[0] and c[2]: WIKT.setdefault(c[0], c[2])
+    def wikt_ph(w):
+        ipa = WIKT.get(w)
+        if not ipa: return None
+        out = []
+        for ch in ipa:
+            if ch == '̃':
+                if out: out[-1] = NAS.get(out[-1], out[-1])
+            elif ch in '.ˈˌ ‿ːˑ()-': continue
+            else:
+                o = IPA2O.get(ch)
+                if o: out.append(o)
+        return ''.join(out) or None
     FREQ = {}; POS = {}
     with gzip.open(SPELLER, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -94,7 +113,7 @@ def build_index():
                 if len(p) >= 3: POS[p[0]] = p[2]
     PH2W = defaultdict(list)
     for w in FREQ:
-        ph = D.W2P.get(w) or g2p_sampa(w)
+        ph = D.W2P.get(w) or wikt_ph(w) or g2p_sampa(w)   # W2P > Wiktionnaire IPA > g2p deviné
         if ph: PH2W[ph].append(w)
     for w, ph in D.W2P.items():
         if w not in FREQ and ph: PH2W[ph].append(w)
