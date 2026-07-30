@@ -225,7 +225,7 @@
         if(ready){ try{ applyAll(); }catch(e){} }   // SAISIE VOCALE = AUTOMATIQUE : on applique le rouge FP=0 tout seul (la ponctuation vient de la prosodie) — pas de « Tout corriger » à cliquer. Réversible (_undoSnap). Le typé, lui, reste manuel (pédagogie dys).
         if(err) st(({'not-allowed':'micro refusé — autorise-le pour ce site','service-not-allowed':'service vocal indisponible — utilise Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
         else if(tr.a&&!tr.s) st('rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans Chrome');
-        else st('✓ ponctué + corrigé automatiquement — clique « Copier »'); };
+        else st('✓ ponctué + corrigé — clique « Copier »  ·  audio '+((S.au&&S.au.tl)?S.au.tl.length:0)+'f'); };
       recording=true; mic.textContent='⏹ Stop'; mic.classList.add('rec'); st('🎤 démarrage…');
       rec.start();
     }catch(e){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); st('démarrage impossible : '+((e&&e.name)||'erreur')); }
