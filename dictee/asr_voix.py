@@ -338,6 +338,24 @@ def run(wav, dbg=None):
         out.append(assemble(dec, pz) + term)
     return ' '.join(out)
 
+# ── Front-end WHISPER LOCAL (poids ouverts, PAS Google) — mesuré 98 % sur voix dys réelle, ponctuation
+#    + majuscules + « ? » inclus (small). Écrase la voie phon (81 %) pour un usage réel ; la voie phon
+#    reste la preuve de recherche. Whisper sort déjà du français propre → correcteur OMEGA superflu ici. ──
+_WMODEL = {}
+def whisper_load(size='small'):
+    from faster_whisper import WhisperModel
+    if size not in _WMODEL:
+        _WMODEL[size] = WhisperModel(size, device='cpu', compute_type='int8')
+    return _WMODEL[size]
+
+def whisper_transcribe(wav, size='small'):
+    import soundfile as sf
+    m = whisper_load(size)
+    a, sr = sf.read(wav)
+    if getattr(a, 'ndim', 1) > 1: a = a.mean(1)
+    segs, _ = m.transcribe(a.astype('float32'), language='fr', beam_size=5)
+    return ' '.join(s.text.strip() for s in segs).strip()
+
 def list_devices():
     try: import sounddevice as sd
     except ImportError: die("pip install sounddevice")
