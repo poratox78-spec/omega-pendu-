@@ -202,12 +202,59 @@
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
   function stopRec() { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} }
+  // ── PROSODIE PARALLÈLE (voie A) — identique au site : Web Speech ne donne que du texte ; on capte le micro
+  //    nous-mêmes (Web Audio, zéro modèle) → silence → « , . », pitch (F0) → « ? », ancrés sur les segments
+  //    finaux. Dégradant : getUserMedia async ne peut pas casser startRec, fallback capV() seul. NON testé sans micro.
+  function _f0(buf, sr){ var n=buf.length, m=0, i, best=0, bc=0, lo=(sr/350)|0, hi=(sr/75)|0;
+    for(i=0;i<n;i++)m+=buf[i]; m/=n;
+    for(var lag=lo; lag<=hi && lag<n; lag++){ var c=0; for(i=0;i<n-lag;i++)c+=(buf[i]-m)*(buf[i+lag]-m); if(c>bc){bc=c;best=lag;} }
+    return best>0 ? sr/best : 0; }
+  function audioStart(S){ try{ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return;
+      navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+        var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+        var ac=new AC(), sr=ac.sampleRate, src=ac.createMediaStreamSource(stream), an=ac.createAnalyser();
+        try{ ac.resume&&ac.resume(); }catch(e){}   // AudioContext démarre suspendu (autoplay) → réveiller, sinon 0 donnée audio
+        an.fftSize=1024; src.connect(an); var buf=new Float32Array(an.fftSize); S.au={ac:ac, stream:stream, tl:[], maxr:0};
+        S.au.iv=setInterval(function(){ try{ an.getFloatTimeDomainData(buf);
+          var r=0,i; for(i=0;i<buf.length;i++)r+=buf[i]*buf[i]; r=Math.sqrt(r/buf.length); if(r>S.au.maxr)S.au.maxr=r;
+          S.au.tl.push({t:Date.now()-S.t0, r:r, f:r>0.012?_f0(buf,sr):0}); }catch(e){} },30);
+      }).catch(function(){}); }catch(e){} }
+  function audioStop(S){ try{ if(S.au){ clearInterval(S.au.iv); try{S.au.ac.close();}catch(e){} try{S.au.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} } }catch(e){} }
+  function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue; if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
+  function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
+    if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
+    function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
+    var mt=med(tail), mb=med(body); return (mb>0&&mt>0)? 12*Math.log(mt/mb)/Math.log(2) : 0; }
+  // MIX règles + voix : frontières de segments finaux (pauses Web Speech, sans getUserMedia) + règles
+  // (point/virgule + normalisation de la majuscule d'amorce Google) ; audio en refinement si dispo.
+  function prosodyText(S){
+    var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
+    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+    if(!segs.length) return null;
+    var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
+    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
+    function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
+    var out=(S.base.trim()?S.base.trim()+' ':'');
+    for(var s=0;s<segs.length;s++){
+      if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
+        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
+        else if(CONT.test(nx.t)) mk=',';
+        else mk='.';
+        out=out.replace(/\s*$/,'')+mk+' '; }
+      out+=segs[s].t; }
+    var last=segs[segs.length-1];
+    return capV(out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.')); }
+  function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
       rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      var base = ta.value, gotAny = false, lastErr = '', tr = { a: 0, s: 0 }, finals = {};
+      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, au: null, tEnd: 0 };
+      var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
+      audioStart(S);
       rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
       rec.onaudiostart = function () { tr.a = 1; };
       rec.onspeechstart = function () { tr.s = 1; voiceStatus('🎤 je t’entends…'); };
@@ -217,11 +264,11 @@
         var intr = '';
         for (var i = ev.resultIndex; i < ev.results.length; i++) {
           var r = ev.results[i];
-          if (r.isFinal) finals[i] = r[0].transcript.trim(); else intr += r[0].transcript;
+          if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
         }
-        var parts = []; if (base.trim()) parts.push(base.trim());
-        var ks = Object.keys(finals).map(Number).sort(function (a, b) { return a - b; });
-        for (var k = 0; k < ks.length; k++) { if (finals[ks[k]]) parts.push(finals[ks[k]]); }
+        var parts = []; if (S.base.trim()) parts.push(S.base.trim());
+        var ks = Object.keys(S.finals).map(Number).sort(function (a, b) { return a - b; });
+        for (var k = 0; k < ks.length; k++) { if (S.finals[ks[k]]) parts.push(S.finals[ks[k]]); }
         if (intr.trim()) parts.push(intr.trim());
         if (ks.length || intr.trim()) gotAny = true;
         ta.value = parts.join(' ');
@@ -230,10 +277,13 @@
       rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
       rec.onend = function () {
         recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
-        runNow();   // NE PAS effacer : on garde le texte affiché (finals + dernier interim)
+        S.tEnd = Date.now() - S.t0; audioStop(S);
+        var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
+        ta.value = pt || capV(ta.value);
+        runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
         if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
         else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
-        else if (ready) voiceStatus('prêt');
+        else if (ready) voiceStatus('✓ ponctué + corrigé — copie & colle  ·  audio ' + ((S.au && S.au.tl) ? S.au.tl.length : 0) + 'f');
       };
       recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec'); voiceStatus('🎤 démarrage…');
       rec.start();

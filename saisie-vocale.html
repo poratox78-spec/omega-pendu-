@@ -143,28 +143,92 @@
   try{ von.checked=localStorage.getItem('omVoiceSite')==='1'; }catch(e){}
   setOn(von.checked);
   von.addEventListener('change',function(){ try{ localStorage.setItem('omVoiceSite',von.checked?'1':'0'); }catch(e){} setOn(von.checked); });
+  // ── PROSODIE PARALLÈLE (voie A) : Web Speech ne donne que du texte ; on capte le micro NOUS-MÊMES
+  // (Web Audio) pour récupérer le SILENCE (→ virgule/point) et le PITCH (→ « ? »), ancrés sur les
+  // frontières de segments finaux de Google (Web Speech finalise sur les pauses). Zéro modèle, tout local
+  // côté client. Dégradant en douceur : toute erreur → capitalize() seul (comportement actuel). NON testé
+  // sans micro → à valider en live. Seuils repris de voie B (virgule ~190 ms, point ~600 ms, « ? » +4 1/2t).
+  function _f0(buf, sr){ var n=buf.length, m=0, i, best=0, bc=0, lo=(sr/350)|0, hi=(sr/75)|0;
+    for(i=0;i<n;i++)m+=buf[i]; m/=n;
+    for(var lag=lo; lag<=hi && lag<n; lag++){ var c=0; for(i=0;i<n-lag;i++)c+=(buf[i]-m)*(buf[i+lag]-m); if(c>bc){bc=c;best=lag;} }
+    return best>0 ? sr/best : 0; }
+  function audioStart(state){
+    try{ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return;
+      navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+        var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+        var ac=new AC(), sr=ac.sampleRate, src=ac.createMediaStreamSource(stream), an=ac.createAnalyser();
+        try{ ac.resume&&ac.resume(); }catch(e){}   // AudioContext démarre suspendu (autoplay) → réveiller, sinon 0 donnée audio
+        an.fftSize=1024; src.connect(an); var buf=new Float32Array(an.fftSize);
+        state.au={ac:ac, stream:stream, tl:[], maxr:0};
+        state.au.iv=setInterval(function(){ try{ an.getFloatTimeDomainData(buf);
+          var r=0,i; for(i=0;i<buf.length;i++)r+=buf[i]*buf[i]; r=Math.sqrt(r/buf.length);
+          if(r>state.au.maxr)state.au.maxr=r;
+          state.au.tl.push({t:Date.now()-state.t0, r:r, f:r>0.012?_f0(buf,sr):0}); }catch(e){} },30);
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function audioStop(state){ try{ if(state.au){ clearInterval(state.au.iv); try{state.au.ac.close();}catch(e){}
+    try{state.au.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} } }catch(e){} }
+  function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue;
+    if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
+  function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
+    if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0); var tail=v.slice(-q), body=v.slice(0,-q);
+    function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
+    var mt=med(tail), mb=med(body); return (mb>0&&mt>0)? 12*Math.log(mt/mb)/Math.log(2) : 0; }
+  // MIX règles + voix : la VOIX fiable = les frontières de segments finaux (Web Speech finalise sur les
+  // pauses, sans getUserMedia) ; les RÈGLES décident point/virgule + normalisent la majuscule d'amorce que
+  // Google colle à chaque segment (sinon maj mal placées). L'audio (s'il a marché) affine point/virgule/« ? ».
+  function prosodyText(state){
+    var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;});
+    var segs=[]; for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+    if(!segs.length) return null;
+    var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
+    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    var au=state.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
+    function riseAt(idx){ return (useAudio&&idx!=null&&state.ftimes[idx]!=null)?riseEndingAt(au.tl,state.ftimes[idx]-500,state.ftimes[idx]):0; }
+    var out=(state.base.trim()?state.base.trim()+' ':'');
+    for(var s=0;s<segs.length;s++){
+      if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
+        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(state.ftimes[pv.idx]||0)-100,(state.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
+        else if(CONT.test(nx.t)) mk=',';
+        else mk='.';
+        out=out.replace(/\s*$/,'')+mk+' '; }
+      out+=segs[s].t;
+    }
+    var last=segs[segs.length-1];
+    out=out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.');
+    return capitalize(out);
+  }
   function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec)rec.stop(); }catch(e){} }
   function start(){
     if(!SR){ st('reconnaissance : utilise Chrome ou Edge'); return; }
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
     try{
       rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
-      var base=ta.value, tr={a:0,s:0}, err='', finals={};
+      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
+      var tr={a:0,s:0}, err='';
+      audioStart(S);
       rec.onstart=function(){ st('🎤 micro ouvert — parle…'); };
       rec.onaudiostart=function(){ tr.a=1; };
       rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
-      rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android (mot tapé plusieurs fois quand les segments finalisés sont ré-émis)
-        for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal)finals[i]=r[0].transcript.trim(); else intr+=r[0].transcript; }
-        var parts=[]; if(base.trim())parts.push(base.trim());
-        var ks=Object.keys(finals).map(Number).sort(function(a,b){return a-b;});
-        for(var k=0;k<ks.length;k++){ if(finals[ks[k]])parts.push(finals[ks[k]]); }
+      rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android
+        for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i];
+          if(r.isFinal){ S.finals[i]=r[0].transcript.trim(); if(S.ftimes[i]==null)S.ftimes[i]=Date.now()-S.t0; } else intr+=r[0].transcript; }
+        var parts=[]; if(S.base.trim())parts.push(S.base.trim());
+        var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;});
+        for(var k=0;k<ks.length;k++){ if(S.finals[ks[k]])parts.push(S.finals[ks[k]]); }
         if(intr.trim())parts.push(intr.trim());
         ta.value=parts.join(' '); st('🎤 transcription…'); };
       rec.onerror=function(ev){ err=ev.error||'inconnue'; };
-      rec.onend=function(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); ta.value=capitalize(ta.value); runNow();
+      rec.onend=function(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec');
+        S.tEnd=Date.now()-S.t0; audioStop(S);
+        var pt=null; try{ pt=prosodyText(S); }catch(e){}         // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
+        ta.value=pt||capitalize(ta.value); runNow();
+        if(ready){ try{ applyAll(); }catch(e){} }   // SAISIE VOCALE = AUTOMATIQUE : on applique le rouge FP=0 tout seul (la ponctuation vient de la prosodie) — pas de « Tout corriger » à cliquer. Réversible (_undoSnap). Le typé, lui, reste manuel (pédagogie dys).
         if(err) st(({'not-allowed':'micro refusé — autorise-le pour ce site','service-not-allowed':'service vocal indisponible — utilise Chrome','no-speech':'rien entendu — parle plus près du micro','audio-capture':'aucun micro détecté','network':'réseau indisponible — la voix a besoin d’internet'})[err]||('erreur : '+err));
         else if(tr.a&&!tr.s) st('rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans Chrome');
-        else st('prêt — clique « Copier »'); };
+        else st('✓ ponctué + corrigé — clique « Copier »  ·  audio '+((S.au&&S.au.tl)?S.au.tl.length:0)+'f'); };
       recording=true; mic.textContent='⏹ Stop'; mic.classList.add('rec'); st('🎤 démarrage…');
       rec.start();
     }catch(e){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); st('démarrage impossible : '+((e&&e.name)||'erreur')); }

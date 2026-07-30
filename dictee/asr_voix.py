@@ -66,7 +66,7 @@ def load_am():
 
 # ── index de prononciation (homophones + voisins) sur les 214 k du speller ──
 def build_index():
-    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v2.pkl')
+    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v4.pkl')   # v3 apostrophes ; v4 : + prononciations Wiktionnaire IPA
     if os.path.exists(cache):
         return pickle.load(open(cache, 'rb'))
     print('… construction de l’index de prononciation (une fois)', file=sys.stderr)
@@ -84,6 +84,25 @@ def build_index():
                     o = IPA2O.get(ch)
                     if o: out.append(o)
         return ''.join(out)
+    # prononciations Wiktionnaire IPA (dictee/wikt_lex_fr.tsv, col 3) — plus précises que g2p pour les mots couverts
+    WIKT = {}
+    wp = os.path.join(HERE, 'wikt_lex_fr.tsv')
+    if os.path.exists(wp):
+        for line in open(wp, encoding='utf-8'):
+            c = line.rstrip('\n').split('\t')
+            if len(c) >= 3 and c[0] and c[2]: WIKT.setdefault(c[0], c[2])
+    def wikt_ph(w):
+        ipa = WIKT.get(w)
+        if not ipa: return None
+        out = []
+        for ch in ipa:
+            if ch == '̃':
+                if out: out[-1] = NAS.get(out[-1], out[-1])
+            elif ch in '.ˈˌ ‿ːˑ()-': continue
+            else:
+                o = IPA2O.get(ch)
+                if o: out.append(o)
+        return ''.join(out) or None
     FREQ = {}; POS = {}
     with gzip.open(SPELLER, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -94,10 +113,20 @@ def build_index():
                 if len(p) >= 3: POS[p[0]] = p[2]
     PH2W = defaultdict(list)
     for w in FREQ:
-        ph = D.W2P.get(w) or g2p_sampa(w)
+        ph = D.W2P.get(w) or wikt_ph(w) or g2p_sampa(w)   # W2P > Wiktionnaire IPA > g2p deviné
         if ph: PH2W[ph].append(w)
     for w, ph in D.W2P.items():
         if w not in FREQ and ph: PH2W[ph].append(w)
+    # mots à APOSTROPHE/élision (aujourd'hui, d'accord, c'est, qu'il…) — absents du speller = trou de rappel
+    # mesuré (+4 % sur voix dys) ; g2p pour la prononciation. Idée de Rem : « nos listes de mots au rappel ».
+    elis = os.path.join(HERE, 'elision_recall.txt')
+    if os.path.exists(elis):
+        for line in open(elis, encoding='utf-8'):
+            w = line.strip()
+            if not w: continue
+            ph = D.W2P.get(w) or g2p_sampa(w)
+            if ph:
+                PH2W[ph].append(w); FREQ.setdefault(w, 5000)
     PH2W = dict(PH2W)
     pickle.dump((PH2W, FREQ, POS), open(cache, 'wb'))
     return PH2W, FREQ, POS
@@ -122,9 +151,35 @@ def load_lm():
 
 # ── globals initialisés dans main() ──
 TORCH = PROC = AM = None
-PH2W = FREQ = POS = BYLEN = None
+PH2W = FREQ = POS = BYLEN = LEX = None
 LU = L2 = L3 = None
 PAD = BAR = None
+_ALPHA = 'abcdefghijklmnopqrstuvwxyzàâäéèêëîïôöùûüçœ'
+
+def _edits1(w):                        # voisins ORTHO (édition de lettres) — route ortho du pendu
+    sp = [(w[:i], w[i:]) for i in range(len(w) + 1)]
+    out = set(l + r[1:] for l, r in sp if r)                                  # suppression
+    out |= set(l + r[1] + r[0] + r[2:] for l, r in sp if len(r) > 1)          # transposition
+    out |= set(l + c + r[1:] for l, r in sp if r for c in _ALPHA)             # substitution
+    out |= set(l + c + r for l, r in sp for c in _ALPHA)                      # insertion
+    return out
+
+def recover_nonword(w, phon):
+    """NON-MOT -> vrai mot par DOUBLE-ROUTE (pendu) : rappel phon élargi (edit<=3) + voisins ortho, arbitré fréquence.
+       Ne s'appelle QUE sur un non-mot (safe : ne touche jamais un vrai mot)."""
+    from collections import Counter
+    cand = Counter()
+    if phon:                                                                  # route PHON : prononciation proche
+        L = len(phon)
+        for dl in range(-3, 4):
+            for ph in BYLEN.get(L + dl, ()):
+                if lev(phon, ph, 3) <= 3:
+                    for x in PH2W[ph]:
+                        if x in LEX: cand[x] += FREQ.get(x, 1) * 3
+    lw = w.lower()
+    for x in _edits1(lw):                                                     # route ORTHO : voisins de lettres
+        if x in LEX: cand[x] += FREQ.get(x, 1)
+    return cand.most_common(1)[0][0] if cand else w
 
 def _is_adjlike(h):   # un adjectif/participe (pour ne jamais muer un adj en NOM/VERBE de même son)
     return ('A' in (POS.get(h, '') if POS else '')) or h.lower().endswith(
@@ -328,7 +383,23 @@ def run(wav, dbg=None):
         dec = viterbi([cands(w) for w in phs])
         if dbg is not None: dbg.append('décodé   : ' + ' '.join(dec))
         dec = agree(dec)
-        dec = correcteur(dec)
+        # récup NON-MOTS par double-route pendu (phon+ortho) — ne touche que les non-mots (safe)
+        for i in range(min(len(dec), len(phs))):
+            if len(dec[i]) > 1 and dec[i] not in LEX:
+                r = recover_nonword(dec[i], phs[i])
+                if r != dec[i] and dbg is not None: dbg.append('  non-mot %s -> %s' % (dec[i], r))
+                dec[i] = r
+        # CORRECTEUR AVEC PONCTUATION (idée de Rem : POS + ponctuation claire désambiguïsent).
+        # On lui donne le texte PONCTUÉ (virgules prosodiques) → son _SEG a les frontières de proposition
+        # → le parseur de sujet / POS / règles homophones travaillent avec la structure, pas à l'aveugle.
+        pz = pauses[:len(dec)] + [0] * max(0, len(dec) - len(pauses))
+        ptext = assemble(dec, pz)
+        cor = C.correct(ptext)
+        if cor:
+            T = C.toks(ptext)
+            for idx, ty, su, nm in cor:
+                if idx < len(T): T[idx] = su
+            dec = [x.lower() for x in T]
         pz = pauses[:len(dec)] + [0] * max(0, len(dec) - len(pauses))
         # PITCH -> « ? » : si la fin de la phrase monte assez (mesuré sur l'audio de la phrase)
         span = a[sent[0][2] * STRIDE: sent[-1][3] * STRIDE]
@@ -375,7 +446,7 @@ def record(sec, device=None):
 
 def init():
     """Charge le modèle acoustique + l'index + le LM (une fois). Réutilisable par l'interface graphique."""
-    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LU, L2, L3, PAD, BAR
+    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LEX, LU, L2, L3, PAD, BAR
     if AM is not None: return
     TORCH, PROC, AM = load_am()
     PAD = PROC.tokenizer.pad_token_id
@@ -383,6 +454,7 @@ def init():
     PH2W, FREQ, POS = build_index()
     BYLEN = defaultdict(list)
     for ph in PH2W: BYLEN[len(ph)].append(ph)
+    LEX = set(FREQ) | set(D.W2P)                       # lexique pour détecter les non-mots
     LU, L2, L3 = load_lm()
 
 def main():
