@@ -33,7 +33,7 @@ from correcteur_probe import deacc
 
 MODEL = 'Cnam-LMSSC/wav2vec2-french-phonemizer'
 SPELLER = os.path.join(HERE, '..', 'extension', 'assets', 'speller.tsv.gz')
-LM_PATH = os.path.join(HERE, 'os_subj_lm.json.gz')
+LM_PATH = os.path.join(HERE, 'os_subj_lm.json.gz')   # petit LM : MESURÉ > gros LM WiCoPaCo sur registre chat (piège de fréquence Wikipédia) — cf build_asr_lm.py
 FR_MS = 20                       # ~20 ms / frame (wav2vec2 base)
 COMMA_MS, PERIOD_MS = 190, 750   # seuils de silence (virgule ~320 ; POINT ~1000+ : au-dessus de 750 pour ne PAS couper sur une respiration intra-phrase ~500 ms qui ferait un faux « ? »)
 STRIDE = 320                     # échantillons par frame wav2vec2 (20 ms @ 16 kHz) : frame -> position audio
@@ -159,13 +159,14 @@ def cands(seg, A=6, K=18):
         out = [(w, -A * d) for w, d in lst]
     _RC[seg] = out; return out
 
+LAM = 1.0                              # poids du LM en shallow-fusion (émission-son + LAM·LM) — réglable
 def viterbi(seq):                      # décodage trigramme (émission + LM)
     beam = {('<s>', '<s>'): (0.0, ['<s>', '<s>'])}
     for cs in seq:
         nb = {}
         for (p2, p1), (sc, path) in beam.items():
             for sp, em in cs:
-                v = sc + em + L3(sp, p2, p1); nk = (p1, sp)
+                v = sc + em + LAM * L3(sp, p2, p1); nk = (p1, sp)
                 if nk not in nb or v > nb[nk][0]: nb[nk] = (v, path + [sp])
         beam = nb or beam
     return max(beam.values(), key=lambda x: x[0])[1][2:]
