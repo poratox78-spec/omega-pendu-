@@ -180,21 +180,24 @@
   // Google colle à chaque segment (sinon maj mal placées). L'audio (s'il a marché) affine point/virgule/« ? ».
   function prosodyText(state){
     var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;});
-    var segs=[]; for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim(); if(t)segs.push({txt:t,idx:ks[k]}); }
+    var segs=[]; for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
     if(!segs.length) return null;
-    var CONT=/^(et|mais|ou|où|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
+    var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
+    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
     var au=state.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
+    function riseAt(idx){ return (useAudio&&idx!=null&&state.ftimes[idx]!=null)?riseEndingAt(au.tl,state.ftimes[idx]-500,state.ftimes[idx]):0; }
     var out=(state.base.trim()?state.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
-      var seg=segs[s].txt; seg=seg.charAt(0).toLowerCase()+seg.slice(1);   // enlève la MAJUSCULE d'amorce de Google (artefact/segment) → capitalize() re-décidera
-      if(s===0){ out+=seg; continue; }
-      var mark='.';                                                        // frontière de segment = pause → point par défaut
-      if(useAudio){ var ft=state.ftimes[segs[s].idx], pt=state.ftimes[segs[s-1].idx];
-        if(ft!=null&&pt!=null){ var sil=silBetween(au.tl,thr,pt-100,ft), q=riseEndingAt(au.tl,pt-500,pt); mark=q>4?'?':(sil>=600?'.':','); } }
-      if(CONT.test(seg)) mark=',';                                         // RÈGLE : mot de liaison en tête → virgule (continuation, pas nouvelle phrase)
-      out=out.replace(/\s*$/,'')+mark+' '+seg;
+      if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
+        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(state.ftimes[pv.idx]||0)-100,(state.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
+        else if(CONT.test(nx.t)) mk=',';
+        else mk='.';
+        out=out.replace(/\s*$/,'')+mk+' '; }
+      out+=segs[s].t;
     }
-    out=out.replace(/\s*$/,'')+'.';
+    var last=segs[segs.length-1];
+    out=out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.');
     return capitalize(out);
   }
   function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec)rec.stop(); }catch(e){} }

@@ -229,18 +229,23 @@
   // (point/virgule + normalisation de la majuscule d'amorce Google) ; audio en refinement si dispo.
   function prosodyText(S){
     var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
-    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({txt:t,idx:ks[k]}); }
+    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
     if(!segs.length) return null;
-    var CONT=/^(et|mais|ou|où|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
-    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0, out=(S.base.trim()?S.base.trim()+' ':'');
-    for(var s=0;s<segs.length;s++){ var seg=segs[s].txt; seg=seg.charAt(0).toLowerCase()+seg.slice(1);   // enlève la MAJ d'amorce/segment (Google) → capV re-décidera
-      if(s===0){ out+=seg; continue; }
-      var mark='.';
-      if(useAudio){ var ft=S.ftimes[segs[s].idx], pt2=S.ftimes[segs[s-1].idx];
-        if(ft!=null&&pt2!=null){ var sil=silBetween(au.tl,thr,pt2-100,ft), q=riseEndingAt(au.tl,pt2-500,pt2); mark=q>4?'?':(sil>=600?'.':','); } }
-      if(CONT.test(seg)) mark=',';
-      out=out.replace(/\s*$/,'')+mark+' '+seg; }
-    return capV(out.replace(/\s*$/,'')+'.'); }
+    var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
+    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
+    function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
+    var out=(S.base.trim()?S.base.trim()+' ':'');
+    for(var s=0;s<segs.length;s++){
+      if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
+        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
+        else if(CONT.test(nx.t)) mk=',';
+        else mk='.';
+        out=out.replace(/\s*$/,'')+mk+' '; }
+      out+=segs[s].t; }
+    var last=segs[segs.length-1];
+    return capV(out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.')); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
