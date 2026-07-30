@@ -157,6 +157,7 @@
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
         var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
         var ac=new AC(), sr=ac.sampleRate, src=ac.createMediaStreamSource(stream), an=ac.createAnalyser();
+        try{ ac.resume&&ac.resume(); }catch(e){}   // AudioContext démarre suspendu (autoplay) → réveiller, sinon 0 donnée audio
         an.fftSize=1024; src.connect(an); var buf=new Float32Array(an.fftSize);
         state.au={ac:ac, stream:stream, tl:[], maxr:0};
         state.au.iv=setInterval(function(){ try{ an.getFloatTimeDomainData(buf);

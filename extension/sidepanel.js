@@ -213,6 +213,7 @@
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
         var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
         var ac=new AC(), sr=ac.sampleRate, src=ac.createMediaStreamSource(stream), an=ac.createAnalyser();
+        try{ ac.resume&&ac.resume(); }catch(e){}   // AudioContext démarre suspendu (autoplay) → réveiller, sinon 0 donnée audio
         an.fftSize=1024; src.connect(an); var buf=new Float32Array(an.fftSize); S.au={ac:ac, stream:stream, tl:[], maxr:0};
         S.au.iv=setInterval(function(){ try{ an.getFloatTimeDomainData(buf);
           var r=0,i; for(i=0;i<buf.length;i++)r+=buf[i]*buf[i]; r=Math.sqrt(r/buf.length); if(r>S.au.maxr)S.au.maxr=r;
