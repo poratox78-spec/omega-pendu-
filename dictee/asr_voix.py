@@ -66,7 +66,7 @@ def load_am():
 
 # ── index de prononciation (homophones + voisins) sur les 214 k du speller ──
 def build_index():
-    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v2.pkl')
+    cache = os.path.join(tempfile.gettempdir(), 'omega_asr_pron_v3.pkl')   # v3 : + mots à apostrophe au rappel
     if os.path.exists(cache):
         return pickle.load(open(cache, 'rb'))
     print('… construction de l’index de prononciation (une fois)', file=sys.stderr)
@@ -98,6 +98,16 @@ def build_index():
         if ph: PH2W[ph].append(w)
     for w, ph in D.W2P.items():
         if w not in FREQ and ph: PH2W[ph].append(w)
+    # mots à APOSTROPHE/élision (aujourd'hui, d'accord, c'est, qu'il…) — absents du speller = trou de rappel
+    # mesuré (+4 % sur voix dys) ; g2p pour la prononciation. Idée de Rem : « nos listes de mots au rappel ».
+    elis = os.path.join(HERE, 'elision_recall.txt')
+    if os.path.exists(elis):
+        for line in open(elis, encoding='utf-8'):
+            w = line.strip()
+            if not w: continue
+            ph = D.W2P.get(w) or g2p_sampa(w)
+            if ph:
+                PH2W[ph].append(w); FREQ.setdefault(w, 5000)
     PH2W = dict(PH2W)
     pickle.dump((PH2W, FREQ, POS), open(cache, 'wb'))
     return PH2W, FREQ, POS
