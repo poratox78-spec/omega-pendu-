@@ -224,16 +224,22 @@
     if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
     function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
     var mt=med(tail), mb=med(body); return (mb>0&&mt>0)? 12*Math.log(mt/mb)/Math.log(2) : 0; }
-  function prosodyText(S){ var au=S.au; if(!au||!au.tl.length) return null;
+  // MIX règles + voix : frontières de segments finaux (pauses Web Speech, sans getUserMedia) + règles
+  // (point/virgule + normalisation de la majuscule d'amorce Google) ; audio en refinement si dispo.
+  function prosodyText(S){
     var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
     for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({txt:t,idx:ks[k]}); }
     if(!segs.length) return null;
-    var thr=Math.max(0.008, au.maxr*0.18), COMMA=190, PERIOD=600, QR=4, out=(S.base.trim()?S.base.trim()+' ':'');
-    for(var s=0;s<segs.length;s++){ var ft=S.ftimes[segs[s].idx]!=null?S.ftimes[segs[s].idx]:null;
-      if(s>0){ var pt2=S.ftimes[segs[s-1].idx], sil=silBetween(au.tl,thr,pt2!=null?pt2-100:0,ft!=null?ft:1e9), q=riseEndingAt(au.tl,(pt2!=null?pt2-500:0),(pt2!=null?pt2:1e9));
-        out=out.replace(/\s*$/,'')+(q>QR?'? ':(sil>=PERIOD?'. ':(sil>=COMMA?', ':' '))); }
-      out+=segs[s].txt; }
-    var lr=riseEndingAt(au.tl,(S.tEnd||0)-700,(S.tEnd||1e9)); return out.replace(/\s*$/,'')+(lr>QR?'?':'.'); }
+    var CONT=/^(et|mais|ou|où|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
+    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0, out=(S.base.trim()?S.base.trim()+' ':'');
+    for(var s=0;s<segs.length;s++){ var seg=segs[s].txt; seg=seg.charAt(0).toLowerCase()+seg.slice(1);   // enlève la MAJ d'amorce/segment (Google) → capV re-décidera
+      if(s===0){ out+=seg; continue; }
+      var mark='.';
+      if(useAudio){ var ft=S.ftimes[segs[s].idx], pt2=S.ftimes[segs[s-1].idx];
+        if(ft!=null&&pt2!=null){ var sil=silBetween(au.tl,thr,pt2-100,ft), q=riseEndingAt(au.tl,pt2-500,pt2); mark=q>4?'?':(sil>=600?'.':','); } }
+      if(CONT.test(seg)) mark=',';
+      out=out.replace(/\s*$/,'')+mark+' '+seg; }
+    return capV(out.replace(/\s*$/,'')+'.'); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
@@ -266,8 +272,8 @@
       rec.onend = function () {
         recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
         S.tEnd = Date.now() - S.t0; audioStop(S);
-        var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation prosodique (silence+pitch)
-        ta.value = capV(pt && pt.length >= ta.value.trim().length ? pt : ta.value);
+        var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
+        ta.value = pt || capV(ta.value);
         runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
         if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
         else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
