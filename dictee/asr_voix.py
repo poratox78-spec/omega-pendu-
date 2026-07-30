@@ -389,7 +389,17 @@ def run(wav, dbg=None):
                 r = recover_nonword(dec[i], phs[i])
                 if r != dec[i] and dbg is not None: dbg.append('  non-mot %s -> %s' % (dec[i], r))
                 dec[i] = r
-        dec = correcteur(dec)
+        # CORRECTEUR AVEC PONCTUATION (idée de Rem : POS + ponctuation claire désambiguïsent).
+        # On lui donne le texte PONCTUÉ (virgules prosodiques) → son _SEG a les frontières de proposition
+        # → le parseur de sujet / POS / règles homophones travaillent avec la structure, pas à l'aveugle.
+        pz = pauses[:len(dec)] + [0] * max(0, len(dec) - len(pauses))
+        ptext = assemble(dec, pz)
+        cor = C.correct(ptext)
+        if cor:
+            T = C.toks(ptext)
+            for idx, ty, su, nm in cor:
+                if idx < len(T): T[idx] = su
+            dec = [x.lower() for x in T]
         pz = pauses[:len(dec)] + [0] * max(0, len(dec) - len(pauses))
         # PITCH -> « ? » : si la fin de la phrase monte assez (mesuré sur l'audio de la phrase)
         span = a[sent[0][2] * STRIDE: sent[-1][3] * STRIDE]
