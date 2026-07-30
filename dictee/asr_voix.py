@@ -151,9 +151,35 @@ def load_lm():
 
 # ── globals initialisés dans main() ──
 TORCH = PROC = AM = None
-PH2W = FREQ = POS = BYLEN = None
+PH2W = FREQ = POS = BYLEN = LEX = None
 LU = L2 = L3 = None
 PAD = BAR = None
+_ALPHA = 'abcdefghijklmnopqrstuvwxyzàâäéèêëîïôöùûüçœ'
+
+def _edits1(w):                        # voisins ORTHO (édition de lettres) — route ortho du pendu
+    sp = [(w[:i], w[i:]) for i in range(len(w) + 1)]
+    out = set(l + r[1:] for l, r in sp if r)                                  # suppression
+    out |= set(l + r[1] + r[0] + r[2:] for l, r in sp if len(r) > 1)          # transposition
+    out |= set(l + c + r[1:] for l, r in sp if r for c in _ALPHA)             # substitution
+    out |= set(l + c + r for l, r in sp for c in _ALPHA)                      # insertion
+    return out
+
+def recover_nonword(w, phon):
+    """NON-MOT -> vrai mot par DOUBLE-ROUTE (pendu) : rappel phon élargi (edit<=3) + voisins ortho, arbitré fréquence.
+       Ne s'appelle QUE sur un non-mot (safe : ne touche jamais un vrai mot)."""
+    from collections import Counter
+    cand = Counter()
+    if phon:                                                                  # route PHON : prononciation proche
+        L = len(phon)
+        for dl in range(-3, 4):
+            for ph in BYLEN.get(L + dl, ()):
+                if lev(phon, ph, 3) <= 3:
+                    for x in PH2W[ph]:
+                        if x in LEX: cand[x] += FREQ.get(x, 1) * 3
+    lw = w.lower()
+    for x in _edits1(lw):                                                     # route ORTHO : voisins de lettres
+        if x in LEX: cand[x] += FREQ.get(x, 1)
+    return cand.most_common(1)[0][0] if cand else w
 
 def _is_adjlike(h):   # un adjectif/participe (pour ne jamais muer un adj en NOM/VERBE de même son)
     return ('A' in (POS.get(h, '') if POS else '')) or h.lower().endswith(
@@ -357,6 +383,12 @@ def run(wav, dbg=None):
         dec = viterbi([cands(w) for w in phs])
         if dbg is not None: dbg.append('décodé   : ' + ' '.join(dec))
         dec = agree(dec)
+        # récup NON-MOTS par double-route pendu (phon+ortho) — ne touche que les non-mots (safe)
+        for i in range(min(len(dec), len(phs))):
+            if len(dec[i]) > 1 and dec[i] not in LEX:
+                r = recover_nonword(dec[i], phs[i])
+                if r != dec[i] and dbg is not None: dbg.append('  non-mot %s -> %s' % (dec[i], r))
+                dec[i] = r
         dec = correcteur(dec)
         pz = pauses[:len(dec)] + [0] * max(0, len(dec) - len(pauses))
         # PITCH -> « ? » : si la fin de la phrase monte assez (mesuré sur l'audio de la phrase)
@@ -404,7 +436,7 @@ def record(sec, device=None):
 
 def init():
     """Charge le modèle acoustique + l'index + le LM (une fois). Réutilisable par l'interface graphique."""
-    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LU, L2, L3, PAD, BAR
+    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LEX, LU, L2, L3, PAD, BAR
     if AM is not None: return
     TORCH, PROC, AM = load_am()
     PAD = PROC.tokenizer.pad_token_id
@@ -412,6 +444,7 @@ def init():
     PH2W, FREQ, POS = build_index()
     BYLEN = defaultdict(list)
     for ph in PH2W: BYLEN[len(ph)].append(ph)
+    LEX = set(FREQ) | set(D.W2P)                       # lexique pour détecter les non-mots
     LU, L2, L3 = load_lm()
 
 def main():
