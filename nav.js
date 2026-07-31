@@ -59,11 +59,54 @@
     if (toggle) nav.insertBefore(frag, toggle); else nav.appendChild(frag);
   }
 
+  // Barre d'accessibilité centrée en haut : thème clair/sombre + taille du texte (loupe, 3 niveaux).
+  // Mémorisée (localStorage), injectée sur toutes les pages, remplace l'ancien bouton « 🔤 Lisible ».
+  function a11y(hdr, wrap) {
+    if (wrap.querySelector('.a11y')) return;
+    var root = document.documentElement, body = document.body;
+    function ls(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function save(k, v){ try { localStorage.setItem(k, v); } catch (e) {} }
+    // migration de l'ancien réglage « Lisible » (clé omega_lisible → niveau de lecture 1)
+    try { if (ls('omega_lisible') && ls('omega_read') == null) save('omega_read', '1'); localStorage.removeItem('omega_lisible'); } catch (e) {}
+
+    var bar = document.createElement('div'); bar.className = 'a11y';
+    var bT = document.createElement('button'); bT.className = 'a11y-btn'; bT.type = 'button';
+    var bS = document.createElement('button'); bS.className = 'a11y-btn'; bS.type = 'button';
+    bar.appendChild(bT); bar.appendChild(bS);
+
+    function applyTheme(t){                                   // thème clair / sombre
+      root.setAttribute('data-theme', t);
+      bT.textContent = t === 'light' ? '🌙' : '☀️';
+      bT.title = t === 'light' ? 'Passer au thème sombre' : 'Passer au thème clair';
+      bT.setAttribute('aria-label', bT.title);
+      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'light' ? '#faf9f6' : '#0d1117');
+    }
+    applyTheme(ls('omega_theme') || 'dark');                 // défaut sombre (identité du site) ; le choix prime et est mémorisé
+    bT.addEventListener('click', function(){ var n = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light'; save('omega_theme', n); applyTheme(n); });
+
+    var LV = ['Normal', 'Grand', 'Très grand'];              // taille du texte (loupe, 3 niveaux)
+    function level(){ var n = parseInt(ls('omega_read') || '0', 10); return (n === 1 || n === 2) ? n : 0; }
+    function applyRead(l){
+      if (l > 0) root.setAttribute('data-read', String(l)); else root.removeAttribute('data-read');
+      body.classList.toggle('lisible', l > 0);               // police dys + espacement dès le niveau 1
+      bS.classList.toggle('on', l > 0);
+      bS.textContent = '🔍';
+      bS.title = 'Taille du texte : ' + LV[l] + ' — cliquer pour ' + (l < 2 ? 'agrandir' : 'revenir à normal');
+      bS.setAttribute('aria-label', bS.title);
+    }
+    applyRead(level());
+    bS.addEventListener('click', function(){ var l = (level() + 1) % 3; save('omega_read', String(l)); applyRead(l); });
+
+    var old = hdr.querySelector('#dys-toggle'); if (old) old.remove();   // remplace l'ancien bouton « Lisible »
+    wrap.appendChild(bar);
+  }
+
   function init() {
     var hdr = document.querySelector('header.top'); if (!hdr) return;
     var wrap = hdr.querySelector('.wrap') || hdr, nav = hdr.querySelector('nav'); if (!nav) return;
     // Pages /en/ : nav propre (2 pages) → on ne réécrit pas les liens fr, on ajoute juste le hamburger.
     if (location.pathname.indexOf('/en/') === -1) { try { buildLinks(nav); } catch (e) {} }
+    try { a11y(hdr, wrap); } catch (e) {}                    // barre accessibilité (thème + taille) — sur toutes les pages, y compris /en/
 
     if (wrap.querySelector('.navtoggle')) return;                 // hamburger déjà posé
     var btn = document.createElement('button');
