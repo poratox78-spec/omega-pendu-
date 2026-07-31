@@ -21,6 +21,7 @@
     ]],
     ['Recherche', [
       ['recherche.html', 'La recherche'],
+      ['donnees.html', 'Données'],
       ['arbitrage.html', "L'arbitrage"],
       ['evolution.html', "L'évolution"],
     ]],
