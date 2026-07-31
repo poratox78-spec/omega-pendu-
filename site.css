@@ -118,3 +118,6 @@ header.top nav{position:absolute;top:calc(100% + 6px);right:0;margin:0;flex-dire
   border-radius:12px;box-shadow:0 14px 38px rgba(0,0,0,.35);display:none;z-index:70;max-height:calc(100vh - 72px);overflow-y:auto}
 header.top.nav-open nav{display:flex}
 header.top nav a{padding:10px 12px;font-size:15px;border-radius:8px}
+/* libellés de groupe dans le dropdown (injectés par nav.js) — structurent les 12 liens pour la lisibilité */
+header.top nav .navsec{padding:10px 12px 3px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2);opacity:.6;pointer-events:none}
+header.top nav .navsec:first-child{padding-top:2px}
