@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lexiques français ouverts & POS-tagger — libres à réutiliser | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/donnees">
+<link rel="canonical" href="https://omegapendu.com/donnees"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Lexiques français ouverts & POS-tagger — libres à réutiliser | OMEGA-Ω"><meta property="og:description" content="Les lexiques français d'OMEGA, retravaillés à la main (tri zéro faux positif, POS-tagger, genre, homophones, morphologie), réunis en un seul paquet et libres à réutiliser."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Lexiques français ouverts & POS-tagger | OMEGA-Ω"><meta name="twitter:description" content="Lexiques français retravaillés (POS-tagger, genre, homophones, morphologie) en un paquet, libres à réutiliser.">
+<meta name="description" content="Les lexiques français d'OMEGA, retravaillés à la main (tri zéro faux positif, POS-tagger, genre des noms, homophones, morphologie) et réunis en un seul paquet — libres à réutiliser pour n'importe quel projet.">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
+<style>
+  .lextab{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
+  .lextab th,.lextab td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .lextab th{color:var(--fg-2);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+  .lextab code{font-size:13px;white-space:nowrap}
+  .lextab .src{color:var(--fg-2);font-size:13px;white-space:nowrap}
+  .lexwrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html">Le pendu</a>
+    <a href="correcteur.html">Le correcteur</a>
+    <a href="dictee.html">La dictée</a>
+    <a href="saisie-vocale.html">Saisie vocale</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="donnees.html" aria-current="page">Données</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Lisible</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Données ouvertes · français · libres à réutiliser</span>
+  <h1>Nos lexiques français, <em>retravaillés</em> — en un seul paquet.</h1>
+  <p class="lead">Pour bâtir le correcteur et la dictée, on a retravaillé à la main les lexiques du français&nbsp;: un lexique orthographique de <strong>~214 000 formes</strong>, le <strong>genre des noms</strong>, les <strong>homophones</strong>, la <strong>morphologie</strong>, un <strong>POS-tagger</strong> — le tout trié à <strong>zéro faux positif</strong>. Le français n'appartient à personne&nbsp;: on les rend <strong>libres à réutiliser</strong>, pour n'importe quel projet.</p>
+  <div class="cta">
+    <a class="btn primary" href="omega-lexiques.zip" download>⬇️ Télécharger le paquet (.zip, ~2,8&nbsp;Mo)</a>
+    <a class="btn ghost" href="https://github.com/poratox78-spec/omega-pendu-">Parcourir sur GitHub</a>
+  </div>
+  <p class="small">Un seul zip contient tout, avec un <code>NOTICE.txt</code> qui décrit chaque fichier. Aucune donnée personnelle&nbsp;: rien qui vienne d'un corpus privé.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Ce qu'il y a dans le paquet</h2>
+  <div class="lexwrap">
+  <table class="lextab">
+    <thead><tr><th>Fichier</th><th>Contenu</th><th>Part de</th></tr></thead>
+    <tbody>
+      <tr><td><code>speller.tsv.gz</code></td><td>Lexique orthographique — ~214&nbsp;000 formes (correction, accents, non-mots).</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
+      <tr><td><code>genre-noms.tsv.gz</code></td><td>Genre des noms à genre non ambigu (pour l'accord).</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
+      <tr><td><code>pos-tagger-hmm.json[.gz]</code></td><td>POS-tagger HMM&nbsp;: émissions + transitions bigramme, décodage Viterbi (version compressée + JSON lisible).</td><td class="src">UD French-GSD · Lexique 4</td></tr>
+      <tr><td><code>noun-post.txt.gz</code></td><td>Contextes post-nominaux (désambiguïsation nom/verbe en contexte).</td><td class="src">Lexique 4</td></tr>
+      <tr><td><code>accord-sujet-verbe-lm.json.gz</code></td><td>Modèle de langue trigramme élagué pour arbitrer l'accord sujet-verbe.</td><td class="src">UD French-GSD</td></tr>
+      <tr><td><code>confusables.json</code></td><td>Groupes de confusables (homophones + paronymes) avec sens.</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
+      <tr><td><code>morpho-lexique4.json</code></td><td>Morphologie&nbsp;: radicaux (md/mb) décodés de Lexique 4.</td><td class="src">Lexique 4</td></tr>
+      <tr><td><code>homophones-phonetiques.json</code></td><td>Groupes d'homophones par clé phonétique.</td><td class="src">Lexique 4</td></tr>
+      <tr><td><code>elision.txt</code></td><td>Mots à apostrophe (élision) pour le rappel.</td><td class="src">UD French-GSD · curé</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small">Formats simples&nbsp;: TSV et JSON (les <code>.gz</code> se décompressent avec n'importe quel outil, <code>gunzip</code> compris).</p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="promise" style="border-left-color:var(--accent)">
+    <h2 style="margin-top:0">Libres à réutiliser</h2>
+    <p>On a fait le gros du travail&nbsp;: extraire, croiser, <strong>curer à zéro faux positif</strong>, entraîner le POS-tagger, poser les clés phonétiques. Sers-t'en pour ce que tu veux. Ces données partent de ressources ouvertes — <strong>Lexique 4</strong> (<a href="http://www.lexique.org/">lexique.org</a>), le <strong>Wiktionnaire</strong> (via <a href="https://kaikki.org/">kaikki.org</a>) et <strong>Universal Dependencies French-GSD</strong> — en <strong>CC BY-SA 4.0</strong>&nbsp;; par correction, garde-les ouvertes et crédite OMEGA-Ω + ces sources si tu réutilises. C'est tout.</p>
+  </div>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <p><strong>OMEGA-Ω</strong> — lexiques français ouverts. Données dérivées de <strong>Lexique&nbsp;4</strong>, du <strong>Wiktionnaire</strong> et d'<strong>Universal Dependencies</strong> (CC&nbsp;BY-SA&nbsp;4.0).</p>
+  <p><a href="index.html">Accueil</a> · <a href="correcteur.html">Le correcteur</a> · <a href="recherche.html">Recherche</a> · <a href="docs/rapport-mode-emploi.html">Rapport</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Code source</a></p>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body>
+</html>
