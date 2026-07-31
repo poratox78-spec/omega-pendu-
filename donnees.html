@@ -50,7 +50,7 @@
 <section class="hero"><div class="wrap">
   <span class="tag">Données ouvertes · français · libres à réutiliser</span>
   <h1>Nos lexiques français, <em>retravaillés</em> — en un seul paquet.</h1>
-  <p class="lead">Pour bâtir le correcteur et la dictée, on a retravaillé à la main les lexiques du français&nbsp;: un lexique orthographique de <strong>~214 000 formes</strong>, le <strong>genre des noms</strong>, les <strong>homophones</strong>, la <strong>morphologie</strong>, un <strong>POS-tagger</strong> — le tout trié à <strong>zéro faux positif</strong>. Le français n'appartient à personne&nbsp;: on les rend <strong>libres à réutiliser</strong>, pour n'importe quel projet.</p>
+  <p class="lead">C'est le lexique du correcteur et de la dictée OMEGA — <strong>retravaillé, complété, curé</strong>, et sensiblement plus utile que la matière première dont il part&nbsp;: <strong>~214 000 formes</strong> (enrichies au Wiktionnaire), le <strong>genre des noms</strong> bouché, les <strong>homophones</strong>, la <strong>morphologie</strong>, et un <strong>POS-tagger</strong> qu'on a entraîné nous-mêmes — le tout trié à <strong>zéro faux positif</strong>. Le français n'appartient à personne&nbsp;: sers-t'en <strong>librement</strong>, pour n'importe quel projet.</p>
   <div class="cta">
     <a class="btn primary" href="omega-lexiques.zip" download>⬇️ Télécharger le paquet (.zip, ~2,8&nbsp;Mo)</a>
     <a class="btn ghost" href="https://github.com/poratox78-spec/omega-pendu-">Parcourir sur GitHub</a>
@@ -62,7 +62,7 @@
   <h2>Ce qu'il y a dans le paquet</h2>
   <div class="lexwrap">
   <table class="lextab">
-    <thead><tr><th>Fichier</th><th>Contenu</th><th>Part de</th></tr></thead>
+    <thead><tr><th>Fichier</th><th>Contenu</th><th>Point de départ</th></tr></thead>
     <tbody>
       <tr><td><code>speller.tsv.gz</code></td><td>Lexique orthographique — ~214&nbsp;000 formes (correction, accents, non-mots).</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
       <tr><td><code>genre-noms.tsv.gz</code></td><td>Genre des noms à genre non ambigu (pour l'accord).</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
@@ -70,7 +70,7 @@
       <tr><td><code>noun-post.txt.gz</code></td><td>Contextes post-nominaux (désambiguïsation nom/verbe en contexte).</td><td class="src">Lexique 4</td></tr>
       <tr><td><code>accord-sujet-verbe-lm.json.gz</code></td><td>Modèle de langue trigramme élagué pour arbitrer l'accord sujet-verbe.</td><td class="src">UD French-GSD</td></tr>
       <tr><td><code>confusables.json</code></td><td>Groupes de confusables (homophones + paronymes) avec sens.</td><td class="src">Lexique 4 · Wiktionnaire</td></tr>
-      <tr><td><code>morpho-lexique4.json</code></td><td>Morphologie&nbsp;: radicaux (md/mb) décodés de Lexique 4.</td><td class="src">Lexique 4</td></tr>
+      <tr><td><code>morpho.json</code></td><td>Morphologie&nbsp;: radicaux (md/mb).</td><td class="src">Lexique 4</td></tr>
       <tr><td><code>homophones-phonetiques.json</code></td><td>Groupes d'homophones par clé phonétique.</td><td class="src">Lexique 4</td></tr>
       <tr><td><code>elision.txt</code></td><td>Mots à apostrophe (élision) pour le rappel.</td><td class="src">UD French-GSD · curé</td></tr>
     </tbody>
@@ -82,14 +82,15 @@
 <section><div class="wrap">
   <div class="promise" style="border-left-color:var(--accent)">
     <h2 style="margin-top:0">Libres à réutiliser</h2>
-    <p>On a fait le gros du travail&nbsp;: extraire, croiser, <strong>curer à zéro faux positif</strong>, entraîner le POS-tagger, poser les clés phonétiques. Sers-t'en pour ce que tu veux. Ces données partent de ressources ouvertes — <strong>Lexique 4</strong> (<a href="http://www.lexique.org/">lexique.org</a>), le <strong>Wiktionnaire</strong> (via <a href="https://kaikki.org/">kaikki.org</a>) et <strong>Universal Dependencies French-GSD</strong> — en <strong>CC BY-SA 4.0</strong>&nbsp;; par correction, garde-les ouvertes et crédite OMEGA-Ω + ces sources si tu réutilises. C'est tout.</p>
+    <p>On a fait le gros du travail — extraire, croiser, <strong>curer à zéro faux positif</strong>, entraîner le POS-tagger, poser les clés phonétiques&nbsp;: c'est <strong>cette version-là</strong> qu'on te donne, prête à l'emploi, pas la matière brute. Sers-t'en pour ce que tu veux.</p>
+    <p class="small" style="margin-bottom:0">Point de départ&nbsp;: <a href="http://www.lexique.org/">Lexique 4</a>, le <a href="https://kaikki.org/">Wiktionnaire</a> et Universal Dependencies French-GSD (CC&nbsp;BY-SA&nbsp;4.0). Par correction&nbsp;: garde-les ouvertes et crédite OMEGA-Ω + ces sources si tu réutilises.</p>
   </div>
 </div></section>
 
 </main>
 
 <footer><div class="wrap">
-  <p><strong>OMEGA-Ω</strong> — lexiques français ouverts. Données dérivées de <strong>Lexique&nbsp;4</strong>, du <strong>Wiktionnaire</strong> et d'<strong>Universal Dependencies</strong> (CC&nbsp;BY-SA&nbsp;4.0).</p>
+  <p><strong>OMEGA-Ω</strong> — lexiques français retravaillés &amp; ouverts. Point de départ&nbsp;: Lexique&nbsp;4, Wiktionnaire, Universal Dependencies (CC&nbsp;BY-SA&nbsp;4.0).</p>
   <p><a href="index.html">Accueil</a> · <a href="correcteur.html">Le correcteur</a> · <a href="recherche.html">Recherche</a> · <a href="docs/rapport-mode-emploi.html">Rapport</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Code source</a></p>
 </div></footer>
 
