@@ -24956,7 +24956,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // « email » SANS accent est laissé de côté : c'est le courriel, son pluriel est « emails ».
   var _PL_OUX={bijou:1,caillou:1,chou:1,genou:1,hibou:1,joujou:1,pou:1};
   var _PL_AILAUX={bail:1,corail:1,"émail":1,soupirail:1,travail:1,vantail:1,vitrail:1};
+  // SUPPLÉTIFS non ambigus (morpho impossible : œil→yeux) → ROUGE FP=0 ; miroir Python _PL_SUPPL
+  var _PL_SUPPL={oeil:'yeux',madame:'mesdames',mademoiselle:'mesdemoiselles',monsieur:'messieurs',bonhomme:'bonshommes',gentilhomme:'gentilshommes'};
   function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),lw=n.toLowerCase(),cands=[];             // pluriel ANCRÉ dans le POSTERIOR (part NOM≥30 % ; posOf faux pour amis/pommes)
+    if(_PL_SUPPL[dn])return ckeepcase(n,_PL_SUPPL[dn]);                                            // supplétif certain → bypass ancre
     if(_PL_OUX[dn])cands.push(n+'x');                                                             // les sept en -oux, AVANT le +s
     if(_PL_AILAUX[lw])cands.push(n.slice(0,-3)+'aux');                                            // travail→travaux (forme ACCENTUÉE pour séparer émail/email)
     cands.push(n+'s');
@@ -25561,7 +25564,7 @@ window.addEventListener('DOMContentLoaded', () => {
   var CARD={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1};
   var CARDINV={cent:1,cents:1,mille:1,vingt:1,vingts:1,million:1,millions:1,milliard:1,milliards:1,demi:1,tiers:1};   // invariables/déjà-pluriel comme CIBLE → pas de +s naïf
   var CARDSTOP={super:1,tout:1,tous:1,toute:1,toutes:1,mi:1,semi:1};   // préfixes/adverbes invariables collés au cardinal → jamais cible d'accord
-  function _plu(w){if(/al$/.test(w))return w.slice(0,-2)+'aux';if(/(eau|au|eu)$/.test(w))return w+'x';return w+'s';}
+  function _plu(w){var d=deaccS(w);if(_PL_SUPPL[d])return _PL_SUPPL[d];if(_PL_OUX[d])return w+'x';if(_PL_AILAUX[w])return w.slice(0,-3)+'aux';if(/al$/.test(d))return w.slice(0,-2)+'aux';if(/(eau|au|eu)$/.test(d))return w+'x';return w+'s';}   // orange : réutilise les listes closes irrégulières + supplétifs (miroir rouge) → « des bail »→baux, « des œil »→yeux
   function pluralVig(T,tg,i){
     if(!tg||i>=tg.length)return null;
     var w=deaccS(T[i].toLowerCase());

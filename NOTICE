@@ -98,6 +98,13 @@ pluriel dont le masculin -é est déjà présent) provient de la même source et
 licence : Wiktionnaire français via kaikki.org, CC BY-SA 4.0, © les
 contributeurs du Wiktionnaire. Il alimente le même bloc speller (CC BY-SA 4.0).
 
+Le fichier `dictee/noun_invariable.txt` (noms français invariables — sans pluriel
+distinct, dérivés per-sens des `forms` de chaque entrée nom) provient de la même
+source et licence : Wiktionnaire via kaikki.org, CC BY-SA 4.0, © les contributeurs
+du Wiktionnaire. RESSOURCE DE RÉFÉRENCE (non embarquée au runtime — l'ancre
+fréquentielle de `_pluralize_noun` tient déjà le FP=0 ; mesuré). Régénérable :
+KAIKKI=kaikki-fr.jsonl python3 dictee/build_invariable_nouns.py.
+
     Attribution : « Lexique du correcteur : Lexique 4 (New et al. 2026) +
       Wiktionnaire (fr.wiktionary.org, via kaikki.org), CC BY-SA 4.0 »
     Régénérable : python3 dictee/build_wikt_lex.py <kaikki.jsonl> <Lexique4.tsv.xz> <out>

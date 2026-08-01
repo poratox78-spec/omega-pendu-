@@ -10,6 +10,11 @@ dictee/glosses_cache.json
 Lexique4.tsv
 Lexique4.tsv.xz
 
+# dump Wiktextract kaikki.org (hors-repo : ~544 Mo ; CC BY-SA ; re-téléchargeable depuis
+# kaikki.org/dictionary/French/kaikki.org-dictionary-French.jsonl) — source des build_wikt_*/build_argot/build_invariable
+kaikki-fr.jsonl
+kaikki*.jsonl
+
 # bundle de test (build output, régénérable via dist/make_test_bundle.sh)
 dist/omega-correcteur-dys-test.zip
 

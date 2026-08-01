@@ -2547,11 +2547,17 @@ def _noun_gate_n(n):                                            # variante SANS 
 
 _PL_OUX = {'bijou', 'caillou', 'chou', 'genou', 'hibou', 'joujou', 'pou'}          # -ou qui prend -x
 _PL_AILAUX = {'bail', 'corail', 'émail', 'soupirail', 'travail', 'vantail', 'vitrail'}   # -ail -> -aux
+# SUPPLÉTIFS : pluriels que la MORPHOLOGIE ne peut pas dériver (source Wiktionnaire, dictee/build_invariable_nouns.py).
+# Liste CLOSE et NON AMBIGUË → ROUGE FP=0. Les ambigus (ciel→cieux/ciels, aïeul→aïeux/aïeuls) EXCLUS : le +s défaut
+# rend déjà une forme VALIDE (ciels/aïeuls), donc pas besoin (et l'ambiguïté irait en orange, pas en rouge).
+_PL_SUPPL = {'oeil': 'yeux', 'madame': 'mesdames', 'mademoiselle': 'mesdemoiselles',
+             'monsieur': 'messieurs', 'bonhomme': 'bonshommes', 'gentilhomme': 'gentilshommes'}
 
 def _pluralize_noun(n):
     """Pluriel ANCRÉ DANS LE POSTERIOR (pas de « oiseaus ») : +s / -al→-aux / -au-eu→+x, on garde la forme dont
     la part NOM ≥ 30 % (le pos_of EMBARQUÉ est FAUX pour amis=ADJ/pommes=VER → l'ancre fréquentielle les récupère)."""
     dn = deacc(n.lower()); lw = n.lower(); cands = []
+    if dn in _PL_SUPPL: return _keepcase(n, _PL_SUPPL[dn])      # supplétif (oeil→yeux) : morpho impossible, forme certaine → bypass ancre
     # Les DEUX familles d'exceptions du pluriel francais, en listes CLOSES (apprises par coeur a
     # l'ecole, elles ne s'etendent pas). Sans elles le moteur produisait un FAUX pluriel :
     # « des travail » -> « travails », « des corail » -> « corails » — pire que se taire.
