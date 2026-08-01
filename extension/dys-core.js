@@ -740,8 +740,8 @@
   }
   var PLURAL_DET={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1};   // classe fermée (parité NUM_DET pluriel)
   var NOUN_PL_STOP={minima:1,maxima:1,media:1,data:1,extra:1,intra:1,euros:1,quanta:1,addenda:1,errata:1,curricula:1,strata:1};
-  function _nounGate(dn){var p=NOUN_POST&&NOUN_POST.get(dn);return !!p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M;}
-  function _nounGateN(dn){var p=NOUN_POST&&NOUN_POST.get(dn);return !!p&&p[0]>=PL_TAU_M;}   // variante SANS veto verbal : réservée aux déterminants pluriels non ambigus (voir rNounPlural)
+  function _nounGate(dn){var p=NOUN_POST&&NOUN_POST.get(dn.replace(/œ/g,'oe'));return !!p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M;}   // NOUN_POST clavé 'oe' → normaliser la ligature (comme _GOE/deaccS)
+  function _nounGateN(dn){var p=NOUN_POST&&NOUN_POST.get(dn.replace(/œ/g,'oe'));return !!p&&p[0]>=PL_TAU_M;}   // variante SANS veto verbal : réservée aux déterminants pluriels non ambigus (voir rNounPlural)
   // Les DEUX familles d'exceptions du pluriel français, en listes CLOSES (on les apprend par cœur
   // à l'école, elles ne s'étendent pas) :
   //   -OU qui prend -X : bijou caillou chou genou hibou joujou pou   (les autres -ou prennent -s)
@@ -754,18 +754,18 @@
   var _PL_AILAUX={bail:1,corail:1,"émail":1,soupirail:1,travail:1,vantail:1,vitrail:1};
   // SUPPLÉTIFS non ambigus (morpho impossible : œil→yeux) → ROUGE FP=0 ; miroir Python _PL_SUPPL
   var _PL_SUPPL={oeil:'yeux',madame:'mesdames',mademoiselle:'mesdemoiselles',monsieur:'messieurs',bonhomme:'bonshommes',gentilhomme:'gentilshommes'};
-  function pluralizeNoun(n){var dn=deacc(n.toLowerCase()),lw=n.toLowerCase(),cands=[];             // pluriel ANCRÉ dans le POSTERIOR (part NOM≥30 % ; posOf faux pour amis/pommes)
-    if(_PL_SUPPL[dn])return ckeepcase(n,_PL_SUPPL[dn]);                                            // supplétif certain → bypass ancre
+  function pluralizeNoun(n){var dn=deacc(n.toLowerCase()).replace(/œ/g,'oe'),lw=n.toLowerCase(),cands=[];   // dn clé 'oe' (NOUN_POST/_PL_SUPPL clavés oe ; « œil » ET « oeil »)
+    if(_PL_SUPPL[dn])return ckeepcase(n,_PL_SUPPL[dn]);                                            // supplétif (œil/oeil→yeux) certain → bypass ancre
     if(_PL_OUX[dn])cands.push(n+'x');                                                             // les sept en -oux, AVANT le +s
     if(_PL_AILAUX[lw])cands.push(n.slice(0,-3)+'aux');                                            // travail→travaux (forme ACCENTUÉE pour séparer émail/email)
     cands.push(n+'s');
     if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');                                            // cheval→chevaux (bals vérifié d'abord)
     if(/au$|eu$/.test(dn))cands.push(n+'x');                                                      // oiseau/jeu→+x
-    for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_ANCHOR_M)return cands[k];}return null;}
+    for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()).replace(/œ/g,'oe'));if(p&&p[0]>=PL_ANCHOR_M)return cands[k];}return null;}   // ancre clavée 'oe'
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
     var _pd=deacc(T[i-1].toLowerCase()),_card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
     if(!PLURAL_DET[_pd]&&!_card)return null;
-    var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
+    var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
     if(_card){if(n.indexOf("'")>=0)return null;                                 // élision (« quatre d'entre eux ») = pas un nom compté
       if(CARDINV[dn]||CARD[dn]||CARDSTOP[dn])return null;                       // cible = autre nombre/invariable/préfixe (« cent trente »)
@@ -795,7 +795,7 @@
     if(_elidKind(T[i])==='det'){if(!/s$/.test(deacc(_headText(T[i]).toLowerCase())))return null;_pre=T[i].slice(0,T[i].length-_headText(T[i]).length);T=T.slice();T[i]=_headText(T[i]);}
     else if(i===0||!_SING_DET[deacc(T[i-1].toLowerCase())])return null;   // déterminant SINGULIER juste avant (et posterior chargé)
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → abstention
-    var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;           // propre/capitalisé
+    var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;           // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;   // pluriel apparent ; invariant/piège
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);   // nom composé : nom + NOM confiant NON-verbe → abstention
