@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The geometry of arbitration — OMEGA</title>
+<meta name="description" content="The geometry of the arbitration law of the OMEGA cognitive Hangman: logistic law, Möbius strip, measured surfaces, hyperbolic saddle.">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0a0c12">
+<link rel="canonical" href="https://omegapendu.com/en/arbitrage">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://omegapendu.com/en/arbitrage">
+<meta property="og:site_name" content="OMEGA-Ω">
+<meta property="og:locale" content="en">
+<meta property="og:title" content="The geometry of arbitration — OMEGA">
+<meta property="og:description" content="The geometry of the arbitration law of the OMEGA cognitive Hangman: logistic law, Möbius strip, measured surfaces, hyperbolic saddle.">
+<meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="The geometry of arbitration — OMEGA">
+<meta name="twitter:description" content="The geometry of the OMEGA cognitive Hangman's arbitration law: logistic law, Möbius strip, measured surfaces.">
+<link rel="icon" href="../icon.svg">
+<link rel="alternate" hreflang="fr" href="https://omegapendu.com/arbitrage">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/arbitrage">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/arbitrage">
+<style>
+  :root{
+    --ground:#0a0c12; --panel:#12151f; --panel2:#171b28; --hair:#232838; --hair2:#2e3550;
+    --ink:#e8e9f0; --mut:#8b90a6; --dim:#5f6580;
+    --ortho:#4fd1c5; --phon:#e6b450; --sym:#9b8cff; --mirror:#e57bd8; --bal:#f4f0e6;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,'Cascadia Code','Segoe UI Mono','SF Mono',Menlo,Consolas,monospace;
+  }
+  html{background:var(--ground)}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    background-image:radial-gradient(1200px 600px at 70% -10%, #14182a 0%, rgba(20,24,42,0) 60%);}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 22px 80px;}
+  a{color:var(--ortho)}
+  .back{display:inline-block;color:var(--mut);font-family:var(--mono);font-size:12px;text-decoration:none;padding:22px 0 0;letter-spacing:.04em}
+  .back:hover{color:var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--sym);margin:0 0 14px}
+  h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,6vw,60px);line-height:1.02;letter-spacing:-.015em;margin:0 0 18px;text-wrap:balance}
+  h2{font-family:var(--serif);font-weight:500;font-size:26px;letter-spacing:-.01em;margin:0 0 6px}
+  .lede{font-size:19px;color:#c7cbdb;max-width:65ch;margin:0 0 26px}
+  .lede em{font-style:italic;color:var(--ink)}
+  .mast{padding:24px 0 30px;border-bottom:1px solid var(--hair)}
+  .identity{font-family:var(--mono);font-size:clamp(17px,2.6vw,24px);color:var(--ink);background:var(--panel);
+    border:1px solid var(--hair2);border-radius:12px;padding:16px 20px;display:inline-block}
+  .identity .a{color:var(--phon)} .identity .b{color:var(--sym)}
+  section{padding:44px 0;border-bottom:1px solid var(--hair)}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin:0 0 10px}
+  .note{color:var(--mut);font-size:15px;max-width:64ch}
+  .panel{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:18px 20px}
+  .controls{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin-bottom:14px}
+  .ctl{display:flex;align-items:center;gap:11px;flex:1;min-width:210px}
+  .ctl label{font-family:var(--mono);font-size:15px;color:var(--mut);width:16px}
+  .ctl output{font-family:var(--mono);font-size:15px;color:var(--ink);min-width:38px;text-align:right}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:var(--hair2);border-radius:3px;flex:1;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--ground)}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--ink);cursor:pointer;border:2px solid var(--ground)}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--mut);cursor:pointer;font-family:var(--sans)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px 18px;margin:2px 0 8px;font-size:12.5px;color:var(--mut);font-family:var(--mono)}
+  .legend span{display:flex;align-items:center;gap:7px}
+  .swatch{width:16px;height:0;border-top:2px solid}
+  .readout{font-family:var(--mono);font-size:13.5px;color:#c7cbdb;background:var(--panel2);border:1px solid var(--hair);border-radius:10px;padding:11px 13px;margin-top:12px;line-height:1.7}
+  .grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
+  .statbox{font-family:var(--mono);font-size:13.5px;color:#c7cbdb;line-height:1.85}
+  .statbox .stat{display:flex;justify-content:space-between;border-bottom:1px dashed var(--hair2);padding:6px 0}
+  .statbox .stat b{color:var(--ink);font-weight:500}
+  .surf{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .hm{display:grid;grid-template-columns:26px repeat(5,1fr);gap:3px}
+  .hc{display:flex;align-items:center;justify-content:center;height:32px;border-radius:4px;font-family:var(--mono);font-size:12px}
+  .ha{display:flex;align-items:center;justify-content:center;height:32px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+  .cap{font-size:12px;color:var(--dim);margin-top:8px;font-family:var(--mono)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+  .card{background:var(--panel2);border:1px solid var(--hair);border-radius:12px;padding:14px 15px}
+  .card .k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+  .card .v{font-family:var(--serif);font-size:30px;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .card .s{font-size:12.5px;color:var(--mut)}
+  .verdict{padding:44px 0 0;border:none}
+  .verdict p{font-size:17px;color:#c7cbdb;max-width:66ch}
+  .prov{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:22px;line-height:1.8}
+  canvas{display:block;width:100%;height:100%}
+  .fade{opacity:0;transform:translateY(8px);animation:rise .7s ease forwards}
+  @media(prefers-reduced-motion:reduce){.fade{animation:none;opacity:1;transform:none}}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media(max-width:720px){.grid2,.surf{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <a class="back" href="index.html">← OMEGA</a> <a class="back" href="recherche.html" style="margin-left:16px">Research</a> <a class="back" href="correcteur.html" style="margin-left:16px">The corrector</a> <a class="back" href="../arbitrage.html" style="margin-left:16px">Français</a>
+  <header class="mast">
+    <p class="eyebrow">OMEGA-Ω · mathematical digression</p>
+    <h1>The geometry of arbitration</h1>
+    <p class="lede">The cognitive Hangman arbitrates between two routes — <em>spelling</em> and <em>phonology</em> — through a logistic law. At its canonical point, this law collapses into a zero-parameter self-dual form. Here is that geometry, made interactive — and an honest account of what it's worth.</p>
+    <div class="identity">μ<span class="a">₍₁,₁₎</span>(r) = <span class="b">r/(1+r)</span></div>
+  </header>
+
+  <section class="fade">
+    <p class="kicker">1 — the living law</p>
+    <h2>μ = σ(α·ln r − ln β)</h2>
+    <p class="note">r = signal<sub>phon</sub> ⁄ signal<sub>ortho</sub>. μ is the weight given to the phon route. Move α (the sharpness of the decision) and β (the bias). The grey curve doesn't move: it's the (1,1) case, the law's self-dual point.</p>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel">
+        <div class="controls">
+          <div class="ctl"><label>α</label><input type="range" id="al" min="0.1" max="4" step="0.05" value="1"><output id="alo">1.00</output></div>
+          <div class="ctl"><label>β</label><input type="range" id="be" min="0.1" max="4" step="0.05" value="1"><output id="beo">1.00</output></div>
+          <label class="toggle"><input type="checkbox" id="mob"> Möbius mirror r→1/r</label>
+        </div>
+        <div class="legend">
+          <span><span class="swatch" style="border-color:var(--phon)"></span>current μ</span>
+          <span><span class="swatch" style="border-color:var(--sym);border-style:dashed"></span>(1,1) = r/(1+r)</span>
+          <span><span class="swatch" style="border-color:var(--mirror);border-style:dashed"></span>mirror</span>
+          <span><span class="swatch" style="border-color:var(--bal)"></span>balance r*</span>
+        </div>
+        <div style="position:relative;height:270px"><canvas id="cv" role="img" aria-label="Curve of the arbitration law mu against log r."></canvas></div>
+        <div class="readout" id="ro"></div>
+      </div>
+      <div class="panel">
+        <p class="kicker" style="margin-bottom:12px">the self-dual point</p>
+        <div class="statbox">
+          <div style="font-size:16px;color:var(--ink);margin-bottom:10px">at (1,1): μ(r) = r ⁄ (1+r)</div>
+          <div class="stat"><span>parameters</span><b>0</b></div>
+          <div class="stat"><span>fixed point r→1/r</span><b>r = 1</b></div>
+          <div class="stat"><span>μ at the fixed point</span><b>0.5</b></div>
+          <div class="stat"><span>coherence</span><b>maximal</b></div>
+          <div class="stat"><span>pinned by</span><b>β=1 ∧ α=1</b></div>
+          <p class="note" style="font-size:13px;margin-top:14px;color:var(--mut)">The involution r→1/r ⟺ μ→1−μ fixes the entire axis β=1 (∀α): there the law looks at itself in the mirror without changing. What pins (1,1) onto this axis is α=1 — the only value that makes μ = r<sup>α</sup>⁄(1+r<sup>α</sup>) a homography (Möbius transform) of r. So (1,1) = β=1 (self-dual) ∧ α=1 (homography): a <b style="color:var(--sym);font-weight:400">conjunction</b>, not a single symmetry. Zero parameters.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">the ribbon</p>
+    <h2>One surface, one edge</h2>
+    <p class="note">The ortho↔phon arbitration is a Möbius strip. Follow the two-tone edge: teal (ortho) passes through gold (phon) and returns onto itself — a single boundary, the two routes are inseparable. The purple line is the axis β=1; the two beads, the coupling by the involution r→1/r. Drag to rotate.</p>
+    <div class="panel" style="margin-top:16px"><div style="position:relative;height:440px;border-radius:12px;overflow:hidden;background:radial-gradient(120% 120% at 60% 12%, rgba(155,140,255,.06), rgba(0,0,0,0) 55%)"><canvas id="c3mob" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div></div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">2 — what actually carries it</p>
+    <h2>Two faces, each sovereign in its own domain</h2>
+    <p class="note">Win rate by route and regime — verified record 06/2026, 3 seeds. Ortho reigns over the known; phon lifts the out-of-lexicon by +14 to +18 points. The switch is real: no vassal face.</p>
+    <div class="panel" style="margin-top:18px"><div style="position:relative;height:210px"><canvas id="vb" role="img" aria-label="Win rate by route and regime."></canvas></div></div>
+
+    <h2 style="margin-top:34px">The measured surfaces</h2>
+    <p class="note">Real θ sweep (seed 12345, N=40). On the left the win rate, on the right the coherence 4·E[μ(1−μ)]. The outline marks (1,1); the purple border, the Möbius axis β=1.</p>
+    <div class="surf" style="margin-top:16px">
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:10px">WIN RATE (%)</div><div class="hm" id="hmW"></div><div class="cap">optimum toward the phon corner · (1,1)=75 · confounded harness, removed as fitness</div></div>
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:10px">COHERENCE</div><div class="hm" id="hmC"></div><div class="cap">ridge at β≈1 = Möbius axis · both routes engaged</div></div>
+    </div>
+    <h2 style="margin-top:36px">The same surfaces, in relief</h2>
+    <p class="note">Win rate and coherence as terrain. The peak rises toward the phon corner; the coherence ridge runs along β=1 — the Möbius axis. The purple mast marks (1,1): on the ridge, never on the peak. Drag to rotate.</p>
+    <div class="surf" style="margin-top:16px">
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">WIN RATE — relief</div><div style="position:relative;height:300px"><canvas id="c3win" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div></div>
+      <div class="panel"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">COHERENCE — relief</div><div style="position:relative;height:300px"><canvas id="c3coh" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div></div>
+    </div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">3 — the shape of the space</p>
+    <h2>A hyperbolic geometry</h2>
+    <p class="note">The parameter space θ=(α, ln β) carries the Fisher metric g = E_r[μ(1−μ)·((ln r)², −ln r ; −ln r, 1)]. Each ellipse is the local metric; its hue follows g_ββ. The curvature is negative everywhere — along β=1 you slide freely (symmetry), stepping off it costs.</p>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel"><div style="position:relative;height:300px"><canvas id="fz" role="img" aria-label="Field of ellipses of the Fisher metric, negative curvature."></canvas></div></div>
+      <div>
+        <div class="cards">
+          <div class="card"><div class="k">curvature K(1,1)</div><div class="v" style="color:var(--sym)">−0.37</div><div class="s">&lt; 0 → hyperbolic</div></div>
+          <div class="card"><div class="k">g<sub>ββ</sub></div><div class="v" style="color:var(--ortho)">= coh ⁄ 4</div><div class="s">the OMEGA guard is a Fisher component</div></div>
+          <div class="card"><div class="k">optimum win rate</div><div class="v" style="color:var(--phon)">0.94</div><div class="s">phon corner, 3 seeds (σ=0.01)</div></div>
+          <div class="card"><div class="k">at point (1,1)</div><div class="v">0.75</div><div class="s">symmetry, not fitness</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:18px"><div style="font-family:var(--mono);font-size:12px;color:var(--mut);margin-bottom:8px">THE HYPERBOLIC SADDLE — local model near (1,1)</div><div style="position:relative;height:360px"><canvas id="c3sad" style="width:100%;height:100%;display:block;cursor:grab"></canvas></div><div style="font-size:11px;color:var(--dim);margin-top:6px;font-family:var(--mono)">saddle = K&lt;0 · light line = geodesic β=1 · gold point = (1,1) · local illustration (no global embedding — Hilbert)</div></div>
+  </section>
+
+  <section class="fade">
+    <p class="kicker">the same law, three engines</p>
+    <h2>Arbitrating between two routes — everywhere</h2>
+    <p class="note">This law isn't specific to the Hangman. The same <b style="color:var(--ortho);font-weight:400">ortho</b> ↔ <b style="color:var(--phon);font-weight:400">phon / context</b> arbitration governs three engines. It's the <b>noisy-channel model</b> (noisy channel, Kernighan–Church–Gale 1990): choose the word w = argmax P(w)·P(s|w)<sup>λ</sup> — where λ sets the weight of one route against the other. <b>λ is the α</b> of the curve above; (1,1) is the neutral weight.</p>
+    <div class="cards" style="margin-top:18px">
+      <div class="card"><div class="k">the Hangman — letter choice</div><div class="v" style="font-size:15px;color:var(--phon)">OS arbiter</div><div class="s">μ(r)=r<sup>α</sup>/(β+r<sup>α</sup>), r = phon signal ⁄ ortho signal, θ=(1,1) neutral. It's the law above. <b>Measured</b> (the win rate/coherence surfaces).</div></div>
+      <div class="card"><div class="k">the dictation — spelling out</div><div class="v" style="font-size:15px;color:var(--ortho)">p2g decoder</div><div class="s">crosses emission(sound) × prior(ortho) over the latent segmentation — the noisy channel, inverted (phon→ortho). <b>Measured</b> (kept apart).</div></div>
+      <div class="card"><div class="k">the corrector — candidate choice</div><div class="v" style="font-size:15px;color:var(--sym)">the frontier</div><div class="s">weighs edit proximity, frequency and grammatical context. Today on <b>hand-tuned thresholds</b>; the law would replace them with a single curve.</div></div>
+    </div>
+    <p class="note" style="font-size:13px;margin-top:14px;color:var(--mut)">Honesty (bench 07/2026): on the corrector, the principled arbitration <b>equals</b> the hand-tuned thresholds — without beating them yet. The wall there is the <b>spelling-channel model</b> (frequency traps), not the weight. The form is right; the calibration remains open.</p>
+
+    <h2 style="margin-top:40px">Where the geometry <em>did</em> break through a wall</h2>
+    <p>On <b>candidate choice</b>, arbitration ties, without winning. But aimed at <em>another</em> corrector problem, the same law brought down a barrier reputed to be out of reach for a lightweight tool — <b style="color:var(--ink);font-weight:400">recovering the subject</b> of a mis-agreed verb when the word stays valid (« les enfants <span style="color:var(--phon)">joue</span> »). The literature makes it <em>the</em> central problem. No single subject cue clears it (the best tops out at 81&nbsp;%), and <b>adding them up</b> throws it into disarray. What worked is exactly the geometry of this page&nbsp;: <b>blending the subject routes weighted by their reliability</b> — the peakedness of each distribution, the same <code>μ = r/(1+r)</code> as at the ribbon's edge — a small language model carrying the confidence gradient. On the residual the parser gives up on, the subject's number comes out at <b style="color:var(--ortho)">~94–97&nbsp;%</b>. Shipped as <em>vigilance</em> (it suggests, doesn't rewrite — the zero false positives stay intact).</p>
+    <p>And part of the wall even falls <b style="color:var(--mirror);font-weight:400">affirmatively</b>, by a principle simpler than arbitration&nbsp;: <em>the subject isn't always read right before the verb</em>. The sibling verb carries it (« mangent et <span style="color:var(--phon)">dort</span> »→dorment), the antecedent of a relative clause carries it (« que je vois <span style="color:var(--phon)">joue</span> »→jouent), a parenthetical merely interrupts it. Four screens, four rules anchored on the <em>audible</em> plural — <b>zero false positives</b> across 2,500 sentences and on devious traps. The frontier stays honest (the general « de N » complement remains in vigilance) — but the <em>structurally recoverable</em> part becomes a clean correction again. <span style="color:var(--mut)">The geometry of arbitration didn't beat the candidate calibration&nbsp;; it broke through a neighboring wall, reputed impassable, with the same idea&nbsp;: to cross is to weight by reliability, never to add up.</span></p>
+  </section>
+
+  <footer class="verdict fade">
+    <p class="kicker">verdict</p>
+    <h2>(1,1) is not a performance peak</h2>
+    <p>It's a point of <b style="color:var(--sym);font-weight:400">symmetry</b>: the fixed axis of the Möbius involution r→1/r is the whole line β=1 (self-dual ∀α), and α=1 makes the law homographic there — the coherence ridge falls exactly at their crossing. Set by the structure (MDL confirms, it no longer decides alone), never by the win rate. The coincidence therefore holds at the level where it is real: <b style="color:var(--ink);font-weight:400">form + symmetry + economy</b>, not fitness. And the involution <em>swaps</em> the two routes (ortho ⇄ phon) without identifying them — two non-identical faces, and that is precisely what stays faithful to a Möbius.</p>
+    <p class="prov">real data · measured θ sweep (seed 12345) · win rate by route = verified record 06/2026, 3 seeds · the θ sweep is a confounded instrument for route attribution (crippled ortho arm) → removed as a fitness claim, kept for the FORM.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var C={ink:'#e8e9f0',mut:'#8b90a6',dim:'#5f6580',hair:'#232838',hair2:'#2e3550',
+    ortho:'#4fd1c5',phon:'#e6b450',sym:'#9b8cff',mirror:'#e57bd8',bal:'#f4f0e6'};
+  function sig(x){return 1/(1+Math.exp(-x));}
+  function fit(cv){var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);return[x,w,h];}
+  if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;};}
+
+  var cv=document.getElementById('cv'),al=document.getElementById('al'),be=document.getElementById('be'),
+      alo=document.getElementById('alo'),beo=document.getElementById('beo'),mob=document.getElementById('mob'),ro=document.getElementById('ro');
+  function curveDraw(){
+    var a=parseFloat(al.value),b=parseFloat(be.value),o=fit(cv),x=o[0],w=o[1],h=o[2];
+    var pL=32,pR=14,pT=10,pB=26,X0=pL,X1=w-pR,Y0=h-pB,Y1=pT,PH=Y0-Y1,lo=-4,hi=4;
+    function xOf(l){return X0+(l-lo)/(hi-lo)*(X1-X0);} function yOf(m){return Y0-m*PH;}
+    x.strokeStyle=C.hair;x.lineWidth=1;x.fillStyle=C.dim;x.font='11px '+"ui-monospace,monospace";
+    [0,0.5,1].forEach(function(m){var y=yOf(m);x.beginPath();x.moveTo(X0,y);x.lineTo(X1,y);x.stroke();x.textAlign='right';x.textBaseline='middle';x.fillText(m.toFixed(1),X0-5,y);});
+    x.strokeStyle=C.hair2;x.beginPath();x.moveTo(xOf(0),Y1);x.lineTo(xOf(0),Y0);x.stroke();
+    x.fillStyle=C.dim;x.textAlign='center';x.textBaseline='top';x.fillText('ortho ←   r=1   → phon',(X0+X1)/2,Y0+7);
+    function cu(fn,col,dash,wd){x.beginPath();x.lineWidth=wd;x.strokeStyle=col;x.setLineDash(dash||[]);for(var i=0;i<=240;i++){var l=lo+(hi-lo)*i/240,m=fn(l),px=xOf(l),py=yOf(m);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();x.setLineDash([]);}
+    cu(function(l){return sig(l);},C.sym,[5,4],1.6);
+    if(mob.checked)cu(function(l){return 1-sig(a*(-l)-Math.log(b));},C.mirror,[4,4],1.6);
+    cu(function(l){return sig(a*l-Math.log(b));},C.phon,[],2.4);
+    var ls=Math.log(b)/a;
+    if(ls>=lo&&ls<=hi){x.strokeStyle=C.bal;x.lineWidth=1.1;x.setLineDash([2,3]);x.beginPath();x.moveTo(xOf(ls),Y1);x.lineTo(xOf(ls),Y0);x.stroke();x.setLineDash([]);x.fillStyle=C.bal;x.beginPath();x.arc(xOf(ls),yOf(0.5),3.4,0,7);x.fill();}
+    var rs=Math.pow(b,1/a),ax=Math.abs(b-1)<0.03?'β=1: fixed axis of the involution (mirror = curve)':'β≠1: the Möbius mirror drifts apart';
+    ro.innerHTML='α='+a.toFixed(2)+' · β='+b.toFixed(2)+' · r* = β^(1/α) = '+rs.toFixed(2)+' (μ=0.5) — '+ax+'.';
+    alo.textContent=a.toFixed(2);beo.textContent=b.toFixed(2);
+  }
+  al.oninput=curveDraw;be.oninput=curveDraw;mob.onchange=curveDraw;
+
+  var WIN=[[.925,.900,.600,.325,.250],[.925,.925,.700,.375,.325],[.900,.900,.750,.825,.525],[.900,.850,.825,.725,.725],[.850,.825,.825,.850,.775]];
+  var COH=[[.5323,.7669,.9331,.8716,.6568],[.4424,.6419,.7781,.8005,.6694],[.3488,.4675,.5695,.5814,.5679],[.2558,.3033,.3181,.3854,.3915],[.1692,.1821,.1823,.1844,.2005]];
+  var LAB=['.25','.5','1','2','4'];
+  function mix(A,B,t){t=Math.max(0,Math.min(1,t));return'rgb('+Math.round(A[0]+(B[0]-A[0])*t)+','+Math.round(A[1]+(B[1]-A[1])*t)+','+Math.round(A[2]+(B[2]-A[2])*t)+')';}
+  function hmap(el,data,lo,dark,bright,tmin,tmax,fmt){
+    el.innerHTML='';var c=document.createElement('div');c.className='ha';el.appendChild(c);
+    LAB.forEach(function(l,j){var d=document.createElement('div');d.className='ha';d.textContent='β'+l;if(j===2){d.style.color=C.sym;}el.appendChild(d);});
+    data.forEach(function(row,i){var la=document.createElement('div');la.className='ha';la.textContent='α'+LAB[i];el.appendChild(la);
+      row.forEach(function(v,j){var t=(v-tmin)/(tmax-tmin);var cell=document.createElement('div');cell.className='hc';cell.style.background=mix(dark,bright,t);cell.style.color=t>0.5?'#0a0c12':C.ink;cell.textContent=fmt(v);
+        if(i===2&&j===2){cell.style.outline='2px solid '+C.ink;cell.style.outlineOffset='-2px';}
+        if(j===2)cell.style.boxShadow='inset 0 0 0 1px '+C.sym;
+        el.appendChild(cell);});});
+  }
+  hmap(document.getElementById('hmW'),WIN,0,[58,44,20],[230,180,80],0.25,0.95,function(v){return Math.round(v*100);});
+  hmap(document.getElementById('hmC'),COH,0,[18,58,52],[79,209,197],0.15,0.95,function(v){return v.toFixed(2);});
+
+  var bars=[{lab:'in-lex · ortho cohort',v:99,c:C.ortho},{lab:'OOV · ortho alone ≈ baseline',v:50,c:C.dim},{lab:'OOV · phon n-gram, gap-aware',v:64,c:'#c99a3a'},{lab:'OOV · OS-arbitrated n-gram',v:68,c:C.phon}];
+  var vb=document.getElementById('vb');
+  function barDraw(){var o=fit(vb),x=o[0],w=o[1],h=o[2],X0=12,X1=w-32,Y0=6,Y1=h-20;
+    function xf(v){return X0+v/100*(X1-X0);}
+    x.fillStyle='rgba(155,140,255,.14)';x.fillRect(xf(65),Y0,xf(68)-xf(65),Y1-Y0);
+    x.strokeStyle=C.hair2;x.setLineDash([4,4]);x.beginPath();x.moveTo(xf(50),Y0);x.lineTo(xf(50),Y1);x.stroke();x.setLineDash([]);
+    x.fillStyle=C.dim;x.font='11px ui-monospace,monospace';x.textAlign='center';x.textBaseline='top';[0,50,100].forEach(function(t){x.fillText(t,xf(t),Y1+5);});
+    var st=(Y1-Y0)/bars.length;
+    bars.forEach(function(b,i){var top=Y0+i*st,by=top+16,bh=14;
+      x.fillStyle=C.mut;x.font='12px ui-monospace,monospace';x.textAlign='left';x.textBaseline='alphabetic';x.fillText(b.lab,X0,top+12);
+      x.fillStyle='#1b2030';x.beginPath();x.roundRect(X0,by,X1-X0,bh,4);x.fill();
+      x.fillStyle=b.c;x.beginPath();x.roundRect(X0,by,Math.max(xf(b.v)-X0,4),bh,4);x.fill();
+      x.fillStyle=C.ink;x.textBaseline='middle';x.fillText(b.v+'%',xf(b.v)+6,by+bh/2+1);});
+  }
+
+  var AX=[0.35,0.5,0.7,1.0,1.5,2.1,3.0],BX=[-1.5,-1.0,-0.5,0,0.5,1.0,1.5],amin=0.35,amax=3.0,bmin=-1.5,bmax=1.5;
+  var Sg=[];for(var i=0;i<41;i++){var s=-4+8*i/40;Sg.push([s,Math.exp(-s*s/(2*2.25))]);}
+  function met(a,c){var g11=0,g12=0,g22=0;for(var k=0;k<Sg.length;k++){var s=Sg[k][0],mu=sig(a*s-c),wk=mu*(1-mu)*Sg[k][1];g11+=wk*s*s;g12+=-wk*s;g22+=wk;}return[g11,g12,g22];}
+  function eig(a,b,c){var T=a+c,d=Math.sqrt(((a-c)/2)*((a-c)/2)+b*b);return[T/2+d,T/2-d,0.5*Math.atan2(2*b,a-c)];}
+  var fz=document.getElementById('fz'),fn=[],g2min=1e9,g2max=-1e9,rmax=0;
+  for(var i2=0;i2<AX.length;i2++)for(var j2=0;j2<BX.length;j2++){var m=met(AX[i2],BX[j2]),e=eig(m[0],m[1],m[2]),a1=1/Math.sqrt(Math.max(e[0],1e-6)),a2=1/Math.sqrt(Math.max(e[1],1e-6));rmax=Math.max(rmax,a1,a2);g2min=Math.min(g2min,m[2]);g2max=Math.max(g2max,m[2]);fn.push({a:AX[i2],b:BX[j2],a1:a1,a2:a2,phi:e[2],g:m[2]});}
+  function fisher(){var o=fit(fz),x=o[0],w=o[1],h=o[2],pL=30,pR=14,pT=12,pB=26,X0=pL,X1=w-pR,Y0=h-pB,Y1=pT;
+    function xf(a){return X0+(a-amin)/(amax-amin)*(X1-X0);} function yf(b){return Y0-(b-bmin)/(bmax-bmin)*(Y0-Y1);}
+    var dx=(X1-X0)/(AX.length-1),dy=(Y0-Y1)/(BX.length-1),mR=0.44*Math.min(dx,dy),sc=mR/rmax;
+    x.strokeStyle=C.hair2;x.lineWidth=1.3;x.setLineDash([5,4]);x.beginPath();x.moveTo(X0,yf(0));x.lineTo(X1,yf(0));x.stroke();x.setLineDash([]);
+    x.fillStyle=C.mut;x.font='11px ui-monospace,monospace';x.textAlign='left';x.textBaseline='bottom';x.fillText('β=1: symmetry geodesic',X0+4,yf(0)-4);
+    x.textAlign='center';x.textBaseline='top';x.fillStyle=C.dim;x.fillText('α (slope)',(X0+X1)/2,Y0+8);
+    fn.forEach(function(nd){var px=xf(nd.a),py=yf(nd.b),col=mix([40,70,66],[79,209,197],(nd.g-g2min)/(g2max-g2min+1e-9));
+      x.save();x.translate(px,py);x.rotate(-nd.phi);x.beginPath();x.ellipse(0,0,Math.max(nd.a1*sc,1),Math.max(nd.a2*sc,1),0,0,6.283);x.strokeStyle=col;x.lineWidth=1.6;x.stroke();x.globalAlpha=.12;x.fillStyle=col;x.fill();x.globalAlpha=1;x.restore();});
+    var cx=xf(1),cy=yf(0);x.beginPath();x.arc(cx,cy,5,0,6.283);x.fillStyle=C.sym;x.fill();x.strokeStyle=C.ink;x.lineWidth=1.4;x.stroke();
+    x.fillStyle=C.sym;x.textAlign='left';x.textBaseline='bottom';x.fillText('(1,1)',cx+8,cy-2);
+  }
+
+  function all(){curveDraw();barDraw();fisher();}
+  all();window.addEventListener('resize',all);
+})();
+</script>
+
+<script>
+(function(){
+  var TEAL=[79,209,197],GOLD=[230,180,80],INDIGO=[84,78,120];
+  var WIN=[[.925,.900,.600,.325,.250],[.925,.925,.700,.375,.325],[.900,.900,.750,.825,.525],[.900,.850,.825,.725,.725],[.850,.825,.825,.850,.775]];
+  var COH=[[.5323,.7669,.9331,.8716,.6568],[.4424,.6419,.7781,.8005,.6694],[.3488,.4675,.5695,.5814,.5679],[.2558,.3033,.3181,.3854,.3915],[.1692,.1821,.1823,.1844,.2005]];
+  function mix(a,b,t){t=t<0?0:t>1?1:t;return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+  function rgbs(c,s){s=s==null?1:s;return'rgb('+((c[0]*s)|0)+','+((c[1]*s)|0)+','+((c[2]*s)|0)+')';}
+  var LIGHT=(function(){var v=[0.3,0.55,0.75],l=Math.hypot(v[0],v[1],v[2]);return[v[0]/l,v[1]/l,v[2]/l];})();
+  function rotp(p,rx,ry){var cy=Math.cos(ry),sy=Math.sin(ry),x=p[0]*cy+p[2]*sy,z=-p[0]*sy+p[2]*cy,y=p[1],cx=Math.cos(rx),sx=Math.sin(rx);return[x,y*cx-z*sx,y*sx+z*cx];}
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,insts=[];
+  function Inst(id,scene,opt){
+    var cv=document.getElementById(id);if(!cv){return;}opt=opt||{};
+    var st={cv:cv,ctx:cv.getContext('2d'),scene:scene,rx:opt.rx==null?0.6:opt.rx,ry:opt.ry==null?0.5:opt.ry,auto:(opt.auto!==false)&&!reduce,drag:false,px:0,py:0,D:opt.D||7,foc:opt.foc||3.5,phase:0,spin:opt.spin||0.004};
+    cv.addEventListener('pointerdown',function(e){st.drag=true;st.px=e.clientX;st.py=e.clientY;cv.style.cursor='grabbing';});
+    window.addEventListener('pointerup',function(){if(st.drag){st.drag=false;cv.style.cursor='grab';}});
+    window.addEventListener('pointermove',function(e){if(!st.drag){return;}st.ry+=(e.clientX-st.px)*0.008;st.rx+=(e.clientY-st.py)*0.008;st.rx=Math.max(-1.45,Math.min(1.45,st.rx));st.px=e.clientX;st.py=e.clientY;});
+    insts.push(st);
+  }
+  function draw(st){
+    var cv=st.cv,ctx=st.ctx,dpr=Math.min(window.devicePixelRatio||1,2),W=cv.clientWidth,H=cv.clientHeight;if(!W||!H){return;}
+    if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;}
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+    var cxp=W/2,cyp=H/2,fpx=st.foc*Math.min(W,H)/6,rx=st.rx,ry=st.ry,D=st.D;
+    function proj(p){var zc=p[2]+D,s=fpx/zc;return[cxp+p[0]*s,cyp-p[1]*s,zc];}
+    var quads=st.scene.quads(st),arr=[],i;
+    for(i=0;i<quads.length;i++){var Q=quads[i],r0=rotp(Q.p[0],rx,ry),r1=rotp(Q.p[1],rx,ry),r2=rotp(Q.p[2],rx,ry),r3=rotp(Q.p[3],rx,ry),p0=proj(r0),p1=proj(r1),p2=proj(r2),p3=proj(r3),ux=r1[0]-r0[0],uy=r1[1]-r0[1],uz=r1[2]-r0[2],vx=r3[0]-r0[0],vy=r3[1]-r0[1],vz=r3[2]-r0[2],nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx,nl=Math.hypot(nx,ny,nz)||1,dd=(nx*LIGHT[0]+ny*LIGHT[1]+nz*LIGHT[2])/nl;if(Q.both){dd=Math.abs(dd);}
+      arr.push({z:(p0[2]+p1[2]+p2[2]+p3[2])/4,pts:[p0,p1,p2,p3],col:Q.c,sh:0.3+0.7*Math.max(0,dd)});}
+    arr.sort(function(a,b){return b.z-a.z;});
+    for(i=0;i<arr.length;i++){var it=arr[i],c=rgbs(it.col,it.sh);ctx.beginPath();ctx.moveTo(it.pts[0][0],it.pts[0][1]);ctx.lineTo(it.pts[1][0],it.pts[1][1]);ctx.lineTo(it.pts[2][0],it.pts[2][1]);ctx.lineTo(it.pts[3][0],it.pts[3][1]);ctx.closePath();ctx.fillStyle=c;ctx.strokeStyle=c;ctx.lineWidth=0.6;ctx.fill();ctx.stroke();}
+    var lines=st.scene.lines?st.scene.lines(st):[],li,s2;
+    for(li=0;li<lines.length;li++){var L=lines[li],pj=[];for(s2=0;s2<L.pts.length;s2++){pj.push(proj(rotp(L.pts[s2],rx,ry)));}ctx.lineWidth=L.w||1.5;ctx.globalAlpha=L.alpha==null?1:L.alpha;for(s2=0;s2<pj.length-1;s2++){ctx.beginPath();ctx.moveTo(pj[s2][0],pj[s2][1]);ctx.lineTo(pj[s2+1][0],pj[s2+1][1]);ctx.strokeStyle=L.cols?rgbs(L.cols[s2]):L.color;ctx.stroke();}ctx.globalAlpha=1;}
+    var dots=st.scene.dots?st.scene.dots(st):[],di;
+    for(di=0;di<dots.length;di++){var Dt=dots[di],pr=proj(rotp(Dt.p,rx,ry)),rr=Math.max((Dt.r||0.1)*fpx/pr[2],1.5);ctx.beginPath();ctx.arc(pr[0],pr[1],rr,0,6.283);ctx.fillStyle=Dt.color;ctx.fill();}
+  }
+  function frame(){var i;for(i=0;i<insts.length;i++){var st=insts[i];if(st.auto&&!st.drag){st.ry+=st.spin;}st.phase+=reduce?0:0.02;try{draw(st);}catch(e){}}requestAnimationFrame(frame);}
+
+  function mobius(){
+    var R=2.3,Wd=0.8,Nu=110,Nv=11,quads=[],i,j;
+    function P(i,j){var u=i/Nu*Math.PI*2,hu=u/2,v=-Wd+2*Wd*j/Nv,rad=R+v*Math.cos(hu);return[rad*Math.cos(u),v*Math.sin(hu),rad*Math.sin(u)];}
+    for(i=0;i<Nu;i++){for(j=0;j<Nv;j++){quads.push({p:[P(i,j),P(i+1,j),P(i+1,j+1),P(i,j+1)],c:INDIGO,both:true});}}
+    var bpts=[],bcols=[],tot=2*(Nu+1),k=0,pp,vs,u,hu,v,rad,s,tt;
+    for(pp=0;pp<2;pp++){vs=pp?-1:1;for(i=0;i<=Nu;i++){u=i/Nu*Math.PI*2;hu=u/2;v=vs*Wd;rad=R+v*Math.cos(hu);bpts.push([rad*Math.cos(u),v*Math.sin(hu),rad*Math.sin(u)]);s=k/(tot-1);tt=0.5-0.5*Math.cos(2*Math.PI*s);bcols.push(mix(TEAL,GOLD,tt));k++;}}
+    var cpts=[];for(i=0;i<=Nu;i++){u=i/Nu*Math.PI*2;cpts.push([R*Math.cos(u),0,R*Math.sin(u)]);}
+    return{quads:function(){return quads;},lines:function(){return[{pts:bpts,cols:bcols,w:2.5},{pts:cpts,color:'rgb(155,140,255)',w:1.4,alpha:0.85}];},dots:function(st){var t=st.phase;function bd(o){var uu=t+o;return[R*Math.cos(uu),0,R*Math.sin(uu)];}return[{p:bd(0),color:'#d9cfff',r:0.14},{p:bd(Math.PI),color:'#d9cfff',r:0.14}];}};
+  }
+  function terrain(data,lo,hi,cL,cH){
+    var N=20,span=2.2,i,j;
+    function bil(ai,bi){var i0=Math.floor(ai),j0=Math.floor(bi),i1=Math.min(i0+1,4),j1=Math.min(j0+1,4),fi=ai-i0,fj=bi-j0;return data[i0][j0]*(1-fi)*(1-fj)+data[i1][j0]*fi*(1-fj)+data[i0][j1]*(1-fi)*fj+data[i1][j1]*fi*fj;}
+    function P(gi,gj){var ai=gi/N*4,bi=gj/N*4,v=bil(ai,bi),t=(v-lo)/(hi-lo);return{p:[(ai-2)/2*span,-0.62+1.24*t,(bi-2)/2*span],t:t};}
+    var grid=[];for(i=0;i<=N;i++){grid.push([]);for(j=0;j<=N;j++){grid[i].push(P(i,j));}}
+    var quads=[];for(i=0;i<N;i++){for(j=0;j<N;j++){var a=grid[i][j],b=grid[i+1][j],c=grid[i+1][j+1],d=grid[i][j+1];quads.push({p:[a.p,b.p,c.p,d.p],c:mix(cL,cH,(a.t+b.t+c.t+d.t)/4),both:true});}}
+    var top=grid[N/2][N/2],post=[[0,-0.62,0],top.p],ridge=[];for(i=0;i<=N;i++){ridge.push(grid[i][N/2].p);}
+    return{quads:function(){return quads;},lines:function(){return[{pts:ridge,color:'rgb(155,140,255)',w:1.6,alpha:0.75},{pts:post,color:'rgb(217,207,255)',w:2}];},dots:function(){return[{p:top.p,color:'#d9cfff',r:0.13}];}};
+  }
+  function saddle(){
+    var N=24,S=1.9,h=0.85,i,j;
+    function P(gi,gj){var x=-S+2*S*gi/N,y=-S+2*S*gj/N,X=x/S,Y=y/S,hgt=h*(X*X-Y*Y);return{p:[x,hgt,y],t:(hgt+h)/(2*h)};}
+    var grid=[];for(i=0;i<=N;i++){grid.push([]);for(j=0;j<=N;j++){grid[i].push(P(i,j));}}
+    var lo=[40,36,70],hi=[170,150,255],quads=[];
+    for(i=0;i<N;i++){for(j=0;j<N;j++){var a=grid[i][j],b=grid[i+1][j],c=grid[i+1][j+1],d=grid[i][j+1];quads.push({p:[a.p,b.p,c.p,d.p],c:mix(lo,hi,(a.t+b.t+c.t+d.t)/4),both:true});}}
+    var beta1=[],axis=[];for(i=0;i<=N;i++){beta1.push(grid[i][N/2].p);axis.push(grid[N/2][i].p);}
+    return{quads:function(){return quads;},lines:function(){return[{pts:beta1,color:'rgb(232,227,255)',w:2.2},{pts:axis,color:'rgb(120,110,170)',w:1.3,alpha:0.7}];},dots:function(){return[{p:[0,0,0],color:'#eda100',r:0.15}];}};
+  }
+  Inst('c3mob',mobius(),{rx:0.6,ry:0.4,D:6.2,foc:3.8,spin:0.004});
+  Inst('c3win',terrain(WIN,0.25,0.95,[58,44,20],[230,180,80]),{rx:0.98,ry:0.7,D:5.8,foc:4.4,spin:0.005});
+  Inst('c3coh',terrain(COH,0.15,0.95,[18,58,52],[79,209,197]),{rx:0.98,ry:0.7,D:5.8,foc:4.4,spin:0.005});
+  Inst('c3sad',saddle(),{rx:0.82,ry:0.5,D:6.0,foc:4.0,spin:0.004});
+  function paintAll(){var i;for(i=0;i<insts.length;i++){try{draw(insts[i]);}catch(e){}}}
+  function boot(){paintAll();requestAnimationFrame(frame);}
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){paintAll();}});
+  if(document.readyState==='loading'){window.addEventListener('DOMContentLoaded',boot);}else{boot();}
+})();
+</script>
+
+</body>
+</html>

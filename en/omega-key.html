@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>End-to-end encrypted messaging in a single HTML page, no server | OMEGA·KEY</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/omega-key">
+<link rel="canonical" href="https://omegapendu.com/en/omega-key"><meta property="og:site_name" content="OMEGA·KEY"><meta property="og:locale" content="en">
+<meta property="og:title" content="End-to-end encrypted messaging in a single HTML page, no server | OMEGA·KEY"><meta property="og:description" content="End-to-end encrypted messaging in a single HTML file: pronounceable French passphrases, AES-GCM-256, Double Ratchet, no sign-up. Standard WebCrypto — no home-made crypto."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="End-to-end encrypted messaging in a single HTML page | OMEGA·KEY"><meta name="twitter:description" content="E2E in a single HTML file: French passphrases, AES-GCM-256, Double Ratchet, no sign-up.">
+<meta name="description" content="End-to-end encrypted messaging in a single HTML file: pronounceable French passphrases, AES-GCM-256, Double Ratchet, copy-paste-free chat. Grown from the OMEGA-Ω cognitive engine, standard WebCrypto.">
+<link rel="stylesheet" href="../site.css">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="alternate" hreflang="fr" href="https://omegapendu.com/omega-key">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/omega-key">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/omega-key">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Main">
+    <a href="index.html">The Hangman</a>
+    <a href="correcteur.html">The corrector</a>
+    <a href="recherche.html">Research</a>
+    <a href="evolution.html">Evolution</a>
+    <a href="omega-key.html" aria-current="page">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <a href="../omega-key.html" title="Version française">Français</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="More readable font (dyslexia)">🔤 Readable</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Encryption · messaging</span>
+  <h1>OMEGA·KEY — encrypted messaging, in <em>a single file</em>.</h1>
+  <p class="lead">End-to-end encryption: <strong>pronounceable French passphrases</strong>, <strong>AES-GCM-256</strong>, <strong>Double Ratchet</strong> (forward secrecy + post-compromise recovery), and a <strong>copy-paste-free chat</strong> over a minimal relay. No dependencies, no mandatory proprietary server — one HTML file that works offline.</p>
+  <div class="cta">
+    <a class="btn primary" href="../omega-key/app/omega-key.html">Open the app →</a>
+    <a class="btn ghost" href="../omega-key/docs/RAPPORT_MODE_EMPLOI.html">User manual</a>
+  </div>
+  <p class="note">⚠️ <strong>Experimental, unaudited</strong> project. For truly critical secrets, use an audited tool (Signal). Here everything is <strong>honest and verifiable</strong>: standard WebCrypto, CI tests, reservations documented in black and white.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The idea</h2>
+  <p>OMEGA·KEY is the <strong>applied offshoot</strong> of the OMEGA-Ω cognitive engine. OMEGA supplies the <strong>identity and the entropy</strong> — the shared semantic space, the pronounceable passphrases; <strong>all the cryptography rests on the browser's standard WebCrypto</strong>, <em>no home-made algorithm</em>. The leap: moving from a purely "algorithmic" key to a key anchored in a <strong>shared cognitive language</strong>.</p>
+
+  <h2>How it works — 3 steps</h2>
+  <div class="grid">
+    <div class="card"><span class="ico">🔑</span><h3>1 · A shared key</h3><p>Both sides enter the <strong>same passphrase</strong> (+ the same salt). PBKDF2-SHA256, 310,000 iterations, derives the <strong>same AES-256 key</strong> on both sides — <strong>without ever transmitting it</strong>. A verifiable fingerprint on each side.</p></div>
+    <div class="card"><span class="ico">💬</span><h3>2 · You chat</h3><p>A thread of bubbles, end-to-end encrypted. Without a link, the ciphertext <strong>copies itself</strong> (send it over any channel). With the relay, messages flow <strong>automatically</strong>.</p></div>
+    <div class="card"><span class="ico">🔗</span><h3>3 · It self-protects</h3><p><strong>Double Ratchet</strong> (ECDH P-256): every message renews the key → <strong>forward secrecy</strong> (the past stays safe if a key leaks) <strong>+ post-compromise recovery</strong> (self-healing). A <strong>security number</strong> is compared out-of-band against an interceptor.</p></div>
+  </div>
+
+  <h2>What's inside</h2>
+  <ul class="clean">
+    <li><strong>Pronounceable French passphrases</strong> — real words (12 bits/word) or phonotactic pseudo-words, exact entropy <em>with no modulo bias</em>, drawn from true WebCrypto randomness. The phrase <em>is</em> the key.</li>
+    <li><strong>AES-GCM-256</strong> — authenticated encryption: confidentiality + integrity (GCM tag).</li>
+    <li><strong>DH Double Ratchet</strong> — ECDH P-256, forward secrecy + post-compromise recovery, anti-MITM security number.</li>
+    <li><strong>Minimal relay</strong> (Deno Deploy, free, ~2 min) — an ephemeral transport that <strong>never</strong> sees the plaintext, only the ciphertext.</li>
+    <li><strong>Encrypted history at rest</strong> — AES-GCM, key derived from the passphrase; local resume on reload.</li>
+  </ul>
+
+  <h2>Honesty — security, no bluff</h2>
+  <div class="promise">
+    <p><strong>Protected</strong>: the content is E2E encrypted (AES-GCM-256 + DH Ratchet → forward secrecy + post-compromise recovery), integrity via the GCM tag. The relay <strong>never</strong> sees the plaintext.</p>
+    <p><strong>Stated reservations</strong>: the relay sees <em>metadata</em> (room, timing, sizes) → self-host it; the room code is an <em>address</em>, not a secret; the passphrase must travel over a separate secure channel; the security number is compared out-of-band against a MITM; <strong>unaudited project</strong> — for anything essential, Signal.</p>
+  </div>
+  <p class="small">Details&nbsp;: <code>omega-key/docs/RAPPORT_MODE_EMPLOI.html</code> · <code>docs/MEMOIRE_TECHNIQUE.md</code> (in French). Crypto <strong>tested in CI</strong> (<code>test_crypto.js</code>, 37 assertions&nbsp;: entropy, AES-GCM round-trip, Double Ratchet KAT, security number).</p>
+
+  <div class="cta"><a class="btn primary" href="../omega-key/app/omega-key.html">Open OMEGA·KEY →</a></div>
+  <p><a class="btn ghost" href="index.html">← Back to home</a></p>
+</div></section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <p><a href="index.html">The Hangman</a> · <a href="correcteur.html">The corrector</a> · <a href="recherche.html">Research</a> · <a href="evolution.html">Evolution</a> · <a href="omega-key.html">OMEGA·KEY</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a> · <a href="../omega-key.html">Français</a></p>
+  <p class="small" style="margin-top:8px">Contact — <a href="https://github.com/poratox78-spec/omega-pendu-/issues">GitHub (issues)</a> · <a class="cmail" href="https://github.com/poratox78-spec/omega-pendu-/issues" rel="nofollow">✉ email me</a></p>
+  <script>(function(){var u='poratox78',h='gmail',t='com',e=u+'@'+h+'.'+t,a=document.querySelector('a.cmail');if(a){a.href='mailto:'+e;a.textContent='✉ '+e;}})();</script>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+</script>
+
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('../sw.js').catch(function(){});});}</script>
+</body>
+</html>
