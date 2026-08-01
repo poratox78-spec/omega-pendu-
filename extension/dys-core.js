@@ -589,6 +589,7 @@
       if(wk==='que'||wk==="qu'"||wk==='qu'||wk==='dont'||wk==='où'||wk.indexOf("qu'")===0){q=k;break;}   // « où » ACCENTUÉ = relatif (≠ « ou » conjonction)
       var dk=deacc(wk);if(dk==='et'||dk==='ou'||dk==='ni'||dk==='mais'||dk==='car'||dk==='donc'||dk==='or')break;}
     if(q===null||q<2||q>=i-1)return null;
+    if(_SEG&&_SEG.bb){for(var kb=q+1;kb<=i&&kb<_SEG.bb.length;kb++)if(_SEG.bb[kb])return null;}   // #B1 : ancre et verbe dans la MÊME proposition — frontière (virgule) entre les deux = dislocation → abstention
     if(!_relFinBetween(T,tg,q,i))return null;
     var ant=T[q-1].toLowerCase(),det=T[q-2].toLowerCase();
     if(!PLURAL_DET[det]||_REL_STOP[ant])return null;                                       // antécédent = dét PLURIEL audible + nom réel
@@ -929,11 +930,13 @@
       if((tg[cj[0]]==='NOUN'||tg[cj[0]]==='PROPN')&&allNP)continue;
       return null;}
     return 'p';}   // sujet coordonné « X et Y sont » → pluriel (MIROIR _pp_coord_subject)
+  var _A1AUXPL={sont:1,etaient:1,furent:1,seront:1};   // #A1 : aux ÊTRE 3e-pers PLURIEL AUDIBLE (etes exclu = vouvoiement sing.)
   function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null)return null;
     if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;   // « s'est vu/fait/laissé + INFINITIF » → PP INVARIABLE (piège Voltaire)
     var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
     if(a<0)return null;var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
+    var _a1refl=false;for(var _kr=Math.max(0,a-2);_kr<a;_kr++){var _dr=deacc(T[_kr].toLowerCase());if(_dr==='se'||_dr==='s'){_a1refl=true;break;}}   // #A1 : verbe pronominal (« se sont … ») → PP potentiellement invariable → A1 s'abstient
     var info=null,sk=-1;for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
     if(!info){                                                                   // pas de sujet PRONOM → sujet NOM via le VRAI PARSEUR (miroir rule_pp_etre)
       if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.                              // pronom élidé (« qu'elle soit emmenée ») → abstention (FP)
@@ -941,10 +944,13 @@
       if(!tgp||i>=tgp.length||(tgp[i]!=='VERB'&&tgp[i]!=='ADJ'))return null;     // participe RÉEL (tagger)
       if(i+1<tgp.length&&tgp[i+1]==='DET')return null;                          // sujet POSTPOSÉ (« est annoncée la reprise ») → abstention (FP)
       var sj=_npSubject(T,tgp,a);
-      if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var gcp=(/e$/.test(lw)&&!/é$/.test(lw))?'f':'m',sgp=base+(gcp==='f'?'es':'s');return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}return null;}   // sujet COORDONNÉ « X et Y sont » → pluriel, genre écrit gardé (miroir Python)
-      if((sj.g!=='m'&&sj.g!=='f')||sj.n!==auxNum)return null;
+      if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var gcp=(/e$/.test(lw)&&!/é$/.test(lw))?'f':'m',sgp=base+(gcp==='f'?'es':'s');return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}
+        if(!_a1refl&&_A1AUXPL[deacc(T[a].toLowerCase())]&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');   // #A1 : sujet non résolu, aux pluriel audible → nombre seul (masc gardé)
+        return null;}   // sujet COORDONNÉ « X et Y sont » → pluriel, genre écrit gardé (miroir Python)
+      if(sj.n!==auxNum)return null;                                            // nombre du sujet ≠ aux → sujet mal identifié → abstention
       if(a-sj.idx>5)return null;                                                // sujet trop loin de l'aux → abstention (FP)
       for(var kk=sj.idx+1;kk<a;kk++){if(T[kk].charAt(0)!==T[kk].charAt(0).toLowerCase()&&kk<tgp.length&&(tgp[kk]==='NOUN'||tgp[kk]==='PROPN'))return null;}   // nom propre entre sujet et aux → ambigu (FP)
+      if(sj.g!=='m'&&sj.g!=='f'){if(sj.n==='p'&&!_a1refl&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');return null;}   // #A1 : sujet pluriel parsé, genre inconnu (épicène) → nombre seul (masc gardé)
       var sg2=base+({sm:'',sf:'e',pm:'s',pf:'es'}[sj.n+sj.g]);
       return sg2.toLowerCase()!==lw?ckeepcase(T[i],sg2):null;
     }

@@ -794,6 +794,7 @@ _PP_SUBJ = {'il': ('s', 'm'), 'elle': ('s', 'f'), 'ils': ('p', 'm'), 'elles': ('
             'nous': ('p', '?'), 'je': ('s', '?'), 'tu': ('s', '?')}   # on/vous EXCLUS (nombre/personne ambigus)
 _PP_AUX_P = {'sommes', 'etes', 'sont', 'etions', 'etiez', 'etaient', 'soyons', 'soyez', 'soient',
              'serons', 'serez', 'seront', 'furent'}                   # aux ÊTRE au PLURIEL (le reste = singulier)
+_A1_AUX_PL = {'sont', 'etaient', 'furent', 'seront'}                  # #A1 : aux ÊTRE 3e-pers PLURIEL AUDIBLE (nombre certain sans parser le sujet). « etes » EXCLU (vouvoiement « vous êtes arrivé » = SINGULIER correct → serait un FP rouge)
 
 _PP_IRR_CONS = {'mort', 'ne'}     # participes irréguliers base consonne/é où base+{'',e,s,es} accorde (mort/morte, né/née)
 _PP_STOP = {'plus', 'bus', 'jus', 'obus', 'abus', 'virus', 'campus', 'sus', 'pus', 'rebus', 'blocus',
@@ -1218,6 +1219,7 @@ def rule_pp_etre(T, i):
         return None
     if a is None: return None
     aux_num = 'p' if deacc(T[a].lower()) in _PP_AUX_P else 's'
+    _a1_refl = a >= 1 and any(deacc(T[k].lower()) in ('se', 's') for k in range(max(0, a - 2), a))   # #A1 : verbe PRONOMINAL (« se/s' sont … ») → participe potentiellement INVARIABLE (se succéder/plaire/téléphoner = « se » COI) → A1 s'abstient (nombre plus certain)
     info = None; sk = -1                                      # sujet pronom avant l'aux (tolère ne/n')
     for k in range(a-1, max(-1, a-3), -1):
         dk = deacc(T[k].lower())
@@ -1234,11 +1236,20 @@ def rule_pp_etre(T, i):
                 gen = 'f' if deacc(lw[:-1] if lw.endswith('s') else lw) == deacc(base) + 'e' else 'm'
                 sugg = base + ('es' if gen == 'f' else 's')
                 return _keepcase(T[i], sugg) if sugg.lower() != lw else None
+            # #A1 : sujet nominal NON résolu, mais aux audiblement PLURIEL (sont/étaient/furent/seront) → le NOMBRE est
+            # certain (ancré sur l'aux, adjacent) même sans retrouver le sujet. On corrige le seul NOMBRE en gardant le
+            # GENRE ÉCRIT (masc « -é »→« -és » ; le -s est muet, aucun flip de genre). « les élèves sont arrivé »→arrivés.
+            if deacc(T[a].lower()) in _A1_AUX_PL and not _a1_refl and lw.endswith('é') and deacc(lw) == deacc(base):
+                return _keepcase(T[i], base + 's')
             return None
-        if subj['g'] not in ('m', 'f') or subj['n'] != aux_num: return None   # genre inconnu / aux en désaccord → abstention
+        if subj['n'] != aux_num: return None                   # nombre du sujet ≠ aux → sujet mal identifié → abstention
         if a - subj['idx'] > 5: return None                    # sujet trop LOIN de l'aux → parseur peu fiable sur phrase longue (FP « dioxyde … est autorisé »)
         for k in range(subj['idx']+1, a):                      # nom PROPRE/capitalisé entre le sujet et l'aux → sujet réel ambigu (FP « Plusieurs fois les Français sont forcés »)
             if T[k][:1].isupper() and k < len(tg) and tg[k] in ('NOUN', 'PROPN'): return None
+        if subj['g'] not in ('m', 'f'):                        # #A1 : sujet PLURIEL parsé mais GENRE inconnu (épicène « les élèves/gens ») → le NOMBRE est certain → corriger le seul nombre en gardant le genre ÉCRIT (masc « -é »→« -és »), jamais de flip de genre
+            if subj['n'] == 'p' and not _a1_refl and lw.endswith('é') and deacc(lw) == deacc(base):
+                return _keepcase(T[i], base + 's')
+            return None                                        # genre inconnu au singulier → rien de sûr
         sugg = base + {'sm': '', 'sf': 'e', 'pm': 's', 'pf': 'es'}[subj['n'] + subj['g']]
         return _keepcase(T[i], sugg) if sugg.lower() != lw else None
     if _SEG is not None and sk < len(_SEG['hy']) and _SEG['hy'][sk]: return None   # « poursuit-il » : pronom d'inversion (incise) ≠ sujet → abstention
@@ -2769,6 +2780,7 @@ def rule_accord_rel_obj(T, i):
         if wk in ('que', "qu'", 'qu', 'dont', 'où') or wk.startswith("qu'"): q = k; break   # « où » ACCENTUÉ = relatif (≠ « ou » conjonction, borne ci-dessous)
         if deacc(wk) in ('et', 'ou', 'ni', 'mais', 'car', 'donc', 'or'): break
     if q is None or q < 2 or q >= i - 1: return None
+    if _SEG is not None and any(_SEG['bb'][k] for k in range(q + 1, i + 1) if k < len(_SEG['bb'])): return None   # #B1 : ancre et verbe DOIVENT être dans la même proposition — une frontière (virgule) entre les deux = dislocation (« les X que S V, NouveauSujet V2 ») → abstention (le sujet réel de V2 n'est PAS l'antécédent)
     if not _rel_fin_between(T, tg, q, i): return None
     ant = T[q-1].lower(); det = T[q-2].lower()
     if det not in PLURAL_DET or ant in _REL_STOP: return None                # antécédent = dét PLURIEL audible + nom réel
