@@ -12,11 +12,11 @@
 <meta property="og:locale" content="en">
 <meta property="og:title" content="Cognitive French Hangman solver — reasons instead of reading the answer | OMEGA-Ω">
 <meta property="og:description" content="Cognitive French Hangman solver: reasoning rather than cheating. ≈97% in-lexicon, ≈64% out-of-lexicon, cheat-free, in a single HTML file — no training, no GPU.">
-<meta property="og:image" content="https://omegapendu.com/../icon-512.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta name="twitter:image" content="https://omegapendu.com/../icon-512.png">
+<meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Cognitive French Hangman solver — reasons instead of reading the answer | OMEGA-Ω">
 <meta name="twitter:description" content="Cognitive French Hangman solver, cheat-free: ≈97% in-lexicon, ≈64% out-of-lexicon, in a single HTML file, no GPU.">
@@ -29,6 +29,7 @@
 <link rel="alternate" hreflang="fr" href="https://omegapendu.com/">
 <link rel="alternate" hreflang="en" href="https://omegapendu.com/en/">
 <link rel="alternate" hreflang="x-default" href="https://omegapendu.com/">
+<script src="../nav.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -37,9 +38,9 @@
   <nav aria-label="Main">
     <a href="index.html" aria-current="page">The Hangman</a>
     <a href="correcteur.html">The corrector</a>
-    <a href="../recherche.html">Research</a>
-    <a href="../evolution.html">Evolution</a>
-    <a href="../omega-key.html">OMEGA·KEY</a>
+    <a href="recherche.html">Research</a>
+    <a href="evolution.html">Evolution</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
     <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
     <a href="../index.html" title="Version française">Français</a>
     <button id="dys-toggle" type="button" aria-pressed="false" title="More readable font (dyslexia)">🔤 Readable</button>
@@ -53,8 +54,8 @@
   <p class="lead">OMEGA plays Hangman by <strong>reasoning</strong> about language — sounds, spelling, the letters already revealed — instead of consulting a dictionary-oracle. The reference configuration <em>never</em> reads the hidden word. It all fits in <strong>a single HTML file</strong>, <strong>no training, no GPU</strong>, and rivals the best solvers.</p>
   <div class="cta">
     <a class="btn primary" href="../app/omega-pendu.html">▶️ Watch the Hangman play</a>
-    <a class="btn ghost" href="../docs/rapport-mode-emploi.html">📖 The manual</a>
-    <a class="btn ghost" href="../recherche.html">Read the research</a>
+    <a class="btn ghost" href="docs/rapport-mode-emploi.html">📖 The manual</a>
+    <a class="btn ghost" href="recherche.html">Read the research</a>
   </div>
   <p class="small">100&nbsp;% in the browser · offline · open source · « cognition&nbsp;&gt;&nbsp;oracle » — the value is in the reasoning, not in cheating.</p>
 </div></section>
@@ -68,13 +69,13 @@
     <div><b>+17 pts</b><small>vs a naive n-gram baseline, on the same word set</small></div>
     <div><b>1</b><small>HTML file — zero dependencies, zero GPU</small></div>
   </div>
-  <p class="small">The <em>oracle</em> ceiling (which does cheat, reading the list of possible words) is 98.7&nbsp;%&nbsp;: the cheat-free version comes within <strong>~1.5 points</strong> — without cheating. Honest breakdown of the out-of-lexicon figures (n-gram path + gap-aware reasoning)&nbsp;: <a href="../recherche.html">the research page →</a></p>
+  <p class="small">The <em>oracle</em> ceiling (which does cheat, reading the list of possible words) is 98.7&nbsp;%&nbsp;: the cheat-free version comes within <strong>~1.5 points</strong> — without cheating. Honest breakdown of the out-of-lexicon figures (n-gram path + gap-aware reasoning)&nbsp;: <a href="recherche.html">the research page →</a></p>
 </div></section>
 
 <section><div class="wrap">
   <h2>The manual — how it's built, and how to use it</h2>
-  <p>A <strong>reference report</strong> lays it all out&nbsp;: how OMEGA is built, what it can do (≈ 90&nbsp;% wins <em>without cheating</em>) and what it can't do yet — every result labelled <em>measured / design / hypothesis / excluded</em>, every setting named as in the app. To get going without touching a thing&nbsp;: in the app, the <strong>⚙️ Config optimale</strong> button puts the engine into its <strong>reference cheat-free configuration</strong> in one click (preset §8.3) — the exact state in which the figures above are measured. <span class="small">(Report in French — your browser can translate it.)</span></p>
-  <p><a class="btn ghost" href="../docs/rapport-mode-emploi.html">📖 Open the manual</a></p>
+  <p>A <strong>reference report</strong> lays it all out&nbsp;: how OMEGA is built, what it can do (≈ 90&nbsp;% wins <em>without cheating</em>) and what it can't do yet — every result labelled <em>measured / design / hypothesis / excluded</em>, every setting named as in the app. To get going without touching a thing&nbsp;: in the app, the <strong>⚙️ Config optimale</strong> button puts the engine into its <strong>reference cheat-free configuration</strong> in one click (preset §8.3) — the exact state in which the figures above are measured.</p>
+  <p><a class="btn ghost" href="docs/rapport-mode-emploi.html">📖 Open the manual</a></p>
 </div></section>
 
 <section><div class="wrap">
@@ -103,11 +104,11 @@
     </div>
     <div class="card"><span class="ico">📈</span><h3>Watch it learn</h3>
       <p>A page that shows the engine <em>live</em>&nbsp;: genesis, closed loop, learning gains — all measured, nothing scripted.</p>
-      <p><a class="btn ghost" href="../evolution.html" style="margin-top:6px">See the evolution</a></p>
+      <p><a class="btn ghost" href="evolution.html" style="margin-top:6px">See the evolution</a></p>
     </div>
     <div class="card"><span class="ico">🔐</span><h3>The encrypted satellite</h3>
       <p><strong>OMEGA·KEY</strong>&nbsp;: an end-to-end encrypted messenger born in the same spirit — one file, verified crypto.</p>
-      <p><a class="btn ghost" href="../omega-key.html" style="margin-top:6px">Discover OMEGA·KEY</a></p>
+      <p><a class="btn ghost" href="omega-key.html" style="margin-top:6px">Discover OMEGA·KEY</a></p>
     </div>
   </div>
 </div></section>
@@ -123,7 +124,7 @@
 
 <footer><div class="wrap">
   <p><strong>OMEGA-Ω</strong> — cognitive Hangman &amp; language architecture. Code&nbsp;: MIT. Data derived from <strong>Lexique&nbsp;4</strong> (New, B., Pallier, C., Schalchli, G., Bourgin, J., &amp; Gimenes, M., 2026) — <strong>CC&nbsp;BY-SA&nbsp;4.0</strong> license.</p>
-  <p><a href="correcteur.html">The corrector</a> · <a href="../recherche.html">Research</a> · <a href="../docs/MEMOIRE.html">Memoir</a> · <a href="../omega-key.html">OMEGA·KEY</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a> · <a href="../app/omega-pendu.html">Application</a> · <a href="../index.html">Français</a></p>
+  <p><a href="correcteur.html">The corrector</a> · <a href="recherche.html">Research</a> · <a href="docs/MEMOIRE.html">Memoir</a> · <a href="omega-key.html">OMEGA·KEY</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a> · <a href="../app/omega-pendu.html">Application</a> · <a href="../index.html">Français</a></p>
   <p class="small" style="margin-top:8px">Contact — <a href="https://github.com/poratox78-spec/omega-pendu-/issues">GitHub (issues)</a> · <a class="cmail" href="https://github.com/poratox78-spec/omega-pendu-/issues" rel="nofollow">✉ email</a></p>
   <script>(function(){var u='poratox78',h='gmail',t='com',e=u+'@'+h+'.'+t,a=document.querySelector('a.cmail');if(a){a.href='mailto:'+e;a.textContent='✉ '+e;}})();</script>
 </div></footer>

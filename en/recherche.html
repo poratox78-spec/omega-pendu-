@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>French linguistics & language processing — dual-route model, dyslexia | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/recherche">
+<link rel="canonical" href="https://omegapendu.com/en/recherche"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en">
+<meta property="og:title" content="French linguistics & language processing (dual route phono↔spelling) | OMEGA-Ω"><meta property="og:description" content="The OMEGA method in French linguistics and natural language processing: a dual-route model (phonology ↔ spelling), born from the game of Hangman as a testbed, applied to a corrector for dyslexia."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="French linguistics & language processing (dual route) | OMEGA-Ω"><meta name="twitter:description" content="Dual-route model phono↔spelling, from Hangman (testbed) to a dyslexia corrector. Measure, falsify, zero false positives.">
+<meta name="description" content="French linguistics and natural language processing: OMEGA's dual-route model (phonology ↔ spelling), born from the game of Hangman as a testbed, applied to a corrector for dyslexia. Doctrine: measure, falsify, zero false positives.">
+<link rel="stylesheet" href="../site.css">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="alternate" hreflang="fr" href="https://omegapendu.com/recherche">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/recherche">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/recherche">
+<script src="../nav.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Main">
+    <a href="index.html">The Hangman</a>
+    <a href="correcteur.html">The corrector</a>
+    <a href="recherche.html" aria-current="page">Research</a>
+    <a href="evolution.html">Evolution</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <a href="../recherche.html" title="Version française">Français</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="More readable font (dyslexia)">🔤 Readable</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Research &amp; method</span>
+  <h1>A cognitive architecture of the <em>dual route</em>.</h1>
+  <p class="lead">OMEGA began as a <strong>French Hangman</strong> engine — a demanding testbed for one idea&nbsp;: a machine that <em>reasons</em> about language (phonology, spelling, morphology) instead of consulting an oracle. The dyslexia corrector is its applied offshoot.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The doctrine&nbsp;: measure or reject</h2>
+  <p>A single rule governs the project&nbsp;: <strong>nothing is kept without measurement</strong>. Every module is off by default, and the baseline stays <em>byte-identical</em> until a gain is proven. Appealing ideas that don't survive measurement are <strong>falsified and documented</strong> — not buried.</p>
+  <blockquote>« Cognition&nbsp;&gt;&nbsp;oracle »&nbsp;: the value is in the reasoning, not in cheating. The reference configuration <em>never</em> reads the hidden word.</blockquote>
+  <p>The decision isn't an <code>argmax</code> but a <strong>probabilistic joint</strong>&nbsp;: it marginalizes over latent hypotheses — <code>Σ<sub>φ</sub> P(φ|clue)·P(letter|φ,context)</code> — instead of betting on the most likely one. It cross-references; it doesn't guess.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The testbed&nbsp;: Hangman</h2>
+  <p>Guessing a French word letter by letter, under constraint, is a severe test of a language model&nbsp;: it must integrate spelling structure, neighbors, phonotactics. The <strong>fully cheat-free</strong> configuration (which never reads the hidden word — neither its letters nor its sound&nbsp;: a «&nbsp;board-derived&nbsp;» cohort) reaches <strong>≈ 97.3&nbsp;%</strong> of games won in-lexicon; the oracle ceiling (which does cheat) sits at 98.7&nbsp;%.</p>
+  <p>Harsher still&nbsp;: the <strong>out-of-lexicon</strong> case (a word never seen, Trexquant-style). And here we say where the score comes from, because that's the project's thesis — <em>distinguishing cognition from statistical consultation</em>&nbsp;: <strong>cognition alone does not generalize</strong> sub-lexically (≈ 11&nbsp;%), pure spelling tops out at ≈ 33&nbsp;%. What carries the out-of-lexicon case is an <strong>n-gram aggregation path</strong> — statistical but <em>cheat-free</em> (positional letter structure pre-computed from the lexicon, never the hidden word) — at ~62&nbsp;%, which <strong>gap-aware</strong> reasoning (nearest revealed neighbor) pushes to <strong>≈ 64&nbsp;%</strong> (stable across 3 seeds). On the <em>same</em> words, this system beats a <strong>naive</strong> n-gram baseline (46.7&nbsp;%) by <strong>+17 points</strong> — that's where the method's added value lies — within the band of good solvers (65-68&nbsp;%), <strong>in a single HTML file, no training, no GPU</strong>.</p>
+  <div class="kpi">
+    <div><b>≈ 97.3&nbsp;%</b><small>games won in-lexicon, without ever reading the hidden word</small></div>
+    <div><b>≈ 64&nbsp;%</b><small>out-of-lexicon, cheat-free (n-gram aggregation + gap-aware)</small></div>
+    <div><b>+17 pts</b><small>vs a naive n-gram baseline, same word set</small></div>
+    <div><b>155 k</b><small>words embedded (≈ 89 k playable, ≥ 7 letters)</small></div>
+    <div><b>OFF</b><small>every module by default (R66)</small></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>When OMEGA <em>evolves</em></h2>
+  <p>Beyond playing, OMEGA can <strong>copy itself</strong>, <strong>vary</strong> and <strong>be selected</strong> by Hangman itself&nbsp;: a <strong>Darwinian loop</strong> on a cognitive engine. It reconstructs its own decision code — the copy is <em>verified byte for byte</em>, and Hangman replays identically — then a variation modifies it, and the game's fitness keeps the best.</p>
+
+  <svg viewBox="0 0 760 252" role="img" style="width:100%;height:auto;margin:12px 0" xmlns="http://www.w3.org/2000/svg">
+    <title>OMEGA's evolutionary loop</title>
+    <desc>Reproduce (verified copy), then vary (the genome = the parameters), then select (Hangman's fitness), repeated generation after generation. Phases P1 copies itself, P2 communicate, P3 generations: done; group work (O1) and multi-task measurement (O2): tested — O1 negative (subsumed by internal arbitration), O2 reveals a domain-agnostic structure compressor.</desc>
+    <defs><marker id="evah" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5b8cf6"/></marker></defs>
+    <g>
+      <rect x="75"  y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
+      <rect x="305" y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
+      <rect x="535" y="18" width="150" height="92" rx="13" fill="#161b22" stroke="#5b8cf6" stroke-width="1.4"/>
+    </g>
+    <g text-anchor="middle" font-family="system-ui,-apple-system,sans-serif">
+      <text x="150" y="48" font-size="22">🧬</text><text x="150" y="74" font-size="12.5" font-weight="700" fill="#e6edf3">REPRODUCE</text><text x="150" y="93" font-size="10" fill="#9aa4af">verified copy ✓</text>
+      <text x="380" y="48" font-size="22">🎲</text><text x="380" y="74" font-size="12.5" font-weight="700" fill="#e6edf3">VARY</text><text x="380" y="93" font-size="10" fill="#a3d977">genome = parameters</text>
+      <text x="610" y="48" font-size="22">🎯</text><text x="610" y="74" font-size="12.5" font-weight="700" fill="#e6edf3">SELECT</text><text x="610" y="93" font-size="10" fill="#9aa4af">Hangman's fitness</text>
+    </g>
+    <line x1="229" y1="64" x2="299" y2="64" stroke="#5b8cf6" stroke-width="1.5" marker-end="url(#evah)"/>
+    <line x1="459" y1="64" x2="529" y2="64" stroke="#5b8cf6" stroke-width="1.5" marker-end="url(#evah)"/>
+    <path d="M610,111 C610,168 150,168 150,114" fill="none" stroke="#5b8cf6" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#evah)"/>
+    <text x="380" y="158" text-anchor="middle" font-size="10.5" fill="#9aa4af" font-family="system-ui,sans-serif">next generation</text>
+    <g font-size="11" text-anchor="middle" font-family="system-ui,sans-serif">
+      <rect x="20"  y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="104" y="214" fill="#e6edf3" font-weight="600">P1 · copies itself</text><text x="104" y="229" fill="#a3d977" font-size="9.5">verified quine ✓</text>
+      <rect x="204" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="288" y="214" fill="#e6edf3" font-weight="600">P2 · communicate</text><text x="288" y="229" fill="#a3d977" font-size="9.5">emergent language ✓</text>
+      <rect x="388" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#a3d977" stroke-width="1.1"/><text x="472" y="214" fill="#e6edf3" font-weight="600">P3 · generations</text><text x="472" y="229" fill="#a3d977" font-size="9.5">best version ✓</text>
+      <rect x="572" y="196" width="168" height="40" rx="9" fill="#161b22" stroke="#9aa4af" stroke-width="1.1"/><text x="656" y="214" fill="#e6edf3" font-weight="600">tested</text><text x="656" y="229" fill="#9aa4af" font-size="9.5">O1 group · O2 multi-task</text>
+    </g>
+  </svg>
+
+  <p><strong>Two directions further, now tested</strong> — and honesty comes before effect&nbsp;:</p>
+  <ul class="clean">
+    <li><strong>Group work (O1) — negative, owned.</strong> Making several versions cooperate does <em>not</em> beat the best one alone&nbsp;: real versions are strong and too similar (all ~97&nbsp;% in-lexicon, disagreement ≤ 10&nbsp;%), and the useful routing is <em>already</em> the engine's internal arbitration. External coordination is <strong>subsumed by the architecture</strong>.</li>
+    <li><strong>Multi-task measurement (O2) — positive, and revealing.</strong> Measuring in-lexicon Hangman alone is <em>blind</em>&nbsp;: in-lexicon and out-of-lexicon <strong>dissociate</strong> (a genome that's a Hangman champion can be <em>catastrophic</em> at generalization). And that leads to a deeper question — <strong>right below</strong>.</li>
+  </ul>
+
+  <style>.o2-tab{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:.96em}.o2-tab th,.o2-tab td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left}.o2-tab th{color:var(--fg-2);font-weight:600;font-size:.82em;letter-spacing:.02em;text-transform:uppercase}.o2-tab td b{color:var(--accent-2)}.o2-tab tr:last-child td{border-bottom:none}.o2-tab tr.o2-scr td{color:var(--fg-2)}</style>
+  <div class="promise" style="border-left-color:var(--accent-2)">
+    <h3 style="margin-top:0">And if we take it out of French&nbsp;? The core is a <em>compressor</em>.</h3>
+    <p>The real O2 question&nbsp;: what carries OMEGA out-of-lexicon — is it <em>French</em>, or a general mechanism&nbsp;? We pointed its <strong>substrate</strong> (the n-gram aggregation) at <strong>code</strong> — without the French lexicon — and measured <strong>compression</strong>. Because <em>to predict is to compress</em> (Shannon)&nbsp;: compression tells us, in <strong>bits per character</strong>, how much structure a model captures.</p>
+    <table class="o2-tab">
+      <thead><tr><th>domain</th><th>chance</th><th>n-gram substrate</th><th>structure captured</th></tr></thead>
+      <tbody>
+        <tr><td>French</td><td>3.98 b/char</td><td>2.97 b/char</td><td><b>−1.01 b</b></td></tr>
+        <tr><td><strong>Code</strong> (identifiers, without Lex4)</td><td>4.17 b/char</td><td>3.05 b/char</td><td><b>−1.12 b</b></td></tr>
+        <tr class="o2-scr"><td>Code, <em>scrambled</em> (structure destroyed)</td><td>4.17 b/char</td><td>4.41 b/char</td><td><b>+0.24 b</b> — nothing</td></tr>
+      </tbody>
+    </table>
+    <p>It <strong>compresses code just as well — a little better even — as French</strong>, and <strong>gains nothing</strong> when the sequence is scrambled. → OMEGA's transferable core is a <strong>compressor of structured sequences</strong>, <em>domain-agnostic</em>&nbsp;: it works wherever there is structure, not only in French. Powerful and general — but this is <strong>structure capture, not understanding</strong> (that would be an LLM, another project).</p>
+    <p class="small">Measured in <strong>two independent ways</strong>, same verdict&nbsp;: Hangman-style reconstruction (<code>evo_o2_crossdomain.js</code>) <em>and</em> compression in bits (<code>evo_o2_compression.js</code>).</p>
+  </div>
+
+  <div class="promise" style="border-left-color:var(--warn)">
+    <h3 style="margin-top:0">What about <em>meaning</em>, then&nbsp;? We tried — and here's the frontier.</h3>
+    <p>A compressor captures <em>form</em>, never <em>meaning</em>. Can we add a taste of it&nbsp;? We tried <strong>distributional semantics</strong> (« meaning = the company a word keeps », Firth) to disambiguate homophones — the <strong>Golding&nbsp;&amp;&nbsp;Roth&nbsp;1999</strong> method (prior&nbsp;×&nbsp;context, held-out, a real UD corpus). Context <em>helps</em> — especially grammatical homophones (<code>son/sont</code> 55→88&nbsp;%, <code>ce/se</code> 53→76&nbsp;%, <code>et/est</code> 60→77&nbsp;%). <strong>But precision tops out at 77-88&nbsp;%.</strong></p>
+    <p>But the corrector has an absolute guard&nbsp;: <strong>FP=0</strong> — never underline what is correct. At 77-88&nbsp;% precision, it would raise too many false alarms. We swept the confidence threshold to find an <strong>FP-safe net</strong>&nbsp;:</p>
+    <table class="o2-tab">
+      <thead><tr><th>confidence threshold</th><th>recall</th><th>precision</th></tr></thead>
+      <tbody>
+        <tr><td>≥ 0.90</td><td>56&nbsp;%</td><td>91&nbsp;%</td></tr>
+        <tr><td>≥ 0.99</td><td>27&nbsp;%</td><td>96&nbsp;%</td></tr>
+        <tr class="o2-scr"><td><strong>FP = 0</strong> &nbsp;(conf &gt; 0.9999)</td><td><strong>1.6&nbsp;%</strong></td><td>100&nbsp;%</td></tr>
+      </tbody>
+    </table>
+    <p><strong>No net&nbsp;:</strong> to reach FP=0, recall collapses to <strong>1.6&nbsp;%</strong> — the « meaning » signal is too noisy to pass the gatekeeper. <em>Measured contrast</em>&nbsp;: the lexical gender lever (clean) passes FP=0 <em>naturally</em> — it was wired in (+6&nbsp;pts of recall); statistical meaning, on the other hand, is turned away. → <strong>understanding</strong> stays out of doctrine (that would be an LLM). OMEGA masters <strong>form</strong>; meaning is the <strong>frontier — owned and quantified</strong>.</p>
+    <p><strong>A nuance — and its flip side (LanguageTool cross-check, 06/2026)&nbsp;:</strong> on the UD held-out, <strong>lexical</strong> homophones (<code>père/paire</code>, <code>moi/mois</code>) <em>seemed</em> to pass FP=0 (recall 18-62&nbsp;%), where the grammatical ones failed. <strong>But against real text, the guard breaks&nbsp;:</strong> « il porte une <em>paire</em> de lunettes » (correct) gets flagged as « père ». UD didn't cover enough contexts&nbsp;→ over-optimistic calibration. <strong>Hardened verdict&nbsp;: distributional meaning does not hold FP=0 in production — lexical included — so it isn't wired in.</strong> The only clean FP=0 lever remains the <strong>lexical-grammatical</strong> one (gender, agreement), never the distributional one.</p>
+    <p><strong>The outcome (06/2026)&nbsp;:</strong> a <strong>green « vigilance » layer</strong> in the corrector — it <em>doesn't assert</em> an error (so it's <strong>outside FP=0</strong>), it <strong>flags</strong> confusable words (homophones + paronyms, ~80 groups) with their possibilities &amp; their meanings. The distributional signal finally finds its place there&nbsp;: <strong>rank &amp; soften, never decide</strong> — the noise that disqualified it for <em>correcting</em> is harmless for <em>suggesting</em>.</p>
+    <p class="small">Measured&nbsp;: <code>evo_o2_homophone_context.js</code> (Golding&Roth disambiguation) · <code>evo_o2_sense_fpzero.js</code> (FP=0 sweep, grammatical) · <code>evo_lt_confusion_fpzero.js</code> (LanguageTool's 17 lexical pairs).</p>
+  </div>
+  <p class="small">Replayable&nbsp;: <code>evo/evo_o1_real.js</code> · <code>evo_o2_multitask.js</code> · <code>evo_o2_crossdomain.js</code> · <code>evo_o2_compression.js</code> · plan&nbsp;: <code>evo/EVO_ROADMAP.md</code>.</p>
+
+  <p>But a mutation is only <em>useful</em> if you mutate the <strong>right level</strong>. Mutating the <em>source code</em> breaks almost everything — no improvement possible. Mutating the <em>parameters</em> opens a smooth landscape where <strong>30&nbsp;%</strong> of mutations are beneficial&nbsp;: that's <strong>evolvability</strong> (Wagner &amp; Altenberg, 1996). Toggle&nbsp;:</p>
+
+  <div class="evo-genome" data-g="src">
+    <div class="eg-tog">
+      <button type="button" data-set="src" class="on">mutate the SOURCE</button>
+      <button type="button" data-set="par">mutate the PARAMETERS</button>
+    </div>
+    <div class="eg-bars">
+      <div class="eg-row"><span class="eg-lab">💀 lethal</span><div class="eg-track"><div class="eg-fill" data-k="letal" style="background:var(--bad,#f47174)"></div></div><span class="eg-val" data-v="letal"></span></div>
+      <div class="eg-row"><span class="eg-lab">🔻 deleterious</span><div class="eg-track"><div class="eg-fill" data-k="delet" style="background:var(--warn,#d8922e)"></div></div><span class="eg-val" data-v="delet"></span></div>
+      <div class="eg-row"><span class="eg-lab">⚪ neutral</span><div class="eg-track"><div class="eg-fill" data-k="neutre" style="background:var(--fg-2,#9aa4af)"></div></div><span class="eg-val" data-v="neutre"></span></div>
+      <div class="eg-row"><span class="eg-lab">🔼 useful</span><div class="eg-track"><div class="eg-fill" data-k="benef" style="background:var(--accent-2,#a3d977)"></div></div><span class="eg-val" data-v="benef"></span></div>
+    </div>
+    <div class="eg-hl"><b>useful</b> errors&nbsp;: <span class="eg-big" data-v="benef"></span></div>
+    <p class="eg-vd"></p>
+  </div>
+
+  <p class="note">Measured end-to-end&nbsp;: <strong>P1</strong> copies itself (verified quine), <strong>P2</strong> communicate (a code emerges from reward alone), <strong>P3</strong> generations (a better version found, validated out-of-sample). Some figures at long lengths remain seed-dependent — kept as-is. Details&nbsp;: <code>evo/EVO_ROADMAP.md</code>, <code>evo/EVO_P3_EVOLVABILITY.md</code>.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The shared substrate&nbsp;: the dual route phono↔spelling</h2>
+  <p>Hangman and corrector are the same machine pointed in two directions along the <strong>sound ↔ writing</strong> channel&nbsp;:</p>
+  <ul class="clean">
+    <li>The <b>Hangman</b> models <code>P(spelling)</code> and completes the masked word — it <em>encodes</em> the structure.</li>
+    <li>The <b>corrector</b> inverts the noise on that same structure&nbsp;: from a corrupted surface, it recovers the intent — it <em>decodes</em>.</li>
+  </ul>
+  <p>Each combines a <strong>lexical route</strong> (does the word exist&nbsp;?) and a <strong>sublexical route</strong> (grapheme↔phoneme rules), arbitrated by their reliability — exactly the <em>dual route</em> of reading in humans.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>From Hangman's defeats to dyslexia</h2>
+  <p>The key finding&nbsp;: <strong>Hangman's defeat profile resembles a dyslexic signature</strong> — it mostly fails on <em>voiced / voiceless</em> confusions (p/b, t/d…), exactly the kind of phonological error at the heart of dyslexia. When the engine loses, it loses <em>like</em> a dyslexic reader.</p>
+  <p>Hence the <strong>diagnostic dictation</strong> sub-project, then the <strong>dyslexia corrector</strong>&nbsp;: the engine that models the error channel becomes the tool that corrects it.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>The outcome&nbsp;: the dyslexia corrector</h2>
+  <p>Detecting and correcting <em>without an answer key</em>, in context, with one cardinal guard&nbsp;: <strong>zero false positives</strong>. A recent result illustrates the method — the «&nbsp;§3&nbsp;» guard&nbsp;: where a flat rule read a <em>hard</em> grammatical tag (and often a wrong one&nbsp;: «&nbsp;faute&nbsp;» tagged as a verb when 99&nbsp;% of its uses are nouns), a <strong>frequency posterior</strong> <code>P(category|form)</code> decides correctly — recovering valid corrections <em>and</em> lowering false alarms at once.</p>
+  <p><strong>Analyzing the nature of each word — in sequence.</strong> The per-word posterior doesn't resolve everything&nbsp;: «&nbsp;la <em>porte</em>&nbsp;» (noun) and «&nbsp;il <em>porte</em>&nbsp;» (verb) share the same form. On top comes a <strong>part-of-speech tagger</strong> — bigram HMM + <strong>Viterbi</strong> decoding, trained on <em>Universal Dependencies</em> — which reads the <strong>whole sentence</strong> to give each word its nature (<strong>≈ 95&nbsp;%</strong> accuracy on held-out test). It's what enables agreement and homophone decisions <em>in context</em> rather than on the isolated word&nbsp;: the first gated use is <code>son</code>/<code>sont</code> settled by a true <em>noun-subject</em>, at FP=0. Like everything else, it runs identically in the <strong>three engines</strong> (Python&nbsp;=&nbsp;app&nbsp;=&nbsp;extension) — parity locked in CI (<code>parity_pos.js</code>).</p>
+  <p><strong>Re-validation on a corpus of real errors (WiCoPaCo, ~45,000 real mistakes).</strong> <em>Correct</em> text isn't enough to prove zero false positives&nbsp;: some only surface on <strong>structures a clean corpus lacks</strong> (coordination of proper nouns, distant subject, noun/possessive homograph). On real errors, the campaign <strong>flushed out 3 invisible false positives</strong> — «&nbsp;On dit&nbsp;»→ont, «&nbsp;à durée limitée&nbsp;»→a, «&nbsp;un son&nbsp;»→sa — <em>fixed</em>, and opened four <strong>FP-safe recall levers</strong>&nbsp;: singular noun agreement, <strong>past-participle agreement after <em>être</em></strong> with a noun subject, -er/-é/-ez endings, and <strong>attributive adjective agreement</strong> — <em>the adjective-gender lever once set aside</em> «&nbsp;for lack of a tagger&nbsp;», reopened and held at FP=0 (60 false positives in the prototype → 1, via <strong>POS-tagger</strong> + lexical gender + number read off the article + exclusion of invariants/coordinations). The lesson&nbsp;: proving zero false positives requires, <em>after</em> clean text, a corpus of <strong>real errors</strong>.</p>
+  <div class="kpi">
+    <div><b>~960</b><small>real corrections gained (WiCoPaCo, FP=0)</small></div>
+    <div><b>~45 k</b><small>real FR errors tested (WiCoPaCo)</small></div>
+    <div><b>≈ 95&nbsp;%</b><small>POS-tagger accuracy (word nature, held-out test)</small></div>
+    <div><b>2.04&nbsp;%</b><small>false-alarm rate at scale (2,500 UD sentences, CI-locked)</small></div>
+    <div><b>3</b><small>engines in parity (app · extension · Python)</small></div>
+    <div><b>~97&nbsp;%</b><small>subject number recovered on the «&nbsp;de N&nbsp;» residual (OS arbitration — real-word agreement)</small></div>
+  </div>
+  <p><strong>Tested against a REAL dyslexia corpus</strong> (78 texts from a dyslexic teenager and dys-dysorthographic adults; Bodard 2020 analysis). It reframes the priorities&nbsp;: dys errors are <strong>≈43&nbsp;% phonetic</strong> (and <strong>59&nbsp;% have the same phonetics</strong> as the correct form) → the <strong>phonetic channel</strong> is lever&nbsp;#1 (measured&nbsp;: our hand-made key already matches <strong>87&nbsp;%</strong> of dys errors); <strong>≈38&nbsp;% grammatical</strong> → the agreement campaign aims true; <strong>≈6&nbsp;% segmentation</strong> → a new <strong>elision-merge</strong> lever («&nbsp;lhopital&nbsp;»→l'hôpital). A methodological lesson&nbsp;: the «&nbsp;modest&nbsp;» contribution of phonetics measured on mainstream text (Wikipedia) was a <em>corpus artefact</em> — on real dys writing, it's the central lever.</p>
+  <p><strong>Quantified at scale, locked in CI.</strong> «&nbsp;FP=0&nbsp;» isn't a slogan&nbsp;: it's <strong>0</strong> on the test battery, and on <strong>2,500 correct encyclopedic sentences</strong> (outside the battery) the false-alarm rate is <em>measured</em> at <strong>2.04&nbsp;%</strong> — down from 4.7&nbsp;%, and <strong>automatically locked</strong> (<code>fp_scale_probe.py</code>, CI breaks above 3&nbsp;%); on dys writing, lower still. The downside is owned and quantified, not hidden&nbsp;: at this setting the corrector catches only <strong>part</strong> of the errors it targets (<strong>recall ~41&nbsp;%</strong> on a multi-error dys bench, <code>messy_probe.js</code>) — and most of the misses are <strong>deliberate abstentions</strong>. That's the price of zero false positives&nbsp;: <em>chosen, not suffered</em>.</p>
+  <p><strong>A wall falls&nbsp;: «&nbsp;real-word&nbsp;» agreement via Hangman's arbitration.</strong> The hardest error is the one where the word is <em>already valid</em>, only mis-agreed&nbsp;: «&nbsp;les enfants <em>joue</em>&nbsp;», «&nbsp;les rapports que l'entreprise <em>livrera</em>&nbsp;». The literature calls it <strong>the central problem</strong> of the corrector (Wilcox-O'Hearn, 2014)&nbsp;: to settle it you must recover the <strong>subject</strong>, often out of reach («&nbsp;de N&nbsp;» complements, distant subject, coordination). Our agreement parser <em>abstains</em> there — which is exactly what holds its zero false positives. Measured&nbsp;: no subject cue <em>alone</em> clears this wall (the best cue tops out at 81&nbsp;%), and naive combinations — adding, multiplying the cues — <strong>go haywire</strong> (two cues out of three loop endlessly on «&nbsp;the word is correct&nbsp;»). What cracked it was <strong>Hangman's arbitration machinery itself</strong>&nbsp;: blending the subject cues, weighting them by their <em>reliability</em> — the same law <code>μ = r/(1+r)</code> that makes OMEGA play at oracle level — a small language model carrying the <strong>confidence</strong> that makes the sorting useful. On the cases the parser gives up, this arbitration recovers the subject's number at <strong>~94–97&nbsp;%</strong>. Shipped as <strong>vigilance</strong> (it suggests «&nbsp;to check&nbsp;», never rewrites&nbsp;: zero false positives stays intact), identically in the three engines. <strong>Validated on our real dys corpus</strong>&nbsp;: on the chat register, <strong>0&nbsp;% false alarms</strong> — and real catches in the wild («&nbsp;des haies qui <em>délimite</em>&nbsp;»→délimitent). The same referee that wins at Hangman has just brought down a barrier of French thought to be out of reach for so light a tool — no big model, in a browser tab.</p>
+  <p><strong>And part of that wall falls even in <em>red</em>&nbsp;: the subject isn't always right beside.</strong> The arbitration above lives in <em>vigilance</em> because, when the subject is just a neighboring noun, it can't be told apart from a complement for sure. But there's a family where the subject, <em>absent from beside the verb</em>, can still be recovered <strong>with certainty</strong> — and there, the correction becomes assertive again, at zero false positives. The principle&nbsp;: the subject can be read somewhere other than right in front. In «&nbsp;les chats mangent et <em>dort</em>&nbsp;», the <strong>sibling verb</strong> «&nbsp;mangent&nbsp;» carries the number of the shared subject; in «&nbsp;les enfants <em>que je vois</em> <em>joue</em>&nbsp;», the relative clause's <strong>antecedent</strong> carries it (likewise through «&nbsp;dont&nbsp;», «&nbsp;où&nbsp;»); in «&nbsp;les livres, <em>malgré leur prix</em>, <em>reste</em> chers&nbsp;», the subject and its verb are in the same clause, just <strong>split by an interjected phrase</strong>. Four screens, four rules — each anchored on an <em>audible</em> signal (the plural «&nbsp;les&nbsp;»/«&nbsp;des&nbsp;» you hear, where the verb's marking is silent) and guarded by a net that rules out false friends (noun-verb homographs, invariable colors, enumerations). Measured&nbsp;: <strong>0 false positives on 2,500 correct sentences</strong> and on batteries of tricky traps (comparatives, complement clauses, «&nbsp;de N&nbsp;» complements). The frontier stays honest&nbsp;: the general complement-subject («&nbsp;la couleur <em>de la voiture</em>&nbsp;») remains on the vigilance side — but the <em>structurally recoverable</em> part of the wall is now corrected outright.</p>
+  <p class="src" style="font-size:.85em;opacity:.75"><strong>Sources</strong>&nbsp;: dys typology — <em>Bodard 2020</em> (JEP-TALN-RÉCITAL), <em>Plisson &amp; Daigle 2013</em> (Dyslexia); «&nbsp;real-word&nbsp;» detection — <em>Wilcox-O'Hearn 2014</em> (arXiv:1408.3153); corpora — <em>WiCoPaCo</em> (Max &amp; Wisniewski 2010, LREC, GFDL), FFDys dys corpus / Dys ASEI platform (private, not redistributed); lexicon — <em>Lexique</em> (New et al. 2004); FP guard — <em>Universal Dependencies</em> French-GSD (CC BY-SA). Full details&nbsp;: report §18.5.</p>
+  <p><a class="btn ghost" href="index.html">See OMEGA, the product side →</a></p>   <!-- Rem's SEO choice: the HANGMAN (index) is the site's main entry point — do not "fix" this link -->
+</div></section>
+
+<section id="toile"><div class="wrap">
+  <h2>The corrector's web&nbsp;: everything is interconnected</h2>
+  <p>The corrector isn't a stack of rules&nbsp;: it's a <strong>network</strong>. Every rule draws on <strong>lexicons</strong>, on <strong>engines</strong> (POS tagger, speller, subject referee) and on <strong>context signals</strong> (audible determiner, non-adjacent subject, punctuation) to decide between <strong style="color:#e2504a">red</strong> — a sure correction, zero false positives — and <strong style="color:#e8a247">orange</strong> — vigilance, when doubt remains. Hover a node to light up its threads.</p>
+  <div style="border:1px solid rgba(128,110,70,.28);border-radius:14px;overflow:hidden;background:#15120d;margin-top:1.1rem;box-shadow:0 10px 34px rgba(0,0,0,.14)">
+    <iframe src="../toile.html" title="Interactive web of the OMEGA-Ω corrector architecture — sources, structures, engines, rules and context, interconnected" loading="lazy" style="display:block;width:100%;height:min(80vh,720px);min-height:460px;border:0"></iframe>
+  </div>
+  <p class="note" style="margin-top:.7rem"><a href="../toile.html" target="_blank" rel="noopener">Open the web full-screen ↗</a> — 36 nodes, 7 families; drag-and-drop to rearrange, filter by family.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What we tried… and rejected</h2>
+  <p>The honesty of negative results is part of the method. Measured, then <strong>set aside</strong>&nbsp;:</p>
+  <ul class="clean">
+    <li>a light learned «&nbsp;cognitive C&nbsp;», then a <b>heavy transformer</b> — at best on par with a simple heuristic, sometimes worse.</li>
+    <li>sentence-level <b>Hangman</b> as a win lever — letter sharing leaks word endings.</li>
+    <li>several corrector loosenings (edit-distance 2, relaxed guards…) — each <b>reopened false positives</b>, so not wired in.</li>
+  </ul>
+  <p>Keeping track of what doesn't work avoids redoing it — and makes what does work credible.</p>
+</div></section>
+
+<section id="omega-key"><div class="wrap">
+  <h2>A second offshoot&nbsp;: <strong>OMEGA·KEY</strong> — encrypted messaging</h2>
+  <p>The same engine, pointed elsewhere&nbsp;: an <strong>end-to-end encrypted messenger</strong> fitting in <strong>a single HTML file</strong>, offline. OMEGA supplies the <strong>lexicon</strong> (pronounceable French passphrases); <strong>all the cryptography rests on the browser's standard WebCrypto</strong> — <em>no home-made algorithm</em>.</p>
+  <p><b>The chat.</b> An <em>Encrypted conversation</em> card holds a <strong>thread of bubbles</strong>, with two transports&nbsp;: <strong>server-less</strong> — the ciphertext <strong>copies itself</strong>, you paste it to your correspondent; or via a <strong>minimal relay</strong> (self-hostable on Deno Deploy in ~2 min) that pushes messages in <strong>real time (SSE)</strong> and <strong>establishes the DH ratchet automatically</strong> (public-key exchange, no copy-paste) — the relay only ever sees ciphertext, and the <strong>security number</strong> detects an interception.</p>
+  <ul class="clean">
+    <li><b>Pronounceable FR passphrases</b> — real words (12 bits/word) or pseudo-words (8 bits/syllable), entropy drawn from <code>crypto.getRandomValues</code>, <strong>with no modulo bias</strong> (2ⁿ-sized lists, exact bit reading — verified).</li>
+    <li><b>Shared key</b> — PBKDF2-SHA256 <strong>310,000 iterations</strong> → AES-256-GCM, a key fingerprint verifiable on both sides.</li>
+    <li><b>Double Ratchet</b> — ECDH P-256 → <em>forward secrecy</em> and <em>post-compromise</em> recovery.</li>
+    <li><b>Per message</b> — random 96-bit IV, integrity via the GCM tag. The relay (optional, self-hostable) <strong>never</strong> sees the plaintext.</li>
+  </ul>
+  <div class="promise" style="border-left-color:var(--bad)">
+    <h3 style="margin-top:0">⚠️ A demo, not a security product</h3>
+    <p>Standard, well-used building blocks (WebCrypto, unique IVs, no <code>Math.random</code> in the keys), <strong>automated crypto tests in CI</strong> (entropy, round-trip, ratchet KAT), an <strong>anti-interception security number</strong> and an <strong>encrypted history at rest</strong> — but the protocol is still hand-assembled and <strong>has had no formal cryptographic audit</strong>. For real secrets, use <strong><a href="https://signal.org">Signal</a></strong>.</p>
+    <p class="small">Good to know&nbsp;: the relay sees metadata (room, timing, sizes) · exchange the passphrase over a secure channel and <strong>compare the security number</strong> with your correspondent.</p>
+  </div>
+  <p><a class="btn primary" href="../omega-key/app/omega-key.html">Open OMEGA·KEY</a> <a class="btn ghost" href="../omega-key/docs/RAPPORT_MODE_EMPLOI.html">Report / user manual (in French)</a></p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Going further</h2>
+  <p>The background documents (dense, being updated)&nbsp;:</p>
+  <ul class="clean">
+    <li><a href="docs/MEMOIRE.html">Research memoir</a> — architecture, method, results (and negative results).</li>
+    <li><a href="docs/rapport-mode-emploi.html">Reference report &amp; user manual</a> — configuration, route details.</li>
+    <li><a href="https://github.com/poratox78-spec/omega-pendu-">The code</a> — everything is measurable and reproducible (<code>./dev.sh</code>).</li>
+  </ul>
+  <p class="note">A note on honesty&nbsp;: the Hangman is a <em>measurement bench</em>, not a product. The product is the corrector. These two pages describe the project's real state, not a showcase.</p>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <p><strong>OMEGA-Ω</strong> — dyslexia corrector &amp; cognitive architecture. Code&nbsp;: MIT. Data derived from <strong>Lexique&nbsp;4</strong> (New, B., Pallier, C., Schalchli, G., Bourgin, J., &amp; Gimenes, M., 2026) — <strong>CC&nbsp;BY-SA&nbsp;4.0</strong> license.</p>
+  <p><a href="index.html">The Hangman</a> · <a href="correcteur.html">The corrector</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a> · <a href="../app/omega-pendu.html">Application</a> · <a href="../recherche.html">Français</a></p>
+  <p class="small" style="margin-top:8px">Contact — <a href="https://github.com/poratox78-spec/omega-pendu-/issues">GitHub (issues)</a> · <a class="cmail" href="https://github.com/poratox78-spec/omega-pendu-/issues" rel="nofollow">✉ email</a></p>
+  <script>(function(){var u='poratox78',h='gmail',t='com',e=u+'@'+h+'.'+t,a=document.querySelector('a.cmail');if(a){a.href='mailto:'+e;a.textContent='✉ '+e;}})();</script>
+  <style>.egg-hint{opacity:.38;font-size:1.2em;text-decoration:none;transition:opacity .25s}.egg-hint:hover{opacity:1}</style>
+  <p style="text-align:center;margin-top:18px"><a class="egg-hint" href="../zh/index.html" title="a little secret" aria-label="a little secret">🥚</a></p>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+(function(){
+  var D={src:{letal:75,delet:3,neutre:23,benef:0,vd:"Genome = <b>source tokens</b>&nbsp;: one change touches everything (maximal pleiotropy) → 75&nbsp;% break, <b>0 useful errors</b>. A broken landscape."},
+         par:{letal:0,delet:13,neutre:57,benef:30,vd:"Genome = <b>parameters / weights</b>&nbsp;: low pleiotropy, smooth landscape → 0 lethal, <b>30&nbsp;% useful errors</b>. That's evolvability."}};
+  var el=document.querySelector('.evo-genome'); if(!el)return;
+  function render(g){var d=D[g];el.setAttribute('data-g',g);
+    el.querySelectorAll('.eg-fill').forEach(function(f){f.style.width=d[f.dataset.k]+'%';});
+    el.querySelectorAll('[data-v]').forEach(function(s){s.textContent=d[s.dataset.v]+' %';});
+    el.querySelector('.eg-vd').innerHTML=d.vd;
+    el.querySelectorAll('.eg-tog button').forEach(function(b){b.classList.toggle('on',b.dataset.set===g);});}
+  el.querySelectorAll('.eg-tog button').forEach(function(b){b.addEventListener('click',function(){render(b.dataset.set);});});
+  render('src');
+})();
+</script>
+
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('../sw.js').catch(function(){});});}</script>
+</body>
+</html>
