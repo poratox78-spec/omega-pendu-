@@ -18,6 +18,9 @@ DYSCORE.setPosHmm(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'as
 const PHRASES = [
   'les enfant joue', 'des oiseau dans le ciel', 'les cheval galopent', 'il a des difficulté', 'des journal locaux',
   'les département français', 'des hit parades', 'il les porte', 'il les livre à domicile', 'les rouge vif', 'des chat noirs',
+  // accord pluriel du nom via CARDINAL ≥2 (« cinq kilo »→kilos) — ROUGE FP=0 par l'ANCRE : cibles + pièges (invariable/nombre/composé/déjà pluriel/élision)
+  'cinq kilo', 'trois chat', 'quatre journal', 'cinq cheval', 'soixante mètre',
+  'cinq minima', 'cinq maxima', 'cent trente', 'deux mille', 'cinq euros', 'dix-septième arrondissement', 'vingt pour cent', 'cinq chats', 'trois cents personnes', "quatre d'entre eux",
   'Les enfant joue dans le jardin et il sont content. Je doit manger. On ont gagné. à mon avis.',
   'Je doit partir', 'Tu doit venir', 'Il ont faim', 'Elles a faim', 'On ont gagné', 'Ils doit manger',
   'Je peux venir', 'Tu manges bien', 'Il nous voit', 'Nous mangeons', 'Vous êtes prêts', 'Il y a un chat',

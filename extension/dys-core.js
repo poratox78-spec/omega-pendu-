@@ -759,15 +759,20 @@
     if(/al$/.test(dn))cands.push(n.slice(0,-2)+'aux');                                            // cheval→chevaux (bals vérifié d'abord)
     if(/au$|eu$/.test(dn))cands.push(n+'x');                                                      // oiseau/jeu→+x
     for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_ANCHOR_M)return cands[k];}return null;}
-  function rNounPlural(T,i){if(!NOUN_POST||i===0||!PLURAL_DET[deacc(T[i-1].toLowerCase())])return null;
+  function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
+    var _pd=deacc(T[i-1].toLowerCase()),_card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
+    if(!PLURAL_DET[_pd]&&!_card)return null;
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;
+    if(_card){if(n.indexOf("'")>=0)return null;                                 // élision (« quatre d'entre eux ») = pas un nom compté
+      if(CARDINV[dn]||CARD[dn]||CARDSTOP[dn])return null;                       // cible = autre nombre/invariable/préfixe (« cent trente »)
+      if(_SEG&&_SEG.hy&&_SEG.hy[i])return null;}                               // ordinal composé (« dix-septième »)
     // GARDE §3 : P(NOM)≥0,5 ∧ P(VER)<0,01 (exclut porte/livre verbe + rouge ADJ-dom).
-    // MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos — jamais pronoms),
+    // MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos, cardinal — jamais pronoms),
     // un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
     // AUDIBLE donc fiable. Le veto P(VER) y est redondant — il bloquait « des moule », « des porte ».
     // « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
-    var _pd=deacc(T[i-1].toLowerCase()),_sur=(_pd!=='les'&&_pd!=='leurs');
+    var _sur=(_card||(_pd!=='les'&&_pd!=='leurs'));
     if(!(_sur?_nounGateN(dn):_nounGate(dn)))return null;
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);
@@ -1292,7 +1297,7 @@ function spellUnknown(tok,atStart,T,idx){
         var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
       if(CARD[dj]){                                                    // cardinal ≥2 + nom singulier → pluriel (à vérifier)
         if(T[i].indexOf("'")>=0)return null;                          // élision (« quatre d'entre eux », « tous deux s'élèvent ») = pas un nom compté
-        if(CARDINV[w]||CARD[w]||CARDSTOP[w])return null;              // cible = autre nombre (« cent trente »)/invariable/préfixe (super, tout)
+        if(CARDINV[w]||CARD[w]||CARDSTOP[w]||NOUN_PL_STOP[w])return null;   // cible = autre nombre (« cent trente »)/invariable/préfixe (super, tout)/pluriel latin (« cinq minima »)
         if(_SEG&&_SEG.hy&&_SEG.hy[i])return null;                      // « dix-septième » (ordinal composé au trait d'union)
         if(svReads(T[i]).length)return null;                          // le mot est aussi une forme verbale connue → prudence (mal taggé)
         var plc=_plu(T[i].toLowerCase());return plc!==T[i].toLowerCase()?ckeepcase(T[i],plc):null;}

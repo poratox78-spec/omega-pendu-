@@ -2510,6 +2510,13 @@ def rule_elide(T, i):
 
 # ---------- Accord PLURIEL du NOM (déterminant pluriel + nom singulier) — la faute dys n°1 ----------
 PLURAL_DET = {w for w, v in NUM_DET.items() if v == 'pl'}   # ces/des/les/leurs/mes/nos/ses/tes/vos (classe fermée, fiable)
+# CARDINAUX ≥2 : « cinq kilo »→kilos. Traités comme un déterminant pluriel NON AMBIGU (comme des/ces) → mêmes gardes
+# ROUGES que rule_noun_plural : _noun_gate_n (P(NOM)≥τ) + NOUN_PL_STOP + l'ANCRE de _pluralize_noun (n'émet un pluriel
+# que s'il est lui-même NOM-dominant → rejette les loanwords « cinq sestieri »→sestieris et « cinq minima »). Mesuré FP=0
+# à l'échelle UD : l'orange (tagger-only, ~0,06 % FP) passe ROUGE grâce à l'ancre fréquentielle. Pas de denylist.
+CARD = set('deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille'.split())
+CARDINV = {'cent', 'cents', 'mille', 'vingt', 'vingts', 'million', 'millions', 'milliard', 'milliards', 'demi', 'tiers'}   # invariables/déjà-pluriel comme CIBLE (« cent trente »)
+CARDSTOP = {'super', 'tout', 'tous', 'toute', 'toutes', 'mi', 'semi'}   # préfixes/adverbes invariables collés au cardinal
 
 # POSTERIOR §3 sur la lecture POS latente — P(POS|forme) en pour-mille (cgram_noun_post.json, dérivé du TSV par build_noun_post.py).
 # Remplace la garde binaire nbhomog==0 ∧ POS==NOM du pluriel : on tire ssi P(NOM)≥τ ∧ P(VER)<ε (le danger = masse VERBE, pas « a un homographe »).
@@ -2595,18 +2602,24 @@ def _singularize_noun(n):
     return None
 
 def rule_noun_plural(T, i):
-    if i == 0 or prev(T, i) not in PLURAL_DET: return None      # déterminant pluriel juste avant
+    if i == 0: return None
+    _pd = deacc(T[i - 1].lower())
+    _card = _pd in CARD                                          # cardinal ≥2 (« cinq kilo ») = déterminant pluriel non ambigu
+    if _pd not in PLURAL_DET and not _card: return None          # déterminant pluriel juste avant
     n = T[i]
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 3 or dn[-1] in 'sxz' or dn in NOUN_PL_STOP: return None   # trop court (unité kg/cm) / déjà pluriel / invariant
+    if _card:                                                    # gardes propres au cardinal (miroir pluralVig)
+        if "'" in n: return None                                # élision (« quatre d'entre eux ») = pas un nom compté
+        if dn in CARDINV or dn in CARD or dn in CARDSTOP: return None   # cible = autre nombre/invariable/préfixe
+        if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # ordinal composé (« dix-septième »)
     # GARDE §3 : P(NOM)≥0,5 ∧ P(VER)<0,01 — exclut porte/livre (verbe) et rouge (ADJ-dom).
-    # MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos — jamais pronoms),
+    # MAIS après un déterminant pluriel NON AMBIGU (des/ces/mes/tes/ses/nos/vos, cardinal — jamais pronoms),
     # un verbe CONJUGUÉ est impossible : le déterminant EST le contexte grammatical, et il est
     # AUDIBLE donc fiable. Le veto P(VER) y est redondant — il bloquait « des moule », « des porte ».
     # « les » et « leurs » restent gardés : ce sont AUSSI des pronoms (« il les porte »).
-    _pd = deacc(T[i - 1].lower())
-    if not (_noun_gate_n(n) if _pd not in ('les', 'leurs') else _noun_gate(n)): return None
+    if not (_noun_gate_n(n) if (_card or _pd not in ('les', 'leurs')) else _noun_gate(n)): return None
     #   « les porte/livre » (masse verbe) et « les rouge » (ADJ-dom, P(NOM)<0.5) ; récupère ami/voiture/faute que la garde nbhomog ratait.
     #   (Ancien : nbhomog==0 ∧ POS==NOM lu sur le tag DUR embarqué — faux pour faute=VER/amis=ADJ. Relaxe naïve nbhomog<=1 = REJETÉE, +25 FP.)
     nx = T[i + 1] if i + 1 < len(T) else ''
