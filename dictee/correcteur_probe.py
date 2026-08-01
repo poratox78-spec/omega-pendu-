@@ -2537,12 +2537,12 @@ except (OSError, ValueError):
 PL_TAU_M, PL_EPS_M, PL_ANCHOR_M = 500, 10, 300   # P(NOM)≥0.5 / P(VER)<0.01 / ancre P(NOM)≥0.3 (en ‰) — mesuré ε=0.01 : +3 récup., +1 FP (UD)
 
 def _noun_gate(n):                                              # §3 : nom-dominant ET masse verbe négligeable
-    p = NOUN_POST.get(deacc(n.lower()))
+    p = NOUN_POST.get(deacc(n.lower()).replace('œ', 'oe'))      # NOUN_POST clavé en 'oe' → normaliser la ligature (comme _GOE/deaccS)
     return bool(p) and p[0] >= PL_TAU_M and p[1] < PL_EPS_M
 
 def _noun_gate_n(n):                                            # variante SANS veto verbal : reservee aux
     """determinants pluriels NON AMBIGUS (voir rule_noun_plural)."""
-    p = NOUN_POST.get(deacc(n.lower())) if NOUN_POST else None
+    p = NOUN_POST.get(deacc(n.lower()).replace('œ', 'oe')) if NOUN_POST else None
     return bool(p) and p[0] >= PL_TAU_M
 
 _PL_OUX = {'bijou', 'caillou', 'chou', 'genou', 'hibou', 'joujou', 'pou'}          # -ou qui prend -x
@@ -2556,8 +2556,8 @@ _PL_SUPPL = {'oeil': 'yeux', 'madame': 'mesdames', 'mademoiselle': 'mesdemoisell
 def _pluralize_noun(n):
     """Pluriel ANCRÉ DANS LE POSTERIOR (pas de « oiseaus ») : +s / -al→-aux / -au-eu→+x, on garde la forme dont
     la part NOM ≥ 30 % (le pos_of EMBARQUÉ est FAUX pour amis=ADJ/pommes=VER → l'ancre fréquentielle les récupère)."""
-    dn = deacc(n.lower()); lw = n.lower(); cands = []
-    if dn in _PL_SUPPL: return _keepcase(n, _PL_SUPPL[dn])      # supplétif (oeil→yeux) : morpho impossible, forme certaine → bypass ancre
+    dn = deacc(n.lower()).replace('œ', 'oe'); lw = n.lower(); cands = []   # dn clé 'oe' (NOUN_POST/_PL_SUPPL clavés en oe ; « œil » ET « oeil »)
+    if dn in _PL_SUPPL: return _keepcase(n, _PL_SUPPL[dn])      # supplétif (œil/oeil→yeux) : morpho impossible, forme certaine → bypass ancre
     # Les DEUX familles d'exceptions du pluriel francais, en listes CLOSES (apprises par coeur a
     # l'ecole, elles ne s'etendent pas). Sans elles le moteur produisait un FAUX pluriel :
     # « des travail » -> « travails », « des corail » -> « corails » — pire que se taire.
@@ -2569,7 +2569,7 @@ def _pluralize_noun(n):
     if dn.endswith('al'): cands.append(n[:-2] + 'aux')          # cheval→chevaux (mais bals vérifié d'abord)
     if dn.endswith('au') or dn.endswith('eu'): cands.append(n + 'x')   # oiseau/jeu→+x (-eau finit par -au)
     for c in cands:
-        p = NOUN_POST.get(deacc(c.lower()))
+        p = NOUN_POST.get(deacc(c.lower()).replace('œ', 'oe'))  # ancre : NOUN_POST clavé en 'oe' (« œuvres »→'oeuvres')
         if p and p[0] >= PL_ANCHOR_M: return c                 # forme plurielle majoritairement NOM dans le lexique
     return None
 

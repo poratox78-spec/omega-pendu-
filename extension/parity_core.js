@@ -24,6 +24,8 @@ const PHRASES = [
   // pluriels SUPPLÉTIFS (morpho impossible → liste close _PL_SUPPL) — ROUGE FP=0 : cibles + pièges (déjà pluriel / propre)
   'des oeil', 'les oeil', 'cinq monsieur', 'des madame', 'trois mademoiselle', 'les bonhomme', 'des gentilhomme', 'cinq bail', 'des travail',
   'des yeux', 'les messieurs', 'des chevaux',
+  // ligature œ (NOUN_POST/gardes clavés en 'oe' → normalisation œ→oe) : cibles + contrôles
+  'des œil', 'des œuvre', 'des cœur', 'les sœur', 'des bœuf', 'des œuvres', 'un œil',
   'Les enfant joue dans le jardin et il sont content. Je doit manger. On ont gagné. à mon avis.',
   'Je doit partir', 'Tu doit venir', 'Il ont faim', 'Elles a faim', 'On ont gagné', 'Ils doit manger',
   'Je peux venir', 'Tu manges bien', 'Il nous voit', 'Nous mangeons', 'Vous êtes prêts', 'Il y a un chat',
