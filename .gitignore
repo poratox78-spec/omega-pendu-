@@ -15,6 +15,19 @@ Lexique4.tsv.xz
 kaikki-fr.jsonl
 kaikki*.jsonl
 
+# sources brutes anglaises (hors-repo, re-téléchargeables) — Phase 2 EN. On committe seulement
+# les assets DÉRIVÉS (lex_en.tsv, homophones_en.json, ngrams_*_en.json.gz) avec attribution.
+#   kaikki-en.jsonl : 3,19 Go, CC BY-SA, kaikki.org/dictionary/English/kaikki.org-dictionary-English.jsonl
+#   subtlex_us.json : SUBTLEX-US freq sous-titres (words/subtlex-word-frequencies, MIT wrapper)
+#   count_1w.txt    : Norvig count_1w (Google Web Trillion Word Corpus), fréquence de secours
+subtlex_us.json
+count_1w.txt
+#   cmudict.dict    : CMU Pronouncing Dictionary (BSD-2), secours phonologie ARPAbet->IPA
+cmudict.dict
+# maître EN complet (~30 Mo/13 Mo, régénérable) — on committe les .gz SCOPÉS (signal utile) à la place
+dictee/lex_en.tsv
+dictee/forms_en.tsv
+
 # bundle de test (build output, régénérable via dist/make_test_bundle.sh)
 dist/omega-correcteur-dys-test.zip
 
