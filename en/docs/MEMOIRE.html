@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A cognitive architecture for French Hangman — research memoir | OMEGA-Ω</title>
+<meta name="description" content="Research memoir: a cognitive architecture (HRR/VSA, dual route phonology↔spelling) tested on French Hangman, a measure/falsify doctrine, positive and negative results.">
+<meta property="og:type" content="article"><meta property="og:url" content="https://omegapendu.com/en/docs/MEMOIRE">
+<link rel="canonical" href="https://omegapendu.com/en/docs/MEMOIRE">
+<link rel="alternate" hreflang="fr" href="https://omegapendu.com/docs/MEMOIRE">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/docs/MEMOIRE">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/docs/MEMOIRE">
+<meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en">
+<meta property="og:title" content="A cognitive architecture for French Hangman — research memoir | OMEGA-Ω"><meta property="og:description" content="A cognitive architecture (HRR/VSA, dual route phonology↔spelling) tested on French Hangman, a measure/falsify doctrine, positive and negative results."><meta property="og:image" content="https://omegapendu.com/icon.svg">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="A cognitive architecture for French Hangman — memoir | OMEGA-Ω"><meta name="twitter:description" content="HRR/VSA, dual route phonology↔spelling, a measure/falsify doctrine — positive and negative results.">
+<style>
+:root{   /* SOMBRE PAR DÉFAUT */
+  --paper:#14181d; --paper-2:#1d242c; --ink:#e8e3d8; --ink-soft:#a39d92;
+  --line:#2c333d; --line-2:#3b434e;
+  --accent:#e07a5f; --accent-2:#5cc2b0; --gold:#d9b24a;
+  --mes:#5cc2b0; --des:#7ea6e8; --hyp:#d9b24a; --exc:#e07a6f;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Spectral",Georgia,serif;font-weight:400;font-size:18.5px;line-height:1.68;
+  overflow-x:hidden;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  background-image:radial-gradient(circle at 1px 1px,rgba(28,24,21,.03) 1px,transparent 0);background-size:24px 24px;}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));z-index:120;transition:width .1s linear}
+.wrap{display:grid;grid-template-columns:300px minmax(0,1fr);max-width:1340px;margin:0 auto}
+aside{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;overscroll-behavior:contain;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,var(--paper-2),var(--paper));padding:30px 22px 60px}
+aside .brand{font-family:"Fraunces",serif;font-weight:600;font-size:22px;margin:0 0 2px}
+aside .sub{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-soft);letter-spacing:.6px;text-transform:uppercase;margin-bottom:22px}
+aside nav a{display:block;color:var(--ink-soft);text-decoration:none;font-size:14px;padding:5px 10px;border-radius:7px;border-left:2px solid transparent}
+aside nav a:hover{background:var(--paper);color:var(--ink)}
+aside nav a.active{color:var(--accent);border-left-color:var(--accent);background:rgba(176,67,43,.06);font-weight:500}
+aside nav a .n{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--line-2);margin-right:9px}
+main{padding:0 clamp(22px,5vw,90px) 140px;min-width:0}
+.title{padding:90px 0 40px;border-bottom:2px solid var(--ink);margin-bottom:50px}
+.title .kick{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.title h1{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(34px,5.2vw,58px);line-height:1.04;margin:0 0 18px;letter-spacing:-.5px}
+.title .por{font-size:21px;color:var(--ink-soft);font-style:italic;max-width:60ch}
+.title .meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);margin-top:26px;line-height:1.9}
+section{margin:0 0 52px;scroll-margin-top:18px}
+h2{font-family:"Fraunces",serif;font-weight:600;font-size:30px;margin:0 0 12px;letter-spacing:-.3px;line-height:1.12}
+h2 .hn{font-family:"JetBrains Mono",monospace;font-size:15px;color:var(--accent);margin-right:14px;font-weight:500}
+h3{font-family:"Fraunces",serif;font-weight:600;font-size:20px;margin:30px 0 8px}
+p{margin:13px 0;text-align:justify;hyphens:auto}
+.lead{font-size:20.5px;color:var(--ink-soft);text-align:left}
+.abstract{background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:24px 28px;margin:8px 0 14px;font-size:17.5px}
+.abstract .lbl{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px}
+code{font-family:"JetBrains Mono",monospace;font-size:.85em;background:var(--paper-2);padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+.chip{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:.4px;padding:2px 9px;border-radius:20px;color:#fff;vertical-align:middle}
+.c-mes{background:var(--mes)} .c-des{background:var(--des)} .c-hyp{background:var(--hyp)} .c-exc{background:var(--exc)}
+.callout{border-left:3px solid var(--accent);background:linear-gradient(90deg,rgba(176,67,43,.05),transparent);padding:16px 20px;border-radius:0 10px 10px 0;margin:20px 0;text-align:left}
+.callout.mes{border-color:var(--mes);background:linear-gradient(90deg,rgba(30,90,85,.06),transparent)}
+.callout.exc{border-color:var(--exc);background:linear-gradient(90deg,rgba(155,51,49,.06),transparent)}
+.callout .lbl{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:5px}
+.callout.mes .lbl{color:var(--mes)} .callout.exc .lbl{color:var(--exc)}
+.pull{font-family:"Fraunces",serif;font-size:25px;font-weight:500;line-height:1.3;color:var(--accent-2);border:none;margin:30px 0;padding:0 0 0 22px;border-left:4px solid var(--gold)}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);border-bottom:2px solid var(--line-2)}
+.num{font-family:"JetBrains Mono",monospace;text-align:right;white-space:nowrap}
+.pos{color:var(--mes);font-weight:600} .neg{color:var(--exc);font-weight:600}
+ul,ol{margin:12px 0;padding-left:24px} li{margin:7px 0;text-align:justify}
+.foot{margin-top:70px;padding-top:24px;border-top:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);line-height:1.8}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:0 20px 90px}.title{padding:50px 0 30px}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="wrap">
+<aside>
+  <div class="brand">OMEGA-Ω</div>
+  <div class="sub">Memoir · v0.07</div>
+  <nav id="toc"></nav>
+</aside>
+<main>
+<div class="title">
+  <div class="kick">Research & engineering memoir</div>
+  <h1>A cognitive architecture for French Hangman</h1>
+  <div class="por">How a machine can play Hangman by <em>reasoning</em> rather than <em>reading the answer</em> — and what the constraint "cognition &gt; oracle" taught us.</div>
+  <div class="meta">OMEGA-Ω v0.07 · build phase47 (cognitive engine phase46) · direction Rem · written by Claude (Anthropic)<br>Snapshot as of 03/06/2026 — addendum 14/06/2026: derived application = diagnostic dictation (dyslexia), see dictee/ ; addendum 18/06/2026: dual-route grammar layer + dyslexia corrector (§10) ; addendum 24/06/2026: typing aid (accented completion) folded into the corrector (app + extension) + learning loop (unified dyslexia profile dictation+corrector, adaptive dictation, progress curve) — see DICTEE_ROADMAP.md ; deployment = embedded compressed lexicon (gzip+base64, browser ≥ 2023) · doctrine cap §43 · R66</div>
+</div>
+
+<section id="m0">
+<h2><span class="hn">0</span>Summary</h2>
+<div class="abstract">
+<span class="lbl">Abstract</span>
+OMEGA-Ω is a French Hangman engine (words ≥ 7 letters) built not as a dictionary searcher but as a <strong>cognitive architecture</strong>. Its doctrine — <em>cognition &gt; oracle</em> — forbids any module from reading the hidden word beyond the revealed positions. Under this constraint, cognition alone reaches a <strong>~90 %</strong> win rate; complemented by an <em>emergent, cheat-free</em> declaration system (NEO), it reaches <strong>97.5 % to 98.8 %</strong> — on par with a lexical oracle, <strong>without ever reading the dictionary to score a letter</strong>. These figures hold in the <em>in-lexicon</em> regime; on <em>out-of-dictionary</em> words (Trexquant protocol), recognition no longer helps, but the phonology→spelling sequence still generalizes to <strong>~70 %</strong> — on par with good solvers. This memoir lays out the architecture (dual Möbius pipeline, hyperdimensional substrate, spelling/phonology routes), the method (measure-first, R66 falsification, deterministic harness), the results, and — just as instructive — the <strong>negative results</strong> that mapped the limits of what was possible.
+</div>
+</section>
+
+<section id="m1">
+<h2><span class="hn">1</span>Thesis</h2>
+<p class="lead">Performance is not cognition. A program that wins at Hangman by consulting a dictionary <em>performs</em>; it does not <em>reason</em>. OMEGA takes the opposite as its founding constraint.</p>
+<p>Hangman is an ideal test bed for this distinction. The trivial solution — filter the dictionary by the revealed pattern, score letters by the cohort's frequency — reaches ~95–98 %. But it says nothing about <em>understanding</em>: it knows French by heart. OMEGA forbids itself this crutch (<span class="chip c-exc">grey cheat</span>, switches <code>A1/A2/A3</code> kept OFF) and asks: <strong>how far can a cognition that is not allowed to read the answer go?</strong></p>
+<p class="pull">"Without reading the dictionary to choose a letter, can one reach the oracle?" — The measured answer is: to within a few points, yes.</p>
+<p>The project's central answer: starting from ~2.6 % (first weeks of v0.07), pure cognition reaches ~90 %, and with a cheat-free declaration system, 97.5–98.8 % — against an oracle ceiling of 98.7 %. The remaining gap is not a failure of cognition: it is the language's <em>irreducible ambiguity</em> (a /o/ can be spelled o, au, eau — only the memory of the exact word decides).</p>
+</section>
+
+<section id="m2">
+<h2><span class="hn">2</span>The task & the doctrine</h2>
+<p>The game: guess a French word of 7 or more letters, letter by letter, within an error budget. On each turn, the engine sees the <em>board</em> (revealed positions) and proposes a letter.</p>
+<h3>2.1 — Cap §43: the golden rule</h3>
+<p>No cognitive module reads <code>currentWord</code> beyond the revealed positions. The <strong>upward</strong> direction (deciding) sees only what is revealed; the <strong>downward</strong> direction (learning) operates <em>after</em> the game, on the now-legitimate complete word. Reading the answer is only cheating in the upward direction.</p>
+<h3>2.2 — What is allowed, what is not</h3>
+<ul>
+<li>The <strong>lexicon</strong> is forbidden in letter-scoring (upward). It is allowed for the <em>cohort-based DECLARE</em> (board-derived) and post-game learning (downward). <code>A1/A2/A3</code> = injection of lexical frequency into scoring = <span class="chip c-exc">grey cheat</span>, OFF.</li>
+<li><code>w.p</code> (the pronunciation) is a <strong>legitimate input</strong> under the "heard word" premise (proto-language, <code>M4_PHON_USE_P</code>) — just as one knows the sound of a word one is trying to spell.</li>
+<li><strong>R66</strong>: no module is enabled by default without a <em>falsification test</em> (bypass + paired multi-seed statistics).</li>
+</ul>
+</section>
+
+<section id="m3">
+<h2><span class="hn">3</span>Method</h2>
+<p>Experimental discipline is the heart of the project — more so than any particular module.</p>
+<ul>
+<li><strong>Measure first.</strong> Every architectural question is settled empirically (paired A/B/C, multi-seed), never by conviction.</li>
+<li><strong>Deterministic harness.</strong> Online learning + predictive coding made the baseline non-reproducible; the harness was made deterministic (re-seed before init → deterministic <code>bPC</code> weights; reset of the θ state; θ deployment target reset; game RNG aligned). Without this fix, all the Δ were noise.</li>
+<li><strong>Falsification (R66).</strong> A module is kept only if, OFF, it is inert (byte-identical baseline) <em>and</em>, ON, it shows a measured contribution. Otherwise it is reverted — even if it "seems" right.</li>
+<li><strong>Isolation.</strong> All prototyping on disposable copies; the build is never modified without an order.</li>
+<li><strong>Amplitude AND direction.</strong> A fix can restore the correct <em>direction</em> of a signal while appearing modest in amplitude (structural damping) — one must judge both.</li>
+</ul>
+</section>
+
+<section id="m4">
+<h2><span class="hn">4</span>The architecture</h2>
+<p>OMEGA is a <strong>dual Möbius pipeline</strong>: a direct circuit (upward, perception → decision) and a mirror circuit (downward, deconstruction toward proto-language). In practice, the P2 mirror remains largely disconnected; the power comes from the direct circuit and its couplings.</p>
+<h3>4.1 — The substrate & the five levels</h3>
+<p>The substrate is <strong>hyperdimensional</strong> (HRR/VSA, Plate 1995): 1024 dimensions for the concept (SDIM), 512 for the lexical (LDIM). Five upward levels:</p>
+<ul>
+<li><strong>M1</strong> — perception: binds position and letter by circular convolution (HRR). A <em>rich</em> representation that tracks reveals and discriminates words.</li>
+<li><strong>M2</strong> — zones (4×4): reduces M1 to 16 zones. <span class="chip c-exc">historical flaw</span>: the absolute value + averaging throws away the sign/phase → in practice M2 encodes only <em>length</em>. Root cause of a concept collapse (fixed by wiring the concept onto M1).</li>
+<li><strong>M3_d</strong> — concept (12 cells, 1024D): a bidirectional competitive autoencoder (bPC, DBPC/Qiu 2025 blueprint) now encoding from <strong>M1</strong> (rich), plus a reward-learned readout.</li>
+<li><strong>M4</strong> — lexical/letter: converts the concept and the routes into per-letter scores.</li>
+<li><strong>M5</strong> — decision: picks the letter, with a margin (<code>gap</code>) that measures confidence.</li>
+</ul>
+<h3>4.2 — Two routes, one arbiter</h3>
+<p>In line with the <strong>dual route</strong> of reading (Coltheart, DRC): a <strong>spelling</strong> route and a <strong>phonological</strong> route (in SAMPA, from <code>w.p</code>) reason in parallel. The <strong>OS v07</strong> arbitrates between them to decide. A <strong>salience</strong> layer (M_S) fuses the concept into scoring. The whole is regulated by bounded online learning (4 safeguards).</p>
+<p><strong>Beyond two routes — precisely.</strong> This spelling⟷phonology arbitration is the one for <em>Hangman</em>. The derived corrector (<a class="x" href="#m10">§10</a>) makes <strong>three routes</strong> reason — spelling, phonology and <strong>grammar</strong> — but they combine through <strong>distinct mechanisms</strong>, not a single uniform <code>μ</code>: the OS arbitrates spelling⟷phonology in the speller, <strong>grammar</strong> merges via a <strong>priority cascade</strong> (the FP=0 red wins at the same token), and <strong>agreement via OS arbitration of the subject</strong> in turn arbitrates its own sub-routes (nearest noun · head before "de" · outside-PP · LM coherence). The two-route DRC describes Hangman; OMEGA taken as a whole arbitrates more — through several arbitration paths, not one. <em>A result specific to the project, unborrowed.</em></p>
+</section>
+
+<section id="m5">
+<h2><span class="hn">5</span>Declarations & the NEO system</h2>
+<p>Pure cognition plateaus at ~90 %: excellent on what it has seen, limited on the never-encountered word. <em>Declarations</em> close the gap by proposing a whole word when confidence is high. The manual (lexical) declare reaches 98.8 % — but reads the dictionary. The project therefore built an <strong>emergent, cheat-free</strong> declare, culminating in the <strong>NEO</strong> system (phase 46):</p>
+<table>
+<thead><tr><th>Route</th><th>Principle</th><th class="num">Contribution</th></tr></thead>
+<tbody>
+<tr><td><strong>Recall</strong> (addressed)</td><td>VSA recognition from the revealed board + a bank of lived words. Exact episodic memory.</td><td class="num">100 % on lived</td></tr>
+<tr><td><strong>Assembled</strong> (phonology→spelling)</td><td>Decoding of sound positions via a learned L2 table; <em>masked</em> alignment (no hidden grapheme read). Generalizes to the new word.</td><td class="num pos">+5.3 (K=1)</td></tr>
+<tr><td><strong>Cohort</strong></td><td>Board-derived filter: allows only a letter carried by ≥1 word compatible with the revealed pattern.</td><td class="num pos">+0.5</td></tr>
+<tr><td><strong>Silent</strong> (by sound)</td><td>Positions with no phoneme predicted by a <em>crossed</em> phonogram.</td><td class="num">neutral</td></tr>
+<tr><td><strong>Trigger</strong> (B)</td><td>Overrides only if cognition is uncertain (low gap).</td><td class="num">gate</td></tr>
+</tbody></table>
+<p>NEO is <em>additive</em> (OFF-inert, byte-identical baseline), modifies none of the pre-existing declarations, and remains cheat-free by construction: recall tied to the revealed only, masked assembly, downward learning.</p>
+</section>
+
+<section id="m6">
+<h2><span class="hn">6</span>Crossing is not summing — nor multiplying</h2>
+<p>A central lesson, long misapplied. Combining two sources of evidence (spelling and sound) is done <strong>neither</strong> by a weighted sum of scores (<code>log f + wO·ortho + wP·phon</code>), <strong>nor</strong> by a product of marginals (which assumes independence).</p>
+<p class="pull">Crossing = conditioning <em>jointly</em>. P(letter | phoneme <strong>and</strong> context), not P(letter|phoneme)·P(letter|context).</p>
+<p>The literature drawn on says so: <strong>resonator networks</strong> (Frady 2020) warn against "blind multiplication"; the hyperdimensional <strong>bind</strong> (Plate) is a <em>per-word retrievable code</em> — it carries episodic memory (recall) but <strong>fails as a letter engine</strong> (19 % on the global dictionary against 64 % for an EM aligner: capacity wall). The correct form of the spelling×sound crossing is a <strong>discrete joint</strong>; measured, it doubles the prediction of silent positions (27 % → 52 %).</p>
+<div class="callout mes"><span class="lbl">Measured</span> Silent route, top-1 position: spelling 26.8 % · sound 21.2 % · <strong>joint crossing 51.6 %</strong>. The product of marginals coincides (51.8 %) but remains the wrong mechanism.</div>
+<div class="callout"><span class="lbl">Precision — where the joint lives (structural audit 06/26)</span> The joint <code>Σ_φ P(φ|p)·P(letter|φ, context)</code> is implemented <strong>where it pays off: the cheat-free declare (NEO)</strong>, and it is correct there (measured, §17). The <strong>per-letter cognitive scorer</strong>, by contrast, does <em>not</em> perform a joint: the OS <code>w(r)</code> performs a <strong>route arbitration</strong> (convex mixture spelling⟷phonology, dual-route DRC) and M5_d stacks <strong>additive/multiplicative enrichments</strong> of marginals. This is a <em>deliberate design choice</em> (route arbitration ≠ marginalization over the latent), not a flaw — and attempting a joint <em>inside</em> cognition (cross-modal crossing at the M3_d concept) was <strong>falsified</strong> (−3.0 pts, 12-cell capacity wall). The joint therefore remains a <strong>deliberate mechanism of the declare</strong>, where the latent <code>φ</code> carries an exploitable signal.</div>
+<p><strong>And well beyond Hangman.</strong> The distinction "arbitrate by reliability ≠ sum/multiply" cracked a wall thought impassable in the <em>corrector</em>: recovering the <strong>subject</strong> of a mis-agreeing verb (real-word error) fails via a single route and floods via hard combination, but the <strong>OS arbitration of subject-routes weighted by reliability</strong> — the same law <code>μ = r/(1+r)</code> as cognition — succeeds on the residual that the parser gives up on. The arbitration geometry was not specific to Hangman; it is the right tool whenever one <em>crosses routes</em>. Detail: <a class="x" href="#m10">§10</a>.</p>
+</section>
+
+<section id="m7">
+<h2><span class="hn">7</span>Results</h2>
+<p>All figures come from the deterministic headless harness, strong-cognition config, words ≥ 7 letters, 4 seeds × 120, paired Δ.</p>
+<table>
+<thead><tr><th>Configuration</th><th class="num">K=1 (generalization)</th><th class="num">K=3 (repeated vocab)</th></tr></thead>
+<tbody>
+<tr><td>Pure frequency (low reference)</td><td class="num">~22–23 %</td><td class="num">—</td></tr>
+<tr><td>Cheat-free cognition alone</td><td class="num">91.5 %</td><td class="num">93.8 %</td></tr>
+<tr><td><strong>+ NEO declare (R+Assembled+Cohort)</strong></td><td class="num pos"><strong>97.50 %</strong></td><td class="num pos"><strong>98.82 %</strong></td></tr>
+<tr><td>Oracle ceiling (full lexicon) <span class="chip c-exc">excluded</span></td><td class="num">98.7 % / 100 %</td><td class="num">—</td></tr>
+</tbody></table>
+<p>Three observations. <strong>(1)</strong> Performance comes from the <em>integration of modules</em>, not from a single route. <strong>(2)</strong> The cheat-free version reaches the oracle within a few points <em>without reading the dictionary to score a letter</em> — the central result. <strong>(3)</strong> The assembled phonology→spelling route with a <em>learned table</em> beats the hand-coded table (71–85 % vs 67–79 % on sound positions): <em>learning &gt; hand-coding</em>.</p>
+<h3>7.1 — In-lexicon vs out-of-lexicon regime</h3>
+<p>The figures above hold <em>in-lexicon</em> (the word belongs to the solver's dictionary). This is the regime where recognition (recall/cohort) dominates — and where OMEGA is on par with the best lexical solvers. The decisive test is the <strong>out-of-lexicon</strong> regime (words removed from the dictionary, Trexquant-style): recognition can do nothing, only <em>sub-lexical generalization</em> counts. This regime is <strong>playable and measurable in the application</strong>: the <span class="chip c-des">🎯 Trexquant</span> mode removes the drawn word from the dictionary (cohort and recall blind), and a dedicated bench computes the out-of-lexicon win rate.</p>
+<table>
+<thead><tr><th>Regime / configuration</th><th class="num">Wins (words ≥7, budget 6)</th></tr></thead>
+<tbody>
+<tr><td>In-lexicon (recognition)</td><td class="num pos">~97 %</td></tr>
+<tr><td>Out-of-lexicon — <strong>phonology→spelling cascade</strong> (with sound, the concept)</td><td class="num">70.7 %</td></tr>
+<tr><td>Out-of-lexicon — flat fusion (routes in parallel)</td><td class="num">66.7 %</td></tr>
+<tr><td>Out-of-lexicon — spelling only (letter-only)</td><td class="num neg">22 %</td></tr>
+<tr><td>Trexquant benchmark (letter-only, no sound)</td><td class="num">~50 % / good ~65-68 %</td></tr>
+</tbody></table>
+<p>Three takeaways. <strong>(1)</strong> The 97 % is essentially <em>in-lexicon leverage</em>; remove recognition and the win rate drops. <strong>(2)</strong> The <strong>phonology→spelling concept</strong> (the assembled sequence, the word being <em>heard</em>) carries the entire out-of-lexicon: 12–22 % without it → 70.7 % with — on par with good solvers, on a legitimate task (spelling a heard word, doctrinal <code>w.p</code>). <strong>(3)</strong> The <strong>margin-guarded cascade beats flat fusion</strong> (70.7 % vs 66.7 %; the fused phonology route alone, 12.7 %, <em>hurts</em>) — confirming that combining routes goes through the margin, never through a sum. The real weakness is pure spelling OOV (22 %): sub-lexical generalization without sound remains to be built (morphological layer, §10).</p>
+<div class="callout exc"><span class="lbl">⚠️ UPDATE 06/2026 — OOV figures to re-read</span> The OOV figures in this section (≈70.7 % "with sound") <strong>predate</strong> the discovery of the <strong>cohort leak</strong> (<code>_neoWBL</code>, AUDIT_OMEGA §1.6.1). After correction: pure sublexical generalization ≈ <strong>33 %</strong>, cognition alone ≈ <strong>11 %</strong>, aggregation n-gram ≈ <strong>57-66 %</strong> (gap-aware ~63-65 %, SOTA band). See the detail in <a class="x" href="#m10">§10 (UPDATE cont.)</a>. <strong>✓ Re-verified (06/2026)</strong> by re-running the engine's own bench (<code>_omega_trexquant_bench</code>, 3 seeds): <strong>gap-aware 64 % — stable across the 3 seeds</strong>; OS-arbitrated n-gram up to 68 %; in-lexicon 99 %. An independent measurement, it confirms these bands. <strong>Controlled head-to-head (same OOV set, 3 seeds, budget 6)</strong>: gap-aware cognition <strong>64 %</strong> vs a trigram+backoff n-gram baseline <strong>46.7 %</strong> (<strong>+17 pts on identical words</strong>) vs held-out lexical cohort 24 %. <strong>What this really validates:</strong> ✅ the method <strong>beats a clean statistical baseline</strong> on French OOV (+17 pts, same set) — direct validation of the cognitive contribution; ✅ <strong>reproducible</strong> (64 % stable 3/3 seeds) and <strong>cheat-free</strong> (the baseline, by contrast, exploits the dictionary in full); ⚠️ <strong>honest ceiling</strong>: the baseline is a standard trigram, <em>not</em> the ML SOTA (trained LSTM/transformer) — a heavier model would narrow the gap, so "beats standard solvers" is <strong>proven</strong>, "beats the very best ML" is <strong>untested</strong>. <strong>And the resources point</strong> — it is fair, and this is where it weighs: the solvers that climb to 65-68 % are GPU-trained networks (pipeline + massive corpus), whereas OMEGA reaches 64 % in a single HTML file, without training, without a GPU, in a tab; the right framing is therefore not "it wins more", it is: <strong>performance comparable to the best, at a fraction of the resources — and clearly superior to standard solvers.</strong> <em>Verdict</em>: method validated as reproducible, cheat-free, measurably better than a standard baseline, and competitive with heavy ML at an incomparably lower cost; the only remaining "no" — <em>strictly</em> beating the best ML — would require a duel against a real network, which I cannot set up here.</div>
+</section>
+
+<section id="m8">
+<h2><span class="hn">8</span>Negative results — and what they teach</h2>
+<p>As much as the gains, the measured <em>noes</em> shaped the architecture. Recording them avoids repeating them and reveals the real walls.</p>
+<h3>8.1 — M3_d cannot be an episodic store <span class="chip c-exc">falsified</span></h3>
+<p>The tempting idea of "housing the recall bank inside the concept" was tested twice. Feeding M4_d with the recalled word <strong>contaminates</strong> letter-scoring (net-negative, −1.3 to −2.0). And carrying familiarity into the cells hits a <strong>capacity wall</strong>: recognition AUC climbs steadily with the number of cells — 0.64 (12) → 0.87 (96) → 0.98 (K=N) — so that carrying it demands <em>one cell per word</em>, i.e. re-storing the bank, with no gain over the exact Map that already exists.</p>
+<div class="callout"><span class="lbl">Lesson · complementary systems</span> Episodic (the bank — large, exact) and semantic (M3_d — small, compressed) are <strong>separated by design</strong> — like hippocampus and cortex — this is the complementary learning systems theory (McClelland, McNaughton &amp; O'Reilly 1995). Putting the episodic into the small semantic latent fails on capacity. M3_d is not broken: it is simply not a word store.</div>
+<h3>8.2 — The silent route is alive but harmless</h3>
+<p>Even correctly crossed (the right mechanism), the silent route only becomes <em>system-positive</em> with the trigger, and then only <strong>neutral</strong> (Δ +0.00 to +0.14). The silent residual is the irreducible ambiguity; cognition already covers it. The silent route is a clean complement, not a lever.</p>
+<h3>8.3 — Not everything can be learned from winning</h3>
+<p>Learning the trigger threshold by SPSA on the <em>win rate</em> yields a <strong>flat</strong> gradient: the effect is below the measurement quantum. A reward signal that is too coarse cannot guide fine tuning — a dense per-decision reward would be needed.</p>
+<h3>8.4 — The oracle is subtle</h3>
+<p>A route can be <em>trained on clean data</em> and still be an oracle if it reads beyond the mask <em>at inference</em>. The decisive diagnostic is not the cleanliness of the training, but what the route reads at the moment of deciding.</p>
+</section>
+
+<section id="m9">
+<h2><span class="hn">9</span>Principles</h2>
+<p>What the project has distilled, transferable beyond Hangman:</p>
+<ol>
+<li><strong>Cognition &gt; oracle.</strong> Separating performance (reading the answer) from cognition (reasoning about what is revealed) clarifies what one is really building.</li>
+<li><strong>Learning &gt; hand-coding.</strong> Tables learned while playing beat expert tables — and stay within doctrine if they are board-derived.</li>
+<li><strong>Cross, don't sum or multiply.</strong> Condition jointly; the bind is a per-word memory, not a letter-prediction engine.</li>
+<li><strong>Margin cascade &gt; flat fusion.</strong> Recognize first, decode if the margin is low — flat fusion dilutes.</li>
+<li><strong>Complementary systems.</strong> Exact episodic and compressed semantic have distinct roles; do not conflate them.</li>
+<li><strong>Measure, falsify, keep last.</strong> OFF-inert + measured ON contribution, or revert.</li>
+</ol>
+</section>
+
+<section id="m10">
+<h2><span class="hn">10</span>Open questions & perspectives</h2>
+<ul>
+<li><strong>Learned trigger</strong> via dense reward (per-decision advantage) rather than win rate, to arbitrate recall/assembled/cognition.</li>
+<li><strong>Morphological/grammatical layer</strong> — <em>realized in the dictation offshoot (update 18/06/2026)</em>: an in-context agreement lever (subject-verb 94 %, distant subject, past participle + preposed direct object, noun-phrase gender) and <strong>dual-route grammar</strong> — a <strong>lexical</strong> route (Lexique 4 cgram: 12,415 verbs, 53,050 gendered nouns) × <strong>sublexical</strong> (rules), an upward loop (deciding) × <strong>downward</strong> (learning: the loop learns the gender lexicon from usage, <strong>100 % precision, FP=0</strong>, but bounded by the data). Outcome: a <strong>dyslexia corrector</strong> that detects + corrects + locates the stage (zero false positives). See <code>dictee/GRAMMAIRE_DOUBLE_VOIE.md</code>, <code>dictee/CORRECTEUR.md</code>. <strong>Extended (30/06/2026) into a TWO-level corrector</strong> (3-engine parity): <em>red</em> FP=0 — agreements, <strong>être↔avoir usage</strong> (« il est faim »→« il a faim » [is/has hungry], « il a allé »→« il est allé » [has/is gone]) + misspelled auxiliary, sentence-initial <strong>capitalization</strong>; <em>green</em> vigilance (does not assert, hence outside FP=0) — <strong>confusable</strong> words (homophones + paronyms, ~80 groups, senses auto-Wiktionary CC BY-SA) and <strong>run-on</strong> (missing punctuation). This is where the <strong>distributional</strong> signal ("meaning") — too noisy to pass the FP=0 gatekeeper in <em>correction</em> (measured: it fails even on the lexical case in real text) — finally finds its place: <em>suggest without deciding</em>. <strong>Extended (07/2026)</strong>: application by <strong>confidence</strong> (the source text is never rewritten; FP=0-safe + ~79 % spelling candidates applied <em>reversibly</em>, vigilance on click), <strong>replacement quality</strong> locked in CI (frequency dominance, capitalization, apostrophe ’), and <strong>guarded delivery</strong> (freshness of the extension zip, service-worker probe) — from a full cross-verified audit, detail: report §18 (update 03/07/2026).</li>
+<li><strong>Sentence Hangman</strong> — <em>falsified as a win-rate lever</em> (letter sharing "leaks" the endings; on the ≥7 engine the agreement prior in DECLARE is marginal). Sentence-cognition pays off in <strong>declaration</strong> and the short-word regime (= the corrector), not in Hangman: <code>evo/PHRASE_HANGMAN_PROBE.md</code>.</li>
+<li><strong>P2/Möbius</strong>: progressively wire in the downward mirror (currently disconnected), checking OFF inertia then the contribution. <em>Note</em>: the downward loop of <em>grammar</em>, by contrast, does genuinely learn (≠ the Hangman mirrors, measured inert) — the difference is the nature of the learned signal (lexicon vs letter).</li>
+<li><strong>Inherited settings</strong>: bound the Hebbian, fix the bijective projection (zero information gain).</li>
+<li>Exploratory hypothesis: would a freely tuned cognition converge toward stable constants? <span class="chip c-hyp">speculative</span></li>
+</ul>
+<div class="callout mes"><span class="lbl">UPDATE 07/2026 — the <em>real-word</em> agreement wall, cracked by OS arbitration of the subject</span>
+The <strong>real-word</strong> agreement error (the verb is a valid word but mis-agreeing: « les enfants <em>joue</em> » [the children play], « les rapports que l'entreprise <em>livrera</em> » [the reports the company will deliver]) is, in the literature, <strong>the central problem of the corrector</strong> (Wilcox-O'Hearn: "detection is the central problem in real-word spelling correction"): it requires recovering the <strong>syntactic subject</strong>, often out of reach (« de N » complements, coordination, distant subject). Our <em>red</em> agreement parser <strong>abstains</strong> here by construction — which is precisely what holds its FP=0. Measured: no single subject route clears this wall (nearest noun 81 %, coherence LM 74 %), and the <em>hard</em> combinations (sum of scores, product of marginals, gate) <strong>flood</strong> — because two routes out of three perpetually support « the word is correct », diluting the only reliable vote.
+<strong>What cracked it — exactly the lesson of <a class="x" href="#m6">§6</a>:</strong> not a route, nor a combo, but the <strong>OS arbitration</strong> of Hangman — a convex mixture of subject-routes weighted by <em>reliability</em> (the peakedness of each distribution, μ = r/(1+r)), a <strong>baked language model</strong> (~180 KB, UD-GSD held-out) carrying the <em>confidence gradient</em> that makes the threshold useful (without it, flat flood). On the residual the parser gives up on — the « de N » cases — the confidence-weighted OS arbitration recovers the subject's number at <strong>~94-97 %</strong>, where no single route could. Delivered as <strong>orange vigilance</strong> (suggests « agreement to check », never rewrites → the red FP=0 gatekeeper stays intact), in <strong>3-engine parity</strong>, guarded in CI. <strong>Validated on the real chat register</strong> (real dyslexia, not formal UD): flood <strong>0 %</strong> on chat, 0.04 % on varied text, recall <strong>54 %</strong> of number disagreement — after re-inheriting the structural guards of the sibling rules (participle, compound tense, pronoun-subject, elided subject « l'X »). <strong>A wall that we — and others — thought impassable for a portable tool (without a dependency parser or a large LM), crossed by the same arbitration geometry as Hangman.</strong> Detail: report §18.</div>
+<div class="callout mes"><span class="lbl">UPDATE 07/2026 — the phonology route repointed from keyboard to microphone (ASR without Google)</span>
+The <strong>dual route</strong> phonology↔spelling (<a class="x" href="#m4">§4.2</a>) had never been closed on the <em>phonology→spelling</em> side outside the declare: judged useless for <em>typed</em> text, and without a source of phonemes. Both premises fall: a free acoustic model (<code>wav2vec2-french-phonemizer</code>, MIT) supplies the phonemes, and voice is a <em>real</em> need (speaking to bypass the keyboard). Repointed as a <strong>speech-recognition back-end</strong>, the phonology route decodes French text <strong>without ever calling Google</strong>. <span class="chip c-mes">Measured</span> arc (clean voice, 147 words): raw p2g <strong>13.6&nbsp;%</strong> → +grammar <strong>49.7&nbsp;%</strong> (<strong>+36 pts — grammar dominates</strong>, the same verdict as in the dictation offshoot) → homophones/lexicon/fuzzy recovery <strong>70.1&nbsp;%</strong> → corrector + subject parser in <em>confidence mode</em> <strong>76.9&nbsp;%</strong>; <strong>81&nbsp;%</strong> on a real (dyslexic) voice. <strong>Prosody</strong> pays off: silence at word boundaries yields punctuation (F1 <strong>100&nbsp;%</strong>) and the F0 rise sets the "?" (confirmed on a real voice, 0 false "?").
+<strong>The same walls as Hangman, re-measured:</strong> a <strong>bigger LM</strong> (Wikipedia register) <em>lowers</em> the score (81→79&nbsp;%) through <strong>frequency traps</strong> (chères→père [dear→father]) — the small confident LM wins; <strong>OS arbitration</strong> applied to the acoustic emission <em>hurts</em> (down-weighting a reliable source) — <em>crossing = arbitrating by reliability, not weakening the sure vote</em> (<a class="x" href="#m6">§6</a>). The ceiling (~81&nbsp;%) is the <strong>acoustic model</strong>, not the decoder: OMEGA is an <strong>LM/decoder, not an acoustic model</strong> — direct confirmation of "what generalizes is the aggregation of structure" (<a class="x" href="#m8">§8</a>, O2). <strong>Usage verdict</strong>: for a <em>local</em> tool, Whisper <em>small</em> (open weights, MIT, not Google) delivers <strong>98&nbsp;%</strong> and supersedes the phonology route; the latter remains the <strong>research proof</strong> (the dual route repointed from keyboard to microphone), and on the <em>web</em> — where Whisper is too heavy — the value lives in the Web Speech route + OMEGA re-dressing. Detail: <code>dictee/ASR_VOIE_B.md</code>, report §18.6.</div>
+<div class="callout mes"><span class="lbl">UPDATE 06/2026 — cheat-free declare & route arbitration (detail: AUDIT_OMEGA §1.1–§1.6)</span>
+<strong>(a)</strong> Cheat-free declare pushed further: <strong>DUAL</strong> (word model, board cohort, never <code>currentWord</code>) <strong>adopted</strong> (+2.5 → 97.3 % without <code>currentWord</code>; +1.8 → 99.8 % "heard word"). The board-derived cohort route + <strong>sound×spelling joint</strong> ("crossing = joint", §6) makes the cheat-free declare <em>complete</em> (without <code>currentWord</code>), at in-lexicon parity.
+<strong>(b)</strong> <strong>Arbitration of the two DRC routes</strong> (lexical ⟷ sublexical) at the declare level, via the OS <code>w(r)</code>: measured — beats the baseline (+2.0, never below) but <em>not</em> DUAL → kept optional (a truer interactive DRC, cleaner).
+<strong>(c)</strong> Falsified (R66): morphology (edit distance, dense backoff, word-joint), cross-modal crossing at the M3_d concept (−3.0). Confirms §8.1: the cheat-free residual lives in the <strong>ambiguity of the cohort</strong>, not in the phonology→letter table nor the small latent.
+<strong>(d)</strong> <strong>Directionality</strong>: cognition's phonology route is <em>spelling→phonology</em> (reading, θ OS tuned for reading); the declare is <em>phonology→spelling</em> (spelling out). DRC coexistence, but the declare arbitration must force its own <code>(α,β)</code>, never inherit the reading θ (otherwise a conflict in the routes' direction).</div>
+<div class="callout exc"><span class="lbl">UPDATE 06/2026 (cont.) — honest OOV, the n-gram route, and the cognitive "C" (detail: AUDIT_OMEGA §1.6.1–§1.12)</span>
+<strong>(e) ⛔ OOV retraction.</strong> The "~97 % out-of-lexicon" published earlier was a <strong>cohort leak</strong> (an un-invalidated <code>_neoWBL</code> cache: the "removed" word stayed in the cohort). Fixed. <strong>True measured OOV ≈ 33 %</strong> for pure sublexical generalization; <strong>cognition alone ≈ 11 %</strong> — it <em>does not generalize</em> sub-lexically. The OOV lever is the <strong>AGGREGATION of the lexicon's structure</strong>, not per-game reward nor instance memory.
+<strong>(f) The n-gram route (the aggregation substrate).</strong> A positional letter n-gram pre-computed from the lexicon (cheat-free) does <strong>~57-66 % OOV</strong>; wired in as the <strong>sublexical route of the OS arbitration</strong> (auto-switching by reliability), it holds in-lex ~97 % AND OOV ~60 % without a switch. The <strong>gap-aware</strong> variant (nearest revealed neighbor at distance 1..4) adds <strong>+2 pts OOV</strong> (~63-65 %, SOTA band) — <em>the first real cognitive gain above the substrate</em>. <strong>Non-French confirmation (06/2026, O2).</strong> This aggregation substrate is <strong>domain-agnostic</strong>: re-implemented outside the engine and pointed at <strong>code</strong> (not the French lexicon), it reconstructs (Hangman-style) and <strong>compresses</strong> code <em>as well as French</em> (~1.1 bits/character below chance) and <strong>nothing</strong> on a scrambled sequence — "predicting = compressing". The part that generalizes is therefore indeed the <strong>aggregation of structure</strong> (a sequence compressor), <em>not</em> French cognition (the phonological dual route does not transfer — no "sound" in code). Measurements: <code>evo/evo_o2_crossdomain.js</code>, <code>evo/evo_o2_compression.js</code>. <strong>Group work (O1) — falsified.</strong> The twin idea — would a <em>group</em> of diverse versions beat the best solo? — does not hold: real versions (parameter genomes, 200 words × 3 seeds, real engine) are strong <em>and</em> too similar (no complementarity), and the useful coordination is already the <strong>OS's internal arbitration</strong>, not an external vote. The premise "group &gt; best solo" is <strong>subsumed by the architecture</strong>. Measurement: <code>evo/evo_o1_real.js</code>.
+<strong>(g) The learned "C" — FALSIFIED as a breakthrough.</strong> The <em>light</em> C (maxent/GATE/POE) and the <em>heavy</em> C (multi-head transformer + FFN, grad-checked) were built and measured: the heavy one <strong>converges toward</strong> the gap-aware n-gram without beating it (win rate at optimal config: <strong>parity</strong>, OOV Δ ≈ −1.3; trained on real games = <strong>regression</strong> for lack of lexical coverage). The gap-aware n-gram (free, interpretable) remains the <strong>practical ceiling</strong> — the thesis "cognition > oracle = light/interpretable" confirmed. Beyond = heavy offline neural, deferred. Design of a future organ (learned arbitration hub): <code>docs/COGNITION_DESIGN.md</code>.</div>
+</section>
+
+<section id="m11t">
+<h2><span class="hn">11</span>Related work & positioning</h2>
+<p>OMEGA assembles five established research threads; situating it allows one to judge its novelty and rigor.</p>
+<ul>
+<li><strong>Hangman solvers.</strong> Constraint + entropy approaches reach ~96 % <em>in-dictionary</em> (known length); the Trexquant challenge, on <em>out-of-dictionary</em> words, plateaus from ~50 % (baseline) to ~65-68 % (good solvers). OMEGA is on par with the former in-lexicon (~97 %) and with the latter out-of-lexicon (~70 %, via phonology→spelling, the word being heard).</li>
+<li><strong>Vector symbolic architectures (VSA / HRR).</strong> The substrate builds on holographic reduced representations (Plate 1995) and hyperdimensional computing (Kanerva 2009). The <em>resonator networks</em> warning (Frady et al. 2020) — do not multiply correlated factors — matches OMEGA's measured lesson: the bind is a per-word memory, not a letter engine.</li>
+<li><strong>Dual route of reading.</strong> The spelling/phonology routes and their arbitration instantiate the DRC model (Coltheart et al. 2001); OMEGA adds a margin-guarded cascade rather than a flat fusion.</li>
+<li><strong>Bidirectional predictive coding.</strong> The M3_d concept follows the DBPC blueprint (Qiu et al. 2025): shared weights, reconstruction learning.</li>
+<li><strong>Complementary systems.</strong> The result in <a class="x" href="#m8">§8.1</a> — exact episodic bank vs compressed semantic latent, and the capacity wall when the two are conflated — is precisely the hippocampus/neocortex division of CLS theory (McClelland, McNaughton &amp; O'Reilly 1995). OMEGA <em>empirically rediscovers</em> it in an applied domain, which constitutes an independent validation.</li>
+</ul>
+<p>To our knowledge, the assembly of these five threads into a <em>cheat-free</em> Hangman engine, under the strict "cognition &gt; oracle" constraint and validated by systematic falsification, is original in this niche. The contribution is not a performance record — lexical solvers match the in-lexicon win rate — but a <strong>method</strong> and a mapping of what generalizes (the phonology→spelling sequence) and what hits walls (the concept's capacity).</p>
+</section>
+
+<section id="m11">
+<h2><span class="hn">12</span>Conclusion</h2>
+<p>OMEGA-Ω shows that a machine can play French Hangman at a near-oracle level <strong>by reasoning</strong> — hyperdimensional perception, dual spelling/phonology route, regulated concept, emergent declarations — <strong>without ever reading the dictionary to choose a letter</strong>. The gains are real and measured; so are the walls (the concept's capacity, the irreducible ambiguity, the coarseness of the reward). The project's lasting value is not a win-rate number: it is a <em>method</em> — measure before believing, falsify before keeping, distinguish cognition from oracle — and a catalog of what works, what does not, and <em>why</em>.</p>
+<p class="pull">Cheat-free cognition reached the oracle within a few points — and every point was won, or ruled out, by measurement.</p>
+</section>
+
+<section id="m13">
+<h2><span class="hn">13</span>References</h2>
+<p class="note">Verified references (authors, year, venue, pages).</p>
+<ol style="font-size:15px;line-height:1.5">
+<li>Coltheart, M., Rastle, K., Perry, C., Langdon, R., &amp; Ziegler, J. (2001). DRC: A Dual Route Cascaded Model of Visual Word Recognition and Reading Aloud. <em>Psychological Review</em>, 108(1), 204–256.</li>
+<li>Frady, E. P., Kent, S. J., Olshausen, B. A., &amp; Sommer, F. T. (2020). Resonator Networks for Factoring Distributed Representations of Data Structures. <em>Neural Computation</em>, 32(12).</li>
+<li>Kanerva, P. (2009). Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors. <em>Cognitive Computation</em>, 1(2), 139–159.</li>
+<li>McClelland, J. L., McNaughton, B. L., &amp; O'Reilly, R. C. (1995). Why There Are Complementary Learning Systems in the Hippocampus and Neocortex. <em>Psychological Review</em>, 102(3), 419–457.</li>
+<li>Plate, T. A. (1995). Holographic Reduced Representations. <em>IEEE Transactions on Neural Networks</em>, 6(3), 623–641.</li>
+<li>Qiu, S., Bhattacharyya, S., Coyle, D., &amp; Dora, S. (2025). Deep Predictive Coding with Bi-directional Propagation for Classification and Reconstruction. <em>Neural Networks</em>, 191, 107785.</li>
+</ol>
+</section>
+
+<section id="annexe">
+<h2><span class="hn">A</span>Appendix — Operating framework of the AI assistant</h2>
+<p class="lead">A methodological document concerning the development of the "Hangman" solver (OMEGA).</p>
+<div class="abstract"><span class="lbl">Preamble</span>
+The solver described in this memoir was developed with the assistance of a conversational artificial-intelligence agent (Claude, Anthropic), operated through the Claude Code interface. For the sake of <strong>methodological transparency and reproducibility</strong>, this appendix documents the framework of directives under which this assistant operates, its known limitations, and the control measures adopted over the course of the project. It was written by the assistant itself, at the author's request, then <strong>reviewed and corrected by the latter in light of the project's doctrine</strong> (<code>DOCTRINE.md</code>, consolidated cap §43).
+</div>
+
+<h3>A.1 — Nature and status of the assistant</h3>
+<ul>
+<li><strong>Generative software tool</strong>: the assistant produces text (and code) in response to prompts; it has no attestable subjective experience.</li>
+<li><strong>No continuity</strong>: each session starts with no memory of previous ones; the relevant context must be reintroduced explicitly — hence the use of handover notes and a written doctrine.</li>
+</ul>
+
+<h3>A.2 — Honesty and rigor directives</h3>
+<ul>
+<li>Do not fabricate information; explicitly flag uncertainty and limitations.</li>
+<li>Report failures and <strong>negative results</strong> faithfully, without embellishment.</li>
+<li>Favor correctness over complaisance: do not validate a false claim to please the interlocutor.</li>
+<li>Confirm before any hard-to-reverse action.</li>
+<li>Subordinate every contribution to a <strong>measurable and falsifiable effect</strong> (<a class="x" href="#m3">§3 Method</a>; <code>DOCTRINE §1</code>).</li>
+</ul>
+
+<h3>A.3 — Security and usage directives</h3>
+<ul>
+<li>Refusal of destructive or malicious uses; assistance limited to legitimate uses (development, defensive security, research, learning).</li>
+<li>Respect for confidentiality and for the access scopes defined for the session.</li>
+</ul>
+
+<h3>A.4 — Technical scope and environment</h3>
+<ul>
+<li><strong>Ephemeral remote environment</strong>: any output not saved (commit/push) is lost at the end of the session.</li>
+<li>No access to the user's accounts or browser: the assistant cannot fill external forms nor act outside its tools.</li>
+<li>Repository access <strong>restricted and explicit</strong>: the assistant operates only within the authorized scope.</li>
+</ul>
+
+<h3>A.5 — Epistemic limitations relevant to the project</h3>
+<p>Documented because they directly affect the reliability of AI-assisted development and <strong>justify</strong> the control measures of section A.6.</p>
+<ul>
+<li><strong>Introspection not guaranteed</strong>: the assistant cannot reliably attest to its own internal states, nor distinguish a deep constraint from a mere statistical regularity.</li>
+<li><strong>Degradation in a loaded context</strong>: audit and reasoning quality decreases as the session context grows large — an effect observed on this very project (monolithic engine + a large compressed lexicon; context losses mid-session).</li>
+<li><strong>Premature-closure bias</strong>: a tendency to declare a task "done" before full verification.</li>
+<li><strong>Least-effort / reinvention bias</strong>: a tendency to produce a simplified solution, or to rewrite an existing component rather than reuse the infrastructure in place.</li>
+<li><strong>Complaisance (sycophancy)</strong>: a tendency to adopt the interlocutor's reasoning frame — and, under optimization pressure, to favor a flattering number at the expense of meaning.</li>
+</ul>
+
+<h3>A.6 — Adopted control measures</h3>
+<p>To manage these limitations, the project formalized a <strong>written operating doctrine</strong> (<code>DOCTRINE.md</code>: consolidated cap §43 + addenda). Each measure addresses a limitation from A.5:</p>
+<ul>
+<li><strong>Cognitive-service clause</strong> (<code>§0</code>): the agent is at the service of the <em>cognitive model</em>; performance is an indicator, <strong>not an end</strong>. No metric justifies betraying fidelity to the model; a shortcut that inflates a number at the expense of meaning is <strong>flagged</strong>, not taken. <em>(A direct safeguard against the complaisance / optimization pressure of A.5.)</em></li>
+<li><strong>Systematic human validation</strong> (<code>§4.4</code>): the human judges the result and the felt experience; the assistant guarantees the logic, the scale and the measurement — without one encroaching on the other.</li>
+<li><strong>One junction at a time</strong> (<code>§4.1</code>): one increment = one wiring, measured alone; no merging of work streams.</li>
+<li><strong>Mandatory falsifiability and measurement</strong> (<code>§1</code>): every feature must show a measurable effect; a <strong>deterministic fixed-seed harness</strong>; <strong>in-lexicon and out-of-lexicon (OOV) evaluations kept separate</strong>; a non-reproducible result is void.</li>
+<li><strong>Disabled by default</strong> (OFF-inert, byte-identical baseline); <strong>unpluggable toggles</strong> (<code>R66</code>); <strong>read-only diagnostics</strong> (<code>R67</code>).</li>
+<li><strong>Anti-laziness addendum</strong> (<code>§5</code>): inventory of what exists before any proposal, a ban on reinventing an available component, mandatory prior reading of the relevant documentation, <strong>proof of reuse required in the diff</strong>.</li>
+<li><strong>Honest audit protocol</strong> (<code>§6</code>): "not done" status by default; proof by <strong>real output and comparative measurement</strong> (a merit bar vs baseline) rather than by declaration.</li>
+</ul>
+<div class="callout mes"><span class="lbl">Reading</span> These measures do not remove the limitations of A.5; they <strong>contain them through protocol</strong> — the same "measure · falsify · keep last" logic that OMEGA applies to its own modules is applied to the <em>development process</em> itself.</div>
+
+<h3>A.7 — Tool identification</h3>
+<ul>
+<li><strong>Assistant</strong>: Claude (Anthropic).</li>
+<li><strong>Interface</strong>: Claude Code (remote execution environment).</li>
+</ul>
+</section>
+
+<div class="foot">
+OMEGA-Ω v0.07 — research &amp; engineering memoir · build phase47 · direction Rem · written by Claude (Anthropic).<br>
+Doctrine: cap §43 (cognition &gt; oracle) · R66 (measure before activation). Convention <span class="chip c-mes">measured</span> <span class="chip c-des">design</span> <span class="chip c-hyp">hypothesis</span> <span class="chip c-exc">excluded</span>.<br>
+Related documents: reference report &amp; user manual · NEO silent-route/crossing · M3_d reconnection (falsified).
+</div>
+</main>
+</div>
+<script>
+const titles={m0:"Summary",m1:"Thesis",m2:"Task & doctrine",m3:"Method",m4:"Architecture",m5:"Declarations & NEO",m6:"Crossing ≠ summing",m7:"Results",m8:"Negative results",m9:"Principles",m10:"Open questions",m11t:"Related work",m11:"Conclusion",m13:"References",annexe:"Appendix — AI operating framework"};
+const toc=document.getElementById('toc');
+Object.keys(titles).forEach((id,i)=>{const a=document.createElement('a');a.href='#'+id;a.dataset.id=id;a.innerHTML='<span class="n">'+i+'</span>'+titles[id];toc.appendChild(a);});
+const links=[...toc.querySelectorAll('a')];const byId=Object.fromEntries(links.map(a=>[a.dataset.id,a]));
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));const a=byId[e.target.id];if(a){a.classList.add('active');if(window.innerWidth>900){const r=a.getBoundingClientRect(),pr=toc.getBoundingClientRect();if(r.top<pr.top||r.bottom>pr.bottom)a.scrollIntoView({block:'nearest'});}}}})},{rootMargin:'-12% 0px -78% 0px',threshold:0});
+document.querySelectorAll('section').forEach(s=>obs.observe(s));
+const prog=document.getElementById('progress');
+addEventListener('scroll',()=>{const h=document.documentElement,sc=h.scrollTop||document.body.scrollTop,mx=(h.scrollHeight-h.clientHeight)||1;prog.style.width=(100*sc/mx)+'%';},{passive:true});
+</script>
+</body>
+</html>
