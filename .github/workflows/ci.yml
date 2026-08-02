@@ -97,6 +97,12 @@ jobs:
         run: node omega-key/test_crypto.js
       - name: Scrabidon — moteur plateau (mots croisés sur le bon axe, CHATS proposé, bi-mots scorés)
         run: node dictee/scrabidon_probe.js
+      - name: EN Phase 2 — speller anglais (recall CASES + FP=0 sur casse)
+        run: python3 dictee/speller_en_probe.py --check
+      - name: EN Phase 2 — canal homophone anglais (recall CASES 14/14, RED = vraies fautes)
+        run: python3 dictee/homophone_en_probe.py --check
+      - name: EN Phase 2 — moteur JS correcteur (parité CASES avec les probes Python)
+        run: node dictee/corrector_en.js --check
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)

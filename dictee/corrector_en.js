@@ -183,4 +183,9 @@ if(typeof require !== 'undefined' && require.main === module){
   for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const [s, l] = homoDecide(lex, T, idx);
     if(s === exp && l === lvl) hok++; else console.log('  HP MISS %s -> %s/%s (attendu %s/%s)', txt, s, l, exp, lvl); }
   console.log('homophone: %d/%d', hok, HP.length);
+  if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
+    const ok = (auto + flag >= 10) && (hok === HP.length);
+    console.log('[check] %s — speller %d, homophone %d/%d', ok ? 'OK' : 'ÉCHEC', auto + flag, hok, HP.length);
+    if(!ok) process.exit(1);
+  }
 }
