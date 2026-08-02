@@ -523,7 +523,7 @@ function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&
 
 $('evPause').onclick=function(){ paused=!paused; this.textContent=paused?'▶ Play':'⏸ Pause'; };
 $('evReal').onclick=function(){ if(engineReady||loading)return; loading=true; tries=0; $('evReal').disabled=true; $('evReal').textContent='● loading…'; liveBadge('on','loading the engine ~11 MB…');
-  frame.addEventListener('load',()=>setTimeout(probe,300),{once:true}); frame.src='../app/omega-pendu.html'; setTimeout(()=>{ if(!engineReady&&loading)probe(); },2800); };
+  frame.addEventListener('load',()=>setTimeout(probe,300),{once:true}); frame.src='../app/omega-pendu-en.html'; setTimeout(()=>{ if(!engineReady&&loading)probe(); },2800); };
 
 (async function boot(){ const ok=await initThree(); if(ok){ renderFrame(performance.now()); cycle(); } })();
 </script>
