@@ -125,12 +125,16 @@ def main():
         else:
             miss += 1; print('  MISS  %-26s [%s] -> %s/%s (attendu %s/%s)' % (text, T[idx], s, lv, exp, lvl))
     print('recall %d/%d (RED %d + ORANGE %d)' % (hitR+hitO, len(CASES), hitR, hitO))
-    fp_scale()
+    red_fp = fp_scale()
+    if '--check' in sys.argv:                                # garde CI : recall CASES complet + (si EWT) RED = vraies fautes
+        ok = (hitR + hitO == len(CASES)) and (red_fp is None or red_fp <= 25)
+        print('[check] %s — recall %d/%d, RED-EWT %s' % ('OK' if ok else 'ÉCHEC', hitR+hitO, len(CASES), red_fp))
+        if not ok: sys.exit(1)
 
 def fp_scale():
     path = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu')
     if not os.path.exists(path):
-        print('[fp] EWT introuvable — skip'); return
+        print('[fp] EWT introuvable — skip'); return None
     red = collections.Counter(); orange = 0; sents = 0; redex = []
     for l in open(path, encoding='utf-8'):
         if not l.startswith('# text = '): continue
@@ -148,6 +152,7 @@ def fp_scale():
     print('  RED (rouge) sur texte correct : %d  ← doit tendre vers 0 (FP)' % tot)
     if red: print('   détail RED :', red.most_common(12))
     print('  ORANGE (vigilance) : %d (%.2f/phrase)' % (orange, orange/max(sents,1)))
+    return tot
 
 if __name__ == '__main__':
     main()

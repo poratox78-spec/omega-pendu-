@@ -199,6 +199,10 @@ def main():
     print('\nrecall %d/%d (auto rouge %d + flag orange %d) · contrôles OK %d, FP contrôle %d'
           % (hit, tot, auto, flag, ctrl_ok, ctrl_bad))
     fp_scale(sp)
+    if '--check' in sys.argv:                                # garde CI : recall + contrôles (FP=0 sur casse)
+        ok = (hit >= 40 and ctrl_bad == 0)
+        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0)' % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad))
+        if not ok: sys.exit(1)
 
 def fp_scale(sp):
     """FP=0 à l'échelle : sur du texte anglais CORRECT (UD English-EWT), aucun mot ne doit être
