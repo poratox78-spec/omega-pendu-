@@ -82,6 +82,13 @@ TRANSLATIONS = [
     ('parties chaudes', 'recent games'),
     ('non chargé', 'not loaded'),
     ('Lexique non chargé', 'Lexicon not loaded'),
+    # petits labels stats/contrôles (ancres distinctives)
+    ('moy —', 'avg —'),
+    ('voie —', 'route —'),
+    ('voie OFF', 'route OFF'),
+    ('ratio signaux', 'signal ratio'),
+    ('θ pas', 'θ step'),
+    ('pas<input', 'step<input'),
 ]
 _missing = []
 for fr, en in TRANSLATIONS:
