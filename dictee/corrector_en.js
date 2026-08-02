@@ -100,11 +100,26 @@ function onlyNoun(lex, w){ const p = posOf(lex, w); return p.size === 1 && p.has
 function isVerb(lex, w){ return posOf(lex, w).has('VERB'); }
 function isAdj(lex, w){ return posOf(lex, w).has('ADJ'); }
 
+const VOWEL_IPA = new Set([...'aeiouɑɒɔɛɪʊʌəæɜɚɝɐɘœø']);
+function vowelStart(lex, w){                                // 1er son du mot via IPA ; null si inconnue
+  let ip = lex.IPA.get(w.toLowerCase());
+  if(!ip) return null;
+  ip = ip.replace(/^[\/\[\]ˈˌˑ.\s]+/, '');
+  return ip ? VOWEL_IPA.has(ip[0]) : null;
+}
+
 function homoDecide(lex, T, i){
   const w = T[i], lw = w.toLowerCase();
   const nx = i+1 < T.length ? T[i+1].toLowerCase() : '';
+  const nxRaw = i+1 < T.length ? T[i+1] : '';
   const pv = i > 0 ? T[i-1].toLowerCase() : '';
   if(lw === 'of' && MODALS.has(pv)) return ['have', 'RED'];
+  // « a » + son voyelle du mot suivant (IPA) -> « an ». FP=0 : mot suivant en minuscules (exclut US/UN/August) ;
+  // « A » capital = article seulement en début de phrase (sinon étiquette : Party A). an->a abandonné.
+  if(lw === 'a' && (w === 'a' || i === 0)
+      && /^\p{L}+$/u.test(nxRaw) && nxRaw === nxRaw.toLowerCase() && nxRaw !== nxRaw.toUpperCase()
+      && vowelStart(lex, nx) === true)
+    return ['an', 'RED'];
   if(lw === 'then' && (COMPAR.has(pv) || (pv.endsWith('er') && isAdj(lex, pv)))){
     if(THAN_OBJ.has(nx) || (nx && (isNoun(lex, nx) || isAdj(lex, nx)) && !isVerb(lex, nx))) return ['than', 'RED'];
     return ['than', 'ORANGE'];
@@ -131,7 +146,7 @@ function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
 // ---------- chargement du lexique ----------
 // parseLexText : construit le lexique depuis le TSV décompressé (partagé Node/navigateur).
 function parseLexText(raw){
-  const lex = { KNOWN: new Set(), FREQ: new Map(), POS: new Map(), PHON: null };
+  const lex = { KNOWN: new Set(), FREQ: new Map(), POS: new Map(), IPA: new Map(), PHON: null };
   const lines = raw.split('\n');
   for(let i = 1; i < lines.length; i++){
     const c = lines[i].split('\t');
@@ -139,6 +154,7 @@ function parseLexText(raw){
     lex.KNOWN.add(c[0]);
     lex.FREQ.set(c[0], parseInt(c[6], 10) || 0);
     if(c[1]) lex.POS.set(c[0], new Set(c[1].split('|')));
+    if(c[2]) lex.IPA.set(c[0], c[2]);
   }
   buildPhonIndex(lex);
   return lex;
@@ -178,7 +194,8 @@ if(typeof require !== 'undefined' && require.main === module){
   const HP = [['I could of done it',2,'have','RED'],['It is bigger then mine',3,'than','RED'],
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
     ['your gonna love it',0,"you're",'RED'],['there car is red',0,'their','ORANGE'],
-    ['its not fair',0,"it's",'ORANGE'],['your welcome to stay',0,"you're",'ORANGE']];
+    ['its not fair',0,"it's",'ORANGE'],['your welcome to stay',0,"you're",'ORANGE'],
+    ['I saw a apple',2,'an','RED'],['It is a honest mistake',2,'an','RED']];
   let hok=0;
   for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const [s, l] = homoDecide(lex, T, idx);
     if(s === exp && l === lvl) hok++; else console.log('  HP MISS %s -> %s/%s (attendu %s/%s)', txt, s, l, exp, lvl); }
