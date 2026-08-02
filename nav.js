@@ -5,7 +5,8 @@
 // chaque page reçoit exactement le même menu, groupé (Outils / Jeux / Recherche / Plus) pour la lisibilité.
 // nav.js RÉÉCRIT le contenu de <nav> (les <a> codés en dur ne servent plus que de repli sans JS), garde le
 // bouton « 🔤 Lisible », marque la page courante (aria-current), et replie le tout derrière ☰ à toutes largeurs.
-// Idempotent ; se ferme au clic sur un lien, au clic dehors, ou sur Échap. Les pages /en/ gardent leur nav.
+// Idempotent ; se ferme au clic sur un lien, au clic dehors, ou sur Échap. Les pages /en/ reçoivent le menu
+// GROUPS_EN (même mécanisme, menu anglais) — centralisé ici pour éviter la dérive des navs codées en dur.
 (function () {
   // Groupes → [libellé de section, [ [href, texte], ... ] ]. hrefs relatifs à la racine du site (pages fr).
   var GROUPS = [
@@ -30,6 +31,27 @@
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
     ]],
   ];
+  // Menu ANGLAIS (pages /en/) — même structure que le FR, mais seulement les outils/pages qui EXISTENT
+  // en anglais (pas de saisie-vocale/scrabidon/pendable/données EN pour l'instant). hrefs relatifs à /en/.
+  // Centralisé ici pour tuer la dérive (« Dictation » manquait sur 6 pages/8, dont l'accueil).
+  var GROUPS_EN = [
+    ['Dyslexia tools', [
+      ['correcteur.html', 'Corrector'],
+      ['dictee.html', 'Dictation'],
+    ]],
+    ['Play', [
+      ['index.html', 'The Hangman'],
+    ]],
+    ['Research', [
+      ['recherche.html', 'Research'],
+      ['arbitrage.html', 'Arbitration'],
+      ['evolution.html', 'Evolution'],
+    ]],
+    ['More', [
+      ['omega-key.html', 'OMEGA·KEY'],
+      ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
+    ]],
+  ];
 
   function currentKey() {
     var p = location.pathname, i = p.lastIndexOf('/');
@@ -37,13 +59,13 @@
     return f.replace(/\.html$/, '');   // normalise : « /correcteur » (URL propre) == « correcteur.html »
   }
 
-  function buildLinks(nav) {
+  function buildLinks(nav, groups) {
     var cur = currentKey();
     // Retire les <a> et libellés de section codés en dur / déjà injectés ; garde le reste (bouton Lisible).
     Array.prototype.slice.call(nav.querySelectorAll('a, .navsec')).forEach(function (el) { el.remove(); });
     var toggle = nav.querySelector('#dys-toggle');   // point d'insertion : tout AVANT le bouton
     var frag = document.createDocumentFragment();
-    GROUPS.forEach(function (g) {
+    (groups || GROUPS).forEach(function (g) {
       var lab = document.createElement('span');
       lab.className = 'navsec'; lab.setAttribute('aria-hidden', 'true'); lab.textContent = g[0];
       frag.appendChild(lab);
@@ -117,8 +139,9 @@
   function init() {
     var hdr = document.querySelector('header.top'); if (!hdr) return;
     var wrap = hdr.querySelector('.wrap') || hdr, nav = hdr.querySelector('nav'); if (!nav) return;
-    // Pages /en/ : nav propre (2 pages) → on ne réécrit pas les liens fr, on ajoute juste le hamburger.
-    if (location.pathname.indexOf('/en/') === -1) { try { buildLinks(nav); } catch (e) {} }
+    // Nav pilotée par nav.js dans les DEUX langues (menu unique, drift-proof) : GROUPS en FR, GROUPS_EN en /en/.
+    var isEn = location.pathname.indexOf('/en/') !== -1;
+    try { buildLinks(nav, isEn ? GROUPS_EN : GROUPS); } catch (e) {}
     try { a11y(hdr, wrap); } catch (e) {}                    // barre accessibilité (thème + taille) — sur toutes les pages, y compris /en/
 
     if (wrap.querySelector('.navtoggle')) return;                 // hamburger déjà posé
