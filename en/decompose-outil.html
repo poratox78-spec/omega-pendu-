@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>English phonics decomposer — spelling → sounds (IPA) | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/decompose-outil"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en_GB">
+<meta property="og:title" content="English phonics decomposer — spelling to sounds | OMEGA-Ω"><meta property="og:description" content="Type an English word and see how its letters map to sounds (IPA), split into syllables, with the grapheme→phoneme breakdown. For dyslexia-friendly phonics. Runs in your browser.">
+<meta property="og:image" content="https://omegapendu.com/icon.svg">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="English phonics decomposer | OMEGA-Ω"><meta name="twitter:description" content="Letters → sounds (IPA), syllables, grapheme-by-grapheme. In-browser, private.">
+<meta name="description" content="A dyslexia-friendly English phonics tool: type a word and see its spelling decomposed into sounds (IPA), syllable split, and a letter-group → sound table. Data-driven grapheme-to-phoneme, 100% in your browser, nothing is sent.">
+<link rel="canonical" href="https://omegapendu.com/en/decompose-outil">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/decompose-outil">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/en/decompose-outil">
+<link rel="stylesheet" href="../site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  .tool-note{font:15px var(--sans);color:var(--fg-2);text-align:center;padding:9px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .tool-note strong{color:var(--fg)}
+  .cw{max-width:820px;margin:0 auto;padding:20px 16px 60px}
+  .card{background:var(--bg-2);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:24px}
+  .card h1{font:700 25px/1.2 var(--sans);margin:0 0 4px;color:var(--fg)}
+  .card p.sub{font:17px var(--sans);color:var(--fg-2);margin:0 0 18px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0 4px}
+  #in{flex:1;min-width:220px;box-sizing:border-box;font:22px var(--sans);color:var(--fg);
+      background:var(--bg-3);border:2px solid var(--line);border-radius:10px;padding:13px 15px}
+  button.go{font:700 18px var(--sans);background:var(--accent);color:#fff;border:0;border-radius:10px;padding:13px 24px;cursor:pointer}
+  button.go:disabled{opacity:.55;cursor:default}
+  #status{font:15px var(--sans);color:var(--fg-2)}
+  #out{margin-top:18px;display:none}
+  .word-head{font:700 30px/1.1 var(--sans);color:var(--fg);letter-spacing:.02em}
+  .ipa{font:600 26px var(--sans);color:var(--accent-2);margin-left:4px}
+  .meta{font:16px var(--sans);color:var(--fg-2);margin:10px 0 16px;display:flex;gap:22px;flex-wrap:wrap}
+  .meta b{color:var(--fg)}
+  .syll .s{display:inline-block;background:var(--bg-3);border:1px solid var(--line);border-radius:8px;
+           padding:4px 12px;margin:0 4px 6px 0;font:600 22px var(--sans);color:var(--fg)}
+  .brk{width:100%;border-collapse:collapse;margin-top:6px}
+  .brk th{font:600 13px var(--sans);color:var(--fg-2);text-transform:uppercase;letter-spacing:.03em;text-align:left;padding:6px 10px;border-bottom:1px solid var(--line)}
+  .brk td{font:20px var(--sans);color:var(--fg);padding:8px 10px;border-bottom:1px solid var(--line)}
+  .brk .g{font-weight:700}
+  .brk .p{color:var(--accent-2);font-weight:600}
+  .brk .silent{color:var(--fg-2);font-style:italic;font-size:15px}
+  .tip{font:14px var(--sans);color:var(--fg-2);margin-top:16px}
+  .ex{font:15px var(--sans);color:var(--fg-2);margin-top:6px}
+  .ex a{color:var(--accent);cursor:pointer;text-decoration:none;border-bottom:1px dotted var(--accent)}
+</style>
+<script src="../nav.js" defer></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Main">
+    <a href="index.html">Hangman</a>
+    <a href="correcteur-outil.html">Corrector</a>
+    <a href="dictee-outil.html">Dictation</a>
+    <a href="decompose-outil.html">Decompose</a>
+    <a href="recherche.html">Research</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+<div class="tool-note">🔡 <strong>Phonics decomposer</strong> — type a word, see its letters map to sounds. Everything runs in your browser; nothing is sent.</div>
+<div class="tool-note" style="background:color-mix(in srgb,#d29922 14%,var(--bg-2))">⚠️ <strong>Beta</strong> — the sound mapping is data-driven (predicted from spelling), so it is approximate on rare or irregular words. Syllable splits follow a maximal-onset rule and can differ from a dictionary.</div>
+
+<div class="cw">
+  <div class="card">
+    <h1>English spelling → sounds</h1>
+    <p class="sub">Type a word to see its pronunciation (IPA), syllable split, and how each letter group maps to a sound — a phonics aid for dyslexia.</p>
+    <div class="row">
+      <input id="in" spellcheck="false" placeholder="e.g. strength, unicorns, athlete" value="phonics">
+      <button class="go" id="go" disabled>Decompose</button>
+    </div>
+    <div class="row"><span id="status">Loading the sound model…</span></div>
+    <p class="ex">Try: <a data-w="strength">strength</a> · <a data-w="unicorns">unicorns</a> · <a data-w="athlete">athlete</a> · <a data-w="thoroughly">thoroughly</a> · <a data-w="scramble">scramble</a></p>
+    <div id="out" aria-live="polite"></div>
+    <p class="tip">Each row shows a <b>grapheme</b> (letter group) and the <b>sound</b> it makes here (IPA). Sounds are predicted from spelling by a data-driven grapheme→phoneme model — great for regular words, approximate for irregular ones.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SEG=null, COND=null, DBL=null, VOW='aeiouy';
+  var inEl=document.getElementById('in'), outEl=document.getElementById('out'),
+      btn=document.getElementById('go'), st=document.getElementById('status');
+  function esc(s){ return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+  // charge les tables g2p anglaises (mêmes que le pendu EN) : fetch du JSON, aucune donnée envoyée
+  fetch('../dictee/g2p_en.json')
+    .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); })
+    .then(function(t){ SEG=t.SEG; COND=t.COND; DBL=new Set(t.DBL);
+      btn.disabled=false; st.textContent='Ready — '+SEG.length+' spelling patterns loaded.'; run(); })
+    .catch(function(e){ st.textContent='Could not load the sound model ('+e.message+').'; });
+
+  // g2p : mot -> [{g:graphème, ph:phonème IPA}] (longest-match SEG + COND contextuel ; miroir du moteur)
+  function g2pSteps(word){
+    var w=(word||'').toLowerCase().replace(/[^a-z]/g,''), steps=[], i=0;
+    while(i<w.length){
+      var g=null;
+      for(var s=0;s<SEG.length;s++){ if(w.substr(i,SEG[s].length)===SEG[s]){ g=SEG[s]; break; } }
+      if(!g) g=w.charAt(i);
+      var nxt = (i+g.length<w.length) ? w.charAt(i+g.length) : '#';
+      var ph;
+      if(DBL.has(g) && COND[g.charAt(0)]){ var e0=COND[g.charAt(0)]['_']; ph=e0?e0[0]:g.charAt(0); }
+      else { var t=COND[g]; var e=t?(t[nxt]||t['_']):null; ph=e?e[0]:''; }
+      if(ph==='∅') ph='';
+      steps.push({g:g, ph:ph});
+      i+=g.length;
+    }
+    return steps;
+  }
+
+  // syllabation sur les PHONÈMES (noyaux = voyelles + consonnes syllabiques), remappée aux graphèmes.
+  var VOWPH={i:1,'ɪ':1,'ɛ':1,'æ':1,'ɑ':1,'ɔ':1,'ʊ':1,u:1,'ʌ':1,'ə':1,'ɚ':1,'eɪ':1,'aɪ':1,'ɔɪ':1,'oʊ':1,'aʊ':1};
+  var SYLLABIC={l:1,'ɹ':1,m:1,n:1}, LIQ={l:1,'ɹ':1,w:1,j:1};
+  function legalOnset(ps){ // attaque phonémique anglaise (approx) : 1 C · s+C · C+liquide · s+C+liquide
+    if(ps.length<=1) return true;
+    if(ps.length===2) return ps[0]==='s' || !!LIQ[ps[1]];
+    if(ps.length===3) return ps[0]==='s' && !!LIQ[ps[2]];
+    return false;
+  }
+  function syllables(steps){
+    var U=[]; for(var k=0;k<steps.length;k++) U.push({g:steps[k].g, ph:steps[k].ph});
+    // indices de noyaux
+    var nuc=[];
+    for(var i=0;i<U.length;i++){
+      var ph=U[i].ph; if(!ph){continue;}
+      if(VOWPH[ph]){ nuc.push(i); continue; }
+      if(SYLLABIC[ph]){ // consonne syllabique : précédée d'une consonne, pas d'un noyau, et fin/consonne après
+        var prevV=false; for(var a=i-1;a>=0;a--){ if(U[a].ph){ prevV=!!VOWPH[U[a].ph]; break; } }
+        var nextC=true; for(var b=i+1;b<U.length;b++){ if(U[b].ph){ nextC=!VOWPH[U[b].ph]; break; } }
+        if(!prevV && nextC) nuc.push(i);
+      }
+    }
+    if(nuc.length<2) return [U.map(function(u){return u.g;}).join('')];
+    var cuts=[0];
+    for(var n=0;n<nuc.length-1;n++){
+      var A=nuc[n], B=nuc[n+1];
+      var inter=U.slice(A+1,B);
+      var cut=B;
+      for(var L=Math.min(3,inter.length);L>=0;L--){
+        var tail=[]; for(var x=inter.length-L;x<inter.length;x++){ if(inter[x].ph) tail.push(inter[x].ph); }
+        if(L===0 || legalOnset(tail)){ cut=B-L; break; }
+      }
+      cuts.push(cut);
+    }
+    cuts.push(U.length);
+    var out=[];
+    for(var c=0;c<cuts.length-1;c++){
+      var seg=''; for(var j=cuts[c];j<cuts[c+1];j++) seg+=U[j].g;
+      if(seg) out.push(seg);
+    }
+    return out;
+  }
+
+  function run(){
+    if(!SEG){ return; }
+    var word=(inEl.value||'').trim();
+    var w=word.toLowerCase().replace(/[^a-z]/g,'');
+    if(!w){ outEl.style.display='none'; return; }
+    var steps=g2pSteps(w);
+    var ipa=steps.map(function(s){return s.ph;}).join('');
+    var phons=steps.filter(function(s){return s.ph;});
+    var syll=syllables(steps);
+    var cv=''; for(var i=0;i<phons.length;i++){ var p=phons[i]; cv += VOWPH[p.ph] ? 'V' : (LIQ[p.ph]&&!SYLLABIC[p.ph]?'G':'C'); }
+    var html='';
+    html+='<div class="word-head">'+esc(w)+' <span class="ipa">/'+esc(ipa)+'/</span></div>';
+    html+='<div class="meta"><span><b>'+syll.length+'</b> syllable'+(syll.length===1?'':'s')+'</span>'+
+          '<span><b>'+phons.length+'</b> sounds</span>'+
+          '<span>letters: <b>'+w.length+'</b></span>'+
+          '<span>structure: <b>'+esc(cv)+'</b></span></div>';
+    html+='<div class="syll">'+syll.map(function(s){return '<span class="s">'+esc(s)+'</span>';}).join(' ')+'</div>';
+    html+='<table class="brk"><thead><tr><th>letters</th><th>sound (IPA)</th></tr></thead><tbody>';
+    for(var k=0;k<steps.length;k++){
+      var s=steps[k];
+      html+='<tr><td class="g">'+esc(s.g)+'</td><td>'+(s.ph?'<span class="p">'+esc(s.ph)+'</span>':'<span class="silent">silent</span>')+'</td></tr>';
+    }
+    html+='</tbody></table>';
+    outEl.innerHTML=html; outEl.style.display='block';
+  }
+  btn.addEventListener('click', run);
+  inEl.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); run(); } });
+  document.querySelector('.ex').addEventListener('click', function(e){
+    var a=e.target.closest('a[data-w]'); if(!a) return; e.preventDefault();
+    inEl.value=a.getAttribute('data-w'); run(); inEl.focus();
+  });
+})();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('../sw.js').catch(function(){});});}</script>
+</body>
+</html>

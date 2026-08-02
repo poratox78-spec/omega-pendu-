@@ -38,6 +38,7 @@
     ['Dyslexia tools', [
       ['correcteur.html', 'Corrector'],
       ['dictee.html', 'Dictation'],
+      ['decompose-outil.html', 'Decompose'],
     ]],
     ['Play', [
       ['index.html', 'The Hangman'],
@@ -129,7 +130,7 @@
     var key = onEn ? pth.replace(/^.*?\/en\//, '').replace(/^\/?en$/, 'index') : pth.replace(/^\//, '');
     if (!key) key = 'index';
     var bL = document.createElement('a'); bL.className = 'a11y-btn a11y-lang'; bL.setAttribute('role', 'button');
-    if (onEn) { bL.href = '/' + key; bL.textContent = 'FR'; bL.title = 'Version française'; }
+    if (onEn) { bL.href = EN_PAGES[key] ? '/' + key : '/'; bL.textContent = 'FR'; bL.title = 'Version française'; }  // page EN-only (ex. decompose-outil) → accueil FR (pas de 404)
     else { bL.href = EN_PAGES[key] ? '/en/' + key : '/en/'; bL.textContent = 'EN'; bL.title = 'English version'; }
     bL.setAttribute('aria-label', bL.title);
     bar.appendChild(bL);
