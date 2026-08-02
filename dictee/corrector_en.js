@@ -102,6 +102,13 @@ const TO_INF_GUARD = new Set(['want','wants','wanted','need','needs','needed','l
   'loves','loved','try','tries','tried','going','have','has','had','used','able','wish','hope','hopes','plan',
   'plans','decide','decided','learn','begin','seem','seems','start','started','continue','refuse','offer',
   'manage','tend','get','gets','got','allow','allowed','how','way','ways','time','right','nice','hard','easy']);
+const SUBJ_SING3 = new Set(['he','she','it']);
+const SUBJ_NON3 = new Set(['i','you','we','they']);
+const WAS_WRONG = new Set(['you','we','they']);
+const LOOSE_TRIG = new Set(['to','will','would','can','could','might','must','should','may',"don't","doesn't",
+  'gonna','cannot',"'ll",'ll',"won't",'wont']);
+const LOOSE_IDIOM = new Set(['let','cut','break','set','turn','come','work','hang','shake','get','got','be',
+  'been','being','is','are','was','were','on','so','too','very','more']);
 
 function posOf(lex, w){ return lex.POS.get(w.toLowerCase()) || new Set(); }
 function isNoun(lex, w){ return posOf(lex, w).has('NOUN'); }
@@ -152,6 +159,11 @@ function homoDecide(lex, T, i){
   if(lw === 'to' && DEGREE_ADJ.has(nx) && (nx2 === 'to' || nx2 === 'for') && !TO_INF_GUARD.has(pv)) return ['too', 'RED'];
   // « weather or not » -> « whether or not » (RED : jamais correct).
   if(lw === 'weather' && nx === 'or' && nx2 === 'not') return ['whether', 'RED'];
+  // accord sujet-verbe (RED, FP=0 en anglais standard) + loose->lose (ORANGE)
+  if(lw === "don't" && SUBJ_SING3.has(pv)) return ["doesn't", 'RED'];      // he/she/it don't -> doesn't
+  if(lw === "doesn't" && SUBJ_NON3.has(pv)) return ["don't", 'RED'];       // I/you/we/they doesn't -> don't
+  if(lw === 'was' && WAS_WRONG.has(pv)) return ['were', 'RED'];            // you/we/they was -> were
+  if(lw === 'loose' && LOOSE_TRIG.has(pv) && (i < 2 || !LOOSE_IDIOM.has(T[i-2].toLowerCase()))) return ['lose', 'ORANGE'];
   return [null, null];
 }
 

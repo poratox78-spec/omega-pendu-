@@ -62,6 +62,15 @@ TO_INF_GUARD = {'want', 'wants', 'wanted', 'need', 'needs', 'needed', 'like', 'l
     'hope', 'hopes', 'plan', 'plans', 'decide', 'decided', 'learn', 'begin', 'seem', 'seems', 'start',
     'started', 'continue', 'refuse', 'offer', 'manage', 'tend', 'get', 'gets', 'got', 'allow', 'allowed',
     'how', 'way', 'ways', 'time', 'right', 'nice', 'hard', 'easy'}
+# accord sujet-verbe (erreurs dys/L2 anglaises fréquentes) — RED FP=0 (jamais correct en anglais standard)
+SUBJ_SING3 = {'he', 'she', 'it'}                              # 3e sing. + « don't » -> « doesn't »
+SUBJ_NON3  = {'i', 'you', 'we', 'they'}                       # non-3e + « doesn't » -> « don't »
+WAS_WRONG  = {'you', 'we', 'they'}                            # you/we/they + « was » -> « were » (I/he/she/it was = correct)
+# loose (adj « pas serré ») confondu avec le VERBE lose (perdre) : « to/will/don't … loose » -> lose (ORANGE)
+LOOSE_TRIG  = {'to', 'will', 'would', 'can', 'could', 'might', 'must', 'should', 'may', "don't", "doesn't",
+    'gonna', 'cannot', "'ll", 'll', "won't", 'wont'}
+LOOSE_IDIOM = {'let', 'cut', 'break', 'set', 'turn', 'come', 'work', 'hang', 'shake', 'get', 'got', 'be',
+    'been', 'being', 'is', 'are', 'was', 'were', 'on', 'so', 'too', 'very', 'more'}  # « be loose », « cut loose »… = adj légitime
 
 def _tok(text): return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*", text)
 
@@ -120,6 +129,13 @@ def decide(T, i):
     # 7) « weather or not » -> « whether or not » (RED : jamais correct — la météo ne se conjugue pas ainsi)
     if lw == 'weather' and nx == 'or' and nx2 == 'not':
         return 'whether', 'RED'
+    # 8) accord sujet-verbe (RED, FP=0 en anglais standard)
+    if lw == "don't" and pv in SUBJ_SING3:  return "doesn't", 'RED'   # he/she/it don't -> doesn't
+    if lw == "doesn't" and pv in SUBJ_NON3: return "don't", 'RED'     # I/you/we/they doesn't -> don't
+    if lw == 'was' and pv in WAS_WRONG:     return 'were', 'RED'      # you/we/they was -> were
+    # 9) loose (adj) mis pour le verbe lose : trigger modal/to devant, hors idiome (be/cut/let… loose) -> ORANGE
+    if lw == 'loose' and pv in LOOSE_TRIG and (i < 2 or T[i-2].lower() not in LOOSE_IDIOM):
+        return 'lose', 'ORANGE'
     return None, None
 
 def correct(text, reds_only=True):
@@ -151,6 +167,13 @@ CASES = [
     ("It is to big for me", 2, 'too', 'RED'),
     ("We are to close to home", 2, 'too', 'RED'),
     ("I do not know weather or not to go", 4, 'whether', 'RED'),
+    ("He don't like it", 1, "doesn't", 'RED'),
+    ("She don't know", 1, "doesn't", 'RED'),
+    ("I doesn't care", 1, "don't", 'RED'),
+    ("They was late", 1, 'were', 'RED'),
+    ("You was right", 1, 'were', 'RED'),
+    ("Don't loose your keys", 1, 'lose', 'ORANGE'),
+    ("You will loose the game", 2, 'lose', 'ORANGE'),
 ]
 # NB : la direction possessive ORANGE (there/you're/it's + NOM → their/your/its) est bridée par
 # `only_noun` : Wiktionary EN sur-verbifie (house/engine/phone/sister sont tous tagués VERB), donc
