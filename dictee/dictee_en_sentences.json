@@ -1,0 +1,56 @@
+{
+  "_note": "Corpus de PHRASES de la dictée anglaise (équivalent adapté des phrases FR de build_dictee.py). Graduées easy/medium/hard. Chaque phrase VISE des classes d'erreurs dys ANGLAISES (focus) : homophones (their/there, your/you're, its/it's, to/too/two, than/then, hear/here, know/no, write/right, weather/whether, break/brake, peace/piece…), morphologie (pluriels, temps), et pièges d'orthographe (doublement, e/lettre muette, ie/ei, -ough). La TTS lit la phrase ; l'élève tape ; corrector_en.js diagnostique chaque mot vs le gold. Phrases naturelles, vocabulaire courant. CC BY-SA (dérivé indirect kaikki via le moteur).",
+  "levels": {
+    "easy": [
+      {"text": "The dog is in the house.", "focus": "base"},
+      {"text": "I can see the big red car.", "focus": "base"},
+      {"text": "She put her book on the table.", "focus": "base"},
+      {"text": "We went to the park today.", "focus": "homophone:to/two/too"},
+      {"text": "They are my best friends.", "focus": "homophone:their/there/they're"},
+      {"text": "Do you know where it is?", "focus": "homophone:know/no · its/it's"},
+      {"text": "Can you hear me over here?", "focus": "homophone:hear/here"},
+      {"text": "The sun is too hot today.", "focus": "homophone:to/too"},
+      {"text": "He is your new teacher.", "focus": "homophone:your/you're"},
+      {"text": "There are four cats and two dogs.", "focus": "homophone:there/their · four/for"},
+      {"text": "I like to read every night.", "focus": "homophone:read/red · night/knight"},
+      {"text": "Please write your name here.", "focus": "homophone:write/right · your/you're"},
+      {"text": "We had a piece of cake.", "focus": "homophone:piece/peace"},
+      {"text": "The weather is nice this week.", "focus": "homophone:weather/whether · week/weak"},
+      {"text": "It is time to go home now.", "focus": "homophone:to/too · its/it's"}
+    ],
+    "medium": [
+      {"text": "You're going to love their new house.", "focus": "homophone:you're/your · to/too · their/there"},
+      {"text": "I could have finished it, but I was too tired.", "focus": "modal:could have/could of · too/to"},
+      {"text": "Their car is faster than ours.", "focus": "homophone:their/there · than/then"},
+      {"text": "Whether or not you come is up to you.", "focus": "homophone:whether/weather · to/too"},
+      {"text": "She accepts that its colour has faded.", "focus": "homophone:its/it's · accept/except"},
+      {"text": "We were not sure where they were going.", "focus": "homophone:were/we're/where"},
+      {"text": "He threw the ball right through the window.", "focus": "homophone:threw/through · right/write"},
+      {"text": "Do not lose the loose button on your coat.", "focus": "confusion:lose/loose · your/you're"},
+      {"text": "The principal is our main teacher.", "focus": "confusion:principal/principle"},
+      {"text": "They have already been there twice.", "focus": "homophone:their/there/they're · been"},
+      {"text": "It is quite quiet in the library now.", "focus": "confusion:quite/quiet · library"},
+      {"text": "Please accept my advice about the weather.", "focus": "confusion:advice/advise · accept/except"},
+      {"text": "You should have brought your umbrella.", "focus": "modal:should have/should of · brought/bought"},
+      {"text": "The effect of the news affected everyone.", "focus": "confusion:effect/affect"},
+      {"text": "Then we walked farther than before.", "focus": "homophone:than/then · farther/further"}
+    ],
+    "hard": [
+      {"text": "It is definitely necessary to separate the two groups.", "focus": "spelling:definitely/necessary/separate"},
+      {"text": "I would have recommended a different restaurant.", "focus": "modal:would have · spelling:recommended/restaurant"},
+      {"text": "Their argument about the environment was embarrassing.", "focus": "homophone:their · spelling:argument/environment/embarrassing"},
+      {"text": "You're supposed to acknowledge the committee's decision.", "focus": "you're/your · spelling:supposed/acknowledge/committee"},
+      {"text": "Whether they succeed depends on their perseverance.", "focus": "whether/weather · their · spelling:succeed/perseverance"},
+      {"text": "The government's business is rarely straightforward.", "focus": "spelling:government/business/straightforward"},
+      {"text": "She was too conscious of the occurrence to relax.", "focus": "too/to · spelling:conscious/occurrence"},
+      {"text": "It is a privilege to pursue your own conscience.", "focus": "its/it's · your/you're · spelling:privilege/pursue/conscience"},
+      {"text": "They rhythmically rehearsed the unusual maneuver.", "focus": "spelling:rhythmically/rehearsed/unusual/maneuver"},
+      {"text": "We guarantee the maintenance will not disappoint you.", "focus": "spelling:guarantee/maintenance/disappoint"},
+      {"text": "The knowledgeable colleague answered independently.", "focus": "spelling:knowledgeable/colleague/answered/independently"},
+      {"text": "Its accompanying leaflet exaggerated the benefits.", "focus": "its/it's · spelling:accompanying/leaflet/exaggerated"},
+      {"text": "You could have questioned the questionnaire's relevance.", "focus": "could have · spelling:questioned/questionnaire/relevance"},
+      {"text": "Their neighbour's mischievous dog seized the sausage.", "focus": "their/there · spelling:neighbour/mischievous/seized"},
+      {"text": "The lieutenant apologized for the awkward misunderstanding.", "focus": "spelling:lieutenant/apologized/awkward/misunderstanding"}
+    ]
+  }
+}
