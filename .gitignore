@@ -27,6 +27,12 @@ cmudict.dict
 # maître EN complet (~30 Mo/13 Mo, régénérable) — on committe les .gz SCOPÉS (signal utile) à la place
 dictee/lex_en.tsv
 dictee/forms_en.tsv
+# substrat du pendu EN (intermédiaires régénérables via build_lex4_en.py ; embarqués base64 dans le clone HTML)
+dictee/lex4_en.json.gz
+dictee/lex4_en.b64
+# clone du pendu EN — généré par build_pendu_en.py (moteur OK, UI en cours de traduction). Committé
+# quand la traduction sera complète (sinon UI FR = pas « pareil »). Régénérable.
+app/omega-pendu-en.html
 
 # bundle de test (build output, régénérable via dist/make_test_bundle.sh)
 dist/omega-correcteur-dys-test.zip
