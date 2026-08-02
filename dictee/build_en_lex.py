@@ -120,6 +120,20 @@ def gender_of(r, cg):
             if t == 'masculine': return 'm'
     return ''
 
+# Entrée « faute d'orthographe » (Wiktionary documente teh/thier/freind…) : à EXCLURE du lexique
+# (sinon le speller ne peut pas les corriger). Vraie si TOUS les sens sont misspelling/graphie-non-standard.
+_MS_PREFIX = ('misspelling of', 'common misspelling', 'rare misspelling', 'eye dialect of',
+              'informal spelling of', 'nonstandard spelling of', 'nonstandard form of')
+def is_misspelling(r):
+    senses = r.get('senses') or []
+    if not senses: return False
+    for sn in senses:
+        if 'misspelling' in (sn.get('tags') or []): continue
+        gl = ' '.join(sn.get('glosses') or []).strip().lower()
+        if gl.startswith(_MS_PREFIX): continue
+        return False                         # un sens réel -> ce n'est pas (que) une faute
+    return True                              # tous les sens = faute/graphie non-standard
+
 print('parse kaikki English (streaming)...', flush=True)
 # surface (lower) -> record agrégé
 agg = {}            # w -> {'pos':set,'ipa':str|None,'lem':set,'num':set,'gen':set}
@@ -137,6 +151,7 @@ for line in io.open(KAIKKI, encoding='utf-8'):
     if not cg: continue
     w = (r.get('word') or '').strip().lower()
     if not w or not ok_word(w): continue
+    if is_misspelling(r): continue           # exclut teh/thier/freind… (documentés comme fautes)
     raw_entries += 1
     rec = agg.get(w)
     if rec is None:

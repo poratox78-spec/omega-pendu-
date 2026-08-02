@@ -25,9 +25,9 @@ donc on extrait TOUT (pas de filtre « mot manquant »).
 
 | Fichier | Taille | Contenu |
 |---|---|---|
-| `lex_en.tsv.gz` | 1,42 Mo | **maître** : `surface · pos · ipa · lemma · tags · gender · freq` (124 376 surfaces à **signal utile** : ipa OU freq>0 OU homophone) |
-| `homophones_en.json` | 0,16 Mo | `{ mot : [homophones…] }` — 5 558 groupes symétriques (their→there/they're, ate→eight/eyot…) |
-| `forms_en.tsv.gz` | 0,70 Mo | table de flexion : `lemme · POS · form:tag,…` (91 324 lemmes ; go→went→gone, big→bigger→biggest) |
+| `lex_en.tsv.gz` | 1,42 Mo | **maître** : `surface · pos · ipa · lemma · tags · gender · freq` (124 189 surfaces à **signal utile** : ipa OU freq>0 OU homophone) |
+| `homophones_en.json` | 0,16 Mo | `{ mot : [homophones…] }` — 5 549 groupes symétriques (their→there/they're, ate→eight/eyot…) |
+| `forms_en.tsv.gz` | 0,70 Mo | table de flexion : `lemme · POS · form:tag,…` (91 214 lemmes ; go→went→gone, big→bigger→biggest) |
 | `ngrams_ortho_en.json.gz` | 0,06 Mo | bi/trigrammes **caractères** (graphotactique — orthographe profonde EN) |
 | `ngrams_phon_en.json.gz` | 0,10 Mo | bi/trigrammes **phonèmes** (inventaire General-American, 40) |
 
@@ -73,18 +73,35 @@ PYTHONUTF8=1 python dictee/build_en_ngrams.py dictee/lex_en.tsv dictee
 
 ## Mesures (fichier complet, kaikki EN 3,19 Go)
 
-- **Surfaces** : 901 496 (1 481 704 lignes kaikki → 974 202 entrées retenues). NOUN 605 k, ADJ 178 k,
-  VERB 160 k, ADV 25 k, INTJ 3 k, PRON/PREP/NUM/DET/CONJ ~2,6 k.
+- **Surfaces** : 895 845 (1 481 704 lignes kaikki → 968 113 entrées retenues, après exclusion des
+  entrées « faute d'orthographe » — Wiktionary documente teh/thier/freind… ; on les retire sinon le
+  speller ne peut pas les corriger). NOUN 602 k, ADJ 177 k, VERB 159 k, ADV 25 k.
 - **IPA** : 12 % global (kaikki 78 423 + cmu 28 217) — bas car la traîne rare domine. Sur les mots
   **utilisés** : freq≥1 → **76 %**, freq≥10 → **95 %**, freq≥100 → **100 %**.
 - **Genre** : 64 (l'anglais n'a ~pas de genre grammatical — attendu).
-- **Homophones** : 5 558 groupes.
-- **Formes fléchies** : 370 132 surfaces dépliées ; 300 277 lemmes fléchis.
+- **Homophones** : 5 549 groupes.
+- **Formes fléchies** : 369 640 surfaces dépliées ; 299 869 lemmes fléchis.
 - **n-grammes ortho** : n1=28 · n2=727 · n3=13 832 · 0,06 Mo gz (top trigrammes : `ing`, `ed$`, `ion`, `ati`).
 - **n-grammes phon** : **40 phonèmes** (inventaire GA propre) · n2=1 491 · n3=21 892 · 0,10 Mo gz.
 
+## Outils bâtis dessus
+
+- **`speller_en_probe.py`** — speller anglais de référence (comme `speller_probe.py` FR). Noisy-channel :
+  `lex_en` + clé phonétique lossy EN + edits1 ; seuil AUTO (rouge) vs FLAG (orange, doute→orange).
+  Mesuré : recall 44/55 sur fautes dys (les « misses » restants = vrais mots — calender/wold/wich —
+  qu'il ne FAUT pas flaguer) ; **FP=0** sur EWT (les rares AUTO sur texte « correct » = vrais typos du
+  corpus web). Lancer : `PYTHONUTF8=1 python dictee/speller_en_probe.py`.
+
+- **`homophone_en_probe.py`** — canal homophone anglais (LE gros des fautes dys EN). Calqué sur le FR
+  (`rule_son_sont`) : on tranche par la classe du mot voisin (POS de `lex_en`), on s'abstient dans
+  l'ambigu. **RED** (FP=0, faute structurellement impossible) : `modal + of → have`, `their + is/are →
+  there`, `its + a/an/the/been → it's`, `comparatif + then + GN → than`. **ORANGE** (vigilance) :
+  direction possessive (there/you're/it's + nom). Mesuré : recall 14/14 ; sur EWT, les 20 fires RED
+  sont **toutes de vraies fautes** du corpus (FP=0 réel) ; ORANGE sans flood (0,00/phrase).
+  Limite mesurée : Wiktionary EN sur-verbifie (house/phone/sister tagués VERB) → la direction
+  possessive ORANGE est bridée (`only_noun`) ; amélioration future = POS dominante par fréquence.
+
 ## Statut
 
-Base **produite et mesurée**. Aucun moteur ne la consomme encore — c'est la **brique 1** de la
-Phase 2 (outils EN publics). Prochaines briques : speller EN (SP.WORDS depuis `lex_en`), canal
-phonétique (n-grammes phon + homophones), pendu EN, correcteur EN (homophones + morphologie).
+Base + **speller** + **canal homophone** produits et mesurés (FP=0). Prochaines briques Phase 2 :
+pendu EN (`lex_en` + n-grammes + IPA), dictée EN, puis portage JS/app + page publique.
