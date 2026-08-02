@@ -1,50 +1,71 @@
 # -*- coding: utf-8 -*-
-# build_verbmorph_en.py — map des VERBES IRRÉGULIERS régularisés (erreur dys/L2 : runned->ran, goed->went,
-# teached->taught…). Sortie : verbmorph_en.json = { forme_erreur : [passe, participe] }.
-# Les formes kaikki (forms_en) se sont révélées trop bruitées pour ça (formes dialectales listées en tête,
-# ex. « teuk » pour take ; fuite du lemme dans les « past »). On utilise donc une TABLE CANONIQUE curée des
-# irréguliers courants (vérité linguistique, ensemble borné ~130 verbes = complétude, PAS simplification) ;
-# on GÉNÈRE la forme régularisée (lemma+ed, e-drop / y->ied / doublement CVC) et on ne la garde comme erreur
-# que si elle n'est PAS un vrai mot au sens NON-verbal (lex_en) -> FP=0 (ex. « seed »=NOUN écarté).
+# build_verbmorph_en.py — VERBES IRRÉGULIERS RÉGULARISÉS (erreur dys/L2 : runned->ran, goed->went,
+# teached->taught…) depuis **AGID** (Automatically Generated Inflection Database, Kevin Atkinson).
+# Sortie : verbmorph_en.json = { forme_erreur : [passé, participe] }.
+#
+# POURQUOI AGID (remplace la table curée à la main de ~110 verbes, 2026-08-03) :
+#   - couverture : 8 953 verbes au lieu de 110 ;
+#   - il DIT quelles formes régularisées sont VALIDES (« bet, betted 1 », « dream: dreamed, dreamt 1 »,
+#     « hang: hung, hanged {execute} ») → l'ambiguïté qui m'avait forcé à retirer cost/quit/put/wet/bet/
+#     sweat/shine/hang/light/wind/kneel/dig/burst/pay/wake À LA MAIN devient une DONNÉE, pas du flair ;
+#   - les formes kaikki (forms_en) étaient trop bruitées (dialectal « teuk », fuite du lemme).
+# Licence AGID (Copyright 2000-2016 Kevin Atkinson) : « Permission to use, copy, modify, distribute and
+# sell this database, the associated scripts, the output created from the scripts and its documentation
+# for any purpose is hereby granted without fee » — permissive, compatible (attribution dans les docs).
+#
+# GARDES FP=0 (une forme n'est une ERREUR que si TOUT est vrai) :
+#   1. elle n'est PAS listée par AGID comme forme valide de CE verbe (bet/betted → écarté) ;
+#   2. elle n'est une forme valide d'AUCUN autre mot (putted = valide pour « putt » → écarté) ;
+#   3. elle n'est pas un mot du lexique avec un sens NON-verbal (seed=NOUN, leaded=ADJ → écarté).
+#   Source AGID locale (data_local/en/agid-*/infl.txt, non commitée) ; absente → JSON existant inchangé.
 #   Lancer : PYTHONUTF8=1 python dictee/build_verbmorph_en.py
-import gzip, io, os, json, sys
+import gzip, io, os, re, sys, json, glob
 sys.stdout.reconfigure(encoding='utf-8')
 HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, 'verbmorph_en.json')
 
-# lemme -> [passe, participe passe] (canonique, anglais standard)
-IRREG = {
- 'begin':['began','begun'],'break':['broke','broken'],'bring':['brought','brought'],'build':['built','built'],
- 'buy':['bought','bought'],'catch':['caught','caught'],'choose':['chose','chosen'],'come':['came','come'],
- 'cost':['cost','cost'],'cut':['cut','cut'],'draw':['drew','drawn'],'drink':['drank','drunk'],
- 'drive':['drove','driven'],'eat':['ate','eaten'],'fall':['fell','fallen'],'feel':['felt','felt'],
- 'find':['found','found'],'fly':['flew','flown'],'forget':['forgot','forgotten'],'forgive':['forgave','forgiven'],
- 'get':['got','gotten'],'give':['gave','given'],'go':['went','gone'],'grow':['grew','grown'],
- 'hang':['hung','hung'],'have':['had','had'],'hear':['heard','heard'],'hide':['hid','hidden'],
- 'hit':['hit','hit'],'hold':['held','held'],'hurt':['hurt','hurt'],'keep':['kept','kept'],
- 'know':['knew','known'],'lay':['laid','laid'],'lead':['led','led'],'leave':['left','left'],
- 'lend':['lent','lent'],'let':['let','let'],'lose':['lost','lost'],'make':['made','made'],
- 'mean':['meant','meant'],'meet':['met','met'],
- 'read':['read','read'],'ride':['rode','ridden'],'ring':['rang','rung'],'rise':['rose','risen'],
- 'run':['ran','run'],'say':['said','said'],'see':['saw','seen'],'sell':['sold','sold'],
- 'send':['sent','sent'],'set':['set','set'],'shake':['shook','shaken'],'shoot':['shot','shot'],
- 'show':['showed','shown'],'shut':['shut','shut'],'sing':['sang','sung'],'sink':['sank','sunk'],
- 'sit':['sat','sat'],'sleep':['slept','slept'],'speak':['spoke','spoken'],'spend':['spent','spent'],
- 'stand':['stood','stood'],'steal':['stole','stolen'],'stick':['stuck','stuck'],'strike':['struck','struck'],
- 'swear':['swore','sworn'],'sweep':['swept','swept'],'swim':['swam','swum'],'swing':['swung','swung'],
- 'take':['took','taken'],'teach':['taught','taught'],'tear':['tore','torn'],'tell':['told','told'],
- 'think':['thought','thought'],'throw':['threw','thrown'],'understand':['understood','understood'],
- 'wear':['wore','worn'],'weep':['wept','wept'],'win':['won','won'],
- 'wind':['wound','wound'],'write':['wrote','written'],'bite':['bit','bitten'],'blow':['blew','blown'],
- 'freeze':['froze','frozen'],'light':['lit','lit'],'spread':['spread','spread'],'spin':['spun','spun'],
- 'split':['split','split'],'spring':['sprang','sprung'],'feed':['fed','fed'],'fight':['fought','fought'],
- 'flee':['fled','fled'],'seek':['sought','sought'],'shrink':['shrank','shrunk'],'slide':['slid','slid'],
- 'beat':['beat','beaten'],'bend':['bent','bent'],'deal':['dealt','dealt'],'stink':['stank','stunk'],
-}
-# NB : verbes RETIRES car leur -ed régularisé est une forme VALIDE (FP) : cost(costed), quit(quitted),
-# put(putted=golf), wet(wetted), bet(betted), sweat(sweated), shine(shined), hang(hanged), light(lighted),
-# wind(winded), kneel(kneeled), dig(digged), burst(bursted). La garde freq>0 ci-dessous les rattraperait
-# aussi, mais on les écarte à la source par prudence.
+_agid = sorted(glob.glob(os.path.join(HERE, '..', 'data_local', 'en', 'agid-*', 'infl.txt')))
+if not _agid:
+    print('[SKIP] AGID absent (data_local/en/agid-*/infl.txt) — verbmorph_en.json inchangé.')
+    sys.exit(0)
+AGID = _agid[-1]
 
+# ---- parseur AGID : « mot POS[?]: f1, f2 2 {sens} | f3 | … » ----
+# champs séparés par « | » ; alternatives par « , » ; chaque alternative peut porter un niveau de
+# variante (0, 1, 2, 0.1…), une étiquette de sens {…} et des tags de mot (~ < ! ?).
+def _forms(field):
+    out = []
+    for alt in field.split(','):
+        a = re.sub(r'\{[^}]*\}', ' ', alt)              # retire {sens}
+        a = re.sub(r'\d+(?:\.\d+)?', ' ', a)            # retire le niveau de variante
+        a = a.replace('~', ' ').replace('<', ' ').replace('!', ' ').replace('?', ' ')
+        a = a.strip().lower()
+        if a and re.fullmatch(r"[a-z']+", a): out.append(a)
+    return out
+
+VERBS = {}          # lemme -> {'past': [...], 'pp': [...]}
+ALL_FORMS = set()   # TOUTE forme valide (tous POS, toutes variantes) + tous les lemmes
+with io.open(AGID, encoding='utf-8', errors='replace') as f:
+    for line in f:
+        m = re.match(r"^([a-zA-Z' ]+?)\s+([VNA])\??:\s*(.*)$", line.rstrip('\n'))
+        if not m: continue
+        lemma, pos, rest = m.group(1).strip().lower(), m.group(2), m.group(3)
+        if not re.fullmatch(r"[a-z']+", lemma): continue
+        ALL_FORMS.add(lemma)
+        fields = [_forms(x) for x in rest.split('|')]
+        for fl in fields: ALL_FORMS.update(fl)
+        if pos != 'V' or not fields: continue
+        # V : 4 champs = passé | participe | -ing | -s ; 3 champs = passé&participe | -ing | -s
+        if len(fields) >= 4: past, pp = fields[0], fields[1]
+        elif len(fields) == 3: past = pp = fields[0]
+        else: continue
+        if not past or not pp: continue
+        e = VERBS.setdefault(lemma, {'past': [], 'pp': []})
+        e['past'] += past; e['pp'] += pp
+
+print('AGID : %d verbes · %d formes valides (tous POS)' % (len(VERBS), len(ALL_FORMS)))
+
+# ---- formes régularisées candidates (lemma + ed : e-drop / y->ied / doublement CVC) ----
 VOW = set('aeiou')
 def reg_ed(w):
     if w.endswith('e'): return w + 'd'
@@ -52,36 +73,55 @@ def reg_ed(w):
     if len(w) >= 3 and w[-1] not in VOW and w[-1] not in 'wxy' and w[-2] in VOW and w[-3] not in VOW:
         return w + w[-1] + 'ed'
     return w + 'ed'
-def err_forms(w):
+def err_candidates(w):
     out = {reg_ed(w), w + 'ed'}
     if len(w) >= 2 and w[-1] == 'y' and w[-2] not in VOW: out.add(w[:-1] + 'ied')
-    return {e for e in out if len(e) >= 4}
+    return {e for e in out if len(e) >= 4 and re.fullmatch(r'[a-z]+', e)}
 
-# PROTECT = formes-erreur à écarter (FP) : celles qui ont un sens NON-verbal (seed=NOUN, leaded=ADJ,
-# runed=ADJ). Les verbes dont le -ed régularisé est une VARIANTE VERBALE valide (wetted, lighted, putted…)
-# sont déjà retirés de IRREG à la source ; les -ed restants (teached, catched, taked…) sont TOUJOURS des
-# erreurs, donc on n'applique PAS de garde freq (qui virerait ces vraies erreurs présentes dans le corpus).
+# ---- garde 3 : mots du lexique ayant un sens NON-verbal (seed=NOUN, leaded=ADJ) ----
 NONVERB = {'NOUN', 'ADJ', 'ADV', 'PRON', 'DET', 'PREP', 'CONJ', 'INTJ', 'NUM', 'PROPN', 'PART'}
 PROTECT = set()
-with gzip.open(os.path.join(HERE, 'lex_en.tsv.gz'), 'rt', encoding='utf-8') as f:
-    next(f)
-    for ln in f:
-        c = ln.rstrip('\n').split('\t')
-        if len(c) < 4: continue
-        s = c[0].lower()
-        if s.isascii() and s.isalpha() and (set((c[1] or '').upper().split('|')) & NONVERB):
-            PROTECT.add(s)
+_lex = os.path.join(HERE, 'lex_en.tsv.gz')
+if os.path.exists(_lex):
+    with gzip.open(_lex, 'rt', encoding='utf-8') as f:
+        next(f)
+        for ln in f:
+            c = ln.rstrip('\n').split('\t')
+            if len(c) < 4: continue
+            s = c[0].lower()
+            if s.isascii() and s.isalpha() and (set((c[1] or '').upper().split('|')) & NONVERB):
+                PROTECT.add(s)
+
+# ---- garde 4 : DOUBLEMENT DE CONSONNE = variante dialectale US/GB, PAS une faute ----
+# L'anglais US et GB divergent systématiquement sur le doublement (traveled/travelled, canceled/cancelled).
+# AGID liste en général les deux, mais pas toujours (« trial V: trialled » seulement → « trialed », pourtant
+# l'orthographe AMÉRICAINE valide, serait flaggée = FP RÉEL mesuré). Même mécanisme derrière le bruit de mon
+# générateur (barberred/clatterred : le doublement CVC ne s'applique qu'à une syllabe ACCENTUÉE, que je ne
+# connais pas). Règle : si la candidate et une forme valide sont égales une fois les consonnes dédoublées,
+# c'est une variante de doublement → JAMAIS une faute.
+def _undouble(w): return re.sub(r'([bcdfglmnprstvz])\1', r'\1', w)
 
 morph = {}
-for lemma, (past, pp) in IRREG.items():
-    for e in err_forms(lemma):
-        if e in PROTECT or e in (past, pp, lemma): continue   # vrai mot (non-verbal ou attesté) / deja correct
-        if e not in morph: morph[e] = [past, pp]
+n_skip_valid = n_skip_other = n_skip_pos = n_skip_dbl = 0
+for lemma, e in VERBS.items():
+    past_ok, pp_ok = set(e['past']), set(e['pp'])
+    canon_past, canon_pp = e['past'][0], e['pp'][0]              # 1re listée = variante principale
+    if canon_past == reg_ed(lemma) and canon_pp == reg_ed(lemma):
+        continue                                                 # verbe régulier : rien à corriger
+    _ok_undbl = {_undouble(x) for x in (past_ok | pp_ok)}
+    for cand in err_candidates(lemma):
+        if cand in past_ok or cand in pp_ok: n_skip_valid += 1; continue   # garde 1 : AGID le dit valide
+        if cand in ALL_FORMS: n_skip_other += 1; continue                  # garde 2 : forme d'un AUTRE mot
+        if cand in PROTECT: n_skip_pos += 1; continue                      # garde 3 : sens non-verbal
+        if _undouble(cand) in _ok_undbl: n_skip_dbl += 1; continue         # garde 4 : variante de doublement US/GB
+        if cand == lemma: continue
+        if cand not in morph: morph[cand] = [canon_past, canon_pp]
 
 morph = {k: morph[k] for k in sorted(morph)}
-io.open(os.path.join(HERE, 'verbmorph_en.json'), 'w', encoding='utf-8').write(
-    json.dumps(morph, ensure_ascii=False, separators=(',', ':')))
-print('verbmorph_en.json : %d verbes irreguliers -> %d formes-erreur' % (len(IRREG), len(morph)))
+io.open(OUT, 'w', encoding='utf-8').write(json.dumps(morph, ensure_ascii=False, separators=(',', ':')))
+print("verbmorph_en.json : %d formes-erreur (écartées : %d valides-AGID, %d formes d'un autre mot, %d sens non-verbal, %d doublement US/GB)"
+      % (len(morph), n_skip_valid, n_skip_other, n_skip_pos, n_skip_dbl))
 ex = ['runned', 'goed', 'buyed', 'teached', 'taked', 'catched', 'thinked', 'eated', 'comed', 'writed',
-      'speaked', 'breaked', 'flied', 'swimmed', 'drinked', 'knowed', 'gived', 'sended', 'builded', 'seed']
-print('exemples :', {e: morph.get(e, '(ecarte)') for e in ex})
+      'speaked', 'breaked', 'swimmed', 'drinked', 'knowed', 'gived', 'sended', 'builded',
+      'seed', 'betted', 'dreamed', 'putted', 'hanged', 'costed', 'payed']
+print('contrôle :', {e: morph.get(e, '(écarté)') for e in ex})
