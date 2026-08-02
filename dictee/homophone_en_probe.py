@@ -82,6 +82,48 @@ PP_AUX = {'have', 'has', 'had', 'having', "'ve", "'d", 'been', 'be', 'is', 'am',
 
 def _tok(text): return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*", text)
 
+# ---- POS CONTEXTUEL (HMM UPOS, pos_en.py) : débloque la direction possessive ----------------------
+# `only_noun` s'appuie sur le lexique Wiktionary, qui SUR-VERBIFIE (house/engine/phone/sister sont tous
+# tagués VERB) → la direction « there + NOM → their » ne passait presque jamais. Le tagger tranche EN
+# CONTEXTE (« there house » : house est NOUN ici), ce que le lexique seul ne peut pas faire.
+# Cache par phrase (id de la liste) : Viterbi une fois, pas une fois par token.
+try:
+    from pos_en import tag_sentence as _tagseq, load_model as _posload
+except Exception:
+    _tagseq = None; _posload = lambda: None
+_POSCACHE = {}
+def ctx_pos(T, i):
+    """UPOS du token i dans SA phrase (ou None si pas de modèle)."""
+    if _tagseq is None or not _posload(): return None
+    k = id(T)
+    tags = _POSCACHE.get(k)
+    if tags is None or len(tags) != len(T):
+        tags = _tagseq(list(T)); _POSCACHE.clear(); _POSCACHE[k] = tags
+    return tags[i] if 0 <= i < len(tags) else None
+
+EXIST_BEFORE = {'is', 'are', 'was', 'were', 'be', 'been', 'being', "isn't", "aren't", "wasn't",
+                "weren't", 'there'}          # « is there time » = existentiel, PAS un possessif
+PLACE_BEFORE = {'over', 'out', 'up', 'down', 'back', 'in', 'from', 'around', 'near', 'right'}
+TIME_NOUNS = {'time', 'times', 'yesterday', 'today', 'tomorrow', 'tonight', 'day', 'days', 'week',
+              'weeks', 'month', 'months', 'year', 'years', 'morning', 'afternoon', 'evening', 'night',
+              'hour', 'hours', 'minute', 'minutes', 'moment', 'while', 'once', 'again'}
+def _next_is_noun_ctx(T, i):
+    """« there » + NOM (POS CONTEXTUEL) = candidat possessif.
+    Le tagger tague « there » PRON dans les DEUX cas (l'existentiel EST un PRON en UD) : le
+    discriminant n'est donc pas « there » lui-même mais ce qui SUIT — « there is/are » (AUX) =
+    existentiel correct, « there house » (NOUN) = possessif écrit de travers. Deux gardes :
+      · pv existentiel / inversion (« is there time ») → abstention ;
+      · pv locatif (« over there people… ») → abstention (there = lieu, c'est la virgule qui manque)."""
+    pv = T[i-1].lower() if i > 0 else ''
+    if pv in EXIST_BEFORE or pv in PLACE_BEFORE: return False
+    # FP mesurés sur EWT (2026-08-03), deux familles de « there » LOCATIF suivi d'un nom :
+    #   · nom de TEMPS = adverbial, pas possédé : « went there yesterday », « gone there time and time » ;
+    #   · « there » POST-NOMINAL (nom juste avant) : « the people there attempt… » = les gens de là-bas.
+    # Aucune des 8 vraies fautes d'EWT n'est perdue (leur pv est VERB/ADP/CCONJ/ADV, jamais NOUN).
+    if T[i+1].lower() in TIME_NOUNS: return False
+    if ctx_pos(T, i - 1) == 'NOUN': return False
+    return ctx_pos(T, i + 1) == 'NOUN'
+
 def decide(T, i):
     """-> (suggestion, level) | (None, None). level ∈ {'RED','ORANGE'}.
     RED = faute STRUCTURELLEMENT certaine (FP=0) ; ORANGE = vigilance contextuelle (doute→orange)."""
@@ -108,8 +150,8 @@ def decide(T, i):
     # 3) their / there / they're  (direction possessive = ORANGE : nom PUR après = candidat possessif)
     if lw == 'their' and nx in BE_AFTER:
         return 'there', 'RED'                              # « their is/are » -> there (possessif+copule impossible)
-    if lw == 'there' and nx and only_noun(nx):
-        return 'their', 'ORANGE'                           # « there problem » -> their (contexte faible)
+    if lw == 'there' and nx and (only_noun(nx) or _next_is_noun_ctx(T, i)):
+        return 'their', 'ORANGE'                           # « there problem/house » -> their (POS contextuel)
     if lw == "they're" and nx and only_noun(nx):
         return 'their', 'ORANGE'
     # 4) your / you're

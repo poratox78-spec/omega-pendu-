@@ -15,9 +15,16 @@ import os, sys, math, json, gzip
 from collections import defaultdict, Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CONLLU = os.path.join(HERE, '..', 'data_local', 'ud_fr_gsd-train.conllu')
-OUT = os.path.join(HERE, 'pos_hmm.json')
-OUT_GZ = os.path.join(HERE, '..', 'extension', 'assets', 'pos-hmm.json.gz')
+# --en : MÊME algorithme, treebank ANGLAIS (UD English-EWT, CC BY-SA 4.0 — déjà local, il sert de banc
+# FP=0 au correcteur EN). L'HMM est agnostique de langue : il n'apprend que des UPOS, des transitions et
+# des suffixes → une seule implémentation, deux modèles. Le chemin FR est inchangé.
+EN = '--en' in sys.argv
+CONLLU = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu' if EN else 'ud_fr_gsd-train.conllu')
+OUT = os.path.join(HERE, 'pos_hmm_en.json' if EN else 'pos_hmm.json')
+# EN : pas d'asset extension (extension FR-only) mais un .gz pour le WEB (la page décompresse via
+# DecompressionStream, comme lex_en.tsv.gz) → le modèle passe de 356 Ko à ~100 Ko sur le réseau.
+OUT_GZ = os.path.join(HERE, 'pos_hmm_en.json.gz') if EN else os.path.join(HERE, '..', 'extension', 'assets', 'pos-hmm.json.gz')
+SRC_NAME = 'UD English-EWT' if EN else 'UD French-GSD'
 LO = -13.8          # log(~1e-6) : plancher d'émission (mot connu mais pas avec ce tag / tag hors candidats)
 
 def load():
@@ -75,7 +82,7 @@ def build_model(sents):
             logsuf[sf] = {t: round(math.log((c[t] + 0.01) / (tot + 0.01 * V)), 4) for t in c}
     logprior = {t: round(math.log(tagc[t] / N), 4) for t in tags}
     return {'tags': tags, 'trans': logtrans, 'emit': logemit, 'suf': logsuf, 'prior': logprior,
-            'floor': LO, 'meta': 'HMM bigramme UPOS, UD French-GSD CC BY-SA 4.0'}
+            'floor': LO, 'meta': 'HMM bigramme UPOS, %s CC BY-SA 4.0' % SRC_NAME}
 
 # ---- décodeur de référence (sert au build --eval ; le MÊME algo sera porté en Python correcteur + JS) ----
 _L2U = {'NOM':'NOUN','VER':'VERB','ADJ':'ADJ','ADV':'ADV','PRE':'ADP','PRO':'PRON','ART':'DET','CON':'CCONJ','AUX':'AUX'}
@@ -139,10 +146,12 @@ def main():
     M = build_model(sents)
     raw = json.dumps(M, ensure_ascii=False, separators=(',', ':'))
     open(OUT, 'w', encoding='utf-8').write(raw)
-    os.makedirs(os.path.dirname(OUT_GZ), exist_ok=True)
-    with gzip.open(OUT_GZ, 'wb') as f: f.write(raw.encode('utf-8'))
-    print("[hmm] %d phrases → %s (%d Ko) | %s (%d Ko gz) | %d mots émis, %d suffixes, %d tags"
-          % (len(sents), OUT, len(raw)//1024, OUT_GZ, os.path.getsize(OUT_GZ)//1024,
+    if OUT_GZ:                                    # asset extension : FR seulement (pas d'extension EN)
+        os.makedirs(os.path.dirname(OUT_GZ), exist_ok=True)
+        with gzip.open(OUT_GZ, 'wb') as f: f.write(raw.encode('utf-8'))
+    print("[hmm/%s] %d phrases → %s (%d Ko)%s | %d mots émis, %d suffixes, %d tags"
+          % ('en' if EN else 'fr', len(sents), os.path.basename(OUT), len(raw)//1024,
+             (' | %s (%d Ko gz)' % (os.path.basename(OUT_GZ), os.path.getsize(OUT_GZ)//1024)) if OUT_GZ else '',
              len(M['emit']), len(M['suf']), len(M['tags'])))
     return 0
 
