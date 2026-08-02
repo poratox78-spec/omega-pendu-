@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>English spelling dictation for dyslexia — free & private | OMEGA-Ω</title>
+<title>English dictation for dyslexia — hear the sentence, type it | OMEGA-Ω</title>
 <meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/dictee-outil"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en_GB">
-<meta property="og:title" content="English spelling dictation for dyslexia | OMEGA-Ω"><meta property="og:description" content="Hear a word, type it. Spelling practice for dyslexia — chosen by difficulty, with pronunciation (IPA). Runs in your browser, nothing is sent.">
+<meta property="og:title" content="English sentence dictation for dyslexia | OMEGA-Ω"><meta property="og:description" content="Hear a whole sentence, type it, and get word-by-word feedback: spelling slips and homophone confusions (their/there, your/you're, to/too) shown with the correct form. In your browser, nothing is sent.">
 <meta property="og:image" content="https://omegapendu.com/icon.svg">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="English spelling dictation for dyslexia | OMEGA-Ω"><meta name="twitter:description" content="Hear a word, type it. Difficulty levels + pronunciation. In-browser, private.">
-<meta name="description" content="A dyslexia-friendly English spelling dictation: hear a word (text-to-speech), type it, get instant feedback with the pronunciation (IPA). Difficulty levels. 100% in your browser, nothing is sent.">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="English sentence dictation for dyslexia | OMEGA-Ω"><meta name="twitter:description" content="Hear a sentence, type it. Word-by-word feedback on spelling & homophones. In-browser, private.">
+<meta name="description" content="A dyslexia-friendly English dictation on whole sentences: hear a sentence (text-to-speech), type it, get word-by-word feedback distinguishing spelling slips from homophone confusions (their/there, your/you're, to/too/two). Difficulty levels. 100% in your browser, nothing is sent.">
 <link rel="canonical" href="https://omegapendu.com/en/dictee-outil">
 <link rel="alternate" hreflang="fr" href="https://omegapendu.com/dictee-outil">
 <link rel="alternate" hreflang="en" href="https://omegapendu.com/en/dictee-outil">
@@ -34,13 +34,18 @@
   button.big:disabled{opacity:.55;cursor:default}
   button.ghost{font:600 16px var(--sans);background:var(--bg-3);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:12px 18px;cursor:pointer}
   button.ghost:hover{background:var(--bg-2)}
-  #ans{width:100%;box-sizing:border-box;font:26px/1.5 var(--sans);color:var(--fg);background:var(--bg-3);border:2px solid var(--line);border-radius:10px;padding:15px;text-align:center}
-  #fb{font:21px var(--sans);color:var(--fg);margin:16px 0 0;min-height:1.6em}
-  #fb .ok{color:var(--accent-2);font-weight:700}
-  #fb .no{color:#f85149;font-weight:700}
-  #fb .word{color:var(--fg);font-weight:700;border-bottom:3px solid var(--accent-2)}
-  #fb .ipa{color:var(--fg-2);font-size:17px}
-  #fb .miss{color:#f85149}
+  #ans{width:100%;box-sizing:border-box;font:22px/1.55 var(--sans);color:var(--fg);background:var(--bg-3);border:2px solid var(--line);border-radius:10px;padding:15px;min-height:3.2em;resize:vertical}
+  #fb{font:19px var(--sans);color:var(--fg);margin:16px 0 0;min-height:1.6em}
+  #fb .gold{font:600 21px/1.6 var(--sans)}
+  #fb .w-ok{color:var(--fg)}
+  #fb .w-bad{color:#f85149;font-weight:700;border-bottom:2px solid #f85149}
+  #fb .w-homo{color:#d29922;font-weight:700;border-bottom:2px dotted #d29922}
+  #fb .lead{font-weight:700;margin:2px 0 10px}
+  #fb .lead.ok{color:var(--accent-2)} #fb .lead.no{color:#f85149}
+  #fb ul{margin:8px 0 0;padding-left:20px}
+  #fb li{margin:4px 0;font-size:16px}
+  #fb .you{color:#f85149} #fb .corr{color:var(--accent-2);font-weight:700}
+  #fb .tag{font-size:12px;color:var(--fg-2);text-transform:uppercase;letter-spacing:.03em}
   .score{font:600 16px var(--sans);color:var(--fg);margin-top:16px}
   #status{font:15px var(--sans);color:var(--fg-2)}
   .tip{font:14px var(--sans);color:var(--fg-2);margin-top:14px}
@@ -60,95 +65,144 @@
     <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
   </nav>
 </div></header>
-<div class="tool-note">🎧 <strong>English dictation</strong> — hear the word, type it. Practice spelling at your own level. Everything runs in your browser.</div>
-<div class="tool-note" style="background:color-mix(in srgb,#d29922 14%,var(--bg-2))">⚠️ <strong>Beta</strong> — the English version is new and updated only occasionally; unlike the French, it isn't human-reviewed. Please double-check words as you use it.</div>
+<div class="tool-note">🎧 <strong>English dictation</strong> — hear a whole <strong>sentence</strong>, type it, get word-by-word feedback. Everything runs in your browser.</div>
+<div class="tool-note" style="background:color-mix(in srgb,#d29922 14%,var(--bg-2))">⚠️ <strong>Beta</strong> — the English version is new and updated only occasionally; unlike the French, it isn't human-reviewed. Please double-check as you use it.</div>
 
 <div class="cw">
   <div class="card">
-    <h1>English spelling dictation</h1>
-    <p class="sub">Hear a word, type what you hear. Instant feedback with the pronunciation. Great for dyslexia practice.</p>
+    <h1>English sentence dictation</h1>
+    <p class="sub">Hear a sentence, type what you hear. You get feedback <strong>word by word</strong> — telling spelling slips apart from homophone mix-ups (their/there, your/you're, to/too). Great for dyslexia practice.</p>
     <div class="levels" role="group" aria-label="Difficulty">
       <button data-lv="easy" aria-pressed="true">Easy</button>
       <button data-lv="medium" aria-pressed="false">Medium</button>
       <button data-lv="hard" aria-pressed="false">Hard</button>
     </div>
     <div class="play">
-      <button class="big" id="play" disabled>🔊 Play word</button>
+      <button class="big" id="play" disabled>🔊 Play sentence</button>
       <button class="ghost" id="repeat" disabled>🔁 Repeat</button>
-      <span id="status">Loading words…</span>
+      <button class="ghost" id="slow" disabled>🐢 Slower</button>
+      <span id="status">Loading…</span>
     </div>
-    <input id="ans" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type what you hear…" disabled>
+    <textarea id="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type the sentence you hear…" disabled></textarea>
     <div class="play" style="margin-top:16px">
       <button class="big" id="check" disabled>Check</button>
-      <button class="ghost" id="reveal">Show word</button>
-      <button class="ghost" id="next">Next word →</button>
+      <button class="ghost" id="reveal">Show sentence</button>
+      <button class="ghost" id="next">Next →</button>
     </div>
     <div id="fb" aria-live="polite"></div>
     <div class="score" id="score"></div>
-    <p class="tip">Tip: click <strong>Repeat</strong> to hear it again, or <strong>Show word</strong> if you're stuck — no penalty. Words are chosen by frequency; the pronunciation (IPA) is shown after each answer.</p>
+    <p class="tip">Tip: <strong>Repeat</strong> or <strong>Slower</strong> to hear it again. Punctuation and capital letters are not graded — only the words. Homophone mix-ups are shown in <span style="color:#d29922;font-weight:700">amber</span>, spelling slips in <span style="color:#f85149;font-weight:700">red</span>.</p>
   </div>
 </div>
 
 <script>
 (function(){
-  var POOLS={easy:[],medium:[],hard:[]}, level='easy', cur=null, ok=0, tot=0, revealed=false;
-  var TIERS={easy:[5000,1e9],medium:[500,5000],hard:[40,500]};
-  var BLOCK=new Set(('fuck shit cunt cock dick pussy bitch bastard whore slut nigger nigga faggot fag '
-    +'wank piss crap damn hell arse ass asshole bollocks bugger prick twat wanker sex sexual sexy porn '
-    +'nude naked rape kill murder suicide heroin cocaine meth').split(' '));
+  var POOLS={easy:[],medium:[],hard:[]}, level='easy', cur=null, homo={}, rate=0.9;
+  var ok=0, tot=0, done=false, seen={easy:0,medium:0,hard:0};
   var el=function(id){return document.getElementById(id);};
-  var play=el('play'), repeat=el('repeat'), ans=el('ans'), check=el('check'),
+  var play=el('play'), repeat=el('repeat'), slow=el('slow'), ans=el('ans'), check=el('check'),
       reveal=el('reveal'), next=el('next'), fb=el('fb'), status=el('status'), score=el('score');
-  function esc(s){return s.replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function norm(w){return w.toLowerCase().replace(/^[^a-z']+|[^a-z']+$/g,'');}   // mot comparable (sans ponctuation)
+  function words(t){return (t.match(/[A-Za-z']+/g)||[]);}
 
-  fetch('../dictee/lex_en.tsv.gz')
-    .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
-    .then(function(s){ return new Response(s).text(); })
-    .then(function(txt){
-      var lines=txt.split('\n');
-      for(var i=1;i<lines.length;i++){
-        var c=lines[i].split('\t'); if(c.length<7) continue;
-        var w=c[0]; if(!/^[a-z]{3,12}$/.test(w) || BLOCK.has(w)) continue;
-        var f=parseInt(c[6],10)||0; if(!f) continue;
-        var it={w:w, ipa:c[2]||''};
-        if(f>=TIERS.easy[0]) POOLS.easy.push(it);
-        else if(f>=TIERS.medium[0]) POOLS.medium.push(it);
-        else if(f>=TIERS.hard[0]) POOLS.hard.push(it);
-      }
-      var ready = POOLS.easy.length && POOLS.medium.length && POOLS.hard.length;
-      if(!ready){ status.textContent='Could not build the word list.'; return; }
-      status.textContent='Ready — '+POOLS.easy.length.toLocaleString('en')+' easy · '
-        +POOLS.medium.length.toLocaleString('en')+' medium · '+POOLS.hard.length.toLocaleString('en')+' hard.';
-      [play,repeat,ans,check].forEach(function(b){b.disabled=false;});
-      pick();
-    })
-    .catch(function(e){ status.textContent='Could not load the words ('+e.message+').'; });
+  // charge le corpus de phrases + les homophones (pour distinguer confusion homophone vs faute d'ortho)
+  Promise.all([
+    fetch('../dictee/dictee_en_sentences.json').then(function(r){if(!r.ok)throw new Error('sentences');return r.json();}),
+    fetch('../dictee/homophones_en.json').then(function(r){return r.ok?r.json():{};}).catch(function(){return {};})
+  ]).then(function(res){
+    var data=res[0]; homo=res[1]||{};
+    POOLS.easy=(data.levels&&data.levels.easy)||[];
+    POOLS.medium=(data.levels&&data.levels.medium)||[];
+    POOLS.hard=(data.levels&&data.levels.hard)||[];
+    if(!POOLS.easy.length){ status.textContent='Could not load the sentences.'; return; }
+    status.textContent='Ready — '+POOLS.easy.length+' easy · '+POOLS.medium.length+' medium · '+POOLS.hard.length+' hard.';
+    [play,repeat,slow,ans,check].forEach(function(b){b.disabled=false;});
+    pick();
+  }).catch(function(e){ status.textContent='Could not load the dictation ('+e.message+').'; });
 
   function speak(){
     if(!cur) return;
-    try{ speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(cur.w); u.lang='en-US'; u.rate=0.9; speechSynthesis.speak(u); }
-    catch(e){ /* pas de TTS : le mot reste révélable */ }
+    try{ speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(cur.text); u.lang='en-US'; u.rate=rate; speechSynthesis.speak(u); }
+    catch(e){ /* pas de TTS : la phrase reste révélable */ }
   }
   function pick(){
-    var pool=POOLS[level]; cur=pool[Math.floor(Math.random()*pool.length)];
-    revealed=false; ans.value=''; fb.innerHTML=''; ans.focus();
+    var pool=POOLS[level]; if(!pool.length) return;
+    cur=pool[Math.floor(Math.random()*pool.length)];        // aléatoire dans le niveau (évite la répétition immédiate)
+    if(pool.length>1 && cur._last){ cur=pool[Math.floor(Math.random()*pool.length)]; }
+    if(cur) cur._last=true;
+    done=false; ans.value=''; fb.innerHTML=''; ans.disabled=false; ans.focus();
+  }
+
+  // homophone ? (le mot tapé est dans le groupe d'homophones du gold, ou inversement)
+  function isHomophone(typed, gold){
+    var a=(homo[gold]||[]).map(function(x){return String(x).toLowerCase();});
+    var b=(homo[typed]||[]).map(function(x){return String(x).toLowerCase();});
+    return a.indexOf(typed)>=0 || b.indexOf(gold)>=0;
+  }
+  function lev(a,b){                                          // distance d'édition (bornée, pour classer faute d'ortho)
+    var m=a.length,n=b.length; if(!m)return n; if(!n)return m;
+    var prev=[],i,j; for(j=0;j<=n;j++)prev[j]=j;
+    for(i=1;i<=m;i++){ var curr=[i]; for(j=1;j<=n;j++){ curr[j]=Math.min(prev[j]+1,curr[j-1]+1,prev[j-1]+(a[i-1]!==b[j-1]?1:0)); } prev=curr; }
+    return prev[n];
+  }
+  // alignement mot-à-mot (LCS) tolérant aux oublis/ajouts
+  function align(G,T){
+    var m=G.length,n=T.length,i,j,dp=[];
+    for(i=0;i<=m;i++){dp[i]=[];for(j=0;j<=n;j++)dp[i][j]=0;}
+    for(i=1;i<=m;i++)for(j=1;j<=n;j++)dp[i][j]=(norm(G[i-1])===norm(T[j-1]))?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+    var out=[]; i=m; j=n;
+    while(i>0&&j>0){
+      if(norm(G[i-1])===norm(T[j-1])){ out.push({g:G[i-1],t:T[j-1],st:'ok'}); i--; j--; }
+      else if(dp[i-1][j]>=dp[i][j-1]){ out.push({g:G[i-1],t:null,st:'miss'}); i--; }
+      else { out.push({g:null,t:T[j-1],st:'extra'}); j--; }
+    }
+    while(i>0){ out.push({g:G[i-1],t:null,st:'miss'}); i--; }
+    while(j>0){ out.push({g:null,t:T[j-1],st:'extra'}); j--; }
+    return out.reverse();
   }
   function grade(){
-    if(!cur) return;
-    var got=ans.value.trim().toLowerCase(); if(!got) return;
-    tot++;
-    if(got===cur.w){ ok++; fb.innerHTML='<span class="ok">✓ Correct!</span> <span class="word">'+esc(cur.w)+'</span> '+ipaHtml(); }
-    else { fb.innerHTML='<span class="no">✗ Not quite.</span> You wrote <span class="miss">'+esc(got)+'</span> — it\'s <span class="word">'+esc(cur.w)+'</span> '+ipaHtml(); }
-    score.textContent='Score: '+ok+' / '+tot;
-    revealed=true;
+    if(!cur||done) return;
+    var G=words(cur.text), T=words(ans.value);
+    if(!T.length) return;
+    var al=align(G,T), errs=[], goldHtml=[], nOk=0;
+    for(var k=0;k<al.length;k++){
+      var a=al[k];
+      if(a.st==='ok'){ nOk++; goldHtml.push('<span class="w-ok">'+esc(a.g)+'</span>'); }
+      else if(a.st==='miss'){
+        // le gold a un mot ; l'élève a mis autre chose (sub) ou rien. Trouve le sub voisin (extra adjacent déjà géré par l'alignement)
+        goldHtml.push('<span class="w-bad">'+esc(a.g)+'</span>');
+        // cherche un 'extra' voisin comme le mot tapé fautif
+        var typedWrong=null;
+        if(k+1<al.length && al[k+1].st==='extra'){ typedWrong=al[k+1].t; al[k+1]._used=true; }
+        var gN=norm(a.g), tN=typedWrong?norm(typedWrong):'';
+        var type = !typedWrong ? 'missed' : (isHomophone(tN,gN) ? 'homophone' : (lev(tN,gN)<=Math.max(1,Math.ceil(gN.length/3)) ? 'spelling' : 'wrong'));
+        errs.push({gold:a.g, typed:typedWrong, type:type});
+      } else if(a.st==='extra' && !a._used){ errs.push({gold:null, typed:a.t, type:'extra'}); }
+    }
+    tot++; var perfect=(errs.length===0);
+    if(perfect) ok++;
+    var LBL={homophone:'homophone mix-up', spelling:'spelling', wrong:'wrong word', missed:'missed word', extra:'extra word'};
+    var html='<div class="lead '+(perfect?'ok':'no')+'">'+(perfect?'✓ Perfect!':'✗ '+(al.length-nOk)+' to fix')+'</div>';
+    html+='<div class="gold">'+goldHtml.join(' ')+'</div>';
+    if(errs.length){
+      html+='<ul>';
+      for(var e=0;e<errs.length;e++){var x=errs[e];
+        if(x.type==='missed') html+='<li><span class="tag">missed</span> you left out <span class="corr">'+esc(x.gold)+'</span></li>';
+        else if(x.type==='extra') html+='<li><span class="tag">extra</span> remove <span class="you">'+esc(x.typed)+'</span></li>';
+        else html+='<li><span class="tag">'+LBL[x.type]+'</span> you wrote <span class="you">'+esc(x.typed)+'</span> → <span class="corr">'+esc(x.gold)+'</span></li>';
+      }
+      html+='</ul>';
+    }
+    fb.innerHTML=html; score.textContent='Score: '+ok+' / '+tot+' sentences perfect'; done=true;
   }
-  function ipaHtml(){ return cur.ipa ? '<span class="ipa">/'+esc(cur.ipa)+'/</span>' : ''; }
 
-  play.addEventListener('click', speak);
+  play.addEventListener('click', function(){ rate=0.9; speak(); });
   repeat.addEventListener('click', speak);
+  slow.addEventListener('click', function(){ rate=0.6; speak(); });
   check.addEventListener('click', grade);
-  ans.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); if(revealed) pick(); else grade(); } });
-  reveal.addEventListener('click', function(){ if(cur){ fb.innerHTML='<span class="word">'+esc(cur.w)+'</span> '+ipaHtml(); revealed=true; } });
+  ans.addEventListener('keydown', function(e){ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); if(done) pick(); else grade(); } });
+  reveal.addEventListener('click', function(){ if(cur){ fb.innerHTML='<div class="gold">'+esc(cur.text)+'</div>'; done=true; } });
   next.addEventListener('click', function(){ pick(); speak(); });
   Array.prototype.forEach.call(document.querySelectorAll('.levels button'), function(b){
     b.addEventListener('click', function(){
