@@ -30,9 +30,8 @@ dictee/forms_en.tsv
 # substrat du pendu EN (intermédiaires régénérables via build_lex4_en.py ; embarqués base64 dans le clone HTML)
 dictee/lex4_en.json.gz
 dictee/lex4_en.b64
-# clone du pendu EN — généré par build_pendu_en.py (moteur OK, UI en cours de traduction). Committé
-# quand la traduction sera complète (sinon UI FR = pas « pareil »). Régénérable.
-app/omega-pendu-en.html
+# clone du pendu EN = app/omega-pendu-en.html — COMMITTÉ (servi par le site ; moteur anglais + UI
+# joueur traduite ; régénérable via build_pendu_en.py, traduction UI dashboard en cours).
 
 # bundle de test (build output, régénérable via dist/make_test_bundle.sh)
 dist/omega-correcteur-dys-test.zip
