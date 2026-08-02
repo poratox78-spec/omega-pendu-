@@ -41,6 +41,9 @@ html = lfpat.sub(new_lf, html, count=1)
 html = html.replace('<html lang="fr">', '<html lang="en">', 1)
 html = html.replace('<title>Pendu cognitif, correcteur dys & dictée — l\'application | OMEGA-Ω</title>',
                     '<title>Cognitive Hangman — the engine that guesses your word | OMEGA-Ω</title>', 1)
+# le pendu EN = SEULEMENT le pendu : masque les lanceurs flottants des autres outils FR embarqués
+# (correcteur vdc / dictée vdd / décompose vdk) — ils ont leurs propres pages anglaises.
+html = html.replace('</head>', '<style>#vdc-btn,#vdd-btn,#vdk-btn{display:none!important}</style>\n</head>', 1)
 
 # (4) TRADUCTION de l'UI VISIBLE — remplacements ancrés (chaînes uniques, jamais du code JS).
 # On traduit le chrome joueur (header, game panel, contrôles, présentation) ; le dashboard de
@@ -71,6 +74,14 @@ TRANSLATIONS = [
     ('<span id="status-pill" class="status-pill gray">non chargé</span>',
      '<span id="status-pill" class="status-pill gray">not loaded</span>'),
     ('<span>~97,5 % cheat-free in-lexique</span>', '<span>~97.5% cheat-free in-lexicon</span>'),
+    ('<span class="sub">Cognitive Pendu Engine · v2-α0</span>', '<span class="sub">Cognitive Hangman Engine · v2-α0</span>'),
+    # statut LEX4 généré en JS (chaînes distinctives, sûres à remplacer)
+    ("' mots'", "' words'"),
+    ("'LEX4 · CHARGEMENT'", "'LEX4 · LOADING'"),
+    # stragglers (clé i18n non-matchée / messages JS distinctifs)
+    ('parties chaudes', 'recent games'),
+    ('non chargé', 'not loaded'),
+    ('Lexique non chargé', 'Lexicon not loaded'),
 ]
 _missing = []
 for fr, en in TRANSLATIONS:
@@ -78,6 +89,20 @@ for fr, en in TRANSLATIONS:
         html = html.replace(fr, en)
     elif fr != en:
         _missing.append(fr[:50])
+
+# (5) table i18n étendue (dictee/pendu_en_i18n.json) — dashboard/toggles. Appliquée UNIQUEMENT à la
+# zone markup (avant le code JS, borne « CODE FUNCTIONAL ») → aucun risque de toucher le moteur.
+_i18n_n = 0; _i18n_tot = 0
+_i18n_path = os.path.join(HERE, 'pendu_en_i18n.json')
+if os.path.exists(_i18n_path):
+    _m = json.load(io.open(_i18n_path, encoding='utf-8'))
+    _i18n_tot = len(_m)
+    _ci = html.find('CODE FUNCTIONAL')
+    _head, _tail = (html[:_ci], html[_ci:]) if _ci > 0 else (html, '')
+    for fr, en in sorted(_m.items(), key=lambda kv: -len(kv[0])):   # plus longues d'abord (évite les sous-chaînes)
+        if fr != en and fr in _head:
+            _head = _head.replace(fr, en); _i18n_n += 1
+    html = _head + _tail
 
 io.open(OUT, 'w', encoding='utf-8', newline='').write(html)
 
@@ -89,4 +114,5 @@ print('CLONE écrit :', os.path.relpath(OUT, os.path.join(HERE, '..')))
 print('  lex4 anglais embarqué : %d mots, version %s' % (data['n_words'], data.get('version')))
 print('  len_index longueurs :', sorted(int(k) for k in data['len_index']))
 print('  LETTER_FREQ_EN E=%.4f (max attendu) · taille clone %.2f Mo' % (lf['e'], len(html.encode('utf-8'))/1e6))
-print('  traductions : %d appliquées · ancres NON trouvées : %s' % (len(TRANSLATIONS) - len(_missing), _missing or 'aucune'))
+print('  traductions ancrées : %d · i18n dashboard : %d/%d · ancres NON trouvées : %s'
+      % (len(TRANSLATIONS) - len(_missing), _i18n_n, _i18n_tot, _missing or 'aucune'))
