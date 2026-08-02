@@ -21,9 +21,39 @@ LEX = os.path.join(HERE, 'lex_en.tsv.gz')
 # c'est SEULEMENT le lex4 du JEU qui s'aligne sur le design FR (attesté). Décision Rem 2026-08-02 (mesuré).
 MINLEN, MAXLEN = 2, 25                                  # toutes longueurs utiles (comme le FR ; on écarte juste les lettres seules)
 
+# FRÉQUENCES COMPLÉMENTAIRES (dette de fréquences, Rem 2026-08-02) : ~63% des mots kaikki sont freq=0
+# (absents de SUBTLEX). Plutôt que de les DROPPER (workaround), on leur donne une VRAIE fréquence basse
+# depuis count_1w (Norvig web) — comme le FR qui a une freq pour CHAQUE mot. ⚠️ count_1w sert de SOURCE DE
+# FRÉQUENCE pour des mots DÉJÀ dans le lexique kaikki (jamais AJOUTER un mot → aucune faute web n'entre,
+# contrairement au rejet de count_1w comme source de MOTS). Échelle calée sur l'overlap SUBTLEX×count_1w.
+# Fichier local optionnel (non commité) : si absent, on retombe sur attesté-SUBTLEX-seul (sans erreur).
+_CW = {}; _CW_RATIO = 0.0
+_cwpath = os.path.join(HERE, '..', 'count_1w.txt')
+if os.path.exists(_cwpath):
+    with open(_cwpath, encoding='utf-8', errors='replace') as _f:
+        for _ln in _f:
+            _p = _ln.split('\t')
+            if len(_p) >= 2:
+                try: _CW[_p[0].lower()] = int(_p[1])
+                except ValueError: pass
+    # ratio médian subtlex/web sur l'overlap → cale count_1w sur l'échelle SUBTLEX
+    import statistics as _st
+    _ratios = []
+    with gzip.open(LEX, 'rt', encoding='utf-8') as _f:
+        _f.readline()
+        for _ln in _f:
+            _c = _ln.rstrip('\n').split('\t')
+            if len(_c) < 7: continue
+            try: _fr = int(float(_c[6]))
+            except ValueError: _fr = 0
+            _cwv = _CW.get(_c[0].lower(), 0)
+            if _fr > 0 and _cwv > 0: _ratios.append(_fr / _cwv)
+    _CW_RATIO = _st.median(_ratios) if _ratios else 0.0
+
 words = []
 letter_tot = collections.Counter(); letter_wtot = 0.0
 _p_src = 0; _p_real = 0; _p_gen = 0                                # phon : source dico · vrai phon morpho/US · g2p prédit
+_f_sub = 0; _f_cw = 0                                              # freq : SUBTLEX vs comblée count_1w
 with gzip.open(LEX, 'rt', encoding='utf-8') as f:
     f.readline()
     for line in f:
@@ -36,7 +66,12 @@ with gzip.open(LEX, 'rt', encoding='utf-8') as f:
         except ValueError:
             try: fr = int(float(c[6]))
             except ValueError: fr = 0
-        if fr <= 0: continue                                       # ATTESTÉ seulement (comme le FR) — les freq=0 polluent la cohorte (mesuré −5,5 pts)
+        if fr > 0:
+            _f_sub += 1
+        elif _CW_RATIO > 0:                                        # comble depuis count_1w, échelle SUBTLEX (freq basse : médiane ~2)
+            _cwv = _CW.get(w.lower(), 0)
+            if _cwv > 0: fr = max(1, round(_cwv * _CW_RATIO)); _f_cw += 1
+        if fr <= 0: continue                                       # toujours sans fréquence (aucun corpus) → hors lex4 du jeu (comme le FR : chaque mot a une freq)
         m = w.upper()
         # PHON : source (kaikki/CMUdict) si présent, SINON g2p généré -> couverture ~100% comme le FR
         # (Lexique4). La route phon vaut +52 pts au pendu ; ~47% des mots (rares/flexions/orthos GB) sont
@@ -75,6 +110,8 @@ open(os.path.join(HERE, 'letter_freq_en.json'), 'w', encoding='utf-8').write(
 
 print('=== lex4_en ===')
 print('  mots (2-25 lettres, tout le vocabulaire réel, freq planchée) : %d' % len(words))
+print('  freq : %d SUBTLEX + %d comblés count_1w (échelle %.2e) = %d mots à fréquence'
+      % (_f_sub, _f_cw, _CW_RATIO, _f_sub + _f_cw))
 _p_cov = _p_src + _p_real + _p_gen
 print('  phon : %d source dico + %d vrai phon morpho/US + %d g2p prédit = %d/%d (%.0f%%)'
       % (_p_src, _p_real, _p_gen, _p_cov, len(words), 100.0 * _p_cov / max(1, len(words))))
