@@ -101,7 +101,24 @@ PYTHONUTF8=1 python dictee/build_en_ngrams.py dictee/lex_en.tsv dictee
   Limite mesurée : Wiktionary EN sur-verbifie (house/phone/sister tagués VERB) → la direction
   possessive ORANGE est bridée (`only_noun`) ; amélioration future = POS dominante par fréquence.
 
+- **`corrector_en.js`** — moteur JS = **port fidèle** de `speller_en_probe.py` + `homophone_en_probe.py`
+  (mêmes clés phon lossy, seuils AUTO/FLAG, règles RED/ORANGE). Tourne en Node (lexique via zlib) et
+  en navigateur (`parseLexText` sur le `.gz` fetché + décompressé via `DecompressionStream`).
+- **`parity_en.js`** — garde de **parité Python↔JS** (comme `parity_core.js` FR) : fait tourner les
+  deux moteurs sur TOUT UD English-EWT et compare les agrégats. Mesuré : speller AUTO **60=60**,
+  homophone RED **20=20** → parité exacte.
+- **`../en/correcteur-outil.html`** — **page publique** : correcteur EN en pleine page (style dys, carte
+  crème, a11y via `nav.js`). Fetch `../dictee/lex_en.tsv.gz` + décompresse en navigateur (rien n'est
+  envoyé) ; textarea → surligne rouge (fix sûr) / orange (à vérifier), clic pour appliquer.
+
+## Anti-flood du speller (mesuré)
+
+Le FLAG (orange) brut sur EWT valait 7,88 % (noms propres + lettres a/I + rares) = inondation. Corrigé
+(Python+JS, parité) : le speller **ignore** les lettres seules (a, I), les mots **capitalisés** (noms
+propres — les homophones gèrent leur casse) et les inconnus **sans candidat proche** → orange **0,50 %**
+(≈ vrai taux de typo), AUTO inchangé (60, tous vrais typos du corpus).
+
 ## Statut
 
-Base + **speller** + **canal homophone** produits et mesurés (FP=0). Prochaines briques Phase 2 :
-pendu EN (`lex_en` + n-grammes + IPA), dictée EN, puis portage JS/app + page publique.
+Base + **speller** + **canal homophone** + **moteur JS (parité)** + **page publique** livrés et mesurés
+(FP=0). Prochaines briques Phase 2 : pendu EN (`lex_en` + n-grammes + IPA), dictée EN.

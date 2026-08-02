@@ -117,26 +117,27 @@ class SpellerEN:
     def suggest(self, w):
         """-> (suggestion|None, mode) ; mode ∈ {'OK','AUTO','FLAG','NONE'}."""
         low = deacc(w.lower())
-        if not low or any(ch not in ALPHA for ch in low):
-            return None, 'OK'                                # non a-z (apostrophe, chiffre) : hors périmètre speller
+        if not low or len(low) < 2 or any(ch not in ALPHA for ch in low):
+            return None, 'OK'                                # lettre seule (a, I) / non a-z : hors périmètre speller
         if low in self.KNOWN:
             return None, 'OK'
+        if w[:1].isupper():
+            return None, 'OK'                                # capitalisé = nom propre probable → pas de speller (anti-flood ; les homophones gèrent leur casse)
         cands, pk = self._cands(low)
         if not cands:
-            return None, 'FLAG'                              # inconnu, aucun candidat → orange « à vérifier »
+            return None, 'OK'                                # inconnu sans candidat proche → ne pas harceler (rare/technique/étranger)
         def rank(x):                                         # edit-1 d'abord, puis FRÉQUENCE (the ≫ te)
             return (cands[x], self.FREQ.get(x, 0))
         best = max(cands, key=rank)
         bt = cands[best]; bf = self.FREQ.get(best, 0)
         others = [x for x in cands if x != best]
         second = max((self.FREQ.get(x, 0) for x in others), default=0)
-        capd = w[:1].isupper()
-        # AUTO (rouge) FP=0 : edit-1, minuscule, correction fréquente ET dominante, ET la preuve que
-        # l'original EST une faute — soit il SONNE comme la correction (phon_key = typo phonétique :
-        # recieve→receive), soit c'est une TRANSPOSITION pure (teh→the). Sinon → ORANGE (doute→orange).
+        # AUTO (rouge) FP=0 : edit-1, correction fréquente ET dominante, ET la preuve que l'original
+        # EST une faute — soit il SONNE comme la correction (phon_key = typo phonétique : recieve→
+        # receive), soit c'est une TRANSPOSITION pure (teh→the). Sinon → ORANGE (doute→orange).
         phon_match = phon_key(best) == pk
         transp = (len(best) == len(low) and sorted(best) == sorted(low))
-        if (bt == 1 and not capd and len(low) >= 3 and bf >= 200
+        if (bt == 1 and len(low) >= 3 and bf >= 200
                 and bf >= 20 * max(second, 1) and (phon_match or transp)):
             return best, 'AUTO'
         return best, 'FLAG'                                  # sinon : orange (candidat proposé, à vérifier)
