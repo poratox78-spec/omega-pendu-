@@ -50,6 +50,18 @@ ITS_RED = {'a', 'an', 'the', 'been'}                           # possessif « it
 ITS_ORANGE = {'not', 'going', 'gonna'}
 YOURE_RED = {'gonna'}                                          # « gonna » n'est jamais un nom
 YOURE_ORANGE = {'welcome', 'going', 'doing', 'being', 'getting', 'coming', 'not', 're'}
+# adjectifs gradables fréquents (construction « too <adj> to/for ») — pour trancher to -> too
+DEGREE_ADJ = {'late', 'early', 'hard', 'easy', 'big', 'small', 'large', 'far', 'fast', 'slow', 'high', 'low',
+    'hot', 'cold', 'long', 'short', 'old', 'young', 'soon', 'tired', 'busy', 'expensive', 'cheap', 'heavy',
+    'light', 'loud', 'quiet', 'tight', 'weak', 'strong', 'difficult', 'dangerous', 'scared', 'afraid',
+    'close', 'deep', 'wide', 'narrow', 'thick', 'thin', 'rich', 'poor', 'full', 'empty', 'bright', 'dark',
+    'sick', 'tall', 'nervous', 'proud', 'lazy', 'complicated', 'painful', 'risky'}
+# mots qui prennent l'infinitif « to » -> ne PAS lire « to + adj » comme « too » (« I want to close… »)
+TO_INF_GUARD = {'want', 'wants', 'wanted', 'need', 'needs', 'needed', 'like', 'likes', 'liked', 'love',
+    'loves', 'loved', 'try', 'tries', 'tried', 'going', 'have', 'has', 'had', 'used', 'able', 'wish',
+    'hope', 'hopes', 'plan', 'plans', 'decide', 'decided', 'learn', 'begin', 'seem', 'seems', 'start',
+    'started', 'continue', 'refuse', 'offer', 'manage', 'tend', 'get', 'gets', 'got', 'allow', 'allowed',
+    'how', 'way', 'ways', 'time', 'right', 'nice', 'hard', 'easy'}
 
 def _tok(text): return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*", text)
 
@@ -100,6 +112,14 @@ def decide(T, i):
             '', 'listen', 'up', 'close', 'talk', 'talking', 'speak', 'speaking',
             'refer', 'referred', 'according', 'due', 'access', 'attention', 'related'):
         return 'too', 'ORANGE'
+    # 6b) « to <adj gradable> to/for » = construction « too … to/for » (RED, FP≈0) :
+    #     « to tired to walk », « to big for me », « to close to home ». Le « to/for » qui suit l'adj
+    #     verrouille le sens intensif ; pv non-verbe-à-infinitif (évite « want to close … »).
+    if lw == 'to' and nx in DEGREE_ADJ and nx2 in ('to', 'for') and pv not in TO_INF_GUARD:
+        return 'too', 'RED'
+    # 7) « weather or not » -> « whether or not » (RED : jamais correct — la météo ne se conjugue pas ainsi)
+    if lw == 'weather' and nx == 'or' and nx2 == 'not':
+        return 'whether', 'RED'
     return None, None
 
 def correct(text, reds_only=True):
@@ -127,6 +147,10 @@ CASES = [
     ("it's car is fast", 0, 'its', 'ORANGE'),
     ("I saw a apple", 2, 'an', 'RED'),
     ("It is a honest mistake", 2, 'an', 'RED'),
+    ("You are to tired to walk", 2, 'too', 'RED'),
+    ("It is to big for me", 2, 'too', 'RED'),
+    ("We are to close to home", 2, 'too', 'RED'),
+    ("I do not know weather or not to go", 4, 'whether', 'RED'),
 ]
 # NB : la direction possessive ORANGE (there/you're/it's + NOM → their/your/its) est bridée par
 # `only_noun` : Wiktionary EN sur-verbifie (house/engine/phone/sister sont tous tagués VERB), donc
