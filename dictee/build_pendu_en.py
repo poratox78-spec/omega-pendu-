@@ -14,14 +14,18 @@ OUT = os.path.join(HERE, '..', 'app', 'omega-pendu-en.html')
 B64 = os.path.join(HERE, 'lex4_en.b64')
 LF = os.path.join(HERE, 'letter_freq_en.json')
 G2P = os.path.join(HERE, 'g2p_en.json')   # tables g2p ANGLAISES (build_g2p_en.py) — zéro français
+P2L = os.path.join(HERE, 'phon2letters_en.json')  # phonème IPA -> lettres (build_phon2letters_en.py)
+PF  = os.path.join(HERE, 'phonfeatures_en.json')  # lettre -> traits articulatoires EN (build_phonfeatures_en.py)
 
-for p in (SRC, B64, LF, G2P):
+for p in (SRC, B64, LF, G2P, P2L, PF):
     if not os.path.exists(p): print('[FATAL] manquant :', p); sys.exit(1)
 
 html = io.open(SRC, encoding='utf-8').read()
 b64 = io.open(B64, encoding='utf-8').read().strip()
 lf = json.load(io.open(LF, encoding='utf-8'))
 g2p = json.load(io.open(G2P, encoding='utf-8'))
+p2l = json.load(io.open(P2L, encoding='utf-8'))
+pf  = json.load(io.open(PF, encoding='utf-8'))
 
 # (1) remplace le contenu du bloc lex4-data-gz par le base64 anglais
 pat = re.compile(r'(<script type="text/plain" id="lex4-data-gz">)(.*?)(</script>)', re.S)
@@ -55,6 +59,19 @@ _sub1(r"const SEG=\[.*?\]\.sort\(\(a,b\)=>b\.length-a\.length\)",
       "const SEG=" + json.dumps(g2p['SEG'], ensure_ascii=False) + ".sort((a,b)=>b.length-a.length)", 'SEG', re.S)
 _sub1(r"const COND = \{.*\}(?=\n)", "const COND = " + json.dumps(g2p['COND'], ensure_ascii=False), 'COND')
 _sub1(r"const ENTSIL = new Set\(\[.*\]\)(?=\n)", "const ENTSIL = new Set([])", 'ENTSIL')
+
+# (2b-bis) PHON_TO_LETTERS : prior phonème->lettre de la route M4_PHON_USE_P (ON dans la config). La table
+# de l'app est en SAMPA FRANÇAIS ; le p anglais est en IPA -> clés qui ne matchent pas -> prior MORT en
+# anglais (le moteur saute via `if(!dist)continue`). On la remplace par la table IPA anglaise data-driven
+# (build_phon2letters_en.py = inverse du g2p). C'est la « décompose EN » côté prior de lecture.
+_sub1(r"const PHON_TO_LETTERS = \{[\s\S]*?\n\};",
+      "const PHON_TO_LETTERS = " + json.dumps(p2l, ensure_ascii=False) + ";", 'PHON_TO_LETTERS')
+
+# (2b-ter) PHON_FEATURES : traits articulatoires par lettre (substrat phon, initPhoneticSubstrate). Table
+# de l'app = interprétation FRANÇAISE (R uvulaire, U=[y], H muet, J=[ʒ]) → biais FR dans le substrat EN.
+# Remplacée par la phonétique ANGLAISE (build_phonfeatures_en.py). Keyée A-Z (pas de crash) mais valeurs FR.
+_sub1(r"const PHON_FEATURES = \{[\s\S]*?\n\};",
+      "const PHON_FEATURES = " + json.dumps(pf, ensure_ascii=False) + ";", 'PHON_FEATURES')
 
 # (2c) N-GRAMME de lettres sur mots ATTESTÉS seulement (freq>0) — comme le FR (155k mots tous attestés).
 # Le lexique EN complet (195k) inclut ~76k formes freq=0 (flexions rares) qui DILUENT la graphotactique
