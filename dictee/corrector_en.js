@@ -65,7 +65,7 @@ function spellSuggest(lex, w){
   for(const e of edits1(low)){ if(lex.KNOWN.has(e) && /^[a-z]+$/.test(e)) cands.set(e, 1); }
   const pk = phonKey(low);
   const neigh = lex.PHON.get(pk) || [];
-  for(let i = 0; i < Math.min(12, neigh.length); i++){ const x = neigh[i]; if(x !== low && !cands.has(x)) cands.set(x, 0); }
+  for(let i = 0; i < Math.min(12, neigh.length); i++){ const x = neigh[i]; if(x !== low && !cands.has(x) && /^[a-z]+$/.test(x)) cands.set(x, 0); }  // ASCII-seul : ne JAMAIS suggérer un accent (EN sans accents ; emprunts café/résumé restent connus mais pas proposés)
   if(!cands.size) return [null, 'OK'];                                  // inconnu sans candidat → ne pas harceler
   let best = null, bestKey = [-1, -1];
   for(const [x, tier] of cands){ const key = [tier, lex.FREQ.get(x)||0];

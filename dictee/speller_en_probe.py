@@ -110,8 +110,8 @@ class SpellerEN:
                 c[e] = max(c.get(e, 0), 1)
         pk = phon_key(low)
         for w in self.PHON.get(pk, [])[:12]:                 # voisins phonétiques limités, déjà classés freq
-            if w != low:
-                c[w] = max(c.get(w, 0), 0)
+            if w != low and all(ch in ALPHA for ch in w):    # ASCII-seul : ne JAMAIS suggérer un accent (l'anglais n'en a pas ;
+                c[w] = max(c.get(w, 0), 0)                    #   les emprunts café/résumé restent KNOWN mais ne sont pas PROPOSÉS)
         return c, pk
 
     def suggest(self, w):
