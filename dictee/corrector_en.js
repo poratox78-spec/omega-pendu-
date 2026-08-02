@@ -93,6 +93,15 @@ const YOURE_RED = new Set(['gonna']);
 const YOURE_ORANGE = new Set(['welcome','going','doing','being','getting','coming','not','re']);
 const TO_MUCH_PREV_STOP = new Set(['','listen','up','close','talk','talking','speak','speaking','refer',
   'referred','according','due','access','attention','related']);
+const DEGREE_ADJ = new Set(['late','early','hard','easy','big','small','large','far','fast','slow','high','low',
+  'hot','cold','long','short','old','young','soon','tired','busy','expensive','cheap','heavy','light','loud',
+  'quiet','tight','weak','strong','difficult','dangerous','scared','afraid','close','deep','wide','narrow',
+  'thick','thin','rich','poor','full','empty','bright','dark','sick','tall','nervous','proud','lazy',
+  'complicated','painful','risky']);
+const TO_INF_GUARD = new Set(['want','wants','wanted','need','needs','needed','like','likes','liked','love',
+  'loves','loved','try','tries','tried','going','have','has','had','used','able','wish','hope','hopes','plan',
+  'plans','decide','decided','learn','begin','seem','seems','start','started','continue','refuse','offer',
+  'manage','tend','get','gets','got','allow','allowed','how','way','ways','time','right','nice','hard','easy']);
 
 function posOf(lex, w){ return lex.POS.get(w.toLowerCase()) || new Set(); }
 function isNoun(lex, w){ return posOf(lex, w).has('NOUN'); }
@@ -111,6 +120,7 @@ function vowelStart(lex, w){                                // 1er son du mot vi
 function homoDecide(lex, T, i){
   const w = T[i], lw = w.toLowerCase();
   const nx = i+1 < T.length ? T[i+1].toLowerCase() : '';
+  const nx2 = i+2 < T.length ? T[i+2].toLowerCase() : '';
   const nxRaw = i+1 < T.length ? T[i+1] : '';
   const pv = i > 0 ? T[i-1].toLowerCase() : '';
   if(lw === 'of' && MODALS.has(pv)) return ['have', 'RED'];
@@ -138,6 +148,10 @@ function homoDecide(lex, T, i){
   }
   if(lw === "it's" && nx && onlyNoun(lex, nx) && !BE_AFTER.has(nx)) return ['its', 'ORANGE'];
   if(lw === 'to' && (nx === 'much' || nx === 'many') && !TO_MUCH_PREV_STOP.has(pv)) return ['too', 'ORANGE'];
+  // « to <adj gradable> to/for » = construction « too … to/for » (RED, FP≈0) : too tired to walk, too big for me.
+  if(lw === 'to' && DEGREE_ADJ.has(nx) && (nx2 === 'to' || nx2 === 'for') && !TO_INF_GUARD.has(pv)) return ['too', 'RED'];
+  // « weather or not » -> « whether or not » (RED : jamais correct).
+  if(lw === 'weather' && nx === 'or' && nx2 === 'not') return ['whether', 'RED'];
   return [null, null];
 }
 
