@@ -12,11 +12,13 @@ from g2p_en_apply import g2p_en, real_phon               # comble le phon (kaikk
 sys.stdout.reconfigure(encoding='utf-8')
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEX = os.path.join(HERE, 'lex_en.tsv.gz')
-# PARITÉ FRANÇAIS : le lex4 FR embarque TOUTES les longueurs (1-25) et TOUT le vocabulaire réel (freq
-# descend à 0,003), pas seulement 7-15/freq>0. On ne recoupe donc PAS ici (décision Rem 2026-08-02 :
-# « optimisation ≠ simplification »). Le moteur planche f à 0,001 pour les freq=0 ; le lexique 200k
-# (lex_en.tsv.gz, rescope_en.py) est déjà curé (pas de bruit web). La validation « mot à deviner >= 7 »
-# reste dans l'UI du jeu ; le lex4 sert AUSSI le substrat/cohorte/n-grammes → il lui faut tout le lexique.
+# PARITÉ FRANÇAIS = lex4 pendu ATTESTÉ (freq>0), toutes longueurs (2-25). Le Lexique4 FR a une fréquence
+# pour CHAQUE mot (la + basse ≈ 0,003) → AUCUN mot freq=0. L'EN avait 63 % de formes freq=0 (kaikki sans
+# fréquence SUBTLEX) : MESURÉ 2026-08-02 qu'elles POLLUENT la cohorte/le declare du pendu (vote de lettres
+# dilué par des candidats rares) → EN full 195k = 86,5 % vs EN attesté 71k = 92,0 % (+5,5 pts) vs FR 96,5 %.
+# On garde donc, comme le FR, uniquement les mots À FRÉQUENCE (freq>0). ⚠️ Ce n'est PAS un « cut » de
+# simplification : le CORRECTEUR garde ses 200k (lex_en.tsv, il lui faut les mots rares pour corriger) ;
+# c'est SEULEMENT le lex4 du JEU qui s'aligne sur le design FR (attesté). Décision Rem 2026-08-02 (mesuré).
 MINLEN, MAXLEN = 2, 25                                  # toutes longueurs utiles (comme le FR ; on écarte juste les lettres seules)
 
 words = []
@@ -34,7 +36,8 @@ with gzip.open(LEX, 'rt', encoding='utf-8') as f:
         except ValueError:
             try: fr = int(float(c[6]))
             except ValueError: fr = 0
-        m = w.upper()                                              # PAS de cut freq : tout le vocabulaire réel (le moteur planche f=0 -> 0.001)
+        if fr <= 0: continue                                       # ATTESTÉ seulement (comme le FR) — les freq=0 polluent la cohorte (mesuré −5,5 pts)
+        m = w.upper()
         # PHON : source (kaikki/CMUdict) si présent, SINON g2p généré -> couverture ~100% comme le FR
         # (Lexique4). La route phon vaut +52 pts au pendu ; ~47% des mots (rares/flexions/orthos GB) sont
         # absents des dicos de prononciation -> sans ce comblement leur route phon est MORTE (régression
