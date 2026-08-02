@@ -21,7 +21,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 EN = '--en' in sys.argv
 CONLLU = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu' if EN else 'ud_fr_gsd-train.conllu')
 OUT = os.path.join(HERE, 'pos_hmm_en.json' if EN else 'pos_hmm.json')
-OUT_GZ = None if EN else os.path.join(HERE, '..', 'extension', 'assets', 'pos-hmm.json.gz')  # pas d'extension EN
+# EN : pas d'asset extension (extension FR-only) mais un .gz pour le WEB (la page décompresse via
+# DecompressionStream, comme lex_en.tsv.gz) → le modèle passe de 356 Ko à ~100 Ko sur le réseau.
+OUT_GZ = os.path.join(HERE, 'pos_hmm_en.json.gz') if EN else os.path.join(HERE, '..', 'extension', 'assets', 'pos-hmm.json.gz')
 SRC_NAME = 'UD English-EWT' if EN else 'UD French-GSD'
 LO = -13.8          # log(~1e-6) : plancher d'émission (mot connu mais pas avec ce tag / tag hors candidats)
 

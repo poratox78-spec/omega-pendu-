@@ -204,8 +204,55 @@ async function loadLexB64(b64){
   return parseLexText(raw);
 }
 
+// ---------- POS-tagger ANGLAIS (HMM UPOS bigramme, Viterbi) ----------
+// MIROIR EXACT de dictee/pos_en.py (référence) : mêmes scores, mêmes décisions → parité vérifiable
+// (parity_pos_en.js). Modèle produit par `build_pos_hmm.py --en` depuis UD English-EWT (CC BY-SA 4.0).
+// Dégradation douce : sans modèle chargé, tagSentence rend [] et les règles qui en dépendent s'abstiennent.
+let _POS = null;
+function setPosModel(m){ _POS = m || null; return !!_POS; }
+function tagSentence(words, M){
+  M = M || _POS;
+  if(!M || !words || !words.length) return [];
+  const tags = M.tags, tr = M.trans, em = M.emit, suf = M.suf, pri = M.prior, FL = M.floor;
+  const lt = (a, b) => { const r = tr[a]; const v = r && r[b]; return (v === undefined) ? FL : v; };
+  function le(t, w){
+    const lw = w.toLowerCase();
+    if((t === 'PUNCT' || t === 'SYM') && /[a-z]/i.test(lw)) return -100.0;   // lettres => jamais ponctuation
+    if(Object.prototype.hasOwnProperty.call(em, lw)){ const v = em[lw][t]; return (v === undefined) ? FL : v; }
+    for(const k of [4, 3, 2]){                                              // backoff par suffixe (mots rares)
+      if(lw.length >= k){ const sf = lw.slice(-k);
+        if(Object.prototype.hasOwnProperty.call(suf, sf)){ const d = suf[sf]; const v = d[t];
+          return ((v === undefined) ? FL : v) + ((/^[A-Z]/.test(w) && t === 'PROPN') ? Math.log(1.1) : 0); } }
+    }
+    const p = pri[t];
+    return ((p === undefined) ? FL : p) + ((/^[A-Z]/.test(w) && t === 'PROPN') ? Math.log(3.0) : 0);
+  }
+  const n = words.length, V = [{}], bk = [{}];
+  for(const t of tags){ V[0][t] = lt('<s>', t) + le(t, words[0]); bk[0][t] = '<s>'; }
+  for(let i = 1; i < n; i++){
+    V.push({}); bk.push({});
+    for(const t of tags){
+      const et = le(t, words[i]); let best = -1e18, bp = null;
+      for(const pt of tags){ const sc = V[i-1][pt] + lt(pt, t); if(sc > best){ best = sc; bp = pt; } }
+      V[i][t] = best + et; bk[i][t] = bp;
+    }
+  }
+  let best = -1e18, bt = null;
+  for(const t of tags){ const sc = V[n-1][t] + lt(t, '</s>'); if(sc > best){ best = sc; bt = t; } }
+  const seq = [bt];
+  for(let i = n-1; i > 0; i--) seq.push(bk[i][seq[seq.length-1]]);
+  return seq.reverse();
+}
+// navigateur : charge le modèle gzippé (même schéma que lex_en.tsv.gz)
+async function loadPosModel(url){
+  const r = await fetch(url || '../dictee/pos_hmm_en.json.gz');
+  if(!r.ok) throw new Error('http ' + r.status);
+  const ds = r.body.pipeThrough(new DecompressionStream('gzip'));
+  return setPosModel(JSON.parse(await new Response(ds).text()));
+}
+
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize,
-               parseLexText, loadLexNode, loadLexB64 };
+               parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
 
