@@ -115,6 +115,33 @@ const PP_AUX = new Set(['have','has','had','having',"'ve","'d",'been','be','is',
 function posOf(lex, w){ return lex.POS.get(w.toLowerCase()) || new Set(); }
 function isNoun(lex, w){ return posOf(lex, w).has('NOUN'); }
 function onlyNoun(lex, w){ const p = posOf(lex, w); return p.size === 1 && p.has('NOUN'); }
+
+// ---- POS CONTEXTUEL : débloque « there + NOM -> their » (MIROIR de homophone_en_probe.py) ----
+// `onlyNoun` s'appuie sur le lexique Wiktionary qui SUR-VERBIFIE (house/engine/phone/sister sont tagués
+// VERB) → la direction possessive ne passait presque jamais. Le tagger tranche EN CONTEXTE.
+// Le tagger tague « there » PRON dans les DEUX cas (l'existentiel EST un PRON en UD) : le discriminant
+// est ce qui SUIT — « there is/are » (AUX) = correct, « there house » (NOUN) = possessif mal écrit.
+const EXIST_BEFORE = new Set(['is','are','was','were','be','been','being',"isn't","aren't","wasn't","weren't",'there']);
+const PLACE_BEFORE = new Set(['over','out','up','down','back','in','from','around','near','right']);
+const TIME_NOUNS = new Set(['time','times','yesterday','today','tomorrow','tonight','day','days','week',
+  'weeks','month','months','year','years','morning','afternoon','evening','night','hour','hours',
+  'minute','minutes','moment','while','once','again']);
+let _tagCache = null, _tagCacheKey = null;                 // Viterbi une fois par phrase, pas par token
+function ctxPos(T, i){
+  if(!_POS) return null;
+  const key = T.join('');
+  if(_tagCacheKey !== key){ _tagCache = tagSentence(T); _tagCacheKey = key; }
+  return (i >= 0 && i < _tagCache.length) ? _tagCache[i] : null;
+}
+function nextIsNounCtx(T, i){
+  const pv = i > 0 ? T[i-1].toLowerCase() : '';
+  if(EXIST_BEFORE.has(pv) || PLACE_BEFORE.has(pv)) return false;
+  // FP mesurés sur EWT : « there » LOCATIF suivi d'un nom — nom de TEMPS (« went there yesterday »)
+  // et « there » POST-NOMINAL (« the people there attempt… »). Aucun vrai positif perdu.
+  if(i + 1 < T.length && TIME_NOUNS.has(T[i+1].toLowerCase())) return false;
+  if(ctxPos(T, i - 1) === 'NOUN') return false;
+  return ctxPos(T, i + 1) === 'NOUN';
+}
 function isVerb(lex, w){ return posOf(lex, w).has('VERB'); }
 function isAdj(lex, w){ return posOf(lex, w).has('ADJ'); }
 
@@ -144,7 +171,7 @@ function homoDecide(lex, T, i){
     return ['than', 'ORANGE'];
   }
   if(lw === 'their' && BE_AFTER.has(nx)) return ['there', 'RED'];
-  if(lw === 'there' && nx && onlyNoun(lex, nx)) return ['their', 'ORANGE'];
+  if(lw === 'there' && nx && (onlyNoun(lex, nx) || nextIsNounCtx(T, i))) return ['their', 'ORANGE'];
   if(lw === "they're" && nx && onlyNoun(lex, nx)) return ['their', 'ORANGE'];
   if(lw === 'your'){
     if(YOURE_RED.has(nx)) return ["you're", 'RED'];

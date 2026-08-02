@@ -11,6 +11,10 @@ const EWT = path.join(__dirname, '..', 'data_local', 'en_ewt-ud-train.conllu');
 if(!fs.existsSync(EWT)){ console.log('[parity_en] EWT absent — skip'); process.exit(0); }
 
 const lex = ce.loadLexNode(path.join(__dirname, 'lex_en.tsv.gz'));
+// modèle POS : le Python le charge tout seul (pos_en.load_model) ; sans lui côté JS, les règles à POS
+// contextuel (there+NOM -> their) s'abstiendraient d'un côté seulement → fausse divergence de parité.
+const _pm = path.join(__dirname, 'pos_hmm_en.json');
+if(fs.existsSync(_pm)) ce.setPosModel(JSON.parse(fs.readFileSync(_pm, 'utf8')));
 let jsAuto = 0, jsRed = 0, jsFlag = 0, jsOrange = 0;
 for(const line of fs.readFileSync(EWT, 'utf8').split('\n')){
   if(!line.startsWith('# text = ')) continue;
