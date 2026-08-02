@@ -6201,8 +6201,8 @@ function _neoEnsureNG(){
     if (p<L-1) add(_neoNG.br, L+'|'+p+'|'+w[p+1], c);
     if (p>0 && p<L-1) add(_neoNG.tri, L+'|'+p+'|'+w[p-1]+'|'+w[p+1], c); } };
   const LI = OMEGA_LEX4.len_index, WD = OMEGA_LEX4.words;       // depuis len_index = respecte Trexquant (vrai OOV) ; cheat-free (stats agrégées, 1 mot/250k = négligeable et non récupérable)
-  if (LI) { for (const key in LI) { const arr = LI[key]; for (let i=0;i<arr.length;i++){ const w=WD[arr[i]]; if (w&&w.m) addWord(w.m); } } }
-  else { for (const w of WD) { if (w&&w.m) addWord(w.m); } }
+  if (LI) { for (const key in LI) { const arr = LI[key]; for (let i=0;i<arr.length;i++){ const w=WD[arr[i]]; if (w&&w.m&&w.f>0) addWord(w.m); } } }
+  else { for (const w of WD) { if (w&&w.m&&w.f>0) addWord(w.m); } }
 }
 let _neoNGgapSrc = null;
 function _neoEnsureNGgap(){                  // C : tables distance-keyées Ld/Rd pour d=2..MAXD (d=1 = bl/br déjà bâties). Bâti SUR _neoNG ; invalidé avec lui (Trexquant null _neoNG → rebuild).
@@ -6214,8 +6214,8 @@ function _neoEnsureNGgap(){                  // C : tables distance-keyées Ld/R
   const addWord = (w) => { const L = w.length; for (let p=0;p<L;p++){ const c=w.charCodeAt(p)-65; if(c<0||c>=26) continue;
     for (let d=2;d<=MAXD;d++){ if(p-d>=0) add(Ld, L+'|'+p+'|'+d+'|'+w[p-d], c); if(p+d<L) add(Rd, L+'|'+p+'|'+d+'|'+w[p+d], c); } } };
   const LI = OMEGA_LEX4.len_index, WD = OMEGA_LEX4.words;
-  if (LI) { for (const key in LI) { const arr = LI[key]; for (let i=0;i<arr.length;i++){ const w=WD[arr[i]]; if (w&&w.m) addWord(w.m); } } }
-  else { for (const w of WD) { if (w&&w.m) addWord(w.m); } }
+  if (LI) { for (const key in LI) { const arr = LI[key]; for (let i=0;i<arr.length;i++){ const w=WD[arr[i]]; if (w&&w.m&&w.f>0) addWord(w.m); } } }
+  else { for (const w of WD) { if (w&&w.m&&w.f>0) addWord(w.m); } }
 }
 function _neoLetterNgramDist(){              // distribution lettre (26) du n-gram positionnel (backoff tri→bi→uni) — le calcul commun, AVANT argmax. Rend Float64Array(26) ou null si aucune position informée. Réutilisé par _neoLetterNgram (argmax) ET _neoDeclareOSmix (voie sub OS).
   _neoEnsureNG(); const L = currentWord.length, NG = _neoNG;

@@ -56,6 +56,15 @@ _sub1(r"const SEG=\[.*?\]\.sort\(\(a,b\)=>b\.length-a\.length\)",
 _sub1(r"const COND = \{.*\}(?=\n)", "const COND = " + json.dumps(g2p['COND'], ensure_ascii=False), 'COND')
 _sub1(r"const ENTSIL = new Set\(\[.*\]\)(?=\n)", "const ENTSIL = new Set([])", 'ENTSIL')
 
+# (2c) N-GRAMME de lettres sur mots ATTESTÉS seulement (freq>0) — comme le FR (155k mots tous attestés).
+# Le lexique EN complet (195k) inclut ~76k formes freq=0 (flexions rares) qui DILUENT la graphotactique
+# si on les compte dans le n-gramme (`_neoEnsureNG`/gap = type-weighted, chaque mot 1×). On les garde pour
+# la COHORTE/complétude mais on les EXCLUT du n-gramme -> parité FR + pas de biais vers le rare. (mesuré :
+# mots courants 98 % inchangé ; ce patch vise le régime OOV/rare où le n-gramme pèse.)
+_ng_n = html.count('if (w&&w.m) addWord(w.m)')
+html = html.replace('if (w&&w.m) addWord(w.m)', 'if (w&&w.m&&w.f>0) addWord(w.m)')
+if _ng_n != 4: print('[WARN] n-gramme attesté : %d occurrences patchées (attendu 4)' % _ng_n)
+
 # (3) langue + titre
 html = html.replace('<html lang="fr">', '<html lang="en">', 1)
 html = html.replace('<title>Pendu cognitif, correcteur dys & dictée — l\'application | OMEGA-Ω</title>',
