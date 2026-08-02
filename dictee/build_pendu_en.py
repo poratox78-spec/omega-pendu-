@@ -13,13 +13,15 @@ SRC = os.path.join(HERE, '..', 'app', 'omega-pendu.html')
 OUT = os.path.join(HERE, '..', 'app', 'omega-pendu-en.html')
 B64 = os.path.join(HERE, 'lex4_en.b64')
 LF = os.path.join(HERE, 'letter_freq_en.json')
+G2P = os.path.join(HERE, 'g2p_en.json')   # tables g2p ANGLAISES (build_g2p_en.py) — zéro français
 
-for p in (SRC, B64, LF):
+for p in (SRC, B64, LF, G2P):
     if not os.path.exists(p): print('[FATAL] manquant :', p); sys.exit(1)
 
 html = io.open(SRC, encoding='utf-8').read()
 b64 = io.open(B64, encoding='utf-8').read().strip()
 lf = json.load(io.open(LF, encoding='utf-8'))
+g2p = json.load(io.open(G2P, encoding='utf-8'))
 
 # (1) remplace le contenu du bloc lex4-data-gz par le base64 anglais
 pat = re.compile(r'(<script type="text/plain" id="lex4-data-gz">)(.*?)(</script>)', re.S)
@@ -36,6 +38,23 @@ new_lf = 'const LETTER_FREQ_FR = {\n' + '\n'.join(lines) + '\n};'
 lfpat = re.compile(r'const LETTER_FREQ_FR = \{.*?\};', re.S)
 if not lfpat.search(html): print('[FATAL] const LETTER_FREQ_FR introuvable'); sys.exit(1)
 html = lfpat.sub(new_lf, html, count=1)
+
+# (2b) TABLES g2p FR -> EN (VOW/NASAL/DBL/SEG/COND/ENTSIL du moteur _DECL2). L'algo g2p est
+# agnostique de langue ; seules ses tables sont FR. On les remplace par les anglaises (data-driven,
+# build_g2p_en.py) → AUCUN français ne score les candidats anglais (declare DUAL, phonScore).
+def _sub1(pat, repl, label, flags=0):
+    global html
+    rx = re.compile(pat, flags)
+    if not rx.search(html): print('[FATAL] table g2p introuvable :', label); sys.exit(1)
+    html = rx.sub(lambda m: repl, html, count=1)
+
+_sub1(r"const VOW='[^']*'", "const VOW='" + g2p['VOW'] + "'", 'VOW')
+_sub1(r"const NASAL=new Set\(\[[^\]]*\]\)", "const NASAL=new Set(" + json.dumps(g2p['NASAL']) + ")", 'NASAL')
+_sub1(r"const DBL=new Set\(\[[^\]]*\]\)", "const DBL=new Set(" + json.dumps(g2p['DBL']) + ")", 'DBL')
+_sub1(r"const SEG=\[.*?\]\.sort\(\(a,b\)=>b\.length-a\.length\)",
+      "const SEG=" + json.dumps(g2p['SEG'], ensure_ascii=False) + ".sort((a,b)=>b.length-a.length)", 'SEG', re.S)
+_sub1(r"const COND = \{.*\}(?=\n)", "const COND = " + json.dumps(g2p['COND'], ensure_ascii=False), 'COND')
+_sub1(r"const ENTSIL = new Set\(\[.*\]\)(?=\n)", "const ENTSIL = new Set([])", 'ENTSIL')
 
 # (3) langue + titre
 html = html.replace('<html lang="fr">', '<html lang="en">', 1)
@@ -121,5 +140,6 @@ print('CLONE écrit :', os.path.relpath(OUT, os.path.join(HERE, '..')))
 print('  lex4 anglais embarqué : %d mots, version %s' % (data['n_words'], data.get('version')))
 print('  len_index longueurs :', sorted(int(k) for k in data['len_index']))
 print('  LETTER_FREQ_EN E=%.4f (max attendu) · taille clone %.2f Mo' % (lf['e'], len(html.encode('utf-8'))/1e6))
+print('  g2p ANGLAIS embarqué : %d graphèmes, %d SEG (build_g2p_en.py, zéro français)' % (len(g2p['COND']), len(g2p['SEG'])))
 print('  traductions ancrées : %d · i18n dashboard : %d/%d · ancres NON trouvées : %s'
       % (len(TRANSLATIONS) - len(_missing), _i18n_n, _i18n_tot, _missing or 'aucune'))
