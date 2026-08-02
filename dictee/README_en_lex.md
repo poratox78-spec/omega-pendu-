@@ -92,8 +92,16 @@ PYTHONUTF8=1 python dictee/build_en_ngrams.py dictee/lex_en.tsv dictee
   qu'il ne FAUT pas flaguer) ; **FP=0** sur EWT (les rares AUTO sur texte « correct » = vrais typos du
   corpus web). Lancer : `PYTHONUTF8=1 python dictee/speller_en_probe.py`.
 
+- **`homophone_en_probe.py`** — canal homophone anglais (LE gros des fautes dys EN). Calqué sur le FR
+  (`rule_son_sont`) : on tranche par la classe du mot voisin (POS de `lex_en`), on s'abstient dans
+  l'ambigu. **RED** (FP=0, faute structurellement impossible) : `modal + of → have`, `their + is/are →
+  there`, `its + a/an/the/been → it's`, `comparatif + then + GN → than`. **ORANGE** (vigilance) :
+  direction possessive (there/you're/it's + nom). Mesuré : recall 14/14 ; sur EWT, les 20 fires RED
+  sont **toutes de vraies fautes** du corpus (FP=0 réel) ; ORANGE sans flood (0,00/phrase).
+  Limite mesurée : Wiktionary EN sur-verbifie (house/phone/sister tagués VERB) → la direction
+  possessive ORANGE est bridée (`only_noun`) ; amélioration future = POS dominante par fréquence.
+
 ## Statut
 
-Base + **speller** produits et mesurés. Prochaines briques Phase 2 : canal homophone contextuel
-(`homophones_en` + contexte, FP=0), pendu EN (`lex_en` + n-grammes + IPA), dictée EN, puis portage
-JS/app + page publique.
+Base + **speller** + **canal homophone** produits et mesurés (FP=0). Prochaines briques Phase 2 :
+pendu EN (`lex_en` + n-grammes + IPA), dictée EN, puis portage JS/app + page publique.
