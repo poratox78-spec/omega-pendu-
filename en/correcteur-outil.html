@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>English dyslexia spell checker — free & private | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/correcteur-outil"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en_GB">
+<meta property="og:title" content="English dyslexia spell checker — free & private | OMEGA-Ω"><meta property="og:description" content="Paste or type English text, click the underlined words. Catches typos and homophones (their/there, its/it's, could of…). Runs in your browser — nothing leaves your device.">
+<meta property="og:image" content="https://omegapendu.com/icon.svg">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="English dyslexia spell checker | OMEGA-Ω"><meta name="twitter:description" content="Paste or type English text, click the underlined words. Runs in your browser, nothing is sent.">
+<meta name="description" content="A dyslexia-friendly English spell & homophone checker. Paste or type text, click the underlined words to fix typos and confusions (their/there/they're, its/it's, could of→could have). 100% in-browser, private, free.">
+<link rel="canonical" href="https://omegapendu.com/en/correcteur-outil">
+<link rel="alternate" hreflang="fr" href="https://omegapendu.com/correcteur-outil">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/correcteur-outil">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/correcteur-outil">
+<link rel="stylesheet" href="../site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+  .tool-note{font:14px var(--sans);color:var(--fg-2);text-align:center;padding:9px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .tool-note strong{color:var(--fg)}
+  .cw{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
+  .card{background:#fdf6e3;color:#222;border-radius:14px;padding:20px;box-shadow:0 2px 14px rgba(0,0,0,.25)}
+  .card h1{font:700 22px/1.2 var(--sans);margin:0 0 4px}
+  .card p.sub{font:15px var(--sans);color:#5a5a4a;margin:0 0 16px}
+  #in{width:100%;box-sizing:border-box;min-height:26vh;font:19px/1.7 var(--sans);color:#222;background:#fffdf5;
+      border:2px solid #d8cfa8;border-radius:10px;padding:14px;resize:vertical}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+  button.go{font:700 16px var(--sans);background:#1f6feb;color:#fff;border:0;border-radius:9px;padding:11px 22px;cursor:pointer}
+  button.go:disabled{opacity:.55;cursor:default}
+  button.ghost{font:600 14px var(--sans);background:#efe8cf;color:#333;border:1px solid #d8cfa8;border-radius:9px;padding:9px 16px;cursor:pointer}
+  .legend{font:14px var(--sans);color:#5a5a4a;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .swatch{border-bottom:3px solid;padding-bottom:1px}
+  .swatch.red{border-color:#d1242f;color:#222}
+  .swatch.orange{border-color:#e0a800;color:#222}
+  #out{font:19px/1.9 var(--sans);color:#222;background:#fffdf5;border:2px solid #d8cfa8;border-radius:10px;
+       padding:16px;min-height:14vh;white-space:pre-wrap;word-wrap:break-word;display:none}
+  #out .corr{cursor:pointer;border-radius:3px}
+  #out .corr.red{border-bottom:3px solid #d1242f;background:rgba(209,36,47,.08)}
+  #out .corr.orange{border-bottom:3px solid #e0a800;background:rgba(224,168,0,.10)}
+  #out .corr:hover{background:rgba(31,111,235,.16)}
+  #count{font:600 14px var(--sans);color:#333}
+  #status{font:14px var(--sans);color:#5a5a4a}
+  .tip{font:13px var(--sans);color:#5a5a4a;margin-top:10px}
+</style>
+<script src="../nav.js" defer></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Main">
+    <a href="index.html">Hangman</a>
+    <a href="correcteur.html">Corrector</a>
+    <a href="recherche.html">Research</a>
+    <a href="evolution.html">Evolution</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <a href="../correcteur-outil.html">Français</a>
+  </nav>
+</div></header>
+<div class="tool-note">🩹 <strong>English checker</strong> — paste or type your text, then click the underlined words. Everything runs in your browser; nothing is sent.</div>
+
+<div class="cw">
+  <div class="card">
+    <h1>English spell &amp; homophone checker</h1>
+    <p class="sub">Catches typos (recieve → receive) and real-word confusions (their/there, its/it&rsquo;s, could of → could have).</p>
+    <textarea id="in" spellcheck="false" placeholder="Type or paste English text here… e.g. Their is no point, its a shame you could of come.">Their is no point, its a shame you could of come. I recieve alot of freind requests and definately need to seperate them.</textarea>
+    <div class="row">
+      <button class="go" id="check" disabled>Check</button>
+      <button class="ghost" id="clear">Clear</button>
+      <span id="status">Loading the dictionary…</span>
+    </div>
+    <div class="row"><span class="legend">
+      <span class="swatch red">red</span> = confident fix (click to apply)
+      <span class="swatch orange">orange</span> = suggestion to check
+      <span id="count"></span>
+    </span></div>
+    <div id="out" aria-live="polite"></div>
+    <p class="tip">Click a highlighted word to apply its suggestion. Red = high-confidence (a real typo or an impossible construction). Orange = worth a look — you decide.</p>
+  </div>
+</div>
+
+<script src="../dictee/corrector_en.js"></script>
+<script>
+(function(){
+  var LEX=null, C=window.CorrectorEN;
+  var inEl=document.getElementById('in'), outEl=document.getElementById('out'),
+      btn=document.getElementById('check'), clr=document.getElementById('clear'),
+      st=document.getElementById('status'), cnt=document.getElementById('count');
+  function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  // charge le lexique : fetch du .gz partagé + décompression navigateur (aucune donnée envoyée : c'est un téléchargement)
+  fetch('../dictee/lex_en.tsv.gz')
+    .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
+    .then(function(s){ return new Response(s).text(); })
+    .then(function(txt){ LEX=C.parseLexText(txt); btn.disabled=false;
+      st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.'; })
+    .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
+
+  function analyze(text){
+    var re=/[A-Za-z]+(?:'[A-Za-z]+)*/g, m, toks=[], pos=[];
+    while((m=re.exec(text))){ toks.push(m[0]); pos.push(m.index); }
+    var marks=new Array(toks.length).fill(null);
+    for(var i=0;i<toks.length;i++){
+      var hd=C.homoDecide(LEX,toks,i);
+      if(hd[1]){ marks[i]={sugg:hd[0], cls:(hd[1]==='RED'?'red':'orange')}; continue; }
+      var sp=C.spellSuggest(LEX,toks[i]);
+      if(sp[1]==='AUTO') marks[i]={sugg:sp[0], cls:'red'};
+      else if(sp[1]==='FLAG' && sp[0]) marks[i]={sugg:sp[0], cls:'orange'};
+    }
+    // rendu : reconstruit le texte avec spans
+    var html='', cur=0, n=0;
+    for(var j=0;j<toks.length;j++){
+      html+=esc(text.slice(cur, pos[j]));
+      var w=toks[j], mk=marks[j];
+      if(mk){ n++;
+        html+='<span class="corr '+mk.cls+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'" title="→ '+esc(mk.sugg)+' (click to apply)">'+esc(w)+'</span>';
+      } else html+=esc(w);
+      cur=pos[j]+w.length;
+    }
+    html+=esc(text.slice(cur));
+    return {html:html, n:n};
+  }
+
+  function run(){
+    if(!LEX) return;
+    var r=analyze(inEl.value);
+    outEl.innerHTML=r.html; outEl.style.display='block';
+    cnt.textContent='· '+r.n+' suggestion'+(r.n===1?'':'s');
+  }
+  btn.addEventListener('click', run);
+  clr.addEventListener('click', function(){ inEl.value=''; outEl.style.display='none'; cnt.textContent=''; inEl.focus(); });
+
+  outEl.addEventListener('click', function(e){
+    var t=e.target.closest('.corr'); if(!t) return;
+    var sugg=t.getAttribute('data-sugg'), orig=t.textContent;
+    // applique : remplace la 1re occurrence exacte du mot dans le textarea au bon rang
+    var re=/[A-Za-z]+(?:'[A-Za-z]+)*/g, m, k=0, idx=parseInt(t.getAttribute('data-i'),10), at=-1, len=0;
+    while((m=re.exec(inEl.value))){ if(k===idx){ at=m.index; len=m[0].length; break; } k++; }
+    if(at>=0){
+      // conserve la casse initiale (majuscule de début)
+      var rep=sugg;
+      if(orig[0]===orig[0].toUpperCase() && orig[0]!==orig[0].toLowerCase()) rep=sugg.charAt(0).toUpperCase()+sugg.slice(1);
+      inEl.value=inEl.value.slice(0,at)+rep+inEl.value.slice(at+len);
+      run();
+    }
+  });
+})();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('../sw.js').catch(function(){});});}</script>
+</body>
+</html>
