@@ -44,6 +44,7 @@
     ]],
     ['Research', [
       ['recherche.html', 'Research'],
+      ['donnees.html', 'Data'],
       ['arbitrage.html', 'Arbitration'],
       ['evolution.html', 'Evolution'],
     ]],
@@ -121,7 +122,8 @@
     // Bascule de LANGUE FR/EN — dans la barre a11y (au milieu, avec thème + loupe), pas dans le menu.
     // Les pages qui existent en /en/ (les autres FR pointent vers l'accueil EN).
     var EN_PAGES = {'index':1,'correcteur':1,'dictee':1,'evolution':1,'recherche':1,'omega-key':1,
-      'arbitrage':1,'correcteur-outil':1,'dictee-outil':1,'docs/MEMOIRE':1,'docs/rapport-mode-emploi':1};
+      'arbitrage':1,'correcteur-outil':1,'dictee-outil':1,'confidentialite':1,'donnees':1,
+      'docs/MEMOIRE':1,'docs/rapport-mode-emploi':1};
     var pth = location.pathname.replace(/\.html$/, '').replace(/\/$/, '');
     var onEn = /(^|\/)en(\/|$)/.test(pth);
     var key = onEn ? pth.replace(/^.*?\/en\//, '').replace(/^\/?en$/, 'index') : pth.replace(/^\//, '');

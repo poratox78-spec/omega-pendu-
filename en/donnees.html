@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Open English lexical data & g2p — free to reuse | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/donnees">
+<link rel="canonical" href="https://omegapendu.com/en/donnees"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en"><meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:title" content="Open English lexical data & g2p — free to reuse | OMEGA-Ω"><meta property="og:description" content="OMEGA's English lexical resources — spelling lexicon with IPA, homophones, inflections, character/phoneme n-grams and a data-driven grapheme→phoneme table. Free to reuse."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="512"><meta property="og:image:height" content="512">
+<meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Open English lexical data & g2p | OMEGA-Ω"><meta name="twitter:description" content="English spelling lexicon (IPA), homophones, inflections, n-grams and a data-driven g2p — free to reuse.">
+<meta name="description" content="OMEGA's English lexical resources: a spelling lexicon with IPA and frequency, homophone groups, inflected forms, character and phoneme n-grams, and a data-driven grapheme→phoneme table — served as small files, free to reuse.">
+<link rel="alternate" hreflang="fr" href="https://omegapendu.com/donnees">
+<link rel="alternate" hreflang="en" href="https://omegapendu.com/en/donnees">
+<link rel="alternate" hreflang="x-default" href="https://omegapendu.com/donnees">
+<link rel="stylesheet" href="../site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Open English lexical data & g2p — OMEGA-Ω","description":"English lexical resources: a spelling lexicon (~124,000 surfaces with IPA and subtitle frequency), homophone groups, inflected forms, character and phoneme n-grams (40 General-American phonemes), and a data-driven grapheme→phoneme table. Free to reuse.","url":"https://omegapendu.com/en/donnees","license":"https://creativecommons.org/licenses/by-sa/4.0/","inLanguage":"en","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OMEGA-Ω","url":"https://omegapendu.com/"},"keywords":["English lexicon","IPA","grapheme to phoneme","g2p","homophones","dyslexia","spell checker","NLP","phonotactics","word frequency"]}</script>
+<script src="../nav.js" defer></script>
+<style>
+  .lextab{width:100%;border-collapse:collapse;margin-top:8px;font-size:15px}
+  .lextab th,.lextab td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .lextab th{color:var(--fg-2);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+  .lextab code{font-size:13px;white-space:nowrap}
+  .lextab .src{color:var(--fg-2);font-size:13px;white-space:nowrap}
+  .lexwrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Main">
+    <a href="index.html">The Hangman</a>
+    <a href="correcteur.html">Corrector</a>
+    <a href="dictee.html">Dictation</a>
+    <a href="recherche.html">Research</a>
+    <a href="donnees.html" aria-current="page">Data</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="More readable font (dyslexia)">🔤 Readable</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Open data · English · free to reuse</span>
+  <h1>Our English lexical resources, <em>ready to use</em>.</h1>
+  <p class="lead">These are the resources behind OMEGA's English corrector, dictation and Hangman — built the way the French ones were, but for English: a <strong>spelling lexicon of ~124,000 surfaces</strong> with <strong>IPA</strong> and subtitle <strong>frequency</strong>, <strong>homophone</strong> groups, <strong>inflected forms</strong>, character and phoneme <strong>n-grams</strong>, and a <strong>data-driven grapheme→phoneme table</strong>. Small, plain files — <strong>free to reuse</strong> for any project.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/poratox78-spec/omega-pendu-/tree/main/dictee">Browse on GitHub</a>
+    <a class="btn ghost" href="recherche.html">Read the research</a>
+  </div>
+  <p class="small">Served as individual files (link each below). No personal data: nothing comes from a private corpus.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>What's available</h2>
+  <div class="lexwrap">
+  <table class="lextab">
+    <thead><tr><th>File</th><th>Content</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td><a href="../dictee/lex_en.tsv.gz" download><code>lex_en.tsv.gz</code></a></td><td>Spelling lexicon — ~124,000 surfaces, columns <code>surface·pos·ipa·lemma·tags·gender·freq</code>.</td><td class="src">Wiktionary · SUBTLEX-US · CMUdict</td></tr>
+      <tr><td><a href="../dictee/homophones_en.json" download><code>homophones_en.json</code></a></td><td>~5,500 <em>symmetric</em> homophone groups (their↔there↔they're, right↔rite↔write).</td><td class="src">Wiktionary</td></tr>
+      <tr><td><a href="../dictee/forms_en.tsv.gz" download><code>forms_en.tsv.gz</code></a></td><td>~91,000 lemmas with inflected forms (<code>go→went→gone</code>, <code>big→bigger→biggest</code>).</td><td class="src">Wiktionary</td></tr>
+      <tr><td><a href="../dictee/ngrams_ortho_en.json.gz" download><code>ngrams_ortho_en.json.gz</code></a></td><td>Character n-grams (uni/bi/tri) with word boundaries — graphotactics.</td><td class="src">Wiktionary · SUBTLEX-US</td></tr>
+      <tr><td><a href="../dictee/ngrams_phon_en.json.gz" download><code>ngrams_phon_en.json.gz</code></a></td><td>Phoneme n-grams over a normalised <strong>40-phoneme General-American</strong> inventory — phonotactics.</td><td class="src">Wiktionary · CMUdict</td></tr>
+      <tr><td><a href="../dictee/g2p_en.json" download><code>g2p_en.json</code></a></td><td>Data-driven <strong>grapheme→phoneme</strong> table (context-dependent IPA + surprisal), aligned by EM over 30,000 word↔IPA pairs.</td><td class="src">derived from <code>lex_en</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="small">Plain formats: TSV and JSON (the <code>.gz</code> files decompress with any tool, <code>gunzip</code> included).</p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="promise" style="border-left-color:var(--accent)">
+    <h2 style="margin-top:0">Free to reuse</h2>
+    <p>We did the heavy lifting — extracting, cross-referencing, normalising the IPA to a clean 40-phoneme inventory, learning the grapheme→phoneme alignment. It's <strong>that</strong> version we're sharing, ready to use, not the raw material.</p>
+    <p class="small" style="margin-bottom:0">Built from the English <a href="https://kaikki.org/">Wiktionary</a> (via kaikki.org), <a href="https://www.ugent.be/pp/experimentele-psychologie/en/research/documents/subtlexus">SUBTLEX-US</a> subtitle frequencies, and the <a href="https://github.com/cmusphinx/cmudict">CMU Pronouncing Dictionary</a>. Wiktionary/kaikki content is <strong>CC&nbsp;BY-SA&nbsp;4.0</strong>: keep derivatives open and credit OMEGA-Ω + these sources if you reuse.</p>
+  </div>
+</div></section>
+
+</main>
+
+<footer><div class="wrap">
+  <p><strong>OMEGA-Ω</strong> — open English lexical data. Built from Wiktionary (CC&nbsp;BY-SA&nbsp;4.0), SUBTLEX-US and CMUdict.</p>
+  <p><a href="index.html">Home</a> · <a href="correcteur.html">Corrector</a> · <a href="recherche.html">Research</a> · <a href="docs/rapport-mode-emploi.html">Report</a> · <a href="confidentialite.html">Privacy</a> · <a href="../donnees.html">Français</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a></p>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');if(!t)return;
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('../sw.js').catch(function(){});});}</script>
+</body>
+</html>
