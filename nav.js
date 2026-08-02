@@ -28,7 +28,6 @@
     ['Plus', [
       ['omega-key.html', 'OMEGA·KEY'],
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
-      ['en/index.html', 'English'],
     ]],
   ];
 
@@ -96,6 +95,20 @@
     }
     applyRead(level());
     bS.addEventListener('click', function(){ var l = (level() + 1) % 3; save('omega_read', String(l)); applyRead(l); });
+
+    // Bascule de LANGUE FR/EN — dans la barre a11y (au milieu, avec thème + loupe), pas dans le menu.
+    // Les pages qui existent en /en/ (les autres FR pointent vers l'accueil EN).
+    var EN_PAGES = {'index':1,'correcteur':1,'dictee':1,'evolution':1,'recherche':1,'omega-key':1,
+      'arbitrage':1,'correcteur-outil':1,'dictee-outil':1,'docs/MEMOIRE':1,'docs/rapport-mode-emploi':1};
+    var pth = location.pathname.replace(/\.html$/, '').replace(/\/$/, '');
+    var onEn = /(^|\/)en(\/|$)/.test(pth);
+    var key = onEn ? pth.replace(/^.*?\/en\//, '').replace(/^\/?en$/, 'index') : pth.replace(/^\//, '');
+    if (!key) key = 'index';
+    var bL = document.createElement('a'); bL.className = 'a11y-btn a11y-lang'; bL.setAttribute('role', 'button');
+    if (onEn) { bL.href = '/' + key; bL.textContent = 'FR'; bL.title = 'Version française'; }
+    else { bL.href = EN_PAGES[key] ? '/en/' + key : '/en/'; bL.textContent = 'EN'; bL.title = 'English version'; }
+    bL.setAttribute('aria-label', bL.title);
+    bar.appendChild(bL);
 
     var old = hdr.querySelector('#dys-toggle'); if (old) old.remove();   // remplace l'ancien bouton « Lisible »
     wrap.appendChild(bar);
