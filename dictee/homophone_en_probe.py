@@ -71,6 +71,14 @@ LOOSE_TRIG  = {'to', 'will', 'would', 'can', 'could', 'might', 'must', 'should',
     'gonna', 'cannot', "'ll", 'll', "won't", 'wont'}
 LOOSE_IDIOM = {'let', 'cut', 'break', 'set', 'turn', 'come', 'work', 'hang', 'shake', 'get', 'got', 'be',
     'been', 'being', 'is', 'are', 'was', 'were', 'on', 'so', 'too', 'very', 'more'}  # « be loose », « cut loose »… = adj légitime
+# morphologie verbale irrégulière régularisée (runned->ran, goed->went…) — map de build_verbmorph_en.py
+import os as _os, json as _json
+VERBMORPH = {}
+try:
+    VERBMORPH = _json.load(open(_os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'verbmorph_en.json'), encoding='utf-8'))
+except Exception: pass
+PP_AUX = {'have', 'has', 'had', 'having', "'ve", "'d", 'been', 'be', 'is', 'am', 'are', 'was', 'were',
+    'get', 'gets', 'got', 'getting'}       # auxiliaires -> participe passé (have runned -> run) ; sinon passé (I runned -> ran)
 
 def _tok(text): return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*", text)
 
@@ -136,6 +144,10 @@ def decide(T, i):
     # 9) loose (adj) mis pour le verbe lose : trigger modal/to devant, hors idiome (be/cut/let… loose) -> ORANGE
     if lw == 'loose' and pv in LOOSE_TRIG and (i < 2 or T[i-2].lower() not in LOOSE_IDIOM):
         return 'lose', 'ORANGE'
+    # 10) verbe irrégulier RÉGULARISÉ (runned->ran, goed->went, teached->taught) — RED FP=0 (forme nonstandard)
+    if lw in VERBMORPH:
+        past, pp = VERBMORPH[lw]
+        return (pp if pv in PP_AUX else past), 'RED'
     return None, None
 
 def correct(text, reds_only=True):
@@ -174,6 +186,11 @@ CASES = [
     ("You was right", 1, 'were', 'RED'),
     ("Don't loose your keys", 1, 'lose', 'ORANGE'),
     ("You will loose the game", 2, 'lose', 'ORANGE'),
+    ("He runned home fast", 1, 'ran', 'RED'),
+    ("She goed to school", 1, 'went', 'RED'),
+    ("I have runned all day", 2, 'run', 'RED'),
+    ("They teached us well", 1, 'taught', 'RED'),
+    ("We buyed a new car", 1, 'bought', 'RED'),
 ]
 # NB : la direction possessive ORANGE (there/you're/it's + NOM → their/your/its) est bridée par
 # `only_noun` : Wiktionary EN sur-verbifie (house/engine/phone/sister sont tous tagués VERB), donc
