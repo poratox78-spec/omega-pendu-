@@ -3595,9 +3595,6 @@
 "cauli",
 "collie"
 ],
-"colonel": [
-"kernal"
-],
 "color": [
 "culler"
 ],
@@ -3846,7 +3843,6 @@
 "kore"
 ],
 "cos": [
-"coz",
 "cuzz"
 ],
 "cosign": [
@@ -3968,7 +3964,6 @@
 "coir"
 ],
 "coz": [
-"cos",
 "cuzz"
 ],
 "cozen": [
@@ -4414,8 +4409,7 @@
 ],
 "dare": [
 "dair",
-"dear",
-"der"
+"dear"
 ],
 "dark": [
 "doc"
@@ -4575,9 +4569,6 @@
 "dequeue": [
 "deck",
 "dq"
-],
-"der": [
-"dare"
 ],
 "dere": [
 "dear",
@@ -8639,13 +8630,6 @@
 "curby",
 "kirby"
 ],
-"kernal": [
-"colonel",
-"kernel"
-],
-"kernel": [
-"kernal"
-],
 "kerrs": [
 "kers"
 ],
@@ -11518,9 +11502,6 @@
 "oe",
 "owe"
 ],
-"ohai": [
-"ojai"
-],
 "oi": [
 "oy"
 ],
@@ -11532,9 +11513,6 @@
 ],
 "oiler": [
 "euler"
-],
-"ojai": [
-"ohai"
 ],
 "oke": [
 "oak"
@@ -13877,9 +13855,6 @@
 ],
 "reit": [
 "reet"
-],
-"rekt": [
-"wrecked"
 ],
 "relaid": [
 "relayed"
@@ -16597,9 +16572,6 @@
 "tee",
 "ti"
 ],
-"teade": [
-"teed"
-],
 "teaky": [
 "tiki"
 ],
@@ -16653,9 +16625,6 @@
 "te",
 "tea",
 "ti"
-],
-"teed": [
-"teade"
 ],
 "teel": [
 "teal"
@@ -18512,8 +18481,7 @@
 "reck"
 ],
 "wrecked": [
-"rect",
-"rekt"
+"rect"
 ],
 "wrecks": [
 "rex"
