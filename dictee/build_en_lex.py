@@ -240,14 +240,23 @@ io.open(os.path.join(OUTDIR, 'homophones_en.json'), 'w', encoding='utf-8').write
 io.open(os.path.join(OUTDIR, 'forms_en.tsv'), 'w', encoding='utf-8').write(
     '\n'.join(sorted(forms_rows)) + '\n')
 
-# --- versions SCOPÉES gzippées (COMMITTÉES) : lignes à signal utile (ipa OU freq>0 OU homophone).
-# Le .tsv complet reste gitignoré (régénérable, ~30 Mo, comme Lexique4 côté FR).
-kept = set()
-scoped = ['surface\tpos\tipa\tlemma\ttags\tgender\tfreq']
+# --- versions SCOPÉES gzippées (COMMITTÉES) : ~200k mots RÉELS, cible parité FR (~214k), décision Rem
+# 2026-08-02. Recette (voir rescope_en.py, MÊME logique) : base = ipa OU freq>0 OU homophone ; PUIS on
+# ajoute les FORMES FLÉCHIES des lemmes réels (lemma ∈ base). ⚠️ count_1w (web) REJETÉ : il injecte les
+# fautes fréquentes (seperate, arguement…) qui deviendraient « mots connus » et casseraient le speller.
+# Le .tsv maître complet reste gitignoré (~30 Mo, régénérable, comme Lexique4 côté FR).
+base = set()
 for ln in lex_lines:
     c = ln.split('\t')
     surf, ipa, fq = c[0], c[2], c[6]
     if ipa or (fq.isdigit() and int(fq) > 0) or surf in homo_out:
+        base.add(surf.lower())
+kept = set()
+scoped = ['surface\tpos\tipa\tlemma\ttags\tgender\tfreq']
+for ln in lex_lines:
+    c = ln.split('\t')
+    surf = c[0]; lemma = (c[3] if len(c) > 3 else '').lower()
+    if surf.lower() in base or (lemma and lemma in base):
         scoped.append(ln); kept.add(surf)
 gzip.open(os.path.join(OUTDIR, 'lex_en.tsv.gz'), 'wt', encoding='utf-8').write('\n'.join(scoped) + '\n')
 scoped_forms = [r for r in forms_rows if r.split('\t', 1)[0] in kept]
