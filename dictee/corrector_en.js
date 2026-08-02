@@ -109,6 +109,8 @@ const LOOSE_TRIG = new Set(['to','will','would','can','could','might','must','sh
   'gonna','cannot',"'ll",'ll',"won't",'wont']);
 const LOOSE_IDIOM = new Set(['let','cut','break','set','turn','come','work','hang','shake','get','got','be',
   'been','being','is','are','was','were','on','so','too','very','more']);
+const PP_AUX = new Set(['have','has','had','having',"'ve","'d",'been','be','is','am','are','was','were',
+  'get','gets','got','getting']);   // -> participe passé (have runned -> run) ; sinon passé (I runned -> ran)
 
 function posOf(lex, w){ return lex.POS.get(w.toLowerCase()) || new Set(); }
 function isNoun(lex, w){ return posOf(lex, w).has('NOUN'); }
@@ -164,6 +166,9 @@ function homoDecide(lex, T, i){
   if(lw === "doesn't" && SUBJ_NON3.has(pv)) return ["don't", 'RED'];       // I/you/we/they doesn't -> don't
   if(lw === 'was' && WAS_WRONG.has(pv)) return ['were', 'RED'];            // you/we/they was -> were
   if(lw === 'loose' && LOOSE_TRIG.has(pv) && (i < 2 || !LOOSE_IDIOM.has(T[i-2].toLowerCase()))) return ['lose', 'ORANGE'];
+  // verbe irrégulier RÉGULARISÉ (runned->ran, goed->went, teached->taught) — RED FP=0 (forme nonstandard)
+  const _vm = lex.VERBMORPH && lex.VERBMORPH[lw];
+  if(_vm) return [PP_AUX.has(pv) ? _vm[1] : _vm[0], 'RED'];
   return [null, null];
 }
 
@@ -172,7 +177,7 @@ function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
 // ---------- chargement du lexique ----------
 // parseLexText : construit le lexique depuis le TSV décompressé (partagé Node/navigateur).
 function parseLexText(raw){
-  const lex = { KNOWN: new Set(), FREQ: new Map(), POS: new Map(), IPA: new Map(), PHON: null };
+  const lex = { KNOWN: new Set(), FREQ: new Map(), POS: new Map(), IPA: new Map(), PHON: null, VERBMORPH: {} };
   const lines = raw.split('\n');
   for(let i = 1; i < lines.length; i++){
     const c = lines[i].split('\t');
@@ -187,7 +192,9 @@ function parseLexText(raw){
 }
 function loadLexNode(path){
   const fs = require('fs'), zlib = require('zlib');
-  return parseLexText(zlib.gunzipSync(fs.readFileSync(path)).toString('utf8'));
+  const lex = parseLexText(zlib.gunzipSync(fs.readFileSync(path)).toString('utf8'));
+  try { lex.VERBMORPH = JSON.parse(fs.readFileSync(require('path').join(__dirname, 'verbmorph_en.json'), 'utf8')); } catch (e) {}
+  return lex;
 }
 // navigateur : décompresse un base64+gzip via DecompressionStream (comme l'app FR).
 async function loadLexB64(b64){

@@ -99,7 +99,10 @@
     .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
     .then(function(s){ return new Response(s).text(); })
     .then(function(txt){ LEX=C.parseLexText(txt); btn.disabled=false;
-      st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.'; })
+      st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.';
+      // morphologie verbale irrégulière (runned->ran…) — chargée à part, best-effort
+      fetch('../dictee/verbmorph_en.json').then(function(r){return r.ok?r.json():null;})
+        .then(function(j){ if(j) LEX.VERBMORPH=j; }).catch(function(){}); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
   function analyze(text){
