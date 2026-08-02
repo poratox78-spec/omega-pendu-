@@ -8,6 +8,7 @@
 # Sorties : lex4_en.json.gz (données, gitignoré) + lex4_en.b64 (embarquable) + letter_freq_en.json + stats.
 #   Lancer : PYTHONUTF8=1 python dictee/build_lex4_en.py
 import gzip, json, os, sys, base64, collections
+from g2p_en_apply import g2p_en                          # comble le phon manquant (kaikki/CMUdict couvrent ~53%)
 sys.stdout.reconfigure(encoding='utf-8')
 HERE = os.path.dirname(os.path.abspath(__file__))
 LEX = os.path.join(HERE, 'lex_en.tsv.gz')
@@ -20,6 +21,7 @@ MINLEN, MAXLEN = 2, 25                                  # toutes longueurs utile
 
 words = []
 letter_tot = collections.Counter(); letter_wtot = 0.0
+_p_src = 0; _p_gen = 0                                             # phon source (kaikki/CMUdict) vs généré (g2p)
 with gzip.open(LEX, 'rt', encoding='utf-8') as f:
     f.readline()
     for line in f:
@@ -33,7 +35,15 @@ with gzip.open(LEX, 'rt', encoding='utf-8') as f:
             try: fr = int(float(c[6]))
             except ValueError: fr = 0
         m = w.upper()                                              # PAS de cut freq : tout le vocabulaire réel (le moteur planche f=0 -> 0.001)
-        words.append({'m': m, 'p': c[2] or '', 'l': len(w), 'f': fr, 'old': 0, 'pld': 0, 'g': c[5] or ''})
+        # PHON : source (kaikki/CMUdict) si présent, SINON g2p généré -> couverture ~100% comme le FR
+        # (Lexique4). La route phon vaut +52 pts au pendu ; ~47% des mots (rares/flexions/orthos GB) sont
+        # absents des dicos de prononciation -> sans ce comblement leur route phon est MORTE (régression
+        # mesurée 2026-08-02 : FR 100% phon vs EN 53% -> winrate uniforme 76% au lieu de ~parité FR).
+        p = c[2] or ''
+        if p: _p_src += 1
+        else:
+            p = g2p_en(w); _p_gen += 1
+        words.append({'m': m, 'p': p, 'l': len(w), 'f': fr, 'old': 0, 'pld': 0, 'g': c[5] or ''})
         # fréquences de lettres = usage réel -> pondérées par la freq des mots ATTESTÉS (freq>0) seulement
         if fr > 0:
             for ch in w:
@@ -59,6 +69,8 @@ open(os.path.join(HERE, 'letter_freq_en.json'), 'w', encoding='utf-8').write(
 
 print('=== lex4_en ===')
 print('  mots (2-25 lettres, tout le vocabulaire réel, freq planchée) : %d' % len(words))
+print('  phon : %d source (kaikki/CMUdict) + %d généré g2p = %d/%d couverts (%.0f%%)'
+      % (_p_src, _p_gen, _p_src + _p_gen, len(words), 100.0 * (_p_src + _p_gen) / max(1, len(words))))
 print('  brut %.2f Mo · gzip %.2f Mo · base64 (embarqué) %.2f Mo' % (len(raw)/1e6, len(gz)/1e6, len(b64)/1e6))
 dist = collections.Counter(w['l'] for w in words)
 print('  par longueur :', {k: dist[k] for k in sorted(dist)})
