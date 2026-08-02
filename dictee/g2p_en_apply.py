@@ -23,8 +23,9 @@ def load_tables(path=None):
         _G2P = {'SEG': t['SEG'], 'COND': t['COND'], 'DBL': set(t['DBL'])}
     return _G2P
 
-def g2p_en(word):
-    """Mot -> chaîne IPA (phonèmes GA joints). Dernier recours (prédit)."""
+def g2p_en_steps(word):
+    """Mot -> liste de (graphème, phonème_IPA) ALIGNÉS (longest-match SEG + COND contextuel). Base de
+    l'inversion phonème→lettre (PHON_TO_LETTERS anglais). Phonème '' = graphème muet."""
     t = load_tables()
     SEG, COND, DBL = t['SEG'], t['COND'], t['DBL']
     w = ''.join(ch for ch in word.lower() if 'a' <= ch <= 'z')
@@ -40,8 +41,12 @@ def g2p_en(word):
         else:
             tb = COND.get(g); e = (tb.get(nxt) or tb.get('_')) if tb else None
             ph = e[0] if e else ''
-        steps.append(ph); i += len(g)
-    return ''.join(p for p in steps if p and p != '∅')
+        steps.append((g, ('' if ph == '∅' else ph))); i += len(g)
+    return steps
+
+def g2p_en(word):
+    """Mot -> chaîne IPA (phonèmes GA joints). Dernier recours (prédit)."""
+    return ''.join(ph for (g, ph) in g2p_en_steps(word) if ph)
 
 # ---- CMUdict (étages 1-3) ----
 ARPA2IPA = {'AA':'ɑ','AE':'æ','AH':'ʌ','AO':'ɔ','AW':'aʊ','AY':'aɪ','B':'b','CH':'tʃ','D':'d',
