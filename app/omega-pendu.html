@@ -26148,7 +26148,7 @@ function spellTokenCore(tok,atStart,T,idx){
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
   var _compKeys=null,_compFirst=null;
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
-  function complete(prefix,prev){
+  function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_ckeys();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
@@ -26164,8 +26164,43 @@ function spellTokenCore(tok,atStart,T,idx){
     // bonus ne se déclenchait JAMAIS — c'est la mesure avant/après qui l'a révélé, pas la relecture.
     var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
     var _row=(typeof _OSLM!=='undefined'&&_OSLM&&_OSLM.bf&&_pw)?_OSLM.bf[_pw]:null;
+    // CATÉGORIE ATTENDUE (SP.POS, déjà dans le lexique : « enfants→N », « mange→V », « manger→NV »).
+    // Le bigramme exige d'avoir VU la paire exacte — il échoue donc sur les pronoms (ligne « je » :
+    // 17 successeurs, « je→mange » = 0), et un LM 200× plus gros n'y change RIEN (mesuré, dégradant).
+    // La CATÉGORIE, elle, GÉNÉRALISE : après « je » on attend un VERBE, sans avoir vu le couple.
+    var _SUBJP={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,"j'":1,"n'":1};
+    var _expV=!!_SUBJP[_pw];                                  // pronom sujet -> on attend un verbe CONJUGUÉ
+    // ... et le pronom porte AUSSI la personne : « nous » appelle -ons, « vous » -ez, « ils » -ent.
+    // Terminaisons AUDIBLES pour un dys (nous mange|ONS) : c'est le bout qu'il entend et qu'il attend.
+    var _PERS={nous:/ons$/,vous:/ez$/,ils:/ent$/,elles:/ent$/,tu:/[sx]$/,
+               je:/[esx]$/,"j'":/[esx]$/,il:/(e|t|a|d)$/,elle:/(e|t|a|d)$/,on:/(e|t|a|d)$/};
+    var _pers=_PERS[_pw]||null;
+    // Mauvaise personne après un pronom SUJET = impossible, pas juste improbable -> on PÉNALISE.
+    // Mais « nous »/« vous » sont aussi pronoms OBJETS (« il NOUS regarde » : verbe en 3e personne !).
+    // Ils ne sont sujets qu'en TÊTE de proposition -> on regarde le mot encore avant pour trancher.
+    var _p2=(prev2||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _HEAD={'':1,et:1,ou:1,mais:1,donc:1,car:1,que:1,qu:1,"qu'":1,qui:1,quand:1,si:1,lorsque:1,puis:1};
+    var _sure=(_pw==='nous'||_pw==='vous')?!!_HEAD[_p2]:!!_pers;
+    if((_pw==='nous'||_pw==='vous')&&!_sure)_pers=null;       // clitique OBJET : AUCUN signal de personne (ni bonus ni malus)
+    // NOMBRE après déterminant, même logique que la personne. Le piège : « une souris », « un pays »
+    // finissent par -s sans être pluriels -> on ne pénalise QUE si retirer le -s donne un mot du lexique
+    // (pommes->pomme = vrai pluriel ; souris->souri = rien -> intouché). Test FP-safe, pas de liste à tenir.
+    var _DET1={le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,"l'":1},
+        _DETN={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,quelques:1,plusieurs:1};
+    var _sg=!!_DET1[_pw],_pl=!!_DETN[_pw];
+    function _realPl(w){ return /s$/.test(w)&&SP.WORDS.has(w.slice(0,-1)); }   // SP.WORDS est un Set (.has), pas un objet
     function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
-      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; } return s; }
+      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; }   // bigramme : marche sur déterminant->nom
+      if(_expV){ var pos=SP.POS[w]||'';
+        if(pos.indexOf('V')>=0)s+=1.2;                        // catégorie attendue
+        if(/(er|ir|re)$/.test(w))s-=1.6;                      // « je manger » est impossible : l'infinitif ne suit pas un pronom sujet
+        if(_pers){ if(_pers.test(w))s+=2.2;                    // bonne PERSONNE (« nous mangeons », pas « nous mange »)
+          else if(_sure)s-=1.8; }                              // mauvaise personne, et le pronom est bien SUJET
+      }
+      if(_sg&&_realPl(w))s-=4;                             // « une pommes » : déterminant singulier
+      else if(_pl){ if(/[sx]$/.test(w))s+=1.2;                // « les enfants »
+        else if(SP.WORDS.has(w+'s'))s-=4; }                 // « les maison » : singulier qui A un pluriel -> faux
+      return s; }
     out.sort(function(a,b){return _cscore(b)-_cscore(a);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
@@ -26175,15 +26210,21 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);
     ta.value=v.slice(0,w.start)+repl+v.slice(w.end);var np=w.start+repl.length;if(ta.value.charAt(np)===' ')np++;try{ta.setSelectionRange(np,np);}catch(e){}
     ta.focus();runComplete();runCorr();}
-  function _prevWord(txt,start){                       // dernier mot AVANT le préfixe en cours (contexte du bigramme)
-    var m=String(txt||'').slice(0,start).match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
-    return m?m[1]:'';
+  function _prevWord(txt,start,back){                       // dernier mot AVANT le préfixe en cours (contexte du bigramme)
+    var s=String(txt||'').slice(0,start),W=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
+    var m=s.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)([^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*)$/);
+    if(!m)return '';
+    if(!back||back<2)return m[1];                          // back=2 : l'AVANT-dernier mot (sujet vs clitique objet)
+    var s2=s.slice(0,s.length-m[1].length-m[2].length);
+    if(/[.,;:!?…«»()\[\]]\s*$/.test(s2))return '';         // une ponctuation ouvre une proposition -> tête
+    var m2=s2.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m2?m2[1]:'';
   }
   function runComplete(){var box=$('vdc-complete');if(!box)return;var ta=$('vdc-in');_compFirst=null;
     if(!SP.ready){box.innerHTML='';return;}
     var pos=(ta.selectionStart==null?ta.value.length:ta.selectionStart),w=_wordAt(ta.value,pos);
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
-    var cs=complete(w.word,_prevWord(ta.value,w.start));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
+    var cs=complete(w.word,_prevWord(ta.value,w.start),_prevWord(ta.value,w.start,2));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
