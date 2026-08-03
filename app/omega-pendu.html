@@ -25455,8 +25455,23 @@ window.addEventListener('DOMContentLoaded', () => {
     var seen={},cs=[]; for(k=0;k<combos.length;k++){ var cw=combos[k]; if(cw!==low&&SP.WORDS.has(cw)&&!seen[cw]){seen[cw]=1;cs.push(cw);} }
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
+  // ===== DICTIONNAIRE UTILISATEUR (localStorage 'vdc_userdict') =====
+  // Le dys écrit des mots que le Lexique ne connaît pas : prénoms, lieux, jargon de son métier/école.
+  // Les signaler à chaque fois est du BRUIT qui use la confiance. On lui laisse les AJOUTER : ils sont
+  // alors traités comme des mots valides. ⚠️ Cette couche ne fait que RETIRER des signalements (jamais
+  // en ajouter) → FP=0 sans objet, et elle ne peut pas casser une règle rouge existante.
+  var _UD=null;
+  function udAll(){ if(_UD)return _UD; try{_UD=new Set(JSON.parse(localStorage.getItem('vdc_userdict')||'[]'));}catch(e){_UD=new Set();} return _UD; }
+  function udNorm(w){ return (w||'').toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').trim(); }
+  function udHas(w){ var s=udAll(); var n=udNorm(w); return s.has(n)||s.has(deaccS(n)); }
+  function udAdd(w){ var n=udNorm(w); if(!n)return false; var s=udAll(); s.add(n);
+    try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} return true; }
+  function udDel(w){ var s=udAll(); s.delete(udNorm(w));
+    try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} }
+
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
+    if(udHas(low))return null;                                         // mot ajouté par l'utilisateur → valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur » (le « e dans le o »). Liste FERMÉE de mots où oe=œ → FP=0 (coexister/moelle/poème non touchés). Garde : ne pas re-flaguer un mot DÉJÀ écrit avec œ. Débloque aussi le genre (« mon soeur »→ma sœur via GENDER_PURE oe).
@@ -25535,6 +25550,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
     if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon ajouté) → ne pas signaler
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
     if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
@@ -26111,7 +26127,22 @@ window.addEventListener('DOMContentLoaded', () => {
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
   function _speak(t){if(!t)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t).replace(/\s+/g,' ').trim());u.lang='fr-FR';u.rate=0.95;speechSynthesis.speak(u);}catch(e){}}   // TTS explication (dys : entendre > lire)
   function _plain(h){var d=document.createElement('div');d.innerHTML=h||'';return d.textContent||'';}
-  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button></div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
+  // Le bouton « C'est un mot » n'a de sens que si la correction vient de l'ORTHOGRAPHE (mot inconnu du
+  // lexique : prénom, lieu, jargon). Sur un ACCORD ou un HOMOPHONE, le mot EXISTE — l'ajouter au
+  // dictionnaire ne changerait rien et induirait en erreur. On teste donc que le mot écrit est bien
+  // absent du lexique ET que la règle est une règle d'orthographe.
+  function _udEligible(f){
+    try{
+      if(!f||!f.word)return false;
+      var low=f.word.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+      if(!/^[a-zà-ÿ'-]{2,}$/.test(low))return false;
+      if(SP&&SP.ready&&(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low))))return false;   // mot connu -> pas un ajout
+      if(udHas(low))return false;                                                     // déjà ajouté
+      var n=(f.name||'').toLowerCase();
+      return n.indexOf('accord')<0&&n.indexOf('homophone')<0&&n.indexOf('conjug')<0;  // ortho seulement
+    }catch(e){return false;}
+  }
+  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button>'+(_udEligible(f)?'<button type="button" class="vcud" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗 C’est un mot</button>':'')+'</div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _ud=c.querySelector('.vcud');if(_ud)_ud.onclick=function(){udAdd(f.word);_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
   function _cardClick(e){var s=e.target.closest('[data-key]');if(!s)return;e.stopPropagation();_openCard(s);}
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour le mot SOUS LE CURSEUR. HORS PARITÉ : suggestion d'UI
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
