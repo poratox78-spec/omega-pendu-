@@ -2635,6 +2635,18 @@ def rule_noun_plural(T, i):
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
 
+# Adjectifs ANTÉPOSÉS du français — classe fermée (c'est ce qui rend la traversée sûre). Formes
+# déaccentuées, masc/fém/pluriel confondus : le déterminant en tête porte déjà le nombre.
+_ADJ_ANTE = frozenset(('grand grande grands grandes petit petite petits petites gros grosse grosses '
+    'beau bel belle beaux belles joli jolie jolis jolies jeune jeunes vieux vieil vieille vieilles '
+    'nouveau nouvel nouvelle nouveaux nouvelles bon bonne bons bonnes mauvais mauvaise mauvaises '
+    'long longue longs longues court courte haut haute meilleur meilleure meilleurs meilleures '
+    'moindre seul seule seuls seules meme memes autre autres premier premiere premiers premieres '
+    'dernier derniere derniers dernieres prochain prochaine ancien ancienne propre propres '
+    'pauvre pauvres vrai vraie vrais vraies simple simples double demi demie plein pleine '
+    'gentil gentille brave braves cher chere chers cheres').split())
+
+
 def rule_noun_singular(T, i):
     # DÉTERMINANT ÉLIDÉ : « de l'hommes » n'a PAS de déterminant séparé — il est COLLÉ au nom, et « l' »
     # est toujours SINGULIER. La faute est alors DANS le token ; on corrige donc le token ENTIER, en
@@ -2649,7 +2661,13 @@ def rule_noun_singular(T, i):
         _pre = T[i][:len(T[i]) - len(_head_text(T[i]))]
         T = list(T); T[i] = _head_text(T[i])
     elif i == 0 or prev(T, i) not in _SING_DET:
-        return None                                             # déterminant SINGULIER (classe fermée) juste avant
+        # ÉCRAN ADJECTIF : « la grande boites » / « le vieux fauteuils » passaient au travers, alors que
+        # « la boites » était corrigé — le déterminant devait être COLLÉ au nom. Or l'adjectif ANTÉPOSÉ
+        # est une CLASSE FERMÉE en français (grand, petit, vieux, beau, bon, seul, premier…), donc on
+        # peut la franchir sans ouvrir la porte : UN seul mot, et il doit être DANS la liste.
+        # Trouvé en arbitrant les hypothèses d'une dictée vocale — mais le bug touche l'ÉCRIT.
+        if not (i >= 2 and deacc(T[i-1].lower()) in _ADJ_ANTE and prev(T, i-1) in _SING_DET):
+            return None                                         # déterminant SINGULIER (classe fermée) juste avant
     if _SEG is not None and i < len(_SEG['dig']) and _SEG['dig'][i]: return None   # NOMBRE-écran (« le 25 mars », « le 100 mètres ») → le déterminant ne gouverne pas ce nom → abstention (FP)
     n = T[i]
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)

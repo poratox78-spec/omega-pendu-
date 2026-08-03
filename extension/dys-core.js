@@ -793,10 +793,25 @@
     if(/eaux$|eux$/.test(dn)||_PL_OUX_PL[deacc((n.slice(0,-1)+'x').toLowerCase())])cands.push(n.slice(0,-1));
     if(/s$/.test(dn))cands.push(n.slice(0,-1));
     for(var k=0;k<cands.length;k++){var p=NOUN_POST.get(deacc(cands[k].toLowerCase()));if(p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M)return cands[k];}return null;}
+  // Adjectifs ANTÉPOSÉS du français — classe FERMÉE (c'est ce qui rend la traversée sûre). Formes
+  // déaccentuées ; le déterminant en tête porte déjà le nombre. Miroir EXACT de correcteur_probe.py.
+  var _ADJ_ANTE={};('grand grande grands grandes petit petite petits petites gros grosse grosses '
+    +'beau bel belle beaux belles joli jolie jolis jolies jeune jeunes vieux vieil vieille vieilles '
+    +'nouveau nouvel nouvelle nouveaux nouvelles bon bonne bons bonnes mauvais mauvaise mauvaises '
+    +'long longue longs longues court courte haut haute meilleur meilleure meilleurs meilleures '
+    +'moindre seul seule seuls seules meme memes autre autres premier premiere premiers premieres '
+    +'dernier derniere derniers dernieres prochain prochaine ancien ancienne propre propres '
+    +'pauvre pauvres vrai vraie vrais vraies simple simples double demi demie plein pleine '
+    +'gentil gentille brave braves cher chere chers cheres').split(' ').forEach(function(w){_ADJ_ANTE[w]=1;});
   function rNounSing(T,i){if(!NOUN_POST)return null;
     var _pre='';
     if(_elidKind(T[i])==='det'){if(!/s$/.test(deacc(_headText(T[i]).toLowerCase())))return null;_pre=T[i].slice(0,T[i].length-_headText(T[i]).length);T=T.slice();T[i]=_headText(T[i]);}
-    else if(i===0||!_SING_DET[deacc(T[i-1].toLowerCase())])return null;   // déterminant SINGULIER juste avant (et posterior chargé)
+    // ÉCRAN ADJECTIF (miroir Python) : « la grande boites » / « le vieux fauteuils » passaient au
+    // travers alors que « la boites » était corrigé — le déterminant devait être COLLÉ au nom.
+    // L'adjectif ANTÉPOSÉ est une CLASSE FERMÉE : on la franchit sans ouvrir la porte, UN seul mot,
+    // et il doit être DANS la liste. FP=0 revérifié par scan UD (3 déclenchements avant ET après).
+    else if(!(i>=2 && _ADJ_ANTE[deacc(T[i-1].toLowerCase())] && _SING_DET[deacc(T[i-2].toLowerCase())])
+            && (i===0||!_SING_DET[deacc(T[i-1].toLowerCase())]))return null;   // déterminant SINGULIER juste avant (et posterior chargé)
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → abstention
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;           // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;   // pluriel apparent ; invariant/piège
