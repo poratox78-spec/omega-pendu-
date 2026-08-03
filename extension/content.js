@@ -123,11 +123,22 @@
     return col.text.length;                                                                     // sinon : fin du texte
   }
   function wordAt(v, pos) { var s = pos, e = pos; while (s > 0 && WCH.test(v[s - 1])) s--; while (e < v.length && WCH.test(v[e])) e++; return { word: v.slice(s, e), start: s, end: e }; }
+  // mot(s) juste AVANT le préfixe en cours — contexte du classement (catégorie/accord). Miroir app.
+  function prevWordAt(txt, start, back) {
+    var s = String(txt || '').slice(0, start);
+    var m = s.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)([^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*)$/);
+    if (!m) return '';
+    if (!back || back < 2) return m[1];
+    var s2 = s.slice(0, s.length - m[1].length - m[2].length);
+    if (/[.,;:!?…«»()\[\]]\s*$/.test(s2)) return '';          // ponctuation = tête de proposition
+    var m2 = s2.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m2 ? m2[1] : '';
+  }
   function computeComps(el) {
     if (!DC.complete) return []; var pos = caretOf(el); if (pos == null) return [];
     var v = getText(el), w = wordAt(v, pos);
     if (!w.word || pos !== w.end || w.word.length < 2) return [];   // seulement en FIN de mot (préfixe en cours de frappe)
-    return DC.complete(w.word);
+    return DC.complete(w.word, prevWordAt(v, w.start), prevWordAt(v, w.start, 2));
   }
   function applyComplete(el, repl) {
     if (!repl) return;

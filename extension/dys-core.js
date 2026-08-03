@@ -1623,14 +1623,42 @@ function spellUnknown(tok,atStart,T,idx){
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour un préfixe. HORS PARITÉ (suggestion d'UI, pas un flag FP=0).
   // Réutilise le speller accentué SP (D2A = déacc→formes accentuées, déjà trié fréquence). Identique app.
   var _compKeys=null;
-  function complete(prefix){
+  function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(String(prefix).toLowerCase());if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_compKeys=Object.keys(SP.D2A).sort();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
     while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
       for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER FRÉQUENCE (≥1) : l'aide-frappe ne propose que des mots courants ; sur une faute (pome) → vide → la correction prend le relais. Miroir app.
-    out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
+    // CLASSEMENT (miroir app) : fréquence, puis bigramme, puis CATÉGORIE et ACCORD. Le bigramme exige
+    // d'avoir VU la paire exacte (nul sur les pronoms) ; la catégorie, elle, GÉNÉRALISE.
+    var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _row=(typeof _OSLM!=='undefined'&&_OSLM&&_OSLM.bf&&_pw)?_OSLM.bf[_pw]:null;
+    var _SUBJP={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,"j'":1,"n'":1};
+    var _expV=!!_SUBJP[_pw];
+    var _PERS={nous:/ons$/,vous:/ez$/,ils:/ent$/,elles:/ent$/,tu:/[sx]$/,
+               je:/[esx]$/,"j'":/[esx]$/,il:/(e|t|a|d)$/,elle:/(e|t|a|d)$/,on:/(e|t|a|d)$/};
+    var _pers=_PERS[_pw]||null;
+    var _p2=(prev2||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _HEAD={'':1,et:1,ou:1,mais:1,donc:1,car:1,que:1,qu:1,"qu'":1,qui:1,quand:1,si:1,lorsque:1,puis:1};
+    var _sure=(_pw==='nous'||_pw==='vous')?!!_HEAD[_p2]:!!_pers;
+    if((_pw==='nous'||_pw==='vous')&&!_sure)_pers=null;        // clitique OBJET (« il NOUS regarde ») : aucun signal
+    var _DET1={le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,"l'":1},
+        _DETN={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,quelques:1,plusieurs:1};
+    var _sg=!!_DET1[_pw],_pl=!!_DETN[_pw];
+    function _realPl(w){ return /s$/.test(w)&&SP.WORDS.has(w.slice(0,-1)); }   // SP.WORDS est un Set (.has)
+    function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
+      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; }
+      if(_expV){ var pos=SP.POS[w]||'';
+        if(pos.indexOf('V')>=0)s+=1.2;
+        if(/(er|ir|re)$/.test(w))s-=1.6;                       // « je manger » : impossible
+        if(_pers){ if(_pers.test(w))s+=2.2; else if(_sure)s-=1.8; }   // personne : motif NON exhaustif -> souple
+      }
+      if(_sg&&_realPl(w))s-=4;                                 // nombre : test par le LEXIQUE (exact) -> contrainte DURE
+      else if(_pl){ if(/[sx]$/.test(w))s+=1.2;
+        else if(SP.WORDS.has(w+'s'))s-=4; }
+      return s; }
+    out.sort(function(a,b){return _cscore(b)-_cscore(a);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
   // ===== couche VERTE « vigilance » (confusables) — n'AFFIRME pas → hors FP=0 ; HORS PARITÉ. Identique à l'app.
