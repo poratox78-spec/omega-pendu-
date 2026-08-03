@@ -61,10 +61,11 @@
   <div class="vbar">
     <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
     <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
+    <label class="cfg" id="loc-wrap" hidden><input type="checkbox" id="loc"> Sur l’appareil <span id="loc-st" style="opacity:.8"></span></label>
     <span class="vst" id="vst">chargement du correcteur…</span>
     <div id="micinfo" class="vst" style="flex-basis:100%;margin-top:6px;opacity:.85;line-height:1.35"></div>
   </div>
-  <div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
+  <div class="vnote" id="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
   <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici (majuscules remises automatiquement). Puis clique les corrections rouges, « Tout corriger », et « Copier »."></textarea>
   <div class="acts">
     <button id="fixall" disabled>✓ Tout corriger</button>
@@ -157,6 +158,48 @@
   // n'a AUCUNE propriété device/stream/input/source — il prend le micro PAR DÉFAUT du système.
   // Ce n'est pas notre code qui limite, c'est l'API. On le DIT plutôt que de laisser quelqu'un
   // chercher pourquoi son casque est ignoré. Les NOMS n'apparaissent qu'APRÈS la permission micro.
+  // ===== RECONNAISSANCE SUR L'APPAREIL — état + installation. MESURÉ le 2026-08-03 : le modèle
+  // fr-FR pèse 244 Mo (40 moteur + 205 pack) et s'installe en 16 s. `install()` EXIGE un geste
+  // utilisateur quand le modèle est « downloadable » — ce qui impose, et c'est tant mieux, un clic
+  // explicite plutôt qu'un téléchargement silencieux. On AFFICHE le poids avant de le proposer.
+  var loc = document.getElementById('loc'), locWrap = document.getElementById('loc-wrap'),
+      locSt = document.getElementById('loc-st');
+  (function initLocal(){
+    var SRC = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SRC || !SRC.available || !('processLocally' in SRC.prototype)) return;   // navigateur trop ancien : on n'affiche rien
+    locWrap.hidden = false;
+    function etat(){
+      SRC.available({langs:['fr-FR'], processLocally:true}).then(function(v){
+        if(v === 'available'){ locSt.textContent = '— prête, aucun audio envoyé'; loc.disabled = false; }
+        else if(v === 'downloadable'){ locSt.textContent = '— modèle à installer (244 Mo)'; loc.disabled = false; }
+        else { locSt.textContent = '— indisponible'; loc.disabled = true; }
+      }).catch(function(){ locWrap.hidden = true; });
+    }
+    etat();
+    // ⚠️ LA PROMESSE DOIT SUIVRE LE MODE. Le bandeau annonçait « l'audio part chez Google » — ce qui
+    // devient FAUX dès que la reconnaissance tourne sur l'appareil. Ajouter l'option sans corriger la
+    // phrase, c'est mentir sans le vouloir : le pire endroit où le faire est justement celui où on
+    // promet la confidentialité. Le texte est donc RECALCULÉ à chaque bascule.
+    function majPromesse(){
+      var n = document.getElementById('vnote'); if(!n) return;
+      var surAppareil = loc.checked && /prête/.test(locSt.textContent || '');
+      n.innerHTML = '<span class="lock">🔒</span> ' + (surAppareil
+        ? 'La reconnaissance tourne <b>sur ton appareil</b> : ton audio ne sort pas de l’ordinateur. La correction aussi reste <b>100&nbsp;% locale</b>.'
+        : 'La dictée vocale envoie l’audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>.')
+        + ' ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).';
+    }
+    majPromesse();
+    loc.addEventListener('change', majPromesse);
+    loc.addEventListener('change', function(){
+      if(!loc.checked) return;
+      SRC.available({langs:['fr-FR'], processLocally:true}).then(function(v){
+        if(v !== 'downloadable') return etat();
+        locSt.textContent = '— installation (244 Mo)…';
+        return SRC.install({langs:['fr-FR'], processLocally:true}).then(etat);   // le clic sur la case FAIT le geste
+      }).catch(function(e){ locSt.textContent = '— échec : ' + e.message; loc.checked = false; });
+    });
+  })();
+
   function micInfo(){
     var el=document.getElementById('micinfo'); if(!el) return;
     var sys='Pour en changer : réglages son de ton système.';
@@ -229,6 +272,10 @@
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
     try{
       rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
+      // RECONNAISSANCE SUR L’APPAREIL : l’audio ne quitte pas la machine. Mesuré 2026-08-03 :
+      // modele fr-FR = 244 Mo (40 moteur + 205 pack), installe en 16 s. On ne l’active QUE si
+      // l’utilisateur a coche la case : un modele de 244 Mo ne se telecharge pas en douce.
+      try{ if(loc && loc.checked) rec.processLocally = true; }catch(e){}
       var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
       var tr={a:0,s:0}, err='';
       audioStart(S);
