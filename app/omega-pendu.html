@@ -25631,6 +25631,20 @@ function spellTokenCore(tok,atStart,T,idx){
   function udDel(w){ var s=udAll(); s.delete(udNorm(w));
     try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} }
 
+  // ===== TÉMOIN AUDIBLE (idée de Rem) : la lettre finale MUETTE qu'un dys oublie s'ENTEND dans un mot
+  // de la MÊME FAMILLE — grand/grandE, long/lonGUe, amoureux/amoureuSE. C'est la méthode scolaire
+  // (« cherche un mot de la même famille ») et ce n'est PAS du sens flou : la dérivation est dans le
+  // lexique, donc vérifiable. Table produite par `dictee/build_famille.py` (aucune ressource externe).
+  // ⚠️ CURATION : le plancher de fréquence du témoin (5) est calibré sur la QUALITÉ, pas le volume —
+  // sans lui on affichait « chat -> chaté », « chocolat -> chocolate ». Et l'alternance du -x est
+  // bornée aux motifs réguliers du genre, sinon on fabriquait de FAUSSES familles avec de vrais mots
+  // (« prix -> prise », « voix -> voisin » : aucun lien étymologique, mais la forme colle).
+  var _FAM={"accord":"accorde","affreux":"affreuse","affront":"affronter","allemand":"allemande","amoureux":"amoureuse","appart":"appartement","apport":"apporté","arrêt":"arrête","avant":"avantage","avocat":"avocate","bloc":"bloqué","blond":"blonde","cent":"centaine","chanceux":"chanceuse","chant":"chante","chat":"chaton","chaud":"chaude","choc":"choqué","client":"cliente","command":"commande","comment":"commentaire","confort":"confortable","contact":"contacté","correct":"correctement","courageux":"courageuse","coût":"coûte","creux":"creuse","curieux":"curieuse","célibat":"célibataire","dangereux":"dangereuse","dent":"dentiste","deux":"deuxième","différent":"différente","direct":"directe","document":"documentaire","doux":"douce","drag":"dragon","droit":"droite","délicat":"délicate","délicieux":"délicieuse","emprunt":"emprunté","exact":"exacte","froid":"froide","front":"frontière","fréquent":"fréquente","furieux":"furieuse","goût":"goûte","grand":"grande","gratuit":"gratuite","group":"groupe","géant":"géante","généreux":"généreuse","habit":"habite","haut":"haute","heureux":"heureuse","idiot":"idiote","immédiat":"immédiatement","impatient":"impatiente","indic":"indice","infect":"infecté","innocent":"innocente","intelligent":"intelligente","jaloux":"jalouse","joyeux":"joyeuse","lent":"lentement","loup":"loupé","lourd":"lourde","malheureux":"malheureuse","merveilleux":"merveilleuse","mystérieux":"mystérieuse","nerveux":"nerveuse","nombreux":"nombreuses","patient":"patiente","permanent":"permanente","petit":"petite","poignard":"poignardé","port":"porte","post":"poste","profit":"profite","profond":"profonde","prudent":"prudente","précieux":"précieuse","présent":"présente","prêt":"prête","puissant":"puissante","quart":"quartier","rapport":"rapporte","regard":"regarde","rejet":"rejeté","relax":"relaxe","religieux":"religieuse","report":"reporter","respect":"respecte","récent":"récente","saut":"saute","second":"seconde","souhait":"souhaite","sport":"sportif","stand":"standard","supplément":"supplémentaire","support":"supporte","suspect":"suspecte","sénat":"sénateur","sérieux":"sérieuse","tard":"tarder","tort":"torture","tout":"toute","trac":"trace","trad":"tradition","transport":"transporter","vent":"vente","écart":"écarte","éclat":"éclate","époux":"épouse"};
+  function _famHint(f){
+    var w=(f.sugg||'').toLowerCase(), t=_FAM[w];
+    if(!t)return '';
+    return 'le <b>'+w.charAt(w.length-1)+'</b> muet s’entend dans « '+t+' » (même famille).';
+  }
   var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
@@ -26126,7 +26140,9 @@ function spellTokenCore(tok,atStart,T,idx){
     var pre=a>0?'…':'',suf=b<_curToks.length?'…':'';
     return 'Astuce : remplace par « '+esc(h[0])+' ». « '+pre+esc(win.join(' '))+suf+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
   function _explain(f){var e=_EXPL[f.name]||'';if(f.name==='orthographe'&&f.sugg)e="même son, orthographe corrigée : « "+f.sugg+" ».";
-    var cx=_ctxHint(f);if(cx)e=e?(e+'<br><span style="color:#0a66c2">'+cx+'</span>'):cx;return e;}
+    var cx=_ctxHint(f);if(cx)e=e?(e+'<br><span style="color:#0a66c2">'+cx+'</span>'):cx;
+    var fh=_famHint(f);if(fh)e=e?(e+'<br><span style="color:#7a4bd0">'+fh+'</span>'):fh;
+    return e;}
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
   function _speak(t){if(!t)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t).replace(/\s+/g,' ').trim());u.lang='fr-FR';u.rate=0.95;speechSynthesis.speak(u);}catch(e){}}   // TTS explication (dys : entendre > lire)
   function _plain(h){var d=document.createElement('div');d.innerHTML=h||'';return d.textContent||'';}
