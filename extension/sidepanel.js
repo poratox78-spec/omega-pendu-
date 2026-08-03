@@ -198,7 +198,7 @@
       if (micBtn && micBtn.parentNode) micBtn.parentNode.appendChild(el); else return;
     }
     var sys = 'Pour en changer : réglages son de ton système.';
-    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) { el.textContent = '🎤 ' + sys; return; }
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) { el.textContent = '🎤 ' + sys; return; }
     navigator.mediaDevices.enumerateDevices().then(function (d) {
       var ins = d.filter(function (x) { return x.kind === 'audioinput'; });
       var nommes = ins.filter(function (x) { return x.label; });
