@@ -72,9 +72,12 @@ function spellSuggest(lex, w){
   { const keep = new Map(); for(const [x, t] of cands){ if((lex.FREQ.get(x)||0) >= 1) keep.set(x, t); }
     if(keep.size) { cands.clear(); for(const [x, t] of keep) cands.set(x, t); } }
   if(!cands.size) return [null, 'OK'];                                  // inconnu sans candidat → ne pas harceler
-  let best = null, bestKey = [-1, -1];
-  for(const [x, tier] of cands){ const key = [tier, lex.FREQ.get(x)||0];
-    if(key[0] > bestKey[0] || (key[0] === bestKey[0] && key[1] > bestKey[1])){ best = x; bestKey = key; } }
+  // SCORE COMBINÉ (miroir speller_en_probe.py) : W*tier + log(1+freq), W=6 calibré par balayage sur le
+  // banc contextuel. Le classement lexicographique faisait gagner « ahem » (edit-1, rarissime) contre
+  // « have » (phonétique, très fréquent) — 82 % des mauvaises cibles venaient de là.
+  let best = null, bestScore = -1e18;
+  for(const [x, tier] of cands){ const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0));
+    if(sc > bestScore){ best = x; bestScore = sc; } }
   const bt = cands.get(best), bf = lex.FREQ.get(best) || 0;
   let second = 0;
   for(const [x] of cands){ if(x !== best) second = Math.max(second, lex.FREQ.get(x)||0); }

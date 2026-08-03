@@ -1,3 +1,4 @@
+import math
 # -*- coding: utf-8 -*-
 # SPELLER ANGLAIS — référence (comme dictee/speller_probe.py côté FR). Noisy-channel : lexique
 # lex_en.tsv.gz (mot·freq·POS) + index phonétique LOSSY + edits1 ; ranking tier × fréquence × phon ;
@@ -127,7 +128,14 @@ class SpellerEN:
         if not cands:
             return None, 'OK'                                # inconnu sans candidat proche → ne pas harceler (rare/technique/étranger)
         def rank(x):                                         # edit-1 d'abord, puis FRÉQUENCE (the ≫ te)
-            return (cands[x], self.FREQ.get(x, 0))
+            # SCORE COMBINÉ, pas lexicographique. L'ancien classement mettait le TIER avant la fréquence :
+            # un candidat à une édition gagnait TOUJOURS contre un candidat phonétique, même si personne
+            # n'écrit le premier (« ahev » -> « ahem » au lieu de « have »). MESURÉ sur banc contextuel
+            # (9 296 phrases EWT x fautes Wikipédia) : 82 % des mauvaises cibles étaient un problème de
+            # CLASSEMENT, dont 631/840 un tier-0 battu par un tier-1. Balayage W = ∞/12/8/6/4/3/2/1/0 :
+            # pic net à 6 (mauvaises cibles 927 -> 418). Au-delà de 8, le tier redomine ; en dessous de 4,
+            # la fréquence écrase la distance.
+            return 6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0))
         # PLANCHER DE CANDIDAT : kaikki contient des non-mots (« acros » freq 0, « accomodate » freq 6).
         # Sans plancher, un mot que PERSONNE n'écrit gagne parce qu'il est à une édition, contre
         # « across » (freq 4801) qui est à deux. On ne les retire PAS de KNOWN (ils restent tolérés en
