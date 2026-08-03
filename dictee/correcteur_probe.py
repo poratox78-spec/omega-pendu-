@@ -2803,6 +2803,11 @@ def rule_accord_rel_obj(T, i):
     if not _rel_fin_between(T, tg, q, i): return None
     ant = T[q-1].lower(); det = T[q-2].lower()
     if det not in PLURAL_DET or ant in _REL_STOP: return None                # antécédent = dét PLURIEL audible + nom réel
+    # « DES » est AMBIGU : article pluriel (« des choses que… ») OU « de + les » d'un COMPLÉMENT
+    # (« la liste DES choses que… ») — et là la TÊTE est le nom d'AVANT, au singulier. Sans cette garde
+    # on corrigeait « La liste des choses que je dois faire EST longue » -> sont : FP mesuré sur une
+    # phrase parfaitement correcte. La garde « de » existait déjà (de ∉ PLURAL_DET), pas celle de « des ».
+    if det == 'des' and q >= 3 and tg and q - 3 < len(tg) and tg[q-3] in ('NOUN', 'PROPN'): return None
     lem = r2[0][0]; mt = 'ind:pre' if 'ind:pre' in {r[1] for r in r2} else 'ind:imp'
     sug = CONJ_C.get(lem, {}).get(mt, {}).get('3p')
     return sug if (sug and sug.lower() != w) else None

@@ -24821,7 +24821,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if(_SEG&&_SEG.bb){for(var kb=q+1;kb<=i&&kb<_SEG.bb.length;kb++)if(_SEG.bb[kb])return null;}   // #B1 : ancre et verbe dans la MÊME proposition — frontière (virgule) entre les deux = dislocation → abstention
     if(!_relFinBetween(T,tg,q,i))return null;
     var ant=T[q-1].toLowerCase(),det=T[q-2].toLowerCase();
-    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;                                       // antécédent = dét PLURIEL audible + nom réel
+    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;
+    // « DES » est AMBIGU : article pluriel OU « de+les » d'un COMPLÉMENT (« la liste DES choses que… »),
+    // où la TÊTE est le nom d'avant, au singulier. FP mesuré sans cette garde. Miroir Python.
+    if(det==='des'&&q>=3&&tg&&(tg[q-3]==='NOUN'||tg[q-3]==='PROPN'))return null;                                       // antécédent = dét PLURIEL audible + nom réel
     var mt='ind:imp';for(k=0;k<r2.length;k++)if(r2[k][1]==='ind:pre'){mt='ind:pre';break;}
     var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3p'];
     return (sug&&sug.toLowerCase()!==w)?sug:null;
