@@ -76,7 +76,12 @@ function spellSuggest(lex, w){
   // banc contextuel. Le classement lexicographique faisait gagner « ahem » (edit-1, rarissime) contre
   // « have » (phonétique, très fréquent) — 82 % des mauvaises cibles venaient de là.
   let best = null, bestScore = -1e18;
-  for(const [x, tier] of cands){ const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0));
+  // + bonus ANAGRAMME (mêmes lettres, ordre faux) = 2, calibré par balayage : l'inversion est le typo
+  // le plus probable, et sans ce bonus « inot »->« not » l'emporte sur « into ». Miroir Python.
+  const _sorted = low.split('').sort().join('');
+  for(const [x, tier] of cands){
+    const ana = (x.length === low.length && x.split('').sort().join('') === _sorted);
+    const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0)) + (ana ? 2 : 0);
     if(sc > bestScore){ best = x; bestScore = sc; } }
   const bt = cands.get(best), bf = lex.FREQ.get(best) || 0;
   let second = 0;

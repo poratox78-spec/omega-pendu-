@@ -135,7 +135,14 @@ class SpellerEN:
             # CLASSEMENT, dont 631/840 un tier-0 battu par un tier-1. Balayage W = ∞/12/8/6/4/3/2/1/0 :
             # pic net à 6 (mauvaises cibles 927 -> 418). Au-delà de 8, le tier redomine ; en dessous de 4,
             # la fréquence écrase la distance.
-            return 6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0))
+            # + BONUS ANAGRAMME : mêmes lettres, ordre différent. Une INVERSION est un typo bien plus
+            # probable qu'une suppression — le scripteur a tapé les bonnes lettres dans le mauvais ordre,
+            # c'est LE geste dys/clavier. Sans lui, « inot » -> « not » (suppression, plus fréquent) au
+            # lieu de « into », « eveyr » -> « ever » au lieu de « every », « jstu » -> « just » raté.
+            # Balayage 0/1/2/3/4/6/9 : pic à 2 (mauvaises cibles 418 -> 350) ; à 4 ça S'EFFONDRE (1 260),
+            # le bonus dépassant alors l'écart de tier (6) et laissant gagner des anagrammes phonétiques.
+            ana = (len(x) == len(low) and sorted(x) == sorted(low))
+            return 6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0)) + (2.0 if ana else 0.0)
         # PLANCHER DE CANDIDAT : kaikki contient des non-mots (« acros » freq 0, « accomodate » freq 6).
         # Sans plancher, un mot que PERSONNE n'écrit gagne parce qu'il est à une édition, contre
         # « across » (freq 4801) qui est à deux. On ne les retire PAS de KNOWN (ils restent tolérés en
