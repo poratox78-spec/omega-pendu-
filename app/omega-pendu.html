@@ -25628,47 +25628,7 @@ function spellTokenCore(tok,atStart,T,idx){
   function udDel(w){ var s=udAll(); s.delete(udNorm(w));
     try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} }
 
-    // ===== PRÉDICTION DE MOTS (index préfixe + classement) =====
-  // Le manque fonctionnel n°1 face aux outils dys du marché (ScribeDico) : compléter pendant la frappe.
-  // Tout le matériel existait déjà — il ne manquait QUE l'index préfixe : le pendu indexe par LONGUEUR
-  // (motif révélé) et le speller génère par edits1 (distance 1) ; aucun des deux ne sait « début de mot ».
-  // Ici : tableau TRIÉ des 214 684 formes du speller + dichotomie -> O(log n) par frappe, bâti UNE fois.
-  var _PFX=null;
-  function pfxEnsure(){
-    if(_PFX||!SP||!SP.ready||!SP.WORDS)return _PFX;
-    _PFX=Array.from(SP.WORDS); _PFX.sort();
-    return _PFX;
-  }
-  function pfxLower(a,pre){                                   // 1re position >= pre (borne inférieure)
-    var lo=0,hi=a.length;
-    while(lo<hi){var m=(lo+hi)>>1; if(a[m]<pre)lo=m+1; else hi=m;}
-    return lo;
-  }
-  // Candidats bruts commençant par `pre` (bornés : au-delà, ça ne sert plus l'utilisateur et ça coûte).
-  function pfxRaw(pre,cap){
-    var a=pfxEnsure(); if(!a||!pre)return [];
-    var out=[],i=pfxLower(a,pre),n=a.length,lim=cap||400;
-    while(i<n&&out.length<lim&&a[i].lastIndexOf(pre,0)===0){ out.push(a[i]); i++; }
-    return out;
-  }
-  // CLASSEMENT : fréquence (usage réel) × contexte (bigramme du LM sujet, déjà baké) — le mot juste
-  // avant informe beaucoup (« une po… » → pomme/porte plutôt que « pouvoir »). On ne fait que TRIER.
-  function predict(pre,prev,k){
-    pre=(pre||'').toLowerCase(); if(pre.length<2)return [];
-    var cand=pfxRaw(pre,400); if(!cand.length)return [];
-    var LM=(typeof OSLM!=='undefined'&&OSLM)?OSLM:null, pw=(prev||'').toLowerCase();
-    var sc=cand.map(function(w){
-      var f=(SP.FREQ&&SP.FREQ[w])||0;
-      var s=Math.log(1+f);                                    // fréquence : compresse les écarts énormes
-      if(LM&&LM.bf&&pw){ var b=LM.bf[pw+' '+w]; if(b)s+=Math.log(1+b)*1.5; }   // bigramme observé : bonus
-      if(w.length===pre.length)s-=0.5;                        // le mot déjà tapé en entier : peu utile
-      return {w:w,s:s};
-    });
-    sc.sort(function(x,y){return y.s-x.s;});
-    return sc.slice(0,k||5).map(function(x){return x.w;});
-  }
-  try{ window.omPredict=predict; window.omPfxSize=function(){var a=pfxEnsure();return a?a.length:0;}; }catch(e){}   // point d'entrée de MESURE (comme testSmoke*) : bancs + latence
-var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
+  var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
   function _impCap(o,n){return (o.charAt(0)!==o.charAt(0).toLowerCase())?n.charAt(0).toUpperCase()+n.slice(1):n;}
@@ -26188,14 +26148,25 @@ var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
   var _compKeys=null,_compFirst=null;
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
-  function complete(prefix){
+  function complete(prefix,prev){
     if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_ckeys();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
     while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
       for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER DE FRÉQUENCE (≥1) : l'aide-frappe ne propose QUE des mots courants. Sur une faute (« pome ») les seuls préfixe-matches sont rares (pomerol 0.1…) → liste vide → la CORRECTION prend le relais (pome→pomme), plus de bruit/contradiction. Mesuré : garde bonjour/chance/enfants… tue pomerol/poméranien.
-    out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
+    // CLASSEMENT : fréquence SEULE jusqu'ici — on ajoute le CONTEXTE. Le mot juste avant informe
+    // beaucoup (« les enf… » -> enfantS pluriel, pas « enfant »). Le bigramme vient du LM déjà baké
+    // (os-lm, champ `bf`) : aucune donnée nouvelle à charger. La fréquence reste la base, le contexte
+    // ne fait que RE-CLASSER (log : il pousse, il n'écrase pas).
+    // ⚠️ Le LM est `_OSLM` (portée module, PAS global) et `bf` est IMBRIQUÉ : bf[motPrécédent][motSuivant].
+    // Mes deux premières suppositions (nom global « OSLM », clé plate « prev word ») étaient fausses : le
+    // bonus ne se déclenchait JAMAIS — c'est la mesure avant/après qui l'a révélé, pas la relecture.
+    var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _row=(typeof _OSLM!=='undefined'&&_OSLM&&_OSLM.bf&&_pw)?_OSLM.bf[_pw]:null;
+    function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
+      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; } return s; }
+    out.sort(function(a,b){return _cscore(b)-_cscore(a);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
   var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
@@ -26204,11 +26175,15 @@ var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);
     ta.value=v.slice(0,w.start)+repl+v.slice(w.end);var np=w.start+repl.length;if(ta.value.charAt(np)===' ')np++;try{ta.setSelectionRange(np,np);}catch(e){}
     ta.focus();runComplete();runCorr();}
+  function _prevWord(txt,start){                       // dernier mot AVANT le préfixe en cours (contexte du bigramme)
+    var m=String(txt||'').slice(0,start).match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m?m[1]:'';
+  }
   function runComplete(){var box=$('vdc-complete');if(!box)return;var ta=$('vdc-in');_compFirst=null;
     if(!SP.ready){box.innerHTML='';return;}
     var pos=(ta.selectionStart==null?ta.value.length:ta.selectionStart),w=_wordAt(ta.value,pos);
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
-    var cs=complete(w.word);if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
+    var cs=complete(w.word,_prevWord(ta.value,w.start));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
