@@ -95,6 +95,21 @@ def load_lexicon():
         PHON[phon_key(w)].append(w)
     return KNOWN, FREQ, POS, PHON
 
+# ---- CONTEXTE ANGLAIS : le MOT-OUTIL qui précède ouvre un « slot » ----
+# ⚠️ NE PAS transposer la méthode FR ici. En français, l'ancre FP=0 est le DÉTERMINANT audible
+# (les/des portent le pluriel, la marque du nom est muette — cf. PR#209 « trust-le-déterminant,
+# PAS le nom »). En ANGLAIS c'est INVERSÉ : « the » ne dit rien du nombre, et le -s du pluriel
+# s'entend et vit SUR LE NOM. L'ancre anglaise, c'est le mot-outil : « to/will » ouvre un slot
+# VERBE, « the/a/my/of » un slot NOM. C'est le même signal que les paronymes (advice/advise).
+# MESURÉ : le contexte à la française (score de transition POS du tagger) DÉGRADE ici — le Viterbi
+# a déjà consommé ces transitions, les rajouter les compte deux fois. Le slot, lui, GAGNE.
+VERB_SLOT_W = frozenset(['to','will','would','can','could','may','might','must','should','shall','let',
+    'please',"n't",'not','also','never','often','always','really','just','then','who','they','we','i',
+    'you','he','she','it'])
+NOUN_SLOT_W = frozenset(['the','a','an','this','that','my','your','his','her','our','their','its','some',
+    'any','no','of','in','on','at','for','with','from','about','into','more','most','one','two','three',
+    'every','each','both','all','such','other','another'])
+
 class SpellerEN:
     def __init__(self):
         self.KNOWN, self.FREQ, self.POS, self.PHON = load_lexicon()
@@ -115,7 +130,16 @@ class SpellerEN:
                 c[w] = max(c.get(w, 0), 0)                    #   les emprunts café/résumé restent KNOWN mais ne sont pas PROPOSÉS)
         return c, pk
 
-    def suggest(self, w):
+    def _slot(self, prev, x):
+        """+1 si le candidat remplit le slot ouvert par le mot-outil précédent (0 sinon)."""
+        if not prev: return 0
+        P = self.POS.get(x)
+        if not P: return 0
+        if prev in VERB_SLOT_W and 'VERB' in P: return 1
+        if prev in NOUN_SLOT_W and ('NOUN' in P or 'ADJ' in P): return 1
+        return 0
+
+    def suggest(self, w, prev=None):   # prev = mot précédent en minuscules (contexte) ; None -> pas de bonus de slot
         """-> (suggestion|None, mode) ; mode ∈ {'OK','AUTO','FLAG','NONE'}."""
         low = deacc(w.lower())
         if not low or len(low) < 2 or any(ch not in ALPHA for ch in low):
@@ -142,7 +166,10 @@ class SpellerEN:
             # Balayage 0/1/2/3/4/6/9 : pic à 2 (mauvaises cibles 418 -> 350) ; à 4 ça S'EFFONDRE (1 260),
             # le bonus dépassant alors l'écart de tier (6) et laissant gagner des anagrammes phonétiques.
             ana = (len(x) == len(low) and sorted(x) == sorted(low))
-            return 6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0)) + (2.0 if ana else 0.0)
+            # bonus SLOT = 2, calibré (0/0,5/1/1,5/2/3/5) : plateau 2-3, effondrement à 5 quand il
+            # dépasse l'écart de tier (6). Mauvaises cibles 350 -> 324.
+            return (6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0))
+                    + (2.0 if ana else 0.0) + 2.0 * self._slot(prev, x))
         # PLANCHER DE CANDIDAT : kaikki contient des non-mots (« acros » freq 0, « accomodate » freq 6).
         # Sans plancher, un mot que PERSONNE n'écrit gagne parce qu'il est à une édition, contre
         # « across » (freq 4801) qui est à deux. On ne les retire PAS de KNOWN (ils restent tolérés en

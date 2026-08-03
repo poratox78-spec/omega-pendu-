@@ -56,7 +56,25 @@ function buildPhonIndex(lex){
   lex.PHON = PHON;
 }
 
-function spellSuggest(lex, w){
+// CONTEXTE ANGLAIS = le MOT-OUTIL précédent (miroir speller_en_probe.py). ⚠️ Ne PAS transposer la
+// méthode FR : là-bas l'ancre est le DÉTERMINANT audible (les/des portent le pluriel, la marque du nom
+// est muette) ; en anglais « the » ne dit rien du nombre et le -s vit SUR LE NOM. Ici l'ancre est le
+// mot-outil : « to/will » ouvre un slot VERBE, « the/a/of » un slot NOM. Mesuré : le contexte à la
+// française (transitions POS du tagger) DÉGRADE — le Viterbi les a déjà consommées. Le slot GAGNE.
+const VERB_SLOT_W = new Set(['to','will','would','can','could','may','might','must','should','shall','let',
+  'please',"n't",'not','also','never','often','always','really','just','then','who','they','we','i',
+  'you','he','she','it']);
+const NOUN_SLOT_W = new Set(['the','a','an','this','that','my','your','his','her','our','their','its','some',
+  'any','no','of','in','on','at','for','with','from','about','into','more','most','one','two','three',
+  'every','each','both','all','such','other','another']);
+function slotBonus(lex, prev, x){
+  if(!prev) return 0;
+  const P = lex.POS.get(x); if(!P) return 0;
+  if(VERB_SLOT_W.has(prev) && P.has('VERB')) return 1;
+  if(NOUN_SLOT_W.has(prev) && (P.has('NOUN') || P.has('ADJ'))) return 1;
+  return 0;
+}
+function spellSuggest(lex, w, prev){          // prev = mot précédent en minuscules ; absent -> pas de bonus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
   if(lex.KNOWN.has(low)) return [null, 'OK'];
@@ -81,7 +99,7 @@ function spellSuggest(lex, w){
   const _sorted = low.split('').sort().join('');
   for(const [x, tier] of cands){
     const ana = (x.length === low.length && x.split('').sort().join('') === _sorted);
-    const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0)) + (ana ? 2 : 0);
+    const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0)) + (ana ? 2 : 0) + 2 * slotBonus(lex, prev, x);
     if(sc > bestScore){ best = x; bestScore = sc; } }
   const bt = cands.get(best), bf = lex.FREQ.get(best) || 0;
   let second = 0;

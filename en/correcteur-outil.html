@@ -112,7 +112,7 @@
     for(var i=0;i<toks.length;i++){
       var hd=C.homoDecide(LEX,toks,i);
       if(hd[1]){ marks[i]={sugg:hd[0], cls:(hd[1]==='RED'?'red':'orange')}; continue; }
-      var sp=C.spellSuggest(LEX,toks[i]);
+      var sp=C.spellSuggest(LEX,toks[i], i>0?toks[i-1].toLowerCase():'');   // contexte : le mot-outil précédent ouvre un slot (verbe/nom)
       if(sp[1]==='AUTO') marks[i]={sugg:sp[0], cls:'red'};
       else if(sp[1]==='FLAG' && sp[0]) marks[i]={sugg:sp[0], cls:'orange'};
     }

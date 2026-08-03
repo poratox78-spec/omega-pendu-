@@ -34,7 +34,7 @@ for(const T of sents){
     const gold=T[i].toLowerCase(); const ts=M.get(gold); if(!ts) continue;
     if(T[i][0]!==T[i][0].toLowerCase()) continue;             // le speller saute les capitalisés
     const typo=ts[0]; const S=T.slice(); S[i]=typo;
-    const [sug]=C.spellSuggest(lex,typo);
+    const [sug]=C.spellSuggest(lex,typo, i>0?S[i-1].toLowerCase():'');   // le banc doit mesurer CE que l'outil fait
     n++; if(sug===gold)top++; else if(sug)  {wrong++; if(ex.length<8)ex.push(typo+' -> '+sug+'  (attendu '+gold+')  « '+S.slice(Math.max(0,i-3),i+4).join(' ')+' »');}
     else none++;
     break;                                                    // une injection par phrase
