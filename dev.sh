@@ -63,7 +63,8 @@ run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesse
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 runsh "syntaxe extension (4 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js"
 run "correcteur standalone"         node dictee/correcteur.js
-runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
+run "correcteur AUTONOME (bake, 3 mondes)" node dictee/bake_probe.js --check
+run "outil d'édition (pièges monolithe)" python tools/omega_edit.py
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js
 run "EN speller (recall CASES + FP casse)" python3 dictee/speller_en_probe.py --check
