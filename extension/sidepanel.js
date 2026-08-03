@@ -185,6 +185,37 @@
   var SR = self.SpeechRecognition || self.webkitSpeechRecognition;
   var rec = null, recording = false;
   function voiceStatus(m) { stEl.textContent = m; }
+  // ===== MICRO — informer, puisqu'on ne peut pas CHOISIR. MESURÉ : SpeechRecognition n'a AUCUNE
+  // propriété device/stream/input/source (grammars lang continuous interimResults maxAlternatives…).
+  // Il prend donc le micro PAR DÉFAUT du système, et ce n'est pas notre code qui limite : c'est l'API.
+  // On dit lequel sera utilisé plutôt que de laisser quelqu'un chercher pourquoi son casque est ignoré.
+  // Les noms ne sont lisibles qu'APRÈS la permission micro — que la voix demande déjà à l'activation.
+  function micInfo() {
+    var el = document.getElementById('omdys-micinfo');
+    if (!el) {
+      el = document.createElement('div'); el.id = 'omdys-micinfo';
+      el.style.cssText = 'font-size:11px;opacity:.85;margin-top:6px;line-height:1.35';
+      if (micBtn && micBtn.parentNode) micBtn.parentNode.appendChild(el); else return;
+    }
+    var sys = 'Pour en changer : réglages son de ton système.';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) { el.textContent = '🎤 ' + sys; return; }
+    navigator.mediaDevices.enumerateDevices().then(function (d) {
+      var ins = d.filter(function (x) { return x.kind === 'audioinput'; });
+      var nommes = ins.filter(function (x) { return x.label; });
+      if (!nommes.length) {
+        el.textContent = '🎤 La dictée vocale utilise le micro par défaut de ton système'
+          + (ins.length > 1 ? ' (' + ins.length + ' micros détectés)' : '') + '. ' + sys;
+        return; }
+      var def = nommes.filter(function (x) { return x.deviceId === 'default'; })[0] || nommes[0];
+      var autres = nommes.filter(function (x) { return x !== def && x.deviceId !== 'default'; })
+        .map(function (x) { return x.label; }).slice(0, 3);
+      el.textContent = '🎤 Micro utilisé : ' + def.label
+        + (autres.length ? ' — autres : ' + autres.join(', ') : '') + '. ' + sys;
+    }).catch(function () { el.textContent = '🎤 ' + sys; });
+  }
+  micInfo();
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener)
+    navigator.mediaDevices.addEventListener('devicechange', micInfo);   // casque branché/débranché en cours de route
   function setVoiceEnabled(on) { micBtn.disabled = !(on && SR); if (!on && recording) stopRec(); }
   if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
   try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; if (on) mirCb.checked = false; setVoiceEnabled(on); }); } catch (e) {}
@@ -196,7 +227,7 @@
     setVoiceEnabled(voiceCb.checked);
     // pré-demande la permission micro à l'activation → l'invite du navigateur s'affiche de façon fiable (MV3)
     if (voiceCb.checked && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) { st.getTracks().forEach(function (t) { t.stop(); }); }).catch(function () {});
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) { st.getTracks().forEach(function (t) { t.stop(); }); micInfo(); }).catch(function () {});   // micInfo APRÈS l'octroi : les LABELS n'existent qu'une fois la permission donnée
   });
   mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
