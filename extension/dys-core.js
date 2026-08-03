@@ -1243,6 +1243,21 @@ function spellTokenCore(tok,atStart,T,idx){
   function udAdd(w){ var n=udNorm(w); if(!n)return false; _UD.add(n); return true; }
   function udDel(w){ _UD.delete(udNorm(w)); }
 
+  // ===== TÉMOIN AUDIBLE (miroir app) : la lettre finale MUETTE s'ENTEND dans un mot de la MÊME
+  // FAMILLE — grand/grandE, long/lonGUe, amoureux/amoureuSE. Table produite par
+  // `dictee/build_famille.py` (aucune ressource externe) ; plancher de fréquence 5 sur le témoin,
+  // sinon on affichait « chat -> chaté » / « chocolat -> chocolate ». Alternance du -x bornée aux
+  // motifs réguliers du genre, sinon on fabriquait de FAUSSES familles (« prix -> prise »).
+  var _FAM={"accord":"accorde","affreux":"affreuse","affront":"affronter","allemand":"allemande","amoureux":"amoureuse","appart":"appartement","apport":"apporté","arrêt":"arrête","avant":"avantage","avocat":"avocate","bloc":"bloqué","blond":"blonde","cent":"centaine","chanceux":"chanceuse","chant":"chante","chat":"chaton","chaud":"chaude","choc":"choqué","client":"cliente","command":"commande","comment":"commentaire","confort":"confortable","contact":"contacté","correct":"correctement","courageux":"courageuse","coût":"coûte","creux":"creuse","curieux":"curieuse","célibat":"célibataire","dangereux":"dangereuse","dent":"dentiste","deux":"deuxième","différent":"différente","direct":"directe","document":"documentaire","doux":"douce","drag":"dragon","droit":"droite","délicat":"délicate","délicieux":"délicieuse","emprunt":"emprunté","exact":"exacte","froid":"froide","front":"frontière","fréquent":"fréquente","furieux":"furieuse","goût":"goûte","grand":"grande","gratuit":"gratuite","group":"groupe","géant":"géante","généreux":"généreuse","habit":"habite","haut":"haute","heureux":"heureuse","idiot":"idiote","immédiat":"immédiatement","impatient":"impatiente","indic":"indice","infect":"infecté","innocent":"innocente","intelligent":"intelligente","jaloux":"jalouse","joyeux":"joyeuse","lent":"lentement","loup":"loupé","lourd":"lourde","malheureux":"malheureuse","merveilleux":"merveilleuse","mystérieux":"mystérieuse","nerveux":"nerveuse","nombreux":"nombreuses","patient":"patiente","permanent":"permanente","petit":"petite","poignard":"poignardé","port":"porte","post":"poste","profit":"profite","profond":"profonde","prudent":"prudente","précieux":"précieuse","présent":"présente","prêt":"prête","puissant":"puissante","quart":"quartier","rapport":"rapporte","regard":"regarde","rejet":"rejeté","relax":"relaxe","religieux":"religieuse","report":"reporter","respect":"respecte","récent":"récente","saut":"saute","second":"seconde","souhait":"souhaite","sport":"sportif","stand":"standard","supplément":"supplémentaire","support":"supporte","suspect":"suspecte","sénat":"sénateur","sérieux":"sérieuse","tard":"tarder","tort":"torture","tout":"toute","trac":"trace","trad":"tradition","transport":"transporter","vent":"vente","écart":"écarte","éclat":"éclate","époux":"épouse"};
+  function famHint(w){
+    w=(w||'').toLowerCase(); var t=_FAM[w];
+    // RÈGLE (pas un témoin) : le son /mɑ̃/ final s'écrit TOUJOURS « -ment ». Vérifié : 435 mots en
+    // -ment contre 5 en -men sans t (abdomen, amen, examen, gentlemen, spécimen), tous en /mɛn/.
+    if(!t && /ment$/.test(w) && w.length>5)
+      return 'Le t de « -ment » ne s’entend jamais, mais tous les mots en -ment le prennent.';
+    if(!t) return '';
+    return 'Le ' + w.charAt(w.length-1) + ' muet s’entend dans « ' + t + ' » (même famille).';
+  }
   var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
@@ -1577,7 +1592,7 @@ function spellUnknown(tok,atStart,T,idx){
         if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné (rPostpose…) : contrôleur EN AVANT ; gouverneur arrière contredit la suggestion (nombre ≠) → pas d'indice contradictoire (miroir app _accHint)
           g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
       if(g)return 'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+(f.sugg||'')+' ».';}
-    return '';}
+    return famHint(f.sugg||'');}   // dernier recours : témoin de famille / règle -ment (n'écrase aucun indice existant)
   // TYPOGRAPHIE (catégorie Grammalecte) — flags ANCRÉS CARACTÈRE (guillemets droits " → «/», points de suspension ... → …). Miroir app _typoScan. ORANGE. FP-safe : garde chiffre (pouces 5"), contexte ouvrant/fermant. content.js applyOne gère la branche {cs,ce}.
   function _typoScan(text){var out=[],m,re1=/\.{3,}/g;
     while((m=re1.exec(text))){var _p=text[m.index-1]||'',_n=text[m.index+m[0].length]||'';if(/[0-9]/.test(_p)&&/[0-9]/.test(_n))continue;
