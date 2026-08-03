@@ -128,6 +128,17 @@ class SpellerEN:
             return None, 'OK'                                # inconnu sans candidat proche → ne pas harceler (rare/technique/étranger)
         def rank(x):                                         # edit-1 d'abord, puis FRÉQUENCE (the ≫ te)
             return (cands[x], self.FREQ.get(x, 0))
+        # PLANCHER DE CANDIDAT : kaikki contient des non-mots (« acros » freq 0, « accomodate » freq 6).
+        # Sans plancher, un mot que PERSONNE n'écrit gagne parce qu'il est à une édition, contre
+        # « across » (freq 4801) qui est à deux. On ne les retire PAS de KNOWN (ils restent tolérés en
+        # saisie) : on refuse seulement de les PROPOSER.
+        # BALAYÉ 0/1/5/20/50 : le gain est MARGINAL (WRONG 415->413) et au-delà de 1 ça DÉGRADE
+        # (plancher 20 : WRONG 438, recall 76.5 %). On garde donc le minimum défendable — ne jamais
+        # PROPOSER un mot d'attestation nulle — sans prétendre que ça règle le classement.
+        # Ce qui reste en WRONG n'est pas du bruit lexical : le gagnant y est un VRAI mot fréquent
+        # (« achive » -> « active » contre « achieve »). Le mur est le CONTEXTE, pas le lexique.
+        keep = {x: t for x, t in cands.items() if self.FREQ.get(x, 0) >= 1}
+        if keep: cands = keep
         best = max(cands, key=rank)
         bt = cands[best]; bf = self.FREQ.get(best, 0)
         others = [x for x in cands if x != best]

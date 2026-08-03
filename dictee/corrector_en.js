@@ -66,6 +66,11 @@ function spellSuggest(lex, w){
   const pk = phonKey(low);
   const neigh = lex.PHON.get(pk) || [];
   for(let i = 0; i < Math.min(12, neigh.length); i++){ const x = neigh[i]; if(x !== low && !cands.has(x) && /^[a-z]+$/.test(x)) cands.set(x, 0); }  // ASCII-seul : ne JAMAIS suggérer un accent (EN sans accents ; emprunts café/résumé restent connus mais pas proposés)
+  // plancher d'attestation (miroir speller_en_probe.py) : kaikki contient des non-mots (« acros » freq 0).
+  // On ne les retire pas de KNOWN — on refuse seulement de les PROPOSER. Gain mesuré petit mais gratuit ;
+  // au-dessus de 1 ça dégrade (balayage 0/1/5/20/50).
+  { const keep = new Map(); for(const [x, t] of cands){ if((lex.FREQ.get(x)||0) >= 1) keep.set(x, t); }
+    if(keep.size) { cands.clear(); for(const [x, t] of keep) cands.set(x, t); } }
   if(!cands.size) return [null, 'OK'];                                  // inconnu sans candidat → ne pas harceler
   let best = null, bestKey = [-1, -1];
   for(const [x, tier] of cands){ const key = [tier, lex.FREQ.get(x)||0];
