@@ -110,6 +110,15 @@ const LOOSE_TRIG = new Set(['to','will','would','can','could','might','must','sh
 const LOOSE_IDIOM = new Set(['let','cut','break','set','turn','come','work','hang','shake','get','got','be',
   'been','being','is','are','was','were','on','so','too','very','more']);
 const SUBJ_PRON = new Set(['i','we','they','you','he','she','it']);   // pronoms SUJETS uniquement (un NOM avant « where » est correct : « the place where… »)
+const VERB_SLOT = new Set(['to','will',"'ll",'would','can','could','may','might','must','shall','should',
+  'please','let','helps','help','wanna','gonna']);                       // position qui appelle un VERBE
+const NOUN_SLOT = new Set(['the','a','an','this','that','my','your','his','her','our','their','some','any',
+  'no','good','bad','best','free','professional','legal','medical','financial','deep','sound']);   // appelle un NOM
+const DET_AFTER = new Set(['the','a','an','my','your','his','her','our','their','its']);   // PAS this/that : « effect that change » est l'idiome valide
+const AUX_BEFORE = new Set(['does','do','did',"doesn't","didn't","don't",'will','would','can','could','may',
+  'might','must','shall','should','to','and','or','not',"won't","can't",'why','how','when','what','that']);
+const SUBJUNCTIVE = new Set(['if','as','wish','wishes','wished','whether','though','although','unless','lest','than','suppose','supposing']);
+const SUBJ_3SG = new Set(['he','she','it']);                             // pronoms 3e pers. sing. SEULS (un NOM serait ambigu : pluriel invariable, collectif)
 const DET_BEFORE = new Set(['the','these','those','his','her','their','our','my','your','its','both','all','other','first','last','only','same','remaining']);
 const PERF_AUX = new Set(['have','has','had',"'ve","'s"]);
 const PP_AUX = new Set(['have','has','had','having',"'ve","'d",'been','be','is','am','are','was','were',
@@ -200,6 +209,36 @@ function homoDecide(lex, T, i){
   // Le lexique seul ne marche pas ici non plus (« go » y est aussi un nom) : c'est le TAGGER qui dit
   // que « go » est un VERBE dans « I want two go home ». Même remède que « whose king ».
   if(lw === 'two' && !DET_BEFORE.has(pv) && nx && ctxPos(T, i+1) === 'VERB') return ['to', 'RED'];   // le test lexical !isNoun bloquait tout : « go » EST aussi un nom au lexique
+  // --- PARONYMES nom/verbe : la paire ne s'entend pas, mais la POSITION tranche. Un déterminant appelle
+  // un NOM, un modal/« to » appelle un VERBE. Même patron pour les 4 paires, donc une seule garde à tenir.
+  if(VERB_SLOT.has(pv)){                                   // to/will/can/should… -> il faut le VERBE
+    if(lw === 'advice') return ['advise', 'RED'];
+    if(lw === 'breath') return ['breathe', 'RED'];
+    if(lw === 'chose') return ['choose', 'RED'];
+    // « to effect change » EXISTE (= réaliser) : on n'affirme que si un DÉTERMINANT suit (« will effect the
+    // outcome »), là où l'idiome valide n'en a pas.
+    // « to effect the change » (= réaliser) est valide : la paire est VRAIMENT ambiguë ici, donc ORANGE.
+    // On signale sans trancher — priver d'une alerte vaut moins qu'un « à vérifier ».
+    if(lw === 'effect' && DET_AFTER.has(nx)) return ['affect', 'ORANGE'];
+  }
+  if(NOUN_SLOT.has(pv)){                                   // the/a/this/my… -> il faut le NOM
+    if(lw === 'advise') return ['advice', 'RED'];
+    if(lw === 'breathe') return ['breath', 'RED'];
+    // « affect » EST un nom en psychologie (« a flat affect ») -> ORANGE, pas rouge : on signale sans trancher.
+    if(lw === 'affect') return ['effect', 'ORANGE'];
+  }
+  // ACCEPT/EXCEPT : « except » est une préposition, elle ne peut pas être le verbe d'un pronom sujet.
+  if(lw === 'except' && SUBJ_PRON.has(pv)) return ['accept', 'RED'];
+  // ACCORD SUJET-VERBE : le sujet 3e personne du singulier impose -s à l'auxiliaire.
+  // ... mais SEULEMENT si le pronom est vraiment le SUJET. Deux pièges mesurés sur EWT :
+  //  · « Does she have… », « Could he have had… » -> après un auxiliaire, l'infinitif NU est correct ;
+  //  · « if he were to read », « as it were » -> le SUBJONCTIF est correct, et c'est de l'anglais soigné.
+  const pv2 = i > 1 ? T[i-2].toLowerCase() : '';
+  if(SUBJ_3SG.has(pv) && !AUX_BEFORE.has(pv2)){
+    if(lw === 'have') return ['has', 'RED'];
+    if(lw === "don't") return ["doesn't", 'ORANGE'];       // ORANGE : « he don't » est attesté à l'oral/en dialecte
+    if(lw === 'were' && !SUBJUNCTIVE.has(pv2)) return ['was', 'ORANGE'];
+  }
   if(lw === 'their' && BE_AFTER.has(nx)) return ['there', 'RED'];
   if(lw === 'there' && nx && (onlyNoun(lex, nx) || nextIsNounCtx(T, i))) return ['their', 'ORANGE'];
   if(lw === "they're" && nx && onlyNoun(lex, nx)) return ['their', 'ORANGE'];
@@ -348,7 +387,32 @@ if(typeof require !== 'undefined' && require.main === module){
     ['the place where he lives',2,null,null],['Were you there',0,null,null],
     ['the nation whose king ruled',2,null,null],['in the past few years',2,null,null],
     ['The two screamed loudly',1,null,null],['I have lead in my pencil',2,null,null],
-    ['whose book is this',0,null,null],['two people came',0,null,null]];
+    ['whose book is this',0,null,null],['two people came',0,null,null],
+    // paronymes nom/verbe + accord sujet-verbe (08/2026) — FP=0 revérifié par SCAN EWT.
+    // Les phrases CORRECTES ci-dessous sont exactement les FP que le scan a fait apparaître puis corriger :
+    // subjonctif (« if he were »), infinitif nu après auxiliaire (« Does she have »), idiome « to effect ».
+    ['I will advice you',2,'advise','RED'],
+    ['My advise to all is good',1,'advice','RED'],
+    ['you need to breath deeply',3,'breathe','RED'],
+    ['take a deep breathe',3,'breath','RED'],
+    ['I had to chose one',3,'choose','RED'],
+    ['it will effect the outcome',2,'affect','ORANGE'],
+    ['the affect of this is big',1,'effect','ORANGE'],
+    ['I except your offer',1,'accept','RED'],
+    ['he have a car',1,'has','RED'],
+    ["he don't know",1,"doesn't",'ORANGE'],
+    ['if he were to read',2,null,null],
+    ['as it were odd',2,null,null],
+    ['Does she have any interest',2,null,null],
+    ['Could he have had a blow',2,null,null],
+    ['to effect that change',1,null,null],
+    ['everyone except me came',1,null,null],
+    ['I have a car',1,null,null],
+    ['the advice was good',1,null,null],
+    ['take a deep breath',3,null,null],
+    ['I chose the red one',1,null,null],
+    ['the effect was clear',1,null,null],
+    ['they have cars',1,null,null]];
   let hok=0;
   for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const r = homoDecide(lex, T, idx);
     const s = (r && r[0]) || null, l = (r && r[0]) ? r[1] : null;     // homoDecide peut rendre [null,null]
