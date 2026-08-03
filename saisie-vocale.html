@@ -276,11 +276,17 @@
       // modele fr-FR = 244 Mo (40 moteur + 205 pack), installe en 16 s. On ne l’active QUE si
       // l’utilisateur a coche la case : un modele de 244 Mo ne se telecharge pas en douce.
       try{ if(loc && loc.checked) rec.processLocally = true; }catch(e){}
-      // ⚠️ RÉGLAGE QUI MANQUAIT : `quality` vaut « command » PAR DÉFAUT — un moteur calé pour des
-      // ORDRES COURTS, alors qu'on fait de la DICTÉE de phrases. Mesuré : seules deux valeurs sont
-      // acceptées, « command » et « dictation ». On tournait donc dans le mauvais mode depuis le
-      // début, ce qui explique probablement les découpages ratés (« dort souvent » -> « donc soyons »).
-      try{ if('quality' in rec) rec.quality = 'dictation'; }catch(e){}
+      // ⚠️⚠️ RÉGRESSION LIVRÉE PUIS RÉPARÉE (PR#370/371 -> ici). `quality='dictation'` CASSE la
+      // reconnaissance SUR L'APPAREIL : elle échoue avec « language-not-supported » dès start().
+      // Mesuré par balayage des 8 combinaisons :
+      //   local  défaut OK · local  dictation ÉCHEC · local  maxAlt5 OK · local dictation+alt5 ÉCHEC
+      //   cloud  défaut OK · cloud  dictation OK    · cloud  maxAlt5 OK · cloud dictation+alt5 OK
+      // Donc `dictation` n'est valable QUE pour le cloud. Trouvé par Rem en testant autre chose —
+      // je l'avais livré sans vérifier qu'il restait compatible avec le mode local que je venais
+      // d'ajouter. Deux options croisées, une seule testée : c'est le croisement qu'il faut essayer.
+      // `quality` vaut « command » par défaut (ordres courts) alors qu'on DICTE : on passe en
+      // « dictation », mais SEULEMENT hors mode local, sinon plus rien ne marche.
+      try{ if('quality' in rec && !(loc && loc.checked)) rec.quality = 'dictation'; }catch(e){}
       var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
       var tr={a:0,s:0}, err='';
       audioStart(S);
