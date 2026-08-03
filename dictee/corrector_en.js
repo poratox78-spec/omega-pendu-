@@ -75,7 +75,12 @@ function spellSuggest(lex, w){
   for(const [x] of cands){ if(x !== best) second = Math.max(second, lex.FREQ.get(x)||0); }
   const phonMatch = phonKey(best) === pk;
   const transp = best.length === low.length && best.split('').sort().join('') === low.split('').sort().join('');
-  if(bt === 1 && low.length >= 3 && bf >= 200 && bf >= 20 * Math.max(second, 1) && (phonMatch || transp))
+  // ... et AUCUN rival à ÉGALITÉ (miroir speller_en_probe.py). La fréquence seule ne fait pas un rouge :
+  // un autre candidat à la MÊME distance d'édition ET qui sonne pareil rend le choix incertain.
+  let rival = false;
+  // seuil 20 CALIBRÉ par balayage sur le banc Wikipédia (miroir speller_en_probe.py) : c'est le genou.
+  for(const [x, tier] of cands){ if(x !== best && tier === 1 && (phonKey(x) === pk || (lex.FREQ.get(x)||0) >= 20)){ rival = true; break; } }
+  if(bt === 1 && low.length >= 3 && bf >= 200 && bf >= 20 * Math.max(second, 1) && (phonMatch || transp) && !rival)
     return [best, 'AUTO'];
   return [best, 'FLAG'];
 }

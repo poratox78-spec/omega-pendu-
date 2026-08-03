@@ -137,8 +137,16 @@ class SpellerEN:
         # receive), soit c'est une TRANSPOSITION pure (teh→the). Sinon → ORANGE (doute→orange).
         phon_match = phon_key(best) == pk
         transp = (len(best) == len(low) and sorted(best) == sorted(low))
+        # ... et AUCUN rival à ÉGALITÉ. La fréquence seule ne suffit pas à faire un rouge : si un autre
+        # candidat est à la MÊME distance d'édition ET sonne pareil, le choix est un pari, pas une preuve.
+        # Mesuré : c'est exactement la forme des 3 FP rouges du banc (weakend→weekend alors que
+        # « weakened » est aussi à edit-1 et homophone ; intered→entered ; welcame→welcome).
+        # Seuil CALIBRÉ, pas deviné (balayage -1/2000/500/100/20/0 sur le banc Wikipédia) : le genou est
+        # à 20 — AUTO_WRONG 2->1 pour 33 rouges de moins, alors que descendre à 0 en coûte 70 de plus
+        # SANS rien gagner. Au-delà de 20, les FP reviennent.
+        rival = any(cands[x] == 1 and (phon_key(x) == pk or self.FREQ.get(x, 0) >= 20) for x in others)
         if (bt == 1 and len(low) >= 3 and bf >= 200
-                and bf >= 20 * max(second, 1) and (phon_match or transp)):
+                and bf >= 20 * max(second, 1) and (phon_match or transp) and not rival):
             return best, 'AUTO'
         return best, 'FLAG'                                  # sinon : orange (candidat proposé, à vérifier)
 
