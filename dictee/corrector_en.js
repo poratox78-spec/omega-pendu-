@@ -56,7 +56,25 @@ function buildPhonIndex(lex){
   lex.PHON = PHON;
 }
 
-function spellSuggest(lex, w){
+// CONTEXTE ANGLAIS = le MOT-OUTIL précédent (miroir speller_en_probe.py). ⚠️ Ne PAS transposer la
+// méthode FR : là-bas l'ancre est le DÉTERMINANT audible (les/des portent le pluriel, la marque du nom
+// est muette) ; en anglais « the » ne dit rien du nombre et le -s vit SUR LE NOM. Ici l'ancre est le
+// mot-outil : « to/will » ouvre un slot VERBE, « the/a/of » un slot NOM. Mesuré : le contexte à la
+// française (transitions POS du tagger) DÉGRADE — le Viterbi les a déjà consommées. Le slot GAGNE.
+const VERB_SLOT_W = new Set(['to','will','would','can','could','may','might','must','should','shall','let',
+  'please',"n't",'not','also','never','often','always','really','just','then','who','they','we','i',
+  'you','he','she','it']);
+const NOUN_SLOT_W = new Set(['the','a','an','this','that','my','your','his','her','our','their','its','some',
+  'any','no','of','in','on','at','for','with','from','about','into','more','most','one','two','three',
+  'every','each','both','all','such','other','another']);
+function slotBonus(lex, prev, x){
+  if(!prev) return 0;
+  const P = lex.POS.get(x); if(!P) return 0;
+  if(VERB_SLOT_W.has(prev) && P.has('VERB')) return 1;
+  if(NOUN_SLOT_W.has(prev) && (P.has('NOUN') || P.has('ADJ'))) return 1;
+  return 0;
+}
+function spellSuggest(lex, w, prev){          // prev = mot précédent en minuscules ; absent -> pas de bonus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
   if(lex.KNOWN.has(low)) return [null, 'OK'];
@@ -66,16 +84,34 @@ function spellSuggest(lex, w){
   const pk = phonKey(low);
   const neigh = lex.PHON.get(pk) || [];
   for(let i = 0; i < Math.min(12, neigh.length); i++){ const x = neigh[i]; if(x !== low && !cands.has(x) && /^[a-z]+$/.test(x)) cands.set(x, 0); }  // ASCII-seul : ne JAMAIS suggérer un accent (EN sans accents ; emprunts café/résumé restent connus mais pas proposés)
+  // plancher d'attestation (miroir speller_en_probe.py) : kaikki contient des non-mots (« acros » freq 0).
+  // On ne les retire pas de KNOWN — on refuse seulement de les PROPOSER. Gain mesuré petit mais gratuit ;
+  // au-dessus de 1 ça dégrade (balayage 0/1/5/20/50).
+  { const keep = new Map(); for(const [x, t] of cands){ if((lex.FREQ.get(x)||0) >= 1) keep.set(x, t); }
+    if(keep.size) { cands.clear(); for(const [x, t] of keep) cands.set(x, t); } }
   if(!cands.size) return [null, 'OK'];                                  // inconnu sans candidat → ne pas harceler
-  let best = null, bestKey = [-1, -1];
-  for(const [x, tier] of cands){ const key = [tier, lex.FREQ.get(x)||0];
-    if(key[0] > bestKey[0] || (key[0] === bestKey[0] && key[1] > bestKey[1])){ best = x; bestKey = key; } }
+  // SCORE COMBINÉ (miroir speller_en_probe.py) : W*tier + log(1+freq), W=6 calibré par balayage sur le
+  // banc contextuel. Le classement lexicographique faisait gagner « ahem » (edit-1, rarissime) contre
+  // « have » (phonétique, très fréquent) — 82 % des mauvaises cibles venaient de là.
+  let best = null, bestScore = -1e18;
+  // + bonus ANAGRAMME (mêmes lettres, ordre faux) = 2, calibré par balayage : l'inversion est le typo
+  // le plus probable, et sans ce bonus « inot »->« not » l'emporte sur « into ». Miroir Python.
+  const _sorted = low.split('').sort().join('');
+  for(const [x, tier] of cands){
+    const ana = (x.length === low.length && x.split('').sort().join('') === _sorted);
+    const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0)) + (ana ? 2 : 0) + 2 * slotBonus(lex, prev, x);
+    if(sc > bestScore){ best = x; bestScore = sc; } }
   const bt = cands.get(best), bf = lex.FREQ.get(best) || 0;
   let second = 0;
   for(const [x] of cands){ if(x !== best) second = Math.max(second, lex.FREQ.get(x)||0); }
   const phonMatch = phonKey(best) === pk;
   const transp = best.length === low.length && best.split('').sort().join('') === low.split('').sort().join('');
-  if(bt === 1 && low.length >= 3 && bf >= 200 && bf >= 20 * Math.max(second, 1) && (phonMatch || transp))
+  // ... et AUCUN rival à ÉGALITÉ (miroir speller_en_probe.py). La fréquence seule ne fait pas un rouge :
+  // un autre candidat à la MÊME distance d'édition ET qui sonne pareil rend le choix incertain.
+  let rival = false;
+  // seuil 20 CALIBRÉ par balayage sur le banc Wikipédia (miroir speller_en_probe.py) : c'est le genou.
+  for(const [x, tier] of cands){ if(x !== best && tier === 1 && (phonKey(x) === pk || (lex.FREQ.get(x)||0) >= 20)){ rival = true; break; } }
+  if(bt === 1 && low.length >= 3 && bf >= 200 && bf >= 20 * Math.max(second, 1) && (phonMatch || transp) && !rival)
     return [best, 'AUTO'];
   return [best, 'FLAG'];
 }
@@ -109,6 +145,18 @@ const LOOSE_TRIG = new Set(['to','will','would','can','could','might','must','sh
   'gonna','cannot',"'ll",'ll',"won't",'wont']);
 const LOOSE_IDIOM = new Set(['let','cut','break','set','turn','come','work','hang','shake','get','got','be',
   'been','being','is','are','was','were','on','so','too','very','more']);
+const SUBJ_PRON = new Set(['i','we','they','you','he','she','it']);   // pronoms SUJETS uniquement (un NOM avant « where » est correct : « the place where… »)
+const VERB_SLOT = new Set(['to','will',"'ll",'would','can','could','may','might','must','shall','should',
+  'please','let','helps','help','wanna','gonna']);                       // position qui appelle un VERBE
+const NOUN_SLOT = new Set(['the','a','an','this','that','my','your','his','her','our','their','some','any',
+  'no','good','bad','best','free','professional','legal','medical','financial','deep','sound']);   // appelle un NOM
+const DET_AFTER = new Set(['the','a','an','my','your','his','her','our','their','its']);   // PAS this/that : « effect that change » est l'idiome valide
+const AUX_BEFORE = new Set(['does','do','did',"doesn't","didn't","don't",'will','would','can','could','may',
+  'might','must','shall','should','to','and','or','not',"won't","can't",'why','how','when','what','that']);
+const SUBJUNCTIVE = new Set(['if','as','wish','wishes','wished','whether','though','although','unless','lest','than','suppose','supposing']);
+const SUBJ_3SG = new Set(['he','she','it']);                             // pronoms 3e pers. sing. SEULS (un NOM serait ambigu : pluriel invariable, collectif)
+const DET_BEFORE = new Set(['the','these','those','his','her','their','our','my','your','its','both','all','other','first','last','only','same','remaining']);
+const PERF_AUX = new Set(['have','has','had',"'ve","'s"]);
 const PP_AUX = new Set(['have','has','had','having',"'ve","'d",'been','be','is','am','are','was','were',
   'get','gets','got','getting']);   // -> participe passé (have runned -> run) ; sinon passé (I runned -> ran)
 
@@ -169,6 +217,63 @@ function homoDecide(lex, T, i){
   if(lw === 'then' && (COMPAR.has(pv) || (pv.endsWith('er') && isAdj(lex, pv)))){
     if(THAN_OBJ.has(nx) || (nx && (isNoun(lex, nx) || isAdj(lex, nx)) && !isVerb(lex, nx))) return ['than', 'RED'];
     return ['than', 'ORANGE'];
+  }
+  // --- familles ajoutées : le discriminateur est STRUCTUREL (mot voisin), donc mesurable à FP=0 sur EWT ---
+  // WHERE/WERE : un pronom sujet ne peut pas être suivi de « where » (« they where happy »). On EXIGE le
+  // pronom, pas un nom : « the place where he lives » serait un FP (nom + where est parfaitement correct).
+  if(lw === 'where' && SUBJ_PRON.has(pv)) return ['were', 'RED'];
+  // WERE/WE'RE : « were » en tête suivi d'un participe présent (« Were going home ») = « We're ».
+  // Question inversée (« Were you there? ») exclue : le mot suivant y est un pronom/nom.
+  if(lw === 'were' && i === 0 && /ing$/.test(nx) && !SUBJ_PRON.has(nx) && !onlyNoun(lex, nx)) return ["We're", 'ORANGE'];
+  // WHO'S/WHOSE : même patron que their/there — c'est la NATURE du mot suivant qui tranche.
+  if(lw === "who's" && nx && onlyNoun(lex, nx)) return ['whose', 'ORANGE'];
+  // -ing ne suffit PAS : « king », « thing », « something » finissent en -ing sans être des gérondifs
+  // (FP mesuré : « the nation whose king Enrique VIII »). On exige que la forme soit un VERBE.
+  // -ing ne suffit pas (« king », « thing »), et le LEXIQUE ne tranche pas non plus : kaikki liste « king »
+  // comme verbe (sens échiquéen). C'est le TAGGER qui sépare, parce qu'il étiquette EN CONTEXTE —
+  // « whose king Enrique » = NOUN (pas de correction), « whose going home » = VERB (-> who's).
+  if(lw === 'whose' && (nx === 'been' || nx === 'gonna' || (/ing$/.test(nx) && ctxPos(T, i+1) === 'VERB'))) return ["who's", 'RED'];
+  // LEAD/LED : après un auxiliaire du parfait, il faut le PARTICIPE. « has lead to » est toujours faux ;
+  // on borne à « to » car « have lead » peut être le NOM (« lead poisoning »).
+  if(lw === 'lead' && PERF_AUX.has(pv) && nx === 'to') return ['led', 'RED'];
+  // PASSED/PAST : « I past », « we past » n'ont aucune lecture correcte (past = nom/prép/adj, jamais verbe
+  // conjugué). Le pronom sujet est la garde : « in the past » a un déterminant, pas un pronom.
+  if(lw === 'past' && SUBJ_PRON.has(pv)) return ['passed', 'RED'];
+  // TWO/TO : un nombre ne peut pas être suivi d'un verbe seul (« I want two go »).
+  // ... sauf après un déterminant, où « two » est un PRONOM et non un nombre (FP mesuré :
+  // « The two screamed to frighten » — « the two » = les deux personnes).
+  // Le lexique seul ne marche pas ici non plus (« go » y est aussi un nom) : c'est le TAGGER qui dit
+  // que « go » est un VERBE dans « I want two go home ». Même remède que « whose king ».
+  if(lw === 'two' && !DET_BEFORE.has(pv) && nx && ctxPos(T, i+1) === 'VERB') return ['to', 'RED'];   // le test lexical !isNoun bloquait tout : « go » EST aussi un nom au lexique
+  // --- PARONYMES nom/verbe : la paire ne s'entend pas, mais la POSITION tranche. Un déterminant appelle
+  // un NOM, un modal/« to » appelle un VERBE. Même patron pour les 4 paires, donc une seule garde à tenir.
+  if(VERB_SLOT.has(pv)){                                   // to/will/can/should… -> il faut le VERBE
+    if(lw === 'advice') return ['advise', 'RED'];
+    if(lw === 'breath') return ['breathe', 'RED'];
+    if(lw === 'chose') return ['choose', 'RED'];
+    // « to effect change » EXISTE (= réaliser) : on n'affirme que si un DÉTERMINANT suit (« will effect the
+    // outcome »), là où l'idiome valide n'en a pas.
+    // « to effect the change » (= réaliser) est valide : la paire est VRAIMENT ambiguë ici, donc ORANGE.
+    // On signale sans trancher — priver d'une alerte vaut moins qu'un « à vérifier ».
+    if(lw === 'effect' && DET_AFTER.has(nx)) return ['affect', 'ORANGE'];
+  }
+  if(NOUN_SLOT.has(pv)){                                   // the/a/this/my… -> il faut le NOM
+    if(lw === 'advise') return ['advice', 'RED'];
+    if(lw === 'breathe') return ['breath', 'RED'];
+    // « affect » EST un nom en psychologie (« a flat affect ») -> ORANGE, pas rouge : on signale sans trancher.
+    if(lw === 'affect') return ['effect', 'ORANGE'];
+  }
+  // ACCEPT/EXCEPT : « except » est une préposition, elle ne peut pas être le verbe d'un pronom sujet.
+  if(lw === 'except' && SUBJ_PRON.has(pv)) return ['accept', 'RED'];
+  // ACCORD SUJET-VERBE : le sujet 3e personne du singulier impose -s à l'auxiliaire.
+  // ... mais SEULEMENT si le pronom est vraiment le SUJET. Deux pièges mesurés sur EWT :
+  //  · « Does she have… », « Could he have had… » -> après un auxiliaire, l'infinitif NU est correct ;
+  //  · « if he were to read », « as it were » -> le SUBJONCTIF est correct, et c'est de l'anglais soigné.
+  const pv2 = i > 1 ? T[i-2].toLowerCase() : '';
+  if(SUBJ_3SG.has(pv) && !AUX_BEFORE.has(pv2)){
+    if(lw === 'have') return ['has', 'RED'];
+    if(lw === "don't") return ["doesn't", 'ORANGE'];       // ORANGE : « he don't » est attesté à l'oral/en dialecte
+    if(lw === 'were' && !SUBJUNCTIVE.has(pv2)) return ['was', 'ORANGE'];
   }
   if(lw === 'their' && BE_AFTER.has(nx)) return ['there', 'RED'];
   if(lw === 'there' && nx && (onlyNoun(lex, nx) || nextIsNounCtx(T, i))) return ['their', 'ORANGE'];
@@ -287,6 +392,10 @@ if(typeof window !== 'undefined') window.CorrectorEN = _API;
 if(typeof require !== 'undefined' && require.main === module){
   const path = require('path');
   const lex = loadLexNode(path.join(__dirname, 'lex_en.tsv.gz'));
+  // le POS-tagger fait PARTIE du moteur : plusieurs règles (whose+gérondif, two+verbe) ne peuvent trancher
+  // sans lui — sans ce chargement l'auto-test les verrait à tort comme muettes.
+  try { const mp = path.join(__dirname, 'pos_hmm_en.json');
+        if(require('fs').existsSync(mp)) setPosModel(JSON.parse(require('fs').readFileSync(mp, 'utf8'))); } catch (e) {}
   console.log('=== corrector_en.js — %d mots, %d clés phon ===', lex.KNOWN.size, lex.PHON.size);
   // speller CASES (mêmes que speller_en_probe.py)
   const SP = [['recieve','receive'],['seperate','separate'],['definately','definitely'],['occured','occurred'],
@@ -302,9 +411,47 @@ if(typeof require !== 'undefined' && require.main === module){
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
     ['your gonna love it',0,"you're",'RED'],['there car is red',0,'their','ORANGE'],
     ['its not fair',0,"it's",'ORANGE'],['your welcome to stay',0,"you're",'ORANGE'],
-    ['I saw a apple',2,'an','RED'],['It is a honest mistake',2,'an','RED']];
+    ['I saw a apple',2,'an','RED'],['It is a honest mistake',2,'an','RED'],
+    // familles ajoutées 08/2026 — FP=0 vérifié par SCAN EWT (12 544 phrases : 4 déclenchements, 4 vraies fautes)
+    ['they where happy',1,'were','RED'],['we where on time',1,'were','RED'],
+    ['Were going home now',0,"We're",'ORANGE'],
+    ["a friend who's aunt left",2,'whose','ORANGE'],['I know whose going home',2,"who's",'RED'],
+    ['it has lead to problems',2,'led','RED'],
+    ['I past the test',1,'passed','RED'],['we past by the shop',1,'passed','RED'],
+    ['I want two go home',2,'to','RED'],
+    // ... et les phrases CORRECTES qui doivent rester INTACTES (les 2 FP mesurés puis corrigés en font partie)
+    ['the place where he lives',2,null,null],['Were you there',0,null,null],
+    ['the nation whose king ruled',2,null,null],['in the past few years',2,null,null],
+    ['The two screamed loudly',1,null,null],['I have lead in my pencil',2,null,null],
+    ['whose book is this',0,null,null],['two people came',0,null,null],
+    // paronymes nom/verbe + accord sujet-verbe (08/2026) — FP=0 revérifié par SCAN EWT.
+    // Les phrases CORRECTES ci-dessous sont exactement les FP que le scan a fait apparaître puis corriger :
+    // subjonctif (« if he were »), infinitif nu après auxiliaire (« Does she have »), idiome « to effect ».
+    ['I will advice you',2,'advise','RED'],
+    ['My advise to all is good',1,'advice','RED'],
+    ['you need to breath deeply',3,'breathe','RED'],
+    ['take a deep breathe',3,'breath','RED'],
+    ['I had to chose one',3,'choose','RED'],
+    ['it will effect the outcome',2,'affect','ORANGE'],
+    ['the affect of this is big',1,'effect','ORANGE'],
+    ['I except your offer',1,'accept','RED'],
+    ['he have a car',1,'has','RED'],
+    ["he don't know",1,"doesn't",'ORANGE'],
+    ['if he were to read',2,null,null],
+    ['as it were odd',2,null,null],
+    ['Does she have any interest',2,null,null],
+    ['Could he have had a blow',2,null,null],
+    ['to effect that change',1,null,null],
+    ['everyone except me came',1,null,null],
+    ['I have a car',1,null,null],
+    ['the advice was good',1,null,null],
+    ['take a deep breath',3,null,null],
+    ['I chose the red one',1,null,null],
+    ['the effect was clear',1,null,null],
+    ['they have cars',1,null,null]];
   let hok=0;
-  for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const [s, l] = homoDecide(lex, T, idx);
+  for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const r = homoDecide(lex, T, idx);
+    const s = (r && r[0]) || null, l = (r && r[0]) ? r[1] : null;     // homoDecide peut rendre [null,null]
     if(s === exp && l === lvl) hok++; else console.log('  HP MISS %s -> %s/%s (attendu %s/%s)', txt, s, l, exp, lvl); }
   console.log('homophone: %d/%d', hok, HP.length);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)

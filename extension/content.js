@@ -13,6 +13,17 @@
   // correction effacée au reclic par Slate/Draft). Ré-activable d'un clic depuis le panneau. Ce drapeau NE coupe QUE
   // la bulle + la correction auto dans le champ ; le MIROIR (envoyé avant ce test dans run) et le clic droit vivent.
   var CFG = { enabled: false };
+  // DICTIONNAIRE UTILISATEUR : dys-core ne tient qu'un Set SYNCHRONE (parité/tests Node) ; c'est ici
+  // qu'on le remplit depuis chrome.storage.local (ASYNC) et qu'on le repersiste. chrome.storage (et
+  // pas localStorage) parce que le dictionnaire doit suivre l'utilisateur sur TOUS les sites.
+  function udLoad(){ try{ chrome.storage && chrome.storage.local.get(['vdc_userdict'], function(o){
+      if(o && o.vdc_userdict && window.DysCore && DysCore.udSet) DysCore.udSet(o.vdc_userdict); }); }catch(e){} }
+  function udSave(w){ try{ if(window.DysCore && DysCore.udAdd){ DysCore.udAdd(w);
+      chrome.storage.local.set({ vdc_userdict: DysCore.udAll() }); } }catch(e){} }
+  udLoad();
+  try{ chrome.storage && chrome.storage.onChanged && chrome.storage.onChanged.addListener(function(ch){
+    if(ch.vdc_userdict && window.DysCore && DysCore.udSet) DysCore.udSet(ch.vdc_userdict.newValue||[]); }); }catch(e){}
+
   try { chrome.storage && chrome.storage.local.get(['enabled'], function (o) { if (o && typeof o.enabled === 'boolean') CFG.enabled = o.enabled; }); } catch (e) {}
   try { chrome.storage && chrome.storage.onChanged && chrome.storage.onChanged.addListener(function (ch) { if (ch.enabled) { CFG.enabled = ch.enabled.newValue; if (!CFG.enabled) hideBar(); else schedule(active); } }); } catch (e) {}
 
@@ -112,11 +123,22 @@
     return col.text.length;                                                                     // sinon : fin du texte
   }
   function wordAt(v, pos) { var s = pos, e = pos; while (s > 0 && WCH.test(v[s - 1])) s--; while (e < v.length && WCH.test(v[e])) e++; return { word: v.slice(s, e), start: s, end: e }; }
+  // mot(s) juste AVANT le préfixe en cours — contexte du classement (catégorie/accord). Miroir app.
+  function prevWordAt(txt, start, back) {
+    var s = String(txt || '').slice(0, start);
+    var m = s.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)([^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*)$/);
+    if (!m) return '';
+    if (!back || back < 2) return m[1];
+    var s2 = s.slice(0, s.length - m[1].length - m[2].length);
+    if (/[.,;:!?…«»()\[\]]\s*$/.test(s2)) return '';          // ponctuation = tête de proposition
+    var m2 = s2.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m2 ? m2[1] : '';
+  }
   function computeComps(el) {
     if (!DC.complete) return []; var pos = caretOf(el); if (pos == null) return [];
     var v = getText(el), w = wordAt(v, pos);
     if (!w.word || pos !== w.end || w.word.length < 2) return [];   // seulement en FIN de mot (préfixe en cours de frappe)
-    return DC.complete(w.word);
+    return DC.complete(w.word, prevWordAt(v, w.start), prevWordAt(v, w.start, 2));
   }
   function applyComplete(el, repl) {
     if (!repl) return;
@@ -220,6 +242,7 @@
         h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
           + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span>'
           + (f.hint ? '<button class="omdys-why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
+          + ((orth && !(window.DysCore && DysCore.udHas && DysCore.udHas(f.word))) ? '<button class="omdys-ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗</button>' : '')
           + (f.hint ? '<div class="omdys-astuce" data-k="' + k + '" hidden>' + esc(f.hint) + ' <button class="omdys-tts" data-k="' + k + '" type="button" title="écouter l\'explication">🔊</button></div>' : '')
           + '</div>';
       });
@@ -251,8 +274,13 @@
     var undb = b.querySelector('.omdys-undo'); if (undb) undb.onclick = function () { undoAll(); };   // filet de sécurité tout-corriger   // « tout corriger » = UNIQUEMENT le FP=0 (auto+flag) ; la vigilance reste au clic individuel explicite (audit 07/2026)
     var items = b.querySelectorAll('.omdys-item');
     for (var z = 0; z < items.length; z++) (function (node) {
-      node.onclick = function (ev) { if (ev.target.closest('.omdys-why') || ev.target.closest('.omdys-astuce')) return; applyOne(el, dg.flags[+node.getAttribute('data-k')]); };   // clic sur 💡/astuce n'APPLIQUE pas (non invasif)
+      node.onclick = function (ev) { if (ev.target.closest('.omdys-why') || ev.target.closest('.omdys-astuce') || ev.target.closest('.omdys-ud')) return; applyOne(el, dg.flags[+node.getAttribute('data-k')]); };   // clic sur 💡/astuce n'APPLIQUE pas (non invasif)
     })(items[z]);
+    var uds = b.querySelectorAll('.omdys-ud');
+    for (var uq = 0; uq < uds.length; uq++) (function (btn) {   // 📗 = « c'est un mot » : ajoute au dictionnaire utilisateur, ne corrige PAS
+      btn.onclick = function (ev) { ev.stopPropagation(); var fl = dg.flags[+btn.getAttribute('data-k')];
+        if (fl) { udSave(fl.word); btn.remove(); run(el); } };
+    })(uds[uq]);
     var whys = b.querySelectorAll('.omdys-why');
     for (var wq = 0; wq < whys.length; wq++) (function (btn) {   // 💡 = révèle l'astuce contextuelle AU CLIC (masquée par défaut)
       btn.onclick = function (ev) { ev.stopPropagation(); var as = b.querySelector('.omdys-astuce[data-k="' + btn.getAttribute('data-k') + '"]'); if (as) as.hidden = !as.hidden; };

@@ -1154,8 +1154,9 @@
     var seen={},cs=[]; for(k=0;k<combos.length;k++){ var cw=combos[k]; if(cw!==low&&SP.WORDS.has(cw)&&!seen[cw]){seen[cw]=1;cs.push(cw);} }
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
-  function spellTokenCore(tok,atStart,T,idx){
+function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
+    if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur ». Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app.
@@ -1226,6 +1227,19 @@
     var confident=accentOnly||finalS||(p1>=1&&firstOk&&nTop===1&&dominant);
     return [confident?'flag':'vigilance',w1];}
   // MOVER SYNTAXIQUE de l'impératif — placement des pronoms clitiques (MIROIR de dictee/imperative_clitics.moves) → span:N
+    // ===== DICTIONNAIRE UTILISATEUR (miroir de l'app) =====
+  // Mêmes gardes que l'app, mais le STOCKAGE diffère par nature : l'app a localStorage (une origine),
+  // l'extension doit suivre l'utilisateur sur TOUS les sites -> `chrome.storage.local`, qui est ASYNC.
+  // dys-core reste SYNCHRONE (parité/tests Node) : il ne détient qu'un Set, que content.js remplit au
+  // démarrage (udSet) et repersiste à chaque ajout. Ne fait que RETIRER des signalements -> FP=0 sans objet.
+  var _UD=new Set();
+  function udNorm(w){ return (w||'').toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').trim(); }
+  function udSet(list){ _UD=new Set((list||[]).map(udNorm)); return _UD.size; }
+  function udAll(){ return Array.from(_UD); }
+  function udHas(w){ var n=udNorm(w); return _UD.has(n)||_UD.has(deaccS(n)); }
+  function udAdd(w){ var n=udNorm(w); if(!n)return false; _UD.add(n); return true; }
+  function udDel(w){ _UD.delete(udNorm(w)); }
+
   var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
@@ -1258,6 +1272,7 @@ function spellUnknown(tok,atStart,T,idx){
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
     if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon)
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
     if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
@@ -1608,14 +1623,42 @@ function spellUnknown(tok,atStart,T,idx){
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour un préfixe. HORS PARITÉ (suggestion d'UI, pas un flag FP=0).
   // Réutilise le speller accentué SP (D2A = déacc→formes accentuées, déjà trié fréquence). Identique app.
   var _compKeys=null;
-  function complete(prefix){
+  function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(String(prefix).toLowerCase());if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_compKeys=Object.keys(SP.D2A).sort();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
     while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
       for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER FRÉQUENCE (≥1) : l'aide-frappe ne propose que des mots courants ; sur une faute (pome) → vide → la correction prend le relais. Miroir app.
-    out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
+    // CLASSEMENT (miroir app) : fréquence, puis bigramme, puis CATÉGORIE et ACCORD. Le bigramme exige
+    // d'avoir VU la paire exacte (nul sur les pronoms) ; la catégorie, elle, GÉNÉRALISE.
+    var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _row=(typeof _OSLM!=='undefined'&&_OSLM&&_OSLM.bf&&_pw)?_OSLM.bf[_pw]:null;
+    var _SUBJP={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,"j'":1,"n'":1};
+    var _expV=!!_SUBJP[_pw];
+    var _PERS={nous:/ons$/,vous:/ez$/,ils:/ent$/,elles:/ent$/,tu:/[sx]$/,
+               je:/[esx]$/,"j'":/[esx]$/,il:/(e|t|a|d)$/,elle:/(e|t|a|d)$/,on:/(e|t|a|d)$/};
+    var _pers=_PERS[_pw]||null;
+    var _p2=(prev2||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _HEAD={'':1,et:1,ou:1,mais:1,donc:1,car:1,que:1,qu:1,"qu'":1,qui:1,quand:1,si:1,lorsque:1,puis:1};
+    var _sure=(_pw==='nous'||_pw==='vous')?!!_HEAD[_p2]:!!_pers;
+    if((_pw==='nous'||_pw==='vous')&&!_sure)_pers=null;        // clitique OBJET (« il NOUS regarde ») : aucun signal
+    var _DET1={le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,"l'":1},
+        _DETN={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,quelques:1,plusieurs:1};
+    var _sg=!!_DET1[_pw],_pl=!!_DETN[_pw];
+    function _realPl(w){ return /s$/.test(w)&&SP.WORDS.has(w.slice(0,-1)); }   // SP.WORDS est un Set (.has)
+    function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
+      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; }
+      if(_expV){ var pos=SP.POS[w]||'';
+        if(pos.indexOf('V')>=0)s+=1.2;
+        if(/(er|ir|re)$/.test(w))s-=1.6;                       // « je manger » : impossible
+        if(_pers){ if(_pers.test(w))s+=2.2; else if(_sure)s-=1.8; }   // personne : motif NON exhaustif -> souple
+      }
+      if(_sg&&_realPl(w))s-=4;                                 // nombre : test par le LEXIQUE (exact) -> contrainte DURE
+      else if(_pl){ if(/[sx]$/.test(w))s+=1.2;
+        else if(SP.WORDS.has(w+'s'))s-=4; }
+      return s; }
+    out.sort(function(a,b){return _cscore(b)-_cscore(a);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
   // ===== couche VERTE « vigilance » (confusables) — n'AFFIRME pas → hors FP=0 ; HORS PARITÉ. Identique à l'app.
@@ -1641,6 +1684,7 @@ function spellUnknown(tok,atStart,T,idx){
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
     posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
-    vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText
+    vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
+    udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel   // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));

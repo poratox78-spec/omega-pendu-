@@ -1,3 +1,4 @@
+import math
 # -*- coding: utf-8 -*-
 # SPELLER ANGLAIS — référence (comme dictee/speller_probe.py côté FR). Noisy-channel : lexique
 # lex_en.tsv.gz (mot·freq·POS) + index phonétique LOSSY + edits1 ; ranking tier × fréquence × phon ;
@@ -94,6 +95,21 @@ def load_lexicon():
         PHON[phon_key(w)].append(w)
     return KNOWN, FREQ, POS, PHON
 
+# ---- CONTEXTE ANGLAIS : le MOT-OUTIL qui précède ouvre un « slot » ----
+# ⚠️ NE PAS transposer la méthode FR ici. En français, l'ancre FP=0 est le DÉTERMINANT audible
+# (les/des portent le pluriel, la marque du nom est muette — cf. PR#209 « trust-le-déterminant,
+# PAS le nom »). En ANGLAIS c'est INVERSÉ : « the » ne dit rien du nombre, et le -s du pluriel
+# s'entend et vit SUR LE NOM. L'ancre anglaise, c'est le mot-outil : « to/will » ouvre un slot
+# VERBE, « the/a/my/of » un slot NOM. C'est le même signal que les paronymes (advice/advise).
+# MESURÉ : le contexte à la française (score de transition POS du tagger) DÉGRADE ici — le Viterbi
+# a déjà consommé ces transitions, les rajouter les compte deux fois. Le slot, lui, GAGNE.
+VERB_SLOT_W = frozenset(['to','will','would','can','could','may','might','must','should','shall','let',
+    'please',"n't",'not','also','never','often','always','really','just','then','who','they','we','i',
+    'you','he','she','it'])
+NOUN_SLOT_W = frozenset(['the','a','an','this','that','my','your','his','her','our','their','its','some',
+    'any','no','of','in','on','at','for','with','from','about','into','more','most','one','two','three',
+    'every','each','both','all','such','other','another'])
+
 class SpellerEN:
     def __init__(self):
         self.KNOWN, self.FREQ, self.POS, self.PHON = load_lexicon()
@@ -114,7 +130,16 @@ class SpellerEN:
                 c[w] = max(c.get(w, 0), 0)                    #   les emprunts café/résumé restent KNOWN mais ne sont pas PROPOSÉS)
         return c, pk
 
-    def suggest(self, w):
+    def _slot(self, prev, x):
+        """+1 si le candidat remplit le slot ouvert par le mot-outil précédent (0 sinon)."""
+        if not prev: return 0
+        P = self.POS.get(x)
+        if not P: return 0
+        if prev in VERB_SLOT_W and 'VERB' in P: return 1
+        if prev in NOUN_SLOT_W and ('NOUN' in P or 'ADJ' in P): return 1
+        return 0
+
+    def suggest(self, w, prev=None):   # prev = mot précédent en minuscules (contexte) ; None -> pas de bonus de slot
         """-> (suggestion|None, mode) ; mode ∈ {'OK','AUTO','FLAG','NONE'}."""
         low = deacc(w.lower())
         if not low or len(low) < 2 or any(ch not in ALPHA for ch in low):
@@ -127,7 +152,35 @@ class SpellerEN:
         if not cands:
             return None, 'OK'                                # inconnu sans candidat proche → ne pas harceler (rare/technique/étranger)
         def rank(x):                                         # edit-1 d'abord, puis FRÉQUENCE (the ≫ te)
-            return (cands[x], self.FREQ.get(x, 0))
+            # SCORE COMBINÉ, pas lexicographique. L'ancien classement mettait le TIER avant la fréquence :
+            # un candidat à une édition gagnait TOUJOURS contre un candidat phonétique, même si personne
+            # n'écrit le premier (« ahev » -> « ahem » au lieu de « have »). MESURÉ sur banc contextuel
+            # (9 296 phrases EWT x fautes Wikipédia) : 82 % des mauvaises cibles étaient un problème de
+            # CLASSEMENT, dont 631/840 un tier-0 battu par un tier-1. Balayage W = ∞/12/8/6/4/3/2/1/0 :
+            # pic net à 6 (mauvaises cibles 927 -> 418). Au-delà de 8, le tier redomine ; en dessous de 4,
+            # la fréquence écrase la distance.
+            # + BONUS ANAGRAMME : mêmes lettres, ordre différent. Une INVERSION est un typo bien plus
+            # probable qu'une suppression — le scripteur a tapé les bonnes lettres dans le mauvais ordre,
+            # c'est LE geste dys/clavier. Sans lui, « inot » -> « not » (suppression, plus fréquent) au
+            # lieu de « into », « eveyr » -> « ever » au lieu de « every », « jstu » -> « just » raté.
+            # Balayage 0/1/2/3/4/6/9 : pic à 2 (mauvaises cibles 418 -> 350) ; à 4 ça S'EFFONDRE (1 260),
+            # le bonus dépassant alors l'écart de tier (6) et laissant gagner des anagrammes phonétiques.
+            ana = (len(x) == len(low) and sorted(x) == sorted(low))
+            # bonus SLOT = 2, calibré (0/0,5/1/1,5/2/3/5) : plateau 2-3, effondrement à 5 quand il
+            # dépasse l'écart de tier (6). Mauvaises cibles 350 -> 324.
+            return (6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0))
+                    + (2.0 if ana else 0.0) + 2.0 * self._slot(prev, x))
+        # PLANCHER DE CANDIDAT : kaikki contient des non-mots (« acros » freq 0, « accomodate » freq 6).
+        # Sans plancher, un mot que PERSONNE n'écrit gagne parce qu'il est à une édition, contre
+        # « across » (freq 4801) qui est à deux. On ne les retire PAS de KNOWN (ils restent tolérés en
+        # saisie) : on refuse seulement de les PROPOSER.
+        # BALAYÉ 0/1/5/20/50 : le gain est MARGINAL (WRONG 415->413) et au-delà de 1 ça DÉGRADE
+        # (plancher 20 : WRONG 438, recall 76.5 %). On garde donc le minimum défendable — ne jamais
+        # PROPOSER un mot d'attestation nulle — sans prétendre que ça règle le classement.
+        # Ce qui reste en WRONG n'est pas du bruit lexical : le gagnant y est un VRAI mot fréquent
+        # (« achive » -> « active » contre « achieve »). Le mur est le CONTEXTE, pas le lexique.
+        keep = {x: t for x, t in cands.items() if self.FREQ.get(x, 0) >= 1}
+        if keep: cands = keep
         best = max(cands, key=rank)
         bt = cands[best]; bf = self.FREQ.get(best, 0)
         others = [x for x in cands if x != best]
@@ -137,8 +190,16 @@ class SpellerEN:
         # receive), soit c'est une TRANSPOSITION pure (teh→the). Sinon → ORANGE (doute→orange).
         phon_match = phon_key(best) == pk
         transp = (len(best) == len(low) and sorted(best) == sorted(low))
+        # ... et AUCUN rival à ÉGALITÉ. La fréquence seule ne suffit pas à faire un rouge : si un autre
+        # candidat est à la MÊME distance d'édition ET sonne pareil, le choix est un pari, pas une preuve.
+        # Mesuré : c'est exactement la forme des 3 FP rouges du banc (weakend→weekend alors que
+        # « weakened » est aussi à edit-1 et homophone ; intered→entered ; welcame→welcome).
+        # Seuil CALIBRÉ, pas deviné (balayage -1/2000/500/100/20/0 sur le banc Wikipédia) : le genou est
+        # à 20 — AUTO_WRONG 2->1 pour 33 rouges de moins, alors que descendre à 0 en coûte 70 de plus
+        # SANS rien gagner. Au-delà de 20, les FP reviennent.
+        rival = any(cands[x] == 1 and (phon_key(x) == pk or self.FREQ.get(x, 0) >= 20) for x in others)
         if (bt == 1 and len(low) >= 3 and bf >= 200
-                and bf >= 20 * max(second, 1) and (phon_match or transp)):
+                and bf >= 20 * max(second, 1) and (phon_match or transp) and not rival):
             return best, 'AUTO'
         return best, 'FLAG'                                  # sinon : orange (candidat proposé, à vérifier)
 

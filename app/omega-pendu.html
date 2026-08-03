@@ -25455,8 +25455,9 @@ window.addEventListener('DOMContentLoaded', () => {
     var seen={},cs=[]; for(k=0;k<combos.length;k++){ var cw=combos[k]; if(cw!==low&&SP.WORDS.has(cw)&&!seen[cw]){seen[cw]=1;cs.push(cw);} }
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
-  function spellTokenCore(tok,atStart,T,idx){
+function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
+    if(udHas(low))return null;                                         // mot ajouté par l'utilisateur → valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur » (le « e dans le o »). Liste FERMÉE de mots où oe=œ → FP=0 (coexister/moelle/poème non touchés). Garde : ne pas re-flaguer un mot DÉJÀ écrit avec œ. Débloque aussi le genre (« mon soeur »→ma sœur via GENDER_PURE oe).
@@ -25535,6 +25536,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
     if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon ajouté) → ne pas signaler
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
     if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
@@ -25612,6 +25614,20 @@ window.addEventListener('DOMContentLoaded', () => {
   // en « à vérifier ». Gaté sur clause-init (dk après frontière _SEG, dk≠0 = le début-phrase est déjà rouge via rAccordSVnoun).
   // (VIGILANCE svAccordVig SUPPRIMÉE : l'accord sujet-verbe à sujet-NOM est passé EN ROUGE via rAccordSVnoun + le vrai parseur _npSubject, FP=0 sur 14 450 UD.)
   // MOVER SYNTAXIQUE de l'impératif — placement des pronoms clitiques (MIROIR de dictee/imperative_clitics.moves) → corrections span:N
+    // ===== DICTIONNAIRE UTILISATEUR (localStorage 'vdc_userdict') =====
+  // Le dys écrit des mots que le Lexique ne connaît pas : prénoms, lieux, jargon de son métier/école.
+  // Les signaler à chaque fois est du BRUIT qui use la confiance. On lui laisse les AJOUTER : ils sont
+  // alors traités comme des mots valides. ⚠️ Cette couche ne fait que RETIRER des signalements (jamais
+  // en ajouter) → FP=0 sans objet, et elle ne peut pas casser une règle rouge existante.
+  var _UD=null;
+  function udAll(){ if(_UD)return _UD; try{_UD=new Set(JSON.parse(localStorage.getItem('vdc_userdict')||'[]'));}catch(e){_UD=new Set();} return _UD; }
+  function udNorm(w){ return (w||'').toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').trim(); }
+  function udHas(w){ var s=udAll(); var n=udNorm(w); return s.has(n)||s.has(deaccS(n)); }
+  function udAdd(w){ var n=udNorm(w); if(!n)return false; var s=udAll(); s.add(n);
+    try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} return true; }
+  function udDel(w){ var s=udAll(); s.delete(udNorm(w));
+    try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} }
+
   var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
@@ -26111,20 +26127,81 @@ window.addEventListener('DOMContentLoaded', () => {
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
   function _speak(t){if(!t)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t).replace(/\s+/g,' ').trim());u.lang='fr-FR';u.rate=0.95;speechSynthesis.speak(u);}catch(e){}}   // TTS explication (dys : entendre > lire)
   function _plain(h){var d=document.createElement('div');d.innerHTML=h||'';return d.textContent||'';}
-  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button></div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
+  // Le bouton « C'est un mot » n'a de sens que si la correction vient de l'ORTHOGRAPHE (mot inconnu du
+  // lexique : prénom, lieu, jargon). Sur un ACCORD ou un HOMOPHONE, le mot EXISTE — l'ajouter au
+  // dictionnaire ne changerait rien et induirait en erreur. On teste donc que le mot écrit est bien
+  // absent du lexique ET que la règle est une règle d'orthographe.
+  function _udEligible(f){
+    try{
+      if(!f||!f.word)return false;
+      var low=f.word.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+      if(!/^[a-zà-ÿ'-]{2,}$/.test(low))return false;
+      if(SP&&SP.ready&&(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low))))return false;   // mot connu -> pas un ajout
+      if(udHas(low))return false;                                                     // déjà ajouté
+      var n=(f.name||'').toLowerCase();
+      return n.indexOf('accord')<0&&n.indexOf('homophone')<0&&n.indexOf('conjug')<0;  // ortho seulement
+    }catch(e){return false;}
+  }
+  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button>'+(_udEligible(f)?'<button type="button" class="vcud" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗 C’est un mot</button>':'')+'</div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _ud=c.querySelector('.vcud');if(_ud)_ud.onclick=function(){udAdd(f.word);_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
   function _cardClick(e){var s=e.target.closest('[data-key]');if(!s)return;e.stopPropagation();_openCard(s);}
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour le mot SOUS LE CURSEUR. HORS PARITÉ : suggestion d'UI
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
   var _compKeys=null,_compFirst=null;
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
-  function complete(prefix){
+  function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_ckeys();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
     while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
       for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER DE FRÉQUENCE (≥1) : l'aide-frappe ne propose QUE des mots courants. Sur une faute (« pome ») les seuls préfixe-matches sont rares (pomerol 0.1…) → liste vide → la CORRECTION prend le relais (pome→pomme), plus de bruit/contradiction. Mesuré : garde bonjour/chance/enfants… tue pomerol/poméranien.
-    out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
+    // CLASSEMENT : fréquence SEULE jusqu'ici — on ajoute le CONTEXTE. Le mot juste avant informe
+    // beaucoup (« les enf… » -> enfantS pluriel, pas « enfant »). Le bigramme vient du LM déjà baké
+    // (os-lm, champ `bf`) : aucune donnée nouvelle à charger. La fréquence reste la base, le contexte
+    // ne fait que RE-CLASSER (log : il pousse, il n'écrase pas).
+    // ⚠️ Le LM est `_OSLM` (portée module, PAS global) et `bf` est IMBRIQUÉ : bf[motPrécédent][motSuivant].
+    // Mes deux premières suppositions (nom global « OSLM », clé plate « prev word ») étaient fausses : le
+    // bonus ne se déclenchait JAMAIS — c'est la mesure avant/après qui l'a révélé, pas la relecture.
+    var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _row=(typeof _OSLM!=='undefined'&&_OSLM&&_OSLM.bf&&_pw)?_OSLM.bf[_pw]:null;
+    // CATÉGORIE ATTENDUE (SP.POS, déjà dans le lexique : « enfants→N », « mange→V », « manger→NV »).
+    // Le bigramme exige d'avoir VU la paire exacte — il échoue donc sur les pronoms (ligne « je » :
+    // 17 successeurs, « je→mange » = 0), et un LM 200× plus gros n'y change RIEN (mesuré, dégradant).
+    // La CATÉGORIE, elle, GÉNÉRALISE : après « je » on attend un VERBE, sans avoir vu le couple.
+    var _SUBJP={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,"j'":1,"n'":1};
+    var _expV=!!_SUBJP[_pw];                                  // pronom sujet -> on attend un verbe CONJUGUÉ
+    // ... et le pronom porte AUSSI la personne : « nous » appelle -ons, « vous » -ez, « ils » -ent.
+    // Terminaisons AUDIBLES pour un dys (nous mange|ONS) : c'est le bout qu'il entend et qu'il attend.
+    var _PERS={nous:/ons$/,vous:/ez$/,ils:/ent$/,elles:/ent$/,tu:/[sx]$/,
+               je:/[esx]$/,"j'":/[esx]$/,il:/(e|t|a|d)$/,elle:/(e|t|a|d)$/,on:/(e|t|a|d)$/};
+    var _pers=_PERS[_pw]||null;
+    // Mauvaise personne après un pronom SUJET = impossible, pas juste improbable -> on PÉNALISE.
+    // Mais « nous »/« vous » sont aussi pronoms OBJETS (« il NOUS regarde » : verbe en 3e personne !).
+    // Ils ne sont sujets qu'en TÊTE de proposition -> on regarde le mot encore avant pour trancher.
+    var _p2=(prev2||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _HEAD={'':1,et:1,ou:1,mais:1,donc:1,car:1,que:1,qu:1,"qu'":1,qui:1,quand:1,si:1,lorsque:1,puis:1};
+    var _sure=(_pw==='nous'||_pw==='vous')?!!_HEAD[_p2]:!!_pers;
+    if((_pw==='nous'||_pw==='vous')&&!_sure)_pers=null;       // clitique OBJET : AUCUN signal de personne (ni bonus ni malus)
+    // NOMBRE après déterminant, même logique que la personne. Le piège : « une souris », « un pays »
+    // finissent par -s sans être pluriels -> on ne pénalise QUE si retirer le -s donne un mot du lexique
+    // (pommes->pomme = vrai pluriel ; souris->souri = rien -> intouché). Test FP-safe, pas de liste à tenir.
+    var _DET1={le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,"l'":1},
+        _DETN={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,quelques:1,plusieurs:1};
+    var _sg=!!_DET1[_pw],_pl=!!_DETN[_pw];
+    function _realPl(w){ return /s$/.test(w)&&SP.WORDS.has(w.slice(0,-1)); }   // SP.WORDS est un Set (.has), pas un objet
+    function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
+      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; }   // bigramme : marche sur déterminant->nom
+      if(_expV){ var pos=SP.POS[w]||'';
+        if(pos.indexOf('V')>=0)s+=1.2;                        // catégorie attendue
+        if(/(er|ir|re)$/.test(w))s-=1.6;                      // « je manger » est impossible : l'infinitif ne suit pas un pronom sujet
+        if(_pers){ if(_pers.test(w))s+=2.2;                    // bonne PERSONNE (« nous mangeons », pas « nous mange »)
+          else if(_sure)s-=1.8; }                              // mauvaise personne, et le pronom est bien SUJET
+      }
+      if(_sg&&_realPl(w))s-=4;                             // « une pommes » : déterminant singulier
+      else if(_pl){ if(/[sx]$/.test(w))s+=1.2;                // « les enfants »
+        else if(SP.WORDS.has(w+'s'))s-=4; }                 // « les maison » : singulier qui A un pluriel -> faux
+      return s; }
+    out.sort(function(a,b){return _cscore(b)-_cscore(a);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
   var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
@@ -26133,11 +26210,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);
     ta.value=v.slice(0,w.start)+repl+v.slice(w.end);var np=w.start+repl.length;if(ta.value.charAt(np)===' ')np++;try{ta.setSelectionRange(np,np);}catch(e){}
     ta.focus();runComplete();runCorr();}
+  function _prevWord(txt,start,back){                       // dernier mot AVANT le préfixe en cours (contexte du bigramme)
+    var s=String(txt||'').slice(0,start),W=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
+    var m=s.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)([^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*)$/);
+    if(!m)return '';
+    if(!back||back<2)return m[1];                          // back=2 : l'AVANT-dernier mot (sujet vs clitique objet)
+    var s2=s.slice(0,s.length-m[1].length-m[2].length);
+    if(/[.,;:!?…«»()\[\]]\s*$/.test(s2))return '';         // une ponctuation ouvre une proposition -> tête
+    var m2=s2.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m2?m2[1]:'';
+  }
   function runComplete(){var box=$('vdc-complete');if(!box)return;var ta=$('vdc-in');_compFirst=null;
     if(!SP.ready){box.innerHTML='';return;}
     var pos=(ta.selectionStart==null?ta.value.length:ta.selectionStart),w=_wordAt(ta.value,pos);
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
-    var cs=complete(w.word);if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
+    var cs=complete(w.word,_prevWord(ta.value,w.start),_prevWord(ta.value,w.start,2));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
