@@ -109,6 +109,9 @@ const LOOSE_TRIG = new Set(['to','will','would','can','could','might','must','sh
   'gonna','cannot',"'ll",'ll',"won't",'wont']);
 const LOOSE_IDIOM = new Set(['let','cut','break','set','turn','come','work','hang','shake','get','got','be',
   'been','being','is','are','was','were','on','so','too','very','more']);
+const SUBJ_PRON = new Set(['i','we','they','you','he','she','it']);   // pronoms SUJETS uniquement (un NOM avant « where » est correct : « the place where… »)
+const DET_BEFORE = new Set(['the','these','those','his','her','their','our','my','your','its','both','all','other','first','last','only','same','remaining']);
+const PERF_AUX = new Set(['have','has','had',"'ve","'s"]);
 const PP_AUX = new Set(['have','has','had','having',"'ve","'d",'been','be','is','am','are','was','were',
   'get','gets','got','getting']);   // -> participe passé (have runned -> run) ; sinon passé (I runned -> ran)
 
@@ -170,6 +173,33 @@ function homoDecide(lex, T, i){
     if(THAN_OBJ.has(nx) || (nx && (isNoun(lex, nx) || isAdj(lex, nx)) && !isVerb(lex, nx))) return ['than', 'RED'];
     return ['than', 'ORANGE'];
   }
+  // --- familles ajoutées : le discriminateur est STRUCTUREL (mot voisin), donc mesurable à FP=0 sur EWT ---
+  // WHERE/WERE : un pronom sujet ne peut pas être suivi de « where » (« they where happy »). On EXIGE le
+  // pronom, pas un nom : « the place where he lives » serait un FP (nom + where est parfaitement correct).
+  if(lw === 'where' && SUBJ_PRON.has(pv)) return ['were', 'RED'];
+  // WERE/WE'RE : « were » en tête suivi d'un participe présent (« Were going home ») = « We're ».
+  // Question inversée (« Were you there? ») exclue : le mot suivant y est un pronom/nom.
+  if(lw === 'were' && i === 0 && /ing$/.test(nx) && !SUBJ_PRON.has(nx) && !onlyNoun(lex, nx)) return ["We're", 'ORANGE'];
+  // WHO'S/WHOSE : même patron que their/there — c'est la NATURE du mot suivant qui tranche.
+  if(lw === "who's" && nx && onlyNoun(lex, nx)) return ['whose', 'ORANGE'];
+  // -ing ne suffit PAS : « king », « thing », « something » finissent en -ing sans être des gérondifs
+  // (FP mesuré : « the nation whose king Enrique VIII »). On exige que la forme soit un VERBE.
+  // -ing ne suffit pas (« king », « thing »), et le LEXIQUE ne tranche pas non plus : kaikki liste « king »
+  // comme verbe (sens échiquéen). C'est le TAGGER qui sépare, parce qu'il étiquette EN CONTEXTE —
+  // « whose king Enrique » = NOUN (pas de correction), « whose going home » = VERB (-> who's).
+  if(lw === 'whose' && (nx === 'been' || nx === 'gonna' || (/ing$/.test(nx) && ctxPos(T, i+1) === 'VERB'))) return ["who's", 'RED'];
+  // LEAD/LED : après un auxiliaire du parfait, il faut le PARTICIPE. « has lead to » est toujours faux ;
+  // on borne à « to » car « have lead » peut être le NOM (« lead poisoning »).
+  if(lw === 'lead' && PERF_AUX.has(pv) && nx === 'to') return ['led', 'RED'];
+  // PASSED/PAST : « I past », « we past » n'ont aucune lecture correcte (past = nom/prép/adj, jamais verbe
+  // conjugué). Le pronom sujet est la garde : « in the past » a un déterminant, pas un pronom.
+  if(lw === 'past' && SUBJ_PRON.has(pv)) return ['passed', 'RED'];
+  // TWO/TO : un nombre ne peut pas être suivi d'un verbe seul (« I want two go »).
+  // ... sauf après un déterminant, où « two » est un PRONOM et non un nombre (FP mesuré :
+  // « The two screamed to frighten » — « the two » = les deux personnes).
+  // Le lexique seul ne marche pas ici non plus (« go » y est aussi un nom) : c'est le TAGGER qui dit
+  // que « go » est un VERBE dans « I want two go home ». Même remède que « whose king ».
+  if(lw === 'two' && !DET_BEFORE.has(pv) && nx && ctxPos(T, i+1) === 'VERB') return ['to', 'RED'];   // le test lexical !isNoun bloquait tout : « go » EST aussi un nom au lexique
   if(lw === 'their' && BE_AFTER.has(nx)) return ['there', 'RED'];
   if(lw === 'there' && nx && (onlyNoun(lex, nx) || nextIsNounCtx(T, i))) return ['their', 'ORANGE'];
   if(lw === "they're" && nx && onlyNoun(lex, nx)) return ['their', 'ORANGE'];
@@ -287,6 +317,10 @@ if(typeof window !== 'undefined') window.CorrectorEN = _API;
 if(typeof require !== 'undefined' && require.main === module){
   const path = require('path');
   const lex = loadLexNode(path.join(__dirname, 'lex_en.tsv.gz'));
+  // le POS-tagger fait PARTIE du moteur : plusieurs règles (whose+gérondif, two+verbe) ne peuvent trancher
+  // sans lui — sans ce chargement l'auto-test les verrait à tort comme muettes.
+  try { const mp = path.join(__dirname, 'pos_hmm_en.json');
+        if(require('fs').existsSync(mp)) setPosModel(JSON.parse(require('fs').readFileSync(mp, 'utf8'))); } catch (e) {}
   console.log('=== corrector_en.js — %d mots, %d clés phon ===', lex.KNOWN.size, lex.PHON.size);
   // speller CASES (mêmes que speller_en_probe.py)
   const SP = [['recieve','receive'],['seperate','separate'],['definately','definitely'],['occured','occurred'],
@@ -302,9 +336,22 @@ if(typeof require !== 'undefined' && require.main === module){
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
     ['your gonna love it',0,"you're",'RED'],['there car is red',0,'their','ORANGE'],
     ['its not fair',0,"it's",'ORANGE'],['your welcome to stay',0,"you're",'ORANGE'],
-    ['I saw a apple',2,'an','RED'],['It is a honest mistake',2,'an','RED']];
+    ['I saw a apple',2,'an','RED'],['It is a honest mistake',2,'an','RED'],
+    // familles ajoutées 08/2026 — FP=0 vérifié par SCAN EWT (12 544 phrases : 4 déclenchements, 4 vraies fautes)
+    ['they where happy',1,'were','RED'],['we where on time',1,'were','RED'],
+    ['Were going home now',0,"We're",'ORANGE'],
+    ["a friend who's aunt left",2,'whose','ORANGE'],['I know whose going home',2,"who's",'RED'],
+    ['it has lead to problems',2,'led','RED'],
+    ['I past the test',1,'passed','RED'],['we past by the shop',1,'passed','RED'],
+    ['I want two go home',2,'to','RED'],
+    // ... et les phrases CORRECTES qui doivent rester INTACTES (les 2 FP mesurés puis corrigés en font partie)
+    ['the place where he lives',2,null,null],['Were you there',0,null,null],
+    ['the nation whose king ruled',2,null,null],['in the past few years',2,null,null],
+    ['The two screamed loudly',1,null,null],['I have lead in my pencil',2,null,null],
+    ['whose book is this',0,null,null],['two people came',0,null,null]];
   let hok=0;
-  for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const [s, l] = homoDecide(lex, T, idx);
+  for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const r = homoDecide(lex, T, idx);
+    const s = (r && r[0]) || null, l = (r && r[0]) ? r[1] : null;     // homoDecide peut rendre [null,null]
     if(s === exp && l === lvl) hok++; else console.log('  HP MISS %s -> %s/%s (attendu %s/%s)', txt, s, l, exp, lvl); }
   console.log('homophone: %d/%d', hok, HP.length);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
