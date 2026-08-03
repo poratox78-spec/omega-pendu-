@@ -25628,7 +25628,47 @@ function spellTokenCore(tok,atStart,T,idx){
   function udDel(w){ var s=udAll(); s.delete(udNorm(w));
     try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} }
 
-  var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
+    // ===== PRÉDICTION DE MOTS (index préfixe + classement) =====
+  // Le manque fonctionnel n°1 face aux outils dys du marché (ScribeDico) : compléter pendant la frappe.
+  // Tout le matériel existait déjà — il ne manquait QUE l'index préfixe : le pendu indexe par LONGUEUR
+  // (motif révélé) et le speller génère par edits1 (distance 1) ; aucun des deux ne sait « début de mot ».
+  // Ici : tableau TRIÉ des 214 684 formes du speller + dichotomie -> O(log n) par frappe, bâti UNE fois.
+  var _PFX=null;
+  function pfxEnsure(){
+    if(_PFX||!SP||!SP.ready||!SP.WORDS)return _PFX;
+    _PFX=Array.from(SP.WORDS); _PFX.sort();
+    return _PFX;
+  }
+  function pfxLower(a,pre){                                   // 1re position >= pre (borne inférieure)
+    var lo=0,hi=a.length;
+    while(lo<hi){var m=(lo+hi)>>1; if(a[m]<pre)lo=m+1; else hi=m;}
+    return lo;
+  }
+  // Candidats bruts commençant par `pre` (bornés : au-delà, ça ne sert plus l'utilisateur et ça coûte).
+  function pfxRaw(pre,cap){
+    var a=pfxEnsure(); if(!a||!pre)return [];
+    var out=[],i=pfxLower(a,pre),n=a.length,lim=cap||400;
+    while(i<n&&out.length<lim&&a[i].lastIndexOf(pre,0)===0){ out.push(a[i]); i++; }
+    return out;
+  }
+  // CLASSEMENT : fréquence (usage réel) × contexte (bigramme du LM sujet, déjà baké) — le mot juste
+  // avant informe beaucoup (« une po… » → pomme/porte plutôt que « pouvoir »). On ne fait que TRIER.
+  function predict(pre,prev,k){
+    pre=(pre||'').toLowerCase(); if(pre.length<2)return [];
+    var cand=pfxRaw(pre,400); if(!cand.length)return [];
+    var LM=(typeof OSLM!=='undefined'&&OSLM)?OSLM:null, pw=(prev||'').toLowerCase();
+    var sc=cand.map(function(w){
+      var f=(SP.FREQ&&SP.FREQ[w])||0;
+      var s=Math.log(1+f);                                    // fréquence : compresse les écarts énormes
+      if(LM&&LM.bf&&pw){ var b=LM.bf[pw+' '+w]; if(b)s+=Math.log(1+b)*1.5; }   // bigramme observé : bonus
+      if(w.length===pre.length)s-=0.5;                        // le mot déjà tapé en entier : peu utile
+      return {w:w,s:s};
+    });
+    sc.sort(function(x,y){return y.s-x.s;});
+    return sc.slice(0,k||5).map(function(x){return x.w;});
+  }
+  try{ window.omPredict=predict; window.omPfxSize=function(){var a=pfxEnsure();return a?a.length:0;}; }catch(e){}   // point d'entrée de MESURE (comme testSmoke*) : bancs + latence
+var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
   function _impCap(o,n){return (o.charAt(0)!==o.charAt(0).toLowerCase())?n.charAt(0).toUpperCase()+n.slice(1):n;}
