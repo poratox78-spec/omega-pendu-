@@ -276,6 +276,11 @@
       // modele fr-FR = 244 Mo (40 moteur + 205 pack), installe en 16 s. On ne l’active QUE si
       // l’utilisateur a coche la case : un modele de 244 Mo ne se telecharge pas en douce.
       try{ if(loc && loc.checked) rec.processLocally = true; }catch(e){}
+      // ⚠️ RÉGLAGE QUI MANQUAIT : `quality` vaut « command » PAR DÉFAUT — un moteur calé pour des
+      // ORDRES COURTS, alors qu'on fait de la DICTÉE de phrases. Mesuré : seules deux valeurs sont
+      // acceptées, « command » et « dictation ». On tournait donc dans le mauvais mode depuis le
+      // début, ce qui explique probablement les découpages ratés (« dort souvent » -> « donc soyons »).
+      try{ if('quality' in rec) rec.quality = 'dictation'; }catch(e){}
       var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
       var tr={a:0,s:0}, err='';
       audioStart(S);
