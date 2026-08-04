@@ -56,6 +56,20 @@
     if (DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
     if (DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
     if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(runNow);
+    // ⭐ DICTIONNAIRE UTILISATEUR — MÊME BUG QUE SUR LE SITE, trouvé en faisant l'inventaire.
+    // Le panneau charge sa PROPRE copie de dys-core (contexte séparé de content.js), et `_UD` y vit
+    // EN MÉMOIRE : seul l'hôte l'alimente. Or seul `content.js` appelait `udSet` -> les mots ajoutés
+    // par l'utilisateur (prénoms, pseudos, jargon) étaient corrigés dans les pages web mais toujours
+    // signalés « inconnu » ICI. Même source (`chrome.storage.local`), et on suit les changements.
+    // ⚠️ RÈGLE GÉNÉRALE : dys-core ne persiste RIEN — toute nouvelle surface doit appeler udSet().
+    try {
+      chrome.storage.local.get('vdc_userdict', function (o) {
+        if (o && o.vdc_userdict && DC.udSet) { DC.udSet(o.vdc_userdict); runNow(); }
+      });
+      chrome.storage.onChanged.addListener(function (ch) {
+        if (ch.vdc_userdict && DC.udSet) { DC.udSet(ch.vdc_userdict.newValue || []); runNow(); }
+      });
+    } catch (e) {}
   } catch (e) { stEl.textContent = 'erreur'; }
   else stEl.textContent = 'moteur absent';
 
