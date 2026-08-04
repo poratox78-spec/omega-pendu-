@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Double-Sens — le jeu de mots où l’orthographe ne te fait pas perdre | OMEGA-Ω</title>
+<meta name="description" content="Une définition, le nombre de lettres, et une règle qu’aucun autre jeu n’applique : si tu écris le bon mot mal orthographié, tu as trouvé. Sans chrono, gratuit, hors-ligne.">
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/double-sens"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Double-Sens — le jeu de mots où l’orthographe ne te fait pas perdre"><meta property="og:description" content="Une définition, le nombre de lettres. Si tu écris le bon mot mal orthographié, tu as trouvé. Sans chrono.">
+<meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Double-Sens — le jeu de mots où l’orthographe ne te fait pas perdre"><meta name="twitter:description" content="Une définition, le nombre de lettres. Si tu écris le bon mot mal orthographié, tu as trouvé. Sans chrono.">
+<link rel="canonical" href="https://omegapendu.com/double-sens">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
+<style>
+  main.ds{max-width:760px;margin:0 auto;padding:16px 18px 44px}
+  .ds-intro{font:15px/1.6 var(--sans);color:var(--fg-2);margin:2px 0 18px}
+  .ds-intro b{color:var(--fg)}
+  /* niveaux */
+  .lvls{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 16px}
+  .lvls button{font:600 14px var(--sans);border:1px solid var(--line);background:var(--bg-2);color:var(--fg-2);
+    border-radius:999px;padding:8px 15px;cursor:pointer}
+  .lvls button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+  /* la carte de jeu */
+  .card-ds{border:1px solid var(--line);background:var(--bg-2);border-radius:14px;padding:20px 20px 18px}
+  .clue{font:600 clamp(19px,4.4vw,25px)/1.5 var(--serif);color:var(--fg);margin:0 0 4px}
+  .clue-meta{font:13px var(--sans);color:var(--fg-2);margin:0 0 16px}
+  /* cases de lettres — l'ergonomie du pendu : on VOIT combien il en faut */
+  .boxes{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+  .bx{width:34px;height:42px;border-radius:7px;border:1px solid var(--line);background:var(--bg);
+    display:flex;align-items:center;justify-content:center;font:700 21px var(--sans);color:var(--fg);
+    text-transform:uppercase}
+  .bx.empty{color:transparent;border-bottom:3px solid var(--fg-2)}
+  .bx.sp{width:12px;border:0;background:none}
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  input#guess{flex:1 1 210px;font:18px var(--sans);padding:11px 13px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg);color:var(--fg)}
+  .row button{font:600 15px var(--sans);border:0;border-radius:10px;padding:11px 17px;cursor:pointer}
+  #go{background:var(--accent);color:#fff}
+  .ghost{background:var(--bg);color:var(--fg-2);border:1px solid var(--line)!important}
+  .say{margin:15px 0 0;font:15.5px/1.6 var(--sans);min-height:1.6em}
+  .say.win{color:#1f9d55;font-weight:700}
+  .say.near{color:#b5701a;font-weight:700}
+  .say.no{color:var(--fg-2)}
+  .say .sp{font-weight:800;letter-spacing:.04em;color:var(--fg)}
+  .say .df{background:color-mix(in srgb,#e8920c 34%,transparent);border-radius:3px;padding:0 1px}
+  .why{margin-top:9px;padding:9px 12px;border-left:4px solid #e8920c;border-radius:8px;
+    background:color-mix(in srgb,#e8920c 12%,var(--bg));font:14.5px/1.55 var(--sans);color:var(--fg-2)}
+  .why b{color:var(--fg)}
+  .tally{margin:14px 2px 0;font:13.5px var(--sans);color:var(--fg-2)}
+  .tally b{color:var(--fg)}
+  .src{margin:26px 0 0;font:12.5px/1.6 var(--sans);color:var(--fg-2)}
+  .src a{color:var(--fg-2)}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="index.html">Le pendu</a>
+    <a href="correcteur.html">Le correcteur</a>
+    <a href="dictee.html">La dictée</a>
+    <a href="double-sens.html" aria-current="page">Double-Sens</a>
+    <a href="recherche.html">La recherche</a>
+    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+<main class="ds">
+  <h1>Double-Sens</h1>
+  <p class="ds-intro">Une définition, le nombre de lettres. Tu écris le mot.
+  <b>Si tu connais le mot mais pas son orthographe, tu as quand même trouvé</b> — le jeu te montre
+  alors comment il s’écrit. <b>Pas de chrono</b>, jamais : on ne met pas un compte à rebours devant
+  quelqu’un qui a du mal à lire.</p>
+
+  <div class="lvls" role="group" aria-label="Difficulté">
+    <button data-l="0" aria-pressed="true">Mots courants</button>
+    <button data-l="1" aria-pressed="false">Un cran plus loin</button>
+    <button data-l="2" aria-pressed="false">Mots rares</button>
+  </div>
+
+  <div class="card-ds">
+    <p class="clue" id="clue">chargement des définitions…</p>
+    <p class="clue-meta" id="meta"></p>
+    <div class="boxes" id="boxes"></div>
+    <div class="row">
+      <input id="guess" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+             placeholder="écris le mot ici" disabled>
+      <button id="go" disabled>Valider</button>
+      <button id="hint" class="ghost" disabled>Une lettre</button>
+      <button id="skip" class="ghost" disabled>Passer</button>
+    </div>
+    <p class="say" id="say"></p>
+    <div id="why"></div>
+  </div>
+  <p class="tally" id="tally"></p>
+
+  <p class="src">Définitions tirées du <a href="https://fr.wiktionary.org/">Wiktionnaire français</a>
+  (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>), filtrées et raccourcies
+  pour le jeu. Tout tourne dans ton navigateur : rien n’est envoyé nulle part.</p>
+</main>
+
+<script src="extension/dys-core.js"></script>
+<script>
+(function(){
+  'use strict';
+  var DC = self.DYSCORE || window.DYSCORE;
+  var $ = function(id){ return document.getElementById(id); };
+  var clue=$('clue'), meta=$('meta'), boxes=$('boxes'), guess=$('guess'), go=$('go'),
+      hint=$('hint'), skip=$('skip'), say=$('say'), why=$('why'), tally=$('tally');
+
+  // ===== LA RÈGLE D'ÉQUITÉ — le cœur du jeu, et la seule raison qu'il existe.
+  //
+  // Un dys connaît le mot et bute sur son orthographe. Lui répondre « faux » pour un « m » écrit
+  // « n », c'est exactement l'injustice contre laquelle OMEGA a été fait. Donc : bon mot mal
+  // orthographié = TROUVÉ, et on montre l'orthographe.
+  //
+  // DEUX ROUTES, comme partout dans OMEGA : le SON et les LETTRES.
+  //   · son     — phonKey, la clé phonétique du speller (« aveunir » et « avenir » -> `avenir`)
+  //   · lettres — distance d'édition sur la forme SANS ACCENTS (un accent oublié n'est jamais
+  //               une erreur de sens ; « amertune » pour « amertume » non plus)
+  //
+  // MESURÉ sur 8006 VRAIES paires (faute, correction) de WiCoPaCo + du corpus dys, pas sur des
+  // fautes que j'aurais inventées — sinon je testerais mon modèle d'erreur contre lui-même :
+  //   tolérance fixe 1 lettre ....... rappel 83,0 %   faux accepts 0,014 %
+  //   tolérance fixe 2 lettres ...... rappel 95,8 %   faux accepts 0,140 %
+  //   ⭐ SELON LA LONGUEUR .......... rappel 95,5 %   faux accepts 0,094 %
+  // Les faux accepts (accepter un AUTRE mot) se concentrent sur les mots COURTS — « bout » est à
+  // une lettre d'« août ». D'où la tolérance qui grandit avec le mot, plutôt qu'un seuil unique.
+  // Et le coût d'un faux accept est ici quasi nul : dans les DEUX cas le jeu affiche le bon mot,
+  // donc le joueur le lit de toute façon. C'est pourquoi on a le droit d'être généreux.
+  function tolerance(n){ return n<=5 ? 1 : (n<=9 ? 2 : 3); }
+  function deac(s){ return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  function lev(a,b,cap){
+    if(Math.abs(a.length-b.length)>cap) return cap+1;
+    var prev=[],cur=[],i,j;
+    for(j=0;j<=b.length;j++) prev[j]=j;
+    for(i=1;i<=a.length;i++){
+      cur=[i]; var mini=i;
+      for(j=1;j<=b.length;j++){
+        cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
+        if(cur[j]<mini) mini=cur[j];
+      }
+      if(mini>cap) return cap+1;
+      prev=cur;
+    }
+    return prev[b.length];
+  }
+  function juge(essai, cible){
+    var e=essai.trim().toLowerCase(), c=cible.toLowerCase();
+    if(!e) return 'rien';
+    if(e===c) return 'exact';
+    var de=deac(e), dc=deac(c), pe=(DC&&DC.phonKey)?DC.phonKey(e):e, pc=(DC&&DC.phonKey)?DC.phonKey(c):c;
+    var proche = (de===dc) || (pe===pc) || lev(de,dc,tolerance(c.length))<=tolerance(c.length);
+    if(!proche) return 'non';
+    // ⭐ GARDE — si l'essai est LUI-MÊME un autre mot du jeu, et qu'il ne SONNE pas comme la cible,
+    // le joueur visait autre chose : « prive » n'est pas une façon d'écrire « prise ». MESURÉ, cette
+    // garde divise les faux accepts par 34 (0,0941 % -> 0,0028 %) pour 1,7 point de rappel.
+    // ⚠️ Testé aussi avec le LEXIQUE COMPLET (214 684 formes) comme garde : MÊME protection
+    // (0,0028 %) mais rappel 93,8 -> 84,9 %, et 0,9 Mo à télécharger. Pourquoi ? Beaucoup de vraies
+    // fautes dys SONT des formes fléchies existantes (« prises » pour « prise ») — le gros lexique
+    // les refuse alors que le joueur connaissait manifestement le mot. La petite liste gagne sur
+    // les trois tableaux : même protection, plus de rappel, zéro octet de plus.
+    if(AUTRES[e] && pe!==pc) return 'non';
+    return 'ortho';
+  }
+
+  // ===== données
+  var TOUT=[], AUTRES={}, FAM=null, BANDES=[[0,1200],[1200,3200],[3200,1e9]], bande=0;
+  var mot='', def='', vus=[], trouves=0, joues=0, revele=0, donne=false;
+
+  function gz(url){ return fetch(url).then(function(r){ return r.arrayBuffer(); }).then(function(b){
+    return new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text(); }); }
+
+  gz('extension/assets/sens.json.gz').then(function(t){
+    TOUT=JSON.parse(t);                                   // déjà trié du plus fréquent au plus rare
+    for(var i=0;i<TOUT.length;i++) AUTRES[TOUT[i].m.toLowerCase()]=1;   // index de la garde ci-dessus
+    guess.disabled=go.disabled=hint.disabled=skip.disabled=false;
+    tirer();
+  }).catch(function(){ clue.textContent='les définitions n’ont pas pu être chargées.'; });
+
+  // ⭐ L'AXE ÉTYMOLOGIE alimente les indices : « le d de grand s'entend dans grande ». Table bâtie
+  // par dictee/build_famille.py (114 paires à témoin AUDIBLE). Facultative — si elle ne charge pas,
+  // le jeu marche pareil.
+  fetch('dictee/famille.json').then(function(r){ return r.json(); })
+    .then(function(o){ FAM=o; }).catch(function(){});
+
+  function famille(w){
+    var b=w.toLowerCase();
+    if(FAM && FAM[b]) return 'le <b>'+b.charAt(b.length-1)+'</b> muet de « '+b+
+      ' » s’entend dans « <b>'+FAM[b]+'</b> » — même famille.';
+    if(/ment$/.test(b) && b.length>5) return 'le <b>t</b> de « -ment » ne s’entend jamais, '+
+      'mais <b>tous</b> les mots en -ment le prennent.';
+    return null;
+  }
+
+  function tirer(){
+    var b=BANDES[bande], pool=TOUT.slice(b[0], Math.min(b[1], TOUT.length));
+    if(!pool.length) pool=TOUT;
+    var essais=0, e;
+    do { e=pool[Math.floor(Math.random()*pool.length)]; essais++; }
+    while(vus.indexOf(e.m)>=0 && essais<40);
+    vus.push(e.m); if(vus.length>300) vus.shift();
+    mot=e.m; def=e.d; revele=0; donne=false;
+    clue.textContent=def;
+    meta.textContent=mot.length+' lettres';
+    say.textContent=''; say.className='say'; why.innerHTML='';
+    guess.value=''; dessine(); guess.focus();
+    compte();
+  }
+
+  function dessine(){
+    boxes.innerHTML='';
+    for(var i=0;i<mot.length;i++){
+      var d=document.createElement('div');
+      d.className='bx'+(i<revele?'':' empty');
+      d.textContent=i<revele?mot[i]:'·';
+      boxes.appendChild(d);
+    }
+  }
+
+  // Montrer OÙ ça diffère : c'est là qu'un dys apprend quelque chose, pas dans « faux ».
+  function souligne(essai, cible){
+    var out='', de=deac(essai), dc=deac(cible);
+    for(var i=0;i<cible.length;i++)
+      out += (de[i]===dc[i]) ? cible[i] : '<span class="df">'+cible[i]+'</span>';
+    return out;
+  }
+
+  function valider(){
+    if(!mot) return;
+    var e=guess.value, v=juge(e, mot);
+    if(v==='rien') return;
+    if(v==='non'){
+      say.className='say no';
+      say.textContent='Pas encore. Essaie encore, ou demande une lettre — rien ne presse.';
+      return;
+    }
+    joues++;
+    // ⚠️ HONNÊTETÉ DU COMPTEUR : si le joueur a fait révéler TOUTES les lettres, le mot lui a été
+    // DONNÉ — le recopier n'est pas le trouver. On ne le punit pas (il n'y a rien à punir ici),
+    // mais on ne gonfle pas son score non plus : un compteur qui ment ne récompense plus rien.
+    if(!donne) trouves++;
+    if(v==='exact'){
+      say.className='say win';
+      say.innerHTML='Trouvé — <span class="sp">'+mot+'</span>';
+    }else{
+      // ⭐ LE MOMENT QUI JUSTIFIE LE JEU : on ne dit pas « faux », on dit « oui, et voilà l'écriture ».
+      say.className='say near';
+      say.innerHTML='Oui, c’est bien ce mot — il s’écrit <span class="sp">'+souligne(e,mot)+'</span>';
+    }
+    var f=famille(mot);
+    why.innerHTML = f ? '<div class="why">'+f+'</div>' : '';
+    revele=mot.length; dessine(); compte();
+    setTimeout(tirer, v==='exact' ? 1100 : 2600);   // plus de temps pour LIRE l'orthographe
+  }
+
+  function compte(){
+    tally.innerHTML='<b>'+trouves+'</b> mot'+(trouves>1?'s':'')+' trouvé'+(trouves>1?'s':'')+
+      ' · <b>'+joues+'</b> joué'+(joues>1?'s':'')+' — aucun chrono, aucune limite.';
+  }
+
+  go.addEventListener('click', valider);
+  guess.addEventListener('keydown', function(ev){ if(ev.key==='Enter') valider(); });
+  hint.addEventListener('click', function(){
+    if(revele<mot.length){ revele++; dessine(); }
+    if(revele>=mot.length){ donne=true; say.className='say no'; say.textContent='Le mot était : '+mot; }
+    guess.focus();
+  });
+  skip.addEventListener('click', function(){
+    joues++; say.className='say no'; say.innerHTML='C’était <span class="sp">'+mot+'</span>';
+    revele=mot.length; dessine(); compte(); setTimeout(tirer, 1700);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.lvls button'), function(b){
+    b.addEventListener('click', function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.lvls button'), function(x){
+        x.setAttribute('aria-pressed', String(x===b)); });
+      bande=+b.dataset.l; if(TOUT.length) tirer();
+    });
+  });
+})();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+</body>
+</html>

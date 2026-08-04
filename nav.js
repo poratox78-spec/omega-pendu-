@@ -19,6 +19,7 @@
       ['index.html', 'Le pendu'],
       ['scrabidon.html', 'Scrabidon'],
       ['pendable.html', 'Pendable'],
+      ['double-sens.html', 'Double-Sens'],
     ]],
     ['Recherche', [
       ['recherche.html', 'La recherche'],

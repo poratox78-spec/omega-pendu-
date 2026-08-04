@@ -18,7 +18,7 @@ try { new Function(src); } catch (e) { fail.push('syntaxe sw.js : ' + e.message)
 // moment de l'install et n'en bougent qu'au changement de V). L'app est cachée à la visite et se rafraîchit par
 // revalidation (ETag → 304) ; l'inclure ici coupleraît sw.js à CHAQUE injection de lexique — conflit dans toutes
 // les PR pour un bump dont l'app n'a pas besoin.
-const HASHED = ['index.html', 'correcteur.html', 'correcteur-outil.html', 'dictee.html', 'dictee-outil.html', 'saisie-vocale.html', 'omega-key.html',
+const HASHED = ['index.html', 'correcteur.html', 'correcteur-outil.html', 'dictee.html', 'dictee-outil.html', 'saisie-vocale.html', 'double-sens.html', 'omega-key.html',
                 'recherche.html', 'donnees.html', 'confidentialite.html', 'toile.html', 'arbitrage.html', 'evolution.html', 'site.css', 'nav.js', 'manifest.json', 'icon.svg'];
 // ⚠️ NORMALISER LES FINS DE LIGNE AVANT DE HACHER, sinon l'empreinte dépend de l'OS et la CI diverge du poste :
 // le dépôt a des fins de ligne MIXTES en base (index.html/site.css en LF, mais dictee.html/omega-key.html/
@@ -49,7 +49,7 @@ if (!v || !/^omega-v\d+(-[0-9a-f]{8})?$/.test(v[1])) {
 const core = src.match(/const CORE\s*=\s*\[([^\]]*)\]/);
 // liste blanche du précache : les petites pages du site + assets. Les LOURDS (app 11 Mo, pendable, scrabidon)
 // sont volontairement exclus (cachés à la visite) — les précacher re-téléchargerait ~13 Mo à CHAQUE bump de version.
-const WHITELIST = new Set(['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html', './dictee-outil.html',
+const WHITELIST = new Set(['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html', './dictee-outil.html', './double-sens.html',
   './saisie-vocale.html', './omega-key.html', './recherche.html', './donnees.html', './confidentialite.html', './toile.html', './arbitrage.html', './evolution.html', './site.css', './nav.js', './manifest.json', './icon.svg']);
 if (!core) fail.push('CORE introuvable');
 else for (const it of core[1].split(',').map(s => s.trim().replace(/^'|'$/g, '')).filter(Boolean)) {
