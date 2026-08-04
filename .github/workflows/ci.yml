@@ -87,6 +87,12 @@ jobs:
         run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js
       - name: Moteur correcteur standalone (sans UI/DOM)
         run: node dictee/correcteur.js
+      - name: Correcteur autonome (bake) — 3 mondes dont l'environnement CI
+        run: node dictee/bake_probe.js --check
+      - name: Outil d'édition du monolithe — auto-test des pièges
+        run: python tools/omega_edit.py
+      - name: Double-Sens — table de définitions + règle d'équité
+        run: node dictee/sens_probe.js --check
       - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)
         run: |
           node dictee/build_correcteur.js /tmp/correcteur.standalone.js

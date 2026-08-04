@@ -99,6 +99,13 @@
     if(DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
     if(DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
     if(DC.loadConfusables) DC.loadConfusables(A+'confusables.json').then(runNow);
+    // ⭐ DICTIONNAIRE UTILISATEUR — `dys-core` garde `_UD` EN MÉMOIRE : c'est l'HÔTE qui persiste
+    // (l'extension via chrome.storage, l'app via localStorage). Sur cette page, personne ne
+    // l'alimentait : les mots ajoutés dans l'app (prénoms, pseudos, jargon) étaient donc TOUJOURS
+    // signalés « inconnu » ici. Même origine que l'app -> on lit la même clé qu'elle.
+    // ⚠️ RIEN À VOIR AVEC LA VOIX — c'était emballé dans la PR du biais lexical, le rollback l'avait
+    // emporté avec. Remis parce que c'est un bug du CORRECTEUR, pas de la dictée.
+    try{ if(DC.udSet) DC.udSet(JSON.parse(localStorage.getItem('vdc_userdict')||'[]')); }catch(e){}
   }catch(e){ st('erreur moteur'); }
   else st('moteur absent');
 
