@@ -64,6 +64,7 @@ run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 runsh "syntaxe extension (4 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js"
 run "correcteur standalone"         node dictee/correcteur.js
 run "correcteur AUTONOME (bake, 3 mondes)" node dictee/bake_probe.js --check
+run "surfaces vocales site ≡ extension"  node dictee/voix_parity_probe.js --check
 run "outil d'édition (pièges monolithe)" python tools/omega_edit.py
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js
