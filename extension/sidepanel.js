@@ -287,30 +287,6 @@
       }).catch(function(){}); }catch(e){} }
   function audioStop(S){ try{ if(S.au){ clearInterval(S.au.iv); try{S.au.ac.close();}catch(e){} try{S.au.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} } }catch(e){} }
   function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue; if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
-  // ⚠️ silBetween prend le MAXIMUM de la fenêtre : avec [fin de A -> fin de B] il peut renvoyer la
-  // pause qui TERMINE B, toujours par excès, donc vers le point. silAfter prend la PREMIÈRE plage
-  // de silence à partir de `a` — celle qui sépare vraiment A de B. (miroir du site)
-  function silAfter(tl,thr,a){ var i,run=0,vu=false;
-    for(i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a)continue;
-      if(p.r<thr){ run+=30; vu=true; } else if(vu) break; }
-    return run; }
-  // ⛔⛔ VIRGULES AU GRAIN MOT — MESURÉ-RÉFUTÉ EN USAGE RÉEL (2026-08-04). NE PAS RE-TENTER AINSI.
-  // L'idée : la voie B posait ses virgules ENTRE LES MOTS, on a donc horodaté chaque mot via les
-  // interims pour retrouver ce grain. Mon banc le validait 7/7 — avec des horodatages SYNTHÉTIQUES
-  // parfaitement alignés : il testait la LOGIQUE, pas l'ALIGNEMENT. Test de Rem à la voix :
-  //     « Est-ce que je vais à la, plage, aujourd'hui ? »  ·  « Dessine-moi, un mouton. »
-  //     « Je veux manger, du, chocolat. »
-  // Des virgules ENTRE UN DÉTERMINANT ET SON NOM : c'est l'alignement qui est faux, pas le seuil —
-  // donc aucun réglage ne le sauve.
-  // POURQUOI : Google émet ses interims PAR RAFALES. L'écart entre deux horodatages de mots est
-  // dominé par la LATENCE DU MOTEUR, pas par la pause réelle entre ces deux mots-là ; le silence
-  // trouvé dans cette fenêtre appartient à un autre endroit de la phrase.
-  // ⚠️ La voie B n'avait pas ce problème : wav2vec2 lui donnait un alignement VRAI, par frame.
-  //    Web Speech ne fournit AUCUN timing de mot. Sans alignement, pas de grain mot — point.
-  // Et c'était écrit ici même : « une virgule au mauvais endroit coûte plus cher à un dys qu'une
-  // virgule absente ». Doute → rien : le doute portait sur l'alignement, j'aurais dû m'abstenir.
-  // RESTE VALABLE ET LIVRÉ : seuils 190/750 de la voie B, silAfter, règle de question mesurée
-  // à 100 %, espace française avant « ? ».
   function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
     if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
     function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
@@ -319,70 +295,23 @@
   // (point/virgule + normalisation de la majuscule d'amorce Google) ; audio en refinement si dispo.
   function prosodyText(S){
     var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
-    // ⚠️ LE MOTEUR PEUT DÉJÀ PONCTUER. `unspokenPunctuation` vaut false (mesuré), donc il n'invente
-    // pas de ponctuation — mais il transcrit celle qu'on DIT (« virgule », « point ») et rend parfois
-    // un « ? ». Notre couche décide la ponctuation elle-même : si le segment en porte déjà une en
-    // FIN, on la retire avant d'ajouter la nôtre, sinon on sort « demain.. » ou « ça va ?. ».
-    // (trouvé par l'audit, pas par un test qui passait)
-    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim();
-      if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }   // norm : MAJ d'amorce + ponctuation finale du moteur
+    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
     if(!segs.length) return null;
     var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
     var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
-    // ⭐⭐ DÉTECTION DE QUESTION — REFAITE SUR MESURE (2026-08-04). L'ancienne règle était « un mot
-    // interrogatif en tête », et elle produisait PLUS D'UN FAUX « ? » SUR DEUX : mesuré sur 48 653
-    // phrases françaises réelles (UD FR GSD + WiCoPaCo + corpus GEC), 145 marquées dont 79 FAUSSES
-    // = 45,5 % de précision. Les pièges, tous fréquents :
-    //   · « Quand ils reviennent, ils tentent… »  -> « quand » SUBORDONNANT, pas interrogatif
-    //   · « Quelle jolie décoration ! »           -> EXCLAMATIF
-    //   · « où v est la vitesse du point »        -> « où » RELATIF (et un segment de dictée peut
-    //                                                commencer au milieu d'une phrase !)
-    //
-    // NOUVELLE RÈGLE, mesurée à 100 % de précision (0 faux sur 60 998 échantillons, fragments de
-    // milieu de phrase compris) :
-    //     question  ⟺  ( interrogatif en tête ET (inversion sujet-verbe OU « est-ce que ») )
-    //                  OU ( tête ∈ {qu'est, comment, pourquoi, combien} ET aucune virgule )
-    //                  le tout en 12 mots ou moins
-    // L'inversion (« viens-tu », « est-elle », « va-t-il ») n'est retenue qu'avec les clitiques
-    // je/tu/il/elle/on/ils/elles : l'impératif prend moi/toi/lui/nous/vous/y/en, donc AUCUN
-    // recouvrement — la garde est structurelle, pas statistique.
-    // ⚠️ Le rappel tombe de 23,6 % à 12,4 % : c'est ASSUMÉ. Un « ? » en trop se voit et se paie ;
-    // un « . » à la place d'un « ? » se répare d'un caractère. Et la route PITCH rattrape les
-    // questions par intonation (« Tu viens ? »), que le lexical ne peut pas voir.
-    // `nous`/`vous` sont ambigus SEULS (l'impératif dit « asseyez-vous ») — mais ici l'inversion
-    // n'est lue QU'APRÈS un mot interrogatif en tête, où un impératif est impossible. Mesuré
-    // NEUTRE sur 60 998 échantillons (26 marquées, 100 % dans les deux cas) et ça répare
-    // « Où en sommes-nous ? ». On ne s'en sert JAMAIS pour une inversion nue.
-    var QINV=/(?:^|[^-\w])[a-zà-ÿ]{2,}-(?:t-)?(?:je|tu|il|elle|on|ils|elles|nous|vous)(?![-\w])/i;
-    var QEQ=/est-ce\s+(?:que|qu')/i;
-    var QSEUL=/^(qu'est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
-    function estQuestion(t){
-      if(!t) return false;
-      if((t.match(/[\wà-ÿ'’-]+/g)||[]).length>12) return false;
-      if(QW.test(t) && (QINV.test(t)||QEQ.test(t))) return true;
-      return QSEUL.test(t) && t.indexOf(',')<0;
-    }
-    // ⭐ SEUILS DE LA VOIE B À L'IDENTIQUE (dictee/asr_voix.py L38) : COMMA_MS, PERIOD_MS = 190, 750.
-    // Ils avaient été transcrits à 600 pour le point, sans plancher pour la virgule. Le commentaire
-    // de la voie B dit pourquoi 750 : ne PAS couper sur une respiration intra-phrase (~500 ms), qui
-    // fabriquait une fausse fin de phrase — et donc un faux « ? ». (miroir du site)
-    var COMMA_MS=190, PERIOD_MS=750;
     var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
     var out=(S.base.trim()?S.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
-        if(estQuestion(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
-        else if(useAudio){ var sil=silAfter(au.tl,thr,(S.ftimes[pv.idx]||0)-100);
-          mk = sil>=PERIOD_MS ? '.' : (sil>=COMMA_MS ? ',' : ''); }   // sous 190 ms : RIEN, comme la voie B
+        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
         else if(CONT.test(nx.t)) mk=',';
         else mk='.';
-        out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }        // ESPACE AVANT « ? » : règle FR
+        out=out.replace(/\s*$/,'')+mk+' '; }
       out+=segs[s].t; }
     var last=segs[segs.length-1];
-    // typographie française : « ? » prend une espace avant, le point non.
-    var _fin=(estQuestion(last.t)||riseAt(last.idx)>4)?'?':'.';
-    return capV(out.replace(/\s*$/,'')+(_fin==='?'?' ':'')+_fin); }
+    return capV(out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.')); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }

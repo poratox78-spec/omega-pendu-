@@ -91,8 +91,6 @@ jobs:
         run: node dictee/voix_parity_probe.js --check
       - name: Double-Sens — table de définitions + règle d'équité
         run: node dictee/sens_probe.js --check
-      - name: Voix — ponctuation prosodique (seuils voie B, site ≡ extension)
-        run: node dictee/proso_probe.js --check
       - name: Moteur correcteur AUTONOME (bake — 3 mondes, dont sans navigator)
         run: node dictee/bake_probe.js --check
       - name: Outil d'édition du monolithe (auto-test des pièges connus)

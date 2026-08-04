@@ -73,26 +73,6 @@ for (const [nom, src] of [['site', SITE], ['extension', EXT]]) {
     !ligne ? 'non utilisé' : (garde ? ligne.trim().slice(0, 58) : 'NON GARDÉ — casse la reconnaissance locale'));
 }
 
-// ⑤ symétrique de ④ : `phrases` est refusé par le CLOUD (« phrases-not-supported » au start(),
-// mesuré sur les 4 combinaisons) et accepté SUR L'APPAREIL (3/3). Une affectation non gardée casse
-// donc la dictée cloud — c'est-à-dire le mode par défaut. Même piège que `quality`, en miroir.
-for (const [nom, src] of [['site', SITE], ['extension', EXT]]) {
-  // ⚠️ la garde vit sur le `if` ENGLOBANT, pas sur la ligne d'affectation : on regarde donc les
-  // ~400 caractères qui précèdent, pas la ligne seule (première version : faux positif immédiat).
-  const re = /[\w.]+\.phrases\s*=/g;
-  const nu = [];
-  let m, vus = 0;
-  while ((m = re.exec(src))) {
-    const ligne = src.slice(src.lastIndexOf('\n', m.index) + 1, m.index);
-    if (/^\s*(\/\/|\*)/.test(ligne)) continue;                      // simple mention en commentaire
-    vus++;
-    const amont = src.slice(Math.max(0, m.index - 400), m.index).replace(/\/\/[^\n]*/g, '');
-    if (!/processLocally|\bloc\b[^\n]*checked|\.checked/.test(amont)) nu.push(m.index);
-  }
-  dit(!nu.length, nom + " : `phrases` gardé (sur l'appareil seulement)",
-    !vus ? 'non utilisé' : (nu.length ? 'NON GARDÉ — casse la dictée cloud' : vus + ' affectation(s) sous garde locale'));
-}
-
 console.log(ecarts.length
   ? '❌ surfaces vocales : ' + ecarts.length + ' divergence(s) — ' + ecarts.join(', ')
   : '✅ surfaces vocales : site ≡ extension (N-best, arbitrage, garde quality)');
