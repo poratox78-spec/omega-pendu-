@@ -62,7 +62,6 @@
     <button id="mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
     <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
     <span class="vst" id="vst">chargement du correcteur…</span>
-    <div id="micinfo" class="vst" style="flex-basis:100%;margin-top:6px;opacity:.85;line-height:1.35"></div>
   </div>
   <div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
   <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici (majuscules remises automatiquement). Puis clique les corrections rouges, « Tout corriger », et « Copier »."></textarea>
@@ -153,31 +152,9 @@
     for(i=0;i<n;i++)m+=buf[i]; m/=n;
     for(var lag=lo; lag<=hi && lag<n; lag++){ var c=0; for(i=0;i<n-lag;i++)c+=(buf[i]-m)*(buf[i+lag]-m); if(c>bc){bc=c;best=lag;} }
     return best>0 ? sr/best : 0; }
-  // ===== MICRO — informer, puisqu'on ne peut pas CHOISIR. MESURÉ dans Chrome : SpeechRecognition
-  // n'a AUCUNE propriété device/stream/input/source — il prend le micro PAR DÉFAUT du système.
-  // Ce n'est pas notre code qui limite, c'est l'API. On le DIT plutôt que de laisser quelqu'un
-  // chercher pourquoi son casque est ignoré. Les NOMS n'apparaissent qu'APRÈS la permission micro.
-  function micInfo(){
-    var el=document.getElementById('micinfo'); if(!el) return;
-    var sys='Pour en changer : réglages son de ton système.';
-    if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices){ el.textContent='🎤 '+sys; return; }
-    navigator.mediaDevices.enumerateDevices().then(function(d){
-      var ins=d.filter(function(x){return x.kind==='audioinput';});
-      var nom=ins.filter(function(x){return x.label;});
-      if(!nom.length){ el.textContent='🎤 La dictée vocale utilise le micro par défaut de ton système'
-        +(ins.length>1?' ('+ins.length+' micros détectés)':'')+'. '+sys; return; }
-      var def=nom.filter(function(x){return x.deviceId==='default';})[0]||nom[0];
-      var autres=nom.filter(function(x){return x!==def&&x.deviceId!=='default';})
-        .map(function(x){return x.label;}).slice(0,3);
-      el.textContent='🎤 Micro utilisé : '+def.label+(autres.length?' — autres : '+autres.join(', '):'')+'. '+sys;
-    }).catch(function(){ el.textContent='🎤 '+sys; });
-  }
-  micInfo();
-  if(navigator.mediaDevices&&navigator.mediaDevices.addEventListener)
-    navigator.mediaDevices.addEventListener('devicechange', micInfo);   // casque branché/débranché en cours de route
   function audioStart(state){
     try{ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return;
-      navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){ micInfo();   // APRÈS l'octroi : les LABELS n'existent qu'une fois la permission donnée
+      navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
         var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
         var ac=new AC(), sr=ac.sampleRate, src=ac.createMediaStreamSource(stream), an=ac.createAnalyser();
         try{ ac.resume&&ac.resume(); }catch(e){}   // AudioContext démarre suspendu (autoplay) → réveiller, sinon 0 donnée audio
