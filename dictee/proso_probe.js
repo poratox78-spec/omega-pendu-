@@ -59,6 +59,7 @@ function charge(fichier, nomProso) {
     ligneVar(src, '_SALUT'),
     ligneVar(src, '_GOUVERNE'),
     bloc(src, 'function teteHorsPhrase('),
+    bloc(src, 'function _seuilSilence('),
     bloc(src, 'function silBetween('),
     bloc(src, 'function riseEndingAt('),
     bloc(src, 'function ' + nomProso + '('),
