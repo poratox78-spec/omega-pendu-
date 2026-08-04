@@ -198,27 +198,6 @@
   var micBtn = document.getElementById('omdys-mic'), voiceCb = document.getElementById('omdys-voice-ok');
   var SR = self.SpeechRecognition || self.webkitSpeechRecognition;
   var rec = null, recording = false;
-  // ===== ARBITRAGE DES HYPOTHÈSES (N-best) — miroir exact du site (saisie-vocale.html).
-  // Google rend jusqu'à 5 transcriptions ; il n'en donnait qu'UNE à notre correcteur, qui n'y pouvait
-  // RIEN : une transcription fautive est une suite de VRAIS mots, souvent bien accordée. Détecter une
-  // faute invisible : impossible. CHOISIR entre des candidats fournis : c'est notre architecture même.
-  //
-  // PRINCIPE — l'ASR connaît l'ACOUSTIQUE, nous la LANGUE. On ne refait donc PAS son classement : on
-  // RÉTROGRADE seulement ce qu'on prouve incohérent, et à égalité SON ordre gagne. Rétrograder n'est
-  // pas affirmer : pas de contrainte FP=0 ici, et sans preuve on ne touche à rien.
-  function arbitre(r) {
-    var n = Math.min(r.length || 1, 5);
-    if (n < 2 || !DC || !DC.diagnoseAll) return (r[0].transcript || '').trim();
-    var best = 0, bestN = -1;
-    for (var k = 0; k < n; k++) {
-      var t = (r[k].transcript || '').trim(); if (!t) continue;
-      var f = 0;
-      try { f = (DC.diagnoseAll(t).flags || []).filter(function (x) {
-              return !/majuscule|typographie/.test(x.name || ''); }).length; } catch (e) { f = 0; }
-      if (bestN < 0 || f < bestN) { bestN = f; best = k; }   // < strict : à égalité on GARDE l'ordre de l'ASR
-    }
-    return (r[best].transcript || '').trim();
-  }
   function voiceStatus(m) { stEl.textContent = m; }
   // ===== MICRO — informer, puisqu'on ne peut pas CHOISIR. MESURÉ : SpeechRecognition n'a AUCUNE
   // propriété device/stream/input/source (grammars lang continuous interimResults maxAlternatives…).
@@ -317,7 +296,7 @@
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
-      rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 5;
+      rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
       // ⚠️⚠️ `quality='dictation'` CASSE la reconnaissance SUR L'APPAREIL (« language-not-supported »),
       // mesuré par balayage des 8 combinaisons. Ici l'extension n'a PAS encore l'option locale, donc
       // « dictation » est sûr — mais le jour où on l'ajoutera, il faudra la MÊME garde que le site.
@@ -335,7 +314,7 @@
         var intr = '';
         for (var i = ev.resultIndex; i < ev.results.length; i++) {
           var r = ev.results[i];
-          if (r.isFinal) { S.finals[i] = arbitre(r); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
+          if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
         }
         var parts = []; if (S.base.trim()) parts.push(S.base.trim());
         var ks = Object.keys(S.finals).map(Number).sort(function (a, b) { return a - b; });
