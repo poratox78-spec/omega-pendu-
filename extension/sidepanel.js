@@ -294,18 +294,23 @@
     for(i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a)continue;
       if(p.r<thr){ run+=30; vu=true; } else if(vu) break; }
     return run; }
-  // Virgules À L'INTÉRIEUR d'un segment, au grain MOT (comportement de la voie B).
-  // DOUTE -> RIEN : si les interims arrivent en rafale, on ne sait pas devant quel mot poser la
-  // virgule, donc on s'abstient. Une virgule au mauvais endroit coûte plus cher qu'une absente.
-  function virgulesInternes(seg,S,thr,useAudio,COMMA_MS){
-    var mots=seg.t.split(/\s+/), st=S.wtimes&&S.wtimes[seg.idx];
-    if(!useAudio||!st||st.length<2||mots.length<3) return seg.t;
-    var out=mots[0],k;
-    for(k=1;k<mots.length;k++){ var a=st[k-1], b=st[k];
-      if(a==null||b==null||b<=a){ out+=' '+mots[k]; continue; }
-      var deja=/[.,;:!?…]$/.test(mots[k-1]);   // le moteur a déjà ponctué ici : ne pas doubler
-      out += (!deja && silBetween(S.au.tl,thr,a,b)>=COMMA_MS?',':'')+' '+mots[k]; }
-    return out; }
+  // ⛔⛔ VIRGULES AU GRAIN MOT — MESURÉ-RÉFUTÉ EN USAGE RÉEL (2026-08-04). NE PAS RE-TENTER AINSI.
+  // L'idée : la voie B posait ses virgules ENTRE LES MOTS, on a donc horodaté chaque mot via les
+  // interims pour retrouver ce grain. Mon banc le validait 7/7 — avec des horodatages SYNTHÉTIQUES
+  // parfaitement alignés : il testait la LOGIQUE, pas l'ALIGNEMENT. Test de Rem à la voix :
+  //     « Est-ce que je vais à la, plage, aujourd'hui ? »  ·  « Dessine-moi, un mouton. »
+  //     « Je veux manger, du, chocolat. »
+  // Des virgules ENTRE UN DÉTERMINANT ET SON NOM : c'est l'alignement qui est faux, pas le seuil —
+  // donc aucun réglage ne le sauve.
+  // POURQUOI : Google émet ses interims PAR RAFALES. L'écart entre deux horodatages de mots est
+  // dominé par la LATENCE DU MOTEUR, pas par la pause réelle entre ces deux mots-là ; le silence
+  // trouvé dans cette fenêtre appartient à un autre endroit de la phrase.
+  // ⚠️ La voie B n'avait pas ce problème : wav2vec2 lui donnait un alignement VRAI, par frame.
+  //    Web Speech ne fournit AUCUN timing de mot. Sans alignement, pas de grain mot — point.
+  // Et c'était écrit ici même : « une virgule au mauvais endroit coûte plus cher à un dys qu'une
+  // virgule absente ». Doute → rien : le doute portait sur l'alignement, j'aurais dû m'abstenir.
+  // RESTE VALABLE ET LIVRÉ : seuils 190/750 de la voie B, silAfter, règle de question mesurée
+  // à 100 %, espace française avant « ? ».
   function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
     if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
     function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
@@ -373,7 +378,7 @@
         else if(CONT.test(nx.t)) mk=',';
         else mk='.';
         out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }        // ESPACE AVANT « ? » : règle FR
-      out+=virgulesInternes(segs[s],S,thr,useAudio,COMMA_MS); }
+      out+=segs[s].t; }
     var last=segs[segs.length-1];
     // typographie française : « ? » prend une espace avant, le point non.
     var _fin=(estQuestion(last.t)||riseAt(last.idx)>4)?'?':'.';
@@ -389,7 +394,7 @@
       // « dictation » est sûr — mais le jour où on l'ajoutera, il faudra la MÊME garde que le site.
       // Régression livrée puis réparée côté site (PR#370/371) : deux options croisées, une seule testée.
       try { if ('quality' in rec && !rec.processLocally) rec.quality = 'dictation'; } catch (e) {}
-      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, wtimes: {}, au: null, tEnd: 0 };
+      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, au: null, tEnd: 0 };
       var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
       audioStart(S);
       rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
@@ -401,12 +406,6 @@
         var intr = '';
         for (var i = ev.resultIndex; i < ev.results.length; i++) {
           var r = ev.results[i];
-          // ⭐ HORODATAGE PAR MOT (miroir du site) : la brique qui manquait pour poser les virgules
-          // À L'INTÉRIEUR d'une phrase, comme la voie B. L'audio reste l'autorité pour la DURÉE du
-          // silence ; l'interim ne fournit que la FENÊTRE. On ne date qu'en hausse (Google révise).
-          var _n = (r[0].transcript.trim().match(/\S+/g) || []).length;
-          if (_n) { var _w = S.wtimes[i] || (S.wtimes[i] = []);
-            while (_w.length < _n) _w.push(Date.now() - S.t0); }
           if (r.isFinal) { S.finals[i] = arbitre(r); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
         }
         var parts = []; if (S.base.trim()) parts.push(S.base.trim());

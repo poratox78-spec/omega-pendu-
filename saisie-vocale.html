@@ -286,20 +286,23 @@
   // ⚠️ DOUTE -> ON NE MET RIEN. Si les interims arrivent en RAFALE (plusieurs mots d'un coup), on ne
   // sait pas DEVANT QUEL mot poser la virgule : on s'abstient au lieu de la mettre au hasard. Une
   // virgule au mauvais endroit coûte plus cher à un dys qu'une virgule absente.
-  function virgulesInternes(seg, state, thr, useAudio, COMMA_MS){
-    var mots=seg.t.split(/\s+/), st=state.wtimes&&state.wtimes[seg.idx];
-    if(!useAudio||!st||st.length<2||mots.length<3) return seg.t;
-    var out=mots[0], k;
-    for(k=1;k<mots.length;k++){
-      var a=st[k-1], b=st[k];
-      // pas de date pour ce mot, ou fenêtre nulle (rafale : plusieurs mots datés à la même ms) -> on s'abstient
-      if(a==null||b==null||b<=a){ out+=' '+mots[k]; continue; }
-      var sil=silBetween(state.au.tl,thr,a,b);
-      var deja=/[.,;:!?…]$/.test(mots[k-1]);   // le moteur a déjà ponctué ici : ne pas doubler
-      out += (!deja && sil>=COMMA_MS ? ',' : '') + ' ' + mots[k];
-    }
-    return out;
-  }
+  
+  // ⛔⛔ VIRGULES AU GRAIN MOT — MESURÉ-RÉFUTÉ EN USAGE RÉEL (2026-08-04), NE PAS RE-TENTER TEL QUEL.
+  // L'idée : la voie B posait ses virgules ENTRE LES MOTS, alors on a horodaté chaque mot via les
+  // interims pour retrouver ce grain. Mon banc le validait 7/7 — avec des horodatages SYNTHÉTIQUES
+  // parfaitement alignés. Il testait donc la LOGIQUE, pas l'ALIGNEMENT. Test de Rem à la voix :
+  //     « Est-ce que je vais à la, plage, aujourd'hui ? »   « Dessine-moi, un mouton. »
+  //     « Je veux manger, du, chocolat. »
+  // Des virgules ENTRE UN DÉTERMINANT ET SON NOM : l'alignement est faux, pas le seuil.
+  // POURQUOI : Google émet ses interims PAR RAFALES. L'écart entre deux horodatages de mots est
+  // donc dominé par la LATENCE DU MOTEUR, pas par la pause réelle entre ces deux mots-là — et le
+  // silence mesuré dans cette fenêtre appartient à un autre endroit de la phrase.
+  // ⚠️ La voie B n'avait pas ce problème : wav2vec2 lui donnait un alignement VRAI, par frame.
+  //     Web Speech ne donne AUCUN timing de mot. Sans alignement, pas de grain mot — point.
+  // Et c'est écrit dans ce fichier depuis le début : « une virgule au mauvais endroit coûte plus
+  // cher à un dys qu'une virgule absente ». Doute -> rien. Le doute était sur l'alignement.
+  // Ce qui RESTE valable et livré : seuils 190/750 de la voie B, silAfter, la règle de question
+  // mesurée à 100 %, l'espace française avant « ? ».
   function prosodyText(state){
     var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;});
     // ⚠️ LE MOTEUR PEUT DÉJÀ PONCTUER. `unspokenPunctuation` vaut false (mesuré), donc il n'invente
@@ -364,7 +367,7 @@
         else if(CONT.test(nx.t)) mk=',';
         else mk='.';
         out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+(mk?' ':' '); }
-      out+=virgulesInternes(segs[s], state, thr, useAudio, COMMA_MS);
+      out+=segs[s].t;
     }
     var last=segs[segs.length-1];
     // ⚠️ TYPOGRAPHIE FRANÇAISE : « ? » « ! » « ; » « : » prennent une ESPACE AVANT (le point et la
@@ -422,7 +425,7 @@
           if(_ud.length>200) st('dictionnaire tronqué à 200 mots pour le moteur vocal');
         }
       }catch(e){}
-      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, wtimes:{}, au:null, tEnd:0 };
+      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
       var tr={a:0,s:0}, err='';
       audioStart(S);
       rec.onstart=function(){ st('🎤 micro ouvert — parle…'); };
@@ -430,16 +433,6 @@
       rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
       rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android
         for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i];
-          // ⭐ HORODATAGE PAR MOT — la seule brique qui MANQUAIT vraiment. La voie B posait ses
-          // virgules ENTRE LES MOTS (pauses par mot, wav2vec2) ; la voie A ne marquait qu'entre les
-          // segments de Google, donc jamais À L'INTÉRIEUR d'une phrase. On a pourtant déjà le signal
-          // au bon grain (`au.tl`, une mesure toutes les 30 ms) — il ne manquait que l'ALIGNEMENT.
-          // Les interims le donnent : quand le nombre de mots d'un segment augmente, on date. La
-          // latence du moteur est ~constante, donc elle s'annule dans la DIFFÉRENCE entre deux dates.
-          // L'audio reste l'autorité pour la durée du silence ; l'interim ne fournit que la fenêtre.
-          var _n=(r[0].transcript.trim().match(/\S+/g)||[]).length;
-          if(_n){ var _w=S.wtimes[i]||(S.wtimes[i]=[]);
-            while(_w.length<_n) _w.push(Date.now()-S.t0); }   // on ne date qu'en HAUSSE : Google révise ses interims à la baisse
           if(r.isFinal){ S.finals[i]=_arbitre(r); if(S.ftimes[i]==null)S.ftimes[i]=Date.now()-S.t0; } else intr+=r[0].transcript; }
         var parts=[]; if(S.base.trim())parts.push(S.base.trim());
         var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;});
