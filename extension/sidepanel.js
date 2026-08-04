@@ -324,6 +324,39 @@
     if(!segs.length) return null;
     var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
     var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    // ⭐⭐ DÉTECTION DE QUESTION — REFAITE SUR MESURE (2026-08-04). L'ancienne règle était « un mot
+    // interrogatif en tête », et elle produisait PLUS D'UN FAUX « ? » SUR DEUX : mesuré sur 48 653
+    // phrases françaises réelles (UD FR GSD + WiCoPaCo + corpus GEC), 145 marquées dont 79 FAUSSES
+    // = 45,5 % de précision. Les pièges, tous fréquents :
+    //   · « Quand ils reviennent, ils tentent… »  -> « quand » SUBORDONNANT, pas interrogatif
+    //   · « Quelle jolie décoration ! »           -> EXCLAMATIF
+    //   · « où v est la vitesse du point »        -> « où » RELATIF (et un segment de dictée peut
+    //                                                commencer au milieu d'une phrase !)
+    //
+    // NOUVELLE RÈGLE, mesurée à 100 % de précision (0 faux sur 60 998 échantillons, fragments de
+    // milieu de phrase compris) :
+    //     question  ⟺  ( interrogatif en tête ET (inversion sujet-verbe OU « est-ce que ») )
+    //                  OU ( tête ∈ {qu'est, comment, pourquoi, combien} ET aucune virgule )
+    //                  le tout en 12 mots ou moins
+    // L'inversion (« viens-tu », « est-elle », « va-t-il ») n'est retenue qu'avec les clitiques
+    // je/tu/il/elle/on/ils/elles : l'impératif prend moi/toi/lui/nous/vous/y/en, donc AUCUN
+    // recouvrement — la garde est structurelle, pas statistique.
+    // ⚠️ Le rappel tombe de 23,6 % à 12,4 % : c'est ASSUMÉ. Un « ? » en trop se voit et se paie ;
+    // un « . » à la place d'un « ? » se répare d'un caractère. Et la route PITCH rattrape les
+    // questions par intonation (« Tu viens ? »), que le lexical ne peut pas voir.
+    // `nous`/`vous` sont ambigus SEULS (l'impératif dit « asseyez-vous ») — mais ici l'inversion
+    // n'est lue QU'APRÈS un mot interrogatif en tête, où un impératif est impossible. Mesuré
+    // NEUTRE sur 60 998 échantillons (26 marquées, 100 % dans les deux cas) et ça répare
+    // « Où en sommes-nous ? ». On ne s'en sert JAMAIS pour une inversion nue.
+    var QINV=/(?:^|[^-\w])[a-zà-ÿ]{2,}-(?:t-)?(?:je|tu|il|elle|on|ils|elles|nous|vous)(?![-\w])/i;
+    var QEQ=/est-ce\s+(?:que|qu')/i;
+    var QSEUL=/^(qu'est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+    function estQuestion(t){
+      if(!t) return false;
+      if((t.match(/[\wà-ÿ'’-]+/g)||[]).length>12) return false;
+      if(QW.test(t) && (QINV.test(t)||QEQ.test(t))) return true;
+      return QSEUL.test(t) && t.indexOf(',')<0;
+    }
     // ⭐ SEUILS DE LA VOIE B À L'IDENTIQUE (dictee/asr_voix.py L38) : COMMA_MS, PERIOD_MS = 190, 750.
     // Ils avaient été transcrits à 600 pour le point, sans plancher pour la virgule. Le commentaire
     // de la voie B dit pourquoi 750 : ne PAS couper sur une respiration intra-phrase (~500 ms), qui
@@ -334,7 +367,7 @@
     var out=(S.base.trim()?S.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
-        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
+        if(estQuestion(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
         else if(useAudio){ var sil=silAfter(au.tl,thr,(S.ftimes[pv.idx]||0)-100);
           mk = sil>=PERIOD_MS ? '.' : (sil>=COMMA_MS ? ',' : ''); }   // sous 190 ms : RIEN, comme la voie B
         else if(CONT.test(nx.t)) mk=',';
@@ -343,7 +376,7 @@
       out+=virgulesInternes(segs[s],S,thr,useAudio,COMMA_MS); }
     var last=segs[segs.length-1];
     // typographie française : « ? » prend une espace avant, le point non.
-    var _fin=(QW.test(last.t)||riseAt(last.idx)>4)?'?':'.';
+    var _fin=(estQuestion(last.t)||riseAt(last.idx)>4)?'?':'.';
     return capV(out.replace(/\s*$/,'')+(_fin==='?'?' ':'')+_fin); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {

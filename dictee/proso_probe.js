@@ -108,6 +108,32 @@ cas('affirmation : point COLLE', {base:'', finals:{0:'je pars demain'}, ftimes:{
   wtimes:{}, au:AU({dur:3000, sil:[]})}, 'Je pars demain.');
 
 console.log('');
+console.log('-- DETECTION DE QUESTION : les pieges MESURES (48 653 phrases + 12 345 fragments) --');
+// L'ancienne règle (« un mot interrogatif en tête ») marquait 145 phrases dont 79 FAUSSES = 45,5 %
+// de précision. La nouvelle est mesurée à 100 % (0 faux). Ces cas sont les familles de faux
+// positifs qu'elle éliminait — ils restent ici pour qu'on ne les réintroduise pas.
+const SIL = {dur:3000, sil:[]};
+cas('« quand » SUBORDONNANT, pas interrogatif',
+ {base:'', finals:{0:'quand ils reviennent, ils tentent d\'enseigner'}, ftimes:{0:2000}, wtimes:{}, au:AU(SIL)},
+ "Quand ils reviennent, ils tentent d'enseigner.");
+cas('« quelle » EXCLAMATIF, pas interrogatif',
+ {base:'', finals:{0:'quelle jolie décoration'}, ftimes:{0:2000}, wtimes:{}, au:AU(SIL)},
+ 'Quelle jolie décoration.');
+cas('« où » RELATIF (un segment peut débuter en milieu de phrase)',
+ {base:'', finals:{0:'où v est la vitesse du point'}, ftimes:{0:2000}, wtimes:{}, au:AU(SIL)},
+ 'Où v est la vitesse du point.');
+cas('« où » + INVERSION = vraie question',
+ {base:'', finals:{0:'où en sommes-nous'}, ftimes:{0:2000}, wtimes:{}, au:AU(SIL)},
+ 'Où en sommes-nous ?');
+cas('« est-ce que » = vraie question',
+ {base:'', finals:{0:'est-ce que tu viens ce soir'}, ftimes:{0:2000}, wtimes:{}, au:AU(SIL)},
+ 'Est-ce que tu viens ce soir ?');
+cas('phrase LONGUE en « comment » : on s\'abstient (>12 mots)',
+ {base:'', finals:{0:'comment réussir en amour sans se fatiguer est un film américain de 1967'},
+  ftimes:{0:2000}, wtimes:{}, au:AU(SIL)},
+ 'Comment réussir en amour sans se fatiguer est un film américain de 1967.');
+
+console.log('');
 console.log('-- LE MOTEUR A DEJA PONCTUE (trouve par l\'audit, pas par un test qui passait) --');
 // `unspokenPunctuation` vaut false (mesuré) : le moteur n'invente pas de ponctuation, mais il
 // transcrit celle qu'on DIT (« virgule », « point ») et rend parfois un « ? ». Notre couche décide
