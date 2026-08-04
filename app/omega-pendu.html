@@ -24197,38 +24197,6 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
-  // ===== SORTIE SON — informer, puisqu'on ne peut pas ROUTER. MESURÉ : SpeechSynthesisUtterance
-  // n'expose aucune sortie (text/lang/voice/volume/rate/pitch seulement) et speechSynthesis non plus.
-  // `setSinkId` existe mais ne vaut que pour l'audio qu'on génère SOI-MÊME — le flux de la synthèse
-  // n'est pas captable. La dictée suit donc TOUJOURS la sortie par défaut du système : on le DIT,
-  // au lieu de laisser quelqu'un chercher pourquoi le son ne va pas dans son casque.
-  // ⚠️ On n'appelle PAS getUserMedia : les noms de périphériques ne sont lisibles qu'avec une
-  // permission média, et réclamer le MICRO pour une DICTÉE serait abusif. Si la permission existe
-  // déjà (l'utilisateur a servi la voix ailleurs), on affiche les noms ; sinon on reste générique.
-  function _vddAudio(){
-    var el=$('vdd-audio');
-    if(!el){                                   // le créer plutôt que l'insérer dans l'innerHTML :
-      var card=$('vdd-card'); if(!card)return;  // une ligne ajoutée APRÈS la fin de la chaîne est INERTE
-      el=document.createElement('div'); el.id='vdd-audio'; el.className='vdd-sc';
-      el.style.cssText='margin-top:6px;opacity:.85'; card.appendChild(el); }
-    var sys='Pour changer de casque ou de haut-parleur : réglages son de ton système.';
-    if(typeof navigator==='undefined'||!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices){   // typeof : `navigator` n'existe pas sous Node<21 (le correcteur est baké et testé en CI)
-      el.textContent='🔊 '+sys; return; }
-    navigator.mediaDevices.enumerateDevices().then(function(d){
-      var outs=d.filter(function(x){return x.kind==='audiooutput';});
-      var nommes=outs.filter(function(x){return x.label;});
-      if(!nommes.length){
-        el.textContent='🔊 La dictée sort sur le périphérique par défaut de ton système'
-          +(outs.length>1?' ('+outs.length+' sorties détectées)':'')+'. '+sys;
-        return; }
-      var def=nommes.filter(function(x){return x.deviceId==='default';})[0];
-      el.innerHTML='🔊 Sortie utilisée : <b>'+(def?def.label:nommes[0].label).replace(/[<>]/g,'')+'</b>'
-        +(nommes.length>1?' — autres disponibles : '+nommes.filter(function(x){return x!==def&&x.deviceId!=='default';})
-            .map(function(x){return x.label.replace(/[<>]/g,'');}).slice(0,4).join(', '):'')
-        +'<br>'+sys;
-    }).catch(function(){ el.textContent='🔊 '+sys; });
-  }
-  _vddAudio();
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (défini avant) — résout les refs nues même dans les harnais d'extraction (window bouchonné)
   var diff='facile',cur=null,nG=0,nT=0,answered=false,SESSF=[];var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','majuscule'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var SYLCOL=false;try{SYLCOL=localStorage.getItem('vdd_syl')==='1';}catch(e){}var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>'+(REMED[fo]?'<br><span style="font-size:.92em;color:#7a5c00">🛠️ '+REMED[fo]+'</span>':''):'')):'';}
   function renderUProf(){var el=$('vdd-uprof');if(!el||!DysProfile)return;var s=DysProfile.summary();
