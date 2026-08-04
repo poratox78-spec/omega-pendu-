@@ -297,11 +297,6 @@
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
       rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      // ⚠️ MÊME RÉGLAGE QUE LE SITE : `quality` vaut « command » PAR DÉFAUT — un moteur calé pour des
-      // ORDRES COURTS, alors qu'on DICTE des phrases. Mesuré dans Chrome : seules deux valeurs sont
-      // acceptées, « command » et « dictation ». On tournait dans le mauvais mode sur les DEUX
-      // surfaces ; corriger l'une sans l'autre aurait créé une asymétrie invisible.
-      try { if ('quality' in rec) rec.quality = 'dictation'; } catch (e) {}
       var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, au: null, tEnd: 0 };
       var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
       audioStart(S);
