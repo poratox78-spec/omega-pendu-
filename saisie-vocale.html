@@ -266,6 +266,15 @@
     try{state.au.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} } }catch(e){} }
   function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue;
     if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
+  // ⚠️ silBetween prend le MAXIMUM de la fenêtre. Utilisé avec une fenêtre [fin de A -> fin de B],
+  // il peut renvoyer la pause qui termine B au lieu de celle qui sépare A de B — toujours par EXCÈS,
+  // donc vers le point. Combiné au seuil trop bas, ça coupait la phrase sur une respiration, et le
+  // fragment obtenu recevait alors un « ? » (test de pitch / cue qu- sur une fausse fin de phrase).
+  // Ici : la PREMIÈRE plage de silence rencontrée à partir de `a` — c'est celle qu'on cherche.
+  function silAfter(tl,thr,a){ var i,run=0,vu=false;
+    for(i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a)continue;
+      if(p.r<thr){ run+=30; vu=true; } else if(vu) break; }
+    return run; }
   function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
     if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0); var tail=v.slice(-q), body=v.slice(0,-q);
     function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
@@ -273,26 +282,64 @@
   // MIX règles + voix : la VOIX fiable = les frontières de segments finaux (Web Speech finalise sur les
   // pauses, sans getUserMedia) ; les RÈGLES décident point/virgule + normalisent la majuscule d'amorce que
   // Google colle à chaque segment (sinon maj mal placées). L'audio (s'il a marché) affine point/virgule/« ? ».
+  // Pose les virgules À L'INTÉRIEUR d'un segment, au grain MOT — le comportement de la voie B.
+  // ⚠️ DOUTE -> ON NE MET RIEN. Si les interims arrivent en RAFALE (plusieurs mots d'un coup), on ne
+  // sait pas DEVANT QUEL mot poser la virgule : on s'abstient au lieu de la mettre au hasard. Une
+  // virgule au mauvais endroit coûte plus cher à un dys qu'une virgule absente.
+  function virgulesInternes(seg, state, thr, useAudio, COMMA_MS){
+    var mots=seg.t.split(/\s+/), st=state.wtimes&&state.wtimes[seg.idx];
+    if(!useAudio||!st||st.length<2||mots.length<3) return seg.t;
+    var out=mots[0], k;
+    for(k=1;k<mots.length;k++){
+      var a=st[k-1], b=st[k];
+      // pas de date pour ce mot, ou fenêtre nulle (rafale : plusieurs mots datés à la même ms) -> on s'abstient
+      if(a==null||b==null||b<=a){ out+=' '+mots[k]; continue; }
+      var sil=silBetween(state.au.tl,thr,a,b);
+      var deja=/[.,;:!?…]$/.test(mots[k-1]);   // le moteur a déjà ponctué ici : ne pas doubler
+      out += (!deja && sil>=COMMA_MS ? ',' : '') + ' ' + mots[k];
+    }
+    return out;
+  }
   function prosodyText(state){
     var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;});
-    var segs=[]; for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+    // ⚠️ LE MOTEUR PEUT DÉJÀ PONCTUER. `unspokenPunctuation` vaut false (mesuré), donc il n'invente
+    // pas de ponctuation — mais il transcrit celle qu'on DIT (« virgule », « point ») et rend parfois
+    // un « ? ». Notre couche décide la ponctuation elle-même : si le segment en porte déjà une en
+    // FIN, on la retire avant d'ajouter la nôtre, sinon on sort « demain.. » ou « ça va ?. ».
+    // (trouvé par l'audit, pas par un test qui passait)
+    var segs=[]; for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim();
+      if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }   // norm : MAJ d'amorce Google + ponctuation finale du moteur
     if(!segs.length) return null;
     var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
     var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    // ⭐ SEUILS DE LA VOIE B, REPRIS À L'IDENTIQUE (dictee/asr_voix.py L38) :
+    //     COMMA_MS, PERIOD_MS = 190, 750
+    // Ils avaient été transcrits à 600 pour le point, SANS plancher pour la virgule. Le commentaire
+    // d'origine de la voie B dit exactement pourquoi 750 : « au-dessus de 750 pour ne PAS couper sur
+    // une respiration intra-phrase ~500 ms qui ferait un faux "?" ». À 600 il ne restait que 100 ms
+    // de marge — d'où les fins de phrase et les « ? » intempestifs.
+    // Et sans plancher, TOUTE frontière de segment recevait une marque, même une micro-hésitation.
+    var COMMA_MS=190, PERIOD_MS=750;
     var au=state.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&state.ftimes[idx]!=null)?riseEndingAt(au.tl,state.ftimes[idx]-500,state.ftimes[idx]):0; }
     var out=(state.base.trim()?state.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
         if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
-        else if(useAudio){ var sil=silBetween(au.tl,thr,(state.ftimes[pv.idx]||0)-100,(state.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
+        else if(useAudio){ var sil=silAfter(au.tl,thr,(state.ftimes[pv.idx]||0)-100);
+          mk = sil>=PERIOD_MS ? '.' : (sil>=COMMA_MS ? ',' : ''); }   // sous 190 ms : RIEN, comme la voie B
         else if(CONT.test(nx.t)) mk=',';
         else mk='.';
-        out=out.replace(/\s*$/,'')+mk+' '; }
-      out+=segs[s].t;
+        out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+(mk?' ':' '); }
+      out+=virgulesInternes(segs[s], state, thr, useAudio, COMMA_MS);
     }
     var last=segs[segs.length-1];
-    out=out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.');
+    // ⚠️ TYPOGRAPHIE FRANÇAISE : « ? » « ! » « ; » « : » prennent une ESPACE AVANT (le point et la
+    // virgule non). On sortait « Tu viens? », qui est la règle ANGLAISE. Espace NORMALE et pas
+    // insécable fine : la destination est un chat (Twitch/Discord) et l'insécable se colle mal
+    // au collage selon les clients — la lisibilité prime sur la finesse typographique ici.
+    var _fin=(QW.test(last.t)||riseAt(last.idx)>4)?'?':'.';
+    out=out.replace(/\s*$/,'')+(_fin==='?'?' ':'')+_fin;
     return capitalize(out);
   }
   function stop(){ recording=false; mic.textContent='🎤 Dicter'; mic.classList.remove('rec'); try{ if(rec)rec.stop(); }catch(e){} }
@@ -342,7 +389,7 @@
           if(_ud.length>200) st('dictionnaire tronqué à 200 mots pour le moteur vocal');
         }
       }catch(e){}
-      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
+      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, wtimes:{}, au:null, tEnd:0 };
       var tr={a:0,s:0}, err='';
       audioStart(S);
       rec.onstart=function(){ st('🎤 micro ouvert — parle…'); };
@@ -350,6 +397,16 @@
       rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
       rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android
         for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i];
+          // ⭐ HORODATAGE PAR MOT — la seule brique qui MANQUAIT vraiment. La voie B posait ses
+          // virgules ENTRE LES MOTS (pauses par mot, wav2vec2) ; la voie A ne marquait qu'entre les
+          // segments de Google, donc jamais À L'INTÉRIEUR d'une phrase. On a pourtant déjà le signal
+          // au bon grain (`au.tl`, une mesure toutes les 30 ms) — il ne manquait que l'ALIGNEMENT.
+          // Les interims le donnent : quand le nombre de mots d'un segment augmente, on date. La
+          // latence du moteur est ~constante, donc elle s'annule dans la DIFFÉRENCE entre deux dates.
+          // L'audio reste l'autorité pour la durée du silence ; l'interim ne fournit que la fenêtre.
+          var _n=(r[0].transcript.trim().match(/\S+/g)||[]).length;
+          if(_n){ var _w=S.wtimes[i]||(S.wtimes[i]=[]);
+            while(_w.length<_n) _w.push(Date.now()-S.t0); }   // on ne date qu'en HAUSSE : Google révise ses interims à la baisse
           if(r.isFinal){ S.finals[i]=_arbitre(r); if(S.ftimes[i]==null)S.ftimes[i]=Date.now()-S.t0; } else intr+=r[0].transcript; }
         var parts=[]; if(S.base.trim())parts.push(S.base.trim());
         var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;});
