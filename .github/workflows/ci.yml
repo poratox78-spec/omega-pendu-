@@ -93,6 +93,8 @@ jobs:
         run: python tools/omega_edit.py
       - name: Double-Sens — table de définitions + règle d'équité
         run: node dictee/sens_probe.js --check
+      - name: Ponctuation vocale — règles BDL/OQLF + parité site/extension
+        run: node dictee/proso_probe.js
       - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)
         run: |
           node dictee/build_correcteur.js /tmp/correcteur.standalone.js

@@ -241,25 +241,89 @@
     var mt=med(tail), mb=med(body); return (mb>0&&mt>0)? 12*Math.log(mt/mb)/Math.log(2) : 0; }
   // MIX règles + voix : frontières de segments finaux (pauses Web Speech, sans getUserMedia) + règles
   // (point/virgule + normalisation de la majuscule d'amorce Google) ; audio en refinement si dispo.
+  // ── ⭐ MOT DE TÊTE HORS PHRASE — « Bonjour, ... » (règle BDL/OQLF, MESURÉE ; parité site).
+  // Le BDL isole l'élément hors phrase par des virgules ; EN TÊTE la première est omise, la seconde
+  // reste. MESURÉ sur 694 949 phrases françaises ponctuées (Wiktionnaire FR + UD FR GSD) : 79,4 %
+  // (bonjour) à 93 % (tiens) de séparation réelle. Un corpus mesure ce qu'on ÉCRIT, pas ce qui est
+  // CORRECT — j'ai donc relu LES 53 cas non séparés des 4 salutations retenues : « Bonjour
+  // Mademoiselle. », « Salut les pigeons ! », « Coucou Loulou, »… ce sont TOUS des apostrophes, où
+  // le BDL PRESCRIT la virgule. 0 contre-exemple structurel. Seul « Salut bien » gouverne -> gardé.
+  // ⚠️ EXCLUS APRÈS MESURE : merci (48,2 % — « merci bien/beaucoup »), ok (70,2 %), oui/bon/alors/
+  // voilà/eh (adverbes et présentatifs qui gouvernent leur suite). Ne pas les rajouter.
+  // ── ⭐ LA MAJUSCULE QUE GOOGLE POSE *À L'INTÉRIEUR* D'UN SEGMENT (parité site).
+  // Trouvé en rejouant la prise LIBRE de Rem : « bonjour Qu'est-ce que je fais » — minuscule au
+  // début, MAJUSCULE au milieu, parce que Google croit qu'une phrase commence là. On ne normalisait
+  // que le PREMIER caractère du segment -> on sortait « Bonjour, Qu'est-ce ». Liste FERMÉE de
+  // mots-outils (aucun n'est un nom propre : « je vais à Paris » garde son Paris), et seulement
+  // hors marque de fin de phrase — là, la majuscule est la NÔTRE et elle est juste.
+  var _MAJOUTIL=new RegExp('([^.!?…]\\s)((?:qu\'est-ce|est-ce|c\'est|j\'ai|j\'en|qu\'|il|elle|on|nous|vous|ils|elles|je|tu|le|la|les|un|une|des|du|au|aux|ce|cet|cette|ces|et|ou|mais|donc|car|ni|alors|puis|aussi|si|que|qui|quoi|dont|quand|comment|pourquoi|combien|quel|quelle|quels|quelles|en|dans|sur|pour|avec|sans|chez|vers|depuis)(?![a-zà-ÿœ]))','gi');
+  // ⚠️ La garde « nom propre composé » NE PEUT PAS vivre dans la regex : elle porte le drapeau `i`
+  // (il faut bien reconnaître « Qu'est-ce » ET « qu'est-ce »), donc une classe [A-Z] y serait
+  // insensible à la casse et ne prouverait plus rien. Elle est donc testée ICI, où la casse compte :
+  // « à La Rochelle », « au Havre », « Le Mans » gardent leur majuscule ; « la voiture » non.
+  var _NOMPROPRE=/^\s+[A-ZÀ-ÖØ-Þ]/;
+  function normMajInterne(t){
+    t=String(t);
+    return t.replace(_MAJOUTIL,function(m,av,mot,off){
+      if(_NOMPROPRE.test(t.slice(off+m.length))) return m;
+      return av+mot.charAt(0).toLowerCase()+mot.slice(1); }); }
+
+  var _SALUT=/^(bonjour|bonsoir|salut|coucou)(?![a-zà-ÿœ])/i;
+  var _GOUVERNE=/^\s*(?:[àa]|au|aux|de|du|des|d['’]|en|dans|sur|sous|par|pour|avec|sans|chez|vers|depuis|pendant|selon|entre|que|qu['’]|comme|si|quand|dont|bien)(?![a-zà-ÿœ])/i;
+  function teteHorsPhrase(t){
+    var m=_SALUT.exec(t||''); if(!m) return 0;
+    var reste=t.slice(m[0].length);
+    if(!reste.trim()) return 0;
+    if(_GOUVERNE.test(reste)) return 0;
+    return m[0].length; }
   function prosodyText(S){
     var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
-    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
     if(!segs.length) return null;
+    // ⚠️⚠️ SEUILS D'ORIGINE DE LA VOIE A (commit 32ba743) : COMMA=190, PERIOD=600, QR=4.
+    // LE PLANCHER À 190 MANQUAIT ICI (perdu en PR#311, restauré côté site mais pas côté extension) :
+    // sans lui, `sil>=600?'.':','` donnait au MINIMUM une virgule à CHAQUE frontière de segment,
+    // même à 0 ms de silence. C'est la divergence qu'a laissée le rollback — corrigée, parité rétablie.
+    var COMMA=190, PERIOD=600, QR=4;
     var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
-    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    // ⭐ PAS DE VIRGULE DEVANT « et / ou / ni » (BDL/OQLF). On ne fait que RÉTROGRADER : une virgule
+    // devient RIEN (les segments se recollent), un vrai POINT (≥ 600 ms) reste un point.
+    var COORD=/^(et|ou|ni)(?![a-zà-ÿœ'’])/i;
+    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête (lookahead car \b casse après « où »)
+    // ⭐⭐ DÉTECTION DE QUESTION — version MESURÉE (l'ancienne règle « interrogatif en tête » faisait
+    // 45,5 % de précision : 79 faux sur 145, sur 48 653 phrases réelles). Nouvelle règle : 100 %,
+    // 0 faux sur 60 998 échantillons. Le BDL confirme la cause principale : L'INTERROGATION
+    // INDIRECTE NE PREND PAS DE « ? » (« Je me demande à quelle heure. »). ⚠️ La règle s'ancre sur
+    // la TÊTE DU SEGMENT : le dégât arrive quand Google coupe AU MILIEU de l'énoncé et rend un
+    // segment « quelle heure il est » — l'ancienne règle y posait un « ? » sur une subordonnée.
+    // L'inversion SEULE a été
+    // mesurée et refusée (69,4 %) — lue uniquement APRÈS un interrogatif. Le PITCH reste le seul
+    // canal pour l'interrogation par INTONATION (« Tu pars dans un mois ? ») : les deux se complètent.
+    var QINV=/(?:^|[^-\w])[a-zà-ÿ]{2,}-(?:t-)?(?:je|tu|il|elle|on|ils|elles|nous|vous)(?![-\w])/i;
+    var QEQ=/est-ce\s+(?:que|qu['’])/i;
+    var QSEUL=/^(qu'est|qu’est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+    function estQuestion(t){
+      if(!t) return false;
+      if((t.match(/[\wà-ÿ'’-]+/g)||[]).length>12) return false;
+      if(QW.test(t) && (QINV.test(t)||QEQ.test(t))) return true;
+      return QSEUL.test(t) && t.indexOf(',')<0; }
     var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
     var out=(S.base.trim()?S.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
-        if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
-        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
-        else if(CONT.test(nx.t)) mk=',';
-        else mk='.';
-        out=out.replace(/\s*$/,'')+mk+' '; }
-      out+=segs[s].t; }
+        if(estQuestion(pv.t)||riseAt(pv.idx)>QR) mk='?';                    // le segment qui SE FERME est une question (lexical OU pitch montant)
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9));
+          mk = sil>=PERIOD ? '.' : (sil>=COMMA ? ',' : ''); }               // sous 190 ms : RIEN
+        else mk = CONT.test(nx.t) ? ',' : '.';
+        if(mk===',' && COORD.test(nx.t)) mk='';                             // « … , et … » -> « … et … » (BDL)
+        out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }              // espace AVANT le « ? » : règle FR
+      var txt=segs[s].t;
+      if(s===0 && !S.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }
+      out+=txt; }
     var last=segs[segs.length-1];
-    return capV(out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.')); }
+    var fin=(estQuestion(last.t)||riseAt(last.idx)>QR)?'?':'.';
+    return capV(normMajInterne(out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin)); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
