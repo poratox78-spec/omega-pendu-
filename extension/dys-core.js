@@ -1718,6 +1718,11 @@ function spellUnknown(tok,atStart,T,idx){
     posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
-    udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel   // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
+    udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
+    // phonKey EXISTAIT depuis toujours mais n'était pas exposé — la clé phonétique du speller,
+    // celle qui rapproche « aveunir » de « avenir ». Exportée pour le jeu « Double-Sens », qui
+    // s'en sert à l'ENVERS du correcteur : lui doit TROUVER le mot parmi 214 000 (donc FP=0 et
+    // silence dans le doute) ; le jeu CONNAÎT déjà la cible et ne compare que deux mots.
+    phonKey:phonKey
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));

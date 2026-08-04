@@ -65,6 +65,7 @@ runsh "syntaxe extension (4 fichiers)" "node --check extension/dys-core.js && no
 run "correcteur standalone"         node dictee/correcteur.js
 run "correcteur AUTONOME (bake, 3 mondes)" node dictee/bake_probe.js --check
 run "surfaces vocales site ≡ extension"  node dictee/voix_parity_probe.js --check
+run "Double-Sens (table + règle d'équité)" node dictee/sens_probe.js --check
 run "outil d'édition (pièges monolithe)" python tools/omega_edit.py
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js

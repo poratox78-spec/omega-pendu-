@@ -89,6 +89,8 @@ jobs:
         run: node dictee/correcteur.js
       - name: Voix — site ≡ extension (N-best, arbitrage, garde quality)
         run: node dictee/voix_parity_probe.js --check
+      - name: Double-Sens — table de définitions + règle d'équité
+        run: node dictee/sens_probe.js --check
       - name: Moteur correcteur AUTONOME (bake — 3 mondes, dont sans navigator)
         run: node dictee/bake_probe.js --check
       - name: Outil d'édition du monolithe (auto-test des pièges connus)
