@@ -101,6 +101,12 @@
     if(DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
     if(DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
     if(DC.loadConfusables) DC.loadConfusables(A+'confusables.json').then(runNow);
+    // ⭐ DICTIONNAIRE UTILISATEUR — `dys-core` garde `_UD` EN MÉMOIRE : c'est l'HÔTE qui persiste
+    // (l'extension via chrome.storage, l'app via localStorage). Sur cette page, personne ne
+    // l'alimentait : les mots ajoutés dans l'app (prénoms, pseudos, jargon) étaient donc TOUJOURS
+    // signalés « inconnu » ici. Même origine que l'app -> on lit la même clé qu'elle.
+    // Sert deux fois : ne plus signaler ces mots, ET les souffler au moteur vocal sur l'appareil.
+    try{ if(DC.udSet) DC.udSet(JSON.parse(localStorage.getItem('vdc_userdict')||'[]')); }catch(e){}
   }catch(e){ st('erreur moteur'); }
   else st('moteur absent');
 
@@ -310,6 +316,32 @@
       // `quality` vaut « command » par défaut (ordres courts) alors qu'on DICTE : on passe en
       // « dictation », mais SEULEMENT hors mode local, sinon plus rien ne marche.
       try{ if('quality' in rec && !(loc && loc.checked)) rec.quality = 'dictation'; }catch(e){}
+      // ===== BIAIS LEXICAL (`phrases`) — SUR L'APPAREIL SEULEMENT, et c'est MESURÉ, pas supposé.
+      // Le cloud ACCEPTE l'affectation en silence (r.phrases.length devient 2, le boost est retenu)
+      // puis échoue au start() avec « phrases-not-supported ». Exactement le piège de `quality` :
+      // l'erreur ne tombe qu'à l'ouverture du micro. Balayage complet fait avant de livrer.
+      //   cloud : phrases seul / +dictation / +maxAlt5 / +les deux  -> phrases-not-supported (4/4)
+      //   local : témoin / +phrases / +phrases+maxAlt5              -> start OK (3/3)
+      //
+      // ⭐ CE QUE ÇA DIT DE LA DÉCISION CLOUD/LOCAL : les deux couches tirent en SENS OPPOSÉS.
+      // Le N-best (5 hypothèses contre 1) n'existe que sur le cloud ; le biais lexical que sur
+      // l'appareil. Chaque moteur reçoit donc la couche qu'il sait porter — le cloud reste le
+      // défaut (arbitrage mesuré 4/4), et qui coche « sur l'appareil » gagne SES mots à lui.
+      //
+      // ⚠️ HONNÊTETÉ : le GAIN de `phrases` n'est PAS mesuré — il faudrait quelqu'un qui parle, et
+      // Rem a dit lui-même ne pas être un sujet de test propre (fatigue, prononciation, micro).
+      // Ce qui est mesuré, c'est que c'est accepté et que ça ne casse rien. Ne pas promettre mieux.
+      // Le risque est borné par construction : on ne pousse QUE des mots que l'utilisateur a
+      // AJOUTÉS LUI-MÊME (prénoms, pseudos, jargon — justement ce que l'ASR ne connaît pas).
+      try{
+        if(loc && loc.checked && typeof SpeechRecognitionPhrase!=='undefined' && DC && DC.udAll){
+          var _ud=[]; DC.udAll().forEach(function(m){ if(m && m.length>2) _ud.push(m); });
+          // boost 2 = le double du poids par défaut (1). Non réglé finement : on ne peut pas
+          // l'accorder sans mesurer sur de la voix. Bornes vérifiées : 0..10 ok, négatif rejeté.
+          if(_ud.length) rec.phrases=_ud.slice(0,200).map(function(m){ return new SpeechRecognitionPhrase(m,2); });
+          if(_ud.length>200) st('dictionnaire tronqué à 200 mots pour le moteur vocal');
+        }
+      }catch(e){}
       var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
       var tr={a:0,s:0}, err='';
       audioStart(S);
