@@ -297,11 +297,11 @@
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
       rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      // ⚠️⚠️ `quality='dictation'` CASSE la reconnaissance SUR L'APPAREIL (« language-not-supported »),
-      // mesuré par balayage des 8 combinaisons. Ici l'extension n'a PAS encore l'option locale, donc
-      // « dictation » est sûr — mais le jour où on l'ajoutera, il faudra la MÊME garde que le site.
-      // Régression livrée puis réparée côté site (PR#370/371) : deux options croisées, une seule testée.
-      try { if ('quality' in rec && !rec.processLocally) rec.quality = 'dictation'; } catch (e) {}
+      // ⚠️ MÊME RÉGLAGE QUE LE SITE : `quality` vaut « command » PAR DÉFAUT — un moteur calé pour des
+      // ORDRES COURTS, alors qu'on DICTE des phrases. Mesuré dans Chrome : seules deux valeurs sont
+      // acceptées, « command » et « dictation ». On tournait dans le mauvais mode sur les DEUX
+      // surfaces ; corriger l'une sans l'autre aurait créé une asymétrie invisible.
+      try { if ('quality' in rec) rec.quality = 'dictation'; } catch (e) {}
       var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, au: null, tEnd: 0 };
       var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
       audioStart(S);
