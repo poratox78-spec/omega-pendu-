@@ -24212,7 +24212,7 @@ window.addEventListener('DOMContentLoaded', () => {
       el=document.createElement('div'); el.id='vdd-audio'; el.className='vdd-sc';
       el.style.cssText='margin-top:6px;opacity:.85'; card.appendChild(el); }
     var sys='Pour changer de casque ou de haut-parleur : réglages son de ton système.';
-    if(typeof navigator==='undefined'||!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices){   // typeof : `navigator` n'existe pas sous Node<21 (le correcteur est baké et testé en CI)
+    if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices){
       el.textContent='🔊 '+sys; return; }
     navigator.mediaDevices.enumerateDevices().then(function(d){
       var outs=d.filter(function(x){return x.kind==='audiooutput';});
