@@ -200,6 +200,29 @@
     });
   })();
 
+  // ===== ARBITRAGE DES HYPOTHÈSES (N-best). Google en rend jusqu'à 5 ; il ne donnait qu'une seule
+  // ligne à notre correcteur, qui n'y pouvait RIEN — mesuré : sur 3 transcriptions fautives réelles,
+  // il n'en a rattrapé AUCUNE, parce que ce sont des SUITES DE VRAIS MOTS bien accordées. Détecter
+  // une faute invisible : impossible. CHOISIR entre des candidats fournis : c'est notre architecture.
+  //
+  // PRINCIPE — l'ASR connaît l'ACOUSTIQUE, nous connaissons la LANGUE. On ne refait donc PAS son
+  // classement : on RÉTROGRADE seulement ce qu'on prouve incohérent, et à égalité SON ordre gagne.
+  // Rétrograder n'est pas affirmer -> pas de contrainte FP=0 ici ; sans preuve on ne touche à rien.
+  // Mesuré hors ligne sur les 5 hypothèses réelles d'une dictée de Rem + 2 cas construits : 3/3.
+  function _arbitre(r){
+    var n = Math.min(r.length || 1, 5);
+    if(n < 2 || !DC || !DC.diagnoseAll) return (r[0].transcript || '').trim();
+    var best = 0, bestN = -1;
+    for(var k = 0; k < n; k++){
+      var t = (r[k].transcript || '').trim(); if(!t) continue;
+      var f = 0;
+      try{ f = (DC.diagnoseAll(t).flags || []).filter(function(x){
+             return !/majuscule|typographie/.test(x.name || ''); }).length; }catch(e){ f = 0; }
+      if(bestN < 0 || f < bestN){ bestN = f; best = k; }   // < strict : à égalité on GARDE l'ordre de l'ASR
+    }
+    return (r[best].transcript || '').trim();
+  }
+
   function micInfo(){
     var el=document.getElementById('micinfo'); if(!el) return;
     var sys='Pour en changer : réglages son de ton système.';
@@ -271,7 +294,7 @@
     if(!SR){ st('reconnaissance : utilise Chrome ou Edge'); return; }
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
     try{
-      rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
+      rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=5;   // N-BEST : mesuré, le cloud en rend bien 5 (le local n'en rend qu'1)
       // RECONNAISSANCE SUR L’APPAREIL : l’audio ne quitte pas la machine. Mesuré 2026-08-03 :
       // modele fr-FR = 244 Mo (40 moteur + 205 pack), installe en 16 s. On ne l’active QUE si
       // l’utilisateur a coche la case : un modele de 244 Mo ne se telecharge pas en douce.
@@ -295,7 +318,7 @@
       rec.onspeechstart=function(){ tr.s=1; st('🎤 je t’entends…'); };
       rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android
         for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i];
-          if(r.isFinal){ S.finals[i]=r[0].transcript.trim(); if(S.ftimes[i]==null)S.ftimes[i]=Date.now()-S.t0; } else intr+=r[0].transcript; }
+          if(r.isFinal){ S.finals[i]=_arbitre(r); if(S.ftimes[i]==null)S.ftimes[i]=Date.now()-S.t0; } else intr+=r[0].transcript; }
         var parts=[]; if(S.base.trim())parts.push(S.base.trim());
         var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;});
         for(var k=0;k<ks.length;k++){ if(S.finals[ks[k]])parts.push(S.finals[ks[k]]); }
