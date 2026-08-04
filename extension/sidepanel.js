@@ -287,6 +287,25 @@
       }).catch(function(){}); }catch(e){} }
   function audioStop(S){ try{ if(S.au){ clearInterval(S.au.iv); try{S.au.ac.close();}catch(e){} try{S.au.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} } }catch(e){} }
   function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue; if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
+  // ⚠️ silBetween prend le MAXIMUM de la fenêtre : avec [fin de A -> fin de B] il peut renvoyer la
+  // pause qui TERMINE B, toujours par excès, donc vers le point. silAfter prend la PREMIÈRE plage
+  // de silence à partir de `a` — celle qui sépare vraiment A de B. (miroir du site)
+  function silAfter(tl,thr,a){ var i,run=0,vu=false;
+    for(i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a)continue;
+      if(p.r<thr){ run+=30; vu=true; } else if(vu) break; }
+    return run; }
+  // Virgules À L'INTÉRIEUR d'un segment, au grain MOT (comportement de la voie B).
+  // DOUTE -> RIEN : si les interims arrivent en rafale, on ne sait pas devant quel mot poser la
+  // virgule, donc on s'abstient. Une virgule au mauvais endroit coûte plus cher qu'une absente.
+  function virgulesInternes(seg,S,thr,useAudio,COMMA_MS){
+    var mots=seg.t.split(/\s+/), st=S.wtimes&&S.wtimes[seg.idx];
+    if(!useAudio||!st||st.length<2||mots.length<3) return seg.t;
+    var out=mots[0],k;
+    for(k=1;k<mots.length;k++){ var a=st[k-1], b=st[k];
+      if(a==null||b==null||b<=a){ out+=' '+mots[k]; continue; }
+      var deja=/[.,;:!?…]$/.test(mots[k-1]);   // le moteur a déjà ponctué ici : ne pas doubler
+      out += (!deja && silBetween(S.au.tl,thr,a,b)>=COMMA_MS?',':'')+' '+mots[k]; }
+    return out; }
   function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
     if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
     function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
@@ -295,23 +314,37 @@
   // (point/virgule + normalisation de la majuscule d'amorce Google) ; audio en refinement si dispo.
   function prosodyText(S){
     var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
-    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+    // ⚠️ LE MOTEUR PEUT DÉJÀ PONCTUER. `unspokenPunctuation` vaut false (mesuré), donc il n'invente
+    // pas de ponctuation — mais il transcrit celle qu'on DIT (« virgule », « point ») et rend parfois
+    // un « ? ». Notre couche décide la ponctuation elle-même : si le segment en porte déjà une en
+    // FIN, on la retire avant d'ajouter la nôtre, sinon on sort « demain.. » ou « ça va ?. ».
+    // (trouvé par l'audit, pas par un test qui passait)
+    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim();
+      if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }   // norm : MAJ d'amorce + ponctuation finale du moteur
     if(!segs.length) return null;
     var CONT=/^(et|mais|ou|car|donc|ni|puis|alors|aussi|qui|que|qu|dont|quand|si|comme|parce|puisque|lorsque)\b/i;
     var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête → « ? » (les qu-questions ne montent pas en pitch ; lookahead car \b casse après « où »)
+    // ⭐ SEUILS DE LA VOIE B À L'IDENTIQUE (dictee/asr_voix.py L38) : COMMA_MS, PERIOD_MS = 190, 750.
+    // Ils avaient été transcrits à 600 pour le point, sans plancher pour la virgule. Le commentaire
+    // de la voie B dit pourquoi 750 : ne PAS couper sur une respiration intra-phrase (~500 ms), qui
+    // fabriquait une fausse fin de phrase — et donc un faux « ? ». (miroir du site)
+    var COMMA_MS=190, PERIOD_MS=750;
     var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
     var out=(S.base.trim()?S.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
         if(QW.test(pv.t)||riseAt(pv.idx)>4) mk='?';                         // le segment qui SE FERME est une question (lexical OU pitch montant)
-        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9)); mk=sil>=600?'.':','; }
+        else if(useAudio){ var sil=silAfter(au.tl,thr,(S.ftimes[pv.idx]||0)-100);
+          mk = sil>=PERIOD_MS ? '.' : (sil>=COMMA_MS ? ',' : ''); }   // sous 190 ms : RIEN, comme la voie B
         else if(CONT.test(nx.t)) mk=',';
         else mk='.';
-        out=out.replace(/\s*$/,'')+mk+' '; }
-      out+=segs[s].t; }
+        out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }        // ESPACE AVANT « ? » : règle FR
+      out+=virgulesInternes(segs[s],S,thr,useAudio,COMMA_MS); }
     var last=segs[segs.length-1];
-    return capV(out.replace(/\s*$/,'')+((QW.test(last.t)||riseAt(last.idx)>4)?'?':'.')); }
+    // typographie française : « ? » prend une espace avant, le point non.
+    var _fin=(QW.test(last.t)||riseAt(last.idx)>4)?'?':'.';
+    return capV(out.replace(/\s*$/,'')+(_fin==='?'?' ':'')+_fin); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
@@ -323,7 +356,7 @@
       // « dictation » est sûr — mais le jour où on l'ajoutera, il faudra la MÊME garde que le site.
       // Régression livrée puis réparée côté site (PR#370/371) : deux options croisées, une seule testée.
       try { if ('quality' in rec && !rec.processLocally) rec.quality = 'dictation'; } catch (e) {}
-      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, au: null, tEnd: 0 };
+      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, wtimes: {}, au: null, tEnd: 0 };
       var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
       audioStart(S);
       rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
@@ -335,6 +368,12 @@
         var intr = '';
         for (var i = ev.resultIndex; i < ev.results.length; i++) {
           var r = ev.results[i];
+          // ⭐ HORODATAGE PAR MOT (miroir du site) : la brique qui manquait pour poser les virgules
+          // À L'INTÉRIEUR d'une phrase, comme la voie B. L'audio reste l'autorité pour la DURÉE du
+          // silence ; l'interim ne fournit que la FENÊTRE. On ne date qu'en hausse (Google révise).
+          var _n = (r[0].transcript.trim().match(/\S+/g) || []).length;
+          if (_n) { var _w = S.wtimes[i] || (S.wtimes[i] = []);
+            while (_w.length < _n) _w.push(Date.now() - S.t0); }
           if (r.isFinal) { S.finals[i] = arbitre(r); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
         }
         var parts = []; if (S.base.trim()) parts.push(S.base.trim());
