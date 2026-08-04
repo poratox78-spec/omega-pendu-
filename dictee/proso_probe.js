@@ -14,11 +14,15 @@
 //   ③ FENÊTRE DE MESURE : silBetween prend le MAXIMUM d'une fenêtre qui allait jusqu'à la FIN du
 //     segment suivant — elle pouvait donc renvoyer la pause qui TERMINE ce segment. Toujours par
 //     excès. -> silAfter : la PREMIÈRE plage de silence, celle qui sépare vraiment les deux.
-//   ④ GRAIN : la voie B posait les virgules ENTRE LES MOTS ; la voie A ne marquait qu'entre les
-//     segments de Google, donc JAMAIS à l'intérieur d'une phrase. Le signal était pourtant déjà
-//     là (`au.tl`, une mesure toutes les 30 ms) — il manquait l'ALIGNEMENT, que les interims
-//     donnent. La double captation du micro n'était pas le problème : c'était la ressource
-//     qu'on payait sans s'en servir.
+//   ④ GRAIN : la voie B posait les virgules ENTRE LES MOTS ; la voie A ne marque qu'entre les
+//     segments de Google. ⛔ J'ai tenté de retrouver ce grain via les interims — **MESURÉ-RÉFUTÉ
+//     par Rem à la voix** : « à la, plage », « manger, du, chocolat », des virgules entre un
+//     déterminant et son nom. Google émet ses interims PAR RAFALES, donc l'écart entre deux
+//     horodatages est dominé par la LATENCE DU MOTEUR, pas par la pause réelle. La voie B avait
+//     un alignement VRAI (frames wav2vec2) ; Web Speech n'en fournit AUCUN. **Sans alignement,
+//     pas de grain mot** — et mon banc, avec des horodatages synthétiques parfaitement alignés,
+//     testait la LOGIQUE et pas l'ALIGNEMENT. Retiré. Les 3 cas ci-dessous verrouillent l'absence
+//     de virgule interne. La double captation du micro n'était pas en cause.
 //
 // + typographie : « ? » prend une ESPACE AVANT en français ; on sortait « Tu viens? » (règle
 //   anglaise). Espace normale et non insécable fine : la destination est un chat.
@@ -37,9 +41,9 @@ const P = fs.readFileSync(SRC,'utf8');
 console.log('== ' + (CIBLE==='ext' ? 'EXTENSION (sidepanel.js)' : 'SITE (saisie-vocale.html)') + ' ==');
 function fonc(nom){ const i=P.indexOf('function '+nom+'('); const j=P.indexOf('{',i); let d=0;
   for(let k=j;k<P.length;k++){ if(P[k]==='{')d++; else if(P[k]==='}'){ d--; if(!d) return P.slice(i,k+1); } } }
-const src = [CIBLE==='ext'?'capV':'capitalize','silBetween','silAfter','virgulesInternes','prosodyText'].map(fonc).join(String.fromCharCode(10));
+const src = [CIBLE==='ext'?'capV':'capitalize','silBetween','silAfter','prosodyText'].map(fonc).join(String.fromCharCode(10));
 const M = new Function('riseEndingAt', src +
-  '\nreturn {prosodyText:prosodyText, silAfter:silAfter, virgulesInternes:virgulesInternes};')(()=>0);
+  '\nreturn {prosodyText:prosodyText, silAfter:silAfter};')(()=>0);
 
 // timeline : parole (r=0.5) sauf pendant les silences déclarés [début,fin] en ms
 function tl(dur, silences){
@@ -80,22 +84,29 @@ cas('respiration 620 ms -> virgule, PAS un point (c\'était le bug)',
   au:AU({dur:5000, sil:[[1000,1620]]})},
  'Je pense que ça marche, on verra bien.');
 
-console.log('\n── GRAIN MOT (virgules DANS le segment, comme la voie B) ──');
-cas('silence de 400 ms entre deux mots -> virgule interne',
- {base:'', finals:{0:'alors voilà je pars demain'}, ftimes:{0:3000},
-  wtimes:{0:[100, 500, 900, 1300, 1700]},          // « alors voilà je pars demain »
-  au:AU({dur:4000, sil:[[500,900]]})},              // silence 400 ms entre « voilà » et « je »
- 'Alors voilà, je pars demain.');
-cas('aucun silence interne -> aucune virgule',
- {base:'', finals:{0:'je pars demain matin tôt'}, ftimes:{0:3000},
-  wtimes:{0:[100, 400, 700, 1000, 1300]},
-  au:AU({dur:4000, sil:[]})},
- 'Je pars demain matin tôt.');
-cas('interims en RAFALE (mots datés à la même ms) -> on s\'abstient',
- {base:'', finals:{0:'je pars demain matin tôt'}, ftimes:{0:3000},
-  wtimes:{0:[100, 100, 100, 100, 100]},
-  au:AU({dur:4000, sil:[[200,900]]})},
- 'Je pars demain matin tôt.');
+console.log('\n── GRAIN MOT : MESURÉ-RÉFUTÉ PAR REM À LA VOIX (2026-08-04) ──');
+// Mon banc validait 7/7 — avec des horodatages SYNTHÉTIQUES parfaitement alignés. Il testait donc
+// la LOGIQUE, pas l'ALIGNEMENT. Test réel de Rem :
+//     « Est-ce que je vais à la, plage, aujourd'hui ? »  ·  « Dessine-moi, un mouton. »
+//     « Je veux manger, du, chocolat. »
+// Des virgules ENTRE UN DÉTERMINANT ET SON NOM : l'alignement est faux, aucun seuil ne le sauve.
+// Google émet ses interims PAR RAFALES — l'écart entre deux horodatages est dominé par la latence
+// du moteur, pas par la pause réelle. Web Speech ne fournit AUCUN timing de mot ; la voie B, elle,
+// avait un alignement VRAI par frame (wav2vec2). Sans alignement, pas de grain mot.
+// ⭐ Ces trois cas verrouillent l'ABSENCE de virgule interne : ce sont les phrases de Rem, et un
+// silence intra-segment est explicitement présent dans l'audio synthétique — il doit être IGNORÉ.
+cas('les phrases du test de Rem : aucune virgule interne',
+ {base:'', finals:{0:"est-ce que je vais à la plage aujourd'hui"}, ftimes:{0:3000},
+  au:AU({dur:4000, sil:[[500,900],[1400,1800]]})},
+ "Est-ce que je vais à la plage aujourd'hui ?");
+cas('« Dessine-moi un mouton » reste intact',
+ {base:'', finals:{0:'dessine-moi un mouton'}, ftimes:{0:2000},
+  au:AU({dur:3000, sil:[[600,1100]]})},
+ 'Dessine-moi un mouton.');
+cas('« Je veux manger du chocolat » reste intact',
+ {base:'', finals:{0:'je veux manger du chocolat'}, ftimes:{0:2000},
+  au:AU({dur:3000, sil:[[500,900],[1200,1600]]})},
+ 'Je veux manger du chocolat.');
 
 console.log('');
 console.log('-- TYPOGRAPHIE FRANCAISE : espace AVANT le « ? » --');
