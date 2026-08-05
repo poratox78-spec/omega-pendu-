@@ -30,6 +30,15 @@ const RACINE = path.join(__dirname, '..');
 const SITE = path.join(RACINE, 'saisie-vocale.html');
 const EXT = path.join(RACINE, 'extension', 'sidepanel.js');
 
+/* ⭐ LE TAGGER, VRAI. Depuis le 2026-08-05 la détection de question passe par les PARTIES DU
+   DISCOURS (`DC.posTags` / `DC.toks`). Une sonde qui ne fournirait PAS le tagger ne testerait que
+   la voie dégradée — c'est-à-dire rien de ce qui vient d'être ajouté, tout en restant verte.
+   On charge donc dys-core et le modèle HMM comme le fait parity_pos.js, et on l'injecte dans le
+   bac à sable où la fonction extraite est évaluée. */
+require(path.join(RACINE, 'extension', 'dys-core.js'));
+const DC = global.DYSCORE;
+DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));
+
 /* ── EXTRACTION : on prend le code du fichier LIVRÉ, par équilibrage d'accolades. ───────── */
 function bloc(src, entete) {
   const i = src.indexOf(entete);
@@ -68,7 +77,7 @@ function charge(fichier, nomProso) {
   morceaux.push(src.includes('function capitalize(') ? bloc(src, 'function capitalize(')
                                                      : bloc(src, 'function capV('));
   const code = morceaux.join('\n') + '\nreturn ' + nomProso + ';';
-  return new Function(code)();
+  return new Function('DC', code)(DC);   // DC = le moteur RÉEL, tagger compris (cf. en-tête)
 }
 
 /* ── AUDIO SYNTHÉTIQUE : une timeline 30 ms dont on CHOISIT les silences. ───────────────── */
@@ -219,6 +228,46 @@ cas('mais la vraie question directe passe toujours : « quelle heure est-il »',
     'BDL : inversion sujet-verbe après interrogatif',
     etat(['quelle heure est-il'], [1500], []),
     'Quelle heure est-il ?');
+/* ④bis  LES FORMES QUE LA LISTE DE MOTS NE VOYAIT PAS — c'est Rem qui les a nommées, et la
+ *       détection par PARTIES DU DISCOURS est là pour elles. Sans le tagger injecté en tête de
+ *       ce fichier, ces cas passeraient en silence par la voie dégradée. */
+cas('⭐ INTERRO-NÉGATIVE avec inversion',
+    'BDL : inversion sujet-verbe ; forme nommée par Rem, ratée par la liste de mots',
+    etat(['ne viens-tu pas avec nous'], [1500], []),
+    'Ne viens-tu pas avec nous ?');
+cas('⭐ INTERRO-NÉGATIVE élidée',
+    'idem, avec élision',
+    etat(["n'as-tu pas vu le film"], [1500], []),
+    "N'as-tu pas vu le film ?");
+cas('⭐ question-tag « n\'est-ce pas » en fin',
+    'expression figée, aucune ambiguïté',
+    etat(['tu viens demain n\'est-ce pas'], [1500], []),
+    'Tu viens demain n\'est-ce pas ?');
+cas('⭐ INVERSION NUE (refusée en lexical à 69,4 %, rendue sûre par le tagger)',
+    'le tagger confirme VERB avant le clitique postposé',
+    etat(['viens-tu demain'], [1500], []),
+    'Viens-tu demain ?');
+cas('⭐ INVERSION NUE 3e personne',
+    'idem',
+    etat(['est-il déjà parti'], [1500], []),
+    'Est-il déjà parti ?');
+cas('GARDE IMPÉRATIF : « abonnez-vous » n\'est PAS une question',
+    'mesuré : nous/vous sont exclus de l\'inversion nue (l\'impératif les prend)',
+    etat(['abonnez-vous dès maintenant'], [1500], []),
+    'Abonnez-vous dès maintenant.');
+cas('GARDE INCISE EN TÊTE : « disent-ils, … » n\'est PAS une question',
+    'faux positif mesuré sur fragment : la virgule referme l\'incise',
+    etat(['disent-ils peuvent jouer un rôle'], [1500], []),
+    'Disent-ils peuvent jouer un rôle.');
+cas('GARDE : interrogation INDIRECTE avec « est-ce que » enchâssé',
+    'BDL + faux positif mesuré : « est-ce que » doit être EN TÊTE',
+    etat(['il se demande quand est-ce qu\'il va sortir'], [1500], []),
+    'Il se demande quand est-ce qu\'il va sortir.');
+cas('GARDE : « comment » + GROUPE NOMINAL = interrogation indirecte',
+    'faux positif mesuré, fermé par le DET que voit le tagger',
+    etat(['comment une personne obtient chacun des points'], [1500], []),
+    'Comment une personne obtient chacun des points.');
+
 cas('FP inversion STYLISTIQUE sans interrogatif -> point',
     'mesuré : l\'inversion seule ne fait que 69,4 %',
     etat(['peut-être est-elle déjà partie'], [1500], []),
