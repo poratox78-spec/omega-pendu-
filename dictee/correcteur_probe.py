@@ -934,6 +934,25 @@ def _elid_kind(tok):
 _COLLECTIF = set('''plupart majorite minorite moitie ensemble totalite reste nombre quantite foule dizaine douzaine centaine millier tas infinite serie groupe partie'''.split())   # accord « au sens » toléré : ces têtes acceptent le verbe au pluriel
 
 
+_QUI_CLIT = {'ne', 'y', 'en', 'se', 'me', 'te', 'le', 'la', 'les', 'lui', 'leur', 'nous', 'vous',
+             "n'", "s'", "m'", "t'", "l'"}
+
+
+def _qui_rel_avant(T, j, lo):
+    """Indice du « qui » relatif qui précède le verbe d'indice j (clitiques seuls tolérés), sinon -1.
+    « qui » est un pronom relatif SUJET : son antécédent est forcément à GAUCHE. C'est ce fait de
+    structure qui autorise à sauter la relative entière au lieu de s'arrêter à son verbe."""
+    for k in range(j - 1, j - 4, -1):
+        if k < lo:
+            return -1
+        w = deacc(T[k].lower())
+        if w == 'qui':
+            return k
+        if w not in _QUI_CLIT and T[k].lower() not in _QUI_CLIT:
+            return -1
+    return -1
+
+
 def _np_subject(T, tg, a):
     """Sujet [déterminant + nom-tête] placé juste avant le verbe d'indice a. Renvoie {'idx','det','g','n'} ou None.
     Bornes : proposition (_SEG). Abstention sur coordination (et/ou/ni), sujet-pronom (traité ailleurs), sujet-PP/infinitif
@@ -968,6 +987,14 @@ def _np_subject(T, tg, a):
         if tgj in ('VERB', 'AUX'):                           # frontière verbale : le GN sujet est à droite de j…
             if T[j].lower().endswith(('é', 'és', 'ée', 'ées')) and not (j-1 >= lo and tg and j-1 < len(tg) and tg[j-1] == 'AUX'):
                 j -= 1; continue                             # …SAUF participe-épithète (relative réduite « cartons EMPILÉS dans… ») non précédé d'un aux = adjectif, pas le verbe → sauter vers le nom-tête
+            # ⭐ PROPOSITION RELATIVE EN « qui » (parité JS) : ce verbe est celui de la RELATIVE,
+            # pas celui du sujet cherché. Tout ce qu'on a ramassé depuis appartient à la relative
+            # (« les villages qui composent LA COMMUNE est… ») → on le jette et on reprend à
+            # gauche du « qui », dont l'antécédent est forcément là. Mesuré avant : rappel 0 %.
+            _qr = _qui_rel_avant(T, j, lo)
+            if _qr >= 0:
+                det_idx = None; _seen_prep = False; _elid = False
+                j = _qr - 1; continue
             break
         if dj in NUM_PRON: break                             # sujet-pronom → route pronom (rule_adj_attr) / abstention ici
         if "'" in T[j].lower() and re.search(r"(ils|elles|il|elle|on|je|tu|nous|vous)$", dj):
@@ -1836,6 +1863,46 @@ def rule_accord_sv_noun(T, i):
         if T[m].lower().startswith(("qu'", "qu’")): return None
     for m in range(lo, dk):                                            # SUJET EN TÊTE DE PROPOSITION : seuls des adverbes antéposés avant le déterminant.
         if tg[m] != 'ADV': return None                                #   sinon le GN détecté est un OBJET/complément d'un verbe amont (« qui composent LE SME sont »), pas le sujet → abstention
+    # ⭐ RELATIVE EN « qui » — le résiduel que Rem pointait, ouvert CONTRE PREUVE.
+    # « qui » est un pronom relatif SUJET : son verbe s'accorde OBLIGATOIREMENT avec l'antécédent.
+    # Si ce verbe porte le MÊME NOMBRE que le nom-tête trouvé, la relative CORROBORE ce nom-tête.
+    # Ce n'est pas une heuristique de distance : c'est une contrainte grammaticale vérifiée sur le
+    # texte. Sans cette preuve (« la liste des villages qui COMPOSENT … est longue » : tête sg,
+    # relative pl -> l'antécédent n'est pas la tête) on s'abstient — manque assumé, jamais un FP.
+    _qi = [m for m in range(hk + 1, i) if deacc(T[m].lower()) == 'qui']
+    if len(_qi) == 1:
+        _q = _qi[0]
+        _span = list(range(hk + 1, i))
+        _ok = True
+        for m in _span:                                                # ② ponctuation ③ coordination ④ autre subordonnant
+            _d = deacc(T[m].lower())
+            if any(ch in ',;:()[]«»"' for ch in T[m]): _ok = False; break
+            if _d in ('et', 'ou', 'ni'): _ok = False; break
+            if m != _q and _d in CONJ_WORDS: _ok = False; break
+            if T[m].lower().startswith(("qu'", "qu’")): _ok = False; break
+        if _ok:
+            _vr = None                                                 # ⑤ le verbe de la relative : le 1er verbe fini après « qui »
+            for m in range(_q + 1, i):
+                if deacc(T[m].lower()) in CLITIC: continue
+                if tg and m < len(tg) and tg[m] in ('VERB', 'AUX'): _vr = m
+                break
+            if _vr is not None:
+                _rr = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[_vr]) if p == '3']
+                if _rr and all(n == nb or n == 'x' for (_l, _mt, _p, n) in _rr):
+                    # la relative confirme le nom-tête -> on saute la GARDE STRUCTURE ci-dessous
+                    if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None   # déjà d'accord
+                    _lemmas = {l for (l, _mt, _p, _n) in p3}
+                    if len(_lemmas) != 1: return None
+                    _lem = _lemmas.pop()
+                    _mts = [mt for (_l, mt, _p, _n) in p3]
+                    _mt = 'ind:pre' if 'ind:pre' in _mts else _mts[0]
+                    if _mt == 'ind:pas': return None
+                    _sg = CONJ_C.get(_lem, {}).get(_mt, {}).get('3' + nb)
+                    if not _sg: return None
+                    if not any(p == '3' and (n == nb or n == 'x') for (_l, _mt2, p, n) in _reads(_sg)):
+                        return None
+                    return _sg
+
     for m in range(hk + 1, i):                                         # GARDE STRUCTURE nom-tête → verbe : compléments prépositionnels SEULEMENT
         tok = T[m]; dw = deacc(tok.lower())
         if dw in CONJ_WORDS: return None                              # et/ou/qui/que/quand… (coordination/relative) → sujet ambigu → abstention

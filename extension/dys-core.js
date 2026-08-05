@@ -443,6 +443,41 @@
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
     if(!vig)for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) ; RETIRÉ en mode vig (orange couvre le mid-phrase)
+    // ⭐ RELATIVE EN « qui » — ouverte CONTRE PREUVE (parité dictee/correcteur_probe.py).
+    // « qui » est un pronom relatif SUJET : son verbe s'accorde OBLIGATOIREMENT avec l'antécédent.
+    // Si ce verbe porte le MÊME NOMBRE que le nom-tête trouvé, la relative CORROBORE ce nom-tête —
+    // contrainte grammaticale vérifiée sur le texte, pas heuristique de distance. Sans corroboration
+    // (« la liste des villages qui COMPOSENT … est longue » : tête sg, relative pl) -> abstention.
+    // MESURÉ : rappel de la famille 0 % -> 2,7 % (cas d'or UD), et signalements à l'échelle
+    // INCHANGÉS (7 avant, 7 après, dont 6 sont de vraies fautes du corpus).
+    var _qi=[],_qm;for(_qm=hk+1;_qm<i;_qm++)if(deacc(T[_qm].toLowerCase())==='qui')_qi.push(_qm);
+    if(_qi.length===1){
+      var _q=_qi[0],_ok=true,_m2;
+      for(_m2=hk+1;_m2<i;_m2++){var _d2=deacc(T[_m2].toLowerCase());
+        if(/[,;:()\[\]«»"]/.test(T[_m2])){_ok=false;break;}
+        if(_d2==='et'||_d2==='ou'||_d2==='ni'){_ok=false;break;}
+        if(_m2!==_q&&CONJ_WORDS[_d2]){_ok=false;break;}
+        if(/^qu['’]/.test(T[_m2].toLowerCase())){_ok=false;break;}}
+      if(_ok){
+        var _vr=-1;for(_m2=_q+1;_m2<i;_m2++){ if(CLITIC[deacc(T[_m2].toLowerCase())])continue;
+          if(tg&&_m2<tg.length&&(tg[_m2]==='VERB'||tg[_m2]==='AUX'))_vr=_m2; break; }
+        if(_vr>=0){
+          var _rr=svReads(T[_vr]).filter(function(r){return r[2]==='3';});
+          if(_rr.length&&_rr.every(function(r){return r[3]===nb||r[3]==='x';})){
+            if(p3.some(function(r){return r[3]===nb||r[3]==='x';}))return null;   // déjà d'accord
+            var _lems={};p3.forEach(function(r){_lems[r[0]]=1;});
+            var _lk=Object.keys(_lems);if(_lk.length!==1)return null;
+            var _mts=p3.map(function(r){return r[1];});
+            var _mt=(_mts.indexOf('ind:pre')>=0)?'ind:pre':_mts[0];
+            if(_mt==='ind:pas')return null;
+            var _sg=(CONJ_C[_lk[0]]&&CONJ_C[_lk[0]][_mt])?CONJ_C[_lk[0]][_mt]['3'+nb]:null;
+            if(!_sg)return null;
+            if(!svReads(_sg).some(function(r){return r[2]==='3'&&(r[3]===nb||r[3]==='x');}))return null;
+            return _sg;
+          }
+        }
+      }
+    }
     for(m=hk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());                // garde structure nom-tête → verbe : compléments prépositionnels SEULEMENT
       if(CONJ_WORDS[dw])return null;                                           // coordination/relative
       if(/[,;:()\[\]«»"]/.test(tk))return null;                               // ponctuation
@@ -1004,12 +1039,31 @@
     if(_ELID_PRON.test(deacc(t)))return 'pron';
     if(_ELID_DET.test(t))return 'det';
     return (t.indexOf("'")>=0||t.indexOf('’')>=0)?'pron':null;}   // autre contraction (d', qu', n') : prudence, on garde le veto
+  // ⭐ PROPOSITION RELATIVE EN « qui » — le résiduel que Rem pointait.
+  // « les villages QUI COMPOSENT la commune est très ancien » : en remontant depuis « est », on
+  // sort à la première frontière VERBALE (« composent ») et on retient « la commune », qui est le
+  // COMPLÉMENT du verbe de la relative. `qui` est pourtant dans _NP_BREAK — on ne l'atteint jamais.
+  // MESURÉ AVANT, sur les cas isolés par l'ANNOTATION UD (nsubj séparé de son verbe par une
+  // relative + leurre de nombre) : FP 0/33 mais **rappel 0 % (23 muets sur 23)**.
+  // RÈGLE DE STRUCTURE, pas de distance : « qui » est un pronom relatif SUJET, son antécédent est
+  // FORCÉMENT à gauche. Donc si un « qui » précède ce verbe (à travers les seuls CLITIQUES), tout
+  // ce qu'on a ramassé depuis appartient à la relative -> on le jette et on reprend à sa gauche.
+  // ⚠️ On n'accepte QUE des clitiques entre les deux : un mot plein romprait la preuve.
+  var _QUI_CLIT={ne:1,y:1,en:1,se:1,me:1,te:1,le:1,la:1,les:1,lui:1,leur:1,nous:1,vous:1,"n'":1,"s'":1,"m'":1,"t'":1,"l'":1};
+  function _quiRelAvant(T,j,lo){
+    for(var k=j-1;k>=j-3;k--){
+      if(k<lo)return -1;
+      var w=deacc(T[k].toLowerCase());
+      if(w==='qui')return k;
+      if(!_QUI_CLIT[w]&&!_QUI_CLIT[T[k].toLowerCase()])return -1;
+    }
+    return -1; }
   function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
         continue;}
-     if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
+     if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;var _qr=_quiRelAvant(T,j,lo);if(_qr>=0){detIdx=-1;_sp=false;_elid=false;j=_qr;continue;}break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
       var _pj=(PREP[dj]||dj==='en'||(T[j].toLowerCase().indexOf("'")>=0&&dj.charAt(0)==='d'));if(_pj)_sp=true;   // « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
       if(tgj==='DET'||NUM_DET[dj]){if(detIdx<0||_sp){detIdx=j;_sp=_pj;_elid=false;}}}   // On remonte au déterminant le PLUS À GAUCHE, mais SEULEMENT à travers un lien « de » — c'est POUR ÇA que la remontée existe (« les enfants DE la voisine » a sa tête à GAUCHE). Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet (FP mesuré). Un 2e GN à gauche SANS lien « de » est ADVERBIAL, pas le sujet. Et une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_sp gardé vrai) : elle ouvre un complément, donc un vrai déterminant plus à gauche doit pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).   // On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ». C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à GAUCHE. Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré). Un second GN à gauche SANS lien « de » est un GN ADVERBIAL (« ce matin », « la semaine dernière »), pas le sujet ⇒ on garde le déterminant le plus PROCHE du verbe.
     if(detIdx<0)return null;
