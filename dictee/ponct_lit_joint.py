@@ -56,6 +56,45 @@ def decoupe(phrase):
     return mots, marques
 
 
+PAS_MS = 30      # notre trame de double capture
+
+
+def mesure_rms(wav, al, nmots):
+    """Le MÊME silence, mesuré comme la PRODUCTION le mesure : trames de 30 ms, RMS, seuil =
+    plancher de bruit borné (le détecteur réparé en PR#384). L'ancre (où sont les frontières de
+    mots) vient toujours de wav2vec2 — sinon on ne saurait pas où regarder — mais la DÉCISION
+    parole/silence est la nôtre. C'est la seule façon de savoir ce que la combinaison vaut avec
+    l'outil qu'on a VRAIMENT, et pas avec celui du banc."""
+    import numpy as np
+    import soundfile as sf
+    a, sr = sf.read(wav, dtype='float32')
+    if getattr(a, 'ndim', 1) > 1:
+        a = a.mean(1)
+    n = int(sr * PAS_MS / 1000.0)
+    t = len(a) // n
+    if t < 4:
+        return [0] * nmots
+    r = np.sqrt(np.mean(np.square(a[:t * n].reshape(t, n)), axis=1))
+    p10, med = float(np.percentile(r, 10)), float(np.median(r))
+    seuil = min(max(0.008, p10 * 3 + 0.004), max(0.008, med * 0.5))
+    muet = r < seuil
+    out = []
+    for i in range(nmots):
+        if i + 1 >= len(al):
+            out.append(0); continue
+        # ⚠️ PIÈGE DE LECTURE, corrigé après une mesure absurde (0 ms PARTOUT) : dans `asr_voix`,
+        # le 4e champ n'est PAS la fin du mot i — le tuple est empilé AU MOMENT où le mot SUIVANT
+        # commence, donc `fin(i) == début(i+1)` et la fenêtre était TOUJOURS VIDE. Un zéro aussi
+        # net n'est jamais une propriété du signal, c'est une fenêtre dégénérée.
+        # Le vrai silence est porté par `before` : il occupe [début(i+1) − before(i+1), début(i+1)).
+        deb, avant = al[i + 1][2], al[i + 1][1]
+        d0 = int((deb - avant) * FR_MS / PAS_MS)
+        d1 = int(deb * FR_MS / PAS_MS)
+        d0 = max(0, min(d0, t)); d1 = max(d0, min(d1, t))
+        out.append(int(muet[d0:d1].sum()) * PAS_MS)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--n', type=int, default=120, help='nombre de clips à traiter')
@@ -90,8 +129,16 @@ def main():
             # silence AVANT chaque mot -> silence APRÈS le mot i = pause du mot i+1
             pauses = [w[1] * FR_MS for w in al]
             sil_apres = [(pauses[i + 1] if i + 1 < len(pauses) else 0) for i in range(len(mots))]
+            # ⭐⭐ DEUXIÈME MESURE DU MÊME SILENCE, avec NOTRE détecteur (question de Rem : « quel
+            # audio ? »). `sil` vient des trames PAD/« | » de wav2vec2 — c'est le modèle acoustique
+            # qui décide, pas nous. Or en production on n'a PAS wav2vec2 : on a un seuil d'ÉNERGIE
+            # (RMS 30 ms, plancher de bruit borné). Mesurer la combinaison avec le silence de
+            # wav2vec2 donnerait un chiffre qu'on ne peut pas atteindre. On enregistre donc les
+            # DEUX, et on comparera : `sil` (idéal) contre `sil_rms` (le nôtre, atteignable).
+            sil_rms = mesure_rms(os.path.join(DOSSIER, r['wav']), al, len(mots))
             f.write(json.dumps({'wav': r['wav'], 'loc': r['locuteur'], 'mots': mots,
-                                'marques': marques, 'sil': sil_apres}, ensure_ascii=False) + '\n')
+                                'marques': marques, 'sil': sil_apres, 'sil_rms': sil_rms},
+                               ensure_ascii=False) + '\n')
             gardes += 1
             if (k + 1) % 20 == 0:
                 print('  %d/%d traités · %d gardés' % (k + 1, len(lignes), gardes), file=sys.stderr)
