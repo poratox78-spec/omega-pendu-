@@ -31,7 +31,10 @@ import random
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+# ⚠️ On n'enveloppe stdout QUE si ce fichier est le point d'entrée : importé depuis
+# ponct_combine_probe, une seconde enveloppe FERME le flux du module appelant.
+if __name__ == '__main__':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 D = 'data_local'
 UD = os.path.join(D, 'ud_fr_gsd-train.conllu')
