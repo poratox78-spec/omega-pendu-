@@ -234,6 +234,39 @@
           S.au.tl.push({t:Date.now()-S.t0, r:r, f:r>0.012?_f0(buf,sr):0}); }catch(e){} },30);
       }).catch(function(){}); }catch(e){} }
   function audioStop(S){ try{ if(S.au){ clearInterval(S.au.iv); try{S.au.ac.close();}catch(e){} try{S.au.stream.getTracks().forEach(function(t){t.stop();});}catch(e){} } }catch(e){} }
+  // ⭐⭐ LE SEUIL DE SILENCE — RÉPARÉ (2026-08-05). L'ancien valait `max(0,008 ; maxRMS x 0,18)` :
+  // il était RELATIF AU PIC. Un seul instant fort (plosive, rire, on s'approche du micro) suffisait
+  // à désensibiliser toute la détection. MESURÉ sur la prise libre de Rem : maxRMS 0,3608 pour une
+  // MÉDIANE de trame à 0,0247 — le pic vaut 14 fois la médiane, donc le seuil (0,0649) passait
+  // AU-DESSUS de la parole ordinaire. Résultat : **5850 ms de parole détectée sur 19470 ms pour
+  // 62 mots**, soit 94 ms par mot. Physiquement impossible : on classait la moitié de la parole
+  // en « silence ».
+  // `git log -S` : ce 0,18 avait été posé au TOUT PREMIER commit de prosodie (32ba743, marqué
+  // « EXPÉRIMENTAL »), sans un commentaire ni une mesure, et tout reposait dessus depuis.
+  //
+  // LE REMPLAÇANT est le standard du domaine : estimer le PLANCHER DE BRUIT sur un décile BAS
+  // (insensible aux pics, contrairement au max) et se placer un facteur au-dessus.
+  // MESURÉ sur VoxPopuli-FR — 250 clips, 47 locuteurs, 655 virgules écrites par des humains :
+  //    ancien  pic x0,18       -> parole 47 % du temps   (physiologiquement FAUX : ~65-80 % attendu)
+  //    plancher seul 0,008     -> parole 74 %            meilleure pause 310 ms, ratio 1,07
+  //    ⭐ bruit p10 x3 + 0,004 -> parole 68 %            meilleure pause 370 ms, ratio 0,98
+  // Sur les prises de Rem l'ancien était PIRE ENCORE (21 % de parole) : son micro a de la dynamique,
+  // et c'est justement la condition qui compte.
+  // ⚠️ HONNÊTETÉ : sur ses 3 prises, ce correctif ne change PAS le score des marques (8/11 avant,
+  // 8/11 après) — il déplace des erreurs sans en enlever. On le livre parce que le détecteur était
+  // FAUX, pas parce qu'il ponctue mieux. Tout ce qui lit la structure des silences en dépend.
+  // ⚠️ BORNÉ PAR LE HAUT, et c'est la garde CI qui l'a exigé : l'estimation par décile suppose
+  // qu'AU MOINS 10 % des trames sont du silence. Quelqu'un qui parle sans respirer fait monter le
+  // p10 au niveau de la PAROLE, et le seuil s'emballe -> tout devient « silence ». On l'encadre
+  // donc entre le plancher absolu et la MOITIÉ DE LA MÉDIANE : un seuil au-dessus de la moitié du
+  // niveau typique ne peut pas être un plancher de bruit, par construction.
+  function _seuilSilence(au){
+    var v=[],i; for(i=0;i<au.tl.length;i++) v.push(au.tl[i].r);
+    if(!v.length) return 0.008;
+    v.sort(function(a,b){return a-b;});
+    var p10=v[Math.min(v.length-1,Math.floor(0.10*v.length))];
+    var med=v[Math.min(v.length-1,Math.floor(0.50*v.length))];
+    return Math.min(Math.max(0.008, p10*3+0.004), Math.max(0.008, med*0.5)); }
   function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue; if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
   function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
     if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
@@ -307,7 +340,7 @@
       if((t.match(/[\wà-ÿ'’-]+/g)||[]).length>12) return false;
       if(QW.test(t) && (QINV.test(t)||QEQ.test(t))) return true;
       return QSEUL.test(t) && t.indexOf(',')<0; }
-    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?Math.max(0.008,au.maxr*0.18):0;
+    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?_seuilSilence(au):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
     var out=(S.base.trim()?S.base.trim()+' ':'');
     for(var s=0;s<segs.length;s++){
