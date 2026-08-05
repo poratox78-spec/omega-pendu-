@@ -7,26 +7,27 @@ s'arrêtait au verbe de la relative et prenait « la commune » pour sujet, et d
 isolés par l'ANNOTATION UD (nsubj séparé de son verbe par une relative + leurre de nombre) :
 FP 0/33 mais **rappel 0 %**.
 
-⚠️⚠️ AUCUN CORRECTIF N'EST LIVRÉ AVEC CE PROBE — il MESURE le résiduel, il ne le répare pas.
-Le mécanisme a pourtant été trouvé et validé dans le moteur de RÉFÉRENCE (Python) :
+⭐ LE CORRECTIF EST LIVRÉ (les trois moteurs). Deux pièces :
+  ① `_np_subject` SAUTE la relative : à la frontière verbale, si un « qui » précède ce verbe (à
+     travers les seuls clitiques), le verbe est celui de la RELATIVE — on jette ce qu'on a ramassé
+     depuis et on reprend à gauche du « qui », dont l'antécédent est forcément là ;
+  ② `rule_accord_sv_noun` s'ouvre CONTRE PREUVE : « qui » est un pronom relatif SUJET, donc son
+     verbe s'accorde OBLIGATOIREMENT avec l'antécédent. Si ce verbe porte le MÊME NOMBRE que le
+     nom-tête trouvé, la relative CORROBORE ce nom-tête — contrainte grammaticale vérifiée sur le
+     texte, pas heuristique de distance. Sans corroboration (« la liste des villages qui COMPOSENT
+     … est longue » : tête sg, relative pl) -> abstention, manque assumé, jamais un FP.
 
-  « qui » est un pronom relatif SUJET, donc son verbe s'accorde OBLIGATOIREMENT avec
-  l'antécédent. Si ce verbe porte le MÊME NOMBRE que le nom-tête trouvé, la relative CORROBORE
-  ce nom-tête — contrainte grammaticale vérifiée sur le texte, pas heuristique de distance.
-  Sans corroboration (« la liste des villages qui COMPOSENT … est longue » : tête sg, relative
-  pl) -> abstention. Mesuré en Python : 6/6 sur les cas types, signalements à l'échelle
-  INCHANGÉS (7 avant, 7 après), rappel de la famille 0 % -> 2,7 %.
+MESURÉ : rappel de la famille **0 % -> 2,7 %**, signalements à l'échelle **INCHANGÉS** (7 avant,
+7 après). Le gain est MINCE et il faut le dire : la corroboration est une condition dure, et la
+plupart des cas réels portent des virgules, des appositions ou de la coordination qui la refusent.
+Ça ouvre la famille, ça ne la résout pas.
 
-POURQUOI CE N'EST PAS LIVRÉ : le port vers les deux moteurs JS ne se déclenche pas, alors que
-Python le fait — vraisemblablement parce que `_SEG.bb` marque une frontière de proposition sur
-« qui » et borne la remontée du parseur autrement d'un moteur à l'autre. Livrer aurait créé une
-DIVERGENCE ENTRE MOTEURS, c'est-à-dire deux comportements pour le même texte. On garde donc la
-mesure, et le correctif attend d'être identique partout.
-
-CE PROBE MESURE LES DEUX FACES, et le FP passe EN PREMIER parce que c'est lui qui commande :
- ① FP=0 À L'ÉCHELLE sur du français CORRECT (UD FR GSD entier) — aucune affirmation nouvelle.
- ② RAPPEL sur les cas d'or, corrompus.
-Usage : python dictee/sujet_relative_probe.py [--check]
+⚠️ FAUSSE PISTE COÛTEUSE, à ne pas refaire : j'ai d'abord conclu que le port JS « ne se déclenchait
+pas » et j'ai accusé `_SEG.bb`. Les deux étaient FAUX. Le JS marchait — je testais une page dont le
+SERVICE WORKER servait un `dys-core.js` EN CACHE. Vérifié en rechargeant le module dans un iframe
+neuf : `produit -> produisent`. **Avant de diagnostiquer une divergence entre moteurs, s'assurer
+qu'on exécute bien le code qu'on vient d'écrire** — un `?v=` sur la page ne rafraîchit PAS ses
+scripts précachés.
 """
 import io
 import os
