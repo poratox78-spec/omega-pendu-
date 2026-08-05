@@ -789,6 +789,111 @@
       v=_PLM.niv[k][cs[k]];
       if(v){ s=v[0]+v[1]+v[2]; if(s>=(_PLM.mini||10)) return [v[0]/s,v[1]/s,v[2]/s]; } }
     c=_PLM.pri; s=c[0]+c[1]+c[2]; return s?[c[0]/s,c[1]/s,c[2]/s]:null; }
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ L'ANCRE TEMPORELLE — après quel MOT tombe chaque pause, et combien elle dure.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  // CE QU'ELLE DÉBLOQUE. La saisie vocale ne posait de marque qu'aux FRONTIÈRES DE SEGMENT de
+  // Google. Or Google ne coupe qu'au-delà de ~600 ms, et la virgule française vit vers 350 ms
+  // (mesuré deux fois indépendamment : 47 locuteurs en juillet, puis le lit joint). Les virgules
+  // sont DANS les segments, là où l'on ne savait pas viser.
+  //
+  // ⭐ ET ELLE N'A PAS BESOIN DE L'HORLOGE DE GOOGLE — c'est le point qui débloque tout.
+  // On a longtemps buté sur « deux moteurs sans horloge commune » : Google a les mots, notre
+  // capture a le temps, et les `ftimes` datent l'ARRIVÉE des résultats (la latence), pas la
+  // parole. Le mur était réel tant qu'on cherchait à RECALER les deux horloges. Ici on ne recale
+  // rien : on aligne LA SUITE DE MOTS sur LE SIGNAL. L'horloge de Google devient sans objet.
+  //
+  // COMMENT, SANS AUCUN MODÈLE : on connaît les mots (Google les donne), donc leur nombre de
+  // SYLLABES ; le signal donne les BLOCS DE PAROLE séparés par des pauses. On répartit alors les
+  // mots sur les blocs par programmation dynamique, en minimisant l'écart entre les syllabes
+  // attendues et la durée observée. Chaque frontière de bloc désigne un mot.
+  //
+  // ⚠️ CE N'EST PAS LE « PRORATA DE SYLLABES » MESURÉ-RÉFUTÉ (54 % de placement, 2026-08-04) :
+  // celui-là répartissait les mots sur la durée TOTALE sans regarder où l'on se taisait. Ici les
+  // pauses découpent d'abord, et l'alignement ne fait que remplir les blocs. Répartir ≠ aligner.
+  //
+  // ⚠️ SEUL, CET ALIGNEUR EST MAUVAIS, ET ON LE SAIT : 44 % de placement exact sur 90 clips lus,
+  // 1/12 sur la voix de Rem. Il n'est utilisable QUE combiné au canal texte, qui le recale d'un
+  // mot et REFUSE ses propositions illégales — mesuré F1 0,220 -> 0,309 (lit) et 0,333 -> 0,480
+  // (voix de Rem). L'audio apporte une preuve que le texte n'a pas (quelqu'un s'est tu) ; le
+  // texte apporte une légalité que l'audio ignore. Ni l'un ni l'autre ne suffit.
+
+  // Le nombre de syllabes d'un mot français : les GROUPES DE VOYELLES ÉCRITES, moins le « e »
+  // final muet. Approximation assumée — mesurée contre le comptage lexical exact (Lexique) :
+  // légèrement moins bon sur la voix de Rem, légèrement meilleur sur le lit. L'écart ne justifie
+  // pas d'embarquer un lexique phonétique pour cet usage-là.
+  var _VOY_SYL=/[aeiouyàâäéèêëîïôöûüùœ]+/gi;
+  function ponctSyll(mot){
+    var m=String(mot||'').toLowerCase().replace(/^['’-]+|['’-]+$/g,'');
+    if(!m) return 0;
+    var n=(m.match(_VOY_SYL)||[]).length;
+    if(n>1 && /e$/.test(m) && !/(ee|ie|ue|oe)$/.test(m)) n--;      // « table » = 1, pas 2
+    return Math.max(1,n); }
+
+  // Découpe la timeline en BLOCS DE PAROLE séparés par des pauses >= `minMs`.
+  // ⚠️ La timeline du navigateur est ÉCHANTILLONNÉE À 30 ms sur une fenêtre de 21 ms — 9 ms sur
+  // 30 ne sont jamais regardées. Vérifié que ça ne change rien : sur 93 clips, la chaîne complète
+  // fait F1 0,309 sur cette grille contre 0,303 sur une enveloppe continue à 10 ms. Les pauses
+  // qui nous intéressent durent >= 190 ms, soit au moins 6 échantillons.
+  function ponctBlocs(tl,thr,minMs){
+    if(!tl||!tl.length) return [];
+    var pas=(tl.length>1?Math.max(1,tl[1].t-tl[0].t):30), kmin=Math.max(1,Math.round((minMs||190)/pas));
+    var blocs=[],i=0,deb=0,n=tl.length;
+    while(i<n){
+      if(tl[i].r<thr){
+        var j=i; while(j<n && tl[j].r<thr) j++;
+        if((j-i)>=kmin){ if(i>deb) blocs.push([deb,i]); deb=j; }
+        i=j;
+      } else i++;
+    }
+    if(deb<n) blocs.push([deb,n]);
+    return blocs; }
+
+  // -> [[indice du mot après lequel la pause tombe, durée de la pause en ms]]
+  function ponctAncre(mots,tl,thr,minMs){
+    if(!mots||mots.length<2||!tl||!tl.length) return [];
+    var blocs=ponctBlocs(tl,thr,minMs); if(blocs.length<2) return [];
+    var pas=(tl.length>1?Math.max(1,tl[1].t-tl[0].t):30);
+    var syl=[],tot=0,i;
+    for(i=0;i<mots.length;i++){ syl[i]=ponctSyll(mots[i]); tot+=syl[i]; }
+    if(!tot) return [];
+    // attendu par bloc = sa part de la DURÉE DE PAROLE, ramenée au total connu de syllabes.
+    // Auto-calibré par énoncé : le rapport durée/syllabe est celui de CE locuteur, ce jour-là.
+    // (Mesuré : cette remise à l'échelle fait passer le placement exact de 26 % à 44 % — un
+    // détecteur peut avoir un gain systématique sans avoir un biais de forme.)
+    var dur=[],sd=0;
+    for(i=0;i<blocs.length;i++){ dur[i]=blocs[i][1]-blocs[i][0]; sd+=dur[i]; }
+    if(!sd) return [];
+    var att=[]; for(i=0;i<blocs.length;i++) att[i]=dur[i]/sd*tot;
+    // programmation dynamique : couper la suite de mots en autant de groupes CONTIGUS qu'il y a
+    // de blocs, en minimisant l'écart aux syllabes attendues. Un groupe peut être vide (une
+    // respiration crée un bloc sans qu'aucun mot ne lui appartienne en propre).
+    var n=mots.length,m=blocs.length,cum=[0],k,j,ip;
+    for(i=0;i<n;i++) cum[i+1]=cum[i]+syl[i];
+    var INF=Infinity,co=[],pre=[];
+    for(j=0;j<=m;j++){ co[j]=[]; pre[j]=[]; for(i=0;i<=n;i++){ co[j][i]=INF; pre[j][i]=0; } }
+    co[0][0]=0;
+    for(j=1;j<=m;j++) for(i=0;i<=n;i++) for(ip=0;ip<=i;ip++){
+      if(co[j-1][ip]===INF) continue;
+      var c=co[j-1][ip]+Math.abs((cum[i]-cum[ip])-att[j-1]);
+      if(c<co[j][i]){ co[j][i]=c; pre[j][i]=ip; } }
+    var coupes=[]; i=n;
+    for(j=m;j>0;j--){ ip=pre[j][i]; if(j>1) coupes.push(ip); i=ip; }
+    coupes.reverse();
+    var out=[];
+    for(k=0;k<coupes.length;k++){
+      var iw=coupes[k]-1;                      // dernier mot du groupe
+      if(iw<0||iw>=n-1) continue;
+      // ⚠️ la durée d'une pause est le TROU ENTRE DEUX BLOCS CONSÉCUTIFS, jamais la n-ième
+      // entrée d'une liste de silences : les silences de début et de fin d'enregistrement ne
+      // séparent aucun bloc, et les apparier par indice décale tout d'un cran (bug mesuré,
+      // il faisait tomber le score à 0/12).
+      if(k+1>=blocs.length) break;
+      out.push([iw,(blocs[k+1][0]-blocs[k][1])*pas]);
+    }
+    return out; }
+
   var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
     if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
@@ -1820,6 +1925,9 @@ function spellUnknown(tok,atStart,T,idx){
     phonKey:phonKey,
     // canal TEXTE de la ponctuation (saisie vocale) — chargement EXPLICITE :
     // content.js, qui tourne sur toutes les pages, ne paie pas les 182 Ko.
-    setPonctLm:setPonctLm, loadPonctLm:loadPonctLm, ponctReady:ponctReady, ponctDist:ponctDist
+    setPonctLm:setPonctLm, loadPonctLm:loadPonctLm, ponctReady:ponctReady, ponctDist:ponctDist,
+    // ⭐ L'ANCRE TEMPORELLE — elle vit ICI et non dans les deux pages, pour que le site et
+    // l'extension partagent LA MÊME décision par construction, pas par recopie surveillée.
+    ponctSyll:ponctSyll, ponctBlocs:ponctBlocs, ponctAncre:ponctAncre
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));
