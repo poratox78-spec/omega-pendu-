@@ -38,6 +38,11 @@ const EXT = path.join(RACINE, 'extension', 'sidepanel.js');
 require(path.join(RACINE, 'extension', 'dys-core.js'));
 const DC = global.DYSCORE;
 DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));
+/* ⭐ ET LE CANAL TEXTE DE LA PONCTUATION. Même leçon que pour le tagger : une sonde qui ne le
+   charge PAS ne teste que la voie dégradée — elle resterait verte en ne mesurant rien de ce qui
+   vient d'être ajouté. On décompresse l'asset livré et on l'injecte. */
+DC.setPonctLm(JSON.parse(require('zlib').gunzipSync(
+  fs.readFileSync(path.join(RACINE, 'extension', 'assets', 'ponct-lm.json.gz'))).toString('utf8')));
 
 /* ── EXTRACTION : on prend le code du fichier LIVRÉ, par équilibrage d'accolades. ───────── */
 function bloc(src, entete) {
@@ -68,6 +73,9 @@ function charge(fichier, nomProso) {
     ligneVar(src, '_SALUT'),
     ligneVar(src, '_GOUVERNE'),
     bloc(src, 'function teteHorsPhrase('),
+    ligneVar(src, '_PASAPRES'),
+    bloc(src, 'function _avantTiret('),
+    bloc(src, 'function _poseMarques('),
     bloc(src, 'function _seuilSilence('),
     bloc(src, 'function silBetween('),
     bloc(src, 'function riseEndingAt('),
@@ -201,10 +209,17 @@ cas('question RÉELLE : interrogatif + inversion',
     'BDL : inversion sujet-verbe',
     etat(['où en sommes-nous'], [1500], []),
     'Où en sommes-nous ?');
-cas('FP « quand » SUBORDONNANT -> point',
-    'mesuré : famille de faux positifs n°1',
+/* ⚠️⚠️ ATTENDU MIS À JOUR LE 2026-08-05, et il faut dire pourquoi plutôt que de le changer en
+ * douce. Ce cas vérifie que « quand » SUBORDONNANT ne déclenche PAS de « ? » — c'est toujours
+ * son objet, et c'est toujours vérifié. Mais l'attendu portait AUSSI l'absence de virgule, et
+ * cette absence n'était pas une exigence : c'était le constat qu'AUCUNE couche ne savait la
+ * poser. Le canal texte la pose désormais, et le BDL lui donne raison — une subordonnée
+ * ANTÉPOSÉE se sépare par une virgule (« Quand ils reviennent, ils tentent… »).
+ * On corrige donc l'attendu vers le FRANÇAIS, pas vers le comportement du code. */
+cas('FP « quand » SUBORDONNANT -> point (et virgule de subordonnée antéposée)',
+    'mesuré : famille de faux positifs n°1 · BDL : subordonnée antéposée -> virgule',
     etat(['quand ils reviennent ils tentent de recommencer'], [1500], []),
-    'Quand ils reviennent ils tentent de recommencer.');
+    'Quand ils reviennent, ils tentent de recommencer.');
 cas('FP « quelle » EXCLAMATIF -> point',
     'mesuré : famille de faux positifs n°2',
     etat(['quelle jolie décoration'], [1500], []),

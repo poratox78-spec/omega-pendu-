@@ -749,6 +749,46 @@
   function loadOsLm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();   // LM OS-sujet (os-subj-lm.json.gz) : setOsLm hoisté (défini plus bas)
     var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
     setOsLm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
+  // ⭐⭐⭐ CANAL TEXTE DE LA PONCTUATION (`ponct-lm.json.gz`, 182 Ko compressé).
+  // POURQUOI IL EXISTE : la saisie vocale ne posait de marque QU'AUX FRONTIÈRES DE SEGMENT de
+  // Google. Or Google ne coupe qu'aux pauses >= 600 ms, et les virgules françaises vivent vers
+  // 350 ms (mesuré sur 47 locuteurs) : elles sont DANS les segments, là où on ne posait rien.
+  // ⭐ Ce canal-ci n'a besoin d'AUCUNE ancre temporelle — il lit le texte que Google rend, tel
+  // quel. C'est le seul des trois morceaux qui soit livrable dans un navigateur.
+  // FORME : tables conditionnelles à REPLI (5 niveaux, du plus spécifique au plus général), la
+  // même forme que `os-subj-lm`. Il rend une DISTRIBUTION {rien, virgule, point}, pas une
+  // décision : c'est elle qu'on combine ensuite avec l'audio là où l'audio a le droit de parler.
+  // MESURÉ : 2 411 124 entrées brutes -> 22 275 après élagage, pour une perte quasi nulle
+  // (virgule F1 0,270 -> 0,269 · point 0,470 -> 0,464). La raison mérite d'être retenue : un
+  // contexte dominé par « rien » ne sert à RIEN, « rien » étant déjà le défaut.
+  var _PLM=null;
+  function setPonctLm(o){ _PLM=(o&&o.niv&&o.niv.length)?o:null; }
+  function loadPonctLm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+    var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+    setPonctLm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
+  function ponctReady(){ return !!_PLM; }
+  // Les mêmes clés que le constructeur Python — toute divergence ici rendrait le modèle muet.
+  function _plmCles(mots,tg,i,depuis){
+    var g=(mots[i]||'').toLowerCase(), d=(i+1<mots.length?mots[i+1]:'</s>').toLowerCase();
+    var pg2=(i>0?tg[i-1]:'<s>'), pg=tg[i]||'X';
+    var pd=(i+1<tg.length?tg[i+1]:'</s>'), pd2=(i+2<tg.length?tg[i+2]:'</s>');
+    var loin=(depuis>=6?'L':(depuis>=3?'M':'C')), S=String.fromCharCode(31);   // MEME separateur que le constructeur Python.
+    // ⚠️ Ecrit fromCharCode(31) et NON le caractere brut : un caractere de controle
+    // INVISIBLE dans le source est un piege — un editeur ou un linter peut le manger,
+    // et le modele deviendrait muet SANS message d'erreur (toutes les cles collisionnent).
+    return [ g+S+d+S+loin,
+             pg2+S+pg+S+pd+S+pd2+S+d,
+             pg+S+pd+S+d,
+             pg2+S+pg+S+pd+S+pd2+S+loin,
+             pg+S+pd+S+loin ]; }
+  // -> [p_rien, p_virgule, p_point] ; null si le modèle n'est pas chargé (dégradation douce).
+  function ponctDist(mots,tg,i,depuis){
+    if(!_PLM) return null;
+    var cs=_plmCles(mots,tg,i,depuis),k,c,v,s;
+    for(k=0;k<cs.length && k<_PLM.niv.length;k++){
+      v=_PLM.niv[k][cs[k]];
+      if(v){ s=v[0]+v[1]+v[2]; if(s>=(_PLM.mini||10)) return [v[0]/s,v[1]/s,v[2]/s]; } }
+    c=_PLM.pri; s=c[0]+c[1]+c[2]; return s?[c[0]/s,c[1]/s,c[2]/s]:null; }
   var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
     if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
@@ -1777,6 +1817,9 @@ function spellUnknown(tok,atStart,T,idx){
     // celle qui rapproche « aveunir » de « avenir ». Exportée pour le jeu « Double-Sens », qui
     // s'en sert à l'ENVERS du correcteur : lui doit TROUVER le mot parmi 214 000 (donc FP=0 et
     // silence dans le doute) ; le jeu CONNAÎT déjà la cible et ne compare que deux mots.
-    phonKey:phonKey
+    phonKey:phonKey,
+    // canal TEXTE de la ponctuation (saisie vocale) — chargement EXPLICITE :
+    // content.js, qui tourne sur toutes les pages, ne paie pas les 182 Ko.
+    setPonctLm:setPonctLm, loadPonctLm:loadPonctLm, ponctReady:ponctReady, ponctDist:ponctDist
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));

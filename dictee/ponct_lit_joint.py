@@ -41,7 +41,7 @@ def decoupe(phrase):
     """-> (mots, marques) où marques[i] est la marque qui SUIT le mot i."""
     mots, marques, tampon = [], [], ''
     for ch in phrase:
-        if ch.isalpha() or ch in "'’-" or ch.isdigit():
+        if ch.isalpha() or ch in "'’" or ch.isdigit():   # meme tokenisation que DC.toks
             tampon += ch
         else:
             if tampon:
