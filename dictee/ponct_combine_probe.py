@@ -84,6 +84,16 @@ def main():
     print('canal TEXTE entraîné hors VoxPopuli · tables : ' +
           ' · '.join(str(len(x)) for x in M.t))
 
+    # ⭐ QUEL AUDIO ? (question de Rem). Le lit joint porte DEUX mesures du MÊME silence :
+    #   `sil`     = les trames PAD/« | » de wav2vec2 — c'est le modèle acoustique qui décide ;
+    #   `sil_rms` = NOTRE détecteur d'énergie (RMS 30 ms, plancher de bruit borné), celui qui
+    #               tourne réellement dans le navigateur.
+    # Mesurer la combinaison avec `sil` donne un chiffre qu'on ne peut PAS atteindre en prod.
+    # Par défaut on prend donc le NÔTRE ; `--ideal` rejoue avec celui de wav2vec2 pour voir le
+    # prix exact du détecteur.
+    CHAMP = 'sil' if '--ideal' in sys.argv else 'sil_rms'
+    print('canal AUDIO : %s' % ('wav2vec2 (IDÉAL, non atteignable en prod)' if CHAMP == 'sil'
+                                else 'NOTRE détecteur RMS (celui de la production)'))
     clips = [json.loads(l) for l in io.open(LIT, encoding='utf-8')]
     random.shuffle(clips)
     coupe = len(clips) // 2
@@ -95,7 +105,7 @@ def main():
     glob = {k: 0 for k in MARQUES}
     for c in tr:
         for i in range(len(c['mots'])):
-            b = bucket(c['sil'][i])
+            b = bucket(c[CHAMP][i])
             cpt.setdefault(b, {k: 0 for k in MARQUES})[c['marques'][i]] += 1
             glob[c['marques'][i]] += 1
     sg = float(sum(glob.values())) or 1.0
@@ -117,7 +127,7 @@ def main():
     sc = [{m: [0, 0, 0] for m in (',', '.')} for _ in noms]   # [vp, fp, fn]
     n = 0
     for c in te:
-        mots, marques, sil = c['mots'], c['marques'], c['sil']
+        mots, marques, sil = c['mots'], c['marques'], c[CHAMP]
         tg = C.pos_tags(mots) or ['X'] * len(mots)
         depuis = 0
         for i in range(len(mots)):
