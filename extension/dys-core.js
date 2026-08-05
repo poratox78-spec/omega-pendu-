@@ -850,7 +850,14 @@
     if(deb<n) blocs.push([deb,n]);
     return blocs; }
 
-  // -> [[indice du mot après lequel la pause tombe, durée de la pause en ms]]
+  // -> [[indice du mot après lequel la pause tombe, durée de la pause en ms, INSTANT de fin de
+  //     parole avant la pause]]
+  // ⭐ LE TROISIÈME CHAMP EST CE QUI REND LA QUESTION POSSIBLE À L'INTÉRIEUR D'UN SEGMENT.
+  // Sans lui, l'appelant sait QU'une phrase se ferme mais pas QUAND — donc il ne peut pas mesurer
+  // la montée de F0 sur les derniers instants, et la 4e forme interrogative du BDL (l'ordre
+  // AFFIRMATIF, « Tu pars dans un mois ? », que seule l'intonation signale) reste invisible.
+  // C'est un oubli de la première version : elle créait des fins de phrase internes qui ne
+  // pouvaient être QUE des points.
   function ponctAncre(mots,tl,thr,minMs){
     if(!mots||mots.length<2||!tl||!tl.length) return [];
     var blocs=ponctBlocs(tl,thr,minMs); if(blocs.length<2) return [];
@@ -890,7 +897,10 @@
       // séparent aucun bloc, et les apparier par indice décale tout d'un cran (bug mesuré,
       // il faisait tomber le score à 0/12).
       if(k+1>=blocs.length) break;
-      out.push([iw,(blocs[k+1][0]-blocs[k][1])*pas]);
+      // l'INSTANT où la parole s'arrête = l'horodatage de la dernière trame du bloc. C'est ce
+      // repère qui permet de lire la mélodie juste avant la pause.
+      var _tf=tl[Math.max(0,Math.min(tl.length-1,blocs[k][1]-1))].t;
+      out.push([iw,(blocs[k+1][0]-blocs[k][1])*pas,_tf]);
     }
     return out; }
 

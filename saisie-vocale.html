@@ -310,6 +310,14 @@
   // BALAYÉ, PAS DEVINÉ — et le genou tombe au MÊME endroit sur les deux bancs, ce qui le rend
   // crédible : 0,30 maximise le F1 sur le lit comme sur les prises de Rem.
   var PONCT_ANCRE_TAU = 0.30;
+  // La tranche de texte D'ORIGINE entre deux indices de MOT (bornes incluses). On ne recolle
+  // jamais les tokens : `DC.toks` supprime le trait d'union, or c'est lui qui porte l'inversion
+  // (« viens-tu », « n'as-tu ») dont dépend toute la détection de question.
+  function _trancheTexte(txt,a,b){
+    var re=/[A-Za-z\u00C0-\u00FF\u0153\u0152'\u2019\u02BC]+/g,m,k=0,d=-1,f=-1;
+    while((m=re.exec(txt))){ if(k===a) d=m.index; if(k===b){ f=m.index+m[0].length; break; } k++; }
+    return (d>=0&&f>d) ? txt.slice(d,f) : ''; }
+
   function _poseMarques(txt,mots,ins){
     var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,fins=[],k;
     while((m=re.exec(txt))) fins.push(m.index+m[0].length);
@@ -472,7 +480,7 @@
     // ⚠️ SEULE, cette ancre est MAUVAISE et c'est mesuré : 44 % de placement exact sur 90 clips
     // lus, 1/12 sur la voix de Rem. Elle ne vaut QUE combinée au canal texte, juste en dessous —
     // mesuré F1 0,220 -> 0,309 (lit) et 0,333 -> 0,480 (voix de Rem).
-    var _anc=null;
+    var _anc=null, _finTr=null;   // _finTr : derniere phrase du dernier segment (cf. plus bas)
     if(useAudio && DC && DC.ponctAncre && DC.ponctReady && DC.ponctReady()){
       var _tkS=[],_glo=[],_map=[],_q,_z2,_s0;
       for(_s0=0;_s0<segs.length;_s0++){
@@ -510,7 +518,9 @@
           // le DERNIER mot d'un segment est une FRONTIÈRE : elle est déjà traitée plus bas, avec
           // le silence mesuré entre segments. On ne la double pas.
           if(_sl[1]>=_tkS[_sl[0]].length-1) continue;
-          (_anc[_sl[0]]=_anc[_sl[0]]||[]).push([_sl[1], _mkA]);
+          // le 3e champ (_pz[_q][2]) est l'INSTANT ou la parole s'arrete : il permet de lire la
+          // melodie juste avant la pause, donc de reconnaitre la question d'ordre AFFIRMATIF.
+          (_anc[_sl[0]]=_anc[_sl[0]]||[]).push([_sl[1], _mkA, _pz[_q][2]]);
         }
       }
     }
@@ -583,17 +593,43 @@
               var _ia=_anc[s][_w][0];
               if(_dj[_ia]) continue;                                  // le texte l'avait déjà
               if(_avantTiret(txt,_mots,_ia)) continue;                // « Dessine-moi » = un groupe
-              _ins.push([_ia,_anc[s][_w][1]]);
+              _ins.push([_ia,_anc[s][_w][1],_anc[s][_w][2]]);
             }
             _ins.sort(function(a,b){return a[0]-b[0];});              // _poseMarques exige l'ordre
           }
+          // ── ⭐⭐⭐ LE TYPE DE FIN DE PHRASE : POINT ou POINT D'INTERROGATION.
+          // Passe unique sur les marques finales. Sans elle, toute fin de phrase INTERNE était
+          // forcément un point — l'ancre en crée désormais, donc le trou était actif.
+          // `_deb` = premier mot de la phrase EN COURS dans ce segment ; il repart après chaque
+          // fin de phrase. Une phrase commencée dans le segment PRÉCÉDENT donne une tranche
+          // tronquée, et c'est acceptable : `estQuestion` a été mesurée sur 27 145 FRAGMENTS de
+          // milieu de phrase, c'est précisément son terrain.
+          var _deb2=0,_u;
+          for(_u=0;_u<_ins.length;_u++){
+            if(_ins[_u][1]==='.'){
+              var _tq=_trancheTexte(txt,_deb2,_ins[_u][0]);
+              // ① la GRAMMAIRE (parties du discours) : est-ce que, inversion, interro-négative…
+              var _q1=estQuestion(_tq);
+              // ② sinon la MÉLODIE, seule route pour l'ordre AFFIRMATIF (« Tu pars demain ? »),
+              //    4e forme du BDL. `_ins[_u][2]` n'existe que pour les marques venues de l'ancre.
+              var _q2=(!_q1 && useAudio && _ins[_u][2]!=null &&
+                       riseEndingAt(au.tl,_ins[_u][2]-500,_ins[_u][2])>QR);
+              if(_q1||_q2) _ins[_u][1]=' ?';        // espace AVANT le « ? » : règle typographique FR
+            }
+            if(_ins[_u][1]!==',') _deb2=_ins[_u][0]+1;
+          }
+          // ⭐ MEMORISE LA DERNIERE PHRASE DU SEGMENT (texte brut). La marque FINALE de la dictee
+          // se decidait sur le segment ENTIER : quand celui-ci contient plusieurs phrases, un
+          // « est-ce que » en tete faisait mettre un « ? » a la fin d'une phrase affirmative.
+          // Bug anterieur, revele par le cas de garde « QUESTION INTERNE ».
+          if(s===segs.length-1) _finTr=_trancheTexte(txt,_deb2,_mots.length-1);
           if(_ins.length) txt=_poseMarques(txt,_mots,_ins);
         }
       }
       out+=txt;
     }
     var last=segs[segs.length-1];
-    var fin=(estQuestion(last.t)||riseAt(last.idx)>QR)?'?':'.';
+    var fin=(estQuestion(_finTr||last.t)||riseAt(last.idx)>QR)?'?':'.';
     out=out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin;
     return capitalize(normMajInterne(out));
   }

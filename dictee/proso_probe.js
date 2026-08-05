@@ -78,6 +78,7 @@ function charge(fichier, nomProso) {
        change de nom, la sonde casse au lieu de mesurer autre chose que ce qui est publié. */
     ligneVar(src, 'PONCT_ANCRE_TAU'),
     bloc(src, 'function _avantTiret('),
+    bloc(src, 'function _trancheTexte('),
     bloc(src, 'function _poseMarques('),
     bloc(src, 'function _seuilSilence('),
     bloc(src, 'function silBetween('),
@@ -99,7 +100,18 @@ function timeline(dureeMs, pauses, pitchFin) {
     const mute = pauses.some(p => t >= p.apres && t < p.apres + p.duree);
     // f = pitch (Hz) ; on ne fait monter la fin que si le cas le demande
     const versLaFin = t > dureeMs - 500;
-    tl.push({ t, r: mute ? 0.001 : 0.20, f: mute ? 0 : (versLaFin && pitchFin ? 260 : 200) });
+    /* ⭐ MONTÉE DE F0 AVANT UNE PAUSE — ajouté le 2026-08-06, parce qu'on ne pouvait pas tester la
+       route `riseAt` sans elle. `{apres, duree, monte:true}` fait monter la mélodie sur les
+       180 ms qui précèdent la pause.
+       ⚠️ 180 ms ET NON 400, et la raison est dans `riseEndingAt` : il compare la QUEUE de sa
+       fenêtre de 500 ms à son CORPS. Une montée de 400 ms remplit tout le corps → le rapport vaut
+       1 → aucune montée détectée. Un harnais qui « monte » trop longtemps ne teste rien.
+       ⚠️ `pitchFin` ne montait qu'en FIN D'ÉNONCÉ : il ne pouvait donc pas tester une frontière
+       INTERMÉDIAIRE, et c'est pour ça que la route `riseAt` était livrée depuis 32ba743 sans
+       aucune garde — l'outil manquait, pas la volonté. */
+    const avantPause = pauses.some(p => p.monte && t >= p.apres - 180 && t < p.apres);
+    tl.push({ t, r: mute ? 0.001 : 0.20,
+              f: mute ? 0 : (((versLaFin && pitchFin) || avantPause) ? 260 : 200) });
   }
   return { tl, maxr: 0.20 };
 }
@@ -335,6 +347,43 @@ cas('RÉGRESSION prise libre : un segment long ne reçoit AUCUN POINT interne',
     etat(['alors demain je ne sais pas encore on va aller au marché'], [7900],
          [{ apres: 2000, duree: 800 }, { apres: 4000, duree: 900 }]),
     'Alors demain, je ne sais pas encore, on va aller au marché.');
+
+/* ⑤bis  ⭐ LA QUESTION *À L'INTÉRIEUR* D'UN SEGMENT — le trou ouvert par l'ancre, et les deux
+ *       routes qui le ferment. Ces cas manquaient : depuis que l'ancre crée des fins de phrase
+ *       internes, chacune ne pouvait être QU'UN POINT, et rien ne le signalait. Le trou dans le
+ *       code et le trou dans les tests étaient le même. */
+cas('⭐ QUESTION INTERNE (lexicale) : Google n\'a pas coupé, la question doit garder son « ? »',
+    'BDL : est-ce que · l\'ancre crée des fins de phrase internes depuis PR#394',
+    etat(['est-ce que tu viens ce week-end je te préviendrai demain'], [5000],
+         [{ apres: 2200, duree: 700 }]),
+    'Est-ce que tu viens ce week-end ? Je te préviendrai demain.');
+/* ⛔ LA 4e FORME DU BDL *À L'INTÉRIEUR* D'UN SEGMENT N'EST PAS LIVRÉE, et il faut dire pourquoi
+ * plutôt que de laisser croire qu'elle l'est. « Tu pars dans un mois ? » en ordre AFFIRMATIF n'a
+ * qu'un seul signal : la montée de F0. Or LE FRANÇAIS MONTE AUSSI EN FIN D'ÉLÉMENT D'ÉNUMÉRATION
+ * (« du pain ↗, du fromage ↗ et des pommes ») — c'est la « continuation rise » de la littérature.
+ * Question et énumération produisent donc LE MÊME signal mélodique, et le canal texte dit
+ * « virgule » dans les deux cas. Aucune des deux voies ne les sépare.
+ * ⇒ À la FRONTIÈRE de segment la route pitch reste valide (Google a coupé : une phrase s'est
+ * probablement finie) — c'est le cas juste en dessous. À l'INTÉRIEUR, non.
+ * CE QU'IL FAUDRAIT POUR LA LIVRER : des enregistrements des DEUX cas (question en ordre
+ * affirmatif vs énumération) pour mesurer si l'AMPLITUDE de la montée les sépare — la
+ * littérature dit que la montée de question est plus ample, on n'a pas de quoi le vérifier.
+ * Le cas ci-dessous garde l'essentiel : on ne FABRIQUE pas de « ? » sur une énumération. */
+cas('GARDE : une MÉLODIE montante ne fabrique pas de « ? » sur une VIRGULE',
+    'le pitch ne raffine QUE les fins de phrase — une virgule reste une virgule',
+    etat(['il faut acheter du pain du fromage et des pommes'], [4000],
+         [{ apres: 1800, duree: 300, monte: true }]),
+    'Il faut acheter du pain, du fromage et des pommes.');
+/* ⑤ter  ⭐ ET LA MÊME FORME À LA FRONTIÈRE. `pitchFin` existait dans le harnais depuis toujours,
+ *       mais AUCUN cas ne s'en servait : la route `riseAt(...)>QR` était livrée, non testée. */
+/* ⚠️ `pitchFin` ne fait monter la mélodie qu'à la toute fin de l'énoncé : il ne pouvait donc PAS
+ * tester la route `riseAt` d'une frontière INTERMÉDIAIRE. C'est pour ça que la route était livrée
+ * sans garde depuis 32ba743 — l'outil manquait, pas la volonté. `monte:true` le donne. */
+cas('⭐ question par la MÉLODIE à la frontière de segment (route riseAt, jamais testée)',
+    'BDL : interrogation par intonation · route livrée depuis 32ba743, sans garde',
+    etat(['tu viens demain', 'je dois savoir'], [1500, 3000],
+         [{ apres: 1500, duree: 900, monte: true }]),
+    'Tu viens demain ? Je dois savoir.');
 
 /* ⑥  SANS AUDIO (getUserMedia refusé) : la chaîne doit dégrader, pas planter. */
 cas('sans audio : repli sur les règles lexicales',
