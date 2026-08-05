@@ -56,6 +56,9 @@
     if (DC.loadSpellerLex) DC.loadSpellerLex(sp).then(runNow);
     if (DC.loadNounPost) DC.loadNounPost(nom).then(runNow);
     if (DC.loadConfusables) DC.loadConfusables(chrome.runtime.getURL('assets/confusables.json')).then(runNow);
+    // ⭐ CANAL TEXTE DE LA PONCTUATION (182 Ko) — surfaces VOCALES seulement (content.js, qui
+    // tourne sur toutes les pages web, ne le charge pas). Dégradation douce si absent.
+    if (DC.loadPonctLm) DC.loadPonctLm(chrome.runtime.getURL('assets/ponct-lm.json.gz'));
     // ⭐ DICTIONNAIRE UTILISATEUR — MÊME BUG QUE SUR LE SITE, trouvé en faisant l'inventaire.
     // Le panneau charge sa PROPRE copie de dys-core (contexte séparé de content.js), et `_UD` y vit
     // EN MÉMOIRE : seul l'hôte l'alimente. Or seul `content.js` appelait `udSet` -> les mots ajoutés
@@ -309,6 +312,37 @@
     if(!reste.trim()) return 0;
     if(_GOUVERNE.test(reste)) return 0;
     return m[0].length; }
+  // Insère les marques aux positions de MOT données, en respectant le texte d'origine (on ne
+  // reconstruit pas la chaîne depuis les tokens : ça perdrait la casse et les espaces réels).
+  // ⛔ « JAMAIS DE MARQUE APRES UN DETERMINANT OU UNE PREPOSITION » — mesure sur 78 022 virgules
+  // reelles (UD + WiCoPaCo) : 0,32 % de contre-exemples, et le residu tenait a des ADVERBES que
+  // j'avais mis a tort dans la liste (« De plus, », « Depuis, »). C'est le garde-fou qui refuse
+  // « a la, plage » et « manger du, chocolat ».
+  var _PASAPRES={};
+  ("le la les un une des du de d au aux a en dans sur sous par pour avec sans chez vers depuis " +
+   "pendant selon entre mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet " +
+   "cette ces chaque aucun aucune plusieurs quel quelle quels quelles")
+    .split(' ').forEach(function(w){ _PASAPRES[w]=1; });
+  // Le token suivant est-il colle par un TRAIT D'UNION ? `DC.toks` coupe « Dessine-moi » en deux,
+  // mais c'est UN groupe : on n'ecrit pas au milieu.
+  function _avantTiret(txt,mots,z){
+    var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,k=0,fin=-1;
+    while((m=re.exec(txt))){ if(k===z){ fin=m.index+m[0].length; break; } k++; }
+    return fin>=0 && txt.charAt(fin)==='-'; }
+
+  function _poseMarques(txt,mots,ins){
+    var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,fins=[],k;
+    while((m=re.exec(txt))) fins.push(m.index+m[0].length);
+    var out='',prev=0;
+    for(k=0;k<ins.length;k++){
+      var i=ins[k][0]; if(i>=fins.length) continue;
+      // ⛔ NE JAMAIS DOUBLER UNE MARQUE. Le texte porte déjà celles posées en amont (la virgule de
+      // salutation, par exemple) : sans ce test on écrivait « Bonjour,, qu'est-ce que… ».
+      if(/[,.;:!?]/.test(txt.charAt(fins[i]))) continue;
+      out+=txt.slice(prev,fins[i])+ins[k][1]; prev=fins[i];
+    }
+    return out+txt.slice(prev); }
+
   function prosodyText(S){
     var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
     for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
@@ -437,7 +471,43 @@
         if(mk===',' && COORD.test(nx.t)) mk='';                             // « … , et … » -> « … et … » (BDL)
         out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }              // espace AVANT le « ? » : règle FR
       var txt=segs[s].t;
-      if(s===0 && !S.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }
+      if(s===0 && !S.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }      // ── ⭐⭐⭐ LES MARQUES *DANS* LE SEGMENT, PAR LE CANAL TEXTE.
+      // C'est le trou que rien ne comblait : on ne posait de marque QU'AUX frontières de segment,
+      // or Google ne coupe qu'aux pauses >= 600 ms et les virgules françaises vivent vers 350 ms
+      // (mesuré, 47 locuteurs) — elles sont DANS les segments.
+      // ⚠️ L'AUDIO NE PARLE PAS ICI, et c'est délibéré : il n'y a AUCUNE ancre temporelle à
+      // l'intérieur d'un segment (les `ftimes` datent la latence de Google, pas la parole). La
+      // tentative précédente d'y poser des marques depuis le son a été mesurée-réfutée (2/10 sur
+      // la prise libre de Rem). Le canal texte, lui, n'a besoin que des mots.
+      // SEUIL : on n'écrit que si la marque DOMINE nettement — un texte sur-ponctué coûte plus
+      // cher à un dys qu'un texte sous-ponctué (doctrine, et mesuré sur ses retours).
+      if(DC && DC.ponctReady && DC.ponctReady()){
+        var _mots=DC.toks(txt);
+        if(_mots.length>3){
+          var _tg=DC.posTags(_mots)||[], _dep=0, _ins=[], _z;
+          for(_z=0;_z<_mots.length-1;_z++){
+            var _d=DC.ponctDist(_mots,_tg,_z,_dep);
+            // ⛔ GARDE STRUCTURELLE, remise après que la garde CI a ressorti « Dessine,-moi, un
+            // mouton » — la régression exacte que Rem avait signalee (PR#380). Deux interdits :
+            //  · JAMAIS de marque apres un DETERMINANT ou une PREPOSITION. Mesure sur 78 022
+            //    virgules reelles (UD + WiCoPaCo) : 0,32 %. C'est ce qui refuse « a la, plage ».
+            //  · JAMAIS devant un TRAIT D'UNION : « Dessine-moi », « est-il » sont un seul groupe
+            //    verbe+clitique, et `DC.toks` les coupe en deux tokens — sans cette garde on
+            //    ecrirait au milieu.
+            // ⚠️ SEUILS ASYMÉTRIQUES, et la raison est structurelle : Google N'A PAS COUPÉ ici.
+            // Ce non-découpage est une preuve FAIBLE contre une fin de phrase (il ne coupe qu'au-delà
+            // de ~600 ms), mais ce n'est pas RIEN. Poser un POINT là où le moteur n'a pas coupé est
+            // donc une affirmation plus forte que poser une virgule : on l'exige plus sûre.
+            // La garde CI a sorti « Quelle heure. Il est. » avec un seuil symétrique.
+            var _seuil = (_d && _d[2]>_d[1]) ? 0.70 : 0.50;
+            if(_d && !_PASAPRES[_mots[_z].toLowerCase()] && !_avantTiret(txt,_mots,_z)
+               && (_d[1]>_seuil || _d[2]>_seuil)) { _ins.push([_z, _d[2]>_d[1]?'.':',']); _dep=0; }
+            else _dep++;
+          }
+          if(_ins.length) txt=_poseMarques(txt,_mots,_ins);
+        }
+      }
+      
       out+=txt; }
     var last=segs[segs.length-1];
     var fin=(estQuestion(last.t)||riseAt(last.idx)>QR)?'?':'.';

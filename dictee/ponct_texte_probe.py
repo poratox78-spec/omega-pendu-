@@ -73,7 +73,12 @@ def decoupe(phrase):
     """-> (mots, marques) où marques[i] est la marque qui SUIT le mot i ('' si aucune)."""
     mots, marques, tampon = [], [], ''
     for ch in phrase:
-        if ch.isalpha() or ch in "'’-" or ch.isdigit():
+        # ⚠️⚠️ LA TOKENISATION D'ENTRAÎNEMENT DOIT ÊTRE CELLE D'INFÉRENCE — sinon le modèle
+        # apprend des contextes qui n'existeront jamais. `DC.toks` (le moteur) COUPE au trait
+        # d'union ; garder « - » ici faisait de « Dessine-moi » UN token à l'entraînement et DEUX
+        # à l'exécution. La garde CI l'a attrapé en sortie : « Dessine,-moi, un mouton » —
+        # exactement la régression que Rem avait signalée en PR#380.
+        if ch.isalpha() or ch in "'’" or ch.isdigit():
             tampon += ch
         else:
             if tampon:
