@@ -74,6 +74,9 @@ function charge(fichier, nomProso) {
     ligneVar(src, '_GOUVERNE'),
     bloc(src, 'function teteHorsPhrase('),
     ligneVar(src, '_PASAPRES'),
+    /* ⭐ LE SEUIL DE REFUS DE L'ANCRE, extrait NOMMÉMENT du fichier livré : s'il disparaît ou
+       change de nom, la sonde casse au lieu de mesurer autre chose que ce qui est publié. */
+    ligneVar(src, 'PONCT_ANCRE_TAU'),
     bloc(src, 'function _avantTiret('),
     bloc(src, 'function _poseMarques('),
     bloc(src, 'function _seuilSilence('),
@@ -177,10 +180,20 @@ cas('GARDE : « merci » n\'est PAS dans la liste (mesuré 48,2 %)',
     'mesuré : « merci bien », « merci beaucoup » gouvernent',
     etat(['merci beaucoup'], [1500], []),
     'Merci beaucoup.');
-cas('la salutation ne s\'applique qu\'au PREMIER segment',
-    'règle : élément hors phrase EN TÊTE',
+/* ⚠️⚠️ ATTENDU MIS À JOUR LE 2026-08-06 — et il faut dire pourquoi plutôt que de le changer en
+ * douce. Ce cas vérifiait que `teteHorsPhrase` ne s'applique qu'au PREMIER segment : c'est
+ * toujours vrai et toujours vérifié (la fonction n'est appelée que si s===0). Mais l'attendu
+ * portait AUSSI l'absence de virgule après « bonjour » dans le SECOND segment, et cette absence
+ * n'était pas une exigence : c'était le constat qu'AUCUNE couche ne savait la poser là.
+ * L'ancre + le canal texte la posent désormais, et le BDL leur donne raison — « Bonjour les
+ * amis » est une APOSTROPHE, et le commentaire de `teteHorsPhrase` dit lui-même que les 53 cas
+ * non séparés relevés dans le corpus « sont TOUS des apostrophes, où le BDL PRESCRIT la
+ * virgule … c'est du relâchement d'écriture, exactement ce qu'on est là pour réparer ».
+ * On corrige donc l'attendu vers le FRANÇAIS, pas vers le comportement du code. */
+cas('la salutation ne s\'applique qu\'au PREMIER segment (mais l\'apostrophe est séparée)',
+    'règle : élément hors phrase EN TÊTE · BDL : apostrophe -> virgule',
     etat(['je passe demain', 'bonjour les amis'], [1000, 2000], [{ apres: 1050, duree: 900 }]),
-    'Je passe demain. Bonjour les amis.');
+    'Je passe demain. Bonjour, les amis.');
 
 /* ③bis  LA MAJUSCULE INTERNE DE GOOGLE. Trouvée en rejouant la prise LIBRE de Rem : Google
  *       rend « bonjour Qu'est-ce que je fais » — la majuscule est au MILIEU du segment. Sans
@@ -307,11 +320,21 @@ cas('RÉGRESSION Rem : pas de « manger, du, chocolat »',
     'dicté par Rem, PR#380 (mesuré-réfuté)',
     etat(['je veux manger du chocolat'], [2500], [{ apres: 1200, duree: 800 }]),
     'Je veux manger du chocolat.');
-cas('RÉGRESSION prise libre : un segment long ne reçoit AUCUN point interne',
+/* ⚠️⚠️ ATTENDU MIS À JOUR LE 2026-08-06, même discipline. Ce que ce cas GARDE — et qu'il garde
+ * toujours — c'est la régression que Rem a signalée : SIX POINTS dans un segment de 7,9 s
+ * (score de placement 2/10). Aucun POINT interne ne doit sortir ici, et il n'en sort aucun.
+ * Mais l'attendu exigeait AUSSI zéro virgule, ce qui n'était pas la régression : c'était l'état
+ * d'un moteur incapable de rien poser à l'intérieur. Les deux pauses de 800 et 900 ms sont dans
+ * l'audio du cas, donc RÉELLES ; les ignorer, ce serait jeter la seule information qu'on ait.
+ * ⭐ Et c'est ici que se voit la correction de fond du 2026-08-06 : le TYPE de la marque vient
+ * désormais du canal TEXTE et non d'une falaise à 600 ms. Une pause de 900 ms donne une VIRGULE
+ * parce que la grammaire dit virgule — mesuré sur la voix de Rem, qui se tait 1530 ms là où il
+ * écrit une virgule. La falaise valait pour du discours lu, pas pour la dictée dys. */
+cas('RÉGRESSION prise libre : un segment long ne reçoit AUCUN POINT interne',
     'prise libre de Rem : 6 points posés dans un segment de 7,9 s, score 2/10',
     etat(['alors demain je ne sais pas encore on va aller au marché'], [7900],
          [{ apres: 2000, duree: 800 }, { apres: 4000, duree: 900 }]),
-    'Alors demain je ne sais pas encore on va aller au marché.');
+    'Alors demain, je ne sais pas encore, on va aller au marché.');
 
 /* ⑥  SANS AUDIO (getUserMedia refusé) : la chaîne doit dégrader, pas planter. */
 cas('sans audio : repli sur les règles lexicales',

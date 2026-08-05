@@ -303,6 +303,13 @@
     while((m=re.exec(txt))){ if(k===z){ fin=m.index+m[0].length; break; } k++; }
     return fin>=0 && txt.charAt(fin)==='-'; }
 
+  // ⭐ LE SEUL RÉGLAGE DE L'ANCRE : le prix d'entrée que le CANAL TEXTE exige pour accepter une
+  // marque proposée par l'audio. En dessous, il REFUSE — et ce refus est le maillon qui fait
+  // marcher la combinaison. Sans lui l'ancre marquait CHAQUE pause et la justesse s'effondrait
+  // (mesuré : 69 % -> 22 % sur le lit de 93 clips).
+  // BALAYÉ, PAS DEVINÉ — et le genou tombe au MÊME endroit sur les deux bancs, ce qui le rend
+  // crédible : 0,30 maximise le F1 sur le lit comme sur les prises de Rem.
+  var PONCT_ANCRE_TAU = 0.30;
   function _poseMarques(txt,mots,ins){
     var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,fins=[],k;
     while((m=re.exec(txt))) fins.push(m.index+m[0].length);
@@ -456,6 +463,58 @@
     var au=state.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?_seuilSilence(au):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&state.ftimes[idx]!=null)?riseEndingAt(au.tl,state.ftimes[idx]-500,state.ftimes[idx]):0; }
 
+    // ── ⭐⭐⭐ L'ANCRE TEMPORELLE : après quel MOT tombe chaque pause, et combien elle dure.
+    // ⭐ ELLE IGNORE L'HORLOGE DE GOOGLE, ET C'EST CE QUI LÈVE LE BLOCAGE. On a longtemps buté sur
+    // « deux moteurs sans horloge commune » : Google a les mots, notre capture a le temps, et les
+    // `ftimes` datent l'ARRIVÉE des résultats, pas la parole. Le mur n'existait que tant qu'on
+    // cherchait à RECALER les deux horloges. Ici on ne recale rien : on aligne LA SUITE DE MOTS
+    // (toute la dictée d'un coup) sur LE SIGNAL. `ftimes` n'intervient nulle part.
+    // ⚠️ SEULE, cette ancre est MAUVAISE et c'est mesuré : 44 % de placement exact sur 90 clips
+    // lus, 1/12 sur la voix de Rem. Elle ne vaut QUE combinée au canal texte, juste en dessous —
+    // mesuré F1 0,220 -> 0,309 (lit) et 0,333 -> 0,480 (voix de Rem).
+    var _anc=null;
+    if(useAudio && DC && DC.ponctAncre && DC.ponctReady && DC.ponctReady()){
+      var _tkS=[],_glo=[],_map=[],_q,_z2,_s0;
+      for(_s0=0;_s0<segs.length;_s0++){
+        var _tk=DC.toks(segs[_s0].t)||[]; _tkS.push(_tk);
+        for(_q=0;_q<_tk.length;_q++){ _map.push([_s0,_q]); _glo.push(_tk[_q]); }
+      }
+      if(_glo.length>3){
+        var _pz=DC.ponctAncre(_glo,au.tl,thr,COMMA), _tgG=DC.posTags(_glo)||[];
+        _anc={};
+        for(_q=0;_q<_pz.length;_q++){
+          var _ig=_pz[_q][0], _ms=_pz[_q][1], _bi=-1, _bp=-1, _dd, _c, _pp;
+          // ⭐ LE CANAL TEXTE RECALE, PUIS REFUSE. L'ancre vise à ±1 mot ; le texte choisit lequel
+          // des trois est GRAMMATICALEMENT possible, et si aucun ne l'est, il refuse. C'est la
+          // division du travail qui paie : l'audio apporte une preuve que le texte n'a pas
+          // (quelqu'un s'est tu), le texte apporte une légalité que l'audio ignore.
+          for(_z2=-1;_z2<=1;_z2++){
+            _c=_ig+_z2; if(_c<0||_c>=_glo.length-1) continue;
+            if(_PASAPRES[String(_glo[_c]).toLowerCase()]) continue;   // « à la, plage » : interdit
+            _dd=DC.ponctDist(_glo,_tgG,_c,0);
+            _pp=_dd?(_dd[1]+_dd[2]):0;
+            if(_pp>_bp){ _bp=_pp; _bi=_c; }
+          }
+          if(_bi<0 || _bp<PONCT_ANCRE_TAU) continue;                  // le texte REFUSE
+          // ⭐ ET LE TYPE VIENT DU TEXTE, PAS DE LA DUREE — corrige par la garde CI, qui a ressorti
+          // « Alors demain. Je ne sais pas encore. On va aller au marche. » : la regression exacte
+          // que Rem avait signalee (6 points dans un segment de 7,9 s, PR#380).
+          // LA RAISON EST MESUREE : en dictee DYS, une pause longue n'est PAS une fin de phrase.
+          // Sur la prise de Rem, il se tait 1530 ms la ou il ecrit une VIRGULE. La falaise a 600 ms
+          // vaut pour du discours lu, pas pour lui — et c'est lui qu'on sert.
+          // Division du travail finale : l'AUDIO dit QU'IL Y A une marque (il a entendu le
+          // silence), le TEXTE dit LAQUELLE (il a la grammaire). Chacun ne repond qu'a ce qu'il
+          // sait. `_dd` est deja la distribution a la position retenue.
+          var _mkA=(_dd && _dd[2]>_dd[1]) ? '.' : ',';
+          var _sl=_map[_bi]; if(!_sl) continue;
+          // le DERNIER mot d'un segment est une FRONTIÈRE : elle est déjà traitée plus bas, avec
+          // le silence mesuré entre segments. On ne la double pas.
+          if(_sl[1]>=_tkS[_sl[0]].length-1) continue;
+          (_anc[_sl[0]]=_anc[_sl[0]]||[]).push([_sl[1], _mkA]);
+        }
+      }
+    }
+
     var out=(state.base.trim()?state.base.trim()+' ':''), s;
     for(s=0;s<segs.length;s++){
       // ── LA MARQUE ENTRE DEUX SEGMENTS. C'est le SEUL endroit où on pose une marque depuis
@@ -488,9 +547,15 @@
       // cher à un dys qu'un texte sous-ponctué (doctrine, et mesuré sur ses retours).
       if(DC && DC.ponctReady && DC.ponctReady()){
         var _mots=DC.toks(txt);
-        if(_mots.length>3){
+        if(_mots.length>1){   // 3 -> 1 : l'ancre doit pouvoir parler dans un segment court
           var _tg=DC.posTags(_mots)||[], _dep=0, _ins=[], _z;
-          for(_z=0;_z<_mots.length-1;_z++){
+          // ⛔ LE CANAL TEXTE GARDE SON SEUIL DE 3 MOTS, et la garde CI a exige qu'on le remette :
+          // en l'ouvrant a 1 mot pour laisser passer l'ancre, on a fait sortir « Salut, bien,
+          // monsieur », « Merci, beaucoup » et « Bonjour, les amis » — le modele de texte n'a
+          // simplement pas assez de contexte dans un segment de trois mots. L'ANCRE, elle, n'a pas
+          // besoin de contexte : elle a ENTENDU la pause. Les deux ne meritent donc pas le meme
+          // droit d'entree, et c'est pour ca que la condition est ici et non plus haut.
+          for(_z=0;_mots.length>3 && _z<_mots.length-1;_z++){
             var _d=DC.ponctDist(_mots,_tg,_z,_dep);
             // ⛔ GARDE STRUCTURELLE, remise après que la garde CI a ressorti « Dessine,-moi, un
             // mouton » — la régression exacte que Rem avait signalee (PR#380). Deux interdits :
@@ -508,6 +573,19 @@
             if(_d && !_PASAPRES[_mots[_z].toLowerCase()] && !_avantTiret(txt,_mots,_z)
                && (_d[1]>_seuil || _d[2]>_seuil)) { _ins.push([_z, _d[2]>_d[1]?'.':',']); _dep=0; }
             else _dep++;
+          }
+          // ⭐ FUSION AVEC L'ANCRE. Le canal texte a posé ce dont il était sûr ; l'ancre ajoute
+          // ce qu'elle a ENTENDU et que le texte a validé. UNION, jamais remplacement : on ne
+          // retire pas une marque que le texte tenait pour sûre.
+          if(_anc && _anc[s]){
+            var _dj={},_w; for(_w=0;_w<_ins.length;_w++) _dj[_ins[_w][0]]=1;
+            for(_w=0;_w<_anc[s].length;_w++){
+              var _ia=_anc[s][_w][0];
+              if(_dj[_ia]) continue;                                  // le texte l'avait déjà
+              if(_avantTiret(txt,_mots,_ia)) continue;                // « Dessine-moi » = un groupe
+              _ins.push([_ia,_anc[s][_w][1]]);
+            }
+            _ins.sort(function(a,b){return a[0]-b[0];});              // _poseMarques exige l'ordre
           }
           if(_ins.length) txt=_poseMarques(txt,_mots,_ins);
         }
