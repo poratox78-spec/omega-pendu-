@@ -345,6 +345,27 @@
     while((m=re.exec(txt))){ if(k===a) d=m.index; if(k===b){ f=m.index+m[0].length; break; } k++; }
     return (d>=0&&f>d) ? txt.slice(d,f) : ''; }
 
+  // ⭐⭐⭐ LE CANAL TEXTE *À TRAVERS* UNE FRONTIÈRE DE SEGMENT.
+  // Le modèle a été appris sur un FLUX de phrases concaténées : une frontière de segment est donc
+  // EXACTEMENT sa forme d'entrée, sans adaptation. Il rend [rien, virgule, point] à la jointure.
+  // ⭐ CE QUE LA DURÉE D'UNE PAUSE DIT DU TYPE DE MARQUE — vraisemblances P(durée | marque),
+  // MESURÉES (dictee/ponct_audio_vrais_probe.py) sur 93 clips où l'on connaît la marque réelle ET
+  // le silence vu par EXACTEMENT le détecteur du navigateur. Rendues [virgule, point].
+  // ⚠️ CE SONT DES VRAISEMBLANCES, PAS DES PROBABILITÉS DE MARQUE : elles se MULTIPLIENT par ce
+  // que dit le texte (qui, lui, porte déjà le prior). Les prendre pour une décision, c'est
+  // l'erreur payée le 2026-08-05 — 264 points posés pour 10 justes.
+  var _DUR_B=[0,30,90,180,300,450,600,900];
+  var _DUR_L=[[0.299,0.159],[0.266,0.289],[0.301,0.266],[0.543,0.248],
+              [0.569,0.286],[0.332,0.604],[0.305,0.652],[0.145,0.826]];
+  function _durBiais(ms){ var k=_DUR_B.length-1; while(k>0 && ms<_DUR_B[k]) k--; return _DUR_L[k]; }
+
+  function _txtFrontiere(a,b){
+    if(!(DC&&DC.ponctDist&&DC.ponctReady&&DC.ponctReady())) return null;
+    var ma=DC.toks(a)||[], mb=DC.toks(b)||[];
+    if(!ma.length||!mb.length) return null;
+    var tout=ma.concat(mb), tg=DC.posTags(tout)||[];
+    return DC.ponctDist(tout,tg,ma.length-1,ma.length-1); }
+
   function _poseMarques(txt,mots,ins){
     var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,fins=[],k;
     while((m=re.exec(txt))) fins.push(m.index+m[0].length);
@@ -544,7 +565,29 @@
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
         if(estQuestion(pv.t)||riseAt(pv.idx)>QR) mk='?';                    // le segment qui SE FERME est une question (lexical OU pitch montant)
         else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9));
-          mk = sil>=PERIOD ? '.' : (sil>=COMMA ? ',' : ''); }               // sous 190 ms : RIEN
+          // ⭐⭐⭐ L'AUDIO DIT QU'IL Y A UNE MARQUE, LE TEXTE DIT LAQUELLE.
+          // C'est la même division du travail qu'À L'INTÉRIEUR des segments — et c'est ici qu'elle
+          // manquait encore. La falaise « >= 600 ms => POINT » y régnait, et elle est FAUSSE POUR
+          // LA PAROLE DYS : Rem dicte par petits blocs séparés d'une pause, donc CHAQUE frontière
+          // devenait une fin de phrase. Sa dictée réelle du 2026-08-06 sortait ainsi :
+          //   « Nous irons. Manger des pommes. » — un point entre un verbe et son complément ;
+          //   « Il y avait. Des oranges des violettes. » — et pas une seule virgule de tout le texte.
+          // Reproduit à l'identique en banc, à 700, 900 et 1500 ms : la durée seule ne peut pas
+          // distinguer « je respire » de « je termine ma phrase », et chez un dys elle se trompe
+          // presque toujours. Le texte, lui, sait que « nous irons » appelle un complément.
+          // ⚠️ LE PLANCHER À 190 ms RESTE : sous lui, l'audio dit qu'il n'y a RIEN, et le texte
+          // n'est pas consulté. On ne remplace pas une preuve par une opinion.
+          // ⚠️ LE TEXTE NE DOIT PAS *ÉCRASER* LA DURÉE — la garde CI l'a montré tout de suite :
+          // à 300 ms il imposait un point (« Il fait beau. Je sors. ») là où la brièveté de la
+          // pause dit virgule, et à 900 ms devant « et » on perdait la coupure de phrase.
+          // ⇒ ON MULTIPLIE. Le texte donne la probabilité de chaque type, la durée donne sa
+          // VRAISEMBLANCE mesurée : posterior ∝ texte × durée. Un texte sûr l'emporte ; un texte
+          // hésitant laisse la durée trancher. Aucun seuil nouveau — juste deux sources qui
+          // apportent chacune ce qu'elle sait, la forme d'arbitrage de la maison.
+          if(sil>=COMMA){ var _df=_txtFrontiere(pv.t,nx.t), _lb=_durBiais(sil);
+            mk = _df ? (((_df[2]*_lb[1]) > (_df[1]*_lb[0])) ? '.' : ',')
+                     : (sil>=PERIOD?'.':',');   // repli : la durée seule, si le modèle n'est pas chargé
+          } else mk=''; }               // sous 190 ms : RIEN
         else mk = CONT.test(nx.t) ? ',' : '.';
         if(mk===',' && COORD.test(nx.t)) mk='';                             // « … , et … » -> « … et … » (BDL)
         out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }              // espace AVANT le « ? » : règle FR

@@ -73,11 +73,12 @@ function charge(fichier, nomProso) {
     ligneVar(src, '_SALUT'),
     ligneVar(src, '_GOUVERNE'),
     bloc(src, 'function teteHorsPhrase('),
-    ligneVar(src, '_PASAPRES'),
+    ligneVar(src, '_PASAPRES'), ligneVar(src, '_DUR_B'), ligneVar(src, '_DUR_L'),
     /* ⭐ LE SEUIL DE REFUS DE L'ANCRE, extrait NOMMÉMENT du fichier livré : s'il disparaît ou
        change de nom, la sonde casse au lieu de mesurer autre chose que ce qui est publié. */
     ligneVar(src, 'PONCT_ANCRE_TAU'),
     bloc(src, 'function _avantTiret('),
+    bloc(src, 'function _txtFrontiere('), bloc(src, 'function _durBiais('),
     bloc(src, 'function _trancheTexte('),
     bloc(src, 'function _poseMarques('),
     bloc(src, 'function _seuilSilence('),
