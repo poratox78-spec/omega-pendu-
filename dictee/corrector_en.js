@@ -278,6 +278,14 @@ function homoDecide(lex, T, i, adj){
     if(lw === 'advice') return ['advise', 'RED'];
     if(lw === 'breath') return ['breathe', 'RED'];
     if(lw === 'chose') return ['choose', 'RED'];
+    /* ⭐ MÊME PATRON, PAIRES AJOUTÉES LE 2026-08-07 : la forme en -e est le VERBE, l'autre le NOM
+       (ou l'adjectif pour `loath`). Aucun code nouveau — c'est la table qui s'allonge, ce qui est
+       précisément l'intérêt d'avoir un patron. `loath` est un ADJECTIF (« loath to admit »), donc
+       seule la direction VERBE est sûre : on ne fait pas l'inverse plus bas. */
+    if(lw === 'cloth') return ['clothe', 'RED'];
+    if(lw === 'loath') return ['loathe', 'RED'];
+    if(lw === 'device') return ['devise', 'RED'];
+    if(lw === 'prophecy') return ['prophesy', 'RED'];
     // « to effect change » EXISTE (= réaliser) : on n'affirme que si un DÉTERMINANT suit (« will effect the
     // outcome »), là où l'idiome valide n'en a pas.
     // « to effect the change » (= réaliser) est valide : la paire est VRAIMENT ambiguë ici, donc ORANGE.
@@ -287,6 +295,12 @@ function homoDecide(lex, T, i, adj){
   if(NOUN_SLOT.has(pv)){                                   // the/a/this/my… -> il faut le NOM
     if(lw === 'advise') return ['advice', 'RED'];
     if(lw === 'breathe') return ['breath', 'RED'];
+    /* ⭐ Direction NOM des paires ajoutées. `loathe` n'y est PAS : son partenaire `loath` est un
+       ADJECTIF, pas un nom — « the loath » n'existe pas, donc la règle inverse n'a pas de sens.
+       Une paire n'est pas forcément symétrique : ne pas la retourner par réflexe. */
+    if(lw === 'clothe') return ['cloth', 'RED'];
+    if(lw === 'devise') return ['device', 'RED'];
+    if(lw === 'prophesy') return ['prophecy', 'RED'];
     // « affect » EST un nom en psychologie (« a flat affect ») -> ORANGE, pas rouge : on signale sans trancher.
     if(lw === 'affect') return ['effect', 'ORANGE'];
   }
@@ -607,6 +621,18 @@ if(typeof require !== 'undefined' && require.main === module){
     for(let k = 1; k < T.length; k++){ const d = pastPartDecide(lex, T, k);
       if(d[1] === 'RED'){ ppKo++; console.log('  PP FAUX POSITIF : %s -> %s   | %s', T[k], d[0], txt); } } }
   console.log('participe apres have: %d/%d positifs, %d faux positifs', ppOk, PP_OUI.length, ppKo - (PP_OUI.length - ppOk));
+  /* ⭐ PARONYMES NOM/VERBE — paires ajoutées le 2026-08-07 au patron existant. Positifs ET
+     négatifs : la règle est ROUGE, et `loath` est un ADJECTIF donc sa direction inverse n'existe
+     pas (« the loath » n'est pas de l'anglais) — une paire n'est pas forcément symétrique. */
+  const PN = [['I need to cloth the children', 'clothe'], ['you should loath that idea', 'loathe'],
+              ['they will device a plan', 'devise'], ['we must prophecy the future', 'prophesy'],
+              ['he was loath to admit it', null], ['buy the cloth today', null],
+              ['a new device arrived', null], ['the prophecy came true', null]];
+  let pnOk = 0;
+  for(const [txt, att] of PN){ const T = tokenize(txt), A = adjMask(txt); let vu = null;
+    for(let k = 0; k < T.length; k++){ const d = homoDecide(lex, T, k, A); if(d[1] === 'RED') vu = d[0]; }
+    if(vu === att) pnOk++; else console.log('  PARONYME MISS : %s -> %s (attendu %s)', txt, vu, att); }
+  console.log('paronymes nom/verbe: %d/%d', pnOk, PN.length);
   console.log('homophone: %d/%d', hok, HP.length);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
     const ok = (auto + flag >= 10) && (hok === HP.length);
