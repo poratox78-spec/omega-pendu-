@@ -230,7 +230,17 @@ function homoDecide(lex, T, i, adj){
   // --- familles ajoutées : le discriminateur est STRUCTUREL (mot voisin), donc mesurable à FP=0 sur EWT ---
   // WHERE/WERE : un pronom sujet ne peut pas être suivi de « where » (« they where happy »). On EXIGE le
   // pronom, pas un nom : « the place where he lives » serait un FP (nom + where est parfaitement correct).
-  if(lw === 'where' && SUBJ_PRON.has(pv)) return ['were', 'RED'];
+  /* ⚠️ GARDE AJOUTÉE APRÈS MESURE SUR TEXTE ÉDITÉ (GUM+PUD) : « they have to tell you where it is ».
+     Ici « you » n'est PAS le sujet de « where » — c'est le COMPLÉMENT de « tell », et « where »
+     ouvre une vraie subordonnée. Le discriminateur est ce qui SUIT : une subordonnée en « where »
+     est suivie d'un SUJET puis d'un VERBE (« where it is », « where you are »), alors que le vrai
+     « were » est suivi d'un attribut (« they where happy »). 2 des 12 rouges restants. */
+  /* ⚠️ VERB **OU AUX** : « where it IS », « where you ARE ». La première version ne testait que
+     VERB, et le tagger étiquette `is`/`are` en AUX — la garde ne pouvait donc jamais se déclencher.
+     Lire ce que le tagger REND, pas ce qu'on croit qu'il rend. */
+  if(lw === 'where' && SUBJ_PRON.has(pv)
+     && !(SUBJ_PRON.has(nx) && i + 2 < T.length && /^(VERB|AUX)$/.test(ctxPos(T, i + 2))))
+    return ['were', 'RED'];
   // WERE/WE'RE : « were » en tête suivi d'un participe présent (« Were going home ») = « We're ».
   // Question inversée (« Were you there? ») exclue : le mot suivant y est un pronom/nom.
   if(lw === 'were' && i === 0 && /ing$/.test(nx) && !SUBJ_PRON.has(nx) && !onlyNoun(lex, nx)) return ["We're", 'ORANGE'];
@@ -253,7 +263,15 @@ function homoDecide(lex, T, i, adj){
   // « The two screamed to frighten » — « the two » = les deux personnes).
   // Le lexique seul ne marche pas ici non plus (« go » y est aussi un nom) : c'est le TAGGER qui dit
   // que « go » est un VERBE dans « I want two go home ». Même remède que « whose king ».
-  if(lw === 'two' && !DET_BEFORE.has(pv) && nx && ctxPos(T, i+1) === 'VERB') return ['to', 'RED'];   // le test lexical !isNoun bloquait tout : « go » EST aussi un nom au lexique
+  /* ⚠️ DEUX GARDES AJOUTÉES APRÈS MESURE SUR TEXTE ÉDITÉ (3 des 12 rouges restants) :
+     ① « Two » CAPITALISÉ hors début de phrase est un mot de titre (« Ways of Two Hypnotizing »),
+       pas le chiffre — même remède que pour l'article « A » et le pronom « You » ;
+     ② un GÉRONDIF ne suit jamais « to » infinitif : « series two working so far » est un groupe
+       nominal (saison 2), pas « to working ». Le tagger dit VERB pour un -ing, d'où le piège. */
+  if(lw === 'two' && !DET_BEFORE.has(pv) && nx && ctxPos(T, i+1) === 'VERB'
+     && (i === 0 || T[i] === T[i].toLowerCase())
+     && !/ing$/.test(nx))
+    return ['to', 'RED'];   // le test lexical !isNoun bloquait tout : « go » EST aussi un nom au lexique
   // --- PARONYMES nom/verbe : la paire ne s'entend pas, mais la POSITION tranche. Un déterminant appelle
   // un NOM, un modal/« to » appelle un VERBE. Même patron pour les 4 paires, donc une seule garde à tenir.
   if(VERB_SLOT.has(pv)){                                   // to/will/can/should… -> il faut le VERBE
@@ -305,7 +323,17 @@ function homoDecide(lex, T, i, adj){
   // accord sujet-verbe (RED, FP=0 en anglais standard) + loose->lose (ORANGE)
   if(lw === "don't" && SUBJ_SING3.has(pv)) return ["doesn't", 'RED'];      // he/she/it don't -> doesn't
   if(lw === "doesn't" && SUBJ_NON3.has(pv)) return ["don't", 'RED'];       // I/you/we/they doesn't -> don't
-  if(lw === 'was' && WAS_WRONG.has(pv)) return ['were', 'RED'];            // you/we/they was -> were
+  /* you/we/they was -> were.
+     ⚠️ GARDE AJOUTÉE APRÈS MESURE : « Really Really Love You was released in August ». « You » y est
+     un mot de TITRE, pas un pronom sujet. Même remède que pour l'article « A » : un pronom
+     capitalisé AILLEURS qu'en tête de phrase n'est pas un pronom, c'est un nom propre ou un titre. */
+  /* ⚠️ ET LE PRONOM DOIT ÊTRE SUJET, PAS COMPLÉMENT : « part OF you was … » est correct — le sujet
+     y est « part », et « you » dépend de la préposition. Une préposition juste avant le pronom
+     suffit à l'écarter. */
+  if(lw === 'was' && WAS_WRONG.has(pv)
+     && (i - 1 === 0 || T[i-1] === T[i-1].toLowerCase())
+     && !(i >= 2 && _PREP_AVANT.has(String(T[i-2]).toLowerCase())))
+    return ['were', 'RED'];
   if(lw === 'loose' && LOOSE_TRIG.has(pv) && (i < 2 || !LOOSE_IDIOM.has(T[i-2].toLowerCase()))) return ['lose', 'ORANGE'];
   // verbe irrégulier RÉGULARISÉ (runned->ran, goed->went, teached->taught) — RED FP=0 (forme nonstandard)
   const _vm = lex.VERBMORPH && lex.VERBMORPH[lw];
@@ -332,6 +360,9 @@ function homoDecide(lex, T, i, adj){
    ② PARTICIPE ATTESTÉ (freq >= 10). « bidden » est archaïque : on n'ose pas l'imposer.
    ③ LES URL SONT PROTÉGÉES (cf. urlMask).
    ⚠️ Et on saute les ADVERBES intercalés (« has already ran »), sinon la règle ne voit rien. */
+/* prépositions : un pronom qui les suit est COMPLÉMENT, pas sujet (« part of you was »). */
+const _PREP_AVANT = new Set(['of','to','with','for','at','from','about','between','among','like',
+  'without','against','upon','than','as','on','in','by','near','behind','beside','toward','towards']);
 const _BE_FORMS = new Set(['was','were','been','is','are','am','be']);
 const _PP_AUX = new Set(['have','has','had','having']);
 const _PP_ADV = new Set(['already','just','never','always','recently','also','probably','actually',

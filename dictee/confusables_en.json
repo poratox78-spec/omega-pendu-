@@ -1,0 +1,834 @@
+{
+  "_lisezmoi": [
+    "LA LISTE CURÉE DES CONFUSIONS ANGLAISES — celle qu'un scripteur fait VRAIMENT.",
+    "",
+    "POURQUOI ELLE EXISTE. `homophones_en.json` contient 5 549 mots, mais c'est un INDEX DE",
+    "COLLISIONS PHONÉTIQUES, pas une liste de confusions : 36 % des tokens d'un corpus anglais y",
+    "ont une entrée, et les têtes de liste sont `the/thee`, `we/oui|weee|whee|wii`,",
+    "`are/argh|ayr|e'er|eyre`. Le brancher signalerait plus d'un mot sur trois. MESURÉ le",
+    "2026-08-06. La voie n'est donc pas de l'ouvrir mais de CURER — exactement comme en français,",
+    "où chaque paire a sa règle de décision.",
+    "",
+    "CE QUE CETTE LISTE EST, ET N'EST PAS. Elle BORNE le périmètre : rien hors de cette liste ne",
+    "doit jamais être signalé comme confusion. Elle ne DÉCIDE pas : chaque groupe a besoin d'une",
+    "règle qui tranche par le contexte (le tagger), sinon on remplace un flood par un autre.",
+    "Le champ `regle` dit si le moteur sait trancher aujourd'hui — c'est la liste de travail.",
+    "",
+    "CRITÈRE D'ENTRÉE : les DEUX membres sont de vrais mots anglais (real-word, donc invisibles",
+    "pour un correcteur orthographique), ils se prononcent identiquement ou quasi, et la confusion",
+    "est attestée dans l'usage. Les paires purement phonétiques sans confusion réelle (`we/wii`)",
+    "sont EXCLUES.",
+    "",
+    "MESURÉ le 2026-08-07 sur texte ÉDITÉ (PUD + GUM genres édités, 177 748 tokens) :",
+    "  · base brute homophones_en.json (5 549 mots) ....... 36,04 % des tokens  = inutilisable",
+    "  · cette liste curée, tous groupes sans règle ....... 5,08 %",
+    "  · + SÉPARABILITÉ (ratio de fréquence <= 10) ........ 2,07 %   <- point de fonctionnement",
+    "",
+    "LA SECONDE CURATION, ET POURQUOI ELLE EST NÉCESSAIRE. Les têtes du flood étaient « for » (1 574),",
+    "« by » (958), « which » (497) : des mots-outils très fréquents dont le partenaire (four, buy, witch)",
+    "est rare. La confusion n existe pas dans ce sens-là. On ne garde donc un groupe que si ses",
+    "membres sont COMPARABLES en fréquence — ratio <= 10, qui est le GENOU mesuré (au-delà, le flood",
+    "monte de 21 % puis 44 % pour peu de groupes gagnés). Même principe que la curation chinoise :",
+    "curer par SÉPARABILITÉ, pas par fréquence brute.",
+    "",
+    "ATTENTION : ces 2,07 % sont le PÉRIMÈTRE, pas le flood attendu. Chaque groupe a encore besoin",
+    "de sa règle de décision ; tant qu elle n existe pas, le groupe ne DOIT rien signaler. Le champ",
+    "Le champ « regle » est la liste de travail : 10 groupes décidés, 99 à écrire.",
+    "",
+    "LACUNE RELEVÉE : « they're », « you're », « we're », « who's » sont ABSENTS du lexique (les contractions",
+    "à apostrophe n y sont pas). Toute règle qui les cible doit en tenir compte.",
+    "",
+    "TAXONOMIE DE RÉFÉRENCE POUR LA SUITE — le glossaire grammatical de l'OED :",
+    "  https://www.oed.com/information/understanding-entries/glossary-grammatical-terms/",
+    "Il ne liste pas des FAUTES mais des PHÉNOMÈNES (auxiliaire, bare infinitive, copular verb,",
+    "count noun, agreement, comparative, conditional, apposition…). Il sert de CARTE : pour chaque",
+    "phénomène, se demander quelle faute dys/scripteur il engendre et si une règle FP=0 est possible.",
+    "C'est ainsi qu'on évite les zones blanches — la confusion homophone n'est qu'UNE des familles."
+  ],
+  "groupes": [
+    {
+      "mots": [
+        "their",
+        "there",
+        "they're"
+      ],
+      "regle": true,
+      "note": "nature du mot suivant"
+    },
+    {
+      "mots": [
+        "your",
+        "you're"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "its",
+        "it's"
+      ],
+      "regle": true
+    },
+    {
+      "mots": [
+        "to",
+        "too",
+        "two"
+      ],
+      "regle": true,
+      "note": "two+verbe -> to (tagger)"
+    },
+    {
+      "mots": [
+        "then",
+        "than"
+      ],
+      "regle": true,
+      "note": "comparatif avant"
+    },
+    {
+      "mots": [
+        "were",
+        "where",
+        "we're"
+      ],
+      "regle": true,
+      "note": "pronom sujet avant / subordonnée après"
+    },
+    {
+      "mots": [
+        "who's",
+        "whose"
+      ],
+      "regle": true
+    },
+    {
+      "mots": [
+        "accept",
+        "except"
+      ],
+      "regle": true
+    },
+    {
+      "mots": [
+        "lead",
+        "led"
+      ],
+      "regle": true,
+      "note": "après auxiliaire du parfait"
+    },
+    {
+      "mots": [
+        "passed",
+        "past"
+      ],
+      "regle": true
+    },
+    {
+      "mots": [
+        "of",
+        "have"
+      ],
+      "regle": true,
+      "note": "après un modal, sauf « of course »"
+    },
+    {
+      "mots": [
+        "affect",
+        "effect"
+      ],
+      "regle": false,
+      "note": "déterminant -> nom, « to » -> verbe"
+    },
+    {
+      "mots": [
+        "lose",
+        "loose"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "weather",
+        "whether"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "advice",
+        "advise"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "breath",
+        "breathe"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "cloth",
+        "clothe"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "loath",
+        "loathe"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "quiet",
+        "quite",
+        "quit"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "principal",
+        "principle"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "stationary",
+        "stationery"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "complement",
+        "compliment"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "desert",
+        "dessert"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "discreet",
+        "discrete"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "elicit",
+        "illicit"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "eminent",
+        "imminent"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "ensure",
+        "insure"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "council",
+        "counsel"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "coarse",
+        "course"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "capital",
+        "capitol"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "altar",
+        "alter"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "allowed",
+        "aloud"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "aisle",
+        "isle"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "bare",
+        "bear"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "board",
+        "bored"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "brake",
+        "break"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "buy",
+        "by",
+        "bye"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "cell",
+        "sell"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "cereal",
+        "serial"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "cite",
+        "site",
+        "sight"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "flour",
+        "flower"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "for",
+        "four"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "forth",
+        "fourth"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "great",
+        "grate"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "groan",
+        "grown"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "hair",
+        "hare"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "heal",
+        "heel"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "hear",
+        "here"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "heard",
+        "herd"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "hole",
+        "whole"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "hour",
+        "our"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "knew",
+        "new"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "know",
+        "no"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "mail",
+        "male"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "main",
+        "mane"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "marry",
+        "merry"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "meat",
+        "meet"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "morning",
+        "mourning"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "knows",
+        "nose"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "pail",
+        "pale"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "pair",
+        "pear"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "patience",
+        "patients"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "peace",
+        "piece"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "peak",
+        "peek",
+        "pique"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "plain",
+        "plane"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "pole",
+        "poll"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "poor",
+        "pour",
+        "pore"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "pray",
+        "prey"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "profit",
+        "prophet"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "rain",
+        "reign",
+        "rein"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "raise",
+        "rays",
+        "raze"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "read",
+        "red"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "real",
+        "reel"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "right",
+        "write",
+        "rite"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "ring",
+        "wring"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "road",
+        "rode"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "role",
+        "roll"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "root",
+        "route"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "sail",
+        "sale"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "scene",
+        "seen"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "sea",
+        "see"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "sew",
+        "so",
+        "sow"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "sole",
+        "soul"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "some",
+        "sum"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "son",
+        "sun"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "stair",
+        "stare"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "stake",
+        "steak"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "steal",
+        "steel"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "straight",
+        "strait"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "suite",
+        "sweet"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "tail",
+        "tale"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "team",
+        "teem"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "threw",
+        "through"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "throne",
+        "thrown"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "tide",
+        "tied"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "toe",
+        "tow"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "vain",
+        "vein",
+        "vane"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "vary",
+        "very"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "waist",
+        "waste"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "wait",
+        "weight"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "waive",
+        "wave"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "way",
+        "weigh"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "weak",
+        "week"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "which",
+        "witch"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "whine",
+        "wine"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "won",
+        "one"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "wood",
+        "would"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "wrap",
+        "rap"
+      ],
+      "regle": false
+    },
+    {
+      "mots": [
+        "yoke",
+        "yolk"
+      ],
+      "regle": false
+    }
+  ],
+  "seuil_separabilite": 10
+}
