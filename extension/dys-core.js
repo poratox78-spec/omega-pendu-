@@ -2042,6 +2042,11 @@ function spellUnknown(tok,atStart,T,idx){
          virgule = adresse, chemin ou URL : la virgule y est un séparateur technique, pas une ponctuation. */
       if(/[:\/@]/.test(text.slice(_a,_b)))continue;
       out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+', '+m[2],name:'espace après la virgule',tier:'auto',typo:1});}
+        var re5=/,[ 	]*,+/g;   /* VIRGULE DOUBLÉE — mesuré 0 sur 14 450 phrases UD correctes, et observé dans la vraie prise vocale de Rem (« je sais pas comment,, on va le faire »).
+       ⚠️ UNIQUEMENT « ,, ». On avait d'abord visé « toute ponctuation doublée » : 15 déclenchements sur du français CORRECT, tous légitimes — « av. J.-C., », « etc., », « Martine B., », « Next..., ».
+       Le point d'abréviation suivi d'une virgule est du bon français ; la virgule doublée, jamais. */
+    while((m=re5.exec(text))){
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:',',name:'virgule doublée',tier:'auto',typo:1});}
     return out;}
   function diagnoseAll(text){var gf=correctText(text),sf=SP.ready?spellText(text):[];        // grammaire + orthographe fusionnés + stade
     var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;
