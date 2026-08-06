@@ -69,6 +69,7 @@ function charge(fichier, nomProso) {
   const morceaux = [
     ligneVar(src, '_MAJOUTIL'),
     ligneVar(src, '_NOMPROPRE'),
+    bloc(src, 'function _dedoubleMarques('),
     bloc(src, 'function normMajInterne('),
     ligneVar(src, '_SALUT'),
     ligneVar(src, '_GOUVERNE'),
@@ -504,6 +505,25 @@ cas('⛔ NÉGATIF — on ne sépare JAMAIS le sujet du prédicat',
  *    Le filet de sécurité en attendant est ailleurs et LUI est mesuré : la règle ROUGE « ,, » -> « , »
  *    du correcteur (0 déclenchement sur 14 450 phrases correctes), gardée par dictee/typo_probe.js. */
 
+/* ⑧  ⭐⭐ LA MARQUE DOUBLÉE — testée SUR LA FONCTION, pas à travers le pipeline.
+ *    Rem : « ,, est doublon, ça se corrige facilement même si on peut pas l'empêcher de se produire ».
+ *    ⚠️ ET C'EST POUR ÇA QUE LE TEST EST ICI ET PAS EN CAS DE BOUT-EN-BOUT. Trois tentatives de
+ *    reproduire le « ,, » à travers `prosodyText` ont échoué (segment finissant par une virgule,
+ *    segment vide, marque sur le dernier mot) : les cas écrits passaient AVEC ET SANS le correctif,
+ *    donc ils ne testaient rien (cf. ③ en en-tête). On teste donc `_dedoubleMarques` DIRECTEMENT,
+ *    avec des entrées réellement doublées — non vide par construction. La CAUSE reste ouverte ;
+ *    l'EFFET, lui, est verrouillé. */
+const DEDOUBLE = [
+  ['virgule doublée (prise de Rem)', 'je sais pas comment,, on va le faire', 'je sais pas comment, on va le faire'],
+  ['virgule doublée avec espace', 'certaines choses, , sont correctes', 'certaines choses, sont correctes'],
+  ['trois virgules', 'et des fois,,, et une autre', 'et des fois, et une autre'],
+  ['virgule puis point : le POINT gagne', 'il fait beau,. je sors', 'il fait beau. je sors'],
+  ['virgule puis « ? » : espace française conservée', 'tu viens demain,? je dois savoir', 'tu viens demain ? je dois savoir'],
+  ["⛔ point d'abréviation + virgule : INTACT (bon français)", 'au IVe siècle av. J.-C., il réside ici', 'au IVe siècle av. J.-C., il réside ici'],
+  ['⛔ « etc., » : INTACT', 'philosophe, mystique, etc., ses travaux', 'philosophe, mystique, etc., ses travaux'],
+  ['⛔ ponctuation normale : INTACT', 'Bonjour, je viens demain. Il fera beau.', 'Bonjour, je viens demain. Il fera beau.'],
+];
+
 /* ── EXÉCUTION SUR LES DEUX SURFACES ───────────────────────────────────────────────────── */
 const surfaces = [
   { nom: 'site  saisie-vocale.html', f: charge(SITE, 'prosodyText') },
@@ -545,6 +565,23 @@ for (const c of CAS) {
     console.log('✗ PARITÉ : ' + c.nom);
     console.log('    site : ' + JSON.stringify(r[0]));
     console.log('    ext. : ' + JSON.stringify(r[1]));
+  }
+}
+
+/* ⭐ LE SOUS-BANC « marque doublée » : on extrait `_dedoubleMarques` des DEUX fichiers LIVRÉS et
+   on l'appelle DIRECTEMENT. Voir ⑧ plus haut pour la raison — un test de bout en bout aurait été
+   vide, faute de savoir reproduire la cause. */
+for (const [nomS, fic] of [['site ', SITE], ['ext. ', EXT]]) {
+  const srcS = fs.readFileSync(fic, 'utf8');
+  const fn = new Function(bloc(srcS, 'function _dedoubleMarques(') + '\nreturn _dedoubleMarques;')();
+  for (const [fam, dedans, dehors] of DEDOUBLE) {
+    total++;
+    const got = fn(dedans);
+    if (got !== dehors) { ko++;
+      console.log('✗ [' + nomS + '] ' + fam);
+      console.log('    attendu : ' + JSON.stringify(dehors));
+      console.log('    obtenu  : ' + JSON.stringify(got));
+    }
   }
 }
 
