@@ -205,12 +205,29 @@
 </div></section>
 
 <section><div class="wrap">
+  <h2 id="ponctuation">La ponctuation de la voix&nbsp;: deux canaux, une division du travail</h2>
+  <p>Dicter à la voix donne des <strong>mots sans ponctuation</strong>&nbsp;: le service de reconnaissance du navigateur n'en produit aucune en français. Pour un dys, un texte d'un seul bloc est illisible — il fallait donc la reconstruire. Deux canaux existent, et aucun ne suffit seul.</p>
+  <ul class="clean">
+    <li><b>L'audio propose.</b> Une seconde écoute du micro mesure les <strong>silences</strong> — elle sait que quelqu'un s'est tu, ce que le texte ignore. Elle vise à un mot près.</li>
+    <li><b>Le texte dispose.</b> Il recale la position, choisit <em>quelle</em> marque, et surtout <strong>refuse</strong> quand aucune place n'est grammaticalement légale.</li>
+  </ul>
+  <p>C'est le <strong>refus</strong> qui fait tenir l'ensemble&nbsp;: sans lui, chaque pause produisait une marque et la justesse s'effondrait de 69&nbsp;% à 22&nbsp;%. Avec la combinaison, la mesure passe de <strong>F1 0,33 à 0,48</strong> sur une vraie dictée. <b>Et l'ablation est nette&nbsp;: la durée seule bat le modèle acoustique appris</b> une fois le texte en filtre — donc aucun modèle audio n'est embarqué.</p>
+  <p>Par-dessus, cinq <strong>règles de virgule</strong> tirées d'une source pédagogique publique (Allô prof) rattrapent des familles que la statistique ignore. Elles font passer la conformité à la source de <strong>3 à 14 exemples sur 50</strong>, et — c'est plus rare — améliorent <em>à la fois</em> la justesse (50,5&nbsp;→&nbsp;52,0&nbsp;%) et le rappel (11,0&nbsp;→&nbsp;12,8&nbsp;%) sur 11&nbsp;304 phrases écrites par des humains.</p>
+  <p><b>La ligne de partage qu'on a fini par comprendre.</b> «&nbsp;<em>Où</em> faut-il une virgule&nbsp;?&nbsp;» est un <strong>jugement</strong> — la source elle-même écrit «&nbsp;on place <em>généralement</em>&nbsp;». Aucun réglage n'en fera une certitude. Mais «&nbsp;<em>l'espace autour de la virgule qui est déjà là est-il bien placé</em>&nbsp;?&nbsp;» est <strong>mécanique</strong>. Cette seconde couche, elle, atteint le zéro faux positif&nbsp;: quatre règles typographiques appliquées automatiquement, <strong>2 déclenchements sur 14&nbsp;450 phrases correctes — et les deux sont de vraies fautes du corpus</strong>.</p>
+
   <h2>Ce qu'on a essayé… et rejeté</h2>
   <p>L'honnêteté des résultats négatifs fait partie de la méthode. Mesuré, puis <strong>écarté</strong>&nbsp;:</p>
   <ul class="clean">
     <li>un «&nbsp;C cognitif&nbsp;» léger appris, puis un <b>transformer lourd</b> — parité au mieux avec une heuristique simple, parfois pire.</li>
     <li>le <b>pendu de phrases</b> comme levier de victoire — le partage de lettres fuit les fins de mots.</li>
     <li>plusieurs élargissements du correcteur (edit-distance 2, relâche de gardes…) — chacun <b>rouvrait des faux positifs</b>, donc non câblé.</li>
+    <li>un <b>aligneur de syllabes sans modèle</b> pour placer les pauses&nbsp;: 44&nbsp;% sur de la lecture, mais <b>1 sur 12</b> sur une voix dyslexique — ses blocs de parole vont de 280 à 1660&nbsp;ms, un rapport de 5,9. La parole dys est irrégulière par nature&nbsp;; un aligneur proportionnel ne peut pas suivre.</li>
+    <li>un <b>petit modèle acoustique distillé</b> (2,9&nbsp;Ko) pour corriger ça&nbsp;: +15 points sur la lecture, <b>zéro sur la vraie voix</b>. Le gain ne se transfère pas — le problème n'était pas la détection, mais la dérive.</li>
+    <li>un <b>arbitre entre routes</b> pour la ponctuation, sur le modèle de celui du pendu&nbsp;: il gagne en score global mais <b>fait retomber la garde anti-régression de 82 à 62 cas</b>, en ressortant des fautes déjà corrigées.</li>
+    <li>la <b>double route par accord</b> — exiger que deux méthodes soient d'accord. Mesuré&nbsp;: l'accord est le <b>pire</b> des trois signaux (37,9&nbsp;% de justesse contre 58,1 et 63,2 séparément). Les deux méthodes lisent la même matière, donc elles se trompent ensemble&nbsp;; leur accord ne sélectionne pas la certitude mais <b>l'ambiguïté</b>.</li>
+    <li><b>durcir le seuil</b> pour gagner en justesse&nbsp;: la justesse est <b>plate</b> quel que soit le seuil (+1,75 point pour −94&nbsp;% de rappel). Un modèle dont la confiance ne prédit pas la justesse n'est pas mal réglé — il est saturé.</li>
+    <li>l'<b>espace double comme pause écrite</b>, l'analogue à l'écrit de la pause audio&nbsp;: aucun signal (6,32&nbsp;% contre un taux de base de 6,19&nbsp;%).</li>
+    <li>réparer les <b>46 listes du correcteur aveugles à l'élision</b>&nbsp;: rendre le mot-outil visible ajoute <b>23 faux positifs pour −1 de rappel</b>. La cécité y était protectrice.</li>
   </ul>
   <p>Garder la trace de ce qui ne marche pas évite de le refaire — et rend crédible ce qui marche.</p>
 </div></section>
