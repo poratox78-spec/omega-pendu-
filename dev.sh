@@ -68,6 +68,7 @@ run "outil d'édition (pièges monolithe)" python tools/omega_edit.py
 run "Double-Sens (table + règle d'équité)" node dictee/sens_probe.js --check
 run "ponctuation vocale (règles BDL + parité site/extension)" node dictee/proso_probe.js
 run "typographie ROUGE (espaces autour de , et . + parité)" node dictee/typo_probe.js
+run "parité OCTET du moteur vocal (site==extension)" node dictee/voix_parite_probe.js
 runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js

@@ -97,6 +97,8 @@ jobs:
         run: node dictee/proso_probe.js
       - name: Typographie ROUGE — espaces autour de « , » et « . » + parité
         run: node dictee/typo_probe.js
+      - name: Parité OCTET du moteur vocal — site == extension
+        run: node dictee/voix_parite_probe.js
       - name: Moteur correcteur AUTONOME (bake — HTML non requis au runtime)
         run: |
           node dictee/build_correcteur.js /tmp/correcteur.standalone.js

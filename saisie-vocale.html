@@ -64,7 +64,13 @@
     <label class="cfg"><input type="checkbox" id="von"> Activer la dictée vocale</label>
     <span class="vst" id="vst">chargement du correcteur…</span>
   </div>
-  <div class="vnote"><span class="lock">🔒</span> La dictée vocale envoie l'audio de ton micro au <b>service vocal du navigateur (Google)</b> pour le transcrire — seul moment où quelque chose sort. La correction reste <b>100&nbsp;% sur ton appareil</b>. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
+  <!-- ⚠️ CETTE NOTE EST UNE PROMESSE FAITE À QUELQU'UN, pas une mention légale : elle doit décrire
+       CE QUE LE CODE FAIT, en entier. La version précédente disait vrai (« seul moment où quelque
+       chose sort ») mais était INCOMPLÈTE : elle ne mentionnait pas la SECONDE capture micro — la
+       page ouvre son propre `getUserMedia` pour mesurer les silences — ni le bouton Diagnostic.
+       Un lecteur en déduisait qu'il n'y avait qu'une seule écoute. Sur un site public destiné à
+       des dys, l'incomplet coûte autant que le faux. Si le code change, CETTE PHRASE CHANGE. -->
+  <div class="vnote"><span class="lock">🔒</span> Quand tu dictes, <b>deux choses</b> écoutent ton micro. <b>①</b> Le <b>service vocal du navigateur (Google)</b> reçoit l'audio pour le transcrire en mots — c'est le <b>seul moment où quelque chose sort de ton appareil</b>. <b>②</b> La page l'écoute une seconde fois, <b>uniquement pour mesurer tes silences</b> et poser la ponctuation : ce son-là n'est <b>ni enregistré ni envoyé</b>, on n'en garde que deux nombres toutes les 30&nbsp;ms. La correction reste <b>100&nbsp;% sur ton appareil</b>. Le bouton <b>🩺&nbsp;Diagnostic</b> copie ces mesures dans ton presse-papier <b>si tu cliques</b>, jamais tout seul. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
   <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici (majuscules remises automatiquement). Puis clique les corrections rouges, « Tout corriger », et « Copier »."></textarea>
   <div class="acts">
     <button id="fixall" disabled>✓ Tout corriger</button>
