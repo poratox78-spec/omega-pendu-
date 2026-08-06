@@ -83,8 +83,14 @@ function fin(s, i) { let j = s.indexOf('{', i), p = 0;
 function regleDe(src, DC) {
   function lv(n) { const m = new RegExp('\\bvar\\s+' + n + '\\s*=').exec(src);
     return m ? src.slice(m.index, src.indexOf(';', m.index) + 1) : null; }
-  const noms = ['QW', 'CLIT', 'QINV', 'QINV_Q', 'QINCISE', 'QPAROLE', 'QADV', 'QTAG',
-                'QEQ', 'QEQ2', 'QSEUL', 'QVERBAL', 'QNEG1', 'QNEG2'];
+  /* ⚠️ TOUTE VARIABLE UTILISÉE PAR `estQuestion` DOIT ÊTRE ICI. Le 2026-08-06, l'ajout de `QEUPH`
+     (le « t » euphonique) n'y était pas : la fonction levait une ReferenceError, le `catch` plus
+     bas la transformait en « pas une question », et le banc affichait un score INCHANGÉ pour un
+     code pourtant modifié. C'est exactement la faute que la garde CI existe pour empêcher —
+     mesurer autre chose que la livraison, sans le savoir. Le compteur d'exceptions ajouté en bas
+     rend désormais la panne visible au lieu de la déguiser en résultat. */
+  const noms = ['QW', 'CLIT', 'QINV', 'QINV_Q', 'QINCISE', 'QPAROLE', 'QADV', 'QTAG', 'QEUPH',
+                'QEQ', 'QEQ2', 'QEQ3', 'QPARTPAROLE', 'QSEUL', 'QVERBAL', 'QNEG1', 'QNEG2'];
   const bouts = noms.map(lv).filter(Boolean);
   const i = src.indexOf('function estQuestion(');
   if (i < 0) throw new Error('estQuestion introuvable');
@@ -131,11 +137,14 @@ if (require.main === module) {
                regleDe(fs.readFileSync(path.join(RACINE, 'saisie-vocale.html'), 'utf8'), DC)]);
 
   for (const [nom, f] of regles) {
-    let vp = 0, fp = 0, fn = 0;
+    let vp = 0, fp = 0, fn = 0, nerr = 0, err1 = '';
     const exFP = [], exFN = [];
     for (const c of cas) {
       let r = false;
-      try { r = !!f(c.t); } catch (e) { r = false; }
+      /* ⚠️ ON COMPTE LES EXCEPTIONS AU LIEU DE LES DÉGUISER. Avaler l'erreur en silence rendait
+         un score PLAUSIBLE pour une fonction qui ne tournait pas (variable non extraite) : on
+         croyait mesurer la livraison, on mesurait « jamais une question ». */
+      try { r = !!f(c.t); } catch (e) { r = false; nerr++; if (!err1) err1 = e.message; }
       if (r && c.q) vp++;
       else if (r && !c.q) { fp++; if (exFP.length < 8) exFP.push('[' + c.src + '] ' + c.t.slice(0, 82)); }
       else if (!r && c.q) { fn++; if (exFN.length < 6) exFN.push(c.t.slice(0, 82)); }
@@ -147,6 +156,7 @@ if (require.main === module) {
     // trompeur (le NaN n'était pas un bug de calcul, juste un format non substitué).
     console.log('\n' + nom.padEnd(24) + ' précision ' + prec.toFixed(2) + ' % (' + vp + '/' + (vp + fp) +
                 ')   rappel ' + rapp.toFixed(2) + ' % (' + vp + '/' + nq + ')');
+    if (nerr) console.log('   ⛔ ' + nerr + ' EXCEPTION(S) — LE SCORE CI-DESSUS NE VEUT RIEN DIRE : ' + err1);
     if (exFP.length) { console.log('   FAUSSES QUESTIONS :'); exFP.forEach(x => console.log('     ' + x)); }
     if (exFN.length) { console.log('   questions ratées (échantillon) :'); exFN.forEach(x => console.log('     ' + x)); }
   }
