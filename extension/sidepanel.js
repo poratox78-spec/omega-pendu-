@@ -428,8 +428,11 @@
     // ⚠️ ANCRÉ EN TÊTE : sans l'ancre, « se demandant quand est-ce qu'il va sortir » (interrogation
     // INDIRECTE, que le BDL exclut explicitement du « ? ») redevenait une question.
     var QEQ=/^\s*est-ce\s+(?:que|qu['’])/i;
+    var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
     var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
     var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+    var QEUPH=/[A-Za-zÀ-ÿœ']+-t-(?:il|elle|on|ils|elles)(?![-\w])/i;   // « t » euphonique : 74/74 inversions dans UD, ancrage ORTHOGRAPHIQUE (tient la ou le tagger lache)
+    var QPARTPAROLE=/^\s*(?:affirmé|précisé|precise|déclaré|declare|ajouté|ajoute|expliqué|explique|indiqué|indique|souligné|souligne|conclu|poursuivi|répondu|repondu|confié|confie|assuré|assure|estimé|estime|noté|note|rappelé|rappele|lancé|lance|martelé|martele|insisté|insiste|dit|écrit|ecrit)(?![a-zà-ÿœ])/i;   // participes de parole = incise au temps compose. ⚠️ PAS de  apres une lettre accentuee : en JS \w=[A-Za-z0-9_], donc la frontiere n'existe jamais et la regex ne matche RIEN (echec SILENCIEUX, deja paye)
     var QVERBAL={VERB:1,AUX:1};
     // le « ne » de la négation, collé (n') ou non, AVANT le verbe inversé ; et sa seconde moitié APRÈS
     var QNEG1=/(^|[\s'’])(?:ne\s|n['’])/i;
@@ -460,13 +463,19 @@
         var iv=DC.toks(t.slice(0,m.index)).length;
         // incise en tête sans ponctuation : un VERBE DE PAROLE inversé au tout début
         if(iv===0 && QPAROLE.test(m[1])) return false;
-        if(QVERBAL[tag(iv)]===1){
+        if(QPARTPAROLE.test(t.slice(m.index+m[0].length))) return false;   // « … », a-t-il affirmé » : l'auxiliaire est inverse, le verbe de parole est le PARTICIPE qui suit
+        // ⭐ SANS LE TAGGER : le « t » euphonique (fait d'orthographe) et l'interrogatif en tete
+        // (l'imperatif y est impossible). Mesure 2026-08-06 : le tagger lit « a/ADP » dans
+        // « a-t-il raison » et « devrions/NOUN » dans « ou devrions-nous » — la regle avait raison,
+        // c'est sa confirmation qui echouait. Les GARDES, elles, restent toutes.
+        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw){
           if(QADV.test(t)) return false;                      // inversion stylistique
           for(var k=0;k<iv;k++) if(QVERBAL[tag(k)]===1) return false;   // incise : proposition déjà close
           return true;
         }
       }
       if(QEQ.test(t)) return true;
+      if(QEQ3.test(t)) return true;   // « est-ce possible ? » — sans « que »
       if(qw && QEQ2.test(t)) return true;
       // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
       // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :

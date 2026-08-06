@@ -422,8 +422,20 @@
     // ⚠️ ANCRÉ EN TÊTE : sans l'ancre, « se demandant quand est-ce qu'il va sortir » (interrogation
     // INDIRECTE, que le BDL exclut explicitement du « ? ») redevenait une question.
     var QEQ=/^\s*est-ce\s+(?:que|qu['’])/i;
+    var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » — sans « que »
     var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
     var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+    // ⭐ LE « T » EUPHONIQUE — mesuré 74/74 inversions dans UD FR GSD. Aucune autre construction
+    // française ne produit « -t-il / -t-elle / -t-on ». Ancrage ORTHOGRAPHIQUE, pas statistique :
+    // il tient là où le tagger lâche (« a-t-il » → il lit « a/ADP », croyant « à »).
+    var QEUPH=/[A-Za-zÀ-ÿœ']+-t-(?:il|elle|on|ils|elles)(?![-\w])/i;
+    // Les PARTICIPES de parole : ce qui suit l'auxiliaire dans une incise au temps composé.
+    // ⚠️⚠️ PAS DE `\b` APRÈS UNE LETTRE ACCENTUÉE — piège JavaScript, et il échoue EN SILENCE.
+    // `\w` vaut `[A-Za-z0-9_]` : « é » est déjà un non-mot, donc `/précisé\b/` ne trouve JAMAIS
+    // de frontière et ne matche RIEN. Ma première version l'utilisait, la garde ne tirait pas, et
+    // le score du banc restait identique — une correction invisible qui a l'air appliquée.
+    // On emploie donc la négation de lettre suivante, comme partout ailleurs dans ce fichier.
+    var QPARTPAROLE=/^\s*(?:affirmé|précisé|precise|déclaré|declare|ajouté|ajoute|expliqué|explique|indiqué|indique|souligné|souligne|conclu|poursuivi|répondu|repondu|confié|confie|assuré|assure|estimé|estime|noté|note|rappelé|rappele|lancé|lance|martelé|martele|insisté|insiste|dit|écrit|ecrit)(?![a-zà-ÿœ])/i;
     var QVERBAL={VERB:1,AUX:1};
     // le « ne » de la négation, collé (n') ou non, AVANT le verbe inversé ; et sa seconde moitié APRÈS
     var QNEG1=/(^|[\s'’])(?:ne\s|n['’])/i;
@@ -454,13 +466,44 @@
         var iv=DC.toks(t.slice(0,m.index)).length;
         // incise en tête sans ponctuation : un VERBE DE PAROLE inversé au tout début
         if(iv===0 && QPAROLE.test(m[1])) return false;
-        if(QVERBAL[tag(iv)]===1){
+        // ⭐ L'INCISE AU TEMPS COMPOSÉ, EN TÊTE DE FRAGMENT : « …", a-t-il affirmé », « a-t-il
+        // précisé par la suite ». `QPAROLE` ne regarde que le mot INVERSÉ — ici c'est l'auxiliaire
+        // (« a »), et le verbe de parole est le PARTICIPE qui suit. Les deux faux positifs qu'a
+        // fait apparaître le « t » euphonique sont exactement ceux-là, et pas d'autres.
+        // ⚠️ COÛT ASSUMÉ ET DIT : « A-t-il affirmé cela ? » est une vraie question, et on la perd.
+        // On l'accepte parce que la garde ne tire QU'EN TÊTE de fragment (iv===0), signature d'une
+        // incise tronquée par le découpage, et parce qu'un « ? » en trop se voit alors qu'un « . »
+        // à la place se répare d'un caractère — la même asymétrie qui gouverne toute la fonction.
+        // ⚠️ PAS de condition `iv===0` : le fragment « très proche de la prochaine étape »,
+        // a-t-il affirmé » a des mots devant, mais aucun n'est un verbe — la garde « proposition
+        // déjà close » ne peut donc pas l'attraper. Une inversion SUIVIE d'un participe de parole
+        // est une incise, où qu'elle se trouve.
+        if(QPARTPAROLE.test(t.slice(m.index+m[0].length))) return false;
+        // ⭐⭐ DEUX ANCRAGES QUI SE PASSENT DU TAGGER — et c'est LUI le point faible mesuré, pas
+        // la règle. Sur les formes soumises par Rem (2026-08-06), le tagger lit « a/ADP » (il
+        // croit « à ») dans « a-t-il raison » et « devrions/NOUN » dans « où devrions-nous » : la
+        // garde verbale ne s'arme pas et la question tombe. La regex, elle, avait vu juste.
+        //  ① LE « T » EUPHONIQUE : « X-t-il / -t-elle / -t-on » n'existe QUE dans l'inversion.
+        //     Fait d'ORTHOGRAPHE, pas statistique — aucun modèle requis (74/74 dans UD FR GSD).
+        //  ② APRÈS UN INTERROGATIF EN TÊTE (où, comment, pourquoi…), l'impératif est impossible.
+        //     Le code le dit déjà pour nous/vous ; la même raison vaut pour le verbe lui-même.
+        // ⚠️ ON NE RETIRE QUE LA CONFIRMATION DU TAGGER, JAMAIS LES GARDES. Le corpus donne le
+        // contre-exemple que le raisonnement seul manquait : « "Il est impératif…", a-t-il encore
+        // déclaré » — le « t » euphonique vit AUSSI dans l'incise de citation. C'est la garde
+        // « un verbe précède déjà » qui l'attrape, et elle reste juste en dessous.
+        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw){
           if(QADV.test(t)) return false;                      // inversion stylistique
           for(var k=0;k<iv;k++) if(QVERBAL[tag(k)]===1) return false;   // incise : proposition déjà close
           return true;
         }
       }
       if(QEQ.test(t)) return true;
+      // ⭐ « EST-CE » EN TÊTE SANS « QUE » : « Est-ce possible ? », « Est-ce vrai ? », « Est-ce
+      // lui ? ». `QEQ` exige « est-ce que » et les ratait toutes. En TÊTE, « est-ce » n'a pas
+      // d'emploi non interrogatif en français — le seul risque connu est l'interrogation
+      // INDIRECTE (« il se demande si c'est possible »), qui n'emploie justement pas cette forme,
+      // et l'ancrage en tête écarte « … quand est-ce qu'il sort » (déjà gardé par QEQ).
+      if(QEQ3.test(t)) return true;
       if(qw && QEQ2.test(t)) return true;
       // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
       // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :

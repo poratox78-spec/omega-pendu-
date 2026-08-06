@@ -308,6 +308,27 @@ cas('GARDE : « comment » + GROUPE NOMINAL = interrogation indirecte',
     etat(['comment une personne obtient chacun des points'], [1500], []),
     'Comment une personne obtient chacun des points.');
 
+/* ④ter  ⭐ LES TROIS FORMES QUE LE TAGGER FAISAIT TOMBER (soumises par Rem le 2026-08-06).
+ *       Elles échouaient toutes les trois alors que la RÈGLE avait raison : c'est sa
+ *       CONFIRMATION par le tagger qui lâchait (« a/ADP » pour « a-t-il », « devrions/NOUN »).
+ *       Mesuré sur le banc : précision 96,23 -> 96,61 % ET rappel 16,24 -> 18,15 %. */
+cas('⭐ « t » EUPHONIQUE : a-t-il (le tagger lit « a/ADP », la regex a raison)',
+    'ancrage ORTHOGRAPHIQUE : 74/74 inversions dans UD FR GSD',
+    etat(['a-t-il raison'], [1500], []),
+    'A-t-il raison ?');
+cas('⭐ INTERROGATIF + inversion que le tagger rate (« devrions/NOUN »)',
+    'après un interrogatif en tête, l\'impératif est impossible',
+    etat(['où devrions-nous aller'], [1500], []),
+    'Où devrions-nous aller ?');
+cas('⭐ « est-ce » EN TÊTE SANS « que »',
+    'BDL : « Est-ce possible ? » — QEQ exigeait « que » et les ratait toutes',
+    etat(['est-ce possible'], [1500], []),
+    'Est-ce possible ?');
+cas('GARDE : « …, a-t-il affirmé » est une INCISE, pas une question',
+    'contre-exemple donné par UD FR GSD : le « t » euphonique vit aussi dans l\'incise',
+    etat(['la solution est proche a-t-il affirmé'], [1500], []),
+    'La solution est proche a-t-il affirmé.');
+
 cas('FP inversion STYLISTIQUE sans interrogatif -> point',
     'mesuré : l\'inversion seule ne fait que 69,4 %',
     etat(['peut-être est-elle déjà partie'], [1500], []),
