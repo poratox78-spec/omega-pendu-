@@ -304,7 +304,81 @@ function homoDecide(lex, T, i){
   return [null, null];
 }
 
+
+/* ⭐⭐ PARTICIPE APRÈS L'AUXILIAIRE « HAVE » — « has went » -> « has gone ».
+   POURQUOI CETTE FAMILLE, ET POURQUOI ELLE MANQUAIT. `verbmorph_en.json` couvrait déjà la
+   SUR-RÉGULARISATION (« beared » -> bore/borne) : la faute où l'on ajoute -ed à un irrégulier.
+   L'autre direction — employer le PRÉTÉRIT là où il faut le PARTICIPE — est plus fréquente en
+   anglais réel et n'était pas traitée. Elle est pourtant plus SÛRE : après « have/has/had », la
+   grammaire n'admet QUE le participe. Aucun jugement, une clôture de paradigme.
+
+   MESURÉ (EWT, 176 137 tokens de texte correct) : 2 déclenchements — et les DEUX sont de vraies
+   fautes du corpus (« the owner has already ran », « I have ate here 3 times »). FP=0 réel.
+   Rappel : 6/6 sur fautes construites (went/ate/drank/broke/took/fell).
+
+   ⚠️ TROIS FILTRES, CHACUN EXIGÉ PAR LA MESURE — la version sans filtres faisait 8 déclenchements :
+   ① LES FORMES DE « BE » SONT EXCLUES. `verbmorph` donne « was/were », qui n'est PAS une paire
+     prétérit/participe mais une alternance de NOMBRE (le participe de be est « been »). Sans ce
+     filtre, « the only difference we had was… » devenait « …had were ». 5 des 6 faux positifs.
+   ② PARTICIPE ATTESTÉ (freq >= 10). « bidden » est archaïque : on n'ose pas l'imposer.
+   ③ LES URL SONT PROTÉGÉES (cf. urlMask).
+   ⚠️ Et on saute les ADVERBES intercalés (« has already ran »), sinon la règle ne voit rien. */
+const _BE_FORMS = new Set(['was','were','been','is','are','am','be']);
+const _PP_AUX = new Set(['have','has','had','having']);
+const _PP_ADV = new Set(['already','just','never','always','recently','also','probably','actually',
+  'ever','not','only','still','often','clearly','apparently','once','twice','long','since']);
+function buildPastPart(lex){
+  /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
+  const m = new Map(), V = lex.VERBMORPH || {};
+  for(const k of Object.keys(V)){
+    const v = V[k];
+    if(!Array.isArray(v) || v.length < 2) continue;
+    const pt = v[0], pp = v[1];
+    if(!pt || !pp || pt === pp) continue;
+    if(_BE_FORMS.has(pt) || _BE_FORMS.has(pp)) continue;      // ① cf. en-tête
+    if((lex.FREQ.get(pp) || 0) < 10) continue;                // ②
+    if(!m.has(pt)) m.set(pt, pp);
+  }
+  return m;
+}
+function pastPartDecide(lex, T, i){
+  if(!lex._P2P) lex._P2P = buildPastPart(lex);
+  const w = String(T[i] || '').toLowerCase();
+  const pp = lex._P2P.get(w);
+  if(!pp) return [null, null];
+  let j = i - 1;
+  while(j > 0 && _PP_ADV.has(String(T[j] || '').toLowerCase())) j--;   // « has already ran »
+  if(j < 0 || !_PP_AUX.has(String(T[j] || '').toLowerCase())) return [null, null];
+  return [pp, 'RED'];
+}
+
 function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
+
+/* ⭐ LES MOTS QUI VIVENT DANS UNE URL, UNE ADRESSE OU UN CHEMIN — à ne jamais corriger.
+   D'OÙ ÇA VIENT : relecture des 55 rouges du speller sur EWT (2026-08-06). 52 étaient de VRAIES
+   fautes ; l'un des trois ratés était `liberta -> liberty` À L'INTÉRIEUR d'une URL de catalogue
+   (…/abode-large-metal-cage-liberta-free-de…). `Liberta` y est un nom de produit.
+   L'EXPOSITION EST MESURÉE, pas supposée : 1 616 tokens d'EWT sur 176 137 (0,92 %) vivent dans
+   une URL ou une adresse, et le moteur anglais n'avait AUCUNE garde. Un mot dans une URL n'est
+   pas du langage — c'est un identifiant, et le corriger casse le lien.
+   ⚠️ ON TESTE LE MOT ENTIER (la suite non-espacée qui contient le token), pas une fenêtre de N
+   caractères : la même faute avait été commise côté français, où une fenêtre trop courte ratait
+   « https://exemple.fr/a,b » parce que le schéma est 20 caractères plus loin.
+   ⚠️ DIRECTION SÛRE : cette garde ne fait qu'ABSTENIR. Elle ne peut pas créer de faute. */
+function urlMask(text){
+  const proteges = new Set();
+  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  let m, i = 0;
+  while((m = re.exec(text))){
+    let a = m.index, b = m.index + m[0].length;
+    while(a > 0 && !/\s/.test(text[a - 1])) a--;
+    while(b < text.length && !/\s/.test(text[b])) b++;
+    const mot = text.slice(a, b);
+    if(/https?:|www\.|@|[\\/]|\.(?:com|org|net|edu|gov|co|io|fr|uk|de)\b/i.test(mot)) proteges.add(i);
+    i++;
+  }
+  return proteges;
+}
 
 // ---------- chargement du lexique ----------
 // parseLexText : construit le lexique depuis le TSV décompressé (partagé Node/navigateur).
@@ -383,7 +457,8 @@ async function loadPosModel(url){
   return setPosModel(JSON.parse(await new Response(ds).text()));
 }
 
-const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize,
+const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask,
+               pastPartDecide, buildPastPart,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
@@ -453,6 +528,23 @@ if(typeof require !== 'undefined' && require.main === module){
   for(const [txt, idx, exp, lvl] of HP){ const T = tokenize(txt); const r = homoDecide(lex, T, idx);
     const s = (r && r[0]) || null, l = (r && r[0]) ? r[1] : null;     // homoDecide peut rendre [null,null]
     if(s === exp && l === lvl) hok++; else console.log('  HP MISS %s -> %s/%s (attendu %s/%s)', txt, s, l, exp, lvl); }
+  /* ⭐ PARTICIPE APRÈS « HAVE » — positifs ET négatifs. Les négatifs sont la moitié qui compte :
+     la règle est ROUGE, donc appliquée seule. « the difference we had was » est le faux positif
+     exact que la mesure sur EWT avait sorti (5 fois) avant le filtre sur les formes de « be ». */
+  const PP_OUI = [['I have went there','went','gone'], ['she has ate already','ate','eaten'],
+                  ['they had drank it all','drank','drunk'], ['he has broke the vase','broke','broken'],
+                  ['we have took the bus','took','taken'], ['it has fell down','fell','fallen']];
+  const PP_NON = ['the only difference we had was for package V02', 'he has run fast every day',
+                  'I have read the book twice', 'the water had cost too much', 'she has left already'];
+  let ppOk = 0, ppKo = 0;
+  for(const [txt, mot, att] of PP_OUI){ const T = tokenize(txt); let vu = null;
+    for(let k = 1; k < T.length; k++){ const d = pastPartDecide(lex, T, k);
+      if(d[1] === 'RED' && T[k].toLowerCase() === mot) vu = d[0]; }
+    if(vu === att) ppOk++; else { ppKo++; console.log('  PP MISS %s : %s -> %s (attendu %s)', txt, mot, vu, att); } }
+  for(const txt of PP_NON){ const T = tokenize(txt);
+    for(let k = 1; k < T.length; k++){ const d = pastPartDecide(lex, T, k);
+      if(d[1] === 'RED'){ ppKo++; console.log('  PP FAUX POSITIF : %s -> %s   | %s', T[k], d[0], txt); } } }
+  console.log('participe apres have: %d/%d positifs, %d faux positifs', ppOk, PP_OUI.length, ppKo - (PP_OUI.length - ppOk));
   console.log('homophone: %d/%d', hok, HP.length);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
     const ok = (auto + flag >= 10) && (hok === HP.length);
