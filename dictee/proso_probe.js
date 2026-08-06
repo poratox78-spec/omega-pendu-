@@ -524,6 +524,12 @@ const DEDOUBLE = [
   ['⛔ ponctuation normale : INTACT', 'Bonjour, je viens demain. Il fera beau.', 'Bonjour, je viens demain. Il fera beau.'],
 ];
 
+/* ⭐ RÉUTILISABLE COMME MODULE. `dictee/rejeu_probe.js` rejoue de VRAIES dictées (dumps du bouton
+   Diagnostic) dans le moteur livré, et il doit se servir de CET extracteur-ci : un second
+   extracteur, c'est une seconde occasion de diverger de la livraison — exactement la faute ①
+   décrite en en-tête. Quand ce fichier est `require`, on exporte et on s'arrête avant le banc. */
+if (require.main !== module) { module.exports = { charge, bloc, ligneVar, DC }; return; }
+
 /* ── EXÉCUTION SUR LES DEUX SURFACES ───────────────────────────────────────────────────── */
 const surfaces = [
   { nom: 'site  saisie-vocale.html', f: charge(SITE, 'prosodyText') },
