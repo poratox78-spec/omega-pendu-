@@ -265,6 +265,31 @@ def main():
         print('[check] %s — recall %d (min 40), FP contrôle %d (max 0)' % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad))
         if not ok: sys.exit(1)
 
+
+URL_RE = re.compile(r"https?:|www\.|@|[\/]|\.(?:com|org|net|edu|gov|co|io|fr|uk|de)", re.I)
+
+def url_mask(text):
+    """Indices des tokens qui vivent dans une URL, une adresse ou un chemin — a ne JAMAIS corriger.
+
+    D'OU CA VIENT : relecture des 55 rouges du speller sur EWT (2026-08-06). 52 etaient de VRAIES
+    fautes ; l'un des trois rates etait `liberta -> liberty` A L'INTERIEUR d'une URL de catalogue.
+    `Liberta` y est un nom de produit. EXPOSITION MESUREE : 1 616 tokens d'EWT sur 176 137 (0,92 %)
+    vivent dans une URL, et il n'y avait AUCUNE garde. Un mot dans une URL n'est pas du langage,
+    c'est un identifiant : le corriger casse le lien.
+    ON TESTE LE MOT ENTIER (la suite non-espacee qui contient le token), pas une fenetre de N
+    caracteres — la meme faute avait ete commise cote francais.
+    DIRECTION SURE : cette garde ne fait qu'ABSTENIR, elle ne peut pas creer de faute.
+    Miroir exact de `urlMask` dans dictee/corrector_en.js (parite Python<->JS).
+    """
+    proteges, i = set(), 0
+    for m in re.finditer(r"[A-Za-z]+(?:'[A-Za-z]+)*", text):
+        a, b = m.start(), m.end()
+        while a > 0 and not text[a-1].isspace(): a -= 1
+        while b < len(text) and not text[b].isspace(): b += 1
+        if URL_RE.search(text[a:b]): proteges.add(i)
+        i += 1
+    return proteges
+
 def fp_scale(sp):
     """FP=0 à l'échelle : sur du texte anglais CORRECT (UD English-EWT), aucun mot ne doit être
     AUTO-corrigé (rouge). On compte aussi les FLAG (orange) sur mots corrects (tolérés mais suivis)."""
@@ -276,8 +301,12 @@ def fp_scale(sp):
     for l in open(path, encoding='utf-8'):
         if not l.startswith('# text = '): continue
         seen += 1
-        for tok in re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*", l.split('=', 1)[1]):
+        _txt = l.split('=', 1)[1]
+        _prot = url_mask(_txt)                      # cf. url_mask : un mot dans une URL n'est pas du langage
+        for _i, _m in enumerate(re.finditer(r"[A-Za-z]+(?:'[A-Za-z]+)*", _txt)):
+            tok = _m.group(0)
             toks += 1
+            if _i in _prot: continue
             s, mode = sp.suggest(tok)
             if mode == 'AUTO':
                 auto_fp += 1

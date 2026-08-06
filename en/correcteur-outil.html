@@ -109,7 +109,16 @@
     var re=/[A-Za-z]+(?:'[A-Za-z]+)*/g, m, toks=[], pos=[];
     while((m=re.exec(text))){ toks.push(m[0]); pos.push(m.index); }
     var marks=new Array(toks.length).fill(null);
+    // ⭐ LES MOTS DANS UNE URL NE SONT PAS DU LANGAGE : ce sont des identifiants, et les corriger
+    // casse le lien. Mesuré sur EWT : 1 616 tokens sur 176 137 (0,92 %) vivent dans une URL, et
+    // il n'y avait aucune garde — d'où « liberta -> liberty » au milieu d'une URL de catalogue.
+    var PROT=C.urlMask(text);
     for(var i=0;i<toks.length;i++){
+      if(PROT.has(i)) continue;
+      // ⭐ PARTICIPE APRÈS « HAVE » (« has went » -> « has gone ») : après have/has/had la grammaire
+      // n'admet QUE le participe — clôture de paradigme, pas jugement. FP=0 mesuré sur EWT.
+      var pp=C.pastPartDecide(LEX,toks,i);
+      if(pp[1]){ marks[i]={sugg:pp[0], cls:'red'}; continue; }
       var hd=C.homoDecide(LEX,toks,i);
       if(hd[1]){ marks[i]={sugg:hd[0], cls:(hd[1]==='RED'?'red':'orange')}; continue; }
       var sp=C.spellSuggest(LEX,toks[i], i>0?toks[i-1].toLowerCase():'');   // contexte : le mot-outil précédent ouvre un slot (verbe/nom)
