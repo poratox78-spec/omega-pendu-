@@ -904,6 +904,197 @@
     }
     return out; }
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  // ⭐⭐⭐ LES RÈGLES DE VIRGULE — source : Allô prof (« La virgule », « Le coordonnant »).
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  // POURQUOI DES RÈGLES ET PAS UN MEILLEUR MODÈLE. Audit mesuré sur les exemples de la source :
+  // le moteur STATISTIQUE () en trouvait 3 sur 50 — il ne connaît AUCUNE des familles
+  // décrites par la grammaire. Et son plafond n'est pas un réglage : F1 0,21 contre 0,83 pour la
+  // littérature. Une couche de règles explicites est le seul levier qui tienne dans ce qu'on
+  // embarque. ⇒ 3/50 -> 14/50, ET la justesse sur corpus réel MONTE (50,53 -> 52,02 %).
+  //
+  // MESURÉ (dictee/virgule_regles_probe.js — 11 304 phrases écrites par des humains) :
+  //     modèle seul      justesse 50,53 %   rappel 10,97 %
+  //     modèle + règles  justesse 52,02 %   rappel 12,80 %   ⭐ meilleur sur les DEUX axes
+  //     « éléments à ne pas séparer » (sujet/prédicat, verbe/CD…) : 7/7 respectés, avant comme après.
+  //
+  // ⚠️ CE QUI REND CES RÈGLES LIVRABLES, CE SONT LEURS GARDES, PAS LEURS LISTES. La règle brute
+  // « virgule avant le coordonnant » fait 31 % de justesse : elle pose une virgule devant chaque
+  // « donc » et « aussi », qui sont d'abord des ADVERBES. Chaque garde ci-dessous a été ajoutée
+  // parce qu'une mesure l'a exigée, jamais par précaution abstraite.
+/* ── R1 : LES COORDONNANTS QUI PRENNENT UNE VIRGULE DEVANT ───────────────────────────────
+   Liste FERMÉE, reprise mot pour mot des deux fiches. `et`, `ou`, `ni` en sont EXCLUS — la
+   source est catégorique, et c'est déjà la règle `COORD` livrée pour la frontière de segment. */
+var COORD_AVANT = new Set(('mais car or puis voire donc alors ainsi aussi cependant toutefois ' +
+  'néanmoins pourtant ensuite enfin').split(' '));
+/* Les coordonnants en PLUSIEURS mots — testés sur la suite, pas sur un seul token. */
+var COORD_AVANT_LOC = [
+  ["c'est-à-dire"], ['autrement', 'dit'], ['à', 'savoir'], ['par', 'contre'],
+  ['par', 'conséquent'], ['en', 'conséquence'], ["c'est", 'pourquoi'], ['en', 'effet'],
+  ['de', 'plus'], ['en', 'outre'], ['par', 'exemple'],
+];
+/* ── R2 : LES COORDONNANTS QUI PRENNENT UNE VIRGULE APRÈS, EN TÊTE DE PHRASE ────────────── */
+var COORD_TETE = new Set(('ainsi alors donc ensuite enfin cependant toutefois néanmoins ' +
+  'pourtant aussi').split(' '));
+var COORD_TETE_LOC = [
+  ['par', 'contre'], ['tout', "d'abord"], ['par', 'conséquent'], ['en', 'conséquence'],
+  ['en', 'effet'], ['de', 'plus'], ['en', 'outre'], ['par', 'exemple'], ['en', 'somme'],
+  ['tout', 'de', 'même'], ['en', 'revanche'], ['en', 'premier', 'lieu'],
+];
+/* ── R3 : L'INTERJECTION ET L'INCIDENTE EN TÊTE ──────────────────────────────────────────
+   Allô prof : « On détache habituellement une interjection par une ou deux virgules » (« Zut,
+   j'ai encore oublié mes clés ! ») et « Une phrase incidente ou un groupe incident » (« Selon
+   moi, la présentation ne durera pas longtemps »).
+   LISTES FERMÉES, et c'est ce qui les rend sûres : aucun de ces mots n'est ambigu EN TÊTE. */
+var INTERJ = new Set(('zut ah oh eh hé ben bref tiens tenez écoute écoutez bravo hélas ouf ' +
+  'chut mince flûte').split(' '));
+var INCIDENT_LOC = [
+  ['selon', 'moi'], ['selon', 'lui'], ['selon', 'elle'], ['selon', 'nous'], ['selon', 'eux'],
+  ['à', 'mon', 'avis'], ['il', 'me', 'semble'], ['bien', 'sûr'], ['bien', 'entendu'],
+  ['sans', 'doute'], ['à', 'vrai', 'dire'], ['en', 'réalité'], ['en', 'fait'], ['au', 'fond'],
+  ['après', 'tout'], ['en', 'principe'], ['à', 'première', 'vue'], ['en', 'revanche'],
+];
+var INCIDENT_ADV = new Set(('heureusement malheureusement évidemment naturellement ' +
+  'apparemment visiblement effectivement franchement honnêtement personnellement ' +
+  'curieusement étonnamment premièrement deuxièmement troisièmement').split(' '));
+
+/* ── R4 : LES CORRÉLATIONS ───────────────────────────────────────────────────────────────
+   Allô prof : « On place une virgule avant un terme répété qui introduit une idée de
+   comparaison, de choix ou de corrélation » — autant… autant, soit… soit, tantôt… tantôt,
+   plus… plus, moins… moins, tel… tel. La virgule va AVANT LA SECONDE occurrence. */
+var CORREL = new Set(('autant soit tantôt plus moins tel telle').split(' '));
+
+/* ── R5 : LES COORDONNANTS RÉPÉTÉS PLUS DE DEUX FOIS ─────────────────────────────────────
+   Allô prof : « On place une virgule avant les coordonnants et, ou et ni lorsqu'ils sont
+   répétés PLUS DE DEUX FOIS. Remarque : on ne place AUCUNE virgule avant le premier. »
+   (« Je n'aime ni la crème glacée, ni le sorbet, ni le yogourt glacé. »)
+   ⚠️⚠️ RESTREINT À « NI » APRÈS MESURE, et c'est une relecture de la source, pas un recul.
+   « Répétés plus de deux fois » ne veut PAS dire « apparaît trois fois dans la phrase » : ça veut
+   dire RÉPÉTÉ DEVANT CHAQUE ÉLÉMENT (« ni… ni… ni »). Appliqué à `et` et `ou`, le comptage brut
+   a produit exactement les faux positifs qu'on pouvait prévoir en relisant mieux — « au Nouveau
+   Brunswick, et dans l'Est de l'Ontario, et dans le Nord » : trois `et` de coordination
+   ordinaire, aucune insistance. Justesse mesurée 51,80 % -> 49,52 % avec les trois ; restaurée
+   en gardant `ni` seul. Et les DEUX exemples de la source pour cette règle sont avec `ni`.
+   (« Le gardien ouvrira et les portes et les fenêtres » est donné SANS virgule, sous
+   « emplacement du coordonnant ».) */
+var REPETABLE = new Set(['ni']);
+
+/* Les CONJONCTIONS de coordination pures — jamais des adverbes, donc exemptes de la garde
+   « suit un verbe ». La coupure est celle de la source, qui donne la classe de chaque mot. */
+var CONJ_PURE = {};
+('mais car or voire').split(' ').forEach(function (w) { CONJ_PURE[w] = 1; });
+
+var VERBAL = { VERB: 1, AUX: 1 };
+var norm = w => String(w || '').toLowerCase().replace(/[’ʼ]/g, "'");
+
+/* ⚠️ `DC.toks` NE SÉPARE PAS L'ÉLISION : « qu'il » est UN token, pas « qu' » + « il ». Tester
+   l'égalité avec "qu'" ne matche donc JAMAIS, et « Alors qu'il se baladait » recevait une virgule
+   alors que c'est une SUBORDONNÉE. On teste le PRÉFIXE. */
+var estQue = w => { var x = norm(w); return x === 'que' || x.indexOf("qu'") === 0; };
+function locA(mots, i, loc) {           // la locution commence-t-elle au mot i ?
+  for (var k = 0; k < loc.length; k++) if (norm(mots[i + k]) !== loc[k]) return false;
+  return true;
+}
+function longueurCoord(mots, i) {       // 0 si pas un coordonnant ; sinon sa longueur en mots
+  if (COORD_AVANT.has(norm(mots[i]))) return 1;
+  for (var l of COORD_AVANT_LOC) if (locA(mots, i, l)) return l.length;
+  return 0;
+}
+function longueurTete(mots, i) {
+  if (COORD_TETE.has(norm(mots[i]))) return 1;
+  for (var l of COORD_TETE_LOC) if (locA(mots, i, l)) return l.length;
+  return 0;
+}
+
+/* `deja` = les indices qui portent DÉJÀ une marque (posées par le modèle statistique et, dans la
+   saisie vocale, par l'ancre audio). Les règles en ont besoin — voir le filtre final. */
+function ponctReglesVirgule(mots,_tg,deja){
+  var tg=_tg||posTags(mots)||[], out=new Set();
+  // R2 — coordonnant EN TÊTE : virgule APRÈS.
+  var nT = longueurTete(mots, 0);
+  // ⚠️ « alors QUE », « ainsi QUE » sont des SUBORDONNANTS, pas des coordonnants : la fiche
+  // « subordination » de Rem le dit, et la virgule y serait une faute.
+  if (nT && !estQue(mots[nT]) && mots.length > nT + 2)
+    out.add(nT - 1);
+  // R1 — coordonnant ENTRE DEUX PHRASES : virgule AVANT.
+  for (var i = 1; i < mots.length - 1; i++) {
+    var n = longueurCoord(mots, i);
+    if (!n) continue;
+    if (estQue(mots[i + n])) continue;   // « alors que », « ainsi que » : SUBORDONNANTS
+    // ⭐ LA GARDE : il faut un VERBE CONJUGUÉ AVANT et APRÈS. Sans elle, « il est aussi grand »
+    // et « la pomme et la poire » recevraient une virgule. C'est ce qui sépare la COORDINATION
+    // DE PHRASES (que la règle vise) d'un simple adverbe dans un groupe.
+    // ⛔ GARDE 1 — LE MOT SUIT-IL IMMÉDIATEMENT UN VERBE ? Alors c'est un ADVERBE DANS la
+    // proposition, pas un coordonnant entre deux phrases. Mesuré : c'est la cause de la majorité
+    // des faux positifs (« Ils deviennent ALORS les Paladins », « la direction est DONC la
+    // direction », « On en retrouve AUSSI un peu »).
+    // ⭐ MAIS ELLE NE VAUT QUE POUR LES ADVERBES, et c'est LA SOURCE qui donne la coupure : la
+    // fiche « Le coordonnant » classe les coordonnants PAR CLASSE DE MOTS — « Adverbe : ainsi,
+    // alors, donc, aussi, cependant, toutefois, enfin, ensuite, en effet » d'un côté ;
+    // « Conjonction de coordination : mais, car, or, c'est-à-dire, soit » de l'autre. Une
+    // CONJONCTION n'est jamais un adverbe : elle SUIT légitimement un verbe. La garde appliquée
+    // à `car` supprimait la virgule que la source donne elle-même en exemple (« Le chien se
+    // repose, car il est épuisé » : `repose` est un verbe, donc `car` était rejeté).
+    if (CONJ_PURE[norm(mots[i])] !== 1 && VERBAL[tg[i - 1]] === 1) continue;
+    // ⛔ GARDE 2 — UNE NOUVELLE PROPOSITION COMMENCE-T-ELLE APRÈS ? Il faut un SUJET puis un
+    // VERBE dans les mots qui suivent : c'est ce qui fait la coordination DE PHRASES, seule visée
+    // par la règle. « pas de faire du profit, mais d'habiter » coordonne deux infinitifs, pas
+    // deux phrases — la source ne demande pas de virgule là.
+    var suj = -1;
+    for (var k = i + n; k < Math.min(mots.length, i + n + 4); k++)
+      if (tg[k] === 'PRON' || tg[k] === 'NOUN' || tg[k] === 'PROPN' || tg[k] === 'DET') { suj = k; break; }
+    if (suj < 0) continue;
+    var vAp = false;
+    for (var k = suj + 1; k < Math.min(mots.length, suj + 5); k++) if (VERBAL[tg[k]] === 1) { vAp = true; break; }
+    var vAv = false;
+    for (var k = 0; k < i; k++) if (VERBAL[tg[k]] === 1) { vAv = true; break; }
+    if (vAv && vAp) out.add(i - 1);
+  }
+
+  // ── R3 : INTERJECTION / INCIDENTE EN TÊTE. Listes fermées — c'est ce qui les rend sûres :
+  // aucun de ces mots n'est ambigu quand il OUVRE la phrase.
+  if (INTERJ.has(norm(mots[0])) && mots.length > 2) out.add(0);
+  if (INCIDENT_ADV.has(norm(mots[0])) && mots.length > 2) out.add(0);
+  for (var l of INCIDENT_LOC)
+    if (locA(mots, 0, l) && mots.length > l.length + 1) { out.add(l.length - 1); break; }
+
+  // ── R4 : CORRÉLATIONS — la virgule va AVANT LA SECONDE occurrence, jamais avant la première.
+  for (var i = 2; i < mots.length - 1; i++) {
+    var w = norm(mots[i]);
+    if (!CORREL.has(w)) continue;
+    var vu = false;
+    for (var k = 0; k < i - 1; k++) if (norm(mots[k]) === w) { vu = true; break; }
+    // ⚠️ « plus » et « moins » sont D'ABORD des adverbes ordinaires (« plus grand », « de plus en
+    // plus ») : on n'accepte la corrélation que si la première occurrence OUVRE la phrase, ce qui
+    // est la forme décrite par la source (« Moins je fais de sport, moins j'ai d'énergie »).
+    if (vu && ((w !== 'plus' && w !== 'moins') || norm(mots[0]) === w)) out.add(i - 1);
+  }
+
+  // ── R5 : « ni / et / ou » RÉPÉTÉS PLUS DE DEUX FOIS. La source est précise sur les deux
+  // bouts : virgule avant les suivants, AUCUNE avant le premier.
+  for (var c of REPETABLE) {
+    var pos = [];
+    for (var i = 0; i < mots.length; i++) if (norm(mots[i]) === c) pos.push(i);
+    if (pos.length < 3) continue;
+    for (var k = 1; k < pos.length; k++) if (pos[k] > 0) out.add(pos[k] - 1);
+  }
+
+  // ⛔⛔ FILTRE FINAL — ON N'EMPILE PAS DEUX DÉTACHEMENTS. Une virgule de règle qui vient se coller
+  // CONTRE une marque déjà posée produit « Alors, demain, je ne sais pas » : deux détachements
+  // consécutifs pour un seul mot. C'est la garde CI (prise libre de Rem) qui l'a sorti, et c'est
+  // la doctrine : un texte SUR-ponctué coûte plus cher à un dys qu'un texte sous-ponctué. La
+  // règle « virgule après le coordonnant en tête » est juste, mais elle suppose que le
+  // coordonnant est SEUL en tête — pas suivi d'un complément lui-même détaché.
+  if (deja) {
+    var aDeja = function (i) { return deja.has ? deja.has(i) : !!deja[i]; };
+    out.forEach(function (i) { if (aDeja(i - 1) || aDeja(i + 1)) out.delete(i); });
+  }
+  return out;
+}
+
+
+
   var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
     if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
@@ -1938,6 +2129,7 @@ function spellUnknown(tok,atStart,T,idx){
     setPonctLm:setPonctLm, loadPonctLm:loadPonctLm, ponctReady:ponctReady, ponctDist:ponctDist,
     // ⭐ L'ANCRE TEMPORELLE — elle vit ICI et non dans les deux pages, pour que le site et
     // l'extension partagent LA MÊME décision par construction, pas par recopie surveillée.
-    ponctSyll:ponctSyll, ponctBlocs:ponctBlocs, ponctAncre:ponctAncre
+    ponctSyll:ponctSyll, ponctBlocs:ponctBlocs, ponctAncre:ponctAncre,
+    ponctReglesVirgule:ponctReglesVirgule
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));
