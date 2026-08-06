@@ -445,7 +445,25 @@
     var QEQ=/^\s*est-ce\s+(?:que|qu['’])/i;
     var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » — sans « que »
     var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
+    // ⭐ L'INTERROGATIF PRÉCÉDÉ DE SA PRÉPOSITION — « À quoi penses-tu ? », « De quoi parles-tu ? ».
+    // Toutes nos regexes étaient ancrées EN TÊTE, or ici l'interrogatif vient après la préposition
+    // qui le régit : la 4e construction d'Allô prof passait à côté. On l'admet comme tête
+    // interrogative, ce qui autorise ensuite la route d'inversion.
+    var QW_PREP=/^\s*(?:à|a|de|d['’]|par|pour|avec|sur|dans|en|chez|vers|depuis|selon)\s+(?:quoi|qui|quel|quelle|quels|quelles|lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;
+    // ⭐ LES PRONOMS INTERROGATIFS EN ORDRE AFFIRMATIF — « Lequel est le plus grand ? ».
+    // Ils étaient déjà dans `QW`, mais `QW` ne sert qu'à AUTORISER une inversion ; sans inversion,
+    // seule `QSEUL` peut tirer. Ils y manquaient. ⚠️ Le risque connu est le RELATIF (« le contrat,
+    // lequel prévoit… ») : il est écarté par les gardes déjà en place sur `QSEUL` — ancrage en
+    // TÊTE, aucune virgule dans le segment, et 12 mots au plus.
     var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+    // ⭐ LES PRONOMS INTERROGATIFS EN ORDRE AFFIRMATIF (Allô prof, 4e construction) —
+    // « Lequel est le plus grand ? ». Ils étaient dans , mais  ne fait qu'AUTORISER
+    // une inversion ; sans inversion, rien ne tirait. ⚠️ Le piège est le RELATIF dans un
+    // FRAGMENT (« …, laquelle lui répond que… ») — mesuré, il coûtait 3 points de précision.
+    // La garde qui les sépare : un pronom interrogatif SUJET est suivi DIRECTEMENT de son
+    // verbe (« Lequel EST », « Lesquels SONT »), là où le relatif porte un clitique ou un
+    // complément (« laquelle LUI répond »). C'est le tagger qui tranche, et ici il est fiable.
+    var QPRON=/^(lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;
     // ⭐ LE « T » EUPHONIQUE — mesuré 74/74 inversions dans UD FR GSD. Aucune autre construction
     // française ne produit « -t-il / -t-elle / -t-on ». Ancrage ORTHOGRAPHIQUE, pas statistique :
     // il tient là où le tagger lâche (« a-t-il » → il lit « a/ADP », croyant « à »).
@@ -474,7 +492,8 @@
       var motsTag=mots.map(function(w){ return w.replace(/^(?:n|j|t|s|m|qu|l|d|c)['’]/i,'') || w; });
       var tg=null;
       function tag(i){ if(tg===null) tg=((DC&&DC.posTags)?DC.posTags(motsTag):null)||[]; return tg[i]; }
-      var qw=QW.test(t);
+      // ⭐ la TÊTE interrogative peut être précédée de sa préposition (« à quoi penses-tu »)
+      var qw=QW.test(t)||QW_PREP.test(t);
       var m=(qw?QINV_Q:QINV).exec(t);
       // ⭐ ROUTE INTERRO-NÉGATIVE, indépendante du tagger. « n'as-tu pas … » : `toks` rend le token
       // « n'as », et même dé-élidé en « as » le modèle l'étiquette PROPN en tête (mesuré) — « as »
@@ -512,7 +531,13 @@
         // contre-exemple que le raisonnement seul manquait : « "Il est impératif…", a-t-il encore
         // déclaré » — le « t » euphonique vit AUSSI dans l'incise de citation. C'est la garde
         // « un verbe précède déjà » qui l'attrape, et elle reste juste en dessous.
-        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw){
+        //  ③ L'INVERSION EN TÊTE DE SEGMENT (iv===0) — « Vas-tu à l'épicerie ? », la 1re des
+        //     quatre constructions d'Allô prof, et le tagger lit « vas/PROPN ». Ce qu'on craignait
+        //     à cette place est l'IMPÉRATIF (« Abonnez-vous ! ») — or il prend moi/toi/nous/vous/
+        //     y/en, JAMAIS je/tu/il/elle/on/ils/elles, qui sont les seuls clitiques de `QINV`.
+        //     La confusion est donc impossible par construction, et les gardes (adverbe antéposé,
+        //     verbe de parole, participe de parole) restent toutes en amont.
+        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw || iv===0){
           if(QADV.test(t)) return false;                      // inversion stylistique
           for(var k=0;k<iv;k++) if(QVERBAL[tag(k)]===1) return false;   // incise : proposition déjà close
           return true;
@@ -529,6 +554,8 @@
       // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
       // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :
       // l'interrogation INDIRECTE enchaîne un GN plein (« comment UNE PERSONNE a obtenu… »).
+      // le pronom interrogatif SUJET : verbe immédiatement après (garde anti-relatif)
+      if(QPRON.test(t) && t.indexOf(',')<0 && QVERBAL[tag(1)]===1) return true;
       if(!QSEUL.test(t) || t.indexOf(',')>=0) return false;
       return tag(1)!=='DET';
     }

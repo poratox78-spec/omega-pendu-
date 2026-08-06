@@ -77,6 +77,7 @@ function charge(fichier, nomProso) {
     /* ⭐ LE SEUIL DE REFUS DE L'ANCRE, extrait NOMMÉMENT du fichier livré : s'il disparaît ou
        change de nom, la sonde casse au lieu de mesurer autre chose que ce qui est publié. */
     ligneVar(src, 'PONCT_ANCRE_TAU'),
+    ligneVar(src, 'QW_PREP'), ligneVar(src, 'QPRON'),
     bloc(src, 'function _avantTiret('),
     bloc(src, 'function _txtFrontiere('), bloc(src, 'function _durBiais('),
     bloc(src, 'function _trancheTexte('),
@@ -329,6 +330,36 @@ cas('GARDE : « …, a-t-il affirmé » est une INCISE, pas une question',
     'contre-exemple donné par UD FR GSD : le « t » euphonique vit aussi dans l\'incise',
     etat(['la solution est proche a-t-il affirmé'], [1500], []),
     'La solution est proche a-t-il affirmé.');
+
+/* ④quater  ⭐ LES QUATRE CONSTRUCTIONS D'ALLÔ PROF (source fournie par Rem, 2026-08-06).
+ *          Audit sur ses exemples EXACTS : 25/32 avant, 31/32 après. Les trois familles qui
+ *          manquaient sont ici, chacune avec sa garde. */
+cas('⭐ ALLÔ PROF ① inversion nue en TÊTE (le tagger lit « vas/PROPN »)',
+    'Allô prof, 1re construction · l\'impératif prend moi/toi/nous/vous, jamais tu/il/elle',
+    etat(['vas-tu à l\'épicerie'], [1500], []),
+    'Vas-tu à l\'épicerie ?');
+cas('⭐ ALLÔ PROF ④ interrogatif PRÉCÉDÉ DE SA PRÉPOSITION',
+    'Allô prof, table des mots interrogatifs : « À quoi penses-tu ? »',
+    etat(['à quoi penses-tu'], [1500], []),
+    'À quoi penses-tu ?');
+cas('⭐ ALLÔ PROF ④ pronom interrogatif SUJET, ordre affirmatif',
+    'Allô prof : « Lequel est le plus grand ? » — verbe juste après le pronom',
+    etat(['lequel est le plus grand'], [1500], []),
+    'Lequel est le plus grand ?');
+cas('GARDE : le pronom RELATIF dans un fragment n\'est PAS une question',
+    'faux positif mesuré (banc réel) : « …, laquelle lui répond que… » — un clitique s\'intercale',
+    etat(['laquelle lui répond que mon manche vient de toi'], [1500], []),
+    'Laquelle lui répond que mon manche vient de toi.');
+/* ⛔ MESURÉ-RÉFUTÉ, ne pas re-tenter : l'interrogative prépositionnelle en ORDRE AFFIRMATIF
+ * (« À quoi sert cet outil ? »). Elle donnerait 32/32 chez Allô prof, mais fait TOMBER la
+ * précision de 96,67 % à 79,22 % sur du français réel — 16 faux positifs, tous des RELATIVES
+ * coupées par Google : « à quoi s'ajoutent 340 000 breaks », « avec qui il fondera la société »,
+ * « dans laquelle il joue le personnage ». Une relative prépositionnelle est indistinguable
+ * d'une interrogative une fois l'antécédent coupé. Le cas ci-dessous verrouille le REFUS. */
+cas('⛔ relative prépositionnelle coupée -> PAS de « ? » (précision 96,67 vs 79,22)',
+    'mesuré sur le banc réel : 16 faux positifs si on accepte « à quoi » en ordre affirmatif',
+    etat(['à quoi s\'ajoutent trois cent quarante mille breaks'], [1500], []),
+    'À quoi s\'ajoutent trois cent quarante mille breaks.');
 
 cas('FP inversion STYLISTIQUE sans interrogatif -> point',
     'mesuré : l\'inversion seule ne fait que 69,4 %',

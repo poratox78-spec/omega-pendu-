@@ -89,8 +89,8 @@ function regleDe(src, DC) {
      code pourtant modifié. C'est exactement la faute que la garde CI existe pour empêcher —
      mesurer autre chose que la livraison, sans le savoir. Le compteur d'exceptions ajouté en bas
      rend désormais la panne visible au lieu de la déguiser en résultat. */
-  const noms = ['QW', 'CLIT', 'QINV', 'QINV_Q', 'QINCISE', 'QPAROLE', 'QADV', 'QTAG', 'QEUPH',
-                'QEQ', 'QEQ2', 'QEQ3', 'QPARTPAROLE', 'QSEUL', 'QVERBAL', 'QNEG1', 'QNEG2'];
+  const noms = ['QW', 'QW_PREP', 'CLIT', 'QINV', 'QINV_Q', 'QINCISE', 'QPAROLE', 'QADV', 'QTAG', 'QEUPH',
+                'QEQ', 'QEQ2', 'QEQ3', 'QPARTPAROLE', 'QSEUL', 'QPRON', 'QVERBAL', 'QNEG1', 'QNEG2'];
   const bouts = noms.map(lv).filter(Boolean);
   const i = src.indexOf('function estQuestion(');
   if (i < 0) throw new Error('estQuestion introuvable');
