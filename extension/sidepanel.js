@@ -298,6 +298,21 @@
   // insensible à la casse et ne prouverait plus rien. Elle est donc testée ICI, où la casse compte :
   // « à La Rochelle », « au Havre », « Le Mans » gardent leur majuscule ; « la voiture » non.
   var _NOMPROPRE=/^\s+[A-ZÀ-ÖØ-Þ]/;
+  function _dedoubleMarques(s){
+    /* ⛔⛔ DEUX MARQUES QUI SE SUIVENT — RÉPARÉ ICI, À LA SOURCE, PAS DANS LE CORRECTEUR.
+       Rem, sur sa prise réelle : « ,, est doublon, ça se corrige facilement même si on peut pas
+       l'empêcher de se produire ». Il a raison sur les deux moitiés : la CAUSE n'est pas reproduite
+       (trois tentatives dans proso_probe ont échoué), mais l'EFFET est trivialement décidable.
+       Deux virgules à la suite n'existent pas en français : 0 occurrence sur 14 450 phrases UD
+       correctes. On n'a donc pas besoin de comprendre d'où ça vient pour refuser de l'écrire.
+       ⚠️ ON NE TOUCHE PAS « ., », et c'est une abstention MESURÉE : ce motif apparaît 15 fois dans
+       UD et il y est TOUJOURS CORRECT — « av. J.-C., », « etc., », « Martine B., », « Next..., ».
+       Le point d'abréviation suivi d'une virgule est du bon français. C'est le durcissement de la
+       JOINTURE qui traite ce cas-là, pas un nettoyage aveugle. */
+    return String(s||'')
+      .replace(/,[ 	]*,+/g, ',')          /* « ,, » -> « , » : impossible en français */
+      .replace(/,[ 	]*\?/g, ' ?')         /* « ,? » -> « ? » : la marque FORTE gagne (espace FR avant le « ? ») */
+      .replace(/,[ 	]*([.!])/g, '$1'); }  /* « ,. » -> « . » : idem */
   function normMajInterne(t){
     t=String(t);
     return t.replace(_MAJOUTIL,function(m,av,mot,off){
@@ -720,7 +735,7 @@
       out+=txt; }
     var last=segs[segs.length-1];
     var fin=(estQuestion(_finTr||last.t)||riseAt(last.idx)>QR)?'?':'.';
-    return capV(normMajInterne(out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin)); }
+    return capV(normMajInterne(_dedoubleMarques(out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin))); }
   function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
