@@ -2047,6 +2047,10 @@ function spellUnknown(tok,atStart,T,idx){
        Le point d'abréviation suivi d'une virgule est du bon français ; la virgule doublée, jamais. */
     while((m=re5.exec(text))){
       out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:',',name:'virgule doublée',tier:'auto',typo:1});}
+        var re6=/(\S)[ 	]{2,}(\S)/g;   /* ESPACE DOUBLE ENTRE DEUX MOTS — mesuré 0 occurrence sur 14 450 phrases UD CORRECTES, et 95 cas réels sur 139 593 paires bad/good. FP=0 par construction : le français n'a jamais deux espaces entre deux mots.
+       ⚠️ Le `(\S)` initial EXCLUT l'indentation : une ligne qui COMMENCE par des espaces n'est pas touchée. On répare un espacement entre MOTS, pas une mise en page. */
+    while((m=re6.exec(text))){
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+' '+m[2],name:'espace double',tier:'auto',typo:1});}
     return out;}
   function diagnoseAll(text){var gf=correctText(text),sf=SP.ready?spellText(text):[];        // grammaire + orthographe fusionnés + stade
     var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;

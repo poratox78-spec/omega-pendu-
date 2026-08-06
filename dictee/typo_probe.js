@@ -47,6 +47,7 @@ const OUI = [
   ['espace manquant après la virgule', 'Dorra Zarrouk,née le 13 octobre 1980 à Tunis', 'k,n', 'k, n'],
   ['espace manquant, mot suivant en majuscule', 'il est parti,Paul est resté', 'i,P', 'i, P'],
   ['virgule DOUBLÉE (prise vocale de Rem)', 'je sais pas comment,, on va le faire demain', ',,', ','],
+  ['ESPACE DOUBLE entre deux mots', 'il fait  beau aujourd’hui et demain aussi', 't  b', 't b'],
 ];
 /* ── ⛔ LES CAS QUI NE DOIVENT RIEN DÉCLENCHER EN ROUGE ───────────────────────────────────
    C'est la moitié qui compte : une règle typographique qui mord du texte correct est pire que
@@ -61,6 +62,7 @@ const NON = [
   ['points de suspension (orange, pas rouge)', 'attends ... je vais arriver dans une minute'],
   ['sigle en majuscules', 'les options A,B et C sont toutes valables ici'],
   ['ponctuation normale', 'Bonjour, je viens demain. Il fera beau, je crois.'],
+  ['⛔ INDENTATION en début de ligne : INTACTE (mise en page, pas espacement)', '    il fait beau aujourd’hui'],
   ["point d'ABRÉVIATION suivi d'une virgule", 'au IVe siècle av. J.-C., le métier était florissant'],
   ['« etc., » — bon français', 'philosophe, mystique, etc., ses travaux touchent tout'],
   ['initiale de nom propre puis virgule', 'conseille Martine B., qui regrette son choix'],
