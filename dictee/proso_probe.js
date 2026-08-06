@@ -491,12 +491,32 @@ cas('⛔ NÉGATIF — on ne sépare JAMAIS le sujet du prédicat',
     etat(['la plage est recouverte de déchets'], [2000], null, { sansAudio: true }),
     'La plage est recouverte de déchets.');
 
+/* ⑧  LA JOINTURE NE DOIT JAMAIS EMPILER DEUX MARQUES — correctif POSÉ, cas de garde ABSENT.
+ *    ⚠️ ET C'EST DIT ICI EXPRÈS. La prise vocale réelle de Rem (2026-08-06) contient
+ *    « je sais pas comment,, on va le faire » et « Certaines sauces., Certaines choses ». Le code de
+ *    jointure a été durci (la marque la plus FORTE remplace la plus faible au lieu de s'y ajouter),
+ *    mais TROIS tentatives de reproduction dans ce harnais ont échoué : segment se terminant par une
+ *    virgule, segment vide entre deux jointures, marque posée sur le dernier mot. Les cas écrits
+ *    passaient AVEC ET SANS le correctif — ils ne testaient rien, et l'en-tête de ce fichier dit
+ *    exactement pourquoi c'est inacceptable (③ : « un banc dont j'écris l'entrée ET l'attendu ne teste
+ *    rien »). Ils ont donc été RETIRÉS plutôt que laissés là à faire croire à une garde.
+ *    ⇒ CE QUI MANQUE POUR LES ÉCRIRE : les segments BRUTS de Google au moment du bug (S.finals).
+ *    Le filet de sécurité en attendant est ailleurs et LUI est mesuré : la règle ROUGE « ,, » -> « , »
+ *    du correcteur (0 déclenchement sur 14 450 phrases correctes), gardée par dictee/typo_probe.js. */
+
 /* ── EXÉCUTION SUR LES DEUX SURFACES ───────────────────────────────────────────────────── */
 const surfaces = [
   { nom: 'site  saisie-vocale.html', f: charge(SITE, 'prosodyText') },
   { nom: 'ext.  sidepanel.js', f: charge(EXT, 'prosodyText') },
 ];
 
+if (process.env.PROSO_DUMP) {   // sortie BRUTE d'un cas, pour diagnostiquer sans deviner
+  const c = CAS[Number(process.env.PROSO_DUMP)];
+  console.log('cas   : ' + c.nom);
+  surfaces.forEach(s2 => console.log('  ' + s2.nom + ' -> ' + JSON.stringify(s2.f(JSON.parse(JSON.stringify(c.state))))));
+  console.log('attendu -> ' + JSON.stringify(c.attendu));
+  process.exit(0);
+}
 let ko = 0, total = 0;
 for (const s of surfaces) {
   for (const c of CAS) {

@@ -593,7 +593,16 @@
           } else mk=''; }               // sous 190 ms : RIEN
         else mk = CONT.test(nx.t) ? ',' : '.';
         if(mk===',' && COORD.test(nx.t)) mk='';                             // « … , et … » -> « … et … » (BDL)
-        out=out.replace(/\s*$/,'')+(mk==='?'?' ':'')+mk+' '; }              // espace AVANT le « ? » : règle FR
+        // ⛔⛔ NE JAMAIS EMPILER DEUX MARQUES À LA JOINTURE. `_poseMarques` a bien une garde
+        // anti-doublon, mais elle regarde le texte du segment COURANT : elle ne peut pas voir la
+        // marque que la jointure va coller APRÈS elle. Résultat sur la prise de Rem :
+        // « je sais pas comment,, on va le faire » et « certaines sauces., certaines choses ».
+        // ⭐ ET ON NE SE CONTENTE PAS D'IGNORER : la marque LA PLUS FORTE gagne. L'audio qui a
+        // entendu une longue pause, ou le texte qui a reconnu une question, en savent PLUS que la
+        // virgule déjà posée en fin de segment — on la remplace au lieu de la doubler.
+        var _fin=out.replace(/\s*$/,''), _der=_fin.slice(-1), _RG={',':1,';':1,':':1,'.':2,'!':2,'?':3};
+        if(/[,.;:!?]/.test(_der)){ if((_RG[mk]||0)>(_RG[_der]||0)) _fin=_fin.replace(/\s*[,.;:!?]$/,''); else mk=''; }
+        out=_fin+(mk?((mk==='?'?' ':'')+mk):'')+' '; }                      // espace AVANT le « ? » : règle FR
       var txt=segs[s].t;
       if(s===0 && !S.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }      // ── ⭐⭐⭐ LES MARQUES *DANS* LE SEGMENT, PAR LE CANAL TEXTE.
       // C'est le trou que rien ne comblait : on ne posait de marque QU'AUX frontières de segment,
