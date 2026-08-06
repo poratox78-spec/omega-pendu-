@@ -452,6 +452,8 @@
     var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
     var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
     var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+    var QW_PREP=/^\s*(?:à|a|de|d['’]|par|pour|avec|sur|dans|en|chez|vers|depuis|selon)\s+(?:quoi|qui|quel|quelle|quels|quelles|lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // interrogatif precede de sa preposition : « a quoi penses-tu ? »
+    var QPRON=/^(lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // pronom interrogatif SUJET (garde anti-relatif : verbe juste apres)
     var QEUPH=/[A-Za-zÀ-ÿœ']+-t-(?:il|elle|on|ils|elles)(?![-\w])/i;   // « t » euphonique : 74/74 inversions dans UD, ancrage ORTHOGRAPHIQUE (tient la ou le tagger lache)
     var QPARTPAROLE=/^\s*(?:affirmé|précisé|precise|déclaré|declare|ajouté|ajoute|expliqué|explique|indiqué|indique|souligné|souligne|conclu|poursuivi|répondu|repondu|confié|confie|assuré|assure|estimé|estime|noté|note|rappelé|rappele|lancé|lance|martelé|martele|insisté|insiste|dit|écrit|ecrit)(?![a-zà-ÿœ])/i;   // participes de parole = incise au temps compose. ⚠️ PAS de  apres une lettre accentuee : en JS \w=[A-Za-z0-9_], donc la frontiere n'existe jamais et la regex ne matche RIEN (echec SILENCIEUX, deja paye)
     var QVERBAL={VERB:1,AUX:1};
@@ -471,7 +473,7 @@
       var motsTag=mots.map(function(w){ return w.replace(/^(?:n|j|t|s|m|qu|l|d|c)['’]/i,'') || w; });
       var tg=null;
       function tag(i){ if(tg===null) tg=((DC&&DC.posTags)?DC.posTags(motsTag):null)||[]; return tg[i]; }
-      var qw=QW.test(t);
+      var qw=QW.test(t)||QW_PREP.test(t);   // « a quoi penses-tu » : la tete interrogative peut etre precedee de sa preposition
       var m=(qw?QINV_Q:QINV).exec(t);
       // ⭐ ROUTE INTERRO-NÉGATIVE, indépendante du tagger. « n'as-tu pas … » : `toks` rend le token
       // « n'as », et même dé-élidé en « as » le modèle l'étiquette PROPN en tête (mesuré) — « as »
@@ -489,7 +491,7 @@
         // (l'imperatif y est impossible). Mesure 2026-08-06 : le tagger lit « a/ADP » dans
         // « a-t-il raison » et « devrions/NOUN » dans « ou devrions-nous » — la regle avait raison,
         // c'est sa confirmation qui echouait. Les GARDES, elles, restent toutes.
-        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw){
+        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw || iv===0){   // iv===0 : inversion EN TETE — l'imperatif prend moi/toi/nous/vous, jamais je/tu/il/elle/on/ils/elles
           if(QADV.test(t)) return false;                      // inversion stylistique
           for(var k=0;k<iv;k++) if(QVERBAL[tag(k)]===1) return false;   // incise : proposition déjà close
           return true;
@@ -501,6 +503,7 @@
       // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
       // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :
       // l'interrogation INDIRECTE enchaîne un GN plein (« comment UNE PERSONNE a obtenu… »).
+      if(QPRON.test(t) && t.indexOf(',')<0 && QVERBAL[tag(1)]===1) return true;   // « Lequel est le plus grand ? » ; le relatif, lui, porte un clitique (« laquelle lui repond »)
       if(!QSEUL.test(t) || t.indexOf(',')>=0) return false;
       return tag(1)!=='DET';
     }
