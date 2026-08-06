@@ -221,7 +221,7 @@
   function stopRec() { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} }
   // ── PROSODIE PARALLÈLE (voie A) — identique au site : Web Speech ne donne que du texte ; on capte le micro
   //    nous-mêmes (Web Audio, zéro modèle) → silence → « , . », pitch (F0) → « ? », ancrés sur les segments
-  //    finaux. Dégradant : getUserMedia async ne peut pas casser startRec, fallback capV() seul. NON testé sans micro.
+  //    finaux. Dégradant : getUserMedia async ne peut pas casser startRec, fallback capitalize() seul. NON testé sans micro.
   function _f0(buf, sr){ var n=buf.length, m=0, i, best=0, bc=0, lo=(sr/350)|0, hi=(sr/75)|0;
     for(i=0;i<n;i++)m+=buf[i]; m/=n;
     for(var lag=lo; lag<=hi && lag<n; lag++){ var c=0; for(i=0;i<n-lag;i++)c+=(buf[i]-m)*(buf[i+lag]-m); if(c>bc){bc=c;best=lag;} }
@@ -272,7 +272,7 @@
     return Math.min(Math.max(0.008, p10*3+0.004), Math.max(0.008, med*0.5)); }
   function silBetween(tl,thr,a,b){ var run=0,mx=0; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t<a||p.t>b)continue; if(p.r<thr){ run+=30; if(run>mx)mx=run; } else run=0; } return mx; }
   function riseEndingAt(tl,a,b){ var v=[]; for(var i=0;i<tl.length;i++){ var p=tl[i]; if(p.t>=a&&p.t<=b&&p.f>0)v.push(p.f); }
-    if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0), tail=v.slice(-q), body=v.slice(0,-q);
+    if(v.length<6)return 0; var q=Math.max(2,(v.length/5)|0); var tail=v.slice(-q), body=v.slice(0,-q);
     function med(x){ x=x.slice().sort(function(a,b){return a-b;}); return x[(x.length/2)|0]; }
     var mt=med(tail), mb=med(body); return (mb>0&&mt>0)? 12*Math.log(mt/mb)/Math.log(2) : 0; }
   // MIX règles + voix : frontières de segments finaux (pauses Web Speech, sans getUserMedia) + règles
@@ -394,9 +394,9 @@
     }
     return out+txt.slice(prev); }
 
-  function prosodyText(S){
-    var ks=Object.keys(S.finals).map(Number).sort(function(a,b){return a-b;}), segs=[];
-    for(var k=0;k<ks.length;k++){ var t=(S.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+  function prosodyText(state){
+    var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;}); var segs=[];
+    for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
     if(!segs.length) return null;
     // ⚠️⚠️ SEUILS D'ORIGINE DE LA VOIE A (commit 32ba743) : COMMA=190, PERIOD=600, QR=4.
     // LE PLANCHER À 190 MANQUAIT ICI (perdu en PR#311, restauré côté site mais pas côté extension) :
@@ -466,8 +466,8 @@
     var QEQ=/^\s*est-ce\s+(?:que|qu['’])/i;
     var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
     var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
-    var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
     var QW_PREP=/^\s*(?:à|a|de|d['’]|par|pour|avec|sur|dans|en|chez|vers|depuis|selon)\s+(?:quoi|qui|quel|quelle|quels|quelles|lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // interrogatif precede de sa preposition : « a quoi penses-tu ? »
+    var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
     var QPRON=/^(lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // pronom interrogatif SUJET (garde anti-relatif : verbe juste apres)
     var QEUPH=/[A-Za-zÀ-ÿœ']+-t-(?:il|elle|on|ils|elles)(?![-\w])/i;   // « t » euphonique : 74/74 inversions dans UD, ancrage ORTHOGRAPHIQUE (tient la ou le tagger lache)
     var QPARTPAROLE=/^\s*(?:affirmé|précisé|precise|déclaré|declare|ajouté|ajoute|expliqué|explique|indiqué|indique|souligné|souligne|conclu|poursuivi|répondu|repondu|confié|confie|assuré|assure|estimé|estime|noté|note|rappelé|rappele|lancé|lance|martelé|martele|insisté|insiste|dit|écrit|ecrit)(?![a-zà-ÿœ])/i;   // participes de parole = incise au temps compose. ⚠️ PAS de  apres une lettre accentuee : en JS \w=[A-Za-z0-9_], donc la frontiere n'existe jamais et la regex ne matche RIEN (echec SILENCIEUX, deja paye)
@@ -522,8 +522,8 @@
       if(!QSEUL.test(t) || t.indexOf(',')>=0) return false;
       return tag(1)!=='DET';
     }
-    var au=S.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?_seuilSilence(au):0;
-    function riseAt(idx){ return (useAudio&&idx!=null&&S.ftimes[idx]!=null)?riseEndingAt(au.tl,S.ftimes[idx]-500,S.ftimes[idx]):0; }
+    var au=state.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?_seuilSilence(au):0;
+    function riseAt(idx){ return (useAudio&&idx!=null&&state.ftimes[idx]!=null)?riseEndingAt(au.tl,state.ftimes[idx]-500,state.ftimes[idx]):0; }
     // ── ⭐⭐⭐ L'ANCRE TEMPORELLE : après quel MOT tombe chaque pause, et combien elle dure.
     // ⭐ ELLE IGNORE L'HORLOGE DE GOOGLE, ET C'EST CE QUI LÈVE LE BLOCAGE. On a longtemps buté sur
     // « deux moteurs sans horloge commune » : Google a les mots, notre capture a le temps, et les
@@ -578,11 +578,11 @@
       }
     }
 
-    var out=(S.base.trim()?S.base.trim()+' ':'');
-    for(var s=0;s<segs.length;s++){
+    var out=(state.base.trim()?state.base.trim()+' ':''), s;
+      for(s=0;s<segs.length;s++){
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
         if(estQuestion(pv.t)||riseAt(pv.idx)>QR) mk='?';                    // le segment qui SE FERME est une question (lexical OU pitch montant)
-        else if(useAudio){ var sil=silBetween(au.tl,thr,(S.ftimes[pv.idx]||0)-100,(S.ftimes[nx.idx]||1e9));
+        else if(useAudio){ var sil=silBetween(au.tl,thr,(state.ftimes[pv.idx]||0)-100,(state.ftimes[nx.idx]||1e9));
           // ⭐⭐⭐ L'AUDIO DIT QU'IL Y A UNE MARQUE, LE TEXTE DIT LAQUELLE.
           // C'est la même division du travail qu'À L'INTÉRIEUR des segments — et c'est ici qu'elle
           // manquait encore. La falaise « >= 600 ms => POINT » y régnait, et elle est FAUSSE POUR
@@ -619,7 +619,7 @@
         if(/[,.;:!?]/.test(_der)){ if((_RG[mk]||0)>(_RG[_der]||0)) _fin=_fin.replace(/\s*[,.;:!?]$/,''); else mk=''; }
         out=_fin+(mk?((mk==='?'?' ':'')+mk):'')+' '; }                      // espace AVANT le « ? » : règle FR
       var txt=segs[s].t;
-      if(s===0 && !S.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }      // ── ⭐⭐⭐ LES MARQUES *DANS* LE SEGMENT, PAR LE CANAL TEXTE.
+      if(s===0 && !state.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }      // ── ⭐⭐⭐ LES MARQUES *DANS* LE SEGMENT, PAR LE CANAL TEXTE.
       // C'est le trou que rien ne comblait : on ne posait de marque QU'AUX frontières de segment,
       // or Google ne coupe qu'aux pauses >= 600 ms et les virgules françaises vivent vers 350 ms
       // (mesuré, 47 locuteurs) — elles sont DANS les segments.
@@ -735,8 +735,9 @@
       out+=txt; }
     var last=segs[segs.length-1];
     var fin=(estQuestion(_finTr||last.t)||riseAt(last.idx)>QR)?'?':'.';
-    return capV(normMajInterne(_dedoubleMarques(out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin))); }
-  function capV(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
+    out=out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin;
+    return capitalize(normMajInterne(_dedoubleMarques(out))); }
+  function capitalize(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
@@ -769,7 +770,7 @@
         recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
         S.tEnd = Date.now() - S.t0; audioStop(S);
         var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
-        ta.value = pt || capV(ta.value);
+        ta.value = pt || capitalize(ta.value);
         runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
         if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
         else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
