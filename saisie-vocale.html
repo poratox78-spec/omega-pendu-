@@ -697,6 +697,14 @@
                && (_d[1]>_seuil || _d[2]>_seuil)) { _ins.push([_z, _d[2]>_d[1]?'.':',']); _dep=0; }
             else _dep++;
           }
+          // ── ⭐⭐⭐ LES RÈGLES DE VIRGULE D'ALLÔ PROF, par-dessus le modèle. Elles connaissent
+          // des FAMILLES que la statistique ignore : coordonnant entre deux phrases, coordonnant
+          // en tête, interjection/incidente, corrélation, « ni » répété. Mesuré sur 11 304
+          // phrases écrites par des humains : justesse 50,53 -> 52,02 %, rappel 10,97 -> 12,80 %.
+          // ⚠️ UNION, jamais remplacement, et MÊMES GARDES que le modèle (`_PASAPRES`,
+          // `_avantTiret`) : une règle n'a pas le droit d'écrire là où le modèle s'interdit
+          // d'écrire. Elles s'appliquent DÈS 2 MOTS — contrairement au modèle statistique elles
+          // n'ont pas besoin de contexte, elles lisent une liste fermée (« Zut, j'ai oublié »).
           // ⭐ FUSION AVEC L'ANCRE. Le canal texte a posé ce dont il était sûr ; l'ancre ajoute
           // ce qu'elle a ENTENDU et que le texte a validé. UNION, jamais remplacement : on ne
           // retire pas une marque que le texte tenait pour sûre.
@@ -709,6 +717,29 @@
               _ins.push([_ia,_anc[s][_w][1],_anc[s][_w][2]]);
             }
             _ins.sort(function(a,b){return a[0]-b[0];});              // _poseMarques exige l'ordre
+          }
+          // ── ⭐⭐⭐ LES RÈGLES DE VIRGULE D'ALLÔ PROF, par-dessus les deux canaux. Elles
+          // connaissent des FAMILLES que la statistique ignore : coordonnant entre deux phrases,
+          // coordonnant en tête, interjection/incidente, corrélation, « ni » répété.
+          // MESURÉ sur 11 304 phrases écrites par des humains : justesse 50,53 -> 52,02 %,
+          // rappel 10,97 -> 12,80 % — meilleur sur les DEUX axes, ce qui est rare et ce qui a
+          // décidé la livraison.
+          // ⚠️ APRÈS LA FUSION, ET C'EST VOULU : les règles reçoivent `_dr`, la liste de ce qui
+          // est DÉJÀ posé par le modèle ET par l'ancre, pour ne pas empiler deux détachements
+          // (« Alors, demain, je ne sais pas » — sorti par la garde CI sur la prise libre de Rem).
+          // ⚠️ UNION, jamais remplacement, et MÊMES GARDES que le modèle (`_PASAPRES`,
+          // `_avantTiret`) : une règle n'a pas le droit d'écrire là où le modèle s'interdit
+          // d'écrire. Elles s'appliquent DÈS 2 MOTS — contrairement au modèle statistique elles
+          // n'ont pas besoin de contexte, elles lisent une liste fermée (« Zut, j'ai oublié »).
+          if(DC.ponctReglesVirgule){
+            var _dr={},_r; for(_r=0;_r<_ins.length;_r++) _dr[_ins[_r][0]]=1;
+            DC.ponctReglesVirgule(_mots,_tg,_dr).forEach(function(_ir){
+              if(_dr[_ir] || _ir<0 || _ir>=_mots.length-1) return;
+              if(_PASAPRES[String(_mots[_ir]).toLowerCase()]) return;
+              if(_avantTiret(txt,_mots,_ir)) return;
+              _ins.push([_ir,',']);
+            });
+            _ins.sort(function(a,b){return a[0]-b[0];});
           }
           // ── ⭐⭐⭐ LE TYPE DE FIN DE PHRASE : POINT ou POINT D'INTERROGATION.
           // Passe unique sur les marques finales. Sans elle, toute fin de phrase INTERNE était

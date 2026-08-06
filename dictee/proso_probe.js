@@ -448,6 +448,49 @@ cas('sans audio : « et » ne prend toujours pas de virgule',
     etat(['il fait beau', 'et je sors'], [1000, 2000], null, { sansAudio: true }),
     'Il fait beau et je sors.');
 
+/* ⑦  ⭐⭐⭐ LES RÈGLES DE VIRGULE D'ALLÔ PROF (`DC.ponctReglesVirgule`).
+ *    Source : Allô prof, fiches « La virgule » et « Le coordonnant », fournies par Rem.
+ *    Toutes en `sansAudio` : on veut mesurer LES RÈGLES, pas l'ancre — si l'audio parlait, on ne
+ *    saurait pas laquelle des deux couches a posé la marque.
+ *    ⚠️ Chaque règle vient avec SON NÉGATIF. C'est la moitié qui compte : une règle qui pose des
+ *    virgules partout aurait 100 % de rappel et serait inutilisable pour un dys. */
+cas('R1 — « car » coordonne deux phrases : virgule AVANT',
+    'Allô prof, La virgule : « Le chien se repose, car il est épuisé. »',
+    etat(['le chien se repose', 'car il est épuisé'], [1000, 2000], null, { sansAudio: true }),
+    'Le chien se repose, car il est épuisé.');
+cas('R1 négatif — « alors » ADVERBE après un verbe : AUCUNE virgule',
+    'garde mesurée : cause n°1 des faux positifs sur corpus réel',
+    etat(['ils deviennent alors les paladins du royaume'], [2000], null, { sansAudio: true }),
+    'Ils deviennent alors les paladins du royaume.');
+cas('R1 négatif — « alors QUE » est un SUBORDONNANT, pas un coordonnant',
+    'fiche « subordination » : la virgule y serait une faute',
+    etat(["il a vu un chat alors qu'il se baladait"], [2000], null, { sansAudio: true }),
+    "Il a vu un chat alors qu'il se baladait.");
+cas('R2 — coordonnant EN TÊTE : virgule APRÈS',
+    'Allô prof, Le coordonnant : « Ensuite, dépose le bouquet. »',
+    etat(['ensuite dépose le bouquet sur la table'], [2000], null, { sansAudio: true }),
+    'Ensuite, dépose le bouquet sur la table.');
+cas('R3 — interjection en tête : virgule après',
+    'Allô prof, La virgule : « Zut, j’ai encore oublié mes clés ! »',
+    etat(['zut il pleut encore ce matin'], [2000], null, { sansAudio: true }),
+    'Zut, il pleut encore ce matin.');
+cas('R3 — incidente en tête : virgule après la locution ENTIÈRE',
+    'Allô prof : « Selon moi, la présentation ne durera pas longtemps. »',
+    etat(['selon moi la présentation ne durera pas longtemps'], [2000], null, { sansAudio: true }),
+    'Selon moi, la présentation ne durera pas longtemps.');
+cas('R4 — corrélation « autant… autant » : virgule avant la SECONDE',
+    'Allô prof : « Autant j’ai envie de faire la fête, autant j’ai besoin de me reposer. »',
+    etat(['autant il aime le sport autant il déteste la course'], [2000], null, { sansAudio: true }),
+    'Autant il aime le sport, autant il déteste la course.');
+cas('R5 — « ni » répété : virgule avant les SUIVANTS, aucune avant le premier',
+    'Allô prof : « Béatrice ne peut ni parler, ni manger, ni bouger. »',
+    etat(['béatrice ne peut ni parler ni manger ni bouger'], [2000], null, { sansAudio: true }),
+    'Béatrice ne peut ni parler, ni manger, ni bouger.');
+cas('⛔ NÉGATIF — on ne sépare JAMAIS le sujet du prédicat',
+    'Allô prof, « Les éléments à ne pas séparer » : « La plage est recouverte de déchets. »',
+    etat(['la plage est recouverte de déchets'], [2000], null, { sansAudio: true }),
+    'La plage est recouverte de déchets.');
+
 /* ── EXÉCUTION SUR LES DEUX SURFACES ───────────────────────────────────────────────────── */
 const surfaces = [
   { nom: 'site  saisie-vocale.html', f: charge(SITE, 'prosodyText') },
