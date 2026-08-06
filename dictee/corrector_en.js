@@ -201,18 +201,27 @@ function vowelStart(lex, w){                                // 1er son du mot vi
   return ip ? VOWEL_IPA.has(ip[0]) : null;
 }
 
-function homoDecide(lex, T, i){
+/* `adj` = masque d'adjacence RÉELLE dans le texte (cf. adjMask). OPTIONNEL : absent, on suppose
+   l'adjacence — c'est le comportement historique, donc tous les appels à 3 arguments restent
+   intacts. Seules les règles qui EXIGENT que deux mots se touchent le consultent. */
+function homoDecide(lex, T, i, adj){
   const w = T[i], lw = w.toLowerCase();
   const nx = i+1 < T.length ? T[i+1].toLowerCase() : '';
   const nx2 = i+2 < T.length ? T[i+2].toLowerCase() : '';
   const nxRaw = i+1 < T.length ? T[i+1] : '';
   const pv = i > 0 ? T[i-1].toLowerCase() : '';
-  if(lw === 'of' && MODALS.has(pv)) return ['have', 'RED'];
+  /* « of » après un modal -> « have », SAUF la locution « of course » (« would of course be »),
+     qui est du bon anglais et sortait en rouge sur GUM. */
+  if(lw === 'of' && MODALS.has(pv) && nx !== 'course') return ['have', 'RED'];
   // « a » + son voyelle du mot suivant (IPA) -> « an ». FP=0 : mot suivant en minuscules (exclut US/UN/August) ;
   // « A » capital = article seulement en début de phrase (sinon étiquette : Party A). an->a abandonné.
   if(lw === 'a' && (w === 'a' || i === 0)
       && /^\p{L}+$/u.test(nxRaw) && nxRaw === nxRaw.toLowerCase() && nxRaw !== nxRaw.toUpperCase()
-      && vowelStart(lex, nx) === true)
+      && vowelStart(lex, nx) === true
+      /* ⭐ ADJACENCE RÉELLE EXIGÉE. « hit a .322 average » donne les tokens `hit a average` :
+         `tokenize` jette les chiffres et la ponctuation, donc « a » PARAÎT coller à « average ».
+         8 des 17 rouges restants sur texte ÉDITÉ (GUM+PUD) venaient de là. */
+      && (!adj || adj.has(i)))
     return ['an', 'RED'];
   if(lw === 'then' && (COMPAR.has(pv) || (pv.endsWith('er') && isAdj(lex, pv)))){
     if(THAN_OBJ.has(nx) || (nx && (isNoun(lex, nx) || isAdj(lex, nx)) && !isVerb(lex, nx))) return ['than', 'RED'];
@@ -352,6 +361,28 @@ function pastPartDecide(lex, T, i){
   return [pp, 'RED'];
 }
 
+
+/* ⭐⭐ CE QUI SÉPARE DEUX TOKENS — l'équivalent anglais de `_seg_info` côté français.
+   LE BUG QU'ELLE RÉPARE, ET IL EST STRUCTUREL. `tokenize` ne garde que les lettres : dans
+   « hit a .322 average », les tokens sont `hit a average`. La règle a/an voit donc « a » suivi
+   d'« average » (voyelle) et corrige — alors que dans le TEXTE, « a » est suivi de « .322 ».
+   ADJACENT DANS LA LISTE ≠ ADJACENT DANS LE TEXTE. C'était 8 des 17 rouges restants sur du
+   texte édité (GUM+PUD), et ça touche TOUTE règle de contexte, pas seulement a/an.
+   `adjMask(text)` rend l'ensemble des indices i tels que le token i+1 suit le token i en n'étant
+   séparé QUE par des espaces. Une règle qui exige l'adjacence consulte ce masque.
+   ⚠️ DIRECTION SÛRE : consulter ce masque ne fait qu'ABSTENIR ; il ne peut pas créer de faute. */
+function adjMask(text){
+  const adj = new Set();
+  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  let m, prevEnd = -1, i = -1;
+  while((m = re.exec(text))){
+    i++;
+    if(prevEnd >= 0 && /^[ 	]*$/.test(text.slice(prevEnd, m.index))) adj.add(i - 1);
+    prevEnd = m.index + m[0].length;
+  }
+  return adj;
+}
+
 function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
 
 /* ⭐ LES MOTS QUI VIVENT DANS UNE URL, UNE ADRESSE OU UN CHEMIN — à ne jamais corriger.
@@ -457,7 +488,7 @@ async function loadPosModel(url){
   return setPosModel(JSON.parse(await new Response(ds).text()));
 }
 
-const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask,
+const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask,
                pastPartDecide, buildPastPart,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
