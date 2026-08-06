@@ -27,6 +27,16 @@
   .vbar .vst{font:13px var(--sans);color:var(--fg-2);margin-left:auto;min-height:1em;text-align:right}
   .vnote{font:12.5px var(--sans);color:var(--fg-2);background:var(--bg-2);border:1px solid var(--line);border-radius:9px;padding:8px 11px;margin:6px 0 12px;line-height:1.5}
   .vnote b{color:var(--fg)} .vnote .lock{color:var(--accent)}
+  /* ⓘ replié : une ligne par défaut, le détail sur demande. `<details>` natif = accessible au
+     clavier et au lecteur d'écran, et il fonctionne même si le JS ne charge pas. */
+  .vnote summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px}
+  .vnote summary::-webkit-details-marker{display:none}
+  .vnote .vi{flex:0 0 auto;width:17px;height:17px;border-radius:50%;border:1.5px solid var(--accent);
+    color:var(--accent);font:italic 700 11px/15px var(--sans);text-align:center;margin-left:auto}
+  .vnote[open] .vi{background:var(--accent);color:var(--bg-2);font-style:normal}
+  .vnote .vsr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}  /* lu, pas vu */
+  .vnote .vdet{margin-top:8px;border-top:1px solid var(--line);padding-top:7px}
+  .vnote .vdet p{margin:0 0 6px}
   textarea#ta{width:100%;min-height:34vh;resize:vertical;font:17px/1.6 var(--sans);padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--bg-2);color:var(--fg)}
   textarea#ta:focus{outline:2px solid var(--accent);border-color:var(--accent)}
   .acts{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}
@@ -70,7 +80,22 @@
        page ouvre son propre `getUserMedia` pour mesurer les silences — ni le bouton Diagnostic.
        Un lecteur en déduisait qu'il n'y avait qu'une seule écoute. Sur un site public destiné à
        des dys, l'incomplet coûte autant que le faux. Si le code change, CETTE PHRASE CHANGE. -->
-  <div class="vnote"><span class="lock">🔒</span> Quand tu dictes, <b>deux choses</b> écoutent ton micro. <b>①</b> Le <b>service vocal du navigateur (Google)</b> reçoit l'audio pour le transcrire en mots — c'est le <b>seul moment où quelque chose sort de ton appareil</b>. <b>②</b> La page l'écoute une seconde fois, <b>uniquement pour mesurer tes silences</b> et poser la ponctuation : ce son-là n'est <b>ni enregistré ni envoyé</b>, on n'en garde que deux nombres toutes les 30&nbsp;ms. La correction reste <b>100&nbsp;% sur ton appareil</b>. Le bouton <b>🩺&nbsp;Diagnostic</b> copie ces mesures dans ton presse-papier <b>si tu cliques</b>, jamais tout seul. ⚠️ Marche dans <b>Chrome / Edge</b> ; choisis le bon micro par défaut (casque&nbsp;?).</div>
+  <!-- ⚠️ REPLIÉE, PAS RACCOURCIE. La version dépliée est une PROMESSE faite à quelqu'un : elle doit
+       décrire ce que le code fait, EN ENTIER (les DEUX écoutes du micro, et le bouton Diagnostic).
+       Mais huit lignes de texte en haut d'une page destinée à des dys, c'est un mur — donc
+       `<details>` : une ligne par défaut, le détail sur demande. `<details>` et pas un tooltip JS,
+       parce qu'il est natif, accessible au clavier et au lecteur d'écran, et qu'il survit sans JS.
+       ⚠️ SI LE CODE CHANGE, LE TEXTE DÉPLIÉ CHANGE. -->
+  <details class="vnote">
+    <summary><span class="lock">🔒</span> Ton micro n'est écouté que pendant la dictée, et <b>le son n'est jamais enregistré</b>. <span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
+    <div class="vdet">
+      <p>Quand tu dictes, <b>deux choses</b> écoutent ton micro.</p>
+      <p><b>①</b> Le <b>service vocal du navigateur (Google)</b> reçoit l'audio pour le transcrire en mots. C'est le <b>seul moment où quelque chose sort de ton appareil</b>.</p>
+      <p><b>②</b> La page l'écoute une seconde fois, <b>uniquement pour mesurer tes silences</b> et savoir où poser la ponctuation. Ce son-là n'est <b>ni enregistré ni envoyé</b> : on n'en garde que deux nombres toutes les 30&nbsp;ms.</p>
+      <p>La correction, elle, reste <b>100&nbsp;% sur ton appareil</b>. Le bouton <b>🩺&nbsp;Diagnostic</b> copie ces mesures dans ton presse-papier <b>si tu cliques</b>, jamais tout seul.</p>
+      <p>⚠️ Marche dans <b>Chrome / Edge</b>. Choisis le bon micro par défaut (casque&nbsp;?).</p>
+    </div>
+  </details>
   <textarea id="ta" placeholder="Clique 🎤 Dicter et parle — ton texte s'écrit ici (majuscules remises automatiquement). Puis clique les corrections rouges, « Tout corriger », et « Copier »."></textarea>
   <div class="acts">
     <button id="fixall" disabled>✓ Tout corriger</button>
