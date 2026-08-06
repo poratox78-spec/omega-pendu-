@@ -957,6 +957,13 @@ def _np_subject(T, tg, a):
     """Sujet [déterminant + nom-tête] placé juste avant le verbe d'indice a. Renvoie {'idx','det','g','n'} ou None.
     Bornes : proposition (_SEG). Abstention sur coordination (et/ou/ni), sujet-pronom (traité ailleurs), sujet-PP/infinitif
     (déterminant précédé d'une préposition), nom-tête absent."""
+    # ⭐ LE MARQUEUR PEUT ÊTRE FUSIONNÉ DANS LE VERBE LUI-MÊME, et c'est le cas que le correctif
+    # de `_NP_BREAK` ne couvre pas : dans « les possibilités qu'offrent les domaines », le token
+    # EST « qu'offrent » — le balayage part de a-1 et ne le voit donc jamais. Or un verbe dont le
+    # token commence par « qu' » est celui d'une RELATIVE ou d'une SUBORDONNÉE : son sujet est à
+    # DROITE (inversion) ou c'est le relatif lui-même. Dans les deux cas, remonter à gauche rend un
+    # sujet FAUX. Abstention = la seule réponse compatible avec FP=0.
+    if deacc(T[a].lower()).startswith("qu'"): return None
     lo = 0
     if _SEG is not None:
         for j in range(a, 0, -1):
@@ -968,7 +975,16 @@ def _np_subject(T, tg, a):
     while j >= lo:
         dj = deacc(T[j].lower()); tgj = tg[j] if (tg and j < len(tg)) else None
         if dj in ('et', 'ou', 'ni'): return None             # sujet coordonné → genre/nombre mixtes → abstention
-        if dj in _NP_BREAK: break                            # relative/subordonnée (que/qui/dont…) → GN sujet à droite (ne pas remonter dans la proposition amont)
+        # relative/subordonnée (que/qui/dont…) → GN sujet à droite (ne pas remonter dans la proposition amont)
+        # ⭐ TEST DE PRÉFIXE, et c'est un BUG CORRIGÉ, pas une précaution. `TOK` ne sépare pas
+        # l'élision : « qu'offrent » est UN token, donc `dj in _NP_BREAK` (qui contient « que »,
+        # « qu ») ne matchait JAMAIS — la coupure de relative était INERTE sur toutes les formes
+        # élidées. Mesuré par ponct_morpho_probe : le parseur remontait alors dans la proposition
+        # amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il
+        # répondait « possibilités »). Toute règle d'accord qui s'appuie dessus héritait de
+        # l'erreur : un faux positif SILENCIEUX. Seul « que » s'élide en « qu' » — le préfixe est
+        # donc exact, il n'attrape ni « quoi » ni « quel ».
+        if dj in _NP_BREAK or dj.startswith("qu'"): break
         if _ELID_DET.match(T[j].lower()):
             # Ce test passe AVANT la frontière VERBALE ci-dessous : sur un token COLLÉ le tagger est
             # CONTAMINÉ — il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas ».

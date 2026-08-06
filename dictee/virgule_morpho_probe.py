@@ -97,8 +97,13 @@ def _une_phrase(bloc):
         if rel != 'nsubj' or upos not in ('NOUN', 'PROPN'): continue
         if tete not in pos: continue
         iv, isj = notre_index(pos[tete]), notre_index(pos[i])
-        if iv is None or isj is None or isj >= iv: continue   # sujet POSTPOSÉ : hors visée du parseur
-        paires.append((iv, isj))
+        if iv is None or isj is None or isj == iv: continue
+        # ⚠️ ON GARDE LE SUJET POSTPOSÉ, marqué. Il est hors visée de `_np_subject` (qui ne remonte
+        # que vers la GAUCHE), mais c'est justement la population que gouverne l'interrogatif :
+        # « Les fleurs sont-elles chères ? », « Ainsi parlait Zarathoustra ». Les jeter, c'était
+        # cacher le cas où le parseur va chercher un sujet À GAUCHE alors qu'il est À DROITE.
+        # Voir dictee/ponct_morpho_probe.py, qui mesure exactement ça.
+        paires.append((iv, isj, isj > iv))
     if not paires: return None
     return (texte, paires)
 
@@ -176,7 +181,7 @@ def mesure(cas, nom, seg_de):
         if not T: continue
         C._SEG = seg_de(texte, pred)
         tg = C.pos_tags(T)
-        for (iv, isj) in paires:
+        for (iv, isj) in [(a,b) for (a,b,post) in paires if not post]:
             total += 1
             s = C._np_subject(T, tg, iv)
             if s is None: continue
@@ -240,13 +245,13 @@ if __name__ == '__main__':
         C._SEG = frontieres(sans_virgules(texte), tous)
         tg = C.pos_tags(T)
         ref = {}
-        for (iv, isj) in paires:
+        for (iv, isj) in [(a,b) for (a,b,post) in paires if not post]:
             s = C._np_subject(T, tg, iv)
             ref[iv] = (s.get('idx') if s else None)
         for v in virg:
             C._SEG = frontieres(sans_virgules(texte), [i for i in tous if i != v])
             porte = False
-            for (iv, isj) in paires:
+            for (iv, isj) in [(a,b) for (a,b,post) in paires if not post]:
                 s = C._np_subject(T, tg, iv)
                 apres = (s.get('idx') if s else None)
                 # elle portait si sa présence donnait le BON sujet et son absence ne le donne plus
