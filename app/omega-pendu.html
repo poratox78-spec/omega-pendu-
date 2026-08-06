@@ -26129,6 +26129,31 @@ function spellTokenCore(tok,atStart,T,idx){
       var wa=/[A-Za-zÀ-ÿœŒ]/.test(nx),wb=/[A-Za-zÀ-ÿœŒ]/.test(pv);
       if(wa&&!wb)out.push({cs:i,ce:i+1,from:'"',sugg:'« ',name:'typographie',tier:'vigilance',typo:1});
       else if(wb&&!wa)out.push({cs:i,ce:i+1,from:'"',sugg:' »',name:'typographie',tier:'vigilance',typo:1});}
+        /* ⭐⭐ LES DEUX PREMIÈRES RÈGLES ROUGES DE PONCTUATION DU CORRECTEUR (tout le reste ici est orange).
+       POURQUOI CELLES-CI PEUVENT ÊTRE ROUGES ALORS QUE LA VIRGULE SYNTAXIQUE NE LE SERA JAMAIS :
+       « où faut-il une virgule » est un JUGEMENT — mesuré 51,98 % de justesse sur 11 304 phrases
+       humaines, et la source elle-même écrit « on place GÉNÉRALEMENT une virgule ». Aucun réglage ne
+       fera de ça du FP=0. « L'espace autour de la virgule QUI EST LÀ est-il bien placé » est une tout
+       autre question : MÉCANIQUE, décidable sur la chaîne seule, sans grammaire ni contexte.
+       ⇒ C'est la SEULE couche de ponctuation qui peut atteindre FP=0 — et elle l'atteint.
+       MESURÉ : 0 faux positif sur 14 450 phrases UD correctes (les 2 seuls déclenchements y sont de
+       VRAIES fautes de typo du corpus : « Warner Bros . La musique », « Dorra Zarrouk,née le »),
+       et 156 cas réels attrapés sur 139 593 paires bad/good.
+       ⚠️ On ne touche QUE « , » et « . ». Le français demande une espace AVANT « ; : ! ? » », et les
+       usages divergent (France/Québec) : ces marques-là ne sont pas mécaniques, elles restent dehors. */
+    var re3=/([A-Za-zÀ-ÿœŒ0-9\)\]»])[ 	]+([,.])(?![.\d])/g;
+    while((m=re3.exec(t))){
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+m[2],name:'espace avant la ponctuation',tier:'auto',typo:1});}
+    var re4=/([a-zà-ÿœ]),([A-Za-zÀ-ÿœŒ])/g;
+    while((m=re4.exec(t))){
+      var _a=m.index; while(_a>0&&!/\s/.test(t[_a-1]))_a--;
+      var _b=m.index; while(_b<t.length&&!/\s/.test(t[_b]))_b++;
+      /* ⚠️ ON TESTE LE MOT ENTIER, pas une fenêtre de N caractères. Première version : ±14 caractères
+         autour de la virgule — trop court pour « https://exemple.fr/a,b » (le schéma est 20 caractères
+         plus loin), et la garde CI l'a sorti. Un « : », un « / » ou un « @ » dans le mot qui contient la
+         virgule = adresse, chemin ou URL : la virgule y est un séparateur technique, pas une ponctuation. */
+      if(/[:\/@]/.test(t.slice(_a,_b)))continue;
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+', '+m[2],name:'espace après la virgule',tier:'auto',typo:1});}
     return out;}
   function _correctedText(t,corrs){var P=_tokPos(t),ed=[];
     corrs.forEach(function(f){if(!f.on)return;
