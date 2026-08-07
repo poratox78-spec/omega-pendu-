@@ -19,8 +19,19 @@ const stub=new Proxy(function(){},{get(t,k){if(k==='style')return{};if(k==='clas
 global.document={getElementById:(id)=>B[id]!==undefined&&B[id]!==''?{textContent:B[id]}:stub,createElement:()=>stub,body:stub,head:stub,addEventListener(){},querySelector:()=>null,querySelectorAll:()=>[]};
 global.window=global;global.navigator={userAgent:'node'};global.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
 (0,eval)(code); const C=globalThis.__C;
-const norm=w=>w.toLowerCase().replace(/[^a-zà-ÿ']/gi,'');
-function toksN(s){return (s.match(/[A-Za-zÀ-ÿ']+/g)||[]).map(norm).filter(Boolean);}
+// ⚠️ L'apostrophe TYPOGRAPHIQUE ’ doit être ramenée à ' AVANT de découper. Sans ça « c’était » du corrigé
+// se coupe en « c »+« était » alors que la suggestion « c'était » reste un seul token : une correction JUSTE
+// est comptée ❌ dégradation. Mesuré sur le corpus dys réel (dictées ASEI) : 2 des 3 « mauvaises corrections »
+// étaient cet artefact. Le corpus de Rem, tapé au clavier droit, ne l'avait jamais révélé.
+// Idem pour les LIGATURES : œ/æ ne sont pas dans [a-zà-ÿ] (U+0153 hors de la plage U+00E0–U+00FF), donc
+// norm() les EFFAÇAIT — « cœur » devenait « cur » et ne coïncidait plus avec « coeur ». Conséquence mesurée :
+// coeur→cœur et soeurs→sœurs, deux corrections JUSTES, étaient comptées ❌.
+// ⚠️ Effet de bord assumé : une fois normalisées des deux côtés, ces paires ne comptent plus comme fautes du
+// tout. On préfère perdre 2 réussites du numérateur que de garder 2 fausses dégradations : le chiffre qui
+// sert à décider, c'est « est-ce qu'on abîme la copie ».
+const apo=s=>String(s).replace(/[’ʼ‘]/g,"'").replace(/œ/g,'oe').replace(/Œ/g,'OE').replace(/æ/g,'ae').replace(/Æ/g,'AE');
+const norm=w=>apo(w).toLowerCase().replace(/[^a-zà-ÿ']/gi,'');
+function toksN(s){return (apo(s).match(/[A-Za-zÀ-ÿ']+/g)||[]).map(norm).filter(Boolean);}
 function runCorrLike(s){const sf=C.ready()?C.spell(s):[];C.setSeg(s);const T=C.toks(s),Tc=T.slice();
   sf.forEach(f=>{const j=f.i;if(f.span!==2&&f.sugg&&f.tier!=='vigilance'&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))Tc[j]=f.sugg;});
   const cur=Tc.slice(),gbt={};for(let it=0;it<4;it++){const g2=C.corrTok(cur);let add=false;for(const g of g2){if(gbt[g.i]!=null)continue;gbt[g.i]=g;add=true;if((g.span==null||g.span<2)&&g.tier!=='vigilance'&&g.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(g.sugg))cur[g.i]=g.sugg;}if(!add)break;}const gf=Object.keys(gbt).map(k=>gbt[k]);const fl={};gf.forEach(f=>fl[norm(T[f.i])]=f.sugg);
