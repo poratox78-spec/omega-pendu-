@@ -883,7 +883,10 @@ def _noun_gender(w, num='s', full=False):
     full=True : quand GENDER_PURE échoue, retombe sur le lexique COMPLET D.GENDER_LEX (inclut les homographes
     verbe/nom : pomme/livre/lettre) — sûr UNIQUEMENT si l'appelant a déjà confirmé un antécédent [dét + NOM]
     (le contexte tranche l'homographie ; sinon on FP). Fix C : débloque l'accord du participe sur pomme/etc."""
-    d = deacc(w.lower())
+    _lw = w.lower()
+    _ga = GENDER_ACC.get(_lw)
+    if _ga in ('m', 'f'): return _ga                       # forme ACCENTUÉE exacte : tranche marche(f)/marché(m)
+    d = deacc(_lw)
     def src(x):
         gg = GENDER_PURE.get(x)
         if gg in ('m', 'f'): return gg
@@ -1159,7 +1162,7 @@ def rule_adj_epithet(T, i):
     if tg[i-1] != 'NOUN' and not _el: return None   # sur un nom ÉLIDÉ le tagger dit PROPN (majuscule de l'article en tête de phrase) : c'est le genre du lexique qui fait foi ci-dessous
     if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN'): return None   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
     if _head_text(T[i-1])[:1].isupper(): return None                 # nom propre (capitalisé) → genre non fiable. ÉLISION DÉCOLLÉE : « L'allégation » en tête de phrase porte la majuscule du DÉTERMINANT, pas du nom — la tester ici écartait tout nom commun élidé.
-    dn = deacc(_head_text(T[i-1]).lower()); g = GENDER_PURE.get(dn)
+    _hd = _head_text(T[i-1]).lower(); dn = deacc(_hd); g = GENDER_ACC.get(_hd) or GENDER_PURE.get(dn)   # accentué d'abord
     if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
     num = 's' if _el else (_EPI_ART.get(deacc(T[i-2].lower())) if i >= 2 else None)   # « l' » ne s'élide qu'au SINGULIER (« les » ne s'élide jamais) : le nombre est certain
     if num is None: return None                                      # nombre NON net (pas d'article devant le nom) → abstention (écran/possessif)
@@ -2363,6 +2366,17 @@ if os.path.exists(_GREL_PATH):
 # sœur/œuf/œuvre/œil absents) → débloque « mon soeur »→ma sœur + accord genre. FP=0 (genres corrects, union). Miroir app + ext.
 for _w, _g in {'soeur': 'f', 'soeurs': 'f', 'coeur': 'm', 'coeurs': 'm', 'oeuf': 'm', 'oeufs': 'm', 'oeuvre': 'f', 'oeuvres': 'f', 'boeuf': 'm', 'boeufs': 'm', 'voeu': 'm', 'voeux': 'm', 'noeud': 'm', 'noeuds': 'm', 'oeil': 'm', 'moeurs': 'f', 'manoeuvre': 'f', 'manoeuvres': 'f', 'oeillet': 'm', 'oeillets': 'm', 'oesophage': 'm', 'foetus': 'm'}.items():
     GENDER_PURE.setdefault(_w, _g)
+
+# GENRE ACCENTUÉ (delta) — répare la perte d'accent de la chaîne cgram : build_cgram.py DÉSACCENTUE à
+# l'écriture, donc « règle »(nom f) et « réglé »(adj) partagent la clé « regle » et le NOM disparaît ;
+# « marche »(f) et « marché »(m) s'écrasent alors que leurs genres sont OPPOSÉS. Source = build_gender_acc.py
+# (NOTRE kaikki 89 256 × Lexique4, ambigus et désaccords ÉCARTÉS). DELTA seul : 37 182 entrées, dont 5 028
+# où la table désaccentuée se TROMPE. Consulté AVANT elle ; repli intégral sur elle -> aucune perte possible.
+GENDER_ACC = {}
+_GACC_PATH = os.path.join(HERE, 'gender_acc.json')
+if os.path.exists(_GACC_PATH):
+    try: GENDER_ACC = json.load(open(_GACC_PATH, encoding='utf-8'))
+    except Exception: GENDER_ACC = {}
 
 _POSS_DET = {'mon', 'ma', 'ton', 'ta', 'son', 'sa'}
 _ART_BLOCK = {'un', 'une', 'le', 'la', 'les', 'du', 'des', 'au', 'aux', 'ce', 'cet', 'cette', 'ces',
