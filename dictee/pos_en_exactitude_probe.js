@@ -15,15 +15,17 @@
  *
  *   node dictee/pos_en_exactitude_probe.js
  *
- * MESURÉ (2026-08-08) — 18 693 tokens, exactitude 89,2 % (le FR est à ~95 %) :
- *   DET 98,6 · AUX 98,8 · CCONJ 98,8 · ADP 95,7 · PRON 94,7 · NUM 93,3 · NOUN 92,4
- *   PART 90,0 · ADJ 87,8 · VERB 86,6 · ADV 85,7 · PROPN 59,2 · SCONJ 58,8
+ * MESURÉ (2026-08-08, APRÈS les post-passes PROPN et `that`) — 18 693 tokens, **90,5 %** :
+ *   DET 98,6 · AUX 98,8 · CCONJ 98,8 · ADP 95,7 · PRON 94,7 · PROPN 93,5 · NUM 93,3
+ *   PART 90,0 · ADJ 87,8 · VERB 86,6 · ADV 85,7 · SCONJ 58,8
  *
- * ⭐ LES DEUX POINTS FAIBLES, ET ILS N'ONT PAS LE MÊME COÛT :
- *   · PROPN 59,2 % (558 lus NOUN) — le plus gros volume, mais le MOINS grave : les deux sont
- *     nominaux, et les règles qui distinguent le nom propre le font déjà par la MAJUSCULE, pas par
- *     le tag. À surveiller, pas à traiter en premier.
- *   · SCONJ 58,8 % (84 lus ADP) — le plus PÉNALISANT. Une conjonction de subordination MARQUE UNE
+ * ⭐ PROPN EST RÉPARÉ (59,2 -> 93,5 %, +1,19 pt d'exactitude GLOBALE à lui seul). La cause était
+ *   dans `le()` : la table d'émission est indexée en MINUSCULES, donc pour un mot CONNU la
+ *   MAJUSCULE ne pesait rien — le bonus PROPN ne s'appliquait qu'aux mots inconnus. `_propnPass`
+ *   la rend au tagger. Le plus mauvais score portait sur l'indice le plus simple de l'écrit anglais.
+ *
+ * ⭐ IL RESTE SCONJ, et c'est le plus PÉNALISANT :
+ *   · SCONJ 58,8 % (84 lus ADP) — une conjonction de subordination MARQUE UNE
  *     FRONTIÈRE DE PROPOSITION. La confondre avec une préposition, c'est perdre la frontière — et
  *     toute détection de SUJET a besoin de savoir où commence et finit la proposition.
  *     ⇒ **Avant de construire un parseur de sujet anglais, c'est ici qu'il faut regarder.**
@@ -84,5 +86,5 @@ console.log('\n  confusions principales :');
   console.log('    ' + String(v).padStart(4) + '  ' + k));
 console.log('\n  ⚠️ SCONJ (58,8 %) est le point faible qui COÛTE : une conjonction de subordination');
 console.log('     marque une FRONTIÈRE DE PROPOSITION. La lire comme une préposition, c\'est perdre');
-console.log('     la frontière — et toute détection de SUJET en a besoin. PROPN (59,2 %) est plus');
-console.log('     gros en volume mais moins grave : NOUN et PROPN sont tous deux nominaux.');
+console.log('     la frontière — et toute détection de SUJET en a besoin. un discriminateur naïf ADP->SCONJ a été');
+console.log('     TESTÉ ET RÉFUTÉ (-0,25 pt) : il faut savoir où finit le groupe nominal, donc parser.');

@@ -523,7 +523,34 @@ function tagSentence(words, M){
   for(const t of tags){ const sc = V[n-1][t] + lt(t, '</s>'); if(sc > best){ best = sc; bt = t; } }
   const seq = [bt];
   for(let i = n-1; i > 0; i--) seq.push(bk[i][seq[seq.length-1]]);
-  return _thatPass(words, seq.reverse());
+  return _thatPass(words, _propnPass(words, seq.reverse()));
+}
+
+/* ⭐⭐ POST-PASSE PROPN — la MAJUSCULE, que le modèle jette.
+   LA CAUSE, TROUVÉE EN LISANT `le()` : la table d'émission `em` est indexée en MINUSCULES. Pour un
+   mot CONNU, « Apple » est donc tagué avec la distribution de « apple » — la majuscule n'entre pas
+   dans la décision. Le petit bonus PROPN (log 1.1 / log 3.0) ne s'applique qu'au repli par suffixe
+   et au prior, c'est-à-dire aux mots INCONNUS. D'où PROPN à 59,2 % : le plus mauvais score du
+   tagger portait sur l'indice le plus simple de l'anglais écrit.
+
+   MESURÉ sur UD English-PUD — majuscule en position INTERNE (2 013 tokens) : 74,3 % sont PROPN en
+   gold (le reste : ADJ 231 « American », NOUN 206, PRON 22). On ne bascule donc QUE depuis NOUN ou
+   ADJ, et seulement là où le tagger hésitait déjà entre nominal et adjectival.
+   ⇒ **exactitude globale 89,30 % -> 90,49 %, +1,19 pt** — dix fois le gain de la post-passe `that`.
+
+   ⚠️ TROIS GARDES, chacune pour une raison :
+     · i >= 1 : le mot initial est capitalisé par convention, la majuscule n'y dit RIEN ;
+     · `[A-Z][a-z]` : écarte les ACRONYMES tout en capitales (NASA, USA), qui ont leur propre régime ;
+     · pas après `. ! ? : ;` : c'est un début de phrase, même règle que le mot initial.
+   ⚠️ Cette passe tourne AVANT `_thatPass`, qui lit les tags voisins : l'ordre compte. */
+function _propnPass(words, seq){
+  for(let i = 1; i < words.length; i++){
+    const w = String(words[i] || '');
+    if(!/^[A-Z][a-z]/.test(w)) continue;
+    if(/^[.!?:;]$/.test(String(words[i-1] || ''))) continue;
+    if(seq[i] === 'NOUN' || seq[i] === 'ADJ') seq[i] = 'PROPN';
+  }
+  return seq;
 }
 
 /* ⭐ POST-PASSE « that » — le mot le plus mal tagué de l'anglais chez nous.
