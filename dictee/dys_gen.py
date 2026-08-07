@@ -141,16 +141,65 @@ def f_terminaison(w, rng, lex):
     return None
 
 
+_PLURIELS, _GENRES, _POS = None, None, None
+
+
+def _morpho():
+    u"""Tables morphologiques CURÉES : les formes plurielles connues et le genre des noms."""
+    global _PLURIELS, _GENRES, _POS
+    if _PLURIELS is None:
+        try:
+            _PLURIELS = set(json.load(io.open(os.path.join(HERE, 'cgram_plural.json'), encoding='utf-8')))
+        except Exception:
+            _PLURIELS = set()
+        try:
+            _GENRES = json.load(io.open(os.path.join(HERE, 'cgram_gender.json'), encoding='utf-8'))
+        except Exception:
+            _GENRES = {}
+        try:
+            _POS = json.load(io.open(os.path.join(HERE, 'cgram_pos.json'), encoding='utf-8'))
+        except Exception:
+            _POS = {}
+    return _PLURIELS, _GENRES, _POS
+
+
+ACCORDABLE = ('NOM', 'ADJ', 'VER')      # seuls porteurs de marque d'accord en français
+
+
 def f_accord(w, rng, lex):
-    u"""Accord : la marque finale e/s/x saute ou s'ajoute. Muette, donc invisible à l'oreille."""
-    if w.endswith(u'aux') and len(w) > 4:
-        return w[:-3] + u'als'
+    u"""Accord : la marque finale e/s/x saute ou s'ajoute. Muette, donc invisible à l'oreille.
+
+    ⚠️ CETTE BRIQUE A DÛ ÊTRE RÉÉCRITE APRÈS LECTURE DES CAS. La première version ajoutait un « s »
+    ou un « e » à N'IMPORTE QUEL mot, et produisait « pour » -> « pours », « Texas » -> « Texass »,
+    « Madagascar » -> « Madagascare », « sortir » -> « sortirs ». Ce ne sont pas des fautes d'accord :
+    aucun dyslexique n'écrit ça, et le correcteur avait RAISON de s'abstenir. La famille « accord »
+    ressortait à 32,7 % de traitement — on mesurait le charabia du générateur, pas une faiblesse du
+    correcteur. C'est la 5ᵉ fois de la journée qu'il faut LIRE LES CAS avant de conclure.
+
+    Le garde-fou : on ne pose la faute que sur un mot dont la morphologie est ATTESTÉE dans les
+    tables curées — la forme fléchie visée doit exister. Un invariable, un nom propre ou un
+    infinitif n'a pas de pluriel attesté, donc la brique s'abstient.
+    """
+    plur, genres, pos = _morpho()
+    d = deacc(w)
+    cat = (pos.get(d) or [u''])[0]
+    if cat and cat not in ACCORDABLE:
+        return None
     cands = []
-    for m in (u'es', u's', u'x', u'e'):
-        if w.endswith(m) and len(w) - len(m) >= 3:
-            cands.append(w[:-len(m)])
-    cands += [w + u's', w + u'e']
-    return _prefere_reel(cands, lex, rng)
+    # (a) le mot EST un pluriel attesté -> le dys écrit le singulier (marque muette oubliée)
+    if d in plur:
+        for m in (u'x', u's'):
+            if w.endswith(m) and len(w) - 1 >= 3:
+                cands.append(w[:-1])
+    # (b) le mot a un PLURIEL attesté -> le dys met la marque en trop
+    if d + u's' in plur:
+        cands.append(w + u's')
+    # (c) genre : le féminin en -e existe -> confusion de genre (« un avocat » / « une avocate »)
+    if not w.endswith(u'e') and genres.get(d) and (w + u'e') in lex and cat in ('NOM', 'ADJ'):
+        cands.append(w + u'e')
+    if w.endswith(u'e') and len(w) > 3 and w[:-1] in lex and cat in ('NOM', 'ADJ'):
+        cands.append(w[:-1])
+    return _prefere_reel(cands, lex, rng) if cands else None
 
 
 def f_lettre_manque(w, rng, lex):
