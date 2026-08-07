@@ -523,7 +523,40 @@ function tagSentence(words, M){
   for(const t of tags){ const sc = V[n-1][t] + lt(t, '</s>'); if(sc > best){ best = sc; bt = t; } }
   const seq = [bt];
   for(let i = n-1; i > 0; i--) seq.push(bk[i][seq[seq.length-1]]);
-  return seq.reverse();
+  return _thatPass(words, seq.reverse());
+}
+
+/* ⭐ POST-PASSE « that » — le mot le plus mal tagué de l'anglais chez nous.
+   MESURÉ (UD English-PUD, gold) : `that` s'y répartit SCONJ 75 · PRON 75 · DET 15, et le Viterbi
+   n'en a que 63,6 %. Ce n'est pas un détail de comptage : `that` COMPLÉTIF ouvre une proposition,
+   `that` RELATIF en ouvre une autre, `that` DÉTERMINANT n'en ouvre aucune. Tout ce qui a besoin
+   d'une frontière de proposition — au premier chef une future détection du SUJET — bute dessus.
+
+   POURQUOI UNE POST-PASSE ET PAS UN MEILLEUR MODÈLE. Le HMM décide sur un bigramme de TAGS ; or
+   ici l'information discriminante est la paire (tag à gauche, tag à droite) DU MOT LUI-MÊME, que
+   le Viterbi ne peut pas consulter en avant. La post-passe lit ce que le modèle vient de produire.
+
+   ⚠️ LA TABLE EST APPRISE SUR GUM UNIQUEMENT, jamais sur PUD — c'est ce qui permet à PUD de rester
+   un test HONNÊTE. Mesure en hold-out : **63,6 % -> 79,4 % sur `that`** (163/165 contextes couverts).
+   Un premier « plafond » de 87,9 % avait été calculé sur PUD lui-même : il était OPTIMISTE, la
+   majorité étant ajustée sur le test. Ne pas citer ce chiffre-là.
+
+   ⚠️ DEUX GARDES DANS LA CONSTRUCTION DE LA TABLE, pour ne pas inventer :
+     · contexte vu moins de 4 fois -> écarté (trop rare pour trancher) ;
+     · majorité sous 70 % -> écarté (le contexte n'est pas discriminant).
+   Il reste 61 contextes sur 169. Les autres laissent le Viterbi décider — abstention, pas pari.
+   ⚠️ CE QUE LE BIGRAMME POS NE POURRA JAMAIS FAIRE : `VERB→NOUN` est SCONJ 6 fois et DET 5 fois
+   dans PUD (« said that people… » contre « bought that book »). Le plafond de cette approche est
+   structurel ; le dépasser demanderait de savoir où finit le groupe nominal. */
+const _THAT_CTX = {"<s>|AUX":"PRON","<s>|NOUN":"DET","<s>|VERB":"PRON","ADJ|ADJ":"SCONJ","ADJ|ADV":"SCONJ","ADJ|AUX":"PRON","ADJ|DET":"SCONJ","ADJ|PRON":"SCONJ","ADP|ADJ":"DET","ADP|ADP":"PRON","ADP|ADV":"PRON","ADP|AUX":"PRON","ADP|NOUN":"DET","ADP|PUNCT":"PRON","ADV|ADJ":"ADV","ADV|ADV":"SCONJ","ADV|AUX":"PRON","ADV|DET":"SCONJ","ADV|NOUN":"DET","ADV|PRON":"SCONJ","ADV|PUNCT":"PRON","ADV|VERB":"PRON","AUX|ADV":"PRON","AUX|AUX":"PRON","AUX|DET":"SCONJ","AUX|PRON":"SCONJ","AUX|PUNCT":"PRON","AUX|VERB":"PRON","CCONJ|ADV":"SCONJ","CCONJ|AUX":"PRON","CCONJ|DET":"SCONJ","CCONJ|PRON":"SCONJ","CCONJ|VERB":"PRON","INTJ|AUX":"PRON","NOUN|ADP":"SCONJ","NOUN|ADV":"PRON","NOUN|AUX":"PRON","NOUN|PART":"PRON","NOUN|VERB":"PRON","NUM|AUX":"PRON","PRON|AUX":"PRON","PRON|DET":"SCONJ","PRON|VERB":"PRON","PROPN|AUX":"PRON","PROPN|VERB":"PRON","PUNCT|ADV":"PRON","PUNCT|AUX":"PRON","PUNCT|DET":"SCONJ","PUNCT|PRON":"SCONJ","PUNCT|VERB":"PRON","SCONJ|AUX":"PRON","SCONJ|NOUN":"DET","SCONJ|PUNCT":"PRON","SCONJ|VERB":"PRON","VERB|AUX":"PRON","VERB|DET":"SCONJ","VERB|NUM":"SCONJ","VERB|PRON":"SCONJ","VERB|PROPN":"SCONJ","VERB|PUNCT":"PRON","VERB|SCONJ":"SCONJ"};
+function _thatPass(words, seq){
+  for(let i = 0; i < words.length; i++){
+    if(String(words[i] || '').toLowerCase() !== 'that') continue;
+    const k = (i > 0 ? seq[i-1] : '<s>') + '|' + (i+1 < words.length ? seq[i+1] : '</s>');
+    const t = _THAT_CTX[k];
+    if(t) seq[i] = t;
+  }
+  return seq;
 }
 // navigateur : charge le modèle gzippé (même schéma que lex_en.tsv.gz)
 async function loadPosModel(url){
