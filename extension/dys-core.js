@@ -79,6 +79,21 @@
     else if(/i$/.test(d)){stem=deacc(lw.slice(0,-1));inf='ir';}
     else return false;
     return stem.length>=2&&!!COMMON_VERBS[stem+inf];}
+  // PARTICIPE en -é dont l'infinitif -er est ABSENT de COMMON_VERBS (12 415 entrées) mais PRÉSENT dans le
+  // lexique du speller (214 683 formes, ACCENTUÉ, avec POS). Mesuré : « les sucs destiné » restait sans flag
+  // parce que « destiner » manque à COMMON_VERBS ; idem « tronquer ». Le trou d'accord du participe épithète
+  // est donc LEXICAL, pas logique — rPpEpithetNum fonctionne déjà (« les contrats signé »→signés).
+  // ⚠️ RÉSERVÉ À rPpEpithetNum. Mesuré sur scan UD : étendre le lexique verbal GLOBALEMENT fait passer
+  // rule_flexion_er de 1 à 4 FP (gravité→graviter, surgelé→surgeler) et rule_pp_etre de 7 à 9 — ces règles
+  // s'appuient sur l'étroitesse de COMMON_VERBS pour écarter les NOMS en -é. rPpEpithetNum, elle, reste à
+  // 0 FP : ses gardes (déterminant PLURIEL + nom à gauche + genre connu + ruptures de segment) suffisent.
+  // On ne reconstruit PAS l'infinitif en désaccentué : SP.WORDS est accentué, donc « arrêté »→« arrêter »
+  // se trouve tel quel. Si le speller n'est pas chargé, on retombe sur _isPpl seul — aucune régression.
+  function _isPplWideEr(w){var lw=w.toLowerCase();
+    if(lw.charAt(lw.length-1)!=='é')return false;
+    if(!(SP&&SP.ready&&SP.WORDS&&SP.POS))return false;
+    var inf=lw.slice(0,-1)+'er';
+    return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
   var PLURAL_DET={};'les des ces leurs mes tes ses nos vos quels quelles plusieurs certains certaines quelques aux'.split(' ').forEach(function(w){PLURAL_DET[w]=1;});
   var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du'].forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
   function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;return !!COMMON_VERBS[w]&&!(i>0&&NUM_DET[T[i-1].toLowerCase()]);}
@@ -1468,7 +1483,7 @@ function ponctReglesVirgule(mots,_tg,deja){
     return ckeepcase(w,w+'s');}
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!_isPpl(w))return null;
+    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!(_isPpl(w)||_isPplWideEr(w)))return null;
     if(i<2||!PLURAL_DET[deacc(T[i-2].toLowerCase())])return null;
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
