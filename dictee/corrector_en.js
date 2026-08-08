@@ -495,6 +495,142 @@ function numberDecide(lex, T, i, adj, hyph){
   return [null, null];
 }
 
+/* ⭐ ACCORD DU VERBE À LA 3ᵉ PERSONNE — « he go » -> goes · « they goes » -> go.
+   Mesuré sur JFLEG : LanguageTool l'attrape (HE_VERB_AGR), nous non. C'est la famille qui restait
+   la plus décidable : avec un sujet PRONOMINAL, la personne et le nombre sont LEXICAUX — pas
+   besoin de la tête d'un groupe nominal, le mur où trois familles ont déjà échoué.
+
+   ⚠️ SUJETS PRONOMINAUX SEULEMENT, et ni « this/that » ni « these/those » : comme relatifs ils
+   héritent du nombre de leur ANTÉCÉDENT (leçon payée sur l'accord de BE, où les y laisser avait
+   fait passer les rouges de 5 à 60).
+
+   ⚠️ LES GARDES, CHACUNE POUR UN CAS RÉEL :
+   ① SUBJONCTIF — « I suggest he go », « we demand she leave » : la base est CORRECTE et soignée.
+      Déclencheur (suggest/demand/insist/recommend/propose/require/ask/essential/important) à
+      gauche -> abstention. Même garde que pour le subjonctif de BE.
+   ② MODAUX et « to » — « he can go », « to go » : le mot à gauche du verbe n'est alors PAS le
+      pronom, donc le patron ne s'applique pas de lui-même. On n'ajoute rien.
+   ③ NÉGATION CONTRACTÉE — « he doesn't go » : `n't` s'intercale, même raison.
+   ④ Le tagger doit dire VERB. `go`, `study`, `watch` sont aussi des NOMS — c'est le CONTEXTE qui
+      tranche, jamais l'appartenance lexicale (le mur anglais).
+   ⑤ Les deux formes doivent être CONNUES et la forme proposée ATTESTÉE (freq >= 10).
+
+   ⚠️ ORANGE, pas rouge : on n'a pas encore de scan qui prouve le FP=0 sur cette famille, et la
+   doctrine dit que le doute se signale plutôt qu'il ne tranche. */
+const _V3_SG = new Set(['he','she','it','someone','somebody','everyone','everybody','nobody',
+                        'anyone','anybody','something','nothing','everything']);
+const _V3_PL = new Set(['they','we','you','i']);
+const _V3_SUBJ = new Set(['suggest','suggests','suggested','demand','demands','demanded','insist',
+  'insists','insisted','recommend','recommends','recommended','propose','proposes','proposed',
+  'require','requires','required','ask','asks','asked','requiring','suggesting','demanding','insisting','recommending','proposing','asking','essential','important','vital','necessary',
+  'lest','if','unless','whether','wish','wishes','wished']);
+// Ne JAMAIS toucher : auxiliaires et modaux ont leur propre régime, et « be » est traité ailleurs.
+const _V3_STOP = new Set(['be','is','are','was','were','been','being','am','have','has','had',
+  'do','does','did','can','could','will','would','shall','should','may','might','must','ought','need','dare']);
+
+/* ⚠️⚠️ LE PASSÉ — trouvé en LISANT les 72 signalements sur texte édité, pas en relisant le code.
+   La quasi-totalité étaient `he met`->mets · `he saw`->saws · `he left`->lefts · `she spoke`->spokes
+   · `it cost`->costs · `he thought`->thoughts. Ce sont des PRÉTÉRITS, et **un prétérit ne prend pas
+   de -s** : « he met » est parfaitement correct. La règle ne regardait que la PERSONNE, jamais le
+   TEMPS. C'est le genre de trou qu'aucune batterie de cas inventés n'aurait montré, parce qu'on
+   écrit spontanément ses tests au présent.
+   TROIS SOURCES pour l'écarter : les formes irrégulières de `verbmorph_en.json` (ses VALEURS sont
+   les prétérits et participes), le suffixe -ed, et la liste fermée des verbes INVARIANTS dont la
+   base EST le prétérit (set/cost/put/cut…), pour lesquels on ne peut pas trancher -> abstention. */
+const _V3_INVAR = new Set(['set','cost','put','cut','hit','let','shut','spread','hurt','burst',
+  'cast','quit','bet','split','shed','rid','thrust','upset','broadcast','forecast','offset','preset',
+  'read','beat','bid','wed']);
+function _v3Passe(lex, w){
+  if(/ed$/.test(w)) return true;
+  if(_V3_INVAR.has(w)) return true;
+  if(!lex._V3PAST){
+    const s = new Set(), V = lex.VERBMORPH || {};
+    for(const k of Object.keys(V)){ const v = V[k]; if(Array.isArray(v)) v.forEach(x => x && s.add(String(x).toLowerCase())); }
+    // Irréguliers très fréquents que `verbmorph` (795 entrées, orienté sur-régularisation) ne couvre pas.
+    ['met','saw','left','spoke','thought','drove','went','took','made','came','said','got','knew',
+     'found','told','became','felt','brought','began','kept','held','wrote','stood','heard','led',
+     'ran','paid','sat','spent','grew','lost','sent','built','fell','won','taught','caught','bought',
+     'sold','flew','chose','rose','drew','broke','wore','tore','swore','bore','gave','ate','saw',
+     'lay','laid','shook','struck','stuck','hung','dug','swam','sang','rang','drank','sank','began'
+    ].forEach(x => s.add(x));
+    lex._V3PAST = s;
+  }
+  return lex._V3PAST.has(w);
+}
+
+function _v3sg(lex, base){
+  if(/(s|x|z|ch|sh|o)$/.test(base)) return base + 'es';
+  if(/[^aeiou]y$/.test(base))       return base.slice(0, -1) + 'ies';
+  return base + 's';
+}
+
+function verb3Decide(lex, T, i, adj){
+  const w = String(T[i] || '');
+  if(i < 1 || w !== w.toLowerCase()) return [null, null];
+  const lw = w.toLowerCase();
+  if(_V3_STOP.has(lw)) return [null, null];                          // auxiliaires/modaux : hors sujet
+  if(adj && !adj.has(i - 1)) return [null, null];                    // adjacence RÉELLE
+  const s = String(T[i - 1] || '').toLowerCase();
+  const sg = _V3_SG.has(s), pl = _V3_PL.has(s);
+  if(!sg && !pl) return [null, null];                                // sujet non pronominal -> abstention
+  if(ctxPos(T, i) !== 'VERB') return [null, null];                   // ④ le tagger tranche
+  for(let j = i - 2; j >= 0 && j >= i - 6; j--)                      // ① subjonctif
+    if(_V3_SUBJ.has(String(T[j] || '').toLowerCase())) return [null, null];
+  if(_v3Passe(lex, lw)) return [null, null];                         // PRÉTÉRIT : pas de -s
+  /* ⚠️ DEUX AUTRES FAMILLES LUES DANS LE RÉSIDU (35 signalements sur texte édité) :
+     ⑥ `like` — 7 des 35. « took it like a man », « something like that » : c'est une PRÉPOSITION,
+        que le tagger lit VERB. Mot unique, écarté nommément plutôt que par une heuristique floue.
+     ⑦ MODAL/AUXILIAIRE AVANT LE PRONOM — « how long will it take », « let it go », « did it work ».
+        Le sujet est alors ENTRE l'auxiliaire et le verbe (inversion interrogative), ou le verbe est
+        à l'infinitif nu après let/make/help/see/hear/watch. Dans les deux cas la BASE est correcte.
+        Le patron « pronom + verbe » est vrai en surface et faux en structure : il faut regarder
+        UN CRAN PLUS À GAUCHE. */
+  if(lw === 'like') return [null, null];                             // ⑥ préposition lue VERB
+  /* ⑧ GÉRONDIF / PARTICIPE PRÉSENT — « Everyone going to floor ten », « everyone leaving ».
+     Une forme en -ing n'est jamais un présent conjugué : elle ne prend PAS de -s. */
+  if(/ing$/.test(lw)) return [null, null];
+  /* ⑨ LE PRONOM N'EST PAS LE SUJET — trois des cinq derniers signalements venaient de là :
+        « the occupants of it rise » · « heard of it suppose » · « left it chock full ».
+        Le pronom y est COMPLÉMENT (objet d'une préposition ou d'un verbe), et le vrai sujet est
+        ailleurs, souvent au pluriel. Le patron « pronom + verbe » est vrai en surface, faux en
+        structure. Même discriminateur que celui déjà connu pour was->were.
+        ⚠️ C'est la garde la plus COÛTEUSE en rappel : on renonce à tout sujet précédé d'un verbe
+        ou d'une préposition. On l'assume — un rouge faux coûte plus qu'un rappel manqué. */
+  if(i >= 2){
+    const p2 = ctxPos(T, i - 2);
+    if(p2 === 'ADP' || p2 === 'VERB') return [null, null];
+  }
+  if(i >= 2){                                                        // ⑦ inversion / infinitif nu
+    const av = String(T[i - 2] || '').toLowerCase().replace(/[’ʼ]/g, "'");
+    /* ⚠️ LES NÉGATIONS CONTRACTÉES comptent comme auxiliaires — « Doesn't it make… »,
+       « Wouldn't it want… » sont des INVERSIONS interrogatives, donc la base est correcte.
+       Le tokeniseur réparé rend `doesn't` en UN token, il fallait donc les lister explicitement :
+       la liste `_V3_STOP` ne connaissait que `does`, pas `doesn't`. */
+    if(_V3_STOP.has(av) || /^(?:do|does|did|is|are|was|were|has|have|had|can|could|will|would|shall|should|must|might|ai)n't$/.test(av))
+      return [null, null];
+    /* Infinitif NU après un verbe de perception ou de causation : « I felt somebody touch me ».
+       `feel/felt` manquait — trouvé en lisant le résidu, comme les autres. */
+    if(['let','lets','make','makes','made','help','helps','helped','see','sees','saw','seen',
+        'hear','hears','heard','watch','watches','watched','feel','feels','felt','notice',
+        'notices','noticed','have','has','had'].includes(av)) return [null, null];
+  }
+  if(sg){                                                            // « he go » -> goes
+    const f = _v3sg(lex, lw);
+    if(f === lw || !lex.KNOWN.has(f) || (lex.FREQ.get(f) || 0) < 10) return [null, null];
+    if(!lex.KNOWN.has(lw)) return [null, null];
+    // si le mot EST déjà une 3ᵉ personne, rien à faire (« he goes »)
+    if(/(?:es|s)$/.test(lw) && lex.KNOWN.has(lw.replace(/(?:es|s)$/, ''))) return [null, null];
+    return [f, 'RED'];
+  }
+  // « they goes » -> go : on ne défait QUE si la base existe et que la forme est bien un -s de verbe
+  if(!/(?:ies|es|s)$/.test(lw)) return [null, null];
+  let base = /ies$/.test(lw) ? lw.slice(0, -3) + 'y'
+           : (/(?:ses|xes|zes|ches|shes|oes)$/.test(lw) ? lw.slice(0, -2) : lw.slice(0, -1));
+  if(!lex.KNOWN.has(base) || (lex.FREQ.get(base) || 0) < 10) return [null, null];
+  if(_v3sg(lex, base) !== lw) return [null, null];                   // aller-retour cohérent
+  return [base, 'RED'];
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -749,7 +885,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
