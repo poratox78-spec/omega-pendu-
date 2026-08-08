@@ -58,6 +58,8 @@ for (const set of ['dev', 'test']) {
     for (let i = 0; i < T.length; i++) {
       if (prot.has(i)) continue;
       let sugg = null, canal = null;
+      const ax = C.auxAgree ? C.auxAgree(lex, T, i, adj) : [null,null];
+      if (ax[1] === 'RED') { sugg = ax[0]; canal = 'aux'; }
       const iq = C.interroDecide ? C.interroDecide(lex, T, i, adj) : [null,null];
       if (iq[1] === 'RED') { sugg = iq[0]; canal = 'interro'; }
       const v3 = C.verb3Decide ? C.verb3Decide(lex, T, i, adj) : [null,null];
