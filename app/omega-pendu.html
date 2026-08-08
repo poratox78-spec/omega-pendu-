@@ -26035,6 +26035,19 @@ function spellTokenCore(tok,atStart,T,idx){
    +'body.dys-dark .vdc-vig{border-bottom-color:#3fa564}body.dys-dark .vdc-vig:hover{background:#0f2417}'
    +'body.dys-cb .vdc-vig{border-bottom-color:#7b5ea7}body.dys-cb .vdc-vig:hover{background:#ece3f6}'   /* daltonien : violet pointillé (distinct de l\'orange-rouge et du bleu-ortho) */
    +'.vdc-fact{padding:8px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff;border-left:5px solid #c0392b}.vdc-sc{color:#444;font-size:13px}'
+   /* ⓘ REPLIÉ — le mode d'emploi tenait 8 lignes en tête de carte et repoussait la zone de saisie
+      hors de l'écran sur un portable. Même remède que sur la page de saisie vocale : `<details>`
+      NATIF, donc accessible au clavier et au lecteur d'écran, et qui fonctionne même sans JS.
+      La 1re phrase reste VISIBLE (c'est la seule dont un dys a besoin pour démarrer) ; le reste
+      s'ouvre sur demande. ⚠️ Si le fonctionnement du correcteur change, CE TEXTE CHANGE AUSSI. */
+   +'.vdc-sc summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;flex-wrap:wrap}'
+   +'.vdc-sc summary::-webkit-details-marker{display:none}'
+   +'.vdc-sc .vdc-i{flex:0 0 auto;width:16px;height:16px;border-radius:50%;border:1.5px solid #7a4fb5;color:#7a4fb5;'
+   +'font:700 11px/14px system-ui,sans-serif;text-align:center;display:inline-block}'
+   +'.vdc-sc[open] .vdc-i{background:#7a4fb5;color:#fff}'
+   +'.vdc-sc .vdc-det{margin-top:7px;line-height:1.55}'
+   +'.vdc-sc .vdc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
+   +'body.dys-dark .vdc-sc .vdc-i{border-color:#b18cf0;color:#b18cf0}body.dys-dark .vdc-sc[open] .vdc-i{background:#b18cf0;color:#1a1a1a}'
    +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'   /* aide-frappe : complétions du mot en cours */
    +'#vdc-card .vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* scopé #vdc-card : bat le global button:not(.btn) (0,1,1) qui fuyait une couleur claire */
    +'#vdc-card .vdc-comp:hover{background:#492f80;color:#fff}#vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré */
@@ -26069,7 +26082,9 @@ function spellTokenCore(tok,atStart,T,idx){
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
   var cov=document.createElement('div');cov.id='vdc-ov';
   cov.innerHTML='<div id="vdc-card" role="region" aria-label="Correcteur dys"><button id="vdc-x" aria-label="Retour à Omega">← Retour à Omega</button><h2>🩹 Correcteur dys — semi-direct</h2>'
-   +'<div class="vdc-sc">Colle ou écris ton texte : <b>il reste intact</b>. Sur ta saisie, on surligne seulement les <b>points à traiter</b> (<b>orange/rouge</b> : candidats orthographe, mots confusables). Le <b>texte corrigé</b> apparaît dans l\'encadré en dessous, avec les corrections déjà faites en <b>vert</b> (accents, accord, homophones grammaticaux, genre, terminaisons). Dans <b>✅ Texte corrigé</b>, clique un mot pour ouvrir sa <b>carte</b> (appliquer · annuler · ignorer). Ta saisie du haut reste <b>librement éditable</b>. Bouton <b>📋 Copier</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
+   +'<details class="vdc-sc"><summary>Colle ou écris ton texte : <b>il reste intact</b>.'
+   +' <span class="vdc-i" aria-hidden="true">i</span><span class="vdc-sr"> — voir le mode d\'emploi</span></summary>'
+   +'<div class="vdc-det">Sur ta saisie, on surligne seulement les <b>points à traiter</b> (<b>orange/rouge</b> : candidats orthographe, mots confusables). Le <b>texte corrigé</b> apparaît dans l\'encadré en dessous, avec les corrections déjà faites en <b>vert</b> (accents, accord, homophones grammaticaux, genre, terminaisons). Dans <b>✅ Texte corrigé</b>, clique un mot pour ouvrir sa <b>carte</b> (appliquer · annuler · ignorer). Ta saisie du haut reste <b>librement éditable</b>. Bouton <b>📋 Copier</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div></details>'
    +'<div id="vdc-set" role="group" aria-label="Réglages d\'affichage">'
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
