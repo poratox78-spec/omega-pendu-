@@ -677,6 +677,32 @@ function interroDecide(lex, T, i, adj){
     if(_Q_PL.has(s) && lw === 'does') return [_keepCaseEn(w, 'do'), 'RED'];
     return [null, null];
   }
+  /* ---- ③ INTERROGATIF avec BE et HAVE — « Are he going ? » -> Is · « Have he gone ? » -> Has ·
+     « Were he going ? » -> Was · « Is they going ? » -> Are.
+     Complète la couverture : do/does/did ne couvre que le présent et le prétérit simples ; le
+     continu et le perfect s'interrogent en inversant BE ou HAVE. Mêmes deux conditions que pour
+     do/does : l'auxiliaire OUVRE la question, et le mot après le pronom confirme le cadre
+     (gérondif après BE, participe après HAVE). Sans elles on lirait « is it going to rain » comme
+     une erreur, ou pire on toucherait à une copule. */
+  if(i + 2 < T.length && ['is','are','was','were','have','has'].includes(lw)){
+    const enTete2 = (i === 0) || /^[.!?;:]$/.test(String(T[i - 1] || ''));
+    const apresWh2 = i >= 1 && ['why','how','where','when','what','who','whom','whose','which']
+                       .includes(String(T[i - 1] || '').toLowerCase());
+    if((enTete2 || apresWh2) && (!adj || (adj.has(i) && adj.has(i + 1)))){
+      const s2 = String(T[i + 1] || '').toLowerCase();
+      const nx2 = String(T[i + 2] || '').toLowerCase();
+      const sg2 = _Q_SG.has(s2), pl2 = _Q_PL.has(s2);
+      const beQ = ['is','are','was','were'].includes(lw), hvQ = !beQ;
+      const cadreOk = beQ ? (/ing$/.test(nx2) && nx2.length >= 5)
+                          : (nx2 === 'been' || /(?:ed|en)$/.test(nx2) || _v3Passe(lex, nx2));
+      if((sg2 || pl2) && cadreOk && !(pl2 && s2 === 'i')){
+        const bon = hvQ ? (sg2 ? 'has' : 'have')
+                        : (['was','were'].includes(lw) ? (sg2 ? 'was' : 'were') : (sg2 ? 'is' : 'are'));
+        if(bon !== lw) return [_keepCaseEn(w, bon), 'RED'];
+        return [null, null];
+      }
+    }
+  }
   // ---- ① le VERBE après auxiliaire + pronom : doit être à la BASE ----
   if(i < 2) return [null, null];
   if(adj && (!adj.has(i - 1) || !adj.has(i - 2))) return [null, null];   // les 3 tokens collés
@@ -728,7 +754,14 @@ function _keepCaseEn(src, cible){
 const _AUX_BE_SG = { is: 1 }, _AUX_BE_PL = { are: 1 };
 function auxAgree(lex, T, i, adj){
   const w = String(T[i] || ''), lw = w.toLowerCase();
-  const estBE = (lw === 'is' || lw === 'are'), estHV = (lw === 'have' || lw === 'has');
+  /* PASSÉ CONTINU ajouté ici : « he were going » -> was · « they was going » -> were.
+     Même cadre fermé que le présent continu — c'est le GÉRONDIF qui suit qui garantit qu'on est
+     devant un auxiliaire et pas devant une copule (« they was happy » n'est PAS traité : sans
+     gérondif on retombe sur l'accord de BE seul, qui a été mesuré et réfuté).
+     ⚠️ Le subjonctif (« if he were going ») est déjà couvert par la garde `_V3_SUBJ` plus bas. */
+  const estBE = (lw === 'is' || lw === 'are' || lw === 'was' || lw === 'were');
+  const passe = (lw === 'was' || lw === 'were');
+  const estHV = (lw === 'have' || lw === 'has');
   if(!estBE && !estHV) return [null, null];
   if(i < 1 || i + 1 >= T.length) return [null, null];
   if(adj && (!adj.has(i - 1) || !adj.has(i))) return [null, null];
@@ -750,8 +783,11 @@ function auxAgree(lex, T, i, adj){
   }
   for(let j = i - 2; j >= 0 && j >= i - 6; j--)                      // subjonctif
     if(_V3_SUBJ.has(String(T[j] || '').toLowerCase())) return [null, null];
-  if(estBE) return sg ? (lw === 'is' ? [null, null] : [_keepCaseEn(w, 'is'), 'RED'])
-                      : (lw === 'are' ? [null, null] : [_keepCaseEn(w, 'are'), 'RED']);
+  if(estBE){
+    if(pl && s === 'i') return [null, null];                         // « I was » : correct
+    const bon = passe ? (sg ? 'was' : 'were') : (sg ? 'is' : 'are');
+    return lw === bon ? [null, null] : [_keepCaseEn(w, bon), 'RED'];
+  }
   return sg ? (lw === 'has' ? [null, null] : [_keepCaseEn(w, 'has'), 'RED'])
             : (lw === 'have' ? [null, null] : [_keepCaseEn(w, 'have'), 'RED']);
 }
