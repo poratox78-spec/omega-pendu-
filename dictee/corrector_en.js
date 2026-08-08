@@ -78,6 +78,25 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
   if(lex.KNOWN.has(low)) return [null, 'OK'];
+  /* ⭐ ORTHOGRAPHE BRITANNIQUE — notre lexique est biaisé AMÉRICAIN (kaikki + SUBTLEX US), donc
+     `iodised`, `sanitisers`, `organise`, `colour`, `centre` étaient signalés comme des fautes.
+     Trouvé en LISANT le résidu du flood orange : après réparation du tokeniseur, les têtes de liste
+     étaient `iodised`(9) et `sanitisers`(2) — de l'anglais parfaitement correct.
+     ⚠️ ON NE GROSSIT PAS L'ASSET : on DÉRIVE la variante américaine et on interroge le lexique
+     qu'on a déjà. Zéro octet de plus, et ça couvre toute la famille d'un coup plutôt que mot à mot
+     ([[completude-lexiques-doctrine]] : compléter la RÈGLE, pas patcher les cas).
+     ⚠️ Direction unique : UK -> US pour INTERROGER. On ne PROPOSE jamais de réécrire l'un en
+     l'autre — les deux orthographes sont correctes, et « corriger » colour->color serait imposer
+     une variété de l'anglais à qui écrit l'autre. */
+  const _us = low
+    .replace(/isation\b/, 'ization').replace(/isations\b/, 'izations')
+    .replace(/isers\b/, 'izers').replace(/iser\b/, 'izer').replace(/isable\b/, 'izable')
+    .replace(/ise\b/, 'ize').replace(/ised\b/, 'ized').replace(/ises\b/, 'izes').replace(/ising\b/, 'izing')
+    .replace(/yse\b/, 'yze').replace(/ysed\b/, 'yzed').replace(/yses\b/, 'yzes').replace(/ysing\b/, 'yzing')
+    .replace(/our\b/, 'or').replace(/ours\b/, 'ors').replace(/oured\b/, 'ored').replace(/ouring\b/, 'oring')
+    .replace(/logue\b/, 'log').replace(/logues\b/, 'logs')
+    .replace(/^(.*[bcdfghjklmnpqrstvwxz])re\b/, '$1er');
+  if(_us !== low && lex.KNOWN.has(_us)) return [null, 'OK'];
   if(w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) return [null, 'OK']; // capitalisé = nom propre probable
   const cands = new Map(); // cand -> tier
   for(const e of edits1(low)){ if(lex.KNOWN.has(e) && /^[a-z]+$/.test(e)) cands.set(e, 1); }
@@ -513,7 +532,7 @@ function pastPartDecide(lex, T, i){
    ⚠️ DIRECTION SÛRE : consulter ce masque ne fait qu'ABSTENIR ; il ne peut pas créer de faute. */
 function adjMask(text){
   const adj = new Set();
-  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;   // MÊME motif que tokenize : sinon les index divergent
   let m, prevEnd = -1, i = -1;
   while((m = re.exec(text))){
     i++;
@@ -530,7 +549,7 @@ function adjMask(text){
    qu'ABSTENIR — il ne peut pas créer de faute. */
 function hyphMask(text){
   const h = new Set();
-  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;   // MÊME motif que tokenize : sinon les index divergent
   let m, prevEnd = -1, i = -1;
   while((m = re.exec(text))){
     i++;
@@ -540,7 +559,19 @@ function hyphMask(text){
   return h;
 }
 
-function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
+/* ⚠️ LE TOKENISEUR COUPAIT DEUX CHOSES QU'IL NE DEVAIT PAS — trouvé en LISANT le flood orange,
+   pas en relisant le code. Sur 373 signalements orange du speller (texte édité), les têtes de liste
+   étaient `didn`(20) `isn`(11) `wasn`(5) `doesn`(4) `shouldn`(4) `couldn`(3) puis `rida`(10)
+   `xico`(2) `nguez`(2) `rebro`(3) `fianc`(2). Ce ne sont pas des mots : ce sont des DÉBRIS.
+   ① L'APOSTROPHE TYPOGRAPHIQUE ’ n'était pas acceptée — `didn’t` se coupait en `didn` + `t`, et
+      les corpus édités (PUD, GUM) l'emploient partout. Exactement le même bug qu'en français, où
+      il avait fait compter des corrections JUSTES comme des dégradations.
+   ② LES LETTRES ACCENTUÉES cassaient le mot : `México` -> `M` + `xico`, `Domínguez` -> `Dom` +
+      `nguez`, `fiancé` -> `fianc`. L'anglais n'a pas d'accents mais l'anglais ÉCRIT en est plein
+      (noms propres, emprunts).
+   Un débris est INCONNU du lexique, donc il déclenche un orange — le flood était surtout ça, pas
+   un manque de vocabulaire. ⚠️ ON NE GROSSIT PAS LE LEXIQUE POUR MASQUER UN BUG DE DÉCOUPAGE. */
+function tokenize(text){ return text.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g) || []; }
 
 /* ⭐ LES MOTS QUI VIVENT DANS UNE URL, UNE ADRESSE OU UN CHEMIN — à ne jamais corriger.
    D'OÙ ÇA VIENT : relecture des 55 rouges du speller sur EWT (2026-08-06). 52 étaient de VRAIES
@@ -555,7 +586,7 @@ function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
    ⚠️ DIRECTION SÛRE : cette garde ne fait qu'ABSTENIR. Elle ne peut pas créer de faute. */
 function urlMask(text){
   const proteges = new Set();
-  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;   // MÊME motif que tokenize : sinon les index divergent
   let m, i = 0;
   while((m = re.exec(text))){
     let a = m.index, b = m.index + m[0].length;
