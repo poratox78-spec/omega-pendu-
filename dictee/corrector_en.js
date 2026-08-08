@@ -711,6 +711,51 @@ function _keepCaseEn(src, cible){
     ? cible[0].toUpperCase() + cible.slice(1) : cible;
 }
 
+/* ⭐ ACCORD DE L'AUXILIAIRE — présent continu et present perfect.
+   « he are going » -> is · « they is going » -> are · « he have gone » -> has · « she have been » -> has.
+
+   POURQUOI CELLE-CI PASSE ALORS QUE L'ACCORD DE *BE* SEUL AVAIT ÉCHOUÉ. La tentative précédente
+   (« they is happy ») marchait sur pronom mais avait un rappel NUL sur données réelles, et faisait
+   exploser les rouges dès qu'on élargissait les sujets. Ici le cadre est plus étroit et donc plus
+   sûr : **le mot qui SUIT désambiguïse**. Un gérondif après BE, un participe après HAVE — on est
+   alors certain d'être dans une construction AUXILIAIRE, pas devant une copule ou un verbe plein.
+   C'est le même principe que l'interrogatif : ce sont les structures FERMÉES qui sont décidables.
+
+   ⚠️ SUJETS PRONOMINAUX SEULEMENT, et ni this/that ni these/those — comme relatifs ils héritent du
+   nombre de leur antécédent. Leçon payée : les y laisser avait fait passer les rouges de 5 à 60.
+   ⚠️ SUBJONCTIF et INVERSION gardés comme ailleurs ; et si une préposition ou un verbe précède le
+   pronom, le pronom est un COMPLÉMENT et non le sujet (« the occupants of it… »). */
+const _AUX_BE_SG = { is: 1 }, _AUX_BE_PL = { are: 1 };
+function auxAgree(lex, T, i, adj){
+  const w = String(T[i] || ''), lw = w.toLowerCase();
+  const estBE = (lw === 'is' || lw === 'are'), estHV = (lw === 'have' || lw === 'has');
+  if(!estBE && !estHV) return [null, null];
+  if(i < 1 || i + 1 >= T.length) return [null, null];
+  if(adj && (!adj.has(i - 1) || !adj.has(i))) return [null, null];
+  const s = String(T[i - 1] || '').toLowerCase();
+  const sg = _V3_SG.has(s), pl = _V3_PL.has(s);
+  if(!sg && !pl) return [null, null];
+  if(pl && s === 'i' && estHV) return [null, null];                  // « I have » : correct, jamais « has »
+  // le mot SUIVANT doit confirmer le cadre auxiliaire
+  const nx = String(T[i + 1] || '').toLowerCase();
+  if(estBE && !/ing$/.test(nx)) return [null, null];                 // présent continu seulement
+  if(estHV && !(_v3Passe(lex, nx) || /(?:ed|en)$/.test(nx) || nx === 'been')) return [null, null];
+  if(/ing$/.test(nx) && nx.length < 5) return [null, null];          // « thing », « king » : pas des gérondifs
+  // le pronom doit être SUJET, pas complément (même discriminateur que verb3Decide)
+  if(i >= 2){
+    const p2 = ctxPos(T, i - 2);
+    if(p2 === 'ADP' || p2 === 'VERB') return [null, null];
+    const av = String(T[i - 2] || '').toLowerCase().replace(/[’ʼ]/g, "'");
+    if(_V3_STOP.has(av) || /n't$/.test(av)) return [null, null];     // inversion : « does he have… »
+  }
+  for(let j = i - 2; j >= 0 && j >= i - 6; j--)                      // subjonctif
+    if(_V3_SUBJ.has(String(T[j] || '').toLowerCase())) return [null, null];
+  if(estBE) return sg ? (lw === 'is' ? [null, null] : [_keepCaseEn(w, 'is'), 'RED'])
+                      : (lw === 'are' ? [null, null] : [_keepCaseEn(w, 'are'), 'RED']);
+  return sg ? (lw === 'has' ? [null, null] : [_keepCaseEn(w, 'has'), 'RED'])
+            : (lw === 'have' ? [null, null] : [_keepCaseEn(w, 'have'), 'RED']);
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -965,7 +1010,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
