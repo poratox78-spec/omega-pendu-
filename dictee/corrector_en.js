@@ -78,6 +78,25 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
   if(lex.KNOWN.has(low)) return [null, 'OK'];
+  /* ⭐ ORTHOGRAPHE BRITANNIQUE — notre lexique est biaisé AMÉRICAIN (kaikki + SUBTLEX US), donc
+     `iodised`, `sanitisers`, `organise`, `colour`, `centre` étaient signalés comme des fautes.
+     Trouvé en LISANT le résidu du flood orange : après réparation du tokeniseur, les têtes de liste
+     étaient `iodised`(9) et `sanitisers`(2) — de l'anglais parfaitement correct.
+     ⚠️ ON NE GROSSIT PAS L'ASSET : on DÉRIVE la variante américaine et on interroge le lexique
+     qu'on a déjà. Zéro octet de plus, et ça couvre toute la famille d'un coup plutôt que mot à mot
+     ([[completude-lexiques-doctrine]] : compléter la RÈGLE, pas patcher les cas).
+     ⚠️ Direction unique : UK -> US pour INTERROGER. On ne PROPOSE jamais de réécrire l'un en
+     l'autre — les deux orthographes sont correctes, et « corriger » colour->color serait imposer
+     une variété de l'anglais à qui écrit l'autre. */
+  const _us = low
+    .replace(/isation\b/, 'ization').replace(/isations\b/, 'izations')
+    .replace(/isers\b/, 'izers').replace(/iser\b/, 'izer').replace(/isable\b/, 'izable')
+    .replace(/ise\b/, 'ize').replace(/ised\b/, 'ized').replace(/ises\b/, 'izes').replace(/ising\b/, 'izing')
+    .replace(/yse\b/, 'yze').replace(/ysed\b/, 'yzed').replace(/yses\b/, 'yzes').replace(/ysing\b/, 'yzing')
+    .replace(/our\b/, 'or').replace(/ours\b/, 'ors').replace(/oured\b/, 'ored').replace(/ouring\b/, 'oring')
+    .replace(/logue\b/, 'log').replace(/logues\b/, 'logs')
+    .replace(/^(.*[bcdfghjklmnpqrstvwxz])re\b/, '$1er');
+  if(_us !== low && lex.KNOWN.has(_us)) return [null, 'OK'];
   if(w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) return [null, 'OK']; // capitalisé = nom propre probable
   const cands = new Map(); // cand -> tier
   for(const e of edits1(low)){ if(lex.KNOWN.has(e) && /^[a-z]+$/.test(e)) cands.set(e, 1); }
@@ -381,6 +400,101 @@ const _BE_FORMS = new Set(['was','were','been','is','are','am','be']);
 const _PP_AUX = new Set(['have','has','had','having']);
 const _PP_ADV = new Set(['already','just','never','always','recently','also','probably','actually',
   'ever','not','only','still','often','clearly','apparently','once','twice','long','since']);
+/* ⭐⭐ ACCORD EN NOMBRE DÉTERMINANT ↔ NOM — en **ORANGE**, et c'est tout l'intérêt.
+   « many student » -> students · « a cars » -> car · « these car » -> cars.
+
+   POURQUOI ORANGE ET PAS ROUGE — LE CHEMIN COMPLET, POUR NE PAS LE REFAIRE.
+   Cette famille a été construite DEUX FOIS en rouge et mesurée DEUX FOIS négative :
+     ① gardes strictes (déterminant COLLÉ au nom) : +5 FP pour +7 justes ;
+     ② gardes relâchées, en empruntant le discriminateur de LanguageTool (sauter les ADJ) :
+        +11 FP pour +7 justes — PIRE.
+   Et la comparaison à LanguageTool (API publique, phrases de JFLEG) a montré POURQUOI eux y
+   arrivent : ils TOLÈRENT les faux positifs. Mesuré chez eux au passage, « We was late » -> ils
+   proposent « are », ce qui change le TEMPS et est faux. Leur barre n'est pas la nôtre.
+
+   ⇒ Le rouge est hors d'atteinte sans analyse syntaxique. Mais la DOCTRINE ORANGE dit exactement
+   quoi faire de ce cas : **doute -> orange, jamais silence**. Priver un dys d'un signalement parce
+   qu'on n'est pas sûr de la correction, c'est le laisser sans rien. L'orange dit « à vérifier »,
+   il ne tranche pas, et il ne peut donc pas DÉGRADER la copie.
+   C'est la même réponse qu'en français au même mur — jamais essayée en anglais jusqu'ici.
+
+   LES GARDES RESTENT, elles : un signalement absurde use la confiance autant qu'une fausse
+   correction. On garde donc la tête de groupe, le trait d'union, les invariables, les massifs,
+   les pluriels irréguliers et le plancher d'attestation. */
+const _DET_SG = new Set(['a','an','this','each','every','one','another']);
+const _DET_PL = new Set(['these','those','many','several','both','few','various','numerous',
+                         'two','three','four','five','six','seven','eight','nine','ten']);
+const _NUM_INVAR = new Set(['series','species','means','news','mathematics','physics','politics',
+  'economics','ethics','statistics','crossroads','headquarters','barracks','works','goods','odds',
+  'thanks','clothes','glasses','scissors','premises','savings','stairs','outskirts','surroundings',
+  'people','police','staff','data','media','criteria','phenomena','offspring','sheep','deer','fish',
+  'aircraft','salmon','trout','swine','bison','moose','corps','gallows','innings']);
+const _NUM_MASS = new Set(['information','advice','research','knowledge','evidence','equipment',
+  'furniture','luggage','baggage','homework','housework','money','music','progress','traffic',
+  'weather','work','bread','water','air','electricity','happiness','health','help','time',
+  'education','experience','training','transportation','pollution','vocabulary']);
+const _PL_IRREG = new Set(['children','men','women','feet','teeth','mice','geese','oxen','lice',
+  'people','police','cattle','dice','pence','alumni','fungi','cacti','nuclei','stimuli','radii',
+  'bacteria','curricula','memoranda','strata','indices','matrices','vertices','appendices',
+  'analyses','bases','crises','diagnoses','hypotheses','parentheses','theses','axes','oases']);
+const _NUM_UNIT = new Set(['percent','cent','hundred','thousand','million','billion','dozen','score',
+  'stone','head','pound','degree']);
+
+function buildNumber(lex){
+  const m = new Map();
+  for(const w of lex.KNOWN){
+    if(w.length < 3 || !isNoun(lex, w)) continue;
+    if(_NUM_INVAR.has(w) || _NUM_MASS.has(w) || _PL_IRREG.has(w) || _NUM_UNIT.has(w)) continue;
+    let pl;
+    if(/[^aeiou]y$/.test(w))          pl = w.slice(0, -1) + 'ies';
+    else if(/(s|x|z|ch|sh)$/.test(w)) pl = w + 'es';
+    else                              pl = w + 's';
+    if(!lex.KNOWN.has(pl) || !isNoun(lex, pl) || _NUM_INVAR.has(pl)) continue;
+    if((lex.FREQ.get(pl) || 0) < 10) continue;          // forme proposée ATTESTÉE
+    if(!m.has(w))  m.set(w,  [w, pl]);
+    if(!m.has(pl)) m.set(pl, [w, pl]);
+  }
+  return m;
+}
+
+function numberDecide(lex, T, i, adj, hyph){
+  if(!lex._NUM) lex._NUM = buildNumber(lex);
+  const brut = String(T[i] || '');
+  if(i < 1 || (brut !== brut.toLowerCase())) return [null, null];     // majuscule -> nom propre/titre
+  const w = brut.toLowerCase();
+  const paire = lex._NUM.get(w);
+  if(!paire) return [null, null];
+  if(_NUM_INVAR.has(w) || _NUM_MASS.has(w) || _PL_IRREG.has(w) || _NUM_UNIT.has(w)) return [null, null];
+  if(hyph && (hyph.has(i) || hyph.has(i - 1))) return [null, null];   // « moon-cursed » : composé soudé
+  if(ctxPos(T, i) !== 'NOUN') return [null, null];                    // le TAGGER tranche
+  // LE NOM DOIT ÊTRE LA TÊTE : si un nom (ou un possessif) suit, l'accord porte sur LUI.
+  // « these plant families » est CORRECT — c'est le DERNIER nom du composé qui s'accorde.
+  if(i + 1 < T.length){
+    const suiv = String(T[i + 1] || '');
+    if(/^['’]/.test(suiv)) return [null, null];
+    if(ctxPos(T, i + 1) === 'NOUN' || isNoun(lex, suiv.toLowerCase())) return [null, null];
+    const sl = suiv.toLowerCase();
+    if(_DET_SG.has(sl) || _DET_PL.has(sl) || sl === 'the') return [null, null];
+  }
+  // Remonter au déterminant en sautant ADJECTIFS et NUMÉRAUX (« many good student »).
+  let j = i - 1, saut = 0;
+  while(j >= 0 && saut < 3){
+    if(adj && !adj.has(j)) return [null, null];                       // adjacence RÉELLE à chaque pas
+    const p = ctxPos(T, j), pl = String(T[j] || '').toLowerCase();
+    if(_DET_SG.has(pl) || _DET_PL.has(pl)) break;
+    if(p !== 'ADJ' && p !== 'NUM') return [null, null];
+    j--; saut++;
+  }
+  if(j < 0 || saut >= 3) return [null, null];
+  const det = String(T[j] || '').toLowerCase();
+  const veutPl = _DET_PL.has(det), veutSg = _DET_SG.has(det);
+  if(!veutPl && !veutSg) return [null, null];
+  const [sg, pl2] = paire;
+  if(veutPl && w === sg) return [pl2, 'ORANGE'];
+  if(veutSg && w === pl2) return [sg, 'ORANGE'];
+  return [null, null];
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -418,7 +532,7 @@ function pastPartDecide(lex, T, i){
    ⚠️ DIRECTION SÛRE : consulter ce masque ne fait qu'ABSTENIR ; il ne peut pas créer de faute. */
 function adjMask(text){
   const adj = new Set();
-  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;   // MÊME motif que tokenize : sinon les index divergent
   let m, prevEnd = -1, i = -1;
   while((m = re.exec(text))){
     i++;
@@ -428,7 +542,36 @@ function adjMask(text){
   return adj;
 }
 
-function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
+/* Le COUSIN du masque d'adjacence : le TRAIT D'UNION. « those moon-cursed waters » se tokenise en
+   `those moon cursed` — une règle de nombre y lisait un déterminant pluriel suivi d'un nom singulier
+   et signalait « moon » -> « moons ». Or `moon-cursed` est un composé soudé : le nom n'y est pas
+   tête. Mesuré : c'était un rouge réel sur texte édité. Comme `adjMask`, ce masque ne fait
+   qu'ABSTENIR — il ne peut pas créer de faute. */
+function hyphMask(text){
+  const h = new Set();
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;   // MÊME motif que tokenize : sinon les index divergent
+  let m, prevEnd = -1, i = -1;
+  while((m = re.exec(text))){
+    i++;
+    if(prevEnd >= 0 && /^[-‐‑–]$/.test(text.slice(prevEnd, m.index))) h.add(i - 1);
+    prevEnd = m.index + m[0].length;
+  }
+  return h;
+}
+
+/* ⚠️ LE TOKENISEUR COUPAIT DEUX CHOSES QU'IL NE DEVAIT PAS — trouvé en LISANT le flood orange,
+   pas en relisant le code. Sur 373 signalements orange du speller (texte édité), les têtes de liste
+   étaient `didn`(20) `isn`(11) `wasn`(5) `doesn`(4) `shouldn`(4) `couldn`(3) puis `rida`(10)
+   `xico`(2) `nguez`(2) `rebro`(3) `fianc`(2). Ce ne sont pas des mots : ce sont des DÉBRIS.
+   ① L'APOSTROPHE TYPOGRAPHIQUE ’ n'était pas acceptée — `didn’t` se coupait en `didn` + `t`, et
+      les corpus édités (PUD, GUM) l'emploient partout. Exactement le même bug qu'en français, où
+      il avait fait compter des corrections JUSTES comme des dégradations.
+   ② LES LETTRES ACCENTUÉES cassaient le mot : `México` -> `M` + `xico`, `Domínguez` -> `Dom` +
+      `nguez`, `fiancé` -> `fianc`. L'anglais n'a pas d'accents mais l'anglais ÉCRIT en est plein
+      (noms propres, emprunts).
+   Un débris est INCONNU du lexique, donc il déclenche un orange — le flood était surtout ça, pas
+   un manque de vocabulaire. ⚠️ ON NE GROSSIT PAS LE LEXIQUE POUR MASQUER UN BUG DE DÉCOUPAGE. */
+function tokenize(text){ return text.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g) || []; }
 
 /* ⭐ LES MOTS QUI VIVENT DANS UNE URL, UNE ADRESSE OU UN CHEMIN — à ne jamais corriger.
    D'OÙ ÇA VIENT : relecture des 55 rouges du speller sur EWT (2026-08-06). 52 étaient de VRAIES
@@ -443,7 +586,7 @@ function tokenize(text){ return text.match(/[A-Za-z]+(?:'[A-Za-z]+)*/g) || []; }
    ⚠️ DIRECTION SÛRE : cette garde ne fait qu'ABSTENIR. Elle ne peut pas créer de faute. */
 function urlMask(text){
   const proteges = new Set();
-  const re = /[A-Za-z]+(?:'[A-Za-z]+)*/g;
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;   // MÊME motif que tokenize : sinon les index divergent
   let m, i = 0;
   while((m = re.exec(text))){
     let a = m.index, b = m.index + m[0].length;
@@ -605,8 +748,8 @@ async function loadPosModel(url){
   return setPosModel(JSON.parse(await new Response(ds).text()));
 }
 
-const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask,
-               pastPartDecide, buildPastPart,
+const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
