@@ -631,6 +631,86 @@ function verb3Decide(lex, T, i, adj){
   return [base, 'RED'];
 }
 
+/* ⭐ FORME INTERROGATIVE — « Does he goes ? » -> go · « Did he went ? » -> go · « Do he go ? » -> Does.
+   Rem : « t'as tous les temps et leur forme interrogative ? ». Non — et pire, la garde ⑦ de
+   `verb3Decide` s'ABSTIENT dès qu'un auxiliaire précède le pronom (pour ne pas casser sur
+   « how long will it take »). L'interrogatif n'était donc pas raté par accident : la porte avait
+   été fermée. On la rouvre ici, avec un patron PROPRE.
+
+   POURQUOI C'EST PLUS FACILE QUE LE RESTE : la structure est FERMÉE — auxiliaire + pronom + verbe.
+   Pas de mur du sujet, pas de tête de groupe nominal à trouver : le sujet est le pronom, il est
+   entre les deux, et sa personne est lexicale. C'est le cas le plus décidable de la conjugaison.
+
+   DEUX DIRECTIONS, toutes deux sans ambiguïté :
+   ① APRÈS do/does/did, LE VERBE EST À LA BASE. « Does he goes » et « Did he went » sont faux quel
+      que soit le contexte — l'auxiliaire porte déjà le temps et la personne.
+   ② L'AUXILIAIRE S'ACCORDE avec le pronom : « Do he go » -> Does · « Does they go » -> Do.
+      (`did` est invariable, on n'y touche jamais.)
+
+   ⚠️ GARDES : le pronom doit être un vrai pronom SUJET ; l'emphatique déclaratif « He does go »
+   ne matche pas (l'ordre y est pronom+auxiliaire) ; et on exige l'adjacence RÉELLE des trois
+   tokens, sinon « does he really goes » et « do the dishes » entreraient à tort. */
+const _Q_AUX = new Set(['do', 'does', 'did']);
+const _Q_SG  = new Set(['he', 'she', 'it']);
+const _Q_PL  = new Set(['i', 'you', 'we', 'they']);
+
+function interroDecide(lex, T, i, adj){
+  const w = String(T[i] || ''), lw = w.toLowerCase();
+  // ---- ② l'AUXILIAIRE lui-même : do/does mal accordé avec le pronom qui suit ----
+  if(_Q_AUX.has(lw) && lw !== 'did' && i + 1 < T.length){
+    if(adj && !adj.has(i)) return [null, null];
+    /* ⚠️ IL FAUT UNE VRAIE QUESTION, PAS SEULEMENT « do » SUIVI D'UN PRONOM. Mesuré : la première
+       version produisait 15 rouges sur texte édité, TOUS de la forme « do it » où `do` est le VERBE
+       PRINCIPAL et `it` son OBJET — « to do the job », « how I do it », « can do it every day ».
+       La structure interrogative exige deux choses de plus :
+         · l'auxiliaire OUVRE la question — en tête de phrase, ou juste après un mot en wh- ;
+         · un VERBE suit le pronom (« Do he go ? »), sinon le pronom est un objet.
+       Sans ces deux conditions on lit une question là où il y a une proposition ordinaire. */
+    const enTete = (i === 0) || /^[.!?;:]$/.test(String(T[i - 1] || ''));
+    const apresWh = i >= 1 && ['why','how','where','when','what','who','whom','whose','which']
+                      .includes(String(T[i - 1] || '').toLowerCase());
+    if(!enTete && !apresWh) return [null, null];
+    const s = String(T[i + 1] || '').toLowerCase();
+    if(!_Q_SG.has(s) && !_Q_PL.has(s)) return [null, null];
+    if(i + 2 >= T.length || ctxPos(T, i + 2) !== 'VERB') return [null, null];   // « Do he GO ? »
+    if(_Q_SG.has(s) && lw === 'do')   return [_keepCaseEn(w, 'does'), 'RED'];
+    if(_Q_PL.has(s) && lw === 'does') return [_keepCaseEn(w, 'do'), 'RED'];
+    return [null, null];
+  }
+  // ---- ① le VERBE après auxiliaire + pronom : doit être à la BASE ----
+  if(i < 2) return [null, null];
+  if(adj && (!adj.has(i - 1) || !adj.has(i - 2))) return [null, null];   // les 3 tokens collés
+  const aux = String(T[i - 2] || '').toLowerCase();
+  const pron = String(T[i - 1] || '').toLowerCase();
+  if(!_Q_AUX.has(aux)) return [null, null];
+  if(!_Q_SG.has(pron) && !_Q_PL.has(pron)) return [null, null];
+  if(ctxPos(T, i) !== 'VERB') return [null, null];
+  if(_V3_STOP.has(lw)) return [null, null];                              // « does he have » : laissé
+  if(/ing$/.test(lw)) return [null, null];                               // « does he going » : autre faute
+  // la base : soit on retire le -s de 3ᵉ personne, soit on remonte du prétérit
+  let base = null;
+  if(/(?:ies|es|s)$/.test(lw)){
+    const b = /ies$/.test(lw) ? lw.slice(0, -3) + 'y'
+            : (/(?:ses|xes|zes|ches|shes|oes)$/.test(lw) ? lw.slice(0, -2) : lw.slice(0, -1));
+    if(lex.KNOWN.has(b) && _v3sg(lex, b) === lw) base = b;
+  }
+  if(!base && _v3Passe(lex, lw)){
+    const V = lex.VERBMORPH || {};
+    for(const k of Object.keys(V)){ const v = V[k];
+      if(Array.isArray(v) && v.indexOf(lw) >= 0){ const b = k.replace(/ed$/, ''); if(lex.KNOWN.has(b)) { base = b; break; } } }
+    if(!base && /ed$/.test(lw)){
+      const b = lw.replace(/ied$/, 'y').replace(/ed$/, '');
+      if(lex.KNOWN.has(b)) base = b;
+    }
+  }
+  if(!base || base === lw || (lex.FREQ.get(base) || 0) < 10) return [null, null];
+  return [_keepCaseEn(w, base), 'RED'];
+}
+function _keepCaseEn(src, cible){
+  return (src[0] === src[0].toUpperCase() && src[0] !== src[0].toLowerCase())
+    ? cible[0].toUpperCase() + cible.slice(1) : cible;
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -885,7 +965,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
