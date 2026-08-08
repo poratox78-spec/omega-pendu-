@@ -74,6 +74,8 @@ for (const t of PHR) {
       rouge++; fam.set(k, (fam.get(k) || 0) + 1);
       if (ex.length < 14) ex.push(k.padEnd(26) + '| ' + t.slice(0, 62));
     };
+    const iq = C.interroDecide ? C.interroDecide(lex, T, i, adj) : [null,null];
+    if (iq[1] === 'RED') { note('[interro] ' + T[i] + '→' + iq[0]); continue; }
     const v3 = C.verb3Decide ? C.verb3Decide(lex, T, i, adj) : [null,null];
     if (v3[1] === 'RED') { note('[verbe-3sg] ' + T[i] + '→' + v3[0]); continue; }
     const nb = C.numberDecide ? C.numberDecide(lex, T, i, adj, hyph) : [null,null];
