@@ -46,6 +46,16 @@
   #count{font:600 15px var(--sans);color:var(--fg)}
   #status{font:15px var(--sans);color:var(--fg-2)}
   .tip{font:14px var(--sans);color:var(--fg-2);margin-top:12px}
+  /* ⓘ replié — miroir du correcteur FR. Le cercle s'INVERSE à l'ouverture : on voit d'un
+     coup d'œil si le détail est déplié, sans lire le texte. */
+  .howto summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .howto summary::-webkit-details-marker{display:none}
+  .howto .hi{flex:0 0 auto;width:16px;height:16px;border-radius:50%;border:1.5px solid var(--accent);
+             color:var(--accent);font:700 11px/14px system-ui,sans-serif;text-align:center;display:inline-block}
+  .howto[open] .hi{background:var(--accent);color:var(--bg)}
+  .howto-d{margin-top:8px;line-height:1.55}
+  .howto-d p{margin:0 0 7px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 </style>
 <script src="../nav.js" defer></script>
 </head>
@@ -81,7 +91,20 @@
       <span id="count"></span>
     </span></div>
     <div id="out" aria-live="polite"></div>
-    <p class="tip">Click a highlighted word to apply its suggestion. Red = high-confidence (a real typo or an impossible construction). Orange = worth a look — you decide.</p>
+    <!-- ⓘ REPLIÉ — pendant anglais de l'infobulle du correcteur FR (app/omega-pendu.html).
+         La page n'avait qu'une ligne sur les COULEURS et rien sur ce qui rassure vraiment :
+         que le texte tapé n'est jamais réécrit. On ajoute donc l'explication qui MANQUAIT,
+         mais pliée — la page reste aussi courte qu'avant.
+         `<details>` NATIF : clavier + lecteur d'écran, et fonctionne sans JS. ⚠️ Si le
+         fonctionnement du correcteur change, CE TEXTE CHANGE AUSSI. -->
+    <details class="tip howto">
+      <summary>Paste or type your text: <b>it stays untouched</b>. <span class="hi" aria-hidden="true">i</span><span class="sr-only"> — how it works</span></summary>
+      <div class="howto-d">
+        <p>Your text is only <b>highlighted</b>, never rewritten. <b>Red</b> = high confidence (a real typo, or a construction English does not allow). <b>Orange</b> = worth a look — you decide.</p>
+        <p><b>Click a highlighted word</b> to apply its suggestion. Nothing is applied for you.</p>
+        <p>Runs entirely <b>offline</b>, in your browser. <b>No data is sent anywhere.</b></p>
+      </div>
+    </details>
   </div>
 </div>
 
