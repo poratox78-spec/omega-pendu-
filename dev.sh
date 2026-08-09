@@ -79,6 +79,7 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 # Une règle non branchée dans la page vaut ZÉRO : le 2026-08-09, 8 règles anglaises mesurées et
 # livrées n'étaient appelées par aucune page. Ce check ferme la classe de bug (+ tokeniseur identique).
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
+run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 
 echo "── LIVRAISON ──"
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
