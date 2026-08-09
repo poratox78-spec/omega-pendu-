@@ -26,6 +26,8 @@
 const fs = require('fs'), path = require('path');
 const RACINE = path.dirname(__dirname);
 const C = require(path.join(RACINE, 'dictee', 'corrector_en.js'));
+const CONF = JSON.parse(fs.readFileSync(path.join(RACINE,'dictee','confusables_en.json'),'utf8'));
+const CONFG = Array.isArray(CONF)?CONF:(CONF.groupes||[]);
 
 const DIR = path.join(RACINE, 'data_local', 'en');
 const PUD = path.join(DIR, 'en_pud-ud-test.conllu');
@@ -74,6 +76,8 @@ for (const t of PHR) {
       rouge++; fam.set(k, (fam.get(k) || 0) + 1);
       if (ex.length < 14) ex.push(k.padEnd(26) + '| ' + t.slice(0, 62));
     };
+    const cs = C.confuseSlotDecide ? C.confuseSlotDecide(lex, T, i, adj, hyph, CONFG) : [null,null];
+    if (cs[1] === 'RED') { note('[confus] ' + T[i] + '→' + cs[0]); continue; }
     const am = C.articleMassDecide ? C.articleMassDecide(lex, T, i, adj, hyph) : [null,null];
     if (am[1] === 'RED') { note('[article] ' + T[i] + '→∅'); continue; }
     const ax = C.auxAgree ? C.auxAgree(lex, T, i, adj) : [null,null];
