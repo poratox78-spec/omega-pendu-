@@ -113,6 +113,7 @@ NOUN_SLOT_W = frozenset(['the','a','an','this','that','my','your','his','her','o
 class SpellerEN:
     def __init__(self):
         self.KNOWN, self.FREQ, self.POS, self.PHON = load_lexicon()
+        self._e2 = {}                                    # mémo des candidats à 2 éditions (cf. suggest)
 
     def is_known(self, w):
         lw = w.lower()
@@ -149,6 +150,25 @@ class SpellerEN:
         if w[:1].isupper():
             return None, 'OK'                                # capitalisé = nom propre probable → pas de speller (anti-flood ; les homophones gèrent leur casse)
         cands, pk = self._cands(low)
+        # ⭐ DISTANCE 2 EN SECOURS (miroir corrector_en.js, cf. le commentaire long côté JS).
+        # Seulement quand la distance 1 ne rend RIEN, et sur ≤12 lettres. Mesuré sur 1006 mots
+        # inconnus de JFLEG : le mur est la GÉNÉRATION (309 cas où le bon mot n'est jamais proposé)
+        # et non le classement (83). En secours : 614 -> 648 bonnes, zéro régression — elle ne
+        # s'active que là où l'on se taisait. « Toujours » régresse (45 cas volés à la distance 1),
+        # le filtre phonétique ne rend rien de neuf (les voisins du son sont déjà dans _cands).
+        # Plafond 12 mesuré : au-delà, plus AUCUN cas gagné pour le double du temps.
+        # ⚠️ tier 0.5 => l'affirmation (bt == 1) est impossible : ces candidats sortent en FLAG.
+        # MÉMORISÉ comme côté JS : le calcul ne dépend que du mot, et il coûte ~38 ms —
+        # sans mémo, un texte de 160 mots inconnus gèle 13,5 s. Mémo déterministe : parité intacte.
+        if not cands and len(low) <= 12:
+            e2s = self._e2.get(low)
+            if e2s is None:
+                e2s = [b for a in edits1(low) for b in edits1(a)
+                       if b in self.KNOWN and all(ch in ALPHA for ch in b) and self.FREQ.get(b, 0) >= 1]
+                if len(self._e2) > 4000: self._e2.clear()      # borne mémoire
+                self._e2[low] = e2s
+            for b in e2s:
+                cands[b] = 0.5
         if not cands:
             return None, 'OK'                                # inconnu sans candidat proche → ne pas harceler (rare/technique/étranger)
         def rank(x):                                         # edit-1 d'abord, puis FRÉQUENCE (the ≫ te)

@@ -74,6 +74,7 @@ function slotBonus(lex, prev, x){
   if(NOUN_SLOT_W.has(prev) && (P.has('NOUN') || P.has('ADJ'))) return 1;
   return 0;
 }
+const _E2 = new Map();                        // mémo des candidats à 2 éditions (cf. spellSuggest)
 function spellSuggest(lex, w, prev){          // prev = mot précédent en minuscules ; absent -> pas de bonus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
@@ -108,6 +109,52 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
   // au-dessus de 1 ça dégrade (balayage 0/1/5/20/50).
   { const keep = new Map(); for(const [x, t] of cands){ if((lex.FREQ.get(x)||0) >= 1) keep.set(x, t); }
     if(keep.size) { cands.clear(); for(const [x, t] of keep) cands.set(x, t); } }
+  /* ⭐ DISTANCE 2 EN SECOURS — seulement quand la distance 1 ne rend RIEN, et sur ≤12 lettres.
+     Le mur mesuré n'était pas le classement mais la GÉNÉRATION : sur 1006 mots inconnus de JFLEG,
+     le bon mot est absent des candidats 309 fois, contre 83 fois présent mais mal classé. Aucun
+     réglage de score ne rattrape un mot qu'on ne propose jamais.
+
+     TROIS VARIANTES MESURÉES, une seule tient :
+       distance 2 TOUJOURS   626/1006 — mais 45 RÉGRESSIONS (« maind » -> and au lieu de mind) :
+                             les candidats à 2 éditions volent des cas que la distance 1 gagnait.
+       distance 2 EN SECOURS 648/1006 (61,0 % -> 64,4 %) et ZÉRO régression, par construction :
+                             elle ne s'active que là où l'on ne disait rien du tout.
+       + filtre phonétique   614/1006 — RÉFUTÉ, et c'est instructif : `cands` intègre DÉJÀ les
+                             voisins phonétiques, donc filtrer par le son ne peut rendre que ce
+                             qu'on avait déjà. La voie phonétique est saturée en amont.
+
+     PLAFOND DE 12 LETTRES, mesuré, pas choisi : ≤8 rend 618, ≤10 rend 634, ≤12 rend 648… et
+     au-delà de 12 le rappel n'augmente PLUS D'UN SEUL CAS pour le double du temps (38 ms -> 70 ms).
+     Les mots très longs qui échouent en distance 1 sont à distance 3+ (« nonfluoridated »), donc
+     hors d'atteinte de toute façon.
+
+     ⚠️ NE PEUT JAMAIS PRODUIRE UN ROUGE, et ce n'est pas une promesse mais une conséquence : le
+     tier vaut 0,5, or l'affirmation exige `bt === 1`. Ces candidats sortent donc toujours en
+     ORANGE — « mot inconnu, vouliez-vous dire… ». Prix mesuré sur 15 353 phrases éditées :
+     56 mots rares de plus reçoivent une suggestion au lieu du silence (`warwick` -> `warlock`),
+     soit 0,36 % — sous notre plafond de flood français (0,70 %). Face à un dys qui a écrit
+     `trasisional`, le choix n'est pas « bonne suggestion ou mauvaise » mais « une suggestion ou
+     RIEN » : [[orange-doctrine]] tranche pour l'orange. */
+  if(!cands.size && low.length <= 12){
+    /* MÉMORISÉ, et ce n'est pas du confort : 38 ms par mot, c'est 13,5 s sur un texte de 160 mots
+       inconnus — un gel. Le calcul ne dépend que du mot (pas du contexte), donc il se mémorise
+       exactement. Les mots se répètent dans un vrai texte, et un dys refait la MÊME faute : le
+       coût réel s'effondre. Mémo déterministe ⇒ la parité avec le Python reste vraie.
+       MESURÉ (Node) : texte dys réaliste de 22 mots dont 8 fautes -> 2 ms · 160 mots inconnus
+       répétés -> 279 ms puis 11 ms · 120 mots inconnus TOUS DISTINCTS -> 2,2 s.
+       ⚠️ Ce dernier cas reste lent et on l'assume : c'est un collage de charabia ou de texte
+       étranger, pas de l'anglais fautif. Un plafond de sécurité serait un état partagé, donc une
+       divergence possible entre les deux moteurs — on préfère la lenteur rare à la parité cassée. */
+    let e2s = _E2.get(low);
+    if(!e2s){
+      e2s = [];
+      for(const a of edits1(low)) for(const b of edits1(a))
+        if(lex.KNOWN.has(b) && /^[a-z]+$/.test(b) && (lex.FREQ.get(b)||0) >= 1) e2s.push(b);
+      if(_E2.size > 4000) _E2.clear();                 // borne mémoire, pas une politique de cache
+      _E2.set(low, e2s);
+    }
+    for(const b of e2s) cands.set(b, 0.5);
+  }
   if(!cands.size) return [null, 'OK'];                                  // inconnu sans candidat → ne pas harceler
   // SCORE COMBINÉ (miroir speller_en_probe.py) : W*tier + log(1+freq), W=6 calibré par balayage sur le
   // banc contextuel. Le classement lexicographique faisait gagner « ahem » (edit-1, rarissime) contre
