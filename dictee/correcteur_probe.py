@@ -2378,6 +2378,43 @@ if os.path.exists(_GACC_PATH):
     try: GENDER_ACC = json.load(open(_GACC_PATH, encoding='utf-8'))
     except Exception: GENDER_ACC = {}
 
+# ⚠️⚠️ FILTRE AJOUTÉ APRÈS MESURE (2026-08-09) — LA TABLE BRUTE CONTENAIT DES RÉPONSES FAUSSES,
+# ET ELLE EST CONSULTÉE **EN PREMIER**, DONC ELLES ÉCRASAIENT DES GENRES CORRECTS.
+# Audit des 26 609 entrées contre GENDER_PURE ∪ GENDER_FULL :
+#     959 (3,6 %) d'accord · 25 591 (96,2 %) inconnues ailleurs · **59 (0,2 %) EN CONTRADICTION**
+# Or ces 59 se séparent nettement, et le critère est mécanique :
+#   ✅ 26 sont de VRAIES collisions d'accent — la table accentuée a raison, c'est sa raison d'être :
+#      « chargé »(m) écrasé par « chargée »(f), « frappé », « lamé », « latté », « dauphiné »…
+#   ❌ 33 sont du BRUIT kaikki pur, sans accent ni clé partagée : « ami »→f, « cas »→f, « fut »→f,
+#      « export »→f… et **« le »→f**. Sur des mots de cette fréquence, c'est une bombe à retardement.
+# ⇒ RÈGLE : la table accentuée ne peut l'emporter QUE si elle apporte une information d'accent —
+#   soit la clé PORTE un accent, soit sa forme désaccentuée est PARTAGÉE par plusieurs entrées.
+#   Sans accent ni collision, elle n'a rien de plus à dire que les tables en place : on l'écarte.
+# On jette aussi ce qui n'est pas un mot simple (titres d'entrées Wiktionnaire : « 100 mètres »,
+# « 24 x 36 », « 3615 », « 2-méthylbutane ») — 16 377 entrées inexploitables par un correcteur.
+#
+# ⚠️ MESURE HONNÊTE DE L'ENJEU : sur les DEUX bancs de référence (correcteur_probe, recall_probe),
+# retirer la table entière ne change RIEN — sortie identique au caractère près. Ce filtre ne gagne
+# donc aucun point aujourd'hui ; il RETIRE un risque, et il est le préalable à tout portage JS
+# (cf. [[bases-genre-desaccentuees]] : le portage précédent avait été annulé).
+if GENDER_ACC:
+    _part = {}
+    for _w in GENDER_ACC:
+        _part.setdefault(deacc(_w.lower()), set()).add(_w.lower())
+    _garde = {}
+    for _w, _g in GENDER_ACC.items():
+        _lw = _w.lower()
+        if not _lw.isalpha():                       # « 100 mètres », « 3615 », « 2-méthylbutane »
+            continue
+        _d = deacc(_lw)
+        _autre = GENDER_PURE.get(_d)
+        if _autre not in ('m', 'f'):
+            _autre = GENDER_FULL.get(_d)
+        if _autre in ('m', 'f') and _autre != _g and _lw == _d and len(_part.get(_d, ())) < 2:
+            continue                                # contredit sans accent NI collision -> bruit
+        _garde[_w] = _g
+    GENDER_ACC = _garde
+
 _POSS_DET = {'mon', 'ma', 'ton', 'ta', 'son', 'sa'}
 _ART_BLOCK = {'un', 'une', 'le', 'la', 'les', 'du', 'des', 'au', 'aux', 'ce', 'cet', 'cette', 'ces',
               'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses',
