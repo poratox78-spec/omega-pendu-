@@ -117,6 +117,12 @@ jobs:
         run: python3 dictee/homophone_en_probe.py --check
       - name: EN Phase 2 — moteur JS correcteur (parité CASES avec les probes Python)
         run: node dictee/corrector_en.js --check
+      # Une règle non branchée dans la page vaut ZÉRO : le 2026-08-09, 8 règles anglaises mesurées
+      # et livrées n'étaient appelées par aucune page. Ce check ferme la classe de bug, et vérifie
+      # au passage que la page découpe les mots avec le MÊME motif que le moteur (sinon les masques
+      # renvoient des indices qui désignent d'autres mots — silencieusement).
+      - name: EN — les règles du moteur sont branchées dans la page (+ tokeniseur identique)
+        run: node dictee/en_page_wiring_probe.js
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)

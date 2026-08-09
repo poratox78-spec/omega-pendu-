@@ -914,7 +914,36 @@ function typoScanEn(text){
     out.push({ cs: m.index, ce: m.index + m[0].length, from: m[0], sugg: m[1] + ' ' + m[2],
                name: 'double space', tier: 'red' });
   }
-  return out;
+  /* ⑤ ESPACE MANQUANTE APRÈS UN POINT — « dollars.Then ». La règle ② ne couvrait que « , ; : » ;
+     le POINT est le cas le plus fréquent à la frappe et il manquait. Il est aussi le plus PIÉGÉ :
+     domaines, adresses e-mail, noms de fichiers, sigles et décimales sont tous « mot.mot ».
+
+     ⭐ CE QUI TRANCHE, C'EST LA MAJUSCULE — et c'est mesuré, pas supposé. Sur 15 353 phrases
+     d'anglais ÉDITÉ (GUM + PUD), où tout déclenchement est par construction un faux positif :
+       – variante MAJUSCULE après le point  ->  **0 FP**
+       – variante minuscule après le point  ->  48 FP, dont 100 % des URLs et e-mails
+         (« gmail.com », « thierry.poibeau@ens.fr », « www.wikihow.com »)
+     La minuscule est donc RÉFUTÉE : on ne la livre pas, même masquée, parce que « node.js » et
+     « file.txt » resteraient. La majuscule après un point ne se produit pas dans une adresse.
+
+     Les bornes font le reste : ≥2 lettres à gauche épargne les initiales (« J.Smith », « U.S.Army »)
+     et ≥3 après la majuscule épargne les sigles pointés (« Ph.D »). */
+  const re5 = /([A-Za-z]{2,})\.([A-Z][a-z]{2,})/g;
+  while((m = re5.exec(text))){
+    out.push({ cs: m.index, ce: m.index + m[0].length, from: m[0], sugg: m[1] + '. ' + m[2],
+               name: 'missing space after period', tier: 'red' });
+  }
+  /* ⚠️ PLAGES QUI SE CHEVAUCHENT — sinon on CORROMPT le texte au lieu de le réparer.
+     Chaque règle capture le contexte autour de la marque, donc deux règles voisines peuvent se
+     recouvrir : « ab,cd.Ef » -> ② prend « ab,cd » [0,5[ et ⑤ prend « cd.Ef » [3,8[. Qui applique
+     ces deux remplacements sur la même chaîne perd des caractères, quel que soit l'ordre.
+     On ne garde donc qu'une plage par zone (la plus à gauche). Ce n'est pas une perte : l'autre
+     faute redevient visible au passage suivant, une fois la première réparée — c'est précisément
+     ce que fait la boucle d'application. */
+  out.sort((a, b) => a.cs - b.cs || a.ce - b.ce);
+  const propres = [];
+  for(const t of out) if(!propres.length || t.cs >= propres[propres.length - 1].ce) propres.push(t);
+  return propres;
 }
 
 /* ⭐ CONFUSABLES PAR CRÉNEAU — « I can here you » -> hear · « to allowed » -> aloud…
@@ -1389,9 +1418,42 @@ if(typeof require !== 'undefined' && require.main === module){
     if(vu === att) pnOk++; else console.log('  PARONYME MISS : %s -> %s (attendu %s)', txt, vu, att); }
   console.log('paronymes nom/verbe: %d/%d', pnOk, PN.length);
   console.log('homophone: %d/%d', hok, HP.length);
+  /* ⭐ TYPOGRAPHIE — CAS FIGÉS. La mesure de référence vit hors CI : GUM+PUD sont **CC BY-NC-SA**,
+     donc jamais commités ; le scan local (15 353 phrases d'anglais édité) rend **1 déclenchement**,
+     et c'en est une vraie faute du corpus (« follo,wers » est écrit ainsi dans GUM) — soit FP=0 réel.
+     Ce que la CI peut garder, ce sont les FAMILLES : chaque négatif ci-dessous représente une classe
+     de piège que le scan a effectivement rencontrée (adresses, sigles pointés, emphase). */
+  const TY_OUI = [['Hello ,how are you ?',          'Hello, how are you?'],
+                  ['It cost 5 dollars .Then he left', 'It cost 5 dollars. Then he left'],
+                  ['I said ,,no way',               'I said, no way'],
+                  ['Two  spaces here',              'Two spaces here'],
+                  // celui-ci a besoin de 3 PASSES (4 puis 2 puis 1 remplacements) : il verrouille
+                  // la boucle, qu'un plafond trop bas casserait en silence.
+                  ['Hello ,how are you ? I said ,,no. Two  spaces here.',
+                   'Hello, how are you? I said, no. Two spaces here.']];
+  const TY_NON = ['Send it to john.smith@ens.fr or see www.wikihow.com today.',  // adresses : « mot.mot »
+                  'He got his Ph.D at the U.S.Army base, e.g. in 1999.',         // sigles pointés, initiales
+                  'Yeah!!! What??? Really?!',                                    // emphase LÉGITIME, pas une faute
+                  'The price is 3,000 and pi is 3.14.'];                         // chiffres groupés, décimales
+  const applique = (v) => { for(let p = 0; p < 8; p++){ const t = typoScanEn(v); if(!t.length) break;
+    t.sort((a, b) => b.cs - a.cs); const av = v;                       // de la FIN au DÉBUT : les plages se décalent
+    for(const h of t) v = v.slice(0, h.cs) + h.sugg + v.slice(h.ce); if(v === av) break; } return v; };
+  let tyOk = 0, tyKo = 0;
+  for(const [txt, att] of TY_OUI){ const r = applique(txt);
+    if(r === att) tyOk++; else { tyKo++; console.log('  TYPO MISS : %s -> %s (attendu %s)', txt, r, att); } }
+  for(const txt of TY_NON){ const t = typoScanEn(txt);
+    if(t.length){ tyKo++; console.log('  TYPO FAUX POSITIF : %s   | %s', t.map(x => x.from).join(' · '), txt); } }
+  /* Les plages NE DOIVENT PAS se chevaucher : « ab,cd.Ef » est vu par deux règles à la fois, et
+     appliquer les deux sur la même chaîne mange des caractères au lieu de réparer. */
+  for(const txt of ['ab,cd.Ef gh', 'end ,next.Word here', 'a,bc.De,fg.Hi']){
+    const t = typoScanEn(txt);
+    for(let i = 1; i < t.length; i++) if(t[i].cs < t[i - 1].ce){
+      tyKo++; console.log('  TYPO PLAGES QUI SE CHEVAUCHENT : %s   | %s', t[i - 1].from + ' / ' + t[i].from, txt); } }
+  console.log('typographie: %d/%d corrections, %d anomalie(s)', tyOk, TY_OUI.length, tyKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length);
-    console.log('[check] %s — speller %d, homophone %d/%d', ok ? 'OK' : 'ÉCHEC', auto + flag, hok, HP.length);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0);
+    console.log('[check] %s — speller %d, homophone %d/%d, typo %d/%d (%d anomalies)',
+                ok ? 'OK' : 'ÉCHEC', auto + flag, hok, HP.length, tyOk, TY_OUI.length, tyKo);
     if(!ok) process.exit(1);
   }
 }
