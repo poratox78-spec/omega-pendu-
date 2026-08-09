@@ -92,6 +92,15 @@
       <span id="count"></span>
     </span></div>
     <div id="out" aria-live="polite"></div>
+    <!-- ⭐ LA COUCHE TYPOGRAPHIQUE A SA PROPRE LIGNE, ET C'EST VOULU. Elle travaille sur des PLAGES
+         DE TEXTE (« Hello ,how » = un espace mal placé), pas sur des mots — l'entrelacer avec le
+         surlignage par token demanderait de découper des spans à cheval, pour un gain nul.
+         Un bouton « tout corriger » est plus simple ET plus utile : ces fautes-là sont mécaniques,
+         on ne les examine pas une par une. Caché tant qu'il n'y a rien à signaler. -->
+    <div id="typo" style="display:none;margin-top:12px;font:15px var(--sans);color:var(--fg-2)">
+      <span id="typon"></span>
+      <button class="ghost" id="typofix" style="margin-left:8px">Fix punctuation</button>
+    </div>
     <!-- ⓘ REPLIÉ — pendant anglais de l'infobulle du correcteur FR (app/omega-pendu.html).
          La page n'avait qu'une ligne sur les COULEURS et rien sur ce qui rassure vraiment :
          que le texte tapé n'est jamais réécrit. On ajoute donc l'explication qui MANQUAIT,
@@ -239,7 +248,48 @@
     var r=analyze(inEl.value);
     outEl.innerHTML=r.html; outEl.style.display='block';
     cnt.textContent='· '+r.n+' suggestion'+(r.n===1?'':'s');
+    /* ⭐ COUCHE TYPOGRAPHIQUE (espace avant une ponctuation, espace manquante après une virgule
+       PUIS après un point, marque doublée, double espace). Mesurée sur 15 353 phrases ÉDITÉES
+       (GUM + PUD) : 1 seul déclenchement, et c'était une vraie faute de frappe du corpus
+       (« follo,wers »). C'est la seule couche de ponctuation qui
+       atteint FP=0 — « où mettre une virgule » est un jugement, « l'espace autour de celle qui est
+       là » est mécanique. La frontière a été mesurée côté français et se transpose telle quelle. */
+    var t=typoFix(inEl.value);
+    var box=document.getElementById('typo');
+    if(t.n){ box.style.display='block';
+      document.getElementById('typon').textContent=t.n+' punctuation issue'+(t.n===1?'':'s')+' (spacing, doubled marks)';
+    } else box.style.display='none';
   }
+  /* ⚠️ IL FAUT ITÉRER, et c'est une conséquence directe du découpage en règles. Les fautes de
+     ponctuation s'emboîtent : « Hello ,how » a UNE espace en trop avant la virgule ET une espace
+     manquante après — mais la seconde n'est visible qu'une fois la première corrigée, parce que le
+     motif « mot,mot » exige que la virgule TOUCHE le mot de gauche. Le moteur écarte de surcroît les
+     plages qui se chevauchent (elles se mangeraient l'une l'autre), et reporte donc la seconde au
+     passage suivant. Un seul passage laissait « Hello,how ».
+
+     ⭐ C'EST AUSSI POURQUOI LE COMPTEUR VIENT D'ICI et pas d'un simple `scan().length` : un scan
+     unique annonçait « 4 fautes » là où le bouton en réparait 5, parce qu'il ne voyait pas celles
+     que la réparation fait apparaître. On annonce ce qu'on corrige vraiment. */
+  function typoFix(texte){
+    /* Plafond à 8 et non à 3 : « Hello ,how are you ? I said ,,no. Two  spaces here. » converge
+       PILE en 3 passes (4 puis 2 puis 1 remplacements). Un plafond à 3 n'avait donc aucune marge —
+       un texte un peu plus emmêlé se serait arrêté en laissant une faute. La boucle sort de toute
+       façon dès que le texte ne bouge plus ; le plafond n'est là que contre un cycle. */
+    var v=texte, n=0;
+    for(var pass=0; pass<8; pass++){
+      var tp=C.typoScanEn?C.typoScanEn(v):[];
+      if(!tp.length) break;
+      tp.sort(function(a,b){return b.cs-a.cs;});   // de la FIN vers le DÉBUT : sinon les plages se décalent
+      var avant=v;
+      for(var i=0;i<tp.length;i++) v=v.slice(0,tp[i].cs)+tp[i].sugg+v.slice(tp[i].ce);
+      if(v===avant) break;                          // point fixe : plus rien ne bouge
+      n+=tp.length;
+    }
+    return { texte: v, n: n };
+  }
+  document.getElementById('typofix').addEventListener('click', function(){
+    inEl.value=typoFix(inEl.value).texte; run();
+  });
   btn.addEventListener('click', run);
   clr.addEventListener('click', function(){ inEl.value=''; outEl.style.display='none'; cnt.textContent=''; inEl.focus(); });
 
