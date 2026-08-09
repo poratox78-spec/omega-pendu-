@@ -28,6 +28,8 @@
 const fs = require('fs'), path = require('path');
 const RACINE = path.dirname(__dirname);
 const C = require(path.join(RACINE, 'dictee', 'corrector_en.js'));
+const CONF = JSON.parse(fs.readFileSync(path.join(RACINE,'dictee','confusables_en.json'),'utf8'));
+const CONFG = Array.isArray(CONF)?CONF:(CONF.groupes||[]);
 
 const DIR = path.join(RACINE, 'data_local', 'en', 'jfleg');
 if (!fs.existsSync(path.join(DIR, 'dev.src'))) {
@@ -58,6 +60,8 @@ for (const set of ['dev', 'test']) {
     for (let i = 0; i < T.length; i++) {
       if (prot.has(i)) continue;
       let sugg = null, canal = null;
+      const cs = C.confuseSlotDecide ? C.confuseSlotDecide(lex, T, i, adj, C.hyphMask?C.hyphMask(t):null, CONFG) : [null,null];
+      if (cs[1] === 'RED') { sugg = cs[0]; canal = 'confus'; }
       const am = C.articleMassDecide ? C.articleMassDecide(lex, T, i, adj, C.hyphMask ? C.hyphMask(t) : null) : [null,null];
       if (am[1] === 'RED') { sugg = am[0]; canal = 'article'; }
       const ax = C.auxAgree ? C.auxAgree(lex, T, i, adj) : [null,null];

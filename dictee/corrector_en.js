@@ -912,6 +912,76 @@ function typoScanEn(text){
   return out;
 }
 
+/* ⭐ CONFUSABLES PAR CRÉNEAU — « I can here you » -> hear · « to allowed » -> aloud…
+   88 des 111 groupes curés n'ont AUCUNE règle : ils délimitent un périmètre et ne signalent rien.
+   Les écrire un par un serait 88 fois le même travail ; on cherche donc UNE règle qui en couvre
+   beaucoup, et le filtre « structure fermée » dit laquelle.
+
+   POURQUOI PAS LA SÉPARABILITÉ LEXICALE. Mesuré : avec le critère strict « aucune classe partagée »,
+   seuls **7 groupes sur 88** passent. La raison est connue — kaikki SUR-VERBIFIE, presque tout nom
+   anglais a aussi une lecture VERB, donc les ensembles de classes se recouvrent presque toujours.
+   Le lexique ne sépare pas.
+
+   ⭐ CE QUI SÉPARE, C'EST LE CRÉNEAU. Après « to », « can », « will », « must », le contexte OUVRE
+   une place de VERBE. Si le mot écrit n'a AUCUNE lecture verbale et qu'exactement UN de ses
+   confusables en a une, la substitution est forcée — sans sémantique, sans savoir de quoi on parle.
+   Mesuré : l'axe VERBE discrimine **30 groupes sur 88** à lui seul (et 58 en cumulant tous les axes,
+   piste ouverte pour la suite).
+   C'est le même principe que l'interrogatif et les auxiliaires : on n'agit que là où la STRUCTURE
+   décide à la place du sens.
+
+   ⚠️ On n'utilise QUE les groupes SANS règle : ceux qui en ont une sont déjà traités, et deux
+   couches sur le même mot se contrediraient. */
+let _CONF_SLOT = null;
+function buildConfuseSlot(lex, groupes){
+  const m = new Map();
+  for(const g of (groupes || [])){
+    if(!g || g.regle || !Array.isArray(g.mots) || g.mots.length < 2) continue;
+    for(const w of g.mots){
+      const lw = String(w).toLowerCase();
+      /* ⚠️ UN MODAL N'APPELLE PAS QUE DES VERBES. Mesuré : la 1ʳᵉ version exigeait seulement
+         « pas de lecture VERB » et produisait 22 rouges — « can some of you », « to which »,
+         « can very well », tous corrects. Après un modal on trouve aussi des ADVERBES
+         (« can very well know »), des DÉTERMINANTS et des PRONOMS (« can some », « to which »).
+         Le créneau n'est donc FORCÉ que si le mot écrit ne peut être RIEN de tout ça : on exige
+         que ses seules lectures soient NOM ou ADJECTIF. C'est plus étroit, mais c'est la seule
+         version où la structure décide vraiment à la place du sens. */
+      const p = [...(lex.POS.get(lw) || [])];
+      if(!p.length) continue;
+      if(p.some(x => ['VERB','ADV','DET','PRON','ADP','CONJ','PREP','INTJ','NUM'].includes(x))) continue;
+      const cibles = g.mots.filter(x => {
+        const lx = String(x).toLowerCase();
+        return lx !== lw && [...(lex.POS.get(lx) || [])].includes('VERB')
+               && (lex.FREQ.get(lx) || 0) >= 10;
+      });
+      if(cibles.length === 1) m.set(lw, String(cibles[0]).toLowerCase());
+    }
+  }
+  return m;
+}
+function confuseSlotDecide(lex, T, i, adj, hyph, groupes){
+  if(!_CONF_SLOT) _CONF_SLOT = buildConfuseSlot(lex, groupes);
+  const w = String(T[i] || '');
+  if(i < 1 || w !== w.toLowerCase()) return [null, null];
+  const cible = _CONF_SLOT.get(w.toLowerCase());
+  if(!cible) return [null, null];
+  if(adj && !adj.has(i - 1)) return [null, null];
+  if(hyph && (hyph.has(i) || hyph.has(i - 1))) return [null, null];
+  /* Le créneau doit être ouvert par un mot-outil qui appelle un VERBE, et par LUI SEUL —
+     `VERB_SLOT_W` contient aussi des pronoms (« I », « they »), qui ouvrent bien un verbe mais
+     dont le voisinage est trop lâche pour un rouge. On se limite aux modaux et à « to ». */
+  const ouvre = new Set(['to','will','would','can','could','may','might','must','should','shall',
+                         'let','please',"don't","doesn't","didn't",'cannot']);
+  if(!ouvre.has(String(T[i - 1] || '').toLowerCase())) return [null, null];
+  /* « to » est ambigu : préposition (« to school ») ou infinitif (« to hear »). On ne tranche que
+     si le mot écrit ne peut PAS être un nom non plus — sinon « to here » pourrait être un lieu. */
+  if(String(T[i - 1] || '').toLowerCase() === 'to'){
+    const p = [...(lex.POS.get(w.toLowerCase()) || [])];
+    if(p.includes('NOUN') || p.includes('PROPN')) return [null, null];
+  }
+  return [cible, 'RED'];
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -1166,7 +1236,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
