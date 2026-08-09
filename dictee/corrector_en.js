@@ -262,11 +262,12 @@ function homoDecide(lex, T, i, adj){
      précisément et uniquement le h- aspiré qui est en jeu — « an hour »/« an honest » ont un h muet,
      donc une IPA vocalique, donc ils ne passaient déjà pas par ici. L'exclusion est chirurgicale.
 
-     ⚠️ RAPPEL NON PROUVÉ, et on le dit : JFLEG ne contient **aucun** cas où l'annotateur remplace
-     « an X » par « a X » — cette règle n'y gagne 0. Elle est livrée parce qu'elle est gratuite
-     (FP=0), mécanique, et que JFLEG est un corpus d'apprenants non-natifs, dont les fautes ne sont
-     pas celles d'un dys francophone ou anglophone qui applique la règle scolaire par la lettre.
-     Si un corpus dys anglais apparié apparaît un jour, la remesurer — et la retirer si elle est muette. */
+     RAPPEL : JFLEG contient 3 cas où l'annotateur remplace « an X » par « a X ». La règle les
+     attrape TOUS LES TROIS (3/3).
+     ⚠️ Un premier passage avait conclu « 0 cas, rappel non prouvé » : la sonde cherchait les
+     fichiers dans `jfleg/dev/dev.src` alors qu'ils sont à plat dans `jfleg/dev.src`, et lisait
+     donc le vide. Un corpus muet et un corpus absent rendent le même chiffre — vérifier qu'un
+     banc a bien été LU avant de conclure qu'il ne dit rien. */
   if(lw === 'an' && (w === 'an' || i === 0)
       && /^\p{L}+$/u.test(nxRaw) && nxRaw === nxRaw.toLowerCase() && nxRaw !== nxRaw.toUpperCase()
       && !/^h/.test(nx)                                   // registre britannique, pas une faute

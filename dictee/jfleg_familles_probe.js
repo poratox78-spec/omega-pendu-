@@ -97,20 +97,28 @@ function famille(bad, good) {
   return 'lexique / reformulation';
 }
 
-// ---------- ce que le correcteur propose sur un token ----------
+/* ---------- ce que le correcteur propose sur un token ----------
+   ⭐ REND AUSSI LE NIVEAU, et c'est une CORRECTION DE MESURE, pas un enrichissement cosmétique.
+   La version précédente ne rendait que le ROUGE : tout ce que le correcteur signale en ORANGE
+   tombait dans la colonne « RATÉ ». Or l'orange EST livré à l'utilisateur — c'est même la réponse
+   au doute chez nous, pas un demi-silence. Mesuré sur la seule famille « orthographe (proche) » :
+   73 rouges, mais 120 oranges JUSTES en plus, comptés comme des échecs. Le tableau sous-estimait
+   donc massivement ce qui arrive à l'écran, et pointait l'effort vers des familles déjà couvertes.
+   Trois colonnes désormais : ROUGE (affirmé) · orange (signalé) · raté (rien). */
 function propose(T, i, prot, adj) {
-  if (prot.has(i)) return null;
+  if (prot.has(i)) return [null, null];
   const pp = C.pastPartDecide(lex, T, i);
-  if (pp[1]) return pp[0];
+  if (pp[1]) return [pp[0], pp[1]];
   const h = C.homoDecide(lex, T, i, adj);
-  if (h[1] === 'RED') return h[0];
+  if (h[1]) return [h[0], h[1]];
   const sp = C.spellSuggest(lex, T[i], i > 0 ? T[i - 1].toLowerCase() : '');
-  if (sp[1] === 'AUTO') return sp[0];
-  return null;
+  if (sp[1] === 'AUTO') return [sp[0], 'RED'];
+  if (sp[1] === 'FLAG') return [sp[0], 'ORANGE'];
+  return [null, null];
 }
 
-const attrape = new Map(), rate = new Map(), ex = new Map();
-let nCorr = 0, nAttr = 0;
+const attrape = new Map(), orange = new Map(), rate = new Map(), ex = new Map();
+let nCorr = 0, nAttr = 0, nOr = 0;
 
 for (const set of ['dev', 'test']) {
   const src = lignes(set + '.src'), ref = lignes(set + '.ref0');
@@ -126,9 +134,10 @@ for (const set of ['dev', 'test']) {
       if (op === '=') { ia++; continue; }
       nCorr++;
       const f = famille(x, y);
-      const sugg = (op !== 'ins' && ia < T.length) ? propose(T, ia, prot, adj) : null;
+      const [sugg, tier] = (op !== 'ins' && ia < T.length) ? propose(T, ia, prot, adj) : [null, null];
       const ok = sugg && String(sugg).toLowerCase() === String(y || '').toLowerCase();
-      if (ok) { nAttr++; attrape.set(f, (attrape.get(f) || 0) + 1); }
+      if (ok && tier === 'RED') { nAttr++; attrape.set(f, (attrape.get(f) || 0) + 1); }
+      else if (ok) { nOr++; orange.set(f, (orange.get(f) || 0) + 1); }
       else {
         rate.set(f, (rate.get(f) || 0) + 1);
         if (!ex.has(f)) ex.set(f, []);
@@ -143,14 +152,20 @@ console.log('FAMILLES DE FAUTES ANGLAISES — ce que le correcteur attrape et ce
 // ⚠️ Node ne gère PAS les largeurs de champ façon printf (« %-30s ») : il les imprime telles
 // quelles. D'où padEnd/padStart explicites — la première version rendait le tableau illisible.
 const pad = (s, n) => String(s).padEnd(n), num = (s, n) => String(s).padStart(n);
-console.log('  JFLEG dev+test · ' + nCorr + ' corrections d\'annotateurs alignées · '
-            + nAttr + ' attrapées (' + (100 * nAttr / Math.max(1, nCorr)).toFixed(1) + ' %)\n');
-const toutes = [...new Set([...attrape.keys(), ...rate.keys()])];
+const pc = (k) => (100 * k / Math.max(1, nCorr)).toFixed(1);
+console.log('  JFLEG dev+test · ' + nCorr + ' corrections d\'annotateurs alignées'
+            + '\n    ROUGE (affirmé)  ' + num(nAttr, 5) + '  (' + pc(nAttr) + ' %)'
+            + '\n    orange (signalé) ' + num(nOr, 5) + '  (' + pc(nOr) + ' %)'
+            + '\n    → vu par l\'utilisateur ' + num(nAttr + nOr, 5) + '  (' + pc(nAttr + nOr) + ' %)\n');
+const toutes = [...new Set([...attrape.keys(), ...orange.keys(), ...rate.keys()])];
 toutes.sort((x, y) => (rate.get(y) || 0) - (rate.get(x) || 0));
-console.log('  ' + pad('famille', 30) + num('RATÉ', 7) + num('attrapé', 9) + '   exemples');
+console.log('  ' + pad('famille', 30) + num('RATÉ', 7) + num('ROUGE', 7) + num('orange', 8) + '   exemples');
 for (const f of toutes) {
-  const r = rate.get(f) || 0, at = attrape.get(f) || 0;
-  console.log('  ' + pad(f, 30) + num(r, 7) + num(at, 9) + '   ' + (ex.get(f) || []).slice(0, 3).join(' · '));
+  const r = rate.get(f) || 0, at = attrape.get(f) || 0, or = orange.get(f) || 0;
+  console.log('  ' + pad(f, 30) + num(r, 7) + num(at, 7) + num(or, 8) + '   ' + (ex.get(f) || []).slice(0, 3).join(' · '));
 }
 console.log('\n  ⚠️ Fréquent ≠ traitable à FP=0. Ce classement donne des CANDIDATS ; chacun demande');
 console.log('     sa mesure de FP sur texte ÉDITÉ (fp_en_propre_probe.js) avant d\'être écrit.');
+console.log('  ⚠️ RATÉ ne veut pas dire « pas de règle » : « mot en trop », « mot oublié » et les');
+console.log('     prépositions sont à 0 parce qu\'on ne fait PAS d\'insertion ni de suppression —');
+console.log('     c\'est un choix, pas un trou. Ne pas lire ces lignes comme un retard à rattraper.');
