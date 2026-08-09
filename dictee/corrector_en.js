@@ -216,7 +216,11 @@ const VOWEL_IPA = new Set([...'aeiouɑɒɔɛɪʊʌəæɜɚɝɐɘœø']);
 function vowelStart(lex, w){                                // 1er son du mot via IPA ; null si inconnue
   let ip = lex.IPA.get(w.toLowerCase());
   if(!ip) return null;
-  ip = ip.replace(/^[\/\[\]ˈˌˑ.\s]+/, '');
+  /* ⚠️ LES PARENTHÈSES AUSSI. 132 entrées notent une accentuation facultative en tête :
+     « amen = (ˌ)ɑːˈmɛn ». Sans les retirer, le premier « son » lu est « ( », donc jamais une
+     voyelle : le mot était silencieusement classé comme commençant par une consonne. Inoffensif
+     tant qu'on ne faisait que a->an (on ratait), dangereux dès qu'on fait an->a (on affirme). */
+  ip = ip.replace(/^[\/\[\]()ˈˌˑ.\s]+/, '');
   return ip ? VOWEL_IPA.has(ip[0]) : null;
 }
 
@@ -242,6 +246,33 @@ function homoDecide(lex, T, i, adj){
          8 des 17 rouges restants sur texte ÉDITÉ (GUM+PUD) venaient de là. */
       && (!adj || adj.has(i)))
     return ['an', 'RED'];
+  /* ⭐ LA DIRECTION INVERSE — « an user » -> « a ». Elle avait été abandonnée ; elle est REPRISE
+     parce que les gardes qui manquaient alors existent maintenant (adjacence réelle, exclusion des
+     majuscules). REMESURÉ sur 15 353 phrases d'anglais édité (GUM + PUD) : **1 déclenchement**, et
+     c'est une vraie faute du corpus (« where an voluntary iodisation »). Soit FP=0.
+
+     C'est le miroir exact de la règle du dessus, et c'est la faute d'école : on applique « an devant
+     une voyelle » à la LETTRE au lieu du SON. « an user », « an useful », « an unicorn », « an one »
+     s'écrivent avec une voyelle et se prononcent avec une consonne (/j/, /w/). L'IPA tranche seule ;
+     symétriquement, « an hour » et « an honest » restent muets parce que leur IPA commence par une
+     voyelle. Aucune liste d'exceptions n'est nécessaire.
+
+     ⚠️ SAUF LA CLASSE « h- » ASPIRÉ, exclue exprès. « an historic », « an hotel », « an herb » sont
+     un usage BRITANNIQUE admis, pas une faute : signaler du registre en ROUGE serait faux. Or c'est
+     précisément et uniquement le h- aspiré qui est en jeu — « an hour »/« an honest » ont un h muet,
+     donc une IPA vocalique, donc ils ne passaient déjà pas par ici. L'exclusion est chirurgicale.
+
+     ⚠️ RAPPEL NON PROUVÉ, et on le dit : JFLEG ne contient **aucun** cas où l'annotateur remplace
+     « an X » par « a X » — cette règle n'y gagne 0. Elle est livrée parce qu'elle est gratuite
+     (FP=0), mécanique, et que JFLEG est un corpus d'apprenants non-natifs, dont les fautes ne sont
+     pas celles d'un dys francophone ou anglophone qui applique la règle scolaire par la lettre.
+     Si un corpus dys anglais apparié apparaît un jour, la remesurer — et la retirer si elle est muette. */
+  if(lw === 'an' && (w === 'an' || i === 0)
+      && /^\p{L}+$/u.test(nxRaw) && nxRaw === nxRaw.toLowerCase() && nxRaw !== nxRaw.toUpperCase()
+      && !/^h/.test(nx)                                   // registre britannique, pas une faute
+      && vowelStart(lex, nx) === false                    // null (mot hors IPA) => on s'abstient
+      && (!adj || adj.has(i)))
+    return ['a', 'RED'];
   if(lw === 'then' && (COMPAR.has(pv) || (pv.endsWith('er') && isAdj(lex, pv)))){
     if(THAN_OBJ.has(nx) || (nx && (isNoun(lex, nx) || isAdj(lex, nx)) && !isVerb(lex, nx))) return ['than', 'RED'];
     return ['than', 'ORANGE'];
@@ -1347,6 +1378,13 @@ if(typeof require !== 'undefined' && require.main === module){
     ['your gonna love it',0,"you're",'RED'],['there car is red',0,'their','ORANGE'],
     ['its not fair',0,"it's",'ORANGE'],['your welcome to stay',0,"you're",'ORANGE'],
     ['I saw a apple',2,'an','RED'],['It is a honest mistake',2,'an','RED'],
+    /* an -> a : le SON décide, pas la lettre. Positifs = voyelle écrite, consonne prononcée ;
+       négatifs = les pièges qui doivent rester muets (h muet, sigle, registre britannique). */
+    ['he is an user of the site',2,'a','RED'],['that is an unicorn',2,'a','RED'],
+    ['an one time offer',0,'a','RED'],['an useful tool here',0,'a','RED'],
+    ['I waited an hour today',2,null,null],['it was an honest mistake',2,null,null],
+    ['she has an MBA degree',2,null,null],['an heir to the throne',0,null,null],
+    ['an historic moment happened',0,null,null],['an umbrella is useful',0,null,null],
     // familles ajoutées 08/2026 — FP=0 vérifié par SCAN EWT (12 544 phrases : 4 déclenchements, 4 vraies fautes)
     ['they where happy',1,'were','RED'],['we where on time',1,'were','RED'],
     ['Were going home now',0,"We're",'ORANGE'],
