@@ -2414,6 +2414,21 @@ if GENDER_ACC:
             continue                                # contredit sans accent NI collision -> bruit
         _garde[_w] = _g
     GENDER_ACC = _garde
+    # ⭐ SOUS-ENSEMBLE « COLLISION » — le SEUL que `rule_det_gender` a le droit de consulter.
+    # La table accentuée est BRUTE (kaikki) : elle contient des adjectifs antéposés lus comme noms
+    # (« futur »→m, « premier », « grand », « petit », « nouveau », « seul »). `GENDER_PURE` les
+    # écarte — c'est ce qui la rend PURE. Les brancher tels quels a coûté 3 FP immédiats sur le
+    # scan UD (« sur le papier »→la, « la troisième division »→le, « une futur maman »→un), parce
+    # que la règle prend le mot APRÈS le déterminant pour la tête du groupe.
+    # Ce qui distingue un gain d'un dégât n'est pas le mot, c'est la CAUSE de son absence :
+    #   ✅ absent parce que sa clé nue est PARTAGÉE (âme/amé, affaire/affairé, lettre/lettré) —
+    #      la table accentuée répare une perte, c'est sa raison d'être ;
+    #   ❌ absent parce que la curation l'a ÉCARTÉ (futur, grand, premier) — le rétablir défait
+    #      un choix délibéré.
+    # Le test est le même que ci-dessus : la forme désaccentuée porte-t-elle plusieurs entrées ?
+    GENDER_ACC_COLL = {w: g for w, g in GENDER_ACC.items() if len(_part.get(deacc(w.lower()), ())) > 1}
+else:
+    GENDER_ACC_COLL = {}
 
 _POSS_DET = {'mon', 'ma', 'ton', 'ta', 'son', 'sa'}
 _ART_BLOCK = {'un', 'une', 'le', 'la', 'les', 'du', 'des', 'au', 'aux', 'ce', 'cet', 'cette', 'ces',
@@ -2442,7 +2457,15 @@ def rule_det_gender(T, i):
     if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if deacc(T[hi].lower()) in _EPICENE_NOUN: return None          # NOM ÉPICÈNE (médecin/juge/artiste…) → 2 genres valides → ne pas forcer le déterminant
     if not (_pp and _pp[0] >= PL_TAU_M): return None   # GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée — mot après déterminant = NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000, gender_levers_ud.py)
-    g_noun = GENDER_PURE.get(deacc(T[hi].lower()))                 #   (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
+    # ⭐ FORME ACCENTUÉE D'ABORD — le fil qui manquait. `GENDER_PURE` est DÉSACCENTUÉE, donc elle
+    # perd tout nom dont la clé nue est partagée avec un masculin : « âme » (amé), « affaire »
+    # (affairé), « lettre » (lettré) en sont ABSENTS, alors qu'ils n'ont rien d'ambigu. Mesuré :
+    # 8 manquants sur 52 noms très courants, dont 3 dus à cette seule collision.
+    # `GENDER_ACC` (table accentuée) les a ; elle était consultée par `_noun_gender` et
+    # `rule_adj_epithet`, mais PAS ici — le consommateur le plus direct du genre.
+    # ⚠️ SOUS-ENSEMBLE « COLLISION » SEULEMENT (GENDER_ACC_COLL, cf. sa définition) : la table brute
+    # rétablirait aussi des adjectifs antéposés que la curation avait écartés exprès -> 3 FP mesurés.
+    g_noun = GENDER_ACC_COLL.get(T[hi].lower()) or GENDER_PURE.get(deacc(T[hi].lower()))  # (l'ambiguïté de GENRE — « tour » m+f — reste couverte par GENDER_PURE)
     if g_noun not in ('m', 'f') or g_noun == g_det: return None    # nom inconnu/ambigu/homographe → abstention ; ou accord OK
     sugg = DET_ALT.get((lw, g_noun))
     return _keepcase(T[i], sugg) if sugg else None
