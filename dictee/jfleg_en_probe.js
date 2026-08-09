@@ -58,6 +58,8 @@ for (const set of ['dev', 'test']) {
     for (let i = 0; i < T.length; i++) {
       if (prot.has(i)) continue;
       let sugg = null, canal = null;
+      const am = C.articleMassDecide ? C.articleMassDecide(lex, T, i, adj, C.hyphMask ? C.hyphMask(t) : null) : [null,null];
+      if (am[1] === 'RED') { sugg = am[0]; canal = 'article'; }
       const ax = C.auxAgree ? C.auxAgree(lex, T, i, adj) : [null,null];
       if (ax[1] === 'RED') { sugg = ax[0]; canal = 'aux'; }
       const iq = C.interroDecide ? C.interroDecide(lex, T, i, adj) : [null,null];

@@ -792,6 +792,65 @@ function auxAgree(lex, T, i, adj){
             : (lw === 'have' ? [null, null] : [_keepCaseEn(w, 'have'), 'RED']);
 }
 
+/* ⭐ ARTICLE DEVANT UN INDÉNOMBRABLE — « a information » -> information · « an advice » -> advice.
+   POURQUOI CE SOUS-CAS ET PAS LES ARTICLES EN GÉNÉRAL. Les articles sont la 2ᵉ famille la plus
+   ratée de JFLEG (423), mais choisir `a` ou `the` demande la DÉFINITUDE — donc de savoir si le
+   référent est déjà connu du lecteur, c'est-à-dire du DISCOURS. Structure ouverte : hors
+   d'atteinte, et on n'essaie pas.
+   MAIS un sous-ensemble est FERMÉ : `a/an` devant un nom indénombrable est faux QUEL QUE SOIT le
+   contexte — « an information », « a advice », « a homework » n'existent pas, il n'y a rien à
+   arbitrer. C'est le filtre qu'on s'est donné après 3 échecs et 5 réussites : agir là où la
+   structure est fermée, s'abstenir ailleurs.
+   ⚠️ LA CORRECTION EST LA SUPPRESSION DE L'ARTICLE, pas un remplacement — on rend donc le NOM SEUL
+   comme suggestion sur l'article, et l'interface remplace « a information » par « information ».
+   ⚠️ `_NUM_MASS` est réutilisée telle quelle : une seule liste pour deux règles, pas deux listes
+   qui divergeront. */
+/* ⚠️⚠️ DEUX LISTES, ET C'EST VOULU. `_NUM_MASS` sert à une règle qui S'ABSTIENT : elle peut donc
+   être large, une abstention de trop ne coûte qu'un rappel. `_ART_MASS` sert à une règle qui AGIT :
+   elle doit être ÉTROITE, une action de trop abîme la copie.
+   Mesuré : réutiliser `_NUM_MASS` telle quelle produisait 53 rouges, dont **34 sur `time` seul**
+   (« a long time », « a good time » sont corrects) puis health/air/education/work/experience/water
+   — tous DÉNOMBRABLES dans un sens courant. On ne garde ici que ce qui n'est JAMAIS précédé de
+   a/an en anglais moderne.
+   ⭐ RÈGLE GÉNÉRALE À RETENIR : **une liste d'abstention et une liste d'action ne sont pas la même
+   liste**, même quand elles portent le même nom de concept. */
+const _ART_MASS = new Set(['information','advice','homework','housework','luggage','baggage',
+  'equipment','furniture','evidence','traffic','weather','progress','pollution','vocabulary',
+  'feedback','software','hardware','machinery','jewellery','jewelry','stationery','cutlery',
+  'scenery','accommodation','money','knowledge','laughter','applause','courage','patience',
+  'permission','proof','publicity','rubbish','garbage','safety','shopping','sunshine','thunder',
+  'violence','wealth','wisdom','clothing','nonsense','fun']);
+
+function articleMassDecide(lex, T, i, adj, hyph){
+  const w = String(T[i] || ''), lw = w.toLowerCase();
+  if(lw !== 'a' && lw !== 'an') return [null, null];
+  if(i + 1 >= T.length) return [null, null];
+  if(adj && !adj.has(i)) return [null, null];
+  // On saute les adjectifs : « a useful information » est fautif de la même façon.
+  let j = i + 1, saut = 0;
+  while(j < T.length && saut < 3 && ctxPos(T, j) === 'ADJ'){ if(adj && !adj.has(j - 1)) return [null, null]; j++; saut++; }
+  if(j >= T.length) return [null, null];
+  const nom = String(T[j] || '').toLowerCase();
+  if(!_ART_MASS.has(nom)) return [null, null];
+  /* ⚠️ TRAIT D'UNION — « a knowledge-based economy » : le tokeniseur coupe sur le tiret, donc
+      +  ressemble à un article devant un indénombrable. Or  est un
+     ADJECTIF composé et la tête est . C'était le DERNIER faux positif de cette règle.
+     3ᵉ fois que ce masque sauve une règle : à brancher SYSTÉMATIQUEMENT sur toute règle de contexte. */
+  if(hyph && hyph.has(j)) return [null, null];
+  if(ctxPos(T, j) !== 'NOUN') return [null, null];
+  /* ⚠️ CONTRÔLE DE TÊTE — « a health issue », « a research paper », « a work permit » sont
+     CORRECTS : l'indénombrable y est MODIFIEUR, et la tête est le nom qui suit (qui, lui, est
+     dénombrable). Même piège que pour l'accord en nombre, et même remède : si un nom suit,
+     on s'abstient. C'était 8 des 53 rouges du premier jet. */
+  if(j + 1 < T.length && (ctxPos(T, j + 1) === 'NOUN' || isNoun(lex, String(T[j + 1] || '').toLowerCase())))
+    return [null, null];
+  /* ⚠️ EXCEPTION RÉELLE : un indénombrable REDEVIENT dénombrable quand il est qualifié en « unité »
+     — « a piece of advice », « a work of art », « a time to remember ». Le signal est le « of »
+     qui suit, ou une relative. On s'abstient dans ce cas plutôt que de trancher. */
+  if(j + 1 < T.length && String(T[j + 1] || '').toLowerCase() === 'of') return [null, null];
+  return [String(T[j]), 'RED'];
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -1046,7 +1105,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
