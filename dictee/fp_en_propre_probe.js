@@ -64,7 +64,7 @@ function phrases() {
 }
 
 const PHR = phrases();
-let toks = 0, rouge = 0, orange = 0, orNb = 0, orV3 = 0;
+let toks = 0, rouge = 0, orange = 0, orNb = 0, orV3 = 0, orCv = 0;
 const fam = new Map(), ex = [];
 for (const t of PHR) {
   const T = C.tokenize(t), prot = C.urlMask(t), adj = C.adjMask(t);
@@ -88,6 +88,8 @@ for (const t of PHR) {
     if (v3[1] === 'RED') { note('[verbe-3sg] ' + T[i] + '→' + v3[0]); continue; }
     const nb = C.numberDecide ? C.numberDecide(lex, T, i, adj, hyph) : [null,null];
     if (nb[1] === 'ORANGE') { orange++; orNb++; continue; }
+    const cv = C.confuseVigDecide ? C.confuseVigDecide(lex, T, i, adj, CONFG) : [null,null];
+    if (cv[1] === 'ORANGE') { orange++; orCv++; continue; }
     const pp = C.pastPartDecide(lex, T, i);
     if (pp[1]) { note('[participe] ' + T[i] + '→' + pp[0]); continue; }
     const h = C.homoDecide(lex, T, i, adj);
@@ -101,7 +103,7 @@ for (const t of PHR) {
 console.log('FP ANGLAIS SUR TEXTE ÉDITÉ (PUD + GUM genres édités)');
 console.log('  %d phrases · %d tokens', PHR.length, toks);
 console.log('  ROUGES : %d  (%s %%)', rouge, (100 * rouge / toks).toFixed(4));
-console.log('  orange : %d  (%s %%)   dont NOMBRE %d · VERBE-3sg %d', orange, (100 * orange / toks).toFixed(2), orNb, orV3);
+console.log('  orange : %d  (%s %%)   dont NOMBRE %d · VERBE-3sg %d · CONFUS %d', orange, (100 * orange / toks).toFixed(2), orNb, orV3, orCv);
 console.log('\n  par famille :');
 [...fam.entries()].sort((a, b) => b[1] - a[1])
   .forEach(([k, v]) => console.log('    ' + String(v).padStart(3) + '  ' + k));
