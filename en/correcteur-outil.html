@@ -42,6 +42,7 @@
   #out .corr{cursor:pointer;border-radius:3px}
   #out .corr.red{border-bottom:3px solid #f85149;background:color-mix(in srgb,#f85149 16%,transparent)}
   #out .corr.orange{border-bottom:3px solid #d29922;background:color-mix(in srgb,#d29922 20%,transparent)}
+  #out .corr.info{cursor:help}
   #out .corr:hover{background:color-mix(in srgb,var(--accent) 24%,transparent)}
   #count{font:600 15px var(--sans);color:var(--fg)}
   #status{font:15px var(--sans);color:var(--fg-2)}
@@ -111,7 +112,7 @@
 <script src="../dictee/corrector_en.js"></script>
 <script>
 (function(){
-  var LEX=null, C=window.CorrectorEN;
+  var LEX=null, CONFUS=null, C=window.CorrectorEN;
   var inEl=document.getElementById('in'), outEl=document.getElementById('out'),
       btn=document.getElementById('check'), clr=document.getElementById('clear'),
       st=document.getElementById('status'), cnt=document.getElementById('count');
@@ -125,11 +126,28 @@
       st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.';
       // morphologie verbale irrégulière (runned->ran…) — chargée à part, best-effort
       fetch('../dictee/verbmorph_en.json').then(function(r){return r.ok?r.json():null;})
-        .then(function(j){ if(j) LEX.VERBMORPH=j; }).catch(function(){}); })
+        .then(function(j){ if(j) LEX.VERBMORPH=j; }).catch(function(){});
+      /* ⭐⭐ LE MODÈLE POS — SANS LUI, LA MOITIÉ DES RÈGLES S'ABSTIENNENT EN SILENCE.
+         Le mur anglais est le CONTEXTE, pas le lexique : `verb3Decide`, `numberDecide`,
+         `articleMassDecide`, `interroDecide` interrogent toutes `ctxPos`. La page ne chargeait pas
+         le modèle — les règles se seraient tues sans rien signaler, ce qui est le pire cas :
+         aucun faux positif, aucun gain, et rien pour s'en apercevoir. */
+      fetch('../dictee/pos_hmm_en.json').then(function(r){return r.ok?r.json():null;})
+        .then(function(j){ if(j&&C.setPosModel) C.setPosModel(j); }).catch(function(){});
+      // Groupes de confusables : servent au créneau ROUGE et à la vigilance ORANGE.
+      fetch('../dictee/confusables_en.json').then(function(r){return r.ok?r.json():null;})
+        .then(function(j){ if(j) CONFUS=j; }).catch(function(){}); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
   function analyze(text){
-    var re=/[A-Za-z]+(?:'[A-Za-z]+)*/g, m, toks=[], pos=[];
+    /* ⚠️⚠️ LE MÊME MOTIF QUE `C.tokenize`, ET C'EST OBLIGATOIRE. La page avait sa propre copie du
+       découpage — l'ANCIENNE version, sans lettres accentuées ni apostrophe typographique. Or
+       `urlMask`, `adjMask` et `hyphMask` rendent des INDICES calculés avec le motif du moteur : deux
+       découpages différents, et les indices ne désignent plus les mêmes mots. Toutes les règles de
+       contexte se seraient trompées de cible, SILENCIEUSEMENT.
+       Le motif du moteur répare aussi deux coupures mesurées : `didn’t` -> `didn`+`t` (apostrophe
+       typographique) et `México` -> `M`+`xico` (lettre accentuée). */
+    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, m, toks=[], pos=[];
     while((m=re.exec(text))){ toks.push(m[0]); pos.push(m.index); }
     var marks=new Array(toks.length).fill(null);
     // ⭐ LES MOTS DANS UNE URL NE SONT PAS DU LANGAGE : ce sont des identifiants, et les corriger
@@ -141,8 +159,35 @@
     // Les règles qui exigent que deux mots se touchent consultent ce masque. Mesuré : 8 rouges de
     // moins sur du texte anglais ÉDITÉ (GUM+PUD).
     var ADJ=C.adjMask(text);
+    /* ⭐ TRAIT D'UNION — cousin du masque d'adjacence. « those moon-cursed waters » se tokenise en
+       `those moon cursed` : une règle de contexte y lit un composé qui n'existe pas. Mesuré : ce
+       masque a évité un faux positif à TROIS règles différentes (nombre, article, confusables). */
+    var HYP=C.hyphMask?C.hyphMask(text):null;
+    /* Les groupes de confusables, pour les deux règles qui s'en servent (créneau ROUGE et
+       vigilance ORANGE). Chargés une seule fois avec le lexique. */
+    var CG=(typeof CONFUS!=='undefined'&&CONFUS)?(Array.isArray(CONFUS)?CONFUS:(CONFUS.groupes||[])):[];
     for(var i=0;i<toks.length;i++){
       if(PROT.has(i)) continue;
+      /* ⭐⭐ LES RÈGLES DE GRAMMAIRE AJOUTÉES LE 2026-08-09, dans l'ORDRE où elles doivent passer.
+         Toutes sont mesurées sur 177 748 tokens de texte ÉDITÉ (PUD+GUM) et sur JFLEG.
+         L'ordre compte : les règles les plus SPÉCIFIQUES d'abord, sinon une règle large réclame un
+         token qu'une règle précise aurait mieux traité. */
+      // ARTICLE devant un INDÉNOMBRABLE — « a information ». Zéro FP mesuré.
+      var am=C.articleMassDecide?C.articleMassDecide(LEX,toks,i,ADJ,HYP):[null,null];
+      if(am[1]){ marks[i]={sugg:'', cls:'red', del:true}; continue; }
+      // ACCORD DE L'AUXILIAIRE — « he are going » -> is · « he have gone » -> has. Zéro FP.
+      var ax=C.auxAgree?C.auxAgree(LEX,toks,i,ADJ):[null,null];
+      if(ax[1]){ marks[i]={sugg:ax[0], cls:'red'}; continue; }
+      // INTERROGATIF — « Does he goes ? » -> go · « Do he go ? » -> Does. Zéro FP.
+      var iq=C.interroDecide?C.interroDecide(LEX,toks,i,ADJ):[null,null];
+      if(iq[1]){ marks[i]={sugg:iq[0], cls:'red'}; continue; }
+      // VERBE 3ᵉ PERSONNE — « he go » -> goes. 1 seul déclenchement sur texte édité, et c'était
+      // une VRAIE faute. Neuf gardes, dont le prétérit (« he met » ne prend pas de -s).
+      var v3=C.verb3Decide?C.verb3Decide(LEX,toks,i,ADJ):[null,null];
+      if(v3[1]){ marks[i]={sugg:v3[0], cls:'red'}; continue; }
+      // CONFUSABLES par CRÉNEAU — « I will council him » -> counsel. Zéro FP.
+      var cs=C.confuseSlotDecide?C.confuseSlotDecide(LEX,toks,i,ADJ,HYP,CG):[null,null];
+      if(cs[1]){ marks[i]={sugg:cs[0], cls:'red'}; continue; }
       // ⭐ PARTICIPE APRÈS « HAVE » (« has went » -> « has gone ») : après have/has/had la grammaire
       // n'admet QUE le participe — clôture de paradigme, pas jugement. FP=0 mesuré sur EWT.
       var pp=C.pastPartDecide(LEX,toks,i);
@@ -150,15 +195,38 @@
       var hd=C.homoDecide(LEX,toks,i,ADJ);
       if(hd[1]){ marks[i]={sugg:hd[0], cls:(hd[1]==='RED'?'red':'orange')}; continue; }
       var sp=C.spellSuggest(LEX,toks[i], i>0?toks[i-1].toLowerCase():'');   // contexte : le mot-outil précédent ouvre un slot (verbe/nom)
-      if(sp[1]==='AUTO') marks[i]={sugg:sp[0], cls:'red'};
-      else if(sp[1]==='FLAG' && sp[0]) marks[i]={sugg:sp[0], cls:'orange'};
+      if(sp[1]==='AUTO'){ marks[i]={sugg:sp[0], cls:'red'}; continue; }
+      if(sp[1]==='FLAG' && sp[0]){ marks[i]={sugg:sp[0], cls:'orange'}; continue; }
+      /* ⭐ LES DEUX COUCHES ORANGE, EN DERNIER — elles ne tranchent pas, elles SIGNALENT.
+         Elles passent après tout le reste : si une règle rouge a su décider, on ne va pas
+         rétrograder sa décision en « à vérifier ». */
+      // ACCORD EN NOMBRE — « many student ». Refusé DEUX FOIS en rouge (+5 puis +11 FP), tenu en
+      // orange : le doute se signale, il ne se tranche pas.
+      var nb=C.numberDecide?C.numberDecide(LEX,toks,i,ADJ,HYP):[null,null];
+      if(nb[1]){ marks[i]={sugg:nb[0], cls:'orange'}; continue; }
+      // CONFUSABLES INDÉCIDABLES — « witch » pour « which ». On ne signale que le membre RARE
+      // (freq <= moitié du max du groupe) : tout signaler donnait 2,88 % de flood, 4× le seuil.
+      var cv=C.confuseVigDecide?C.confuseVigDecide(LEX,toks,i,ADJ,CG):[null,null];
+      /* ⚠️ CELLE-CI NE PROPOSE PAS, ELLE INTERROGE. Elle rend la LISTE des mots avec lesquels
+         celui-ci se confond (« which / witch ») — cliquer dessus insérerait la liste entière dans
+         le texte. On la marque `info` : l'infobulle montre les alternatives, le clic ne fait rien.
+         C'est le sens même de l'orange ici — on ne sait pas trancher, donc on ne tranche pas. */
+      if(cv[1]) marks[i]={sugg:cv[0], cls:'orange', info:true};
     }
     var html='', cur=0, n=0;
     for(var j=0;j<toks.length;j++){
       html+=esc(text.slice(cur, pos[j]));
       var w=toks[j], mk=marks[j];
       if(mk){ n++;
-        html+='<span class="corr '+mk.cls+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'" title="→ '+esc(mk.sugg)+' (click to apply)">'+esc(w)+'</span>';
+        /* La règle « article devant un indénombrable » ne REMPLACE pas, elle SUPPRIME : la
+           correction de « a information » est « information », pas un autre mot. On le dit dans
+           l'infobulle plutôt que d'afficher une suggestion vide, qui n'aurait aucun sens. */
+        var titre = mk.info ? 'often confused with: ' + esc(mk.sugg) + ' — check which one you mean'
+                  : mk.del ? 'remove — uncountable noun (click to apply)'
+                           : '→ ' + esc(mk.sugg) + ' (click to apply)';
+        html+='<span class="corr '+mk.cls+(mk.info?' info':'')+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'"'
+            + (mk.del?' data-del="1"':'') + (mk.info?' data-info="1"':'')
+            + ' title="'+titre+'">'+esc(w)+'</span>';
       } else html+=esc(w);
       cur=pos[j]+w.length;
     }
@@ -177,13 +245,25 @@
 
   outEl.addEventListener('click', function(e){
     var t=e.target.closest('.corr'); if(!t) return;
-    var sugg=t.getAttribute('data-sugg'), orig=t.textContent;
-    var re=/[A-Za-z]+(?:'[A-Za-z]+)*/g, m, k=0, idx=parseInt(t.getAttribute('data-i'),10), at=-1, len=0;
+    if(t.getAttribute('data-info')==='1') return;   // vigilance : on informe, on n'applique pas
+    var sugg=t.getAttribute('data-sugg'), orig=t.textContent, del=t.getAttribute('data-del')==='1';
+    /* ⚠️ TROISIÈME COPIE DU MOTIF DE DÉCOUPAGE, et elle doit être la MÊME que les deux autres —
+       ici il sert à retrouver le mot n° `data-i` dans le texte source. Un motif différent décale
+       le comptage et on remplacerait le mauvais mot. */
+    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, m, k=0,
+        idx=parseInt(t.getAttribute('data-i'),10), at=-1, len=0;
     while((m=re.exec(inEl.value))){ if(k===idx){ at=m.index; len=m[0].length; break; } k++; }
     if(at>=0){
-      var rep=sugg;
-      if(orig[0]===orig[0].toUpperCase() && orig[0]!==orig[0].toLowerCase()) rep=sugg.charAt(0).toUpperCase()+sugg.slice(1);
-      inEl.value=inEl.value.slice(0,at)+rep+inEl.value.slice(at+len);
+      if(del){
+        /* SUPPRESSION (« a information » -> « information ») : on retire le mot ET l'espace qui le
+           suit, sinon on laisse une double espace derrière soi. */
+        var fin=at+len; while(fin<inEl.value.length && inEl.value[fin]===' ') fin++;
+        inEl.value=inEl.value.slice(0,at)+inEl.value.slice(fin);
+      } else {
+        var rep=sugg;
+        if(orig[0]===orig[0].toUpperCase() && orig[0]!==orig[0].toLowerCase()) rep=sugg.charAt(0).toUpperCase()+sugg.slice(1);
+        inEl.value=inEl.value.slice(0,at)+rep+inEl.value.slice(at+len);
+      }
       run();
     }
   });

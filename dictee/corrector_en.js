@@ -472,7 +472,12 @@ function numberDecide(lex, T, i, adj, hyph){
   if(i + 1 < T.length){
     const suiv = String(T[i + 1] || '');
     if(/^['’]/.test(suiv)) return [null, null];
-    if(ctxPos(T, i + 1) === 'NOUN' || isNoun(lex, suiv.toLowerCase())) return [null, null];
+    /* ⚠️ LE TAGGER TRANCHE, PAS LE LEXIQUE. La 1ʳᵉ version ajoutait « || isNoun(lex, suiv) » en
+       ceinture-et-bretelles — mais kaikki donne une lecture NOMINALE à presque tout, y compris à
+       « in » (« the ins and outs »). Résultat : « many student in my class » s'abstenait, parce que
+       le lexique voyait un nom là où le tagger voit une préposition. La ceinture bloquait la règle.
+       C'est le principe posé partout ici : sur l'anglais, le mur est le CONTEXTE. */
+    if(ctxPos(T, i + 1) === 'NOUN' || ctxPos(T, i + 1) === 'PROPN') return [null, null];
     const sl = suiv.toLowerCase();
     if(_DET_SG.has(sl) || _DET_PL.has(sl) || sl === 'the') return [null, null];
   }
@@ -842,8 +847,8 @@ function articleMassDecide(lex, T, i, adj, hyph){
      CORRECTS : l'indénombrable y est MODIFIEUR, et la tête est le nom qui suit (qui, lui, est
      dénombrable). Même piège que pour l'accord en nombre, et même remède : si un nom suit,
      on s'abstient. C'était 8 des 53 rouges du premier jet. */
-  if(j + 1 < T.length && (ctxPos(T, j + 1) === 'NOUN' || isNoun(lex, String(T[j + 1] || '').toLowerCase())))
-    return [null, null];
+  if(j + 1 < T.length && (ctxPos(T, j + 1) === 'NOUN' || ctxPos(T, j + 1) === 'PROPN'))
+    return [null, null];   // le TAGGER tranche, pas le lexique — même correctif que numberDecide
   /* ⚠️ EXCEPTION RÉELLE : un indénombrable REDEVIENT dénombrable quand il est qualifié en « unité »
      — « a piece of advice », « a work of art », « a time to remember ». Le signal est le « of »
      qui suit, ou une relative. On s'abstient dans ce cas plutôt que de trancher. */
