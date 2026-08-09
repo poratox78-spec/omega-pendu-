@@ -19,6 +19,11 @@ jobs:
         run: python3 dictee/recall_probe.py --check
       - name: Garde FP À L'ÉCHELLE (correcteur sur 2500 phrases correctes UD — plafond anti-régression, cf. audit 30/06)
         run: python3 dictee/fp_scale_probe.py --check
+      # Le chantier « bases de genre désaccentuées » a traîné parce qu'AUCUN banc ne déclenchait
+      # la table : la retirer ne changeait rien, et elle contenait « le »→féminin sans que rien
+      # ne le voie. Ce banc ferme le trou — un chantier sans banc n'est pas un chantier.
+      - name: Genre perdu par la DÉSACCENTUATION (âme/amé, affaire/affairé) — rappel + FP=0
+        run: python3 dictee/gender_coll_probe.py --check
       - name: Garde FP SPELLER à l'échelle (ortho affirmatif sur 2500 UD — plafond anti-régression, baseline post-resserrage #107/#112)
         run: node dictee/speller_fp_scale_probe.js --check
       - name: Validation held-out (vocabulaire neuf)
