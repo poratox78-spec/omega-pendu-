@@ -725,6 +725,20 @@ function verb3Decide(lex, T, i, adj){
    Pas de mur du sujet, pas de tête de groupe nominal à trouver : le sujet est le pronom, il est
    entre les deux, et sa personne est lexicale. C'est le cas le plus décidable de la conjugaison.
 
+   ⭐⭐ PRÉCISION GAGNÉE PAR UNE RÉFUTATION (2026-08-09) — « FERMÉE » NE VEUT PAS DIRE « APRÈS UN
+   AUXILIAIRE ». Ce qui ferme une structure, c'est que l'auxiliaire CONTRAINE LA CATÉGORIE de ce
+   qui suit : `do/does/did` imposent la base verbale, `have` impose le participe. On peut donc
+   affirmer sans rien savoir du sens.
+   **`be` NE CONTRAINT RIEN** : il accepte un adjectif (`is open`), un nom (`is water`), un groupe
+   prépositionnel (`is in bed`), un participe, un gérondif. Son complément est l'un des créneaux
+   les plus OUVERTS de l'anglais — l'exact contraire des trois autres.
+   Mesuré en voulant écrire « be + forme nue du verbe -> participe » (`he is concern` -> concerned) :
+   492 FP sur texte édité, ramenés à 100 par le tagger puis à 39 en s'abstenant sur toute lecture
+   adjectivale… et sur JFLEG, **21 des 35 déclenchements sont des phrases que l'annotateur N'A PAS
+   TOUCHÉES** (précision 8/35 = 23 %, direction elle-même partagée : 8 en -ed contre 2 en -ing).
+   ⛔ NE PAS RETENTER. C'est la même racine que l'échec de la copule (`they is happy`) : le problème
+   n'est jamais `be` lui-même, c'est que son complément est ouvert.
+
    DEUX DIRECTIONS, toutes deux sans ambiguïté :
    ① APRÈS do/does/did, LE VERBE EST À LA BASE. « Does he goes » et « Did he went » sont faux quel
       que soit le contexte — l'auxiliaire porte déjà le temps et la personne.

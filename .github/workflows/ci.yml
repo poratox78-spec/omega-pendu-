@@ -123,6 +123,11 @@ jobs:
       # renvoient des indices qui désignent d'autres mots — silencieusement).
       - name: EN — les règles du moteur sont branchées dans la page (+ tokeniseur identique)
         run: node dictee/en_page_wiring_probe.js
+      # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
+      # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
+      # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
+      - name: SITE — toutes les pages sont atteignables depuis leur accueil (FR + EN)
+        run: node dictee/pages_atteignables_probe.js
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)

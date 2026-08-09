@@ -78,8 +78,14 @@
 
 <div class="cw">
   <div class="card">
-    <h1>English spell &amp; homophone checker</h1>
-    <p class="sub">Catches typos (recieve → receive) and real-word confusions (their/there, its/it&rsquo;s, could of → could have).</p>
+    <h1>English spell &amp; grammar checker</h1>
+    <!-- ⚠️ CE TEXTE DÉCRIT CE QUE LE MOTEUR FAIT VRAIMENT — il était resté à « typos + homophones »
+         alors que la conjugaison, l'interrogatif, l'article, a/an et la ponctuation avaient été
+         livrés depuis. Sous-décrire un outil, c'est le rendre invisible. Si des familles de règles
+         changent, CETTE LIGNE CHANGE AUSSI. -->
+    <p class="sub">Catches typos (recieve → receive), real-word confusions (their/there, its/it&rsquo;s,
+      could of → could have), verb forms (he go → he goes, Does he goes → go), articles
+      (a apple → an, an user → a) and punctuation spacing.</p>
     <textarea id="in" spellcheck="false" placeholder="Type or paste English text here… e.g. Their is no point, its a shame you could of come.">Their is no point, its a shame you could of come. I recieve alot of freind requests and definately need to seperate them.</textarea>
     <div class="row">
       <button class="go" id="check" disabled>Check</button>
