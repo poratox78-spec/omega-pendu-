@@ -851,6 +851,67 @@ function articleMassDecide(lex, T, i, adj, hyph){
   return [String(T[j]), 'RED'];
 }
 
+/* ⭐⭐ TYPOGRAPHIE DE LA PONCTUATION — la couche portée du FRANÇAIS, et l'anglais y est PLUS SIMPLE.
+   Rem : « le trait d'union, peut faire un tour sur la ponctuation, on a bossé le sujet en français,
+   regarder ce qu'on peut piquer ».
+
+   CE QU'ON PIQUE, ET POURQUOI C'EST LÉGITIME DE LE FAIRE ICI ALORS QUE LA VIRGULE SYNTAXIQUE NON.
+   Côté français on a mesuré la frontière : « OÙ faut-il une virgule » est un JUGEMENT (51,98 % de
+   justesse sur 11 304 phrases humaines — aucun réglage n'en fera du FP=0), tandis que « l'espace
+   autour de la virgule QUI EST LÀ est-il bien placé » est MÉCANIQUE : décidable sur la chaîne
+   seule, sans grammaire ni contexte. C'est la seule couche de ponctuation qui atteint FP=0, et
+   elle l'atteint. La frontière se transpose telle quelle.
+
+   ⭐ ET L'ANGLAIS EST PLUS FACILE QUE LE FRANÇAIS ICI. Le français exige une espace AVANT « ; : ! ? »
+   et les usages divergent (France/Québec), donc la règle FR se limite à « , » et « . ».
+   L'anglais n'en met JAMAIS avant AUCUNE marque : la règle peut donc couvrir , . ; : ! ? d'un coup.
+   C'est un cas rare où la version anglaise est plus LARGE que l'originale française.
+
+   ⚠️ LES GARDES, toutes tirées de l'expérience française :
+   · les NOMBRES : « 1 . 5 », « 3 , 000 » ne sont pas de la ponctuation de phrase ;
+   · les POINTS DE SUSPENSION et les abréviations « e.g. », « U.S. » ;
+   · les URL, via `urlMask` en amont dans l'appelant.
+   ⚠️ On ne rend QUE des remplacements de chaîne (cs/ce), jamais un mot : cette couche ne connaît
+   pas les tokens, elle travaille sur le TEXTE. */
+function typoScanEn(text){
+  const out = [];
+  let m;
+  // ① ESPACE AVANT UNE PONCTUATION — jamais en anglais, quelle que soit la marque.
+  const re1 = /([A-Za-z0-9\)\]"'])[ \t]+([,.;:!?])(?![.\d])/g;
+  while((m = re1.exec(text))){
+    out.push({ cs: m.index, ce: m.index + m[0].length, from: m[0], sugg: m[1] + m[2],
+               name: 'space before punctuation', tier: 'red' });
+  }
+  // ② ESPACE MANQUANTE APRÈS — « word,word ». On exige une LETTRE des deux côtés : « 3,000 » et
+  //    « e.g. » sont ainsi épargnés sans liste d'exceptions.
+  const re2 = /([A-Za-z]{2,})([,;:])([a-z]{2,})/g;
+  while((m = re2.exec(text))){
+    if(/^(?:e|i|etc|vs|ie|eg)$/i.test(m[1])) continue;
+    // « JPC:dn » — en-tête de lettre (initiales de dactylographie). Un SIGLE tout en majuscules
+    // à gauche n'est pas un mot ordinaire : on s'abstient. Trouvé sur texte édité.
+    if(m[1] === m[1].toUpperCase()) continue;
+    out.push({ cs: m.index, ce: m.index + m[0].length, from: m[0], sugg: m[1] + m[2] + ' ' + m[3],
+               name: 'missing space after punctuation', tier: 'red' });
+  }
+  /* ③ MARQUE DOUBLÉE — « ,, » « ;; » « :: » : impossible en anglais écrit.
+     ⚠️ « ! » et « ? » sont EXCLUS : « Yeah!!! », « What??? », « ?! » sont de l'EMPHASE légitime et
+     très courante, pas des fautes. Mesuré : c'étaient les 2 seuls faux positifs de cette couche
+     sur 10 137 phrases éditées. Le français n'avait pas ce cas parce qu'il ne traitait que « , ». */
+  const re3 = /([,;:])\1+/g;
+  while((m = re3.exec(text))){
+    out.push({ cs: m.index, ce: m.index + m[0].length, from: m[0], sugg: m[1],
+               name: 'doubled punctuation', tier: 'red' });
+  }
+  // ④ DOUBLE ESPACE entre deux mots. (Après un point, la double espace est un usage typographique
+  //    ancien mais LÉGITIME — on ne la touche pas, on ne corrige qu'entre deux lettres.)
+  const re4 = /([A-Za-z,;:])[ ]{2,}([A-Za-z])/g;
+  while((m = re4.exec(text))){
+    out.push({ cs: m.index, ce: m.index + m[0].length, from: m[0], sugg: m[1] + ' ' + m[2],
+               name: 'double space', tier: 'red' });
+  }
+  return out;
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -1105,7 +1166,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
