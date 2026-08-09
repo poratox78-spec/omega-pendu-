@@ -982,6 +982,54 @@ function confuseSlotDecide(lex, T, i, adj, hyph, groupes){
   return [cible, 'RED'];
 }
 
+/* ⭐ VIGILANCE ORANGE SUR LES CONFUSABLES INDÉCIDABLES — l'application de la doctrine ORANGE.
+   68 groupes restent hors d'atteinte du rouge parce que leurs membres partagent la même classe de
+   mot (desert/dessert, discreet/discrete, complement/compliment) : les séparer demande le SENS.
+   La doctrine dit quoi en faire — **doute -> orange, jamais silence**. Priver un dys d'un
+   signalement parce qu'on ne sait pas trancher, c'est le laisser sans rien.
+
+   ⚠️ MAIS L'ORANGE A UN PRIX, ET IL SE MESURE. Signaler TOUS les membres des 68 groupes donne
+   **2,88 % de flood** — 4× le seuil toléré côté français (~0,70 %). Réfuté tel quel : les têtes
+   sont des mots-outils très fréquents (which 497, one 468, so 430, our 422, would 377).
+
+   ⭐ CE QUI SAUVE LA FAMILLE, C'EST L'ASYMÉTRIE. Dans une paire, celui qu'on écrit par erreur est
+   presque toujours le RARE : on écrit `witch` en pensant `which`, pas l'inverse. On ne signale donc
+   QUE le membre dont la fréquence est au plus la MOITIÉ du maximum de son groupe.
+   BALAYAGE MESURÉ, et le genou est franc :
+       r=1 -> 2,88 %  ·  **r=2 -> 0,17 %**  ·  r=5 -> 0,12 %  ·  r=10 -> 0,06 %
+   Un facteur 17 gagné entre r=1 et r=2. On prend r=2 : le flood reste sous le seuil et on garde
+   60 mots, là où r=10 n'en garderait plus que 35 pour 0,06 % — l'écart de flood ne vaut pas
+   l'écart de couverture.
+   C'est le même raisonnement que la curation par SÉPARABILITÉ de la liste, appliqué au signalement. */
+const _CONF_VIG_R = 2;
+let _CONF_VIG = null;
+function buildConfuseVig(lex, groupes, dejaRouge){
+  const m = new Map();
+  for(const g of (groupes || [])){
+    if(!g || g.regle || !Array.isArray(g.mots) || g.mots.length < 2) continue;
+    const ms = g.mots.map(w => String(w).toLowerCase());
+    if(ms.some(w => dejaRouge && dejaRouge.has(w))) continue;      // déjà traité en ROUGE ailleurs
+    const fr = ms.map(w => lex.FREQ.get(w) || 0);
+    const mx = Math.max.apply(null, fr);
+    if(!mx) continue;
+    ms.forEach((w, k) => {
+      if(fr[k] * _CONF_VIG_R <= mx) m.set(w, ms.filter(x => x !== w));
+    });
+  }
+  return m;
+}
+function confuseVigDecide(lex, T, i, adj, groupes){
+  if(!_CONF_VIG){
+    const rouge = buildConfuseSlot(lex, groupes);
+    _CONF_VIG = buildConfuseVig(lex, groupes, new Set(rouge.keys()));
+  }
+  const w = String(T[i] || '');
+  if(w !== w.toLowerCase()) return [null, null];                   // majuscule -> nom propre probable
+  const part = _CONF_VIG.get(w.toLowerCase());
+  if(!part) return [null, null];
+  return [part.join(' / '), 'ORANGE'];
+}
+
 function buildPastPart(lex){
   /* prétérit -> participe, UNIQUEMENT là où ils diffèrent : ailleurs il n'y a rien à corriger. */
   const m = new Map(), V = lex.VERBMORPH || {};
@@ -1236,7 +1284,7 @@ async function loadPosModel(url){
 }
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot,
+               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
