@@ -139,19 +139,32 @@
     .then(function(s){ return new Response(s).text(); })
     .then(function(txt){ LEX=C.parseLexText(txt); btn.disabled=false;
       st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.';
-      // morphologie verbale irrégulière (runned->ran…) — chargée à part, best-effort
-      fetch('../dictee/verbmorph_en.json').then(function(r){return r.ok?r.json():null;})
-        .then(function(j){ if(j) LEX.VERBMORPH=j; }).catch(function(){});
-      /* ⭐⭐ LE MODÈLE POS — SANS LUI, LA MOITIÉ DES RÈGLES S'ABSTIENNENT EN SILENCE.
-         Le mur anglais est le CONTEXTE, pas le lexique : `verb3Decide`, `numberDecide`,
-         `articleMassDecide`, `interroDecide` interrogent toutes `ctxPos`. La page ne chargeait pas
-         le modèle — les règles se seraient tues sans rien signaler, ce qui est le pire cas :
-         aucun faux positif, aucun gain, et rien pour s'en apercevoir. */
-      fetch('../dictee/pos_hmm_en.json').then(function(r){return r.ok?r.json():null;})
-        .then(function(j){ if(j&&C.setPosModel) C.setPosModel(j); }).catch(function(){});
-      // Groupes de confusables : servent au créneau ROUGE et à la vigilance ORANGE.
-      fetch('../dictee/confusables_en.json').then(function(r){return r.ok?r.json():null;})
-        .then(function(j){ if(j) CONFUS=j; }).catch(function(){}); })
+      /* ⭐⭐ LES TROIS ACTIFS OPTIONNELS — ET POURQUOI LEUR ÉCHEC DOIT SE VOIR.
+         Le modèle POS surtout : le mur anglais est le CONTEXTE, pas le lexique. `verb3Decide`,
+         `numberDecide`, `articleMassDecide`, `interroDecide` interrogent toutes `ctxPos`. Sans le
+         modèle, elles s'abstiennent — aucun faux positif, aucun gain, et RIEN pour s'en apercevoir.
+         ⚠️ C'est déjà arrivé une fois (PR#443) : la page ne chargeait pas le modèle du tout.
+         Le correctif d'alors était protégé par un `.catch(function(){})` VIDE — donc si le fetch
+         échoue en production, on retombe exactement dans le même silence.
+         Même famille que le micro du panneau (PR#455) : un échec muet est pire qu'un échec bruyant.
+         ⇒ Chaque actif manquant est désormais NOMMÉ dans la barre d'état. */
+      var _manque = [];
+      function _signaler(){
+        if(!_manque.length) return;
+        st.textContent = st.textContent.split(' — ')[0] +
+          ' — ⚠ some rules are off (' + _manque.join(', ') + ' failed to load)';
+      }
+      function _optionnel(url, nom, appliquer){
+        fetch(url).then(function(r){ if(!r.ok) throw new Error('http ' + r.status); return r.json(); })
+          .then(function(j){ appliquer(j); })
+          .catch(function(){ _manque.push(nom); _signaler(); });
+      }
+      // morphologie verbale irrégulière (runned->ran…)
+      _optionnel('../dictee/verbmorph_en.json', 'verb forms', function(j){ LEX.VERBMORPH = j; });
+      // le POS-tagger : sans lui, la moitié des règles se taisent (cf. ci-dessus)
+      _optionnel('../dictee/pos_hmm_en.json', 'grammar model', function(j){ if(C.setPosModel) C.setPosModel(j); });
+      // groupes de confusables : créneau ROUGE + vigilance ORANGE
+      _optionnel('../dictee/confusables_en.json', 'confusable words', function(j){ CONFUS = j; }); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
   function analyze(text){
