@@ -1600,7 +1600,8 @@ function ponctReglesVirgule(mots,_tg,deja){
     var seen={},cs=[]; for(k=0;k<combos.length;k++){ var cw=combos[k]; if(cw!==low&&SP.WORDS.has(cw)&&!seen[cw]){seen[cw]=1;cs.push(cw);} }
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
-function spellTokenCore(tok,atStart,T,idx){
+var _E2M={};   // mémo du secours distance 2 (par forme désaccentuée)
+  function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
@@ -1621,6 +1622,26 @@ function spellTokenCore(tok,atStart,T,idx){
     var cand={},i,j,w,arr;arr=SP.D2A[d]||[];for(i=0;i<arr.length;i++){w=arr[i];cand[w]=[2,SP.FREQ[w]];}
     var e1=sEdits1(d);for(i=0;i<e1.length;i++){var a2=SP.D2A[e1[i]];if(a2)for(j=0;j<a2.length;j++){w=a2[j];if(!cand[w]||cand[w][0]<1)cand[w]=[1,SP.FREQ[w]];}}
     var pa=SP.PHON[phonKey(low)]||[];for(i=0;i<pa.length&&i<8;i++){w=pa[i];if(Math.abs(deaccS(w).length-d.length)>2||deaccS(w).charAt(0)!==d.charAt(0))continue;if(!cand[w])cand[w]=[0,SP.FREQ[w]];}   // garde-longueur (Δ≤2)+MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe) ; bloque trist→tristesse (Δ4)/autent→hautaine (initiale)
+    /* SECOURS DISTANCE 2 — seulement si AUCUN candidat n'a été trouvé (accent, édit-1, phonétique),
+       et seulement jusqu'à 9 lettres. MESURÉ sur 6 000 non-mots WiCoPaCo : +26 corrections justes
+       (dispaître→disparaître, acceulli→accueilli, néammois→néanmoins, utisateur→utilisateur,
+       leutnant→lieutenant…), −4 « perdues » qui sont des désaccords d'ANNOTATION (frêres→frères là
+       où le gold dit « frère », lesquel→lesquels pour « lesquelles ») ; flood UD et ROUGES
+       strictement inchangés (236/313/auto=14) — la distance 2 arrive après coup et ne peut pas
+       atteindre l'affirmation.
+       ⚠️ LE PLAFOND 9 N'EST PAS ARBITRAIRE, C'EST UNE FALAISE MESURÉE. Coût du 1er passage sur un
+       texte dys réel : 7-8 ms jusqu'à 9 lettres, 516 ms à 10. Les mots LONGS coûtent tout et ne
+       rapportent RIEN — les deux seuls qui déclenchaient à 11-12 lettres (« daujourdhui »,
+       « lortografe ») sont des ÉLISIONS SANS APOSTROPHE, dont la bonne réponse n'est atteignable
+       par AUCUNE distance d'édition : 473 ms pour zéro candidat. Le plafond ne sacrifie donc pas
+       du rappel, il coupe une recherche qui ne trouvait rien.
+       Mémo par forme désaccentuée → le 2e passage retombe à 0 ms. */
+    if(!Object.keys(cand).length&&d.length<=9){var _c2=_E2M[d];
+      if(!_c2){_c2=[];for(var _p=0;_p<e1.length;_p++){var _ee=sEdits1(e1[_p]);
+        for(var _q=0;_q<_ee.length;_q++){var _a3=SP.D2A[_ee[_q]];
+          if(_a3)for(var _r=0;_r<_a3.length;_r++)_c2.push(_a3[_r]);}}
+        if(Object.keys(_E2M).length>4000)_E2M={};_E2M[d]=_c2;}
+      for(var _s=0;_s<_c2.length;_s++){var _w2=_c2[_s];if(!cand[_w2])cand[_w2]=[0.5,SP.FREQ[_w2]];}}
     var keys=Object.keys(cand);if(!keys.length)return null;var pk=phonKey(low);
     var inpAud=/é$/.test(low);                                        // AUDIBILITÉ : finale /e/ (é) écrite = entendue (fiable). Miroir app.
     var cg=sCtxGender(T,idx),cn=sCtxNumber(T,idx);                     // accord du contexte (grammaire)
