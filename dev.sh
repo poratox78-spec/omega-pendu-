@@ -82,9 +82,17 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 # livrées n'étaient appelées par aucune page. Ce check ferme la classe de bug (+ tokeniseur identique).
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
+# Un bouton qui dit « ✓ Copié » sans savoir est PIRE qu'un bouton muet : writeText rend une
+# promesse, le try/catch synchrone n'attrapait pas le refus, et l'étiquette de succès s'affichait
+# quand même — jusqu'à la passphrase d'OMEGA·KEY qu'on croyait tenir.
+run "UI aucune copie n'annonce un succès qu'elle ignore" node dictee/presse_papier_probe.js
 
 echo "── LIVRAISON ──"
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
+# Même famille que le zip rassis : le clone anglais n'est régénéré que si quelqu'un y pense. Le
+# 2026-08-10 il avait plusieurs PR de retard (table de genre _GCOLL + graine OMEGA_GDET de la #453,
+# modèle de ponctuation, _npSubject, _quiRelAvant…) : l'app ANGLAISE tournait sur un moteur périmé.
+run "clone anglais FRAIS (app EN == build(app FR))" python3 dictee/build_pendu_en.py --check
 run "service worker (version+empreinte, précache, purge)" node dictee/sw_probe.js
 run "parité dev.sh ↔ ci.yml (anti-dérive)" python3 dictee/ci_parity_probe.py
 

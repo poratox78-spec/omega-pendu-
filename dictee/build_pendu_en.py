@@ -137,6 +137,11 @@ TRANSLATIONS = [
     ('parties chaudes', 'recent games'),
     ('non chargé', 'not loaded'),
     ('Lexique non chargé', 'Lexicon not loaded'),
+    # bouton COPIER du correcteur : le clone anglais affichait des étiquettes FRANÇAISES (jamais
+    # ancrées). Ajouter le message d'échec sans le traduire aurait aggravé la chose.
+    ("'✓ Copié'", "'✓ Copied'"),
+    ("'⚠ copie refusée — Ctrl+C'", "'⚠ copy refused — press Ctrl+C'"),
+    ('📋 Copier', '📋 Copy'),
     # petits labels stats/contrôles (ancres distinctives)
     ('moy —', 'avg —'),
     ('voie —', 'route —'),
@@ -165,6 +170,28 @@ if os.path.exists(_i18n_path):
         if fr != en and fr in _head:
             _head = _head.replace(fr, en); _i18n_n += 1
     html = _head + _tail
+
+# --- `--check` : le clone LIVRÉ est-il celui que ce script produirait AUJOURD'HUI ? ---
+# POURQUOI. Le clone anglais n'est régénéré que si quelqu'un y pense. Le 2026-08-10 on a découvert
+# qu'il avait PLUSIEURS PR de retard : il lui manquait la table de genre `_GCOLL` et la graine
+# `OMEGA_GDET` (#453), le modèle de ponctuation, `_npSubject`, `_quiRelAvant`, `_isPplWideEr`…
+# Autrement dit l'application ANGLAISE tournait sur un moteur périmé, sans que rien ne le dise —
+# même classe que le zip d'extension rassis, qui a SON check de fraîcheur depuis longtemps.
+if '--check' in sys.argv:
+    # ⚠️ LIRE COMME ON A LU LA SOURCE. `html` vient de `io.open(SRC)` SANS `newline=''` : Python a
+    # donc converti les CRLF en LF. Sous Windows, git rematérialise le clone en CRLF (autocrlf) —
+    # relire ici en `newline=''` comparait du CRLF à du LF et criait « périmé » sur un clone frais
+    # (27 000 octets d'écart, un par ligne). La comparaison doit être SYMÉTRIQUE de la construction.
+    actuel = io.open(OUT, encoding='utf-8').read() if os.path.exists(OUT) else None
+    if actuel == html:
+        print('✓ clone anglais FRAIS : app/omega-pendu-en.html == build_pendu_en.py(app/omega-pendu.html)')
+        sys.exit(0)
+    print('✗ CLONE ANGLAIS PÉRIMÉ : le monolithe FR a changé, le clone EN ne suit pas.')
+    print('  L\'application anglaise tourne donc sur un moteur plus ancien que le français.')
+    print('  Corriger : PYTHONUTF8=1 python dictee/build_pendu_en.py')
+    if actuel is None: print('  (le fichier n\'existe même pas)')
+    else: print('  écart : %d octets livrés contre %d attendus' % (len(actuel.encode('utf-8')), len(html.encode('utf-8'))))
+    sys.exit(1)
 
 io.open(OUT, 'w', encoding='utf-8', newline='').write(html)
 

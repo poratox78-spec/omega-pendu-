@@ -138,7 +138,21 @@ jobs:
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
       - name: SITE — toutes les pages sont atteignables depuis leur accueil (FR + EN)
         run: node dictee/pages_atteignables_probe.js
+      # Un cran plus loin dans la même famille (échec muet → #455 micro, #456 actifs) : les boutons
+      # « Copier » ne se contentaient pas d'être muets, ils AFFIRMAIENT le succès. `writeText` rend
+      # une PROMESSE : le try/catch synchrone n'attrapait que l'absence d'API, jamais un refus du
+      # navigateur, et « ✓ Copié » était posé inconditionnellement — sur OMEGA·KEY, une passphrase
+      # ou un message chiffré qu'on croyait tenir.
+      - name: UI — aucune copie n'annonce un succès qu'elle ignore (presse-papier)
+        run: node dictee/presse_papier_probe.js
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
+      # Même famille que le zip rassis, découverte le 2026-08-10 : `app/omega-pendu-en.html` est
+      # GÉNÉRÉ depuis le monolithe français, mais rien ne vérifiait qu'il suivait. Il avait plusieurs
+      # PR de retard — table de genre `_GCOLL` et graine `OMEGA_GDET` (#453), modèle de ponctuation,
+      # `_npSubject`, `_quiRelAvant`, `_isPplWideEr` — donc l'application ANGLAISE tournait sur un
+      # moteur plus ancien que le français, en silence.
+      - name: LIVRAISON — le clone anglais est FRAIS (app EN == build(app FR))
+        run: python3 dictee/build_pendu_en.py --check
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)
         run: node dictee/sw_probe.js

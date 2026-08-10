@@ -189,9 +189,24 @@
 
   fixBtn.onclick = function () { applyAll(); ta.focus(); };
   undoBtn.onclick = function () { undoAll(); ta.focus(); };
+  // COPIE : `writeText` rend une PROMESSE — le try/catch synchrone d'avant n'attrapait que
+  // l'absence d'API, jamais un REFUS du navigateur. Le repli n'était donc pas atteint et
+  // « ✓ Copié » s'affichait quand même : l'interface AFFIRMAIT une copie qui n'avait pas eu lieu.
   copyBtn.onclick = function () {
-    try { navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); try { document.execCommand('copy'); } catch (_) {} }
-    copyBtn.classList.add('ok'); copyBtn.textContent = '✓ Copié'; setTimeout(function () { copyBtn.classList.remove('ok'); copyBtn.textContent = '📋 Copier'; }, 1400);
+    function fini(ok) {
+      copyBtn.classList.toggle('ok', ok);
+      copyBtn.textContent = ok ? '✓ Copié' : '⚠ copie refusée — Ctrl+C';
+      setTimeout(function () { copyBtn.classList.remove('ok'); copyBtn.textContent = '📋 Copier'; }, ok ? 1400 : 3200);
+    }
+    function repli() {
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+      fini(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(ta.value).then(function () { fini(true); }, repli);
+    else repli();
   };
 
   // ---- SAISIE VOCALE (opt-in, VOIE A : Web Speech du navigateur = service cloud, ex. Google) --------------------

@@ -190,6 +190,30 @@
      et F0), le tampon est réécrit à chaque fois. Il n'y a donc rien à fuiter : ce bouton ne PEUT
      pas copier ta voix, il copie ta transcription et une courbe d'énergie. Et rien ne part
      nulle part : ça va dans ton presse-papier, c'est TOI qui décides de le coller ou non. */
+  /* COPIE : ne JAMAIS annoncer « ✓ Copié » sans le savoir.
+     `navigator.clipboard.writeText()` rend une PROMESSE. Un try/catch synchrone autour n'attrape
+     que l'absence d'API — jamais un REFUS du navigateur (page non focalisée, permission bloquée) :
+     ce rejet-là partait en promesse non gérée, le repli execCommand n'était même pas atteint, et
+     l'étiquette « ✓ Copié » s'affichait quand même. L'interface AFFIRMAIT quelque chose de faux et
+     l'utilisateur collait… l'ancien contenu de son presse-papier. Pire qu'un échec muet.
+     Ici : succès ⇒ étiquette de succès ; échec ⇒ on le DIT et on rappelle Ctrl+C. */
+  function _repliCopie(txt){
+    var t=document.createElement('textarea');
+    t.value=txt; t.setAttribute('readonly','');
+    t.style.cssText='position:fixed;top:-1000px;left:0;opacity:0';
+    document.body.appendChild(t); t.select(); t.setSelectionRange(0,txt.length);
+    var ok=false; try{ ok=document.execCommand('copy'); }catch(_){ ok=false; }
+    document.body.removeChild(t); return ok; }
+  function copier(txt, btn, labelOk, labelBase){
+    function fini(ok){
+      btn.classList.toggle('ok', ok);
+      btn.textContent = ok ? labelOk : '⚠ copie refusée — fais Ctrl+C';
+      setTimeout(function(){ btn.classList.remove('ok'); btn.textContent=labelBase; }, ok?1600:3200); }
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(function(){ fini(true); },
+                                             function(){ fini(_repliCopie(txt)); });
+    else fini(_repliCopie(txt)); }
+
   var LBL_DIAG='🩺 Diagnostic';
   diagBtn.onclick=function(){
     var S=window.__vdiag;
@@ -200,11 +224,8 @@
                  // arrondi : l'information utile est le PALIER (parole / silence), pas la 8e décimale
                  tl:tl.map(function(x){ return [x.t, Math.round(x.r*1e4)/1e4, Math.round(x.f||0)]; }) } };
     var j=JSON.stringify(d);
-    try{ navigator.clipboard.writeText(j); }catch(e){}
-    diagBtn.classList.add('ok'); diagBtn.textContent='✓ copié ('+Math.round(j.length/1024)+' Ko)';
-    setTimeout(function(){ diagBtn.classList.remove('ok'); diagBtn.textContent=LBL_DIAG; },2200); };
-  copyBtn.onclick=function(){ try{ navigator.clipboard.writeText(ta.value); }catch(e){ ta.select(); try{ document.execCommand('copy'); }catch(_){} }
-    copyBtn.classList.add('ok'); copyBtn.textContent='✓ Copié'; setTimeout(function(){ copyBtn.classList.remove('ok'); copyBtn.textContent='📋 Copier'; },1400); };
+    copier(j, diagBtn, '✓ copié ('+Math.round(j.length/1024)+' Ko)', LBL_DIAG); };
+  copyBtn.onclick=function(){ copier(ta.value, copyBtn, '✓ Copié', '📋 Copier'); };
 
   // ---- Web Speech (page normale, PAS d'iframe → pas de vol de focus, ≠ ancienne version) ----
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recording=false;

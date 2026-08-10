@@ -2560,17 +2560,25 @@ async function decryptMsg(){
 }
 
 // ── UTILITAIRES COPIER ───────────────────────────────────
+// ⚠️ NE JAMAIS annoncer « ✓ copié » sans le savoir. Le code d'avant faisait
+// `writeText(t).catch(()=>{})` PUIS journalisait le succès inconditionnellement : navigateur qui
+// refuse (page non focalisée, permission bloquée) ⇒ le journal AFFIRMAIT une copie qui n'avait pas
+// eu lieu. Sur un outil de chiffrement c'est le pire cas possible — on ferme la page en croyant
+// tenir son chiffré ou sa passphrase, et le presse-papier contient encore autre chose.
+window._copier = async function(txt, succes){
+  const dire = (m,k)=>{ if(typeof log==='function') log(m,k) }
+  try { await navigator.clipboard.writeText(txt); dire(succes,'ok') }
+  catch(e){ dire('❌ copie refusée par le navigateur — sélectionne le texte et fais Ctrl+C','err') }
+}
 window.copyCipher = async function(){
   const t = document.getElementById('enc-cipher')?.value
   if(!t) return
-  await navigator.clipboard.writeText(t).catch(()=>{})
-  log('✓ Message chiffré copié dans le presse-papier','ok')
+  await _copier(t, '✓ Message chiffré copié dans le presse-papier')
 }
 window.copyResult = async function(){
   const t = document.getElementById('dec-result')?.textContent
   if(!t) return
-  await navigator.clipboard.writeText(t).catch(()=>{})
-  log('✓ Résultat déchiffré copié','ok')
+  await _copier(t, '✓ Résultat déchiffré copié')
 }
 window.clearResult = function(){
   const rw = document.getElementById('dec-result-wrap')
@@ -2704,7 +2712,7 @@ window.generatePassphrase = function(){
 }
 window.copyPassphrase = function(){
   if(!_lastPassphrase){ if(typeof log==='function') log('Génère d\'abord une passphrase','err'); return }
-  navigator.clipboard.writeText(_lastPassphrase).then(()=>{ if(typeof log==='function') log('Passphrase copiée','ok') })
+  window._copier(_lastPassphrase, 'Passphrase copiée')   // un refus était MUET : on croyait tenir sa passphrase
 }
 window.usePassphraseForKey = function(){
   if(!_lastPassphrase){ if(typeof log==='function') log('Génère d\'abord une passphrase','err'); return }
@@ -3510,7 +3518,7 @@ window.chatReceive = async function(){
   const ok=await chatReceiveCipher(pst&&pst.value)
   if(ok && pst) pst.value=""
 }
-window.chatCopyCipher = function(){ const o=document.getElementById("chat-cipher"); if(o&&o.value) navigator.clipboard.writeText(o.value).then(()=>{ if(typeof log==="function") log("Chiffré recopié","ok") }) }
+window.chatCopyCipher = function(){ const o=document.getElementById("chat-cipher"); if(o&&o.value) window._copier(o.value, "Chiffré recopié") }
 window.chatClear = function(){ _chatLog=[]; chatRender(); const w=document.getElementById("chat-cipher-wrap"); if(w) w.style.display="none"; try{ localStorage.removeItem(_CHAT_KEY) }catch(e){} }
 
 // ── LIAISON RELAIS (transport sans copier-coller) — ne véhicule que le chiffré ──
