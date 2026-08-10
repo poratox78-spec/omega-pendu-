@@ -211,10 +211,29 @@
     if (voiceCb.checked && mirCb.checked) mirCb.checked = false;
     try { chrome.storage.local.set({ omVoice: voiceCb.checked }); } catch (e) {}
     setVoiceEnabled(voiceCb.checked);
-    // pré-demande la permission micro à l'activation → l'invite du navigateur s'affiche de façon fiable (MV3)
-    if (voiceCb.checked && navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (st) { st.getTracks().forEach(function (t) { t.stop(); }); }).catch(function () {});
+    if (voiceCb.checked) demanderMicro();
   });
+  /* ⚠️⚠️ CORRECTION 2026-08-10 — LA PRÉ-DEMANDE NE POUVAIT PAS MARCHER, ET ELLE ÉCHOUAIT EN SILENCE.
+     L'ancien code appelait `getUserMedia` ici même avec un `.catch(function(){})` VIDE, sous le
+     commentaire « l'invite s'affiche de façon fiable (MV3) ». C'est FAUX : Chrome traite le side
+     panel comme un contexte « offscreen », l'invite d'autorisation NE S'Y AFFICHE JAMAIS et la
+     promesse part en « permission dismissed ». Résultat vécu : on coche la case, et il ne se passe
+     RIEN — ni invite, ni message, ni erreur. Le catch vide rendait le bug indétectable.
+     ⇒ Contournement documenté par Chromium : obtenir l'autorisation depuis une page d'extension
+     ouverte dans un VRAI ONGLET (`micro.html`), dont le panneau hérite ensuite.
+     ⇒ Et surtout : PLUS AUCUN ÉCHEC MUET — chaque issue écrit dans la barre d'état. */
+  function demanderMicro() {
+    var ouvre = function () {
+      try { chrome.tabs.create({ url: chrome.runtime.getURL('micro.html') }); voiceStatus('autorise le micro dans l’onglet qui vient de s’ouvrir'); }
+      catch (e) { voiceStatus('ouvre micro.html pour autoriser le micro'); }
+    };
+    if (!navigator.permissions || !navigator.permissions.query) { ouvre(); return; }
+    navigator.permissions.query({ name: 'microphone' }).then(function (p) {
+      if (p.state === 'granted') voiceStatus('micro autorisé — clique 🎤 Dicter');
+      else if (p.state === 'denied') voiceStatus('micro bloqué : réautorise-le dans les réglages de site de Chrome');
+      else ouvre();                                   // 'prompt' : l'invite ne peut pas s'afficher ICI → onglet
+    }).catch(function () { ouvre(); });
+  }
   mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
@@ -772,7 +791,7 @@
         var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
         ta.value = pt || capitalize(ta.value);
         runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
-        if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — autorise-le dans le navigateur', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
+        if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — clique la case « dictée vocale » pour rouvrir la page d’autorisation', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
         else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
         else if (ready) voiceStatus('✓ ponctué + corrigé — copie & colle  ·  audio ' + ((S.au && S.au.tl) ? S.au.tl.length : 0) + 'f');
       };
