@@ -93,8 +93,8 @@ jobs:
         run: python3 dictee/ci_parity_probe.py
       - name: Extension — speller ext ≡ app (couche vigilance comprise)
         run: node extension/test_speller.js
-      - name: Extension — syntaxe dys-core / content / background / sidepanel
-        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js
+      - name: Extension — syntaxe dys-core / content / background / sidepanel / micro
+        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js
       - name: Moteur correcteur standalone (sans UI/DOM)
         run: node dictee/correcteur.js
       - name: Correcteur autonome (bake) — 3 mondes dont l'environnement CI
