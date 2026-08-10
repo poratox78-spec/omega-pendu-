@@ -47,7 +47,29 @@ def _mots():
     return sorted(w for w in coll if w.isalpha() and not w.endswith('s') and len(w) > 3)
 
 
+def _dump():
+    """Sort la LISTE des cas + le résultat Python, pour que le harnais de parité JS (app et
+    extension) mesure EXACTEMENT la même chose. Sans ça, chaque moteur aurait son propre banc et
+    on ne saurait pas si l'écart vient de la règle ou de l'échantillon."""
+    import json
+    coll = getattr(C, 'GENDER_ACC_COLL', {})
+    cas = []
+    for w in _mots():
+        g = coll[w]
+        cas.append({'mot': w, 'genre': g,
+                    'faux': 'un' if g == 'f' else 'une', 'bon': 'une' if g == 'f' else 'un'})
+    trouve = 0
+    for c in cas:
+        p = 'Il note %s %s ici.' % (c['faux'], c['mot'])
+        if any(f[1].lower() == c['faux'] and f[2].lower() == c['bon'] for f in C.correct(p)):
+            trouve += 1
+    print(json.dumps({'cas': cas, 'rappel_python': trouve, 'pieges': PIEGES}, ensure_ascii=False))
+    return 0
+
+
 def main(check):
+    if '--dump' in sys.argv:
+        return _dump()
     coll = getattr(C, 'GENDER_ACC_COLL', {})
     mots = _mots()
     if not coll:

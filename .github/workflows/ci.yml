@@ -80,6 +80,11 @@ jobs:
         run: node dictee/parity_os.js
       - name: Parité ces/ses 3 moteurs (vigilance-enseignante)
         run: node dictee/parity_cesses.js
+      # parity_corr vérifie « app ⊆ Python » : il attrape un FP de l'app, jamais un RETARD.
+      # C'est ce qui s'était produit — Python corrigeait « la lettre », l'app non, et tout était vert.
+      # Ici on exige l'ÉGALITÉ des trois rappels sur le MÊME échantillon (fourni par le Python).
+      - name: Parité GENRE à clé partagée, 3 moteurs (âme/amé, affaire/affairé, lettre/lettré)
+        run: node dictee/parity_gender_coll.js
       - name: Dictée — SENT app == sentences.json + 0 FP
         run: python3 dictee/sentences_parity.py
       - name: Vigilance accord sujet-verbe (orange mid-phrase)
