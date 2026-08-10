@@ -82,6 +82,10 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 # livrées n'étaient appelées par aucune page. Ce check ferme la classe de bug (+ tokeniseur identique).
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
+# Un bouton qui dit « ✓ Copié » sans savoir est PIRE qu'un bouton muet : writeText rend une
+# promesse, le try/catch synchrone n'attrapait pas le refus, et l'étiquette de succès s'affichait
+# quand même — jusqu'à la passphrase d'OMEGA·KEY qu'on croyait tenir.
+run "UI aucune copie n'annonce un succès qu'elle ignore" node dictee/presse_papier_probe.js
 
 echo "── LIVRAISON ──"
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check

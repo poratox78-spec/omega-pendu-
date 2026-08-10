@@ -24238,7 +24238,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // Lexiques HAUTE-FRÉQUENCE embarqués (Lexique4 cgram, bloc #vdc-lex) : couverture verbale + GENRE > liste blanche. Repli si absent.
   var GENDER_MAP={},GENDER_PURE={},ADJP={},NOUN_PLURAL={};var CONJ_F={},CONJ_C={};   // GENDER_PURE=genre noms purs (gn) ; NOUN_PLURAL=formes NOM strictement plurielles (gp) pour « la boites » ; ADJP=paires adjectif (a) ; CONJ_*=conjugaison
   var _VDC_LOADED=false;   // #30 : vdc-lex chargé en ASYNC (gzip, −3,93 Mo) via loadVdcLex — maps peuplées à l'ouverture du correcteur (patron loadGenderLex ; re-run après chargement).
-  if(typeof OMEGA_VDC!=='undefined'&&OMEGA_VDC){var _vd0=OMEGA_VDC;(_vd0.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=_vd0.g||{};ADJP=_vd0.a||{};var _cj0=_vd0.cj||{};CONJ_F=_cj0.f||{};CONJ_C=_cj0.c||{};_fillReg3pl(CONJ_C,CONJ_F);var _gp0=_vd0.gp||[];for(var _gi0=0;_gi0<_gp0.length;_gi0++)NOUN_PLURAL[_gp0[_gi0]]=1;var _gn0=_vd0.gn||{};for(var _gk0 in _gn0)if(GENDER_PURE[_gk0]===undefined)GENDER_PURE[_gk0]=_gn0[_gk0];_VDC_LOADED=true;}   // SEED sync (parité harnais, comme OMEGA_POS_HMM) : si le global OMEGA_VDC est posé, peuple les maps sans async ; sinon loadVdcLex (prod navigateur).
+  if(typeof OMEGA_VDC!=='undefined'&&OMEGA_VDC){var _vd0=OMEGA_VDC;(_vd0.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=_vd0.g||{};ADJP=_vd0.a||{};var _cj0=_vd0.cj||{};CONJ_F=_cj0.f||{};CONJ_C=_cj0.c||{};_fillReg3pl(CONJ_C,CONJ_F);var _gp0=_vd0.gp||[];for(var _gi0=0;_gi0<_gp0.length;_gi0++)NOUN_PLURAL[_gp0[_gi0]]=1;var _gn0=_vd0.gn||{};for(var _gk0 in _gn0)if(GENDER_PURE[_gk0]===undefined)GENDER_PURE[_gk0]=_gn0[_gk0];_VDC_LOADED=true;}   /* SEED sync du genre RELÂCHÉ (même motif que OMEGA_VDC / OMEGA_POS_HMM). Sans lui, un harnais Node ne voyait que `gn` — 68 746 entrées au lieu de 70 374 — donc il mesurait une app AMPUTÉE : écart de couverture fantôme, et surtout tout faux positif dépendant de cette table restait INVISIBLE en CI. En navigateur c'est loadGenderLex (async) qui remplit la même chose. */
+  if(typeof OMEGA_GDET!=='undefined'&&OMEGA_GDET){for(var _gk in OMEGA_GDET)if(GENDER_PURE[_gk]===undefined)GENDER_PURE[_gk]=OMEGA_GDET[_gk];}   // SEED sync (parité harnais, comme OMEGA_POS_HMM) : si le global OMEGA_VDC est posé, peuple les maps sans async ; sinon loadVdcLex (prod navigateur).
   var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];   // GENRE des noms en œ (clé déaccentuée « oe ») manquants du lexique gn (couverture incohérente : cœur présent, sœur/œuf/œuvre/œil absents) → débloque « mon soeur »→ma sœur + accord genre. FP=0 (genres corrects, union sans écrasement). Miroir ext + Python.
   function lexicalGender(T,idx){if(!GENDER_MAP)return null;var j,w,g;   // genre du nom-tête via le lexique (déterminant neutre)
     for(j=idx-1;j>=Math.max(0,idx-3);j--){w=T[j].toLowerCase();if(NUM_PRON[w]||PREP[deacc(w)])break;g=GENDER_MAP[deacc(w)];if(g==='m'||g==='f')return[T[j],g];}
@@ -24257,6 +24258,21 @@ window.addEventListener('DOMContentLoaded', () => {
     else if(/i$/.test(d)){stem=deacc(lw.slice(0,-1));inf='ir';}
     else return false;
     return stem.length>=2&&!!COMMON_VERBS[stem+inf];}
+  // PARTICIPE en -é dont l'infinitif -er est ABSENT de COMMON_VERBS (12 415 entrées) mais PRÉSENT dans le
+  // lexique du speller (214 683 formes, ACCENTUÉ, avec POS). Mesuré : « les sucs destiné » restait sans flag
+  // parce que « destiner » manque à COMMON_VERBS ; idem « tronquer ». Le trou d'accord du participe épithète
+  // est donc LEXICAL, pas logique — rPpEpithetNum fonctionne déjà (« les contrats signé »→signés).
+  // ⚠️ RÉSERVÉ À rPpEpithetNum. Mesuré sur scan UD : étendre le lexique verbal GLOBALEMENT fait passer
+  // rule_flexion_er de 1 à 4 FP (gravité→graviter, surgelé→surgeler) et rule_pp_etre de 7 à 9 — ces règles
+  // s'appuient sur l'étroitesse de COMMON_VERBS pour écarter les NOMS en -é. rPpEpithetNum, elle, reste à
+  // 0 FP : ses gardes (déterminant PLURIEL + nom à gauche + genre connu + ruptures de segment) suffisent.
+  // On ne reconstruit PAS l'infinitif en désaccentué : SP.WORDS est accentué, donc « arrêté »→« arrêter »
+  // se trouve tel quel. Si le speller n'est pas chargé, on retombe sur _isPpl seul — aucune régression.
+  function _isPplWideEr(w){var lw=w.toLowerCase();
+    if(lw.charAt(lw.length-1)!=='é')return false;
+    if(!(SP&&SP.ready&&SP.WORDS&&SP.POS))return false;
+    var inf=lw.slice(0,-1)+'er';
+    return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
   var PLURAL_DET={};'les des ces leurs mes tes ses nos vos quels quelles plusieurs certains certaines quelques aux'.split(' ').forEach(function(w){PLURAL_DET[w]=1;});
   var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du'].forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
   function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;return !!COMMON_VERBS[w]&&!(i>0&&NUM_DET[T[i-1].toLowerCase()]);}
@@ -24631,6 +24647,41 @@ window.addEventListener('DOMContentLoaded', () => {
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
     if(!vig)for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) — sinon GN = objet amont ; RETIRÉ en mode vig (orange couvre le mid-phrase)
+    // ⭐ RELATIVE EN « qui » — ouverte CONTRE PREUVE (parité dictee/correcteur_probe.py).
+    // « qui » est un pronom relatif SUJET : son verbe s'accorde OBLIGATOIREMENT avec l'antécédent.
+    // Si ce verbe porte le MÊME NOMBRE que le nom-tête trouvé, la relative CORROBORE ce nom-tête —
+    // contrainte grammaticale vérifiée sur le texte, pas heuristique de distance. Sans corroboration
+    // (« la liste des villages qui COMPOSENT … est longue » : tête sg, relative pl) -> abstention.
+    // MESURÉ : rappel de la famille 0 % -> 2,7 % (cas d'or UD), et signalements à l'échelle
+    // INCHANGÉS (7 avant, 7 après, dont 6 sont de vraies fautes du corpus).
+    var _qi=[],_qm;for(_qm=hk+1;_qm<i;_qm++)if(deacc(T[_qm].toLowerCase())==='qui')_qi.push(_qm);
+    if(_qi.length===1){
+      var _q=_qi[0],_ok=true,_m2;
+      for(_m2=hk+1;_m2<i;_m2++){var _d2=deacc(T[_m2].toLowerCase());
+        if(/[,;:()\[\]«»"]/.test(T[_m2])){_ok=false;break;}
+        if(_d2==='et'||_d2==='ou'||_d2==='ni'){_ok=false;break;}
+        if(_m2!==_q&&CONJ_WORDS[_d2]){_ok=false;break;}
+        if(/^qu['’]/.test(T[_m2].toLowerCase())){_ok=false;break;}}
+      if(_ok){
+        var _vr=-1;for(_m2=_q+1;_m2<i;_m2++){ if(CLITIC[deacc(T[_m2].toLowerCase())])continue;
+          if(tg&&_m2<tg.length&&(tg[_m2]==='VERB'||tg[_m2]==='AUX'))_vr=_m2; break; }
+        if(_vr>=0){
+          var _rr=svReads(T[_vr]).filter(function(r){return r[2]==='3';});
+          if(_rr.length&&_rr.every(function(r){return r[3]===nb||r[3]==='x';})){
+            if(p3.some(function(r){return r[3]===nb||r[3]==='x';}))return null;   // déjà d'accord
+            var _lems={};p3.forEach(function(r){_lems[r[0]]=1;});
+            var _lk=Object.keys(_lems);if(_lk.length!==1)return null;
+            var _mts=p3.map(function(r){return r[1];});
+            var _mt=(_mts.indexOf('ind:pre')>=0)?'ind:pre':_mts[0];
+            if(_mt==='ind:pas')return null;
+            var _sg=(CONJ_C[_lk[0]]&&CONJ_C[_lk[0]][_mt])?CONJ_C[_lk[0]][_mt]['3'+nb]:null;
+            if(!_sg)return null;
+            if(!svReads(_sg).some(function(r){return r[2]==='3'&&(r[3]===nb||r[3]==='x');}))return null;
+            return _sg;
+          }
+        }
+      }
+    }
     for(m=hk+1;m<i;m++){var tk=T[m],dw=deacc(tk.toLowerCase());                // garde structure nom-tête → verbe : compléments prépositionnels SEULEMENT
       if(CONJ_WORDS[dw])return null;                                           // et/ou/qui/que… (coordination/relative)
       if(/[,;:()\[\]«»"]/.test(tk))return null;                               // ponctuation = apposition/incise
@@ -24781,7 +24832,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if(_SEG&&_SEG.bb){for(var kb=q+1;kb<=i&&kb<_SEG.bb.length;kb++)if(_SEG.bb[kb])return null;}   // #B1 : ancre et verbe dans la MÊME proposition — frontière (virgule) entre les deux = dislocation → abstention
     if(!_relFinBetween(T,tg,q,i))return null;
     var ant=T[q-1].toLowerCase(),det=T[q-2].toLowerCase();
-    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;                                       // antécédent = dét PLURIEL audible + nom réel
+    if(!PLURAL_DET[det]||_REL_STOP[ant])return null;
+    // « DES » est AMBIGU : article pluriel OU « de+les » d'un COMPLÉMENT (« la liste DES choses que… »),
+    // où la TÊTE est le nom d'avant, au singulier. FP mesuré sans cette garde. Miroir Python.
+    if(det==='des'&&q>=3&&tg&&(tg[q-3]==='NOUN'||tg[q-3]==='PROPN'))return null;                                       // antécédent = dét PLURIEL audible + nom réel
     var mt='ind:imp';for(k=0;k<r2.length;k++)if(r2[k][1]==='ind:pre'){mt='ind:pre';break;}
     var sl=(CONJ_C[r2[0][0]]||{})[mt]||{},sug=sl['3p'];
     return (sug&&sug.toLowerCase()!==w)?sug:null;
@@ -24881,13 +24935,26 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   var _POSS_DET={mon:1,ma:1,ton:1,ta:1,son:1,sa:1},_ART_BLOCK={un:1,une:1,le:1,la:1,les:1,du:1,des:1,au:1,aux:1,ce:1,cet:1,cette:1,ces:1,mon:1,ma:1,mes:1,ton:1,ta:1,tes:1,son:1,sa:1,ses:1,notre:1,nos:1,votre:1,vos:1,leur:1,leurs:1};   // le français n'empile JAMAIS article + possessif
   var _EPICENE_NOUN={};('absentes absinthe absinthes accessoiriste accessoiristes accro accros accusateur acolyte acrobate acrobates actionnaire actionnaires activiste activistes adepte admirateur admirateurs ado ados adulte adultere adulteres adultes adversaire adversaires agent aide aigle albinos alcoolique alcooliques alcoolo alcoolos alpiniste amour amours analyste anarchiste anarchistes anesthesiste anesthesistes anonyme anthropologue anthropologues antiquaire antiquaires appli applis arbitre arbitres archeologue archeologues architecte architectes ardoise aria aristocrate aristocrates artiste artistes astronaute astronautes athee athees athlete athletes aube aubergiste aubergistes aubes aurore auteur autochtone autochtones automatique automatiques automne automobiliste automobilistes auxiliaire auxiliaires aventurier aveugle baba babas babine banane banque barbare barbares barbe barbes barjo barjos barjot barjots basket baskets basque bassiste bassistes baston baume baumes bavard beige beiges beigne beneficiaire beneficiaires benevole benevoles beta bi bibliothecaire bibliothecaires bicoque bicoques bienvenu biologiste biologistes black blacks blond blonds bobo boche boches boheme boire boires bolchevik bolcheviks bonhomme bordure borgne bossu botaniste botanistes boucle boucles bouddhiste bouffe bouffes boule boules boum bourge bourges bourre bourres boutique boutiques brave bretzel bretzels brutes bulle bureaucrate bureaucrates buveur cab cache caches camarade camee camionneur caniche cannelle capitaine capitaliste carpe carpes cartouche cartouches casier casiers casse casses catho catholique catholiques cathos catin catins cave celibataire centenaire cerise champagne charmeur chauffard chauve cheerleader cheerleaders chef chevre chevres chimiste chimistes chine choregraphe choregraphes choriste choristes chose choses chronique chroniques chum chums cineaste cineastes cinquieme cinquiemes claque classique clone clope coach coca cocas coche coke cokes collabo collabos collegue collegues colo coloc colocataire colocataires colocs colos com combi comique comiques commissaire commissaires commodore communiste communistes compatriote complice complices comptable comptables concepteur concessionnaire concessionnaires concierge condisciple contribuable contribuables convive convives copilote copilotes coquille cosmetique cosmonaute cosmonautes costumier coupable coupables couple couples cours couturiere createur creme crepe crepes critique critiques cycliste cyclistes cynique cyniques dactylo dactylos dealer debile debiles debriefings democrate democrates dentiste dentistes der dermatologue dermatologues dernier destinataire destinataires detective deuxieme deuxiemes diabetique diabetiques dingo dingue dingues diplomate diplomates disco discos divisionnaire divisionnaires dixieme dixiemes doberman doc docs docteur dodo domestique domestiques doudou doudous drole droles echangiste echangistes ecolo ecologiste ecologistes ecrivain egocentrique egocentriques egoiste elastique elastiques eleve eleves elfe enfant enseigne enseignes entrepreneur enzyme enzymes ermite esclave esclaves escroc espace espaces eveque ex excentrique exhibitionniste exhibitionnistes exorciste exorcistes expert exterminateur externe externes extra extraterrestre extraterrestres extremiste extremistes faible faibles fan fanatique fanatiques fans fasciste fascistes fat faune faunes faussaire faux feministe feministes fidele fideles filleul filleuls filou filous fin finale finales finaliste finalistes fins flasque fleche fleches flemmard fleuriste fleuristes foi fonctionnaire fonctionnaires forcene fossette fossettes fou foudre foudres fourbe freelance freelances fugitif fusilier gaffe gaffes gaillard gang gangs garde gardes gauche geek geeks gens geologue geologues geometre geometres gerant geste gestionnaire gestionnaires gite glace glaces gone gosse gourmand gouverneur graphique graves greffe greviste grevistes grossiste grossistes groupie guide guides guitariste gymnaste gymnastes gyneco gynecologue gynecologues gynecos hacker hadji heretique heretiques hetero heteros hippie hippies holding holdings homicide homologue hote huitieme huitiemes humanitaire humoriste humoristes hybride hymne hymnes hypocrite hypocrites hysterique iceberg idealiste idealistes iles imbecile imbeciles incendiaire incendiaires inceste indic indigene indigenes infidele infideles infirme ingenieur insolent instit instits intello inter interface interfaces interimaire interimaires intermediaire intermediaires interne interprete interpretes inutile invalide invalides ivrogne jacques jade jaguar jarre jarres jeune job jobs jonquille jonquilles journaliste journalistes juge junior juniors juste jute kamikaze kine kines lache laches laque laques legume libraire libraires lights limes liquide litre livre livres lobbyiste lobbyistes locataire locataires louche louches lune lunes magistrat magneto magnetos magnum maire maires malade mambo manche manches mangue maniaque maniaques manucure marine marines mariole marioles marionnettiste marionnettistes marque martyre martyres masque mateur mateurs matricule matte mecene medecin memoire memoires mercenaire mercenaires merci mercis meteorite meteorites meteorologue meteorologues meteque meteques micro militaire militaires millionnaire millionnaires mime mimes minable minables minettes ministre ministres mire miserable miserables missionnaire missionnaires mode modele mome momes mort moule moules mousse mystique mystiques nationaliste nationalistes naze negro neurologue neurologues neuvieme neuviemes noble nobles nomade nomades notable notables notaire nounou nounous novice novices nudiste nudistes obese obeses officier ombre ombres oncologue oncologues opportuniste opportunistes optimiste optimistes orange orbe orbes ordinaire orque orques otage otages pacifiste pacifistes page pages paillasse paillasses pamplemousse para parachutiste parachutistes parallele parano paranoiaque paranoiaques paranos paras paria parias part partenaire partenaires parties party passe passes pasteur pathologiste pathologistes patriote patriotes pauvre paysagiste paysagistes pediatre pedicure pedophile peintre peintres pendule pendules pensionnaire pensionnaires people perceur periode periodes philanthrope philanthropes philo philos philosophe philosophes photographe photographes physique physiques pianiste pianistes pickpocket pipe pipes pique piques pirate pirates pire plastique platine plume plumes poele polar politique politiques polygraphe polygraphes pompe pompes pompiste pompistes ponte poste postes pote potes pouf pouffiasse pousse pratique pratiques pretexte prime primes privilegie pro proc proche proches procs procureur prof profane professeur profs proprietaire proprietaires proprio pros protagoniste proxenete psy psychanalyste psychanalystes psychiatre psychologue psychopathe psychotique psys pub publicitaire publicitaires pubs pupille pupilles pyromane pyromanes quadrille quadrilles quatrieme quatriemes raciste racistes rade rades radio rapace rapaces rasta rastas realiste rebelle receptionniste recidiviste recidivistes reclame relache remise remises renne rennes responsable responsables retardataire retardataires revolutionnaire revolutionnaires rhino riche ridicule ripoux robot rocker romantique romantiques rose roses russe rustre sadique sadiques sage salamandre salamandres salope salopes samba sangle sangles sarcophage sarcophages sauce sauna saunas scenariste scenaristes sceptique schizophrene schizophrenes schnock schnocks schtroumpf schtroumpfs scientifique scientifiques scientologue scientologues script sculpteur secouriste secouristes secretaire secretaires semblable senior seniors separatiste septieme septiemes silicone simples sitcom sitcoms sixieme sixiemes skinhead skipper snob snobs socialiste socialistes solde soldes soliste solistes solitaire somme sommes somnambule somnambules soprano sopranos souillon souillons source sources spartiate spartiates spatule specialiste specialistes stagiaire stagiaires standardiste standardistes stations styliste stylistes subalterne subalternes sudiste sudistes suicidaire suicidaires suspense suspenses taf tank tapas tartare tartares tata tatas telegraphe telepathe telepathes tempo tendre teneurs terroriste terroristes therapeute tire titulaire titulaires tome tomes tortionnaire tortionnaires toubib tour touriste touristes tours toxicomane toxicomanes trader traders trampoline tripode troisieme troisiemes trompette trompettes trouble trouduc typhoide typhoides ultra ultras universitaire urgentiste urgentistes vague vampire vampires van vanne vannes vans vapeur vase vases ventriloque ventriloques vestiaire veterinaire veterinaires veto video videos vigile vigiles violoniste violonistes virtuose virtuoses visionnaire visionnaires vivre voile voiles volontaire zombie zombies zoom').split(' ').forEach(function(w){_EPICENE_NOUN[w]=1;});   // noms épicènes (la médecin/la juge) — miroir Python, dérivé build_epicene_noun.py
+  /* GENRE PERDU PAR LA DÉSACCENTUATION — miroir EXACT de correcteur_probe.GENDER_ACC_COLL.
+     GENDER_PURE est DÉSACCENTUÉE : elle perd tout nom dont la clé nue est partagée avec un
+     masculin — « âme » (amé), « affaire » (affairé), « lettre » (lettré) en sont ABSENTS alors
+     qu'ils n'ont rien d'ambigu (mesuré : 8 manquants sur 52 noms très courants, 3 par cette cause).
+     ⚠️ SOUS-ENSEMBLE « COLLISION » SEULEMENT. La table accentuée BRUTE contient aussi des adjectifs
+     antéposés lus comme noms (futur, grand, premier, nouveau) que la curation avait écartés EXPRÈS ;
+     les rétablir coûtait 3 FP immédiats sur le scan UD (« une futur maman »→un, « la troisième
+     division »→le, « sur le papier »→la). Ce qui sépare un gain d'un dégât n'est pas le mot, c'est
+     la CAUSE de son absence : clé PARTAGÉE = on répare une perte ; curation = on ne la défait pas.
+     713 entrées, rappel 0→217 mesuré, faux positifs INCHANGÉS (banc dictee/gender_coll_probe.py). */
+  var _GCOLL={};
+  ('affaire aie aile ailes aine aines ainée ainées aié ajoute ajoutes amnistie amnisties analyse analyses angoisse angoisses arêtes attache attaches aîle aîles aînée aînées baraque blinde blindes botte bottes bride broche broches caille caline came cames carre carres chale charge chargeure chargeüre chasse chasses chordes châsse châsses cire cires cliche cliches combine combines commandite confœderation confœderations confœdération confœdérations cote cotes couche coule coules coupe coupes crotte crottes crottés cuirasse cuirasses cure cures câline côte côtes demeure demeures donnes doyenne drogue drogues débauche débauches défroque défroques dégoutante dégoutantes dégoûtante dégoûtantes déprime déprimes dérive dérives dîme egyptienne egyptiennes enveloppe enveloppes equatorienne ethiopienne ethiopiennes faines faitière faitières faîtière faîtières fibrille file files forêt forêts fosse fosses fourre fourres foène foènes foëne foënes franchise franchises frappe fêle gaités gaze gazes gaîtés georgienne gouvernes grippe grippes générale générales géorgienne gêne gênerale gênerales gênes herpes infortune infortunes insulte insultes invite invites israélienne israéliennes israëlienne israëliennes je laisse laisses lame lettre lettres lisse lisses loupe loupes ltee ltée lève maitresse maitresses maitrise maitrises mangeure mangeures mangeüre mangeüres manière manières maniére maniéres marche marches marie masse masses maîtresse maîtresses maîtrise maîtrises medias miche miches mifépristone moire moise mure mère médaille médailles mémé mémés mûre nacre névrose névroses offense offenses parente parentes parenté parentés paume paumes pedante pedantes phrase phrases planque plies poire pole polycopie polycopies polygenèse polygenèses polygénèse pouille pouilles praline pralines presse presses prieure préretraites pâte pâtes pète pédante pédantes pêche pêches quiche quinte rate rates relève relèves retourne retournes retraite retraites roue ruche ruse ruses râpe râpes réales réforme réformes résine révolte révoltes saute sautes serge sonde sondes soularde sourat soûlarde soûrat soûtras surette sûrette sûtra tare tares thébaine thébaïne tiare tierce tierces trace traces traite traites traitresse traîtresse vade vancouveroise vancouveroises vancouvéroise vancouvéroises vertèbre vertèbres voute voutes voûte voûtes vue vuë vénus vüe zee âme égyptienne égyptiennes épaule équatorienne éthiopienne éthiopiennes étoile').split(' ').forEach(function(w){_GCOLL[w]='f';});
+  ('abelia abélia affairé age ages ainé ainés ajouté ajoutés amnistié amnistiés amé analysé analysés angoissé angoissés aouts aoûts aretes arrière arrières arriéré arriérés attaché attachés aîné aînés baraqué batard batards beat beurre beurres beurré beurrés blindé blindés botté bottés bouge bougé bridé broché brochés brulé brulés brûlé brûlés bâtard bâtards béat ca cablé cablés caillé calin calins camé camés carré carrés ces chamæleon chamæleons chamæléon chamæléons chargé chassé chassés chordés châle cingle cinglé ciré cirés cliché clichés cloitre cloitres cloître cloîtres coi cointéressé combiné combinés commandité costume costumé couché coulé coulés coupé coupés coï coïntéressé crotté cuirassé cuirassés curé curés câble câbles câlin câlins cés côté côtés cœmetiere cœmetieres cœmetière cœmetières demeuré demeurés dep dime diplôme diplômes diplômé diplômés divorce divorces divorcé divorcés diène diéne donnés double doubles doublé doublés doyenné drogué drogués débauché débauchés défroqué défroqués dégoutants dégoûtants dép déprimé déprimés dérivé dérivés déséquilibre déséquilibres déséquilibré déséquilibrés egyptien egyptiens entête entêté enveloppé enveloppés equatorien equatoriens ethiopien ethiopiens faînes fibrillé filé filés flagelle flagelles flagellé flagellés foret forets fossé fossés fourré fourrés franchisé franchisés frappé fute futes futé futés fêlé gazé gazés gouvernés grade grades gradé gradés greffes greffés grippé grippés gène gènes général généraux gêneral gêneraux herpès ilotage incendies incendiés infortuné infortunés insulté insultés intime intimé invité invités israélien israéliens israëlien israëliens juges jugés jé laissé laissés lamé legato lettré lettrés levé lissé lissés loupé loupés légato maitre maitres marbre marbré marché marchés marié massé massés mat mats maître maîtres mere meuble meubles meublé meublés miché michés mifepristone minoen minoën moiré moïse mât mâts mème mèmes médaillé médaillés médias nacré naufrage naufrages naufragé naufragés névrosé névrosés offensé offensés panache panaché paumé paumés peigne peigné pete phrasé phrasés pie pié planqué pliés poiré polycopié polycopiés polygénèses pouillé pouillés praliné pralinés pressé pressés prieuré préretraités préteur préteurs prêteur prêteurs pâté pâtés péché péchés pôle quadruple quadruplé quiché quinté raté ratés reales relevé relevés retourné retournés retraité retraités rhade rhadé rongeure rongeüre roule roulé roué ruché rusé rusés râpé râpés réformé réformés résiné révolté révoltés sable sablé sacre sacres sacré sacrés sauté sautés sergé sinistre sinistres sinistré sinistrés sondé sondés souffle souffles soufflé soufflés soulard soutras soûlard sucre sucres sucré sucrés suicide suicides suicidé suicidés sutra taré tarés tiaré tiercé tiercés tracé tracés traitres traité traités traîtres tremble tremblé triple triples triplé triplés vadé vancouverois vancouvérois venus vertébré vertébrés zar zebi zina zinâ zâr zébi zée âge âges ça égyptien égyptiens épaulé équatorien équatoriens éthiopien éthiopiens étoilé îlotage').split(' ').forEach(function(w){_GCOLL[w]='m';});
   function rDetGenre(T,i){var lw=deacc(T[i].toLowerCase());if(!DET_G[lw]||T[i].toLowerCase().indexOf("'")>=0)return null;if(i+1>=T.length)return null;
     if(_POSS_DET[lw]&&_ART_BLOCK[cprev(T,i)])return null;   // possessif précédé d'un article = NOM homographe (« un son », « le ton », « du son ») → jamais possessif → abstention (FP WiCoPaCo « un son stéréo »→sa)
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase())return null;var hi=i+1;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
     var _pp=NOUN_POST&&NOUN_POST[nd];if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST[deacc(T[hi].toLowerCase())];}}if(hi===i+1&&DET_SKIP[nd])return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe LEVÉE — un mot après un déterminant est un NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000 mesuré UD, gender_levers_ud.py)
-    if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;var gn=GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
+    if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
     var num=NUM_DET[deacc(T[i+1].toLowerCase())];if(!num)return null;
@@ -24955,10 +25022,25 @@ window.addEventListener('DOMContentLoaded', () => {
     if(/eaux$|eux$/.test(dn)||_PL_OUX_PL[deacc((n.slice(0,-1)+'x').toLowerCase())])cands.push(n.slice(0,-1));
     if(/s$/.test(dn))cands.push(n.slice(0,-1));
     for(var k=0;k<cands.length;k++){var p=NOUN_POST&&NOUN_POST[deacc(cands[k].toLowerCase())];if(p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M)return cands[k];}return null;}
+  // Adjectifs ANTÉPOSÉS du français — classe FERMÉE (c'est ce qui rend la traversée sûre). Formes
+  // déaccentuées ; le déterminant en tête porte déjà le nombre. Miroir EXACT de correcteur_probe.py.
+  var _ADJ_ANTE={};('grand grande grands grandes petit petite petits petites gros grosse grosses '
+    +'beau bel belle beaux belles joli jolie jolis jolies jeune jeunes vieux vieil vieille vieilles '
+    +'nouveau nouvel nouvelle nouveaux nouvelles bon bonne bons bonnes mauvais mauvaise mauvaises '
+    +'long longue longs longues court courte haut haute meilleur meilleure meilleurs meilleures '
+    +'moindre seul seule seuls seules meme memes autre autres premier premiere premiers premieres '
+    +'dernier derniere derniers dernieres prochain prochaine ancien ancienne propre propres '
+    +'pauvre pauvres vrai vraie vrais vraies simple simples double demi demie plein pleine '
+    +'gentil gentille brave braves cher chere chers cheres').split(' ').forEach(function(w){_ADJ_ANTE[w]=1;});
   function rNounSing(T,i){if(!NOUN_POST)return null;
     var _pre='';
     if(_elidKind(T[i])==='det'){if(!/s$/.test(deacc(_headText(T[i]).toLowerCase())))return null;_pre=T[i].slice(0,T[i].length-_headText(T[i]).length);T=T.slice();T[i]=_headText(T[i]);}
-    else if(i===0||!_SING_DET[deacc(T[i-1].toLowerCase())])return null;   // déterminant SINGULIER juste avant (et posterior chargé)
+    // ÉCRAN ADJECTIF (miroir Python) : « la grande boites » / « le vieux fauteuils » passaient au
+    // travers alors que « la boites » était corrigé — le déterminant devait être COLLÉ au nom.
+    // L'adjectif ANTÉPOSÉ est une CLASSE FERMÉE : on la franchit sans ouvrir la porte, UN seul mot,
+    // et il doit être DANS la liste. FP=0 revérifié par scan UD (3 déclenchements avant ET après).
+    else if(!(i>=2 && _ADJ_ANTE[deacc(T[i-1].toLowerCase())] && _SING_DET[deacc(T[i-2].toLowerCase())])
+            && (i===0||!_SING_DET[deacc(T[i-1].toLowerCase())]))return null;   // déterminant SINGULIER juste avant (et posterior chargé)
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → le déterminant ne gouverne pas ce nom
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;           // nom propre / capitalisé → abstention (FP)
     var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;   // pluriel apparent ; invariant/piège → abstention
@@ -25153,12 +25235,31 @@ window.addEventListener('DOMContentLoaded', () => {
     if(_ELID_PRON.test(deacc(t)))return 'pron';
     if(_ELID_DET.test(t))return 'det';
     return (t.indexOf("'")>=0||t.indexOf('’')>=0)?'pron':null;}   // autre contraction (d', qu', n') : prudence, on garde le veto
-  function _npSubject(T,tg,a){var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // tête [dét + nom] du sujet AVANT le verbe a ; mots-écrans « de X » sautés ; coord/PP/infinitif → null
-    var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj])break;
+  // ⭐ PROPOSITION RELATIVE EN « qui » — le résiduel que Rem pointait.
+  // « les villages QUI COMPOSENT la commune est très ancien » : en remontant depuis « est », on
+  // sort à la première frontière VERBALE (« composent ») et on retient « la commune », qui est le
+  // COMPLÉMENT du verbe de la relative. `qui` est pourtant dans _NP_BREAK — on ne l'atteint jamais.
+  // MESURÉ AVANT, sur les cas isolés par l'ANNOTATION UD (nsubj séparé de son verbe par une
+  // relative + leurre de nombre) : FP 0/33 mais **rappel 0 % (23 muets sur 23)**.
+  // RÈGLE DE STRUCTURE, pas de distance : « qui » est un pronom relatif SUJET, son antécédent est
+  // FORCÉMENT à gauche. Donc si un « qui » précède ce verbe (à travers les seuls CLITIQUES), tout
+  // ce qu'on a ramassé depuis appartient à la relative -> on le jette et on reprend à sa gauche.
+  // ⚠️ On n'accepte QUE des clitiques entre les deux : un mot plein romprait la preuve.
+  var _QUI_CLIT={ne:1,y:1,en:1,se:1,me:1,te:1,le:1,la:1,les:1,lui:1,leur:1,nous:1,vous:1,"n'":1,"s'":1,"m'":1,"t'":1,"l'":1};
+  function _quiRelAvant(T,j,lo){
+    for(var k=j-1;k>=j-3;k--){
+      if(k<lo)return -1;
+      var w=deacc(T[k].toLowerCase());
+      if(w==='qui')return k;
+      if(!_QUI_CLIT[w]&&!_QUI_CLIT[T[k].toLowerCase()])return -1;
+    }
+    return -1; }
+  function _npSubject(T,tg,a){if(deacc(String(T[a]||'').toLowerCase()).indexOf("qu'")===0)return null;   /* MARQUEUR FUSIONNE DANS LE VERBE : « les possibilites qu'offrent les domaines » — le token EST « qu'offrent », le balayage part de a-1 et ne le voit jamais. Un verbe en « qu' » est celui d'une RELATIVE/SUBORDONNEE : sujet a DROITE (inversion) ou le relatif lui-meme. Remonter a gauche rend un sujet FAUX → abstention (FP=0). Mesure par dictee/ponct_morpho_probe.py. */var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // tête [dét + nom] du sujet AVANT le verbe a ; mots-écrans « de X » sautés ; coord/PP/infinitif → null
+    var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj]||dj.indexOf("qu'")===0)break;   /* ⭐ TEST DE PRÉFIXE = BUG CORRIGÉ : `toks` ne sépare pas l'élision, « qu'offrent » est UN token, donc _NP_BREAK (que/qu) ne matchait JAMAIS et la coupure de relative était INERTE sur toute forme élidée. Le parseur remontait dans la proposition amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il répondait « possibilités ») ; toute règle d'accord qui s'y appuie héritait de l'erreur = FP SILENCIEUX. Mesuré par dictee/ponct_morpho_probe.py. Seul « que » s'élide en « qu' » → préfixe exact. */
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
         continue;}
-     if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
+     if(tgj==='VERB'||tgj==='AUX'){if(/(é|és|ée|ées)$/.test(T[j].toLowerCase())&&!(j-1>=lo&&tg&&j-1<tg.length&&tg[j-1]==='AUX'))continue;var _qr=_quiRelAvant(T,j,lo);if(_qr>=0){detIdx=-1;_sp=false;_elid=false;j=_qr;continue;}break;}if(NUM_PRON[dj])break;if(T[j].toLowerCase().indexOf("'")>=0&&/(ils|elles|il|elle|on|je|tu|nous|vous)$/.test(dj))break;   // PRONOM COLLÉ (« qu'ils ont fait », « s'ils », « lorsqu'elle ») : le sujet EST ce pronom, pas un GN — sinon on remontait chercher un déterminant plus à gauche et on prenait le pronom lui-même pour nom-tête
       var _pj=(PREP[dj]||dj==='en'||(T[j].toLowerCase().indexOf("'")>=0&&dj.charAt(0)==='d'));if(_pj)_sp=true;   // « de/du/des/au/aux/en/d' » : lien qui RATTACHE le GN de gauche à celui de droite. « en » MANQUAIT de PREP — « avec un cercle EN SON CENTRE ont été érigées » prenait « centre » pour sujet.
       if(tgj==='DET'||NUM_DET[dj]){if(detIdx<0||_sp){detIdx=j;_sp=_pj;_elid=false;}}}   // On remonte au déterminant le PLUS À GAUCHE, mais SEULEMENT à travers un lien « de » — c'est POUR ÇA que la remontée existe (« les enfants DE la voisine » a sa tête à GAUCHE). Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet (FP mesuré). Un 2e GN à gauche SANS lien « de » est ADVERBIAL, pas le sujet. Et une préposition CONTRACTÉE (du/des/au/aux) qui sert d'ancre reste « molle » (_sp gardé vrai) : elle ouvre un complément, donc un vrai déterminant plus à gauche doit pouvoir la remplacer (« les autorités DU Sahara ont » → tête « autorités », pas « Sahara »).   // On remonte au déterminant le PLUS À GAUCHE — mais SEULEMENT à travers un lien « de ». C'est pour ça que la remontée existe : « les enfants DE la voisine » a sa tête à GAUCHE. Sans la condition, « Ce matin la livraison est arrivée » remonte de « la » à « Ce » et prend « matin » pour sujet → « est arrivé » (FP mesuré). Un second GN à gauche SANS lien « de » est un GN ADVERBIAL (« ce matin », « la semaine dernière »), pas le sujet ⇒ on garde le déterminant le plus PROCHE du verbe.
     if(detIdx<0)return null;
@@ -25217,7 +25318,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return ckeepcase(w,w+'s');}
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
-    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!_isPpl(w))return null;
+    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!(_isPpl(w)||_isPplWideEr(w)))return null;
     if(i<2||!PLURAL_DET[deacc(T[i-2].toLowerCase())])return null;
     var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
@@ -25354,6 +25455,46 @@ window.addEventListener('DOMContentLoaded', () => {
       var obj=JSON.parse(await new Response(st).text());if(obj&&obj.tags)_HMM=obj;
       if(typeof runCorr==='function')runCorr();
     }catch(e){}}
+  // ⭐⭐⭐ CANAL TEXTE DE LA PONCTUATION (`ponct-lm.json.gz`, 182 Ko compressé).
+  // POURQUOI IL EXISTE : la saisie vocale ne posait de marque QU'AUX FRONTIÈRES DE SEGMENT de
+  // Google. Or Google ne coupe qu'aux pauses >= 600 ms, et les virgules françaises vivent vers
+  // 350 ms (mesuré sur 47 locuteurs) : elles sont DANS les segments, là où on ne posait rien.
+  // ⭐ Ce canal-ci n'a besoin d'AUCUNE ancre temporelle — il lit le texte que Google rend, tel
+  // quel. C'est le seul des trois morceaux qui soit livrable dans un navigateur.
+  // FORME : tables conditionnelles à REPLI (5 niveaux, du plus spécifique au plus général), la
+  // même forme que `os-subj-lm`. Il rend une DISTRIBUTION {rien, virgule, point}, pas une
+  // décision : c'est elle qu'on combine ensuite avec l'audio là où l'audio a le droit de parler.
+  // MESURÉ : 2 411 124 entrées brutes -> 22 275 après élagage, pour une perte quasi nulle
+  // (virgule F1 0,270 -> 0,269 · point 0,470 -> 0,464). La raison mérite d'être retenue : un
+  // contexte dominé par « rien » ne sert à RIEN, « rien » étant déjà le défaut.
+  var _PLM=null;
+  function setPonctLm(o){ _PLM=(o&&o.niv&&o.niv.length)?o:null; }
+  function loadPonctLm(url){return (async function(){try{var gz=await (await fetch(url)).arrayBuffer();
+    var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+    setPonctLm(JSON.parse(await new Response(st).text()));return true;}catch(e){return false;}})();}
+  function ponctReady(){ return !!_PLM; }
+  // Les mêmes clés que le constructeur Python — toute divergence ici rendrait le modèle muet.
+  function _plmCles(mots,tg,i,depuis){
+    var g=(mots[i]||'').toLowerCase(), d=(i+1<mots.length?mots[i+1]:'</s>').toLowerCase();
+    var pg2=(i>0?tg[i-1]:'<s>'), pg=tg[i]||'X';
+    var pd=(i+1<tg.length?tg[i+1]:'</s>'), pd2=(i+2<tg.length?tg[i+2]:'</s>');
+    var loin=(depuis>=6?'L':(depuis>=3?'M':'C')), S=String.fromCharCode(31);   // MEME separateur que le constructeur Python.
+    // ⚠️ Ecrit fromCharCode(31) et NON le caractere brut : un caractere de controle
+    // INVISIBLE dans le source est un piege — un editeur ou un linter peut le manger,
+    // et le modele deviendrait muet SANS message d'erreur (toutes les cles collisionnent).
+    return [ g+S+d+S+loin,
+             pg2+S+pg+S+pd+S+pd2+S+d,
+             pg+S+pd+S+d,
+             pg2+S+pg+S+pd+S+pd2+S+loin,
+             pg+S+pd+S+loin ]; }
+  // -> [p_rien, p_virgule, p_point] ; null si le modèle n'est pas chargé (dégradation douce).
+  function ponctDist(mots,tg,i,depuis){
+    if(!_PLM) return null;
+    var cs=_plmCles(mots,tg,i,depuis),k,c,v,s;
+    for(k=0;k<cs.length && k<_PLM.niv.length;k++){
+      v=_PLM.niv[k][cs[k]];
+      if(v){ s=v[0]+v[1]+v[2]; if(s>=(_PLM.mini||10)) return [v[0]/s,v[1]/s,v[2]/s]; } }
+    c=_PLM.pri; s=c[0]+c[1]+c[2]; return s?[c[0]/s,c[1]/s,c[2]/s]:null; }
   var _tgCache=(typeof WeakMap!=='undefined')?new WeakMap():null;   // mémoïsation du POS-tagger par RÉFÉRENCE de tableau : une passe correctTokens = ~40 règles × n tokens réutilisaient 1 Viterbi RECALCULÉ → O(n²) ; le cache le calcule 1× par tableau → O(n), sortie STRICTEMENT identique (Viterbi déterministe, T jamais muté en place)
   function posTags(T){
     if(_tgCache&&T){var _cc=_tgCache.get(T);if(_cc!==undefined)return _cc;}
@@ -25415,8 +25556,9 @@ window.addEventListener('DOMContentLoaded', () => {
     var seen={},cs=[]; for(k=0;k<combos.length;k++){ var cw=combos[k]; if(cw!==low&&SP.WORDS.has(cw)&&!seen[cw]){seen[cw]=1;cs.push(cw);} }
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
-  function spellTokenCore(tok,atStart,T,idx){
+function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
+    if(udHas(low))return null;                                         // mot ajouté par l'utilisateur → valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur » (le « e dans le o »). Liste FERMÉE de mots où oe=œ → FP=0 (coexister/moelle/poème non touchés). Garde : ne pas re-flaguer un mot DÉJÀ écrit avec œ. Débloque aussi le genre (« mon soeur »→ma sœur via GENDER_PURE oe).
@@ -25495,6 +25637,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
     if(low.length<3||!isAlphaS(low))return null;
     if(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low)))return null;            // mot connu (ou connu sans accents)
+    if(udHas(low))return null;                                              // dictionnaire utilisateur (prénom/jargon ajouté) → ne pas signaler
     if(_SPELL_KEEP[low])return null;                                       // mot anglais fréquent / résidu d'ordinal (the/er) → ni corrigé ni signalé « inconnu »
     if(tok[0]!==tok[0].toLowerCase())return null;                          // majuscule → possible nom propre (Nathalie/Bordeaux) même en début de phrase → on ne flague pas (prudence)
     if(tok===tok.toUpperCase()&&tok.length>=2)return null;                  // acronyme tout-capitale
@@ -25572,6 +25715,40 @@ window.addEventListener('DOMContentLoaded', () => {
   // en « à vérifier ». Gaté sur clause-init (dk après frontière _SEG, dk≠0 = le début-phrase est déjà rouge via rAccordSVnoun).
   // (VIGILANCE svAccordVig SUPPRIMÉE : l'accord sujet-verbe à sujet-NOM est passé EN ROUGE via rAccordSVnoun + le vrai parseur _npSubject, FP=0 sur 14 450 UD.)
   // MOVER SYNTAXIQUE de l'impératif — placement des pronoms clitiques (MIROIR de dictee/imperative_clitics.moves) → corrections span:N
+    // ===== DICTIONNAIRE UTILISATEUR (localStorage 'vdc_userdict') =====
+  // Le dys écrit des mots que le Lexique ne connaît pas : prénoms, lieux, jargon de son métier/école.
+  // Les signaler à chaque fois est du BRUIT qui use la confiance. On lui laisse les AJOUTER : ils sont
+  // alors traités comme des mots valides. ⚠️ Cette couche ne fait que RETIRER des signalements (jamais
+  // en ajouter) → FP=0 sans objet, et elle ne peut pas casser une règle rouge existante.
+  var _UD=null;
+  function udAll(){ if(_UD)return _UD; try{_UD=new Set(JSON.parse(localStorage.getItem('vdc_userdict')||'[]'));}catch(e){_UD=new Set();} return _UD; }
+  function udNorm(w){ return (w||'').toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae').trim(); }
+  function udHas(w){ var s=udAll(); var n=udNorm(w); return s.has(n)||s.has(deaccS(n)); }
+  function udAdd(w){ var n=udNorm(w); if(!n)return false; var s=udAll(); s.add(n);
+    try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} return true; }
+  function udDel(w){ var s=udAll(); s.delete(udNorm(w));
+    try{localStorage.setItem('vdc_userdict',JSON.stringify(Array.from(s)));}catch(e){} }
+
+  // ===== TÉMOIN AUDIBLE (idée de Rem) : la lettre finale MUETTE qu'un dys oublie s'ENTEND dans un mot
+  // de la MÊME FAMILLE — grand/grandE, long/lonGUe, amoureux/amoureuSE. C'est la méthode scolaire
+  // (« cherche un mot de la même famille ») et ce n'est PAS du sens flou : la dérivation est dans le
+  // lexique, donc vérifiable. Table produite par `dictee/build_famille.py` (aucune ressource externe).
+  // ⚠️ CURATION : le plancher de fréquence du témoin (5) est calibré sur la QUALITÉ, pas le volume —
+  // sans lui on affichait « chat -> chaté », « chocolat -> chocolate ». Et l'alternance du -x est
+  // bornée aux motifs réguliers du genre, sinon on fabriquait de FAUSSES familles avec de vrais mots
+  // (« prix -> prise », « voix -> voisin » : aucun lien étymologique, mais la forme colle).
+  var _FAM={"accord":"accorde","affreux":"affreuse","affront":"affronter","allemand":"allemande","amoureux":"amoureuse","appart":"appartement","apport":"apporté","arrêt":"arrête","avant":"avantage","avocat":"avocate","bloc":"bloqué","blond":"blonde","cent":"centaine","chanceux":"chanceuse","chant":"chante","chat":"chaton","chaud":"chaude","choc":"choqué","client":"cliente","command":"commande","comment":"commentaire","confort":"confortable","contact":"contacté","correct":"correctement","courageux":"courageuse","coût":"coûte","creux":"creuse","curieux":"curieuse","célibat":"célibataire","dangereux":"dangereuse","dent":"dentiste","deux":"deuxième","différent":"différente","direct":"directe","document":"documentaire","doux":"douce","drag":"dragon","droit":"droite","délicat":"délicate","délicieux":"délicieuse","emprunt":"emprunté","exact":"exacte","froid":"froide","front":"frontière","fréquent":"fréquente","furieux":"furieuse","goût":"goûte","grand":"grande","gratuit":"gratuite","group":"groupe","géant":"géante","généreux":"généreuse","habit":"habite","haut":"haute","heureux":"heureuse","idiot":"idiote","immédiat":"immédiatement","impatient":"impatiente","indic":"indice","infect":"infecté","innocent":"innocente","intelligent":"intelligente","jaloux":"jalouse","joyeux":"joyeuse","lent":"lentement","loup":"loupé","lourd":"lourde","malheureux":"malheureuse","merveilleux":"merveilleuse","mystérieux":"mystérieuse","nerveux":"nerveuse","nombreux":"nombreuses","patient":"patiente","permanent":"permanente","petit":"petite","poignard":"poignardé","port":"porte","post":"poste","profit":"profite","profond":"profonde","prudent":"prudente","précieux":"précieuse","présent":"présente","prêt":"prête","puissant":"puissante","quart":"quartier","rapport":"rapporte","regard":"regarde","rejet":"rejeté","relax":"relaxe","religieux":"religieuse","report":"reporter","respect":"respecte","récent":"récente","saut":"saute","second":"seconde","souhait":"souhaite","sport":"sportif","stand":"standard","supplément":"supplémentaire","support":"supporte","suspect":"suspecte","sénat":"sénateur","sérieux":"sérieuse","tard":"tarder","tort":"torture","tout":"toute","trac":"trace","trad":"tradition","transport":"transporter","vent":"vente","écart":"écarte","éclat":"éclate","époux":"épouse"};
+  function _famHint(f){
+    var w=(f.sugg||'').toLowerCase(), t=_FAM[w];
+    // RÈGLE (pas un témoin) : le son /mɑ̃/ final s’écrit TOUJOURS « -ment », avec un t muet.
+    // Mécanisme DIFFÉRENT de la famille, donc compté à part — et il couvre à lui seul 435 mots.
+    // Vérifié sur le lexique : 435 mots en -ment, et SEULEMENT 5 en -men sans t (abdomen, amen,
+    // examen, gentlemen, spécimen) — tous prononcés /mɛn/, donc aucune confusion possible.
+    if(!t && /ment$/.test(w) && w.length > 5)
+      return 'le <b>t</b> de « -ment » ne s’entend jamais, mais tous les mots en -ment le prennent.';
+    if(!t)return '';
+    return 'le <b>'+w.charAt(w.length-1)+'</b> muet s’entend dans « '+t+' » (même famille).';
+  }
   var _IMPVOW=/[aeiouyàâäéèêëîïôöùûüh]/i,_IMPCOD3={le:1,la:1,les:1},_IMPCOI3={lui:1,leur:1},_IMPADVP={en:1,y:1},_IMPWEAK={me:1,te:1,se:1,nous:1,vous:1},_IMPNOTV={a:1,as:1,ai:1,ont:1,est:1,es:1,sont:1,fut:1,eut:1,aura:1,sera:1},_IMPCLI="(?:t'en|m'en|s'en|t'y|m'y|m'|t'|s'|l'|me|te|se|nous|vous|moi|toi|lui|leur|les|le|la|en|y)";
   function _impV(w){return !!COMMON_VERBS[deacc(w.toLowerCase())];}
   function _impUn(p){var m=/^([mts])'(en|y)$/.exec(p.toLowerCase());return m?[{m:'me',t:'te',s:'se'}[m[1]],m[2]]:[p];}
@@ -25832,6 +26009,19 @@ window.addEventListener('DOMContentLoaded', () => {
    +'body.dys-dark .vdc-vig{border-bottom-color:#3fa564}body.dys-dark .vdc-vig:hover{background:#0f2417}'
    +'body.dys-cb .vdc-vig{border-bottom-color:#7b5ea7}body.dys-cb .vdc-vig:hover{background:#ece3f6}'   /* daltonien : violet pointillé (distinct de l\'orange-rouge et du bleu-ortho) */
    +'.vdc-fact{padding:8px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff;border-left:5px solid #c0392b}.vdc-sc{color:#444;font-size:13px}'
+   /* ⓘ REPLIÉ — le mode d'emploi tenait 8 lignes en tête de carte et repoussait la zone de saisie
+      hors de l'écran sur un portable. Même remède que sur la page de saisie vocale : `<details>`
+      NATIF, donc accessible au clavier et au lecteur d'écran, et qui fonctionne même sans JS.
+      La 1re phrase reste VISIBLE (c'est la seule dont un dys a besoin pour démarrer) ; le reste
+      s'ouvre sur demande. ⚠️ Si le fonctionnement du correcteur change, CE TEXTE CHANGE AUSSI. */
+   +'.vdc-sc summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;flex-wrap:wrap}'
+   +'.vdc-sc summary::-webkit-details-marker{display:none}'
+   +'.vdc-sc .vdc-i{flex:0 0 auto;width:16px;height:16px;border-radius:50%;border:1.5px solid #7a4fb5;color:#7a4fb5;'
+   +'font:700 11px/14px system-ui,sans-serif;text-align:center;display:inline-block}'
+   +'.vdc-sc[open] .vdc-i{background:#7a4fb5;color:#fff}'
+   +'.vdc-sc .vdc-det{margin-top:7px;line-height:1.55}'
+   +'.vdc-sc .vdc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
+   +'body.dys-dark .vdc-sc .vdc-i{border-color:#b18cf0;color:#b18cf0}body.dys-dark .vdc-sc[open] .vdc-i{background:#b18cf0;color:#1a1a1a}'
    +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'   /* aide-frappe : complétions du mot en cours */
    +'#vdc-card .vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* scopé #vdc-card : bat le global button:not(.btn) (0,1,1) qui fuyait une couleur claire */
    +'#vdc-card .vdc-comp:hover{background:#492f80;color:#fff}#vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré */
@@ -25866,7 +26056,9 @@ window.addEventListener('DOMContentLoaded', () => {
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
   var cov=document.createElement('div');cov.id='vdc-ov';
   cov.innerHTML='<div id="vdc-card" role="region" aria-label="Correcteur dys"><button id="vdc-x" aria-label="Retour à Omega">← Retour à Omega</button><h2>🩹 Correcteur dys — semi-direct</h2>'
-   +'<div class="vdc-sc">Colle ou écris ton texte : <b>il reste intact</b>. Sur ta saisie, on surligne seulement les <b>points à traiter</b> (<b>orange/rouge</b> : candidats orthographe, mots confusables). Le <b>texte corrigé</b> apparaît dans l\'encadré en dessous, avec les corrections déjà faites en <b>vert</b> (accents, accord, homophones grammaticaux, genre, terminaisons). Dans <b>✅ Texte corrigé</b>, clique un mot pour ouvrir sa <b>carte</b> (appliquer · annuler · ignorer). Ta saisie du haut reste <b>librement éditable</b>. Bouton <b>📋 Copier</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div>'
+   +'<details class="vdc-sc"><summary>Colle ou écris ton texte : <b>il reste intact</b>.'
+   +' <span class="vdc-i" aria-hidden="true">i</span><span class="vdc-sr"> — voir le mode d\'emploi</span></summary>'
+   +'<div class="vdc-det">Sur ta saisie, on surligne seulement les <b>points à traiter</b> (<b>orange/rouge</b> : candidats orthographe, mots confusables). Le <b>texte corrigé</b> apparaît dans l\'encadré en dessous, avec les corrections déjà faites en <b>vert</b> (accents, accord, homophones grammaticaux, genre, terminaisons). Dans <b>✅ Texte corrigé</b>, clique un mot pour ouvrir sa <b>carte</b> (appliquer · annuler · ignorer). Ta saisie du haut reste <b>librement éditable</b>. Bouton <b>📋 Copy</b> pour récupérer le texte corrigé. Le <b>stade</b> est indiqué. Conjugaison Lexique 4. Hors-ligne, aucune donnée envoyée.</div></details>'
    +'<div id="vdc-set" role="group" aria-label="Réglages d\'affichage">'
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
@@ -25875,7 +26067,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
    +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
    +'<div id="vdc-complete" aria-live="polite"></div>'
-   +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copier</button></div>'
+   +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copy</button></div>'
    +'<div id="vdc-result" aria-live="polite"></div>'
    +'<div id="vdc-count" class="vdc-sc" style="margin-top:10px" aria-live="polite"></div><div id="vdc-nav" class="vdc-nav" hidden><button id="vdc-prev" type="button" class="vdc-navb" title="faute précédente">◂ précédente</button><span id="vdc-navpos"></span><button id="vdc-next" type="button" class="vdc-navb" title="faute suivante">suivante ▸</button></div><div id="vdc-out" style="margin-top:4px"></div>'
    +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
@@ -25941,6 +26133,40 @@ window.addEventListener('DOMContentLoaded', () => {
       var wa=/[A-Za-zÀ-ÿœŒ]/.test(nx),wb=/[A-Za-zÀ-ÿœŒ]/.test(pv);
       if(wa&&!wb)out.push({cs:i,ce:i+1,from:'"',sugg:'« ',name:'typographie',tier:'vigilance',typo:1});
       else if(wb&&!wa)out.push({cs:i,ce:i+1,from:'"',sugg:' »',name:'typographie',tier:'vigilance',typo:1});}
+        /* ⭐⭐ LES DEUX PREMIÈRES RÈGLES ROUGES DE PONCTUATION DU CORRECTEUR (tout le reste ici est orange).
+       POURQUOI CELLES-CI PEUVENT ÊTRE ROUGES ALORS QUE LA VIRGULE SYNTAXIQUE NE LE SERA JAMAIS :
+       « où faut-il une virgule » est un JUGEMENT — mesuré 51,98 % de justesse sur 11 304 phrases
+       humaines, et la source elle-même écrit « on place GÉNÉRALEMENT une virgule ». Aucun réglage ne
+       fera de ça du FP=0. « L'espace autour de la virgule QUI EST LÀ est-il bien placé » est une tout
+       autre question : MÉCANIQUE, décidable sur la chaîne seule, sans grammaire ni contexte.
+       ⇒ C'est la SEULE couche de ponctuation qui peut atteindre FP=0 — et elle l'atteint.
+       MESURÉ : 0 faux positif sur 14 450 phrases UD correctes (les 2 seuls déclenchements y sont de
+       VRAIES fautes de typo du corpus : « Warner Bros . La musique », « Dorra Zarrouk,née le »),
+       et 156 cas réels attrapés sur 139 593 paires bad/good.
+       ⚠️ On ne touche QUE « , » et « . ». Le français demande une espace AVANT « ; : ! ? » », et les
+       usages divergent (France/Québec) : ces marques-là ne sont pas mécaniques, elles restent dehors. */
+    var re3=/([A-Za-zÀ-ÿœŒ0-9\)\]»])[ 	]+([,.])(?![.\d])/g;
+    while((m=re3.exec(t))){
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+m[2],name:'espace avant la ponctuation',tier:'auto',typo:1});}
+    var re4=/([a-zà-ÿœ]),([A-Za-zÀ-ÿœŒ])/g;
+    while((m=re4.exec(t))){
+      var _a=m.index; while(_a>0&&!/\s/.test(t[_a-1]))_a--;
+      var _b=m.index; while(_b<t.length&&!/\s/.test(t[_b]))_b++;
+      /* ⚠️ ON TESTE LE MOT ENTIER, pas une fenêtre de N caractères. Première version : ±14 caractères
+         autour de la virgule — trop court pour « https://exemple.fr/a,b » (le schéma est 20 caractères
+         plus loin), et la garde CI l'a sorti. Un « : », un « / » ou un « @ » dans le mot qui contient la
+         virgule = adresse, chemin ou URL : la virgule y est un séparateur technique, pas une ponctuation. */
+      if(/[:\/@]/.test(t.slice(_a,_b)))continue;
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+', '+m[2],name:'espace après la virgule',tier:'auto',typo:1});}
+        var re5=/,[ 	]*,+/g;   /* VIRGULE DOUBLÉE — mesuré 0 sur 14 450 phrases UD correctes, et observé dans la vraie prise vocale de Rem (« je sais pas comment,, on va le faire »).
+       ⚠️ UNIQUEMENT « ,, ». On avait d'abord visé « toute ponctuation doublée » : 15 déclenchements sur du français CORRECT, tous légitimes — « av. J.-C., », « etc., », « Martine B., », « Next..., ».
+       Le point d'abréviation suivi d'une virgule est du bon français ; la virgule doublée, jamais. */
+    while((m=re5.exec(t))){
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:',',name:'virgule doublée',tier:'auto',typo:1});}
+        var re6=/(\S)[ 	]{2,}(\S)/g;   /* ESPACE DOUBLE ENTRE DEUX MOTS — mesuré 0 occurrence sur 14 450 phrases UD CORRECTES, et 95 cas réels sur 139 593 paires bad/good. FP=0 par construction : le français n'a jamais deux espaces entre deux mots.
+       ⚠️ Le `(\S)` initial EXCLUT l'indentation : une ligne qui COMMENCE par des espaces n'est pas touchée. On répare un espacement entre MOTS, pas une mise en page. */
+    while((m=re6.exec(t))){
+      out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+' '+m[2],name:'espace double',tier:'auto',typo:1});}
     return out;}
   function _correctedText(t,corrs){var P=_tokPos(t),ed=[];
     corrs.forEach(function(f){if(!f.on)return;
@@ -26067,24 +26293,87 @@ window.addEventListener('DOMContentLoaded', () => {
     var pre=a>0?'…':'',suf=b<_curToks.length?'…':'';
     return 'Astuce : remplace par « '+esc(h[0])+' ». « '+pre+esc(win.join(' '))+suf+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
   function _explain(f){var e=_EXPL[f.name]||'';if(f.name==='orthographe'&&f.sugg)e="même son, orthographe corrigée : « "+f.sugg+" ».";
-    var cx=_ctxHint(f);if(cx)e=e?(e+'<br><span style="color:#0a66c2">'+cx+'</span>'):cx;return e;}
+    var cx=_ctxHint(f);if(cx)e=e?(e+'<br><span style="color:#0a66c2">'+cx+'</span>'):cx;
+    var fh=_famHint(f);if(fh)e=e?(e+'<br><span style="color:#7a4bd0">'+fh+'</span>'):fh;
+    return e;}
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
   function _speak(t){if(!t)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t).replace(/\s+/g,' ').trim());u.lang='fr-FR';u.rate=0.95;speechSynthesis.speak(u);}catch(e){}}   // TTS explication (dys : entendre > lire)
   function _plain(h){var d=document.createElement('div');d.innerHTML=h||'';return d.textContent||'';}
-  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button></div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
+  // Le bouton « C'est un mot » n'a de sens que si la correction vient de l'ORTHOGRAPHE (mot inconnu du
+  // lexique : prénom, lieu, jargon). Sur un ACCORD ou un HOMOPHONE, le mot EXISTE — l'ajouter au
+  // dictionnaire ne changerait rien et induirait en erreur. On teste donc que le mot écrit est bien
+  // absent du lexique ET que la règle est une règle d'orthographe.
+  function _udEligible(f){
+    try{
+      if(!f||!f.word)return false;
+      var low=f.word.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+      if(!/^[a-zà-ÿ'-]{2,}$/.test(low))return false;
+      if(SP&&SP.ready&&(SP.WORDS.has(low)||SP.WORDS.has(deaccS(low))))return false;   // mot connu -> pas un ajout
+      if(udHas(low))return false;                                                     // déjà ajouté
+      var n=(f.name||'').toLowerCase();
+      return n.indexOf('accord')<0&&n.indexOf('homophone')<0&&n.indexOf('conjug')<0;  // ortho seulement
+    }catch(e){return false;}
+  }
+  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button>'+(_udEligible(f)?'<button type="button" class="vcud" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗 C’est un mot</button>':'')+'</div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _ud=c.querySelector('.vcud');if(_ud)_ud.onclick=function(){udAdd(f.word);_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
   function _cardClick(e){var s=e.target.closest('[data-key]');if(!s)return;e.stopPropagation();_openCard(s);}
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour le mot SOUS LE CURSEUR. HORS PARITÉ : suggestion d'UI
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
   var _compKeys=null,_compFirst=null;
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
-  function complete(prefix){
+  function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
     if(_compKeys===null)_ckeys();
     var lo=0,hi=_compKeys.length,mid;while(lo<hi){mid=(lo+hi)>>1;if(_compKeys[mid]<p)lo=mid+1;else hi=mid;}
     var out=[],i=lo,k,forms,w;
     while(i<_compKeys.length&&_compKeys[i].slice(0,p.length)===p){forms=SP.D2A[_compKeys[i]];
       for(k=0;k<forms.length;k++){w=forms[k];if(deaccS(w).length>p.length&&(SP.FREQ[w]||0)>=1)out.push(w);}i++;if(out.length>800)break;}   // PLANCHER DE FRÉQUENCE (≥1) : l'aide-frappe ne propose QUE des mots courants. Sur une faute (« pome ») les seuls préfixe-matches sont rares (pomerol 0.1…) → liste vide → la CORRECTION prend le relais (pome→pomme), plus de bruit/contradiction. Mesuré : garde bonjour/chance/enfants… tue pomerol/poméranien.
-    out.sort(function(a,b){return (SP.FREQ[b]||0)-(SP.FREQ[a]||0);});
+    // CLASSEMENT : fréquence SEULE jusqu'ici — on ajoute le CONTEXTE. Le mot juste avant informe
+    // beaucoup (« les enf… » -> enfantS pluriel, pas « enfant »). Le bigramme vient du LM déjà baké
+    // (os-lm, champ `bf`) : aucune donnée nouvelle à charger. La fréquence reste la base, le contexte
+    // ne fait que RE-CLASSER (log : il pousse, il n'écrase pas).
+    // ⚠️ Le LM est `_OSLM` (portée module, PAS global) et `bf` est IMBRIQUÉ : bf[motPrécédent][motSuivant].
+    // Mes deux premières suppositions (nom global « OSLM », clé plate « prev word ») étaient fausses : le
+    // bonus ne se déclenchait JAMAIS — c'est la mesure avant/après qui l'a révélé, pas la relecture.
+    var _pw=(prev||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _row=(typeof _OSLM!=='undefined'&&_OSLM&&_OSLM.bf&&_pw)?_OSLM.bf[_pw]:null;
+    // CATÉGORIE ATTENDUE (SP.POS, déjà dans le lexique : « enfants→N », « mange→V », « manger→NV »).
+    // Le bigramme exige d'avoir VU la paire exacte — il échoue donc sur les pronoms (ligne « je » :
+    // 17 successeurs, « je→mange » = 0), et un LM 200× plus gros n'y change RIEN (mesuré, dégradant).
+    // La CATÉGORIE, elle, GÉNÉRALISE : après « je » on attend un VERBE, sans avoir vu le couple.
+    var _SUBJP={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,"j'":1,"n'":1};
+    var _expV=!!_SUBJP[_pw];                                  // pronom sujet -> on attend un verbe CONJUGUÉ
+    // ... et le pronom porte AUSSI la personne : « nous » appelle -ons, « vous » -ez, « ils » -ent.
+    // Terminaisons AUDIBLES pour un dys (nous mange|ONS) : c'est le bout qu'il entend et qu'il attend.
+    var _PERS={nous:/ons$/,vous:/ez$/,ils:/ent$/,elles:/ent$/,tu:/[sx]$/,
+               je:/[esx]$/,"j'":/[esx]$/,il:/(e|t|a|d)$/,elle:/(e|t|a|d)$/,on:/(e|t|a|d)$/};
+    var _pers=_PERS[_pw]||null;
+    // Mauvaise personne après un pronom SUJET = impossible, pas juste improbable -> on PÉNALISE.
+    // Mais « nous »/« vous » sont aussi pronoms OBJETS (« il NOUS regarde » : verbe en 3e personne !).
+    // Ils ne sont sujets qu'en TÊTE de proposition -> on regarde le mot encore avant pour trancher.
+    var _p2=(prev2||'').toLowerCase().replace(/[’ʼ]/g,"'");
+    var _HEAD={'':1,et:1,ou:1,mais:1,donc:1,car:1,que:1,qu:1,"qu'":1,qui:1,quand:1,si:1,lorsque:1,puis:1};
+    var _sure=(_pw==='nous'||_pw==='vous')?!!_HEAD[_p2]:!!_pers;
+    if((_pw==='nous'||_pw==='vous')&&!_sure)_pers=null;       // clitique OBJET : AUCUN signal de personne (ni bonus ni malus)
+    // NOMBRE après déterminant, même logique que la personne. Le piège : « une souris », « un pays »
+    // finissent par -s sans être pluriels -> on ne pénalise QUE si retirer le -s donne un mot du lexique
+    // (pommes->pomme = vrai pluriel ; souris->souri = rien -> intouché). Test FP-safe, pas de liste à tenir.
+    var _DET1={le:1,la:1,un:1,une:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,"l'":1},
+        _DETN={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,quelques:1,plusieurs:1};
+    var _sg=!!_DET1[_pw],_pl=!!_DETN[_pw];
+    function _realPl(w){ return /s$/.test(w)&&SP.WORDS.has(w.slice(0,-1)); }   // SP.WORDS est un Set (.has), pas un objet
+    function _cscore(w){ var s=Math.log(1+(SP.FREQ[w]||0));
+      if(_row){ var b=_row[w]; if(b)s+=Math.log(1+b)*1.5; }   // bigramme : marche sur déterminant->nom
+      if(_expV){ var pos=SP.POS[w]||'';
+        if(pos.indexOf('V')>=0)s+=1.2;                        // catégorie attendue
+        if(/(er|ir|re)$/.test(w))s-=1.6;                      // « je manger » est impossible : l'infinitif ne suit pas un pronom sujet
+        if(_pers){ if(_pers.test(w))s+=2.2;                    // bonne PERSONNE (« nous mangeons », pas « nous mange »)
+          else if(_sure)s-=1.8; }                              // mauvaise personne, et le pronom est bien SUJET
+      }
+      if(_sg&&_realPl(w))s-=4;                             // « une pommes » : déterminant singulier
+      else if(_pl){ if(/[sx]$/.test(w))s+=1.2;                // « les enfants »
+        else if(SP.WORDS.has(w+'s'))s-=4; }                 // « les maison » : singulier qui A un pluriel -> faux
+      return s; }
+    out.sort(function(a,b){return _cscore(b)-_cscore(a);});
     var seen={},res=[];for(i=0;i<out.length&&res.length<6;i++){if(!seen[out[i]]){seen[out[i]]=1;res.push(out[i]);}}
     return res;}
   var _WCH=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
@@ -26093,11 +26382,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!w.word||!repl)return;if(/^[A-ZÀ-Ö]/.test(w.word))repl=repl.charAt(0).toUpperCase()+repl.slice(1);
     ta.value=v.slice(0,w.start)+repl+v.slice(w.end);var np=w.start+repl.length;if(ta.value.charAt(np)===' ')np++;try{ta.setSelectionRange(np,np);}catch(e){}
     ta.focus();runComplete();runCorr();}
+  function _prevWord(txt,start,back){                       // dernier mot AVANT le préfixe en cours (contexte du bigramme)
+    var s=String(txt||'').slice(0,start),W=/[A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]/;
+    var m=s.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)([^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*)$/);
+    if(!m)return '';
+    if(!back||back<2)return m[1];                          // back=2 : l'AVANT-dernier mot (sujet vs clitique objet)
+    var s2=s.slice(0,s.length-m[1].length-m[2].length);
+    if(/[.,;:!?…«»()\[\]]\s*$/.test(s2))return '';         // une ponctuation ouvre une proposition -> tête
+    var m2=s2.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m2?m2[1]:'';
+  }
   function runComplete(){var box=$('vdc-complete');if(!box)return;var ta=$('vdc-in');_compFirst=null;
     if(!SP.ready){box.innerHTML='';return;}
     var pos=(ta.selectionStart==null?ta.value.length:ta.selectionStart),w=_wordAt(ta.value,pos);
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
-    var cs=complete(w.word);if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
+    var cs=complete(w.word,_prevWord(ta.value,w.start),_prevWord(ta.value,w.start,2));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
@@ -26151,7 +26450,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // (Piste A : la zone du HAUT est 100% éditable — le clic y place le curseur, il ne bascule plus la correction ; l'action passe par la carte du cadre BAS)
   var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
   $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce d'annotation = bascule
-  var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){clearTimeout(_ct);runCorr();var txt=_lastCorrected||$('vdc-in').value;if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){});}var o=_cp.textContent;_cp.textContent='✓ Copié';setTimeout(function(){_cp.textContent=o;},1200);});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
+  var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){clearTimeout(_ct);runCorr();var txt=_lastCorrected||$('vdc-in').value;var _o=_cp.getAttribute('data-lbl')||_cp.textContent;_cp.setAttribute('data-lbl',_o);/* on n'annonce '✓ Copied' QU'APRÈS coup : writeText rend une PROMESSE, son rejet (page non focalisée, permission bloquée) ne remontait nulle part et l'étiquette s'affichait quand même — l'interface AFFIRMAIT une copie qui n'avait pas eu lieu, et le dys collait l'ancien contenu. */var _fini=function(ok){_cp.textContent=ok?'✓ Copied':'⚠ copy refused — press Ctrl+C';setTimeout(function(){_cp.textContent=_o;},ok?1200:3200);};var _repli=function(){var t=document.createElement('textarea');t.value=txt;t.setAttribute('readonly','');t.style.cssText='position:fixed;top:-1000px;left:0;opacity:0';document.body.appendChild(t);t.select();var ok=false;try{ok=document.execCommand('copy');}catch(_){ok=false;}document.body.removeChild(t);_fini(ok);};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){_fini(true);},_repli);else _repli();});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
   (function(){
     var THEMES=['auto','light','dark'],TLABEL={auto:'🌗 Thème : auto',light:'☀️ Thème : clair',dark:'🌙 Thème : sombre'};

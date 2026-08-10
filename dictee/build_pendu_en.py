@@ -137,6 +137,11 @@ TRANSLATIONS = [
     ('parties chaudes', 'recent games'),
     ('non chargé', 'not loaded'),
     ('Lexique non chargé', 'Lexicon not loaded'),
+    # bouton COPIER du correcteur : le clone anglais affichait des étiquettes FRANÇAISES (jamais
+    # ancrées). Ajouter le message d'échec sans le traduire aurait aggravé la chose.
+    ("'✓ Copié'", "'✓ Copied'"),
+    ("'⚠ copie refusée — Ctrl+C'", "'⚠ copy refused — press Ctrl+C'"),
+    ('📋 Copier', '📋 Copy'),
     # petits labels stats/contrôles (ancres distinctives)
     ('moy —', 'avg —'),
     ('voie —', 'route —'),

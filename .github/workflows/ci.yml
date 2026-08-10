@@ -138,6 +138,13 @@ jobs:
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
       - name: SITE — toutes les pages sont atteignables depuis leur accueil (FR + EN)
         run: node dictee/pages_atteignables_probe.js
+      # Un cran plus loin dans la même famille (échec muet → #455 micro, #456 actifs) : les boutons
+      # « Copier » ne se contentaient pas d'être muets, ils AFFIRMAIENT le succès. `writeText` rend
+      # une PROMESSE : le try/catch synchrone n'attrapait que l'absence d'API, jamais un refus du
+      # navigateur, et « ✓ Copié » était posé inconditionnellement — sur OMEGA·KEY, une passphrase
+      # ou un message chiffré qu'on croyait tenir.
+      - name: UI — aucune copie n'annonce un succès qu'elle ignore (presse-papier)
+        run: node dictee/presse_papier_probe.js
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)
