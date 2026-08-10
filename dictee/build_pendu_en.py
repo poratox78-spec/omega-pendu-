@@ -17,11 +17,26 @@ G2P = os.path.join(HERE, 'g2p_en.json')   # tables g2p ANGLAISES (build_g2p_en.p
 P2L = os.path.join(HERE, 'phon2letters_en.json')  # phonème IPA -> lettres (build_phon2letters_en.py)
 PF  = os.path.join(HERE, 'phonfeatures_en.json')  # lettre -> traits articulatoires EN (build_phonfeatures_en.py)
 
-for p in (SRC, B64, LF, G2P, P2L, PF):
+CHECK = '--check' in sys.argv
+
+# ⚠️ `lex4_en.b64` est un INTERMÉDIAIRE régénérable, donc gitignoré : il n'existe PAS en CI. En
+# mode `--check` on prend donc le base64 DANS LE CLONE LIVRÉ. Ce n'est pas un contournement, c'est
+# le bon périmètre : ce check répond à « le MOTEUR FRANÇAIS est-il propagé au clone ? », pas à
+# « le lexique anglais est-il le dernier ? » (ça, c'est build_lex4_en.py, et ses sources ne sont
+# pas non plus dans le dépôt). Le prendre du clone rend aussi le check IDENTIQUE en local et en CI
+# — sinon une régénération locale du b64 (estampille gzip différente) le ferait échouer pour rien.
+for p in ([SRC] if CHECK else [SRC, B64]) + [LF, G2P, P2L, PF]:
     if not os.path.exists(p): print('[FATAL] manquant :', p); sys.exit(1)
 
 html = io.open(SRC, encoding='utf-8').read()
-b64 = io.open(B64, encoding='utf-8').read().strip()
+if CHECK:
+    if not os.path.exists(OUT): print('[FATAL] clone absent :', OUT); sys.exit(1)
+    _liv = io.open(OUT, encoding='utf-8').read()
+    _mb = re.search(r'<script type="text/plain" id="lex4-data-gz">(.*?)</script>', _liv, re.S)
+    if not _mb: print('[FATAL] bloc lex4-data-gz introuvable dans le clone livré'); sys.exit(1)
+    b64 = _mb.group(1).strip()
+else:
+    b64 = io.open(B64, encoding='utf-8').read().strip()
 lf = json.load(io.open(LF, encoding='utf-8'))
 g2p = json.load(io.open(G2P, encoding='utf-8'))
 p2l = json.load(io.open(P2L, encoding='utf-8'))
@@ -177,7 +192,7 @@ if os.path.exists(_i18n_path):
 # `OMEGA_GDET` (#453), le modèle de ponctuation, `_npSubject`, `_quiRelAvant`, `_isPplWideEr`…
 # Autrement dit l'application ANGLAISE tournait sur un moteur périmé, sans que rien ne le dise —
 # même classe que le zip d'extension rassis, qui a SON check de fraîcheur depuis longtemps.
-if '--check' in sys.argv:
+if CHECK:
     # ⚠️ LIRE COMME ON A LU LA SOURCE. `html` vient de `io.open(SRC)` SANS `newline=''` : Python a
     # donc converti les CRLF en LF. Sous Windows, git rematérialise le clone en CRLF (autocrlf) —
     # relire ici en `newline=''` comparait du CRLF à du LF et criait « périmé » sur un clone frais
