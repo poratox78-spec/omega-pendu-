@@ -10109,6 +10109,11 @@ window.addEventListener('DOMContentLoaded', () => {
 <script type="text/plain" id="vdc-lex-gz"></script>
 <script type="text/plain" id="speller-lex-gz"></script>
 <script type="text/plain" id="gdet-lex-gz"></script>
+<script type="text/plain" id="prenoms-gz"></script>
+<!-- PRÉNOMS + GENRE (Wiktionnaire FR via kaikki, CC BY-SA) — gzip TSV « nom<TAB>m|f<TAB>0|1 ».
+     3e colonne = 1 : prénom dont le genre CONTREDIT son homographe nom commun (Pierre m./la pierre f.)
+     -> inutilisable en TÊTE de proposition, où toute majuscule est ambiguë. Table par dictee/build_prenoms.py. -->
+
 <script type="text/plain" id="noun-post-gz"></script>
 <script type="text/plain" id="pos-hmm-gz"></script>
 <script type="text/plain" id="os-lm-gz"></script>
@@ -24010,6 +24015,7 @@ window.addEventListener('DOMContentLoaded', () => {
     w=w.replace(/(.)\1/g,'$1').replace(/(ent|s|t|d|x|p|e)$/,'').replace(/(.)\1/g,'$1');return w;}
   function toks(s){return (s.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).map(function(w){return w.replace(/[’ʼ]/g,"'");});}   // apostrophe TYPOGRAPHIQUE ’ (claviers mobiles) ≡ ' : même tokenisation, token normalisé pour le moteur (remplacement 1:1 → les positions/index restent alignés sur le texte original)
   function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}
+  function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[],cu=[],i,j;for(j=0;j<=b.length;j++)pr[j]=j;for(i=1;i<=a.length;i++){cu[0]=i;var bst=i;for(j=1;j<=b.length;j++){var v=Math.min(pr[j]+1,cu[j-1]+1,pr[j-1]+(a.charAt(i-1)===b.charAt(j-1)?0:1));cu[j]=v;if(v<bst)bst=v;}if(bst>max)return max+1;for(j=0;j<=b.length;j++)pr[j]=cu[j];}return pr[b.length];}   // distance d'édition BORNÉE (coût du choix courant, pour la règle d'omission ci-dessous)
   function isAccord(t,s){var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;
     while(p<a.length&&p<b.length&&a[p]===b[p])p++; var r=a.slice(p)+b.slice(p);
     if(a.slice(p)===b.slice(p))return false; for(var k=0;k<r.length;k++)if(!INFL[r[k]])return false; return true;}
@@ -25255,6 +25261,18 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     return -1; }
   function _npSubject(T,tg,a){if(deacc(String(T[a]||'').toLowerCase()).indexOf("qu'")===0)return null;   /* MARQUEUR FUSIONNE DANS LE VERBE : « les possibilites qu'offrent les domaines » — le token EST « qu'offrent », le balayage part de a-1 et ne le voit jamais. Un verbe en « qu' » est celui d'une RELATIVE/SUBORDONNEE : sujet a DROITE (inversion) ou le relatif lui-meme. Remonter a gauche rend un sujet FAUX → abstention (FP=0). Mesure par dictee/ponct_morpho_probe.py. */var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // tête [dét + nom] du sujet AVANT le verbe a ; mots-écrans « de X » sautés ; coord/PP/infinitif → null
+    /* SUJET = PRÉNOM NU (« Marie est venu » → venue). Un prénom n'a pas de déterminant : le balayage
+       [dét + nom-tête] ci-dessous ne le voyait JAMAIS et la règle s'abstenait — faute de DONNÉE, pas de règle.
+       ⚠️ COORDINATION : mesuré sur UD 2500, la 1re version ajoutait 3 FP, tous de la même forme — le prénom
+       était le DERNIER membre d'une énumération, donc le vrai sujet est PLURIEL (« … et Olivier ONT fini »,
+       « Clotaire, Childéric et Thierry ONT régné ») et un sujet SINGULIER faisait proposer « ont »→« a ».
+       ⚠️ TÊTE de proposition : toute majuscule y est ambiguë → les prénoms marqués (Pierre m./la pierre f.)
+       y sont neutralisés. Ailleurs, une majuscule EST un nom propre. FP=0 vérifié par ENSEMBLES (38/41 avant
+       comme après) sur 54 occasions réelles « prénom + auxiliaire ». Miroir de correcteur_probe. */
+    var _pg=PRENOMS[T[a-1]];
+    if(_pg&&a-1>=lo&&/^[A-ZÀ-Þ]/.test(T[a-1])){var _co=false;
+      for(j=lo;j<a-1;j++){var _dj=deacc(T[j].toLowerCase());if(_dj==='et'||_dj==='ou'||_dj==='ni'||_dj==='and'){_co=true;break;}}
+      if(!_co&&!(a-1===lo&&_pg[1]))return{idx:a-1,det:a-1,dtxt:'',htxt:T[a-1],elid:false,g:_pg[0],n:'s'};}
     var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj]||dj.indexOf("qu'")===0)break;   /* ⭐ TEST DE PRÉFIXE = BUG CORRIGÉ : `toks` ne sépare pas l'élision, « qu'offrent » est UN token, donc _NP_BREAK (que/qu) ne matchait JAMAIS et la coupure de relative était INERTE sur toute forme élidée. Le parseur remontait dans la proposition amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il répondait « possibilités ») ; toute règle d'accord qui s'y appuie héritait de l'erreur = FP SILENCIEUX. Mesuré par dictee/ponct_morpho_probe.py. Seul « que » s'élide en « qu' » → préfixe exact. */
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
@@ -25419,6 +25437,21 @@ window.addEventListener('DOMContentLoaded', () => {
       var txt=await new Response(st).text();var lines=txt.split('\n');
       for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('\t');if(p.length<2)continue;
         if(GENDER_PURE[p[0]]===undefined)GENDER_PURE[p[0]]=(p[1]==='1'?'f':'m');}   // union : ne pas écraser gn
+      if(typeof runCorr==='function')runCorr();
+    }catch(e){}}
+  // PRÉNOMS + GENRE (bloc prenoms-gz) — débloque l'accord sur un sujet PRÉNOM : « Marie est venu »
+  // → venue. La règle existait ; c'est la DONNÉE qui manquait. Miroir de correcteur_probe.PRENOMS.
+  // Valeur : [genre, tete_de_phrase_interdite] — voir le commentaire du bloc pour le 2e champ.
+  var PRENOMS={},PREN_LOADED=false;
+  if(typeof OMEGA_PRENOMS!=='undefined'&&OMEGA_PRENOMS){for(var _pk in OMEGA_PRENOMS)PRENOMS[_pk]=OMEGA_PRENOMS[_pk];}   // SEED sync (harnais de parité, comme OMEGA_GDET/OMEGA_POS_HMM) : sans lui la parité testerait une app SANS prénoms, donc une règle non branchée = vérifiée sur rien.
+  async function loadPrenoms(){
+    if(PREN_LOADED)return;PREN_LOADED=true;
+    try{var el=document.getElementById('prenoms-gz');if(!el||!el.textContent)return;
+      var bin=Uint8Array.from(atob(el.textContent.trim()),function(c){return c.charCodeAt(0);});
+      var st=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+      var txt=await new Response(st).text(),lines=txt.split(/\r?\n/);
+      for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('	');
+        if(p.length>=3)PRENOMS[p[0]]=[p[1],p[2]==='1'];}
       if(typeof runCorr==='function')runCorr();
     }catch(e){}}
   // POSTERIOR §3 du pluriel du nom (bloc noun-post-gz : forme‰NOM‰VER) — pilote rNounPlural (miroir correcteur_probe.NOUN_POST)
@@ -25628,7 +25661,26 @@ var _E2M={};   // mémo du secours distance 2 (par forme désaccentuée)
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;return py-px;}   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
-    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
+    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];/* OMISSION — NE PAS RACCOURCIR CE QUE L'UTILISATEUR A DÉJÀ RACCOURCI.
+       La faute dys la plus courante est d'OMETTRE des lettres. Or le moteur répondait parfois par un
+       mot PLUS COURT que la saisie, en jetant la terminaison que l'utilisateur avait pourtant entendue
+       et écrite : « afreuses »→affreux (au lieu d'affreuses), « profesionnelles »→professionnel,
+       « rélles »→réel, « meurtes »→meurt. Mesuré sur 6 000 non-mots WiCoPaCo : 1 415 omissions pures,
+       135 réponses plus courtes que la saisie — et dans 114 cas le BON mot était DÉJÀ candidat, juste
+       mal classé. C'est donc du re-classement, pas de la génération.
+       ⚠️ LE DISCRIMINATEUR EST LE COÛT, PAS LA FRÉQUENCE. « prendre la sur-chaîne la plus fréquente »
+       donne 108 réparés mais 54 CASSÉS (appeller→appellerai, vertue→vertueux, essort→ressort). Trois
+       conditions cumulées ramènent les dégâts à ZÉRO : la sur-chaîne doit (a) contenir la saisie comme
+       SOUS-SUITE — l'utilisateur n'a fait qu'omettre —, (b) commencer par la MÊME lettre (une insertion
+       en TÊTE n'est pas une omission : essort→ressort), et (c) être STRICTEMENT plus proche que la
+       réponse courante. Mesuré ainsi : +55 réparés, 0 cassé, 98 tokens touchés sur 6 000.
+       Ne change QUE la cible d'une correction déjà émise ⇒ FP=0 structurellement intact. */
+    if(deaccS(w1).length<d.length){var _cc=_levB(d,deaccS(w1),9),_bs=null,_bd=0,_k2;
+      for(_k2=0;_k2<keys.length;_k2++){var _c2=keys[_k2],_dc=deaccS(_c2),_dl=_dc.length-d.length;
+        if(_dl<=0||_dl>=_cc||_dc.charAt(0)!==d.charAt(0)||!subseq(d,_dc))continue;
+        if(_bs===null||_dl<_bd||(_dl===_bd&&cand[_c2][1]>cand[_bs][1])){_bs=_c2;_bd=_dl;}}
+      if(_bs){w1=_bs;p1=cand[w1][0];f1=cand[w1][1];}}
+    
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent (évite Nathalie→natalité)
     if(cg&&(SP.POS[w1]||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
     if(f1<0.1)return null;
@@ -26443,7 +26495,7 @@ var _E2M={};   // mémo du secours distance 2 (par forme désaccentuée)
     if(dev)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+'</span></div>';
     html+=remedBlock(devF,'vdc-fact');
     $('vdc-out').innerHTML=html;}
-  var _ct;cbtn.onclick=function(){cov.classList.add('on');$('vdc-in').focus();loadVdcLex();loadSpellerLex();loadGenderLex();loadNounPost();loadPosHmm();loadOsLm();runCorr();};
+  var _ct;cbtn.onclick=function(){cov.classList.add('on');$('vdc-in').focus();loadVdcLex();loadSpellerLex();loadGenderLex();loadPrenoms();loadNounPost();loadPosHmm();loadOsLm();runCorr();};
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
   cov.addEventListener('keydown',function(e){if(e.key==='Escape'){var c=$('vdc-cardpop');if(c&&c.style.display==='block'){_hideCard();return;}cov.classList.remove('on');}});   // Échap ferme (clavier/accessibilité)
   // (plus de fermeture au clic sur le fond : pleine page opaque + bouton « ← Retour à Omega » → zéro miss-clic vers le pendu)

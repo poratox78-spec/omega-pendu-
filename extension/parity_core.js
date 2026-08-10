@@ -13,9 +13,16 @@ const grText = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender
 DYSCORE.setLex(vdc, grText);
 DYSCORE.setNounPost(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'noun-post.txt.gz'))).toString('utf8'));        // posterior §3 (parité genre + accord pluriel du nom)
 DYSCORE.setPosHmm(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'pos-hmm.json.gz'))).toString('utf8')));   // POS-tagger HMM (parité son/sont sujet-nom via posTags)
+DYSCORE.setPrenoms(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'prenoms.tsv.gz'))).toString('utf8'));   // GENRE des PRÉNOMS : sans cette injection l'extension testée n'aurait aucun prénom et la parité serait verte sur une règle qui ne tourne pas.
 
 // 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est + pluriel du nom)
 const PHRASES = [
+  // PRÉNOMS — mêmes cas que dictee/parity_corr.js : fautes, phrases correctes, et les deux gardes
+  // (coordination = sujet réel PLURIEL ; tête de proposition = majuscule ambiguë).
+  'Marie est venu.', 'Julie est parti.', 'Sophie est content.', 'Léa est arrivé.',
+  'ma soeur Julie est parti.', 'Marie est venue.', 'Julie est partie.',
+  'Le charme et le sourire d’Helène et Olivier ont fini de nous conquérir.',
+  'Pierre est venue.', 'Avril est arrivé.', 'Rose est fanée.',
   'les enfant joue', 'des oiseau dans le ciel', 'les cheval galopent', 'il a des difficulté', 'des journal locaux',
   'les département français', 'des hit parades', 'il les porte', 'il les livre à domicile', 'les rouge vif', 'des chat noirs',
   // accord pluriel du nom via CARDINAL ≥2 (« cinq kilo »→kilos) — ROUGE FP=0 par l'ANCRE : cibles + pièges (invariable/nombre/composé/déjà pluriel/élision)
@@ -122,6 +129,18 @@ PHRASES.forEach((p, k) => {
   if (extra.length) { appOnly++; console.log('✗ EXT flague hors Python :', JSON.stringify(p), JSON.stringify(extra)); }
   if (js.length < pf.length) { gap++; console.log('  (couverture) PY > EXT :', JSON.stringify(p), '| PY=' + JSON.stringify(pf) + ' EXT=' + JSON.stringify(js)); }
 });
+/* GARDE PRÉNOMS — « ext ⊆ Python » est unidirectionnel : sans table, l'extension n'émettrait rien
+   et la parité resterait verte. On exige que l'extension PRODUISE ces corrections (miroir app). */
+const _ATT = [['Marie est venu.', 'venue'], ['Julie est parti.', 'partie'],
+              ['Sophie est content.', 'contente'], ['Léa est arrivé.', 'arrivée'],
+              ['ma soeur Julie est parti.', 'partie']];
+let _pren = 0;
+for (const [ph, att] of _ATT) {
+  const got = DYSCORE.correctText(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(att)) { _pren++; console.log("✗ PRÉNOMS : dys-core ne corrige plus", JSON.stringify(ph), "→", att, "(eu " + JSON.stringify(got) + ")"); }
+}
+if (_pren) { console.log("PARITÉ KO — " + _pren + " cas prénom non corrigés par l'extension."); process.exit(1); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

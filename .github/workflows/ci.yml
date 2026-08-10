@@ -154,5 +154,11 @@ jobs:
       # moteur plus ancien que le français, en silence.
       - name: LIVRAISON — le clone anglais est FRAIS (app EN == build(app FR))
         run: python3 dictee/build_pendu_en.py --check
+      # La table des prénoms vit en 3 copies (TSV Python, blob prenoms-gz de l'app, asset de
+      # l'extension). Trois moteurs, une seule donnée : une divergence ferait diverger l'accord.
+      # ⚠️ On ne vérifie PAS `build_prenoms.py --check` ici : son dump source est dans data_local/,
+      # gitignoré donc absent du runner — le piège payé avec lex4_en.b64 (#458).
+      - name: DONNÉES — table des prénoms identique dans les 3 moteurs
+        run: python3 dictee/prenoms_probe.py
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)
         run: node dictee/sw_probe.js

@@ -31,6 +31,14 @@ if (_gd) { try { globalThis.OMEGA_GDET = {};
   zlib.gunzipSync(Buffer.from(_gd.replace(/\s/g, ''), 'base64')).toString('utf8').split('\n').forEach(l => {
     const p = l.split('\t'); if (p.length >= 2) globalThis.OMEGA_GDET[p[0]] = (p[1] === '1' ? 'f' : 'm'); }); } catch (e) {} }
 
+/* PRÉNOMS (bloc prenoms-gz) — MÊME raison que le genre relâché juste au-dessus : sans ce seed,
+   l'app testée n'aurait AUCUN prénom, la branche « sujet = prénom nu » ne se déclencherait jamais,
+   et la parité serait verte sur une règle qui ne tourne pas. Une règle non branchée vaut zéro. */
+const _pn = (html.match(/<script type="text\/plain" id="prenoms-gz">([^<]*)<\/script>/) || [])[1] || '';
+if (_pn) { try { globalThis.OMEGA_PRENOMS = {};
+  zlib.gunzipSync(Buffer.from(_pn.replace(/\s/g, ''), 'base64')).toString('utf8').split(/\r?\n/).forEach(l => {
+    const p = l.split('\t'); if (p.length >= 3) globalThis.OMEGA_PRENOMS[p[0]] = [p[1], p[2] === '1']; }); } catch (e) {} }
+
 // 1) extraire l'IIFE jusqu'à correctText, refermer en exposant correctText
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const ctIdx = html.indexOf('function correctText', start);
@@ -65,6 +73,13 @@ if (typeof corr !== 'function') { console.error('correctText non exposé'); proc
 
 // 4) batterie : doit DÉTECTER / ne doit RIEN flaguer
 const PHRASES = [
+  // PRÉNOMS — la branche « sujet = prénom nu » DOIT être exercée ici, sinon la parité serait verte
+  // sur une règle que le harnais ne déclenche jamais. Fautes ET phrases correctes (contrôle FP),
+  // plus les deux gardes : coordination (sujet réel PLURIEL) et tête de proposition (majuscule ambiguë).
+  'Marie est venu.', 'Julie est parti.', 'Sophie est content.', 'Léa est arrivé.',
+  'ma soeur Julie est parti.', 'Marie est venue.', 'Julie est partie.',
+  'Le charme et le sourire d’Helène et Olivier ont fini de nous conquérir.',
+  'Pierre est venue.', 'Avril est arrivé.', 'Rose est fanée.',
   'Les enfant joue dans le jardin et il sont content. Je doit manger. On ont gagné. à mon avis.',
   'Je doit partir', 'Tu doit venir', 'Il ont faim', 'Elles a faim', 'On ont gagné', 'Ils doit manger',
   'Je peux venir', 'Tu manges bien', 'Il nous voit', 'Nous mangeons', 'Ils peut-être là', 'Vous êtes prêts',
@@ -186,6 +201,20 @@ PHRASES.forEach((p, k) => {
   if (extra.length) { appOnly++; console.log('✗ APP flague ce que PY ne flague pas :', JSON.stringify(p), JSON.stringify(extra)); }
   if (js.length < pf.length) { gap++; console.log('  (couverture) PY > APP sur :', JSON.stringify(p), '| PY=' + JSON.stringify(pf) + ' APP=' + JSON.stringify(js)); }
 });
+/* ⚠️ GARDE PRÉNOMS — « app ⊆ Python » est UNIDIRECTIONNEL : si l'app cessait de charger la table
+   des prénoms, elle n'émettrait plus rien et la parité resterait VERTE (les écarts de couverture
+   ne sont qu'affichés). Vérifié en neutralisant le seed : 5 écarts apparaissent, mais le verdict
+   restait « PARITÉ OK ». On exige donc EXPLICITEMENT que l'app produise ces corrections. */
+const _ATTENDU = [['Marie est venu.', 'venue'], ['Julie est parti.', 'partie'],
+                  ['Sophie est content.', 'contente'], ['Léa est arrivé.', 'arrivée'],
+                  ['ma soeur Julie est parti.', 'partie']];
+let _pren = 0;
+for (const [ph, att] of _ATTENDU) {
+  const got = corr(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(att)) { _pren++; console.log("✗ PRÉNOMS : l'app ne corrige plus", JSON.stringify(ph), '→', att, '(eu ' + JSON.stringify(got) + ') — table prenoms-gz chargée ?'); }
+}
+if (_pren) { console.log("PARITÉ KO — " + _pren + " cas prénom non corrigés par l'app."); process.exit(1); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — aucun flag propre à l'app sur ${PHRASES.length} phrases (app ⊆ Python). Écarts de couverture (lexique HF) : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'app flague hors Python (FP app).`);

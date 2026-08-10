@@ -61,6 +61,10 @@
     +"tombe tombent tombait chante chantent court courent boit boivent lit lisent ecrit ecrivent dort dorment finit finissent etudie etudient quitte quittent calme creuse vend vendent").split(/\s+/).forEach(function(w){if(w)COMMON_VERBS[w]=1;});
   var GENDER_MAP={},GENDER_PURE={},ADJP={},NOUN_PLURAL={};var CONJ_F={},CONJ_C={};
   function _applyVdc(vd){(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
+  // PRÉNOMS + GENRE (assets/prenoms.tsv.gz, DÉRIVÉ du blob prenoms-gz de l'app par build_assets).
+  // nom -> [genre, tete_de_phrase_interdite]. Débloque « Marie est venu »→venue. Miroir app + Python.
+  var PRENOMS={};
+  function _applyPrenoms(txt){var lines=txt.split(/\r?\n/);for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('	');if(p.length>=3)PRENOMS[p[0]]=[p[1],p[2]==='1'];}}
   function _applyGenderRelaxed(txt){var lines=txt.split('\n');for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('\t');if(p.length<2)continue;if(GENDER_PURE[p[0]]===undefined)GENDER_PURE[p[0]]=(p[1]==='1'?'f':'m');}}
   function lexicalGender(T,idx){if(!GENDER_MAP)return null;var j,w,g;
     for(j=idx-1;j>=Math.max(0,idx-3);j--){w=T[j].toLowerCase();if(NUM_PRON[w]||PREP[deacc(w)])break;g=GENDER_MAP[deacc(w)];if(g==='m'||g==='f')return[T[j],g];}
@@ -1433,6 +1437,14 @@ function ponctReglesVirgule(mots,_tg,deja){
     }
     return -1; }
   function _npSubject(T,tg,a){if(deacc(String(T[a]||'').toLowerCase()).indexOf("qu'")===0)return null;   /* MARQUEUR FUSIONNE DANS LE VERBE : « les possibilites qu'offrent les domaines » — le token EST « qu'offrent », le balayage part de a-1 et ne le voit jamais. Un verbe en « qu' » est celui d'une RELATIVE/SUBORDONNEE : sujet a DROITE (inversion) ou le relatif lui-meme. Remonter a gauche rend un sujet FAUX → abstention (FP=0). Mesure par dictee/ponct_morpho_probe.py. */var lo=0,j;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    /* SUJET = PRÉNOM NU (« Marie est venu » → venue) — miroir app + correcteur_probe. Un prénom n'a pas
+       de déterminant : le balayage [dét + nom-tête] ne le voyait jamais. ⚠️ Abstention sur COORDINATION
+       (mesuré : 3 FP sur UD 2500, le prénom fermait une énumération donc le sujet réel est PLURIEL) et
+       neutralisation en TÊTE de proposition pour les prénoms marqués (Pierre m. / la pierre f.). */
+    var _pg=PRENOMS[T[a-1]];
+    if(_pg&&a-1>=lo&&/^[A-ZÀ-Þ]/.test(T[a-1])){var _co=false;
+      for(j=lo;j<a-1;j++){var _dj=deacc(T[j].toLowerCase());if(_dj==='et'||_dj==='ou'||_dj==='ni'||_dj==='and'){_co=true;break;}}
+      if(!_co&&!(a-1===lo&&_pg[1]))return{idx:a-1,det:a-1,dtxt:'',htxt:T[a-1],elid:false,g:_pg[0],n:'s'};}
     var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj]||dj.indexOf("qu'")===0)break;   /* ⭐ TEST DE PRÉFIXE = BUG CORRIGÉ : `toks` ne sépare pas l'élision, « qu'offrent » est UN token, donc _NP_BREAK (que/qu) ne matchait JAMAIS et la coupure de relative était INERTE sur toute forme élidée. Le parseur remontait dans la proposition amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il répondait « possibilités ») ; toute règle d'accord qui s'y appuie héritait de l'erreur = FP SILENCIEUX. Mesuré par dictee/ponct_morpho_probe.py. Seul « que » s'élide en « qu' » → préfixe exact. */
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}
@@ -1601,6 +1613,8 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
 var _E2M={};   // mémo du secours distance 2 (par forme désaccentuée)
+  function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}   // a est-il une SOUS-SUITE de b ? (miroir de l'app)
+function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[],cu=[],i,j;for(j=0;j<=b.length;j++)pr[j]=j;for(i=1;i<=a.length;i++){cu[0]=i;var bst=i;for(j=1;j<=b.length;j++){var v=Math.min(pr[j]+1,cu[j-1]+1,pr[j-1]+(a.charAt(i-1)===b.charAt(j-1)?0:1));cu[j]=v;if(v<bst)bst=v;}if(bst>max)return max+1;for(j=0;j<=b.length;j++)pr[j]=cu[j];}return pr[b.length];}   // distance d'édition BORNÉE
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
@@ -1672,7 +1686,18 @@ var _E2M={};   // mémo du secours distance 2 (par forme désaccentuée)
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;return py-px;}   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
-    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
+    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];/* OMISSION — NE PAS RACCOURCIR CE QUE L'UTILISATEUR A DÉJÀ RACCOURCI. Miroir exact de l'app.
+     La faute dys la plus courante est d'OMETTRE des lettres, et le moteur répondait parfois par un mot
+     PLUS COURT que la saisie (« afreuses »→affreux au lieu d'affreuses). Mesuré sur 6 000 non-mots
+     WiCoPaCo : 135 réponses plus courtes, dont 114 où le BON mot était DÉJÀ candidat = re-classement.
+     ⚠️ Discriminateur = le COÛT, pas la fréquence : (a) sous-suite, (b) MÊME initiale, (c) strictement
+     plus proche que la réponse courante. Ainsi : +55 réparés, 0 cassé. Ne change que la CIBLE. */
+    if(deaccS(w1).length<d.length){var _cc=_levB(d,deaccS(w1),9),_bs=null,_bd=0,_k2;
+      for(_k2=0;_k2<keys.length;_k2++){var _c2=keys[_k2],_dc=deaccS(_c2),_dl=_dc.length-d.length;
+        if(_dl<=0||_dl>=_cc||_dc.charAt(0)!==d.charAt(0)||!subseq(d,_dc))continue;
+        if(_bs===null||_dl<_bd||(_dl===_bd&&cand[_c2][1]>cand[_bs][1])){_bs=_c2;_bd=_dl;}}
+      if(_bs){w1=_bs;p1=cand[w1][0];f1=cand[w1][1];}}
+    
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent
     if(cg&&(SP.POS[w1]||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}
     if(f1<0.1)return null;
@@ -2115,11 +2140,19 @@ function spellUnknown(tok,atStart,T,idx){
   // ===== chargement lexiques =====
   var _ready=false,_loading=null;
   function setLex(vd,genderRelaxedText,spellerTSV){_applyVdc(vd||{});if(genderRelaxedText)_applyGenderRelaxed(genderRelaxedText);if(spellerTSV)_applySpellerTSV(spellerTSV);_ready=true;}
+  var _PREN_L=false;
+  async function loadPrenoms(url){
+    if(_PREN_L)return;_PREN_L=true;
+    try{var gz=await (await fetch(url)).arrayBuffer();
+      var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+      _applyPrenoms(await new Response(st).text());}catch(e){}}
+  function setPrenoms(txt){_applyPrenoms(txt);}   // injection directe (Node/tests, parité)
   function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz), nom:url(.gz) }
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
     if(urls&&urls.nom)loadNounPost(urls.nom);             // posterior §3 du pluriel du nom (noun-post) : additif, indépendant
     if(urls&&urls.hmm)loadPosHmm(urls.hmm);               // POS-tagger HMM (pos-hmm.json.gz) : additif, indépendant
-    if(urls&&urls.osLm)loadOsLm(urls.osLm);               // LM OS-sujet (os-subj-lm.json.gz) : additif, orange accord verbe
+    if(urls&&urls.osLm)loadOsLm(urls.osLm);
+    if(urls&&urls.prenoms)loadPrenoms(urls.prenoms);         // genre des PRÉNOMS : additif, indépendant               // LM OS-sujet (os-subj-lm.json.gz) : additif, orange accord verbe
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -2198,7 +2231,7 @@ function spellUnknown(tok,atStart,T,idx){
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
-    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, osProbe:osProbe, cesProbe:cesProbe,
+    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, setPrenoms:setPrenoms, loadPrenoms:loadPrenoms, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
