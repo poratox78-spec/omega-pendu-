@@ -18,6 +18,19 @@ if (_np) { try { globalThis.OMEGA_NOUN_POST = {}; zlib.gunzipSync(Buffer.from(_n
 const _hm = (html.match(/<script type="text\/plain" id="pos-hmm-gz">([^<]*)<\/script>/) || [])[1] || '';
 if (_hm) { try { globalThis.OMEGA_POS_HMM = JSON.parse(zlib.gunzipSync(Buffer.from(_hm.replace(/\s/g, ''), 'base64')).toString('utf8')); } catch (e) {} }
 
+/* ⚠️ GENRE RELÂCHÉ (bloc gdet-lex-gz) — IL MANQUAIT, ET CE N'ÉTAIT PAS ANODIN.
+   L'app charge DEUX tables de genre : `vdc-lex.gn` (68 746, sync) et `gdet-lex-gz` (46 432, async,
+   fusionnées dans GENDER_PURE par loadGenderLex). Ce harnais n'amorçait que la PREMIÈRE : il testait
+   donc une app AFFAIBLIE, avec 70 374 -> 68 746 entrées de genre. Deux conséquences :
+     · un écart de couverture FANTÔME était rapporté (« le poisse »→la, que la vraie app corrige) ;
+     · surtout, tout FAUX POSITIF qui n'apparaît qu'une fois cette table chargée était INVISIBLE
+       en CI — l'invariant « app ⊆ Python » était vérifié sur un moteur que personne n'utilise.
+   Mesurer un moteur amputé, ce n'est pas mesurer le produit. */
+const _gd = (html.match(/<script type="text\/plain" id="gdet-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
+if (_gd) { try { globalThis.OMEGA_GDET = {};
+  zlib.gunzipSync(Buffer.from(_gd.replace(/\s/g, ''), 'base64')).toString('utf8').split('\n').forEach(l => {
+    const p = l.split('\t'); if (p.length >= 2) globalThis.OMEGA_GDET[p[0]] = (p[1] === '1' ? 'f' : 'm'); }); } catch (e) {} }
+
 // 1) extraire l'IIFE jusqu'à correctText, refermer en exposant correctText
 const start = html.indexOf('(function(){', html.indexOf('mode PHRASES'));
 const ctIdx = html.indexOf('function correctText', start);
