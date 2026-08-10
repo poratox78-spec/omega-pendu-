@@ -93,6 +93,9 @@ run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --c
 # 2026-08-10 il avait plusieurs PR de retard (table de genre _GCOLL + graine OMEGA_GDET de la #453,
 # modèle de ponctuation, _npSubject, _quiRelAvant…) : l'app ANGLAISE tournait sur un moteur périmé.
 run "clone anglais FRAIS (app EN == build(app FR))" python3 dictee/build_pendu_en.py --check
+# La table des PRÉNOMS existe en 3 copies (TSV Python, blob de l'app, asset de l'extension) : si elles
+# divergent, l'accord sur « Marie est venu » ne dit pas la même chose selon le moteur.
+run "prénoms : 3 copies identiques + contenu" python3 dictee/prenoms_probe.py
 run "service worker (version+empreinte, précache, purge)" node dictee/sw_probe.js
 run "parité dev.sh ↔ ci.yml (anti-dérive)" python3 dictee/ci_parity_probe.py
 

@@ -971,6 +971,25 @@ def _np_subject(T, tg, a):
     if _SEG is not None:
         for j in range(a, 0, -1):
             if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    # ⭐ SUJET = PRÉNOM NU (« Marie est venu » → venue). Un prénom n'a pas de déterminant, donc le
+    # balayage [dét + nom-tête] ci-dessous ne le voyait JAMAIS : la règle s'abstenait, pas faute de
+    # règle mais faute de DONNÉE. Table `prenoms_genre.tsv` (Wiktionnaire FR, CC BY-SA).
+    # ⚠️ En TÊTE de proposition, une majuscule ne prouve rien (tout mot y est capitalisé) : les
+    # 105 prénoms dont le genre CONTREDIT celui d'un nom commun homographe (Pierre m. / la pierre
+    # f., Avril, Boris, Ciel…) y sont neutralisés par leur 3ᵉ colonne. Ailleurs, une majuscule EST
+    # un nom propre.
+    # ⚠️ COORDINATION : mesuré sur UD 2500, la 1ʳᵉ version ajoutait 3 faux positifs, TOUS de la même
+    # forme — le prénom était le DERNIER membre d'une énumération, donc le vrai sujet est PLURIEL :
+    # « le charme et le sourire d'Helène et Olivier ONT fini », « Clotaire, Childéric et Thierry ONT
+    # régné », « l'Oregon, and Washington ONT mis ». Rendre un sujet SINGULIER faisait proposer
+    # « ont »→« a ». Le balayage [dét + nom] ci-dessous s'abstient déjà sur et/ou/ni ; ce raccourci
+    # doit faire pareil, et sur TOUTE la proposition (le coordonnant peut être loin du prénom).
+    if PRENOMS and a - 1 >= lo:
+        _pw = T[a-1]
+        _pg = PRENOMS.get(_pw)
+        _coord = any(deacc(T[_k].lower()) in ('et', 'ou', 'ni', 'and') for _k in range(lo, a - 1))
+        if _pg and _pw[:1].isupper() and not _coord and not (a - 1 == lo and _pg[1]):
+            return {'idx': a-1, 'det': a-1, 'dtxt': '', 'htxt': _pw, 'elid': False, 'g': _pg[0], 'n': 's'}
     det_idx = None
     _seen_prep = False
     _elid = False
@@ -2345,6 +2364,19 @@ def _keepcase(src, sugg):
 # Genre de NOMS PURS (cgram_hf.json 'gn' = genre non ambigu MOINS verbes MOINS adjectifs). MÊME source que
 # l'app (vdc-lex 'gn') → parité EXACTE. Pré-filtré : pas de re-vérif verbe/adjectif (les homographes « porte »,
 # « rouge » sont déjà exclus). Si cgram_hf absent : pas de règle genre-déterminant (abstention totale).
+# PRÉNOMS + GENRE (dictee/prenoms_genre.tsv, extrait du Wiktionnaire FR par build_prenoms.py).
+# nom -> (genre, tete_de_phrase_interdite). Débloque l'accord sur « Marie est venu » → « venue » :
+# la règle existait, c'est la DONNÉE qui manquait.
+PRENOMS = {}
+try:
+    with open(os.path.join(HERE, 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
+        for _l in _fp:
+            _p = _l.rstrip('\n').split('\t')
+            if len(_p) == 3:
+                PRENOMS[_p[0]] = (_p[1], _p[2] == '1')
+except Exception:
+    PRENOMS = {}
+
 GENDER_PURE = {}; GENDER_FULL = {}
 _HF_PATH = os.path.join(HERE, 'cgram_hf.json')
 if os.path.exists(_HF_PATH):

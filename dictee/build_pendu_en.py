@@ -101,7 +101,7 @@ if _ng_n != 4: print('[WARN] n-gramme attesté : %d occurrences patchées (atten
 # les embarquait à l'identique (~3,95 Mo de français MORT — le pendu ne les lit jamais, les outils ont
 # leurs pages EN séparées et sont masqués ici). Tous leurs loaders guardent sur contenu vide
 # (`if(!el||!el.textContent)return`) → on remplace le base64 par du vide : boot sûr, clone −45 %.
-_TOOL_BLOCKS = ['vdc-lex-gz', 'speller-lex-gz', 'gdet-lex-gz', 'noun-post-gz', 'pos-hmm-gz', 'os-lm-gz']
+_TOOL_BLOCKS = ['vdc-lex-gz', 'speller-lex-gz', 'gdet-lex-gz', 'noun-post-gz', 'pos-hmm-gz', 'os-lm-gz', 'prenoms-gz']
 for _bid in _TOOL_BLOCKS:
     _rx = re.compile(r'(<script type="text/plain" id="' + re.escape(_bid) + r'">).*?(</script>)', re.S)
     if not _rx.search(html): print('[WARN] bloc outil introuvable (déjà vidé ?) :', _bid)

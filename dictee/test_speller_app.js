@@ -213,6 +213,22 @@ const SP = globalThis.__sp;
     const r = SP.spell(b).find(x => x.word.toLowerCase() === b);
     if (!r || r.sugg.toLowerCase() !== g) fail.push('secours distance 2 : ' + b + '→' + g + ' attendu, eu ' + JSON.stringify(r));
   }
+  // OMISSION — le moteur ne doit pas rendre un mot PLUS COURT que la saisie quand une sur-chaîne
+  // strictement plus proche existe (le dys a OMIS des lettres, pas ajouté).
+  for (const [b, g] of [['afreuses', 'affreuses'], ['profesionnelles', 'professionnelles'],
+                        ['rationelle', 'rationnelle'], ['meurtes', 'meurtres'], ['utisateur', 'utilisateur']]) {
+    const r = SP.spell(b).find(x => x.word.toLowerCase() === b);
+    if (!r || r.sugg.toLowerCase() !== g) fail.push('omission : ' + b + '→' + g + ' attendu, eu ' + JSON.stringify(r));
+  }
+  // ⚠️ CONTRE-GARDES — les 4 cas que la version GOURMANDE de la règle cassait (« prendre la
+  // sur-chaîne la plus fréquente » : 108 réparés mais 54 cassés). Elles verrouillent les trois
+  // conditions : sous-suite, MÊME initiale (essort→ressort interdit), et strictement plus proche
+  // (appeller→appellerai interdit). Sans elles, un futur assouplissement passerait inaperçu.
+  for (const [b, g] of [['appeller', 'appeler'], ['vertue', 'vertu'], ['essort', 'essor'], ['language', 'langage']]) {
+    const r = SP.spell(b).find(x => x.word.toLowerCase() === b);
+    if (!r || r.sugg.toLowerCase() !== g) fail.push('contre-garde omission : ' + b + '→' + g +
+      ' attendu (la règle ne doit PAS rallonger ici), eu ' + JSON.stringify(r));
+  }
   // ⚠️ GARDE DE COÛT — le plafond de 9 lettres n'est pas cosmétique : à 10 le 1er passage sur ce
   // texte passait de 8 ms à 516 ms (les mots longs déclenchent une recherche qui ne trouve RIEN,
   // ce sont des élisions sans apostrophe). Sans cette garde, relever le plafond passerait inaperçu
