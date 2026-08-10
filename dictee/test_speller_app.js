@@ -207,6 +207,25 @@ const SP = globalThis.__sp;
   if (SP.spell('j’ai visité l’école aujourd’hui avec l’ami d’enfance').length) fail.push('FP apostrophe typographique ’ (phrase correcte flaguée)');
   const ap1 = SP.spell('j’ai vu la fenetre').find(x => x.word.toLowerCase() === 'fenetre');
   if (!ap1 || ap1.sugg !== 'fenêtre') fail.push('fenetre→fenêtre avec ’ dans le contexte attendu, eu ' + JSON.stringify(ap1));
+  // SECOURS DISTANCE 2 (mots ≤9 lettres, seulement quand aucune autre route n'a rien trouvé).
+  for (const [b, g] of [['dispaître', 'disparaître'], ['acceulli', 'accueilli'], ['utisateur', 'utilisateur'],
+                        ['néammois', 'néanmoins'], ['leutnant', 'lieutenant']]) {
+    const r = SP.spell(b).find(x => x.word.toLowerCase() === b);
+    if (!r || r.sugg.toLowerCase() !== g) fail.push('secours distance 2 : ' + b + '→' + g + ' attendu, eu ' + JSON.stringify(r));
+  }
+  // ⚠️ GARDE DE COÛT — le plafond de 9 lettres n'est pas cosmétique : à 10 le 1er passage sur ce
+  // texte passait de 8 ms à 516 ms (les mots longs déclenchent une recherche qui ne trouve RIEN,
+  // ce sont des élisions sans apostrophe). Sans cette garde, relever le plafond passerait inaperçu
+  // en CI et se paierait à la FRAPPE chez l'utilisateur.
+  const TXT_DYS = "Je voulai vous dir que la leson daujourdhui etait tres interesante. Le profeseur a explique " +
+    "lortografe des mots dificiles et jai pri des note. Demain nous auron un contrôle sur les acord " +
+    "du participe passe, ce qui me stress un peu car je fait toujour des faute la dessus.";
+  SP.spell('amorce');                                    // 1re invocation = chargement paresseux, hors mesure
+  const _t = Date.now(); SP.spell(TXT_DYS); const _ms = Date.now() - _t;
+  if (_ms > 120) fail.push('1er passage sur texte dys = ' + _ms + ' ms (plafond 120) — le secours distance 2 ' +
+                           'coûte trop cher : vérifier que le plafond de longueur est resté à 9.');
+  else console.log('  coût 1er passage texte dys : ' + _ms + ' ms (plafond de garde 120)');
+
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }
-  console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier).');
+  console.log('\n✓ OK : lexique chargé, AUTO FP=0, fenetre→fenêtre (auto), leson→leçon, + hybride (fote→faute, premiere→premier), secours distance 2 (5 cas + coût).');
 })().catch(e => { console.error(e); process.exit(1); });
