@@ -73,6 +73,10 @@ if (typeof corr !== 'function') { console.error('correctText non exposé'); proc
 
 // 4) batterie : doit DÉTECTER / ne doit RIEN flaguer
 const PHRASES = [
+  // son/sont — la branche « prédicat » ne tirait QUE si le tagger se TROMPAIT sur le participe
+  // (audit 2026-08-11) : « partis »→NOUN tirait, « venus »→VERB abstenait. Les 4 formes ici.
+  'les chats son venus.', 'les enfants son venus.', 'les chats son partis.',
+  'les poules son dans le jardin.', 'le son de la cloche résonne.', 'son ancienne équipe a gagné.',
   // PRÉNOMS — la branche « sujet = prénom nu » DOIT être exercée ici, sinon la parité serait verte
   // sur une règle que le harnais ne déclenche jamais. Fautes ET phrases correctes (contrôle FP),
   // plus les deux gardes : coordination (sujet réel PLURIEL) et tête de proposition (majuscule ambiguë).
@@ -201,6 +205,16 @@ PHRASES.forEach((p, k) => {
   if (extra.length) { appOnly++; console.log('✗ APP flague ce que PY ne flague pas :', JSON.stringify(p), JSON.stringify(extra)); }
   if (js.length < pf.length) { gap++; console.log('  (couverture) PY > APP sur :', JSON.stringify(p), '| PY=' + JSON.stringify(pf) + ' APP=' + JSON.stringify(js)); }
 });
+/* ⚠️ GARDE TIER — le rouge de la grammaire est PORTÉ par le flag depuis l'audit 2026-08-11.
+   Sans lui, `content.js` (extension) n'applique que `tier==='auto'` et la grammaire n'est JAMAIS
+   corrigée dans l'extension, alors que l'app la coche par défaut : même texte, deux comportements.
+   On exige donc que toute correction de grammaire sorte avec un tier ('auto' ou 'vigilance'). */
+const _SANS_TIER = [];
+for (const ph of ['les enfant joue.', 'Marie est venu.', 'il a allé au cinéma.', 'les chats son venus.']) {
+  for (const f of corr(ph)) if (f.tier !== 'auto' && f.tier !== 'vigilance') _SANS_TIER.push(ph + ' : ' + f.word + '→' + f.sugg + ' tier=' + f.tier);
+}
+if (_SANS_TIER.length) { console.log("PARITÉ KO — grammaire SANS TIER (l'extension ne l'appliquerait pas) :"); for (const x of _SANS_TIER) console.log('   ' + x); process.exit(1); }
+
 /* ⚠️ GARDE PRÉNOMS — « app ⊆ Python » est UNIDIRECTIONNEL : si l'app cessait de charger la table
    des prénoms, elle n'émettrait plus rien et la parité resterait VERTE (les écarts de couverture
    ne sont qu'affichés). Vérifié en neutralisant le seed : 5 écarts apparaissent, mais le verdict

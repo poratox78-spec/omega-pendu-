@@ -244,8 +244,13 @@ def _plural_before(T, i):
         if w in _CLAUSE_BREAK: break
         if w in PLURAL_MARK: return True
     return False
-def _clause_no_finite_verb(T, i):
-    """Aucun verbe dans la proposition de i (bornes _SEG), hors T[i] ? Verbe-présence via le TAGGER HMM (contexte) —
+def _clause_no_finite_verb(T, i, skip=None):
+    """Aucun verbe dans la proposition de i (bornes _SEG), hors T[i] (et hors `skip`) ?
+    ⚠️ `skip` EXISTE À CAUSE D'UN BUG MESURÉ (audit 2026-08-11). La branche « prédicat » de
+    rule_son_sont cherche « son + PARTICIPE » — mais ce balayage comptait le participe VISÉ comme
+    « verbe fini » et faisait abstenir. Résultat : la règle ne tirait QUE si le tagger se TROMPAIT
+    sur ce participe (« partis »→NOUN : tire ; « venus »→VERB : abstient). Améliorer le tagger
+    DIMINUAIT le rappel. L'appelant passe donc la case de son prédicat. Verbe-présence via le TAGGER HMM (contexte) —
     il tague « élèves/table/forme » NOUN par le contexte là où le repli `_reads` sur-détectait (→ ratés). Repli `_reads`
     (sur-détection = abstention, jamais un FP) si le modèle est absent. Parité : pos_tags identique Py/app/extension."""
     n = len(T); lo, hi = 0, n
@@ -257,10 +262,10 @@ def _clause_no_finite_verb(T, i):
     tg = pos_tags(T)
     if tg is not None:
         for j in range(lo, hi):
-            if j != i and tg[j] in ('VERB', 'AUX'): return False
+            if j != i and j != skip and tg[j] in ('VERB', 'AUX'): return False
         return True
     for j in range(lo, hi):                                        # repli (modèle absent) : lecture conjuguée `_reads`
-        if j != i and _reads(T[j].lower()): return False
+        if j != i and j != skip and _reads(T[j].lower()): return False
     return True
 
 def is_plural_noun(T, j):
@@ -490,13 +495,13 @@ def rule_son_sont(T, i):
     # n'est JAMAIS suivi d'une prép ; le NOM « son » l'est mais est alors précédé d'un déterminant/prép, exclu) + AUCUN
     # verbe fini dans la proposition (signal verbe-présence ~94 %) → « son » occupe le créneau verbe → « sont ».
     # « Les poules son dans le jardin »→sont ; « Le son de la cloche résonne » : « son » précédé de « Le » ET verbe présent → abstention.
-    if plural_subj and (nxt in PREP or nxt == 'en') and prev(T, i) not in NUM_DET and prev(T, i) not in PREP and _clause_no_finite_verb(T, i):
+    if plural_subj and (nxt in PREP or nxt == 'en') and prev(T, i) not in NUM_DET and prev(T, i) not in PREP and _clause_no_finite_verb(T, i, i + 1):
         return 'sont'                                                  # « en » (prép : en retard/en colère) inclus, hors PREP de base
     # sujet-NOM pluriel + « son » suivi d'un PRÉDICAT (participe/adjectif) + aucun verbe fini → « sont » (« les enfants son partis/noirs »→sont)
     # PRÉDICAT après « son » (sujet-nom pluriel) : participe PLURIEL (« les enfants son partis/venus »→sont). Les adjectifs
     # sont EXCLUS (trop de faux positifs : « son ancienne équipe », « son style, » = possessif + nom homographe d'adjectif).
     if i+1 < len(T) and plural_subj and prev(T, i) not in NUM_DET and prev(T, i) not in PREP \
-       and _pp_base(T[i+1]) is not None and deacc(nxt).endswith(('s', 'x')) and _clause_no_finite_verb(T, i):
+       and _pp_base(T[i+1]) is not None and deacc(nxt).endswith(('s', 'x')) and _clause_no_finite_verb(T, i, i + 1):
         return 'sont'
     return None
 
