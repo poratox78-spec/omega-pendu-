@@ -10,13 +10,24 @@ require(path.join(HERE, 'dys-core.js'));
 const DYSCORE = global.DYSCORE;
 const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json'), 'utf8'));
 const grText = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender-relaxed.tsv.gz'))).toString('utf8');
-DYSCORE.setLex(vdc, grText);
+/* ⚠️ LE LEXIQUE SPELLER FAIT PARTIE DE L'ÉQUIPEMENT DE LA GRAMMAIRE. Il n'était pas injecté ici, et
+   `rInfBut` (infinitif de but) sort tout de suite sur `if(!SP.ready)` : la règle aurait été MUETTE
+   dans ce harnais, donc verte par omission — le piège exact du 2026-08-11. Un harnais doit équiper
+   le moteur comme le produit, pas moins. */
+DYSCORE.setLex(vdc, grText, zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'speller.tsv.gz'))).toString('utf8'));
 DYSCORE.setNounPost(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'noun-post.txt.gz'))).toString('utf8'));        // posterior §3 (parité genre + accord pluriel du nom)
 DYSCORE.setPosHmm(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'pos-hmm.json.gz'))).toString('utf8')));   // POS-tagger HMM (parité son/sont sujet-nom via posTags)
 DYSCORE.setPrenoms(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'prenoms.tsv.gz'))).toString('utf8'));   // GENRE des PRÉNOMS : sans cette injection l'extension testée n'aurait aucun prénom et la parité serait verte sur une règle qui ne tourne pas.
 
 // 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est + pluriel du nom)
 const PHRASES = [
+  // INFINITIF DE BUT (PR en cours) — cibles ET pièges du participe ADJECTIVAL, qui est ce qui décide
+  // de la forme de la règle. Les pièges comptent autant que les cibles : « épuisé » ne doit JAMAIS
+  // devenir « épuiser ».
+  'Je suis allé à la plage mangé des champignons.', 'Il est parti au marché acheté du pain.',
+  'Je suis allé chez lui cherché mes affaires.', 'Elle est allée à la boulangerie acheté une baguette.',
+  'Je suis rentré à la maison épuisé.', 'Il est allé à la fête déguisé en pirate.',
+  'Elle est venue à la maison fatiguée hier.', 'Ils sont partis sur le tracé du circuit.',
   // PRÉNOMS — mêmes cas que dictee/parity_corr.js : fautes, phrases correctes, et les deux gardes
   // (coordination = sujet réel PLURIEL ; tête de proposition = majuscule ambiguë).
   'Marie est venu.', 'Julie est parti.', 'Sophie est content.', 'Léa est arrivé.',
@@ -159,6 +170,29 @@ for (const [ph, exige, interdit] of _DESAC) {
   if (interdit && got.includes(interdit)) { _des++; console.log('✗ DÉSACCORD : ' + JSON.stringify(ph) + ' ne doit PAS proposer « ' + interdit + ' » (deux rouges contradictoires)'); }
 }
 if (_des) { console.log('PARITÉ KO — ' + _des + ' conflit(s) de direction déterminant/nom.'); process.exit(1); }
+
+
+/* GARDE « INFINITIF DE BUT » — le rappel ET les pièges.
+   « app ⊆ Python » est unidirectionnel : un moteur MUET passerait la parité. On exige donc que la
+   correction SORTE, et surtout que le participe ADJECTIVAL ne bouge PAS — c'est lui qui a dicté les
+   trois gardes de la règle (verbe pur, objet direct derrière, gouverneur licencié).
+   Mesuré : 4 cibles /4, 0 piège /4, et 1 seul tir sur 14 450 phrases UD correctes — « Ran va-t-elle
+   épousé le docteur ? », une VRAIE faute du corpus. */
+const _BUT_OUI = [['Je suis allé à la plage mangé des champignons.', 'manger'],
+                  ['Il est parti au marché acheté du pain.', 'acheter'],
+                  ['Je suis allé chez lui cherché mes affaires.', 'chercher']];
+const _BUT_NON = ['Je suis rentré à la maison épuisé.', 'Il est allé à la fête déguisé en pirate.',
+                  'Elle est venue à la maison fatiguée hier.', 'Ils sont partis sur le tracé du circuit.'];
+let _but = 0;
+for (const [ph, att] of _BUT_OUI) {
+  const got = DYSCORE.correctText(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(att)) { _but++; console.log('✗ INFINITIF DE BUT : ' + JSON.stringify(ph) + ' doit donner « ' + att + ' », eu ' + JSON.stringify(got)); }
+}
+for (const ph of _BUT_NON) {
+  const got = DYSCORE.correctText(ph).filter(f => f.name === 'infinitif de but');
+  if (got.length) { _but++; console.log('✗ PIÈGE ADJECTIVAL : ' + JSON.stringify(ph) + ' ne doit RIEN donner, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg))); }
+}
+if (_but) { console.log('PARITÉ KO — ' + _but + ' cas « infinitif de but ».'); process.exit(1); }
 
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
