@@ -483,3 +483,83 @@ Le résidu (7 cas) est le cas d'école : **`Se mtain`**, où chaque faute bloque
 cascade ne peut trancher, il faudrait choisir laquelle réparer en premier sur un pari.
 
 ⇒ Chiffre à retenir : **0,3 %**. Ce n'est plus une inconnue.
+
+---
+
+# AUDIT 2 — liaison, conflits, croisement des lexiques (2026-08-11, fin de journée)
+
+Demande de Rem : *« audit correcteur, app et extension, debug liaison et conflit règles,
+croisement / liaisons des lexiques et données »*. Re-passe des 5 sondes historiques + 3 sondes
+NEUVES sur les angles que l'audit #461 ne couvrait pas — dont deux ont produit des bugs réels
+depuis (`leurs tige`, pipeline de l'extension).
+
+## 14. Re-passe des sondes historiques — tout tient après les ~12 PR du jour
+
+| sonde | verdict |
+|---|---|
+| registres 3 moteurs | ✅ 43 noms = 43 = 43 (56 fonctions avec `rInfBut`) ; seul écart d'étiquette connu `-é/-er` |
+| ordre des règles | ✅ **toujours optimal** : 155 tokens à concurrence, la 1ʳᵉ a raison 150×, **0** masquée juste |
+| règles sans tir | ✅ toutes vivantes sur cas construits, 3 moteurs d'accord |
+| blocages mutuels | ✅ 1,2 % Python seul (34/2 753), connu 0,3 % moteur complet |
+
+## 15. LIAISON — pipeline ENTIER site ↔ extension : un seul écart, et il est VOULU
+
+Diff de **tous** les flags (position, mot, suggestion, tier, règle) entre `_computeCorrs` (site) et
+`diagnoseAll` (extension) sur **2 621 phrases** (dys/GEC + UD 2 000) :
+
+> flags site 1 218 · flags extension 1 184 · **écart : 34, tous « majuscule initiale à vérifier »**
+
+C'est la **politique documentée** : la vigilance majuscule est activée sur la page correcteur
+(`spellText(t, true)`) et coupée dans l'extension pour ne pas harceler chaque message en minuscules.
+⇒ **Zéro divergence de grammaire ou d'orthographe.** La réparation de la pyramide (PR#471) est
+totale, pas seulement sur les 2 cas de sa garde.
+
+## 16. CONFLITS entre règles — le texte corrigé est un POINT FIXE (à 3 near-misses près)
+
+Méthode : appliquer tout ce que le site coche par défaut, relancer le moteur sur le résultat.
+Un re-flag = cascade inachevée ou conflit qui fabrique une faute (la signature de `leurs tige`).
+
+> **3 621 phrases → 3 re-flags, et AUCUN ne fabrique une faute.**
+
+Les trois sont des **convergences en deux passes** — la cascade interdit un second flag sur le même
+token (anti-boucle), donc `se→ce` puis `ce→cette` demande une relance :
+`m'détestons→me détestons` puis `détestent` · `se vie→ce vie` puis `cette` · un `-er` débloqué par
+une correction en aval. Comportement stable, pas un défaut : la relance suivante converge.
+**Plus aucun conflit de la famille `leurs tige` dans le correcteur.**
+
+## 17. CROISEMENT DES LEXIQUES ET DES DONNÉES
+
+### 17.1 Inventaire et fraîcheur — ✅ les 5 tables partagées sont OCTET-À-OCTET identiques
+
+| table | clé | app ↔ extension | rôle |
+|---|---|---|---|
+| speller (3,46 Mo) | **accentuée**, œ→oe au build | ✅ identiques | orthographe + POS fin (`rInfBut`, glissement) |
+| noun-post (1,45 Mo) | désaccentuée, œ→oe | ✅ identiques | posterior NOM/VER (nombre, genre dét.) |
+| genre relâché (0,54 Mo) | désaccentuée | ✅ identiques | âme/amé, affaire/affairé |
+| POS-HMM (0,69 Mo) | désaccentuée | ✅ identiques | tagger de séquence |
+| prénoms (0,11 Mo) | accentuée | ✅ identiques | genre des prénoms |
+| lex4 155k (19,3 Mo) | désaccentuée | app **seulement** (documenté : pas de `posOf` côté ext) | guard genre, `rFlexionEr` |
+
+### 17.2 Contradictions ENTRE tables — mesurées, gardées par le comportement
+
+* **(a) speller « V pur » vs posterior NOM-dominant : 953 formes** (`acté`, `adressé`, `affichés`…).
+  C'est la tension entre le discriminateur de `rInfBut` (speller) et celui de `rNounPlural`
+  (posterior). **Gardée par la mesure, pas par la cohérence des tables** : `rInfBut` = 1 tir sur
+  14 450 phrases UD, une vraie faute. ⭐ Leçon : deux tables peuvent se contredire tant que chaque
+  règle est mesurée sur SA table — mais toute NOUVELLE règle qui croiserait les deux doit re-mesurer.
+* **(b) speller ↔ 155k en désaccord sur la nominalité : ~2 700 formes** (1 504 + 1 173). C'est
+  exactement pourquoi le choix de table est un choix de COMPORTEMENT — l'infinitif de but a choisi
+  le speller accentué délibérément, et le probe Python (155k) est un sur-ensemble assumé.
+  ⇒ argument de plus pour le chantier **lexique unifié** (à froid).
+* **(c) prénoms ↔ mots : 700 collisions sur 8 729** (`rose`, `pierre`…) — gérées par la garde
+  « pas en tête de phrase » posée en PR#460.
+* **(d) ligature** : le speller ne stocke AUCUNE forme en œ (normalisées au build) ; la lecture de
+  NOUN_POST passe par œ→oe, gardée par le banc ligature.
+
+## 18. Incident de discipline, consigné
+
+Pendant cet audit, la CI de la PR#473 est passée ROUGE (Chrome du runner > 10 s à ouvrir son port de
+débogage) **et je l'ai mergée quand même** : mon enchaînement `tail && merge` ne conditionnait pas le
+merge sur le verdict. Le contenu était sain (banc vert en local, échec environnemental), le geste
+non. Correctifs : le banc lit désormais le port dans `DevToolsActivePort` (choisi par Chrome,
+fenêtre 60 s — PR#474), et le merge est **conditionné par `if [ $RC -eq 0 ]`**, plus jamais enchaîné.
