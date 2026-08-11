@@ -57,10 +57,16 @@ if (!setb || setb.sugg !== "j'étais" || setb.span !== 2) fail.push("se étais�
 if (sp('tu as un chien').some(x => x.name === 'élision')) fail.push('FP j-aux sur « tu as » (correct)');
 if (sp('ce aigle vole haut').some(x => x.name === 'élision')) fail.push('FP j-aux sur « ce aigle » (pas un aux)');
 // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
-const elg = find('il est trèèès content', 'trèèès');
-if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
-const elg2 = find('ouiii je viens', 'ouiii');
-if (!elg2 || elg2.sugg !== 'oui') fail.push('ouiii→oui attendu, eu ' + JSON.stringify(elg2));
+// ⭐ CES CAS VIENNENT DU CORPUS DYS RÉEL (45 068 tokens : 43 élongations, AUCUNE expressive — que des
+// doigts qui bégaient). Miroir de dictee/test_speller_app.js. « trèèès »/« ouiii » étaient inventés.
+for (const [b, g] of [['ellle', 'elle'], ['cettte', 'cette'], ['errreur', 'erreur'], ['femmme', 'femme'],
+                      ['nourrriture', 'nourriture'], ['atttendre', 'attendre'], ['rappport', 'rapport'],
+                      ['trèèès', 'très'], ['ouiii', 'oui']]) {
+  const r = find('voici ' + b + ' ici', b);
+  if (!r || r.sugg.toLowerCase() !== g || r.tier !== 'auto')
+    fail.push('élongation : ' + b + '→' + g + ' (auto) attendu, eu ' + JSON.stringify(r));
+}
+if (sp('rendez-vous sur www point com').length) fail.push('FP www (relevé dans le corpus dys)');
 if (sp('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
 if (sp('la note AAA est haute').length) fail.push('FP acronyme AAA');
 if (sp('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
