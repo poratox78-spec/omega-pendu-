@@ -179,6 +179,28 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
   for(const [x, tier] of cands){ if(x !== best && tier === 1 && (phonKey(x) === pk || (lex.FREQ.get(x)||0) >= 20)){ rival = true; break; } }
   if(bt === 1 && low.length >= 3 && bf >= 200 && bf >= 20 * Math.max(second, 1) && (phonMatch || transp) && !rival)
     return [best, 'AUTO'];
+  /* GLISSEMENT MOTEUR — port de la règle française (miroir speller_en_probe.py).
+     Quand le lexique n'offre qu'UN SEUL candidat ET que l'écart n'est qu'un ORDRE de lettres ou un
+     REDOUBLEMENT, le mot visé n'est pas en doute : un doigt a glissé. On affirme, SANS exiger la
+     dominance de fréquence ci-dessus — c'est justement ce que cette règle apporte, puisque les
+     mots concernés sont souvent longs et peu fréquents (advertisemnets, carbohydarte, preferrences).
+     Le REDOUBLEMENT était complètement absent de l'anglais, qui ne connaissait que `transp`, alors
+     que c'est la faute la plus courante de la langue (occuring, comunities, stressfull, filmaking).
+     MESURÉ sur JFLEG (1 501 phrases d'apprenants, 4 références) : 16 corrections promues au rouge,
+     14 confirmées par au moins une référence ; les 2 autres (talkkative→talkative, bycicle→bicycle)
+     sont visiblement justes, les annotateurs ont reformulé.
+     FP sur le banc officiel (10 137 phrases ÉDITÉES, PUD + genres édités de GUM) : **1 seul tir
+     ajouté, irregardles→irregardless, une vraie faute** ⇒ FP = 0.
+     ⚠️ LIMITE CONNUE ET MESURÉE : hors banc officiel, « saltiness » → « saltines ». Ce n'est PAS la
+     règle qui fautive, c'est le LEXIQUE : « saltiness » y est absent (comme « juiciness »). La
+     dérivation mécanique -y→-iness a été essayée et RÉFUTÉE : la marque ADJ de kaikki est polluée
+     (money, today, turkey, honey sont ADJ) et on fabriquerait « moneiness », « turkeiness ». Ça
+     relève du chantier de complétude lexicale, pas d'un correctif ici. */
+  const _dbl = (a, b) => { if(Math.abs(a.length - b.length) !== 1) return false;
+    const L = a.length > b.length ? a : b, S = a.length > b.length ? b : a;
+    for(let k = 0; k < L.length; k++) if(L.slice(0, k) + L.slice(k + 1) === S && (L[k] === L[k - 1] || L[k] === L[k + 1])) return true;
+    return false; };
+  if(cands.size === 1 && low.length >= 4 && (transp || _dbl(low, best))) return [best, 'AUTO'];
   return [best, 'FLAG'];
 }
 
@@ -1434,6 +1456,25 @@ if(typeof require !== 'undefined' && require.main === module){
     if(s === good && m === 'AUTO') auto++; else if(s === good && m === 'FLAG') flag++;
     else console.log('  SP MISS %s -> %s/%s (attendu %s)', bad, s, m, good); }
   console.log('speller: AUTO %d + FLAG %d sur %d', auto, flag, SP.length);
+  /* GLISSEMENT MOTEUR → ROUGE (miroir speller_en_probe.py). Un seul candidat au lexique ET l'écart
+     n'est qu'un ORDRE de lettres ou un REDOUBLEMENT. Le redoublement était TOTALEMENT absent de
+     l'anglais alors que c'est sa faute la plus courante. Mesuré : +16 rouges sur JFLEG (14/16
+     confirmés par les références), et sur EWT les 14 rouges ajoutés sont TOUS de vraies fautes
+     (tupperwear, accomodating, flexibiltiy, windsheild, lisenced…). */
+  let slipKO = 0;
+  for(const [bad, good] of [['occuring','occurring'],['comunities','communities'],['stressfull','stressful'],
+                            ['filmaking','filmmaking'],['advertisemnets','advertisements'],['exapmles','examples']]){
+    const [s, m] = spellSuggest(lex, bad);
+    if(s !== good || m !== 'AUTO'){ slipKO++; console.log('  GLISSEMENT MISS %s -> %s/%s (attendu %s/AUTO)', bad, s, m, good); } }
+  /* ⚠️ CONTRE-GARDE — c'est l'INTERSECTION qui est sûre, pas le glissement seul. Ces quatre-là SONT
+     des glissements moteurs (thier/their, littel/little = transpositions ; beleive/believe idem ;
+     harrass/harass = redoublement) mais le lexique leur oppose PLUSIEURS candidats : le choix
+     redevient un pari, ils doivent rester ORANGE. Sans cette contre-garde, retirer la condition
+     « un seul candidat » passerait inaperçu en CI. Puissance vérifiée : les 4 tirent bien, en orange. */
+  for(const bad of ['beleive','thier','littel','harrass']){
+    const [s, m] = spellSuggest(lex, bad);
+    if(m === 'AUTO'){ slipKO++; console.log('  CONTRE-GARDE : %s -> %s ne doit PAS être affirmé (candidats concurrents)', bad, s); } }
+  if(slipKO) console.log('  ✗ %d cas de glissement moteur en défaut', slipKO);
   // homophone CASES
   const HP = [['I could of done it',2,'have','RED'],['It is bigger then mine',3,'than','RED'],
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
@@ -1551,9 +1592,9 @@ if(typeof require !== 'undefined' && require.main === module){
       tyKo++; console.log('  TYPO PLAGES QUI SE CHEVAUCHENT : %s   | %s', t[i - 1].from + ' / ' + t[i].from, txt); } }
   console.log('typographie: %d/%d corrections, %d anomalie(s)', tyOk, TY_OUI.length, tyKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0);
-    console.log('[check] %s — speller %d, homophone %d/%d, typo %d/%d (%d anomalies)',
-                ok ? 'OK' : 'ÉCHEC', auto + flag, hok, HP.length, tyOk, TY_OUI.length, tyKo);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0);
+    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies)',
+                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo);
     if(!ok) process.exit(1);
   }
 }

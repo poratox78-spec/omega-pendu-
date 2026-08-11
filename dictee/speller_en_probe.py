@@ -74,6 +74,22 @@ def edits1(d):
             if b: res.add(a + c + b[1:])                      # replace
     return res
 
+
+def _doubling(a, b):
+    """L'écart entre a et b est-il UN REDOUBLEMENT de lettre (en trop ou en moins) ?
+
+    occuring/occurring, comunities/communities, stressfull/stressful, filmaking/filmmaking.
+    Avec la transposition, c'est la signature du glissement MOTEUR : les lettres sont toutes là,
+    seul l'ordre ou la duplication diffère — donc le mot visé n'est pas en doute.
+    Miroir exact de `_dbl` dans corrector_en.js.
+    """
+    if abs(len(a) - len(b)) != 1: return False
+    L, S = (a, b) if len(a) > len(b) else (b, a)
+    for k in range(len(L)):
+        if L[:k] + L[k + 1:] == S and ((k > 0 and L[k] == L[k - 1]) or (k + 1 < len(L) and L[k] == L[k + 1])):
+            return True
+    return False
+
 # ---------- lexique ----------
 def load_lexicon():
     KNOWN = set(); FREQ = {}; POS = {}; PHON = collections.defaultdict(list)
@@ -221,6 +237,23 @@ class SpellerEN:
         if (bt == 1 and len(low) >= 3 and bf >= 200
                 and bf >= 20 * max(second, 1) and (phon_match or transp) and not rival):
             return best, 'AUTO'
+        # GLISSEMENT MOTEUR — port de la règle française (miroir corrector_en.js).
+        # Un SEUL candidat au lexique ET l'écart n'est qu'un ORDRE de lettres ou un REDOUBLEMENT :
+        # le mot visé n'est pas en doute, un doigt a glissé. On affirme SANS la dominance de
+        # fréquence ci-dessus — c'est justement l'apport, car ces mots sont longs et rares
+        # (advertisemnets, carbohydarte, preferrences). Le REDOUBLEMENT manquait complètement à
+        # l'anglais, qui ne connaissait que `transp`, alors que c'est SA faute la plus courante
+        # (occuring, comunities, stressfull, filmaking).
+        # MESURÉ sur JFLEG : 16 promus au rouge, 14 confirmés par >=1 des 4 références (les 2 autres,
+        # talkkative->talkative et bycicle->bicycle, sont visiblement justes : reformulation).
+        # FP sur le banc officiel (10 137 phrases éditées, PUD + genres édités de GUM) : 1 seul tir
+        # ajouté, irregardles->irregardless, une VRAIE faute => FP = 0.
+        # /!\ LIMITE CONNUE : hors banc officiel, « saltiness » -> « saltines ». Ce n'est pas la
+        # règle mais le LEXIQUE (« saltiness » y est absent). La dérivation mécanique -y -> -iness a
+        # été RÉFUTÉE : la marque ADJ de kaikki est polluée (money/today/turkey sont ADJ) et on
+        # fabriquerait « moneiness ». Relève du chantier de complétude lexicale.
+        if len(cands) == 1 and len(low) >= 4 and (transp or _doubling(low, best)):
+            return best, 'AUTO'
         return best, 'FLAG'                                  # sinon : orange (candidat proposé, à vérifier)
 
     def correct(self, text):
@@ -280,9 +313,28 @@ def main():
     print('\nrecall %d/%d (auto rouge %d + flag orange %d) · contrôles OK %d, FP contrôle %d'
           % (hit, tot, auto, flag, ctrl_ok, ctrl_bad))
     fp_scale(sp)
+    # GLISSEMENT MOTEUR -> ROUGE (miroir corrector_en.js). Un seul candidat ET l'écart n'est qu'un
+    # ORDRE de lettres ou un REDOUBLEMENT. Mesuré : +16 rouges sur JFLEG (14/16 confirmés par les
+    # références), 1 seul tir ajouté sur le banc FP officiel (une vraie faute) => FP = 0, et sur EWT
+    # les 14 rouges ajoutés sont TOUS de vraies fautes (tupperwear, flexibiltiy, windsheild…).
+    slip_ko = 0
+    for bad, good in [('occuring', 'occurring'), ('comunities', 'communities'), ('stressfull', 'stressful'),
+                      ('filmaking', 'filmmaking'), ('advertisemnets', 'advertisements'), ('exapmles', 'examples')]:
+        s, m = sp.suggest(bad)
+        if s != good or m != 'AUTO':
+            slip_ko += 1; print('  GLISSEMENT MISS %-16s -> %s/%s (attendu %s/AUTO)' % (bad, s, m, good))
+    # /!\ CONTRE-GARDE : c'est l'INTERSECTION qui est sûre. Ces quatre SONT des glissements moteurs,
+    # mais le lexique leur oppose PLUSIEURS candidats -> le choix redevient un pari, ils restent ORANGE.
+    # Sans elle, retirer la condition « un seul candidat » passerait inaperçu. Puissance vérifiée.
+    for bad in ('beleive', 'thier', 'littel', 'harrass'):
+        s, m = sp.suggest(bad)
+        if m == 'AUTO':
+            slip_ko += 1; print('  CONTRE-GARDE : %s -> %s ne doit PAS être affirmé (candidats concurrents)' % (bad, s))
+    print('glissement moteur : %s' % ('OK' if slip_ko == 0 else 'KO(%d)' % slip_ko))
     if '--check' in sys.argv:                                # garde CI : recall + contrôles (FP=0 sur casse)
-        ok = (hit >= 40 and ctrl_bad == 0)
-        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0)' % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad))
+        ok = (hit >= 40 and ctrl_bad == 0 and slip_ko == 0)
+        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0), glissement moteur %s'
+              % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad, 'OK' if slip_ko == 0 else 'KO'))
         if not ok: sys.exit(1)
 
 
