@@ -24,8 +24,11 @@ Tout ce qui suit est **mesuré**, pas lu. Les scripts d'audit sont reproductible
 | Arbitrage interne du speller | ✅ **cohérent** : plus la route est incertaine, plus elle est orange (§12) | — |
 | Blocages mutuels entre voisins | ✅ **0,3 % de résiduel** mesuré (§13) | — |
 | FP `rock n'roll` | ❌ deux listes d'exceptions divergentes (§10) | ✅ **CORRIGÉ** |
-| **Ce que chaque surface applique** | ❌ le `tier` ne le dit pas : site 244 corr. / extension 159 (§6 bis) | ✅ **MESURÉ** |
+| **Ce que chaque surface applique** | ❌ le `tier` ne le dit pas : site 328 corr. / extension 269 (§6 bis) | ✅ **MESURÉ** |
 | **Maximiser le rouge** | ✅ 2ᵉ sous-ensemble affirmable trouvé : le **glissement moteur** (§12 bis) | ✅ **LIVRÉ** |
+| **Moteur standalone livré** | ❌ ne chargeait que le speller → grammaire du nombre MUETTE (§6 ter) | ✅ **CORRIGÉ** |
+| **3ᵉ sous-ensemble affirmable** | ⛔ cherché, **PAS trouvé** — plafond atteint (§12 ter) | ⛔ **RÉFUTÉ** |
+| **Infinitif de but** | ✅ « allé à la plage mangé »→manger, FP=0 (§12 quater) | ✅ **LIVRÉ** |
 
 Les quatre défauts sont réparés dans la même PR ; les mesures d'avant/après sont conservées
 ci-dessous parce qu'elles expliquent POURQUOI le correctif est ce qu'il est.
@@ -401,6 +404,51 @@ Gardes CI : `test_speller_app.js` et `extension/test_speller.js` exigent le roug
 l'orange sur les 4 mots étrangers (contre-garde vérifiée : les 4 tirent bien, en orange). La parité
 app ↔ extension compare le **tier**, donc la promotion elle-même est sous parité. Les deux vérifiées
 en les cassant.
+
+
+### 12 ter. ⛔ Un TROISIÈME sous-ensemble affirmable : cherché, PAS trouvé
+
+Après l'accent (§12) et le glissement moteur (§12 bis), l'orange orthographique restant a été
+redécoupé par six critères calculables — 192 tirs sur les corpus dys/GEC appariés, 54 % de
+précision globale. **Aucun n'atteint la barre du rouge :**
+
+| critère | tirs | précision | bruit / UD 14 450 |
+|---|---|---|---|
+| glissement moteur SANS « seul candidat » | 48 | 79 % | 23 |
+| écart VOYELLE seule | 8 | 75 % | **44** |
+| suffixe commun ≥ 4 | 36 | 47 % | 86 |
+| préfixe commun ≥ 5 | 45 | 38 % | 91 |
+| préfixe ≥ 5 ET même longueur | 7 | 29 % | 28 |
+| voyelle seule ET préfixe ≥ 3 | 1 | 0 % | 33 |
+
+⭐ « écart voyelle seule » semblait la piste évidente — le dys entend la voyelle et hésite sur la
+graphie. Elle tire **44 fois** sur du texte correct, et ce sont des mots **ÉTRANGERS** : `arabo`,
+`anglo`, `common`, `miya`, `penta`, `signo`. Même forme que le refus du secours distance 2.
+
+⇒ **La couche affirmative du speller est à son plafond mesuré avec les signaux actuels.** Ce qui
+reste en orange est genuinement incertain ; le rappel restant vit dans le **CONTEXTE** (grammaire),
+pas dans un redécoupage de l'orthographe. Ne pas rouvrir sans un signal NOUVEAU — pas un nouveau
+seuil sur les mêmes features.
+
+### 12 quater. ✅ INFINITIF DE BUT (PR#469) — le rappel qui restait était bien dans le CONTEXTE
+
+Signalé par Rem : « Je suis allé à la plage **mangé** des champignons ». `rFlexionEr` décide
+d'après le token **immédiatement** à gauche ; ici le gouverneur (« allé ») est séparé du verbe par
+un complément de destination, donc elle s'abstient.
+
+Le piège n'est pas le rappel, c'est le **participe ADJECTIVAL** (« rentré à la maison **épuisé** »).
+Trois gardes cumulées, chacune née d'un FP mesuré : ① verbe **PUR** (colonne POS **accentuée** du
+lexique speller : `mangé` V, `épuisé` AV, `tracé` NV) · ② suivi d'un **déterminant** (objet direct)
+· ③ verbe de mouvement **licencié** (aller fini, ou participe + auxiliaire être).
+
+**4 cibles /4 · 0 piège /4 · 1 seul tir sur 14 450 phrases UD** — « Ran va-t-elle épousé le
+docteur ? », une vraie faute du corpus ⇒ **FP = 0**.
+⚠️ **Rappel NON mesuré** : 0 occurrence du motif dans les 474 phrases appariées. Livré sur un FP=0
+mesuré et des cas construits — c'est dit, pas maquillé.
+
+⭐ **Parité, asymétrie assumée** : les deux moteurs LIVRÉS lisent la même colonne POS accentuée et
+sont **identiques** ; le probe Python n'a pas cette table et reste un **sur-ensemble** volontaire
+(il tire sur `tracé`). Le contrat est `app ⊆ Python`, jamais l'égalité.
 
 ### Ce que sont vraiment les 78 « FP » orange du speller sur UD
 
