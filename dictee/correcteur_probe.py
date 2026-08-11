@@ -2031,6 +2031,24 @@ _UNACC = set('arriver venir revenir rester demeurer exister subsister survenir s
 _INV_WH = {'que', 'qu', 'ou', 'combien', 'comment', 'quand', 'pourquoi', 'quel', 'quelle', 'quels', 'quelles'}
 _INV_ADV = set('ainsi ici la alors ensuite aussi puis enfin bientot partout dedans dehors dessus dessous'.split())   # adverbes frontaux d'inversion (déaccentués)
 
+_POST_SG = set("le la l' un une ce cet cette mon ma ton ta son sa notre votre leur chaque".split())   # determinants SINGULIERS ouvrant un sujet postpose (miroir app+ext)
+
+def _postpose_singulier(T, tg, k, hi):
+    r"""GN sujet postpose SINGULIER a partir de k. Jumeau de _postpose_plural, qui ne savait dire que « pluriel ».
+
+    /!\ N'est consulte QUE dans une relative en « que » : l'objet du verbe y est DEJA l'antecedent
+    relativise, donc un GN place APRES le verbe ne peut etre que le SUJET. Les autres declencheurs du
+    mode postpose (adverbe, preposition en tete) n'ont pas cette garantie.
+    Sans lui, « les billevesees QUE RESSASSAIT cet areopage » faisait voter PLURIEL aux routes
+    generiques (d'apres l'antecedent) et proposait « ressassaient » — faux, sur du francais correct.
+    """
+    if k >= hi: return False
+    if deacc(T[k].lower()) not in _POST_SG: return False
+    for m in range(k + 1, min(hi, k + 5)):
+        if m < len(tg) and tg[m] in ('NOUN', 'PROPN'): return True
+        if deacc(T[m].lower()) in PREP: return False
+    return False
+
 def _postpose_plural(T, tg, k, hi):
     """GN sujet postposé à partir de k : déterminant PLURIEL/numéral + (adjectifs) + nom-tête → True si pluriel net."""
     if k >= hi: return False
