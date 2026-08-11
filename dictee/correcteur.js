@@ -22,7 +22,7 @@ function _extract(html) {
   const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
   if (start < 0 || spIdx < 0 || cut < 0) throw new Error('correcteur.js : extraction du moteur échouée');
   const code = html.slice(start, cut) +
-    ';globalThis.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,' +
+    ';globalThis.__corrEngine={correctText:correctText,correctTokens:correctTokens,toks:toks,setSeg:function(s){_SEG=_segInfo(s);},spellText:spellText,loadSpellerLex:loadSpellerLex,' +
     'loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPosHmm:loadPosHmm,loadPrenoms:loadPrenoms,' +
     'equipe:function(){return !!(SP.ready&&NOUN_POST);},ready:function(){return SP.ready;}};})();';
   /* ⚠️ SERVIR **TOUS** LES BLOBS, pas seulement l'orthographe. Un id absent retombait sur le `stub`
@@ -79,10 +79,31 @@ async function create(opts = {}) {
     equipe: () => E.equipe(),                     // moteur COMPLET (ortho + posterior nom/verbe) — voir la garde du bloc de chargement
     grammar: (text) => E.correctText(text),       // règles grammaticales seules
     spell: (text) => E.spellText(text),           // orthographe (non-mots) seule
-    // fusion : grammaire prioritaire par token, orthographe sur le reste (AUTO/FLAG)
+    /* fusion : grammaire prioritaire par token, orthographe sur le reste (AUTO/FLAG).
+       ⚠️ LA PYRAMIDE MANQUAIT ICI AUSSI (corrigé le 2026-08-11). Cette API lançait `correctText`
+       sur le texte BRUT ; le site, lui, applique d'abord l'ORTHOGRAPHE aux tokens puis fait tourner
+       la grammaire sur les tokens NETTOYÉS, en cascade jusqu'au point fixe. Sans ça la grammaire
+       s'applique au mot MAL ORTHOGRAPHIÉ et rend une faute :
+          « contre les vènt » → « vènts »  au lieu de « vents »
+          « La tigés »        → « tigé »   au lieu de « tige »
+       Trois consommateurs, trois pipelines : seul `_computeCorrs` du site avait la pyramide.
+       ⭐ La parité 3 moteurs ne pouvait pas le voir : elle compare le REGISTRE de règles, pas le
+       PIPELINE. Mêmes règles ≠ mêmes corrections. */
     correct: (text) => {
-      const gf = E.correctText(text), sf = E.ready() ? E.spellText(text) : [];
-      const byTok = {}; gf.forEach(f => { byTok[f.i] = f; }); sf.forEach(f => { if (byTok[f.i] == null) byTok[f.i] = f; });
+      const sf = E.ready() ? E.spellText(text) : [];
+      E.setSeg(text);
+      const T = E.toks(text), Tc = T.slice();
+      sf.forEach(f => { if (f.span !== 2 && f.tier !== 'vigilance' && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[f.i] = f.sugg; });
+      const cur = Tc.slice(), gbt = {};
+      for (let it = 0; it < 4; it++) {                       // cascade : la grammaire re-tourne sur ses propres corrections
+        const g2 = E.correctTokens(cur); let add = false;
+        for (const g of g2) { if (gbt[g.i] != null) continue; gbt[g.i] = g; add = true;
+          if ((g.span == null || g.span < 2) && g.tier !== 'vigilance' && g.sugg && /^[A-Za-zÀ-ÿ']+$/.test(g.sugg)) cur[g.i] = g.sugg; }
+        if (!add) break;
+      }
+      const byTok = {};
+      Object.keys(gbt).forEach(k => { const f = gbt[k]; f.word = T[f.i]; byTok[f.i] = f; });   // le mot affiché reste celui de l'utilisateur
+      sf.forEach(f => { if (byTok[f.i] == null) byTok[f.i] = f; });
       return Object.keys(byTok).map(k => byTok[k]).sort((a, b) => a.i - b.i);
     },
   };
