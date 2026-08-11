@@ -141,6 +141,25 @@ for (const [ph, att] of _ATT) {
 }
 if (_pren) { console.log("PARITÉ KO — " + _pren + " cas prénom non corrigés par l'extension."); process.exit(1); }
 
+
+/* GARDE « UN SEUL SENS PAR DÉSACCORD » — deux ROUGES ne doivent pas se contredire.
+   « leurs tige » : rLeur (rang 15) voulait « leurs »->« leur », rNounPlural (rang 47) voulait
+   « tige »->« tiges ». Tokens DIFFÉRENTS => les deux s'appliquaient => « leur tiges », une faute
+   FABRIQUÉE. Mesuré sur 99 désaccords appariés : le gold corrige le NOM 59 fois contre 12 le
+   déterminant. On exige donc le nom, ET l'absence de la correction du déterminant.
+   Le 3e cas est le REPLI : « livre » est ambigu verbe, rNounPlural s'abstient, donc rLeur doit
+   reprendre la main — sans lui, on perdrait la correction au lieu de la déplacer. */
+const _DESAC = [['la nourriture de leurs tige', 'tiges', 'leur'],
+                ['elle aime leurs jardin', 'jardins', 'leur'],
+                ['il range leurs livre', 'leur', null]];
+let _des = 0;
+for (const [ph, exige, interdit] of _DESAC) {
+  const got = DYSCORE.correctText(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(exige)) { _des++; console.log('✗ DÉSACCORD : ' + JSON.stringify(ph) + ' doit corriger vers « ' + exige +' », eu ' + JSON.stringify(got)); }
+  if (interdit && got.includes(interdit)) { _des++; console.log('✗ DÉSACCORD : ' + JSON.stringify(ph) + ' ne doit PAS proposer « ' + interdit + ' » (deux rouges contradictoires)'); }
+}
+if (_des) { console.log('PARITÉ KO — ' + _des + ' conflit(s) de direction déterminant/nom.'); process.exit(1); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

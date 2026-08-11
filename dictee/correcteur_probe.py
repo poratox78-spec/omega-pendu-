@@ -619,6 +619,16 @@ def rule_leur_leurs(T, i):
     if is_verb(T, i+1): return 'leur'                                   # pronom (invariable) : « je leur parle »
     dn = deacc(T[i+1].lower())
     if dn in INVAR_NOUN: return 'leur'                                  # nom invariable en -s/-x (« leur pays » = sg) → jamais « leurs »
+    # /!\ CONFLIT DE DIRECTION (miroir app + extension). « leurs tige » : cette règle disait
+    # « leurs »->« leur » pendant que rule_noun_plural disait « tige »->« tiges ». Les deux tokens
+    # étant DIFFÉRENTS, les deux ROUGES s'appliquaient et le résultat livré était « leur tiges » —
+    # une faute qui n'existait pas. Vérifié dans le vrai navigateur sur omegapendu.com.
+    # QUI A RAISON ? Mesuré sur 99 désaccords déterminant<->nom appariés : le gold corrige le NOM
+    # 59 fois, le DÉTERMINANT 12 fois. La doctrine d'audibilité dit pareil : « leurs » s'ENTEND et
+    # porte l'intention, le -s du nom est MUET. On laisse la main au nom — mais seulement si
+    # rule_noun_plural tire VRAIMENT, sinon on perdrait la correction au lieu de la déplacer.
+    if lw == 'leurs' and not (dn.endswith('s') or dn.endswith('x')) and rule_noun_plural(T, i+1):
+        return None
     return 'leurs' if (dn.endswith('s') or dn.endswith('x')) else 'leur'  # déterminant : accord avec le nom
 
 _PP_NOUN_HOMO = {'mort', 'fait', 'part', 'point'}   # noms homographes d'un participe → « à » PRÉPOSITION (condamnée à mort, tout à fait, à part, à point) ; le tagger tranche NOM vs VERB
