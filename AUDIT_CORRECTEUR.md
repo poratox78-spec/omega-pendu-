@@ -209,11 +209,18 @@ Mesuré sur 474 phrases dys/GEC appariées, avec la règle réelle de chaque sur
 
 | | tirs | juste | à côté | sur mot correct | précision |
 |---|---|---|---|---|---|
-| **site** (coché par défaut) | 244 | 202 | 36 | 6 | **82,8 %** |
-| **extension** (silence à la frappe) | 159 | 137 | 16 | 6 | **86,2 %** |
-| seulement proposé (les deux) | 221 | 86 | 122 | 13 | 38,9 % |
+| **site** (coché par défaut) | 328 | 275 | 42 | 11 | **83,8 %** |
+| **extension** (silence à la frappe) | 269 | 236 | 22 | 11 | **87,7 %** |
+| seulement proposé (les deux) | 260 | 110 | 124 | 26 | 42,3 % |
 
-⇒ **85 corrections d'écart**, toutes des `orthographe/flag` : `proffesseur→professeur`,
+Rappel de ce qui est **appliqué** sur les 1 076 fautes réelles : site **25,6 %**, extension **21,9 %**.
+
+> ⚠️ **Chiffres corrigés le 2026-08-11 (2ᵉ passe).** La 1ʳᵉ version de ce tableau disait 244 / 159 :
+> la sonde n'appelait que `loadSpellerLex()`, donc `rule_noun_plural`, `rule_det_gender` et les
+> règles qui interrogent le POS-tagger étaient **MUETTES**. Voir §6 ter — la cause était dans le
+> loader LIVRÉ, que la sonde recopiait.
+
+⇒ **59 corrections d'écart**, toutes des `orthographe/flag` : `proffesseur→professeur`,
 `conexion→connexion`, `soeur→sœur`, `tirroir→tiroir`… Ce n'est PAS le même défaut qu'au §6 : ces
 corrections sont bien **proposées** dans la bulle de l'extension et appliquées par son « tout
 corriger ». L'écart porte sur le **silence** — et il est justifié : réécrire un champ pendant que
@@ -222,8 +229,37 @@ l'utilisateur tape demande une barre plus haute que pré-cocher une case dans un
 ⭐ **Leçon de méthode : mesurer « le rouge » comme `tier === 'auto'` décrit l'extension, pas le
 site.** Interroger le moteur ne suffit pas quand chaque surface a sa propre règle d'application.
 
-Le §12 bis referme 24 de ces 85 en promouvant le sous-ensemble **mesuré FP=0**, sans toucher aux 61
-autres — dont la précision (76 %) ne permet pas le silence.
+Le §12 bis referme 24 de ces 59 en promouvant le sous-ensemble **mesuré FP=0**, sans toucher aux
+autres — dont la précision ne permet pas le silence.
+
+### 6 ter. ⚠️ LE MOTEUR STANDALONE LIVRÉ ÉTAIT À MOITIÉ CHARGÉ (2026-08-11)
+
+Rem : *« pourquoi tu fais pas tes tests dans mon Chrome au lieu de construire des harnais bancals ? »*
+Réponse : parce que mes harnais recopiaient **le loader livré**, et **le loader livré était faux**.
+
+`dictee/correcteur.js` — le moteur « sans UI » que le dépôt propose aux intégrateurs, et que deux
+checks de la batterie exercent — n'appelait que `loadSpellerLex()`. Résultat mesuré **avant**
+correctif, et confronté au vrai navigateur sur omegapendu.com :
+
+| entrée | `correcteur.js` | le SITE |
+|---|---|---|
+| « les chien aboient » | `[]` | `chien→chiens` **ROUGE** |
+| « des oiseau dans le ciel » | `[]` | `oiseau→oiseaux` **ROUGE** |
+| « Les enfant joue et il sont content » | `[]` | 2 accords **ROUGES** |
+
+`rule_noun_plural` et `rule_det_gender` sortent immédiatement sur `if(!NOUN_POST)`. Un intégrateur
+recevait donc un correcteur **sans grammaire du nombre ni du genre**, sans aucun signal.
+
+⭐ **Et la première garde que j'ai écrite contre ça ne servait à rien** : le bouchon DOM renvoyait un
+`stub` pour tout id inconnu, donc `loadNounPost` construisait une table **vide mais non nulle** — la
+garde « NOUN_POST est-il chargé ? » répondait **oui** sur du vide. *Un bouchon qui répond à tout ne
+peut pas signaler ce qui manque.* Corrigé : liste EXPLICITE des blobs, `equipe()`, et 3 cas d'accord
+du nom dans l'auto-test — qui ne passent que si la table est réellement là.
+
+⭐⭐ **Leçon de méthode, la plus chère de la journée : la vérité est dans le navigateur.** Le harnais
+Node reste nécessaire pour l'échelle (14 450 phrases × 2 variantes), mais il doit être **confronté à
+la page réelle** avant qu'on croie ses chiffres — et porter un contrôle qui échoue s'il est mal
+équipé, pas seulement s'il trouve peu.
 
 ---
 

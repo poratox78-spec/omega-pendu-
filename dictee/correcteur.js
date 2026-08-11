@@ -22,18 +22,26 @@ function _extract(html) {
   const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
   if (start < 0 || spIdx < 0 || cut < 0) throw new Error('correcteur.js : extraction du moteur échouée');
   const code = html.slice(start, cut) +
-    ';globalThis.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,ready:function(){return SP.ready;}};})();';
-  const vdc = (html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/) || [])[1] || '{}';
-  const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
-  const lex = (html.match(/<script type="text\/plain" id="lex4-data-gz">([^<]*)<\/script>/) || [])[1] || '';   // gros lexique (POS, genre…)
-  return { code, vdc, spl, lex };
+    ';globalThis.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,' +
+    'loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPosHmm:loadPosHmm,loadPrenoms:loadPrenoms,' +
+    'equipe:function(){return !!(SP.ready&&NOUN_POST);},ready:function(){return SP.ready;}};})();';
+  /* ⚠️ SERVIR **TOUS** LES BLOBS, pas seulement l'orthographe. Un id absent retombait sur le `stub`
+     du bouchon DOM, dont `.textContent` est un Proxy : `loadNounPost` construisait alors une table
+     VIDE mais NON NULLE — donc la garde « NOUN_POST est-il chargé ? » répondait oui sur du vide.
+     ⭐ Un bouchon qui répond à TOUT ne peut pas signaler ce qui manque : il faut une liste EXPLICITE
+     et une erreur sur ce qui n'y est pas. */
+  const blob = (id) => { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; };
+  const B = {};
+  for (const id of ['vdc-lex', 'speller-lex-gz', 'noun-post-gz', 'pos-hmm-gz', 'gdet-lex-gz', 'prenoms-gz', 'lex4-data-gz'])
+    B[id] = blob(id);
+  return { code, B, lex: B['lex4-data-gz'] };
 }
 
-function _domShim(vdc, spl) {
+function _domShim(B) {
   if (typeof document !== 'undefined' && document.getElementById) return; // navigateur réel : rien à bouchonner
   const stub = new Proxy(function () {}, { get(t, k) { if (k === 'style') return {}; if (k === 'classList') return { add() {}, remove() {}, toggle() {}, contains: () => false }; return stub; }, set: () => true, apply: () => stub });
   const set = (k, v) => { try { global[k] = v; } catch (e) {} };   // certains globals (navigator) sont en lecture seule en Node récent
-  set('document', { getElementById: (id) => id === 'vdc-lex' ? { textContent: vdc } : id === 'speller-lex-gz' ? { textContent: spl } : stub, createElement: () => stub, body: stub, head: stub, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] });
+  set('document', { getElementById: (id) => (B[id] !== undefined && B[id] !== '') ? { textContent: B[id] } : stub, createElement: () => stub, body: stub, head: stub, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] });
   set('window', global); set('navigator', { userAgent: 'node' });
   set('localStorage', { getItem: () => null, setItem() {}, removeItem() {} });
   set('speechSynthesis', { speak() {}, cancel() {}, getVoices: () => [] });
@@ -42,8 +50,8 @@ function _domShim(vdc, spl) {
 
 async function create(opts = {}) {
   const html = fs.readFileSync(opts.appHtml || APP_DEFAULT, 'utf8'); try{globalThis.OMEGA_VDC=require('./blobgz').vdcSeed(html);}catch(e){}   // #30 : seed sync vdc-lex-gz (le moteur peuple les maps grammaire sans async)
-  const { code, vdc, spl, lex } = _extract(html);
-  _domShim(vdc, spl);
+  const { code, B, lex } = _extract(html);
+  _domShim(B);
   if (lex) {                                        // RÉUTILISE le gros lexique du pendu : OMEGA_LEX4 (POS 155k) pour le guard genre — parité avec l'app
     try { globalThis.OMEGA_LEX4 = JSON.parse(zlib.gunzipSync(Buffer.from(lex.replace(/\s/g, ''), 'base64')).toString('utf8')); }
     catch (e) { /* POS indisponible → le guard POS se replie (abstention seulement via DET_SKIP/capitalisé) */ }
@@ -51,9 +59,24 @@ async function create(opts = {}) {
   (0, eval)(code);
   const E = globalThis.__corrEngine;
   if (!E) throw new Error('correcteur.js : moteur non exposé');
-  await E.loadSpellerLex();                       // décompresse le lexique orthographique embarqué
+  /* ⚠️ CHARGER TOUT LE MOTEUR, PAS SEULEMENT L'ORTHOGRAPHE (corrigé le 2026-08-11).
+     Ce fichier n'appelait que loadSpellerLex(), donc l'intégrateur recevait un correcteur dont la
+     grammaire de NOMBRE et de GENRE était MUETTE : `rule_noun_plural` et `rule_det_gender` sortent
+     tout de suite sur `if(!NOUN_POST)`, et les règles qui interrogent le POS-tagger se repliaient.
+     Mesuré AVANT le correctif — et vérifié dans le vrai navigateur, où le site les corrige bien :
+        « les chien aboient »        -> []   (site : chien->chiens, ROUGE)
+        « des oiseau dans le ciel »  -> []   (site : oiseau->oiseaux, ROUGE)
+     ⭐ Le piège n'était pas seulement produit : mes propres sondes de mesure copiaient CE loader,
+     et concluaient « le moteur est muet » sur des règles simplement pas chargées. Un moteur
+     partiellement équipé ne se signale pas — d'où la garde `equipe()` et le contrôle ci-dessous. */
+  await E.loadSpellerLex();                       // orthographe (non-mots, accents)
+  await E.loadNounPost();                         // posterior NOM/VERBE : accord pluriel/singulier du nom, genre du déterminant
+  await E.loadGenderLex();                        // genre relâché (âme/amé, affaire/affairé)
+  await E.loadPosHmm();                           // POS-tagger HMM : son/sont sujet-nom, whose+gérondif…
+  try { await E.loadPrenoms(); } catch (e) { /* table optionnelle : accord « Marie est venu »→venue */ }
   const api = {
     ready: () => E.ready(),
+    equipe: () => E.equipe(),                     // moteur COMPLET (ortho + posterior nom/verbe) — voir la garde du bloc de chargement
     grammar: (text) => E.correctText(text),       // règles grammaticales seules
     spell: (text) => E.spellText(text),           // orthographe (non-mots) seule
     // fusion : grammaire prioritaire par token, orthographe sur le reste (AUTO/FLAG)
@@ -89,6 +112,15 @@ if (require.main === module) {
     const fail = [];
     const f1 = c.correct('une grosse fote');
     if (!f1.find(x => x.word.toLowerCase() === 'fote' && x.sugg === 'faute')) fail.push('fote→faute attendu');
+    // ⚠️ GARDE D'ÉQUIPEMENT — un moteur à moitié chargé ne se signale pas : il se tait, et un
+    // intégrateur croit que la règle n'existe pas. Ces deux cas ne passent QUE si NOUN_POST est là.
+    if (!c.equipe()) fail.push('moteur incomplet : NOUN_POST non chargé (grammaire du nombre MUETTE)');
+    for (const [ph, mot, att] of [['les chien aboient', 'chien', 'chiens'],
+                                  ['des oiseau dans le ciel', 'oiseau', 'oiseaux'],
+                                  ['la boites est ouverte', 'boites', 'boite']]) {
+      const g = c.correct(ph).find(x => x.word.toLowerCase() === mot);
+      if (!g || g.sugg.toLowerCase() !== att) fail.push('accord du nom : ' + mot + '→' + att + ' attendu, eu ' + JSON.stringify(g));
+    }
     if (c.correct('Le petit garçon mange une pomme rouge.').length) fail.push('FP sur phrase correcte');
     if (c.correct('Il préfère le café au thé le matin.').length) fail.push('FP « thé »→« ther » (-é/-er sans verbe)');
     if (fail.length) { console.error('\n✗ ' + fail.join(' ; ')); process.exit(1); }

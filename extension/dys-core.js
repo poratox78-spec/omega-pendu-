@@ -251,7 +251,15 @@
   var INVAR_NOUN={pays:1,temps:1,prix:1,poids:1,corps:1,fois:1,mois:1,cas:1,bras:1,dos:1,nez:1,choix:1,voix:1,croix:1,bois:1,univers:1,succes:1,progres:1,repas:1,avis:1,sens:1,cours:1,concours:1,discours:1,jus:1,tas:1,os:1,puits:1,bus:1,virus:1,tennis:1,colis:1,devis:1,permis:1,compromis:1,paradis:1,velours:1,dais:1};
   var MAIS_STOP={pas:1,plus:1,moins:1,point:1,rien:1,tout:1,tres:1,jamais:1,surtout:1,aussi:1,encore:1,toujours:1,comment:1,pourquoi:1,peu:1,trop:1,bien:1,non:1,oui:1,si:1,assez:1,enfin:1,donc:1,car:1,alors:1,ici:1,la:1};
   var DET_SKIP={plus:1,moins:1,tres:1,bien:1,trop:1,assez:1,aussi:1,si:1,autre:1,autres:1,meme:1,propre:1,seul:1,seule:1,tel:1,telle:1,certain:1,certaine:1,tout:1,toute:1,grand:1,grande:1,petit:1,petite:1,gros:1,grosse:1,beau:1,bel:1,belle:1,bon:1,bonne:1,nouveau:1,nouvel:1,nouvelle:1,premier:1,premiere:1,dernier:1,derniere:1,jeune:1,vieux:1,vieil:1,vieille:1,long:1,longue:1,large:1,simple:1,super:1,superbe:1,primaire:1,double:1,triple:1,sous:1,pour:1,contre:1,par:1,sans:1,avec:1,entre:1,vers:1,mi:1,demi:1,semi:1,pseudo:1,quasi:1,ex:1,porte:1,montre:1,des:1,les:1,de:1,le:1};
-  function rLeur(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='leur'&&lw!=='leurs')return null;if(i+1>=T.length)return null;if(vlike(T,i+1))return 'leur';var dn=deacc(T[i+1].toLowerCase());if(INVAR_NOUN[dn])return 'leur';return /[sx]$/.test(dn)?'leurs':'leur';}
+  function rLeur(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='leur'&&lw!=='leurs')return null;if(i+1>=T.length)return null;if(vlike(T,i+1))return 'leur';var dn=deacc(T[i+1].toLowerCase());if(INVAR_NOUN[dn])return 'leur';
+    /* ⚠️ CONFLIT DE DIRECTION (miroir app + Python). « leurs tige » : cette règle disait
+       « leurs »→« leur » pendant que `rNounPlural` disait « tige »→« tiges ». Deux tokens
+       DIFFÉRENTS, donc les deux rouges s'appliquaient : résultat « leur tiges », une faute
+       fabriquée. Mesuré sur 99 désaccords déterminant↔nom appariés : le gold corrige le NOM
+       59 fois contre 12 le déterminant. On laisse la main au nom, mais seulement si
+       `rNounPlural` tire vraiment — sinon on perdrait la correction au lieu de la déplacer. */
+    if(lw==='leurs'&&!/[sx]$/.test(dn)&&rNounPlural(T,i+1))return null;
+    return /[sx]$/.test(dn)?'leurs':'leur';}
   var _PP_NOUN_HOMO={mort:1,fait:1,part:1,point:1};   // noms homographes d'un participe → « à » PRÉPOSITION (condamnée à mort, tout à fait, à part, à point) ; le tagger tranche NOM vs VERB
   function _aaInverted(T,i){if(i-2<0)return false;var hy=(_SEG&&_SEG.hy)?_SEG.hy:[];return vlike(T,i-2)||(i-1<hy.length&&hy[i-1]);}   // pronom sujet en i-1 INVERSÉ (« avait-il à cela ») → pas un sujet PRÉVERBAL de « a » (FP à→a)
   function rA(T,i){if(deacc(T[i].toLowerCase())!=='a')return null;if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+2<T.length&&deacc(T[i+1].toLowerCase())==='t'&&['il','elle','on','ils','elles'].indexOf(deacc(T[i+2].toLowerCase()))>=0)return null;/* « a-t-il/elle/on » : -t- euphonique = INVERSION → « a » = verbe avoir, jamais « à » */if(i>0&&i+1<T.length&&deacc(T[i-1].toLowerCase())==='tout'&&deacc(T[i+1].toLowerCase())==='fait')return null;/* locution « tout à fait » : « à » invariable, jamais « a » */
