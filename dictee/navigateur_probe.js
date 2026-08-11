@@ -158,6 +158,13 @@ const CAS = [
   { txt: 'un œuf et du bœuf', rien: true, pourquoi: 'ligature œ' },
   { txt: "Les girolles qu'elle avait cueillies sont bonnes.", rien: true,
     pourquoi: "pronom élidé : « qu'elle » n'est pas un nom à accorder avec « les girolles »" },
+  // ⑨ chantier REGLES_FR 1-8 (2026-08-12) : les nouveaux rouges dans le VRAI navigateur
+  { txt: 'on a pas le temps', attendu: ["n'a"], pourquoi: 'négation « n\' » manquante (rouge, cadre fermé)' },
+  { txt: "c'est pas grave", attendu: ["ce n'est"], pourquoi: 'négation sur forme élidée (dé-élision + n\')' },
+  { txt: "si j'aurais su, tant pis", attendu: ["j'avais"], pourquoi: 'si + conditionnel → imparfait (rouge)' },
+  { txt: "l'usine emploie deux cent salariés", attendu: ['cents'], pourquoi: 'vingt/cent multiplié + nom pluriel (rouge)' },
+  { txt: "j'ai pas mal de travail", rien: true, pourquoi: 'PIÈGE : « pas mal de » = locution sans ne' },
+  { txt: 'je ne sais pas si je serais capable', rien: true, pourquoi: 'PIÈGE : interrogation indirecte, conditionnel légitime' },
 ];
 
 /* le script évalué DANS la page : écrit dans la vraie zone, lit les vraies marques */

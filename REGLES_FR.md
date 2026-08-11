@@ -43,10 +43,10 @@ PÉRIMÈTRE (choix assumé, motivé).
 | ces/ses · ou/où | 🟠/🟢 | carte enseignante (l'auteur tranche) |
 | quel/quelle (genre) | 🔴 | via accord adjectival |
 | homophones lexicaux (vert/verre/vers, sceau/seau/sot) | ⛔→🟢 | indécidable sans sémantique ; couche verte « homophone à vérifier » sur liste |
-| **près de / prêt de** | ❌ vérifié | direction « être sûr » existe (sur/sûr) ; celle-ci non. Liste fermée → candidat 🟠 |
-| **davantage / d'avantage(s)** | ❌ vérifié | paire fermée → candidat 🟠 |
-| **quelque soit / quel que soit** | ❌ vérifié | motif fermé devant « soit/soient » → candidat 🔴 |
-| **ce qui il / ce qu'il** | ❌ vérifié | élision obligatoire, motif fermé → candidat 🔴 |
+| près de / prêt de | 🟠 LIVRÉ (2026-08-12) | prêt/prêts sûrs ; prête/prêtes exigent une copule avant (« elle prête de l'argent » = verbe) ; clitique+infinitif exclu par POS |
+| davantage / d'avantage(s) | 🟠 LIVRÉ (2026-08-12) | fin de proposition ou devant « que » seulement ; « pas d'avantage » (lecture nominale) exclu |
+| quelque soit / quel que soit | 🔴 LIVRÉ (2026-08-12) | accord quel/quelle/quels/quelles par le verbe et le déterminant suivant ; 0 tir/14 450 UD |
+| ce qui il / ce qu'il | 🔴+🟠 LIVRÉ (2026-08-12) | « ce qui il »→rouge (jamais correct) ; autres « qui+pronom »→orange ; gardes préposition (« avec qui il »), verbes de savoir (« je sais qui il est »), majuscule |
 
 ## 3. ACCORDS (LT : « Grammaire »)
 
@@ -60,7 +60,7 @@ PÉRIMÈTRE (choix assumé, motivé).
 | participe épithète · adjectif attribut/épithète | 🔴 | via tagger + _adj_head |
 | accord « tout » | 🔴 | règle dédiée (« tout étonnées » correctement laissé) |
 | **participes invariables (fait/vu/laissé + infinitif, se sont succédé)** | 🟡 | pas de règle POSITIVE, mais pronominal exclu des accords → silencieux, pas faux |
-| **vingt/cent (quatre-vingts, deux cents)** | ❌ vérifié | motif fermé → candidat 🟠 |
+| vingt/cent (quatre-vingts, deux cents) | 🔴 LIVRÉ (2026-08-12) | nom PLURIEL exigé après (tue dates/ordinaux) ; millésime « mille neuf cent » exclu ; le seul tir UD était une vraie faute (« deux cent salariés ») |
 | **adjectifs de couleur composés** | 🟡 | invariables simples couverts (listes) ; composés (« bleu foncé ») non signalés — mais jamais cassés |
 
 ## 4. CONJUGAISON
@@ -70,13 +70,13 @@ PÉRIMÈTRE (choix assumé, motivé).
 | -é/-er/-ez/-ai (aux, modaux, « à », clitiques, causatif) | 🔴 | famille la plus travaillée |
 | infinitif de but après mouvement | 🔴 | PR#469 |
 | impératif (-s euphonique, irréguliers) | 🔴 | |
-| usage être/avoir | 🟡 | « il a allé/venue/parti »→est ✓ ; **« il a tombé » ∅** — la liste de participes à être est incomplète (attrapé par la contre-vérification de CE document) |
+| usage être/avoir | 🔴 | données complétées 2026-08-12 : familles tombé/parvenu/intervenu/survenu/redevenu + reparties (flood UD=0) ; garde COD « il a tombé la veste » |
 | auxiliaire mal orthographié (ête) | 🔴 | |
 | futur 1ʳᵉ pers. avec marqueur temporel (je mangerai demain) | 🟡 | exige un marqueur explicite |
-| **futur/conditionnel -rai/-rais hors marqueur** | ❌ vérifié | le -s est MUET → dys-pertinent ; sans marqueur c'est sémantique → 🟠 au mieux |
-| **si + conditionnel (si j'aurais)** | ❌ vérifié | liste fermée si+aurais/serais/… → candidat 🔴 |
+| futur/conditionnel -rai/-rais hors marqueur | ⛔ REPORTÉ chiffré (2026-08-12) | 9 « je …-rais » corrects sur UD (conditionnel de politesse) pour 0 occasion au corpus dys → tout signalement hors marqueur inflige de l'orange sans rappel démontré |
+| si + conditionnel (si j'aurais) | 🔴 LIVRÉ (2026-08-12) | protase seulement (tête de proposition) ; interrogation indirecte exclue (« je ne sais pas si je serais ») ; 0 tir/14 450 UD, 1 occasion dys confirmée gold |
 | **concordance des temps / subjonctif (bien que c'est)** | ❌ vérifié | conjonctions à liste fermée → candidat 🟠 |
-| **participe présent vs adj. verbal (fatiguant/fatigant)** | ❌ vérifié | paires fermées → candidat 🟠 |
+| participe présent vs adj. verbal (fatiguant/fatigant) | 🟠 LIVRÉ (2026-08-12) | 11 paires ; position adjectivale (dét/copule/adverbe, ou NOM+fin de proposition) ; gérondif « en le précédant » exclu ; le seul tir UD était une vraie faute (« le plus influant ») |
 | conjugaisons rares absentes du lexique (imparfait 3pl : 70 % des -er) | 🟡 | impact réel mesuré faible (22/1 059) ; lexique unifié |
 
 ## 5. SYNTAXE (LT : « Grammaire », « Concordances », « Élision »)
@@ -84,8 +84,8 @@ PÉRIMÈTRE (choix assumé, motivé).
 | phénomène | état | note |
 |---|---|---|
 | élision (46 listes fermées) | 🔴 | cécité volontaire = protectrice (mémoire dédiée) |
-| **négation « n' » manquante (on a pas)** | ❌ vérifié | LE trou n° 1 : quasi-inaudible, très fréquent, cadre fermé (on/il/elle + a/est/ont/avait…) → candidat 🔴 après « on », 🟠 sinon (registre oral) |
-| **que/dont (la chose que j'ai besoin)** | ❌ vérifié | gouverneurs à « de » en liste fermée (besoin/envie/peur/parle…) → candidat 🟠 |
+| négation « n' » manquante (on a pas) | 🔴 LIVRÉ (2026-08-12) | cadre : sujet-pronom + verbe à VOYELLE + négateur, PLUS formes élidées (c'est pas→ce n'est pas, j'ai jamais→je n'ai jamais, il y a pas→il n'y a pas, t'as rien→tu n'as rien). « plus » exclu (comparatif, 8 FP/10 au proto), « pas mal » exclu (locution). 5 tirs/14 450 UD = 5 vraies fautes orales du corpus → rouge sur tout le cadre |
+| que/dont (la chose que j'ai besoin) | 🟠 LIVRÉ (2026-08-12) | gouverneurs besoin/envie/peur/honte (parle/doute exclus : transitifs légitimes) ; antécédent NOMINAL exigé (complétive « je crois que j'ai besoin » exclue) ; « besoin DE » présent → silence |
 | run-on (ponctuation manquante entre propositions) | 🟢 | couche verte |
 | pronoms relatifs composés (lequel/laquelle) | ❌ | rare chez le dys, FP-risqué → non prioritaire |
 
@@ -127,6 +127,12 @@ PÉRIMÈTRE (choix assumé, motivé).
 8. **Compléter la liste des participes à être** (« il a tombé », « ils ont retournés ») — la
    règle existe, la DONNÉE manque ; même diagnostic que les prénoms (PR#460).
 9. **Parenthèses/guillemets non appariés** — signalement simple.
+
+**Bilan du chantier 2026-08-12 (items 1-8)** : 1, 2, 3, 5, 7, 8 LIVRÉS (rouge quand le cadre le
+permet), 4 LIVRÉ en orange, 6 REPORTÉ avec chiffre (9 conditionnels corrects floodés sur UD pour
+0 occasion dys). Mesure finale AU MOTEUR : 7 tirs sur 14 450 phrases UD, TOUS étant de vraies
+fautes du corpus (négation orale ×5, « le plus influant », « deux cent salariés ») → FP réel = 0.
+Restant de la liste : item 9 (parenthèses/guillemets non appariés).
 
 Chaque candidat suit la discipline du dépôt : compter les OCCASIONS dans le corpus dys d'abord,
 mesurer le flood sur UD ensuite, gardes CI des deux sens, et vérité navigateur avant merge.

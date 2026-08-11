@@ -223,6 +223,52 @@ for (const ph of _ELI) {
 }
 if (_eli) { console.log('PARITÉ KO — ' + _eli + ' accord(s) sur token élidé.'); process.exit(1); }
 
+
+/* GARDE « REGLES_FR 1-8 » (2026-08-12) — les 9 règles mesurées : rappel, pièges, et le TIER dit vrai.
+   Mesuré au moteur : 7 tirs sur 14 450 phrases UD, TOUS de vraies fautes du corpus (négation orale,
+   « le plus influant », « deux cent salariés »). La fumée a servi de casse-garde : la branche
+   NOM+fin-de-proposition de l'adjectif verbal manquait → le banc l'a montrée KO avant livraison. */
+const _R8 = [
+  ["on a pas le temps", "n'a", 'auto', 'négation'],
+  ["c'est pas grave", "ce n'est", 'auto', 'négation'],
+  ["il y a pas de souci", "n'y", 'auto', 'négation'],
+  ["si j'aurais su, je ne serais pas venu", "j'avais", 'auto', 'si + conditionnel'],
+  ["quelque soit la solution", "quelle que", 'auto', 'quel que soit'],
+  ["je ne comprends pas ce qui il veut", "qu'il", 'auto', "qu'il (élision)"],
+  ["l'homme qui il a vu hier", "qu'il", 'vigilance', "qu'il (élision)"],
+  ["il me faut la chose que j'ai besoin", 'dont', 'vigilance', 'que/dont'],
+  ["il est prêt de la sortie", 'près', 'vigilance', 'près/prêt'],
+  ["il en veut d'avantage", 'davantage', 'vigilance', 'davantage'],
+  ["il est très convainquant", 'convaincant', 'vigilance', 'adjectif en -ant/-ent'],
+  ["l'usine emploie deux cent salariés", 'cents', 'auto', 'vingt/cent'],
+  ["il a tombé dans l'escalier", 'est', 'auto', 'usage être/avoir'],
+  ["ils ont parvenus à un accord", 'sont', 'auto', 'usage être/avoir'],
+];
+const _R8_NON = [
+  "j'ai pas mal de travail", "il est plus grand que moi", "on n'a pas le temps",
+  "je ne sais pas si je serais capable", "il se demandait si elle serait là",
+  "le film avec qui il a grandi", "je sais qui il est",
+  "je crois que j'ai besoin de toi", "la langue qu'il parle est belle",
+  "elle prête de l'argent à tous", "il n'y a pas d'avantage fiscal",
+  "en le précédant, il ouvre la voie", "l'année précédant la guerre fut rude",
+  "en mille neuf cent quatre", "quatre-vingt-dix personnes", "cent personnes sont venues",
+  "il a tombé la veste",
+];
+const _R8N = new Set(['négation', 'si + conditionnel', 'quel que soit', "qu'il (élision)", 'que/dont',
+  'près/prêt', 'davantage', 'adjectif en -ant/-ent', 'vingt/cent', 'usage être/avoir']);
+let _r8 = 0;
+for (const [ph, att, tier, nom] of _R8) {
+  const all = DYSCORE.correctText(ph), got = all.filter(f => f.name === nom);
+  const hit = got.find(f => String(f.sugg).toLowerCase().startsWith(att));
+  if (!hit) { _r8++; console.log('✗ R8 rappel : ' + JSON.stringify(ph) + ' doit donner « ' + att + ' » [' + nom + '], eu ' + JSON.stringify(all.map(f => f.word + '->' + f.sugg))); }
+  else if (hit.tier !== tier) { _r8++; console.log('✗ R8 tier : ' + JSON.stringify(ph) + ' — « ' + att + ' » doit être ' + tier + ', eu ' + hit.tier); }
+}
+for (const ph of _R8_NON) {
+  const got = DYSCORE.correctText(ph).filter(f => _R8N.has(f.name));
+  if (got.length) { _r8++; console.log('✗ R8 piège : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg + '[' + f.name + ']'))); }
+}
+if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); process.exit(1); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

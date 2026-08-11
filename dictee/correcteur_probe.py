@@ -1797,7 +1797,10 @@ AVOIR_IDIOM = {'faim', 'soif', 'sommeil', 'raison', 'tort', 'envie', 'besoin', '
 AUX_ETRE_PP = {'alle', 'allee', 'alles', 'allees', 'venu', 'venue', 'venus', 'venues', 'arrive', 'arrivee', 'arrives', 'arrivees',
                'parti', 'partie', 'partis', 'parties', 'devenu', 'devenue', 'devenus', 'devenues', 'revenu', 'revenue', 'revenus', 'revenues',
                'reste', 'restee', 'restes', 'restees', 'ne', 'nee', 'nes', 'nees', 'mort', 'morte', 'morts', 'mortes',
-               'decede', 'decedee', 'decedes', 'decedees', 'reparti', 'repartie', 'repartis'}
+               'decede', 'decedee', 'decedes', 'decedees', 'reparti', 'repartie', 'repartis', 'reparties',
+               'tombe', 'tombee', 'tombes', 'tombees', 'parvenu', 'parvenue', 'parvenus', 'parvenues',
+               'intervenu', 'intervenue', 'intervenus', 'intervenues', 'survenu', 'survenue', 'survenus', 'survenues',
+               'redevenu', 'redevenue', 'redevenus', 'redevenues'}   # chantier REGLES_FR #8 : familles ajoutées, flood UD mesuré = 0
 
 def rule_aux_usage(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None
@@ -1822,6 +1825,10 @@ def rule_aux_usage(T, i):
     if 'etre' in lemmas and (nxt in AVOIR_IDIOM or age):         # ÊTRE devant idiome d'avoir / âge → AVOIR
         return CONJ_C.get('avoir', {}).get(mt, {}).get(per + nb)
     if 'avoir' in lemmas and nxt in AUX_ETRE_PP:                 # AVOIR devant participe de verbe d'être → ÊTRE
+        if nxt.startswith('tomb') and i + 2 < len(T):            # « il a tombé la veste » : COD → tomber transitif familier, abstention
+            cd = deacc(T[i + 2].lower())
+            if cd in ('la', 'le', 'les', 'sa', 'son', 'ses', 'ma', 'mon', 'mes', 'une', 'un', 'des') or T[i + 2].lower().startswith("l'"):
+                return None
         return CONJ_C.get('etre', {}).get(mt, {}).get(per + nb)
     return None
 
@@ -2719,7 +2726,9 @@ CADJ = set("content contente contents contentes malade malades triste tristes he
 # Participes de verbes d'ÊTRE (non ambigus, sans collision déacc — « né »/« mort »/« passé » exclus : homographes) :
 # « j'est allé » → « je suis allé ». Liste CLOSE = parité 3 moteurs.
 ETRE_PP = set("alle allee alles allees venu venue venus venues parti partie partis parties "
-              "arrive arrivee arrives arrivees devenu devenue devenus devenues revenu revenue revenus revenues".split())
+              "arrive arrivee arrives arrivees devenu devenue devenus devenues revenu revenue revenus revenues "
+              "tombe tombee tombes tombees parvenu parvenue parvenus parvenues intervenu intervenue intervenus intervenues "
+              "survenu survenue survenus survenues redevenu redevenue redevenus redevenues".split())   # familles #8 (flood UD=0)
 PART_ART = {'le', 'la', "l'", 'les', 'un', 'une'}   # article après « de » → partitif AVOIR (« j'ai de la peine »)
 
 
@@ -3148,6 +3157,190 @@ def rule_accord_incise(T, i):
     return sug if (sug and sug.lower() != w) else None
 
 
+# ===== chantier REGLES_FR 1-8 (2026-08-12) — miroir app (sur-ensemble : l'orange de l'app est rendu ici en sugg simple)
+_NEG_NEXT = {'pas', 'jamais', 'rien', 'guere', 'point', 'personne', 'aucun', 'aucune'}   # « plus » EXCLU : comparatif (8 FP/10 mesurés)
+_NEG_AUXV = {'a', 'ai', 'as', 'avons', 'avez', 'ont', 'est', 'es', 'etes', 'etait', 'etais', 'etaient', 'etions', 'etiez',
+             'avait', 'avais', 'avaient', 'avions', 'aviez', 'aura', 'aurai', 'auras', 'aurons', 'aurez', 'auront',
+             'aurait', 'aurais', 'auraient', 'aurions', 'auriez'}                        # formes à VOYELLE seulement (n' licite)
+_NEG_SUJ = {'je', 'tu', 'il', 'elle', 'on', 'ils', 'elles', 'nous', 'vous'}
+_NEG_ELIDE = {"c'est": "ce n'est", "c'etait": "ce n'était", "c'etaient": "ce n'étaient", "j'ai": "je n'ai",
+              "j'avais": "je n'avais", "j'aurai": "je n'aurai", "j'aurais": "je n'aurais", "j'etais": "je n'étais",
+              "t'as": "tu n'as", "t'es": "tu n'es"}
+
+
+def rule_neg_ne(T, i):
+    if i + 1 >= len(T): return None
+    lw = T[i].lower(); d = deacc(lw)
+    nx = deacc(T[i + 1].lower()); n2 = deacc(T[i + 2].lower()) if i + 2 < len(T) else ''
+    if d == 'y':                                                 # « il y a pas » → « il n'y a pas »
+        if not (nx in _NEG_AUXV and i >= 1 and deacc(T[i - 1].lower()) == 'il' and n2 in _NEG_NEXT): return None
+        if n2 == 'pas' and i + 3 < len(T) and deacc(T[i + 3].lower()) == 'mal': return None
+        return "n'y"
+    if nx not in _NEG_NEXT: return None
+    if nx == 'pas' and n2 == 'mal': return None                  # « pas mal (de) » : locution sans ne
+    if _SEG and ((i < len(_SEG['hy']) and _SEG['hy'][i]) or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])): return None
+    if d in _NEG_ELIDE: return _keepcase(T[i], _NEG_ELIDE[d])
+    if "'" in lw: return None
+    if d not in _NEG_AUXV or i < 1: return None
+    pv = deacc(T[i - 1].lower())
+    if "'" in pv: pv = pv.rsplit("'", 1)[1]                      # qu'on / l'on / lorsqu'il → sujet nu
+    if pv not in _NEG_SUJ: return None
+    if i >= 2 and (deacc(T[i - 2].lower()) == 'ne' or T[i - 2].lower() == "n'"): return None
+    return "n'" + T[i]
+
+
+_SICOND = {'aurais': 'avais', 'aurait': 'avait', 'aurions': 'avions', 'auriez': 'aviez', 'auraient': 'avaient',
+           'serais': 'étais', 'serait': 'était', 'serions': 'étions', 'seriez': 'étiez', 'seraient': 'étaient'}
+_SI_SAVOIR = {'sais', 'sait', 'savais', 'savait', 'savent', 'savoir', 'demande', 'demandes', 'demandent', 'demandait',
+              'demander', 'demandez', 'demandons', 'ignore', 'ignorent', 'ignorait', 'dis', 'dit', 'dire', 'disait',
+              'voir', 'vois', 'voit', 'comprendre', 'devine', 'deviner', 'verifier', 'verifie', 'regarde', 'regarder'}
+_SI_CONJ = {'et', 'mais', 'car', 'alors', 'comme', 'meme', 'ou'}
+
+
+def rule_si_cond(T, i):
+    lw = T[i].lower(); d = deacc(lw); pre = ''
+    if d.startswith("j'"): pre = lw[:2]; d = d[2:]
+    if d not in _SICOND: return None
+    for j in range(i - 1, max(-1, i - 4), -1):
+        pj = deacc(T[j].lower())
+        est_si = (pj == 'si'); est_sil = bool(re.match(r"^s'ils?$", pj))
+        if est_si or est_sil:
+            if j > 0 and deacc(T[j - 1].lower()) in _SI_SAVOIR: return None   # « je ne sais pas si je serais »
+            if not ((j == 0) or (_SEG and j < len(_SEG['bb']) and _SEG['bb'][j]) or (j > 0 and deacc(T[j - 1].lower()) in _SI_CONJ)):
+                return None                                      # protase = tête de proposition
+            sg = _SICOND[d]
+            return _keepcase(T[i], pre + sg if pre else sg)
+        if pj not in _NEG_SUJ and pj not in ('ne', 'y', 'en'): return None
+    return None
+
+
+def rule_quel_que(T, i):
+    d = deacc(T[i].lower())
+    if d not in ('quelque', 'quelques') or i + 1 >= len(T): return None
+    v = deacc(T[i + 1].lower())
+    if v not in ('soit', 'soient', 'fut', 'fussent'): return None
+    pl = v in ('soient', 'fussent'); fem = False
+    if i + 2 < len(T) and deacc(T[i + 2].lower()) in ('la', 'sa', 'ma', 'ta', 'cette', 'une'): fem = True
+    return _keepcase(T[i], ('quelles que' if fem else 'quels que') if pl else ('quelle que' if fem else 'quel que'))
+
+
+_QUI_PREP = {'avec', 'a', 'pour', 'chez', 'contre', 'sans', 'sur', 'sous', 'vers', 'envers', 'par', 'entre',
+             'derriere', 'devant', 'apres', 'selon', 'de', 'dont'}
+
+
+def rule_qui_pron(T, i):
+    if deacc(T[i].lower()) != 'qui' or T[i][:1] == 'Q': return None          # « Qui il a choisi ? » interrogatif oral
+    if i < 1 or i + 1 >= len(T): return None
+    if deacc(T[i + 1].lower()) not in ('il', 'ils', 'elle', 'elles', 'on'): return None
+    pv = deacc(T[i - 1].lower())
+    if pv in _QUI_PREP or pv in _SI_SAVOIR: return None                      # « avec qui il est ami » / « je sais qui il est »
+    return "qu'" + T[i + 1]                                                  # app : span 2 (rouge après « ce », orange sinon)
+
+
+_QDONT_GOUV = {'besoin', 'envie', 'peur', 'honte'}
+_QDONT_MID = {'je', 'tu', 'il', 'elle', 'on', 'ils', 'elles', 'nous', 'vous', 'ne', 'en', 'y', 'a', 'ai', 'as',
+              'avons', 'avez', 'ont', 'avait', 'avais', 'avaient', 'aura', 'aurai', 'auront', 'aurait'}
+
+
+def rule_que_dont(T, i):
+    lw = T[i].lower(); rest = None
+    if lw != 'que':
+        if not lw.startswith("qu'"): return None
+        rest = lw[3:]
+        if deacc(rest) not in ('il', 'elle', 'on', 'ils', 'elles', 'en'): return None
+    if i < 1: return None
+    tg = pos_tags(T)                                             # ANTÉCÉDENT nominal exigé : « je crois que j'ai besoin » = complétive correcte
+    if not (deacc(T[i - 1].lower()) == 'ce' or (tg and i - 1 < len(tg) and tg[i - 1] == 'NOUN')): return None
+    for k in range((i if rest else i + 1), min(len(T), i + 5)):
+        g = deacc(T[k].lower())
+        if k > i and g in _QDONT_GOUV:
+            if k + 1 < len(T):
+                nn = T[k + 1].lower()
+                if deacc(nn) == 'de' or nn.startswith("d'"): return None     # « que j'ai besoin DE toi » : le de est là → correct
+            return _keepcase(T[i], 'dont ' + rest) if rest else _keepcase(T[i], 'dont')
+        if k > i and g not in _QDONT_MID and not T[k].lower().startswith("j'"): return None
+    return None
+
+
+_PRET_COP = {'est', 'es', 'suis', 'sont', 'sommes', 'etes', 'etait', 'etais', 'etaient', 'semble', 'semblent',
+             'parait', 'paraissent', 'reste', 'restent', 'tout', 'toute', 'tous', 'toutes', 'pas', 'presque',
+             'deja', 'enfin', 'etre', 'toujours', 'jamais'}
+_PRET_DET = {'la', 'le', 'les', 'un', 'une', 'des', 'du', 'ma', 'mon', 'mes', 'sa', 'son', 'ses', 'notre', 'nos',
+             'votre', 'vos', 'leur', 'leurs', 'cette', 'ces', 'cet'}
+
+
+def rule_pres_pret(T, i):
+    lw = T[i].lower()
+    dur = lw in ('prêt', 'prêts'); mou = lw in ('prête', 'prêtes')
+    if not dur and not mou: return None
+    if mou and (i < 1 or deacc(T[i - 1].lower()) not in _PRET_COP): return None   # « elle prête de l'argent » = verbe prêter
+    if i + 2 >= len(T) or deacc(T[i + 1].lower()) != 'de': return None
+    w2 = T[i + 2].lower(); d2 = deacc(w2)
+    if d2 not in _PRET_DET and not w2.startswith("l'"): return None
+    if d2 in ('le', 'la', 'les') and i + 3 < len(T):
+        tg = pos_tags(T)
+        if tg and i + 3 < len(tg) and tg[i + 3] == 'VERB': return None       # « prêt de le faire » : clitique+inf
+    return 'près'
+
+
+_DAV_PREV = {'pas', 'plus', 'point', 'guere', 'aucun', 'sans', 'peu'}
+
+
+def rule_davantage(T, i):
+    if T[i].lower() != "d'avantage": return None
+    if i >= 1 and deacc(T[i - 1].lower()) in _DAV_PREV: return None          # « il n'y a pas d'avantage » : lecture nominale légitime
+    if i + 1 < len(T):
+        nn = T[i + 1].lower()
+        if deacc(nn) != 'que' and not nn.startswith("qu'") and not (_SEG and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]):
+            return None                                          # fin de proposition ou « que » seulement
+    return 'davantage'
+
+
+_ANT_ADJ = {'fatiguant': 'fatigant', 'convainquant': 'convaincant', 'provoquant': 'provocant',
+            'communiquant': 'communicant', 'negligeant': 'négligent', 'differant': 'différent',
+            'excellant': 'excellent', 'precedant': 'précédent', 'equivalant': 'équivalent',
+            'influant': 'influent', 'naviguant': 'navigant'}
+_ANT_POS = {'le', 'la', 'les', 'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'son', 'sa', 'ses', 'mon', 'ma',
+            'mes', 'tres', 'plus', 'moins', 'si', 'aussi', 'trop', 'fort', 'vraiment', 'assez', 'est', 'es',
+            'sont', 'suis', 'sommes', 'etes', 'etait', 'etais', 'etaient', 'semble', 'semblent', 'parait',
+            'reste', 'restent'}
+
+
+def rule_ant_adj(T, i):
+    adj = _ANT_ADJ.get(deacc(T[i].lower()))
+    if not adj: return None
+    if i < 1: return None
+    if deacc(T[i - 1].lower()) not in _ANT_POS:                              # après un NOM : épithète seulement si FIN de proposition
+        tg = pos_tags(T)
+        fin = (i + 1 >= len(T)) or (_SEG and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1])
+        if not (tg and i - 1 < len(tg) and tg[i - 1] == 'NOUN' and fin): return None
+    if _SEG and i < len(_SEG['bb']) and _SEG['bb'][i]: return None           # « …, provoquant … » : participe après virgule
+    for j in range(max(0, i - 3), i):
+        if deacc(T[j].lower()) == 'en': return None                          # gérondif « en le précédant »
+    return _keepcase(T[i], adj)
+
+
+_VC_NUM = {'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze',
+           'treize', 'quatorze', 'quinze', 'seize', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante',
+           'cent', 'cents', 'mille', 'million', 'millions', 'milliard', 'milliards', 'et', 'pour'}
+_VC_MULT = {'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'}
+
+
+def rule_vingt_cent(T, i):
+    d = deacc(T[i].lower())
+    if d not in ('vingt', 'cent') or i < 1 or i + 1 >= len(T): return None
+    nx = deacc(T[i + 1].lower())
+    if nx in _VC_NUM or not (nx.endswith('s') or nx.endswith('x')): return None   # nom PLURIEL exigé après → tue dates et ordinaux
+    if _SEG and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None        # « quatre-vingt-dix »
+    pv = deacc(T[i - 1].lower())
+    if d == 'vingt':
+        if pv != 'quatre' or not (_SEG and i < len(_SEG['hy']) and _SEG['hy'][i]): return None
+        return T[i] + 's'
+    if pv not in _VC_MULT: return None
+    if i >= 2 and deacc(T[i - 2].lower()) in ('mille', 'mil'): return None        # « mille neuf cent » (millésime)
+    return T[i] + 's'
+
+
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
          ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
@@ -3178,6 +3371,9 @@ RULES = [('élision inversée', rule_deselide),
          ('accord singulier nom', rule_noun_singular),
          ('usage être/avoir', rule_aux_usage),
          ('aux mal orthographié', rule_aux_misspell),
+         ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
+         ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('près/prêt', rule_pres_pret),
+         ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
