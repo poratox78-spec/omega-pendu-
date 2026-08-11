@@ -1,0 +1,139 @@
+# RÉFÉRENTIEL DES RÈGLES DU FRANÇAIS — et où en est OMEGA (2026-08-11)
+
+Demande de Rem : *« établir une liste de règles complète de grammaire / orthographe / conjugaison
+française, croiser avec LanguageTool pour vérification, et voir ce qui nous manque réellement »*.
+
+**Méthode.** ① Taxonomie des phénomènes (structure classique + les 17 catégories publiques de
+LanguageTool FR). ② État OMEGA établi en TESTANT le moteur, pas en lisant le code — chaque « ABSENT »
+ci-dessous a été vérifié par une phrase déclenchante restée muette. ③ Croisement LT en lecture de
+**phénomènes seulement** : LanguageTool est LGPL, on ne lit jamais son XML (doctrine du dépôt).
+
+**Référence LT** : 6 854 règles FR, 17 catégories. ⚠️ Ce chiffre ne se compare pas au nôtre :
+la masse LT est faite de paires lexicales une-par-règle (confusions, calques, tours critiqués) et de
+style. Notre unité est le PHÉNOMÈNE ; LT tolère les faux positifs, nous non — notre rappel
+supplémentaire vit donc dans l'orange, jamais dans un rouge douteux.
+
+Légende : 🔴 corrigé d'office (FP=0 mesuré) · 🟠 proposé (vigilance) · 🟢 couche verte (pédagogie,
+jamais imposé) · 🟡 PARTIEL (limite mesurée notée) · ❌ ABSENT (vérifié au moteur) · ⛔ HORS
+PÉRIMÈTRE (choix assumé, motivé).
+
+---
+
+## 1. ORTHOGRAPHE LEXICALE (LT : « Faute de frappe possible »)
+
+| phénomène | état | où / limite |
+|---|---|---|
+| non-mot → candidat (édit-1, contexte POS/genre/nombre) | 🔴/🟠 | speller ; rouge = routes sûres seulement |
+| restauration d'accent (fenetre→fenêtre) | 🔴 | route affirmative historique |
+| glissement moteur (jmaais, grannd — 1 candidat + désordre/redoublement) | 🔴 | PR#464, FP=0/14 450 |
+| élongation (ellle→elle) | 🔴 | cas issus du corpus dys réel (PR#466) |
+| lettre finale muette (dehor→dehors) | 🔴 | préfixe commun + s/x |
+| omission interne (afreuses→affreuses) | 🔴 | sous-suite + même initiale + plus proche |
+| ligature œ/æ | 🔴 | normalisation partagée, banc dédié |
+| mot inconnu → signalement | 🟠 | jamais imposé |
+| élision manquante/inversée (c est→c'est, j'mange→je mange) | 🔴 | 2 règles + listes closes unifiées |
+| majuscule initiale / nom propre | 🟠 | page correcteur seulement (politique) |
+| **trous du lexique** (désarçonnaient, belle-sœur, exclamassent) | 🟡 | mesuré : 22 formes verbales rares / 1 059 « inconnus » sur UD ; **chantier lexique unifié, pas de génération mécanique** (abeillier→abeilliaient réfuté) |
+
+## 2. HOMOPHONES GRAMMATICAUX (LT : « Confusion d'homonymes et paronymes »)
+
+| phénomène | état | note |
+|---|---|---|
+| a/à · et/est · son/sont · on/ont · ce/se · ça/sa · du/dû · du/de · sur/sûr · la/là · leur/leurs · mais/mes · met/mais · mai/mais · des/dès · peu/peux/peut · sais/sait · c'est/s'est · j'est/j'ai · c'ai/c'est | 🔴 | le cœur du correcteur ; FP=0 à l'échelle, gardé CI |
+| ces/ses · ou/où | 🟠/🟢 | carte enseignante (l'auteur tranche) |
+| quel/quelle (genre) | 🔴 | via accord adjectival |
+| homophones lexicaux (vert/verre/vers, sceau/seau/sot) | ⛔→🟢 | indécidable sans sémantique ; couche verte « homophone à vérifier » sur liste |
+| **près de / prêt de** | ❌ vérifié | direction « être sûr » existe (sur/sûr) ; celle-ci non. Liste fermée → candidat 🟠 |
+| **davantage / d'avantage(s)** | ❌ vérifié | paire fermée → candidat 🟠 |
+| **quelque soit / quel que soit** | ❌ vérifié | motif fermé devant « soit/soient » → candidat 🔴 |
+| **ce qui il / ce qu'il** | ❌ vérifié | élision obligatoire, motif fermé → candidat 🔴 |
+
+## 3. ACCORDS (LT : « Grammaire »)
+
+| phénomène | état | note |
+|---|---|---|
+| sujet-verbe (13 fonctions : noms, pronoms, coordination, relative-objet, incise, postposé, quantifieurs…) | 🔴+🟠 | rouge sur cadres sûrs ; OS-sujet en vigilance sur le résiduel ; sujet postposé SINGULIER réparé (PR#472) |
+| déterminant↔nom (nombre, les deux sens) | 🔴 | un seul sens par désaccord (PR#467) ; élidés exclus (PR#473) |
+| déterminant↔nom (genre) | 🔴 | table genre désaccentuée (PR#450→453) |
+| participe avec être (+ prénoms) | 🔴 | 8 729 prénoms (PR#460) |
+| participe avec avoir + COD antéposé (que) | 🔴 | rule_pp_avoir_cod |
+| participe épithète · adjectif attribut/épithète | 🔴 | via tagger + _adj_head |
+| accord « tout » | 🔴 | règle dédiée (« tout étonnées » correctement laissé) |
+| **participes invariables (fait/vu/laissé + infinitif, se sont succédé)** | 🟡 | pas de règle POSITIVE, mais pronominal exclu des accords → silencieux, pas faux |
+| **vingt/cent (quatre-vingts, deux cents)** | ❌ vérifié | motif fermé → candidat 🟠 |
+| **adjectifs de couleur composés** | 🟡 | invariables simples couverts (listes) ; composés (« bleu foncé ») non signalés — mais jamais cassés |
+
+## 4. CONJUGAISON
+
+| phénomène | état | note |
+|---|---|---|
+| -é/-er/-ez/-ai (aux, modaux, « à », clitiques, causatif) | 🔴 | famille la plus travaillée |
+| infinitif de but après mouvement | 🔴 | PR#469 |
+| impératif (-s euphonique, irréguliers) | 🔴 | |
+| usage être/avoir | 🟡 | « il a allé/venue/parti »→est ✓ ; **« il a tombé » ∅** — la liste de participes à être est incomplète (attrapé par la contre-vérification de CE document) |
+| auxiliaire mal orthographié (ête) | 🔴 | |
+| futur 1ʳᵉ pers. avec marqueur temporel (je mangerai demain) | 🟡 | exige un marqueur explicite |
+| **futur/conditionnel -rai/-rais hors marqueur** | ❌ vérifié | le -s est MUET → dys-pertinent ; sans marqueur c'est sémantique → 🟠 au mieux |
+| **si + conditionnel (si j'aurais)** | ❌ vérifié | liste fermée si+aurais/serais/… → candidat 🔴 |
+| **concordance des temps / subjonctif (bien que c'est)** | ❌ vérifié | conjonctions à liste fermée → candidat 🟠 |
+| **participe présent vs adj. verbal (fatiguant/fatigant)** | ❌ vérifié | paires fermées → candidat 🟠 |
+| conjugaisons rares absentes du lexique (imparfait 3pl : 70 % des -er) | 🟡 | impact réel mesuré faible (22/1 059) ; lexique unifié |
+
+## 5. SYNTAXE (LT : « Grammaire », « Concordances », « Élision »)
+
+| phénomène | état | note |
+|---|---|---|
+| élision (46 listes fermées) | 🔴 | cécité volontaire = protectrice (mémoire dédiée) |
+| **négation « n' » manquante (on a pas)** | ❌ vérifié | LE trou n° 1 : quasi-inaudible, très fréquent, cadre fermé (on/il/elle + a/est/ont/avait…) → candidat 🔴 après « on », 🟠 sinon (registre oral) |
+| **que/dont (la chose que j'ai besoin)** | ❌ vérifié | gouverneurs à « de » en liste fermée (besoin/envie/peur/parle…) → candidat 🟠 |
+| run-on (ponctuation manquante entre propositions) | 🟢 | couche verte |
+| pronoms relatifs composés (lequel/laquelle) | ❌ | rare chez le dys, FP-risqué → non prioritaire |
+
+## 6. TYPOGRAPHIE & PONCTUATION (LT : « Typographie », « Ponctuation », « Majuscules »)
+
+| phénomène | état | note |
+|---|---|---|
+| espace avant . et , · espace manquant après , · espace double · virgule doublée | 🔴 | appliqués depuis PR#468 |
+| points de suspension → … · guillemets droits → « » | 🟠 | préférence, jamais imposée |
+| espaces françaises avant : ; ! ? | 🟡 | tolérées (pas signalées) — choix : ne pas harceler |
+| parenthèses/guillemets non appariés | ❌ | candidat 🟠 simple |
+| majuscule de phrase | 🟠 | page correcteur seulement |
+
+## 7. LEXIQUE & USAGE (LT : « Anglicismes », « Pléonasmes », « Répétitions », « Calques », « Style », « Archaïsmes », « Régionalismes », « Marques », « Tours critiqués »)
+
+| catégorie LT | état | note |
+|---|---|---|
+| Répétitions (il il) | 🔴 | span 2 |
+| Anglicismes | 🟢 | liste close de NON-MOTS seulement (checker→vérifier) ; les homographes FR (réaliser, supporter) exclus — mesurés floodants |
+| Pléonasmes (monter en haut) | 🟢 | couche verte |
+| Calques · Style · Archaïsmes · Régionalismes · Marques · Tours critiqués | ⛔ | **hors périmètre assumé** : ce n'est pas de la faute, c'est du style ; la population dys n'a rien à y gagner et tout à perdre en fatigue de signalement |
+
+---
+
+## CE QUI NOUS MANQUE RÉELLEMENT — priorisé pour le dys (audibilité × fréquence × FP-risque)
+
+1. **Négation « n' » manquante** (« on a pas », « il faut pas ») — le n' est quasi inaudible à l'oral
+   (exactement le profil « le dys écrit ce qu'il entend »), très fréquent, cadre fermé. Rouge
+   possible après « on » (« on a » ambigu zéro), orange ailleurs (registre oral voulu dans un chat).
+2. **si + conditionnel** (« si j'aurais su ») — liste fermée, faute scolaire archétypale, FP≈0 par
+   construction.
+3. **quelque soit → quel que soit** — motif fermé, rouge possible.
+4. **que/dont** (« la chose que j'ai besoin ») — gouverneurs en liste fermée, orange.
+5. **ce qui il → ce qu'il** — élision obligatoire, rouge possible.
+6. **-rai/-rais** (futur/conditionnel) — le -s est muet, donc dys-pertinent ; mais hors marqueur
+   temporel c'est un choix sémantique → orange, et à mesurer sérieusement avant de livrer.
+7. **près de / prêt de · davantage/d'avantage · fatigant/fatiguant · vingt/cent** — paires et motifs
+   fermés, orange, petit volume chacun.
+8. **Compléter la liste des participes à être** (« il a tombé », « ils ont retournés ») — la
+   règle existe, la DONNÉE manque ; même diagnostic que les prénoms (PR#460).
+9. **Parenthèses/guillemets non appariés** — signalement simple.
+
+Chaque candidat suit la discipline du dépôt : compter les OCCASIONS dans le corpus dys d'abord,
+mesurer le flood sur UD ensuite, gardes CI des deux sens, et vérité navigateur avant merge.
+
+## Ce que LT a en masse et qu'on ne veut PAS
+
+Style, tours critiqués, calques, archaïsmes, régionalismes, marques : des milliers de règles qui
+tolèrent le faux positif. Notre contrat est inverse (FP=0 sur l'affirmatif) et notre utilisateur est
+dys : chaque signalement non indispensable est de la fatigue. Le différentiel de compte (6 854 vs
+~60 phénomènes) est un choix, pas un retard.
