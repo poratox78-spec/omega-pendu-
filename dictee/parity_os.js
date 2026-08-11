@@ -51,7 +51,19 @@ let appFlags = []; for (const s of fp) for (const f of appProbe(s)) appFlags.pus
 // 4) batterie postposé/homographe (lock du nouveau comportement #1 gate + #2 routes inversées) — 3 moteurs doivent s'accorder
 const BATT = ["Ainsi s'achève les travaux de rénovation.", "Là s'entassait des palettes.", 'Que devient les anciens modèles ?',
   'Sur la table reposait les dossiers.', 'Les rumeurs circule vite.',
-  'Le chat dort sur le canapé.', 'Ainsi va la vie.', 'La compétition rassemble les meilleurs clubs.'];   // cibles postposées/homographe + contrôles (« Ainsi va la vie » sing, « La compétition rassemble les clubs » sujet préverbal = ne pas flaguer)
+  'Le chat dort sur le canapé.', 'Ainsi va la vie.', 'La compétition rassemble les meilleurs clubs.',
+  /* SUJET POSTPOSÉ **SINGULIER** dans une relative en « que » (signalé par Rem sur une phrase CORRECTE).
+     Le mode postposé ne savait dire que « pluriel » : face à un antécédent pluriel, un sujet postposé
+     singulier était sans défense, et les routes génériques proposaient « ressassaient / corrigent /
+     lisaient » — faux, sur du français correct. Ces 4 phrases sont CORRECTES : aucun des 3 moteurs
+     ne doit rien proposer. Les 2 dernières sont les CONTRÔLES du sens inverse (sujet postposé
+     PLURIEL, et relative à sujet préverbal) : eux doivent continuer de tirer. */
+  'Les billevesées que ressassait cet aréopage sont vieilles.',
+  'Les erreurs que corrige le professeur sont nombreuses.',
+  'Les livres que lisait mon frère sont là.',
+  'Les rapports que rédige la secrétaire arrivent demain.',
+  'Les dossiers que traitent les employés sont urgents.',
+  'les enfants que je vois joue'];   // cibles postposées/homographe + contrôles (« Ainsi va la vie » sing, « La compétition rassemble les clubs » sujet préverbal = ne pas flaguer)
 let pyBatt;
 try { pyBatt = JSON.parse(cp.execFileSync('python3', [path.join(HERE, 'os_subject_probe.py'), 'probeflags'],
   { input: JSON.stringify(BATT), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) })); }
@@ -59,6 +71,33 @@ catch (e) { console.error('probeflags échoué : ' + e.message); process.exit(2)
 let extBatt = []; for (const s of BATT) for (const f of D.osProbe(s)) extBatt.push([f.word, f.sugg]);
 let appBatt = []; for (const s of BATT) for (const f of appProbe(s)) appBatt.push([f.word, f.sugg]);
 const okB = norm(pyBatt) === norm(extBatt) && norm(pyBatt) === norm(appBatt);
+
+/* ⚠️ GARDE EXPLICITE — la parité vérifie que les 3 moteurs S'ACCORDENT, pas ce qu'ils DISENT : si on
+   retirait le correctif des trois, ils s'accorderaient sur la MAUVAISE réponse et la parité resterait
+   verte. On exige donc le COMPORTEMENT : silence sur du français correct, et les contrôles du sens
+   inverse doivent continuer de tirer. */
+const _CORRECT = ['Les billevesées que ressassait cet aréopage sont vieilles.',
+                  'Les erreurs que corrige le professeur sont nombreuses.',
+                  'Les livres que lisait mon frère sont là.',
+                  'Les rapports que rédige la secrétaire arrivent demain.'];
+/* ⚠️ Le contrôle doit porter sur la couche TESTÉE. Premier jet : j'y avais mis « les enfants que je
+   vois joue »→jouent — mais cette correction vient de la GRAMMAIRE (`rAccordRelObj`, rouge), pas de
+   la couche OS, donc `osProbe` n'en dit rien et le contrôle échouait sur un moteur pourtant sain.
+   Le vrai contrôle du sens inverse, ici, c'est le sujet postposé PLURIEL.
+   ⭐ Vérifié un par un : parmi les postposés de la batterie, `osProbe` ne tire QUE sur celui-ci —
+   « Ainsi s'achève… » et « Là s'entassait… » sont traités ailleurs. Un contrôle se choisit sur
+   MESURE, pas sur intuition. */
+const _DOIT_TIRER = [['Sur la table reposait les dossiers.', 'reposaient']];
+let _pp = 0;
+for (const ph of _CORRECT) {
+  const a = appProbe(ph).map(f => f.word + '->' + f.sugg), e = D.osProbe(ph).map(f => f.word + '->' + f.sugg);
+  if (a.length || e.length) { _pp++; console.log('✗ SUJET POSTPOSÉ : ' + JSON.stringify(ph) + ' est CORRECT, rien ne doit être proposé — app ' + JSON.stringify(a) + ' ext ' + JSON.stringify(e)); }
+}
+for (const [ph, att] of _DOIT_TIRER) {
+  const a = appProbe(ph).map(f => String(f.sugg).toLowerCase()), e = D.osProbe(ph).map(f => String(f.sugg).toLowerCase());
+  if (!a.includes(att) || !e.includes(att)) { _pp++; console.log('✗ CONTRÔLE PERDU : ' + JSON.stringify(ph) + ' doit proposer « ' + att + ' » — app ' + JSON.stringify(a) + ' ext ' + JSON.stringify(e)); }
+}
+if (_pp) { console.log('PARITÉ OS KO — ' + _pp + ' cas de sujet postposé.'); process.exit(1); }
 
 // comparaison
 const nPy = norm(py), nExt = norm(extFlags), nApp = norm(appFlags);

@@ -24663,6 +24663,20 @@ window.addEventListener('DOMContentLoaded', () => {
   // Filet homographe PARTAGÉ (miroir Python _verb_or_homograph) : T[i] est-il un VERBE en contexte pour les règles
   // d'accord SV ? VERB/AUX net, OU forme finie ratée par l'émission HMM (~2 % des formes) — connue (svReads) mais NI nom
   // (GENDER_MAP) NI adj (ADJP) NI préposition (PREP), et pas précédée d'un dét/prép. Homographes-noms (gêne/reste) → false.
+  /* SUJET POSTPOSÉ **SINGULIER** — jumeau de `_postposePlural`, qui ne savait dire que « pluriel ».
+     Conséquence mesurée sur la phrase de Rem « les billevesées QUE RESSASSAIT cet aréopage » : le mode
+     postposé ne pouvant pas répondre « singulier », les routes génériques votaient PLURIEL d'après
+     l'antécédent (`billevesées`) et proposaient « ressassaient ». Faux, et sur du français correct.
+     ⭐ POURQUOI C'EST SÛR, ET SEULEMENT DANS UNE RELATIVE EN « QUE » : l'objet du verbe y est DÉJÀ
+     l'antécédent relativisé, donc un groupe nominal placé APRÈS le verbe ne peut être que le SUJET.
+     Les autres déclencheurs du mode postposé (adverbe, préposition en tête) n'ont pas cette garantie
+     — « Ainsi mangeait une pomme » y serait un objet — donc on ne leur ouvre PAS le verdict singulier. */
+  var _POST_SG={};("le la l' un une ce cet cette mon ma ton ta son sa notre votre leur chaque").split(' ').forEach(function(w){_POST_SG[w]=1;});
+  function _postposeSingulier(T,tg,k,hi){if(k>=hi)return false;
+    var d0=deacc(T[k].toLowerCase());if(!_POST_SG[d0])return false;
+    for(var m=k+1;m<Math.min(hi,k+5);m++){if(m<tg.length&&(tg[m]==='NOUN'||tg[m]==='PROPN'))return true;
+      if(PREP[deacc(T[m].toLowerCase())])return false;}
+    return false;}
   function _verbOrHomograph(tg,T,i){if(i>=tg.length)return false;if(tg[i]==='VERB'||tg[i]==='AUX')return true;
     var d=deacc(T[i].toLowerCase());if(_INVAR_COLOR[d])return false;   // couleur/matière invariable (« des gants crème », « bleu marine ») → jamais un verbe
     if(GENDER_MAP[d]||ADJP[d]||_EPICENE_ADJ[d]||PREP[d])return false;   // adj épicène homographe (« conforme »/« calme ») = « qui est-ce qui ? » → l'adjectif, pas le verbe
@@ -26041,13 +26055,22 @@ function spellTokenCore(tok,atStart,T,idx){
     if(vi>0&&(NUM_DET[F[vi-1]]!==undefined||PREP[deacc(F[vi-1])]))return false;return svReads(F[vi]).length>0;}
   function _osRPostpose(F,vi,tg){var lo=0,j;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // SUJET POSTPOSÉ (inversion, idée Rem #198) — miroir _R_postpose : trigger accent-aware + scan APRÈS le verbe, 0 flood
     var acc=F[lo],d=deacc(acc);
-    if(!(_osAdvAcc[acc]||(lo<tg.length&&tg[lo]==='ADV')||_osInvWh[acc]||_osInvWh[d]||(PREP[d]&&acc!=='a'&&acc!=='la')||acc==='comme'||acc==='quand'||acc==='lorsque'))return null;
+    /* RELATIVE OBJET, détectée LOCALEMENT. On ne peut pas se fier à `lo` (début de proposition selon
+       _SEG.bb) : la segmentation ne marque PAS « que » comme frontière, donc `lo` restait sur « les »
+       et le déclencheur ne tirait jamais. On regarde donc les 3 tokens à gauche du verbe. */
+    var _rel=false;for(var _r=vi-1;_r>=0&&_r>=vi-3;_r--){var _dr=deacc(F[_r]);
+      if(_dr==='que'||_dr==="qu'"){_rel=true;lo=_r;break;}
+      if(!(_dr==='ne'||_dr==="n'"||(_r<tg.length&&tg[_r]==='ADV')))break;}   // on tolère la négation et un adverbe entre « que » et le verbe
+    if(_rel){acc=F[lo];d=deacc(acc);}
+    if(!(_rel||_osAdvAcc[acc]||(lo<tg.length&&tg[lo]==='ADV')||_osInvWh[acc]||_osInvWh[d]||(PREP[d]&&acc!=='a'&&acc!=='la')||acc==='comme'||acc==='quand'||acc==='lorsque'))return null;
     for(var k=lo;k<vi;k++){var dk=deacc(F[k]);
       if(dk==='il'||dk==='elle'||dk==='elles'||dk==='ils'||dk==='ce'||dk==='c'||dk==='on'||dk==='ca'||dk==='cela'||dk==='ceci'||dk==='qui'||dk==='dont'||dk==='je'||dk==='tu'||dk==='nous'||dk==='vous'||dk==='lequel'||dk==='laquelle'||dk==='lesquels'||dk==='lesquelles')return null;
       if(dk==='et'||dk==='ou'||dk==='ni')return null;}
     var hi=F.length;if(_SEG){for(j=vi+1;j<F.length;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
     var kk=vi+1;while(kk<hi&&kk<tg.length&&(tg[kk]==='ADV'||((tg[kk]==='VERB'||tg[kk]==='ADJ')&&/(é|és|ée|ées)$/.test(F[kk]))))kk++;
-    if(_postposePlural(F,tg,kk,hi))return [0.03,0.97];return null;}
+    if(_postposePlural(F,tg,kk,hi))return [0.03,0.97];
+    if(_rel&&_postposeSingulier(F,tg,kk,hi))return [0.97,0.03];   // ⭐ le sujet postposé SINGULIER peut enfin se défendre contre un antécédent pluriel
+    return null;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;
     var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
     if(!_osGuardOk(F,i))return null;

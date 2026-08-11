@@ -123,7 +123,16 @@ def _R_postpose(F, vi, tg):
         for j in range(vi, 0, -1):
             if j < len(C._SEG['bb']) and C._SEG['bb'][j]: lo = j; break
     acc = F[lo]; d = C.deacc(acc)
-    if not (acc in _ADV_ACC or (lo < len(tg) and tg[lo] == 'ADV') or acc in _INV_WH or d in _INV_WH
+    # RELATIVE OBJET, detectee LOCALEMENT : _SEG['bb'] ne marque PAS « que » comme frontiere de
+    # proposition, donc `lo` restait sur le determinant de l'antecedent et le declencheur ne tirait
+    # jamais. On regarde les 3 tokens a gauche du verbe (negation et adverbe tolerés).
+    _rel = False
+    for _r in range(vi - 1, max(-1, vi - 4), -1):
+        _dr = C.deacc(F[_r])
+        if _dr in ('que', "qu'"): _rel = True; lo = _r; break
+        if not (_dr in ('ne', "n'") or (_r < len(tg) and tg[_r] == 'ADV')): break
+    if _rel: acc = F[lo]; d = C.deacc(acc)
+    if not (_rel or acc in _ADV_ACC or (lo < len(tg) and tg[lo] == 'ADV') or acc in _INV_WH or d in _INV_WH
             or (d in PREP and acc != 'a' and acc != 'la') or acc in ('comme', 'quand', 'lorsque')): return None
     for k in range(lo, vi):                                   # sujet-pronom/expletif/relatif/coordination préverbal → pas une inversion
         dk = C.deacc(F[k])
@@ -136,6 +145,7 @@ def _R_postpose(F, vi, tg):
     k = vi + 1                                                # scan AVANT (après le verbe) : sauter adverbes + participe passif
     while k < hi and k < len(tg) and (tg[k] == 'ADV' or (tg[k] in ('VERB', 'ADJ') and F[k].endswith(('é', 'és', 'ée', 'ées')))): k += 1
     if C._postpose_plural(F, tg, k, hi): return (0.03, 0.97)  # sujet postposé PLURIEL net
+    if _rel and C._postpose_singulier(F, tg, k, hi): return (0.97, 0.03)   # sujet postposé SINGULIER (relative objet seulement)
     return None
 
 _INV_WH = getattr(C, '_INV_WH', set())
