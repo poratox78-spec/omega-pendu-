@@ -1,0 +1,251 @@
+#!/usr/bin/env node
+/* navigateur_probe.js — LA BATTERIE QUI TOURNE DANS UN VRAI CHROME.
+ *
+ * POURQUOI CE FICHIER EXISTE (demande de Rem, 2026-08-11) :
+ *   « tu ne peux pas savoir si c'est réel sans test en dur dans le navigateur utilisé par
+ *     l'utilisateur — je préconise une batterie de tests dans mon Chrome »
+ *
+ * Il avait raison, et ça nous a coûté une demi-journée. Tous les autres bancs du dépôt extraient la
+ * tranche moteur du HTML et la ré-exécutent sous Node avec un bouchon DOM. Ça mesure vite et à
+ * l'échelle, mais ça REPRODUIT le démarrage de l'app au lieu de l'OBSERVER — et le jour où le
+ * démarrage reproduit est faux, tous les chiffres le sont sans que rien ne le signale :
+ *   · `dictee/correcteur.js` (moteur LIVRÉ) n'appelait que `loadSpellerLex()` -> grammaire du
+ *     NOMBRE et du GENRE muette ; mes sondes recopiaient ce loader et concluaient « le moteur ne
+ *     tire pas » sur des règles simplement pas chargées ;
+ *   · le bouchon DOM répondait un `stub` à tout id inconnu, donc la table NOUN_POST était VIDE mais
+ *     NON NULLE : la garde « est-elle chargée ? » répondait OUI sur du vide.
+ * Ici, rien n'est reproduit : Chrome ouvre `app/omega-pendu.html`, la page se démarre TOUTE SEULE
+ * avec ses vrais lexiques, et on lit ce que l'UTILISATEUR verrait — les marques posées dans le DOM.
+ *
+ * ZÉRO DÉPENDANCE, c'est délibéré (le dépôt n'a pas de package.json) :
+ *   serveur statique = `http` de Node · pilotage = CDP brut sur le `WebSocket` natif de Node 22+.
+ *
+ *   node dictee/navigateur_probe.js            # verbeux
+ *   node dictee/navigateur_probe.js --check    # CI : silencieux si vert, sort 1 si rouge
+ *   CHROME="/chemin/chrome" node dictee/navigateur_probe.js --tete   # --tete = fenêtre visible
+ */
+'use strict';
+const fs = require('fs'), path = require('path'), http = require('http'), os = require('os');
+const { spawn } = require('child_process');
+
+const RACINE = path.join(__dirname, '..');
+const CHECK = process.argv.includes('--check');
+const TETE = process.argv.includes('--tete');
+const log = (...a) => { if (!CHECK) console.log(...a); };
+
+/* ---------- 1. trouver le Chrome de l'UTILISATEUR ---------- */
+function trouverChrome() {
+  if (process.env.CHROME && fs.existsSync(process.env.CHROME)) return process.env.CHROME;
+  const c = [];
+  if (process.platform === 'win32') {
+    for (const b of [process.env['PROGRAMFILES'], process.env['PROGRAMFILES(X86)'], process.env['LOCALAPPDATA']])
+      if (b) c.push(path.join(b, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+                   path.join(b, 'Microsoft', 'Edge', 'Application', 'msedge.exe'));
+  } else if (process.platform === 'darwin') {
+    c.push('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+           '/Applications/Chromium.app/Contents/MacOS/Chromium');
+  } else {
+    c.push('/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium',
+           '/usr/bin/chromium-browser', '/snap/bin/chromium');
+  }
+  return c.find(p => { try { return fs.existsSync(p); } catch (e) { return false; } }) || null;
+}
+
+/* ---------- 2. servir le dépôt (le moteur charge ses blobs par fetch : file:// ne suffit pas) ---------- */
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8', '.css': 'text/css; charset=utf-8', '.gz': 'application/gzip',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8' };
+function servir() {
+  return new Promise((res) => {
+    const srv = http.createServer((req, rep) => {
+      const url = decodeURIComponent((req.url || '/').split('?')[0]);
+      const f = path.join(RACINE, url.replace(/^\/+/, ''));
+      if (!f.startsWith(RACINE)) { rep.writeHead(403).end(); return; }                 // pas de remontée hors dépôt
+      fs.readFile(f, (e, buf) => {
+        if (e) { rep.writeHead(404).end('404'); return; }
+        rep.writeHead(200, { 'Content-Type': MIME[path.extname(f).toLowerCase()] || 'application/octet-stream',
+                             'Cache-Control': 'no-store' });                            // jamais de cache : on teste le build COURANT
+        rep.end(buf);
+      });
+    });
+    srv.listen(0, '127.0.0.1', () => res({ srv, port: srv.address().port }));
+  });
+}
+
+/* ---------- 3. CDP brut ---------- */
+function attendre(ms) { return new Promise(r => setTimeout(r, ms)); }
+async function cible(port, url) {                                    // ouvre un onglet, rend son WS
+  for (let i = 0; i < 100; i++) {
+    try {
+      const r = await fetch('http://127.0.0.1:' + port + '/json/new?' + encodeURIComponent(url), { method: 'PUT' });
+      if (r.ok) return (await r.json()).webSocketDebuggerUrl;
+    } catch (e) { /* Chrome pas encore prêt */ }
+    await attendre(100);
+  }
+  throw new Error('Chrome n\'a pas ouvert son port de débogage');
+}
+function connecter(ws) {
+  return new Promise((res, rej) => {
+    const s = new WebSocket(ws); let id = 0; const attente = new Map();
+    s.onopen = () => res({
+      envoyer(method, params) {
+        return new Promise((ok, ko) => { const n = ++id; attente.set(n, { ok, ko });
+          s.send(JSON.stringify({ id: n, method, params: params || {} })); });
+      },
+      fermer() { try { s.close(); } catch (e) {} },
+    });
+    s.onerror = (e) => rej(new Error('WebSocket CDP : ' + (e.message || 'échec')));
+    s.onmessage = (m) => { const d = JSON.parse(m.data); const a = attente.get(d.id);
+      if (!a) return; attente.delete(d.id);
+      d.error ? a.ko(new Error(d.error.message)) : a.ok(d.result); };
+  });
+}
+
+/* ---------- 4. LA BATTERIE — ce que l'utilisateur VOIT dans la page ----------
+ * `attendu`  : remplacements qui doivent être COCHÉS (classe vdc-on = appliqué par défaut)
+ * `interdit` : remplacements qui ne doivent PAS apparaître
+ * `rien`     : la phrase est correcte -> aucune correction cochée
+ */
+const CAS = [
+  // ① le moteur est-il VRAIMENT équipé ? on teste un COMPORTEMENT, pas une présence de table.
+  //    Ces deux-là ne passent que si NOUN_POST est chargé — le trou qui a rendu le moteur livré muet.
+  { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
+  { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
+  // ② conflit de direction déterminant/nom : UN SEUL sens par désaccord (PR#467)
+  { txt: 'la nourriture de leurs tige', attendu: ['tiges'], interdit: ['leur'],
+    pourquoi: 'deux rouges contradictoires fabriquaient « leur tiges »' },
+  { txt: 'il range leurs livre', attendu: ['leur'], pourquoi: 'repli : « livre » ambigu verbe -> le déterminant reprend la main' },
+  { txt: 'il a ouvert leur volets', attendu: ['leurs'], pourquoi: 'sens miroir intact' },
+  // ③ glissement moteur -> ROUGE (PR#464)
+  { txt: 'il a jmaais vu ça', attendu: ['jamais'], pourquoi: 'transposition, un seul candidat' },
+  { txt: 'un grannd bateau', attendu: ['grand'], pourquoi: 'redoublement, un seul candidat' },
+  // ④ élongation — cas RELEVÉS dans le corpus dys réel, pas inventés (PR#466)
+  { txt: 'ellle est venue', attendu: ['elle'], pourquoi: 'élongation réelle du corpus dys' },
+  { txt: 'une errreur de frappe', attendu: ['erreur'], pourquoi: 'élongation réelle du corpus dys' },
+  // ⑤ prénoms -> accord (PR#460)
+  { txt: 'Marie est venu.', attendu: ['venue'], pourquoi: 'genre du prénom (table prenoms-gz chargée)' },
+  // ⑥ accent = la route affirmative historique
+  { txt: 'la fenetre est ouverte', attendu: ['fenêtre'], pourquoi: 'restauration d\'accent' },
+  // ⑦ TYPOGRAPHIE — signalée par Rem sur « Je suis allé à la plage␣␣mangé » : le double espace était
+  //    bien VU (« 1 sûre ») mais jamais APPLIQUÉ, l'écran se contredisant lui-même. Ces cas ne
+  //    passent que dans un vrai navigateur : ils portent sur des CARACTÈRES, pas sur des tokens.
+  { txt: 'Il fait  beau.', typoAppliquee: 1, pourquoi: 'espace double appliqué (et non plus seulement signalé)' },
+  { txt: 'il est parti,Paul est resté', typoAppliquee: 1, pourquoi: 'espace manquant après la virgule' },
+  { txt: 'attends ... je viens', typoAppliquee: 0, pourquoi: 'les « … » restent une PRÉFÉRENCE : vigilance, jamais imposée' },
+  // ⑧ CONTRE-GARDES : du texte CORRECT ne doit rien déclencher
+  { txt: 'Le petit garçon mange une pomme rouge.', rien: true, pourquoi: 'FP=0 sur phrase correcte' },
+  { txt: 'Nathalie habite à Bordeaux.', rien: true, pourquoi: 'noms propres non touchés' },
+  { txt: 'un œuf et du bœuf', rien: true, pourquoi: 'ligature œ' },
+];
+
+/* le script évalué DANS la page : écrit dans la vraie zone, lit les vraies marques */
+const SCRIPT = (cas) => `(async () => {
+  const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+  /* ATTENDRE UNE DISPONIBILITÉ RÉELLE, jamais un délai fixe : l'app fait 10 Mo et décompresse ses
+     lexiques en différé. On attend (a) le bouton, (b) la zone, puis (c) une CORRECTION CONNUE —
+     c'est le seul signal qui prouve que les lexiques sont là, pas seulement le DOM. */
+  const jusqua = async (quoi, f, ms) => { const t0 = Date.now();
+    while (Date.now() - t0 < ms) { const v = f(); if (v) return v; await attendre(150); }
+    throw new Error('délai dépassé en attendant : ' + quoi); };
+  try {
+    const b = await jusqua('le bouton Correcteur',
+      () => [...document.querySelectorAll('button')].find(x => /🩹/.test(x.textContent || '')), 30000);
+    b.click();
+    const zone = await jusqua('la zone de saisie vdc-in', () => document.getElementById('vdc-in'), 30000);
+    const passe = async (txt) => { zone.textContent = txt;
+      zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      await attendre(500);
+      const bar = (document.body.innerText.match(/\\((\\d+) appliqu/) || [])[1];   // \\ doublés : on est dans un gabarit JS
+      return { nApplique: bar == null ? null : +bar,
+               applique: [...document.querySelectorAll('.vdc-on')].map(e => e.textContent),
+               /* on garde la CLASSE : « vdc-vig » = vigilance orange, proposée et jamais appliquée.
+                  La confondre avec une vraie marque rend le test faux — « un œuf et du bœuf »
+                  déclenche la vigilance MAJUSCULE (la phrase commence en minuscule), ce qui est le
+                  comportement voulu, pas un faux positif. */
+               marque: [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className) })) }; };
+    await jusqua('le chargement des lexiques (fenetre→fenêtre)', () => {
+      zone.textContent = 'la fenetre est ouverte';
+      zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      return [...document.querySelectorAll('.vdc-on')].some(e => e.textContent === 'fenêtre');
+    }, 60000);
+    const out = [];
+    for (const c of ${JSON.stringify(cas)}) out.push(Object.assign({ txt: c.txt }, await passe(c.txt)));
+    return { out };
+  } catch (e) { return { fatal: e.message }; }
+})()`;
+
+async function main() {
+  const chrome = trouverChrome();
+  if (!chrome) {
+    console.error('✗ NAVIGATEUR ABSENT — aucun Chrome/Edge/Chromium trouvé. Ce banc doit tourner dans un VRAI\n' +
+                  '  navigateur : c\'est tout son intérêt. Installer Chrome, ou donner le chemin via CHROME=…');
+    process.exit(1);
+  }
+  const { srv, port } = await servir();
+  const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'omega-chrome-'));
+  const dbg = 9222 + (process.pid % 500);
+  const args = ['--remote-debugging-port=' + dbg, '--user-data-dir=' + profil, '--no-first-run',
+    '--no-default-browser-check', '--disable-extensions', '--disable-background-networking',
+    '--disable-gpu', 'about:blank'];
+  if (!TETE) args.unshift('--headless=new');
+  const proc = spawn(chrome, args, { stdio: 'ignore' });
+  let sess = null, code = 0;
+  const nettoyer = () => { try { sess && sess.fermer(); } catch (e) {} try { proc.kill(); } catch (e) {}
+    try { srv.close(); } catch (e) {} try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {} };
+
+  try {
+    const url = 'http://127.0.0.1:' + port + '/app/omega-pendu.html';
+    log('Chrome  : ' + chrome);
+    log('page    : ' + url + (TETE ? '  (fenêtre visible)' : '  (headless)') + '\n');
+    /* On ouvre un onglet VIDE, on s'y attache, PUIS on navigue. Créer l'onglet directement sur l'URL
+       fait courir la navigation contre l'attachement : l'évaluation part alors dans un contexte que
+       la navigation détruit, et Chrome répond « Execution context was destroyed » — vu une fois. */
+    sess = await connecter(await cible(dbg, 'about:blank'));
+    await sess.envoyer('Page.enable');
+    await sess.envoyer('Runtime.enable');
+    await sess.envoyer('Page.navigate', { url });
+    let pret = false;
+    for (let i = 0; i < 300 && !pret; i++) {
+      try {
+        const q = await sess.envoyer('Runtime.evaluate',
+          { expression: '(document.readyState === "complete") && /omega-pendu\\.html$/.test(location.pathname)',
+            returnByValue: true });
+        pret = q.result.value === true;
+      } catch (e) { /* contexte en cours de remplacement : on repasse */ }
+      if (!pret) await attendre(200);
+    }
+    if (!pret) throw new Error('la page ne s\'est pas chargée dans le délai imparti');
+    const r = await sess.envoyer('Runtime.evaluate',
+      { expression: SCRIPT(CAS.map(c => ({ txt: c.txt }))), awaitPromise: true, returnByValue: true, timeout: 180000 });
+    if (r.exceptionDetails) throw new Error('page : ' + (r.exceptionDetails.exception || {}).description);
+    const val = r.result.value || {};
+    if (val.fatal) throw new Error(val.fatal);
+
+    const echecs = [];
+    val.out.forEach((got, k) => {
+      const c = CAS[k], app = got.applique.map(s => s.toLowerCase());
+      // « rien » porte sur la couche AFFIRMATIVE : rien d'appliqué, et aucune marque non-vigilance.
+      // La vigilance orange est proposée, jamais imposée — la compter ici ferait échouer des phrases
+      // parfaitement correctes (majuscule initiale absente) et rendrait le banc menteur.
+      if (c.rien) { const dur = got.marque.filter(m => !m.vig).map(m => m.t);
+        if (app.length || dur.length) echecs.push(`« ${c.txt} » ne devrait RIEN appliquer (${c.pourquoi}), eu ${JSON.stringify(app.concat(dur))}`); }
+      for (const a of (c.attendu || [])) if (!app.includes(a.toLowerCase()))
+        echecs.push(`« ${c.txt} » doit appliquer « ${a} » (${c.pourquoi}), eu ${JSON.stringify(got.applique)}`);
+      for (const i of (c.interdit || [])) if (app.includes(i.toLowerCase()))
+        echecs.push(`« ${c.txt} » ne doit PAS appliquer « ${i} » (${c.pourquoi})`);
+      // La typographie est ancrée CARACTÈRE : elle n'a pas de span de mot, on lit donc le compteur
+      // « (N appliquée) » de la barre — exactement le chiffre que l'utilisateur a sous les yeux.
+      if (c.typoAppliquee != null && got.nApplique !== c.typoAppliquee)
+        echecs.push(`« ${c.txt} » doit montrer ${c.typoAppliquee} correction(s) APPLIQUÉE(S) (${c.pourquoi}), la barre dit ${got.nApplique}`);
+      log('  ' + (echecs.length && echecs[echecs.length - 1].includes(c.txt) ? '✗' : '✓') + ' ' +
+          c.txt.padEnd(38) + (got.applique.length ? '→ ' + got.applique.join(' · ') : '(rien)'));
+    });
+    if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
+    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas vérifiés dans Chrome (page démarrée par elle-même, marques lues dans le DOM).');
+  } catch (e) {
+    console.error('✗ NAVIGATEUR RÉEL : ' + e.message); code = 1;
+  }
+  nettoyer();
+  process.exit(code);
+}
+main();

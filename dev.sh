@@ -87,6 +87,13 @@ run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/
 # quand même — jusqu'à la passphrase d'OMEGA·KEY qu'on croyait tenir.
 run "UI aucune copie n'annonce un succès qu'elle ignore" node dictee/presse_papier_probe.js
 
+echo "── NAVIGATEUR RÉEL ──"
+# Demande de Rem (2026-08-11) : « tu ne peux pas savoir si c'est réel sans test en dur dans le
+# navigateur utilisé par l'utilisateur ». Tous les autres bancs REPRODUISENT le démarrage de l'app
+# sous Node ; celui-ci l'OBSERVE : Chrome ouvre la page, elle se démarre seule, on lit les marques
+# posées dans le DOM. C'est le seul banc qui aurait vu que le moteur livré était à moitié chargé.
+run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
+
 echo "── LIVRAISON ──"
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
 # Même famille que le zip rassis : le clone anglais n'est régénéré que si quelqu'un y pense. Le
