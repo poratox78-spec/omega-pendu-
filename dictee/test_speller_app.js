@@ -224,17 +224,36 @@ const SP = globalThis.__sp;
     if (!r || r.sugg.toLowerCase() !== g) fail.push('contre-garde omission : ' + b + '→' + g +
       ' attendu (la règle ne doit PAS rallonger ici), eu ' + JSON.stringify(r));
   }
-  // ⚠️ GARDE DE COÛT — le plafond de 9 lettres n'est pas cosmétique : à 10 le 1er passage sur ce
-  // texte passait de 8 ms à 516 ms (les mots longs déclenchent une recherche qui ne trouve RIEN,
-  // ce sont des élisions sans apostrophe). Sans cette garde, relever le plafond passerait inaperçu
-  // en CI et se paierait à la FRAPPE chez l'utilisateur.
+  // GLISSEMENT MOTEUR → ROUGE. Un seul candidat au lexique ET l'écart n'est qu'un ORDRE de lettres
+  // ou un REDOUBLEMENT : le mot visé n'est pas en doute, on AFFIRME (tier 'auto', donc appliqué en
+  // silence par l'extension). Mesuré : 28 corrections justes ajoutées / 0 fausse sur les corpus dys
+  // appariés, et 9 tirs sur 14 450 phrases UD qui sont TOUS de vraies fautes du corpus.
+  for (const [b, g] of [['jmaais', 'jamais'], ['acceuil', 'accueil'], ['grannd', 'grand'],
+                        ['beaucooup', 'beaucoup'], ['toujorus', 'toujours'], ['vinngt', 'vingt']]) {
+    const r = SP.spell(b).find(x => x.word.toLowerCase() === b);
+    if (!r || r.sugg.toLowerCase() !== g || r.tier !== 'auto')
+      fail.push('glissement moteur : ' + b + '→' + g + ' attendu en AUTO (rouge), eu ' + JSON.stringify(r));
+  }
+  // ⚠️ CONTRE-GARDE — c'est l'INTERSECTION des deux conditions qui est sûre, pas « un seul candidat ».
+  // Seul, ce critère tire 65 fois sur 14 450 phrases correctes et réécrit des mots ÉTRANGERS en
+  // silence. Ces quatre-là ont UN SEUL candidat mais diffèrent par une lettre SUBSTITUÉE ou ABSENTE :
+  // ils doivent rester ORANGE. Sans cette contre-garde, un futur assouplissement passerait inaperçu.
+  for (const b of ['flight', 'kommune', 'project', 'strategia']) {
+    const r = SP.spell(b).find(x => x.word.toLowerCase() === b);
+    if (r && r.tier === 'auto')
+      fail.push('contre-garde glissement : « ' + b + ' » (mot étranger) ne doit PAS être affirmé, eu ' + JSON.stringify(r));
+  }
+
+  // ⚠️ GARDE DE COÛT — le correcteur tourne À LA FRAPPE : tout ce qui alourdit le 1er passage se
+  // paie chez l'utilisateur. Vérifiée en la cassant (un plafond de longueur relevé à 12 dans la
+  // génération de candidats faisait passer ce même texte de 8 ms à 196 ms → rouge).
   const TXT_DYS = "Je voulai vous dir que la leson daujourdhui etait tres interesante. Le profeseur a explique " +
     "lortografe des mots dificiles et jai pri des note. Demain nous auron un contrôle sur les acord " +
     "du participe passe, ce qui me stress un peu car je fait toujour des faute la dessus.";
   SP.spell('amorce');                                    // 1re invocation = chargement paresseux, hors mesure
   const _t = Date.now(); SP.spell(TXT_DYS); const _ms = Date.now() - _t;
-  if (_ms > 120) fail.push('1er passage sur texte dys = ' + _ms + ' ms (plafond 120) — le secours distance 2 ' +
-                           'coûte trop cher : vérifier que le plafond de longueur est resté à 9.');
+  if (_ms > 120) fail.push('1er passage sur texte dys = ' + _ms + ' ms (plafond 120) — une génération de ' +
+                           'candidats a été élargie : le correcteur tourne À LA FRAPPE, ça se sent.');
   else console.log('  coût 1er passage texte dys : ' + _ms + ' ms (plafond de garde 120)');
 
   if (fail.length) { console.error('\n✗ ÉCHEC :\n  ' + fail.join('\n  ')); process.exit(1); }

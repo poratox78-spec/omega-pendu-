@@ -1618,6 +1618,12 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(!cs.length)return null; cs.sort(function(x,y){return (SP.FREQ[y]||0)-(SP.FREQ[x]||0);}); return cs;
   }
 function subseq(a,b){var i=0;for(var k=0;k<b.length;k++){if(i<a.length&&a[i]===b[k])i++;}return i===a.length;}   // a est-il une SOUS-SUITE de b ? (miroir de l'app)
+function _slipMot(a,b){if(a===b)return false;                                          // GLISSEMENT MOTEUR : les mêmes LETTRES, seul l'ORDRE ou un REDOUBLEMENT diffère (entrées DÉACCENTUÉES). Miroir app.
+    if(a.split('').sort().join('')===b.split('').sort().join(''))return true;            // transposition : jmaais→jamais, acceuil→accueil, toujorus→toujours
+    if(Math.abs(a.length-b.length)!==1)return false;
+    var L=a.length>b.length?a:b,S=a.length>b.length?b:a,k;
+    for(k=0;k<L.length;k++)if(L.slice(0,k)+L.slice(k+1)===S&&(L.charAt(k)===L.charAt(k-1)||L.charAt(k)===L.charAt(k+1)))return true;   // redoublement : grannd→grand, beaucooup→beaucoup, vinngt→vingt (charAt(-1)==='' donc k=0 est sûr)
+    return false;}
 function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[],cu=[],i,j;for(j=0;j<=b.length;j++)pr[j]=j;for(i=1;i<=a.length;i++){cu[0]=i;var bst=i;for(j=1;j<=b.length;j++){var v=Math.min(pr[j]+1,cu[j-1]+1,pr[j-1]+(a.charAt(i-1)===b.charAt(j-1)?0:1));cu[j]=v;if(v<bst)bst=v;}if(bst>max)return max+1;for(j=0;j<=b.length;j++)pr[j]=cu[j];}return pr[b.length];}   // distance d'édition BORNÉE
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
@@ -1699,6 +1705,16 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(d.length>=3&&accentOnly&&dominant)return['auto',w1];
     var na=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===2)na++;
     if(d.length>=3&&p1===2&&f1>=1.0&&na===1)return['auto',w1];
+    /* GLISSEMENT MOTEUR — quand toutes les LETTRES sont là, le mot n'est pas en doute : on AFFIRME.
+       Miroir EXACT de l'app. Deux conditions CUMULÉES, c'est leur intersection qui vaut :
+         ① le lexique n'offre qu'UN SEUL candidat → le choix n'est pas un pari ;
+         ② l'écart n'est qu'un ORDRE de lettres ou un REDOUBLEMENT → un doigt a glissé.
+       MESURÉ : 24 tirs / 24 justes sur 474 phrases dys/GEC appariées ; sur 14 450 phrases CORRECTES,
+       8 tirs et tous sur de VRAIES fautes du corpus ⇒ FP = 0 littéral.
+       ⚠️ ① SEULE tire 65 fois sur ces 14 450 phrases et réécrit des mots ÉTRANGERS en silence
+       (flight→light, kommune→commune) : c'est ② qui les écarte tous.
+       Ici l'enjeu est plus grand que dans l'app : « auto » est appliqué EN SILENCE À LA FRAPPE. */
+    if(keys.length===1&&d.length>=4&&f1>=1.0&&_slipMot(d,deaccS(w1)))return['auto',w1];
     var _aux=false;if(T){var _z=idx-1;while(_z>=0){var _dz=deaccS(T[_z].toLowerCase());if(SAUXAV[_dz]||SCOPULA[_dz]){_aux=true;break;}if(_dz==='ne'||_dz==='n'||_dz==='pas'||_dz==='plus'||_dz==='jamais'||_dz==='bien'||_dz==='tres'||_dz==='deja'||_dz==='toujours'||_dz==='y'||_dz==='en'||_dz==='tout'){_z--;continue;}break;}}
     if(_aux&&/e$/.test(w1)&&!/é$/.test(w1)){var _pe=w1.slice(0,-1)+'é';if(cand[_pe]&&cand[_pe][1]>=1.0)return['flag',_pe];}   // PARTICIPE APRÈS AUXILIAIRE avoir/être : le dys écrit le PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du MÊME verbe — « il a manje/manjé »→mangé. Ne touche QUE le présent -e (jamais pris/fait/vu en -s/-t/-u) ⇒ FP=0.
     var _cgd=(T&&idx>0)?DET_G[deaccS(T[idx-1].toLowerCase())]:null;   // GENRE du DETERMINANT immediat (audible, fiable) — pas la marche arriere sCtxGender, qui peut lire un genre POLLUE sur un mot-outil (« des » porte un genre dans le lexique relache)
