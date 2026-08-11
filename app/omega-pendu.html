@@ -24393,6 +24393,49 @@ window.addEventListener('DOMContentLoaded', () => {
   // IMPÉRATIF (motifs LOCAUX, FP≈0) — MIROIR correcteur_probe.rule_imperatif : -s euphonique en/y, pas de -s (trait d'union + pronom), irréguliers jamais valides
   var _IMP_PRON={moi:1,toi:1,lui:1,le:1,la:1,les:1,leur:1};
   var _IMP_IRR={soyions:'soyons',ayions:'ayons',soyiez:'soyez',ayiez:'ayez'};
+  /* INFINITIF DE BUT — « Je suis allé à la plage mangé des champignons » → manger.
+     Signalé par Rem le 2026-08-11. `rFlexionEr` décide d'après le token IMMÉDIATEMENT à gauche
+     (« à », auxiliaire, modal…) ; ici le voisin est « plage » et elle s'abstient : le gouverneur
+     (« allé ») est séparé du verbe par un complément de DESTINATION.
+
+     ⚠️ LE PIÈGE QUI DONNE SA FORME À LA RÈGLE, c'est le participe ADJECTIVAL :
+        « Je suis rentré à la maison épuisé. »        épuisé = ADJECTIF, surtout pas « épuiser »
+        « Il est allé à la fête déguisé en pirate. »  déguisé = ADJECTIF
+     TROIS gardes cumulées, chacune née d'un faux positif MESURÉ sur 14 450 phrases correctes :
+       ① le mot en -é est un VERBE PUR — colonne POS du lexique speller, ACCENTUÉE : « mangé » V,
+          « cherché » V, mais « épuisé » AV, « déguisé » ANV, « tracé » NV, « passé » ANV. C'est ce
+          qui écarte l'attribut sans avoir à deviner ;
+       ② il est suivi d'un DÉTERMINANT (objet direct) — un adjectif attribut ne l'est jamais ;
+       ③ le verbe de mouvement doit être LICENCIÉ : forme finie d'aller, ou participe précédé de son
+          auxiliaire ÊTRE. Sans ça « d'une part … indiqué le », « Le parti … appelé les » et
+          « les sorties … marché du » tiraient : ce sont des NOMS homographes.
+     MESURÉ : 4 cibles sur 4, 0 piège sur 4, et **1 seul tir sur 14 450 phrases UD correctes** —
+     « Ran va-t-elle épousé le docteur ? », une VRAIE faute du corpus. Donc FP = 0.
+     ⚠️ LIMITE ASSUMÉE : on ne traverse que la destination (préposition + déterminant + nom), 6 tokens
+     au plus, et on s'arrête sur toute conjonction ou auxiliaire. Un complément long fait abstenir. */
+  var _BUT_MOUV={};('alle allee alles allees venu venue venus venues parti partie partis parties '+
+    'monte montee montes montees sorti sortie sortis sorties rentre rentree rentres rentrees '+
+    'retourne retournee revenu revenue revenus revenues entre entree passe passee couru '+
+    'vais vas va allons allez vont allais allait allions alliez allaient irai iras ira irons irez iront').split(' ').forEach(function(w){_BUT_MOUV[w]=1;});
+  var _BUT_ALLER={};'vais vas va allons allez vont allais allait allions alliez allaient irai iras ira irons irez iront'.split(' ').forEach(function(w){_BUT_ALLER[w]=1;});
+  var _BUT_ETRE={};'suis es est sommes etes sont etais etait etions etiez etaient sera serai seras serons serez seront'.split(' ').forEach(function(w){_BUT_ETRE[w]=1;});
+  var _BUT_DET={};("le la les l' un une des du mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet cette ces quelques plusieurs").split(' ').forEach(function(w){_BUT_DET[w]=1;});
+  var _BUT_STOP={};('et ou mais donc car ni que qu qui quand si parce a as ai ont avons avez avais avait suis es est sommes etes sont etais etait ete').split(' ').forEach(function(w){_BUT_STOP[w]=1;});
+  function rInfBut(T,i){var w=T[i],lw=w.toLowerCase();
+    if(!SP.ready||lw.indexOf("'")>=0||i===0||!/é$/.test(lw))return null;
+    var pos=SP.POS[lw]||'';                                                      // ① VERBE PUR (ni NOM ni ADJECTIF)
+    if(pos.indexOf('V')<0||pos.indexOf('N')>=0||pos.indexOf('A')>=0)return null;
+    var inf=_inf1(w);if(inf===null||deacc(inf)===deacc(lw))return null;
+    if(i+1>=T.length||!_BUT_DET[deacc(T[i+1].toLowerCase())])return null;        // ② objet direct derrière
+    var k=i-1,vus=0;
+    while(k>=0&&vus<6){var brut=T[k].toLowerCase(),g=deacc(brut);
+      if(brut==='à'){k--;vus++;continue;}                                        // « à » PRÉPOSITION : la désaccentuation la confond avec l'auxiliaire « a », on lit le token BRUT
+      if(_BUT_MOUV[g]){                                                          // ③ gouverneur LICENCIÉ, sinon c'est un nom homographe
+        if(_BUT_ALLER[g])return ckeepcase(w,inf);
+        return (k>0&&_BUT_ETRE[deacc(T[k-1].toLowerCase())])?ckeepcase(w,inf):null;}
+      if(_BUT_STOP[g])return null;
+      k--;vus++;}
+    return null;}
   function rImperatif(T,i){var w=T[i],lw=w.toLowerCase(),d=deacc(lw);
     if(lw.indexOf("'")>=0)return null;
     if(_IMP_IRR[d]){var s=_IMP_IRR[d];return (w.charAt(0)!==w.charAt(0).toLowerCase())?s.charAt(0).toUpperCase()+s.slice(1):s;}
@@ -25430,7 +25473,7 @@ window.addEventListener('DOMContentLoaded', () => {
     var num=_el?'s':(i>=2?_EPI_ART[deacc(T[i-2].toLowerCase())]:null);
     if(!num)return null;                                                             // nombre non net (pas d'article) → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['terminaison -er/-é/-ez/-ai',rFlexionEr],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||'auto'});break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST DÉSORMAIS PORTÉ PAR LE FLAG (audit 2026-08-11). Avant : tier=null, et le rouge était DÉDUIT à l'affichage par `_dfltOn` (src==='g'). Deux conséquences mesurées : (1) le moteur autonome rendait 416 corrections sur 1 506 SANS aucun tier — un intégrateur ne pouvait pas savoir ce qui est sûr sans réimplémenter l'UI ; (2) l'EXTENSION n'applique que `tier==='auto'`, donc elle ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut : le même texte était corrigé sur le site et seulement signalé dans l'extension. Une règle peut toujours renvoyer {sugg,vig:1} → 'vigilance' (orange) ; sinon c'est du rouge, et il le DIT. */
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité) ; ’ normalisée (1:1, offsets intacts)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */

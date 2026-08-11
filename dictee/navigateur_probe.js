@@ -126,7 +126,13 @@ const CAS = [
   { txt: 'Marie est venu.', attendu: ['venue'], pourquoi: 'genre du prénom (table prenoms-gz chargée)' },
   // ⑥ accent = la route affirmative historique
   { txt: 'la fenetre est ouverte', attendu: ['fenêtre'], pourquoi: 'restauration d\'accent' },
-  // ⑦ TYPOGRAPHIE — signalée par Rem sur « Je suis allé à la plage␣␣mangé » : le double espace était
+  // ⑦ INFINITIF DE BUT — la phrase que Rem a tapée, et les pièges qui ont dicté la forme de la règle
+  { txt: 'Je suis allé à la plage mangé des champignons.', attendu: ['manger'],
+    pourquoi: 'infinitif de but séparé du verbe de mouvement par la destination' },
+  { txt: 'Je suis allé chez lui cherché mes affaires.', attendu: ['chercher'], pourquoi: 'même motif, autre préposition' },
+  { txt: 'Je suis rentré à la maison épuisé.', rien: true, pourquoi: 'participe ADJECTIVAL : « épuisé » n\'est pas « épuiser »' },
+  { txt: 'Il est allé à la fête déguisé en pirate.', rien: true, pourquoi: 'participe ADJECTIVAL' },
+  // ⑧ TYPOGRAPHIE — signalée par Rem sur « Je suis allé à la plage␣␣mangé » : le double espace était
   //    bien VU (« 1 sûre ») mais jamais APPLIQUÉ, l'écran se contredisant lui-même. Ces cas ne
   //    passent que dans un vrai navigateur : ils portent sur des CARACTÈRES, pas sur des tokens.
   { txt: 'Il fait  beau.', typoAppliquee: 1, pourquoi: 'espace double appliqué (et non plus seulement signalé)' },

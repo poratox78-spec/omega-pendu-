@@ -442,6 +442,53 @@ def rule_flexion_er(T, i):
 _IMP_PRON = {'moi', 'toi', 'lui', 'le', 'la', 'les', 'leur'}   # pronoms post-impératif OBJET (hors en/y ; nous/vous EXCLUS = inversion « sommes-nous »/« êtes-vous »)
 _IMP_IRR = {'soyions': 'soyons', 'ayions': 'ayons', 'soyiez': 'soyez', 'ayiez': 'ayez'}   # formes JAMAIS valides → impératif être/avoir
 
+# ---------- INFINITIF DE BUT ----------
+_BUT_MOUV = set(('alle allee alles allees venu venue venus venues parti partie partis parties '
+    'monte montee montes montees sorti sortie sortis sorties rentre rentree rentres rentrees '
+    'retourne retournee revenu revenue revenus revenues entre entree passe passee couru '
+    'vais vas va allons allez vont allais allait allions alliez allaient irai iras ira irons irez iront').split())
+_BUT_ALLER = set('vais vas va allons allez vont allais allait allions alliez allaient irai iras ira irons irez iront'.split())
+_BUT_ETRE  = set('suis es est sommes etes sont etais etait etions etiez etaient sera serai seras serons serez seront'.split())
+_BUT_DET   = set("le la les l' un une des du mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet cette ces quelques plusieurs".split())
+_BUT_STOP  = set('et ou mais donc car ni que qu qui quand si parce a as ai ont avons avez avais avait suis es est sommes etes sont etais etait ete'.split())
+
+def rule_inf_but(T, i):
+    r"""« Je suis allé à la plage mangé des champignons » -> manger.
+
+    rule_flexion_er décide d'après le token IMMÉDIATEMENT à gauche ; ici le gouverneur (« allé ») est
+    séparé du verbe par un complément de DESTINATION, donc elle s'abstient.
+
+    /!\ Le piège qui donne sa forme à la règle est le participe ADJECTIVAL (« rentré à la maison
+    ÉPUISÉ », « allé à la fête DÉGUISÉ en pirate »). Trois gardes cumulées, chacune née d'un faux
+    positif mesuré sur 14 450 phrases correctes : mot en -é VERBAL, suivi d'un DÉTERMINANT (objet
+    direct — l'attribut ne l'est jamais), et verbe de mouvement LICENCIÉ (aller fini, ou participe
+    précédé de son auxiliaire ÊTRE, sinon « d'une part », « le parti », « les sorties » tirent).
+
+    /!\ PARITÉ — les deux moteurs LIVRÉS (app + extension) lisent la colonne POS du lexique speller,
+    qui est ACCENTUÉE et sépare finement (« mangé » V, « épuisé » AV, « tracé » NV). Ce probe Python
+    n'a pas cette table : il utilise pos_of(), DÉSACCENTUÉ, et se contente de « dominante VER ». Il
+    est donc un SUR-ENSEMBLE volontaire — le contrat de parité est `app ⊆ Python`, jamais l'égalité,
+    et les deux surfaces réellement livrées, elles, sont IDENTIQUES entre elles.
+    """
+    w = T[i]; lw = w.lower()
+    if "'" in lw or i == 0 or not lw.endswith('é'): return None
+    pz = pos_of(w)
+    if not pz or pz[0] != 'VER': return None                     # sur-ensemble : écarte au moins les ADJ (épuisé, fatigué, déguisé)
+    inf = _inf1(w)
+    if inf is None or deacc(inf) == deacc(lw): return None
+    if i + 1 >= len(T) or deacc(T[i+1].lower()) not in _BUT_DET: return None
+    k, vus = i - 1, 0
+    while k >= 0 and vus < 6:
+        brut = T[k].lower(); g = deacc(brut)
+        if brut == 'à':                                     # « à » PRÉPOSITION : la désaccentuation la confond avec l'auxiliaire « a »
+            k -= 1; vus += 1; continue
+        if g in _BUT_MOUV:
+            if g in _BUT_ALLER: return _keepcase(w, inf)
+            return _keepcase(w, inf) if (k > 0 and deacc(T[k-1].lower()) in _BUT_ETRE) else None
+        if g in _BUT_STOP: return None
+        k -= 1; vus += 1
+    return None
+
 def rule_imperatif(T, i):
     """Fautes d'impératif à MOTIF LOCAL (FP≈0, pas besoin de reconnaître la modalité globale) :
     1) -s euphonique : « mange-en/-y »→manges-en, « va-y »→vas-y (verbe -er 2sg + trait d'union + en/y) ;
@@ -3085,7 +3132,7 @@ def rule_accord_incise(T, i):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),

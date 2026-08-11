@@ -47,7 +47,14 @@ if (start < 0 || ctIdx < 0 || ctEnd < 0) { console.error('extraction IIFE échou
 // étendre l'extraction pour inclure posTags/_HMM/loadPosHmm (définis APRÈS correctText) — rCe/rSon les appellent (contexte tagger)
 const ptIdx = html.indexOf('function posTags(T){', start);
 const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();', ptIdx)) + 1 : ctEnd;
-const code = html.slice(start, Math.max(ctEnd, ptEnd)) + ';globalThis.__corr=correctText;})();';
+/* ⚠️ AMORCE DU LEXIQUE SPELLER. La grammaire n'est pas seule : `rInfBut` (infinitif de but) lit
+   SP.POS pour savoir si un mot en -é est un VERBE PUR, et sort sur `if(!SP.ready)`. Ce harnais
+   n'extrait la tranche que jusqu'à correctText/posTags — donc SP est déclaré mais VIDE, et la règle
+   serait MUETTE ici : verte par omission, le piège exact du 2026-08-11. On amorce donc SP à la main
+   (WORDS + POS suffisent ; on ne charge pas tout le speller, ce harnais ne teste que la grammaire). */
+const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
+  ';globalThis.__corr=correctText;globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};t.split(String.fromCharCode(10)).forEach(function(l){' +
+  'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
 const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/);
@@ -68,11 +75,23 @@ global.speechSynthesis = { speak() {}, cancel() {}, getVoices: () => [] };
 global.SpeechSynthesisUtterance = function () { return el(); };
 
 try { (0, eval)(code); } catch (e) { console.error('exécution IIFE échouée :', e.message); process.exit(2); }
+try {                                            // amorce SP (cf. le commentaire de l'extraction)
+  const _sp = require('zlib').gunzipSync(require('fs').readFileSync(
+    require('path').join(__dirname, '..', 'extension', 'assets', 'speller.tsv.gz'))).toString('utf8');
+  globalThis.__seedSP(_sp);
+} catch (e) { console.error('amorce speller échouée :', e.message); process.exit(2); }
 const corr = globalThis.__corr;
 if (typeof corr !== 'function') { console.error('correctText non exposé'); process.exit(2); }
 
 // 4) batterie : doit DÉTECTER / ne doit RIEN flaguer
 const PHRASES = [
+  // INFINITIF DE BUT (PR en cours) — cibles ET pièges du participe ADJECTIVAL, qui est ce qui décide
+  // de la forme de la règle. Les pièges comptent autant que les cibles : « épuisé » ne doit JAMAIS
+  // devenir « épuiser ».
+  'Je suis allé à la plage mangé des champignons.', 'Il est parti au marché acheté du pain.',
+  'Je suis allé chez lui cherché mes affaires.', 'Elle est allée à la boulangerie acheté une baguette.',
+  'Je suis rentré à la maison épuisé.', 'Il est allé à la fête déguisé en pirate.',
+  'Elle est venue à la maison fatiguée hier.', 'Ils sont partis sur le tracé du circuit.',
   // son/sont — la branche « prédicat » ne tirait QUE si le tagger se TROMPAIT sur le participe
   // (audit 2026-08-11) : « partis »→NOUN tirait, « venus »→VERB abstenait. Les 4 formes ici.
   'les chats son venus.', 'les enfants son venus.', 'les chats son partis.',
@@ -247,6 +266,29 @@ for (const [ph, exige, interdit] of _DESAC) {
   if (interdit && got.includes(interdit)) { _des++; console.log('✗ DÉSACCORD : ' + JSON.stringify(ph) + ' ne doit PAS proposer « ' + interdit + ' » (deux rouges contradictoires)'); }
 }
 if (_des) { console.log('PARITÉ KO — ' + _des + ' conflit(s) de direction déterminant/nom.'); process.exit(1); }
+
+
+/* GARDE « INFINITIF DE BUT » — le rappel ET les pièges.
+   « app ⊆ Python » est unidirectionnel : un moteur MUET passerait la parité. On exige donc que la
+   correction SORTE, et surtout que le participe ADJECTIVAL ne bouge PAS — c'est lui qui a dicté les
+   trois gardes de la règle (verbe pur, objet direct derrière, gouverneur licencié).
+   Mesuré : 4 cibles /4, 0 piège /4, et 1 seul tir sur 14 450 phrases UD correctes — « Ran va-t-elle
+   épousé le docteur ? », une VRAIE faute du corpus. */
+const _BUT_OUI = [['Je suis allé à la plage mangé des champignons.', 'manger'],
+                  ['Il est parti au marché acheté du pain.', 'acheter'],
+                  ['Je suis allé chez lui cherché mes affaires.', 'chercher']];
+const _BUT_NON = ['Je suis rentré à la maison épuisé.', 'Il est allé à la fête déguisé en pirate.',
+                  'Elle est venue à la maison fatiguée hier.', 'Ils sont partis sur le tracé du circuit.'];
+let _but = 0;
+for (const [ph, att] of _BUT_OUI) {
+  const got = corr(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(att)) { _but++; console.log('✗ INFINITIF DE BUT : ' + JSON.stringify(ph) + ' doit donner « ' + att + ' », eu ' + JSON.stringify(got)); }
+}
+for (const ph of _BUT_NON) {
+  const got = corr(ph).filter(f => f.name === 'infinitif de but');
+  if (got.length) { _but++; console.log('✗ PIÈGE ADJECTIVAL : ' + JSON.stringify(ph) + ' ne doit RIEN donner, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg))); }
+}
+if (_but) { console.log('PARITÉ KO — ' + _but + ' cas « infinitif de but ».'); process.exit(1); }
 
 console.log(appOnly === 0
   ? `PARITÉ OK — aucun flag propre à l'app sur ${PHRASES.length} phrases (app ⊆ Python). Écarts de couverture (lexique HF) : ${gap}.`
