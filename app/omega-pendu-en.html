@@ -24603,7 +24603,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // confusion phono ai/est (/e/≈/ɛ/). Adj/participe = aux ambigu → abstention (contexte=LLM). MÊME logique que
   // correcteur_probe.rule_jest → parité. FP=0 (jamais valide ; déterminant→avoir certain).
   var CADJ={content:1,contente:1,contents:1,contentes:1,malade:1,malades:1,triste:1,tristes:1,heureux:1,heureuse:1,heureuses:1,pret:1,prete:1,prets:1,pretes:1,libre:1,libres:1,seul:1,seule:1,seuls:1,seules:1,fier:1,fiere:1,fiers:1,fieres:1};   // adj prédicatifs purs (liste CLOSE = parité 3 moteurs)
-  var ETRE_PP={alle:1,allee:1,alles:1,allees:1,venu:1,venue:1,venus:1,venues:1,parti:1,partie:1,partis:1,parties:1,arrive:1,arrivee:1,arrives:1,arrivees:1,devenu:1,devenue:1,devenus:1,devenues:1,revenu:1,revenue:1,revenus:1,revenues:1};   // participes de verbes d'ÊTRE (liste CLOSE)
+  var ETRE_PP={alle:1,allee:1,alles:1,allees:1,venu:1,venue:1,venus:1,venues:1,parti:1,partie:1,partis:1,parties:1,arrive:1,arrivee:1,arrives:1,arrivees:1,devenu:1,devenue:1,devenus:1,devenues:1,revenu:1,revenue:1,revenus:1,revenues:1,tombe:1,tombee:1,tombes:1,tombees:1,parvenu:1,parvenue:1,parvenus:1,parvenues:1,intervenu:1,intervenue:1,intervenus:1,intervenues:1,survenu:1,survenue:1,survenus:1,survenues:1,redevenu:1,redevenue:1,redevenus:1,redevenues:1};   // participes de verbes d'ÊTRE (liste CLOSE ; familles #8 ajoutées, flood UD=0)
   var PART_ART={le:1,la:1,"l'":1,les:1,un:1,une:1};   // article après « de » → partitif avoir
   function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel
     var nl=T[i+1].toLowerCase(),dn=deacc(nl);
@@ -25150,7 +25150,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rCapital(T,i){if(!_SEG||i>=_SEG.cap.length||!_SEG.cap[i])return null;var w=T[i],c=w.charAt(0);if(c.toUpperCase()===c)return null;if(i>0&&ABBREV[deacc(T[i-1].toLowerCase())])return null;if(i>0&&deacc(T[i-1].toLowerCase()).length===1)return null;return c.toUpperCase()+w.slice(1);}
   // === confusion d'USAGE être↔avoir + auxiliaire MAL ORTHOGRAPHIÉ (parité dictee/correcteur_probe.py) ===
   var AVOIR_IDIOM={};'faim soif sommeil raison tort envie besoin peur'.split(' ').forEach(function(w){AVOIR_IDIOM[w]=1;});
-  var AUX_ETRE_PP={};'alle allee alles allees venu venue venus venues arrive arrivee arrives arrivees parti partie partis parties devenu devenue devenus devenues revenu revenue revenus revenues reste restee restes restees ne nee nes nees mort morte morts mortes decede decedee decedes decedees reparti repartie repartis'.split(' ').forEach(function(w){AUX_ETRE_PP[w]=1;});
+  var AUX_ETRE_PP={};'alle allee alles allees venu venue venus venues arrive arrivee arrives arrivees parti partie partis parties devenu devenue devenus devenues revenu revenue revenus revenues reste restee restes restees ne nee nes nees mort morte morts mortes decede decedee decedes decedees reparti repartie repartis reparties tombe tombee tombes tombees parvenu parvenue parvenus parvenues intervenu intervenue intervenus intervenues survenu survenue survenus survenues redevenu redevenue redevenus redevenues'.split(' ').forEach(function(w){AUX_ETRE_PP[w]=1;});   // chantier REGLES_FR #8 : familles ajoutées, flood UD mesuré = 0
   var FULL_AUX={};'suis es est sommes etes sont etais etait etions etiez etaient fus fut fumes futes furent serai seras sera serons serez seront serais serait serions seriez seraient sois soit soyons soyez soient fusse fusses fussions fussiez fussent ai as a avons avez ont avais avait avions aviez avaient eus eut eumes eutes eurent aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eusse eusses eussions eussiez eussent'.split(' ').forEach(function(w){FULL_AUX[w]=1;});
   var NON_AUX={};'avec avant apres dans pour sur sous vers chez sans mais donc alors aussi tres plus tout tous leur leurs cette cela elle elles entre selon ainsi'.split(' ').forEach(function(w){NON_AUX[w]=1;});
   function rAuxUsage(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var reads=svReads(T[i]);if(!reads.length)return null;
@@ -25162,7 +25162,8 @@ window.addEventListener('DOMContentLoaded', () => {
     var mts={};for(k=0;k<reads.length;k++)mts[reads[k][1]]=1;var mt=mts['ind:pre']?'ind:pre':(mts['ind:imp']?'ind:imp':null);if(!mt)return null;
     var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';var age=(lem.etre&&(nxt==='ans'||nxt==='an'));
     if(lem.etre&&(AVOIR_IDIOM[nxt]||age))return ((CONJ_C.avoir||{})[mt]||{})[per+nb]||null;
-    if(lem.avoir&&AUX_ETRE_PP[nxt])return ((CONJ_C.etre||{})[mt]||{})[per+nb]||null;return null;}
+    if(lem.avoir&&AUX_ETRE_PP[nxt]){if(nxt.slice(0,4)==='tomb'&&i+2<T.length){var _cd=deacc(T[i+2].toLowerCase());if(_cd==='la'||_cd==='le'||_cd==='les'||_cd==='sa'||_cd==='son'||_cd==='ses'||_cd==='ma'||_cd==='mon'||_cd==='mes'||_cd==='une'||_cd==='un'||_cd==='des'||/^l'/.test(T[i+2].toLowerCase()))return null;}   // « il a tombé la veste » : COD → tomber transitif familier, on s'abstient
+      return ((CONJ_C.etre||{})[mt]||{})[per+nb]||null;}return null;}
   function svLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;var prev=[],cur,ja,jb;for(jb=0;jb<=b.length;jb++)prev[jb]=jb;for(ja=1;ja<=a.length;ja++){cur=[ja];for(jb=1;jb<=b.length;jb++)cur[jb]=Math.min(prev[jb]+1,cur[jb-1]+1,prev[jb-1]+(a.charAt(ja-1)!==b.charAt(jb-1)?1:0));prev=cur;}return prev[b.length];}
   function svAuxTargets(per,nb){var out=[],vs=['etre','avoir'],ms=['ind:pre','ind:imp'],vi,mi,f;for(vi=0;vi<2;vi++)for(mi=0;mi<2;mi++){f=((CONJ_C[vs[vi]]||{})[ms[mi]]||{})[per+nb];if(f)out.push([deacc(f),vs[vi],f]);}return out;}
   function rAuxMisspell(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<3||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w]||NON_AUX[w])return null;
@@ -25447,8 +25448,108 @@ window.addEventListener('DOMContentLoaded', () => {
     var num=_el?'s':(i>=2?_EPI_ART[deacc(T[i-2].toLowerCase())]:null);
     if(!num)return null;                                                             // nombre non net (pas d'article) → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
-  function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||'auto'});break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST DÉSORMAIS PORTÉ PAR LE FLAG (audit 2026-08-11). Avant : tier=null, et le rouge était DÉDUIT à l'affichage par `_dfltOn` (src==='g'). Deux conséquences mesurées : (1) le moteur autonome rendait 416 corrections sur 1 506 SANS aucun tier — un intégrateur ne pouvait pas savoir ce qui est sûr sans réimplémenter l'UI ; (2) l'EXTENSION n'applique que `tier==='auto'`, donc elle ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut : le même texte était corrigé sur le site et seulement signalé dans l'extension. Une règle peut toujours renvoyer {sugg,vig:1} → 'vigilance' (orange) ; sinon c'est du rouge, et il le DIT. */
+  /* ===== chantier REGLES_FR 1-8 (2026-08-12) — chaque cadre MESURÉ (proto8 : tirs UD lus un à un ; les seuls tirs restants étaient de VRAIES fautes d'UD) ===== */
+  var _NEG_NEXT={pas:1,jamais:1,rien:1,guere:1,point:1,personne:1,aucun:1,aucune:1};   // « plus » EXCLU : comparatif (8 FP/10 mesurés)
+  var _NEG_AUXV={a:1,ai:1,as:1,avons:1,avez:1,ont:1,est:1,es:1,etes:1,etait:1,etais:1,etaient:1,etions:1,etiez:1,avait:1,avais:1,avaient:1,avions:1,aviez:1,aura:1,aurai:1,auras:1,aurons:1,aurez:1,auront:1,aurait:1,aurais:1,auraient:1,aurions:1,auriez:1};   // formes à VOYELLE seulement (n' licite)
+  var _NEG_SUJ={je:1,tu:1,il:1,elle:1,on:1,ils:1,elles:1,nous:1,vous:1};
+  var _NEG_ELIDE={"c'est":"ce n'est","c'etait":"ce n'était","c'etaient":"ce n'étaient","j'ai":"je n'ai","j'avais":"je n'avais","j'aurai":"je n'aurai","j'aurais":"je n'aurais","j'etais":"je n'étais","t'as":"tu n'as","t'es":"tu n'es"};
+  function rNegNe(T,i){if(i+1>=T.length)return null;var lw=T[i].toLowerCase(),d=deacc(lw);
+    var nx=deacc(T[i+1].toLowerCase()),n2=i+2<T.length?deacc(T[i+2].toLowerCase()):'';
+    if(d==='y'){if(!(_NEG_AUXV[nx]&&i>=1&&deacc(T[i-1].toLowerCase())==='il'&&_NEG_NEXT[n2]))return null;   // « il y a pas » → « il n'y a pas »
+      if(n2==='pas'&&i+3<T.length&&deacc(T[i+3].toLowerCase())==='mal')return null;return "n'y";}
+    if(!_NEG_NEXT[nx])return null;
+    if(nx==='pas'&&n2==='mal')return null;                                             // « pas mal (de) » : locution sans ne
+    if(_SEG&&((i<_SEG.hy.length&&_SEG.hy[i])||(i+1<_SEG.hy.length&&_SEG.hy[i+1])))return null;   // inversion « a-t-il pas »
+    if(_NEG_ELIDE[d])return ckeepcase(T[i],_NEG_ELIDE[d]);
+    if(lw.indexOf("'")>=0)return null;
+    if(!_NEG_AUXV[d]||i<1)return null;
+    var pv=deacc(T[i-1].toLowerCase()),ap=pv.lastIndexOf("'");if(ap>=0)pv=pv.slice(ap+1);   // qu'on / l'on / lorsqu'il → sujet nu
+    if(!_NEG_SUJ[pv])return null;
+    if(i>=2){var p2=T[i-2].toLowerCase();if(deacc(p2)==='ne'||p2==="n'")return null;}
+    return "n'"+T[i];}
+  var _SICOND={aurais:'avais',aurait:'avait',aurions:'avions',auriez:'aviez',auraient:'avaient',serais:'étais',serait:'était',serions:'étions',seriez:'étiez',seraient:'étaient'};
+  var _SI_SAVOIR={sais:1,sait:1,savais:1,savait:1,savent:1,savoir:1,demande:1,demandes:1,demandent:1,demandait:1,demander:1,demandez:1,demandons:1,ignore:1,ignorent:1,ignorait:1,dis:1,dit:1,dire:1,disait:1,voir:1,vois:1,voit:1,comprendre:1,devine:1,deviner:1,verifier:1,verifie:1,regarde:1,regarder:1};
+  var _SI_CONJ={et:1,mais:1,car:1,alors:1,comme:1,meme:1,ou:1};
+  function rSiCond(T,i){var lw=T[i].toLowerCase(),d=deacc(lw),pre='';
+    var m=d.match(/^j'(.+)$/);if(m){pre=lw.slice(0,2);d=m[1];}
+    if(!_SICOND[d])return null;
+    for(var j=i-1;j>=0&&j>=i-3;j--){var pj=deacc(T[j].toLowerCase());
+      var estSi=(pj==='si'),estSil=/^s'ils?$/.test(pj);
+      if(estSi||estSil){
+        if(j>0&&_SI_SAVOIR[deacc(T[j-1].toLowerCase())])return null;                   // interrogation indirecte : « je ne sais pas si je serais »
+        if(!((j===0)||(_SEG&&j<_SEG.bb.length&&_SEG.bb[j])||(j>0&&_SI_CONJ[deacc(T[j-1].toLowerCase())])))return null;   // protase = tête de proposition
+        var sg=_SICOND[d];return ckeepcase(T[i],pre?pre+sg:sg);}
+      if(!_NEG_SUJ[pj]&&pj!=='ne'&&pj!=='y'&&pj!=='en')return null;}                   // seul un sujet court entre « si » et le verbe
+    return null;}
+  function rQuelQue(T,i){var d=deacc(T[i].toLowerCase());if(d!=='quelque'&&d!=='quelques')return null;
+    if(i+1>=T.length)return null;var v=deacc(T[i+1].toLowerCase());
+    if(v!=='soit'&&v!=='soient'&&v!=='fut'&&v!=='fussent')return null;
+    var pl=(v==='soient'||v==='fussent'),fem=false;
+    if(i+2<T.length){var d2=deacc(T[i+2].toLowerCase());if(d2==='la'||d2==='sa'||d2==='ma'||d2==='ta'||d2==='cette'||d2==='une')fem=true;}
+    return ckeepcase(T[i],pl?(fem?'quelles que':'quels que'):(fem?'quelle que':'quel que'));}
+  var _QUI_PREP={avec:1,a:1,pour:1,chez:1,contre:1,sans:1,sur:1,sous:1,vers:1,envers:1,par:1,entre:1,derriere:1,devant:1,apres:1,selon:1,de:1,dont:1};
+  function rQuiPron(T,i){if(deacc(T[i].toLowerCase())!=='qui')return null;
+    if(T[i].charAt(0)==='Q')return null;                                               // « Qui il a choisi ? » interrogatif oral
+    if(i<1||i+1>=T.length)return null;
+    var px=deacc(T[i+1].toLowerCase());if(px!=='il'&&px!=='ils'&&px!=='elle'&&px!=='elles'&&px!=='on')return null;
+    var pv=deacc(T[i-1].toLowerCase());
+    if(_QUI_PREP[pv]||_SI_SAVOIR[pv])return null;                                      // « avec qui il est ami » / « je sais qui il est »
+    var sugg="qu'"+T[i+1];
+    if(pv==='ce')return {sugg:sugg,span:2};                                            // « ce qui il » : jamais correct → rouge
+    return {sugg:sugg,span:2,vig:1};}
+  var _QDONT_GOUV={besoin:1,envie:1,peur:1,honte:1};
+  var _QDONT_MID={je:1,tu:1,il:1,elle:1,on:1,ils:1,elles:1,nous:1,vous:1,ne:1,en:1,y:1,a:1,ai:1,as:1,avons:1,avez:1,ont:1,avait:1,avais:1,avaient:1,aura:1,aurai:1,auront:1,aurait:1};
+  function rQueDont(T,i){var lw=T[i].toLowerCase(),rest=null;
+    if(lw!=='que'){var m=lw.match(/^qu'(.+)$/);if(!m)return null;rest=m[1];var dr=deacc(rest);
+      if(dr!=='il'&&dr!=='elle'&&dr!=='on'&&dr!=='ils'&&dr!=='elles'&&dr!=='en')return null;}
+    if(i<1)return null;var tg=posTags(T);                                              // ANTÉCÉDENT nominal exigé : « je crois que j'ai besoin » = complétive correcte
+    if(!(deacc(T[i-1].toLowerCase())==='ce'||(tg&&i-1<tg.length&&tg[i-1]==='NOUN')))return null;
+    for(var k=(rest?i:i+1);k<T.length&&k<=i+4;k++){var g=deacc(T[k].toLowerCase());
+      if(k>i&&_QDONT_GOUV[g]){
+        if(k+1<T.length){var nn=T[k+1].toLowerCase();if(deacc(nn)==='de'||/^d'/.test(nn))return null;}   // « que j'ai besoin DE toi » : le de est là → correct
+        return {sugg:rest?ckeepcase(T[i],'dont '+rest):ckeepcase(T[i],'dont'),vig:1};}
+      if(k>i&&!_QDONT_MID[g]&&!/^j'/.test(T[k].toLowerCase()))return null;}
+    return null;}
+  var _PRET_COP={est:1,es:1,suis:1,sont:1,sommes:1,etes:1,etait:1,etais:1,etaient:1,semble:1,semblent:1,parait:1,paraissent:1,reste:1,restent:1,tout:1,toute:1,tous:1,toutes:1,pas:1,presque:1,deja:1,enfin:1,etre:1,toujours:1,jamais:1};
+  var _PRET_DET={la:1,le:1,les:1,un:1,une:1,des:1,du:1,ma:1,mon:1,mes:1,sa:1,son:1,ses:1,notre:1,nos:1,votre:1,vos:1,leur:1,leurs:1,cette:1,ces:1,cet:1};
+  function rPresPret(T,i){var lw=T[i].toLowerCase();
+    var dur=(lw==='prêt'||lw==='prêts'),mou=(lw==='prête'||lw==='prêtes');
+    if(!dur&&!mou)return null;
+    if(mou&&(i<1||!_PRET_COP[deacc(T[i-1].toLowerCase())]))return null;                // « elle prête de l'argent » = verbe prêter
+    if(i+2>=T.length||deacc(T[i+1].toLowerCase())!=='de')return null;
+    var w2=T[i+2].toLowerCase(),d2=deacc(w2);
+    if(!_PRET_DET[d2]&&!/^l'/.test(w2))return null;
+    if((d2==='le'||d2==='la'||d2==='les')&&i+3<T.length){var tg=posTags(T);if(tg&&i+3<tg.length&&tg[i+3]==='VERB')return null;}   // « prêt de le faire » : clitique+inf, pas un lieu
+    return {sugg:'près',vig:1};}
+  var _DAV_PREV={pas:1,plus:1,point:1,guere:1,aucun:1,sans:1,peu:1};
+  function rDavantage(T,i){if(T[i].toLowerCase()!=="d'avantage")return null;
+    if(i>=1&&_DAV_PREV[deacc(T[i-1].toLowerCase())])return null;                       // « il n'y a pas d'avantage » : lecture nominale légitime
+    if(i+1<T.length){var nn=T[i+1].toLowerCase();
+      if(deacc(nn)!=='que'&&!/^qu'/.test(nn)&&!(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1]))return null;}   // fin de proposition ou « que » seulement
+    return {sugg:'davantage',vig:1};}
+  var _ANT_ADJ={fatiguant:'fatigant',convainquant:'convaincant',provoquant:'provocant',communiquant:'communicant',negligeant:'négligent',differant:'différent',excellant:'excellent',precedant:'précédent',equivalant:'équivalent',influant:'influent',naviguant:'navigant'};
+  var _ANT_POS={le:1,la:1,les:1,un:1,une:1,des:1,ce:1,cet:1,cette:1,ces:1,son:1,sa:1,ses:1,mon:1,ma:1,mes:1,tres:1,plus:1,moins:1,si:1,aussi:1,trop:1,fort:1,vraiment:1,assez:1,est:1,es:1,sont:1,suis:1,sommes:1,etes:1,etait:1,etais:1,etaient:1,semble:1,semblent:1,parait:1,reste:1,restent:1};
+  function rAntAdj(T,i){var adj=_ANT_ADJ[deacc(T[i].toLowerCase())];if(!adj)return null;
+    if(i<1)return null;
+    if(!_ANT_POS[deacc(T[i-1].toLowerCase())]){var tg=posTags(T);                      // après un NOM : épithète seulement si FIN de proposition (« l'année précédant la guerre » = participe + complément → silence)
+      var fin=(i+1>=T.length)||(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1]);
+      if(!(tg&&i-1<tg.length&&tg[i-1]==='NOUN'&&fin))return null;}
+    if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;                                 // « …, provoquant … » : participe après virgule
+    for(var j=i-3;j<i;j++)if(j>=0&&deacc(T[j].toLowerCase())==='en')return null;       // gérondif « en le précédant »
+    return {sugg:ckeepcase(T[i],adj),vig:1};}
+  var _VC_NUM={un:1,deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1,million:1,millions:1,milliard:1,milliards:1,et:1,pour:1};
+  var _VC_MULT={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1};
+  function rVingtCent(T,i){var d=deacc(T[i].toLowerCase());if(d!=='vingt'&&d!=='cent')return null;
+    if(i<1||i+1>=T.length)return null;var nx=deacc(T[i+1].toLowerCase());
+    if(_VC_NUM[nx]||!/[sx]$/.test(nx))return null;                                     // nom PLURIEL exigé après → tue dates et ordinaux
+    if(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;                             // « quatre-vingt-dix »
+    var pv=deacc(T[i-1].toLowerCase());
+    if(d==='vingt'){if(pv!=='quatre'||!(_SEG&&i<_SEG.hy.length&&_SEG.hy[i]))return null;return T[i]+'s';}
+    if(!_VC_MULT[pv])return null;
+    if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
+    return T[i]+'s';}
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||'auto'};if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST DÉSORMAIS PORTÉ PAR LE FLAG (audit 2026-08-11). Avant : tier=null, et le rouge était DÉDUIT à l'affichage par `_dfltOn` (src==='g'). Deux conséquences mesurées : (1) le moteur autonome rendait 416 corrections sur 1 506 SANS aucun tier — un intégrateur ne pouvait pas savoir ce qui est sûr sans réimplémenter l'UI ; (2) l'EXTENSION n'applique que `tier==='auto'`, donc elle ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut : le même texte était corrigé sur le site et seulement signalé dans l'extension. Une règle peut toujours renvoyer {sugg,vig:1} → 'vigilance' (orange) ; sinon c'est du rouge, et il le DIT. */
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité) ; ’ normalisée (1:1, offsets intacts)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */
   var _VDCF=null,_VDCBF=null,_VDCW=4;
