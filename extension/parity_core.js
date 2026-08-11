@@ -194,6 +194,23 @@ for (const ph of _BUT_NON) {
 }
 if (_but) { console.log('PARITÉ KO — ' + _but + ' cas « infinitif de but ».'); process.exit(1); }
 
+
+/* GARDE « MÊME PIPELINE QUE LE SITE » — la parité compare le REGISTRE de règles (`correctText`),
+   PAS le pipeline. Le 2026-08-11 on a découvert que `diagnoseAll` — la fonction que `content.js`
+   appelle vraiment — lançait la grammaire sur le texte BRUT, sans la pyramide ortho→grammaire ni la
+   cascade du site. Résultat MESURÉ sur 621 paires : 2 corrections que SEULE l'extension produisait,
+   et les DEUX étaient FAUSSES parce que la grammaire s'appliquait au mot mal orthographié.
+   Ces deux cas sont donc la garde : ils n'ont de bonne réponse QUE si la pyramide est là. */
+const _PYR = [['Leurs racines les défendent contre les vènt et vont chercher', 'vents', 'vènts'],
+              ['La tigés elle-même se revêt', 'tige', 'tigé']];
+let _pyr = 0;
+for (const [ph, exige, interdit] of _PYR) {
+  const got = (DYSCORE.diagnoseAll(ph).flags || []).filter(f => f.sugg).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(exige)) { _pyr++; console.log('✗ PIPELINE : ' + JSON.stringify(ph) + ' doit donner « ' + exige + ' » (pyramide ortho→grammaire), eu ' + JSON.stringify(got)); }
+  if (got.includes(interdit)) { _pyr++; console.log('✗ PIPELINE : ' + JSON.stringify(ph) + ' ne doit PAS donner « ' + interdit + ' » — la grammaire a vu le mot NON corrigé'); }
+}
+if (_pyr) { console.log('PARITÉ KO — ' + _pyr + ' écart(s) de PIPELINE avec le site.'); process.exit(1); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

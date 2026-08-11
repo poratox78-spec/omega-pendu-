@@ -1594,7 +1594,12 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(!num)return null;                                                             // nombre non net → abstention
     var sugg=_adjAgree(w,g,num);return sugg.toLowerCase()!==lw?ckeepcase(T[i],sugg):null;}
   var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['majuscule',rCapital]];
-  function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||'auto'});break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST PORTÉ PAR LE FLAG (audit 2026-08-11, miroir app). Avant tier=null : content.js n'applique que `tier==='auto'`, donc l'extension ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut — le même texte était corrigé sur le site et seulement signalé ici. {sugg,vig:1} → 'vigilance' (orange) ; sinon rouge, et il le DIT. */
+  /* ⭐ SCINDÉ EN DEUX (2026-08-11) pour avoir la MÊME STRUCTURE QUE L'APP : `correctTokens(T)`
+     travaille sur un TABLEAU de tokens, `correctText` n'est qu'une enveloppe qui tokenise. Sans ce
+     point d'entrée par tokens, la PYRAMIDE était impossible ici — on ne pouvait pas faire tourner la
+     grammaire sur des tokens déjà nettoyés par l'orthographe. C'est ce qui manquait à `diagnoseAll`. */
+  function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){out.push({i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||'auto'});break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST PORTÉ PAR LE FLAG (audit 2026-08-11, miroir app). Avant tier=null : content.js n'applique que `tier==='auto'`, donc l'extension ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut — le même texte était corrigé sur le site et seulement signalé ici. {sugg,vig:1} → 'vigilance' (orange) ; sinon rouge, et il le DIT. */
+  function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // enveloppe : grammaire sur le texte brut (miroir app)
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
   // Seule différence vs app : loadSpellerLex fetch l'asset gzip (extension) au lieu de lire le bloc DOM speller-lex-gz.
@@ -2187,8 +2192,30 @@ function spellUnknown(tok,atStart,T,idx){
     while((m=re6.exec(text))){
       out.push({cs:m.index,ce:m.index+m[0].length,from:m[0],sugg:m[1]+' '+m[2],name:'espace double',tier:'auto',typo:1});}
     return out;}
-  function diagnoseAll(text){var gf=correctText(text),sf=SP.ready?spellText(text):[];        // grammaire + orthographe fusionnés + stade
-    var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;
+  /* ⚠️ LA PYRAMIDE MANQUAIT ICI (corrigé le 2026-08-11). Ce pipeline — celui que `content.js` appelle
+   vraiment — lançait `correctText(text)` sur le texte BRUT, alors que le site fait tout autre chose
+   dans `_computeCorrs` : il applique d'abord l'ORTHOGRAPHE aux tokens, puis fait tourner la
+   grammaire sur les tokens NETTOYÉS, en CASCADE jusqu'au point fixe (4 passes).
+   ⭐ La parité 3 moteurs ne pouvait pas le voir : elle compare `correctText`, c'est-à-dire le
+   REGISTRE DE RÈGLES — pas le PIPELINE. Deux moteurs peuvent avoir exactement les mêmes règles et
+   ne pas corriger les mêmes phrases.
+   Ce que ça donnait, MESURÉ sur 621 paires dys/GEC : 2 corrections que SEULE l'extension produisait,
+   et les DEUX étaient FAUSSES parce que la grammaire s'appliquait au mot mal orthographié —
+     « contre les vènt »  -> l'extension écrivait « vènts » (le site corrige vènt->vent PUIS vents)
+     « La tigés »         -> l'extension écrivait « tigé »  (le site corrige tigés->tiges)
+   Une faute appliquée EN SILENCE dans le champ de l'utilisateur : le pire cas possible. */
+  function diagnoseAll(text){
+    var sf=SP.ready?spellText(text):[];
+    _SEG=_segInfo(text);var _T=toks(text),_Tc=_T.slice();
+    sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
+    var _cur=_Tc.slice(),_gbt={},_it,_gf2,_gj,_g2,_add;
+    for(_it=0;_it<4;_it++){_gf2=correctTokens(_cur);_add=false;                                   // CASCADE : la grammaire re-tourne sur ses PROPRES corrections jusqu'au point fixe
+      for(_gj=0;_gj<_gf2.length;_gj++){_g2=_gf2[_gj];if(_gbt[_g2.i]!=null)continue;_gbt[_g2.i]=_g2;_add=true;
+        if((_g2.span==null||_g2.span<2)&&_g2.tier!=='vigilance'&&_g2.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(_g2.sugg))_cur[_g2.i]=_g2.sugg;}
+      if(!_add)break;}
+    var gf=Object.keys(_gbt).map(function(k){return _gbt[k];});
+    gf.forEach(function(f){f.word=_T[f.i];});                                                     // le mot AFFICHÉ reste celui de l'utilisateur, pas la version nettoyée
+var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;
       else if(f.span>=2&&(byTok[f.i].span==null||byTok[f.i].span<2)&&byTok[f.i].tier!=='vigilance'&&typeof f.sugg==='string'&&typeof byTok[f.i].sugg==='string'&&typeof f.word==='string'&&f.sugg.slice(0,f.word.length)===f.word){f.sugg=byTok[f.i].sugg+f.sugg.slice(f.word.length);byTok[f.i]=f;}});   // COLLISION grammaire mono-mot (majuscule) sur le 1er mot d'un span:2 speller → FUSIONNER (parité app _computeCorrs), sinon l'espace/tiret est perdu
     var flags=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};flags.forEach(function(f){if(f.span===2)_cov[f.i+1]=1;});flags=flags.filter(function(f){return !_cov[f.i];});   // un token couvert par une élision (span 2) ne compte pas 2× (parité AUDIT #4)
