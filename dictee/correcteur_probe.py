@@ -760,7 +760,7 @@ def rule_deselide(T, i):
     ne s'élide QUE devant voyelle ; devant CONSONNE = faute → on rétablit (je/ne/me/… + espace + mot). FP=0 (14 450 UD).
     l' exclu (le/la ambigu) ; nom propre (reste capitalisé) et « d'œuvre » (œ = voyelle) préservés."""
     w = T[i]; lw = w.lower()
-    if lw in ("m'sieur", "m'dame", "m'ame"): return None
+    if lw in _ELIDE_STOP: return None                                  # liste UNIQUE partagée avec rule_elide (cf. _ELIDE_STOP)
     m = re.match(r"^(qu|[jnmtsdcl])'(.+)$", lw)
     if not m: return None
     pre = m.group(1); rest = w[len(pre)+1:]
@@ -2685,7 +2685,11 @@ def rule_cai(T, i):
 # EXCLUS : t' (te/tu), s' (se/si) ambigus ; l' (le/la = genre) ; h (« l'homme » = h muet, élision correcte) ; y (« j'y »).
 _ELIDE = {"j'": 'je', "n'": 'ne', "m'": 'me', "d'": 'de', "c'": 'ce', "qu'": 'que'}
 _ELIDE_CONS = set("bcdfgjklmnpqrstvwxz")
-_ELIDE_STOP = {"n'roll", "m'sieur"}   # emprunt (rock n'roll) / familier (m'sieur = monsieur) : ne pas de-élider
+_ELIDE_STOP = {"n'roll", "m'sieur", "m'dame", "m'ame", "c'te"}   # emprunt (rock n'roll), familier (m'sieur/m'dame/m'ame), dialectal (c'te = cette) : ne pas de-élider.
+# ⚠️ LISTE UNIQUE (audit 2026-08-11). rule_elide et rule_deselide font le MÊME travail et avaient DEUX listes
+# d'exceptions différentes : « n'roll » n'était que dans celle de rule_elide, « m'dame/m'ame » que dans celle
+# de rule_deselide. Résultat mesuré : « rock n'roll » -> « rock ne roll ». Quelqu'un avait prévu le cas — dans
+# la mauvaise liste. Deux listes pour une même garde DÉRIVENT toujours ; il n'y en a plus qu'une.
 
 
 def rule_elide(T, i):

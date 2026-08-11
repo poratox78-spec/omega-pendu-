@@ -16,12 +16,16 @@ Tout ce qui suit est **mesuré**, pas lu. Les scripts d'audit sont reproductible
 | Ordre d'exécution app ↔ extension | ✅ **identique**, rang par rang | — |
 | **Ordre OPTIMAL ?** | ✅ **oui, mesuré** (§9) | — |
 | Divergence de correction entre moteurs | ✅ **aucune** sur 24 cas construits + 328 phrases de parité | — |
-| Règles jamais déclenchées | ⚠️ 21 sans tir sur nos corpus → **15 confirmées vivantes**, 6 à confirmer | ouvert |
+| Règles jamais déclenchées | ⚠️ 21 sans tir sur nos corpus → **les 55 sont vivantes** (§10) | ✅ **CLOS** |
 | Bug `son/sont` | ❌ ne tirait que si le tagger se TROMPE (§4) | ✅ **CORRIGÉ** |
 | Rouge / orange | ⚠️ la grammaire n'avait pas de tier (§5) | ✅ **CORRIGÉ** |
 | **Liaison app ↔ extension** | ❌ l'app appliquait la grammaire, l'extension jamais (§6) | ✅ **CORRIGÉ** |
+| Typographie (6 règles) | ✅ présentes et actives **dans les 2 surfaces**, banc CI dédié (§11) | — |
+| Arbitrage interne du speller | ✅ **cohérent** : seule la route ACCENT est rouge (§12) | — |
+| Blocages mutuels entre voisins | ✅ **0,3 % de résiduel** mesuré (§13) | — |
+| FP `rock n'roll` | ❌ deux listes d'exceptions divergentes (§10) | ✅ **CORRIGÉ** |
 
-Les trois défauts sont réparés dans la même PR ; les mesures d'avant/après sont conservées
+Les quatre défauts sont réparés dans la même PR ; les mesures d'avant/après sont conservées
 ci-dessous parce qu'elles expliquent POURQUOI le correctif est ce qu'il est.
 
 ---
@@ -62,8 +66,8 @@ sujet postposé · verbe coordonné · relative objet · incise · aux mal ortho
 ⚠️ **Aucune divergence entre Python, app et extension sur ces 24 cas.** C'est le point le plus
 rassurant de l'audit sur la question « liaison ».
 
-Restent 6 règles sans confirmation (`rule_elide`, `rule_accord_sv_infinitif` et 4 variantes
-d'accord) : leurs formes déclenchantes ne sont pas documentées, il faut les lire une par une.
+Restaient 2 règles sans confirmation (`rule_elide`, `rule_accord_sv_infinitif`) — **traitées en
+§10 : elles vivent aussi.** Aucune règle morte dans le correcteur.
 
 ---
 
@@ -202,15 +206,12 @@ Bancs déjà en CI qui couvrent ces dimensions : `parity_corr.js`, `extension/pa
 
 ---
 
-## 8. Ce que l'audit N'A PAS couvert
+## 8. Ce que l'audit n'avait pas couvert — COUVERT DEPUIS (§10 à §13)
 
-Honnêteté de périmètre :
-
-- Les **6 règles** sans forme déclenchante confirmée (§3).
-- La couche **typographie** (espacement, guillemets, trait d'union) : vue dans les tiers, pas
-  auditée règle par règle.
-- Le **speller** (routes accent / édit-1 / phonétique / secours distance 2) : son arbitrage interne
-  n'est pas dans cet audit, seulement ses sorties.
+Les quatre points laissés ouverts au premier passage ont été traités : §10 les règles restantes ·
+§11 la typographie · §12 l'arbitrage du speller · §13 les blocages mutuels. Reste hors périmètre :
+l'ergonomie, et la calibration de l'orange contre la fatigue du lecteur (elle demande un vrai
+utilisateur, pas un banc).
 - Les **blocages mutuels** hors concurrence sur un même token (un cas connu est documenté dans le
   code pour `j'est mangez` : deux fautes adjacentes qui s'empêchent). §9 mesure la concurrence SUR
   UN TOKEN, pas l'interaction entre tokens voisins.
@@ -235,3 +236,101 @@ GEC, multi-fautes, er/é/ez/ai, impératif).
 ⇒ **La priorité ne coûte jamais une correction juste sur ce corpus.** L'ordre est optimal au sens
 mesurable du terme. À re-mesurer après tout ajout de règle : c'est le banc qui le dit, pas
 l'intuition.
+
+
+---
+
+## 10. Les règles « sans déclencheur » — il n'en restait que DEUX, et elles vivent
+
+Recomptage : sur les 21 sans tir, 19 étaient déjà confirmées. Les 2 dernières étaient testées **à
+l'envers** de ce qu'elles font.
+
+| règle | ce qu'elle fait vraiment | vérifié |
+|---|---|---|
+| `rule_elide` | **dé-élide** : une élision suivie d'une CONSONNE est impossible en français | `j'mange`→je mange · `d'la`→de la · `qu'tu`→que tu · `m'donne`→me donne · `n'sais`→ne sais · `j'ai` intact |
+| `rule_accord_sv_infinitif` | sujet = **INFINITIF** en tête de proposition | `Fumer nuisent`→**nuit** · `Manger trop font`→**fait** · phrases correctes intactes |
+
+⇒ **Les 55 règles sont vivantes.** Aucune règle morte dans le correcteur.
+
+### ❌ Et un FAUX POSITIF trouvé en les testant : `rock n'roll` → « rock ne roll »
+
+Cause : **deux règles jumelles avec deux listes d'exceptions différentes.**
+
+```python
+rule_elide     : _ELIDE_STOP = {"n'roll", "m'sieur"}
+rule_deselide  : ("m'sieur", "m'dame", "m'ame")        ← pas de n'roll
+```
+
+Quelqu'un avait bien prévu `rock n'roll` — **dans la mauvaise liste**. Et côté JS c'est l'autre
+règle qui traitait le cas, donc la même exception manquait à un troisième endroit.
+⭐ **Deux listes pour une même garde DÉRIVENT toujours.** ✅ **LIVRÉ : liste UNIQUE** dans les 3
+moteurs (`n'roll`, `m'sieur`, `m'dame`, `m'ame`, `c'te`). Mesuré après : `rock n'roll` et
+`c'te histoire` abstiennent, `j'sais`→je sais et `d'la`→de la intacts.
+
+---
+
+## 11. Typographie — déjà auditée et gardée
+
+6 règles, toutes vérifiées présentes ET actives dans **l'app et l'extension** :
+`espace après la virgule` · `espace avant la ponctuation` · `espace double` · `virgule doublée`
+(les 4 en **rouge**) · guillemets `"`→« » · `...`→… (en **orange**).
+
+Un banc dédié existe déjà en CI : **`dictee/typo_probe.js` — 38 cas, parité sur les 2 surfaces**,
+et il extrait la fonction des fichiers LIVRÉS (« une garde qui teste sa propre copie ne garde
+rien »). Sa docstring porte la mesure qui autorise le rouge ici : **2 déclenchements sur 14 450
+phrases UD correctes, et les DEUX sont de vraies fautes de typo du corpus**.
+
+⭐ La distinction qui justifie le rouge, et qui vaut d'être retenue : *« où faut-il une virgule ? »*
+est un **jugement** (mesuré 51,98 % de justesse — aucun réglage n'en fera du FP=0) ; *« l'espace
+autour de la virgule QUI EST DÉJÀ LÀ est-il bien placé ? »* est **mécanique**, décidable sur la
+chaîne seule.
+
+---
+
+## 12. Arbitrage interne du speller — cohérent : plus la route est incertaine, plus elle est orange
+
+Route du candidat retenu (`cand[w][0]` : 2 accent · 1 édit-1 · 0,5 secours distance 2 · 0 phonétique) :
+
+| route | texte FAUTIF (963 corr.) | texte CORRECT (116 = FP) |
+|---|---|---|
+| **accent** | **586 auto** + 7 flag | 11 auto + 2 flag |
+| édit-1 | 138 flag + 116 vigilance | 14 flag + 43 vigilance |
+| phonétique | 11 vigilance **seulement** | 9 vigilance |
+| secours distance 2 | 4 vigilance **seulement** | 26 vigilance |
+
+⇒ **Seule la restauration d'ACCENT a le droit d'être rouge.** Les routes phonétique et distance 2
+ne sont **jamais** affirmatives — c'est exactement la hiérarchie qu'on veut, et elle est respectée.
+
+### Ce que sont vraiment les 78 « FP » orange du speller sur UD
+
+`canarien→canadien` · `casei→cassée` · `subsp→sûrs` · `defining→définis` · `turkey→turk` ·
+`cusps→corps` · `daïra→dira` · `empoyés→employés`.
+
+⇒ Ce sont presque tous des mots **qui ne sont pas français** (latin, anglais, translittérations,
+termes techniques) : le moteur les voit inconnus et propose un voisin. C'est le comportement voulu
+(orange, jamais appliqué). ⚠️ Et `empoyés→employés` est **une vraie faute du corpus UD** — même
+leçon qu'en anglais : *lire les cas avant de conclure qu'un FP en est un*.
+
+---
+
+## 13. Blocages mutuels entre tokens voisins — 0,3 % de résiduel
+
+Deux fautes adjacentes peuvent s'empêcher. Le pipeline a une **cascade à 4 passes** ; la question
+est ce qu'il en reste. Méthode : pour chaque faute non corrigée, on répare TOUTES ses voisines et
+on relance — si elle se corrige alors, elle était bloquée.
+
+| | moteur Python (grammaire seule) | **moteur COMPLET** (speller + grammaire + pyramide) |
+|---|---|---|
+| fautes examinées (phrases à ≥2 fautes) | 2 753 | 2 727 |
+| corrigées directement | 1 188 | 1 182 |
+| **bloquées par une voisine** | 34 (**1,2 %**) | **7 (0,3 %)** |
+
+⭐ **La pyramide ortho→grammaire fait son travail** : elle débloque 27 des 34 cas. Le motif est net
+— la voisine bloquante est presque toujours une **faute d'orthographe dans le sujet**
+(`L'equipe`, `cliete`, `transportuer`, `collegue`) ; une fois le sujet bien écrit, l'accord
+s'identifie.
+
+Le résidu (7 cas) est le cas d'école : **`Se mtain`**, où chaque faute bloque l'autre — aucune
+cascade ne peut trancher, il faudrait choisir laquelle réparer en premier sur un pari.
+
+⇒ Chiffre à retenir : **0,3 %**. Ce n'est plus une inconnue.

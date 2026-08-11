@@ -24554,7 +24554,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function rCai(T,i){return deacc(T[i].toLowerCase())==="c'ai"?ckeepcase(T[i],"c'est"):null;}   // « c'ai » jamais valide (avoir au lieu d'être) → c'est
   // Élision fautive DEVANT CONSONNE → de-élide (FP=0 structurel : élidé valide seulement devant voyelle). Clitiques
   // DÉTERMINISTES (j'/n'/m'/d'/c'/qu') = parité triviale (aucun lexique) ; t'/s'/l'/h/y exclus (ambigus / h muet « l'homme »). Miroir correcteur_probe.rule_elide.
-  var ELIDE={"j'":"je","n'":"ne","m'":"me","d'":"de","c'":"ce","qu'":"que"},ECONS="bcdfgjklmnpqrstvwxz",ELIDE_STOP={"n'roll":1,"m'sieur":1};
+  var ELIDE={"j'":"je","n'":"ne","m'":"me","d'":"de","c'":"ce","qu'":"que"},ECONS="bcdfgjklmnpqrstvwxz",ELIDE_STOP={"n'roll":1,"m'sieur":1,"m'dame":1,"m'ame":1,"c'te":1}   /* ⚠️ LISTE UNIQUE (audit 2026-08-11), miroir de _ELIDE_STOP (Python). rElide et rDeselide font le MÊME travail et avaient DEUX listes d'exceptions divergentes : « n'roll » n'était que dans l'une, « m'dame/m'ame » que dans l'autre. Mesuré : « rock n'roll » -> « rock ne roll », « c'te histoire » -> « ce te ». */;
   function rElide(T,i){var w=T[i],lw=w.toLowerCase();if(ELIDE_STOP[lw])return null;for(var pre in ELIDE){if(lw.indexOf(pre)===0){var rest=w.slice(pre.length),c0=rest.charAt(0);if(rest&&c0===c0.toLowerCase()&&c0!==c0.toUpperCase()&&ECONS.indexOf(deacc(c0.toLowerCase()))>=0)return ckeepcase(w,ELIDE[pre]+' '+rest);return null;}}return null;}
   // Accord SUJET-VERBE (route lexicale cgram_conj) — sujet PRONOM (personne/nombre certains), borné FP=0.
   var SUBJ_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],ils:['3','p'],elles:['3','p']};
@@ -25097,7 +25097,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu = homophones À RÔLE GRAMMATICAL → tranchés EN ROUGE par la grammaire (sujet, accord, segments, pronoms collés, cadre auxiliaire), pas en « vigilance verte ». FP=0 par cadre syntaxique forcé.
   // élision INVERSÉE dys (« j'ne/n'sait/l'tonnerre » : proclitique élidé devant CONSONNE = faute) → rétablir. FP=0 (cf. rule_deselide).
   var DESEL={j:'je',n:'ne',m:'me',t:'te',s:'se',d:'de',c:'ce',qu:'que'},DESELV={};'aeiouyàâäéèêëîïôöùûühœæ'.split('').forEach(function(c){DESELV[c]=1;});
-  function rDeselide(T,i){var w=T[i],lw=w.toLowerCase();if(lw==="m'sieur"||lw==="m'dame"||lw==="m'ame")return null;
+  function rDeselide(T,i){var w=T[i],lw=w.toLowerCase();if(lw==="m'sieur"||lw==="m'dame"||lw==="m'ame"||lw==="n'roll"||lw==="c'te")   /* ⚠️ LISTE UNIQUE (audit 2026-08-11) : rElide et rDeselide font le MÊME travail et avaient DEUX listes d'exceptions différentes — « n'roll » n'était que dans celle de rElide. Mesuré : « rock n'roll » -> « rock ne roll ». Miroir de _ELIDE_STOP (Python). */return null;
     var m=lw.match(/^(qu|[jnmtsdcl])'(.+)$/);if(!m)return null;var pre=m[1],rest=w.slice(pre.length+1),c0=rest.charAt(0);
     if(!c0||DESELV[c0.toLowerCase()]||c0.toLowerCase()===c0.toUpperCase()||c0===c0.toUpperCase())return null;   // voyelle/non-lettre/majuscule(nom propre) → OK
     if(pre==='l'){var g=GENDER_PURE[deacc(rest.toLowerCase())]||GENDER_MAP[deacc(rest.toLowerCase())];if(g!=='m'&&g!=='f')return null;return ckeepcase(w,(g==='m'?'le':'la')+' '+rest);}
