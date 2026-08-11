@@ -25833,6 +25833,13 @@ function spellTokenCore(tok,atStart,T,idx){
     var w=deaccS(T[i].toLowerCase());
     if(w.length<3||/[sxz]$/.test(w))return null;                       // déjà pluriel/invariable
     if(tg[i]!=='NOUN'&&tg[i]!=='ADJ')return null;
+    if(T[i].indexOf("'")>=0)return null;                             /* ÉLISION → ABSTENTION (signalé par Rem, 2026-08-11).
+       « Les girolles QU'ELLE avait cueillies → qu'elles », « les livres QU'IL m'a rendus → qu'ils »,
+       et même « M'A → m'as » : un token élidé (qu'elle, m'a, l'école) n'est JAMAIS un nom à accorder
+       avec le déterminant de l'antécédent — le pronom après « qu' » est le SUJET de la relative, son
+       nombre est indépendant. Le HMM le tague NOUN (suffixe inconnu) et la branche PLDET collait un
+       -s. La branche CARDINAL avait déjà cette garde ; celle-ci manquait. Doctrine élision : faire
+       ABSTENIR une liste fermée est net-PROTECTEUR. */
     var c0=T[i][0];if(c0&&c0!==c0.toLowerCase())return null;           // nom propre
     for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());
       if(PLDET[dj]){

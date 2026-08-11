@@ -142,6 +142,8 @@ const CAS = [
   { txt: 'Le petit garçon mange une pomme rouge.', rien: true, pourquoi: 'FP=0 sur phrase correcte' },
   { txt: 'Nathalie habite à Bordeaux.', rien: true, pourquoi: 'noms propres non touchés' },
   { txt: 'un œuf et du bœuf', rien: true, pourquoi: 'ligature œ' },
+  { txt: "Les girolles qu'elle avait cueillies sont bonnes.", rien: true,
+    pourquoi: "pronom élidé : « qu'elle » n'est pas un nom à accorder avec « les girolles »" },
 ];
 
 /* le script évalué DANS la page : écrit dans la vraie zone, lit les vraies marques */

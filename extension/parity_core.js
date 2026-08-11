@@ -211,6 +211,18 @@ for (const [ph, exige, interdit] of _PYR) {
 }
 if (_pyr) { console.log('PARITÉ KO — ' + _pyr + ' écart(s) de PIPELINE avec le site.'); process.exit(1); }
 
+
+/* GARDE ÉLISION (pluralVig) — « qu'elle », « m'a », « s'en » sont des tokens ÉLIDÉS, jamais des noms
+   à accorder avec un déterminant en amont. Avant la garde : 271 tirs orange sur 14 450 phrases UD
+   correctes (s'en→s'ens, l'ail→l'ails, n'a→n'as), 0 correction juste dans les corpus appariés. */
+const _ELI = ["Les girolles qu'elle avait cueillies", "les livres qu'il m'a rendus", "tout ce qu'il avait fait jusqu'alors"];
+let _eli = 0;
+for (const ph of _ELI) {
+  const got = (DYSCORE.diagnoseAll(ph).flags || []).filter(f => f.sugg && String(f.word).indexOf("'") >= 0 && String(f.sugg).toLowerCase() !== String(f.word).toLowerCase());
+  if (got.length) { _eli++; console.log('✗ ÉLISION : ' + JSON.stringify(ph) + ' ne doit pas accorder un token élidé, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg))); }
+}
+if (_eli) { console.log('PARITÉ KO — ' + _eli + ' accord(s) sur token élidé.'); process.exit(1); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
