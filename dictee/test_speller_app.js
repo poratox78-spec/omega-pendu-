@@ -173,11 +173,19 @@ const SP = globalThis.__sp;
   if (!oe1 || oe1.sugg !== 'sœur') fail.push("soeur→sœur (ligature œ) attendu, eu " + JSON.stringify(oe1));
   if (SP.spell('ma sœur est là').some(x => x.name === 'orthographe')) fail.push('FP ligature : « sœur » déjà correct re-flaggé');
   if (SP.spell('ils vont coexister ensemble').some(x => x.name === 'orthographe')) fail.push('FP ligature : « coexister » (pas un mot œ) touché');
-  // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide
-  const elg = SP.spell('il est trèèès content').find(x => x.word.toLowerCase() === 'trèèès');
-  if (!elg || elg.sugg !== 'très' || elg.tier !== 'auto') fail.push('trèèès→très (auto) attendu, eu ' + JSON.stringify(elg));
-  const elg2 = SP.spell('ouiii je viens').find(x => x.word.toLowerCase() === 'ouiii');
-  if (!elg2 || elg2.sugg !== 'oui') fail.push('ouiii→oui attendu, eu ' + JSON.stringify(elg2));
+  // ÉLONGATION (collapse des runs ≥3) — AUTO si candidat unique ; gardes acronyme/chiffre romain/double-lettre valide.
+  // ⭐ CES CAS VIENNENT DU CORPUS DYS RÉEL, pas de mon imagination. Relevé sur 45 068 tokens : 43 tokens
+  // à élongation, et AUCUN n'est expressif — ce sont des doigts qui bégaient (ellle, cettte, errreur,
+  // femmme, nourrriture, atttendre, rappport). Écrire soi-même l'entrée ET l'attendu est justement la
+  // faute de méthode que ce projet combat ailleurs ; « trèèès » et « ouiii » étaient de moi.
+  for (const [b, g] of [['ellle', 'elle'], ['cettte', 'cette'], ['errreur', 'erreur'], ['femmme', 'femme'],
+                        ['nourrriture', 'nourriture'], ['atttendre', 'attendre'], ['rappport', 'rapport'],
+                        ['trèèès', 'très'], ['ouiii', 'oui']]) {
+    const r = SP.spell('voici ' + b + ' ici').find(x => x.word.toLowerCase() === b);
+    if (!r || r.sugg.toLowerCase() !== g || r.tier !== 'auto')
+      fail.push('élongation : ' + b + '→' + g + ' (auto) attendu, eu ' + JSON.stringify(r));
+  }
+  if (SP.spell('rendez-vous sur www point com').length) fail.push('FP www (relevé dans le corpus dys)');
   if (SP.spell('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
   if (SP.spell('la note AAA est haute').length) fail.push('FP acronyme AAA');
   if (SP.spell('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
