@@ -21,12 +21,16 @@ Tout ce qui suit est **mesuré**, pas lu. Les scripts d'audit sont reproductible
 | Rouge / orange | ⚠️ la grammaire n'avait pas de tier (§5) | ✅ **CORRIGÉ** |
 | **Liaison app ↔ extension** | ❌ l'app appliquait la grammaire, l'extension jamais (§6) | ✅ **CORRIGÉ** |
 | Typographie (6 règles) | ✅ présentes et actives **dans les 2 surfaces**, banc CI dédié (§11) | — |
-| Arbitrage interne du speller | ✅ **cohérent** : seule la route ACCENT est rouge (§12) | — |
+| Arbitrage interne du speller | ✅ **cohérent** : plus la route est incertaine, plus elle est orange (§12) | — |
 | Blocages mutuels entre voisins | ✅ **0,3 % de résiduel** mesuré (§13) | — |
 | FP `rock n'roll` | ❌ deux listes d'exceptions divergentes (§10) | ✅ **CORRIGÉ** |
+| **Ce que chaque surface applique** | ❌ le `tier` ne le dit pas : site 244 corr. / extension 159 (§6 bis) | ✅ **MESURÉ** |
+| **Maximiser le rouge** | ✅ 2ᵉ sous-ensemble affirmable trouvé : le **glissement moteur** (§12 bis) | ✅ **LIVRÉ** |
 
 Les quatre défauts sont réparés dans la même PR ; les mesures d'avant/après sont conservées
 ci-dessous parce qu'elles expliquent POURQUOI le correctif est ce qu'il est.
+Les deux dernières lignes sont l'**addendum du 2026-08-11**, après la doctrine de Rem : *« une faute
+est une faute, point ; c'est pour ça qu'il faut maximiser le ROUGE pour diminuer l'ORANGE »*.
 
 ---
 
@@ -193,6 +197,34 @@ Vérifié sur le moteur de l'extension :
 « il a allé au cinéma. »      a→est[auto]         → appliqué
 ```
 
+### 6 bis. ⚠️ Ce que chaque surface applique VRAIMENT — le tier ne le dit pas (2026-08-11)
+
+L'audit lisait le `tier` du moteur. Or **aucune des deux surfaces n'applique « le tier »** :
+
+* **site** — `_dfltOn` coche par défaut : `auto` **+** grammaire non-vigilance **+ TOUT `flag`
+  orthographe** ;
+* **extension à la frappe** — `applyAutos` ne pose en silence que `tier === 'auto'`.
+
+Mesuré sur 474 phrases dys/GEC appariées, avec la règle réelle de chaque surface :
+
+| | tirs | juste | à côté | sur mot correct | précision |
+|---|---|---|---|---|---|
+| **site** (coché par défaut) | 244 | 202 | 36 | 6 | **82,8 %** |
+| **extension** (silence à la frappe) | 159 | 137 | 16 | 6 | **86,2 %** |
+| seulement proposé (les deux) | 221 | 86 | 122 | 13 | 38,9 % |
+
+⇒ **85 corrections d'écart**, toutes des `orthographe/flag` : `proffesseur→professeur`,
+`conexion→connexion`, `soeur→sœur`, `tirroir→tiroir`… Ce n'est PAS le même défaut qu'au §6 : ces
+corrections sont bien **proposées** dans la bulle de l'extension et appliquées par son « tout
+corriger ». L'écart porte sur le **silence** — et il est justifié : réécrire un champ pendant que
+l'utilisateur tape demande une barre plus haute que pré-cocher une case dans une barre qu'il relit.
+
+⭐ **Leçon de méthode : mesurer « le rouge » comme `tier === 'auto'` décrit l'extension, pas le
+site.** Interroger le moteur ne suffit pas quand chaque surface a sa propre règle d'application.
+
+Le §12 bis referme 24 de ces 85 en promouvant le sous-ensemble **mesuré FP=0**, sans toucher aux 61
+autres — dont la précision (76 %) ne permet pas le silence.
+
 ---
 
 ## 7. Reproduire
@@ -298,8 +330,41 @@ Route du candidat retenu (`cand[w][0]` : 2 accent · 1 édit-1 · 0,5 secours di
 | phonétique | 11 vigilance **seulement** | 9 vigilance |
 | secours distance 2 | 4 vigilance **seulement** | 26 vigilance |
 
-⇒ **Seule la restauration d'ACCENT a le droit d'être rouge.** Les routes phonétique et distance 2
-ne sont **jamais** affirmatives — c'est exactement la hiérarchie qu'on veut, et elle est respectée.
+⇒ La hiérarchie est respectée : plus la route est incertaine, plus elle est orange, et les routes
+phonétique / distance 2 ne sont **jamais** affirmatives.
+*(La ligne « secours distance 2 » est historique : le mécanisme a été **retiré** le 2026-08-11,
+mesuré nuisible — 0 correction juste ajoutée sur 1 360 phrases dys, 26 oranges de plus sur du texte
+correct. Elle reste ici parce qu'elle documente la hiérarchie.)*
+
+### 12 bis. L'accent n'est plus seul à pouvoir affirmer — le GLISSEMENT MOTEUR (2026-08-11)
+
+L'audit concluait « seule la restauration d'ACCENT a le droit d'être rouge ». C'était vrai, mais
+c'était une **description**, pas une limite prouvée. Sous la doctrine de Rem — *« une faute est une
+faute ; il faut maximiser le ROUGE pour diminuer l'ORANGE »* — on a cherché un second sous-ensemble
+affirmable dans l'édit-1, et on l'a trouvé :
+
+> **un seul candidat au lexique** (toutes routes) **ET** l'écart n'est qu'un **ORDRE de lettres** ou
+> un **REDOUBLEMENT** ⇒ le mot visé n'est pas en doute, un doigt a glissé.
+
+| | |
+|---|---|
+| corpus dys/GEC appariés | **+28 applications justes, 0 fausse, 0 régression** (différentiel moteur avec/sans, contrôle intégré) |
+| texte CORRECT, UD 14 450 phrases | **9 tirs, tous sur de VRAIES fautes du corpus** (`professionalisme`, `couisn`, `majortié`, `entammer`, `acceuil`, `saisoon`) ⇒ **FP = 0 littéral** |
+
+⭐ **C'est l'INTERSECTION des deux conditions qui vaut, pas chacune.** « Un seul candidat » **seul**
+tire 65 fois sur ces mêmes 14 450 phrases et réécrirait en silence des mots ÉTRANGERS
+(`flight→light`, `kommune→commune`, `project→projet`, `strategia→stratégie`). Un mot étranger diffère
+toujours par une lettre **substituée ou absente**, jamais par un simple désordre — c'est le
+redoublement/la transposition qui sépare les deux populations.
+
+⛔ **Garde graphotactique RÉFUTÉE** au passage : filtrer sur les trigrammes absents du français coûte
+14 gains pour 5 bruits écartés, et ne voit même pas `flight`. Le lexique de 214 685 mots atteste
+6 912 trigrammes : il n'y a plus de séquence « impossible ».
+
+Gardes CI : `test_speller_app.js` et `extension/test_speller.js` exigent le rouge sur 6 cas **et**
+l'orange sur les 4 mots étrangers (contre-garde vérifiée : les 4 tirent bien, en orange). La parité
+app ↔ extension compare le **tier**, donc la promotion elle-même est sous parité. Les deux vérifiées
+en les cassant.
 
 ### Ce que sont vraiment les 78 « FP » orange du speller sur UD
 

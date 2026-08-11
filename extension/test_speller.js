@@ -25,6 +25,17 @@ if (sp('un œuf et du bœuf').length) fail.push('FP ligature œuf/bœuf');
 if (sp('Nathalie habite à Bordeaux.').length) fail.push('FP nom propre en début de phrase');
 const fen = find('la fenetre est ouverte', 'fenetre');
 if (!fen || fen.sugg !== 'fenêtre' || fen.tier !== 'auto') fail.push('fenetre→fenêtre (auto) attendu, eu ' + JSON.stringify(fen));
+// GLISSEMENT MOTEUR — l'extension doit AFFIRMER (elle applique 'auto' en silence à la frappe).
+// Assertion explicite, car « ext ⊆ app » est unidirectionnel : une extension MUETTE passerait la parité.
+for (const [b, g] of [['jmaais', 'jamais'], ['acceuil', 'accueil'], ['grannd', 'grand'], ['vinngt', 'vingt']]) {
+  const r = find('il a ' + b + ' vu ça', b);
+  if (!r || r.sugg.toLowerCase() !== g || r.tier !== 'auto')
+    fail.push('glissement moteur : ' + b + '→' + g + ' attendu en AUTO, eu ' + JSON.stringify(r));
+}
+for (const b of ['flight', 'kommune', 'project']) {                      // contre-garde : mot ÉTRANGER, un seul candidat, mais lettre SUBSTITUÉE/ABSENTE → jamais affirmé
+  const r = find('un ' + b + ' ici', b);
+  if (r && r.tier === 'auto') fail.push('contre-garde : « ' + b + ' » ne doit PAS être affirmé, eu ' + JSON.stringify(r));
+}
 const les = find('la leson du jour', 'leson');
 if (!les || les.sugg !== 'leçon') fail.push('leson→leçon attendu, eu ' + JSON.stringify(les));
 const fau = find('il a une grosse fote', 'fote');
@@ -79,7 +90,11 @@ try {
   (async () => {
     await global.__app.load(); await global.__app.loadG();   // meme equipement des deux cotes (speller + genre relache)
     const BAT = ['fenetre cassée','le gateau','une pome','monagne','oartir','telefone','dortografe','maron',
-                 'le chat dort sur le canapé','la fenêtre est ouverte','un texte parfaitement correct ici','daujourdhui','je suis trist','il galère autent','vraimet trist autent'];
+                 'le chat dort sur le canapé','la fenêtre est ouverte','un texte parfaitement correct ici','daujourdhui','je suis trist','il galère autent','vraimet trist autent',
+                 // GLISSEMENT MOTEUR → rouge, et sa CONTRE-GARDE (mots étrangers à un seul candidat).
+                 // La clé de comparaison inclut le TIER : c'est donc bien la promotion en 'auto' qui est
+                 // mise en parité ici, pas seulement la cible de la correction.
+                 'jmaais','acceuil','grannd','beaucooup','toujorus','vinngt','flight','kommune','project','strategia'];
     const key = f => f.i + '|' + String(f.word).toLowerCase() + '|' + String(f.sugg).toLowerCase() + '|' + f.tier;
     BAT.forEach(t => {
       const a = global.__app.spell(t).map(key).sort().join(' ');
