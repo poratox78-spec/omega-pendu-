@@ -74,15 +74,29 @@ function servir() {
 
 /* ---------- 3. CDP brut ---------- */
 function attendre(ms) { return new Promise(r => setTimeout(r, ms)); }
+/* ⚠️ PORT DE DÉBOGAGE : choisi par CHROME, pas par nous (corrigé après une CI rouge le 2026-08-11).
+   La 1re version calculait `9222 + pid % 500` et attendait 10 s : sur le runner GitHub, Chrome a mis
+   plus de 10 s à démarrer → « n'a pas ouvert son port » → CI rouge, alors que le même banc passait
+   en local. Et un port calculé peut COLLISIONNER avec un autre processus. La voie canonique :
+   `--remote-debugging-port=0` laisse Chrome choisir, et il écrit le port réel dans le fichier
+   `DevToolsActivePort` du profil. On lit ce fichier (60 s), puis on interroge le port. */
+function lirePortDevTools(profil, ms) {
+  const t0 = Date.now(), f = path.join(profil, 'DevToolsActivePort');
+  return new Promise((res, rej) => { (function boucle() {
+    try { const l = fs.readFileSync(f, 'utf8').split('\n')[0].trim();
+      const p = parseInt(l, 10); if (p > 0) return res(p); } catch (e) { /* pas encore écrit */ }
+    if (Date.now() - t0 > ms) return rej(new Error('Chrome n\'a pas ouvert son port de débogage (' + ms + ' ms)'));
+    setTimeout(boucle, 200); })(); });
+}
 async function cible(port, url) {                                    // ouvre un onglet, rend son WS
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 150; i++) {
     try {
       const r = await fetch('http://127.0.0.1:' + port + '/json/new?' + encodeURIComponent(url), { method: 'PUT' });
       if (r.ok) return (await r.json()).webSocketDebuggerUrl;
     } catch (e) { /* Chrome pas encore prêt */ }
-    await attendre(100);
+    await attendre(200);
   }
-  throw new Error('Chrome n\'a pas ouvert son port de débogage');
+  throw new Error('le port de débogage ne répond pas');
 }
 function connecter(ws) {
   return new Promise((res, rej) => {
@@ -191,8 +205,7 @@ async function main() {
   }
   const { srv, port } = await servir();
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'omega-chrome-'));
-  const dbg = 9222 + (process.pid % 500);
-  const args = ['--remote-debugging-port=' + dbg, '--user-data-dir=' + profil, '--no-first-run',
+  const args = ['--remote-debugging-port=0', '--user-data-dir=' + profil, '--no-first-run',
     '--no-default-browser-check', '--disable-extensions', '--disable-background-networking',
     '--disable-gpu', 'about:blank'];
   if (!TETE) args.unshift('--headless=new');
@@ -208,6 +221,8 @@ async function main() {
     /* On ouvre un onglet VIDE, on s'y attache, PUIS on navigue. Créer l'onglet directement sur l'URL
        fait courir la navigation contre l'attachement : l'évaluation part alors dans un contexte que
        la navigation détruit, et Chrome répond « Execution context was destroyed » — vu une fois. */
+    const dbg = await lirePortDevTools(profil, 60000);   // le port RÉEL, écrit par Chrome lui-même
+    log('port CDP : ' + dbg);
     sess = await connecter(await cible(dbg, 'about:blank'));
     await sess.envoyer('Page.enable');
     await sess.envoyer('Runtime.enable');
