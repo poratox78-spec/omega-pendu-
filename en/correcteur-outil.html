@@ -169,7 +169,7 @@
       fetch('../dictee/forms_en.tsv.gz')
         .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
         .then(function(st2){ return new Response(st2).text(); })
-        .then(function(txt2){ BASEMAP = C.buildBaseMap(txt2, LEX); })
+        .then(function(txt2){ BASEMAP = C.buildBaseMap(txt2, LEX); if(C.buildCompSets) C.buildCompSets(txt2); })
         .catch(function(){ _manque.push('verb bases'); _signaler(); }); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
@@ -217,6 +217,18 @@
       // Flood 1/15 353 phrases éditées (une vraie faute) ; JFLEG 5/5 confirmées gold.
       var bf=C.baseFormDecide?C.baseFormDecide(LEX,toks,i,ADJ,BASEMAP):[null,null];
       if(bf[1]){ marks[i]={sugg:bf[0], cls:'red'}; continue; }
+      // « i » -> I (cadre i+verbe au tagger : le i mathématique et « the i » journal sont exclus). 1 tir/10 137 = vraie faute.
+      var ci=C.capIDecide?C.capIDecide(LEX,toks,i,ADJ,HYP):[null,null];
+      if(ci[1]){ marks[i]={sugg:ci[0], cls:'red'}; continue; }
+      // mots collés figés (alot -> a lot, infact -> in fact). 0 tir/10 137.
+      var mg=C.mergedDecide?C.mergedDecide(LEX,toks,i,ADJ):[null,null];
+      if(mg[1]){ marks[i]={sugg:mg[0], cls:'red'}; continue; }
+      // double comparatif (« more better » -> better) : le more/most est supprimé. 0 tir/10 137.
+      var dc=C.doubleCompDecide?C.doubleCompDecide(LEX,toks,i,ADJ):[null,null];
+      if(dc[1]){ marks[i]={sugg:'', cls:'red', del:true, why:'redundant — the next word is already comparative'}; continue; }
+      // répétition de mot (« the the ») — ORANGE : les transcriptions orales (court/speech) répètent verbatim.
+      var rp=C.repetitionDecide?C.repetitionDecide(LEX,toks,i,ADJ,HYP):[null,null];
+      if(rp[1]){ marks[i]={sugg:'', cls:'orange', del:true, why:'repeated word'}; continue; }
       // ACCORD DE L'AUXILIAIRE — « he are going » -> is · « he have gone » -> has. Zéro FP.
       var ax=C.auxAgree?C.auxAgree(LEX,toks,i,ADJ):[null,null];
       if(ax[1]){ marks[i]={sugg:ax[0], cls:'red'}; continue; }
@@ -264,7 +276,7 @@
            correction de « a information » est « information », pas un autre mot. On le dit dans
            l'infobulle plutôt que d'afficher une suggestion vide, qui n'aurait aucun sens. */
         var titre = mk.info ? 'often confused with: ' + esc(mk.sugg) + ' — check which one you mean'
-                  : mk.del ? 'remove — uncountable noun (click to apply)'
+                  : mk.del ? ('remove — ' + (mk.why || 'uncountable noun') + ' (click to apply)')
                            : '→ ' + esc(mk.sugg) + ' (click to apply)';
         html+='<span class="corr '+mk.cls+(mk.info?' info':'')+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'"'
             + (mk.del?' data-del="1"':'') + (mk.info?' data-info="1"':'')

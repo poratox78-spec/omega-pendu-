@@ -26,7 +26,7 @@ moteur) · ⛔ HORS PÉRIMÈTRE ou RÉFUTÉ chiffré.
 | prétérit RÉGULARISÉ (doed→did, bited→bit, goed→went) | 🔴 | **vérifié BRANCHÉ à la batterie** (la question ouverte de 2026-08-03 est résolue) |
 | orthographe britannique | ✅ tolérée | dérivation UK→US pour INTERROGER seulement ; jamais proposer colour→color |
 | phonétique profonde (nife→knife) | ❌ | mur de GÉNÉRATION connu (gold absent des candidats 309 vs 83 mal classés) |
-| **mots collés figés (alot, aswell, infact, incase, atleast, eachother)** | ❌ vérifié | « alot of people » → RIEN ; jamais corrects → candidat 🔴 |
+| mots collés figés (alot, aswell, infact…) | 🔴 LIVRÉ (2026-08-12, `mergedDecide`) | 14 formes ; alright ABSENT (graphie acceptée) ; 0 tir/10 137 ; rappel web 6 |
 
 ## 2. CONTRACTIONS — ⚠️ LE TROU N° 1, jumeau du « n' » français
 
@@ -73,7 +73,7 @@ fautif) et « were + gérondif » (we're).
 | modal + forme fléchie (she can sings, he will came) | 🔴 LIVRÉ (2026-08-12, `baseFormDecide`) | past + 3sg ; gardes : minuscule, pas en tête (inversion), pas après dét/prép (« the can », « on may »), cible ∉ be/modaux (« free will is », would=past AGID de will), forme ∉ bases (« will saw ») |
 | to + forme fléchie (have to reduced) | 🔴 LIVRÉ (2026-08-12) | gouverneur INFINITIVAL fermé adjacent exigé — le to prépositionnel + participe adjectival était 12 des 24 tirs du proto (« leads to reduced activity ») ; PAST seulement ; jamais -ing (« forward to going ») |
 | do/does/did déclaratif + forme fléchie (she did went) | 🔴 LIVRÉ (2026-08-12) | PAST seulement (« did wonders » = pluriel nominal) ; be exclu (« all we did was » = pseudo-clivée) |
-| **comparatif redondant (more better, most easiest)** | ❌ vérifié | liste fermée (more/most + forme déjà -er/-est ou supplétive) → candidat 🔴 |
+| comparatif redondant (more better, most easiest) | 🔴 LIVRÉ (2026-08-12, `doubleCompDecide`) | comparatifs RÉELS de forms_en (2 359/2 397) — « more clever », « most honest » sûrs par CONSTRUCTION (pas un test de suffixe) ; le more/most est supprimé ; 0 tir/10 137 |
 | **pluriel irrégulier + s (childrens, mens)** | ❌ vérifié | ambigu possessif (children's) → candidat 🟠 |
 | accord en nombre dét↔nom | 🟠 | REFUSÉ 2× en rouge (+5 puis +11 FP — nom épithète = fait de langue) ; vit en orange |
 | BE-copule (they is happy) | ⛔ réfuté | sujets nominaux = mur du chunker de GN ; pronoms = rappel 0 |
@@ -85,8 +85,8 @@ fautif) et « were + gérondif » (we're).
 | phénomène | état | note |
 |---|---|---|
 | espace avant , . ; : ! ? · espace manquant après point (majuscule exigée) · doublement , . | 🔴 | plus large que le FR (l'anglais n'espace jamais avant) ; ! ? exclus du doublement (emphase) |
-| **répétition de mot (the the)** | ❌ vérifié | le FR l'a en rouge span 2 ; « had had » légitime → liste blanche → candidat 🔴 |
-| **pronom « i » minuscule** | ❌ vérifié | « yesterday i went » → RIEN ; i isolé = toujours I, clôture absolue → candidat 🔴 |
+| répétition de mot (the the) | 🟠 LIVRÉ (2026-08-12, `repetitionDecide`) | ORANGE, pas rouge comme en FR : les genres court/speech de GUM transcrivent les disfluences verbatim (24 tirs, tous là) — l'oral transcrit est hostile à cette règle ; liste blanche had/that/very/… ; « Duran Duran » exclu (2ᵉ capitalisé) ; rappel web 17 |
+| pronom « i » minuscule | 🔴 LIVRÉ (2026-08-12, `capIDecide`) | « clôture absolue » RÉFUTÉ par la mesure : « i square root of two » (imaginaire ×8), hawaïen, « the i » (journal britannique), troncatures « i- ». Cadre sûr = **i + VERBE/AUX au tagger** + gardes the/romain/i.e./trait d'union → 1 tir/10 137 = vraie faute ; rappel web **194** |
 | **jours/mois minuscules (monday, january)** | ❌ vérifié | convention stricte EN (≠ FR !) ; liste fermée 19 mots → candidat 🟠 (casse = politique) |
 | possessif sans apostrophe (my dads car) | ❌ | dads = pluriel légitime ; il faut le contexte possessif → 🟠 au mieux, à mesurer |
 
@@ -110,10 +110,10 @@ fautif) et « were + gérondif » (we're).
    forms_en 34 064 formes, ambiguïtés levées par dominance de fréquence ≥20× — « went » = past de
    go ET wend). Mesuré : flood 1/15 353 phrases éditées (vraie faute GUM « could wired ») ;
    **JFLEG 5/5 confirmées gold**.
-3. **Répétition de mot** — port du FR (rouge span 2 + liste blanche had had/that that).
-4. **« i » → I** — clôture absolue, dys-pertinent. 🔴 (gardes : i.e., URL, code).
-5. **alot → a lot** + collés figés (aswell, infact, incase, atleast, eachother). 🔴.
-6. **more better / most easiest** — liste fermée. 🔴.
+3. ~~Répétition de mot~~ — **🟠 LIVRÉ** (orange : les transcriptions orales répètent verbatim).
+4. ~~« i » → I~~ — **🔴 LIVRÉ** (cadre i+verbe ; le « clôture absolue » du 1er jet était FAUX).
+5. ~~alot + collés figés~~ — **🔴 LIVRÉ** (14 formes).
+6. ~~more better / most easiest~~ — **🔴 LIVRÉ** (comparatifs réels de forms_en).
 7. **it's → its** (direction inverse) — possessif devant nom. 🔴 à mesurer.
 8. **childrens/mens** (🟠, ambigu possessif) · **jours/mois** (🟠, politique de casse) ·
    **« to » manquant** (🟠, gouverneurs fermés, à mesurer).
