@@ -1474,8 +1474,94 @@ function contractionDecide(lex, T, i, adj){
   return [null, null];
 }
 
+/* ---------- MODAL / TO / DO + FORME FLÉCHIE → BASE (chantier REGLES_EN n°2, 2026-08-12) ----------
+   Trois CLÔTURES DE PARADIGME (le patron gagnant : l'auxiliaire contraint la catégorie) :
+   modal → base (« she can sings », « he will came ») · to infinitival → base (« have to reduced »)
+   · do/does/did déclaratif → base (« she did went », « didn't went »).
+   Discriminant central (né de la lecture des 24 tirs du proto) : la forme visée n'est PAS
+   elle-même une base verbale — exclut d'office « will saw », « to found », « can lay », corrects.
+   Gardes payées une à une : les formes de BE exclues (« all we did was » = pseudo-clivée ;
+   « free will is ») · les modaux exclus comme cible (would = past AGID de will) · to exige un
+   GOUVERNEUR INFINITIVAL fermé adjacent (« leads to reduced activity », « thanks to dedicated
+   people » = to prépositionnel + participe adjectival, 12 des 24 tirs du proto) · to/do : PAST
+   seulement (les -s sont des pluriels nominaux : « did wonders », « to games ») · jamais de -ing
+   (« look forward to going » correct) ni de participe pur (« should gone » = have manquant) ·
+   préposition avant un modal = pas un modal (« knowledge on may subjects » = many) · trigger
+   minuscule et jamais en tête (inversion « Can fishing be fun », prénoms Will/May).
+   MESURÉ : flood 1 / 15 353 phrases éditées (et c'est une vraie faute de GUM : « payments could
+   wired ») · JFLEG 5 propositions / 5 confirmées gold. Données : forms_en.tsv.gz (AGID/kaikki)
+   via buildBaseMap — la page le charge en actif nommé (« verb bases »). */
+var _BF_MODAL = { can: 1, could: 1, will: 1, would: 1, shall: 1, should: 1, may: 1, might: 1, must: 1,
+  cannot: 1, "can't": 1, "won't": 1, "couldn't": 1, "wouldn't": 1, "shouldn't": 1, "mustn't": 1, "shan't": 1, "mightn't": 1 };
+var _BF_DO = { do: 1, does: 1, did: 1, "don't": 1, "doesn't": 1, "didn't": 1 };
+var _BF_ADV = { not: 1, probably: 1, really: 1, just: 1, never: 1, always: 1, often: 1, actually: 1,
+  even: 1, still: 1, also: 1, usually: 1, certainly: 1, definitely: 1, simply: 1, only: 1, sometimes: 1, all: 1 };
+var _BF_PREV = { the: 1, a: 1, an: 1, this: 1, that: 1, these: 1, those: 1, my: 1, your: 1, his: 1,
+  her: 1, its: 1, our: 1, their: 1, no: 1, any: 1, some: 1, of: 1, and: 1, or: 1,
+  on: 1, in: 1, at: 1, by: 1, for: 1, with: 1, from: 1, about: 1, against: 1, between: 1, during: 1, per: 1 };
+var _BF_BE = { be: 1, is: 1, are: 1, was: 1, were: 1, been: 1, being: 1, am: 1 };
+var _BF_GOUV_TO = {};
+'have has had want wants wanted need needs needed going used able unable how try tries tried trying decide decides decided plan plans planned hope hopes hoped wish wishes wished ought refuse refused fail failed tend tends tended like likes liked love loves loved begin began begun start started continue continued learn learned forget forgot remember remembered choose chose chosen expect expected agree agreed promise promised ask asked help helps helped easy hard difficult important possible impossible way order time best'.split(' ').forEach(function(w){ _BF_GOUV_TO[w] = 1; });
+function buildBaseMap(raw, lex){
+  const bases = new Set(), pre = new Map();
+  for(const l of raw.split('\n')){
+    const p = l.split('\t');
+    if(p.length < 3 || p[1] !== 'VERB') continue;
+    const base = p[0];
+    if(!/^[a-z]+$/.test(base)) continue;
+    bases.add(base);
+    for(const fm of p[2].split(',')){
+      const ix = fm.indexOf(':'); if(ix < 0) continue;
+      const forme = fm.slice(0, ix), types = fm.slice(ix + 1);
+      if(!forme || forme === base || !/^[a-z]+$/.test(forme) || /ing$/.test(forme)) continue;
+      let e = pre.get(forme);
+      if(!e){ e = { b: new Set(), past: false, sg: false, part: false }; pre.set(forme, e); }
+      e.b.add(base);
+      for(const t of types.split('|')){ if(t === 'past') e.past = true; else if(t === 'singular') e.sg = true; else if(t === 'participle') e.part = true; }
+    }
+  }
+  const M = new Map();                                       // ne garder que l'utilisable : base UNIQUE ou DOMINANTE, pas une base, pas participe pur
+  for(const [forme, e] of pre){
+    if(bases.has(forme)) continue;
+    if(e.part && !e.past && !e.sg) continue;
+    let cand = [...e.b];
+    if(cand.length > 1){                                     // « went » = past de go ET de wend (AGID) : la FRÉQUENCE lève l'ambiguïté (≥20×, le seuil maison)
+      if(!lex || !lex.FREQ){ continue; }
+      cand.sort(function(a, b){ return (lex.FREQ.get(b) || 0) - (lex.FREQ.get(a) || 0); });
+      const f1 = lex.FREQ.get(cand[0]) || 0, f2 = lex.FREQ.get(cand[1]) || 0;
+      if(!(f1 >= 20 && f1 >= 20 * Math.max(1, f2))) continue;
+    }
+    M.set(forme, { b: cand[0], past: e.past, sg: e.sg });
+  }
+  return M;
+}
+function baseFormDecide(lex, T, i, adj, BM){
+  if(!BM) return [null, null];
+  const v = T[i], vl = v.toLowerCase();
+  if(v !== vl) return [null, null];                          // cible capitalisée = nom propre
+  if(_BF_BE[vl] || _BF_MODAL[vl] || _BF_DO[vl]) return [null, null];
+  const e = BM.get(vl);
+  if(!e) return [null, null];
+  let k = i - 1;
+  while(k > 0 && _BF_ADV[T[k].toLowerCase()] && (!adj || adj.has(k))) k--;
+  if(k < 0 || (adj && !adj.has(k))) return [null, null];     // adjacence RÉELLE trigger→cible (« the watering can, boxes »)
+  const tw = T[k], tl = tw.toLowerCase();
+  if(tw !== tl) return [null, null];                         // « Will/May/Did » capitalisés : prénom, mois, inversion
+  if(k === 0) return [null, null];                           // inversion en tête (« Can fishing be fun ? »)
+  let kind = null;
+  if(_BF_MODAL[tl]) kind = 'modal'; else if(_BF_DO[tl]) kind = 'do'; else if(tl === 'to') kind = 'to';
+  if(!kind) return [null, null];
+  if(kind !== 'to' && _BF_PREV[T[k - 1].toLowerCase()]) return [null, null];   // « the can », « free will », « on may »
+  if(kind === 'to'){
+    if(!_BF_GOUV_TO[T[k - 1].toLowerCase()]) return [null, null];
+    if(adj && !adj.has(k - 1)) return [null, null];
+  }
+  if(kind === 'modal' ? !(e.past || e.sg) : !e.past) return [null, null];      // to/do : PAST seulement
+  return [e.b, 'RED'];
+}
+
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, contractionDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
+               pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
@@ -1666,10 +1752,40 @@ if(typeof require !== 'undefined' && require.main === module){
   for(const [T, i] of CT_NON){ const r = contractionDecide(lex, T, i, null);
     if(r[1]){ ctKo++; console.log('  CONTR FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
   console.log('contractions: %d/%d rappel, %d anomalie(s)', ctOk, CT_OUI.length, ctKo);
+  /* MODAL/TO/DO → BASE — rappel + pièges (chaque garde cassée une fois). */
+  const BM = buildBaseMap(require('zlib').gunzipSync(require('fs').readFileSync(path.join(__dirname, 'forms_en.tsv.gz'))).toString('utf8'), lex);
+  const BF_OUI = [
+    [['she', 'can', 'sings', 'well'], 2, 'sing'],
+    [['he', 'will', 'came', 'tomorrow'], 2, 'come'],
+    [['they', 'could', 'lost', 'it'], 2, 'lose'],
+    [['we', 'have', 'to', 'reduced', 'sulfur'], 3, 'reduce'],
+    [['she', 'did', 'went', 'home'], 2, 'go'],
+    [['she', "didn't", 'went', 'home'], 2, 'go'],
+    [['it', 'will', 'causes', 'heat'], 2, 'cause'],
+    [['you', 'must', 'never', 'went', 'there'], 3, 'go'],
+  ];
+  const BF_NON = [
+    [['the', 'can', 'rusted', 'away'], 2],
+    [['free', 'will', 'is', 'nothing'], 2],
+    [['all', 'we', 'did', 'was', 'fun'], 3],
+    [['he', 'will', 'saw', 'the', 'plank'], 2],
+    [['they', 'plan', 'to', 'found', 'a', 'company'], 3],
+    [['knowledge', 'on', 'may', 'subjects'], 3],
+    [['thanks', 'to', 'dedicated', 'people'], 2],
+    [['it', 'leads', 'to', 'reduced', 'activity'], 3],
+    [['Can', 'fishing', 'be', 'fun'], 1],
+    [['look', 'forward', 'to', 'going', 'home'], 3],
+  ];
+  let bfOk = 0, bfKo = 0;
+  for(const [T, i, att] of BF_OUI){ const r = baseFormDecide(lex, T, i, null, BM);
+    if(r[1] === 'RED' && r[0] === att) bfOk++; else { bfKo++; console.log('  BASE MISS %s[%d] -> %s (attendu %s)', T.join(' '), i, r[0], att); } }
+  for(const [T, i] of BF_NON){ const r = baseFormDecide(lex, T, i, null, BM);
+    if(r[1]){ bfKo++; console.log('  BASE FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
+  console.log('modal/to/do -> base: %d/%d rappel, %d anomalie(s)', bfOk, BF_OUI.length, bfKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0);
-    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies)',
-                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0);
+    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies)',
+                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo);
     if(!ok) process.exit(1);
   }
 }
