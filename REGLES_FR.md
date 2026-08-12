@@ -96,7 +96,7 @@ PÉRIMÈTRE (choix assumé, motivé).
 | espace avant . et , · espace manquant après , · espace double · virgule doublée | 🔴 | appliqués depuis PR#468 |
 | points de suspension → … · guillemets droits → « » | 🟠 | préférence, jamais imposée |
 | espaces françaises avant : ; ! ? | 🟡 | tolérées (pas signalées) — choix : ne pas harceler |
-| parenthèses/guillemets non appariés | ❌ | candidat 🟠 simple |
+| parenthèses/guillemets non appariés | ⛔ RÉFUTÉ chiffré (2026-08-12) | 317 orphelins/14 450 phrases UD CORRECTES (citations multi-phrases, incises fermantes seules, translittérations, énumérations) ; corpus dys : 5 orphelins bruts et **5 aussi dans les golds** → les correcteurs humains n'en ferment aucune, rappel confirmé = 0. Signaler = fatigue pure. La conversion guillemets droits → « » (🟠, gardes pouces/chiffres) existe déjà et suffit |
 | majuscule de phrase | 🟠 | page correcteur seulement |
 
 ## 7. LEXIQUE & USAGE (LT : « Anglicismes », « Pléonasmes », « Répétitions », « Calques », « Style », « Archaïsmes », « Régionalismes », « Marques », « Tours critiqués »)
@@ -126,13 +126,13 @@ PÉRIMÈTRE (choix assumé, motivé).
    fermés, orange, petit volume chacun.
 8. **Compléter la liste des participes à être** (« il a tombé », « ils ont retournés ») — la
    règle existe, la DONNÉE manque ; même diagnostic que les prénoms (PR#460).
-9. **Parenthèses/guillemets non appariés** — signalement simple.
+9. ~~Parenthèses/guillemets non appariés~~ — RÉFUTÉ par la mesure (voir §6) : le non-apparié est presque toujours légitime en français réel, et le gold dys n'en corrige aucun.
 
 **Bilan du chantier 2026-08-12 (items 1-8)** : 1, 2, 3, 5, 7, 8 LIVRÉS (rouge quand le cadre le
 permet), 4 LIVRÉ en orange, 6 REPORTÉ avec chiffre (9 conditionnels corrects floodés sur UD pour
 0 occasion dys). Mesure finale AU MOTEUR : 7 tirs sur 14 450 phrases UD, TOUS étant de vraies
 fautes du corpus (négation orale ×5, « le plus influant », « deux cent salariés ») → FP réel = 0.
-Restant de la liste : item 9 (parenthèses/guillemets non appariés).
+Item 9 RÉFUTÉ chiffré le même jour (317 orphelins légitimes/14 450 UD ; golds dys : 0 fermeture) → la liste 1-9 est CLOSE.
 
 Chaque candidat suit la discipline du dépôt : compter les OCCASIONS dans le corpus dys d'abord,
 mesurer le flood sur UD ensuite, gardes CI des deux sens, et vérité navigateur avant merge.
