@@ -1,12 +1,19 @@
-# RÉFÉRENCEMENT (rapport Search Console de Rem, 2026-08-13) — LA cause racine du rapport :
-# https://www.omegapendu.com/ répondait 200 SANS rediriger (mesuré : redirs=0) → Google voyait
-# DEUX sites complets au même contenu (www + apex) et crawlait toutes les variantes
-# (« Page avec redirection », « Autre page avec balise canonique correcte », budget gaspillé).
-# Les balises canonical limitaient la casse ; la vraie réponse est la redirection 301 :
-# le www est un domaine attaché au même projet Pages, Cloudflare applique ce fichier aux deux hôtes.
-# Le reste du rapport est VOULU ou SAIN (vérifié en ligne le 2026-08-13) :
-#   · zh/ et arbitrage en noindex = délibéré (privé / easter egg) ;
-#   · /dictee.html → 301 /dictee en UN saut (l'« erreur de redirections » GSC du 25/07 ne se
-#     reproduit plus — à revalider dans la console) ;
-#   · les variantes /index.html et .html redirigent déjà proprement (un saut).
-https://www.omegapendu.com/* https://omegapendu.com/:splat 301
+# RÉFÉRENCEMENT — www → apex : la redirection NE PEUT PAS se faire ici (mesuré 2026-08-13).
+#
+# Le commit précédent posait une règle « https://www.omegapendu.com/* → apex » : APRÈS déploiement,
+# le www répondait TOUJOURS 200 sans rediriger, et ce fichier était SERVI tel quel en 200 —
+# preuve que Cloudflare Pages ne l'interprète pas (les sources avec HÔTE ne sont pas supportées
+# dans le _redirects de Pages ; un fichier interprété ne serait pas exposé publiquement).
+#
+# ⇒ LA VRAIE VOIE : une règle de redirection DE ZONE, dans le dashboard Cloudflare (action de Rem) :
+#    Compte Cloudflare → zone omegapendu.com → Rules → Redirect Rules → Create rule :
+#      · When incoming requests match : Hostname equals www.omegapendu.com
+#      · Then : Dynamic redirect, status 301,
+#        expression : concat("https://omegapendu.com", http.request.uri.path)
+#      · Preserve query string : oui
+#    Puis dans Search Console : « Valider la correction » sur les rapports
+#    « Page avec redirection » et « Erreur liée à des redirections » (dictee.html est déjà sain).
+#
+# Contexte (rapport Search Console) : www servait un site COMPLET en double (200, redirs=0) →
+# toutes les variantes crawlées. zh/ et arbitrage en noindex = DÉLIBÉRÉ. Les canonical sont
+# déjà posés partout — ils limitent la casse en attendant la règle de zone.
