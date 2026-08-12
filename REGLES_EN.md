@@ -70,9 +70,9 @@ fautif) et « were + gérondif » (we're).
 | auxiliaire (he are going→is, he have gone→has) | 🔴 | |
 | participe après have (has went→gone) | 🔴 | miroir : sur-régularisation couverte |
 | was/were (pronoms) | 🔴 | we was→were ✓ |
-| **modal + forme fléchie (she can sings, he will came)** | ❌ vérifié | RIEN — or c'est une CLÔTURE DE PARADIGME (modal → base), le patron qui a réussi 5 fois → candidat 🔴 |
-| **to + forme fléchie (to goes, to went)** | ❌ vérifié | même clôture (to infinitif → base) → candidat 🔴 ; garde « two » et le to prépositionnel |
-| **do/does/did DÉCLARATIF + forme fléchie (she did went, she didn't went)** | ❌ vérifié | interroDecide ne couvre que les questions → candidat 🔴 |
+| modal + forme fléchie (she can sings, he will came) | 🔴 LIVRÉ (2026-08-12, `baseFormDecide`) | past + 3sg ; gardes : minuscule, pas en tête (inversion), pas après dét/prép (« the can », « on may »), cible ∉ be/modaux (« free will is », would=past AGID de will), forme ∉ bases (« will saw ») |
+| to + forme fléchie (have to reduced) | 🔴 LIVRÉ (2026-08-12) | gouverneur INFINITIVAL fermé adjacent exigé — le to prépositionnel + participe adjectival était 12 des 24 tirs du proto (« leads to reduced activity ») ; PAST seulement ; jamais -ing (« forward to going ») |
+| do/does/did déclaratif + forme fléchie (she did went) | 🔴 LIVRÉ (2026-08-12) | PAST seulement (« did wonders » = pluriel nominal) ; be exclu (« all we did was » = pseudo-clivée) |
 | **comparatif redondant (more better, most easiest)** | ❌ vérifié | liste fermée (more/most + forme déjà -er/-est ou supplétive) → candidat 🔴 |
 | **pluriel irrégulier + s (childrens, mens)** | ❌ vérifié | ambigu possessif (children's) → candidat 🟠 |
 | accord en nombre dét↔nom | 🟠 | REFUSÉ 2× en rouge (+5 puis +11 FP — nom épithète = fait de langue) ; vit en orange |
@@ -106,8 +106,10 @@ fautif) et « were + gérondif » (we're).
 
 1. ~~Contractions sans apostrophe~~ — **🔴 LIVRÉ le jour même** (§2) : 30 formes rouges + 4
    homographes sous contexte ; les fausses directions (dont→don, youre→your, ive→give) sont mortes.
-2. **Modal / to / do déclaratif + forme fléchie → base** — trois clôtures de paradigme, le patron
-   déjà gagnant 5 fois. 🔴.
+2. ~~Modal / to / do + forme fléchie → base~~ — **🔴 LIVRÉ** (`baseFormDecide`, carte
+   forms_en 34 064 formes, ambiguïtés levées par dominance de fréquence ≥20× — « went » = past de
+   go ET wend). Mesuré : flood 1/15 353 phrases éditées (vraie faute GUM « could wired ») ;
+   **JFLEG 5/5 confirmées gold**.
 3. **Répétition de mot** — port du FR (rouge span 2 + liste blanche had had/that that).
 4. **« i » → I** — clôture absolue, dys-pertinent. 🔴 (gardes : i.e., URL, code).
 5. **alot → a lot** + collés figés (aswell, infact, incase, atleast, eachother). 🔴.

@@ -127,7 +127,7 @@
 <script src="../dictee/corrector_en.js"></script>
 <script>
 (function(){
-  var LEX=null, CONFUS=null, C=window.CorrectorEN;
+  var LEX=null, CONFUS=null, C=window.CorrectorEN;var BASEMAP=null;
   var inEl=document.getElementById('in'), outEl=document.getElementById('out'),
       btn=document.getElementById('check'), clr=document.getElementById('clear'),
       st=document.getElementById('status'), cnt=document.getElementById('count');
@@ -164,7 +164,13 @@
       // le POS-tagger : sans lui, la moitié des règles se taisent (cf. ci-dessus)
       _optionnel('../dictee/pos_hmm_en.json', 'grammar model', function(j){ if(C.setPosModel) C.setPosModel(j); });
       // groupes de confusables : créneau ROUGE + vigilance ORANGE
-      _optionnel('../dictee/confusables_en.json', 'confusable words', function(j){ CONFUS = j; }); })
+      _optionnel('../dictee/confusables_en.json', 'confusable words', function(j){ CONFUS = j; });
+      // bases verbales (modal/to/do + forme fléchie → base) : .gz → texte, actif NOMMÉ comme les autres
+      fetch('../dictee/forms_en.tsv.gz')
+        .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
+        .then(function(st2){ return new Response(st2).text(); })
+        .then(function(txt2){ BASEMAP = C.buildBaseMap(txt2, LEX); })
+        .catch(function(){ _manque.push('verb bases'); _signaler(); }); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
   function analyze(text){
@@ -207,6 +213,10 @@
       // 3 tirs / 15 353 phrases éditées, tous de vraies fautes ; le web (EWT) en porte 119.
       var ct=C.contractionDecide?C.contractionDecide(LEX,toks,i,ADJ):[null,null];
       if(ct[1]){ marks[i]={sugg:ct[0], cls:'red'}; continue; }
+      // MODAL/TO/DO + forme fléchie → BASE — « she can sings » -> sing, « have to reduced » -> reduce.
+      // Flood 1/15 353 phrases éditées (une vraie faute) ; JFLEG 5/5 confirmées gold.
+      var bf=C.baseFormDecide?C.baseFormDecide(LEX,toks,i,ADJ,BASEMAP):[null,null];
+      if(bf[1]){ marks[i]={sugg:bf[0], cls:'red'}; continue; }
       // ACCORD DE L'AUXILIAIRE — « he are going » -> is · « he have gone » -> has. Zéro FP.
       var ax=C.auxAgree?C.auxAgree(LEX,toks,i,ADJ):[null,null];
       if(ax[1]){ marks[i]={sugg:ax[0], cls:'red'}; continue; }
