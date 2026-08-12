@@ -1,0 +1,10 @@
+# Fins de ligne STABLES : les bancs de parité comparent des zones OCTET À OCTET entre
+# app/omega-pendu.html et extension/dys-core.js (imp_probe, parité vocale). Sous Windows,
+# core.autocrlf=true re-checkout en CRLF ce que les patchs écrivent en LF → fausse divergence
+# (vécu 2026-08-12 : imp_probe rouge sur  seul). On fige LF pour tout le texte.
+* text=auto eol=lf
+*.png binary
+*.gz binary
+*.zip binary
+*.woff2 binary
+*.ico binary

@@ -270,8 +270,39 @@ async function main() {
       log('  ' + (echecs.length && echecs[echecs.length - 1].includes(c.txt) ? '✗' : '✓') + ' ' +
           c.txt.padEnd(38) + (got.applique.length ? '→ ' + got.applique.join(' · ') : '(rien)'));
     });
+    /* ── DICTÉE : répétition espacée (chantier ③) — une vraie boucle dans le DOM.
+       On répond FAUX à une dictée réelle : les mots substitués doivent entrer en boîte 1 (vdd_srs,
+       échéance FUTURE), l'encart 🔁 doit apparaître dans le feedback, et le chip #vdd-srs se peupler. */
+    const rs = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      try { localStorage.removeItem('vdd_srs'); } catch (e) {}
+      const btn = document.getElementById('vdd-btn'); if (!btn) return { fatal: 'bouton dictée absent' };
+      btn.click(); await attendre(500);
+      const ans = document.getElementById('vdd-ans'); if (!ans) return { fatal: 'zone dictée absente' };
+      ans.value = 'zzz zzz'; document.getElementById('vdd-check').click(); await attendre(700);
+      let S = {}; try { S = JSON.parse(localStorage.getItem('vdd_srs') || '{}'); } catch (e) {}
+      const mots = Object.keys(S), now = Date.now();
+      const out = { mots: mots,
+        b1: mots.every(w => S[w].b === 1), futur: mots.every(w => S[w].due > now),
+        encart: (document.getElementById('vdd-fb').textContent || '').indexOf('Révision espacée') >= 0,
+        chip: (document.getElementById('vdd-srs').textContent || '').indexOf('en apprentissage') >= 0 };
+      try { localStorage.removeItem('vdd_srs'); } catch (e) {}
+      return out;
+    })()`, awaitPromise: true, returnByValue: true, timeout: 30000 });
+    if (rs.exceptionDetails) throw new Error('dictée : ' + (rs.exceptionDetails.exception || {}).description);
+    const sv = rs.result.value || {};
+    if (sv.fatal) echecs.push('dictée SRS : ' + sv.fatal);
+    else {
+      if (!sv.mots || !sv.mots.length) echecs.push('dictée SRS : répondre faux doit inscrire au moins un mot en révision (vdd_srs vide)');
+      else if (!(sv.b1 && sv.futur)) echecs.push('dictée SRS : les mots inscrits doivent être en boîte 1 avec une échéance future');
+      if (!sv.encart) echecs.push('dictée SRS : l\'encart « 🔁 Révision espacée » doit apparaître dans le feedback');
+      if (!sv.chip) echecs.push('dictée SRS : le chip #vdd-srs doit annoncer les mots en apprentissage');
+      log('  ' + (sv.mots && sv.mots.length && sv.b1 && sv.futur && sv.encart && sv.chip ? '✓' : '✗')
+        + ' dictée : répétition espacée (' + (sv.mots || []).join(' · ') + ')');
+    }
+
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
-    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas vérifiés dans Chrome (page démarrée par elle-même, marques lues dans le DOM).');
+    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + la boucle de révision espacée, vérifiés dans Chrome (marques et localStorage lus dans le DOM).');
   } catch (e) {
     console.error('✗ NAVIGATEUR RÉEL : ' + e.message); code = 1;
   }

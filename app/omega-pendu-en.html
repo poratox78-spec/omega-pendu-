@@ -24121,11 +24121,11 @@ window.addEventListener('DOMContentLoaded', () => {
     align(T,S).forEach(function(op){var k=op[0],t=op[1],s=op[2];
       if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+esc(s)+' ».'});return;}
       ti++;
-      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
-      if(k==='del'){F.push({types:['omission'],msg:'Mot oublié : « '+esc(t)+' ».'});return;}
+      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],mot:t,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
+      if(k==='del'){F.push({types:['omission'],mot:t,msg:'Mot oublié : « '+esc(t)+' ».'});return;}
       var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
       if(idx>=1&&isLiaison(T[idx-1],t,s))ty=['liaison'];   // consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
-      var fact={types:ty,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
+      var fact={types:ty,mot:t,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
       if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
         if(isParticiple(T,idx)){var aux=findAux(T,idx);
           if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+esc(g1[0])+' » ('+nb(g1[1])+')':'');}
@@ -24166,7 +24166,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
    +'<textarea id="vdd-ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="écris la phrase ici"></textarea>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
-   +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
+   +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div id="vdd-srs" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (défini avant) — résout les refs nues même dans les harnais d'extraction (window bouchonné)
@@ -24204,9 +24204,43 @@ window.addEventListener('DOMContentLoaded', () => {
   function _dsModel(text){return SYLCOL?_dsColor(text):esc(text);}
   function say(){if(!cur)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(cur.text);u.lang='fr-FR';u.rate=VR;speechSynthesis.speak(u);}catch(e){}}
   function _speak(t){if(!t)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t).replace(/\s+/g,' ').trim());u.lang='fr-FR';u.rate=VR;speechSynthesis.speak(u);}catch(e){}}   // lecture vocale des explications (dys : entendre l'explication contourne la difficulté de lecture)
+  /* ===== RÉPÉTITION ESPACÉE (chantier ③, 2026-08-12) — Leitner par MOT mal orthographié.
+     Boîte 1 = à revoir dans ~2 min (même session), 2 = 1 jour, 3 = 3 jours, 4 = 7 jours ; une réussite
+     en boîte 4 → appris (retiré). SEULES les SUBSTITUTIONS entrent (mot écrit ≠ mot cible) : une
+     omission ou une majuscule est de l'attention/position, pas de l'orthographe du mot — elles
+     n'entrent pas et BLOQUENT aussi la validation implicite (mot dû omis ≠ mot dû réussi).
+     Fonctions PURES entre marqueurs (extraites et testées par dictee/srs_probe.js) ; la glue
+     localStorage/Date reste dehors. Le tirage garde l'anti-démotivation : 1 pick sur 2 seulement. */
+  /* SRS-PUR-DEBUT */
+  var _SRS_DELAI=[0,2*60e3,24*3600e3,3*24*3600e3,7*24*3600e3],_SRS_LBL=['','2 minutes','1 jour','3 jours','7 jours'];
+  function _srsNext(b,ok){if(!ok)return {b:1,delai:_SRS_DELAI[1]};var nb=(b||0)+1;return nb>4?null:{b:nb,delai:_SRS_DELAI[nb]};}
+  function _srsDue(S,now){return Object.keys(S).filter(function(w){return S[w].due<=now;}).sort(function(a,b){return S[a].due-S[b].due;});}
+  function _srsMotRe(w){return new RegExp("(^|[^A-Za-zÀ-ÿœŒ-])"+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+"($|[^A-Za-zÀ-ÿœŒ-])",'i');}   // l'apostrophe EST une frontière (« l'arbre » contient « arbre ») ; le trait d'union NON (« porte-manteau » ≠ « porte »)
+  function _srsChoisir(pool,S,now){var dus=_srsDue(S,now),i,j;
+    for(i=0;i<dus.length;i++){var re=_srsMotRe(dus[i]),cand=[];
+      for(j=0;j<pool.length;j++)if(re.test(pool[j].text))cand.push(pool[j]);
+      if(cand.length)return {mot:dus[i],phrase:cand[Math.floor(Math.random()*cand.length)]};}
+    return null;}
+  function _srsMaj(S,fautes,omis,texte,now){var vu={},infos=[],w;                    // → {S,infos} ; PUR (état entrant, état sortant)
+    for(w in fautes){if(!/^[a-zà-ÿœ'-]{2,}$/.test(w))continue;var e=S[w]||{b:0,vu:0,ko:0},nx=_srsNext(e.b,false);
+      e.b=nx.b;e.due=now+nx.delai;e.vu++;e.ko++;S[w]=e;vu[w]=1;infos.push({mot:w,ok:false,b:nx.b,lbl:_SRS_LBL[nx.b]});}
+    var dus=_srsDue(S,now);
+    for(var i=0;i<dus.length;i++){w=dus[i];if(vu[w]||omis[w])continue;
+      if(!_srsMotRe(w).test(texte))continue;var nx2=_srsNext(S[w].b,true);
+      if(!nx2){delete S[w];infos.push({mot:w,ok:true,b:5,lbl:null});}
+      else{S[w].b=nx2.b;S[w].due=now+nx2.delai;S[w].vu++;infos.push({mot:w,ok:true,b:nx2.b,lbl:_SRS_LBL[nx2.b]});}}
+    return {S:S,infos:infos};}
+  /* SRS-PUR-FIN */
+  function _srsLoad(){try{return JSON.parse(localStorage.getItem('vdd_srs')||'{}');}catch(e){return {};}}
+  function _srsSave(S){try{var ks=Object.keys(S);if(ks.length>200)ks.sort(function(a,b){return S[a].due-S[b].due;}).slice(0,ks.length-200).forEach(function(k){delete S[k];});localStorage.setItem('vdd_srs',JSON.stringify(S));}catch(e){}}
+  var _srsMot=null;
+  function renderSrs(){var el=$('vdd-srs');if(!el)return;var S=_srsLoad(),dus=_srsDue(S,Date.now()),tot=Object.keys(S).length;
+    if(!tot){el.innerHTML='';return;}
+    el.innerHTML='🔁 <b>Révision espacée</b> : '+(dus.length?dus.length+' mot'+(dus.length>1?'s':'')+' à revoir — '+dus.slice(0,6).map(esc).join(' · '):tot+' mot'+(tot>1?'s':'')+' en apprentissage, rien à revoir maintenant');}
   var _lastFam=null,_lastN=0;
   function pick(){var p=poolFor(diff),fo=null;
-    var rk=(DysProfile&&DysProfile.ranked)?DysProfile.ranked():null;
+    var _sc=(Math.random()<0.5)?_srsChoisir(p,_srsLoad(),Date.now()):null;_srsMot=_sc?_sc.mot:null;   // révision espacée : 1 tirage sur 2 essaie le mot dû le plus ancien
+    if(!_sc){var rk=(DysProfile&&DysProfile.ranked)?DysProfile.ranked():null;
     if(rk&&rk.length){ if(Math.random()<0.55){                                        // 55% ciblé → 45% LIBRE (variété + réussites = anti-démotivation)
         var cand=rk.filter(function(r){return !(r.fam===_lastFam&&_lastN>=2);});       // seuil de variété : jamais 3× la même famille de suite
         if(!cand.length)cand=rk;
@@ -24214,8 +24248,8 @@ window.addEventListener('DOMContentLoaded', () => {
         for(i=0;i<cand.length;i++){acc+=cand[i].score;if(x<=acc){fo=cand[i].fam;break;}} }
     } else if(!DysProfile){ fo=(Math.random()<0.65?focusFam():null); }                 // repli si module absent (ancien comportement)
     if(fo){var pf=p.filter(function(w){return (w.traps||[]).indexOf(fo)>=0;});if(pf.length)p=pf;}
-    _lastN=(fo&&fo===_lastFam)?_lastN+1:(fo?1:0);_lastFam=fo;
-    cur=p[Math.floor(Math.random()*p.length)];answered=false;$('vdd-ans').value='';$('vdd-fb').innerHTML='';$('vdd-ans').focus();say();}
+    _lastN=(fo&&fo===_lastFam)?_lastN+1:(fo?1:0);_lastFam=fo;}
+    cur=_sc?_sc.phrase:p[Math.floor(Math.random()*p.length)];answered=false;$('vdd-ans').value='';$('vdd-fb').innerHTML='';$('vdd-ans').focus();say();}
   function check(){if(!cur||answered)return;var att=$('vdd-ans').value;if(!att.trim())return;
     var F=diagnoseSentence(cur.text,att,cur.fam);answered=true;nT++;var ok=F.length===0;if(ok)nG++;HIST.n++;if(ok)HIST.ok++;try{localStorage.setItem('vdd_hist',JSON.stringify(HIST));}catch(e){}
     var html=ok?'<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6"><b>✓ Phrase correcte !</b></div>'
@@ -24226,14 +24260,20 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!ok)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase correcte : <span class="vdd-truth">'+_dsModel(cur.text)+'</span></div>';
     F.forEach(function(x){x.types.forEach(function(t){if(t==='homophone_gram'||t==='homophone_lex')t='homophone';if(ERRFAM.indexOf(t)>=0)PROF[t]=(PROF[t]||0)+1;});});try{localStorage.setItem('vdd_profile',JSON.stringify(PROF));}catch(e){}
     if(DysProfile){var _es={};F.forEach(function(x){(x.types||[]).forEach(function(t){_es[t]=1;});});var _ts={};(cur.traps||[]).forEach(function(t){_ts[t]=1;});Object.keys(_es).forEach(function(t){_ts[t]=1;});Object.keys(_ts).forEach(function(t){DysProfile.rec(t,_es[t]?1:0,'dictee');});}  // profil unifié : att par trap testée, err par famille fautive (taux supervisé)
+    var _sf={},_so={};F.forEach(function(x){if(!x.mot)return;var w=String(x.mot).toLowerCase();
+      if(x.types.indexOf('omission')>=0||x.types.indexOf('majuscule')>=0)_so[w]=1;else _sf[w]=1;});
+    var _sr=_srsMaj(_srsLoad(),_sf,_so,cur.text,Date.now());_srsSave(_sr.S);
+    if(_sr.infos.length)html+='<div class="vdd-fact" style="border-left:5px solid #7a5c00;background:#fdf6e3">🔁 <b>Révision espacée</b><br>'+_sr.infos.map(function(r){
+      return r.ok?(r.b===5?'« '+esc(r.mot)+' » ✓ — <b>appris !</b> (4 réussites espacées)':'« '+esc(r.mot)+' » ✓ — boîte '+r.b+', à revoir dans '+r.lbl)
+        :'« '+esc(r.mot)+' » ✗ — retour en boîte 1, à revoir dans '+r.lbl;}).join('<br>')+'</div>';
     $('vdd-fb').innerHTML='<button type="button" class="vdd-speak" title="Écouter l\'explication" style="font:inherit;font-size:13px;background:#eef5fb;border:1px solid #cfe0f0;color:#22506e;border-radius:7px;padding:3px 10px;cursor:pointer;margin-bottom:8px;font-weight:600">🔊 Écouter</button>'+html;   // TTS : lire le retour à voix haute
     (function(){var b=$('vdd-fb').querySelector('.vdd-speak');if(b)b.onclick=function(){var t='',n=b.nextSibling;while(n){t+=(n.textContent||'')+' ';n=n.nextSibling;}_speak(t);};})();
-    $('vdd-score').textContent=nG+' / '+nT;renderProf();renderHist();renderUProf();}
+    $('vdd-score').textContent=nG+' / '+nT;renderProf();renderHist();renderUProf();renderSrs();}
   btn.onclick=function(){ov.classList.add('on');if(!cur)pick();else $('vdd-ans').focus();renderUProf();};
   $('vdd-x').onclick=function(){ov.classList.remove('on');};
   ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('on');});
   $('vdd-diff').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var ch=$('vdd-diff').children;for(var i=0;i<ch.length;i++)ch[i].classList.remove('on');b.classList.add('on');diff=b.getAttribute('data-d');pick();});
-  $('vdd-say').onclick=say;$('vdd-again').onclick=say;$('vdd-check').onclick=check;$('vdd-next').onclick=pick;$('vdd-reset').onclick=function(e){e.preventDefault();PROF={};try{localStorage.removeItem('vdd_profile');}catch(_){}if(DysProfile)DysProfile.reset();renderProf();renderUProf();};renderProf();var _li=$('vdd-lisible');if(_li){_li.checked=localStorage.getItem('vdd_lisible')==='1';if(_li.checked)$('vdd-card').classList.add('lisible');_li.onchange=function(){$('vdd-card').classList.toggle('lisible',_li.checked);try{localStorage.setItem('vdd_lisible',_li.checked?'1':'0');}catch(e){}};}var _sy=$('vdd-syl');if(_sy){_sy.checked=SYLCOL;_sy.onchange=function(){SYLCOL=_sy.checked;try{localStorage.setItem('vdd_syl',SYLCOL?'1':'0');}catch(e){}var tr=$('vdd-fb')&&$('vdd-fb').querySelector('.vdd-truth');if(tr&&cur)tr.innerHTML=_dsModel(cur.text);};}var _rt=$('vdd-rate');if(_rt){_rt.value=VR;_rt.oninput=function(){VR=parseFloat(_rt.value)||0.85;try{localStorage.setItem('vdd_rate',String(VR));}catch(e){}};}renderHist();renderUProf();
+  $('vdd-say').onclick=say;$('vdd-again').onclick=say;$('vdd-check').onclick=check;$('vdd-next').onclick=pick;$('vdd-reset').onclick=function(e){e.preventDefault();PROF={};try{localStorage.removeItem('vdd_profile');localStorage.removeItem('vdd_srs');}catch(_){}if(DysProfile)DysProfile.reset();renderProf();renderUProf();renderSrs();};renderProf();var _li=$('vdd-lisible');if(_li){_li.checked=localStorage.getItem('vdd_lisible')==='1';if(_li.checked)$('vdd-card').classList.add('lisible');_li.onchange=function(){$('vdd-card').classList.toggle('lisible',_li.checked);try{localStorage.setItem('vdd_lisible',_li.checked?'1':'0');}catch(e){}};}var _sy=$('vdd-syl');if(_sy){_sy.checked=SYLCOL;_sy.onchange=function(){SYLCOL=_sy.checked;try{localStorage.setItem('vdd_syl',SYLCOL?'1':'0');}catch(e){}var tr=$('vdd-fb')&&$('vdd-fb').querySelector('.vdd-truth');if(tr&&cur)tr.innerHTML=_dsModel(cur.text);};}var _rt=$('vdd-rate');if(_rt){_rt.value=VR;_rt.oninput=function(){VR=parseFloat(_rt.value)||0.85;try{localStorage.setItem('vdd_rate',String(VR));}catch(e){}};}renderHist();renderUProf();renderSrs();
   $('vdd-ans').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();answered?pick():check();}});
 
   // ===== CORRECTEUR DYS (semi-direct) — port de dictee/correcteur_probe.py, réutilise le levier ci-dessus =====
