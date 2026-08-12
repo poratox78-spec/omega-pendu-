@@ -1432,8 +1432,50 @@ async function loadPosModel(url){
   return setPosModel(JSON.parse(await new Response(ds).text()));
 }
 
+/* ---------- CONTRACTIONS SANS APOSTROPHE (chantier REGLES_EN n°1, 2026-08-12) ----------
+   L'apostrophe est INAUDIBLE : le dys écrit ce qu'il entend — « dont », « im », « its », « cant ».
+   AVANT cette règle, le moteur rendait le SILENCE (theyre, im, thats, arent : kaikki contient les
+   graphies eye-dialect, le speller les croit correctes) ou une FAUSSE DIRECTION (dont→don,
+   youre→your, ive→give, isnt→ist). Mesuré (proto, chaque tir LU) : 3 tirs sur 15 353 phrases
+   ÉDITÉES (PUD+GUM), TOUS de vraies fautes (youll ×2, « Theres [sic] » — le corpus se marque
+   lui-même) ; rappel indicatif EWT (web) : 119, échantillon relu = 100 % de vraies fautes.
+   Deux régimes :
+   · ROUGE DIRECT : formes JAMAIS correctes en anglais édité (non-mots ET eye-dialect) ;
+   · CONTEXTE ÉTROIT : homographes réels — cant/wont + verbe BASE (« thieves' cant is » exclu par
+     la liste d'aux fléchis), its + {a an the been being not} (« its very nature », « its loading
+     environment » ont tué very et -ing au proto), lets en TÊTE + verbe (« she lets him play »).
+   EXCLUS v1, documenté REGLES_EN.md : were(=we're), hes, shes, id, ill, shell, hell, shed, wed —
+   homographes massifs, le contexte sûr n'existe pas encore. URL protégées par urlMask EN AMONT. */
+var _CONTR_RED = { isnt: "isn't", wasnt: "wasn't", werent: "weren't", dont: "don't", doesnt: "doesn't",
+  didnt: "didn't", hasnt: "hasn't", havent: "haven't", hadnt: "hadn't", couldnt: "couldn't",
+  wouldnt: "wouldn't", shouldnt: "shouldn't", mustnt: "mustn't", neednt: "needn't", arent: "aren't",
+  ive: "I've", im: "I'm", youre: "you're", youve: "you've", theyre: "they're", theyve: "they've",
+  weve: "we've", youll: "you'll", theyll: "they'll", youd: "you'd",
+  thats: "that's", theres: "there's", heres: "here's", whats: "what's", whos: "who's" };
+var _CONTR_AUXNEXT = { is: 1, are: 1, was: 1, were: 1, has: 1, have: 1, had: 1, does: 1, did: 1, be: 1, been: 1 };
+var _CONTR_ITSNEXT = { a: 1, an: 1, the: 1, been: 1, being: 1, not: 1 };
+function contractionDecide(lex, T, i, adj){
+  const w = T[i], lw = w.toLowerCase();
+  if(w === w.toUpperCase() && w.length > 1) return [null, null];         // sigles : IM, DONT (acronymes)
+  if(lw in _CONTR_RED){
+    if(lw === 'im' && w === 'Im' && i + 1 < T.length && /^[A-Z]/.test(T[i + 1])) return [null, null];   // « Im Yoon-ah » (patronyme coréen)
+    return [_keepCaseEn(w, _CONTR_RED[lw]), 'RED'];
+  }
+  const nx = (i + 1 < T.length && (!adj || adj.has(i))) ? T[i + 1].toLowerCase() : null;
+  if(lw === 'cant' || lw === 'wont'){
+    if(nx && nx !== 'to' && posOf(lex, nx).has('VERB') && !_CONTR_AUXNEXT[nx]) return [_keepCaseEn(w, lw === 'cant' ? "can't" : "won't"), 'RED'];   // « he is wont TO argue » : l'archaïsme vit pile sur « to » (que kaikki croit verbe)
+    return [null, null];
+  }
+  if(lw === 'its') return (nx && _CONTR_ITSNEXT[nx]) ? [_keepCaseEn(w, "it's"), 'RED'] : [null, null];
+  if(lw === 'lets'){
+    if(i === 0 && nx && posOf(lex, nx).has('VERB') && !_CONTR_AUXNEXT[nx]) return [_keepCaseEn(w, "let's"), 'RED'];
+    return [null, null];
+  }
+  return [null, null];
+}
+
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
+               pastPartDecide, buildPastPart, contractionDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
@@ -1591,10 +1633,43 @@ if(typeof require !== 'undefined' && require.main === module){
     for(let i = 1; i < t.length; i++) if(t[i].cs < t[i - 1].ce){
       tyKo++; console.log('  TYPO PLAGES QUI SE CHEVAUCHENT : %s   | %s', t[i - 1].from + ' / ' + t[i].from, txt); } }
   console.log('typographie: %d/%d corrections, %d anomalie(s)', tyOk, TY_OUI.length, tyKo);
+  /* CONTRACTIONS — rappel ET pièges (les deux sens, garde vérifiée en la cassant au proto :
+     sans la garde -ing, « its loading environment » tirait ; sans la garde aux, « cant is » tirait). */
+  const CT_OUI = [
+    [['dont', 'worry', 'about', 'it'], 0, "don't"],
+    [['Im', 'going', 'home'], 0, "I'm"],
+    [['ive', 'seen', 'it'], 0, "I've"],
+    [['isnt', 'it', 'lovely'], 0, "isn't"],
+    [['theyre', 'already', 'here'], 0, "they're"],
+    [['thats', 'the', 'choice'], 0, "that's"],
+    [['youre', 'very', 'kind'], 0, "you're"],
+    [['I', 'cant', 'go', 'tonight'], 1, "can't"],
+    [['he', 'wont', 'listen'], 1, "won't"],
+    [['its', 'not', 'far'], 0, "it's"],
+    [['its', 'the', 'best'], 0, "it's"],
+    [['Lets', 'go', 'now'], 0, "Let's"],
+  ];
+  const CT_NON = [
+    [['the', 'dog', 'wagged', 'its', 'tail'], 3],                     // possessif légitime
+    [['its', 'meaning', 'is', 'unknown'], 0],                         // possessif + nom
+    [['its', 'very', 'nature'], 0],                                   // very a tué la liste large au proto
+    [['its', 'loading', 'environment'], 0],                           // participe-adjectif (-ing tué au proto)
+    [['the', 'thieves', 'cant', 'is', 'a', 'jargon'], 2],             // cant nom + aux fléchi
+    [['he', 'is', 'wont', 'to', 'argue'], 2],                         // wont adjectif (archaïque)
+    [['she', 'lets', 'him', 'play'], 1],                              // lets = 3sg de let (pas en tête)
+    [['Im', 'Yoon', 'ah'], 0],                                        // patronyme coréen (capitale derrière)
+    [['IM', 'me', 'later'], 0],                                       // sigle
+  ];
+  let ctOk = 0, ctKo = 0;
+  for(const [T, i, att] of CT_OUI){ const r = contractionDecide(lex, T, i, null);
+    if(r[1] === 'RED' && r[0] === att) ctOk++; else { ctKo++; console.log('  CONTR MISS %s[%d] -> %s (attendu %s)', T.join(' '), i, r[0], att); } }
+  for(const [T, i] of CT_NON){ const r = contractionDecide(lex, T, i, null);
+    if(r[1]){ ctKo++; console.log('  CONTR FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
+  console.log('contractions: %d/%d rappel, %d anomalie(s)', ctOk, CT_OUI.length, ctKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0);
-    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies)',
-                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0);
+    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies)',
+                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo);
     if(!ok) process.exit(1);
   }
 }
