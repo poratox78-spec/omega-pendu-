@@ -92,6 +92,7 @@ echo "── NAVIGATEUR RÉEL ──"
 # navigateur utilisé par l'utilisateur ». Tous les autres bancs REPRODUISENT le démarrage de l'app
 # sous Node ; celui-ci l'OBSERVE : Chrome ouvre la page, elle se démarre seule, on lit les marques
 # posées dans le DOM. C'est le seul banc qui aurait vu que le moteur livré était à moitié chargé.
+run "répétition espacée (planificateur Leitner, bloc pur du monolithe)" node dictee/srs_probe.js
 run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
 
 echo "── LIVRAISON ──"

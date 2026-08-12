@@ -33,6 +33,8 @@ jobs:
       # tous les chiffres le sont sans que rien ne le signale (vécu : le moteur LIVRÉ ne chargeait
       # que le speller, donc la grammaire du nombre était muette). Ici Chrome ouvre la page, elle se
       # démarre elle-même, et on lit ce que l'utilisateur verrait.
+      - name: Répétition espacée — planificateur Leitner (bloc pur du monolithe)
+        run: node dictee/srs_probe.js
       - name: Navigateur RÉEL — Chrome pilote la page (CDP, zéro dépendance)
         run: node dictee/navigateur_probe.js --check
       - name: Boucle descendante (apprend le lexique de genre)
