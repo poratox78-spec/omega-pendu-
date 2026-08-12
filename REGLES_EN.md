@@ -57,7 +57,7 @@ fautif) et « were + gérondif » (we're).
 | phénomène | état | note |
 |---|---|---|
 | a/an · its/it's · their/there/they're · then/than · to/too/two · was/were · where/were · we're · weather/whether · your/you're · loose/lose · should/could/would of→have · who's/whose · lead/led · past/passed · advice/advise · breath/breathe · chose/choose · accept/except · affect/effect(🟠) | 🔴 | 49/49 cas gardés CI ; décidé par le TAGGER, pas le lexique |
-| it's → its (direction inverse) | ❌ vérifié | « wagged it's tail » → RIEN ; possessif devant nom = décidable → candidat 🔴 |
+| it's → its (direction inverse) | ⛔ REPORTÉ chiffré (2026-08-12) | le cadre SÛR (it's+NOM+VERBE fini) a un rappel mesuré NUL (0 sur 22 681 phrases réelles) ; la vraie faute vit en position OBJET (« wagged it's tail »), indiscernable des complétives (« said it's time ») |
 | confusables par créneau (council/counsel…) | 🔴 | 20 mots (lectures NOM/ADJ seules) ; 68 groupes = sens pur, HORS D'ATTEINTE en rouge |
 | confusables indécidables (witch/which) | 🟠 info | liste curée 109 groupes, membre rare seulement (flood 2,07 % = périmètre) |
 
@@ -74,11 +74,11 @@ fautif) et « were + gérondif » (we're).
 | to + forme fléchie (have to reduced) | 🔴 LIVRÉ (2026-08-12) | gouverneur INFINITIVAL fermé adjacent exigé — le to prépositionnel + participe adjectival était 12 des 24 tirs du proto (« leads to reduced activity ») ; PAST seulement ; jamais -ing (« forward to going ») |
 | do/does/did déclaratif + forme fléchie (she did went) | 🔴 LIVRÉ (2026-08-12) | PAST seulement (« did wonders » = pluriel nominal) ; be exclu (« all we did was » = pseudo-clivée) |
 | comparatif redondant (more better, most easiest) | 🔴 LIVRÉ (2026-08-12, `doubleCompDecide`) | comparatifs RÉELS de forms_en (2 359/2 397) — « more clever », « most honest » sûrs par CONSTRUCTION (pas un test de suffixe) ; le more/most est supprimé ; 0 tir/10 137 |
-| **pluriel irrégulier + s (childrens, mens)** | ❌ vérifié | ambigu possessif (children's) → candidat 🟠 |
+| pluriel irrégulier + s (childrens, mens) | 🟠 LIVRÉ (2026-08-12, `irregPluralDecide`) | 10 formes ; « mens rea » (latin juridique) exclu ; l'infobulle mentionne le possessif (children's) ; 0 tir/10 137, 1 vraie faute web |
 | accord en nombre dét↔nom | 🟠 | REFUSÉ 2× en rouge (+5 puis +11 FP — nom épithète = fait de langue) ; vit en orange |
 | BE-copule (they is happy) | ⛔ réfuté | sujets nominaux = mur du chunker de GN ; pronoms = rappel 0 |
 | accord sujet nominal (the boys goes) | ⛔ réfuté 3× | il faut savoir où FINIT le GN ; prochaine tentative = chunker d'abord |
-| manquant « to » (I want go home) | ❌ | liste de gouverneurs fermable (want/need/plan/decide/hope) → candidat 🟠, à mesurer |
+| manquant « to » (I want go home) | ⛔ REPORTÉ chiffré (2026-08-12) | les 3 seuls tirs réels étaient tous MAUVAIS : « the Court need reach » (need SEMI-MODAL juridique correct), « wanted win in 48 hours » (win = typo de within → fausse direction), « want want » (répétition). 0 vrai positif sur 22 681 phrases |
 
 ## 5. TYPOGRAPHIE / PONCTUATION / CASSE
 
@@ -87,7 +87,7 @@ fautif) et « were + gérondif » (we're).
 | espace avant , . ; : ! ? · espace manquant après point (majuscule exigée) · doublement , . | 🔴 | plus large que le FR (l'anglais n'espace jamais avant) ; ! ? exclus du doublement (emphase) |
 | répétition de mot (the the) | 🟠 LIVRÉ (2026-08-12, `repetitionDecide`) | ORANGE, pas rouge comme en FR : les genres court/speech de GUM transcrivent les disfluences verbatim (24 tirs, tous là) — l'oral transcrit est hostile à cette règle ; liste blanche had/that/very/… ; « Duran Duran » exclu (2ᵉ capitalisé) ; rappel web 17 |
 | pronom « i » minuscule | 🔴 LIVRÉ (2026-08-12, `capIDecide`) | « clôture absolue » RÉFUTÉ par la mesure : « i square root of two » (imaginaire ×8), hawaïen, « the i » (journal britannique), troncatures « i- ». Cadre sûr = **i + VERBE/AUX au tagger** + gardes the/romain/i.e./trait d'union → 1 tir/10 137 = vraie faute ; rappel web **194** |
-| **jours/mois minuscules (monday, january)** | ❌ vérifié | convention stricte EN (≠ FR !) ; liste fermée 19 mots → candidat 🟠 (casse = politique) |
+| jours/mois minuscules (monday, january) | 🟠 LIVRÉ (2026-08-12, `calendarCapDecide`) | 16 mots — may/march/august EXCLUS (modal, marche, adjectif auguste) ; 1 tir/10 137 = vraie anomalie ; rappel web 10 |
 | possessif sans apostrophe (my dads car) | ❌ | dads = pluriel légitime ; il faut le contexte possessif → 🟠 au mieux, à mesurer |
 
 ## 6. CE QU'ON A DÉCIDÉ / RÉFUTÉ (ne pas rejouer)
