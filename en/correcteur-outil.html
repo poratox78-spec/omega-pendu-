@@ -203,6 +203,10 @@
       // ARTICLE devant un INDÉNOMBRABLE — « a information ». Zéro FP mesuré.
       var am=C.articleMassDecide?C.articleMassDecide(LEX,toks,i,ADJ,HYP):[null,null];
       if(am[1]){ marks[i]={sugg:'', cls:'red', del:true}; continue; }
+      // CONTRACTIONS SANS APOSTROPHE — « dont » -> don't, « Im » -> I'm, « its not » -> it's not.
+      // 3 tirs / 15 353 phrases éditées, tous de vraies fautes ; le web (EWT) en porte 119.
+      var ct=C.contractionDecide?C.contractionDecide(LEX,toks,i,ADJ):[null,null];
+      if(ct[1]){ marks[i]={sugg:ct[0], cls:'red'}; continue; }
       // ACCORD DE L'AUXILIAIRE — « he are going » -> is · « he have gone » -> has. Zéro FP.
       var ax=C.auxAgree?C.auxAgree(LEX,toks,i,ADJ):[null,null];
       if(ax[1]){ marks[i]={sugg:ax[0], cls:'red'}; continue; }
