@@ -1560,8 +1560,83 @@ function baseFormDecide(lex, T, i, adj, BM){
   return [e.b, 'RED'];
 }
 
+/* ---------- REGLES_EN ③④⑤⑥ (2026-08-12) — quatre règles mesurées d'un bloc ----------
+   ③ RÉPÉTITION DE MOT (the the) — ORANGE, pas rouge comme en FR : les genres court/speech de GUM
+     transcrivent les disfluences verbatim (« the the appellants », « we we don't ») → 24 tirs sur
+     10 137 phrases éditées, tous dans ces genres. L'oral transcrit est structurellement hostile ;
+     on signale, on ne tranche pas. Rappel web (EWT) : 17.
+   ④ « i » → I — cadre SÛR : i + VERBE/AUX au tagger (« i think », « i am »). Le naïf était RÉFUTÉ
+     par la mesure : i mathématique (« i square root of two » ×8), hawaïen, troncatures orales
+     « i- ». Après cadre + garde « the i » (LE JOURNAL britannique *i*) : 1 tir / 10 137 = vraie
+     faute. Rappel web : 194. ROUGE.
+   ⑤ MOTS COLLÉS FIGÉS (alot, aswell, infact…) — jamais corrects. 0 tir / 10 137. ROUGE.
+   ⑥ DOUBLE COMPARATIF (more better, most easiest) — comparatifs RÉELS de forms_en (2 359/2 397,
+     donc « more clever » et « most honest » sûrs par construction). 0 tir / 10 137. ROUGE (le
+     more/most est SUPPRIMÉ). */
+var _REP_OK = { had: 1, that: 1, very: 1, really: 1, so: 1, no: 1, many: 1, long: 1, far: 1, bye: 1, blah: 1, is: 1, do: 1 };
+function repetitionDecide(lex, T, i, adj, hyph){
+  if(i < 1) return [null, null];
+  const a = T[i - 1].toLowerCase(), b = T[i].toLowerCase();
+  if(a !== b || a.length < 2) return [null, null];
+  if(adj && !adj.has(i - 1)) return [null, null];                      // virgule/point entre = pas une répétition
+  if(hyph && hyph.has(i)) return [null, null];                         // bye-bye, so-so
+  if(_REP_OK[a]) return [null, null];
+  if(/^[A-Z]/.test(T[i])) return [null, null];                         // Duran Duran, New York New York
+  return ['', 'DEL'];                                                  // orange : supprimer le doublon (proposé, jamais imposé)
+}
+var _CAPI_ROM = { part: 1, section: 1, chapter: 1, war: 1, phase: 1, type: 1, class: 1, stage: 1,
+  appendix: 1, article: 1, item: 1, level: 1, volume: 1, book: 1, act: 1, scene: 1, title: 1, schedule: 1, the: 1 };
+function capIDecide(lex, T, i, adj, hyph){
+  if(T[i] !== 'i' || i + 1 >= T.length) return [null, null];
+  if(T[i + 1].toLowerCase() === 'e') return [null, null];              // i.e.
+  if(i > 0 && _CAPI_ROM[T[i - 1].toLowerCase()]) return [null, null];  // chiffre romain (« part i ») + « the i » (le journal)
+  if(hyph && (hyph.has(i) || hyph.has(i + 1))) return [null, null];    // « i- » troncature orale
+  if(adj && !adj.has(i)) return [null, null];
+  const nx = ctxPos(T, i + 1);                                         // cadre : i + VERBE/AUX — tue le i mathématique et les citations étrangères
+  if(nx !== 'VERB' && nx !== 'AUX') return [null, null];
+  return ['I', 'RED'];
+}
+var _MERGED = { alot: 'a lot', aswell: 'as well', infact: 'in fact', incase: 'in case',
+  atleast: 'at least', eachother: 'each other', infront: 'in front', alittle: 'a little',
+  abit: 'a bit', aslong: 'as long', inspite: 'in spite', upto: 'up to', ontop: 'on top',
+  nevermind: 'never mind' };                                           // alright ABSENT : graphie acceptée
+function mergedDecide(lex, T, i, adj){
+  const w = T[i], lw = w.toLowerCase();
+  const c = _MERGED[lw];
+  if(!c) return [null, null];
+  if(w === w.toUpperCase() && w.length > 1) return [null, null];       // sigles
+  if(w !== lw && i > 0) return [null, null];                           // « Alot » (toponyme) hors tête de phrase
+  return [_keepCaseEn(w, c), 'RED'];
+}
+var _COMP_SET = null, _SUP_SET = null;
+function buildCompSets(raw){
+  _COMP_SET = new Set(); _SUP_SET = new Set();
+  for(const l of raw.split('\n')){
+    const p = l.split('\t');
+    if(p.length < 3 || (p[1] !== 'ADJ' && p[1] !== 'ADV')) continue;
+    for(const fm of p[2].split(',')){
+      const ix = fm.indexOf(':'); if(ix < 0) continue;
+      const forme = fm.slice(0, ix), types = fm.slice(ix + 1);
+      if(!/^[a-z]+$/.test(forme)) continue;
+      if(types.indexOf('comparative') >= 0) _COMP_SET.add(forme);
+      if(types.indexOf('superlative') >= 0) _SUP_SET.add(forme);
+    }
+  }
+  return { comp: _COMP_SET.size, sup: _SUP_SET.size };
+}
+function doubleCompDecide(lex, T, i, adj){
+  if(!_COMP_SET) return [null, null];
+  const lw = T[i].toLowerCase();
+  if(lw !== 'more' && lw !== 'most') return [null, null];
+  if(i + 1 >= T.length) return [null, null];
+  if(adj && !adj.has(i)) return [null, null];
+  const nx = T[i + 1].toLowerCase();
+  if(lw === 'more' ? !_COMP_SET.has(nx) : !_SUP_SET.has(nx)) return [null, null];
+  return ['', 'DEL-RED'];                                              // supprimer more/most (« more better » → « better »)
+}
+
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
+               pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, repetitionDecide, capIDecide, mergedDecide, buildCompSets, doubleCompDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
@@ -1782,10 +1857,42 @@ if(typeof require !== 'undefined' && require.main === module){
   for(const [T, i] of BF_NON){ const r = baseFormDecide(lex, T, i, null, BM);
     if(r[1]){ bfKo++; console.log('  BASE FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
   console.log('modal/to/do -> base: %d/%d rappel, %d anomalie(s)', bfOk, BF_OUI.length, bfKo);
+  /* REGLES_EN ③④⑤⑥ — rappel + pièges. */
+  buildCompSets(require('zlib').gunzipSync(require('fs').readFileSync(path.join(__dirname, 'forms_en.tsv.gz'))).toString('utf8'));
+  const Q_OUI = [
+    ['rep', ['I', 'saw', 'the', 'the', 'dog'], 3, ''],
+    ['capi', ['yesterday', 'i', 'went', 'home'], 1, 'I'],
+    ['capi', ['i', 'think', 'so'], 0, 'I'],
+    ['merged', ['alot', 'of', 'people'], 0, 'a lot'],
+    ['merged', ['we', 'went', 'aswell'], 2, 'as well'],
+    ['merged', ['infact', 'it', 'works'], 0, 'in fact'],
+    ['dbl', ['this', 'is', 'more', 'better'], 2, ''],
+    ['dbl', ['the', 'most', 'easiest', 'test'], 1, ''],
+  ];
+  const Q_NON = [
+    ['rep', ['he', 'had', 'had', 'enough'], 2],
+    ['rep', ['it', 'was', 'very', 'very', 'good'], 3],
+    ['rep', ['visit', 'Duran', 'Duran', 'tonight'], 2],
+    ['capi', ['the', 'i', 'reporting', 'news'], 1],
+    ['capi', ['part', 'i', 'was', 'long'], 1],
+    ['capi', ['i', 'e', 'the', 'rest'], 0],
+    ['merged', ['it', 'is', 'alright'], 2],
+    ['dbl', ['she', 'is', 'more', 'clever'], 2],
+    ['dbl', ['the', 'most', 'honest', 'people'], 1],
+    ['dbl', ['the', 'more', 'the', 'better'], 1],
+  ];
+  const QFN = { rep: (T, i) => repetitionDecide(lex, T, i, null, null), capi: (T, i) => capIDecide(lex, T, i, null, null),
+    merged: (T, i) => mergedDecide(lex, T, i, null), dbl: (T, i) => doubleCompDecide(lex, T, i, null) };
+  let qOk = 0, qKo = 0;
+  for(const [k, T, i, att] of Q_OUI){ const r = QFN[k](T, i);
+    if(r[1] && r[0] === att) qOk++; else { qKo++; console.log('  Q MISS [%s] %s[%d] -> %s (attendu %s)', k, T.join(' '), i, r[0], att); } }
+  for(const [k, T, i] of Q_NON){ const r = QFN[k](T, i);
+    if(r[1]){ qKo++; console.log('  Q FAUX POSITIF [%s] %s[%d] -> %s/%s', k, T.join(' '), i, r[0], r[1]); } }
+  console.log('règles ③④⑤⑥: %d/%d rappel, %d anomalie(s)', qOk, Q_OUI.length, qKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0);
-    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies)',
-                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0);
+    console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies), q3456 %d/%d (%d anomalies)',
+                ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo, qOk, Q_OUI.length, qKo);
     if(!ok) process.exit(1);
   }
 }
