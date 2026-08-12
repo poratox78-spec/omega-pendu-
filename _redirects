@@ -5,7 +5,13 @@
 # preuve que Cloudflare Pages ne l'interprète pas (les sources avec HÔTE ne sont pas supportées
 # dans le _redirects de Pages ; un fichier interprété ne serait pas exposé publiquement).
 #
-# ⇒ LA VRAIE VOIE : une règle de redirection DE ZONE, dans le dashboard Cloudflare (action de Rem) :
+# ✅ FAIT le 2026-08-13 (via le Chrome de Rem, à sa demande) ET VÉRIFIÉ EN LIGNE : la règle de zone
+# existe (« Rediriger de WWW vers la racine », wildcard https://www.omegapendu.com/* →
+# https://omegapendu.com/${1}, 301, query préservée). Mesuré après propagation : /, /en/, /en/?x=1,
+# /pendable → 301 vers l'apex en UN saut. Reste à Rem : Search Console → rapport « Page avec
+# redirection » → « Valider la correction » (idem « Erreur liée à des redirections »).
+#
+# (Archive du diagnostic) LA VRAIE VOIE était une règle DE ZONE, dashboard Cloudflare :
 #    Compte Cloudflare → zone omegapendu.com → Rules → Redirect Rules → Create rule :
 #      · When incoming requests match : Hostname equals www.omegapendu.com
 #      · Then : Dynamic redirect, status 301,
