@@ -1635,8 +1635,38 @@ function doubleCompDecide(lex, T, i, adj){
   return ['', 'DEL-RED'];                                              // supprimer more/most (« more better » → « better »)
 }
 
+/* ---------- REGLES_EN ⑧a/⑧b (2026-08-12) — deux ORANGES mesurés ; ⑦ et ⑧c REPORTÉS chiffrés ----------
+   ⑧a PLURIEL IRRÉGULIER + s (childrens, mens…) 🟠 : ambigu possessif (« childrens clothes » =
+     children's) → on propose la base, l'infobulle mentionne le possessif. 0 tir/10 137 édité ;
+     1 vraie faute web (« the best baby and childrens clothes »). « mens rea » (latin juridique) exclu.
+   ⑧b JOURS/MOIS MINUSCULES 🟠 : convention stricte EN (≠ FR). may/march/august EXCLUS — homographes
+     (modal, marche, adjectif auguste). 1 tir/10 137 = vraie anomalie (« January-june ») ; rappel web 10.
+   ⑦ it's→its inverse : REPORTÉ CHIFFRÉ — le cadre sûr (it's+NOM+VERBE fini, sujet possessif) a un
+     rappel MESURÉ NUL (0 flood ET 0 rappel sur 22 681 phrases réelles) ; la vraie faute native vit en
+     position OBJET (« wagged it's tail »), indiscernable en surface des complétives (« said it's time »).
+   ⑧c « to » manquant : REPORTÉ CHIFFRÉ — les 3 seuls tirs réels étaient tous mauvais : « the Court
+     need reach » (need SEMI-MODAL juridique correct), « wanted win in 48 hours » (win = typo de
+     within → fausse direction), « want want » (répétition). 0 vrai positif. */
+var _IRRPL = { childrens: 'children', mens: 'men', womens: 'women', teeths: 'teeth',
+  feets: 'feet', mices: 'mice', geeses: 'geese', oxens: 'oxen', sheeps: 'sheep', childs: 'children' };
+function irregPluralDecide(lex, T, i, adj){
+  const w = T[i], lw = w.toLowerCase();
+  const c = _IRRPL[lw];
+  if(!c) return [null, null];
+  if(w === w.toUpperCase() && w.length > 1) return [null, null];       // sigles
+  if(lw === 'mens' && i + 1 < T.length && T[i + 1].toLowerCase() === 'rea') return [null, null];   // « mens rea »
+  return [_keepCaseEn(w, c), 'ORANGE'];
+}
+var _CALW = { monday: 1, tuesday: 1, wednesday: 1, thursday: 1, friday: 1, saturday: 1, sunday: 1,
+  january: 1, february: 1, april: 1, june: 1, july: 1, september: 1, october: 1, november: 1, december: 1 };
+function calendarCapDecide(lex, T, i, adj){
+  const w = T[i];
+  if(w !== w.toLowerCase() || !_CALW[w]) return [null, null];
+  return [w[0].toUpperCase() + w.slice(1), 'ORANGE'];
+}
+
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
-               pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, repetitionDecide, capIDecide, mergedDecide, buildCompSets, doubleCompDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
+               pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, repetitionDecide, capIDecide, mergedDecide, buildCompSets, doubleCompDecide, irregPluralDecide, calendarCapDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
                parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
@@ -1888,9 +1918,31 @@ if(typeof require !== 'undefined' && require.main === module){
     if(r[1] && r[0] === att) qOk++; else { qKo++; console.log('  Q MISS [%s] %s[%d] -> %s (attendu %s)', k, T.join(' '), i, r[0], att); } }
   for(const [k, T, i] of Q_NON){ const r = QFN[k](T, i);
     if(r[1]){ qKo++; console.log('  Q FAUX POSITIF [%s] %s[%d] -> %s/%s', k, T.join(' '), i, r[0], r[1]); } }
+  /* ⑧a/⑧b — rappel + pièges */
+  const H_OUI = [
+    ['irr', ['the', 'childrens', 'clothes'], 1, 'children'],
+    ['irr', ['two', 'mens', 'shirts'], 1, 'men'],
+    ['cal', ['see', 'you', 'monday', 'morning'], 2, 'Monday'],
+    ['cal', ['born', 'in', 'january'], 2, 'January'],
+  ];
+  const H_NON = [
+    ['irr', ['the', 'mens', 'rea', 'element'], 1],
+    ['irr', ['visit', 'MENS', 'store'], 1],
+    ['cal', ['he', 'may', 'come'], 1],
+    ['cal', ['the', 'march', 'was', 'long'], 1],
+    ['cal', ['an', 'august', 'assembly'], 1],
+    ['cal', ['born', 'in', 'January'], 2],
+  ];
+  const HFN = { irr: (T, i) => irregPluralDecide(lex, T, i, null), cal: (T, i) => calendarCapDecide(lex, T, i, null) };
+  let hOk2 = 0, hKo2 = 0;
+  for(const [k, T, i, att] of H_OUI){ const r = HFN[k](T, i);
+    if(r[1] === 'ORANGE' && r[0] === att) hOk2++; else { hKo2++; console.log('  H MISS [%s] %s[%d] -> %s (attendu %s)', k, T.join(' '), i, r[0], att); } }
+  for(const [k, T, i] of H_NON){ const r = HFN[k](T, i);
+    if(r[1]){ hKo2++; console.log('  H FAUX POSITIF [%s] %s[%d] -> %s', k, T.join(' '), i, r[0]); } }
+  console.log('règles ⑧ab: %d/%d rappel, %d anomalie(s)', hOk2, H_OUI.length, hKo2);
   console.log('règles ③④⑤⑥: %d/%d rappel, %d anomalie(s)', qOk, Q_OUI.length, qKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0);
     console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies), q3456 %d/%d (%d anomalies)',
                 ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo, qOk, Q_OUI.length, qKo);
     if(!ok) process.exit(1);

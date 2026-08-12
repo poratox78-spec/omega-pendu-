@@ -229,6 +229,12 @@
       // répétition de mot (« the the ») — ORANGE : les transcriptions orales (court/speech) répètent verbatim.
       var rp=C.repetitionDecide?C.repetitionDecide(LEX,toks,i,ADJ,HYP):[null,null];
       if(rp[1]){ marks[i]={sugg:'', cls:'orange', del:true, why:'repeated word'}; continue; }
+      // pluriel irrégulier + s (« childrens » -> children — ou children's ? l'infobulle le dit). ORANGE.
+      var ip=C.irregPluralDecide?C.irregPluralDecide(LEX,toks,i,ADJ):[null,null];
+      if(ip[1]){ marks[i]={sugg:ip[0], cls:'orange', why:"irregular plural — or did you mean the possessive (children's)?"}; continue; }
+      // jours/mois minuscules (« monday » -> Monday). ORANGE (casse = préférence). may/march/august exclus (homographes).
+      var cc=C.calendarCapDecide?C.calendarCapDecide(LEX,toks,i,ADJ):[null,null];
+      if(cc[1]){ marks[i]={sugg:cc[0], cls:'orange'}; continue; }
       // ACCORD DE L'AUXILIAIRE — « he are going » -> is · « he have gone » -> has. Zéro FP.
       var ax=C.auxAgree?C.auxAgree(LEX,toks,i,ADJ):[null,null];
       if(ax[1]){ marks[i]={sugg:ax[0], cls:'red'}; continue; }
