@@ -1,0 +1,12 @@
+# RÉFÉRENCEMENT (rapport Search Console de Rem, 2026-08-13) — LA cause racine du rapport :
+# https://www.omegapendu.com/ répondait 200 SANS rediriger (mesuré : redirs=0) → Google voyait
+# DEUX sites complets au même contenu (www + apex) et crawlait toutes les variantes
+# (« Page avec redirection », « Autre page avec balise canonique correcte », budget gaspillé).
+# Les balises canonical limitaient la casse ; la vraie réponse est la redirection 301 :
+# le www est un domaine attaché au même projet Pages, Cloudflare applique ce fichier aux deux hôtes.
+# Le reste du rapport est VOULU ou SAIN (vérifié en ligne le 2026-08-13) :
+#   · zh/ et arbitrage en noindex = délibéré (privé / easter egg) ;
+#   · /dictee.html → 301 /dictee en UN saut (l'« erreur de redirections » GSC du 25/07 ne se
+#     reproduit plus — à revalider dans la console) ;
+#   · les variantes /index.html et .html redirigent déjà proprement (un saut).
+https://www.omegapendu.com/* https://omegapendu.com/:splat 301
