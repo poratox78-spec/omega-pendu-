@@ -165,6 +165,29 @@ TRANSLATIONS = [
     ('θ pas', 'θ step'),
     ('pas<input', 'step<input'),
 ]
+# (4bis) ADAPTATIONS MOTEUR des features 2026-08-13 (audit : le clone EN les recevait TELLES
+# QUELLES — voix fr-FR sur du texte anglais, formule de lisibilité FRANÇAISE, injections
+# d'homophones FRANÇAIS dans des phrases anglaises). Chaque remplacement est ASSERTÉ : si
+# l'ancre bouge côté FR, le build casse ici plutôt que de livrer un clone semi-français.
+_ADAPT = [
+    # read-along : libellé + voix anglaise (ancre unique : MON bloc parle de `txt`, say() de `cur.text`)
+    ("🔊 Lire</button>", "🔊 Read aloud</button>"),
+    ("Écouter ton texte à voix haute — le mot lu est surligné (rien ne quitte ton appareil)",
+     "Listen to your text read aloud — the word being read is highlighted (nothing leaves your device)"),
+    ("var u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';", "var u=new SpeechSynthesisUtterance(txt);u.lang='en-US';"),
+    # lisibilité : coefficients FLESCH ANGLAIS + libellés anglais (Kandel-Moles est l'adaptation FR)
+    ("207-1.015*(mots.length/ph.length)-73.6*(syl/mots.length)", "206.835-1.015*(mots.length/ph.length)-84.6*(syl/mots.length)"),
+    ("'très facile à lire':(sc>=60?'facile à lire':(sc>=50?'lecture courante':(sc>=30?'lecture soutenue':'lecture dense')))",
+     "'very easy to read':(sc>=60?'easy to read':(sc>=50?'standard reading':(sc>=30?'demanding reading':'dense reading')))"),
+    ("/100 — indicatif, jamais un jugement)", "/100 — indicative, never a judgment)"),
+    # 🎯 repère la faute : RETIRÉ du clone EN — les familles d'injection sont FRANÇAISES (a/à, la/là) ;
+    # un mode anglais demanderait ses familles (their/there, its/it's, -s) : chantier futur, pas un clone.
+    ("<button class=\"g\" id=\"vdd-repere\" title=\"La phrase apparaît à l\u2019écran : clique le mot fautif\">🎯 Repère la faute</button>", ""),
+]
+for fr, en in _ADAPT:
+    assert html.count(fr) == 1, '[ADAPT 2026-08-13] ancre absente ou multiple : ' + fr[:60]
+    html = html.replace(fr, en)
+
 _missing = []
 for fr, en in TRANSLATIONS:
     if fr in html:

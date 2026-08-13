@@ -330,6 +330,34 @@ async function main() {
       log('  ' + (rv.kara >= 4 && rv.restaure ? '✓' : '✗') + ' lecture read-along (karaoké ' + rv.kara + ' mots, restauration ' + (rv.restaure ? 'OK' : 'KO') + ')');
     }
 
+    /* ── 🎯 REPÈRE LA FAUTE (audit 2026-08-13) : une vraie boucle — phrase affichée en mots
+       cliquables, réponse, feedback avec score. Déterministe : cliquer un mot produit TOUJOURS
+       un verdict (Exact / ailleurs / était correcte) + le bouton « Phrase suivante ». */
+    const rp = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      const bd = document.getElementById('vdd-btn'); if (!bd) return { fatal: 'dictée absente' };
+      bd.click(); await attendre(400);
+      const brp = document.getElementById('vdd-repere'); if (!brp) return { fatal: 'bouton 🎯 absent' };
+      brp.click(); await attendre(400);
+      const mots = document.querySelectorAll('.vdd-rmot');
+      if (mots.length < 3) return { fatal: 'phrase non affichée (' + mots.length + ' mots)' };
+      mots[0].click(); await attendre(400);
+      const fb = (document.getElementById('vdd-fb').textContent || '');
+      return { nMots: mots.length,
+        verdict: fb.indexOf('Exact') >= 0 || fb.indexOf('ailleurs') >= 0 || fb.indexOf('correcte.') >= 0,
+        score: /Score repère : \\d+ \\/ \\d+/.test(fb),
+        suivant: !!document.getElementById('vdd-rnext') };
+    })()`, awaitPromise: true, returnByValue: true, timeout: 30000 });
+    if (rp.exceptionDetails) throw new Error('repère : ' + (rp.exceptionDetails.exception || {}).description);
+    const pv = rp.result.value || {};
+    if (pv.fatal) echecs.push('repère la faute : ' + pv.fatal);
+    else {
+      if (!pv.verdict) echecs.push('repère la faute : cliquer un mot doit produire un verdict');
+      if (!pv.score) echecs.push('repère la faute : le score « Score repère : N / M » doit s\'afficher');
+      if (!pv.suivant) echecs.push('repère la faute : le bouton « Phrase suivante » doit exister');
+      log('  ' + (pv.verdict && pv.score && pv.suivant ? '✓' : '✗') + ' 🎯 repère la faute (' + pv.nMots + ' mots cliquables, verdict+score+suivant)');
+    }
+
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
     else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus).');
   } catch (e) {

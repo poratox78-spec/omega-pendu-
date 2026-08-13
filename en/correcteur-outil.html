@@ -372,6 +372,27 @@
 })();
 </script>
 <script>
+/* READABILITY (2026-08-13, audit de complétude) : Flesch Reading Ease (EN coefficients), syllables
+   by vowel groups — indicative, never a judgment ; silent under 8 words. Mirrors the FR app. */
+(function(){
+  function lisibilite(tx){
+    var ph=tx.split(/[.!?…]+/).filter(function(x){return x.trim().length>1;});
+    var mots=(window.CorrectorEN&&window.CorrectorEN.tokenize)?window.CorrectorEN.tokenize(tx):[];   // le MÊME tokeniseur que le moteur — la sonde anti-drift veille
+    if(mots.length<8||!ph.length)return null;
+    var syl=0;for(var i=0;i<mots.length;i++){var g=mots[i].toLowerCase().match(/[aeiouy]+/g);syl+=g?g.length:1;}
+    var sc=Math.max(0,Math.min(100,Math.round(206.835-1.015*(mots.length/ph.length)-84.6*(syl/mots.length))));
+    var lbl=sc>=70?'very easy to read':(sc>=60?'easy to read':(sc>=50?'standard reading':(sc>=30?'demanding reading':'dense reading')));
+    return {s:sc,lbl:lbl};
+  }
+  var zone=document.getElementById('in');
+  var chip=document.createElement('div');chip.id='readability';chip.style.cssText='margin-top:6px;font-size:13px;opacity:.85';
+  var out=document.getElementById('out');if(out&&out.parentNode)out.parentNode.insertBefore(chip,out);
+  function maj(){var li=zone?lisibilite(zone.value||''):null;
+    chip.textContent=li?('📖 '+li.lbl+' ('+li.s+'/100 — indicative, never a judgment)'):'';}
+  if(zone){zone.addEventListener('input',maj);maj();}
+})();
+</script>
+<script>
 /* READ-ALOUD (2026-08-13, miroir du FR) : proofreading by EAR — karaoke highlight of the word
    being read, over #out ; snapshot/restore, no re-analysis. Local voices only, nothing sent. */
 (function(){

@@ -24163,7 +24163,7 @@ window.addEventListener('DOMContentLoaded', () => {
   ov.innerHTML='<div id="vdd-card"><button id="vdd-x">×</button><h2>✍️ Dictée diagnostique — phrases</h2>'
    +'<div class="vdd-sc">Écoute la phrase, écris-la. Le diagnostic explique <b>le type</b> de chaque faute, <b>accords compris</b> (contexte). Données : Lexique 4 (New et al. 2026, lexique.org, CC BY-SA 4.0).</div>'
    +'<div class="vdd-diff" id="vdd-diff" style="margin-top:10px"><button data-d="facile" class="on">Facile</button><button data-d="moyen">Moyen</button><button data-d="difficile">Difficile</button></div>'
-   +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><button class="g" id="vdd-repere" title="La phrase apparait a l ecran : clique le mot fautif">🎯 Repère la faute</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
+   +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
    +'<textarea id="vdd-ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="écris la phrase ici"></textarea>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
    +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div id="vdd-srs" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
@@ -26451,7 +26451,7 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
    +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Police dys</button>'
-   +'<button id="vdc-lire" type="button" aria-pressed="false" title="Écouter ton texte à voix haute — le mot lu est surligné (rien ne quitte ton appareil)">🔊 Lire</button>'
+   +'<button id="vdc-lire" type="button" aria-pressed="false" title="Listen to your text read aloud — the word being read is highlighted (nothing leaves your device)">🔊 Read aloud</button>'
    +'</div>'
    +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
    +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
@@ -26822,12 +26822,12 @@ function spellTokenCore(tok,atStart,T,idx){
       var mots=tx.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[];
       if(mots.length<8||!ph.length)return null;
       var syl=0;for(var i2=0;i2<mots.length;i2++){var gm=mots[i2].toLowerCase().match(/[aeiouyàâäéèêëîïôöùûüœ]+/g);syl+=gm?gm.length:1;}
-      var sc=Math.max(0,Math.min(100,Math.round(207-1.015*(mots.length/ph.length)-73.6*(syl/mots.length))));
-      var lbl=sc>=70?'très facile à lire':(sc>=60?'facile à lire':(sc>=50?'lecture courante':(sc>=30?'lecture soutenue':'lecture dense')));
+      var sc=Math.max(0,Math.min(100,Math.round(206.835-1.015*(mots.length/ph.length)-84.6*(syl/mots.length))));
+      var lbl=sc>=70?'very easy to read':(sc>=60?'easy to read':(sc>=50?'standard reading':(sc>=30?'demanding reading':'dense reading')));
       return {s:sc,lbl:lbl};
     }
     var onC=_corrs.filter(function(f){return f.on;}),offC=_corrs.filter(function(f){return !f.on;});
-    if(!_corrs.length){var _liB=_lisibilite(t);$('vdc-count').innerHTML=_liB?'📖 '+_liB.lbl+' <span class="vdc-sc">('+_liB.s+'/100 — indicatif, jamais un jugement)</span>':'';$('vdc-out').innerHTML=_rest+'<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e3f6e6"><b>✓ Aucune faute détectée.</b></div>';return;}
+    if(!_corrs.length){var _liB=_lisibilite(t);$('vdc-count').innerHTML=_liB?'📖 '+_liB.lbl+' <span class="vdc-sc">('+_liB.s+'/100 — indicative, never a judgment)</span>':'';$('vdc-out').innerHTML=_rest+'<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e3f6e6"><b>✓ Aucune faute détectée.</b></div>';return;}
     var _sur=_corrs.filter(function(f){return f.tier!=='vigilance';}).length,_avf=_corrs.length-_sur;   // sûr = rouge/bleu (FP=0) ; à vérifier = orange (vigilance)
     $('vdc-count').innerHTML='<b>'+_corrs.length+'</b> correction'+(_corrs.length>1?'s':'')+' : <b>'+_sur+'</b> sûre'+(_sur>1?'s':'')+' · <b>'+_avf+'</b> à vérifier <span class="vdc-sc">('+onC.length+' appliquée'+(onC.length>1?'s':'')+' — clique un mot souligné pour basculer)</span>';
     var _liA=_lisibilite(t);if(_liA)$('vdc-count').innerHTML+=' · 📖 '+_liA.lbl+' <span class="vdc-sc">('+_liA.s+'/100)</span>';
@@ -26917,7 +26917,7 @@ function spellTokenCore(tok,atStart,T,idx){
         res.innerHTML='<div class="vdc-karaoke">'+html+esc2(txt.slice(last))+'</div>';
         try{
           speechSynthesis.cancel();
-          var u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';
+          var u=new SpeechSynthesisUtterance(txt);u.lang='en-US';
           u.rate=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;   // même vitesse que la dictée
           u.onboundary=function(ev){if(ev.name&&ev.name!=='word')return;var ci=ev.charIndex||0,idx=-1;
             for(var k=0;k<pos.length;k++){if(ci<pos[k][1]){idx=k;break;}}
