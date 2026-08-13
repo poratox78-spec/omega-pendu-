@@ -4,10 +4,14 @@
 <meta name="description" content="Pendable : le jeu du pendu en ligne, gratuit et sans pub. Niveaux, score, combos, grille façon Scrabble — sur mobile et navigateur, hors-ligne. Un pendu qui pique.">
 <link rel="canonical" href="https://omegapendu.com/pendable">
 <meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/pendable"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="fr_FR">
-<meta property="og:title" content="Jeu du pendu en ligne gratuit — niveaux, score, sans pub (Pendable)"><meta property="og:description" content="Le jeu du pendu en ligne, gratuit et sans pub : niveaux, score, combos, grille façon Scrabble. Mobile & navigateur, hors-ligne."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
+<meta property="og:title" content="Jeu du pendu en ligne gratuit — niveaux, score, sans pub (Pendable)"><meta property="og:description" content="Le jeu du pendu en ligne, gratuit et sans pub : niveaux, score, combos, grille façon Scrabble. Mobile & navigateur, hors-ligne."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
+
+<meta property="og:image:type" content="image/png">
+
+<meta property="og:image:width" content="512">
+
+<meta property="og:image:height" content="512">
+
 <meta name="twitter:image" content="https://omegapendu.com/icon-512.png">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="Jeu du pendu en ligne gratuit, sans pub (Pendable) | OMEGA-Ω"><meta name="twitter:description" content="Niveaux, score, combos, grille façon Scrabble. Mobile & navigateur, hors-ligne.">
 <style>
@@ -305,5 +309,16 @@ function showBest(){try{const cur=JSON.parse(localStorage.getItem('penducroise_b
   $('best').textContent=b?('Record '+{facile:'Facile',moyen:'Moyen',dur:'Dur'}[tier]+' : '+b.r+' manches · '+b.s+' pts'):'';}catch(e){$('best').textContent='';}}
 document.querySelectorAll('.diff').forEach(b=>b.addEventListener('click',showBest)); showBest();
 </script><a href="index.html" title="Retour à OMEGA-Ω" style="position:fixed;left:12px;bottom:12px;z-index:2147483647;font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.72);padding:7px 12px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.4)">↩ OMEGA·Ω</a>
+<style>.tool-plus{max-width:860px;margin:0 auto;padding:28px 18px 40px;font:15px/1.65 var(--sans);color:var(--fg)}.tool-plus h2{font-size:20px;margin:22px 0 8px}.tool-plus h3{font-size:16px;margin:16px 0 6px}.tool-plus p{margin:8px 0}.tool-plus a{color:var(--accent)}</style>
+<section class="tool-plus">
+<h2>Pendable : le jeu du pendu, en ligne et sans arrière-pensée</h2>
+<p>Le pendu classique : un mot caché, des lettres à proposer, des vies à préserver. <strong>Pendable</strong> est gratuit, <strong>sans publicité</strong>, sans compte, et fonctionne <strong>hors-ligne</strong> — tu peux y jouer dans le train. Plusieurs niveaux, un score qui suit tes parties, et un vocabulaire français riche qui va des mots du quotidien aux pièges à double consonne.</p>
+<h3>Pourquoi le pendu fait du bien à l'orthographe</h3>
+<p>Deviner un mot lettre à lettre oblige à se représenter sa <strong>forme écrite</strong> : combien de lettres, lesquelles sont probables, où tombent les doubles. C'est un entraînement discret de la mémoire orthographique — celle-là même qui fait défaut quand on hésite entre <em>-ment</em> et <em>-mment</em>.</p>
+<h3>Et le « Pendu cognitif », alors ?</h3>
+<p>Sur la <a href="index.html">page principale</a>, les rôles sont inversés : c'est <strong>la machine qui devine ton mot</strong>, en raisonnant à voix haute sur les sons, l'orthographe et la fréquence. Pendable est le jeu ; le Pendu cognitif est la démonstration. Les deux se complètent — et le même moteur de langue les fait tourner.</p>
+<p><a href="index.html">← Le pendu cognitif</a> · <a href="scrabidon.html">Essayer Scrabidon</a> · <a href="correcteur.html">Le correcteur dys</a></p>
+</section>
+
 <script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 </body></html>

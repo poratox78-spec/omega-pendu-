@@ -18,13 +18,13 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <style>
-  html,body{height:100%;margin:0}
+  html{height:100%}body{min-height:100%;height:auto;margin:0}
   body{display:flex;flex-direction:column;background:var(--bg)}
   header.top{flex:0 0 auto}
   .tool-note{flex:0 0 auto;font:13px var(--sans);color:var(--fg-2);text-align:center;padding:7px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
   .tool-note strong{color:var(--fg)}
   .tool-note a{color:var(--accent)}
-  .tool-wrap{flex:1 1 auto;position:relative;min-height:0;background:var(--bg)}
+  .tool-wrap{flex:none;position:relative;height:calc(100vh - 92px);min-height:420px;background:var(--bg)}
   iframe.tool{width:100%;height:100%;border:0;display:block}
   .tool-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--bg);color:var(--fg-2);font:15px var(--sans);text-align:center;padding:24px}
   .tool-load .sp{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:tlspin .8s linear infinite}
@@ -79,6 +79,21 @@
   });
 })();
 </script>
+
+<style>.tool-plus{max-width:860px;margin:0 auto;padding:28px 18px 40px;font:15px/1.65 var(--sans);color:var(--fg)}.tool-plus h2{font-size:20px;margin:22px 0 8px}.tool-plus h3{font-size:16px;margin:16px 0 6px}.tool-plus p{margin:8px 0}.tool-plus a{color:var(--accent)}</style>
+<section class="tool-plus">
+<h2>Comment fonctionne ce correcteur d'orthographe</h2>
+<p>Ce correcteur a été conçu pour la <strong>dyslexie et la dysorthographie</strong> — mais il sert à tout le monde. Sa règle d'or : il n'applique une correction d'office que lorsqu'elle est <strong>sûre</strong>. Trois couleurs, trois niveaux de confiance :</p>
+<p><strong>Rouge</strong> : la faute est certaine, la correction est cochée d'avance (accords, homophones grammaticaux comme <em>a/à</em> ou <em>son/sont</em>, terminaisons <em>-é/-er</em>, négation « n' » manquante, orthographe). <strong>Orange</strong> : il y a un doute — le correcteur propose, tu décides. <strong>Vert</strong> : de la pédagogie, jamais imposée (mots confusables à vérifier, ponctuation possible).</p>
+<p>Chaque correction est <strong>expliquée</strong> : la règle, et souvent le mot qui commande l'accord dans <em>ta</em> phrase — parce que comprendre sa faute vaut mieux que la déléguer.</p>
+<h3>Se corriger à l'oreille</h3>
+<p>Le bouton <strong>🔊 Lire</strong> lit ton texte à voix haute en surlignant le mot lu. Beaucoup de fautes s'entendent mieux qu'elles ne se voient : un mot oublié, une tournure bancale, une répétition. L'indicateur <strong>📖 lisibilité</strong> te dit si ton texte est facile ou dense à lire — à titre indicatif, jamais comme un jugement.</p>
+<h3>Vie privée : tout reste sur ton appareil</h3>
+<p>Le correcteur fonctionne <strong>100 % hors-ligne</strong> dans ton navigateur : aucun texte n'est envoyé sur un serveur, il n'y a ni compte, ni cookie de suivi, ni publicité. Tu peux couper ta connexion et continuer à corriger. Les mots que tu ajoutes à ton dictionnaire personnel restent chez toi.</p>
+<h3>Pourquoi certaines fautes ne sont-elles pas corrigées d'office ?</h3>
+<p>Parce qu'une correction fausse est pire qu'une abstention : écraser un mot juste décourage, surtout quand on doute déjà de son écriture. Quand le correcteur n'est pas sûr, il propose en orange au lieu d'imposer. C'est un choix mesuré, pas une limite technique.</p>
+<p><a href="correcteur.html">← En savoir plus sur le correcteur</a> · <a href="dictee.html">Essayer la dictée diagnostique</a></p>
+</section>
 
 <script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 </body>
