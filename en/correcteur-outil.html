@@ -90,6 +90,7 @@
     <div class="row">
       <button class="go" id="check" disabled>Check</button>
       <button class="ghost" id="clear">Clear</button>
+      <button class="ghost" id="readaloud" title="Listen to your text read aloud — the word being read is highlighted (nothing leaves your device)">🔊 Read aloud</button>
       <span id="status">Loading the dictionary…</span>
     </div>
     <div class="row"><span class="legend">
@@ -367,6 +368,46 @@
       }
       run();
     }
+  });
+})();
+</script>
+<script>
+/* READ-ALOUD (2026-08-13, miroir du FR) : proofreading by EAR — karaoke highlight of the word
+   being read, over #out ; snapshot/restore, no re-analysis. Local voices only, nothing sent. */
+(function(){
+  var br=document.getElementById('readaloud');if(!br)return;
+  if(!('speechSynthesis' in window)){br.style.display='none';return;}
+  var stl=document.createElement('style');
+  stl.textContent='.karaoke{font-size:1.06em;line-height:2;padding:8px 10px}'
+    +'.kara.lit{background:#1f5fa8;color:#fff!important;border-radius:4px;padding:1px 3px}';
+  document.head.appendChild(stl);
+  var enCours=false,avant=null;
+  function esc2(x){return String(x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function stop(){try{speechSynthesis.cancel();}catch(e){}
+    enCours=false;br.textContent='🔊 Read aloud';
+    var out=document.getElementById('out');if(out&&avant!=null){out.innerHTML=avant;avant=null;}}
+  br.addEventListener('click',function(){
+    if(enCours){stop();return;}
+    var z=document.getElementById('in'),out=document.getElementById('out');if(!z||!out)return;
+    var txt=z.value||'';if(!txt.trim())return;
+    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g,m,pos=[];
+    while((m=re.exec(txt)))pos.push([m.index,m.index+m[0].length]);
+    avant=out.innerHTML;
+    var html='',last=0;
+    for(var k=0;k<pos.length;k++){html+=esc2(txt.slice(last,pos[k][0]))+'<span class="kara" data-k="'+k+'">'+esc2(txt.slice(pos[k][0],pos[k][1]))+'</span>';last=pos[k][1];}
+    out.innerHTML='<div class="karaoke">'+html+esc2(txt.slice(last))+'</div>';
+    try{
+      speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance(txt);u.lang='en-US';u.rate=0.95;
+      u.onboundary=function(ev){if(ev.name&&ev.name!=='word')return;var ci=ev.charIndex||0,idx=-1;
+        for(var k=0;k<pos.length;k++){if(ci<pos[k][1]){idx=k;break;}}
+        var old=out.querySelector('.kara.lit');if(old)old.classList.remove('lit');
+        if(idx>=0){var el=out.querySelector('.kara[data-k="'+idx+'"]');
+          if(el){el.classList.add('lit');try{el.scrollIntoView({block:'nearest'});}catch(e){}}}};
+      u.onend=stop;u.onerror=stop;
+      enCours=true;br.textContent='⏹ Stop';
+      speechSynthesis.speak(u);
+    }catch(e){stop();}
   });
 })();
 </script>

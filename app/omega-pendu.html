@@ -26420,6 +26420,7 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<button id="vdc-theme" type="button" aria-pressed="false" title="Thème : auto (système), clair ou sombre">🌗 Thème : auto</button>'
    +'<button id="vdc-cb" type="button" aria-pressed="false" title="Palette adaptée au daltonisme (orange/bleu)">🎨 Daltonien</button>'
    +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Police dys</button>'
+   +'<button id="vdc-lire" type="button" aria-pressed="false" title="Écouter ton texte à voix haute — le mot lu est surligné (rien ne quitte ton appareil)">🔊 Lire</button>'
    +'</div>'
    +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
    +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
@@ -26841,6 +26842,47 @@ function spellTokenCore(tok,atStart,T,idx){
     var bt=$('vdc-theme');if(bt)bt.addEventListener('click',function(){st.theme=THEMES[(THEMES.indexOf(st.theme)+1)%3];apply();save();});
     var bc=$('vdc-cb');if(bc)bc.addEventListener('click',function(){st.cb=!st.cb;apply();save();});
     var bl=$('vdc-lis');if(bl)bl.addEventListener('click',function(){st.lis=!st.lis;apply();save();});
+    /* ===== LECTURE READ-ALONG (2026-08-13) — se corriger par l'OREILLE : le dys entend
+       l'incohérence que l'œil survole (doctrine de l'audibilité). Le mot LU est surligné en
+       karaoké dans « ✅ Texte corrigé » via onboundary (voix locales Chrome) ; si la voix ne
+       fournit pas les frontières, la lecture continue sans surlignage — jamais de fausse
+       promesse d'état (cf. « ✓ Copié » menteur). Restauration par INSTANTANÉ du rendu. */
+    (function(){
+      var br=$('vdc-lire');if(!br)return;
+      if(!('speechSynthesis' in window)){br.style.display='none';return;}
+      var stl=document.createElement('style');
+      stl.textContent='.vdc-karaoke{font-size:1.06em;line-height:2;padding:8px 10px}'
+        +'.vdc-kara.lit{background:#1f5fa8;color:#fff!important;border-radius:4px;padding:1px 3px}';   // contraste FORT (jamais de pâle sur crème)
+      document.head.appendChild(stl);
+      var enCours=false,avant=null;
+      function esc2(x){return String(x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+      function stop(){try{speechSynthesis.cancel();}catch(e){}
+        enCours=false;br.setAttribute('aria-pressed','false');br.textContent='🔊 Lire';
+        var res=$('vdc-result');if(res&&avant!=null){res.innerHTML=avant;avant=null;}}
+      br.addEventListener('click',function(){
+        if(enCours){stop();return;}
+        var z=$('vdc-in'),res=$('vdc-result');if(!z||!res)return;
+        var txt=(z.textContent||'').replace(/ /g,' ');if(!txt.trim())return;
+        var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,pos=[];while((m=re.exec(txt)))pos.push([m.index,m.index+m[0].length]);
+        avant=res.innerHTML;
+        var html='',last=0;
+        for(var k=0;k<pos.length;k++){html+=esc2(txt.slice(last,pos[k][0]))+'<span class="vdc-kara" data-k="'+k+'">'+esc2(txt.slice(pos[k][0],pos[k][1]))+'</span>';last=pos[k][1];}
+        res.innerHTML='<div class="vdc-karaoke">'+html+esc2(txt.slice(last))+'</div>';
+        try{
+          speechSynthesis.cancel();
+          var u=new SpeechSynthesisUtterance(txt);u.lang='fr-FR';
+          u.rate=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;   // même vitesse que la dictée
+          u.onboundary=function(ev){if(ev.name&&ev.name!=='word')return;var ci=ev.charIndex||0,idx=-1;
+            for(var k=0;k<pos.length;k++){if(ci<pos[k][1]){idx=k;break;}}
+            var old=res.querySelector('.vdc-kara.lit');if(old)old.classList.remove('lit');
+            if(idx>=0){var el=res.querySelector('.vdc-kara[data-k="'+idx+'"]');
+              if(el){el.classList.add('lit');try{el.scrollIntoView({block:'nearest'});}catch(e){}}}};
+          u.onend=stop;u.onerror=stop;
+          enCours=true;br.setAttribute('aria-pressed','true');br.textContent='⏹ Stop';
+          speechSynthesis.speak(u);
+        }catch(e){stop();}
+      });
+    })();
     if(mq.addEventListener)mq.addEventListener('change',function(){if(st.theme==='auto')apply();});
     apply();
   })();
