@@ -214,7 +214,8 @@ async function main() {
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'omega-chrome-'));
   const args = ['--remote-debugging-port=0', '--user-data-dir=' + profil, '--no-first-run',
     '--no-default-browser-check', '--disable-extensions', '--disable-background-networking',
-    '--disable-gpu', 'about:blank'];
+    '--disable-gpu', '--autoplay-policy=no-user-gesture-required',   // read-along : un clic CDP n'est pas un « geste utilisateur » — speak() rendait not-allowed → onerror → stop immédiat (témoins : attache=1, clics=2, kara=0)
+    'about:blank'];
   if (!TETE) args.unshift('--headless=new');
   const proc = spawn(chrome, args, { stdio: 'ignore' });
   let sess = null, code = 0;
@@ -301,8 +302,36 @@ async function main() {
         + ' dictée : répétition espacée (' + (sv.mots || []).join(' · ') + ')');
     }
 
+    /* ── READ-ALONG (chantier 2026-08-13) : le karaoké se construit AVANT la voix (déterministe
+       même sans voix installée) ; l'arrêt RESTAURE le rendu par instantané. */
+    const rl = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      const br = document.getElementById('vdc-lire');
+      if (!br) return { fatal: 'bouton 🔊 Lire absent' };
+      const z = document.getElementById('vdc-in'), res = document.getElementById('vdc-result');
+      z.textContent = 'la fenetre est ouverte';
+      z.dispatchEvent(new Event('input', { bubbles: true }));
+      await attendre(900);
+      const avantHtml = res.innerHTML;
+      br.click(); await attendre(500);
+      const kara = res.querySelectorAll('.vdc-kara').length;
+      const stopTxt = br.textContent;
+      br.click(); await attendre(300);
+      const restaure = res.innerHTML === avantHtml;
+      return { kara, stopTxt, restaure };
+    })()`, awaitPromise: true, returnByValue: true, timeout: 30000 });
+    if (rl.exceptionDetails) throw new Error('read-along : ' + (rl.exceptionDetails.exception || {}).description);
+    const rv = rl.result.value || {};
+    if (rv.fatal) echecs.push('read-along : ' + rv.fatal);
+    else {
+      if (!(rv.kara >= 4)) echecs.push('read-along : le karaoké doit découper le texte en mots (.vdc-kara), eu ' + rv.kara);
+      if (rv.stopTxt && rv.stopTxt.indexOf('Stop') < 0) echecs.push('read-along : pendant la lecture le bouton doit dire Stop, eu « ' + rv.stopTxt + ' »');
+      if (!rv.restaure) echecs.push('read-along : l\'arrêt doit RESTAURER le rendu corrigé (instantané)');
+      log('  ' + (rv.kara >= 4 && rv.restaure ? '✓' : '✗') + ' lecture read-along (karaoké ' + rv.kara + ' mots, restauration ' + (rv.restaure ? 'OK' : 'KO') + ')');
+    }
+
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
-    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + la boucle de révision espacée, vérifiés dans Chrome (marques et localStorage lus dans le DOM).');
+    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus).');
   } catch (e) {
     console.error('✗ NAVIGATEUR RÉEL : ' + e.message); code = 1;
   }
