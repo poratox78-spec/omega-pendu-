@@ -26740,10 +26740,26 @@ function spellTokenCore(tok,atStart,T,idx){
     var rz=$('vdc-result');if(rz)rz.innerHTML=_renderView(t,_corrs,true);
     var _nig=0,_ik;for(_ik in _ignored)_nig++;var _rest=_nig?'<div class="vdc-fact vdc-lite" style="border-left-color:#8a7a55;background:#f4efe0;font-size:14px">🚫 <b>'+_nig+'</b> ignorée'+(_nig>1?'s':'')+' <button type="button" class="vdc-unig" style="font:inherit;font-size:13px;margin-left:6px;padding:2px 10px;border:1px solid #cbbf9e;border-radius:7px;background:#fff;color:#333;cursor:pointer;font-weight:600">↩ rétablir</button></div>':'';   // CADRE BAS : le texte CORRIGÉ, soulignés cliquables (bascule)
     if(!t.trim()){$('vdc-count').innerHTML='';$('vdc-out').innerHTML='';return;}
+    /* 📖 LISIBILITÉ (chantier n°3 de la liste comparative, 2026-08-13 — Scolarius/Flesch) :
+       score Kandel-Moles (adaptation FRANÇAISE de Flesch), syllabes approchées par groupes de
+       voyelles (le standard Flesch). INDICATIF et bienveillant — jamais un jugement, jamais une
+       correction : la charge de LECTURE de ton texte, pour t'aider à écrire lisible (dys : les
+       phrases longues coûtent cher au lecteur comme au scripteur). Muet sous 8 mots (score
+       non significatif). */
+    function _lisibilite(tx){
+      var ph=tx.split(/[.!?…]+/).filter(function(x){return x.trim().length>1;});
+      var mots=tx.match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[];
+      if(mots.length<8||!ph.length)return null;
+      var syl=0;for(var i2=0;i2<mots.length;i2++){var gm=mots[i2].toLowerCase().match(/[aeiouyàâäéèêëîïôöùûüœ]+/g);syl+=gm?gm.length:1;}
+      var sc=Math.max(0,Math.min(100,Math.round(207-1.015*(mots.length/ph.length)-73.6*(syl/mots.length))));
+      var lbl=sc>=70?'très facile à lire':(sc>=60?'facile à lire':(sc>=50?'lecture courante':(sc>=30?'lecture soutenue':'lecture dense')));
+      return {s:sc,lbl:lbl};
+    }
     var onC=_corrs.filter(function(f){return f.on;}),offC=_corrs.filter(function(f){return !f.on;});
-    if(!_corrs.length){$('vdc-count').innerHTML='';$('vdc-out').innerHTML=_rest+'<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e3f6e6"><b>✓ Aucune faute détectée.</b></div>';return;}
+    if(!_corrs.length){var _liB=_lisibilite(t);$('vdc-count').innerHTML=_liB?'📖 '+_liB.lbl+' <span class="vdc-sc">('+_liB.s+'/100 — indicatif, jamais un jugement)</span>':'';$('vdc-out').innerHTML=_rest+'<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e3f6e6"><b>✓ Aucune faute détectée.</b></div>';return;}
     var _sur=_corrs.filter(function(f){return f.tier!=='vigilance';}).length,_avf=_corrs.length-_sur;   // sûr = rouge/bleu (FP=0) ; à vérifier = orange (vigilance)
     $('vdc-count').innerHTML='<b>'+_corrs.length+'</b> correction'+(_corrs.length>1?'s':'')+' : <b>'+_sur+'</b> sûre'+(_sur>1?'s':'')+' · <b>'+_avf+'</b> à vérifier <span class="vdc-sc">('+onC.length+' appliquée'+(onC.length>1?'s':'')+' — clique un mot souligné pour basculer)</span>';
+    var _liA=_lisibilite(t);if(_liA)$('vdc-count').innerHTML+=' · 📖 '+_liA.lbl+' <span class="vdc-sc">('+_liA.s+'/100)</span>';
     _navRender();
     var chip='display:inline-block;margin:3px 5px 0 0;cursor:pointer;border-radius:6px;padding:1px 8px;background:#fff';
     var html=_rest;
