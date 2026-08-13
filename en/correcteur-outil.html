@@ -377,7 +377,7 @@
 (function(){
   function lisibilite(tx){
     var ph=tx.split(/[.!?…]+/).filter(function(x){return x.trim().length>1;});
-    var mots=tx.match(/[A-Za-z]+(?:['’][A-Za-z]+)*/g)||[];
+    var mots=(window.CorrectorEN&&window.CorrectorEN.tokenize)?window.CorrectorEN.tokenize(tx):[];   // le MÊME tokeniseur que le moteur — la sonde anti-drift veille
     if(mots.length<8||!ph.length)return null;
     var syl=0;for(var i=0;i<mots.length;i++){var g=mots[i].toLowerCase().match(/[aeiouy]+/g);syl+=g?g.length:1;}
     var sc=Math.max(0,Math.min(100,Math.round(206.835-1.015*(mots.length/ph.length)-84.6*(syl/mots.length))));
