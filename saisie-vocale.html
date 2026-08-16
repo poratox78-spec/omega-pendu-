@@ -219,7 +219,7 @@
     var S=window.__vdiag;
     if(!S){ diagBtn.textContent='dicte d’abord'; setTimeout(function(){ diagBtn.textContent=LBL_DIAG; },1800); return; }
     var tl=(S.au&&S.au.tl)||[];
-    var d={ finals:S.finals, ftimes:S.ftimes, tEnd:S.tEnd, texte:ta.value,
+    var d={ finals:S.finals, ftimes:S.ftimes, pt:S.pt||[], tEnd:S.tEnd, texte:ta.value,
             au:{ maxr:S.au?S.au.maxr:null,
                  // arrondi : l'information utile est le PALIER (parole / silence), pas la 8e décimale
                  tl:tl.map(function(x){ return [x.t, Math.round(x.r*1e4)/1e4, Math.round(x.f||0)]; }) } };
@@ -961,7 +961,7 @@
     if(!von.checked){ st('coche « Activer la dictée vocale » d’abord'); return; }
     try{
       rec=new SR(); rec.lang='fr-FR'; rec.interimResults=true; rec.continuous=true; rec.maxAlternatives=1;
-      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, au:null, tEnd:0 };
+      var S={ base:ta.value, t0:Date.now(), finals:{}, ftimes:{}, pt:[], au:null, tEnd:0 };   // pt : horodatage des PARTIELS — le seul signal temporel qui existe SANS 2e capture (mobile)
       window.__vdiag=S;   // ⭐ EXPOSÉ POUR LE BOUTON DIAGNOSTIC. Sans ça, `S` meurt avec l'appel : impossible de savoir CE QUE GOOGLE A RENDU quand la ponctuation déraille. Trois tentatives de reproduire le « ,, » de Rem ont échoué faute exactement de cette donnée.
       var tr={a:0,s:0}, err='';
       audioStart(S);
@@ -971,6 +971,13 @@
       rec.onresult=function(ev){ var intr='';   // finals PAR INDEX (overwrite) → évite le doublon Android
         for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i];
           if(r.isFinal){ S.finals[i]=r[0].transcript.trim(); if(S.ftimes[i]==null)S.ftimes[i]=Date.now()-S.t0; } else intr+=r[0].transcript; }
+        /* ⭐ MESURE AVANT DE CONSTRUIRE : sur mobile (une seule capture micro) il n'y a AUCUNE
+           timeline audio — mais les PARTIELS arrivent pendant la parole. Si leur cadence suit la
+           parole (à vérifier : les ftimes datent l'ARRIVÉE, pas la voix), la pause entre deux
+           segments ≈ 1er partiel du suivant − final du précédent, et on peut CLAQUER la machinerie
+           PC (silBetween, ancre) dessus. On CAPTURE d'abord ([t, mots d'interim, finals]), le
+           bouton 🩺 l'exporte, la sonde jugera sur du RÉEL Android. */
+        if(S.pt.length<4000) S.pt.push([Date.now()-S.t0,(intr.match(/\S+/g)||[]).length,Object.keys(S.finals).length]);
         var parts=[]; if(S.base.trim())parts.push(S.base.trim());
         var fdd=_dedupFinals(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
         var ks=Object.keys(fdd).map(Number).sort(function(a,b){return a-b;});

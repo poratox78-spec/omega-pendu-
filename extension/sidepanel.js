@@ -843,7 +843,7 @@
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     try {
       rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, au: null, tEnd: 0 };
+      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, pt: [], au: null, tEnd: 0 };   // pt : horodatage des PARTIELS (cf. site — seul signal temporel sans 2e capture)
       var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
       audioStart(S);
       rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
@@ -857,6 +857,7 @@
           var r = ev.results[i];
           if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
         }
+        if (S.pt.length < 4000) S.pt.push([Date.now() - S.t0, (intr.match(/\S+/g) || []).length, Object.keys(S.finals).length]);   // cf. site : mesurer si la cadence des partiels rend les silences
         var parts = []; if (S.base.trim()) parts.push(S.base.trim());
         var fdd = _dedupFinals(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
         var ks = Object.keys(fdd).map(Number).sort(function (a, b) { return a - b; });
@@ -870,7 +871,8 @@
       rec.onend = function () {
         recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
         S.tEnd = Date.now() - S.t0;
-        S.finals = _dedupFinals(S.finals);   // deltas propres avant la ponctuation audioStop(S);
+        audioStop(S);   // ⛔ était AVALÉ dans le commentaire ci-dessous depuis le miroir PR#493 : le micro (voie A) ne se relâchait plus en fin de dictée
+        S.finals = _dedupFinals(S.finals);   // deltas propres avant la ponctuation
         var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
         ta.value = pt || capitalize(ta.value);
         runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
