@@ -479,6 +479,14 @@ cas('commande : « point » après un verbe → .',
     'mode commande acté (« point » jamais après DET/NUM en emploi commande)',
     etat(['la séance est terminée point'], [1000], null, { sansAudio: true }),
     'La séance est terminée.');
+cas('fragments Android : « est-ce » | « que je vais à la plage » — pas de ? interne, ? FINAL',
+    'régression téléphone de Rem 2026-08-16 (« Est ce ? que je vais à la plage. ») : sans audio, estQuestion ne crée plus de frontière (p(rien)=0,86 → refus), et la question se juge sur la phrase RECOLLÉE',
+    etat(['est-ce','que je vais à la plage'], [1000, 2500], null, { sansAudio: true }),
+    'Est-ce que je vais à la plage ?');
+cas('question entière en un fragment, sans audio : le ? final tient',
+    'estQuestion sur le dernier segment — la queue recollée ne doit pas le casser',
+    etat(['est-ce que tu viens demain'], [1000], null, { sansAudio: true }),
+    'Est-ce que tu viens demain ?');
 cas('garde « point » : « un point de vue » reste intact',
     'voix_commande_probe : « point » = 6,17/10 000 en usage ordinaire — garde DET + de/du',
     etat(["c'est un point de vue"], [1000], null, { sansAudio: true }),
