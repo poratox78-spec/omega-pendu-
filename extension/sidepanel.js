@@ -428,6 +428,25 @@
     }
     return out+txt.slice(prev); }
 
+  /* ⭐ DOUBLON ANDROID, 2e FORME (2026-08-16) — le revenant, révélé PAR le fix de la double
+     capture : la reco recapte enfin sur téléphone… et Android renvoie parfois des finals
+     CUMULATIFS (un segment contient TOUT le texte déjà dit) ou RÉPÈTE un segment déjà rendu.
+     L'écrasement par index (1re forme, déjà en place) ne couvre pas ces deux formes-là.
+     Normalisation PURE des finals, miroir site/extension (voix_parite_probe la compare) :
+     · final qui contient l'accumulé en PRÉFIXE → on ne garde que son DELTA ;
+     · final déjà contenu dans l'accumulé → répétition pure, supprimé. */
+  function _dedupFinals(finals){
+    var ks=Object.keys(finals).map(Number).sort(function(a,b){return a-b;});
+    var out={}, acc='';
+    for(var k=0;k<ks.length;k++){
+      var f=(finals[ks[k]]||'').trim(); if(!f) continue;
+      var accN=acc.toLowerCase(), fN=f.toLowerCase();
+      if(acc && fN.indexOf(accN)===0){ f=f.slice(acc.length).replace(/^[\s,]+/,''); }
+      else if(acc && accN.indexOf(fN)>=0){ f=''; }
+      if(f){ out[ks[k]]=f; acc=acc?acc+' '+f:f; }
+    }
+    return out;
+  }
   function prosodyText(state){
     var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;}); var segs=[];
     for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
@@ -792,8 +811,9 @@
           if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
         }
         var parts = []; if (S.base.trim()) parts.push(S.base.trim());
-        var ks = Object.keys(S.finals).map(Number).sort(function (a, b) { return a - b; });
-        for (var k = 0; k < ks.length; k++) { if (S.finals[ks[k]]) parts.push(S.finals[ks[k]]); }
+        var fdd = _dedupFinals(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
+        var ks = Object.keys(fdd).map(Number).sort(function (a, b) { return a - b; });
+        for (var k = 0; k < ks.length; k++) { if (fdd[ks[k]]) parts.push(fdd[ks[k]]); }
         if (intr.trim()) parts.push(intr.trim());
         if (ks.length || intr.trim()) gotAny = true;
         ta.value = parts.join(' ');
@@ -802,7 +822,8 @@
       rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
       rec.onend = function () {
         recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
-        S.tEnd = Date.now() - S.t0; audioStop(S);
+        S.tEnd = Date.now() - S.t0;
+        S.finals = _dedupFinals(S.finals);   // deltas propres avant la ponctuation audioStop(S);
         var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
         ta.value = pt || capitalize(ta.value);
         runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
