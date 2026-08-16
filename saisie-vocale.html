@@ -761,7 +761,17 @@
       // l'audio : les frontières de segment sont des frontières de MOT exactes (cf. le bloc
       // supprimé plus haut — à l'intérieur d'un segment on ne sait pas viser).
       if(s>0){ var pv=segs[s-1], nx=segs[s], mk;
-        if(estQuestion(pv.t)||riseAt(pv.idx)>QR) mk='?';
+        var _dfM=useAudio?null:_txtFrontiere(pv.t,nx.t);
+        var _fr50=!!_dfM&&Math.max(_dfM[1]||0,_dfM[2]||0)>0.5;
+        /* ⭐ SANS AUDIO, `estQuestion` ne CRÉE pas de frontière — elle SURCLASSE. Android
+           fragmente les finals N'IMPORTE OÙ (« est-ce » | « que je vais à la plage ») : la règle,
+           100 % de précision sur des FINS D'ÉNONCÉ desktop (un final Google y tombe sur une vraie
+           pause), devenait fausse sur des fragments arbitraires — « Est ce ? que je vais à la
+           plage. » (téléphone de Rem, 2026-08-16). Mesuré sur le moteur : le modèle texte donne
+           p(rien)=0,86 à cette jointure — il REFUSE, et le refus doit gagner (acté PR#394/409).
+           Un « ? » ne se pose ici que là où le texte AFFIRME une frontière (p>0,5). Avec audio,
+           rien ne change : les finals desktop tombent sur de vraies pauses. */
+        if((useAudio||_fr50)&&(estQuestion(pv.t)||riseAt(pv.idx)>QR)) mk='?';
         else if(useAudio){ var sil=silBetween(au.tl,thr,(state.ftimes[pv.idx]||0)-100,(state.ftimes[nx.idx]||1e9));
           // ⭐⭐⭐ L'AUDIO DIT QU'IL Y A UNE MARQUE, LE TEXTE DIT LAQUELLE.
           // C'est la même division du travail qu'À L'INTÉRIEUR des segments — et c'est ici qu'elle
@@ -786,7 +796,7 @@
             mk = _df ? (((_df[2]*_lb[1]) > (_df[1]*_lb[0])) ? '.' : ',')
                      : (sil>=PERIOD?'.':',');   // repli : la durée seule, si le modèle n'est pas chargé
           } else mk=''; }   // sous 190 ms : RIEN
-        else { var _dfM=_txtFrontiere(pv.t,nx.t);
+        else {
           /* ⭐ SANS AUDIO (mobile : UNE seule capture micro, gate PR#492) : aucune durée n'est
              mesurée — et cette branche, JAMAIS exécutée sur desktop (l'audio y est toujours là),
              posait un POINT par défaut à CHAQUE frontière. Résultat chez Rem (2026-08-16) :
@@ -797,7 +807,7 @@
           /* ⭐ LE REFUS EST LE MAILLON (acté PR#394 : sans lui, justesse 69 % → 22 % ; seuil 0,50
              balayé PR#409 = « déjà le meilleur », monter coûte 94 % du rappel). Pas d'argmax nu :
              une marque ne se pose que si le modèle la donne à PLUS D'UNE CHANCE SUR DEUX. */
-          mk = (_dfM && Math.max(_dfM[1]||0,_dfM[2]||0) > 0.5) ? (((_dfM[2]||0) >= (_dfM[1]||0)) ? '.' : ',')
+          mk = _fr50 ? (((_dfM[2]||0) >= (_dfM[1]||0)) ? '.' : ',')
              : (!_dfM && CONT.test(nx.t) ? ',' : '');
         }
         if(mk===',' && COORD.test(nx.t)) mk='';                 // « … , et … » -> « … et … » (BDL)
@@ -934,7 +944,12 @@
       out+=txt;
     }
     var last=segs[segs.length-1];
-    var fin=(estQuestion(_finTr||last.t)||riseAt(last.idx)>QR)?'?':'.';
+    var _finT2=_finTr||last.t;
+    /* ⭐ SANS AUDIO, la dernière PHRASE enjambe les fragments : « est-ce » + « que je vais à la
+       plage » sans marque interne = UNE question, que le dernier fragment seul ne montre pas.
+       On la juge sur la queue de `out` depuis la dernière marque forte. */
+    if(!useAudio){ var _mQ=/[^.!?…]*$/.exec(out); if(_mQ&&_mQ[0].trim()) _finT2=_mQ[0].trim(); }
+    var fin=(estQuestion(_finT2)||riseAt(last.idx)>QR)?'?':'.';
     if(/[.!?…]\s*$/.test(out)) out=out.replace(/\s*$/,'');   // une COMMANDE dictée a déjà posé la marque finale : sa certitude (100 %) prime sur la déduction
     else out=out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin;
     return capitalize(normMajInterne(_dedoubleMarques(out)));
