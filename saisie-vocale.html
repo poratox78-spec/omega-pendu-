@@ -230,7 +230,7 @@
   // ---- Web Speech (page normale, PAS d'iframe → pas de vol de focus, ≠ ancienne version) ----
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition, rec=null, recording=false;
   function setOn(on){ mic.disabled=!(on&&SR); }
-  if(!SR){ von.disabled=true; }
+  if(!SR){ von.disabled=true; st('⚠️ la dictée vocale demande Chrome ou Edge — sur iPhone/iPad, Safari ne fournit pas cette fonction'); }   // sans ce message la page paraissait MORTE sur iOS (case grise, zéro explication)
   try{ von.checked=localStorage.getItem('omVoiceSite')==='1'; }catch(e){}
   setOn(von.checked);
   von.addEventListener('change',function(){ try{ localStorage.setItem('omVoiceSite',von.checked?'1':'0'); }catch(e){} setOn(von.checked); });
@@ -243,7 +243,15 @@
     for(i=0;i<n;i++)m+=buf[i]; m/=n;
     for(var lag=lo; lag<=hi && lag<n; lag++){ var c=0; for(i=0;i<n-lag;i++)c+=(buf[i]-m)*(buf[i+lag]-m); if(c>bc){bc=c;best=lag;} }
     return best>0 ? sr/best : 0; }
+  /* ⚠️ MOBILE : UNE SEULE capture micro à la fois (Android). Ouvrir getUserMedia (prosodie
+     parallèle) EN MÊME TEMPS que la reconnaissance rendait la reco MUETTE sur téléphone —
+     « rien capté » alors que tout marchait sur desktop (la voie A avait été validée en live
+     sur desktop seulement). Dégradation prévue par le design : sans audio parallèle, la
+     ponctuation par frontières de segments + règles reste entière ; seul l'affinage
+     silence/pitch est perdu. */
+  var _MOBILE=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
   function audioStart(state){
+    if(_MOBILE) return;
     try{ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return;
       navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
         var AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
