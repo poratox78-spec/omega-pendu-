@@ -447,9 +447,27 @@
     }
     return out;
   }
+  function _commandesVocales(t){
+    /* MODE COMMANDE (acté 2026-08-05, construit 2026-08-16 pour le mobile sans pitch) : Google
+       n'émet AUCUNE ponctuation en fr-FR — dire « virgule » écrivait le MOT. Mesuré sur 9,4 M mots
+       (voix_commande_probe) : tous les mots-commandes sont LIBRES (≈0 usage ordinaire) SAUF
+       « point » (6,17/10 000 : « un point de vue ») → garde fermée DET/NUM/qualificatif devant, et
+       « point de/du » exclu. La surcharge explicite rend la certitude là où l'automatique plafonne
+       — et rend le « ? » au MOBILE, où le pitch n'existe plus (une seule capture micro). */
+    t=t.replace(/\s*\bpoints? d[’']interrogation\b/gi,' ?');
+    t=t.replace(/\s*\bpoints? d[’']exclamation\b/gi,' !');
+    t=t.replace(/\s*\bdeux[- ]points\b/gi,' :');
+    t=t.replace(/\s*\bpoints? de suspension\b/gi,'…');
+    t=t.replace(/\s*\bpoint[- ]virgule\b/gi,' ;');
+    t=t.replace(/\s*\bvirgule\b/gi,',');
+    t=t.replace(/\s*\bnouvelle ligne\b|\s*\bà la ligne\b/gi,'\n');
+    t=t.replace(/([^\s]+)[  ]+point\b(?![  ]*(?:de\b|d[’']|du\b|final\b|commun\b))/gi,function(m,prev){
+      return /^(un|le|ce|du|au|mon|ton|son|leur|notre|votre|chaque|quel|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|dernier|premier|petit|grand|bon|beau|meme|même)$/i.test(prev)?m:(prev+'.');});
+    return t;
+  }
   function prosodyText(state){
     var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;}); var segs=[];
-    for(var k=0;k<ks.length;k++){ var t=(state.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim(); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
+    for(var k=0;k<ks.length;k++){ var t=_commandesVocales((state.finals[ks[k]]||'').trim().replace(/[.,;:!?…]+$/,'').trim()); if(t)segs.push({t:t.charAt(0).toLowerCase()+t.slice(1),idx:ks[k]}); }  // norm : enlève la MAJ d'amorce Google
     if(!segs.length) return null;
     // ⚠️⚠️ SEUILS D'ORIGINE DE LA VOIE A (commit 32ba743) : COMMA=190, PERIOD=600, QR=4.
     // LE PLANCHER À 190 MANQUAIT ICI (perdu en PR#311, restauré côté site mais pas côté extension) :
@@ -667,8 +685,11 @@
              pommes. », la falaise durée→point) sous sa forme sans-audio. La règle actée vaut à
              plus forte raison ici : sans preuve de durée, le TEXTE seul décide (ponctDist), et
              sans certitude on n'affirme RIEN — plutôt sous-ponctuer que hacher la dictée. */
-          mk = _dfM ? ((_dfM[2]>_dfM[0]&&_dfM[2]>=_dfM[1]) ? '.' : ((_dfM[1]>_dfM[0]) ? ',' : ''))
-                    : (CONT.test(nx.t) ? ',' : '');
+          /* ⭐ LE REFUS EST LE MAILLON (acté PR#394 : sans lui, justesse 69 % → 22 % ; seuil 0,50
+             balayé PR#409 = « déjà le meilleur », monter coûte 94 % du rappel). Pas d'argmax nu :
+             une marque ne se pose que si le modèle la donne à PLUS D'UNE CHANCE SUR DEUX. */
+          mk = (_dfM && Math.max(_dfM[1]||0,_dfM[2]||0) > 0.5) ? (((_dfM[2]||0) >= (_dfM[1]||0)) ? '.' : ',')
+             : (!_dfM && CONT.test(nx.t) ? ',' : '');
         }
         if(mk===',' && COORD.test(nx.t)) mk='';                             // « … , et … » -> « … et … » (BDL)
         // ⛔⛔ NE JAMAIS EMPILER DEUX MARQUES À LA JOINTURE. `_poseMarques` a bien une garde
@@ -798,7 +819,8 @@
       out+=txt; }
     var last=segs[segs.length-1];
     var fin=(estQuestion(_finTr||last.t)||riseAt(last.idx)>QR)?'?':'.';
-    out=out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin;
+    if(/[.!?…]\s*$/.test(out)) out=out.replace(/\s*$/,'');   // une COMMANDE dictée a déjà posé la marque finale : sa certitude (100 %) prime sur la déduction
+    else out=out.replace(/\s*$/,'')+(fin==='?'?' ':'')+fin;
     return capitalize(normMajInterne(_dedoubleMarques(out))); }
   function capitalize(t){ return String(t).replace(/(^|[.!?…]\s+|\n\s*)([a-zà-ÿœ])/g,function(m,p,c){ return p+c.toUpperCase(); }); }
   function startRec() {

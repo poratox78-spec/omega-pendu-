@@ -82,6 +82,7 @@ function charge(fichier, nomProso) {
     bloc(src, 'function _avantTiret('),
     bloc(src, 'function _txtFrontiere('), bloc(src, 'function _durBiais('),
     bloc(src, 'function _trancheTexte('),
+    bloc(src, 'function _commandesVocales('),
     bloc(src, 'function _poseMarques('),
     bloc(src, 'function _seuilSilence('),
     bloc(src, 'function silBetween('),
@@ -461,6 +462,27 @@ cas('sans audio : trois segments courts, aucun hachage en phrases',
     'bug mobile de Rem (« des points partout »)',
     etat(['il y avait', 'des oranges', 'des violettes'], [1000, 2000, 3000], null, { sansAudio: true }),
     'Il y avait des oranges des violettes.');
+
+/* ⭐ MODE COMMANDE (acté 2026-08-05, mesuré voix_commande_probe sur 9,4 M mots : tous les
+ * mots-commandes sont libres SAUF « point », gardé par DET/NUM + de/du) — construit pour le
+ * MOBILE : sans pitch (une seule capture micro), le « ? » d'intonation est perdu ; la commande
+ * dictée le rend, avec 100 % de certitude (« dictée par défaut + commande en surcharge »). */
+cas("commande : « point d'interrogation » dicté → ?",
+    'mode commande acté 2026-08-05 (rendre le ? au mobile sans pitch)',
+    etat(["tu viens demain point d'interrogation"], [1000], null, { sansAudio: true }),
+    'Tu viens demain ?');
+cas('commande : « virgule » dictée → ,',
+    'mode commande acté (virgule = 0,05/10 000 en usage ordinaire : libre)',
+    etat(['il fait beau virgule mais je reste'], [1000], null, { sansAudio: true }),
+    'Il fait beau, mais je reste.');
+cas('commande : « point » après un verbe → .',
+    'mode commande acté (« point » jamais après DET/NUM en emploi commande)',
+    etat(['la séance est terminée point'], [1000], null, { sansAudio: true }),
+    'La séance est terminée.');
+cas('garde « point » : « un point de vue » reste intact',
+    'voix_commande_probe : « point » = 6,17/10 000 en usage ordinaire — garde DET + de/du',
+    etat(["c'est un point de vue"], [1000], null, { sansAudio: true }),
+    "C'est un point de vue.");
 
 /* ⑦  ⭐⭐⭐ LES RÈGLES DE VIRGULE D'ALLÔ PROF (`DC.ponctReglesVirgule`).
  *    Source : Allô prof, fiches « La virgule » et « Le coordonnant », fournies par Rem.
