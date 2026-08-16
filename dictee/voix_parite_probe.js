@@ -25,7 +25,7 @@ const RACINE = path.dirname(__dirname);
 /* Les fonctions qui DÉCIDENT de la ponctuation. Si l'une d'elles diverge, les deux surfaces ne
    ponctuent plus pareil — et c'est précisément ce que Rem ne doit jamais avoir à découvrir
    lui-même en testant. */
-const MOTEUR = ['prosodyText', '_poseMarques', '_seuilSilence', 'silBetween', 'riseAt',
+const MOTEUR = ['_dedupFinals', 'prosodyText', '_poseMarques', '_seuilSilence', 'silBetween', 'riseAt',
                 'riseEndingAt', '_txtFrontiere', '_durBiais', '_trancheTexte', '_avantTiret',
                 'normMajInterne', 'teteHorsPhrase', '_dedoubleMarques', 'estQuestion', '_f0'];
 
