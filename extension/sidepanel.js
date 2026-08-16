@@ -659,7 +659,17 @@
             mk = _df ? (((_df[2]*_lb[1]) > (_df[1]*_lb[0])) ? '.' : ',')
                      : (sil>=PERIOD?'.':',');   // repli : la durée seule, si le modèle n'est pas chargé
           } else mk=''; }               // sous 190 ms : RIEN
-        else mk = CONT.test(nx.t) ? ',' : '.';
+        else { var _dfM=_txtFrontiere(pv.t,nx.t);
+          /* ⭐ SANS AUDIO (mobile : UNE seule capture micro, gate PR#492) : aucune durée n'est
+             mesurée — et cette branche, JAMAIS exécutée sur desktop (l'audio y est toujours là),
+             posait un POINT par défaut à CHAQUE frontière. Résultat chez Rem (2026-08-16) :
+             « des points partout » — le précédent acté du 2026-08-06 (« Nous irons. Manger des
+             pommes. », la falaise durée→point) sous sa forme sans-audio. La règle actée vaut à
+             plus forte raison ici : sans preuve de durée, le TEXTE seul décide (ponctDist), et
+             sans certitude on n'affirme RIEN — plutôt sous-ponctuer que hacher la dictée. */
+          mk = _dfM ? ((_dfM[2]>_dfM[0]&&_dfM[2]>=_dfM[1]) ? '.' : ((_dfM[1]>_dfM[0]) ? ',' : ''))
+                    : (CONT.test(nx.t) ? ',' : '');
+        }
         if(mk===',' && COORD.test(nx.t)) mk='';                             // « … , et … » -> « … et … » (BDL)
         // ⛔⛔ NE JAMAIS EMPILER DEUX MARQUES À LA JOINTURE. `_poseMarques` a bien une garde
         // anti-doublon, mais elle regarde le texte du segment COURANT : elle ne peut pas voir la
