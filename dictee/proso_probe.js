@@ -448,6 +448,19 @@ cas('sans audio : « et » ne prend toujours pas de virgule',
     'BDL + dégradation douce',
     etat(['il fait beau', 'et je sors'], [1000, 2000], null, { sansAudio: true }),
     'Il fait beau et je sors.');
+/* ⭐ LA RÉGRESSION DE REM (2026-08-16, mobile) : sans audio, l'ancienne branche posait un POINT
+ * par défaut à CHAQUE frontière — « des points partout ». Jamais vue sur desktop (l'audio y est
+ * toujours là) ; révélée par le gate mobile (PR#492, une seule capture micro sur Android).
+ * C'est le précédent ACTÉ du 2026-08-06 (« Nous irons. Manger des pommes. » — la falaise
+ * durée→point) sous sa forme sans-audio : même phrase, même exigence. */
+cas('sans audio : PAS de point par défaut entre deux segments liés (bug mobile de Rem)',
+    'précédent acté 2026-08-06 (« Nous irons. Manger des pommes. ») + gate mobile PR#492',
+    etat(['nous irons', 'manger des pommes'], [1000, 2000], null, { sansAudio: true }),
+    'Nous irons manger des pommes.');
+cas('sans audio : trois segments courts, aucun hachage en phrases',
+    'bug mobile de Rem (« des points partout »)',
+    etat(['il y avait', 'des oranges', 'des violettes'], [1000, 2000, 3000], null, { sansAudio: true }),
+    'Il y avait des oranges des violettes.');
 
 /* ⑦  ⭐⭐⭐ LES RÈGLES DE VIRGULE D'ALLÔ PROF (`DC.ponctReglesVirgule`).
  *    Source : Allô prof, fiches « La virgule » et « Le coordonnant », fournies par Rem.
