@@ -376,6 +376,35 @@ async function main() {
         srs: fb.indexOf('à revoir dans') >= 0,
         suivant: !!document.getElementById('vdd-cnext') };
     })()`, awaitPromise: true, returnByValue: true, timeout: 30000 });
+    /* v2 — TRANSFORMATION 3s↔3p : proposée quand la lecture du verbe est en 3e personne et que
+       CONJ_C connaît la forme jumelle. Les verbes en 3e personne dominent le pool : on relance
+       jusqu'à la voir (15 tours max), puis on répond FAUX → le verdict « On écrit : … » doit
+       tomber. Ne jamais la trouver en 15 tours = elle est morte → échec explicite. */
+    const ct = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      for (let tour = 0; tour < 15; tour++) {
+        const inp2 = document.getElementById('vdd-ctin');
+        if (inp2 && !inp2.disabled) {
+          inp2.value = 'zzz';
+          document.getElementById('vdd-ctok').click(); await attendre(300);
+          const f2 = (document.getElementById('vdd-ctfb').textContent || '');
+          return { tours: tour, verdict: f2.indexOf('On écrit') >= 0, score2: /Score conjugaison : \\d+ \\/ \\d+/.test(document.getElementById('vdd-cscore2').textContent || '') };
+        }
+        const nx = document.getElementById('vdd-cnext'); if (!nx) return { fatal: 'ni transformation ni « Phrase suivante »' };
+        nx.click(); await attendre(450);
+        const i1 = document.getElementById('vdd-cin'); if (!i1) return { fatal: 'trou absent au tour ' + tour };
+        i1.value = 'zzzz'; document.getElementById('vdd-cok').click(); await attendre(350);
+      }
+      return { fatal: 'transformation jamais proposée en 15 tours' };
+    })()`, awaitPromise: true, returnByValue: true, timeout: 60000 });
+    if (ct.exceptionDetails) throw new Error('transformation : ' + (ct.exceptionDetails.exception || {}).description);
+    const tv = ct.result.value || {};
+    if (tv.fatal) echecs.push('conjugue v2 : ' + tv.fatal);
+    else {
+      if (!tv.verdict) echecs.push('conjugue v2 : une forme fausse doit produire « On écrit : … »');
+      if (!tv.score2) echecs.push('conjugue v2 : le score doit se mettre à jour après la transformation');
+      log('  ' + (tv.verdict && tv.score2 ? '✓' : '✗') + ' ✍️ conjugue v2 (transformation 3s↔3p au tour ' + tv.tours + ')');
+    }
     if (cj.exceptionDetails) throw new Error('conjugue : ' + (cj.exceptionDetails.exception || {}).description);
     const cv = cj.result.value || {};
     if (cv.fatal) echecs.push('conjugue : ' + cv.fatal);

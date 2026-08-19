@@ -24439,9 +24439,32 @@ window.addEventListener('DOMContentLoaded', () => {
         var _sr=_srsMaj(_srsLoad(),_sf,{},cCur.texte,Date.now());_srsSave(_sr.S);renderSrs();
         if(_sr.infos.length)html+='<div class="vdd-fact" style="border-left:5px solid #7a5c00;background:#fdf6e3">🔁 '+_sr.infos.map(function(r){return '« '+esc(r.mot)+' » — à revoir dans '+r.lbl;}).join('<br>')+'</div>';
       }
-      html+='<div class="vdd-fact vdd-sc" style="border-left:5px solid #d0c8b0">Score conjugaison : '+cOk+' / '+cTot+' · <button type="button" id="vdd-cnext" class="g">Phrase suivante →</button></div>';
+      /* v2 — TRANSFORMATION DE PERSONNE (3s ↔ 3p) : la marque du pluriel verbal est MUETTE
+         (mange/mangent) — exactement la famille accord mesurée faible chez le dys. On ne réécrit
+         pas la phrase (pas de NLG) : on demande la forme jumelle, CONJ_C la connaît. Proposée
+         même après une bonne réponse — produire la forme qu'on n entend PAS est l exercice. */
+      var alt=null;
+      if(rd[2]==='3'){var _sl2=(CONJ_C[rd[0]]||{})[rd[1]]||{},_au2=rd[3]==='s'?'3p':'3s',_f2=_sl2[_au2];
+        if(_f2&&_f2!==att)alt={f:_f2,lbl:_au2==='3p'?'ils·elles':'il·elle'};}
+      if(alt)html+='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>Même verbe, autre sujet — et avec '+alt.lbl+' ?</b> <input type="text" id="vdd-ctin" autocomplete="off" autocapitalize="off" spellcheck="false" style="font:inherit;width:'+Math.max(8,alt.f.length+3)+'ch;border:none;border-bottom:2px solid #2a6f97;background:#fff;padding:2px 4px"> <button type="button" id="vdd-ctok" class="g">Valider</button> <span id="vdd-ctfb"></span></div>';
+      html+='<div class="vdd-fact vdd-sc" style="border-left:5px solid #d0c8b0"><span id="vdd-cscore2">Score conjugaison : '+cOk+' / '+cTot+'</span> · <button type="button" id="vdd-cnext" class="g">Phrase suivante →</button></div>';
       $('vdd-fb').innerHTML=html;
       var bx=$('vdd-cnext');if(bx)bx.onclick=lancerC;
+      if(alt){var _bt=$('vdd-ctok'),_in2=$('vdd-ctin');
+        var _rep2=function(){
+          if(!_in2||_in2.disabled)return;
+          var t2=(_in2.value||'').trim().toLowerCase();
+          cTot++;var ok2=(t2===alt.f);if(ok2)cOk++;
+          var d2=$('vdd-ctfb');
+          if(d2)d2.innerHTML=ok2?'<b style="color:#1f7a3d">✓ '+esc(alt.f)+'</b>'
+            :'<b style="color:#c0392b">✗ On écrit : '+esc(alt.f)+'</b>'+(t2&&deacc(t2)===deacc(alt.f)?' — le son était bon : cette marque ne s’entend pas, elle s’écrit.':'');
+          if(!ok2){var _sf2={};_sf2[alt.f.toLowerCase()]=1;var _r2=_srsMaj(_srsLoad(),_sf2,{},cCur.texte,Date.now());_srsSave(_r2.S);renderSrs();}
+          var _sc2=$('vdd-cscore2');if(_sc2)_sc2.textContent='Score conjugaison : '+cOk+' / '+cTot;
+          _in2.disabled=true;
+        };
+        if(_bt)_bt.onclick=_rep2;
+        if(_in2)_in2.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();_rep2();}});
+      }
     }
     function lancerC(){
       var p=poolFor(diff),essais=0,base,cands;
