@@ -24467,6 +24467,24 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
     function lancerC(){
+      /* ⛔ BUG DU PREMIER JOUR (Rem, 2026-08-19 : « Pas de verbe conjugable » à CHAQUE clic) :
+         CONJ_F est chargé en ASYNC par loadVdcLex — déclenché à l'ouverture du CORRECTEUR
+         seulement. Page fraîche → dictée → Conjugue = tables VIDES → zéro candidat, toujours.
+         Le banc ne le voyait pas : ses cas correcteur précédents avaient chargé les tables —
+         il testait un autre chemin que celui de l'utilisateur. Le mode charge donc LUI-MÊME,
+         et attend la fin réelle du gunzip (loadVdcLex pose son verrou AVANT l'await : on
+         attend la DONNÉE, pas la promesse). */
+      if(!CONJ_F['mangeait']){
+        $('vdd-fb').innerHTML='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8">⏳ Chargement des conjugaisons…</div>';
+        try{loadVdcLex();}catch(e){}
+        var _t0c=Date.now();
+        (function _attC(){
+          if(CONJ_F['mangeait'])return lancerC();
+          if(Date.now()-_t0c>15000){$('vdd-fb').innerHTML='<div class="vdd-fact">Les conjugaisons n’ont pas pu se charger sur ce navigateur.</div>';return;}
+          setTimeout(_attC,300);
+        })();
+        return;
+      }
       var p=poolFor(diff),essais=0,base,cands;
       do{base=p[Math.floor(Math.random()*p.length)];cands=_cCands(base.text);essais++;}while(!cands.length&&essais<60);
       if(!cands.length){$('vdd-fb').innerHTML='<div class="vdd-fact">Pas de verbe conjugable dans cette série — relance la dictée.</div>';return;}
