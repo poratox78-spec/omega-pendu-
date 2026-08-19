@@ -415,6 +415,52 @@ async function main() {
       log('  ' + (cv.verdict && cv.score && cv.suivant ? '✓' : '✗') + ' ✍️ conjugue (verdict+score+suivant, SRS ' + (cv.srs ? 'nourri' : 'déjà connu') + ')');
     }
 
+    /* ── CHEMIN FRAIS (bug du 2026-08-19) : page NEUVE → dictée → ✍️ Conjugue, SANS ouvrir le
+       correcteur. CONJ_F se charge en async à l'ouverture du CORRECTEUR : le premier jour, ce
+       chemin — celui de Rem — donnait « Pas de verbe conjugable » à CHAQUE clic, et le banc ne
+       le voyait pas parce que ses cas correcteur précédents avaient déjà chargé les tables.
+       Onglet neuf : le mode doit charger LUI-MÊME (⏳) puis afficher le trou. */
+    let sess2 = null;
+    try {
+      sess2 = await connecter(await cible(dbg, 'about:blank'));
+      await sess2.envoyer('Page.enable'); await sess2.envoyer('Runtime.enable');
+      await sess2.envoyer('Page.navigate', { url });
+      let pret2 = false;
+      for (let i2 = 0; i2 < 300 && !pret2; i2++) {
+        try { const q2 = await sess2.envoyer('Runtime.evaluate',
+          { expression: '(document.readyState === "complete") && location.pathname.indexOf("omega-pendu") >= 0', returnByValue: true });
+          pret2 = q2.result.value === true; } catch (e) {}
+        if (!pret2) await attendre(200);
+      }
+      if (!pret2) throw new Error('onglet frais : page non chargée');
+      const fr = await sess2.envoyer('Runtime.evaluate', { expression: `(async () => {
+        const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+        const bd = document.getElementById('vdd-btn'); if (!bd) return { fatal: 'dictée absente' };
+        bd.click(); await attendre(400);
+        const bc = document.getElementById('vdd-conj'); if (!bc) return { fatal: 'bouton ✍️ absent' };
+        bc.click();
+        const t0 = Date.now(); let charge = false;
+        while (Date.now() - t0 < 25000) {
+          if (document.getElementById('vdd-cin')) { charge = true; break; }
+          const fb = (document.getElementById('vdd-fb').textContent || '');
+          if (fb.indexOf('pas pu se charger') >= 0) return { fatal: 'chargement des conjugaisons en échec' };
+          if (fb.indexOf('Pas de verbe conjugable') >= 0) return { fatal: 'régression : « Pas de verbe conjugable » sur page fraîche' };
+          await attendre(300);
+        }
+        if (!charge) return { fatal: 'trou jamais affiché en 25 s (chargement async mort)' };
+        document.getElementById('vdd-cin').value = 'zzzz';
+        document.getElementById('vdd-cok').click(); await attendre(400);
+        const fb2 = (document.getElementById('vdd-fb').textContent || '');
+        return { verdict: fb2.indexOf('Forme attendue') >= 0 || fb2.indexOf('Presque') >= 0 || fb2.indexOf('Bon verbe') >= 0, ms: Date.now() - t0 };
+      })()`, awaitPromise: true, returnByValue: true, timeout: 40000 });
+      if (fr.exceptionDetails) throw new Error((fr.exceptionDetails.exception || {}).description);
+      const fv = fr.result.value || {};
+      if (fv.fatal) echecs.push('conjugue chemin frais : ' + fv.fatal);
+      else if (!fv.verdict) echecs.push('conjugue chemin frais : pas de verdict après réponse fausse');
+      else log('  ✓ ✍️ conjugue sur PAGE FRAÎCHE (conjugaisons auto-chargées en ' + fv.ms + ' ms)');
+    } catch (e) { echecs.push('conjugue chemin frais : ' + e.message); }
+    finally { if (sess2) sess2.fermer(); }
+
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
     else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus).');
   } catch (e) {
