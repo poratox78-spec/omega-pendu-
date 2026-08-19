@@ -358,6 +358,34 @@ async function main() {
       log('  ' + (pv.verdict && pv.score && pv.suivant ? '✓' : '✗') + ' 🎯 repère la faute (' + pv.nMots + ' mots cliquables, verdict+score+suivant)');
     }
 
+    /* ── ✍️ CONJUGUE (2026-08-19) : écouter → ÉCRIRE la forme du verbe (production, pas
+       reconnaissance). Déterministe : une réponse fausse (« zzzz ») produit TOUJOURS un verdict
+       (« Forme attendue » / « Presque » / « Bon verbe ») + le score + « Phrase suivante ». La
+       lecture vocale est lancée mais pas attendue (flag autoplay du banc). */
+    const cj = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      const bc = document.getElementById('vdd-conj'); if (!bc) return { fatal: 'bouton ✍️ absent' };
+      bc.click(); await attendre(500);
+      const inp = document.getElementById('vdd-cin');
+      if (!inp) return { fatal: 'trou de conjugaison non affiché' };
+      inp.value = 'zzzz';
+      document.getElementById('vdd-cok').click(); await attendre(400);
+      const fb = (document.getElementById('vdd-fb').textContent || '');
+      return { verdict: fb.indexOf('Forme attendue') >= 0 || fb.indexOf('Presque') >= 0 || fb.indexOf('Bon verbe') >= 0,
+        score: /Score conjugaison : \\d+ \\/ \\d+/.test(fb),
+        srs: fb.indexOf('à revoir dans') >= 0,
+        suivant: !!document.getElementById('vdd-cnext') };
+    })()`, awaitPromise: true, returnByValue: true, timeout: 30000 });
+    if (cj.exceptionDetails) throw new Error('conjugue : ' + (cj.exceptionDetails.exception || {}).description);
+    const cv = cj.result.value || {};
+    if (cv.fatal) echecs.push('conjugue : ' + cv.fatal);
+    else {
+      if (!cv.verdict) echecs.push('conjugue : une réponse fausse doit produire un verdict avec la forme attendue');
+      if (!cv.score) echecs.push('conjugue : le score « Score conjugaison : N / M » doit s afficher');
+      if (!cv.suivant) echecs.push('conjugue : le bouton « Phrase suivante » doit exister');
+      log('  ' + (cv.verdict && cv.score && cv.suivant ? '✓' : '✗') + ' ✍️ conjugue (verdict+score+suivant, SRS ' + (cv.srs ? 'nourri' : 'déjà connu') + ')');
+    }
+
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
     else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus).');
   } catch (e) {
