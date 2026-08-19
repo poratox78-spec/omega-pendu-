@@ -24344,6 +24344,74 @@ window.addEventListener('DOMContentLoaded', () => {
       _rendu();
     }
     brp.onclick=lancer;
+  })();
+
+  /* ✍️ CONJUGUE — production de la FORME du verbe (reconnaissance French Bites 2026-08-19 :
+     l IDÉE de la session-verbe, MÉCANIQUE réinventée pour le dys). Eux drillent QUELLE
+     terminaison choisir, pour des anglophones qui apprennent la langue ; notre élève dys la
+     SAIT à l oreille — ce qui lui manque est l ORTHOGRAPHE de la forme (ais/ait/aient,
+     -ez/-é, s muets). Donc : la phrase est LUE à voix haute (la forme s ENTEND), le verbe est
+     un TROU, l élève ÉCRIT ce qu il entend. Production, pas reconnaissance → écrire faux entre
+     au SRS boîte 1 (même règle que la dictée). Données 100 % maison : CONJ_F/CONJ_C (vdc-lex),
+     déjà embarquées — AUCUNE donnée tierce. Les lemmes de CONJ_C sont DÉSACCENTUÉS, on ne les
+     affiche donc jamais (montrer « reciter » à un dys serait une faute d outil). */
+  (function(){
+    var bcj=$('vdd-conj');if(!bcj)return;
+    var CTEMPS={'ind:pre':'présent','ind:imp':'imparfait','ind:fut':'futur simple','ind:pas':'passé simple','cnd:pre':'conditionnel présent','sub:pre':'subjonctif présent'};
+    var CPERS={'1s':'je','2s':'tu','3s':'il·elle·on','1p':'nous','2p':'vous','3p':'ils·elles'};
+    var cCur=null,cOk=0,cTot=0;
+    function _cCands(txt){
+      var re=/[A-Za-zÀ-ÿœŒ]+/g,m,out=[];
+      while((m=re.exec(txt))){
+        var w=m[0],lw=w.toLowerCase(),d=deacc(lw);
+        if(w!==lw||w.length<3)continue;                    // majuscules (têtes, prénoms) : hors jeu
+        var rd=svReads(lw);if(!rd.length)continue;         // forme verbale FINIE connue (CONJ_F)
+        if(GENDER_MAP[d]||GENDER_PURE[d]||ADJP[d]||NOUN_PLURAL[d])continue;   // aussi nom/adjectif → ambigu, on passe (« la porte »)
+        out.push({a:m.index,b:m.index+w.length,w:w,rd:rd[0]});
+      }
+      return out;
+    }
+    function _cLire(txt){try{speechSynthesis.cancel();var u2=new SpeechSynthesisUtterance(txt);u2.lang='fr-FR';u2.rate=VR;speechSynthesis.speak(u2);}catch(e){}}   // u2 : NE PAS reproduire l ancre _ADAPT du read-along (le build EN exige son unicité)
+    function _cRendu(){
+      var t=cCur.texte,c=cCur.cand;
+      $('vdd-fb').innerHTML='<div class="vdd-fact" style="border-left:5px solid #2a6f97;background:#eaf2f8"><b>✍️ Écoute la phrase, écris le verbe qui manque</b> <button type="button" class="g" id="vdd-crelis">🔊 Réécouter</button><br><span style="font-size:1.15em;line-height:2.2">'
+        +esc(t.slice(0,c.a))+'<input type="text" id="vdd-cin" autocomplete="off" autocapitalize="off" spellcheck="false" style="font:inherit;width:'+Math.max(8,c.w.length+3)+'ch;border:none;border-bottom:2px solid #2a6f97;background:#fff;padding:2px 4px">'+esc(t.slice(c.b))
+        +'</span><br><button type="button" id="vdd-cok" class="g" style="margin-top:6px">Valider</button> <span class="vdd-sc" id="vdd-cscore"></span></div>';
+      var inp=$('vdd-cin');if(inp){inp.focus();inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();_cRep();}});}
+      var bo=$('vdd-cok');if(bo)bo.onclick=_cRep;
+      var br=$('vdd-crelis');if(br)br.onclick=function(){_cLire(cCur.texte);};
+      _cLire(cCur.texte);
+    }
+    function _cRep(){
+      var inp=$('vdd-cin');if(!inp)return;
+      var tap=(inp.value||'').trim().toLowerCase(),att=cCur.cand.w,rd=cCur.cand.rd;
+      cTot++;
+      var bon=(tap===att);if(bon)cOk++;
+      var quoi=CTEMPS[rd[1]]||rd[1],qui=CPERS[rd[2]+rd[3]]||'';
+      var html='';
+      if(bon)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6"><b>✓ Exact !</b> '+esc(att)+' — '+quoi+(qui?', avec <b>'+qui+'</b>':'')+'.</div>';
+      else{
+        if(tap&&deacc(tap)===deacc(att))html+='<div class="vdd-fact" style="border-left:5px solid #c77f00;background:#fdf3e3"><b>Presque !</b> Le bon verbe, le bon son — il manque l accent : <b>'+esc(att)+'</b>.</div>';
+        else if(tap&&svReads(tap).length&&svReads(tap)[0][0]===rd[0])html+='<div class="vdd-fact" style="border-left:5px solid #c0392b;background:#fdecea"><b>✗ Bon verbe, autre forme.</b> Ici on entend <b>'+esc(att)+'</b> — '+quoi+(qui?', avec <b>'+qui+'</b>':'')+'.</div>';
+        else html+='<div class="vdd-fact" style="border-left:5px solid #c0392b;background:#fdecea"><b>✗ Forme attendue : '+esc(att)+'</b> — '+quoi+(qui?', avec <b>'+qui+'</b>':'')+'.</div>';
+        html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase complète : <span class="vdd-truth">'+_dsModel(cCur.texte)+'</span></div>';
+        var _sf={};_sf[att.toLowerCase()]=1;
+        var _sr=_srsMaj(_srsLoad(),_sf,{},cCur.texte,Date.now());_srsSave(_sr.S);renderSrs();
+        if(_sr.infos.length)html+='<div class="vdd-fact" style="border-left:5px solid #7a5c00;background:#fdf6e3">🔁 '+_sr.infos.map(function(r){return '« '+esc(r.mot)+' » — à revoir dans '+r.lbl;}).join('<br>')+'</div>';
+      }
+      html+='<div class="vdd-fact vdd-sc" style="border-left:5px solid #d0c8b0">Score conjugaison : '+cOk+' / '+cTot+' · <button type="button" id="vdd-cnext" class="g">Phrase suivante →</button></div>';
+      $('vdd-fb').innerHTML=html;
+      var bx=$('vdd-cnext');if(bx)bx.onclick=lancerC;
+    }
+    function lancerC(){
+      var p=poolFor(diff),essais=0,base,cands;
+      do{base=p[Math.floor(Math.random()*p.length)];cands=_cCands(base.text);essais++;}while(!cands.length&&essais<60);
+      if(!cands.length){$('vdd-fb').innerHTML='<div class="vdd-fact">Pas de verbe conjugable dans cette série — relance la dictée.</div>';return;}
+      cCur={texte:base.text,cand:cands[Math.floor(Math.random()*cands.length)]};
+      cur=base;answered=true;                                          // neutralise Vérifier pendant ce mode
+      _cRendu();
+    }
+    bcj.onclick=lancerC;
   })();$('vdd-reset').onclick=function(e){e.preventDefault();PROF={};try{localStorage.removeItem('vdd_profile');localStorage.removeItem('vdd_srs');}catch(_){}if(DysProfile)DysProfile.reset();renderProf();renderUProf();renderSrs();};renderProf();var _li=$('vdd-lisible');if(_li){_li.checked=localStorage.getItem('vdd_lisible')==='1';if(_li.checked)$('vdd-card').classList.add('lisible');_li.onchange=function(){$('vdd-card').classList.toggle('lisible',_li.checked);try{localStorage.setItem('vdd_lisible',_li.checked?'1':'0');}catch(e){}};}var _sy=$('vdd-syl');if(_sy){_sy.checked=SYLCOL;_sy.onchange=function(){SYLCOL=_sy.checked;try{localStorage.setItem('vdd_syl',SYLCOL?'1':'0');}catch(e){}var tr=$('vdd-fb')&&$('vdd-fb').querySelector('.vdd-truth');if(tr&&cur)tr.innerHTML=_dsModel(cur.text);};}var _rt=$('vdd-rate');if(_rt){_rt.value=VR;_rt.oninput=function(){VR=parseFloat(_rt.value)||0.85;try{localStorage.setItem('vdd_rate',String(VR));}catch(e){}};}renderHist();renderUProf();renderSrs();
   $('vdd-ans').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();answered?pick():check();}});
 

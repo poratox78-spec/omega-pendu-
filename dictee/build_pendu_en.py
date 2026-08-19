@@ -183,6 +183,7 @@ _ADAPT = [
     # 🎯 repère la faute : RETIRÉ du clone EN — les familles d'injection sont FRANÇAISES (a/à, la/là) ;
     # un mode anglais demanderait ses familles (their/there, its/it's, -s) : chantier futur, pas un clone.
     ("<button class=\"g\" id=\"vdd-repere\" title=\"La phrase apparaît à l\u2019écran : clique le mot fautif\">🎯 Repère la faute</button>", ""),
+    ("<button class=\"g\" id=\"vdd-conj\" title=\"Écoute la phrase : écris la forme du verbe\">✍️ Conjugue</button>", ""),   # mode FRANÇAIS (CONJ_F) — hors du clone EN, comme 🎯
 ]
 for fr, en in _ADAPT:
     assert html.count(fr) == 1, '[ADAPT 2026-08-13] ancre absente ou multiple : ' + fr[:60]
