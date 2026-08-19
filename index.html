@@ -59,14 +59,14 @@
 <main id="main">
 <section class="hero"><div class="wrap">
   <span class="tag">Correcteur d'écriture pour la dyslexie · gratuit · hors-ligne · sans faux positif</span>
-  <h1>Un correcteur pour la dyslexie — porté par une machine qui <em>raisonne</em> le français.</h1>
-  <p class="lead">OMEGA-Ω est d'abord un <strong>correcteur d'écriture pour la dyslexie</strong>, avec une garde absolue&nbsp;: <strong>ne jamais souligner du juste</strong> (0 faux positif mesuré). Il est né d'un <strong>solveur de pendu cognitif</strong> qui devine les mots français <em>sans jamais les lire</em> — la même cognition de la langue, sons↔orthographe↔contexte, sert les deux. Le tout tient dans <strong>un seul fichier HTML</strong>, hors-ligne, sans GPU.</p>
+  <h1>Un correcteur d'écriture pour la dyslexie — qui ne souligne jamais un mot juste.</h1>
+  <p class="lead">Tu écris, il corrige — et il <strong>explique</strong> chaque faute au lieu de la barrer. Quand il n'est pas sûr, il ne touche pas&nbsp;: <strong>zéro fausse alerte</strong>, mesuré. Tout se passe dans ton navigateur&nbsp;: <strong>rien n'est envoyé</strong>, et ça marche même sans internet. Gratuit, sans compte, sans pub.</p>
   <div class="cta">
     <a class="btn primary" href="correcteur.html">✍️ Ouvrir le correcteur</a>
     <a class="btn ghost" href="app/omega-pendu.html">▶️ Voir le pendu jouer</a>
     <a class="btn ghost" href="recherche.html">Lire la recherche</a>
   </div>
-  <p class="small">100&nbsp;% dans le navigateur · hors-ligne · open source · « cognition&nbsp;&gt;&nbsp;oracle » — la même discipline (mesurer ou rejeter) porte le correcteur et le pendu.</p>
+  <p class="small">100&nbsp;% dans le navigateur · hors-ligne · open source (MIT) · sans compte, sans pub, sans traqueur.</p>
 </div></section>
 
 <section><div class="wrap">
@@ -78,7 +78,7 @@
 </div></section>
 
 <section><div class="wrap">
-  <h2>Écrire, s'entraîner, dicter — trois outils, la même exigence</h2>
+  <h2>Écrire, s'entraîner, dicter, jouer — quatre outils, la même exigence</h2>
   <div class="grid">
     <div class="card"><span class="ico">✍️</span><h3>Le correcteur</h3>
       <p>Orthographe, accents et accords corrigés <strong>sans jamais souligner du juste</strong>. Sur le site, ou en <strong>extension navigateur</strong> partout où tu écris.</p>
@@ -99,9 +99,21 @@
   </div>
 </div></section>
 
+
+
+
+
 <section><div class="wrap">
-  <h2>Ce qu'il fait, mesuré</h2>
-  <p>Deviner un mot français lettre par lettre, sous contrainte d'erreurs, est un test sévère de modèle de langue. Sans jamais lire la réponse&nbsp;:</p>
+  <h2>L'idée&nbsp;: raisonner, pas tricher</h2>
+  <p class="small"><strong>Changement d'histoire</strong> — tout ce qui précède est l'outil&nbsp;; ce qui suit est le projet de recherche dont il est né&nbsp;: un solveur de pendu qui devine les mots français <em>sans jamais les lire</em>.</p>
+  <p>La plupart des solveurs de pendu consultent la liste des mots encore possibles — un <strong>oracle</strong>. OMEGA se l'interdit&nbsp;: la configuration de référence ne lit <em>jamais</em> le mot caché, ni ses lettres, ni son son. À la place, elle <strong>marginalise sur les hypothèses latentes</strong> — la double route phonologie↔orthographe — au lieu de parier sur la plus probable.</p>
+  <blockquote>« Cognition&nbsp;&gt;&nbsp;oracle »&nbsp;: rien n'est gardé sans mesure, et les idées séduisantes qui ne tiennent pas à la mesure sont <em>falsifiées et documentées</em> — pas enterrées.</blockquote>
+  <p>C'est cette discipline — <strong>mesurer ou rejeter</strong> — qui sépare un raisonnement d'un tour de passe-passe statistique.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Le pendu, mesuré</h2>
+  <p>Ces chiffres mesurent le <strong>jeu de pendu</strong> dont le moteur est né — pas le correcteur. Deviner un mot français lettre par lettre, sous contrainte d'erreurs, est un test sévère de modèle de langue. Sans jamais lire la réponse&nbsp;:</p>
   <div class="kpi">
     <div><b>≈ 97 %</b><small>parties gagnées en lexique, sans lire le mot caché</small></div>
     <div><b>≈ 64 %</b><small>hors-lexique (mot inédit), cheat-free</small></div>
@@ -115,13 +127,6 @@
   <h2>Le mode d'emploi — comment c'est bâti, comment s'en servir</h2>
   <p>Un <strong>rapport de référence</strong> détaille tout&nbsp;: comment OMEGA est bâti, ce qu'il sait faire (≈ 90&nbsp;% de victoires <em>sans tricher</em>) et ce qu'il ne sait pas encore — chaque résultat étiqueté <em>mesuré / design / hypothèse / exclu</em>, et chaque réglage nommé comme dans l'app. Pour le prendre en main sans rien régler&nbsp;: dans l'application, le bouton <strong>⚙️ Config optimale</strong> met le moteur dans sa <strong>configuration de référence cheat-free</strong> en un clic (preset §8.3) — l'état exact dans lequel les chiffres ci-dessus sont mesurés.</p>
   <p><a class="btn ghost" href="docs/rapport-mode-emploi.html">📖 Ouvrir le mode d'emploi</a></p>
-</div></section>
-
-<section><div class="wrap">
-  <h2>L'idée&nbsp;: raisonner, pas tricher</h2>
-  <p>La plupart des solveurs de pendu consultent la liste des mots encore possibles — un <strong>oracle</strong>. OMEGA se l'interdit&nbsp;: la configuration de référence ne lit <em>jamais</em> le mot caché, ni ses lettres, ni son son. À la place, elle <strong>marginalise sur les hypothèses latentes</strong> — la double route phonologie↔orthographe — au lieu de parier sur la plus probable.</p>
-  <blockquote>« Cognition&nbsp;&gt;&nbsp;oracle »&nbsp;: rien n'est gardé sans mesure, et les idées séduisantes qui ne tiennent pas à la mesure sont <em>falsifiées et documentées</em> — pas enterrées.</blockquote>
-  <p>C'est cette discipline — <strong>mesurer ou rejeter</strong> — qui sépare un raisonnement d'un tour de passe-passe statistique.</p>
 </div></section>
 
 <section><div class="wrap">
