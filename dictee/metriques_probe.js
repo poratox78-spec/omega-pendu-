@@ -18,22 +18,44 @@
 const fs = require('fs'), path = require('path');
 const R = path.join(__dirname, '..');
 
-/* valeur → { nom (provenance de la mesure), pages: { fichier: occurrences minimales } } */
+/* valeur → { nom, pages: { fichier: occurrences minimales }, sonde: PROVENANCE }.
+ *
+ * PROVENANCE (reconnaissance Lissenne §2.2, 2026-08-19 — l'idée, réimplémentée maison) : un
+ * chiffre affiché sans savoir QUELLE sonde le reproduit est une donnée orpheline — le même
+ * défaut que la dérive entre pages, un cran plus profond. Trois portées :
+ *   'ci'      → la sonde re-vérifie le chiffre À CHAQUE CI (fichier présent ET branché dev.sh —
+ *               ci_parity_probe garde le miroir ci.yml) ;
+ *   'locale'  → mesure REPRODUCTIBLE en local par cette sonde (corpus sous data_local, gitignoré
+ *               pour licence — le fichier de sonde, lui, doit exister dans le dépôt) ;
+ *   'constat' → mesuré une fois, daté, documenté dans le fichier cité (ou nulle part :
+ *               fichier null → AVERTISSEMENT « sans sonde vivante », pas un échec).
+ * Un fichier nommé mais ABSENT = rouge : une provenance affichée doit être résolvable. */
 const REGISTRE = {
   694949: { nom: 'prior de ponctuation — phrases FR du modèle texte (PR#399)',
-            pages: { 'saisie-vocale.html': 1 } },
+            pages: { 'saisie-vocale.html': 1 },
+            sonde: { fichier: 'dictee/ponct_prior_dictee_probe.js', portee: 'locale' } },
   48653:  { nom: 'mesure du « ? » texte-seul — 145 marques dont 79 fausses (PR#403)',
-            pages: { 'saisie-vocale.html': 1 } },
+            pages: { 'saisie-vocale.html': 1 },
+            sonde: { fichier: 'dictee/proso_probe.js', portee: 'constat',
+                     note: 'mesuré une fois (PR#403), documenté dans la garde CI de la prosodie' } },
   16342:  { nom: 'français encyclopédique réel — taux de fausse alerte du correcteur',
-            pages: { 'correcteur.html': 1 } },
+            pages: { 'correcteur.html': 1 },
+            sonde: { fichier: null, portee: 'constat',
+                     note: 'flood local 2026-07 (data_local) — aucune sonde vivante ne le rejoue' } },
   15353:  { nom: 'flood EN édité PUD+GUM — règles anglaises (REGLES_EN)',
-            pages: { 'en/correcteur-outil.html': 3 } },
+            pages: { 'en/correcteur-outil.html': 3 },
+            sonde: { fichier: 'dictee/fp_en_propre_probe.js', portee: 'locale' } },
   14450:  { nom: 'UD FR complet (14 450 phrases correctes) — FP=0 du correcteur',
-            pages: { 'correcteur.html': 1, 'recherche.html': 1, 'saisie-vocale.html': 1 } },
+            pages: { 'correcteur.html': 1, 'recherche.html': 1, 'saisie-vocale.html': 1 },
+            sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'locale',
+                     note: 'corpus COMPLET sous data_local ; la CI n en rejoue que l echantillon 2 500' } },
   11304:  { nom: 'phrases écrites par des humains — précision/rappel du speller',
-            pages: { 'recherche.html': 1, 'saisie-vocale.html': 1 } },
+            pages: { 'recherche.html': 1, 'saisie-vocale.html': 1 },
+            sonde: { fichier: 'dictee/ponct_double_route_probe.js', portee: 'locale',
+                     note: 'meme banc 11 304 ; le volet SPELLER (precision/rappel) n a plus de sonde dediee' } },
   2500:   { nom: 'UD 2 500 (échantillon encyclopédique) — FP à l\'échelle + tagger',
-            pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'toile.html': 2 } },
+            pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'toile.html': 2 },
+            sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'ci' } },
 };
 
 const pages = [
@@ -72,6 +94,22 @@ for (const v of Object.keys(REGISTRE)) {
   }
 }
 
+/* ③ provenance : chaque sonde citée doit être RÉSOLVABLE */
+const devsh = fs.readFileSync(path.join(R, 'dev.sh'), 'utf8');
+const orphelins = [];
+for (const v of Object.keys(REGISTRE)) {
+  const sd = REGISTRE[v].sonde;
+  if (!sd) { ko(v + " : entrée sans bloc de provenance (sonde) — le registre l'exige"); continue; }
+  if (sd.fichier) {
+    if (!fs.existsSync(path.join(R, sd.fichier)))
+      ko(v + ' : la sonde citée ' + sd.fichier + " N'EXISTE PLUS — provenance irrésolvable, corrige le registre");
+    else if (sd.portee === 'ci' && devsh.indexOf(sd.fichier) < 0)
+      ko(v + ' : ' + sd.fichier + " est déclarée portée « ci » mais n'est PAS branchée dans dev.sh — un chiffre « re-vérifié à chaque CI » doit l'être vraiment");
+  } else orphelins.push(v + ' (' + REGISTRE[v].nom + ') — ' + (sd.note || 'sans note'));
+}
 if (err) { console.log('metriques_probe : ' + err + ' incohérence(s)'); process.exit(1); }
 const tot = Object.keys(REGISTRE).length;
-console.log('metriques_probe : ' + tot + ' métriques épinglées · ' + pages.length + ' pages balayées · 0 chiffre hors registre');
+orphelins.forEach(o => console.log('  ⚠️ SANS SONDE VIVANTE : ' + o));
+const nCi = Object.keys(REGISTRE).filter(v => REGISTRE[v].sonde.portee === 'ci').length;
+const nLoc = Object.keys(REGISTRE).filter(v => REGISTRE[v].sonde.portee === 'locale').length;
+console.log('metriques_probe : ' + tot + ' métriques épinglées · ' + pages.length + ' pages balayées · 0 chiffre hors registre · provenance ' + nCi + ' ci / ' + nLoc + ' locales / ' + orphelins.length + ' sans sonde vivante');
