@@ -24681,7 +24681,10 @@ var w=T[i],lw=w.toLowerCase();
   function _pluralLeft(T,i){var j=i-1;for(var k=0;k<7;k++){if(j<0)return false;var wj=deacc(T[j].toLowerCase());
     if(_PLURAL_CUE[wj]||cpl(T,j))return true;
     if(_SEG&&j<_SEG.bb.length&&_SEG.bb[j])return false;j--;}return false;}
-  function rOn(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
+  function rOn(T,i){
+    if(deacc(T[i].toLowerCase())==='ont'&&i+2<T.length){var _po=T[i+1].toLowerCase();
+      if((_po==='sur'||_po==='sous'||_po==='contre'||_po==='entre')&&_isPpl(T[i+2]))return null;}   // « ils ont contre attaqué » : composé COUPÉ (mot coupé dys) — corriger ont→on cassait la phrase (conflit lu à la carto) ; 0 occurrence sur 16 950 correct
+var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // « avait-on », « peut-on » : trait d'union → pronom inversé
     if(lw==='ont'){var _tgo=posTags(T),_so=_tgo?_npSubject(T,_tgo,i):null;   // « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres, sinon le raccourci « mot suivant en -e » tranche le premier (« L'équipe ont rencontre » → « on rencontre »).
       if(_so&&_so.idx===i-1){if(_so.n==='p')return null;return ckeepcase(T[i],'a');}
@@ -26570,16 +26573,26 @@ function spellTokenCore(tok,atStart,T,idx){
       // dys PR#505 ×2). La soudure doit être au LEXIQUE, B RARE seul (les légitimes « bien fait »,
       // « mal intentionnés », « bien être » ont tous un B fréquent — 9 FP lus au flood naïf) et la
       // soudure ≥ 4× plus fréquente que B. Avec ces gardes : 0 tir/16 950 phrases correctes.
+      var _FUS_AUX={a:1,as:1,ont:1,ai:1,avons:1,avez:1,avait:1,avais:1,avaient:1,aura:1,auront:1,aurait:1,auraient:1,est:1,sont:1,etait:1,etaient:1,suis:1,es:1,sommes:1,etes:1};
+      var _FUS_PREF={sur:1,sous:1,contre:1,entre:1};
       for(var fi=0;fi<P.length-1;fi++){if(done[fi]||done[fi+1])continue;
         if(!/^\s+$/.test(text.slice(P[fi][1],P[fi+1][0])))continue;
         var fa=P[fi][2],fb=P[fi+1][2];
         if(fa!==fa.toLowerCase()||fb!==fb.toLowerCase())continue;
-        if(fa!=='bien'&&fa!=='mal')continue;
         if(!/^[a-zà-ÿ]{4,}$/.test(fb))continue;
-        var ff=fa+fb;
-        if(!(SP.ready&&SP.WORDS.has(ff)))continue;
-        if((SP.FREQ[fb]||0)>0.05)continue;
-        if((SP.FREQ[ff]||0)<(SP.FREQ[fb]||0)*4)continue;
+        var ff=null;
+        if(fa==='bien'||fa==='mal'){
+          // adverbes : B RARE exigé (les légitimes « bien fait/mal intentionnés » ont un B fréquent)
+          var _f1=fa+fb;
+          if(SP.ready&&SP.WORDS.has(_f1)&&(SP.FREQ[fb]||0)<=0.05&&(SP.FREQ[_f1]||0)>=(SP.FREQ[fb]||0)*4)ff=_f1;
+        }else if(_FUS_PREF[fa]&&fi>=1&&_FUS_AUX[deaccS(P[fi-1][2].toLowerCase())]&&_isPpl(fb)){
+          // CADRE aux + préfixe + PARTICIPE (« il a sur estimé ») : une préposition n'existe pas là —
+          // composé coupé quasi certain. 0 tir/16 950. Trait d'abord (sous-estimé), soudure sinon
+          // (surestimé). Cadre DET+préfixe RÉFUTÉ (« la contre culture » légitime, 3 tirs lus).
+          var _ft=fa+'-'+fb,_fs=fa+fb;
+          if(SP.ready&&SP.WORDS.has(_ft))ff=_ft;else if(SP.ready&&SP.WORDS.has(_fs))ff=_fs;
+        }
+        if(!ff)continue;
         out.push({i:fi,word:fa,sugg:ff,name:'mot coupé',tier:'flag',span:2});done[fi]=done[fi+1]=1;}
       // ESPACEMENT français : deux mots COLLÉS par une ponctuation → on insère l'espace. FP=0 mesuré (0/2500 UD). Le POINT « . » est EXCLU (URLs « Zappos.com », abréviations) ; les chiffres ne sont pas capturés par le regex-mot → nombres/heures (« 1,2 », « 17:30 ») saufs d'office. Virgule = espace APRÈS ; « ; : ? ! » = espace AVANT+APRÈS (typo FR).
       for(var si=0;si<P.length-1;si++){if(done[si]||done[si+1])continue;

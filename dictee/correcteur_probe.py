@@ -620,6 +620,10 @@ _LELID_STOP = {'un', 'une', 'autre', 'autres', 'on', 'uns'}   # « l'un et l'aut
 
 
 def rule_on_ont(T, i):
+    if deacc(T[i].lower()) == 'ont' and i + 2 < len(T):
+        _po = T[i+1].lower()
+        if _po in ('sur', 'sous', 'contre', 'entre') and _is_ppl(T[i+2]):
+            return None   # « ils ont contre attaqué » : composé coupé — miroir JS rOn
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
