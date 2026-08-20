@@ -3168,6 +3168,57 @@ _NEG_ELIDE = {"c'est": "ce n'est", "c'etait": "ce n'était", "c'etaient": "ce n'
               "t'as": "tu n'as", "t'es": "tu n'es"}
 
 
+_AGE_PREV = {'son', 'ton', 'mon', 'leur', 'notre', 'votre', 'cet', 'un', 'quel', 'bel'}
+def rule_age_accent(T, i):
+    # « age » est CONNU du lexique (pièce de charrue) → real-word, le canal accent se tait. Contexte déterminant
+    # exigé ; minuscule STRICT (« l'Age d'Or », titre = l'unique tir du flood 16 950). Audit rappel dys (PR#505) : ×5.
+    w = T[i]
+    if w != w.lower(): return None
+    m = re.match(u"^([ld])['’](ages?)$", w)
+    if m: return m.group(1) + u"'" + (u'âge' if m.group(2) == 'age' else u'âges')
+    if w not in ('age', 'ages') or i < 1: return None
+    if T[i - 1].lower() not in _AGE_PREV: return None
+    return u'âge' if w == 'age' else u'âges'
+
+
+def rule_cetait_etait(T, i):
+    # après c'/s' (= ce/se), la 1re personne n'existe pas : « c'étais/C'étais/s'étais » → était. 0 tir/16 950.
+    m = re.match(u"^([CcSs])(['’])[ée]tais$", T[i])
+    if not m: return None
+    return m.group(1) + m.group(2) + u'était'
+
+
+_AVOIR_CONJ = {'a', 'as', 'ont', 'ai', 'avons', 'avez', 'avait', 'avais', 'avaient',
+               'aura', 'auront', 'aurait', 'auraient', 'eut', 'eurent'}
+def rule_avoir_fini(T, i):
+    # avoir + forme FINIE en -it/-is (jamais participe) dont la troncature EST un participe : « elle a grandit »
+    # → grandi. La garde « participe tronqué doit exister » rend le flood propre (1 tir = vraie faute UD « a réagit »).
+    if i < 1: return None
+    w = T[i]
+    if w != w.lower(): return None
+    if len(w) < 4 or not re.match(u'^[a-zà-ÿ]+(it|is)$', w): return None
+    pv = T[i - 1].lower().replace(u'’', u"'")
+    if "'" in pv: pv = pv.rsplit("'", 1)[1]
+    if pv not in _AVOIR_CONJ: return None
+    if not CONJ_F.get(deacc(w)): return None
+    if _looks_ppl(w): return None
+    part = w[:-1]
+    if not _is_ppl(part): return None
+    return part
+
+
+def rule_etre_inf_er(T, i):
+    # s'est/s'était + INFINITIF -er → participe é (« elle s'est marier » → marié). v1 : réfléchi SEUL, 0 tir/16 950.
+    if i < 1: return None
+    w = T[i]
+    if w != w.lower(): return None
+    if len(w) < 4 or not re.match(u'^[a-zà-ÿ]+er$', w): return None
+    pv = T[i - 1].lower().replace(u'’', u"'")
+    if pv not in (u"s'est", u"s'était"): return None
+    if deacc(w) not in CONJ_C: return None
+    return w[:-2] + u'é'
+
+
 def rule_neg_ne(T, i):
     if i + 1 >= len(T): return None
     lw = T[i].lower(); d = deacc(lw)
@@ -3371,6 +3422,8 @@ RULES = [('élision inversée', rule_deselide),
          ('accord singulier nom', rule_noun_singular),
          ('usage être/avoir', rule_aux_usage),
          ('aux mal orthographié', rule_aux_misspell),
+         ('accent (âge)', rule_age_accent), ("étais après c'/s'", rule_cetait_etait),
+         ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('près/prêt', rule_pres_pret),
          ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
@@ -3393,6 +3446,11 @@ def correct(text):
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Il a mon âge", "âge", "age", "accent (âge)"),
+    ("Elle a l'âge de raison", "l'âge", "l'age", "accent (âge)"),
+    ("C'était une belle journée", "C'était", "C'étais", "étais après c'/s'"),
+    ("Elle a grandi très vite", "grandi", "grandit", "participe après avoir"),
+    ("Il s'est marié jeune", "marié", "marier", "participe après s'est"),
     ("Il a mangé la soupe", "mangé", "manger", "-é/-er"),
     ("Il veut manger la soupe", "manger", "mangé", "-é/-er"),
     ("Elle a préféré rester", "préféré", "préférer", "-é/-er"),
