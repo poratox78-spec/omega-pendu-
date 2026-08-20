@@ -38,10 +38,6 @@ const REGISTRE = {
             pages: { 'saisie-vocale.html': 1 },
             sonde: { fichier: 'dictee/proso_probe.js', portee: 'constat',
                      note: 'mesuré une fois (PR#403), documenté dans la garde CI de la prosodie' } },
-  16342:  { nom: 'français encyclopédique réel — taux de fausse alerte du correcteur',
-            pages: { 'correcteur.html': 1 },
-            sonde: { fichier: null, portee: 'constat',
-                     note: 'flood local 2026-07 (data_local) — aucune sonde vivante ne le rejoue' } },
   15353:  { nom: 'flood EN édité PUD+GUM — règles anglaises (REGLES_EN)',
             pages: { 'en/correcteur-outil.html': 3 },
             sonde: { fichier: 'dictee/fp_en_propre_probe.js', portee: 'locale' } },
@@ -54,7 +50,7 @@ const REGISTRE = {
             sonde: { fichier: 'dictee/ponct_double_route_probe.js', portee: 'locale',
                      note: 'meme banc 11 304 ; le volet SPELLER (precision/rappel) n a plus de sonde dediee' } },
   2500:   { nom: 'UD 2 500 (échantillon encyclopédique) — FP à l\'échelle + tagger',
-            pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'toile.html': 2 },
+            pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'toile.html': 2, 'correcteur.html': 1 },
             sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'ci' } },
 };
 
