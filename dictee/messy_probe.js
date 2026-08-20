@@ -59,7 +59,7 @@ function pyramidCorr(s) {   // PYRAMIDE : orthographe → applique → grammaire
 function runCorrLike(s) {   // mime le NOUVEAU runCorr : ortho → applique 1:1 → grammaire sur tokens nettoyés
   const sf = C.ready() ? C.spell(s) : [];
   C.setSeg(s); const T = C.toks(s), Tc = T.slice();
-  sf.forEach(f => { const j = f.i; if (f.span !== 2 && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[j] = f.sugg; });
+  sf.forEach(f => { const j = f.i; if (f.span !== 2 && f.tier !== 'vigilance' && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[j] = f.sugg; });   // fidélité _computeCorrs (site) : la VIGILANCE n'est JAMAIS appliquée — l'appliquer ici faisait diverger le banc du pipeline réel (leçon PR#471)
   // CASCADE (miroir de _computeCorrs) : re-tourner la grammaire sur ses PROPRES corrections jusqu'à point fixe (propage le ROUGE span1)
   const cur = Tc.slice(), gbt = {};
   for (let it = 0; it < 4; it++) { const g2 = C.corrTok(cur); let add = false;

@@ -29,7 +29,7 @@ function corrDetail(s) {
   const out = [];
   sf.forEach(f => { const j = f.i;
     out.push({ i: j, tok: T[j], sugg: f.sugg, tier: f.tier || 'ortho', couche: 'speller', span: f.span || 1 });
-    if (f.span !== 2 && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[j] = f.sugg; });
+    if (f.span !== 2 && f.tier !== 'vigilance' && f.sugg && /^[A-Za-zÀ-ÿ']+$/.test(f.sugg)) Tc[j] = f.sugg; });   // fidélité _computeCorrs : la VIGILANCE n'est jamais appliquée (elle masquait « ces »→s'est au juge)
   const cur = Tc.slice(), gbt = {};
   for (let it = 0; it < 4; it++) { const g2 = C.corrTok(cur); let add = false;
     for (const g of g2) { if (gbt[g.i] != null) continue; gbt[g.i] = g; add = true;
