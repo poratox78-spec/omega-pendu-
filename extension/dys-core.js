@@ -123,7 +123,10 @@
   //                   mais après un auxiliaire c'est « réparé » qu'il faut).
   function _emit(src,fn,supposeFautif){var c=fn(_canonW(src,supposeFautif));   // transformation appliquée au radical CANONIQUE, puis on n'émet QUE si le résultat est un mot connu
     if(SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(c.toLowerCase()))return null;return c;}
-  function rEer(T,i){var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A')return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});var p=cprev(T,i);if(CAUX[p])return _emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
+  function rEer(T,i){
+    if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
+      if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
+var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A')return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});var p=cprev(T,i);if(CAUX[p])return _emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
   // -er/-é/-ez/-ai (verbe 1er groupe) tranché par le GOUVERNEUR (test mordre/mordu) — MIROIR de correcteur_probe.rule_flexion_er (parité)
   var _AUX_AV={avoir:1,avais:1,avaient:1,etre:1,ete:1,etais:1,etait:1,etaient:1,etions:1,etiez:1,serai:1,seras:1,serez:1,serons:1,soient:1,sois:1};Object.keys(AUX_AVOIR).forEach(function(k){_AUX_AV[k]=1;});Object.keys(AUX_ETRE).forEach(function(k){_AUX_AV[k]=1;});   // participe : avoir ET être (« je suis allez »→allé, « a été fabriquer »→fabriqué)
   var _FLEX_CLITIC={se:1,me:1,te:1};   // clitiques réfléchis PURS sautés pour trouver le vrai gouverneur (« veut se séparer »). le/la/les EXCLUS (ambigus déterminant)
@@ -140,7 +143,11 @@
     else if(/er$/.test(d)&&d.length>3)inf=lw;else return null;
     return (inf.length>=4&&COMMON_VERBS[deacc(inf)])?inf:null;}
   function _catE(x){var d=deacc(x);if(/(ées|ée|és|é)$/.test(x))return 'part';if(/erai$/.test(d)||/ai$/.test(d))return 'fut1';if(/ez$/.test(d))return 'p2pl';if(/er$/.test(d))return 'inf';return null;}
-  function rFlexionEr(T,i){var w=T[i],lw=w.toLowerCase();
+  function rFlexionEr(T,i){
+    if(i>=2){var _psf=deacc(T[i-1].toLowerCase());
+      if((_psf==='sais'||_psf==='sait')){var _p2f=deacc(T[i-2].toLowerCase());
+        if((_p2f==='il'||_p2f==='elle'||_p2f==='on')&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}}   // « il sais trompé » = frame s'est (l'orange saisVig parle) — corriger vers « tromper » ressuscitait sais→sait en cascade ; « je sais nagé »→nager reste corrigé (prev-prev = je)
+var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||i===0)return null;
     if(w.charAt(0)!==w.charAt(0).toLowerCase()&&!(_SEG&&i<_SEG.ss.length&&_SEG.ss[i]))return null;
     var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):null;
@@ -369,12 +376,24 @@
        amis… » (nominal) reste hors-jeu. La cascade finit le travail : s'est+marier→marié (rEtreInfEr)
        puis l'accord participe. 0 tir/16 950 phrases correctes. */
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
-    var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;
+    var p=cprev(T,i),_nomOK=false;
+    if(!(p==='il'||p==='elle'||p==='on')){
+      // branche sujets NOMINAUX (« Paul ces blessé », « la voisine ces trompé ») : mot plein tagué
+      // NOUN/PROPN devant. Les 4 tirs du flood étaient TOUS « cet été » → « été » exclu (être n'est
+      // pas pronominal, « s'est été » n'existe pas).
+      if(i<1)return null;
+      var _pvt=deacc(T[i-1].toLowerCase());
+      var _FONCT={de:1,du:1,des:1,a:1,au:1,aux:1,le:1,la:1,les:1,un:1,une:1,et:1,ou:1,ni:1,que:1,qui:1,dans:1,sur:1,sous:1,avec:1,sans:1,pour:1,par:1,en:1,vers:1,chez:1};
+      if(_FONCT[_pvt])return null;
+      var _tgc=posTags(T);if(!_tgc||(_tgc[i-1]!=='NOUN'&&_tgc[i-1]!=='PROPN'))return null;
+      _nomOK=true;
+    }
     var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;
     if(j>=T.length)return null;
     var w=T[j].toLowerCase();
+    if(_nomOK&&deacc(w)==='ete')return null;
     var infEr=/^[a-zà-ÿ]{4,}er$/.test(w)&&!!CONJ_C[deacc(w)];
-    if(!_isPpl(T[j])&&!infEr)return null;
+    if(!_isPpl(T[j])&&!(_nomOK&&_SAIS_PPU[deacc(w)])&&!infEr)return null;
     var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}
   function rCestSest(T,i){if(deacc(T[i].toLowerCase())!=="c'est")return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;if(j<T.length&&_isPpl(T[j])){var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}return null;}   // [il/elle/on]+c'est(+adverbe)+participe → s'est (« elle c'est bien amusée »). FP=0.
   var _SA_NONNOUN={je:1,tu:1,il:1,elle:1,on:1,ils:1,elles:1,nous:1,vous:1,y:1,en:1,ne:1};   // ne peuvent jamais suivre le possessif « sa »
@@ -440,7 +459,12 @@
   function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}if(j<0)return null;if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
   function svAgrees(reads,per,nb){var k;if(per==='3'){for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return true;return false;}for(k=0;k<reads.length;k++)if(reads[k][2]===per)return true;return false;}
   var _V3PL_SURE={sont:1,ont:1,vont:1,font:1};   // 3e pluriel irréguliers non ambigus
-  function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]);if(!reads.length)return null;var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
+  var _SAIS_PPU={perdu:1,vu:1,eu:1,venu:1,revenu:1,devenu:1,tenu:1,retenu:1,connu:1,recu:1,battu:1,mordu:1,rendu:1,vendu:1,entendu:1,repondu:1,defendu:1,descendu:1,couru:1,apercu:1,cru:1,bu:1,lu:1,su:1,pu:1,vecu:1,fondu:1,confondu:1,suspendu:1,attendu:1,obtenu:1,contenu:1,soutenu:1,parvenu:1,survenu:1,intervenu:1};
+  function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]);if(!reads.length)return null;
+    var _dsv=deacc(T[i].toLowerCase());
+    if(_dsv==='sais'||_dsv==='sait'){var _js=i+1;while(_js<T.length&&_js<=i+3&&PPMID[deacc(T[_js].toLowerCase())])_js++;
+      if(_js<T.length&&(_isPpl(T[_js])||_SAIS_PPU[deacc(T[_js].toLowerCase())]))return null;}   // sais/sait + PARTICIPE = frame « s'est » (l'orange saisVig parle) — corriger l'accord ici écrivait « il sait tromper » (conflit lu à la carto) ; coût 0 sur correct (l'accord 3s passe déjà)
+var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(per==='3'&&nb==='s'&&_V3PL_SURE[deacc(T[i].toLowerCase())]){var _pp=i>0?deacc(T[i-1].toLowerCase()):'';if((_pp==='ne'||_pp==='n')&&i>1)_pp=deacc(T[i-2].toLowerCase());if(_pp==='il'||_pp==='elle')return null;}   // « il/elle » + verbe SÛR 3pl → rIlIls fixe le pronom (pas le verbe)
     if(deacc(T[i].toLowerCase())==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;
     if(svAgrees(reads,per,nb))return null;
@@ -624,6 +648,10 @@
   var _QP_DE_PL={};'plupart beaucoup peu bien tas tant nombre'.split(' ').forEach(function(w){_QP_DE_PL[w]=1;});
   var _QP_GAP_OK={entre:1,en:1};Object.keys(PREP).forEach(function(w){_QP_GAP_OK[w]=1;});
   function _svFinish(T,i,per,nb,p3){var k;for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;
+    var _dsf=deacc(T[i].toLowerCase());
+    if(_dsf==='sais'||_dsf==='sait'){var _jsf=i+1;while(_jsf<T.length&&_jsf<=i+3&&PPMID[deacc(T[_jsf].toLowerCase())])_jsf++;
+      if(_jsf<T.length&&(_isPpl(T[_jsf])||_SAIS_PPU[deacc(T[_jsf].toLowerCase())]))return null;}   // sais/sait + PARTICIPE = frame « s'est » → l'orange saisVig parle, l'accord se tait (conflit « il sait tromper » lu à la carto)
+
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
     if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]===per&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;return okk?sugg:null;}
@@ -1674,7 +1702,8 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(pv!=="s'est"&&pv!=="s'était")return null;                         // v1 : le réfléchi SEUL (« s'est marier ») — 0 tir/16 950 ; « est/sont + -er » attendra sa propre mesure
     if(!CONJ_C[deacc(w)])return null;                                    // infinitif -er CONNU des tables → le participe régulier -é existe par morphologie
     var suj=(i>=2)?deacc(T[i-2].toLowerCase()):'';                        // le sujet immédiat accorde : « elle s'est marier » → mariée (le choix du genre ne change pas le TIR, juste la suggestion)
-    return w.slice(0,-2)+(suj==='elle'?'ée':'é');}
+    var _gn2=(suj==='elle')?'f':((i>=2&&suj!=='il'&&suj!=='on')?_nounGender(T[i-2],'s',true):null);   // sujet NOMINAL : « la voisine s'est marier » → mariée (genre du nom ; 0 occurrence s'est+inf sur 16 950 correct)
+    return w.slice(0,-2)+(_gn2==='f'?'ée':'é');}
   function rNegNe(T,i){if(i+1>=T.length)return null;var lw=T[i].toLowerCase(),d=deacc(lw);
     var nx=deacc(T[i+1].toLowerCase()),n2=i+2<T.length?deacc(T[i+2].toLowerCase()):'';
     if(d==='y'){if(!(_NEG_AUXV[nx]&&i>=1&&deacc(T[i-1].toLowerCase())==='il'&&_NEG_NEXT[n2]))return null;   // « il y a pas » → « il n'y a pas »
@@ -2108,7 +2137,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;
     var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;
-    if(j>=T.length||!_isPpl(T[j]))return null;
+    if(j>=T.length||!(_isPpl(T[j])||_SAIS_PPU[deacc(T[j].toLowerCase())]))return null;   // -u fréquents (perdu/vu/connu…) : hors _isPpl strict (anti-noms), sûrs dans CE frame
     return "s'est";}
   function cesVig(T,i){var w=T[i].toLowerCase();if(w!=='ces'&&w!=='ses')return null;var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());var s=_cesScore(F,i),pred=s>=0?'ces':'ses';return (Math.abs(s)>CESSES_MODEL.tau&&pred!==w)?pred:null;}
   function cesProbe(text){text=String(text).replace(/[’ʼ]/g,"'");var T=toks(text),out=[],i,r;for(i=0;i<T.length;i++){r=cesVig(T,i);if(r&&r!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:r});}return out;}
