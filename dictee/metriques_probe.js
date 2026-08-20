@@ -52,6 +52,13 @@ const REGISTRE = {
   2500:   { nom: 'UD 2 500 (échantillon encyclopédique) — FP à l\'échelle + tagger',
             pages: { 'arbitrage.html': 1, 'recherche.html': 3, 'toile.html': 2, 'correcteur.html': 1 },
             sonde: { fichier: 'dictee/fp_scale_probe.py', portee: 'ci' } },
+  630500: { nom: 'corpus d\'entraînement du corps mou B2 (UD + exemples Wiktionnaire, held-out fp_scale exclu)',
+            pages: { 'recherche.html': 1 },
+            sonde: { fichier: 'dictee/b2_data.py', portee: 'locale',
+                     note: 'reproductible : python dictee/b2_data.py imprime « train 630500 phrases » (sources sous data_local)' } },
+  18556:  { nom: 'banc FP de la greffe sait/s\'est — phrases correctes UD 14 450 + held-out 4 106 (cadre : 1 seule occurrence)',
+            pages: { 'recherche.html': 1 },
+            sonde: { fichier: 'dictee/greffe_sais_probe.py', portee: 'locale' } },
 };
 
 const pages = [
