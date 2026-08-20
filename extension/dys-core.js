@@ -1577,6 +1577,28 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni'||nx==='que')return null;if(_SEG&&(i+1)<_SEG.bb.length&&_SEG.bb[i+1])return null;            // locution figée / coordination distributive
     if(i>=3&&(deacc(T[i-2].toLowerCase())==='des'||deacc(T[i-2].toLowerCase())==='aux')&&(tg[i-3]==='NOUN'||tg[i-3]==='PROPN'))return null;   // « N des N adj » : l'adj porte sur la tête
     return ckeepcase(w,w+'s');}
+  var _FEM_SG_DET={une:1,la:1,cette:1,sa:1,ma:1,ta:1};
+  function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();
+    // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
+    // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
+    // (« un exercice ou une devinette proposé » : accord de proximité litigieux) et ADP GÉNÉRALISÉE en i-3
+    // (« le sommet SUR la biodiversité organisé », « PAR la suite condamné » : la tête est au-delà du GN).
+    // Flood 16 950 phrases correctes : 3 tirs, TOUS de vraies fautes du corpus (patinoire situé, postérité
+    // laissé, émission diffusé). Marques MUETTES seulement (é→ée, i→ie : homophones), doctrine d'audibilité.
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
+    var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!_isPpl(w))return null;
+    if(i<2||!_FEM_SG_DET[deacc(T[i-2].toLowerCase())])return null;
+    if(deacc(T[i-1].toLowerCase())==='fois')return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||(tg[i]!=='VERB'&&tg[i]!=='ADJ')||tg[i-1]!=='NOUN')return null;
+    if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+    // (pas de garde APRÈS, contrairement à la plurielle : « une femme cultivé, bienveillante » — l'accord
+    // vaut devant la virgule ; re-flood sans la garde : toujours 3 tirs, tous de vraies fautes)
+    var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';
+    if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni'||nx==='que')return null;
+    for(var k=Math.max(0,i-5);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
+    if(i>=3&&tg[i-3]==='ADP')return null;
+    var g=_nounGender(T[i-1],'s',true);if(g!=='f')return null;
+    var tgt=_ppAccord(lw,'s','f');return tgt!==lw?ckeepcase(w,tgt):null;}
   function rPpEpithetNum(T,i){var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
     var _lc=lw.charAt(lw.length-1);if((_lc!=='é'&&_lc!=='i')||!(_isPpl(w)||_isPplWideEr(w)))return null;
@@ -1733,7 +1755,7 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
   /* ⭐ SCINDÉ EN DEUX (2026-08-11) pour avoir la MÊME STRUCTURE QUE L'APP : `correctTokens(T)`
      travaille sur un TABLEAU de tokens, `correctText` n'est qu'une enveloppe qui tokenise. Sans ce
      point d'entrée par tokens, la PYRAMIDE était impossible ici — on ne pouvait pas faire tourner la
@@ -1825,6 +1847,15 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
+    /* LE « e » MUET DU FUTUR/CONDITIONNEL (audit rappel dys PR#505 : « je ne t'oublirais jamais » ×4) :
+       non-mot en r+terminaison dont stem+er est un verbe des tables → réinsérer le e muet (oublirais→
+       oublierais). AUDIBILITÉ : le scripteur a ENTENDU le R (/ubliʁɛ/) — « oubliais » (distance 1 aussi)
+       n'a PAS ce son ; la reconstruction sonore prime. Radical ≥ 4 (« tetra »→tetera via téter = l'unique
+       tir du flood 16 950). L'élision est déballée par spellToken (l'oublirais → oublirais). */
+    if(!SP.WORDS.has(low)){var _fm=low.match(/^([a-zà-ÿ]{4,})r(ai|as|a|ons|ez|ont|ais|ait|aient)$/);
+      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]){var _fc=_fm[1]+'e'+'r'+_fm[2];
+        if(CONJ_F[deacc(_fc)])return["auto",_fc];}}
+
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur ». Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app.
     if(SP.WORDS.has(low))return null;                                  // mot valide → couche grammaire
