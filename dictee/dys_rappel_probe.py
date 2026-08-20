@@ -54,6 +54,8 @@ for t in D:
             par_classe[cls]['total'] += 1
             # retrouver l'index de ce token dans TJ (fenêtre autour de ia)
             fs = fl.get(ia, [])   # même tokenisation partout : l'index est DIRECT
+            # une correction span:2 (fusion « bien veillante ») est posée sur le token PRÉCÉDENT
+            fs = fs + [f for f in fl.get(ia - 1, []) if f.get('span') == 2]
             verdict = 'RATE'
             for f in fs:
                 sug = norm(f.get('sugg') or '')
