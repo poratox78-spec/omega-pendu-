@@ -12,7 +12,7 @@ import torch.nn.functional as F
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-from b2_train import CharT, CTX
+from b2_train import CharT
 import dys_gen
 
 TRAIN = os.path.join(ROOT, 'data_local', 'b2_train.txt')
@@ -25,7 +25,8 @@ def main():
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     ck = torch.load(IN, map_location='cpu', weights_only=False)
     chars = ck['chars']; v2i = {c: i for i, c in enumerate(chars)}
-    m = CharT(len(chars)).to(dev); m.load_state_dict(ck['model']); m.train()
+    CTX = ck['cfg']['CTX']
+    m = CharT(len(chars), ck['cfg']).to(dev); m.load_state_dict(ck['model']); m.train()
     opt = torch.optim.AdamW(m.parameters(), lr=LR, weight_decay=0.01)
 
     lex = dys_gen.charge_lex()
