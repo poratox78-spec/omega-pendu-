@@ -25868,13 +25868,21 @@ window.addEventListener('DOMContentLoaded', () => {
       var bin=Uint8Array.from(atob(el.textContent.trim()),function(c){return c.charCodeAt(0);});
       var st=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
       var txt=await new Response(st).text();SP.WORDS=new Set();var lines=txt.split('\n');
-      for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var pr=ln.split('\t');if(pr.length<2)continue;
+      /* TRANCHES : cette boucle (214 k lignes) bloquait le thread ~1,3 s d'un seul tenant — le
+         spinner gelait pendant l'installation des lexiques (mesuré Node 1 327 ms, revue premier
+         utilisateur 2026-08-20). Un yield tous les 16 384 items rend la main au navigateur :
+         blocs courts, l'animation et la frappe restent vivantes. Coût total : +quelques ms. */
+      var _yd=function(r){setTimeout(r,0);};
+      for(var k=0;k<lines.length;k++){if((k&16383)===16383)await new Promise(_yd);
+        var ln=lines[k];if(!ln)continue;var pr=ln.split('\t');if(pr.length<2)continue;
         var w=pr[0],fr=parseInt(pr[1],10)/1000;SP.WORDS.add(w);SP.FREQ[w]=fr;if(pr[2])SP.POS[w]=pr[2];
         var d=deaccS(w);(SP.D2A[d]||(SP.D2A[d]=[])).push(w);
         if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);}}
       ['postulée','postulées','entretint','entretinrent','armet','armets'].forEach(function(w){SP.WORDS.add(w);});   // MOTS VALIDES manquants du lexique que le speller éditait à tort (« mauvais candidat sur mot valide » : postulée→postulé, entretint→entretient, armet→arme) → protégés (SP.WORDS.has ⇒ ni correction ni vigilance). FP=0 : vrais mots FR ; liste extensible.
       var sf=function(a,b){return SP.FREQ[b]-SP.FREQ[a];};
-      for(var dd in SP.D2A)SP.D2A[dd].sort(sf);for(var pp in SP.PHON)SP.PHON[pp].sort(sf);
+      for(var dd in SP.D2A)SP.D2A[dd].sort(sf);
+      await new Promise(_yd);   // les deux tris finaux : deux blocs plutôt qu'un
+      for(var pp in SP.PHON)SP.PHON[pp].sort(sf);
       SP.ready=true;
     }catch(e){}SP.loading=false;if(SP.ready&&typeof runCorr==='function'){runCorr();if(typeof runComplete==='function')runComplete();}}
   // genre RELÂCHÉ embarqué (cgram_gender − adjectifs POS A) → fusionné dans GENDER_PURE (attrape « le voiture→la »), FP=0 mesuré
