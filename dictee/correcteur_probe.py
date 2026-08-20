@@ -280,6 +280,10 @@ def is_plural_noun(T, j):
 NOUN_E = set('marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split())
 
 def rule_e_er(T, i):
+    if i >= 2:
+        _pse = deacc(T[i-1].lower())
+        if _pse in ('sais', 'sait') and deacc(T[i-2].lower()) in ('il', 'elle', 'on') and (_is_ppl(T[i]) or deacc(T[i].lower()) in _SAIS_PPU):
+            return None   # « il sais trompé » = frame s'est — miroir JS rEer
     w = T[i]; lw = w.lower()
     if "'" in lw: return None                          # token contracté (l'été, d'…) → pas un verbe -er/-é
     if lw.endswith('é'):              forms = (w, w[:-1] + 'er')          # tapé = participe
@@ -378,6 +382,10 @@ def rule_flexion_er(T, i):
     avoir → -é (participe) ; prépo (de/pour/sans/afin) ou modal (veut/peut/doit/va…) → -er (infinitif) ;
     « vous »/inversion « -vous » → -ez (2e pl) ; « je » → -ai (futur 1sg). FP bornés : inf ∈ VERB_LEX, noms
     homographes (NOUN_E/genre/stop) exclus, « vous » objet gardé (« je vais vous aider »=inf)."""
+    if i >= 2:
+        _psf = deacc(T[i-1].lower())
+        if _psf in ('sais', 'sait') and deacc(T[i-2].lower()) in ('il', 'elle', 'on') and (_is_ppl(T[i]) or deacc(T[i].lower()) in _SAIS_PPU):
+            return None   # frame « s'est » — miroir JS rFlexionEr
     w = T[i]; lw = w.lower()
     if "'" in lw or i == 0: return None
     if w[:1].isupper() and not (_SEG is not None and i < len(_SEG['ss']) and _SEG['ss'][i]):
@@ -1718,6 +1726,12 @@ def rule_accord_sv(T, i):
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None   # participe (mangé…) : accord adjectival/temps composé, pas présent (deacc é→e trompe)
     reads = _reads(T[i])
     if not reads: return None                                     # pas une forme verbale connue → abstention
+    _dsv = deacc(T[i].lower())
+    if _dsv in ('sais', 'sait'):
+        _js = i + 1
+        while _js < len(T) and _js <= i + 3 and deacc(T[_js].lower()) in _PP_MID: _js += 1
+        if _js < len(T) and (_is_ppl(T[_js]) or deacc(T[_js].lower()) in _SAIS_PPU):
+            return None   # frame « s'est » (participe) — miroir de la garde JS (conflit « il sait tromper »)
     pn = _subject_before(T, i)
     if pn is None: return None                                    # pas de sujet-pronom net → abstention
     per, nb = pn
@@ -2175,6 +2189,12 @@ def rule_ais_ait(T, i):
 def _sv_finish(T, i, per, nb, p_reads):
     """Queue commune des règles d'accord sujet-verbe : corrige T[i] vers (per, nb) si désaccord ET forme confirmée.
     p_reads = lectures de T[i] filtrées sur la personne `per`. Anti-bruit : lemme unique + suggestion re-vérifiée."""
+    _dsf = deacc(T[i].lower())
+    if _dsf in ('sais', 'sait'):
+        _jsf = i + 1
+        while _jsf < len(T) and _jsf <= i + 3 and deacc(T[_jsf].lower()) in _PP_MID: _jsf += 1
+        if _jsf < len(T) and (_is_ppl(T[_jsf]) or deacc(T[_jsf].lower()) in _SAIS_PPU):
+            return None   # frame « s'est » (participe) — miroir de la garde JS _svFinish
     if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p_reads): return None   # déjà d'accord
     lemmas = {l for (l, _mt, _p, _n) in p_reads}
     if len(lemmas) != 1: return None
@@ -3217,8 +3237,9 @@ def rule_etre_inf_er(T, i):
     if pv not in (u"s'est", u"s'était"): return None
     if deacc(w) not in CONJ_C: return None
     suj = deacc(T[i-2].lower()) if i >= 2 else ''
-    # le sujet immédiat accorde : « elle s'est marier » → mariée (le genre ne change pas le TIR, juste la suggestion)
-    return w[:-2] + (u'ée' if suj == 'elle' else u'é')
+    # le sujet immédiat accorde : « elle s'est marier » → mariée ; sujet NOMINAL via le genre du nom
+    _g2 = 'f' if suj == 'elle' else (_noun_gender(T[i-2], 's', full=True) if (i >= 2 and suj not in ('il', 'on')) else None)
+    return w[:-2] + (u'ée' if _g2 == 'f' else u'é')
 
 
 _FEM_SG_DET = {'une', 'la', 'cette', 'sa', 'ma', 'ta'}
@@ -3247,6 +3268,12 @@ def rule_pp_epithet_fem(T, i):
     return _keepcase(w, tgt) if tgt != lw else None
 
 
+_SAIS_PPU = {'perdu', 'vu', 'eu', 'venu', 'revenu', 'devenu', 'tenu', 'retenu', 'connu', 'recu', 'battu',
+             'mordu', 'rendu', 'vendu', 'entendu', 'repondu', 'defendu', 'descendu', 'couru', 'apercu', 'cru',
+             'bu', 'lu', 'su', 'pu', 'vecu', 'fondu', 'confondu', 'suspendu', 'attendu', 'obtenu', 'contenu',
+             'soutenu', 'parvenu', 'survenu', 'intervenu'}
+
+
 def rule_ces_sest(T, i):
     """[il/elle/on] + ces/cet (+adverbe) + (participe OU infinitif -er connu) → s'est. « ces/cet » après un
     pronom sujet = faute certaine ; s'est proposé devant matière verbale seulement. La cascade compose
@@ -3254,14 +3281,23 @@ def rule_ces_sest(T, i):
     d = deacc(T[i].lower())
     if d not in ('ces', 'cet'): return None
     if _SEG and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
-    p = prev(T, i)
-    if p not in ('il', 'elle', 'on'): return None
+    p = prev(T, i); nom_ok = False
+    if p not in ('il', 'elle', 'on'):
+        if i < 1: return None
+        _pvt = deacc(T[i-1].lower())
+        _FONCT = {'de', 'du', 'des', 'a', 'au', 'aux', 'le', 'la', 'les', 'un', 'une', 'et', 'ou', 'ni', 'que',
+                  'qui', 'dans', 'sur', 'sous', 'avec', 'sans', 'pour', 'par', 'en', 'vers', 'chez'}
+        if _pvt in _FONCT: return None
+        _tgc = pos_tags(T)
+        if not _tgc or _tgc[i-1] not in ('NOUN', 'PROPN'): return None
+        nom_ok = True
     j = i + 1
     while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in _PP_MID: j += 1
     if j >= len(T): return None
     w = T[j].lower()
+    if nom_ok and deacc(w) == 'ete': return None
     inf_er = bool(re.match(u'^[a-zà-ÿ]{4,}er$', w)) and deacc(w) in CONJ_C
-    if not _is_ppl(T[j]) and not inf_er: return None
+    if not _is_ppl(T[j]) and not (nom_ok and deacc(w) in _SAIS_PPU) and not inf_er: return None
     return _keepcase(T[i], u"s'est")
 
 
