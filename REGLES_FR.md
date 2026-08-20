@@ -155,3 +155,16 @@ Style, tours critiqués, calques, archaïsmes, régionalismes, marques : des mil
 tolèrent le faux positif. Notre contrat est inverse (FP=0 sur l'affirmatif) et notre utilisateur est
 dys : chaque signalement non indispensable est de la fatigue. Le différentiel de compte (6 854 vs
 ~60 phénomènes) est un choix, pas un retard.
+
+## La GREFFE juge-aval (2026-08-21, PR#517-518+) — le premier organe non mécanique
+
+Le mur assumé de `saisVig` — « [il/elle/on] sait + INFINITIF » exige la sémantique — est couvert
+par un JUGE de perplexité : le char-transformer maison B2 (14 M int8, 100 % nos données UD+wikt,
+WebGPU zéro dépendance, opt-in 15 Mo, tout local). Doctrine stricte du juge-AVAL : le squelette
+détecte le cadre et fabrique les DEUX candidates (« sait marier » / « s'est mariée » accordée) ;
+le juge COMPARE, ne produit jamais. Orange span 2, marge τ=0.01, jamais imposée. Garde miroir :
+quand le juge a tranché « s'est », l'accord SV se tait (sinon il ressuscitait « sais→sait » — le
+renforcement de la mauvaise lecture, vu sur ASEI texte4). Mesures (dictee/greffe_sais_probe.py) :
+cas réel ASEI tranché ✓ (Δ=+0.065), rappel held-out 7/7, cadre quasi inexistant en correct
+(1/18 556 phrases — le cadre lui-même est un signal dys). Parité navigateur : b2_web_probe.js
+(|Δ|=0.00000/31 chaînes + bout-en-bout app). Le piège « Elle sait marier les saveurs » reste muet.

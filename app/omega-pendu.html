@@ -24924,9 +24924,16 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   function svAgrees(reads,per,nb){var k;if(per==='3'){for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return true;return false;}for(k=0;k<reads.length;k++)if(reads[k][2]===per)return true;return false;}  // 1re/2e pers : personne seule (tag nombre Lexique parfois faux : « peux »)
   var _V3PL_SURE={sont:1,ont:1,vont:1,font:1};   // 3e pluriel irréguliers non ambigus (jamais nom/adj/3sg)
   var _SAIS_PPU={perdu:1,vu:1,eu:1,venu:1,revenu:1,devenu:1,tenu:1,retenu:1,connu:1,recu:1,battu:1,mordu:1,rendu:1,vendu:1,entendu:1,repondu:1,defendu:1,descendu:1,couru:1,apercu:1,cru:1,bu:1,lu:1,su:1,pu:1,vecu:1,fondu:1,confondu:1,suspendu:1,attendu:1,obtenu:1,contenu:1,soutenu:1,parvenu:1,survenu:1,intervenu:1};
+  /* état du JUGE B2 (greffe sait/s'est+inf) — DANS la tranche moteur : les gardes b2Cadre (rAccordSV/_svFinish) et le producteur b2SaisInf (spellText) doivent exister sous les harnais Node (battery/parité), où _b2.on reste false → tout est inerte. L'analyse async et le chargeur vivent plus bas (navigateur seulement). */
+  var _b2={on:false,pret:false,charge:false,cache:{txt:null,flags:[]},enCours:null};
+  function b2SaisInf(i,text){if(!_b2.on||_b2.cache.txt!==text)return null;
+    for(var k=0;k<_b2.cache.flags.length;k++)if(_b2.cache.flags[k].i===i)return _b2.cache.flags[k];return null;}
+  function b2Cadre(i){if(!_b2.on||_b2.cache.txt===null||_b2.cache.txt!==_b2._cur)return false;   // le juge a-t-il tranché « s'est » au token i de CE texte ? (garde miroir frame-s'est : l'accord SV se tait, sinon il ressuscite « sais→sait » sur la mauvaise lecture)
+    for(var k=0;k<_b2.cache.flags.length;k++)if(_b2.cache.flags[k].i===i)return true;return false;}
   function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]);if(!reads.length)return null;
     var _dsv=deacc(T[i].toLowerCase());
-    if(_dsv==='sais'||_dsv==='sait'){var _js=i+1;while(_js<T.length&&_js<=i+3&&PPMID[deacc(T[_js].toLowerCase())])_js++;
+    if(_dsv==='sais'||_dsv==='sait'){if(b2Cadre(i))return null;   // le JUGE B2 a tranché « s'est » ici → l'accord se tait (sinon il ressuscite sais→sait sur la mauvaise lecture — le renforcement vu sur ASEI texte4)
+      var _js=i+1;while(_js<T.length&&_js<=i+3&&PPMID[deacc(T[_js].toLowerCase())])_js++;
       if(_js<T.length&&(_isPpl(T[_js])||_SAIS_PPU[deacc(T[_js].toLowerCase())]))return null;}   // sais/sait + PARTICIPE = frame « s'est » (l'orange saisVig parle) — corriger l'accord ici écrivait « il sait tromper » (conflit lu à la carto) ; coût 0 sur correct (l'accord 3s passe déjà)
 var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(per==='3'&&nb==='s'&&_V3PL_SURE[deacc(T[i].toLowerCase())]){var _pp=i>0?deacc(T[i-1].toLowerCase()):'';if((_pp==='ne'||_pp==='n')&&i>1)_pp=deacc(T[i-2].toLowerCase());if(_pp==='il'||_pp==='elle')return null;}   // « il/elle » + verbe SÛR 3pl → le « s » MUET de ils/elles est tombé → rIlIls fixe le PRONOM (pas le verbe → « ils est »)
@@ -25116,7 +25123,8 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
   var _QP_GAP_OK={entre:1,en:1};Object.keys(PREP).forEach(function(w){_QP_GAP_OK[w]=1;});
   function _svFinish(T,i,per,nb,p3){var k;for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;
     var _dsf=deacc(T[i].toLowerCase());
-    if(_dsf==='sais'||_dsf==='sait'){var _jsf=i+1;while(_jsf<T.length&&_jsf<=i+3&&PPMID[deacc(T[_jsf].toLowerCase())])_jsf++;
+    if(_dsf==='sais'||_dsf==='sait'){if(b2Cadre(i))return null;   // le JUGE B2 a tranché « s'est » ici → l'accord se tait (miroir rAccordSV)
+      var _jsf=i+1;while(_jsf<T.length&&_jsf<=i+3&&PPMID[deacc(T[_jsf].toLowerCase())])_jsf++;
       if(_jsf<T.length&&(_isPpl(T[_jsf])||_SAIS_PPU[deacc(T[_jsf].toLowerCase())]))return null;}   // sais/sait + PARTICIPE = frame « s'est » → l'orange saisVig parle, l'accord se tait (conflit « il sait tromper » lu à la carto)
 
     var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
@@ -26593,6 +26601,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré OS+LM (résiduel « de N »)
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
+    if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){out.push({i:i,word:T[i]+' '+(T[i+1]||''),sugg:b2f.sugg,name:"sait/s'est à vérifier (juge)",tier:'vigilance',span:2});pushed=true;}}   // l'INFINITIF (le mur assumé) : le juge B2 opt-in a COMPARÉ les deux phrases (greffe PR#517-518) — orange span:2 « sais marier »→« s'est mariée », jamais imposée
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
@@ -26756,6 +26765,11 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copier</button></div>'
    +'<div id="vdc-result" aria-live="polite"></div>'
    +'<div id="vdc-count" class="vdc-sc" style="margin-top:10px" aria-live="polite"></div><div id="vdc-nav" class="vdc-nav" hidden><button id="vdc-prev" type="button" class="vdc-navb" title="faute précédente">◂ précédente</button><span id="vdc-navpos"></span><button id="vdc-next" type="button" class="vdc-navb" title="faute suivante">suivante ▸</button></div><div id="vdc-out" style="margin-top:4px"></div>'
+   +'<div id="vdc-b2-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
+   +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-b2-on"> 🧠 Juge s\'est/sait (local, opt-in — télécharge 15 Mo une seule fois)</label>'
+   +' <span id="vdc-b2-etat" class="vdc-sc" aria-live="polite"></span>'
+   +'<div class="vdc-sc" style="margin-top:2px">Un petit modèle de langue OMEGA (WebGPU) départage « elle sait marier » / « elle s\'est mariée ». Tout se calcule sur ta machine — rien n\'est envoyé.</div>'
+   +'</div>'
    +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
    +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-ia-on"> 🤖 Correction par IA (opt-in)</label>'
    +'<div id="vdc-ia-cfg" style="display:none;margin-top:6px">'
@@ -26791,7 +26805,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(f.src==='g')return true;if(f.tier==='auto')return true;if(f.tier==='flag'&&f.name==='orthographe')return true;return false;}
   function _isOn(f){return _dfltOn(f)?!_off[f.key]:!!_on[f.key];}
   function _tokPos(t){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,a=[];while((m=re.exec(t)))a.push([m.index,m.index+m[0].length,m[0]]);return a;}   // ’ dans la classe : mêmes frontières de tokens que toks() normalisé → index alignés entre analyse et rendu
-  function _computeCorrs(t){var sf=SP.ready?spellText(t,true):[];   // correcteur = capital ON (vigilance majuscule initiale) ; le live/extension reste OFF
+  function _computeCorrs(t){_b2._cur=String(t).replace(/[’ʼ]/g,"'");var sf=SP.ready?spellText(t,true):[];   // correcteur = capital ON (vigilance majuscule initiale) ; le live/extension reste OFF — _b2._cur : le texte courant, pour que les gardes b2Cadre sachent si le cache du juge parle de CE texte
     _SEG=_segInfo(t);var _T=toks(t),_Tc=_T.slice();_curToks=_T;   // tokens courants → hint CONTEXTUEL (test de substitution avec les mots de l'utilisateur)
     sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
     // ---- CASCADE : re-tourner la grammaire sur ses PROPRES corrections (point fixe, garde FP=0) ----
@@ -27099,9 +27113,61 @@ function spellTokenCore(tok,atStart,T,idx){
     var cs=complete(w.word,_prevWord(ta.value,w.start),_prevWord(ta.value,w.start,2));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
     box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
+  /* ===== GREFFE JUGE-AVAL sait/s'est+INFINITIF (opt-in, sondes PR#517-518) =====
+     Le squelette détecte le cadre [il/elle/on] + sais/sait + INFINITIF-er adjacent et fabrique le
+     candidat « s'est + participe accordé » ; le juge B2 (char-transformer 14 M int8, WebGPU
+     maison, b2_moteur.js + b2_web.bin chargés à la demande) COMPARE les deux phrases — il ne
+     produit jamais rien. Mesuré : cas ASEI réel tranché ✓ (Δ=+0.065), rappel held-out 7/7,
+     cadre quasi inexistant en texte correct (1/18 556) → ORANGE directionnelle, marge τ=0.01.
+     Async sans rendu dédié : le verdict remplit un CACHE par texte puis re-déclenche runCorr ;
+     le producteur b2SaisInf (chaîne vigilance) lit ce cache — pipeline standard, rien de neuf. */
+  var _B2_TAU=0.01,_B2_RX=/\b(il|elle|on)[  ]+(sais|sait)[  ]+([a-zà-ÿ]{3,}er)\b/gi;
+  function _b2Cadres(t){var out=[],m;_B2_RX.lastIndex=0;
+    while((m=_B2_RX.exec(t))){var inf=m[3].toLowerCase();
+      if(!(SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(inf)&&/V/.test(SP.POS[inf]||'')))continue;   // vrai infinitif du lexique accentué
+      var acc=m[1].toLowerCase()==='elle'?'e':'',part=m[3].slice(0,-2)+'é'+acc;
+      var iSait=(t.slice(0,m.index+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN de sais/sait (même regex que toks)
+      out.push({i:iSait,sugg:"s'est "+part,pos:m.index,
+        cand:t.slice(0,m.index)+m[1]+" s'est "+part+t.slice(m.index+m[0].length)});}
+    return out;}
+  function _b2Fenetre(t,pos){var d=Math.max(t.lastIndexOf('.',pos),t.lastIndexOf('!',pos),t.lastIndexOf('?',pos));
+    var e=t.length,c;c=t.indexOf('.',pos);if(c>=0&&c<e)e=c;c=t.indexOf('!',pos);if(c>=0&&c<e)e=c;c=t.indexOf('?',pos);if(c>=0&&c<e)e=c;
+    return [d+1,Math.min(e+1,t.length)];}
+  function _b2Analyse(tRaw){
+    var t=String(tRaw).replace(/[’ʼ]/g,"'");                   // même normalisation que spellText : le cache parle le texte du moteur
+    if(!_b2.on||!_b2.pret||_b2.cache.txt===t||_b2.enCours===t)return;
+    var cadres=_b2Cadres(t);
+    if(!cadres.length){_b2.cache={txt:t,flags:[]};return;}
+    _b2.enCours=t;
+    (async function(){
+      try{
+        var flags=[];
+        for(var k=0;k<cadres.length;k++){var c=cadres[k];
+          var w=_b2Fenetre(t,c.pos),d=c.cand.length-t.length;
+          var s0=await B2JUGE.score(t.slice(w[0],w[1])),s1=await B2JUGE.score(c.cand.slice(w[0],w[1]+d));
+          if(s1-s0>_B2_TAU)flags.push({i:c.i,sugg:c.sugg});}
+        _b2.enCours=null;
+        if(String($('vdc-in').value).replace(/[’ʼ]/g,"'")!==t)return;   // le texte a bougé pendant le calcul → verdict caduc
+        _b2.cache={txt:t,flags:flags};
+        if(flags.length)runCorr();                             // re-passe : b2SaisInf lit le cache
+      }catch(e){_b2.enCours=null;}
+    })();}
+  function _b2Etat(msg){var e=$('vdc-b2-etat');if(e)e.textContent=msg;}
+  function _b2Charge(){
+    if(_b2.charge)return;_b2.charge=true;
+    var fin=function(ok,raison){if(ok){_b2.pret=true;_b2Etat('✓ juge prêt (local)');var t=$('vdc-in').value;if(t)_b2Analyse(t);}else _b2Etat(raison);};
+    var go=function(){
+      if(!window.B2JUGE||!B2JUGE.dispo()){fin(false,'⚠ WebGPU indisponible sur ce navigateur — le juge ne peut pas tourner (le correcteur fonctionne normalement sans lui)');return;}
+      _b2Etat('⏳ téléchargement du modèle (15 Mo, une seule fois)…');
+      B2JUGE.charger('b2_web.bin').then(function(r){fin(r.ok,r.ok?'':'⚠ juge indisponible ('+r.raison+')');},
+        function(){fin(false,'⚠ échec du chargement du modèle');});};
+    if(window.B2JUGE)go();
+    else{var sc=document.createElement('script');sc.src='b2_moteur.js';sc.onload=go;
+      sc.onerror=function(){fin(false,'⚠ b2_moteur.js introuvable');};document.head.appendChild(sc);}}
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
     if(t.length>_CORR_MAX){_corrs=[];_navRender();$('vdc-count').innerHTML='';var _rzL=$('vdc-result');if(_rzL)_rzL.innerHTML='';$('vdc-out').innerHTML='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea;font-size:14px">📏 <b>Texte trop long</b> ('+t.length.toLocaleString('fr-FR')+' caractères) pour la correction en temps réel. Au-delà de ~'+_CORR_MAX.toLocaleString('fr-FR')+' caractères, corrige par sections (un paragraphe à la fois). Ton texte n’est pas modifié.</div>';return;}   // #UI plafond MESURÉ (Chrome) : au-delà, le rendu O(n) de milliers de spans FIGE l'onglet (~30k). Dégradation douce, texte intact.
     _corrs=SP.ready?_computeCorrs(t):[];
+    if(_b2.on&&!_b2.charge)_b2Charge();_b2Analyse(t);   // greffe juge-aval : chargement paresseux + verdict async (re-déclenche runCorr via le cache)
     var _ceoff=_ceCaret($('vdc-in'));$('vdc-in').innerHTML=_renderView(t,_corrs,false);_ceSetCaret($('vdc-in'),_ceoff);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
     if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
     _lastCorrected=_correctedText(t,_corrs);
@@ -27138,6 +27204,12 @@ function spellTokenCore(tok,atStart,T,idx){
     if(dev)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+'</span></div>';
     html+=remedBlock(devF,'vdc-fact');
     $('vdc-out').innerHTML=html;}
+  (function(){var bb=$('vdc-b2-on');if(!bb)return;                       // opt-in juge B2 : mémorisé, chargement PARESSEUX (rien tant que le correcteur ne tourne pas)
+    try{if(localStorage.getItem('vdc_b2')==='1'){bb.checked=true;_b2.on=true;}}catch(e){}
+    bb.addEventListener('change',function(){_b2.on=bb.checked;
+      try{localStorage.setItem('vdc_b2',bb.checked?'1':'0');}catch(e){}
+      if(!bb.checked){_b2Etat('');_b2.cache={txt:null,flags:[]};}
+      runCorr();});})();
   var _ct;cbtn.onclick=function(){cov.classList.add('on');$('vdc-in').focus();loadVdcLex();loadSpellerLex();loadGenderLex();loadPrenoms();loadNounPost();loadPosHmm();loadOsLm();runCorr();};
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
   cov.addEventListener('keydown',function(e){if(e.key==='Escape'){var c=$('vdc-cardpop');if(c&&c.style.display==='block'){_hideCard();return;}cov.classList.remove('on');}});   // Échap ferme (clavier/accessibilité)

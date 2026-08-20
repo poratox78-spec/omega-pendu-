@@ -88,6 +88,57 @@ function connecter(ws) {
   });
 }
 
+/* Phase 2 — BOUT-EN-BOUT dans la VRAIE app : opt-in coché, phrase ASEI tapée, l'orange
+ * « sait/s'est à vérifier (juge) » doit proposer « s'est mariée » (span 2, jamais imposée).
+ * Utilise app/b2_web.bin (le fichier COMMITTÉ, celui que Cloudflare servira). */
+async function boutEnBout(sess, port) {
+  await sess.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + port + '/app/omega-pendu.html' });
+  let pret = false;
+  for (let i = 0; i < 300 && !pret; i++) {
+    try {
+      const q = await sess.envoyer('Runtime.evaluate',
+        { expression: '(document.readyState === "complete") && location.pathname.indexOf("omega-pendu") >= 0', returnByValue: true });
+      pret = q.result.value === true;
+    } catch (e) {}
+    if (!pret) await attendre(200);
+  }
+  if (!pret) return { fatal: 'app non chargée' };
+  const r = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+    const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+    const jusqua = async (quoi, f, ms) => { const t0 = Date.now();
+      while (Date.now() - t0 < ms) { const v = f(); if (v) return v; await attendre(200); }
+      throw new Error('délai : ' + quoi); };
+    try {
+      try { localStorage.removeItem('vdc_b2'); } catch (e) {}
+      const b = await jusqua('bouton correcteur',
+        () => [...document.querySelectorAll('button')].find(x => /🩹/.test(x.textContent || '')), 30000);
+      b.click();
+      const zone = await jusqua('zone vdc-in', () => document.getElementById('vdc-in'), 30000);
+      await jusqua('lexiques (fenetre→fenêtre)', () => {
+        zone.textContent = 'la fenetre est ouverte';
+        zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+        return [...document.querySelectorAll('.vdc-on')].some(e => e.textContent === 'fenêtre');
+      }, 60000);
+      const bb = document.getElementById('vdc-b2-on');
+      if (!bb) return { fatal: 'toggle vdc-b2-on absent' };
+      bb.click();                                                    // opt-in → chargement au prochain runCorr
+      zone.textContent = "elle sais marier a l'age de vingt ans";
+      zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      const etat = document.getElementById('vdc-b2-etat');
+      await jusqua('juge prêt', () => (etat.textContent || '').indexOf('✓') >= 0, 60000);
+      zone.dispatchEvent(new InputEvent('input', { bubbles: true }));  // re-passe avec juge prêt
+      await jusqua('orange du juge', () => (document.getElementById('vdc-out').textContent || '').indexOf("s'est mariée") >= 0, 30000);
+      const chips = document.getElementById('vdc-out').textContent;
+      const applique = [...document.querySelectorAll('.vdc-on')].map(e => e.textContent);
+      return { ok: true, juge: chips.indexOf('(juge)') >= 0,
+               nonImpose: applique.every(a => a.indexOf("s'est") < 0),
+               etat: etat.textContent };
+    } catch (e) { return { fatal: e.message }; }
+  })()`, awaitPromise: true, returnByValue: true, timeout: 180000 });
+  if (r.exceptionDetails) return { fatal: (r.exceptionDetails.exception || {}).description };
+  return r.result.value || { fatal: 'réponse vide' };
+}
+
 async function tenter(chrome, port, visible) {
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'omega-b2gpu-'));
   const args = ['--remote-debugging-port=0', '--user-data-dir=' + profil, '--no-first-run',
@@ -109,6 +160,7 @@ async function tenter(chrome, port, visible) {
       } catch (e) {}
       if (!res) await attendre(200);
     }
+    if (res && res.pret) res.app = await boutEnBout(sess, port);   // phase 2 dans le MÊME Chrome
     return res || { pret: false, raison: 'délai (page muette en 2 min)' };
   } finally {
     try { sess && sess.fermer(); } catch (e) {}
@@ -147,10 +199,18 @@ async function main() {
         if (!(L[1].web > L[0].web)) echecs.push('paire RÉELLE : le candidat « s\'est mariée » doit gagner au web');
         if (!(L[2].web > L[3].web)) echecs.push('paire PIÈGE : « sait marier les saveurs » doit rester préféré au web');
       }
+      const app = r.app || { fatal: 'phase bout-en-bout jamais lancée' };
+      if (app.fatal) echecs.push('bout-en-bout app : ' + app.fatal);
+      else {
+        if (!app.juge) echecs.push('bout-en-bout : l\'orange doit être étiquetée « (juge) »');
+        if (!app.nonImpose) echecs.push('bout-en-bout : l\'orange du juge a été APPLIQUÉE — elle doit rester proposée (vigilance)');
+        console.log('  ' + (app.juge && app.nonImpose ? '✓' : '✗') +
+          ' app réelle : opt-in → « s\'est mariée » proposée en orange, jamais imposée (' + app.etat + ')');
+      }
       const ms = L.reduce((a, l) => a + l.ms, 0) / Math.max(L.length, 1);
       if (echecs.length) { console.error('\n✗ B2 WEB — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
       else console.log('✓ B2 WEB : parité navigateur (pire |Δ|=' + pire.toFixed(5) + ' ≤ ' + TOL +
-        ', préférences conservées, charge ' + r.chargeMs + ' ms, ' + ms.toFixed(0) + ' ms/score)');
+        ', préférences conservées, charge ' + r.chargeMs + ' ms, ' + ms.toFixed(0) + ' ms/score) + greffe app bout-en-bout');
     }
   } catch (e) { console.error('✗ B2 WEB : ' + e.message); code = 1; }
   srv.close();
