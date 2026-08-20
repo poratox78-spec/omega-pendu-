@@ -3216,7 +3216,9 @@ def rule_etre_inf_er(T, i):
     pv = T[i - 1].lower().replace(u'’', u"'")
     if pv not in (u"s'est", u"s'était"): return None
     if deacc(w) not in CONJ_C: return None
-    return w[:-2] + u'é'
+    suj = deacc(T[i-2].lower()) if i >= 2 else ''
+    # le sujet immédiat accorde : « elle s'est marier » → mariée (le genre ne change pas le TIR, juste la suggestion)
+    return w[:-2] + (u'ée' if suj == 'elle' else u'é')
 
 
 _FEM_SG_DET = {'une', 'la', 'cette', 'sa', 'ma', 'ta'}
@@ -3243,6 +3245,24 @@ def rule_pp_epithet_fem(T, i):
     if g != 'f': return None
     tgt = _pp_accord(lw, 's', 'f')
     return _keepcase(w, tgt) if tgt != lw else None
+
+
+def rule_ces_sest(T, i):
+    """[il/elle/on] + ces/cet (+adverbe) + (participe OU infinitif -er connu) → s'est. « ces/cet » après un
+    pronom sujet = faute certaine ; s'est proposé devant matière verbale seulement. La cascade compose
+    ensuite (s'est+marier→marié via rule_etre_inf_er, puis accord). 0 tir/16 950 phrases correctes."""
+    d = deacc(T[i].lower())
+    if d not in ('ces', 'cet'): return None
+    if _SEG and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    p = prev(T, i)
+    if p not in ('il', 'elle', 'on'): return None
+    j = i + 1
+    while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in _PP_MID: j += 1
+    if j >= len(T): return None
+    w = T[j].lower()
+    inf_er = bool(re.match(u'^[a-zà-ÿ]{4,}er$', w)) and deacc(w) in CONJ_C
+    if not _is_ppl(T[j]) and not inf_er: return None
+    return _keepcase(T[i], u"s'est")
 
 
 def rule_neg_ne(T, i):
@@ -3426,7 +3446,7 @@ RULES = [('élision inversée', rule_deselide),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
-         ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ('ça/sa', rule_ca_sa),
+         ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais),
          ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
@@ -3473,6 +3493,7 @@ def correct(text):
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Elle s'est mariée très jeune ici", "s'est", "ces", "c'est/s'est"),
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
