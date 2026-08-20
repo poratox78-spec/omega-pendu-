@@ -3219,6 +3219,32 @@ def rule_etre_inf_er(T, i):
     return w[:-2] + u'é'
 
 
+_FEM_SG_DET = {'une', 'la', 'cette', 'sa', 'ma', 'ta'}
+def rule_pp_epithet_fem(T, i):
+    """Sœur SINGULIER-FÉMININ de rule_pp_epithet_number (audit rappel dys PR#505 : « une femme cultivé » ×3).
+    Mêmes gardes + « fois » (l'accord suit le sujet), coordination dans le GN (accord de proximité litigieux),
+    ADP GÉNÉRALISÉE en i-3 (« le sommet SUR la biodiversité organisé » : la tête est au-delà du GN).
+    Flood 16 950 : 3 tirs, tous de vraies fautes du corpus. Marques muettes seulement (é→ée, i→ie)."""
+    w = T[i]; lw = w.lower()
+    if "'" in lw or not w[:1].islower(): return None
+    if not (lw.endswith(u'é') or lw.endswith('i')) or not _is_ppl(w): return None
+    if i < 2 or deacc(T[i-2].lower()) not in _FEM_SG_DET: return None
+    if deacc(T[i-1].lower()) == 'fois': return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ') or tg[i-1] != 'NOUN': return None
+    if _SEG and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    # pas de garde APRÈS (≠ plurielle) : « une femme cultivé, bienveillante » — l'accord vaut devant la virgule
+    nx = deacc(T[i+1].lower()) if i+1 < len(T) else ''
+    if nx in ('de', 'et', 'ou', 'ni', 'que'): return None
+    for k in range(max(0, i-5), i-1):
+        if deacc(T[k].lower()) in ('ou', 'et', 'ni'): return None
+    if i >= 3 and tg[i-3] == 'ADP': return None
+    g = _noun_gender(T[i-1], 's', full=True)
+    if g != 'f': return None
+    tgt = _pp_accord(lw, 's', 'f')
+    return _keepcase(w, tgt) if tgt != lw else None
+
+
 def rule_neg_ne(T, i):
     if i + 1 >= len(T): return None
     lw = T[i].lower(); d = deacc(lw)
@@ -3394,7 +3420,8 @@ def rule_vingt_cent(T, i):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
@@ -3446,6 +3473,8 @@ def correct(text):
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
+    ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
     ("Elle a l'âge de raison", "l'âge", "l'age", "accent (âge)"),
     ("C'était une belle journée", "C'était", "C'étais", "étais après c'/s'"),

@@ -84,6 +84,8 @@ PÉRIMÈTRE (choix assumé, motivé).
 | phénomène | état | note |
 |---|---|---|
 | élision (46 listes fermées) | 🔴 | cécité volontaire = protectrice (mémoire dédiée) |
+| participe épithète féminin-singulier (« une femme cultivé ») | 🔴 LIVRÉ (2026-08-20) | sœur de la plurielle : DET f-sg + NOM f + participe -é/-i (marques MUETTES) ; gardes « fois », coordination dans le GN, ADP généralisée en i-3 (« le sommet SUR la biodiversité organisé ») ; PAS de garde après-virgule (« cultivé, bienveillante » : l'accord vaut). Flood 16 950 : 3 tirs = 3 vraies fautes du corpus |
+| « e » muet du futur/conditionnel (« t'oublirais ») | 🔴 LIVRÉ (2026-08-20) | non-mot en r+terminaison dont stem+er est un verbe des tables → réinsérer le e muet (oublirais→oublierais) ; AUDIBILITÉ : le R entendu écarte l'imparfait « oubliais » (distance 1 aussi) ; radical ≥ 4 (« tetra »→tetera = l'unique tir) ; vit dans spellTokenCore → l'élision est déballée (l'oublirais) . 0 tir/16 950 |
 | accent réel-mot « age » → « âge » | 🔴 LIVRÉ (2026-08-20, audit rappel dys PR#505) | « age » est CONNU du lexique (pièce de charrue) → le canal accent se taisait. Contexte déterminant exigé (l'/d' élidé, son/mon/un…), minuscule STRICT (« l'Age d'Or » titre = l'unique tir du flood 16 950). ×5 sur les 6 dictées ASEI |
 | « c'/s' + étais » → était | 🔴 LIVRÉ (2026-08-20) | après c'/s' (= ce/se), la 1re personne n'existe pas ; le speller rendait « c'étais » (accent restauré, personne gardée). 0 tir/16 950 |
 | participe après avoir (« elle a grandit ») | 🔴 LIVRÉ (2026-08-20) | avoir + forme FINIE -it/-is jamais-participe dont la troncature EST un participe (grandit→grandi, finit→fini). Garde décisive : le participe tronqué doit EXISTER. 1 tir/16 950 = vraie faute UD (« il a réagit ») |
