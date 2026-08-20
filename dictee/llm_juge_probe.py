@@ -134,6 +134,26 @@ def voie_a():
             return -out.loss.item()                            # log-prob moyen par token
     return score
 
+# ── VOIE B2 : le petit transformer MAISON (b2_train.py, la boucle de Rem) ──────
+def voie_b2():
+    import torch
+    import torch.nn.functional as F
+    from b2_train import CharT, CTX
+    ck = torch.load(os.path.join(DL, 'b2_model.pt'), map_location='cpu', weights_only=False)
+    chars = ck['chars']; v2i = {c: i for i, c in enumerate(chars)}
+    dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    m = CharT(len(chars)).to(dev); m.load_state_dict(ck['model']); m.eval()
+    def score(s):
+        ids = [v2i.get(c, 0) for c in s][:CTX]
+        if len(ids) < 3: return -99.0
+        t = torch.tensor([ids], device=dev)
+        with torch.no_grad():
+            lg = m(t)[0, :-1]
+            lp = F.log_softmax(lg.float(), -1)
+            cible = t[0, 1:]
+            return lp.gather(1, cible[:, None]).mean().item()
+    return score
+
 # ── ÉVALUATION ───────────────────────────────────────────────────────────────
 def evalue(nom, score, B):
     print(u'\n══ %s ══' % nom)
@@ -158,3 +178,6 @@ if __name__ == '__main__':
     if quoi in ('a', 'ab'):
         fa = voie_a()
         evalue(u'VOIE A — gpt-fr-cased-small (124 M, pré-entraîné)', fa, B)
+    if quoi == 'b2':
+        f2 = voie_b2()
+        evalue(u'VOIE B2 — char-transformer MAISON (~5 M, entraîné local)', f2, B)
