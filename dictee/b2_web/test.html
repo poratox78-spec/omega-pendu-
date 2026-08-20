@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>B2 — parité navigateur (juge WebGPU)</title>
+<style>body{font-family:monospace;background:#111;color:#ddd;padding:16px}td{padding:2px 10px}</style>
+</head>
+<body>
+<h3>B2 · char-transformer 14 M int8 · WebGPU maison</h3>
+<div id="statut">démarrage…</div>
+<table id="tbl"></table>
+<pre id="b2-json"></pre>
+<script src="b2_moteur.js"></script>
+<script>
+/* La page se démarre SEULE (doctrine du banc navigateur réel) : charge les poids, rejoue les
+   références Python (data_local/b2_web_refs.json, scores int8 déquantifiés), écrit le résultat
+   dans #b2-json — le pilote CDP ne fait que LIRE. */
+(async function () {
+  var st = document.getElementById('statut'), out = { pret: false };
+  function fini(o) { out = o; document.getElementById('b2-json').textContent = JSON.stringify(o); window.__B2RES = o; }
+  try {
+    if (!B2JUGE.dispo()) return fini({ pret: false, raison: 'webgpu-absent' });
+    st.textContent = 'chargement des poids…';
+    var ch = await B2JUGE.charger('/data_local/b2_web.bin');
+    if (!ch.ok) return fini({ pret: false, raison: ch.raison });
+    st.textContent = 'poids chargés en ' + ch.ms + ' ms · scores…';
+    var refs = await (await fetch('/data_local/b2_web_refs.json', { cache: 'reload' })).json();
+    var lignes = [], t0 = Date.now();
+    for (var i = 0; i < refs.length; i++) {
+      var ta = Date.now();
+      var sc = await B2JUGE.score(refs[i].s);
+      lignes.push({ s: refs[i].s, py: refs[i].score, web: sc, ms: Date.now() - ta });
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + Math.abs(sc - refs[i].score).toFixed(5) + '</td><td>' + sc.toFixed(5) +
+        '</td><td>' + refs[i].score.toFixed(5) + '</td><td>' + refs[i].s.slice(0, 60) + '</td>';
+      document.getElementById('tbl').appendChild(tr);
+    }
+    st.textContent = 'fini · ' + lignes.length + ' scores · ' + (Date.now() - t0) + ' ms total';
+    fini({ pret: true, chargeMs: ch.ms, lignes: lignes });
+  } catch (e) { fini({ pret: false, raison: 'exception: ' + (e && e.message) }); }
+})();
+</script>
+</body>
+</html>
