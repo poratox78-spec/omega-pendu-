@@ -84,6 +84,10 @@ PÉRIMÈTRE (choix assumé, motivé).
 | phénomène | état | note |
 |---|---|---|
 | élision (46 listes fermées) | 🔴 | cécité volontaire = protectrice (mémoire dédiée) |
+| accent réel-mot « age » → « âge » | 🔴 LIVRÉ (2026-08-20, audit rappel dys PR#505) | « age » est CONNU du lexique (pièce de charrue) → le canal accent se taisait. Contexte déterminant exigé (l'/d' élidé, son/mon/un…), minuscule STRICT (« l'Age d'Or » titre = l'unique tir du flood 16 950). ×5 sur les 6 dictées ASEI |
+| « c'/s' + étais » → était | 🔴 LIVRÉ (2026-08-20) | après c'/s' (= ce/se), la 1re personne n'existe pas ; le speller rendait « c'étais » (accent restauré, personne gardée). 0 tir/16 950 |
+| participe après avoir (« elle a grandit ») | 🔴 LIVRÉ (2026-08-20) | avoir + forme FINIE -it/-is jamais-participe dont la troncature EST un participe (grandit→grandi, finit→fini). Garde décisive : le participe tronqué doit EXISTER. 1 tir/16 950 = vraie faute UD (« il a réagit ») |
+| participe après s'est (« s'est marier ») | 🔴 LIVRÉ (2026-08-20) | s'est/s'était + infinitif -er connu des tables → é (le participe régulier existe par morphologie). v1 réfléchi SEUL ; « est/sont + -er » attendra sa mesure. 0 tir/16 950 |
 | négation « n' » manquante (on a pas) | 🔴 LIVRÉ (2026-08-12) | cadre : sujet-pronom + verbe à VOYELLE + négateur, PLUS formes élidées (c'est pas→ce n'est pas, j'ai jamais→je n'ai jamais, il y a pas→il n'y a pas, t'as rien→tu n'as rien). « plus » exclu (comparatif, 8 FP/10 au proto), « pas mal » exclu (locution). 5 tirs/14 450 UD = 5 vraies fautes orales du corpus → rouge sur tout le cadre |
 | que/dont (la chose que j'ai besoin) | 🟠 LIVRÉ (2026-08-12) | gouverneurs besoin/envie/peur/honte (parle/doute exclus : transitifs légitimes) ; antécédent NOMINAL exigé (complétive « je crois que j'ai besoin » exclue) ; « besoin DE » présent → silence |
 | run-on (ponctuation manquante entre propositions) | 🟢 | couche verte |
