@@ -28,3 +28,10 @@ chrome.contextMenus.onClicked.addListener(function (info, tab) {
     chrome.tabs.sendMessage(tab.id, { type: 'omdys-apply-rc' }, function () { void chrome.runtime.lastError; });
   }
 });
+
+// MIROIR FIDÈLE (Rem, 2026-08-21) : autre onglet activé ou navigation de l'onglet actif → le panneau (s'il est en
+// miroir) se vide : il n'affirme jamais un texte que la page n'a plus. Pas de permission « tabs » requise
+// (onActivated/onUpdated ne livrent ici que des identifiants et un statut).
+function preventPanneau() { try { chrome.runtime.sendMessage({ type: 'omdys-tab' }, function () { void chrome.runtime.lastError; }); } catch (e) {} }
+try { chrome.tabs.onActivated.addListener(function () { preventPanneau(); }); } catch (e) {}
+try { chrome.tabs.onUpdated.addListener(function (id, ch, tab) { if (ch && ch.status === 'loading' && tab && tab.active) preventPanneau(); }); } catch (e) {}

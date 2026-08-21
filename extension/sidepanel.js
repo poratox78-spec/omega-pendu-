@@ -86,15 +86,28 @@
     ta.value = t.slice(0, s[0]) + f.sugg + t.slice(e[1]);
     runNow();
   }
-  // « tout corriger » = UNIQUEMENT le FP=0 (auto + rouge) ; la vigilance reste au clic individuel explicite.
+  // ===== ROUGES D'OFFICE (Rem, 2026-08-21 : « le texte copié sort déjà corrigé, comme sur le site ») =====
+  // Comme sur le site : la zone reste ce que l'utilisateur (ou le miroir) y a mis ; le FP=0 (auto + rouge) est
+  // appliqué dans le TEXTE CORRIGÉ — aperçu sous les boutons, et c'est LUI que « Copier » copie. L'orange reste
+  // au clic. Chaque rouge se révoque d'un clic (« annuler »), par clé (index, mot, suggestion) : une ré-édition
+  // qui déplace les mots fait tomber les révocations d'elles-mêmes. Le miroir n'est jamais réécrit → pas de bataille.
+  var _ign = {}, lastOut = null;
+  function _fk(f) { return f.i + '|' + f.word + '|' + f.sugg; }
+  function corrige(t, flags, html) {
+    var sp2 = spans(t), parts = [], last = 0, out = t;
+    var L = (flags || []).filter(function (f) { return f.tier !== 'vigilance' && !_ign[_fk(f)]; }).slice().sort(function (a, b) { return a.i - b.i; });
+    L.forEach(function (f) {
+      var s = sp2[f.i]; if (!s || s[0] < last) return; var e = sp2[f.i + (f.span ? f.span - 1 : 0)] || s;
+      parts.push([t.slice(last, s[0]), f.sugg]); last = e[1];
+    });
+    if (!parts.length) return html ? '' : t;
+    if (html) { var h = ''; parts.forEach(function (p) { h += esc(p[0]) + '<b>' + esc(p[1]) + '</b>'; }); return h + esc(t.slice(last)); }
+    out = ''; parts.forEach(function (p) { out += p[0] + p[1]; }); return out + t.slice(last);
+  }
+  // « tout corriger » = écrit le FP=0 (auto + rouge, hors révoqués) DANS la zone ; la vigilance reste au clic explicite.
   var _undoSnap = null;
   function applyAll() {
-    var flags = (lastDg.flags || []).filter(function (f) { return f.tier !== 'vigilance'; });
-    var t = ta.value, before = t, sp2 = spans(t);
-    flags.slice().sort(function (a, b) { return b.i - a.i; }).forEach(function (f) {
-      var s = sp2[f.i]; if (!s) return; var e = sp2[f.i + (f.span ? f.span - 1 : 0)] || s;
-      t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]);
-    });
+    var before = ta.value, t = corrige(before, lastDg.flags || []);
     _undoSnap = { before: before, after: t };   // FILET : réversible tant que le texte n'a pas été ré-édité
     ta.value = t; runNow();
   }
@@ -136,11 +149,16 @@
     var redn = flags.filter(function (f) { return f.tier !== 'vigilance'; }).length;
     fixBtn.disabled = !redn;
     cntEl.textContent = flags.length ? (flags.length + ' correction' + (flags.length > 1 ? 's' : '')) : (ta.value.trim() ? '✓ rien à corriger' : '');
+    if (!ta.value.trim()) _ign = {};
+    lastOut = corrige(ta.value, flags);
+    var outEl = document.getElementById('omdys-out');
+    if (outEl) { var oh = lastOut !== ta.value ? corrige(ta.value, flags, true) : ''; outEl.hidden = !oh; outEl.innerHTML = oh ? '<span class="lab">texte corrigé (c\'est lui que « Copier » copie) :</span><br>' + oh : ''; }
     var h = '';
     flags.forEach(function (f, k) {
-      var vig = f.tier === 'vigilance', orth = /orthographe|[ée]lision/.test(f.name || '');
-      h += '<div class="item' + (vig ? ' tvig' : (orth ? ' orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
+      var vig = f.tier === 'vigilance', orth = /orthographe|[ée]lision/.test(f.name || ''), off = !vig && !!_ign[_fk(f)];
+      h += '<div class="item' + (vig ? ' tvig' : (orth ? ' orth' : '')) + (vig ? '' : (off ? ' off' : ' done')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
         + ' <span class="fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vig ? ' · à vérifier' : '')) + ']</span>'
+        + (vig ? '' : '<span class="etat">' + (off ? 'annulé · clique pour réappliquer' : '✓ appliqué à la copie · clique pour annuler') + '</span>')
         + (f.hint ? '<button class="why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
         + '<button class="tts" data-k="' + k + '" type="button" title="écouter">🔊</button>'
         + (f.hint ? '<div class="astuce" data-k="' + k + '" hidden>' + esc(f.hint) + '</div>' : '')
@@ -149,7 +167,10 @@
     corr.innerHTML = h;
     var items = corr.querySelectorAll('.item');
     for (var z = 0; z < items.length; z++) (function (node) {
-      node.onclick = function (ev) { if (ev.target.closest('.why') || ev.target.closest('.astuce') || ev.target.closest('.tts')) return; applyFlag(flags[+node.getAttribute('data-k')]); };
+      node.onclick = function (ev) { if (ev.target.closest('.why') || ev.target.closest('.astuce') || ev.target.closest('.tts')) return;
+        var f = flags[+node.getAttribute('data-k')]; if (!f) return;
+        if (f.tier === 'vigilance') { applyFlag(f); return; }                 // ORANGE : au clic, dans la zone (inchangé)
+        var key = _fk(f); if (_ign[key]) delete _ign[key]; else _ign[key] = true; runNow(); };   // ROUGE : bascule appliqué/annulé dans la copie
     })(items[z]);
     var whys = corr.querySelectorAll('.why');
     for (var w = 0; w < whys.length; w++) (function (b) { b.onclick = function (e) { e.stopPropagation(); var a = corr.querySelector('.astuce[data-k="' + b.getAttribute('data-k') + '"]'); if (a) a.hidden = !a.hidden; }; })(whys[w]);
@@ -211,14 +232,17 @@
       copyBtn.textContent = ok ? '✓ Copié' : '⚠ copie refusée — Ctrl+C';
       setTimeout(function () { copyBtn.classList.remove('ok'); copyBtn.textContent = '📋 Copier'; }, ok ? 1400 : 3200);
     }
+    var txt = (lastOut != null ? lastOut : ta.value);              // ROUGES D'OFFICE : la copie sort corrigée (auto + rouge non révoqués)
     function repli() {
-      ta.select();
+      var keep = ta.value, sel = [ta.selectionStart, ta.selectionEnd];
+      ta.value = txt; ta.select();
       var ok = false;
       try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+      ta.value = keep; try { ta.setSelectionRange(sel[0], sel[1]); } catch (_) {}
       fini(ok);
     }
     if (navigator.clipboard && navigator.clipboard.writeText)
-      navigator.clipboard.writeText(ta.value).then(function () { fini(true); }, repli);
+      navigator.clipboard.writeText(txt).then(function () { fini(true); }, repli);
     else repli();
   };
 
@@ -903,9 +927,17 @@
 
   // ---- MIROIR : ce que l'utilisateur tape dans un champ de la page se recopie ici (sens UNIQUE) ----
   chrome.runtime.onMessage.addListener(function (msg) {
-    if (!msg || msg.type !== 'omdys-mirror') return;
+    if (!msg) return;
+    if (msg.type === 'omdys-tab') {                          // autre onglet / navigation : en miroir, le panneau n'affirme jamais un texte que la page n'a plus
+      if (mirCb.checked && ta.value && !(document.hasFocus() && document.activeElement === ta)) { ta.value = ''; _ign = {}; runNow(); }
+      return;
+    }
+    if (msg.type !== 'omdys-mirror') return;
     if (!mirCb.checked) return;
-    if (document.activeElement === ta) return;             // l'utilisateur édite le panneau → ne pas écraser
+    /* « l'utilisateur édite le panneau » = la zone a le focus ET la fenêtre du panneau aussi. Sans hasFocus(),
+       activeElement SURVIT à la perte de focus fenêtre : après « Tout corriger » (ta.focus()) ou un clic dans la
+       zone, tout miroir suivant était ignoré → panneau figé sur l'ancien message (mesuré Edge 2026-08-21). */
+    if (document.hasFocus() && document.activeElement === ta) return;
     if (typeof msg.text === 'string' && msg.text !== ta.value) { ta.value = msg.text; runNow(); }
   });
 })();

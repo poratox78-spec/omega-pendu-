@@ -33,6 +33,14 @@
   .item.orth:hover{ background:#dcebf7; }
   .item.tvig{ border-left:3px dashed #e8920c; background:#fff8ea; }
   .fam{ color:#777; font-size:.82em; }
+  .item.done{ border-left-color:#2e8b57; background:#eef8f0; }   /* rouge APPLIQUÉ à la copie (clic = annuler) */
+  .item.done:hover{ background:#dff0e3; }
+  .item.off{ opacity:.6; border-left-style:dotted; }             /* rouge ANNULÉ par l'utilisateur (clic = réappliquer) */
+  .etat{ color:#2e8b57; font-size:.78em; margin-left:6px; }
+  .item.off .etat{ color:#888; }
+  .out{ margin:6px 0; padding:7px 9px; border-radius:8px; background:#eef8f0; border-left:3px solid #2e8b57; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .out .lab{ color:#4f7f5f; font-size:.78em; }
+  .out b{ background:#d3ecd9; border-radius:3px; padding:0 2px; }
   .why,.tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
   .why:hover,.tts:hover{ opacity:1; }
   .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
@@ -68,6 +76,7 @@
   body.dark #omdys-ta{ background:#1d2329; color:#e8edf2; border-color:#3a444e; caret-color:#b9a3e6; }
   body.dark .item{ background:#2a1e1d; }
   body.dark .item.orth{ background:#16242f; }
+  body.dark .item.done{ background:#17281c; } body.dark .out{ background:#17281c; } body.dark .out b{ background:#24472e; }
   body.dark .item.tvig{ background:#2b2412; }
   body.dark .astuce{ background:#16242f; color:#cfe0ee; }
   body.dark .stade{ background:#16242f; }
@@ -105,6 +114,7 @@
     <span id="omdys-count"></span>
   </div>
   <div class="comps" id="omdys-comps"></div>
+  <div class="out" id="omdys-out" hidden></div>
   <div class="corr" id="omdys-corr"></div>
   <div id="omdys-vig"></div>
   <div id="omdys-stade"></div>
