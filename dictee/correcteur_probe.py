@@ -3327,16 +3327,19 @@ def rule_neg_ne(T, i):
         if n2 == 'pas' and i + 3 < len(T) and deacc(T[i + 3].lower()) == 'mal': return None
         return "n'y"
     if nx not in _NEG_NEXT: return None
+    if T[i + 1][:1].isupper(): return None                       # « …allaite.. Rien n'est » : le mot de négation capitalisé ouvre la phrase SUIVANTE (flood)
+    if _SEG and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]: return None   # frontière de proposition entre le verbe et la négation
     if nx == 'pas' and n2 == 'mal': return None                  # « pas mal (de) » : locution sans ne
     if _SEG and ((i < len(_SEG['hy']) and _SEG['hy'][i]) or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])): return None
     if d in _NEG_ELIDE: return _keepcase(T[i], _NEG_ELIDE[d])
     if "'" in lw: return None
-    if d not in _NEG_AUXV or i < 1: return None
+    if i < 1: return None
+    if d not in _NEG_AUXV and not _verbe_fini(lw): return None   # croisement EMF : « je vais jamais », « je vois rien », « il connaît personne » — verbe FINI, plus seulement l'auxiliaire
     pv = deacc(T[i - 1].lower())
     if "'" in pv: pv = pv.rsplit("'", 1)[1]                      # qu'on / l'on / lorsqu'il → sujet nu
     if pv not in _NEG_SUJ: return None
     if i >= 2 and (deacc(T[i - 2].lower()) == 'ne' or T[i - 2].lower() == "n'"): return None
-    return "n'" + T[i]
+    return ("n'" if d[:1] in 'aeiouyh' else 'ne ') + T[i]   # n' devant voyelle/h, « ne » sinon (« je vais jamais » → ne vais)
 
 
 _SICOND = {'aurais': 'avais', 'aurait': 'avait', 'aurions': 'avions', 'auriez': 'aviez', 'auraient': 'avaient',
@@ -3500,6 +3503,48 @@ def rule_sa_vit(T, i):
     return _keepcase(T[i], u'vie')
 
 
+_QUI_PRON_CONS = {'je', 'tu'}   # PAS nous/vous : clitiques OBJET (« la personne qui vous accueille », « qui nous permet » — 13 FP lus au flood)
+
+def rule_qui_que(T, i):
+    u"""« le film qui j'ai vu » → que (croisement Excuse My French, 2026-08-21) : un relatif SUJET ne
+    précède jamais un autre sujet. v1 = pronoms à consonne + j' (un seul token) ; « qui il » → qu'il
+    vit dans la couche élision-espace du speller (fusion 2 tokens, app+ext). Gardes : PAS de
+    préposition avant qui (« avec qui il fondera » : 46/46 cas corrects du flood), antécédent NOM."""
+    if deacc(T[i].lower()) != 'qui' or i < 1 or i + 1 >= len(T): return None
+    nx = T[i+1].lower().replace(u'\u2019', "'")
+    if not (deacc(nx) in _QUI_PRON_CONS or nx.startswith("j'")): return None
+    p = deacc(T[i-1].lower())
+    if "'" in T[i-1] or p in PREP or p in ('ce', 'celui', 'celle', 'ceux', 'celles', 'et', 'ou', 'ni', 'mais'): return None
+    tg = pos_tags(T)
+    if not tg or i - 1 >= len(tg) or tg[i-1] not in ('NOUN', 'PROPN'): return None
+    return _keepcase(T[i], 'que')
+
+
+def rule_ai_ait(T, i):
+    u"""« hier il mangeai une pomme » → mangeait (croisement Excuse My French) : il/elle/on + forme en
+    -ai = toujours -ait (le dys écrit le /ɛ/ entendu ; « mangeai » est une 1s de passé simple).
+    Exclut -rai (futur 1s, « il serai » hors cadre). 0 occurrence du cadre sur 16 950 correctes."""
+    w = T[i]; lw = w.lower()
+    if "'" in lw or not w[:1].islower() or len(lw) < 5: return None
+    if not lw.endswith('ai') or lw.endswith('rai'): return None
+    if i < 1: return None
+    p = deacc(T[i-1].lower())
+    if p in ('ne', "n'") and i >= 2: p = deacc(T[i-2].lower())
+    if p not in ('il', 'elle', 'on'): return None
+    cible = lw[:-2] + 'ait'
+    if not any(mt.startswith('ind:imp') and pp == '3' for (_l, mt, pp, _n) in _reads(cible)): return None
+    ent = POS_LEX.get(lw)
+    if not ((ent and ent[0] == 'VER') or (deacc(lw[:-2]) + 'er') in CONJ_C): return None
+    return _keepcase(w, cible)
+
+
+def _verbe_fini(lw):
+    u"""lecture FINIE (ind/cnd/sub, pas infinitif/participe/impératif) — pour la négation sans ne."""
+    for (_l, mt, _p, _n) in _reads(lw):
+        if mt.startswith('ind') or mt.startswith('cnd') or mt.startswith('sub'): return True
+    return False
+
+
 _GUERE_DET = {'la', 'une', 'cette', 'sa', 'ma', 'ta', 'notre', 'votre', 'leur', 'en'}
 
 def rule_guere(T, i):
@@ -3564,7 +3609,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_il_ils),
          ('accord sujet-verbe', rule_accord_sv_recover),
          ('accord sujet-verbe', rule_accord_sv_noun),
-         ('accord sujet-verbe', rule_ais_ait),
+         ('accord sujet-verbe', rule_ais_ait), ('accord sujet-verbe', rule_ai_ait),
          ('accord sujet-verbe', rule_accord_sv_quant),
          ('accord sujet-verbe', rule_accord_sv_relatif),
          ('accord sujet-verbe', rule_accord_sv_coord),
@@ -3582,7 +3627,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accent (âge)', rule_age_accent), ("étais après c'/s'", rule_cetait_etait),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
-         ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('près/prêt', rule_pres_pret),
+         ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret),
          ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 

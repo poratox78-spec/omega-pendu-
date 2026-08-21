@@ -348,3 +348,31 @@ liaison et hors auxiliaire) → type « accord (marque muette) », stade MORPHOS
 de stade, pas de recalibrage de seuils — cf. dictee-calibration-audit).
 Autres idées notées (sans code) : niveau déclaré = PLANCHER (la maîtrise prouve ce qu'on sait,
 jamais ce qu'on ne sait pas) ; graphe de 58 notions avec prérequis/confondues-avec ; SRS plafonné.
+
+### Réparables du croisement Excuse My French — LIVRÉS (2026-08-21)
+
+Dans l'ordre logique demandé, au flood DIFFÉRENTIEL (ancien vs nouveau moteur, 16 950 correctes) :
+· `rAiAit` (rouge ×3) : « hier il mangeai » → mangeait (il/elle/on + -ai, hors -rai). 0 tir.
+· `rQuiQue` (rouge ×3) : « le film qui j'ai vu » → que — RESTREINT à je/j'/tu après lecture du
+  flood v1 : nous/vous sont des clitiques OBJET (« la personne qui vous accueille », 13 FP lus).
+  Garde : pas de préposition avant qui (« avec qui il »), antécédent NOM/PROPN.
+· `rNegNe` ÉTENDU (×3) : verbe FINI et plus seulement l'auxiliaire (« je vais jamais », « je vois
+  rien », « il connaît personne » → ne/n') ; « plus » reste exclu (comparatif). Gardes nées du
+  flood : négation capitalisée = phrase suivante (« allaite.. Rien n'est »), frontière _SEG.
+  Les tirs restants sur le corpus sont de VRAIES fautes de registre oral (« on connait pas
+  davantage », « je suis pas encore allé ») — même verdict que le chantier n' (PR#477).
+· Fusions SPELLER (élision-espace, app+ext, proposées span 2) : « de le pain »→du, « à le
+  marché »→au, « de les »→des (garde : NOM au tagger ET aucune finale d'infinitif -er/-ir/-re/-oir
+  — le tagger prenait « transporter/définir/haïr » pour des noms, 13 FP lus) ; « qui il »→qu'il
+  (garde préposition). Flood : 1 tir/16 950 = « qu il » sans apostrophe, vraie faute du corpus.
+· DICTÉE (diag_sentence + jumeau app) : une paire de NOMBRE VERBALE hors famille curée
+  (« ils mange » pour « ils mangent », sujet pronom) est désormais un ACCORD (stade
+  morphosyntaxique) et non une « lettre muette » (lexical) ; la nuance AUDIBLE/INAUDIBLE est
+  portée (« marque MUETTE : ça ne s'entend pas, c'est l'accord qui le dit » pour -e/-ent, -t/-ent
+  à radical vocalique ; vend/vendent = accord audible ; liaison possible = pas de mention).
+  Banc diag : chiffres IDENTIQUES à la baseline (accord 331/331, gouverneur 96 %, SV 97 %).
+  Idée Excuse My French (silentNumberPair), réimplémentée, pas copiée.
+Contrainte apprise : les règles Python ne rendent qu'UN token (pas de span 2) et la parité
+app⊆Python l'exige → les fusions à deux tokens vivent dans le speller (app+ext), jamais en CRULES.
+Non faits (classés) : « un pomme » (donnée GENDER_PURE, collision pommé — mesurer l'extension du
+sous-ensemble curé), élision clitique+aux, subjonctif (orange, 0 cadre), que/dont-parler (frontière).

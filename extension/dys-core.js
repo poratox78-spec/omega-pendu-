@@ -1697,6 +1697,33 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(reste.length<4||!/er$/.test(reste)||!CONJ_C[reste])return null;
     var slots=(CONJ_C[reste]||{})['ind:pre'];var p1=slots&&slots['1s'];if(!p1)return null;
     return /^[aeiouhéèê]/.test(p1)?(w.slice(0,2)+p1):((w.charAt(0)==='J'?'Je ':'je ')+p1);}
+  var _QUI_PRON_CONS={je:1,tu:1};   // PAS nous/vous : clitiques OBJET (« qui vous accueille », « qui nous permet » — FP lus au flood)
+  function rQuiQue(T,i){
+    // « le film qui j'ai vu » → que (croisement Excuse My French) : un relatif SUJET ne précède jamais un
+    // autre sujet. v1 = pronoms à consonne + j' ; « qui il »→qu'il vit dans l'élision-espace du speller.
+    // Gardes : pas de préposition avant qui (« avec qui il » : 46/46 cas corrects), antécédent NOM. Miroir Python.
+    if(deacc(T[i].toLowerCase())!=='qui'||i<1||i+1>=T.length)return null;
+    var nx=T[i+1].toLowerCase().replace(/\u2019/g,"'");
+    if(!(_QUI_PRON_CONS[deacc(nx)]||nx.indexOf("j'")===0))return null;
+    var p=deacc(T[i-1].toLowerCase());
+    if(T[i-1].indexOf("'")>=0||PREP[p]||p==='ce'||p==='celui'||p==='celle'||p==='ceux'||p==='celles'||p==='et'||p==='ou'||p==='ni'||p==='mais')return null;
+    var tg=posTags(T);if(!tg||i-1>=tg.length||(tg[i-1]!=='NOUN'&&tg[i-1]!=='PROPN'))return null;
+    return ckeepcase(T[i],'que');}
+  function rAiAit(T,i){
+    // « hier il mangeai une pomme » → mangeait (croisement EMF) : il/elle/on + forme en -ai = toujours -ait
+    // (le /ɛ/ entendu). Exclut -rai (futur 1s). 0 occurrence du cadre sur 16 950 correctes. Miroir Python.
+    var w=T[i],lw=w.toLowerCase();
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase()||lw.length<5)return null;
+    if(!/ai$/.test(lw)||/rai$/.test(lw))return null;
+    if(i<1)return null;
+    var p=deacc(T[i-1].toLowerCase());if((p==='ne'||p==="n'")&&i>=2)p=deacc(T[i-2].toLowerCase());
+    if(p!=='il'&&p!=='elle'&&p!=='on')return null;
+    var cible=lw.slice(0,-2)+'ait',rd=svReads(cible),ok=false;
+    for(var k=0;k<rd.length;k++)if(rd[k][1].indexOf('ind:imp')===0&&rd[k][2]==='3')ok=true;
+    if(!ok)return null;
+    if(!(SP&&SP.ready&&SP.WORDS&&/V/.test(SP.POS[lw]||''))&&!CONJ_C[deacc(lw.slice(0,-2))+'er'])return null;
+    return ckeepcase(w,cible);}
+  function _verbeFini(lw){var rd=svReads(lw);for(var k=0;k<rd.length;k++){var mt=rd[k][1]||'';if(mt.indexOf('ind')===0||mt.indexOf('cnd')===0||mt.indexOf('sub')===0)return true;}return false;}
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();
     // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
     // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
@@ -1794,15 +1821,18 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(d==='y'){if(!(_NEG_AUXV[nx]&&i>=1&&deacc(T[i-1].toLowerCase())==='il'&&_NEG_NEXT[n2]))return null;   // « il y a pas » → « il n'y a pas »
       if(n2==='pas'&&i+3<T.length&&deacc(T[i+3].toLowerCase())==='mal')return null;return "n'y";}
     if(!_NEG_NEXT[nx])return null;
+    if(T[i+1].charAt(0)!==T[i+1].charAt(0).toLowerCase())return null;   // « …allaite.. Rien n'est » : négation capitalisée = phrase SUIVANTE (flood)
+    if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;              // frontière de proposition entre verbe et négation
     if(nx==='pas'&&n2==='mal')return null;                                             // « pas mal (de) » : locution sans ne
     if(_SEG&&((i<_SEG.hy.length&&_SEG.hy[i])||(i+1<_SEG.hy.length&&_SEG.hy[i+1])))return null;   // inversion « a-t-il pas »
     if(_NEG_ELIDE[d])return ckeepcase(T[i],_NEG_ELIDE[d]);
     if(lw.indexOf("'")>=0)return null;
-    if(!_NEG_AUXV[d]||i<1)return null;
+    if(i<1)return null;
+    if(!_NEG_AUXV[d]&&!_verbeFini(lw))return null;   // croisement EMF : verbe FINI (« je vais jamais », « je vois rien »), plus seulement l'auxiliaire
     var pv=deacc(T[i-1].toLowerCase()),ap=pv.lastIndexOf("'");if(ap>=0)pv=pv.slice(ap+1);   // qu'on / l'on / lorsqu'il → sujet nu
     if(!_NEG_SUJ[pv])return null;
     if(i>=2){var p2=T[i-2].toLowerCase();if(deacc(p2)==='ne'||p2==="n'")return null;}
-    return "n'"+T[i];}
+    return ((/^[aeiouyh]/.test(d))?"n'":'ne ')+T[i];}   // n' devant voyelle/h, « ne » sinon (« je vais jamais » → ne vais)
   var _SICOND={aurais:'avais',aurait:'avait',aurions:'avions',auriez:'aviez',auraient:'avaient',serais:'étais',serait:'était',serions:'étions',seriez:'étiez',seraient:'étaient'};
   var _SI_SAVOIR={sais:1,sait:1,savais:1,savait:1,savent:1,savoir:1,demande:1,demandes:1,demandent:1,demandait:1,demander:1,demandez:1,demandons:1,ignore:1,ignorent:1,ignorait:1,dis:1,dit:1,dire:1,disait:1,voir:1,vois:1,voit:1,comprendre:1,devine:1,deviner:1,verifier:1,verifie:1,regarde:1,regarder:1};
   var _SI_CONJ={et:1,mais:1,car:1,alors:1,comme:1,meme:1,ou:1};
@@ -1884,7 +1914,7 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
   /* ⭐ SCINDÉ EN DEUX (2026-08-11) pour avoir la MÊME STRUCTURE QUE L'APP : `correctTokens(T)`
      travaille sur un TABLEAU de tokens, `correctText` n'est qu'une enveloppe qui tokenise. Sans ce
      point d'entrée par tokens, la PYRAMIDE était impossible ici — on ne pouvait pas faire tourner la
@@ -2453,6 +2483,15 @@ function spellUnknown(tok,atStart,T,idx){
         var a=P[i][2].toLowerCase(),b=P[i+1][2].toLowerCase(),vow=/^[aeiouyh]/.test(deaccS(b));
         if(a==='aujourd'&&b==='hui'){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'hui",name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
         else if(vow&&SP.WORDS.has(deaccS(b))&&((a.length===1&&'cjldmtns'.indexOf(a)>=0)||a==='qu')){out.push({i:i,word:P[i][2],sugg:P[i][2]+"'"+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}
+        else if((a==='de'||a==='à')&&(b==='le'||b==='les')&&i+2<P.length&&!done[i+2]&&/^\s+$/.test(text.slice(P[i+1][1],P[i+2][0]))){   // CONTRACTION obligatoire « de le pain »→du, « à le marché »→au (croisement EMF) — garde : NOM au tagger, pas un infinitif (« de le visiter » : 67/67 cas corrects), pas de voyelle après « le » (élision)
+          var c3=P[i+2][2],d3=deaccS(c3.toLowerCase()),_tgc=posTags(T)||[];
+          if(c3.charAt(0)===c3.charAt(0).toLowerCase()&&c3.indexOf("'")<0&&!(b==='le'&&/^[aeiouyh]/.test(d3))&&_tgc[i+2]==='NOUN'&&!/(er|ir|re|oir)$/.test(d3)){   // toute finale d'INFINITIF exclue (le tagger prenait « transporter/définir/haïr/sortir » pour des noms : 13 FP lus au flood)
+            var ctr=(a==='de'?(b==='le'?'du':'des'):(b==='le'?'au':'aux'));
+            out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],ctr),name:'contraction',tier:'flag',span:2});done[i]=done[i+1]=1;}}
+        else if(a==='qui'&&(b==='il'||b==='elle'||b==='on'||b==='ils'||b==='elles')&&i>0&&!done[i-1]){   // « le film qui il a vu »→qu'il (croisement EMF) : relatif sujet + sujet = jamais ; garde : pas de préposition avant (« avec qui il »)
+          var pq=deaccS(P[i-1][2].toLowerCase());
+          if(!PREP[pq]&&P[i-1][2].indexOf("'")<0&&pq!=='ce'&&pq!=='celui'&&pq!=='celle'&&pq!=='ceux'&&pq!=='celles'){
+            out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],"qu'")+P[i+1][2],name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
         // sujet « je » mal écrit + AVOIR/ÊTRE 1sg à initiale VOYELLE → « j'ai/j'étais » (« ke ai », « ce avais »). Séquence IMPOSSIBLE (FP=0). Miroir app.
         else if(vow&&(a==='ke'||a==='ge'||a==='ce'||a==='se')&&/^(ai|avais|aurai|aurais|etais|eus|eusse|aie)$/.test(deaccS(b))){out.push({i:i,word:P[i][2],sugg:(/^[A-ZÀ-Ö]/.test(P[i][2])?"J'":"j'")+b,name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}
       // RÉPÉTITION de mot : « le le »→« le » (mot adjacent IDENTIQUE, écart BLANC). FP=0 mesuré (0/2500 UD) : denylist des doublements légitimes (nous nous, très très, oui oui…) + 2e mot non-capitalisé (nom propre redoublé « Bora Bora ») ; le trait d'union (« cha-cha ») est déjà exclu par l'écart-blanc.
