@@ -290,3 +290,20 @@ les candidats speller (uen→une), soudure à+verbe (àeu→a eu).
   16 950. ⭐ Piège payé : lire T[i-1] avant le garde i<2 = TypeError sur le 1er token.
 Restent de l'enquête : 7-8 côté speller (genre du déterminant dans les candidats « uen »→une ;
 soudure à+verbe « àeu »→a eu).
+
+### Réparables 7-8 LIVRÉS — L'ENQUÊTE DES 22 EST CLOSE (2026-08-21)
+
+· Soudure à/a+VERBE (speller, vigilance) : « àeu »→« a eu », « àfinit »→« a finit » (la grammaire
+  accorde fini en cascade). Gardes : le reste doit être une forme CONJUGUÉE/participe — jamais un
+  infinitif (« atendre »=attendre) — et le REDOUBLEMENT prime (« aporté »→apporté, régression
+  attrapée par le banc au premier essai).
+· Genre du déterminant (speller) : le genre du NOM SUIVANT domine la fréquence (doctrine
+  aide-frappe ②) — « dans uen maison »→une, « uen homme »→un conservé. Posé aux DEUX voies
+  (noyau + best-effort spellUnknown — c'est la seconde qui répondait, trouvé aux traces) ; le
+  jumeau est accepté par anagramme (la transposition n'est pas dans edits1) ; la table POS est
+  CLAIRSEMÉE (« maison » sans entrée) → sGender pur seul.
+BILAN DE L'ENQUÊTE : 8 réparables/8 livrés (4 rouges, 3 oranges, 2 speller) ; le census a tiré
+« MIEUX » deux fois (295→297 justes, ré-ancré) ; corpus réel : CORRIGÉES 41→46/66 (70 %),
+vigilance juste 5, RATÉES 10→3 (5 %). Les non-réparés sont classés avec leur cause : bruit
+d'alignement (4), choix de temps du gold (1), frontière conditionnel/futur assumée (4), juge
+opt-in invisible aux harnais Node (2, prouvés au banc navigateur).
