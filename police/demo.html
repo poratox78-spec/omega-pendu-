@@ -29,7 +29,7 @@
   .pair .lbl { font-size:12px; color:var(--soft); }
   /* Muette : gris-bleu FONCÉ (contraste ≥4,5:1 sur crème — un gris clair est illisible, la BDA
      déconseille les gris faibles). Codage par LUMINOSITÉ = perçu par tous les daltonismes. */
-  .mute { color:#5f6672; }
+  .mute { color:#a34700; }
   /* Graphèmes : violet (palette sans rouge/vert, daltonien-compatible) */
   .graph { text-decoration:underline; text-decoration-color:#8b5a9e; text-decoration-thickness:3px;
            text-underline-offset:7px; }
@@ -68,7 +68,7 @@
 
 <h2>4 · « Police de son » (la forme suit le PHONÈME, choisi par g2p/n-grams)</h2>
 <div class="note">Même lettre s, deux sons : /z/ voisé (lourd) dans poison, /s/ sourd (léger) dans poisson.
-Muettes grisées, graphèmes soulignés — décidés par la couche de rendu, pas par la police.</div>
+Muettes en vermillon, graphèmes soulignés — décidés par la couche de rendu, pas par la police.</div>
 <div class="big od"><span id="poison">poison</span> · poisson</div>
 <div class="big od">les peti<span class="mute">ts</span> cha<span class="mute">ts</span> blan<span class="mute">cs</span></div>
 <div class="big od"><span class="graph">ch</span>at · <span class="graph">ou</span>rs · m<span class="graph">on</span>t<span class="graph">ag</span>ne · <span class="graph">oi</span>se<span class="graph">au</span></div>
@@ -77,7 +77,7 @@ Muettes grisées, graphèmes soulignés — décidés par la couche de rendu, pa
 <div class="note">Généré par <code>build_son_layer.py</code> (decompose/g2p + table mots-fonction) →
 <code>son_layer.json</code>. <b>Le texte Unicode ne change jamais</b> (sélectionnez et copiez :
 c'est du français normal) — seul l'habillage change : phonème voisé = graisse Heavy,
-sourd = Light, muette = grisée. Survolez un segment pour voir son phonème.</div>
+sourd = Light, muette = vermillon. Survolez un segment pour voir son phonème.</div>
 <div id="sonlayer" class="mid" style="line-height:2.1"></div>
 
 <h2>6 · Phrase de dictée — comparaison</h2>

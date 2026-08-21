@@ -1,0 +1,46 @@
+OMEGA Dys — police de recherche pour les troubles de l'écrit (OMEGA-Ω)
+=====================================================================
+
+Contenu
+-------
+  OmegaDys-Regular.ttf   la police : consonne VOISÉE épaisse (b d g v z j), SOURDE fine
+                         (p t c k q f s), miroirs b/d/p/q cassés, accents agrandis, espacement large
+  OmegaDys-Light.ttf     tout en graisse fine   (utilisé par la « police de son » pour un phonème sourd)
+  OmegaDys-Heavy.ttf     tout en graisse épaisse (idem, phonème voisé)
+  OFL.txt                licence (SIL Open Font License 1.1 — libre, y compris pour l'embarquer)
+
+Installer (Word, LibreOffice, Pages, etc.)
+------------------------------------------
+  Windows : clic droit sur le .ttf → « Installer » (ou « Installer pour tous les utilisateurs »).
+  macOS   : double-clic sur le .ttf → « Installer la police ».
+  Linux   : copier les .ttf dans ~/.fonts/ puis `fc-cache -f`.
+  Puis, dans Word : choisir « OMEGA Dys » dans la liste des polices.
+
+Ce que la police fait TOUTE SEULE dans Word
+-------------------------------------------
+  - Le voisement par LETTRE : b, d, g, v, z, j sont épais ; p, t, c, k, q, f, s sont fins
+    (58 % des confusions mesurées chez nos lecteurs dys sont des paires voisée/sourde).
+  - Les lettres-miroirs ont chacune une marque unique (b = pied, d = drapeau, p = chapeau, q = queue),
+    u a une hampe terminale (≠ n), l a un pied (≠ I, ≠ 1), le point du i est gros.
+  - Les accents sont agrandis et franchement orientés (é monte, è descend).
+  - La chasse est large (moins d'encombrement visuel — le seul effet robuste de la littérature).
+
+Ce qu'elle NE fait PAS dans Word (et pourquoi)
+-----------------------------------------------
+  La vraie « police de son » — le s de « poison » rendu voisé, les lettres MUETTES en vermillon, les
+  syllabes en couleur — dépend du SON du mot, que seul notre moteur (g2p) connaît. Une police
+  installée ne peut pas le savoir. Cette couche existe dans l'application OMEGA-Ω (Correcteur,
+  Dictée) et dans l'extension Chrome (panneau latéral). Un complément Word est à l'étude.
+
+Honnêteté scientifique
+----------------------
+  Prototype de recherche. Le design a été produit EN AVEUGLE puis confronté à la littérature :
+  l'espacement large est confirmé (Zorzi et al. 2012) ; les formes « anti-miroir » seules
+  (OpenDyslexic, Dyslexie) n'améliorent pas la lecture (méta-analyse 2026) ; le voisement par
+  graisse est une hypothèse INÉDITE, non encore mesurée sur lecteurs réels. À utiliser comme un
+  outil de remédiation ciblée, pas comme une promesse.
+
+Source et licence
+-----------------
+  https://github.com/poratox78-spec/omega-pendu- (dossier police/ : générateur paramétrique).
+  Polices sous SIL Open Font License 1.1 (voir OFL.txt). Nom réservé : « OMEGA Dys ».
