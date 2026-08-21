@@ -168,3 +168,15 @@ renforcement de la mauvaise lecture, vu sur ASEI texte4). Mesures (dictee/greffe
 cas réel ASEI tranché ✓ (Δ=+0.065), rappel held-out 7/7, cadre quasi inexistant en correct
 (1/18 556 phrases — le cadre lui-même est un signal dys). Parité navigateur : b2_web_probe.js
 (|Δ|=0.00000/31 chaînes + bout-en-bout app). Le piège « Elle sait marier les saveurs » reste muet.
+
+### L'ARBITRE général des vigilances (chantier symbiose n°1, 2026-08-21)
+
+Le même juge B2, étendu de UN cadre à TOUTES les oranges à suggestion : chaque vigilance est
+jugée (candidat = texte avec la suggestion appliquée) et si l'ÉCRIT gagne par marge (τ=0.01),
+l'orange est de la fatigue que le contexte dément → elle se TAIT. Mesures (arbitre_vig_dump.js +
+arbitre_vig_probe.py, pipeline réel) : sur 16 950 phrases correctes, 2 507 oranges → 33 % tues
+(accord pluriel : 68 % — « le 25 août »→« aoûts » ; ces/ses : 4 %, le mur référentiel confirmé) ;
+sur 613 textes dys appariés, 693 oranges classées : **293/294 justes GARDÉES**, 95 % des
+pointeuses gardées, 34 % de la fatigue tue. La doctrine « chaque signalement non indispensable
+est de la fatigue » gagne son organe. Opt-in (le juge), cache par texte, bout-en-bout au banc
+navigateur (l'orange apparaît puis se tait).
