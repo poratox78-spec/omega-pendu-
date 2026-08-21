@@ -44,11 +44,14 @@ function corrDetail(s) {
 
 (async () => {
   await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
+  const DYS_SEUL = process.argv.includes('--dys-seul');   // mode GARDE (vig_census_probe) : la partie correcte (16 950 phrases) est lente, le census des JUSTES n'a besoin que du dys
   const corrects = [];
-  for (const l of fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n')) if (l.trim()) corrects.push(l.trim());
-  const ud = path.join(REPO, 'data_local', 'ud_fr_gsd-train.conllu');
-  if (fs.existsSync(ud))
-    for (const l of fs.readFileSync(ud, 'utf8').split('\n')) if (l.startsWith('# text =')) corrects.push(l.slice(8).trim());
+  if (!DYS_SEUL) {
+    for (const l of fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n')) if (l.trim()) corrects.push(l.trim());
+    const ud = path.join(REPO, 'data_local', 'ud_fr_gsd-train.conllu');
+    if (fs.existsSync(ud))
+      for (const l of fs.readFileSync(ud, 'utf8').split('\n')) if (l.startsWith('# text =')) corrects.push(l.slice(8).trim());
+  }
   const outCorrect = [];
   let nVig = 0;
   for (const s of corrects) {
@@ -67,7 +70,7 @@ function corrDetail(s) {
       if (vig.length) dys.push({ src: t.src, raw: t.raw, tokens: c.tokens, tokensFixed: C.toks(t.fixed), flags: vig });
     }
   }
-  const dst = path.join(REPO, 'data_local', 'arbitre_vig_dump.json');
+  const dst = path.join(REPO, 'data_local', DYS_SEUL ? 'arbitre_vig_census.json' : 'arbitre_vig_dump.json');
   fs.writeFileSync(dst, JSON.stringify({ nCorrects: corrects.length, correct: outCorrect, dys: dys }));
   console.log('dump : ' + corrects.length + ' phrases correctes → ' + outCorrect.length + ' avec orange (' + nVig +
     ' oranges) · dys : ' + dys.length + ' textes → ' + dst);
