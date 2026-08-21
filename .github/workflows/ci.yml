@@ -75,6 +75,8 @@ jobs:
         run: node dictee/messy_probe.js --check
       - name: Census vigilance dys (aucune orange juste perdue — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/vig_census_probe.py
+      - name: Assets extension câblés (aucun asset livré-mais-muet — le trou des prénoms)
+        run: node extension/assets_wired_probe.js
       - name: Angle mort ÉLISION (test différentiel l'X vs cet/cette X — plafond qui ne doit que baisser)
         run: node dictee/elision_probe.js --check
       - name: Mover impératif (parité app==extension + corrections + FP=0)
