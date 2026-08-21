@@ -10,8 +10,11 @@
   header b{ font-size:1.05em; }
   header .st{ margin-left:auto; font-size:.8em; opacity:.9; }
   .wrap{ padding:10px; }
-  textarea#omdys-ta{ width:100%; min-height:140px; resize:vertical; font:inherit; padding:9px 10px; border:1px solid #c9c9c9; border-radius:9px; line-height:1.6; }
-  textarea#omdys-ta:focus{ outline:2px solid #2a6f97; border-color:#2a6f97; }
+  #omdys-ta{ width:100%; min-height:140px; font:inherit; padding:9px 10px; border:1px solid #c9c9c9; border-radius:9px; line-height:1.6; background:#fff; color:#1a1a1a; white-space:pre-wrap; overflow-wrap:break-word; outline:none; cursor:text; }
+  #omdys-ta:empty:before{ content:attr(data-ph); color:#8a94a0; pointer-events:none; }
+  #omdys-ta:focus{ outline:2px solid #2a6f97; border-color:#2a6f97; }
+  /* police de son (habillage : spans sur les nœuds texte, texte inchangé) */
+  .son-seg{ font-size:1.12em; } .son-mute{ color:#5f6672; } .son-mute.son-on-dark{ color:#b4bcc8; } .son-syl{ color:#0072b2; } .son-syl.son-on-dark{ color:#6cc0f0; } .son-syl.son-mute{ color:#5f6672; } .son-syl.son-mute.son-on-dark{ color:#b4bcc8; }
   .acts{ display:flex; gap:8px; align-items:center; margin:9px 0; flex-wrap:wrap; }
   .acts button{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; }
   #omdys-fixall{ background:#1f7a3d; color:#fff; }
@@ -59,7 +62,7 @@
           padding-bottom:8px; border-bottom:1px solid #eee; }
   .prefs select{ font:inherit; font-size:.95em; }
   body.dark{ background:#14181c; color:#e8edf2; }
-  body.dark textarea#omdys-ta{ background:#1d2329; color:#e8edf2; border-color:#3a444e; }
+  body.dark #omdys-ta{ background:#1d2329; color:#e8edf2; border-color:#3a444e; caret-color:#b9a3e6; }
   body.dark .item{ background:#2a1e1d; }
   body.dark .item.orth{ background:#16242f; }
   body.dark .item.tvig{ background:#2b2412; }
@@ -82,9 +85,11 @@
     </label>
     <label><input type="checkbox" id="omdys-dark"> Sombre</label>
     <label title="La bulle flottante dans la page. Décochée : ce panneau est la SEULE zone de correction."><input type="checkbox" id="omdys-bubble"> Bulle dans la page</label>
+    <label title="Police OMEGA Dys : phonème voisé = épais, sourd = fin, lettre muette = grisée (le texte ne change pas)"><input type="checkbox" id="omdys-son"> 🔡 Police de son</label>
+    <label title="Alterne la couleur des syllabes (avec la police de son)"><input type="checkbox" id="omdys-syl"> ✂️ Syllabes</label>
   </div>
   <label class="mir"><input type="checkbox" id="omdys-mirror" checked> Recopier ce que je tape sur la page</label>
-  <textarea id="omdys-ta" placeholder="Écris ou colle ton texte ici — ou tape dans un champ de la page, il se recopie ici. Puis clique les corrections et « Copier »."></textarea>
+  <div id="omdys-ta" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Ton texte" spellcheck="false" data-ph="Écris ou colle ton texte ici — ou tape dans un champ de la page, il se recopie ici. Puis clique les corrections et « Copier »."></div>
   <div class="voicerow">
     <button id="omdys-mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
     <label class="voicecfg"><input type="checkbox" id="omdys-voice-ok"> Activer la dictée vocale</label>
@@ -103,6 +108,7 @@
   <div class="foot">Correcteur : 100 % hors-ligne, aucune donnée envoyée (moteur identique à l'app, FP=0). Seule la <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux.</div>
 </div>
 <script src="dys-core.js"></script>
+<script src="son_panel.js"></script>
 <script src="sidepanel.js"></script>
 </body>
 </html>

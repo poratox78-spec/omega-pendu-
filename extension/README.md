@@ -43,6 +43,17 @@ node    extension/parity_core.js        # parité grammaire extension ↔ Python
 node    extension/test_speller.js       # orthographe : FP=0 + parité ext ≡ app
 ```
 
+## Police de son (panneau latéral)
+
+Case **« 🔡 Police de son »** (OFF par défaut) dans les réglages du panneau : ta saisie, et la liste
+des corrections, s'affichent en police OMEGA Dys — phonème **voisé = épais**, **sourd = fin**,
+lettre **muette = grisée** (gris adapté au fond clair/sombre). **« ✂️ Syllabes »** alterne la couleur
+des syllabes (règle de l'attaque maximale). Le texte ne change jamais : seuls des `<span>` d'habillage
+sont posés sur les nœuds texte (copier-coller = texte normal). Moteur : `assets/g2p.js` (g2p du moteur
+OMEGA, extrait verbatim de l'app par `build_assets.py`) + `assets/son_core.js` (identique à
+`police/son_core.js`, parité CI `police/parity_son.js`) + 3 TTF, chargés **paresseusement** à la
+première activation. Surface panneau seulement : on n'habille jamais un champ de site tiers.
+
 ## Périmètre & limites (honnête)
 - **Couvert (hors-ligne, FP=0)** :
   - **Grammaire** : homophones (a/à, son/sont, on/ont, et/est, ce/se, peu/peux/peut, leur/leurs, é/er, mais/mes),

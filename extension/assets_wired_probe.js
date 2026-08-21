@@ -10,8 +10,10 @@ const fs = require('fs'), path = require('path');
 const H = __dirname;
 const assets = fs.readdirSync(path.join(H, 'assets')).filter(f => !f.startsWith('.'));
 const surfaces = ['sidepanel.js', 'content.js'].map(f => ({ f, src: fs.readFileSync(path.join(H, f), 'utf8') }));
+surfaces[0].src += fs.readFileSync(path.join(H, 'son_panel.js'), 'utf8');   // le panneau = sidepanel.js + son_panel.js (police de son, chargée paresseusement par ce dernier)
 const OPTIONNELS = new Set(['sens.json.gz']);                                  // chargé à la demande (jeu Double-Sens), pas par le correcteur
-const PAR_SURFACE = { 'content.js': new Set(['ponct-lm.json.gz']) };           // la ponctuation VOCALE vit dans le panneau (micro), pas dans la bulle de page
+const PAR_SURFACE = { 'content.js': new Set(['ponct-lm.json.gz',                  // la ponctuation VOCALE vit dans le panneau (micro), pas dans la bulle de page
+  'g2p.js', 'son_core.js', 'OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf']) };   // POLICE DE SON : surface PANNEAU seulement (on n'habille jamais un champ de site tiers)
 const echecs = [];
 let verifies = 0;
 for (const a of assets) {

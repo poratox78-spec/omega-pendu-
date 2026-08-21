@@ -24206,7 +24206,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'#vdd-card{background:#fdf6e3;color:#222;font-family:"Trebuchet MS",Verdana,sans-serif;line-height:1.6;width:min(94vw,600px);max-height:92vh;overflow:auto;border-radius:14px;padding:20px;position:relative}'
    +'#vdd-card h2{margin:.1em 0;font-size:20px;color:#222}#vdd-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;cursor:pointer;color:#666}'
    +'.vdd-diff button{font:inherit;font-size:14px;padding:6px 13px;border:1px solid #e6dcc3;background:#fff;border-radius:20px;cursor:pointer;margin-right:6px}.vdd-diff button.on{background:#2a6f97;color:#fff;border-color:#2a6f97}'
-   +'#vdd-ans{font:inherit;font-size:19px;line-height:1.5;padding:11px;width:100%;min-height:70px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px}'
+   +'#vdd-ans{font:inherit;font-size:19px;line-height:1.5;padding:11px;width:100%;min-height:70px;border:2px solid #e6dcc3;border-radius:10px;background:#fff;margin-top:10px;color:#111;caret-color:#111;box-sizing:border-box;display:block;white-space:pre-wrap;overflow-wrap:break-word;outline:none;cursor:text}'+'#vdd-ans:empty:before{content:attr(data-ph);color:#9a8f73;pointer-events:none}#vdd-ans:focus{border-color:#2a6f97}'+'body.dys-dark #vdd-ans{background:#10161d;color:#e8edf2;caret-color:#9b6dd6;border-color:#33414f}body.dys-dark #vdd-ans:empty:before{color:#6b7683}'
    +'.vdd-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}.vdd-row button{font:inherit;font-size:16px;padding:10px 15px;border:none;border-radius:10px;background:#2a6f97;color:#fff;cursor:pointer}.vdd-row button.g{background:#fff;color:#222;border:1px solid #e6dcc3}'
    +'.vdd-fact{padding:9px 11px;border-radius:9px;margin:6px 0;font-size:15px;background:#fff}.vdd-sc{color:#444;font-size:14px}.vdd-truth{font-size:18px;font-weight:bold}'+'#vdd-card.lisible{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:1.95}'+'#vdd-card.lisible #vdd-ans{font-size:22px;letter-spacing:.06em;line-height:1.8}'+'#vdd-card.lisible .vdd-fact{font-size:17px}'+'.vdd-row button{min-height:44px}#vdd-card input[type=range]{width:120px}';
   document.head.appendChild(st);
@@ -24216,11 +24216,20 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdd-sc">Écoute la phrase, écris-la. Le diagnostic explique <b>le type</b> de chaque faute, <b>accords compris</b> (contexte). Données : Lexique 4 (New et al. 2026, lexique.org, CC BY-SA 4.0).</div>'
    +'<div class="vdd-diff" id="vdd-diff" style="margin-top:10px"><button data-d="facile" class="on">Facile</button><button data-d="moyen">Moyen</button><button data-d="difficile">Difficile</button></div>'
    +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><button class="g" id="vdd-repere" title="La phrase apparaît à l’écran : clique le mot fautif">🎯 Repère la faute</button><button class="g" id="vdd-conj" title="Écoute la phrase : écris la forme du verbe">✍️ Conjugue</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
-   +'<textarea id="vdd-ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="écris la phrase ici"></textarea>'
+   +'<div id="vdd-ans" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Ta phrase" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-ph="écris la phrase ici"></div>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
    +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div id="vdd-srs" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
+  /* ZONE DE RÉPONSE ÉDITABLE (2026-08-21) — ex-textarea devenue contenteditable (comme #vdc-in du correcteur) pour que la
+     « police de son » puisse habiller la SAISIE lettre à lettre. API textarea conservée par shim (value/select), Entrée =
+     retour à la ligne texte, collage en texte brut. Le texte reste le texte : textContent. */
+  (function(){var _a=$('vdd-ans');if(!_a||_a.tagName==='TEXTAREA')return;
+   Object.defineProperty(_a,'value',{configurable:true,get:function(){return this.textContent;},set:function(v){this.textContent=(v==null?'':String(v));}});
+   _a.select=function(){try{var r=document.createRange();r.selectNodeContents(this);var s=window.getSelection();s.removeAllRanges();s.addRange(r);}catch(e){}};
+   function _ins(txt){var s=window.getSelection();if(!s||!s.rangeCount||!_a.contains(s.anchorNode))return;var rg=s.getRangeAt(0);rg.deleteContents();var tn=document.createTextNode(txt);rg.insertNode(tn);rg.setStartAfter(tn);rg.collapse(true);s.removeAllRanges();s.addRange(rg);_a.dispatchEvent(new Event('input',{bubbles:true}));}
+   _a.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();_ins('\n');}});
+   _a.addEventListener('paste',function(e){e.preventDefault();var t='';try{t=(e.clipboardData||window.clipboardData).getData('text/plain');}catch(_){}if(t)_ins(t.replace(/\r\n?/g,'\n'));});})();
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (défini avant) — résout les refs nues même dans les harnais d'extraction (window bouchonné)
   var diff='facile',cur=null,nG=0,nT=0,answered=false,SESSF=[];var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','majuscule'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var SYLCOL=false;try{SYLCOL=localStorage.getItem('vdd_syl')==='1';}catch(e){}var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>'+(REMED[fo]?'<br><span style="font-size:.92em;color:#7a5c00">🛠️ '+REMED[fo]+'</span>':''):'')):'';}
   function renderUProf(){var el=$('vdd-uprof');if(!el||!DysProfile)return;var s=DysProfile.summary();
@@ -27960,7 +27969,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
     loadFonts();
     busy = true;
     try {
-      var off = opts.caret ? caretOff(container) : null;          // sélection DANS le champ (pas le focus système : même règle que _ceCaret)
+      var off = opts.caret ? (opts.off != null ? opts.off : caretOff(container)) : null;   // sélection DANS le champ (même règle que _ceCaret) ; opts.off = offset sauvé AVANT un déshabillage
       var dark = isDarkBg(container), withSyl = syl && !opts.noSyl;
       var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null), nodes = [], n;
       while ((n = walker.nextNode())) if (n.nodeValue && /[A-Za-zÀ-ÿœ]/.test(n.nodeValue)) nodes.push(n);
@@ -28031,6 +28040,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
         if (on) { var L = card.querySelectorAll('.vdd-truth'); for (var k = 0; k < L.length; k++) habiller(L[k], {noSyl: true}); }
       });
     }
+    // SAISIE dictée (#vdd-ans, contenteditable depuis 2026-08-21) : personne ne la réécrit → on ré-habille
+    // nous-mêmes 300 ms après la frappe, curseur préservé (offset sauvé AVANT le déshabillage).
+    var ans = document.getElementById('vdd-ans'), tAns = null;
+    if (ans && ans.isContentEditable) {
+      var rehab = function () { if (!on) return; var off = caretOff(ans); deshabiller(ans); habiller(ans, {caret: true, off: off}); };
+      ans.addEventListener('input', function () { clearTimeout(tAns); tAns = setTimeout(rehab, 300); });
+      refreshers.push(function () {
+        var off = caretOff(ans);
+        deshabiller(ans);
+        if (on) habiller(ans, {caret: true, off: off}); else if (off != null) setCaret(ans, off);
+      });
+    }
     new MutationObserver(function () {
       if (!on) return;
       var L = card.querySelectorAll('.vdd-truth');
@@ -28059,7 +28080,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
     refreshers.push(function () {
       apercu('vdc-son-apercu', hostB);
       if (res) { deshabiller(res); if (on) habiller(res); }
-      if (zin) { var off = caretOff(zin); deshabiller(zin); if (on) habiller(zin, {caret: true}); else if (off != null) setCaret(zin, off); }
+      if (zin) { var off = caretOff(zin); deshabiller(zin); if (on) habiller(zin, {caret: true, off: off}); else if (off != null) setCaret(zin, off); }
     });
     if (res) new MutationObserver(function () { habiller(res); }).observe(res, {childList: true, subtree: true});
     if (zin) {

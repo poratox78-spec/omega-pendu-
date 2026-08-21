@@ -22,6 +22,17 @@ const uiSrc = fs.readFileSync(path.join(HERE, 'son_ui.js'), 'utf8');
 const mUi = html.match(/<script id="omegadys-son-ui">\n([\s\S]*?)<\/script>/);
 if (!mUi) fail.push('bloc omegadys-son-ui absent de l\'app (lancer inject_fonts.py)');
 else if (mUi[1] !== uiSrc) fail.push('son_ui.js injecté ≠ police/son_ui.js (relancer inject_fonts.py)');
+// --- 1bis. extension : assets dérivés FRAIS (build_assets.py)
+const EXT = path.join(HERE, '..', 'extension', 'assets');
+try {
+  const extCore = fs.readFileSync(path.join(EXT, 'son_core.js'), 'utf8');
+  if (extCore !== coreSrc) fail.push('extension/assets/son_core.js ≠ police/son_core.js (relancer extension/build_assets.py)');
+  const extG2p = fs.readFileSync(path.join(EXT, 'g2p.js'), 'utf8');
+  const j0 = html.indexOf('var _DECL2 = (function () {'), jR = html.indexOf('return { g2p: g2p,', j0), jE = html.indexOf('})()', jR) + 4;
+  if (extG2p.indexOf(html.slice(j0, jE)) < 0) fail.push('extension/assets/g2p.js ≠ tranche _DECL2 de l\'app (relancer build_assets.py)');
+  for (const fn of ['OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf'])
+    if (!fs.readFileSync(path.join(EXT, fn)).equals(fs.readFileSync(path.join(HERE, fn)))) fail.push('extension/assets/' + fn + ' ≠ police/' + fn);
+} catch (e) { fail.push('assets extension police de son absents : ' + e.message); }
 for (const k of ['regular', 'light', 'heavy']) {
   const m = html.match(new RegExp('<script type="text/plain" id="omegadys-b64-' + k + '">([^<]*)</script>'));
   if (!m || !m[1]) { fail.push('bloc police ' + k + ' absent'); continue; }
