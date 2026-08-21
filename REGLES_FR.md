@@ -180,3 +180,18 @@ sur 613 textes dys appariés, 693 oranges classées : **293/294 justes GARDÉES*
 pointeuses gardées, 34 % de la fatigue tue. La doctrine « chaque signalement non indispensable
 est de la fatigue » gagne son organe. Opt-in (le juge), cache par texte, bout-en-bout au banc
 navigateur (l'orange apparaît puis se tait).
+
+### Vigilance-perplexité OUVERTE : RÉFUTÉE — et le cadre fermé qui en survit (2026-08-21)
+
+L'idée « le mou signale "quelque chose cloche" sans dire quoi » est RÉFUTÉE chiffrée
+(perplex_omission_probe, 900 phrases trouées vs 900 intactes held-out) : à TOUT seuil de
+surprise, trouées et intactes déclenchent au même taux (91/93 %, 68/69, 39/42) — le max de
+surprise d'une phrase intacte est distribué comme celui d'une trouée ; localisation argmax 21 %.
+Un char-LM ne porte pas de détecteur d'omission ouvert. CE QUI SURVIT : le cadre FERMÉ —
+l'AUXILIAIRE MANQUANT ([pronom]+participe sans aux, les 2 omissions réelles du corpus dys sont
+« manque a », le moteur y était MUET). greffe_aux_probe : rappel 127/127 (100 %) à τ=0.01,
+cadre 17/4 106 sur correct held-out ET les 3 « FP » sont de VRAIES fautes résiduelles du côté
+corrigé du corpus (« Il servi aussi de lieu ») — le juge a trouvé des fautes dans notre gold.
+« Elle grandi » → orange « a grandi » (être/avoir selon ETRE_PP), branchée au juge opt-in,
+bout-en-bout navigateur vert. La leçon (2e fois, après sait/s'est) : le mou ne juge bien que
+les candidats que le squelette fabrique — jamais l'ouvert.

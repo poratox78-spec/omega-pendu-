@@ -26601,7 +26601,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré OS+LM (résiduel « de N »)
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
-    if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){out.push({i:i,word:T[i]+' '+(T[i+1]||''),sugg:b2f.sugg,name:"sait/s'est à vérifier (juge)",tier:'vigilance',span:2});pushed=true;}}   // l'INFINITIF (le mur assumé) : le juge B2 opt-in a COMPARÉ les deux phrases (greffe PR#517-518) — orange span:2 « sais marier »→« s'est mariée », jamais imposée
+    if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;out.push({i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp});pushed=true;}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
@@ -27122,13 +27122,29 @@ function spellTokenCore(tok,atStart,T,idx){
      Async sans rendu dédié : le verdict remplit un CACHE par texte puis re-déclenche runCorr ;
      le producteur b2SaisInf (chaîne vigilance) lit ce cache — pipeline standard, rien de neuf. */
   var _B2_TAU=0.01,_B2_RX=/\b(il|elle|on)[  ]+(sais|sait)[  ]+([a-zà-ÿ]{3,}er)\b/gi;
+  var _B2_AVOIR={je:'ai',tu:'as',il:'a',elle:'a',on:'a',nous:'avons',vous:'avez',ils:'ont',elles:'ont'};
+  var _B2_ETRE={je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'êtes',ils:'sont',elles:'sont'};
+  var _B2_RXA=/\b(je|tu|il|elle|on|nous|vous|ils|elles)[  ]+([a-zà-ÿ]{3,}(?:ées|ée|és|é|ies|ie|is|i|ues|ue|us|u))\b/gi;
   function _b2Cadres(t){var out=[],m;_B2_RX.lastIndex=0;
     while((m=_B2_RX.exec(t))){var inf=m[3].toLowerCase();
       if(!(SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(inf)&&/V/.test(SP.POS[inf]||'')))continue;   // vrai infinitif du lexique accentué
       var acc=m[1].toLowerCase()==='elle'?'e':'',part=m[3].slice(0,-2)+'é'+acc;
       var iSait=(t.slice(0,m.index+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN de sais/sait (même regex que toks)
-      out.push({i:iSait,sugg:"s'est "+part,pos:m.index,
+      out.push({i:iSait,sugg:"s'est "+part,span:2,nom:"sait/s'est à vérifier (juge)",pos:m.index,
         cand:t.slice(0,m.index)+m[1]+" s'est "+part+t.slice(m.index+m[0].length)});}
+    /* AUXILIAIRE MANQUANT (greffe issue de la réfutation perplexité-ouverte, greffe_aux_probe :
+       rappel 127/127 held-out, cadre 17/4 106 sur correct, « Elle grandi »→« Elle a grandi »).
+       [pronom]+PARTICIPE sans auxiliaire → candidat avec l'aux de la personne (être pour les
+       verbes de mouvement — ETRE_PP). Le juge compare, orange jamais imposée. */
+    _B2_RXA.lastIndex=0;
+    while((m=_B2_RXA.exec(t))){var pp=m[2];
+      if(!_isPpl(pp))continue;
+      var dpp=deacc(pp.toLowerCase()),pron=m[1].toLowerCase();
+      var aux=(ETRE_PP[dpp]?_B2_ETRE:_B2_AVOIR)[pron];
+      if(!aux)continue;
+      var iPart=(t.slice(0,m.index+m[1].length+1).match(/[A-Za-zÀ-ÿœŒ'’ʼ]+/g)||[]).length;   // index TOKEN du participe
+      out.push({i:iPart,sugg:aux+' '+pp,span:1,nom:'auxiliaire manquant ? (juge)',pos:m.index,
+        cand:t.slice(0,m.index+m[1].length)+' '+aux+t.slice(m.index+m[1].length)});}
     return out;}
   function _b2Fenetre(t,pos){var d=Math.max(t.lastIndexOf('.',pos),t.lastIndexOf('!',pos),t.lastIndexOf('?',pos));
     var e=t.length,c;c=t.indexOf('.',pos);if(c>=0&&c<e)e=c;c=t.indexOf('!',pos);if(c>=0&&c<e)e=c;c=t.indexOf('?',pos);if(c>=0&&c<e)e=c;
@@ -27157,7 +27173,7 @@ function spellTokenCore(tok,atStart,T,idx){
         for(k=0;k<cadres.length;k++){var c=cadres[k];
           var w=_b2Fenetre(t,c.pos),d=c.cand.length-t.length;
           var s0=await B2JUGE.score(t.slice(w[0],w[1])),s1=await B2JUGE.score(c.cand.slice(w[0],w[1]+d));
-          if(s1-s0>_B2_TAU)flags.push({i:c.i,sugg:c.sugg});}
+          if(s1-s0>_B2_TAU)flags.push({i:c.i,sugg:c.sugg,span:c.span,nom:c.nom});}
         for(k=0;k<vigs.length;k++){var v=vigs[k];
           if(st===null){st=[];var _rx=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,_m;while((_m=_rx.exec(t)))st.push([_m.index,_m.index+_m[0].length]);}
           if(v.i>=st.length||v.i+v.span-1>=st.length)continue;

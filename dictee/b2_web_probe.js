@@ -136,9 +136,15 @@ async function boutEnBout(sess, port) {
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
       await jusqua('orange fatigue presente (aouts)', () => (document.getElementById('vdc-out').textContent || '').indexOf('aoûts') >= 0, 20000);
       await jusqua('arbitre : orange tue (aouts)', () => (document.getElementById('vdc-out').textContent || '').indexOf('aoûts') < 0, 20000);
+      /* ── AUXILIAIRE MANQUANT : « Elle grandi » (l omission REELLE du corpus dys — le moteur
+         seul est muet) → le juge propose « a grandi » en orange, jamais applique. */
+      zone.textContent = 'Elle grandi pendant la guerre.';
+      zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      await jusqua('aux manquant propose (a grandi)', () => (document.getElementById('vdc-out').textContent || '').indexOf('a grandi') >= 0, 20000);
+      const auxOk = [...document.querySelectorAll('.vdc-on')].every(e => (e.textContent || '').indexOf('a grandi') < 0);
       return { ok: true, juge: chips.indexOf('(juge)') >= 0,
                nonImpose: applique.every(a => a.indexOf("s'est") < 0),
-               arbitre: true, etat: etat.textContent };
+               arbitre: true, aux: auxOk, etat: etat.textContent };
     } catch (e) { return { fatal: e.message }; }
   })()`, awaitPromise: true, returnByValue: true, timeout: 180000 });
   if (r.exceptionDetails) return { fatal: (r.exceptionDetails.exception || {}).description };
@@ -211,8 +217,9 @@ async function main() {
         if (!app.juge) echecs.push('bout-en-bout : l\'orange doit être étiquetée « (juge) »');
         if (!app.nonImpose) echecs.push('bout-en-bout : l\'orange du juge a été APPLIQUÉE — elle doit rester proposée (vigilance)');
         if (!app.arbitre) echecs.push('bout-en-bout : l\'arbitre doit taire l\'orange fatigue « aoûts » sur phrase correcte');
-        console.log('  ' + (app.juge && app.nonImpose && app.arbitre ? '✓' : '✗') +
-          ' app réelle : « s\'est mariée » proposée jamais imposée + orange fatigue « aoûts » tue par l\'arbitre (' + app.etat + ')');
+        if (!app.aux) echecs.push('bout-en-bout : « Elle grandi » → « a grandi » doit rester proposé, jamais appliqué seul');
+        console.log('  ' + (app.juge && app.nonImpose && app.arbitre && app.aux ? '✓' : '✗') +
+          ' app réelle : « s\'est mariée » proposée + « aoûts » tue par l\'arbitre + « Elle grandi »→« a grandi » proposé (' + app.etat + ')');
       }
       const ms = L.reduce((a, l) => a + l.ms, 0) / Math.max(L.length, 1);
       if (echecs.length) { console.error('\n✗ B2 WEB — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
