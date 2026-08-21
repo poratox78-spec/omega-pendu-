@@ -25691,6 +25691,41 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(i>=3&&(deacc(T[i-2].toLowerCase())==='des'||deacc(T[i-2].toLowerCase())==='aux')&&(tg[i-3]==='NOUN'||tg[i-3]==='PROPN'))return null;   // « N des N adj » : l'adj porte sur la tête
     return ckeepcase(w,w+'s');}
   var _FEM_SG_DET={une:1,la:1,cette:1,sa:1,ma:1,ta:1};
+  var _GUERE_DET={la:1,une:1,cette:1,sa:1,ma:1,ta:1,notre:1,votre:1,leur:1,en:1};
+  function rGuere(T,i){
+    // « pendant la guère » → guerre (enquête des 22, texte2 dys réel) : « guère » est un ADVERBE —
+    // précédé d'un déterminant (ou de « en »), c'est toujours le NOM guerre. Miroir Python.
+    if(deacc(T[i].toLowerCase())!=='guere')return null;
+    if(i===0||!_GUERE_DET[deacc(T[i-1].toLowerCase())])return null;
+    return ckeepcase(T[i],'guerre');}
+  var _AUXSG={taux:1,chaux:1,faux:1,aux:1};
+  var _ADJINV={marron:1,orange:1,kaki:1,turquoise:1,creme:1,prune:1,cerise:1,olive:1,moutarde:1,pastel:1,bordeaux:1,marine:1,design:1,standard:1,record:1,bidon:1,chic:1,choc:1,hardcore:1,rock:1,punk:1,pop:1,jazz:1,folk:1,metal:1,techno:1,disco:1,vintage:1,light:1,live:1,open:1,offshore:1,online:1,quel:1,quelle:1,quels:1,quelles:1};   // + anglicismes invariables et interrogatifs (flood différentiel)
+  function rAdjAux(T,i){
+    // « de petit tuyaux souterrain » → petits/souterrains (enquête des 22, texte1 dys réel) :
+    // un nom en -aux/-eaux est un pluriel NON-AMBIGU (hors taux/chaux/faux) — l'adjectif ADJACENT
+    // au singulier est désaccordé. Tagger ADJ+NOUN, frontière _SEG, invariables exclus,
+    // candidat vérifié au lexique. Miroir Python.
+    var w=T[i],lw=w.toLowerCase();
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase()||lw.length<3)return null;
+    var lc=lw.charAt(lw.length-1);if(lc==='s'||lc==='x'||lc==='z')return null;
+    if(_ADJINV[deacc(lw)])return null;
+    var tg=posTags(T);if(!tg||i>=tg.length||tg[i]!=='ADJ')return null;
+    var v=-1;
+    for(var q=0;q<2;q++){var j=q===0?i-1:i+1;
+      if(j<0||j>=T.length)continue;
+      var vw=T[j],dv=deacc(vw.toLowerCase());
+      if(vw.charAt(0)!==vw.charAt(0).toLowerCase())continue;
+      if(!/aux$/.test(dv)||dv.length<4||_AUXSG[dv])continue;
+      if(j>=tg.length||tg[j]!=='NOUN')continue;
+      if(_SEG){var a=Math.min(i,j),b=Math.max(i,j),coupe=false;
+        for(var m=a+1;m<=b&&m<_SEG.bb.length;m++)if(_SEG.bb[m])coupe=true;
+        if(coupe)continue;}
+      if(j===i-1&&j>=2){var _dprec=deacc(T[j-1].toLowerCase());if(_dprec==='de'||_dprec==="d'"||_dprec==='des'||_dprec==='du')continue;}   // « le nombre DE niveaux total » : l'adj postposé modifie la TÊTE (flood)
+      v=j;break;}
+    if(v<0)return null;
+    var cands=[lw+'s',lw+'x'];
+    for(var c=0;c<2;c++){if(SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(cands[c]))return ckeepcase(w,cands[c]);}
+    return null;}
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();
     // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
     // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
@@ -25707,7 +25742,15 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     // (pas de garde APRÈS, contrairement à la plurielle : « une femme cultivé, bienveillante » — l'accord
     // vaut devant la virgule ; re-flood sans la garde : toujours 3 tirs, tous de vraies fautes)
     var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';
-    if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni'||nx==='que')return null;
+    if(nx==='de'||nx==='ou'||nx==='ni'||nx==='que')return null;
+    if(nx==='et'){
+      // ENQUÊTE DES 22 : lever l'abstention-coordination SEULEMENT si la sœur est DÉJÀ marquée
+      // féminin (« cultivé et [bien] veillante ») — les couleurs composées restent protégées.
+      var jj=i+2;while(jj<T.length&&jj<=i+3&&{bien:1,mal:1,tres:1,tout:1,si:1,plus:1,toujours:1}[deacc(T[jj].toLowerCase())])jj++;
+      var okS=false;
+      if(jj<T.length){var sd=T[jj].toLowerCase(),sufs=['ée','ante','ente','euse','ive','elle','ère','ienne'];
+        for(var sq=0;sq<sufs.length;sq++){if(sd.length>=sufs[sq].length&&sd.slice(-sufs[sq].length)===sufs[sq]){okS=true;break;}}}
+      if(!okS)return null;}
     for(var k=Math.max(0,i-5);k<i-1;k++){var dk=deacc(T[k].toLowerCase());if(dk==='ou'||dk==='et'||dk==='ni')return null;}
     if(i>=3&&tg[i-3]==='ADP')return null;
     var g=_nounGender(T[i-1],'s',true);if(g!=='f')return null;
@@ -25870,7 +25913,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||'auto'};if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST DÉSORMAIS PORTÉ PAR LE FLAG (audit 2026-08-11). Avant : tier=null, et le rouge était DÉDUIT à l'affichage par `_dfltOn` (src==='g'). Deux conséquences mesurées : (1) le moteur autonome rendait 416 corrections sur 1 506 SANS aucun tier — un intégrateur ne pouvait pas savoir ce qui est sûr sans réimplémenter l'UI ; (2) l'EXTENSION n'applique que `tier==='auto'`, donc elle ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut : le même texte était corrigé sur le site et seulement signalé dans l'extension. Une règle peut toujours renvoyer {sugg,vig:1} → 'vigilance' (orange) ; sinon c'est du rouge, et il le DIT. */
   function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // grammaire sur le texte brut (parité) ; ’ normalisée (1:1, offsets intacts)
   /* ---- couche VERTE « vigilance » : confusables (n'AFFIRME pas → hors FP=0) ; lazy, indice contexte gated marge ---- */

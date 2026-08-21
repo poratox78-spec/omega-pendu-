@@ -3262,7 +3262,20 @@ def rule_pp_epithet_fem(T, i):
     if _SEG and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
     # pas de garde APRÈS (≠ plurielle) : « une femme cultivé, bienveillante » — l'accord vaut devant la virgule
     nx = deacc(T[i+1].lower()) if i+1 < len(T) else ''
-    if nx in ('de', 'et', 'ou', 'ni', 'que'): return None
+    if nx in ('de', 'ou', 'ni', 'que'): return None
+    if nx == 'et':
+        # ENQUÊTE DES 22 (2026-08-21) : l'abstention-coordination rendait texte3 muet (« une femme
+        # cultivé ET bien veillante ») quand texte2 (virgule) corrigeait. On ne la lève QUE si la
+        # sœur coordonnée est DÉJÀ marquée féminin (suffixe non ambigu) — l'invariance des
+        # couleurs composées (« une jupe bleu et vert ») reste protégée. Miroir JS ×2.
+        j = i + 2
+        while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in ('bien', 'mal', 'tres', 'tout', 'si', 'plus', 'toujours'): j += 1
+        ok_soeur = False
+        if j < len(T):
+            sd = T[j].lower()
+            for suf in (u'ée', u'ante', u'ente', u'euse', u'ive', u'elle', u'ère', u'ienne'):
+                if sd.endswith(suf): ok_soeur = True; break
+        if not ok_soeur: return None
     for k in range(max(0, i-5), i-1):
         if deacc(T[k].lower()) in ('ou', 'et', 'ni'): return None
     if i >= 3 and tg[i-3] == 'ADP': return None
@@ -3478,9 +3491,57 @@ def rule_vingt_cent(T, i):
     return T[i] + 's'
 
 
+_GUERE_DET = {'la', 'une', 'cette', 'sa', 'ma', 'ta', 'notre', 'votre', 'leur', 'en'}
+
+def rule_guere(T, i):
+    u"""« pendant la guère » → guerre (enquête des 22, texte2 dys réel). « guère » est un ADVERBE :
+    précédé d'un déterminant (ou de « en »), c'est toujours le NOM guerre. Cadre fermé, miroir JS ×2."""
+    if deacc(T[i].lower()) != 'guere': return None
+    if i == 0 or deacc(T[i-1].lower()) not in _GUERE_DET: return None
+    return _keepcase(T[i], u'guerre')
+
+
+_AUX_SG = {'taux', 'chaux', 'faux', 'aux'}
+_ADJ_INV = {'marron', 'orange', 'kaki', 'turquoise', 'creme', 'prune', 'cerise', 'olive',
+            'moutarde', 'pastel', 'bordeaux', 'marine', 'design', 'standard', 'record', 'bidon', 'chic', 'choc',
+            'hardcore', 'rock', 'punk', 'pop', 'jazz', 'folk', 'metal', 'techno', 'disco', 'vintage',
+            'light', 'live', 'open', 'offshore', 'online',                       # anglicismes invariables (flood : « morceaux hardcore »)
+            'quel', 'quelle', 'quels', 'quelles'}                                # interrogatifs : leur accord a ses propres règles (flood)
+
+def rule_adj_aux(T, i):
+    u"""« de petit tuyaux souterrain » → petits/souterrains (enquête des 22, texte1 dys réel).
+    Un nom en -aux/-eaux est un pluriel NON-AMBIGU (aucun singulier hors taux/chaux/faux) :
+    l'adjectif ADJACENT au singulier est désaccordé. Gardes : tagger ADJ+NOUN, frontière _SEG,
+    invariables (couleurs-objets, anglicismes), candidat vérifié au lexique. Miroir JS ×2."""
+    w = T[i]; lw = w.lower()
+    if "'" in lw or not w[:1].islower() or len(lw) < 3: return None
+    if lw[-1:] in ('s', 'x', 'z'): return None
+    if deacc(lw) in _ADJ_INV: return None
+    tg = pos_tags(T)
+    if not tg or i >= len(tg) or tg[i] != 'ADJ': return None
+    voisin = None
+    for j in (i - 1, i + 1):
+        if j < 0 or j >= len(T): continue
+        vw = T[j]; dv = deacc(vw.lower())
+        if not vw[:1].islower(): continue
+        if not dv.endswith('aux') or len(dv) < 4 or dv in _AUX_SG: continue
+        if j >= len(tg) or tg[j] != 'NOUN': continue
+        if _SEG:
+            a, b = min(i, j), max(i, j)
+            if any(_SEG['bb'][m] for m in range(a + 1, min(b + 1, len(_SEG['bb'])))): continue
+        if j == i - 1 and j >= 2 and deacc(T[j-1].lower()) in ('de', "d'", 'des', 'du'):
+            continue                    # « le nombre DE niveaux total » : l'adjectif postposé modifie la TÊTE à gauche du complément (flood)
+        voisin = j; break
+    if voisin is None: return None
+    for cand in (lw + 's', lw + 'x'):
+        if cand in POS_LEX: return _keepcase(w, cand)
+    return None
+
+
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
          ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
@@ -3488,7 +3549,7 @@ RULES = [('élision inversée', rule_deselide),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
          ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais),
-         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la),
+         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la), ('guère/guerre', rule_guere),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_il_ils),
