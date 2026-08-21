@@ -57,18 +57,23 @@ for (const s of ref) {
   const rebuilt = out.map(m => m.raw !== undefined ? m.raw : m.segs.map(x => x.g).join('')).join('');
   if (rebuilt !== s.texte) fail.push('texte altéré : ' + JSON.stringify(rebuilt) + ' ≠ ' + JSON.stringify(s.texte));
   for (const m of out) if (m.segs) for (const x of m.segs) if (!CLS[x.cls]) fail.push('classe inconnue ' + x.cls);
-  for (const m of s.mots) {                       // clitiques : parité EXACTE avec Python
-    if (m.raw !== undefined || m.src !== 'clit') continue;
+  for (const m of s.mots) {                       // clitiques + ÉLISIONS (préfixe par table) : parité EXACTE avec Python
+    if (m.raw !== undefined || (m.src !== 'clit' && m.src !== 'elide')) continue;
     const js = core.wordSegments(m.mot, DECL2.g2p);
     const a = JSON.stringify(js.map(x => [x.g, x.cls]));
     const b = JSON.stringify(m.segs.map(x => [x.g, x.cls]));
-    if (a !== b) fail.push('clitique « ' + m.mot + ' » : JS ' + a + ' ≠ Python ' + b);
+    if (m.src === 'clit' && a !== b) fail.push('clitique « ' + m.mot + ' » : JS ' + a + ' ≠ Python ' + b);
+    if (m.src === 'elide') {                        // le préfixe élidé + l'apostrophe doivent coïncider (le reste roule le g2p de chaque côté)
+      const ap = m.mot.search(/['’]/);
+      const pa = js.slice(0, js.findIndex(x => /^['’]$/.test(x.g)) + 1), pb = m.segs.slice(0, m.segs.findIndex(x => /^['’]$/.test(x.g)) + 1);
+      if (ap > 0 && JSON.stringify(pa.map(x => [x.g, x.cls])) !== JSON.stringify(pb.map(x => [x.g, x.cls]))) fail.push('élision « ' + m.mot + ' » : JS ' + JSON.stringify(pa) + ' ≠ Python ' + JSON.stringify(pb));
+    }
   }
 }
 // syllabes ≡ Python là où la segmentation en graphèmes coïncide (même g2p → mêmes frontières)
 let sylCmp = 0;
 for (const s of ref) for (const m of s.mots) {
-  if (m.raw !== undefined || !m.syll) continue;
+  if (m.raw !== undefined || !m.syll || m.src === 'elide') continue;   // élisions : syllabes non comparées (apostrophe = segment neutre)
   const js = core.wordSegments(m.mot, DECL2.g2p);
   // mêmes graphèmes ET mêmes phonèmes (la réf. Python roule g2p enrichi + corrections apprises :
   // ex. « derrière » i→/j/ devant è côté Python, /i/ côté moteur app → syllabes différentes, hors sujet ici)

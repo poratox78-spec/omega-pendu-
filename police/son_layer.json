@@ -1091,5 +1091,420 @@
     "raw": "."
    }
   ]
+ },
+ {
+  "texte": "L'école, c'est aujourd'hui : j'ai vu qu'il n'est pas là, jusqu'à demain.",
+  "mots": [
+   {
+    "mot": "L'école",
+    "phono": "lekol",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "L",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "é",
+      "ph": "e",
+      "cls": "n"
+     },
+     {
+      "g": "c",
+      "ph": "k",
+      "cls": "srd"
+     },
+     {
+      "g": "o",
+      "ph": "o",
+      "cls": "n"
+     },
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     }
+    ],
+    "syll": [
+     "L",
+     "'",
+     "é",
+     "cole"
+    ]
+   },
+   {
+    "raw": ", "
+   },
+   {
+    "mot": "c'est",
+    "phono": "ss",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "c",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "s",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ],
+    "syll": [
+     "c",
+     "'",
+     "est"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "aujourd'hui",
+    "phono": "oZuR8i",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "au",
+      "ph": "o",
+      "cls": "n"
+     },
+     {
+      "g": "j",
+      "ph": "Z",
+      "cls": "voi"
+     },
+     {
+      "g": "ou",
+      "ph": "u",
+      "cls": "n"
+     },
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "d",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "h",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "u",
+      "ph": "8",
+      "cls": "n"
+     },
+     {
+      "g": "i",
+      "ph": "i",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "au",
+     "jourd",
+     "'",
+     "hui"
+    ]
+   },
+   {
+    "raw": " : "
+   },
+   {
+    "mot": "j'ai",
+    "phono": "ZE",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "j",
+      "ph": "Z",
+      "cls": "voi"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "ai",
+      "ph": "E",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "j",
+     "'",
+     "ai"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "vu",
+    "phono": "vy",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "v",
+      "ph": "v",
+      "cls": "voi"
+     },
+     {
+      "g": "u",
+      "ph": "y",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "vu"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "qu'il",
+    "phono": "kil",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "qu",
+      "ph": "k",
+      "cls": "srd"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "i",
+      "ph": "i",
+      "cls": "n"
+     },
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "qu",
+     "'",
+     "il"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "n'est",
+    "phono": "ns",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "n",
+      "ph": "n",
+      "cls": "n"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "s",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ],
+    "syll": [
+     "n",
+     "'",
+     "est"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "pas",
+    "phono": "pa",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ],
+    "syll": [
+     "pas"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "là",
+    "phono": "la",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "à",
+      "ph": "a",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "là"
+    ]
+   },
+   {
+    "raw": ", "
+   },
+   {
+    "mot": "jusqu'à",
+    "phono": "Zyska",
+    "src": "elide",
+    "segs": [
+     {
+      "g": "j",
+      "ph": "Z",
+      "cls": "voi"
+     },
+     {
+      "g": "u",
+      "ph": "y",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "qu",
+      "ph": "k",
+      "cls": "srd"
+     },
+     {
+      "g": "'",
+      "ph": "",
+      "cls": "n"
+     },
+     {
+      "g": "à",
+      "ph": "a",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "jusqu",
+     "'",
+     "à"
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "demain",
+    "phono": "d°m5",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "d",
+      "ph": "d",
+      "cls": "voi"
+     },
+     {
+      "g": "e",
+      "ph": "°",
+      "cls": "n"
+     },
+     {
+      "g": "m",
+      "ph": "m",
+      "cls": "n"
+     },
+     {
+      "g": "ain",
+      "ph": "5",
+      "cls": "n"
+     }
+    ],
+    "syll": [
+     "de",
+     "main"
+    ]
+   },
+   {
+    "raw": "."
+   }
+  ]
  }
 ]

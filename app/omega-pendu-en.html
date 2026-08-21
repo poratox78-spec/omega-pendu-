@@ -27728,7 +27728,39 @@ var OmegaDysSonCore = (function () {
     }
     return o;
   }
+  // préfixes ÉLIDÉS (l'école, j'ai, c'est, qu'il, jusqu'à…) — MÊME table que build_son_layer.py
+  var ELIDE = {
+    l:[['l','l']], j:[['j','Z']], d:[['d','d']], n:[['n','n']], c:[['c','s']], s:[['s','s']],
+    m:[['m','m']], t:[['t','t']], qu:[['qu','k']],
+    jusqu:[['j','Z'],['u','y'],['s','s'],['qu','k']], lorsqu:[['l','l'],['o','O'],['r','R'],['s','s'],['qu','k']],
+    puisqu:[['p','p'],['ui','8i'],['s','s'],['qu','k']], quoiqu:[['qu','k'],['oi','wa'],['qu','k']]
+  };
+  function recase(word, pairs) {                         // graphèmes (minuscules) → tranches du mot ORIGINAL ; null si non couvrant
+    var lw = word.toLowerCase(), cat = '', i;
+    for (i = 0; i < pairs.length; i++) cat += pairs[i][0];
+    if (cat !== lw) return null;
+    var segs = [], pos = 0;
+    for (i = 0; i < pairs.length; i++) {
+      var gg = word.slice(pos, pos + pairs[i][0].length);
+      pos += pairs[i][0].length;
+      segs.push({g: gg, ph: pairs[i][1], cls: classify(pairs[i][1])});
+    }
+    return segs;
+  }
   function wordSegments(word, g2p) {
+    var parts = word.split(/(['’])/);                    // élision : « l'école » → l + ' + école, chaque partie à sa route
+    if (parts.length > 1) {
+      var out = [], p;
+      for (p = 0; p < parts.length; p++) {
+        var part = parts[p];
+        if (!part) continue;
+        if (part === "'" || part === '’') { out.push({g: part, ph: '', cls: 'n'}); continue; }
+        var pre = (p + 1 < parts.length) ? ELIDE[part.toLowerCase()] : null;
+        var segs = pre ? recase(part, pre) : null;
+        out = out.concat(segs || wordSegments(part, g2p));
+      }
+      return out;
+    }
     var lw = word.toLowerCase(), pairs = [], k;
     if (CLIT[lw]) pairs = CLIT[lw];
     else {
@@ -27741,19 +27773,10 @@ var OmegaDysSonCore = (function () {
       }
     }
     // reprojection de casse sur le mot ORIGINAL ; FAIL-SAFE (≡ Python) : si l'alignement ne
-    // couvre pas le mot (apostrophe, œ…), UN segment neutre → le texte reste intact.
-    var cat = '', i;
-    for (i = 0; i < pairs.length; i++) cat += pairs[i][0];
-    if (cat !== lw) return [{g: word, ph: '', cls: 'n'}];
-    var segs = [], pos = 0;
-    for (i = 0; i < pairs.length; i++) {
-      var gg = word.slice(pos, pos + pairs[i][0].length);
-      pos += pairs[i][0].length;
-      segs.push({g: gg, ph: pairs[i][1], cls: classify(pairs[i][1])});
-    }
-    return segs;
+    // couvre pas le mot (œ, caractère inconnu…), UN segment neutre → le texte reste intact.
+    return recase(word, pairs) || [{g: word, ph: '', cls: 'n'}];
   }
-  var TOKEN = /[a-zà-ÿœ']+/gi;
+  var TOKEN = /[a-zà-ÿœ'’]+/gi;
   function sentenceSegments(sentence, g2p) {
     var out = [], i = 0, m;
     TOKEN.lastIndex = 0;
