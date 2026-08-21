@@ -26,6 +26,10 @@ Réutilise le **même** lexique accentué (`speller.tsv.gz`) que la correction. 
 complétion est une suggestion d'UI, pas un *flag* FP=0 (l'invariant `flags ⊆ Python` n'est donc pas concerné).
 La même complétion existe dans l'app (panneau « 🩹 Correcteur », **Tab** = accepter la 1re).
 
+## Lien vers le site
+L'en-tête du panneau porte **🌐 omegapendu.com** (globe seul en panneau étroit) : ouvre le site complet
+(app, dictée, pendu) dans un nouvel onglet. `homepage_url` du manifeste pointe au même endroit.
+
 ## Architecture
 | Fichier | Rôle |
 |---|---|
