@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "OMEGA-Ω — Correcteur dys",
   "version": "0.5.1",
+  "homepage_url": "https://omegapendu.com/",
   "description": "Correcteur orthographique ET grammatical pour les troubles de l'écrit (dys). Correcteur hors-ligne (saisie vocale optionnelle). Tout se passe dans le panneau latéral : ce que vous tapez s'y recopie, vous corrigez, vous copiez. Non-mots/accents sûrs (FP=0), homophones et accords expliqués, dictée vocale, lecture vocale, stade développemental.",
   "permissions": [
     "storage",
