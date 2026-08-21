@@ -8,6 +8,14 @@
     font-family: 'OMEGA Dys';
     src: url('OmegaDys-Regular.ttf') format('truetype');
   }
+  @font-face {
+    font-family: 'OMEGA Dys Light';
+    src: url('OmegaDys-Light.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'OMEGA Dys Heavy';
+    src: url('OmegaDys-Heavy.ttf') format('truetype');
+  }
   :root { --ink:#1c2431; --bg:#f7f5ef; --soft:#8a93a5; --acc:#b3542e; }
   body { background:var(--bg); color:var(--ink); font-family:Georgia,serif; margin:0 auto;
          max-width:900px; padding:24px 28px 80px; }
@@ -19,13 +27,18 @@
   .note { color:var(--soft); font-size:13px; margin-top:2px; }
   .pair { display:inline-block; margin-right:34px; text-align:center; }
   .pair .lbl { font-size:12px; color:var(--soft); }
-  .mute { opacity:.28; }
-  .graph { text-decoration:underline; text-decoration-color:#3f7d5c; text-decoration-thickness:3px;
+  /* Muette : gris-bleu FONCÉ (contraste ≥4,5:1 sur crème — un gris clair est illisible, la BDA
+     déconseille les gris faibles). Codage par LUMINOSITÉ = perçu par tous les daltonismes. */
+  .mute { color:#5f6672; }
+  /* Graphèmes : violet (palette sans rouge/vert, daltonien-compatible) */
+  .graph { text-decoration:underline; text-decoration-color:#8b5a9e; text-decoration-thickness:3px;
            text-underline-offset:7px; }
   .cmp { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
   .cmp > div { background:#fffdf8; border:1px solid #e2dccd; border-radius:8px; padding:14px 16px; }
   .cmp .who { font-size:12px; color:var(--soft); margin-bottom:6px; font-family:Georgia,serif; }
-  .voi { color:#7a3020; } .srd { color:#2b5a86; }
+  /* Renfort couleur Okabe-Ito assombri (vermillon/bleu, jamais rouge/vert) — l'information
+     est TOUJOURS portée d'abord par la graisse : la couleur seule ne code rien. */
+  .voi { color:#a34700; } .srd { color:#0072b2; }
 </style>
 </head>
 <body>
@@ -60,7 +73,14 @@ Muettes grisées, graphèmes soulignés — décidés par la couche de rendu, pa
 <div class="big od">les peti<span class="mute">ts</span> cha<span class="mute">ts</span> blan<span class="mute">cs</span></div>
 <div class="big od"><span class="graph">ch</span>at · <span class="graph">ou</span>rs · m<span class="graph">on</span>t<span class="graph">ag</span>ne · <span class="graph">oi</span>se<span class="graph">au</span></div>
 
-<h2>5 · Phrase de dictée — comparaison</h2>
+<h2>5 · Police de son branchée sur le g2p RÉEL du projet</h2>
+<div class="note">Généré par <code>build_son_layer.py</code> (decompose/g2p + table mots-fonction) →
+<code>son_layer.json</code>. <b>Le texte Unicode ne change jamais</b> (sélectionnez et copiez :
+c'est du français normal) — seul l'habillage change : phonème voisé = graisse Heavy,
+sourd = Light, muette = grisée. Survolez un segment pour voir son phonème.</div>
+<div id="sonlayer" class="mid" style="line-height:2.1"></div>
+
+<h2>6 · Phrase de dictée — comparaison</h2>
 <div class="cmp">
   <div><div class="who">OMEGA Dys</div>
     <div class="od" style="font-size:24px;line-height:1.8">Le chien aboie derrière la barrière du jardin. Papa porte un gâteau et des bonbons.</div></div>
@@ -69,8 +89,29 @@ Muettes grisées, graphèmes soulignés — décidés par la couche de rendu, pa
 </div>
 
 <script>
-  // Couche « police de son » : substitution du s voisé (U+E000) — ici décidée à la main,
-  // en prod ce serait g2p/n-grams (s intervocalique → /z/).
+  // Couche « police de son » réelle (§5) : spans depuis son_layer.json — le TEXTE reste intact.
+  fetch('son_layer.json', {cache: 'no-store'}).then(r => r.json()).then(layer => {
+    const host = document.getElementById('sonlayer');
+    const FAM = { voi: "'OMEGA Dys Heavy'", srd: "'OMEGA Dys Light'", n: "'OMEGA Dys'", mute: "'OMEGA Dys'" };
+    for (const s of layer) {
+      const p = document.createElement('div');
+      for (const m of s.mots) {
+        if (m.raw !== undefined) { p.appendChild(document.createTextNode(m.raw)); continue; }
+        for (const seg of m.segs) {
+          const sp = document.createElement('span');
+          sp.textContent = seg.g;
+          sp.style.fontFamily = FAM[seg.cls] || FAM.n;
+          if (seg.cls === 'mute') sp.className = 'mute';
+          sp.title = seg.ph ? '/' + seg.ph + '/' : 'muette';
+          p.appendChild(sp);
+        }
+      }
+      host.appendChild(p);
+    }
+  }).catch(e => { document.getElementById('sonlayer').textContent = 'son_layer.json introuvable (lancer build_son_layer.py)'; });
+
+  // §4 : mock PUA v0.1 — DÉPRÉCIÉ (substituer des caractères casserait le copier-coller) ;
+  // conservé comme illustration, la vraie couche est le §5 (spans, texte intact).
   const el = document.getElementById('poison');
   el.textContent = 'poion';
 </script>

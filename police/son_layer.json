@@ -1,0 +1,982 @@
+[
+ {
+  "texte": "Le poison et le poisson ne se ressemblent pas.",
+  "mots": [
+   {
+    "mot": "Le",
+    "phono": "l@",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "L",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "@",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "poison",
+    "phono": "pwaz§",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "oi",
+      "ph": "wa",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "z",
+      "cls": "voi"
+     },
+     {
+      "g": "on",
+      "ph": "§",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "et",
+    "phono": "e",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "e",
+      "ph": "E",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "le",
+    "phono": "l@",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "@",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "poisson",
+    "phono": "pwas§",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "oi",
+      "ph": "wa",
+      "cls": "n"
+     },
+     {
+      "g": "ss",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "on",
+      "ph": "§",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "ne",
+    "phono": "n@",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "n",
+      "ph": "n",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "@",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "se",
+    "phono": "s@",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "s",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "e",
+      "ph": "@",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "ressemblent",
+    "phono": "R°s@bl",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "ss",
+      "ph": "s",
+      "cls": "srd"
+     },
+     {
+      "g": "em",
+      "ph": "@",
+      "cls": "n"
+     },
+     {
+      "g": "b",
+      "ph": "b",
+      "cls": "voi"
+     },
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "en",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "pas",
+    "phono": "pa",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": "."
+   }
+  ]
+ },
+ {
+  "texte": "Les petits chats blancs jouent dans le jardin.",
+  "mots": [
+   {
+    "mot": "Les",
+    "phono": "le",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "L",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "e",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "petits",
+    "phono": "p°ti",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "e",
+      "ph": "E",
+      "cls": "n"
+     },
+     {
+      "g": "ti",
+      "ph": "ti",
+      "cls": "srd"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "chats",
+    "phono": "Sa",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "ch",
+      "ph": "S",
+      "cls": "srd"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "blancs",
+    "phono": "bl@",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "b",
+      "ph": "b",
+      "cls": "voi"
+     },
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "an",
+      "ph": "@",
+      "cls": "n"
+     },
+     {
+      "g": "c",
+      "ph": "k",
+      "cls": "srd"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "jouent",
+    "phono": "Zu",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "j",
+      "ph": "Z",
+      "cls": "voi"
+     },
+     {
+      "g": "ou",
+      "ph": "w",
+      "cls": "n"
+     },
+     {
+      "g": "en",
+      "ph": "@",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "dans",
+    "phono": "d@",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "d",
+      "ph": "d",
+      "cls": "voi"
+     },
+     {
+      "g": "an",
+      "ph": "@",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "le",
+    "phono": "l@",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "@",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "jardin",
+    "phono": "ZaRd5",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "j",
+      "ph": "Z",
+      "cls": "voi"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "d",
+      "ph": "d",
+      "cls": "voi"
+     },
+     {
+      "g": "in",
+      "ph": "5",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": "."
+   }
+  ]
+ },
+ {
+  "texte": "Papa porte un gâteau et des bonbons doux.",
+  "mots": [
+   {
+    "mot": "Papa",
+    "phono": "papa",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "P",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "porte",
+    "phono": "pORt",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "p",
+      "ph": "p",
+      "cls": "srd"
+     },
+     {
+      "g": "o",
+      "ph": "O",
+      "cls": "n"
+     },
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "t",
+      "cls": "srd"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "un",
+    "phono": "1",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "un",
+      "ph": "1",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "gâteau",
+    "phono": "gato",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "g",
+      "ph": "g",
+      "cls": "voi"
+     },
+     {
+      "g": "â",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "t",
+      "cls": "srd"
+     },
+     {
+      "g": "eau",
+      "ph": "o",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "et",
+    "phono": "e",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "e",
+      "ph": "E",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "des",
+    "phono": "de",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "d",
+      "ph": "d",
+      "cls": "voi"
+     },
+     {
+      "g": "e",
+      "ph": "e",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "bonbons",
+    "phono": "b§b§",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "b",
+      "ph": "b",
+      "cls": "voi"
+     },
+     {
+      "g": "on",
+      "ph": "§",
+      "cls": "n"
+     },
+     {
+      "g": "b",
+      "ph": "b",
+      "cls": "voi"
+     },
+     {
+      "g": "on",
+      "ph": "§",
+      "cls": "n"
+     },
+     {
+      "g": "s",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "doux",
+    "phono": "du",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "d",
+      "ph": "d",
+      "cls": "voi"
+     },
+     {
+      "g": "ou",
+      "ph": "u",
+      "cls": "n"
+     },
+     {
+      "g": "x",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": "."
+   }
+  ]
+ },
+ {
+  "texte": "La vache et le cheval broutent derrière la barrière.",
+  "mots": [
+   {
+    "mot": "La",
+    "phono": "la",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "L",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "vache",
+    "phono": "vaS",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "v",
+      "ph": "v",
+      "cls": "voi"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "ch",
+      "ph": "S",
+      "cls": "srd"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "et",
+    "phono": "e",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "e",
+      "ph": "E",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "le",
+    "phono": "l@",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "@",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "cheval",
+    "phono": "S°val",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "ch",
+      "ph": "S",
+      "cls": "srd"
+     },
+     {
+      "g": "e",
+      "ph": "°",
+      "cls": "n"
+     },
+     {
+      "g": "v",
+      "ph": "v",
+      "cls": "voi"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "broutent",
+    "phono": "bRut",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "b",
+      "ph": "b",
+      "cls": "voi"
+     },
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "ou",
+      "ph": "u",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "t",
+      "cls": "srd"
+     },
+     {
+      "g": "en",
+      "ph": "@",
+      "cls": "n"
+     },
+     {
+      "g": "t",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "derrière",
+    "phono": "dERjER",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "d",
+      "ph": "d",
+      "cls": "voi"
+     },
+     {
+      "g": "e",
+      "ph": "e",
+      "cls": "n"
+     },
+     {
+      "g": "rr",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "i",
+      "ph": "j",
+      "cls": "n"
+     },
+     {
+      "g": "è",
+      "ph": "E",
+      "cls": "n"
+     },
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "la",
+    "phono": "la",
+    "src": "clit",
+    "segs": [
+     {
+      "g": "l",
+      "ph": "l",
+      "cls": "n"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     }
+    ]
+   },
+   {
+    "raw": " "
+   },
+   {
+    "mot": "barrière",
+    "phono": "baRjER",
+    "src": "lex",
+    "segs": [
+     {
+      "g": "b",
+      "ph": "b",
+      "cls": "voi"
+     },
+     {
+      "g": "a",
+      "ph": "a",
+      "cls": "n"
+     },
+     {
+      "g": "rr",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "i",
+      "ph": "j",
+      "cls": "n"
+     },
+     {
+      "g": "è",
+      "ph": "E",
+      "cls": "n"
+     },
+     {
+      "g": "r",
+      "ph": "R",
+      "cls": "n"
+     },
+     {
+      "g": "e",
+      "ph": "",
+      "cls": "mute"
+     }
+    ]
+   },
+   {
+    "raw": "."
+   }
+  ]
+ }
+]

@@ -30,6 +30,47 @@ lettres. Donc :
    dicter avec rendu OmegaDys-son vs standard, comparer les taux par famille (voisée/sourde
    attendue en baisse si l'hypothèse tient). Même canal que `validation_terrain.html`.
 
+## Décision d'architecture (discussion 2026-08-21) : le texte ne change JAMAIS
+
+Question posée : « les sons changent les lettres, donc il faudrait une table de caractères plus
+grande ? » — Réponse tranchée : **NON**. On ne crée pas d'alphabet privé (dépendance, texte non
+portable, copier-coller cassé). Le texte reste du français Unicode normal ; le son ne change que
+l'**habillage à l'affichage** :
+
+- **Même police, 3 graisses** (`OmegaDys-{Light,Regular,Heavy}.ttf`, même générateur) ; la couche
+  de rendu pose des `<span>` par graphème : phonème voisé → Heavy, sourd → Light, muette → grisé.
+  Précédents du principe « échafaudage retirable » : LireCouleur (couleur), furigana, hébreu pointé.
+- **PUA U+E000/E001 : DÉPRÉCIÉS** pour le web (substituer des caractères = texte cassé au
+  copier-coller). Conservés dans la TTF pour d'éventuels rendus fermés (canvas/print).
+- **Branché sur le g2p RÉEL** : `build_son_layer.py` → `son_layer.json` (decompose/g2p double
+  route + table fermée des mots-fonction) ; garantie testée à la génération : chaque phrase se
+  reconstruit à l'identique depuis les segments. Démo §5 + `apercu_son.png`.
+- **Bug moteur découvert au branchement** (et signalé en tâche séparée, doctrine §4) : la branche
+  DBL de `decompose.g2p` rend les doubles consonnes muettes (`poisson`→/pwa§/, `assis`→/ai/) et
+  `g2p_corrections.json` a APPRIS `ss→∅` ; contournement local documenté dans `build_son_layer.py`
+  en attendant le correctif mesuré (held-out).
+
+## Couleur & daltonisme (ajout 2026-08-21, retour terrain : « le gris clair est dur à lire »)
+
+Ce que dit la littérature couleur×dyslexie :
+
+- **Fond crème / pastel, pas blanc pur** (éblouissement, distorsion au contraste extrême) et texte
+  foncé **pas noir pur** — recommandation BDA (Style Guide). Notre démo l'avait déjà en aveugle
+  (`#f7f5ef` / `#1c2431`). Les **gris faibles sont déconseillés** — le retour terrain concorde.
+- **Overlays/filtres colorés** : preuve d'efficacité **manquante** (position BDA elle-même
+  prudente) — ne pas investir là.
+- **Daltonisme** (~8 % des hommes) : jamais rouge/vert ; palette **Okabe-Ito** (vermillon/bleu/
+  violet) ; et surtout **la couleur ne doit jamais être le seul canal** — chez nous l'information
+  voisée/sourde est portée par la **graisse**, la couleur n'est qu'un renfort.
+
+Décisions appliquées (démo + aperçu) :
+
+| Élément | Avant | Après |
+|---|---|---|
+| Muette | `opacity .28` (illisible) | gris-bleu **foncé** `#5f6672` (contraste ≈ 5,4:1, lisible mais en retrait) — codage par **luminosité**, perçu par tous les types de daltonisme |
+| Paires voisée/sourde (renfort) | rouge sombre / bleu | Okabe-Ito assombri `#a34700` / `#0072b2` (≥ 4,5:1) |
+| Soulignés graphèmes | vert | violet `#8b5a9e` (plus de vert dans la page) |
+
 ## Sources
 
 - [Méta-analyse 2026 — polices dys sans effet fiable](https://link.springer.com/article/10.1007/s11881-026-00389-8) · [PubMed](https://pubmed.ncbi.nlm.nih.gov/42536336/)
@@ -38,3 +79,4 @@ lettres. Donc :
 - [Visible Speech (Bell, 1867)](https://en.wikipedia.org/wiki/Visible_Speech)
 - [Apprentissage graphème-phonème chez dyslexiques (Frontiers 2018)](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2018.01393/full)
 - [LireCouleur (Primàbord/Éduscol)](https://primabord.eduscol.education.fr/lirecouleur) · [LireCouleur — présentation ASH](https://ash.dsden02.ac-amiens.fr/290-lirecouleur.html) · [dysclick — LireCouleur](https://dysclick.fr/outils/lirecouleur/)
+- Couleur : [BDA Style Guide 2023 (PDF)](https://cdn.bdadyslexia.org.uk/uploads/documents/Advice/style-guide/BDA-Style-Guide-2023.pdf) · [Dyslexia Scotland — contraste](https://dyslexiascotland.org.uk/contrasting-advice-what-colours-are-best-for-accessibility/) · [Cardiff Univ. — couleur inclusive](https://blogs.cardiff.ac.uk/LTAcademy/not-just-pretty-colours-using-colour-and-contrast-inclusively/) · [palette Okabe-Ito](https://scifig.ai/blog/okabe-ito-color-palette-hex-codes)
