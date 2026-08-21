@@ -24925,7 +24925,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   var _V3PL_SURE={sont:1,ont:1,vont:1,font:1};   // 3e pluriel irréguliers non ambigus (jamais nom/adj/3sg)
   var _SAIS_PPU={perdu:1,vu:1,eu:1,venu:1,revenu:1,devenu:1,tenu:1,retenu:1,connu:1,recu:1,battu:1,mordu:1,rendu:1,vendu:1,entendu:1,repondu:1,defendu:1,descendu:1,couru:1,apercu:1,cru:1,bu:1,lu:1,su:1,pu:1,vecu:1,fondu:1,confondu:1,suspendu:1,attendu:1,obtenu:1,contenu:1,soutenu:1,parvenu:1,survenu:1,intervenu:1};
   /* état du JUGE B2 (greffe sait/s'est+inf) — DANS la tranche moteur : les gardes b2Cadre (rAccordSV/_svFinish) et le producteur b2SaisInf (spellText) doivent exister sous les harnais Node (battery/parité), où _b2.on reste false → tout est inerte. L'analyse async et le chargeur vivent plus bas (navigateur seulement). */
-  var _b2={on:false,pret:false,charge:false,cache:{txt:null,flags:[]},enCours:null};
+  var _b2={on:false,pret:false,charge:false,cache:{txt:null,flags:[],tais:{}},enCours:null};
   function b2SaisInf(i,text){if(!_b2.on||_b2.cache.txt!==text)return null;
     for(var k=0;k<_b2.cache.flags.length;k++)if(_b2.cache.flags[k].i===i)return _b2.cache.flags[k];return null;}
   function b2Cadre(i){if(!_b2.on||_b2.cache.txt===null||_b2.cache.txt!==_b2._cur)return false;   // le juge a-t-il tranché « s'est » au token i de CE texte ? (garde miroir frame-s'est : l'accord SV se tait, sinon il ressuscite « sais→sait » sur la mauvaise lecture)
@@ -26768,7 +26768,7 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<div id="vdc-b2-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
    +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-b2-on"> 🧠 Juge s\'est/sait (local, opt-in — télécharge 15 Mo une seule fois)</label>'
    +' <span id="vdc-b2-etat" class="vdc-sc" aria-live="polite"></span>'
-   +'<div class="vdc-sc" style="margin-top:2px">Un petit modèle de langue OMEGA (WebGPU) départage « elle sait marier » / « elle s\'est mariée ». Tout se calcule sur ta machine — rien n\'est envoyé.</div>'
+   +'<div class="vdc-sc" style="margin-top:2px">Un petit modèle de langue OMEGA (WebGPU) départage « elle sait marier » / « elle s\'est mariée » et tait les alertes orange que le contexte dément (mesuré&nbsp;: un tiers de fatigue en moins, 293/294 alertes justes conservées). Tout se calcule sur ta machine — rien n\'est envoyé.</div>'
    +'</div>'
    +'<div id="vdc-ia-wrap" style="margin-top:12px;border-top:1px solid #d0d0d0;padding-top:8px">'
    +'<label style="font-weight:600;cursor:pointer"><input type="checkbox" id="vdc-ia-on"> 🤖 Correction par IA (opt-in)</label>'
@@ -27133,23 +27133,44 @@ function spellTokenCore(tok,atStart,T,idx){
   function _b2Fenetre(t,pos){var d=Math.max(t.lastIndexOf('.',pos),t.lastIndexOf('!',pos),t.lastIndexOf('?',pos));
     var e=t.length,c;c=t.indexOf('.',pos);if(c>=0&&c<e)e=c;c=t.indexOf('!',pos);if(c>=0&&c<e)e=c;c=t.indexOf('?',pos);if(c>=0&&c<e)e=c;
     return [d+1,Math.min(e+1,t.length)];}
-  function _b2Analyse(tRaw){
+  var _B2_TAIS=0.01;                                           // marge de l'ARBITRE (mesurée arbitre_vig_probe : 100 % des oranges justes gardées, ~1/3 de la fatigue tue)
+  function _b2Tais(f){if(!_b2.on||!_b2.cache.tais||_b2.cache.txt!==_b2._cur)return false;
+    return f.tier==='vigilance'&&!!_b2.cache.tais[f.i+'>'+(f.sugg||'')];}
+  function _b2Analyse(tRaw,corrs){
     var t=String(tRaw).replace(/[’ʼ]/g,"'");                   // même normalisation que spellText : le cache parle le texte du moteur
     if(!_b2.on||!_b2.pret||_b2.cache.txt===t||_b2.enCours===t)return;
     var cadres=_b2Cadres(t);
-    if(!cadres.length){_b2.cache={txt:t,flags:[]};return;}
+    /* ARBITRE GÉNÉRAL DES VIGILANCES (chantier symbiose n°1, mesuré arbitre_vig_probe) : chaque
+       orange à suggestion est jugée — candidat = texte avec la sugg appliquée ; si l'ÉCRIT gagne
+       par marge (>0.01), l'orange est de la fatigue que le contexte dément → on la TAIT.
+       Mesure : dys réel 293/294 justes gardées, 95 % des pointeuses ; ~1/3 de fatigue en moins. */
+    var vigs=[];
+    for(var q=0;q<(corrs||[]).length;q++){var vf=corrs[q];
+      if(vf.tier!=='vigilance'||!vf.sugg||(vf.name||'').indexOf('(juge)')>=0)continue;
+      if(vf.sugg.toLowerCase()===String(vf.word||'').toLowerCase())continue;
+      vigs.push({i:vf.i,sugg:vf.sugg,span:vf.span||1});}
+    if(!cadres.length&&!vigs.length){_b2.cache={txt:t,flags:[],tais:{}};return;}
     _b2.enCours=t;
     (async function(){
       try{
-        var flags=[];
-        for(var k=0;k<cadres.length;k++){var c=cadres[k];
+        var flags=[],tais={},st=null,k;
+        for(k=0;k<cadres.length;k++){var c=cadres[k];
           var w=_b2Fenetre(t,c.pos),d=c.cand.length-t.length;
           var s0=await B2JUGE.score(t.slice(w[0],w[1])),s1=await B2JUGE.score(c.cand.slice(w[0],w[1]+d));
           if(s1-s0>_B2_TAU)flags.push({i:c.i,sugg:c.sugg});}
+        for(k=0;k<vigs.length;k++){var v=vigs[k];
+          if(st===null){st=[];var _rx=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,_m;while((_m=_rx.exec(t)))st.push([_m.index,_m.index+_m[0].length]);}
+          if(v.i>=st.length||v.i+v.span-1>=st.length)continue;
+          var a=st[v.i][0],b=st[v.i+v.span-1][1];
+          var cand=t.slice(0,a)+v.sugg+t.slice(b);
+          var w2=_b2Fenetre(t,a),d2=cand.length-t.length;
+          var e0=await B2JUGE.score(t.slice(w2[0],w2[1])),e1=await B2JUGE.score(cand.slice(w2[0],w2[1]+d2));
+          if(e0-e1>_B2_TAIS)tais[v.i+'>'+v.sugg]=1;}           // l'écrit gagne nettement → fatigue
         _b2.enCours=null;
         if(String($('vdc-in').value).replace(/[’ʼ]/g,"'")!==t)return;   // le texte a bougé pendant le calcul → verdict caduc
-        _b2.cache={txt:t,flags:flags};
-        if(flags.length)runCorr();                             // re-passe : b2SaisInf lit le cache
+        _b2.cache={txt:t,flags:flags,tais:tais};
+        var nT=0,kk;for(kk in tais)nT++;
+        if(flags.length||nT)runCorr();                         // re-passe : b2SaisInf + le filtre _b2Tais lisent le cache
       }catch(e){_b2.enCours=null;}
     })();}
   function _b2Etat(msg){var e=$('vdc-b2-etat');if(e)e.textContent=msg;}
@@ -27167,7 +27188,8 @@ function spellTokenCore(tok,atStart,T,idx){
   function runCorr(){_hideCard();_autoGrow();var t=$('vdc-in').value;
     if(t.length>_CORR_MAX){_corrs=[];_navRender();$('vdc-count').innerHTML='';var _rzL=$('vdc-result');if(_rzL)_rzL.innerHTML='';$('vdc-out').innerHTML='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea;font-size:14px">📏 <b>Texte trop long</b> ('+t.length.toLocaleString('fr-FR')+' caractères) pour la correction en temps réel. Au-delà de ~'+_CORR_MAX.toLocaleString('fr-FR')+' caractères, corrige par sections (un paragraphe à la fois). Ton texte n’est pas modifié.</div>';return;}   // #UI plafond MESURÉ (Chrome) : au-delà, le rendu O(n) de milliers de spans FIGE l'onglet (~30k). Dégradation douce, texte intact.
     _corrs=SP.ready?_computeCorrs(t):[];
-    if(_b2.on&&!_b2.charge)_b2Charge();_b2Analyse(t);   // greffe juge-aval : chargement paresseux + verdict async (re-déclenche runCorr via le cache)
+    if(_b2.on&&!_b2.charge)_b2Charge();_b2Analyse(t,_corrs);   // greffe juge-aval + arbitre : chargement paresseux + verdicts async (re-déclenchent runCorr via le cache)
+    _corrs=_corrs.filter(function(f){return !_b2Tais(f);});    // l'arbitre a jugé : les oranges que le contexte dément se taisent (opt-in, cache par texte)
     var _ceoff=_ceCaret($('vdc-in'));$('vdc-in').innerHTML=_renderView(t,_corrs,false);_ceSetCaret($('vdc-in'),_ceoff);        // OVERLAY sur la zone de frappe : ton texte ORIGINAL (intact), corrections surlignées
     if(typeof _syncScroll==='function')_syncScroll();             // réaligne l'overlay (réécrire innerHTML a remis son scroll à 0)
     _lastCorrected=_correctedText(t,_corrs);
@@ -27208,7 +27230,7 @@ function spellTokenCore(tok,atStart,T,idx){
     try{if(localStorage.getItem('vdc_b2')==='1'){bb.checked=true;_b2.on=true;}}catch(e){}
     bb.addEventListener('change',function(){_b2.on=bb.checked;
       try{localStorage.setItem('vdc_b2',bb.checked?'1':'0');}catch(e){}
-      if(!bb.checked){_b2Etat('');_b2.cache={txt:null,flags:[]};}
+      if(!bb.checked){_b2Etat('');_b2.cache={txt:null,flags:[],tais:{}};}
       runCorr();});})();
   var _ct;cbtn.onclick=function(){cov.classList.add('on');$('vdc-in').focus();loadVdcLex();loadSpellerLex();loadGenderLex();loadPrenoms();loadNounPost();loadPosHmm();loadOsLm();runCorr();};
   $('vdc-x').onclick=function(){cov.classList.remove('on');};
