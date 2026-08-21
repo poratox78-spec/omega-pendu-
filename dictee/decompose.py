@@ -131,7 +131,18 @@ def g2p(word, accents=True, seg=None):
         nxt = w[i + len(g)] if i + len(g) < len(w) else '#'
         ph, h = '?', 0.0
         if g in DBL:
-            ph = ((COND.get(g[0]) or {}).get('_', [g[0]])[0]) or g[0]; h = 0.0
+            # BUG DBL→∅ (signalé par Rem 2026-08-21) : l'ancienne branche prenait le DÉFAUT de la
+            # lettre SIMPLE — pour « ss » c'est '∅' (s final muet) → poisson→/pwa§/, assis→/ai/ ;
+            # « gg » héritait de /ʒ/ (g devant e/i) ; « zz » de ∅. Le `or g[0]` ne rattrapait que
+            # la chaîne vide, pas '∅'. On consulte COND[g] (l'entrée du DIGRAMME, correcte),
+            # repli anti-∅ sur la lettre sinon. Miroir app (même ligne corrigée).
+            t = COND.get(g)
+            if t:
+                e = t.get(nxt) or t.get('_')
+                ph, h = e[0], e[1]
+            else:
+                e = (COND.get(g[0]) or {}).get('_') or [g[0], 0.0]
+                ph, h = (e[0] if e[0] and e[0] != u'∅' else g[0]), 0.0
         elif g in ACC and accents:                       # overlay accents (extension assumée)
             ph, h = ACC[g]
         else:
