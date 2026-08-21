@@ -17,9 +17,9 @@
   var css = document.createElement('style');
   css.textContent =
     '.son-seg{font-size:1.14em}' +
-    '.son-mute{color:#5f6672}.son-mute.son-on-dark{color:#b4bcc8}' +            // gris FONCÉ sur clair / CLAIR sur sombre (≥4,5:1)
+    '.son-mute{color:#a34700}.son-mute.son-on-dark{color:#f0a04b}' +            // muette = VERMILLON Okabe-Ito (clair/sombre) — le gris était pénible ; paire daltonien-sûre avec le bleu des syllabes
     '.son-syl{color:#0072b2}.son-syl.son-on-dark{color:#6cc0f0}' +               // syllabe impaire : bleu Okabe-Ito (clair/sombre)
-    '.son-syl.son-mute{color:#5f6672}.son-syl.son-mute.son-on-dark{color:#b4bcc8}';
+    '.son-syl.son-mute{color:#a34700}.son-syl.son-mute.son-on-dark{color:#f0a04b}';
   document.head.appendChild(css);
   var loaded = false;
   function loadFonts() {
@@ -167,7 +167,7 @@
     if (row) {
       var lab = document.createElement('label');
       lab.className = 'vdd-sc';
-      lab.title = 'Police de son OMEGA Dys : phonème voisé = épais, sourd = fin, lettre muette = grisée. Le texte ne change pas (habillage seulement).';
+      lab.title = 'Police de son OMEGA Dys : phonème voisé = épais, sourd = fin, lettre muette = vermillon. Le texte ne change pas (habillage seulement).';
       var cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.id = 'vdd-son';
@@ -217,7 +217,7 @@
       b.addEventListener('click', handler);
       return b;
     }
-    var bt = mkBtn('vdc-son', '🔡 Police de son', 'Police de son OMEGA Dys dans la saisie et le texte corrigé : voisé = épais, sourd = fin, muette = grisée (texte inchangé)', function () { setOn(!on); });
+    var bt = mkBtn('vdc-son', '🔡 Police de son', 'Police de son OMEGA Dys dans la saisie et le texte corrigé : voisé = épais, sourd = fin, muette = vermillon (texte inchangé)', function () { setOn(!on); });
     var bs = mkBtn('vdc-syl', '✂️ Syllabes', 'Alterne la couleur des syllabes (règle de l’attaque maximale) — avec la police de son', function () { setSyl(!syl); if (!on && syl) setOn(true); });
     controls.push(function (v, w) { bt.setAttribute('aria-pressed', v ? 'true' : 'false'); bs.setAttribute('aria-pressed', w ? 'true' : 'false'); });
     var hostB = document.createElement('div');

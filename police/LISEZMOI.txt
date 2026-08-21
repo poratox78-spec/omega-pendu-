@@ -27,7 +27,7 @@ Ce que la police fait TOUTE SEULE dans Word
 
 Ce qu'elle NE fait PAS dans Word (et pourquoi)
 -----------------------------------------------
-  La vraie « police de son » — le s de « poison » rendu voisé, les lettres MUETTES grisées, les
+  La vraie « police de son » — le s de « poison » rendu voisé, les lettres MUETTES en vermillon, les
   syllabes en couleur — dépend du SON du mot, que seul notre moteur (g2p) connaît. Une police
   installée ne peut pas le savoir. Cette couche existe dans l'application OMEGA-Ω (Correcteur,
   Dictée) et dans l'extension Chrome (panneau latéral). Un complément Word est à l'étude.

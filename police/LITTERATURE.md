@@ -76,7 +76,7 @@ Décisions appliquées (démo + aperçu) :
 
 | Élément | Avant | Après |
 |---|---|---|
-| Muette | `opacity .28` (illisible) | gris-bleu **foncé** `#5f6672` (contraste ≈ 5,4:1, lisible mais en retrait) — codage par **luminosité**, perçu par tous les types de daltonisme |
+| Muette | `opacity .28` (illisible) → gris foncé `#5f6672` (retour terrain : « le gris, c'est pénible ») | **vermillon Okabe-Ito** `#a34700` sur clair / `#f0a04b` sur sombre (≥ 4,5:1) — la paire vermillon/bleu est LA paire daltonien-sûre (les syllabes étant en bleu) |
 | Paires voisée/sourde (renfort) | rouge sombre / bleu | Okabe-Ito assombri `#a34700` / `#0072b2` (≥ 4,5:1) |
 | Soulignés graphèmes | vert | violet `#8b5a9e` (plus de vert dans la page) |
 
