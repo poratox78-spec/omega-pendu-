@@ -1988,6 +1988,13 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur ». Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app.
     if(SP.WORDS.has(low))return null;                                  // mot valide → couche grammaire
+    if((low.charAt(0)==='à'||low.charAt(0)==='a')&&low.length>=3){var _rsd=low.slice(1);
+      if(SP.WORDS.has(_rsd)&&/V/.test(SP.POS[_rsd]||'')&&!/(er|re|ir)$/.test(_rsd)
+         &&!SP.WORDS.has(low.charAt(0)+low.charAt(1)+low.slice(1))){   // le REDOUBLEMENT prime : « aporté »→apporté (couche DC), pas « a porté »
+        /* SOUDURE à/a+VERBE (enquête des 22, texte3 réel : « àeu »→a eu, « àfinit »→a finit puis
+           la grammaire accorde finit→fini en cascade). Le reste doit être une forme CONJUGUÉE ou
+           un participe — jamais un infinitif (« atendre » = attendre, pas « a tendre »). */
+        return ['vigilance','a '+_rsd];}}
     if(_SPELL_KEEP[low])return null;                                   // mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ne pas corriger (FP sur texte FR à mots anglais)
     if(tok[0]!==tok[0].toLowerCase()&&!atStart)return null;            // nom propre (majuscule hors début)
     var d=deaccS(low);
@@ -2042,7 +2049,21 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;return py-px;}   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
       var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
-    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];/* OMISSION — NE PAS RACCOURCIR CE QUE L'UTILISATEUR A DÉJÀ RACCOURCI. Miroir exact de l'app.
+    var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
+    /* DÉTERMINANT : le GENRE du NOM SUIVANT domine la fréquence (doctrine aide-frappe ②, enquête
+       des 22, texte6 réel : « dans uen maison » proposait « un ») — si le candidat retenu est un
+       déterminant genré, que le nom qui suit porte un genre PUR opposé et que le jumeau de
+       l'autre genre est aussi candidat, le jumeau gagne. */
+    var _DPAIR={un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'};
+    if(_DPAIR[deaccS(w1)]&&T&&idx!=null&&idx+1<T.length){
+      var _nw=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+      if(SP.WORDS.has(_nw)){                                     // POS clairsemée (« maison » sans entrée) : sGender pur suffit, null → pas d'échange
+        var _ng=sGender(_nw),_dg=DET_G[deaccS(w1)],_pr=_DPAIR[deaccS(w1)];
+        if(_ng&&_dg&&_ng!==_dg&&DET_G[deaccS(_pr)]===_ng){
+          var _dl=deaccS(low),_dp=deaccS(_pr);
+          var _ana=_dl.split('').sort().join('')===_dp.split('').sort().join('');   // « uen »/« une » : anagramme — la transposition n'est pas dans edits1
+          if(cand[_pr]||_ana||sEd1(_dl,_dp)){w1=_pr;if(cand[_pr]){p1=cand[_pr][0];f1=cand[_pr][1];}else{p1=1;f1=SP.FREQ[_pr]||0;}}}}}
+/* OMISSION — NE PAS RACCOURCIR CE QUE L'UTILISATEUR A DÉJÀ RACCOURCI. Miroir exact de l'app.
      La faute dys la plus courante est d'OMETTRE des lettres, et le moteur répondait parfois par un mot
      PLUS COURT que la saisie (« afreuses »→affreux au lieu d'affreuses). Mesuré sur 6 000 non-mots
      WiCoPaCo : 135 réponses plus courtes, dont 114 où le BON mot était DÉJÀ candidat = re-classement.
@@ -2157,6 +2178,13 @@ function spellUnknown(tok,atStart,T,idx){
     var _iaU=/é$/.test(low);                                               // AUDIBILITÉ (orange) : saisie à finale /e/ (é) → proposer l'audible (afolé→affolé), PAS le muet plus fréquent. Miroir app. Orange hors FP=0.
     var _pkU=phonKey(low),_bh=-1;                                          // AUDIBILITÉ (doctrine) : le dys écrit ce qu'il ENTEND. Un candidat HOMOPHONE passe avant un candidat seulement proche à l'œil — sinon « koi » se corrige en « ko » (fréquent, muet) au lieu de « quoi » (homophone). La garde de même première LETTRE écartait justement k/qu, c/qu, f/ph : on l'ouvre quand la clé phonétique est IDENTIQUE.
     for(i=0;i<arr.length;i++){w=arr[i];var _hm=phonKey(w)===_pkU?1:0;if(!_hm&&deaccS(w).charAt(0)!==d.charAt(0))continue;var _au=(_iaU&&/(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(w))?1:0,_fq=SP.FREQ[w]||0;if(_hm>_bh||(_hm===_bh&&(_au>ba||(_au===ba&&_fq>bf)))){_bh=_hm;ba=_au;bf=_fq;best=w;}}   // clé : audibilité d'abord (si saisie audible), puis fréquenceba=_au;bf=_fq;best=w;}}
+    if(best&&T&&idx!=null&&idx+1<T.length){                              // DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — même règle que le noyau, pour la voie best-effort
+      var _dp2={un:'une',une:'un',le:'la',la:'le',ce:'cette',cette:'ce',cet:'cette'}[deaccS(best)];
+      if(_dp2&&DET_G[deaccS(best)]){var _nw2=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+        if(SP.WORDS.has(_nw2)){var _ng2=sGender(_nw2);
+          if(_ng2&&_ng2!==DET_G[deaccS(best)]&&DET_G[deaccS(_dp2)]===_ng2){
+            var _da2=deaccS(low).split('').sort().join('')===deaccS(_dp2).split('').sort().join('');
+            if(_da2||sEd1(deaccS(low),deaccS(_dp2)))best=_dp2;}}}}
     return (best&&best!==low)?best:'';                                      // '' = inconnu sans suggestion fiable (simple alerte)
   }
   // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
