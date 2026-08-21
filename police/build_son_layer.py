@@ -28,6 +28,7 @@ SENTENCES = [
     "Les petits chats blancs jouent dans le jardin.",
     "Papa porte un gâteau et des bonbons doux.",
     "La vache et le cheval broutent derrière la barrière.",
+    "L'école, c'est aujourd'hui : j'ai vu qu'il n'est pas là, jusqu'à demain.",
 ]
 
 VOICED_PH = set('bdgvzZ')     # SAMPA : obstruentes voisées
@@ -36,7 +37,17 @@ UNVOICED_PH = set('ptkfsS')   # SAMPA : obstruentes sourdes
 #  à la source — decompose.g2p consulte COND[g] — et re-mesuré : held-out 55,20 % exact,
 #  90,46 % phonémique, au-dessus de la baseline 52,4/89,5.)
 
-TOKEN = re.compile(r"[a-zà-ÿœ']+", re.IGNORECASE)
+TOKEN = re.compile(r"[a-zà-ÿœ'’]+", re.IGNORECASE)
+
+# Préfixes ÉLIDÉS (l'école, j'ai, c'est, qu'il, jusqu'à…) — MÊME table que son_core.js
+ELIDE = {
+    'l': [('l', 'l')], 'j': [('j', 'Z')], 'd': [('d', 'd')], 'n': [('n', 'n')], 'c': [('c', 's')],
+    's': [('s', 's')], 'm': [('m', 'm')], 't': [('t', 't')], 'qu': [('qu', 'k')],
+    'jusqu': [('j', 'Z'), ('u', 'y'), ('s', 's'), ('qu', 'k')],
+    'lorsqu': [('l', 'l'), ('o', 'O'), ('r', 'R'), ('s', 's'), ('qu', 'k')],
+    'puisqu': [('p', 'p'), ('ui', '8i'), ('s', 's'), ('qu', 'k')],
+    'quoiqu': [('qu', 'k'), ('oi', 'wa'), ('qu', 'k')],
+}
 
 # Mots-fonction (classe fermée) : le g2p sublexical les aligne mal (e final « muet »
 # appliqué au schwa prononcé, correction apprise s|e→z fausse en initiale). Table
@@ -78,6 +89,21 @@ def _recase(word, pairs):
 
 
 def word_segments(word):
+    parts = re.split(r"(['’])", word)
+    if len(parts) > 1:                                   # élision : chaque partie à sa route, apostrophe neutre
+        segs, syll = [], []
+        for p, part in enumerate(parts):
+            if not part:
+                continue
+            if part in ("'", '’'):
+                segs.append({'g': part, 'ph': '', 'cls': 'n'}); syll.append(part); continue
+            pre = ELIDE.get(part.lower()) if p + 1 < len(parts) else None
+            rc = _recase(part, pre) if pre else None
+            if rc is not None:
+                segs += [{'g': g, 'ph': ph, 'cls': classify(ph)} for g, ph in rc]; syll.append(part)
+            else:
+                sub = word_segments(part); segs += sub['segs']; syll += sub['syll']
+        return {'mot': word, 'phono': ''.join(s['ph'] for s in segs), 'src': 'elide', 'segs': segs, 'syll': syll}
     lw = word.lower()
     if lw in CLIT:
         pairs, phono, src = CLIT[lw], ''.join(p for _, p in CLIT[lw]), 'clit'
