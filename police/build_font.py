@@ -31,7 +31,12 @@ VOICED = set('bdgvzj')
 UNVOICED = set('ptckqfs')
 
 
+_UNIFORM = None   # graisse uniforme (variantes Light/Heavy pour la couche « police de son »)
+
+
 def weight_of(ch):
+    if _UNIFORM is not None:
+        return _UNIFORM
     c = ch.lower()
     if c in VOICED:
         return W_VOICED
@@ -380,7 +385,12 @@ def build_glyph_contours(ch):
     return None, None
 
 
-def main():
+def build(style='Regular', uniform=None):
+    """Construit une TTF. `uniform` force une graisse unique (Light/Heavy) : c'est la
+    couche de rendu (g2p) qui choisit alors la graisse par PHONÈME via des spans —
+    le texte Unicode, lui, ne change JAMAIS."""
+    global _UNIFORM
+    _UNIFORM = uniform
     import os
     here = os.path.dirname(os.path.abspath(__file__))
     chars = list('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ') + \
@@ -466,11 +476,12 @@ def main():
     fb.setupGlyf(glyphs)
     fb.setupHorizontalMetrics(metrics)
     fb.setupHorizontalHeader(ascent=880, descent=-280)
+    fam = 'OMEGA Dys' if style == 'Regular' else 'OMEGA Dys ' + style
     fb.setupNameTable({
-        'familyName': 'OMEGA Dys',
+        'familyName': fam,
         'styleName': 'Regular',
-        'fullName': 'OMEGA Dys Regular',
-        'psName': 'OMEGADys-Regular',
+        'fullName': 'OMEGA Dys ' + style,
+        'psName': 'OMEGADys-' + style,
         'version': 'Version 0.1',
         'description': 'Police experimentale dys — design en aveugle OMEGA '
                        '(voisement = graisse, anti-miroir bdpq, accents agrandis).',
@@ -479,9 +490,15 @@ def main():
     fb.setupOS2(sTypoAscender=880, sTypoDescender=-280, sTypoLineGap=200,
                 usWinAscent=960, usWinDescent=320)
     fb.setupPost()
-    out = os.path.join(here, 'OmegaDys-Regular.ttf')
+    out = os.path.join(here, 'OmegaDys-%s.ttf' % style)
     fb.save(out)
     print('OK ->', out, '(%d glyphes)' % len(order))
+
+
+def main():
+    build('Regular')                    # graisse par lettre (statique, utilisable seule)
+    build('Light', uniform=W_UNVOICED)  # pour les spans « sourde » de la police de son
+    build('Heavy', uniform=W_VOICED)    # pour les spans « voisée » de la police de son
 
 
 if __name__ == '__main__':
