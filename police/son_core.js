@@ -10,9 +10,6 @@ var OmegaDysSonCore = (function () {
   var I2S = {'a':'a','e':'e','i':'i','o':'o','u':'u','y':'y','ɑ':'a','ɔ':'O','ɛ':'E','ø':'2','œ':'9','ə':'°','p':'p','b':'b','t':'t','d':'d','k':'k','ɡ':'g','g':'g','f':'f','v':'v','s':'s','z':'z','m':'m','n':'n','l':'l','ʁ':'R','ʃ':'S','ʒ':'Z','ɲ':'N','ŋ':'G','j':'j','w':'w','ɥ':'8','ɑ̃':'@','ɛ̃':'5','œ̃':'1','ɔ̃':'§'};
   // overlay accents (le g2p moteur rend '?' sur les lettres accentuées) — verbatim panneau Décompose
   var ACC = {'é':'e','è':'ɛ','ê':'ɛ','ë':'ɛ','à':'a','â':'a','ä':'a','ô':'o','ö':'o','î':'i','ï':'i','û':'y','ù':'y','ü':'y','ÿ':'i','ç':'s'};
-  // contournement du bug DBL du g2p moteur (doubles consonnes rendues muettes : « assis »→/ai/ —
-  // tâche séparée) ; jamais en finale de mot ; devient INERTE quand le moteur sera corrigé.
-  var DBL_FIX = {ss:'s', ll:'l', tt:'t', pp:'p', mm:'m', nn:'n', rr:'R', ff:'f', cc:'k'};
   // mots-fonction (classe fermée) — MÊME table que build_son_layer.py (schwa = ° en SAMPA Lexique)
   var CLIT = {
     le:[['l','l'],['e','°']], la:[['l','l'],['a','a']], les:[['l','l'],['e','e'],['s','']],
@@ -49,7 +46,6 @@ var OmegaDysSonCore = (function () {
         var g = steps[k].g, raw = steps[k].ph;
         if ((raw === '?' || !raw) && ACC[g]) raw = ACC[g];
         var sp = ipa2sampa(raw);
-        if (sp === '' && DBL_FIX[g] && k < n - 1) sp = DBL_FIX[g];
         pairs.push([g, sp]);
       }
     }
@@ -79,6 +75,6 @@ var OmegaDysSonCore = (function () {
     return out;
   }
   return {wordSegments: wordSegments, sentenceSegments: sentenceSegments,
-          classify: classify, ipa2sampa: ipa2sampa, CLIT: CLIT, DBL_FIX: DBL_FIX};
+          classify: classify, ipa2sampa: ipa2sampa, CLIT: CLIT};
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSonCore;

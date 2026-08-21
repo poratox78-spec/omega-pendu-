@@ -18,6 +18,10 @@ const coreSrc = fs.readFileSync(path.join(HERE, 'son_core.js'), 'utf8');
 const mCore = html.match(/<script id="omegadys-son-core">\n([\s\S]*?)<\/script>/);
 if (!mCore) fail.push('bloc omegadys-son-core absent de l\'app (lancer inject_fonts.py)');
 else if (mCore[1] !== coreSrc) fail.push('son_core.js injecté ≠ police/son_core.js (relancer inject_fonts.py)');
+const uiSrc = fs.readFileSync(path.join(HERE, 'son_ui.js'), 'utf8');
+const mUi = html.match(/<script id="omegadys-son-ui">\n([\s\S]*?)<\/script>/);
+if (!mUi) fail.push('bloc omegadys-son-ui absent de l\'app (lancer inject_fonts.py)');
+else if (mUi[1] !== uiSrc) fail.push('son_ui.js injecté ≠ police/son_ui.js (relancer inject_fonts.py)');
 for (const k of ['regular', 'light', 'heavy']) {
   const m = html.match(new RegExp('<script type="text/plain" id="omegadys-b64-' + k + '">([^<]*)</script>'));
   if (!m || !m[1]) { fail.push('bloc police ' + k + ' absent'); continue; }
