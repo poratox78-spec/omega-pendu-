@@ -44,13 +44,13 @@ TOKEN = re.compile(r"[a-zà-ÿœ']+", re.IGNORECASE)
 # appliqué au schwa prononcé, correction apprise s|e→z fausse en initiale). Table
 # explicite — pratique standard, PAS une rustine cachée (auditée ci-dessous).
 CLIT = {
-    'le': [('l', 'l'), ('e', '@')], 'la': [('l', 'l'), ('a', 'a')],
+    'le': [('l', 'l'), ('e', '°')], 'la': [('l', 'l'), ('a', 'a')],
     'les': [('l', 'l'), ('e', 'e'), ('s', '')],
-    'se': [('s', 's'), ('e', '@')], 'ne': [('n', 'n'), ('e', '@')],
-    'de': [('d', 'd'), ('e', '@')], 'des': [('d', 'd'), ('e', 'e'), ('s', '')],
-    'me': [('m', 'm'), ('e', '@')], 'te': [('t', 't'), ('e', '@')],
-    'ce': [('c', 's'), ('e', '@')], 'je': [('j', 'Z'), ('e', '@')],
-    'que': [('qu', 'k'), ('e', '@')], 'du': [('d', 'd'), ('u', 'y')],
+    'se': [('s', 's'), ('e', '°')], 'ne': [('n', 'n'), ('e', '°')],
+    'de': [('d', 'd'), ('e', '°')], 'des': [('d', 'd'), ('e', 'e'), ('s', '')],
+    'me': [('m', 'm'), ('e', '°')], 'te': [('t', 't'), ('e', '°')],
+    'ce': [('c', 's'), ('e', '°')], 'je': [('j', 'Z'), ('e', '°')],
+    'que': [('qu', 'k'), ('e', '°')], 'du': [('d', 'd'), ('u', 'y')],
     'un': [('un', '1')], 'une': [('u', 'y'), ('n', 'n'), ('e', '')],
 }
 
@@ -68,10 +68,11 @@ def classify(ph):
 
 def _recase(word, pairs):
     """Reprojette les graphèmes (minuscules) sur le mot ORIGINAL (casse préservée) :
-    le texte affiché doit être exactement le texte d'entrée."""
+    le texte affiché doit être exactement le texte d'entrée. FAIL-SAFE (parité son_core.js) :
+    si l'alignement ne couvre pas le mot (apostrophe, tiret…), UN segment neutre = texte intact."""
     out, pos, lw = [], 0, word.lower()
-    if ''.join(g for g, _ in pairs) != lw:               # alignement partiel → pas de reprojection
-        return pairs
+    if ''.join(g for g, _ in pairs) != lw:
+        return None                                      # → segment neutre unique chez l'appelant
     for g, ph in pairs:
         out.append((word[pos:pos + len(g)], ph))
         pos += len(g)
@@ -81,19 +82,22 @@ def _recase(word, pairs):
 def word_segments(word):
     lw = word.lower()
     if lw in CLIT:
-        pairs = _recase(word, CLIT[lw])
-        segs = [{'g': g, 'ph': ph, 'cls': classify(ph)} for g, ph in pairs]
-        return {'mot': word, 'phono': ''.join(p for _, p in pairs), 'src': 'clit', 'segs': segs}
-    rec = decompose(word)
-    pairs, n = [], len(rec['alignement'])
-    for k, gp in enumerate(rec['alignement']):
-        g, ph = gp['g'], gp['ph']
-        if ph == '' and g in DBL_FIX and k < n - 1:      # contournement bug DBL (jamais en finale)
-            ph = DBL_FIX[g]
-        pairs.append((g, ph))
+        pairs, phono, src = CLIT[lw], ''.join(p for _, p in CLIT[lw]), 'clit'
+    else:
+        rec = decompose(word)
+        pairs, n = [], len(rec['alignement'])
+        for k, gp in enumerate(rec['alignement']):
+            g, ph = gp['g'], gp['ph']
+            if ph == '' and g in DBL_FIX and k < n - 1:  # contournement bug DBL (jamais en finale)
+                ph = DBL_FIX[g]
+            pairs.append((g, ph))
+        phono, src = rec['phono'], rec['src_phon']
     pairs = _recase(word, pairs)
-    segs = [{'g': g, 'ph': ph, 'cls': classify(ph)} for g, ph in pairs]
-    return {'mot': word, 'phono': rec['phono'], 'src': rec['src_phon'], 'segs': segs}
+    if pairs is None:                                    # fail-safe : mot entier, classe neutre
+        segs = [{'g': word, 'ph': phono, 'cls': 'n'}]
+    else:
+        segs = [{'g': g, 'ph': ph, 'cls': classify(ph)} for g, ph in pairs]
+    return {'mot': word, 'phono': phono, 'src': src, 'segs': segs}
 
 
 def sentence_layer(sentence):

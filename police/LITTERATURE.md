@@ -48,7 +48,16 @@ l'**habillage à l'affichage** :
 - **Bug moteur découvert au branchement** (et signalé en tâche séparée, doctrine §4) : la branche
   DBL de `decompose.g2p` rend les doubles consonnes muettes (`poisson`→/pwa§/, `assis`→/ai/) et
   `g2p_corrections.json` a APPRIS `ss→∅` ; contournement local documenté dans `build_son_layer.py`
-  en attendant le correctif mesuré (held-out).
+  en attendant le correctif mesuré (held-out). **Confirmé dans l'app** (`_DECL2.g2p`, même défaut
+  `COND[g[0]]['_']` dans la branche DBL) — le contournement `DBL_FIX` est porté dans `son_core.js`
+  et devient inerte quand le moteur sera corrigé.
+- **Intégrée dans l'APP** (banc de mesure = la dictée) : bloc idempotent `OMEGADYS-SON`
+  (`inject_fonts.py` : 3 TTF base64 + `son_core.js` sans DOM + `son_ui.js`) → case
+  « Police de son » dans les réglages de la dictée (OFF par défaut, localStorage `vdd_son`,
+  polices chargées paresseusement). La phrase correcte (`.vdd-truth`, y compris Repère/Conjugue)
+  est habillée par le g2p moteur : voisé=Heavy, sourd=Light, muette=gris foncé — texte DOM
+  identique. Parité CI `parity_son.js` : fraîcheur du bloc, clitiques ≡ Python, texte jamais
+  altéré, ancres poison/poisson/chats.
 
 ## Couleur & daltonisme (ajout 2026-08-21, retour terrain : « le gris clair est dur à lire »)
 

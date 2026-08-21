@@ -60,6 +60,7 @@ run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_censu
 run "angle mort ÉLISION (différentiel l'X vs cet/cette X)" node dictee/elision_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
 run "parité extension dys-core↔Py"  node extension/parity_core.js
+run "police de son (fraîcheur bloc app + clitiques≡Py + texte intact)" node police/parity_son.js
 run "parité OS-sujet 3 moteurs (accord verbe orange)" node dictee/parity_os.js
 run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesses.js
 run "parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé)" node dictee/parity_gender_coll.js
