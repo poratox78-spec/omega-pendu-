@@ -195,3 +195,19 @@ corrigé du corpus (« Il servi aussi de lieu ») — le juge a trouvé des faut
 « Elle grandi » → orange « a grandi » (être/avoir selon ETRE_PP), branchée au juge opt-in,
 bout-en-bout navigateur vert. La leçon (2e fois, après sait/s'est) : le mou ne juge bien que
 les candidats que le squelette fabrique — jamais l'ouvert.
+
+### DISTILLATION INVERSE mou→squelette : la carte « pluriel-tais » (chantier symbiose n°3, 2026-08-21)
+
+Première re-cristallisation : la compétence du juge sur la famille « accord pluriel à vérifier »
+(la plus grosse fatigue, tue à ~2/3 par le juge) devient une CARTE logistique locale embarquée
+(traits : mots voisins déaccentués + polarité du déterminant + nombre + verbe pluriel à droite),
+active pour TOUS — sans opt-in, sans téléchargement. La leçon d'entraînement qui a tout changé :
+la carte v1 (étiquettes du juge sur du correct seulement) MENAÇAIT les justes (« Les
+propriétaire » p=0.53) car « déterminant pluriel + nom singulier » n'existe PAS en texte correct
+— le squelette a dû GÉNÉRER 6 000 justes par construction (pluriels corrects singularisés dont
+l'orange re-tire) pour que la carte apprenne à les garder. Mesure finale (held-out disjoint de
+tout entraînement, artefact élagué évalué tel que baké) : **19/19 oranges justes dys GARDÉES**
+(seuil 0.9, plus proche menacée p=0.79), ~53 % de la fatigue tue (fp_scale 120/228, dys 19/31).
+Miroir app+extension (plTaisCarte), python sans producteur pluralVig. Le juge opt-in reste
+au-dessus et en tait davantage. Bancs : distill_pluriel_dump.js + distill_pluriel.py ;
+bout-en-bout navigateur : « le 25 août » ne montre plus jamais « aoûts », pipeline SYNC.
