@@ -1,6 +1,6 @@
 {
- "justes": 294,
- "pointeuses": 238,
+ "justes": 295,
+ "pointeuses": 239,
  "fatigue": 140,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -157,6 +157,7 @@
   "magsain→magasin [orthographe] inversion",
   "maiss→mais [orthographe] lettre_trop",
   "maladit→maladies [orthographe] terminaison",
+  "marié→mariée [accord participe à vérifier] dys_reel/texte3_h22",
   "marocein→marocain [mot inconnu] lettre_change",
   "mdéias→médias [orthographe] inversion",
   "mein→main [orthographe] lettre_change",
