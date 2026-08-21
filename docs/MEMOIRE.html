@@ -396,7 +396,7 @@ Documents liés : rapport de référence &amp; mode d'emploi · NEO muette/crois
 </main>
 </div>
 <script>
-const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références",annexe:"Annexe — Cadre opératoire IA"};
+const titles={m0:"Résumé",m1:"Thèse",m2:"Tâche & doctrine",m3:"Méthode",m4:"Architecture",m5:"Déclarations & NEO",m6:"Croiser ≠ additionner",m7:"Résultats",m8:"Résultats négatifs",m9:"Principes",m10:"Questions ouvertes",m11t:"Travaux liés",m11:"Conclusion",m13:"Références",m14:"Police OMEGA Dys & police de son",annexe:"Annexe — Cadre opératoire IA"};
 const toc=document.getElementById('toc');
 Object.keys(titles).forEach((id,i)=>{const a=document.createElement('a');a.href='#'+id;a.dataset.id=id;a.innerHTML='<span class="n">'+i+'</span>'+titles[id];toc.appendChild(a);});
 const links=[...toc.querySelectorAll('a')];const byId=Object.fromEntries(links.map(a=>[a.dataset.id,a]));
