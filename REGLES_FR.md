@@ -274,3 +274,19 @@ sur 16 950 phrases correctes — seuls les tirs NOUVEAUX comptent ; v1 : 3 FP lu
 Parité 3 moteurs, batterie 64/64 (census : aucune orange juste perdue). Restent de l'enquête :
 accord après s'est (orange), j'+inf (orange), vit/vie (confusable), genre du déterminant dans
 les candidats speller (uen→une), soudure à+verbe (àeu→a eu).
+
+### Réparables 4-6 LIVRÉS (2026-08-21) — rappel dys 68→70 %, ratées 9→5 %
+
+· `rSaVit` (rouge ×3) : sa/ma/ta + « vit » (forme uniquement verbale) → vie ; « il la vit
+  partir » exclu (pronom objet + passé simple). Différentiel : 0 tir sur correct.
+· `sestPpVig` (orange app+ext) : « elle s'est marié » → mariée ? Le PRONOMINAL reste orange à
+  vie (COI invariables dit/permis/demandé…, participe+infinitif « s'est vu confier », COD
+  postposé « s'est acheté une robe » → gardes fermées ; + « se donner » attrapé au flood :
+  1 seule orange sur 16 950). Le cadre accepte « c'est » (la vigilance tourne AVANT la cascade
+  c'est→s'est). ⭐ Census : la nouvelle orange juste de texte3 a fait tirer la garde « MIEUX »
+  → référence ré-ancrée 295 justes (le système fonctionne dans les deux sens).
+· `jInfVig` (orange app+ext) : « J'aimer beaucoup » → j'aime ? (l'élision exige une forme
+  conjuguée ; le TEMPS voulu est inconnu — gold imparfait — donc jamais rouge). 0 orange sur
+  16 950. ⭐ Piège payé : lire T[i-1] avant le garde i<2 = TypeError sur le 1er token.
+Restent de l'enquête : 7-8 côté speller (genre du déterminant dans les candidats « uen »→une ;
+soudure à+verbe « àeu »→a eu).

@@ -1658,6 +1658,45 @@ function ponctReglesVirgule(mots,_tg,deja){
     var cands=[lw+'s',lw+'x'];
     for(var c=0;c<2;c++){if(SP&&SP.ready&&SP.WORDS&&SP.WORDS.has(cands[c]))return ckeepcase(w,cands[c]);}
     return null;}
+  function rSaVit(T,i){
+    // « sa vit » → sa vie (enquête des 22, texte5) : possessif fém. + forme uniquement verbale =
+    // le nom homophone. « il la vit partir » : LA exclu (pronom objet + passé simple). Miroir Python.
+    if(deacc(T[i].toLowerCase())!=='vit')return null;
+    if(i===0)return null;var p=deacc(T[i-1].toLowerCase());
+    if(p!=='sa'&&p!=='ma'&&p!=='ta')return null;
+    return ckeepcase(T[i],'vie');}
+  function sestPpVig(T,i){
+    /* ORANGE « elle s'est marié » → mariée ? (enquête des 22, texte3 : c'est→s'est corrigé en
+       cascade mais l'accord ne suivait pas). PRONOMINAL = zone à pièges, donc JAMAIS rouge :
+       COI invariables (dit/permis/demandé/imaginé…), participe+INFINITIF invariable (« s'est vu
+       confier »), COD postposé invariable (« s'est acheté une robe ») → gardes fermées. */
+    var w=T[i],lw=w.toLowerCase();
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
+    var lc=lw.charAt(lw.length-1);if(lc!=='é'&&lc!=='i'&&lc!=='u')return null;
+    if(!_isPpl(w))return null;
+    if(i<2)return null;
+    var _pv1=deacc(T[i-1].toLowerCase());
+    if(_pv1!=="s'est"&&_pv1!=="c'est")return null;   // « elle C'EST marié » (texte3) : la vigilance tourne AVANT la cascade c'est→s'est — le cadre l'accepte (jamais présent sur du correct)
+    var p2=deacc(T[i-2].toLowerCase());if((p2==='ne'||p2==="n'")&&i>=3)p2=deacc(T[i-3].toLowerCase());
+    if(p2!=='elle')return null;
+    var d=deacc(lw);
+    if(d==='dit'||d==='fait'||d==='vu'||d==='rendu'||d==='laisse'||d==='demande'||d==='imagine'||d==='jure'||d==='donne')return null;   // + se donner (COD postposé idiomatique : « s'est donné jusqu'à mi-août » — flood)
+    var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';
+    if(nx==='compte')return null;
+    if(nx&&/er$/.test(nx)&&CONJ_C[nx])return null;
+    if(nx==='une'||nx==='la'||nx==='le'||nx==='les'||nx==='un'||nx==='des'||nx==='du'||nx==='son'||nx==='sa'||nx==='ses'||nx==='leur'||nx==='leurs'||nx==='de'||nx==="d'")return null;
+    var tgt=_ppAccord(lw,'s','f');if(!tgt||tgt===lw)return null;
+    return ckeepcase(w,tgt);}
+  function jInfVig(T,i){
+    /* ORANGE « J'aimer beaucoup » (enquête des 22, texte6) : j' + INFINITIF -er n'est jamais
+       valide (l'élision exige une forme conjuguée) ; le TEMPS voulu est inconnu (gold imparfait)
+       → orange avec le présent 1s comme direction, jamais imposée. */
+    var w=T[i],lw=w.toLowerCase();
+    if(!/^j['’]/.test(lw))return null;
+    var reste=deacc(lw.slice(2));
+    if(reste.length<4||!/er$/.test(reste)||!CONJ_C[reste])return null;
+    var slots=(CONJ_C[reste]||{})['ind:pre'];var p1=slots&&slots['1s'];if(!p1)return null;
+    return /^[aeiouhéèê]/.test(p1)?(w.slice(0,2)+p1):((w.charAt(0)==='J'?'Je ':'je ')+p1);}
   function rPpEpithetFem(T,i){var w=T[i],lw=w.toLowerCase();
     // sœur SINGULIER-FÉMININ de rPpEpithetNum (audit rappel dys PR#505 : « une femme cultivé » ×3) — mêmes
     // gardes + « fois » (« une fois emprisonné, Michael… » : l'accord suit le sujet), coordination dans le GN
@@ -1845,7 +1884,7 @@ function ponctReglesVirgule(mots,_tg,deja){
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
   /* ⭐ SCINDÉ EN DEUX (2026-08-11) pour avoir la MÊME STRUCTURE QUE L'APP : `correctTokens(T)`
      travaille sur un TABLEAU de tokens, `correctText` n'est qu'une enveloppe qui tokenise. Sans ce
      point d'entrée par tokens, la PYRAMIDE était impossible ici — on ne pouvait pas faire tourner la
@@ -2376,6 +2415,8 @@ function spellUnknown(tok,atStart,T,idx){
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré par l'OS + LM (résiduel « de N »)
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
+    if(!pushed){var spv=sestPpVig(T,i);if(spv){out.push({i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}   // « elle s'est marié » → mariée ? (pronominal = orange)
+    if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);

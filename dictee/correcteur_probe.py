@@ -3491,6 +3491,15 @@ def rule_vingt_cent(T, i):
     return T[i] + 's'
 
 
+def rule_sa_vit(T, i):
+    u"""« sa vit » → sa vie (enquête des 22, texte5 dys réel) : possessif fém. + « vit » (forme
+    UNIQUEMENT verbale) = toujours le nom homophone. « il la vit partir » : LA exclu (pronom
+    objet + passé simple légitime). Miroir JS ×2."""
+    if deacc(T[i].lower()) != 'vit': return None
+    if i == 0 or deacc(T[i-1].lower()) not in ('sa', 'ma', 'ta'): return None
+    return _keepcase(T[i], u'vie')
+
+
 _GUERE_DET = {'la', 'une', 'cette', 'sa', 'ma', 'ta', 'notre', 'votre', 'leur', 'en'}
 
 def rule_guere(T, i):
@@ -3549,7 +3558,7 @@ RULES = [('élision inversée', rule_deselide),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
          ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais),
-         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la), ('guère/guerre', rule_guere),
+         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la), ('guère/guerre', rule_guere), ('vit/vie', rule_sa_vit),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_il_ils),
