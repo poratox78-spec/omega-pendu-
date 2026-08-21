@@ -58,11 +58,23 @@ async function cible(port, url) {
   }
   throw new Error('le port CDP ne répond pas');
 }
+/* DÉLAIS PARTOUT (2026-08-22 : le passage complet est resté bloqué 1 h 40 dans la phase extension — aucune promesse CDP
+   n'avait de délai ; une réponse qui ne vient jamais = attente infinie, Edge orphelin). Ouverture : 15 s ; chaque
+   envoi : (timeout de la commande ou 120 s) + 10 s ; socket fermée = toutes les attentes rejetées. */
 function connecter(ws) {
   return new Promise((res, rej) => {
     const s = new WebSocket(ws); let id = 0; const attente = new Map();
-    s.onopen = () => res({ envoyer(method, params) { return new Promise((ok, ko) => { const n = ++id; attente.set(n, { ok, ko }); s.send(JSON.stringify({ id: n, method, params: params || {} })); }); }, fermer() { try { s.close(); } catch (e) {} } });
-    s.onerror = (e) => rej(new Error('WebSocket CDP : ' + (e.message || 'échec')));
+    const tOpen = setTimeout(() => { try { s.close(); } catch (e) {} rej(new Error('WebSocket CDP : pas ouverte en 15 s (' + ws.slice(0, 60) + ')')); }, 15000);
+    s.onopen = () => { clearTimeout(tOpen); res({
+      envoyer(method, params) { return new Promise((ok, ko) => {
+        const n = ++id, lim = (((params || {}).timeout) || 120000) + 10000;
+        const t = setTimeout(() => { if (attente.delete(n)) ko(new Error('CDP ' + method + ' : pas de réponse en ' + Math.round(lim / 1000) + ' s')); }, lim);
+        attente.set(n, { ok: (v) => { clearTimeout(t); ok(v); }, ko: (e) => { clearTimeout(t); ko(e); } });
+        try { s.send(JSON.stringify({ id: n, method, params: params || {} })); } catch (e) { attente.delete(n); clearTimeout(t); ko(e); }
+      }); },
+      fermer() { try { s.close(); } catch (e) {} } }); };
+    s.onerror = (e) => { clearTimeout(tOpen); rej(new Error('WebSocket CDP : ' + (e.message || 'échec'))); };
+    s.onclose = () => { clearTimeout(tOpen); for (const a of attente.values()) a.ko(new Error('WebSocket CDP fermée')); attente.clear(); };
     s.onmessage = (m) => { const d = JSON.parse(m.data); const a = attente.get(d.id); if (!a) return; attente.delete(d.id); d.error ? a.ko(new Error(d.error.message)) : a.ok(d.result); };
   });
 }
@@ -84,7 +96,10 @@ async function trouverOmega(dbg) {
   const liste = await (await fetch('http://127.0.0.1:' + dbg + '/json/list')).json();
   const ids = [...new Set(liste.map(t => (t.url || '').match(/^chrome-extension:\/\/([a-p]{32})/)).filter(Boolean).map(m => m[1]))];
   const attendu = idExtensionDepliee(path.join(RACINE, 'extension'));
-  ids.sort((x, y) => (x === attendu ? -1 : 0) - (y === attendu ? -1 : 0));
+  /* L'ID attendu est essayé MÊME s'il n'est pas listé : après une longue phase site, le service worker MV3 s'endort
+     et n'apparaît plus dans /json/list → l'ID n'était jamais tenté (« non chargée » sur le passage complet, vert en
+     --ext-seul, 2026-08-21). sidepanel.html s'ouvre indépendamment de l'état du SW. */
+  if (!ids.includes(attendu)) ids.unshift(attendu); else ids.sort((x, y) => (x === attendu ? -1 : 0) - (y === attendu ? -1 : 0));
   for (const id of ids) {
     let s = null;
     try {
@@ -205,6 +220,9 @@ async function main() {
   const proc = spawn(chrome, args, { stdio: 'ignore' });
   let sess = null, sess2 = null, code = 0;
   const nettoyer = () => { try { sess && sess.fermer(); } catch (e) {} try { sess2 && sess2.fermer(); } catch (e) {} try { proc.kill(); } catch (e) {} try { srv && srv.close(); } catch (e) {} try { fs.rmSync(profil, { recursive: true, force: true }); } catch (e) {} };
+  const GARDE_MS = 12 * 60 * 1000;   // garde-fou GLOBAL : au-delà, on dit où ça bloque et on sort (1) — jamais d'attente infinie
+  const garde = setTimeout(() => { console.log('\n✗ DÉLAI GLOBAL (' + (GARDE_MS / 60000) + ' min) — le banc est resté bloqué ; processus nettoyés.'); nettoyer(); process.exit(1); }, GARDE_MS);
+  if (garde.unref) garde.unref();
 
   // dictées réelles + attendu moteur (dump du banc), si présents en local
   let dictees = [], attenduDic = {};
@@ -254,7 +272,10 @@ async function main() {
     } else console.log('\n(dictées réelles absentes de data_local — phase sautée)');
 
     /* ── 2. EXTENSION ── */
-    const om = await trouverOmega(dbg);
+    /* DÉTECTION AVEC REPRISE : après la longue phase site, le side panel n'est pas toujours listable du premier
+       coup (vu 2026-08-21 : « non chargée » sur le passage complet, vert en --ext-seul). 10 essais espacés d'1 s. */
+    let om = null;
+    for (let k = 0; k < 10 && !om; k++) { om = await trouverOmega(dbg); if (!om) await attendre(1000); }
     if (!om) throw new Error('extension OMEGA non chargée (Chrome ≥137 refuse --load-extension sur la version officielle ; essayer CHROME=msedge.exe)');
     const extId = om.id; sess2 = om.sess;
     const r2 = await sess2.envoyer('Runtime.evaluate', { expression: SCRIPT_EXT(CAS.map(c => ({ txt: c.txt }))), awaitPromise: true, returnByValue: true, timeout: 300000 });

@@ -26,6 +26,16 @@ Réutilise le **même** lexique accentué (`speller.tsv.gz`) que la correction. 
 complétion est une suggestion d'UI, pas un *flag* FP=0 (l'invariant `flags ⊆ Python` n'est donc pas concerné).
 La même complétion existe dans l'app (panneau « 🩹 Correcteur », **Tab** = accepter la 1re).
 
+## Miroir fidèle et rouges d'office (panneau)
+- **Miroir** (« Recopier ce que je tape sur la page ») : le panneau reflète le champ actif **vide compris** —
+  un site qui vide le champ sans frappe (bouton « Envoyer », éditeur riche) est vu par une sonde 500 ms ;
+  changer d'onglet vide le panneau ; et la zone du panneau ne bloque plus le miroir après « Tout corriger »
+  (l'ancienne garde `activeElement` survivait à la perte de focus fenêtre → panneau figé).
+- **Rouges d'office** : comme sur le site, le FP=0 (auto + rouge) est appliqué dans le **texte corrigé**
+  (aperçu vert sous les boutons) et c'est lui que **📋 Copier** copie ; la zone reste intacte (pas de bataille
+  avec le miroir). Chaque rouge se révoque d'un clic (« annuler » / « réappliquer »). L'orange reste au clic.
+  « ✓ Tout corriger » écrit le corrigé dans la zone (réversible par ↩).
+
 ## Lien vers le site
 L'en-tête du panneau porte **🌐 omegapendu.com** (globe seul en panneau étroit) : ouvre le site complet
 (app, dictée, pendu) dans un nouvel onglet. `homepage_url` du manifeste pointe au même endroit.

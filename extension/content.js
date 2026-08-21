@@ -344,15 +344,34 @@
   // reste (400 ms), qui ne changent QUE le moment du scan — jamais son résultat (moteur/FP=0/parité intacts) :
   //   1) MutationObserver sur le contenteditable focalisé : capte la mutation DOM que Slate produit à chaque
   //      frappe/collage, même sans 'input' qui bulle.  2) keyup : filet clavier (keyup remonte, lui).
-  var mo = null;
+  var mo = null, poll = null, pollEl = null, pollSeen = null, pollUntil = 0;
+  // SONDE 500 ms du champ actif (Rem, 2026-08-21 : le panneau gardait le message précédent). Un site qui VIDE le
+  // champ sans frappe (bouton « Envoyer » à la souris, éditeur riche qui recrée son nœud) n'émet ni 'input' ni
+  // mutation visible pour une <textarea> → le miroir n'était jamais renvoyé. On relit le texte ; s'il a changé
+  // (vide compris) on re-planifie le scan, qui renvoie le miroir. Grâce de 5 s après la perte de focus : le clic
+  // « Envoyer » blur le champ AVANT que le site ne le vide.
+  function miroir(el) { try { if (el && isEditable(el) && chrome.runtime && chrome.runtime.id) chrome.runtime.sendMessage({ type: 'omdys-mirror', text: getText(el) }, function () { void chrome.runtime.lastError; }); } catch (e) {} }
+  function startPoll(el) {
+    pollEl = el; pollSeen = getText(el); pollUntil = 0;
+    if (poll) return;
+    poll = setInterval(function () {
+      if (!pollEl) { clearInterval(poll); poll = null; return; }
+      if (pollUntil && Date.now() > pollUntil) { pollEl = null; clearInterval(poll); poll = null; return; }
+      var now = ''; try { now = getText(pollEl); } catch (e) { now = ''; }
+      if (now === pollSeen) return;
+      pollSeen = now;
+      if (pollEl === active && !pollUntil) schedule(active); else miroir(pollEl);
+    }, 500);
+  }
   function observeActive(el) {
+    startPoll(el);
     if (mo) { mo.disconnect(); mo = null; }
     if (el && isCE(el) && typeof MutationObserver !== 'undefined') {   // uniquement contenteditable (les <input>/<textarea> passent déjà par 'input')
       mo = new MutationObserver(function () { if (active) schedule(active); });
       mo.observe(el, { childList: true, characterData: true, subtree: true });
     }
   }
-  function stopObserve() { if (mo) { mo.disconnect(); mo = null; } }
+  function stopObserve() { if (mo) { mo.disconnect(); mo = null; } if (pollEl && !pollUntil) pollUntil = Date.now() + 5000; }   // grâce 5 s (cf. sonde)
 
   document.addEventListener('focusin', function (e) {
     var el = e.target;
