@@ -6397,7 +6397,7 @@ var _DECL2 = (function () {
       const prev = i>0 ? w[i-1] : '#'
       const nxt=i+g.length<w.length?w[i+g.length]:'#'
       let ph='?',h=0
-      if(DBL.has(g)){ ph=(COND[g[0]]&&COND[g[0]]['_'][0])||g[0]; h=0 }
+      if(DBL.has(g)){ const t=COND[g]; if(t){const e=t[nxt]||t['_']; ph=e[0]; h=e[1]} else {const e=(COND[g[0]]&&COND[g[0]]['_'])||[g[0],0]; ph=(e[0]&&e[0]!=='∅')?e[0]:g[0]; h=0} }   // bug DBL→∅ corrigé (ss/gg/zz) : COND[g] d'abord (l'entrée du digramme est correcte), repli anti-∅ — miroir dictee/decompose.py
       else { const t=COND[g]; if(t){const e=t[nxt]||t['_']; ph=e[0]; h=e[1]} }
       // ── contexte GAUCHE (bilatéral) : règles déterministes connues ──
       if(g==='s' && VOW.includes(prev) && VOW.includes(nxt)){ ph='z'; h=0.10 }      // s intervocalique → /z/  (maison, rose)

@@ -32,11 +32,9 @@ SENTENCES = [
 
 VOICED_PH = set('bdgvzZ')     # SAMPA : obstruentes voisées
 UNVOICED_PH = set('ptkfsS')   # SAMPA : obstruentes sourdes
-# doubles consonnes que le g2p actuel aligne à tort sur ∅ (bug moteur signalé,
-# branche DBL de decompose.g2p + correction apprise 'ss→∅') — contournement LOCAL,
-# à retirer quand le moteur sera corrigé/re-mesuré :
-DBL_FIX = {'ss': 's', 'll': 'l', 'tt': 't', 'pp': 'p', 'mm': 'm', 'nn': 'n',
-           'rr': 'R', 'ff': 'f', 'cc': 'k'}
+# (le contournement DBL_FIX a été RETIRÉ : le bug DBL→∅ du moteur est corrigé
+#  à la source — decompose.g2p consulte COND[g] — et re-mesuré : held-out 55,20 % exact,
+#  90,46 % phonémique, au-dessus de la baseline 52,4/89,5.)
 
 TOKEN = re.compile(r"[a-zà-ÿœ']+", re.IGNORECASE)
 
@@ -88,8 +86,6 @@ def word_segments(word):
         pairs, n = [], len(rec['alignement'])
         for k, gp in enumerate(rec['alignement']):
             g, ph = gp['g'], gp['ph']
-            if ph == '' and g in DBL_FIX and k < n - 1:  # contournement bug DBL (jamais en finale)
-                ph = DBL_FIX[g]
             pairs.append((g, ph))
         phono, src = rec['phono'], rec['src_phon']
     pairs = _recase(word, pairs)
