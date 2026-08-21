@@ -227,3 +227,33 @@ GÉNÉRÉES held-out ≥99,5 %) ET rendement RÉEL (≥5 oranges tues sur held-o
 Ces familles restent au JUGE opt-in (l'arbitre les tait déjà à l'exécution — « se trouvent des
 poteaux » au banc navigateur). La distillation n'a de sens que sur les familles à VOLUME :
 pluriel (744) oui ; genre (11) et ou/où (10) n'avaient rien à re-cristalliser.
+
+## ENQUÊTE sur les 22 fautes dys non-corrigées (demande de Rem, 2026-08-21) + GARDE CENSUS (64ᵉ)
+
+**La garde d'abord** : le duo dump+census est outillé — `vig_census_probe.py` (64ᵉ check, batterie
+ET ci.yml, SAUTÉ en CI corpus absent) re-joue le pipeline sur le dys apparié, classe chaque
+orange contre le gold et compare aux effectifs committés (`vig_census_ref.json` : justes 294,
+pointeuses 238 — des NOMBRES, jamais le corpus). Une juste perdue = batterie rouge avec la liste.
+
+**L'enquête, écart par écart** (audit re-joué = 62 %/15 % IDENTIQUE à la clôture ; les 22
+restantes lues une à une au moteur) :
+· 4 = BRUIT D'ALIGNEMENT (bien↔cultivée sur les fusions « bienveillante » — l'engin corrige
+  bien, l'aligneur croise) ; 1 = choix de temps du gold (jaimè→j'aime vs J'aimais).
+· 4 « l'oublirais »→l'oublierai : le speller répare l'orthographe, le gold veut le FUTUR après
+  « je ne … jamais » — le conditionnel est aussi grammatical ; frontière assumée.
+· 2 = RÉSOLUES PAR LE JUGE opt-in (sais→s'est + marier→mariée, texte4) mais INVISIBLES aux
+  harnais Node (pas de WebGPU) — prouvées par b2_web_probe ; noté dans la référence du census.
+· RÉPARABLES à cadre fermé (le chantier suivant) :
+  1. « la guère » : DET + guère (adverbe) → guerre — jamais correct, rouge candidat.
+  2. « de petit tuyaux souterrain » : adj ↔ nom pluriel NON-AMBIGU (-aux/-eaux) désaccordés.
+  3. « cultivé ET bien veillante » : rPpEpithetFem s'arrête à la virgule (texte2 corrigé) mais
+     PAS à la coordination « et » (texte3 muet) — extension de règle.
+  4. « elle c'est marié » : c'est→s'est corrigé mais le participe reste masculin — l'accord
+     après s'est (pronominal) n'est pas chaîné ; orange candidate (COD antéposé = piège connu).
+  5. « J'aimer beaucoup » : l'élision j' court-circuite rFlexionEr (garde apostrophe) — orange
+     « conjuguer après je » candidate.
+  6. « sa vit » → vie : possessif + forme uniquement verbale, homophone nominal — paire
+     confusable à ajouter.
+  7. « uen » → un (au lieu d'une maison) : le candidat DÉTERMINANT doit s'accorder au genre du
+     nom suivant (la contrainte lexicale DOMINE la fréquence — doctrine aide-frappe).
+  8. « àeu / àfinit » : soudure à+verbe → « a eu / a fini » (le speller propose « as »).
