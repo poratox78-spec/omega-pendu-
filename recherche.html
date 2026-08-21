@@ -195,6 +195,22 @@
   <p><a class="btn ghost" href="index.html">Voir OMEGA, côté produit →</a></p>   <!-- choix SEO de Rem : le PENDU (index) est la porte d'entrée principale du site — ne pas « corriger » ce lien -->
 </div></section>
 
+<section id="police-de-son"><div class="wrap">
+  <h2>Une police qui encode le <em>son</em>&nbsp;: OMEGA Dys <span style="font-size:.6em;opacity:.6">maj 21/08/2026</span></h2>
+  <p>Le profil de défaite du pendu disait <strong>voisée/sourde</strong> (p/b, t/d, f/v, s/z…). On a pris la question par l'autre bout&nbsp;: et si la <em>forme des lettres</em> portait ce trait&nbsp;? Une police a été dessinée <strong>en aveugle</strong> — uniquement à partir de nos mesures, sans ouvrir la littérature — puis figée, puis confrontée. Voisée = tracé <strong>épais</strong> (les cordes vibrent), sourde = tracé <strong>fin</strong> (un souffle)&nbsp;; lettres-miroirs b/d/p/q marquées chacune à sa façon&nbsp;; accents agrandis&nbsp;; espacement large.</p>
+  <p><strong>Le verdict de la littérature, décision par décision.</strong> L'<b>espacement large</b> est le seul effet robuste du domaine (Zorzi et al. 2012, PNAS&nbsp;: précision doublée, +20&nbsp;% de vitesse) — <em>confirmé</em>. Les <b>formes anti-miroir</b> sont le pari d'OpenDyslexic et Dyslexie&nbsp;: une méta-analyse de 2026 (15 études, 688 participants) ne trouve <em>aucun effet fiable</em> — <em>falsifié par proxy</em>. Le <b>voisement par la graisse</b>, lui, n'existe nulle part&nbsp;: seul précédent, le <em>Visible Speech</em> de Bell (1867), des symboles articulatoires pour les sourds — <em>hypothèse inédite, non mesurée</em>. Et la <b>«&nbsp;police de son&nbsp;»</b> — muettes colorées, syllabes, le <em>s</em> de «&nbsp;poison&nbsp;» rendu voisé — converge avec la pratique orthophonique (LireCouleur).</p>
+  <p><strong>La leçon d'architecture.</strong> Ce qui marche est <em>adaptatif</em>, pas la forme fixe des lettres. Une police installée ne sait pas que le <em>s</em> de «&nbsp;poison&nbsp;» est /z/&nbsp;; notre moteur, si. La police de son est donc une <strong>couche de rendu</strong>&nbsp;: le g2p du moteur segmente chaque mot en graphèmes, décide le phonème, et habille — même police en trois graisses, muette en vermillon, syllabes en bleu (palette daltonien-sûre). Et une règle cardinale, tenue par un test&nbsp;: <strong>le texte ne change jamais</strong>. Pas d'alphabet privé&nbsp;: du français Unicode normal, des <code>&lt;span&gt;</code> d'habillage, un copier-coller intact.</p>
+  <div class="kpi">
+    <div><b>4</b><small>surfaces&nbsp;: dictée · correcteur · extension · Word (bêta)</small></div>
+    <div><b>135</b><small>glyphes, 3 graisses, licence SIL OFL — installable (Word, LibreOffice…)</small></div>
+    <div><b>1</b><small>cœur partagé (<code>son_core.js</code>), parité Python en CI, texte jamais altéré</small></div>
+    <div><b>0</b><small>mesure terrain pour l'instant&nbsp;: le banc est prêt, la dictée le fournira</small></div>
+  </div>
+  <p><strong>Ce qui reste à prouver.</strong> L'hypothèse «&nbsp;voisement = graisse&nbsp;» est vivante, pas démontrée. La méta-analyse rappelle que les distorsions de forme n'améliorent pas la <em>vitesse de lecture</em>&nbsp;: la cible doit être la <em>discrimination à l'écrit</em> — la dictée, avec police de son allumée ou non, comparera les taux voisée/sourde par élève. Même canal que la validation terrain des orthophonistes.</p>
+  <p class="src" style="font-size:.85em;opacity:.75"><strong>Sources</strong>&nbsp;: espacement — <em>Zorzi et al. 2012</em> (PNAS)&nbsp;; méta-analyse polices dys — <em>Annals of Dyslexia, 2026</em>&nbsp;; Dyslexie sans bénéfice — <em>Kuster et al. 2017</em>&nbsp;; <em>Visible Speech</em> — A. M. Bell, 1867&nbsp;; pratique — <em>LireCouleur</em> (Éduscol)&nbsp;; couleur — <em>BDA Style Guide 2023</em>, palette <em>Okabe-Ito</em>. Détail&nbsp;: <code>police/DESIGN_AVEUGLE.md</code>, <code>police/LITTERATURE.md</code>.</p>
+  <p><a class="btn ghost" href="donnees.html">Télécharger la police →</a></p>
+</div></section>
+
 <section id="toile"><div class="wrap">
   <h2>La toile du correcteur&nbsp;: tout est interconnecté</h2>
   <p>Le correcteur n'est pas une pile de règles&nbsp;: c'est un <strong>réseau</strong>. Chaque règle se nourrit de <strong>lexiques</strong>, de <strong>moteurs</strong> (étiqueteur morphosyntaxique, speller, arbitre du sujet) et de <strong>signaux de contexte</strong> (déterminant audible, sujet non-adjacent, ponctuation) pour trancher entre <strong style="color:#e2504a">rouge</strong> — correction sûre, zéro faux positif — et <strong style="color:#e8a247">orange</strong> — vigilance, quand le doute demeure. Survolez un nœud pour éclairer ses fils.</p>
@@ -228,7 +244,10 @@
     <li><b>durcir le seuil</b> pour gagner en justesse&nbsp;: la justesse est <b>plate</b> quel que soit le seuil (+1,75 point pour −94&nbsp;% de rappel). Un modèle dont la confiance ne prédit pas la justesse n'est pas mal réglé — il est saturé.</li>
     <li>l'<b>espace double comme pause écrite</b>, l'analogue à l'écrit de la pause audio&nbsp;: aucun signal (6,32&nbsp;% contre un taux de base de 6,19&nbsp;%).</li>
     <li>réparer les <b>46 listes du correcteur aveugles à l'élision</b>&nbsp;: rendre le mot-outil visible ajoute <b>23 faux positifs pour −1 de rappel</b>. La cécité y était protectrice.</li>
-  </ul>
+      <li>une <b>police dys «&nbsp;à formes spéciales&nbsp;»</b> comme levier de lecture (anti-miroir b/d/p/q, lettres lestées)&nbsp;: c'est le pari d'OpenDyslexic et Dyslexie, et la méta-analyse de 2026 ne trouve aucun effet fiable. Gardé seulement comme marqueur pédagogique, pas comme promesse.</li>
+    <li>un <b>alphabet privé</b> pour la police de son (caractères de substitution en zone privée Unicode)&nbsp;: copier-coller cassé, texte non portable, dépendance. Remplacé par des <em>spans</em> d'habillage sur du texte normal — le texte ne change jamais.</li>
+    <li>les <b>muettes en gris</b>&nbsp;: illisibles en clair, pénibles en sombre (retour terrain). Remplacées par le vermillon Okabe-Ito, paire daltonien-sûre avec le bleu des syllabes.</li>
+</ul>
   <p>Garder la trace de ce qui ne marche pas évite de le refaire — et rend crédible ce qui marche.</p>
 </div></section>
 
