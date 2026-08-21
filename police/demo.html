@@ -27,13 +27,18 @@
   .note { color:var(--soft); font-size:13px; margin-top:2px; }
   .pair { display:inline-block; margin-right:34px; text-align:center; }
   .pair .lbl { font-size:12px; color:var(--soft); }
-  .mute { opacity:.28; }
-  .graph { text-decoration:underline; text-decoration-color:#3f7d5c; text-decoration-thickness:3px;
+  /* Muette : gris-bleu FONCÉ (contraste ≥4,5:1 sur crème — un gris clair est illisible, la BDA
+     déconseille les gris faibles). Codage par LUMINOSITÉ = perçu par tous les daltonismes. */
+  .mute { color:#5f6672; }
+  /* Graphèmes : violet (palette sans rouge/vert, daltonien-compatible) */
+  .graph { text-decoration:underline; text-decoration-color:#8b5a9e; text-decoration-thickness:3px;
            text-underline-offset:7px; }
   .cmp { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
   .cmp > div { background:#fffdf8; border:1px solid #e2dccd; border-radius:8px; padding:14px 16px; }
   .cmp .who { font-size:12px; color:var(--soft); margin-bottom:6px; font-family:Georgia,serif; }
-  .voi { color:#7a3020; } .srd { color:#2b5a86; }
+  /* Renfort couleur Okabe-Ito assombri (vermillon/bleu, jamais rouge/vert) — l'information
+     est TOUJOURS portée d'abord par la graisse : la couleur seule ne code rien. */
+  .voi { color:#a34700; } .srd { color:#0072b2; }
 </style>
 </head>
 <body>
