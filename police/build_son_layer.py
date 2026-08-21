@@ -21,7 +21,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, '..', 'dictee'))
-from decompose import decompose  # noqa: E402
+from decompose import decompose, syllabify_ortho  # noqa: E402
 
 SENTENCES = [
     "Le poison et le poisson ne se ressemblent pas.",
@@ -90,10 +90,11 @@ def word_segments(word):
         phono, src = rec['phono'], rec['src_phon']
     pairs = _recase(word, pairs)
     if pairs is None:                                    # fail-safe : mot entier, classe neutre
-        segs = [{'g': word, 'ph': phono, 'cls': 'n'}]
+        segs, syll = [{'g': word, 'ph': phono, 'cls': 'n'}], [word]
     else:
         segs = [{'g': g, 'ph': ph, 'cls': classify(ph)} for g, ph in pairs]
-    return {'mot': word, 'phono': phono, 'src': src, 'segs': segs}
+        syll = syllabify_ortho([{'g': g, 'ph': ph} for g, ph in pairs])   # référence syllabes (parité JS)
+    return {'mot': word, 'phono': phono, 'src': src, 'segs': segs, 'syll': syll}
 
 
 def sentence_layer(sentence):

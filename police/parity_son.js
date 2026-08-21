@@ -54,6 +54,19 @@ for (const s of ref) {
     if (a !== b) fail.push('clitique « ' + m.mot + ' » : JS ' + a + ' ≠ Python ' + b);
   }
 }
+// syllabes ≡ Python là où la segmentation en graphèmes coïncide (même g2p → mêmes frontières)
+let sylCmp = 0;
+for (const s of ref) for (const m of s.mots) {
+  if (m.raw !== undefined || !m.syll) continue;
+  const js = core.wordSegments(m.mot, DECL2.g2p);
+  // mêmes graphèmes ET mêmes phonèmes (la réf. Python roule g2p enrichi + corrections apprises :
+  // ex. « derrière » i→/j/ devant è côté Python, /i/ côté moteur app → syllabes différentes, hors sujet ici)
+  if (JSON.stringify(js.map(x => [x.g, x.ph])) !== JSON.stringify(m.segs.map(x => [x.g, x.ph]))) continue;
+  sylCmp++;
+  const a = JSON.stringify(core.syllables(js)), b = JSON.stringify(m.syll);
+  if (a !== b) fail.push('syllabes « ' + m.mot + ' » : JS ' + a + ' ≠ Python ' + b);
+}
+if (sylCmp < 10) fail.push('parité syllabes : trop peu de mots comparables (' + sylCmp + ')');
 // ancres end-to-end (g2p app)
 const seg = w => core.wordSegments(w, DECL2.g2p);
 const find = (w, g) => seg(w).find(x => x.g.toLowerCase() === g);
