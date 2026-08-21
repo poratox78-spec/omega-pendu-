@@ -102,6 +102,16 @@
 
   // aide-frappe : complétions du mot SOUS LE CURSEUR (DC.complete, speller accentué) — identique à la barre/app
   var WCH = /[A-Za-zÀ-ÿœŒ'’ʼ]/;
+  function prevWordAt(txt, start, back) {                    // miroir content.js/app (_prevWord) : contexte du bigramme + accord
+    var s = String(txt || '').slice(0, start);
+    var m = s.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)([^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*)$/);
+    if (!m) return '';
+    if (!back || back < 2) return m[1];
+    var s2 = s.slice(0, s.length - m[1].length - m[2].length);
+    if (/[.,;:!?…«»()\[\]]\s*$/.test(s2)) return '';          // ponctuation = tête de proposition
+    var m2 = s2.match(/([A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]+)[^A-Za-zÀ-ÖØ-öø-ÿœŒ'’ʼ]*$/);
+    return m2 ? m2[1] : '';
+  }
   function compsAt() {
     if (!DC.complete || document.activeElement !== ta) return [];
     var v = ta.value, pos = ta.selectionStart;
@@ -109,7 +119,9 @@
     var s = pos; while (s > 0 && WCH.test(v[s - 1])) s--;
     var w = v.slice(s, pos);
     if (w.length < 2) return [];
-    return DC.complete(w).map(function (a) { return { word: a, start: s, end: pos }; });
+    /* CONTEXTE (mot précédent, avant-dernier) : sans lui, pas de classement par accord — « je mang » donnait
+       « manger » en tête au lieu de « mange » (vu au banc Edge 2026-08-21) ; content.js et l'app le passaient déjà. */
+    return DC.complete(w, prevWordAt(v, s), prevWordAt(v, s, 2)).map(function (a) { return { word: a, start: s, end: pos }; });
   }
   function applyComp(c) {
     ta.value = ta.value.slice(0, c.start) + c.word + ta.value.slice(c.end);

@@ -26876,7 +26876,8 @@ function spellTokenCore(tok,atStart,T,idx){
    +'.vdc-sc .vdc-det{margin-top:7px;line-height:1.55}'
    +'.vdc-sc .vdc-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
    +'body.dys-dark .vdc-sc .vdc-i{border-color:#b18cf0;color:#b18cf0}body.dys-dark .vdc-sc[open] .vdc-i{background:#b18cf0;color:#1a1a1a}'
-   +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'   /* aide-frappe : complétions du mot en cours */
+   +'#vdc-complete{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px;min-height:0}'
+   +'body.vdc-touch #vdc-complete{flex-wrap:nowrap;overflow-x:auto;min-height:38px;margin:4px 0 6px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}body.vdc-touch #vdc-complete>*{flex:0 0 auto;white-space:nowrap}'   /* aide-frappe : complétions du mot en cours */
    +'#vdc-card .vdc-comp{font:inherit;font-size:15px;padding:4px 11px;border:1px solid #4a2f85;border-radius:8px;background:#5b3a9e;color:#fff;cursor:pointer}'   /* scopé #vdc-card : bat le global button:not(.btn) (0,1,1) qui fuyait une couleur claire */
    +'#vdc-card .vdc-comp:hover{background:#492f80;color:#fff}#vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #c9b8ea;font-weight:bold}'   /* 1re = défaut Tab, marquée par un liseré */
    +'body.dys-dark #vdc-card .vdc-comp{background:#7c5bc0;color:#fff;border-color:#6a4caf}body.dys-dark #vdc-card .vdc-comp:hover{background:#6a4caf;color:#fff}body.dys-dark #vdc-card .vdc-comp.vdc-comp-top{box-shadow:0 0 0 2px #b9a3e6}'
@@ -27193,6 +27194,7 @@ function spellTokenCore(tok,atStart,T,idx){
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour le mot SOUS LE CURSEUR. HORS PARITÉ : suggestion d'UI
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
   var _compKeys=null,_compFirst=null;
+  var _touch=!!(window.matchMedia&&window.matchMedia('(pointer: coarse)').matches);   // tactile : pas de touche Tab, clavier virtuel qui masque le bas
   function _ckeys(){_compKeys=Object.keys(SP.D2A).sort();}
   function complete(prefix,prev,prev2){
     if(!SP.ready)return [];var p=deaccS(prefix.toLowerCase().replace(/[’ʼ]/g,"'"));if(p.length<2||!isAlphaS(p))return [];
@@ -27271,7 +27273,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var pos=(ta.selectionStart==null?ta.value.length:ta.selectionStart),w=_wordAt(ta.value,pos);
     if(!w.word||pos!==w.end||deaccS(w.word).length<2){box.innerHTML='';return;}   // seulement en fin de mot (préfixe en cours de frappe)
     var cs=complete(w.word,_prevWord(ta.value,w.start),_prevWord(ta.value,w.start,2));if(!cs.length){box.innerHTML='';return;}_compFirst=cs[0];
-    box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter (Tab) :</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
+    box.innerHTML='<span class="vdc-sc" style="margin-right:6px">➡️ compléter '+(_touch?'':'(Tab) ')+':</span>'+cs.map(function(a,i){return '<button class="vdc-comp'+(i===0?' vdc-comp-top':'')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>';}).join('');}
   var _CORR_MAX=20000;   // #UI : plafond de correction en temps réel (caractères) — mesuré Chrome : 20k OK ~2,5s, au-delà de ~30k le rendu O(n) fige l'onglet. Ajustable.
   /* ===== GREFFE JUGE-AVAL sait/s'est+INFINITIF (opt-in, sondes PR#517-518) =====
      Le squelette détecte le cadre [il/elle/on] + sais/sait + INFINITIF-er adjacent et fabrique le
@@ -27433,6 +27435,7 @@ function spellTokenCore(tok,atStart,T,idx){
   $('vdc-in').addEventListener('keyup',function(e){if(e.key&&e.key.indexOf('Arrow')===0||e.key==='Home'||e.key==='End')runComplete();});
   $('vdc-in').addEventListener('keydown',function(e){if(e.key==='Tab'&&_compFirst){e.preventDefault();_applyComplete(_compFirst);}});  // Tab = accepte la 1re complétion (aide-frappe)
   $('vdc-complete').addEventListener('click',function(e){var b=e.target.closest('.vdc-comp');if(b)_applyComplete(b.getAttribute('data-w'));});
+  if(_touch){document.body.classList.add('vdc-touch');var _ced=$('vdc-editor'),_ccb=$('vdc-complete');if(_ced&&_ccb&&_ced.parentNode)_ced.parentNode.insertBefore(_ccb,_ced);}   // TACTILE : le cadre des complétions AU-DESSUS de la saisie (sinon sous le clavier virtuel)
   // (Piste A : la zone du HAUT est 100% éditable — le clic y place le curseur, il ne bascule plus la correction ; l'action passe par la carte du cadre BAS)
   var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
   $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce d'annotation = bascule
