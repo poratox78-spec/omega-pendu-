@@ -74,15 +74,29 @@ async function pagePrete(sess, test) {
   return false;
 }
 
+/* ID d'une extension DÉPLIÉE = SHA256(chemin absolu en UTF-16LE)[:32] translittéré a-p — déterministe :
+   on l'essaie EN PREMIER (Edge charge 6 extensions internes dont la sonde s'épuisait avant la nôtre). */
+function idExtensionDepliee(dir) {
+  const hex = require('crypto').createHash('sha256').update(Buffer.from(dir, 'utf16le')).digest('hex').slice(0, 32);
+  return hex.split('').map(c => String.fromCharCode(97 + parseInt(c, 16))).join('');
+}
 async function trouverOmega(dbg) {
   const liste = await (await fetch('http://127.0.0.1:' + dbg + '/json/list')).json();
   const ids = [...new Set(liste.map(t => (t.url || '').match(/^chrome-extension:\/\/([a-p]{32})/)).filter(Boolean).map(m => m[1]))];
+  const attendu = idExtensionDepliee(path.join(RACINE, 'extension'));
+  ids.sort((x, y) => (x === attendu ? -1 : 0) - (y === attendu ? -1 : 0));
   for (const id of ids) {
     let s = null;
     try {
       s = await connecter(await cible(dbg, 'chrome-extension://' + id + '/sidepanel.html'));
       await s.envoyer('Page.enable'); await s.envoyer('Runtime.enable');
-      if (await pagePrete(s, 'document.readyState==="complete"&&!!document.getElementById("omdys-ta")')) return { id, sess: s };
+      let ok = false;
+      for (let i = 0; i < 40 && !ok; i++) {                       // sonde COURTE (8 s) : une page d'erreur est « complete » sans jamais avoir #omdys-ta
+        try { const q = await s.envoyer('Runtime.evaluate', { expression: '/^chrome-error/.test(location.href) ? "ERR" : (document.readyState==="complete"&&!!document.getElementById("omdys-ta"))', returnByValue: true });
+          if (q.result.value === 'ERR') break; ok = q.result.value === true; } catch (e) {}
+        if (!ok) await attendre(200);
+      }
+      if (ok) return { id, sess: s };
       s.fermer();
     } catch (e) { try { s && s.fermer(); } catch (e2) {} }
   }
@@ -102,6 +116,14 @@ const CAS = [
   { txt: "J'aimer beaucoup ma grand-mère.", orange: ["j'aime"], pourquoi: "j' + infinitif = orange, temps inconnu (texte6 réel)" },
   { txt: 'Elle àeu trois enfants qui vivent en France', orange: ['a eu'], pourquoi: 'soudure à+verbe (texte3 réel)' },
   { txt: 'dans uen maison de retraite', orange: ['une'], interdit: ['un'], pourquoi: 'le genre du nom suivant domine la fréquence (texte6 réel)' },
+  // ①bis les réparables du croisement Excuse My French (2026-08-21)
+  { txt: 'hier il mangeai une pomme', rouge: ['mangeait'], pourquoi: 'EMF : il/elle/on + -ai → -ait' },
+  { txt: "le film qui j'ai vu était long", rouge: ['que'], pourquoi: 'EMF : qui + pronom sujet → que' },
+  { txt: 'je vais jamais au cinéma', rouge: ['ne vais'], pourquoi: 'EMF : négation sans ne, verbe fini' },
+  { txt: 'je mange de le pain', orange: ['du'], pourquoi: 'EMF : contraction de le → du (fusion proposée)' },
+  { txt: 'le film qui il a vu', orange: ["qu'il"], pourquoi: "EMF : qui il → qu'il (fusion proposée)" },
+  { txt: "l'homme avec qui je parle souvent", rien: true, interdit: ['que'], pourquoi: 'EMF contre-garde : préposition + qui' },
+  { txt: 'il a décidé de le faire demain', rien: true, interdit: ['du'], pourquoi: 'EMF contre-garde : de le + infinitif' },
   // ② contre-gardes : du correct qui doit rester muet (les FP lus au flood différentiel)
   { txt: 'Le nombre de niveaux total est connu de tous.', rien: true, interdit: ['totals', 'totaux'], pourquoi: "l'adjectif modifie la tête à gauche du « de »" },
   { txt: 'une jupe bleu et vert avec des motifs', rien: true, interdit: ['bleue'], pourquoi: 'couleurs composées invariables (coordination protégée)' },

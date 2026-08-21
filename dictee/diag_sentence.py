@@ -204,6 +204,22 @@ def align(T,S):
             ops.append(('ins',None,S[j-1])); j-=1
     ops.reverse(); return ops
 
+def paire_nombre_verbale(t,s):
+    """Paire cible/élève qui ne diffère que par la MARQUE DE NOMBRE d'un verbe → ('accord', inaudible).
+    Inaudible : -e/-ent (mange/mangent), -t/-ent à radical vocalique ou en -r (voit/voient, court/courent).
+    Audible : vend/vendent, finit/finissent (la consonne se prononce). Idée : Excuse My French
+    (silentNumberPair, 2026-08-21) — réimplémentée, pas copiée. Miroir app (paireNombreVerbale)."""
+    a,b=deacc(t.lower()),deacc(s.lower())
+    if a==b or not a or not b: return None
+    pl,sg=(a,b) if len(a)>len(b) else (b,a)
+    if not pl.endswith('ent') or len(pl)<5: return None
+    stem=pl[:-3]
+    if sg==stem+'e': return ('accord',True)
+    if sg==stem+'t' and stem and (stem[-1] in 'aeiouy' or stem[-1]=='r'): return ('accord',True)
+    if sg==stem: return ('accord',False)                    # vend/vendent, perd/perdent, répond/répondent : la consonne se prononce au pluriel
+    if pl.endswith('ssent') and sg==pl[:-5]+'t': return ('accord',False)
+    return None
+
 def diagnose_sentence(cible, eleve, fam):
     T,S=toks(cible),toks(eleve); facts=[]; ti=-1
     for op,t,s in align(T,S):
@@ -220,7 +236,17 @@ def diagnose_sentence(cible, eleve, fam):
             facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
         if ti>=1 and is_liaison(T[ti-1],t,s): types=['liaison']   # consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
+        _muet=False
+        _pnv=paire_nombre_verbale(t,s) if 'accord' not in types else None
+        if _pnv:                                                  # croisement Excuse My French : « ils mange » pour « ils mangent » HORS famille curée
+            _gv=governor_number(T,ti,skip_pp=True)                #  → c'est un ACCORD (morphosyntaxique), pas une « lettre muette » lexicale
+            _want='pl' if len(deacc(t))>len(deacc(s)) else 'sg'      # NUM_PRON/NUM_DET valent 'pl'/'sg'
+            if _gv and _gv[1]==_want:
+                types=[x for x in types if x not in ('muette','ajout')]+['accord']
+                _nx=T[ti+1] if ti+1<len(T) else ''
+                _muet=_pnv[1] and not (_nx[:1].lower() in 'aeiouyhàâéèêëîïôöùûü')   # liaison possible → la marque peut s'entendre
         fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
+        if _muet: fact['audible']=False; fact['msg']+=' (marque MUETTE : ça ne s\'entend pas, c\'est l\'accord qui le dit)'
         if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte)
             if is_participle(T,ti):                            # (1) PARTICIPE PASSÉ
                 aux=find_aux(T,ti); fact['accord_type']='participe'
@@ -245,7 +271,7 @@ def diagnose_sentence(cible, eleve, fam):
                 else:
                     fact['grammaire']='participe passé'; fact['msg']+=' (participe passé)'
             else:
-                verb=is_verb(T,ti)                             # nom/verbe désambiguïsé par le contexte
+                verb=is_verb(T,ti) or (_pnv is not None)       # nom/verbe désambiguïsé par le contexte (ou paire de nombre VERBALE détectée)
                 at=accord_type(t,s,verb); fact['accord_type']=at
                 if at=='genre' and not verb:                  # chaîne du GN : ACCORD EN GENRE (« une robe vert »)
                     gg=governor_gender(T,ti) or lexical_gender(T,ti)   # déterminant genré, sinon route lexicale (nom-tête)
