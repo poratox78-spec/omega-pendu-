@@ -257,3 +257,20 @@ restantes lues une à une au moteur) :
   7. « uen » → un (au lieu d'une maison) : le candidat DÉTERMINANT doit s'accorder au genre du
      nom suivant (la contrainte lexicale DOMINE la fréquence — doctrine aide-frappe).
   8. « àeu / àfinit » : soudure à+verbe → « a eu / a fini » (le speller propose « as »).
+
+### Réparables 1-3 LIVRÉS (groupe rouge, 2026-08-21) — rappel dys 62→68 %, ratées 15→9 %
+
+Trois règles nées de l'enquête des 22, mesurées au flood DIFFÉRENTIEL (ancien moteur vs nouveau
+sur 16 950 phrases correctes — seuls les tirs NOUVEAUX comptent ; v1 : 3 FP lus → resserrés →
+**0 nouveau / 0 perdu**) :
+· `rGuere` (rouge) : DET + « guère » (adverbe) → guerre — 0 tir sur correct, texte2 corrigé.
+· `rAdjAux` (rouge) : adjectif singulier ADJACENT à un nom pluriel NON-AMBIGU en -aux/-eaux
+  (« de petit tuyaux souterrain » → petits, souterrains). Resserrages mesurés : tête au-delà du
+  « de » (« le nombre de niveaux total » — l'adj modifie nombre), interrogatifs quel(le)(s),
+  anglicismes invariables (hardcore…). Candidat vérifié au lexique (+s/+x).
+· `rPpEpithetFem` : l'abstention-coordination est LEVÉE seulement si la sœur coordonnée est déjà
+  marquée féminin (« cultivé ET bien veillante » → cultivée) — les couleurs composées (« une jupe
+  bleu et vert ») restent protégées. 0 FP au différentiel.
+Parité 3 moteurs, batterie 64/64 (census : aucune orange juste perdue). Restent de l'enquête :
+accord après s'est (orange), j'+inf (orange), vit/vie (confusable), genre du déterminant dans
+les candidats speller (uen→une), soudure à+verbe (àeu→a eu).
