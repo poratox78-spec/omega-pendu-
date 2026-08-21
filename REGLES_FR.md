@@ -307,3 +307,44 @@ BILAN DE L'ENQUÊTE : 8 réparables/8 livrés (4 rouges, 3 oranges, 2 speller) ;
 vigilance juste 5, RATÉES 10→3 (5 %). Les non-réparés sont classés avec leur cause : bruit
 d'alignement (4), choix de temps du gold (1), frontière conditionnel/futur assumée (4), juge
 opt-in invisible aux harnais Node (2, prouvés au banc navigateur).
+
+## CROISEMENT « Excuse My French » (excusemyfrench.org, 2026-08-21) — 58 notions passées AU MOTEUR
+
+Site open source d'Onur Çelebi (générateur d'exercices, code AGPL-3.0 = JAMAIS importable ;
+contenu CC BY-SA 4.0, ~150 Ko faits main). Croisement fait au COMPORTEMENT : une faute dys
+plausible par notion, dans nos 3 moteurs. **20 rouges · 1 orange · 4 silences attendus ·
+12 non couverts.** Hors périmètre : vocabulaire, compréhension, ordre des mots, dates.
+
+Non couverts, classés (pré-estimation FP = cadre compté sur 16 950 phrases correctes) :
+1. « il mangeai » → mangeait (il/elle/on + forme en -ai) — **0 occurrence sur correct** : rouge
+   candidat, cadre fermé (rule_ais_ait ne prend que -ais).
+2. « le film qui j'ai vu » → que (qui + pronom sujet) — 46/16 950 mais TOUS derrière une
+   préposition (« avec qui il ») : rouge candidat avec garde « pas de préposition avant qui ».
+3. « je mange de le pain » → du / « à le marché » → au — 67/16 950, TOUS « de le + INFINITIF »
+   (« de le visiter ») : rouge candidat avec garde tagger NOM après.
+4. « je vais jamais / je vois rien / il connaît personne » (négation sans ne) — 4/16 950,
+   noms (« la personne ») : rouge candidat après gardes (déterminant avant rien/personne ;
+   « à jamais », « si jamais »). Extension naturelle de rNegNe (qui ne prend que « pas »).
+5. « je le ai vu » → l'ai (élision obligatoire clitique + auxiliaire) — cadre à resserrer
+   (le/la/me/te/se + ai/as/a/est/avais…), à compter avant.
+6. « un pomme » → une : rule_det_gender MUET car « pomme » est absent de GENDER_PURE (collision
+   désaccentuée avec « pommé ») et hors du sous-ensemble curé GENDER_ACC_COLL — famille de trou
+   CONNUE (cf. bases-genre-desaccentuees) ; « un poire »→une passe. Mesurer l'extension.
+7. « il faut que tu viens » → viennes (subjonctif déclencheurs) — 0 occurrence du cadre sur
+   correct ; orange candidate, faible volume.
+8. « la fille que je parle » → dont : _QDONT_GOUV = {besoin, envie, honte, peur} seulement ;
+   « parler de » est AMBIGU (« la langue que je parle » correct) → frontière, orange au mieux.
+Frontières assumées : futur/conditionnel (« je mangerais demain »), concordance du discours
+indirect, impératif sans trait d'union (« mange le » : « le » article possible).
+
+**Croisement ② — leur dictée « note ce qui a été entendu »** (silentNumberPair : mange/mangent
+inaudible, vend/vendent audible, liaison et auxiliaire disqualifient). Chez nous, diag_word
+étiquette « mange pour mangent » **« muette »** (stade LEXICAL, orthographe du mot) — identique
+à « vend pour vendent » qui, lui, s'entend. Le type « accord » n'est posé que si la forme est
+dans la FAMILLE curée du mot (famille.json, 114 entrées : mangent absent). Idée à reprendre
+(idée ✅, code ⛔) : détecter la paire de nombre INAUDIBLE (terminaison -e/-ent, -t/-ent hors
+liaison et hors auxiliaire) → type « accord (marque muette) », stade MORPHOSYNTAXIQUE, message
+« ça ne s'entend pas : c'est l'accord qui le dit ». À MESURER au banc diag avant (déplacement
+de stade, pas de recalibrage de seuils — cf. dictee-calibration-audit).
+Autres idées notées (sans code) : niveau déclaré = PLANCHER (la maîtrise prouve ce qu'on sait,
+jamais ce qu'on ne sait pas) ; graphe de 58 notions avec prérequis/confondues-avec ; SRS plafonné.
