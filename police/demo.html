@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>OMEGA Dys — démo police (design aveugle)</title>
+<style>
+  @font-face {
+    font-family: 'OMEGA Dys';
+    src: url('OmegaDys-Regular.ttf') format('truetype');
+  }
+  :root { --ink:#1c2431; --bg:#f7f5ef; --soft:#8a93a5; --acc:#b3542e; }
+  body { background:var(--bg); color:var(--ink); font-family:Georgia,serif; margin:0 auto;
+         max-width:900px; padding:24px 28px 80px; }
+  h1 { font-size:22px; } h2 { font-size:16px; color:var(--acc); margin-top:38px;
+       border-bottom:1px solid #d8d2c4; padding-bottom:4px;}
+  .od { font-family:'OMEGA Dys', monospace; }
+  .big { font-size:44px; line-height:1.6; letter-spacing:.02em; }
+  .mid { font-size:30px; line-height:1.7; }
+  .note { color:var(--soft); font-size:13px; margin-top:2px; }
+  .pair { display:inline-block; margin-right:34px; text-align:center; }
+  .pair .lbl { font-size:12px; color:var(--soft); }
+  .mute { opacity:.28; }
+  .graph { text-decoration:underline; text-decoration-color:#3f7d5c; text-decoration-thickness:3px;
+           text-underline-offset:7px; }
+  .cmp { display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start; }
+  .cmp > div { background:#fffdf8; border:1px solid #e2dccd; border-radius:8px; padding:14px 16px; }
+  .cmp .who { font-size:12px; color:var(--soft); margin-bottom:6px; font-family:Georgia,serif; }
+  .voi { color:#7a3020; } .srd { color:#2b5a86; }
+</style>
+</head>
+<body>
+<h1>OMEGA Dys — prototype v0.1 <span style="color:var(--soft);font-size:14px">(design en aveugle, avant littérature)</span></h1>
+
+<h2>1 · Alphabet</h2>
+<div class="od big">a b c d e f g h i j k l m<br>n o p q r s t u v w x y z</div>
+<div class="od big">A B C D E F G H I J K L M<br>N O P Q R S T U V W X Y Z</div>
+<div class="od big">é è ê ë à â ù û ü î ï ô ç É È À Ç</div>
+<div class="od mid">. , ; : ! ? ' -</div>
+
+<h2>2 · Le voisement porté par la graisse (58 % des confusions mesurées)</h2>
+<div class="note">Voisée = lourde (les cordes vibrent) · sourde = légère (un souffle)</div>
+<div class="big od">
+  <span class="pair"><span class="voi">b</span><span class="srd">p</span><div class="lbl">b / p</div></span>
+  <span class="pair"><span class="voi">d</span><span class="srd">t</span><div class="lbl">d / t</div></span>
+  <span class="pair"><span class="voi">g</span><span class="srd">c</span><div class="lbl">g / c</div></span>
+  <span class="pair"><span class="voi">v</span><span class="srd">f</span><div class="lbl">v / f</div></span>
+  <span class="pair"><span class="voi">z</span><span class="srd">s</span><div class="lbl">z / s</div></span>
+  <span class="pair"><span class="voi">j</span><span class="srd">ch</span><div class="lbl">j / ch</div></span>
+</div>
+<div class="mid od">un bon petit déjeuner &nbsp;·&nbsp; tout doux &nbsp;·&nbsp; le car, la gare &nbsp;·&nbsp; fou, vous</div>
+
+<h2>3 · Miroirs cassés (famille inversion)</h2>
+<div class="note">b = pied · d = drapeau · p = chapeau · q = queue · u = hampe terminale ≠ n</div>
+<div class="big od">b d p q &nbsp;·&nbsp; un une nu &nbsp;·&nbsp; il l'a lu ! &nbsp;·&nbsp; bd db pq qp</div>
+
+<h2>4 · « Police de son » (la forme suit le PHONÈME, choisi par g2p/n-grams)</h2>
+<div class="note">Même lettre s, deux sons : /z/ voisé (lourd) dans poison, /s/ sourd (léger) dans poisson.
+Muettes grisées, graphèmes soulignés — décidés par la couche de rendu, pas par la police.</div>
+<div class="big od"><span id="poison">poison</span> · poisson</div>
+<div class="big od">les peti<span class="mute">ts</span> cha<span class="mute">ts</span> blan<span class="mute">cs</span></div>
+<div class="big od"><span class="graph">ch</span>at · <span class="graph">ou</span>rs · m<span class="graph">on</span>t<span class="graph">ag</span>ne · <span class="graph">oi</span>se<span class="graph">au</span></div>
+
+<h2>5 · Phrase de dictée — comparaison</h2>
+<div class="cmp">
+  <div><div class="who">OMEGA Dys</div>
+    <div class="od" style="font-size:24px;line-height:1.8">Le chien aboie derrière la barrière du jardin. Papa porte un gâteau et des bonbons.</div></div>
+  <div><div class="who">Police standard (Arial)</div>
+    <div style="font-family:Arial;font-size:24px;line-height:1.8">Le chien aboie derrière la barrière du jardin. Papa porte un gâteau et des bonbons.</div></div>
+</div>
+
+<script>
+  // Couche « police de son » : substitution du s voisé (U+E000) — ici décidée à la main,
+  // en prod ce serait g2p/n-grams (s intervocalique → /z/).
+  const el = document.getElementById('poison');
+  el.textContent = 'poion';
+</script>
+</body>
+</html>
