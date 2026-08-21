@@ -167,6 +167,8 @@ jobs:
         run: node dictee/presse_papier_probe.js
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
+      - name: LIVRAISON — le pack de polices OMEGA Dys téléchargeable est FRAIS (octets == police/)
+        run: python3 police/build_pack.py --check
       # Même famille que le zip rassis, découverte le 2026-08-10 : `app/omega-pendu-en.html` est
       # GÉNÉRÉ depuis le monolithe français, mais rien ne vérifiait qu'il suivait. Il avait plusieurs
       # PR de retard — table de genre `_GCOLL` et graine `OMEGA_GDET` (#453), modèle de ponctuation,

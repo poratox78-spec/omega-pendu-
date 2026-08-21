@@ -101,6 +101,7 @@ run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node di
 
 echo "── LIVRAISON ──"
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
+run "pack police OMEGA Dys FRAIS (octets == police/)" python3 police/build_pack.py --check
 # Même famille que le zip rassis : le clone anglais n'est régénéré que si quelqu'un y pense. Le
 # 2026-08-10 il avait plusieurs PR de retard (table de genre _GCOLL + graine OMEGA_GDET de la #453,
 # modèle de ponctuation, _npSubject, _quiRelAvant…) : l'app ANGLAISE tournait sur un moteur périmé.

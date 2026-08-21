@@ -338,6 +338,155 @@ def acc_cedilla(cx):
     return rect(cx - 26, -95, cx + 30, 6) + rect(cx - 26, -160, cx + 90, -95)
 
 
+# ---------------- chiffres (hauteur de capitale, chasse 400) ----------------
+def d_0(w):
+    return ring(200, 350, 200, w, ry=350), 400
+
+def d_1(w):
+    return rect(190, 0, 190 + w, CAP) + stroke(70, 560, 190 + w / 2, CAP - 10, w * 0.9), 330
+
+def d_2(w):
+    bh = max(78, w)
+    c = band(200, 510, 190, 190, w, -35, 185) + stroke(340, 400, 45, bh * 0.8, w) + rect(0, 0, 400, bh)
+    return c, 400
+
+def d_3(w):
+    return band(200, 525, 180, 175, w, -90, 200) + band(200, 185, 195, 185, w, 160, 450), 400
+
+def d_4(w):
+    bh = max(78, w)
+    return rect(265, 0, 265 + w, CAP) + stroke(265 + w / 2, CAP - 10, 20, 215, w) + rect(0, 190, 400, 190 + bh), 400
+
+def d_5(w):
+    bh = max(78, w)
+    return rect(40, CAP - bh, 380, CAP) + rect(40, 390, 40 + w, CAP) + band(195, 215, 205, 215, w, -165, 100), 400
+
+def d_6(w):
+    return ring(200, 200, 200, w) + band(215, 460, 215, 240, w, 30, 180) + rect(0, 200, w, 460), 400
+
+def d_7(w):
+    bh = max(78, w)
+    return rect(0, CAP - bh, 400, CAP) + stroke(400 - w / 2, CAP - bh, 115, 0, w), 400
+
+def d_8(w):
+    return ring(200, 520, 175, w, ry=180) + ring(200, 190, 195, w, ry=190), 400
+
+def d_9(w):
+    return ring(200, 500, 200, w) + band(185, 240, 215, 240, w, 210, 360) + rect(400 - w, 240, 400, 500), 400
+
+# ---------------- ligatures / lettres supplémentaires ----------------
+def g_oe(w):   # œ
+    return ring(200, 250, 200, w) + band(560, 250, 200, 200, w, 0, 318) + rect(380, 250 - w * 0.45, 758, 250 + w * 0.45), 760
+
+def G_OE(w):   # Œ
+    bh = max(78, w)
+    return ring(215, 350, 215, w, ry=350) + rect(400, 0, 400 + w, CAP) + rect(400, CAP - bh, 760, CAP) + rect(400, 315, 700, 315 + bh) + rect(400, 0, 760, bh), 760
+
+def g_ae(w):   # æ
+    return ring(200, 250, 200, w) + rect(400 - w, 0, 400, XH) + band(560, 250, 200, 200, w, 0, 318) + rect(380, 250 - w * 0.45, 758, 250 + w * 0.45), 760
+
+def G_AE(w):   # Æ
+    bh = max(78, w)
+    return stroke(30, 0, 215, CAP, w) + rect(215, 0, 215 + w, CAP) + rect(110, 225, 215 + w, 225 + w) + rect(215, CAP - bh, 560, CAP) + rect(215, 315, 500, 315 + bh) + rect(215, 0, 560, bh), 560
+
+# ---------------- ponctuation étendue ----------------
+def p_guillemot_left(w):
+    s = w * 0.8
+    c = stroke(130, 430, 40, 300, s) + stroke(40, 300, 130, 170, s) + stroke(290, 430, 200, 300, s) + stroke(200, 300, 290, 170, s)
+    return c, 330
+
+def p_guillemot_right(w):
+    s = w * 0.8
+    c = stroke(40, 430, 130, 300, s) + stroke(130, 300, 40, 170, s) + stroke(200, 430, 290, 300, s) + stroke(290, 300, 200, 170, s)
+    return c, 330
+
+def p_quotedbl(w):
+    return rect(0, 555, 95, 700) + rect(160, 555, 255, 700), 255
+
+def p_quoteleft(w):
+    return rect(0, 560, 95, 700) + stroke(10, 700, 60, 560, 0), 95   # forme simple (≈ ‘)
+
+def p_quotedblleft(w):
+    return rect(0, 555, 95, 700) + rect(160, 555, 255, 700), 255
+
+def p_quotedblright(w):
+    return rect(0, 555, 95, 700) + rect(160, 555, 255, 700), 255
+
+def p_parenleft(w):
+    return band(300, 300, 270, 520, w * 0.85, 110, 250), 215
+
+def p_parenright(w):
+    return band(-85, 300, 270, 520, w * 0.85, -70, 70), 215
+
+def p_bracketleft(w):
+    return rect(0, -200, w, 780) + rect(0, 780 - 60, 200, 780) + rect(0, -200, 200, -140), 200
+
+def p_bracketright(w):
+    return rect(200 - w, -200, 200, 780) + rect(0, 780 - 60, 200, 780) + rect(0, -200, 200, -140), 200
+
+def p_slash(w):
+    return stroke(0, -120, 300, 790, w * 0.9), 300
+
+def p_endash(w):
+    return rect(0, 240, 400, 240 + max(60, w * 0.8)), 400
+
+def p_emdash(w):
+    return rect(0, 240, 800, 240 + max(60, w * 0.8)), 800
+
+def p_ellipsis(w):
+    return rect(0, 0, 110, 110) + rect(230, 0, 340, 110) + rect(460, 0, 570, 110), 570
+
+def p_plus(w):
+    return rect(0, 250 - w / 2, 400, 250 + w / 2) + rect(200 - w / 2, 50, 200 + w / 2, 450), 400
+
+def p_equal(w):
+    return rect(0, 160, 400, 160 + w * 0.8) + rect(0, 340, 400, 340 + w * 0.8), 400
+
+def p_asterisk(w):
+    s = w * 0.8
+    return stroke(150, 420, 150, 700, s) + stroke(30, 490, 270, 630, s) + stroke(30, 630, 270, 490, s), 300
+
+def p_percent(w):
+    return ring(110, 590, 110, w * 0.8) + ring(330, 110, 110, w * 0.8) + stroke(380, 700, 60, 0, w * 0.8), 440
+
+def p_numbersign(w):
+    s = w * 0.8
+    return stroke(120, 0, 200, 700, s) + stroke(280, 0, 360, 700, s) + rect(0, 200, 440, 200 + s) + rect(20, 440, 460, 440 + s), 460
+
+def p_ampersand(w):
+    return ring(170, 540, 120, w, ry=150) + stroke(90, 430, 400, 0, w) + band(180, 190, 180, 190, w, 100, 340) + stroke(300, 160, 430, 40, w * 0.9), 440
+
+def p_at(w):
+    return band(260, 300, 260, 300, w, 20, 340) + ring(270, 300, 130, w * 0.9) + rect(400 - w, 180, 400, 420) + rect(400 - w, 180, 520, 180 + w * 0.8), 520
+
+def p_euro(w):
+    s = max(60, w * 0.8)
+    return band(260, 350, 235, 350, w, 35, 325) + rect(0, 390, 330, 390 + s) + rect(0, 250, 330, 250 + s), 500
+
+def p_degree(w):
+    return ring(110, 600, 100, w * 0.8), 220
+
+def p_underscore(w):
+    return rect(0, -120, 500, -120 + max(60, w * 0.8)), 500
+
+def p_bullet(w):
+    return dot(110, 260, 110), 220
+
+
+EXTRA = {
+    '0': ('zero', d_0), '1': ('one', d_1), '2': ('two', d_2), '3': ('three', d_3), '4': ('four', d_4),
+    '5': ('five', d_5), '6': ('six', d_6), '7': ('seven', d_7), '8': ('eight', d_8), '9': ('nine', d_9),
+    'œ': ('oe', g_oe), 'Œ': ('OE', G_OE), 'æ': ('ae', g_ae), 'Æ': ('AE', G_AE),
+    '«': ('guillemotleft', p_guillemot_left), '»': ('guillemotright', p_guillemot_right),
+    '"': ('quotedbl', p_quotedbl), '‘': ('quoteleft', g_apos), '“': ('quotedblleft', p_quotedblleft),
+    '”': ('quotedblright', p_quotedblright), '(': ('parenleft', p_parenleft), ')': ('parenright', p_parenright),
+    '[': ('bracketleft', p_bracketleft), ']': ('bracketright', p_bracketright), '/': ('slash', p_slash),
+    '–': ('endash', p_endash), '—': ('emdash', p_emdash), '…': ('ellipsis', p_ellipsis), '+': ('plus', p_plus),
+    '=': ('equal', p_equal), '*': ('asterisk', p_asterisk), '%': ('percent', p_percent), '#': ('numbersign', p_numbersign),
+    '&': ('ampersand', p_ampersand), '@': ('at', p_at), '€': ('Euro', p_euro), '°': ('degree', p_degree),
+    '_': ('underscore', p_underscore), '•': ('bullet', p_bullet),
+}
+
 LOWER = dict(a=g_a, b=g_b, c=g_c, d=g_d, e=g_e, f=g_f, g=g_g, h=g_h, i=g_i, j=g_j,
              k=g_k, l=g_l, m=g_m, n=g_n, o=g_o, p=g_p, q=g_q, r=g_r, s=g_s, t=g_t,
              u=g_u, v=g_v, w=g_w, x=g_x, y=g_y, z=g_z)
@@ -356,8 +505,11 @@ ACCENTED = {
     'î': ('i', 'circ'), 'ï': ('i', 'trema'),
     'ô': ('o', 'circ'), 'ö': ('o', 'trema'),
     'ç': ('c', 'cedilla'),
-    'É': ('E', 'acute'), 'È': ('E', 'grave'), 'Ê': ('E', 'circ'),
-    'À': ('A', 'grave'), 'Ç': ('C', 'cedilla'), 'Ô': ('O', 'circ'),
+    'ÿ': ('y', 'trema'),
+    'É': ('E', 'acute'), 'È': ('E', 'grave'), 'Ê': ('E', 'circ'), 'Ë': ('E', 'trema'),
+    'À': ('A', 'grave'), 'Â': ('A', 'circ'), 'Ä': ('A', 'trema'), 'Ç': ('C', 'cedilla'),
+    'Ô': ('O', 'circ'), 'Ö': ('O', 'trema'), 'Î': ('I', 'circ'), 'Ï': ('I', 'trema'),
+    'Ù': ('U', 'grave'), 'Û': ('U', 'circ'), 'Ü': ('U', 'trema'), 'Ÿ': ('Y', 'trema'),
 }
 ACC_FN = dict(acute=acc_acute, grave=acc_grave, circ=acc_circ, trema=acc_trema)
 
@@ -443,10 +595,11 @@ def build(style='Regular', uniform=None):
         cmap[cp] = name
         order.append(name)
 
+    chars += list(EXTRA.keys())
     for ch in chars:
-        if ch in PUNCT:
-            name, fn = PUNCT[ch]
-            contours, width = fn(W_NEUTRAL)
+        if ch in PUNCT or ch in EXTRA:
+            name, fn = PUNCT.get(ch) or EXTRA[ch]
+            contours, width = fn(weight_of(ch) if ch in 'œŒæÆ' else W_NEUTRAL)
         else:
             name = 'uni%04X' % ord(ch)
             contours, width = build_glyph_contours(ch)
@@ -485,7 +638,9 @@ def build(style='Regular', uniform=None):
         'version': 'Version 0.1',
         'description': 'Police experimentale dys — design en aveugle OMEGA '
                        '(voisement = graisse, anti-miroir bdpq, accents agrandis).',
-        'licenseDescription': 'CC BY-SA 4.0 (prototype de recherche OMEGA).',
+        'licenseDescription': 'SIL Open Font License 1.1 (police de recherche OMEGA-Ω ; les glyphes sont une création originale, '
+                              'indépendante des données Lexique).',
+        'licenseInfoURL': 'https://openfontlicense.org',
     })
     fb.setupOS2(sTypoAscender=880, sTypoDescender=-280, sTypoLineGap=200,
                 usWinAscent=960, usWinDescent=320)
