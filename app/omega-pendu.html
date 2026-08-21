@@ -27793,8 +27793,53 @@ var OmegaDysSonCore = (function () {
     if (i < sentence.length) out.push({raw: sentence.slice(i)});
     return out;
   }
-  return {wordSegments: wordSegments, sentenceSegments: sentenceSegments,
-          classify: classify, ipa2sampa: ipa2sampa, CLIT: CLIT};
+  // ---- SYLLABES : port de decompose.syllabify_sampa / syllabify_ortho (attaque maximale ;
+  //      chaque graphème va dans la syllabe de son 1er phonème, une muette suit la syllabe courante) ----
+  var SVOW = 'aeiouyOE2°@519§', LIQ = 'lR', GLIDE = 'jw8';
+  function legalOnset(s) {
+    if (s.length === 1) return true;
+    if (s.length === 2) return (LIQ.indexOf(s[1]) >= 0 && LIQ.indexOf(s[0]) < 0 && GLIDE.indexOf(s[0]) < 0) ||
+                               (GLIDE.indexOf(s[1]) >= 0 && GLIDE.indexOf(s[0]) < 0);
+    if (s.length === 3) return GLIDE.indexOf(s[2]) >= 0 && LIQ.indexOf(s[1]) >= 0 && LIQ.indexOf(s[0]) < 0 && GLIDE.indexOf(s[0]) < 0;
+    return false;
+  }
+  function onsetLen(c) {
+    for (var L = 3; L >= 1; L--) if (L <= c.length && legalOnset(c.slice(c.length - L))) return L;
+    return Math.min(1, c.length);
+  }
+  function syllabifySampa(s) {
+    var nuclei = [], i;
+    for (i = 0; i < s.length; i++) if (SVOW.indexOf(s[i]) >= 0) nuclei.push(i);
+    if (!nuclei.length) return s ? [s] : [];
+    var cuts = [0];
+    for (var k = 0; k < nuclei.length - 1; k++) {
+      var a = nuclei[k], b = nuclei[k + 1], cl = s.slice(a + 1, b);
+      cuts.push(cl ? b - onsetLen(cl) : a + 1);
+    }
+    cuts.push(s.length);
+    var out = [];
+    for (i = 0; i < cuts.length - 1; i++) out.push(s.slice(cuts[i], cuts[i + 1]));
+    return out;
+  }
+  function syllableIndex(segs) {                         // indice de syllabe (compacté) par segment
+    var sampa = '', i;
+    for (i = 0; i < segs.length; i++) sampa += segs[i].ph;
+    var syl = syllabifySampa(sampa);
+    if (!syl.length) return segs.map(function () { return 0; });
+    var sylOf = [];
+    syl.forEach(function (s, si) { for (var j = 0; j < s.length; j++) sylOf.push(si); });
+    var raw = [], pos = 0;
+    segs.forEach(function (x) { raw.push(pos < sylOf.length ? sylOf[pos] : syl.length - 1); pos += x.ph.length; });
+    var rank = {}, n = 0;                                 // compaction (≡ Python : syllabes vides retirées)
+    return raw.map(function (si) { if (rank[si] == null) rank[si] = n++; return rank[si]; });
+  }
+  function syllables(segs) {                             // chaînes ortho (≡ decompose.syllabify_ortho)
+    var idx = syllableIndex(segs), out = [];
+    for (var i = 0; i < segs.length; i++) out[idx[i]] = (out[idx[i]] || '') + segs[i].g;
+    return out;
+  }
+  return {wordSegments: wordSegments, sentenceSegments: sentenceSegments, classify: classify,
+          ipa2sampa: ipa2sampa, syllableIndex: syllableIndex, syllables: syllables, CLIT: CLIT};
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSonCore;
 </script>
@@ -27803,15 +27848,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
 // N'altère AUCUN panneau : ajoute ses contrôles dans les rangées de réglages existantes et habille
 // des conteneurs déjà rendus (MutationObserver). On ne remplace que des NŒUDS TEXTE par des <span>
 // d'habillage → la structure DOM (boutons, [data-key], cartes) et le texte restent identiques.
-// Un seul réglage partagé (localStorage `vdd_son`) pour la case Dictée et le bouton Correcteur.
-// Polices : blocs base64 embarqués (omegadys-b64-*), chargées PARESSEUSEMENT (0 coût si OFF).
+// SAISIE (#vdc-in, contenteditable) : le correcteur réécrit déjà son innerHTML à chaque correction
+// (curseur restauré par OFFSET TEXTE) ; on habille après lui de la même façon, curseur sauvé/restauré.
+// Couleurs : décidées par la LUMINOSITÉ du fond réel (thème clair/sombre, encadrés) — la muette
+// reste lisible partout ; syllabes = alternance de teinte (Okabe-Ito), jamais seul canal.
+// Réglages partagés : `vdd_son` (police de son) et `vdd_syl` (syllabes, même clé que la dictée).
 (function () {
   'use strict';
   if (typeof _DECL2 === 'undefined' || !_DECL2 || typeof _DECL2.g2p !== 'function') return;
   if (typeof OmegaDysSonCore === 'undefined' || typeof FontFace === 'undefined') return;
-  var KEY = 'vdd_son', MAX_CHARS = 4000;                 // au-delà : trop de spans par frappe → abstention (texte intact)
-  var on = false;
-  try { on = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  var KEY = 'vdd_son', KEY_SYL = 'vdd_syl', MAX_CHARS = 4000;   // au-delà : abstention (texte intact)
+  var on = false, syl = false;
+  try { on = localStorage.getItem(KEY) === '1'; syl = localStorage.getItem(KEY_SYL) === '1'; } catch (e) {}
+  var css = document.createElement('style');
+  css.textContent =
+    '.son-seg{font-size:1.14em}' +
+    '.son-mute{color:#5f6672}.son-mute.son-on-dark{color:#b4bcc8}' +            // gris FONCÉ sur clair / CLAIR sur sombre (≥4,5:1)
+    '.son-syl{color:#0072b2}.son-syl.son-on-dark{color:#6cc0f0}' +               // syllabe impaire : bleu Okabe-Ito (clair/sombre)
+    '.son-syl.son-mute{color:#5f6672}.son-syl.son-mute.son-on-dark{color:#b4bcc8}';
+  document.head.appendChild(css);
   var loaded = false;
   function loadFonts() {
     if (loaded) return;
@@ -27831,12 +27886,28 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
   }
   var FAM = {voi: "'OMEGA Dys Heavy',monospace", srd: "'OMEGA Dys Light',monospace",
              n: "'OMEGA Dys',monospace", mute: "'OMEGA Dys',monospace"};
-  var cache = {};                                        // mot → segments (le g2p ne change pas en session)
+  function isDarkBg(el) {                                // fond RÉEL derrière le texte (remonte jusqu'à un fond opaque)
+    try {
+      for (var n = el; n && n.nodeType === 1; n = n.parentNode) {
+        var bg = getComputedStyle(n).backgroundColor, m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/.exec(bg || '');
+        if (!m || (m[4] !== undefined && parseFloat(m[4]) === 0)) continue;
+        var L = (0.2126 * m[1] + 0.7152 * m[2] + 0.0722 * m[3]) / 255;
+        return L < 0.5;
+      }
+    } catch (e) {}
+    return document.body.classList.contains('dys-dark');
+  }
+  var cache = {};
   function segsOf(word) {
-    if (!cache[word]) cache[word] = OmegaDysSonCore.wordSegments(word, _DECL2.g2p);
+    if (!cache[word]) {
+      var s = OmegaDysSonCore.wordSegments(word, _DECL2.g2p);
+      var idx = OmegaDysSonCore.syllableIndex(s);
+      for (var i = 0; i < s.length; i++) s[i].syl = idx[i];
+      cache[word] = s;
+    }
     return cache[word];
   }
-  function fragmentFor(text) {
+  function fragmentFor(text, dark, withSyl) {
     var frag = document.createDocumentFragment();
     OmegaDysSonCore.sentenceSegments(text, _DECL2.g2p).forEach(function (m) {
       if (m.raw !== undefined) { frag.appendChild(document.createTextNode(m.raw)); return; }
@@ -27844,30 +27915,65 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
         var sp = document.createElement('span');
         sp.textContent = seg.g;                          // textContent : jamais de HTML injecté
         sp.setAttribute('data-son', seg.cls);
+        sp.className = 'son-seg' + (seg.cls === 'mute' ? ' son-mute' : '') + (withSyl && (seg.syl % 2) ? ' son-syl' : '') + (dark ? ' son-on-dark' : '');
         sp.style.fontFamily = FAM[seg.cls] || FAM.n;
-        sp.style.fontSize = '1.14em';
-        if (seg.cls === 'mute') sp.style.color = '#5f6672';   // gris FONCÉ lisible (BDA) ; luminosité = daltonien-safe
-        sp.title = seg.ph ? '/' + seg.ph + '/' : 'muette';
+        sp.title = (seg.ph ? '/' + seg.ph + '/' : 'muette') + (withSyl ? ' · syllabe ' + (seg.syl + 1) : '');
         frag.appendChild(sp);
       });
     });
     return frag;
   }
-  var busy = false;
-  function habiller(container) {                         // remplace les nœuds TEXTE seulement ; idempotent
-    if (!on || !container || busy) return;
+  // ---- curseur (contenteditable) : offset texte, comme _ceCaret/_ceSetCaret du correcteur ----
+  function caretOff(el) {
+    var s = window.getSelection();
+    if (!s || !s.rangeCount) return null;
+    var r = s.getRangeAt(0);
+    if (!el.contains(r.endContainer)) return null;
+    var pre = r.cloneRange();
+    pre.selectNodeContents(el);
+    pre.setEnd(r.endContainer, r.endOffset);
+    return pre.toString().length;
+  }
+  function setCaret(el, off) {
+    if (off == null) return;
+    var s = window.getSelection(), r = document.createRange(), cnt = 0, done = false;
+    (function w(n) {
+      for (var c = n.firstChild; c && !done; c = c.nextSibling) {
+        if (c.nodeType === 3) {
+          var L = c.nodeValue.length;
+          if (cnt + L >= off) { r.setStart(c, off - cnt); r.collapse(true); done = true; return; }
+          cnt += L;
+        } else w(c);
+      }
+    })(el);
+    if (!done) { r.selectNodeContents(el); r.collapse(false); }
+    s.removeAllRanges();
+    s.addRange(r);
+  }
+  var busy = false, composing = false;
+  function habiller(container, opts) {                   // remplace les nœuds TEXTE seulement ; idempotent
+    opts = opts || {};
+    if (!on || !container || busy || composing) return;
     if (container.querySelector('span[data-son]')) return;          // déjà habillé (rendu externe inchangé)
     var all = container.textContent || '';
     if (!all.trim() || all.length > MAX_CHARS) return;
     loadFonts();
     busy = true;
     try {
+      var off = opts.caret ? caretOff(container) : null;          // sélection DANS le champ (pas le focus système : même règle que _ceCaret)
+      var dark = isDarkBg(container), withSyl = syl && !opts.noSyl;
       var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null), nodes = [], n;
       while ((n = walker.nextNode())) if (n.nodeValue && /[A-Za-zÀ-ÿœ]/.test(n.nodeValue)) nodes.push(n);
-      nodes.forEach(function (tn) { tn.parentNode.replaceChild(fragmentFor(tn.nodeValue), tn); });
+      nodes.forEach(function (tn) { tn.parentNode.replaceChild(fragmentFor(tn.nodeValue, dark, withSyl), tn); });
+      if (off != null) setCaret(container, off);
     } finally { busy = false; }
   }
-  // ---- aperçu immédiat (voir l'effet sans attendre une faute) ----
+  function deshabiller(container) {                      // retire les spans (texte inchangé) pour re-rendre
+    if (!container) return;
+    var L = container.querySelectorAll('span[data-son]');
+    for (var i = 0; i < L.length; i++) L[i].parentNode.replaceChild(document.createTextNode(L[i].textContent), L[i]);
+    container.normalize();
+  }
   var APERCU = 'Aperçu : poison · poisson · les petits chats blancs · un gâteau';
   function apercu(id, parent) {
     var el = document.getElementById(id);
@@ -27880,18 +27986,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
       parent.appendChild(el);
     }
     el.style.display = '';
-    if (!el.querySelector('span[data-son]')) { el.textContent = ''; loadFonts(); el.appendChild(fragmentFor(APERCU)); }
+    deshabiller(el);
+    el.textContent = APERCU;
+    habiller(el);
   }
-  var controls = [], refreshers = [];                    // synchronisation case Dictée ↔ bouton Correcteur
+  var controls = [], refreshers = [];
   function refreshAll() { refreshers.forEach(function (f) { f(); }); }
   function setOn(v) {
     on = !!v;
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
-    controls.forEach(function (c) { c(on); });
+    controls.forEach(function (c) { c(on, syl); });
+    refreshAll();
+  }
+  function setSyl(v) {
+    syl = !!v;
+    try { localStorage.setItem(KEY_SYL, syl ? '1' : '0'); } catch (e) {}
+    controls.forEach(function (c) { c(on, syl); });
     refreshAll();
   }
 
-  // ---- DICTÉE : case dans la rangée « Police lisible / Syllabes / Vitesse » + phrase correcte (.vdd-truth) ----
+  // ---- DICTÉE : case + aperçu + phrase correcte (.vdd-truth ; syllabes = option native du panneau) ----
   var card = document.getElementById('vdd-card');
   if (card) {
     var rows = card.querySelectorAll('.vdd-row'), row = null, i;
@@ -27914,33 +28028,50 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
       row.parentNode.insertBefore(hostA, row.nextSibling);
       refreshers.push(function () {
         apercu('vdd-son-apercu', hostA);
-        if (on) { var L = card.querySelectorAll('.vdd-truth'); for (var k = 0; k < L.length; k++) habiller(L[k]); }
+        if (on) { var L = card.querySelectorAll('.vdd-truth'); for (var k = 0; k < L.length; k++) habiller(L[k], {noSyl: true}); }
       });
     }
     new MutationObserver(function () {
       if (!on) return;
       var L = card.querySelectorAll('.vdd-truth');
-      for (var k = 0; k < L.length; k++) habiller(L[k]);
+      for (var k = 0; k < L.length; k++) habiller(L[k], {noSyl: true});
     }).observe(card, {childList: true, subtree: true});
   }
 
-  // ---- CORRECTEUR : bouton dans les réglages d'affichage + texte corrigé (#vdc-result) ----
-  var set = document.getElementById('vdc-set'), res = document.getElementById('vdc-result');
+  // ---- CORRECTEUR : boutons (police de son, syllabes) + SAISIE (#vdc-in) + texte corrigé (#vdc-result) ----
+  var set = document.getElementById('vdc-set'), res = document.getElementById('vdc-result'), zin = document.getElementById('vdc-in');
   if (set) {
-    var bt = document.createElement('button');
-    bt.type = 'button';
-    bt.id = 'vdc-son';
-    bt.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bt.title = 'Police de son OMEGA Dys sur le texte corrigé : voisé = épais, sourd = fin, muette = grisée (texte inchangé)';
-    bt.textContent = '🔡 Police de son';
-    set.appendChild(bt);
-    bt.addEventListener('click', function () { setOn(!on); });
-    controls.push(function (v) { bt.setAttribute('aria-pressed', v ? 'true' : 'false'); });
+    function mkBtn(id, label, title, handler) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.id = id;
+      b.title = title;
+      b.textContent = label;
+      set.appendChild(b);
+      b.addEventListener('click', handler);
+      return b;
+    }
+    var bt = mkBtn('vdc-son', '🔡 Police de son', 'Police de son OMEGA Dys dans la saisie et le texte corrigé : voisé = épais, sourd = fin, muette = grisée (texte inchangé)', function () { setOn(!on); });
+    var bs = mkBtn('vdc-syl', '✂️ Syllabes', 'Alterne la couleur des syllabes (règle de l’attaque maximale) — avec la police de son', function () { setSyl(!syl); if (!on && syl) setOn(true); });
+    controls.push(function (v, w) { bt.setAttribute('aria-pressed', v ? 'true' : 'false'); bs.setAttribute('aria-pressed', w ? 'true' : 'false'); });
     var hostB = document.createElement('div');
     set.parentNode.insertBefore(hostB, set.nextSibling);
-    refreshers.push(function () { apercu('vdc-son-apercu', hostB); if (on && res) habiller(res); });
-    if (res) new MutationObserver(function () { habiller(res); }).observe(res, {childList: true, subtree: true, characterData: true});
+    refreshers.push(function () {
+      apercu('vdc-son-apercu', hostB);
+      if (res) { deshabiller(res); if (on) habiller(res); }
+      if (zin) { var off = caretOff(zin); deshabiller(zin); if (on) habiller(zin, {caret: true}); else if (off != null) setCaret(zin, off); }
+    });
+    if (res) new MutationObserver(function () { habiller(res); }).observe(res, {childList: true, subtree: true});
+    if (zin) {
+      zin.addEventListener('compositionstart', function () { composing = true; });
+      zin.addEventListener('compositionend', function () { composing = false; });
+      // après chaque réécriture du correcteur (innerHTML neuf, sans nos spans) → habiller, curseur préservé
+      new MutationObserver(function (muts) {
+        for (var k = 0; k < muts.length; k++) if (muts[k].type === 'childList') { habiller(zin, {caret: true}); return; }
+      }).observe(zin, {childList: true, subtree: true});
+    }
   }
+  controls.forEach(function (c) { c(on, syl); });
   refreshAll();
 })();
 </script>

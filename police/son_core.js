@@ -74,7 +74,52 @@ var OmegaDysSonCore = (function () {
     if (i < sentence.length) out.push({raw: sentence.slice(i)});
     return out;
   }
-  return {wordSegments: wordSegments, sentenceSegments: sentenceSegments,
-          classify: classify, ipa2sampa: ipa2sampa, CLIT: CLIT};
+  // ---- SYLLABES : port de decompose.syllabify_sampa / syllabify_ortho (attaque maximale ;
+  //      chaque graphème va dans la syllabe de son 1er phonème, une muette suit la syllabe courante) ----
+  var SVOW = 'aeiouyOE2°@519§', LIQ = 'lR', GLIDE = 'jw8';
+  function legalOnset(s) {
+    if (s.length === 1) return true;
+    if (s.length === 2) return (LIQ.indexOf(s[1]) >= 0 && LIQ.indexOf(s[0]) < 0 && GLIDE.indexOf(s[0]) < 0) ||
+                               (GLIDE.indexOf(s[1]) >= 0 && GLIDE.indexOf(s[0]) < 0);
+    if (s.length === 3) return GLIDE.indexOf(s[2]) >= 0 && LIQ.indexOf(s[1]) >= 0 && LIQ.indexOf(s[0]) < 0 && GLIDE.indexOf(s[0]) < 0;
+    return false;
+  }
+  function onsetLen(c) {
+    for (var L = 3; L >= 1; L--) if (L <= c.length && legalOnset(c.slice(c.length - L))) return L;
+    return Math.min(1, c.length);
+  }
+  function syllabifySampa(s) {
+    var nuclei = [], i;
+    for (i = 0; i < s.length; i++) if (SVOW.indexOf(s[i]) >= 0) nuclei.push(i);
+    if (!nuclei.length) return s ? [s] : [];
+    var cuts = [0];
+    for (var k = 0; k < nuclei.length - 1; k++) {
+      var a = nuclei[k], b = nuclei[k + 1], cl = s.slice(a + 1, b);
+      cuts.push(cl ? b - onsetLen(cl) : a + 1);
+    }
+    cuts.push(s.length);
+    var out = [];
+    for (i = 0; i < cuts.length - 1; i++) out.push(s.slice(cuts[i], cuts[i + 1]));
+    return out;
+  }
+  function syllableIndex(segs) {                         // indice de syllabe (compacté) par segment
+    var sampa = '', i;
+    for (i = 0; i < segs.length; i++) sampa += segs[i].ph;
+    var syl = syllabifySampa(sampa);
+    if (!syl.length) return segs.map(function () { return 0; });
+    var sylOf = [];
+    syl.forEach(function (s, si) { for (var j = 0; j < s.length; j++) sylOf.push(si); });
+    var raw = [], pos = 0;
+    segs.forEach(function (x) { raw.push(pos < sylOf.length ? sylOf[pos] : syl.length - 1); pos += x.ph.length; });
+    var rank = {}, n = 0;                                 // compaction (≡ Python : syllabes vides retirées)
+    return raw.map(function (si) { if (rank[si] == null) rank[si] = n++; return rank[si]; });
+  }
+  function syllables(segs) {                             // chaînes ortho (≡ decompose.syllabify_ortho)
+    var idx = syllableIndex(segs), out = [];
+    for (var i = 0; i < segs.length; i++) out[idx[i]] = (out[idx[i]] || '') + segs[i].g;
+    return out;
+  }
+  return {wordSegments: wordSegments, sentenceSegments: sentenceSegments, classify: classify,
+          ipa2sampa: ipa2sampa, syllableIndex: syllableIndex, syllables: syllables, CLIT: CLIT};
 })();
 if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSonCore;
