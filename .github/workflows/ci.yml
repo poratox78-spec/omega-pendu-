@@ -169,6 +169,8 @@ jobs:
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — le pack de polices OMEGA Dys téléchargeable est FRAIS (octets == police/)
         run: python3 police/build_pack.py --check
+      - name: Complément Word — planificateur police de son (g2p réel, texte JAMAIS altéré, glue Office simulée)
+        run: node word/test_son_word.js
       # Même famille que le zip rassis, découverte le 2026-08-10 : `app/omega-pendu-en.html` est
       # GÉNÉRÉ depuis le monolithe français, mais rien ne vérifiait qu'il suivait. Il avait plusieurs
       # PR de retard — table de genre `_GCOLL` et graine `OMEGA_GDET` (#453), modèle de ponctuation,

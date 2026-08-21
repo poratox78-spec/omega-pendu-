@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>OMEGA Dys — police de son pour Word</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+  @font-face{font-family:'OMEGA Dys';src:url('../police/OmegaDys-Regular.ttf') format('truetype')}
+  @font-face{font-family:'OMEGA Dys Light';src:url('../police/OmegaDys-Light.ttf') format('truetype')}
+  @font-face{font-family:'OMEGA Dys Heavy';src:url('../police/OmegaDys-Heavy.ttf') format('truetype')}
+  body{margin:0;font:14px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#1c2431;background:#f7f5ef;padding:14px}
+  h1{font-size:16px;margin:0 0 8px}
+  button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;margin:4px 4px 4px 0}
+  #go{background:#2a6f97;color:#fff}#seule{background:#1f7a3d;color:#fff}#undo{background:#8a94a0;color:#fff}
+  label{display:block;margin:8px 0;font-size:13px}
+  #apercu{font-size:22px;line-height:1.8;margin:8px 0 12px;padding:8px 10px;background:#fff;border-radius:8px;border:1px solid #e2dccd}
+  #st{font-size:13px;color:#555;min-height:1.4em}#st.ok{color:#1f7a3d}#st.err{color:#b3261e}
+  .note{font-size:12px;color:#6a5b2e;background:#fff8ea;border-left:3px solid #e8920c;border-radius:5px;padding:6px 9px;margin-top:10px;line-height:1.45}
+</style>
+</head>
+<body>
+<h1>🔡 Police de son OMEGA Dys</h1>
+<div id="apercu"></div>
+<label><input type="checkbox" id="syl"> ✂️ Syllabes en couleur</label>
+<button id="go">Appliquer la police de son</button>
+<button id="seule">Police OMEGA Dys seule</button>
+<button id="undo">↩ Police d'origine</button>
+<div id="st">chargement…</div>
+<div class="note">Le texte n'est <b>jamais</b> modifié : chaque mot est ré-inséré caractère pour caractère, seuls la graisse et la couleur changent (voisé = épais, sourd = fin, muette = vermillon). Il faut les polices <b>OMEGA Dys</b> installées (pack <i>omega-police-dys.zip</i>, page Données) — sinon Word en substitue une autre. Prototype de recherche.</div>
+<script src="../extension/assets/g2p.js"></script>
+<script src="../extension/assets/son_core.js"></script>
+<script src="son_word.js"></script>
+<script src="taskpane.js"></script>
+</body>
+</html>
