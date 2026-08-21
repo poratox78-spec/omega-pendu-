@@ -211,3 +211,19 @@ tout entraînement, artefact élagué évalué tel que baké) : **19/19 oranges 
 Miroir app+extension (plTaisCarte), python sans producteur pluralVig. Le juge opt-in reste
 au-dessus et en tait davantage. Bancs : distill_pluriel_dump.js + distill_pluriel.py ;
 bout-en-bout navigateur : « le 25 août » ne montre plus jamais « aoûts », pipeline SYNC.
+
+### Distillation, familles 2-4 : SV bakée, genre et ou/où REFUSÉES chiffrées (2026-08-21)
+
+Même recette que pluriel-tais sur les 3 familles restantes (distill_vig_dump.js : corrupteurs
+±« nt », −e, ou↔où AUTO-VALIDÉS — la corruption n'est un juste que si l'orange re-tire avec la
+sugg d'origine ; distill_vig.py). Leçon de rigueur : les portes v1 étaient CREUSES (« justes dys
+0/0 = sûr » ne teste rien) → portes durcies : sécurité TESTABLE (justes dys 100 % ET justes
+GÉNÉRÉES held-out ≥99,5 %) ET rendement RÉEL (≥5 oranges tues sur held-out). Verdicts :
+· **sv BAKÉE** (seuil 0.5) : justes générées 614/614 gardées, ~27 % de la famille tue (4/22
+  fp_scale + 2/8 dys) — modeste et sûr, 35 Ko.
+· **genre REFUSÉE** : 61 exemples, 0 juste générable (corrupteur −e muet), rendement nul (0/4).
+· **ou/où REFUSÉE** : rendement nul sur held-out (fp_scale : 0 orange de la famille) et 78/79
+  justes générées à 0.5 (<99,5 %).
+Ces familles restent au JUGE opt-in (l'arbitre les tait déjà à l'exécution — « se trouvent des
+poteaux » au banc navigateur). La distillation n'a de sens que sur les familles à VOLUME :
+pluriel (744) oui ; genre (11) et ou/où (10) n'avaient rien à re-cristalliser.
