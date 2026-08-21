@@ -114,7 +114,7 @@
     loadFonts();
     busy = true;
     try {
-      var off = opts.caret ? caretOff(container) : null;          // sélection DANS le champ (pas le focus système : même règle que _ceCaret)
+      var off = opts.caret ? (opts.off != null ? opts.off : caretOff(container)) : null;   // sélection DANS le champ (même règle que _ceCaret) ; opts.off = offset sauvé AVANT un déshabillage
       var dark = isDarkBg(container), withSyl = syl && !opts.noSyl;
       var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null), nodes = [], n;
       while ((n = walker.nextNode())) if (n.nodeValue && /[A-Za-zÀ-ÿœ]/.test(n.nodeValue)) nodes.push(n);
@@ -185,6 +185,18 @@
         if (on) { var L = card.querySelectorAll('.vdd-truth'); for (var k = 0; k < L.length; k++) habiller(L[k], {noSyl: true}); }
       });
     }
+    // SAISIE dictée (#vdd-ans, contenteditable depuis 2026-08-21) : personne ne la réécrit → on ré-habille
+    // nous-mêmes 300 ms après la frappe, curseur préservé (offset sauvé AVANT le déshabillage).
+    var ans = document.getElementById('vdd-ans'), tAns = null;
+    if (ans && ans.isContentEditable) {
+      var rehab = function () { if (!on) return; var off = caretOff(ans); deshabiller(ans); habiller(ans, {caret: true, off: off}); };
+      ans.addEventListener('input', function () { clearTimeout(tAns); tAns = setTimeout(rehab, 300); });
+      refreshers.push(function () {
+        var off = caretOff(ans);
+        deshabiller(ans);
+        if (on) habiller(ans, {caret: true, off: off}); else if (off != null) setCaret(ans, off);
+      });
+    }
     new MutationObserver(function () {
       if (!on) return;
       var L = card.querySelectorAll('.vdd-truth');
@@ -213,7 +225,7 @@
     refreshers.push(function () {
       apercu('vdc-son-apercu', hostB);
       if (res) { deshabiller(res); if (on) habiller(res); }
-      if (zin) { var off = caretOff(zin); deshabiller(zin); if (on) habiller(zin, {caret: true}); else if (off != null) setCaret(zin, off); }
+      if (zin) { var off = caretOff(zin); deshabiller(zin); if (on) habiller(zin, {caret: true, off: off}); else if (off != null) setCaret(zin, off); }
     });
     if (res) new MutationObserver(function () { habiller(res); }).observe(res, {childList: true, subtree: true});
     if (zin) {

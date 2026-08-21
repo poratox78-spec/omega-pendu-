@@ -6,7 +6,8 @@
 #   - speller-lex-gz (gzip TSV  form\tfreq\tPOS) = orthographe (non-mots/accents)     -> assets/speller.tsv.gz
 # Données dérivées Lexique 4 → CC BY-SA 4.0 (voir NOTICE).
 #   python3 extension/build_assets.py
-import os, re, base64, json, gzip
+import os
+import shutil, re, base64, json, gzip
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'app', 'omega-pendu.html')
@@ -55,6 +56,16 @@ def main():
     for f in assets:
         p = os.path.join(OUT, f)
         print("  %-26s %7.0f Ko" % (f, os.path.getsize(p) / 1024))
+    # ---- POLICE DE SON (2026-08-21) : g2p du moteur (_DECL2, tranche verbatim de l'app) + cœur sans DOM +
+    #      3 TTF OmegaDys — chargés PARESSEUSEMENT par sidepanel.js (case « Police de son »), parité police/parity_son.js
+    i0 = html.index('var _DECL2 = (function () {'); iR = html.index('return { g2p: g2p,', i0); iE = html.index('})()', iR) + 4
+    open(os.path.join(OUT, 'g2p.js'), 'w', encoding='utf-8', newline='\n').write(
+        '// g2p du moteur OMEGA (_DECL2) — EXTRAIT VERBATIM de app/omega-pendu.html par build_assets.py, ne pas éditer.\n'
+        + html[i0:iE] + ';\n')
+    POL = os.path.join(HERE, '..', 'police')
+    shutil.copyfile(os.path.join(POL, 'son_core.js'), os.path.join(OUT, 'son_core.js'))
+    for fn in ('OmegaDys-Regular.ttf', 'OmegaDys-Light.ttf', 'OmegaDys-Heavy.ttf'):
+        shutil.copyfile(os.path.join(POL, fn), os.path.join(OUT, fn))
     print("[build_assets] OK -> " + OUT)
     return 0
 
