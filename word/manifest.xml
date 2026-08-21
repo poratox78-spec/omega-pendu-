@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:type="TaskPaneApp">
+  <Id>7e1c6f2a-3b4d-4c5e-9f10-20260821a001</Id>
+  <Version>0.1.0.0</Version>
+  <ProviderName>OMEGA-Ω</ProviderName>
+  <DefaultLocale>fr-FR</DefaultLocale>
+  <DisplayName DefaultValue="OMEGA Dys — police de son"/>
+  <Description DefaultValue="Habille le texte avec la police OMEGA Dys : phonème voisé = épais, sourd = fin, lettre muette = grisée, syllabes en couleur. Le texte n'est jamais modifié. Prototype de recherche (troubles de l'écrit)."/>
+  <IconUrl DefaultValue="https://omega-pendu.pages.dev/word/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://omega-pendu.pages.dev/word/icon-64.png"/>
+  <SupportUrl DefaultValue="https://github.com/poratox78-spec/omega-pendu-"/>
+  <AppDomains>
+    <AppDomain>https://omega-pendu.pages.dev</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Document"/>
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.3">
+      <Set Name="WordApi" MinVersion="1.3"/>
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://omega-pendu.pages.dev/word/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+</OfficeApp>
