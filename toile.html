@@ -147,6 +147,7 @@ const N = [
   {id:'audi', f:'ctx', r:12, label:'Audibilité', desc:"Le dys écrit ce qu'il ENTEND. On ancre sur l'audible (le/la/les, voyelles), on répare le muet (-s/-ent/accents)."},
   {id:'seg', f:'ctx', r:12, label:'Ponctuation · _SEG', desc:"bb (frontière proposition), ss (phrase), hy (trait d'union), dig (nombre effacé). Détecte l'incise, borne les recherches de sujet."},
   {id:'postype', f:'ctx', r:11, label:'Type POS', desc:"La nature (nom/verbe/adj/dét) gate quasi toutes les règles : désambiguïse les homographes (la marche : nom vs verbe)."},
+  {id:'ancre', f:'ctx', r:14, label:'Ancre fiable', desc:"MESURÉ 22/08 : 77 % des faux positifs sur texte dys viennent d'un VOISIN ABÎMÉ, pas d'une erreur de détection — un POS-tagger étiquette correctement un mot FAUX. Sur du dys ~20 % des mots sont fautifs, donc ~56 % de chances qu'un des 4 voisins le soit. Le geste qui paie n'est pas « plus de détection » mais « le mot sur lequel je lis mon information est-il digne de confiance ? » : mot inconnu du lexique · déterminant contredit par le nom · mot déjà corrigé par une autre règle (cascade à→a + conservé→conserver = faute FABRIQUÉE) · règle voisine qui sait réparer. ⚠️ Mesuré aussi : 94 % de ces ancres sont des mots PARFAITEMENT CONNUS — un test lexical générique n'en attraperait que 4 %. La garde reste donc PAR RÈGLE, pas globale."},
   // règles rouges
   {id:'sv', f:'rouge', r:15, label:'Accord sujet-verbe', desc:"Famille : sv_noun, coord (#207), rel_obj que/dont/où (#209/210), incise (#211), quantifieur, relatif qui, postposé, -ais→-ait."},
   {id:'pp', f:'rouge', r:13, label:'Accord participe', desc:"pp_être (sujet), pp_avoir + COD antéposé (que), dont. Perception/factitif + infinitif = INVARIABLE (#212 : s'est vu confisquer)."},
@@ -165,6 +166,7 @@ const N = [
   {id:'ORANGE', f:'out', r:16, label:'ORANGE', desc:"Vigilance « à vérifier ». Réponse au doute (jamais le silence) : priver un dys d'une piste parce qu'on n'est « pas sûr » = discrimination."},
 ];
 const E = [
+  ['ancre','sv'],['ancre','nom'],['ancre','genre'],['ancre','homo'],['ancre','core'],
   // sources -> structures
   ['lex4','spw'],['lex4','gn'],['lex4','conj'],['lex4','ipa'],['wikt','spw'],['wikt','gn'],['wikt','ipa'],
   ['argot','spw'],['argot','gn'],['part','spw'],['ud','hmm'],['ud','core'],
