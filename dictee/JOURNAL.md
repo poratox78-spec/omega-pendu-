@@ -338,6 +338,26 @@ que de la réécrire au cas par cas.
     lieu de l'initiale orthographique » dans `_cands` (le papier note 10,9 % d'initiales fausses mais <4 %
     de phonétiquement fausses). **Chez nous la garde n'écarte que 6,2 % des formes, dont 5,5 % ont aussi
     l'initiale phonétique fausse → gain plafonné à 0,7 %.** Ne vaut pas le code. *Piste fermée.*
+  - ⚠️⚠️⚠️ **CORRECTION MAJEURE — ce n'est PAS une convergence, c'est le MÊME CORPUS.** La notice
+    `corpus_dys/README.txt` le dit : **FFDys** (Laetitia Branciard, 7 textes, adolescent) + **Plateforme
+    Dys de l'ASEI** (Cécile Péguin, 71 textes, adultes) = **exactement les deux corpus de Bodard 2020**.
+    Vérifié, pas supposé : **les 15 formes citées en exemple dans le papier sont dans nos fichiers**
+    (`disgetif`, `meiu`, `setoufle`, `mayeur`, `Qustion`, `aprle`, `situiation`, `réusite`, `comerse`,
+    `ducou`, `rendévous`, `lafrique`, `oré`, `nalé`, `fesé`). **La « convergence indépendante » que
+    j'ai annoncée n'existe pas** — nos chiffres ressemblent aux leurs parce que ce sont les mêmes données.
+    Ce que ça apporte à la place : leurs statistiques publiées **décrivent notre corpus**, avec un gold que
+    nous n'avons pas — elles donnent la vérité terrain des **72 textes que nous n'exploitons pas**.
+  - **Les 78 textes SONT dans le dépôt** (`data_local/dys_reel/corpus_dys/`), mais en `_raw.txt` **sans
+    corrigé** : seules les 6 **dictées** ont un gold (le texte dicté est connu), d'où les « 6 paires ».
+    Les 72 autres restent mesurables pour ce qui ne demande **pas** de référence — non-mots par genre :
+    corpus1 (ado) **26,2 %** · Dictée 21,8 % · Expression libre 16,0 % · Expr. dirigée 15,4 % ·
+    **TOTAL réel 20,6 %** contre **16,0 %** dans le mélange qu'on mesurait. Le texte dys réel est **plus
+    dur**, et la dictée n'est pas le genre le plus facile sur cet axe.
+  - ⚠️ **BIAIS DE MESURE DANS NOTRE JUGE** : `dys_precision_probe.eq` **normalise les accents**, or
+    l'accent est une famille dys majeure que Bodard compte. Mots fautifs sur les 6 dictées : **13,1 % au
+    juge actuel contre 17,1 % en strict** (4 pts d'écart = accents/élisions ; sondes 0,8 pt ; généré
+    3,6 pts). ⇒ **toutes mes comparaisons de pourcentages à la littérature étaient biaisées à la baisse.**
+    La tolérance reste justifiée pour **juger une correction**, pas pour **décrire un corpus**.
   - ⚠️⚠️ **PUIS, EN OUVRANT LES FICHIERS (`corpus_profile_probe.py`) : le « corpus dys réel » est un
     MÉLANGE MAL ÉTIQUETÉ.** 1 726 paires = **1 600 SONDES à faute unique** (`faiblesses.jsonl`, 200 × 8
     familles : accent, inversion, lettre_manque…), **120 générées**, et **6 VRAIES DICTÉES** (0,3 %,

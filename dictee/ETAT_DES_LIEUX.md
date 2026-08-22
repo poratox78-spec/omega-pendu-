@@ -46,6 +46,56 @@ existe pour boucher.
 **Recommandation pédagogique convergente** : l'élève doit **analyser** les suggestions plutôt que les
 accepter d'un clic. C'est l'architecture rouge/orange + stade + remédiation, pas un choix esthétique.
 
+## 3ter. ⚠️⚠️ CORRECTION MAJEURE — ce n'est PAS une convergence : **c'est le MÊME corpus**
+
+En lisant la notice de `data_local/dys_reel/corpus_dys/README.txt` : *« corpus communiqué par Laetitia
+Branciard de la **FFDys** »* (7 textes, adolescent) et *« Cécile Péguin, **Plateforme Dys de l'ASEI** »*
+(71 textes, adultes). Ce sont **exactement les deux corpus analysés par Bodard (2020)**.
+
+**Vérifié, pas supposé** : les **15** formes erronées citées en exemple dans le papier sont toutes dans nos
+fichiers — `disgetif`, `meiu`, `setoufle`, `mayeur`, `Qustion`, `aprle`, `situiation`, `réusite`,
+`comerse`, `ducou`, `rendévous`, `lafrique`, `oré`, `nalé`, `fesé`.
+
+⇒ **La « convergence indépendante » annoncée en §3bis n'existe pas.** Nos chiffres ressemblent aux leurs
+parce que ce sont les mêmes données. Je l'avais présenté comme une validation externe : **c'était faux**.
+
+**Ce que ça apporte quand même, et c'est beaucoup** : les statistiques publiées de Bodard **décrivent notre
+propre corpus**, annoté avec un gold que nous n'avons pas. Elles ne valident pas notre moteur — elles nous
+donnent la vérité terrain des **72 textes que nous n'exploitons pas**.
+
+### Ce que nous avons vraiment sous la main
+
+Les **78 textes sont dans le dépôt**, mais en `_raw.txt` **sans aucun corrigé** : seules les 6 dictées ont
+un gold (le texte dicté est connu). D'où les « 6 paires ». Les 72 autres restent mesurables pour tout ce
+qui **ne demande pas de référence** — le taux de **non-mots** en est un :
+
+| genre | textes | mots | non-mots |
+|---|---|---|---|
+| corpus1 (adolescent, scolaire) | 7 | 3 128 | **26,2 %** |
+| Dictée | 6 | 335 | 21,8 % |
+| Expression libre | 32 | 1 497 | 16,0 % |
+| Expression écrite dirigée | 33 | 2 063 | 15,4 % |
+| **TOTAL réel** | **78** | **7 023** | **20,6 %** |
+
+À comparer aux **16,0 %** du mélange que nous mesurions : le texte dys réel est **plus dur**, et les
+dictées ne sont pas le genre le plus facile sur cet axe (21,8 %).
+
+### ⚠️ Biais de mesure dans NOTRE juge
+
+`dys_precision_probe.eq` **normalise les accents** (`norm()` retire les diacritiques). Or l'accent est une
+famille d'erreurs dys majeure, que Bodard compte. Notre taux de mots fautifs est donc **sous-évalué par
+construction** :
+
+| | juge actuel | juge strict | écart (accents/élisions) |
+|---|---|---|---|
+| 6 dictées | 13,1 % | **17,1 %** | 4,0 pts |
+| sondes | 5,4 % | 6,2 % | 0,8 pt |
+| généré | 13,3 % | 16,9 % | 3,6 pts |
+
+⇒ **toutes les comparaisons de pourcentages à la littérature (§3, §3bis) étaient biaisées à la baisse.**
+La tolérance aux accents reste **justifiée pour juger une correction** (on ne veut pas compter « mere »
+comme une faute que le correcteur devrait corriger) mais elle **ne doit pas servir à décrire le corpus**.
+
 ## 3bis. ⚠️ CORRECTION (même jour) — ce n'est pas « notre corpus est trop facile », c'est **un mélange mal étiqueté**
 
 La section 3 ci-dessous a été écrite en comparant la littérature au **mélange** `data_local/dys_reel`.
