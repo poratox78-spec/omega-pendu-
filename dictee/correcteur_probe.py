@@ -306,7 +306,25 @@ def rule_e_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         return forms[1]                                # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
-    if p in AUX:                 return forms[0]      # auxiliaire (a/ont/est…) → participe -é
+    if p in AUX:
+        # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
+        # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en pensent A bronzer »,
+        # « il se met A pousser », « une difficulté A étudier » : la règle lisait ce « a » comme l'AUXILIAIRE
+        # et rendait le participe (bronzé/poussé/étudié) — alors que c'est une PRÉPOSITION, donc l'infinitif.
+        # `rule_a_aa` le sait (100 % de précision sur ce corpus) : si ELLE juge que ce « a » est un « à »,
+        # l'ancre « auxiliaire » ne vaut rien. SYMÉTRIQUE EXACT de la garde ci-dessus (ligne « à »→« a »).
+        # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — 3e forme
+        # la plus souvent erronée du français dys (Bodard 2020). « tout en pensent A bronzer » : ce « a » lu
+        # comme AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif.
+        # On s'en remet à `rule_a_aa`, LA règle qui tranche a/à (100 % de précision sur ce corpus) — et à elle
+        # SEULE. Quand elle ne tranche pas, on garde le comportement d'origine (participe) : « mon frère a
+        # manger » → mangé reste corrigé. C'est le SYMÉTRIQUE de la garde « à »→« a » ci-dessus.
+        # ⚠️ MESURÉ ET REJETÉ : trancher en plus par la STRUCTURE (« la proposition a déjà un verbe conjugué
+        # donc « a » est une préposition ») répare 2 cas de plus MAIS coûte **14 faux positifs à l'échelle**
+        # (FP UD 1,44 % → 2,00 %). Le prix de la garde cardinale est trop élevé — ne pas refaire.
+        if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
+            return forms[1]
+        return forms[0]                               # auxiliaire (a/ont/est…) → participe -é
     if p in PREP:
         if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
         return forms[1]                              # préposition → infinitif -er
@@ -425,7 +443,16 @@ def rule_flexion_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
     elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
-        tgt = 'part'
+        # ⭐ MÊME GARDE QUE `rule_e_er` (22/08) : le scripteur dys écrit « a » pour « à » (3e forme la
+        # plus souvent erronée, Bodard 2020). « tout en pensent A bronzer » : ce « a » lu comme
+        # AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif. Les DEUX
+        # règles partageaient l'angle mort — celle-ci l'avait encore, mesurée sur le PIPELINE complet
+        # (« bronzer »→bronzé cassait un mot juste). On s'en remet à `rule_a_aa` et à elle seule ;
+        # quand elle ne tranche pas, comportement d'origine.
+        if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
+            tgt = 'inf'
+        else:
+            tgt = 'part'
     elif p in _INF_GOV or p in MODAL or p in _CAUS:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
         tgt = 'inf'
     elif praw == 'vous':                          # « vous » sujet → -ez  (OBJET si précédé d'un verbe : « saura vous conseiller »)
