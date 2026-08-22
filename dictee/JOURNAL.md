@@ -156,6 +156,41 @@ sens), mot lui-même corrigé par une autre règle (cascade à/é-er), règle vo
 « cette ancre est-elle fiable ? »**, disponible pour les 36 règles qui n'ont aucune garde — plutôt
 que de la réécrire au cas par cas.
 
+### Suite (6) — chantier « primitive partagée : cette ancre est-elle fiable ? » : LANCÉ, MESURÉ, **NON CÂBLÉ**
+
+> Rem : « factorise-la en primitive partagée, utilisable par les 36 règles sans garde — je veux lancer
+> ce chantier. » Lancé. Et la mesure a dit **non** avant la première ligne de câblage.
+
+- **Ce qu'il fallait vérifier d'abord** : la primitive envisagée était lexicale (« l'ancre est-elle un
+  mot connu ? »). Question préalable : **quelle part des faux positifs a une ancre non-mot ?**
+- **Première mesure, FAUSSE de ma part** : j'ai compté « un voisin abîmé est un non-mot » (28 %) au
+  lieu de « **l'ANCRE de la règle** est un non-mot ». Dans « l'an *derniai* **les** spécialiste »,
+  l'ancre est « les » (mot réel, abîmé), le non-mot « derniai » traîne ailleurs dans la phrase.
+- **Mesure corrigée, sur l'ancre réelle des 10 règles à ancre identifiable** : sur 36 faux positifs,
+  **33 (92 %) ont une ancre parfaitement CONNUE** ; 3 seulement (8 %) sont des non-mots (« la **mêm**
+  lignée », « a **unn** comportement », « a **édé** retiré »). **Une primitive lexicale partagée
+  n'attraperait donc que ~8 % du problème**, au prix d'abstentions ajoutées dans 36 règles.
+- **Second garde-fou, décisif** : le mécanisme dominant (92 %) est une **contradiction
+  déterminant/nom** (« **des** valeur », « **les** bouddhisme »). Tentation : abstention sur
+  contradiction. **Mesuré avant de coder** — qui est fautif quand déterminant et nom se contredisent ?
+  · corpus dys **RÉEL** : le NOM 167 fois, le DÉTERMINANT **2** → **99 %** ;
+  · corpus **GÉNÉRÉ** : le NOM 244, le DÉTERMINANT 98 → 71 %.
+  **Le générateur abîme le déterminant ~29× plus souvent qu'un vrai scripteur dys.** Câbler cette
+  garde aurait cassé une règle juste 99 fois sur 100 sur la population cible, pour faire plaisir à un
+  corpus synthétique. C'est exactement le piège que la docstring de `dys_gen.py` annonce.
+- **Décision** : la garde d'ancre reste **PAR RÈGLE** (4 variantes justifiées cas par cas le 22/08),
+  pas de primitive globale. Le signal utile est la **cohérence** (déterminant vs nom, règle voisine
+  qui sait réparer), pas l'appartenance au lexique — et la cohérence ne se juge qu'en connaissant
+  l'ancre de CHAQUE règle.
+- **Livré quand même** : la mesure est figée dans `rules_audit_probe.py --ancres N` (part d'ancre
+  polluée + part d'ancre non-mot, avec la conclusion imprimée), et le **nœud « Ancre fiable »** entre
+  dans la *toile du correcteur* (`toile.html`, famille « signaux de contexte », relié à sv/nom/genre/
+  homophones/cœur) avec ses chiffres et sa limite.
+- **Le vrai prochain chantier, lui, est identifié** : **corriger le biais du générateur** (il choisit
+  le mot à abîmer sans respecter la répartition réelle mot-plein / mot-outil). Tant qu'il abîme les
+  déterminants 29× trop souvent, son inventaire de faux positifs n'est pas exploitable pour régler
+  les règles d'accord — alors qu'il l'est déjà pour tout le reste.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.

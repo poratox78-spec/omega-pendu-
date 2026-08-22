@@ -200,6 +200,44 @@ def main():
         print("  ⚠️ PLANCHER : les mots hors alignement ne sont pas comptés, et le juge tolère l'accent —")
         print("     la part réelle d'ancre polluée est donc SUPÉRIEURE à ce chiffre.")
         for e in exa: print('     ✗ ' + e)
+
+        # --- L'ANCRE elle-même : un test LEXICAL générique attraperait-il ces FP ? ---
+        # C'est la question qui décide si une primitive partagée « ancre fiable » vaut la peine.
+        # ⚠️ Ne pas confondre « un voisin abîmé est un non-mot » (fréquent) avec « l'ANCRE de la règle
+        # est un non-mot » (rare) : l'ancre est le token dont la règle LIT l'information.
+        import speller_probe as _S, inspect as _insp
+        _sp = [o for _n, o in vars(_S).items() if _insp.isclass(o) and hasattr(o, '_cands')][0]()
+        ANCRE = {'accord pluriel nom': -1, 'accord singulier nom': -1, 'accord adjectif épithète': -1,
+                 'accord participe épithète': -1, 'genre déterminant': +1, 'leur/leurs': +1,
+                 'a/à': +1, 'on/ont': +1, 'ce/se': +1, 'des/dès': +1}
+        connue = nonmot = 0; exb = []
+        rng2 = random.Random(20260822); lex2 = dys_gen.charge_lex(); np2 = 0
+        for line in io.open(UD, encoding='utf-8'):
+            t = line.strip()
+            if not t or len(t) < 25: continue
+            bad, k = dys_gen.genere(t, rng2, lex2)
+            if not k: continue
+            np2 += 1
+            if np2 > n_a: break
+            CP._SEG = CP._seg_info(bad); T = CP.toks(bad)
+            al = DP.align(T, [x.group(0) for x in DP.TOK.finditer(t)])
+            for (i, w, sg, nm) in CP.correct(bad):
+                if i not in al or not DP.eq(al[i], w) or nm not in ANCRE: continue
+                j = i + ANCRE[nm]
+                if j < 0 or j >= len(T): continue
+                if T[j].lower().strip("'") in _sp.WORDS: connue += 1
+                else:
+                    nonmot += 1
+                    if len(exb) < 5: exb.append('%s : %s→%s — ancre NON-MOT « %s »' % (nm, w, sg, T[j]))
+        tt = connue + nonmot
+        print()
+        print("  L'ANCRE de la règle (10 règles à ancre identifiable) — %d faux positifs :" % tt)
+        print("    · ancre = mot CONNU  → un test lexical N'AIDE PAS : %d (%.0f %%)" % (connue, 100.0 * connue / max(1, tt)))
+        print("    · ancre = NON-MOT    → un test lexical AIDERAIT   : %d (%.0f %%)" % (nonmot, 100.0 * nonmot / max(1, tt)))
+        for e in exb: print('       ✓ ' + e)
+        print("  ⇒ CONCLUSION MESURÉE : une primitive lexicale partagée n'attraperait qu'une")
+        print("     poignée de cas. La garde d'ancre doit rester PAR RÈGLE (le signal utile est la")
+        print("     COHÉRENCE — déterminant vs nom, règle voisine — pas l'appartenance au lexique).")
         return 0
 
     # ---------- 3. rapport ----------
