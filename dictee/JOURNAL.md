@@ -338,6 +338,19 @@ que de la réécrire au cas par cas.
     lieu de l'initiale orthographique » dans `_cands` (le papier note 10,9 % d'initiales fausses mais <4 %
     de phonétiquement fausses). **Chez nous la garde n'écarte que 6,2 % des formes, dont 5,5 % ont aussi
     l'initiale phonétique fausse → gain plafonné à 0,7 %.** Ne vaut pas le code. *Piste fermée.*
+  - ⚠️⚠️ **PUIS, EN OUVRANT LES FICHIERS (`corpus_profile_probe.py`) : le « corpus dys réel » est un
+    MÉLANGE MAL ÉTIQUETÉ.** 1 726 paires = **1 600 SONDES à faute unique** (`faiblesses.jsonl`, 200 × 8
+    familles : accent, inversion, lettre_manque…), **120 générées**, et **6 VRAIES DICTÉES** (0,3 %,
+    335 mots). Profil par groupe : le sous-ensemble **RÉEL converge avec la littérature** (d=1 60,5 % vs
+    58,8 % · d≥2 39,5 % vs 41,2 % · 1ʳᵉ lettre 18,6 % vs 10,9 % · vrai mot 48,8 % vs 53 %) — ce sont **les
+    SONDES qui sont atypiques** (faute isolée, première lettre quasi jamais touchée, 31,2 % de vrais mots).
+    ⇒ **les deltas avant/après de la campagne restent VALIDES** (même corpus des deux côtés) mais **les
+    ABSOLUS mesurent la tenue du moteur sur des fautes ISOLÉES**, pas sur du dys réel.
+    ⇒ **DOUBLE RÉTRACTATION sur `dys_gen.py`** : ni « 2× trop dense » (comparé au mélange), ni « plus
+    proche du réel que notre corpus » (§ ci-dessus) — **mesure directe : généré 13,2 % contre RÉEL 12,8 %,
+    il est BIEN CALIBRÉ en densité.** Le biais ×29 sur les déterminants reste à vérifier séparément.
+    ⇒ **Le vrai manque n'est pas un meilleur générateur, c'est du TEXTE DYS RÉEL.** La validation terrain
+    (orthophonistes), déjà au plan, débloque tout le reste : 335 mots, c'est trop peu pour conclure.
   - **LanguageTool** : leur `ConfusionProbabilityRule` utilise un **facteur** de même FORME que notre garde
     de dominance ≫20× (plage **10 à 10 000 000** ; facteur 1 = fausses alertes), choisi par un évaluateur
     dédié, avec **précision préférée au rappel** (seuils **0,995** mots fréquents / **0,99** autres) et la
