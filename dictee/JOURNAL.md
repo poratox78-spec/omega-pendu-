@@ -338,6 +338,28 @@ que de la réécrire au cas par cas.
     lieu de l'initiale orthographique » dans `_cands` (le papier note 10,9 % d'initiales fausses mais <4 %
     de phonétiquement fausses). **Chez nous la garde n'écarte que 6,2 % des formes, dont 5,5 % ont aussi
     l'initiale phonétique fausse → gain plafonné à 0,7 %.** Ne vaut pas le code. *Piste fermée.*
+  - ⚠️ **LE « ×29 SUR LES DÉTERMINANTS » EST RÉTRACTÉ — encore l'artefact du mélange.** Le chiffre venait
+    de comparer le généré au « corpus dys réel » (93 % de sondes). Remesuré **par groupe**, juge STRICT :
+
+    | | contradictions dét/nom | nom fautif | dét fautif | **nom =** |
+    |---|---|---|---|---|
+    | **RÉEL (6 dictées)** | 7 | 5 | 1 | **83 %** |
+    | SONDES | 288 | 108 | 3 | **97 %** |
+    | **GÉNÉRÉ** | 124 | 63 | 12 | **84 %** |
+
+    **Le générateur (84 %) colle au réel (83 %).** Le « 99 % » qui m'avait fait REFUSER la garde globale
+    venait des **sondes** — qui injectent une faute unique, presque toujours sur le mot plein. Axe large,
+    formes erronées visant un **mot-outil** : réel **21,4 %** · généré **27,1 %** · sondes 14,0 %
+    ⇒ **1,27×, pas 29×**.
+    ⇒ **`dys_gen.py` n'a plus AUCUN biais démontré** (densité 13,2 % vs 12,8 % · nature 62 %/66 % ·
+    mots-outils 1,27×). Les **trois** griefs portés contre lui aujourd'hui venaient tous de la même erreur
+    de méthode : le comparer à un mélange dominé par des sondes.
+    ⚠️ **MAIS n=7 côté réel : rien n'est tranché.** Ma décision de ne pas câbler la garde reposait sur un
+    mauvais chiffre ; je ne la renverse pas sur 7 cas. Sur les **78 textes réels** (sans corrigé, donc sans
+    attribution possible), ~**15 %** des groupes [déterminant + nom] montrent une contradiction apparente
+    au test morphologique — le phénomène est **fréquent**, mais **qui a tort** reste hors de portée. (Le
+    test bute en outre sur les mots courts : « son pas », « le taux », « une des ».)
+    ⇒ **Même conclusion que partout ailleurs aujourd'hui : il faut du GOLD sur du texte dys réel.**
   - **CHANTIER « dominance en contexte » : INVENTAIRE FAIT (§5 doctrine), ROUTE BLOQUÉE PAR LES DONNÉES.**
     Ce qui existe déjà : **`os_subj_lm.json.gz`** (LM bidirectionnel trigrammes+bigrammes UD-GSD, API
     `p_fwd`/`p_bwd`/**`lsc()`**, **EN PRODUCTION**, parité 3 moteurs via `parity_os.js`/`os-lm-gz`),
