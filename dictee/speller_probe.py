@@ -121,6 +121,19 @@ class Speller:
     DET_NUM = {'le':'s','la':'s','un':'s','une':'s','ce':'s','cet':'s','cette':'s','mon':'s','ma':'s',
                'ton':'s','ta':'s','son':'s','sa':'s','les':'p','des':'p','ces':'p','mes':'p','tes':'p',
                'ses':'p','nos':'p','vos':'p','leurs':'p'}
+    # PREUVE DE PLURIEL élargie (22/08/2026) — mesuré : sans elle le classement retombait sur la FRÉQUENCE BRUTE,
+    # et la forme de base étant presque toujours plus fréquente que la fléchie, le speller enlevait la marque de
+    # pluriel (« jourss »→jour, « pettits »→petit, « less »→le) que la grammaire remettait ensuite : deux erreurs
+    # qui s'annulaient ou se cumulaient. Le critère `nmatch` existait déjà et était CORRECT — il n'avait jamais
+    # la preuve. On n'ajoute QUE du pluriel NON AMBIGU (jamais de singulier : pas de risque nouveau).
+    #   · cardinaux ≥2 : même liste et même sémantique que `CARD` de correcteur_probe (déterminant pluriel non
+    #     ambigu, mesuré FP=0 à l'échelle UD) — « trois jourss », « deux seccrétaires », « vingt anse » ;
+    #   · quantifieurs pluriels absents de la table (« tous less magasins », « plusieurs », « quelques »).
+    # Clés DÉACCENTUÉES (`_ctx_number` compare sur deacc). Miroir app/extension.
+    DET_NUM.update(dict.fromkeys(
+        'deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente '
+        'quarante cinquante soixante cent cents mille tous toutes plusieurs quelques certains certaines '
+        'divers diverses nombreux nombreuses differents differentes'.split(), 'p'))
     ADVERB = set('tres si trop assez bien plus tout aussi moins fort peu'.split())   # contexte adjectif
     def __init__(self):
         self.WORDS, self.FREQ, self.D2A, self.PHON, self.POS = load_lexicon()
@@ -159,10 +172,30 @@ class Speller:
 
     def _ctx_number(self, toks, idx):
         if not toks or idx is None: return None
+        back, bdist = None, 99
         for j in range(idx - 1, max(-1, idx - 4), -1):
             t = deacc(toks[j].lower())
-            if t in self.DET_NUM: return self.DET_NUM[t]
-        return None
+            if t in self.DET_NUM: back, bdist = self.DET_NUM[t], idx - j; break
+        if back is not None and bdist == 1: return back      # déterminant COLLÉ = preuve la plus forte
+        # PREUVE VERS L'AVANT (22/08/2026) : pour un DÉTERMINANT ou un ADJECTIF, la marque de nombre est portée
+        # par le NOM QUI SUIT, pas par ce qui précède (« pettits TUYAUX », « leusr TIGES ») — sans elle le
+        # classement retombait sur la fréquence brute et le speller enlevait le pluriel.
+        # Restreinte au strict nécessaire pour ne créer AUCUN risque nouveau :
+        #   · le token IMMÉDIATEMENT suivant seulement (pas de fenêtre) ;
+        #   · ce doit être un NOM connu (tag N) au PLURIEL MORPHOLOGIQUE — le -s/-x n'est une marque que si le
+        #     singulier est attesté au lexique (même test que leur/leurs : « pays »→« pay » ✗) ;
+        #   · JAMAIS un mot-outil (DET_NUM exclu) : « il mangee DES pommes » ne doit pas mettre le VERBE au
+        #     pluriel — c'est le piège de la symétrie, mesuré avant d'écrire la règle ;
+        #   · renvoie 'p' uniquement, jamais 's' (on n'ajoute que de la preuve de pluriel).
+        if idx + 1 < len(toks):
+            nx = toks[idx + 1].lower().replace('œ', 'oe').replace('æ', 'ae')   # lookup sur la forme ACCENTUÉE (« écoles » est au lexique, « ecoles » non)
+            if (deacc(nx) not in self.DET_NUM and nx in self.WORDS and 'N' in self.POS.get(nx, ())
+                    and nx.endswith(('s', 'x'))):
+                # « -aux » a DEUX singuliers possibles : cheval→chevaux (-al) ET tuyau→tuyaux (-x). Tester les deux,
+                # sinon « tuyaux » est lu comme non-pluriel (défaut vu à l'œil sur « pettits tuyaux », réparé).
+                for sg in ((nx[:-3] + 'al', nx[:-1]) if nx.endswith('aux') else (nx[:-1],)):
+                    if sg in self.WORDS: return 'p'
+        return back                                          # preuve adjacente absente → on retombe sur l'arrière
 
     def _cands(self, low, d):
         """forme accentuée -> meilleure (priorité, freq). 2 = accent-only, 1 = edit-1, 0 = phonétique (FLAG)."""
