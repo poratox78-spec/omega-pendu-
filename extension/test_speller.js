@@ -13,8 +13,19 @@ const vdc = JSON.parse(fs.readFileSync(path.join(HERE, 'assets', 'vdc-lex.json')
 const gender = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender-relaxed.tsv.gz'))).toString('utf8');
 const speller = zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'speller.tsv.gz'))).toString('utf8');
 DC.setLex(vdc, gender, speller);
+// PRÉNOMS : la garde « prénom écrit en minuscule » (speller) en dépend — sans cet asset elle est
+// silencieusement INERTE, et le banc validerait un moteur qui ne protège rien. Chargé comme en prod.
+DC.setPrenoms(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'prenoms.tsv.gz'))).toString('utf8'));
 
 const fail = [];
+// ⛔ PRÉNOM EN MINUSCULE — mesuré sur le pipeline dys réel (dictee/dys_pipeline_probe.py) : le Python
+// APPLIQUAIT « isis »→« ici ». La garde « nom propre » d'origine exige une MAJUSCULE hors début de
+// phrase, que le scripteur dys ne met jamais. Mots CASSÉS 26 -> 20 après la garde côté Python.
+// ⚠️ Ce qu'on interdit ici est l'APPLICATION SILENCIEUSE (auto/flag), pas le signalement : router un
+// mot inconnu vers « mot inconnu » en VIGILANCE est légitime — l'utilisateur voit et décide.
+{ const f = (t => DC.spell(t).find(x => x.word.toLowerCase() === 'isis'))('isis qui a eu son permis');
+  if (f && f.tier !== 'vigilance')
+    fail.push('prénom minuscule « isis » APPLIQUÉ en « ' + f.sugg + ' » (palier ' + f.tier + ' ; doit rester intact ou vigilance)'); }
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
 
