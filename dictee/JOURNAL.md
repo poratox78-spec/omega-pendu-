@@ -21,6 +21,44 @@
 - Deux **vrais défauts de règle** sujet-verbe, réparés dans les 3 moteurs : (1) le **pronom sujet élidé** (« alors **qu'il** reste 35 minutes » → *restent*) était invisible à `rule_accord_postpose` et à `_subject_before` → `_ELIDED_PRON` (qu'/s'/n'/puisqu'… + pronom) ; gain collatéral : « puisqu'ils mange » → *mangent*, nouveau rappel ; (2) « **le** pilotes sont » → *est* : `rule_accord_sv_noun` accordait sur un déterminant singulier contredit par un nom à forme plurielle attestée → abstention (sens inverse « les enfant joue » intact : c'est le nom que le gold corrige).
 - FP UD 38/2500 inchangé, batteries vertes, parité 3 moteurs.
 
+### Suite (2) — « y a-t-il d'autres règles polluées ? » : AUDIT RÈGLE PAR RÈGLE
+
+> `dys_precision_probe` mesure par FAMILLE. Or **77 règles portent 60 noms** — « accord sujet-verbe »
+> en cache **14** à lui seul : une règle fautive se cachait derrière la moyenne de ses voisines. Et une
+> règle SOURDE est invisible d'une mesure de précision (la précision ne compte que ce qui tire).
+
+- **Nouvel instrument** : `dictee/rules_audit_probe.py` — chaque règle appelée SÉPARÉMENT sur
+  ① le texte dys (jugé contre le gold : juste / inutile / fausse, cas DISTINCTS), ② 2 500 phrases
+  CORRECTES d'UD (tout tir = faux positif, ventilé rouge/orange par `tier_of`), ③ la batterie `CASES`
+  (pour distinguer « muette parce que morte » de « muette faute d'occasion »). Signale aussi les
+  règles **MASQUÉES** (elles tirent toujours derrière une règle prioritaire : code décoratif).
+- **Leçon de méthode** : une bonne part des « FP » sur UD sont de **vraies fautes présentes dans UD**
+  que la règle corrige justement (« à cette époques »→époque, « Au débuts des années »→début, « deux
+  cent salariés »→cents, « Le pilier … semblent »→semble). Vérifier CAS PAR CAS avant de durcir : le
+  tableau seul aurait fait « réparer » des règles qui avaient raison.
+- **3 vrais défauts trouvés et réparés (3 moteurs)** :
+  1. **`_np_subject` prenait le NUMÉRAL pour le nom-tête** — « ces **vingt** quatre équipes sont
+     réparties » → tête « vingt » (masculin dans `GENDER_PURE` : « un vingt ») → « répartis » proposé
+     sur un sujet féminin CORRECT. Bug **partagé** : ce parseur sert l'accord sujet-verbe nominal, le
+     participe après être et l'adjectif attribut — toutes héritaient du faux genre. On saute le
+     cardinal (`CARD`/tag NUM).
+  2. **Verbe lu comme épithète** — « La taupe **court** pour semer les mouches » → « courte » (ROUGE
+     sur UD). Le tagger HMM étiquette « court » ADJ après [DET NOUN] et `rule_adj_epithet` s'y fiait.
+     Discriminant : l'**accord**. Une lecture verbale finie de 3ᵉ personne qui s'accorde avec le sujet
+     = le verbe de la phrase → abstention. Rappel préservé quand le verbe n'accorde pas (« les
+     situations **critique** » → critiques).
+  3. **Cascade de deux ROUGES qui FABRIQUE une faute** — « dont cette statue **à conservé** le
+     souvenir » recevait « à »→« a » (juste) ET « conservé »→« conserver » (parce que « à » était lu
+     préposition) : appliquées ensemble → « a conserver ». L'ancre de la règle était un mot que le
+     correcteur lui-même juge faux. Garde : si `rule_a_aa` corrige ce « à », abstention. **Deux règles
+     partageaient l'angle mort** (`rule_e_er` ET `rule_flexion_er`) — seul l'audit par règle l'a montré.
+- **Mesuré** : FP à l'échelle **1,52 % → 1,48 %** (37/2500) ; `rule_flexion_er` 100 % sans FP rouge ;
+  `rule_e_er` 3→1 FP rouge ; `rule_adj_epithet` 3→2 ; `rule_pp_etre` 4→3 inutiles. Rappel dys 59 %,
+  batteries et parités 3 moteurs vertes.
+- **Reste au tableau, non imputable aux règles** : `rule_det_gender` 50 % et `rule_leur_leurs` 64 %
+  sur dys — déjà rendus en ORANGE par sous-cas (PR #545) ; leurs « inutiles » viennent d'un contexte
+  dys pollué, pas d'une erreur de raisonnement.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.

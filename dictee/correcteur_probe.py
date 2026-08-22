@@ -296,7 +296,15 @@ def rule_e_er(T, i):
     # pas l'appartenance lexicale. Couverture verbale = COMMON_VERBS ∪ cgram_verbs (curée). Cf. JOURNAL 2026-06-22.
     if i == 0: return None
     praw = T[i-1].lower()
-    if praw == 'à' or T[i-1] == 'A': return forms[1]   # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
+    if praw == 'à' or T[i-1] == 'A':
+        # ⭐ CASCADE DE DEUX ROUGES QUI FABRIQUE UNE FAUTE (audit 2026-08-22, mesurée sur UD) :
+        # « dont cette statue À CONSERVÉ le souvenir » recevait DEUX corrections appliquées d'office —
+        # « à »→« a » (rule_a_aa, juste) ET « conservé »→« conserver » (ici, parce que « à » est lu
+        # comme préposition). Ensemble : « a conserver », une faute FABRIQUÉE par le correcteur.
+        # L'ancre de cette règle est le « à » ; si le correcteur juge lui-même ce « à » faux, l'ancre
+        # ne vaut rien → abstention. Le participe reste tel quel, seul « à »→« a » s'applique.
+        if rule_a_aa(T, i - 1) == 'a': return None
+        return forms[1]                                # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
     if p in AUX:                 return forms[0]      # auxiliaire (a/ont/est…) → participe -é
     if p in PREP:
@@ -411,6 +419,10 @@ def rule_flexion_er(T, i):
     if hyp_vous:                                  # inversion « livré-vous ? »/« appeler-vous ? » (trait d'union) → -ez
         tgt = 'p2pl'
     elif praw == 'à' or T[i-1] == 'A' or T[i-1] == 'À':
+        # MÊME CASCADE que rule_e_er (audit 2026-08-22) : si le correcteur juge lui-même ce « à » faux
+        # (« statue à conservé » → « a »), l'ancre ne vaut rien et proposer l'infinitif fabriquerait
+        # « a conserver ». Deux règles partageaient l'angle mort ; l'audit règle-par-règle l'a montré.
+        if rule_a_aa(T, i - 1) == 'a': return None
         tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
     elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
         tgt = 'part'
@@ -1165,6 +1177,13 @@ def _np_subject(T, tg, a):
     for k in range(det_idx + 1, a):
         dk = deacc(T[k].lower())
         if dk in PREP or "'" in T[k].lower() and dk[:1] == 'd': break   # entrée dans un complément → la tête est avant
+        # ⭐ NUMÉRAL = QUANTIFIEUR, PAS LA TÊTE (audit règle-par-règle 2026-08-22). « ces VINGT quatre
+        # équipes sont réparties » rendait la tête « vingt » — présent dans GENDER_PURE comme nom
+        # masculin (« un vingt ») — donc genre MASCULIN, donc « répartis » proposé sur un sujet
+        # féminin CORRECT. Le bug était SILENCIEUX et PARTAGÉ : `_np_subject` sert l'accord
+        # sujet-verbe nominal, le participe après être et l'adjectif attribut — toutes héritaient du
+        # faux genre. On saute le cardinal (liste CARD, ou tag NUM) et on continue vers le vrai nom.
+        if dk in CARD or (tg and k < len(tg) and tg[k] == 'NUM'): continue
         if (tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN')) or dk in GENDER_PURE:
             head = k; break
     if head is None: return None
@@ -1279,6 +1298,14 @@ def rule_adj_epithet(T, i):
     if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
     num = 's' if _el else (_EPI_ART.get(deacc(T[i-2].lower())) if i >= 2 else None)   # « l' » ne s'élide qu'au SINGULIER (« les » ne s'élide jamais) : le nombre est certain
     if num is None: return None                                      # nombre NON net (pas d'article devant le nom) → abstention (écran/possessif)
+    # ⭐ VERBE LU COMME ÉPITHÈTE (audit règle-par-règle 2026-08-22, FP ROUGE mesuré sur UD) :
+    # « La taupe COURT pour semer les mouches » → « courte ». Le tagger HMM étiquette « court » ADJ
+    # après [DET NOUN] — un bigramme trop plausible — et la règle lui faisait confiance. Le
+    # discriminant n'est pas le tag mais l'ACCORD : si la forme a une lecture VERBALE FINIE de 3e
+    # personne qui s'accorde en nombre avec le sujet nominal, c'est le verbe de la phrase. Quand le
+    # verbe ne s'accorde PAS (« les situations critique » : critique = 3sg, sujet pluriel), la
+    # lecture épithète reste la bonne et la règle tire — le rappel est préservé.
+    if any(p == '3' and n == num for (_l, _mt, p, n) in _reads(w)): return None
     sugg = _adj_agree(w, g, num)
     return _keepcase(T[i], sugg) if sugg.lower() != lw else None
 
