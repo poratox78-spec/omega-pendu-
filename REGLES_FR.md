@@ -228,6 +228,39 @@ Ces familles restent au JUGE opt-in (l'arbitre les tait déjà à l'exécution �
 poteaux » au banc navigateur). La distillation n'a de sens que sur les familles à VOLUME :
 pluriel (744) oui ; genre (11) et ou/où (10) n'avaient rien à re-cristalliser.
 
+### « Ganglions partout » : 2 candidats de plus tentés et REFUSÉS, un bug d'outillage trouvé (2026-08-22)
+
+Demande de Rem, en digression : généraliser le motif « ganglion » (carte distillée qui tait la
+fatigue AVANT que le juge B2 ne soit réveillé) au plus de familles possible. Repris depuis le
+classement par volume de fausses alertes sur texte correct (UD 14 450, mesuré ce soir) :
+« majuscule initiale » (101-2 653 selon corpus) et « ces/ses » (40-773) étaient les seuls
+candidats à volume réel qui n'avaient jamais été tentés (genre/ou/où refusés ci-dessus ; le reste
+≤6 occurrences, trop rare pour généraliser sans risque).
+· **maj REFUSÉE** : 7 796 exemples, seuil 0.5-0.95, fatigue dys tue au mieux 1/15, fp_scale 2/34
+  → rendement nul. La règle est déjà quasi déterministe (elle ne tire QUE si le tout premier
+  caractère du texte est minuscule) : il n'y a presque pas de fatigue à apprendre à taire — le
+  volume mesuré est en grande partie du signal LÉGITIME (fragments de phrase du treebank), pas
+  du bruit.
+· **ces/ses REFUSÉE** : 1 907 exemples, rendement nul sur held-out (0/22 fp_scale à tout seuil).
+  `_cesScore` (le modèle déjà en place) tranche déjà l'essentiel ; ce qui reste dépend souvent du
+  discours (possession vs désignation), hors de portée d'un contexte local à quelques tokens.
+Bilan sur les 5 familles testées avec cette méthode : **2/5 seulement passent la barre** (pluriel,
+SV) — la méthode ne généralise pas automatiquement, elle généralise SEULEMENT là où la règle de
+base produit un vrai volume de fausses alertes discriminables localement.
+
+**Bug d'outillage trouvé en cours de route** : re-lancer `distill_vig.py` sur une famille DÉJÀ
+shippée (SV) l'auto-censure — la collecte tourne à travers le moteur ACTUEL, qui contient déjà la
+carte SV, donc les cas qu'elle tait sont invisibles à son propre ré-entraînement (fatigue dys
+tombée à 0/5, rendement artificiellement nul). Deux fixes : (1) `distill_vig.py` FUSIONNE
+désormais avec le registre existant au lieu de l'écraser — une famille qui ne re-bake pas
+aujourd'hui garde son entrée committée, avec un avertissement explicite au lieu d'un silence
+dangereux ; (2) trouvé en creusant `arbitre_vig_dump.js`/`distill_vig_dump.js` n'appelaient JAMAIS
+`spell(t, true)` — `capital=true` est pourtant le réglage RÉEL de `_computeCorrs` en production
+depuis toujours. Sans lui, « majuscule initiale à vérifier » n'existait simplement pas pour ces
+deux outils, y compris le CENSUS : corrigé, ré-ancré (**297 → 302 justes, aucune perte**, ce
+correcteur applique déjà 5 majuscules que le census ne voyait pas). Bug de MESURE, pas de moteur —
+zéro changement de comportement en production.
+
 ## ENQUÊTE sur les 22 fautes dys non-corrigées (demande de Rem, 2026-08-21) + GARDE CENSUS (64ᵉ)
 
 **La garde d'abord** : le duo dump+census est outillé — `vig_census_probe.py` (64ᵉ check, batterie
