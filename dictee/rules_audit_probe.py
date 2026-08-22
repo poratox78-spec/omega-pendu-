@@ -163,6 +163,45 @@ def main():
                 except Exception:
                     pass
 
+    # ---------- 2ter. ANCRES POLLUÉES (`--ancres N`) : d'où viennent VRAIMENT les faux positifs ? ----------
+    # Question de Rem : « on a la détection de type de mot (pronom/adjectif/sujet/verbe), pourquoi encore
+    # ces problèmes ? » — Parce qu'un POS-tagger étiquette CORRECTEMENT un mot FAUX. La détection ne peut
+    # rien quand l'information d'entrée est corrompue, et sur du texte dys ~20 % des mots le sont : pour
+    # un mot donné, la probabilité qu'un de ses 4 voisins immédiats soit abîmé approche 1-(0,8)^4 ≈ 56 %.
+    # On le MESURE ici : sur des paires générées (on sait exactement quels mots ont été abîmés), chaque
+    # faux positif du correcteur est classé « voisin abîmé » (ancre polluée) vs « contexte propre »
+    # (vraie erreur de détection ou de règle).
+    if '--ancres' in sys.argv:
+        import random, dys_gen
+        n_a = int(sys.argv[sys.argv.index('--ancres') + 1]) if len(sys.argv) > sys.argv.index('--ancres') + 1 and sys.argv[sys.argv.index('--ancres') + 1].isdigit() else 600
+        rng = random.Random(20260822); lex = dys_gen.charge_lex()
+        pollue = propre = 0; exa = []; np_ = 0
+        for line in io.open(UD, encoding='utf-8'):
+            t = line.strip()
+            if not t or len(t) < 25: continue
+            bad, k = dys_gen.genere(t, rng, lex)
+            if not k: continue
+            np_ += 1
+            if np_ > n_a: break
+            CP._SEG = CP._seg_info(bad); T = CP.toks(bad)
+            al = DP.align(T, [x.group(0) for x in DP.TOK.finditer(t)])
+            for (i, w, sg, nm) in CP.correct(bad):
+                if i not in al or not DP.eq(al[i], w): continue       # on ne garde que les FP (mot déjà juste)
+                voisin = any(j in al and not DP.eq(T[j], al[j])
+                             for j in range(max(0, i - 2), min(len(T), i + 3)) if j != i)
+                if voisin:
+                    pollue += 1
+                    if len(exa) < 8: exa.append('%s→%s [%s]  ⟨%s⟩' % (w, sg, nm, ' '.join(T[max(0, i - 3):i + 4])))
+                else: propre += 1
+        tot = pollue + propre
+        print("ancres — %d paires générées · %d faux positifs du correcteur (le mot corrigé était DÉJÀ juste)" % (np_, tot))
+        print("  · VOISIN IMMÉDIAT ABÎMÉ (ancre polluée) : %d (%.0f %%)" % (pollue, 100.0 * pollue / max(1, tot)))
+        print("  · contexte PROPRE (erreur de détection / de règle) : %d (%.0f %%)" % (propre, 100.0 * propre / max(1, tot)))
+        print("  ⚠️ PLANCHER : les mots hors alignement ne sont pas comptés, et le juge tolère l'accent —")
+        print("     la part réelle d'ancre polluée est donc SUPÉRIEURE à ce chiffre.")
+        for e in exa: print('     ✗ ' + e)
+        return 0
+
     # ---------- 3. rapport ----------
     print('rules_audit_probe — %d règles · %d paires %s · %d phrases correctes (UD)' % (len(RULES), n_dys, 'GÉNÉRÉES (dys_gen sur UD)' if n_gen else 'dys réelles', n_ud))
     if not n_dys:
