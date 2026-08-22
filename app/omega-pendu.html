@@ -26399,7 +26399,11 @@ function spellTokenCore(tok,atStart,T,idx){
       if(w==='yeux'||w==='cieux'||w==='aieux'||w==='æieux'||w==='aïeux')return false;   // pluriels irreguliers (radical introuvable)
       return true;}
     function nmP(x){return sInvarS(x)?null:/[sx]$/.test(deaccS(x));}   // nombre PORTE par la forme : null = invariable (compatible des deux cotes)
-    function nm(x){if(!cn)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
+    // Un « -s » final n'est une marque de PLURIEL que sur un NOM ou un ADJECTIF ; sur un VERBE c'est la 2e
+    // personne du SINGULIER (« tu viens »), le bonus de nombre n'a rien à y faire. ⚠️ HONNÊTETÉ : garde MESURÉE
+    // INERTE sur le corpus dys réel (chiffres identiques avec et sans) — gardée parce que le raisonnement est
+    // FAUX sans elle, pas parce qu'elle gagne. Gains du jour préservés : les/jours/petits/tiges… sont N ou A.
+    function nm(x){if(!cn)return 0;var ps=SP.POS[x]||'';if(ps.indexOf('V')>=0&&ps.indexOf('N')<0&&ps.indexOf('A')<0)return 0;var p=nmP(x);return (p===null||((cn==='p')===p))?1:0;}
     function fin_aud(x){return /(é|ée|és|ées|er|ez|ai|ais|ait)$/.test(x)?1:0;}   // finale AUDIBLE /e/ vs -e/-es MUET
     keys.sort(function(x,y){var ax=cand[x][0]===2?1:0,ay=cand[y][0]===2?1:0;if(ax!==ay)return ay-ax;
       var qx=pm(x),qy=pm(y);if(qx!==qy){   // bonus POS gardé par la DOMINANCE de fréquence : un rival édit/accent ≫20× plus fréquent écrase le bonus (Lexique pollué : « trés » N 18/M ne bat plus « très » 1435/M ; « jamal » vs « jamais »)
@@ -26414,7 +26418,8 @@ function spellTokenCore(tok,atStart,T,idx){
       if(cand[x][0]===1&&cand[y][0]===0&&cand[x][1]>=10*cand[y][1])return -1;   // dominance : un edits1 (tier1) ≫10× plus fréquent écrase un phonétique (tier0) — autent→autant, pas hautain
       if(cand[y][0]===1&&cand[x][0]===0&&cand[y][1]>=10*cand[x][1])return 1;
       var px=phonKey(x)===pk?1:0,py=phonKey(y)===pk?1:0;if(px!==py){if(px>py&&cand[y][0]>=1&&cand[y][1]>=20*cand[x][1])return 1;if(py>px&&cand[x][0]>=1&&cand[x][1]>=20*cand[y][1])return -1;return py-px;}   // AUDIBILITÉ finale muette : garde de dominance (phonKey strippe 'est' pas 'd' → « accort »(0) matche « accor » pas « accord »(975) ; un rival ≫20× plus fréquent écrase le junk rare) — restaure -d/-t/-s muet
-      var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;return cand[y][1]-cand[x][1];});
+      var nx=nm(x),ny=nm(y);if(nx!==ny)return ny-nx;
+      return cand[y][1]-cand[x][1];});
     var w1=keys[0],p1=cand[w1][0],f1=cand[w1][1];
     /* DÉTERMINANT : le GENRE du NOM SUIVANT domine la fréquence (doctrine aide-frappe ②, enquête
        des 22, texte6 réel : « dans uen maison » proposait « un ») — si le candidat retenu est un
