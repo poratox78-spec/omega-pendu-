@@ -24735,6 +24735,11 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   var MAIS_STOP={pas:1,plus:1,moins:1,point:1,rien:1,tout:1,tres:1,jamais:1,surtout:1,aussi:1,encore:1,toujours:1,comment:1,pourquoi:1,peu:1,trop:1,bien:1,non:1,oui:1,si:1,assez:1,enfin:1,donc:1,car:1,alors:1,ici:1,la:1};
   var DET_SKIP={plus:1,moins:1,tres:1,bien:1,trop:1,assez:1,aussi:1,si:1,autre:1,autres:1,meme:1,propre:1,seul:1,seule:1,tel:1,telle:1,certain:1,certaine:1,tout:1,toute:1,grand:1,grande:1,petit:1,petite:1,gros:1,grosse:1,beau:1,bel:1,belle:1,bon:1,bonne:1,nouveau:1,nouvel:1,nouvelle:1,premier:1,premiere:1,dernier:1,derniere:1,jeune:1,vieux:1,vieil:1,vieille:1,long:1,longue:1,large:1,simple:1,super:1,superbe:1,primaire:1,double:1,triple:1,sous:1,pour:1,contre:1,par:1,sans:1,avec:1,entre:1,vers:1,mi:1,demi:1,semi:1,pseudo:1,quasi:1,ex:1,porte:1,montre:1,des:1,les:1,de:1,le:1};
   function rLeur(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='leur'&&lw!=='leurs')return null;if(i+1>=T.length)return null;if(vlike(T,i+1))return 'leur';var dn=deacc(T[i+1].toLowerCase());if(INVAR_NOUN[dn])return 'leur';
+    // ⭐ L'ANCRE DOIT ÊTRE FIABLE (audit 2026-08-22) : cette règle lit le NOMBRE sur l'orthographe du nom suivant, or sur du texte dys c'est justement l'orthographe qui n'est pas fiable.
+    //  ① nom INCONNU (« leur payss », « lèurs tigec ») : le -s final n'est pas une marque de pluriel, c'est du bruit → abstention.
+    //  ② FAUX pluriel (« leur français ») : INVAR_NOUN ignore les noms en -ais/-ois → test MORPHOLOGIQUE (le singulier doit exister au lexique) au lieu d'une liste qui grandirait. Miroir Python rule_leur_leurs.
+    if(!_wordKnown(dn))return null;
+    if(/[sx]$/.test(dn)){var _sgl=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(!_wordKnown(_sgl))return null;}   // ② -s non morphologique → on ne sait pas (proposer « leur » ajoutait un FP sur « leurs Français ») → abstention
     /* ⚠️ CONFLIT DE DIRECTION — deux ROUGES sur le MÊME désaccord, appliqués tous les deux.
        « leurs tige » : cette règle disait « leurs »→« leur » (rang 15) pendant que `rNounPlural`
        disait « tige »→« tiges » (rang 47). Les deux tokens étant DIFFÉRENTS, aucun n'écrase l'autre
@@ -26034,6 +26039,8 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());
       if(/s$/.test(sugg.toLowerCase())){if(_INVAR_S[dn]||!/[sx]$/.test(dn))return 'vigilance';var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(_INVAR_S[sg])return 'vigilance';return _wordKnown(sg)?'auto':'vigilance';}
+      // « leurs »→« leur » corrige le DÉTERMINANT : direction MINORITAIRE (12 contre 59, le gold corrige le NOM). Repli ROUGE conservé (garde produit « il range leurs livre », banc navigateur réel) SAUF PREUVE DE PLURIEL : un verbe 3e pers. PLURIELLE après le groupe (« Leurs racine ls DÉFENDENT ») montre que le GN est bien pluriel → c'est le NOM qui a perdu son -s → orange. Miroir Python tier_of.
+      for(var _j=i+2;_j<Math.min(n,i+6);_j++){var _rr=svReads(T[_j]),_q;for(_q=0;_q<_rr.length;_q++)if(_rr[_q][2]==='3'&&_rr[_q][3]==='p')return 'vigilance';}
       return (_wordKnown(dn)&&!/[sx]$/.test(dn))?'auto':'vigilance';}
     if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx))return 'auto';
       return 'vigilance';}   // nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
