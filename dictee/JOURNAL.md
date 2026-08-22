@@ -59,6 +59,33 @@
   sur dys — déjà rendus en ORANGE par sous-cas (PR #545) ; leurs « inutiles » viennent d'un contexte
   dys pollué, pas d'une erreur de raisonnement.
 
+### Suite (3) — « et les 36 % restants de leur/leurs ? »
+
+Même méthode : les 4 cas non justes sortis EN CONTEXTE, plus les 5 tirs sur texte correct (UD).
+
+- **3 des 5 « FP » UD étaient de VRAIES fautes d'UD** que la règle corrige bien (« émettant **leur
+  données** », « de **leur premières années** », « **leur différentes marques** » → *leurs*). Encore
+  une fois : le tableau seul aurait fait durcir une règle qui avait raison.
+- **Les 4 cas dys se ramènent à UNE cause** : la règle lit le NOMBRE sur l'orthographe du nom
+  suivant — or sur du texte dys, l'orthographe est justement ce qui n'est pas fiable.
+  ① **nom inconnu** : « de leur **payss** », « la nourriture lèurs **tigec** » — le -s final est du
+  bruit, pas une marque de pluriel ; ② **faux pluriel** : « leur **français** » → *leurs*, parce que
+  `INVAR_NOUN` (38 entrées) ignore les noms en -ais/-ois.
+- **Correctifs (3 moteurs)** : ① abstention si le nom n'est pas un mot connu — on ne s'ancre pas sur
+  un mot que le correcteur juge faux (même principe que la cascade « à conservé ») ; ② **test
+  morphologique au lieu d'une liste** : un -s/-x n'est une marque de pluriel que si le singulier
+  existe au lexique (« données »→donnée ✓, « français »→françai ✗) — sinon abstention (proposer
+  « leur » ajoutait un FP sur « leurs Français »).
+- **③ Le palier, tranché par une PREUVE** : « leurs »→« leur » corrige le DÉTERMINANT, la direction
+  minoritaire (mesuré 12 contre 59). Première tentative — tout passer en orange — **cassée par le
+  banc navigateur réel** : « il range leurs livre » DOIT s'appliquer (repli quand « livre » est
+  ambigu verbe). Critère retenu, mesurable : rouge par défaut, **orange si un verbe de 3ᵉ personne
+  PLURIELLE suit le groupe** (« Leurs racine ls **défendent** ») — la preuve que le GN est bien
+  pluriel, donc que c'est le NOM qui a perdu son -s.
+- **Mesuré** : leur/leurs sur texte dys **64 % → 86 %** (6 justes / 1 inutile, en ORANGE / 0 fausse) ;
+  **FP à l'échelle 1,52 % → 1,44 %** (36/2500, meilleur niveau à ce jour) ; rappel dys 59 % ;
+  batteries, parités 3 moteurs et banc navigateur réel verts.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.

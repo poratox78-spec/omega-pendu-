@@ -690,6 +690,18 @@ def rule_leur_leurs(T, i):
     if is_verb(T, i+1): return 'leur'                                   # pronom (invariable) : « je leur parle »
     dn = deacc(T[i+1].lower())
     if dn in INVAR_NOUN: return 'leur'                                  # nom invariable en -s/-x (« leur pays » = sg) → jamais « leurs »
+    # ⭐ L'ANCRE DOIT ÊTRE FIABLE (audit règle-par-règle 2026-08-22). Cette règle lit le NOMBRE sur
+    # l'orthographe du nom suivant — or sur un texte dys c'est précisément l'orthographe qui n'est
+    # pas fiable. Deux trous mesurés, tous deux corrigés ici plutôt que par une liste qui grandirait :
+    #  ① NOM INCONNU : « de leur payss », « la nourriture lèurs tigec » → le -s final n'est pas une
+    #    marque de pluriel, c'est du bruit. On ne s'ancre pas sur un mot que le correcteur juge faux.
+    #  ② FAUX PLURIEL : « leur français » proposait « leurs » — INVAR_NOUN (38 entrées) ignore les
+    #    noms en -ais/-ois. Test MORPHOLOGIQUE au lieu d'une liste : un -s/-x n'est une marque de
+    #    pluriel que si le singulier existe au lexique (« données »→donnée ✓, « français »→françai ✗).
+    if dn not in WORDS_SET and dn not in GENDER_PURE: return None       # ① ancre non-mot → abstention
+    if dn.endswith(('s', 'x')):
+        _sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
+        if _sg not in WORDS_SET and _sg not in GENDER_PURE: return None      # ② -s non morphologique → on ne sait pas (proposer « leur » ajoutait un FP sur « leurs Français ») → abstention
     # /!\ CONFLIT DE DIRECTION (miroir app + extension). « leurs tige » : cette règle disait
     # « leurs »->« leur » pendant que rule_noun_plural disait « tige »->« tiges ». Les deux tokens
     # étant DIFFÉRENTS, les deux ROUGES s'appliquaient et le résultat livré était « leur tiges » —
@@ -3703,6 +3715,13 @@ def tier_of(T, i, name, sugg):
             sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
             if sg in _INVAR_S: return 'vigilance'          # « payss » = pays mal écrit, pas un pluriel
             return 'auto' if (sg in WORDS_SET or sg in GENDER_PURE) else 'vigilance'
+        # « leurs »→« leur » corrige le DÉTERMINANT : direction MINORITAIRE (mesuré 12 contre 59 — le gold
+        # corrige le NOM). Le repli reste ROUGE (garde produit : « il range leurs livre », banc navigateur
+        # réel) SAUF si la proposition porte une PREUVE de pluriel : un verbe de 3e personne PLURIELLE
+        # après le groupe (« Leurs racine ls DÉFENDENT ») montre que le GN est bien pluriel — c'est donc le
+        # NOM qui a perdu son -s, pas le déterminant qui est en trop → orange.
+        for _j in range(i + 2, min(len(T), i + 6)):
+            if any(_p == '3' and _n == 'p' for (_l, _mt, _p, _n) in _reads(T[_j])): return 'vigilance'
         return 'auto' if (dn in WORDS_SET or dn in GENDER_PURE) and not dn.endswith(('s', 'x')) else 'vigilance'
     if name == 'genre déterminant':
         if i + 1 >= n: return 'vigilance'
