@@ -179,6 +179,42 @@ faux positifs), **mais donner du contexte à la comparaison.** Le dépôt a déj
 §1.7 arbitré OS, POS-tagger 155k, `noun-post`) — doctrine §5 : réutiliser avant d'ajouter.
 Et leur seuil de précision (0,99–0,995) est le repère externe à viser.
 
+## 5bis. Chantier « dominance en contexte » — INVENTAIRE FAIT, ROUTE BLOCKÉE PAR LES DONNÉES
+
+Avant d'écrire quoi que ce soit (doctrine §5), inventaire de ce qui existe déjà pour donner du **contexte** :
+
+| existe déjà | quoi | état |
+|---|---|---|
+| `dictee/os_subj_lm.json.gz` | LM **bidirectionnel** trigrammes+bigrammes (UD French-GSD), API `p_fwd`/`p_bwd`/**`lsc(w,p2,p1,n1,n2)`** | **EN PRODUCTION**, parité 3 moteurs (`parity_os.js`, bloc `os-lm-gz`) |
+| `dictee/pos_hmm.json` | POS-tagger HMM Viterbi ~95 % | en production, 3 moteurs |
+| `dictee/build_asr_lm.py` | LM **plus gros** (UD complet + WiCoPaCo), couverture ×240 | **MESURÉ PIRE**, gardé comme recette |
+| `dictee/ces_ses_model.json` | modèle contextuel dédié à un couple d'homophones | en production |
+
+**Rien à construire : `lsc()` EST la comparaison contextuelle que réclame la garde de dominance.**
+Testé directement sur les cas connus — et le résultat est négatif :
+
+| cas | LM choisit | gold |
+|---|---|---|
+| `le parvies de l'abbatiale` | *parties* (−8,90 contre −13,78) | **parvis** ✗ |
+| `la nuque belu clair` | *beau* (−11,89 contre −12,25) | **bleu** ✗ |
+| `trois enfants qui vvient` | *vient* | **vivent** ✗ |
+| `Tous less magasins` | **les** ✔ | les |
+| `un leson de piano` | **leçon** ✔ | leçon |
+
+**Cause, mesurée** : le LM fait **13 954 unigrammes / 233 614 tokens**. `parvis` y apparaît **2 fois**
+contre 40 pour `parties` ; **`nuque` est ABSENT** — le contexte de `belu` n'a donc aucune ancre et `lsc`
+**dégénère en `p_uni`**, c'est-à-dire… la fréquence nue qu'on cherchait à fuir.
+
+⇒ **La route contextuelle est bloquée par le VOLUME de données, pas par l'architecture.** LanguageTool
+s'appuie sur les n-grammes Google (milliards de tokens) ; nous avons 0,23 M. Et le projet a **déjà tenté**
+de grossir le LM (`build_asr_lm.py`, ×240 de couverture) : **mesuré pire**, piège de registre Wikipédia
+(« ses fréquences tirent vers père/opposé au lieu de chères/proposer » — *le même piège de fréquence*).
+
+**Conclusion honnête** : le chantier « donner du contexte à la dominance » ne se débloque pas avec les
+données du dépôt. Ce n'est pas « il faudrait un n-gram » — on en a un, de la bonne forme, 4 ordres de
+grandeur trop petit. Rouvrir ce chantier suppose **un corpus FR massif au bon registre**, arbitrage
+explicite (taille embarquée, licence) — pas un ajustement de seuil.
+
 ## 6. Chantiers, remis dans l'ordre après cette revue
 
 1. **Dominance ≫20× → comparaison en contexte** (reformulé ci-dessus). Le seul chantier restant dont on

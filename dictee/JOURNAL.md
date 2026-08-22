@@ -338,6 +338,18 @@ que de la réécrire au cas par cas.
     lieu de l'initiale orthographique » dans `_cands` (le papier note 10,9 % d'initiales fausses mais <4 %
     de phonétiquement fausses). **Chez nous la garde n'écarte que 6,2 % des formes, dont 5,5 % ont aussi
     l'initiale phonétique fausse → gain plafonné à 0,7 %.** Ne vaut pas le code. *Piste fermée.*
+  - **CHANTIER « dominance en contexte » : INVENTAIRE FAIT (§5 doctrine), ROUTE BLOQUÉE PAR LES DONNÉES.**
+    Ce qui existe déjà : **`os_subj_lm.json.gz`** (LM bidirectionnel trigrammes+bigrammes UD-GSD, API
+    `p_fwd`/`p_bwd`/**`lsc()`**, **EN PRODUCTION**, parité 3 moteurs via `parity_os.js`/`os-lm-gz`),
+    `pos_hmm.json` (HMM Viterbi ~95 %), `ces_ses_model.json`, et `build_asr_lm.py` (LM ×240 **mesuré
+    pire**, gardé comme recette). **Rien à construire — `lsc()` EST la comparaison contextuelle voulue.**
+    Testé sur les cas connus : `parvies`→*parties* (−8,90 vs −13,78), `belu`→*beau*, `vvient`→*vient*
+    (2 succès seulement : `less`→les, `leson`→leçon). **Cause mesurée** : le LM fait **13 954 unigrammes /
+    233 614 tokens** ; `parvis` y apparaît **2 fois** contre 40 pour `parties`, **`nuque` est ABSENT** →
+    `lsc` **dégénère en `p_uni`** = la fréquence nue qu'on fuyait. ⇒ **bloqué par le VOLUME, pas par
+    l'architecture** (LanguageTool = n-grammes Google, milliards ; nous 0,23 M) — et le dépôt a **déjà**
+    tenté de grossir (piège de registre Wikipédia, même piège de fréquence). Rouvrir suppose un corpus FR
+    massif au bon registre = arbitrage explicite (taille embarquée, licence), pas un réglage de seuil.
   - ⚠️⚠️⚠️ **CORRECTION MAJEURE — ce n'est PAS une convergence, c'est le MÊME CORPUS.** La notice
     `corpus_dys/README.txt` le dit : **FFDys** (Laetitia Branciard, 7 textes, adolescent) + **Plateforme
     Dys de l'ASEI** (Cécile Péguin, 71 textes, adultes) = **exactement les deux corpus de Bodard 2020**.
