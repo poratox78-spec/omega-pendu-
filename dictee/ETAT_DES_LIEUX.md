@@ -5,7 +5,7 @@
 > Règle appliquée partout ici : un chiffre venu d'un papier est une *hypothèse à vérifier sur nos données*,
 > pas un résultat. Deux pistes de la littérature ont ainsi été **rejetées après mesure** (§4).
 
-## 1. Où on en est (mesuré, corpus dys réel — 1 726 paires)
+## 1. Où on en est (mesuré sur `data_local/dys_reel` — 1 726 paires ⚠️ **dont 92,7 % de SONDES**, cf. §3bis)
 
 | | valeur |
 |---|---|
@@ -17,6 +17,9 @@
 | `orthographe auto` (précision) | 91,5 % |
 | FP à l'échelle (UD, 2 500 phrases correctes) | **1,44 %** |
 | gardes locales | dev.sh **69/69** |
+
+⚠️ **Lire ces absolus avec §3bis** : le corpus est à 92,7 % des sondes à faute unique et ne contient que
+**6 vraies dictées**. Les deltas avant/après sont valides ; les absolus ne se généralisent pas au dys réel.
 
 Acquis structurant de la campagne : **le poison n'est pas le non-mot, c'est la réparation fausse.**
 Un non-mot laissé visible coûte 6 points de précision à la grammaire (91 → 85 %) ; **mal réparé il en
@@ -43,7 +46,35 @@ existe pour boucher.
 **Recommandation pédagogique convergente** : l'élève doit **analyser** les suggestions plutôt que les
 accepter d'un clic. C'est l'architecture rouge/orange + stade + remédiation, pas un choix esthétique.
 
-## 3. Ce que la littérature CORRIGE — notre corpus est trop facile
+## 3bis. ⚠️ CORRECTION (même jour) — ce n'est pas « notre corpus est trop facile », c'est **un mélange mal étiqueté**
+
+La section 3 ci-dessous a été écrite en comparant la littérature au **mélange** `data_local/dys_reel`.
+En ouvrant les fichiers (`corpus_profile_probe.py`), il s'avère que ce mélange est à **92,7 % des SONDES à
+faute unique** (`faiblesses.jsonl` : 200 par famille × 8) et ne contient que **6 vraies dictées** (0,3 %).
+
+| axe | **RÉEL (6 dictées)** | littérature | sondes | généré |
+|---|---|---|---|---|
+| distance d'édition 1 | **60,5 %** | 58,8 % | 71,0 % | 68,1 % |
+| distance ≥2 | **39,5 %** | 41,2 % | 29,0 % | 31,9 % |
+| 1ʳᵉ lettre fausse | **18,6 %** | 10,9 % | 4,8 % | 8,0 % |
+| erreurs en vrai mot | **48,8 %** | 53 % | 31,2 % | 38,3 % |
+| mots fautifs | **12,8 %** | ~33 % | 5,4 % | 13,2 % |
+
+**Sur la FORME des erreurs, nos vraies dictées convergent avec la littérature.** Ce sont les **sondes** qui
+sont atypiques — faute isolée, première lettre presque jamais touchée. (La densité reste sous la
+littérature, mais celle-ci varie énormément : Antoine 2019 **55 %**, Pedler **20 %**, Rello **15 %**.)
+
+Conséquences :
+1. Les mesures **avant/après** de la campagne restent **valides** (même corpus des deux côtés).
+2. Les **absolus** (« ortho auto 91,5 % », « 793 promus ») décrivent surtout la tenue du moteur sur des
+   fautes **isolées**. Ne pas les généraliser à la population cible.
+3. ⚠️ **RÉTRACTATION de la rétractation** : « `dys_gen.py` met ~2× trop de fautes » était faux, mais la
+   correction de §3 l'était aussi. Mesure directe : **généré 13,2 % contre RÉEL 12,8 %** — le générateur
+   est **bien calibré en densité**. Le biais **×29 sur les déterminants** reste, lui, à vérifier.
+4. **Le vrai manque n'est pas un meilleur générateur, c'est du texte dys réel** : 6 dictées, 335 mots.
+   C'est la validation terrain (orthophonistes) déjà inscrite au plan qui débloque tout le reste.
+
+## 3. Ce que la littérature semblait corriger — lecture initiale, faussée par le mélange (conservée pour l'historique)
 
 Sur **tous** les axes mesurables, notre corpus privé est plus doux que les corpus dyslexiques publiés :
 
@@ -59,7 +90,7 @@ Conséquences, à assumer :
 
 1. **Nos chiffres sont optimistes** par rapport à la population cible. « 91,5 % » et « FP 1,44 % » sont
    mesurés sur un texte plus propre que ce qu'un scripteur dyslexique produit réellement.
-2. ⚠️ **RETOURNEMENT — la conclusion « `dys_gen.py` met ~2× trop de fautes » est à revoir.** Elle était
+2. ⚠️ *(voir §3bis : cette lecture est elle-même corrigée — le générateur est bien calibré.)* **La conclusion « `dys_gen.py` met ~2× trop de fautes » est à revoir.** Elle était
    mesurée **contre notre corpus** (13,1 % de mots fautifs contre 6,9 %). Contre la littérature (~33 %),
    c'est le **générateur qui est le plus proche du réel**, et notre corpus qui est atypique. Le biais
    ×29 sur les **déterminants** reste, lui, un vrai biais de forme. **À trancher par une mesure**, pas par
@@ -102,8 +133,9 @@ Et leur seuil de précision (0,99–0,995) est le repère externe à viser.
 
 1. **Dominance ≫20× → comparaison en contexte** (reformulé ci-dessus). Le seul chantier restant dont on
    soit sûr qu'il porte du gain plutôt que du nettoyage.
-2. **Trancher la question du corpus** : le nôtre est-il atypique, ou la population diffère-t-elle ? De la
-   réponse dépend le calibrage de `dys_gen.py` **et** l'interprétation de tous nos pourcentages.
+2. ~~Trancher la question du corpus~~ **TRANCHÉ (§3bis)** : mélange à 92,7 % de sondes, 6 vraies dictées ;
+   la forme des erreurs réelles converge avec la littérature ; `dys_gen.py` est bien calibré en densité.
+   **Ce qui reste : obtenir du texte dys RÉEL** (validation terrain orthophonistes) — 335 mots, c'est peu.
 3. **Remesurer « 77 % des FP ont un voisin abîmé »** sur texte réel. Repère externe désormais disponible :
    **72,3 %** (Bodard) — mais sur un corpus 5× plus fautif que le nôtre.
 4. **Drapeau de provenance** : la pyramide efface l'origine du mot (`_Tc[f.i]=f.sugg`) ; aucune règle ne
