@@ -169,6 +169,7 @@ def main():
             ex = {'s': tn, 'i': f['i'], 'sugg': f['sugg'], 'tok': a, 'gold': b}
             if norm(a) != norm(b) and norm(f.get('sugg')) == norm(b): dys_j.append(ex)
             elif norm(a) == norm(b): dys_f.append(ex)
+    rendement_shippe = None   # (tue_h, tue_f) AU SEUIL RÉELLEMENT BAKÉ (0.9) — garde de fusion plus bas
     for seuil in (0.5, 0.7, 0.8, 0.9):
         ok_j = sum(1 for e in dys_j if proba(feats(e['s'], e['i']) or []) <= seuil)
         tue_f = sum(1 for e in dys_f if proba(feats(e['s'], e['i']) or []) > seuil)
@@ -177,16 +178,30 @@ def main():
         tue_h = sum(1 for e in held if proba(feats(e['s'], e['i']) or []) > seuil)
         print(u'seuil %.1f : dys JUSTES gardées %d/%d · dys fatigue tue %d/%d · fp_scale accord juge %d/%d · fp_scale tues %d/%d'
               % (seuil, ok_j, len(dys_j), tue_f, len(dys_f), agree, n_h, tue_h, len(held)))
+        if seuil == 0.9: rendement_shippe = (tue_h, tue_f)
     for e in dys_j:
         p = proba(feats(e['s'], e['i']) or [])
         if p > 0.5:
             print(u'  ⚠ juste menacée (p=%.2f) : « %s »→« %s » (gold %s) · %s' % (p, e['tok'], e['sugg'], e['gold'], e['s'][:70]))
 
     # ── 4 · baker la carte (les poids ÉVALUÉS ci-dessus) ────────────────────
+    # FUSION prudente (audit 2026-08-22) : ce script n'a AUCUNE porte SÛR+UTILE (contrairement à
+    # distill_vig.py) — il bake TOUJOURS au seuil fixe 0.9. Or re-collecter aujourd'hui via
+    # distill_pluriel_dump.js s'AUTO-CENSURE (le moteur qu'il utilise contient déjà plTaisCarte,
+    # donc les cas que la carte tait sont invisibles à son propre ré-entraînement). Un futur
+    # ré-entraînement pourrait produire une carte appauvrie SANS AUCUN avertissement. Même
+    # principe que le fix posé le même soir sur distill_vig.py : on n'écrase plus aveuglément si
+    # le rendement s'effondre — pas de re-calibrage du seuil ici, juste un garde-fou d'écrasement.
     out = {'prior': round(prior, 3), 'lr': LRp, 'seuil': 0.9}
     p = os.path.join(HERE, 'pluriel_tais_model.json')
-    json.dump(out, io.open(p, 'w', encoding='utf-8'), ensure_ascii=False)
-    print(u'carte : %s (%d traits, %.1f Ko, seuil %.1f)' % (p, len(LRp), os.path.getsize(p) / 1024.0, out['seuil']))
+    avant = json.load(io.open(p, encoding='utf-8')) if os.path.exists(p) else None
+    if avant is not None and rendement_shippe is not None and sum(rendement_shippe) < 5:
+        print(u'\n⚠ rendement effondré à seuil 0.9 sur CETTE collecte (%d tués) — probable '
+              u'auto-censure (la carte déjà embarquée filtre sa propre collecte) : carte '
+              u'EXISTANTE gardée telle quelle, RIEN écrit' % sum(rendement_shippe))
+    else:
+        json.dump(out, io.open(p, 'w', encoding='utf-8'), ensure_ascii=False)
+        print(u'carte : %s (%d traits, %.1f Ko, seuil %.1f)' % (p, len(LRp), os.path.getsize(p) / 1024.0, out['seuil']))
 
 if __name__ == '__main__':
     main()
