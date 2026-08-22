@@ -227,6 +227,64 @@ que de la réécrire au cas par cas.
   corpus **généré**, où la probabilité qu'un des 4 voisins soit abîmé vaut 43 % contre **25 %** en réel —
   **ce chiffre est surestimé** et doit être remesuré sur texte dys réel.
 
+- **« 10 erreurs confiantes en moins contre 26 corrections derrière un clic » — le dilemme n'existait pas.**
+  Rem tranche : *« objectif résultat parfait »* → ne PAS arbitrer le troc, chercher le DISCRIMINANT. En
+  sortant les 39 décisions prises sur ancre blanchie une par une (au lieu du tableau agrégé), le motif
+  saute aux yeux :
+  ```
+  pettits      → petit   (speller)  puis  petit → petits   (grammaire)   gold petits ✓
+  souterrainss → souterrain         puis  → souterrains                  gold souterrains ✓
+  jourss       → jour               puis  → jours                        gold jours ✓
+  leusr        → leur               puis  → leurs                        gold leurs ✓
+  ```
+  Dans CHAQUE cas le speller a choisi un candidat **plus loin** que le bon (`jourss`→`jours` = 1 édition,
+  `jour` = 2) : il **enlève la marque de pluriel**, et la grammaire la remet. **Deux erreurs qui
+  s'annulent.** Les 26 « justes » n'étaient pas des corrections à arbitrer — elles n'avaient pas lieu
+  d'exister. Et le même défaut produit des fautes : `vvient`→`vivent` est UNE transposition (le gold),
+  `viens` en coûte deux ; le speller prend `viens`, la grammaire empile `viennent`.
+- **Cause racine, mesurée dans le code puis vérifiée par sonde** : le critère d'accord en nombre
+  (`nmatch` / `sNMatch`) existait **et était correct** — il n'avait **jamais la preuve**. `_ctx_number`
+  ne connaissait ni les numéraux ni les quantifieurs pluriels, et ne regardait **que vers l'arrière**.
+  Sans preuve, `_cmp` retombe sur la **fréquence brute** : la forme de base étant presque toujours plus
+  fréquente que la fléchie, le singulier gagne systématiquement. Preuve directe : le même mot dans un
+  contexte pluriel DÉJÀ reconnu donne le bon résultat (`« Trois jourss »`→jour, `« les jourss »`→jours).
+- **Correctif (3 moteurs, parité exacte)** — on ne touche PAS au classement, on lui donne ce qui est
+  déjà écrit dans la phrase. **Pluriel NON AMBIGU uniquement, jamais de singulier** → aucun risque nouveau.
+  1. **En arrière** : cardinaux ≥2 (même liste et même sémantique que `CARD` de `correcteur_probe`, déjà
+     mesurée FP=0 à l'échelle UD) + quantifieurs pluriels absents de la table (`tous`, `plusieurs`,
+     `quelques`, `certains`…). Répare « Trois jourss », « deux seccrétaires », « Tous less magasins ».
+  2. **En avant** : pour un déterminant ou un adjectif, la marque est portée par le **nom qui suit** —
+     direction que le code ne regardait pas du tout (« pettits **tuyaux** », « leusr **tiges** »).
+     Restreinte pour ne créer AUCUN risque : token **immédiatement** suivant · **nom connu** (tag N) au
+     pluriel **morphologique** (le -s/-x n'est une marque que si le singulier est attesté au lexique) ·
+     **jamais un mot-outil**. Ce dernier point est le piège de la symétrie, **mesuré avant d'écrire la
+     règle** : « il mangee **des** pommes » ne doit pas mettre le VERBE au pluriel (vérifié, ne tire pas).
+  3. **Adjacence** : un déterminant COLLÉ prime ; sinon la preuve avant prime sur un déterminant lointain
+     (« à la nourriture de leusr **tiges** » : le `la` à 3 mots donnait « singulier »).
+  4. Deux défauts de ma propre règle vus à l'œil et réparés AVANT de mesurer : « tuyaux » lu comme un
+     pluriel en `-al` (il faut tester les DEUX singuliers, cheval/tuyau), et l'adjacence ci-dessus.
+- **Mesuré (corpus dys réel, `spirale_probe.py`)** :
+
+  | | avant | arrière | **+ avant** |
+  |---|---|---|---|
+  | non-mots promus avec la **bonne** graphie | 779 | 784 | **793** |
+  | non-mots promus avec la **MAUVAISE** | 229 | 225 | **216** |
+  | décisions rouges **justes** sur ancre blanchie | 26 | 24 | **19** |
+  | décisions rouges **fautives** | 10 | 8 | **8** |
+
+  Les 26 corrections « à risque » tombent à 19 **sans qu'aucune soit dégradée** : le speller fait le
+  travail lui-même, la grammaire n'a plus à compenser. Le travail est revenu à la bonne couche.
+- **Gardes : aucune régression.** Batterie FP=0 · FP échelle grammaire **1,44 %** · FP speller à l'échelle
+  **38 ≤ 48** · speller GEC 98 phrases AUTO=0/FLAG=1 **identique** · rappel non-mots GEC 6/11 · parité
+  `dys-core` ⊆ Python (296 phrases) · paliers ext ↔ Python (142 corrections) · **parité 3 moteurs sur le
+  nouveau comportement : 0 divergence / 11 cas** · **dev.sh 69/69** (banc navigateur réel compris).
+  Vérifié en rejouant sur `main` : `blanch→blanches` et `oves→oses` sont **préexistants**, pas causés ici.
+- **AUDIT HONNÊTE — ce qui n'est PAS réglé** : il reste **8 erreurs confiantes**, et elles relèvent d'un
+  AUTRE mécanisme — le speller se trompe de **LEMME**, pas de nombre : `belu`→*beau* (gold *bleu*),
+  `parvies`→*parties* (gold *parvis*), `alle`→*allé* (gold *elle*). Les deux candidats sont à **égale
+  distance d'édition** et la fréquence tranche — mal. Aucune preuve d'accord ne peut les rattraper, parce
+  que le nombre n'est pas ce qui les sépare. **Chantier séparé**, cas nommés, à ne pas empiler ici.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.

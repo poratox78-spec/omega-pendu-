@@ -2005,6 +2005,12 @@ function ponctReglesVirgule(mots,_tg,deja){
     }catch(e){SP.ready=false;return false;}})();return SP.loading;}
   // VOIE GRAMMAIRE dans le speller (accord genre/nombre du contexte) — miroir Python/app
   var SDET_NUM={le:'s',la:'s',un:'s',une:'s',ce:'s',cet:'s',cette:'s',mon:'s',ma:'s',ton:'s',ta:'s',son:'s',sa:'s',les:'p',des:'p',ces:'p',mes:'p',tes:'p',ses:'p',nos:'p',vos:'p',leurs:'p'};
+  // PREUVE DE PLURIEL élargie (22/08/2026, parité Python speller_probe.DET_NUM) — sans elle le classement retombait
+  // sur la FRÉQUENCE BRUTE, et la forme de base étant presque toujours plus fréquente que la fléchie, le speller
+  // ENLEVAIT la marque de pluriel (« jourss »→jour, « less »→le) que la grammaire remettait ensuite. `sNMatch`
+  // existait déjà et était CORRECT — il n'avait jamais la preuve. Pluriel NON AMBIGU seulement (jamais de singulier).
+  // Cardinaux ≥2 = même liste/sémantique que CARD (déterminant pluriel non ambigu, FP=0 mesuré à l'échelle UD).
+  'deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille tous toutes plusieurs quelques certains certaines divers diverses nombreux nombreuses differents differentes'.split(' ').forEach(function(w){SDET_NUM[w]='p';});
   var SCOPULA={};('est sont suis es sommes etes etait etaient etais sera seront serai soit fut furent parait paraissait semble semblait devient deviennent reste restent').split(' ').forEach(function(w){SCOPULA[w]=1;});
   var SADVERB={};('tres si trop assez bien plus tout aussi moins fort peu').split(' ').forEach(function(w){SADVERB[w]=1;});
   var SAUXAV={};("a ai as ont avons avez avait avaient aura auront aurai aurais aurait eu ete j'ai j'est j'avais j'aurai").split(' ').forEach(function(w){SAUXAV[w]=1;});
@@ -2015,7 +2021,18 @@ function ponctReglesVirgule(mots,_tg,deja){
   function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;if(DET_G[t])return DET_G[t];
     if(!SP.WORDS.has(T[j].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')))continue;   // ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GENDER_PURE déacc ← « trés » nom) → on continue vers le déterminant
     var g=GENDER_PURE[t];if(g==='m'||g==='f')return g;}return null;}
-  function sCtxNumber(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t])return SDET_NUM[t];}return null;}
+  function sCtxNumber(T,idx){if(!T||idx==null)return null;var back=null,bdist=99,j;
+    for(j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t]){back=SDET_NUM[t];bdist=idx-j;break;}}
+    if(back!==null&&bdist===1)return back;   // déterminant COLLÉ = preuve la plus forte
+    // PREUVE VERS L'AVANT (22/08/2026, parité Python _ctx_number) : pour un DÉTERMINANT ou un ADJECTIF, la marque de
+    // nombre est portée par le NOM QUI SUIT (« pettits TUYAUX », « leusr TIGES »). Restreinte pour ne créer AUCUN risque :
+    // token immédiatement suivant seulement · NOM connu (tag N) au pluriel MORPHOLOGIQUE (singulier attesté au lexique)
+    // · JAMAIS un mot-outil (« il mangee DES pommes » ne doit pas mettre le VERBE au pluriel) · renvoie 'p' seulement.
+    if(idx+1<T.length){var nx=T[idx+1].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
+      if(!SDET_NUM[deaccS(nx)]&&SP.WORDS.has(nx)&&(SP.POS[nx]||'').indexOf('N')>=0&&/[sx]$/.test(nx)){
+        var sgs=/aux$/.test(nx)?[nx.slice(0,-3)+'al',nx.slice(0,-1)]:[nx.slice(0,-1)];   // -aux a DEUX singuliers (cheval/tuyau)
+        for(j=0;j<sgs.length;j++){if(SP.WORDS.has(sgs[j]))return 'p';}}}
+    return back;}
   function sEd1(a,b){var la=a.length,lb=b.length;if(Math.abs(la-lb)>1)return false;   // distance d'édition ≤ 1 (bornée)
     if(la===lb){var n=0;for(var k=0;k<la;k++)if(a[k]!==b[k]&&++n>1)return false;return true;}
     var s=la<lb?a:b,l=la<lb?b:a,i=0,j=0,sk=0;
