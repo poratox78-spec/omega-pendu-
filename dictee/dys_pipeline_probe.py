@@ -39,7 +39,13 @@ import dys_precision_probe as DP     # noqa: E402
 import speller_probe as S            # noqa: E402
 
 SP = S.Speller()
-TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
+# ⚠️ LE MÊME TOKENISEUR QUE LE MOTEUR, sinon les offsets ne correspondent pas. Bug rencontré le
+# 22/08 : la sonde utilisait `[A-Za-zÀ-ÿœŒæÆ']+` (sans les apostrophes typographiques ’ʼ) alors que
+# `CP.toks` les INCLUT — tout texte contenant « j’ai » décalait l'index, et **32 % des corrections du
+# speller (188 sur 584) étaient silencieusement abandonnées**. Résultat : réparations sous-estimées et
+# casses GONFLÉES (« tres »→« tre » n'existait que dans la sonde ; le speller corrige « tres »→« très »
+# en auto bien avant la grammaire). Une sonde fausse est pire qu'une sonde absente.
+TOK = re.compile(r"[A-Za-zÀ-ÿœŒ'’ʼ]+")
 
 
 def pyramide(txt):
