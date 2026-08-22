@@ -1732,7 +1732,11 @@ def _subject_before(T, i):
     if j < 0: return None
     if _SEG is not None and any(_SEG['bb'][m] for m in range(j + 1, min(i + 1, len(_SEG['bb'])))):
         return None
+    m = _ELIDED_PRON.search(T[j].lower())                               # « qu'il », « s'ils », « puisqu'elle » : le pronom sujet vit DANS le token élidé
+    if m: return SUBJ_PRON.get(deacc(m.group(1)))
     return SUBJ_PRON.get(deacc(T[j].lower()))
+
+_ELIDED_PRON = re.compile(r"^(?:qu|s|n|c|j|l|d|m|t|puisqu|lorsqu|quoiqu)['’](il|ils|elle|elles|on|je|tu|nous|vous)$")
 
 
 def _agrees(reads, per, nb):
@@ -1997,6 +2001,12 @@ def rule_accord_sv_noun(T, i):
     if subj is None: return None
     nb = subj['n']; hk = subj['idx']; dk = subj['det']
     ddet = deacc(subj['dtxt'].lower())
+    # DÉTERMINANT SINGULIER + NOM À FORME PLURIELLE (« LE pilotes sont ») : le déterminant est suspect (dys réel, gold
+    # « les pilotes ») → accorder le verbe sur « le » fabriquerait « est ». Conflit → abstention. Le sens inverse (« les
+    # enfant joue ») reste traité : c'est le NOM que le gold corrige (désaccord 59/12, garde parity_core).
+    if nb == 's':
+        _hn = deacc(T[hk].lower())
+        if _hn.endswith(('s', 'x')) and _hn not in _INVAR_S and ((_hn[:-3] + 'al' if _hn.endswith('aux') else _hn[:-1]) in WORDS_SET): return None
     if ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention
     if deacc(subj['htxt'].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
     if not subj['elid'] and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention
@@ -2140,6 +2150,7 @@ def rule_accord_postpose(T, i):
     for k in range(lo, i):                                            # expletif/impersonnel + relatif-sujet + l'X préverbal = sujet avant → pas inversion
         dk = deacc(T[k].lower())
         if dk in ('il', 'ce', 'c', 'on', 'ca', 'cela', 'ceci', 'qui', 'dont', 'lequel', 'laquelle', 'lesquels', 'lesquelles'): return None
+        if _ELIDED_PRON.search(T[k].lower()): return None             # pronom sujet ÉLIDÉ (« alors QU'IL reste 35 minutes », « s'il », « n'il ») : sujet avant → pas une inversion (FP dys réel 2026-08-22)
         if dk in ('et', 'ou', 'ni'): return None                      # verbe COORDONNÉ (« La bureaucratie … et affecte des pans ») = 2e conjoint d'un sujet amont, pas une inversion
         if (dk == 'l' or T[k].lower().startswith("l'")) and (k == lo or deacc(T[k-1].lower()) not in PREP): return None
     lem0 = p3[0][0]                                                    # DÉCLENCHEUR d'inversion — DOIT ouvrir la PHRASE (une virgule mi-phrase = parenthèse « …siècle contenait » ⇒ le vrai sujet est avant)

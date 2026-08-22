@@ -100,6 +100,7 @@ def main():
     sp = [o for n, o in vars(S).items() if inspect.isclass(o) and hasattr(o, '_cands')][0]()
     stats = defaultdict(lambda: defaultdict(int))
     exemples = defaultdict(list)
+    distinct = defaultdict(set)
     n_pairs = 0
     for fn, raw, fixed in pairs():
         n_pairs += 1
@@ -148,7 +149,13 @@ def main():
             else: k = 'fausse'
             key = (fam, tier) if fam == 'orthographe' else (fam, tier + ('·propre' if clean_ctx(i) else '·pollué'))
             stats[key][k] += 1
-            if k != 'juste' and len(exemples[key]) < 6:
+            # CAS DISTINCTS : le corpus contient la MÊME dictée recopiée par plusieurs élèves → un piège
+            # (« vingt anse ») comptait 7×. On compte aussi chaque (mot, suggestion, contexte ±2) une seule fois.
+            toks_ctx = rt_g if fam != 'orthographe' else rt_s
+            dk = (norm(w), norm(sugg), ' '.join(norm(x) for x in toks_ctx[max(0, i - 2):i + 3]))
+            if dk not in distinct[key]:
+                distinct[key].add(dk); stats[key]['d_' + k] += 1
+            if k != "juste" and len(exemples[key]) < (99 if "--all" in sys.argv else 6):
                 ctx = ''
                 if '--ctx' in sys.argv and fam != 'orthographe':
                     ctx = '   ⟨' + ' '.join(rt_g[max(0, i - 5):i + 6]) + '⟩'
@@ -157,14 +164,20 @@ def main():
     for (fam, tier), c in sorted(stats.items(), key=lambda kv: (-sum(kv[1].values()), kv[0])):
         j, u, f = c['juste'], c['inutile'], c['fausse']
         tot = j + u + f
+        dj, du, df = c['d_juste'], c['d_inutile'], c['d_fausse']
+        dtot = dj + du + df
         rows.append({'famille': fam, 'palier': tier, 'juste': j, 'inutile': u, 'fausse': f, 'ambigu': c['ambigu'],
-                     'precision': (round(100.0 * j / tot, 1) if tot else None), 'exemples': exemples[(fam, tier)]})
+                     'precision': (round(100.0 * j / tot, 1) if tot else None),
+                     'distincts': [dj, du, df], 'precision_distincts': (round(100.0 * dj / dtot, 1) if dtot else None),
+                     'exemples': exemples[(fam, tier)]})
     if as_json:
         print(json.dumps({'paires': n_pairs, 'familles': rows}, ensure_ascii=False, indent=1)); return 0
     print('dys_precision_probe — %d paires (brut, gold) · précision par famille et palier sur TEXTE DYS' % n_pairs)
-    print('%-34s %-10s %5s %5s %5s %7s' % ('famille', 'palier', 'juste', 'inut.', 'fauss', 'préc.'))
+    print('%-34s %-10s %5s %5s %5s %7s   %s' % ('famille', 'palier', 'juste', 'inut.', 'fauss', 'préc.', 'DISTINCTS j/i/f (préc.)'))
     for r in rows:
-        print('%-34s %-10s %5d %5d %5d %6s%%' % (r['famille'][:34], r['palier'], r['juste'], r['inutile'], r['fausse'], r['precision'] if r['precision'] is not None else '—'))
+        d = r['distincts']
+        print('%-34s %-10s %5d %5d %5d %6s%%   %d/%d/%d (%s%%)' % (r['famille'][:34], r['palier'], r['juste'], r['inutile'], r['fausse'],
+              r['precision'] if r['precision'] is not None else '—', d[0], d[1], d[2], r['precision_distincts'] if r['precision_distincts'] is not None else '—'))
         for e in r['exemples']:
             print('      ✗ ' + e)
     return 0
