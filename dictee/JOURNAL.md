@@ -121,6 +121,41 @@ Même méthode : les 4 cas non justes sortis EN CONTEXTE, plus les 5 tirs sur te
   promet « les cartons dans le couloir gêne » → gênent, or la règle est muette sur ce cas **déjà
   sur `main`** — une promesse de documentation non tenue, à traiter séparément.
 
+### Suite (5) — ENQUÊTE : « on a la détection de type de mot (pronom/adjectif/sujet/verbe), pourquoi encore ces problèmes ? »
+
+> Question de Rem. Trois hypothèses possibles : les couches de détection sont absentes, elles se
+> trompent, ou elles ne servent à rien dans ces cas-là. **Mesuré : c'est la troisième.**
+
+**① Qui consulte quoi** (77 règles) : POS-tagger 30 · conjugaison (`_reads`) 17 · posterior nom/verbe
+9 · `vlike` 5 · **aucune couche : 36 règles (47 %)**. Ce n'est pas automatiquement un défaut — une
+règle d'homophone à classe fermée (du/dû, mai/mais) n'a pas besoin d'un tagger. Mais `rule_e_er` et
+`rule_flexion_er`, les deux de la cascade du matin, sont dans ce lot.
+
+**② Le tagger se trompe-t-il là où ça fait mal ?** Configuration piège `[DET NOUN X]` avec X de
+lecture verbale 3ᵉ pers., sur 2 500 phrases correctes : **66 % VERB/AUX, 7 % ADJ**. Et en regardant
+les 60 « ADJ » un par un : ce sont en majorité de **vrais adjectifs** (« homme politique », « bronze
+doré », « ton critique »). Le tagger n'est donc PAS systématiquement fautif ici — mon hypothèse de
+départ était fausse et la mesure l'a corrigée.
+
+**③ LA VRAIE CAUSE, mesurée** (`rules_audit_probe.py --ancres N`, sur 601 paires générées où l'on
+sait exactement quels mots ont été abîmés) : sur 47 faux positifs du correcteur,
+**36 (77 %) ont un VOISIN IMMÉDIAT ABÎMÉ** — « à **développé** », « les **bouddhisme** », « des
+**valeur** », « **Lés** pouovirs publics **ont** ». Seuls 23 % surviennent en contexte propre. Et
+c'est un **plancher** : les mots hors alignement ne sont pas comptés et le juge tolère l'accent.
+
+**La leçon, et elle est structurelle** : *un POS-tagger étiquette CORRECTEMENT un mot FAUX.* Aucune
+couche de détection ne peut aider quand l'information d'entrée est corrompue — et sur du texte dys
+~20 % des mots le sont, donc pour un mot donné la probabilité qu'un de ses 4 voisins immédiats soit
+abîmé approche **1−(0,8)⁴ ≈ 56 %**. Ajouter de la détection ne réglera pas ça.
+
+**Ce qui marche, et c'est exactement ce qu'ont fait les 8 correctifs du jour** : ne pas raisonner sur
+une ancre non fiable. Quatre variantes du même geste ont été codées séparément aujourd'hui —
+mot inconnu du lexique (leur/leurs, speller), déterminant contredit par le nom (accord SV, les deux
+sens), mot lui-même corrigé par une autre règle (cascade à/é-er), règle voisine qui sait réparer
+(leur/leurs, accord SV). **Prochain pas naturel : les factoriser en une primitive partagée
+« cette ancre est-elle fiable ? »**, disponible pour les 36 règles qui n'ont aucune garde — plutôt
+que de la réécrire au cas par cas.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
