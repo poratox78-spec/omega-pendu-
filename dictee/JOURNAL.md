@@ -16,6 +16,11 @@
 - **Déjà là, vérifié plutôt que refait** : la révocation par mot dans le panneau (#544, clé index|mot|suggestion) ; la clé phonétique du speller (`phon_key`/`phonKey`) — le problème était le classement, pas l'absence de phonétique.
 - ⚠️ Préexistant sur `main`, hors périmètre : 1 FP batterie « La foule impatiente attendait » → attendaient (collectifs).
 
+### Suite (même jour) — « et les 24 % restants du pluriel ? » (question de Rem)
+- Décomposés cas par cas : **7 des 11 = la même phrase recopiée par 7 élèves** (« à l'âge de vingt **anse** » → *anses* : « anse » existe, le speller le laisse, la règle accorde le mauvais mot) ; 2 = **artefact d'alignement** (« leurs tige → tiges », le gold dit bien *tiges*) ; 1 ambigu (« les guerre » → le gold change le déterminant). Sur cas **distincts** le pluriel est à ~81 % (28/4/3), pas 76 %. La sonde compte désormais aussi les **cas distincts** (mot, suggestion, contexte ±2).
+- Deux **vrais défauts de règle** sujet-verbe, réparés dans les 3 moteurs : (1) le **pronom sujet élidé** (« alors **qu'il** reste 35 minutes » → *restent*) était invisible à `rule_accord_postpose` et à `_subject_before` → `_ELIDED_PRON` (qu'/s'/n'/puisqu'… + pronom) ; gain collatéral : « puisqu'ils mange » → *mangent*, nouveau rappel ; (2) « **le** pilotes sont » → *est* : `rule_accord_sv_noun` accordait sur un déterminant singulier contredit par un nom à forme plurielle attestée → abstention (sens inverse « les enfant joue » intact : c'est le nom que le gold corrige).
+- FP UD 38/2500 inchangé, batteries vertes, parité 3 moteurs.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
