@@ -7,7 +7,7 @@
 // V = numéro + EMPREINTE du contenu du site. NE PAS éditer à la main : `node dictee/sw_probe.js --fix` le régénère,
 // et le même probe ÉCHOUE en CI si le site a changé sans que V suive. (L'ancienne consigne « incrémenter à chaque
 // déploiement » n'a pas tenu : mesuré, V est resté figé pendant 70 commits touchant le site — d'où le cache périmé.)
-const V = 'omega-v219-78dd9bd6';
+const V = 'omega-v220-0ddf3304';
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
