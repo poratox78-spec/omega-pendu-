@@ -26,7 +26,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 DATA = os.environ.get('OMEGA_DYS_DATA') or os.path.join(ROOT, 'data_local', 'dys_reel')   # worktree : OMEGA_DYS_DATA=/chemin/data_local/dys_reel
-FILES = ['dictees_gold.jsonl', 'faiblesses.jsonl', 'genere_gold.jsonl']
+FILES = ['dictees_gold.jsonl', 'faiblesses.jsonl', 'genere_gold.jsonl', 'gold_claude.jsonl']
+# gold_claude.jsonl (22/08/2026) : les 72 productions dys réelles du corpus n'avaient AUCUN corrigé — seules les
+# 6 dictées en avaient un (le texte dicté est connu). Corrigées À LA MAIN, en édition minimale (orthographe,
+# accord, conjugaison, accents, élision, segmentation, majuscule de phrase ; ni style, ni ordre des mots).
+# ⚠️ Annotation par CLAUDE, jamais un corrigé humain expert — `src` le dit. Produite SANS faire tourner le
+# correcteur sur ces textes (sinon la mesure serait circulaire). Champ `ambig` = token que je n'ai pas su
+# trancher, laissé INTACT : à exclure des mesures plutôt que d'en pénaliser le moteur.
 TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
 
 

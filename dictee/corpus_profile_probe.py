@@ -47,6 +47,7 @@ SP = S.Speller()
 LITT = {'d1': 58.8, 'dsup': 41.2, 'ini': 10.9, 'vrai': 53.0, 'fautif': 33.0}
 
 GROUPES = [('RÉEL (vraies dictées)', 'dictees_gold.jsonl'),
+           ('RÉEL (corrigé à la main)', 'gold_claude.jsonl'),
            ('SONDES (faute unique)', 'faiblesses.jsonl'),
            ('GÉNÉRÉ (dys_gen.py)', 'genere_gold.jsonl')]
 

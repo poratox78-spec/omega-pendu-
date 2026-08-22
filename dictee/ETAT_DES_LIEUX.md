@@ -215,6 +215,64 @@ données du dépôt. Ce n'est pas « il faudrait un n-gram » — on en a un, de
 grandeur trop petit. Rouvrir ce chantier suppose **un corpus FR massif au bon registre**, arbitrage
 explicite (taille embarquée, licence) — pas un ajustement de seuil.
 
+## 5ter. ✅ LE GOLD MANQUANT : je l'ai écrit — et le vrai chiffre du moteur tombe de 14 points
+
+Constat de Rem : *« corrige ce qui n'est pas corrigé, tu fais de la correction. »* Juste — je répétais qu'il
+manquait du corrigé en étant capable d'en produire.
+
+**Protocole** (pour que la mesure vaille quelque chose) :
+- correction **à la main, en édition minimale** : orthographe, accord, conjugaison, accents, élision,
+  segmentation, majuscule de phrase. **Ni style, ni ordre des mots, ni ponctuation ajoutée** ;
+- **produit SANS faire tourner le correcteur** sur ces textes — sinon la mesure serait circulaire ;
+- **provenance marquée** : `src = "gold_claude/…"`, annotation par Claude, **jamais** un corrigé humain
+  expert. Le fichier reste dans `data_local/` (corpus privé FFDys/ASEI, non versionné) ;
+- un texte trop dégradé pour être reconstruit honnêtement est **écarté** (`texte4_h35`) ; un token isolé
+  que je ne sais pas trancher est **laissé intact et signalé** (`ambig`) plutôt que deviné.
+
+**Fait : 31 productions, 1 439 mots** — contre 335 auparavant (les 6 dictées). Contrôle qualité : aucun mot
+inconnu ne subsiste dans mon corrigé hors noms propres et artefacts de tokenisation.
+
+### Le moteur, jugé sur du texte dys RÉEL
+
+| | mélange (93 % de sondes) | **texte dys réel** |
+|---|---|---|
+| orthographe **auto** | 91,5 % | **77,8 %** (21 justes · **0 inutile** · 6 fausses) |
+| orthographe **flag** | 69,8 % | **52,4 %** (22 · 2 · 18) |
+
+**−14 points.** Ce que je soupçonnais en découvrant la composition du corpus est confirmé sur données
+réelles : *les absolus du projet décrivaient la tenue du moteur sur des fautes isolées.*
+Point positif à ne pas perdre : **0 faux positif** en `auto` — la garde cardinale tient sur du texte réel.
+
+**Motif dans les 6 fausses** : `preparer`→*préparer* (gold **préparée**), `reveiller`→*réveiller* (gold
+**réveillée**), `gateaux`→*gâteaux* (gold **gâteau**). Le speller **restaure l'accent et laisse la
+flexion fausse** — il transforme un non-mot en mot valide mal fléchi, et passe le relais à la grammaire.
+C'est exactement la **pyramide** mesurée en §… et son revers (« le poison est la réparation fausse »).
+
+### Profil de ce gold (vs les autres groupes)
+
+| | mots fautifs | d=1 | d≥2 | 1ʳᵉ lettre | **vrai mot** |
+|---|---|---|---|---|---|
+| **RÉEL corrigé à la main (31)** | **18,3 %** | 77,5 % | 22,5 % | 9,9 % | **72,5 %** |
+| RÉEL dictées (6) | 12,8 % | 60,5 % | 39,5 % | 18,6 % | 48,8 % |
+| littérature (Bodard) | ~33 % | 58,8 % | 41,2 % | 10,9 % | 53 % |
+
+L'écrit **libre** produit surtout des fautes d'**accord et d'homophone** (mots valides : **72,5 %**), là où
+la **dictée** produit des non-mots. Deux genres, deux profils — et c'est la couche **grammaire**, pas le
+speller, qui porte l'écrit libre.
+
+### Trouvaille produit, née de la mesure
+
+Plusieurs corrections sont **hors de portée du moteur par construction** : `réveille`→*réveillée*,
+`douche`→*douchée*, `aller`→*allée* — « je suis allé » est valide, le correcteur **ne peut pas deviner** que
+la scriptrice est une femme. ≤4 % des formes erronées (mon estimateur surcompte). ⇒ **une préférence
+utilisateur posée une seule fois** (« j'écris au masculin / au féminin ») les rendrait toutes atteignables.
+
+### Reste à faire
+
+**31 des 72** productions sans corrigé sont traitées (toute l'« Expression libre »). Restent
+**33 « Expression écrite dirigée »** et **7 textes scolaires** (corpus1, ~3 100 mots, le genre le plus dur :
+26,2 % de non-mots).
+
 ## 6. Chantiers, remis dans l'ordre après cette revue
 
 1. **Dominance ≫20× → comparaison en contexte** (reformulé ci-dessus). Le seul chantier restant dont on
