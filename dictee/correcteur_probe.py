@@ -2046,6 +2046,16 @@ def rule_accord_sv_noun(T, i):
     if nb == 's':
         _hn = deacc(T[hk].lower())
         if _hn.endswith(('s', 'x')) and _hn not in _INVAR_S and ((_hn[:-3] + 'al' if _hn.endswith('aux') else _hn[:-1]) in WORDS_SET): return None
+    elif nb == 'p':
+        # ⭐ SYMÉTRIQUE (trouvé par le GÉNÉRATEUR DE FAUTES, 2026-08-22) : déterminant PLURIEL contredit par
+        # un nom à forme SINGULIÈRE (« Les signe de Budin EST », « les couple A », « Les somptueux château
+        # CONSTITUE »). Le nombre du sujet n'est pas fiable — mais on ne peut pas s'abstenir bêtement, sinon
+        # on perdrait « les enfant JOUE » → jouent, la faute dys emblématique. Le discriminant est le MÊME
+        # que pour leur/leurs : si `rule_noun_plural` sait réparer le nom, le pluriel est confirmé et on
+        # continue ; si elle s'abstient (nom ambigu verbe/déjà pluriel), la contradiction reste ouverte →
+        # abstention. Mesuré : 3 FP du corpus généré éteints, les 3 cas emblématiques préservés.
+        _hn = deacc(T[hk].lower())
+        if not _hn.endswith(('s', 'x')) and not rule_noun_plural(T, hk): return None
     if ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention
     if deacc(subj['htxt'].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
     if not subj['elid'] and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention
