@@ -26,7 +26,7 @@ const C = globalThis.__C;
 
 /* runCorrLike (fidélité _computeCorrs : vigilance JAMAIS appliquée) — garde le NOM de la règle */
 function corrDetail(s) {
-  const sf = C.ready() ? C.spell(s) : [];
+  const sf = C.ready() ? C.spell(s, true) : [];   // capital=true : sinon « majuscule initiale à vérifier » n'a jamais de donnée réelle (distill_vig.py la refuserait à vide, porte vacueuse)
   C.setSeg(s); const T = C.toks(s), Tc = T.slice();
   const out = [];
   sf.forEach(f => { const j = f.i;

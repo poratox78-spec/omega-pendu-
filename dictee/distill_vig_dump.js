@@ -30,6 +30,8 @@ const FAMS = {
   sv:    { nom: 'accord sujet-verbe à vérifier' },
   genre: { nom: 'accord genre à vérifier' },
   ou:    { nom: 'ou/où à vérifier' },
+  maj:   { nom: 'majuscule initiale à vérifier' },   // ne tire qu'en capital=true (vue correcteur dédiée) — d'où spell(l,true) plus bas
+  ces:   { nom: 'ces/ses à vérifier' },
 };
 
 /* corruptions candidates d'un token (t = texte, k = index, T = tokens) — [chaîne corrompue] */
@@ -39,6 +41,8 @@ function corruptions(T, k) {
   else if (/^[a-zà-ÿ]{4,}e$/.test(lw)) out.push(w + 'nt', w.slice(0, -1)); // mange → mangent · grande → grand
   if (lw === 'où') out.push(w.slice(0, -1) + 'u');                         // où → ou (garde la casse du o)
   else if (lw === 'ou') out.push(w.slice(0, 1) + 'ù');
+  if (lw === 'ces') out.push((/^[A-Z]/.test(w) ? 'S' : 's') + w.slice(1)); // ces → ses (garde casse initiale)
+  else if (lw === 'ses') out.push((/^[A-Z]/.test(w) ? 'C' : 'c') + w.slice(1));
   return out;
 }
 
@@ -53,7 +57,7 @@ function corruptions(T, k) {
   for (const l of fs.readFileSync(src, 'utf8').split('\n')) {
     if (l.length < 30 || l.length > 220) continue;
     if (++vus > N) break;
-    const flags = C.ready() ? C.spell(l) : [];
+    const flags = C.ready() ? C.spell(l, true) : [];   // capital=true : sans lui, « majuscule initiale à vérifier » ne tire JAMAIS (voir FAMS.maj)
     for (const f of flags) {
       const fam = f.tier === 'vigilance' ? nomVersFam[f.name] : null;
       if (fam) R[fam].oranges.push({ s: l, i: f.i, tok: C.toks(l)[f.i], sugg: f.sugg });
@@ -73,7 +77,7 @@ function corruptions(T, k) {
           while ((m = rx.exec(l))) { idx++; if (idx === k) { a = m.index; break; } }
           if (a < 0) continue;
           const sfx = l.slice(0, a) + rep + l.slice(a + T[k].length);
-          const fl2 = C.spell(sfx);
+          const fl2 = C.spell(sfx, true);
           for (const f2 of fl2) {
             const fam = f2.tier === 'vigilance' ? nomVersFam[f2.name] : null;
             if (fam && !pris[fam] && f2.i === k && (f2.sugg || '').toLowerCase() === T[k].toLowerCase() &&
@@ -82,6 +86,18 @@ function corruptions(T, k) {
               pris[fam] = 1;
             }
           }
+        }
+      }
+      /* MAJUSCULE (position 0 seulement, hors boucle générique) : on ne touche QUE le PREMIER
+         caractère — la règle reconstruit sa sugg par charAt(0).toUpperCase()+slice(1), donc
+         l'auto-validation réussit par construction (même sur un acronyme : ONU→oNU→ONU). */
+      if (T.length >= 2 && /^[A-ZÀ-Ý]/.test(T[0]) && l.startsWith(T[0])) {
+        const bas = T[0].charAt(0).toLowerCase() + T[0].slice(1);
+        const sfxM = bas + l.slice(T[0].length);
+        const flM = C.spell(sfxM, true);
+        for (const f2 of flM) {
+          if (f2.i === 0 && f2.name === FAMS.maj.nom && (f2.sugg || '').toLowerCase() === T[0].toLowerCase() &&
+              R.maj.justes.length < 6000) { R.maj.justes.push({ s: sfxM, i: 0, tok: bas, sugg: f2.sugg }); break; }
         }
       }
     }

@@ -20,7 +20,8 @@ from b2_train import CharT
 from dys_reel_probe import align
 from distill_pluriel import feats, fenetre, TOK, deacc
 
-FAMS = {'sv': u'accord sujet-verbe à vérifier', 'genre': u'accord genre à vérifier', 'ou': u'ou/où à vérifier'}
+FAMS = {'sv': u'accord sujet-verbe à vérifier', 'genre': u'accord genre à vérifier', 'ou': u'ou/où à vérifier',
+        'maj': u'majuscule initiale à vérifier', 'ces': u'ces/ses à vérifier'}
 
 def norm(w): return (w or u'').lower().replace(u'’', u"'")
 
@@ -69,7 +70,13 @@ def main():
     A = json.load(io.open(os.path.join(ROOT, 'data_local', 'arbitre_vig_dump.json'), encoding='utf-8'))
     fps = set(l.strip().replace(u'’', u"'") for l in io.open(os.path.join(HERE, 'fp_scale_corpus.txt'), encoding='utf-8') if l.strip())
 
-    registre = {}
+    ppath = os.path.join(HERE, 'vig_tais_models.json')
+    # FUSION, pas écrasement : une famille déjà shippée (carte embarquée dans app/omega-pendu.html) s'AUTO-
+    # CENSURE dès qu'on re-collecte aujourd'hui (spellText applique déjà sa propre carte) — la refaire tourner
+    # sous-compte sa fatigue et lui fait échouer la porte « utile » à tort. On garde donc l'entrée EXISTANTE
+    # telle quelle si la famille ne rebake pas cette fois (bug trouvé 2026-08-22 : un run avait vidé sv/genre/ou).
+    registre_avant = json.load(io.open(ppath, encoding='utf-8')) if os.path.exists(ppath) else {}
+    registre = dict(registre_avant)
     for fam, nomfam in FAMS.items():
         Dtr = D[fam]['oranges']; Dj = D[fam]['justes']
         rngj = random.Random(7)
@@ -150,14 +157,17 @@ def main():
             p = proba(feats(e['s'], e['i']) or [])
             if p > 0.5: print(u'  ⚠ juste menacée (p=%.2f) : « %s »→« %s » · %s' % (p, e['tok'], e['sugg'], e['s'][:60]))
         if meilleurs is None:
-            print(u'  ⛔ pas de seuil à la fois SÛR (testable) et UTILE (≥5 tues) — famille NON bakée')
+            if fam in registre_avant:
+                print(u'  ⚠ pas de seuil SÛR+UTILE AUJOURD’HUI — entrée EXISTANTE gardée telle quelle '
+                      u'(probable auto-censure : la carte déjà embarquée filtre sa propre collecte)')
+            else:
+                print(u'  ⛔ pas de seuil à la fois SÛR (testable) et UTILE (≥5 tues) — famille NON bakée')
             continue
         registre[fam] = {'prior': round(prior, 3), 'lr': LRp, 'seuil': meilleurs[0], 'nom': nomfam}
         print(u'  ✅ bakée : seuil %.2f · %d traits' % (meilleurs[0], len(LRp)))
 
-    p = os.path.join(HERE, 'vig_tais_models.json')
-    json.dump(registre, io.open(p, 'w', encoding='utf-8'), ensure_ascii=False)
-    print(u'\nregistre : %s (%s, %.1f Ko)' % (p, u' + '.join(registre) or u'VIDE', os.path.getsize(p) / 1024.0))
+    json.dump(registre, io.open(ppath, 'w', encoding='utf-8'), ensure_ascii=False)
+    print(u'\nregistre : %s (%s, %.1f Ko)' % (ppath, u' + '.join(registre) or u'VIDE', os.path.getsize(ppath) / 1024.0))
 
 if __name__ == '__main__':
     main()
