@@ -191,6 +191,42 @@ que de la réécrire au cas par cas.
   déterminants 29× trop souvent, son inventaire de faux positifs n'est pas exploitable pour régler
   les règles d'accord — alors qu'il l'est déjà pour tout le reste.
 
+- **« C'est quoi un non-mot ? Le reste-t-il ? Spirale positive ou négative ? »** — question posée en fin
+  de journée, mesurée avant de répondre : `dictee/spirale_probe.py` (corpus dys réel, SAUTÉE sans lui ;
+  `--densite` pour le calibrage du générateur).
+  - **Définition** : un non-mot est un token ABSENT du lexique speller (211 491 formes, repli sans
+    accents) — définition **lexicale, pas linguistique**. Elle ne dit RIEN sur la justesse : « parties »
+    (mauvaise réparation de « parvis ») est un mot valide, et la faute dys la plus fréquente (ces/ses,
+    a/à, é/er) ne produit **jamais** de non-mot. Un mot n'est donc pas non-mot « parce qu'il a une
+    faute » : il l'est parce qu'il est **inconnu**. Deux notions disjointes — et c'est exactement
+    l'angle mort que la couche grammaire existe pour couvrir.
+  - **Le statut n'est PAS stable** : sur 29 784 mots (16,0 % de non-mots), **22 % le perdent en une
+    seule passe** — 16 % promus avec la **bonne** graphie, **5 % avec la MAUVAISE**, 1 % alors qu'ils
+    étaient déjà justes. Le moment est une ligne : la **pyramide** de `diagnoseAll` applique les
+    suggestions ortho non-vigilance aux tokens **avant** que la grammaire ne les lise (`_Tc[f.i]=f.sugg`).
+    Après elle, la grammaire ne voit plus le non-mot **et ignore que le mot vient d'être fabriqué** : la
+    **provenance est effacée**.
+  - **La spirale, mesurée dans les deux sens** : grammaire seule sur tokens **bruts** 88 % (236 justes) →
+    sur tokens **nettoyés** 86 % (248 justes). La pyramide **gagne 12 corrections justes (+5 % de rappel)
+    et coûte 8 fausses** : **positive en volume, légèrement négative en confiance**.
+  - **Le résultat utile est le détail**, précision selon le voisinage (±2) : contexte propre **91 %** ·
+    voisin non-mot **bien** réparé 86 % · **non-mot laissé tel quel 85 %** · le mot lui-même mal réparé
+    75 % · **VOISIN mal réparé 55 %**. ⇒ **un non-mot laissé en l'état coûte 6 points, mal réparé il en
+    coûte 36 — six fois pire.** Le poison n'est pas le non-mot, c'est la **réparation fausse** : elle
+    promeut l'erreur au rang de mot connu et lui fait hériter de la **confiance pleine**
+    (« parvies »→*parties*, puis l'accord du nom empile *parties*→*partie*).
+  - **Réparable, mais pas gratuitement** : ces décisions sur ancre blanchie sont **26 justes / 10
+    fautives, toutes en ROUGE**. Tout passer en orange retirerait 10 erreurs confiantes au prix de 26
+    corrections à un clic — arbitrage, pas gain. Seul le sous-cas « **voisin** mal réparé » (55 %, pile
+    ou face, **confirmé à 52 % indépendamment sur corpus généré**) mérite l'orange sans discussion.
+    **Non câblé** : à trancher avec Rem, comme les autres paliers.
+- **Second biais du générateur, mesuré au passage** (`spirale_probe.py --densite`) : `dys_gen.py` est bien
+  calibré sur la **nature** des fautes (62 % de non-mots contre 66 % en réel) mais en met **~2× trop par
+  phrase** (13,1 % de mots fautifs contre **6,9 %**). Indépendant du ×29 sur les déterminants.
+  ⚠️ **Correction à porter sur une mesure du jour** : le « **77 % des FP ont un voisin abîmé** » vient du
+  corpus **généré**, où la probabilité qu'un des 4 voisins soit abîmé vaut 43 % contre **25 %** en réel —
+  **ce chiffre est surestimé** et doit être remesuré sur texte dys réel.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
