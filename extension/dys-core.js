@@ -1150,6 +1150,10 @@ var REPETABLE = new Set(['ni']);
    « suit un verbe ». La coupure est celle de la source, qui donne la classe de chaque mot. */
 var CONJ_PURE = {};
 ('mais car or voire').split(' ').forEach(function (w) { CONJ_PURE[w] = 1; });
+/* Conjonctions qui, PLACÉES AVANT un adverbe-coordonnant, en font une LOCUTION (« mais aussi »,
+   « et ensuite ») : la frontière de proposition est alors avant la conjonction, pas après. */
+var COORD_PREC = {};
+('mais et ou ni car or voire').split(' ').forEach(function (w) { COORD_PREC[w] = 1; });
 
 var VERBAL = { VERB: 1, AUX: 1 };
 var norm = w => String(w || '').toLowerCase().replace(/[’ʼ]/g, "'");
@@ -1173,6 +1177,42 @@ function longueurTete(mots, i) {
   return 0;
 }
 
+/* ⛔ LA VIRGULE INTERDITE — primitive PARTAGÉE (22/08/2026).
+   POURQUOI : mesurer une virgule contre un gold (UD) est invalide — la virgule française est
+   souvent FACULTATIVE, et une virgule juste mais non annotée y compte comme une faute. Le juge à
+   trois classes (`dictee/ponct_juge_probe.js`) sépare obligatoire / facultative / INTERDITE, et
+   seules les INTERDITES sont des fautes : une virgule manquante se lit, « manger du, chocolat »
+   casse la phrase.
+   MESURÉ dès la première passe du juge : le chemin vocal livré filtrait bien « après déterminant/
+   préposition » (liste `_PASAPRES`, dupliquée chez lui) mais PAS « devant et/ou/ni » → 9 virgules
+   interdites sur 616. D'où cette primitive : UNE seule définition de l'interdit, pour la saisie
+   vocale ET pour tout futur câblage dictée/correcteur.
+   Conservatrice par construction : uniquement de la STRUCTURE, jamais du sens. Ce qu'on ne sait
+   pas prouver interdit est déclaré FACULTATIF. */
+var PONCT_PASAPRES = {};
+("le la les un une des du de d au aux a en dans sur sous par pour avec sans chez vers depuis " +
+ "pendant selon entre mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet " +
+ "cette ces chaque aucun aucune plusieurs quel quelle quels quelles")
+  .split(' ').forEach(function (w) { PONCT_PASAPRES[w] = 1; });
+var PONCT_PASDEVANT = { et: 1, ou: 1, ni: 1 };   // Allô prof : pas de virgule devant « et/ou/ni »
+function ponctInterdit(mots, tg, i) {
+  tg = tg || [];
+  if (i < 0 || i >= mots.length - 1) return 'fin de phrase';
+  if (PONCT_PASAPRES[norm(mots[i])]) return 'après déterminant/préposition';
+  if (PONCT_PASDEVANT[norm(mots[i + 1])]) {
+    // ⚠️ EXCEPTION MESURÉE (garde CI proso_probe, R5 d'Allô prof) : un coordonnant RÉPÉTÉ est une
+    // ÉNUMÉRATION, et elle prend la virgule — « Béatrice ne peut ni parler, NI manger, NI bouger ».
+    // Interdire en bloc « devant et/ou/ni » cassait ces deux cas : la répétition fait la différence.
+    var _c = norm(mots[i + 1]), _n = 0;
+    for (var _k = 0; _k < mots.length; _k++) if (norm(mots[_k]) === _c) _n++;
+    if (_n < 2) return 'devant et/ou/ni';
+  }
+  if (tg[i] === 'AUX' && VERBAL[tg[i + 1]] === 1) return 'entre auxiliaire et participe';
+  if (tg[i] === 'PRON' && VERBAL[tg[i + 1]] === 1) return 'entre pronom sujet et verbe';
+  if (tg[i] === 'DET' || tg[i] === 'ADP') return 'après déterminant/préposition (POS)';
+  return null;
+}
+
 /* `deja` = les indices qui portent DÉJÀ une marque (posées par le modèle statistique et, dans la
    saisie vocale, par l'ancre audio). Les règles en ont besoin — voir le filtre final. */
 function ponctReglesVirgule(mots,_tg,deja){
@@ -1188,6 +1228,19 @@ function ponctReglesVirgule(mots,_tg,deja){
     var n = longueurCoord(mots, i);
     if (!n) continue;
     if (estQue(mots[i + n])) continue;   // « alors que », « ainsi que » : SUBORDONNANTS
+    // ⛔ GARDE 0a — « DE PLUS » N'EST UN ORGANISATEUR QUE SEUL. Suivi d'un adjectif, d'un adverbe,
+    // d'un nombre ou de « de », c'est le COMPARATIF : « la direction de PLUS GRANDE diffusivité »,
+    // « en présence de PLUS DE journalistes ». Mesuré 22/08 sur 40 tirs UD : 3 des 8 vraies fautes
+    // des règles venaient de là. « De plus, l'appartenance… » (suivi d'un déterminant) reste juste.
+    if (n === 2 && norm(mots[i]) === 'de' && norm(mots[i + 1]) === 'plus') {
+      var _ta = tg[i + 2], _ma = norm(mots[i + 2] || '');
+      if (_ta === 'ADJ' || _ta === 'ADV' || _ta === 'NUM' || _ma === 'de' || _ma === "d'" || /^\d/.test(_ma)) continue;
+    }
+    // ⛔ GARDE 0b — UN ADVERBE-COORDONNANT PRÉCÉDÉ D'UNE CONJONCTION FORME UNE LOCUTION, pas une
+    // frontière : « mais AUSSI », « et ENSUITE », « ou ALORS ». La virgule irait AVANT la
+    // conjonction, jamais entre les deux — « Bubber Miley mais , aussi Bix Beiderbecke » est une
+    // faute que la règle fabriquait. Mesuré : 3 des 8 vraies fautes sur 40 tirs UD.
+    if (i > 0 && CONJ_PURE[norm(mots[i])] !== 1 && COORD_PREC[norm(mots[i - 1])] === 1) continue;
     // ⭐ LA GARDE : il faut un VERBE CONJUGUÉ AVANT et APRÈS. Sans elle, « il est aussi grand »
     // et « la pomme et la poire » recevraient une virgule. C'est ce qui sépare la COORDINATION
     // DE PHRASES (que la règle vise) d'un simple adverbe dans un groupe.
@@ -1256,6 +1309,11 @@ function ponctReglesVirgule(mots,_tg,deja){
     var aDeja = function (i) { return deja.has ? deja.has(i) : !!deja[i]; };
     out.forEach(function (i) { if (aDeja(i - 1) || aDeja(i + 1)) out.delete(i); });
   }
+  // ⛔⛔ PORTE FINALE — UNE RÈGLE NE DOIT JAMAIS ÉMETTRE UNE VIRGULE INTERDITE. Le juge à trois
+  // classes en a sorti une (« …particulièrement faibles AVEC , par exemple litres » : virgule après
+  // une préposition, parce que « par exemple » est un organisateur légitime mais pas ici). Plutôt
+  // que d'ajouter une exception par cas, on fait passer TOUTE sortie par la primitive partagée.
+  out.forEach(function (i) { if (ponctInterdit(mots, tg, i)) out.delete(i); });
   return out;
 }
 
@@ -2851,6 +2909,6 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     // ⭐ L'ANCRE TEMPORELLE — elle vit ICI et non dans les deux pages, pour que le site et
     // l'extension partagent LA MÊME décision par construction, pas par recopie surveillée.
     ponctSyll:ponctSyll, ponctBlocs:ponctBlocs, ponctAncre:ponctAncre,
-    ponctReglesVirgule:ponctReglesVirgule
+    ponctReglesVirgule:ponctReglesVirgule,ponctInterdit:ponctInterdit
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));
