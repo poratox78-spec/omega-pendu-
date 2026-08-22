@@ -260,7 +260,18 @@ class Speller:
         def gmatch(w):
             g = self._gender(w); return 1 if (cg and g and g == cg) else 0   # bonus seulement (pas de pénalité → ne casse pas fenêtre)
         def nmatch(w):
-            return 1 if (cn and ((cn == 'p') == (deacc(w).endswith(('s', 'x'))))) else 0
+            # Un « -s » final n'est une marque de PLURIEL que sur un NOM ou un ADJECTIF. Sur un VERBE c'est la
+            # 2e personne du SINGULIER (« tu viens ») : le bonus de nombre n'a donc rien à y faire, et la preuve
+            # de pluriel élargie du 22/08 le rendait atteignable. ⚠️ HONNÊTETÉ : cette garde est MESURÉE INERTE
+            # sur le corpus dys réel (1 726 paires — chiffres RIGOUREUSEMENT identiques avec et sans). Elle est
+            # gardée parce que le raisonnement est FAUX sans elle, pas parce qu'elle gagne quelque chose.
+            # (J'avais d'abord cru qu'elle réparait « vvient »→viens : c'était faux, la FRÉQUENCE y décide de
+            # toute façon — viens 736 contre vient 340.) Gains du jour préservés : les/jours/petits/secrétaires/
+            # leurs/tuyaux/tiges/toutes sont tous N ou A, vérifié tag par tag.
+            if not cn: return 0
+            ps = self.POS.get(w, ())
+            if 'V' in ps and 'N' not in ps and 'A' not in ps: return 0
+            return 1 if ((cn == 'p') == (deacc(w).endswith(('s', 'x')))) else 0
         # tri : accent d'abord, puis POS du contexte (élève/élevé), puis accord GENRE, puis DOMINANCE (edits1 ≫ phonétique),
         #       puis phonétique, puis NOMBRE, puis fréquence. cmp (pas key) car la dominance est PAIRWISE.
         def _cmp(a, b):

@@ -285,6 +285,38 @@ que de la réécrire au cas par cas.
   distance d'édition** et la fréquence tranche — mal. Aucune preuve d'accord ne peut les rattraper, parce
   que le nombre n'est pas ce qui les sépare. **Chantier séparé**, cas nommés, à ne pas empiler ici.
 
+- **Erreurs de LEMME : une hypothèse construite, mesurée et REJETÉE (22/08).** Le PR précédent laissait
+  8 erreurs confiantes relevant d'un autre mécanisme : le speller se trompe de **lemme**, pas de nombre
+  (`belu`→*beau* / gold **bleu**, `parvies`→*parties* / gold **parvis**), les deux candidats étant à
+  **égale distance d'édition** avec la fréquence pour seul arbitre.
+  - **Hypothèse (phénoménologie dys)** : l'élève **inverse, omet, double** des lettres qu'il a écrites ;
+    il en **invente** rarement. `belu` contient exactement les lettres de `bleu` ; `beau` exige un `a`
+    absent de la saisie. `parvies`→`parvis` n'invente rien, `parties` réclame un `t` venu de nulle part.
+  - **Implémentée proprement** : départage placé **juste avant la fréquence** (n'agit que si tout le reste
+    est à égalité) et surtout **pas un filtre** — vérifié que `leson`→`leçon` (invente un `c`) et
+    `fote`→`faute` (invente `a`,`u`) survivent, aucun rival de même rang ne faisant mieux. Sur les 13 cas
+    témoins : `belu`→**bleu** gagné, tous les gains du matin tenus, parité 3 moteurs 0 divergence.
+  - **REJETÉE PAR LA MESURE** (`spirale_probe.py`, corpus dys réel) : non-mots promus avec la BONNE
+    graphie **793→782 (−11)**, avec la MAUVAISE **216→213 (−3)**. **11 bonnes corrections perdues pour
+    3 mauvaises évitées.** Joli sur trois exemples choisis, perdant à l'échelle. **Retirée des 3 moteurs.**
+    ⇒ **FALSIFIÉ — ne pas refaire** : « préférer le candidat qui n'invente aucune lettre ».
+- **Garde verbale sur `nmatch` (gardée, mais MESURÉE INERTE — dit honnêtement).** Un `-s` final n'est une
+  marque de pluriel que sur un NOM ou un ADJECTIF ; sur un VERBE c'est la 2ᵉ personne du **singulier**
+  (« tu viens »). La preuve de pluriel élargie du matin rendait ce bonus atteignable pour des formes
+  verbales. Garde ajoutée (3 moteurs) : pas de bonus de nombre pour un candidat **verbe seul**.
+  **Chiffres dys rigoureusement identiques avec et sans** (793/216, rouges fautives 8) → gardée parce que
+  le raisonnement est **faux** sans elle, **pas** parce qu'elle gagne quelque chose.
+  ⚠️ **Correction d'une affirmation que j'avais faite** : j'ai d'abord cru que cette garde réparait
+  « vvient »→*viens*. **Faux** — la **fréquence** y décide de toute façon (viens 736 contre vient 340) ;
+  ce qui avait retourné ce cas, c'était le départage « lettre inventée », précisément celui que la mesure
+  a rejeté. Le commentaire de code portait cette erreur : corrigé dans les 3 moteurs.
+- **`parvies` : cause identifiée, NON traitée (délibérément).** `parvis` **est** le bon candidat — même
+  priorité (edit-1) **et** c'est lui qui porte le phon-match (`parvi`). Il perd parce que la garde de
+  **dominance ≫20×** — écrite contre les junks lexicaux type `accort`/`accord` — écrase le phon-match dès
+  que le bon mot est simplement **rare** (parvis 0,15 contre parties 23,7). Cette garde ne sait pas
+  distinguer « mot rare » de « bruit lexical » ; la retoucher demande de mesurer les DEUX populations à la
+  fois (junks ET mots rares légitimes). Chantier séparé, pas un bricolage de fin de campagne.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
