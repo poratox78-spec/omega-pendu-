@@ -46,6 +46,56 @@ existe pour boucher.
 **Recommandation pédagogique convergente** : l'élève doit **analyser** les suggestions plutôt que les
 accepter d'un clic. C'est l'architecture rouge/orange + stade + remédiation, pas un choix esthétique.
 
+## 3ter. ⚠️⚠️ CORRECTION MAJEURE — ce n'est PAS une convergence : **c'est le MÊME corpus**
+
+En lisant la notice de `data_local/dys_reel/corpus_dys/README.txt` : *« corpus communiqué par Laetitia
+Branciard de la **FFDys** »* (7 textes, adolescent) et *« Cécile Péguin, **Plateforme Dys de l'ASEI** »*
+(71 textes, adultes). Ce sont **exactement les deux corpus analysés par Bodard (2020)**.
+
+**Vérifié, pas supposé** : les **15** formes erronées citées en exemple dans le papier sont toutes dans nos
+fichiers — `disgetif`, `meiu`, `setoufle`, `mayeur`, `Qustion`, `aprle`, `situiation`, `réusite`,
+`comerse`, `ducou`, `rendévous`, `lafrique`, `oré`, `nalé`, `fesé`.
+
+⇒ **La « convergence indépendante » annoncée en §3bis n'existe pas.** Nos chiffres ressemblent aux leurs
+parce que ce sont les mêmes données. Je l'avais présenté comme une validation externe : **c'était faux**.
+
+**Ce que ça apporte quand même, et c'est beaucoup** : les statistiques publiées de Bodard **décrivent notre
+propre corpus**, annoté avec un gold que nous n'avons pas. Elles ne valident pas notre moteur — elles nous
+donnent la vérité terrain des **72 textes que nous n'exploitons pas**.
+
+### Ce que nous avons vraiment sous la main
+
+Les **78 textes sont dans le dépôt**, mais en `_raw.txt` **sans aucun corrigé** : seules les 6 dictées ont
+un gold (le texte dicté est connu). D'où les « 6 paires ». Les 72 autres restent mesurables pour tout ce
+qui **ne demande pas de référence** — le taux de **non-mots** en est un :
+
+| genre | textes | mots | non-mots |
+|---|---|---|---|
+| corpus1 (adolescent, scolaire) | 7 | 3 128 | **26,2 %** |
+| Dictée | 6 | 335 | 21,8 % |
+| Expression libre | 32 | 1 497 | 16,0 % |
+| Expression écrite dirigée | 33 | 2 063 | 15,4 % |
+| **TOTAL réel** | **78** | **7 023** | **20,6 %** |
+
+À comparer aux **16,0 %** du mélange que nous mesurions : le texte dys réel est **plus dur**, et les
+dictées ne sont pas le genre le plus facile sur cet axe (21,8 %).
+
+### ⚠️ Biais de mesure dans NOTRE juge
+
+`dys_precision_probe.eq` **normalise les accents** (`norm()` retire les diacritiques). Or l'accent est une
+famille d'erreurs dys majeure, que Bodard compte. Notre taux de mots fautifs est donc **sous-évalué par
+construction** :
+
+| | juge actuel | juge strict | écart (accents/élisions) |
+|---|---|---|---|
+| 6 dictées | 13,1 % | **17,1 %** | 4,0 pts |
+| sondes | 5,4 % | 6,2 % | 0,8 pt |
+| généré | 13,3 % | 16,9 % | 3,6 pts |
+
+⇒ **toutes les comparaisons de pourcentages à la littérature (§3, §3bis) étaient biaisées à la baisse.**
+La tolérance aux accents reste **justifiée pour juger une correction** (on ne veut pas compter « mere »
+comme une faute que le correcteur devrait corriger) mais elle **ne doit pas servir à décrire le corpus**.
+
 ## 3bis. ⚠️ CORRECTION (même jour) — ce n'est pas « notre corpus est trop facile », c'est **un mélange mal étiqueté**
 
 La section 3 ci-dessous a été écrite en comparant la littérature au **mélange** `data_local/dys_reel`.
@@ -128,6 +178,136 @@ même qu'il a la bonne priorité *et* le bon phon-match : hors contexte, il n'a 
 faux positifs), **mais donner du contexte à la comparaison.** Le dépôt a déjà ce qu'il faut (n-gram
 §1.7 arbitré OS, POS-tagger 155k, `noun-post`) — doctrine §5 : réutiliser avant d'ajouter.
 Et leur seuil de précision (0,99–0,995) est le repère externe à viser.
+
+## 5bis. Chantier « dominance en contexte » — INVENTAIRE FAIT, ROUTE BLOCKÉE PAR LES DONNÉES
+
+Avant d'écrire quoi que ce soit (doctrine §5), inventaire de ce qui existe déjà pour donner du **contexte** :
+
+| existe déjà | quoi | état |
+|---|---|---|
+| `dictee/os_subj_lm.json.gz` | LM **bidirectionnel** trigrammes+bigrammes (UD French-GSD), API `p_fwd`/`p_bwd`/**`lsc(w,p2,p1,n1,n2)`** | **EN PRODUCTION**, parité 3 moteurs (`parity_os.js`, bloc `os-lm-gz`) |
+| `dictee/pos_hmm.json` | POS-tagger HMM Viterbi ~95 % | en production, 3 moteurs |
+| `dictee/build_asr_lm.py` | LM **plus gros** (UD complet + WiCoPaCo), couverture ×240 | **MESURÉ PIRE**, gardé comme recette |
+| `dictee/ces_ses_model.json` | modèle contextuel dédié à un couple d'homophones | en production |
+
+**Rien à construire : `lsc()` EST la comparaison contextuelle que réclame la garde de dominance.**
+Testé directement sur les cas connus — et le résultat est négatif :
+
+| cas | LM choisit | gold |
+|---|---|---|
+| `le parvies de l'abbatiale` | *parties* (−8,90 contre −13,78) | **parvis** ✗ |
+| `la nuque belu clair` | *beau* (−11,89 contre −12,25) | **bleu** ✗ |
+| `trois enfants qui vvient` | *vient* | **vivent** ✗ |
+| `Tous less magasins` | **les** ✔ | les |
+| `un leson de piano` | **leçon** ✔ | leçon |
+
+**Cause, mesurée** : le LM fait **13 954 unigrammes / 233 614 tokens**. `parvis` y apparaît **2 fois**
+contre 40 pour `parties` ; **`nuque` est ABSENT** — le contexte de `belu` n'a donc aucune ancre et `lsc`
+**dégénère en `p_uni`**, c'est-à-dire… la fréquence nue qu'on cherchait à fuir.
+
+⇒ **La route contextuelle est bloquée par le VOLUME de données, pas par l'architecture.** LanguageTool
+s'appuie sur les n-grammes Google (milliards de tokens) ; nous avons 0,23 M. Et le projet a **déjà tenté**
+de grossir le LM (`build_asr_lm.py`, ×240 de couverture) : **mesuré pire**, piège de registre Wikipédia
+(« ses fréquences tirent vers père/opposé au lieu de chères/proposer » — *le même piège de fréquence*).
+
+**Conclusion honnête** : le chantier « donner du contexte à la dominance » ne se débloque pas avec les
+données du dépôt. Ce n'est pas « il faudrait un n-gram » — on en a un, de la bonne forme, 4 ordres de
+grandeur trop petit. Rouvrir ce chantier suppose **un corpus FR massif au bon registre**, arbitrage
+explicite (taille embarquée, licence) — pas un ajustement de seuil.
+
+## 5ter. ✅ LE GOLD MANQUANT : je l'ai écrit — et le vrai chiffre du moteur tombe de 14 points
+
+Constat de Rem : *« corrige ce qui n'est pas corrigé, tu fais de la correction. »* Juste — je répétais qu'il
+manquait du corrigé en étant capable d'en produire.
+
+**Protocole** (pour que la mesure vaille quelque chose) :
+- correction **à la main, en édition minimale** : orthographe, accord, conjugaison, accents, élision,
+  segmentation, majuscule de phrase. **Ni style, ni ordre des mots, ni ponctuation ajoutée** ;
+- **produit SANS faire tourner le correcteur** sur ces textes — sinon la mesure serait circulaire ;
+- **provenance marquée** : `src = "gold_claude/…"`, annotation par Claude, **jamais** un corrigé humain
+  expert. Le fichier reste dans `data_local/` (corpus privé FFDys/ASEI, non versionné) ;
+- un texte trop dégradé pour être reconstruit honnêtement est **écarté** (`texte4_h35`) ; un token isolé
+  que je ne sais pas trancher est **laissé intact et signalé** (`ambig`) plutôt que deviné.
+
+**Fait : 67 productions, 4 498 mots** — contre 335 auparavant (les 6 dictées). Contrôle qualité : aucun mot
+inconnu ne subsiste dans mon corrigé hors noms propres et artefacts de tokenisation.
+
+### Le moteur, jugé sur du texte dys RÉEL
+
+| | mélange (93 % de sondes) | **texte dys réel** |
+|---|---|---|
+| orthographe **auto** | 91,5 % | **77,8 %** (21 justes · **0 inutile** · 6 fausses) |
+| orthographe **flag** | 69,8 % | **52,4 %** (22 · 2 · 18) |
+
+**−14 points.** Ce que je soupçonnais en découvrant la composition du corpus est confirmé sur données
+réelles : *les absolus du projet décrivaient la tenue du moteur sur des fautes isolées.*
+Point positif à ne pas perdre : **0 faux positif** en `auto` — la garde cardinale tient sur du texte réel.
+
+**Motif dans les 6 fausses** : `preparer`→*préparer* (gold **préparée**), `reveiller`→*réveiller* (gold
+**réveillée**), `gateaux`→*gâteaux* (gold **gâteau**). Le speller **restaure l'accent et laisse la
+flexion fausse** — il transforme un non-mot en mot valide mal fléchi, et passe le relais à la grammaire.
+C'est exactement la **pyramide** mesurée en §… et son revers (« le poison est la réparation fausse »).
+
+### Profil de ce gold (vs les autres groupes)
+
+| | mots fautifs | d=1 | d≥2 | 1ʳᵉ lettre | **vrai mot** |
+|---|---|---|---|---|---|
+| **RÉEL corrigé à la main (31)** | **18,3 %** | 77,5 % | 22,5 % | 9,9 % | **72,5 %** |
+| RÉEL dictées (6) | 12,8 % | 60,5 % | 39,5 % | 18,6 % | 48,8 % |
+| littérature (Bodard) | ~33 % | 58,8 % | 41,2 % | 10,9 % | 53 % |
+
+L'écrit **libre** produit surtout des fautes d'**accord et d'homophone** (mots valides : **72,5 %**), là où
+la **dictée** produit des non-mots. Deux genres, deux profils — et c'est la couche **grammaire**, pas le
+speller, qui porte l'écrit libre.
+
+### Trouvaille produit, née de la mesure
+
+Plusieurs corrections sont **hors de portée du moteur par construction** : `réveille`→*réveillée*,
+`douche`→*douchée*, `aller`→*allée* — « je suis allé » est valide, le correcteur **ne peut pas deviner** que
+la scriptrice est une femme. ≤4 % des formes erronées (mon estimateur surcompte). ⇒ **une préférence
+utilisateur posée une seule fois** (« j'écris au masculin / au féminin ») les rendrait toutes atteignables.
+
+### ✅ CHIFFRE DÉFINITIF — le moteur sur 67 productions dys réelles (4 459 mots)
+
+| famille | palier | mélange (93 % sondes) | **texte dys RÉEL** |
+|---|---|---|---|
+| **orthographe** | **auto** | 91,5 % | **75,4 %** — 52 justes · **0 inutile** · 17 fausses |
+| **orthographe** | flag | 69,8 % | **50,4 %** — 118 · 14 · 102 |
+| accord pluriel du nom | auto | — | **92,3 % / 100 %** (pollué / propre) |
+| a/à | auto | — | **100 % / 100 %** |
+| majuscule | auto | — | **95,7 % / 100 %** |
+| accord sujet-verbe | auto | — | 73,3 % / 80,0 % |
+| −é/−er | auto | — | **58,8 % / 75,0 %** |
+| accord participe | auto | — | **33,3 %** |
+| genre déterminant | vigilance | — | **33,3 %** |
+
+**Ce qui tient** : **zéro faux positif** en `auto` sur 4 459 mots de texte dys réel — la garde cardinale
+du projet résiste là où ça compte. Et les règles qui portent le volume (**accord pluriel du nom**, **a/à**,
+**majuscule**) sont entre **92 % et 100 %** : l'investissement grammaire est validé sur données réelles.
+
+**Ce qui ne tient pas** : l'**orthographe** perd **16 points** (91,5 → 75,4 %) et le `flag` tombe à 50 %.
+Et trois familles décrochent : **−é/−er 59 %**, **accord participe 33 %**, **genre déterminant 33 %**.
+Ce sont désormais les cibles, mesurées sur la bonne population.
+
+**Profil du gold produit** (4 459 mots) : **19,9 %** de mots fautifs · d=1 **68,7 %** · d≥2 **31,3 %** ·
+1ʳᵉ lettre **11,4 %** (littérature : 10,9 %) · **59,1 %** d'erreurs en vrai mot (littérature : 53 %).
+Il se rapproche nettement des repères publiés — bien plus que le mélange (5,4 % / 4,8 % / 31,2 %).
+
+### Reste à faire
+
+**67 des 72** productions sont traitées : toute l'« Expression libre » (31), toute l'« Expression écrite
+dirigée » (33) et **3 des 7 textes scolaires**.
+
+**5 textes ÉCARTÉS, et c'est délibéré** — un gold douteux vaut moins que pas de gold :
+- `texte4_h35` : trop dégradé pour être reconstruit honnêtement (« j'ai pris la distion de faire un daeu
+  qu'il suis lidait resotie ») ;
+- `corpus1/texte1_2ndepro` et `texte3_2ndepro` : écriture massivement phonétique **et** passages tronqués
+  `[...]` dans la source ;
+- `corpus1/texte2_terminale` (807 mots) et `texte7_3e` (765 mots) : reconstructibles mais longs, à faire
+  avec le même soin — **prochaine session**.
+
+3 tokens isolés restent **non tranchés** (`degne`, `soutie`, `pine`), laissés intacts et signalés (`ambig`)
+plutôt que devinés.
 
 ## 6. Chantiers, remis dans l'ordre après cette revue
 

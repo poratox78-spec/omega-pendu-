@@ -338,6 +338,60 @@ que de la réécrire au cas par cas.
     lieu de l'initiale orthographique » dans `_cands` (le papier note 10,9 % d'initiales fausses mais <4 %
     de phonétiquement fausses). **Chez nous la garde n'écarte que 6,2 % des formes, dont 5,5 % ont aussi
     l'initiale phonétique fausse → gain plafonné à 0,7 %.** Ne vaut pas le code. *Piste fermée.*
+  - ⚠️ **LE « ×29 SUR LES DÉTERMINANTS » EST RÉTRACTÉ — encore l'artefact du mélange.** Le chiffre venait
+    de comparer le généré au « corpus dys réel » (93 % de sondes). Remesuré **par groupe**, juge STRICT :
+
+    | | contradictions dét/nom | nom fautif | dét fautif | **nom =** |
+    |---|---|---|---|---|
+    | **RÉEL (6 dictées)** | 7 | 5 | 1 | **83 %** |
+    | SONDES | 288 | 108 | 3 | **97 %** |
+    | **GÉNÉRÉ** | 124 | 63 | 12 | **84 %** |
+
+    **Le générateur (84 %) colle au réel (83 %).** Le « 99 % » qui m'avait fait REFUSER la garde globale
+    venait des **sondes** — qui injectent une faute unique, presque toujours sur le mot plein. Axe large,
+    formes erronées visant un **mot-outil** : réel **21,4 %** · généré **27,1 %** · sondes 14,0 %
+    ⇒ **1,27×, pas 29×**.
+    ⇒ **`dys_gen.py` n'a plus AUCUN biais démontré** (densité 13,2 % vs 12,8 % · nature 62 %/66 % ·
+    mots-outils 1,27×). Les **trois** griefs portés contre lui aujourd'hui venaient tous de la même erreur
+    de méthode : le comparer à un mélange dominé par des sondes.
+    ⚠️ **MAIS n=7 côté réel : rien n'est tranché.** Ma décision de ne pas câbler la garde reposait sur un
+    mauvais chiffre ; je ne la renverse pas sur 7 cas. Sur les **78 textes réels** (sans corrigé, donc sans
+    attribution possible), ~**15 %** des groupes [déterminant + nom] montrent une contradiction apparente
+    au test morphologique — le phénomène est **fréquent**, mais **qui a tort** reste hors de portée. (Le
+    test bute en outre sur les mots courts : « son pas », « le taux », « une des ».)
+    ⇒ **Même conclusion que partout ailleurs aujourd'hui : il faut du GOLD sur du texte dys réel.**
+  - **CHANTIER « dominance en contexte » : INVENTAIRE FAIT (§5 doctrine), ROUTE BLOQUÉE PAR LES DONNÉES.**
+    Ce qui existe déjà : **`os_subj_lm.json.gz`** (LM bidirectionnel trigrammes+bigrammes UD-GSD, API
+    `p_fwd`/`p_bwd`/**`lsc()`**, **EN PRODUCTION**, parité 3 moteurs via `parity_os.js`/`os-lm-gz`),
+    `pos_hmm.json` (HMM Viterbi ~95 %), `ces_ses_model.json`, et `build_asr_lm.py` (LM ×240 **mesuré
+    pire**, gardé comme recette). **Rien à construire — `lsc()` EST la comparaison contextuelle voulue.**
+    Testé sur les cas connus : `parvies`→*parties* (−8,90 vs −13,78), `belu`→*beau*, `vvient`→*vient*
+    (2 succès seulement : `less`→les, `leson`→leçon). **Cause mesurée** : le LM fait **13 954 unigrammes /
+    233 614 tokens** ; `parvis` y apparaît **2 fois** contre 40 pour `parties`, **`nuque` est ABSENT** →
+    `lsc` **dégénère en `p_uni`** = la fréquence nue qu'on fuyait. ⇒ **bloqué par le VOLUME, pas par
+    l'architecture** (LanguageTool = n-grammes Google, milliards ; nous 0,23 M) — et le dépôt a **déjà**
+    tenté de grossir (piège de registre Wikipédia, même piège de fréquence). Rouvrir suppose un corpus FR
+    massif au bon registre = arbitrage explicite (taille embarquée, licence), pas un réglage de seuil.
+  - ⚠️⚠️⚠️ **CORRECTION MAJEURE — ce n'est PAS une convergence, c'est le MÊME CORPUS.** La notice
+    `corpus_dys/README.txt` le dit : **FFDys** (Laetitia Branciard, 7 textes, adolescent) + **Plateforme
+    Dys de l'ASEI** (Cécile Péguin, 71 textes, adultes) = **exactement les deux corpus de Bodard 2020**.
+    Vérifié, pas supposé : **les 15 formes citées en exemple dans le papier sont dans nos fichiers**
+    (`disgetif`, `meiu`, `setoufle`, `mayeur`, `Qustion`, `aprle`, `situiation`, `réusite`, `comerse`,
+    `ducou`, `rendévous`, `lafrique`, `oré`, `nalé`, `fesé`). **La « convergence indépendante » que
+    j'ai annoncée n'existe pas** — nos chiffres ressemblent aux leurs parce que ce sont les mêmes données.
+    Ce que ça apporte à la place : leurs statistiques publiées **décrivent notre corpus**, avec un gold que
+    nous n'avons pas — elles donnent la vérité terrain des **72 textes que nous n'exploitons pas**.
+  - **Les 78 textes SONT dans le dépôt** (`data_local/dys_reel/corpus_dys/`), mais en `_raw.txt` **sans
+    corrigé** : seules les 6 **dictées** ont un gold (le texte dicté est connu), d'où les « 6 paires ».
+    Les 72 autres restent mesurables pour ce qui ne demande **pas** de référence — non-mots par genre :
+    corpus1 (ado) **26,2 %** · Dictée 21,8 % · Expression libre 16,0 % · Expr. dirigée 15,4 % ·
+    **TOTAL réel 20,6 %** contre **16,0 %** dans le mélange qu'on mesurait. Le texte dys réel est **plus
+    dur**, et la dictée n'est pas le genre le plus facile sur cet axe.
+  - ⚠️ **BIAIS DE MESURE DANS NOTRE JUGE** : `dys_precision_probe.eq` **normalise les accents**, or
+    l'accent est une famille dys majeure que Bodard compte. Mots fautifs sur les 6 dictées : **13,1 % au
+    juge actuel contre 17,1 % en strict** (4 pts d'écart = accents/élisions ; sondes 0,8 pt ; généré
+    3,6 pts). ⇒ **toutes mes comparaisons de pourcentages à la littérature étaient biaisées à la baisse.**
+    La tolérance reste justifiée pour **juger une correction**, pas pour **décrire un corpus**.
   - ⚠️⚠️ **PUIS, EN OUVRANT LES FICHIERS (`corpus_profile_probe.py`) : le « corpus dys réel » est un
     MÉLANGE MAL ÉTIQUETÉ.** 1 726 paires = **1 600 SONDES à faute unique** (`faiblesses.jsonl`, 200 × 8
     familles : accent, inversion, lettre_manque…), **120 générées**, et **6 VRAIES DICTÉES** (0,3 %,
