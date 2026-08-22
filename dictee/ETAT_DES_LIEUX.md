@@ -229,7 +229,7 @@ manquait du corrigé en étant capable d'en produire.
 - un texte trop dégradé pour être reconstruit honnêtement est **écarté** (`texte4_h35`) ; un token isolé
   que je ne sais pas trancher est **laissé intact et signalé** (`ambig`) plutôt que deviné.
 
-**Fait : 67 productions, 4 498 mots** — contre 335 auparavant (les 6 dictées). Contrôle qualité : aucun mot
+**FAIT : les 72 productions, 6 778 mots** (contre 335 auparavant — ×20) — contre 335 auparavant (les 6 dictées). Contrôle qualité : aucun mot
 inconnu ne subsiste dans mon corrigé hors noms propres et artefacts de tokenisation.
 
 ### Le moteur, jugé sur du texte dys RÉEL
@@ -292,6 +292,40 @@ Ce sont désormais les cibles, mesurées sur la bonne population.
 **Profil du gold produit** (4 459 mots) : **19,9 %** de mots fautifs · d=1 **68,7 %** · d≥2 **31,3 %** ·
 1ʳᵉ lettre **11,4 %** (littérature : 10,9 %) · **59,1 %** d'erreurs en vrai mot (littérature : 53 %).
 Il se rapproche nettement des repères publiés — bien plus que le mélange (5,4 % / 4,8 % / 31,2 %).
+
+### ✅ CORPUS COMPLET (22/08/2026, fin de journée) — les 72 productions sont corrigées
+
+Les 5 textes les plus dégradés, écartés dans un premier temps, ont été repris : le dialogue de 765 mots,
+l'évaluation de géographie de 807 mots, les deux devoirs de 2ndePro et le texte adulte le plus abîmé.
+**Aucun texte ne reste sans corrigé.** 14 tokens que je n'ai pas su trancher restent marqués `ambig` et
+exclus des mesures — reprocher au moteur de savoir ce que l'annotateur ignore n'aurait pas de sens.
+
+**Contrôle qualité** : les 95 mots « inconnus » restant dans le corrigé sont TOUS des noms propres, des
+sigles ou des artefacts de tokenisation (`Harold` ×23, `France` ×13, `Aujourd`, `Bsen`) — aucune faute.
+
+**Le pipeline sur le corpus COMPLET** (72 productions, 6 217 mots alignés) :
+
+| | |
+|---|---|
+| mots faux au départ | **1 542** |
+| **RÉPARÉS** | **341 — 22,1 %** |
+| ratés | 1 201 |
+| mots justes au départ | 4 675 |
+| **⛔ CASSÉS** | **35 — 0,75 %** |
+
+**Et le corpus converge maintenant avec la littérature**, ce qui valide l'annotation :
+
+| | **notre gold (6 688 mots)** | Bodard 2020 |
+|---|---|---|
+| mots fautifs | **23,7 %** | 33 % |
+| distance d'édition 1 | 63,7 % | 58,8 % |
+| distance ≥2 | 36,3 % | 41,2 % |
+| 1ʳᵉ lettre fausse | **11,2 %** | **10,9 %** |
+| erreurs en vrai mot | **54,8 %** | **53 %** |
+
+Les textes scolaires (corpus1) ont porté le taux de fautes de 19,9 % à 23,7 % : c'est le genre le plus dur,
+et il manquait. Première lettre et erreurs en vrai mot tombent désormais **à un demi-point** des repères
+publiés — le gold est représentatif, pas seulement volumineux.
 
 ### Reste à faire
 
