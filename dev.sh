@@ -66,6 +66,7 @@ run "police de son (fraîcheur bloc app + clitiques≡Py + texte intact)" node p
 run "parité OS-sujet 3 moteurs (accord verbe orange)" node dictee/parity_os.js
 run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesses.js
 run "parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé)" node dictee/parity_gender_coll.js
+run "parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas)" node dictee/parity_diag.js
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 runsh "syntaxe extension (5 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js"
 run "correcteur standalone"         node dictee/correcteur.js
