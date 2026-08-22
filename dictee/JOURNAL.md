@@ -317,6 +317,35 @@ que de la réécrire au cas par cas.
   distinguer « mot rare » de « bruit lexical » ; la retoucher demande de mesurer les DEUX populations à la
   fois (junks ET mots rares légitimes). Chantier séparé, pas un bricolage de fin de campagne.
 
+- **PAUSE : état des lieux + revue de littérature + LanguageTool** → `dictee/ETAT_DES_LIEUX.md`.
+  - **CONFIRMÉ par Bodard (2020, JEP-TALN, corpus dyslexiques FRANÇAIS)** : 58,7 % des formes erronées ont
+    la MÊME phonétique que la cible (67,1 % voyelles simplifiées) — notre route phonétique est le bon
+    pilier, et notre `phon_key` fait déjà la simplification des voyelles qu'ils recommandent (on avait en
+    plus **mesuré-réfuté** l'IPA fidèle : 85 % contre 67 %, **convergence indépendante**). Erreurs les plus
+    fréquentes : phonétisation 27,25 % + accord genre/nombre/conjugaison 26,81 % = **nos deux plus gros
+    investissements**. Formes les plus erronées : très/peut/à/après/ils/ont/c'est/ce/au/est = **exactement
+    nos règles**. Et **72,3 % des formes erronées ont ≥1 mot de contexte erroné (fenêtre ±2)** : notre
+    « ancre polluée » est un phénomène publié en 2020.
+  - ⚠️ **CORRIGÉ : notre corpus dys est PLUS FACILE que les corpus publiés, sur tous les axes** — mots
+    erronés 6,9 % contre ~33 % · distance ≥2 : 30,3 % contre 41,2 % · 1ʳᵉ lettre fausse 6,2 % contre
+    10,9 % · erreurs en vrai mot 34 % contre 53 %. **Nos pourcentages sont donc optimistes** par rapport à
+    la population cible.
+  - ⚠️ **RETOURNEMENT sur `dys_gen.py`** : « ~2× trop de fautes » était mesuré contre NOTRE corpus. Contre
+    la littérature (~33 % de mots fautifs), c'est le **générateur (13,1 %) qui est le plus proche du réel**
+    et notre corpus qui est atypique. Le biais ×29 sur les déterminants reste un vrai biais de forme.
+    **À trancher par une mesure** (nos populations diffèrent peut-être : âge, dictée vs écrit spontané).
+  - **Piste de la littérature ÉVALUÉE ET REJETÉE sur nos données** : « comparer l'initiale PHONÉTIQUE au
+    lieu de l'initiale orthographique » dans `_cands` (le papier note 10,9 % d'initiales fausses mais <4 %
+    de phonétiquement fausses). **Chez nous la garde n'écarte que 6,2 % des formes, dont 5,5 % ont aussi
+    l'initiale phonétique fausse → gain plafonné à 0,7 %.** Ne vaut pas le code. *Piste fermée.*
+  - **LanguageTool** : leur `ConfusionProbabilityRule` utilise un **facteur** de même FORME que notre garde
+    de dominance ≫20× (plage **10 à 10 000 000** ; facteur 1 = fausses alertes), choisi par un évaluateur
+    dédié, avec **précision préférée au rappel** (seuils **0,995** mots fréquents / **0,99** autres) et la
+    plupart des paires **désactivées par défaut**. **Différence décisive : leur comparaison est
+    CONTEXTUELLE (n-gram), la nôtre est une fréquence NUE.** ⇒ le chantier « dominance » n'est PAS
+    « baisser le seuil » (on échangerait des junks contre des FP) mais **donner du contexte à la
+    comparaison** — le dépôt a déjà n-gram §1.7, POS-tagger 155k et `noun-post` (doctrine §5).
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
