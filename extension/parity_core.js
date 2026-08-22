@@ -140,6 +140,32 @@ PHRASES.forEach((p, k) => {
   if (extra.length) { appOnly++; console.log('✗ EXT flague hors Python :', JSON.stringify(p), JSON.stringify(extra)); }
   if (js.length < pf.length) { gap++; console.log('  (couverture) PY > EXT :', JSON.stringify(p), '| PY=' + JSON.stringify(pf) + ' EXT=' + JSON.stringify(js)); }
 });
+/* PALIERS (2026-08-22) — rouge/orange par SOUS-CAS mesuré sur texte dys (correcteur_probe.tier_of ↔ _tierOf) :
+   pour chaque correction émise des DEUX côtés, le palier doit être le MÊME. Un désaccord = une famille
+   appliquée d'office d'un côté et au clic de l'autre — le produit ne serait plus le même sur le site et
+   dans l'extension. */
+const pyT = cp.spawnSync('python3', ['-c', `
+import sys, json
+sys.path.insert(0, ${JSON.stringify(path.join(ROOT, 'dictee'))})
+import correcteur_probe as C
+ph = json.loads(sys.stdin.read())
+print(json.dumps([[(i, w, s, n, t) for (i, w, s, n, t) in C.correct_tiered(p)] for p in ph]))
+`], { input: JSON.stringify(PHRASES), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });
+if (pyT.status !== 0) { console.error('probe Python (paliers) échoué :', pyT.stderr); process.exit(2); }
+const pyTiers = JSON.parse(pyT.stdout);
+let _tierKo = 0, _tierCmp = 0;
+PHRASES.forEach((p, k) => {
+  const byKey = {}; pyTiers[k].forEach(x => { byKey[key(x)] = x[4]; });
+  DYSCORE.correctText(p).forEach(f => {
+    const kk = key([f.i, f.word, f.sugg]); if (byKey[kk] === undefined) return;
+    if (f.vigRule) return;   // orange décidé par la RÈGLE elle-même (homographe ambigu : « Le savons »), logique JS-only déjà couverte par parity_os — hors périmètre des paliers par famille
+    _tierCmp++;
+    if ((f.tier || 'auto') !== byKey[kk]) { _tierKo++; console.log('✗ PALIER : ' + JSON.stringify(p) + ' « ' + f.word + '→' + f.sugg + ' » ext=' + (f.tier || 'auto') + ' python=' + byKey[kk]); }
+  });
+});
+if (_tierKo) { console.log('PARITÉ KO — ' + _tierKo + ' palier(s) rouge/orange différents ext ↔ Python.'); process.exit(1); }
+console.log('  ✓ paliers rouge/orange identiques ext ↔ Python sur ' + _tierCmp + ' corrections');
+
 /* GARDE PRÉNOMS — « ext ⊆ Python » est unidirectionnel : sans table, l'extension n'émettrait rien
    et la parité resterait verte. On exige que l'extension PRODUISE ces corrections (miroir app). */
 const _ATT = [['Marie est venu.', 'venue'], ['Julie est parti.', 'partie'],

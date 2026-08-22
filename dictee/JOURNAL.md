@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-08-22 — qualité sur TEXTE DYS avant le store : paliers mesurés par sous-cas, 3 FP réparés à la source
+
+> Déclencheur : revue de l'extension avec 5 phrases dys réalistes. Le moteur était **fort en grammaire** (« les enfant mange des bonbon » → enfants/mangent/bonbons, expliqué) mais rendait des corrections FAUSSES avec l'étiquette « sûr » : « ma **mere** ma dit » → « **mon** mere », « chein » → « chin », « aboit » → « about »/« a boit ». FP=0 tenait sur texte correct, pas sur texte dys — or c'est le texte qu'on reçoit.
+
+- **La mesure qui manquait** : `dys_precision_probe.py` — sur 1 726 paires (brut, gold) du corpus dys local, chaque flag est jugé *juste / inutile (FP dys) / fausse*, **par famille et par palier**. Ortho auto 91 %, participe-après-avoir / majuscule / a-à / adjectif épithète / singulier du nom **100 %** ; **genre déterminant 58 %, leur/leurs 64 %, accord participe 43 %, ce/se 0/2**. Alignement brut↔gold par similarité locale (les mots-outils répétés piègent un alignement naïf ; tolérance aux élisions).
+- **Paliers par sous-cas, pas par famille** (le banc Chrome réel l'a imposé : « il a ouvert leur volets », « Marie est venu » sont SÛRS) : `tier_of` (Python, réf.) ≡ `_tierOf` (app, dys-core). Rouge = sous-cas mesuré sûr (vrai pluriel attesté — pas « français/pays » —, nom écrit avec accent, sujet pronom/prénom), orange sinon. **Parité des paliers en CI** (142 corrections). Après : leur/leurs rouge 6/1 — l'orange a absorbé les 3 « inutiles ».
+- **3 FP à la source** : (1) « mere » (m, rare) vivait dans la table de genre à collision à côté de « mère » (f, 100×) → `build_gender_coll_excl.py` exclut les **clés nues dominées par un jumeau accentué** (16 : mere/mère, cote/côté, foret/forêt, tare/taré…), listes JS `_GCOLL` régénérées depuis Python (`build_gcoll_js.py`, source unique) ; rappel genre 217→210 (plancher 200) ; (2) « chein » : le JS avait « chien » premier au tri mais une ré-sélection « contexte-first » (absente du Python) reprenait « chin » par clé phonétique sans garde de dominance → garde ≫20× ajoutée, parité ; (3) « aboit » : l'ancre de genre du speller traversait « qui » (→ nom masculin « about ») → `CTX_STOP` ; et la soudure « a + verbe » primait sur un verbe à 1 édition de même son → `_homophoneEdit1` (« aboie »).
+- **Nouvelle règle ORANGE « est/et (proposition) »** (phrase de Rem : « je suis allé à la plage **est** c'était cool ») : « est » + c'est/c'était ou + pronom sujet **suivi d'un verbe** (POS) → « et » ; gardes trait d'union, « est ce que », « il est, je crois » ; l'inversion sans trait d'union (« est il pour les débutants ? », UD) est écartée par le POS. FP UD inchangé **38/2500 (1,52 %)**, rappel dys 59 %, batteries vertes.
+- **Déjà là, vérifié plutôt que refait** : la révocation par mot dans le panneau (#544, clé index|mot|suggestion) ; la clé phonétique du speller (`phon_key`/`phonKey`) — le problème était le classement, pas l'absence de phonétique.
+- ⚠️ Préexistant sur `main`, hors périmètre : 1 FP batterie « La foule impatiente attendait » → attendaient (collectifs).
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
