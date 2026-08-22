@@ -229,7 +229,7 @@ manquait du corrigé en étant capable d'en produire.
 - un texte trop dégradé pour être reconstruit honnêtement est **écarté** (`texte4_h35`) ; un token isolé
   que je ne sais pas trancher est **laissé intact et signalé** (`ambig`) plutôt que deviné.
 
-**Fait : 31 productions, 1 439 mots** — contre 335 auparavant (les 6 dictées). Contrôle qualité : aucun mot
+**Fait : 67 productions, 4 498 mots** — contre 335 auparavant (les 6 dictées). Contrôle qualité : aucun mot
 inconnu ne subsiste dans mon corrigé hors noms propres et artefacts de tokenisation.
 
 ### Le moteur, jugé sur du texte dys RÉEL
@@ -267,11 +267,47 @@ Plusieurs corrections sont **hors de portée du moteur par construction** : `ré
 la scriptrice est une femme. ≤4 % des formes erronées (mon estimateur surcompte). ⇒ **une préférence
 utilisateur posée une seule fois** (« j'écris au masculin / au féminin ») les rendrait toutes atteignables.
 
+### ✅ CHIFFRE DÉFINITIF — le moteur sur 67 productions dys réelles (4 459 mots)
+
+| famille | palier | mélange (93 % sondes) | **texte dys RÉEL** |
+|---|---|---|---|
+| **orthographe** | **auto** | 91,5 % | **75,4 %** — 52 justes · **0 inutile** · 17 fausses |
+| **orthographe** | flag | 69,8 % | **50,4 %** — 118 · 14 · 102 |
+| accord pluriel du nom | auto | — | **92,3 % / 100 %** (pollué / propre) |
+| a/à | auto | — | **100 % / 100 %** |
+| majuscule | auto | — | **95,7 % / 100 %** |
+| accord sujet-verbe | auto | — | 73,3 % / 80,0 % |
+| −é/−er | auto | — | **58,8 % / 75,0 %** |
+| accord participe | auto | — | **33,3 %** |
+| genre déterminant | vigilance | — | **33,3 %** |
+
+**Ce qui tient** : **zéro faux positif** en `auto` sur 4 459 mots de texte dys réel — la garde cardinale
+du projet résiste là où ça compte. Et les règles qui portent le volume (**accord pluriel du nom**, **a/à**,
+**majuscule**) sont entre **92 % et 100 %** : l'investissement grammaire est validé sur données réelles.
+
+**Ce qui ne tient pas** : l'**orthographe** perd **16 points** (91,5 → 75,4 %) et le `flag` tombe à 50 %.
+Et trois familles décrochent : **−é/−er 59 %**, **accord participe 33 %**, **genre déterminant 33 %**.
+Ce sont désormais les cibles, mesurées sur la bonne population.
+
+**Profil du gold produit** (4 459 mots) : **19,9 %** de mots fautifs · d=1 **68,7 %** · d≥2 **31,3 %** ·
+1ʳᵉ lettre **11,4 %** (littérature : 10,9 %) · **59,1 %** d'erreurs en vrai mot (littérature : 53 %).
+Il se rapproche nettement des repères publiés — bien plus que le mélange (5,4 % / 4,8 % / 31,2 %).
+
 ### Reste à faire
 
-**31 des 72** productions sans corrigé sont traitées (toute l'« Expression libre »). Restent
-**33 « Expression écrite dirigée »** et **7 textes scolaires** (corpus1, ~3 100 mots, le genre le plus dur :
-26,2 % de non-mots).
+**67 des 72** productions sont traitées : toute l'« Expression libre » (31), toute l'« Expression écrite
+dirigée » (33) et **3 des 7 textes scolaires**.
+
+**5 textes ÉCARTÉS, et c'est délibéré** — un gold douteux vaut moins que pas de gold :
+- `texte4_h35` : trop dégradé pour être reconstruit honnêtement (« j'ai pris la distion de faire un daeu
+  qu'il suis lidait resotie ») ;
+- `corpus1/texte1_2ndepro` et `texte3_2ndepro` : écriture massivement phonétique **et** passages tronqués
+  `[...]` dans la source ;
+- `corpus1/texte2_terminale` (807 mots) et `texte7_3e` (765 mots) : reconstructibles mais longs, à faire
+  avec le même soin — **prochaine session**.
+
+3 tokens isolés restent **non tranchés** (`degne`, `soutie`, `pine`), laissés intacts et signalés (`ambig`)
+plutôt que devinés.
 
 ## 6. Chantiers, remis dans l'ordre après cette revue
 
