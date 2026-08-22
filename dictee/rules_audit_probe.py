@@ -21,6 +21,7 @@ recopiée par plusieurs élèves, un piège unique y pèse sinon 7×.
   python3 dictee/rules_audit_probe.py --suspects # seulement ce qui mérite un regard
   python3 dictee/rules_audit_probe.py --rule NOM # détail + exemples d'une règle
 """
+import io
 import os
 import sys
 from collections import defaultdict
@@ -56,9 +57,33 @@ def main():
     RULES = CP.RULES
 
     # ---------- 1. TEXTE DYS : tirs jugés contre le gold ----------
+    # `--genere N` : au lieu du corpus dys PRIVÉ, N paires fabriquées par le GÉNÉRATEUR DE FAUTES
+    # (dictee/dys_gen.py, calibré sur l'écrit dys réel) appliqué au corpus UD — donc du FRANÇAIS
+    # CORRECT RÉEL perturbé, dont le corrigé est l'original PAR CONSTRUCTION. Deux intérêts :
+    #   · VOLUME — une règle rare (leur/leurs : 11 tirs distincts sur le corpus réel) devient
+    #     mesurable ; c'était le goulot de l'audit.
+    #   · Le mécanisme d'ANCRE POLLUÉE (« leur payss ») est justement ce que le générateur produit.
+    # ⚠️ LIMITE À DIRE : il ne mesure QUE les fautes qu'il sait faire. Il complète le corpus réel,
+    # il ne le remplace pas — un correctif validé ici doit rester vérifié sur les paires réelles.
+    def _pairs_generees(n, seed=20260822):
+        import random, dys_gen
+        rng = random.Random(seed); lex = dys_gen.charge_lex(); out = []
+        for line in io.open(UD, encoding='utf-8'):
+            t = line.strip()
+            if not t or len(t) < 25: continue
+            bad, k = dys_gen.genere(t, rng, lex)
+            if k: out.append(('genere', bad, t))
+            if len(out) >= n: break
+        return out
+
+    n_gen = 0
+    for a in sys.argv:
+        if a.isdigit() and '--genere' in sys.argv and sys.argv.index(a) == sys.argv.index('--genere') + 1:
+            n_gen = int(a)
+    src = _pairs_generees(n_gen) if n_gen else (DP.pairs() if os.path.isdir(DP.DATA) else [])
     n_dys = 0
-    if os.path.isdir(DP.DATA):
-        for _fn, raw, fixed in DP.pairs():
+    if True:
+        for _fn, raw, fixed in src:
             n_dys += 1
             raw_n = raw.replace('’', "'").replace('ʼ', "'")
             CP._SEG = CP._seg_info(raw_n)
@@ -139,7 +164,7 @@ def main():
                     pass
 
     # ---------- 3. rapport ----------
-    print('rules_audit_probe — %d règles · %d paires dys · %d phrases correctes (UD)' % (len(RULES), n_dys, n_ud))
+    print('rules_audit_probe — %d règles · %d paires %s · %d phrases correctes (UD)' % (len(RULES), n_dys, 'GÉNÉRÉES (dys_gen sur UD)' if n_gen else 'dys réelles', n_ud))
     if not n_dys:
         print('  (corpus dys local absent → colonnes dys vides ; OMEGA_DYS_DATA=… pour un worktree)')
     print()

@@ -86,6 +86,41 @@ Même méthode : les 4 cas non justes sortis EN CONTEXTE, plus les 5 tirs sur te
   **FP à l'échelle 1,52 % → 1,44 %** (36/2500, meilleur niveau à ce jour) ; rappel dys 59 % ;
   batteries, parités 3 moteurs et banc navigateur réel verts.
 
+### Suite (4) — le GÉNÉRATEUR DE FAUTES au service de l'audit (question de Rem)
+
+> « Les travaux sur le générateur de fautes dys peuvent-ils aider pour les % restants ? »
+> **Oui — et il a trouvé un bug que le corpus réel ne pouvait pas montrer.**
+
+- **Le goulot de l'audit était le VOLUME** : `rule_leur_leurs` n'avait que 11 tirs distincts sur le
+  corpus réel, `rule_accord_sv_noun` 2. On ne juge pas une règle sur 2 cas. Le générateur
+  (`dys_gen.py`, calibré sur l'écrit dys réel de l'ASEI) applique des fautes crédibles à du
+  **français correct réel** (corpus UD) : corpus apparié à volonté, corrigé certain par construction.
+- **Branché dans l'audit** : `rules_audit_probe.py --genere N`. Sur 400 paires générées,
+  `rule_accord_sv_noun` passe de 2 tirs (corpus réel) à **6**, dont **5 inutiles + 1 fausse**.
+- **Le bug trouvé — le SYMÉTRIQUE de celui du 22/08 matin.** « **Les signe** de Budin **est** un
+  test », « **les couple a** voulu », « **Les** somptueux **château constitue** » : déterminant
+  PLURIEL contredit par un nom à forme SINGULIÈRE. J'avais corrigé la contradiction dans l'autre
+  sens seulement (« **le pilotes sont** »). Discriminant retenu, le même que pour leur/leurs :
+  **si `rule_noun_plural` sait réparer le nom, le pluriel est confirmé** et la règle continue
+  (« les enfant **joue** » → enfants + jouent, la faute dys emblématique, PRÉSERVÉE) ; **sinon la
+  contradiction reste ouverte → abstention**.
+- **Vérification honnête des 5 signalements** : 3 étaient de vraies pollutions (corrigées), **2
+  étaient des artefacts du générateur** — il avait supprimé « une » dans « une des nombreuses
+  possibilités est », et rendu un groupe cohéremment singulier dans « Le pilier … semblent » (le
+  correcteur a alors RAISON, c'est le gold qui garde la trace de l'original pluriel). Toujours la
+  même règle : vérifier cas par cas avant de durcir.
+- **Ce que le générateur mesure bien / mal**, mesuré ici : très bien les **faux positifs** (le
+  corrigé est certain, et il reproduit exactement le mécanisme d'ANCRE POLLUÉE) ; **mal le rappel
+  d'une règle rare** — après correctif la règle tombe à 2 tirs, tous artefacts, et sa précision
+  reste à 0 % faute de « justes » : le générateur ne produit presque jamais la faute qu'elle vise.
+  Il **complète** le corpus réel, il ne le remplace pas.
+- **Mesuré** : sur 400 paires générées, `rule_accord_sv_noun` 6 tirs (1 fausse, 5 inutiles) → **2**
+  (les 2 artefacts) ; corpus dys RÉEL inchangé (sujet-verbe 66,7 % pollué / 100 % propre) ; FP à
+  l'échelle **1,44 %** inchangé ; batteries, parités 3 moteurs et banc navigateur réel verts.
+- ⚠️ **Écart pré-existant repéré au passage** (hors périmètre) : la docstring de `rule_accord_sv_noun`
+  promet « les cartons dans le couloir gêne » → gênent, or la règle est muette sur ce cas **déjà
+  sur `main`** — une promesse de documentation non tenue, à traiter séparément.
+
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
 > Entrée de consolidation : le journal s'était arrêté au 03/07 (PR #66) alors que ~55 PR ont livré depuis. Détail fin = mémoires de session + pages de PR ; résumé par thème ci-dessous. **FP=0 tenu partout** (garde CI `fp_scale_probe` UD 2500, plafond 3 %, courant ~1,9 %). Parité 3 moteurs (Python ⊆ app ⊆ extension) maintenue, `dev.sh` 34/34.
