@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Diagnostic de DICTÉE DE PHRASES : aligne mots cible vs élève, diagnostique chaque mot.
 # Le contexte est encodé dans la phrase cible -> homophones et ACCORDS deviennent gradables (sans M3_d).
-import json, re, unicodedata, os, random
+import json, re, unicodedata, os, random, sys
 random.seed(42)
 HERE=os.path.dirname(os.path.abspath(__file__))
 VS={'b':'p','p':'b','d':'t','t':'d','g':'k','k':'g','v':'f','f':'v','z':'s','s':'z'}
@@ -332,6 +332,57 @@ def developmental_diagnosis(all_facts):
     stade=next(st for st in STAGE_ORDER if counts[st]>0)   # bande la plus en amont avec ≥1 erreur
     return {'stade':stade,'counts':counts,'hors_stade':off,'msg':"Stade : "+stade+" — "+STAGE_MSG[stade]}
 
+# Générateurs de corruption RÉUTILISÉS par le self-test ET par le dump de parité (--dump-cas,
+# consommé par dictee/parity_diag.js) — un seul endroit qui sait fabriquer un cas par famille,
+# doctrine §5 A2 (ce qui existe se réutilise, ne pas réinventer un 2e générateur ailleurs).
+def cas_accent(T, fam):
+    for i, w in enumerate(T):
+        if any(c in 'éèê' for c in w):
+            w2 = w.replace('é','è',1) if 'é' in w else w.replace('è','é',1) if 'è' in w else w.replace('ê','e',1)
+            if w2 != w: return T[:i]+[w2]+T[i+1:]
+    return None
+def cas_accord(T, fam):
+    for w in T:
+        for h in fam.get(w.lower(), []):
+            if is_accord(w, h): return [h if t == w else t for t in T]
+    return None
+def cas_homophone(T, fam):
+    for w in T:
+        for h in fam.get(w.lower(), []):
+            if not is_accord(w, h) and deacc(h) != deacc(w.lower()): return [h if t == w else t for t in T]
+    return None
+def cas_omission(T, fam):
+    if len(T) > 3:
+        i = len(T)//2
+        return T[:i]+T[i+1:]
+    return None
+def cas_surface(T, fam):
+    SUB=[('ç','s'),('eau','o'),('ph','f'),('qu','k'),('ai','è'),('au','o')]
+    for i, w in enumerate(T):
+        for a, b in SUB:
+            if a in w.lower():
+                w2 = w.lower().replace(a, b, 1)
+                if w2 != w.lower() and norm(w2) == norm(w): return T[:i]+[w2]+T[i+1:]
+    return None
+CAS_GENERATEURS = [('accent', cas_accent), ('accord', cas_accord), ('homophone', cas_homophone),
+                    ('omission', cas_omission), ('surface', cas_surface)]
+
+if len(sys.argv) > 1 and sys.argv[1] == '--dump-cas':
+    # Dump JSON des cas générés + diagnostic Python, pour la parité Python↔JS (parity_diag.js).
+    SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
+    out = []
+    for e in SENT:
+        T = toks(e['text']); fam = e['fam']
+        for nom, gen in CAS_GENERATEURS:
+            S = gen(T, fam)
+            if S is None: continue
+            eleve = ' '.join(S)
+            f = diagnose_sentence(e['text'], eleve, fam)
+            types = sorted(set(ty for x in f for ty in x['types']))
+            out.append({'cible': e['text'], 'eleve': eleve, 'fam': fam, 'famille_visee': nom, 'types': types})
+    print(json.dumps(out, ensure_ascii=False))
+    sys.exit(0)
+
 if __name__=='__main__':
     SENT=json.load(open(os.path.join(HERE,'sentences.json'),encoding='utf-8'))
     def lc_fam(e): return {k:v for k,v in e['fam'].items()}
@@ -341,44 +392,22 @@ if __name__=='__main__':
     import copy
     for e in SENT:
         T=toks(e['text']); fam=e['fam']
-        # accent
-        for i,w in enumerate(T):
-            if any(c in 'éèê' for c in w):
-                w2=w.replace('é','è',1) if 'é' in w else w.replace('è','é',1) if 'è' in w else w.replace('ê','e',1)
-                if w2!=w:
-                    S=T[:i]+[w2]+T[i+1:]; f=diagnose_sentence(e['text'],' '.join(S),fam)
-                    rec('accent', any('accent' in x['types'] for x in f)); break
-        # accord : remplacer un mot par un homophone flexionnel
-        done=False
-        for w in T:
-            for h in fam.get(w.lower(),[]):
-                if is_accord(w,h):
-                    S=[h if t==w else t for t in T]; f=diagnose_sentence(e['text'],' '.join(S),fam)
-                    rec('accord', any('accord' in x['types'] for x in f)); done=True; break
-            if done: break
-        # homophone (lexical OU grammatical) — un type 'homophone_*' doit être détecté
-        done=False
-        for w in T:
-            for h in fam.get(w.lower(),[]):
-                if not is_accord(w,h) and deacc(h)!=deacc(w.lower()):
-                    S=[h if t==w else t for t in T]; f=diagnose_sentence(e['text'],' '.join(S),fam)
-                    rec('homophone', any(ty.startswith('homophone') for x in f for ty in x['types'])); done=True; break
-            if done: break
-        # omission
-        if len(T)>3:
-            i=len(T)//2; S=T[:i]+T[i+1:]; f=diagnose_sentence(e['text'],' '.join(S),fam)
-            rec('omission', any('omission' in x['types'] for x in f))
-        # surface : muter un mot en une graphie qui SONNE pareil (ç->s, eau->o, ph->f, qu->k, c->k...)
-        SUB=[('ç','s'),('eau','o'),('ph','f'),('qu','k'),('ai','è'),('au','o')]
-        done=False
-        for i,w in enumerate(T):
-            for a,b in SUB:
-                if a in w.lower():
-                    w2=w.lower().replace(a,b,1)
-                    if w2!=w.lower() and norm(w2)==norm(w):
-                        S=T[:i]+[w2]+T[i+1:]; f=diagnose_sentence(e['text'],' '.join(S),fam)
-                        rec('surface', any('surface' in x['types'] for x in f)); done=True; break
-            if done: break
+        S=cas_accent(T,fam)
+        if S is not None:
+            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('accent', any('accent' in x['types'] for x in f))
+        S=cas_accord(T,fam)
+        if S is not None:
+            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('accord', any('accord' in x['types'] for x in f))
+        S=cas_homophone(T,fam)
+        if S is not None:
+            f=diagnose_sentence(e['text'],' '.join(S),fam)
+            rec('homophone', any(ty.startswith('homophone') for x in f for ty in x['types']))
+        S=cas_omission(T,fam)
+        if S is not None:
+            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('omission', any('omission' in x['types'] for x in f))
+        S=cas_surface(T,fam)
+        if S is not None:
+            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('surface', any('surface' in x['types'] for x in f))
     print('=== rappel par famille (dictée de phrases, 30 phrases) ===')
     for k in sorted(tot): print(f'  {k:11} {ok[k]}/{tot[k]}  = {ok[k]/tot[k]*100:.0f}%')
 
