@@ -730,6 +730,26 @@ def rule_et_est(T, i):
         return 'est'                                                       # pronom sujet + attribut → être 3sg
     return None
 
+_CLAUSE_PRON = ('il', 'elle', 'ils', 'elles', 'on', 'je', 'tu', 'nous', 'vous')
+def rule_est_et_clause(T, i):
+    """« est » suivi d'une NOUVELLE PROPOSITION (pronom sujet + verbe : « la plage est c'était cool », « je
+    suis là est il pleut ») → conjonction « et ». Sens inverse de rule_et_est (qui ne traite que et→est).
+    Gardes FP : le mot avant n'est pas un pronom sujet (« il est, je crois »), pas de trait d'union
+    (« est-il ? »), pas « ce/ceci/cela/n' » après (« l'important est ce que… »). Palier ORANGE (nouvelle
+    règle, 2026-08-22, phrase de Rem) : vigilance via tier_of."""
+    if deacc(T[i].lower()) != 'est' or i + 1 >= len(T) or i == 0: return None
+    if _SEG is not None and i < len(_SEG['hy']) and (_SEG['hy'][i] or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])): return None
+    if prev(T, i) in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'qui', 'qu', 'y', 'ne', 'n'): return None
+    nx = T[i + 1].lower().replace('’', "'")
+    m = re.match(r"^(c|j)'(.+)$", nx)
+    if m:
+        return _keepcase(T[i], 'et') if m.group(1) == 'c' and m.group(2)[:1] in 'eé' else None   # c'est / c'était — pas j' (« est j'imagine »)
+    if deacc(nx) in _CLAUSE_PRON and i + 2 < len(T) and T[i + 2].lower() not in ('qui', 'que', 'qu', 'même'):
+        tg = pos_tags(T)                                   # « est il POUR les débutants ? » (inversion sans trait d'union, UD) : pas une proposition → le pronom doit être SUIVI D'UN VERBE
+        if not tg or i + 2 >= len(tg) or tg[i + 2] not in ('VERB', 'AUX'): return None
+        return _keepcase(T[i], 'et')
+    return None
+
 def rule_peu(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('peu', 'peux', 'peut'): return None
@@ -2570,6 +2590,16 @@ if GENDER_ACC:
     #      un choix délibéré.
     # Le test est le même que ci-dessus : la forme désaccentuée porte-t-elle plusieurs entrées ?
     GENDER_ACC_COLL = {w: g for w, g in GENDER_ACC.items() if len(_part.get(deacc(w.lower()), ())) > 1}
+    # ⚠️ CLÉS NUES PIÉGÉES (FP dys réel 2026-08-22 : « ma mere ma dit » → « mon mere »). « mere » (m, rare)
+    # cohabite avec « mère » (f, 100× plus fréquente) : le dys qui omet l'accent veut « mère ». Une clé
+    # nue dont le jumeau accentué de genre opposé domine (≥20×) est EXCLUE — liste produite par
+    # build_gender_coll_excl.py (fréquences Lexique), consommée aussi par les listes JS (build_gcoll_js.py).
+    try:
+        _excl = json.load(open(os.path.join(HERE, 'gender_acc_coll_excl.json'), encoding='utf-8'))
+        for _w in _excl:
+            GENDER_ACC_COLL.pop(_w, None)
+    except Exception:
+        pass
 else:
     GENDER_ACC_COLL = {}
 
@@ -3592,6 +3622,71 @@ def rule_adj_aux(T, i):
     return None
 
 
+# FAMILLES « À VÉRIFIER » SUR TEXTE DYS (2026-08-22) — MESURÉ par dictee/dys_precision_probe.py sur 1 726 paires dys
+# réelles (data_local, privé) : genre déterminant 58 %, leur/leurs 64 %, accord du participe 43 %, ce/se 0/2 de
+# corrections JUSTES ; le reste « corrige » du texte juste (« La pont »→Le, « leur payss »→leurs, « fut créée »→créé).
+# Le texte dys pollue l'ANCRE de ces règles (déterminant/nom/sujet mal écrit). La référence Python ne porte pas de
+# palier (elle liste les corrections) ; ce sont les moteurs JS qui rendent ces familles en VIGILANCE (orange, clic)
+# au lieu de ROUGE (appliqué d'office) — parité du jeu vérifiée par extension/parity_core.js. Les familles à 100 %
+# (participe après avoir, majuscule, a/à, adjectif épithète, singulier du nom) restent rouges.
+VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)')
+_SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
+_INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
+               'cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars '
+               'dos os heros marais palais relais jus autobus bus virus refus'.split())
+try:                                                      # formes du lexique embarqué (désaccentuées, 155k) : « singulier attesté »
+    WORDS_SET = set(json.load(open(os.path.join(HERE, 'cgram_words.json'), encoding='utf-8')))
+except Exception:
+    WORDS_SET = set()
+_COLL_BARE = {}                                           # clé nue → nb d'entrées de GENDER_ACC_COLL partageant cette clé (jumeau accentué ?)
+for _w in GENDER_ACC_COLL:
+    _COLL_BARE[deacc(_w.lower())] = _COLL_BARE.get(deacc(_w.lower()), 0) + 1
+
+
+def tier_of(T, i, name, sugg):
+    """PALIER d'une correction de grammaire sur texte DYS : 'auto' (rouge, appliqué d'office) ou 'vigilance'
+    (orange, au clic). Les familles de VIG_FAMILIES ne sont rouges que dans leur SOUS-CAS sûr, mesuré :
+      · leur/leurs  → rouge si le nom suivant porte un VRAI pluriel (-s/-x avec singulier attesté, pas un
+                      invariable « français/pays/bras ») pour leurs, ou un singulier attesté pour leur ;
+      · genre dét.  → rouge si le nom-tête est écrit tel quel (clé nue sans jumeau accentué : « pont » oui,
+                      « mere » non) ;
+      · accord participe → rouge si le SUJET est un pronom ou un prénom (« Marie est venu », « elles sont
+                      parti ») — sujet nominal complexe = orange ;
+      · ce/se       → toujours orange (0/2 mesuré).
+    Miroir JS : _tierOf dans l'app et dys-core (parité extension/parity_core.js)."""
+    if name not in VIG_FAMILIES:
+        return 'auto'
+    n = len(T)
+    if name == 'leur/leurs':
+        if i + 1 >= n: return 'vigilance'
+        nx = T[i + 1].lower(); dn = deacc(nx)
+        if sugg.lower().endswith('s'):                     # leur→leurs : le nom doit être un VRAI pluriel
+            if dn in _INVAR_S or not dn.endswith(('s', 'x')): return 'vigilance'
+            sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
+            if sg in _INVAR_S: return 'vigilance'          # « payss » = pays mal écrit, pas un pluriel
+            return 'auto' if (sg in WORDS_SET or sg in GENDER_PURE) else 'vigilance'
+        return 'auto' if (dn in WORDS_SET or dn in GENDER_PURE) and not dn.endswith(('s', 'x')) else 'vigilance'
+    if name == 'genre déterminant':
+        if i + 1 >= n: return 'vigilance'
+        nx = T[i + 1].lower()
+        if nx != deacc(nx): return 'auto'                  # écrit AVEC son accent : pas d'ambiguïté
+        return 'vigilance'                                 # nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
+    if name == 'accord participe':
+        for j in range(i - 1, max(-1, i - 4), -1):        # remonte l'auxiliaire : sujet = pronom ou prénom → sûr
+            t = deacc(T[j].lower())
+            if t in _SUBJ_PRON: return 'auto'
+            if T[j] in PRENOMS: return 'auto'
+        return 'vigilance'
+    return 'vigilance'
+
+
+def correct_tiered(text):
+    """-> (index, mot, suggestion, règle, palier) — correct() + tier_of (pour la mesure dys et la parité JS)."""
+    t = text.replace('’', "'").replace('ʼ', "'")
+    T = toks(t)
+    return [(i, w, s, nm, tier_of(T, i, nm, s)) for (i, w, s, nm) in correct(t)]
+
+
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
          ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
@@ -3599,7 +3694,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
-         ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est),
+         ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est), ('est/et (proposition)', rule_est_et_clause),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
          ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa),
          ('met/mais', rule_met_mais),

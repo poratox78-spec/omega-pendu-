@@ -10,6 +10,9 @@ from collections import defaultdict
 from functools import cmp_to_key
 
 LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
+# Frontières de proposition pour l'ANCRE DE GENRE du contexte : un relatif/conjonction entre le déterminant et
+# le mot fautif = autre proposition (« un chien qui aboit »), le genre ne traverse pas. Miroir JS : SCTX_STOP.
+CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme'.split())
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
@@ -147,6 +150,7 @@ class Speller:
         for j in range(idx - 1, max(-1, idx - 5), -1):
             t = deacc(toks[j].lower())
             if t in self.COPULA: continue
+            if t in CTX_STOP: return None                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne pas le verbe — « aboit »→aboie, pas « about »
             if t in self.DET_G: return self.DET_G[t]
             if toks[j].lower().replace('œ', 'oe').replace('æ', 'ae') not in self.WORDS: continue   # ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GEN déacc ← « trés » nom) → on continue vers le déterminant
             g = self.GEN.get(t)
