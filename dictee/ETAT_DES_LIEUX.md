@@ -308,10 +308,19 @@ sigles ou des artefacts de tokenisation (`Harold` ×23, `France` ×13, `Aujourd`
 | | |
 |---|---|
 | mots faux au départ | **1 542** |
-| **RÉPARÉS** | **341 — 22,1 %** |
-| ratés | 1 201 |
+| **RÉPARÉS** | **398 — 25,8 %** |
+| ratés | 1 144 |
 | mots justes au départ | 4 675 |
-| **⛔ CASSÉS** | **35 — 0,75 %** |
+| **⛔ CASSÉS** | **36 — 0,77 %** |
+
+⚠️ **CHIFFRE CORRIGÉ le 22/08 — la première version (22,1 %) était FAUSSE, à cause de la sonde.**
+`dys_pipeline_probe` tokenisait avec `[A-Za-zÀ-ÿœŒæÆ']+` alors que le moteur (`CP.toks`) inclut les
+apostrophes **typographiques** `’ʼ`. Tout texte contenant « j’ai » décalait l'index, et **32 % des
+corrections du speller (188 sur 584) étaient silencieusement abandonnées** — la grammaire travaillait
+alors sur des tokens NON nettoyés. Après alignement du tokeniseur : **95,4 %** des corrections
+appliquées, réparations **341 → 398**. Deux « casses » n'existaient que dans la sonde (`tres`→`tre` :
+le speller corrige `tres`→`très` en AUTO bien avant la grammaire).
+**Une sonde fausse est pire qu'une sonde absente** — c'est la troisième fois de la journée.
 
 **Et le corpus converge maintenant avec la littérature**, ce qui valide l'annotation :
 

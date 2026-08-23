@@ -3504,6 +3504,20 @@ def rule_qui_pron(T, i):
     if deacc(T[i + 1].lower()) not in ('il', 'ils', 'elle', 'elles', 'on'): return None
     pv = deacc(T[i - 1].lower())
     if pv in _QUI_PREP or pv in _SI_SAVOIR: return None                      # « avec qui il est ami » / « je sais qui il est »
+    # ⭐ « QUI ON » = « QUI ONT » (mesuré 22/08 sur le gold dys réel : 5 des 36 mots CASSÉS, la plus
+    # grosse famille sur UNE seule règle). Le scripteur dys écrit « on » pour « ont » — « les région QUI ON
+    # une sécurité », « des architectes QUI ON besoin », « tous ceux QUI ON éprouver ». Fusionner en
+    # « qu'on » DÉTRUIT le « qui » du gold ET masque la vraie faute.
+    # DISCRIMINANT : un relatif SUJET a un antécédent PLURIEL — un déterminant/pronom pluriel dans les
+    # 3 tokens qui précèdent (les/des/ces… ou ceux/celles). « ce qu'on fait », « je crois qu'on peut »
+    # n'en ont pas. On ABSTIENT seulement (jamais de nouvelle suggestion) : la règle on/ont fera le reste
+    # quand elle le peut, et rater une correction coûte bien moins que d'en fabriquer une.
+    if deacc(T[i + 1].lower()) == 'on':
+        for _k in range(i - 1, max(-1, i - 6), -1):        # fenêtre 5 : « aux chefs d'entreprise africain QUI ON »
+            _d = deacc(T[_k].lower())
+            if (_d in PLURAL_DET or _d in CARD                # CARD = cardinaux ≥2 (« deux architectes qui on ») — même
+                    or _d in ('ceux', 'celles', 'tous', 'toutes', 'plusieurs', 'certains', 'certaines')):
+                return None
     return "qu'" + T[i + 1]                                                  # app : span 2 (rouge après « ce », orange sinon)
 
 
