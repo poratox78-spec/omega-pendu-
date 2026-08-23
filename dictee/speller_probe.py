@@ -105,15 +105,33 @@ def phon_key(s):
     return s
 
 def edits1(d):
+    # ⚠️ ORDRE DE GÉNÉRATION, PAS UN ENSEMBLE (22/08/2026). Le classement des candidats du
+    # speller (`_cmp`) est PAIRWISE (règles de dominance ≫20×/≫10×) : il n'est donc PAS un
+    # ordre total — A≻B, B≻C, C≻A est possible — et le résultat d'un tri dépend alors de
+    # l'ORDRE D'ENTRÉE. Avec un `set()`, cet ordre suivait le hachage : MESURÉ, 10 des 598
+    # corrections du gold dys changeaient d'une exécution à l'autre (« annes »→anges ou
+    # années ; « sété »→fêté ou rien du tout). Les moteurs JS (`sEdits1`) rendent
+    # `Object.keys` = l'ordre de génération, eux DÉTERMINISTES : c'est donc Python qui
+    # déviait, et la parité 3 moteurs n'était pas garantie sur ces cas. Un dict à ordre
+    # d'insertion reproduit l'ordre de génération de JS (mêmes boucles, ALPHA = 'a'..'z').
+    # ⚠️ HONNÊTETÉ SUR LA PORTÉE — MESURÉ, PAS DÉDUIT : cela rend Python REPRODUCTIBLE, ce
+    # n'est PAS une parité avec l'app. Vérifié sur les 9 jetons concernés, Python et l'app
+    # continuent de diverger (« annes » → ânes ici, années là ; « fise » → filé ici, fisc
+    # là) parce qu'ils n'ont pas le MÊME ENSEMBLE DE CANDIDATS : Python lit `Lexique4.tsv`
+    # brut (165 474 formes après filtres) quand l'app embarque `speller-lex-gz` = Lexique 4
+    # + Wiktionnaire (214 685). Effet de cet écart MESURÉ sur le gold dys : 7 mots justes
+    # seulement (sœur, pyrénées, technopôle, littorales, raisonnées, pnb, snk) — réel mais
+    # petit, il n'invalide pas le chiffre de référence du pipeline.
+    # Et ceci ne rend pas non plus le comparateur TRANSITIF — dette séparée, cf. `_cmp`.
     sp = [(d[:i], d[i:]) for i in range(len(d) + 1)]
-    res = set()
+    res = {}
     for a, b in sp:
-        if b: res.add(a + b[1:])
-        if len(b) > 1: res.add(a + b[1] + b[0] + b[2:])
+        if b: res[a + b[1:]] = 1
+        if len(b) > 1: res[a + b[1] + b[0] + b[2:]] = 1
         for c in ALPHA:
-            res.add(a + c + b)
-            if b: res.add(a + c + b[1:])
-    return res
+            res[a + c + b] = 1
+            if b: res[a + c + b[1:]] = 1
+    return list(res)
 
 class Speller:
     DET_G = {'un':'m','une':'f','le':'m','la':'f','du':'m','au':'m','ce':'m','cet':'m','cette':'f',
@@ -137,6 +155,14 @@ class Speller:
     ADVERB = set('tres si trop assez bien plus tout aussi moins fort peu'.split())   # contexte adjectif
     def __init__(self):
         self.WORDS, self.FREQ, self.D2A, self.PHON, self.POS = load_lexicon()
+        self.PRENOMS_L = set()                                  # prénoms en MINUSCULE (protection, cf. correct_token)
+        try:
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
+                for _l in _fp:
+                    _n = _l.split('	')[0].strip().lower()
+                    if len(_n) >= 3 and _n not in self.WORDS: self.PRENOMS_L.add(_n)
+        except Exception:
+            pass
         here = os.path.dirname(os.path.abspath(__file__))
         def _load(name):
             fp = os.path.join(here, name)
@@ -217,6 +243,14 @@ class Speller:
         _oel = {'soeur': 'sœur', 'soeurs': 'sœurs', 'coeur': 'cœur', 'coeurs': 'cœurs', 'choeur': 'chœur', 'choeurs': 'chœurs', 'oeuf': 'œuf', 'oeufs': 'œufs', 'oeuvre': 'œuvre', 'oeuvres': 'œuvres', 'boeuf': 'bœuf', 'boeufs': 'bœufs', 'oeil': 'œil', 'voeu': 'vœu', 'voeux': 'vœux', 'noeud': 'nœud', 'noeuds': 'nœuds', 'moeurs': 'mœurs', 'manoeuvre': 'manœuvre', 'manoeuvres': 'manœuvres', 'oeillet': 'œillet', 'oeillets': 'œillets', 'oesophage': 'œsophage', 'foetus': 'fœtus'}
         if low in _oel and 'œ' not in tok and 'Œ' not in tok: return ('flag', _oel[low])   # LIGATURE œ (« soeur »→« sœur »). Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app/ext.
         if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
+        # ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08/2026) — mesuré sur le PIPELINE (`dys_pipeline_probe.py`).
+        # La garde « nom propre » existante exige une MAJUSCULE hors début de phrase : elle ne protège
+        # donc RIEN chez un scripteur dys, qui n'en met pas. Mesuré : « isis » → « ici ». La liste des
+        # prénoms EXISTE DÉJÀ (`prenoms_genre.tsv`, 8 729 entrées, Wiktionnaire CC BY-SA, chargée par
+        # les 3 moteurs pour l'accord) — on la RÉUTILISE au lieu d'en ajouter une (doctrine §5).
+        # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
+        # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
+        if low in self.PRENOMS_L: return None
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
         d = deacc(low)

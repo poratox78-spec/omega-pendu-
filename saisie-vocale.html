@@ -865,7 +865,14 @@
             // La garde CI a sorti « Quelle heure. Il est. » avec un seuil symétrique.
             var _seuil = (_d && _d[2]>_d[1]) ? 0.70 : 0.50;
             if(_d && !_PASAPRES[_mots[_z].toLowerCase()] && !_avantTiret(txt,_mots,_z)
-               && (_d[1]>_seuil || _d[2]>_seuil)) { _ins.push([_z, _d[2]>_d[1]?'.':',']); _dep=0; }
+               && (_d[1]>_seuil || _d[2]>_seuil)) {
+              // ⛔ VIRGULE INTERDITE (primitive partagée `DC.ponctInterdit`, 22/08/2026) : le juge à trois
+              // classes a montré que ce chemin filtrait « après déterminant/préposition » mais PAS
+              // « devant et/ou/ni » — 9 virgules interdites sur 616 (« excellents , et surtout pas »).
+              // Limité à la VIRGULE : un POINT devant « et » est correct (« Il est parti. Et il revient. »).
+              var _mk = _d[2]>_d[1] ? '.' : ',';
+              if (_mk === ',' && DC && DC.ponctInterdit && DC.ponctInterdit(_mots,_tg,_z)) { _dep++; }
+              else { _ins.push([_z, _mk]); _dep=0; } }
             else _dep++;
           }
           // ── ⭐⭐⭐ LES RÈGLES DE VIRGULE D'ALLÔ PROF, par-dessus le modèle. Elles connaissent

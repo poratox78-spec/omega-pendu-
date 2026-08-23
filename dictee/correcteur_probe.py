@@ -192,7 +192,18 @@ def vlike(T, i):
     if is_verb(T, i): return True
     w = deacc(T[i].lower())
     if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
-    return (w in VERB_LEX) and not (i > 0 and T[i-1].lower() in NUM_DET)  # « le porte » reste un nom
+    if w not in VERB_LEX: return False
+    if i > 0 and T[i-1].lower() in NUM_DET:                                # « le porte » reste un NOM…
+        # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Il CE met a pousser » : le
+        # scripteur confond ce/se, la garde déterminant tue alors la lecture VERBALE — et la cascade suit :
+        # vlike(met)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « pousser »
+        # devient « poussé », un mot JUSTE cassé. Trois étages pour une seule faute d'ancre.
+        # Test LOCAL et étroit (pas d'appel à rule_ce_se : elle appelle vlike, ce serait récursif) : un
+        # PRONOM SUJET juste avant le « ce » ⇒ c'est un « se » pronominal, jamais un déterminant
+        # (« il ce met » n'existe pas comme groupe nominal ; « il lit ce livre » garde la garde).
+        if not (deacc(T[i-1].lower()) == 'ce' and i > 1 and deacc(T[i-2].lower()) in SUBJ_PRON):
+            return False
+    return True
 
 
 # cgram (12 k formes) contient des homographes COURTS de mots-outils (« ne », « le », « la », « on »…) qui
@@ -306,7 +317,25 @@ def rule_e_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         return forms[1]                                # « à » / « À » (en tête de phrase) = PRÉPOSITION → infinitif
     p = prev(T, i)
-    if p in AUX:                 return forms[0]      # auxiliaire (a/ont/est…) → participe -é
+    if p in AUX:
+        # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
+        # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en pensent A bronzer »,
+        # « il se met A pousser », « une difficulté A étudier » : la règle lisait ce « a » comme l'AUXILIAIRE
+        # et rendait le participe (bronzé/poussé/étudié) — alors que c'est une PRÉPOSITION, donc l'infinitif.
+        # `rule_a_aa` le sait (100 % de précision sur ce corpus) : si ELLE juge que ce « a » est un « à »,
+        # l'ancre « auxiliaire » ne vaut rien. SYMÉTRIQUE EXACT de la garde ci-dessus (ligne « à »→« a »).
+        # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — 3e forme
+        # la plus souvent erronée du français dys (Bodard 2020). « tout en pensent A bronzer » : ce « a » lu
+        # comme AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif.
+        # On s'en remet à `rule_a_aa`, LA règle qui tranche a/à (100 % de précision sur ce corpus) — et à elle
+        # SEULE. Quand elle ne tranche pas, on garde le comportement d'origine (participe) : « mon frère a
+        # manger » → mangé reste corrigé. C'est le SYMÉTRIQUE de la garde « à »→« a » ci-dessus.
+        # ⚠️ MESURÉ ET REJETÉ : trancher en plus par la STRUCTURE (« la proposition a déjà un verbe conjugué
+        # donc « a » est une préposition ») répare 2 cas de plus MAIS coûte **14 faux positifs à l'échelle**
+        # (FP UD 1,44 % → 2,00 %). Le prix de la garde cardinale est trop élevé — ne pas refaire.
+        if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
+            return forms[1]
+        return forms[0]                               # auxiliaire (a/ont/est…) → participe -é
     if p in PREP:
         if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
         return forms[1]                              # préposition → infinitif -er
@@ -425,7 +454,16 @@ def rule_flexion_er(T, i):
         if rule_a_aa(T, i - 1) == 'a': return None
         tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
     elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
-        tgt = 'part'
+        # ⭐ MÊME GARDE QUE `rule_e_er` (22/08) : le scripteur dys écrit « a » pour « à » (3e forme la
+        # plus souvent erronée, Bodard 2020). « tout en pensent A bronzer » : ce « a » lu comme
+        # AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif. Les DEUX
+        # règles partageaient l'angle mort — celle-ci l'avait encore, mesurée sur le PIPELINE complet
+        # (« bronzer »→bronzé cassait un mot juste). On s'en remet à `rule_a_aa` et à elle seule ;
+        # quand elle ne tranche pas, comportement d'origine.
+        if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
+            tgt = 'inf'
+        else:
+            tgt = 'part'
     elif p in _INF_GOV or p in MODAL or p in _CAUS:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
         tgt = 'inf'
     elif praw == 'vous':                          # « vous » sujet → -ez  (OBJET si précédé d'un verbe : « saura vous conseiller »)
@@ -2689,6 +2727,25 @@ def rule_det_gender(T, i):
             hi = i + 2; _pp = NOUN_POST.get(deacc(T[hi].lower()))
     if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if deacc(T[hi].lower()) in _EPICENE_NOUN: return None          # NOM ÉPICÈNE (médecin/juge/artiste…) → 2 genres valides → ne pas forcer le déterminant
+    # ⛔ ANCRE : LE POSTERIOR LEXICAL NE SUFFIT PAS, IL FAUT LE TAGGER (23/08, gold dys réel).
+    # « une tré faible exportation » → « un » : `tré` est un VRAI mot français (0,038/M) et son
+    # posterior dit NOM à 100 % — mais le nom-tête est `exportation`, et `tré` n'est qu'un « très »
+    # mal accentué (1 435/M, soit 37 000× plus fréquent). Le posterior est LEXICAL : il ne sait pas
+    # où le mot se trouve. Le tagger HMM, lui, le dit — il tague `tré` ADJ dans cette position, et
+    # NOUN sur tous les cas légitimes (« le babiche »→la, « une problème »→un, « le faute »→la).
+    # ⚠️ GARDE RESSERRÉE APRÈS MESURE — la version large (« exiger le tag NOUN ») coûtait
+    # **49 récupérations** à `gender_coll_probe` (rappel 217→168) : elle punissait les noms MAL
+    # TAGUÉS (`ajouté`/`analysé`/`ajoute` = VERB au tagger, noms au posterior), c.-à-d. exactement
+    # ce que le posterior avait été introduit pour rattraper. Mauvaise sur le PRINCIPE, pas sur le
+    # seuil. Le discriminant mesuré est ailleurs : sur les casses le candidat est tagué **ADJ** et
+    # un **NOUN suit dans les 2 jetons** (`tré ADJ` · `faible ADJ` · `exportation NOUN`) ; sur les
+    # rappels perdus il est tagué VERB et un ADVERBE suit (`Il note une analysé ici`). On n'abstient
+    # donc que si le tagger dit « modifieur » ET désigne un nom-tête PLUS À DROITE.
+    # 2 des 24 casses du pipeline, livrées au palier ROUGE (appliquées sans demander).
+    _tgd = pos_tags(T)
+    if _tgd and hi < len(_tgd) and _tgd[hi] == 'ADJ':
+        for _j in (hi + 1, hi + 2):                      # le VRAI nom-tête est-il plus à droite ?
+            if _j < len(_tgd) and _tgd[_j] == 'NOUN': return None
     if not (_pp and _pp[0] >= PL_TAU_M): return None   # GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée — mot après déterminant = NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000, gender_levers_ud.py)
     # ⭐ FORME ACCENTUÉE D'ABORD — le fil qui manquait. `GENDER_PURE` est DÉSACCENTUÉE, donc elle
     # perd tout nom dont la clé nue est partagée avec un masculin : « âme » (amé), « affaire »
@@ -3069,6 +3126,17 @@ def rule_noun_singular(T, i):
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 4 or dn[-1] not in 'sx' or dn in _SG_STOP or dn in NOUN_PL_STOP: return None   # doit finir s/x (pluriel apparent) ; invariant/piège → abstention
+    # ⛔ « AU/DU + pluriel apparent » : « au » et « du » ne précèdent JAMAIS un pluriel en français, donc
+    # si le nom en a l'air c'est le DÉTERMINANT qui est faux, pas le nom — « au chevaux » = « aux chevaux »,
+    # « au vacances » = « aux vacances ». Dé-pluraliser CASSE un mot juste (2 des 10 casses d'accord,
+    # mesuré 22/08 sur le gold dys réel). Abstention SIMPLE, sans test de pluriel : mesurée MEILLEURE que
+    # les variantes plus riches — cassés 26→24, FP échelle 1,44 %→1,40 %, et zéro asset.
+    # ⚠️ MESURÉ ET NON RETENU : une règle `au/aux` qui RÉPARE (« au chevaux »→« aux chevaux ») gagne 3
+    # réparations mais rend 1 casse et 1 FP échelle, et surtout elle exige `cgram_plural.json` (68 Ko
+    # gzippés) que NI l'app NI l'extension n'embarquent — un test morphologique maison la remplaçant
+    # donnait 5 FP à l'échelle (« du PLUS fort », « au BAS de », « du VERNIS »). Prix trop élevé pour
+    # 3 réparations : on ne répare pas, on cesse de nuire.
+    if i > 0 and deacc(T[i-1].lower()) in ('au', 'du'): return None
     nx = T[i + 1] if i + 1 < len(T) else ''
     if nx[:1].islower() and nx.isalpha():                       # nom composé (« le vice présidents ») : nom + NOM confiant NON-verbe → 1er souvent invariable → abstention
         pp = NOUN_POST.get(deacc(nx.lower()))                   #   (P(VER)<ε : un VERBE qui suit — « chaque jours compte » — n'est PAS un composé)
@@ -3477,6 +3545,20 @@ def rule_qui_pron(T, i):
     if deacc(T[i + 1].lower()) not in ('il', 'ils', 'elle', 'elles', 'on'): return None
     pv = deacc(T[i - 1].lower())
     if pv in _QUI_PREP or pv in _SI_SAVOIR: return None                      # « avec qui il est ami » / « je sais qui il est »
+    # ⭐ « QUI ON » = « QUI ONT » (mesuré 22/08 sur le gold dys réel : 5 des 36 mots CASSÉS, la plus
+    # grosse famille sur UNE seule règle). Le scripteur dys écrit « on » pour « ont » — « les région QUI ON
+    # une sécurité », « des architectes QUI ON besoin », « tous ceux QUI ON éprouver ». Fusionner en
+    # « qu'on » DÉTRUIT le « qui » du gold ET masque la vraie faute.
+    # DISCRIMINANT : un relatif SUJET a un antécédent PLURIEL — un déterminant/pronom pluriel dans les
+    # 3 tokens qui précèdent (les/des/ces… ou ceux/celles). « ce qu'on fait », « je crois qu'on peut »
+    # n'en ont pas. On ABSTIENT seulement (jamais de nouvelle suggestion) : la règle on/ont fera le reste
+    # quand elle le peut, et rater une correction coûte bien moins que d'en fabriquer une.
+    if deacc(T[i + 1].lower()) == 'on':
+        for _k in range(i - 1, max(-1, i - 6), -1):        # fenêtre 5 : « aux chefs d'entreprise africain QUI ON »
+            _d = deacc(T[_k].lower())
+            if (_d in PLURAL_DET or _d in CARD                # CARD = cardinaux ≥2 (« deux architectes qui on ») — même
+                    or _d in ('ceux', 'celles', 'tous', 'toutes', 'plusieurs', 'certains', 'certaines')):
+                return None
     return "qu'" + T[i + 1]                                                  # app : span 2 (rouge après « ce », orange sinon)
 
 

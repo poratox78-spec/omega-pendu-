@@ -100,7 +100,16 @@
     return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
   var PLURAL_DET={};'les des ces leurs mes tes ses nos vos quels quelles plusieurs certains certaines quelques aux'.split(' ').forEach(function(w){PLURAL_DET[w]=1;});
   var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du'].forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
-  function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;return !!COMMON_VERBS[w]&&!(i>0&&NUM_DET[T[i-1].toLowerCase()]);}
+  function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
+    if(i>0&&NUM_DET[T[i-1].toLowerCase()]){                                          // « le porte » reste un NOM…
+      // …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08, parité Python vlike). « Il CE met a pousser » : la
+      // garde déterminant tue la lecture VERBALE, et la cascade suit — vlike(met)=false → rA ne tranche
+      // plus → la garde a/à de rEer ne tire pas → « pousser » devient « poussé », un mot JUSTE cassé.
+      // Test LOCAL (pas d'appel à rCe : elle appelle vlike, ce serait récursif) : un PRONOM SUJET juste
+      // avant le « ce » ⇒ « se » pronominal, jamais un déterminant (« il lit ce livre » garde la garde).
+      if(!(deacc(T[i-1].toLowerCase())==='ce'&&i>1&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]))return false;
+    }
+    return true;}
   function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;return j>0&&NUM_DET[T[j-1].toLowerCase()]==='pl';}
   var NOUN_E={};'marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split(' ').forEach(function(w){NOUN_E[w]=1;});
   // ---- PRIMITIVE PARTAGÉE : CANONICALISER CE QU'ON ÉMET ----------------------------------------
@@ -127,7 +136,15 @@
     if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
       if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
 var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A'){if(rA(T,i-1)==='a')return null;   // CASCADE DE DEUX ROUGES : « statue À CONSERVÉ » recevait « à »→« a » ET « conservé »→« conserver » → « a conserver », faute FABRIQUÉE. Si le correcteur juge lui-même ce « à » faux, l'ancre ne vaut rien → abstention (miroir Python rule_e_er)
-    return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);if(CAUX[p])return _emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
+    return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);if(CAUX[p]){
+      // ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL, parité Python rule_e_er) : le scripteur dys
+      // confond a/à (3e forme la plus souvent erronée, Bodard 2020). « tout en pensent A bronzer », « il se met
+      // A pousser » : ce « a » lu comme AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION.
+      // On s'en remet à rA (LA règle a/à, 100 % sur ce corpus) et à elle SEULE. ⚠️ MESURÉ ET REJETÉ :
+      // trancher en plus par la structure (proposition ayant déjà un verbe conjugué) répare 2 cas de plus
+      // mais coûte 14 FAUX POSITIFS à l'échelle (FP UD 1,44 % -> 2,00 %) — ne pas refaire.
+      if(i>0&&deacc(T[i-1].toLowerCase())==='a'&&rA(T,i-1)==='à')return f[1];   // rule_a_aa tranche : PRÉPOSITION → infinitif ; sinon comportement d'origine (participe) — « mon frère a manger »→mangé reste corrigé
+      return _emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});}if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
   // -er/-é/-ez/-ai (verbe 1er groupe) tranché par le GOUVERNEUR (test mordre/mordu) — MIROIR de correcteur_probe.rule_flexion_er (parité)
   var _AUX_AV={avoir:1,avais:1,avaient:1,etre:1,ete:1,etais:1,etait:1,etaient:1,etions:1,etiez:1,serai:1,seras:1,serez:1,serons:1,soient:1,sois:1};Object.keys(AUX_AVOIR).forEach(function(k){_AUX_AV[k]=1;});Object.keys(AUX_ETRE).forEach(function(k){_AUX_AV[k]=1;});   // participe : avoir ET être (« je suis allez »→allé, « a été fabriquer »→fabriqué)
   var _FLEX_CLITIC={se:1,me:1,te:1};   // clitiques réfléchis PURS sautés pour trouver le vrai gouverneur (« veut se séparer »). le/la/les EXCLUS (ambigus déterminant)
@@ -160,7 +177,12 @@ var w=T[i],lw=w.toLowerCase();
     var hypv=(nx==='vous'&&_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]);
     if(hypv)tgt='p2pl';
     else if(praw==='à'||T[i-1]==='A'||T[i-1]==='À'){if(rA(T,i-1)==='a')return null;tgt='inf';}   // MÊME CASCADE que rEer : si le correcteur juge lui-même ce « à » faux (« statue à conservé »→« a »), l'ancre ne vaut rien — proposer l'infinitif fabriquerait « a conserver » (miroir Python rule_flexion_er)
-    else if(_AUX_AV[p]||praw==="j'ai")tgt='part';
+    else if(_AUX_AV[p]||praw==="j'ai"){
+      // ⭐ MÊME GARDE QUE rEer (22/08, parité Python rule_flexion_er) : le scripteur dys écrit « a »
+      // pour « à ». « tout en pensent A bronzer » : ce « a » lu comme AUXILIAIRE rendait le participe,
+      // alors que c'est une PRÉPOSITION. Les DEUX règles partageaient l'angle mort ; mesuré sur le
+      // PIPELINE complet (dictee/dys_pipeline_probe.py) : mots CASSÉS 30 -> 26 sur texte dys réel.
+      if(i>0&&deacc(T[i-1].toLowerCase())==='a'&&rA(T,i-1)==='à')tgt='inf';else tgt='part';}
     else if(_INF_GOV[p]||MODAL[p]||_CAUS[p])tgt='inf';
     else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj)return null;tgt='p2pl';}
     else if(praw==='je'){var _fm={demain:1,bientot:1,prochain:1,prochaine:1,prochains:1,prochaines:1,ulterieurement:1,dorenavant:1,desormais:1,tantot:1};if(!T.some(function(t){return _fm[deacc(t.toLowerCase())];}))return null;tgt='fut1';}
@@ -887,7 +909,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase())return null;var hi=i+1;   // nom propre/étranger capitalisé → abstention (FP) ; hi = indice du NOM-TÊTE (défaut = mot suivant)
-    var _pp=NOUN_POST&&NOUN_POST.get(nd);if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST.get(deacc(T[hi].toLowerCase()));}}if(hi===i+1&&DET_SKIP[nd])return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // « quel/quelle + ADJECTIF antéposé + nom » : saut d'un adjectif sûr → nom-tête. GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée (sans toucher _nounGate, partagé pluriel) — mot après déterminant = NOM même si verbe-homographe (recall +6 pts, FP 0,09→0,10/1000, gender_levers_ud.py)
+    var _pp=NOUN_POST&&NOUN_POST.get(nd);if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST.get(deacc(T[hi].toLowerCase()));}}if(hi===i+1&&DET_SKIP[nd])return null;var _tgd=posTags(T);if(_tgd&&hi<_tgd.length&&_tgd[hi]==='ADJ'&&((hi+1<_tgd.length&&_tgd[hi+1]==='NOUN')||(hi+2<_tgd.length&&_tgd[hi+2]==='NOUN')))return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // « quel/quelle + ADJECTIF antéposé + nom » : saut d'un adjectif sûr → nom-tête. GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée (sans toucher _nounGate, partagé pluriel) — mot après déterminant = NOM même si verbe-homographe (recall +6 pts, FP 0,09→0,10/1000, gender_levers_ud.py)
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
@@ -1150,6 +1172,10 @@ var REPETABLE = new Set(['ni']);
    « suit un verbe ». La coupure est celle de la source, qui donne la classe de chaque mot. */
 var CONJ_PURE = {};
 ('mais car or voire').split(' ').forEach(function (w) { CONJ_PURE[w] = 1; });
+/* Conjonctions qui, PLACÉES AVANT un adverbe-coordonnant, en font une LOCUTION (« mais aussi »,
+   « et ensuite ») : la frontière de proposition est alors avant la conjonction, pas après. */
+var COORD_PREC = {};
+('mais et ou ni car or voire').split(' ').forEach(function (w) { COORD_PREC[w] = 1; });
 
 var VERBAL = { VERB: 1, AUX: 1 };
 var norm = w => String(w || '').toLowerCase().replace(/[’ʼ]/g, "'");
@@ -1173,6 +1199,42 @@ function longueurTete(mots, i) {
   return 0;
 }
 
+/* ⛔ LA VIRGULE INTERDITE — primitive PARTAGÉE (22/08/2026).
+   POURQUOI : mesurer une virgule contre un gold (UD) est invalide — la virgule française est
+   souvent FACULTATIVE, et une virgule juste mais non annotée y compte comme une faute. Le juge à
+   trois classes (`dictee/ponct_juge_probe.js`) sépare obligatoire / facultative / INTERDITE, et
+   seules les INTERDITES sont des fautes : une virgule manquante se lit, « manger du, chocolat »
+   casse la phrase.
+   MESURÉ dès la première passe du juge : le chemin vocal livré filtrait bien « après déterminant/
+   préposition » (liste `_PASAPRES`, dupliquée chez lui) mais PAS « devant et/ou/ni » → 9 virgules
+   interdites sur 616. D'où cette primitive : UNE seule définition de l'interdit, pour la saisie
+   vocale ET pour tout futur câblage dictée/correcteur.
+   Conservatrice par construction : uniquement de la STRUCTURE, jamais du sens. Ce qu'on ne sait
+   pas prouver interdit est déclaré FACULTATIF. */
+var PONCT_PASAPRES = {};
+("le la les un une des du de d au aux a en dans sur sous par pour avec sans chez vers depuis " +
+ "pendant selon entre mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet " +
+ "cette ces chaque aucun aucune plusieurs quel quelle quels quelles")
+  .split(' ').forEach(function (w) { PONCT_PASAPRES[w] = 1; });
+var PONCT_PASDEVANT = { et: 1, ou: 1, ni: 1 };   // Allô prof : pas de virgule devant « et/ou/ni »
+function ponctInterdit(mots, tg, i) {
+  tg = tg || [];
+  if (i < 0 || i >= mots.length - 1) return 'fin de phrase';
+  if (PONCT_PASAPRES[norm(mots[i])]) return 'après déterminant/préposition';
+  if (PONCT_PASDEVANT[norm(mots[i + 1])]) {
+    // ⚠️ EXCEPTION MESURÉE (garde CI proso_probe, R5 d'Allô prof) : un coordonnant RÉPÉTÉ est une
+    // ÉNUMÉRATION, et elle prend la virgule — « Béatrice ne peut ni parler, NI manger, NI bouger ».
+    // Interdire en bloc « devant et/ou/ni » cassait ces deux cas : la répétition fait la différence.
+    var _c = norm(mots[i + 1]), _n = 0;
+    for (var _k = 0; _k < mots.length; _k++) if (norm(mots[_k]) === _c) _n++;
+    if (_n < 2) return 'devant et/ou/ni';
+  }
+  if (tg[i] === 'AUX' && VERBAL[tg[i + 1]] === 1) return 'entre auxiliaire et participe';
+  if (tg[i] === 'PRON' && VERBAL[tg[i + 1]] === 1) return 'entre pronom sujet et verbe';
+  if (tg[i] === 'DET' || tg[i] === 'ADP') return 'après déterminant/préposition (POS)';
+  return null;
+}
+
 /* `deja` = les indices qui portent DÉJÀ une marque (posées par le modèle statistique et, dans la
    saisie vocale, par l'ancre audio). Les règles en ont besoin — voir le filtre final. */
 function ponctReglesVirgule(mots,_tg,deja){
@@ -1188,6 +1250,19 @@ function ponctReglesVirgule(mots,_tg,deja){
     var n = longueurCoord(mots, i);
     if (!n) continue;
     if (estQue(mots[i + n])) continue;   // « alors que », « ainsi que » : SUBORDONNANTS
+    // ⛔ GARDE 0a — « DE PLUS » N'EST UN ORGANISATEUR QUE SEUL. Suivi d'un adjectif, d'un adverbe,
+    // d'un nombre ou de « de », c'est le COMPARATIF : « la direction de PLUS GRANDE diffusivité »,
+    // « en présence de PLUS DE journalistes ». Mesuré 22/08 sur 40 tirs UD : 3 des 8 vraies fautes
+    // des règles venaient de là. « De plus, l'appartenance… » (suivi d'un déterminant) reste juste.
+    if (n === 2 && norm(mots[i]) === 'de' && norm(mots[i + 1]) === 'plus') {
+      var _ta = tg[i + 2], _ma = norm(mots[i + 2] || '');
+      if (_ta === 'ADJ' || _ta === 'ADV' || _ta === 'NUM' || _ma === 'de' || _ma === "d'" || /^\d/.test(_ma)) continue;
+    }
+    // ⛔ GARDE 0b — UN ADVERBE-COORDONNANT PRÉCÉDÉ D'UNE CONJONCTION FORME UNE LOCUTION, pas une
+    // frontière : « mais AUSSI », « et ENSUITE », « ou ALORS ». La virgule irait AVANT la
+    // conjonction, jamais entre les deux — « Bubber Miley mais , aussi Bix Beiderbecke » est une
+    // faute que la règle fabriquait. Mesuré : 3 des 8 vraies fautes sur 40 tirs UD.
+    if (i > 0 && CONJ_PURE[norm(mots[i])] !== 1 && COORD_PREC[norm(mots[i - 1])] === 1) continue;
     // ⭐ LA GARDE : il faut un VERBE CONJUGUÉ AVANT et APRÈS. Sans elle, « il est aussi grand »
     // et « la pomme et la poire » recevraient une virgule. C'est ce qui sépare la COORDINATION
     // DE PHRASES (que la règle vise) d'un simple adverbe dans un groupe.
@@ -1256,6 +1331,11 @@ function ponctReglesVirgule(mots,_tg,deja){
     var aDeja = function (i) { return deja.has ? deja.has(i) : !!deja[i]; };
     out.forEach(function (i) { if (aDeja(i - 1) || aDeja(i + 1)) out.delete(i); });
   }
+  // ⛔⛔ PORTE FINALE — UNE RÈGLE NE DOIT JAMAIS ÉMETTRE UNE VIRGULE INTERDITE. Le juge à trois
+  // classes en a sorti une (« …particulièrement faibles AVEC , par exemple litres » : virgule après
+  // une préposition, parce que « par exemple » est un organisateur légitime mais pas ici). Plutôt
+  // que d'ajouter une exception par cas, on fait passer TOUTE sortie par la primitive partagée.
+  out.forEach(function (i) { if (ponctInterdit(mots, tg, i)) out.delete(i); });
   return out;
 }
 
@@ -1361,7 +1441,13 @@ function ponctReglesVirgule(mots,_tg,deja){
             && (i===0||!_SING_DET[deacc(T[i-1].toLowerCase())]))return null;   // déterminant SINGULIER juste avant (et posterior chargé)
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → abstention
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;           // propre/capitalisé
-    var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;   // pluriel apparent ; invariant/piège
+    var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;
+    // ⛔ « AU/DU + pluriel apparent » (22/08, parité Python rule_noun_singular) : « au »/« du » ne précèdent
+    // JAMAIS un pluriel — si le nom en a l'air, c'est le DÉTERMINANT qui est faux (« au chevaux » = « aux
+    // chevaux »). Dé-pluraliser CASSE un mot juste : 2 des 10 casses d'accord sur le gold dys réel.
+    // Abstention SIMPLE, mesurée meilleure que les variantes riches : cassés 26→24, FP échelle 1,44→1,40 %,
+    // et ZÉRO asset (une règle au/aux qui répare exigerait cgram_plural.json, 68 Ko, absent des 2 moteurs JS).
+    if(i>0&&(deacc(T[i-1].toLowerCase())==='au'||deacc(T[i-1].toLowerCase())==='du'))return null;   // pluriel apparent ; invariant/piège
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var dnx=deacc(nx.toLowerCase());var pp=NOUN_POST.get(dnx);   // nom composé : nom + NOM confiant NON-verbe → abstention
       if(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M&&!ADJP[dnx])return null;}
@@ -1882,6 +1968,15 @@ function ponctReglesVirgule(mots,_tg,deja){
     var px=deacc(T[i+1].toLowerCase());if(px!=='il'&&px!=='ils'&&px!=='elle'&&px!=='elles'&&px!=='on')return null;
     var pv=deacc(T[i-1].toLowerCase());
     if(_QUI_PREP[pv]||_SI_SAVOIR[pv])return null;                                      // « avec qui il est ami » / « je sais qui il est »
+    // ⭐ « QUI ON » = « QUI ONT » (mesuré 22/08 sur gold dys réel, parité Python rule_qui_pron) : le
+    // scripteur dys écrit « on » pour « ont ». Fusionner en « qu'on » DÉTRUIT le « qui » du gold ET
+    // masque la vraie faute — c'était la plus grosse famille de casses sur UNE règle (5 sur 36).
+    // DISCRIMINANT : un relatif SUJET a un antécédent PLURIEL (déterminant/cardinal/pronom pluriel dans
+    // les 5 tokens précédents). « ce qu'on fait », « je crois qu'on peut » n'en ont pas. ABSTENTION
+    // seulement — jamais de nouvelle suggestion. Mesuré : mots CASSÉS 36 -> 32, réparations 398 -> 401.
+    if(px==='on'){for(var _k=i-1;_k>=Math.max(0,i-5);_k--){var _d=deacc(T[_k].toLowerCase());
+      if(PLURAL_DET[_d]||CARD[_d]||_d==='ceux'||_d==='celles'||_d==='tous'||_d==='toutes'
+         ||_d==='plusieurs'||_d==='certains'||_d==='certaines')return null;}}
     var sugg="qu'"+T[i+1];
     if(pv==='ce')return {sugg:sugg,span:2};                                            // « ce qui il » : jamais correct → rouge
     return {sugg:sugg,span:2,vig:1};}
@@ -2080,6 +2175,13 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};
     if(_OEL[low]&&tok.indexOf('œ')<0&&tok.indexOf('Œ')<0)return['flag',_OEL[low]];   // LIGATURE œ : « soeur »→« sœur ». Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app.
     if(SP.WORDS.has(low))return null;                                  // mot valide → couche grammaire
+    // ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08, parité Python speller_probe + app) : la garde « nom propre »
+    // exige une MAJUSCULE hors début de phrase — elle ne protège rien chez un scripteur dys, qui n'en met
+    // pas. Mesuré sur le pipeline (dys_pipeline_probe) : « isis »→« ici » ; mots CASSÉS 26 -> 20 sur texte
+    // dys réel, à coût NUL (réparations, GEC, FP échelle inchangés). La table PRENOMS existe DÉJÀ dans les
+    // 3 moteurs pour l'accord — on la RÉUTILISE (doctrine §5). La garde ne voit que des tokens DÉJÀ inconnus
+    // des 211 k formes : qu'ils soient en plus un prénom attesté en fait un nom, pas un typo.
+    if(low.length>=3&&PRENOMS[low.charAt(0).toUpperCase()+low.slice(1)])return null;
     if((low.charAt(0)==='à'||low.charAt(0)==='a')&&low.length>=3){var _rsd=low.slice(1);
       if(SP.WORDS.has(_rsd)&&/V/.test(SP.POS[_rsd]||'')&&!/(er|re|ir)$/.test(_rsd)
          &&!SP.WORDS.has(low.charAt(0)+low.charAt(1)+low.slice(1))   // le REDOUBLEMENT prime : « aporté »→apporté (couche DC), pas « a porté »
@@ -2851,6 +2953,6 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     // ⭐ L'ANCRE TEMPORELLE — elle vit ICI et non dans les deux pages, pour que le site et
     // l'extension partagent LA MÊME décision par construction, pas par recopie surveillée.
     ponctSyll:ponctSyll, ponctBlocs:ponctBlocs, ponctAncre:ponctAncre,
-    ponctReglesVirgule:ponctReglesVirgule
+    ponctReglesVirgule:ponctReglesVirgule,ponctInterdit:ponctInterdit
   };
 })(typeof self!=='undefined'?self:(typeof globalThis!=='undefined'?globalThis:this));
