@@ -185,10 +185,17 @@ def main():
           % (or_juste, 100.0 * or_juste / max(1, rate)))
     print('     - bruit orange           : %4d  (%.1f %%)             un orange est propose, mais il est FAUX'
           % (or_faux, 100.0 * or_faux / max(1, rate)))
-    print('     - signale SANS suggestion: %4d  (%.1f %%)             souligne « mot inconnu » : vu, pas reparable'
+    print('     - signale SANS suggestion: %4d  (%.1f %%)             (!) TOUJOURS 0 ICI - voir avertissement'
           % (sign, 100.0 * sign / max(1, rate)))
-    print('     - MUET (aveugle)         : %4d  (%.1f %%)             rien du tout : pas meme un soulignement'
+    print('     - MUET (cote Python)     : %4d  (%.1f %%)             (!) SUR-ESTIME - voir avertissement'
           % (muet, 100.0 * muet / max(1, rate)))
+    print()
+    print('     (!) CES DEUX LIGNES NE DECRIVENT PAS CE QUE VOIT L UTILISATEUR. La reference PYTHON')
+    print('         (speller_probe) n emet que auto/flag : elle n a PAS le palier « mot inconnu », qui')
+    print('         n existe que dans spellText (app). « signale = 0 » est donc un ARTEFACT, et « MUET »')
+    print('         gonfle d autant. MESURE REELLE (23/08, en croisant avec un dump de l APP - cf.')
+    print('         ETAT_DES_LIEUX §5septies) : 38,5 % de ces rates sont SOULIGNES sans suggestion,')
+    print('         et 59,8 % seulement sont vraiment invisibles.')
     if ex_or:  print('     exemples rattrapables :', ' | '.join(ex_or[:6]))
     if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
     if _dump is not None:
