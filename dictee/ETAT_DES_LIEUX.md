@@ -492,6 +492,79 @@ fleuves), sans marques ni international — quelques dizaines de Ko, **2 casses 
 
 ⚠️ **Fermé par la MESURE. Si le sujet revient, l'argument est le coût/gain, pas « on n'a pas de liste ».**
 
+## 5septies. L'ancre de genre du SPELLER + la réponse à « l'orange est là pour ça ? » + le comparateur transitif FALSIFIÉ
+
+### a) Le bon candidat gagnait, puis la bascule d'accord le DÉFAISAIT
+
+Trois casses `ortho` avaient le même mécanisme, et il est contre-intuitif : le mot juste **gagnait**
+le classement (`chère`, priorité « accent seul »), puis la **bascule d'accord d'adjectif** en fin de
+`correct_token` le retournait parce que l'ancre de genre du contexte le contredisait. Le moteur
+trouvait la bonne réponse et la jetait.
+
+Trois ancres fausses, trois causes distinctes :
+
+| production | ancre lue | pourquoi c'est faux |
+|---|---|---|
+| `mais un peu plus **chere**` | `un` → **m** | « un peu » est un ADVERBIAL, pas un déterminant |
+| `elle est donc mois **chére**` | `mois` → **m** | « moins » mal écrit, nom masculin attesté, **sans déterminant** |
+| `ca voiture il **decide**` | `voiture` → **f** | l'ancre TRAVERSE le pronom sujet `il` |
+
+**Correctif : deux gardes en ABSTENTION PURE** — `peu`/`peux` n'est jamais une ancre (ni le
+déterminant qui le précède), et **un NOM NU ne gouverne pas le genre** (il lui faut son propre
+déterminant). Abstention pure = on retire des ancres, on n'en ajoute aucune ⇒ le gagnant du
+classement est conservé, aucune correction ne peut être inventée.
+
+**Mesuré (4 moteurs)** : pipeline **381 → 394 réparés (24,7 % → 25,6 %)** et **22 → 19 casses
+(0,47 % → 0,41 %)** ; FP speller à l'échelle **46 avant, 46 après** ; `dev.sh` 70/70.
+Les deux gardes rapportent donc **13 réparations en plus**, pas seulement les 3 casses visées.
+
+⚠️ Le 3ᵉ cas (`decide` → `décidé`, gold `décide`) **n'est pas réglé** : une fois l'ancre retirée, c'est
+la FRÉQUENCE qui tranche entre deux candidats à accent (`décidé` 95,9 · `décide` 24,7). Il faudrait
+le contexte verbal — autre chantier.
+
+### b) « L'orange est là pour ça, normalement ? » — NON, mesuré
+
+Question de Rem. La sonde pipeline **ignorait l'orange** (`if _tr == 'vigilance': continue`) : les
+« 75 % ratés » étaient donc mesurés APRÈS l'avoir jeté. Ventilation des **1 148** fautes non réparées :
+
+| ce que voit l'utilisateur | n | % |
+|---|---|---|
+| **rattrapable EN UN CLIC** (orange + suggestion JUSTE) | 18 | **1,6 %** |
+| bruit orange (suggestion fausse) | 2 | 0,2 % |
+| **souligné SANS suggestion** (« il y a un problème ici ») | **442** | **38,5 %** |
+| **vraiment invisible** | 686 | 59,8 % |
+
+⇒ **l'orange comme RÉPARATION couvre 1,6 %** (et presque uniquement `ce/se` et `quel/quelle`) ;
+**comme SIGNAL il en couvre 38 % de plus**. Le correcteur ne voit rien du tout sur ~60 %.
+
+⚠️ **PIÈGE D'INSTRUMENT, encore** : la première version comptait « souligné sans suggestion : **0** ».
+C'était un artefact — la référence **Python n'émet pas le palier « mot inconnu »**, c'est `spellText`
+(app) qui le fait. Il a fallu croiser avec un dump de l'APP pour obtenir les 442.
+
+**Levier identifié, non traité** : 442 mots où l'app **sait déjà** que quelque chose ne va pas et ne
+propose rien. Y proposer quelque chose ne coûte **aucun risque de faux positif** — c'est de l'orange,
+appliqué au clic seulement.
+
+### c) Rendre `_cmp` TRANSITIF — construit, mesuré, FALSIFIÉ
+
+Le constat est juste : `_cmp` est pairwise, donc pas un ordre total. **Mesuré en permutant l'ordre des
+candidats dans le moteur réel : 7 des 602 corrections du gold changent de réponse (1,16 %)** — la dette
+n'est pas théorique.
+
+Reformulation essayée : gardes **par candidat** (« ce bonus est-il écrasé par le plus fréquent du
+lot ? ») ⇒ une clé de tri, donc un ordre total. **Résultat : 392 réparés / 19 cassés contre 394 / 19** —
+**2 réparations perdues, zéro casse évitée**, et 13 décisions changées dont plusieurs franchement pires
+(`nape`→tape au lieu de nappe, `payssage`→passage au lieu de paysage, `render`/`oblier` devenus des
+abstentions).
+
+**Pourquoi ça échoue** : la dominance pairwise encode « ce candidat-ci est écrasé par **celui-là** »,
+pas « par le lot ». Une clé par candidat ne peut pas l'exprimer.
+
+⇒ **On garde le comparateur pairwise.** La dette reste ouverte et nommée : le tri est
+**reproductible** mais pas **bien défini**. Ce qui est falsifié est *cette* reformulation, pas l'idée —
+mais le prix mesuré (−2 réparations) contre un problème qui touche 1,16 % des cas en fait un chantier
+à faible priorité. Clé exacte essayée : conservée en commentaire dans `speller_probe.correct_token`.
+
 ## 6. Chantiers, remis dans l'ordre après cette revue
 
 1. **Dominance ≫20× → comparaison en contexte** (reformulé ci-dessus). Le seul chantier restant dont on
