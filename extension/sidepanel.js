@@ -252,7 +252,7 @@
   // textarea → correction + « Copier » déjà en place. UI-only : aucun impact sur le moteur ni la parité 3 moteurs.
   var micBtn = document.getElementById('omdys-mic'), voiceCb = document.getElementById('omdys-voice-ok');
   var SR = self.SpeechRecognition || self.webkitSpeechRecognition;
-  var rec = null, recording = false;
+  var rec = null, recording = false, vstop = null;   // vstop : posé par startRec(), c'est LUI qui arrête pour de vrai (cf. onend)
   function voiceStatus(m) { stEl.textContent = m; }
   function setVoiceEnabled(on) { micBtn.disabled = !(on && SR); if (!on && recording) stopRec(); }
   if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
@@ -289,7 +289,7 @@
   mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
-  function stopRec() { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} }
+  function stopRec() { if (vstop) { vstop(); } else { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} } }
   // ── PROSODIE PARALLÈLE (voie A) — identique au site : Web Speech ne donne que du texte ; on capte le micro
   //    nous-mêmes (Web Audio, zéro modèle) → silence → « , . », pitch (F0) → « ? », ancrés sur les segments
   //    finaux. Dégradant : getUserMedia async ne peut pas casser startRec, fallback capitalize() seul. NON testé sans micro.
@@ -878,50 +878,63 @@
   function startRec() {
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
-    try {
-      rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
-      var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, pt: [], au: null, tEnd: 0 };   // pt : horodatage des PARTIELS (cf. site — seul signal temporel sans 2e capture)
-      var gotAny = false, lastErr = '', tr = { a: 0, s: 0 };
-      audioStart(S);
-      rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
-      rec.onaudiostart = function () { tr.a = 1; };
-      rec.onspeechstart = function () { tr.s = 1; voiceStatus('🎤 je t’entends…'); };
-      // Android ré-émet les segments DÉJÀ finalisés à chaque événement (resultIndex peu fiable) : on les
-      // stocke PAR INDEX (overwrite) puis on reconstruit — sinon « base += fin » ré-ajoute chaque mot = tapé plusieurs fois.
-      rec.onresult = function (ev) {
-        var intr = '';
-        for (var i = ev.resultIndex; i < ev.results.length; i++) {
-          var r = ev.results[i];
-          if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
-        }
-        if (S.pt.length < 4000) S.pt.push([Date.now() - S.t0, (intr.match(/\S+/g) || []).length, Object.keys(S.finals).length]);   // cf. site : mesurer si la cadence des partiels rend les silences
-        var parts = []; if (S.base.trim()) parts.push(S.base.trim());
-        var fdd = _dedupFinals(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
-        var ks = Object.keys(fdd).map(Number).sort(function (a, b) { return a - b; });
-        for (var k = 0; k < ks.length; k++) { if (fdd[ks[k]]) parts.push(fdd[ks[k]]); }
-        if (intr.trim()) parts.push(intr.trim());
-        if (ks.length || intr.trim()) gotAny = true;
-        ta.value = parts.join(' ');
-        voiceStatus('🎤 transcription…');
-      };
-      rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
-      rec.onend = function () {
-        recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec');
-        S.tEnd = Date.now() - S.t0;
-        audioStop(S);   // ⛔ était AVALÉ dans le commentaire ci-dessous depuis le miroir PR#493 : le micro (voie A) ne se relâchait plus en fin de dictée
-        S.finals = _dedupFinals(S.finals);   // deltas propres avant la ponctuation
-        var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
-        ta.value = pt || capitalize(ta.value);
-        runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
-        if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — clique la case « dictée vocale » pour rouvrir la page d’autorisation', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
-        else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
-        else if (ready) voiceStatus('✓ ponctué + corrigé — copie & colle  ·  audio ' + ((S.au && S.au.tl) ? S.au.tl.length : 0) + 'f');
-      };
-      recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec'); voiceStatus('🎤 démarrage…');
-      rec.start();
-      // filet : si dans 1,5 s rien n'a démarré (ni onstart, ni onerror, ni onend), le prévenir
-      setTimeout(function () { if (recording && stEl.textContent.indexOf('démarrage') >= 0) voiceStatus('le micro tarde à répondre… vérifie l’autorisation et le micro par défaut de Chrome'); }, 1500);
-    } catch (e) { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); voiceStatus('démarrage impossible : ' + ((e && (e.name + ' — ' + e.message)) || 'erreur inconnue')); }
+    var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, pt: [], au: null, tEnd: 0 };   // pt : horodatage des PARTIELS (cf. site — seul signal temporel sans 2e capture)
+    var gotAny = false, lastErr = '', tr = { a: 0, s: 0 }, userStop = false;
+    audioStart(S);
+    vstop = function () { userStop = true; try { if (rec) rec.stop(); } catch (e) {} };
+    /* AUTO-STOP DU NAVIGATEUR ≠ CLIC DE REM (bug signalé 2026-08-23) : même avec continuous=true, le
+       moteur vocal coupe tout seul après un silence — limite connue de l'API Web Speech, pas un
+       réglage qu'on contrôle. Avant ce fix, onend finalisait TOUJOURS, donc chaque silence = arrêt
+       perçu par l'utilisateur alors qu'il n'a rien cliqué. Fix : onend ne finalise QUE si userStop
+       (posé par stopRec(), donc par le clic ⏹) ; sinon on rearme silencieusement (nouvel objet SR —
+       un objet arrêté ne se relance pas — en reprenant le texte déjà transcrit dans S.base). Miroir
+       exact du fix posé le même soir sur saisie-vocale.html (site). */
+    (function armer(premiere) {
+      try {
+        rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
+        rec.onstart = function () { voiceStatus('🎤 micro ouvert — parle…'); };
+        rec.onaudiostart = function () { tr.a = 1; };
+        rec.onspeechstart = function () { tr.s = 1; voiceStatus('🎤 je t’entends…'); };
+        // Android ré-émet les segments DÉJÀ finalisés à chaque événement (resultIndex peu fiable) : on les
+        // stocke PAR INDEX (overwrite) puis on reconstruit — sinon « base += fin » ré-ajoute chaque mot = tapé plusieurs fois.
+        rec.onresult = function (ev) {
+          var intr = '';
+          for (var i = ev.resultIndex; i < ev.results.length; i++) {
+            var r = ev.results[i];
+            if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
+          }
+          if (S.pt.length < 4000) S.pt.push([Date.now() - S.t0, (intr.match(/\S+/g) || []).length, Object.keys(S.finals).length]);   // cf. site : mesurer si la cadence des partiels rend les silences
+          var parts = []; if (S.base.trim()) parts.push(S.base.trim());
+          var fdd = _dedupFinals(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
+          var ks = Object.keys(fdd).map(Number).sort(function (a, b) { return a - b; });
+          for (var k = 0; k < ks.length; k++) { if (fdd[ks[k]]) parts.push(fdd[ks[k]]); }
+          if (intr.trim()) parts.push(intr.trim());
+          if (ks.length || intr.trim()) gotAny = true;
+          ta.value = parts.join(' ');
+          voiceStatus('🎤 transcription…');
+        };
+        rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
+        rec.onend = function () {
+          var fatale = (lastErr === 'not-allowed' || lastErr === 'service-not-allowed' || lastErr === 'audio-capture');   // relancer ne réparera pas un micro refusé/absent
+          if (!userStop && !fatale) { S.base = ta.value; S.finals = {}; S.ftimes = {}; lastErr = ''; armer(false); return; }
+          recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); vstop = null;
+          S.tEnd = Date.now() - S.t0;
+          audioStop(S);   // ⛔ était AVALÉ dans le commentaire ci-dessous depuis le miroir PR#493 : le micro (voie A) ne se relâchait plus en fin de dictée
+          S.finals = _dedupFinals(S.finals);   // deltas propres avant la ponctuation
+          var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
+          ta.value = pt || capitalize(ta.value);
+          runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
+          if (lastErr) voiceStatus(({ 'not-allowed': 'micro refusé — clique la case « dictée vocale » pour rouvrir la page d’autorisation', 'service-not-allowed': 'service vocal indisponible — utilise Google Chrome', 'no-speech': 'rien entendu — parle plus près du micro', 'audio-capture': 'aucun micro détecté', 'network': 'réseau indisponible — la voix a besoin d’internet' })[lastErr] || ('erreur : ' + lastErr));
+          else if (!gotAny) voiceStatus(tr.a && !tr.s ? 'rien capté — choisis ton micro (casque ?) comme micro PAR DÉFAUT dans les réglages de Chrome' : 'aucun son capté — micro non détecté');
+          else if (ready) voiceStatus('✓ ponctué + corrigé — copie & colle  ·  audio ' + ((S.au && S.au.tl) ? S.au.tl.length : 0) + 'f');
+        };
+        recording = true; micBtn.textContent = '⏹ Stop'; micBtn.classList.add('rec');
+        if (premiere) voiceStatus('🎤 démarrage…');
+        rec.start();
+        // filet : si dans 1,5 s rien n'a démarré (ni onstart, ni onerror, ni onend), le prévenir
+        if (premiere) setTimeout(function () { if (recording && stEl.textContent.indexOf('démarrage') >= 0) voiceStatus('le micro tarde à répondre… vérifie l’autorisation et le micro par défaut de Chrome'); }, 1500);
+      } catch (e) { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); vstop = null; voiceStatus('démarrage impossible : ' + ((e && (e.name + ' — ' + e.message)) || 'erreur inconnue')); }
+    })(true);
   }
   micBtn.addEventListener('click', function () { if (recording) stopRec(); else startRec(); ta.focus(); });
 
