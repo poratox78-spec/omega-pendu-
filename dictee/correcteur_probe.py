@@ -192,7 +192,18 @@ def vlike(T, i):
     if is_verb(T, i): return True
     w = deacc(T[i].lower())
     if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
-    return (w in VERB_LEX) and not (i > 0 and T[i-1].lower() in NUM_DET)  # « le porte » reste un nom
+    if w not in VERB_LEX: return False
+    if i > 0 and T[i-1].lower() in NUM_DET:                                # « le porte » reste un NOM…
+        # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Il CE met a pousser » : le
+        # scripteur confond ce/se, la garde déterminant tue alors la lecture VERBALE — et la cascade suit :
+        # vlike(met)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « pousser »
+        # devient « poussé », un mot JUSTE cassé. Trois étages pour une seule faute d'ancre.
+        # Test LOCAL et étroit (pas d'appel à rule_ce_se : elle appelle vlike, ce serait récursif) : un
+        # PRONOM SUJET juste avant le « ce » ⇒ c'est un « se » pronominal, jamais un déterminant
+        # (« il ce met » n'existe pas comme groupe nominal ; « il lit ce livre » garde la garde).
+        if not (deacc(T[i-1].lower()) == 'ce' and i > 1 and deacc(T[i-2].lower()) in SUBJ_PRON):
+            return False
+    return True
 
 
 # cgram (12 k formes) contient des homographes COURTS de mots-outils (« ne », « le », « la », « on »…) qui
@@ -2716,6 +2727,25 @@ def rule_det_gender(T, i):
             hi = i + 2; _pp = NOUN_POST.get(deacc(T[hi].lower()))
     if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if deacc(T[hi].lower()) in _EPICENE_NOUN: return None          # NOM ÉPICÈNE (médecin/juge/artiste…) → 2 genres valides → ne pas forcer le déterminant
+    # ⛔ ANCRE : LE POSTERIOR LEXICAL NE SUFFIT PAS, IL FAUT LE TAGGER (23/08, gold dys réel).
+    # « une tré faible exportation » → « un » : `tré` est un VRAI mot français (0,038/M) et son
+    # posterior dit NOM à 100 % — mais le nom-tête est `exportation`, et `tré` n'est qu'un « très »
+    # mal accentué (1 435/M, soit 37 000× plus fréquent). Le posterior est LEXICAL : il ne sait pas
+    # où le mot se trouve. Le tagger HMM, lui, le dit — il tague `tré` ADJ dans cette position, et
+    # NOUN sur tous les cas légitimes (« le babiche »→la, « une problème »→un, « le faute »→la).
+    # ⚠️ GARDE RESSERRÉE APRÈS MESURE — la version large (« exiger le tag NOUN ») coûtait
+    # **49 récupérations** à `gender_coll_probe` (rappel 217→168) : elle punissait les noms MAL
+    # TAGUÉS (`ajouté`/`analysé`/`ajoute` = VERB au tagger, noms au posterior), c.-à-d. exactement
+    # ce que le posterior avait été introduit pour rattraper. Mauvaise sur le PRINCIPE, pas sur le
+    # seuil. Le discriminant mesuré est ailleurs : sur les casses le candidat est tagué **ADJ** et
+    # un **NOUN suit dans les 2 jetons** (`tré ADJ` · `faible ADJ` · `exportation NOUN`) ; sur les
+    # rappels perdus il est tagué VERB et un ADVERBE suit (`Il note une analysé ici`). On n'abstient
+    # donc que si le tagger dit « modifieur » ET désigne un nom-tête PLUS À DROITE.
+    # 2 des 24 casses du pipeline, livrées au palier ROUGE (appliquées sans demander).
+    _tgd = pos_tags(T)
+    if _tgd and hi < len(_tgd) and _tgd[hi] == 'ADJ':
+        for _j in (hi + 1, hi + 2):                      # le VRAI nom-tête est-il plus à droite ?
+            if _j < len(_tgd) and _tgd[_j] == 'NOUN': return None
     if not (_pp and _pp[0] >= PL_TAU_M): return None   # GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée — mot après déterminant = NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000, gender_levers_ud.py)
     # ⭐ FORME ACCENTUÉE D'ABORD — le fil qui manquait. `GENDER_PURE` est DÉSACCENTUÉE, donc elle
     # perd tout nom dont la clé nue est partagée avec un masculin : « âme » (amé), « affaire »
@@ -3096,6 +3126,17 @@ def rule_noun_singular(T, i):
     if not n[:1].isalpha() or n[0].isupper(): return None       # nom propre / capitalisé → abstention (FP)
     dn = deacc(n.lower())
     if len(dn) < 4 or dn[-1] not in 'sx' or dn in _SG_STOP or dn in NOUN_PL_STOP: return None   # doit finir s/x (pluriel apparent) ; invariant/piège → abstention
+    # ⛔ « AU/DU + pluriel apparent » : « au » et « du » ne précèdent JAMAIS un pluriel en français, donc
+    # si le nom en a l'air c'est le DÉTERMINANT qui est faux, pas le nom — « au chevaux » = « aux chevaux »,
+    # « au vacances » = « aux vacances ». Dé-pluraliser CASSE un mot juste (2 des 10 casses d'accord,
+    # mesuré 22/08 sur le gold dys réel). Abstention SIMPLE, sans test de pluriel : mesurée MEILLEURE que
+    # les variantes plus riches — cassés 26→24, FP échelle 1,44 %→1,40 %, et zéro asset.
+    # ⚠️ MESURÉ ET NON RETENU : une règle `au/aux` qui RÉPARE (« au chevaux »→« aux chevaux ») gagne 3
+    # réparations mais rend 1 casse et 1 FP échelle, et surtout elle exige `cgram_plural.json` (68 Ko
+    # gzippés) que NI l'app NI l'extension n'embarquent — un test morphologique maison la remplaçant
+    # donnait 5 FP à l'échelle (« du PLUS fort », « au BAS de », « du VERNIS »). Prix trop élevé pour
+    # 3 réparations : on ne répare pas, on cesse de nuire.
+    if i > 0 and deacc(T[i-1].lower()) in ('au', 'du'): return None
     nx = T[i + 1] if i + 1 < len(T) else ''
     if nx[:1].islower() and nx.isalpha():                       # nom composé (« le vice présidents ») : nom + NOM confiant NON-verbe → 1er souvent invariable → abstention
         pp = NOUN_POST.get(deacc(nx.lower()))                   #   (P(VER)<ε : un VERBE qui suit — « chaque jours compte » — n'est PAS un composé)
