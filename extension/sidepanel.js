@@ -886,16 +886,20 @@
     if (!SR) { voiceStatus('reconnaissance non supportée par ce navigateur'); return; }
     if (!voiceCb.checked) { voiceStatus('coche d’abord « Activer la dictée vocale »'); return; }
     var S = { base: ta.value, t0: Date.now(), finals: {}, ftimes: {}, pt: [], au: null, tEnd: 0 };   // pt : horodatage des PARTIELS (cf. site — seul signal temporel sans 2e capture)
-    var gotAny = false, lastErr = '', tr = { a: 0, s: 0 }, userStop = false;
+    var gotAny = false, lastErr = '', tr = { a: 0, s: 0 }, userStop = false, decalage = 0;   // decalage : cf. armer/onend
     audioStart(S);
     vstop = function () { userStop = true; try { if (rec) rec.stop(); } catch (e) {} };
     /* AUTO-STOP DU NAVIGATEUR ≠ CLIC DE REM (bug signalé 2026-08-23) : même avec continuous=true, le
        moteur vocal coupe tout seul après un silence — limite connue de l'API Web Speech, pas un
        réglage qu'on contrôle. Avant ce fix, onend finalisait TOUJOURS, donc chaque silence = arrêt
        perçu par l'utilisateur alors qu'il n'a rien cliqué. Fix : onend ne finalise QUE si userStop
-       (posé par stopRec(), donc par le clic ⏹) ; sinon on rearme silencieusement (nouvel objet SR —
-       un objet arrêté ne se relance pas — en reprenant le texte déjà transcrit dans S.base). Miroir
-       exact du fix posé le même soir sur saisie-vocale.html (site). */
+       (posé par stopRec(), donc par le clic ⏹) ; sinon on rearme silencieusement (nouvel objet SR — un
+       objet arrêté ne se relance pas). ⚠️ RÉGRESSION TROUVÉE PAR REM LE MÊME SOIR (capture de frappe
+       à l'appui) : la 1re version de ce fix effaçait S.finals/S.ftimes à CHAQUE relance — ça privait
+       prosodyText() de TOUT segment dès la 2e salve : plus aucune ponctuation, juste la majuscule.
+       Fix correct : on NE VIDE JAMAIS finals/ftimes — on décale l'INDEX du nouvel objet (`decalage`)
+       pour que ses résultats s'ajoutent aux clés existantes au lieu de les écraser. Miroir exact du
+       fix posé le même soir sur saisie-vocale.html (site). */
     (function armer(premiere) {
       try {
         rec = new SR(); rec.lang = 'fr-FR'; rec.interimResults = true; rec.continuous = true; rec.maxAlternatives = 1;
@@ -903,12 +907,12 @@
         rec.onaudiostart = function () { tr.a = 1; };
         rec.onspeechstart = function () { tr.s = 1; voiceStatus('🎤 je t’entends…'); };
         // Android ré-émet les segments DÉJÀ finalisés à chaque événement (resultIndex peu fiable) : on les
-        // stocke PAR INDEX (overwrite) puis on reconstruit — sinon « base += fin » ré-ajoute chaque mot = tapé plusieurs fois.
+        // stocke PAR INDEX+décalage (overwrite) puis on reconstruit — sinon « base += fin » ré-ajoute chaque mot = tapé plusieurs fois.
         rec.onresult = function (ev) {
           var intr = '';
           for (var i = ev.resultIndex; i < ev.results.length; i++) {
-            var r = ev.results[i];
-            if (r.isFinal) { S.finals[i] = r[0].transcript.trim(); if (S.ftimes[i] == null) S.ftimes[i] = Date.now() - S.t0; } else intr += r[0].transcript;
+            var r = ev.results[i], key = i + decalage;
+            if (r.isFinal) { S.finals[key] = r[0].transcript.trim(); if (S.ftimes[key] == null) S.ftimes[key] = Date.now() - S.t0; } else intr += r[0].transcript;
           }
           if (S.pt.length < 4000) S.pt.push([Date.now() - S.t0, (intr.match(/\S+/g) || []).length, Object.keys(S.finals).length]);   // cf. site : mesurer si la cadence des partiels rend les silences
           var parts = []; if (S.base.trim()) parts.push(S.base.trim());
@@ -923,7 +927,8 @@
         rec.onerror = function (ev) { lastErr = ev.error || 'inconnue'; };   // le message final est posé dans onend (onend suit toujours onerror)
         rec.onend = function () {
           var fatale = (lastErr === 'not-allowed' || lastErr === 'service-not-allowed' || lastErr === 'audio-capture');   // relancer ne réparera pas un micro refusé/absent
-          if (!userStop && !fatale) { S.base = ta.value; S.finals = {}; S.ftimes = {}; lastErr = ''; armer(false); return; }
+          if (!userStop && !fatale) {   // NE PAS toucher S.finals/S.ftimes (cf. commentaire plus haut) — juste décaler l'index du prochain objet SR
+            decalage = 1 + Object.keys(S.finals).reduce(function (m, k) { return Math.max(m, +k); }, -1); lastErr = ''; armer(false); return; }
           recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); vstop = null;
           S.tEnd = Date.now() - S.t0;
           audioStop(S);   // ⛔ était AVALÉ dans le commentaire ci-dessous depuis le miroir PR#493 : le micro (voie A) ne se relâchait plus en fin de dictée
