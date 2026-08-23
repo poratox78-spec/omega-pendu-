@@ -26024,6 +26024,15 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var px=deacc(T[i+1].toLowerCase());if(px!=='il'&&px!=='ils'&&px!=='elle'&&px!=='elles'&&px!=='on')return null;
     var pv=deacc(T[i-1].toLowerCase());
     if(_QUI_PREP[pv]||_SI_SAVOIR[pv])return null;                                      // « avec qui il est ami » / « je sais qui il est »
+    // ⭐ « QUI ON » = « QUI ONT » (mesuré 22/08 sur gold dys réel, parité Python rule_qui_pron) : le
+    // scripteur dys écrit « on » pour « ont ». Fusionner en « qu'on » DÉTRUIT le « qui » du gold ET
+    // masque la vraie faute — c'était la plus grosse famille de casses sur UNE règle (5 sur 36).
+    // DISCRIMINANT : un relatif SUJET a un antécédent PLURIEL (déterminant/cardinal/pronom pluriel dans
+    // les 5 tokens précédents). « ce qu'on fait », « je crois qu'on peut » n'en ont pas. ABSTENTION
+    // seulement — jamais de nouvelle suggestion. Mesuré : mots CASSÉS 36 -> 32, réparations 398 -> 401.
+    if(px==='on'){for(var _k=i-1;_k>=Math.max(0,i-5);_k--){var _d=deacc(T[_k].toLowerCase());
+      if(PLURAL_DET[_d]||CARD[_d]||_d==='ceux'||_d==='celles'||_d==='tous'||_d==='toutes'
+         ||_d==='plusieurs'||_d==='certains'||_d==='certaines')return null;}}
     var sugg="qu'"+T[i+1];
     if(pv==='ce')return {sugg:sugg,span:2};                                            // « ce qui il » : jamais correct → rouge
     return {sugg:sugg,span:2,vig:1};}
