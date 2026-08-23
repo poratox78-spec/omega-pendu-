@@ -336,7 +336,12 @@ Les textes scolaires (corpus1) ont porté le taux de fautes de 19,9 % à 23,7 % 
 et il manquait. Première lettre et erreurs en vrai mot tombent désormais **à un demi-point** des repères
 publiés — le gold est représentatif, pas seulement volumineux.
 
-### Reste à faire
+### ~~Reste à faire~~ — PÉRIMÉ, conservé pour l'historique du protocole
+
+> ⚠️ **Cette sous-section décrit l'état INTERMÉDIAIRE de l'annotation.** Elle est dépassée par
+> « CORPUS COMPLET » ci-dessus : les **72 productions sont annotées** (6 778 mots), y compris les
+> 5 textes écartés ici. Gardée parce qu'elle documente les critères d'exclusion appliqués en cours
+> de route ; ne pas s'en servir pour un décompte.
 
 **67 des 72** productions sont traitées : toute l'« Expression libre » (31), toute l'« Expression écrite
 dirigée » (33) et **3 des 7 textes scolaires**.
@@ -351,6 +356,114 @@ dirigée » (33) et **3 des 7 textes scolaires**.
 
 3 tokens isolés restent **non tranchés** (`degne`, `soutie`, `pine`), laissés intacts et signalés (`ambig`)
 plutôt que devinés.
+
+## 5quater. Le moteur n'était pas DÉTERMINISTE — et c'est le classement des candidats, pas la sonde
+
+**Symptôme.** `dys_pipeline_probe.py` rendait 380, 381, 384 ou 385 réparations d'une exécution à l'autre,
+sur le même corpus et le même code. J'avais d'abord attribué cet écart à des variantes de garde
+(« 381 contre 384 ») : **c'était du bruit, et je l'avais présenté comme un résultat.**
+
+**Cause, à la ligne près.** `speller_probe.edits1` rendait un `set()`. Or le classement des candidats du
+speller (`_cmp`) est *pairwise* — le commentaire du code le dit lui-même : les gardes de dominance
+(« ≫20× plus fréquent écrase le bonus ») comparent **deux candidats entre eux**. Un tel comparateur
+**n'est pas un ordre total** : A ≻ B, B ≻ C, C ≻ A est possible. Le résultat d'un tri dépend alors de
+l'**ordre d'entrée** — qui, avec un ensemble, suit le hachage de Python.
+
+**Mesuré** (gold dys, 4 graines de hachage) : **10 des 598 corrections changeaient**, y compris
+l'existence même de la correction — `sété` → *fêté* ou rien, `croiyé` → *croisé* ou rien, `annes` →
+*anges* ou *années*.
+
+**Ce n'était PAS le produit livré.** Les moteurs JS (`sEdits1`) rendent `Object.keys` = l'ordre de
+génération : ils sont déterministes. C'est la **référence Python** qui dérivait — et donc toutes nos
+mesures, pas l'app ni l'extension.
+
+**Correctif** : dict à ordre d'insertion au lieu d'un ensemble (mêmes boucles, `ALPHA` = 'a'..'z').
+Python est stable sur 4 graines ; la sonde pipeline rend **381 / 24 sur trois passages identiques**.
+
+**⚠️ Ce que le correctif ne fait PAS, vérifié plutôt que supposé.** J'avais écrit qu'il alignait Python
+sur JS « par construction ». **Faux** : sur les 9 jetons concernés les deux moteurs divergent encore
+(`annes` → *ânes* chez Python, *années* dans l'app ; `fise` → *filé* / *fisc*). La raison est ailleurs —
+ils n'ont pas le **même ensemble de candidats** : Python lit `Lexique4.tsv` brut (**165 474** formes après
+filtres) quand l'app embarque `speller-lex-gz` = Lexique 4 + Wiktionnaire (**214 685**). Effet mesuré de
+cet écart sur le gold : **7 mots justes seulement** (`sœur`, `pyrénées`, `technopôle`, `littorales`,
+`raisonnées`, `pnb`, `snk`) — réel, à documenter, mais il n'invalide pas le chiffre de référence.
+
+**Dette laissée ouverte, nommée** : le comparateur reste **non transitif**. Le correctif rend le
+résultat *reproductible*, il ne le rend pas *bien défini*. Rendre `_cmp` total (score au lieu de
+comparaisons pairwise) est un chantier séparé, à mesurer — les gardes de dominance existent parce
+qu'elles gagnent, on ne les retire pas sans preuve.
+
+**Leçon, la cinquième du même genre** : ① le corpus était à 92,7 % des sondes ; ② juger les virgules
+contre UD compte faux positive toute virgule facultative ; ③ juger le speller isolément lui reproche le
+travail de la grammaire ; ④ la sonde pipeline abandonnait 32 % des corrections (tokeniseur) ; ⑤ **le
+moteur de référence n'était pas déterministe**. À chaque fois, réparer l'instrument a immédiatement
+révélé de vrais défauts.
+
+## 5quinquies. « une **tré** faible exportation » → un — le posterior LEXICAL ne sait pas OÙ est le mot
+
+**Trouvé en dépouillant les 24 casses du pipeline** (23/08). Deux d'entre elles, au palier **ROUGE**
+(appliquées sans rien demander à l'utilisateur), et **présentes dans le produit livré** — vérifié en
+chargeant `dys-core.js` avec ses assets, pas seulement dans la référence Python.
+
+| | |
+|---|---|
+| `régio et a donc une **tré** faible exportation` | `une` → **un** (gold : *une*) |
+| `le japon est une **tré** grande puisense` | `une` → **un** (gold : *une*) |
+
+**Pourquoi.** `rule_det_gender` prend par défaut le mot **immédiatement après** le déterminant comme
+nom-tête, et le valide au **posterior fréquentiel** `NOUN_POST`. Or `tré` **est un vrai mot français** —
+0,038 par million — que la table donne masculin avec P(NOM) = 100 %. La règle a donc accordé `une` sur
+`tré` au lieu d'`exportation` (féminin). Le mot correctement écrit, `très` (1 435/M, **37 000× plus
+fréquent**), figure bien dans `DET_SKIP` et aurait été sauté ; `tré` n'y est pas.
+
+**Ce n'est PAS une « ancre polluée » au sens courant** : l'ancre est un mot parfaitement connu du
+lexique. C'est un troisième chemin qui confirme la mesure de la veille — une primitive d'ancre
+**lexicale** globale n'aurait rien vu ici.
+
+**Correctif : ajouter du CONTEXTE, ne baisser aucun seuil.** Le posterior est **lexical** : par
+construction il ignore *où* le mot se trouve. Le **tagger HMM**, déjà embarqué dans les trois moteurs,
+le sait. C'est la leçon LanguageTool appliquée telle quelle : *donner du contexte plutôt que baisser
+un seuil*.
+
+**⚠️ Première version FAUSSE SUR LE PRINCIPE, et c'est une garde du projet qui l'a dit.** J'avais
+d'abord exigé que le nom-tête soit **tagué NOUN**. `dev.sh` est tombé sur `gender_coll_probe` :
+**rappel 210 → 168**, 42 récupérations perdues. Motif limpide dans les ratés — `ajouté`, `analysé`,
+`ajoute` sont tagués **VERB** alors que ce sont des noms au posterior : ma garde punissait les noms
+MAL TAGUÉS, c'est-à-dire **exactement ce que le posterior avait été introduit pour rattraper**
+(cf. « le POS embarqué est buggé : faute=VER au tag, 99 % NOM en fréquence »). Mauvaise sur le
+principe, pas sur le seuil.
+
+**Le vrai discriminant, mesuré en comparant les deux populations** :
+
+| | tag du candidat | ce qui suit |
+|---|---|---|
+| casses (`une **tré** faible exportation`) | **ADJ** | `faible` ADJ · `exportation` **NOUN** |
+| rappels perdus (`Il note une **analysé** ici`) | VERB | `ici` ADV |
+
+⇒ on n'abstient que si le tagger dit « **modifieur** » **ET** désigne un **nom-tête plus à droite**
+(NOUN dans les 2 jetons suivants). Vérifié exhaustivement sur les 386 mots de la sonde : rappel
+**210 avec et sans la garde — coût nul**.
+
+**Mesuré, 4 moteurs patchés (Python · app FR · app EN · extension)** :
+
+| garde | valeur |
+|---|---|
+| pipeline dys réel | **381 réparés (INCHANGÉ) · casses 24 → 22** |
+| batterie « genre déterminant » | 6/6, FP = 0 (inchangé) |
+| `gender_coll_probe` (386 mots à clé partagée) | **rappel 210, identique avec et sans la garde** · FP 0 |
+| FP à l'échelle (UD 2 500) | **1,40 % — strictement inchangé**, ventilation identique |
+| parité app ↔ Python | OK (336 phrases) |
+| parité extension ↔ Python | OK (296 phrases, paliers identiques sur 142 corrections) |
+
+FP à l'échelle inchangé est **attendu** et non un non-résultat : sur du texte correct, tagger et
+posterior s'accordent — la garde ne mord que là où le texte est abîmé. Le seul FP de batterie restant
+est le connu, préexistant : « La foule impatiente attendait » (collectifs).
+
+**⚠️ Ce qui a été écarté et pourquoi** : une garde de **fréquence** sur le nom-tête (« abstiens-toi si
+le nom est 20× plus rare qu'une lecture voisine ») serait le décalque exact de la dominance du speller,
+mais elle **n'est pas portable** — la couche grammaire de Python n'a qu'un ENSEMBLE de mots
+(`cgram_words.json`), sans fréquences, quand les moteurs JS ont `SP.FREQ`. Elle aurait cassé la parité
+ou exigé un nouvel asset. Le tagger était déjà là, dans les trois moteurs (doctrine §5).
 
 ## 6. Chantiers, remis dans l'ordre après cette revue
 

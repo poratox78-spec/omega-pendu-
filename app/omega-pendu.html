@@ -24568,7 +24568,16 @@ window.addEventListener('DOMContentLoaded', () => {
     return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
   var PLURAL_DET={};'les des ces leurs mes tes ses nos vos quels quelles plusieurs certains certaines quelques aux'.split(' ').forEach(function(w){PLURAL_DET[w]=1;});
   var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du'].forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
-  function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;return !!COMMON_VERBS[w]&&!(i>0&&NUM_DET[T[i-1].toLowerCase()]);}
+  function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
+    if(i>0&&NUM_DET[T[i-1].toLowerCase()]){                                          // « le porte » reste un NOM…
+      // …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08, parité Python vlike). « Il CE met a pousser » : la
+      // garde déterminant tue la lecture VERBALE, et la cascade suit — vlike(met)=false → rA ne tranche
+      // plus → la garde a/à de rEer ne tire pas → « pousser » devient « poussé », un mot JUSTE cassé.
+      // Test LOCAL (pas d'appel à rCe : elle appelle vlike, ce serait récursif) : un PRONOM SUJET juste
+      // avant le « ce » ⇒ « se » pronominal, jamais un déterminant (« il lit ce livre » garde la garde).
+      if(!(deacc(T[i-1].toLowerCase())==='ce'&&i>1&&SUBJ_PRON[deacc(T[i-2].toLowerCase())]))return false;
+    }
+    return true;}
   function cpl(T,j){if(j<0||j>=T.length)return false;var dw=deacc(T[j].toLowerCase());if(!/[sx]$/.test(dw))return false;return j>0&&NUM_DET[T[j-1].toLowerCase()]==='pl';}
   var NOUN_E={};'marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split(' ').forEach(function(w){NOUN_E[w]=1;});
   // ---- PRIMITIVE PARTAGÉE : CANONICALISER CE QU'ON ÉMET ----------------------------------------
@@ -25407,7 +25416,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var gd=DET_G[lw],nr=T[i+1].toLowerCase();if(nr.indexOf("'")>=0)return null;var nd=deacc(nr);if(nd.length<2||!/^[a-z]+$/.test(nd))return null;
     if((lw==='son'||lw==='mon'||lw==='ton')&&/^[aeiouyh]/.test(nd))return null;   // son/mon/ton OBLIGATOIRES devant voyelle/h (son amie, son Histoire) — pas un FP
     var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase())return null;var hi=i+1;   // nom propre/étranger capitalisé OU adverbe/adj/prép avant le vrai nom-tête → abstention (FP)
-    var _pp=NOUN_POST&&NOUN_POST[nd];if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST[deacc(T[hi].toLowerCase())];}}if(hi===i+1&&DET_SKIP[nd])return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe LEVÉE — un mot après un déterminant est un NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000 mesuré UD, gender_levers_ud.py)
+    var _pp=NOUN_POST&&NOUN_POST[nd];if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST[deacc(T[hi].toLowerCase())];}}if(hi===i+1&&DET_SKIP[nd])return null;var _tgd=posTags(T);if(_tgd&&hi<_tgd.length&&_tgd[hi]==='ADJ'&&((hi+1<_tgd.length&&_tgd[hi+1]==='NOUN')||(hi+2<_tgd.length&&_tgd[hi+2]==='NOUN')))return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe LEVÉE — un mot après un déterminant est un NOM même si verbe-homographe (recall 66,8→72,7 %, FP 0,09→0,10/1000 mesuré UD, gender_levers_ud.py)
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
   function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
@@ -25497,7 +25506,13 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
             && (i===0||!_SING_DET[deacc(T[i-1].toLowerCase())]))return null;   // déterminant SINGULIER juste avant (et posterior chargé)
     if(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])return null;                                              // NOMBRE-écran (« le 25 mars », « le 100 mètres ») → le déterminant ne gouverne pas ce nom
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;           // nom propre / capitalisé → abstention (FP)
-    var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;   // pluriel apparent ; invariant/piège → abstention
+    var dn=deacc(n.toLowerCase());if(dn.length<4||!/[sx]$/.test(dn)||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;
+    // ⛔ « AU/DU + pluriel apparent » (22/08, parité Python rule_noun_singular) : « au »/« du » ne précèdent
+    // JAMAIS un pluriel — si le nom en a l'air, c'est le DÉTERMINANT qui est faux (« au chevaux » = « aux
+    // chevaux »). Dé-pluraliser CASSE un mot juste : 2 des 10 casses d'accord sur le gold dys réel.
+    // Abstention SIMPLE, mesurée meilleure que les variantes riches : cassés 26→24, FP échelle 1,44→1,40 %,
+    // et ZÉRO asset (une règle au/aux qui répare exigerait cgram_plural.json, 68 Ko, absent des 2 moteurs JS).
+    if(i>0&&(deacc(T[i-1].toLowerCase())==='au'||deacc(T[i-1].toLowerCase())==='du'))return null;   // pluriel apparent ; invariant/piège → abstention
     var nx=i+1<T.length?T[i+1]:'';
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var pp=NOUN_POST[deacc(nx.toLowerCase())];   // nom composé : nom + NOM confiant NON-verbe → abstention
       if(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M&&!ADJP[deacc(nx.toLowerCase())])return null;}

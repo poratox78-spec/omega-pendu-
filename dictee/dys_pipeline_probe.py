@@ -18,6 +18,8 @@ CE QU'ON MESURE ICI — la seule chose qui compte pour l'élève, mot à mot con
   · RÉPARÉ   : le mot était faux, la sortie est le gold          → le gain
   · RATÉ     : le mot était faux, la sortie n'est pas le gold    → occasion manquée (pas une faute)
   · CASSÉ    : le mot était JUSTE, la sortie ne l'est plus       → LA FAUTE (le péché cardinal)
+             ⚠️ seules les corrections ROUGES comptent : une orange est proposée AU CLIC, jamais
+             appliquée seule. La 1re version de cette sonde les comptait à tort (5 sur 23).
   · INTACT   : le mot était juste et le reste
 
 ⚠️ « CASSÉ » est la seule métrique qui doit piloter un palier rouge : rater une correction se voit
@@ -72,6 +74,16 @@ def pyramide(txt):
                 continue
             sg = d['sugg'] if isinstance(d, dict) else d
             if isinstance(sg, str) and sg != Tc[i]:
+                # ⚠️ LE PALIER, comme dans le produit : ROUGE = appliqué d'office, ORANGE (vigilance) =
+                # proposé AU CLIC, jamais appliqué seul. Sans ce filtre la sonde comptait comme « cassés »
+                # des mots que l'utilisateur ne voit que soulignés — mesuré le 22/08 : 5 des 23 casses de
+                # grammaire, dont 4 des 6 « genre déterminant », étaient en réalité ORANGE.
+                try:
+                    _tr = CP.tier_of(Tc, i, nm, sg) or 'auto'
+                except Exception:
+                    _tr = 'auto'
+                if _tr == 'vigilance':
+                    continue                      # orange : on n'applique pas, on continue de chercher
                 out[i] = sg
                 break
     return T, out, Tc
