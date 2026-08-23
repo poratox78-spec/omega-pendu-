@@ -479,11 +479,14 @@
       var f=(finals[ks[k]]||'').trim(); if(!f) continue;
       var accN=acc.toLowerCase(), fN=f.toLowerCase();
       if(acc && fN.indexOf(accN)===0){ f=f.slice(acc.length).replace(/^[\s,]+/,''); }
-      else if(acc && accN.indexOf(fN)>=0){ f=''; }
+      else if(acc && (' '+accN+' ').indexOf(' '+fN+' ')>=0){ f=''; }   // ⭐ aux LIMITES DE MOT : "le" est un vrai mot neuf même si "pleuvait" contient ces 2 lettres
       if(f){ out[ks[k]]=f; acc=acc?acc+' '+f:f; }
     }
     return out;
   }
+  function _dedupFinalsSur(finals){   // filet : un nettoyage ne doit JAMAIS faire disparaître du contenu réel (cf. distill_pluriel.py, même soir)
+    var dd=_dedupFinals(finals);
+    return (Object.keys(dd).length || !Object.keys(finals).length) ? dd : finals; }
   function _commandesVocales(t){
     /* MODE COMMANDE (acté 2026-08-05, construit 2026-08-16 pour le mobile sans pitch) : Google
        n'émet AUCUNE ponctuation en fr-FR — dire « virgule » écrivait le MOT. Mesuré sur 9,4 M mots
@@ -916,7 +919,7 @@
           }
           if (S.pt.length < 4000) S.pt.push([Date.now() - S.t0, (intr.match(/\S+/g) || []).length, Object.keys(S.finals).length]);   // cf. site : mesurer si la cadence des partiels rend les silences
           var parts = []; if (S.base.trim()) parts.push(S.base.trim());
-          var fdd = _dedupFinals(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
+          var fdd = _dedupFinalsSur(S.finals);   // Android : finals cumulatifs/répétés → deltas propres
           var ks = Object.keys(fdd).map(Number).sort(function (a, b) { return a - b; });
           for (var k = 0; k < ks.length; k++) { if (fdd[ks[k]]) parts.push(fdd[ks[k]]); }
           if (intr.trim()) parts.push(intr.trim());
@@ -932,7 +935,7 @@
           recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); vstop = null;
           S.tEnd = Date.now() - S.t0;
           audioStop(S);   // ⛔ était AVALÉ dans le commentaire ci-dessous depuis le miroir PR#493 : le micro (voie A) ne se relâchait plus en fin de dictée
-          S.finals = _dedupFinals(S.finals);   // deltas propres avant la ponctuation
+          S.finals = _dedupFinalsSur(S.finals);   // deltas propres avant la ponctuation
           var pt = null; try { pt = prosodyText(S); } catch (e) {}                 // ponctuation MIX (segments Web Speech + règles, + audio si dispo)
           ta.value = pt || capitalize(ta.value);
           runNow(); if (ready) { try { applyAll(); } catch (e) {} }                // SAISIE VOCALE = automatique : rouge FP=0 appliqué tout seul (réversible), pas de « Tout corriger » à cliquer
