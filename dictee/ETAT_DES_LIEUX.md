@@ -465,6 +465,33 @@ mais elle **n'est pas portable** — la couche grammaire de Python n'a qu'un ENS
 (`cgram_words.json`), sans fréquences, quand les moteurs JS ont `SP.FREQ`. Elle aurait cassé la parité
 ou exigé un nouvel asset. Le tagger était déjà là, dans les trois moteurs (doctrine §5).
 
+## 5sexies. NOMS PROPRES — FERMÉ PAR LA MESURE (23/08), pas par l'absence de source
+
+Le chantier était noté « aucune source locale ⇒ arbitrage licence ». **C'est faux, vérifié** : le dump
+kaikki du Wiktionnaire français est dans le dépôt (`data_local/fr/kaikki-frwikt.jsonl`, 3,1 Go) — c'est
+lui qui a produit `prenoms_genre.tsv` (8 729 prénoms, DÉJÀ embarqué et chargé par les 3 moteurs) et
+`wikt_lex_fr.tsv`. Licence CC BY-SA réglée et citée, précédent déjà livré.
+
+**Ce qui ferme le chantier, c'est le rapport coût/gain — mesuré :**
+
+| | |
+|---|---|
+| entrées `pos=name`, ≥3 lettres, capitalisées | **134 002** |
+| taille | 1 460 Ko brut · **539 Ko gzippés** |
+| à embarquer dans | app FR **+** app EN **+** extension |
+| gain | **3 casses sur 22** (`provence` ✓ `loire` ✓ `opel` ✓) |
+| **non couvert** | `xbox` ✗ · `daeu` ✗ (et `microsoft` ✗) |
+
+⇒ 539 Ko pour **13 %** des casses. Et le détail confirme l'intuition « trop large » : ce qui manque
+est exactement la **queue marques/sigles**, non bornée, qu'aucune liste ne fermera. Risque en prime,
+non mesuré : 134 000 noms propres en minuscules dans une garde d'abstention, c'est autant d'occasions
+de **masquer un vrai typo** qui tomberait sur un toponyme.
+
+**Variante consignée, NON recommandée aujourd'hui** : toponymes français seulement (communes, régions,
+fleuves), sans marques ni international — quelques dizaines de Ko, **2 casses sur 22**.
+
+⚠️ **Fermé par la MESURE. Si le sujet revient, l'argument est le coût/gain, pas « on n'a pas de liste ».**
+
 ## 6. Chantiers, remis dans l'ordre après cette revue
 
 1. **Dominance ≫20× → comparaison en contexte** (reformulé ci-dessus). Le seul chantier restant dont on
