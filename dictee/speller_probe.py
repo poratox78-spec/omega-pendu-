@@ -189,9 +189,21 @@ class Speller:
         for j in range(idx - 1, max(-1, idx - 5), -1):
             t = deacc(toks[j].lower())
             if t in self.COPULA: continue
-            if t in CTX_STOP: return None                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne pas le verbe — « aboit »→aboie, pas « about »
+            if t in CTX_STOP: return None                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne plus
+            # ⛔ « UN PEU » N'EST PAS UN DÉTERMINANT (23/08, gold dys réel). « mais un peu plus chere » :
+            # le `un` de « un peu » était lu comme un déterminant MASCULIN, et la bascule d'accord
+            # d'adjectif retournait `chère` (qui avait pourtant GAGNÉ le classement, priorité 2) en
+            # `cher`. Le mot juste était trouvé puis DÉFAIT par une ancre adverbiale.
+            if t in ('peu', 'peux') or (t in self.DET_G and j + 1 < len(toks)
+                                        and deacc(toks[j + 1].lower()) in ('peu', 'peux')): continue
             if t in self.DET_G: return self.DET_G[t]
-            if toks[j].lower().replace('œ', 'oe').replace('æ', 'ae') not in self.WORDS: continue   # ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GEN déacc ← « trés » nom) → on continue vers le déterminant
+            if toks[j].lower().replace('œ', 'oe').replace('æ', 'ae') not in self.WORDS: continue   # ancre de genre = un VRAI mot écrit : un token abîmé
+            # ⛔ UN NOM NU NE GOUVERNE PAS LE GENRE (23/08, gold dys réel). « elle est donc mois chére » :
+            # `mois` (= « moins » mal écrit, mais nom MASCULIN attesté) servait d'ancre et retournait
+            # `chère` en `cher`. Un nom ne gouverne un attribut que s'il est lui-même DÉTERMINÉ ; sans
+            # déterminant c'est un adverbe, un fragment, ou un mot d'une autre construction. Abstention
+            # pure : on retire une ancre, on n'en ajoute aucune ⇒ le gagnant du classement est conservé.
+            if t in self.GEN and not (j > 0 and deacc(toks[j - 1].lower()) in self.DET_G): continue
             g = self.GEN.get(t)
             if g: return g
         return None
@@ -337,6 +349,26 @@ class Speller:
             nx, ny = nmatch(wx), nmatch(wy)
             if nx != ny: return ny - nx
             return -1 if fx > fy else (1 if fx < fy else 0)
+        # ⚠️⚠️ « RENDRE `_cmp` TRANSITIF » — CONSTRUIT, MESURÉ, FALSIFIÉ (23/08/2026). NE PAS REFAIRE
+        # EN L'ÉTAT. Le constat de départ est JUSTE : `_cmp` est PAIRWISE (les gardes de dominance
+        # comparent deux candidats ENTRE EUX) donc ce n'est PAS un ordre total — A≻B, B≻C, C≻A est
+        # possible. Mesuré en permutant l'ordre des candidats dans le moteur réel : **7 des 602
+        # corrections du gold dys changent de réponse** (1,16 %).
+        # La reformulation essayée : rendre les gardes PAR CANDIDAT (« ce bonus est-il écrasé par le
+        # plus fréquent du lot ? ») pour obtenir une CLÉ de tri, donc un ordre total. Clé exacte
+        # essayée, dans l'ordre : accent-only · pmatch∧¬écrasé · gmatch∧¬écrasé · [fin_aud si
+        # inp_aud] · (prio1 ∧ freq ≥ 10× le meilleur prio0) · phon∧¬écrasé · nmatch · fréquence ·
+        # départage lexical ; avec écrasé(w) = (meilleure freq prio≥1) ≥ 20 × freq(w).
+        # RÉSULTAT MESURÉ (pipeline, 72 productions dys réelles) : **392 réparés / 19 cassés contre
+        # 394 / 19** en pairwise — soit **2 réparations PERDUES pour zéro casse évitée**, et 13
+        # décisions changées dont plusieurs franchement pires (`nape`→tape au lieu de nappe,
+        # `bonbe`→bonne au lieu de bombe, `payssage`→passage au lieu de paysage, `render`/`oblier`
+        # devenus des abstentions). La dominance pairwise encode donc quelque chose qu'une clé
+        # par candidat ne capture pas : « ce candidat-ci est écrasé par CELUI-LÀ », pas « par le lot ».
+        # ⇒ On GARDE le comparateur pairwise. La dette reste ouverte et NOMMÉE : le tri est
+        # REPRODUCTIBLE (cf. `edits1`, ordre de génération) mais pas BIEN DÉFINI. Ce qui est falsifié
+        # est CETTE reformulation, pas l'idée ; mais le prix mesuré (−2 réparations) contre un
+        # problème qui touche 1,16 % des cas en fait un chantier à faible priorité.
         ranked = sorted(cands.items(), key=cmp_to_key(_cmp))
         (w1, (p1, f1)) = ranked[0]
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)

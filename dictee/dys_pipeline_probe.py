@@ -32,6 +32,7 @@ pas la description d'un corpus (cf. le biais mesuré dans ETAT_DES_LIEUX §3ter)
 """
 import os
 import re
+import os as _os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -54,6 +55,8 @@ def pyramide(txt):
     """LA PYRAMIDE, comme `diagnoseAll` : ortho d'abord (marques non-vigilance appliquées aux
     tokens), PUIS grammaire sur les tokens nettoyés. Rend la liste des tokens de sortie."""
     T = CP.toks(txt)
+    orange = {}                                      # i -> suggestions offertes AU CLIC (jamais appliquées)
+    signale = set()                                  # i -> souligné SANS suggestion (« mot inconnu »)
     starts = {m.start(): i for i, m in enumerate(TOK.finditer(txt))}
     Tc = T[:]
     for (st, w, sg, act) in SP.correct_text(txt):
@@ -62,6 +65,10 @@ def pyramide(txt):
             continue
         if act != 'vigilance' and sg.isalpha():
             Tc[i] = sg
+        elif act == 'vigilance' and sg.isalpha() and DP.norm(sg) != DP.norm(w):
+            orange.setdefault(i, []).append(sg)      # proposé, souligné, PAS appliqué
+        elif act == 'vigilance':
+            signale.add(i)                           # SOULIGNÉ sans suggestion : « il y a un problème ici »
     CP._SEG = CP._seg_info(' '.join(Tc))
     out = Tc[:]
     for i in range(len(Tc)):
@@ -83,14 +90,18 @@ def pyramide(txt):
                 except Exception:
                     _tr = 'auto'
                 if _tr == 'vigilance':
+                    orange.setdefault(i, []).append(sg)
                     continue                      # orange : on n'applique pas, on continue de chercher
                 out[i] = sg
                 break
-    return T, out, Tc
+    return T, out, Tc, orange, signale
 
 
 def main():
     rep = rate = casse = intact = 0
+    or_juste = or_faux = muet = sign = 0
+    _dump = [] if _os.environ.get('DUMP_MUETS') else None   # sonde : liste des ratés SILENCIEUX côté Python                # ventilation des RATÉS : que voit vraiment l'utilisateur ?
+    ex_or, ex_orf = [], []
     ex_casse, ex_rep = [], []
     n = 0
     import io as _io, json as _json
@@ -110,7 +121,7 @@ def main():
         # dans le gold. Les compter « cassés » quand le moteur les corrige serait lui reprocher de
         # savoir ce que j'ignore — on les exclut du jugement (cf. protocole, ETAT_DES_LIEUX §5ter).
         amb = amb_par_src.get(brut.strip(), set())
-        T, out, _Tc_ref = pyramide(brut)
+        T, out, _Tc_ref, orange, signale = pyramide(brut)
         al = DP.align(T, [x.group(0) for x in DP.TOK.finditer(gold)])
         for i, w in enumerate(T):
             if not w.isalpha() or i not in al or w.lower() in amb:
@@ -124,6 +135,22 @@ def main():
                     ex_rep.append('%s → %s' % (w, out[i]))
             elif etait_faux:
                 rate += 1
+                # ⭐ L'ORANGE EST-IL LÀ POUR ÇA ? (question de Rem, 23/08). Un « raté » n'est pas
+                # forcément un silence : le moteur peut avoir PROPOSÉ la bonne forme au clic. On
+                # ventile donc : rattrapable en un clic / bruit orange / muet.
+                _props = orange.get(i, [])
+                _bons = [x for x in _props if DP.eq(x, g)]
+                if _bons:
+                    or_juste += 1
+                    if len(ex_or) < 8: ex_or.append('%s → %s' % (w, _bons[0]))
+                elif _props:
+                    or_faux += 1
+                    if len(ex_orf) < 8: ex_orf.append('%s → %s (gold %s)' % (w, _props[0], g))
+                elif i in signale:
+                    sign += 1                        # souligné sans suggestion : vu, pas réparable
+                else:
+                    muet += 1
+                    if _dump is not None: _dump.append({'src': brut[:60], 'mot': w, 'gold': g})
             elif not fini_juste:
                 casse += 1
                 if len(ex_casse) < 60:
@@ -152,6 +179,22 @@ def main():
     print('  mots FAUX au départ : %d' % faux)
     print('     · RÉPARÉS  : %4d   (%.1f %% des fautes)   ← le gain' % (rep, 100.0 * rep / max(1, faux)))
     print('     · ratés    : %4d   (%.1f %%)              occasion manquée, pas une faute' % (rate, 100.0 * rate / max(1, faux)))
+    print()
+    print("  -- LES RATES, VENTILES : que voit REELLEMENT l'utilisateur ? --")
+    print('     - rattrapable EN UN CLIC : %4d  (%.1f %% des rates)  un ORANGE est propose, et il est JUSTE'
+          % (or_juste, 100.0 * or_juste / max(1, rate)))
+    print('     - bruit orange           : %4d  (%.1f %%)             un orange est propose, mais il est FAUX'
+          % (or_faux, 100.0 * or_faux / max(1, rate)))
+    print('     - signale SANS suggestion: %4d  (%.1f %%)             souligne « mot inconnu » : vu, pas reparable'
+          % (sign, 100.0 * sign / max(1, rate)))
+    print('     - MUET (aveugle)         : %4d  (%.1f %%)             rien du tout : pas meme un soulignement'
+          % (muet, 100.0 * muet / max(1, rate)))
+    if ex_or:  print('     exemples rattrapables :', ' | '.join(ex_or[:6]))
+    if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
+    if _dump is not None:
+        import json as _j
+        _io.open(_os.environ['DUMP_MUETS'], 'w', encoding='utf-8').write(_j.dumps(_dump, ensure_ascii=False))
+        print('     (dump des muets ecrit : %d)' % len(_dump))
     print('  mots JUSTES au départ : %d' % juste)
     print('     · intacts  : %4d   (%.2f %%)' % (intact, 100.0 * intact / max(1, juste)))
     print('     · ⛔ CASSÉS : %3d   (%.2f %%)              ← LA métrique' % (casse, 100.0 * casse / max(1, juste)))

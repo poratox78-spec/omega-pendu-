@@ -26296,9 +26296,9 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
   function sGender(w){var dw=deaccS(w);if((SP.POS[w]||'').indexOf('A')>=0){var a=ADJP[dw];if(a)return a[0];}var g=GENDER_PURE[dw]||GENDER_MAP[dw];return (g==='m'||g==='f')?g:null;}  // table adj SEULEMENT si adjectif (évite collision pomme/pommé) ; sinon genre du nom
   function _homophoneEdit1(low){var d=deaccS(low),pk=phonKey(low),e1=sEdits1(d),i,j;for(i=0;i<e1.length;i++){var a=SP.D2A[e1[i]];if(!a)continue;for(j=0;j<a.length;j++){var w=a[j];if(w!==low&&(SP.FREQ[w]||0)>=1.0&&/V/.test(SP.POS[w]||'')&&phonKey(w)===pk)return true;}}return false;}   // un VERBE du lexique à 1 édition et de même clé phonétique existe (aboit→aboie) : la soudure « a + verbe » s'efface devant lui
   var SCTX_STOP={};('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme').split(' ').forEach(function(w){SCTX_STOP[w]=1;});   // frontière de proposition : le genre de « un » ne traverse pas « qui » (« un chien qui aboit »→aboie, pas about). Miroir Python CTX_STOP.
-  function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;if(DET_G[t])return DET_G[t];
+  function sCtxGender(T,idx){if(!T||idx==null)return null;for(var j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SCOPULA[t])continue;if(SCTX_STOP[t])return null;if(t==='peu'||t==='peux'||(DET_G[t]&&j+1<T.length&&(deaccS(T[j+1].toLowerCase())==='peu'||deaccS(T[j+1].toLowerCase())==='peux')))continue;if(DET_G[t])return DET_G[t];
     if(!SP.WORDS.has(T[j].toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae')))continue;   // ancre de genre = un VRAI mot écrit : un token fautif (« tres ») porte un genre pollué (GENDER_PURE déacc ← « trés » nom) → on continue vers le déterminant
-    var g=GENDER_PURE[t];if(g==='m'||g==='f')return g;}return null;}
+    var g=GENDER_PURE[t];if((g==='m'||g==='f')&&!(j>0&&DET_G[deaccS(T[j-1].toLowerCase())]))continue;if(g==='m'||g==='f')return g;}return null;}
   function sCtxNumber(T,idx){if(!T||idx==null)return null;var back=null,bdist=99,j;
     for(j=idx-1;j>=Math.max(0,idx-4);j--){var t=deaccS(T[j].toLowerCase());if(SDET_NUM[t]){back=SDET_NUM[t];bdist=idx-j;break;}}
     if(back!==null&&bdist===1)return back;   // déterminant COLLÉ = preuve la plus forte
