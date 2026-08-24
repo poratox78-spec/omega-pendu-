@@ -27582,12 +27582,12 @@ function spellTokenCore(tok,atStart,T,idx){
      (« sous-espèce » → sous, espèce) et `ponctReglesVirgule(mots,tg,deja)` est la SEULE primitive du
      moteur à ne jamais recevoir `seg` : les 16 autres usages de `_SEG.hy` la protègent, pas elle.
      On la garde au point d'appel — la voix, qui appelle la même primitive, reste inchangée. */
-  function _virguleScan(t){
+  function _virguleScan(text){
     var out=[];
-    if(!t||typeof ponctReglesVirgule!=='function')return out;
-    var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,P=[];while((m=re.exec(t)))P.push([m.index,m.index+m[0].length,m[0]]);
+    if(!text||typeof ponctReglesVirgule!=='function')return out;
+    var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,P=[];while((m=re.exec(text)))P.push([m.index,m.index+m[0].length,m[0]]);
     if(P.length<3)return out;
-    var mots=P.map(function(p){return p[2].replace(/[’ʼ]/g,"'");}),seg=_segInfo(t),k;
+    var mots=P.map(function(p){return p[2].replace(/[’ʼ]/g,"'");}),seg=_segInfo(text),k;
     var deja={};for(k=0;k<P.length;k++)if(seg.bb[k])deja[k-1]=1;   // une marque est DÉJÀ posée après le mot k-1
     var tg=null;try{tg=posTags(mots);}catch(e){}
     var idx=null;try{idx=ponctReglesVirgule(mots,tg,deja);}catch(e){return out;}
@@ -27596,13 +27596,13 @@ function spellTokenCore(tok,atStart,T,idx){
       if(i<0||i+1>=P.length)return;
       if(seg.bb[i+1])return;                                  // marque déjà présente
       if(seg.hy[i+1])return;                                  // ⛔ composé : « sous-espèce » ne se coupe pas
-      var cs=P[i][1],ce=P[i+1][0],gap=t.slice(cs,ce);
+      var cs=P[i][1],ce=P[i+1][0],gap=text.slice(cs,ce);
       if(!gap||/[^ \t]/.test(gap))return;                     // seulement un blanc simple entre les deux mots
       out.push({cs:cs,ce:ce,from:gap,sugg:','+gap,name:'virgule',tier:'vigilance',typo:1});
     });
     return out;}
 
-  function _questionScan(t){var out=[];
+  function _questionScan(text){var out=[];
     /* « ? » MANQUANT — la seule ponctuation SYNTAXIQUE qu'on puisse proposer aujourd'hui, parce que
      c'est la seule dont on connaisse le prix : `estQuestion` fait 96,67 % de précision (58/60,
      `node dictee/question_bench.js`) et 95,83 % sur 72 498 cas réels dont 27 145 FRAGMENTS. À comparer
@@ -27613,7 +27613,7 @@ function spellTokenCore(tok,atStart,T,idx){
      ⚠️ On ne touche QUE la phrase terminée par un POINT ou par RIEN. Un « ! » ou un « … » est un choix
      d'auteur (question rhétorique, suspension) — on ne le contredit pas. */
   var _qre=/[^.!?…]+(?:[.!?…]+|$)/g,_qm;
-  while((_qm=_qre.exec(t))){
+  while((_qm=_qre.exec(text))){
     var _qs=_qm[0],_qfin=_qs.replace(/\s+$/,''),_qlast=_qfin.slice(-1);
     if(!_qfin)continue;
     if(_qlast!=='.'&&/[.!?…]/.test(_qlast))continue;            // ! … ? déjà là ou voulus
