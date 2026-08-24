@@ -77,7 +77,11 @@ def bits_b2(txt, ck, dev):
 def main(n=4000):
     import torch
     ck_p = None
-    for f in ('b2_model_14m_cu.pt', 'b2_model_14m.pt', 'b2_model.pt'):
+    # ⚠️ ORDRE IMPORTANT — b2_model_14m.pt AVANT la variante _cu (curriculum). Une 1re version
+    # prenait `_cu` en premier et annonçait 2,04 bits/caractere : c'est le modele CURRICULUM, qui
+    # est MESURE MOINS BON EN LANGUE GENERALE que la base (1,781 contre 2,021 sur le meme
+    # held-out). Le chiffre publie sous-estimait donc B2 de 13 %.
+    for f in ('b2_model_14m.pt', 'b2_model_14m_cu.pt', 'b2_model.pt'):
         q = os.path.join(DATA, f)
         if os.path.exists(q): ck_p = q; break
     if ck_p is None:
