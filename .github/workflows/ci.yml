@@ -126,6 +126,8 @@ jobs:
         run: node dictee/proso_probe.js
       - name: Typographie ROUGE — espaces autour de « , » et « . » + parité
         run: node dictee/typo_probe.js
+      - name: Miroir PONCTUATION app↔extension — 5 blocs miroités à la main
+        run: node dictee/miroir_ponct_probe.js
       - name: Parité OCTET du moteur vocal — site == extension
         run: node dictee/voix_parite_probe.js
       - name: Audit structurel du pipeline vocal — 4000 dictées, chaînage et conflits
