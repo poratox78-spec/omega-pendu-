@@ -34,7 +34,9 @@ def main():
     print("=== double voie SON : lexicale exacte, sublexicale pour l'OOV ===")
     r = D.decompose('oiseau')
     check(r['src_phon'] == 'lex' and r['phono'] == 'wazo', "oiseau : route lexicale exacte")
-    check(D.decompose('chevaux')['src_phon'] == 'sublex', "chevaux : route sublexicale (OOV)")
+    r = D.decompose('chevaux')
+    check(r['src_phon'] == 'lex-morphalou' and r['phono'] == 'S°vo', "chevaux : route lexicale Morphalou (build_phon_morphalou.py)")
+    check(D.decompose('antibrouillage')['src_phon'] == 'sublex', "antibrouillage : route sublexicale (OOV, absent de Lexique ET Morphalou)")
 
     print("=== apprend (FP=0 : 'lex' jamais écrasé par 'sublex') ===")
     lex = {'_meta': {'lus': 0, 'phon_inv': {}, 'graph_inv': {}}}

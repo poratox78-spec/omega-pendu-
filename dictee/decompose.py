@@ -67,6 +67,20 @@ def _load_lexical_phon():
     return w2p, group
 W2P, GROUP = _load_lexical_phon()
 
+# ── AJOUT Morphalou (build_phon_morphalou.py) : mots absents de phono_homophones (qui ne connaît
+# QUE les mots ayant un homophone — de/je/le/que/ne n'en ont pas, donc en étaient absents malgré
+# leur fréquence extrême). ⚠️ NE PAS mélanger dans W2P lui-même : W2P sert de VÉRITÉ-TERRAIN à
+# --measure/inlex_split/word_units (phono Lexique EXACT par construction) — y verser du Morphalou
+# (82,4 % exact, mesuré) pollue la mesure du g2p (bug trouvé 2026-08-24 : exact chute de 52,4 % à
+# 39,2 % dans --measure quand W2P contenait le mélange). PHON_MORPHALOU reste un dict À PART,
+# consulté SEULEMENT en repli par decompose() — jamais par la mesure ni l'alignement p2g.
+def _load_morphalou_phon():
+    p = os.path.join(HERE, 'phono_morphalou.json')
+    if not os.path.exists(p):
+        return {}
+    return json.load(open(p, encoding='utf-8'))
+PHON_MORPHALOU = _load_morphalou_phon()
+
 def _load_json(name, default):
     p = os.path.join(HERE, name)
     try:
@@ -279,11 +293,16 @@ def decompose(word, accents=True):
     w = word.strip().lower()
     letters = KEEP.sub('', w)
     sub_sampa, sub_ipa, graph, hmean = sublexical_phon(w, accents=accents)
-    # SON — route lexicale prioritaire (exacte), sinon sublexicale (g2p) pour l'OOV
+    # SON — route lexicale Lexique (exacte) > route lexicale Morphalou (82,4 % mesuré, mots SANS
+    # homophone donc absents de W2P — de/je/le/que...) > sublexicale (g2p) pour le reste des OOV.
     lex_phono = W2P.get(w)
+    morph_phono = PHON_MORPHALOU.get(w) if lex_phono is None else None
     if lex_phono is not None:
         phono, src_phon = lex_phono, 'lex'
         nbhomoph = max(0, GROUP.get(lex_phono, 1) - 1)
+    elif morph_phono is not None:
+        phono, src_phon = morph_phono, 'lex-morphalou'
+        nbhomoph = 0                                  # inconnu (Morphalou ne rend pas les homophones)
     else:
         phono, src_phon = sub_sampa, 'sublex'
         nbhomoph = GROUP.get(sub_sampa, 0)            # nb de mots Lexique homophones du son PRÉDIT (0 si inédit)
@@ -318,11 +337,11 @@ def fmt(rec):
     al = '  '.join(f"{a['g']}→{a['ph'] or '∅'}" for a in rec['alignement'])
     L.append(f"  ORTHO  graphèmes : {al}")
     L.append(f"         syllabes  : {'-'.join(rec['syll_ortho'])}")
-    rt = 'lexicale (Lexique)' if rec['src_phon'] == 'lex' else 'sublexicale (g2p, OOV)'
+    rt = {'lex': 'lexicale (Lexique)', 'lex-morphalou': 'lexicale (Morphalou)'}.get(rec['src_phon'], 'sublexicale (g2p, OOV)')
     L.append(f"  SON    phono     : /{rec['phono']}/   [IPA {rec['phono_ipa'] or '∅'}]   route {rt}")
     L.append(f"         {rec['nbphons']} phonèmes · {rec['nbsyll']} syllabe(s) : "
              f"{'-'.join(rec['syll_phon'])} · CV={rec['cv']}")
-    if rec['src_phon'] == 'lex' and rec['sublex_phono'] != rec['phono']:
+    if rec['src_phon'] in ('lex', 'lex-morphalou') and rec['sublex_phono'] != rec['phono']:
         L.append(f"         (prédiction sublexicale : /{rec['sublex_phono']}/ — diverge, confiance {rec['confiance']})")
     gram = '/'.join(rec['cgram']) if rec['cgram'] else '—'
     g = {'m': 'masculin', 'f': 'féminin'}.get(rec['genre'], '—')
