@@ -18,6 +18,7 @@ DYSCORE.setLex(vdc, grText, zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'ass
 DYSCORE.setNounPost(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'noun-post.txt.gz'))).toString('utf8'));        // posterior §3 (parité genre + accord pluriel du nom)
 DYSCORE.setPosHmm(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'pos-hmm.json.gz'))).toString('utf8')));   // POS-tagger HMM (parité son/sont sujet-nom via posTags)
 DYSCORE.setPrenoms(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'prenoms.tsv.gz'))).toString('utf8'));   // GENRE des PRÉNOMS : sans cette injection l'extension testée n'aurait aucun prénom et la parité serait verte sur une règle qui ne tourne pas.
+DYSCORE.setGaccLex(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'gender-acc.json.gz'))).toString('utf8'));   // genre ACCENTUÉ complet (Morphalou 2026-08-24) : même piège que ci-dessus sans cette injection.
 
 // 2) même batterie que dictee/parity_corr.js (homophones + accord + genre + mais/mes + j'est + pluriel du nom)
 const PHRASES = [
@@ -294,6 +295,23 @@ for (const ph of _R8_NON) {
   if (got.length) { _r8++; console.log('✗ R8 piège : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg + '[' + f.name + ']'))); }
 }
 if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); process.exit(1); }
+
+/* GARDE GENRE ACCENTUÉ (Morphalou, PR#573→) — « app ⊆ Python » unidirectionnel : sans _GACC câblé,
+   les règles qui consultent _nounGender(...,true) resteraient MUETTES sur les mots dont le genre
+   n'existe QUE dans gender_acc.json (« lettre » : absent du désaccentué, clé partagée avec « lettré »),
+   et la parité resterait verte par omission. Vérifié en direct (navigateur, 2026-08-24) sur
+   rPpEpithetFem/rPpEpithetNum ; rPpAvoirCod (COD antéposé, gardes les plus lourdes) n'a pas encore
+   d'exemple confirmé — pas d'assertion non vérifiée ici, à ajouter une fois trouvé un cas qui passe
+   toutes ses gardes (segmentation/position du « que »). */
+const _GACC_T = [["Une lettre rédigé est arrivée hier.", 'rédigée'],
+                 ["Les lettres rédigé ont été postées.", 'rédigées'],
+                 ["Je cherche la lettre qu'il a envoyé hier.", 'envoyée']];
+let _gacc = 0;
+for (const [ph, att] of _GACC_T) {
+  const got = DYSCORE.correctText(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(att)) { _gacc++; console.log('✗ GENRE ACCENTUÉ : ' + JSON.stringify(ph) + ' doit donner « ' + att + ' », eu ' + JSON.stringify(got)); }
+}
+if (_gacc) { console.log('PARITÉ KO — ' + _gacc + ' cas « genre accentué » (gender_acc.json/_GACC).'); process.exit(1); }
 
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`

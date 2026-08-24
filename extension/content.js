@@ -38,7 +38,8 @@
       nom: nomUrl,
       hmm: chrome.runtime.getURL('assets/pos-hmm.json.gz'),   // POS-tagger HMM : l'asset était LIVRÉ mais jamais chargé → ~7 règles rouges (accord/épithète via tagger) inertes dans le navigateur (audit 07/2026)
       osLm: chrome.runtime.getURL('assets/os-subj-lm.json.gz'),   // LM OS-sujet : orange « accord verbe à vérifier » sur le résiduel « de N »
-      prenoms: chrome.runtime.getURL('assets/prenoms.tsv.gz')   // PRÉNOMS : même trou que le HMM jadis — asset livré, jamais chargé (banc navigateur réel 2026-08-21)
+      prenoms: chrome.runtime.getURL('assets/prenoms.tsv.gz'),   // PRÉNOMS : même trou que le HMM jadis — asset livré, jamais chargé (banc navigateur réel 2026-08-21)
+      gacc: chrome.runtime.getURL('assets/gender-acc.json.gz')   // genre ACCENTUÉ complet (Morphalou, 2026-08-24) : additif, indépendant
     }).then(function () { if (active) schedule(active);
       try { chrome.storage.local.set({ omdysStatus: { ready: !!(DC.isReady && DC.isReady()), words: (DC.lexSize ? DC.lexSize() : null) } }); } catch (e) {}   // état pour le popup
     }).catch(function (e) { try { chrome.storage.local.set({ omdysStatus: { ready: false, error: String(e && e.message || e) } }); } catch (e2) {} });
