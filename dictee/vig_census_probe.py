@@ -50,8 +50,12 @@ def main():
     etat = {'justes': len(justes), 'pointeuses': len(pointeuses), 'fatigue': len(fatigue),
             'cles_justes': sorted(justes)}
     if FIX or not os.path.exists(REF):
+        anc = json.load(io.open(REF, encoding='utf-8')) if os.path.exists(REF) else {}
         json.dump({'justes': etat['justes'], 'pointeuses': etat['pointeuses'],
                    'fatigue': etat['fatigue'], 'cles_justes': etat['cles_justes'],
+                   # ⭐ la dette SURVIT au ré-ancrage : sans ça, `--fix` effacerait la mémoire de ce
+                   # qui a été perdu, et c'est précisément comme ça qu'une régression devient normale.
+                   'regressions_connues': anc.get('regressions_connues', []),
                    'note': u"effectifs de référence du census (post-cartes PR#523-524) ; le cas sais→s'est de texte4 "
                            u"reste compté SIGNALE_AUTRE ici car le juge B2 (opt-in, WebGPU) est invisible aux harnais Node — "
                            u"sa couverture est prouvée par b2_web_probe (bout-en-bout navigateur)."},
@@ -60,10 +64,23 @@ def main():
         return 0
     ref = json.load(io.open(REF, encoding='utf-8'))
     err = []
+    # ⚠️ COMPTER AVEC MULTIPLICITÉ (2026-08-24). Le rapport se CONTREDISAIT : il annonçait l'écart NET
+    # (« 1 orange perdue ») puis listait une différence d'ENSEMBLES, qui écrase les doublons — or la
+    # référence en a beaucoup (« avce→avec » ×4, « estt→est » ×5). Réel ce jour-là : 13 perdues et
+    # 12 gagnées, pour un net de 1. Deux chiffres qui ne mesuraient pas la même chose dans le même
+    # message : on ne pouvait pas savoir si le chantier avait déplacé un mot ou vingt-cinq.
+    from collections import Counter
+    ca, cr = Counter(etat['cles_justes']), Counter(ref.get('cles_justes', []))
+    perdues = sorted([(k, cr[k] - ca[k]) for k in cr if ca[k] < cr[k]])
+    gagnees = sorted([(k, ca[k] - cr.get(k, 0)) for k in ca if ca[k] > cr.get(k, 0)])
+    nb_p, nb_g = sum(n for _, n in perdues), sum(n for _, n in gagnees)
     if etat['justes'] < ref['justes']:
-        perdues = set(ref.get('cles_justes', [])) - set(etat['cles_justes'])
-        err.append(u'%d orange(s) JUSTE(S) PERDUE(S) :' % (ref['justes'] - etat['justes']))
-        for p in sorted(perdues): err.append(u'    − ' + p)
+        err.append(u'%d orange(s) juste(s) PERDUE(S) et %d GAGNÉE(S) — net %+d :'
+                   % (nb_p, nb_g, etat['justes'] - ref['justes']))
+        for p, n in perdues: err.append(u'    − ' + p + (u'  (×%d)' % n if n > 1 else u''))
+        if gagnees:
+            err.append(u'  gagnées (elles ne compensent pas : ce ne sont pas les mêmes mots) :')
+            for p, n in gagnees: err.append(u'    + ' + p + (u'  (×%d)' % n if n > 1 else u''))
     if etat['pointeuses'] < ref['pointeuses'] - 2:                     # tolérance 2 (bruit d'alignement)
         err.append(u'pointeuses %d < référence %d (au-delà de la tolérance)' % (etat['pointeuses'], ref['pointeuses']))
     if etat['justes'] > ref['justes']:
@@ -74,6 +91,21 @@ def main():
         return 1
     print(u'✓ CENSUS : justes %d/%d · pointeuses %d (réf %d) · fatigue %d (réf %d — sa baisse est un GAIN)' %
           (etat['justes'], ref['justes'], etat['pointeuses'], ref['pointeuses'], etat['fatigue'], ref['fatigue']))
+    # ⭐ DETTE VISIBLE. Ré-ancrer une référence sur un état DÉGRADÉ, c'est enterrer la perte : le
+    # lendemain plus personne ne sait qu'elle a eu lieu. Les régressions connues restent donc listées
+    # ICI et réaffichées à CHAQUE run vert — pas en note, pas en commit, dans l'instrument lui-même.
+    # Si l'une redevient juste, la sonde le dit : c'est le signal pour ré-ancrer À LA HAUSSE.
+    reg = ref.get('regressions_connues') or []
+    if reg:
+        vus = set(etat['cles_justes'])
+        reparees = [r for r in reg if r.get('cle_si_reparee') in vus]
+        print(u'  ⚠️ %d régression(s) CONNUE(S) et non réparée(s) — le correcteur propose un mot FAUX :' % (len(reg) - len(reparees)))
+        for r in reg:
+            if r.get('cle_si_reparee') in vus: continue
+            print(u'      %-12s → %-11s (au lieu de %s)   depuis %s' % (r['mot'], r['obtenu'], r['attendu'], r['depuis']))
+        if reparees:
+            print(u'  ✓ %d régression(s) RÉPARÉE(S) : %s → ré-ancrer à la hausse (--fix)'
+                  % (len(reparees), ', '.join(r['mot'] for r in reparees)))
     return 0
 
 if __name__ == '__main__':
