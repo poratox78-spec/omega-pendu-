@@ -33,13 +33,26 @@ const _HORS_NAV = {
 /* Pages-OUTIL sans <nav> assumée : plein écran, on en sort par le bouton retour de la page. */
 const _SANS_NAV_OK = {};
 
+/* Un lien du site est desormais SANS EXTENSION (`correcteur`, `./`, `docs/MEMOIRE`). Ce banc
+   raisonne en FICHIERS : on retraduit. `./` et `` = l'accueil du repertoire courant. */
+function versFichier(u){
+  if (!u) return null;
+  if (u.endsWith('.html')) return u;
+  if (u === './' || u === '' || u === '.') return 'index.html';
+  if (u.endsWith('/')) return u + 'index.html';
+  if (/\.[a-z0-9]{2,4}$/i.test(u)) return null;     // .css, .js, .png… : pas une page
+  return u + '.html';
+}
+
 /* ---------- ① ce que nav.js sert VRAIMENT (source unique du menu) ---------- */
 function groupesNav(nomVar){
   const src = fs.readFileSync(path.join(RACINE, 'nav.js'), 'utf8');
   const i = src.indexOf('var ' + nomVar + ' = [');
   if (i < 0) return null;
   const bloc = src.slice(i, src.indexOf('\n  ];', i));
-  return new Set([...bloc.matchAll(/\['([^']+\.html)'\s*,/g)].map(m => m[1]));
+  /* URL SANS EXTENSION (SEO 08/2026) : nav.js ne pointe plus vers `.html` (Cloudflare y repond
+     308, ce que Google classait « Page avec redirection »). On RE-RESOUT vers le fichier. */
+  return new Set([...bloc.matchAll(/\['([^']+)'\s*,/g)].map(m => versFichier(m[1])).filter(Boolean));
 }
 
 const SITES = [
@@ -57,7 +70,8 @@ for (const site of SITES) {
   const lire = (p) => fs.readFileSync(path.join(abs, p), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
   /* Un lien commenté n'est pas un lien ; les liens externes et ../ sortent de la langue. */
   const liensDe = (p) => [...lire(p).matchAll(/href="([^"#?]+)"/g)].map(m => m[1])
-      .filter(u => u.endsWith('.html') && !/^(https?:)?\/\//.test(u) && !u.startsWith('../'))
+      .filter(u => !/^(https?:)?\/\//.test(u) && !u.startsWith('../') && !u.startsWith('/'))
+      .map(versFichier).filter(Boolean)
       .map(u => u.split('/').pop());
 
   /* ① AVEC JS — le menu centralisé, plus ce qu'il permet d'atteindre de proche en proche. */

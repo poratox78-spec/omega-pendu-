@@ -11,24 +11,24 @@
   // Groupes → [libellé de section, [ [href, texte], ... ] ]. hrefs relatifs à la racine du site (pages fr).
   var GROUPS = [
     ['Outils dys', [
-      ['correcteur.html', 'Le correcteur'],
-      ['dictee.html', 'La dictée'],
-      ['saisie-vocale.html', 'Saisie vocale'],
+      ['correcteur', 'Le correcteur'],
+      ['dictee', 'La dictée'],
+      ['saisie-vocale', 'Saisie vocale'],
     ]],
     ['Jeux', [
-      ['index.html', 'Le pendu'],
-      ['scrabidon.html', 'Scrabidon'],
-      ['pendable.html', 'Pendable'],
-      ['double-sens.html', 'Double-Sens'],
+      ['./', 'Le pendu'],
+      ['scrabidon', 'Scrabidon'],
+      ['pendable', 'Pendable'],
+      ['double-sens', 'Double-Sens'],
     ]],
     ['Recherche', [
-      ['recherche.html', 'La recherche'],
-      ['donnees.html', 'Données'],
-      ['arbitrage.html', "L'arbitrage"],
-      ['evolution.html', "L'évolution"],
+      ['recherche', 'La recherche'],
+      ['donnees', 'Données'],
+      ['arbitrage', "L'arbitrage"],
+      ['evolution', "L'évolution"],
     ]],
     ['Plus', [
-      ['omega-key.html', 'OMEGA·KEY'],
+      ['omega-key', 'OMEGA·KEY'],
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
     ]],
   ];
@@ -37,21 +37,21 @@
   // Centralisé ici pour tuer la dérive (« Dictation » manquait sur 6 pages/8, dont l'accueil).
   var GROUPS_EN = [
     ['Dyslexia tools', [
-      ['correcteur.html', 'Corrector'],
-      ['dictee.html', 'Dictation'],
+      ['correcteur', 'Corrector'],
+      ['dictee', 'Dictation'],
       ['decompose-outil.html', 'Decompose'],
     ]],
     ['Play', [
-      ['index.html', 'The Hangman'],
+      ['./', 'The Hangman'],
     ]],
     ['Research', [
-      ['recherche.html', 'Research'],
-      ['donnees.html', 'Data'],
-      ['arbitrage.html', 'Arbitration'],
-      ['evolution.html', 'Evolution'],
+      ['recherche', 'Research'],
+      ['donnees', 'Data'],
+      ['arbitrage', 'Arbitration'],
+      ['evolution', 'Evolution'],
     ]],
     ['More', [
-      ['omega-key.html', 'OMEGA·KEY'],
+      ['omega-key', 'OMEGA·KEY'],
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
     ]],
   ];

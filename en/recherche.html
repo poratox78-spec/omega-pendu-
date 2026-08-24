@@ -26,13 +26,13 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="wrap">
-  <a class="brand" href="index.html">OMEGA<b>·Ω</b></a>
+  <a class="brand" href="./">OMEGA<b>·Ω</b></a>
   <nav aria-label="Main">
-    <a href="index.html">The Hangman</a>
-    <a href="correcteur.html">The corrector</a>
-    <a href="recherche.html" aria-current="page">Research</a>
-    <a href="evolution.html">Evolution</a>
-    <a href="omega-key.html">OMEGA·KEY</a>
+    <a href="./">The Hangman</a>
+    <a href="correcteur">The corrector</a>
+    <a href="recherche" aria-current="page">Research</a>
+    <a href="evolution">Evolution</a>
+    <a href="omega-key">OMEGA·KEY</a>
     <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
     <button id="dys-toggle" type="button" aria-pressed="false" title="More readable font (dyslexia)">🔤 Readable</button>
   </nav>
@@ -190,16 +190,16 @@
   <p><strong>A wall falls&nbsp;: «&nbsp;real-word&nbsp;» agreement via Hangman's arbitration.</strong> The hardest error is the one where the word is <em>already valid</em>, only mis-agreed&nbsp;: «&nbsp;les enfants <em>joue</em>&nbsp;», «&nbsp;les rapports que l'entreprise <em>livrera</em>&nbsp;». The literature calls it <strong>the central problem</strong> of the corrector (Wilcox-O'Hearn, 2014)&nbsp;: to settle it you must recover the <strong>subject</strong>, often out of reach («&nbsp;de N&nbsp;» complements, distant subject, coordination). Our agreement parser <em>abstains</em> there — which is exactly what holds its zero false positives. Measured&nbsp;: no subject cue <em>alone</em> clears this wall (the best cue tops out at 81&nbsp;%), and naive combinations — adding, multiplying the cues — <strong>go haywire</strong> (two cues out of three loop endlessly on «&nbsp;the word is correct&nbsp;»). What cracked it was <strong>Hangman's arbitration machinery itself</strong>&nbsp;: blending the subject cues, weighting them by their <em>reliability</em> — the same law <code>μ = r/(1+r)</code> that makes OMEGA play at oracle level — a small language model carrying the <strong>confidence</strong> that makes the sorting useful. On the cases the parser gives up, this arbitration recovers the subject's number at <strong>~94–97&nbsp;%</strong>. Shipped as <strong>vigilance</strong> (it suggests «&nbsp;to check&nbsp;», never rewrites&nbsp;: zero false positives stays intact), identically in the three engines. <strong>Validated on our real dys corpus</strong>&nbsp;: on the chat register, <strong>0&nbsp;% false alarms</strong> — and real catches in the wild («&nbsp;des haies qui <em>délimite</em>&nbsp;»→délimitent). The same referee that wins at Hangman has just brought down a barrier of French thought to be out of reach for so light a tool — no big model, in a browser tab.</p>
   <p><strong>And part of that wall falls even in <em>red</em>&nbsp;: the subject isn't always right beside.</strong> The arbitration above lives in <em>vigilance</em> because, when the subject is just a neighboring noun, it can't be told apart from a complement for sure. But there's a family where the subject, <em>absent from beside the verb</em>, can still be recovered <strong>with certainty</strong> — and there, the correction becomes assertive again, at zero false positives. The principle&nbsp;: the subject can be read somewhere other than right in front. In «&nbsp;les chats mangent et <em>dort</em>&nbsp;», the <strong>sibling verb</strong> «&nbsp;mangent&nbsp;» carries the number of the shared subject; in «&nbsp;les enfants <em>que je vois</em> <em>joue</em>&nbsp;», the relative clause's <strong>antecedent</strong> carries it (likewise through «&nbsp;dont&nbsp;», «&nbsp;où&nbsp;»); in «&nbsp;les livres, <em>malgré leur prix</em>, <em>reste</em> chers&nbsp;», the subject and its verb are in the same clause, just <strong>split by an interjected phrase</strong>. Four screens, four rules — each anchored on an <em>audible</em> signal (the plural «&nbsp;les&nbsp;»/«&nbsp;des&nbsp;» you hear, where the verb's marking is silent) and guarded by a net that rules out false friends (noun-verb homographs, invariable colors, enumerations). Measured&nbsp;: <strong>0 false positives on 2,500 correct sentences</strong> and on batteries of tricky traps (comparatives, complement clauses, «&nbsp;de N&nbsp;» complements). The frontier stays honest&nbsp;: the general complement-subject («&nbsp;la couleur <em>de la voiture</em>&nbsp;») remains on the vigilance side — but the <em>structurally recoverable</em> part of the wall is now corrected outright.</p>
   <p class="src" style="font-size:.85em;opacity:.75"><strong>Sources</strong>&nbsp;: dys typology — <em>Bodard 2020</em> (JEP-TALN-RÉCITAL), <em>Plisson &amp; Daigle 2013</em> (Dyslexia); «&nbsp;real-word&nbsp;» detection — <em>Wilcox-O'Hearn 2014</em> (arXiv:1408.3153); corpora — <em>WiCoPaCo</em> (Max &amp; Wisniewski 2010, LREC, GFDL), FFDys dys corpus / Dys ASEI platform (private, not redistributed); lexicon — <em>Lexique</em> (New et al. 2004); FP guard — <em>Universal Dependencies</em> French-GSD (CC BY-SA). Full details&nbsp;: report §18.5.</p>
-  <p><a class="btn ghost" href="index.html">See OMEGA, the product side →</a></p>   <!-- Rem's SEO choice: the HANGMAN (index) is the site's main entry point — do not "fix" this link -->
+  <p><a class="btn ghost" href="./">See OMEGA, the product side →</a></p>   <!-- Rem's SEO choice: the HANGMAN (index) is the site's main entry point — do not "fix" this link -->
 </div></section>
 
 <section id="toile"><div class="wrap">
   <h2>The corrector's web&nbsp;: everything is interconnected</h2>
   <p>The corrector isn't a stack of rules&nbsp;: it's a <strong>network</strong>. Every rule draws on <strong>lexicons</strong>, on <strong>engines</strong> (POS tagger, speller, subject referee) and on <strong>context signals</strong> (audible determiner, non-adjacent subject, punctuation) to decide between <strong style="color:#e2504a">red</strong> — a sure correction, zero false positives — and <strong style="color:#e8a247">orange</strong> — vigilance, when doubt remains. Hover a node to light up its threads.</p>
   <div style="border:1px solid rgba(128,110,70,.28);border-radius:14px;overflow:hidden;background:#15120d;margin-top:1.1rem;box-shadow:0 10px 34px rgba(0,0,0,.14)">
-    <iframe src="../toile.html" title="Interactive web of the OMEGA-Ω corrector architecture — sources, structures, engines, rules and context, interconnected" loading="lazy" style="display:block;width:100%;height:min(80vh,720px);min-height:460px;border:0"></iframe>
+    <iframe src="../toile" title="Interactive web of the OMEGA-Ω corrector architecture — sources, structures, engines, rules and context, interconnected" loading="lazy" style="display:block;width:100%;height:min(80vh,720px);min-height:460px;border:0"></iframe>
   </div>
-  <p class="note" style="margin-top:.7rem"><a href="../toile.html" target="_blank" rel="noopener">Open the web full-screen ↗</a> — 36 nodes, 7 families; drag-and-drop to rearrange, filter by family.</p>
+  <p class="note" style="margin-top:.7rem"><a href="../toile" target="_blank" rel="noopener">Open the web full-screen ↗</a> — 36 nodes, 7 families; drag-and-drop to rearrange, filter by family.</p>
 </div></section>
 
 <section><div class="wrap">
@@ -235,8 +235,8 @@
   <h2>Going further</h2>
   <p>The background documents (dense, being updated)&nbsp;:</p>
   <ul class="clean">
-    <li><a href="docs/MEMOIRE.html">Research memoir</a> — architecture, method, results (and negative results).</li>
-    <li><a href="docs/rapport-mode-emploi.html">Reference report &amp; user manual</a> — configuration, route details.</li>
+    <li><a href="docs/MEMOIRE">Research memoir</a> — architecture, method, results (and negative results).</li>
+    <li><a href="docs/rapport-mode-emploi">Reference report &amp; user manual</a> — configuration, route details.</li>
     <li><a href="https://github.com/poratox78-spec/omega-pendu-">The code</a> — everything is measurable and reproducible (<code>./dev.sh</code>).</li>
   </ul>
   <p class="note">A note on honesty&nbsp;: the Hangman is a <em>measurement bench</em>, not a product. The product is the corrector. These two pages describe the project's real state, not a showcase.</p>
@@ -245,11 +245,11 @@
 
 <footer><div class="wrap">
   <p><strong>OMEGA-Ω</strong> — dyslexia corrector &amp; cognitive architecture. Code&nbsp;: MIT. Data derived from <strong>Lexique&nbsp;4</strong> (New, B., Pallier, C., Schalchli, G., Bourgin, J., &amp; Gimenes, M., 2026) — <strong>CC&nbsp;BY-SA&nbsp;4.0</strong> license.</p>
-  <p><a href="index.html">The Hangman</a> · <a href="correcteur.html">The corrector</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a> · <a href="../app/omega-pendu-en.html">Application</a> · <a href="../recherche.html">Français</a></p>
+  <p><a href="./">The Hangman</a> · <a href="correcteur">The corrector</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Source code</a> · <a href="../app/omega-pendu-en.html">Application</a> · <a href="../recherche">Français</a></p>
   <p class="small" style="margin-top:8px">Contact — <a href="https://github.com/poratox78-spec/omega-pendu-/issues">GitHub (issues)</a> · <a class="cmail" href="https://github.com/poratox78-spec/omega-pendu-/issues" rel="nofollow">✉ email</a></p>
   <script>(function(){var u='poratox78',h='gmail',t='com',e=u+'@'+h+'.'+t,a=document.querySelector('a.cmail');if(a){a.href='mailto:'+e;a.textContent='✉ '+e;}})();</script>
   <style>.egg-hint{opacity:.38;font-size:1.2em;text-decoration:none;transition:opacity .25s}.egg-hint:hover{opacity:1}</style>
-  <p style="text-align:center;margin-top:18px"><a class="egg-hint" href="../zh/index.html" title="a little secret" aria-label="a little secret">🥚</a></p>
+  <p style="text-align:center;margin-top:18px"><a class="egg-hint" href="../zh/" title="a little secret" aria-label="a little secret">🥚</a></p>
 </div></footer>
 
 <script>

@@ -7,13 +7,17 @@
 // V = numéro + EMPREINTE du contenu du site. NE PAS éditer à la main : `node dictee/sw_probe.js --fix` le régénère,
 // et le même probe ÉCHOUE en CI si le site a changé sans que V suive. (L'ancienne consigne « incrémenter à chaque
 // déploiement » n'a pas tenu : mesuré, V est resté figé pendant 70 commits touchant le site — d'où le cache périmé.)
-const V = 'omega-v223-f9d247a4';
+const V = 'omega-v224-a7a9f92a';
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
 // L'app (11 Mo), pendable et scrabidon restent cachés À LA VISITE (poids).
-const CORE = ['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html', './dictee-outil.html',
-              './saisie-vocale.html', './omega-key.html', './recherche.html', './donnees.html', './confidentialite.html', './evolution.html', './site.css', './nav.js', './manifest.json', './icon.svg'];
+// ⚠️ URL SANS EXTENSION (SEO, 08/2026) : les liens du site ne pointent plus vers `.html`.
+// Cloudflare Pages repond 308 sur les `.html` -> Google les classait « Page avec redirection »
+// et les EXCLUAIT de l'index. Ce precache DOIT suivre : precacher `/correcteur.html` quand le
+// visiteur demande `/correcteur` = cache manquant = navigation HORS-LIGNE CASSEE.
+const CORE = ['./', './correcteur', './correcteur-outil', './dictee', './dictee-outil',
+              './saisie-vocale', './omega-key', './recherche', './donnees', './confidentialite', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

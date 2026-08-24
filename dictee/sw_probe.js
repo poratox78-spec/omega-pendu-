@@ -49,8 +49,12 @@ if (!v || !/^omega-v\d+(-[0-9a-f]{8})?$/.test(v[1])) {
 const core = src.match(/const CORE\s*=\s*\[([^\]]*)\]/);
 // liste blanche du précache : les petites pages du site + assets. Les LOURDS (app 11 Mo, pendable, scrabidon)
 // sont volontairement exclus (cachés à la visite) — les précacher re-téléchargerait ~13 Mo à CHAQUE bump de version.
-const WHITELIST = new Set(['./', './index.html', './correcteur.html', './correcteur-outil.html', './dictee.html', './dictee-outil.html', './double-sens.html',
-  './saisie-vocale.html', './omega-key.html', './recherche.html', './donnees.html', './confidentialite.html', './toile.html', './arbitrage.html', './evolution.html', './site.css', './nav.js', './manifest.json', './icon.svg']);
+// ⚠️ URL SANS EXTENSION (SEO, 08/2026) : cette liste blanche decrit « les ressources qui NE
+// REDIRIGENT PAS ». Ce sont desormais les URL SANS `.html` — c'est le `.html` qui prend le 308
+// de Cloudflare Pages (ce que Google classait « Page avec redirection », d'ou l'exclusion de
+// l'index). Precacher un `.html` reviendrait exactement au risque que ce check existe pour eviter.
+const WHITELIST = new Set(['./', './correcteur', './correcteur-outil', './dictee', './dictee-outil', './double-sens',
+  './saisie-vocale', './omega-key', './recherche', './donnees', './confidentialite', './toile', './arbitrage', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg']);
 if (!core) fail.push('CORE introuvable');
 else for (const it of core[1].split(',').map(s => s.trim().replace(/^'|'$/g, '')).filter(Boolean)) {
   if (!WHITELIST.has(it)) fail.push('CORE contient une entrée hors liste blanche (risque 308 → cache empoisonné) : ' + it);
