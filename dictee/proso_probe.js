@@ -64,6 +64,8 @@ function ligneVar(src, nom) {
   return src.slice(m.index, fin + 1);
 }
 
+const SRC_CORE = fs.readFileSync(path.join(RACINE, 'extension', 'dys-core.js'), 'utf8');   // source UNIQUE des constantes de question (cf. charge())
+
 function charge(fichier, nomProso) {
   const src = fs.readFileSync(fichier, 'utf8');
   const morceaux = [
@@ -78,7 +80,12 @@ function charge(fichier, nomProso) {
     /* ⭐ LE SEUIL DE REFUS DE L'ANCRE, extrait NOMMÉMENT du fichier livré : s'il disparaît ou
        change de nom, la sonde casse au lieu de mesurer autre chose que ce qui est publié. */
     ligneVar(src, 'PONCT_ANCRE_TAU'),
-    ligneVar(src, 'QW_PREP'), ligneVar(src, 'QPRON'),
+    /* ⭐ QW_PREP / QPRON vivent désormais dans dys-core (2026-08-24) : `estQuestion` y a été
+       DÉPLACÉE depuis les deux surfaces vocales, qui la dupliquaient et la gardaient hors de portée
+       du correcteur. Même discipline qu'au-dessus — on les extrait NOMMÉMENT de la livraison, juste
+       du fichier où elles vivent maintenant : si elles disparaissent ou changent de nom, la sonde
+       casse au lieu de mesurer autre chose que ce qui est publié. */
+    ligneVar(SRC_CORE, 'QW_PREP'), ligneVar(SRC_CORE, 'QPRON'),
     bloc(src, 'function _avantTiret('),
     bloc(src, 'function _txtFrontiere('), bloc(src, 'function _durBiais('),
     bloc(src, 'function _trancheTexte('),

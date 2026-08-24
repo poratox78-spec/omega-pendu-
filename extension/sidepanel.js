@@ -518,121 +518,13 @@
     // ⭐ PAS DE VIRGULE DEVANT « et / ou / ni » (BDL/OQLF). On ne fait que RÉTROGRADER : une virgule
     // devient RIEN (les segments se recollent), un vrai POINT (≥ 600 ms) reste un point.
     var COORD=/^(et|ou|ni)(?![a-zà-ÿœ'’])/i;
-    var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête (lookahead car \b casse après « où »)
-    // ⭐⭐ DÉTECTION DE QUESTION — version MESURÉE (l'ancienne règle « interrogatif en tête » faisait
-    // 45,5 % de précision : 79 faux sur 145, sur 48 653 phrases réelles). Nouvelle règle : 100 %,
-    // 0 faux sur 60 998 échantillons. Le BDL confirme la cause principale : L'INTERROGATION
-    // INDIRECTE NE PREND PAS DE « ? » (« Je me demande à quelle heure. »). ⚠️ La règle s'ancre sur
-    // la TÊTE DU SEGMENT : le dégât arrive quand Google coupe AU MILIEU de l'énoncé et rend un
-    // segment « quelle heure il est » — l'ancienne règle y posait un « ? » sur une subordonnée.
-    // L'inversion SEULE a été
-    // mesurée et refusée (69,4 %) — lue uniquement APRÈS un interrogatif. Le PITCH reste le seul
-    // canal pour l'interrogation par INTONATION (« Tu pars dans un mois ? ») : les deux se complètent.
-    // ⭐⭐⭐ DÉTECTION DE QUESTION PAR LES PARTIES DU DISCOURS (2026-08-05).
-    // L'ancienne version était une LISTE DE MOTS. Passée sur les formes que Rem a nommées, elle
-    // faisait 5/10 : elle ratait TOUTE l'interro-négative (« Ne viens-tu pas ? », « N'as-tu pas
-    // vu ? », « … n'est-ce pas ? ») et toute l'inversion nue (« Viens-tu demain ? »). Pas par
-    // manque de vocabulaire : parce qu'UNE LISTE NE VOIT PAS UNE STRUCTURE. « verbe + clitique
-    // sujet postposé » est un fait de PARTIES DU DISCOURS — et le tagger HMM était déjà chargé
-    // ici (`pos-hmm.json.gz`), la ponctuation ne l'appelait simplement jamais.
-    //
-    // L'INVERSION SEULE AVAIT ÉTÉ MESURÉE ET REFUSÉE (69,4 %). Ses deux familles d'échec sont
-    // connues et TOUTES DEUX décidables avec les étiquettes :
-    //   · inversion STYLISTIQUE (« peut-être est-elle partie ») -> adverbe ANTÉPOSÉ, liste fermée ;
-    //   · INCISE de citation (« je viendrai, dit-il ») -> ⭐ un VERBE CONJUGUÉ précède déjà.
-    //     C'est cette garde-là qui rend l'inversion utilisable.
-    //
-    // MESURÉ sur 72 498 cas réels (UD FR GSD + WiCoPaCo + GEC + multi1000), dont 27 145 FRAGMENTS
-    // de milieu de phrase — le piège propre à la dictée, où Google coupe où il veut :
-    //     ancienne (liste de mots)   précision 96,55 %   rappel  8,92 %
-    //     ⭐ celle-ci (tagger)       précision 95,83 %   rappel 14,65 %
-    // +64 % de rappel pour UN faux positif de plus en valeur absolue (2 contre 1 sur 72 498).
-    // Et sur les 2 restants : « Doit-on hériter de ceux qu'on assassine » EST une question, écrite
-    // avec un point dans le corpus (titre) ; l'autre est un fragment dont le déclencheur
-    // (« Non seulement … ») est hors du fragment. Aucun n'est réparable sans deviner.
-    //
-    // DÉGRADATION DOUCE : si le tagger n'est pas prêt, `posTags` rend null, les gardes verbales
-    // ne s'arment pas et on retombe sur les seules routes lexicales. Aucune exception.
-    var CLIT='je|tu|il|elle|on|ils|elles';
-    // ⚠️ NOUS et VOUS EXCLUS de l'inversion nue — c'était déjà écrit dans les notes de juillet
-    // (« l'impératif prend moi/toi/lui/nous/vous/y/en ») et le banc l'a confirmé sans pitié :
-    // « Abonnez-vous dès maintenant » était compté comme une question. Ils redeviennent sûrs
-    // APRÈS un interrogatif, où l'impératif est impossible.
-    var QINV=new RegExp("([A-Za-zÀ-ÿœ']+)-(?:t-)?("+CLIT+")(?![-\\w])",'i');
-    var QINV_Q=new RegExp("([A-Za-zÀ-ÿœ']+)-(?:t-)?("+CLIT+"|nous|vous)(?![-\\w])",'i');
-    // l'incise EN TÊTE de fragment (« disent-ils, … ») : la garde « verbe avant » ne peut pas la
-    // voir puisque le fragment COMMENCE par elle. Sa signature est la virgule qui la referme.
-    // ⛔ INCISE EN TÊTE (« disent-ils, peuvent jouer… »). ⚠️ Ma 1re garde cherchait la VIRGULE qui
-    // la referme : elle marche sur du texte écrit — donc sur le banc — mais **un segment vocal
-    // n'a AUCUNE ponctuation**, elle y serait INERTE. La garde CI l'a montré. Il faut une
-    // signature qui survive à l'absence de ponctuation : les VERBES DE PAROLE, liste fermée, et
-    // seulement quand l'inversion est en TÊTE (ailleurs, la garde « verbe déjà conjugué » suffit).
-    // Coût assumé : « Dis-tu vrai ? » est perdu — forme rare, et le pitch la rattrape.
-    var QINCISE=new RegExp("^\\s*[A-Za-zÀ-ÿœ']+-(?:t-)?("+CLIT+")\\s*,",'i');
-    var QPAROLE=/^(dit|dis|disent|disait|répondit|repondit|répond|repond|ajouta|ajoute|demanda|s['’]écria|secria|fit|reprit|poursuivit|murmura|songea|expliqua|précisa|precisa|lança|lanca|conclut|renchérit|rencherit)$/i;
-    var QADV=/^\s*(?:peut-être|sans doute|ainsi|aussi|à peine|a peine|du moins|encore|en vain|toujours est-il|aussi bien|tout au plus|rarement|jamais|non seulement)\b/i;
-    var QTAG=/\bn['’]est-ce\s+pas\s*$/i;
-    // ⚠️ ANCRÉ EN TÊTE : sans l'ancre, « se demandant quand est-ce qu'il va sortir » (interrogation
-    // INDIRECTE, que le BDL exclut explicitement du « ? ») redevenait une question.
-    var QEQ=/^\s*est-ce\s+(?:que|qu['’])/i;
-    var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
-    var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
-    var QW_PREP=/^\s*(?:à|a|de|d['’]|par|pour|avec|sur|dans|en|chez|vers|depuis|selon)\s+(?:quoi|qui|quel|quelle|quels|quelles|lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // interrogatif precede de sa preposition : « a quoi penses-tu ? »
-    var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
-    var QPRON=/^(lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // pronom interrogatif SUJET (garde anti-relatif : verbe juste apres)
-    var QEUPH=/[A-Za-zÀ-ÿœ']+-t-(?:il|elle|on|ils|elles)(?![-\w])/i;   // « t » euphonique : 74/74 inversions dans UD, ancrage ORTHOGRAPHIQUE (tient la ou le tagger lache)
-    var QPARTPAROLE=/^\s*(?:affirmé|précisé|precise|déclaré|declare|ajouté|ajoute|expliqué|explique|indiqué|indique|souligné|souligne|conclu|poursuivi|répondu|repondu|confié|confie|assuré|assure|estimé|estime|noté|note|rappelé|rappele|lancé|lance|martelé|martele|insisté|insiste|dit|écrit|ecrit)(?![a-zà-ÿœ])/i;   // participes de parole = incise au temps compose. ⚠️ PAS de  apres une lettre accentuee : en JS \w=[A-Za-z0-9_], donc la frontiere n'existe jamais et la regex ne matche RIEN (echec SILENCIEUX, deja paye)
-    var QVERBAL={VERB:1,AUX:1};
-    // le « ne » de la négation, collé (n') ou non, AVANT le verbe inversé ; et sa seconde moitié APRÈS
-    var QNEG1=/(^|[\s'’])(?:ne\s|n['’])/i;
-    var QNEG2=/^\s*(?:pas|plus|jamais|rien|gu[èe]re|personne|aucun|aucune)\b/i;
-    function estQuestion(t){
-      if(!t) return false;
-      var mots=(DC&&DC.toks)?DC.toks(t):null;
-      if(!mots||!mots.length||mots.length>12) return false;   // au-delà : titre ou subordonnée
-      if(QTAG.test(t)) return true;
-      // ⭐ ÉLISION : `toks` garde l'apostrophe dans le token, donc « n'as-tu » donne « n'as » —
-      // une forme que le modèle (appris sur UD, qui SÉPARE les clitiques) n'a jamais vue. Il ne la
-      // tague pas VERB, la garde verbale ne s'arme pas, et « N'as-tu pas vu le film ? » retombait
-      // en affirmative. On tague une COPIE dont le clitique élidé est retiré : les INDICES sont
-      // préservés, donc tout le reste de la fonction est inchangé.
-      var motsTag=mots.map(function(w){ return w.replace(/^(?:n|j|t|s|m|qu|l|d|c)['’]/i,'') || w; });
-      var tg=null;
-      function tag(i){ if(tg===null) tg=((DC&&DC.posTags)?DC.posTags(motsTag):null)||[]; return tg[i]; }
-      var qw=QW.test(t)||QW_PREP.test(t);   // « a quoi penses-tu » : la tete interrogative peut etre precedee de sa preposition
-      var m=(qw?QINV_Q:QINV).exec(t);
-      // ⭐ ROUTE INTERRO-NÉGATIVE, indépendante du tagger. « n'as-tu pas … » : `toks` rend le token
-      // « n'as », et même dé-élidé en « as » le modèle l'étiquette PROPN en tête (mesuré) — « as »
-      // y est trop rare comme auxiliaire dans UD. La garde verbale ne s'arme pas et la question
-      // retombait en affirmative. Or le cadre « ne … pas » ENCADRANT un clitique sujet POSTPOSÉ
-      // n'existe qu'à l'interrogatif : l'affirmative met le clitique AVANT (« tu n'as pas vu »),
-      // jamais après. C'est de l'ORDRE DES MOTS, ça ne demande aucun tagger.
-      if(m && QNEG1.test(t) && QNEG2.test(t.slice(m.index+m[0].length)) && !QADV.test(t)) return true;
-      if(m && !QINCISE.test(t)){
-        var iv=DC.toks(t.slice(0,m.index)).length;
-        // incise en tête sans ponctuation : un VERBE DE PAROLE inversé au tout début
-        if(iv===0 && QPAROLE.test(m[1])) return false;
-        if(QPARTPAROLE.test(t.slice(m.index+m[0].length))) return false;   // « … », a-t-il affirmé » : l'auxiliaire est inverse, le verbe de parole est le PARTICIPE qui suit
-        // ⭐ SANS LE TAGGER : le « t » euphonique (fait d'orthographe) et l'interrogatif en tete
-        // (l'imperatif y est impossible). Mesure 2026-08-06 : le tagger lit « a/ADP » dans
-        // « a-t-il raison » et « devrions/NOUN » dans « ou devrions-nous » — la regle avait raison,
-        // c'est sa confirmation qui echouait. Les GARDES, elles, restent toutes.
-        if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw || iv===0){   // iv===0 : inversion EN TETE — l'imperatif prend moi/toi/nous/vous, jamais je/tu/il/elle/on/ils/elles
-          if(QADV.test(t)) return false;                      // inversion stylistique
-          for(var k=0;k<iv;k++) if(QVERBAL[tag(k)]===1) return false;   // incise : proposition déjà close
-          return true;
-        }
-      }
-      if(QEQ.test(t)) return true;
-      if(QEQ3.test(t)) return true;   // « est-ce possible ? » — sans « que »
-      if(qw && QEQ2.test(t)) return true;
-      // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
-      // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :
-      // l'interrogation INDIRECTE enchaîne un GN plein (« comment UNE PERSONNE a obtenu… »).
-      if(QPRON.test(t) && t.indexOf(',')<0 && QVERBAL[tag(1)]===1) return true;   // « Lequel est le plus grand ? » ; le relatif, lui, porte un clitique (« laquelle lui repond »)
-      if(!QSEUL.test(t) || t.indexOf(',')>=0) return false;
-      return tag(1)!=='DET';
-    }
+    /* ⭐ DÉTECTION DE QUESTION — le corps a été DÉPLACÉ dans dys-core (2026-08-24). Il vivait ici EN
+       DOUBLE (panneau + page voix) et n'existait dans AUCUN moteur, donc le correcteur ne pouvait pas
+       signaler un « ? » manquant. Cette délégation garde le nom et le point d'appel intacts : les deux
+       surfaces restent identiques pour `voix_parite_probe`, et la logique n'a plus qu'UNE définition.
+       Repli : si dys-core n'est pas prêt, on rend false — même dégradation douce qu'avant (aucun « ? »
+       inventé), jamais une exception. */
+    function estQuestion(t){ try { return !!(DC && DC.estQuestion && DC.estQuestion(t)); } catch (e) { return false; } }
     var au=state.au, useAudio=au&&au.tl&&au.tl.length, thr=useAudio?_seuilSilence(au):0;
     function riseAt(idx){ return (useAudio&&idx!=null&&state.ftimes[idx]!=null)?riseEndingAt(au.tl,state.ftimes[idx]-500,state.ftimes[idx]):0; }
     // ── ⭐⭐⭐ L'ANCRE TEMPORELLE : après quel MOT tombe chaque pause, et combien elle dure.
