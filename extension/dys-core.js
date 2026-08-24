@@ -2825,9 +2825,24 @@ function spellUnknown(tok,atStart,T,idx){
         out.push({i:si,word:sw1,sugg:(sgap===','?sw1+', '+sw2:sw1+' '+sgap+' '+sw2),name:'espacement',tier:'flag',span:2});done[si]=done[si+1]=1;}
       // TRAIT D'UNION manquant dans une LOCUTION FIGÉE non-ambiguë (« au dessus »→« au-dessus », « là bas »→« là-bas », « ci joint »→« ci-joint »). FP=0 mesuré : liste CURÉE d'expressions dont la forme sans trait n'a AUCUNE lecture correcte (les ambiguës « peut être »=verbe, « belle mère »=adj+nom sont EXCLUES). Clé = deacc(« w1 w2 ») → forme canonique accentuée.
       var _HYPHLOC={'au dessus':'au-dessus','au dessous':'au-dessous','au dela':'au-delà','la bas':'là-bas','la haut':'là-haut','la dessus':'là-dessus','la dessous':'là-dessous','la dedans':'là-dedans','ci dessus':'ci-dessus','ci dessous':'ci-dessous','ci contre':'ci-contre','ci joint':'ci-joint','ci jointe':'ci-jointe','ci apres':'ci-après','ci git':'ci-gît','par dessus':'par-dessus','par dessous':'par-dessous','week end':'week-end','week ends':'week-ends','porte monnaie':'porte-monnaie'};
-      for(var hli=0;hli<P.length-1;hli++){if(done[hli]||done[hli+1])continue;
+      /* ⭐ LA LOCUTION FIGÉE PRIME SUR UNE DEVINETTE À UN MOT (2026-08-24, mesuré).
+         `done` est amorcé depuis les suggestions MOT-À-MOT du speller, et toutes les règles span-2
+         lui cèdent. Pour une liste CURÉE dont la forme espacée n'a AUCUNE lecture correcte, c'est la
+         mauvaise priorité : 4 des 19 locutions étaient étouffées, dont « week end » qui recevait
+         « geek ». Et quand la devinette est juste elle reste PARTIELLE — « au dela » donnait « delà »
+         (accent réparé, trait d'union manqué) là où la locution rend « au-delà », les deux d'un coup.
+         ⇒ la locution passe QUAND le seul obstacle est un flag d'ORTHOGRAPHE à un mot ; elle s'efface
+         toujours devant une autre règle span-2 (élision, contraction, mot coupé…), qui a son propre
+         cadre et n'est pas une devinette. Les flags à un mot en conflit sont RETIRÉS : en laisser un
+         proposerait « geek » et « week-end » sur le même mot. */
+      var _hlSeul=function(k){var n=0,i2;for(i2=0;i2<out.length;i2++)if(out[i2].i===k){if((out[i2].span||1)>=2)return false;n++;}return n>0;};
+      for(var hli=0;hli<P.length-1;hli++){
         if(!/^\s+$/.test(text.slice(P[hli][1],P[hli+1][0])))continue;
         var hlk=deaccS(P[hli][2].toLowerCase())+' '+deaccS(P[hli+1][2].toLowerCase()),hlv=_HYPHLOC[hlk];if(!hlv)continue;
+        if(done[hli]||done[hli+1]){
+          if(!((!done[hli]||_hlSeul(hli))&&(!done[hli+1]||_hlSeul(hli+1))))continue;   // un span-2 occupe la place → on n'y touche pas
+          out=out.filter(function(f){return f.i!==hli&&f.i!==hli+1;});                  // sinon : on retire les devinettes à un mot
+        }
         if(P[hli][2][0]!==P[hli][2][0].toLowerCase())hlv=hlv.charAt(0).toUpperCase()+hlv.slice(1);
         out.push({i:hli,word:P[hli][2],sugg:hlv,name:"trait d'union",tier:'flag',span:2});done[hli]=done[hli+1]=1;}
       // PLÉONASMES / redondances (catégorie Grammalecte « redondances », liste CLOSE non-ambiguë) → ORANGE « à vérifier », JAMAIS de retrait d'office (resserrement stylistique). FP-safe (orange + liste fermée). Fenêtre 3 puis 2 mots, séparés par du BLANC pur.
