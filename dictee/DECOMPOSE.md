@@ -71,14 +71,35 @@ python3 dictee/decompose.py --measure       # harnais falsifiable (in-lexique vs
 python3 dictee/decompose.py --demo
 ```
 
-Exemple (`chevaux`, OOV de `phono_homophones` → route sublexicale ; cgram via route lexicale) :
+Exemple (`chevaux` — jadis OOV de `phono_homophones` → route sublexicale ; depuis 2026-08-24, couvert
+par `phono_morphalou.json`, cf. §« Route lexicale Morphalou » plus bas) :
 ```
 « chevaux »  (7 lettres)
   ORTHO  graphèmes : ch→S  e→°  v→v  au→o  x→∅
          syllabes  : che-vaux
-  SON    phono     : /S°vo/   [IPA ʃəvo]   route sublexicale (g2p, OOV)
+  SON    phono     : /S°vo/   [IPA ʃəvo]   route lexicale (Morphalou)
          4 phonèmes · 2 syllabe(s) : S°-vo · CV=CVCV
   GRAM   cgram : NOM (lexicale) · genre : masculin · nombre : pluriel · homophones : 0
+```
+(un mot toujours hors des deux, ex. `antibrouillage`, retombe sur `route sublexicale (g2p, OOV)`.)
+
+## Route lexicale Morphalou (2026-08-24) — comble le trou de `phono_homophones`
+
+`phono_homophones.json` ne contient QUE les mots ayant un homophone (43 580 groupes) — pas un
+dictionnaire phonétique général. Conséquence mesurée : sur les 170 782 mots de Lexique4, 54 298
+tombaient sur la route sublexicale, dont des mots parmi les PLUS fréquents du français (`de`, `je`,
+`le`, `que`, `ne`…) simplement parce qu'ils n'ont pas d'homophone.
+
+`dictee/build_phon_morphalou.py` convertit le SAMPA Morphalou 3.1 (espacé, variantes " OU ") vers le
+SAMPA compact Lexique4, et écrit `phono_morphalou.json` — un ajout PUR, jamais un arbitrage : un mot
+déjà dans `phono_homophones` garde SA valeur (ni écrasée, ni mélangée dans W2P — la contamination du
+pool de mesure `--measure` a été mesurée et corrigée le même jour, cf. son commentaire dans
+`decompose.py`). Conversion mesurée sur les 99 934 mots communs aux deux systèmes : **82,4 % exact,
+96,5 %** en comptant les variantes ouvert/fermé (o/O, e/E — divergence de transcription connue entre
+dictionnaires, pas une erreur de conversion). 305 120 mots ajoutés.
+
+```
+python3 dictee/build_phon_morphalou.py     # régénère phono_morphalou.json depuis Morphalou local
 ```
 
 ## Mesure (doctrine §1 — falsifiable, **HELD-OUT** in-lexique ⟂ OOV ; `seed=42`, test=4000)
