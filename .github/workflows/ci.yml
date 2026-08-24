@@ -157,6 +157,12 @@ jobs:
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
       - name: SITE — toutes les pages sont atteignables depuis leur accueil (FR + EN)
         run: node dictee/pages_atteignables_probe.js
+      # Né d'un échec RÉEL : Search Console « Page avec redirection », validation lancée le 13/08/2026
+      # et ÉCHOUÉE le 15/08. Quatre pages étaient liées depuis le menu mais ABSENTES du sitemap, et
+      # rien ne le disait. Symétrique : une page « noindex » déclarée au sitemap est un signal
+      # CONTRADICTOIRE, que Google arbitre contre nous.
+      - name: SITE — le sitemap déclare exactement les pages indexables
+        run: node dictee/sitemap_probe.js
       # Les chiffres de mesure affichés (« FP=0 sur 14 450 phrases ») sont écrits à la main dans
       # plusieurs pages. Le registre unique (metriques_probe) rend la dérive IMPOSSIBLE : un chiffre
       # nouveau ou modifié hors registre = rouge — la propagation devient structurelle.
