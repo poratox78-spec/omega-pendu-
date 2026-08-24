@@ -3,6 +3,7 @@
 # L'extension réutilise EXACTEMENT les mêmes données que l'app/le correcteur (parité) : aucune divergence possible.
 #   - vdc-lex (JSON : verbes v, genre g/gn, paires adj a, conjugaison cj)            -> assets/vdc-lex.json
 #   - gdet-lex-gz (gzip TSV  word\tg  g='1'->f)  = genre relâché « le voiture→la »   -> assets/gender-relaxed.tsv.gz
+#   - gacc-lex-gz (gzip JSON word->g) = genre ACCENTUÉ complet (gender_acc.json filtré) -> assets/gender-acc.json.gz
 #   - speller-lex-gz (gzip TSV  form\tfreq\tPOS) = orthographe (non-mots/accents)     -> assets/speller.tsv.gz
 # Données dérivées Lexique 4 → CC BY-SA 4.0 (voir NOTICE).
 #   python3 extension/build_assets.py
@@ -37,13 +38,13 @@ def main():
     open(os.path.join(OUT, 'confusables.json'), 'w', encoding='utf-8').write(conf)
 
     # blocs gzip+base64 -> on réécrit le binaire gzip tel quel (DecompressionStream côté extension, comme l'app)
-    for bid, fname in [('gdet-lex-gz', 'gender-relaxed.tsv.gz'), ('speller-lex-gz', 'speller.tsv.gz'), ('os-lm-gz', 'os-subj-lm.json.gz'), ('prenoms-gz', 'prenoms.tsv.gz')]:
+    for bid, fname in [('gdet-lex-gz', 'gender-relaxed.tsv.gz'), ('gacc-lex-gz', 'gender-acc.json.gz'), ('speller-lex-gz', 'speller.tsv.gz'), ('os-lm-gz', 'os-subj-lm.json.gz'), ('prenoms-gz', 'prenoms.tsv.gz')]:
         raw = re.sub(r'\s', '', block(html, bid))
         open(os.path.join(OUT, fname), 'wb').write(base64.b64decode(raw))
 
     # noun-post (genre ET accord pluriel) : MAP form->[nom‰,ver‰] = posterior §3 P(POS|forme), dérivé de cgram_noun_post.json (FreqMot du TSV).
     # L'app embarque ces données ; l'extension (sans le lexique) charge ce dérivé → parité exacte des gardes. (pos-abstain supprimé : remplacé par le posterior.)
-    assets = ['vdc-lex.json', 'confusables.json', 'gender-relaxed.tsv.gz', 'speller.tsv.gz', 'os-subj-lm.json.gz', 'prenoms.tsv.gz']
+    assets = ['vdc-lex.json', 'confusables.json', 'gender-relaxed.tsv.gz', 'gender-acc.json.gz', 'speller.tsv.gz', 'os-subj-lm.json.gz', 'prenoms.tsv.gz']
     NPOST = os.path.join(HERE, '..', 'dictee', 'cgram_noun_post.json')
     if os.path.exists(NPOST):
         npost = json.load(open(NPOST, encoding='utf-8'))

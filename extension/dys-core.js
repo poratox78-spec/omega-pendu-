@@ -60,12 +60,14 @@
     +"trouve trouvent regarde regardent joue jouent jouez jouait porte portent cherche cherchent pense pensent reste restent passe passent arrive arrivent entre entrent monte montent "
     +"tombe tombent tombait chante chantent court courent boit boivent lit lisent ecrit ecrivent dort dorment finit finissent etudie etudient quitte quittent calme creuse vend vendent").split(/\s+/).forEach(function(w){if(w)COMMON_VERBS[w]=1;});
   var GENDER_MAP={},GENDER_PURE={},ADJP={},NOUN_PLURAL={};var CONJ_F={},CONJ_C={};
+  var _GACC={};   // genre ACCENTUÉ (assets/gender-acc.json.gz, miroir app gacc-lex-gz) — consulté INCONDITIONNELLEMENT par _nounGender, comme GENDER_ACC en Python. Table À PART, jamais unionnée dans GENDER_PURE.
   function _applyVdc(vd){(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
   // PRÉNOMS + GENRE (assets/prenoms.tsv.gz, DÉRIVÉ du blob prenoms-gz de l'app par build_assets).
   // nom -> [genre, tete_de_phrase_interdite]. Débloque « Marie est venu »→venue. Miroir app + Python.
   var PRENOMS={};
   function _applyPrenoms(txt){var lines=txt.split(/\r?\n/);for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('	');if(p.length>=3)PRENOMS[p[0]]=[p[1],p[2]==='1'];}}
   function _applyGenderRelaxed(txt){var lines=txt.split('\n');for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var p=ln.split('\t');if(p.length<2)continue;if(GENDER_PURE[p[0]]===undefined)GENDER_PURE[p[0]]=(p[1]==='1'?'f':'m');}}
+  function _applyGaccLex(jsonText){try{_GACC=JSON.parse(jsonText)||{};}catch(e){}}
   function lexicalGender(T,idx){if(!GENDER_MAP)return null;var j,w,g;
     for(j=idx-1;j>=Math.max(0,idx-3);j--){w=T[j].toLowerCase();if(NUM_PRON[w]||PREP[deacc(w)])break;g=GENDER_MAP[deacc(w)];if(g==='m'||g==='f')return[T[j],g];}
     for(j=idx+1;j<Math.min(T.length,idx+3);j++){w=T[j].toLowerCase();if(NUM_PRON[w]||PREP[deacc(w)])break;g=GENDER_MAP[deacc(w)];if(g==='m'||g==='f')return[T[j],g];}
@@ -1629,7 +1631,8 @@ function ponctReglesVirgule(mots,_tg,deja){
   var _COLL_HEAD={};'plupart majorite minorite nombre total partie moitie tiers quart ensemble reste quantite foule multitude infinite poignee kyrielle dizaine douzaine quinzaine vingtaine trentaine quarantaine cinquantaine soixantaine centaine millier million milliard brochette tapee flopee sorte espece genre bande groupe tas serie masse nuee troupe ribambelle cohorte myriade pleiade armee meute horde essaim tripotee ramassis foultitude palanquee'.split(' ').forEach(function(w){_COLL_HEAD[w]=1;});
   var _NP_BREAK={};'que qu qui dont quand lorsque puisque parce comme si car mais donc or quoique lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_NP_BREAK[w]=1;});
   function _adjEstem(lw){var s;if(/x$/.test(lw))s=lw.slice(0,-1);else if(/s$/.test(lw)&&!/ss$/.test(lw))s=lw.slice(0,-1);else s=lw;return (/e$/.test(s)&&!/é$/.test(s))?s:null;}
-  function _nounGender(w,num,full){var d=deacc(w.toLowerCase());function src(x){var g=GENDER_PURE[x];if(g==='m'||g==='f')return g;if(full){g=GENDER_MAP[x];if(g==='m'||g==='f')return g;}return null;}var g=src(d);if(g)return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=src(d.slice(0,-1))||src(d.slice(0,-1)+'u');if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=src(d.slice(0,-1));if(g==='m'||g==='f')return g;}return null;}   // full=true (Fix C) : antécédent [dét+NOM] confirmé → retombe sur GENDER_MAP (noms homographes pomme/ferme), sinon FP
+  function _nounGender(w,num,full){var _ga=_GACC[w.toLowerCase()];if(_ga==='m'||_ga==='f')return _ga;   // forme ACCENTUÉE exacte (Morphalou inclus), miroir app/correcteur_probe.py, INCONDITIONNEL
+    var d=deacc(w.toLowerCase());function src(x){var g=GENDER_PURE[x];if(g==='m'||g==='f')return g;if(full){g=GENDER_MAP[x];if(g==='m'||g==='f')return g;}return null;}var g=src(d);if(g)return g;if(num!=='p'||NOUN_INVAR_S[d])return null;if(/x$/.test(d)&&d.length>2){g=src(d.slice(0,-1))||src(d.slice(0,-1)+'u');if(g==='m'||g==='f')return g;}if(/s$/.test(d)&&d.length>2){g=src(d.slice(0,-1));if(g==='m'||g==='f')return g;}return null;}   // full=true (Fix C) : antécédent [dét+NOM] confirmé → retombe sur GENDER_MAP (noms homographes pomme/ferme), sinon FP
   var _COLLECTIF={};('plupart majorite minorite moitie ensemble totalite reste nombre quantite foule dizaine douzaine centaine millier tas infinite serie groupe partie').split(' ').forEach(function(w){_COLLECTIF[w]=1;});
   var _ELID_DET=/^l['’](.+)$/i, _ELID_PRON=/['’](ils|elles|il|elle|on|je|tu|nous|vous)$/;
   function _headText(tok){var m=_ELID_DET.exec(tok.toLowerCase());   // PRIMITIVE : le NOM porté par un token, élision décollée (« L'allégation » → « allégation »). La majuscule d'un nom élidé en tête de phrase appartient au DÉTERMINANT, pas au nom : tester tok.charAt(0) pour écarter un nom PROPRE écartait donc tout nom commun élidé (8 divergences mesurées sur l'adjectif épithète).
@@ -2854,12 +2857,20 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
       var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
       _applyPrenoms(await new Response(st).text());}catch(e){}}
   function setPrenoms(txt){_applyPrenoms(txt);}   // injection directe (Node/tests, parité)
-  function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz), nom:url(.gz) }
+  function setGaccLex(jsonText){_applyGaccLex(jsonText);}   // injection directe (Node/tests, parité)
+  var _GACC_L=false;
+  async function loadGaccLex(url){
+    if(_GACC_L)return;_GACC_L=true;
+    try{var gz=await (await fetch(url)).arrayBuffer();
+      var st=new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'));
+      _applyGaccLex(await new Response(st).text());}catch(e){}}
+  function loadLex(urls){            // urls = { vdc:url, genderRelaxed:url(.gz), speller:url(.gz), pos:url(.gz), nom:url(.gz), gacc:url(.gz) }
     if(urls&&urls.speller)loadSpellerLex(urls.speller);   // orthographe : additif, indépendant (SP.ready quand prêt)
     if(urls&&urls.nom)loadNounPost(urls.nom);             // posterior §3 du pluriel du nom (noun-post) : additif, indépendant
     if(urls&&urls.hmm)loadPosHmm(urls.hmm);               // POS-tagger HMM (pos-hmm.json.gz) : additif, indépendant
     if(urls&&urls.osLm)loadOsLm(urls.osLm);
     if(urls&&urls.prenoms)loadPrenoms(urls.prenoms);         // genre des PRÉNOMS : additif, indépendant               // LM OS-sujet (os-subj-lm.json.gz) : additif, orange accord verbe
+    if(urls&&urls.gacc)loadGaccLex(urls.gacc);            // genre ACCENTUÉ complet (Morphalou) : additif, indépendant
     if(_ready)return Promise.resolve(true);
     if(_loading)return _loading;
     _loading=(async function(){
@@ -2938,7 +2949,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
-    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, setPrenoms:setPrenoms, loadPrenoms:loadPrenoms, osProbe:osProbe, cesProbe:cesProbe,
+    posTags:posTags, setPosHmm:setPosHmm, loadPosHmm:loadPosHmm, setOsLm:setOsLm, loadOsLm:loadOsLm, setPrenoms:setPrenoms, loadPrenoms:loadPrenoms, setGaccLex:setGaccLex, loadGaccLex:loadGaccLex, osProbe:osProbe, cesProbe:cesProbe,
     toks:toks, deacc:deacc, loadLex:loadLex, setLex:setLex, isReady:function(){return _ready;}, lexSize:function(){return (SP&&SP.WORDS)?SP.WORDS.size:null;},
     vigText:vigText, loadConfusables:loadConfusables, setConfusables:setConfusables, runonText:runonText,
     udSet:udSet, udAll:udAll, udHas:udHas, udAdd:udAdd, udDel:udDel,  // dictionnaire utilisateur (content.js persiste dans chrome.storage.local)
