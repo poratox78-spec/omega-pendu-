@@ -1698,6 +1698,28 @@ if os.path.exists(_CONJ_PATH):
     except Exception:
         pass
 
+# AJOUT Morphalou (build_conj_morphalou.py) : LEMMES verbaux entièrement ABSENTS de Lexique4 (fréquence
+# vérifiée ≥ 0,05 sur la lecture VERBE spécifiquement — pas le mot toutes catégories confondues, cf.
+# « avenir » nom/verbe même fréquence Lexique4). Scope ÉTROIT : jamais une forme de plus pour un verbe
+# déjà connu — CONJ_C garde EXACTEMENT ses lemmes existants, cj_c.update() ne peut pas les écraser
+# (clés disjointes par construction du builder). CONJ_F : UNION des lectures (une forme neuve peut,
+# par coïncidence, partager sa clé désaccentuée avec un verbe déjà connu — même design que Lexique4).
+_CONJM_PATH = os.path.join(HERE, 'conj_morphalou.json')
+if os.path.exists(_CONJM_PATH):
+    try:
+        _cjm = json.load(open(_CONJM_PATH, encoding='utf-8'))
+        for _k, _v in _cjm.get('f', {}).items():
+            if _k in CONJ_F:
+                _lus = CONJ_F[_k].split('|')
+                for _r in _v.split('|'):
+                    if _r not in _lus: _lus.append(_r)
+                CONJ_F[_k] = '|'.join(_lus)
+            else:
+                CONJ_F[_k] = _v
+        CONJ_C.update(_cjm.get('c', {}))
+    except Exception:
+        pass
+
 
 _REG_3PL = (('ind:imp', 'ait', 'aient'), ('cnd:pre', 'ait', 'aient'), ('ind:fut', 'ra', 'ront'))   # 3pl DÉTERMINISTE (0 exception FR) : imparfait/conditionnel 3s -ait→-aient · futur 3s -ra→-ront
 
