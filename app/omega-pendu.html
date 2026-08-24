@@ -26308,6 +26308,258 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       v=_PLM.niv[k][cs[k]];
       if(v){ s=v[0]+v[1]+v[2]; if(s>=(_PLM.mini||10)) return [v[0]/s,v[1]/s,v[2]/s]; } }
     c=_PLM.pri; s=c[0]+c[1]+c[2]; return s?[c[0]/s,c[1]/s,c[2]/s]:null; }
+
+/* ⭐⭐ RÈGLES DE VIRGULE — MIROIR de extension/dys-core.js, porté ici le 2026-08-24.
+   Elles existaient depuis PR#399 (R1–R5 d'Allô prof) et PR#561 (porte `ponctInterdit`, juge à trois
+   classes) mais n'étaient appelées QUE par les deux surfaces VOCALES, et l'app ne les avait même pas.
+   Le commit de PR#561 l'écrit : « L'app n'est PAS touchée : la ponctuation n'y est pas câblée. C'est
+   l'étape ③ du plan, incrément séparé. » Voici l'étape ③. Ce sont des règles PUREMENT TEXTUELLES —
+   signature (mots, tg, deja), aucun audio. Repris VERBATIM pour que la parité app↔extension tienne. */
+  // ⭐⭐⭐ LES RÈGLES DE VIRGULE — source : Allô prof (« La virgule », « Le coordonnant »).
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  // POURQUOI DES RÈGLES ET PAS UN MEILLEUR MODÈLE. Audit mesuré sur les exemples de la source :
+  // le moteur STATISTIQUE () en trouvait 3 sur 50 — il ne connaît AUCUNE des familles
+  // décrites par la grammaire. Et son plafond n'est pas un réglage : F1 0,21 contre 0,83 pour la
+  // littérature. Une couche de règles explicites est le seul levier qui tienne dans ce qu'on
+  // embarque. ⇒ 3/50 -> 14/50, ET la justesse sur corpus réel MONTE (50,53 -> 52,02 %).
+  //
+  // MESURÉ (dictee/virgule_regles_probe.js — 11 304 phrases écrites par des humains) :
+  //     modèle seul      justesse 50,53 %   rappel 10,97 %
+  //     modèle + règles  justesse 52,02 %   rappel 12,80 %   ⭐ meilleur sur les DEUX axes
+  //     « éléments à ne pas séparer » (sujet/prédicat, verbe/CD…) : 7/7 respectés, avant comme après.
+  //
+  // ⚠️ CE QUI REND CES RÈGLES LIVRABLES, CE SONT LEURS GARDES, PAS LEURS LISTES. La règle brute
+  // « virgule avant le coordonnant » fait 31 % de justesse : elle pose une virgule devant chaque
+  // « donc » et « aussi », qui sont d'abord des ADVERBES. Chaque garde ci-dessous a été ajoutée
+  // parce qu'une mesure l'a exigée, jamais par précaution abstraite.
+/* ── R1 : LES COORDONNANTS QUI PRENNENT UNE VIRGULE DEVANT ───────────────────────────────
+   Liste FERMÉE, reprise mot pour mot des deux fiches. `et`, `ou`, `ni` en sont EXCLUS — la
+   source est catégorique, et c'est déjà la règle `COORD` livrée pour la frontière de segment. */
+var COORD_AVANT = new Set(('mais car or puis voire donc alors ainsi aussi cependant toutefois ' +
+  'néanmoins pourtant ensuite enfin').split(' '));
+/* Les coordonnants en PLUSIEURS mots — testés sur la suite, pas sur un seul token. */
+var COORD_AVANT_LOC = [
+  ["c'est-à-dire"], ['autrement', 'dit'], ['à', 'savoir'], ['par', 'contre'],
+  ['par', 'conséquent'], ['en', 'conséquence'], ["c'est", 'pourquoi'], ['en', 'effet'],
+  ['de', 'plus'], ['en', 'outre'], ['par', 'exemple'],
+];
+/* ── R2 : LES COORDONNANTS QUI PRENNENT UNE VIRGULE APRÈS, EN TÊTE DE PHRASE ────────────── */
+var COORD_TETE = new Set(('ainsi alors donc ensuite enfin cependant toutefois néanmoins ' +
+  'pourtant aussi').split(' '));
+var COORD_TETE_LOC = [
+  ['par', 'contre'], ['tout', "d'abord"], ['par', 'conséquent'], ['en', 'conséquence'],
+  ['en', 'effet'], ['de', 'plus'], ['en', 'outre'], ['par', 'exemple'], ['en', 'somme'],
+  ['tout', 'de', 'même'], ['en', 'revanche'], ['en', 'premier', 'lieu'],
+];
+/* ── R3 : L'INTERJECTION ET L'INCIDENTE EN TÊTE ──────────────────────────────────────────
+   Allô prof : « On détache habituellement une interjection par une ou deux virgules » (« Zut,
+   j'ai encore oublié mes clés ! ») et « Une phrase incidente ou un groupe incident » (« Selon
+   moi, la présentation ne durera pas longtemps »).
+   LISTES FERMÉES, et c'est ce qui les rend sûres : aucun de ces mots n'est ambigu EN TÊTE. */
+var INTERJ = new Set(('zut ah oh eh hé ben bref tiens tenez écoute écoutez bravo hélas ouf ' +
+  'chut mince flûte').split(' '));
+var INCIDENT_LOC = [
+  ['selon', 'moi'], ['selon', 'lui'], ['selon', 'elle'], ['selon', 'nous'], ['selon', 'eux'],
+  ['à', 'mon', 'avis'], ['il', 'me', 'semble'], ['bien', 'sûr'], ['bien', 'entendu'],
+  ['sans', 'doute'], ['à', 'vrai', 'dire'], ['en', 'réalité'], ['en', 'fait'], ['au', 'fond'],
+  ['après', 'tout'], ['en', 'principe'], ['à', 'première', 'vue'], ['en', 'revanche'],
+];
+var INCIDENT_ADV = new Set(('heureusement malheureusement évidemment naturellement ' +
+  'apparemment visiblement effectivement franchement honnêtement personnellement ' +
+  'curieusement étonnamment premièrement deuxièmement troisièmement').split(' '));
+
+/* ── R4 : LES CORRÉLATIONS ───────────────────────────────────────────────────────────────
+   Allô prof : « On place une virgule avant un terme répété qui introduit une idée de
+   comparaison, de choix ou de corrélation » — autant… autant, soit… soit, tantôt… tantôt,
+   plus… plus, moins… moins, tel… tel. La virgule va AVANT LA SECONDE occurrence. */
+var CORREL = new Set(('autant soit tantôt plus moins tel telle').split(' '));
+
+/* ── R5 : LES COORDONNANTS RÉPÉTÉS PLUS DE DEUX FOIS ─────────────────────────────────────
+   Allô prof : « On place une virgule avant les coordonnants et, ou et ni lorsqu'ils sont
+   répétés PLUS DE DEUX FOIS. Remarque : on ne place AUCUNE virgule avant le premier. »
+   (« Je n'aime ni la crème glacée, ni le sorbet, ni le yogourt glacé. »)
+   ⚠️⚠️ RESTREINT À « NI » APRÈS MESURE, et c'est une relecture de la source, pas un recul.
+   « Répétés plus de deux fois » ne veut PAS dire « apparaît trois fois dans la phrase » : ça veut
+   dire RÉPÉTÉ DEVANT CHAQUE ÉLÉMENT (« ni… ni… ni »). Appliqué à `et` et `ou`, le comptage brut
+   a produit exactement les faux positifs qu'on pouvait prévoir en relisant mieux — « au Nouveau
+   Brunswick, et dans l'Est de l'Ontario, et dans le Nord » : trois `et` de coordination
+   ordinaire, aucune insistance. Justesse mesurée 51,80 % -> 49,52 % avec les trois ; restaurée
+   en gardant `ni` seul. Et les DEUX exemples de la source pour cette règle sont avec `ni`.
+   (« Le gardien ouvrira et les portes et les fenêtres » est donné SANS virgule, sous
+   « emplacement du coordonnant ».) */
+var REPETABLE = new Set(['ni']);
+
+/* Les CONJONCTIONS de coordination pures — jamais des adverbes, donc exemptes de la garde
+   « suit un verbe ». La coupure est celle de la source, qui donne la classe de chaque mot. */
+var CONJ_PURE = {};
+('mais car or voire').split(' ').forEach(function (w) { CONJ_PURE[w] = 1; });
+/* Conjonctions qui, PLACÉES AVANT un adverbe-coordonnant, en font une LOCUTION (« mais aussi »,
+   « et ensuite ») : la frontière de proposition est alors avant la conjonction, pas après. */
+var COORD_PREC = {};
+('mais et ou ni car or voire').split(' ').forEach(function (w) { COORD_PREC[w] = 1; });
+
+var VERBAL = { VERB: 1, AUX: 1 };
+var pvNorm = w => String(w || '').toLowerCase().replace(/[’ʼ]/g, "'");   /* ⚠️ RENOMMÉ depuis `norm` le 2026-08-24 : l'app a DÉJÀ un `norm` — un normaliseur PHONÉTIQUE (ph→f, qu→k) dont dépend la classification d'orthographe. Ce bloc étant porté tel quel dans l'app, son `var norm` ÉCRASAIT l'autre au chargement et 134 diagnostics de dictée basculaient de « surface » à « autre ». Sorti par la garde de parité DICTÉE Python↔JS, pas par la relecture. Nom unique des deux côtés pour que le miroir app↔extension reste octet pour octet. */
+
+/* ⚠️ `DC.toks` NE SÉPARE PAS L'ÉLISION : « qu'il » est UN token, pas « qu' » + « il ». Tester
+   l'égalité avec "qu'" ne matche donc JAMAIS, et « Alors qu'il se baladait » recevait une virgule
+   alors que c'est une SUBORDONNÉE. On teste le PRÉFIXE. */
+var estQue = w => { var x = pvNorm(w); return x === 'que' || x.indexOf("qu'") === 0; };
+function locA(mots, i, loc) {           // la locution commence-t-elle au mot i ?
+  for (var k = 0; k < loc.length; k++) if (pvNorm(mots[i + k]) !== loc[k]) return false;
+  return true;
+}
+function longueurCoord(mots, i) {       // 0 si pas un coordonnant ; sinon sa longueur en mots
+  if (COORD_AVANT.has(pvNorm(mots[i]))) return 1;
+  for (var l of COORD_AVANT_LOC) if (locA(mots, i, l)) return l.length;
+  return 0;
+}
+function longueurTete(mots, i) {
+  if (COORD_TETE.has(pvNorm(mots[i]))) return 1;
+  for (var l of COORD_TETE_LOC) if (locA(mots, i, l)) return l.length;
+  return 0;
+}
+
+/* ⛔ LA VIRGULE INTERDITE — primitive PARTAGÉE (22/08/2026).
+   POURQUOI : mesurer une virgule contre un gold (UD) est invalide — la virgule française est
+   souvent FACULTATIVE, et une virgule juste mais non annotée y compte comme une faute. Le juge à
+   trois classes (`dictee/ponct_juge_probe.js`) sépare obligatoire / facultative / INTERDITE, et
+   seules les INTERDITES sont des fautes : une virgule manquante se lit, « manger du, chocolat »
+   casse la phrase.
+   MESURÉ dès la première passe du juge : le chemin vocal livré filtrait bien « après déterminant/
+   préposition » (liste `_PASAPRES`, dupliquée chez lui) mais PAS « devant et/ou/ni » → 9 virgules
+   interdites sur 616. D'où cette primitive : UNE seule définition de l'interdit, pour la saisie
+   vocale ET pour tout futur câblage dictée/correcteur.
+   Conservatrice par construction : uniquement de la STRUCTURE, jamais du sens. Ce qu'on ne sait
+   pas prouver interdit est déclaré FACULTATIF. */
+var PONCT_PASAPRES = {};
+("le la les un une des du de d au aux a en dans sur sous par pour avec sans chez vers depuis " +
+ "pendant selon entre mon ma mes ton ta tes son sa ses notre nos votre vos leur leurs ce cet " +
+ "cette ces chaque aucun aucune plusieurs quel quelle quels quelles")
+  .split(' ').forEach(function (w) { PONCT_PASAPRES[w] = 1; });
+var PONCT_PASDEVANT = { et: 1, ou: 1, ni: 1 };   // Allô prof : pas de virgule devant « et/ou/ni »
+function ponctInterdit(mots, tg, i) {
+  tg = tg || [];
+  if (i < 0 || i >= mots.length - 1) return 'fin de phrase';
+  if (PONCT_PASAPRES[pvNorm(mots[i])]) return 'après déterminant/préposition';
+  if (PONCT_PASDEVANT[pvNorm(mots[i + 1])]) {
+    // ⚠️ EXCEPTION MESURÉE (garde CI proso_probe, R5 d'Allô prof) : un coordonnant RÉPÉTÉ est une
+    // ÉNUMÉRATION, et elle prend la virgule — « Béatrice ne peut ni parler, NI manger, NI bouger ».
+    // Interdire en bloc « devant et/ou/ni » cassait ces deux cas : la répétition fait la différence.
+    var _c = pvNorm(mots[i + 1]), _n = 0;
+    for (var _k = 0; _k < mots.length; _k++) if (pvNorm(mots[_k]) === _c) _n++;
+    if (_n < 2) return 'devant et/ou/ni';
+  }
+  if (tg[i] === 'AUX' && VERBAL[tg[i + 1]] === 1) return 'entre auxiliaire et participe';
+  if (tg[i] === 'PRON' && VERBAL[tg[i + 1]] === 1) return 'entre pronom sujet et verbe';
+  if (tg[i] === 'DET' || tg[i] === 'ADP') return 'après déterminant/préposition (POS)';
+  return null;
+}
+
+/* `deja` = les indices qui portent DÉJÀ une marque (posées par le modèle statistique et, dans la
+   saisie vocale, par l'ancre audio). Les règles en ont besoin — voir le filtre final. */
+function ponctReglesVirgule(mots,_tg,deja){
+  var tg=_tg||posTags(mots)||[], out=new Set();
+  // R2 — coordonnant EN TÊTE : virgule APRÈS.
+  var nT = longueurTete(mots, 0);
+  // ⚠️ « alors QUE », « ainsi QUE » sont des SUBORDONNANTS, pas des coordonnants : la fiche
+  // « subordination » de Rem le dit, et la virgule y serait une faute.
+  if (nT && !estQue(mots[nT]) && mots.length > nT + 2)
+    out.add(nT - 1);
+  // R1 — coordonnant ENTRE DEUX PHRASES : virgule AVANT.
+  for (var i = 1; i < mots.length - 1; i++) {
+    var n = longueurCoord(mots, i);
+    if (!n) continue;
+    if (estQue(mots[i + n])) continue;   // « alors que », « ainsi que » : SUBORDONNANTS
+    // ⛔ GARDE 0a — « DE PLUS » N'EST UN ORGANISATEUR QUE SEUL. Suivi d'un adjectif, d'un adverbe,
+    // d'un nombre ou de « de », c'est le COMPARATIF : « la direction de PLUS GRANDE diffusivité »,
+    // « en présence de PLUS DE journalistes ». Mesuré 22/08 sur 40 tirs UD : 3 des 8 vraies fautes
+    // des règles venaient de là. « De plus, l'appartenance… » (suivi d'un déterminant) reste juste.
+    if (n === 2 && pvNorm(mots[i]) === 'de' && pvNorm(mots[i + 1]) === 'plus') {
+      var _ta = tg[i + 2], _ma = pvNorm(mots[i + 2] || '');
+      if (_ta === 'ADJ' || _ta === 'ADV' || _ta === 'NUM' || _ma === 'de' || _ma === "d'" || /^\d/.test(_ma)) continue;
+    }
+    // ⛔ GARDE 0b — UN ADVERBE-COORDONNANT PRÉCÉDÉ D'UNE CONJONCTION FORME UNE LOCUTION, pas une
+    // frontière : « mais AUSSI », « et ENSUITE », « ou ALORS ». La virgule irait AVANT la
+    // conjonction, jamais entre les deux — « Bubber Miley mais , aussi Bix Beiderbecke » est une
+    // faute que la règle fabriquait. Mesuré : 3 des 8 vraies fautes sur 40 tirs UD.
+    if (i > 0 && CONJ_PURE[pvNorm(mots[i])] !== 1 && COORD_PREC[pvNorm(mots[i - 1])] === 1) continue;
+    // ⭐ LA GARDE : il faut un VERBE CONJUGUÉ AVANT et APRÈS. Sans elle, « il est aussi grand »
+    // et « la pomme et la poire » recevraient une virgule. C'est ce qui sépare la COORDINATION
+    // DE PHRASES (que la règle vise) d'un simple adverbe dans un groupe.
+    // ⛔ GARDE 1 — LE MOT SUIT-IL IMMÉDIATEMENT UN VERBE ? Alors c'est un ADVERBE DANS la
+    // proposition, pas un coordonnant entre deux phrases. Mesuré : c'est la cause de la majorité
+    // des faux positifs (« Ils deviennent ALORS les Paladins », « la direction est DONC la
+    // direction », « On en retrouve AUSSI un peu »).
+    // ⭐ MAIS ELLE NE VAUT QUE POUR LES ADVERBES, et c'est LA SOURCE qui donne la coupure : la
+    // fiche « Le coordonnant » classe les coordonnants PAR CLASSE DE MOTS — « Adverbe : ainsi,
+    // alors, donc, aussi, cependant, toutefois, enfin, ensuite, en effet » d'un côté ;
+    // « Conjonction de coordination : mais, car, or, c'est-à-dire, soit » de l'autre. Une
+    // CONJONCTION n'est jamais un adverbe : elle SUIT légitimement un verbe. La garde appliquée
+    // à `car` supprimait la virgule que la source donne elle-même en exemple (« Le chien se
+    // repose, car il est épuisé » : `repose` est un verbe, donc `car` était rejeté).
+    if (CONJ_PURE[pvNorm(mots[i])] !== 1 && VERBAL[tg[i - 1]] === 1) continue;
+    // ⛔ GARDE 2 — UNE NOUVELLE PROPOSITION COMMENCE-T-ELLE APRÈS ? Il faut un SUJET puis un
+    // VERBE dans les mots qui suivent : c'est ce qui fait la coordination DE PHRASES, seule visée
+    // par la règle. « pas de faire du profit, mais d'habiter » coordonne deux infinitifs, pas
+    // deux phrases — la source ne demande pas de virgule là.
+    var suj = -1;
+    for (var k = i + n; k < Math.min(mots.length, i + n + 4); k++)
+      if (tg[k] === 'PRON' || tg[k] === 'NOUN' || tg[k] === 'PROPN' || tg[k] === 'DET') { suj = k; break; }
+    if (suj < 0) continue;
+    var vAp = false;
+    for (var k = suj + 1; k < Math.min(mots.length, suj + 5); k++) if (VERBAL[tg[k]] === 1) { vAp = true; break; }
+    var vAv = false;
+    for (var k = 0; k < i; k++) if (VERBAL[tg[k]] === 1) { vAv = true; break; }
+    if (vAv && vAp) out.add(i - 1);
+  }
+
+  // ── R3 : INTERJECTION / INCIDENTE EN TÊTE. Listes fermées — c'est ce qui les rend sûres :
+  // aucun de ces mots n'est ambigu quand il OUVRE la phrase.
+  if (INTERJ.has(pvNorm(mots[0])) && mots.length > 2) out.add(0);
+  if (INCIDENT_ADV.has(pvNorm(mots[0])) && mots.length > 2) out.add(0);
+  for (var l of INCIDENT_LOC)
+    if (locA(mots, 0, l) && mots.length > l.length + 1) { out.add(l.length - 1); break; }
+
+  // ── R4 : CORRÉLATIONS — la virgule va AVANT LA SECONDE occurrence, jamais avant la première.
+  for (var i = 2; i < mots.length - 1; i++) {
+    var w = pvNorm(mots[i]);
+    if (!CORREL.has(w)) continue;
+    var vu = false;
+    for (var k = 0; k < i - 1; k++) if (pvNorm(mots[k]) === w) { vu = true; break; }
+    // ⚠️ « plus » et « moins » sont D'ABORD des adverbes ordinaires (« plus grand », « de plus en
+    // plus ») : on n'accepte la corrélation que si la première occurrence OUVRE la phrase, ce qui
+    // est la forme décrite par la source (« Moins je fais de sport, moins j'ai d'énergie »).
+    if (vu && ((w !== 'plus' && w !== 'moins') || pvNorm(mots[0]) === w)) out.add(i - 1);
+  }
+
+  // ── R5 : « ni / et / ou » RÉPÉTÉS PLUS DE DEUX FOIS. La source est précise sur les deux
+  // bouts : virgule avant les suivants, AUCUNE avant le premier.
+  for (var c of REPETABLE) {
+    var pos = [];
+    for (var i = 0; i < mots.length; i++) if (pvNorm(mots[i]) === c) pos.push(i);
+    if (pos.length < 3) continue;
+    for (var k = 1; k < pos.length; k++) if (pos[k] > 0) out.add(pos[k] - 1);
+  }
+
+  // ⛔⛔ FILTRE FINAL — ON N'EMPILE PAS DEUX DÉTACHEMENTS. Une virgule de règle qui vient se coller
+  // CONTRE une marque déjà posée produit « Alors, demain, je ne sais pas » : deux détachements
+  // consécutifs pour un seul mot. C'est la garde CI (prise libre de Rem) qui l'a sorti, et c'est
+  // la doctrine : un texte SUR-ponctué coûte plus cher à un dys qu'un texte sous-ponctué. La
+  // règle « virgule après le coordonnant en tête » est juste, mais elle suppose que le
+  // coordonnant est SEUL en tête — pas suivi d'un complément lui-même détaché.
+  if (deja) {
+    var aDeja = function (i) { return deja.has ? deja.has(i) : !!deja[i]; };
+    out.forEach(function (i) { if (aDeja(i - 1) || aDeja(i + 1)) out.delete(i); });
+  }
+  // ⛔⛔ PORTE FINALE — UNE RÈGLE NE DOIT JAMAIS ÉMETTRE UNE VIRGULE INTERDITE. Le juge à trois
+  // classes en a sorti une (« …particulièrement faibles AVEC , par exemple litres » : virgule après
+  // une préposition, parce que « par exemple » est un organisateur légitime mais pas ici). Plutôt
+  // que d'ajouter une exception par cas, on fait passer TOUTE sortie par la primitive partagée.
+  out.forEach(function (i) { if (ponctInterdit(mots, tg, i)) out.delete(i); });
+  return out;
+}
+
 /* ⭐⭐ DÉTECTION DE QUESTION — MIROIR de extension/dys-core.js (déplacée depuis sidepanel.js/saisie-vocale.html) (2026-08-24).
    Elle y vivait EN DOUBLE et n'existait NI dans dys-core NI dans l'app : le correcteur ne pouvait donc
    pas signaler un « ? » manquant, alors que le banc lui donne 96,67 % de précision (58/60,
@@ -27143,6 +27395,8 @@ function spellTokenCore(tok,atStart,T,idx){
    +'.vdc-bad{background:#f6b6b6;border-bottom:3px solid #b02020;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-bad:hover{background:#f29a9a}'   /* fonds SATURÉS (pastels trop pâles = illisibles) */
    +'.vdc-bad.vdc-orth{background:#bcd6f5;border-bottom-color:#1b5c86}.vdc-bad.vdc-orth:hover{background:#a3c6ef}'
    +'.vdc-bad.vdc-vig{background:#ffdd94;border-bottom:3px dashed #c8760a;font-weight:600}.vdc-bad.vdc-vig:hover{background:#ffd06f}'
+   +'.vdc-ins{position:relative}'   +'.vdc-ins::after{content:"";position:absolute;left:-5px;right:-5px;top:-3px;bottom:-3px;cursor:pointer}'   /* ZONE DE CLIC élargie par un pseudo-élément ABSOLU : il ne participe pas au flux, donc zéro delta
+      de métrique face à la textarea — un padding, lui, décalerait tout le texte. */
    +'.vdc-vig{border-bottom:2px dotted #1f7a3d;cursor:help;border-radius:2px}.vdc-vig:hover{background:#e3f6e6}'   /* VERT pointillé = vigilance (confusable), n\'affirme pas une faute ; survol = possibilités */
    +'.vdc-on{background:#c9efd0;border-bottom:3px solid #1f7a3d;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-on:hover{background:#b3e6bd}'   /* VERT plein = correction APPLIQUÉE (clique = annuler) — modèle non destructif */
    +'.vdc-flabel{font-size:13px;font-weight:700;color:#6b5d3a;margin:14px 0 3px}.vdc-copy{font:inherit;font-size:13px;margin-left:8px;padding:2px 10px;border:1px solid #cbbf9e;border-radius:7px;background:#fff;cursor:pointer;font-weight:600;color:#333}.vdc-copy:hover{background:#f3ecd8}.vdc-nav{display:flex;align-items:center;gap:6px;margin-top:8px}.vdc-navb{font:inherit;font-size:13px;font-weight:600;padding:4px 12px;border:1px solid #cbbf9e;border-radius:7px;background:#fff;color:#333;cursor:pointer}.vdc-navb:hover{background:#f3ecd8}#vdc-navpos{font-size:13px;color:#6b5d3a;min-width:52px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}.vdc-cur{outline:3px solid #33648f;outline-offset:2px;border-radius:3px}'
@@ -27238,6 +27492,7 @@ function spellTokenCore(tok,atStart,T,idx){
   function _corrFam(n,w,sg){n=n||'';sg=String(sg||'');
     if(/majuscule/.test(n))return 'majuscule';                              // majuscule initiale = CONVENTION (stade alphabétique), pas un accent
     if(/r[ée]p[ée]tition/.test(n))return 'repetition';                      // mot doublé = lapsus d'attention → hors-stade (pas une famille orthographique)
+    if(/^virgule$|point d.interrogation/.test(n))return 'ponctuation';   /* ⭐ PONCTUATION = famille À PART (2026-08-24). Sans cette ligne, « virgule » tombait dans les heuristiques d'en dessous et la carte l'annonçait comme un HOMOPHONE — faux, et le profil dys enregistrait la mauvaise famille. « virgule doublée » reste de la typo (ancré ^virgule$). */
     if(/typographie/.test(n))return 'typo';if(/nombre/.test(n))return 'nombre';if(/anglicisme/.test(n))return 'anglicisme';if(/abr[ée]viation/.test(n))return 'abreviation';if(/pl[ée]onasme/.test(n))return 'pleonasme';   // catégories STYLE (élargissement 07/2026) : name-based, AVANT les heuristiques accent/segmentation (sinon la sug « « » (avec espace) → 'segmentation') → libellé de carte correct + AUCUNE ne compte pour le stade dys (hors STAGE_FAM), miroir de l'exclusion typo de l'extension
     if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
@@ -27283,7 +27538,7 @@ function spellTokenCore(tok,atStart,T,idx){
        MESURÉ avant de livrer sur 14 450 phrases UD CORRECTES : **2 tirs `auto` seulement**, et
        l'audit §11 avait déjà établi que les DEUX sont de vraies fautes du corpus. Les 904 tirs de
        vigilance, eux, restent décochés. */
-    var _typ=_typoScan(t).concat(_questionScan(t));_typ.forEach(function(f){f.key='T'+f.cs+'|'+f.sugg;f.word=f.from;f.on=_isOn(f);});
+    var _typ=_typoScan(t).concat(_questionScan(t)).concat(_virguleScan(t));_typ.forEach(function(f){f.key='T'+f.cs+'|'+f.sugg;f.word=f.from;f.on=_isOn(f);});
     return list.concat(_typ).filter(function(f){return !_ignored[f.key];});}
   // TYPOGRAPHIE (catégorie Grammalecte) — flags ANCRÉS AUX CARACTÈRES (dans les espaces/bords, pas les mots) : guillemets droits « " » → «/» et points de suspension « ... » → « … ». ORANGE (préférence, jamais forcé). FP-safe : gardes chiffre (pouces 5"), contexte ouvrant/fermant net. Vit hors du système mot-à-mot → traité UNIQUEMENT dans les espaces au rendu (le cœur mot-flag est intact).
   function _typoScan(t){var out=[],m,re1=/\.{3,}/g;
@@ -27334,6 +27589,44 @@ function spellTokenCore(tok,atStart,T,idx){
      ISOLÉMENT par `dictee/typo_probe.js`. Le « ? » manquant, lui, a besoin du tagger POS via
      `estQuestion` : le mettre dans `_typoScan` cassait l'isolement de la sonde ET la propriété
      qui fait la valeur de cette couche. Il vit donc à côté, et `diagnoseAll` concatène. */
+  /* ⭐⭐ VIRGULE MANQUANTE — étape ③ de PR#561, jamais faite jusqu'ici.
+     Les règles R1–R5 d'Allô prof (`ponctReglesVirgule`) et la porte du juge à trois classes
+     (`ponctInterdit`) n'étaient appelées QUE par les deux surfaces VOCALES. Ce sont pourtant des
+     règles PUREMENT TEXTUELLES : signature (mots, tg, deja), aucun audio.
+     PRIX MESURÉ (`node dictee/virgule_reel_probe.js`, 11 304 phrases écrites par des humains) :
+     justesse 50,6 pour cent, rappel 11,0 — et surtout ZÉRO virgule INTERDITE, « ne pas séparer » 7/7.
+     Ce 50 SOUS-ESTIME : la virgule française est souvent FACULTATIVE et le corpus compte comme faute
+     une virgule juste mais non annotée — PR#561 l'a vérifié à l'œil, 32/40 correctes.
+     ⇒ ORANGE (`tier:'vigilance'`), jamais imposé, exclu de « tout corriger ». Une virgule change le
+     découpage de la phrase : l'auteur garde le dernier mot.
+     ⭐ ANCRÉE DANS L'ESPACE ENTRE DEUX MOTS, pas sur un mot. `_renderView` ne peint les flags ancrés
+     caractère que dans les GAPS (`_typoGapHtml`) — une virgule s'insère justement là, elle est donc
+     peignable, contrairement au « ? » de fin de phrase qui s'ancre en fin de token et reste muet à
+     l'écran (leçon payée le même jour : un flag compté et non peint fait MENTIR le compteur).
+     ⛔ GARDE TRAIT D'UNION, appliquée ICI et pas dans la primitive. `toks` coupe sur le trait d'union
+     (« sous-espèce » → sous, espèce) et `ponctReglesVirgule(mots,tg,deja)` est la SEULE primitive du
+     moteur à ne jamais recevoir `seg` : les 16 autres usages de `_SEG.hy` la protègent, pas elle.
+     On la garde au point d'appel — la voix, qui appelle la même primitive, reste inchangée. */
+  function _virguleScan(t){
+    var out=[];
+    if(!t||typeof ponctReglesVirgule!=='function')return out;
+    var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,P=[];while((m=re.exec(t)))P.push([m.index,m.index+m[0].length,m[0]]);
+    if(P.length<3)return out;
+    var mots=P.map(function(p){return p[2].replace(/[’ʼ]/g,"'");}),seg=_segInfo(t),k;
+    var deja={};for(k=0;k<P.length;k++)if(seg.bb[k])deja[k-1]=1;   // une marque est DÉJÀ posée après le mot k-1
+    var tg=null;try{tg=posTags(mots);}catch(e){}
+    var idx=null;try{idx=ponctReglesVirgule(mots,tg,deja);}catch(e){return out;}
+    if(!idx||!idx.forEach)return out;
+    idx.forEach(function(i){
+      if(i<0||i+1>=P.length)return;
+      if(seg.bb[i+1])return;                                  // marque déjà présente
+      if(seg.hy[i+1])return;                                  // ⛔ composé : « sous-espèce » ne se coupe pas
+      var cs=P[i][1],ce=P[i+1][0],gap=t.slice(cs,ce);
+      if(!gap||/[^ \t]/.test(gap))return;                     // seulement un blanc simple entre les deux mots
+      out.push({cs:cs,ce:ce,from:gap,sugg:','+gap,name:'virgule',tier:'vigilance',typo:1});
+    });
+    return out;}
+
   function _questionScan(t){var out=[];
     /* « ? » MANQUANT — la seule ponctuation SYNTAXIQUE qu'on puisse proposer aujourd'hui, parce que
      c'est la seule dont on connaisse le prix : `estQuestion` fait 96,67 % de précision (58/60,
@@ -27376,7 +27669,11 @@ function spellTokenCore(tok,atStart,T,idx){
   function _typoGapHtml(g,base,byCs,corrected){var ks=Object.keys(byCs).map(Number).filter(function(c){return c>=base&&c<base+g.length;}).sort(function(a,b){return a-b;});
     if(!ks.length)return esc(g);var o='',lp=0;   // lp = position relative dans g ; splice les corrections typo (guillemets/points de suspension) DANS l'espace, sans toucher au rendu mot
     ks.forEach(function(cs){var f=byCs[cs],r0=cs-base,r1=f.ce-base;if(r0<lp)return;o+=esc(g.slice(lp,r0));
-      var seg=g.slice(r0,r1),disp=(corrected&&f.on)?f.sugg:seg,cls=(corrected&&f.on)?'vdc-on':'vdc-bad vdc-vig',
+      var seg=g.slice(r0,r1),disp=(corrected&&f.on)?f.sugg:seg,cls=((corrected&&f.on)?'vdc-on':'vdc-bad vdc-vig')+(/^[ 	]*$/.test(disp)?' vdc-ins':''),   /* ⭐ INSERTION DANS UN ESPACE (virgule manquante) : le span ne contient QU'UN BLANC, donc la
+        cible cliquable faisait 5 px de large — mesuré en navigateur réel, inutilisable, et pour un
+        dys encore moins. On la marque pour que le CSS élargisse la ZONE DE CLIC sans toucher aux
+        MÉTRIQUES : l'overlay doit rester au pixel près sur la zone de saisie (padding et gras
+        décalaient le texte, c'est écrit plus bas). */
       ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
       o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';lp=r1;});
     o+=esc(g.slice(lp));return o;}
@@ -27413,7 +27710,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var tin=_navHiliteIn($('vdc-in'),ky),tres=_navHiliteIn($('vdc-result'),ky);   // surligne la faute courante DANS LA SAISIE (là où l'œil est) ET dans le corrigé — sinon « ◂▸ » semblait ne rien faire
     var tgt=tin||tres;if(tgt)tgt.scrollIntoView({block:'center',behavior:'smooth'});}
   // ===== PISTE A : carte d'action au clic sur un mot du CORRIGE. La saisie du haut reste 100% editable.
-  var _VFAM={accent:'Accent',segmentation:'Découpage',liaison:'Liaison',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition',typo:'Typographie',nombre:'Nombre',anglicisme:'Anglicisme',abreviation:'Abréviation',pleonasme:'Redondance'};
+  var _VFAM={accent:'Accent',segmentation:'Découpage',liaison:'Liaison',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition',typo:'Typographie',nombre:'Nombre',anglicisme:'Anglicisme',abreviation:'Abréviation',pleonasme:'Redondance',ponctuation:'Ponctuation'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
   var _EXPL={
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",
@@ -27512,7 +27809,7 @@ function spellTokenCore(tok,atStart,T,idx){
       return n.indexOf('accord')<0&&n.indexOf('homophone')<0&&n.indexOf('conjug')<0;  // ortho seulement
     }catch(e){return false;}
   }
-  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div><div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div><div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button>'+(_udEligible(f)?'<button type="button" class="vcud" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗 C’est un mot</button>':'')+'</div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _ud=c.querySelector('.vcud');if(_ud)_ud.onclick=function(){udAdd(f.word);_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
+  function _openCard(span){var c=$('vdc-cardpop');if(!c)return;var key=span.getAttribute('data-key'),f=null,z;for(z=0;z<_corrs.length;z++)if(_corrs[z].key===key){f=_corrs[z];break;}if(!f)return;var _ex=_explain(f),applied=f.on,fam=_VFAM[_corrFam(f.name,f.word,f.sugg)]||'Correction';c.className=applied?'':'tov';c.innerHTML='<div class="vch">'+(applied?'✓ Correction appliquée':'À vérifier')+'</div>'+(/^[ 	]*$/.test(String(f.word||''))?'<div class="vcs">insérer <span class="vcp">'+esc(String(f.sugg).trim())+'</span></div>':'<div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(f.sugg)+'</span></div>')+'<div class="vca"><button type="button" class="vcap">'+(applied?'Annuler':'Appliquer')+'</button><button type="button" class="vcig">Ignorer</button>'+(_udEligible(f)?'<button type="button" class="vcud" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗 C’est un mot</button>':'')+'</div>'+(_ex?'<div class="vcx"><span class="vcb">💡 Pourquoi&nbsp;?</span> '+_ex+' <button type="button" class="vcsp" title="Écouter l\'explication" style="background:none;border:0;cursor:pointer;font-size:15px;opacity:.75;padding:0 4px">🔊</button></div>':'')+'<div class="vce">'+esc(fam)+(f.tier==='vigilance'?' · à confirmer':'')+'</div>';c.querySelector('.vcap').onclick=function(){_hideCard();_toggleKey(key);};c.querySelector('.vcig').onclick=function(){_ignored[key]=1;_hideCard();runCorr();};var _ud=c.querySelector('.vcud');if(_ud)_ud.onclick=function(){udAdd(f.word);_hideCard();runCorr();};var _sp=c.querySelector('.vcsp');if(_sp)_sp.onclick=function(){_speak('« '+f.word+' » devient « '+f.sugg+' ». '+_plain(_ex));};c.style.display='block';var r=span.getBoundingClientRect();c.style.left=Math.max(8,Math.min(r.left,(window.innerWidth||800)-c.offsetWidth-10))+'px';c.style.top=(r.bottom+8)+'px';}
   function _cardClick(e){var s=e.target.closest('[data-key]');if(!s)return;e.stopPropagation();_openCard(s);}
   // ===== COMPLÉTION (aide-frappe) — mots plus longs pour le mot SOUS LE CURSEUR. HORS PARITÉ : suggestion d'UI
   // (pas un flag FP=0), réutilise le speller accentué SP déjà chargé (D2A = déacc→formes accentuées). Identique extension.
