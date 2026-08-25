@@ -330,6 +330,97 @@ async function main() {
       log('  ' + (rv.kara >= 4 && rv.restaure ? '✓' : '✗') + ' lecture read-along (karaoké ' + rv.kara + ' mots, restauration ' + (rv.restaure ? 'OK' : 'KO') + ')');
     }
 
+    /* ── CRIBLE DES EXPLICATIONS (demande de Rem, 2026-08-26 : « on se doit, c'est un impératif,
+       de bien expliquer les fautes — il va falloir repasser nos règles avec nos exemples au crible »).
+       On ne lit pas le code : on CLIQUE chaque correction et on lit la carte que l'utilisateur voit.
+       Mesuré ce jour-là AVANT correctif : 3 explications sur 16 (19 %) — et les 3 étaient des accords,
+       parce que `_accHint` existait. Tout le versant orthographe rendait « même son, orthographe
+       corrigée », qui ne dit pas CE QUI a changé. Le crible a aussi révélé qu'une correction
+       d'ESPACEMENT recevait un conseil d'homophone (« remplace par a→avait ») : `_corrFam` la faisait
+       tomber dans son `else` attrape-tout.
+       ⚠️ MISE EN CHAUFFE OBLIGATOIRE : le lexique du speller charge en différé. Mesurer trop tôt
+       conclut « rien détecté » sur les 7 cas orthographiques — piège tombé dedans en direct. */
+    const CRIB = [
+      // `dys` = famille qui DOIT porter le conseil ancré sur le mot (🛠️). La ponctuation, elle,
+      // s'explique par sa RÈGLE (« après une virgule, une espace ») : citer le mot n'y ajoute rien.
+      ['orthographe', 'Il ouvre la fenetre du salon.', 1],
+      ['orthographe', 'Elle est ellle partie tot.', 1],
+      ['orthographe', 'Je vois une grosse fote ici.', 1],
+      ['orthographe', 'Il marche dehor sans manteau.', 1],
+      ['graphème',    'Je mange une pome sucree.', 1],
+      ['élision',     'Je pense que c est fini.', 1],
+      ['homophone',   'Il a manger une pomme et il est partie.', 1],
+      ['homophone',   'Sa mere et partie hier.', 1],
+      ['accord',      'Les chat dorme dans le jardin.', 1],
+      ['accord',      'La voiture est bleu.', 1],
+      ['majuscule',   'elle arrive demain matin.', 1],
+      ['ponctuation', 'Il arrive ,puis il repart .', 0],
+    ];
+    const cr = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
+      const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      const inp = document.getElementById('vdc-in'), out = document.getElementById('vdc-out');
+      if (!inp || !out) return { fatal: 'correcteur absent' };
+      const corriger = () => [].slice.call(document.querySelectorAll('button'))
+        .filter(b => (b.textContent || '').trim() === 'Corriger')[0];
+      async function passe(txt) {
+        inp.value = txt; inp.dispatchEvent(new Event('input', { bubbles: true }));
+        const b = corriger(); if (!b) return null; b.click(); await attendre(600);
+        return [].slice.call(out.querySelectorAll('[data-key]'));
+      }
+      // chauffe : le speller charge en différé — on attend qu'une faute LEXICALE sorte
+      let chaud = false;
+      for (let t = 0; t < 25 && !chaud; t++) { const c = await passe('Il ouvre la fenetre du salon.'); chaud = !!(c && c.length); }
+      if (!chaud) return { fatal: 'speller jamais chargé (25 essais)' };
+      const res = [];
+      for (const [fam, txt, dys] of ${JSON.stringify(CRIB)}) {
+        const chips = await passe(txt);
+        if (!chips || !chips.length) { res.push({ fam, txt, dys, muet: true, items: [] }); continue; }
+        const items = [];
+        for (const ch of chips) {
+          ch.click(); await attendre(150);
+          const card = document.getElementById('vdc-cardpop');
+          const vis = card && card.style.display !== 'none';
+          const t = vis ? (card.innerText || '').replace(/\s+/g, ' ') : '';
+          // NE PAS accepter « Pourquoi » : c'est le TITRE de la carte, donc toujours present.
+          // Teste le 26/08/2026 : avec lui, couper le fil du conseil laissait la sonde VERTE.
+          // Les trois marqueurs retenus sont ancres sur le mot par construction.
+          items.push({ chip: (ch.innerText || '').replace(/\s+/g, ' ').trim(),
+                       ancre: !!(t && (t.indexOf('\u{1F6E0}') >= 0 || /Astuce|commande/.test(t))),
+                       raison: (function(){ if(!t) return false;
+                         var i = t.indexOf('Pourquoi'); if (i < 0) return false;
+                         return t.slice(i + 8).replace(/\s+/g,' ').trim().length >= 25; })(),
+                       vide: !vis });
+          if (card) card.style.display = 'none';
+        }
+        res.push({ fam, txt, dys, muet: false, items });
+      }
+      return { res };
+    })()`, awaitPromise: true, returnByValue: true, timeout: 180000 });
+    if (cr.exceptionDetails) throw new Error('crible : ' + (cr.exceptionDetails.exception || {}).description);
+    const cv2 = cr.result.value || {};
+    if (cv2.fatal) echecs.push('crible explications : ' + cv2.fatal);
+    else {
+      let tot = 0, avec = 0, sansCarte = 0;
+      const muets = [];
+      for (const r of cv2.res) {
+        if (r.muet) { muets.push(r.fam + ' « ' + r.txt + ' »'); continue; }
+        for (const it of r.items) { tot++; if (it.raison) avec++; if (it.vide) sansCarte++;
+          if (!it.raison) echecs.push('crible : « ' + it.chip + ' » (' + r.fam + ') ne donne AUCUNE raison — la carte ne dit pas pourquoi');
+          // exigence FORTE sur les familles dys : le conseil doit citer CE mot, pas réciter une règle
+          if (r.dys && !it.ancre) echecs.push('crible : « ' + it.chip + ' » (' + r.fam + ') sans conseil ANCRÉ sur le mot — phrase de manuel'); }
+      }
+      // PLANCHER : aucune correction ne doit être sans raison, et le corpus doit rester détecté.
+      // Le 26/08/2026 : 18/18 après correctif (19 % avant). Un rouge ici = une régression d'explication.
+      if (sansCarte) echecs.push('crible : ' + sansCarte + ' correction(s) sans carte au clic');
+      if (muets.length > 2) echecs.push('crible : ' + muets.length + ' phrase(s) sans aucune détection — ' + muets.join(' · '));
+      let ancres = 0, dysTot = 0;   // ce compte est REPORTÉ dans le verdict final, y compris en --check
+      for (const r of cv2.res) if (!r.muet && r.dys) for (const it of r.items) { dysTot++; if (it.ancre) ancres++; }
+      log('  ' + (avec === tot && ancres === dysTot && tot >= 12 ? '✓' : '✗') + ' crible des explications : ' +
+          avec + '/' + tot + ' donnent une RAISON · ' + ancres + '/' + dysTot + ' un conseil ANCRÉ sur le mot' +
+          (muets.length ? ' · ' + muets.length + ' phrase(s) non détectée(s)' : ''));
+      global.__CRIBLE_RES = avec + '/' + tot + ' raison · ' + ancres + '/' + dysTot + ' ancré';
+    }
+
     /* ── 🎯 REPÈRE LA FAUTE (audit 2026-08-13) : une vraie boucle — phrase affichée en mots
        cliquables, réponse, feedback avec score. Déterministe : cliquer un mot produit TOUJOURS
        un verdict (Exact / ailleurs / était correcte) + le bouton « Phrase suivante ». */
@@ -462,7 +553,7 @@ async function main() {
     finally { if (sess2) sess2.fermer(); }
 
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
-    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus).');
+    else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus) · crible explications ' + (global.__CRIBLE_RES || 'n/a') + '.');
   } catch (e) {
     console.error('✗ NAVIGATEUR RÉEL : ' + e.message); code = 1;
   }
