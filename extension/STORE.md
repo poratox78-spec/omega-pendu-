@@ -15,7 +15,7 @@
 | 5 | Manifeste accepté par le parseur de Chrome lui-même | ✅ mesuré : `chrome --pack-extension` produit un `.crx` (cf. §8) |
 | 6 | Aucun code distant (politique « Remote code ») | ✅ mesuré : aucun `eval`/`new Function`, aucun `fetch` http, aucun `<script src>` externe |
 | 7 | Permissions toutes réellement utilisées | ✅ `storage`, `contextMenus`, `sidePanel` — et **pas** de `tabs` (cf. §4) |
-| 8 | Politique de confidentialité publique couvrant **l'extension** | ✅ `confidentialite.html` (section « L'extension Chrome ») |
+| 8 | Politique de confidentialité publique couvrant **l'extension** | ✅ `omegapendu.com/confidentialite` — SANS `.html`, l'autre renvoie un 308 (section « L'extension Chrome ») |
 | 9 | Compte développeur (5 $ US, une fois) + e-mail de contact vérifié | ⬜ **Rem** |
 | 10 | Captures d'écran 1280×800 (1 à 5) | ⬜ **Rem** (§6) |
 | 11 | Remplir la fiche + les justifications, envoyer | ⬜ **Rem** (§3, §4, §5) |
@@ -40,7 +40,11 @@
 
 1. https://chrome.google.com/webstore/devconsole — **frais uniques de 5 $ US**, compte Google ordinaire.
 2. **Vérifier l'adresse e-mail de contact** (obligatoire, sinon la soumission est bloquée).
-3. Le domaine `omegapendu.com` est **déjà vérifié auprès de Google** (`googleaadee2f545868c76.html` à la
+3. ⚠️ Si Google REDEMANDE une vérification de domaine : le fichier `googleaadee2f545868c76.html` est
+   servi **après un 308** (Cloudflare retire le `.html`), son contenu est correct à
+   `/googleaadee2f545868c76`. Ça a marché la première fois, mais si une re-vérification échoue, la
+   cause est là — pas un fichier manquant.
+4. Le domaine `omegapendu.com` est **déjà vérifié auprès de Google** (`googleaadee2f545868c76.html` à la
    racine du site) : rattache-le dans la console → l'éditeur peut alors s'afficher comme **vérifié** et le
    `homepage_url` du manifeste est accepté sans discussion.
 
@@ -153,7 +157,11 @@ c'est l'API `SpeechRecognition` de Chrome, pas un serveur à nous, et nous n'en 
 champ libre de justification. Un examinateur qui découvre un `SpeechRecognition` non mentionné suspend la
 publication ; un examinateur à qui on l'a annoncé passe.
 
-**URL de la politique de confidentialité** : `https://omegapendu.com/confidentialite.html`
+**URL de la politique de confidentialité** : `https://omegapendu.com/confidentialite`
+⚠️ **SANS le `.html`** — vérifié en production le 2026-08-25 : `confidentialite.html` renvoie un
+**308** vers l'URL sans extension, `confidentialite` renvoie **200** directement. Cloudflare Pages
+retire le `.html`. C'est exactement le piège de PR#576, où Google avait exclu des pages de son index
+pour cette raison. On donne à l'examinateur l'URL qui répond 200 du premier coup.
 (la section « L'extension Chrome » couvre nommément l'extension, comme l'exige le Store).
 
 ## 6. Visuels ⬜ Rem
