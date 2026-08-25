@@ -105,6 +105,7 @@ run "répétition espacée (planificateur Leitner, bloc pur du monolithe)" node 
 run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
 
 echo "── LIVRAISON ──"
+run "icônes extension FRAÎCHES (== icon-512.png, exigées par le Store)" python3 extension/build_icons.py --check
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
 run "pack police OMEGA Dys FRAIS (octets == police/)" python3 police/build_pack.py --check
 run "complément Word (planificateur, texte jamais altéré)" node word/test_son_word.js

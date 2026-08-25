@@ -61,6 +61,19 @@
 </div></section>
 
 <section><div class="wrap">
+  <h2>L'extension Chrome</h2>
+  <p>Le <a href="correcteur">correcteur dys</a> existe aussi en <strong>extension pour le navigateur</strong>. Elle suit exactement la même règle que le site&nbsp;: <strong>rien ne part de ton appareil</strong>.</p>
+  <ul>
+    <li><strong>Ce qu'elle lit</strong>&nbsp;: le texte du <strong>champ de saisie où tu es en train d'écrire</strong>, pour le corriger et le recopier dans le panneau latéral. Elle ne lit pas le contenu des pages que tu visites, ne suit pas ta navigation, ne garde aucun historique.</li>
+    <li><strong>Où va ce texte</strong>&nbsp;: nulle part. Le dictionnaire (plus de 200&nbsp;000 formes) et toutes les règles sont <strong>embarqués dans l'extension</strong>&nbsp;; la correction est calculée sur ton appareil, <strong>hors-ligne</strong>, sans compte ni serveur.</li>
+    <li><strong>Ce qu'elle mémorise</strong>&nbsp;: tes réglages (activation, taille du texte, thème, police de son) et ton <strong>profil d'erreurs par famille</strong> — celui qui sert à te proposer la bonne remédiation — dans le stockage local de l'extension (<code>chrome.storage.local</code>). Ça ne quitte pas l'appareil, ce n'est pas synchronisé, et désinstaller l'extension l'efface.</li>
+    <li><strong>Ses autorisations</strong>, toutes réellement utilisées&nbsp;: le <em>stockage</em> (tes réglages), le <em>menu contextuel</em> («&nbsp;corriger ce mot&nbsp;» au clic droit) et le <em>panneau latéral</em> (la surface où s'affichent les corrections). L'accès «&nbsp;à tous les sites&nbsp;» sert uniquement à ce que la correction marche dans <em>n'importe quel</em> champ de saisie&nbsp;: c'est tout le but de l'extension.</li>
+    <li><strong>Aucun code distant</strong>&nbsp;: tout ce que l'extension exécute est dans le paquet que tu installes&nbsp;; rien n'est téléchargé ensuite.</li>
+    <li><strong>La saisie vocale</strong> de l'extension, si tu l'actives, suit la règle ci-dessous&nbsp;— c'est la seule chose qui sorte de l'appareil.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
   <div class="promise" style="border-left-color:var(--accent)">
     <h2 style="margin-top:0">La seule exception&nbsp;: la saisie vocale</h2>
     <p>La <a href="saisie-vocale">saisie vocale</a> transcrit ta voix en texte. Pour ça, le navigateur envoie l'<strong>audio à son service de reconnaissance vocale (Google)</strong> — c'est le <em>seul</em> moment où quelque chose sort de ton appareil. Donc&nbsp;:</p>
@@ -76,7 +89,7 @@
 <section><div class="wrap">
   <h2>Une question ?</h2>
   <p>Le code est ouvert — tu peux tout vérifier toi-même. Pour nous écrire&nbsp;: <a href="https://github.com/poratox78-spec/omega-pendu-/issues">GitHub (issues)</a> ou <a class="cmail" href="https://github.com/poratox78-spec/omega-pendu-/issues" rel="nofollow">par mail</a>.</p>
-  <p class="small">Dernière mise à jour&nbsp;: 31 juillet 2026.</p>
+  <p class="small">Dernière mise à jour&nbsp;: 25 août 2026.</p>
 </div></section>
 
 </main>

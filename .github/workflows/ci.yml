@@ -183,6 +183,11 @@ jobs:
       # ou un message chiffré qu'on croyait tenir.
       - name: UI — aucune copie n'annonce un succès qu'elle ignore (presse-papier)
         run: node dictee/presse_papier_probe.js
+      # Le Chrome Web Store REFUSE un paquet sans icône 16/32/48/128 ; elles sont DÉRIVÉES de icon-512.png
+      # (la marque du site) et non dessinées à part — donc gardables : une icône du site qui change sans
+      # régénération laisserait l'extension avec l'ancien logo.
+      - name: LIVRAISON — les icônes de l'extension sont FRAÎCHES (== icon-512.png)
+        run: python3 extension/build_icons.py --check
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — le pack de polices OMEGA Dys téléchargeable est FRAIS (octets == police/)
