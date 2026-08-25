@@ -19,7 +19,7 @@ try { new Function(src); } catch (e) { fail.push('syntaxe sw.js : ' + e.message)
 // revalidation (ETag → 304) ; l'inclure ici coupleraît sw.js à CHAQUE injection de lexique — conflit dans toutes
 // les PR pour un bump dont l'app n'a pas besoin.
 const HASHED = ['index.html', 'correcteur.html', 'correcteur-outil.html', 'dictee.html', 'dictee-outil.html', 'saisie-vocale.html', 'double-sens.html', 'omega-key.html',
-                'recherche.html', 'donnees.html', 'confidentialite.html', 'toile.html', 'arbitrage.html', 'evolution.html', 'site.css', 'nav.js', 'manifest.json', 'icon.svg'];
+                'calcul.html', 'calc_dys.js', 'recherche.html', 'donnees.html', 'confidentialite.html', 'toile.html', 'arbitrage.html', 'evolution.html', 'site.css', 'nav.js', 'manifest.json', 'icon.svg'];
 // ⚠️ NORMALISER LES FINS DE LIGNE AVANT DE HACHER, sinon l'empreinte dépend de l'OS et la CI diverge du poste :
 // le dépôt a des fins de ligne MIXTES en base (index.html/site.css en LF, mais dictee.html/omega-key.html/
 // evolution.html en CRLF), et sans .gitattributes un checkout Windows convertit encore. Mesuré : disque Windows
@@ -54,7 +54,7 @@ const core = src.match(/const CORE\s*=\s*\[([^\]]*)\]/);
 // de Cloudflare Pages (ce que Google classait « Page avec redirection », d'ou l'exclusion de
 // l'index). Precacher un `.html` reviendrait exactement au risque que ce check existe pour eviter.
 const WHITELIST = new Set(['./', './correcteur', './correcteur-outil', './dictee', './dictee-outil', './double-sens',
-  './saisie-vocale', './omega-key', './recherche', './donnees', './confidentialite', './toile', './arbitrage', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg']);
+  './saisie-vocale', './calcul', './calc_dys.js', './omega-key', './recherche', './donnees', './confidentialite', './toile', './arbitrage', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg']);
 if (!core) fail.push('CORE introuvable');
 else for (const it of core[1].split(',').map(s => s.trim().replace(/^'|'$/g, '')).filter(Boolean)) {
   if (!WHITELIST.has(it)) fail.push('CORE contient une entrée hors liste blanche (risque 308 → cache empoisonné) : ' + it);

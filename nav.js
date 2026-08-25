@@ -14,6 +14,7 @@
       ['correcteur', 'Le correcteur'],
       ['dictee', 'La dictée'],
       ['saisie-vocale', 'Saisie vocale'],
+      ['calcul', 'Poser un calcul'],
     ]],
     ['Jeux', [
       ['./', 'Le pendu'],

@@ -7,7 +7,7 @@
 // V = numéro + EMPREINTE du contenu du site. NE PAS éditer à la main : `node dictee/sw_probe.js --fix` le régénère,
 // et le même probe ÉCHOUE en CI si le site a changé sans que V suive. (L'ancienne consigne « incrémenter à chaque
 // déploiement » n'a pas tenu : mesuré, V est resté figé pendant 70 commits touchant le site — d'où le cache périmé.)
-const V = 'omega-v228-e3099723';
+const V = 'omega-v234-a9f24df9';
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
@@ -17,7 +17,7 @@ const V = 'omega-v228-e3099723';
 // et les EXCLUAIT de l'index. Ce precache DOIT suivre : precacher `/correcteur.html` quand le
 // visiteur demande `/correcteur` = cache manquant = navigation HORS-LIGNE CASSEE.
 const CORE = ['./', './correcteur', './correcteur-outil', './dictee', './dictee-outil',
-              './saisie-vocale', './omega-key', './recherche', './donnees', './confidentialite', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg'];
+              './saisie-vocale', './calcul', './calc_dys.js', './omega-key', './recherche', './donnees', './confidentialite', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

@@ -89,6 +89,12 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre)" node dictee/sitemap_probe.js
+# Le moteur de calcul vit en DEUX copies : `extension/calc_dys.js` (l'outil rapide) et
+# `calc_dys.js` à la racine (la page /calcul, qui montre comment on pose l'opération). Un
+# fichier recopié sans garde est exactement ce qui a coûté 134 diagnostics le 2026-08-25.
+# La sonde compare les octets ET interroge le moteur : une copie fidèle d'un moteur cassé
+# reste cassée.
+run "moteur de calcul (2 copies + poses + refus + câblage page)" node dictee/calc_dys_probe.js
 run "SITE chiffres de mesure affichés = registre unique (anti-dérive)" node dictee/metriques_probe.js
 run "SITE icônes : glyphe tracé + matricielles non vides" python3 dictee/icones_probe.py
 # Un bouton qui dit « ✓ Copié » sans savoir est PIRE qu'un bouton muet : writeText rend une
