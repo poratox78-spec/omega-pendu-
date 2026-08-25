@@ -3180,6 +3180,82 @@ def rule_noun_singular(T, i):
 # Restés EN ROUGE : on les tranche par la GRAMMAIRE (sujet, accord, couche segments, pronoms collés), pas par
 # « vigilance verte » (= simplification). FP=0 par cadre syntaxique forcé (audit UD 2026-06-30 : durcis).
 _SA_NONNOUN = {'je','tu','il','elle','on','ils','elles','nous','vous','y','en','ne'}   # pronoms sujets/clitiques qui ne peuvent JAMAIS suivre le possessif « sa »
+
+# ── ou/où — MESURÉ le 2026-08-25 sur le corpus dys réel : 11 vraies fautes sur 23 occurrences de
+# « ou » (48 %), la famille la plus DENSE du corpus, et couverture ZÉRO jusqu'ici (REGLES_FR §2 la
+# classait « carte enseignante », donc signalée sans suggestion). ORANGE : une virgule d'accent
+# change le sens de la phrase, l'auteur tranche.
+# TROIS CADRES, chacun mesuré à 0 faux positif sur 121 phrases UD correctes contenant « ou » :
+#   F1  « ou » + PRONOM SUJET .................. « ou il été », « ou je serai »
+#   F2  nom de LIEU/TEMPS DÉTERMINÉ + « ou » ... « dans le cas ou », « un garage ou trouve »
+#   F5  INVERSION : « ou » + forme verbale + pronom sujet ... « ou été tu »
+# ⛔ CADRES MESURÉS ET REFUSÉS (les chiffres sont dans la note, pas dans une intuition) :
+#   · « ou » + VERBE CONJUGUÉ : 14 FP/121 — les homographes nom/verbe la tuent (« insolent ou
+#     VIOLENT », « en cour ou A », « le catch ou LUTTE professionnelle »).
+#   · tête de proposition + verbe (= LE seul cas que couvre LanguageTool, « Ou sont mes affaires ? ») :
+#     2 FP pour +1 faute trouvée. Refusé. On couvre donc PLUS que LT, et autrement.
+#   · le sens inverse « où »→« ou » : trop lâche (« tradition chinoise OÙ la généalogie prime »
+#     retourné à tort). Hors périmètre tant qu'il n'est pas mesuré séparément.
+# ⭐ LES TROIS GARDES viennent chacune d'un FP MESURÉ, jamais d'une intuition — voir en ligne.
+_OU_PRON = frozenset(('je', 'tu', 'il', 'elle', 'on', 'nous', 'vous', 'ils', 'elles'))
+_OU_DET = frozenset(('le', 'la', 'les', 'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'mon', 'ma',
+                     'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos',
+                     'leur', 'leurs', 'du', 'au', 'aux'))
+_OU_PREP = frozenset(deacc(w) for w in ('de', 'du', 'des', "d'", 'à', 'a', 'en', 'par', 'pour', 'sans',
+                                        'sur', 'dans', 'avec', 'chez', 'vers', 'sous', 'entre'))
+# noms de LIEU/TEMPS qui appellent la relative « où ». LISTE FERMÉE : c'est ce qui la rend sûre.
+_OU_NOM = frozenset("""cas jour jours moment moments endroit endroits lieu lieux ville villes pays
+region regions maison maisons garage garages centre centres epoque annee annees instant instants
+heure heures minute minutes seconde periode siecle monde point points mesure etat situation salle
+chambre bureau ecole classe rue village quartier zone place piece etage terrain jardin champ foret
+riviere mer plage montagne hopital magasin restaurant hotel""".split())
+
+
+def _ou_fini(w):
+    """forme CONJUGUÉE attestée (pas un infinitif, pas un participe)."""
+    return any(r[1].split(':')[0] in ('ind', 'sub', 'cnd', 'cond', 'imp') for r in _reads(w))
+
+
+def _ou_verbal(w):
+    r = _reads(w)
+    return bool(r) and any(x[1].split(':')[0] in ('ind', 'sub', 'cnd', 'cond', 'imp', 'par', 'inf') for x in r)
+
+
+def _ou_correlative(T, i):
+    """⛔ GARDE 3 (FP mesuré) : « Ou on est patriote, ou on est traître » — un AUTRE « ou » suivi
+    d'un pronom sujet signe la corrélative, donc l'alternative, jamais la relative."""
+    for k, w in enumerate(T):
+        if k != i and deacc(w.lower()) == 'ou' and k + 1 < len(T) and T[k + 1].lower() in _OU_PRON:
+            return True
+    return False
+
+
+def _ou_clause_verbe(T, i, portee=6):
+    """⛔ GARDE 2 (FP mesuré) : le verbe d'une relative a un SUJET, il n'est jamais précédé d'une
+    PRÉPOSITION. Sans elle, « une maison DE retraite » passait — « retraite » se lit comme le
+    verbe « retraiter ». C'est la garde qui a fait tomber le dernier faux positif."""
+    for k in range(i + 1, min(len(T), i + 1 + portee)):
+        if _ou_fini(T[k].lower()) and not (k > 0 and deacc(T[k - 1].lower()) in _OU_PREP):
+            return True
+    return False
+
+
+def rule_ou_ou(T, i):
+    if deacc(T[i].lower()) != 'ou' or T[i].lower() == 'où':
+        return None
+    n = len(T)
+    if i + 1 < n and T[i + 1].lower() in _OU_PRON and not _ou_correlative(T, i):
+        return _keepcase(T[i], 'où')                       # F1
+    # ⛔ GARDE 1 (FP mesuré) : le nom de lieu doit porter SON déterminant. « camarade DE classe ou
+    # une personne » est une coordination, pas une relative — « de » n'est pas un déterminant.
+    if (i >= 2 and deacc(T[i - 1].lower()) in _OU_NOM and T[i - 2].lower() in _OU_DET
+            and _ou_clause_verbe(T, i)):
+        return _keepcase(T[i], 'où')                       # F2
+    if (i + 2 < n and T[i + 2].lower() in _OU_PRON and _ou_verbal(T[i + 1].lower())
+            and not _ou_correlative(T, i)):
+        return _keepcase(T[i], 'où')                       # F5
+    return None
+
 def rule_ca_sa(T, i):
     # Homophone « ça » (pronom démonstratif) ↔ « sa » (déterminant possessif). DEUX sens FP=0 :
     #  • sa→ça : « sa » précède TOUJOURS un nom ; un PRONOM CLITIQUE ne peut jamais suivre « sa » → c'est « ça »
@@ -3793,7 +3869,7 @@ def rule_adj_aux(T, i):
 # palier (elle liste les corrections) ; ce sont les moteurs JS qui rendent ces familles en VIGILANCE (orange, clic)
 # au lieu de ROUGE (appliqué d'office) — parité du jeu vérifiée par extension/parity_core.js. Les familles à 100 %
 # (participe après avoir, majuscule, a/à, adjectif épithète, singulier du nom) restent rouges.
-VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)')
+VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où')
 _SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
 _INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
                'cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars '
@@ -3821,6 +3897,8 @@ def tier_of(T, i, name, sugg):
     if name not in VIG_FAMILIES:
         return 'auto'
     n = len(T)
+    if name == 'ou/où':
+        return 'vigilance'   # l'accent change le SENS de la phrase : on propose, l'auteur tranche
     if name == 'leur/leurs':
         if i + 1 >= n: return 'vigilance'
         nx = T[i + 1].lower(); dn = deacc(nx)
@@ -3867,7 +3945,7 @@ RULES = [('élision inversée', rule_deselide),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est), ('est/et (proposition)', rule_est_et_clause),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
-         ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa),
+         ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa), ('ou/où', rule_ou_ou),
          ('met/mais', rule_met_mais),
          ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la), ('guère/guerre', rule_guere), ('vit/vie', rule_sa_vit),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),

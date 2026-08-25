@@ -40,7 +40,8 @@ PÉRIMÈTRE (choix assumé, motivé).
 | phénomène | état | note |
 |---|---|---|
 | a/à · et/est · son/sont · on/ont · ce/se · ça/sa · du/dû · du/de · sur/sûr · la/là · leur/leurs · mais/mes · met/mais · mai/mais · des/dès · peu/peux/peut · sais/sait · c'est/s'est · j'est/j'ai · c'ai/c'est | 🔴 | le cœur du correcteur ; FP=0 à l'échelle, gardé CI |
-| ces/ses · ou/où | 🟠/🟢 | carte enseignante (l'auteur tranche) |
+| ces/ses | 🟠/🟢 | carte enseignante (l'auteur tranche) |
+| ou/où | 🟠 LIVRÉ (2026-08-25) | **la famille la plus DENSE du corpus dys : 11 vraies fautes sur 23 occurrences de « ou » (48 %)**, lues une par une. 3 cadres à 0 FP sur 121 phrases UD correctes : ① « ou »+PRONOM SUJET ② nom de LIEU/TEMPS **déterminé** + « ou » + proposition à verbe ③ inversion « ou »+forme verbale+pronom. 7/11 trouvées. ⛔ REFUSÉS chiffrés : « ou »+verbe conjugué (14 FP — homographes nom/verbe : « insolent ou VIOLENT », « le catch ou LUTTE ») · tête de proposition+verbe, LE seul cas de LanguageTool (2 FP pour +1) · le sens inverse « où »→« ou » (trop lâche). 📎 Les 3 contre-exemples de LT (« est ou était », « soudés ou est fixé », « Manger ou être mangé ») ne déclenchent RIEN chez nous : LT vaut mieux comme fournisseur de contre-exemples que de règles |
 | quel/quelle (genre) | 🔴 | via accord adjectival |
 | homophones lexicaux (vert/verre/vers, sceau/seau/sot) | ⛔→🟢 | indécidable sans sémantique ; couche verte « homophone à vérifier » sur liste |
 | près de / prêt de | 🟠 LIVRÉ (2026-08-12) | prêt/prêts sûrs ; prête/prêtes exigent une copule avant (« elle prête de l'argent » = verbe) ; clitique+infinitif exclu par POS |
