@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="OMEGA-Omega">
+  <!-- L'omega est un TRACE, pas une balise texte : un rasteriseur sans moteur de polices (celui de Google,
+       et celui qui generait apple-touch-icon.png) rendait le rect et JETAIT le texte -> il ne restait
+       que le fond sombre arrondi = "un cercle tout noir" dans les resultats de recherche.
+       Contour extrait de Georgia Bold (font-weight 600 d'origine) via fontTools ; plus aucune police requise. -->
   <rect width="512" height="512" rx="96" fill="#0d1117"/>
-  <text x="256" y="332" font-family="Georgia, 'Times New Roman', serif" font-size="300" font-weight="600" fill="#e6edf3" text-anchor="middle">&#937;</text>
+  <path transform="translate(124.823 332) scale(0.146484 -0.146484)" fill="#e6edf3" d="M1791 427 1658 0H980V98Q1036 187 1086.0 265.5Q1136 344 1169 424Q1205 508 1221.5 589.5Q1238 671 1238 801Q1238 880 1223.5 985.0Q1209 1090 1174 1167Q1130 1264 1060.0 1312.0Q990 1360 895 1360Q790 1360 722.5 1306.5Q655 1253 616 1167Q578 1082 565.5 982.5Q553 883 553 801Q553 674 570.0 591.0Q587 508 622 424Q655 346 707.5 262.0Q760 178 811 98V0H133L0 427L73 449Q88 419 113.5 379.0Q139 339 166 311Q195 281 232.0 260.5Q269 240 313 240H577V264Q474 344 394.5 413.0Q315 482 264 550Q210 621 183.5 703.5Q157 786 157 893Q157 1009 210.5 1110.0Q264 1211 356 1287Q451 1365 589.0 1411.5Q727 1458 895 1458Q1070 1458 1207.5 1412.0Q1345 1366 1442 1285Q1537 1206 1585.5 1105.0Q1634 1004 1634 893Q1634 785 1605.0 700.0Q1576 615 1523 547Q1472 480 1398.5 414.5Q1325 349 1214 264V240H1478Q1521 240 1559.0 260.0Q1597 280 1625 311Q1656 344 1678.0 378.5Q1700 413 1718 449Z"/>
   <rect x="151" y="378" width="210" height="16" rx="8" fill="#e8920c"/>
 </svg>

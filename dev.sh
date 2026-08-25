@@ -89,6 +89,7 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE chiffres de mesure affichés = registre unique (anti-dérive)" node dictee/metriques_probe.js
+run "SITE icônes : glyphe tracé + matricielles non vides" python3 dictee/icones_probe.py
 # Un bouton qui dit « ✓ Copié » sans savoir est PIRE qu'un bouton muet : writeText rend une
 # promesse, le try/catch synchrone n'attrapait pas le refus, et l'étiquette de succès s'affichait
 # quand même — jusqu'à la passphrase d'OMEGA·KEY qu'on croyait tenir.
