@@ -171,13 +171,28 @@
     var t = getText(el), sp = spans(t);
     var beforeVal = isCE(el) ? null : el.value;                                   // SNAPSHOT avant d'appliquer (pour l'undo)
     var beforeNodes = isCE(el) ? ceCollect(el).map.map(function (m) { return [m.node, m.node.nodeValue]; }) : null;   // CE : valeurs des nœuds texte (ceReplace ne change JAMAIS la structure → restaurable chirurgicalement, sûr en Slate)
-    var ord = flags.slice().sort(function (a, b) { return b.i - a.i; });   // droite→gauche : indices stables
+    /* ⭐⭐ DEUX ANCRAGES, PAS UN. `applyOne` gère depuis longtemps les corrections ancrées CARACTÈRE
+       (`flag.typo` → [cs,ce] : espacement autour de la ponctuation, virgule doublée, espace double) —
+       mais `applyAll` ne connaissait QUE l'indice de mot. Pour un flag typo, `f.i` vaut `undefined`,
+       donc `sp[f.i]` est `undefined` et la boucle faisait `return` EN SILENCE : la barre annonçait
+       « N corrections · tout corriger », et le clic n'en appliquait aucune de celles-là.
+       Signalé par Rem sur une vraie page, et il avait raison. On calcule donc [début,fin] pour CHAQUE
+       flag selon son ancrage, puis on applique de DROITE À GAUCHE sur les positions caractère — un
+       seul ordre pour les deux familles, sinon les décalages se chevauchent. */
+    var rng = [];
+    flags.forEach(function (f) {
+      if (f && f.typo) { if (f.cs != null && f.ce != null) rng.push([f.cs, f.ce, f.sugg]); return; }
+      var s = sp[f.i]; if (!s) return;
+      var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s;
+      rng.push([s[0], e[1], f.sugg]);
+    });
+    rng.sort(function (a, b) { return b[0] - a[0]; });   // droite→gauche : les positions restent valides
     if (isCE(el)) {
       var did = false;
-      ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; if (ceReplace(el, s[0], e[1], f.sugg, true)) did = true; });
+      rng.forEach(function (r) { if (ceReplace(el, r[0], r[1], r[2], true)) did = true; });
       if (did) el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
-      ord.forEach(function (f) { var s = sp[f.i]; if (!s) return; var e = sp[f.i + (f.span ? f.span - 1 : 0)] || s; t = t.slice(0, s[0]) + f.sugg + t.slice(e[1]); });
+      rng.forEach(function (r) { t = t.slice(0, r[0]) + r[2] + t.slice(r[1]); });
       setText(el, t);
     }
     _undoSnap = { el: el, ce: isCE(el), nodes: beforeNodes, val: beforeVal, after: getText(el) };   // « annuler » proposé tant que le champ tient EXACTEMENT le résultat de tout-corriger

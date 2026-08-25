@@ -17,7 +17,19 @@
   // dans le champ ; le miroir (envoyé avant ce test dans content.js) et le clic droit « corriger ce mot » vivent.
   try {
     chrome.storage.local.get(['enabled'], function (o) { bubCb.checked = !!(o && o.enabled === true); });
-    bubCb.addEventListener('change', function () { chrome.storage.local.set({ enabled: bubCb.checked }); });
+    /* ⭐⭐ BULLE ET MIROIR SONT EXCLUSIFS (Rem, 2026-08-25 — il l'avait signalé avant, je ne l'avais
+       pas cru). LE CONFLIT : `omdys-ta` est UNE SEULE zone écrite par DEUX sources — ce que
+       l'utilisateur tape dans le panneau, et le miroir venu de la page. La seule garde était
+       « ignorer le miroir pendant que la zone a le focus » (l.~858), ce qui ne tient pas dès qu'on
+       alterne entre la page et le panneau : les deux textes se chevauchent.
+       En plus, bulle + miroir = DEUX surfaces de correction pour le MÊME texte, donc deux endroits
+       où cliquer et deux états à réconcilier.
+       ⇒ même patron que voix ↔ miroir juste en dessous, qui existait déjà : activer l'un décoche
+       l'autre. La bulle corrige DANS la page ; le miroir recopie la page POUR corriger ici. */
+    bubCb.addEventListener('change', function () {
+      chrome.storage.local.set({ enabled: bubCb.checked });
+      if (bubCb.checked && mirCb.checked) mirCb.checked = false;
+    });
   } catch (e) {}
 
   // ===== accessibilité : taille de texte + mode sombre. Ces réglages vivaient dans le POPUP, devenu injoignable
@@ -286,7 +298,8 @@
       else ouvre();                                   // 'prompt' : l'invite ne peut pas s'afficher ICI → onglet
     }).catch(function () { ouvre(); });
   }
-  mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix
+  mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix ET la bulle (une seule surface à la fois)
+    if (mirCb.checked && bubCb.checked) { bubCb.checked = false; try { chrome.storage.local.set({ enabled: false }); } catch (e) {} }
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
   function stopRec() { if (vstop) { vstop(); } else { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} } }

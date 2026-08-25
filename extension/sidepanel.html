@@ -66,6 +66,19 @@
   @keyframes ompulse{ 0%,100%{ opacity:1; } 50%{ opacity:.5; } }
   .voicecfg{ font-size:.9em; color:#555; display:flex; align-items:center; gap:5px; cursor:pointer; }
   .vnote{ font-size:.8em; color:#6a5b2e; background:#fff8ea; border-left:3px solid #e8920c; border-radius:5px; padding:6px 9px; margin:0 0 8px; line-height:1.45; }
+  /* ⭐ REPLIÉES, PAS RACCOURCIES (Rem, 2026-08-25 : « ces deux textes sont trop longs, les cacher
+     derrière un i encerclé »). Ce sont des PROMESSES faites à quelqu'un : elles doivent décrire ce que
+     le code fait EN ENTIER. Mais deux pavés dans un panneau étroit destiné à des dys, c'est un mur —
+     donc <details> : une ligne par défaut, le détail sur demande. <details> et pas un tooltip JS,
+     parce qu'il est NATIF, accessible au clavier et au lecteur d'écran, et qu'il survit sans JS.
+     ⚠️ SI LE CODE CHANGE, LE TEXTE DÉPLIÉ CHANGE. Même patron que saisie-vocale.html. */
+  details.vnote summary, details.foot summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px; }
+  details.vnote summary::-webkit-details-marker, details.foot summary::-webkit-details-marker{ display:none; }
+  .vi{ flex:0 0 auto; width:15px; height:15px; border-radius:50%; border:1.4px solid currentColor;
+       font:italic 700 10px/13px system-ui,sans-serif; text-align:center; margin-left:auto; opacity:.85; }
+  details[open] .vi{ font-style:normal; }
+  details.vnote .vdet, details.foot .vdet{ margin-top:6px; padding-top:5px; border-top:1px solid rgba(128,128,128,.28); }
+  .vsr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
   body.dark .voicecfg{ color:#9aa7b4; }
   body.dark .vnote{ background:#2b2412; color:#f0e2bd; }
   /* accessibilité (réglages ex-popup, devenus injoignables quand l'icône a basculé sur le panneau) */
@@ -106,7 +119,10 @@
     <button id="omdys-mic" disabled title="Dicter à la voix (active-la ci-contre)">🎤 Dicter</button>
     <label class="voicecfg"><input type="checkbox" id="omdys-voice-ok"> Activer la dictée vocale</label>
   </div>
-  <div class="vnote">🔒 La dictée vocale envoie l'audio de ton micro au <b>service vocal de ton navigateur (Google)</b> pour le transcrire en texte — c'est le <b>seul</b> moment où quelque chose sort de ta machine. Le correcteur, lui, reste 100 % hors-ligne. Désactivable à tout moment.</div>
+  <details class="vnote">
+    <summary>🔒 Ton micro n'est écouté que pendant la dictée.<span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
+    <div class="vdet">La dictée vocale envoie l'audio de ton micro au <b>service vocal de ton navigateur (Google)</b> pour le transcrire en texte — c'est le <b>seul</b> moment où quelque chose sort de ta machine. Le correcteur, lui, reste 100 % hors-ligne. Désactivable à tout moment.</div>
+  </details>
   <div class="acts">
     <button id="omdys-fixall" disabled>✓ Tout corriger</button>
     <button id="omdys-undo" hidden>↩ Annuler</button>
@@ -118,7 +134,10 @@
   <div class="corr" id="omdys-corr" aria-live="polite"></div>
   <div id="omdys-vig"></div>
   <div id="omdys-stade" aria-live="polite"></div>
-  <div class="foot">Correcteur : 100 % hors-ligne, aucune donnée envoyée (moteur identique à l'app, FP=0). Seule la <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux. Le site complet (dictée, pendu, réglages) : <a href="https://omegapendu.com/" target="_blank" rel="noopener">omegapendu.com</a>.</div>
+  <details class="foot">
+    <summary>Correcteur 100 % hors-ligne.<span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
+    <div class="vdet">Aucune donnée envoyée (moteur identique à l'app, FP=0). Seule la <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux. Le site complet (dictée, pendu, réglages) : <a href="https://omegapendu.com/" target="_blank" rel="noopener">omegapendu.com</a>.</div>
+  </details>
 </div>
 <script src="dys-core.js"></script>
 <script src="son_panel.js"></script>
