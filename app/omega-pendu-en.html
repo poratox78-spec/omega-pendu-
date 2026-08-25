@@ -24179,7 +24179,7 @@ window.addEventListener('DOMContentLoaded', () => {
    +'<div class="vdd-row"><button id="vdd-say">🔊 Dicter la phrase</button><button class="g" id="vdd-again">↻ Réécouter</button><span class="vdd-sc" id="vdd-score">0 / 0</span></div>'+'<div class="vdd-row"><label class="vdd-sc"><input type="checkbox" id="vdd-lisible"> Police lisible (dys)</label> <label class="vdd-sc"><input type="checkbox" id="vdd-syl"> Syllabes en couleur</label> <label class="vdd-sc">Vitesse <input type="range" id="vdd-rate" min="0.5" max="1" step="0.05" style="vertical-align:middle"></label></div>'
    +'<div id="vdd-ans" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Ta phrase" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-ph="écris la phrase ici"></div>'
    +'<div class="vdd-row"><button id="vdd-check">Corriger</button><button class="g" id="vdd-next">Phrase suivante →</button></div>'
-   +'<div id="vdd-fb" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div id="vdd-srs" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
+   +'<div id="vdd-fb" aria-live="polite" style="margin-top:8px"></div><div id="vdd-hist" class="vdd-sc" style="margin-top:4px"></div><div id="vdd-uprof" class="vdd-sc" style="margin-top:6px"></div><div id="vdd-srs" class="vdd-sc" style="margin-top:6px"></div><div class="vdd-sc" style="margin-top:4px"><a href="#" id="vdd-reset" style="color:#2a6f97">↺ réinitialiser le profil</a></div></div>';
   document.body.appendChild(ov);
   var $=function(id){return document.getElementById(id);};
   /* ZONE DE RÉPONSE ÉDITABLE (2026-08-21) — ex-textarea devenue contenteditable (comme #vdc-in du correcteur) pour que la
@@ -27684,18 +27684,18 @@ function spellTokenCore(tok,atStart,T,idx){
         MÉTRIQUES : l'overlay doit rester au pixel près sur la zone de saisie (padding et gras
         décalaient le texte, c'est écrit plus bas). */
       ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
-      o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';lp=r1;});
+      o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+ti+'">'+esc(disp)+'</span>';lp=r1;});
     o+=esc(g.slice(lp));return o;}
   function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},byCs={},_RO=_runonSet(t);corrs.forEach(function(f){if(f.typo)byCs[f.cs]=f;else by[f.i]=f;});
     var o='',last=0,k;for(k=0;k<P.length;k++){o+=_typoGapHtml(t.slice(last,P[k][0]),last,byCs,corrected);var f=by[k];
       if(f){var end=(f.span>=2&&k+f.span-1<P.length)?k+f.span-1:k;var seg=t.slice(P[k][0],P[end][1]);
         if(!corrected){   // ZONE DE SAISIE : JAMAIS de vert (clair ET sombre). Toute correction = faute sur l'original → nos couleurs rouge/orange (jamais vdc-on). On montre le mot original.
           var clsS='vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':''));
-          o+='<span class="'+clsS+'" data-key="'+esc(f.key)+'" title="'+(f.on?'appliqué -> '+esc(f.sugg)+' — clique pour annuler':'clique pour appliquer -> '+esc(f.sugg))+'">'+esc(seg)+'</span>';last=P[end][1];k=end;}
+          o+='<span class="'+clsS+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+(f.on?'appliqué -> '+esc(f.sugg)+' — clique pour annuler':'clique pour appliquer -> '+esc(f.sugg))+'">'+esc(seg)+'</span>';last=P[end][1];k=end;}
         else{var disp=f.on?f.sugg:seg;   // ENCADRÉ CORRIGÉ : vert = appliqué, rouge/orange = à vérifier
         var cls=f.on?'vdc-on':('vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':'')));
         var ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
-        o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}}
+        o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}}
       else if(_RO[k]){o+='<span class="vdc-vig" title="Ponctuation manquante ? deux propositions collées">'+esc(P[k][2])+'</span>';last=P[k][1];}
       else{var _vi=_vigInfo(P[k][2],_vigCtxOf(P,k));if(_vi){o+='<span class="vdc-vig" title="'+esc(_vi)+'">'+esc(P[k][2])+'</span>';}else{o+=esc(P[k][2]);}last=P[k][1];}}
     o+=_typoGapHtml(t.slice(last),last,byCs,corrected);return o;}
@@ -28026,8 +28026,8 @@ function spellTokenCore(tok,atStart,T,idx){
     _navRender();
     var chip='display:inline-block;margin:3px 5px 0 0;cursor:pointer;border-radius:6px;padding:1px 8px;background:#fff';
     var html=_rest;
-    if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique pour annuler)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
-    if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique pour appliquer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
+    if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique pour annuler)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
+    if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique pour appliquer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
     var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm]};});   // famille dys → stade ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX (morphosyntaxique)
     var dev=developmental(devF);
     if(dev)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+'</span></div>';
@@ -28066,8 +28066,8 @@ function spellTokenCore(tok,atStart,T,idx){
   $('vdc-complete').addEventListener('click',function(e){var b=e.target.closest('.vdc-comp');if(b)_applyComplete(b.getAttribute('data-w'));});
   if(_touch){document.body.classList.add('vdc-touch');var _ced=$('vdc-editor'),_ccb=$('vdc-complete');if(_ced&&_ccb&&_ced.parentNode)_ced.parentNode.insertBefore(_ccb,_ced);}   // TACTILE : le cadre des complétions AU-DESSUS de la saisie (sinon sous le clavier virtuel)
   // (Piste A : la zone du HAUT est 100% éditable — le clic y place le curseur, il ne bascule plus la correction ; l'action passe par la carte du cadre BAS)
-  var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
-  $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce d'annotation = bascule
+  function _cardKey(e){if(e.key!=='Enter'&&e.key!==' '&&e.key!=='Spacebar')return;if(!e.target.closest||!e.target.closest('[data-key]'))return;e.preventDefault();_cardClick(e);}   /* CLAVIER : une correction ne doit pas etre atteignable a la SOURIS SEULE (cible dys = co-usagers lecteur d ecran, audit 20/06). Meme delegation que le clic, memes cibles ([data-key] = les corrections ACTIONNABLES ; les soulignes informatifs sans data-key restent non focusables, sinon ils creeraient des arrets de tabulation qui ne font rien). */ var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);if(_rz)_rz.addEventListener('keydown',_cardKey);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
+  $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('keydown',_cardKey);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce d'annotation = bascule
   var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){clearTimeout(_ct);runCorr();var txt=_lastCorrected||$('vdc-in').value;var _o=_cp.getAttribute('data-lbl')||_cp.textContent;_cp.setAttribute('data-lbl',_o);/* on n'annonce '✓ Copied' QU'APRÈS coup : writeText rend une PROMESSE, son rejet (page non focalisée, permission bloquée) ne remontait nulle part et l'étiquette s'affichait quand même — l'interface AFFIRMAIT une copie qui n'avait pas eu lieu, et le dys collait l'ancien contenu. */var _fini=function(ok){_cp.textContent=ok?'✓ Copied':'⚠ copy refused — press Ctrl+C';setTimeout(function(){_cp.textContent=_o;},ok?1200:3200);};var _repli=function(){var t=document.createElement('textarea');t.value=txt;t.setAttribute('readonly','');t.style.cssText='position:fixed;top:-1000px;left:0;opacity:0';document.body.appendChild(t);t.select();var ok=false;try{ok=document.execCommand('copy');}catch(_){ok=false;}document.body.removeChild(t);_fini(ok);};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){_fini(true);},_repli);else _repli();});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
   (function(){
@@ -28297,7 +28297,7 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<div class="vdk-sc">Décomposition <b>SON</b> (phono) <b>et ORTHO</b> (graphèmes/syllabes), double voie : route <b>lexicale</b> (moteur, mots ≥7 lettres) et <b>sublexicale</b> (g2p du moteur, mots courts/inédits). Hors-ligne. Données Lexique 4 (New et al. 2026, CC BY-SA 4.0).</div>'
    +'<textarea id="vdk-in" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="un mot… ou un texte (ex. : chevaux, dictée, oiseau)"></textarea>'
    +'<div class="vdk-row"><button id="vdk-learn">📖 Apprendre</button><span class="vdk-sc" id="vdk-stat"></span></div>'
-   +'<div id="vdk-prev"></div></div>';
+   +'<div id="vdk-prev" aria-live="polite"></div></div>';
   document.body.appendChild(kov);
   var _kt;
   kbtn.onclick=function(){kov.classList.add('on');$('vdk-in').focus();preview();$('vdk-stat').textContent=lexCount()+' mot(s) au lexique appris';};
