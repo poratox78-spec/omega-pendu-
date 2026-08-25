@@ -868,6 +868,37 @@
   }
   micBtn.addEventListener('click', function () { if (recording) stopRec(); else startRec(); ta.focus(); });
 
+  /* ⭐ AIDE AU NOMBRE (dyscalculie) — voir l'en-tête de calc_dys.js pour le pourquoi.
+     On n'affiche PAS un résultat de calcul : on montre le nombre sous ses trois formes, parce que
+     c'est là que ça coince. Groupé (1 000 000 se lit d'un coup d'œil), en LETTRES (la police de son
+     sait habiller ça, elle est inerte sur les chiffres — mesuré), et découpé par VALEUR DE POSITION
+     avec une couleur par rang (« le 3 de 305 vaut trois cents »).
+     ⚠️ Dégradation : si `calc_dys.js` n'a pas chargé, le bloc est RETIRÉ plutôt que présent et muet. */
+  (function () {
+    var det = document.getElementById('omdys-calc'), inp = document.getElementById('omdys-num');
+    if (!det || !inp) return;
+    if (typeof CALCDYS === 'undefined') { det.style.display = 'none'; return; }
+    var gEl = document.getElementById('omdys-cgroupe'), lEl = document.getElementById('omdys-clettres'),
+        pEl = document.getElementById('omdys-cpos');
+    function vide() { gEl.textContent = ''; lEl.textContent = ''; pEl.innerHTML = ''; }
+    inp.addEventListener('input', function () {
+      var brut = String(inp.value || '').replace(/[\s\u00a0]/g, '').replace(',', '.');
+      if (!brut) { vide(); return; }
+      if (!/^-?\d+(\.\d+)?$/.test(brut)) { vide(); lEl.textContent = 'Écris seulement des chiffres.'; return; }
+      var n = Number(brut);
+      if (!isFinite(n) || Math.abs(n) > 1e15) { vide(); lEl.textContent = 'Nombre trop grand.'; return; }
+      gEl.textContent = CALCDYS.groupe(brut.indexOf('.') >= 0 ? brut.replace('.', ',') : n);
+      lEl.textContent = CALCDYS.enLettres(n);
+      var pos = CALCDYS.positions(n), h = '', i;
+      for (i = 0; i < pos.length; i++) {
+        var p = pos[i];
+        h += '<span class="cp cp' + (p.rang % 4) + '"><b>' + p.chiffre + '</b>' + p.nom + '<br>= ' +
+             CALCDYS.groupe(p.vaut) + '</span>';
+      }
+      pEl.innerHTML = h;
+    });
+  })();
+
   /* ⭐ LIRE À VOIX HAUTE — MIROIR du bouton « 🔊 Lire » de l'app (vdc-lire). Il MANQUAIT au panneau :
      `speak()` n'y servait qu'à lire l'EXPLICATION d'une correction, jamais le TEXTE. Or beaucoup de
      fautes s'entendent mieux qu'elles ne se voient — un mot oublié, une tournure bancale, une

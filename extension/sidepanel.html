@@ -85,6 +85,27 @@
   details[open] .vi{ font-style:normal; }
   details.vnote .vdet, details.foot .vdet{ margin-top:6px; padding-top:5px; border-top:1px solid rgba(128,128,128,.28); }
   .vsr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+  /* ── AIDE AU NOMBRE (dyscalculie). Repliée par défaut : elle ne doit pas manger la place du
+     correcteur pour ceux qui n'en ont pas besoin. */
+  details.calc summary{ cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px;
+    font-weight:700; color:#2a6f97; }
+  details.calc summary::-webkit-details-marker{ display:none; }
+  .calcbox{ margin-top:7px; }
+  .calcbox input{ width:100%; font:inherit; font-size:1.15em; padding:7px 9px; border:1px solid #cfd6dd;
+    border-radius:8px; box-sizing:border-box; }
+  .cgroupe{ font-size:1.5em; font-weight:700; letter-spacing:.04em; margin:8px 0 2px; font-variant-numeric:tabular-nums; }
+  .clettres{ font-size:1.02em; color:#1f5fa8; margin-bottom:7px; }
+  /* valeur de position : une COULEUR par rang, la même du chiffre à son étiquette — c'est le lien
+     qu'un dyscalculique ne fait pas spontanément (« le 3 de 305 vaut trois cents »). */
+  .cpos{ display:flex; flex-wrap:wrap; gap:4px; }
+  .cp{ border-radius:6px; padding:3px 6px; font-size:.82em; line-height:1.35; text-align:center; }
+  .cp b{ display:block; font-size:1.5em; font-variant-numeric:tabular-nums; }
+  .cp0{ background:#e8f1fb; color:#14456e; } .cp1{ background:#e9f6ec; color:#14532d; }
+  .cp2{ background:#fdf0e3; color:#7a4408; } .cp3{ background:#f0eafa; color:#3f2a6b; }
+  body.dark .clettres{ color:#8fc2f5; }
+  body.dark .calcbox input{ background:#141a20; color:#e6edf3; border-color:#2a333c; }
+  body.dark .cp0{ background:#12283d; color:#bcd9f5; } body.dark .cp1{ background:#14301f; color:#bfe6c9; }
+  body.dark .cp2{ background:#3a2a12; color:#f0d6ab; } body.dark .cp3{ background:#241c3a; color:#d3c6f2; }
   body.dark .voicecfg{ color:#9aa7b4; }
   body.dark .vnote{ background:#2b2412; color:#f0e2bd; }
   /* accessibilité (réglages ex-popup, devenus injoignables quand l'icône a basculé sur le panneau) */
@@ -141,11 +162,23 @@
   <div class="corr" id="omdys-corr" aria-live="polite"></div>
   <div id="omdys-vig"></div>
   <div id="omdys-stade" aria-live="polite"></div>
+  <details class="calc" id="omdys-calc">
+    <summary>🔢 Aide au nombre<span class="vi" aria-hidden="true">i</span></summary>
+    <div class="calcbox">
+      <label class="vsr" for="omdys-num">Écris un nombre en chiffres</label>
+      <input id="omdys-num" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+             placeholder="Écris un nombre : 305, 1000000…">
+      <div class="cgroupe" id="omdys-cgroupe" aria-live="polite"></div>
+      <div class="clettres" id="omdys-clettres" aria-live="polite"></div>
+      <div class="cpos" id="omdys-cpos"></div>
+    </div>
+  </details>
   <details class="foot">
     <summary>Correcteur 100 % hors-ligne.<span class="vi" aria-hidden="true">i</span><span class="vsr"> — voir le détail</span></summary>
     <div class="vdet">Aucune donnée envoyée (moteur identique à l'app, FP=0). Seule la <b>dictée vocale</b>, si tu l'actives, utilise le service vocal du navigateur. Clique une correction pour l'appliquer ici, puis « Copier » et colle où tu veux. Le site complet (dictée, pendu, réglages) : <a href="https://omegapendu.com/" target="_blank" rel="noopener">omegapendu.com</a>.</div>
   </details>
 </div>
+<script src="calc_dys.js"></script>
 <script src="dys-core.js"></script>
 <script src="son_panel.js"></script>
 <script src="sidepanel.js"></script>
