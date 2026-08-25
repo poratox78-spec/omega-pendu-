@@ -12,6 +12,14 @@ Le **moteur de correction est un consommable** ; **notre couche dys est le produ
 une **famille** → un **stade développemental** (phonologique → alphabétique → lexical → morphosyntaxique) → une
 **remédiation ciblée**. La barre flottante affiche la correction **et** le stade **et** le conseil.
 
+## Publier sur le Chrome Web Store
+Dossier de soumission complet (fiche prête à coller, justifications de chaque permission, déclarations de
+confidentialité, captures à produire, commandes) : **`STORE.md`**. Techniquement le paquet est prêt —
+icônes 16/32/48/128 (`build_icons.py`, dérivées de `icon-512.png`), `description` ≤ 132 caractères,
+`minimum_chrome_version` 114, et `python3 extension/build_zip.py --store` produit le zip **avec
+`manifest.json` à la racine** (ce que le Store exige, contrairement au zip du site). Reste le compte
+développeur (5 $) et les captures d'écran.
+
 ## Installer (mode développeur)
 1. `chrome://extensions` → activer **Mode développeur**.
 2. **Charger l'extension non empaquetée** → choisir ce dossier `extension/`.
@@ -46,7 +54,8 @@ L'en-tête du panneau porte **🌐 omegapendu.com** (globe seul en panneau étro
 | `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (stades, remédiation) + **`complete()`** (complétion préfixe accentuée, hors parité). Sans DOM. |
 | `assets/` | Lexiques extraits de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz` = 92 743 formes accentuées). Régénérés par `build_assets.py`. Données Lexique 4 → **CC BY-SA 4.0**. |
 | `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur (`diagnoseAll` = grammaire + orthographe), **applique en place** (gère la fusion de 2 tokens pour l'élision) ; affiche aussi les **complétions** du mot en cours (`DYSCORE.complete`). |
-| `popup.html/js` | Réglages (activer/désactiver). |
+| `icons/` | Icônes 16/32/48/128 exigées par Chrome et le Store — **dérivées** de `icon-512.png` par `build_icons.py` (pur Python, déterministe, gardé en CI). |
+| `build_zip.py` | Paquet livré : sans option = zip du **site** (à dézipper → extension non empaquetée) ; `--store` = paquet **Chrome Web Store** (manifeste à la racine) ; `--check` = garde de fraîcheur CI. |
 | `parity_core.js` | Test grammaire : `dys-core.js` ⊆ Python sur la batterie de référence (aucun FP propre). |
 | `test_speller.js` | Test orthographe : AUTO FP=0, hybride (accord contexte), accent-POS (élève/élevé), élision **+ parité directe `dys-core.spell()` ≡ `app.spellText()`**. |
 
