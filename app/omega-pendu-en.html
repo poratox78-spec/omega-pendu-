@@ -24084,31 +24084,117 @@ window.addEventListener('DOMContentLoaded', () => {
   var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',liaison:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique) ; homophone LEXICAL (ver/vert) = lexical ; homophone GRAMMATICAL (a/à, son/sont) = morphosyntaxique ; 'homophone' nu = repli lexical
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
-  var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones LEXICAUX (ver/vert/verre).',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal ET homophones grammaticaux (a/à, son/sont) — le palier le plus tardif.'};
+  var STAGE_MSG={phonologique:'le mot n’est pas encore bien ENTENDU — on travaille le son avant l’orthographe.',alphabetique:'le son est juste, la graphie non — c’est le palier des accents et des graphies.',lexical:'la graphie du MOT lui-même : lettres muettes, et homophones que le SENS tranche (ver/vert/verre).',morphosyntaxique:'le palier le plus tardif : les accords, et les homophones que seule la grammaire tranche (a/à, son/sont).'};
   function stageOfFact(types){var best=-1;(types||[]).forEach(function(t){var st=STAGE_FAM[t];if(st){var k=STAGE_ORDER.indexOf(st);if(k>best)best=k;}});return best<0?null:STAGE_ORDER[best];}
   function developmental(F){var c={},tot=0,i;for(i=0;i<STAGE_ORDER.length;i++)c[STAGE_ORDER[i]]=0;F.forEach(function(f){var st=stageOfFact(f.types);if(st){c[st]++;tot++;}});if(!tot)return null;for(i=0;i<STAGE_ORDER.length;i++)if(c[STAGE_ORDER[i]]>0)return{stade:STAGE_ORDER[i]};return null;}
   // REMÉDIATION ciblée PAR FAMILLE (le PRODUIT : famille→stade→remédiation). Stratégies classiques d'orthophonie
   // ancrées dans la double route (phono/ortho) et les stades (Ferreiro/Berliocchi). Contenu pédagogique, pas une
   // détection mesurable. Affiché PAR-DESSUS le stade aux 3 sorties (dictée · correcteur règles · correcteur IA).
+  // ⭐ CHAQUE CONSEIL PART DU MOT RÉEL (refonte 26/08/2026). Avant, c'étaient des phrases de manuel identiques
+  // pour tout le monde — « Majuscule : une phrase commence TOUJOURS par une majuscule… » — alors que le moteur
+  // CONNAÎT le mot écrit et sa correction : le correcteur les jetait littéralement une ligne avant l'affichage
+  // (`{types:[fm]}`, sans `word` ni `sugg`). Un conseil qui ne cite pas la faute qu'il commente ne s'adresse à
+  // personne, et sa longueur le rend illisible pour un dys. Chaque entrée est donc une FONCTION (écrit, attendu)
+  // qui nomme la faute puis donne UNE action ; appelée sans argument elle rend la règle générale (profil de
+  // session, où aucun mot n'est en jeu). ⛔ Texte BRUT : les 3 sorties échappent elles-mêmes.
+  function _rd(e, a) {                       // le segment qui DIFFÈRE : préfixe et suffixe communs retirés
+    e = String(e || ''); a = String(a || ''); if (!e || !a) return null;
+    var m = Math.min(e.length, a.length), p = 0, s = 0;
+    while (p < m && e.charAt(p) === a.charAt(p)) p++;
+    while (s < m - p && e.charAt(e.length - 1 - s) === a.charAt(a.length - 1 - s)) s++;
+    return { e: e.slice(p, e.length - s), a: a.slice(p, a.length - s), p: p };
+  }
+  function _pr(e, a) { return (e && a) ? ('« ' + e + ' » → « ' + a + ' » : ') : ''; }
+  function _lt(x) { return (x.length > 1 ? 'les lettres « ' : 'la lettre « ') + x + ' »'; }
+  var _VOY='aeiouyàâäéèêëîïôöùûü';
+  function _mm(x,y){                        // deux lettres de MÊME NATURE (voyelle/voyelle ou consonne/consonne)
+    if(!x||!y)return false;
+    var a=x.charAt(0).toLowerCase(),b=y.charAt(0).toLowerCase();
+    if(!/[a-zà-öø-ÿ]/.test(a)||!/[a-zà-öø-ÿ]/.test(b))return false;
+    return (_VOY.indexOf(a)>=0)===(_VOY.indexOf(b)>=0);
+  }
+  var _VIBRE = { b:1, d:1, g:1, v:1, z:1, j:1 };                       // consonnes VOISÉES : la gorge vibre
+  var _HSUB = { a:'avait', 'à':'avait', et:'et puis', est:'était', son:'mon', sont:'étaient', on:'il',
+                ont:'avaient', ou:'ou bien', 'où':'à quel endroit', ces:'ces …-là', ses:'les siens',
+                ce:'cela', se:'lui-même', sa:'la sienne', 'ça':'cela', mais:'pourtant', mes:'les miens',
+                peu:'un peu', peut:'pouvait', 'la':'le', 'là':'ici', 'ni':'et pas', 'n’y':'n’y en' };
   var REMED={
-    voisee_sourde:'Sourde/sonore : pose la main sur ta gorge — b, d, g, v, z, j FONT vibrer ; p, t, k, f, s, ch non. Allonge le son avant d’écrire.',
-    inversion:'Inversion de lettres : découpe le mot en SYLLABES et écris-les dans l’ordre (ta-bleau), en suivant du doigt de gauche à droite.',
-    ajout:'Lettres en trop : relis en COMPTANT les sons que tu entends — un son = une lettre attendue, pas plus.',
-    surface:'Écrit « comme ça sonne » : compare au mot MODÈLE (carte-mot). Un même son a plusieurs graphies (/s/ → s, ss, c, ç).',
-    accent:'Accents : é (fermé) et è/ê (ouvert) ne sonnent pas pareil. Dis le mot à voix haute pour choisir l’accent.',
-    muette:'Lettre muette finale : trouve un mot de la MÊME FAMILLE où on l’entend (petit→petitE, tard→tardIf, chant→chantEr).',
-    homophone_gram:'Homophones grammaticaux (a/à, et/est, son/sont, ces/ses…) : REMPLACE par une forme sûre — si ça tient, c’est un VERBE. a→avait (sinon à) · et→et puis (sinon est→était) · son→mon/ton (sinon sont→étaient) · on→il (sinon ont→avaient) · ces→ces …-là (sinon ses→les siens).',
-    homophone_lex:'Homophones lexicaux (ver/vers/vert/verre, sceau/seau) : c’est le SENS qui décide, pas la grammaire. Remplace par un mot de la même FAMILLE ou un synonyme (verre→du verre, vert→verdure, vers→direction, sceau→sceller).',
-    homophone:'Homophones grammaticaux : REMPLACE par une forme sûre (a→avait, et→et puis, son→mon/ton). Si la phrase tient, c’est la bonne forme.',
-    accord:'Accord : repère QUI COMMANDE (le sujet, le déterminant) et accorde en genre/nombre (les chats → jouENT ; la voiture → bleuE).',
-    segmentation:'Découpage : un mot à voyelle « colle » à l’article/pronom élidé → sépare avec l’apostrophe (lhopital → l’hôpital, dargen → d’argent, cetait → c’était). Et « ducou » = deux mots (du coup).',
-    liaison:'Liaison : le son que tu entends ENTRE deux mots (les‿z‿amis, un‿n‿ami, petit‿t‿ami) appartient au PREMIER mot, il ne s’écrit PAS sur le second → écris « les amis », pas « les zamis ». Coupe bien : « les » puis « amis ».',
-    majuscule:'Majuscule : une phrase commence TOUJOURS par une majuscule (et les noms propres aussi). Repère le début (après un point) et mets la capitale.'
+    voisee_sourde:function(e,a){var d=_rd(e,a);
+      if(d&&d.e.length===1&&d.a.length===1){var x=d.e.toLowerCase(),y=d.a.toLowerCase(),v=_VIBRE[y]?y:(_VIBRE[x]?x:null);
+        if(v)return _pr(e,a)+'« '+v+' » fait vibrer la gorge, « '+(v===y?x:y)+' » non. Pose ta main dessus et allonge le son.';}
+      return _pr(e,a)+'pose la main sur ta gorge — b, d, g, v, z, j vibrent ; p, t, k, f, s, ch non.';},
+    inversion:function(e,a){var d=_rd(e,a);
+      if(d&&d.e.length===2&&d.a.length===2&&d.e.charAt(0)===d.a.charAt(1)&&d.e.charAt(1)===d.a.charAt(0))
+        return _pr(e,a)+'« '+d.a.charAt(0)+' » et « '+d.a.charAt(1)+' » sont inversées. Suis du doigt, de gauche à droite.';
+      return _pr(e,a)+'des lettres ont changé de place — découpe en syllabes et écris-les dans l’ordre.';},
+    ajout:function(e,a){var d=_rd(e,a);
+      if(d&&d.a===''&&d.e)return _pr(e,a)+_lt(d.e)+(d.e.length>1?' sont':' est')+' en trop. Compte les sons que tu entends.';
+      return _pr(e,a)+'relis en COMPTANT les sons — un son entendu = une lettre attendue, pas plus.';},
+    // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème. Comparer
+    // bêtement les caractères au point de divergence donnait « ce son s’écrit m, pas e » — absurde.
+    surface:function(e,a){var d=_rd(e,a);
+      if(d&&d.e===''&&d.a){
+        if(d.a.length===1&&a.charAt(d.p-1)===d.a)return _pr(e,a)+'ici la consonne « '+d.a+' » est DOUBLE.';
+        return _pr(e,a)+'il manque '+_lt(d.a)+'.';}
+      if(d&&d.a===''&&d.e){
+        if(d.e.length===1&&e.charAt(d.p-1)===d.e)return _pr(e,a)+'ici la consonne « '+d.e+' » ne se double PAS.';
+        return _pr(e,a)+_lt(d.e)+(d.e.length>1?' sont':' est')+' en trop.';}
+      // segments COURTS : « fote → faute » est o→au, pas o→a. Au-delà de 3 lettres l'écart n'est plus
+      // un graphème mais du bruit (sertin→certain donnerait « sert »→« certa ») : on retombe alors
+      // sur le premier caractère qui diffère, qui reste juste.
+      // GARDE : ne promettre « ce son s’écrit X » que si les deux lettres sont de MÊME NATURE. Sans elle,
+      // « ozo → oiseau » affirmait « ce son s’écrit i, pas z » — une consonne contre une voyelle : les
+      // deux mots sont trop éloignés pour qu’un seul graphème explique l’écart. Là, la règle générale.
+      if(d&&d.e&&d.a&&d.e.length<=3&&d.a.length<=3&&_mm(d.e,d.a))return _pr(e,a)+'ici ce son s’écrit « '+d.a+' », pas « '+d.e+' ».';
+      if(d&&_mm(e.charAt(d.p),a.charAt(d.p)))return _pr(e,a)+'ici ce son s’écrit « '+a.charAt(d.p)+' », pas « '+e.charAt(d.p)+' ».';
+      return _pr(e,a)+'même son, autre graphie — compare au mot modèle (/s/ → s, ss, c, ç).';},
+    accent:function(e,a){var ch=[],i;
+      if(e&&a&&e.length===a.length)for(i=0;i<e.length;i++)if(e.charAt(i)!==a.charAt(i))ch.push(e.charAt(i)+'→'+a.charAt(i));
+      if(ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Dis-le à voix haute — é ferme, è ouvre.';
+      return _pr(e,a)+'les accents s’entendent — é ferme, è/ê ouvre. Dis le mot à voix haute avant de choisir.';},
+    muette:function(e,a){var d=_rd(e,a);
+      if(d&&d.e===''&&d.a)return _pr(e,a)+_lt(d.a)+' ne s’entend pas. Cherche un mot de la même famille où on l’entend.';
+      return _pr(e,a)+'lettre muette — trouve un mot de la même famille où on l’entend (petit → petite).';},
+    homophone_gram:function(e,a){var k=e?String(e).toLowerCase():'',sub=_HSUB[k];
+      if(sub&&a)return _pr(e,a)+'essaie « '+sub+' » à la place — si la phrase ne tient plus, c’est « '+a+' ».';
+      return _pr(e,a)+'remplace par une forme sûre (a→avait, et→et puis, son→mon) — si la phrase tient, garde-la.';},
+    homophone_lex:function(e,a){
+      return _pr(e,a)+'ici c’est le SENS qui décide — remplace par un mot de la même famille (verre→du verre, vert→verdure).';},
+    homophone:function(e,a){return REMED.homophone_gram(e,a);},
+    accord:function(e,a){var d=_rd(e,a);
+      // ⭐ -er / -é : le TEST DU 3e GROUPE, et rien d'autre. « manger/mangé » sont homophones, pas
+      // « mordre/mordu » — c'est le test que tout le monde apprend, et il tranche à coup sûr. Il
+      // passe AVANT l'accord générique, qui disait « repère qui commande » sur une terminaison.
+      if(e&&a&&/(er|é|ée|és|ées|ez)$/i.test(e)&&/(er|é|ée|és|ées|ez)$/i.test(a))
+        return _pr(e,a)+'remplace le verbe par « mordre » — si « mordre » sonne juste c’est l’infinitif -er, si c’est « mordu » c’est le participe -é.';
+      if(d&&d.e===''&&d.a==='nt')return _pr(e,a)+'le sujet est au PLURIEL, il manque le « nt » du verbe.';
+      if(d&&d.a===''&&d.e==='nt')return _pr(e,a)+'le sujet est au SINGULIER, le « nt » est en trop.';
+      if(d&&d.e===''&&(d.a==='s'||d.a==='x'))return _pr(e,a)+'il manque le « '+d.a+' » du pluriel — regarde ce qui commande.';
+      if(d&&d.a===''&&(d.e==='s'||d.e==='x'))return _pr(e,a)+'ici c’est le singulier, le « '+d.e+' » est en trop.';
+      if(d&&d.e===''&&d.a==='e')return _pr(e,a)+'il manque le « e » du féminin — cherche qui commande l’accord.';
+      return _pr(e,a)+'repère QUI COMMANDE (déterminant, sujet) et accorde en genre et en nombre.';},
+    segmentation:function(e,a){
+      if(a&&(a.indexOf('’')>=0||a.indexOf("'")>=0))return _pr(e,a)+'l’article est élidé, il faut l’apostrophe.';
+      if(a&&a.indexOf(' ')>0)return _pr(e,a)+'ce sont DEUX mots, il faut l’espace.';
+      return _pr(e,a)+'mot collé — sépare avec l’apostrophe (lhopital → l’hôpital) ou l’espace (ducou → du coup).';},
+    liaison:function(e,a){var d=_rd(e,a);
+      if(d&&d.a===''&&d.e.length===1)return _pr(e,a)+'le « '+d.e+' » que tu entends appartient au mot d’avant, il ne s’écrit pas ici.';
+      return _pr(e,a)+'le son entre deux mots (les‿z‿amis) appartient au PREMIER — écris « les amis ».';},
+    majuscule:function(e,a){
+      if(e&&a)return _pr(e,a)+(/^[A-ZÀ-ÖØ-Þ]/.test(a)?'début de phrase ou nom propre, il faut la capitale.'
+                                                     :'ce n’est pas un début de phrase, pas de capitale ici.');
+      return 'Majuscule : une phrase commence par une capitale, les noms propres aussi.';}
   };
+  // le conseil d'une famille, nourri par un fait REPRÉSENTATIF (le premier de cette famille) ; sans fait → règle générale
+  // …et si aucun mot n'est en jeu (profil de session), la phrase commence la ligne : on la capitalise.
+  function remedTip(t,f){var fn=REMED[t];if(!fn)return '';var s=fn(f&&f.ecrit,f&&f.mot);
+    return (s&&s.charAt(0)!=='«')?s.charAt(0).toUpperCase()+s.slice(1):s;}
   // familles présentes AU stade développemental visé (le maillon à travailler en priorité) → conseils dédupliqués
-  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},out=[];(F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(STAGE_FAM[t]===dev.stade&&!seen[t]){seen[t]=1;out.push(t);}});});return out.length?{stade:dev.stade,fams:out}:null;}
-  function remedBlock(F,cls){var r=remedFams(F);if(!r)return '';var tips=r.fams.map(function(t){return REMED[t];}).filter(Boolean);if(!tips.length)return '';
-    return '<div class="'+cls+' vdc-lite" style="border-left:5px solid #b8860b;background:#fdf6e3;margin-top:4px;padding:6px 8px"><b>🛠️ Remédiation ciblée</b><br><span style="font-size:.92em">'+tips.join('<br>')+'</span></div>';}
+  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},out=[],rep={};(F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(STAGE_FAM[t]===dev.stade&&!seen[t]){seen[t]=1;out.push(t);rep[t]=f;}});});return out.length?{stade:dev.stade,fams:out,rep:rep}:null;}
+  function remedBlock(F,cls){var r=remedFams(F);if(!r)return '';
+    var tips=r.fams.map(function(t){return remedTip(t,r.rep[t]);}).filter(Boolean);if(!tips.length)return '';
+    // ⛔ esc() OBLIGATOIRE : le conseil CITE maintenant le mot de l'utilisateur, il n'est plus une constante.
+    return '<div class="'+cls+' vdc-lite" style="border-left:5px solid #b8860b;background:#fdf6e3;margin-top:4px;padding:6px 8px"><b>🛠️ Remédiation ciblée</b><br><span style="font-size:.92em">'+tips.map(esc).join('<br>')+'</span></div>';}
   function esc(x){return String(x).replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
   var LIAISON_LIC={z:'sxz',t:'dt',n:'n',r:'r',p:'p'};   // consonne de liaison AUDIBLE -> finales du mot précédent qui la licencient
   function isLiaison(prev,t,s){   // consonne de liaison écrite en tête du mot suivant (les amis->les zamis) — MIROIR Python is_liaison
@@ -24129,7 +24215,7 @@ window.addEventListener('DOMContentLoaded', () => {
     align(T,S).forEach(function(op){var k=op[0],t=op[1],s=op[2];
       if(k==='ins'){F.push({types:['mot_en_trop'],msg:'Mot en trop : « '+esc(s)+' ».'});return;}
       ti++;
-      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],mot:t,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
+      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],mot:t,ecrit:s,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
       if(k==='del'){F.push({types:['omission'],mot:t,msg:'Mot oublié : « '+esc(t)+' ».'});return;}
       var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
       if(idx>=1&&isLiaison(T[idx-1],t,s))ty=['liaison'];   // consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
@@ -24137,7 +24223,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if(_pnv){var _gv=governorNumber(T,idx,true),_want=(deacc(t.toLowerCase()).length>deacc(s.toLowerCase()).length)?'pl':'sg';   // croisement Excuse My French : « ils mange » HORS famille curée = ACCORD, pas « lettre muette »
         if(_gv&&_gv[1]===_want){ty=ty.filter(function(x){return x!=='muette'&&x!=='ajout';});ty.push('accord');
           var _nx=(idx+1<T.length)?T[idx+1]:'';_muet=_pnv[1]&&!/^[aeiouyhàâéèêëîïôöùûü]/i.test(_nx);}}
-      var fact={types:ty,mot:t,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
+      var fact={types:ty,mot:t,ecrit:s,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return LBL[x]||x;}).join(', ')};
       if(_muet){fact.audible=false;fact.msg+=' (marque MUETTE : ça ne s\'entend pas, c\'est l\'accord qui le dit)';}
       if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
         if(isParticiple(T,idx)){var aux=findAux(T,idx);
@@ -24192,7 +24278,7 @@ window.addEventListener('DOMContentLoaded', () => {
    _a.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey){e.preventDefault();_ins('\n');}});
    _a.addEventListener('paste',function(e){e.preventDefault();var t='';try{t=(e.clipboardData||window.clipboardData).getData('text/plain');}catch(_){}if(t)_ins(t.replace(/\r\n?/g,'\n'));});})();
   var DysProfile=(typeof window!=='undefined'&&window.DysProfile)||null;   // alias local du module partagé (défini avant) — résout les refs nues même dans les harnais d'extraction (window bouchonné)
-  var diff='facile',cur=null,nG=0,nT=0,answered=false,SESSF=[];var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','majuscule'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var SYLCOL=false;try{SYLCOL=localStorage.getItem('vdd_syl')==='1';}catch(e){}var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>'+(REMED[fo]?'<br><span style="font-size:.92em;color:#7a5c00">🛠️ '+REMED[fo]+'</span>':''):'')):'';}
+  var diff='facile',cur=null,nG=0,nT=0,answered=false,SESSF=[];var ERRFAM=['accent','voisee_sourde','inversion','muette','ajout','homophone','accord','surface','majuscule'];var PROF={};try{PROF=JSON.parse(localStorage.getItem('vdd_profile')||'{}');}catch(e){PROF={};}var VR=parseFloat(localStorage.getItem('vdd_rate')||'0.85')||0.85;var SYLCOL=false;try{SYLCOL=localStorage.getItem('vdd_syl')==='1';}catch(e){}var HIST={n:0,ok:0};try{HIST=JSON.parse(localStorage.getItem('vdd_hist')||'{"n":0,"ok":0}');}catch(e){HIST={n:0,ok:0};}function renderHist(){var el=$('vdd-hist');if(!el)return;el.innerHTML=HIST.n?('Historique : '+HIST.n+' phrases · '+Math.round(HIST.ok/HIST.n*100)+'% justes'):'';}function focusFam(){var b=null,v=0;ERRFAM.forEach(function(k){if((PROF[k]||0)>v){v=PROF[k];b=k;}});return b;}function renderProf(){var el=$('vdd-prof');if(!el)return;var it=ERRFAM.filter(function(k){return PROF[k];}).sort(function(a,b){return PROF[b]-PROF[a];}).map(function(k){return (LBL[k]||k)+' ×'+PROF[k];});var fo=focusFam();el.innerHTML=it.length?('Profil : '+it.join(' · ')+(fo?' — <b>on travaille : '+(LBL[fo]||fo)+'</b>'+(REMED[fo]?'<br><span style="font-size:.92em;color:#7a5c00">🛠️ '+esc(remedTip(fo,null))+'</span>':''):'')):'';}
   function renderUProf(){var el=$('vdd-uprof');if(!el||!DysProfile)return;var s=DysProfile.summary();
     if(!s.length){el.innerHTML='';return;}var wk=DysProfile.weakest();
     var rows=s.map(function(r){var has=(r.rate!=null),pct=has?Math.round(r.rate*100):null,rec=(r.recent!=null?Math.round(r.recent*100):null);
@@ -27502,6 +27588,12 @@ function spellTokenCore(tok,atStart,T,idx){
     if(/majuscule/.test(n))return 'majuscule';                              // majuscule initiale = CONVENTION (stade alphabétique), pas un accent
     if(/r[ée]p[ée]tition/.test(n))return 'repetition';                      // mot doublé = lapsus d'attention → hors-stade (pas une famille orthographique)
     if(/^virgule$|point d.interrogation/.test(n))return 'ponctuation';   /* ⭐ PONCTUATION = famille À PART (2026-08-24). Sans cette ligne, « virgule » tombait dans les heuristiques d'en dessous et la carte l'annonçait comme un HOMOPHONE — faux, et le profil dys enregistrait la mauvaise famille. « virgule doublée » reste de la typo (ancré ^virgule$). */
+    /* ⭐ ESPACES ET PONCTUATION (26/08/2026). « espace après la virgule » ne matchait NI /^virgule$/ NI
+       /typographie/ : il tombait dans le `return 'homophone'` final. Conséquences mesurées : la carte
+       conseillait « remplace par a→avait, et→et puis » sur une correction d'ESPACEMENT, et le calcul du
+       STADE comptait la ponctuation comme morphosyntaxique. Ces familles n'ont ni conseil dys ni stade. */
+    if(/espace|^virgule|ponctuation|mot coup|trait d.union/i.test(n))return 'ponctuation';
+    if(/contraction/i.test(n))return 'contraction';
     if(/typographie/.test(n))return 'typo';if(/nombre/.test(n))return 'nombre';if(/anglicisme/.test(n))return 'anglicisme';if(/abr[ée]viation/.test(n))return 'abreviation';if(/pl[ée]onasme/.test(n))return 'pleonasme';   // catégories STYLE (élargissement 07/2026) : name-based, AVANT les heuristiques accent/segmentation (sinon la sug « « » (avec espace) → 'segmentation') → libellé de carte correct + AUCUNE ne compte pour le stade dys (hors STAGE_FAM), miroir de l'exclusion typo de l'extension
     if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
@@ -27722,6 +27814,22 @@ function spellTokenCore(tok,atStart,T,idx){
   var _VFAM={accent:'Accent',segmentation:'Découpage',liaison:'Liaison',accord:'Accord',surface:'Orthographe',homophone:'Homophone',majuscule:'Majuscule',repetition:'Répétition',typo:'Typographie',nombre:'Nombre',anglicisme:'Anglicisme',abreviation:'Abréviation',pleonasme:'Redondance',ponctuation:'Ponctuation'};
   // POURQUOI (pédagogie dys) : la RÈGLE en une ligne, avec un exemple concret. Clé = nom de la règle. Contenu maison (non échappé).
   var _EXPL={
+    // ⭐ COMBLÉ le 26/08/2026 : ces 14 règles se déclenchaient SANS aucune explication — la carte
+    // n'affichait que la paire et l'étiquette brute de la règle. Mesuré par le crible navigateur.
+    'espace après la virgule':"Après une virgule, on met UNE espace ; avant, aucune.",
+    'espace avant la ponctuation':"En français, « ; : ! ? » prennent une espace AVANT ; « , . » n'en prennent pas.",
+    'espace double':"Une seule espace entre deux mots.",
+    'virgule':"La virgule sépare : elle ne se met jamais entre le sujet et son verbe.",
+    'virgule doublée':"Une seule virgule suffit.",
+    'mot coupé':"Ce mot a été coupé en deux : il s'écrit d'un seul tenant.",
+    'contraction':"« à le » se contracte en « au », « de le » en « du », « à les » en « aux ».",
+    'typographie':"Signe typographique : la forme française diffère de celle du clavier.",
+    'nombre':"Écriture des nombres : en toutes lettres jusqu'à seize, et l'espace sépare les milliers.",
+    'abréviation':"Cette abréviation a une forme fixe en français.",
+    'anglicisme':"Un mot français dit la même chose ici.",
+    'pléonasme':"Cette expression répète deux fois la même idée.",
+    'accord genre à vérifier':"Le genre du déterminant et celui du nom doivent s'accorder — vérifie lequel des deux est juste.",
+    'conjugaison après je à vérifier':"Après « je », le verbe prend sa terminaison de 1re personne (-e, -s, -ai).",
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",
     'et/est':"« et » relie (toi et moi) ; « est » = le verbe être (il est là).",
     'son/sont':"« son » = à lui/elle (son vélo) ; « sont » = le verbe être (ils sont là).",
@@ -27799,6 +27907,13 @@ function spellTokenCore(tok,atStart,T,idx){
   function _explain(f){var e=_EXPL[f.name]||'';if(f.name==='orthographe'&&f.sugg)e="même son, orthographe corrigée : « "+f.sugg+" ».";
     var cx=_ctxHint(f);if(cx)e=e?(e+'<br><span style="color:#0a66c2">'+cx+'</span>'):cx;
     var fh=_famHint(f);if(fh)e=e?(e+'<br><span style="color:#7a4bd0">'+fh+'</span>'):fh;
+    /* ⭐ LE CONSEIL DYS, ancré sur CE mot. Mesuré le 26/08/2026 : sur 16 corrections déclenchées,
+       3 seulement EXPLIQUAIENT (19 %) — et les 3 étaient des accords, parce que `_accHint` existe.
+       Tout le versant orthographe rendait « même son, orthographe corrigée : « faute » », qui ne dit
+       pas CE QUI a changé. `remedTip` le dit (consonne double, graphème, lettre muette) : il ne
+       manquait que le fil entre la couche dys et la carte du correcteur. */
+    var _fm=_corrFam(f.name,f.word,f.sugg),_dy=remedTip(_fm==='homophone'?'homophone_gram':_fm,{ecrit:f.word,mot:f.sugg});
+    if(_dy)e=e?(e+'<br><span style="color:#7a5c00">🛠️ '+esc(_dy)+'</span>'):('🛠️ '+esc(_dy));
     return e;}
   function _hideCard(){var c=$('vdc-cardpop');if(c)c.style.display='none';}
   function _speak(t){if(!t)return;try{speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(t).replace(/\s+/g,' ').trim());u.lang='fr-FR';u.rate=0.95;speechSynthesis.speak(u);}catch(e){}}   // TTS explication (dys : entendre > lire)
@@ -28028,7 +28143,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var html=_rest;
     if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique pour annuler)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
     if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique pour appliquer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
-    var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm]};});   // famille dys → stade ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX (morphosyntaxique)
+    var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm],mot:f.sugg,ecrit:f.word};});   // ⭐ le mot ÉCRIT et sa correction VOYAGENT jusqu'au conseil : sans eux la remédiation était une phrase de manuel   // famille dys → stade ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX (morphosyntaxique)
     var dev=developmental(devF);
     if(dev)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+'</span></div>';
     html+=remedBlock(devF,'vdc-fact');
@@ -28151,7 +28266,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!fs.length)html+='<div class="vdc-sc">L\'IA ne signale aucune faute.</div>';
     fs.forEach(function(f){html+='<div class="vdc-fact vdc-iaf" data-e="'+esc(f.ecrit||'')+'" data-c="'+esc(f.correct||'')+'" style="cursor:pointer;border-left-color:#6a3d9a">« '+esc(f.ecrit||'')+' » → <b>« '+esc(f.correct||'')+' »</b> <span class="vdc-sc">['+esc(f.famille||'ia')+'] — clique pour appliquer</span></div>';});
     var ENGINE_FAM2TYPE={accent:'accent',muette:'muette',accord:'accord',conjugaison:'accord',homophone:'homophone',phonetique:'surface',voisee_sourde:'voisee_sourde'};
-    var devF=fs.map(function(f){var t=ENGINE_FAM2TYPE[(f.famille||'').toLowerCase()];return {types:t?[t]:[]};});
+    var devF=fs.map(function(f){var t=ENGINE_FAM2TYPE[(f.famille||'').toLowerCase()];return {types:t?[t]:[],mot:f.correct,ecrit:f.ecrit};});   // ⭐ même correctif que la voie règles : le couple écrit/correct va jusqu'au conseil
     var dev=developmental(devF);
     if(dev)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#2a6f97;background:#eaf2f8"><b>Stade : '+STAGE_LBL[dev.stade]+'</b><br><span class="vdc-sc">'+STAGE_MSG[dev.stade]+' <i>(diagnostic dys OMEGA — par-dessus le moteur)</i></span></div>';
     html+=remedBlock(devF,'vdc-fact');

@@ -31,24 +31,109 @@
   var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique'};   // homophone LEXICAL (ver/vert)=lexical ; GRAMMATICAL (a/à, son/sont)=morphosyntaxique ; 'homophone' nu = repli lexical ; segmentation/majuscule = conventions (alphabétique)
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
-  var STAGE_MSG={phonologique:'travaille le SON (conscience phonémique) : sourde/sonore, inversions, lettres en trop.',alphabetique:'écrit « comme ça sonne » : passer du son à l’orthographe conventionnelle (accents, graphies).',lexical:'orthographe du MOT : lettres muettes, homophones LEXICAUX (ver/vert/verre).',morphosyntaxique:'GRAMMAIRE : accords en genre/nombre/verbal ET homophones grammaticaux (a/à, son/sont) — le palier le plus tardif.'};
+  var STAGE_MSG={phonologique:'le mot n’est pas encore bien ENTENDU — on travaille le son avant l’orthographe.',alphabetique:'le son est juste, la graphie non — c’est le palier des accents et des graphies.',lexical:'la graphie du MOT lui-même : lettres muettes, et homophones que le SENS tranche (ver/vert/verre).',morphosyntaxique:'le palier le plus tardif : les accords, et les homophones que seule la grammaire tranche (a/à, son/sont).'};
   function stageOfFact(types){var best=-1;(types||[]).forEach(function(t){var st=STAGE_FAM[t];if(st){var k=STAGE_ORDER.indexOf(st);if(k>best)best=k;}});return best<0?null:STAGE_ORDER[best];}
   function developmental(F){var c={},tot=0,i;for(i=0;i<STAGE_ORDER.length;i++)c[STAGE_ORDER[i]]=0;F.forEach(function(f){var st=stageOfFact(f.types);if(st){c[st]++;tot++;}});if(!tot)return null;for(i=0;i<STAGE_ORDER.length;i++)if(c[STAGE_ORDER[i]]>0)return{stade:STAGE_ORDER[i]};return null;}
+  // ⭐ CHAQUE CONSEIL PART DU MOT RÉEL (refonte 26/08/2026). Avant, c'étaient des phrases de manuel identiques
+  // pour tout le monde — « Majuscule : une phrase commence TOUJOURS par une majuscule… » — alors que le moteur
+  // CONNAÎT le mot écrit et sa correction : le correcteur les jetait littéralement une ligne avant l'affichage
+  // (`{types:[fm]}`, sans `word` ni `sugg`). Un conseil qui ne cite pas la faute qu'il commente ne s'adresse à
+  // personne, et sa longueur le rend illisible pour un dys. Chaque entrée est donc une FONCTION (écrit, attendu)
+  // qui nomme la faute puis donne UNE action ; appelée sans argument elle rend la règle générale (profil de
+  // session, où aucun mot n'est en jeu). ⛔ Texte BRUT : les 3 sorties échappent elles-mêmes.
+  function _rd(e, a) {                       // le segment qui DIFFÈRE : préfixe et suffixe communs retirés
+    e = String(e || ''); a = String(a || ''); if (!e || !a) return null;
+    var m = Math.min(e.length, a.length), p = 0, s = 0;
+    while (p < m && e.charAt(p) === a.charAt(p)) p++;
+    while (s < m - p && e.charAt(e.length - 1 - s) === a.charAt(a.length - 1 - s)) s++;
+    return { e: e.slice(p, e.length - s), a: a.slice(p, a.length - s), p: p };
+  }
+  function _pr(e, a) { return (e && a) ? ('« ' + e + ' » → « ' + a + ' » : ') : ''; }
+  function _lt(x) { return (x.length > 1 ? 'les lettres « ' : 'la lettre « ') + x + ' »'; }
+  var _VOY='aeiouyàâäéèêëîïôöùûü';
+  function _mm(x,y){                        // deux lettres de MÊME NATURE (voyelle/voyelle ou consonne/consonne)
+    if(!x||!y)return false;
+    var a=x.charAt(0).toLowerCase(),b=y.charAt(0).toLowerCase();
+    if(!/[a-zà-öø-ÿ]/.test(a)||!/[a-zà-öø-ÿ]/.test(b))return false;
+    return (_VOY.indexOf(a)>=0)===(_VOY.indexOf(b)>=0);
+  }
+  var _VIBRE = { b:1, d:1, g:1, v:1, z:1, j:1 };                       // consonnes VOISÉES : la gorge vibre
+  var _HSUB = { a:'avait', 'à':'avait', et:'et puis', est:'était', son:'mon', sont:'étaient', on:'il',
+                ont:'avaient', ou:'ou bien', 'où':'à quel endroit', ces:'ces …-là', ses:'les siens',
+                ce:'cela', se:'lui-même', sa:'la sienne', 'ça':'cela', mais:'pourtant', mes:'les miens',
+                peu:'un peu', peut:'pouvait', 'la':'le', 'là':'ici', 'ni':'et pas', 'n’y':'n’y en' };
   var REMED={
-    voisee_sourde:'Sourde/sonore : pose la main sur ta gorge — b, d, g, v, z, j FONT vibrer ; p, t, k, f, s, ch non. Allonge le son avant d’écrire.',
-    inversion:'Inversion de lettres : découpe le mot en SYLLABES et écris-les dans l’ordre (ta-bleau), en suivant du doigt de gauche à droite.',
-    ajout:'Lettres en trop : relis en COMPTANT les sons que tu entends — un son = une lettre attendue, pas plus.',
-    surface:'Écrit « comme ça sonne » : compare au mot MODÈLE (carte-mot). Un même son a plusieurs graphies (/s/ → s, ss, c, ç).',
-    accent:'Accents : é (fermé) et è/ê (ouvert) ne sonnent pas pareil. Dis le mot à voix haute pour choisir l’accent.',
-    muette:'Lettre muette finale : trouve un mot de la MÊME FAMILLE où on l’entend (petit→petitE, tard→tardIf, chant→chantEr).',
-    homophone_gram:'Homophones grammaticaux (a/à, et/est, son/sont, ces/ses…) : REMPLACE par une forme sûre — si ça tient, c’est un VERBE. a→avait (sinon à) · et→et puis (sinon est→était) · son→mon/ton (sinon sont→étaient) · on→il (sinon ont→avaient) · ces→ces …-là (sinon ses→les siens).',
-    homophone_lex:'Homophones lexicaux (ver/vers/vert/verre, sceau/seau) : c’est le SENS qui décide, pas la grammaire. Remplace par un mot de la même FAMILLE ou un synonyme (verre→du verre, vert→verdure, vers→direction, sceau→sceller).',
-    homophone:'Homophones grammaticaux : REMPLACE par une forme sûre (a→avait, et→et puis, son→mon/ton). Si la phrase tient, c’est la bonne forme.',
-    accord:'Accord : repère QUI COMMANDE (le sujet, le déterminant) et accorde en genre/nombre (les chats → jouENT ; la voiture → bleuE).',
-    segmentation:'Découpage : un mot à voyelle « colle » à l’article/pronom élidé → sépare avec l’apostrophe (lhopital → l’hôpital, dargen → d’argent, cetait → c’était). Et « ducou » = deux mots (du coup).',
-    majuscule:'Majuscule : une phrase commence TOUJOURS par une majuscule (et les noms propres aussi). Repère le début (après un point) et mets la capitale.'
+    voisee_sourde:function(e,a){var d=_rd(e,a);
+      if(d&&d.e.length===1&&d.a.length===1){var x=d.e.toLowerCase(),y=d.a.toLowerCase(),v=_VIBRE[y]?y:(_VIBRE[x]?x:null);
+        if(v)return _pr(e,a)+'« '+v+' » fait vibrer la gorge, « '+(v===y?x:y)+' » non. Pose ta main dessus et allonge le son.';}
+      return _pr(e,a)+'pose la main sur ta gorge — b, d, g, v, z, j vibrent ; p, t, k, f, s, ch non.';},
+    inversion:function(e,a){var d=_rd(e,a);
+      if(d&&d.e.length===2&&d.a.length===2&&d.e.charAt(0)===d.a.charAt(1)&&d.e.charAt(1)===d.a.charAt(0))
+        return _pr(e,a)+'« '+d.a.charAt(0)+' » et « '+d.a.charAt(1)+' » sont inversées. Suis du doigt, de gauche à droite.';
+      return _pr(e,a)+'des lettres ont changé de place — découpe en syllabes et écris-les dans l’ordre.';},
+    ajout:function(e,a){var d=_rd(e,a);
+      if(d&&d.a===''&&d.e)return _pr(e,a)+_lt(d.e)+(d.e.length>1?' sont':' est')+' en trop. Compte les sons que tu entends.';
+      return _pr(e,a)+'relis en COMPTANT les sons — un son entendu = une lettre attendue, pas plus.';},
+    // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème. Comparer
+    // bêtement les caractères au point de divergence donnait « ce son s’écrit m, pas e » — absurde.
+    surface:function(e,a){var d=_rd(e,a);
+      if(d&&d.e===''&&d.a){
+        if(d.a.length===1&&a.charAt(d.p-1)===d.a)return _pr(e,a)+'ici la consonne « '+d.a+' » est DOUBLE.';
+        return _pr(e,a)+'il manque '+_lt(d.a)+'.';}
+      if(d&&d.a===''&&d.e){
+        if(d.e.length===1&&e.charAt(d.p-1)===d.e)return _pr(e,a)+'ici la consonne « '+d.e+' » ne se double PAS.';
+        return _pr(e,a)+_lt(d.e)+(d.e.length>1?' sont':' est')+' en trop.';}
+      // segments COURTS : « fote → faute » est o→au, pas o→a. Au-delà de 3 lettres l'écart n'est plus
+      // un graphème mais du bruit (sertin→certain donnerait « sert »→« certa ») : on retombe alors
+      // sur le premier caractère qui diffère, qui reste juste.
+      // GARDE : ne promettre « ce son s’écrit X » que si les deux lettres sont de MÊME NATURE. Sans elle,
+      // « ozo → oiseau » affirmait « ce son s’écrit i, pas z » — une consonne contre une voyelle : les
+      // deux mots sont trop éloignés pour qu’un seul graphème explique l’écart. Là, la règle générale.
+      if(d&&d.e&&d.a&&d.e.length<=3&&d.a.length<=3&&_mm(d.e,d.a))return _pr(e,a)+'ici ce son s’écrit « '+d.a+' », pas « '+d.e+' ».';
+      if(d&&_mm(e.charAt(d.p),a.charAt(d.p)))return _pr(e,a)+'ici ce son s’écrit « '+a.charAt(d.p)+' », pas « '+e.charAt(d.p)+' ».';
+      return _pr(e,a)+'même son, autre graphie — compare au mot modèle (/s/ → s, ss, c, ç).';},
+    accent:function(e,a){var ch=[],i;
+      if(e&&a&&e.length===a.length)for(i=0;i<e.length;i++)if(e.charAt(i)!==a.charAt(i))ch.push(e.charAt(i)+'→'+a.charAt(i));
+      if(ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Dis-le à voix haute — é ferme, è ouvre.';
+      return _pr(e,a)+'les accents s’entendent — é ferme, è/ê ouvre. Dis le mot à voix haute avant de choisir.';},
+    muette:function(e,a){var d=_rd(e,a);
+      if(d&&d.e===''&&d.a)return _pr(e,a)+_lt(d.a)+' ne s’entend pas. Cherche un mot de la même famille où on l’entend.';
+      return _pr(e,a)+'lettre muette — trouve un mot de la même famille où on l’entend (petit → petite).';},
+    homophone_gram:function(e,a){var k=e?String(e).toLowerCase():'',sub=_HSUB[k];
+      if(sub&&a)return _pr(e,a)+'essaie « '+sub+' » à la place — si la phrase ne tient plus, c’est « '+a+' ».';
+      return _pr(e,a)+'remplace par une forme sûre (a→avait, et→et puis, son→mon) — si la phrase tient, garde-la.';},
+    homophone_lex:function(e,a){
+      return _pr(e,a)+'ici c’est le SENS qui décide — remplace par un mot de la même famille (verre→du verre, vert→verdure).';},
+    homophone:function(e,a){return REMED.homophone_gram(e,a);},
+    accord:function(e,a){var d=_rd(e,a);
+      // ⭐ -er / -é : le TEST DU 3e GROUPE, et rien d'autre. « manger/mangé » sont homophones, pas
+      // « mordre/mordu » — c'est le test que tout le monde apprend, et il tranche à coup sûr. Il
+      // passe AVANT l'accord générique, qui disait « repère qui commande » sur une terminaison.
+      if(e&&a&&/(er|é|ée|és|ées|ez)$/i.test(e)&&/(er|é|ée|és|ées|ez)$/i.test(a))
+        return _pr(e,a)+'remplace le verbe par « mordre » — si « mordre » sonne juste c’est l’infinitif -er, si c’est « mordu » c’est le participe -é.';
+      if(d&&d.e===''&&d.a==='nt')return _pr(e,a)+'le sujet est au PLURIEL, il manque le « nt » du verbe.';
+      if(d&&d.a===''&&d.e==='nt')return _pr(e,a)+'le sujet est au SINGULIER, le « nt » est en trop.';
+      if(d&&d.e===''&&(d.a==='s'||d.a==='x'))return _pr(e,a)+'il manque le « '+d.a+' » du pluriel — regarde ce qui commande.';
+      if(d&&d.a===''&&(d.e==='s'||d.e==='x'))return _pr(e,a)+'ici c’est le singulier, le « '+d.e+' » est en trop.';
+      if(d&&d.e===''&&d.a==='e')return _pr(e,a)+'il manque le « e » du féminin — cherche qui commande l’accord.';
+      return _pr(e,a)+'repère QUI COMMANDE (déterminant, sujet) et accorde en genre et en nombre.';},
+    segmentation:function(e,a){
+      if(a&&(a.indexOf('’')>=0||a.indexOf("'")>=0))return _pr(e,a)+'l’article est élidé, il faut l’apostrophe.';
+      if(a&&a.indexOf(' ')>0)return _pr(e,a)+'ce sont DEUX mots, il faut l’espace.';
+      return _pr(e,a)+'mot collé — sépare avec l’apostrophe (lhopital → l’hôpital) ou l’espace (ducou → du coup).';},
+    liaison:function(e,a){var d=_rd(e,a);
+      if(d&&d.a===''&&d.e.length===1)return _pr(e,a)+'le « '+d.e+' » que tu entends appartient au mot d’avant, il ne s’écrit pas ici.';
+      return _pr(e,a)+'le son entre deux mots (les‿z‿amis) appartient au PREMIER — écris « les amis ».';},
+    majuscule:function(e,a){
+      if(e&&a)return _pr(e,a)+(/^[A-ZÀ-ÖØ-Þ]/.test(a)?'début de phrase ou nom propre, il faut la capitale.'
+                                                     :'ce n’est pas un début de phrase, pas de capitale ici.');
+      return 'Majuscule : une phrase commence par une capitale, les noms propres aussi.';}
   };
-  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},out=[];(F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(STAGE_FAM[t]===dev.stade&&!seen[t]){seen[t]=1;out.push(t);}});});return out.length?{stade:dev.stade,fams:out}:null;}
+  // le conseil d'une famille, nourri par un fait REPRÉSENTATIF (le premier de cette famille) ; sans fait → règle générale
+  // …et si aucun mot n'est en jeu (profil de session), la phrase commence la ligne : on la capitalise.
+  function remedTip(t,f){var fn=REMED[t];if(!fn)return '';var s=fn(f&&f.ecrit,f&&f.mot);
+    return (s&&s.charAt(0)!=='«')?s.charAt(0).toUpperCase()+s.slice(1):s;}
+  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},out=[],rep={};(F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(STAGE_FAM[t]===dev.stade&&!seen[t]){seen[t]=1;out.push(t);rep[t]=f;}});});return out.length?{stade:dev.stade,fams:out,rep:rep}:null;}
 
   // ===== correcteur (règles homophones + accord + genre) — VERBATIM app =====
   var COMMON_VERBS={};("suis es est sommes etes sont etais etait etions etiez etaient sera seront fut furent serait soit "
@@ -2911,16 +2996,18 @@ function spellUnknown(tok,atStart,T,idx){
     if(/majuscule/.test(n))t='majuscule';                                    // convention → alphabétique
     else if(/r[ée]p[ée]tition/.test(n))t='repetition';                       // lapsus → hors-stade
     else if(/^virgule$|point d.interrogation/.test(n))t='ponctuation';   // ⭐ miroir app : la ponctuation n'est ni un homophone ni du style
+    else if(/espace|^virgule|ponctuation|mot coup|trait d.union/i.test(n))t='ponctuation';   // ⭐ miroir app : « espace après la virgule » tombait dans le `else` final = homophone
+    else if(/contraction/i.test(n))t='contraction';
     else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
     else if(w&&sg&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)
     else if(/accord|genre/.test(n))t='accord';
     else if(/orthograph|[ée]lision|surface|inconnu/.test(n))t='surface';     // mot inconnu / graphie → alphabétique
     else t='homophone_gram';                                                 // homophones du correcteur (a/à, son/sont, ou/où) = GRAMMATICAUX → morphosyntaxique
-    return {types:[t]};});}
+    return {types:[t],mot:sg,ecrit:w};});}   // ⭐ le mot ÉCRIT et sa correction VOYAGENT jusqu'au conseil (miroir app)
   function diagnose(text){var flags=correctText(text);var facts=flagsToFacts(flags);var dev=developmental(facts);var rem=remedFams(facts);
     return {flags:flags,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
-            remed:rem?rem.fams.map(function(t){return REMED[t];}):[]};}
+            remed:rem?rem.fams.map(function(t){return remedTip(t,rem.rep[t]);}):[]};}
   function spell(text){return SP.ready?spellText(text):[];}                                  // flags orthographe (auto/flag) seuls
   // HINT CONTEXTUEL (identique app) : homophone = test de substitution fenêtré ±2 mots ; accord = gouverneur réel. Texte BRUT (content.js échappe).
   var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)']};
@@ -3092,7 +3179,7 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     var facts=flagsToFacts(flags),dev=developmental(facts),rem=remedFams(facts);
     var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts/stade (pas une faute de stade) ; ajoutée aux flags pour rendu+clic
     return {flags:flags.concat(_typ),grammar:gf,spell:sf,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
-            remed:rem?rem.fams.map(function(t){return REMED[t];}):[]};}
+            remed:rem?rem.fams.map(function(t){return remedTip(t,rem.rep[t]);}):[]};}
 
   // ===== chargement lexiques =====
   var _ready=false,_loading=null;
