@@ -117,5 +117,83 @@
   /* Ce qu'on DIT à voix haute : le nombre groupé puis sa forme en lettres. */
   function lire(n) { return groupe(n) + ' — ' + enLettres(n); }
 
-  root.CALCDYS = { enLettres: enLettres, groupe: groupe, positions: positions, lire: lire };
+
+  /* ── CALCUL — l'extension est l'outil RAPIDE (Rem, 2026-08-25 : « le but rapide pour le calcul
+     aussi donc on calcule à la place sur le site éventuellement on pourrait faire une partie plus
+     développée »). Ici on donne la RÉPONSE ; la version qui apprend à POSER l'opération ira sur le
+     site, où l'utilisateur vient pour travailler, pas pour écrire vite.
+     Le résultat est rendu sous les MÊMES trois formes que la saisie (groupé, en lettres, valeur de
+     position) : la réponse reste LISIBLE, ce qui est tout l'intérêt pour un dyscalculique.
+
+     ⛔ AUCUN `eval`, JAMAIS. On analyse nous-mêmes : un `eval` sur une saisie utilisateur dans une
+     extension à `<all_urls>` serait une porte ouverte, et Google le refuserait au Store — à juste
+     titre. Analyseur descendant, 4 opérations, parenthèses, décimales à la virgule française. */
+  function _tokens(src) {
+    var t = [], i = 0, s = String(src).replace(/[\s\u00a0]/g, '').replace(/,/g, '.')
+      .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+    while (i < s.length) {
+      var c = s.charAt(i);
+      if (c >= '0' && c <= '9' || c === '.') {
+        var j = i; while (j < s.length && (s.charAt(j) >= '0' && s.charAt(j) <= '9' || s.charAt(j) === '.')) j++;
+        var num = s.slice(i, j);
+        if ((num.match(/\./g) || []).length > 1) return null;      // « 1.2.3 » n'est pas un nombre
+        t.push({ n: parseFloat(num) }); i = j; continue;
+      }
+      if ('+-*/()'.indexOf(c) >= 0) { t.push({ o: c }); i++; continue; }
+      return null;                                                  // caractère inconnu → on refuse
+    }
+    return t;
+  }
+  function _parse(t) {
+    var p = 0;
+    function expr() {
+      var v = terme();
+      if (v === null) return null;
+      while (p < t.length && t[p].o && (t[p].o === '+' || t[p].o === '-')) {
+        var op = t[p++].o, r = terme();
+        if (r === null) return null;
+        v = (op === '+') ? v + r : v - r;
+      }
+      return v;
+    }
+    function terme() {
+      var v = facteur();
+      if (v === null) return null;
+      while (p < t.length && t[p].o && (t[p].o === '*' || t[p].o === '/')) {
+        var op = t[p++].o, r = facteur();
+        if (r === null) return null;
+        if (op === '/' && r === 0) return null;                     // division par zéro : on REFUSE, on n'invente pas
+        v = (op === '*') ? v * r : v / r;
+      }
+      return v;
+    }
+    function facteur() {
+      if (p >= t.length) return null;
+      var x = t[p];
+      if (x.o === '-') { p++; var v = facteur(); return v === null ? null : -v; }
+      if (x.o === '+') { p++; return facteur(); }
+      if (x.o === '(') {
+        p++; var e = expr();
+        if (e === null || p >= t.length || t[p].o !== ')') return null;
+        p++; return e;
+      }
+      if (typeof x.n === 'number') { p++; return x.n; }
+      return null;
+    }
+    var v = expr();
+    return (v === null || p !== t.length) ? null : v;
+  }
+
+  /* Rend `null` si ce n'est pas un calcul valide — l'appelant AFFICHE alors une raison,
+     il n'invente pas un résultat. */
+  function calcule(src) {
+    var t = _tokens(src);
+    if (!t || !t.length) return null;
+    if (!t.some(function (x) { return x.o && '+-*/'.indexOf(x.o) >= 0; })) return null;   // pas d'opération = simple nombre
+    var v = _parse(t);
+    if (v === null || !isFinite(v)) return null;
+    return Math.round(v * 1e10) / 1e10;                             // rabote le bruit binaire (0,1+0,2)
+  }
+
+  root.CALCDYS = { enLettres: enLettres, groupe: groupe, positions: positions, lire: lire, calcule: calcule };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
