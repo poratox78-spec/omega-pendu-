@@ -165,6 +165,13 @@ jobs:
       # CONTRADICTOIRE, que Google arbitre contre nous.
       - name: SITE — le sitemap déclare exactement les pages indexables
         run: node dictee/sitemap_probe.js
+      # Le moteur de calcul vit en DEUX copies : `extension/calc_dys.js` (l'outil rapide) et
+      # `calc_dys.js` à la racine (la page /calcul, qui montre comment on pose l'opération). Un
+      # fichier recopié sans garde est exactement ce qui a coûté 134 diagnostics le 2026-08-25.
+      # La sonde compare les octets ET interroge le moteur : une copie fidèle d'un moteur cassé
+      # reste cassée.
+      - name: moteur de calcul — 2 copies + poses + refus + câblage de la page
+        run: node dictee/calc_dys_probe.js
       # Les chiffres de mesure affichés (« FP=0 sur 14 450 phrases ») sont écrits à la main dans
       # plusieurs pages. Le registre unique (metriques_probe) rend la dérive IMPOSSIBLE : un chiffre
       # nouveau ou modifié hors registre = rouge — la propagation devient structurelle.

@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Poser un calcul — aide au calcul et aux nombres pour la dyscalculie | OMEGA-Ω</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/calcul"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Poser un calcul — aide au calcul et aux nombres pour la dyscalculie | OMEGA-Ω"><meta property="og:description" content="Les quatre opérations posées en colonnes, retenues expliquées une par une, et un nombre lu ou écrit en toutes lettres. Gratuit, hors-ligne."><meta property="og:image" content="https://omegapendu.com/icon.svg">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Poser un calcul — dyscalculie | OMEGA-Ω"><meta name="twitter:description" content="Les quatre opérations posées en colonnes, et un nombre lu ou écrit en toutes lettres.">
+<meta name="description" content="Les quatre opérations posées en colonnes, alignées par valeur de position, chaque retenue expliquée en toutes lettres — et un outil pour lire un nombre ou l'écrire en chiffres. Pour la dyscalculie. Gratuit, hors-ligne.">
+<link rel="canonical" href="https://omegapendu.com/calcul">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
+<style>
+  main.calc{max-width:var(--maxw);margin:0 auto;padding:18px 18px 48px}
+  /* libellés VISIBLES, pas masqués : pour un public dys, dire ce qu'on attend dans chaque case vaut
+     mieux qu'un placeholder qui disparaît dès qu'on tape. Chaque champ est un bloc étiquette+case,
+     donc la ligne se casse proprement sur mobile au lieu de séparer un libellé de sa case. */
+  .saisie{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin:14px 0}
+  .saisie label{display:flex;flex-direction:column;gap:4px;font-size:.9em;color:var(--fg-2)}
+  .saisie input{font:inherit;font-size:1.4em;width:6.5em;padding:8px 10px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-2);color:var(--fg);text-align:right;font-variant-numeric:tabular-nums}
+  .saisie select{font:inherit;font-size:1.4em;padding:8px 10px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-2);color:var(--fg)}
+  .saisie input:focus,.saisie select:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+
+  /* ── LA POSE. Police à chasse fixe et chiffres tabulaires : sans ça les colonnes ne s'alignent
+     pas, et c'est PRÉCISÉMENT ce qu'on vient enseigner. Une aide au calcul dont les colonnes
+     bougent enseignerait le contraire de son propos. */
+  .pose{font:700 clamp(22px,6vw,34px)/1.35 ui-monospace,"SFMono-Regular",Consolas,monospace;
+    font-variant-numeric:tabular-nums;display:inline-block;margin:8px 0 4px;text-align:right}
+  .pose .lg{display:flex;justify-content:flex-end;gap:.12em}
+  .pose .c{width:1.1em;text-align:center;border-radius:5px}
+  .pose .op{width:1.1em;text-align:center;color:var(--accent)}
+  .pose .barre{border-top:3px solid var(--fg);margin:5px 0 4px}
+  /* La retenue est L'INFORMATION de la page — c'est elle qu'on vient comprendre. `--warn` du site
+     tombe à 3,77:1 sur le fond crème du thème clair en 17 px : sous le seuil AA, mesuré. On lui
+     donne donc sa propre teinte, plus foncée en clair, inchangée en sombre où elle passe déjà. */
+  .ret{font:700 .5em/1 ui-monospace,monospace;color:var(--warn);height:1.1em}
+  :root[data-theme="light"] .ret{color:#8a5200}
+  /* une couleur par RANG, la même du chiffre à son explication — c'est le lien que la dyscalculie
+     ne fait pas spontanément. Trois teintes qui se répètent par tranche de mille : unités bleu,
+     dizaines vert, centaines ambre. Mêmes teintes que l'aide au nombre du panneau, volontairement. */
+  .r0{background:color-mix(in srgb,#5b8cf6 26%,transparent)}
+  .r1{background:color-mix(in srgb,#3f7d24 30%,transparent)}
+  .r2{background:color-mix(in srgb,#d8922e 30%,transparent)}
+  .etapes{margin:16px 0 0;padding:0;list-style:none}
+  .etapes li{padding:8px 11px;margin:0 0 6px;border-left:4px solid var(--line);background:var(--bg-2);
+    border-radius:0 8px 8px 0;line-height:1.55}
+  .etapes li.a{border-left-color:var(--warn)}
+  .etapes b{color:var(--fg)}
+  .lecture{margin:16px 0;padding:11px 13px;background:var(--bg-2);border-left:4px solid var(--accent-2);
+    border-radius:0 10px 10px 0}
+  .lecture .gros{font-size:1.5em;font-weight:700;font-variant-numeric:tabular-nums}
+  .lecture .mots{color:var(--accent);font-size:1.05em}
+
+  /* Une opération à douze chiffres est plus large qu'un téléphone. Elle défile DANS SON CADRE :
+     si c'était la page qui glissait de côté, on perdrait l'alignement des colonnes — c'est-à-dire
+     la seule chose que cette page a à montrer. */
+  .poseWrap,.potence{overflow-x:auto;padding-bottom:4px;max-width:100%}
+
+  /* ── LA POTENCE. La division est la seule des quatre à s'écrire en deux blocs : le travail à
+     gauche, le diviseur au-dessus du quotient à droite, séparés par la barre verticale. On la
+     reproduit telle quelle — un élève doit retrouver SON cahier, pas une invention. */
+  .potence{display:flex;align-items:flex-start;gap:0;margin:8px 0 4px}
+  .potence .pose{margin:0}
+  .droite{font:700 clamp(22px,6vw,34px)/1.35 ui-monospace,"SFMono-Regular",Consolas,monospace;
+    font-variant-numeric:tabular-nums;border-left:3px solid var(--fg);padding-left:.45em;margin-left:.2em}
+  .droite .dvs{padding:0 .15em}
+  .droite .qt{display:flex;gap:.12em;border-top:3px solid var(--fg);margin-top:5px;padding-top:4px}
+  .pose .c.sous{border-top:3px solid var(--fg);border-radius:0;height:.18em}
+  .pose .c.sg{color:var(--accent)}
+  /* le chiffre ABAISSÉ : c'est le même chiffre qu'en haut, descendu d'une ligne. Le pointillé dit
+     « il vient d'ailleurs », ce qu'un simple chiffre plein ne dirait pas. */
+  .pose .c.ab{outline:2px dashed var(--accent);outline-offset:-2px}
+  .etapes li.v{border-left-color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 12%,var(--bg-2))}
+  .lecture .rst{font-size:.62em;font-weight:600;color:var(--fg-2)}
+
+  /* ── LES RANGS. Une carte par chiffre, dans la couleur de son rang — la même que dans la pose,
+     pour que le lien se fasse d'un coup d'œil et pas au prix d'un effort de mémoire. */
+  .rangs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}
+  .rg{border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-width:104px}
+  .rg .rgc{font:700 1.9em/1 ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  /* le nom du rang garde la couleur PLEINE. Mesuré en thème clair, `--fg-2` sur les cartes teintées :
+     4,57 (bleue) · 3,98 (verte) · 4,60 (ambre) — la VERTE passe sous le seuil AA de 4,5, et c'est
+     le libellé qui dit à quoi sert la carte. Avec `--fg` : 10,5 à 12,2. La hiérarchie se fait par la
+     taille et la graisse, jamais en délavant la couleur. */
+  .rg .rgn{font-size:.82em;color:var(--fg);margin-top:2px}
+  .rg .rgv{font-size:.92em;font-weight:600;margin-top:1px}
+  /* le zéro n'est pas grisé : il compte AUTANT que les autres, c'est tout le propos. Le pointillé
+     le distingue sans le dévaloriser. */
+  .rg.zero{border-style:dashed;border-color:var(--accent)}
+  .somme{font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:1.05em}
+  .saisie input.large{width:15em;text-align:left;font-size:1.15em}
+
+  .dire{font:inherit;font-size:.92em;margin-top:8px;padding:5px 11px;border:1px solid var(--line);
+    border-radius:999px;background:var(--bg);color:var(--fg);cursor:pointer}
+  .dire:hover{border-color:var(--accent)}
+  .dire:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .voixEtat{font-size:.88em;color:var(--bad);margin-left:8px}
+  .exs{color:var(--fg-2);font-size:.92em;margin:2px 0 10px;display:flex;flex-wrap:wrap;
+    gap:6px;align-items:center}
+  .ex,.exn{font:inherit;font-size:.95em;padding:4px 10px;border:1px solid var(--line);
+    border-radius:999px;background:var(--bg-2);color:var(--fg);cursor:pointer;
+    font-variant-numeric:tabular-nums}
+  .ex:hover,.exn:hover{border-color:var(--accent);color:var(--accent)}
+  .ex:focus-visible,.exn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .err{color:var(--bad);font-weight:600;padding:10px 0}
+  .note{color:var(--fg-2);font-size:.92em;line-height:1.6}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="./">Le pendu</a>
+    <a href="correcteur">Le correcteur</a>
+    <a href="dictee">La dictée</a>
+    <a href="calcul" aria-current="page">Poser un calcul</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+
+<main class="calc">
+  <h1>Poser un calcul</h1>
+  <p class="note">Une calculatrice donne la réponse. Ici, on montre <strong>comment on l'obtient</strong>&nbsp;:
+     l'opération posée en colonnes, alignée par valeur de position, chaque retenue expliquée une par une,
+     et le résultat lu en toutes lettres. Plus bas, un outil pour <a href="#nombre">lire ou écrire un
+     nombre</a>. Tout se calcule sur ton appareil&nbsp;: rien n'est envoyé.</p>
+
+  <h2>L'opération, colonne par colonne</h2>
+
+  <div class="saisie">
+    <label for="a">Premier nombre
+      <input id="a" type="text" inputmode="numeric" autocomplete="off" value="347"></label>
+    <label for="op">Opération
+      <select id="op">
+        <option value="+">+</option>
+        <option value="-">−</option>
+        <option value="*">×</option>
+        <option value="/">÷</option>
+      </select></label>
+    <label for="b">Deuxième nombre
+      <input id="b" type="text" inputmode="numeric" autocomplete="off" value="285"></label>
+  </div>
+
+  <p class="exs">Essaie&nbsp;:
+    <button type="button" class="ex" data-a="347" data-b="285" data-op="+">347 + 285</button>
+    <button type="button" class="ex" data-a="502" data-b="347" data-op="-">502 − 347</button>
+    <button type="button" class="ex" data-a="248" data-b="36" data-op="*">248 × 36</button>
+    <button type="button" class="ex" data-a="9184" data-b="7" data-op="/">9184 ÷ 7</button>
+    <button type="button" class="ex" data-a="1000" data-b="7" data-op="/">1000 ÷ 7</button>
+  </p>
+
+  <div id="sortie" aria-live="polite"></div>
+
+  <h2 id="nombre">Lire et écrire un nombre</h2>
+  <p class="note">Écris-le comme tu veux&nbsp;: en chiffres (<code>305</code>) ou en toutes lettres
+     (<em>trois cent cinq</em>). L'outil montre l'autre forme — et surtout ce que vaut chaque chiffre
+     <strong>à sa place</strong>, qui est le point où ça coince vraiment.</p>
+
+  <div class="saisie">
+    <label for="n">Un nombre, en chiffres ou en lettres
+      <input id="n" type="text" autocomplete="off" class="large" value="trois cent cinq"></label>
+  </div>
+  <p class="exs">Essaie&nbsp;:
+    <button type="button" class="exn" data-n="trois cent cinq">trois cent cinq</button>
+    <button type="button" class="exn" data-n="30005">30005</button>
+    <button type="button" class="exn" data-n="quatre-vingt-dix-sept">quatre-vingt-dix-sept</button>
+    <button type="button" class="exn" data-n="2050607">2050607</button>
+    <button type="button" class="exn" data-n="mille deux cents">mille deux cents</button>
+  </p>
+
+  <div id="sortieN" aria-live="polite"></div>
+
+  <h2>Pourquoi poser plutôt que calculer</h2>
+  <p class="note">La dyscalculie n'est pas d'abord une difficulté à <em>calculer</em>&nbsp;: c'est une difficulté
+     à <strong>lire et écrire les nombres</strong>. Écrire «&nbsp;30005&nbsp;» pour <em>trois cent cinq</em>,
+     lire 96 au lieu de 69, ne pas voir que le 3 de 305 vaut trois <em>cents</em>. Une calculatrice ne touche
+     aucun de ces points — elle les contourne. Poser l'opération, si.</p>
+  <p class="note">C'est le même parti pris que le correcteur&nbsp;: comprendre sa faute vaut mieux que la
+     déléguer. Si tu veux juste la réponse en écrivant ailleurs, c'est
+     <a href="correcteur">l'extension</a> qu'il te faut — elle calcule, elle.</p>
+</main>
+
+<script src="calc_dys.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var A = $('a'), B = $('b'), OP = $('op'), OUT = $('sortie');
+  var C = window.CALCDYS;
+  if (!C) { OUT.innerHTML = '<p class="err">Le moteur de calcul n\'a pas pu charger.</p>'; return; }
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /* Le cycle est de TROIS, pas de quatre : le français groupe les nombres par tranches de trois
+     (six cent sept · cinquante mille · deux millions). Une couleur par position DANS SA TRANCHE
+     fait que le motif se répète à l'identique d'une tranche à l'autre — c'est exactement la
+     structure qu'on prononce. Un cycle de quatre dériverait contre elle à chaque tranche. */
+  function cls(rang) { return 'r' + (rang % 3); }
+
+  /* une ligne de chiffres alignés ; `null` = colonne vide, JAMAIS affichée comme un 0 (un 0 écrit
+     là où il n'y a rien est exactement l'erreur qu'on essaie d'éviter). */
+  function ligne(ch, largeur, signe) {
+    var h = '<div class="lg">', i;
+    h += '<span class="op">' + (signe || '') + '</span>';
+    for (i = 0; i < largeur; i++) {
+      var rang = largeur - 1 - i, d = ch[i];
+      h += '<span class="c ' + (d === null ? '' : cls(rang)) + '">' + (d === null ? '' : d) + '</span>';
+    }
+    return h + '</div>';
+  }
+  /* La division ne descend pas en colonnes régulières : chaque nombre se pose à SA place, calée sur
+     une colonne de fin. D'où une rangée libre plutôt que `ligne()`, qui suppose l'alignement à droite. */
+  function rangeeDe(txt, finCol, largeur, signe, extra) {
+    var cells = [], i;
+    for (i = 0; i < largeur; i++) cells.push(null);
+    for (i = 0; i < txt.length; i++) {
+      var col = finCol - (txt.length - 1 - i);
+      if (col >= 0 && col < largeur) cells[col] = { t: txt.charAt(i), r: largeur - 1 - col };
+    }
+    if (extra && extra.col < largeur) cells[extra.col] = { t: extra.t, r: largeur - 1 - extra.col, ab: 1 };
+    /* le signe se colle JUSTE à gauche du nombre qu'il retire, pas au bord de la page : dans une
+       potence, « − 6 » séparés par deux colonnes vides ne dit plus ce qu'on soustrait à quoi. */
+    var sgCol = signe ? finCol - txt.length : -1;
+    var h = '<div class="lg"><span class="op">' + (signe && sgCol < 0 ? signe : '') + '</span>';
+    for (i = 0; i < largeur; i++) {
+      var c = cells[i];
+      if (i === sgCol) { h += '<span class="c sg">' + signe + '</span>'; continue; }
+      h += '<span class="c ' + (c ? cls(c.r) + (c.ab ? ' ab' : '') : '') + '">' + (c ? c.t : '') + '</span>';
+    }
+    return h + '</div>';
+  }
+  /* le trait ne court que sous les chiffres réellement soustraits, pas sur toute la largeur */
+  function barreDe(longueur, finCol, largeur) {
+    var h = '<div class="lg"><span class="op"></span>', i;
+    for (i = 0; i < largeur; i++) {
+      var dedans = (i <= finCol && i > finCol - longueur);
+      h += '<span class="c' + (dedans ? ' sous' : '') + '"></span>';
+    }
+    return h + '</div>';
+  }
+  function chiffres(n, largeur) {
+    var s = String(Math.abs(Math.trunc(n))), out = [], i;
+    for (i = 0; i < largeur; i++) out.unshift(i < s.length ? +s.charAt(s.length - 1 - i) : null);
+    return out;
+  }
+  /* La ligne des retenues. Un seul rendu pour l'addition et la soustraction : les deux écrivent le
+     même petit 1 dans la même colonne, seul son PLACEMENT vertical change (au-dessus pour
+     l'addition, entre les deux opérandes pour la soustraction). Le champ diffère, la forme non. */
+  function retenues(colonnes, largeur, champ) {
+    var h = '<div class="lg"><span class="op"></span>', i;
+    for (i = 0; i < largeur; i++) {
+      var c = colonnes[i];
+      h += '<span class="c ret">' + (c && c[champ] ? '1' : '') + '</span>';
+    }
+    return h + '</div>';
+  }
+  /* mêmes noms de rang que `positions()` du moteur, jusqu'aux milliards : les saisies vont jusqu'à
+     10^12, et « rang 9 » au lieu de « milliards » dans une explication serait un aveu de paresse. */
+  var NOMS = ['unités', 'dizaines', 'centaines', 'milliers', 'dizaines de mille', 'centaines de mille',
+              'millions', 'dizaines de millions', 'centaines de millions', 'milliards',
+              'dizaines de milliards', 'centaines de milliards', 'billions'];
+  function nom(r) { return NOMS[r] || ('rang ' + r); }
+
+  /* 🔊 — la synthèse vocale n'est PAS une promesse : `speak()` ne rend rien et peut échouer
+     silencieusement (voix française absente, autorisation refusée). On ne dit donc jamais « lu »
+     avant de le savoir : seul `onerror` a le dernier mot, et il écrit ce qui s'est passé. */
+  function btnLire(texte) {
+    return '<button type="button" class="dire" data-dire="' + esc(texte) + '">🔊 Lire</button>' +
+           '<span class="voixEtat" role="status"></span>';
+  }
+  function dire(texte, etat) {
+    if (!('speechSynthesis' in window)) {
+      if (etat) etat.textContent = 'Ce navigateur ne sait pas lire à voix haute.'; return;
+    }
+    try { speechSynthesis.cancel(); } catch (e) {}
+    var u = new SpeechSynthesisUtterance(texte);
+    u.lang = 'fr-FR'; u.rate = 0.85;
+    u.onerror = function (ev) {
+      if (!etat) return;
+      etat.textContent = (ev && ev.error === 'not-allowed')
+        ? 'Le navigateur a refusé la lecture.' : 'La lecture n’a pas pu démarrer.';
+    };
+    u.onstart = function () { if (etat) etat.textContent = ''; };
+    speechSynthesis.speak(u);
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target && ev.target.closest ? ev.target.closest('.dire') : null;
+    if (!b) return;
+    var etat = b.parentNode.querySelector('.voixEtat');
+    dire(b.getAttribute('data-dire'), etat);
+  });
+
+  function rendu(a, b, op) {
+    if (op === '+') {
+      var p = C.poseAddition(a, b), L = p.largeur;
+      var h = '<div class="poseWrap"><div class="pose">';
+      h += retenues(p.colonnes, L, 'retenueEntrante');
+      h += ligne(chiffres(a, L), L, '');
+      h += ligne(chiffres(b, L), L, '+');
+      h += '<div class="barre"></div>';
+      h += ligne(chiffres(p.resultat, L), L, '');
+      h += '</div></div>';
+      var e = '<ol class="etapes">';
+      for (var k = p.colonnes.length - 1; k >= 0; k--) {
+        var c = p.colonnes[k];
+        if (c.a === null && c.b === null && !c.retenueEntrante) continue;
+        e += '<li class="' + (c.retenue ? 'a' : '') + '"><b>' + nom(c.rang) + '</b> : ' +
+             (c.a || 0) + ' + ' + (c.b || 0) +
+             (c.retenueEntrante ? ' + <b>1</b> de retenue' : '') + ' = <b>' + c.total + '</b>. ' +
+             (c.retenue ? 'C\'est 10 ou plus : j\'écris <b>' + c.pose +
+                          '</b> et je retiens <b>1</b> pour les ' + nom(c.rang + 1) + '.'
+                        : 'J\'écris <b>' + c.pose + '</b>.') + '</li>';
+      }
+      return h + e + '</ol>';
+    }
+    if (op === '-') {
+      var s = C.poseSoustraction(a, b);
+      if (!s) return '<p class="err">On ne peut pas retirer un nombre plus grand d\'un plus petit — ici le résultat serait négatif.</p>';
+      var L2 = s.largeur, h2 = '<div class="poseWrap"><div class="pose">';
+      h2 += ligne(chiffres(a, L2), L2, '');
+      /* la retenue de la soustraction s'ajoute au chiffre du BAS : sa ligne va donc ENTRE les deux
+         opérandes, là où l'élève l'écrit sur son cahier — pas au-dessus comme pour l'addition. */
+      h2 += retenues(s.colonnes, L2, 'empruntEntrant');
+      h2 += ligne(chiffres(b, L2), L2, '−');
+      h2 += '<div class="barre"></div>';
+      h2 += ligne(chiffres(s.resultat, L2), L2, '');
+      h2 += '</div></div>';
+      var e2 = '<ol class="etapes">';
+      for (var k2 = s.colonnes.length - 1; k2 >= 0; k2--) {
+        var c2 = s.colonnes[k2];
+        e2 += '<li class="' + (c2.emprunt ? 'a' : '') + '"><b>' + nom(c2.rang) + '</b> : ' +
+              (c2.empruntEntrant ? "je dois 1 de retenue, donc " + (c2.b || 0) + " + 1 = <b>" +
+                                   c2.bAvecEmprunt + "</b>. " : '') +
+              (c2.emprunt ? "Je ne peux pas retirer " + c2.bAvecEmprunt + " de " + (c2.a || 0) +
+                            " : j'emprunte 1 aux " + nom(c2.rang + 1) + ", ça fait <b>" + c2.aEffectif + "</b>. "
+                          : '') +
+              c2.aEffectif + ' − ' + c2.bAvecEmprunt + ' = <b>' + c2.pose + '</b>.</li>';
+      }
+      return h2 + e2 + '</ol>';
+    }
+    if (op === '/') {
+      var d = C.poseDivision(a, b);
+      if (!d) return '<p class="err">On ne peut pas diviser par zéro : il n’y a pas de réponse.</p>';
+      var Ld = d.largeur, g = '';
+      g += rangeeDe(String(a), Ld - 1, Ld, '');
+      for (var kd = d.premier; kd < d.etapes.length; kd++) {
+        var ed = d.etapes[kd];
+        g += rangeeDe(String(ed.produit), ed.col, Ld, '−');
+        g += barreDe(String(ed.produit).length, ed.col, Ld);
+        /* le reste, PUIS le chiffre abaissé juste à sa droite : c'est littéralement ce que la main
+           écrit à l'étape suivante. Sans lui, le « d'où sort ce nombre ? » reste entier. */
+        var suiv = (ed.col + 1 < Ld) ? String(a).charAt(ed.col + 1) : '';
+        g += rangeeDe(String(ed.reste), ed.col, Ld, '', suiv ? { col: ed.col + 1, t: suiv } : null);
+      }
+      var qs = String(d.quotient), hq = '';
+      for (var iq = 0; iq < qs.length; iq++) {
+        hq += '<span class="c ' + cls(qs.length - 1 - iq) + '">' + qs.charAt(iq) + '</span>';
+      }
+      var hd = '<div class="potence"><div class="pose">' + g + '</div>' +
+               '<div class="droite"><div class="dvs">' + esc(String(b)) + '</div>' +
+               '<div class="qt">' + hq + '</div></div></div>';
+      var e4 = '<ol class="etapes">';
+      for (var kq = d.premier; kq < d.etapes.length; kq++) {
+        var eq = d.etapes[kq];
+        e4 += '<li class="' + (eq.chiffre ? '' : 'a') + '">' +
+              (kq === d.premier ? 'Je prends <b>' + eq.courant + '</b>. '
+                                : "J'abaisse le " + eq.abaisse + ' : <b>' + eq.courant + '</b>. ') +
+              'En ' + eq.courant + ', combien de fois ' + b + ' ? ' +
+              (eq.chiffre === 0
+                 ? '<b>0</b> fois, ' + b + ' est plus grand. '
+                 : '<b>' + eq.chiffre + '</b> fois, car ' + eq.chiffre + ' × ' + b + ' = ' + eq.produit + '. ') +
+              (eq.chiffre === 0 ? "J'écris <b>0</b> au quotient, il reste <b>" + eq.reste + '</b>.'
+                                : "J'écris <b>" + eq.chiffre + '</b> au quotient, il reste ' +
+                                  eq.courant + ' − ' + eq.produit + ' = <b>' + eq.reste + '</b>.') +
+              '</li>';
+      }
+      /* La vérification. C'est le seul endroit de la page où le résultat se PROUVE tout seul :
+         un dyscalculique peut refaire ce produit et voir qu'il retombe sur son dividende. */
+      e4 += '<li class="v">Vérification : <b>' + C.groupe(d.quotient) + '</b> × ' + b +
+            (d.reste ? ' + <b>' + d.reste + '</b>' : '') + ' = <b>' + C.groupe(a) + '</b>. ' +
+            (d.reste ? 'Il reste ' + d.reste + ', plus petit que ' + b + ' : on ne peut pas aller plus loin.'
+                     : 'Le reste est nul : la division tombe juste.') + '</li>';
+      return hd + e4 + '</ol>';
+    }
+    var m = C.poseMultiplication(a, b);
+    var h3 = '<div class="poseWrap"><div class="pose">';
+    var Lm = String(m.resultat).length;
+    h3 += ligne(chiffres(a, Lm), Lm, '');
+    h3 += ligne(chiffres(b, Lm), Lm, '×');
+    h3 += '<div class="barre"></div>';
+    for (var j = 0; j < m.lignes.length; j++) h3 += ligne(chiffres(m.lignes[j].decale, Lm), Lm, '');
+    if (m.lignes.length > 1) h3 += '<div class="barre"></div>' + ligne(chiffres(m.resultat, Lm), Lm, '');
+    h3 += '</div></div>';
+    var e3 = '<ol class="etapes">';
+    for (var q = 0; q < m.lignes.length; q++) {
+      var l = m.lignes[q];
+      e3 += '<li><b>' + nom(l.rang) + ' du deuxième nombre</b> : ' + a + ' × ' + l.chiffre +
+            ' = <b>' + C.groupe(l.produit) + '</b>' +
+            (l.rang ? ', décalé de ' + l.rang + ' rang' + (l.rang > 1 ? 's' : '') +
+                      ' → <b>' + C.groupe(l.decale) + '</b>' : '') + '.</li>';
+    }
+    if (m.lignes.length > 1) e3 += '<li>J\'additionne les lignes : <b>' + C.groupe(m.resultat) + '</b>.</li>';
+    return h3 + e3 + '</ol>';
+  }
+
+  function maj() {
+    var na = String(A.value).replace(/[\s ]/g, ''), nb = String(B.value).replace(/[\s ]/g, '');
+    if (!/^\d+$/.test(na) || !/^\d+$/.test(nb)) {
+      OUT.innerHTML = '<p class="err">Écris deux nombres entiers.</p>'; return;
+    }
+    var a = Number(na), b = Number(nb), op = OP.value;
+    if (a > 1e12 || b > 1e12) { OUT.innerHTML = '<p class="err">Nombres trop grands.</p>'; return; }
+    var h = rendu(a, b, op), lu = null;
+    if (op === '+') lu = { n: a + b };
+    else if (op === '-' && b <= a) lu = { n: a - b };
+    else if (op === '*') lu = { n: a * b };
+    else if (op === '/' && b !== 0) { var dv = C.poseDivision(a, b); lu = { n: dv.quotient, reste: dv.reste }; }
+    if (lu) {
+      h += '<div class="lecture"><div class="gros">' + esc(C.groupe(lu.n)) +
+           (lu.reste ? ' <span class="rst">reste ' + lu.reste + '</span>' : '') + '</div>' +
+           '<div class="mots">' + esc(C.enLettres(lu.n)) +
+           (lu.reste ? ' — reste ' + esc(C.enLettres(lu.reste)) : '') + '</div>' +
+           btnLire(C.enLettres(lu.n) + (lu.reste ? ', reste ' + C.enLettres(lu.reste) : '')) + '</div>';
+    }
+    OUT.innerHTML = h;
+  }
+  A.addEventListener('input', maj); B.addEventListener('input', maj); OP.addEventListener('change', maj);
+  maj();
+
+  /* Des exemples PRÊTS À CLIQUER. Devant deux cases vides, un utilisateur qui a peur du calcul ne
+     tape rien — et chacun de ceux-ci montre un cas différent : la retenue simple, l'emprunt en
+     cascade sur un 0, la multiplication à deux lignes, la division juste, la division à reste. */
+  document.querySelectorAll('.ex').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      A.value = btn.getAttribute('data-a'); B.value = btn.getAttribute('data-b');
+      OP.value = btn.getAttribute('data-op'); maj();
+    });
+  });
+
+  /* ── LIRE ET ÉCRIRE UN NOMBRE ─────────────────────────────────────────────────────────────────
+     La difficulté première de la dyscalculie n'est pas l'opération, c'est la TRANSCODAGE : passer
+     de « trois cent cinq » à 305 sans écrire 30005. Les deux sens sont proposés parce que l'erreur
+     se produit dans les deux, et la décomposition par rang est la seule chose qui l'explique. */
+  var N = document.getElementById('n'), OUTN = document.getElementById('sortieN');
+  function litNombre(txt) {
+    var t = String(txt).trim();
+    if (!t) return null;
+    var brut = t.replace(/[\s\u00a0]/g, '');
+    if (/^\d+$/.test(brut)) return Number(brut);
+    return C.versNombre(t);
+  }
+  function majN() {
+    var n = litNombre(N.value);
+    if (n === null || !isFinite(n)) {
+      OUTN.innerHTML = '<p class="err">Je ne reconnais pas ce nombre. Écris-le en chiffres ' +
+        '(<code>305</code>) ou en toutes lettres (<em>trois cent cinq</em>).</p>'; return;
+    }
+    if (n > 1e12) { OUTN.innerHTML = '<p class="err">Nombre trop grand pour être décomposé ici.</p>'; return; }
+    var pos = C.positions(n), h = '', i;
+    h += '<div class="lecture"><div class="gros">' + esc(C.groupe(n)) + '</div>' +
+         '<div class="mots">' + esc(C.enLettres(n)) + '</div>' + btnLire(C.enLettres(n)) + '</div>';
+    h += '<div class="rangs">';
+    for (i = 0; i < pos.length; i++) {
+      var q = pos[i];
+      h += '<div class="rg ' + cls(q.rang) + (q.chiffre === '0' ? ' zero' : '') + '">' +
+           '<div class="rgc">' + q.chiffre + '</div>' +
+           '<div class="rgn">' + esc(q.nom) + '</div>' +
+           '<div class="rgv">vaut ' + esc(C.groupe(q.vaut)) + '</div></div>';
+    }
+    h += '</div>';
+    var somme = [];
+    for (i = 0; i < pos.length; i++) somme.push(C.groupe(pos[i].vaut));
+    if (somme.length > 1) {
+      h += '<p class="note somme">' + somme.join(' + ') + ' = <b>' + esc(C.groupe(n)) + '</b></p>';
+    }
+    /* Le zéro INTERCALAIRE — la cause directe du « 30005 pour trois cent cinq ». Seulement celui-là :
+       un zéro de FIN (100, 1 000 000) se dit, lui, à travers « cent » ou « million », et prétendre
+       qu'il ne se prononce pas serait faux. Le critère est donc « suivi d'un chiffre non nul ». */
+    var sn = String(n), inter = [], k;
+    for (k = 1; k < sn.length; k++) {
+      if (sn.charAt(k) !== '0') continue;
+      if (sn.slice(k + 1).replace(/0/g, '') !== '') inter.push(k);
+    }
+    if (inter.length) {
+      var sans = sn.split('').filter(function (c, j) { return inter.indexOf(j) < 0; }).join('');
+      var pl = inter.length > 1;
+      h += '<p class="note">Attention ' + (pl ? 'aux <b>0</b>&nbsp;: ils ne se prononcent pas, mais ils '
+                                              : 'au <b>0</b>&nbsp;: il ne se prononce pas, mais il ') +
+           '<b>tien' + (pl ? 'nent' : 't') + ' la place</b>. Sans ' + (pl ? 'eux' : 'lui') + ', ' +
+           esc(C.groupe(n)) + ' deviendrait ' + esc(C.groupe(Number(sans))) +
+           ' — et ce n’est plus le même nombre.</p>';
+    }
+    OUTN.innerHTML = h;
+  }
+  N.addEventListener('input', majN);
+  document.querySelectorAll('.exn').forEach(function (btn) {
+    btn.addEventListener('click', function () { N.value = btn.getAttribute('data-n'); majN(); });
+  });
+  majN();
+})();
+</script>
+</body>
+</html>
