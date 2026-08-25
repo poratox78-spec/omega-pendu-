@@ -170,6 +170,12 @@ jobs:
       # nouveau ou modifié hors registre = rouge — la propagation devient structurelle.
       - name: SITE — chiffres de mesure affichés = registre unique (anti-dérive)
         run: node dictee/metriques_probe.js
+      # Né d'un défaut RÉEL (24/08/2026) : `icon.svg` dessinait l'oméga avec une balise texte.
+      # Un rasteriseur sans moteur de polices — celui de Google — rendait le fond et jetait le
+      # glyphe : « un cercle tout noir » dans les résultats. Et `apple-touch-icon.png` était un
+      # carré noir UNI (618 o, 4 couleurs), en ligne depuis des mois, jamais ouvert par personne.
+      - name: SITE — les icônes montrent quelque chose (glyphe tracé, pas de police requise)
+        run: python3 dictee/icones_probe.py
       # Un cran plus loin dans la même famille (échec muet → #455 micro, #456 actifs) : les boutons
       # « Copier » ne se contentaient pas d'être muets, ils AFFIRMAIENT le succès. `writeText` rend
       # une PROMESSE : le try/catch synchrone n'attrapait que l'absence d'API, jamais un refus du
