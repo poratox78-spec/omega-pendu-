@@ -23,6 +23,12 @@
   #omdys-fixall{ background:#1f7a3d; color:#fff; }
   #omdys-fixall:disabled{ background:#b9c6bd; cursor:default; }
   #omdys-copy{ background:#2a6f97; color:#fff; }
+  #omdys-lire{ background:#7a4fb5; color:#fff; }
+  #omdys-lire[aria-pressed="true"]{ background:#c0392b; }
+  /* karaoké : le mot LU est surligné pendant la lecture. Contraste FORT — jamais de pâle sur clair
+     (doctrine contraste dys). La zone « texte corrigé » sert d'écran, puis est RESTAURÉE. */
+  .kara.lit{ background:#1f5fa8; color:#fff !important; border-radius:4px; padding:1px 3px; }
+  .karabox{ line-height:2; }
   #omdys-copy.ok{ background:#1f7a3d; }
   #omdys-count{ color:#666; font-size:.9em; }
   .mir{ display:flex; align-items:center; gap:6px; font-size:.85em; color:#555; margin-bottom:8px; }
@@ -126,6 +132,7 @@
   <div class="acts">
     <button id="omdys-fixall" disabled>✓ Tout corriger</button>
     <button id="omdys-undo" hidden>↩ Annuler</button>
+    <button id="omdys-lire" title="Écouter ton texte à voix haute — le mot lu est surligné. Rien ne quitte ta machine : c'est la voix du navigateur.">🔊 Lire</button>
     <button id="omdys-copy">📋 Copier</button>
     <span id="omdys-count"></span>
   </div>
