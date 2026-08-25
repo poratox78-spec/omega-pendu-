@@ -77,6 +77,25 @@ OMEGA, extrait verbatim de l'app par `build_assets.py`) + `assets/son_core.js` (
 `police/son_core.js`, parité CI `police/parity_son.js`) + 3 TTF, chargés **paresseusement** à la
 première activation. Surface panneau seulement : on n'habille jamais un champ de site tiers.
 
+## Aide au nombre & calcul (panneau latéral)
+
+Bloc **« 🔢 Aide au nombre »** (repliable, `#omdys-calc`) dans le panneau : on y écrit un nombre ou une expression, et
+l'extension rend la réponse sous **trois formes** — groupé (`1 234 567`), **en toutes lettres**, et
+la **valeur de position** chiffre par chiffre (« le 3 de 305 vaut 300 »). C'est l'outil **rapide** :
+on écrit ailleurs, on veut le résultat, lisible.
+
+⛔ **Aucun `eval`, jamais.** Une saisie utilisateur passée à `eval` dans une extension à
+`<all_urls>` serait une porte ouverte — et le Store la refuserait à juste titre. L'expression est
+analysée par un analyseur descendant maison (4 opérations, parenthèses, virgule décimale
+française). Une saisie invalide **rend `null`** et l'interface affiche une raison : elle n'invente
+pas un résultat.
+
+Moteur : `calc_dys.js`, **copie exacte** de `calc_dys.js` à la racine du dépôt (celui de la page
+[`/calcul`](https://omegapendu.com/calcul) du site). Les deux sont gardées par
+`dictee/calc_dys_probe.js` (batterie + CI) : octets identiques **et** comportement interrogé.
+La version **développée** — les quatre opérations posées en colonnes, chaque retenue expliquée,
+la division en potence — est sur le site, pas ici : le panneau sert à aller vite.
+
 ## Périmètre & limites (honnête)
 - **Couvert (hors-ligne, FP=0)** :
   - **Grammaire** : homophones (a/à, son/sont, on/ont, et/est, ce/se, peu/peux/peut, leur/leurs, é/er, mais/mes),

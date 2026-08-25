@@ -10,7 +10,7 @@ OMEGA-Ω est un moteur de pendu français (mots ≥ 7 lettres) bâti non comme u
 dictionnaire, mais comme une **architecture cognitive** sous une contrainte fondatrice —
 **« cognition > oracle »** : aucun module ne lit le mot caché ailleurs qu'aux positions révélées.
 
-> 🌐 **Site en ligne : [poratox78-spec.github.io/omega-pendu-](https://poratox78-spec.github.io/omega-pendu-/)** — la vitrine du **solveur de pendu**, plus les **outils de mots** dérivés (correcteur dys, dictée diagnostique, solveur de Scrabble *Scrabidon*) et les pages de **recherche** (méthode, évolution, résultats O1/O2).
+> 🌐 **Site en ligne : [poratox78-spec.github.io/omega-pendu-](https://poratox78-spec.github.io/omega-pendu-/)** — la vitrine du **solveur de pendu**, plus les **outils dys** dérivés (correcteur, dictée diagnostique, saisie vocale, **aide au calcul** pour la dyscalculie, jeu *Double-Sens*, solveur de Scrabble *Scrabidon*) et les pages de **recherche** (méthode, évolution, résultats O1/O2).
 
 ## Résultat en un coup d'œil
 
@@ -96,6 +96,33 @@ du mot en cours) et une **boucle d'apprentissage** (profil dys unifié → dict�
 - Partout sur le web : [`extension/`](extension/) (Chrome MV3) — voir [`extension/README.md`](extension/README.md).
 - Feuille de route & état : [`DICTEE_ROADMAP.md`](DICTEE_ROADMAP.md) · journal : [`dictee/JOURNAL.md`](dictee/JOURNAL.md).
 
+## Aussi dans ce dépôt — Aide au calcul (dyscalculie)
+
+Le même parti pris que le correcteur, appliqué aux **nombres** : *comprendre* plutôt que *déléguer*.
+La dyscalculie n'est pas d'abord une difficulté à **calculer** — c'est une difficulté à **lire et
+écrire les nombres** (écrire « 30005 » pour *trois cent cinq*, lire 96 au lieu de 69, ne pas voir
+que le 3 de 305 vaut trois *cents*). Une calculatrice ne touche aucun de ces points : elle les
+contourne.
+
+- **[`extension/`](extension/) — l'outil RAPIDE.** On écrit ailleurs, on veut la réponse : une
+  expression est analysée (⛔ jamais `eval`) et le résultat rendu sous **trois formes** — groupé,
+  en toutes lettres, valeur de position.
+- **`calcul.html` → [`/calcul`](https://omegapendu.com/calcul) — la version DÉVELOPPÉE.** Les
+  **quatre opérations posées en colonnes**, alignées par valeur de position, **chaque retenue
+  expliquée en français**, la division en potence avec sa **vérification**
+  (`quotient × diviseur + reste = dividende`), et un outil pour **lire un nombre ou l'écrire en
+  chiffres** dans les deux sens.
+
+Moteur partagé `calc_dys.js`, en **deux copies** gardées par
+[`dictee/calc_dys_probe.js`](dictee/calc_dys_probe.js) (batterie + CI) : octets identiques,
+20 011 allers-retours lettres↔chiffres, ~46 000 poses vérifiées contre l'arithmétique nue, et les
+**refus** tenus (`5 − 9`, `÷ 0`, saisie non numérique — on n'invente pas une réponse).
+
+> ⚠️ La soustraction utilise la **retenue additive** (la retenue s'ajoute au chiffre du *bas*).
+> L'autre méthode fait apparaître « il reste **−1** » sur `502 − 347` : un nombre négatif au milieu
+> d'une soustraction de CE1 est exactement la confusion que la page existe pour éviter. La sonde
+> garde cette propriété structurellement (`aEffectif ∈ {a, a+10}`).
+
 ## Doctrine & méthode
 
 - **Cap §43 (cognition > oracle)** : les modules cognitifs ne lisent `currentWord` qu'aux positions
@@ -141,7 +168,7 @@ Voir le fichier [`NOTICE`](NOTICE) pour l'attribution complète.
 > remplacer la base lexicale par une source compatible.
 
 ---
-*Instantané 07/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · Scrabidon · recherche · évolution) · recherche O1/O2 close · correcteur re-validé sur WiCoPaCo (~45 k vraies fautes FR) : 3 FP homophones corrigés + 4 leviers de recall (~960 corrections) — « accord singulier du nom » (+435), « participe après être à sujet nom » (+405), « terminaisons -er/-é/-ez » (+57), « accord adjectif épithète » (+114, le genre-adjectif enfin FP=0 grâce au POS-tagger) — FP=0 préservé, parité 3 moteurs. Puis confronté à un **corpus dys RÉEL** (78 textes, analyse Bodard 2020) qui valide la direction (43 % des fautes dys sont phonétiques → le canal phon est central, 38 % grammaticales → notre campagne vise juste) et ouvre la **fusion d'élision** (« lhopital »→l'hôpital, « dargen »→d'argent, classe dys absente de Wikipédia ; FP élision 10→7 sur UD).*
+*Instantané 07/2026 · moteur build phase47 · site déployé (pendu · correcteur · dictée · saisie vocale · calcul · Double-Sens · Scrabidon · recherche · évolution) · recherche O1/O2 close · correcteur re-validé sur WiCoPaCo (~45 k vraies fautes FR) : 3 FP homophones corrigés + 4 leviers de recall (~960 corrections) — « accord singulier du nom » (+435), « participe après être à sujet nom » (+405), « terminaisons -er/-é/-ez » (+57), « accord adjectif épithète » (+114, le genre-adjectif enfin FP=0 grâce au POS-tagger) — FP=0 préservé, parité 3 moteurs. Puis confronté à un **corpus dys RÉEL** (78 textes, analyse Bodard 2020) qui valide la direction (43 % des fautes dys sont phonétiques → le canal phon est central, 38 % grammaticales → notre campagne vise juste) et ouvre la **fusion d'élision** (« lhopital »→l'hôpital, « dargen »→d'argent, classe dys absente de Wikipédia ; FP élision 10→7 sur UD).*
 
 
 ## Aussi dans ce dépôt

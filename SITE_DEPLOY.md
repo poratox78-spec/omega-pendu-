@@ -1,6 +1,6 @@
 # Mettre le site en ligne
 
-Le site est **statique** (`index.html` = **le pendu** (accueil/vitrine), `correcteur.html`, `dictee.html`, `scrabidon.html`, `recherche.html`, `evolution.html`, `omega-key.html`, `site.css`, + le **PWA** :
+Le site est **statique** (`index.html` = **le pendu** (accueil/vitrine), `correcteur.html`, `dictee.html`, `saisie-vocale.html`, `calcul.html` (+ son moteur `calc_dys.js`), `double-sens.html`, `scrabidon.html`, `recherche.html`, `evolution.html`, `omega-key.html`, `site.css`, + le **PWA** :
 `manifest.json`, `sw.js`, `icon.svg`). Aucun build. Il fait des liens **relatifs** vers `app/omega-pendu.html`
 (l'app, ~11 Mo, **monolithe entier — pendu inclus**) et `docs/*.html` (mémoire/rapport) — donc il faut servir
 **tout le dépôt**, pas seulement le dossier du site. Chemins relatifs (`./`) → marche aussi bien sous le

@@ -20,6 +20,8 @@
 | 10 | Captures d'écran 1280×800 (1 à 5) | ⬜ **Rem** (§6) |
 | 11 | Remplir la fiche + les justifications, envoyer | ⬜ **Rem** (§3, §4, §5) |
 | 12 | Après publication : mettre à jour `correcteur.html` | ⬜ (§9) |
+| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée (actuellement `0.5.1`) — Chrome refuse un envoi à numéro égal ou inférieur | ⬜ **Rem** |
+| 14 | La fiche ne mentionne pas encore le bloc **« 🔢 Aide au nombre »** du panneau (livré) — texte prêt en fin de §3 | ⬜ (au prochain envoi) |
 
 ## 1. Ce qui était bloquant et qui est corrigé
 
@@ -96,6 +98,21 @@ le service de reconnaissance vocale du navigateur (Google) — un encart vous le
 Gratuit, sans publicité, sans traqueur. Code ouvert : github.com/poratox78-spec/omega-pendu-
 Données linguistiques dérivées de Lexique 4 (CC BY-SA 4.0).
 ```
+
+### À AJOUTER à la description lors du prochain envoi
+
+Le panneau a gagné depuis le premier dépôt un bloc **« 🔢 Aide au nombre »** (aide au calcul, cible
+dyscalculie) que la fiche ci-dessus ne décrit pas. Paragraphe à insérer après « CE QU'IL CORRIGE » :
+
+```
+AUSSI POUR LES NOMBRES
+Le panneau lit et écrit les nombres : 1 234 567 s'affiche aussi en toutes lettres, et chaque
+chiffre est situé à sa place (le 3 de 305 vaut trois cents). Une expression simple est calculée
+et sa réponse rendue sous les mêmes formes lisibles. Pour apprendre à POSER l'opération en
+colonnes, avec les retenues expliquées, la version développée est sur omegapendu.com/calcul.
+```
+
+⚠️ Ne pas coller ce paragraphe sans **monter le numéro de version** (ligne 13 du §0).
 
 ## 4. Justifications — onglet « Confidentialité » de la console
 
