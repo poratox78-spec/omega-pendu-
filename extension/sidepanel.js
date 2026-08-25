@@ -17,7 +17,19 @@
   // dans le champ ; le miroir (envoyé avant ce test dans content.js) et le clic droit « corriger ce mot » vivent.
   try {
     chrome.storage.local.get(['enabled'], function (o) { bubCb.checked = !!(o && o.enabled === true); });
-    bubCb.addEventListener('change', function () { chrome.storage.local.set({ enabled: bubCb.checked }); });
+    /* ⭐⭐ BULLE ET MIROIR SONT EXCLUSIFS (Rem, 2026-08-25 — il l'avait signalé avant, je ne l'avais
+       pas cru). LE CONFLIT : `omdys-ta` est UNE SEULE zone écrite par DEUX sources — ce que
+       l'utilisateur tape dans le panneau, et le miroir venu de la page. La seule garde était
+       « ignorer le miroir pendant que la zone a le focus » (l.~858), ce qui ne tient pas dès qu'on
+       alterne entre la page et le panneau : les deux textes se chevauchent.
+       En plus, bulle + miroir = DEUX surfaces de correction pour le MÊME texte, donc deux endroits
+       où cliquer et deux états à réconcilier.
+       ⇒ même patron que voix ↔ miroir juste en dessous, qui existait déjà : activer l'un décoche
+       l'autre. La bulle corrige DANS la page ; le miroir recopie la page POUR corriger ici. */
+    bubCb.addEventListener('change', function () {
+      chrome.storage.local.set({ enabled: bubCb.checked });
+      if (bubCb.checked && mirCb.checked) mirCb.checked = false;
+    });
   } catch (e) {}
 
   // ===== accessibilité : taille de texte + mode sombre. Ces réglages vivaient dans le POPUP, devenu injoignable
@@ -286,7 +298,8 @@
       else ouvre();                                   // 'prompt' : l'invite ne peut pas s'afficher ICI → onglet
     }).catch(function () { ouvre(); });
   }
-  mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix
+  mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix ET la bulle (une seule surface à la fois)
+    if (mirCb.checked && bubCb.checked) { bubCb.checked = false; try { chrome.storage.local.set({ enabled: false }); } catch (e) {} }
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });
   function stopRec() { if (vstop) { vstop(); } else { recording = false; micBtn.textContent = '🎤 Dicter'; micBtn.classList.remove('rec'); try { if (rec) rec.stop(); } catch (e) {} } }
@@ -844,6 +857,62 @@
     })(true);
   }
   micBtn.addEventListener('click', function () { if (recording) stopRec(); else startRec(); ta.focus(); });
+
+  /* ⭐ LIRE À VOIX HAUTE — MIROIR du bouton « 🔊 Lire » de l'app (vdc-lire). Il MANQUAIT au panneau :
+     `speak()` n'y servait qu'à lire l'EXPLICATION d'une correction, jamais le TEXTE. Or beaucoup de
+     fautes s'entendent mieux qu'elles ne se voient — un mot oublié, une tournure bancale, une
+     répétition (doctrine de l'audibilité).
+     Le mot lu est surligné en karaoké dans la zone « texte corrigé », qui sert d'écran et est
+     RESTAURÉE à l'arrêt (instantané, jamais reconstruite de mémoire).
+     ⚠️ DÉGRADATION HONNÊTE, comme dans l'app : si la voix ne fournit pas les frontières de mots
+     (`onboundary`), la lecture CONTINUE sans surlignage — on n'annonce jamais un état qu'on n'a
+     pas (même règle que le « ✓ Copié » qui mentait). Et si le navigateur n'a pas speechSynthesis,
+     le bouton est RETIRÉ plutôt que présent et inerte. */
+  (function () {
+    var br = document.getElementById('omdys-lire');
+    if (!br) return;
+    if (!('speechSynthesis' in window)) { br.style.display = 'none'; return; }
+    var enCours = false, avant = null, avantHidden = null;
+    function esc2(x) { return String(x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function stop() {
+      try { speechSynthesis.cancel(); } catch (e) {}
+      enCours = false; br.setAttribute('aria-pressed', 'false'); br.textContent = '🔊 Lire';
+      var o = document.getElementById('omdys-out');
+      if (o && avant !== null) { o.innerHTML = avant; o.hidden = !!avantHidden; avant = null; }
+    }
+    br.addEventListener('click', function () {
+      if (enCours) { stop(); return; }
+      var o = document.getElementById('omdys-out');
+      var txt = String(ta.value || '').replace(/\u00a0/g, ' ');
+      if (!txt.trim() || !o) return;
+      var re = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g, m, pos = [];
+      while ((m = re.exec(txt))) pos.push([m.index, m.index + m[0].length]);
+      avant = o.innerHTML; avantHidden = o.hidden;
+      var html = '', last = 0, k;
+      for (k = 0; k < pos.length; k++) {
+        html += esc2(txt.slice(last, pos[k][0])) + '<span class="kara" data-k="' + k + '">' + esc2(txt.slice(pos[k][0], pos[k][1])) + '</span>';
+        last = pos[k][1];
+      }
+      o.hidden = false;
+      o.innerHTML = '<div class="karabox">' + html + esc2(txt.slice(last)) + '</div>';
+      try {
+        speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance(txt);
+        u.lang = 'fr-FR';
+        u.rate = 0.9;
+        u.onboundary = function (ev) {
+          if (ev.name && ev.name !== 'word') return;
+          var ci = ev.charIndex, j;
+          for (j = 0; j < pos.length; j++) if (ci >= pos[j][0] && ci < pos[j][1]) break;
+          var sp = o.querySelectorAll('.kara'), q;
+          for (q = 0; q < sp.length; q++) sp[q].classList.toggle('lit', q === j);
+        };
+        u.onend = stop; u.onerror = stop;
+        enCours = true; br.setAttribute('aria-pressed', 'true'); br.textContent = '⏹ Stop';
+        speechSynthesis.speak(u);
+      } catch (e) { stop(); }
+    });
+  })();
 
   // ---- MIROIR : ce que l'utilisateur tape dans un champ de la page se recopie ici (sens UNIQUE) ----
   chrome.runtime.onMessage.addListener(function (msg) {
