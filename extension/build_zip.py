@@ -28,7 +28,7 @@ ZIP  = os.path.join(ROOT, 'omega-correcteur-dys.zip')
 # était devenu INJOIGNABLE, et ses réglages (taille de texte, sombre) livrés en code mort. Ils vivent dans le panneau.
 # micro.html/micro.js : page d'AUTORISATION MICRO ouverte dans un vrai onglet — le side panel ne peut
 # pas afficher l'invite (contexte « offscreen »). Sans elles dans le zip, la dictée reste muette.
-FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'background.js', 'sidepanel.html', 'sidepanel.js', 'son_panel.js', 'micro.html', 'micro.js', 'README.md']
+FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'calc_dys.js', 'background.js', 'sidepanel.html', 'sidepanel.js', 'son_panel.js', 'micro.html', 'micro.js', 'README.md']
 EXCLUDE_DIRS = set()
 
 def shipped():
