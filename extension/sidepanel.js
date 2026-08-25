@@ -15,6 +15,16 @@
   // ===== UNE SEULE ZONE DE CORRECTION (Rem, 07/2026 : « on garde que le panneau, c'est plus lisible ») : la bulle
   // flottante est DÉCOCHÉE par défaut. Elle reste à un clic — décocher ne coupe QUE la bulle et la correction auto
   // dans le champ ; le miroir (envoyé avant ce test dans content.js) et le clic droit « corriger ce mot » vivent.
+  /* ⚠️ LE LISTENER EST HORS DU `try` QUI TOUCHE `chrome.storage` (2026-08-25). Il y était dedans :
+     si `chrome.storage.local.get` jette — contexte d'extension invalidé après un rechargement,
+     quota, API absente — la ligne suivante n'est JAMAIS atteinte et l'alternateur bulle↔miroir
+     disparaît EN SILENCE. Sorti au banc : dans un contexte sans `chrome.*`, « miroir coupe la
+     bulle » marchait et « bulle coupe le miroir » non. Un comportement ne doit pas dépendre de la
+     réussite d'un appel de stockage. */
+  bubCb.addEventListener('change', function () {
+    try { chrome.storage.local.set({ enabled: bubCb.checked }); } catch (e) {}
+    if (bubCb.checked && mirCb.checked) mirCb.checked = false;
+  });
   try {
     chrome.storage.local.get(['enabled'], function (o) { bubCb.checked = !!(o && o.enabled === true); });
     /* ⭐⭐ BULLE ET MIROIR SONT EXCLUSIFS (Rem, 2026-08-25 — il l'avait signalé avant, je ne l'avais
@@ -26,10 +36,6 @@
        où cliquer et deux états à réconcilier.
        ⇒ même patron que voix ↔ miroir juste en dessous, qui existait déjà : activer l'un décoche
        l'autre. La bulle corrige DANS la page ; le miroir recopie la page POUR corriger ici. */
-    bubCb.addEventListener('change', function () {
-      chrome.storage.local.set({ enabled: bubCb.checked });
-      if (bubCb.checked && mirCb.checked) mirCb.checked = false;
-    });
   } catch (e) {}
 
   // ===== accessibilité : taille de texte + mode sombre. Ces réglages vivaient dans le POPUP, devenu injoignable
@@ -164,6 +170,10 @@
     if (!ta.value.trim()) _ign = {};
     lastOut = corrige(ta.value, flags);
     var outEl = document.getElementById('omdys-out');
+    /* ⛔ pendant la lecture, cette zone sert d'écran au karaoké : on ne la réécrit pas, sinon un
+       rafraîchissement effacerait le mot surligné. Précaution ÉTROITE — on ne saute que CETTE mise
+       à jour, jamais le reste du rendu. Le lecteur restaure la zone lui-même à l'arrêt. */
+    if (window.__omLireEnCours) outEl = null;
     if (outEl) { var oh = lastOut !== ta.value ? corrige(ta.value, flags, true) : ''; outEl.hidden = !oh; outEl.innerHTML = oh ? '<span class="lab">texte corrigé (c\'est lui que « Copier » copie) :</span><br>' + oh : ''; }
     var h = '';
     flags.forEach(function (f, k) {
@@ -876,7 +886,8 @@
     function esc2(x) { return String(x).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
     function stop() {
       try { speechSynthesis.cancel(); } catch (e) {}
-      enCours = false; br.setAttribute('aria-pressed', 'false'); br.textContent = '🔊 Lire';
+      enCours = false; window.__omLireEnCours = false;
+      br.setAttribute('aria-pressed', 'false'); br.textContent = '🔊 Lire';
       var o = document.getElementById('omdys-out');
       if (o && avant !== null) { o.innerHTML = avant; o.hidden = !!avantHidden; avant = null; }
     }
@@ -893,6 +904,7 @@
         html += esc2(txt.slice(last, pos[k][0])) + '<span class="kara" data-k="' + k + '">' + esc2(txt.slice(pos[k][0], pos[k][1])) + '</span>';
         last = pos[k][1];
       }
+      window.__omLireEnCours = true;   // verrou AVANT de peindre : un render intercalé effacerait le karaoké
       o.hidden = false;
       o.innerHTML = '<div class="karabox">' + html + esc2(txt.slice(last)) + '</div>';
       try {
@@ -907,8 +919,23 @@
           var sp = o.querySelectorAll('.kara'), q;
           for (q = 0; q < sp.length; q++) sp[q].classList.toggle('lit', q === j);
         };
-        u.onend = stop; u.onerror = stop;
-        enCours = true; br.setAttribute('aria-pressed', 'true'); br.textContent = '⏹ Stop';
+        u.onend = stop;
+        /* ⚠️ DIRE POURQUOI PLUTÔT QUE DE SE TAIRE. Si le navigateur refuse la synthèse (`not-allowed`
+           quand il n'y a pas eu de vrai geste utilisateur, voix absente, moteur occupé), la zone
+           était restaurée EN SILENCE : l'utilisateur cliquait et ne voyait rien. Une interface qui
+           échoue sans le dire est le même défaut que le « ✓ Copié » qui mentait. */
+        u.onerror = function (e) {
+          stop();
+          var err = (e && e.error) || 'inconnue';
+          try {
+            var st = document.getElementById('omdys-status') || document.getElementById('omdys-count');
+            if (st) st.textContent = (err === 'not-allowed')
+              ? 'Lecture refusée par le navigateur — reclique le bouton.'
+              : 'Lecture impossible (aucune voix disponible ?).';
+          } catch (e2) {}
+        };
+        enCours = true; window.__omLireEnCours = true;
+        br.setAttribute('aria-pressed', 'true'); br.textContent = '⏹ Stop';
         speechSynthesis.speak(u);
       } catch (e) { stop(); }
     });
