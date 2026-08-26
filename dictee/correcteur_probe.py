@@ -977,6 +977,17 @@ def rule_sais(T, i):
     if deacc(T[i].lower()) not in ("c'est", 'ces', 'ses', 'sait'): return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # « Moi, je… c'est » (dislocation) → abstention
     if prev(T, i) in ('je', 'tu'): return _keepcase(T[i], 'sais')
+    # ⭐ « sait » + PARTICIPE PASSÉ → « s'est ». Le commentaire ci-dessus disait « il/on + sait reste
+    # AMBIGU », et c'est vrai en général — mais pas devant un participe : SAVOIR ne prend jamais un
+    # participe passé pour complément. « il sait nager » (infinitif) et « il sait la réponse » (nom)
+    # restent du savoir ; « le train sait arrêté », « il sait levé » ne peuvent être que « s'est ».
+    # ORANGE : la levée d'ambiguïté est structurelle mais la phrase reste à relire.
+    if deacc(T[i].lower()) == 'sait' and i + 1 < len(T):
+        _n = T[i+1]
+        # ⚠️ `VERB_LEX` ne sert à RIEN comme garde ici : il contient aussi « nager » et « compter »
+        # (mesuré). Le bon test est l'INFINITIF — « il sait nager » reste du savoir.
+        if (_pp_base(_n) is not None or deacc(_n.lower()) in _IRR_PP) and not _is_infinitive(_n):
+            return _keepcase(T[i], "s'est")
     return None
 
 _PP_ETRE3P = {'sont', 'etaient', 'seront', 'soient', 'furent', 'seraient'}
@@ -4045,8 +4056,12 @@ _SEMI_AUX = set(('vais vas va allons allez vont allais allait allions alliez all
                  'irons irez iront veux veut voulons voulez veulent voulais voulait voulions vouliez '
                  'voulaient voudrais voudrait voudrions dois doit devons devez doivent devais devait '
                  'devions deviez devaient devrai devra devrons peux peut pouvons pouvez peuvent '
-                 'pouvais pouvait pouvions pouviez pouvaient pourrai pourra pourrons sais sait '
-                 'savons savez savent savais savait faut fallait faudra faudrait').split())
+                 'pouvais pouvait pouvions pouviez pouvaient pourrai pourra pourrons '
+                 # ⛔ SAVOIR RETIRÉ (26/08/2026) : « sait » est bien plus souvent un « s'est » mal
+                 # écrit qu'un semi-auxiliaire. « Le train sait arrete en gare » recevait
+                 # « sait arrêter » — une proposition FAUSSE sur une vraie faute. Et « je sais
+                 # nager » n'avait jamais besoin de la règle : l'infinitif y est déjà correct.
+                 'faut fallait faudra faudrait').split())
 _INF_OUTILS = set((u"a \u00e0 en y de du des le la les ce se ne que qui si ou o\u00f9 et est par pour "
                    u"sans sous sur vers dans chez avec entre contre depuis apres avant plus moins "
                    u"tout tous bien mieux trop puis donc alors ainsi aussi encore jamais toujours").split())
