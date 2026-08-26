@@ -24853,6 +24853,12 @@ var w=T[i],lw=w.toLowerCase();
     if(tg){for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&(tg[j]==='VERB'||tg[j]==='AUX'))return false;}return true;}
     for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&svReads(T[j].toLowerCase()).length)return false;}
     return true;}
+  /* -s/-x qui n'est PAS une marque de pluriel : « son fils », « son corps », « son prix » restent
+     des possessifs. Même contenu que _OS_INVAR. */
+  var _SON_INVAR={};('prix cours corps temps bois pays mois bras dos cas choix croix voix noix toux '+
+    'poids concours discours parcours secours univers divers pervers avis colis permis compromis '+
+    'bus autobus jus repas tapis souris brebis puits gaz nez riz fils').split(' ')
+    .forEach(function(w){_SON_INVAR[w]=1;});
   function rSon(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='son'&&lw!=='sont')return null;   // tranché par CE QUI SUIT : son=det+nom sg ; sont=être 3pl+prédicat ; abstention sinon (FP=0)
     var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';
     var _nxr=i+1<T.length?T[i+1].toLowerCase():'';
@@ -24866,6 +24872,19 @@ var w=T[i],lw=w.toLowerCase();
     if(pluralSubj&&(PREP[nxt]||nxt==='en')&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&_clauseNoFiniteVerb(T,i,i+1))return 'sont';
     // sujet-NOM pluriel + « son » + participe PLURIEL (« les enfants son partis »→sont) ; adjectifs exclus (FP)
     if(i+1<T.length&&pluralSubj&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&_ppBase(T[i+1])!==null&&/[sx]$/.test(nxt)&&_clauseNoFiniteVerb(T,i,i+1))return 'sont';
+    /* ⭐ ADJECTIF PLURIEL (« les chiens son gentils »→sont). L'exclusion des adjectifs était MESURÉE
+       (« son ancienne équipe », « son style, » = possessif + nom homographe d'adjectif). On ne la
+       rouvre que là où le doute tombe, par un FAIT STRUCTUREL plus fort que le tagger : le possessif
+       « son » est TOUJOURS suivi d'un nom SINGULIER. Un mot marqué pluriel derrière lui exclut donc
+       le possessif — sauf si son -s/-x n'est pas une marque de pluriel (« son fils », « son corps »,
+       « son prix »), d'où la liste des INVARIABLES.
+       ⚠️ Le tagger étiquetait « contents » et « malades » NOUN, parce que le « son » fautif le poussait
+       à lire un déterminant : son contexte est empoisonné par la faute elle-même. Le fait structurel,
+       lui, ne l'est pas. Miroir Python rule_son_sont. */
+    if(i+1<T.length&&pluralSubj&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&/[sx]$/.test(nxt)
+       &&!_SON_INVAR[deacc(nxt)]&&_clauseNoFiniteVerb(T,i,i+1)){
+      var _tgs=posTags(T),_apr=(_tgs&&i+2<_tgs.length)?_tgs[i+2]:null;
+      if(_apr!=='NOUN'&&_apr!=='PROPN')return 'sont';}
     return null;}
   var IRREG_PART={eu:1,pu:1,du:1,su:1,vu:1,lu:1,tenu:1,venu:1,devenu:1,revenu:1,voulu:1,valu:1,fallu:1,connu:1,reconnu:1,paru:1,apparu:1,disparu:1,couru:1,recu:1,mort:1,fait:1,refait:1,dit:1,redit:1,ecrit:1,decrit:1,mis:1,remis:1,permis:1,promis:1,pris:1,appris:1,compris:1,surpris:1,ouvert:1,offert:1,couvert:1,souffert:1,peri:1,acquis:1,conquis:1,assis:1,vecu:1,plu:1,cru:1,bu:1,tu:1};
   var _PP_U_EXTRA={abattu:1,accouru:1,advenu:1,apercu:1,appartenu:1,attendu:1,battu:1,chu:1,combattu:1,conclu:1,concu:1,confondu:1,contenu:1,convaincu:1,convenu:1,corrompu:1,cousu:1,debattu:1,dechu:1,decu:1,defendu:1,deplu:1,depourvu:1,descendu:1,detendu:1,detenu:1,elu:1,emu:1,entendu:1,entretenu:1,etendu:1,exclu:1,fendu:1,fondu:1,foutu:1,interrompu:1,intervenu:1,maintenu:1,mordu:1,obtenu:1,parcouru:1,parvenu:1,pendu:1,percu:1,perdu:1,pondu:1,pourvu:1,pretendu:1,prevenu:1,prevu:1,promu:1,reapparu:1,recousu:1,redevenu:1,reelu:1,relu:1,rendu:1,repandu:1,repondu:1,resolu:1,retenu:1,revendu:1,revu:1,rompu:1,secouru:1,soutenu:1,souvenu:1,survecu:1,survenu:1,suspendu:1,tendu:1,tondu:1,tordu:1,vaincu:1,vendu:1,vetu:1};   /* PP -u accord (SÉPARÉ d'IRREG_PART pour garder l'abstention « j'est entendu ») */
