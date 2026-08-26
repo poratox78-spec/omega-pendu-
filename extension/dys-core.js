@@ -543,7 +543,23 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(m)return (m[1]==='c'&&/^[eé]/.test(m[2]))?{sugg:ckeepcase(T[i],'et'),vig:1}:null;   // c'est / c'était — pas j'
     if(_CLAUSE_PRON[deacc(nx)]&&i+2<T.length){var n2=T[i+2].toLowerCase();if(n2!=='qui'&&n2!=='que'&&n2!=='qu'&&n2!=='même'){var tg=posTags(T);if(!tg||i+2>=tg.length||(tg[i+2]!=='VERB'&&tg[i+2]!=='AUX'))return null;return {sugg:ckeepcase(T[i],'et'),vig:1};}}   // « est il POUR… ? » (inversion sans trait d'union) : le pronom doit être SUIVI D'UN VERBE
     return null;}
-  function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';return null;}
+  /* « de nouveau », « de loin », « de suite »… : locutions ADVERBIALES après « peut ». Le mot qui
+     suit « de » y est un adverbe/adjectif, pas un nom quantifié — « peut » y reste le verbe. */
+  var _PEU_LOC={};('nouveau loin suite pres cote force justesse memoire naissance nature bonne '+
+    'mauvaise plus moins mieux trop rien tout toute').split(' ').forEach(function(w){_PEU_LOC[w]=1;});
+  function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';
+    /* ⭐ LE CRÉNEAU DU VERBE EST-IL DÉJÀ PRIS ? La règle ne regardait que le mot d'AVANT. Or « peut »
+       est un VERBE : si la proposition en porte déjà un fini, « peut » ne peut pas l'être — c'est
+       l'adverbe « peu ».
+         « Il y A peut de monde »   → « a » occupe le créneau    → peu
+         « Il RESTE peut de temps » → « reste » l'occupe          → peu
+         « Il peut de nouveau marcher » · « il peut de temps en temps venir » → créneau libre → abstention
+       ⚠️ Le « de » suivant ne suffit PAS comme garde : « de temps en temps » a lui aussi de+NOM.
+       D'où la liste fermée des LOCUTIONS adverbiales. Miroir Python rule_peu. */
+    if((lw==='peut'||lw==='peux')&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='de'
+       &&!(i+2<T.length&&_PEU_LOC[deacc(T[i+2].toLowerCase())])
+       &&!_clauseNoFiniteVerb(T,i))return 'peu';
+    return null;}
   // « ke/ge/ce/se + suis/serai/serais/fus » : sujet de 1re pers. mal écrit devant ÊTRE 1sg à initiale CONSONNE. Séquence
   // IMPOSSIBLE en français → FP=0 STRUCTUREL (0/2500+14450 UD). me/te/le exclus (« je me suis ») ; voyelle ai/étais → 2e temps.
   function rJeSubject(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ke'&&lw!=='ge'&&lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());if(nd==='suis'||nd==='serai'||nd==='serais'||nd==='fus')return ckeepcase(T[i],'je');return null;}
@@ -706,8 +722,51 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     for(z=lo;z<i;z++)if(vlike(T,z))return ckeepcase(T[i],'mais');    // une CONJONCTION joint deux propositions : il faut un verbe conjugué à GAUCHE, dans la même proposition. Écarte « Paris, mai 1968 : la révolution » (aucun verbe), que UD ne contient pas mais qui passerait sans ça.
     return null;}
   var MET_LEFT_SUBJ={il:1,elle:1,on:1,ce:1,ca:1,qui:1,celui:1,celle:1,chacun:1,nul:1,quiconque:1};var MET_RIGHT_CLAUSE={je:1,tu:1,il:1,elle:1,on:1,nous:1,vous:1,ils:1,elles:1,ce:1,ca:1,"j'ai":1,"j'avais":1,"j'aurai":1,"j'aurais":1};function rMetMais(T,i){var d=deacc(T[i].toLowerCase());if(d==='met'){if(T[i].charAt(0)!==T[i].charAt(0).toLowerCase()||i===0)return null;var pm=cprev(T,i);if(pm==null||MET_LEFT_SUBJ[pm]||CLITIC[pm])return null;var tgm=posTags(T);if(tgm&&i-1<tgm.length&&(tgm[i-1]==='NOUN'||tgm[i-1]==='PROPN'||tgm[i-1]==='DET'||tgm[i-1]==='NUM'))return null;if(_headText(T[i-1]).charAt(0)!==_headText(T[i-1]).charAt(0).toLowerCase())return null;var nn=(i+1<T.length?deacc(T[i+1].toLowerCase()):null);if(nn&&MET_RIGHT_CLAUSE[nn])return ckeepcase(T[i],'mais');return null;}if(d!=='mais')return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'mets';if(p==='il'||p==='on')return 'met';if(p==='ils')return 'mettent';return null;}   // je/tu/il/on/ils = clitiques sujets PURS (jamais objet de prép) + « mais » → forme de METTRE. FP=0. elle/elles exclus (pronom disjoint : « derrière elle mais… »).
+  /* ── ÉLISION FUSIONNÉE : l'apostrophe non écrite (« jai »→« j'ai »). Le dys colle les deux mots.
+     Quatre conditions CUMULÉES, et c'est leur INTERSECTION qui vaut :
+       ① le mot écrit est INCONNU du lexique — elle écarte à elle seule « jetais » (imparfait de JETER)
+          et « quelle » (« quelle heure ») ;
+       ② il commence par un proclitique élidable ;
+       ③ le reste commence par une VOYELLE ou un h — l'élision n'existe que là ;
+       ④ le reste appartient à une LISTE FERMÉE de mots qui suivent réellement une élision.
+     ⛔ MESURÉ : sans la garde NOM PROPRE, 104 FP sur les 2 500 phrases correctes — « Charles »→
+        « C'harles » (harles est un canard), « San »→« S'an », « Nantes »→« N'antes ». Vérifier la casse
+        du RESTE ne suffisait pas : dans « Charles » le reste est en minuscule.
+     ⛔ Sans ④, le lexique entier laissait passer « avoie », « aria », « uke ». Et « m »/« t » sont
+        RETIRÉS des proclitiques : « mai » et « tai » sont des mots réels.
+     Miroir Python rule_elision_fusionnee. */
+  var _FUS_PRE=['qu','j','s','c','n','d','l'];
+  var _FUS_VOY={},_FUS_APRES={};
+  'aeiouyhàâäéèêëîïôöùûü'.split('').forEach(function(c){_FUS_VOY[c]=1;});
+  ('ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre eu '+
+   'il ils elle elles on en un une autre autres ici ailleurs aujourd hui heure heures '+
+   'homme hommes ami amis amie amies ecole ecoles enfant enfants annee annees argent eau '+
+   'air arbre arbres animal animaux idee idees image images objet objets oeuf oeufs '+
+   'histoire histoires hopital ordinateur oreille oiseau oiseaux').split(' ')
+   .forEach(function(w){_FUS_APRES[w]=1;});
+  function rElisionFusionnee(T,i){
+    var w=T[i],lw=w.toLowerCase();
+    if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||lw.length<3)return null;
+    if(!SP||!SP.ready||!SP.WORDS)return null;
+    if(SP.WORDS.has(lw)||SP.WORDS.has(deaccS(lw)))return null;                       // ① mot connu
+    var c0=w.charAt(0);
+    if(c0!==c0.toLowerCase()&&!(i===0||(_SEG&&i<_SEG.ss.length&&_SEG.ss[i])))return null;   // NOM PROPRE
+    for(var k=0;k<_FUS_PRE.length;k++){var pre=_FUS_PRE[k];
+      if(lw.indexOf(pre)!==0)continue;                                               // ②
+      var rest=w.slice(pre.length);
+      if(rest.length<2||rest.charAt(0)!==rest.charAt(0).toLowerCase())return null;
+      if(!_FUS_VOY[deaccS(rest.charAt(0).toLowerCase())])return null;                // ③
+      return _FUS_APRES[deaccS(rest.toLowerCase())]?ckeepcase(w,pre+"'"+rest):null;  // ④
+    }
+    return null;}
   function rMais(T,i){if(deacc(T[i].toLowerCase())!=='mais'||i+1>=T.length)return null;
-    if(i===0||(_SEG&&i<_SEG.ss.length&&_SEG.ss[i]))return null;   // « Mais … » en tête de phrase = conjonction, jamais « mes »
+    /* « Mais … » en tête de phrase est presque toujours une CONJONCTION — mais pas quand un NOM
+       PLURIEL SUJET suit immédiatement (« Mais amis sont venus » = « Mes amis »). On lève l'abstention
+       de tête UNIQUEMENT dans ce cadre : nom pluriel + VERBE CONJUGUÉ juste après, ce qui en fait le
+       sujet. « Mais bon », « Mais oui », « Mais chers amis » restent écartés par les gardes existantes.
+       Miroir Python rule_mais_mes. */
+    var _tete=(i===0)||(_SEG&&i<_SEG.ss.length&&_SEG.ss[i]);
+    if(_tete&&!(i+2<T.length&&svReads(T[i+2]).length))return null;
     var nx=T[i+1].toLowerCase(),dn=deacc(nx);
     if(MAIS_STOP[dn])return null;   // adverbe/mot-outil homographe d'un nom (« mais pas »/« mais comment ») → conjonction, pas « mes »
     if(PREP[dn]||NUM_DET[nx]||NUM_PRON[dn]||vlike(T,i+1))return null;
@@ -2547,7 +2606,7 @@ function estQuestion(t){
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['est/et (proposition)',rEstEtClause],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['ou/où',rOuOu],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['est/et (proposition)',rEstEtClause],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['ou/où',rOuOu],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['élision fusionnée',rElisionFusionnee],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
   /* ⭐ SCINDÉ EN DEUX (2026-08-11) pour avoir la MÊME STRUCTURE QUE L'APP : `correctTokens(T)`
      travaille sur un TABLEAU de tokens, `correctText` n'est qu'une enveloppe qui tokenise. Sans ce
      point d'entrée par tokens, la PYRAMIDE était impossible ici — on ne pouvait pas faire tourner la
@@ -3282,7 +3341,7 @@ function spellUnknown(tok,atStart,T,idx){
     else if(/espace|^virgule|ponctuation|mot coup|trait d.union/i.test(n))t='ponctuation';   // ⭐ miroir app : « espace après la virgule » tombait dans le `else` final = homophone
     else if(/contraction/i.test(n))t='contraction';
     else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
-    else if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu$|^mais\/mes$|^leur\/leurs$/.test(n))t='homophone_gram';   // miroir app : le NOM avant les heuristiques de forme
+    else if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu\/peux\/peut$|^mais\/mes$|^leur\/leurs$|^sais\/sait$/.test(n))t='homophone_gram';   // miroir app : le NOM avant les heuristiques de forme
     else if(/participe/.test(n))t='participe';   // miroir app : le NOM avant l'heuristique d'accent
     else if(w&&sg&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)

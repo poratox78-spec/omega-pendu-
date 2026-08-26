@@ -20,8 +20,9 @@
 | 10 | Captures d'écran 1280×800 (1 à 5) | ⬜ **Rem** (§6) |
 | 11 | Remplir la fiche + les justifications, envoyer | ⬜ **Rem** (§3, §4, §5) |
 | 12 | Après publication : mettre à jour `correcteur.html` | ⬜ (§9) |
-| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée (actuellement `0.5.1`) — Chrome refuse un envoi à numéro égal ou inférieur | ⬜ **Rem** |
+| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ montée à **0.6.0** le 26/08/2026 (0.5.1 était la version envoyée) |
 | 14 | La fiche ne mentionne pas encore le bloc **« 🔢 Aide au nombre »** du panneau (livré) — texte prêt en fin de §3 | ⬜ (au prochain envoi) |
+| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (31 fichiers, 4,0 Mo, manifest à la racine, v0.6.0) | ✅ régénéré le 26/08/2026 |
 
 ## 1. Ce qui était bloquant et qui est corrigé
 

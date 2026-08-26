@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "OMEGA-Ω — Correcteur dys",
   "short_name": "Correcteur",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "homepage_url": "https://omegapendu.com/",
   "description": "Correcteur d'orthographe et de grammaire pour les dys : hors-ligne, dans le panneau latéral, avec stade et remédiation.",
   "minimum_chrome_version": "114",
