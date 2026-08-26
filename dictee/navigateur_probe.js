@@ -355,9 +355,28 @@ async function main() {
       ['accord',      'La voiture est bleu.', 1],
       ['majuscule',   'elle arrive demain matin.', 1],
       ['ponctuation', 'Il arrive ,puis il repart .', 0],
+      // élargissement 26/08/2026 (demande de Rem) : la CONJUGAISON manquait au crible, et les
+      // trois trous que le crible avait lui-même trouvés y entrent comme garde de non-retour.
+      ['conjugaison', 'Je fini mon travail ce soir.', 1],
+      ['conjugaison', 'Il faut que tu fini ton travail.', 1],
+      ['conjugaison', 'Je vais mange en ville demain.', 1],
+      ['homophone',   'Les enfants on mange leur soupe.', 1],
+      ['participe',   'Il a remplit un sceau tout neuf.', 1],
+    ];
+    /* Contre-épreuve : ces phrases sont CORRECTES et ne doivent produire AUCUNE correction.
+       « Dans ses statistiques on voit bien. » était corrigé D'OFFICE en « ont » sur la production du
+       26/08/2026 — un FP ROUGE, donc une violation du FP=0, trouvé en élargissant le crible. */
+    const CRIB_NOFIRE = [
+      'Dans ses statistiques on voit bien.',
+      'Les enfants, on mange !',
+      'Le chat on le voit souvent.',
+      'Je lui parle souvent.',
+      'Je vais manger en ville.',
+      'Il faut que tu manges ta soupe.',
     ];
     const cr = await sess.envoyer('Runtime.evaluate', { expression: `(async () => {
       const attendre = (ms) => new Promise(r => setTimeout(r, ms));
+      const NOFIRE = ${JSON.stringify(CRIB_NOFIRE)};
       const inp = document.getElementById('vdc-in'), out = document.getElementById('vdc-out');
       if (!inp || !out) return { fatal: 'correcteur absent' };
       const corriger = () => [].slice.call(document.querySelectorAll('button'))
@@ -394,8 +413,13 @@ async function main() {
         }
         res.push({ fam, txt, dys, muet: false, items });
       }
-      return { res };
-    })()`, awaitPromise: true, returnByValue: true, timeout: 180000 });
+      const nofire = [];
+      for (const txt of ${JSON.stringify([])}.concat(NOFIRE)) {
+        const chips = await passe(txt);
+        if (chips && chips.length) nofire.push({ txt, vus: chips.map(c => (c.innerText || '').replace(/\s+/g, ' ').trim()) });
+      }
+      return { res, nofire };
+    })()`, awaitPromise: true, returnByValue: true, timeout: 240000 });
     if (cr.exceptionDetails) throw new Error('crible : ' + (cr.exceptionDetails.exception || {}).description);
     const cv2 = cr.result.value || {};
     if (cv2.fatal) echecs.push('crible explications : ' + cv2.fatal);
@@ -411,6 +435,8 @@ async function main() {
       }
       // PLANCHER : aucune correction ne doit être sans raison, et le corpus doit rester détecté.
       // Le 26/08/2026 : 18/18 après correctif (19 % avant). Un rouge ici = une régression d'explication.
+      for (const nf of (cv2.nofire || []))
+        echecs.push('crible NOFIRE : « ' + nf.txt +' » est CORRECT et ne doit rien produire — eu ' + JSON.stringify(nf.vus));
       if (sansCarte) echecs.push('crible : ' + sansCarte + ' correction(s) sans carte au clic');
       if (muets.length > 2) echecs.push('crible : ' + muets.length + ' phrase(s) sans aucune détection — ' + muets.join(' · '));
       let ancres = 0, dysTot = 0;   // ce compte est REPORTÉ dans le verdict final, y compris en --check
