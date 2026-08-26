@@ -24985,22 +24985,41 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   function rJeSubject(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ke'&&lw!=='ge'&&lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());if(nd==='suis'||nd==='serai'||nd==='serais'||nd==='fus')return ckeepcase(T[i],'je');return null;}
   var _E_PPL_STOP={};('cause envie affaire affaires confiance honte hate chance peine conscience connaissance tendance coutume estime importance influence crainte cure grace force partie suite tete course prise charge').split(' ').forEach(function(w){_E_PPL_STOP[w]=1;});   // locutions « avoir + nom NU » : jamais un participe
 
+  /* Verbes dont l'auxiliaire est ÊTRE et dont le présent 3sg finit en -e. « entre » est ABSENT :
+     c'est d'abord une PRÉPOSITION (« il est entre deux chaises » est correct). */
+  var _PPL_ETRE_VERBES={};'arrive tombe monte remonte reste rentre retourne passe repasse demeure'
+    .split(' ').forEach(function(w){_PPL_ETRE_VERBES[w]=1;});
   function rEPpl(T,i){var w=T[i],lw=w.toLowerCase(),dl=deacc(lw);   // AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé). Le dys écrit la forme qu'il ENTEND ; après un auxiliaire une forme FINIE est structurellement impossible. La règle é/er ne voyait que -é↔-er, jamais le présent nu.
     if(lw.indexOf("'")>=0||!/e$/.test(dl)||/é$/.test(lw)||/ée$/.test(lw))return null;
     if(dl.length<4)return null;
     if(SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(lw))return null;   // MOT CORRECTEMENT ÉCRIT seulement. Les formes FAUTIVES (« a verifie ») sont déjà traitées par le speller, qui a le lexique ACCENTUÉ et rend « vérifié » ; ici on n'a que le radical tel quel, donc sur un mot fautif on produirait un NON-MOT (« ecouté »).
     if(!COMMON_VERBS[deacc((w.slice(0,-1)+'er').toLowerCase())])return null;   // vrai verbe du 1er groupe, jeu CURÉ — le commentaire de la règle é/er documente qu'élargir au lexique 155k fait monter les FP (53→74 sur UD) : on ne rouvre pas ça
-    if(NOUN_E[dl]||_E_PPL_STOP[dl])return null;
-    if(GENDER_PURE[dl]!==undefined){var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';   // NOM homographe (commande, place, garde, écoute…) : après un auxiliaire un nom NU n'existe qu'en LOCUTION ; un vrai complément exige un DÉTERMINANT, qui est AUDIBLE donc fiable
+    /* ÊTRE + verbe de la LISTE FERMÉE : les gardes « nom homographe » ne s'appliquent PAS. Après
+       « est », un nom NU est impossible (« il est tombe », « il est reste ») — c'est justement ce qui
+       rend le participe certain. Sans l'exemption, la tombe / le reste / la passe bloquaient 4 des
+       5 cas (mesuré). Miroir Python rule_e_ppl. */
+    var _etrePp=(i>0&&AUX_ETRE[deacc(T[i-1].toLowerCase())]&&_PPL_ETRE_VERBES[dl]);
+    if(!_etrePp&&(NOUN_E[dl]||_E_PPL_STOP[dl]))return null;
+    if(GENDER_PURE[dl]!==undefined&&!_etrePp){var nx=(i+1<T.length)?deacc(T[i+1].toLowerCase()):'';   // NOM homographe (commande, place, garde, écoute…) : après un auxiliaire un nom NU n'existe qu'en LOCUTION ; un vrai complément exige un DÉTERMINANT, qui est AUDIBLE donc fiable
       if(!NUM_DET[nx]&&!DET_G[nx])return null;}
     if(PREP[dl]||MODAL[dl])return null;   // mot-outil homographe (« a ENTRE autres participé ») : « entre » est une préposition, pas un verbe
     if(i===0)return null;
-    if(!AUX_AVOIR[deacc(T[i-1].toLowerCase())])return null;   // AVOIR SEULEMENT. Après ÊTRE, une forme en -e est presque toujours un ADJECTIF (« est infecte », « est sèche », « est célèbre », « est égale ») : mesuré, ÊTRE apportait l'essentiel des 70 FP.
+    /* AVOIR, ET ÊTRE POUR LES SEULS VERBES QUI SE CONJUGUENT AVEC LUI. L'exclusion d'ÊTRE était
+       MESURÉE (« est infecte », « est sèche », « est célèbre », « est égale » : l'essentiel des
+       70 FP). On ne la rouvre pas en grand : liste FERMÉE de verbes de mouvement/état, dont aucun
+       des quatre FP historiques ne fait partie — exclus par construction.
+       ⛔ Tenté et refusé avant : le tagger (rend VERB sur « seche » et « celebre ») et ADJ_LEX
+       (17 257 entrées, contient « fatigue », « arrive », « fixe » : il ne discrimine rien). */
+    if(!AUX_AVOIR[deacc(T[i-1].toLowerCase())]&&!_etrePp)return null;   // AVOIR SEULEMENT. Après ÊTRE, une forme en -e est presque toujours un ADJECTIF (« est infecte », « est sèche », « est célèbre », « est égale ») : mesuré, ÊTRE apportait l'essentiel des 70 FP.
     if(T[i-1].toLowerCase().indexOf('à')>=0)return null;   // « à » se DÉACCENTUE en « a » : sans ce test la préposition passait pour l'auxiliaire et « à BASE de » devenait « à basé de » (11 FP à elle seule)
     if(i-1>0&&T[i-1].charAt(0)!==T[i-1].charAt(0).toLowerCase())return null;   // « A » MAJUSCULE n'est pas le verbe avoir : titre étranger (« A Place For Paedophiles ») ou sigle coupé au point (« Bubendorff S.A. installe »)
     if(w.charAt(0)!==w.charAt(0).toLowerCase())return null;   // un participe après avoir n'est pas capitalisé en cours de phrase
     if(i>=2&&CAUX[deacc(T[i-2].toLowerCase())])return null;   // « est a base de » : ÊTRE suivi de AVOIR-3sg est impossible — ce « a » est un « à » mal accentué
-    var _sg=_emit(w,function(x){return x.slice(0,-1)+'é';},true);   // PRIMITIVE PARTAGÉE, mode « forme déjà établie fautive par le contexte » : « il a repare » -> « réparé » (et non « reparé », qui existe mais n'est pas le mot voulu)
+    /* Après ÊTRE le participe S'ACCORDE avec le sujet (« ils sont tombé » resterait faux) : on lit
+       le pronom sujet, cas dys courant. Après AVOIR il est invariable. */
+    var _suf='';
+    if(_etrePp&&i>=2)_suf=({il:'',on:'',elle:'e',ils:'s',elles:'es',nous:'s',vous:'s'})[deacc(T[i-2].toLowerCase())]||'';
+    var _sg=_emit(w,function(x){return x.slice(0,-1)+'é'+_suf;},true);   // PRIMITIVE PARTAGÉE, mode « forme déjà établie fautive par le contexte » : « il a repare » -> « réparé » (et non « reparé », qui existe mais n'est pas le mot voulu)
     if(_sg===null)return null;
     return ckeepcase(w,_sg);}
   function rDesDes(T,i){if(deacc(T[i].toLowerCase())!=='des')return null;if(i+1>=T.length)return null;   // « des » écrit pour « dès ». Deux formes seulement dans les 50 cas mesurés, toutes deux STRUCTURELLEMENT IMPOSSIBLES en français ⇒ FP=0 par construction.
@@ -25770,6 +25789,8 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
   var IRR_PP={};(function(){var B="écrit décrit fait refait dit redit conduit construit produit détruit instruit cuit ouvert offert couvert découvert souffert peint éteint atteint joint craint pris mis appris compris surpris repris assis acquis conquis requis entendu perdu vendu rendu attendu défendu descendu tendu mordu tordu cousu résolu vu revu lu relu tenu obtenu retenu soutenu détenu maintenu connu reconnu vaincu convaincu aperçu déçu conçu perçu parcouru".split(' ');for(var x=0;x<B.length;x++){var b=B[x],fs=[b,b+'e',(b.charAt(b.length-1)==='s'?b:b+'s'),b+'es'];for(var y=0;y<fs.length;y++){var kk=deacc(fs[y]);if(IRR_PP[kk]===undefined)IRR_PP[kk]=b;}}})();
   var PP_INVAR_ALWAYS={voulu:1,pu:1,du:1};   // voulu/pu/dû : régissent un infinitif élidé → TOUJOURS invariable (Grevisse)
   var TEMPORAL_ANT={};('fois jour jours journee journees matin matinee soir soiree annee annees semaine semaines mois heure heures an ans nuit nuits instant instants moment moments epoque epoques minute minutes seconde secondes hiver ete automne printemps siecle siecles').split(' ').forEach(function(w){TEMPORAL_ANT[w]=1;});   // antécédent temporel → « que » circonstant, pas COD
+  /* « que » écrit sans apostrophe donne le token « qu » : les deux valent. */
+  function _qq(w){var d=deacc(String(w).toLowerCase());return d==='que'||d==='qu';}
   function rPpAvoirCod(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null){base=(IRR_PP[deacc(lw)]!==undefined?IRR_PP[deacc(lw)]:null);}if(base===null)return null;
     if(PP_COD_STOP[deacc(base)])return null;if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;
@@ -25778,8 +25799,17 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
     if(a<0)return null;
     var q=-1;
-    if(aje){if(a-1<0||deacc(T[a-1].toLowerCase())!=='que')return null;q=a-1;}
-    else{var bk=a-1;while(bk>=0&&(deacc(T[bk].toLowerCase())==='ne'||deacc(T[bk].toLowerCase())==='n'))bk--;if(bk<0)return null;var tb=T[bk].toLowerCase();if(QUE_SUBJ[tb]){q=bk;}else if(COD_SUBJ[deacc(tb)]){if(bk-1<0||deacc(T[bk-1].toLowerCase())!=='que')return null;q=bk-1;}else return null;}
+    if(aje){if(a-1<0||!_qq(T[a-1]))return null;q=a-1;}
+    else{var bk=a-1;while(bk>=0&&(deacc(T[bk].toLowerCase())==='ne'||deacc(T[bk].toLowerCase())==='n'))bk--;if(bk<0)return null;var tb=T[bk].toLowerCase();
+      if(QUE_SUBJ[tb]){q=bk;}
+      else if(COD_SUBJ[deacc(tb)]){if(bk-1<0||!_qq(T[bk-1]))return null;q=bk-1;}
+      /* ⭐ APOSTROPHE MANQUANTE — le cas dys par excellence. « Les fleurs que J AI cueilli » : le
+         tokeniseur rend « j » et « ai » séparés et la règle ne reconnaissait plus « j'ai ». Mesuré
+         le 26/08/2026 : avec l'apostrophe elle corrige (cueilli→cueillies), sans elle est MUETTE —
+         et un dys écrit précisément sans apostrophes. « que j ai <participe> » n'est jamais du
+         français correct : la structure est certaine. Miroir Python rule_pp_avoir_cod. */
+      else if(tb==='j'||tb==='qu'||tb==='l'||tb==='d'){if(bk-1<0||!_qq(T[bk-1]))return null;q=bk-1;}
+      else return null;}
     var lo=0,jj;if(_SEG){for(jj=q;jj>0;jj--){if(jj<_SEG.bb.length&&_SEG.bb[jj]){lo=jj;break;}}}
     var tg=posTags(T);if(!tg)return null;
     var det=-1,noun=-1,_elidAnt=false,m=q-1;
@@ -27521,7 +27551,15 @@ function spellTokenCore(tok,atStart,T,idx){
   function _osElidedSing(w){return w.slice(0,2)==="l'";}   // « l'X » = déterminant élidé le/la (jamais les) → sujet SINGULIER (token collé que les routes rataient → elles remontaient à un pluriel lointain)
   var _osNumPl={};'deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille plusieurs'.split(' ').forEach(function(w){_osNumPl[w]=1;});   // déterminants numéraux cardinaux ≥2 + « plusieurs » → sujet PLURIEL (« trois enfants qui vivent » ne floode plus ; « sept équipes décideront » attrapé)
   var _osPlDet2={},_osPlPhrase={};'des certains certaines quelques divers diverses maints maintes'.split(' ').forEach(function(w){_osPlDet2[w]=1;});'nombreux nombreuses beaucoup plupart'.split(' ').forEach(function(w){_osPlPhrase[w]=1;});   // déterminants PLURIELS hors numéraux + « de nombreux/beaucoup/plupart » → sujet PLURIEL (PAS « nombre »)
-  function _osNumAt(F,k){if(_osElidedSing(F[k]))return 's';if(k>0){var dd=deacc(F[k-1]);if(_osNumPl[dd]||_osPlDet2[dd]||_osPlPhrase[dd])return 'p';if(NUM_DET[dd]!==undefined)return (NUM_DET[dd]==='pl'||/[sx]$/.test(deacc(F[k])))?'p':'s';}return null;}
+  var _OS_INVAR={};('prix cours corps temps bois pays mois bras dos cas choix croix voix noix toux poids '+
+    'concours discours parcours secours univers divers pervers avis colis permis compromis '+
+    'bus autobus jus repas tapis souris brebis puits gaz nez riz').split(' ')
+    .forEach(function(w){_OS_INVAR[w]=1;});
+  function _osNumAt(F,k){if(_osElidedSing(F[k]))return 's';if(k>0){var dd=deacc(F[k-1]);if(_osNumPl[dd]||_osPlDet2[dd]||_osPlPhrase[dd])return 'p';if(NUM_DET[dd]!==undefined){var _n=deacc(F[k]);
+      /* ⭐ Le -s/-x ne prouve un PLURIEL que si le mot n'est pas INVARIABLE. Sans ce test, le « x »
+         de « prix » écrasait le déterminant « Le », pourtant sans ambiguïté, et l'orange proposait
+         « Le prix SONT fixé par la loi ». Miroir Python _num_at. */
+      return (NUM_DET[dd]==='pl'||(/[sx]$/.test(_n)&&!_OS_INVAR[_n]))?'p':'s';}}return null;}
   function _osCoordPlural(F,vi){var lo=0,j,k,d;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}for(k=vi-1;k>lo;k--){if(deacc(F[k])==='et'&&k+1<vi){var inpp=false;for(d=1;d<=3;d++){if(k-d>=lo){var dq=deacc(F[k-d]);if(dq==='de'||dq==='des'||dq==='du'||dq==="d'"){inpp=true;break;}}}if(!inpp)return true;}}return false;}   // sujet COORDONNÉ « N et N » (hors PP « de X et Y ») → PLURIEL
   function _osR1(F,vi){for(var k=vi-1;k>=0;k--){var x=_osNumAt(F,k);if(x)return _osVote(x,0.85);}return [0.5,0.5];}
   function _osR2(F,vi){var k=vi-1,last=null;while(k>=0){var x=_osNumAt(F,k);if(x){last=x;var d2=(k-2>=0)?deacc(F[k-2]):'';if(k-2>=0&&(d2==='de'||d2==='des'||d2==='du'||d2==="d'")){k-=2;continue;}return _osVote(last,0.9);}k--;}return last?_osVote(last,0.7):[0.5,0.5];}

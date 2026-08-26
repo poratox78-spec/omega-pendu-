@@ -83,6 +83,42 @@ JUSTES perdues pour 1 gagnée, et c'étaient des ACCENTS sur du vrai texte dys (
 `lègislature→législature`, `prêcession→précession`, `emé→aimé`). La préférence « finale muette »
 passait devant l'audibilité. **Retiré.** Le vrai correctif est dans le g2p — chantier gelé.
 
+### 🩹 Panel Chrome du 26/08/2026 — 3 défauts graves, corrigés
+
+Panel de **37 phrases neuves** dans l'app pilotée par Chrome, sur des familles non balayées.
+Bien répondu : `leurs livre`↔`leur affaires` · `ce qu'il **ce** passe`→se · `Je **sait**`→sais ·
+`**Ca** voiture`→Sa · `**Ou** est-ce`→où · `**Donne moi**`→Donne-moi · `Les **zamis**`→amis ·
+`il fait beau. **demain il** pleuvra.`→Demain/Il · `**Le le** chat`→répétition.
+
+**① PARTICIPE APRÈS « ÊTRE » — corrigé.** `Il a fixe`→fixé marchait ; `Il est arrive`, `Il est
+tombe` étaient MUETS. L'exclusion d'ÊTRE était DÉLIBÉRÉE et chiffrée (« après ÊTRE une forme en -e
+est presque toujours un ADJECTIF ; ÊTRE apportait l'essentiel des 70 FP »). Rouverte sur une **liste
+FERMÉE** de verbes conjugués avec être : aucun des 4 FP historiques n'en fait partie, ils sont exclus
+*par construction*. Il fallait aussi lever la garde des noms homographes (`la tombe`, `le reste`,
+`la passe` bloquaient 4 cas sur 5) — après « est », un nom NU est impossible. Accord depuis le
+pronom sujet : `Elle est arriv**ée**`, `Ils sont tomb**és**`, `Elles sont rest**ées**`.
+⛔ Refusés avant : le TAGGER (rend VERB sur `seche` et `celebre` → 2 FP sur 4 passaient) et `ADJ_LEX`
+(17 257 entrées, contient `fatigue`, `arrive`, `fixe` : ne discrimine rien).
+
+**② COD ANTÉPOSÉ — c'était une ERREUR DE MESURE, et le vrai défaut était à côté.** Avec l'apostrophe
+la règle corrigeait déjà (`que j'ai cueilli`→cueillies). J'avais écrit `j ai`. Mais **sans
+apostrophe elle devenait MUETTE** — et c'est exactement ainsi qu'un dys écrit. Elle les tolère
+maintenant : `que **j ai** cueilli`→cueillies, `**qu il** a ecrit`→écrite.
+
+**③ ORANGE FAUX `est`→`sont` — une ligne.** `Le prix est fixe par la loi.` (correct) proposait
+« Le prix **SONT** fixé ». Dans `_num_at` :
+`return 'p' if (NUM_DET.get(F[k-1]) == 'pl' or deacc(F[k]).endswith(('s','x'))) else 's'`
+— le `-x` de **prix** écrasait le déterminant `Le`, pourtant sans ambiguïté. La liste des
+INVARIABLES existait déjà, elle n'était pas consultée ici. `Les enfants mange`→mangent tire toujours.
+
+**Coût mesuré des trois : ZÉRO.** FP à l'échelle **1,40 %** (35/2500, ligne de base exacte) à chaque
+étape · census **301/301** · parité correcteur (app ⊆ Python) · parité dictée 1 309/1 309 ·
+**parité OS 3 moteurs 25/25/25**.
+
+**Restent ouverts** : `sait`→s'est (« le train sait arrêté ») · `the`→thé · `Ducou`→du coup ·
+`son/sont`, `ces/s'est`, `peut/peu`, `mais/mes` à sujet nominal (même travail que `et/est`) ·
+`afreuses`→affreux et `sertin`→serein.
+
 ### 🟠 Comblés le même jour (3 trous trouvés par le crible des explications)
 | règle | exemple | FP mesurés |
 |---|---|---|
