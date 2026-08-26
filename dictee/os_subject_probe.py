@@ -37,13 +37,24 @@ def _elided_sing(w): return w[:2] == "l'"            # « l'X » = déterminant 
 _NUM_PL = set("deux trois quatre cinq six sept huit neuf dix onze douze treize quatorze quinze seize vingt trente quarante cinquante soixante cent cents mille plusieurs".split())  # déterminants numéraux cardinaux ≥2 + « plusieurs » → sujet PLURIEL (« trois enfants qui vivent » ne doit plus floder ; « sept équipes décideront » attrapé)
 _PL_DET2 = set("des certains certaines quelques divers diverses maints maintes".split())              # déterminants PLURIELS hors numéraux (« des constructeurs proposent », « certains fabricants »)
 _PL_PHRASE = set("nombreux nombreuses beaucoup plupart".split())                                      # « de nombreux/nombreuses X », « beaucoup de X », « la plupart des X » → PLURIEL (PAS « nombre » : « au nombre variable » = sing)
+# Noms dont le -s/-x final n'est PAS une marque de pluriel : il ne peut pas contredire le déterminant.
+_OS_INVAR = set('prix cours corps temps bois pays mois bras dos cas choix croix voix noix toux poids '
+                'concours discours parcours secours univers divers pervers avis colis permis compromis '
+                'bus autobus jus repas tapis souris brebis puits gaz nez riz'.split())
+
+
 def _num_at(F, k):                                   # nombre du sujet en tête k : élision « l'X » (sing.), numéral/dét-pluriel (plur.), OU déterminant connu F[k-1] ; sinon None
     if _elided_sing(F[k]): return 's'
     if k > 0:
         dk = SP.deacc(F[k-1])
         if dk in _NUM_PL or dk in _PL_DET2 or dk in _PL_PHRASE: return 'p'
         if dk in NUM_DET:
-            return 'p' if (NUM_DET.get(F[k-1]) == 'pl' or SP.deacc(F[k]).endswith(('s', 'x'))) else 's'
+            # ⭐ Le -s/-x ne prouve un PLURIEL que si le mot n'est pas INVARIABLE. Sans ce test, le
+            # « x » de « prix » écrasait le déterminant « Le », pourtant sans ambiguïté, et l'orange
+            # proposait « Le prix SONT fixé par la loi ». Mesuré dans l'app le 26/08/2026.
+            _n = SP.deacc(F[k])
+            return 'p' if (NUM_DET.get(F[k-1]) == 'pl'
+                           or (_n.endswith(('s', 'x')) and _n not in _OS_INVAR)) else 's'
     return None
 def _coord_plural(F, vi):                            # sujet COORDONNÉ « N et N » avant le verbe, même proposition, PAS dans un PP « de X et Y » → PLURIEL (structure sûre ; l'OS floodait faute de cette route)
     lo = 0

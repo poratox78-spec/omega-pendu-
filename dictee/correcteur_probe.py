@@ -380,6 +380,11 @@ _E_PPL_STOP = {'cause', 'envie', 'affaire', 'affaires', 'confiance', 'honte', 'h
                'crainte', 'cure', 'grace', 'force', 'partie', 'suite', 'tete', 'course', 'prise', 'charge'}
 
 
+# Verbes dont l'auxiliaire est ÊTRE et dont le présent 3sg finit en -e. « entre » est ABSENT :
+# c'est d'abord une PRÉPOSITION (« il est entre deux chaises » est correct).
+_PPL_ETRE_VERBES = set('arrive tombe monte remonte reste rentre retourne passe repasse demeure'.split())
+
+
 def rule_e_ppl(T, i):
     """AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé, « a utilise »→utilisé).
     Le dys écrit la forme qu'il ENTEND (/truv/) ; après un auxiliaire, une forme FINIE est structurellement
@@ -390,8 +395,14 @@ def rule_e_ppl(T, i):
     if "'" in lw or not dl.endswith('e') or lw.endswith('é') or lw.endswith('ée'): return None
     if len(dl) < 4: return None
     if deacc((w[:-1] + 'er').lower()) not in VERB_LEX: return None      # vrai verbe du 1er groupe, jeu curé
-    if dl in NOUN_E or dl in _E_PPL_STOP: return None                   # locution « avoir + nom NU » (« a envie de », « a cause de ») → jamais un participe
-    if dl in D.GENDER_LEX:
+    # ÊTRE + verbe de la liste fermée : les gardes « nom homographe » ci-dessous ne s'appliquent PAS.
+    # Après « est », un nom NU est impossible (« il est tombe », « il est reste ») — c'est justement
+    # ce qui rend le participe certain. Sans cette exemption, la tombe / le reste / la passe
+    # bloquaient 4 des 5 cas de la liste (mesuré).
+    _etre_pp = (i > 0 and deacc(T[i-1].lower()) in D.AUX_ETRE and dl in _PPL_ETRE_VERBES)
+    if not _etre_pp:
+        if dl in NOUN_E or dl in _E_PPL_STOP: return None                   # locution « avoir + nom NU » (« a envie de », « a cause de ») → jamais un participe
+    if dl in D.GENDER_LEX and not _etre_pp:
         # NOM homographe (commande, place, garde, écoute…). Après un auxiliaire, un nom NU n'existe qu'en
         # LOCUTION ; un vrai complément exige un DÉTERMINANT. Le déterminant est AUDIBLE, donc fiable :
         #   « a commande LES rapports » → participe      « a envie DE partir » → nom
@@ -399,9 +410,18 @@ def rule_e_ppl(T, i):
         if nx not in NUM_DET and nx not in DET_GENDER: return None
     if dl in PREP or dl in MODAL: return None                           # mot-outil homographe (« a ENTRE autres participé ») : « entre » est une préposition, pas un verbe
     if i == 0: return None
-    # AVOIR SEULEMENT. Après ÊTRE, une forme en -e est presque toujours un ADJECTIF (« est infecte »,
-    # « est sèche », « est célèbre », « est égale ») : mesuré, ÊTRE apportait l'essentiel des 70 FP.
-    if deacc(T[i-1].lower()) not in D.AUX_AVOIR: return None
+    # AVOIR, ET ÊTRE POUR LES SEULS VERBES QUI SE CONJUGUENT AVEC LUI.
+    # L'exclusion d'ÊTRE était MESURÉE : « est infecte », « est sèche », « est célèbre », « est
+    # égale » sont des ADJECTIFS, et ÊTRE apportait l'essentiel des 70 FP. On ne la rouvre donc PAS
+    # en grand : on l'ouvre sur une LISTE FERMÉE de verbes de mouvement/état, ceux dont l'auxiliaire
+    # EST « être ». Aucun des quatre FP historiques n'en fait partie — ils sont exclus par
+    # construction, pas par une garde qu'on espère suffisante.
+    # ⛔ TENTÉ ET REFUSÉ AVANT : filtrer par le tagger (il rend VERB sur « seche » et « celebre »,
+    #    donc 2 des 4 FP passaient) et par ADJ_LEX (17 257 entrées : il contient « fatigue »,
+    #    « arrive », « fixe » — il ne discrimine rien).
+    _aux_pre = deacc(T[i-1].lower())
+    if _aux_pre not in D.AUX_AVOIR:
+        if _aux_pre not in D.AUX_ETRE or dl not in _PPL_ETRE_VERBES: return None
     # « à » se DÉACCENTUE en « a » : sans ce test la préposition passait pour l'auxiliaire et
     # « à BASE de » devenait « à basé de » (11 FP à elle seule).
     if 'à' in T[i-1].lower(): return None
@@ -411,7 +431,14 @@ def rule_e_ppl(T, i):
     if w[:1].isupper(): return None                                     # un participe après avoir n'est pas capitalisé en cours de phrase
     # « est a base de » : ÊTRE suivi de AVOIR-3sg est impossible — ce « a » est un « à » mal accentué.
     if i >= 2 and deacc(T[i-2].lower()) in AUX: return None
-    return _keepcase(w, w[:-1] + 'é')
+    # Après ÊTRE, le participe S'ACCORDE avec le sujet — « ils sont tombé » resterait faux. On lit le
+    # pronom sujet, qui est le cas dys courant ; sujet non pronominal → forme nue, l'accord se fera
+    # au tour de rule_pp_etre. Après AVOIR, le participe est invariable : rien à ajouter.
+    _suf = ''
+    if _etre_pp and i >= 2:
+        _suf = {'il': '', 'on': '', 'elle': 'e', 'ils': 's', 'elles': 'es',
+                'nous': 's', 'vous': 's'}.get(deacc(T[i-2].lower()), '')
+    return _keepcase(w, w[:-1] + 'é' + _suf)
 
 
 def rule_flexion_er(T, i):
@@ -1652,7 +1679,7 @@ def rule_pp_avoir_cod(T, i):
     if a is None: return None
     q = None                                                        # position du token « que » (ou du token qu'+sujet fusionné)
     if a_is_je:                                                     # « … que j'ai <PP> » : « que » juste avant « j'ai »
-        if a - 1 < 0 or deacc(T[a - 1].lower()) != 'que': return None
+        if a - 1 < 0 or deacc(T[a - 1].lower()) not in ('que', 'qu'): return None
         q = a - 1
     else:                                                          # aux séparé ⇒ le sujet est AVANT (fusionné « qu'il » OU pronom + « que »)
         b = a - 1
@@ -1662,7 +1689,15 @@ def rule_pp_avoir_cod(T, i):
         if tb in _QUE_SUBJ:                                        # « … lettre qu'il a <PP> » : que+sujet fusionnés ⇒ antécédent avant ce token
             q = b
         elif deacc(tb) in _COD_SUBJ:                               # « … livres que tu as <PP> » : pronom sujet séparé, « que » juste avant
-            if b - 1 < 0 or deacc(T[b - 1].lower()) != 'que': return None
+            if b - 1 < 0 or deacc(T[b - 1].lower()) not in ('que', 'qu'): return None
+            q = b - 1
+        elif tb in ('j', 'qu', 'l', 'd'):
+            # ⭐ APOSTROPHE MANQUANTE — le cas dys par excellence. « Les fleurs que J AI cueilli » :
+            # le tokeniseur rend « j » et « ai » séparés, et la règle ne reconnaissait plus « j'ai ».
+            # Mesuré le 26/08/2026 : avec l'apostrophe elle corrige (cueilli→cueillies) ; sans, elle
+            # est MUETTE — et un dys écrit précisément sans apostrophes. « que j ai <participe> »
+            # n'est jamais du français correct : la structure est certaine.
+            if b - 1 < 0 or deacc(T[b - 1].lower()) not in ('que', 'qu'): return None
             q = b - 1
         else:
             return None
