@@ -28,7 +28,7 @@
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
 
   // ===== couche dys (stades + remédiation) — VERBATIM app =====
-  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique',personne:'morphosyntaxique'};   // homophone LEXICAL (ver/vert)=lexical ; GRAMMATICAL (a/à, son/sont)=morphosyntaxique ; 'homophone' nu = repli lexical ; segmentation/majuscule = conventions (alphabétique)
+  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique',personne:'morphosyntaxique',participe:'morphosyntaxique'};   // homophone LEXICAL (ver/vert)=lexical ; GRAMMATICAL (a/à, son/sont)=morphosyntaxique ; 'homophone' nu = repli lexical ; segmentation/majuscule = conventions (alphabétique)
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
   var STAGE_MSG={phonologique:'le mot n’est pas encore bien ENTENDU — on travaille le son avant l’orthographe.',alphabetique:'le son est juste, la graphie non — c’est le palier des accents et des graphies.',lexical:'la graphie du MOT lui-même : lettres muettes, et homophones que le SENS tranche (ver/vert/verre).',morphosyntaxique:'le palier le plus tardif : les accords, et les homophones que seule la grammaire tranche (a/à, son/sont).'};
@@ -61,7 +61,10 @@
   var _HSUB = { a:'avait', 'à':'avait', et:'et puis', est:'était', son:'mon', sont:'étaient', on:'il',
                 ont:'avaient', ou:'ou bien', 'où':'à quel endroit', ces:'ces …-là', ses:'les siens',
                 ce:'cela', se:'lui-même', sa:'la sienne', 'ça':'cela', mais:'pourtant', mes:'les miens',
-                peu:'un peu', peut:'pouvait', 'la':'le', 'là':'ici', 'ni':'et pas', 'n’y':'n’y en' };
+                peu:'un peu', peut:'pouvait', 'la':'le', 'là':'ici', 'ni':'et pas', 'n’y':'n’y en',
+                /* « sait » : la forme d'épreuve est celle de SAVOIR. « le train savait arrêté » ne se
+                   dit pas → c'est « s'est ». Sans cette entrée le conseil tombait sur le générique. */
+                sait:'savait', sais:'savais' };
   var REMED={
     voisee_sourde:function(e,a){var d=_rd(e,a);
       if(d&&d.e.length===1&&d.a.length===1){var x=d.e.toLowerCase(),y=d.a.toLowerCase(),v=_VIBRE[y]?y:(_VIBRE[x]?x:null);
@@ -114,6 +117,25 @@
       if(le&&la&&/(sse|sses|ienne|iennes|asse|fasse|fasses)$/.test(la))
         return _pr(e,a)+'après « il faut que », le verbe passe au SUBJONCTIF.';
       return _pr(e,a)+'le verbe se conjugue avec SA personne — « il » n’a pas la même terminaison.';},
+    /* ⭐ LE PARTICIPE A SA PROPRE FAMILLE (26/08/2026). Avant, « il est arrive » → « arrivé » était
+       classé ACCENT — parce que `_corrFam` teste la désaccentuation AVANT le nom de la règle — et la
+       carte enseignait « e→é, dis-le à voix haute, é ferme è ouvre ». C'est faux : ce n'est pas un
+       accent, c'est un participe après auxiliaire. On enseignait la mauvaise chose. */
+    participe:function(e,a){var d=_rd(e,a);
+      if(d&&/^e$/i.test(d.e)&&/^é$/i.test(d.a))
+        return _pr(e,a)+'après un auxiliaire, le verbe prend sa forme de PARTICIPE en -é, jamais celle du présent en -e.';
+      if(d&&/^e$/i.test(d.e)&&/^é(e|s|es)$/i.test(d.a))
+        return _pr(e,a)+'deux choses à la fois : le PARTICIPE en -é, et l’ACCORD « '+d.a.slice(1)+' ».';
+      /* ⛔ ne pas promettre « -é » sur un participe qui n'en a pas : cueilli, venu, parti, pris.
+         On ne parle d'accent QUE si le segment manquant en porte un. */
+      if(d&&d.e===''&&/^é/i.test(d.a))
+        return _pr(e,a)+'il manque « '+d.a+' » : l’accent du participe, et son accord.';
+      if(d&&d.e===''&&/^(e|s|es)$/i.test(d.a))
+        return _pr(e,a)+'il manque « '+d.a+' » : le participe s’ACCORDE ici.';
+      if(d&&d.a===''&&/^(e|s|es)$/i.test(d.e))
+        return _pr(e,a)+'le participe ne s’accorde PAS ici : le « '+d.e+' » est en trop.';
+      /* repli EXACT : ne pas promettre « -é », qui est faux pour « écrite », « prise », « mise ». */
+      return _pr(e,a)+'c’est un PARTICIPE : il s’accorde avec le SUJET après « être », et avec le COD placé AVANT après « avoir ».';},
     accord:function(e,a){var d=_rd(e,a);
       // ⭐ -er / -é : le TEST DU 3e GROUPE, et rien d'autre. « manger/mangé » sont homophones, pas
       // « mordre/mordu » — c'est le test que tout le monde apprend, et il tranche à coup sûr. Il
@@ -565,7 +587,17 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if((tg[i+1]==='VERB'||tg[i+1]==='AUX')){var p=cprev(T,i);if(p==='il'||p==='elle'||p==='on'||p==='je'||p==='tu'||p==='ils'||p==='elles'||p==='qui')return ckeepcase(T[i],'se');}   // ce + VERBE + SUJET pronom → se (sinon ce impersonnel)
     return null;}
   // « je/tu + c'est/ces/ses/sait » → « sais » (savoir) : suites IMPOSSIBLES en français correct → FP=0 (0/16951 UD). « il/on c'est » reste ambigu → non couvert. Miroir app.
-  function rSais(T,i){var d=deacc(T[i].toLowerCase());if(d!=="c'est"&&d!=='ces'&&d!=='ses'&&d!=='sait')return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);return (p==='je'||p==='tu')?ckeepcase(T[i],'sais'):null;}
+  function rSais(T,i){var d=deacc(T[i].toLowerCase());if(d!=="c'est"&&d!=='ces'&&d!=='ses'&&d!=='sait')return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
+    var p=cprev(T,i);if(p==='je'||p==='tu')return ckeepcase(T[i],'sais');
+    /* ⭐ « sait » + PARTICIPE PASSÉ → « s'est ». Le commentaire d'origine disait « il/on + sait reste
+       AMBIGU », vrai en général — mais pas devant un participe : SAVOIR ne prend jamais un participe
+       passé pour complément. « il sait nager » (infinitif) et « il sait la réponse » (nom) restent du
+       savoir ; « le train sait arrêté », « il sait levé » ne peuvent être que « s'est ».
+       ⚠️ NE PAS garder avec COMMON_VERBS/VERB_LEX : ils contiennent aussi « nager » et « compter »
+       (mesuré). Le bon test est l'INFINITIF. Miroir Python rule_sais. */
+    if(d==='sait'&&i+1<T.length){var _n=T[i+1];
+      if((_ppBase(_n)!==null||IRR_PP[deacc(_n.toLowerCase())])&&!_isInfinitive(_n))return ckeepcase(T[i],"s'est");}
+    return null;}
   function rCesSest(T,i){var d=deacc(T[i].toLowerCase());if(d!=='ces'&&d!=='cet')return null;
     /* « ces/cet » APRÈS un pronom sujet = faute certaine (un déterminant ne suit jamais un sujet nu) ;
        graphies dys du /sɛ/ de « s'est » (audit rappel PR#505 : « elle ces marier à l'age de vingt ans »).
@@ -2158,7 +2190,11 @@ function estQuestion(t){
     voulions:1,vouliez:1,voulaient:1,voudrais:1,voudrait:1,voudrions:1,dois:1,doit:1,devons:1,devez:1,doivent:1,
     devais:1,devait:1,devions:1,deviez:1,devaient:1,devrai:1,devra:1,devrons:1,peux:1,peut:1,pouvons:1,pouvez:1,
     peuvent:1,pouvais:1,pouvait:1,pouvions:1,pouviez:1,pouvaient:1,pourrai:1,pourra:1,pourrons:1,
-    sais:1,sait:1,savons:1,savez:1,savent:1,savais:1,savait:1,faut:1,fallait:1,faudra:1,faudrait:1};
+    /* ⛔ SAVOIR RETIRÉ (26/08/2026) : « sait » est bien plus souvent un « s'est » mal écrit qu'un
+       semi-auxiliaire. « Le train sait arrete en gare » recevait « sait arrêter » — une
+       proposition FAUSSE sur une vraie faute. Et « je sais nager » n'avait jamais besoin de la
+       règle : l'infinitif y est déjà correct. Miroir Python _SEMI_AUX. */
+    faut:1,fallait:1,faudra:1,faudrait:1};
   var _INF_OUTILS={a:1,'à':1,en:1,y:1,de:1,du:1,des:1,le:1,la:1,les:1,ce:1,se:1,ne:1,que:1,qui:1,si:1,ou:1,
     'où':1,et:1,est:1,par:1,pour:1,sans:1,sous:1,sur:1,vers:1,dans:1,chez:1,avec:1,entre:1,contre:1,depuis:1,
     apres:1,avant:1,plus:1,moins:1,tout:1,tous:1,bien:1,mieux:1,trop:1,puis:1,donc:1,alors:1,ainsi:1,aussi:1,
@@ -3227,6 +3263,8 @@ function spellUnknown(tok,atStart,T,idx){
     else if(/espace|^virgule|ponctuation|mot coup|trait d.union/i.test(n))t='ponctuation';   // ⭐ miroir app : « espace après la virgule » tombait dans le `else` final = homophone
     else if(/contraction/i.test(n))t='contraction';
     else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
+    else if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu$|^mais\/mes$|^leur\/leurs$/.test(n))t='homophone_gram';   // miroir app : le NOM avant les heuristiques de forme
+    else if(/participe/.test(n))t='participe';   // miroir app : le NOM avant l'heuristique d'accent
     else if(w&&sg&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)
     else if(/^on\/ont/.test(n))t='homophone_gram';   // miroir app

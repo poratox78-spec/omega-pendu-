@@ -83,6 +83,34 @@ JUSTES perdues pour 1 gagnée, et c'étaient des ACCENTS sur du vrai texte dys (
 `lègislature→législature`, `prêcession→précession`, `emé→aimé`). La préférence « finale muette »
 passait devant l'audibilité. **Retiré.** Le vrai correctif est dans le g2p — chantier gelé.
 
+### 🔤 `sait`→`s'est`, et LE BUG DES EXPLICATIONS (26/08/2026)
+
+**Règle livrée.** `rule_sais` portait en commentaire : « il/on + sait reste AMBIGU (sait vs s'est) →
+non couvert ici ». Vrai en général — **mais pas devant un PARTICIPE** : *savoir* ne prend jamais un
+participe passé pour complément. `Le train sait arrêté`, `il sait levé`, `elle sait trompée` ne
+peuvent être que « s'est » ; `il sait nager` (infinitif) et `il sait la réponse` (nom) restent du
+savoir. 11/11, FP à l'échelle 1,40 % (ligne de base).
+⛔ Première garde REFUSÉE : `VERB_LEX` pour écarter les infinitifs — elle bloquait TOUT, cette table
+contient aussi `nager` et `compter`. Le bon test est `_is_infinitive`.
+⛔ RÉGRESSION QUE J'AVAIS CRÉÉE, corrigée ici : `savoir` était dans mes semi-auxiliaires, donc
+`Le train sait arrete` recevait « sait **arrêter** » — une proposition FAUSSE sur une vraie faute.
+Retiré : « je sais nager » n'a jamais eu besoin de la règle, l'infinitif y est déjà correct.
+
+**⭐⭐ LE BUG DE FOND — LES HEURISTIQUES DE FORME PASSAIENT AVANT LE NOM DE LA RÈGLE.**
+Trouvé DEUX FOIS le même jour, dans deux familles, parce que Rem a demandé de vérifier les
+explications après chaque correctif :
+
+| correction | famille attribuée | ce que la carte enseignait | la vérité |
+|---|---|---|---|
+| `arrive`→`arrivé` | **accent** (désaccentués identiques) | « e→é, dis-le à voix haute, é ferme è ouvre » | participe après auxiliaire |
+| `sait`→`s'est` | **segmentation** (apostrophe dans la suggestion) | « l'article est élidé, il faut l'apostrophe » | homophone grammatical |
+
+Dans les deux cas la correction était JUSTE et l'explication FAUSSE — elle enseignait autre chose que
+la faute. Pour un dys, c'est possiblement pire qu'une correction manquée.
+⇒ `_corrFam` teste désormais le NOM de la règle AVANT toute heuristique de forme, pour la famille
+`participe` et pour les homophones grammaticaux. Nouvelle famille `participe` avec son conseil, et
+forme d'épreuve `sait`→« savait » ajoutée à la table de substitution.
+
 ### 🩹 Panel Chrome du 26/08/2026 — 3 défauts graves, corrigés
 
 Panel de **37 phrases neuves** dans l'app pilotée par Chrome, sur des familles non balayées.
