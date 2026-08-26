@@ -913,6 +913,12 @@ def rule_est_et_clause(T, i):
         return _keepcase(T[i], 'et')
     return None
 
+# « de nouveau », « de loin », « de suite »… : locutions ADVERBIALES après « peut ». Le mot qui suit
+# « de » y est un adverbe/adjectif, pas un nom quantifié — « peut » y reste le verbe.
+_PEU_LOC = set('nouveau loin suite pres cote force justesse memoire naissance nature bonne mauvaise '
+               'plus moins mieux trop rien tout toute suite'.split())
+
+
 def rule_peu(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('peu', 'peux', 'peut'): return None
@@ -921,6 +927,16 @@ def rule_peu(T, i):
     if p in ('il', 'elle', 'on', 'qui'): return 'peut'                 # 3e sg → pouvoir
     if p in ('un', 'de', 'tres', 'si', 'trop', 'assez', 'bien', 'plus', 'tout', 'aussi', 'y'):
         return 'peu'                                                   # adverbe de quantité
+    # ⭐ LE CRÉNEAU DU VERBE EST-IL DÉJÀ PRIS ? La règle ne regardait que le mot d'AVANT. Or « peut »
+    # est un VERBE : si la proposition en porte déjà un fini, « peut » ne peut pas l'être — c'est
+    # l'adverbe « peu ».
+    #   « Il y A peut de monde »   → « a » occupe le créneau      → peu
+    #   « Il RESTE peut de temps » → « reste » l'occupe           → peu
+    #   « Il peut de nouveau marcher »        → créneau libre     → abstention
+    #   « Il peut de temps en temps venir »   → créneau libre     → abstention (la locution ne piège plus)
+    # Le « de » suivant ne suffisait PAS comme garde : « de temps en temps » a lui aussi de+NOM.
+    if lw in ('peut', 'peux') and i + 1 < len(T) and deacc(T[i+1].lower()) == 'de'        and not (i + 2 < len(T) and deacc(T[i+2].lower()) in _PEU_LOC)        and not _clause_no_finite_verb(T, i):
+        return 'peu'
     return None
 
 JE_CONFUS = {'ke', 'ge', 'ce', 'se'}          # sujet « je » mal écrit (clavier k↔j, /ʒ/→ge, ce/se démonstratif/réfléchi)
@@ -2992,7 +3008,12 @@ def rule_mais_mes(T, i):
     (garde PREP : « Mais, sous… » abstenu car sous=préposition). Homophone dys fréquent, hors des 8 d'origine."""
     if deacc(T[i].lower()) != 'mais' or i + 1 >= len(T):
         return None
-    if i == 0 or (_SEG is not None and i < len(_SEG['ss']) and _SEG['ss'][i]): return None   # « Mais … » en tête de phrase = conjonction, jamais « mes »
+    # « Mais … » en tête de phrase est presque toujours une CONJONCTION — mais pas quand un NOM PLURIEL
+    # SUJET suit immédiatement (« Mais amis sont venus » = « Mes amis »). On lève l'abstention de tête
+    # UNIQUEMENT dans ce cadre : nom pluriel + VERBE CONJUGUÉ juste après, ce qui en fait le sujet.
+    # « Mais bon », « Mais oui », « Mais chers amis » restent écartés par les gardes existantes.
+    _tete = (i == 0) or (_SEG is not None and i < len(_SEG['ss']) and _SEG['ss'][i])
+    if _tete and not (i + 2 < len(T) and _reads(T[i + 2])): return None
     nx = T[i + 1].lower(); dn = deacc(nx)
     if dn in MAIS_STOP:                                 # adverbe/mot-outil (homographe nom : « pas », « point ») → « mais »
         return None                                    #   conjonction, jamais « mes » (« mais pas »/« mais comment » corrects)
@@ -3110,6 +3131,52 @@ _ELIDE_STOP = {"n'roll", "m'sieur", "m'dame", "m'ame", "c'te"}   # emprunt (rock
 # de rule_deselide. Résultat mesuré : « rock n'roll » -> « rock ne roll ». Quelqu'un avait prévu le cas — dans
 # la mauvaise liste. Deux listes pour une même garde DÉRIVENT toujours ; il n'y en a plus qu'une.
 
+
+# ---------- ÉLISION FUSIONNÉE : l'apostrophe non écrite (« jai »→« j'ai ») ----------
+# « qu » d'abord : le plus long gagne. ⛔ « m » et « t » RETIRÉS — « mai » (le mois), « tai » (la
+# langue) sont des mots réels ; « m'ai »/« t'ai » ne valaient pas le FP mesuré sur UD.
+_FUS_PRE = ('qu', 'j', 's', 'c', 'n', 'd', 'l')
+_FUS_VOY = set('aeiouyhàâäéèêëîïôöùûü')
+# Mots qui suivent RÉELLEMENT une élision : auxiliaires, pronoms, et les noms vocaliques usuels.
+# Liste FERMÉE — le lexique entier produisait 104 FP (« harles », « avoie », « aria », « uke »).
+_FUS_APRES = set('ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre eu '
+                 'il ils elle elles on en un une autre autres ici ailleurs aujourd hui heure heures '
+                 'homme hommes ami amis amie amies ecole ecoles enfant enfants annee annees argent eau '
+                 'air arbre arbres animal animaux idee idees image images objet objets oeuf oeufs '
+                 'histoire histoires hopital ordinateur oreille oiseau oiseaux'.split())
+
+
+def rule_elision_fusionnee(T, i):
+    """« jai »→« j'ai », « cest »→« c'est », « quil »→« qu'il », « dailleurs »→« d'ailleurs ».
+
+    Le dys écrit l'élision SANS l'apostrophe : les deux mots se collent. Trois conditions cumulées, et
+    c'est leur INTERSECTION qui vaut :
+      ① le mot écrit est INCONNU du lexique — c'est elle qui écarte tout seul « jetais » (imparfait de
+        JETER, un vrai mot) et « quelle » (« quelle heure ») ;
+      ② il commence par un proclitique élidable ;
+      ③ le reste est un mot CONNU commençant par une VOYELLE ou un h — l'élision n'existe que là.
+    Sans ③, « l » + « bureau » passerait ; sans ①, « jetais » deviendrait « j'etais ».
+    Nom propre écarté : le reste doit être en minuscule.
+    """
+    w = T[i]
+    lw = w.lower()
+    if "'" in lw or "’" in lw or len(lw) < 3: return None
+    if lw in WORDS_SET or deacc(lw) in WORDS_SET: return None          # ① mot connu → rien à dire
+    # ⭐ NOM PROPRE. Un mot CAPITALISÉ hors début de phrase n'est pas une élision fusionnée.
+    #    MESURÉ : sans cette garde, 104 FP sur les 2 500 phrases correctes — « Charles »→« C'harles »
+    #    (harles est un canard), « San »→« S'an », « Nantes »→« N'antes », « Savoie »→« S'avoie ».
+    #    Vérifier la casse du RESTE ne suffisait pas : dans « Charles », le reste est en minuscule.
+    if w[:1].isupper() and not (i == 0 or (_SEG is not None and i < len(_SEG['ss']) and _SEG['ss'][i])): return None
+    for pre in _FUS_PRE:
+        if not lw.startswith(pre): continue                            # ②
+        rest = w[len(pre):]
+        if len(rest) < 2 or not rest[:1].islower(): return None
+        if deacc(rest[:1].lower()) not in _FUS_VOY: return None        # ③ élision = devant voyelle
+        rl = deacc(rest.lower())
+        # ④ le reste doit être un mot qui SUIT réellement une élision — liste FERMÉE. Le lexique entier
+        #    laissait passer « harles », « avoie », « aria », « uke »… tous connus mais jamais élidés.
+        return _keepcase(w, pre + "'" + rest) if rl in _FUS_APRES else None
+    return None
 
 def rule_elide(T, i):
     w = T[i]; lw = w.lower()
@@ -4241,7 +4308,7 @@ RULES = [('élision inversée', rule_deselide),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
          ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa), ('ou/où', rule_ou_ou),
          ('met/mais', rule_met_mais),
-         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la), ('guère/guerre', rule_guere), ('vit/vie', rule_sa_vit),
+         ('mai/mais', rule_mai_mais), ('mais/mes', rule_mais_mes), ('élision fusionnée', rule_elision_fusionnee), ('du/de', rule_du_de), ('du/dû', rule_du_du), ('sur/sûr', rule_sur_sur), ('la/là', rule_la_la), ('guère/guerre', rule_guere), ('vit/vie', rule_sa_vit),
          ("j'est/j'ai", rule_jest), ("c'ai/c'est", rule_cai), ('élision', rule_elide),
          ('accord sujet-verbe', rule_accord_sv),
          ('accord sujet-verbe', rule_il_ils),
