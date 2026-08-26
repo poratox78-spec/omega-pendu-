@@ -83,6 +83,26 @@ JUSTES perdues pour 1 gagnée, et c'étaient des ACCENTS sur du vrai texte dys (
 `lègislature→législature`, `prêcession→précession`, `emé→aimé`). La préférence « finale muette »
 passait devant l'audibilité. **Retiré.** Le vrai correctif est dans le g2p — chantier gelé.
 
+### 🔁 `son/sont` devant ADJECTIF PLURIEL (26/08/2026)
+
+`Les chiens son gentils`, `Les enfants son contents`, `Mes amis son malades` étaient MUETS : la règle
+excluait les adjectifs, **et c'était mesuré** (« son ancienne équipe », « son style, » = possessif +
+nom homographe d'adjectif).
+
+⛔ **1re tentative INSUFFISANTE — le tagger.** Exiger `tg[i+1] == 'ADJ'` marchait pour `gentils` et
+`chers` mais PAS pour `contents` ni `malades`, étiquetés NOUN. Raison instructive : **le contexte du
+tagger est empoisonné par la faute elle-même** — il voit « son », en déduit un déterminant, donc lit
+un nom derrière.
+
+✅ **Ce qui a marché — un FAIT STRUCTUREL que la faute ne peut pas corrompre** : le possessif « son »
+est TOUJOURS suivi d'un nom SINGULIER. Un mot marqué pluriel derrière lui exclut le possessif —
+sauf si son -s/-x n'est pas une marque de pluriel (`son fils`, `son corps`, `son prix`), d'où la
+liste des INVARIABLES, celle-là même ajoutée le matin pour le bug de `prix`.
+
+13/13 · **excédent INCHANGÉ à 36 flags** sur les 2 500 phrases correctes (zéro ajouté) · FP à
+l'échelle 1,40 % · parité 3 moteurs. Explication : `son/sont` fait partie des noms routés vers la
+famille homophone, la carte donne donc le test de substitution (« essaie "mon" à la place »).
+
 ### 🔤 `sait`→`s'est`, et LE BUG DES EXPLICATIONS (26/08/2026)
 
 **Règle livrée.** `rule_sais` portait en commentaire : « il/on + sait reste AMBIGU (sait vs s'est) →

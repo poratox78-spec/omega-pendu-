@@ -601,6 +601,13 @@ def rule_imperatif(T, i):
 PLURAL_DET = {'les', 'des', 'ces', 'leurs', 'mes', 'tes', 'ses', 'nos', 'vos', 'quels', 'quelles',
               'plusieurs', 'certains', 'certaines', 'quelques', 'aux'}   # déterminants/marqueurs PLURIEL (sujet pluriel)
 
+# Noms dont le -s/-x final n'est PAS une marque de pluriel : « son fils », « son corps », « son prix »
+# restent des possessifs. Même contenu que _OS_INVAR de os_subject_probe.py.
+_OS_INVAR = set('prix cours corps temps bois pays mois bras dos cas choix croix voix noix toux poids '
+                'concours discours parcours secours univers divers pervers avis colis permis compromis '
+                'bus autobus jus repas tapis souris brebis puits gaz nez riz fils'.split())
+
+
 def rule_son_sont(T, i):
     # Tranché par CE QUI SUIT (grammaire) : « son » = déterminant → précède un NOM SG ; « sont » = être 3pl →
     # prédicat (adjectif/participe/adverbe/prép). Abstention dans l'ambigu → FP=0 (audit UD : l'ancien « verbe/prép/conj
@@ -635,6 +642,23 @@ def rule_son_sont(T, i):
     if i+1 < len(T) and plural_subj and prev(T, i) not in NUM_DET and prev(T, i) not in PREP \
        and _pp_base(T[i+1]) is not None and deacc(nxt).endswith(('s', 'x')) and _clause_no_finite_verb(T, i, i + 1):
         return 'sont'
+    # ⭐ ADJECTIF PLURIEL (« les chiens son gentils »→sont). L'exclusion des adjectifs était MESURÉE
+    # (« son ancienne équipe », « son style, » = possessif + nom homographe d'adjectif) — on ne la
+    # rouvre donc que là où le doute tombe : l'adjectif doit être MARQUÉ PLURIEL (-s/-x), étiqueté ADJ
+    # par le tagger, et RIEN ne doit le suivre côté nom. Un possessif singulier « son » ne peut pas
+    # précéder un adjectif pluriel, et « son ancienne ÉQUIPE » a son nom juste après.
+    if i + 1 < len(T) and plural_subj and prev(T, i) not in NUM_DET and prev(T, i) not in PREP        and deacc(nxt).endswith(('s', 'x')) and _clause_no_finite_verb(T, i, i + 1):
+        # ⭐ LE FAIT STRUCTUREL, plus fort que le tagger : le possessif « son » est TOUJOURS suivi d'un
+        # nom SINGULIER. Un mot marqué pluriel derrière « son » exclut donc le possessif — sauf si son
+        # -s/-x n'est pas une marque de pluriel (« son fils », « son corps », « son prix »), d'où la
+        # liste des INVARIABLES. Mesuré : le tagger étiquetait « contents » et « malades » NOUN parce
+        # que le « son » fautif le poussait à lire un déterminant — son contexte est empoisonné par la
+        # faute elle-même. Le fait structurel, lui, ne l'est pas.
+        if deacc(nxt) not in _OS_INVAR:
+            _tg = pos_tags(T)
+            _ap = _tg[i+2] if (_tg and i + 2 < len(_tg)) else None
+            if _ap not in ('NOUN', 'PROPN'):                 # « son ancienne équipe » : un nom suit → possessif
+                return 'sont'
     return None
 
 _PLURAL_CUE = {'et', 'ni', 'ils', 'elles', 'qui', 'ceux', 'celles', 'lesquels', 'lesquelles'}
