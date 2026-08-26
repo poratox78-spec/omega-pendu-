@@ -797,12 +797,44 @@ def rule_a_aa(T, i):
         return 'à'
     return None
 
+_ET_ADV = set('tres si tout toute bien plus trop assez vraiment deja encore fort peu moins aussi'.split())
+_ET_PREP = set('au aux du des de a en par pour sur sous dans avec sans vers chez entre'.split())
+
+
 def rule_et_est(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('et', 'est'): return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant (« elle, et … ») → pas de sujet net
     p = prev(T, i)
-    if p not in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'qui'): return None   # exige un PRONOM sujet net (sinon « le roi, et … » → FP)
+    if p not in ('il', 'elle', 'on', 'c', 'ce', 'ca', 'qui'):
+        # SUJET NOMINAL (« Ce chien et gentil. ») — muet jusqu'au 26/08/2026. La garde d'origine
+        # exigeait un PRONOM, ce qui protégeait de « le roi, et … ». On l'élargit au seul cas où le
+        # doute tombe : DÉTERMINANT + NOM juste avant, et un ADJECTIF juste après (le tagger tranche).
+        # C'est l'adjectif qui distingue « ce chien et gentil » de « du pain et beurre ».
+        if lw != 'et': return None
+        _tg = pos_tags(T)
+        if not _tg or i == 0 or i + 1 >= len(T): return None
+        # le tagger étiquette PROPN une graphie DÉSACCENTUÉE (« frere ») : on l'accepte si le mot est
+        # écrit en minuscule — un vrai nom propre porte sa capitale, et « et Bob » est déjà écarté.
+        if _tg[i-1] not in ('NOUN', 'PROPN'): return None       # « un homme grand et fort » : ADJ avant → coordination
+        if _tg[i-1] == 'PROPN' and T[i-1][:1].isupper(): return None
+        if i < 2 or deacc(T[i-2].lower()) not in NUM_DET: return None   # le NOM doit porter son déterminant
+        # un ADVERBE d'intensité peut s'intercaler (« et TRÈS gentil ») ; liste FERMÉE, parce que le
+        # tagger étiquette « tres » (désaccentué) NOUN et laisserait passer n'importe quel nom.
+        _j = i + 1
+        if deacc(T[_j].lower()) in _ET_PREP: return None        # « et AUX Contes », « et DU pain » : préposition contractée
+        if deacc(T[_j].lower()) in _ET_ADV and _j + 1 < len(T): _j += 1
+        if _j >= len(T) or _tg[_j] != 'ADJ': return None        # « du pain et beurre » : NOUN après → coordination
+        # l'attribut ne peut pas être suivi d'un DÉTERMINANT : « et bien sûr LA Vierge » est une
+        # énumération, pas un attribut. FP mesuré sur UD 2500.
+        if _j + 1 < len(T) and deacc(T[_j+1].lower()) in NUM_DET: return None
+        # ⭐ GARDE DÉCISIVE, née de 4 FP MESURÉS sur UD 2500 : si la proposition porte DÉJÀ un verbe
+        # conjugué, « et » ne peut pas être « est ». Les quatre le montraient tous —
+        #   « …SONT le norrois ET l'anglais », « …INSPIRA les dirigeants ET sympathisants »,
+        #   « …FIT bâtir… », « …ORGANISE le Festival… ».
+        # « Ce chien et gentil » n'a, lui, aucun verbe : c'est précisément ce qui manque.
+        if not _clause_no_finite_verb(T, i): return None
+        return 'est'
     if i+1 < len(T) and deacc(T[i+1].lower()) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous', 'moi', 'toi', 'lui', 'eux', 'soi'):
         return None                                                        # « il et elle », « lui et moi » : un pronom sujet suit → sujet COORDONNÉ, jamais « est » (« il est elle » est agrammatical) → « et » reste la conjonction
     if i+1 < len(T) and T[i+1][:1].isupper(): return None                  # « et Bob », « et Chris Udoh » → nom propre → conjonction, jamais « est »

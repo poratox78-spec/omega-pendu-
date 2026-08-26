@@ -460,9 +460,36 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(i+1<T.length&&_isPpl(T[i+1])&&!/ee$/.test(deacc(T[i+1].toLowerCase()))){var dn=deacc(T[i+1].toLowerCase()),nt=(tg&&i+1<tg.length)?tg[i+1]:'';if(!(_PP_NOUN_HOMO[dn]&&nt==='NOUN'))return 'a';}   // « a + participe » → AVOIR, jamais « à ». Écarte -ée FÉMININ (« à durée » reste prép) ET le nom-homographe tagué NOM (« condamnée à mort », « tout à fait »)
     if(i+2<T.length&&/ment$/.test(deacc(T[i+1].toLowerCase()))&&(tg&&i+1<tg.length&&tg[i+1]==='ADV')&&_isPpl(T[i+2]))return 'a';   // « a + ADVERBE(-ment) RÉEL + participe » ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
     if(!pb&&vlike(T,i-1)){var pv=i>0&&NOUN_POST?NOUN_POST.get(deacc(T[i-1].toLowerCase())):null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return null;return 'à';}return null;}
+  var _ET_ADV={},_ET_PREP={};
+  'tres si tout toute bien plus trop assez vraiment deja encore fort peu moins aussi'.split(' ').forEach(function(w){_ET_ADV[w]=1;});
+  'au aux du des de a en par pour sur sous dans avec sans vers chez entre'.split(' ').forEach(function(w){_ET_PREP[w]=1;});
   function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')return null;
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;   // frontière avant (« elle, et … ») → pas de sujet net
-    var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'||p==='c'||p==='ce'||p==='ca'||p==='qui'))return null;
+    var p=cprev(T,i);
+    if(!(p==='il'||p==='elle'||p==='on'||p==='c'||p==='ce'||p==='ca'||p==='qui')){
+      /* SUJET NOMINAL (« Ce chien et gentil. ») — muet jusqu'au 26/08/2026. La garde d'origine
+         exigeait un PRONOM, ce qui protégeait de « le roi, et … ». Élargi au seul cas où le doute
+         tombe : DÉTERMINANT + NOM avant, ADJECTIF après. Quatre gardes nées de FP MESURÉS sur UD :
+           · préposition contractée après « et » (« et AUX Contes ») ;
+           · l'attribut suivi d'un DÉTERMINANT (« et bien sûr LA Vierge » = énumération) ;
+           · un VERBE CONJUGUÉ déjà dans la proposition (« …SONT le norrois ET l'anglais ») ;
+           · le tagger étiquette PROPN une graphie désaccentuée (« frere ») → accepté en minuscule.
+         Après gardes : 0 tir sur les 2 500 phrases UD, FP à l'échelle inchangé (1,40 %), census dys
+         inchangé (301/301). Miroir Python rule_et_est. */
+      if(lw!=='et')return null;
+      var _tg=posTags(T);
+      if(!_tg||i===0||i+1>=T.length)return null;
+      if(_tg[i-1]!=='NOUN'&&_tg[i-1]!=='PROPN')return null;
+      if(_tg[i-1]==='PROPN'){var _c1=T[i-1].charAt(0);if(_c1!==_c1.toLowerCase())return null;}
+      if(i<2||!(deacc(T[i-2].toLowerCase()) in NUM_DET))return null;
+      var _j=i+1,_n1=deacc(T[_j].toLowerCase());
+      if(_ET_PREP[_n1])return null;
+      if(_ET_ADV[_n1]&&_j+1<T.length)_j++;
+      if(_j>=T.length||_tg[_j]!=='ADJ')return null;
+      if(_j+1<T.length&&(deacc(T[_j+1].toLowerCase()) in NUM_DET))return null;
+      if(!_clauseNoFiniteVerb(T,i))return null;
+      return 'est';
+    }
     if(i+1<T.length){var _na=deacc(T[i+1].toLowerCase());if(_na==='il'||_na==='elle'||_na==='on'||_na==='ils'||_na==='elles'||_na==='je'||_na==='tu'||_na==='nous'||_na==='vous'||_na==='moi'||_na==='toi'||_na==='lui'||_na==='eux'||_na==='soi')return null;}   // « il et elle », « lui et moi » : pronom sujet après « et » → sujet COORDONNÉ, jamais « est » (« il est elle » agrammatical)
     if(i+1<T.length){var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()&&c0===c0.toUpperCase())return null;}   // « et Bob », « et Chris » → nom propre → conjonction
     if(i+1<T.length&&(isParticiple(T,i+1)||!(T[i+1].toLowerCase() in NUM_DET)))return 'est';return null;}
