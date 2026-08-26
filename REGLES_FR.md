@@ -61,6 +61,28 @@ omegapendu.com** pour être sûr qu'ils ne venaient pas du travail en cours.
 tous une règle au registre : elles ne se déclenchent pas **dans ces contextes-là**. C'est un travail
 de gardes, pas de règles manquantes — à instruire cas par cas avant de toucher quoi que ce soit.
 
+### 🔧 Suite du balayage — instruits le 26/08/2026
+
+**✅ `et/est` avec SUJET NOMINAL — livré.** « Ce chien et gentil. » était muet : la règle exigeait un
+sujet PRONOM (garde motivée, « le roi, et … » → FP). Élargie au seul cas sans doute : déterminant +
+nom avant, adjectif après. **Quatre gardes, chacune née d'un FP mesuré sur UD 2500** — préposition
+contractée après « et » (« et **aux** Contes ») · attribut suivi d'un déterminant (« et bien sûr **la**
+Vierge » = énumération) · **un verbe conjugué déjà dans la proposition** (« …**sont** le norrois **et**
+l'anglais », la garde décisive) · graphie désaccentuée étiquetée PROPN par le tagger (« frere »).
+Après gardes : **0 tir sur UD 2500**, FP à l'échelle **1,40 %** (ligne de base exacte), census dys
+**301/301** inchangé. ⚠️ Rappel ajouté sur le corpus dys réel : **0** — le témoin attrapait déjà ses
+6 cas, tous à sujet pronom. Gardé quand même : coût nul, et la fréquence corpus priorise un
+chantier, elle ne refuse pas un sens de règle.
+
+**⛔ `tar`→tarte, `nor`→non, `bor`→bore — TENTÉ ET RETIRÉ, mesuré.** Cause identifiée : la route sûre
+du speller exige `length>=4`, donc les mots de TROIS lettres tombent au repli orange ; et la
+préférence homophone du repli ne les rattrape pas parce que **le g2p prononce la consonne finale**
+(`phonKey('nord') ≠ phonKey('nor')`). Correctif tenté dans le repli (préférence de rang + génération
+« saisie + une consonne muette ») : il réparait `nor→nord` mais **le census a répondu −3** — 4 oranges
+JUSTES perdues pour 1 gagnée, et c'étaient des ACCENTS sur du vrai texte dys (`endemique→endémique`,
+`lègislature→législature`, `prêcession→précession`, `emé→aimé`). La préférence « finale muette »
+passait devant l'audibilité. **Retiré.** Le vrai correctif est dans le g2p — chantier gelé.
+
 ### 🟠 Comblés le même jour (3 trous trouvés par le crible des explications)
 | règle | exemple | FP mesurés |
 |---|---|---|
