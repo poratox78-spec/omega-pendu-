@@ -19,6 +19,64 @@ PÉRIMÈTRE (choix assumé, motivé).
 
 ---
 
+## 0-bis. BALAYAGE DU 26/08/2026 — ce qui reste, mesuré DANS LE NAVIGATEUR
+
+> Demande de Rem : *« fais des tests conséquents voir si encore des manquants »*.
+
+**Méthode, et le piège qu'elle évite.** Un premier balayage a été lancé sur la référence Python
+(`correcteur_probe.py`) : il rendait 42 « muets » sur 84 fautes. **Chiffre FAUX** — la référence
+Python ne porte que la GRAMMAIRE ; le speller (orthographe, graphèmes, accents), l'élision et la
+typographie vivent ailleurs. C'est exactement le piège du *moteur à moitié chargé*. Tout ce qui suit
+est donc mesuré dans **l'app réelle pilotée par Chrome**, et les défauts ont été **reconfirmés sur
+omegapendu.com** pour être sûr qu'ils ne venaient pas du travail en cours.
+
+### ✅ Ce qui répond bien (échantillon de 20 fautes d'orthographe/graphème)
+`fenetre→fenêtre` · `ellle→elle` · `fote→faute` · `dehor→dehors` · `chapo→chapeau` ·
+`monagne→montagne` · `jmaais→jamais` · `batiment→bâtiment` · `beacoup→beaucoup` ·
+`patiance→patience` · `pome→pomme` · `apeler→appeler` · `manje→mangé` · `trés→très` ·
+`echarpe→écharpe` · `preferé→préféré` · `lhopital→l'hôpital` · `dargent→d'argent` · `c est→c'est`
+
+### ⛔ CORRECTIONS FAUSSES (pire qu'un manque : le correcteur affirme une erreur)
+| écrit | proposé | attendu | note |
+|---|---|---|---|
+| `afreuses` | **affreux** | affreuses | perd le féminin pluriel |
+| `sertin` | **serein** | certain | mauvais candidat phonétique |
+| `tar` | **tarte** | tard | mot inconnu → candidat plus long, pas la lettre muette |
+| `La foret est sombre` | **La → Le** | foret → forêt | *foret* (outil) est masculin : le moteur corrige le DÉTERMINANT au lieu du nom accentué |
+
+### ❌ MUETS confirmés (rien ne se déclenche)
+| famille | phrase | attendu |
+|---|---|---|
+| homophone | `Ce chien **et** tres gentil.` | est |
+| homophone | `Il **son** partis tot.` | sont |
+| homophone | `Il **ces** trompe de chemin.` | s'est |
+| homophone | `Il y a **peut** de monde.` | peu |
+| homophone | `**Mais** amis sont venus.` | Mes |
+| accord | `**Marie** est venu ce matin.` | venue — ⚠️ l'accord par PRÉNOM est livré, il ne tire pas ici |
+| segmentation | `**Ducou** je suis parti.` | du coup |
+| accent | `Le **the** est **brulant**.` | thé / brûlant |
+| conjugaison | `Nous **somme** partis.` | sommes |
+
+⚠️ Les homophones muets ci-dessus (`et/est`, `son/sont`, `ces/s'est`, `peut/peu`, `mais/mes`) ont
+tous une règle au registre : elles ne se déclenchent pas **dans ces contextes-là**. C'est un travail
+de gardes, pas de règles manquantes — à instruire cas par cas avant de toucher quoi que ce soit.
+
+### 🟠 Comblés le même jour (3 trous trouvés par le crible des explications)
+| règle | exemple | FP mesurés |
+|---|---|---|
+| personne du verbe | `je fini`→finis · `tu a`→as · `il faut que tu fini`→**finisses** | 0 / 25 752 formes correctes · 0 / UD 2500 |
+| infinitif après semi-auxiliaire | `je vais mange`→manger · `je dois fini`→finir | 0 / 35 556 couples corrects · 0 / UD |
+| on/ont après sujet pluriel | `Les enfants on mange`→ont | 0 / UD · 0 / corpus dys |
+
+### 🐞 FP ROUGE réparé (violation du FP=0, présente en production)
+`Dans ses statistiques **on** voit bien.` — français correct — devenait « ses statistiques **ONT**
+voit bien », **appliqué d'office**. La règle ne demandait qu'un pluriel juste avant « on » sans
+vérifier que c'était le SUJET (ici il est dans un groupe prépositionnel). Deux FP jumeaux trouvés
+ensuite par la batterie de parité : `les endroits **où** on va coûte cher`, `les auteurs **dont** on
+cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « on » est le sujet.
+
+---
+
 ## 1. ORTHOGRAPHE LEXICALE (LT : « Faute de frappe possible »)
 
 | phénomène | état | où / limite |

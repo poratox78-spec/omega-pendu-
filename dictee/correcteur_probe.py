@@ -669,6 +669,24 @@ def rule_mai_mais(T, i):
 _LELID_STOP = {'un', 'une', 'autre', 'autres', 'on', 'uns'}   # « l'un et l'autre ont… » : pronoms indéfinis, pas des noms-têtes de sujet singulier
 
 
+def _plur_sous_prep(T, i):
+    """Le PLURIEL qui précède « on » est-il dans un groupe PRÉPOSITIONNEL ?
+
+    FP ROUGE mesuré EN PRODUCTION le 26/08/2026 : « Dans ses statistiques on voit bien. » — français
+    parfaitement correct — devenait « ses statistiques ONT voit bien », appliqué D'OFFICE. Cause :
+    `is_plural_noun(T, i-1)` ne demande qu'un pluriel juste avant « on », sans vérifier que c'est le
+    SUJET. Ici il appartient à « Dans ses statistiques », donc « on » est bien le sujet.
+    Cette garde ne peut que RETIRER une correction, jamais en ajouter. Miroir JS : _plurSousPrep."""
+    d = -1
+    for j in range(i - 1, max(-1, i - 4), -1):
+        if _SEG is not None and j + 1 < len(_SEG['bb']) and _SEG['bb'][j + 1]:
+            return False                                   # frontière → autre proposition
+        if NUM_DET.get(deacc(T[j].lower())) == 'pl':
+            d = j; break
+    if d < 1: return False
+    return deacc(T[d-1].lower()) in PREP
+
+
 def rule_on_ont(T, i):
     if deacc(T[i].lower()) == 'ont' and i + 2 < len(T):
         _po = T[i+1].lower()
@@ -712,7 +730,7 @@ def rule_on_ont(T, i):
         p = prev(T, i)
         pr = deacc(T[i-1].lower()) if i > 0 else ''
         glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
-        if p in ('ils', 'elles') or glued_pl or is_plural_noun(T, i-1): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
+        if p in ('ils', 'elles') or glued_pl or (is_plural_noun(T, i-1) and not _plur_sous_prep(T, i)): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
         if i+1 < len(T) and _is_ppl(T[i+1]): return 'ont'              # avoir + participe (« les gens qui on grandi/incarné/pu ») → 3pl, jamais « on »
     if vlike(T, i+1):
         if lw == 'ont':
@@ -1437,6 +1455,20 @@ def _pp_coord_subject(T, tg, a):
         return None
     return 'p'
 
+_NOMS_TEMPS = set((
+    "matin matins matinee matinees soir soirs soiree soirees midi minuit jour jours journee journees "
+    "semaine semaines mois an ans annee annees nuit nuits weekend week-end printemps ete automne hiver "
+    "lundi mardi mercredi jeudi vendredi samedi dimanche veille lendemain saison saisons moment moments "
+    "instant instants fois siecle siecles decennie decennies").split())
+
+
+def _det_de_temps(T, j):
+    """« ce matin », « le lendemain », « la semaine »… : un COMPLÉMENT DE TEMPS, jamais un sujet
+    postposé. Liste FERMÉE — « est annoncée la reprise » n'en fait pas partie et reste protégé."""
+    if j + 1 >= len(T): return False
+    return deacc(T[j+1].lower()) in _NOMS_TEMPS
+
+
 def rule_pp_etre(T, i):
     """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
     « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
@@ -1465,7 +1497,15 @@ def rule_pp_etre(T, i):
         if a >= 1 and _elid_kind(T[a-1]) == 'pron': return None   # PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
         tg = pos_tags(T)
         if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ'): return None   # participe RÉEL (tagger) → écarte les noms homographes (« les données sont… »)
-        if i+1 < len(tg) and tg[i+1] == 'DET': return None     # déterminant juste APRÈS le participe → sujet POSTPOSÉ (« est annoncée la reprise ») ou attribut → identification du sujet non fiable → abstention (FP)
+        # Déterminant juste APRÈS le participe → sujet POSTPOSÉ (« est annoncée la reprise ») ou
+        # attribut → abstention. EXEMPTION MESURÉE le 26/08/2026 : un COMPLÉMENT DE TEMPS n'est
+        # jamais un sujet postposé. En bloc, cette garde rendait MUET l'accord par PRÉNOM —
+        # « Marie est venu. » corrigeait, « Marie est venu CE MATIN. » non : la différence tenait au
+        # seul « ce ».
+        # ⛔ TENTÉ ET REFUSÉ : conditionner la garde à « aucun sujet trouvé à gauche ». Mesuré sur UD
+        #    2500, ça laissait passer « Le 10 février 2012 est annoncée la reprise » → annoncé (le
+        #    parseur prend la DATE pour le sujet). 1 FP rouge de plus : disqualifiant.
+        if i+1 < len(tg) and tg[i+1] == 'DET' and not _det_de_temps(T, i+1): return None
         subj = _np_subject(T, tg, a)
         if subj is None:                                          # sujet nominal simple non résolu → tenter le sujet COORDONNÉ « X et Y sont » (pluriel, genre écrit gardé comme le chemin « nous »)
             if aux_num == 'p' and _pp_coord_subject(T, tg, a) == 'p':
@@ -3869,7 +3909,152 @@ def rule_adj_aux(T, i):
 # palier (elle liste les corrections) ; ce sont les moteurs JS qui rendent ces familles en VIGILANCE (orange, clic)
 # au lieu de ROUGE (appliqué d'office) — parité du jeu vérifiée par extension/parity_core.js. Les familles à 100 %
 # (participe après avoir, majuscule, a/à, adjectif épithète, singulier du nom) restent rouges.
-VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où')
+# ---------------------------------------------------------------------------------------------
+# LES TROIS TROUS TROUVES PAR LE CRIBLE (26/08/2026) -- portes ici pour tenir la parite 3 moteurs.
+# Ils vivaient d'abord dans l'app et l'extension seulement, comme `jInfVig` avant eux : une dette
+# signalee puis remboursee. Toutes ORANGE (VIG_FAMILIES), donc proposees, jamais imposees.
+# ---------------------------------------------------------------------------------------------
+
+_PERS_SUBJ = re.compile(r"^(faut|faille|fallait|veux|veut|voulons|voulez|veulent|souhaite|souhaites"
+                        r"|desire|exige|doute|doutes|aimerais|voudrais|permets|permet|interdit"
+                        r"|empeche|avant|bien|pour|afin|quoique|jusqu|sans)$")
+
+
+def _pers_slot(lem, t, sl):
+    v = (CONJ_C.get(lem) or {}).get(t, {}).get(sl)
+    return deacc(v.lower()) if v else None
+
+
+def rule_personne_verbe(T, i):
+    """« je fini » -> finis · « tu a » -> as · « il faut que tu fini » -> finisses.
+
+    AUTORITE = CONJ_C (lemme->temps->slot->forme), JAMAIS CONJ_F seule : la table des lectures porte
+    315 incoherences sur 71 566, dont « as » declare 1re personne -- sans cette precaution la regle
+    proposait « je as ». Mesure avant portage : 0 FP sur les 25 752 formes CORRECTES de la table,
+    0 sur les 2 500 phrases UD, 10 vraies fautes sur le corpus dys reel.
+    Miroir JS : persVig."""
+    if not CONJ_F or not CONJ_C: return None
+    w = T[i]
+    lw = deacc(w.lower())
+    if not re.match(r"^[a-z']+$", lw): return None
+    if lw in CLITIC: return None                       # « je lui » n'est pas « je luis » (FP UD)
+    j, st = i - 1, 0
+    while j >= 0 and st < 3 and deacc(T[j].lower()) in CLITIC:
+        j -= 1; st += 1
+    if j < 0: return None
+    p_ = deacc(T[j].lower())
+    per = '1' if p_ == 'je' else ('2' if p_ == 'tu' else None)
+    if per is None: return None
+    if j > 0:
+        av = deacc(T[j-1].lower())
+        if av in NUM_DET: return None                  # « le je », « le tu » : pas un pronom sujet
+        if CONJ_F.get(av): return None                 # forme conjuguee juste avant = INVERSION
+    sub = False
+    if j > 0 and re.match(r"^(que|qu)$", deacc(T[j-1].lower()).rstrip("'\u2019")):
+        for k in range(j - 2, max(-1, j - 6), -1):
+            if _PERS_SUBJ.match(deacc(T[k].lower())):
+                sub = True; break
+    temps = 'sub:pre' if sub else 'ind:pre'
+    for r in (CONJ_F.get(lw) or '').split('|'):
+        a = r.split(';')
+        if len(a) == 4 and _pers_slot(a[0], a[1], per + 's') == lw:
+            return None                                # deja juste a cette personne
+    cand = lw + 's'
+    if not CONJ_F.get(cand): return None
+    out = None
+    for r in CONJ_F[cand].split('|'):
+        a = r.split(';')
+        if len(a) != 4 or a[3] != 's' or a[2] != per: continue
+        if _pers_slot(a[0], a[1], per + 's') != cand: continue      # lecture incoherente : ignoree
+        vrai = ((CONJ_C.get(a[0]) or {}).get(temps, {}).get(per + 's')
+                or (CONJ_C.get(a[0]) or {}).get(a[1], {}).get(per + 's'))
+        if not vrai: continue
+        if out and out != vrai: return None                         # deux lemmes -> abstention
+        out = vrai
+    return out if (out and deacc(out.lower()) != lw) else None
+
+
+_SEMI_AUX = set(('vais vas va allons allez vont allais allait allions alliez allaient irai iras ira '
+                 'irons irez iront veux veut voulons voulez veulent voulais voulait voulions vouliez '
+                 'voulaient voudrais voudrait voudrions dois doit devons devez doivent devais devait '
+                 'devions deviez devaient devrai devra devrons peux peut pouvons pouvez peuvent '
+                 'pouvais pouvait pouvions pouviez pouvaient pourrai pourra pourrons sais sait '
+                 'savons savez savent savais savait faut fallait faudra faudrait').split())
+_INF_OUTILS = set((u"a \u00e0 en y de du des le la les ce se ne que qui si ou o\u00f9 et est par pour "
+                   u"sans sous sur vers dans chez avec entre contre depuis apres avant plus moins "
+                   u"tout tous bien mieux trop puis donc alors ainsi aussi encore jamais toujours").split())
+
+
+def rule_inf_semi_aux(T, i):
+    """« je vais mange » -> manger · « je dois fini » -> finir.
+
+    Trois gardes nees de FP MESURES : `compte` retire des semi-auxiliaires (« le reseau compte 20
+    routes » -> router) ; « a » desaccentue devient « a » donc lu comme avoir (« peut a tout moment »)
+    d'ou la liste fermee de mots-outils ; le participe se rejoint par sa forme en -s (« fini » ->
+    « finis » -> finir), route qui attrapait « peuvent par » -> partir.
+    0 FP sur 35 556 couples semi-aux + infinitif correct, 0 sur UD. Miroir JS : semiInfVig."""
+    if not CONJ_F: return None
+    w = T[i]
+    lw = deacc(w.lower())
+    if not re.match(r"^[a-z'-]+$", lw): return None
+    if lw in CLITIC or lw in _INF_OUTILS or w.lower() in _INF_OUTILS: return None
+    j, st = i - 1, 0
+    while j >= 0 and st < 3 and deacc(T[j].lower()) in CLITIC:
+        j -= 1; st += 1
+    if j < 0 or deacc(T[j].lower()) not in _SEMI_AUX: return None
+    # le semi-auxiliaire est-il DANS une relative ? « les endroits ou on va coute cher » : « va »
+    # ferme la relative, « coute » est le verbe de la principale. FP de la batterie de PARITE.
+    for _r in range(j - 1, max(-1, j - 4), -1):
+        if deacc(T[_r].lower()) in ('ou', 'dont'): return None
+    src = CONJ_F.get(lw) or CONJ_F.get(lw + 's')
+    if not src: return None
+    out = None
+    for r in src.split('|'):
+        a = r.split(';')
+        if len(a) != 4: continue
+        if deacc(a[0].lower()) == lw: return None       # c'est DEJA l'infinitif
+        if out and out != a[0]: return None             # plusieurs lemmes -> abstention
+        out = a[0]
+    return out
+
+
+_ON_DETPL = set('les des ces mes tes ses nos vos leurs plusieurs certains certaines quelques'.split())
+_ON_CLIT = set('le la les lui leur y en me te se nous vous l m t s ne n'.split())
+_ON_REL = set('ou dont que qu'.split())   # relatifs qui ouvrent une proposition a sujet on
+
+
+def rule_on_ont_sujet_pluriel(T, i):
+    """« Les enfants on mange leur soupe. » -> ont.
+
+    LA PLUS DANGEREUSE DES TROIS, et la premiere version etait mauvaise : « un GN pluriel plus haut
+    dans la phrase » donnait 3 FP sur 4 declenchements du corpus dys reel (« dans ses statistiques on
+    voit », « entre amis on a mange » sont CORRECTS). Trois gardes : le determinant pluriel doit etre
+    COLLE (det + nom + « on »), ne PAS etre introduit par une preposition, et aucune FRONTIERE ne doit
+    s'intercaler -- sans quoi « Les enfants, on mange ! » et « des juristes (on disait alors...) » se
+    declenchaient. Apres gardes : 0 FP sur UD 2500 et sur le corpus dys, 1 vraie prise.
+    Miroir JS : onOntVig."""
+    if deacc(T[i].lower()) != 'on': return None
+    if _SEG is None or (i < len(_SEG['bb']) and _SEG['bb'][i]): return None
+    nx = deacc(T[i+1].lower()) if i + 1 < len(T) else ''
+    if not nx or nx in _ON_CLIT: return None
+    if not CONJ_F or (not CONJ_F.get(nx) and not CONJ_F.get(nx + 's')): return None
+    d = -1
+    for j in range(i - 1, max(-1, i - 4), -1):
+        if j + 1 <= i and j + 1 < len(_SEG['bb']) and _SEG['bb'][j + 1]: return None
+        # RELATIVE : « ou » et « dont » ouvrent une proposition dont « on » est le SUJET
+        # (« les endroits ou on va », « les auteurs dont on cite ») -- 2 FP de la batterie de PARITE.
+        # `qui` reste HORS liste : « qui on montrais » est une vraie faute.
+        if deacc(T[j].lower()).rstrip("'’") in _ON_REL: return None
+        if deacc(T[j].lower()) in _ON_DETPL:
+            d = j; break
+    if d < 0 or d == i - 1: return None                 # il faut un NOM entre le determinant et « on »
+    if d > 0 and deacc(T[d-1].lower()) in PREP: return None
+    return 'ont'
+
+
+VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où',
+                'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier',
+                'on/ont après un sujet pluriel à vérifier')
 _SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
 _INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
                'cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars '
@@ -3943,6 +4128,9 @@ RULES = [('élision inversée', rule_deselide),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
+         ('personne du verbe à vérifier', rule_personne_verbe),
+         ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
+         ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est), ('est/et (proposition)', rule_est_et_clause),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
          ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa), ('ou/où', rule_ou_ou),

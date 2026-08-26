@@ -24081,7 +24081,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
   function accordType(t,s,verb){if(verb)return'verbal';var a=deacc(t.toLowerCase()),b=deacc(s.toLowerCase()),p=0;while(p<a.length&&p<b.length&&a[p]===b[p])p++;var suf=a.slice(p)+b.slice(p);if(suf.indexOf('s')>=0||suf.indexOf('x')>=0)return'nombre';if(suf.slice(-2)==='nt'||suf.indexOf('t')>=0)return'verbal';if(suf.indexOf('e')>=0)return'genre';return'flexion';}
   function nb(x){return x==='pl'?'pluriel':'singulier';}
-  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',liaison:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique) ; homophone LEXICAL (ver/vert) = lexical ; homophone GRAMMATICAL (a/à, son/sont) = morphosyntaxique ; 'homophone' nu = repli lexical
+  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',liaison:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique',personne:'morphosyntaxique'};   // majuscule = convention de surface (stade alphabétique) ; homophone LEXICAL (ver/vert) = lexical ; homophone GRAMMATICAL (a/à, son/sont) = morphosyntaxique ; 'homophone' nu = repli lexical
   var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
   var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
   var STAGE_MSG={phonologique:'le mot n’est pas encore bien ENTENDU — on travaille le son avant l’orthographe.',alphabetique:'le son est juste, la graphie non — c’est le palier des accents et des graphies.',lexical:'la graphie du MOT lui-même : lettres muettes, et homophones que le SENS tranche (ver/vert/verre).',morphosyntaxique:'le palier le plus tardif : les accords, et les homophones que seule la grammaire tranche (a/à, son/sont).'};
@@ -24161,6 +24161,15 @@ window.addEventListener('DOMContentLoaded', () => {
     homophone_lex:function(e,a){
       return _pr(e,a)+'ici c’est le SENS qui décide — remplace par un mot de la même famille (verre→du verre, vert→verdure).';},
     homophone:function(e,a){return REMED.homophone_gram(e,a);},
+    personne:function(e,a){
+      var le=(e||'').toLowerCase(),la=(a||'').toLowerCase();
+      if(le&&la&&/(er|ir|re|oir)$/.test(la)&&!/(er|ir|re|oir)$/.test(le))
+        return _pr(e,a)+'après « je vais », « je dois », « je peux »…, le verbe reste à l’INFINITIF.';
+      if(le&&la&&la.length===le.length+1&&la.slice(0,-1)===le&&/s$/.test(la))
+        return _pr(e,a)+'avec « je » ou « tu », ce verbe prend un -s.';
+      if(le&&la&&/(sse|sses|ienne|iennes|asse|fasse|fasses)$/.test(la))
+        return _pr(e,a)+'après « il faut que », le verbe passe au SUBJONCTIF.';
+      return _pr(e,a)+'le verbe se conjugue avec SA personne — « il » n’a pas la même terminaison.';},
     accord:function(e,a){var d=_rd(e,a);
       // ⭐ -er / -é : le TEST DU 3e GROUPE, et rien d'autre. « manger/mangé » sont homophones, pas
       // « mordre/mordu » — c'est le test que tout le monde apprend, et il tranche à coup sûr. Il
@@ -24813,6 +24822,21 @@ var w=T[i],lw=w.toLowerCase();
   function _pluralLeft(T,i){var j=i-1;for(var k=0;k<7;k++){if(j<0)return false;var wj=deacc(T[j].toLowerCase());
     if(_PLURAL_CUE[wj]||cpl(T,j))return true;
     if(_SEG&&j<_SEG.bb.length&&_SEG.bb[j])return false;j--;}return false;}
+  /* ⭐ FP ROUGE MESURÉ EN PRODUCTION (26/08/2026) : « Dans ses statistiques on voit bien. » —
+     français parfaitement correct — devenait « ses statistiques ONT voit bien », appliqué D'OFFICE.
+     Cause : `cpl(T,i-1)` ne demande qu'un PLURIEL juste avant « on », sans vérifier qu'il s'agit du
+     SUJET. Ici le pluriel est dans un groupe PRÉPOSITIONNEL (« Dans ses statistiques »), donc « on »
+     est bien le sujet. La carte l'affichait déjà sans que rien n'en tire la conséquence : son propre
+     test de substitution rendait « ses statistiques avaient voit bien », qui ne se dit pas.
+     Cette garde ne peut que RETIRER une correction, jamais en ajouter. */
+  function _plurSousPrep(T,i){
+    var j,d=-1;
+    for(j=i-1;j>=0&&j>=i-3;j--){
+      if(_SEG&&j+1<_SEG.bb.length&&_SEG.bb[j+1])return false;      // frontière → autre proposition
+      var w=deacc(T[j].toLowerCase());
+      if(NUM_DET[w]==='pl'){d=j;break;}}
+    if(d<1)return false;
+    return !!PREP[deacc(T[d-1].toLowerCase())];}
   function rOn(T,i){
     if(deacc(T[i].toLowerCase())==='ont'&&i+2<T.length){var _po=T[i+1].toLowerCase();
       if((_po==='sur'||_po==='sous'||_po==='contre'||_po==='entre')&&_isPpl(T[i+2]))return null;}   // « ils ont contre attaqué » : composé COUPÉ (mot coupé dys) — corriger ont→on cassait la phrase (conflit lu à la carto) ; 0 occurrence sur 16 950 correct
@@ -24829,7 +24853,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var ci=(i===0)||(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]);
     if(!ci){
       var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
-      if(p==='ils'||p==='elles'||glued||cpl(T,i-1))return 'ont';
+      if(p==='ils'||p==='elles'||glued||(cpl(T,i-1)&&!_plurSousPrep(T,i)))return 'ont';
       if(i+1<T.length&&_isPpl(T[i+1]))return 'ont';
     }
     if(vlike(T,i+1)){
@@ -25739,6 +25763,14 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       return null;}
     return 'p';}   // sujet coordonné « X et Y sont » → pluriel (MIROIR _pp_coord_subject)
   var _A1AUXPL={sont:1,etaient:1,furent:1,seront:1};   // #A1 : aux ÊTRE 3e-pers PLURIEL AUDIBLE (etes exclu = vouvoiement sing.)
+  /* « ce matin », « le lendemain », « la semaine »… : un COMPLÉMENT DE TEMPS, jamais un sujet
+     postposé. Liste FERMÉE — « la reprise » n'en fait pas partie et reste protégée. */
+  var _NOMS_TEMPS={};('matin matins matinee matinees soir soirs soiree soirees midi minuit jour jours '+
+    'journee journees semaine semaines mois an ans annee annees nuit nuits weekend week-end printemps '+
+    'ete automne hiver lundi mardi mercredi jeudi vendredi samedi dimanche veille lendemain saison '+
+    'saisons moment moments instant instants fois siecle siecles decennie decennies').split(' ')
+    .forEach(function(w){_NOMS_TEMPS[w]=1;});
+  function _detDeTemps(T,j){return (j+1<T.length)&&!!_NOMS_TEMPS[deacc(T[j+1].toLowerCase())];}
   function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null)return null;
     if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;   // « s'est vu/fait/laissé + INFINITIF » → PP INVARIABLE (piège Voltaire)
@@ -25750,7 +25782,14 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.                              // pronom élidé (« qu'elle soit emmenée ») → abstention (FP)
       var tgp=posTags(T);
       if(!tgp||i>=tgp.length||(tgp[i]!=='VERB'&&tgp[i]!=='ADJ'))return null;     // participe RÉEL (tagger) → écarte les noms homographes
-      if(i+1<tgp.length&&tgp[i+1]==='DET')return null;                          // déterminant après le participe → sujet POSTPOSÉ (« est annoncée la reprise ») → abstention (FP)
+      /* déterminant après le participe → sujet POSTPOSÉ (« est annoncée la reprise ») → abstention.
+         EXEMPTION MESURÉE le 26/08/2026 : un COMPLÉMENT DE TEMPS n'est jamais un sujet postposé.
+         En bloc, cette garde rendait MUET l'accord par PRÉNOM — « Marie est venu. » corrigeait,
+         « Marie est venu CE MATIN. » non : la différence tenait au seul « ce ».
+         ⛔ TENTÉ ET REFUSÉ : conditionner la garde à « aucun sujet trouvé à gauche » — mesuré sur
+         UD 2500, ça laissait passer « Le 10 février 2012 est annoncée la reprise » → annoncé (le
+         parseur prend la DATE pour le sujet). 1 FP rouge de plus : disqualifiant. */
+      if(i+1<tgp.length&&tgp[i+1]==='DET'&&!_detDeTemps(T,i+1))return null;
       var sj=_npSubject(T,tgp,a);
       if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var gcp=(/e$/.test(lw)&&!/é$/.test(lw))?'f':'m',sgp=base+(gcp==='f'?'es':'s');return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}
         if(!_a1refl&&_A1AUXPL[deacc(T[a].toLowerCase())]&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');   // #A1 : sujet non résolu, aux pluriel audible → nombre seul (masc gardé)
@@ -25948,6 +25987,131 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(nx==='une'||nx==='la'||nx==='le'||nx==='les'||nx==='un'||nx==='des'||nx==='du'||nx==='son'||nx==='sa'||nx==='ses'||nx==='leur'||nx==='leurs'||nx==='de'||nx==="d'")return null;
     var tgt=_ppAccord(lw,'s','f');if(!tgt||tgt===lw)return null;
     return ckeepcase(w,tgt);}
+  /* ORANGE « je fini », « tu mange », « tu a » — LA PERSONNE DU VERBE (26/08/2026).
+     Trou trouvé par le crible des explications : rien ne se déclenchait sur « Il faut que tu fini ».
+     Mesuré avant portage : 0 FP sur les 25 752 formes CORRECTES de la table (5 926 lemmes), 0 sur les
+     2 500 phrases UD, et 10 vraies fautes attrapées sur 139 occurrences de je/tu du corpus dys réel
+     (tu a→as ×4, je sui→suis, je vai→vais ×2, tu revien→reviens, tu refuse→refuses, me permet→permets).
+     ⭐ AUTORITÉ = CONJ_C (lemme→temps→slot→forme), JAMAIS CONJ_F seule : la table des lectures porte
+     315 incohérences sur 71 566, dont « as » déclaré 1re personne — sans cette précaution la règle
+     proposait « je as ». Deux autres gardes nées de FP mesurés : le mot examiné ne doit pas être un
+     CLITIQUE (« je lui » → « je luis », seul FP du corpus UD), et une forme conjuguée juste avant le
+     pronom signale une INVERSION (« as-tu mange » → aurait proposé « manges »). */
+  var _PERS_SUBJ=/^(faut|faille|fallait|veux|veut|voulons|voulez|veulent|souhaite|souhaites|desire|exige|doute|doutes|aimerais|voudrais|permets|permet|interdit|empeche|avant|bien|pour|afin|quoique|jusqu|sans)$/;
+  function _persSlot(lem,t,s){var v=((CONJ_C[lem]||{})[t]||{})[s];return v?deacc(v.toLowerCase()):null;}
+  /* ORANGE « je vais mange », « je dois fini » — L'INFINITIF APRÈS UN SEMI-AUXILIAIRE (26/08/2026).
+     Second trou trouvé par le crible. Mesuré avant portage : 0 FP sur les 35 556 couples
+     semi-auxiliaire + infinitif CORRECT, 0 sur les 2 500 phrases UD, 1 vraie prise sur le corpus
+     dys réel (« va te la raconté » → raconter).
+     ⭐ Trois gardes, chacune née d'un FP MESURÉ, pas d'une intuition :
+       · `compte` a été RETIRÉ des semi-auxiliaires (« le réseau compte 20 routes » → router) : un
+         verbe qui prend un objet direct n'a rien à faire dans cette liste ;
+       · la désaccentuation rend « à » homographe de « a » → « peut à tout moment » proposait
+         « avoir » ; d'où la liste fermée de mots-outils ;
+       · le participe se rejoint par sa forme en -s (« fini » → « finis » → finir), mais cette route
+         attrapait « peuvent par » → partir : prépositions et adverbes courants fermés aussi. */
+  var _SEMI_AUX={vais:1,vas:1,va:1,allons:1,allez:1,vont:1,allais:1,allait:1,allions:1,alliez:1,allaient:1,
+    irai:1,iras:1,ira:1,irons:1,irez:1,iront:1,veux:1,veut:1,voulons:1,voulez:1,veulent:1,voulais:1,voulait:1,
+    voulions:1,vouliez:1,voulaient:1,voudrais:1,voudrait:1,voudrions:1,dois:1,doit:1,devons:1,devez:1,doivent:1,
+    devais:1,devait:1,devions:1,deviez:1,devaient:1,devrai:1,devra:1,devrons:1,peux:1,peut:1,pouvons:1,pouvez:1,
+    peuvent:1,pouvais:1,pouvait:1,pouvions:1,pouviez:1,pouvaient:1,pourrai:1,pourra:1,pourrons:1,
+    sais:1,sait:1,savons:1,savez:1,savent:1,savais:1,savait:1,faut:1,fallait:1,faudra:1,faudrait:1};
+  var _INF_OUTILS={a:1,'à':1,en:1,y:1,de:1,du:1,des:1,le:1,la:1,les:1,ce:1,se:1,ne:1,que:1,qui:1,si:1,ou:1,
+    'où':1,et:1,est:1,par:1,pour:1,sans:1,sous:1,sur:1,vers:1,dans:1,chez:1,avec:1,entre:1,contre:1,depuis:1,
+    apres:1,avant:1,plus:1,moins:1,tout:1,tous:1,bien:1,mieux:1,trop:1,puis:1,donc:1,alors:1,ainsi:1,aussi:1,
+    encore:1,jamais:1,toujours:1};
+  /* ORANGE « Les enfants on mange » → ont (26/08/2026). Troisième trou trouvé par le crible.
+     ⚠️ LE PLUS DANGEREUX DES TROIS, et la première version était MAUVAISE : « un GN pluriel plus
+     haut dans la phrase » donnait 3 FP sur 4 déclenchements du corpus dys réel — « dans ses
+     statistiques on voit », « entre amis on a mangé » sont du français CORRECT. Trois gardes, toutes
+     nées d'un FP mesuré :
+       · le déterminant pluriel doit être le SUJET : collé (det + nom + « on »), pas plus loin ;
+       · il ne doit PAS être introduit par une préposition (« dans ses statistiques… ») ;
+       · aucune FRONTIÈRE entre lui et « on » — le tokeniseur jette la ponctuation, donc on lit
+         `_SEG.bb`, sans quoi « Les enfants, on mange ! » (apostrophe) et « des juristes (on disait
+         alors…) » (parenthèse, seul FP restant sur UD) se déclenchaient.
+     Après gardes : 0 FP sur 2 500 phrases UD, 0 sur le corpus dys réel, 1 vraie prise
+     (« des écologiste qui on montrais » → ont). */
+  var _ON_DETPL={les:1,des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1,plusieurs:1,certains:1,certaines:1,quelques:1};
+  var _ON_PREP={de:1,du:1,des:1,dans:1,en:1,sur:1,sous:1,avec:1,entre:1,par:1,pour:1,chez:1,vers:1,'à':1,a:1,
+    sans:1,depuis:1,selon:1,parmi:1,contre:1,malgre:1,pendant:1};
+  var _ON_CLIT={le:1,la:1,les:1,lui:1,leur:1,y:1,en:1,me:1,te:1,se:1,nous:1,vous:1,l:1,m:1,t:1,s:1,ne:1,n:1};
+  var _ON_REL={ou:1,dont:1,que:1,qu:1};   // relatifs qui ouvrent une proposition à sujet « on »
+  function onOntVig(T,i){
+    if(deacc(String(T[i]||'').toLowerCase())!=='on')return null;
+    if(!_SEG||_SEG.bb[i])return null;                       // frontière juste avant « on » → apostrophe/incise
+    var nx=deacc(String(T[i+1]||'').toLowerCase());
+    if(!nx||_ON_CLIT[nx])return null;                       // « Le chat on le voit » est correct
+    if(!CONJ_F||(!CONJ_F[nx]&&!CONJ_F[nx+'s']))return null; // le mot d'après doit être un verbe
+    /* ⭐ RELATIVE : « où » et « dont » ouvrent une proposition dont « on » est le SUJET —
+       « les endroits où on va », « les auteurs dont on cite les livres » sont CORRECTS (2 FP trouvés
+       par la batterie de PARITÉ). `qui` reste HORS liste : « qui on montrais » est une vraie faute. */
+    var d=-1,j;
+    for(j=i-1;j>=0&&j>=i-3;j--){
+      if(_SEG.bb[j+1]&&j+1<=i)return null;                  // une frontière s'est glissée entre les deux
+      if(_ON_REL[deacc(String(T[j]).toLowerCase()).replace(/['’]$/,'')])return null;
+      if(_ON_DETPL[deacc(String(T[j]).toLowerCase())]){d=j;break;}}
+    if(d<0||d===i-1)return null;                            // il faut un NOM entre le déterminant et « on »
+    if(d>0&&_ON_PREP[deacc(String(T[d-1]).toLowerCase())])return null;
+    return 'ont';}
+  function semiInfVig(T,i){
+    if(!CONJ_F)return null;
+    var w=T[i];if(!w)return null;
+    var lw=deacc(w.toLowerCase());
+    if(!/^[a-z'-]+$/.test(lw)||CLITIC[lw])return null;
+    if(_INF_OUTILS[lw]||_INF_OUTILS[w.toLowerCase()])return null;
+    var j=i-1,st=0;
+    while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}
+    if(j<0||!_SEMI_AUX[deacc(T[j].toLowerCase())])return null;
+    /* ⭐ le semi-auxiliaire est-il DANS une relative ? « les endroits où on va coûte cher » : « va »
+       ferme la relative, « coûte » est le verbe de la principale — ce n'est pas un infinitif attendu.
+       FP trouvé par la batterie de PARITÉ. « que » reste HORS liste (« je crois que je vais mange »
+       est une vraie faute qu'on veut garder). */
+    var _r;
+    for(_r=j-1;_r>=0&&_r>=j-3;_r--){var _rw=deacc(T[_r].toLowerCase());
+      if(_rw==='ou'||_rw==='dont')return null;}
+    var rw=(CONJ_F[lw]||'').split('|');
+    if(!CONJ_F[lw])rw=(CONJ_F[lw+'s']||'').split('|');   // le participe passe par sa forme en -s
+    if(!rw.length||!rw[0])return null;
+    var out=null,m,a;
+    for(m=0;m<rw.length;m++){a=rw[m].split(';');
+      if(a.length!==4)continue;
+      if(deacc(a[0].toLowerCase())===lw)return null;     // c'est DÉJÀ l'infinitif
+      if(out&&out!==a[0])return null;                    // plusieurs lemmes → abstention
+      out=a[0];}
+    return out;}
+  function persVig(T,i){
+    if(!CONJ_F||!CONJ_C)return null;
+    var w=T[i];if(!w)return null;
+    var lw=deacc(w.toLowerCase());
+    if(!/^[a-z']+$/.test(lw))return null;
+    if(CLITIC[lw])return null;                                   // « je lui » n'est pas « je luis »
+    var j=i-1,st=0;
+    while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}
+    if(j<0)return null;
+    var p=deacc(T[j].toLowerCase());
+    var per=(p==='je')?'1':((p==='tu')?'2':null);
+    if(!per)return null;
+    if(j>0){var av=deacc(T[j-1].toLowerCase());
+      if(NUM_DET[av])return null;                                // « le je », « le tu » : pas un sujet
+      if(CONJ_F[av])return null;}                                // forme conjuguée avant = INVERSION
+    var sub=false;
+    if(j>0&&/^(que|qu)$/.test(deacc(T[j-1].toLowerCase()).replace(/['’]$/,''))){
+      for(var k=j-2;k>=0&&k>=j-5;k--)if(_PERS_SUBJ.test(deacc(T[k].toLowerCase()))){sub=true;break;}}
+    var temps=sub?'sub:pre':'ind:pre',r,a,m;
+    var rw=(CONJ_F[lw]||'').split('|');
+    for(m=0;m<rw.length;m++){a=rw[m].split(';');
+      if(a.length===4&&_persSlot(a[0],a[1],per+'s')===lw)return null;}   // déjà juste à cette personne
+    var cand=lw+'s',rc=(CONJ_F[cand]||'').split('|'),out=null;
+    if(!CONJ_F[cand])return null;
+    for(m=0;m<rc.length;m++){a=rc[m].split(';');
+      if(a.length!==4||a[3]!=='s'||a[2]!==per)continue;
+      if(_persSlot(a[0],a[1],per+'s')!==cand)continue;            // lecture incohérente : ignorée
+      var vrai=((CONJ_C[a[0]]||{})[temps]||{})[per+'s']||((CONJ_C[a[0]]||{})[a[1]]||{})[per+'s'];
+      if(!vrai)continue;
+      if(out&&out!==vrai)return null;                            // deux lemmes en désaccord → abstention
+      out=vrai;}
+    return (out&&deacc(out.toLowerCase())!==lw)?out:null;}
   function jInfVig(T,i){
     /* ORANGE « J'aimer beaucoup » (enquête des 22, texte6) : j' + INFINITIF -er n'est jamais
        valide (l'élision exige une forme conjuguée) ; le TEMPS voulu est inconnu (gold imparfait)
@@ -27370,6 +27534,9 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     if(!pushed){var spv=sestPpVig(T,i);if(spv){out.push({i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}   // « elle s'est marié » → mariée ? (pronominal = orange)
     if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
+    if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
+    if(!pushed){var siv=semiInfVig(T,i);if(siv){out.push({i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'});pushed=true;}}   // « je vais mange » → manger ? (orange)
+    if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
     if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;out.push({i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp});pushed=true;}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
@@ -27597,6 +27764,9 @@ function spellTokenCore(tok,atStart,T,idx){
     if(/typographie/.test(n))return 'typo';if(/nombre/.test(n))return 'nombre';if(/anglicisme/.test(n))return 'anglicisme';if(/abr[ée]viation/.test(n))return 'abreviation';if(/pl[ée]onasme/.test(n))return 'pleonasme';   // catégories STYLE (élargissement 07/2026) : name-based, AVANT les heuristiques accent/segmentation (sinon la sug « « » (avec espace) → 'segmentation') → libellé de carte correct + AUCUNE ne compte pour le stade dys (hors STAGE_FAM), miroir de l'exclusion typo de l'extension
     if(w&&sg&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
+    if(/^on\/ont/.test(n))return 'homophone';   // on/ont reste un HOMOPHONE grammatical
+    if(/infinitif après semi/.test(n))return 'personne';   // même famille : la FORME du verbe
+    if(/personne du verbe/.test(n))return 'personne';   // la PERSONNE du verbe : ni un accord de nombre, ni un homophone
     if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface|inconnu/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié) ; « mot inconnu » = graphie non résolue → surface
   // ===== MODÈLE NON DESTRUCTIF : le texte SOURCE (vdc-in) n'est JAMAIS réécrit. On calcule les corrections, on affiche
   //       l'ORIGINAL souligné (cadre haut) + le CORRIGÉ souligné (cadre bas) ; chaque mot souligné = une BASCULE (appliquer
@@ -27830,6 +28000,9 @@ function spellTokenCore(tok,atStart,T,idx){
     'pléonasme':"Cette expression répète deux fois la même idée.",
     'accord genre à vérifier':"Le genre du déterminant et celui du nom doivent s'accorder — vérifie lequel des deux est juste.",
     'conjugaison après je à vérifier':"Après « je », le verbe prend sa terminaison de 1re personne (-e, -s, -ai).",
+    'personne du verbe à vérifier':"Le verbe se conjugue avec SA personne : « je »/« tu » ne prennent pas la terminaison de « il ».",
+    'infinitif après semi-auxiliaire à vérifier':"Après « je vais », « je dois », « je peux »…, le verbe reste à l'INFINITIF.",
+    'on/ont après un sujet pluriel à vérifier':"Le sujet est déjà là, au pluriel : « on » ne peut pas être sujet une deuxième fois — c'est « ont », le verbe avoir.",
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",
     'et/est':"« et » relie (toi et moi) ; « est » = le verbe être (il est là).",
     'son/sont':"« son » = à lui/elle (son vélo) ; « sont » = le verbe être (ils sont là).",
