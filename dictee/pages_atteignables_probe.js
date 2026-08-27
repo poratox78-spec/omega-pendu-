@@ -27,6 +27,7 @@ const RACINE = path.dirname(__dirname);
 /* Pages hors navigation VOLONTAIREMENT — la raison est obligatoire. */
 const _HORS_NAV = {
   'googleaadee2f545868c76.html': 'jeton de vérification Google Search Console : doit rester à la racine, ne se lie pas',
+  '404.html': "page d'erreur : Cloudflare Pages la sert (statut 404) sur toute URL inexistante — sans elle, fallback SPA = soft-404 sur tout le site (mesuré 27/08). Ne se lie pas, mais porte la nav complète pour repartir",
   'omega-pendu.html': "l'application elle-même : on y entre par les pages, elle a sa propre interface",
   'omega-pendu-en.html': "idem, version anglaise",
 };

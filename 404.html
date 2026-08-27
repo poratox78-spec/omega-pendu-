@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- POURQUOI CE FICHIER EXISTE (27/08/2026, enquête positionnement) : sans 404.html à la racine,
+     Cloudflare Pages suppose une SPA et sert index.html en 200 sur TOUTE URL inexistante — mesuré :
+     curl /page-inexistante-xyz → 200 + le contenu de l'accueil. Google classe ça « soft 404 » :
+     signal de qualité dégradé pour tout le site, et les URLs mortes deviennent innettoyables de
+     l'index. La seule présence de ce fichier rebranche les VRAIS 404 (Pages le sert avec le statut
+     404). Il est noindex (une page d'erreur ne s'indexe pas, ne se déclare pas au sitemap — c'est
+     la règle que dictee/sitemap_probe.js vérifie) et porte la nav complète (pas un cul-de-sac,
+     cf. dictee/pages_atteignables_probe.js). -->
+<title>Page introuvable | OMEGA-Ω</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Cette page n'existe pas ou plus. Le correcteur, la dictée et le pendu OMEGA-Ω sont à un clic.">
+<link rel="stylesheet" href="/site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- PAS de nav.js ici, et tous les liens en ABSOLU : cette page est servie à N'IMPORTE QUEL chemin
+     (y compris /foo/bar), or nav.js réécrit le menu en liens RELATIFS qui s'y casseraient — et
+     <base href="/"> les réparerait mais casserait le lien d'évitement #main (il résoudrait vers
+     l'accueil). Nav statique absolue = correcte partout. -->
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="top"><div class="wrap">
+  <a class="brand" href="/">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="/">Le pendu</a>
+    <a href="/correcteur">Le correcteur</a>
+    <a href="/dictee">La dictée</a>
+    <a href="/calcul">Poser un calcul</a>
+    <a href="/saisie-vocale">Saisie vocale</a>
+    <a href="/recherche">La recherche</a>
+    <a href="/donnees">Données</a>
+    <a href="/omega-key">OMEGA·KEY</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+    <button id="dys-toggle" type="button" aria-pressed="false" title="Police plus lisible (dyslexie)">🔤 Lisible</button>
+  </nav>
+</div></header>
+
+<main id="main">
+<section class="hero"><div class="wrap">
+  <span class="tag">Erreur 404 · page introuvable</span>
+  <h1>Cette page n'existe pas — ou n'existe plus.</h1>
+  <p class="lead">L'adresse a peut-être changé (le site a abandonné les URLs en «&nbsp;.html&nbsp;»), ou le lien qui t'a
+  amené ici s'est trompé d'une lettre. Rien de grave&nbsp;: tout le site est à un clic.</p>
+  <p class="lead" lang="en"><em>This page doesn't exist. The English pages live under <a href="/en/">/en/</a>.</em></p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Les pages les plus demandées</h2>
+  <ul>
+    <li><a href="/correcteur">Le correcteur dys</a> — corrige sans jamais souligner un mot juste.</li>
+    <li><a href="/dictee">La dictée diagnostique</a> — lue à voix haute, corrigée, avec le stade.</li>
+    <li><a href="/">Le pendu cognitif</a> — le moteur d'origine du projet.</li>
+    <li><a href="/donnees">Les données&nbsp;&amp;&nbsp;téléchargements</a> — lexiques, police dys.</li>
+  </ul>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <p><a href="/">Accueil</a> · <a href="/correcteur">Le correcteur</a> · <a href="/donnees">Données</a> · <a href="https://github.com/poratox78-spec/omega-pendu-">Code source</a></p>
+</div></footer>
+
+<script>
+(function(){var b=document.body,k='omega_lisible',t=document.getElementById('dys-toggle');
+  function set(v){b.classList.toggle('lisible',v);t.setAttribute('aria-pressed',v?'true':'false');try{localStorage.setItem(k,v?'1':'')}catch(e){}}
+  try{if(localStorage.getItem(k))set(true);}catch(e){}
+  t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
+</script>
+</body>
+</html>

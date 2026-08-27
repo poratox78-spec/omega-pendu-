@@ -64,6 +64,9 @@ self.addEventListener('fetch', (e) => {
         cache.put(req, clean.clone()).catch(() => {});
         return clean;
       }
+      if (res) return res;                                                 // le serveur a répondu (dont 404.html : depuis le vrai 404
+                                                                           // racine — 27/08 — une URL inconnue a une VRAIE page d'erreur ;
+                                                                           // la jeter rendait Response.error() = page d'erreur navigateur)
       const cached = await cache.match(req);                               // hors-ligne : la page elle-même si cachée
       if (cached) return cached;
       const path = new URL(req.url).pathname;                              // dernier recours : le shell UNIQUEMENT pour la racine — NE JAMAIS servir l'index à la place d'une AUTRE page
