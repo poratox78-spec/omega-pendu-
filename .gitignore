@@ -46,3 +46,4 @@ dictee/pendu_fr_strings.json
 # paquet de soumission Chrome Web Store (artefact de publication, régénérable :
 # python3 extension/build_zip.py --store) — le zip du SITE, lui, est commité et gardé frais en CI
 omega-correcteur-dys-store.zip
+inventaire_i18n.tsv
