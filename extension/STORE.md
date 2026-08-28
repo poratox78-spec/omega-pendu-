@@ -1,8 +1,13 @@
 # Publier l'extension sur le Chrome Web Store — dossier de préparation
 
-> État au **25/08/2026**. Ce fichier est le **dossier de soumission** : tout ce qui se colle dans la console
-> développeur est écrit ici, prêt à copier. Ce que je ne peux pas faire à ta place (compte payant, captures
-> d'écran, clic « Publier ») est explicitement marqué **⬜ Rem**.
+> ✅ **PUBLIÉE le 28/08/2026** — revue Google passée, état « Publié · public ».
+> Fiche : https://chromewebstore.google.com/detail/dbochkbaechbemahapplibbhmfkcldln
+> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.0**
+>
+> Ce fichier reste le **dossier de soumission** : tout ce qui se colle dans la console développeur est
+> écrit ici, prêt à copier, et sert tel quel pour **chaque mise à jour** — le §3 (fiche), le §4
+> (justifications) et le §5 (données) sont redemandés à chaque envoi qui touche aux permissions.
+> ⚠️ Toute mise à jour exige une `version` **strictement supérieure à 0.6.0**, et repasse en revue.
 
 ## 0. Où on en est
 
@@ -16,12 +21,12 @@
 | 6 | Aucun code distant (politique « Remote code ») | ✅ mesuré : aucun `eval`/`new Function`, aucun `fetch` http, aucun `<script src>` externe |
 | 7 | Permissions toutes réellement utilisées | ✅ `storage`, `contextMenus`, `sidePanel` — et **pas** de `tabs` (cf. §4) |
 | 8 | Politique de confidentialité publique couvrant **l'extension** | ✅ `omegapendu.com/confidentialite` — SANS `.html`, l'autre renvoie un 308 (section « L'extension Chrome ») |
-| 9 | Compte développeur (5 $ US, une fois) + e-mail de contact vérifié | ⬜ **Rem** |
-| 10 | Captures d'écran 1280×800 (1 à 5) | ⬜ **Rem** (§6) |
-| 11 | Remplir la fiche + les justifications, envoyer | ⬜ **Rem** (§3, §4, §5) |
-| 12 | Après publication : mettre à jour `correcteur.html` | ⬜ (§9) |
+| 9 | Compte développeur (5 $ US, une fois) + e-mail de contact vérifié | ✅ fait par Rem |
+| 10 | Captures d'écran 1280×800 (1 à 5) | ✅ fournies par Rem |
+| 11 | Remplir la fiche + les justifications, envoyer | ✅ envoyé et **accepté** le 28/08/2026 |
+| 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
 | 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ montée à **0.6.0** le 26/08/2026 (0.5.1 était la version envoyée) |
-| 14 | La fiche ne mentionne pas encore le bloc **« 🔢 Aide au nombre »** du panneau (livré) — texte prêt en fin de §3 | ⬜ (au prochain envoi) |
+| 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ paragraphe du §3 collé à l'envoi du 28/08/2026 |
 | 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (31 fichiers, 4,0 Mo, manifest à la racine, v0.6.0) | ✅ régénéré le 26/08/2026 |
 
 ## 1. Ce qui était bloquant et qui est corrigé
@@ -235,10 +240,18 @@ chrome --pack-extension=/tmp/ext         # produit /tmp/ext.crx si le manifeste 
 
 ## 9. Après publication
 
-- `correcteur.html` (et `en/correcteur.html`, `zh/correcteur-zh.html`) disent aujourd'hui
-  « *L'extension n'est pas encore sur le Chrome Web Store, alors on l'ajoute à la main* ». À remplacer
-  par le bouton d'installation en un clic — **en gardant** le zip et la marche à suivre manuelle en repli
-  (Firefox, Chromium sans Store, écoles qui bloquent le Store).
+- ✅ **Fait le 28/08/2026.** `correcteur.html` et `en/correcteur.html` portent le bouton
+  « Ajouter à Chrome » vers la fiche, et le zip + la marche à suivre manuelle sont **gardés** dans un
+  `<details>` replié, pour Firefox, Chromium sans Store et les postes d'école qui bloquent le Store.
+  `zh/correcteur-zh.html` n'a jamais eu de bloc d'installation : rien à y faire (le chinois reste privé).
+- ⚠️ **L'extension est FRANÇAISE, et la page anglaise le dit maintenant.** Elle n'a ni `_locales` ni
+  `default_locale`, et son paquet ne contient que des données FR. `en/correcteur.html` annonçait
+  « Download the extension » en pointant sur le zip français — un défaut **antérieur** à la publication,
+  réparé le même jour : le bloc s'y intitule « Browser extension — corrects French » et renvoie vers
+  l'app web anglaise (`dictee/corrector_en.js`) pour qui veut corriger de l'anglais.
+- 🎯 **Reste ouvert : localiser l'interface de l'extension** (`_locales` + `default_locale`, puis la
+  fiche multilingue). C'est un vrai chantier, et il imposerait un bump de version **et une nouvelle
+  revue Google** — à décider à froid, pas dans la foulée de la publication.
 - **Versions** : le Store refuse un envoi dont la `version` n'augmente pas. Une publication = un bump de
   `version` dans `manifest.json` (+ régénération du zip du site, gardé frais en CI).
 - La première publication d'un nouvel éditeur peut être soumise à une **période probatoire** avant que
