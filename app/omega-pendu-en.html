@@ -28981,7 +28981,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
         if (!b) return;
         var bin = atob(b), u8 = new Uint8Array(bin.length);
         for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-        var f = new FontFace(p[1], u8.buffer);
+        /* plage de graisse : sinon faux gras sur la face 400, le voisement s'inverse. */
+        var f = new FontFace(p[1], u8.buffer, {weight: '1 1000'});
         f.load().then(function (ff) { document.fonts.add(ff); }).catch(function () {});
       } catch (e) {}
     });
