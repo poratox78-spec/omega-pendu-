@@ -696,25 +696,151 @@ Pour obtenir une information, faut-il consulter la réponse cachée ? <strong>Ou
 <!-- ================ 15 ================ -->
 <section id="s15">
 <h2><span class="hn">15</span>Glossaire</h2>
+<p>Les mots et sigles employés dans ce rapport, dans le mémoire, sur <a href="../recherche">la page de recherche</a> et dans <a href="../toile">la toile du correcteur</a>. Chaque définition tient en une phrase.</p>
+<h3>15.1 — Le son et la lettre</h3>
+<p class="small">Le vocabulaire de la double route : ce qui s’entend, ce qui s’écrit.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Terme</th><th>Définition</th></tr></thead>
 <tbody>
-<tr><td><strong>Ortho / phon</strong></td><td>Forme écrite / sonore d'un mot.</td></tr>
-<tr><td><strong>SAMPA</strong></td><td>Notation des phonèmes (distingue é/è/an/on…).</td></tr>
-<tr><td><strong>Concept / hub M_S</strong></td><td>Représentation amodale reliant les voies (entrer par une, reconstruire les autres).</td></tr>
+<tr><td><strong>Graphème</strong></td><td>La <em>lettre ou le groupe de lettres</em> qui note un son. Dans « bateau », <code>eau</code> est UN graphème.</td></tr>
+<tr><td><strong>Phonème</strong></td><td>Le <em>son</em> lui-même, indépendamment de son écriture. « seau », « sot » et « saut » ont les mêmes phonèmes.</td></tr>
+<tr><td><strong>Ortho / phon</strong></td><td>Forme écrite / forme sonore d’un mot. Les deux « voies » que le projet fait travailler ensemble.</td></tr>
+<tr><td><strong>SAMPA</strong></td><td>Une notation des phonèmes écrite avec des caractères ordinaires du clavier. Distingue é/è/an/on…</td></tr>
+<tr><td><strong>IPA (API)</strong></td><td>L’alphabet phonétique international — la notation savante des sons, avec ses symboles propres (ʃ, ɛ̃…).</td></tr>
+<tr><td><strong>g2p / p2g</strong></td><td><em>Graphème vers phonème</em> et l’inverse : deviner comment un mot se prononce à partir de son écriture, ou comment il pourrait s’écrire à partir du son.</td></tr>
+<tr><td><strong>phon_key</strong></td><td>Une clé phonétique <strong>volontairement approximative</strong> du mot : elle écrase les différences pour que « fenetre » et « fenêtre » se rejoignent. Son imprécision est la fonctionnalité, pas un défaut — le vrai IPA a été mesuré et rejeté ici.</td></tr>
+<tr><td><strong>Voisé / sourd</strong></td><td>Voisé = la gorge vibre (b, d, g, v, z, j) ; sourd = elle ne vibre pas (p, t, k, f, s, ch). Une confusion dys classique.</td></tr>
+<tr><td><strong>Lettre muette</strong></td><td>Une lettre écrite mais pas prononcée : le <code>d</code> de « grand ». On la révèle par un mot de la même famille (« grande »).</td></tr>
+<tr><td><strong>Élision</strong></td><td>La voyelle qu’on remplace par une apostrophe : « le arbre » → « l’arbre ».</td></tr>
+</tbody></table></div>
+<h3>15.2 — La grammaire</h3>
+<p class="small">Les mots pour décrire la structure d’une phrase — et les outils qui la devinent.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>POS</strong></td><td><em>Part Of Speech</em> : la <strong>classe grammaticale</strong> d’un mot — nom, verbe, adjectif, déterminant…</td></tr>
+<tr><td><strong>Tagger</strong></td><td>Le programme qui attribue sa classe grammaticale à chaque mot d’une phrase.</td></tr>
+<tr><td><strong>HMM</strong></td><td><em>Modèle de Markov caché.</em> Il devine la classe de chaque mot à partir de deux indices seulement : le mot lui-même, et la classe du mot <strong>précédent</strong>. Simple, rapide, et suffisant la plupart du temps.</td></tr>
+<tr><td><strong>Viterbi</strong></td><td>L’algorithme qui, au lieu de choisir mot par mot, retient la <strong>suite de classes la plus probable pour la phrase entière</strong>.</td></tr>
+<tr><td><strong>n-gramme</strong></td><td>Une suite de <em>n</em> éléments qui se suivent — lettres ou mots. « le chat dort » contient les bigrammes « le chat » et « chat dort ».</td></tr>
+<tr><td><strong>Bigramme / trigramme</strong></td><td>Un n-gramme de 2, respectivement de 3.</td></tr>
+<tr><td><strong>Lemme</strong></td><td>La forme du mot telle qu’on la cherche dans le dictionnaire : le lemme de « mangeaient » est « manger ».</td></tr>
+<tr><td><strong>Flexion</strong></td><td>Les formes que prend un mot en changeant (pluriel, féminin, conjugaison).</td></tr>
+<tr><td><strong>Déterminant</strong></td><td>Le petit mot devant le nom : le, la, les, un, des, mon, ce…</td></tr>
+<tr><td><strong>Clitique</strong></td><td>Un petit mot qui s’appuie sur le verbe et ne vit pas seul : le <em>me</em>, <em>te</em>, <em>se</em>, <em>lui</em>, <em>y</em>, <em>en</em> de « il <strong>lui</strong> parle ».</td></tr>
+<tr><td><strong>Accord</strong></td><td>Faire correspondre les marques de genre et de nombre entre les mots liés : « les enfants <strong>jouent</strong> ».</td></tr>
+<tr><td><strong>Homophone</strong></td><td>Deux mots qui <strong>se prononcent pareil</strong> et s’écrivent autrement : a/à, son/sont, ver/vert/verre.</td></tr>
+<tr><td><strong>Homographe</strong></td><td>Deux mots qui <strong>s’écrivent pareil</strong> avec des sens différents : « le <em>couvent</em> » et « elles <em>couvent</em> ».</td></tr>
+<tr><td><strong>Tokeniseur</strong></td><td>Le découpeur : il coupe le texte en mots (les « tokens »). Ici il retire la ponctuation — d’où l’existence de <code>_SEG</code>.</td></tr>
+<tr><td><strong>Span</strong></td><td>Une correction qui porte sur <strong>plusieurs mots à la fois</strong> plutôt que sur un seul : un mot coupé en deux, une répétition, un trait d’union.</td></tr>
+</tbody></table></div>
+<h3>15.3 — Le correcteur : rouge et orange</h3>
+<p class="small">La doctrine du projet tient dans deux couleurs.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>Faux positif (FP)</strong></td><td>Le correcteur signale une faute là où le texte était <strong>juste</strong>. C’est la faute la plus grave qu’il puisse commettre.</td></tr>
+<tr><td><strong>FP = 0</strong></td><td>La règle du projet : une correction <strong>appliquée d’office</strong> ne doit produire aucun faux positif sur les corpus de contrôle. Au moindre doute, on n’affirme pas.</td></tr>
+<tr><td><strong>Rouge</strong></td><td>Correction <strong>sûre</strong>, appliquée directement dans le texte corrigé (mais toujours annulable d’un clic).</td></tr>
+<tr><td><strong>Orange (vigilance)</strong></td><td>Doute <strong>signalé</strong>, jamais imposé. Le correcteur dit « regarde ici » sans trancher.</td></tr>
+<tr><td><strong>Speller</strong></td><td>Le module qui traque les mots qui <strong>n’existent pas</strong> — par distance d’édition et par le son. Par opposition à la grammaire, qui traite des mots existants mal employés.</td></tr>
+<tr><td><strong>Candidat</strong></td><td>Un mot que le correcteur propose en remplacement. Plusieurs candidats sont classés, le meilleur est retenu — ou aucun.</td></tr>
+<tr><td><strong>Distance d’édition</strong></td><td>Le nombre de retouches (ajout, retrait, remplacement d’une lettre) pour passer d’un mot à l’autre. « fote » → « faute » = 2.</td></tr>
+<tr><td><strong>Levenshtein</strong></td><td>Le nom de cette mesure de distance d’édition.</td></tr>
+<tr><td><strong>Mot inconnu / OOV</strong></td><td><em>Out Of Vocabulary</em> : un mot absent du lexique. Souvent une faute — mais parfois un prénom, un lieu, un mot de métier.</td></tr>
+<tr><td><strong>Stade</strong></td><td>Le palier d’apprentissage de l’écrit auquel une faute renvoie : phonologique (le son), alphabétique (écrit au son), lexical (l’orthographe du mot), morphosyntaxique (la grammaire).</td></tr>
+<tr><td><strong>Remédiation</strong></td><td>Le conseil rattaché à la faute — ce qu’on peut <em>travailler</em>, pas seulement corriger.</td></tr>
+<tr><td><strong>Dys</strong></td><td>Raccourci pour les troubles de l’écrit : dyslexie (lire), dysorthographie (écrire), dyscalculie (les nombres).</td></tr>
+</tbody></table></div>
+<h3>15.4 — Les briques de la toile</h3>
+<p class="small">Les 43 nœuds de <a href="../toile">la toile du correcteur</a> portent des noms de code. Voici leur traduction.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>Lexique 4</strong></td><td>La base lexicale universitaire du français dont partent la plupart des tables (fréquences, genre, classe grammaticale).</td></tr>
+<tr><td><strong>SP.WORDS</strong></td><td>La liste des <strong>214 685 mots connus</strong>. Sert de garde : un mot qui y figure n’est jamais déclaré « inconnu ».</td></tr>
+<tr><td><strong>CONJ_C</strong></td><td>La table de conjugaison : pour chaque verbe, chaque temps et chaque personne, la forme juste. C’est elle qui fait autorité.</td></tr>
+<tr><td><strong>GENDER · gn</strong></td><td>Les tables de genre : ce mot est-il masculin ou féminin ? Indispensable pour « le voiture » → « la ».</td></tr>
+<tr><td><strong>NOUN_POST</strong></td><td>Pour chaque forme, la probabilité qu’elle soit un <strong>nom</strong> plutôt qu’un <strong>verbe</strong>. Garde-fou des accords de genre et de pluriel.</td></tr>
+<tr><td><strong>POS-HMM</strong></td><td>Le modèle qui donne sa classe grammaticale à chaque mot (voir <em>HMM</em> plus haut).</td></tr>
+<tr><td><strong>_verb_or_homograph</strong></td><td>Un filet de rattrapage : il récupère les verbes que le modèle rate, tout en écartant les noms, adjectifs et couleurs connus.</td></tr>
+<tr><td><strong>OS-sujet</strong></td><td>Le module qui cherche le <strong>sujet du verbe</strong> quand il est loin de lui. Il mesure sa propre fiabilité et reste en orange — la syntaxe est trop incertaine pour du rouge.</td></tr>
+<tr><td><strong>_SEG</strong></td><td>La carte de ce qui <strong>séparait</strong> deux mots avant que le tokeniseur ne l’efface : frontière de proposition, de phrase, trait d’union, nombre. Sans elle, une virgule serait invisible.</td></tr>
+<tr><td><strong>_INVAR_COLOR</strong></td><td>La liste des couleurs qui ne s’accordent pas : des chaussures <em>marron</em>, des rubans <em>orange</em>.</td></tr>
+<tr><td><strong>Treebank UD</strong></td><td>Un corpus de phrases dont la grammaire a été annotée à la main par des linguistes (<em>Universal Dependencies</em>). Sert de terrain de mesure.</td></tr>
+<tr><td><strong>UD-GSD</strong></td><td>Le corpus français de cette collection, utilisé ici comme banc de faux positifs.</td></tr>
+</tbody></table></div>
+<h3>15.5 — Mesurer</h3>
+<p class="small">Le vocabulaire de la doctrine « mesurer ou rejeter ».</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>Rappel (recall)</strong></td><td>La part des vraies fautes que le correcteur attrape. Un rappel de 60 % = il en voit 6 sur 10.</td></tr>
+<tr><td><strong>Précision</strong></td><td>La part de ses signalements qui sont de vraies fautes. À ne pas confondre avec le rappel : on peut avoir l’un sans l’autre.</td></tr>
+<tr><td><strong>Banc</strong></td><td>Un jeu d’épreuves fixe qu’on rejoue avant et après un changement, pour voir ce qui bouge.</td></tr>
+<tr><td><strong>Corpus</strong></td><td>Un ensemble de textes servant de matière à mesurer.</td></tr>
+<tr><td><strong>Parité</strong></td><td>Le contrôle que les trois moteurs (le site, l’extension, la référence Python) répondent <strong>exactement pareil</strong> sur les mêmes entrées.</td></tr>
+<tr><td><strong>Sonde</strong></td><td>Un petit programme qui vérifie une propriété précise et échoue bruyamment si elle se casse.</td></tr>
+<tr><td><strong>Régression</strong></td><td>Quelque chose qui marchait et qui ne marche plus. Ce que toute la batterie de tests existe pour attraper.</td></tr>
+<tr><td><strong>Ablation</strong></td><td>Débrancher un morceau pour mesurer ce qu’il apportait vraiment. Si rien ne change, il ne servait à rien.</td></tr>
+<tr><td><strong>Seuil</strong></td><td>La valeur à partir de laquelle on décide. Le déplacer déplace l’équilibre entre rappel et faux positifs.</td></tr>
+<tr><td><strong>SOTA</strong></td><td><em>State Of The Art</em> : le meilleur niveau connu, celui auquel on se compare.</td></tr>
+<tr><td><strong>MDL</strong></td><td><em>Minimum Description Length</em> : préférer l’explication la plus simple (rasoir d’Occam), pour éviter d’apprendre du bruit.</td></tr>
+<tr><td><strong>AUC</strong></td><td>L’aire sous la courbe — une note globale de la capacité à séparer deux cas. 0,5 = hasard, 1 = parfait.</td></tr>
+<tr><td><strong>EM</strong></td><td><em>Expectation-Maximization</em> : une méthode qui apprend une table en alternant « je devine » et « je réajuste ».</td></tr>
+<tr><td><strong>SPSA</strong></td><td>Une méthode de réglage automatique des poids qui tâtonne dans toutes les directions à la fois.</td></tr>
+<tr><td><strong>IG (InfoGain)</strong></td><td><em>Gain d’information</em> : combien une question réduit l’incertitude. Au pendu, quelle lettre demander.</td></tr>
+</tbody></table></div>
+<h3>15.6 — La voix</h3>
+<p class="small">Pour la dictée vocale et la ponctuation automatique.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>ASR</strong></td><td><em>Automatic Speech Recognition</em> : la reconnaissance automatique de la parole — transformer du son en texte.</td></tr>
+<tr><td><strong>Transcription</strong></td><td>Le texte produit par cette reconnaissance.</td></tr>
+<tr><td><strong>Prosodie</strong></td><td>La musique de la phrase : pauses, montées et descentes de la voix. Elle porte de l’information sur la ponctuation.</td></tr>
+</tbody></table></div>
+<h3>15.7 — Le pendu et la cognition</h3>
+<p class="small">Le banc d’essai d’origine, et le modèle qui le fait tourner. (Entrées historiques, conservées.)</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>Concept / hub M_S</strong></td><td>Représentation <em>amodale</em> reliant les voies : on entre par une, on reconstruit les autres.</td></tr>
+<tr><td><strong>Amodal</strong></td><td>Qui n’est ni du son ni de l’écrit — une représentation intermédiaire commune aux deux.</td></tr>
 <tr><td><strong>bPC</strong></td><td>Auto-encodeur prédictif du concept (<code>M_BPC_M3D</code>).</td></tr>
-<tr><td><strong>Boucle ascendante / descendante (miroir)</strong></td><td>Perception-décision / correction-apprentissage.</td></tr>
-<tr><td><strong>P1 / P2</strong></td><td>Cercle direct / miroir (double Möbius). P2 actuellement débranché.</td></tr>
-<tr><td><strong>OS</strong></td><td>Module d'arbitrage (dose ortho/phon, dilue, mesure la dissonance).</td></tr>
-<tr><td><strong>Cohort</strong></td><td>Mots du dictionnaire compatibles avec le board.</td></tr>
-<tr><td><strong>Couverture</strong></td><td>Fraction des positions correctement révélées.</td></tr>
-<tr><td><strong>Declare</strong></td><td>Override : annoncer un mot/une lettre.</td></tr>
-<tr><td><strong>Recall</strong></td><td>Reconnaissance d'un mot déjà joué.</td></tr>
-<tr><td><strong>Cheat-free</strong></td><td>Ne consulte jamais la réponse cachée.</td></tr>
-<tr><td><strong>Triche grise</strong></td><td>Injection de la fréquence/orthographe du dictionnaire dans le score-lettre (A1/A2).</td></tr>
-<tr><td><strong>Oracle / lookup clé→réponse</strong></td><td>Lecture de la réponse cachée (<code>wp.get(currentWord)</code>).</td></tr>
-<tr><td><strong>HDC / HRR</strong></td><td>Informatique hyperdimensionnelle / <em>Holographic Reduced Representations</em>.</td></tr>
-<tr><td><strong>Cap §43 / R66</strong></td><td>Ne lire que le révélé / aucune activation par défaut sans validation empirique.</td></tr>
+<tr><td><strong>Auto-encodeur</strong></td><td>Un réseau qui apprend à recopier son entrée en passant par un résumé plus petit — ce qui l’oblige à ne garder que l’essentiel.</td></tr>
+<tr><td><strong>Boucle ascendante / descendante</strong></td><td>Perception-décision d’un côté, correction-apprentissage de l’autre.</td></tr>
+<tr><td><strong>P1 / P2</strong></td><td>Cercle direct / miroir (double Möbius). P2 est actuellement débranché.</td></tr>
+<tr><td><strong>OS</strong></td><td>Le module d’arbitrage : il dose ortho et phon, dilue, et mesure la dissonance entre les voies.</td></tr>
+<tr><td><strong>Cohorte</strong></td><td>Les mots du dictionnaire encore compatibles avec l’état du plateau.</td></tr>
+<tr><td><strong>Couverture</strong></td><td>La fraction des positions correctement révélées.</td></tr>
+<tr><td><strong>Declare</strong></td><td>Annoncer un mot ou une lettre au lieu de continuer à deviner.</td></tr>
+<tr><td><strong>Recall (pendu)</strong></td><td>Reconnaître un mot déjà joué. À ne pas confondre avec le <em>rappel</em> du correcteur (§15.5).</td></tr>
+<tr><td><strong>Cheat-free</strong></td><td>Ne consulte jamais la réponse cachée. La contrainte fondatrice du banc.</td></tr>
+<tr><td><strong>Triche grise</strong></td><td>Injecter en douce la fréquence ou l’orthographe du dictionnaire dans le score des lettres.</td></tr>
+<tr><td><strong>Oracle</strong></td><td>Lire directement la réponse cachée. Sert de plafond théorique, jamais de mode de jeu.</td></tr>
+<tr><td><strong>HDC / HRR</strong></td><td>Informatique <em>hyperdimensionnelle</em> et <em>Holographic Reduced Representations</em> : représenter un objet par un très grand vecteur, où l’on peut lier et retrouver des éléments.</td></tr>
+<tr><td><strong>VSA</strong></td><td><em>Vector Symbolic Architectures</em> : la famille de méthodes à laquelle HDC et HRR appartiennent.</td></tr>
+<tr><td><strong>SDIM / LDIM</strong></td><td>Les tailles des vecteurs employés : SDIM du côté du son (carte son↔lettre), LDIM = 512 du côté des lettres.</td></tr>
+<tr><td><strong>DRC</strong></td><td><em>Dual Route Cascaded</em> — le modèle de lecture à deux voies de Coltheart, qui a structuré toute l’architecture.</td></tr>
+<tr><td><strong>NEO</strong></td><td>Le système de déclaration tardif, qui décide d’annoncer un mot sans consulter la réponse.</td></tr>
+<tr><td><strong>Cap §43 / R66</strong></td><td>Deux garde-fous de doctrine : ne lire que ce qui est révélé ; n’activer aucune option par défaut sans preuve mesurée.</td></tr>
+</tbody></table></div>
+<h3>15.8 — Technique et navigateur</h3>
+<p class="small">Ce qui fait tourner tout ça dans un onglet.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Terme</th><th>Définition</th></tr></thead>
+<tbody>
+<tr><td><strong>Extension (MV3)</strong></td><td>Le programme ajouté au navigateur. MV3 = <em>Manifest V3</em>, la génération actuelle imposée par Chrome.</td></tr>
+<tr><td><strong>Side panel</strong></td><td>Le panneau latéral de Chrome — la surface où vit le correcteur.</td></tr>
+<tr><td><strong>Service worker</strong></td><td>Un petit programme qui tourne à côté de la page et met les fichiers en cache : c’est lui qui permet le hors-ligne.</td></tr>
+<tr><td><strong>Cache</strong></td><td>La copie locale des fichiers, pour ne pas les retélécharger. S’il ne se rafraîchit pas, on voit une vieille version du site.</td></tr>
+<tr><td><strong>WebGPU</strong></td><td>L’accès à la carte graphique depuis le navigateur — ce qui rend possible un modèle de langue local.</td></tr>
+<tr><td><strong>WGSL</strong></td><td>Le langage dans lequel on écrit les calculs envoyés à cette carte graphique.</td></tr>
+<tr><td><strong>LLM</strong></td><td><em>Large Language Model</em> : un modèle de langue entraîné sur beaucoup de texte. Ici, une version <strong>très</strong> réduite, locale, en renfort du moteur à règles.</td></tr>
+<tr><td><strong>Embedding (plongement)</strong></td><td>Représenter un mot par une liste de nombres, de sorte que deux mots proches par le sens aient des listes proches.</td></tr>
+<tr><td><strong>Quantisation</strong></td><td>Réduire la précision des nombres d’un modèle pour qu’il tienne en mémoire — au prix d’un peu de qualité.</td></tr>
+<tr><td><strong>Distillation</strong></td><td>Faire apprendre à un petit modèle ce qu’un gros sait faire, pour garder l’essentiel dans une taille utilisable.</td></tr>
 </tbody></table></div>
 </section>
 
