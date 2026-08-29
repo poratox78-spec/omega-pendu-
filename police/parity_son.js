@@ -93,5 +93,25 @@ if (chats[chats.length - 1].cls !== 'mute' || chats[chats.length - 2].cls !== 'm
   fail.push('chats : finales t/s attendues muettes, eu ' + JSON.stringify(chats));
 if (seg('bateau').filter(x => x.cls === 'voi').length !== 1) fail.push('bateau : b seul voisé attendu');
 
+// ===== 4) PLAGE DE GRAISSE sur chaque FontFace (régression du 29/08/2026) =====
+// `new FontFace(nom, source)` sans 3ᵉ argument n'enregistre la face qu'en poids 400 : dès qu'une
+// lettre habillée tombe dans du gras — et dans « texte corrigé » chaque mot corrigé EST un <b> —
+// le navigateur SYNTHÉTISE le gras. Mesuré au canvas (pixels encrés, 34 px) : Light 836 → 1263,
+// donc PLUS ÉPAIS que Heavy (1242) : le signal de voisement s'INVERSE.
+// ⚠️ La largeur ne le voit pas (chasse fixe, 143,17 px des deux côtés) — ne pas « vérifier » par là.
+// Correctif : {weight:'1 1000'} fait matcher la face unique pour tout poids demandé.
+const SOURCES_FONTFACE = ['../app/omega-pendu.html', 'son_ui.js', '../extension/son_panel.js'];
+for (const rel of SOURCES_FONTFACE) {
+  const p = path.join(HERE, rel);
+  if (!fs.existsSync(p)) { fail.push('FontFace : fichier introuvable ' + rel); continue; }
+  const src = fs.readFileSync(p, 'utf8');
+  const appels = src.match(/new FontFace\([^;]*?\)\s*;/g) || [];
+  if (!appels.length) { fail.push('FontFace : aucun appel trouvé dans ' + rel + ' (la garde ne garde plus rien ?)'); continue; }
+  appels.forEach(a => {
+    if (!/weight\s*:/.test(a))
+      fail.push('FontFace SANS plage de graisse dans ' + rel + ' -> faux gras, voisement inversé : ' + a.replace(/\s+/g, ' ').slice(0, 110));
+  });
+}
+
 if (fail.length) { console.error('PARITÉ SON — ÉCHEC :'); fail.forEach(f => console.error('  ✗ ' + f)); process.exit(1); }
-console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes)');
+console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse)');

@@ -88,7 +88,12 @@
     if (loading) return loading;
     loading = loadScript('assets/g2p.js').then(function () { return loadScript('assets/son_core.js'); }).then(function () {
       [['OMEGA Dys', 'assets/OmegaDys-Regular.ttf'], ['OMEGA Dys Light', 'assets/OmegaDys-Light.ttf'], ['OMEGA Dys Heavy', 'assets/OmegaDys-Heavy.ttf']].forEach(function (p) {
-        try { var f = new FontFace(p[0], 'url(' + p[1] + ')'); f.load().then(function (ff) { document.fonts.add(ff); }).catch(function () {}); } catch (e) {}
+        /* ⭐ PLAGE de graisse : sans elle, chaque face n'existe qu'en 400 et le navigateur SYNTHÉTISE le
+           gras dès qu'une lettre habillée tombe dans un <b> — or chaque mot corrigé EST un <b>. Mesuré :
+           Light passe de 836 à 1263 pixels encrés, soit PLUS que Heavy (1242) : le voisement s'INVERSE.
+           La largeur ne le voit pas (chasse fixe) ; il faut compter l'encre. La correction reste visible
+           par le fond vert de `.out b`, qui ne dépend pas de la graisse. */
+        try { var f = new FontFace(p[0], 'url(' + p[1] + ')', {weight: '1 1000'}); f.load().then(function (ff) { document.fonts.add(ff); }).catch(function () {}); } catch (e) {}
       });
       ready = !!(window._DECL2 && window._DECL2.g2p && window.OmegaDysSonCore);
     }).catch(function () { ready = false; });

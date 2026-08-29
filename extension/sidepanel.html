@@ -18,6 +18,10 @@
   #omdys-ta:focus{ outline:2px solid #2a6f97; border-color:#2a6f97; }
   /* police de son (habillage : spans sur les nœuds texte, texte inchangé) */
   .son-seg{ font-size:1.12em; } .son-mute{ color:#a34700; } .son-mute.son-on-dark{ color:#f0a04b; } .son-syl{ color:#0072b2; } .son-syl.son-on-dark{ color:#6cc0f0; } .son-syl.son-mute{ color:#a34700; } .son-syl.son-mute.son-on-dark{ color:#f0a04b; }
+  /* superposition : sur le fond vert d'une correction, le bleu Okabe-Ito tombe à 4,14 (< AA 4,5).
+     On ne touche PAS à la palette ailleurs ni au fond (l'éclaircir rendrait le surlignage invisible) :
+     on assombrit du minimum qui passe, ici seulement. Mesuré 4,76. Le thème sombre passait déjà (5,18). */
+  .out b .son-syl{ color:#00699f; }
   .acts{ display:flex; gap:8px; align-items:center; margin:9px 0; flex-wrap:wrap; }
   .acts button{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; }
   #omdys-fixall{ background:#1f7a3d; color:#fff; }
