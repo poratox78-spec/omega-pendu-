@@ -150,6 +150,7 @@
   function setOn(v) {
     on = !!v;
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+    try { document.body.classList.toggle('son-actif', on); } catch (e) {}
     controls.forEach(function (c) { c(on, syl); });
     refreshAll();
   }
@@ -238,6 +239,18 @@
       }).observe(zin, {childList: true, subtree: true});
     }
   }
+  // Bascule de THÈME (#vdc-theme, #vdc-cb…) : le verdict isDarkBg est pris à l'habillage — sans
+  // ré-habillage les lettres gardent la variante de l'ancien thème (mesuré : 2,01:1 en clair).
+  // On ne réagit qu'aux classes dys-* (son-actif, posé ci-dessous, ne doit pas nous rappeler).
+  var lastTheme = (document.body.className.match(/dys-\w+/g) || []).sort().join(' ');
+  new MutationObserver(function () {
+    var t = (document.body.className.match(/dys-\w+/g) || []).sort().join(' ');
+    if (t === lastTheme) return;
+    lastTheme = t;
+    if (on) refreshAll();
+  }).observe(document.body, {attributes: true, attributeFilter: ['class']});
+  // body.son-actif : le CSS du correcteur y gate le mode « fond→trait » — l'init ne passe pas par setOn()
+  try { document.body.classList.toggle('son-actif', on); } catch (e) {}
   controls.forEach(function (c) { c(on, syl); });
   refreshAll();
 })();
