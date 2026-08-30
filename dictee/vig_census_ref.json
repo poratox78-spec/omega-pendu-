@@ -1,7 +1,7 @@
 {
- "justes": 301,
- "pointeuses": 241,
- "fatigue": 162,
+ "justes": 305,
+ "pointeuses": 242,
+ "fatigue": 163,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -38,6 +38,7 @@
   "camerlingut→camerlingue [mot inconnu] terminaison",
   "canabis→cannabis [orthographe] lettre_manque",
   "candidade→candidate [orthographe] lettre_change",
+  "cannabit→cannabis [orthographe] terminaison",
   "cecond→second [orthographe] lettre_change",
   "cess→ces [orthographe] lettre_trop",
   "cestillan→castillan [mot inconnu] lettre_change",
@@ -116,6 +117,7 @@
   "fondametales→fondamentales [mot inconnu] lettre_manque",
   "fonte→fontes [accord pluriel à vérifier] accord",
   "formèretn→formèrent [mot inconnu] inversion",
+  "furend→furent [orthographe] lettre_change",
   "ggané→gagné [orthographe] inversion",
   "gours→jours [orthographe] lettre_change",
   "granb→grand [orthographe] lettre_change",
@@ -188,6 +190,7 @@
   "partiele→partielle [orthographe] lettre_manque",
   "parutio→parution [mot inconnu] lettre_manque",
   "petide→petite [orthographe] lettre_change",
+  "petid→petit [orthographe] lettre_change",
   "piebs→pieds [orthographe] lettre_change",
   "plos→plus [orthographe] autre",
   "plsu→plus [orthographe] inversion",
@@ -272,6 +275,7 @@
   "test→tests [accord pluriel à vérifier] accord",
   "tosu→tous [orthographe] inversion",
   "tourr→tour [orthographe] lettre_trop",
+  "transpord→transport [orthographe] lettre_change",
   "traversés→traversée [accord participe] terminaison",
   "trcè→très [orthographe] autre",
   "troic→trois [orthographe] lettre_change",
@@ -370,5 +374,5 @@
    "cle_si_reparee": "séris→série [orthographe] terminaison"
   }
  ],
- "note": "effectifs ré-ancrés le 2026-08-24 sur l'état RÉEL de main. L'ancienne référence datait de PR#558 et n'avait jamais suivi ni le corpus (PR#563) ni le moteur (PR#566, PR#568) : la garde était rouge en permanence, donc plus personne ne la lisait — 20 PR de dérive invisible, aggravée par le fait que cette sonde SE SAUTE quand le corpus dys est absent, ce qui est toujours le cas en CI. Le ré-ancrage acte un état DÉGRADÉ : cf. regressions_connues, 9 oranges devenues FAUSSES à PR#568 (bisect 798c841=306 justes -> 3afee80=301, et le retrait ciblé de la garde `sCtxGender` restaure exactement 306/234). Elles restent affichées à chaque run vert pour ne pas devenir la normale."
+ "note": "effectifs de référence du census (post-cartes PR#523-524) ; le cas sais→s'est de texte4 reste compté SIGNALE_AUTRE ici car le juge B2 (opt-in, WebGPU) est invisible aux harnais Node — sa couverture est prouvée par b2_web_probe (bout-en-bout navigateur)."
 }
