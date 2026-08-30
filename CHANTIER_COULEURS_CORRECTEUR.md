@@ -4,7 +4,27 @@
 > correction et de ses couleurs, utilisées en même temps que la police syllabes et la police son,
 > rend difficilement visibles les mots ».
 >
-> **Rien n'est encore livré.** Ce document dit quoi faire, pourquoi, et comment le vérifier.
+> ~~**Rien n'est encore livré.**~~ **RÉALISÉ le 30/08/2026** (branche `couleurs-correcteur`), après
+> contre-vérification du dossier par 3 agents (« ne le prends pas pour acquis ») : **21/24
+> affirmations exactes au chiffre près** (les 24 contrastes recalculés indépendamment), 3 imprécisions
+> sans effet sur le plan — ① `body.son-actif .vdc-bad` = (0,2,1), pas (0,3,1) (la parade (0,4,1)
+> reste la bonne) ; ② les hex « variantes sombres de l'extension » cités en §7 sont les puces de
+> l'aide au nombre (`.cp0-2`), pas les fonds du correcteur (les bons : `#1d2329`/`#17281c` — la
+> conclusion « extension hors périmètre » tient) ; ③ la règle dictée est ligne 27921, pas 27920.
+>
+> **Mesuré dans le navigateur après implémentation (§6 complet, A→E)** : muette **8,52** · syllabe
+> **9,04** (sombre) ; **5,19** minimum en clair — les 4 thèmes ≥ 4,5 via les vrais boutons. Survol :
+> pastel legacy revenu, texte #111, variantes claires forcées. Sélection : 4,99/5,30. Falsification :
+> bloc retiré en live → min **1,18** = la sonde vire au rouge. Police éteinte : fonds legacy exacts
+> dans les 4 thèmes, clic à travers les spans OK, curseur préservé (« LesX », offset 4).
+>
+> **Trois écarts au plan, tous mesurés** : ① `::selection` doit AUSSI viser `#vdc-in *::selection`
+> (les lettres habillées sont des spans enfants — la règle du dossier seule était morte à l'arrivée) ;
+> ② au survol, la muette doit gagner sur la syllabe (ordre calqué sur `.son-syl.son-mute` de
+> `son_ui.js:22`) ; ③ **verdict isDarkBg PÉRIMÉ à la bascule de thème** (mesuré : min 2,01 en clair
+> après bascule, réparé à la frappe suivante) → observer de classes `dys-*` sur `body` dans
+> `son_ui.js` : ré-habillage automatique, 2,01 → 5,19 sans frappe.
+>
 > Périmètre : **le correcteur du SITE** (`app/omega-pendu.html`). Pas l'extension — voir §7.
 
 ---

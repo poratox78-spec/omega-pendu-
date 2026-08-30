@@ -27934,6 +27934,27 @@ function spellTokenCore(tok,atStart,T,idx){
    +'body.dys-cb .vdc-fact{border-left-color:#d9760b}'
    +'body.dys-cb .vdc-bad.vdc-orth{background:#d8e7f4;border-bottom-color:#1f6cb0}body.dys-cb .vdc-bad.vdc-orth:hover{background:#c2d9ef}'
    +'body.dys-dark.dys-cb .vdc-bad{background:#fce6cf}body.dys-dark.dys-cb .vdc-bad.vdc-orth{background:#d8e7f4}'
+   /* ═ POLICE DE SON ACTIVE (body.son-actif, posé par son_ui.js) : les aplats pastel restent CLAIRS dans
+      tous les thèmes alors que isDarkBg() juge le fond de la ZONE → l'encre de son (muette, syllabe)
+      tombait à 1,43 de contraste dans un mot corrigé en thème sombre. Remède = canaux disjoints : le
+      correcteur LIBÈRE le canal fond (l'encre de son retombe sur le fond que isDarkBg mesure) et code
+      « correction + catégorie » sur un TRAIT (plein=faute, ondulé=ortho, tirets=vigilance, double=appliqué).
+      La répétition de classe (.vdc-bad.vdc-bad.vdc-bad) monte la spécificité à (0,4,1) SANS !important,
+      pour battre body.dys-dark.dys-cb .vdc-bad.vdc-orth ci-dessus (à égalité, concaténé après → gagne).
+      Police de son ÉTEINTE : body.son-actif absent → aucune règle ne matche, rendu identique au pixel. */
+   +'body.son-actif .vdc-bad:not(:hover):not(:focus-visible),body.son-actif .vdc-on:not(:hover):not(:focus-visible){background:transparent}'   /* le fond ne disparaît qu\'au repos : au survol/focus les règles pastel legacy reprennent, valeurs par thème inchangées */
+   +'body.son-actif .vdc-bad.vdc-bad.vdc-bad,body.son-actif .vdc-on.vdc-on.vdc-on{border-bottom:0;padding:0;font-weight:inherit;text-decoration-line:underline;text-decoration-thickness:4px;text-underline-offset:3px;text-decoration-skip-ink:none}'   /* graisse rendue au voisement (le 600 la polluait) ; l\'étendue de la correction passe sur le trait */
+   +'body.son-actif .vdc-bad{text-decoration-style:solid;text-decoration-color:#b02020}'
+   +'body.son-actif .vdc-bad.vdc-orth{text-decoration-style:wavy;text-decoration-color:#1b5c86}'
+   +'body.son-actif .vdc-bad.vdc-vig{text-decoration-style:dashed;text-decoration-color:#c8760a}'
+   +'body.son-actif .vdc-on{text-decoration-style:double;text-decoration-color:#1f7a3d}'
+   +'body.son-actif.dys-cb .vdc-bad{text-decoration-color:#d9760b}body.son-actif.dys-cb .vdc-bad.vdc-orth{text-decoration-color:#1f6cb0}'   /* daltonien : mêmes teintes que les border-bottom legacy — le motif reste le canal de catégorie, jamais la couleur seule */
+   +'body.son-actif.dys-dark .vdc-bad{text-decoration-color:#f6b6b6}body.son-actif.dys-dark .vdc-bad.vdc-orth{text-decoration-color:#bcd6f5}body.son-actif.dys-dark .vdc-bad.vdc-vig{text-decoration-color:#ffdd94}body.son-actif.dys-dark .vdc-on{text-decoration-color:#c9efd0}'   /* thème sombre : les PASTELS deviennent la couleur du TRAIT (#b02020 sur #10161d = 2,66 < seuil 3,0 ; #f6b6b6 = 10,64) */
+   +'body.son-actif.dys-dark.dys-cb .vdc-bad{text-decoration-color:#fce6cf}body.son-actif.dys-dark.dys-cb .vdc-bad.vdc-orth{text-decoration-color:#d8e7f4}'
+   +'body.son-actif.dys-dark .vdc-bad:not(:hover):not(:focus-visible),body.son-actif.dys-dark .vdc-on:not(:hover):not(:focus-visible){color:inherit}'   /* 🔴 LA ligne critique : sans elle le color:#111 (plus haut) reste appliqué au mot SANS son pastel → 1,04 sur la zone sombre, dans le thème par défaut. Au survol le pastel revient → on laisse le #111 legacy reprendre */
+   +'body.son-actif .vdc-bad:hover .son-syl,body.son-actif .vdc-bad:focus-visible .son-syl,body.son-actif .vdc-on:hover .son-syl,body.son-actif .vdc-on:focus-visible .son-syl{color:#0072b2}'   /* au survol le pastel est CLAIR dans les 4 thèmes → forcer la variante « fond clair » des couleurs son (0,4,1 > .son-syl.son-on-dark 0,2,0) : la seule correction EN CSS du verdict isDarkBg pris une fois par conteneur */
+   +'body.son-actif .vdc-bad:hover .son-mute,body.son-actif .vdc-bad:focus-visible .son-mute,body.son-actif .vdc-on:hover .son-mute,body.son-actif .vdc-on:focus-visible .son-mute{color:#a34700}'   /* la muette APRÈS la syllabe : sur une lettre muette+syllabe la muette gagne, comme dans son_ui.js (.son-syl.son-mute) */
+   +'body.dys-dark #vdc-in::selection,body.dys-dark #vdc-in *::selection{background:#26405c}'   /* la sélection n\'avait pas de variante sombre (#8ec5ff : muette 1,18, syllabe 1,11 dessus) → #26405c = 4,99/5,30. NON gatée : vaut aussi police éteinte ; *::selection car les lettres habillées sont des spans enfants */
    +'#vdc-cardpop{position:fixed;z-index:100002;background:#fdf6e3;color:#222;border:1px solid #cbbf9e;border-radius:12px;padding:12px 14px;font-family:"Trebuchet MS",Verdana,sans-serif;font-size:15px;line-height:1.45;box-shadow:0 10px 28px rgba(0,0,0,.35);display:none;max-width:340px}#vdc-cardpop .vch{font-size:12px;font-weight:800;letter-spacing:.04em;margin-bottom:6px;color:#1f7a3d}#vdc-cardpop.tov .vch{color:#b06a08}#vdc-cardpop .vcs{font-size:17px;margin-bottom:11px}#vdc-cardpop .vcs s{opacity:.55;margin-right:6px;color:#555}#vdc-cardpop .vcp{display:inline-block;background:#1f7a3d;color:#fff;border-radius:9px;padding:2px 12px;font-weight:700}#vdc-cardpop.tov .vcp{background:#c8760a}#vdc-cardpop .vca{display:flex;gap:9px}#vdc-cardpop .vca button{font:inherit;font-size:14px;padding:6px 14px;border-radius:9px;border:0;cursor:pointer;font-weight:700}#vdc-cardpop .vcap{background:#1f7a3d;color:#fff}#vdc-cardpop .vcig{background:#e7dcc0;color:#4a3f22}#vdc-cardpop .vce{font-size:12.5px;color:#6b5d3a;margin-top:9px;border-top:1px solid #e0d4b3;padding-top:7px}#vdc-cardpop .vcx{font-size:13.5px;color:#3a3428;background:#f3ecd8;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5}#vdc-cardpop .vcb{font-weight:800;color:#7a5c00}body.dys-dark #vdc-cardpop{background:#1c232c;color:#e8edf2;border-color:#3fa564}body.dys-dark #vdc-cardpop .vcx{background:#232d38;color:#dbe2ea}body.dys-dark #vdc-cardpop .vcb{color:#e0b84f}body.dys-dark #vdc-cardpop .vcs s{color:#aeb8c2}body.dys-dark #vdc-cardpop .vcig{background:#39434f;color:#cfd6de}body.dys-dark #vdc-cardpop .vce{color:#aeb8c2;border-top-color:#33414f}';
   document.head.appendChild(cst);
   var cbtn=document.createElement('button');cbtn.id='vdc-btn';cbtn.textContent='🩹 Correcteur';document.body.appendChild(cbtn);
@@ -27948,7 +27969,7 @@ function spellTokenCore(tok,atStart,T,idx){
    +'<button id="vdc-lis" type="button" aria-pressed="false" title="Police plus lisible : Verdana + lettres et mots espacés (dyslexie)">🔤 Police lisible</button>'
    +'<button id="vdc-lire" type="button" aria-pressed="false" title="Écouter ton texte à voix haute — le mot lu est surligné (rien ne quitte ton appareil)">🔊 Lire</button>'
    +'</div>'
-   +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
+   +'<div class="vdc-flabel">📝 Écris ici <span class="vdc-sc">— les corrections sont surlignées <b>sur ton texte</b> (soulignées si la police de son est allumée) ; clique un mot dans « ✅ Texte corrigé » pour appliquer</span></div>'
    +'<div id="vdc-editor"><div id="vdc-in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Texte à corriger" spellcheck="false" data-ph="Ex. : Les enfant joue dans le jardin et il sont content."></div></div>'
    +'<div id="vdc-complete" aria-live="polite"></div>'
    +'<div class="vdc-flabel vdc-flabel-big">✅ Texte corrigé <button id="vdc-copy" type="button" class="vdc-copy">📋 Copier</button></div>'
@@ -29145,6 +29166,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
   function setOn(v) {
     on = !!v;
     try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+    try { document.body.classList.toggle('son-actif', on); } catch (e) {}
     controls.forEach(function (c) { c(on, syl); });
     refreshAll();
   }
@@ -29233,6 +29255,18 @@ if (typeof module !== 'undefined' && module.exports) module.exports = OmegaDysSo
       }).observe(zin, {childList: true, subtree: true});
     }
   }
+  // Bascule de THÈME (#vdc-theme, #vdc-cb…) : le verdict isDarkBg est pris à l'habillage — sans
+  // ré-habillage les lettres gardent la variante de l'ancien thème (mesuré : 2,01:1 en clair).
+  // On ne réagit qu'aux classes dys-* (son-actif, posé ci-dessous, ne doit pas nous rappeler).
+  var lastTheme = (document.body.className.match(/dys-\w+/g) || []).sort().join(' ');
+  new MutationObserver(function () {
+    var t = (document.body.className.match(/dys-\w+/g) || []).sort().join(' ');
+    if (t === lastTheme) return;
+    lastTheme = t;
+    if (on) refreshAll();
+  }).observe(document.body, {attributes: true, attributeFilter: ['class']});
+  // body.son-actif : le CSS du correcteur y gate le mode « fond→trait » — l'init ne passe pas par setOn()
+  try { document.body.classList.toggle('son-actif', on); } catch (e) {}
   controls.forEach(function (c) { c(on, syl); });
   refreshAll();
 })();
