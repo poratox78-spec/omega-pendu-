@@ -55,6 +55,7 @@ run "parité correcteur APP↔Python"  node dictee/parity_corr.js
 run "parité POS-tagger HMM (Py==ext==app)" node dictee/parity_pos.js
 run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigilance.js
+run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr)" python3 dictee/sujet_probe.py
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
 run "précision par famille sur texte dys (rouge/orange mesurés)" python3 dictee/dys_precision_probe.py
