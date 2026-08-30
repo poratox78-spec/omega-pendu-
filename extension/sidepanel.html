@@ -18,10 +18,7 @@
   #omdys-ta:focus{ outline:2px solid #2a6f97; border-color:#2a6f97; }
   /* police de son (habillage : spans sur les nœuds texte, texte inchangé) */
   .son-seg{ font-size:1.12em; } .son-mute{ color:#a34700; } .son-mute.son-on-dark{ color:#f0a04b; } .son-syl{ color:#0072b2; } .son-syl.son-on-dark{ color:#6cc0f0; } .son-syl.son-mute{ color:#a34700; } .son-syl.son-mute.son-on-dark{ color:#f0a04b; }
-  /* superposition : sur le fond vert d'une correction, le bleu Okabe-Ito tombe à 4,14 (< AA 4,5).
-     On ne touche PAS à la palette ailleurs ni au fond (l'éclaircir rendrait le surlignage invisible) :
-     on assombrit du minimum qui passe, ici seulement. Mesuré 4,76. Le thème sombre passait déjà (5,18). */
-  .out b .son-syl{ color:#00699f; }
+  /* (le bleu Okabe-Ito reste uniforme : sans fond sous le mot corrigé, la syllabe remonte à 4,77.) */
   .acts{ display:flex; gap:8px; align-items:center; margin:9px 0; flex-wrap:wrap; }
   .acts button{ font:inherit; font-weight:700; border:0; border-radius:8px; padding:6px 13px; cursor:pointer; }
   #omdys-fixall{ background:#1f7a3d; color:#fff; }
@@ -50,7 +47,13 @@
   .item.off .etat{ color:#888; }
   .out{ margin:6px 0; padding:7px 9px; border-radius:8px; background:#eef8f0; border-left:3px solid #2e8b57; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
   .out .lab{ color:#4f7f5f; font-size:.78em; }
-  .out b{ background:#d3ecd9; border-radius:3px; padding:0 2px; }
+  /* SOULIGNÉ, pas surligné : le fond ne contrastait que 1,15 avec celui de la boîte (seuil 3,0),
+     et aucun fond ne peut satisfaire à la fois « visible » et « le texte reste lisible dessus »
+     (à 2,58 de visibilité la lettre muette est déjà tombée à 2,17). Le trait est un canal libre :
+     #2e8b57 donne 3,91 sur le fond clair et 3,65 sur le sombre — une couleur, les deux thèmes.
+     PLEIN et non ondulé : ces mots sont les corrections DÉJÀ APPLIQUÉES, pas des fautes. */
+  .out b{ text-decoration:underline; text-decoration-color:#2e8b57; text-decoration-thickness:2px;
+          text-underline-offset:2px; }
   .why,.tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
   .why:hover,.tts:hover{ opacity:1; }
   .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
@@ -120,7 +123,7 @@
   body.dark #omdys-ta{ background:#1d2329; color:#e8edf2; border-color:#3a444e; caret-color:#b9a3e6; }
   body.dark .item{ background:#2a1e1d; }
   body.dark .item.orth{ background:#16242f; }
-  body.dark .item.done{ background:#17281c; } body.dark .out{ background:#17281c; } body.dark .out b{ background:#24472e; }
+  body.dark .item.done{ background:#17281c; } body.dark .out{ background:#17281c; } /* le trait #2e8b57 passe le seuil sur les deux fonds : rien à surcharger ici. */
   body.dark .item.tvig{ background:#2b2412; }
   body.dark .astuce{ background:#16242f; color:#cfe0ee; }
   body.dark .stade{ background:#16242f; }
