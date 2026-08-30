@@ -2878,7 +2878,14 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     // Sinon VIGILANCE orange « à vérifier » (n'impose pas un mauvais mot : courrir→courrier, ceuille→feuille). Mesuré sur dictées réelles.
     var firstOk=deaccS(w1).charAt(0)===d.charAt(0),nTop=0;for(i=0;i<keys.length;i++)if(cand[keys[i]][0]===p1)nTop++;
     var finalS=(p1>=1&&deaccS(w1).length===d.length+1&&deaccS(w1).slice(0,d.length)===d&&/[sx]$/.test(deaccS(w1)));   // faute dys « lettre finale muette » : candidat = original + s/x final (préfixe commun) → SÛR (FP=0 mesuré sur 2500 phrases UD ; dehor→dehors, alor→alors, moin→moins…) donc APPLIQUÉ, pas vigilance
-    var confident=accentOnly||finalS||(p1>=1&&firstOk&&nTop===1&&dominant);
+    /* SUBSTITUTION DE LA CONSONNE FINALE : ne jamais AFFIRMER. C'est là que les patronymes se
+       séparent (Durand/Durant, Renaud/Renault) et que la finale muette porte le sens (poids/pois).
+       « durand » cochait firstOk+nTop===1+dominant et partait APPLIQUÉ en silence. Mesuré :
+       0 correction de ce type sur les 46 appliquées des 2 500 phrases UD, 0 vraie faute dys
+       démotée sur 14. On retire une AFFIRMATION, pas un signalement : reste en orange. */
+    var _wd=deaccS(w1),_subFin=(d.length===_wd.length&&d.length>=4&&d!==_wd
+      &&d.slice(0,-1)===_wd.slice(0,-1)&&'aeiouy'.indexOf(d.slice(-1))<0&&'aeiouy'.indexOf(_wd.slice(-1))<0);
+    var confident=accentOnly||finalS||(!_subFin&&p1>=1&&firstOk&&nTop===1&&dominant);
     return [confident?'flag':'vigilance',w1];}
   // MOVER SYNTAXIQUE de l'impératif — placement des pronoms clitiques (MIROIR de dictee/imperative_clitics.moves) → span:N
     // ===== DICTIONNAIRE UTILISATEUR (miroir de l'app) =====
