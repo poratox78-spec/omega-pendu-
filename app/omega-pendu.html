@@ -25465,7 +25465,12 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var lem0=p3[0][0],ss=_SEG?_SEG.ss:null;
     if(!(lo===0||(ss&&lo<ss.length&&ss[lo])))return null;
     if(i===lo){if(!_UNACC[deacc(lem0)])return null;}
-    else{var head=deacc(T[lo].toLowerCase());if(!(PREP[head]||_INV_WH[head]||_INV_WH[T[lo].toLowerCase()]||_INV_ADV[head]||(lo<tg.length&&tg[lo]==='ADV')||head==='comme'||head==='quand'||head==='lorsque'))return null;}
+    else{var head=deacc(T[lo].toLowerCase());/* ⭐ « là » (adverbe) ≠ « la » (déterminant) — deacc les CONFOND, comme « à »/« a » gardé plus haut.
+        Sans ceci « La foule attendait l'arrivée des coureurs. » ouvrait une inversion et imposait
+        « attendaient » en AUTO : du texte JUSTE réécrit en faute, en silence. L'adverbe exige sa forme
+        ÉCRITE accentuée ; tg[lo]==='ADV' reste juste à côté pour les vrais adverbes. */
+        var _advOK=_INV_ADV[head]&&!(head==='la'&&T[lo].toLowerCase()!=='là');
+        if(!(PREP[head]||_INV_WH[head]||_INV_WH[T[lo].toLowerCase()]||_advOK||(lo<tg.length&&tg[lo]==='ADV')||head==='comme'||head==='quand'||head==='lorsque'))return null;}
     k=i+1;while(k<hi&&k<tg.length&&(tg[k]==='ADV'||((tg[k]==='VERB'||tg[k]==='ADJ')&&/(é|és|ée|ées)$/.test(T[k].toLowerCase()))))k++;
     if(!_postposePlural(T,tg,k,hi))return null;
     var lemset={};for(k=0;k<p3.length;k++)lemset[p3[k][0]]=1;if(Object.keys(lemset).length!==1)return null;
