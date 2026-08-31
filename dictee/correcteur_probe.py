@@ -276,10 +276,11 @@ def _clause_no_finite_verb(T, i, skip=None):
     (sur-détection = abstention, jamais un FP) si le modèle est absent. Parité : pos_tags identique Py/app/extension."""
     n = len(T); lo, hi = 0, n
     if _SEG is not None:
+        _pb = _SEG.get('pb')                                       # bornes PRÉDITES (canal listes fermées, 31/08) — consommées ICI SEULEMENT : elles rétrécissent la fenêtre de la garde verbe-présence (mesuré : parité avec les virgules de l'auteur, 42,3 %/78,9 % vs 42,5/74,1)
         for j in range(i, 0, -1):
-            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+            if (j < len(_SEG['bb']) and _SEG['bb'][j]) or (_pb is not None and j < len(_pb) and _pb[j]): lo = j; break
         for j in range(i+1, n):
-            if j < len(_SEG['bb']) and _SEG['bb'][j]: hi = j; break
+            if (j < len(_SEG['bb']) and _SEG['bb'][j]) or (_pb is not None and j < len(_pb) and _pb[j]): hi = j; break
     tg = pos_tags(T)
     if tg is not None:
         for j in range(lo, hi):
@@ -1961,6 +1962,68 @@ def _seg_info(text):
         dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
         prev_end = m.end()
     return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig}
+
+
+# ---------- BORNES DE PROPOSITION PRÉDITES (canal « pb », 31/08/2026) ----------
+# Le texte dys ne ponctue pas : sans virgule, _SEG['bb'] est vide et la garde verbe-présence
+# (_clause_no_finite_verb) balaie la phrase ENTIÈRE — les cadres son/sont, et/est, peu/peut
+# déjà écrits abstiennent alors qu'ils tirent en phrase isolée (4 cas démontrés, enquête 30/08).
+# MESURÉ (or UD nsubj, 2000 phrases déponctuées, phase-mesure du chantier bornes) : des OUVERTURES
+# à LISTES FERMÉES (subordonnants, relatifs ancrés, coordination devant sujet net) rendent la garde
+# à PARITÉ avec les virgules de l'AUTEUR — rappel 42,3 % vs 42,5, spécificité 78,9 % vs 74,1 —
+# pour zéro poids. Les FERMETURES d'adjonct à listes ont été mesurées NÉGATIVES au parseur de sujet
+# (−0,22 pt) → PAS ici (canal appris séparé, chantier B). Canal SÉPARÉ de bb : bb = ponctuation de
+# l'AUTEUR (≈40 gardes FP=0 calibrées dessus + « deja » de _virguleScan) ; pb n'est consommé QUE
+# par _clause_no_finite_verb. Miroir JS : _predBounds (dys-core + app).
+_PB_SUB1 = {'quand', 'lorsque', 'puisque', 'quoique', 'car', 'si', 'comme'}
+_PB_SUB1_ELID = ("lorsqu'", "puisqu'", "quoiqu'")
+_PB_SUB2 = {'alors', 'tandis', 'parce', 'bien', 'afin', 'avant', 'après', 'pendant', 'depuis', 'tant', 'dès'}
+_PB_COORD = {'et', 'ou', 'mais'}
+_PB_CONJ_ADV = {'puis', 'ensuite', 'cependant', 'toutefois', 'néanmoins', 'enfin'}
+
+
+def _pred_bounds(T, seg):
+    """Ouvertures de proposition prédites (booléens alignés sur T, format de seg['bb']).
+    Borne avant : subordonnant (liste fermée, élidés inclus « lorsqu'elle ») · « X que » (tandis/parce/
+    alors… que) · relatif qui/que/dont/où ANCRÉ (un nom/pronom précède, ou un verbe fini a déjà été vu
+    dans la proposition) · adverbe de liaison ou et/ou/mais devant un SUJET NET (pronom, élidé, ou
+    DET+nom au tagger) quand un verbe a été vu ET qu'un autre suit. fin_seen se réinitialise à chaque
+    borne (réelle ou prédite) — c'est l'ancrage qui tient la précision (64,7 % vs bords gauches or)."""
+    n = len(T)
+    tg = pos_tags(T)
+    pb = [False] * n
+    fin_seen = bool(tg) and tg[0] in ('VERB', 'AUX')
+    va = [False] * n                                              # un verbe (tag) existe-t-il PLUS LOIN dans la même phrase ?
+    ahead = False
+    for j in range(n - 1, -1, -1):
+        va[j] = ahead
+        if tg and tg[j] in ('VERB', 'AUX'): ahead = True
+        if j < len(seg['ss']) and seg['ss'][j]: ahead = (tg[j] in ('VERB', 'AUX')) if tg else False
+    for i in range(1, n):
+        if (i < len(seg['ss']) and seg['ss'][i]) or (i < len(seg['bb']) and seg['bb'][i]): fin_seen = False
+        lw = T[i].lower()
+        lw2 = T[i + 1].lower() if i + 1 < n else ''
+        prev_tag = tg[i - 1] if (tg and i - 1 < len(tg)) else None
+        b = False
+        if lw in _PB_SUB1 or lw.startswith(_PB_SUB1_ELID):
+            b = True
+        elif lw in _PB_SUB2 and (lw2 == 'que' or lw2.startswith("qu'")):
+            b = True
+        elif lw == 'qui' and (fin_seen or prev_tag in ('NOUN', 'PROPN', 'PRON', 'NUM')):
+            b = True
+        elif (lw in ('dont', 'où', 'que') or lw.startswith("qu'")) and (fin_seen or prev_tag in ('NOUN', 'PROPN')):
+            b = True
+        elif lw in _PB_CONJ_ADV and fin_seen and va[i]:
+            b = True
+        elif lw in _PB_COORD and fin_seen and va[i]:
+            nx = deacc(lw2) if lw2 else ''
+            subj_net = (nx in SUBJ_PRON) or (lw2 and _ELIDED_PRON.search(lw2)) or \
+                       (tg and i + 2 < n and tg[i + 1] == 'DET' and tg[i + 2] in ('NOUN', 'PROPN', 'ADJ', 'NUM'))
+            if subj_net: b = True
+        if b:
+            pb[i] = True; fin_seen = False
+        if tg and tg[i] in ('VERB', 'AUX'): fin_seen = True
+    return pb
 
 # ---------- C : RUN-ON (ponctuation manquante entre 2 propositions) — VIGILANCE (vert), n'impose pas. Conservateur, FP-mesuré.
 PRON_SUBJ = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
@@ -4361,6 +4424,7 @@ def correct(text):
     global _SEG
     _SEG = _seg_info(text)                                        # ponctuation/majuscules (sens/contexte) pour la passe de règles
     T = toks(text); out = []
+    _SEG['pb'] = _pred_bounds(T, _SEG)                            # bornes de proposition PRÉDITES (listes fermées) — consommées par la seule garde verbe-présence
     for i in range(len(T)):
         for name, rule in RULES:
             dec = rule(T, i)
@@ -4561,6 +4625,11 @@ CASES = [
     ("Je crois qu'elle est partie", "partie", "parti", "accord participe"),          # qu'elle est parti → partie (pp_etre LIT l'élidé : genre+nombre)
     ("Il pense qu'ils sont partis", "sont", "son", "son/sont"),           # qu'ils son partis → sont (plural_subj via l'élidé)
     ("Les chats mangent et lorsqu'elle dort", "dort", "dorment", "accord sujet-verbe"),   # 2a = LA GARDE verb_coord (« et lorsqu'elle dort » correct, muet) ; 2b = accord_sv à travers l'élidé (dorment→dort)
+    # BORNES PRÉDITES (canal pb, 31/08/2026) : sans ponctuation, « quand » borne la proposition et la
+    # garde verbe-présence redevient utilisable — « les poules son dans le jardin quand il fait beau »
+    # était MUET (la fenêtre voyait « fait »). 2a = témoin correct silencieux, 2b = déblocage.
+    ("les poules sont dans le jardin quand il fait beau", "sont", "son", "son/sont"),
+    ("les enfants sont partis quand il a appelé", "sont", "son", "son/sont"),
     # majuscule : seulement APRÈS un POINT + espace (PAS ! ? … = souvent milieu de phrase : interjection/inversion/suspension ;
     # ni domaine collé « oqlf.gouv »). Jamais le 1er token = fragment. Non testable par ce harnais (il reconstruit sans
     # ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
