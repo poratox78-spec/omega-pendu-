@@ -746,7 +746,12 @@ def _plur_sous_prep(T, i):
         if NUM_DET.get(deacc(T[j].lower())) == 'pl':
             d = j; break
     if d < 1: return False
-    return deacc(T[d-1].lower()) in PREP
+    _dp = deacc(T[d-1].lower())
+    return _dp in PREP or _dp in _PREP_SUJ_EXT
+
+
+_PREP_SUJ_EXT = {'selon', 'parmi', 'chez', 'malgre', 'durant', 'concernant', 'via', 'envers'}   # prépositions absentes de PREP (diag_sentence) — FP préexistant mesuré 31/08 : « SELON les experts on peut venir »→ont ; la garde ne peut que RETIRER une correction (direction sûre)
+_AVOIR_IDIOM = {'faim', 'soif', 'peur', 'froid', 'chaud', 'raison', 'tort', 'besoin', 'envie', 'sommeil', 'honte', 'mal'}   # « avoir X » figés : « on X » sans verbe n'est jamais correct (rule_on_ont)
 
 
 def rule_on_ont(T, i):
@@ -794,6 +799,13 @@ def rule_on_ont(T, i):
         glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
         if p in ('ils', 'elles') or glued_pl or (is_plural_noun(T, i-1) and not _plur_sous_prep(T, i)): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
         if i+1 < len(T) and _is_ppl(T[i+1]): return 'ont'              # avoir + participe (« les gens qui on grandi/incarné/pu ») → 3pl, jamais « on »
+        # ⭐ IDIOME D'AVOIR après sujet pluriel À DISTANCE (31/08/2026, transposition du pilote son/sont :
+        # « Les enfants de Paul on faim » → ont). « on + faim/soif/peur… » n'existe JAMAIS en français
+        # correct (le pronom « on » exige son verbe) — liste FERMÉE, jamais le cas général « on + nom »
+        # (un FP y est construisible : incise « et on, avec le temps, … »). La preuve de pluriel vient
+        # de _plural_before (marqueur dans la proposition) ; ceinture : aucun verbe fini dans la fenêtre.
+        if deacc(nx) in _AVOIR_IDIOM and _plural_before(T, i) and _clause_no_finite_verb(T, i):
+            return 'ont'
     if vlike(T, i+1):
         if lw == 'ont':
             if _looks_ppl(T[i+1]): return None                         # « ont conclu/suivi/déduit/orchestré » = avoir 3pl + participe (même -u/-i/-is/-it/-é hors _is_ppl), jamais « on » (FP WiCoPaCo)
@@ -2324,8 +2336,23 @@ def rule_accord_sv_noun(T, i):
     if i > 0 and T[i-1].isdigit(): return None                         # « WR 20 a », « A1 » : désignation alphanumérique → « a/est » n'est pas un verbe
     if i > 0 and len(T[i-1]) >= 2 and T[i-1].isupper(): return None     # sigle TOUT-EN-MAJUSCULES avant (« WR a », « NGC A ») = désignation → « a/est » homographe, pas verbe
     if _subject_before(T, i) is not None: return None                  # sujet pronom net → règle pronom (pas ici)
-    p3 = [(l, mt, p, n) for (l, mt, p, n) in _reads(T[i]) if p == '3']  # sujet-nom = 3e personne
-    if not p3: return None
+    _ri = _reads(T[i])
+    p3 = [(l, mt, p, n) for (l, mt, p, n) in _ri if p == '3']          # sujet-nom = 3e personne
+    # ⭐ GARDE p3 ASSOUPLIE, EN LISTE FERMÉE (31/08/2026, enquête sujet — « Marie es gentille » et
+    # « La fillette as peur » déférés depuis le JOURNAL:621) : es/as/vas sont EXCLUSIVEMENT 2e pers.
+    # sing. du présent, lemme univoque, sans homographe adjectif/nom piégeux — derrière un sujet
+    # nominal 3e pers. c'est un verbe mal accordé, configuration impossible en français correct
+    # (le vocatif met le pronom : « Marie, tu es », et la virgule est une borne → route pronom).
+    # ⛔ LA RELAXATION GÉNÉRALE « toutes lectures 1re/2e » A ÉTÉ MESURÉE-FALSIFIÉE le jour même :
+    # +11 flags accord-SV sur UD 14 450 dont ~9 FP RÉELS — participes/adjectifs à lecture 2e pers.
+    # dans des fenêtres SANS verbe (« conditions REMPLIES »→remplient, « moines CÉLÈBRES »→célèbrent,
+    # « allégations FAITES »→font, « PUIS »→peut ×3, titre « CHANTONS sous la pluie »→chante) ; et son
+    # rappel unique était nul : les -ais/-ais (étais, arrivais) sont DÉJÀ couverts par rule_ais_ait.
+    # Le créneau verbal libre reste en ceinture ; les gardes de structure s'appliquent inchangées.
+    # NB : les possessifs (« ma sœur vas ») étaient DÉJÀ acceptés (NUM_DET les contient).
+    _p12 = (not p3) and deacc(T[i].lower()) in ('es', 'as', 'vas') \
+        and _clause_no_finite_verb(T, i, i + 1 if (i + 1 < len(T) and _is_ppl(T[i + 1])) else None)
+    if not p3 and not _p12: return None
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
         return None                                                    # temps composé/passif (aux + participe) → T[i] = participe, pas verbe fini
     tg = pos_tags(T)
@@ -2352,9 +2379,9 @@ def rule_accord_sv_noun(T, i):
         # abstention. Mesuré : 3 FP du corpus généré éteints, les 3 cas emblématiques préservés.
         _hn = deacc(T[hk].lower())
         if not _hn.endswith(('s', 'x')) and not rule_noun_plural(T, hk): return None
-    if ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention
+    if subj['dtxt'] != '' and ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention. Le raccourci PRÉNOM (dtxt vide, sans déterminant par nature) est exempté
     if deacc(subj['htxt'].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
-    if not subj['elid'] and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention
+    if not subj['elid'] and subj['dtxt'] != '' and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention. EXEMPTÉ : le raccourci PRÉNOM (dtxt vide) — son nombre est fiable par construction (table prenoms_genre), c'est ce qui débloque « Marie es gentille »→est (31/08, même précédent que pp_etre #596)
     lo = 0                                                             # début de proposition (bornes _SEG)
     if _SEG is not None:
         for j in range(i, 0, -1):
@@ -2411,11 +2438,12 @@ def rule_accord_sv_noun(T, i):
         if tg and m < len(tg) and tg[m] in ('VERB', 'AUX') and not (T[m].lower().endswith(('é', 'és', 'ée', 'ées')) and not (m > 0 and tg[m-1] == 'AUX')): return None   # verbe FINI intercalé = sous-phrase → abstention ; MAIS participe-épithète (« cartons empilés dans… gêne ») non précédé d'un aux = adjectif réduit → toléré (miroir du saut dans _np_subject)
         if tok.lower() in NUM_DET and dw not in PREP and not (m > 0 and deacc(T[m-1].lower()) in PREP):
             return None                                              # 2e GN NON prépositionnel (nouveau sujet) → abstention ; « des/du » (prép+dét) & « de la » tolérés
-    if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord
-    lemmas = {l for (l, _mt, _p, _n) in p3}
+    if any(n == nb or n == 'x' for (_l, _mt, _p, n) in p3): return None  # déjà d'accord (p3 vide en _p12 : une forme 1re/2e n'est jamais d'accord avec un sujet nominal)
+    _src = p3 if p3 else _ri                                    # _p12 : lemme/temps lus sur les lectures 1re/2e (la cible reste 3·nb, validée ci-dessous)
+    lemmas = {l for (l, _mt, _p, _n) in _src}
     if len(lemmas) != 1: return None
     lem = lemmas.pop()
-    mts = [mt for (_l, mt, _p, _n) in p3]
+    mts = [mt for (_l, mt, _p, _n) in _src]
     mt = 'ind:pre' if 'ind:pre' in mts else mts[0]
     if mt == 'ind:pas': return None                             # passé simple : hors ROUGE (mur du sujet « inspira les débats »→inspirèrent) → vigilance ORANGE (app/ext)
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get('3' + nb)
@@ -4302,7 +4330,7 @@ def rule_on_ont_sujet_pluriel(T, i):
         if deacc(T[j].lower()) in _ON_DETPL:
             d = j; break
     if d < 0 or d == i - 1: return None                 # il faut un NOM entre le determinant et « on »
-    if d > 0 and deacc(T[d-1].lower()) in PREP: return None
+    if d > 0 and (deacc(T[d-1].lower()) in PREP or deacc(T[d-1].lower()) in _PREP_SUJ_EXT): return None   # « SELON les experts on peut » : préposition hors PREP (même garde que _plur_sous_prep, 31/08)
     return 'ont'
 
 
@@ -4630,6 +4658,13 @@ CASES = [
     # était MUET (la fenêtre voyait « fait »). 2a = témoin correct silencieux, 2b = déblocage.
     ("les poules sont dans le jardin quand il fait beau", "sont", "son", "son/sont"),
     ("les enfants sont partis quand il a appelé", "sont", "son", "son/sont"),
+    # GARDE p3 ASSOUPLIE (31/08/2026) : forme exclusivement 1re/2e pers. derrière un sujet nominal —
+    # créneau verbal libre exigé (« Les articles conformes passent » = le témoin FP, déjà en batterie).
+    ("Marie est gentille", "est", "es", "accord sujet-verbe"),
+    ("La fillette a peur", "a", "as", "accord sujet-verbe"),
+    ("ma soeur va au marché", "va", "vas", "accord sujet-verbe"),
+    # IDIOME D'AVOIR après sujet pluriel à distance (« Les enfants de Paul on faim » — liste fermée)
+    ("mes amis ont raison", "ont", "on", "on/ont"),
     # majuscule : seulement APRÈS un POINT + espace (PAS ! ? … = souvent milieu de phrase : interjection/inversion/suspension ;
     # ni domaine collé « oqlf.gouv »). Jamais le 1er token = fragment. Non testable par ce harnais (il reconstruit sans
     # ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
