@@ -116,7 +116,17 @@ const PHRASES = [
   // accord SV vouloir (slot 1s/2s réparé — Lexique mis-étiquetait « veux » pluriel) : cibles + pièges corrects
   'je veut partir', 'tu veut venir', 'il veut partir', 'je veux partir', 'nous voulons partir',
   // -ais→-ait : personne (verbe imparfait 1sg sous sujet-nom 3sg) — cibles + pièges corrects (je/tu, pluriel)
-  'Mon collègue vérifiais les comptes', 'Le technicien réparais la machine', 'Je gardais le secret', 'Tu regardais la télévision', 'Les responsables installais tout'
+  'Mon collègue vérifiais les comptes', 'Le technicien réparais la machine', 'Je gardais le secret', 'Tu regardais la télévision', 'Les responsables installais tout',
+  // son/sont SUJET-NOM (pilote _clauseNoFiniteVerb) — ces 6 cas étaient dans dictee/parity_corr.js mais
+  // ABSENTS ici malgré l'en-tête « même batterie » (trou de sonde trouvé par l'enquête détection-du-sujet).
+  'les chats son venus.', 'les enfants son venus.', 'les chats son partis.',
+  'les poules son dans le jardin.', 'le son de la cloche résonne.', 'son ancienne équipe a gagné.',
+  // PRONOM ÉLIDÉ (_prevPron, 30/08/2026) : cibles (5 règles rataient l'élidé) + gardes (français CORRECT :
+  // « et lorsqu'elle dort » cassé en dorment par rAccordVerbCoord avant le correctif — rester muet).
+  "Lorsqu'il à faim.", "Puisqu'elle c'est levée.", "Puisqu'il ce regarde.", "puisqu'il mangeai une pomme.",
+  "Je crois qu'elle est parti.", "Il pense qu'ils son partis.",
+  "Les chats mangent et lorsqu'elle dort.", "Ils chantaient et puisqu'elle dansait.", "Les chats mangent et s'il dort.",
+  "Lorsqu'il a faim.", "Puisqu'elle s'est levée.", "Je crois qu'elle est partie.", "Les chats mangent et lorsqu'elle dorment."
 ];
 
 // 3) flags Python

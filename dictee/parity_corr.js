@@ -197,7 +197,14 @@ const PHRASES = [
   // accord SV vouloir (slot 1s/2s réparé — Lexique mis-étiquetait « veux » pluriel) : cibles + pièges corrects
   'je veut partir', 'tu veut venir', 'il veut partir', 'je veux partir', 'nous voulons partir',
   // -ais→-ait : personne (verbe imparfait 1sg sous sujet-nom 3sg) — cibles + pièges corrects (je/tu, pluriel)
-  'Mon collègue vérifiais les comptes', 'Le technicien réparais la machine', 'Je gardais le secret', 'Tu regardais la télévision', 'Les responsables installais tout'
+  'Mon collègue vérifiais les comptes', 'Le technicien réparais la machine', 'Je gardais le secret', 'Tu regardais la télévision', 'Les responsables installais tout',
+  // PRONOM ÉLIDÉ (_prevPron, 30/08/2026) : ces cas n'étaient exercés par AUCUNE sonde de parité (enquête
+  // détection-du-sujet). Cibles (5 règles rataient l'élidé) + gardes (français CORRECT : « et lorsqu'elle
+  // dort » cassé en dorment par rAccordVerbCoord avant le correctif — les moteurs doivent rester muets).
+  "Lorsqu'il à faim.", "Puisqu'elle c'est levée.", "Puisqu'il ce regarde.", "puisqu'il mangeai une pomme.",
+  "Je crois qu'elle est parti.", "Il pense qu'ils son partis.",
+  "Les chats mangent et lorsqu'elle dort.", "Ils chantaient et puisqu'elle dansait.", "Les chats mangent et s'il dort.",
+  "Lorsqu'il a faim.", "Puisqu'elle s'est levée.", "Je crois qu'elle est partie.", "Les chats mangent et lorsqu'elle dorment."
 ];
 
 // flags Python via un petit pont

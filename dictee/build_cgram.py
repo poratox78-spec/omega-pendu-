@@ -31,6 +31,16 @@ PART_END = ('é', 'és', 'ée', 'ées')   # participes mal tagués « présent �
 # RECONNAISSANCE conj : sinon « entre l'UFE et les universités… »→entrent = FP sur UD (mesuré : entre ×6, contre ×3).
 # On perd « il entre »→entrent (très rare) pour préserver le FP-safety. PAS « a » (= avoir, essentiel à on/ont, a/à).
 CONJ_STOP = {'entre', 'contre'}
+# Présent SUPPLÉTIF 1p/2p hors -ons/-ez : la morphologie ne peut pas les déduire (derive_number → 's'),
+# et le croisement LEFFF rate « sommes » (filtre anti-bruit ligne ~423 : la forme ne démarre pas comme le
+# lemme — unique supplétive du présent dans ce cas, « so » ≠ « et »). Régression du #83 (2026-07-04) qui
+# ignorait 8_Nombre en 1re/2e pers. (à bon droit : ~73 « veux/finis » singuliers tagués pluriel) ; LEFFF a
+# repêché 7 formes sur 8, « sommes » seule restait morte (mesuré 31/08/2026). Clé (lemme, forme, personne) :
+# aucune collision avec les 2s réguliers en -mes/-tes (« tu aimes », « tu sommes »=sommer 2s).
+IRREG_PRES_PLUR = {('etre', 'sommes', '1'), ('etre', 'etes', '2'),
+                   ('faire', 'faites', '2'), ('refaire', 'refaites', '2'), ('defaire', 'defaites', '2'),
+                   ('redefaire', 'redefaites', '2'), ('satisfaire', 'satisfaites', '2'),
+                   ('contrefaire', 'contrefaites', '2'), ('dire', 'dites', '2'), ('redire', 'redites', '2')}
 
 
 def deacc(s):
@@ -195,7 +205,10 @@ def main():
                                 # « ont »/« sont » agréeraient à tort avec un sujet 3sg (« il ont »→a ne serait plus détecté).
                                 cj_x.setdefault(lem, {}).setdefault(mt, []).append((form, fr, spec))
                                 continue
-                            nn = derive_number(form_lw, per) if per in ('1', '2') else (nb or derive_number(form_lw, per))
+                            if per in ('1', '2'):
+                                nn = 'p' if (mt == 'ind:pre' and (lem, w, per) in IRREG_PRES_PLUR) else derive_number(form_lw, per)
+                            else:
+                                nn = nb or derive_number(form_lw, per)
                             cj_f.setdefault(w, set()).add(f"{lem};{mt};{per};{nn}")
                             if nn in ('s', 'p'):
                                 slot = per + nn; d = cj_c.setdefault(lem, {}).setdefault(mt, {})

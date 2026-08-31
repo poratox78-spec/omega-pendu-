@@ -24823,11 +24823,12 @@ var w=T[i],lw=w.toLowerCase();
     var nxt=i+1<T.length?deacc(T[i+1].toLowerCase()):'';
     var _nxr=i+1<T.length?T[i+1].toLowerCase():'';
     var nxtNounSg=_nounGate(nxt)&&!(/s$/.test(nxt)||/x$/.test(nxt))&&_nxr!=='là'&&_nxr!=='çà';   // NOM SG derrière = posterior §3 `_nounGate` (P(NOM)≥τ ∧ P(VER)<ε), PAS GENDER_PURE brut : « bien »/« à »/« de » y figurent → FP « …et… sont bien décidées »→son ; _nounGate les écarte, garde chien/frère/ami. « là »/« çà » accentués = adverbes, exclus.
-    var pluralSubj=(cprev(T,i)==='ils'||cprev(T,i)==='elles')||cplBefore(T,i)||cpl(T,i-1);
+    var _pp0=_prevPron(T,i);   // _prevPron : « qu'ils son partis » porte son sujet dans le token élidé (miroir Python)
+    var pluralSubj=(_pp0==='ils'||_pp0==='elles')||cplBefore(T,i)||cpl(T,i-1);
     if(!pluralSubj){for(var j=i-1;j>i-9&&j>=0;j--){if(_SEG&&(j+1)<_SEG.bb.length&&_SEG.bb[j+1])break;if(PLURAL_DET[deacc(T[j].toLowerCase())]){pluralSubj=true;break;}}}
-    if(lw==='sont'){var _sp=cprev(T,i);if(_sp==='il'||_sp==='elle'||_sp==='on'||_sp==='ils'||_sp==='elles'||_sp==='je'||_sp==='tu'||_sp==='nous'||_sp==='vous')return null;   // après un PRONOM SUJET, « sont » est le VERBE (« il sont là »), jamais le possessif ; laisse rIlIls corriger il→ils
+    if(lw==='sont'){var _sp=_pp0;if(_sp==='il'||_sp==='elle'||_sp==='on'||_sp==='ils'||_sp==='elles'||_sp==='je'||_sp==='tu'||_sp==='nous'||_sp==='vous')return null;   // après un PRONOM SUJET (même élidé « qu'il »), « sont » est le VERBE (« il sont là »), jamais le possessif ; laisse rIlIls corriger il→ils
       if(pluralSubj)return null;if(nxtNounSg)return 'son';return null;}
-    if((cprev(T,i)==='ils'||cprev(T,i)==='elles')&&nxt&&!nxtNounSg)return 'sont';
+    if((_pp0==='ils'||_pp0==='elles')&&nxt&&!nxtNounSg)return 'sont';
     // PILOTE analyse — sujet NOM : pluriel avant + « son » suivi d'une PRÉP (ou « en ») + pas déterminant/prép avant + AUCUN verbe fini → sont
     if(pluralSubj&&(PREP[nxt]||nxt==='en')&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&_clauseNoFiniteVerb(T,i,i+1))return 'sont';
     // sujet-NOM pluriel + « son » + participe PLURIEL (« les enfants son partis »→sont) ; adjectifs exclus (FP)
@@ -24933,7 +24934,8 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   function _aaInverted(T,i){if(i-2<0)return false;var hy=(_SEG&&_SEG.hy)?_SEG.hy:[];return vlike(T,i-2)||(i-1<hy.length&&hy[i-1]);}   // pronom sujet en i-1 INVERSÉ (« avait-il à cela ») → pas un sujet PRÉVERBAL de « a » (FP à→a)
   function rA(T,i){if(deacc(T[i].toLowerCase())!=='a')return null;if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+2<T.length&&deacc(T[i+1].toLowerCase())==='t'&&['il','elle','on','ils','elles'].indexOf(deacc(T[i+2].toLowerCase()))>=0)return null;/* « a-t-il/elle/on » : -t- euphonique = INVERSION → « a » = verbe avoir, jamais « à » */if(i>0&&i+1<T.length&&deacc(T[i-1].toLowerCase())==='tout'&&deacc(T[i+1].toLowerCase())==='fait')return null;/* locution « tout à fait » : « à » invariable, jamais « a » */
     var pb=(_SEG&&i<_SEG.bb.length)?_SEG.bb[i]:false;var tg=posTags(T);var p=cprev(T,i);   // POS PLEINE-PHRASE : sépare les FAUX participes (nom homographe / -ment nominal) du vrai participe → tue les FP à→a par élimination
-    if(!pb&&(p==='il'||p==='elle'||p==='on'||p==='qui'||p==='ca'||p==='c')&&!_aaInverted(T,i))return 'a';   // sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
+    var pel=i>0?_ELIDED_PRON.exec(T[i-1].toLowerCase()):null;if(pel)p=deacc(pel[1]);   // « Lorsqu'il à faim » : le sujet vit DANS le token élidé ; le préfixe (qu'/s'/lorsqu'…) prouve un sujet PRÉVERBAL → le test d'inversion « avait-il » ne s'applique pas
+    if(!pb&&(p==='il'||p==='elle'||p==='on'||p==='qui'||p==='ca'||p==='c')&&(pel||!_aaInverted(T,i)))return 'a';   // sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
     if(i+1<T.length&&_isPpl(T[i+1])&&!/ee$/.test(deacc(T[i+1].toLowerCase()))){var dn=deacc(T[i+1].toLowerCase()),nt=(tg&&i+1<tg.length)?tg[i+1]:'';if(!(_PP_NOUN_HOMO[dn]&&nt==='NOUN'))return 'a';}   // « a + participe » → AVOIR, jamais « à ». Écarte -ée FÉMININ (« à durée » reste prép) ET le nom-homographe tagué NOM (« condamnée à mort », « tout à fait »)
     if(i+2<T.length&&/ment$/.test(deacc(T[i+1].toLowerCase()))&&(tg&&i+1<tg.length&&tg[i+1]==='ADV')&&_isPpl(T[i+2]))return 'a';   // « a + ADVERBE(-ment) RÉEL + participe » ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
     if(!pb&&vlike(T,i-1)){var pv=i>0&&NOUN_POST?NOUN_POST[deacc(T[i-1].toLowerCase())]:null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return null;return 'à';}return null;}
@@ -25056,7 +25058,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(isn&&!isv&&tg[i+1]!=='VERB'&&tg[i+1]!=='AUX')return ckeepcase(T[i],'ce');                 // nom PUR confirmé (pas verbe au tagger) → ce ; sinon (« il se document[e] ») → ne pas forcer « ce »
     if(lw==='se'){if(tg[i+1]==='NOUN')return ckeepcase(T[i],'ce');
       if(!/ant$/.test(nd)&&_nounGate(nd))return ckeepcase(T[i],'ce');return null;}   // LE TAGGER EST CONTAMINÉ PAR LA FAUTE ELLE-MÊME : dans « Se matin, la livraison est arrivée » il étiquette « matin » VERB, parce que « se » prédit un verbe. Un tagger conditionné sur le token fautif ne peut pas arbitrer la faute de ce token. Le posterior NOUN_POST est SANS CONTEXTE (prior lexical) donc immunisé : matin/jour/soir/moment = P(NOM) 1000‰ et P(VER) 0‰, tandis que livre/porte/marche/ferme restent ambigus et continuent de s'abstenir.                            // se + NOM → ce
-    if((tg[i+1]==='VERB'||tg[i+1]==='AUX')){var p=cprev(T,i);if(p==='il'||p==='elle'||p==='on'||p==='je'||p==='tu'||p==='ils'||p==='elles'||p==='qui')return ckeepcase(T[i],'se');}   // ce + VERBE + SUJET pronom → se (sinon ce impersonnel)
+    if((tg[i+1]==='VERB'||tg[i+1]==='AUX')){var p=_prevPron(T,i);if(p==='il'||p==='elle'||p==='on'||p==='je'||p==='tu'||p==='ils'||p==='elles'||p==='qui')return ckeepcase(T[i],'se');}   // ce + VERBE + SUJET pronom (même élidé « Puisqu'il ce regarde ») → se (sinon ce impersonnel)
     return null;}
   // « mais » devant un NOM genré (≠ prép/dét/pronom/verbe) → « mes » (« mais lunettes »→« mes lunettes »). MÊME
   // logique/données que correcteur_probe.rule_mais_mes (GENDER_PURE + gardes) → parité. FP=0 mesuré (verbe = vlike).
@@ -25098,7 +25100,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     var infEr=/^[a-zà-ÿ]{4,}er$/.test(w)&&!!CONJ_C[deacc(w)];
     if(!_isPpl(T[j])&&!(_nomOK&&_SAIS_PPU[deacc(w)])&&!infEr)return null;
     var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}
-  function rCestSest(T,i){if(deacc(T[i].toLowerCase())!=="c'est")return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=cprev(T,i);if(!(p==='il'||p==='elle'||p==='on'))return null;var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;if(j<T.length&&_isPpl(T[j])){var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}return null;}   // [il/elle/on]+c'est(+adverbe)+participe → s'est (« elle c'est bien amusée ») ; le participe bloque la dislocation « c'est ma sœur ». FP=0.
+  function rCestSest(T,i){if(deacc(T[i].toLowerCase())!=="c'est")return null;if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;var p=_prevPron(T,i);/* _prevPron : lit aussi le pronom élidé (« Puisqu'elle c'est levée »→s'est) */if(!(p==='il'||p==='elle'||p==='on'))return null;var j=i+1;while(j<T.length&&j<=i+3&&PPMID[deacc(T[j].toLowerCase())])j++;if(j<T.length&&_isPpl(T[j])){var c=T[i].charAt(0);return c!==c.toLowerCase()?"S'est":"s'est";}return null;}   // [il/elle/on]+c'est(+adverbe)+participe → s'est (« elle c'est bien amusée ») ; le participe bloque la dislocation « c'est ma sœur ». FP=0.
   /* ── ou/où — MIROIR de correcteur_probe.rule_ou_ou. MESURÉ le 2026-08-25 sur le corpus dys réel :
      11 vraies fautes sur 23 occurrences de « ou » (48 %), la famille la plus DENSE du corpus, et
      couverture ZÉRO jusqu'ici (REGLES_FR §2 la classait « carte enseignante » : signalée, sans
@@ -25241,6 +25243,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
   function _fillReg3pl(cjc,cjf){var _REG3PL=[['ind:imp','ait','aient'],['cnd:pre','ait','aient'],['ind:fut','ra','ront']];for(var lem in cjc){for(var t=0;t<_REG3PL.length;t++){var mt=_REG3PL[t][0],s3=_REG3PL[t][1],p3=_REG3PL[t][2],slot=cjc[lem][mt];if(!slot)continue;var f3s=slot['3s'];if(Array.isArray(f3s))f3s=f3s[0];if(!f3s||slot['3p']||f3s.slice(-s3.length)!==s3)continue;var f3p=f3s.slice(0,-s3.length)+p3;slot['3p']=f3p;var key=deacc(f3p.toLowerCase()),rd=lem+';'+mt+';3;p',cur=cjf[key];if(!cur)cjf[key]=rd;else if(cur.indexOf(rd)<0)cjf[key]=cur+'|'+rd;}}}   // CLÔTURE 3PL RÉGULIÈRE déterministe (imparfait/conditionnel -ait→-aient · futur -ra→-ront, 0 exception) : build_cgram droppe tout l'imparfait 3pl (bucket ambigu -ient + résolution qui saute ind:imp) + cnd/fut partiels (filtre HF). Miroir Python + extension.
   var _ELIDED_PRON=/^(?:qu|s|n|c|j|l|d|m|t|puisqu|lorsqu|quoiqu)['’](il|ils|elle|elles|on|je|tu|nous|vous)$/;   // « qu'il », « s'ils » : le pronom sujet vit DANS le token élidé (miroir Python _ELIDED_PRON)
+  function _prevPron(T,i){if(i<=0)return null;var m=_ELIDED_PRON.exec(T[i-1].toLowerCase());return m?deacc(m[1]):cprev(T,i);}   // pronom sujet EFFECTIF avant i : lit aussi le pronom PORTÉ par un token élidé (« Lorsqu'il à faim », « Puisqu'elle c'est levée » — 5 règles à liste propre le rataient, mesuré 30/08/2026). Miroir Python _prev_pron.
   function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}if(j<0)return null;if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}var _me=_ELIDED_PRON.exec(T[j].toLowerCase());if(_me)return SUBJ_PRON[deacc(_me[1])]||null;return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
   function svAgrees(reads,per,nb){var k;if(per==='3'){for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return true;return false;}for(k=0;k<reads.length;k++)if(reads[k][2]===per)return true;return false;}  // 1re/2e pers : personne seule (tag nombre Lexique parfois faux : « peux »)
   var _V3PL_SURE={sont:1,ont:1,vont:1,font:1};   // 3e pluriel irréguliers non ambigus (jamais nom/adj/3sg)
@@ -25524,7 +25527,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     var ci=null;for(k=i-1;k>=lo;k--){var dk=deacc(T[k].toLowerCase());if(dk==='et'||dk==='ou'||dk==='ni'){ci=k;break;}}
     if(ci===null)return null;
-    for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;if(_elidKind(T[m])==='det')return null;}   // nouveau sujet entre conj et V2 → V2 a le sien
+    for(var m=ci+1;m<i;m++){if(NUM_DET[T[m].toLowerCase()]!==undefined||_coordSubjW[deacc(T[m].toLowerCase())])return null;if(_elidKind(T[m])==='det')return null;if(_ELIDED_PRON.test(T[m].toLowerCase()))return null;}   /* PRONOM ÉLIDÉ = un NOUVEAU sujet lui aussi : « … et lorsqu'elle dort » ouvre sa propre proposition (FP mesuré 30/08/2026 sur français CORRECT : dort → dorment) — même motif que la garde 'det', jamais propagée à cette règle sœur */   // nouveau sujet entre conj et V2 → V2 a le sien
     var v1=null;for(k=ci-1;k>=lo;k--){
       if(!/(é|és|ée|ées)$/.test(T[k].toLowerCase())&&_verbOrHomograph(tg,T,k)&&_vnum3(T[k])!==null){v1=k;break;}
       var d=deacc(T[k].toLowerCase());if(GENDER_MAP[d]||ADJP[d])break;                    // vrai nom/adj avant la conj → coordination NOMINALE
@@ -25945,8 +25948,9 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(a<0)return null;var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
     var _a1refl=false;for(var _kr=Math.max(0,a-2);_kr<a;_kr++){var _dr=deacc(T[_kr].toLowerCase());if(_dr==='se'||_dr==='s'){_a1refl=true;break;}}   // #A1 : verbe pronominal (« se sont … ») → PP potentiellement invariable → A1 s'abstient
     var info=null,sk=-1;for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
+    if(!info&&a>=1){var _mel=_ELIDED_PRON.exec(T[a-1].toLowerCase());if(_mel){info=PPE_SUBJ[deacc(_mel[1])];sk=a-1;}}   // pronom élidé avant l'aux : le LIRE — il porte personne+genre+nombre (« Je crois qu'elle est parti »→partie ; mesuré muet 30/08/2026). qu'on/qu'vous → absent de PPE_SUBJ → prudence ci-dessous. Miroir Python.
     if(!info){                                                                   // pas de sujet PRONOM → sujet NOM via le VRAI PARSEUR (miroir rule_pp_etre : mots-écrans sautés, coordination/inf/PP → abstention)
-      if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.                              // pronom élidé (« qu'elle soit emmenée ») → abstention (FP)
+      if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé non lisible (« qu'on », « n'… ») → le vrai sujet est le clitique, prudence. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
       var tgp=posTags(T);
       if(!tgp||i>=tgp.length||(tgp[i]!=='VERB'&&tgp[i]!=='ADJ'))return null;     // participe RÉEL (tagger) → écarte les noms homographes
       /* déterminant après le participe → sujet POSTPOSÉ (« est annoncée la reprise ») → abstention.
@@ -26312,7 +26316,8 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase()||lw.length<5)return null;
     if(!/ai$/.test(lw)||/rai$/.test(lw))return null;
     if(i<1)return null;
-    var p=deacc(T[i-1].toLowerCase());if((p==='ne'||p==="n'")&&i>=2)p=deacc(T[i-2].toLowerCase());
+    var _kai=i-1,p=deacc(T[_kai].toLowerCase());if((p==='ne'||p==="n'")&&i>=2){_kai=i-2;p=deacc(T[_kai].toLowerCase());}
+    var _mai=_ELIDED_PRON.exec(T[_kai].toLowerCase());if(_mai)p=deacc(_mai[1]);   // « puisqu'il mangeai » : le sujet vit dans le token élidé (miroir Python)
     if(p!=='il'&&p!=='elle'&&p!=='on')return null;
     var cible=lw.slice(0,-2)+'ait',rd=svReads(cible),ok=false;
     for(var k=0;k<rd.length;k++)if(rd[k][1].indexOf('ind:imp')===0&&rd[k][2]==='3')ok=true;

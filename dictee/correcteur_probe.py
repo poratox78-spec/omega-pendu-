@@ -215,6 +215,16 @@ VLIKE_STOP = (set(NUM_DET) | set(NUM_PRON) |
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
 
+
+def _prev_pron(T, i):
+    """Pronom sujet EFFECTIF avant i : le pronom PORTÉ par un token élidé (« qu'il », « s'ils »,
+    « lorsqu'elle » — _ELIDED_PRON) sinon le token précédent tel quel (déaccentué). Chaque règle garde
+    sa propre liste d'admission : on ne fait que rendre VISIBLE le pronom collé — 5 règles à liste
+    propre le rataient (mesuré 30/08/2026 : « Lorsqu'il à faim », « Puisqu'elle c'est levée »…)."""
+    if i <= 0: return None
+    m = _ELIDED_PRON.search(T[i-1].lower())
+    return deacc(m.group(1)) if m else prev(T, i)
+
 def _is_ppl(w):
     """Participe passé RÉEL (cadre auxiliaire avoir). Terminaison de participe ET infinitif reconstruit PRÉSENT dans le
     lexique verbal → écarte les NOMS homographes en -é/-ée (actualité, portée-nom) qui faisaient exploser les FP."""
@@ -617,19 +627,19 @@ def rule_son_sont(T, i):
     nxt = deacc(T[i+1].lower()) if i+1 < len(T) else ''
     nxt_raw = T[i+1].lower() if i+1 < len(T) else ''
     nxt_noun_sg = _noun_gate(nxt) and not (nxt.endswith('s') or nxt.endswith('x')) and nxt_raw not in ('là', 'çà')   # NOM SG derrière = posterior §3 `_noun_gate` (P(NOM)≥τ ∧ P(VER)<ε), PAS l'appartenance brute à GENDER_PURE : « bien »/« à »/« de » sont dans GENDER_PURE (note de musique, homographes) → FP « …et… sont bien décidées »→son ; _noun_gate les écarte (NOUN_POST absent) et garde les vrais noms (chien/frère/ami). « là »/« çà » accentués = adverbes, exclus.
-    plural_subj = (prev(T, i) in ('ils', 'elles')) or _plural_before(T, i) or is_plural_noun(T, i-1)
+    plural_subj = (_prev_pron(T, i) in ('ils', 'elles')) or _plural_before(T, i) or is_plural_noun(T, i-1)   # _prev_pron : « qu'ils son partis » porte son sujet dans le token élidé
     if not plural_subj:                                                # déterminant PLURIEL (les/des/ces/leurs…) avant, dans la MÊME proposition → sujet pluriel (« Les sources … sont », « Les Bahrites ou X sont »)
         for j in range(i-1, max(-1, i-9), -1):
             if _SEG is not None and (j+1) < len(_SEG['bb']) and _SEG['bb'][j+1]: break
             if deacc(T[j].lower()) in PLURAL_DET: plural_subj = True; break
     if lw == 'sont':
-        if prev(T, i) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous'): return None   # après un PRONOM SUJET, « sont » est le VERBE (« il sont là »), JAMAIS le possessif « son » (« il son X » est agrammatical) → ne pas proposer « son » ; le pronom sing (il/elle) est corrigé par rule_il_ils. Fixe « il sont là »→« il son là » et le sont→son de « il et elle sont »
+        if _prev_pron(T, i) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous'): return None   # après un PRONOM SUJET (même élidé « qu'il »), « sont » est le VERBE (« il sont là »), JAMAIS le possessif « son » (« il son X » est agrammatical) → ne pas proposer « son » ; le pronom sing (il/elle) est corrigé par rule_il_ils. Fixe « il sont là »→« il son là » et le sont→son de « il et elle sont »
         if plural_subj: return None                                    # sujet pluriel (proche ou à distance) → « sont » correct → ne pas toucher
         if nxt_noun_sg: return 'son'                                   # « sont » + NOM SINGULIER direct (« il a perdu sont chien ») → possessif ; adj/participe/prép (« sont contents/partis/là ») → abstention
         return None
     # lw == 'son' → « sont » : cadre NET « ils/elles son <prédicat> » (FP=0)
-    if prev(T, i) in ('ils', 'elles') and nxt and not nxt_noun_sg:
-        return 'sont'                                                  # « ils son contents » → être 3pl
+    if _prev_pron(T, i) in ('ils', 'elles') and nxt and not nxt_noun_sg:
+        return 'sont'                                                  # « ils son contents » → être 3pl (élidé inclus : « qu'ils son partis »)
     # PILOTE « analyse » — sujet NOM : groupe pluriel avant + « son » suivi d'une PRÉPOSITION (un déterminant possessif
     # n'est JAMAIS suivi d'une prép ; le NOM « son » l'est mais est alors précédé d'un déterminant/prép, exclu) + AUCUN
     # verbe fini dans la proposition (signal verbe-présence ~94 %) → « son » occupe le créneau verbe → « sont ».
@@ -837,7 +847,9 @@ def rule_a_aa(T, i):
     pb = _SEG['bb'][i] if (_SEG is not None and i < len(_SEG['bb'])) else False   # frontière de proposition AVANT (virgule…) → le mot d'avant ne gouverne pas (« qui, à 4°C » : « qui » n'est pas le sujet de « à »)
     tg = pos_tags(T)                                                   # POS PLEINE-PHRASE : sépare les FAUX participes (nom homographe / -ment nominal) du vrai participe → tue les FP à→a par élimination
     p = prev(T, i)
-    if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça") and not _aa_inverted(T, i): return 'a'   # sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
+    pel = _ELIDED_PRON.search(T[i-1].lower()) if i > 0 else None       # « Lorsqu'il à faim » : le sujet vit DANS le token élidé ; le préfixe (qu'/s'/lorsqu'…) prouve un sujet PRÉVERBAL → le test d'inversion « avait-il » ne s'applique pas
+    if pel: p = deacc(pel.group(1))
+    if not pb and p in ('il', 'elle', 'on', 'qui', 'ca', "c", "ça") and (pel or not _aa_inverted(T, i)): return 'a'   # sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
     if i+1 < len(T) and _is_ppl(T[i+1]) and not deacc(T[i+1].lower()).endswith('ee'):   # « a + participe » (« a été », « a décidé ») → auxiliaire AVOIR, jamais « à ». Écarte -ée FÉMININ (après AVOIR le pp NE s'accorde PAS → « -ée » = NOM → « à durée limitée » reste préposition)
         dn = deacc(T[i+1].lower()); nt = tg[i+1] if (tg and i+1 < len(tg)) else ''
         if not (dn in _PP_NOUN_HOMO and nt == 'NOUN'): return 'a'     # …SAUF nom-homographe tagué NOM (« condamnée à mort », « tout à fait ») = « à » préposition, pas le verbe « a »
@@ -992,7 +1004,7 @@ def rule_ce_se(T, i):
         if not nd.endswith('ant') and _noun_gate(nd): return _keepcase(T[i], 'ce')
         return None
     # lw == 'ce' → « se » SEULEMENT si un SUJET précède (« il ce lave »→se) ; sinon « ce » = PRONOM IMPERSONNEL (ce serait, ce n'était, pour ce faire) → abstention
-    if tg[i+1] in ('VERB', 'AUX') and prev(T, i) in ('il', 'elle', 'on', 'je', 'tu', 'ils', 'elles', 'qui'):
+    if tg[i+1] in ('VERB', 'AUX') and _prev_pron(T, i) in ('il', 'elle', 'on', 'je', 'tu', 'ils', 'elles', 'qui'):   # _prev_pron : lit aussi le pronom élidé (« Puisqu'il ce regarde »→se)
         return _keepcase(T[i], 'se')
     return None
 
@@ -1003,7 +1015,7 @@ def rule_cest_sest(T, i):
     # Singulier seulement : au pluriel « ils/elles c'est » la bonne forme est « se sont », pas « s'est » → abstention.
     if deacc(T[i].lower()) != "c'est": return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant → pas de sujet net
-    if prev(T, i) not in ('il', 'elle', 'on'): return None
+    if _prev_pron(T, i) not in ('il', 'elle', 'on'): return None   # _prev_pron : lit aussi le pronom élidé (« Puisqu'elle c'est levée »→s'est)
     j = i + 1                                                        # sauter ne/pas/bien/déjà… (« elle c'est bien amusée ») → participe
     while j < len(T) and j <= i + 3 and deacc(T[j].lower()) in _PP_MID: j += 1
     if j < len(T) and _is_ppl(T[j]): return _keepcase(T[i], "s'est")
@@ -1603,8 +1615,11 @@ def rule_pp_etre(T, i):
         dk = deacc(T[k].lower())
         if dk in ('ne', 'n'): continue
         info = _PP_SUBJ.get(dk); sk = k; break
+    if not info and a >= 1:                                   # pronom élidé avant l'aux : le LIRE — il porte personne+genre+nombre (« Je crois qu'elle est parti »→partie ; mesuré muet 30/08/2026, l'abstention jetait l'info au lieu de l'exploiter)
+        _mel = _ELIDED_PRON.search(T[a-1].lower())
+        if _mel: info = _PP_SUBJ.get(deacc(_mel.group(1))); sk = a - 1   # qu'on/qu'vous → absent de _PP_SUBJ → info None → prudence ci-dessous
     if not info:                                              # pas de sujet PRONOM → tenter le sujet NOM (VRAI PARSEUR de tête de GN, comme rule_adj_attr : mots-écrans sautés, coordination/infinitif/PP → abstention FP-sûre)
-        if a >= 1 and _elid_kind(T[a-1]) == 'pron': return None   # PRONOM élidé avant l'aux (« qu'elle soit emmenée », « s'il est venu ») → le vrai sujet est le clitique. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
+        if a >= 1 and _elid_kind(T[a-1]) == 'pron': return None   # PRONOM élidé non lisible (« qu'on », « n'… ») → le vrai sujet est le clitique, prudence. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
         tg = pos_tags(T)
         if not tg or i >= len(tg) or tg[i] not in ('VERB', 'ADJ'): return None   # participe RÉEL (tagger) → écarte les noms homographes (« les données sont… »)
         # Déterminant juste APRÈS le participe → sujet POSTPOSÉ (« est annoncée la reprise ») ou
@@ -3536,6 +3551,7 @@ def rule_accord_verb_coord(T, i):
     for m in range(ci+1, i):                                    # entre la conj et V2 : aucun sujet → sinon V2 a le sien
         if T[m].lower() in NUM_DET or deacc(T[m].lower()) in _COORD_SUBJW: return None
         if _elid_kind(T[m]) == 'det': return None               # DÉTERMINANT ÉLIDÉ = un NOUVEAU sujet, invisible des listes parce que COLLÉ au nom : « … et l'oxydation réduit » a son propre sujet et ne doit PAS emprunter le nombre au verbe frère (FP mesuré : réduit → réduisent)
+        if _ELIDED_PRON.search(T[m].lower()): return None       # PRONOM ÉLIDÉ = un NOUVEAU sujet lui aussi : « … et lorsqu'elle dort » ouvre sa propre proposition (FP mesuré 30/08/2026 sur français CORRECT : dort → dorment) — même motif que la garde 'det', jamais propagée à cette règle sœur
     v1 = None                                                   # V1 = 1er verbe fini avant la conj (filet homographe inclus) ; s'arrête sur un vrai nom/adj (coord nominale)
     for k in range(ci-1, lo-1, -1):
         if not T[k].lower().endswith(('é', 'és', 'ée', 'ées')) and _verb_or_homograph(tg, T, k) and _vnum3(T[k]) is not None:
@@ -4007,8 +4023,10 @@ def rule_ai_ait(T, i):
     if "'" in lw or not w[:1].islower() or len(lw) < 5: return None
     if not lw.endswith('ai') or lw.endswith('rai'): return None
     if i < 1: return None
-    p = deacc(T[i-1].lower())
-    if p in ('ne', "n'") and i >= 2: p = deacc(T[i-2].lower())
+    k = i - 1; p = deacc(T[k].lower())
+    if p in ('ne', "n'") and i >= 2: k = i - 2; p = deacc(T[k].lower())
+    _mai = _ELIDED_PRON.search(T[k].lower())                  # « puisqu'il mangeai » : le sujet vit dans le token élidé
+    if _mai: p = deacc(_mai.group(1))
     if p not in ('il', 'elle', 'on'): return None
     cible = lw[:-2] + 'ait'
     if not any(mt.startswith('ind:imp') and pp == '3' for (_l, mt, pp, _n) in _reads(cible)): return None
@@ -4532,6 +4550,17 @@ CASES = [
     ("tu sais la réponse", "sais", "ces", "sais/sait"),                   # tu ces → tu sais
     ("je sais bien", "sais", "sait", "sais/sait"),                        # je sait → je sais (accord)
     ("elle s'est bien amusée", "s'est", "c'est", "c'est/s'est"),          # elle c'est bien amusée → s'est (adverbe intercalé)
+    # PRONOM ÉLIDÉ (« qu'il », « lorsqu'elle », « puisqu'il » — _ELIDED_PRON/_prev_pron, 30/08/2026) : ces cas
+    # n'étaient exercés par AUCUNE sonde (trouvé par l'enquête détection-du-sujet) alors que 5 règles à liste
+    # propre les rataient et que rule_accord_verb_coord CASSAIT du français correct (« et lorsqu'elle dort »→dorment).
+    # 2a de chaque entrée = la garde FP (phrase correcte muette) ; 2b = le rappel (faute injectée corrigée).
+    ("Lorsqu'il a faim", "a", "à", "a/à"),                                # Lorsqu'il à faim → a (sujet DANS le token élidé)
+    ("Puisqu'elle s'est levée", "s'est", "c'est", "c'est/s'est"),         # Puisqu'elle c'est levée → s'est
+    ("Puisqu'il se regarde", "se", "ce", "ce/se"),                        # Puisqu'il ce regarde → se
+    ("puisqu'il mangeait une pomme", "mangeait", "mangeai", "accord sujet-verbe"),   # puisqu'il mangeai → mangeait (rule_ai_ait)
+    ("Je crois qu'elle est partie", "partie", "parti", "accord participe"),          # qu'elle est parti → partie (pp_etre LIT l'élidé : genre+nombre)
+    ("Il pense qu'ils sont partis", "sont", "son", "son/sont"),           # qu'ils son partis → sont (plural_subj via l'élidé)
+    ("Les chats mangent et lorsqu'elle dort", "dort", "dorment", "accord sujet-verbe"),   # 2a = LA GARDE verb_coord (« et lorsqu'elle dort » correct, muet) ; 2b = accord_sv à travers l'élidé (dorment→dort)
     # majuscule : seulement APRÈS un POINT + espace (PAS ! ? … = souvent milieu de phrase : interjection/inversion/suspension ;
     # ni domaine collé « oqlf.gouv »). Jamais le 1er token = fragment. Non testable par ce harnais (il reconstruit sans
     # ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
