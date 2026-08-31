@@ -24913,6 +24913,8 @@ var w=T[i],lw=w.toLowerCase();
      Cette garde ne peut que RETIRER une correction, jamais en ajouter. */
   var _PREP_SUJ_EXT={selon:1,parmi:1,chez:1,malgre:1,durant:1,concernant:1,via:1,envers:1};   // prépositions absentes de PREP — FP préexistant mesuré 31/08 : « SELON les experts on peut venir »→ont ; la garde ne peut que RETIRER une correction (direction sûre). Miroir Python.
   var _AVOIR_IDIOM={faim:1,soif:1,peur:1,froid:1,chaud:1,raison:1,tort:1,besoin:1,envie:1,sommeil:1,honte:1,mal:1};   // « avoir X » figés : « on X » sans verbe n'est jamais correct (rOn). Miroir Python.
+  var _A_NU_STOP={};('lieu droit recours tendance obligation valeur cours effet acces confiance conscience affaire trait egard part charge coeur hate rendez interet vocation pouvoir peine '+
+    'priori posteriori contrario fortiori minima maxima peu quant ans heures euros metres kilometres millions milliards').split(' ').forEach(function(w){_A_NU_STOP[w]=1;});   // bare-nouns d'avoir hors _AVOIR_IDIOM (mesurés UD : a lieu ×13…) + latins + unités. Miroir Python.
   function _plurSousPrep(T,i){
     var j,d=-1;
     for(j=i-1;j>=0&&j>=i-3;j--){
@@ -24986,7 +24988,22 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(!pb&&(p==='il'||p==='elle'||p==='on'||p==='qui'||p==='ca'||p==='c')&&(pel||!_aaInverted(T,i)))return 'a';   // sujet 3sg net (pas à travers une virgule, pas inversé « avait-il ») → avoir
     if(i+1<T.length&&_isPpl(T[i+1])&&!/ee$/.test(deacc(T[i+1].toLowerCase()))){var dn=deacc(T[i+1].toLowerCase()),nt=(tg&&i+1<tg.length)?tg[i+1]:'';if(!(_PP_NOUN_HOMO[dn]&&nt==='NOUN'))return 'a';}   // « a + participe » → AVOIR, jamais « à ». Écarte -ée FÉMININ (« à durée » reste prép) ET le nom-homographe tagué NOM (« condamnée à mort », « tout à fait »)
     if(i+2<T.length&&/ment$/.test(deacc(T[i+1].toLowerCase()))&&(tg&&i+1<tg.length&&tg[i+1]==='ADV')&&_isPpl(T[i+2]))return 'a';   // « a + ADVERBE(-ment) RÉEL + participe » ; exige POS=ADV → exclut « à l'emplacement », « à l'effondrement » (NOM en -ment)
-    if(!pb&&vlike(T,i-1)){var pv=i>0&&NOUN_POST?NOUN_POST[deacc(T[i-1].toLowerCase())]:null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return null;return 'à';}return null;}
+    if(!pb&&vlike(T,i-1)){var pv=i>0&&NOUN_POST?NOUN_POST[deacc(T[i-1].toLowerCase())]:null;if(pv&&pv[0]>=PL_TAU_M&&pv[1]<PL_EPS_M)return null;return 'à';}
+    // ⭐ « a » devant NOM NU (31/08, chantier a→à — miroir Python) : AVOIR exige un déterminant
+    // (« rentré cher moi a vélo »→à). Sur UD 14 450, les seuls « a + nom nu » corrects = idiomes
+    // d'avoir (a lieu/besoin/droit…) → stop-listes fermées ; latins, chiffres, ancre avant fiable
+    // (écarte « for a Dream »), nom propre après exclu (différé). Mesuré : 0 FP UD, +2 strict gold.
+    if(T[i]==='a'&&i>0&&!pb&&i+1<T.length&&!_aaInverted(T,i)){
+      var _dn2=deacc(T[i+1].toLowerCase()),_pw2=deacc(T[i-1].toLowerCase()),_c1=T[i+1].charAt(0);
+      if(_nounGate(_dn2)&&_dn2.length>=3&&!_AVOIR_IDIOM[_dn2]&&!_A_NU_STOP[_dn2]
+         &&!(_c1===_c1.toUpperCase()&&_c1!==_c1.toLowerCase())
+         &&['il','elle','on','ils','elles','je','tu','nous','vous','qui','ca','c','y','en'].indexOf(_pw2)<0
+         &&(_wordKnown(_pw2)||GENDER_MAP[_pw2])
+         &&!/\d/.test(T[i-1])
+         &&!(_SEG&&i<_SEG.dig.length&&_SEG.dig[i])
+         &&!(_SEG&&i+1<_SEG.dig.length&&_SEG.dig[i+1]))return 'à';
+    }
+    return null;}
   var _ET_ADV={},_ET_PREP={};
   'tres si tout toute bien plus trop assez vraiment deja encore fort peu moins aussi'.split(' ').forEach(function(w){_ET_ADV[w]=1;});
   'au aux du des de a en par pour sur sous dans avec sans vers chez entre'.split(' ').forEach(function(w){_ET_PREP[w]=1;});

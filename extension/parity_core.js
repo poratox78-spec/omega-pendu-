@@ -139,7 +139,11 @@ const PHRASES = [
   'Marie es gentille', 'La fillette as peur', 'ma soeur vas au marché', 'le train arrivais en retard',
   'Marie chantent bien', 'mes amis on raison',
   'Les articles conformes passent', 'selon les experts on peut venir', 'toi qui as faim', 'tu vas au marché',
-  'Marie est gentille', 'Dans ses statistiques on voit bien'
+  'Marie est gentille', 'Dans ses statistiques on voit bien',
+  // « a » devant NOM NU (31/08) : cibles + gardes idiomes/latins/anglais/chiffres
+  'je suis rentré chez moi a vélo', 'un cours a domicile pour tous', 'ma soeur va a pied au marché',
+  'la réunion a lieu demain', 'il a besoin de toi', 'a priori tout va bien',
+  'Requiem for a Dream le film', 'de 35 a 40 ans', 'le chien a soif ce soir'
 ];
 
 // 3) flags Python

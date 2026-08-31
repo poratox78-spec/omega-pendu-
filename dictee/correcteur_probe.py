@@ -751,6 +751,14 @@ def _plur_sous_prep(T, i):
 
 
 _PREP_SUJ_EXT = {'selon', 'parmi', 'chez', 'malgre', 'durant', 'concernant', 'via', 'envers'}   # prépositions absentes de PREP (diag_sentence) — FP préexistant mesuré 31/08 : « SELON les experts on peut venir »→ont ; la garde ne peut que RETIRER une correction (direction sûre)
+# « a + nom NU » (rule_a_aa) : stop-liste des BARE-NOUNS d'avoir hors _AVOIR_IDIOM (mesurés sur UD :
+# a lieu ×13, a droit, a recours, a tendance, a obligation, a valeur…) + classiques du même paradigme
+# + locutions LATINES (le posterior les laisse passer) + UNITÉS (les gardes chiffre ratent « a h » nu).
+_A_NU_STOP = {'lieu', 'droit', 'recours', 'tendance', 'obligation', 'valeur', 'cours', 'effet', 'acces',
+              'confiance', 'conscience', 'affaire', 'trait', 'egard', 'part', 'charge', 'coeur', 'hate',
+              'rendez', 'interet', 'vocation', 'pouvoir', 'peine',
+              'priori', 'posteriori', 'contrario', 'fortiori', 'minima', 'maxima',
+              'peu', 'quant', 'ans', 'heures', 'euros', 'metres', 'kilometres', 'millions', 'milliards'}
 _AVOIR_IDIOM = {'faim', 'soif', 'peur', 'froid', 'chaud', 'raison', 'tort', 'besoin', 'envie', 'sommeil', 'honte', 'mal'}   # « avoir X » figés : « on X » sans verbe n'est jamais correct (rule_on_ont)
 
 
@@ -871,6 +879,26 @@ def rule_a_aa(T, i):
         pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
         if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return None  # « l'entreprise a », « la voiture a » → avoir, pas « à » (fixe ~10 FP a→à)
         return 'à'
+    # ⭐ « a » devant NOM NU (31/08/2026, chantier a→à) : AVOIR exige un déterminant — « rentré cher
+    # moi a vélo », « une semaine a Bayonne »… = la forme DOMINANTE des a→à du gold (41 cas nom-nu,
+    # mesurée par alignement). Sur UD 14 450, les SEULS « a + nom nu » corrects sont les idiomes
+    # d'avoir (a lieu ×13, a besoin, a droit, a recours, a tendance… — 36 occurrences en tout) →
+    # stop-liste FERMÉE (_AVOIR_IDIOM + _A_NU_STOP) ; locutions latines (a priori/contrario/minima) ;
+    # contexte CHIFFRE (« 35 a 40 ans ») → gardes dig/_SEG + chiffre dans le mot d'avant ; ancre
+    # AVANT fiable (mot français connu — écarte « for a Dream », l'article ANGLAIS) ; nom propre
+    # après exclu (avoir + PROPN plausible, « il a Marie en cours » — différé). Le posterior §3
+    # (_noun_gate) certifie le NOM ; le cas « après verbe » est couvert par la branche vlike ci-dessus.
+    if (T[i] == 'a' and i > 0 and not pb and i + 1 < len(T) and not _aa_inverted(T, i)):
+        _dn2 = deacc(T[i+1].lower()); _pw2 = deacc(T[i-1].lower())
+        if (_noun_gate(_dn2) and len(_dn2) >= 3
+                and _dn2 not in _AVOIR_IDIOM and _dn2 not in _A_NU_STOP
+                and not T[i+1][:1].isupper()
+                and _pw2 not in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous', 'qui', 'ca', 'c', 'ça', 'y', 'en')
+                and (_pw2 in WORDS_SET or _pw2 in GENDER_PURE)
+                and not any(ch.isdigit() for ch in T[i-1])
+                and not (_SEG is not None and i < len(_SEG['dig']) and _SEG['dig'][i])
+                and not (_SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i+1])):
+            return 'à'
     return None
 
 _ET_ADV = set('tres si tout toute bien plus trop assez vraiment deja encore fort peu moins aussi'.split())
@@ -4665,6 +4693,10 @@ CASES = [
     ("ma soeur va au marché", "va", "vas", "accord sujet-verbe"),
     # IDIOME D'AVOIR après sujet pluriel à distance (« Les enfants de Paul on faim » — liste fermée)
     ("mes amis ont raison", "ont", "on", "on/ont"),
+    # « a » devant NOM NU (31/08/2026) : avoir exige un déterminant → à ; stop-listes idiomes/latins/unités.
+    ("je suis rentré chez moi à vélo", "à", "a", "a/à"),
+    ("un cours à domicile pour tous", "à", "a", "a/à"),
+    ("la réunion a lieu demain", "a", "à", "a/à"),                    # 2a = GARDE idiome (« a lieu » ne doit pas devenir à) ; 2b indétectable (à→a hors cadre), miss assumé
     # majuscule : seulement APRÈS un POINT + espace (PAS ! ? … = souvent milieu de phrase : interjection/inversion/suspension ;
     # ni domaine collé « oqlf.gouv »). Jamais le 1er token = fragment. Non testable par ce harnais (il reconstruit sans
     # ponctuation) → vérifié hors-CASES, cf. evo/aux_port_test.js : « il pleut. demain »→Demain.
