@@ -126,7 +126,14 @@ const PHRASES = [
   "Lorsqu'il à faim.", "Puisqu'elle c'est levée.", "Puisqu'il ce regarde.", "puisqu'il mangeai une pomme.",
   "Je crois qu'elle est parti.", "Il pense qu'ils son partis.",
   "Les chats mangent et lorsqu'elle dort.", "Ils chantaient et puisqu'elle dansait.", "Les chats mangent et s'il dort.",
-  "Lorsqu'il a faim.", "Puisqu'elle s'est levée.", "Je crois qu'elle est partie.", "Les chats mangent et lorsqu'elle dorment."
+  "Lorsqu'il a faim.", "Puisqu'elle s'est levée.", "Je crois qu'elle est partie.", "Les chats mangent et lorsqu'elle dorment.",
+  // BORNES PRÉDITES (canal pb, 31/08/2026) : multi-propositions SANS ponctuation — cibles (la garde
+  // verbe-présence redevient utilisable) + témoins corrects (doivent rester muets dans les 3 moteurs).
+  'les poules son dans le jardin quand il fait beau', 'les enfants son partis quand il a appelé',
+  'les chiens son gentils lorsque leur maître arrive', 'ce chien et gentil quand il mange',
+  'il mange un peut de pain quand il rentre',
+  'le son de la cloche résonne quand il fait beau', 'les poules sont dans le jardin quand il fait beau',
+  'son chien dort lorsque la nuit tombe', 'il a peur car son ami est parti'
 ];
 
 // 3) flags Python

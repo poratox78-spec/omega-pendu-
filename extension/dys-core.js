@@ -378,8 +378,48 @@ var w=T[i],lw=w.toLowerCase();
      fini et faisait abstenir. La règle ne tirait donc QUE si le tagger se TROMPAIT sur ce participe
      (« partis »→NOUN : tire ; « venus »→VERB : abstient) — améliorer le tagger DIMINUAIT le rappel.
      L'appelant passe la case de son prédicat. Miroir Python. */
+  /* BORNES DE PROPOSITION PRÉDITES (canal « pb », 31/08/2026) — miroir Python _pred_bounds.
+     Le texte dys ne ponctue pas : sans virgule, _SEG.bb est vide et la garde verbe-présence balaie la
+     phrase ENTIÈRE — les cadres son/sont, et/est, peu/peut abstiennent. MESURÉ (or UD nsubj, phase-mesure
+     du chantier bornes) : des OUVERTURES à LISTES FERMÉES rendent la garde à PARITÉ avec les virgules de
+     l'AUTEUR (rappel 42,3 % vs 42,5 · spécificité 78,9 % vs 74,1) pour zéro poids. Canal SÉPARÉ de bb
+     (bb = ponctuation de l'AUTEUR, ~40 gardes FP=0 calibrées dessus) ; posé par correctText/diagnoseAll
+     seulement, consommé par la seule _clauseNoFiniteVerb. */
+  var _PB_SUB1={quand:1,lorsque:1,puisque:1,quoique:1,car:1,si:1,comme:1};
+  var _PB_SUB1_ELID=["lorsqu'","puisqu'","quoiqu'"];
+  var _PB_SUB2={alors:1,tandis:1,parce:1,bien:1,afin:1,avant:1,'après':1,pendant:1,depuis:1,tant:1,'dès':1};
+  var _PB_COORD={et:1,ou:1,mais:1};
+  var _PB_CONJ_ADV={puis:1,ensuite:1,cependant:1,toutefois:1,'néanmoins':1,enfin:1};
+  function _predBounds(T,seg){
+    var n=T.length,tg=posTags(T),pb=[],j,i;
+    for(i=0;i<n;i++)pb.push(false);
+    var finSeen=!!(tg&&(tg[0]==='VERB'||tg[0]==='AUX'));
+    var va=[],ahead=false;
+    for(i=0;i<n;i++)va.push(false);
+    for(j=n-1;j>=0;j--){va[j]=ahead;if(tg&&(tg[j]==='VERB'||tg[j]==='AUX'))ahead=true;if(j<seg.ss.length&&seg.ss[j])ahead=tg?(tg[j]==='VERB'||tg[j]==='AUX'):false;}
+    for(i=1;i<n;i++){
+      if((i<seg.ss.length&&seg.ss[i])||(i<seg.bb.length&&seg.bb[i]))finSeen=false;
+      var lw=T[i].toLowerCase(),lw2=i+1<n?T[i+1].toLowerCase():'';
+      var prevTag=(tg&&i-1<tg.length)?tg[i-1]:null;
+      var b=false;
+      if(_PB_SUB1[lw]||_PB_SUB1_ELID.some(function(p){return lw.indexOf(p)===0;}))b=true;
+      else if(_PB_SUB2[lw]&&(lw2==='que'||lw2.indexOf("qu'")===0))b=true;
+      else if(lw==='qui'&&(finSeen||prevTag==='NOUN'||prevTag==='PROPN'||prevTag==='PRON'||prevTag==='NUM'))b=true;
+      else if((lw==='dont'||lw==='où'||lw==='que'||lw.indexOf("qu'")===0)&&(finSeen||prevTag==='NOUN'||prevTag==='PROPN'))b=true;
+      else if(_PB_CONJ_ADV[lw]&&finSeen&&va[i])b=true;
+      else if(_PB_COORD[lw]&&finSeen&&va[i]){
+        var nx=lw2?deacc(lw2):'';
+        var subjNet=!!SUBJ_PRON[nx]||(lw2&&_ELIDED_PRON.test(lw2))||(tg&&i+2<n&&tg[i+1]==='DET'&&(tg[i+2]==='NOUN'||tg[i+2]==='PROPN'||tg[i+2]==='ADJ'||tg[i+2]==='NUM'));
+        if(subjNet)b=true;
+      }
+      if(b){pb[i]=true;finSeen=false;}
+      if(tg&&(tg[i]==='VERB'||tg[i]==='AUX'))finSeen=true;
+    }
+    return pb;
+  }
   function _clauseNoFiniteVerb(T,i,skip){var n=T.length,lo=0,hi=n,j;   // verbe-présence via le TAGGER HMM (contexte : élèves/table→NOUN) ; repli svReads si modèle absent
-    if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}for(j=i+1;j<n;j++){if(j<_SEG.bb.length&&_SEG.bb[j]){hi=j;break;}}}
+    var _pb=_SEG?_SEG.pb:null;   // bornes PRÉDITES (canal listes fermées, 31/08) — consommées ICI SEULEMENT : elles rétrécissent la fenêtre de la garde (mesuré : parité avec les virgules de l'auteur, 42,3 %/78,9 % vs 42,5/74,1)
+    if(_SEG){for(j=i;j>0;j--){if((j<_SEG.bb.length&&_SEG.bb[j])||(_pb&&j<_pb.length&&_pb[j])){lo=j;break;}}for(j=i+1;j<n;j++){if((j<_SEG.bb.length&&_SEG.bb[j])||(_pb&&j<_pb.length&&_pb[j])){hi=j;break;}}}
     var tg=posTags(T);
     if(tg){for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&(tg[j]==='VERB'||tg[j]==='AUX'))return false;}return true;}
     for(j=lo;j<hi;j++){if(j!==i&&j!==skip&&svReads(T[j].toLowerCase()).length)return false;}
@@ -2638,7 +2678,7 @@ function estQuestion(t){
     if(name==='accord participe'){for(var j=i-1;j>=Math.max(0,i-3);j--){var t=deacc(T[j].toLowerCase());if(_SUBJ_PRON[t])return 'auto';if(PRENOMS[T[j]])return 'auto';}return 'vigilance';}
     return 'vigilance';}
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||_tierOf(T,i,CRULES[r][0],_sg)};if(_vg)_f.vigRule=1;if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST PORTÉ PAR LE FLAG (audit 2026-08-11, miroir app). Avant tier=null : content.js n'applique que `tier==='auto'`, donc l'extension ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut — le même texte était corrigé sur le site et seulement signalé ici. {sugg,vig:1} → 'vigilance' (orange) ; sinon rouge, et il le DIT. */
-  function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);return correctTokens(toks(text));}   // enveloppe : grammaire sur le texte brut (miroir app)
+  function correctText(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var _Tpb=toks(text);_SEG.pb=_predBounds(_Tpb,_SEG);return correctTokens(_Tpb);}   // enveloppe : grammaire sur le texte brut (miroir app) + bornes prédites (canal pb)
 
   // ===== Correcteur ORTHOGRAPHIQUE (non-mots/accents/typos) — VERBATIM app (miroir dictee/speller_probe.py) =====
   // Seule différence vs app : loadSpellerLex fetch l'asset gzip (extension) au lieu de lire le bloc DOM speller-lex-gz.
@@ -3523,6 +3563,7 @@ function spellUnknown(tok,atStart,T,idx){
     var sf=SP.ready?spellText(text):[];
     _SEG=_segInfo(text);var _T=toks(text),_Tc=_T.slice();
     sf.forEach(function(f){if(f.span!==2&&f.tier!=='vigilance'&&f.sugg&&/^[A-Za-zÀ-ÿ']+$/.test(f.sugg))_Tc[f.i]=f.sugg;});   // PYRAMIDE : la grammaire voit les tokens nettoyés par l'ortho
+    _SEG.pb=_predBounds(_Tc,_SEG);   // bornes prédites sur les tokens NETTOYÉS (les tags y sont plus fiables) — même choix que la sonde pipeline Python
     var _cur=_Tc.slice(),_gbt={},_it,_gf2,_gj,_g2,_add;
     for(_it=0;_it<4;_it++){_gf2=correctTokens(_cur);_add=false;                                   // CASCADE : la grammaire re-tourne sur ses PROPRES corrections jusqu'au point fixe
       for(_gj=0;_gj<_gf2.length;_gj++){_g2=_gf2[_gj];if(_gbt[_g2.i]!=null)continue;_gbt[_g2.i]=_g2;_add=true;

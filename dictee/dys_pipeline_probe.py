@@ -69,7 +69,14 @@ def pyramide(txt):
             orange.setdefault(i, []).append(sg)      # proposé, souligné, PAS appliqué
         elif act == 'vigilance':
             signale.add(i)                           # SOULIGNÉ sans suggestion : « il y a un problème ici »
-    CP._SEG = CP._seg_info(' '.join(Tc))
+    # ⚠️ VICE D'INSTRUMENT RÉPARÉ (31/08/2026, même famille que le bug des apostrophes du 22/08) :
+    # « ' '.join(Tc) » DÉTRUISAIT la ponctuation de l'AUTEUR — le produit (diagnoseAll) calcule _SEG
+    # sur le texte ORIGINAL, points et virgules compris. Mesuré sur une production réelle : « … des
+    # milliers d'animaux . les animaux mange … » — le point donne la borne qui permet mange→mangent ;
+    # la sonde sans point comptait un RATÉ que le produit répare. On normalise ’ʼ→' comme correct()
+    # (sinon _seg_info, dont le motif n'a pas les apostrophes typographiques, désaligne les indices).
+    CP._SEG = CP._seg_info(txt.replace('’', "'").replace('ʼ', "'"))
+    CP._SEG['pb'] = CP._pred_bounds(Tc, CP._SEG)   # bornes prédites (canal pb) : la sonde équipe la grammaire COMME LE PRODUIT (diagnoseAll pose pb sur les tokens nettoyés)
     out = Tc[:]
     for i in range(len(Tc)):
         for nm, rule in CP.RULES:
