@@ -24911,6 +24911,8 @@ var w=T[i],lw=w.toLowerCase();
      est bien le sujet. La carte l'affichait déjà sans que rien n'en tire la conséquence : son propre
      test de substitution rendait « ses statistiques avaient voit bien », qui ne se dit pas.
      Cette garde ne peut que RETIRER une correction, jamais en ajouter. */
+  var _PREP_SUJ_EXT={selon:1,parmi:1,chez:1,malgre:1,durant:1,concernant:1,via:1,envers:1};   // prépositions absentes de PREP — FP préexistant mesuré 31/08 : « SELON les experts on peut venir »→ont ; la garde ne peut que RETIRER une correction (direction sûre). Miroir Python.
+  var _AVOIR_IDIOM={faim:1,soif:1,peur:1,froid:1,chaud:1,raison:1,tort:1,besoin:1,envie:1,sommeil:1,honte:1,mal:1};   // « avoir X » figés : « on X » sans verbe n'est jamais correct (rOn). Miroir Python.
   function _plurSousPrep(T,i){
     var j,d=-1;
     for(j=i-1;j>=0&&j>=i-3;j--){
@@ -24918,7 +24920,8 @@ var w=T[i],lw=w.toLowerCase();
       var w=deacc(T[j].toLowerCase());
       if(NUM_DET[w]==='pl'){d=j;break;}}
     if(d<1)return false;
-    return !!PREP[deacc(T[d-1].toLowerCase())];}
+    var _dp=deacc(T[d-1].toLowerCase());
+    return !!PREP[_dp]||!!_PREP_SUJ_EXT[_dp];}
   function rOn(T,i){
     if(deacc(T[i].toLowerCase())==='ont'&&i+2<T.length){var _po=T[i+1].toLowerCase();
       if((_po==='sur'||_po==='sous'||_po==='contre'||_po==='entre')&&_isPpl(T[i+2]))return null;}   // « ils ont contre attaqué » : composé COUPÉ (mot coupé dys) — corriger ont→on cassait la phrase (conflit lu à la carto) ; 0 occurrence sur 16 950 correct
@@ -24937,6 +24940,11 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
       var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
       if(p==='ils'||p==='elles'||glued||(cpl(T,i-1)&&!_plurSousPrep(T,i)))return 'ont';
       if(i+1<T.length&&_isPpl(T[i+1]))return 'ont';
+      // ⭐ IDIOME D'AVOIR après sujet pluriel À DISTANCE (31/08, transposition du pilote son/sont) :
+      // « Les enfants de Paul on faim » → ont. « on + faim/soif/peur… » n'existe JAMAIS en français
+      // correct — liste FERMÉE, jamais le cas général « on + nom » (FP construisible : incise « et on,
+      // avec le temps, … »). Preuve de pluriel = cplBefore ; ceinture : aucun verbe fini dans la fenêtre.
+      if(_AVOIR_IDIOM[deacc(nx)]&&cplBefore(T,i)&&_clauseNoFiniteVerb(T,i))return 'ont';
     }
     if(vlike(T,i+1)){
       if(lw==='ont'){
@@ -25397,16 +25405,23 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(i>0&&/^\d+$/.test(T[i-1]))return null;                                  // désignation « 20 a »
     if(i>0){var pv=T[i-1];if(pv.length>=2&&pv===pv.toUpperCase()&&pv!==pv.toLowerCase())return null;}       // sigle « WR a »/« NGC A »
     if(svSubject(T,i)!=null)return null;                                       // sujet pronom net → règle pronom
-    var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);if(!p3.length)return null;
+    var reads=svReads(T[i]),p3=[],k;for(k=0;k<reads.length;k++)if(reads[k][2]==='3')p3.push(reads[k]);
+    // ⭐ GARDE p3 ASSOUPLIE, EN LISTE FERMÉE (31/08, miroir Python) : es/as/vas = exclusivement 2e pers.
+    // sing., lemme univoque — derrière un sujet nominal c'est un verbe mal accordé (« Marie es gentille »).
+    // ⛔ La relaxation GÉNÉRALE « toutes lectures 1re/2e » a été MESURÉE-FALSIFIÉE (~9 FP réels/UD 14450 :
+    // « conditions REMPLIES »→remplient, « moines CÉLÈBRES »→célèbrent…) ; les -ais sont déjà couverts
+    // par rAisAit. Créneau verbal libre en ceinture ; participe suivant exempté (« étais PARTI »).
+    var _p12=!p3.length&&['es','as','vas'].indexOf(deacc(T[i].toLowerCase()))>=0&&_clauseNoFiniteVerb(T,i,(i+1<T.length&&_isPpl(T[i+1]))?i+1:undefined);
+    if(!p3.length&&!_p12)return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux + participe)
     var tg=posTags(T);if(!tg||!_verbOrHomograph(tg,T,i))return null;   // T[i]=verbe en contexte ; filet homographe PARTAGÉ (verbe raté par l'émission HMM), borné par les gardes structure ci-dessous
     var _vs=i;while(_vs-1>=0&&CLITIC[deacc(T[_vs-1].toLowerCase())])_vs--;var subj=_npSubject(T,tg,_vs);if(!subj)return null;var nb=subj.n,hk=subj.idx,dk=subj.det;   // sauter les clitiques objets avant le verbe (« nous parviendra ») pour atteindre le sujet
     var ddet=deacc(subj.dtxt.toLowerCase());
     if(nb==='s'){var _hn=deacc(T[hk].toLowerCase());if(/[sx]$/.test(_hn)&&!_INVAR_S[_hn]&&_wordKnown(/aux$/.test(_hn)?_hn.slice(0,-3)+'al':_hn.slice(0,-1)))return null;}   // « LE pilotes sont » : déterminant singulier + nom à forme plurielle → déterminant suspect → abstention (miroir Python)
     else if(nb==='p'){var _hp=deacc(T[hk].toLowerCase());if(!/[sx]$/.test(_hp)&&!rNounPlural(T,hk))return null;}   // SYMÉTRIQUE (trouvé par le générateur de fautes) : déterminant PLURIEL contredit par un nom SINGULIER (« Les signe … EST », « les couple A »). Discriminant = la règle du nom sait-elle réparer ? Si oui (« les enfant JOUE » → enfants) le pluriel est confirmé et on continue ; sinon la contradiction reste ouverte → abstention. Miroir Python rule_accord_sv_noun
-    if(!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, ou mistag → abstention)
+    if(subj.dtxt!==''&&!NUM_DET[ddet]&&!_QUANT_PL[ddet]&&!_QUANT_SG[ddet])return null;         // déterminant sujet DOIT être connu (au/aux/du de PP, ou mistag → abstention). Raccourci PRÉNOM (dtxt vide, sans déterminant par nature) exempté (31/08, miroir Python)
     if(_COLL_HEAD[deacc(subj.htxt.toLowerCase())])return null;                     // nom collectif/quantité (plupart/majorité/centaine…) → accord complément → abstention
-    var hc=T[hk].charAt(0);if(!subj.elid&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   // nom-tête propre/titre → nombre non fiable
+    var hc=T[hk].charAt(0);if(!subj.elid&&subj.dtxt!==''&&(tg[hk]==='PROPN'||(hk>0&&hc===hc.toUpperCase()&&hc!==hc.toLowerCase())))return null;   // nom-tête propre/titre → nombre non fiable — EXEMPTÉ : le raccourci PRÉNOM, fiable par construction (« Marie es gentille »→est, 31/08, miroir Python)
     var lo=0,j;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
     for(var m=lo;m<i;m++){var _lm=T[m].toLowerCase();if(_lm.indexOf("qu'")===0||_lm.indexOf("qu’")===0)return null;}   // RELATIVE ÉLIDÉE « qu' » → abstention (élision bénigne « de l'X »/clitique « m'/s' » tolérée ; que/qui/dont pleins gardés par CONJ_WORDS)
     if(!vig)for(m=lo;m<dk;m++){if(tg[m]!=='ADV')return null;}                   // sujet EN TÊTE de proposition (adverbes antéposés seulement) — sinon GN = objet amont ; RETIRÉ en mode vig (orange couvre le mid-phrase)
@@ -25451,9 +25466,10 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       if(/\d/.test(tk))return null;                                           // désignation alphanumérique
       if((tg[m]==='VERB'||tg[m]==='AUX')&&!(/(é|és|ée|ées)$/.test(T[m].toLowerCase())&&!(m>0&&tg[m-1]==='AUX')))return null;   // verbe FINI intercalé = sous-phrase → abstention ; participe-épithète (non précédé d'aux) toléré (miroir _npSubject)
       if(NUM_DET[tk.toLowerCase()]&&!PREP[dw]&&!(m>0&&PREP[deacc(T[m-1].toLowerCase())]))return null;}   // 2e GN non prépositionnel
-    for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;      // déjà d'accord
-    var lem=null,uni=true,mts={};for(k=0;k<p3.length;k++){if(lem===null)lem=p3[k][0];else if(lem!==p3[k][0])uni=false;mts[p3[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':p3[0][1];if(mt==='ind:pas'&&!vig)return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots['3'+nb];if(!sugg)return null;
+    for(k=0;k<p3.length;k++)if(p3[k][3]===nb||p3[k][3]==='x')return null;      // déjà d'accord (p3 vide en _p12 : une forme 1re/2e n'est jamais d'accord avec un sujet nominal)
+    var _src=p3.length?p3:reads;                                               // _p12 : lemme/temps lus sur les lectures 1re/2e (cible 3·nb, validée ci-dessous). Miroir Python.
+    var lem=null,uni=true,mts={};for(k=0;k<_src.length;k++){if(lem===null)lem=_src[k][0];else if(lem!==_src[k][0])uni=false;mts[_src[k][1]]=1;}
+    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':_src[0][1];if(mt==='ind:pas'&&!vig)return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots['3'+nb];if(!sugg)return null;
     var sr=svReads(sugg),okk=false;for(k=0;k<sr.length;k++)if(sr[k][2]==='3'&&(sr[k][3]===nb||sr[k][3]==='x'))okk=true;if(!okk)return null;return sugg;}
   // accord sujet-VERBE en PERSONNE : verbe à l'imparfait écrit en 1re/2e pers. sing. (-ais) sous sujet-NOM 3e pers. sing. → -ait.
   // Comble le trou de rAccordSVnoun (qui ne prend QUE p==3) : l'erreur de PERSONNE « le responsable installais »→installait lui échappe.
@@ -26267,7 +26283,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       if(_ON_REL[deacc(String(T[j]).toLowerCase()).replace(/['’]$/,'')])return null;
       if(_ON_DETPL[deacc(String(T[j]).toLowerCase())]){d=j;break;}}
     if(d<0||d===i-1)return null;                            // il faut un NOM entre le déterminant et « on »
-    if(d>0&&_ON_PREP[deacc(String(T[d-1]).toLowerCase())])return null;
+    if(d>0&&(_ON_PREP[deacc(String(T[d-1]).toLowerCase())]||_PREP_SUJ_EXT[deacc(String(T[d-1]).toLowerCase())]))return null;   // « SELON les experts on peut » : préposition hors liste (même garde que _plurSousPrep, 31/08)
     return 'ont';}
   function semiInfVig(T,i){
     if(!CONJ_F)return null;

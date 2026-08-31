@@ -211,7 +211,13 @@ const PHRASES = [
   'les chiens son gentils lorsque leur maître arrive', 'ce chien et gentil quand il mange',
   'il mange un peut de pain quand il rentre',
   'le son de la cloche résonne quand il fait beau', 'les poules sont dans le jardin quand il fait beau',
-  'son chien dort lorsque la nuit tombe', 'il a peur car son ami est parti'
+  'son chien dort lorsque la nuit tombe', 'il a peur car son ami est parti',
+  // GARDE p3 ASSOUPLIE + IDIOME D'AVOIR (31/08) : cibles (forme 1re/2e sous sujet nominal, prénom inclus)
+  // + témoins (épithète homographe-verbe, préposition hors liste, vrais 1re/2e pers.).
+  'Marie es gentille', 'La fillette as peur', 'ma soeur vas au marché', 'le train arrivais en retard',
+  'Marie chantent bien', 'mes amis on raison',
+  'Les articles conformes passent', 'selon les experts on peut venir', 'toi qui as faim', 'tu vas au marché',
+  'Marie est gentille', 'Dans ses statistiques on voit bien'
 ];
 
 // flags Python via un petit pont
