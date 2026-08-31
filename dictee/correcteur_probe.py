@@ -2065,6 +2065,41 @@ def _pred_bounds(T, seg):
         if tg and tg[i] in ('VERB', 'AUX'): fin_seen = True
     return pb
 
+
+def _group_bounds(T, seg):
+    """Canal GROUPE (« gb », 31/08/2026) : bornes de FERMETURE DE GROUPE prédites par le classifieur
+    logistique 169 poids (dictee/bornes_clf.json, build_bornes_clf.py — held-out P 85,1 %/R 49,6 %
+    @τ=0,5, cible = or STRUCTUREL des arbres UD : clause 2 bords + adjoncts en tête + appositions +
+    énumérations — JAMAIS la restauration de virgule, mesurée-falsifiée F1 34 vs 64). Mesuré en
+    phase-mesure : câblé au parseur de sujet, +0,92 pt de précision à 0 juste perdue = 2,7× le
+    moteurVirgule livré. ⚠️ Canal SÉPARÉ de bb (auteur) ET de pb (garde-verbe) : fusionner gb dans la
+    garde verbe-présence effondre sa spécificité (89,7→36,8 %) — gb n'est consommé QUE par le lo-scan
+    de _np_subject. Seuil : p ≥ τ ⟺ z ≥ ln(τ/(1−τ)) (sigmoïde monotone) — on compare les LOG-ODDS,
+    décisions identiques au contrat, zéro exp. Miroir JS : _groupBounds (dys-core + app, poids via
+    la clé « bclf » du payload vdc-lex)."""
+    if not _BCLF: return None
+    tg = pos_tags(T)
+    if not tg: return None
+    W = _BCLF['w']; n = len(T)
+    import math as _m
+    zt = _m.log(_BCLF.get('tau', 0.5) / (1.0 - _BCLF.get('tau', 0.5))) if _BCLF.get('tau', 0.5) != 0.5 else 0.0
+    gb = [False] * n
+    last_b, fin_seen = 0, tg[0] in ('VERB', 'AUX')
+    ss = seg['ss']
+    for i in range(1, n):
+        if i < len(ss) and ss[i]: last_b, fin_seen = i, False
+        lw = T[i].lower(); lw0 = T[i-1].lower()
+        z = _BCLF['b'] + W.get('tg-1=' + tg[i-1], 0.0) + W.get('tg0=' + tg[i], 0.0) + W.get('w=' + lw, 0.0) + W.get('w-1=' + lw0, 0.0)
+        if lw.startswith("qu'"): z += W.get('w=ELIDQU', 0.0)
+        if _ELIDED_PRON.search(lw): z += W.get('w=ELIDPRON', 0.0)
+        if fin_seen: z += W.get('vu_verbe', 0.0)
+        d = i - last_b
+        z += W.get('dist=1' if d <= 1 else 'dist=2' if d == 2 else 'dist=3-5' if d <= 5 else 'dist=6-10' if d <= 10 else 'dist=11+', 0.0)
+        if fin_seen and tg[i] == 'DET': z += W.get('vu_verbe&DET', 0.0)
+        if z >= zt: gb[i] = True; last_b, fin_seen = i, False
+        if tg[i] in ('VERB', 'AUX'): fin_seen = True
+    return gb
+
 # ---------- C : RUN-ON (ponctuation manquante entre 2 propositions) — VIGILANCE (vert), n'impose pas. Conservateur, FP-mesuré.
 PRON_SUBJ = {'je': ('1', 's'), 'tu': ('2', 's'), 'il': ('3', 's'), 'elle': ('3', 's'), 'on': ('3', 's'),
              'nous': ('1', 'p'), 'vous': ('2', 'p'), 'ils': ('3', 'p'), 'elles': ('3', 'p')}
@@ -4373,6 +4408,10 @@ try:                                                      # formes du lexique em
     WORDS_SET = set(json.load(open(os.path.join(HERE, 'cgram_words.json'), encoding='utf-8')))
 except Exception:
     WORDS_SET = set()
+try:                                                      # canal GROUPE « gb » : classifieur de bornes 169 poids (build_bornes_clf.py, dérivé UD CC BY-SA)
+    _BCLF = json.load(open(os.path.join(HERE, 'bornes_clf.json'), encoding='utf-8'))
+except Exception:
+    _BCLF = None
 _COLL_BARE = {}                                           # clé nue → nb d'entrées de GENDER_ACC_COLL partageant cette clé (jumeau accentué ?)
 for _w in GENDER_ACC_COLL:
     _COLL_BARE[deacc(_w.lower())] = _COLL_BARE.get(deacc(_w.lower()), 0) + 1
