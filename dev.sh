@@ -8,15 +8,30 @@
 set -u
 cd "$(dirname "$0")"
 export PYTHONUTF8="${PYTHONUTF8:-1}"  # Windows : stdout cp1252 → UnicodeEncodeError sur l'Unicode (→ ✓ ≈) ; no-op sous Linux/macOS (déjà UTF-8)
-Q="${1:-}"; PASS=0; FAIL=0; FAILED=()
+Q="${1:-}"; PASS=0; FAIL=0; FAILED=(); SUSP=0; SUSPECTS=()
 
+# ⭐ Un contrôle VERT dont la sortie signale un problème était INVISIBLE : la sortie des verts était
+# jetée (elle n'apparaissait que dans la branche d'échec). C'est ainsi qu'un FP=0 violé en production
+# (« La foule attendait »→« attendaient », palier auto) a été imprimé des mois durant sans être vu
+# (PR#619). On l'AFFICHE désormais — sans changer aucun verdict : le suspect reste compté PASS et le
+# code de sortie de dev.sh est inchangé. Mesuré au moment de la pose : 3 suspects sur 76.
+suspect() { printf "%s" "$1" | grep -qE '✗|⚠️|FAUX POSITIF|ÉCHEC|ECHEC|divergence[s]? >|> plafond' ; }
+montre_suspect() { local name="$1" out="$2"
+  SUSP=$((SUSP+1)); SUSPECTS+=("$name")
+  printf "  ⚠ %s  — vert, mais sa sortie signale un problème :\n" "$name"
+  printf "%s\n" "$out" | grep -E '✗|⚠️|FAUX POSITIF|ÉCHEC|ECHEC|divergence[s]? >|> plafond' | head -3 | sed 's/^/        /'
+}
 run() { # run "nom" cmd...
   local name="$1"; shift
-  if out=$("$@" 2>&1); then PASS=$((PASS+1)); [ "$Q" = "-q" ] || printf "  ✓ %s\n" "$name"
+  if out=$("$@" 2>&1); then PASS=$((PASS+1))
+    if suspect "$out"; then montre_suspect "$name" "$out"
+    else [ "$Q" = "-q" ] || printf "  ✓ %s\n" "$name"; fi
   else FAIL=$((FAIL+1)); FAILED+=("$name"); printf "  ✗ %s\n" "$name"; [ "$Q" = "-q" ] || printf "%s\n" "$out" | sed 's/^/      /' | tail -8; fi
 }
 runsh() { local name="$1"; shift  # pour une commande shell complète
-  if out=$(bash -c "$1" 2>&1); then PASS=$((PASS+1)); [ "$Q" = "-q" ] || printf "  ✓ %s\n" "$name"
+  if out=$(bash -c "$1" 2>&1); then PASS=$((PASS+1))
+    if suspect "$out"; then montre_suspect "$name" "$out"
+    else [ "$Q" = "-q" ] || printf "  ✓ %s\n" "$name"; fi
   else FAIL=$((FAIL+1)); FAILED+=("$name"); printf "  ✗ %s\n" "$name"; [ "$Q" = "-q" ] || printf "%s\n" "$out" | sed 's/^/      /' | tail -8; fi
 }
 
@@ -132,5 +147,8 @@ run "omega-key crypto (entropie + gel listes + KAT Double Ratchet)" node omega-k
 echo "──────────────────────────────────────────"
 if [ "$FAIL" -eq 0 ]; then echo "✅ TOUT VERT — $PASS/$((PASS+FAIL)) checks (parité dev.sh↔CI vérifiée par ci_parity_probe)."; else
   echo "❌ $FAIL échec(s) sur $((PASS+FAIL)) : ${FAILED[*]}"; fi
+# ⚠️ Les SUSPECTS ne font pas échouer la batterie — ils la rendent HONNÊTE. Un vert qui imprime « ✗ »
+# n'est pas un vert : c'est une dette qu'on ne voyait pas. Les traiter un par un, pas les taire.
+if [ "$SUSP" -gt 0 ]; then echo "⚠️  $SUSP contrôle(s) VERTS dont la sortie signale un problème : ${SUSPECTS[*]}"; fi
 echo "ℹ️  build_* régénèrent des fichiers suivis (assets gz, tables) ; un 'git status' peut montrer des diffs de mtime — sans conséquence, 'git checkout -- <fichier>' pour nettoyer."
 exit $([ "$FAIL" -eq 0 ] && echo 0 || echo 1)
