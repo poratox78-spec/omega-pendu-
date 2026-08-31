@@ -2596,7 +2596,14 @@ def rule_accord_postpose(T, i):
         if deacc(lem0) not in _UNACC: return None
     else:
         head = deacc(T[lo].lower())
-        if not (head in PREP or head in _INV_WH or T[lo].lower() in _INV_WH or head in _INV_ADV or (lo < len(tg) and tg[lo] == 'ADV') or head in ('comme', 'quand', 'lorsque')): return None
+        # ⭐ « là » (adverbe, déclencheur d'inversion) ≠ « la » (déterminant/pronom) — déacc les CONFOND,
+        # exactement comme « à »/« a » gardé plus haut. Sans ceci, « La foule attendait l'arrivée des
+        # coureurs. » ouvrait une inversion, cherchait le sujet APRÈS le verbe, trouvait « coureurs »
+        # et imposait « attendaient » en palier AUTO — du texte JUSTE réécrit en faute, en silence.
+        # L'adverbe exige donc sa forme ÉCRITE accentuée ; `tg[lo]=='ADV'` reste juste à côté, donc un
+        # vrai adverbe reconnu par le tagger ouvre toujours l'inversion.
+        _advOK = (head in _INV_ADV) and not (head == 'la' and T[lo].lower() != 'là')
+        if not (head in PREP or head in _INV_WH or T[lo].lower() in _INV_WH or _advOK or (lo < len(tg) and tg[lo] == 'ADV') or head in ('comme', 'quand', 'lorsque')): return None
     k = i + 1                                                          # scan AVANT : sauter adverbes postverbaux + participe passif (« est rangées les archives »)
     while k < hi and k < len(tg) and (tg[k] == 'ADV' or (tg[k] in ('VERB', 'ADJ') and T[k].lower().endswith(('é', 'és', 'ée', 'ées')))): k += 1
     if not _postpose_plural(T, tg, k, hi): return None
