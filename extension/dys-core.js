@@ -177,7 +177,7 @@
     +"tombe tombent tombait chante chantent court courent boit boivent lit lisent ecrit ecrivent dort dorment finit finissent etudie etudient quitte quittent calme creuse vend vendent").split(/\s+/).forEach(function(w){if(w)COMMON_VERBS[w]=1;});
   var GENDER_MAP={},GENDER_PURE={},ADJP={},NOUN_PLURAL={};var CONJ_F={},CONJ_C={};
   var _GACC={};   // genre ACCENTUÉ (assets/gender-acc.json.gz, miroir app gacc-lex-gz) — consulté INCONDITIONNELLEMENT par _nounGender, comme GENDER_ACC en Python. Table À PART, jamais unionnée dans GENDER_PURE.
-  function _applyVdc(vd){(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
+  function _applyVdc(vd){BCLF=vd.bclf||null;(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
   // PRÉNOMS + GENRE (assets/prenoms.tsv.gz, DÉRIVÉ du blob prenoms-gz de l'app par build_assets).
   // nom -> [genre, tete_de_phrase_interdite]. Débloque « Marie est venu »→venue. Miroir app + Python.
   var PRENOMS={};
@@ -416,6 +416,31 @@ var w=T[i],lw=w.toLowerCase();
       if(tg&&(tg[i]==='VERB'||tg[i]==='AUX'))finSeen=true;
     }
     return pb;
+  }
+  var BCLF=null;   // canal GROUPE : classifieur de bornes 169 poids (cle « bclf » du payload vdc-lex, build_bornes_clf.py — held-out P 85,1 %/R 49,6 % @0,5)
+  /* _groupBounds — miroir Python _group_bounds, CONTRAT du build : etat (last_b, vu_verbe), reset sur
+     ss[i] ; features tg-1/tg0/w=/w-1=/ELIDQU/ELIDPRON/vu_verbe/dist/vu_verbe&DET ; seuil en LOG-ODDS
+     (p >= tau ⟺ z >= ln(tau/(1-tau)), = 0 pour 0,5 — sigmoide monotone, decisions identiques).
+     Consomme par le SEUL lo-scan de _npSubject (+0,92 pt sujet mesure, 0 juste perdue). */
+  function _groupBounds(T,seg){
+    if(!BCLF)return null;var tg=posTags(T);if(!tg)return null;
+    var W=BCLF.w,n=T.length,tau=BCLF.tau||0.5,zt=(tau===0.5)?0:Math.log(tau/(1-tau));
+    var gb=[],i;for(i=0;i<n;i++)gb.push(false);
+    var lastB=0,vuV=(tg[0]==='VERB'||tg[0]==='AUX');
+    for(i=1;i<n;i++){
+      if(i<seg.ss.length&&seg.ss[i]){lastB=i;vuV=false;}
+      var lw=T[i].toLowerCase(),lw0=T[i-1].toLowerCase();
+      var z=BCLF.b+(W['tg-1='+tg[i-1]]||0)+(W['tg0='+tg[i]]||0)+(W['w='+lw]||0)+(W['w-1='+lw0]||0);
+      if(lw.indexOf("qu'")===0)z+=W['w=ELIDQU']||0;
+      if(_ELIDED_PRON.test(lw))z+=W['w=ELIDPRON']||0;
+      if(vuV)z+=W['vu_verbe']||0;
+      var d=i-lastB;
+      z+=W[d<=1?'dist=1':d===2?'dist=2':d<=5?'dist=3-5':d<=10?'dist=6-10':'dist=11+']||0;
+      if(vuV&&tg[i]==='DET')z+=W['vu_verbe&DET']||0;
+      if(z>=zt){gb[i]=true;lastB=i;vuV=false;}
+      if(tg[i]==='VERB'||tg[i]==='AUX')vuV=true;
+    }
+    return gb;
   }
   function _clauseNoFiniteVerb(T,i,skip){var n=T.length,lo=0,hi=n,j;   // verbe-présence via le TAGGER HMM (contexte : élèves/table→NOUN) ; repli svReads si modèle absent
     var _pb=_SEG?_SEG.pb:null;   // bornes PRÉDITES (canal listes fermées, 31/08) — consommées ICI SEULEMENT : elles rétrécissent la fenêtre de la garde (mesuré : parité avec les virgules de l'auteur, 42,3 %/78,9 % vs 42,5/74,1)
