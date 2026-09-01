@@ -3618,6 +3618,31 @@ function spellUnknown(tok,atStart,T,idx){
     if(!_qfin)continue;
     if(_qlast!=='.'&&/[.!?…]/.test(_qlast))continue;            // ! … ? déjà là ou voulus
     var _qcorps=(_qlast==='.')?_qfin.slice(0,-1):_qfin;
+    /* ⭐ POINT FINAL MANQUANT (01/09/2026, demandé par Rem). MESURÉ AVANT D'ÉCRIRE :
+       · 39 % des productions réellement dys (gold_claude, 28/72) n'ont AUCUNE ponctuation finale —
+         contre 2 % sur les 1 720 paires SYNTHÉTIQUES du même chargeur. Facteur VINGT : les bancs
+         actuels sont structurellement aveugles à ce manque, comme ils l'étaient au run-on.
+       ⛔ MAIS une règle naïve est INUTILISABLE : simulé sur 707 préfixes de frappe (150 phrases
+         correctes coupées mot à mot), elle parlerait sur **79 %** des états intermédiaires — le
+         correcteur réclamerait un point à presque chaque touche. Pendant la frappe, TOUTE phrase
+         est inachevée ; ce n'est pas une faute, c'est un texte en cours.
+       ⇒ DÉCLENCHEUR : dernier segment, 3 mots minimum, verbe conjugué, et le dernier caractère
+         n'est pas déjà une ponctuation (`;` `:` `,`).
+         ⚠️ J'avais d'abord exigé que l'auteur ait DÉJÀ PONCTUÉ AILLEURS. Rem en a douté, avec raison :
+         ce n'est pas une propriété linguistique mais un PROXY pour « il a fini d'écrire » — la même
+         erreur que `bb` comme proxy de « frontière de proposition ». Coût mesuré : 14 des 28 cas
+         réels perdus (50 %), et précisément les textes SANS aucune ponctuation — les scripteurs les
+         plus faibles. Retirée. La vraie source des 55 tirs sur fp_scale était ailleurs : 41 d'entre
+         eux finissent par `;` ou `:`, déjà ponctués. La garde juste coûte 0 cas réel.
+         Couverture après correction : 28/28 des cas réels. Fatigue : 0/333 sentences.json. */
+    if(_qcorps.trim()&&!estQuestion(_qcorps.trim())&&_qlast!=='.'
+        &&_qm.index+_qs.length>=text.length              // DERNIER segment du texte
+        &&';:,'.indexOf(_qlast)<0                        // ; : , sont déjà une ponctuation
+        &&_qcorps.trim().split(/\s+/).length>=3){        // pas un fragment d'un mot ou deux
+      var _pe=_qm.index+_qfin.length;
+      out.push({cs:_pe,ce:_pe,from:'',sugg:'.',name:'point final',tier:'vigilance',typo:1});
+      continue;
+    }
     if(!_qcorps.trim()||!estQuestion(_qcorps.trim()))continue;
     /* ⛔ ON N'ÉMET QUE SUR UNE PHRASE TERMINÉE PAR UN POINT — contrainte de RENDU, pas de grammaire :
        `_renderView` ne peint les flags ancrés caractère que dans les ESPACES ENTRE MOTS
