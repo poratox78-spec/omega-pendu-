@@ -24261,7 +24261,27 @@ window.addEventListener('DOMContentLoaded', () => {
   function remedTip(t,f){var fn=REMED[t];if(!fn)return '';var s=fn(f&&f.ecrit,f&&f.mot);
     return (s&&s.charAt(0)!=='«')?s.charAt(0).toUpperCase()+s.slice(1):s;}
   // familles présentes AU stade développemental visé (le maillon à travailler en priorité) → conseils dédupliqués
-  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},out=[],rep={};(F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(STAGE_FAM[t]===dev.stade&&!seen[t]){seen[t]=1;out.push(t);rep[t]=f;}});});return out.length?{stade:dev.stade,fams:out,rep:rep}:null;}
+  /* ⭐ LA REMÉDIATION NE FILTRE PLUS SUR LE SEUL STADE (01/09/2026, signalé par Rem : « il manque les
+     conjugaisons dans les explications des fautes »).
+     Elle ne retenait que les familles dont STAGE_FAM[t] égale le stade diagnostiqué. Or ce stade est,
+     par CONSTRUCTION, la bande la plus EN AMONT où l'élève bute encore (diag_sentence.py:322 :
+     « on maîtrise de bas en haut ») — c'est VOULU et ce n'est pas ce qu'on change ici. Mais comme une
+     seule faute d'accent suffit à fixer ce stade, TOUTE explication de conjugaison ou d'accord
+     disparaissait avec lui. Mesuré dans l'extension réelle : « je suis allez » + une faute d'accent,
+     donc UNE faute de chaque — stade alphabétique, rémédiation [accent] SEULE, « participe » perdu.
+     Sur 200 phrases dys réelles : 51 faits sur 224 (23 %) sans aucune explication, dont participe (11),
+     homophone_gram (15), accord (8), ponctuation (11), style (6).
+     Le stade reste INCHANGÉ ; on montre les familles de TOUS les stades présents, celles du stade
+     diagnostiqué EN TÊTE (l'ordre porte la priorité pédagogique, le filtre ne la portait plus).
+     ⚠️ `remedBlock` n'imprime PAS le nom du stade (il est dans son propre bloc) : aucun titre ne se
+     retrouve en contradiction avec les familles listées. Vérifié avant d'écrire. */
+  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},rep={},parStade={};
+    (F||[]).forEach(function(f){(f.types||[]).forEach(function(t){var st=STAGE_FAM[t];
+      if(!st||seen[t])return;seen[t]=1;rep[t]=f;(parStade[st]=parStade[st]||[]).push(t);});});
+    var out=(parStade[dev.stade]||[]).slice();
+    for(var i=0;i<STAGE_ORDER.length;i++){var s=STAGE_ORDER[i];
+      if(s!==dev.stade&&parStade[s])out=out.concat(parStade[s]);}
+    return out.length?{stade:dev.stade,fams:out,rep:rep}:null;}
   function remedBlock(F,cls){var r=remedFams(F);if(!r)return '';
     var tips=r.fams.map(function(t){return remedTip(t,r.rep[t]);}).filter(Boolean);if(!tips.length)return '';
     // ⛔ esc() OBLIGATOIRE : le conseil CITE maintenant le mot de l'utilisateur, il n'est plus une constante.
