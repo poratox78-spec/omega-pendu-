@@ -1856,10 +1856,26 @@ var QVERBAL={VERB:1,AUX:1};
 // le « ne » de la négation, collé (n') ou non, AVANT le verbe inversé ; et sa seconde moitié APRÈS
 var QNEG1=/(^|[\s'’])(?:ne\s|n['’])/i;
 var QNEG2=/^\s*(?:pas|plus|jamais|rien|gu[èe]re|personne|aucun|aucune)\b/i;
-function estQuestion(t){
+/* ⭐ LA COUPE DE LONGUEUR EST UNE CONTRAINTE DE FORME VOCALE QUI FUYAIT DANS LE CORRECTEUR.
+   `estQuestion` a DEUX consommateurs qui ne courent pas le même risque :
+     · la SAISIE VOCALE (sidepanel.js) écrit la marque DIRECTEMENT (`mk='?'`, `fin=…?'?':'.'`) ;
+       elle ne voit que des FRAGMENTS courts, où la coupe à 12 ne mord presque jamais ;
+     · le CORRECTEUR (`_questionScan`) n'émet qu'en `tier:'vigilance'` — ORANGE, proposé, jamais
+       appliqué en silence ; et il voit des PHRASES ENTIÈRES, où la coupe mord tout le temps.
+   Mesuré sur `question_bench.js` (positifs = phrases finissant par « ? », négatifs = « . »/« ! »
+   plus des FRAGMENTS pris après une virgule), toutes gardes en place :
+     coupe 12 : précision 96,67 %  rappel 18,47 %      coupe 20 : précision 91,95 %  rappel 25,48 %
+     coupe 16 : précision 91,46 %  rappel 23,89 %      coupe 30 : précision 84,62 %  rappel 28,03 %
+   La voix GARDE 12 (comportement identique, prouvé par une mesure inchangée) ; le correcteur passe
+   à 20 : +22 questions trouvées contre +5 suggestions oranges de trop, sur tout le corpus.
+   ⚠️ RÉFUTÉ EN CHEMIN : sortir les marques « non ambiguës » (t euphonique, n'est-ce pas) AVANT la
+   coupe fait tomber la précision à 47,55 % — le « -t-il » attrape le discours rapporté (« … »,
+   a-t-il affirmé), et ce sont les gardes d'incise qui s'en occupent, plus bas. */
+var QMOTS_VOIX=12, QMOTS_CORR=20;
+function estQuestion(t,maxMots){
   if(!t) return false;
   var mots=toks(t);
-  if(!mots||!mots.length||mots.length>12) return false;   // au-delà : titre ou subordonnée
+  if(!mots||!mots.length||mots.length>(maxMots||QMOTS_VOIX)) return false;   // au-delà : titre ou subordonnée
   if(QTAG.test(t)) return true;
   // ⭐ ÉLISION : `toks` garde l'apostrophe dans le token, donc « n'as-tu » donne « n'as » —
   // une forme que le modèle (appris sur UD, qui SÉPARE les clitiques) n'a jamais vue. Il ne la
@@ -3650,7 +3666,7 @@ function spellUnknown(tok,atStart,T,idx){
          plus faibles. Retirée. La vraie source des 55 tirs sur fp_scale était ailleurs : 41 d'entre
          eux finissent par `;` ou `:`, déjà ponctués. La garde juste coûte 0 cas réel.
          Couverture après correction : 28/28 des cas réels. Fatigue : 0/333 sentences.json. */
-    if(_qcorps.trim()&&!estQuestion(_qcorps.trim())&&_qlast!=='.'
+    if(_qcorps.trim()&&!estQuestion(_qcorps.trim(),QMOTS_CORR)&&_qlast!=='.'
         &&_qm.index+_qs.length>=text.length              // DERNIER segment du texte
         &&';:,'.indexOf(_qlast)<0                        // ; : , sont déjà une ponctuation
         &&_qcorps.trim().split(/\s+/).length>=3){        // pas un fragment d'un mot ou deux
@@ -3658,7 +3674,7 @@ function spellUnknown(tok,atStart,T,idx){
       out.push({cs:_pe,ce:_pe,from:'',sugg:'.',name:'point final',tier:'vigilance',typo:1});
       continue;
     }
-    if(!_qcorps.trim()||!estQuestion(_qcorps.trim()))continue;
+    if(!_qcorps.trim()||!estQuestion(_qcorps.trim(),QMOTS_CORR))continue;
     /* ⛔ ON N'ÉMET QUE SUR UNE PHRASE TERMINÉE PAR UN POINT — contrainte de RENDU, pas de grammaire :
        `_renderView` ne peint les flags ancrés caractère que dans les ESPACES ENTRE MOTS
        (`_typoGapHtml`), ce qui est juste pour tout ce que cette couche gérait (espaces, virgule
