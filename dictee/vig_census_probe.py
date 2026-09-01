@@ -74,7 +74,13 @@ def main():
     perdues = sorted([(k, cr[k] - ca[k]) for k in cr if ca[k] < cr[k]])
     gagnees = sorted([(k, ca[k] - cr.get(k, 0)) for k in ca if ca[k] > cr.get(k, 0)])
     nb_p, nb_g = sum(n for _, n in perdues), sum(n for _, n in gagnees)
-    if etat['justes'] < ref['justes']:
+    # ⭐ LE ROUGE PORTE SUR LES PERTES, PAS SUR LE NET. La condition était `justes < ref['justes']` :
+    # 13 oranges justes PERDUES compensées par 13 AUTRES gagnées laissaient le total identique, donc
+    # VERT — et la liste `perdues`, pourtant déjà calculée juste au-dessus, n'était jamais imprimée.
+    # Le commentaire de cette sonde dit lui-même « elles ne compensent pas : ce ne sont pas les mêmes
+    # mots » ; la garde, elle, les compensait. Le 24/08 le vrai chiffre était 13 perdues / 12 gagnées :
+    # à une unité près, la garde était muette. On rougit dès qu'un mot est PERDU.
+    if perdues:
         err.append(u'%d orange(s) juste(s) PERDUE(S) et %d GAGNÉE(S) — net %+d :'
                    % (nb_p, nb_g, etat['justes'] - ref['justes']))
         for p, n in perdues: err.append(u'    − ' + p + (u'  (×%d)' % n if n > 1 else u''))
