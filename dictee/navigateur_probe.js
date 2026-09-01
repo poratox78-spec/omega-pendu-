@@ -152,6 +152,26 @@ const CAS = [
   { txt: 'Il fait  beau.', typoAppliquee: 1, pourquoi: 'espace double appliqué (et non plus seulement signalé)' },
   { txt: 'il est parti,Paul est resté', typoAppliquee: 1, pourquoi: 'espace manquant après la virgule' },
   { txt: 'attends ... je viens', typoAppliquee: 0, pourquoi: 'les « … » restent une PRÉFÉRENCE : vigilance, jamais imposée' },
+  // ⑨ UNE GARDE PAR TABLE DE LEXIQUE — chaque cas MEURT si sa table n'est pas chargée.
+  //   Établi par ABLATION sur le moteur réel (bake reconstruit sans une table à la fois, puis
+  //   interrogé), pas au jugé : une première carte bâtie sur des phrases INVENTÉES concluait à tort
+  //   « os-lm : aucun effet » — elles ne déclenchaient simplement pas le parseur de sujet.
+  //   Le motif vient de la GARDE PRÉNOMS de parity_corr.js, qui l'avait posé pour UNE table après
+  //   avoir constaté qu'en neutralisant le seed la parité restait « OK ». Ici on le généralise.
+  //   ⚠️ TROIS tables n'ont PAS de garde ici, et il faut le dire plutôt que d'en inventer une :
+  //   · `gdet-lex-gz` et `gacc-lex-gz` : aucun déclencheur trouvé, ni sur phrases construites ni sur
+  //     300 phrases dys réelles. Absence de cas trouvé ≠ table inutile — question ouverte.
+  //   · `os-lm-gz` : le seul cas trouvé (« le nombre de visiteurs augmentent ») vient du SPELLER,
+  //     pas de la grammaire, et sort en VIGILANCE — donc jamais appliqué : impossible à exiger ici.
+  //     J'ai failli le poser étiqueté « os-lm » ; grammar() rend [] sur cette phrase, spell() rend
+  //     la correction. Une garde mal étiquetée est pire qu'une garde absente : elle rassure à tort.
+  { txt: 'la liste des courses sont longue', attendu: ['est'],
+    pourquoi: 'pos-hmm : sujet éloigné du verbe — muet sans le tagger' },
+  { txt: 'le chien de mes voisins aboient', attendu: ['aboie'],
+    pourquoi: 'pos-hmm : le complément pluriel ne doit pas voler le sujet' },
+  { txt: 'la plupart des élèves comprend la leçon', attendu: ['comprennent'],
+    pourquoi: 'pos-hmm : quantifieur — muet sans le tagger' },
+
   // ⑧ CONTRE-GARDES : du texte CORRECT ne doit rien déclencher
   { txt: 'Le petit garçon mange une pomme rouge.', rien: true, pourquoi: 'FP=0 sur phrase correcte' },
   { txt: 'Nathalie habite à Bordeaux.', rien: true, pourquoi: 'noms propres non touchés' },
