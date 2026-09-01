@@ -45,13 +45,25 @@ const TEST = `
     // le moteur est-il ÉQUIPÉ ? une table manquante = ces trois-là deviennent muets, en silence.
     const equipe = [['les chien aboient', 'chien', 'chiens', 'noun-post (accord du nombre)'],
                     ['des oiseau dans le ciel', 'oiseau', 'oiseaux', 'noun-post (pluriel en -x)'],
-                    ['Marie est venu.', 'venu', 'venue', 'prenoms + genre']];
+                    ['Marie est venu.', 'venu', 'venue', 'prenoms + genre + pos-hmm (l’ablation montre qu’il en dépend aussi)'],
+                    // ⭐ pos-hmm : la table la PLUS porteuse, établie par ABLATION sur le moteur réel
+                    // (bake reconstruit sans une table à la fois). Sans elle, 8 phrases dys réelles sur 300
+                    // changent de correction — et le moteur FABRIQUE une faute (« ont »→« on ») qu'elle
+                    // retenait. Ces trois cas ont un SUJET éloigné du verbe : muets sans le tagger.
+                    ['la liste des courses sont longue', 'sont', 'est', 'pos-hmm (sujet éloigné)'],
+                    ['le chien de mes voisins aboient', 'aboient', 'aboie', 'pos-hmm (complément pluriel)'],
+                    ['la plupart des élèves comprend la leçon', 'comprend', 'comprennent', 'pos-hmm (quantifieur)']];
+    // on collecte TOUS les cas muets avant de jeter : s'arrêter au premier accusait une table
+    // innocente. Retirer pos-hmm casse 4 cas ; la boucle ne montrait que le 1er, étiqueté prenoms.
+    const muets = [];
     equipe.forEach(function (c) {
       const g = C.correct(c[0]) || [];
       if (!g.find(function (x) { return x.word === c[1] && x.sugg === c[2]; }))
-        throw new Error('bake MUET sur ' + c[3] + ' : « ' + c[0] + ' » ne donne pas « ' + c[2] + ' »'
-                        + ' (lexique non baké ou chargeur non appelé dans init())');
+        muets.push(c[3] + ' : « ' + c[0] + ' » ne donne pas « ' + c[2] + ' »');
     });
+    if (muets.length)
+      throw new Error('bake MUET sur ' + muets.length + ' comportement(s) — lexique non baké ou chargeur'
+                      + ' non appelé dans init() :' + muets.map(function (m) { return ' [' + m + ']'; }).join(''));
     if (C.correct('Le chat mange une pomme.').length) throw new Error('bake FP : phrase correcte flaguée');
     console.log('OK');
   }).catch(function (e) { console.error(e && e.message || e); process.exit(1); });
