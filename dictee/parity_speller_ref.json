@@ -1,0 +1,18 @@
+{
+ "compares": 48,
+ "divergences": [
+  "apperçoit→aperçoit [flag] vs py aperçois [flag]",
+  "blanch→blanche [flag] vs py blanches [flag]",
+  "cha→chat [flag] vs py — [—]",
+  "d'aeration→d'aération [auto] vs py — [—]",
+  "l'Oeuf→l'œuf [flag] vs py — [—]",
+  "l'apprehender→l'appréhender [auto] vs py — [—]",
+  "l'economie→l'économie [auto] vs py — [—]",
+  "l'ete→l'été [auto] vs py — [—]",
+  "l'hotel→l'hôtel [auto] vs py — [—]",
+  "pery→péri [flag] vs py père [flag]",
+  "pû→pu [flag] vs py — [—]",
+  "saisoon→saison [auto] vs py saison [flag]"
+ ],
+ "note": "Divergences Python↔JS ANCRÉES. Une NOUVELLE fait échouer ; une qui disparaît est un GAIN → ré-ancrer avec --fix."
+}
