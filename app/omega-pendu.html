@@ -25065,7 +25065,22 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(lw==='leurs'&&!/[sx]$/.test(dn)&&rNounPlural(T,i+1))return null;
     return /[sx]$/.test(dn)?'leurs':'leur';}
   var _PP_NOUN_HOMO={mort:1,fait:1,part:1,point:1};   // noms homographes d'un participe → « à » PRÉPOSITION (condamnée à mort, tout à fait, à part, à point) ; le tagger tranche NOM vs VERB
-  function _aaInverted(T,i){if(i-2<0)return false;var hy=(_SEG&&_SEG.hy)?_SEG.hy:[];return vlike(T,i-2)||(i-1<hy.length&&hy[i-1]);}   // pronom sujet en i-1 INVERSÉ (« avait-il à cela ») → pas un sujet PRÉVERBAL de « a » (FP à→a)
+  var _PRON_INV={il:1,elle:1,on:1,ils:1,elles:1,je:1,tu:1,nous:1,vous:1,ce:1,ca:1};   // sujets qui s'INVERSENT après le verbe
+  // ⭐ CE GARDE NE VÉRIFIAIT PAS CE QU'IL NOMMAIT. Son commentaire dit « pronom sujet en i-1 INVERSÉ »,
+  // mais il lui suffisait d'un VERBE deux mots avant : « modifierait · l'article · a » était lu comme une
+  // inversion, et toute la règle a/à se taisait dès qu'un nom suivait un verbe. Un PROXY à la place de la
+  // condition réelle. On exige désormais que i-1 soit vraiment un pronom sujet (ou un trait d'union).
+  function _aaInverted(T,i){if(i-2<0)return false;var hy=(_SEG&&_SEG.hy)?_SEG.hy:[];
+    if(i-1<hy.length&&hy[i-1])return true;   // « a-t-il » : le trait d'union PROUVE l'inversion
+    return vlike(T,i-2)&&!!_PRON_INV[deacc(T[i-1].toLowerCase())];}   // « avait il a faim » (dys, trait d'union omis)
+  // ⭐ L'ANCRE AVANT NE VOYAIT PAS À TRAVERS UNE ÉLISION. Le test « mot d'avant connu du lexique »
+  // (qui écarte l'anglais « for a Dream ») recevait le TOKEN BRUT : « l'article », « de l'école »,
+  // « l'assiette » sont absents du lexique → la règle « a + nom nu » se taisait. Mesuré au moteur :
+  //   « modifierait l'article a reception » MUET   /   « modifierait cet article a reception » TIRE
+  //   « rentré de l'école a vélo »        MUET   /   « rentré du collège a vélo »        TIRE
+  // C'est la cécité qui fait S'ABSTENIR (cf. « 46 listes fermées aveugles ») — réparable sans risque.
+  // Et elle RESSERRE aussi : la liste d'exclusion des pronoms ne voyait pas « qu'il / s'il / lorsqu'elle ».
+  var _RE_ELIDE_ANCRE=/^(?:l|d|j|m|t|s|c|n|qu|lorsqu|puisqu|quoiqu|jusqu)['’](.+)$/;
   function rA(T,i){if(deacc(T[i].toLowerCase())!=='a')return null;if(T[i]===T[i].toUpperCase()&&T[i]!==T[i].toLowerCase())return null;if(i+2<T.length&&deacc(T[i+1].toLowerCase())==='t'&&['il','elle','on','ils','elles'].indexOf(deacc(T[i+2].toLowerCase()))>=0)return null;/* « a-t-il/elle/on » : -t- euphonique = INVERSION → « a » = verbe avoir, jamais « à » */if(i>0&&i+1<T.length&&deacc(T[i-1].toLowerCase())==='tout'&&deacc(T[i+1].toLowerCase())==='fait')return null;/* locution « tout à fait » : « à » invariable, jamais « a » */
     var pb=(_SEG&&i<_SEG.bb.length)?_SEG.bb[i]:false;var tg=posTags(T);var p=cprev(T,i);   // POS PLEINE-PHRASE : sépare les FAUX participes (nom homographe / -ment nominal) du vrai participe → tue les FP à→a par élimination
     var pel=i>0?_ELIDED_PRON.exec(T[i-1].toLowerCase()):null;if(pel)p=deacc(pel[1]);   // « Lorsqu'il à faim » : le sujet vit DANS le token élidé ; le préfixe (qu'/s'/lorsqu'…) prouve un sujet PRÉVERBAL → le test d'inversion « avait-il » ne s'applique pas
@@ -25078,7 +25093,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     // d'avoir (a lieu/besoin/droit…) → stop-listes fermées ; latins, chiffres, ancre avant fiable
     // (écarte « for a Dream »), nom propre après exclu (différé). Mesuré : 0 FP UD, +2 strict gold.
     if(T[i]==='a'&&i>0&&!pb&&i+1<T.length&&!_aaInverted(T,i)){
-      var _dn2=deacc(T[i+1].toLowerCase()),_pw2=deacc(T[i-1].toLowerCase()),_c1=T[i+1].charAt(0);
+      var _dn2=deacc(T[i+1].toLowerCase()),_pw2=deacc(T[i-1].toLowerCase()),_c1=T[i+1].charAt(0);var _el2=_RE_ELIDE_ANCRE.exec(_pw2);if(_el2)_pw2=_el2[1];
       if(_nounGate(_dn2)&&_dn2.length>=3&&!_AVOIR_IDIOM[_dn2]&&!_A_NU_STOP[_dn2]
          &&!(_c1===_c1.toUpperCase()&&_c1!==_c1.toLowerCase())
          &&['il','elle','on','ils','elles','je','tu','nous','vous','qui','ca','c','y','en'].indexOf(_pw2)<0

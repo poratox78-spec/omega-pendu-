@@ -64,6 +64,16 @@ const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
       const o = JSON.parse(l); const b = o.bad != null ? o.bad : o.raw; if (b) sents.push(b);
     }
   }
+  // ⭐ SOURCES COMMITÉES — sans elles, le CI (qui n'a pas data_local) parcourait 0 phrase, trouvait
+  // 0 divergence, et imprimait « ✓ elision : 0 ≤ 0 ». Un tic VERT sur RIEN, indiscernable d'un vrai
+  // succès. Le dépôt contient pourtant ~950 phrases avec élision, déjà suivies par git.
+  try { JSON.parse(fs.readFileSync(path2.join(ROOT, 'dictee', 'sentences.json'), 'utf8'))
+    .forEach(e => { if (e && e.text) sents.push(e.text); }); } catch (e) {}
+  try { for (const l of fs.readFileSync(path2.join(ROOT, 'dictee', 'corpus_gec_fr.jsonl'), 'utf8')
+    .split(String.fromCharCode(10)).filter(Boolean)) { const o = JSON.parse(l);
+      if (o.bad) sents.push(o.bad); if (o.good) sents.push(o.good); } } catch (e) {}
+  try { for (const l of fs.readFileSync(path2.join(ROOT, 'dictee', 'fp_scale_corpus.txt'), 'utf8')
+    .split(String.fromCharCode(10))) { const t = l.trim(); if (t) sents.push(t); } } catch (e) {}
   // « l'X » -> « cet X » / « cette X ». PAS « le/la X » : en francais l'elision est OBLIGATOIRE devant
   // voyelle, donc « la ouverture » n'existe pas -- on comparerait une phrase valide a une phrase FAUSSE
   // et la divergence ne dirait plus rien. « cet/cette » est un determinant SEPARE et GRAMMATICAL devant
@@ -115,6 +125,8 @@ const RE3 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;
   const L = Object.entries(by).sort((x, y) => y[1].n - x[1].n);
   for (const [r, v] of L) { console.log('    ' + String(v.n).padStart(4) + '  ' + r); console.log('           ' + v.ex); }
   if (process.argv.includes('--check')) {
+    // Une sonde différentielle qui n'a rien testé ne doit JAMAIS imprimer un tic vert.
+    if (tested === 0) { console.error('✗ ELISION : 0 phrase testable — la sonde n’a RIEN mesuré (corpus commités absents ?)'); process.exit(1); }
     if (n > CEILING) { console.error('✗ ELISION : ' + n + ' divergences > plafond ' + CEILING); process.exit(1); }
     console.log('✓ elision : ' + n + ' ≤ ' + CEILING);
   }
