@@ -28268,9 +28268,18 @@ function spellTokenCore(tok,atStart,T,idx){
        invisible est une interface qui MENT — pire que l'abstention (cf. la garde « aucune copie
        n'annonce un succès qu'elle ignore »). ⇒ tant que le rendu ne sait pas peindre une insertion
        en fin de token, la règle se tait là plutôt que de compter dans le vide. */
-    if(_qlast!=='.')continue;
-    var _qp=_qm.index+_qfin.length-1;                            // le point : il vit dans l'espace après le dernier mot, donc il se peint
-    out.push({cs:_qp,ce:_qp+1,from:'.',sugg:' ?',name:"point d'interrogation",tier:'vigilance',typo:1});
+    if(_qlast==='.'){
+      var _qp=_qm.index+_qfin.length-1;                          // le point EXISTE : substitution, il se peint
+      out.push({cs:_qp,ce:_qp+1,from:'.',sugg:' ?',name:"point d'interrogation",tier:'vigilance',typo:1});
+    } else {
+      /* ⭐ PHRASE SANS PONCTUATION FINALE — le cas du scripteur dys, et celui où la règle se taisait.
+         Ce n'était pas un choix de grammaire : `_typoGapHtml` ne savait pas peindre une insertion dans
+         l'espace VIDE qui suit le dernier mot, donc le compteur annonçait une correction que l'écran ne
+         montrait pas. Le rendu sait le faire désormais (voir _typoGapHtml) : on émet une INSERTION
+         (cs===ce) en fin de segment. Reste en VIGILANCE : la ponctuation change le sens, l'auteur tranche. */
+      var _qe=_qm.index+_qfin.length;
+      out.push({cs:_qe,ce:_qe,from:'',sugg:' ?',name:"point d'interrogation",tier:'vigilance',typo:1});
+    }
   }
     return out;}
 
@@ -28281,10 +28290,10 @@ function spellTokenCore(tok,atStart,T,idx){
     ed.sort(function(a,b){return a[0]-b[0];});
     var out='',last=0;ed.forEach(function(e){if(e[0]<last)return;out+=t.slice(last,e[0])+e[2];last=e[1];});
     out+=t.slice(last);return out;}
-  function _typoGapHtml(g,base,byCs,corrected){var ks=Object.keys(byCs).map(Number).filter(function(c){return c>=base&&c<base+g.length;}).sort(function(a,b){return a-b;});
+  function _typoGapHtml(g,base,byCs,corrected){/* ⭐ INSERTION EN FIN DE TEXTE. Le filtre exigeait c<base+g.length : dans l'espace VIDE qui suit   le dernier mot (phrase sans ponctuation finale), aucune position ne passait, et une insertion y   était JETÉE. C'est ce qui bâillonnait le « ? » : la règle se taisait plutôt que de compter une   correction invisible — abstention honnête, mais c'est le RENDU qu'il fallait réparer. Or un dys   ne met pas de point final : la règle était donc muette précisément là où elle sert. */var ks=Object.keys(byCs).map(Number).filter(function(c){return c>=base&&(c<base+g.length||(c===base+g.length&&byCs[c].ce===byCs[c].cs));}).sort(function(a,b){return a-b;});
     if(!ks.length)return esc(g);var o='',lp=0;   // lp = position relative dans g ; splice les corrections typo (guillemets/points de suspension) DANS l'espace, sans toucher au rendu mot
     ks.forEach(function(cs){var f=byCs[cs],r0=cs-base,r1=f.ce-base;if(r0<lp)return;o+=esc(g.slice(lp,r0));
-      var seg=g.slice(r0,r1),disp=(corrected&&f.on)?f.sugg:seg,cls=((corrected&&f.on)?'vdc-on':'vdc-bad vdc-vig')+(/^[ 	]*$/.test(disp)?' vdc-ins':''),   /* ⭐ INSERTION DANS UN ESPACE (virgule manquante) : le span ne contient QU'UN BLANC, donc la
+      var seg=g.slice(r0,r1),_vide=(f.ce===f.cs),disp=(corrected&&f.on)?f.sugg:(_vide?f.sugg:seg),cls=((corrected&&f.on)?'vdc-on':'vdc-bad vdc-vig')+((_vide||/^[ 	]*$/.test(disp))?' vdc-ins':''),   /* ⭐ INSERTION DANS UN ESPACE (virgule manquante) : le span ne contient QU'UN BLANC, donc la
         cible cliquable faisait 5 px de large — mesuré en navigateur réel, inutilisable, et pour un
         dys encore moins. On la marque pour que le CSS élargisse la ZONE DE CLIC sans toucher aux
         MÉTRIQUES : l'overlay doit rester au pixel près sur la zone de saisie (padding et gras
