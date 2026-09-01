@@ -3628,9 +3628,18 @@ function spellUnknown(tok,atStart,T,idx){
        invisible est une interface qui MENT — pire que l'abstention (cf. la garde « aucune copie
        n'annonce un succès qu'elle ignore »). ⇒ tant que le rendu ne sait pas peindre une insertion
        en fin de token, la règle se tait là plutôt que de compter dans le vide. */
-    if(_qlast!=='.')continue;
-    var _qp=_qm.index+_qfin.length-1;                            // le point : il vit dans l'espace après le dernier mot, donc il se peint
-    out.push({cs:_qp,ce:_qp+1,from:'.',sugg:' ?',name:"point d'interrogation",tier:'vigilance',typo:1});
+    if(_qlast==='.'){
+      var _qp=_qm.index+_qfin.length-1;                          // le point EXISTE : substitution, il se peint
+      out.push({cs:_qp,ce:_qp+1,from:'.',sugg:' ?',name:"point d'interrogation",tier:'vigilance',typo:1});
+    } else {
+      /* ⭐ PHRASE SANS PONCTUATION FINALE — le cas du scripteur dys, et celui où la règle se taisait.
+         Ce n'était pas un choix de grammaire : `_typoGapHtml` ne savait pas peindre une insertion dans
+         l'espace VIDE qui suit le dernier mot, donc le compteur annonçait une correction que l'écran ne
+         montrait pas. Le rendu sait le faire désormais (voir _typoGapHtml) : on émet une INSERTION
+         (cs===ce) en fin de segment. Reste en VIGILANCE : la ponctuation change le sens, l'auteur tranche. */
+      var _qe=_qm.index+_qfin.length;
+      out.push({cs:_qe,ce:_qe,from:'',sugg:' ?',name:"point d'interrogation",tier:'vigilance',typo:1});
+    }
   }
     return out;}
 
