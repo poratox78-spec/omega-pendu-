@@ -42,6 +42,8 @@ jobs:
         run: node dictee/srs_probe.js
       - name: Navigateur RÉEL — Chrome pilote la page (CDP, zéro dépendance)
         run: node dictee/navigateur_probe.js --check
+      - name: EXTENSION dans Chrome — paquet réel, assets chargés par chrome.runtime.getURL
+        run: node extension/navigateur_ext_probe.js --check
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
       - name: « did you mean » fréquence reste FALSIFIÉ (régression sur le cardinal FP=0)

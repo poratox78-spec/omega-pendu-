@@ -127,6 +127,7 @@ echo "── NAVIGATEUR RÉEL ──"
 # posées dans le DOM. C'est le seul banc qui aurait vu que le moteur livré était à moitié chargé.
 run "répétition espacée (planificateur Leitner, bloc pur du monolithe)" node dictee/srs_probe.js
 run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
+run "EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL)" node extension/navigateur_ext_probe.js --check
 
 echo "── LIVRAISON ──"
 run "icônes extension FRAÎCHES (== icon-512.png, exigées par le Store)" python3 extension/build_icons.py --check
