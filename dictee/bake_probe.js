@@ -27,11 +27,31 @@ const OUT = path.join(TMP, 'c.standalone.js');
 
 // Le test métier, identique dans les deux mondes : une faute est corrigée, une phrase juste
 // n'est PAS touchée (recall ET FP=0, les deux comptent).
+//
+// ⭐ ET SURTOUT : LE MOTEUR EST-IL ÉQUIPÉ ? Ce banc ne testait qu'UN cas, « fote »→« faute » — une
+// correction du SPELLER. Or le bake n'embarquait que `speller-lex-gz` et son `init()` n'appelait que
+// `loadSpellerLex()` : l'accord du NOMBRE, du GENRE et les PRÉNOMS étaient MUETS, et les deux sondes
+// qui gardaient le bake (ici et dev.sh:98) passaient au vert. Vérifié le 01/09/2026 en interrogeant
+// l'artefact : « les chien aboient » rendait (RIEN). C'est le bug du 2026-08-11, réparé dans l'app et
+// jamais dans le bake — alors que CORRECTEUR.md propose ce bake comme voie d'intégration à des tiers.
+// Les trois cas ci-dessous sont les MÊMES que ceux du banc navigateur réel : chacun exige qu'une
+// TABLE PRÉCISE soit chargée, et échoue si elle ne l'est pas. On teste un COMPORTEMENT, pas une
+// présence — une table vide mais non nulle répondrait « oui » à une question de présence.
 const TEST = `
   const C = require(${JSON.stringify(OUT)});
   C.init().then(function () {
     const f = C.correct('une grosse fote');
     if (!f.find(function (x) { return x.word === 'fote' && x.sugg === 'faute'; })) throw new Error('bake KO : « fote » non corrigé');
+    // le moteur est-il ÉQUIPÉ ? une table manquante = ces trois-là deviennent muets, en silence.
+    const equipe = [['les chien aboient', 'chien', 'chiens', 'noun-post (accord du nombre)'],
+                    ['des oiseau dans le ciel', 'oiseau', 'oiseaux', 'noun-post (pluriel en -x)'],
+                    ['Marie est venu.', 'venu', 'venue', 'prenoms + genre']];
+    equipe.forEach(function (c) {
+      const g = C.correct(c[0]) || [];
+      if (!g.find(function (x) { return x.word === c[1] && x.sugg === c[2]; }))
+        throw new Error('bake MUET sur ' + c[3] + ' : « ' + c[0] + ' » ne donne pas « ' + c[2] + ' »'
+                        + ' (lexique non baké ou chargeur non appelé dans init())');
+    });
     if (C.correct('Le chat mange une pomme.').length) throw new Error('bake FP : phrase correcte flaguée');
     console.log('OK');
   }).catch(function (e) { console.error(e && e.message || e); process.exit(1); });

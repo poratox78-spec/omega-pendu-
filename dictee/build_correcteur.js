@@ -20,7 +20,19 @@ let slice = html.slice(start, cut);
 // l'IIFE moteur reçoit le DOM bouchon + dépendances en paramètres (au lieu des globals)
 slice = slice.replace('(function(){', '(function(document,localStorage,speechSynthesis,SpeechSynthesisUtterance){');
 const vdc = JSON.stringify(globalThis.OMEGA_VDC || {});   // #30 : vdc-lex-gz décompressé (via blobgz, ligne 14) → baké en clair dans le standalone
-const spl = (html.match(/<script type="text\/plain" id="speller-lex-gz">([^<]*)<\/script>/) || [])[1] || '';
+// ⭐ TOUS les lexiques, pas un seul. Le bake n'embarquait que `speller-lex-gz` et son `init()`
+// n'appelait que `loadSpellerLex()` — donc l'accord du NOMBRE (noun-post), du GENRE (gdet/gacc),
+// les PRÉNOMS et le tagger POS étaient MUETS dans le moteur autonome. Vérifié le 01/09/2026 en
+// interrogeant l'artefact produit : « les chien aboient », « des oiseau dans le ciel » et
+// « Marie est venu. » rendaient (RIEN). C'est le bug de 2026-08-11 (« le moteur livré n'appelait
+// que loadSpellerLex ») : réparé dans l'app, JAMAIS dans le bake — or `CORRECTEUR.md` propose ce
+// bake comme voie d'intégration à des tiers. Les deux sondes qui le gardaient (dev.sh:90 et :98)
+// ne testaient qu'UN cas, `fote`→`faute`, une correction du SPELLER : la grammaire muette passait.
+// `lex4-data-gz` (5,4 Mo) reste dehors : il ne sert à aucune de ces règles.
+function blob(id){var i=html.indexOf('id="'+id+'">');if(i<0)return '';i=html.indexOf('>',i)+1;var j=html.indexOf('</script>',i);return j<0?'':html.slice(i,j);}
+const LEXIQUES = ['speller-lex-gz','noun-post-gz','gdet-lex-gz','gacc-lex-gz','prenoms-gz','pos-hmm-gz','os-lm-gz'];
+const BLOBS = {}; for (const id of LEXIQUES) { BLOBS[id] = blob(id); if (!BLOBS[id]) { console.error('lexique ABSENT de l app : ' + id); process.exit(2); } }
+const spl = BLOBS['speller-lex-gz'];
 
 const out =
 `// correcteur.standalone.js — GÉNÉRÉ par dictee/build_correcteur.js (ne pas éditer à la main).
@@ -30,16 +42,21 @@ const out =
 ;(function(root){'use strict';
 var __VDC__=${JSON.stringify(vdc)};
 var __SPL__=${JSON.stringify(spl)};
+// objet direct, PAS une chaîne JSON à re-parser : le double échappement quadruplait le fichier
+var __LEX__=${JSON.stringify(BLOBS)};
 var __stub=new Proxy(function(){},{get:function(t,k){if(k==='style')return{};if(k==='classList')return{add:function(){},remove:function(){},toggle:function(){},contains:function(){return false;}};return __stub;},set:function(){return true;},apply:function(){return __stub;}});
-var __doc={getElementById:function(id){return id==='vdc-lex'?{textContent:__VDC__}:id==='speller-lex-gz'?{textContent:__SPL__}:__stub;},createElement:function(){return __stub;},body:__stub,head:__stub,addEventListener:function(){},querySelector:function(){return null;},querySelectorAll:function(){return[];}};
+var __doc={getElementById:function(id){if(id==='vdc-lex')return{textContent:__VDC__};if(__LEX__[id])return{textContent:__LEX__[id]};return __stub;},createElement:function(){return __stub;},body:__stub,head:__stub,addEventListener:function(){},querySelector:function(){return null;},querySelectorAll:function(){return[];}};
 var __ls={getItem:function(){return null;},setItem:function(){},removeItem:function(){}};
 var __ss={speak:function(){},cancel:function(){},getVoices:function(){return[];}};
 var OMEGA_VDC=JSON.parse(__VDC__);   // #30 : seed sync des maps grammaire (le moteur lit OMEGA_VDC, plus de bloc JSON en clair dans l'app)
-${slice};root.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,ready:function(){return SP.ready;}};})(__doc,__ls,__ss,function(){return __stub;});
+${slice};root.__corrEngine={correctText:correctText,spellText:spellText,loadSpellerLex:loadSpellerLex,loadNounPost:loadNounPost,loadGenderLex:loadGenderLex,loadPrenoms:loadPrenoms,loadGaccLex:loadGaccLex,loadPosHmm:loadPosHmm,loadOsLm:loadOsLm,ready:function(){return SP.ready;}};})(__doc,__ls,__ss,function(){return __stub;});
 var E=root.__corrEngine;
 var api={
   ready:function(){return E.ready();},
-  init:function(){return E.loadSpellerLex();},                 // décompresse le lexique ortho (async, à appeler 1×)
+  // ⭐ init() appelle les HUIT chargeurs, pas seulement le speller : sans eux l'accord du nombre,
+  // du genre et les prénoms sont MUETS et RIEN ne le signale (bug 2026-08-11, réparé côté app
+  // seulement). Aucune erreur n'est avalée : si un lexique manque, init() REJETTE.
+  init:function(){return Promise.all([E.loadSpellerLex(),E.loadNounPost(),E.loadGenderLex(),E.loadPrenoms(),E.loadGaccLex(),E.loadPosHmm(),E.loadOsLm()]);},
   grammar:function(t){return E.correctText(t);},
   spell:function(t){return E.spellText(t);},
   correct:function(t){var gf=E.correctText(t),sf=E.ready()?E.spellText(t):[],byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(byTok[f.i]==null)byTok[f.i]=f;});return Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});}
