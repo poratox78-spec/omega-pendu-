@@ -25,6 +25,7 @@ from collections import defaultdict
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+REF_PREC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dys_precision_ref.json')
 DATA = os.environ.get('OMEGA_DYS_DATA') or os.path.join(ROOT, 'data_local', 'dys_reel')   # worktree : OMEGA_DYS_DATA=/chemin/data_local/dys_reel
 FILES = ['dictees_gold.jsonl', 'faiblesses.jsonl', 'genere_gold.jsonl', 'gold_claude.jsonl']
 # gold_claude.jsonl (22/08/2026) : les 72 productions dys réelles du corpus n'avaient AUCUN corrigé — seules les
@@ -185,7 +186,58 @@ def main():
         print('%-34s %-10s %5d %5d %5d %6s%%   %d/%d/%d (%s%%)' % (r['famille'][:34], r['palier'], r['juste'], r['inutile'], r['fausse'],
               r['precision'] if r['precision'] is not None else '—', d[0], d[1], d[2], r['precision_distincts'] if r['precision_distincts'] is not None else '—'))
         for e in r['exemples']:
-            print('      ✗ ' + e)
+            print('      · ' + e)
+
+    # ⭐ CONTRAT — cette sonde ne pouvait PAS échouer : elle imprimait un tableau et rendait 0.
+    # Second banc décoratif du lot 1 (le premier, descending_probe, a reçu le sien en PR#622).
+    # Les planchers sont l'ÉTAT MESURÉ à la pose, par (famille, palier) : aucun verdict ne bascule.
+    # Une précision qui BAISSE rougit ; une famille qui DISPARAÎT rougit (on ne perd pas une mesure
+    # en silence) ; une famille NEUVE passe et est annoncée, à ancrer avec --fix.
+    vus = {}
+    for r in rows:
+        if r['precision'] is not None:
+            vus['%s|%s' % (r['famille'], r['palier'])] = r['precision']
+    if '--fix' in sys.argv:
+        json.dump({'paires': n_pairs, 'planchers': vus,
+                   'note': u"Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse "
+                           u"rougit ; une hausse est un GAIN à ré-ancrer (--fix)."},
+                  io.open(REF_PREC, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+        print('✓ ancré : %d familles×paliers' % len(vus))
+        return 0
+
+    # ⚠️ DETTE VISIBLE, réimprimée À CHAQUE PASSAGE VERT (convention du census). Une règle au
+    # palier AUTO est APPLIQUÉE EN SILENCE : sous 80 % de précision, elle réécrit plus d'un mot
+    # sur cinq en une autre faute. Enterré dans une ligne de tableau, personne ne le voit.
+    dette = [r for r in rows if r['palier'].startswith('auto') and r['precision'] is not None
+             and r['precision'] < 80.0 and (r['juste'] + r['fausse']) >= 10]
+    if dette:
+        print('')
+        print(u'  ⚠️ %d règle(s) APPLIQUÉE(S) EN SILENCE sous 80 %% de précision sur texte dys :' % len(dette))
+        for r in sorted(dette, key=lambda r: r['precision']):
+            print(u'      %-42s %-12s %5.1f %%  (%d justes / %d fausses)'
+                  % (r['famille'][:42], r['palier'], r['precision'], r['juste'], r['fausse']))
+
+    if not os.path.exists(REF_PREC):
+        print(u'✗ PRÉCISION DYS : pas de référence — ancrer : python dictee/dys_precision_probe.py --fix')
+        return 1
+    ref = json.load(io.open(REF_PREC, encoding='utf-8'))
+    planchers = ref.get('planchers') or {}
+    err = []
+    for k, plancher in sorted(planchers.items()):
+        if k not in vus:
+            err.append(u'%s : la mesure a DISPARU (plancher %.1f %%)' % (k, plancher))
+        elif vus[k] < plancher - 0.05:
+            err.append(u'%s : %.1f %% < plancher %.1f %%' % (k, vus[k], plancher))
+    if err:
+        print('')
+        print(u'✗ PRÉCISION DYS : la précision a BAISSÉ :')
+        for e in err[:10]: print(u'    ' + e)
+        print(u"    (si la baisse est VOULUE et mesurée : python dictee/dys_precision_probe.py --fix)")
+        return 1
+    neuves = sorted(set(vus) - set(planchers))
+    if neuves:
+        print(u'  ✓ %d famille(s)×palier NEUVE(S) — à ancrer (--fix) : %s'
+              % (len(neuves), ', '.join(neuves[:4])))
     return 0
 
 
