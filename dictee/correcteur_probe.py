@@ -2119,9 +2119,27 @@ def runon_positions(text):
         if seg['bb'][i] or seg['hy'][i]: continue                # ponctuation / trait d'union (inversion) avant → pas un run-on
         if deacc(T[i - 1].lower()) in CONJ_REL: continue         # « et il », « qu'il »… → coordination/relative
         if "'" in T[i - 1].lower() or "'" in T[i].lower(): continue
-        if not _is_finite(T[i - 1]): continue                    # fin de proposition 1 = verbe CONJUGUÉ
-        if not _is_finite(T[i + 1]): continue                    # proposition 2 = sujet(i) + verbe CONJUGUÉ(i+1)
-        if not _agrees(_reads(T[i + 1]), pn[0], pn[1]): continue  # le verbe 2 s'accorde avec le pronom → bien sujet+verbe
+        # ⭐ DEUX VERROUS DESSERRÉS (01/09/2026, signalé par Rem sur usage réel ; miroir de dys-core.js).
+        #   (5) on exigeait un verbe fini COLLÉ à gauche du pronom — or un run-on finit par un COMPLÉMENT
+        #       (« à la plage ‖ vous »). La vraie question est : la proposition de GAUCHE a-t-elle son
+        #       verbe ? On le cherche donc depuis la dernière borne, pas seulement en T[i-1].
+        #   (6) on exigeait que le verbe de droite ACCORDE DÉJÀ avec le pronom — donc la couche ne parlait
+        #       QUE là où il n'y a rien à corriger. « mangé » ne se lit jamais en 2e pers. plur. : muette
+        #       pile quand elle servirait. On accepte aussi une forme fléchissable (_inf1 non nul).
+        #   ⚠️ Un verbe fini JUSTE avant le pronom = clitique OBJET (« peut vous proposer ») ou sujet
+        #       INVERSÉ (« avez vous décidé ») : jamais un début de proposition.
+        #   Cette couche ne fabrique JAMAIS de mot : elle propose une ponctuation, en vert.
+        #   Fatigue mesurée (2 500 phrases correctes, fp_scale) : 0,60 virgule / 1 000 mots.
+        if _is_finite(T[i - 1]): continue
+        _fin_g = False
+        for _j in range(i - 1, -1, -1):
+            if seg['bb'][_j] or seg['ss'][_j]: break
+            if _is_finite(T[_j]): _fin_g = True; break
+        if not _fin_g: continue
+        _dr = _is_finite(T[i + 1])
+        _flech = _inf1(T[i + 1]) is not None
+        if not _dr and not _flech: continue
+        if _dr and not _agrees(_reads(T[i + 1]), pn[0], pn[1]) and not _flech: continue
         out.append(i)
     return out
 
