@@ -54,7 +54,10 @@ def main():
           f"({100*ok/max(1,len(val)):.0f}% de précision)")
     bad = [(n, g, t) for n, g, t in val if g != t]
     for n, g, t in bad:
-        print(f"        ✗ « {n} » appris {g}, lexique {t}")
+        # · et non ✗ : ce sont les erreurs d'APPRENTISSAGE résiduelles, listées à dessein et
+        # déjà sous le plancher mesuré plus bas. Un ✗ ici faisait croire à un contrôle en échec
+        # dans une sortie VERTE — exactement le bruit qui use l'attention (cf. PR#620).
+        print(f"        · « {n} » appris {g}, lexique {t}")
 
     # (2) généralisation LEAVE-ONE-OUT : un nom appris AILLEURS aide-t-il sur la phrase tenue à l'écart ?
     gen_tot = gen_ok = 0
@@ -97,6 +100,37 @@ def main():
         print(f"      « {txt} » : genre appris du nom-tête = {lg} (attendu {exp}) {'✓' if lg==exp else ('—' if lg is None else '✗')}")
     print(f"      nom-tête au genre connu : {det}/{len(cases)} · contradictions (FP) : {fp}")
 
+    # ⭐ CONTRAT — cette sonde ne pouvait PAS échouer : elle mesurait, imprimait, et rendait toujours 0.
+    # Un banc sans code de sortie branché sur sa mesure est un banc DÉCORATIF : il nomme une garantie
+    # qu'il n'apporte pas. Les planchers ci-dessous sont l'ÉTAT MESURÉ à la pose (186/188, 178/178,
+    # 3/3, 0 FP) — aucun verdict ne bascule aujourd'hui. Ce sont des PLANCHERS (>=) : un corpus qui
+    # grandit ou un apprentissage qui progresse passent ; seule une RÉGRESSION rougit.
+    PLANCHER_JUSTES, PLANCHER_VAL = 186, 188      # (1) précision du genre appris vs Lexique4
+    PLANCHER_GEN = 178                            # (2) généralisation leave-one-out, exigée à 100 %
+    err = []
+    if not GENDER_LEX:
+        # sans vérité terrain il n'y a rien à valider : on le DIT, on ne rend pas un vert muet.
+        print("")
+        print("  · CONTRAT : SAUTÉ (pas de lexique de genre — rien à valider contre)")
+    else:
+        if len(val) < PLANCHER_VAL:
+            err.append(f"noms validables {len(val)} < plancher {PLANCHER_VAL} (la sonde mesure MOINS)")
+        if ok < PLANCHER_JUSTES:
+            err.append(f"genre appris JUSTE {ok} < plancher {PLANCHER_JUSTES}")
+        if gen_tot < PLANCHER_GEN:
+            err.append(f"généralisation : {gen_tot} noms testés < plancher {PLANCHER_GEN}")
+        if gen_ok < gen_tot:
+            err.append(f"généralisation {gen_ok}/{gen_tot} — elle était à 100 %")
+        if det < len(cases):
+            err.append(f"détection : nom-tête au genre connu {det}/{len(cases)}")
+        if fp:
+            err.append(f"{fp} contradiction(s) FP — le genre appris contredit une phrase CORRECTE")
+    if err:
+        print("")
+        print("✗ BOUCLE DESCENDANTE : l'apprentissage du genre a RÉGRESSÉ :")
+        for e in err: print("    " + e)
+        return 1
+
     print("\n  Lecture : précision élevée + généralisation = la boucle descendante APPREND vraiment le lexique de")
     print("            genre depuis l'usage (miroir du pendu, mais ici ça PAIE et c'est validable). Limite HONNÊTE :")
     print("            30 phrases n'apprennent qu'une poignée de noms → la valeur réelle vient du VOLUME (corpus")
@@ -104,4 +138,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main() or 0)
