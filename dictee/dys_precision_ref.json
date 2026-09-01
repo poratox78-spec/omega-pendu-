@@ -76,5 +76,6 @@
   "grammaire:ça/sa|auto·propre": 100.0,
   "grammaire:étais après c'/s'|auto·propre": 100.0
  },
+ "inutile_auto": 28,
  "note": "Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse rougit ; une hausse est un GAIN à ré-ancrer (--fix)."
 }

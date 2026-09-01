@@ -257,6 +257,7 @@ def main():
               u' table juge des MOTS contre un gold de mots. Le produit en émet, la référence non.' % _ht)
     if '--fix' in sys.argv:
         json.dump({'paires': n_pairs, 'planchers': vus,
+                   'inutile_auto': sum(r['inutile'] for r in rows if r['palier'].startswith('auto')),
                    'note': u"Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse "
                            u"rougit ; une hausse est un GAIN à ré-ancrer (--fix)."},
                   io.open(REF_PREC, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
@@ -272,13 +273,44 @@ def main():
         print('')
         print(u'  ⚠️ %d règle(s) APPLIQUÉE(S) EN SILENCE sous 80 %% de précision sur texte dys :' % len(dette))
         for r in sorted(dette, key=lambda r: r['precision']):
-            print(u'      %-42s %-12s %5.1f %%  (%d justes / %d fausses)'
-                  % (r['famille'][:42], r['palier'], r['precision'], r['juste'], r['fausse']))
+            print(u'      %-42s %-12s %5.1f %%  (%d justes / %d INUTILES / %d fausses)'
+                  % (r['famille'][:42], r['palier'], r['precision'], r['juste'], r['inutile'], r['fausse']))
+
+    # ⭐ LA COLONNE QUI PORTE LA DOCTRINE ÉTAIT CACHÉE. La bannière ci-dessus n'imprimait que
+    # « justes / fausses » et taisait INUTILE — or les trois cas ne coûtent pas la même chose :
+    #   JUSTE   : le mot était faux, la suggestion est celle du gold ;
+    #   FAUSSE  : le mot était faux, la suggestion ne l'est pas — gêché, mais on ne CASSE rien ;
+    #   INUTILE : le mot était JUSTE et on le réécrit — c'est ça, et ça seul, violer FP=0.
+    # Le 01/09 j'ai rétrogradé « élision fusionnée » sur la foi d'une précision de 27,8 % en
+    # croyant à des faux positifs. Elle a 0 INUTILE : elle ne touche JAMAIS de texte correct,
+    # ses « fausses » sont de mauvaises devinettes sur des mots déjà faux. Le correctif faisait
+    # perdre « l'eau » et « j'ai » ; il a fallu le reverter. Cette ligne existe pour que la
+    # prochaine lecture ne refasse pas la confusion.
+    casse = [r for r in rows if r['palier'].startswith('auto') and r['inutile'] > 0]
+    if casse:
+        print('')
+        print(u'  🔴 %d règle(s) AUTO réécrivent du texte DÉJÀ JUSTE (INUTILE > 0) — c’est la seule'
+              u' colonne qui viole FP=0 :' % len(casse))
+        for r in sorted(casse, key=lambda r: -r['inutile']):
+            print(u'      %-42s %-12s %d mot(s) juste(s) réécrit(s)'
+                  % (r['famille'][:42], r['palier'], r['inutile']))
 
     if not os.path.exists(REF_PREC):
         print(u'✗ PRÉCISION DYS : pas de référence — ancrer : python dictee/dys_precision_probe.py --fix')
         return 1
     ref = json.load(io.open(REF_PREC, encoding='utf-8'))
+    # ⭐ PLAFOND FP=0. Le contrat par (famille, palier) garde des POURCENTAGES, qui mélangent
+    # « mauvaise devinette sur un mot faux » et « mot juste réécrit ». Seul le second viole la
+    # règle n° 1. On le garde donc à part, en VALEUR ABSOLUE : il peut baisser, jamais monter.
+    _inut = sum(r['inutile'] for r in rows if r['palier'].startswith('auto'))
+    _plaf = ref.get('inutile_auto')
+    if _plaf is None:
+        print(u'  ℹ plafond FP=0 (mots justes réécrits au palier auto) pas encore ancré : %d — --fix' % _inut)
+    elif _inut > _plaf:
+        print(u'')
+        print(u'✗ PRÉCISION DYS : %d mot(s) JUSTE(S) réécrit(s) au palier auto (plafond %d).' % (_inut, _plaf))
+        print(u'    C’est FP=0 qui recule — pas un pourcentage qui bouge.')
+        return 1
     planchers = ref.get('planchers') or {}
     err = []
     for k, plancher in sorted(planchers.items()):
