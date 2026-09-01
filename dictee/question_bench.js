@@ -103,6 +103,10 @@ module.exports = { corpus, regleDe };
 /* ── EXÉCUTION ──────────────────────────────────────────────────────────────────────────── */
 if (require.main === module) {
   const cas = corpus();
+  /* ⚠️ GARDE LOCALE, ET QUI LE DIT. Ce banc vit sur `data_local/` (gitignoré : licences NC ou
+     volume), donc la CI ne peut pas le faire tourner. On SAUTE explicitement plutôt que de rendre
+     un vert muet — un contrôle qui passe sans avoir rien mesuré est le défaut que le lot 1 répare. */
+  if (!cas.length) { console.log('· QUESTION : SAUTÉ (corpus data_local absent — garde locale)'); process.exit(0); }
   const nq = cas.filter(c => c.q).length;
   console.log('banc : ' + cas.length + ' cas · ' + nq + ' questions · ' + (cas.length - nq) +
               ' non-questions (dont ' + cas.filter(c => c.src === 'fragment').length + ' fragments)');
@@ -112,6 +116,7 @@ if (require.main === module) {
   const DC = global.DYSCORE;
   DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));
 
+  let scoreLivre = null;
   const regles = [];
   /* AVANT : la dernière version de la page où la règle était encore une LISTE DE MOTS.
      ⚠️ Ma 1re version lisait `HEAD:saisie-vocale.html` — mais HEAD désigne MON PROPRE commit dès
@@ -159,5 +164,28 @@ if (require.main === module) {
     if (nerr) console.log('   ⛔ ' + nerr + ' EXCEPTION(S) — LE SCORE CI-DESSUS NE VEUT RIEN DIRE : ' + err1);
     if (exFP.length) { console.log('   FAUSSES QUESTIONS :'); exFP.forEach(x => console.log('     ' + x)); }
     if (exFN.length) { console.log('   questions ratées (échantillon) :'); exFN.forEach(x => console.log('     ' + x)); }
+    if (nom.indexOf('LIVR') === 0) { scoreLivre = { prec: prec, rapp: rapp, nerr: nerr }; }
   }
+
+  /* ⭐ CONTRAT (01/09/2026, demandé par Rem : « ajoute question_bench à la batterie »).
+     Ce banc mesurait et rendait TOUJOURS 0 : il ne gardait rien. Troisième banc décoratif trouvé
+     ce jour (cf. PR#622, PR#623). Planchers = l'ÉTAT MESURÉ à la pose ; aucun verdict ne bascule.
+     ⚠️ LE RAPPEL EST GARDÉ AUTANT QUE LA PRÉCISION. Le même jour, deux ajouts « structurels » de
+     ma main ont fait tomber la précision de 96,67 % à 31 % (147 faux positifs) pour 3 points de
+     rappel : sans ce contrat, rien ne l'aurait dit. Mais un plancher de rappel est tout aussi
+     nécessaire — une règle qui se tait n'a pas de faux positifs.
+     La tolérance de 0,5 pt absorbe le bruit de tokenisation, pas une régression. */
+  const PLANCHER_PREC = 96.6, PLANCHER_RAPP = 18.4;
+  if (!scoreLivre) { console.log('✗ QUESTION : variante LIVRÉE non mesurée'); process.exit(1); }
+  if (scoreLivre.nerr) {
+    console.log('✗ QUESTION : ' + scoreLivre.nerr + ' exception(s) — le score ne veut rien dire');
+    process.exit(1);
+  }
+  const err = [];
+  if (scoreLivre.prec < PLANCHER_PREC) err.push('précision ' + scoreLivre.prec.toFixed(2) + ' % < plancher ' + PLANCHER_PREC + ' %');
+  if (scoreLivre.rapp < PLANCHER_RAPP) err.push('rappel ' + scoreLivre.rapp.toFixed(2) + ' % < plancher ' + PLANCHER_RAPP + ' %');
+  if (err.length) { console.log('✗ QUESTION : la détection a RÉGRESSÉ :'); err.forEach(e => console.log('    ' + e)); process.exit(1); }
+  console.log('✓ QUESTION : précision ' + scoreLivre.prec.toFixed(2) + ' % ≥ ' + PLANCHER_PREC
+              + ' · rappel ' + scoreLivre.rapp.toFixed(2) + ' % ≥ ' + PLANCHER_RAPP);
+  process.exit(0);
 }
