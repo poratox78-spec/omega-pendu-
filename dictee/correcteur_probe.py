@@ -754,6 +754,7 @@ _PREP_SUJ_EXT = {'selon', 'parmi', 'chez', 'malgre', 'durant', 'concernant', 'vi
 # « a + nom NU » (rule_a_aa) : stop-liste des BARE-NOUNS d'avoir hors _AVOIR_IDIOM (mesurés sur UD :
 # a lieu ×13, a droit, a recours, a tendance, a obligation, a valeur…) + classiques du même paradigme
 # + locutions LATINES (le posterior les laisse passer) + UNITÉS (les gardes chiffre ratent « a h » nu).
+_RE_ELIDE_ANCRE = re.compile(u"^(?:l|d|j|m|t|s|c|n|qu|lorsqu|puisqu|quoiqu|jusqu)['’](.+)$")   # l'ancre AVANT de rule_a_aa ne voyait pas a travers une elision : « l'article a reception » restait MUET
 _A_NU_STOP = {'lieu', 'droit', 'recours', 'tendance', 'obligation', 'valeur', 'cours', 'effet', 'acces',
               'confiance', 'conscience', 'affaire', 'trait', 'egard', 'part', 'charge', 'coeur', 'hate',
               'rendez', 'interet', 'vocation', 'pouvoir', 'peine',
@@ -854,11 +855,19 @@ def rule_leur_leurs(T, i):
 
 _PP_NOUN_HOMO = {'mort', 'fait', 'part', 'point'}   # noms homographes d'un participe → « à » PRÉPOSITION (condamnée à mort, tout à fait, à part, à point) ; le tagger tranche NOM vs VERB
 
+_PRON_INV = {'il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous', 'ce', 'ca'}   # sujets qui s'INVERSENT apres le verbe
+
 def _aa_inverted(T, i):
-    """Le pronom sujet en i-1 est-il INVERSÉ (« avait-il à cela », post-verbe / trait d'union) ? → pas un sujet PRÉVERBAL de « a » (FP à→a)."""
+    """Le pronom sujet en i-1 est-il INVERSÉ (« avait-il à cela », post-verbe / trait d'union) ?
+
+    ⭐ Ce garde ne vérifiait PAS ce qu'il nommait : il lui suffisait d'un VERBE deux mots avant,
+    sans jamais regarder si i-1 était un pronom. « modifierait · l'article · a » passait donc pour
+    une inversion et toute la règle a/à se taisait dès qu'un nom suivait un verbe. Miroir du JS.
+    """
     if i - 2 < 0: return False
     hy = _SEG.get('hy', []) if _SEG is not None else []
-    return vlike(T, i - 2) or (i - 1 < len(hy) and hy[i - 1])
+    if i - 1 < len(hy) and hy[i - 1]: return True        # « a-t-il » : le trait d'union PROUVE l'inversion
+    return vlike(T, i - 2) and deacc(T[i-1].lower()) in _PRON_INV   # « avait il a faim » (dys, trait d'union omis)
 
 def rule_a_aa(T, i):
     if deacc(T[i].lower()) != 'a': return None
@@ -890,6 +899,9 @@ def rule_a_aa(T, i):
     # (_noun_gate) certifie le NOM ; le cas « après verbe » est couvert par la branche vlike ci-dessus.
     if (T[i] == 'a' and i > 0 and not pb and i + 1 < len(T) and not _aa_inverted(T, i)):
         _dn2 = deacc(T[i+1].lower()); _pw2 = deacc(T[i-1].lower())
+        _el2 = _RE_ELIDE_ANCRE.match(_pw2)
+        if _el2:
+            _pw2 = _el2.group(1)   # miroir JS : l'ancre AVANT doit voir a travers l'elision
         if (_noun_gate(_dn2) and len(_dn2) >= 3
                 and _dn2 not in _AVOIR_IDIOM and _dn2 not in _A_NU_STOP
                 and not T[i+1][:1].isupper()

@@ -142,6 +142,12 @@ const PHRASES = [
   'Marie est gentille', 'Dans ses statistiques on voit bien',
   // « a » devant NOM NU (31/08) : cibles + gardes idiomes/latins/anglais/chiffres
   'je suis rentré chez moi a vélo', 'un cours a domicile pour tous', 'ma soeur va a pied au marché',
+  // ⭐ a/à : le garde d'INVERSION ne vérifiait pas ce qu'il nommait (un verbe en i-2 suffisait, sans
+  // exiger un PRONOM en i-1) et l'ancre AVANT ne voyait pas à travers une élision. Résultat : la règle
+  // se taisait sur tout « VERBE + nom + a ». Cibles + les deux gardes qui doivent RESTER muettes.
+  "Mon collègue modifierait l'article a reception de la commande",
+  "il est rentré de l'école a vélo", "elle a rangé l'assiette a table",
+  'Avait il a manger ce soir', 'A-t-il a manger ce soir',
   'la réunion a lieu demain', 'il a besoin de toi', 'a priori tout va bien',
   'Requiem for a Dream le film', 'de 35 a 40 ans', 'le chien a soif ce soir'
 ];
