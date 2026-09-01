@@ -44,6 +44,8 @@ jobs:
         run: node dictee/navigateur_probe.js --check
       - name: EXTENSION dans Chrome — paquet réel, assets chargés par chrome.runtime.getURL
         run: node extension/navigateur_ext_probe.js --check
+      - name: Précision par famille AU PRODUIT — extension réelle dans Chrome (sautée sans corpus dys privé)
+        run: python3 dictee/dys_precision_probe.py --navigateur
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
       - name: « did you mean » fréquence reste FALSIFIÉ (régression sur le cardinal FP=0)

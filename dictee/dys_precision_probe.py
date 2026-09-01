@@ -25,7 +25,14 @@ from collections import defaultdict
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-REF_PREC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dys_precision_ref.json')
+_DIR_ICI = os.path.dirname(os.path.abspath(__file__))
+# ⭐ DEUX RÉFÉRENCES, PAS UNE. Le mode --navigateur mesure un AUTRE moteur (le produit :
+# diagnoseAll, avec pyramide, cascade et arbitrage) que le mode par défaut (référence Python,
+# grammaire et speller appelés séparément). Leurs chiffres divergent pour de VRAIES raisons :
+# mesuré le 01/09, « accord sujet-verbe » auto·pollué vaut 67,9 % à la référence et 79,5 % au
+# produit. Les faire partager un seul fichier ferait rougir chaque mode à cause de l'autre.
+REF_PREC = os.path.join(_DIR_ICI, 'dys_precision_ref.json')
+REF_PREC_NAV = os.path.join(_DIR_ICI, 'dys_precision_nav_ref.json')
 DATA = os.environ.get('OMEGA_DYS_DATA') or os.path.join(ROOT, 'data_local', 'dys_reel')   # worktree : OMEGA_DYS_DATA=/chemin/data_local/dys_reel
 FILES = ['dictees_gold.jsonl', 'faiblesses.jsonl', 'genere_gold.jsonl', 'gold_claude.jsonl']
 # gold_claude.jsonl (22/08/2026) : les 72 productions dys réelles du corpus n'avaient AUCUN corrigé — seules les
@@ -96,8 +103,33 @@ def align(raw_toks, fix_toks):
     return m
 
 
+def _flags_navigateur(phrases):
+    """Interroge le PRODUIT (extension réelle dans Chrome) au lieu de la référence Python.
+
+    ⭐ Pourquoi : cette sonde juge « le moteur de référence (correcteur_probe + speller_probe) »,
+    qui appelle grammaire et speller SÉPARÉMENT. Le produit, lui, passe par `diagnoseAll` :
+    pyramide (l'ortho nettoie les tokens avant la grammaire), CASCADE jusqu'au point fixe,
+    arbitrage span/tier, couverture d'élision. Rien de tout ça n'est modelé ici.
+    Le prix de la confusion est documenté : sur « élision fusionnée » le harnais Python annonçait
+    3 justes / 17 fausses, le vrai Chrome 2 justes / 1 fausse, et le correctif qui en découlait
+    faisait PERDRE « l'eau » et « j'ai ». Il a fallu le reverter.
+    """
+    import subprocess, tempfile
+    d = tempfile.mkdtemp(prefix='omega-flags-')
+    fin, fout = os.path.join(d, 'in.json'), os.path.join(d, 'out.json')
+    io.open(fin, 'w', encoding='utf-8').write(json.dumps(phrases, ensure_ascii=False))
+    r = subprocess.run(['node', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'navigateur_flags_dump.js'), fin, fout])
+    if r.returncode != 0 or not os.path.exists(fout):
+        return None
+    return json.loads(io.open(fout, encoding='utf-8').read())
+
+
 def main():
+    global REF_PREC
     as_json = '--json' in sys.argv
+    au_navigateur = '--navigateur' in sys.argv
+    if au_navigateur:
+        REF_PREC = REF_PREC_NAV
     if not os.path.isdir(DATA):
         print('dys_precision_probe : corpus dys local absent (data_local/dys_reel) → sonde SAUTÉE (pas un échec).')
         return 0
@@ -109,27 +141,48 @@ def main():
     exemples = defaultdict(list)
     distinct = defaultdict(set)
     n_pairs = 0
-    for fn, raw, fixed in pairs():
+    _TOUT = list(pairs())
+    _NAV = None
+    if au_navigateur:
+        _NAV = _flags_navigateur([r.replace('’', "'").replace('ʼ', "'") for _f, r, _x in _TOUT])
+        if _NAV is None:
+            print('dys_precision_probe --navigateur : le PRODUIT n a pas pu etre interroge (Chrome ?) — ECHEC, pas un saut.')
+            return 1
+    for _k, (fn, raw, fixed) in enumerate(_TOUT):
         n_pairs += 1
         raw_n = raw.replace('’', "'").replace('ʼ', "'")
         ft = [x.group(0) for x in TOK.finditer(fixed)]
         # deux tokeniseurs, deux alignements : la grammaire indexe SES tokens (CP.toks), le speller rend des offsets
         ms = list(TOK.finditer(raw_n)); rt_s = [x.group(0) for x in ms]; al_s = align(rt_s, ft)
-        rt_g = CP.toks(raw_n); al_g = align(rt_g, ft)
         starts = {x.start(): i for i, x in enumerate(ms)}
         flags = []
-        try:
-            for (i, w, sugg, name, tier) in CP.correct_tiered(raw_n):
-                flags.append((i, w, sugg, 'grammaire:' + name, tier, al_g))
-        except Exception as e:
-            print('  ! grammaire :', e)
-        try:
-            for (st, w, sugg, act) in sp.correct_text(raw_n):
-                i = starts.get(st)
-                if i is not None:
-                    flags.append((i, w, sugg, 'orthographe', act, al_s))
-        except Exception as e:
-            print('  ! speller :', e)
+        if _NAV is not None:
+            # LE PRODUIT : un seul flux de flags, deja arbitre par diagnoseAll. Les index sont ceux
+            # de SON tokeniseur, rendu avec le dump — on ne recompose surtout pas le notre.
+            _d = _NAV[_k]; rt_g = _d['toks']; al_g = align(rt_g, ft)
+            for _fl in _d['flags']:
+                if _fl.get('i') is None:
+                    # flags ancres CARACTERE (typographie, point final, virgule) : le produit en a,
+                    # la reference Python n'en produit pas. Hors perimetre de CETTE table, qui juge
+                    # des MOTS contre un gold de mots. On les COMPTE pour ne pas les taire.
+                    globals()['_HORS_TOKEN'] = globals().get('_HORS_TOKEN', 0) + 1
+                    continue
+                _fam = ('grammaire:' + _fl['name']) if _fl.get('name') else 'orthographe'
+                flags.append((_fl['i'], _fl['word'], _fl['sugg'], _fam, _fl.get('tier') or 'auto', al_g))
+        else:
+            rt_g = CP.toks(raw_n); al_g = align(rt_g, ft)
+            try:
+                for (i, w, sugg, name, tier) in CP.correct_tiered(raw_n):
+                    flags.append((i, w, sugg, 'grammaire:' + name, tier, al_g))
+            except Exception as e:
+                print('  ! grammaire :', e)
+            try:
+                for (st, w, sugg, act) in sp.correct_text(raw_n):
+                    i = starts.get(st)
+                    if i is not None:
+                        flags.append((i, w, sugg, 'orthographe', act, al_s))
+            except Exception as e:
+                print('  ! speller :', e)
         spelled = set(i for (i, w, sugg, fam, tier, al) in flags if fam == 'orthographe')
         def clean_ctx(i):                                   # CONTEXTE PROPRE : voisins ±3 tous connus du lexique et sans flag ortho
             for j in range(max(0, i - 3), min(len(rt_g), i + 4)):
@@ -197,6 +250,11 @@ def main():
     for r in rows:
         if r['precision'] is not None:
             vus['%s|%s' % (r['famille'], r['palier'])] = r['precision']
+    _ht = globals().get('_HORS_TOKEN', 0)
+    if _ht:
+        print(u'')
+        print(u'  ℹ %d flag(s) ancré(s) CARACTÈRE écarté(s) (typographie, point final, virgule) : cette'
+              u' table juge des MOTS contre un gold de mots. Le produit en émet, la référence non.' % _ht)
     if '--fix' in sys.argv:
         json.dump({'paires': n_pairs, 'planchers': vus,
                    'note': u"Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse "
