@@ -22,7 +22,14 @@ Le moteur (grammaire + orthographe + hybride) s'intègre ailleurs **sans le jeu,
 - **JS, liée à l'app** : `dictee/correcteur.js` — `const c = await require('./dictee/correcteur').create(); c.correct(t)`.
   Réutilise le monolithe comme **source unique** (extrait la tranche moteur, bouchon DOM minimal) → zéro drift.
 - **JS, autonome (HTML non requis)** : `node dictee/build_correcteur.js` bake moteur + lexiques dans **un seul
-  fichier** (`correcteur.standalone.js`, ~2,5 Mo) → `const C=require('./correcteur.standalone.js'); await C.init(); C.correct(t)`.
+  fichier** (`correcteur.standalone.js`, **10,9 Mo mesurés**) → `const C=require('./correcteur.standalone.js'); await C.init(); C.correct(t)`.
+  ⚠️ **Le « ~2,5 Mo » annoncé ici jusqu'au 01/09/2026 était faux** : le fichier pesait déjà **8,46 Mo**.
+  L'écart avec l'empreinte théorique ci-dessous vient du `vdc` baké **décompressé, en clair** (5,49 Mo
+  à lui seul) — c'est le poste à optimiser en premier, pas les lexiques.
+  ⭐ **Et il était MUET sur l'accord** : il n'embarquait que `speller-lex-gz`, et son `init()` n'appelait
+  que `loadSpellerLex()`. « les chien aboient », « des oiseau dans le ciel » et « Marie est venu. »
+  rendaient (RIEN) — le bug du 2026-08-11, réparé dans l'app et jamais ici. Corrigé : 7 lexiques bakés
+  (+2,48 Mo), 7 chargeurs appelés, et `bake_probe.js` exige désormais ces trois COMPORTEMENTS.
 - **Empreinte mesurée** : 48 Ko de code + **2,11 Mo de données** (grammaire `cgram_hf` 1,55 Mo + orthographe
   `speller-lex` 0,56 Mo). **PAS besoin** du lexique moteur du pendu (`lex4-data-gz`, 5,52 Mo) ni du code du jeu →
   intégration **2,16 Mo** vs app 8,25 Mo. Runtime : `DecompressionStream/atob/Blob/Response` (Node ≥18 / navigateur).

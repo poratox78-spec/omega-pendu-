@@ -167,6 +167,26 @@ const CAS = [
   { txt: 'je ne sais pas si je serais capable', rien: true, pourquoi: 'PIÈGE : interrogation indirecte, conditionnel légitime' },
 ];
 
+/* ⭐ FP=0 PRODUIT — la règle n° 1 du projet, enfin gardée LÀ OÙ L'ÉLÈVE LA SUBIT.
+ *
+ * Le contrôle qui s'appelle « correcteur (batterie FP=0) » (dev.sh:45, dictee/correcteur_probe.py)
+ * ne contient AUCUN sys.exit : il compte les faux positifs, imprime chacun d'eux
+ * (« ⚠️ flague « X »→« Y » »), puis conclut par une phrase de LECTURE — « faux positifs ≈ 0 =
+ * on ne corrige pas du texte juste ». Une narration, pas un verdict. C'est par ce chemin exact que
+ * « La foule attendait »→« attendaient » est resté imprimé des mois sans être vu (PR#619/620).
+ *
+ * Et même branché, un exit côté Python garderait la RÉFÉRENCE, pas le PRODUIT : mesuré le
+ * 01/09/2026, correcteur_probe.py rend « c'ete » en palier auto là où la vraie page rend « cette ».
+ * La référence ne reproduit pas l'arbitrage speller/grammaire de l'app. Donc on juge ICI, dans Chrome.
+ *
+ * Corpus : dictee/sentences.json — le MÊME que celui de la batterie FP=0 (chargé, pas recopié :
+ * il ne peut pas dériver). Mesuré à la pose : 333/333 intactes, ZERO faux positif produit.
+ * Falsifié : « les chien aboient » injectée avec rien:true → échec + exit 1 (« eu [chiens, chien] »).
+ * Muettes quand elles passent (333 lignes de ✓ noieraient le reste) ; un échec est TOUJOURS montré. */
+for (const e of JSON.parse(fs.readFileSync(path.join(__dirname, 'sentences.json'), 'utf8')))
+  CAS.push({ txt: e.text, rien: true, muet: true,
+            pourquoi: 'FP=0 PRODUIT : phrase CORRECTE du corpus, elle ne doit RIEN déclencher dans la page' });
+
 /* le script évalué DANS la page : écrit dans la vraie zone, lit les vraies marques */
 const SCRIPT = (cas) => `(async () => {
   const attendre = (ms) => new Promise(r => setTimeout(r, ms));
@@ -253,6 +273,7 @@ async function main() {
     if (val.fatal) throw new Error(val.fatal);
 
     const echecs = [];
+    let muets = 0;   // contre-gardes FP=0 passées : comptées, pas déroulées
     val.out.forEach((got, k) => {
       const c = CAS[k], app = got.applique.map(s => s.toLowerCase());
       // « rien » porte sur la couche AFFIRMATIVE : rien d'appliqué, et aucune marque non-vigilance.
@@ -268,9 +289,12 @@ async function main() {
       // « (N appliquée) » de la barre — exactement le chiffre que l'utilisateur a sous les yeux.
       if (c.typoAppliquee != null && got.nApplique !== c.typoAppliquee)
         echecs.push(`« ${c.txt} » doit montrer ${c.typoAppliquee} correction(s) APPLIQUÉE(S) (${c.pourquoi}), la barre dit ${got.nApplique}`);
-      log('  ' + (echecs.length && echecs[echecs.length - 1].includes(c.txt) ? '✗' : '✓') + ' ' +
+      const rate = echecs.length && echecs[echecs.length - 1].includes(c.txt);
+      if (c.muet && !rate) { muets++; return; }   // vert et muet : on ne déroule pas
+      log('  ' + (rate ? '✗' : '✓') + ' ' +
           c.txt.padEnd(38) + (got.applique.length ? '→ ' + got.applique.join(' · ') : '(rien)'));
     });
+    if (muets) log('  ✓ FP=0 PRODUIT : ' + muets + ' phrases CORRECTES traversées sans une seule correction appliquée');
     /* ── DICTÉE : répétition espacée (chantier ③) — une vraie boucle dans le DOM.
        On répond FAUX à une dictée réelle : les mots substitués doivent entrer en boîte 1 (vdd_srs,
        échéance FUTURE), l'encart 🔁 doit apparaître dans le feedback, et le chip #vdd-srs se peupler. */
