@@ -4776,7 +4776,7 @@ def main():
     for e in SENT:
         for (i, w, sug, name) in correct(e['text']):
             fp_corpus.append((e['text'], w, sug, name))
-    print(f"  [1] Faux positifs sur 30 phrases CORRECTES : {len(fp_corpus)}")
+    print(f"  [1] Faux positifs sur {len(SENT)} phrases CORRECTES : {len(fp_corpus)}")
     for txt, w, sug, name in fp_corpus:
         print(f"        ⚠️ flague « {w} »→« {sug} » [{name}]  dans : {txt}")
 
@@ -4813,6 +4813,33 @@ def main():
     print("            détection+correction élevées = le levier d'accord tranche l'homophone SANS corrigé.")
     print("            → si oui, le correcteur dys (détecte, corrige, situe le STADE) est constructible sur l'existant.")
 
+    # ⭐ CONTRAT — ce contrôle s'appelle « correcteur (batterie FP=0) » (dev.sh:45) et ne pouvait
+    # PAS ÉCHOUER : aucun `sys.exit` dans les 4 800 lignes. Il comptait les faux positifs, imprimait
+    # chacun d'eux (« ⚠️ flague « X »→« Y » »), puis concluait par la phrase de LECTURE ci-dessus.
+    # Une narration, pas un verdict. C'est par ce chemin EXACT que « La foule impatiente attendait »
+    # → « attendaient » (palier auto, APPLIQUÉ EN SILENCE) est resté imprimé des mois sans être vu :
+    # `dev.sh` jetait la sortie des verts (réparé PR#620) et rien ici ne rendait 1.
+    #
+    # ⚠️ FP=0 EST UN ZÉRO DUR, pas un plancher. C'est la règle n° 1 du projet : on ne réécrit JAMAIS
+    # du texte juste. Mesuré à la pose : 0 sur les phrases correctes, 0/170 sur les témoins.
+    # DÉTECTION et CORRECTION sont des PLANCHERS (>=) : ils peuvent monter, jamais redescendre.
+    err = []
+    if fp_corpus:
+        err.append(u'%d FAUX POSITIF(S) sur texte CORRECT — FP=0 est un zéro DUR' % len(fp_corpus))
+    if fp_cases:
+        err.append(u'%d faux positif(s) sur les témoins (attendu 0)' % fp_cases)
+    if det < 155:
+        err.append(u'DÉTECTION %d/%d < plancher 155' % (det, n))
+    if corr < 155:
+        err.append(u'CORRECTION %d/%d < plancher 155' % (corr, n))
+    if err:
+        print(u'')
+        print(u'✗ CORRECTEUR : la batterie FP=0 a RÉGRESSÉ :')
+        for e in err:
+            print(u'    ' + e)
+        return 1
+    return 0
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main() or 0)
