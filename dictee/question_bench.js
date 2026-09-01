@@ -116,7 +116,7 @@ if (require.main === module) {
   const DC = global.DYSCORE;
   DC.setPosHmm(JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm.json'), 'utf8')));
 
-  let scoreLivre = null;
+  let scoreLivre = null, scoreCorr = null;
   const regles = [];
   /* AVANT : la dernière version de la page où la règle était encore une LISTE DE MOTS.
      ⚠️ Ma 1re version lisait `HEAD:saisie-vocale.html` — mais HEAD désigne MON PROPRE commit dès
@@ -140,6 +140,20 @@ if (require.main === module) {
   } catch (e) { console.log('(version d\'avant indisponible : ' + e.message + ')'); }
   regles.push(['LIVRÉE (tagger POS)',
                regleDe(fs.readFileSync(path.join(RACINE, 'saisie-vocale.html'), 'utf8'), DC)]);
+  /* ⭐ DEUX CONSOMMATEURS, DEUX CONTRATS. `saisie-vocale.html` délègue en une ligne à
+     `DC.estQuestion(t)` — SANS second argument, donc coupe VOCALE (12 mots). C'est le
+     consommateur qui APPLIQUE la marque (`mk='?'`), il paie une fausse question en clair.
+     Le CORRECTEUR, lui, n'émet qu'en `tier:'vigilance'` — orange, proposé, refusable — et voit
+     des PHRASES ENTIÈRES, pas des fragments : la coupe à 12 lui coûtait 7 points de rappel.
+     Sans cette seconde variante, le changement de coupe du correcteur n'était GARDÉ PAR RIEN. */
+  /* ⚠️ LA COUPE EST LUE DANS LA SOURCE, PAS ÉCRITE EN DUR ICI. Ma première version passait
+     `20` littéral : ramener `QMOTS_CORR` à 12 dans le moteur ne changeait alors RIEN au banc,
+     qui restait vert. Une garde qui ne mesure pas la valeur qu'utilise le produit ne garde rien. */
+  const _srcCorr = fs.readFileSync(path.join(RACINE, 'extension', 'dys-core.js'), 'utf8');
+  const _mCoupe = /QMOTS_CORR\s*=\s*(\d+)/.exec(_srcCorr);
+  if (!_mCoupe) { console.log('✗ QUESTION : QMOTS_CORR introuvable dans extension/dys-core.js'); process.exit(1); }
+  const COUPE_CORR = +_mCoupe[1];
+  regles.push(['CORRECTEUR (orange, coupe ' + COUPE_CORR + ')', (t) => DC.estQuestion(t, COUPE_CORR)]);
 
   for (const [nom, f] of regles) {
     let vp = 0, fp = 0, fn = 0, nerr = 0, err1 = '';
@@ -165,6 +179,7 @@ if (require.main === module) {
     if (exFP.length) { console.log('   FAUSSES QUESTIONS :'); exFP.forEach(x => console.log('     ' + x)); }
     if (exFN.length) { console.log('   questions ratées (échantillon) :'); exFN.forEach(x => console.log('     ' + x)); }
     if (nom.indexOf('LIVR') === 0) { scoreLivre = { prec: prec, rapp: rapp, nerr: nerr }; }
+    if (nom.indexOf('CORRECTEUR') === 0) { scoreCorr = { prec: prec, rapp: rapp, nerr: nerr }; }
   }
 
   /* ⭐ CONTRAT (01/09/2026, demandé par Rem : « ajoute question_bench à la batterie »).
@@ -185,7 +200,17 @@ if (require.main === module) {
   if (scoreLivre.prec < PLANCHER_PREC) err.push('précision ' + scoreLivre.prec.toFixed(2) + ' % < plancher ' + PLANCHER_PREC + ' %');
   if (scoreLivre.rapp < PLANCHER_RAPP) err.push('rappel ' + scoreLivre.rapp.toFixed(2) + ' % < plancher ' + PLANCHER_RAPP + ' %');
   if (err.length) { console.log('✗ QUESTION : la détection a RÉGRESSÉ :'); err.forEach(e => console.log('    ' + e)); process.exit(1); }
-  console.log('✓ QUESTION : précision ' + scoreLivre.prec.toFixed(2) + ' % ≥ ' + PLANCHER_PREC
+  /* Le CORRECTEUR a son propre contrat : plus de rappel, moins de précision, parce qu'il ne
+     propose qu'en orange. État mesuré à la pose : 91,95 % / 25,48 %. */
+  const PLANCHER_PREC_CORR = 91.4, PLANCHER_RAPP_CORR = 25.0;
+  if (!scoreCorr || scoreCorr.nerr) { console.log('✗ QUESTION : variante CORRECTEUR non mesurable'); process.exit(1); }
+  const errC = [];
+  if (scoreCorr.prec < PLANCHER_PREC_CORR) errC.push('correcteur : précision ' + scoreCorr.prec.toFixed(2) + ' % < plancher ' + PLANCHER_PREC_CORR + ' %');
+  if (scoreCorr.rapp < PLANCHER_RAPP_CORR) errC.push('correcteur : rappel ' + scoreCorr.rapp.toFixed(2) + ' % < plancher ' + PLANCHER_RAPP_CORR + ' %');
+  if (errC.length) { console.log('✗ QUESTION : le CORRECTEUR a RÉGRESSÉ :'); errC.forEach(e => console.log('    ' + e)); process.exit(1); }
+  console.log('✓ QUESTION voix       : précision ' + scoreLivre.prec.toFixed(2) + ' % ≥ ' + PLANCHER_PREC
               + ' · rappel ' + scoreLivre.rapp.toFixed(2) + ' % ≥ ' + PLANCHER_RAPP);
+  console.log('✓ QUESTION correcteur : précision ' + scoreCorr.prec.toFixed(2) + ' % ≥ ' + PLANCHER_PREC_CORR
+              + ' · rappel ' + scoreCorr.rapp.toFixed(2) + ' % ≥ ' + PLANCHER_RAPP_CORR);
   process.exit(0);
 }
