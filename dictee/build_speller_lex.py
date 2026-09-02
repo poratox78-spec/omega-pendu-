@@ -40,7 +40,9 @@ def main():
             if p: pos.setdefault(w, set()).add(p)
     lines = []
     for w in sorted(best):
-        fm = max(1, round(best[w] * 1000))     # freq en milli (entier compact)
+        fm = round(best[w] * 1000)             # freq en milli (entier compact). ⭐ 0 RESTE 0 (02/09) : c'est la MARQUE des mots
+                                               # « connus-seulement » (gacc_lex_fr.tsv, FreqOrtho 0) — dans WORDS, jamais dans D2A.
+                                               # Lexique4 n'a AUCUNE ligne à FreqOrtho 0 (vérifié) ; wikt/argot/participes sont à 0,05 = 50.
         pp = ''.join(sorted(pos.get(w, ())))    # POS (ex. NV, VA) ou vide
         lines.append(f"{w}\t{fm}\t{pp}")
     raw = ('\n'.join(lines)).encode('utf-8')

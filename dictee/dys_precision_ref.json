@@ -3,11 +3,11 @@
  "planchers": {
   "orthographe|flag": 65.0,
   "orthographe|auto": 88.3,
-  "grammaire:accord pluriel nom|auto·pollué": 83.5,
+  "grammaire:accord pluriel nom|auto·pollué": 83.3,
   "grammaire:accord singulier nom|auto·pollué": 96.1,
   "grammaire:a/à|auto·pollué": 100.0,
   "grammaire:majuscule|auto·pollué": 97.4,
-  "grammaire:accord pluriel nom|auto·propre": 91.2,
+  "grammaire:accord pluriel nom|auto·propre": 91.4,
   "grammaire:accord sujet-verbe|auto·pollué": 67.9,
   "grammaire:a/à|auto·propre": 100.0,
   "grammaire:accord singulier nom|auto·propre": 100.0,

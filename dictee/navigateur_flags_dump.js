@@ -22,7 +22,8 @@
 const H = require(require('path').join(__dirname, '..', 'extension', 'cdp_chrome.js'));
 const { fs, path, os, spawn } = H;
 const RACINE = path.join(__dirname, '..');
-const EXT = path.join(RACINE, 'extension').split(String.fromCharCode(92)).join('/');   // ⚠️ barres OBLIQUES (piège ①)
+// EXT_DIR : répertoire d'extension de REMPLACEMENT (A/B d'un asset : deux copies du paquet, deux dumps, un diff).
+const EXT = (process.env.EXT_DIR || path.join(RACINE, 'extension')).split(String.fromCharCode(92)).join('/');   // ⚠️ barres OBLIQUES (piège ①)
 
 const [ENTREE, SORTIE] = process.argv.slice(2);
 if (!ENTREE || !SORTIE) { console.error('usage : node dictee/navigateur_flags_dump.js <entree.json> <sortie.json>'); process.exit(2); }
@@ -66,7 +67,7 @@ const PAQUET = 40;   // on interroge par paquets : un seul Runtime.evaluate par 
     let pret = false;
     for (let i = 0; i < 120 && !pret; i++) {
       const q = await pg.envoyer('Runtime.evaluate', { contextId: ctx, returnByValue: true,
-        expression: "(typeof DYSCORE!=='undefined' && DYSCORE.isReady) ? !!DYSCORE.isReady() : false" });
+        expression: "(typeof DYSCORE!=='undefined' && DYSCORE.isReady) ? (!!DYSCORE.isReady() && !!(DYSCORE.spellerReady&&DYSCORE.spellerReady())) : false" });   // ⭐ le SPELLER se charge après isReady : attendre les DEUX états
       pret = !!(q.result && q.result.value); if (!pret) await H.attendre(250);
     }
     if (!pret) throw new Error("DYSCORE.isReady() est resté FAUX 30 s — les assets ne se chargent pas");
