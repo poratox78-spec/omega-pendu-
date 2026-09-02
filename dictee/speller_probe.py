@@ -20,6 +20,11 @@ _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restaur
 VOWELS = set("aeiouyh")                        # le mot élidé commence par voyelle/h
 AUTO_FREQ = 1.0                                # fréquence min (occ/M) pour AUTO
 FLAG_FREQ = 0.1                                # fréquence min pour FLAG
+KNOWN_ONLY_FREQ = 0.0                          # ⭐ CONNU MAIS JAMAIS CANDIDAT (porte EXACTE : freq 0) (02/09/2026). Un mot ajouté à fréquence 0 (gacc_lex_fr.tsv)
+                                               # doit cesser d'être « inconnu » SANS entrer dans les candidats : l'A/B navigateur (1 998
+                                               # phrases dys) a perdu 3 corrections JUSTES (égallement→également, tadr→tard, hitoiré→histoire)
+                                               # parce que des voisins rares (égaillement, sadd, hiloire) cassaient la garde d'UNICITÉ des
+                                               # candidats à distance 2. Sous ce seuil : dans WORDS, pas dans D2A. Wikt/argot/participes (0,05) intacts.
 DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un candidat soit "dominant" (AUTO)
 
 def deacc(s):
@@ -30,8 +35,20 @@ TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ]+")          # inclut œ/æ (sinon « s�
 
 def load_lexicon():
     WORDS, FREQ, DEACC2ACC, POS = set(), {}, defaultdict(list), defaultdict(set)
-    with open(LEX, encoding='utf-8') as f:
-        r = csv.reader(f, delimiter='\t'); H = next(r)
+    # ⭐ LES AJOUTS AU FORMAT Lexique4 (wikt_lex_fr.tsv, gacc_lex_fr.tsv) SONT LUS ICI AUSSI (02/09/2026).
+    # Avant : le JS embarquait Lexique4 + Wiktionnaire (214 684 formes) et la référence Python ne lisait que
+    # Lexique4 (155 467) — deux lexiques pour un même speller ; la parité tolérait l'écart sur 48 cas.
+    # Même source des deux côtés : la divergence ne peut plus naître de la DONNÉE, seulement du code.
+    _HERE = os.path.dirname(os.path.abspath(__file__))
+    # SPELLER_EXTRA=0 : base Lexique4 seule (instrument d'A/B : mesurer ce qu'un lot d'ajouts CHANGE, pas seulement ce qu'il apporte)
+    _EXTRA = os.environ.get('SPELLER_EXTRA', '1') != '0'
+    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
+    _H = None
+    for _src in _SRC:
+      with open(_src, encoding='utf-8') as f:
+        r = csv.reader(f, delimiter='\t')
+        if _H is None: _H = next(r)   # l'en-tête ne vit que dans Lexique4 ; les ajouts sont des lignes nues au même format
+        H = _H
         ci = {h.lower(): i for i, h in enumerate(H)}
         cm = next(i for h, i in ci.items() if 'mot' in h)
         cf = next(i for h, i in ci.items() if 'freqortho' in h)
@@ -49,7 +66,7 @@ def load_lexicon():
             if p: POS[w].add(p)
     PHON = defaultdict(list)
     for w in WORDS:
-        DEACC2ACC[deacc(w)].append(w)
+        if FREQ[w] > 0.0: DEACC2ACC[deacc(w)].append(w)   # connu-seulement (freq EXACTEMENT 0 = gacc) : jamais candidat. ≥ 0,01 retirait 26 % de la base (miroir JS fr>0)
         if FREQ[w] >= FLAG_FREQ:                   # index phonétique : mots pas trop rares (limite les collisions)
             PHON[phon_key(w)].append(w)
     for d in DEACC2ACC:
