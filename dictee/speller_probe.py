@@ -42,7 +42,7 @@ def load_lexicon():
     _HERE = os.path.dirname(os.path.abspath(__file__))
     # SPELLER_EXTRA=0 : base Lexique4 seule (instrument d'A/B : mesurer ce qu'un lot d'ajouts CHANGE, pas seulement ce qu'il apporte)
     _EXTRA = os.environ.get('SPELLER_EXTRA', '1') != '0'
-    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
+    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
     _H = None
     for _src in _SRC:
       with open(_src, encoding='utf-8') as f:
