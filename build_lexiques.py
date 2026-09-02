@@ -67,6 +67,14 @@ FICHIERS
 """
 
 
+def _texte(name):
+    return name.endswith(('.txt', '.json', '.tsv', '.md'))
+
+
+def _lf(b):
+    return b.replace(b'\r\n', b'\n')
+
+
 def _notice_et_membres():
     notice = NOTICE; membres = []
     for src, name, desc, up in FILES:
@@ -97,6 +105,7 @@ def check():
     for n, p in membres:
         if n in noms:
             a, b = z.read(n), open(p, 'rb').read()
+            if _texte(n): a, b = _lf(a), _lf(b)
             if a != b and not (n.endswith('.gz') and _contenu(a) == _contenu(b)): pb.append(f'périmé : {n}')
     if 'NOTICE.txt' in noms and z.read('NOTICE.txt').decode('utf-8') != notice: pb.append('périmé : NOTICE.txt')
     if pb:
@@ -115,7 +124,10 @@ def main():
             if not os.path.exists(p):
                 print(f"  ⚠ manquant : {src} (ignoré)")
                 continue
-            z.write(p, name)
+            if _texte(name):                              # membres TEXTE : fins de ligne LF, quel que soit l'OS de build
+                z.writestr(name, _lf(open(p, 'rb').read()))
+            else:
+                z.write(p, name)
             sz = os.path.getsize(p)
             rows.append((name, sz))
             notice += f"- {name}\n    {desc}\n    Source : {up}\n"
