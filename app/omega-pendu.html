@@ -28056,7 +28056,7 @@ function spellTokenCore(tok,atStart,T,idx){
    +'.vdc-bad{background:#f6b6b6;border-bottom:3px solid #b02020;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-bad:hover{background:#f29a9a}'   /* fonds SATURÉS (pastels trop pâles = illisibles) */
    +'.vdc-bad.vdc-orth{background:#bcd6f5;border-bottom-color:#1b5c86}.vdc-bad.vdc-orth:hover{background:#a3c6ef}'
    +'.vdc-bad.vdc-vig{background:#ffdd94;border-bottom:3px dashed #c8760a;font-weight:600}.vdc-bad.vdc-vig:hover{background:#ffd06f}'
-   +'.vdc-ins{position:relative}'   +'.vdc-ins::after{content:"";position:absolute;left:-5px;right:-5px;top:-3px;bottom:-3px;cursor:pointer}'   /* ZONE DE CLIC élargie par un pseudo-élément ABSOLU : il ne participe pas au flux, donc zéro delta
+   +'.vdc-ins{position:relative}'   +'.vdc-ins::after{content:"";position:absolute;left:-5px;right:-5px;top:-3px;bottom:-3px;cursor:pointer}'+'.vdc-ins[data-sugg]{display:inline-block;width:0;overflow:visible}.vdc-ins[data-sugg]::before{content:attr(data-sugg);position:absolute;left:0;top:0;white-space:pre;color:#b02020;font-weight:700;pointer-events:none}'   /* glyphe PROPOSÉ dessiné hors flux : jamais dans textContent */   /* ZONE DE CLIC élargie par un pseudo-élément ABSOLU : il ne participe pas au flux, donc zéro delta
       de métrique face à la textarea — un padding, lui, décalerait tout le texte. */
    +'.vdc-vig{border-bottom:2px dotted #1f7a3d;cursor:help;border-radius:2px}.vdc-vig:hover{background:#e3f6e6}'   /* VERT pointillé = vigilance (confusable), n\'affirme pas une faute ; survol = possibilités */
    +'.vdc-on{background:#c9efd0;border-bottom:3px solid #1f7a3d;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-on:hover{background:#b3e6bd}'   /* VERT plein = correction APPLIQUÉE (clique = annuler) — modèle non destructif */
@@ -28410,7 +28410,7 @@ function spellTokenCore(tok,atStart,T,idx){
         MÉTRIQUES : l'overlay doit rester au pixel près sur la zone de saisie (padding et gras
         décalaient le texte, c'est écrit plus bas). */
       ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
-      o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+ti+'">'+esc(disp)+'</span>';lp=r1;});
+      o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+ti+'"'+((_vide&&!(corrected&&f.on))?(' data-sugg="'+esc(f.sugg)+'"'):'')+'>'+((_vide&&!(corrected&&f.on))?'':esc(disp))+'</span>'   /* ⭐ INSERTION = span VIDE + data-sugg (02/09). Le glyphe proposé (« . », « ? ») était écrit DANS le contenteditable : au rendu suivant le moteur le relisait comme du texte saisi (« est-ce que tu viens demain » 26 car → 28), curseur restauré sur un texte plus long, clic et sélection à côté (rapport de Rem, mesuré en Chrome réel). Glyphe dessiné par CSS hors flux : zéro caractère dans le texte. */;lp=r1;});
     o+=esc(g.slice(lp));return o;}
   function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},byCs={},_RO=_runonSet(t);corrs.forEach(function(f){if(f.typo)byCs[f.cs]=f;else by[f.i]=f;});
     var o='',last=0,k;for(k=0;k<P.length;k++){o+=_typoGapHtml(t.slice(last,P[k][0]),last,byCs,corrected);var f=by[k];
@@ -28813,7 +28813,7 @@ function spellTokenCore(tok,atStart,T,idx){
   })();
   $('vdc-in').addEventListener('input',function(){runComplete();clearTimeout(_ct);_ct=setTimeout(runCorr,350);});  // semi-direct ; complétion immédiate
   $('vdc-in').addEventListener('scroll',_syncScroll);   // l'overlay suit le défilement de la textarea
-  $('vdc-in').addEventListener('click',function(){runComplete();});                                  // déplacement du curseur → recalcule la complétion
+  $('vdc-in').addEventListener('click',function(e){runComplete();var _s=e.target&&e.target.closest?e.target.closest('[data-key]'):null;if(_s){e.stopPropagation();_openCard(_s);}});   /* ⭐ CLIC SUR UNE FAUTE DANS LA ZONE DE SAISIE (02/09). 6567363 (contenteditable) a retiré `$('vdc-render').addEventListener('click',_corrClick)` sans le rebrancher sur #vdc-in : le cadre du HAUT ne répondait plus — « je n'ai jamais demandé ça » (Rem). Même geste que la liste du bas : la CARTE (règle, remédiation, appliquer). */                                  // déplacement du curseur → recalcule la complétion
   var _npv=$('vdc-prev'),_nnx=$('vdc-next');if(_npv)_npv.addEventListener('click',function(){_navGo(-1);});if(_nnx)_nnx.addEventListener('click',function(){_navGo(1);});   // navigation ◂▸ entre fautes
   $('vdc-in').addEventListener('keyup',function(e){if(e.key&&e.key.indexOf('Arrow')===0||e.key==='Home'||e.key==='End')runComplete();});
   $('vdc-in').addEventListener('keydown',function(e){if(e.key==='Tab'&&_compFirst){e.preventDefault();_applyComplete(_compFirst);}});  // Tab = accepte la 1re complétion (aide-frappe)
