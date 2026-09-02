@@ -148,6 +148,7 @@ run "EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL)" nod
 run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 dictee/dys_precision_probe.py --navigateur
 run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 dictee/build_non_verbe_acc.py --check
+run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz)" python3 dictee/build_morph_lex.py --check
 
 echo "── LIVRAISON ──"
 run "icônes extension FRAÎCHES (== icon-512.png, exigées par le Store)" python3 extension/build_icons.py --check
