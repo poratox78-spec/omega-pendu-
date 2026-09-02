@@ -27877,6 +27877,19 @@ function spellTokenCore(tok,atStart,T,idx){
          « Le prix SONT fixé par la loi ». Miroir Python _num_at. */
       return (NUM_DET[dd]==='pl'||(/[sx]$/.test(_n)&&!_OS_INVAR[_n]))?'p':'s';}}return null;}
   function _osCoordPlural(F,vi){var lo=0,j,k,d;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}for(k=vi-1;k>lo;k--){if(deacc(F[k])==='et'&&k+1<vi){var inpp=false;for(d=1;d<=3;d++){if(k-d>=lo){var dq=deacc(F[k-d]);if(dq==='de'||dq==='des'||dq==='du'||dq==="d'"){inpp=true;break;}}}if(!inpp)return true;}}return false;}   // sujet COORDONNÉ « N et N » (hors PP « de X et Y ») → PLURIEL
+  /* LA RELATIVE EN « qui » (03/09/2026, mesuré dans Chrome sur le corpus dys : +1 juste, −10 inutiles, 0 fausse ; texte
+     correct 49 → 40 marques, aucune nouvelle). « les villages QUI composent la commune SONT » : le sujet de « sont » est
+     l'ANTÉCÉDENT « villages », pas « commune » ; « un groupe de chercheurs QUI traquent » : le sujet est « chercheurs ».
+     Les routes R1-R3 lisaient le voisin le plus proche et se trompaient de proposition. Si un « qui » précède le verbe
+     dans les 8 tokens (même segment, sans et/ou/mais/que/dont entre les deux), le nombre vient de l'antécédent — qui doit
+     le porter LUI-MÊME (un repli de 3 mots en arrière tombait à côté : « FIRA-AER qui », « architékete … qui »). */
+  function _osRelAnt(F,vi){var lo=0,j;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    for(j=vi-1;j>lo&&j>=vi-8;j--){var d=deacc(F[j]);if(d==='qui')return j-1;if(d==='et'||d==='ou'||d==='mais'||d==='que'||d==="qu'"||d==='dont')return -1;}return -1;}
+  function _osAntNum(F,ant){
+    if(ant>=2&&NUM_DET[F[ant-1]]!==undefined){var _d2=deacc(F[ant-2]);if(_d2==='de'||_d2==='des'||_d2==='du'||_d2==="d'")return null;}   // « les nations de la FIRA-AER qui » : l'antécédent est un COMPLÉMENT, la tête est avant → rattachement ambigu, on se tait
+    var x=_osNumAt(F,ant);if(x)return x;
+    if(ant>0){var _dp=deacc(F[ant-1]),_np=deacc(F[ant]);if((_dp==='de'||_dp==="d'")&&/[sx]$/.test(_np)&&!_OS_INVAR[_np])return 'p';}   // partitif « de chercheurs », « de pays » (invariable exclu)
+    return null;}
   function _osR1(F,vi){for(var k=vi-1;k>=0;k--){var x=_osNumAt(F,k);if(x)return _osVote(x,0.85);}return [0.5,0.5];}
   function _osR2(F,vi){var k=vi-1,last=null;while(k>=0){var x=_osNumAt(F,k);if(x){last=x;var d2=(k-2>=0)?deacc(F[k-2]):'';if(k-2>=0&&(d2==='de'||d2==='des'||d2==='du'||d2==="d'")){k-=2;continue;}return _osVote(last,0.9);}k--;}return last?_osVote(last,0.7):[0.5,0.5];}
   function _osR3(F,vi){for(var k=vi-1;k>=0;k--){var x=_osNumAt(F,k);if(x){if(!_osElidedSing(F[k])&&k-2>=0&&PREP[deacc(F[k-2])])continue;return _osVote(x,0.85);}}return [0.5,0.5];}
@@ -27927,7 +27940,10 @@ function spellTokenCore(tok,atStart,T,idx){
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
     if(!tg||!_osVerbCtx(tg,F,i))return null;   // GATE POS + filet homographe étroit (miroir _verb_ctx)
     if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:f3s;}}   // sujet postposé : mode dédié DOMINE
-    var ds=[_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)],ws=[],q;for(q=0;q<ds.length;q++)ws[q]=Math.abs(ds[q][0]-ds[q][1])+1e-6;ws[3]*=0.4;   // LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence sing., ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
+    var _ant=_osRelAnt(F,i),ds,ws=[],q;
+    if(_ant>=0){var _an=_osAntNum(F,_ant);if(!_an)return null;ds=[_osVote(_an,0.9),_osR4(F,i,f3s,f3p)];}   // relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait
+    else ds=[_osR1(F,i),_osR2(F,i),_osR3(F,i),_osR4(F,i,f3s,f3p)];
+    for(q=0;q<ds.length;q++)ws[q]=Math.abs(ds[q][0]-ds[q][1])+1e-6;ws[ds.length-1]*=0.4;   // LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence sing., ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if(_osCoordPlural(F,i)){ds.push([0.02,0.98]);var mw=0;for(q=0;q<ws.length;q++)if(ws[q]>mw)mw=ws[q];ws.push(mw+1.0);}   // route COORDINATION : « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
     var Zw=0,ps=0,pp=0;for(q=0;q<ds.length;q++)Zw+=ws[q];for(q=0;q<ds.length;q++){ps+=ws[q]*ds[q][0];pp+=ws[q]*ds[q][1];}ps/=Zw;pp/=Zw;var rn=ps>=pp?'s':'p',rc=Math.abs(ps-pp);
     if(rc<_OS_TAU||rn===vn)return null;
