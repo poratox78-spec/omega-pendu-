@@ -5,7 +5,7 @@
 #   FLAG  = souligne (l'utilisateur clique) : candidat plausible mais incertain (rivaux, fréquence moyenne, élision).
 #   None  = mot valide, ou nom propre, ou aucun bon candidat (néologisme) → on n'y touche pas.
 # Ressources : Lexique4 (forme accentuée + fréquence). Phonétique = étape suivante.
-import os, sys, csv, json, unicodedata, re
+import os, gzip, sys, csv, json, unicodedata, re
 from collections import defaultdict
 from functools import cmp_to_key
 
@@ -42,10 +42,10 @@ def load_lexicon():
     _HERE = os.path.dirname(os.path.abspath(__file__))
     # SPELLER_EXTRA=0 : base Lexique4 seule (instrument d'A/B : mesurer ce qu'un lot d'ajouts CHANGE, pas seulement ce qu'il apporte)
     _EXTRA = os.environ.get('SPELLER_EXTRA', '1') != '0'
-    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
+    _SRC = [LEX] + ([os.path.join(_HERE, _a) for _a in ('wikt_lex_fr.tsv', 'argot_rows.tsv', 'participle_rows.tsv', 'gacc_lex_fr.tsv', 'morph_na_lex_fr.tsv', 'morph_ver_lex_fr.tsv.gz') if os.path.exists(os.path.join(_HERE, _a))] if _EXTRA else [])
     _H = None
     for _src in _SRC:
-      with open(_src, encoding='utf-8') as f:
+      with (gzip.open(_src, 'rt', encoding='utf-8') if _src.endswith('.gz') else open(_src, encoding='utf-8')) as f:   # le lot VER est commite gzippe (26,5 Mo en clair)
         r = csv.reader(f, delimiter='\t')
         if _H is None: _H = next(r)   # l'en-tête ne vit que dans Lexique4 ; les ajouts sont des lignes nues au même format
         H = _H
