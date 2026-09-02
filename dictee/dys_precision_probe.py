@@ -215,6 +215,12 @@ def main():
             dk = (norm(w), norm(sugg), ' '.join(norm(x) for x in toks_ctx[max(0, i - 2):i + 3]))
             if dk not in distinct[key]:
                 distinct[key].add(dk); stats[key]['d_' + k] += 1
+            if k == 'inutile' and tier.startswith('auto'):
+                # ⭐ LA LISTE ACTIONNABLE : chaque mot JUSTE réécrit en silence, avec son contexte.
+                # Les exemples généraux mélangent INUTILE et FAUSSE ; seule cette liste-ci nomme des
+                # violations de FP=0. `--casse` l'imprime en entier.
+                globals().setdefault('_CASSE', []).append(
+                    (fam, tier, w, sugg, ' '.join(rt_g[max(0, i - 4):i + 5]) if fam != 'orthographe' else ' '.join(rt_s[max(0, i - 4):i + 5])))
             if k != "juste" and len(exemples[key]) < (99 if "--all" in sys.argv else 6):
                 ctx = ''
                 if '--ctx' in sys.argv and fam != 'orthographe':
@@ -286,14 +292,27 @@ def main():
     # ses « fausses » sont de mauvaises devinettes sur des mots déjà faux. Le correctif faisait
     # perdre « l'eau » et « j'ai » ; il a fallu le reverter. Cette ligne existe pour que la
     # prochaine lecture ne refasse pas la confusion.
+    # ⚠️ MAJORANT, PAS UN COMPTE EXACT. INUTILE veut dire « le gold garde le mot » — or le gold
+    # du corpus dys est PARTIELLEMENT corrigé. Vérification à la main de 3 cas (02/09) : 1 défaut de
+    # gold (« Tout cette mascarade », que le gold laisse tel quel alors que « Toute » est juste)
+    # contre 2 vrais FP. Le plafond reste un GARDE DE RÉGRESSION valable — il ne peut que baisser —
+    # mais on n'annonce pas ce nombre comme le compte exact des violations.
     casse = [r for r in rows if r['palier'].startswith('auto') and r['inutile'] > 0]
     if casse:
         print('')
-        print(u'  🔴 %d règle(s) AUTO réécrivent du texte DÉJÀ JUSTE (INUTILE > 0) — c’est la seule'
-              u' colonne qui viole FP=0 :' % len(casse))
+        print(u'  🔴 %d règle(s) AUTO réécrivent un mot que le GOLD GARDE (INUTILE > 0) — seule'
+              u' colonne qui puisse violer FP=0. Majorant : le gold dys est partiellement corrigé.' % len(casse))
         for r in sorted(casse, key=lambda r: -r['inutile']):
             print(u'      %-42s %-12s %d mot(s) juste(s) réécrit(s)'
                   % (r['famille'][:42], r['palier'], r['inutile']))
+        if '--casse' in sys.argv:
+            print('')
+            for (fam, tier, w, sugg, ctx) in globals().get('_CASSE', []):
+                print(u'      %-34s %-12s %s → %s' % (fam[:34], tier, w, sugg))
+                print(u'            ⟨ %s ⟩' % ctx)
+        else:
+            print(u'      (les %d cas, un par un, avec leur contexte : --casse)'
+                  % len(globals().get('_CASSE', [])))
 
     if not os.path.exists(REF_PREC):
         print(u'✗ PRÉCISION DYS : pas de référence — ancrer : python dictee/dys_precision_probe.py --fix')
