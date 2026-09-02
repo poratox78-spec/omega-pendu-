@@ -125,6 +125,8 @@ const CAS = [
   //    Ces deux-là ne passent que si NOUN_POST est chargé — le trou qui a rendu le moteur livré muet.
   { txt: 'je vais bien tu viens demain', rien: true, pourquoi: 'point final MANQUANT proposé en orange : marque d’insertion, texte intact' },
   { txt: 'est-ce que tu viens demain', rien: true, pourquoi: '« ? » MANQUANT proposé en orange : marque d’insertion, texte intact' },
+  { txt: 'est-ce que tu viens demain', rien: true, appliquer: 'est-ce que tu viens demain ?', pourquoi: 'le « ? » proposé s’APPLIQUE depuis la carte (chemin complet)' },
+  { txt: 'je vais bien tu viens demain', rien: true, appliquer: 'je vais bien tu viens demain.', pourquoi: 'le point final proposé s’APPLIQUE depuis la carte' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
   // ② conflit de direction déterminant/nom : UN SEUL sens par désaccord (PR#467)
@@ -223,7 +225,7 @@ const SCRIPT = (cas) => `(async () => {
       () => [...document.querySelectorAll('button')].find(x => /🩹/.test(x.textContent || '')), 30000);
     b.click();
     const zone = await jusqua('la zone de saisie vdc-in', () => document.getElementById('vdc-in'), 30000);
-    const passe = async (txt) => { zone.textContent = txt;
+    const passe = async (txt, appl) => { zone.textContent = txt;
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
       await attendre(500);
       const bar = (document.body.innerText.match(/\\((\\d+) appliqu/) || [])[1];   // \\ doublés : on est dans un gabarit JS
@@ -233,20 +235,29 @@ const SCRIPT = (cas) => `(async () => {
       let carte = null; const sp = zone.querySelector('[data-key]');
       if (sp) { sp.dispatchEvent(new MouseEvent('click', { bubbles: true })); await attendre(150);
         const c = document.getElementById('vdc-cardpop'); carte = !!(c && c.style.display === 'block' && (c.textContent || '').trim().length > 10); }
-      return { nApplique: bar == null ? null : +bar, texte, texte2, carte,
-               applique: [...document.querySelectorAll('.vdc-on')].map(e => e.textContent),
+      // L'etat AFFIRMATIF (applique / marques) est capture AVANT le geste « appliquer » : le verdict « rien »
+      // porte sur ce que le moteur a fait SEUL, pas sur ce que l'utilisateur vient de lui demander.
+      const applique0 = [...document.querySelectorAll('.vdc-on')].map(e => e.textContent);
+      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className) }));
+      let corrige = null;   // le texte CORRIGE (#vdc-result) : le modele est NON DESTRUCTIF, la zone du haut reste le texte saisi (PR#52)
+      if (appl) { await attendre(700); const sp2 = zone.querySelector('[data-sugg]') || zone.querySelector('[data-key]');   // la MARQUE D'INSERTION (« ? », « . »), pas la première faute venue
+        if (sp2) { sp2.dispatchEvent(new MouseEvent('click', { bubbles: true })); await attendre(150);
+          const bt = document.querySelector('#vdc-cardpop .vcap'); if (bt) { bt.click(); await attendre(600); }
+          const rz = document.getElementById('vdc-result'); corrige = rz ? rz.textContent.trim() : null; } }
+      return { nApplique: bar == null ? null : +bar, texte, texte2, carte, corrige,
+               applique: applique0,
                /* on garde la CLASSE : « vdc-vig » = vigilance orange, proposée et jamais appliquée.
                   La confondre avec une vraie marque rend le test faux — « un œuf et du bœuf »
                   déclenche la vigilance MAJUSCULE (la phrase commence en minuscule), ce qui est le
                   comportement voulu, pas un faux positif. */
-               marque: [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className) })) }; };
+               marque: marque0 }; };
     await jusqua('le chargement des lexiques (fenetre→fenêtre)', () => {
       zone.textContent = 'la fenetre est ouverte';
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
       return [...document.querySelectorAll('.vdc-on')].some(e => e.textContent === 'fenêtre');
     }, 60000);
     const out = [];
-    for (const c of ${JSON.stringify(cas)}) out.push(Object.assign({ txt: c.txt }, await passe(c.txt)));
+    for (const c of ${JSON.stringify(cas)}) out.push(Object.assign({ txt: c.txt }, await passe(c.txt, !!c.appliquer)));
     return { out };
   } catch (e) { return { fatal: e.message }; }
 })()`;
@@ -295,7 +306,7 @@ async function main() {
     }
     if (!pret) throw new Error('la page ne s\'est pas chargée dans le délai imparti');
     const r = await sess.envoyer('Runtime.evaluate',
-      { expression: SCRIPT(CAS.map(c => ({ txt: c.txt }))), awaitPromise: true, returnByValue: true, timeout: 180000 });
+      { expression: SCRIPT(CAS.map(c => ({ txt: c.txt, appliquer: !!c.appliquer }))) /* le drapeau DOIT passer : sans lui la page ne teste jamais « appliquer » */, awaitPromise: true, returnByValue: true, timeout: 180000 });
     if (r.exceptionDetails) throw new Error('page : ' + (r.exceptionDetails.exception || {}).description);
     const val = r.result.value || {};
     if (val.fatal) throw new Error(val.fatal);
@@ -315,6 +326,10 @@ async function main() {
         echecs.push(`« ${c.txt} » : le RENDU a modifié le texte saisi → ${JSON.stringify(got.texte)} puis ${JSON.stringify(got.texte2)}`);
       /* ⭐ LE CLIC SUR UNE FAUTE DE LA ZONE DE SAISIE OUVRE LA CARTE (règle + appliquer). Retiré par 6567363
          sans que Rem l'ait demandé (« je n'ai jamais demandé ça ») : gardé dès qu'une faute est marquée. */
+      /* ⭐ LE CHEMIN COMPLET « proposer → cliquer → APPLIQUER » (Rem : la ponctuation « ne marche pas en forme
+         interrogative » à l'usage, alors que le moteur PROPOSE le « ? »). On applique depuis la carte et on relit le texte. */
+      if (c.appliquer && got.corrige !== c.appliquer)
+        echecs.push(`« ${c.txt} » : appliquer depuis la carte devait donner ${JSON.stringify(c.appliquer)} dans le texte CORRIGÉ, eu ${JSON.stringify(got.corrige)}`);
       if (got.carte === false)
         echecs.push(`« ${c.txt} » : le clic sur la faute dans la ZONE DE SAISIE n'ouvre pas la carte`);
       if (c.rien) { const dur = got.marque.filter(m => !m.vig).map(m => m.t);
