@@ -48,6 +48,8 @@ jobs:
         run: python3 dictee/dys_precision_probe.py --navigateur
       - name: Résiduel — tokens CORRECTS détruits (FP=0, plafond dur ; sauté sans corpus local)
         run: node dictee/residual_audit.js --check
+      - name: "Collisions d’accent — non_verbe_acc.json == app == extension (Morphalou absent en CI, cohérence seulement)"
+        run: python3 dictee/build_non_verbe_acc.py --check
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
       - name: « did you mean » fréquence reste FALSIFIÉ (régression sur le cardinal FP=0)

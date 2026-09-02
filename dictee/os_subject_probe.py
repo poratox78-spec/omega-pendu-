@@ -12,7 +12,8 @@ import speller_probe as SP
 import correcteur_probe as C
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONJ_C = C.CONJ_C; NUM_DET = getattr(C, 'NUM_DET', {}); PREP = getattr(C, 'PREP', set())
-NOUN_POST = getattr(C, 'NOUN_POST', None)   # posterior NOM/VERBE (‰) sur 83 356 mots — la table qui repond VRAIMENT a la question du filet
+NOUN_POST = getattr(C, 'NOUN_POST', None)
+NON_VERBE_ACC = set(json.load(open(os.path.join(HERE, 'non_verbe_acc.json'), encoding='utf-8'))['mots'])   # collisions d'accent (build_non_verbe_acc.py)   # posterior NOM/VERBE (‰) sur 83 356 mots — la table qui repond VRAIMENT a la question du filet
 FULL_AUX = getattr(C, 'FULL_AUX', set()); CLITIC = getattr(C, 'CLITIC', set()); SUBJ_PRON = getattr(C, 'SUBJ_PRON', {})
 TOK = re.compile(r"[a-zA-Zà-ÿœæ'\-]+")
 def tk(s): return [w.lower() for w in TOK.findall(s.replace('’', "'"))]
@@ -170,6 +171,7 @@ def _verb_ctx(tg, F, vi):
     circule » (circule tagué NOUN par l'émission HMM à 2 %) SANS le flood des épicènes/propres. Mesuré : +1 recall / +0
     flood vs le gate VERB/AUX seul. Plus ÉTROIT que le _verb_or_homograph des règles rouges (l'OS scanne large, moins gardé)."""
     if vi >= len(tg): return False
+    if F[vi].lower() in NON_VERBE_ACC: return False   # collision d'accent : « adhérent » n'est pas « adhèrent » (miroir JS _NON_VERBE_ACC)
     if tg[vi] in ('VERB', 'AUX'): return True
     if tg[vi] not in ('NOUN', 'X'): return False
     d = C.deacc(F[vi].lower())
