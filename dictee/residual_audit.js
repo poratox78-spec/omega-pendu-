@@ -40,14 +40,21 @@ function correctAll(text){
 const path2=require('path');
 const RE2=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g, tk=s=>(s.match(RE2)||[]).map(x=>x.toLowerCase());
 (async()=>{ await C.loadSp(); await C.loadG(); await C.loadNP(); await C.loadH();
-  const RATE={}, MAL={}, CASSE={};
+  const RATE={}, MAL={}, CASSE={}; let nCorpus=0, nPaires=0;
+  // ⭐ CONTRAT (02/09/2026). Ce fichier existe depuis le 21 juillet, mesure EXACTEMENT la violation de
+  // FP=0 (« tokens CORRECTS que le moteur détruit », baseline 17 à l'époque) — et n'était branché NULLE
+  // PART : ni dev.sh, ni ci.yml. La métrique existait ; ce qui manquait était son branchement.
+  // --check : CASSÉS <= CASSE_MAX (18 mesurés le 02/09, plafond DUR qui ne peut que baisser) ; saut EXPLICITE
+  // si aucun corpus (la CI n'a pas data_local) ; ÉCHEC si corpus présents mais 0 paire alignée (jamais un vert muet).
+  const CHECK=process.argv.includes('--check'), CASSE_MAX=Number(process.env.CASSE_MAX||18);
   for(const f of ['dys_corpus_rem.jsonl','corpus_gec_fr.jsonl','corpus_gec100.jsonl','corpus_multi1000.jsonl']){
-    const p=path2.join(ROOT,'data_local',f); if(!fs.existsSync(p))continue;
+    const p=path2.join(ROOT,'data_local',f); if(!fs.existsSync(p))continue; nCorpus++;
     for(const l of fs.readFileSync(p,'utf8').split('\n').filter(Boolean)){
       const o=JSON.parse(l); const bad=o.bad!=null?o.bad:o.raw, good=o.good!=null?o.good:o.fixed;
       if(bad==null||good==null)continue;
       const B=tk(bad),G=tk(good),O=tk(correctAll(bad));
       if(B.length!==G.length||O.length!==G.length)continue;      // alignement 1-1 seulement
+      nPaires++;
       for(let i=0;i<G.length;i++){
         if(B[i]===G[i]){                                          // le token etait CORRECT dans la saisie...
           if(O[i]!==G[i]){const ck=B[i]+' -> '+O[i];CASSE[ck]=(CASSE[ck]||0)+1;}   // ...et le moteur l'a CASSE. Angle mort de la v1 : elle n'examinait que les tokens deja FAUTIFS, donc une correction qui detruit du correct AU MILIEU d'une phrase fautive restait invisible — et fp_scale_probe ne la voit pas non plus, il ne tourne que sur du texte 100 % correct. C'est exactement la zone ou vit le texte d'un dys.
@@ -66,4 +73,11 @@ const RE2=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g, tk=s=>(s.match(RE2)||[]).map(x=>x.toLower
   for(const [k,n] of srt(MAL).slice(0,25))console.log('  '+String(n).padStart(4)+'  '+k);
   console.log('\n=== CASSES (le token etait CORRECT, le moteur l a detruit) : '+tot(CASSE)+' occurrences ===');
   for(const [k,n] of srt(CASSE).slice(0,25))console.log('  '+String(n).padStart(4)+'  '+k);
+  if(CHECK){
+    if(!nCorpus){console.log('· RESIDUEL : SAUTÉ — aucun corpus data_local (garde locale, dit explicitement)');process.exit(0);}
+    if(!nPaires){console.error('✗ RESIDUEL : '+nCorpus+' corpus lus mais 0 paire alignée — la sonde n’a RIEN mesuré');process.exit(1);}
+    const c=tot(CASSE);
+    if(c>CASSE_MAX){console.error('✗ RESIDUEL : '+c+' tokens CORRECTS détruits > plafond '+CASSE_MAX+' — FP=0 recule');process.exit(1);}
+    console.log('✓ résiduel : '+c+' tokens corrects détruits ≤ '+CASSE_MAX+' ('+nPaires+' paires, '+nCorpus+' corpus)');
+  }
 })();
