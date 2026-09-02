@@ -50,6 +50,8 @@ jobs:
         run: node dictee/residual_audit.js --check
       - name: "Collisions d’accent — non_verbe_acc.json == app == extension (Morphalou absent en CI, cohérence seulement)"
         run: python3 dictee/build_non_verbe_acc.py --check
+      - name: "Lots Morphalou du speller — TSV commités bien formés (morph_na, morph_ver.gz)"
+        run: python3 dictee/build_morph_lex.py --check
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
       - name: « did you mean » fréquence reste FALSIFIÉ (régression sur le cardinal FP=0)

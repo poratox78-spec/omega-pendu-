@@ -20,7 +20,7 @@ DEUX sorties, MESUREES SEPAREMENT au moteur JS (A/B node deterministe, 1 998 phr
 """
 import io, csv, gzip, subprocess, unicodedata, re, sys, os
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.join(HERE, '..')
-OUT_NA = os.path.join(HERE, 'morph_na_lex_fr.tsv'); OUT_VER = os.path.join(HERE, 'morph_ver_lex_fr.tsv')
+OUT_NA = os.path.join(HERE, 'morph_na_lex_fr.tsv'); OUT_VER = os.path.join(HERE, 'morph_ver_lex_fr.tsv.gz')   # gzippe : 26,5 Mo en clair, ~3 Mo commites
 
 def generer():
     dea=lambda t:''.join(c for c in unicodedata.normalize('NFD',t) if unicodedata.category(c)!='Mn')
@@ -64,7 +64,7 @@ def generer():
             row=['']*37; row[0]=w; row[3]=lemme or w; row[4]=c; row[5]=c; row[6]=g; row[7]=nb; row[9]='0'; row[10]='0'; row[11]='0'
             rows['VER' if c=='VER' else 'NA'].append(chr(9).join(row))
     for k,fn in (('NA',OUT_NA),('VER',OUT_VER)):
-        io.open(fn,'w',encoding='utf-8',newline=chr(10)).write(chr(10).join(rows[k])+chr(10))
+        (gzip.open(fn,'wt',encoding='utf-8',newline=chr(10)) if fn.endswith('.gz') else io.open(fn,'w',encoding='utf-8',newline=chr(10))).write(chr(10).join(rows[k])+chr(10))
         print('✓ %s : %d lignes -> %s' % (k, len(rows[k]), os.path.relpath(fn, ROOT)))
 
 
@@ -77,10 +77,10 @@ def main():
                 # (asset x2, +0,6 s de chargement) : son absence est un etat connu, pas une derive.
                 if fn == OUT_VER: print('· morph_lex : lot VER non commite (decision de poids en attente)'); continue
                 ko.append(os.path.basename(fn) + ' absent'); continue
-            bad = sum(1 for l in io.open(fn, encoding='utf-8') if len(l.rstrip(chr(10)).split(chr(9))) != 37)
+            bad = sum(1 for l in (gzip.open(fn,'rt',encoding='utf-8') if fn.endswith('.gz') else io.open(fn, encoding='utf-8')) if len(l.rstrip(chr(10)).split(chr(9))) != 37)
             if bad: ko.append('%s : %d ligne(s) mal formee(s)' % (os.path.basename(fn), bad))
         if ko: print('✗ morph_lex : ' + ' ; '.join(ko)); return 1
-        print('✓ morph_lex : NA %d lignes%s, 37 colonnes' % (sum(1 for _ in io.open(OUT_NA, encoding='utf-8')), (', VER %d lignes' % sum(1 for _ in io.open(OUT_VER, encoding='utf-8'))) if os.path.exists(OUT_VER) else '')); return 0
+        print('✓ morph_lex : NA %d lignes%s, 37 colonnes' % (sum(1 for _ in io.open(OUT_NA, encoding='utf-8')), (', VER %d lignes' % sum(1 for _ in gzip.open(OUT_VER,'rt',encoding='utf-8'))) if os.path.exists(OUT_VER) else '')); return 0
     if not os.path.exists(os.path.join(ROOT, 'data_local', 'morphalou', 'Morphalou3.1_CSV.csv')):
         print('✗ Morphalou absent (data_local/morphalou) : impossible de regenerer'); return 1
     generer(); return 0
