@@ -19,6 +19,7 @@ if [ "$Q" = "fresh" ]; then
   echo "── FRESH : artefacts dérivés régénérés AVANT la batterie ──"
   python3 extension/build_zip.py   && echo "  ✓ zip extension"
   python3 dictee/build_pendu_en.py && echo "  ✓ clone anglais"
+  python3 build_lexiques.py   && echo "  ✓ paquet de données ouvertes (omega-lexiques.zip)"
   Q="check"
 fi
 
@@ -149,6 +150,7 @@ run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 
 run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 dictee/build_non_verbe_acc.py --check
 run "lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz)" python3 dictee/build_morph_lex.py --check
+run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise)" python3 build_lexiques.py --check
 
 echo "── LIVRAISON ──"
 run "icônes extension FRAÎCHES (== icon-512.png, exigées par le Store)" python3 extension/build_icons.py --check
