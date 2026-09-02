@@ -202,7 +202,12 @@ if (require.main === module) {
   if (err.length) { console.log('✗ QUESTION : la détection a RÉGRESSÉ :'); err.forEach(e => console.log('    ' + e)); process.exit(1); }
   /* Le CORRECTEUR a son propre contrat : plus de rappel, moins de précision, parce qu'il ne
      propose qu'en orange. État mesuré à la pose : 91,95 % / 25,48 %. */
-  const PLANCHER_PREC_CORR = 91.4, PLANCHER_RAPP_CORR = 25.0;
+  /* 02/09/2026 — inversion SANS trait d'union (graphie dys) : 80/87 → 81/89. La question gagnée est
+     réelle (« Le cours de dessin est il pour les débutants »). La « fausse » gagnée est « Est ce que tout
+     est frais ou n'y aurait il pas un peu de surgelé quand même.. » : une QUESTION, que l'auteur a fermée
+     par « .. » — le corpus l'étiquette non-question parce qu'il lit le dernier caractère. On re-ancre le
+     plancher à ce qu'on mesure, en le disant, plutôt que de renoncer à voir « est ce que ». */
+  const PLANCHER_PREC_CORR = 91.0, PLANCHER_RAPP_CORR = 25.0;
   if (!scoreCorr || scoreCorr.nerr) { console.log('✗ QUESTION : variante CORRECTEUR non mesurable'); process.exit(1); }
   const errC = [];
   if (scoreCorr.prec < PLANCHER_PREC_CORR) errC.push('correcteur : précision ' + scoreCorr.prec.toFixed(2) + ' % < plancher ' + PLANCHER_PREC_CORR + ' %');

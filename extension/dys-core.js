@@ -1830,6 +1830,25 @@ var CLIT='je|tu|il|elle|on|ils|elles';
 // APRÈS un interrogatif, où l'impératif est impossible.
 var QINV=new RegExp("([A-Za-zÀ-ÿœ']+)-(?:t-)?("+CLIT+")(?![-\\w])",'i');
 var QINV_Q=new RegExp("([A-Za-zÀ-ÿœ']+)-(?:t-)?("+CLIT+"|nous|vous)(?![-\\w])",'i');
+/* ⭐ INVERSION SANS TRAIT D'UNION (02/09/2026, rapport de Rem : « la ponctuation ne marche pas en forme
+   interrogative »). Le scripteur dys écrit « veux tu venir », « as tu fini », « qu'allons nous faire »,
+   « est ce que » : AUCUNE n'était vue, et le correcteur proposait alors un POINT au bout de la question.
+   Sans trait d'union, le tagger ne peut plus garder (« je pense tu as raison » ressemble à « pense-tu ») :
+   la garde est la CONJUGAISON — la forme doit être un verbe conjugué QUI S'ACCORDE avec le clitique
+   (« pense » n'est pas 2ᵉ personne, « Marie elle vient » n'a pas de verbe), et seulement EN TÊTE, après
+   un interrogatif, après « que/qu' », ou avec le « t » euphonique. nous/vous restent réservés aux têtes
+   interrogatives : « allez vous coucher » est un impératif réfléchi. Mesuré sur le banc `question_bench`. */
+var QINV_S=new RegExp("([A-Za-zÀ-ÿœ']+)\\s+(?:t\\s+)?("+CLIT+"|nous|vous)(?![-\\w])",'i');
+var QEUPH_S=/[A-Za-zÀ-ÿœ']+\s+t\s+(?:il|elle|on|ils|elles)(?![-\w])/i;   // « a t il », « y a t il » : le « t » seul n'existe pas ailleurs
+var QUEHEAD=/^\s*qu(?:e(?![a-zà-ÿœ'’])|['’])/i;   // « que faisons-nous », « qu'allons-nous » : en tête, « que/qu' » ouvre l'inversion à nous/vous comme un interrogatif
+var CLIT_PERS={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']};
+function _invSansTrait(ms,mots,qw){
+  var v=ms[1].replace(/^(?:n|j|t|s|m|qu|l|d|c)['’]/i,''), cl=ms[2].toLowerCase(), pn=CLIT_PERS[cl];
+  if(!pn||!v||v.indexOf("'")>=0||v.indexOf('’')>=0)return false;
+  if((cl==='nous'||cl==='vous')&&!qw&&!/^qu['’]/i.test(ms[1])&&!(ms.index>0&&/^que$/i.test(mots[0]||'')))return false;
+  var r=svReads(v); if(!r.length)return false;
+  return svAgrees(r,pn[0],pn[1]);
+}
 // l'incise EN TÊTE de fragment (« disent-ils, … ») : la garde « verbe avant » ne peut pas la
 // voir puisque le fragment COMMENCE par elle. Sa signature est la virgule qui la referme.
 // ⛔ INCISE EN TÊTE (« disent-ils, peuvent jouer… »). ⚠️ Ma 1re garde cherchait la VIRGULE qui
@@ -1841,12 +1860,12 @@ var QINV_Q=new RegExp("([A-Za-zÀ-ÿœ']+)-(?:t-)?("+CLIT+"|nous|vous)(?![-\\w])
 var QINCISE=new RegExp("^\\s*[A-Za-zÀ-ÿœ']+-(?:t-)?("+CLIT+")\\s*,",'i');
 var QPAROLE=/^(dit|dis|disent|disait|répondit|repondit|répond|repond|ajouta|ajoute|demanda|s['’]écria|secria|fit|reprit|poursuivit|murmura|songea|expliqua|précisa|precisa|lança|lanca|conclut|renchérit|rencherit)$/i;
 var QADV=/^\s*(?:peut-être|sans doute|ainsi|aussi|à peine|a peine|du moins|encore|en vain|toujours est-il|aussi bien|tout au plus|rarement|jamais|non seulement)\b/i;
-var QTAG=/\bn['’]est-ce\s+pas\s*$/i;
+var QTAG=/\bn['’]est[-\s]ce\s+pas\s*$/i;
 // ⚠️ ANCRÉ EN TÊTE : sans l'ancre, « se demandant quand est-ce qu'il va sortir » (interrogation
 // INDIRECTE, que le BDL exclut explicitement du « ? ») redevenait une question.
-var QEQ=/^\s*est-ce\s+(?:que|qu['’])/i;
-var QEQ3=/^\s*est-ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
-var QEQ2=/^\s*[a-zà-ÿœ']+\s+est-ce\s+(?:que|qu['’])/i;
+var QEQ=/^\s*est[-\s]ce\s+(?:que|qu['’])/i;
+var QEQ3=/^\s*est[-\s]ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
+var QEQ2=/^\s*[a-zà-ÿœ']+\s+est[-\s]ce\s+(?:que|qu['’])/i;
 var QW_PREP=/^\s*(?:à|a|de|d['’]|par|pour|avec|sur|dans|en|chez|vers|depuis|selon)\s+(?:quoi|qui|quel|quelle|quels|quelles|lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // interrogatif precede de sa preposition : « a quoi penses-tu ? »
 var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
 var QPRON=/^(lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // pronom interrogatif SUJET (garde anti-relatif : verbe juste apres)
@@ -1886,7 +1905,9 @@ function estQuestion(t,maxMots){
   var tg=null;
   function tag(i){ if(tg===null) tg=posTags(motsTag)||[]; return tg[i]; }
   var qw=QW.test(t)||QW_PREP.test(t);   // « a quoi penses-tu » : la tete interrogative peut etre precedee de sa preposition
-  var m=(qw?QINV_Q:QINV).exec(t);
+  var m=((qw||QUEHEAD.test(t))?QINV_Q:QINV).exec(t);
+  var sansTrait=false;   // inversion SANS trait d'union (graphie dys) : gardée par la conjugaison, pas par le tagger
+  if(!m){var ms=QINV_S.exec(t); if(ms&&_invSansTrait(ms,mots,qw)){m=ms;sansTrait=true;}}
   // ⭐ ROUTE INTERRO-NÉGATIVE, indépendante du tagger. « n'as-tu pas … » : `toks` rend le token
   // « n'as », et même dé-élidé en « as » le modèle l'étiquette PROPN en tête (mesuré) — « as »
   // y est trop rare comme auxiliaire dans UD. La garde verbale ne s'arme pas et la question
@@ -1903,7 +1924,7 @@ function estQuestion(t,maxMots){
     // (l'imperatif y est impossible). Mesure 2026-08-06 : le tagger lit « a/ADP » dans
     // « a-t-il raison » et « devrions/NOUN » dans « ou devrions-nous » — la regle avait raison,
     // c'est sa confirmation qui echouait. Les GARDES, elles, restent toutes.
-    if(QVERBAL[tag(iv)]===1 || QEUPH.test(t) || qw || iv===0){   // iv===0 : inversion EN TETE — l'imperatif prend moi/toi/nous/vous, jamais je/tu/il/elle/on/ils/elles
+    if((!sansTrait&&QVERBAL[tag(iv)]===1) || QEUPH.test(t) || (sansTrait&&QEUPH_S.test(t)) || qw || iv===0 || (sansTrait&&iv===1&&/^que$/i.test(mots[0]))){   // sans trait : jamais la route du tagger seul   // iv===0 : inversion EN TETE — l'imperatif prend moi/toi/nous/vous, jamais je/tu/il/elle/on/ils/elles
       if(QADV.test(t)) return false;                      // inversion stylistique
       for(var k=0;k<iv;k++) if(QVERBAL[tag(k)]===1) return false;   // incise : proposition déjà close
       return true;
@@ -1917,6 +1938,7 @@ function estQuestion(t,maxMots){
   // l'interrogation INDIRECTE enchaîne un GN plein (« comment UNE PERSONNE a obtenu… »).
   if(QPRON.test(t) && t.indexOf(',')<0 && QVERBAL[tag(1)]===1) return true;   // « Lequel est le plus grand ? » ; le relatif, lui, porte un clitique (« laquelle lui repond »)
   if(!QSEUL.test(t) || t.indexOf(',')>=0) return false;
+  if(CLIT_PERS[(mots[1]||'').toLowerCase()])return true;   // « pourquoi tu pleures » : le tagger lit « tu/DET », le clitique sujet tranche seul
   return tag(1)!=='DET';
 }
 

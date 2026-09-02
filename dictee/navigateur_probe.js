@@ -127,6 +127,14 @@ const CAS = [
   { txt: 'est-ce que tu viens demain', rien: true, pourquoi: '« ? » MANQUANT proposé en orange : marque d’insertion, texte intact' },
   { txt: 'est-ce que tu viens demain', rien: true, appliquer: 'est-ce que tu viens demain ?', pourquoi: 'le « ? » proposé s’APPLIQUE depuis la carte (chemin complet)' },
   { txt: 'je vais bien tu viens demain', rien: true, appliquer: 'je vais bien tu viens demain.', pourquoi: 'le point final proposé s’APPLIQUE depuis la carte' },
+  /* ⭐ INVERSION SANS TRAIT D'UNION (02/09/2026, rapport de Rem : « la ponctuation ne marche pas en forme
+     interrogative »). Le scripteur dys n'écrit pas le trait d'union : « veux tu », « qu'allons nous ».
+     Avant : aucune question vue, et le correcteur proposait un POINT au bout. Gardé : le « ? » est proposé,
+     et le point ne l'est PAS. */
+  { txt: 'veux tu venir demain', rien: true, propose: ' ?', pourquoi: 'inversion sans trait d’union : le « ? » est proposé' },
+  { txt: "qu'allons nous faire demain", rien: true, propose: ' ?', pourquoi: '« qu’ » + inversion sans trait : « ? » proposé, pas un point' },
+  { txt: 'est ce que tu viens demain', rien: true, propose: ' ?', pourquoi: '« est ce que » sans trait d’union' },
+  { txt: 'je pense tu as raison', rien: true, propose: '.', pourquoi: 'CONTRE-GARDE : « pense tu » ne s’accorde pas, ce n’est pas une question → point final' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
   // ② conflit de direction déterminant/nom : UN SEUL sens par désaccord (PR#467)
@@ -225,12 +233,26 @@ const SCRIPT = (cas) => `(async () => {
       () => [...document.querySelectorAll('button')].find(x => /🩹/.test(x.textContent || '')), 30000);
     b.click();
     const zone = await jusqua('la zone de saisie vdc-in', () => document.getElementById('vdc-in'), 30000);
+    /* ⭐ ATTENDRE LE RENDU, pas un délai fixe (02/09/2026). Mesuré dans Chrome : le premier rendu de
+       « est ce que tu viens demain » prend 1 663 ms (un chargement paresseux), les suivants ~400 ms.
+       Avec 500 ms fixes, la sonde lisait l'état d'AVANT et rendait un verdict faux (« ? » vu comme
+       appliqué : c'était le résultat du cas précédent). Attendre que la ZONE ne bouge plus ne suffit pas :
+       sur un texte sans faute elle ne bouge jamais, et la liste du bas (#vdc-out, #vdc-result) arrive après.
+       ⇒ SENTINELLE : un enfant posé dans #vdc-out AVANT l'input ; runCorr réécrit son innerHTML à chaque
+       rendu (texte fautif ou non), la sentinelle disparaît = le rendu a eu lieu. Puis 200 ms de calme. */
+    const rendu = async () => { const out = document.getElementById('vdc-out'); const s = document.createElement('i'); s.className = 'sonde-sentinelle';
+      if (out) out.appendChild(s); return async () => { const t0 = Date.now();
+        while (out && out.contains(s) && Date.now() - t0 < 4000) await attendre(50);
+        let last = zone.innerHTML, since = Date.now();
+        for (;;) { await attendre(50); const h = zone.innerHTML;
+          if (h !== last) { last = h; since = Date.now(); } else if (Date.now() - since >= 200) return;
+          if (Date.now() - t0 > 5000) return; } }; };
     const passe = async (txt, appl) => { zone.textContent = txt;
-      zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
-      await attendre(500);
+      let fini = await rendu(); zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      await fini();
       const bar = (document.body.innerText.match(/\\((\\d+) appliqu/) || [])[1];   // \\ doublés : on est dans un gabarit JS
       const texte = zone.textContent;   // ⭐ INVARIANT : le rendu ne doit JAMAIS changer le texte saisi
-      zone.dispatchEvent(new InputEvent('input', { bubbles: true })); await attendre(500);
+      fini = await rendu(); zone.dispatchEvent(new InputEvent('input', { bubbles: true })); await fini();
       const texte2 = zone.textContent;  // ce que le moteur RELIT au tour suivant
       let carte = null; const sp = zone.querySelector('[data-key]');
       if (sp) { sp.dispatchEvent(new MouseEvent('click', { bubbles: true })); await attendre(150);
@@ -238,7 +260,7 @@ const SCRIPT = (cas) => `(async () => {
       // L'etat AFFIRMATIF (applique / marques) est capture AVANT le geste « appliquer » : le verdict « rien »
       // porte sur ce que le moteur a fait SEUL, pas sur ce que l'utilisateur vient de lui demander.
       const applique0 = [...document.querySelectorAll('.vdc-on')].map(e => e.textContent);
-      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className) }));
+      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className), sugg: e.getAttribute('data-sugg') }));
       let corrige = null;   // le texte CORRIGE (#vdc-result) : le modele est NON DESTRUCTIF, la zone du haut reste le texte saisi (PR#52)
       if (appl) { await attendre(700); const sp2 = zone.querySelector('[data-sugg]') || zone.querySelector('[data-key]');   // la MARQUE D'INSERTION (« ? », « . »), pas la première faute venue
         if (sp2) { sp2.dispatchEvent(new MouseEvent('click', { bubbles: true })); await attendre(150);
@@ -330,6 +352,9 @@ async function main() {
          interrogative » à l'usage, alors que le moteur PROPOSE le « ? »). On applique depuis la carte et on relit le texte. */
       if (c.appliquer && got.corrige !== c.appliquer)
         echecs.push(`« ${c.txt} » : appliquer depuis la carte devait donner ${JSON.stringify(c.appliquer)} dans le texte CORRIGÉ, eu ${JSON.stringify(got.corrige)}`);
+      if (c.propose) { const props = got.marque.map(m => m.sugg).filter(x => x != null);
+        if (props.indexOf(c.propose) < 0) echecs.push(`« ${c.txt} » : devait PROPOSER ${JSON.stringify(c.propose)} (${c.pourquoi}), marques ${JSON.stringify(props)}`);
+        if (c.propose === ' ?' && props.indexOf('.') >= 0) echecs.push(`« ${c.txt} » : propose un POINT au bout d'une question`); }
       if (got.carte === false)
         echecs.push(`« ${c.txt} » : le clic sur la faute dans la ZONE DE SAISIE n'ouvre pas la carte`);
       if (c.rien) { const dur = got.marque.filter(m => !m.vig).map(m => m.t);
