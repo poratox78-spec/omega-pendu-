@@ -123,6 +123,8 @@ function connecter(ws) {
 const CAS = [
   // ① le moteur est-il VRAIMENT équipé ? on teste un COMPORTEMENT, pas une présence de table.
   //    Ces deux-là ne passent que si NOUN_POST est chargé — le trou qui a rendu le moteur livré muet.
+  { txt: 'je vais bien tu viens demain', rien: true, pourquoi: 'point final MANQUANT proposé en orange : marque d’insertion, texte intact' },
+  { txt: 'est-ce que tu viens demain', rien: true, pourquoi: '« ? » MANQUANT proposé en orange : marque d’insertion, texte intact' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
   // ② conflit de direction déterminant/nom : UN SEUL sens par désaccord (PR#467)
@@ -225,7 +227,13 @@ const SCRIPT = (cas) => `(async () => {
       zone.dispatchEvent(new InputEvent('input', { bubbles: true }));
       await attendre(500);
       const bar = (document.body.innerText.match(/\\((\\d+) appliqu/) || [])[1];   // \\ doublés : on est dans un gabarit JS
-      return { nApplique: bar == null ? null : +bar,
+      const texte = zone.textContent;   // ⭐ INVARIANT : le rendu ne doit JAMAIS changer le texte saisi
+      zone.dispatchEvent(new InputEvent('input', { bubbles: true })); await attendre(500);
+      const texte2 = zone.textContent;  // ce que le moteur RELIT au tour suivant
+      let carte = null; const sp = zone.querySelector('[data-key]');
+      if (sp) { sp.dispatchEvent(new MouseEvent('click', { bubbles: true })); await attendre(150);
+        const c = document.getElementById('vdc-cardpop'); carte = !!(c && c.style.display === 'block' && (c.textContent || '').trim().length > 10); }
+      return { nApplique: bar == null ? null : +bar, texte, texte2, carte,
                applique: [...document.querySelectorAll('.vdc-on')].map(e => e.textContent),
                /* on garde la CLASSE : « vdc-vig » = vigilance orange, proposée et jamais appliquée.
                   La confondre avec une vraie marque rend le test faux — « un œuf et du bœuf »
@@ -299,6 +307,16 @@ async function main() {
       // « rien » porte sur la couche AFFIRMATIVE : rien d'appliqué, et aucune marque non-vigilance.
       // La vigilance orange est proposée, jamais imposée — la compter ici ferait échouer des phrases
       // parfaitement correctes (majuscule initiale absente) et rendrait le banc menteur.
+      /* ⭐ LE RENDU NE MODIFIE JAMAIS LE TEXTE SAISI (02/09). Les propositions de ponctuation (« . », « ? »)
+         étaient rendues comme du CONTENU du contenteditable : « est-ce que tu viens demain » (26 car.) relu
+         à 28 au tour suivant, curseur restauré sur un texte plus long, clic et sélection à côté (rapport de Rem).
+         Gardé sur CHAQUE cas, après le rendu ET après un second événement input. */
+      if (got.texte !== c.txt || got.texte2 !== c.txt)
+        echecs.push(`« ${c.txt} » : le RENDU a modifié le texte saisi → ${JSON.stringify(got.texte)} puis ${JSON.stringify(got.texte2)}`);
+      /* ⭐ LE CLIC SUR UNE FAUTE DE LA ZONE DE SAISIE OUVRE LA CARTE (règle + appliquer). Retiré par 6567363
+         sans que Rem l'ait demandé (« je n'ai jamais demandé ça ») : gardé dès qu'une faute est marquée. */
+      if (got.carte === false)
+        echecs.push(`« ${c.txt} » : le clic sur la faute dans la ZONE DE SAISIE n'ouvre pas la carte`);
       if (c.rien) { const dur = got.marque.filter(m => !m.vig).map(m => m.t);
         if (app.length || dur.length) echecs.push(`« ${c.txt} » ne devrait RIEN appliquer (${c.pourquoi}), eu ${JSON.stringify(app.concat(dur))}`); }
       for (const a of (c.attendu || [])) if (!app.includes(a.toLowerCase()))
