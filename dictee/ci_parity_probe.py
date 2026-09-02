@@ -64,6 +64,30 @@ def main():
         fail.append("dev.sh affiche $PASS/$((PASS)) = toujours « N/N » : un total tautologique qui ne peut jamais "
                     "révéler un manque.\n      ⇒ utiliser $((PASS+FAIL)).")
 
+    # ⭐ LE YAML LUI-MÊME. Le 02/09, une étape a été insérée SOUS un `run:` au lieu d'ouvrir un bloc
+    # `- name:` / `run:` : GitHub a refusé de charger le workflow (« workflow file issue ») — et ce
+    # contrôle était VERT, parce qu'il ne lit que les lignes `run:` et que la ligne orpheline n'en
+    # était pas une. Une garde qui compare des listes de scripts ne garde pas la validité du fichier.
+    # PyYAML si présent (pas garanti sur le runner : stdlib seulement), sinon un contrôle de FORME :
+    # dans `steps:`, toute ligne à l'indentation du corps d'une étape doit être `clé: valeur`.
+    try:
+        import yaml  # noqa
+        try:
+            yaml.safe_load(ci_src)
+        except Exception as e:
+            fail.append('ci.yml N’EST PAS DU YAML VALIDE : %s' % str(e).split(chr(10))[0][:160])
+    except ImportError:
+        _in_steps = False
+        for _n, _l in enumerate(ci_src.split(chr(10)), 1):
+            if re.match(r'^\s*steps:\s*$', _l):
+                _in_steps = True; continue
+            if not _in_steps or not _l.strip() or _l.lstrip().startswith('#'):
+                continue
+            _ind = len(_l) - len(_l.lstrip(' '))
+            if _ind == 8 and not re.match(r'^\s{8}[\w-]+:(\s|$)', _l):
+                fail.append('ci.yml:%d : ligne orpheline dans une étape (ni `clé:` ni commentaire) — GitHub'
+                            ' refusera le workflow : %s' % (_n, _l.strip()[:80]))
+
     if fail:
         print('✗ PARITÉ dev.sh ↔ ci.yml KO :\n  ' + '\n  '.join(fail))
         return 1
