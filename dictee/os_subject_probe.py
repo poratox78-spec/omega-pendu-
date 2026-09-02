@@ -68,6 +68,32 @@ def _coord_plural(F, vi):                            # sujet COORDONNÉ « N et 
             if any(k-d >= lo and SP.deacc(F[k-d]) in ('de', 'des', 'du', "d'") for d in (1, 2, 3)): continue  # « de X et Y » = coordination DANS un complément → pas le sujet
             return True
     return False
+def _rel_ant(F, vi):
+    """LA RELATIVE EN « qui » (miroir JS _osRelAnt, 03/09/2026). Si un « qui » précède le verbe dans les 8 tokens, même
+    segment, sans et/ou/mais/que/dont entre les deux : le sujet est l'ANTÉCÉDENT (token avant « qui »), pas le dernier
+    nom de la relative (« les villages qui composent la commune sont » → villages). Rend l'indice de l'antécédent ou -1."""
+    lo = 0
+    if C._SEG is not None:
+        for j in range(vi, 0, -1):
+            if j < len(C._SEG['bb']) and C._SEG['bb'][j]: lo = j; break
+    j = vi-1
+    while j > lo and j >= vi-8:
+        d = SP.deacc(F[j])
+        if d == 'qui': return j-1
+        if d in ('et', 'ou', 'mais', 'que', "qu'", 'dont'): return -1
+        j -= 1
+    return -1
+def _ant_num(F, ant):
+    """nombre porté par l'antécédent LUI-MÊME (miroir JS _osAntNum) : _num_at, sinon partitif « de N-s » ; sinon None → la
+    règle se tait (un repli de 3 mots en arrière tombait à côté : « FIRA-AER qui », « architékete … qui »)."""
+    if ant >= 2 and F[ant-1] in NUM_DET and SP.deacc(F[ant-2]) in ('de', 'des', 'du', "d'"):
+        return None                                   # « les nations de la FIRA-AER qui » : antécédent = COMPLÉMENT, tête avant → ambigu, on se tait (miroir JS)
+    x = _num_at(F, ant)
+    if x: return x
+    if ant > 0:
+        dp, npf = SP.deacc(F[ant-1]), SP.deacc(F[ant])
+        if dp in ('de', "d'") and npf.endswith(('s', 'x')) and npf not in _OS_INVAR: return 'p'
+    return None
 def R1(F, vi):
     for k in range(vi-1, -1, -1):
         x = _num_at(F, k)
@@ -206,9 +232,15 @@ def detect(F, vi, tau=0.85, tg=None):
             num = 's' if pp_[0] >= pp_[1] else 'p'; conf = abs(pp_[0] - pp_[1])
             if conf < tau or num == vn: return None
             return (f3p if num == 'p' else f3s, conf)
-    ds = [R1(F, vi), R2(F, vi), R3(F, vi), R4(F, vi, f3s, f3p)]
+    ant = _rel_ant(F, vi)
+    if ant >= 0:                                          # relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait (miroir JS)
+        an = _ant_num(F, ant)
+        if not an: return None
+        ds = [_vote(an, 0.9), R4(F, vi, f3s, f3p)]
+    else:
+        ds = [R1(F, vi), R2(F, vi), R3(F, vi), R4(F, vi, f3s, f3p)]
     ws = [_peak(d) + 1e-6 for d in ds]
-    ws[3] *= 0.4                                          # LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence (préfère le sing.), ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
+    ws[-1] *= 0.4                                          # LM (R4) DÉ-PONDÉRÉ : biaisé-fréquence (préfère le sing.), ne doit pas écraser les routes structurelles concordantes (récupère « les livreurs accepte→acceptent »)
     if _coord_plural(F, vi):                              # route COORDINATION : sujet « N et N » → pluriel, poids fort (tue les floods « la suède et la russie signent »→signe)
         ds.append((0.02, 0.98)); ws.append(max(ws) + 1.0)
     Z = sum(ws)
