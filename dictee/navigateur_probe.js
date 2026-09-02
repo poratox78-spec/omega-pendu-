@@ -261,12 +261,17 @@ const SCRIPT = (cas) => `(async () => {
       // porte sur ce que le moteur a fait SEUL, pas sur ce que l'utilisateur vient de lui demander.
       const applique0 = [...document.querySelectorAll('.vdc-on')].map(e => e.textContent);
       const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className), sugg: e.getAttribute('data-sugg') }));
+      /* ⭐ LA MARQUE SE CLIQUE (02/09/2026, Rem : « le ? je ne sais pas comment bien faire, je te laisse faire »).
+         Mesuré dans Chrome AVANT : boîte de 0 × 3 px (width:0 + glyphe absolu), seul un halo de ±5 px répondait.
+         APRÈS : le glyphe est dans le flux, 16 × 32 px, et le point central de la boîte touche bien la marque. */
+      const boite = (() => { const m = zone.querySelector('[data-sugg]'); if (!m) return null; const r = m.getBoundingClientRect();
+        return { w: Math.round(r.width), h: Math.round(r.height), vise: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === m }; })();
       let corrige = null;   // le texte CORRIGE (#vdc-result) : le modele est NON DESTRUCTIF, la zone du haut reste le texte saisi (PR#52)
       if (appl) { await attendre(700); const sp2 = zone.querySelector('[data-sugg]') || zone.querySelector('[data-key]');   // la MARQUE D'INSERTION (« ? », « . »), pas la première faute venue
         if (sp2) { sp2.dispatchEvent(new MouseEvent('click', { bubbles: true })); await attendre(150);
           const bt = document.querySelector('#vdc-cardpop .vcap'); if (bt) { bt.click(); await attendre(600); }
           const rz = document.getElementById('vdc-result'); corrige = rz ? rz.textContent.trim() : null; } }
-      return { nApplique: bar == null ? null : +bar, texte, texte2, carte, corrige,
+      return { nApplique: bar == null ? null : +bar, texte, texte2, carte, corrige, boite,
                applique: applique0,
                /* on garde la CLASSE : « vdc-vig » = vigilance orange, proposée et jamais appliquée.
                   La confondre avec une vraie marque rend le test faux — « un œuf et du bœuf »
@@ -355,6 +360,8 @@ async function main() {
       if (c.propose) { const props = got.marque.map(m => m.sugg).filter(x => x != null);
         if (props.indexOf(c.propose) < 0) echecs.push(`« ${c.txt} » : devait PROPOSER ${JSON.stringify(c.propose)} (${c.pourquoi}), marques ${JSON.stringify(props)}`);
         if (c.propose === ' ?' && props.indexOf('.') >= 0) echecs.push(`« ${c.txt} » : propose un POINT au bout d'une question`); }
+      if (c.propose || c.appliquer) { const b = got.boite;
+        if (!b || b.w < 8 || b.h < 16 || !b.vise) echecs.push(`« ${c.txt} » : la marque d'insertion n'est pas CLIQUABLE (boîte ${JSON.stringify(b)} ; attendu ≥ 8 × 16 px et visée au centre)`); }
       if (got.carte === false)
         echecs.push(`« ${c.txt} » : le clic sur la faute dans la ZONE DE SAISIE n'ouvre pas la carte`);
       if (c.rien) { const dur = got.marque.filter(m => !m.vig).map(m => m.t);

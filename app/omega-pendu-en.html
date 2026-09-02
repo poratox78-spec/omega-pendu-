@@ -28038,7 +28038,11 @@ function spellTokenCore(tok,atStart,T,idx){
    +'.vdc-bad{background:#f6b6b6;border-bottom:3px solid #b02020;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-bad:hover{background:#f29a9a}'   /* fonds SATURÉS (pastels trop pâles = illisibles) */
    +'.vdc-bad.vdc-orth{background:#bcd6f5;border-bottom-color:#1b5c86}.vdc-bad.vdc-orth:hover{background:#a3c6ef}'
    +'.vdc-bad.vdc-vig{background:#ffdd94;border-bottom:3px dashed #c8760a;font-weight:600}.vdc-bad.vdc-vig:hover{background:#ffd06f}'
-   +'.vdc-ins{position:relative}'   +'.vdc-ins::after{content:"";position:absolute;left:-5px;right:-5px;top:-3px;bottom:-3px;cursor:pointer}'+'.vdc-ins[data-sugg]{display:inline-block;width:0;overflow:visible}.vdc-ins[data-sugg]::before{content:attr(data-sugg);position:absolute;left:0;top:0;white-space:pre;color:#b02020;font-weight:700;pointer-events:none}'   /* glyphe PROPOSÉ dessiné hors flux : jamais dans textContent */   /* ZONE DE CLIC élargie par un pseudo-élément ABSOLU : il ne participe pas au flux, donc zéro delta
+   +'.vdc-ins{position:relative}'   +'.vdc-ins::after{content:"";position:absolute;left:-5px;right:-5px;top:-3px;bottom:-3px;cursor:pointer}'
+   /* marque d’INSERTION (« ? », « . » proposés) : le glyphe est un pseudo-élément — jamais dans le texte saisi — mais DANS LE FLUX :
+      la marque a la largeur du glyphe et la hauteur de la ligne, donc elle se clique. Avec width:0 + ::before absolu, la boîte
+      cliquable faisait 0 × 3 px (mesuré dans Chrome le 02/09/2026 ; le halo ::after de ±5 px restait seul). */
+   +'.vdc-ins[data-sugg]{display:inline-block;min-width:.9em;text-align:center;vertical-align:baseline}.vdc-ins[data-sugg]::before{content:attr(data-sugg);white-space:pre;color:#b02020;font-weight:700}'   /* glyphe PROPOSÉ dessiné par un pseudo-élément : jamais dans textContent */   /* ZONE DE CLIC élargie par un pseudo-élément ABSOLU : il ne participe pas au flux, donc zéro delta
       de métrique face à la textarea — un padding, lui, décalerait tout le texte. */
    +'.vdc-vig{border-bottom:2px dotted #1f7a3d;cursor:help;border-radius:2px}.vdc-vig:hover{background:#e3f6e6}'   /* VERT pointillé = vigilance (confusable), n\'affirme pas une faute ; survol = possibilités */
    +'.vdc-on{background:#c9efd0;border-bottom:3px solid #1f7a3d;border-radius:3px;padding:0 2px;cursor:pointer;font-weight:600}.vdc-on:hover{background:#b3e6bd}'   /* VERT plein = correction APPLIQUÉE (clique = annuler) — modèle non destructif */
