@@ -99,7 +99,14 @@
   var lastDg = { flags: [] };
   function diagnose(t) { try { return DC.diagnoseAll ? DC.diagnoseAll(t) : { flags: [] }; } catch (e) { return { flags: [] }; } }
   function applyFlag(f) {
-    var t = ta.value, s = spans(t)[f.i]; if (!s) return;
+    var t = ta.value;
+    /* INSERTION ANCRÉE CARACTÈRE (« ? » ou « . » manquant, cs===ce) : ces flags n'ont pas d'indice de
+       token, `spans(t)[f.i]` rendait undefined et le clic ne faisait RIEN — proposé, jamais applicable
+       (02/09/2026, sur le rapport de Rem : « la ponctuation ne marche pas en forme interrogative »). */
+    if (f.i == null && typeof f.cs === 'number' && typeof f.ce === 'number') {
+      ta.value = t.slice(0, f.cs) + f.sugg + t.slice(f.ce); runNow(); return;
+    }
+    var s = spans(t)[f.i]; if (!s) return;
     var e = spans(t)[f.i + (f.span ? f.span - 1 : 0)] || s;
     ta.value = t.slice(0, s[0]) + f.sugg + t.slice(e[1]);
     runNow();
@@ -178,7 +185,7 @@
     var h = '';
     flags.forEach(function (f, k) {
       var vig = f.tier === 'vigilance', orth = /orthographe|[ée]lision/.test(f.name || ''), off = !vig && !!_ign[_fk(f)];
-      h += '<div class="item' + (vig ? ' tvig' : (orth ? ' orth' : '')) + (vig ? '' : (off ? ' off' : ' done')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
+      h += '<div class="item' + (vig ? ' tvig' : (orth ? ' orth' : '')) + (vig ? '' : (off ? ' off' : ' done')) + '" data-k="' + k + '">' + (f.word ? '« ' + esc(f.word) + ' » → ' : 'ajouter ') + '<b>« ' + esc(f.word ? f.sugg : f.sugg.trim()) + ' »</b>'
         + ' <span class="fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vig ? ' · à vérifier' : '')) + ']</span>'
         + (vig ? '' : '<span class="etat">' + (off ? 'annulé · clique pour réappliquer' : '✓ appliqué à la copie · clique pour annuler') + '</span>')
         + (f.hint ? '<button class="why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')

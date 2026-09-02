@@ -186,12 +186,57 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
                     + " » ne donne pas « " + c.attendu + ' » (' + c.pourquoi + ')');
     });
 
+    /* ⑤ LE PANNEAU LATÉRAL LUI-MÊME, dans Chrome : sa page (`sidepanel.html`) s'ouvre comme un onglet
+       de l'extension. On y TAPE une question sans « ? », on CLIQUE la proposition, on RELIT la zone.
+       Trou fermé le 02/09/2026 (rapport de Rem, « la ponctuation ne marche pas en forme
+       interrogative ») : `applyFlag` ancrait sur l'indice de token, que les insertions (« ? », « . »,
+       cs===ce) n'ont pas — la proposition s'affichait, le clic ne faisait RIEN. Un banc qui n'interroge
+       que le moteur ne pouvait pas le voir : c'est le GESTE qu'on garde ici. */
+    const PANNEAU = [
+      { txt: 'est-ce que tu viens demain', attendu: 'est-ce que tu viens demain ?', pourquoi: 'le « ? » proposé s’applique d’un clic dans la zone du panneau' },
+      { txt: 'je vais bien tu viens demain', attendu: 'je vais bien tu viens demain.', pourquoi: 'le point final proposé s’applique d’un clic' },
+    ];
+    const pp = await connecter(await onglet(dp, 'chrome-extension://' + r0.id + '/sidepanel.html'));
+    await pp.envoyer('Runtime.enable');
+    const rp = await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 120000,
+      expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+        + ' const until = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await w(150); } };'
+        + ' const ta = await until(() => document.getElementById("omdys-ta"), 20000); if (!ta) return { fatal: "zone omdys-ta introuvable" };'
+        /* le MIROIR est coché par défaut et VIDE la zone à tout changement d'onglet quand elle n'a pas le
+           focus (« le panneau n'affirme jamais un texte que la page n'a plus ») — nos onglets CDP en sont un.
+           On fait ce que fait l'utilisateur qui écrit DANS le panneau : miroir décoché, zone au focus. */
+        + ' const mir = document.getElementById("omdys-mirror"); if (mir && mir.checked) { mir.checked = false; mir.dispatchEvent(new Event("change", { bubbles: true })); }'
+        + ' ta.focus();'
+        /* `omdys-ta` est un contenteditable dont `.value` est une propriété DÉFINIE par le script du panneau
+           (son_panel.js) : écrire avant qu'il soit chargé pose un expando mort — la zone reste vide et tout
+           semble « ne rien proposer ». On attend l'état « prêt » du panneau, comme l'utilisateur qui attend
+           que le moteur se dise chargé. */
+        + ' const st = document.getElementById("omdys-st"); const pret = await until(() => st && /pr[êe]t/i.test(st.textContent || ""), 30000); if (!pret) return { fatal: "le panneau ne se dit jamais prêt (omdys-st=" + (st ? st.textContent : "absent") + ")" };'
+        + ' const out = []; for (const c of ' + JSON.stringify(PANNEAU) + ') {'
+        + '   ta.value = c.txt;'
+        /* UN SEUL événement input, puis on attend : le panneau a un délai de frappe, et le ré-émettre
+           à chaque tour de scrutation le relançait sans fin — la proposition n'arrivait jamais. */
+        + '   ta.dispatchEvent(new Event("input", { bubbles: true }));'
+        + '   const it = await until(() => [...document.querySelectorAll("#omdys-corr .item")].find(e => (e.textContent || "").indexOf(c.attendu.slice(-1)) >= 0), 30000);'
+        + '   if (!it) { out.push({ txt: c.txt, item: null, valeur: ta.value }); continue; }'
+        + '   const lib = (it.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60); it.click(); await w(300);'
+        + '   out.push({ txt: c.txt, item: lib, valeur: ta.value }); }'
+        + ' return { out }; })()' });
+    if (rp.exceptionDetails) throw new Error('panneau : ' + ((rp.exceptionDetails.exception || {}).description || 'exception'));
+    const vp = (rp.result && rp.result.value) || {};
+    if (vp.fatal) throw new Error('panneau : ' + vp.fatal);
+    (vp.out || []).forEach((got, k) => {
+      const c = PANNEAU[k], ok = got.valeur === c.attendu;
+      log('  ' + (ok ? '✓' : '✗') + ' [panneau ] ' + c.txt.padEnd(34) + '→ ' + JSON.stringify(got.valeur) + (got.item ? '   (' + got.item + ')' : '   (AUCUNE proposition cliquable)'));
+      if (!ok) echecs.push('panneau latéral RÉEL : « ' + c.txt + ' » devait devenir ' + JSON.stringify(c.attendu) + ' au clic, eu ' + JSON.stringify(got.valeur) + ' (' + c.pourquoi + ')');
+    });
+    try { pp.fermer(); } catch (e) {}
     if (echecs.length) {
       console.log('✗ EXTENSION DANS CHROME — ' + echecs.length + ' échec(s) :');
       echecs.forEach(e => console.log('  ' + e));
       code = 1;
     } else {
-      console.log('✓ EXTENSION DANS CHROME : ' + CAS.length + ' comportements vérifiés dans le PAQUET RÉEL '
+      console.log('✓ EXTENSION DANS CHROME : ' + (CAS.length + PANNEAU.length) + ' comportements vérifiés dans le PAQUET RÉEL (dont ' + PANNEAU.length + ' gestes du panneau latéral) '
                   + '(content.js injecté, assets chargés par chrome.runtime.getURL).');
     }
   } catch (e) {
