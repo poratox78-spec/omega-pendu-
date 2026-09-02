@@ -3296,6 +3296,17 @@ function spellUnknown(tok,atStart,T,idx){
   // MIROIR dictee/os_subject_probe.py. ORANGE « accord verbe à vérifier » sur le RÉSIDUEL (sujet non parsable finement,
   // « de N » inclus) que le rouge/imparfaitVig ne touchent pas. Le LM (R4) porte la CONFIANCE qui rend le gating utile.
   var _OSLM=null, _OS_TAU=0.85;
+  // ⭐ LE BON INSTRUMENT À LA PLACE DU PROXY. Le filet homographe de `_osVerbCtx` demandait « est-ce
+  // un nom ? » à une table de GENRE de 4 178 entrées — or `noun-post` répond exactement à cette
+  // question sur 83 356 mots : P(NOM) contre P(VERBE) en ‰, et elle est DÉJÀ CHARGÉE par le moteur.
+  // « écorce » y vaut [975, 23] et passait quand même : « une dure écorce qui met le bois tendre »
+  // recevait un orange « écorcent » (mesuré 4 fois au produit sur le corpus dys).
+  // Le seuil de la règle a/à (PL_EPS_M : P(VER) < 1 ‰) est trop strict ici et laisserait passer
+  // écorce. On exige un nom NET — ce qui laisse INTACTS les homographes vraiment ambigus
+  // (ferme [389,472], porte [716,284], marche [383,617]) et les mots ABSENTS de la table, dont
+  // « circule », le cas que ce filet existe pour rattraper. Référence : flood 25/3943 et rappel
+  // 106/153 INCHANGÉS après la pose. Miroir dictee/os_subject_probe.py.
+  var OS_NOUN_TAU=900, OS_NOUN_EPS=50;
   function setOsLm(m){
     if(!m||!m.uni){_OSLM=null;return;}
     function sums(tab){var s={},k,w,t;for(k in tab){t=0;for(w in tab[k])t+=tab[k][w];s[k]=t;}return s;}
@@ -3345,7 +3356,7 @@ function spellUnknown(tok,atStart,T,idx){
   var _osInvWh={};'que qu ou combien comment quand pourquoi quel quelle quels quelles'.split(' ').forEach(function(w){_osInvWh[w]=1;});   // interrogatifs (déaccentués : ou=où) = _INV_WH
   function _osVerbCtx(tg,F,vi){if(vi>=tg.length)return false;if(tg[vi]==='VERB'||tg[vi]==='AUX')return true;   // GATE POS + filet homographe ÉTROIT (NOUN/X seul, pas ADJ/PROPN=flood jeune/Bee) — miroir Python _verb_ctx : +1 recall/0 flood
     if(tg[vi]!=='NOUN'&&tg[vi]!=='X')return false;var d=deacc(F[vi]);
-    if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;
+    if(GENDER_MAP[d]||ADJP[d]||PREP[d])return false;var _np=NOUN_POST?NOUN_POST.get(d):null;if(_np&&_np[0]>=OS_NOUN_TAU&&_np[1]<=OS_NOUN_EPS)return false;
     if(vi>0&&(NUM_DET[F[vi-1]]!==undefined||PREP[deacc(F[vi-1])]))return false;return svReads(F[vi]).length>0;}
   function _osRPostpose(F,vi,tg){var lo=0,j;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}   // SUJET POSTPOSÉ (inversion, idée Rem #198) — miroir _R_postpose : trigger accent-aware + scan APRÈS le verbe, 0 flood
     var acc=F[lo],d=deacc(acc);

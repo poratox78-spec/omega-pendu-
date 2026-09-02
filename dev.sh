@@ -10,6 +10,18 @@ cd "$(dirname "$0")"
 export PYTHONUTF8="${PYTHONUTF8:-1}"  # Windows : stdout cp1252 → UnicodeEncodeError sur l'Unicode (→ ✓ ≈) ; no-op sous Linux/macOS (déjà UTF-8)
 Q="${1:-}"; PASS=0; FAIL=0; FAILED=(); SUSP=0; SUSPECTS=()
 
+# ⭐ ./dev.sh fresh — RÉGÉNÈRE LES ARTEFACTS DÉRIVÉS AVANT LA BATTERIE. Le 02/09, trois batteries complètes
+# (~25 min chacune) ont été perdues pour la même raison : le moteur avait changé, le zip de l'extension et
+# le clone anglais non, et les deux contrôles « FRAIS » rougissaient EN FIN de batterie. Ce mode fait les
+# builds d'abord ; les contrôles FRAIS restent tels quels (ils gardent ce qui est COMMITÉ, en CI comme ici).
+# Appelé hors du wrapper `run`, donc invisible à ci_parity_probe : aucune asymétrie créée.
+if [ "$Q" = "fresh" ]; then
+  echo "── FRESH : artefacts dérivés régénérés AVANT la batterie ──"
+  python3 extension/build_zip.py   && echo "  ✓ zip extension"
+  python3 dictee/build_pendu_en.py && echo "  ✓ clone anglais"
+  Q="check"
+fi
+
 # ⭐ Un contrôle VERT dont la sortie signale un problème était INVISIBLE : la sortie des verts était
 # jetée (elle n'apparaissait que dans la branche d'échec). C'est ainsi qu'un FP=0 violé en production
 # (« La foule attendait »→« attendaient », palier auto) a été imprimé des mois durant sans être vu
@@ -134,6 +146,7 @@ run "répétition espacée (planificateur Leitner, bloc pur du monolithe)" node 
 run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
 run "EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL)" node extension/navigateur_ext_probe.js --check
 run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 dictee/dys_precision_probe.py --navigateur
+run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 
 echo "── LIVRAISON ──"
 run "icônes extension FRAÎCHES (== icon-512.png, exigées par le Store)" python3 extension/build_icons.py --check

@@ -12,6 +12,7 @@ import speller_probe as SP
 import correcteur_probe as C
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONJ_C = C.CONJ_C; NUM_DET = getattr(C, 'NUM_DET', {}); PREP = getattr(C, 'PREP', set())
+NOUN_POST = getattr(C, 'NOUN_POST', None)   # posterior NOM/VERBE (‰) sur 83 356 mots — la table qui repond VRAIMENT a la question du filet
 FULL_AUX = getattr(C, 'FULL_AUX', set()); CLITIC = getattr(C, 'CLITIC', set()); SUBJ_PRON = getattr(C, 'SUBJ_PRON', {})
 TOK = re.compile(r"[a-zA-Zà-ÿœæ'\-]+")
 def tk(s): return [w.lower() for w in TOK.findall(s.replace('’', "'"))]
@@ -161,6 +162,8 @@ def _R_postpose(F, vi, tg):
 
 _INV_WH = getattr(C, '_INV_WH', set())
 
+OS_NOUN_TAU, OS_NOUN_EPS = 900, 50   # P(NOM) >= 0,90 et P(VERBE) <= 0,05 : un nom NET, pas un homographe
+
 def _verb_ctx(tg, F, vi):
     """GATE POS de l'OS + filet homographe ÉTROIT. VERB/AUX net, OU verbe-forme mistaguée NOUN/X (PAS ADJ/PROPN : jeune/Bee
     = flood) NI nom (GENDER_FULL) NI adj (ADJ_LEX) NI préposition, et pas précédée d'un dét/prép. Récupère « les rumeurs
@@ -171,6 +174,16 @@ def _verb_ctx(tg, F, vi):
     if tg[vi] not in ('NOUN', 'X'): return False
     d = C.deacc(F[vi].lower())
     if d in C.GENDER_FULL or d in C.ADJ_LEX or d in PREP: return False
+    # ⭐ LE BON INSTRUMENT À LA PLACE DU PROXY. Ce filet demandait « est-ce un nom ? » à une table de
+    # GENRE de 4 178 entrées (GENDER_FULL) — or `noun_post` répond exactement à cette question sur
+    # 83 356 mots : P(NOM) contre P(VERBE) en ‰. « écorce » y vaut [975, 23] et passait quand même,
+    # d'où « une dure écorce qui met le bois tendre » → « écorcent » (mesuré au produit, 4 fois).
+    # Seuil PROPRE à cette garde : le précédent de la règle a/à (P(VER) < 1 ‰) est trop strict et
+    # laisserait passer écorce. On exige un nom NET, ce qui laisse intacts les homographes
+    # réellement ambigus (ferme [389,472], porte [716,284], marche [383,617]) et les mots ABSENTS de
+    # la table — dont « circule », le cas que ce filet existe pour rattraper.
+    _np = NOUN_POST.get(d) if NOUN_POST else None
+    if _np and _np[0] >= OS_NOUN_TAU and _np[1] <= OS_NOUN_EPS: return False
     if vi > 0 and (F[vi-1].lower() in NUM_DET or C.deacc(F[vi-1].lower()) in PREP): return False
     return bool(C._reads(F[vi]))
 

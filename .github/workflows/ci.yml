@@ -46,6 +46,8 @@ jobs:
         run: node extension/navigateur_ext_probe.js --check
       - name: Précision par famille AU PRODUIT — extension réelle dans Chrome (sautée sans corpus dys privé)
         run: python3 dictee/dys_precision_probe.py --navigateur
+      - name: Résiduel — tokens CORRECTS détruits (FP=0, plafond dur ; sauté sans corpus local)
+        run: node dictee/residual_audit.js --check
       - name: Boucle descendante (apprend le lexique de genre)
         run: python3 dictee/descending_probe.py
       - name: « did you mean » fréquence reste FALSIFIÉ (régression sur le cardinal FP=0)
