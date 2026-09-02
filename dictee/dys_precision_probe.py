@@ -297,6 +297,12 @@ def main():
     # gold (« Tout cette mascarade », que le gold laisse tel quel alors que « Toute » est juste)
     # contre 2 vrais FP. Le plafond reste un GARDE DE RÉGRESSION valable — il ne peut que baisser —
     # mais on n'annonce pas ce nombre comme le compte exact des violations.
+    # ⭐ ET LES DEUX « VRAIS FP » SONT UN ARBITRAGE ASSUMÉ, PAS UN BUG. « Les tige elle-même » et
+    # « pendant les guerre » sont des désaccords DÉTERMINANT↔NOM où le déterminant est fautif ;
+    # le moteur accorde le NOM. `rLeur` (dys-core.js) porte la mesure : sur 99 désaccords appariés,
+    # le gold corrige le nom 59 fois contre 12 le déterminant — accorder le nom est le bon pari
+    # 83 % du temps, et ces cas sont deux des 12. Ne PAS ouvrir de chantier là-dessus sans
+    # remesurer les 99 : ce serait échanger 59 réparations contre 12.
     casse = [r for r in rows if r['palier'].startswith('auto') and r['inutile'] > 0]
     if casse:
         print('')
