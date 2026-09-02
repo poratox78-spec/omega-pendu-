@@ -135,6 +135,12 @@ const CAS = [
   { txt: "qu'allons nous faire demain", rien: true, propose: ' ?', pourquoi: '« qu’ » + inversion sans trait : « ? » proposé, pas un point' },
   { txt: 'est ce que tu viens demain', rien: true, propose: ' ?', pourquoi: '« est ce que » sans trait d’union' },
   { txt: 'je pense tu as raison', rien: true, propose: '.', pourquoi: 'CONTRE-GARDE : « pense tu » ne s’accorde pas, ce n’est pas une question → point final' },
+  /* ⭐ ACCORD VERBE À VÉRIFIER — LA RELATIVE EN « qui » (03/09/2026, mesuré dans Chrome sur le corpus dys : +1 juste,
+     −10 inutiles, 0 fausse). Le sujet du verbe après une relative est l'ANTÉCÉDENT, pas le dernier nom de la relative.
+     Gardé ici comme COMPORTEMENT (Rem : « il me faut des exemples réels testés dans le vrai moteur dans Chrome »). */
+  { txt: 'les villages qui composent la commune sont petits', rien: true, orangeInterdit: 'sont', pourquoi: 'antécédent « villages » : « sont » est juste, plus d’orange « est »' },
+  { txt: 'un groupe de chercheurs qui traquent des trésors', rien: true, orangeInterdit: 'traquent', pourquoi: '« de chercheurs » lu pluriel : « traquent » est juste' },
+  { txt: 'les haies qui délimite les champs', corrigeAttendu: ['délimite', 'délimitent'], pourquoi: 'la seule utile du corpus : « délimite » → délimitent (rouge si le sujet en tête se lit, orange OS sinon — l’un ou l’autre, jamais rien)' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
   // ② conflit de direction déterminant/nom : UN SEUL sens par désaccord (PR#467)
@@ -260,7 +266,7 @@ const SCRIPT = (cas) => `(async () => {
       // L'etat AFFIRMATIF (applique / marques) est capture AVANT le geste « appliquer » : le verdict « rien »
       // porte sur ce que le moteur a fait SEUL, pas sur ce que l'utilisateur vient de lui demander.
       const applique0 = [...document.querySelectorAll('.vdc-on')].map(e => e.textContent);
-      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className), sugg: e.getAttribute('data-sugg') }));
+      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className), sugg: e.getAttribute('data-sugg'), key: e.getAttribute('data-key') }));
       /* ⭐ LA MARQUE SE CLIQUE (02/09/2026, Rem : « le ? je ne sais pas comment bien faire, je te laisse faire »).
          Mesuré dans Chrome AVANT : boîte de 0 × 3 px (width:0 + glyphe absolu), seul un halo de ±5 px répondait.
          APRÈS : le glyphe est dans le flux, 16 × 32 px, et le point central de la boîte touche bien la marque. */
@@ -362,6 +368,10 @@ async function main() {
         if (c.propose === ' ?' && props.indexOf('.') >= 0) echecs.push(`« ${c.txt} » : propose un POINT au bout d'une question`); }
       if (c.propose || c.appliquer) { const b = got.boite;
         if (!b || b.w < 8 || b.h < 16 || !b.vise) echecs.push(`« ${c.txt} » : la marque d'insertion n'est pas CLIQUABLE (boîte ${JSON.stringify(b)} ; attendu ≥ 8 × 16 px et visée au centre)`); }
+      if (c.orangeInterdit) { const mauvais = got.marque.filter(m => m.vig && m.t.trim().toLowerCase() === c.orangeInterdit.toLowerCase());
+        if (mauvais.length) echecs.push(`« ${c.txt} » : « ${c.orangeInterdit} » ne devait PAS être marqué (${c.pourquoi}), marques ${JSON.stringify(mauvais.map(m => m.key))}`); }
+      if (c.corrigeAttendu) { const cible = c.corrigeAttendu[1].toLowerCase(), ok = got.marque.some(m => (m.key || '').toLowerCase().endsWith('|' + cible)) || got.applique.some(a => a.toLowerCase() === cible);
+        if (!ok) echecs.push(`« ${c.txt} » : « ${c.corrigeAttendu[0]} » devait être corrigé ou proposé en « ${c.corrigeAttendu[1]} » (${c.pourquoi}), marques ${JSON.stringify(got.marque.map(m => m.key))}, appliqué ${JSON.stringify(got.applique)}`); }
       if (got.carte === false)
         echecs.push(`« ${c.txt} » : le clic sur la faute dans la ZONE DE SAISIE n'ouvre pas la carte`);
       if (c.rien) { const dur = got.marque.filter(m => !m.vig).map(m => m.t);
