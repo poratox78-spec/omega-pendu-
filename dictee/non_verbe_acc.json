@@ -1,0 +1,21 @@
+{
+ "note": "mots ACCENTUES connus nom/adj (GENDER_ACC) dont le jumeau DESACCENTUE est une forme verbale (CONJ_F) mais qui ne sont PAS une forme verbale (Morphalou 3.1, LGPL-LR). Generes par build_non_verbe_acc.py.",
+ "mots": [
+  "adhérent",
+  "châsse",
+  "châsses",
+  "côte",
+  "côtes",
+  "côté",
+  "côtés",
+  "faîtes",
+  "gène",
+  "gènes",
+  "indifférent",
+  "mûre",
+  "mûres",
+  "précédent",
+  "réversions",
+  "érigérons"
+ ]
+}
