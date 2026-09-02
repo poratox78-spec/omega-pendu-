@@ -25,6 +25,27 @@ from collections import defaultdict
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+# ⭐ UN POURCENTAGE SUR 13 ÉVÉNEMENTS N'EST PAS UNE MESURE. Sur les 102 lignes de la table, la
+# MÉDIANE d'effectif est de 4 ; 72 % des lignes ont n <= 9 et 29 % n'ont qu'UN seul événement
+# (elles affichent donc 0 % ou 100 %). Les 4 lignes de la bannière de dette ont des intervalles
+# de confiance à 95 % LARGES DE 37 À 45 POINTS : « élision fusionnée 30,8 % », c'est en réalité
+# [12,7 ; 57,6] sur 13 cas. Cette table est un excellent DÉTECTEUR DE CHANGEMENT (corpus fixe,
+# sortie déterministe, diff octet pour octet) et un mauvais ESTIMATEUR DE QUALITÉ — la bannière
+# s'en servait comme d'un estimateur. On imprime donc l'EFFECTIF et l'INTERVALLE, et on refuse de
+# dire « en dette » sous le plancher : on dit NON MESURÉE, ce qui est la vérité.
+N_PLANCHER = 30
+
+def _wilson(j, n):
+    """Intervalle de Wilson a 95 % — honnete sur petits effectifs, contrairement a l'intervalle normal."""
+    if not n:
+        return (0.0, 100.0)
+    z = 1.96
+    ph = float(j) / n
+    d = 1.0 + z * z / n
+    c = (ph + z * z / (2 * n)) / d
+    e = z * ((ph * (1 - ph) / n + z * z / (4.0 * n * n)) ** 0.5) / d
+    return (max(0.0, 100.0 * (c - e)), min(100.0, 100.0 * (c + e)))
+
 _DIR_ICI = os.path.dirname(os.path.abspath(__file__))
 # ⭐ DEUX RÉFÉRENCES, PAS UNE. Le mode --navigateur mesure un AUTRE moteur (le produit :
 # diagnoseAll, avec pyramide, cascade et arbitrage) que le mode par défaut (référence Python,
@@ -273,14 +294,27 @@ def main():
     # ⚠️ DETTE VISIBLE, réimprimée À CHAQUE PASSAGE VERT (convention du census). Une règle au
     # palier AUTO est APPLIQUÉE EN SILENCE : sous 80 % de précision, elle réécrit plus d'un mot
     # sur cinq en une autre faute. Enterré dans une ligne de tableau, personne ne le voit.
-    dette = [r for r in rows if r['palier'].startswith('auto') and r['precision'] is not None
+    _cand = [r for r in rows if r['palier'].startswith('auto') and r['precision'] is not None
              and r['precision'] < 80.0 and (r['juste'] + r['fausse']) >= 10]
+    dette = [r for r in _cand if (r['juste'] + r['inutile'] + r['fausse']) >= N_PLANCHER]
+    faible = [r for r in _cand if (r['juste'] + r['inutile'] + r['fausse']) < N_PLANCHER]
     if dette:
         print('')
         print(u'  ⚠️ %d règle(s) APPLIQUÉE(S) EN SILENCE sous 80 %% de précision sur texte dys :' % len(dette))
         for r in sorted(dette, key=lambda r: r['precision']):
-            print(u'      %-42s %-12s %5.1f %%  (%d justes / %d INUTILES / %d fausses)'
-                  % (r['famille'][:42], r['palier'], r['precision'], r['juste'], r['inutile'], r['fausse']))
+            n = r['juste'] + r['inutile'] + r['fausse']
+            lo, hi = _wilson(r['juste'], n)
+            print(u'      %-42s %-12s %5.1f %%  [%.0f-%.0f] sur %d cas  (%d justes / %d INUTILES / %d fausses)'
+                  % (r['famille'][:42], r['palier'], r['precision'], lo, hi, n, r['juste'], r['inutile'], r['fausse']))
+    if faible:
+        print('')
+        print(u'  ℹ %d règle(s) auto sous 80 %% mais SOUS LE PLANCHER D’EFFECTIF (n < %d) — NON MESURÉES,'
+              u' pas « en dette » : leur intervalle est trop large pour conclure.' % (len(faible), N_PLANCHER))
+        for r in sorted(faible, key=lambda r: r['precision']):
+            n = r['juste'] + r['inutile'] + r['fausse']
+            lo, hi = _wilson(r['juste'], n)
+            print(u'      %-42s %-12s %5.1f %%  intervalle à 95 %% = [%.0f-%.0f] sur %d cas seulement'
+                  % (r['famille'][:42], r['palier'], r['precision'], lo, hi, n))
 
     # ⭐ LA COLONNE QUI PORTE LA DOCTRINE ÉTAIT CACHÉE. La bannière ci-dessus n'imprimait que
     # « justes / fausses » et taisait INUTILE — or les trois cas ne coûtent pas la même chose :
@@ -319,6 +353,21 @@ def main():
         else:
             print(u'      (les %d cas, un par un, avec leur contexte : --casse)'
                   % len(globals().get('_CASSE', [])))
+
+    # ⭐ LA FATIGUE : les marques ORANGE posées sur des mots que le gold GARDE. Elles ne cassent rien
+    # (l'utilisateur refuse d'un clic) donc elles ne violent pas FP=0 — mais pour un lecteur dys, une
+    # marque inutile coûte une lecture. La bannière de dette ne regardait que le palier `auto` et
+    # laissait ces gisements-là invisibles, alors qu'ils sont D'UN ORDRE DE GRANDEUR PLUS GROS.
+    _fat = [r for r in rows if not r['palier'].startswith('auto') and r['inutile'] > 0
+            and (r['juste'] + r['inutile'] + r['fausse']) >= N_PLANCHER]
+    if _fat:
+        print('')
+        print(u'  🟠 FATIGUE — marques ORANGE sur des mots que le gold GARDE (refusables, donc pas FP=0,')
+        print(u'     mais chaque marque inutile coûte une lecture à un dys). Effectif ≥ %d :' % N_PLANCHER)
+        for r in sorted(_fat, key=lambda r: -r['inutile'])[:8]:
+            n = r['juste'] + r['inutile'] + r['fausse']
+            print(u'      %-38s %-20s %3d mot(s) juste(s) marqué(s) pour %d utile(s)  (n=%d)'
+                  % (r['famille'][:38], r['palier'], r['inutile'], r['juste'], n))
 
     if not os.path.exists(REF_PREC):
         print(u'✗ PRÉCISION DYS : pas de référence — ancrer : python dictee/dys_precision_probe.py --fix')

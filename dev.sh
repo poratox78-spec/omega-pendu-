@@ -15,11 +15,16 @@ Q="${1:-}"; PASS=0; FAIL=0; FAILED=(); SUSP=0; SUSPECTS=()
 # (« La foule attendait »→« attendaient », palier auto) a été imprimé des mois durant sans être vu
 # (PR#619). On l'AFFICHE désormais — sans changer aucun verdict : le suspect reste compté PASS et le
 # code de sortie de dev.sh est inchangé. Mesuré au moment de la pose : 3 suspects sur 76.
-suspect() { printf "%s" "$1" | grep -qE '✗|⚠️|FAUX POSITIF|ÉCHEC|ECHEC|divergence[s]? >|> plafond' ; }
+# ⭐ 🔴 et 🟠 AJOUTÉS LE 02/09. En passant 4 règles de dette sous un plancher d'effectif,
+# j'ai supprimé le « ⚠️ » de la sortie de dys_precision_probe — et ce contrôle a DISPARU de la liste
+# des verts suspects, alors qu'il imprimait toujours « 17 règles AUTO réécrivent un mot que le gold
+# GARDE ». Faire taire un avertissement en croyant rendre la mesure honnête : exactement le défaut que
+# cette ligne existe pour attraper. Le motif suit désormais les MARQUEURS, pas un seul emoji.
+suspect() { printf "%s" "$1" | grep -qE '✗|⚠️|🔴|🟠|FAUX POSITIF|ÉCHEC|ECHEC|divergence[s]? >|> plafond' ; }
 montre_suspect() { local name="$1" out="$2"
   SUSP=$((SUSP+1)); SUSPECTS+=("$name")
   printf "  ⚠ %s  — vert, mais sa sortie signale un problème :\n" "$name"
-  printf "%s\n" "$out" | grep -E '✗|⚠️|FAUX POSITIF|ÉCHEC|ECHEC|divergence[s]? >|> plafond' | head -3 | sed 's/^/        /'
+  printf "%s\n" "$out" | grep -E '✗|⚠️|🔴|🟠|FAUX POSITIF|ÉCHEC|ECHEC|divergence[s]? >|> plafond' | head -3 | sed 's/^/        /'
 }
 run() { # run "nom" cmd...
   local name="$1"; shift
