@@ -15,14 +15,15 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
 REF = os.path.join(HERE, 'vig_census_ref.json')
+DATA = os.environ.get('OMEGA_DYS_DATA') or os.path.join(ROOT, 'data_local', 'dys_reel')   # worktree : OMEGA_DYS_DATA (comme les autres sondes, 03/09/2026)
 DUMP = os.path.join(ROOT, 'data_local', 'arbitre_vig_census.json')
 FIX = '--fix' in sys.argv
 
 def norm(w): return (w or u'').lower().replace(u'’', u"'")
 
 def main():
-    if not os.path.exists(os.path.join(ROOT, 'data_local', 'dys_reel', 'dictees_gold.jsonl')):
-        print(u'· CENSUS : SAUTÉ (corpus dys absent de data_local — garde locale)')
+    if not os.path.exists(os.path.join(DATA, 'dictees_gold.jsonl')):
+        print(u'· CENSUS : SAUTÉ (corpus dys absent de data_local et OMEGA_DYS_DATA non posé — garde locale)')
         return 0
     r = subprocess.run(['node', os.path.join(HERE, 'arbitre_vig_dump.js'), '--dys-seul'],
                        capture_output=True, text=True, encoding='utf-8', cwd=ROOT)

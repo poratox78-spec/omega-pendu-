@@ -1,7 +1,7 @@
 {
- "justes": 305,
- "pointeuses": 242,
- "fatigue": 163,
+ "justes": 306,
+ "pointeuses": 240,
+ "fatigue": 146,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -233,6 +233,7 @@
   "quelqus→quelques [orthographe] terminaison",
   "quroum→quorum [mot inconnu] inversion",
   "raers→rares [orthographe] inversion",
+  "ramenais→ramener [infinitif après semi-auxiliaire à vérifier] terminaison",
   "rampante→rampant [accord genre à vérifier] accord",
   "rapider→rapide [orthographe] autre",
   "recommannde→recommande [orthographe] lettre_trop",
