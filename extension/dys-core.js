@@ -3419,6 +3419,15 @@ function spellUnknown(tok,atStart,T,idx){
     if(!_osGuardOk(F,i))return null;
     var vi=_osVinfo(T[i]);if(!vi)return null;var vn=vi[2],f3s=vi[3],f3p=vi[4];if(vn==='?'||!f3s||!f3p)return null;
     if(!tg||!_osVerbCtx(tg,F,i))return null;   // GATE POS + filet homographe étroit (miroir _verb_ctx)
+    /* LE PARSEUR DE SUJET D'ABORD (03/09/2026, mesuré dans Chrome : famille 2/15/9 → 2/10/9, 0 fausse en plus, texte correct
+       49 → 35 marques sans nouvelle). Si le parseur de la règle rouge (_npSubject : [dét + nom-tête] à gauche du verbe,
+       compléments « de X » enjambés, relatives coupées) trouve un GN sujet, son nombre est LA voix structurelle — avant la
+       route postposée (« Que la lumière du Bouddha éclaire » n'est pas une inversion) et avant les voisins R1-R3 (« le taux de
+       mortalité est »). Il se tait devant une coordination « N et N » entre la tête et le verbe (« ovins et caprins … devront »). */
+    if(tg){var _np=null;try{_np=_npSubject(T,tg,i);}catch(e){_np=null;}
+      if(_np&&(_np.n==='s'||_np.n==='p')&&!_osCoordPlural(F,i)){var _dsn=[_osVote(_np.n,0.9),_osR4(F,i,f3s,f3p)],_wsn=[Math.abs(_dsn[0][0]-_dsn[0][1])+1e-6,(Math.abs(_dsn[1][0]-_dsn[1][1])+1e-6)*0.4];
+        var _Zn=_wsn[0]+_wsn[1],_psn=(_wsn[0]*_dsn[0][0]+_wsn[1]*_dsn[1][0])/_Zn,_ppn=(_wsn[0]*_dsn[0][1]+_wsn[1]*_dsn[1][1])/_Zn,_rnn=_psn>=_ppn?'s':'p',_rcn=Math.abs(_psn-_ppn);
+        if(_rcn<_OS_TAU||_rnn===vn)return null;return _rnn==='p'?f3p:f3s;}}
     if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:f3s;}}   // sujet postposé : mode dédié DOMINE
     var _ant=_osRelAnt(F,i),ds,ws=[],q;
     if(_ant>=0){var _an=_osAntNum(F,_ant);if(!_an)return null;ds=[_osVote(_an,0.9),_osR4(F,i,f3s,f3p)];}   // relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait
