@@ -60,8 +60,9 @@ function corrDetail(s) {
     if (vig.length) { outCorrect.push({ s: s, flags: vig }); nVig += vig.length; }
   }
   const dys = [];
+  const DYS_DIR = process.env.OMEGA_DYS_DATA || path.join(REPO, 'data_local', 'dys_reel');   // worktree : OMEGA_DYS_DATA (comme les autres sondes, 03/09/2026)
   for (const fn of ['dictees_gold.jsonl', 'faiblesses.jsonl']) {          // 6 dictées + 1 600 paires appariées
-    const p = path.join(REPO, 'data_local', 'dys_reel', fn);
+    const p = path.join(DYS_DIR, fn);
     if (!fs.existsSync(p)) continue;
     for (const l of fs.readFileSync(p, 'utf8').split('\n').filter(Boolean)) {
       const t = JSON.parse(l);
@@ -70,6 +71,7 @@ function corrDetail(s) {
       if (vig.length) dys.push({ src: t.src, raw: t.raw, tokens: c.tokens, tokensFixed: C.toks(t.fixed), flags: vig });
     }
   }
+  fs.mkdirSync(path.join(REPO, 'data_local'), { recursive: true });   // un worktree n'a pas de data_local
   const dst = path.join(REPO, 'data_local', DYS_SEUL ? 'arbitre_vig_census.json' : 'arbitre_vig_dump.json');
   fs.writeFileSync(dst, JSON.stringify({ nCorrects: corrects.length, correct: outCorrect, dys: dys }));
   console.log('dump : ' + corrects.length + ' phrases correctes → ' + outCorrect.length + ' avec orange (' + nVig +
