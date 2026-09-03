@@ -5,6 +5,189 @@
 
 ---
 
+## 2026-08-30 → 2026-09-03 — rattrapage journal : instruments qui savent échouer, lexique 705 k, ponctuation, accord orange (PR #611-#655)
+
+> Digest écrit d'après les messages de commit de `main` (ce sont les rapports). #653 (« fermer les
+> boucles » du pendu, placebo, `pendu_paired_ab.js`) a son entrée dédiée juste en dessous — non repris ici.
+
+**30/08 — rendu & paquets (#611-#612)**
+- **#611** couleurs du correcteur × police de son : en sombre la muette tombait à 1,43:1 dans un mot
+  corrigé. Police de son ON ⇒ le correcteur libère le canal fond et passe au TRAIT (motif=catégorie),
+  gaté `body.son-actif`. Mesuré navigateur : muette 8,52 · syllabe 9,04 (sombre), min 5,19 (clair),
+  4 thèmes ≥ 4,5 ; falsification : bloc retiré en live → min 1,18, sonde rouge. 3 écarts au plan mesurés
+  (`::selection` sur les spans enfants ; muette > syllabe au survol ; verdict isDarkBg périmé à la
+  bascule de thème → observer les classes du body).
+- **#612** extension 0.6.1 : le paquet rattrape #607/#608 (Store publié en 0.6.0).
+
+**31/08 — le sujet, a/à, et deux falsifications (#613-#618)**
+- **#613** détection du sujet : `_ELIDED_PRON` enfin lu par 5 règles à liste propre (rappel :
+  « Lorsqu'il à faim »→a, « Puisqu'elle c'est levée »→s'est…) et un FP réparé (« et lorsqu'elle
+  dort »→dorment). Sonde-sujet versionnée (couverture 57,9 %, précision-quand-répond 95,2 %).
+  « sommes » 1p ressuscité (régression #83 : la supplétive « so»≠«et » tombait au filtre anti-bruit) —
+  gold homophones 11→12/15, le chiffre du ROADMAP restauré.
+- **#614** bornes de proposition : canal `pb` (listes fermées, SÉPARÉ de `bb` = ponctuation de
+  l'auteur) — son/sont, et/est, peu/peut tirent à travers les subordonnées non ponctuées. Et le VICE
+  D'INSTRUMENT : `dys_pipeline_probe` reconstruisait le texte par `' '.join` (ponctuation perdue) —
+  la sonde mentait de 4. **Nouvelle référence produit : 402 réparés (26,1 %) / 19 cassés (0,41 %)** ;
+  gain propre du canal +1 sur ce corpus, coût nul (UD 2,04 % strictement identique).
+- **#615** es/as/vas sous sujet nominal (liste fermée, coût UD zéro), prénoms dans `sv_noun`
+  (« Marie chantent »→chante), « mes amis on raison »→ont, FP préexistant « selon » réparé.
+  FALSIFIÉ en route : la relaxation générale des lectures 1re/2e pers. (+11 flags UD dont ~9 FP réels)
+  — ne pas refaire.
+- **#616** a→à devant NOM NU — la forme dominante du gold (41/95) : « avoir exige un déterminant »,
+  idiomes en liste fermée (a lieu ×13…). UD 2,04 % strictement identique ; juge strict 44→46 réparées,
+  casses 4→4. Différés nommés avec leurs surfaces (a+la/le, a+l'X, a+toponyme, a+PROPN).
+- **#617** canal GROUPE (classifieur 170 poids, bornes de groupe) : construit, mesuré, **FALSIFIÉ au
+  produit** — 0 réparation / +1 FP ; le +0,92 pt de la tâche parseur-de-sujet ne traverse pas les
+  gardes des règles. Hook OFF-inerte (pattern `_neoHeavyCDist`), infrastructure gardée.
+- **#618** chantier anglais, l'état MESURÉ (12 bancs sur main@fc7f09a) : précision bonne (93,6 % des
+  rouges confirmés humain, 0,0051 % de rouges sur texte édité), couverture faible (7,9 %, 53 règles
+  vs 82 FR), FP=0 déjà violé (2 rouges faux). Le danger : des bancs qui ne savent pas échouer
+  (auto-désactivation silencieuse, oracle auto-écrit, parité de TOTAUX). Garde-fou proposé : le TEST
+  DU MIROIR (échanger source/cible — s'il passe aussi bien, le banc ne prouve rien).
+
+**01/09 — LOT 1 « les bancs qui savent échouer » (#619-#627)**
+- **#619** ⚠️ **FP=0 VIOLÉ EN PRODUCTION, des mois** : « La foule attendait » → attendaient (3 moteurs,
+  palier AUTO). Cause : « La » désaccentué pris pour l'adverbe « là » dans `_INV_ADV`
+  (rule_accord_postpose) ; correctif : « là » exige sa forme ACCENTUÉE. Le message d'alerte était
+  IMPRIMÉ à chaque batterie — et jeté (cf. #620).
+- **#620** `dev.sh` cachait les preuves : la sortie des contrôles VERTS était jetée (dev.sh:15).
+  Désormais un vert qui imprime une marque d'échec est affiché « ⚠ » et nommé (3 verts suspects
+  mesurés). Aucun verdict ne bascule.
+- **#621** parité SPELLER Python↔JS — le 3e côté du triangle n'était gardé par rien : 12 divergences
+  mesurées et ANCRÉES, dans les DEUX sens (le JS souvent en avance : accents après élision que le
+  Python refuse). Sans Lexique4 : « SAUTÉ » explicite, jamais un vert muet.
+- **#622** boucle descendante (genre) : banc décoratif (aucun exit branché) → contrat en planchers
+  (précision 186/188 · leave-one-out 178/178 à 100 % · détection 3/3).
+- **#623** précision dys : contrat par (famille, palier), et la dette NOMMÉE, réimprimée à chaque
+  vert : 4 règles AUTO sous 80 % sur dys réel (élision fusionnée 27,8 % · -er/-é/-ez/-ai 56,2 % ·
+  -é/-er 61,1 % · accord SV 67,9 %).
+- **#624** le bake autonome (`build_correcteur.js`) était MUET sur l'accord : 1 lexique embarqué sur
+  9, 1 chargeur sur 8 — le bug du 2026-08-11 réparé dans l'app, jamais dans le bake. 7 lexiques bakés,
+  `init()` rejette si l'un manque. Et le FP=0 PRODUIT gardé : les 333 phrases correctes traversent la
+  vraie page dans Chrome, 0 correction (falsifié par injection).
+- **#625** census : le rouge portait sur le NET — 13 oranges justes perdues compensées par 13 gagnées
+  passaient VERT. Rouge sur les PERTES ; falsifié (1 perdue/1 gagnée, net +0 → exit 1).
+- **#626** une garde par table de lexique, établie par ABLATION sur moteur réel (300 phrases dys) :
+  pos-hmm 8 comportements · os-lm 2 · noun-post 1 · prenoms 1 — sans pos-hmm le moteur FABRIQUE une
+  faute (« ont »→« on »). Ma 1re carte (18 phrases inventées) était FAUSSE — refaite sur corpus réel.
+  gdet/gacc : aucun déclencheur trouvé, dit plutôt que caché.
+- **#627** remédiation : la conjugaison n'était JAMAIS expliquée — `remedFams` filtrait par stade au
+  lieu de prioriser (une seule faute d'accent éteignait tout le reste). 4→7 familles expliquées,
+  173→207 faits/224. Le stade lui-même est JUSTE (mesuré : 3/139 seulement sensibles à l'ordre).
+
+**01-02/09 — ponctuation : la couche que le dys réel réclamait (#628-#631, #636)**
+- **#628** la VIRGULE manquante enfin proposée (insistance de Rem, à raison) : le détecteur de run-on
+  exigeait un verbe fini collé au pronom ET un accord déjà juste — il ne parlait que là où il n'y a
+  rien à corriger. Après : « …la palge ‖ vous » proposée ; fatigue 0,60 virgule/1 000 mots sur 2 500
+  correctes (sous la référence 0,93). Jamais un mot fabriqué : orange, ponctuation seule.
+- **#629** le « ? » n'était pas bridé par la grammaire mais par le RENDU (`_typoGapHtml` jetait les
+  insertions en fin de segment) : proposé désormais sans point préalable. FP=0 produit 333/333.
+- **#630** le POINT FINAL manquant : 39 % des productions dys réelles, 2 % du synthétique (facteur 20
+  — les bancs étaient structurellement aveugles), aucune règle nulle part. Règle naïve inutilisable
+  (parlerait sur 79 % des états de frappe). Mon 1er déclencheur (« a déjà ponctué ailleurs ») refusé
+  par Rem à raison : il coûtait 14/28 cas réels, précisément les scripteurs les plus faibles. Retenu :
+  dernier segment ≥ 3 mots + verbe conjugué + pas interrogative. 28/28 · fatigue 14/2500.
+- **#631** la détection de QUESTION entre dans la batterie : précision ≥ 96,6 % ET rappel ≥ 18,4 % —
+  un plancher de précision seul récompenserait le silence. Deux ajouts de ma main RÉFUTÉS par le banc
+  avant livraison (interrogatifs ambigus en tête : 96,67 → 31,31 %).
+- **#636** la coupe à 12 mots d'`estQuestion` était une contrainte VOCALE qui fuyait dans le
+  correcteur (qui proposait un POINT au bout des questions longues). Paramétrée : voix 12 (mesure
+  inchangée), correcteur 20 (rappel 18,47→25,48 %, précision 91,95 %). Piège : ma 1re version du banc
+  lisait un « 20 » EN DUR — il lit désormais la constante de la source.
+
+**01-02/09 — l'instrument avant le moteur, suite (#632-#635, #637-#638)**
+- **#632** l'extension PUBLIÉE entre dans la batterie, dans un VRAI Chrome (`Extensions.loadUnpacked`,
+  assets par `chrome.runtime.getURL` + `DecompressionStream`) ; étiquettes des gardes établies par
+  ABLATION (une 1re version restait verte avec l'asset supprimé). 4 pièges payés, écrits.
+- **#633** la batterie « FP=0 » rend enfin un code de sortie (zéro `sys.exit` en 4 800 lignes —
+  narration, pas verdict) : zéros DURS (FP corpus, témoins) + planchers détection/correction 155/170.
+- **#634** a/à : `_aaInverted` ne vérifiait pas ce qu'il nommait (un verbe en i-2 suffisait, jamais de
+  test pronom) — le rouge « angle mort ÉLISION » venait de là. Divergences élision 2→0 ; et la sonde
+  ne testait RIEN en CI (0 phrase = tic vert) → corpus commités branchés, `tested==0` FATAL.
+- **#635** la table de précision mesure le PRODUIT (`--navigateur` : 1 798 paires dans Chrome via
+  `cdp_chrome.js` partagé), plus le harnais Python — sur « élision fusionnée » le harnais disait
+  3 justes/17 fausses, le vrai Chrome 2/1, et le « correctif » dérivé du harnais avait dû être reverté.
+- **#637** la dette cachait la SEULE colonne qui viole FP=0 : INUTILE (mot juste réécrit) était tue.
+  Gardée en VALEUR ABSOLUE (produit 25 · référence 28, plafonds qui ne peuvent que baisser). Sur 3 cas
+  vérifiés main : 1 défaut de gold, 2 = l'arbitrage mesuré dét↔nom (le gold corrige le nom 59 contre
+  12), zéro bug non gardé.
+- **#638** « ces chiffres sont inquiétants » (Rem) → RIEN n'a été cassé (4 instruments indépendants
+  d'accord, #618→HEAD identique à l'événement près). Mais la bannière classait par % sans effectif :
+  « 30,8 % » = [13-58] sur 13 cas ; médiane d'effectif 4 ; 29 % des lignes n'ont qu'UN événement.
+  Plancher n=30, sinon « NON MESURÉE ». La vraie dette massive est la FATIGUE orange (30 marques
+  inutiles pour 1 utile, n=40). Et 2 témoins positifs ONT ÉCHOUÉ (sonde verte après retrait de la
+  stop-liste a/à et annulation de #619) : « aucun changement » ≠ « aucune régression ».
+
+**02/09 — garde OS au bon instrument, lexique ×3,3 (#639-#643)**
+- **#639** garde OS : le filet homographe demandait « est-ce un nom ? » à une table de GENRE (4 178
+  entrées) alors que `noun-post` (83 356 mots, déjà chargé) est l'instrument — « une dure écorce qui
+  met » recevait « écorcent ». Seuil propre P(NOM)≥0,90 ∧ P(VER)≤0,05 ; produit 1/30/9 → 1/26/9.
+  Plus : `./dev.sh fresh` (3 batteries perdues le 02/09 sur artefacts non régénérés), `ci_parity`
+  valide le YAML (un workflow refusé par GitHub était vert), `residual_audit.js` (dormant depuis
+  juillet, jamais branché) entre dans la batterie — plafond DUR 18 tokens corrects détruits.
+- **#640** collision d'accent : CONJ_F keyée DÉSACCENTUÉE croyait « adhérent/côté/gène/mûre » verbes.
+  Table exacte `non_verbe_acc.json` (16 mots, classe mesurée contre Morphalou 511 275 formes verbales),
+  consultée avant le tagger — périmètre volontairement limité à l'orange (le rouge = enjeu FP=0, à
+  mesurer avant).
+- **#641** speller : « CONNU MAIS JAMAIS CANDIDAT » (freq 0 → dans WORDS, jamais dans D2A/PHON).
+  L'augmentation naïve MESURÉE au produit : des mots rares masquaient des fautes de mots courants
+  (« dess »→des) ou cassaient l'unicité (« égallement » perdait sa correction) ; 1re porte (≥0,01)
+  RÉFUTÉE — elle retirait 26 % du lexique de BASE des candidats. +40 034 formes (gacc). Et la
+  référence Python lit désormais les MÊMES ajouts que le JS — fin des deux lexiques pour un même
+  speller.
+- **#642** +81 042 noms/adj/adv de Morphalou 3.1 (LGPL-LR) — 6 des 12 mots rares du corpus dys
+  récupérés ; A/B node : 10 flags perdus TOUS mauvais, 0 correction juste perdue ; 254 581→323 593
+  formes. Lot VERBES mesuré mais PARQUÉ (poids ×2 : décision remise à Rem).
+- **#643** Rem tranche (« 0,6 s c'est minime ») → +384 869 formes verbales Morphalou. **Lexique
+  705 653 formes** (était 155 467 avant la série), asset 2,36 Mo gz ; A/B : 6 flags perdus tous
+  mauvais, 0 juste perdue. TSV commité gzippé (1,3 Mo au lieu de 26,5).
+
+**02-03/09 — le rendu ne ment plus, les questions, l'orange d'accord (#644-#649, #652, #654)**
+- **#644** deux défauts signalés par Rem, mesurés dans Chrome : ① le RENDU écrivait la ponctuation
+  proposée DANS le texte saisi (26→28 caractères : clics et sélection à côté ; le moteur relisait le
+  « ? » comme du texte) → span vide + glyphe CSS hors flux ; ② le clic sur une faute de la zone de
+  saisie n'existait PLUS depuis le 10/07 (retiré sans rebranchement — je l'avais d'abord présenté
+  comme une conception : c'était faux) → rebranché, même carte que la liste du bas.
+- **#645/#646/#648** le « ? » et le point proposés s'APPLIQUENT d'un clic — app (drapeau `appliquer`
+  perdu à la sérialisation), panneau latéral (`applyFlag` ancrait sur un indice de token que les
+  insertions n'ont pas), et la marque était incliquable (0×3 px → 16×32 px dans le flux). Gardes
+  navigateur falsifiées à chaque étape.
+- **#647** questions SANS trait d'union (« veux tu venir », « qu'allons nous faire », « est ce que ») :
+  la garde est la CONJUGAISON (la forme s'accorde avec le clitique). Banc voix 58/60→59/61 ·
+  correcteur 80/87→81/89.
+- **#649** orange « accord verbe à vérifier » : après une relative en « qui », le sujet est
+  l'ANTÉCÉDENT (« les villages qui composent la commune sont » ne devient plus « est »). Famille
+  1/25/9 → 2/15/9 dans Chrome sur corpus dys ; français correct 49→40 marques ; parité OS 23/23/23.
+- **#652** le parseur de sujet (`_npSubject`) consulté AVANT la route postposée et les voisins R1-R3 ;
+  famille 2/15/9 → 2/10/9, français correct 49→35, 0 fausse en plus ; parité OS 22/22/22. P2G.md remis
+  à jour (lexicalité élargie au speller : mesurée PIRE, écartée).
+- **#654** la FORME avant le NOMBRE : « vont cherchait »→chercher existait mais passait APRÈS l'orange
+  de nombre qui le taisait ; « faire » semi-auxiliaire ; « elle s'est mariaient »→mariée ; gérondif
+  (« tout en pensent »→pensant). NOUN_POST est une Map dans l'extension, un objet dans l'app →
+  accesseur tolérant (le portage verbatim PLANTAIT l'app) ; `parity_os` charge noun-post comme le
+  produit (l'écart 17/16 venait de là). Famille 2/10/9+0/6/1 → 2/7/5+0/4/0 ; texte correct 537→529.
+
+**03/09 — paquets et fraîcheur (#650, #651, #655)**
+- **#650** données ouvertes du site : `omega-lexiques.zip` servait ~214 k formes pour un moteur à
+  705 653 — AUCUN contrôle ne le surveillait. Reconstruit (12 fichiers, 4,4 Mo), Morphalou crédité
+  (LGPL-LR) dans NOTICE/page/JSON-LD, garde `build_lexiques.py --check` (zip == sources) en dev.sh
+  + ci.yml ; piège CRLF/LF payé (zip Windows vs CI Linux).
+- **#651** extension 0.6.2 : le paquet Store rattrape TOUT depuis la 0.6.0 publiée (lexique ×4,5,
+  questions #647, panneau #646, relative « qui » #649, correctifs 0.6.1 jamais publiée).
+- **#655** extension 0.6.3 (la 0.6.2 a été téléversée par Rem le 03/09, état après #652 ; un numéro
+  remis est BRÛLÉ — la 0.6.3 rattrape #654). Et le census des oranges honorait `data_local` en dur :
+  dans tout worktree il s'imprimait « SAUTÉ » — les batteries vertes de #649/#652/#654 n'ont jamais
+  fait tourner le census. Il lit `OMEGA_DYS_DATA` comme les six autres sondes ; référence ré-ancrée
+  (306 justes, aucune juste perdue).
+
+**Chiffres de référence en sortie de fenêtre** : pipeline produit **402 réparés (26,1 %) / 19 cassés
+(0,41 %)** (#614) · FP échelle UD **2,04 %** (295/14 450, plafond 3 %) · lexique speller **705 653
+formes** · dette FP=0 produit **25 INUTILE-auto** (plafond dur, #637) · résiduel **18** tokens
+corrects détruits (plafond dur, #639) · batterie ~80 contrôles, census 306 justes (#655).
+
+---
+
 ## 2026-09-03 — « fermer les boucles du pendu » : mesuré, rien ne bouge (réfuté chiffré)
 
 > Déclencheur : Rem, « on n'avait jamais vraiment fermé les boucles, particulièrement celle phon […] explore le champ des possibles ».
@@ -49,6 +232,164 @@
   leviers — Rem : « tu vois la config optimale a priori, donc on atteint la fin de tâches ».
 - **Ne pas re-tenter** sans idée neuve. La seule entrée non testée est une VRAIE entrée sonore, qui n'existe pas dans le jeu ; côté
   dictée vocale, la boucle son→OMEGA (voie B) est déjà mesurée et l'arbitrage du pendu y est réfuté (cf. mémoire `asr-phon-route`).
+
+---
+
+## 2026-09-03 — TRI de CLAUDE.md : l'histoire migre ici, CLAUDE.md redevient un sommaire
+
+> CLAUDE.md avait gonflé à ~7 600 mots avec des lignes de 13 000 caractères (illisibles en diff,
+> invisibles au grep). Le tri du 03/09 le ramène à un sommaire ≤ 1 500 mots gardé par
+> `dictee/docs_probe.py` ; les blocs datés ci-dessous sont le matériau historique qui y vivait.
+> Contrôle « rien de perdu » : MANIFEST du tri (bloc par bloc) dans le PR de remise en ordre.
+
+Réserves techniques reportées telles quelles de CLAUDE.md (toujours vraies au 03/09, pas d'entrée datée propre) :
+- ⚠️ **`OLD20` câblé à vide** (panneau 🔤 Décompose) : `lexLookup` lit `e.old` défensivement mais la colonne
+  **n'est PAS embarquée** (0/155 493) → toujours `null`, jamais affiché. Embarqué réel = **11 dims** :
+  `m p g f prev pld md mb l nbhomoph nbhomog` (OLD20/syll/cvo/cvp **régénérables** depuis `Lexique4.tsv`
+  en asset, pas gratuits). Le panneau vit dans un `<script>` séparé (zéro adjacence avec le correcteur).
+- ⏳ Panneau app « 🔤 Décompose » : la route sublexicale y est encore **brute** (parité du SEG enrichi
+  + correction apprise à porter depuis `dictee/decompose.py`).
+- ⏳ Wiktionnaire : genre/IPA extraits aussi (`wikt_lex_fr.tsv`) mais activation genre/`phon_key`
+  **DIFFÉRÉE** (couplée à `cgram_hf`/conj, régénération LEFFF-dépendante).
+- **ACCENTS — solution déjà présente** (ne pas réinventer) : *en lexique* = lookup du mot accentué
+  (`1_Mot`) ; *hors-lexique* = le **phonème porte l'accent** (é=/e/, è=/ɛ/, cf. `PHON_TO_LETTERS`).
+  `decompose`/`p2g` l'appliquent déjà (overlay g2p + émission p2g accentuée).
+
+---
+
+## 2026-08-25 — Publication Chrome Web Store : préparation complète (dossier `extension/STORE.md`)
+
+> [Verbatim CLAUDE.md, bloc EXTENSION CHROME. Dépassé par les faits depuis : 0.6.2 téléversée par Rem
+> le 03/09/2026 (revue Google en cours), 0.6.3 prête — cf. ETAT.md, chantier « Publication Chrome Web Store ».]
+
+**PUBLICATION CHROME WEB STORE — préparation faite (25/08/2026), dossier `extension/STORE.md`** :
+3 blocages techniques levés —
+① aucune icône (le Store exige 128, Chrome affiche 16/32/48) → `extension/build_icons.py` les **dérive**
+de `icon-512.png` (pur Python, sans PIL ni rasteriseur : décodage/moyenne d'aire/réencodage, déterministe,
+garde `--check` en CI et dev.sh — l'icône du site change ⇒ celle de l'extension suit) ;
+② `description` du manifeste 343 caractères pour une **limite de 132** → 119 (le pitch long devient la
+fiche du Store) ;
+③ le zip commité range tout sous `extension/` (voulu : on le dézippe et on charge le dossier) mais le
+Store veut `manifest.json` **à la RACINE** → `build_zip.py --store` (racine aplatie, README retiré,
+31 fichiers, 4,0 Mo, **non commité** = artefact de publication).
+Aussi : `short_name`, `minimum_chrome_version` 114 (= sidePanel). **Vérifié par le parseur de Chrome
+lui-même** (`chrome --pack-extension` → .crx ; chargement headless sans erreur). `confidentialite.html`
+gagne une section « L'extension Chrome » (ce qu'elle lit = le champ actif, pas la page) — c'est l'URL de
+politique exigée par le Store. Permissions minimales et **toutes utilisées** (`storage`/`contextMenus`/
+`sidePanel`, **pas** `tabs`), **aucun code distant** (mesuré). ⚠️ `<all_urls>` ⇒ revue lente attendue ;
+la justification est écrite mot pour mot dans `STORE.md`.
+
+---
+
+## 2026-08-25 — Aide au calcul (dyscalculie) : la retenue ADDITIVE, et la sonde qui restait verte
+
+> [Verbatim CLAUDE.md, bloc « Aide au calcul ». La décision reste vivante — pointée dans le nouveau CLAUDE.md.]
+
+**Aide au calcul (dyscalculie)** — `calcul.html` (`/calcul`, version qui POSE l'opération) et le bloc
+« 🔢 Aide au nombre » du panneau (version RAPIDE). Moteur `calc_dys.js` en **2 copies** (racine +
+`extension/`), gardées par `dictee/calc_dys_probe.js`. **⚠️ La soustraction pose la retenue ADDITIVE
+(sur le chiffre du BAS) — ne pas revenir à la méthode soustractive : elle affiche « il reste −1 » sur
+502−347.** La sonde garde la signature structurelle `aEffectif ∈ {a, a+10}` ; tester le signe des valeurs
+stockées NE SUFFIT PAS (le négatif naissait dans l'affichage — sonde restée verte, vécu le 25/08/2026).
+
+---
+
+## 2026-08-23 — Gold complet ×20, LE chiffre de référence du produit, et la série §5quater→§5septies
+
+> [Verbatim CLAUDE.md, seconde moitié du bloc « ÉTAT DES LIEUX + LITTÉRATURE ». La version PROFONDE de
+> chaque section vit dans `dictee/ETAT_DES_LIEUX.md` (§5ter → §5septies) ; ceci est le condensé daté qui
+> vivait dans CLAUDE.md. La première moitié (paliers, spirale, rétractations `dys_gen`, « même corpus »
+> Bodard) est déjà dans l'entrée JOURNAL du 2026-08-22 et sa PAUSE littérature.]
+
+⇒ ~~Le vrai manque… c'est du TEXTE DYS RÉEL~~ **COMBLÉ le 22/08 : les 72 productions sans corrigé ont
+été CORRIGÉES À LA MAIN** (`data_local/dys_reel/gold_claude.jsonl`, **6 778 mots** contre 335 — ×20 ;
+protocole + contrôle qualité dans `dictee/ETAT_DES_LIEUX.md` §5ter/§CORPUS COMPLET ; 14 tokens `ambig`
+non tranchés, exclus des mesures ; annotation **par Claude**, jamais un corrigé humain expert).
+
+**LE CHIFFRE DE RÉFÉRENCE DU PRODUIT** (`dictee/dys_pipeline_probe.py`, 72 productions, 6 217 mots) :
+**25,8 % des fautes RÉPARÉES · 0,77 % de mots justes CASSÉS** (⚠️ 1re version 22,1 % FAUSSE : la sonde
+tokenisait sans les apostrophes typographiques `’ʼ` et **abandonnait 32 % des corrections du speller** ;
+corrigée, 95,4 % appliquées). C'est LUI qui doit piloter les décisions — les mesures par COUCHE mentent
+sur le produit (corriger un mot dys demande souvent speller ET grammaire : jugé isolément le speller
+compte des fautes là où la pyramide rend le gold). Le corpus **converge avec la littérature** (1ʳᵉ lettre
+11,2 % vs 10,9 % · vrai mot 54,8 % vs 53 % · fautifs 23,7 % vs 33 %) ⇒ représentatif, pas seulement
+volumineux.
+
+⚠️ **« ×29 sur les déterminants » RÉTRACTÉ** — encore l'artefact du mélange. Remesuré PAR GROUPE (juge
+strict), contradictions dét/nom : **nom fautif = RÉEL 83 % (5/1, n=7) · SONDES 97 % (108/3) · GÉNÉRÉ
+84 % (63/12)** ⇒ **le générateur colle au réel** ; le « 99 % » qui avait fait refuser la garde globale
+venait des SONDES (faute unique, presque toujours sur le mot plein). Axe large, formes visant un
+**mot-outil** : réel **21,4 %** · généré **27,1 %** · sondes 14,0 % ⇒ **1,27×, pas 29×**.
+⇒ **`dys_gen.py` n'a plus AUCUN biais démontré** — les 3 griefs venaient tous de la comparaison à un
+mélange de sondes. ⚠️ **n=7 ⇒ rien n'est tranché** : la décision de ne pas câbler reposait sur un mauvais
+chiffre, mais on ne la renverse pas sur 7 cas ; sur les 78 textes réels ~**15 %** des groupes [dét+nom]
+montrent une contradiction apparente ⇒ phénomène FRÉQUENT, attribution IMPOSSIBLE sans gold.
+
+⭐ **ANCRE DE GENRE DU SPELLER — le bon candidat gagnait puis était DÉFAIT (23/08, §5septies)** : `chère`
+gagnait le classement (priorité accent) puis la **bascule d'accord d'adjectif** le retournait en `cher`
+sur une ancre fausse — le `un` de « **un peu** » (adverbial), et `mois` (« moins » mal écrit, nom masculin
+**sans déterminant**). 2 gardes en **ABSTENTION PURE** (`peu` jamais ancre ; un **NOM NU** ne gouverne pas
+le genre) ⇒ **pipeline 381→394 réparés (25,6 %) · casses 22→19 (0,41 %)** · FP speller échelle **46
+inchangé** · dev.sh 70/70 · 4 moteurs. Elles rapportent **13 réparations**, pas seulement les 3 casses
+visées. ⚠️ `decide`→`décidé` NON réglé (fréquence entre 2 candidats à accent, il faut le contexte verbal).
+
+**« L'ORANGE EST-IL LÀ POUR LES 75 % RATÉS ? » — NON, MESURÉ** : sur 1 148 fautes non réparées, **1,6 %
+rattrapables en un clic** (orange + suggestion juste, presque que `ce/se`+`quel/quelle`), 0,2 % de bruit,
+**38,5 % SOULIGNÉES SANS suggestion** (l'app voit le problème, ne propose rien) et **59,8 % INVISIBLES**.
+⚠️ 1re version fausse (« souligné : 0 ») — la référence **Python n'émet pas le palier « mot inconnu »**,
+seul `spellText` (app) le fait ⇒ croiser avec un dump de l'APP. **Levier identifié, non traité : les 442
+mots déjà soulignés sans suggestion — y proposer quelque chose ne coûte AUCUN risque de FP** (orange = au clic).
+
+**RENDRE `_cmp` TRANSITIF : CONSTRUIT, MESURÉ, FALSIFIÉ** — la dette est réelle (permutation des
+candidats : **7/602 corrections changent, 1,16 %**) mais la reformulation « gardes par candidat » donne
+**392/19 contre 394/19** = **−2 réparations pour 0 casse évitée** (`nape`→tape au lieu de nappe…) : la
+dominance pairwise encode « écrasé par CELUI-LÀ », pas « par le lot ». On garde le pairwise ; dette
+nommée, faible priorité.
+
+**NOMS PROPRES — FERMÉ PAR LA MESURE (23/08, §5sexies), PAS par l'absence de source** : le dump kaikki
+EST dans le dépôt (`data_local/fr/kaikki-frwikt.jsonl`, celui qui a produit `prenoms_genre.tsv` DÉJÀ
+embarqué) ⇒ « lexique introuvable » était FAUX. Ce qui ferme : **134 002 noms propres = 539 Ko gzippés**
+à embarquer dans **3 moteurs** pour **3 casses sur 22** (`provence`/`loire`/`opel` ✓ ; **`xbox` ✗ `daeu` ✗
+`microsoft` ✗** = la queue MARQUES/SIGLES, non bornée) + risque non mesuré de **masquer un vrai typo**
+tombant sur un toponyme. Variante consignée non recommandée : toponymes FR seuls (quelques dizaines de Ko,
+2 casses/22). ⚠️ Si le sujet revient, l'argument est le COÛT/GAIN.
+
+⭐ **« une TRÉ faible exportation » → un (23/08, §5quinquies) — le posterior LEXICAL ne sait pas OÙ est le
+mot** : `rule_det_gender` prenait le mot juste après le déterminant pour nom-tête et le validait au
+posterior ; or `tré` **est un vrai mot** (0,038/M, masculin, P(NOM)=100 %) alors que le nom-tête est
+`exportation` — `très` (1 435/M, **37 000×**) est dans `DET_SKIP`, pas `tré`. **2 casses au palier ROUGE,
+dans le PRODUIT LIVRÉ** (vérifié sur `dys-core` chargé avec ses assets). Ce n'est PAS une ancre polluée
+(l'ancre est un mot connu) ⇒ 3ᵉ confirmation qu'une primitive d'ancre LEXICALE globale ne sert à rien.
+**Correctif = ajouter du CONTEXTE, pas baisser un seuil** : le tagger HMM (déjà embarqué partout) tague
+`tré` **ADJ** et désigne `exportation` **NOUN** plus à droite. ⚠️ **1re version FAUSSE SUR LE PRINCIPE**
+(« exiger le tag NOUN ») : `dev.sh`/`gender_coll_probe` l'a attrapée — **rappel 210→168**, elle punissait
+les noms MAL TAGUÉS (`ajouté`/`analysé` = VERB au tagger, noms au posterior) = **ce que le posterior
+existe pour rattraper**. Garde retenue = abstention **seulement si tag ADJ ET un NOUN suit dans les 2
+jetons** (casses : ADJ+NOUN ; rappels perdus : VERB+ADV) ⇒ **rappel 210 identique avec et sans, coût
+nul**. **Mesuré (4 moteurs) : pipeline 381 réparés INCHANGÉ, casses 24→22 · batterie genre 6/6 FP=0 ·
+FP échelle 1,40 % STRICTEMENT inchangé · parités app et extension OK.** ⚠️ Une garde de FRÉQUENCE
+(décalque de la dominance ≫20×) a été écartée : **non portable** — la grammaire Python n'a qu'un ENSEMBLE
+de mots (`cgram_words.json`), les moteurs JS ont `SP.FREQ` ⇒ parité cassée ou nouvel asset.
+
+⚠️⚠️ **LE MOTEUR DE RÉFÉRENCE N'ÉTAIT PAS DÉTERMINISTE (23/08, §5quater)** : `speller_probe.edits1`
+rendait un `set()`, et le classement des candidats (`_cmp`) est **pairwise** (gardes de dominance) donc
+**pas un ordre total** ⇒ le résultat d'un tri dépendait de l'ordre d'entrée, c.-à-d. du **hachage**.
+**Mesuré : 10 des 598 corrections du gold changeaient d'une exécution à l'autre**, y compris l'existence
+de la correction (`sété`→fêté ou rien). **Les moteurs JS, eux, étaient déterministes** (`Object.keys` =
+ordre de génération) : c'est la RÉFÉRENCE Python qui dérivait, donc nos MESURES, pas le produit livré.
+Correctif = dict à ordre d'insertion ⇒ stable sur 4 graines, pipeline **381/24 sur 3 passages
+identiques**. ⚠️ **Cela ne donne PAS la parité avec l'app** (vérifié, pas déduit) : les deux moteurs
+n'ont pas le même ensemble de candidats — Python lit `Lexique4.tsv` brut (**165 474** formes), l'app
+embarque `speller-lex-gz` = Lexique 4 + Wiktionnaire (**214 685**) ; effet mesuré sur le gold = **7 mots
+justes** (sœur, pyrénées, technopôle…), réel mais sans effet sur le chiffre de référence.
+[Note du tri 03/09 : comblé depuis — la référence Python lit les mêmes lots (02/09/2026) et la parité
+SPELLER Python↔JS est en CI (#621).] **Dette nommée** : `_cmp` reste NON TRANSITIF — reproductible ≠
+bien défini.
+
+**LanguageTool** : facteur de confusion de même forme que notre dominance ≫20× (plage **10–10⁷**,
+précision préférée au rappel, seuils **0,995/0,99**, paires désactivées par défaut) mais **comparaison
+CONTEXTUELLE (n-gram) vs notre fréquence NUE** ⇒ le chantier dominance = **donner du contexte**, pas
+baisser le seuil.
 
 ---
 
@@ -459,6 +800,81 @@ que de la réécrire au cas par cas.
     CONTEXTUELLE (n-gram), la nôtre est une fréquence NUE.** ⇒ le chantier « dominance » n'est PAS
     « baisser le seuil » (on échangerait des junks contre des FP) mais **donner du contexte à la
     comparaison** — le dépôt a déjà n-gram §1.7, POS-tagger 155k et `noun-post` (doctrine §5).
+
+## 2026-07 → 2026-08 — POLICE DYS : design en aveugle → littérature → intégrée PARTOUT → pack OFL → Word
+
+> [Verbatim CLAUDE.md, bloc « POLICE DYS » (aucune entrée JOURNAL n'existait pour ce chantier ; le
+> worktree police avait sa propre mémoire). Docs : `police/DESIGN_AVEUGLE.md`, `police/LITTERATURE.md`.]
+
+**POLICE DYS** (`police/`) : `build_font.py` (fontTools) → `OmegaDys-Regular.ttf` (85 glyphes,
+paramétrique) + `demo.html`. Design **en aveugle** figé (`DESIGN_AVEUGLE.md`) puis confronté à la
+littérature (`LITTERATURE.md`) : espacement large **confirmé** (Zorzi 2012), anti-miroir type
+OpenDyslexic **falsifié par proxy** (méta-analyse 2026 : aucun effet), voisement=graisse **inédit**
+(précédent : Visible Speech, Bell 1867), « **police de son** » (rendu contextuel g2p : muettes grisées,
+s→/z/ via variantes PUA U+E000+, syllabes) **converge avec LireCouleur**. Axe retenu : rendu adaptatif >
+forme fixe ; graisse-voisement réservée à la remédiation ciblée. Banc de mesure prévu = la dictée.
+
+**Architecture tranchée : le TEXTE ne change JAMAIS** (pas d'alphabet privé ; PUA dépréciés) — même
+police en 3 graisses (`Light/Regular/Heavy`) + spans posés par le g2p réel (`build_son_layer.py` →
+`son_layer.json`, garantie de reconstruction testée ; aperçu `apercu_son.png`). ⚠️ Bug moteur découvert :
+`decompose.g2p` branche DBL rend les doubles consonnes muettes (assis→/ai/) + correction apprise `ss→∅` —
+**confirmé aussi dans l'app** (`_DECL2.g2p` ligne ~6440, même défaut) — tâche séparée, contournement
+`DBL_FIX` porté partout (inerte après correctif).
+
+**INTÉGRÉE DANS L'APP** : bloc idempotent `OMEGADYS-SON` (`police/inject_fonts.py` = 3 TTF base64 +
+`son_core.js` sans DOM + `son_ui.js`) → case « Police de son » dans la dictée (OFF défaut, `vdd_son`,
+chargement paresseux) qui habille `.vdd-truth` via `_DECL2.g2p` (voisé=Heavy, sourd=Light,
+muette=**vermillon** `#a34700` (clair) / `#f0a04b` (sombre) — le gris, jugé pénible, est abandonné, texte
+DOM identique). Parité CI : `node police/parity_son.js` (fraîcheur bloc, clitiques ≡ Python, texte jamais
+altéré, ancres poison/poisson). Couleurs : BDA (crème, pas de gris faible) + Okabe-Ito, la couleur jamais
+seul canal.
+
+**PARTOUT (08/2026)** : habille la **SAISIE** (Correcteur `#vdc-in` après chaque réécriture du
+correcteur ; **Dictée `#vdd-ans` devenue contenteditable** avec shim `value/select` comme `#vdc-in`,
+ré-habillage auto 300 ms), curseur préservé par offset texte ; couleur muette/syllabe par **luminosité du
+fond réel** (thème sombre OK) ; **syllabes** (`syllableIndex` = port de `decompose.syllabify_*`, bouton
+« ✂️ Syllabes », parité là où graphèmes ET phonèmes coïncident). **Extension** : `extension/son_panel.js`
+(shim textarea→contenteditable `#omdys-ta` + police de son, chargé AVANT `sidepanel.js`), assets `g2p.js`
+(tranche `_DECL2` verbatim) + `son_core.js` + 3 TTF produits par `build_assets.py`, chargés
+paresseusement ; surface panneau seulement (jamais un champ de site tiers). Cases « 🔡 Police de son /
+✂️ Syllabes » dans les réglages du panneau.
+
+**PACK TÉLÉCHARGEABLE (08/2026)** : 135 glyphes (chiffres, ponctuation complète, « », œ/Œ/æ/Æ, capitales
+accentuées), licence **SIL OFL 1.1** (glyphes originaux, pas une dérivée Lexique), `police/build_pack.py`
+→ `omega-police-dys.zip` (3 TTF + `LISEZMOI.txt` + `OFL.txt`, garde `--check` en CI + dev.sh), lien sur
+`donnees.html` (FR/EN). Dans Word la police fait le voisement **par lettre** seulement (pas de g2p) ; la
+police de son complète = app/extension.
+
+**Complément Word (bêta, `word/`)** : `son_word.js` = planificateur pur (mot → runs `{text,font,color}`,
+texte identique garanti), `taskpane.js` = glue Office (`getTextRanges` → `insertText Replace/After`),
+`manifest.xml` (TaskPaneApp WordApi 1.3 → `https://omega-pendu.pages.dev/word/taskpane.html`), icônes,
+README sideload ; charge `extension/assets/g2p.js` + `son_core.js` (zéro duplication moteur). Garde CI
+`node word/test_son_word.js` (g2p réel, 306 morceaux, glue simulée). ⚠️ **Non testé dans Word réel**
+(logique testée sous node + volet vérifié hors Word) — premier essai terrain à faire.
+
+---
+
+## 2026-07 — Correcteur : UI par confiance · speller anti-flood Wiktionnaire · genre +21 847 noms
+
+> [Verbatim CLAUDE.md, extraits du bloc « CORRECTEUR DYS » sans entrée JOURNAL datée propre.]
+
+**UI par CONFIANCE (07/2026)** : texte source jamais réécrit, corrigé dans un encadré séparé — sûr (FP=0)
++ candidats ortho APPLIQUÉS par défaut, chaque mot = bascule annuler/réappliquer ; orange au clic +
+**stade**.
+
+**Anti-flood « mot inconnu » (07/2026)** : le Wiktionnaire (kaikki, CC BY-SA) ajoute 46 018 mots FR
+absents de Lexique (noms/adj/adv rares, garde edit-1 vs mots fréquents pour ne masquer aucun typo) →
+**flood UD −56 %** (406→180 mots inconnus, le reste = latin/anglais/propre, correctement orange) ;
+**recall dys sûr** (les mots récupérés sont de vrais mots, 0 typo masqué). Verbes rares rejetés (taille).
+[À sa date, le bloc `speller-lex-gz` faisait **211 491 formes** = Lexique 4 low-freq + Wiktionnaire FR
+`dictee/wikt_lex_fr.tsv` (`build_speller_lex.py` MINFREQ=0 + `inject_speller.py`) ; au 03/09/2026 il en
+fait 705 653 après les 3 lots Morphalou #641-#643.]
+
+**Genre déterminant, route Wiktionnaire** : **+21 847 noms Wiktionnaire pur-nom genrés** fusionnés dans
+`gn`+`noun-post` par `build_wikt_gender.py`, FP=0 mesuré 41 FP/UD inchangé, produit vérifié
+(« le babiche→la »).
+
+---
 
 ## 2026-07-12 — rattrapage journal : correcteur mûri + le correcteur PARTOUT (PR #82-#143)
 
@@ -1372,6 +1788,19 @@ corrigés**. Câblé app (`rDetGenre`), parité EXACTE. (≠ `rule_genre_adj` ad
   (`dictee/corpus_gec_fr.jsonl`, 98 paires) → on s'aligne sur l'état canonique de `main`. ⚠️ Provenance/licence du
   corpus **toujours à confirmer** (texte type Wikipédia) — à retirer si besoin. Docs `eval_gec.py`/`CORRECTEUR.md`
   réconciliées (« hors-repo » → « suivi dans le repo »).
+
+---
+
+## 2026-06-19 — Audit projet : correctifs appliqués (ex-`AUDIT_PROJET.md`, replié puis migré ici)
+
+> [Verbatim CLAUDE.md, section « Audit projet ». Le ⏳ restant (validation terrain orthophonistes) est
+> suivi comme chantier ouvert dans ETAT.md.]
+
+✅ vivarium retiré · legacy dictée isolé · lexique compressé (16→5 Mo) · CI (`.github/workflows/ci.yml`) ·
+banner sécurité omega-key · **citation Lexique 4 complète + CC BY-SA 4.0 partout** · audit structurel
+(sécu XSS, try/catch muets, accessibilité toggles) corrigé → `AUDIT_STRUCTUREL.md`.
+⏳ Reste : **validation terrain** (vraies copies dys — externe, orthophonistes) — elle valide ET nourrit
+la boucle descendante ; arbitrage branche/`main` (commits OMEGA·KEY divergents).
 
 ---
 

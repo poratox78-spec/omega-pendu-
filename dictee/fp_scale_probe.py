@@ -11,7 +11,7 @@ import os, sys, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import correcteur_probe as C
 
-CEILING = 3.0   # % de phrases flaggées max. Mesuré ~1,96 % sur la fixture (homophones tranchés par la grammaire,
+CEILING = 3.0   # % de phrases flaggées max. Mesuré 1,40 % sur la fixture au 03/09/2026 (homophones tranchés par la grammaire,
                 # dont une part de vraies fautes d'UD). Marge pour ne pas flaker, mais saute sur une catastrophe (4,70 %).
 CORPUS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fp_scale_corpus.txt')
 

@@ -3,8 +3,9 @@ dictee/learned_lex.json
 cgram_pos.json
 # wikitext brut mis en cache par build_glosses_wiktionnaire.py (réextraction) — la sortie glosses_wiktionnaire.json, elle, est versionnée
 dictee/glosses_cache.json
-# config locale de l'agent (session)
-.claude/
+# config locale de l'agent (session) — sauf les skills projet, versionnés
+.claude/*
+!.claude/skills/
 
 # Lexique 4 — source maître (hors-repo par doctrine : 34 Mo ; fourni en .xz local / Drive de Rem)
 Lexique4.tsv
