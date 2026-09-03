@@ -50,6 +50,11 @@ def _num_at(F, k):                                   # nombre du sujet en tête 
     if k > 0:
         dk = SP.deacc(F[k-1])
         if dk in _NUM_PL or dk in _PL_DET2 or dk in _PL_PHRASE: return 'p'
+        # « De trains passent » : « de/d' » en TÊTE de segment + nom en -s/-x = pluriel indéfini (miroir JS, 03/09/2026)
+        _bb = C._SEG['bb'] if C._SEG is not None else None
+        if dk in ('de', "d'") and (k-1 == 0 or (_bb is not None and k-1 < len(_bb) and _bb[k-1])):
+            _nn = SP.deacc(F[k])
+            if _nn.endswith(('s', 'x')) and _nn not in _OS_INVAR: return 'p'
         if dk in NUM_DET:
             # ⭐ Le -s/-x ne prouve un PLURIEL que si le mot n'est pas INVARIABLE. Sans ce test, le
             # « x » de « prix » écrasait le déterminant « Le », pourtant sans ambiguïté, et l'orange
@@ -64,7 +69,7 @@ def _coord_plural(F, vi):                            # sujet COORDONNÉ « N et 
         for j in range(vi, 0, -1):
             if j < len(C._SEG['bb']) and C._SEG['bb'][j]: lo = j; break
     for k in range(vi-1, lo, -1):
-        if SP.deacc(F[k]) == 'et' and k+1 < vi:
+        if SP.deacc(F[k]) in ('et', 'puis') and k+1 < vi:   # « la pandémie … puis l'armistice » (miroir JS, 03/09/2026)
             if any(k-d >= lo and SP.deacc(F[k-d]) in ('de', 'des', 'du', "d'") for d in (1, 2, 3)): continue  # « de X et Y » = coordination DANS un complément → pas le sujet
             return True
     return False
@@ -138,7 +143,10 @@ _OS_CLI = CLITIC                                     # skip clitiques/négation 
 def _pron_before(F, vi):                             # sujet PRONOM net (je/tu/il/elle/on/ils/elles) en sautant clitiques + « ne » → géré par la règle PRONOM, pas l'OS-noms
     j = vi - 1; steps = 0
     while j >= 0 and steps < 4 and SP.deacc(F[j]) in _OS_CLI: j -= 1; steps += 1
-    return SUBJ_PRON.get(SP.deacc(F[j])) if j >= 0 else None
+    if j < 0: return None
+    m = C._ELIDED_PRON.match(F[j])                   # « Alors qu'il reste » : le pronom sujet vit DANS le token élidé (miroir JS, 03/09/2026)
+    if m: return SP.deacc(m.group(1))
+    return SUBJ_PRON.get(SP.deacc(F[j]))
 def _guard_ok(F, vi):
     """gardes STRUCTURELLES (miroir de rule_accord_sv_noun/rule_ais_ait) que le port OS avait perdues → floodaient sur
     passé composé/participe/sujet-pronom (mesuré sur registre chat : flood 3,5 %→0 %, recall inchangé). Indépendantes du sujet-OS."""
@@ -215,6 +223,45 @@ def _verb_ctx(tg, F, vi):
     if vi > 0 and (F[vi-1].lower() in NUM_DET or C.deacc(F[vi-1].lower()) in PREP): return False
     return bool(C._reads(F[vi]))
 
+
+def _coord_verbe(F, vi, vn, f3s, f3p, tg):
+    """« remporta six victoires ET encaisse trois défaites » : le verbe qui suit et/ou/puis/mais reprend le sujet du verbe
+    fini précédent du même segment (le tagger tranche les homographes : « contre », « vents »). Même lecture (personne,
+    nombre) possible → None (rien à dire) ; sinon la forme du nombre du premier verbe. False = la route ne s'applique pas.
+    Le token est comparé BRUT (« où » désaccentué serait pris pour « ou »). Miroir JS _osCoordVerbe (03/09/2026)."""
+    j, st = vi - 1, 0
+    while j >= 0 and st < 3 and SP.deacc(F[j]) in _OS_CLI: j -= 1; st += 1
+    if j < 0 or F[j] not in ('et', 'ou', 'puis', 'mais'): return False
+    lo = 0
+    if C._SEG is not None:
+        for q in range(j, 0, -1):
+            if q < len(C._SEG['bb']) and C._SEG['bb'][q]: lo = q; break
+    rv = C._reads(F[vi])
+    for q in range(j - 1, max(lo, j - 12) - 1, -1):
+        w = F[q]
+        if "'" in w or re.search(u'(é|és|ée|ées)$', w): continue
+        if tg is None or q >= len(tg): continue
+        if tg[q] not in ('VERB', 'AUX'):
+            # passé simple pris pour un NOM par le tagger (« remporta ») : repris seulement si verbe PUR au noun-post (miroir JS)
+            if tg[q] not in ('NOUN', 'PROPN') or not C.NOUN_POST: continue
+            _nq = C.NOUN_POST.get(SP.deacc(w))
+            if _nq and _nq[0] >= 100: continue
+        r = C._reads(w)
+        if not r:
+            if tg[q] == 'VERB' and len(w) > 3 and re.search(u'[a-zà-ÿ]a$', w): r = [(w, 'ind:pas', '3', 's')]   # passé simple 3s en -a (« remporta ») absent des tables
+            else: continue
+        elif not C._is_finite(w): continue
+        nbs = set(); ok = False
+        for a in r:
+            nbs.add(a[3])
+            for b in rv:
+                if a[2] == b[2] and (a[3] == b[3] or a[3] == 'x' or b[3] == 'x'): ok = True
+        if ok: return None
+        if 's' in nbs and 'p' not in nbs: return None if vn == 's' else (f3s, 0.9)
+        if 'p' in nbs and 's' not in nbs: return None if vn == 'p' else (f3p, 0.9)
+        return None
+    return False
+
 def detect(F, vi, tau=0.85, tg=None):
     """rend (forme accordée suggérée, confiance) si le verbe F[vi] désaccorde le sujet-OS au-dessus de τ, sinon None.
     _guard_ok : gardes structurelles (participe/aux/dét/prép/sujet-pronom) — miroir des règles sœurs.
@@ -226,10 +273,13 @@ def detect(F, vi, tau=0.85, tg=None):
     lem, mt, vn, f3s, f3p = vi_
     if vn == '?' or not f3s or not f3p: return None
     if tg is not None and not _verb_ctx(tg, F, vi): return None
+    if tg is not None:                                        # COORDINATION DE VERBES (miroir JS _osCoordVerbe, 03/09/2026)
+        cv = _coord_verbe(F, vi, vn, f3s, f3p, tg)
+        if cv is not False: return cv
     if tg is not None:                                        # LE PARSEUR DE SUJET D'ABORD (miroir JS, 03/09/2026)
         try: np_ = C._np_subject(F, tg, vi)
         except Exception: np_ = None
-        if np_ and np_.get('n') in ('s', 'p') and not _coord_plural(F, vi):
+        if np_ and np_.get('n') in ('s', 'p') and not _coord_plural(F, vi) and _rel_ant(F, vi) < 0:   # relative entre la tête et le verbe : la route relative parle (miroir JS)
             ds = [_vote(np_['n'], 0.9), R4(F, vi, f3s, f3p)]
             ws = [_peak(ds[0]) + 1e-6, (_peak(ds[1]) + 1e-6) * 0.4]
             Z = sum(ws); ps = sum(w * d[0] for w, d in zip(ws, ds)) / Z; pp = sum(w * d[1] for w, d in zip(ws, ds)) / Z

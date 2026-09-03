@@ -143,6 +143,14 @@ const CAS = [
   /* LE PARSEUR DE SUJET D'ABORD (03/09/2026) : le GN sujet trouvé par la règle rouge fait taire les voisins et la fausse inversion. */
   { txt: 'le taux de mortalité est plus élevé sur ce territoire', rien: true, orangeInterdit: 'est', pourquoi: 'sujet « le taux » (complément « de mortalité » enjambé) : « est » est juste' },
   { txt: 'que la lumière du Bouddha éclaire les trois mille mondes', rien: true, orangeInterdit: 'éclaire', pourquoi: 'pas une inversion : le sujet « la lumière » précède le verbe' },
+  /* FORME VERBALE avant NOMBRE (03/09/2026, mesuré dans Chrome sur le corpus dys : +2 justes, −4 inutiles, −5 fausses). La règle de
+     nombre passait avant les règles de forme et les faisait taire (« vont cherchait » → cherchaient au lieu de chercher). */
+  { txt: 'les racines vont cherchait de petits tuyaux', corrigeAttendu: ['cherchait', 'chercher'], pourquoi: 'semi-auxiliaire + forme conjuguée → infinitif, et non un accord de nombre' },
+  { txt: 'le roi le fit ramenais au château', corrigeAttendu: ['ramenais', 'ramener'], pourquoi: '« faire » est un semi-auxiliaire : infinitif attendu' },
+  { txt: "elle s'est mariaient à vingt ans", corrigeAttendu: ['mariaient', 'mariée'], pourquoi: "forme conjuguée après « s'est » → participe accordé" },
+  { txt: 'tout en pensent à la plage il bronze', corrigeAttendu: ['pensent', 'pensant'], pourquoi: '« tout en » + forme conjuguée → participe présent' },
+  { txt: "alors qu'il reste encore trente minutes", rien: true, orangeInterdit: 'reste', pourquoi: "sujet pronominal élidé « qu'il » : pas une inversion" },
+  { txt: 'il remporta six victoires et encaisse trois défaites', rien: true, orangeInterdit: 'encaisse', pourquoi: 'coordination de verbes : même sujet que « remporta »' },
   { txt: 'les haies qui délimite les champs', corrigeAttendu: ['délimite', 'délimitent'], pourquoi: 'la seule utile du corpus : « délimite » → délimitent (rouge si le sujet en tête se lit, orange OS sinon — l’un ou l’autre, jamais rien)' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
