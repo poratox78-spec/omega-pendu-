@@ -5,6 +5,53 @@
 
 ---
 
+## 2026-09-03 — « fermer les boucles du pendu » : mesuré, rien ne bouge (réfuté chiffré)
+
+> Déclencheur : Rem, « on n'avait jamais vraiment fermé les boucles, particulièrement celle phon […] explore le champ des possibles ».
+
+- **Ce qui est vrai dans le code** : la voie phon est un *shadow* (« M1 seul livré ») dont le substrat est un vecteur par LETTRE
+  (identité + 14 traits articulatoires), pas du son ; `M1_phon_m`/`M2_phon_m` sont écrits, jamais lus (audit F3) ; le canal Möbius
+  `M_BOUCLE` ne ferme que la boucle ORTHO et est OFF en config de référence ; aucun étage descendant n'atteint la décision-lettre.
+- **Inerte par construction, pas seulement débranché** : `M1_phon_m.letterScore = clamp(1 − letterPenalty, 0..1)`, or les pénalités
+  apprises sont presque toutes négatives (des boosts) → le clamp les efface. Branché tel quel, il reproduit la référence **à la partie
+  près** (E3a : 282/273/270 sur 3 graines, identique).
+- **Banc** : protocole exact de `evo/ci_smoke.js` (in-lexique K=1, mots 7-12, warmup 120), copie patchée de l'app pour la seule
+  variante nouvelle (Möbius phon SIGNÉ : `−letterPenalty` module le contexte phon avant normalisation, poids W). 900 parties par
+  condition (Wilson ±1,8 pt), puis **apparié** 3 000 mots (issue par mot, paires discordantes, McNemar exact) — l'outil est commité :
+  `evo/pendu_paired_ab.js` (toggles existants).
+
+| variante | 900 parties : cognition / +NEO | apparié 3 000 mots (cognition) |
+|---|---|---|
+| E0 référence | 91,7 % / 98,7 % | 90,73 % |
+| E1 Möbius ortho ON (`L01_B2`) | 92,3 / 98,8 | 90,20 % (−0,53 pt) · 214 discordantes, 99 gagnées / 115 perdues · p = 0,31 |
+| E2 co-décision descendante (`M5_D_M1_M`) | 92,0 / 98,6 | 91,60 % (+0,87 pt) · 198 discordantes, 112 / 86 · p = 0,075 |
+| E3 Möbius phon clampé, W 0,05 / 0,2 / 0,5 | 91,7 (identique) / 92,3 / 91,0 | — |
+| E4 Möbius phon signé W 0,05 / 0,2 / 0,5 | 92,3 / 92,2 / **92,9** · NEO plat | W 0,05 : 91,10 % (+0,37) · 213 disc. · p = 0,49 · W 0,5 : 90,33 % (−0,40) · 212 disc. · p = 0,45 |
+| E4 Möbius phon signé W 1,0 | — | 91,60 % (+0,87) · 200 disc., 113 / 87 · p = 0,077 |
+| E5 Möbius ortho + phon signé W 0,5 | (ortho + phon 0,2 : 92,2 / 99,0) | 90,00 % (−0,73) · 218 disc., 98 / 120 · p = 0,16 |
+
+- **Le même signe partout** : E2 et E4 (W 1,0) font tous deux +0,87 pt avec la même structure (112/86, 113/87), et ce sont les **mêmes
+  mots** qui basculent d'une variante à l'autre (ETIQUETAIT, PROVERBE, SKYPAIT, DECHARGEZ, PASSEUSE, TAMOXIFENE gagnés par E1, E2 et
+  E4) : signature d'un bruit de PERTURBATION — des mots au bord basculent dès que le chemin numérique change, quel que soit le
+  mécanisme. Contrôle : un **placebo** (Möbius phon W = 1e‑9, mathématiquement nul) et une **réplication** sur graines neuves
+  (31337, 2024, 9001) — résultats ci-dessous.
+| **placebo** (Möbius phon W = 1e‑9, nul) | — | **91,17 % (+0,43) · 195 disc., 104 / 91 · p = 0,39** — les mêmes mots basculent |
+| réplication, graines neuves (E0 = 91,13 %) | — | phon W 1,0 : +0,43 (108 / 95, p = 0,40) · co‑décision : −0,10 (87 / 90, p = 0,88) |
+| réplication, graines neuves (suite) | — | phon W 2,0 : 91,57 % (+0,43) · 185 disc., 99 / 86 · p = 0,378 · placebo : 90,20 % (-0,93) · 196 disc., 84 / 112 · p = 0,054 |
+
+- **Le placebo tranche** : une modulation mathématiquement nulle, qui ne change que le chemin des flottants, produit +0,43 pt et
+  195 paires discordantes — le **plancher de bruit de perturbation** de ce moteur est ~200 parties sur 3 000 qui basculent dès
+  qu'on touche au chemin numérique, dans un sens ou dans l'autre. Tous les « effets » mesurés (−0,73 à +0,87) sont dans ce plancher,
+  et les deux +0,87 ne se répliquent pas sur graines neuves (+0,43 et −0,10).
+- **Verdict** : aucune boucle fermée ne déplace le taux cheat-free ; le +1,2 pt de E4c sur 900 parties était du bruit (apparié :
+  −0,40 pt, p = 0,45). ⚠️ Méthode : sur ce moteur, **un A/B doit toujours embarquer un placebo** ; une variante qui ne bat pas le
+  placebo n'a rien montré, quel que soit son p isolé. Avec NEO (config produit) tout est plat à 98,7 %. La config de référence est un optimum local pour ces
+  leviers — Rem : « tu vois la config optimale a priori, donc on atteint la fin de tâches ».
+- **Ne pas re-tenter** sans idée neuve. La seule entrée non testée est une VRAIE entrée sonore, qui n'existe pas dans le jeu ; côté
+  dictée vocale, la boucle son→OMEGA (voie B) est déjà mesurée et l'arbitrage du pendu y est réfuté (cf. mémoire `asr-phon-route`).
+
+---
+
 ## 2026-08-22 — qualité sur TEXTE DYS avant le store : paliers mesurés par sous-cas, 3 FP réparés à la source
 
 > Déclencheur : revue de l'extension avec 5 phrases dys réalistes. Le moteur était **fort en grammaire** (« les enfant mange des bonbon » → enfants/mangent/bonbons, expliqué) mais rendait des corrections FAUSSES avec l'étiquette « sûr » : « ma **mere** ma dit » → « **mon** mere », « chein » → « chin », « aboit » → « about »/« a boit ». FP=0 tenait sur texte correct, pas sur texte dys — or c'est le texte qu'on reçoit.
