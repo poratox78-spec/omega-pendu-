@@ -4352,7 +4352,9 @@ def rule_personne_verbe(T, i):
     return out if (out and deacc(out.lower()) != lw) else None
 
 
-_SEMI_AUX = set(('vais vas va allons allez vont allais allait allions alliez allaient irai iras ira '
+_FAIRE_SEMI = set('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient'.split())   # faire + infinitif (« le fit ramenais » → ramener, 03/09/2026)
+_SEMI_AUX = set(('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient '
+                 'vais vas va allons allez vont allais allait allions alliez allaient irai iras ira '
                  'irons irez iront veux veut voulons voulez veulent voulais voulait voulions vouliez '
                  'voulaient voudrais voudrait voudrions dois doit devons devez doivent devais devait '
                  'devions deviez devaient devrai devra devrons peux peut pouvons pouvez peuvent '
@@ -4384,6 +4386,11 @@ def rule_inf_semi_aux(T, i):
     while j >= 0 and st < 3 and deacc(T[j].lower()) in CLITIC:
         j -= 1; st += 1
     if j < 0 or deacc(T[j].lower()) not in _SEMI_AUX: return None
+    # « faire » : « fait référence », « fait date », « fait la fête » — nom homographe d'une forme verbale. Pour ce
+    # gouverneur-là, on exige un verbe PUR : posterior nom (cgram_noun_post) < 100 ‰ (miroir JS, 03/09/2026).
+    if deacc(T[j].lower()) in _FAIRE_SEMI:
+        _npx = NOUN_POST.get(lw) if NOUN_POST else None
+        if _npx and _npx[0] >= 100: return None
     # le semi-auxiliaire est-il DANS une relative ? « les endroits ou on va coute cher » : « va »
     # ferme la relative, « coute » est le verbe de la principale. FP de la batterie de PARITE.
     for _r in range(j - 1, max(-1, j - 4), -1):

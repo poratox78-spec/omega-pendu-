@@ -26313,6 +26313,19 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(i===0)return null;var p=deacc(T[i-1].toLowerCase());
     if(p!=='sa'&&p!=='ma'&&p!=='ta')return null;
     return ckeepcase(T[i],'vie');}
+  /* PARTICIPE PRÉSENT après « en » (03/09/2026) : « tout en pensent a bronzer » → pensant, « En rentrent de vacance » → rentrant.
+     « en » y est la préposition du gérondif : après « tout », ou en tête de segment. Ailleurs « en » est un clitique
+     (« ils en pensent du bien ») et on se tait. Verbes du 1er groupe seulement (forme finie → lemme -er → -ant), orange. */
+  function gerondifVig(T,i){if(!CONJ_F||i<1)return null;var w=T[i],lw=w.toLowerCase();if(lw.indexOf("'")>=0||!/^[a-zà-ÿ]+$/.test(lw))return null;
+    if(deacc(T[i-1].toLowerCase())!=='en')return null;var p2=(i>=2)?deacc(T[i-2].toLowerCase()):'';
+    var initial=(i-1===0)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1]);if(!initial&&p2!=='tout')return null;
+    if(w.charAt(0)!==lw.charAt(0))return null;                                          /* « En Écosse » : nom propre */
+    if(_SEG&&_SEG.dig&&i<_SEG.dig.length&&_SEG.dig[i])return null;                      /* « en 1659, confirme » : le tokeniseur a mangé le nombre */
+    var _npg=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(deacc(lw)):NOUN_POST[deacc(lw)]):null;if(_npg&&_npg[0]>=100)return null;   /* « En seconde », « en tête », « en date » : noms homographes */
+    var r=svReads(w);if(!r.length)return null;var lem=null,k,okT=false;for(k=0;k<r.length;k++){if(lem&&lem!==r[k][0])return null;lem=r[k][0];var md=r[k][1].split(':');if((md[0]==='ind')&&(md[1]==='pre'||md[1]==='imp'))okT=true;}
+    if(!okT)return null;                                                                   /* présent/imparfait seulement : « En découleront » (futur) est une inversion correcte */
+    if(!lem||!/er$/.test(lem)||lem==='aller')return null;if(/(ant|ent)$/.test(deacc(lw))&&!/ent$/.test(lw))return null;
+    return ckeepcase(w,lem.slice(0,-2)+'ant');}
   function sestPpVig(T,i){
     /* ORANGE « elle s'est marié » → mariée ? (enquête des 22, texte3 : c'est→s'est corrigé en
        cascade mais l'accord ne suivait pas). PRONOMINAL = zone à pièges, donc JAMAIS rouge :
@@ -26320,9 +26333,14 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
        confier »), COD postposé invariable (« s'est acheté une robe ») → gardes fermées. */
     var w=T[i],lw=w.toLowerCase();
     if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase())return null;
+    if(i<2)return null;
+    /* FORME FINIE après « s'est » (03/09/2026) : « elle s'est mariaient » → mariée. Le scripteur a conjugué là où il fallait le
+       participe. 1er groupe seulement, lemme unique, sujet elle/il juste avant (négation enjambée), orange. */
+    if(CONJ_F&&deacc(T[i-1].toLowerCase())==="s'est"&&!_isPpl(w)&&_isFinite(w)){var _rf=svReads(w),_lm=null,_k;for(_k=0;_k<_rf.length;_k++){if(_lm&&_lm!==_rf[_k][0]){_lm=null;break;}_lm=_rf[_k][0];}
+      var _s2=deacc(T[i-2].toLowerCase());if((_s2==='ne'||_s2==="n'")&&i>=3)_s2=deacc(T[i-3].toLowerCase());
+      if(_lm&&/er$/.test(_lm)&&(_s2==='elle'||_s2==='il'))return ckeepcase(w,_lm.slice(0,-2)+(_s2==='elle'?'ée':'é'));}
     var lc=lw.charAt(lw.length-1);if(lc!=='é'&&lc!=='i'&&lc!=='u')return null;
     if(!_isPpl(w))return null;
-    if(i<2)return null;
     var _pv1=deacc(T[i-1].toLowerCase());
     if(_pv1!=="s'est"&&_pv1!=="c'est")return null;   // « elle C'EST marié » (texte3) : la vigilance tourne AVANT la cascade c'est→s'est — le cadre l'accepte (jamais présent sur du correct)
     var p2=deacc(T[i-2].toLowerCase());if((p2==='ne'||p2==="n'")&&i>=3)p2=deacc(T[i-3].toLowerCase());
@@ -26358,7 +26376,9 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
          « avoir » ; d'où la liste fermée de mots-outils ;
        · le participe se rejoint par sa forme en -s (« fini » → « finis » → finir), mais cette route
          attrapait « peuvent par » → partir : prépositions et adverbes courants fermés aussi. */
-  var _SEMI_AUX={vais:1,vas:1,va:1,allons:1,allez:1,vont:1,allais:1,allait:1,allions:1,alliez:1,allaient:1,
+  var _FAIRE_SEMI={fais:1,fait:1,faisons:1,faites:1,font:1,fit:1,firent:1,faisait:1,faisaient:1,fera:1,feront:1,ferait:1,feraient:1};
+  var _SEMI_AUX={fais:1,fait:1,faisons:1,faites:1,font:1,fit:1,firent:1,faisait:1,faisaient:1,fera:1,feront:1,ferait:1,feraient:1,   /* faire + infinitif (« le fit ramenais » → ramener, 03/09/2026) */
+    vais:1,vas:1,va:1,allons:1,allez:1,vont:1,allais:1,allait:1,allions:1,alliez:1,allaient:1,
     irai:1,iras:1,ira:1,irons:1,irez:1,iront:1,veux:1,veut:1,voulons:1,voulez:1,veulent:1,voulais:1,voulait:1,
     voulions:1,vouliez:1,voulaient:1,voudrais:1,voudrait:1,voudrions:1,dois:1,doit:1,devons:1,devez:1,doivent:1,
     devais:1,devait:1,devions:1,deviez:1,devaient:1,devrai:1,devra:1,devrons:1,peux:1,peut:1,pouvons:1,pouvez:1,
@@ -26415,6 +26435,9 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var j=i-1,st=0;
     while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}
     if(j<0||!_SEMI_AUX[deacc(T[j].toLowerCase())])return null;
+    /* « faire » : « fait référence », « fait date », « fait la fête » — le mot qui suit est un NOM homographe d'une forme verbale.
+       Pour ce gouverneur-là, on exige un verbe PUR : posterior nom (noun-post) < 100 ‰, sinon on se tait (03/09/2026). */
+    if(_FAIRE_SEMI[deacc(T[j].toLowerCase())]){var _npx=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(lw):NOUN_POST[lw]):null;if(_npx&&_npx[0]>=100)return null;}
     /* ⭐ le semi-auxiliaire est-il DANS une relative ? « les endroits où on va coûte cher » : « va »
        ferme la relative, « coûte » est le verbe de la principale — ce n'est pas un infinitif attendu.
        FP trouvé par la batterie de PARITÉ. « que » reste HORS liste (« je crois que je vais mange »
@@ -27871,12 +27894,15 @@ function spellTokenCore(tok,atStart,T,idx){
     'concours discours parcours secours univers divers pervers avis colis permis compromis '+
     'bus autobus jus repas tapis souris brebis puits gaz nez riz').split(' ')
     .forEach(function(w){_OS_INVAR[w]=1;});
-  function _osNumAt(F,k){if(_osElidedSing(F[k]))return 's';if(k>0){var dd=deacc(F[k-1]);if(_osNumPl[dd]||_osPlDet2[dd]||_osPlPhrase[dd])return 'p';if(NUM_DET[dd]!==undefined){var _n=deacc(F[k]);
+  function _osNumAt(F,k){if(_osElidedSing(F[k]))return 's';if(k>0){var dd=deacc(F[k-1]);if(_osNumPl[dd]||_osPlDet2[dd]||_osPlPhrase[dd])return 'p';
+    /* « De trains passent » : « de/d' » en TÊTE de segment + nom en -s/-x = pluriel indéfini (03/09/2026) */
+    if((dd==='de'||dd==="d'")&&(k-1===0||(_SEG&&k-1<_SEG.bb.length&&_SEG.bb[k-1]))&&/[sx]$/.test(deacc(F[k]))&&!_OS_INVAR[deacc(F[k])])return 'p';
+   if(NUM_DET[dd]!==undefined){var _n=deacc(F[k]);
       /* ⭐ Le -s/-x ne prouve un PLURIEL que si le mot n'est pas INVARIABLE. Sans ce test, le « x »
          de « prix » écrasait le déterminant « Le », pourtant sans ambiguïté, et l'orange proposait
          « Le prix SONT fixé par la loi ». Miroir Python _num_at. */
       return (NUM_DET[dd]==='pl'||(/[sx]$/.test(_n)&&!_OS_INVAR[_n]))?'p':'s';}}return null;}
-  function _osCoordPlural(F,vi){var lo=0,j,k,d;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}for(k=vi-1;k>lo;k--){if(deacc(F[k])==='et'&&k+1<vi){var inpp=false;for(d=1;d<=3;d++){if(k-d>=lo){var dq=deacc(F[k-d]);if(dq==='de'||dq==='des'||dq==='du'||dq==="d'"){inpp=true;break;}}}if(!inpp)return true;}}return false;}   // sujet COORDONNÉ « N et N » (hors PP « de X et Y ») → PLURIEL
+  function _osCoordPlural(F,vi){var lo=0,j,k,d;if(_SEG){for(j=vi;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}for(k=vi-1;k>lo;k--){var _dk=deacc(F[k]);if((_dk==='et'||_dk==='puis')&&k+1<vi){var inpp=false;for(d=1;d<=3;d++){if(k-d>=lo){var dq=deacc(F[k-d]);if(dq==='de'||dq==='des'||dq==='du'||dq==="d'"){inpp=true;break;}}}if(!inpp)return true;}}return false;}   // sujet COORDONNÉ « N et N » (hors PP « de X et Y ») → PLURIEL
   /* LA RELATIVE EN « qui » (03/09/2026, mesuré dans Chrome sur le corpus dys : +1 juste, −10 inutiles, 0 fausse ; texte
      correct 49 → 40 marques, aucune nouvelle). « les villages QUI composent la commune SONT » : le sujet de « sont » est
      l'ANTÉCÉDENT « villages », pas « commune » ; « un groupe de chercheurs QUI traquent » : le sujet est « chercheurs ».
@@ -27901,7 +27927,8 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!p3.length)return null;var lem=p3[0][0],mts={};for(k=0;k<p3.length;k++)mts[p3[k][1]]=1;var mt=mts['ind:pre']?'ind:pre':p3[0][1];
     var nums={};for(k=0;k<p3.length;k++)if(p3[k][1]===mt)nums[p3[k][3]]=1;
     var vn=(nums.s&&!nums.p)?'s':((nums.p&&!nums.s)?'p':'?');var sl=(CONJ_C[lem]||{})[mt]||{};return [lem,mt,vn,sl['3s'],sl['3p']];}
-  function _osPronBefore(F,vi){var j=vi-1,st=0;while(j>=0&&st<4&&CLITIC[deacc(F[j])]){j--;st++;}return j>=0?(SUBJ_PRON[deacc(F[j])]||null):null;}
+  function _osPronBefore(F,vi){var j=vi-1,st=0;while(j>=0&&st<4&&CLITIC[deacc(F[j])]){j--;st++;}if(j<0)return null;var _e=_ELIDED_PRON.exec(F[j]);if(_e)return deacc(_e[1]);   /* « Alors qu'il reste » : le pronom sujet vit DANS le token élidé (03/09/2026) */
+    return SUBJ_PRON[deacc(F[j])]||null;}
   function _osGuardOk(F,vi){var w=F[vi];   // gardes STRUCTURELLES (miroir rAccordSVnoun/rAisAit) perdues au port OS → floodaient sur passé composé/participe/sujet-pronom. Mesuré registre chat : flood 3,5%→0%, recall inchangé.
     if(w.indexOf("'")>=0)return false;                                             // verbe élidé (n'est…)
     if(/(é|és|ée|ées)$/.test(w))return false;                                      // PARTICIPE (contacté, embrassé) : accord ADJECTIVAL, pas verbal
@@ -27934,6 +27961,15 @@ function spellTokenCore(tok,atStart,T,idx){
     if(_postposePlural(F,tg,kk,hi))return [0.03,0.97];
     if(_rel&&_postposeSingulier(F,tg,kk,hi))return [0.97,0.03];   // ⭐ le sujet postposé SINGULIER peut enfin se défendre contre un antécédent pluriel
     return null;}
+  function _osCoordVerbe(F,vi,vn,f3s,f3p,tg){var j=vi-1,st=0;while(j>=0&&st<3&&CLITIC[deacc(F[j])]){j--;st++;}
+    if(j<0)return undefined;var _c=F[j];if(_c!=='et'&&_c!=='ou'&&_c!=='puis'&&_c!=='mais')return undefined;   /* token BRUT : « où » désaccentué serait pris pour « ou » (vu sur « où se trouve le forum ») */
+    var lo=0,q;if(_SEG){for(q=j;q>0;q--){if(q<_SEG.bb.length&&_SEG.bb[q]){lo=q;break;}}}
+    for(q=j-1;q>=lo&&q>=j-12;q--){var w=F[q];if(w.indexOf("'")>=0||/(é|és|ée|ées)$/.test(w))continue;var _tq=(tg&&q<tg.length)?tg[q]:'';if(_tq!=='VERB'&&_tq!=='AUX'){if(_tq!=='NOUN'&&_tq!=='PROPN'||!NOUN_POST)continue;var _nq=(typeof NOUN_POST.get==='function')?NOUN_POST.get(deacc(w)):NOUN_POST[deacc(w)];if(_nq&&_nq[0]>=100)continue;}   /* sans table noun-post, pas de surcharge du tagger (parité) */   /* le tagger tranche l'homographe (« contre », « vents ») ; un verbe PUR que le tagger rate (« remporta ») passe par noun-post */
+      var r=svReads(w);if(!r.length){if(_tq==='VERB'&&w.length>3&&/[a-zà-ÿ]a$/.test(w)){r=[[w,'ind:pas','3','s']];}else continue;}else if(!_isFinite(w))continue;   /* passé simple 3s en -a (« remporta ») absent des tables : lu 3s */
+      var rv=svReads(F[vi]),a,b,ok=false,nbs={};for(a=0;a<r.length;a++){nbs[r[a][3]]=1;for(b=0;b<rv.length;b++)if(r[a][2]===rv[b][2]&&(r[a][3]===rv[b][3]||r[a][3]==='x'||rv[b][3]==='x'))ok=true;}
+      if(ok)return null;                                        // même sujet possible : rien à dire
+      if(nbs.s&&!nbs.p)return vn==='s'?null:f3s;if(nbs.p&&!nbs.s)return vn==='p'?null:f3p;return null;}
+    return undefined;}
   function osVerbVig(T,i,tg){if(!_OSLM)return null;
     var F=[],m;for(m=0;m<T.length;m++)F.push(T[m].toLowerCase());
     if(!_osGuardOk(F,i))return null;
@@ -27944,8 +27980,13 @@ function spellTokenCore(tok,atStart,T,idx){
        compléments « de X » enjambés, relatives coupées) trouve un GN sujet, son nombre est LA voix structurelle — avant la
        route postposée (« Que la lumière du Bouddha éclaire » n'est pas une inversion) et avant les voisins R1-R3 (« le taux de
        mortalité est »). Il se tait devant une coordination « N et N » entre la tête et le verbe (« ovins et caprins … devront »). */
+    /* COORDINATION DE VERBES (03/09/2026) : « remporta six victoires ET encaisse trois défaites », « ferait fuir les talents ET
+       empêcherait » — le verbe qui suit et/ou/puis/mais reprend le sujet du verbe fini précédent du même segment. Les voisins
+       R1-R3 (et le parseur) lisaient l'objet du premier verbe (« victoires » → pluriel) : faux. Si les deux formes partagent
+       une lecture (personne, nombre), on se tait ; sinon on propose la forme du même nombre que le premier verbe. */
+    var _cv=_osCoordVerbe(F,i,vn,f3s,f3p,tg);if(_cv!==undefined)return _cv;
     if(tg){var _np=null;try{_np=_npSubject(T,tg,i);}catch(e){_np=null;}
-      if(_np&&(_np.n==='s'||_np.n==='p')&&!_osCoordPlural(F,i)){var _dsn=[_osVote(_np.n,0.9),_osR4(F,i,f3s,f3p)],_wsn=[Math.abs(_dsn[0][0]-_dsn[0][1])+1e-6,(Math.abs(_dsn[1][0]-_dsn[1][1])+1e-6)*0.4];
+      if(_np&&(_np.n==='s'||_np.n==='p')&&!_osCoordPlural(F,i)&&_osRelAnt(F,i)<0){   /* une relative en « qui » entre la tête et le verbe : la route relative parle (03/09/2026) */var _dsn=[_osVote(_np.n,0.9),_osR4(F,i,f3s,f3p)],_wsn=[Math.abs(_dsn[0][0]-_dsn[0][1])+1e-6,(Math.abs(_dsn[1][0]-_dsn[1][1])+1e-6)*0.4];
         var _Zn=_wsn[0]+_wsn[1],_psn=(_wsn[0]*_dsn[0][0]+_wsn[1]*_dsn[1][0])/_Zn,_ppn=(_wsn[0]*_dsn[0][1]+_wsn[1]*_dsn[1][1])/_Zn,_rnn=_psn>=_ppn?'s':'p',_rcn=Math.abs(_psn-_ppn);
         if(_rcn<_OS_TAU||_rnn===vn)return null;return _rnn==='p'?f3p:f3s;}}
     if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:f3s;}}   // sujet postposé : mode dédié DOMINE
@@ -27974,14 +28015,17 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){out.push({i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (le rouge se limite au sujet en tête = FP=0 ; l'orange couvre le reste). DOCTRINE : doute → orange, jamais silence. Le rouge gagne au même token (fusion grammaire-prioritaire).
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()&&!svTaisCarte(T,i)){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
+    /* ORDRE (03/09/2026, mesure) : une faute de FORME (« vont cherchait » → chercher, « s'est mariaient » → mariée) est plus
+       fondamentale qu'une faute de NOMBRE ; ces règles passaient APRÈS l'orange de nombre, qui les faisait taire. Elles passent d'abord. */
+    if(!pushed){var gv2=gerondifVig(T,i);if(gv2&&gv2.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:gv2,name:'participe présent après « en » à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var spv=sestPpVig(T,i);if(spv){out.push({i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}   // « elle s'est marié » → mariée ? (pronominal = orange)
+    if(!pushed){var siv=semiInfVig(T,i);if(siv){out.push({i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'});pushed=true;}}   // « je vais mange » → manger ? (orange)
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
     if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré OS+LM (résiduel « de N »)
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
-    if(!pushed){var spv=sestPpVig(T,i);if(spv){out.push({i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}   // « elle s'est marié » → mariée ? (pronominal = orange)
     if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
     if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
-    if(!pushed){var siv=semiInfVig(T,i);if(siv){out.push({i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'});pushed=true;}}   // « je vais mange » → manger ? (orange)
     if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
     if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;out.push({i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp});pushed=true;}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}

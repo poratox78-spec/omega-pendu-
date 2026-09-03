@@ -20,6 +20,7 @@ D.setLex(JSON.parse(fs.readFileSync(path.join(EXT, 'assets', 'vdc-lex.json'), 'u
          zlib.gunzipSync(fs.readFileSync(path.join(EXT, 'assets', 'gender-relaxed.tsv.gz'))).toString('utf8'));
 D.setPosHmm(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(EXT, 'assets', 'pos-hmm.json.gz'))).toString('utf8')));
 D.setOsLm(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(EXT, 'assets', 'os-subj-lm.json.gz'))).toString('utf8')));
+try { D.setNounPost(zlib.gunzipSync(fs.readFileSync(path.join(EXT, 'assets', 'noun-post.txt.gz'))).toString('utf8')); } catch (e) {}   // le produit charge noun-post : la parité aussi (03/09/2026)
 let extFlags = []; for (const s of fp) for (const f of D.osProbe(s)) extFlags.push([f.word, f.sugg]);
 
 // 3) APP (IIFE osProbe) — seeds + DOM bouchon comme parity_corr
