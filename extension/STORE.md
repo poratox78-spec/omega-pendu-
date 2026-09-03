@@ -25,9 +25,9 @@
 | 10 | Captures d'écran 1280×800 (1 à 5) | ✅ fournies par Rem |
 | 11 | Remplir la fiche + les justifications, envoyer | ✅ envoyé et **accepté** le 28/08/2026 |
 | 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
-| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ montée à **0.6.1** le 30/08/2026 (embarque les correctifs #607 voisement × graisse et #608 soulignement de l'encadré corrigé ; 0.6.0 = version en ligne) |
+| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ montée à **0.6.2** le 03/09/2026 — la 0.6.1 (30/08) n'a jamais été téléversée ; la 0.6.2 embarque tout ce qui a été fusionné depuis (lexique 705 653 formes, questions sans trait d'union, panneau latéral qui applique le « ? », marque cliquable, relative en « qui ») |
 | 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ paragraphe du §3 collé à l'envoi du 28/08/2026 |
-| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (31 fichiers, 4,0 Mo, manifest à la racine, v0.6.1) | ✅ régénéré le 30/08/2026 — ⬜ téléversement par Rem (console développeur, revue Google à repasser ; permissions inchangées ⇒ §3/§4/§5 se collent tels quels) |
+| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.2) | ✅ régénéré le 03/09/2026 par `python3 extension/build_zip.py --store` — ⬜ téléversement par Rem (console développeur), nouvelle revue Google |
 
 ## 1. Ce qui était bloquant et qui est corrigé
 
