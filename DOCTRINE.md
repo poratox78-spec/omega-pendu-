@@ -3,8 +3,9 @@
 > **Statut du document.** Consolidation propre des doctrines OMEGA telles qu'elles
 > ont fait surface (clause de service, falsifiabilité, R66/R67, doctrine probabiliste,
 > règle d'or, audit honnête) **+ addendum anti-fainéantise**.
-> ⚠️ Le texte canonique des règles **R1–R65** vit dans le cap §43 d'origine : reporte-le
-> dans les emplacements marqués `‹CANONIQUE›` et réconcilie la numérotation.
+> ⚠️ Les règles **R1–R65** du cap §43 d'origine sont **PERDUES** — acté par Rem le 24/08/2026.
+> Plus rien à reporter ni à réconcilier : la numérotation reprend à R66 (§2) en témoignage de
+> l'origine ; c'est voulu, pas un trou à combler.
 > Ce fichier est conçu pour être **collé en tête de session** ou déposé en mémoire projet.
 
 ---
@@ -46,7 +47,13 @@
   toujours le couper et revenir à l'état antérieur, à chaud.
 - **R67 — Diagnostics en lecture seule.** Un outil de diagnostic **n'écrit jamais** dans
   l'état qu'il observe. Observation ≠ mutation.
-- `‹CANONIQUE›` — *reporter ici les règles R1–R65 du cap §43 d'origine.*
+- *Numérotation : les R1–R65 du cap §43 d'origine sont **perdues** (acté le 24/08/2026) ; seules
+  R66 et R67 ont survécu, et gardent leurs numéros.*
+- ⚠️ *Homonymie SANS RAPPORT avec la doctrine : les moteurs nomment localement `R1`-`R5` leurs
+  règles de VIRGULE (coordonnants/incidentes, source Allô prof — `extension/dys-core.js` ~1557-1758,
+  miroir app) et `_osR1`-`_osR4` les routes-voisins de la garde OS (dys-core ~3400). Ce sont des
+  étiquettes de code, pas des règles de doctrine — on ne les renumérote JAMAIS côté code ; côté
+  doctrine, citer toujours « R66/R67 (doctrine) » quand le contexte peut prêter à confusion.*
 
 ---
 
@@ -137,4 +144,5 @@ d'agir. (Documenté ; implémentation ~60 LOC si non encore branchée.)
 
 ---
 
-*Fin du document. Réconcilier `‹CANONIQUE›` et la numérotation R1–R65 avec le cap §43 d'origine.*
+*Fin du document. Les R1–R65 du cap §43 d'origine sont perdues (acté par Rem le 24/08/2026) ;
+la numérotation commence à R66 — c'est un fait d'histoire, pas une dette.*

@@ -52,7 +52,7 @@ omegapendu.com** pour être sûr qu'ils ne venaient pas du travail en cours.
 | homophone | `Il **ces** trompe de chemin.` | s'est |
 | homophone | `Il y a **peut** de monde.` | peu |
 | homophone | `**Mais** amis sont venus.` | Mes |
-| accord | `**Marie** est venu ce matin.` | venue — ⚠️ l'accord par PRÉNOM est livré, il ne tire pas ici |
+| accord | `**Marie** est venu ce matin.` | venue — ⚠️ l'accord par PRÉNOM est livré, il ne tire pas ici → réparé le jour même (#596 : la garde « DET après participe » exemptée des compléments de temps) ; tire en AUTO depuis, revérifié 03/09 |
 | segmentation | `**Ducou** je suis parti.` | du coup |
 | accent | `Le **the** est **brulant**.` | thé / brûlant |
 | conjugaison | `Nous **somme** partis.` | sommes |
@@ -60,6 +60,10 @@ omegapendu.com** pour être sûr qu'ils ne venaient pas du travail en cours.
 ⚠️ Les homophones muets ci-dessus (`et/est`, `son/sont`, `ces/s'est`, `peut/peu`, `mais/mes`) ont
 tous une règle au registre : elles ne se déclenchent pas **dans ces contextes-là**. C'est un travail
 de gardes, pas de règles manquantes — à instruire cas par cas avant de toucher quoi que ce soit.
+**Fait (revérifié 03/09/2026, dys-core + assets réels)** : quatre des cinq ont été instruits et
+livrés dans la foulée — `et/est` #597 (§🔧 ci-dessous), `son/sont` nominal #600 (§🔁), `peut/peu` et
+`mais/mes` #601 ; les phrases du tableau tirent en AUTO. Restent muets : `ces/s'est` (« Il ces
+trompe ») et le cas PRONOM « Il son partis tot. ».
 
 ### 🔧 Suite du balayage — instruits le 26/08/2026
 
@@ -163,9 +167,20 @@ INVARIABLES existait déjà, elle n'était pas consultée ici. `Les enfants mang
 étape · census **301/301** · parité correcteur (app ⊆ Python) · parité dictée 1 309/1 309 ·
 **parité OS 3 moteurs 25/25/25**.
 
-**Restent ouverts** : `sait`→s'est (« le train sait arrêté ») · `the`→thé · `Ducou`→du coup ·
-`son/sont`, `ces/s'est`, `peut/peu`, `mais/mes` à sujet nominal (même travail que `et/est`) ·
-`afreuses`→affreux et `sertin`→serein.
+**Restent ouverts** — ⚠️ la liste d'origine (26/08) était périmée le jour même : les livraisons
+#599-#601 sont tombées après sa rédaction. Re-mesurée le 03/09/2026 sur main@995b956 (référence
+Python + dys-core chargé de ses assets réels). **LIVRÉS** : `sait`→s'est #599 (« Le train sait
+arrete » → s'est AUTO) · `son/sont` à sujet nominal #600 · `peut/peu` et `mais/mes` #601 (« Il y a
+peut de monde »→peu, « Mais amis sont venus »→Mes, AUTO) · `afreuses` rend désormais **affreuses**
+(orange — la correction fausse « affreux » a disparu). **TOUJOURS OUVERTS** : `ces/s'est` (« Il ces
+trompe de chemin » muet) · `son/sont` à sujet PRONOM (« Il son partis tot » muet — seul le nominal
+est livré) · `Ducou`→du coup · `Nous somme`→sommes (somme = nom valide, invisible au speller) ·
+`sertin`→serein au lieu de *certain* et `tar`→tarte au lieu de *tard* (mauvais candidats, désormais
+en orange) · « La foret est sombre » → toujours La→Le (orange) au lieu de foret→forêt.
+**FERMÉ PAR CHOIX** : `the`→thé — « the » est dans la stop-liste anglaise `_SPELL_KEEP` du produit
+(ni corrigé ni « mot inconnu », anti-FP sur le FR citant l'anglais) ; la référence Python, elle,
+corrige the→thé en AUTO — divergence Py↔JS du ressort de la sonde parité speller (#621). Quant à
+« brulant » : c'est un mot du lexique (réforme 1990) — l'attente brulant→brûlant était caduque.
 
 ### 🟠 Comblés le même jour (3 trous trouvés par le crible des explications)
 | règle | exemple | FP mesurés |

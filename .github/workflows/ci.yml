@@ -237,3 +237,7 @@ jobs:
         run: python3 dictee/prenoms_probe.py
       - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)
         run: node dictee/sw_probe.js
+      - name: Docs de pilotage — CLAUDE.md dans son budget (1 500 mots, pas de ligne-fleuve) + zéro doublon DOCTRINE
+        run: python3 dictee/docs_probe.py
+      - name: ETAT.md frais — égal à la régénération depuis les 3 sources machine
+        run: python3 dictee/etat_gen.py --check

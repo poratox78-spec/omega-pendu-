@@ -165,6 +165,12 @@ run "clone anglais FRAIS (app EN == build(app FR))" python3 dictee/build_pendu_e
 # divergent, l'accord sur « Marie est venu » ne dit pas la même chose selon le moteur.
 run "prénoms : 3 copies identiques + contenu" python3 dictee/prenoms_probe.py
 run "service worker (version+empreinte, précache, purge)" node dictee/sw_probe.js
+# CLAUDE.md est un SOMMAIRE gardé (tri du 03/09/2026) : budget 1 500 mots, pas de ligne-fleuve,
+# zéro énoncé recopié de DOCTRINE.md (le résumé tue la source — mesuré le 24/08).
+run "docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE)" python3 dictee/docs_probe.py
+# ETAT.md est GÉNÉRÉ (jamais écrit à la main) : rassis dès que dev.sh, metriques_probe.js ou
+# etat_chantiers.json bouge — le réflexe est « python3 dictee/etat_gen.py » puis re-commit.
+run "ETAT.md FRAIS (généré == 3 sources machine)" python3 dictee/etat_gen.py --check
 run "parité dev.sh ↔ ci.yml (anti-dérive)" python3 dictee/ci_parity_probe.py
 
 echo "── OMEGA·KEY (dérivé crypto) ──"

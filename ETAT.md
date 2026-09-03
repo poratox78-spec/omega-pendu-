@@ -21,7 +21,7 @@
 
 Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en local · **constat** = mesuré une fois, daté. Le détail (pages, notes) vit dans le registre lui-même.
 
-## 2. Garde-fous actifs — 84 contrôles dans `dev.sh` (= CI, parité gardée)
+## 2. Garde-fous actifs — 86 contrôles dans `dev.sh` (= CI, parité gardée)
 
 | # | contrôle | commande |
 |---:|---|---|
@@ -107,8 +107,10 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 80 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
 | 81 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
 | 82 | service worker (version+empreinte, précache, purge) | `node dictee/sw_probe.js` |
-| 83 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
-| 84 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
+| 83 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
+| 84 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
+| 85 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
+| 86 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 
@@ -123,7 +125,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 
 ### Ouverts — 9
 
-- **Remise en ordre des documents de pilotage (ce chantier)** — CLAUDE.md fait 7 617 mots pour un budget de 1 500 et 38 lignes-fleuves — dictee/docs_probe.py est ROUGE tant que le tri n'est pas intégré ; ETAT.md généré posé, à câbler dans dev.sh + ci.yml d'un seul geste _(plan du 24/08 · dictee/docs_probe.py · dictee/etat_gen.py)_
+- **Remise en ordre des documents de pilotage (ce chantier)** — Tri intégré le 03/09/2026 : CLAUDE.md ramené à un sommaire (986 mots, docs_probe VERT), histoire migrée au JOURNAL (manifeste « rien de perdu » dans le PR), DOCTRINE actée (R1-R65 perdues), docs_probe + etat_gen --check câblés dev.sh + CI ; reste à Rem la relecture du nouveau sommaire _(plan du 24/08 · dictee/docs_probe.py · dictee/etat_gen.py)_
 - **Publication Chrome Web Store** — 0.6.2 téléversée par Rem le 03/09/2026 (revue Google en cours) ; 0.6.3 prête (manifest bumpé, zip --store régénéré), téléversement quand Rem décide d'une nouvelle revue — un numéro remis à Rem est brûlé _(extension/STORE.md · PR #651 · #655)_
 - **Accord verbe à vérifier (vigilance orange)** — 2 lots livrés — le parseur de sujet d'abord, puis la FORME avant le NOMBRE (faire semi-auxiliaire, s'est + forme finie, gérondif, gardes de sujet), 3 moteurs à parité _(PR #652 · #654)_
 - **Chantier anglais (site → voix → extension conditionnelle)** — réouvert le 31/08 par Rem, feuille de route fixée ; état mesuré : bonne précision, couverture faible ; contrainte cardinale = tout doit être vérifiable sans savoir l'anglais (Rem n'y est plus le juge) _(CHANTIER_ANGLAIS.md · PR #618)_

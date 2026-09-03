@@ -35,7 +35,7 @@
   "ouverts": [
     {
       "titre": "Remise en ordre des documents de pilotage (ce chantier)",
-      "etat": "CLAUDE.md fait 7 617 mots pour un budget de 1 500 et 38 lignes-fleuves — dictee/docs_probe.py est ROUGE tant que le tri n'est pas intégré ; ETAT.md généré posé, à câbler dans dev.sh + ci.yml d'un seul geste",
+      "etat": "Tri intégré le 03/09/2026 : CLAUDE.md ramené à un sommaire (986 mots, docs_probe VERT), histoire migrée au JOURNAL (manifeste « rien de perdu » dans le PR), DOCTRINE actée (R1-R65 perdues), docs_probe + etat_gen --check câblés dev.sh + CI ; reste à Rem la relecture du nouveau sommaire",
       "ref": "plan du 24/08 · dictee/docs_probe.py · dictee/etat_gen.py"
     },
     {
