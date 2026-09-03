@@ -68,3 +68,24 @@ extractible en l'état ; comparaison directe = jonction future.)
 
 ## Licence
 Dérive de **Lexique 4** (New et al., 2026) → **CC BY-SA 4.0** (comme `phono_homophones.json`, `cgram_*`).
+
+## État au 03/09/2026 — remesuré, et une fausse bonne idée écartée
+
+Même protocole (held-out, `seed=42`, test=4000), tables régénérées par la batterie du jour :
+
+| | top-1 | top-3 | top-5 | top-10 |
+|---|---|---|---|---|
+| émission seule | 12,8 % | 35,8 % | 47,6 % | 62,0 % |
+| + prior ortho croisé | 15,2 % | 37,9 % | 49,8 % | 64,4 % |
+| **+ lexicalité (β=3)** | **28,4 %** | **67,7 %** | **77,0 %** | **81,0 %** |
+
+**Question de Rem** : l'augmentation du lexique (speller 155 467 → 705 653 formes, Morphalou) doit-elle mettre à
+jour les tables du g2p/p2g ? Réponse mesurée : **non**, pour deux raisons distinctes.
+- La **vérité-terrain** (alignement g2p, émission p2g) reste Lexique 4 (`phono_homophones.json`) : la phonétique
+  Morphalou n'est exacte qu'à 82,4 % et son mélange faisait chuter l'exact de 52,4 % à 39,2 % (mesuré le 24/08) ;
+  elle reste un repli de `decompose()` seulement.
+- La **lexicalité** (β=3, « la graphie est un vrai mot ») avec TOUT le speller au lieu des seuls mots à homophones
+  Lexique : top-1 28,4 → 27,1 %, top-3 67,7 → 65,8 %, top-5 77,0 → 75,7 %, top-10 81,0 → 80,9 %. Plus de vrais mots
+  = plus de graphies concurrentes récompensées pour le même son ; la vraie recule. Le prior doit rester étroit.
+Les tables elles-mêmes (`g2p_tables.json` extrait de l'app, `g2p_corrections.json`, `p2g_table.json`) sont
+régénérées à chaque batterie : elles ne peuvent pas être périmées par rapport au moteur.

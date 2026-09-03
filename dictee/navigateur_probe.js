@@ -140,6 +140,9 @@ const CAS = [
      Gardé ici comme COMPORTEMENT (Rem : « il me faut des exemples réels testés dans le vrai moteur dans Chrome »). */
   { txt: 'les villages qui composent la commune sont petits', rien: true, orangeInterdit: 'sont', pourquoi: 'antécédent « villages » : « sont » est juste, plus d’orange « est »' },
   { txt: 'un groupe de chercheurs qui traquent des trésors', rien: true, orangeInterdit: 'traquent', pourquoi: '« de chercheurs » lu pluriel : « traquent » est juste' },
+  /* LE PARSEUR DE SUJET D'ABORD (03/09/2026) : le GN sujet trouvé par la règle rouge fait taire les voisins et la fausse inversion. */
+  { txt: 'le taux de mortalité est plus élevé sur ce territoire', rien: true, orangeInterdit: 'est', pourquoi: 'sujet « le taux » (complément « de mortalité » enjambé) : « est » est juste' },
+  { txt: 'que la lumière du Bouddha éclaire les trois mille mondes', rien: true, orangeInterdit: 'éclaire', pourquoi: 'pas une inversion : le sujet « la lumière » précède le verbe' },
   { txt: 'les haies qui délimite les champs', corrigeAttendu: ['délimite', 'délimitent'], pourquoi: 'la seule utile du corpus : « délimite » → délimitent (rouge si le sujet en tête se lit, orange OS sinon — l’un ou l’autre, jamais rien)' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },

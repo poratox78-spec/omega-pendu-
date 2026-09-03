@@ -226,6 +226,16 @@ def detect(F, vi, tau=0.85, tg=None):
     lem, mt, vn, f3s, f3p = vi_
     if vn == '?' or not f3s or not f3p: return None
     if tg is not None and not _verb_ctx(tg, F, vi): return None
+    if tg is not None:                                        # LE PARSEUR DE SUJET D'ABORD (miroir JS, 03/09/2026)
+        try: np_ = C._np_subject(F, tg, vi)
+        except Exception: np_ = None
+        if np_ and np_.get('n') in ('s', 'p') and not _coord_plural(F, vi):
+            ds = [_vote(np_['n'], 0.9), R4(F, vi, f3s, f3p)]
+            ws = [_peak(ds[0]) + 1e-6, (_peak(ds[1]) + 1e-6) * 0.4]
+            Z = sum(ws); ps = sum(w * d[0] for w, d in zip(ws, ds)) / Z; pp = sum(w * d[1] for w, d in zip(ws, ds)) / Z
+            num = 's' if ps >= pp else 'p'; conf = abs(ps - pp)
+            if conf < tau or num == vn: return None
+            return (f3p if num == 'p' else f3s, conf)
     if tg is not None:                                        # SUJET POSTPOSÉ (inversion) : mode dédié qui DOMINE (ordre inversé → scan avant)
         pp_ = _R_postpose(F, vi, tg)
         if pp_ is not None:
