@@ -102,7 +102,7 @@ run "parité ces/ses 3 moteurs (vigilance-enseignante)" node dictee/parity_cesse
 run "parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé)" node dictee/parity_gender_coll.js
 run "parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas)" node dictee/parity_diag.js
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
-run "parité SPELLER Python↔JS (suggestion, auto+flag)" python3 dictee/parity_speller.py
+run "parité SPELLER Python↔JS (suggestion, auto+flag+inconnu)" python3 dictee/parity_speller.py
 runsh "syntaxe extension (5 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js"
 run "correcteur standalone"         node dictee/correcteur.js
 run "correcteur AUTONOME (bake, 3 mondes)" node dictee/bake_probe.js --check

@@ -68,6 +68,21 @@ def main():
             # `vigilance` est une COUCHE À PART côté app (l'arbitre des oranges) ; `correct_token`
             # ne le rend jamais. Le comparer produisait 295 fausses « divergences » qui ne
             # mesuraient que l'absence de cet étage côté référence — du bruit, pas un défaut.
+            # ⭐ EXCEPTION depuis le 04/09/2026 : le palier « mot inconnu » EST porté dans la
+            # référence (`spell_unknown`, décalque de spellUnknown JS, S6/S4 compris). On compare
+            # donc sa SUGGESTION — début de comblement de l'angle mort documenté (« la sonde ne
+            # compare que les tokens flagués côté JS » : c'est toujours vrai, mais le palier
+            # vigilance-inconnu n'est plus ignoré). ∅ = souligné SANS suggestion, des deux côtés.
+            if f['tier'] == 'vigilance' and f.get('name') == 'mot inconnu':
+                compares += 1
+                got = sp.spell_unknown(T[i], at_start=(i == 0), toks=T, idx=i)
+                py_s = (u'∅' if got == u'' else got) if got is not None else u'—'
+                js_raw = f.get('sugg') or u''
+                js_s = u'∅' if (not js_raw or js_raw.lower() == T[i].lower()) else js_raw
+                if py_s.lower() != js_s.lower():
+                    div.append({'tok': T[i], 'js': js_s, 'js_tier': u'inconnu',
+                                'py': py_s, 'py_tier': u'inconnu'})
+                continue
             if f['tier'] not in ('auto', 'flag'):
                 continue
             compares += 1
