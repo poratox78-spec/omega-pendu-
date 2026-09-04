@@ -32,6 +32,11 @@
       "ref": "PR #640 · garde dictee/build_non_verbe_acc.py --check"
     },
     {
+      "titre": "Dette : _cmp non transitif",
+      "verdict": "INSTRUITE le 04/09/2026 (enquête lecture-seule) : re-mesurée au 705k — 14/601 corrections sensibles à l'ordre (2,33 %), TOUTES au palier FLAG (0 AUTO), FP UD insensibles, identique au lexique 165k ; le chiffre produit a une bande d'ordre ±1 (402/403/401) ⇒ un ±1 de dys_pipeline_probe entre variantes speller n'est JAMAIS un signal ; 4 constructions invariantes mesurées, canon:F seule qualifiée (402/19 strict) mais gain NUL → pas de câblage ; recette canon:F en réserve au JOURNAL (copeland reproduit la falsification « par le lot » — ne pas re-tenter)",
+      "ref": "JOURNAL 2026-09-04 · doctrine #617/#653"
+    },
+    {
       "titre": "Remise en ordre des documents de pilotage (plan du 24/08)",
       "verdict": "SOLDÉ : CLAUDE.md sommaire (989 mots) VALIDÉ par Rem le 04/09 (sauvegarde de l'ancien : notes/CLAUDE_AVANT_TRI_2026-09-03.md) ; histoire au JOURNAL (digests #546-#610 et #611-#655, rien de perdu) ; DOCTRINE actée ; ETAT.md généré ; skill linguistique versionné ; gardes docs_probe + etat_gen --check + a11y_probe + icones élargies en dev.sh/CI",
       "ref": "PR #656 · #657 · #658 · #659 · #660"
@@ -62,11 +67,6 @@
       "titre": "Les 442 mots soulignés sans suggestion",
       "etat": "38,5 % des fautes non réparées sont vues mais sans proposition — y proposer quelque chose ne coûte aucun risque de FP (orange = au clic) ; levier identifié, non traité",
       "ref": "CLAUDE.md 2026-08-23 (mesure « l'orange est-il là pour les 75 % ratés ? »)"
-    },
-    {
-      "titre": "Dette : _cmp non transitif",
-      "etat": "reproductible ≠ bien défini ; la reformulation « gardes par candidat » a été mesurée et rejetée (−2 réparations pour 0 casse évitée) — dette nommée, faible priorité",
-      "ref": "CLAUDE.md 2026-08-23 (§5quater)"
     },
     {
       "titre": "Complément Word (police de son)",

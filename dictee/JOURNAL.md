@@ -5,6 +5,65 @@
 
 ---
 
+## 2026-09-04 — _cmp non transitif : dette RE-MESURÉE et INSTRUITE — on ne câble pas (canon:F qualifiée, en réserve)
+
+> Enquête lecture-seule sur main (lexique speller 705 654 formes, baseline produit reproduite 402/19,
+> contrôle positif : le moteur monkeypatché en mode neutre rend le même 402/19). L'énoncé d'origine
+> (23/08, §5quater) : `_cmp` est pairwise avec gardes de dominance ⇒ pas un ordre total ; reproductible
+> depuis le correctif dict-à-ordre-d'insertion, mais l'issue dépend de l'ordre d'ARRIVÉE des candidats.
+
+**La dette re-mesurée** : sous permutation seedée des candidats (5 graines), **8-13 corrections changent
+par graine (1,33-2,16 %), union 14/601 (2,33 %)** — le « 7/602 (1,16 %) » du 23/08 sous-estimait
+(1 permutation). Mais elle est PLUS BÉNIGNE que son énoncé : **100 % au palier FLAG — 0 des 126
+corrections AUTO ne bouge**, gold et UD confondus ; FP UD insensibles (1 suggestion changée, mot latin
+« genus ») ; et **INSENSIBLE à la taille du lexique** (même protocole sur Lexique4 seul, 165 474 formes :
+union 14/601 identique, 12/14 clés communes — la dette n'a pas grandi avec le ×4,3).
+
+⭐ **LE CHIFFRE PRODUIT A UNE BANDE D'ORDRE ±1** : baseline 402/19 · permute101 **403**/19 ·
+permute202 **401**/19 (cassés 19 constant). L'orbite de permutation contient des ordres meilleurs ET
+pires que le produit livré ⇒ **ne JAMAIS lire un ±1 de `dys_pipeline_probe` entre deux variantes du
+speller comme un signal** — c'est exactement le plancher de bruit que le placebo (#653) impose de battre.
+
+**Le mécanisme, exhibé** : 168/726 jeux de candidats (23 %) contiennent des cycles — 41 221 triangles
+orientés au total (`cmp` parfaitement antisymétrique, explicateur de niveaux validé 0 divergence).
+Deux ressorts : ① les gardes de dominance ≫20×/≫10× sont RELATIVES À L'ADVERSAIRE (« écrasé par
+CELUI-LÀ ») ; ② elles interagissent avec les bonus de niveau (POS/genre/phon/nombre/fin_aud).
+Verbatim : « apré » — pré ≻ paré [bonus POS] · paré ≻ après [fin_aud] · après ≻ pré [pmatch écrasé
+par ≫20×] ← cycle. « nape » — nappe ≻ tape [bonus PHON] · tape ≻ nappes [≫10× inter-tiers] ·
+nappes ≻ nappe [bonus NOMBRE] ← cycle.
+
+**4 constructions invariantes construites, PROUVÉES invariantes (3 graines de shuffle, sorties
+byte-identiques) et mesurées au produit** :
+- **canon:F** (pré-tri canonique `(-freq, mot)` avant la passe pairwise) — **la seule qui passe la
+  règle de décision** : pipeline **402/19 strictement égal**, FP UD inchangés, 6 écarts speller lus
+  un par un (1 juste gagné que la grammaire rendait déjà, le reste faux→faux ou faux→abstention).
+- canon:L (lexicographique) — 403/19 mais par COMPENSATION avec un écart strictement pire
+  (nape abstenu ⇒ « nappes » perdu au gold) ; le +1 est au niveau du placebo. Écartée.
+- tournoi (extraction répétée du champion) — 402/19 par compensation ; mécanisme nocif mesuré :
+  le dernier champion pairwise est un porteur de bonus RARE (nappes p0 f0,80) que la porte de
+  confiance aval (f1≥1,0) tue ⇒ 9 corrections deviennent des abstentions. Écarté.
+- copeland (victoires « par le lot ») — **REPRODUIT VERBATIM la falsification du 23/08**
+  (nape→tape, bonbe→bonne ; dissection : tape et nappe à 30 victoires chacun, départage fréquence).
+  La mesure CONFIRME l'énoncé « la dominance pairwise encode ‹ écrasé par CELUI-LÀ ›, pas ‹ par le
+  lot › ». Écarté — ne pas re-tenter.
+
+**DÉCISION : ON NE CÂBLE PAS.** canon:F est qualifiée mais son gain produit est NUL et le ±1 est du
+bruit d'ordre démontré — par #617 (pas de consommation sans preuve produit) et #653 (battre le
+placebo), un geste 3 moteurs sans gain ne se fait pas. Le produit livré est déjà déterministe et
+miroité (reproductibilité inter-processus re-vérifiée, 3 graines de hachage). La dette est
+définitionnelle, pas fonctionnelle : petite (2,33 %), stable, confinée au palier FLAG du speller.
+
+**La recette en réserve, si un besoin réel apparaît** (p. ex. un chantier dominance-contextuelle
+voulant une référence fonction de l'ENSEMBLE des candidats) : canon:F = 1 ligne de pré-tri
+`(-freq, mot)` × 3 sites (`speller_probe.py` ~399 · app ~27496 · `dys-core.js` ~3020), 3 MOTEURS
+SIMULTANÉS obligatoires (la parité speller CI rendrait un patch Python-seul rouge) + ré-ancrages
+(`parity_speller_ref`, `dys_precision_ref`/nav). ⚠️ Avant tout câblage : refaire le diff produit
+token-par-token de canon:F (la vérification « catégories identiques » de l'enquête est déduite des
+totaux + lecture des 6 écarts — le diff exhaustif a été interrompu) ; et même avec canon:F,
+l'égalité INTER-moteurs sur les cas cycliques reste empirique (Timsort vs sort JS).
+
+---
+
 ## 2026-08-30 → 2026-09-03 — rattrapage journal : instruments qui savent échouer, lexique 705 k, ponctuation, accord orange (PR #611-#655)
 
 > Digest écrit d'après les messages de commit de `main` (ce sont les rapports). #653 (« fermer les
