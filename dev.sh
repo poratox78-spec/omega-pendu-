@@ -154,6 +154,7 @@ run "paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE 
 
 echo "── LIVRAISON ──"
 run "icônes extension FRAÎCHES (== icon-512.png, exigées par le Store)" python3 extension/build_icons.py --check
+run "icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png)" python3 build_site_icons.py --check
 run "zip extension FRAIS (octets == sources)" python3 extension/build_zip.py --check
 run "pack police OMEGA Dys FRAIS (octets == police/)" python3 police/build_pack.py --check
 run "complément Word (planificateur, texte jamais altéré)" node word/test_son_word.js

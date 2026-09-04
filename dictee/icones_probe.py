@@ -21,7 +21,14 @@ import os, sys, zlib, struct, io, re
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIG = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 MIN_COULEURS = 32      # un aplat en a 1 a 4 ; nos icones saines en ont 217 et 372
-MIN_GLYPHE = 2.0       # % de pixels clairs ; mesure : favicon-96x96 3,1 % · apple-touch 11,3 %
+MIN_GLYPHE = 2.0       # % de pixels clairs ; mesure : favicon-96x96 3,1 % · apple-touch 11,3 % · maskable 4,0 %
+
+# TOUTES les icones matricielles du site (une liste partielle a laisse passer le meme defaut
+# une 2e fois : le 04/09/2026, `icon-192.png` — l'icone d'installation PWA du manifest — etait
+# encore un aplat 99,7 % #0d1117 issu du meme rendu headless de juillet que l'ancien apple-touch ;
+# la sonde de #585 ne regardait que favicon-96x96 et apple-touch, donc verte au-dessus du trou).
+ICONES = ('favicon-96x96.png', 'apple-touch-icon.png',
+          'icon-192.png', 'icon-512.png', 'icon-maskable-512.png')
 
 
 def _paeth(a, b, c):
@@ -90,7 +97,7 @@ def main():
             fail.append('icon.svg depend d une FONT-FAMILY : meme piege. Vectoriser en <path>.')
 
     # 2. L'EFFET — une icone matricielle doit montrer quelque chose.
-    for nom in ('favicon-96x96.png', 'apple-touch-icon.png'):
+    for nom in ICONES:
         q = os.path.join(RACINE, nom)
         if not os.path.exists(q):
             fail.append('%s introuvable' % nom); continue
