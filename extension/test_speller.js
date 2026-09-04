@@ -81,6 +81,19 @@ if (sp('rendez-vous sur www point com').length) fail.push('FP www (relevé dans 
 if (sp('au VIIIe siècle').length) fail.push('FP chiffre romain VIIIe');
 if (sp('la note AAA est haute').length) fail.push('FP acronyme AAA');
 if (sp('une pomme immense').length) fail.push('FP double-lettre valide (pomme/immense)');
+// PALIER « MOT INCONNU », VOIE '' ÉQUIPÉE (enquête 04/09/2026, miroir dictee/test_speller_app.js) :
+// S6 élision puis S4 clé phonétique d=1 ÉQUIPENT d'une suggestion ORANGE (au clic) des soulignés
+// « mot inconnu » existants — AUCUNE marque nouvelle (on ne touche que des tokens DÉJÀ flagués).
+for (const [b, g] of [['dargen', "d'argent"], ['léconomi', "l'économie"], ['bégnier', 'baigner'], ['ésituron', 'hésiteront']]) {
+  const r = find('on voit ' + b + ' ici', b);
+  if (!r || r.name !== 'mot inconnu' || r.tier !== 'vigilance' || r.sugg !== g)
+    fail.push("voie '' équipée : " + b + '→' + g + ' (mot inconnu, vigilance) attendu, eu ' + JSON.stringify(r));
+}
+for (const b of ['delbrueckii', 'bulgaricus']) {   // témoins : sans candidat du cadre → souligné SANS suggestion (on n'invente pas)
+  const r = find('la souche ' + b + ' ici', b);
+  if (!r || r.name !== 'mot inconnu' || r.sugg.toLowerCase() !== b)
+    fail.push('témoin « ' + b + ' » doit rester souligné SANS suggestion (sugg = mot), eu ' + JSON.stringify(r));
+}
 // MAJUSCULE INITIALE (vigilance) — CORRECTEUR SEULEMENT (capital=true) ; OFF en direct/extension (défaut) pour ne pas nagger chaque message minuscule
 const majOn = DC.spellText('les choses sont belles', true).find(x => x.name === 'majuscule initiale à vérifier');
 if (!majOn || majOn.sugg !== 'Les' || majOn.tier !== 'vigilance') fail.push('majuscule (capital=true) « les »→« Les » attendu, eu ' + JSON.stringify(majOn));
@@ -111,7 +124,9 @@ try {
                  // GLISSEMENT MOTEUR → rouge, et sa CONTRE-GARDE (mots étrangers à un seul candidat).
                  // La clé de comparaison inclut le TIER : c'est donc bien la promotion en 'auto' qui est
                  // mise en parité ici, pas seulement la cible de la correction.
-                 'jmaais','acceuil','grannd','beaucooup','toujorus','vinngt','flight','kommune','project','strategia'];
+                 'jmaais','acceuil','grannd','beaucooup','toujorus','vinngt','flight','kommune','project','strategia',
+                 // voie '' du « mot inconnu » ÉQUIPÉE (S6 élision / S4 clé phon, 04/09/2026) + témoin sans candidat
+                 'on voit dargen ici','léconomi','bégnier','ésituron','la souche delbrueckii ici'];
     const key = f => f.i + '|' + String(f.word).toLowerCase() + '|' + String(f.sugg).toLowerCase() + '|' + f.tier;
     BAT.forEach(t => {
       const a = global.__app.spell(t).map(key).sort().join(' ');

@@ -252,6 +252,21 @@ const SP = globalThis.__sp;
       fail.push('contre-garde glissement : « ' + b + ' » (mot étranger) ne doit PAS être affirmé, eu ' + JSON.stringify(r));
   }
 
+  // PALIER « MOT INCONNU », VOIE '' ÉQUIPÉE (enquête 04/09/2026) : S6 élision puis S4 clé phonétique
+  // à distance 1 ÉQUIPENT d'une suggestion ORANGE (au clic) des soulignés « mot inconnu » existants.
+  // PROPRIÉTÉ CARDINALE : aucune marque nouvelle — on ne touche que des tokens DÉJÀ flagués.
+  for (const [b, g] of [['dargen', "d'argent"], ['léconomi', "l'économie"], ['bégnier', 'baigner'], ['ésituron', 'hésiteront']]) {
+    const r = SP.spell('on voit ' + b + ' ici').find(x => x.word.toLowerCase() === b);
+    if (!r || r.name !== 'mot inconnu' || r.tier !== 'vigilance' || r.sugg !== g)
+      fail.push("voie '' équipée : " + b + '→' + g + ' (mot inconnu, vigilance) attendu, eu ' + JSON.stringify(r));
+  }
+  // TÉMOINS : un inconnu SANS candidat du cadre reste souligné SANS suggestion (on n'invente pas).
+  for (const b of ['delbrueckii', 'bulgaricus']) {
+    const r = SP.spell('la souche ' + b + ' ici').find(x => x.word.toLowerCase() === b);
+    if (!r || r.name !== 'mot inconnu' || r.sugg.toLowerCase() !== b)
+      fail.push('témoin « ' + b + ' » doit rester souligné SANS suggestion (sugg = mot), eu ' + JSON.stringify(r));
+  }
+
   // ⚠️ GARDE DE COÛT — le correcteur tourne À LA FRAPPE : tout ce qui alourdit le 1er passage se
   // paie chez l'utilisateur. Vérifiée en la cassant (un plafond de longueur relevé à 12 dans la
   // génération de candidats faisait passer ce même texte de 8 ms à 196 ms → rouge).
