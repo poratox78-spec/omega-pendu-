@@ -116,7 +116,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 
-### Fermés par la mesure — 6
+### Fermés par la mesure — 7
 
 - **Fermer les boucles du pendu (Möbius phon/ortho, co-décision descendante)** — réfuté chiffré — tous les effets mesurés (−0,73 à +0,87 pt) sont sous le plancher de bruit établi par un PLACEBO (~200 parties sur 3 000 basculent dès qu'on touche au chemin numérique) ; ne pas re-tenter sans idée neuve, et tout A/B du moteur doit embarquer un placebo _(JOURNAL 2026-09-03 · PR #653 · outil commité evo/pendu_paired_ab.js)_
 - **Canal GROUPE du pendu (modèle 170 poids)** — construit, mesuré, falsifié au produit — hook laissé OFF-inerte _(PR #617)_
@@ -124,15 +124,15 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 - **FP=0 violé en production (« La foule attendait » → attendaient)** — réparé à la source ; depuis, la batterie « FP=0 » rend un vrai code de sortie, le bake autonome est gardé sur l'accord, et dev.sh affiche la sortie des verts suspects au lieu de la jeter _(PR #619 · #633 · #624 · #620)_
 - **Ponctuation dys : virgule proposée, point final manquant, « ? » applicable d'un clic** — livré (39 % des productions dys réelles n'avaient AUCUNE règle de point final) et gardé — la détection de QUESTION est dans la batterie, rappel gardé autant que précision _(PR #628-#631 · #645-#648 · sonde dictee/question_bench.js)_
 - **Collisions d'accent (« adhérent » n'est pas « adhèrent »)** — 16 mots courants cessent d'être pris pour des verbes ; les 3 copies (JSON == app == extension) sont gardées _(PR #640 · garde dictee/build_non_verbe_acc.py --check)_
+- **Remise en ordre des documents de pilotage (plan du 24/08)** — SOLDÉ : CLAUDE.md sommaire (989 mots) VALIDÉ par Rem le 04/09 (sauvegarde de l'ancien : notes/CLAUDE_AVANT_TRI_2026-09-03.md) ; histoire au JOURNAL (digests #546-#610 et #611-#655, rien de perdu) ; DOCTRINE actée ; ETAT.md généré ; skill linguistique versionné ; gardes docs_probe + etat_gen --check + a11y_probe + icones élargies en dev.sh/CI _(PR #656 · #657 · #658 · #659 · #660)_
 
-### Ouverts — 9
+### Ouverts — 8
 
-- **Remise en ordre des documents de pilotage (ce chantier)** — Tri intégré le 03/09/2026 : CLAUDE.md ramené à un sommaire (986 mots, docs_probe VERT), histoire migrée au JOURNAL (manifeste « rien de perdu » dans le PR), DOCTRINE actée (R1-R65 perdues), docs_probe + etat_gen --check câblés dev.sh + CI ; reste à Rem la relecture du nouveau sommaire _(plan du 24/08 · dictee/docs_probe.py · dictee/etat_gen.py)_
-- **Publication Chrome Web Store** — 0.6.2 téléversée par Rem le 03/09/2026 (revue Google en cours) ; 0.6.3 prête (manifest bumpé, zip --store régénéré), téléversement quand Rem décide d'une nouvelle revue — un numéro remis à Rem est brûlé _(extension/STORE.md · PR #651 · #655)_
-- **Accord verbe à vérifier (vigilance orange)** — 2 lots livrés — le parseur de sujet d'abord, puis la FORME avant le NOMBRE (faire semi-auxiliaire, s'est + forme finie, gérondif, gardes de sujet), 3 moteurs à parité _(PR #652 · #654)_
+- **Publication Chrome Web Store** — 0.6.2 téléversée par Rem le 03/09/2026, puis 0.6.3 téléversée le 04/09/2026 (revue Google en cours) — un numéro remis à Rem est brûlé : bumper le manifest avant tout nouveau paquet _(extension/STORE.md · PR #651 · #655)_
+- **Accord verbe à vérifier (vigilance orange)** — 2 lots livrés — le parseur de sujet d'abord, puis la FORME avant le NOMBRE (faire semi-auxiliaire, s'est + forme finie, gérondif, gardes de sujet), 3 moteurs à parité. Consigne Rem 04/09 : continuer au fil des situations, la PRIORITÉ va au palier ROUGE (FP=0) _(PR #652 · #654)_
 - **Chantier anglais (site → voix → extension conditionnelle)** — réouvert le 31/08 par Rem, feuille de route fixée ; état mesuré : bonne précision, couverture faible ; contrainte cardinale = tout doit être vérifiable sans savoir l'anglais (Rem n'y est plus le juge) _(CHANTIER_ANGLAIS.md · PR #618)_
 - **Dominance ≫20× du speller** — cause de « parvies »→parties identifiée (la garde écrase le phon-match dès que le bon mot est rare) ; le chantier = donner du CONTEXTE (comme LanguageTool), pas baisser le seuil — mesurer d'abord les deux populations (mot rare vs bruit lexical) _(CLAUDE.md/JOURNAL 2026-08-22 et 23)_
 - **Les 442 mots soulignés sans suggestion** — 38,5 % des fautes non réparées sont vues mais sans proposition — y proposer quelque chose ne coûte aucun risque de FP (orange = au clic) ; levier identifié, non traité _(CLAUDE.md 2026-08-23 (mesure « l'orange est-il là pour les 75 % ratés ? »))_
 - **Dette : _cmp non transitif** — reproductible ≠ bien défini ; la reformulation « gardes par candidat » a été mesurée et rejetée (−2 réparations pour 0 casse évitée) — dette nommée, faible priorité _(CLAUDE.md 2026-08-23 (§5quater))_
 - **Complément Word (police de son)** — planificateur testé sous Node (306 morceaux) et volet vérifié hors Word — jamais essayé dans Word réel, premier essai terrain à faire _(word/ · garde word/test_son_word.js)_
-- **Validation terrain orthophonistes** — vraies copies dys externes à obtenir — valide ET nourrit la boucle descendante ; la fiche imprimable existe (validation_terrain.html) _(CLAUDE.md (audit projet ⏳) · dictee/build_validation_sheet.py)_
+- **Validation terrain orthophonistes** — EN SUSPENS (décision Rem 04/09 : compliqué à obtenir) — vraies copies dys externes ; valide ET nourrit la boucle descendante ; la fiche imprimable existe (validation_terrain.html) _(CLAUDE.md (audit projet ⏳) · dictee/build_validation_sheet.py)_
