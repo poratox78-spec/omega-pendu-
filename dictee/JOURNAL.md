@@ -5,6 +5,61 @@
 
 ---
 
+## 2026-09-05 — le POS attendu du contexte décrit enfin le PRODUIT — et RECTIFICATION de l'attribution de #664
+
+> Chantier ouvert par #664 (b_slip réfuté au portage JS). Enquête lecture-seule puis alignement.
+
+**L'ASYMÉTRIE, LUE PUIS MESURÉE.** La référence Python et les moteurs JS ne dérivaient pas le même
+« POS attendu du contexte », qui pilote le bonus POS du classement des candidats du speller :
+
+| | portée | déclencheurs |
+|---|---|---|
+| référence Python (avant) | **3 jetons** en arrière, saute les adjectifs | déterminant→`N`, adverbe→`A` |
+| produit (app + extension) | **1 seul jeton** | + copule→`VA`, auxiliaire-avoir / pronom-sujet→`V` |
+
+Le second jeu vient de l'audit 07/2026 (« je suis trist »→triste, pri→pris, pleu→pleut) et n'avait
+jamais été porté dans la référence. Tables JS **lues dans le fichier** (aucune transcription à la
+main), motifs validés sur positifs connus avant de conclure.
+
+**Population** : **11,7 %** des jetons d'UD 2500 et **14,5 %** du gold recevaient un POS attendu
+différent — mais **seules 9 corrections du gold et 1 d'UD en changeaient**. Jugées une par une
+contre le gold : le **PRODUIT a raison 2 fois** (cose→cause, forse→force), l'ancienne référence 1
+(deriere→derrière), **les deux ont tort 6** ; et côté UD le produit **retire un FP** (« ambu »→abu).
+
+⇒ **La référence est alignée SUR LE PRODUIT** (même geste que `_SPELL_KEEP` #659 et le palier
+« mot inconnu » #663 : la référence doit décrire ce qui est livré, pas un autre moteur). `AUXAV` et
+`SUBJP` décalquées verbatim de `dys-core.js` ; `COPULA` était déjà identique (vérifié).
+**Mesures : pipeline 402/19 → 404 réparés (26,2 %) / 19 cassés (0,41 %)** · FP échelle 1,40 %
+inchangé · batteries §1-§4 vertes (dont §4, les cas fondateurs de #664) · parité speller 209
+comparaisons, 0 divergence nouvelle.
+
+⚠️⚠️ **RECTIFICATION DE #664 — l'attribution était FAUSSE.** L'entrée du 04/09 (soir) écrivait que
+l'échec du portage de `b_slip` venait « du bonus POS contextuel (pm/pmatch) ». **C'est réfuté par la
+mesure** : une fois la dérivation alignée, `b_slip` ré-appliqué à la référence Python donne
+**407 réparés / 18 cassés** et rend TOUJOURS `tres`→très, `chein`→chien, `accor`→accord (batterie §4
+verte) — la référence ne reproduit donc toujours pas l'échec observé dans l'app. Cause directe
+identifiée au passage : avec `exp_pos='VA'` (copule « suis »), **ni `trés` (tagué `N`) ni `très`
+(aucun POS) ne reçoit le bonus** — le bonus POS ne peut pas être le mécanisme, dans aucun des deux
+moteurs. **La cause de l'échec de b_slip au portage reste À TROUVER** ; ce n'est ni la clé
+phonétique (#663, déjà écarté), ni le POS attendu (ici). Ne pas re-tenter b_slip avant de l'avoir.
+
+**PISTE RESSERRÉE POUR LA SUITE (mesuré ici même)** — trois candidats écartés, un seul debout :
+- clé phonétique : `phonKey` ≡ `phon_key` sur les mots en cause (#663 n'explique rien ici) ;
+- **tables POS : IDENTIQUES** — l'asset JS `speller.tsv.gz` donne `trés` → `N` freq 18 089 et
+  `très` → *aucun POS* freq 1 435 582, exactement comme la référence ;
+- POS attendu du contexte : aligné par ce PR, et l'échec persiste.
+⇒ Il reste **une étape que les moteurs JS ont et que la référence n'a PAS DU TOUT** : la
+**RÉ-SÉLECTION « CONTEXTE-FIRST »** (`dys-core.js` ~3081 / app ~27567 — 1 occurrence de chaque côté
+JS, **0 côté Python**, vérifié). Elle tourne APRÈS le tri et re-choisit un candidat édit-1/accent à
+même clé phonétique. C'est le seul endroit où les deux moteurs peuvent structurellement diverger
+une fois tout le reste aligné — et l'enquête du 04/09 avait déjà noté qu'il ne fallait pas y
+toucher (son candidat est phon-exact ∧ tier≥1 par construction). **C'est LÀ qu'il faut chercher.**
+
+**Leçon** : une attribution écrite le soir d'un chantier est une hypothèse, pas un fait — celle-ci
+a tenu moins de 24 h. Ce qui l'a fait tomber : avoir mesuré au lieu de re-citer.
+
+---
+
 ## 2026-09-04 (soir) — dominance ≫20× : la garde n'était gardée par RIEN ; `b_slip` mesuré gagnant en Python, RÉFUTÉ au portage JS
 
 > Chantier « la dominance ne distingue pas mot rare de bruit lexical » (ouvert depuis le 22-23/08).

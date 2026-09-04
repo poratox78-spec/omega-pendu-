@@ -209,6 +209,11 @@ class Speller:
 
     COPULA = set('est sont suis es sommes etes etait etaient etais sera seront serai soit fut furent '
                  'parait paraissait semble semblait devient deviennent reste restent'.split())
+    # Décalques VERBATIM de `SAUXAV`/`SSUBJP` (extension/dys-core.js, miroir app) : le POS attendu du
+    # contexte les consulte depuis le 04/09/2026 (alignement de la référence sur le produit, PR #664).
+    AUXAV = set("a ai as ont avons avez avait avaient aura auront aurai aurais aurait eu ete j'ai j'est j'avais j'aurai".split())
+    SUBJP = set('je tu il elle on ils elles nous vous'.split())
+
     def _ctx_gender(self, toks, idx):
         """genre imposé par le contexte : déterminant proche, sinon nom-tête proche (≤4 tokens avant).
         Saute les copules (est/sont/semble…) : le genre d'un attribut vient du SUJET, pas du verbe
@@ -320,16 +325,28 @@ class Speller:
         pk = phon_key(low)
         inp_aud = low.endswith('é')                                         # AUDIBILITÉ : l'utilisateur a écrit une finale /e/ (é) → il l'a ENTENDUE (fiable)
         cg, cn = self._ctx_gender(toks, idx), self._ctx_number(toks, idx)   # VOIE GRAMMAIRE : accord du contexte
-        exp_pos = None                                                       # POS attendu (désambiguïse l'accent : élève/élevé)
+        # POS attendu du contexte (désambiguïse l'accent : élève/élevé). ⚠️ DÉCALQUE DU PRODUIT — la
+        # référence décrivait ici un AUTRE moteur que celui livré (asymétrie mesurée le 04/09/2026,
+        # PR #664) : elle remontait 3 jetons en sautant les adjectifs mais ne connaissait QUE
+        # déterminant→N et adverbe→A, là où les moteurs JS regardent le SEUL jeton précédent et
+        # ajoutent copule→'VA' (« je suis trist »→triste) et auxiliaire/pronom-sujet→'V' (pri→pris,
+        # pleu→pleut) — ajout de l'audit 07/2026 jamais porté ici. Écart mesuré : 11,7 % des jetons
+        # d'UD et 14,5 % du gold recevaient un POS attendu différent, mais SEULES 9 corrections du
+        # gold et 1 d'UD en changeaient. Jugées une par une contre le gold : le PRODUIT a raison 2
+        # fois, l'ancienne référence 1, les deux ont tort 6 — et le produit retire un FP d'UD
+        # (« ambu »→abu). On aligne donc la référence SUR LE PRODUIT (même geste que _SPELL_KEEP
+        # #659 et le palier « mot inconnu » #663). Miroir : `expPos`/`pm` de extension/dys-core.js.
+        exp_pos = None
         if toks and idx:
-            for j in range(idx - 1, max(-1, idx - 4), -1):                   # remonte en sautant les adjectifs (une BONNE pome → nom)
-                pt = deacc(toks[j].lower())
-                if pt in self.DET_G or pt in self.DET_NUM: exp_pos = 'N'; break   # déterminant → nom
-                if pt in self.ADVERB: exp_pos = 'A'; break                   # adverbe → adjectif (très élevé)
-                if pt in self.ADJ: continue                                  # adjectif intercalé → on continue vers le déterminant
-                break
+            pt = deacc(toks[idx - 1].lower())
+            if pt in self.DET_G or pt in self.DET_NUM: exp_pos = 'N'       # déterminant → nom
+            elif pt in self.ADVERB: exp_pos = 'A'                          # adverbe → adjectif (très élevé)
+            elif pt in self.COPULA: exp_pos = 'VA'                         # copule → attribut POSSIBLE : verbe OU adjectif
+            elif pt in self.AUXAV or pt in self.SUBJP: exp_pos = 'V'       # auxiliaire avoir / pronom sujet → verbe
         def pmatch(w):
-            return 1 if (exp_pos and exp_pos in self.POS.get(w, ())) else 0
+            if not exp_pos: return 0
+            ps = self.POS.get(w, ())
+            return 1 if any(c in ps for c in exp_pos) else 0               # exp_pos peut être multi-POS ('VA')
         def fin_aud(w):                                                     # finale AUDIBLE /e/ (é/ée/és/er/ez/ai…) vs -e/-es MUET
             return 1 if re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait)$', w) else 0
         def gmatch(w):
