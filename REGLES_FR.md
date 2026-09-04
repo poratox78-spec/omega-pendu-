@@ -178,8 +178,12 @@ est livré) · `Ducou`→du coup · `Nous somme`→sommes (somme = nom valide, i
 `sertin`→serein au lieu de *certain* et `tar`→tarte au lieu de *tard* (mauvais candidats, désormais
 en orange) · « La foret est sombre » → toujours La→Le (orange) au lieu de foret→forêt.
 **FERMÉ PAR CHOIX** : `the`→thé — « the » est dans la stop-liste anglaise `_SPELL_KEEP` du produit
-(ni corrigé ni « mot inconnu », anti-FP sur le FR citant l'anglais) ; la référence Python, elle,
-corrige the→thé en AUTO — divergence Py↔JS du ressort de la sonde parité speller (#621). Quant à
+(ni corrigé ni « mot inconnu », anti-FP sur le FR citant l'anglais). La divergence Py↔JS constatée
+le 03/09 (la référence corrigeait the→thé en AUTO) **n'existe plus depuis le 04/09** : `SPELL_KEEP`
+est porté dans `speller_probe.py` (même liste, même position dans la chaîne), coût mesuré nul —
+gold pipeline 402/19 strictement identique ; les 3 « justes » perdues au mélange étaient 2 FP réels
+sur titres anglais (« Turn the Tide », « clerk of the chamber ») comptés justes par le juge
+accent-normalisant + 1 vrai « the »=thé français, invisible au pipeline pour la même raison. Quant à
 « brulant » : c'est un mot du lexique (réforme 1990) — l'attente brulant→brûlant était caduque.
 
 ### 🟠 Comblés le même jour (3 trous trouvés par le crible des explications)
