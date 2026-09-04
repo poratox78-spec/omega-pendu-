@@ -257,6 +257,270 @@ Réserves techniques reportées telles quelles de CLAUDE.md (toujours vraies au 
 
 ---
 
+## 2026-08-22 → 2026-08-30 — rattrapage journal : sondes qui s'auto-censurent, Morphalou en 4 lots, la ponctuation au correcteur, expliquer les fautes, Store v0.6.0 publiée (PR #546-#610)
+
+> Digest écrit d'après les messages de commit de `main` (ce sont les rapports), comme le digest
+> #611-#655 en tête de journal. Une partie de la fenêtre est déjà couverte EN PROFONDEUR par les
+> entrées datées ci-dessous (posées lors du TRI de CLAUDE.md, #656) : pour celles-là, une ligne +
+> pointeur ; le détail pour les autres. #607/#608 ne sont cités dans le digest #611-#655 que comme
+> référence de version (#612 les rattrape) — leur contenu est ici.
+
+**22/08 — la campagne du soir : déjà couverte, plus l'outillage qui s'auto-censurait (#546-#561)**
+- **#546-#557** : couverts par l'entrée « 2026-08-22 — qualité sur TEXTE DYS » ci-dessous et ses
+  sections — #546 les « 24 % » du pluriel (Suite), #547 audit règle par règle (Suite 2), #548
+  leur/leurs 64→86 % (Suite 3), #549 générateur de fautes (Suite 4), #550 enquête ancre polluée
+  (Suite 5), #551 primitive d'ancre NON CÂBLÉE (Suite 6), #552 spirale du non-mot, #553 le speller
+  effaçait le pluriel, #554 hypothèse lemme FALSIFIÉE, et la PAUSE littérature = #555 (état des
+  lieux), #556 (mélange mal étiqueté), #557 (« même corpus » Bodard, dominance en contexte).
+- **#558** « ganglions partout » : généralisation du motif REFUSÉE par la mesure — majuscule
+  initiale 7 796 ex mais fatigue tuée au mieux 1/15 (fp_scale 2/34), ces/ses 1 907 ex, 0/22 tuées
+  à tout seuil ; 2 familles sur 5 passent la barre (pluriel, SV, déjà shippées). Deux bugs
+  d'outillage : `distill_vig.py` ÉCRASAIT le registre au lieu de fusionner (relancer sur une
+  famille déjà shippée s'auto-censure : le moteur de collecte contient déjà sa carte) ; les dumps
+  n'appelaient jamais `spell(t, true)` alors que `capital=true` est le réglage de production —
+  census re-ancré 297→302 justes.
+- **#559** même auto-censure sur `distill_pluriel.py` (le tout premier script, jamais retouché) :
+  garde-fou d'écrasement posé, vérifié en relançant pour de vrai — 0 fatigue tuée sur la
+  re-collecte → la garde avertit et NE RÉÉCRIT RIEN, `pluriel_tais_model.json` intact.
+- **#560** parité DICTÉE Python↔JS : `diag_sentence.py` et `diagnoseSentence` n'avaient AUCUN
+  filet (deux pipelines indépendants du correcteur). `parity_diag.js` rejoue les 5 générateurs de
+  corruption : 1309/1309 cas identiques au premier essai ; câblé dev.sh + ci.yml.
+- **#561** ponctuation, réparer l'INSTRUMENT d'abord : mesurer une virgule contre UD est invalide
+  (souvent FACULTATIVE) → juge à TROIS classes (obligatoire / INTERDITE / facultative). 2 bugs de
+  règles corrigés (justesse 62,68→64,19 %, 13 virgules fautives en moins) ; et le juge a trouvé
+  seul que le chemin vocal LIVRÉ posait 9 virgules INTERDITES sur 616 → primitive PARTAGÉE
+  `ponctInterdit`. La CI a arrêté l'interdit en bloc « devant et/ou/ni » (proso 156→154 : un
+  coordonnant RÉPÉTÉ est une énumération) — exception posée, 156/156.
+
+**23/08 — voix, et les sondes qui mentent (#562-#571)**
+- **#562, #563, #564, #566, #567, #568** : couverts par l'entrée « 2026-08-23 — Gold complet ×20 »
+  ci-dessous — #562 le pipeline de bout en bout, #563 les 72 productions corrigées à la main
+  (gold ×20), #564 la sonde pipeline fausse (22,1→25,8 %), #566 moteur de référence non
+  déterministe + « tré », #567 noms propres fermés au coût/gain, #568 ancre de genre 381→394 +
+  `_cmp` transitif falsifié.
+- **#565** saisie vocale, plus d'arrêt auto (signalé par Rem) : même avec `continuous=true` le
+  moteur Web Speech coupe après un silence, et `onend` finalisait TOUJOURS. Flag `userStop` posé
+  par le seul clic ⏹ ; sinon réarmement silencieux d'un nouvel objet SpeechRecognition, texte
+  préservé. Vérifié par moteur simulé, site + extension.
+- **#569** la sonde pipeline affichait « signalé SANS suggestion : 0 » avec aplomb : la référence
+  Python n'émet pas le palier « mot inconnu » (seul `spellText` app le fait). Réel, croisé avec un
+  dump de l'app : **38,5 % de ratés SOULIGNÉS, 59,8 % d'invisibles**. L'avertissement est
+  désormais dans la sortie de la sonde ; chiffres inchangés (394/19).
+- **#570** régression de #565 : le vidage de `S.finals` à chaque relance silencieuse privait
+  `prosodyText()` de tout segment — plus aucune ponctuation après la 1ʳᵉ relance (mesuré par Rem
+  en direct). Remplacé par un décalage d'index ; 4 frontières de phrase sur les 4 salves de sa
+  capture.
+- **#571** `_dedupFinals` avalait des mots réels : test « déjà dit » en SOUS-CHAÎNE brute sans
+  limite de mot — « le » supprimé parce que « pLEuvait » le contient. Fix aux limites de mot +
+  filet anti-collapse `_dedupFinalsSur` (si le dédoublonnage réduit à {}, on garde le brut).
+
+**24/08 — Morphalou (genre, son, conjugaison, branchement), B2 compresse, la ponctuation arrive au correcteur (#572-#581)**
+- **#572** « entraîner EST compresser » (question de Rem) : sur texte suivi held-out, B2 fait
+  **1,80 bit/caractère contre 3,73 pour gzip (×2,07)** ; sur mots isolés ×1,25 seulement —
+  l'avantage est CONTEXTUEL. Et l'orthographe française coûte **3,8 bits/mot de plus que le son**
+  (écart 5,38 : 1,54 bit d'information perdue = homophonie, 3,84 de redondance pure). Deux fois
+  l'instrument a menti : séparateurs hors vocabulaire (les 3 999 sauts de ligne supprimés), puis
+  le modèle CURRICULUM pris en premier (2,02 b/c, 13 % pire en langue que la base 1,78).
+- **#573** genre accentué : Morphalou 3.1 en 3ᵉ source, **26 609 → 80 692 entrées** (+54 083).
+  2 bugs corrigés avant intégration : le filtre anti-homographe tuait des accords UNANIMES des 3
+  sources ; kaikki+Lexique4 reste la source de vérité, Morphalou n'AJOUTE que (jamais en
+  arbitrage).
+- **#574** purge des 82 entrées bruit de `gender_acc.json` (« ami »→f cité) : le filtre runtime
+  CACHAIT l'erreur au lieu de la corriger — appliqué une fois pour toutes à la source
+  (80 692→80 610), comportement inchangé par construction.
+- **#575** route lexicale du son complétée : `phono_homophones.json` ne contient QUE les mots à
+  homophone — 54 298 mots sur 170 782 tombaient au sublexical, dont de/je/le/que. Conversion
+  SAMPA Morphalou→Lexique4 (82,4 % exact, 96,5 % avec variantes o/O e/E) ; +305 120 mots en REPLI
+  seulement — verser dans W2P polluait `--measure` lui-même (52,4→39,2 %, la table sert aussi de
+  vérité-terrain) ; et le schwa unique des monosyllabes ne se supprime plus (de→/d°/, pas /d/).
+- **#576** SEO : les liens internes pointaient vers `.html`, que Cloudflare 308-redirige — Google
+  excluait ces pages (« page avec redirection », 11 des 15 exemples du rapport GSC). 386 liens /
+  32 fichiers réécrits sans extension, précache sw.js suivi, 2 sondes site adaptées. L'essai à
+  blanc a évité une vraie casse (index.html→`/` ABSOLU : l'accueil EN serait parti vers le FR).
+- **#577** accord sujet-verbe : 22 lemmes verbaux Morphalou (585 formes), scope VOLONTAIREMENT
+  étroit (lemmes entièrement absents seulement). 3 bugs trouvés en mesurant : fréquence lue toutes
+  catégories (« avenir » verbe empruntait le nom 60/M), lemmes pronominaux préfixés (les 47
+  « nouveaux » du 1er essai TOUS déjà connus en forme nue), composés à trait d'union jamais
+  déclenchables (le tokeniseur coupe) — écartés. 3 moteurs.
+- **#578** gender_acc BRANCHÉ dans le produit (poussé par Rem : « c'est pas livré en fait ») : la
+  table n'atteignait le JS que via `_GCOLL` (~1 500 mots, <2 %). Bloc `gacc-lex-gz` (59 916
+  entrées) + une ligne en tête de `_nounGender`, miroir exact du Python ; asset extension additif.
+  Vérifié navigateur : « une lettre rédigé »→rédigée, IMPOSSIBLE avant sur le produit réel.
+- **#579** le « ? » manquant arrive au correcteur : `estQuestion` (96,67 % précision, 58/60)
+  vivait en DOUBLE dans les 2 surfaces vocales et dans AUCUN moteur. Déplacée dans dys-core+app,
+  `_questionScan` en ORANGE. 3 défauts de mon propre travail trouvés par les gardes : paramètre
+  renommé (référence morte), le « ? » mis à tort dans `_typoScan` (couche MÉCANIQUE, or il dépend
+  du tagger), et la variante « sans ponctuation finale » COMPTÉE SANS ÊTRE PEINTE (`_typoGapHtml`
+  ne peint qu'entre les mots) → la règle se tait là et dit pourquoi.
+- **#580** census : la garde était aveugle deux fois — elle SE SAUTE sans corpus (donc jamais
+  tournée en CI) et sa référence datait de #558 → rouge permanent plus lu, 20 PR de dérive. Elle
+  cachait **9 oranges devenues FAUSSES depuis #568** (tèrs→terre, priosn→prions, sonn→sont…).
+  Non réparées ici, mesuré : toutes les variantes sont zéro-somme (`_cmp` pairwise, le vrai
+  chantier est là). Livré : comptage AVEC multiplicité (13 perdues/12 gagnées, pas « net 1 »),
+  dette RÉAFFICHÉE à chaque run vert, référence ré-ancrée (301/241/162).
+- **#581** les règles de virgule au correcteur (étape ③ de #561, restée en plan) : ORANGE, fatigue
+  mesurée avant branchement **0,93 virgule/1 000 mots** sur 2 500 phrases correctes. ⭐⭐ Quatre
+  défauts de mon propre travail, dont : le `norm` du bloc porté ÉCRASAIT le `norm` PHONÉTIQUE de
+  l'app — **134 diagnostics de dictée basculaient de famille**, invisible au diff et à
+  `parity_corr`, vu par la seule `parity_diag` (1309 cas) livrée la veille. Cible cliquable 5 px
+  → 15-19 px ; nouvelle famille `ponctuation` (la carte disait « Homophone »).
+
+**25/08 — verrous, ou/où, accessibilité, récupération, l'extension avant le Store (#582-#594)**
+- **#582** une locution figée ne perd plus contre une devinette à un mot : `_HYPHLOC` était
+  étouffée par les suggestions mot-à-mot (« week end » recevait « geek » ; « au dela » l'accent
+  sans le trait d'union). Priorité changée, condition de déclenchement INCHANGÉE : 15/19 → 19/19.
+- **#583** verrou de miroir app↔extension pour les 5 blocs de ponctuation miroités à la main. ⭐⭐
+  La première version ne pouvait PAS échouer : marqueur de fin tombant sur un `catch`
+  intermédiaire → 9 lignes comparées sur 19, la garde trait d'union HORS comparaison — découvert
+  en introduisant une divergence EXPRÈS. Et la normalisation abîmait ce qu'elle mesurait (`\b`
+  ASCII : « plutôt »→« plutô§ »). Re-testée en échec sur CHAQUE bloc ; 1 vraie divergence sortie.
+- **#584** ou/où : la famille la plus DENSE du corpus dys — 11 vraies fautes sur 23 « ou » lus un
+  par un (48 %), couverture ZÉRO (« carte enseignante »). 3 cadres livrés en ORANGE, chacun 0 FP
+  sur 121 phrases UD ; 3 cadres MESURÉS ET REFUSÉS (« ou »+verbe conjugué : 14 FP/121). Python
+  7/11 dys, extension 9/9. LanguageTool vaut mieux comme fournisseur de CONTRE-EXEMPLES que de
+  règles.
+- **#585** deux défauts pour la cible dys : une correction n'était atteignable qu'à la SOURIS
+  (`data-key` sans tabindex ; `_cardKey` : Entrée/Espace applique, `aria-live` posé) ; et le logo
+  Google était un carré noir — `icon.svg` dessinait l'oméga en balise TEXTE, jeté par tout
+  rasteriseur sans polices (preuve : `apple-touch-icon.png` 618 o, 99,7 % de #0d1117). Oméga
+  vectorisé en `<path>`, `icones_probe` falsifié dans les deux sens.
+- **#586** RÉCUPÉRATION : deux commits du PR #576 ne sont JAMAIS arrivés dans main. Reposés :
+  sitemap complet (32 URL == 32 pages, plus aucune page noindex), `sitemap_probe.js` à 3 règles
+  symétriques, testé en échec dans les deux sens.
+- **#587** blocages avant Store (« pourtant je l'avais dit tu m'as pas cru » — les deux étaient
+  réels) : « tout corriger » n'appliquait AUCUN flag typo (`sp[undefined]` → return en silence) ;
+  bulle ↔ miroir rendus EXCLUSIFS (patron voix↔miroir réutilisé) ; notes de confidentialité
+  REPLIÉES, pas raccourcies. Plus : lecture du TEXTE à voix haute (karaoké), miroir du bouton de
+  l'app.
+- **#588** au banc navigateur : l'alternateur mourait en silence si `chrome.storage` jetait (le
+  listener vivait DANS le try) ; le lecteur échouait sans le dire (`onerror` affiche désormais la
+  raison). Et un diagnostic à moi RETIRÉ — le verrou anti-écrasement du karaoké reposait sur une
+  cause inexistante, mesurée au banc.
+- **#589** aide au nombre (dyscalculie) dans le panneau : la police de son est INERTE sur les
+  chiffres (mesuré : `decompose('42')` = 0 lettre) mais décompose les MOTS-nombres. Nombre sous 3
+  formes (groupé / en lettres / valeur de position), convertisseur 38 pièges du français sur 38.
+  Pourquoi pas une calculette : transcodage, position, inversion, quantité — le calcul délégué ne
+  touche aucun des quatre.
+- **#590** préparation Chrome Web Store (3 blocages levés, dossier STORE.md) : couvert par
+  l'entrée « 2026-08-25 — Publication Chrome Web Store » ci-dessous.
+- **#591** l'extension calcule aussi (décision de Rem : extension = RAPIDE, site = développé) :
+  analyseur descendant maison, ZÉRO `eval` (structurel — `<all_urls>` + eval = refus Store),
+  refuse plutôt qu'inventer (5/0, « 2+ », « 1.2.3 » → « Calcul impossible »), résultat relu en
+  lettres et par position. 21 cas/21.
+- **#592** l'URL de politique de confidentialité donnée à Google renvoyait un **308**
+  (`/confidentialite.html` ; la ressource est à `/confidentialite`) — exactement le piège de
+  #576, sur l'URL qui conditionne la publication. Corrigé dans STORE.md.
+- **#593** `/calcul`, la partie développée du site : 4 opérations posées en colonnes, potence avec
+  reste (le seul endroit où le résultat se prouve : quotient × diviseur + reste), `versNombre()`
+  mots→chiffres (l'erreur canonique « 30005 » pour trois cent cinq ; quatre-vingt recollé sinon
+  97 = 41). Sonde `calc_dys_probe.js` : 20 011 allers-retours, ~46 000 poses, 4 gardes FALSIFIÉES
+  une par une — la retenue ADDITIVE et la sonde restée verte sont l'entrée « 2026-08-25 — Aide au
+  calcul » ci-dessous.
+- **#594** passe de doc après `/calcul` + 3 retards antérieurs (README/SITE_DEPLOY oubliaient la
+  saisie vocale et Double-Sens, livrées depuis longtemps) ; rapport §18.7 avec les limites dites
+  (aucune validation élèves, entiers seulement).
+
+**26/08 — expliquer les fautes, puis les familles une à une (#595-#601)**
+- **#595** « on se doit d'expliquer les fautes » (Rem) : mesuré dans l'app réelle, **3 corrections
+  sur 16 donnaient une explication (19 %)**. Trois causes : le fil couche-dys→carte manquant, un
+  attrape-tout qui MENTAIT (l'espacement conseillé comme homophone ET compté morphosyntaxique
+  dans le STADE), 14 règles sans `_EXPL`. → 100 %, crible navigateur permanent (il clique et lit
+  la carte), FALSIFIÉ deux fois — la 1ʳᵉ version acceptait le mot « Pourquoi », qui est le TITRE
+  de la carte.
+- **#596** dette Python remboursée (les 3 règles du crible portées à la référence) — le portage a
+  payé : 2 FP de mes propres règles trouvés (« les endroits OÙ on va coûte cher » → on→ont ; `où`
+  et `dont` ouvrent une relative dont « on » est le sujet). Et « Marie est venu CE MATIN » réparé :
+  la garde `tg[i+1]=='DET'` (sujet postposé) s'abstenait sur « ce » ; conditionner au sujet
+  REFUSÉ (FP 1,40→1,48 %), retenu : exemption des COMPLÉMENTS DE TEMPS en liste fermée, FP
+  strictement inchangé 1,40 % (35/2500). Balayage 84 fautes/19 familles → REGLES_FR §0-bis
+  (piège : lancé sur le Python seul il annonçait 42 « muets » — chiffre FAUX, refait au
+  navigateur).
+- **#597** et/est avec sujet nominal (« Ce chien et gentil » muet) : élargi au seul cadre
+  DÉTERMINANT+NOM avant / ADJECTIF après, 4 gardes chacune née d'un FP UD mesuré — 0 tir sur
+  2 500, FP 1,40 % exact. Honnêteté : rappel ajouté sur le corpus dys = 0, gardé quand même
+  (coût nul). Et le correctif speller tar→tarte REFUSÉ PAR LE CENSUS : 4 oranges justes perdues
+  pour 1 gagnée, c'étaient des ACCENTS de vrai texte dys — retiré, 301/301.
+- **#598** les 3 défauts graves du panel Chrome (37 phrases neuves) : participe après ÊTRE en
+  LISTE FERMÉE de verbes (le tagger et ADJ_LEX tentés et refusés : « seche »/« celebre » = VERB,
+  ADJ_LEX contient « fatigue ») ; COD antéposé SANS apostrophe (« que j ai cueilli »→cueillies —
+  c'est ainsi qu'un dys écrit) ; orange faux est→sont (« Le prix est fixe » : le -x de PRIX
+  écrasait le déterminant — la liste des INVARIABLES existait, pas consultée là). Coût mesuré des
+  trois : ZÉRO (1,40 %, census 301/301).
+- **#599** le bug de fond des explications : `_corrFam` classait par la FORME du couple AVANT le
+  NOM de la règle — arrive→arrivé expliqué comme ACCENT, sait→s'est comme SEGMENTATION :
+  correction juste, explication FAUSSE (pire qu'une correction manquée pour un dys). Le nom de la
+  règle prime désormais ; famille `participe` créée. Et sait→s'est LIVRÉ devant participe (savoir
+  ne prend jamais un participe pour complément) 11/11 ; ma régression « savoir semi-auxiliaire »
+  (sait ARRÊTER proposé sur une vraie faute) corrigée.
+- **#600** son/sont devant adjectif pluriel : le tagger est EMPOISONNÉ PAR LA FAUTE ELLE-MÊME (il
+  voit « son », déduit un déterminant, lit un nom derrière — « contents » = NOUN). Ce qui marche :
+  un fait STRUCTUREL que la faute ne corrompt pas — le possessif « son » est toujours suivi d'un
+  singulier, sauf invariables (fils, corps, prix — la liste de #598). 13/13, excédent INCHANGÉ à
+  36 flags.
+- **#601** trois familles + le paquet Store v0.6.0. peut/peu : le discriminateur est le VERBE FINI
+  déjà présent dans la proposition (10/10) ; mais/mes en tête de phrase dans le seul cadre nom
+  pluriel+verbe (12/12) ; ÉLISION FUSIONNÉE (jai→j'ai, quil→qu'il) — ⭐⭐ la 1ʳᵉ version passait
+  13/13 et faisait monter l'excédent de 36 à **140 : 104 faux positifs, tous des NOMS PROPRES**
+  (Charles→C'harles, Nantes→N'antes) — sans le comptage de FLAGS demandé par Rem ils passaient
+  (le % global bougeait à peine). Excédent final 36 identique. Dans le même PR : le VETO
+  ORTHO/PHONO/GRAMMAIRE (« cube » au lieu de la pyramide) construit, mesuré, **FALSIFIÉ** —
+  meilleur taux de change 5 réparations perdues pour 1 casse évitée, plafond oracle +0/−1 ; 3ᵉ
+  confirmation de « garde PAR RÈGLE, jamais globale ». Ne pas câbler.
+
+**27-29/08 — le site : 404, Store publié, bêta EN, glossaire (#602-#606)**
+- **#602** soft-404 sur tout le site (cause n°4 de l'enquête positionnement, la seule encore
+  active) : sans `404.html`, Cloudflare Pages sert l'accueil EN 200 sur toute URL inexistante
+  (mesuré : curl → 200). Vraie page 404 (noindex, liens ABSOLUS, hors sitemap) ; et le SW JETAIT
+  les réponses non-ok — une 404 serveur devenait page d'erreur navigateur. Rappel : le remède
+  principal reste la STABILITÉ, ceci est le seul correctif code utile.
+- **#603** l'extension est SUR LE STORE (publiée le 28/08/2026, id dbochkbaechbemahapplibbhmfkcldln,
+  v0.6.0) : deux pages affirmaient encore le contraire — bouton « Ajouter à Chrome », zip replié
+  en `<details>` (seule voie Firefox/postes bloqués). Défaut antérieur réparé : l'extension est
+  FRANÇAISE et `en/correcteur.html` proposait le zip sans le dire. Instrument au passage :
+  `getBoundingClientRect` rapportait le zip VISIBLE dans un `<details>` fermé —
+  `checkVisibility({contentVisibilityAuto})` tranche juste.
+- **#604** logo Chrome sur le bouton, SVG INLINE — jamais une image gstatic (fuite d'IP de chaque
+  visiteur trois lignes au-dessus de « Rien ne sort de votre appareil », et hors-ligne cassé).
+  Géométrie contrôlée par `getBBox()`, pas à l'œil (les 3 secteurs font bien 120°).
+- **#605** anglais marqué BÊTA sur les 3 surfaces qui l'offraient sans le dire (dont mon propre
+  défaut de #603) — on marque le point où l'ANGLAIS est offert, pas la langue de la page. Et
+  l'inventaire EXACT de la localisation (`extension/I18N.md`) : 124 messages = 101 à TRADUIRE ·
+  3 à RÉÉCRIRE (REMED parle de phonétique française) · 10 JAMAIS (donnée FR sans équivalent) ·
+  10 inertes ; trois versions fausses du compteur avant la bonne, gardées dans le doc.
+- **#606** glossaire : 16 → 97 entrées, 8 groupes, tout le projet et plus seulement le pendu
+  (HMM, n-gramme, g2p, FP=0, les 43 nœuds de la toile). Termes choisis par RELEVÉ page par page,
+  pas de mémoire ; sigles vérifiés DANS les documents. Trouvable depuis recherche/toile/mémoire.
+
+**30/08 — police de son × corrections, « durand », le dossier couleurs (#607-#610)**
+- **#607** le VOISEMENT S'INVERSAIT dans les mots corrigés : les 3 faces enregistrées sans
+  descripteur de graisse → dans un `<b>` le navigateur SYNTHÉTISE le gras — mesuré au canvas :
+  Light 836→1263 pixels encrés (+51,1 %), PLUS ÉPAIS que Heavy 1242. ⚠️ La LARGEUR ne le voit pas
+  (chasse fixe, 143,17 px identique) : ma première sonde concluait « aucun défaut », il faut
+  compter l'ENCRE. Correctif `{weight:'1 1000'}`, garde greffée dans `parity_son.js` et
+  falsifiée. L'extension PUBLIÉE 0.6.0 garde le défaut (rattrapé par la 0.6.1, #612).
+- **#608** corrections SOULIGNÉES, plus surlignées (proposition de Rem, mesurée juste) : le fond
+  du mot corrigé ne contrastait que **1,15** avec le fond de la boîte (seuil 3,0) — l'indicateur
+  était quasi invisible. Foncer le fond est IMPOSSIBLE (les deux exigences vont en sens inverse,
+  3 fonds mesurés) → signal déplacé sur un canal LIBRE : trait plein #2e8b57, 3,91 clair / 3,65
+  sombre, une seule couleur passe dans les deux thèmes ; la rustine #00699f de la veille devient
+  inutile, retirée. Reste ouvert (dit, pas touché) : muette vs syllabe à 1,17 en luminance.
+- **#609** « durand » n'est plus corrigé d'office en « durant » (Rem : « la garde [nom propre] je
+  suis contre » — respecté) : seul patronyme sur 72 à franchir la barre `confident`, et c'est le
+  PIRE cas (substitution de la consonne FINALE, là où Durand/Durant, Renaud/Renault se séparent).
+  Confiance resserrée, pas la couverture : 0/46 corrections UD retirées, 0/14 vraies fautes dys
+  démotées — et le census MONTE de 301 à 305 oranges justes (référence ré-ancrée 305/242/163).
+- **#610** chantier couleurs du correcteur : le DOSSIER (rien de livré) — muette à 1,43:1 dans un
+  mot corrigé en sombre ; le réflexe évident (« réparer isDarkBg par segment ») MESURÉ inefficace
+  (le bleu Okabe-Ito échoue sur les 5 pastels : 3,03…4,29) ; la solution = canaux DISJOINTS, avec
+  4 pièges mesurés d'avance. Exécuté par #611 — cf. le digest #611-#655 en tête de journal.
+
+**Chiffres de référence en sortie de fenêtre** : pipeline **397 réparés (25,7 %) / 19 cassés
+(0,41 %)** (#601) · FP échelle UD **1,40 %** (35/2500) · census **305 oranges justes** (#609) ·
+excédent homophones **36 flags**/2 500 correctes · batterie **75/75** · extension **v0.6.0
+publiée au Chrome Web Store le 28/08** (#603).
+
+---
+
 ## 2026-08-25 — Publication Chrome Web Store : préparation complète (dossier `extension/STORE.md`)
 
 > [Verbatim CLAUDE.md, bloc EXTENSION CHROME. Dépassé par les faits depuis : 0.6.2 téléversée par Rem
