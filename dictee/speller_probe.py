@@ -33,7 +33,9 @@ DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un c
 # de `_SPELL_KEEP` (app + extension/dys-core.js) : le produit est VOLONTAIREMENT muet sur ces mots — la référence
 # doit décrire le produit, elle corrigeait the→thé en AUTO (constat 03/09, REGLES_FR.md « FERMÉ PAR CHOIX »).
 # Coût mesuré NUL : gold pipeline 402/19 STRICTEMENT identique avant/après (aucun de ces tokens dans le corpus dys).
-# NB : le palier « mot inconnu » (spellUnknown JS) n'existe pas côté Python — seule la voie correction est à couvrir.
+# NB : le palier « mot inconnu » (spellUnknown JS) est porté ici depuis le 04/09/2026 : `spell_unknown`
+# (action 'inconnu', OPT-IN via correct_text(..., inconnu=True) — défaut OFF, doctrine §1.6 : aucun
+# consommateur existant ne change de comportement sans le demander).
 SPELL_KEEP = set('the and of with is are was were this that from they you your its new world er'.split())
 
 def deacc(s):
@@ -415,7 +417,93 @@ class Speller:
             return ('auto', w1)                                 # une seule restauration d'accent possible → sûr
         return ('flag', w1) if (len(d) >= 4 and f1 >= AUTO_FREQ) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
 
-    def correct_text(self, text):
+    # ----- PALIER « MOT INCONNU » — décalque de `spellUnknown` (app + extension/dys-core.js) -----
+    # Rendu : None = rien à signaler · '' = souligné SANS suggestion · 'mot' = suggestion ORANGE (au clic).
+    # Palier VIGILANCE pur : il n'APPLIQUE jamais rien — hors FP=0 par construction (le texte ne change pas).
+    # ENQUÊTE 04/09/2026 (88 fautes réelles à ce palier, sur 1 140 ratés du pipeline) : la cause dominante
+    # d'absence de suggestion est la distance d'édition ≥ 2 (83/90), PAS les gardes. La voie '' est donc
+    # équipée par deux générateurs (mêmes pools, zéro asset nouveau) : S6 ÉLISION puis S4 CLÉ PHONÉTIQUE
+    # À DISTANCE 1. Mesuré (population de l'enquête) : top-1 32/88 · propose sur 60/88 · UD ~33/96 mots
+    # inconnus équipés (fatigue DERRIÈRE le clic, AUCUNE marque nouvelle) · coût ~0 ms.
+    # ÉCARTÉS par l'enquête, ne pas rebrancher sans nouvelle mesure : S1 edit-2 (104 ms/token, 60 % de
+    # fatigue UD) · S5 mot-collé (2 vrais cas seulement).
+
+    def _su_elision(self, low):
+        """S6 — élision oubliée : « dargen »→d'argent, « listoir »→l'histoire, « léconomi »→l'économie.
+        Tête d'élision (ELIDE + qu') + RESTE corrigé par les pools de spellUnknown (D2A > phon > edits1),
+        initiale voyelle/h et fréquence ≥ FLAG_FREQ exigées. Miroir JS : _suElision."""
+        heads = []
+        if low[:1] in ELIDE and len(low) >= 4: heads.append((low[0], low[1:]))
+        if low[:2] == 'qu' and len(low) >= 5: heads.append(('qu', low[2:]))
+        for h, rest in heads:
+            dr = deacc(rest)
+            hits = {}
+            for w in self.D2A.get(dr, []): hits.setdefault(w, (2, self.FREQ.get(w, 0)))
+            for w in self.PHON.get(phon_key(rest), []):
+                if abs(len(deacc(w)) - len(dr)) <= 2: hits.setdefault(w, (1, self.FREQ.get(w, 0)))
+            for e in edits1(dr):
+                for w in self.D2A.get(e, []): hits.setdefault(w, (0, self.FREQ.get(w, 0)))
+            for w in sorted(hits, key=lambda x: (-hits[x][0], -hits[x][1])):
+                if deacc(w)[:1] in VOWELS and self.FREQ.get(w, 0) >= FLAG_FREQ:
+                    return h + "'" + w
+        return None
+
+    def _su_phon_e1(self, low):
+        """S4 — presque-homophone : edits1 appliqué à la CLÉ phonétique, lookup PHON, classement
+        fréquence (« luiil »→lui, « bégnier »→baigner, « ésituron »→hésiteront). Miroir JS : _suPhonE1.
+        (PHON ne contient que des formes de fréquence ≥ FLAG_FREQ — filtre déjà dans load_lexicon.)"""
+        hits = {}
+        for e in edits1(phon_key(low)):
+            for w in self.PHON.get(e, []): hits.setdefault(w, self.FREQ.get(w, 0))
+        best, bf = None, -1.0
+        for w, f in hits.items():
+            if f > bf: best, bf = w, f
+        return best
+
+    def spell_unknown(self, tok, at_start=False, toks=None, idx=None):
+        """-> None | '' (souligné sans suggestion) | suggestion (orange AU CLIC, jamais appliquée)."""
+        low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
+        if len(low) < 3 or not all(deacc(c) in ALPHA for c in low): return None
+        if low in self.WORDS or deacc(low) in self.WORDS: return None       # mot connu (ou connu sans accents)
+        if low == 'ête': return None            # réservé à la règle grammaire (rEteEtre) — miroir du court-circuit spellText
+        if low in SPELL_KEEP: return None       # mot anglais fréquent / résidu d'ordinal → ni corrigé ni signalé
+        if tok[:1] != tok[:1].lower(): return None    # majuscule → possible nom propre, même en début de phrase (prudence)
+        if tok == tok.upper() and len(tok) >= 2: return None                # acronyme tout-capitale
+        d = deacc(low)
+        if not re.search(r'[aeiouy]', d) or re.fullmatch(r'[ivxlcdm]+', d): return None   # sigle sans voyelle / chiffre romain
+        # candidat best-effort (accents + phonétique + édit-1) : homophone > audibilité > fréquence, non-homophone filtré à l'initiale
+        arr = list(self.D2A.get(d, []))
+        arr += list(self.PHON.get(phon_key(low), []))
+        for e in edits1(d):
+            arr += self.D2A.get(e, ())
+        iaU = low.endswith('é')
+        pk = phon_key(low)
+        best, bh, ba, bf = None, -1, -1, -1.0
+        for w in arr:
+            hm = 1 if phon_key(w) == pk else 0
+            if not hm and deacc(w)[:1] != d[:1]: continue
+            au = 1 if (iaU and re.search(r'(é|ée|és|ées|er|ez|ai|ais|ait)$', w)) else 0
+            fq = self.FREQ.get(w, 0)
+            if hm > bh or (hm == bh and (au > ba or (au == ba and fq > bf))):
+                bh, ba, bf, best = hm, au, fq, w
+        if best and toks and idx is not None and idx + 1 < len(toks):
+            # DÉTERMINANT : le genre du NOM SUIVANT domine la fréquence (« uen maison »→une) — miroir JS
+            dp2 = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}.get(deacc(best))
+            if dp2 and deacc(best) in self.DET_G:
+                nw2 = toks[idx + 1].lower().replace('œ', 'oe').replace('æ', 'ae')
+                if nw2 in self.WORDS:
+                    ng2 = self._gender(nw2)
+                    if ng2 and ng2 != self.DET_G[deacc(best)] and self.DET_G.get(deacc(dp2)) == ng2:
+                        if sorted(deacc(low)) == sorted(deacc(dp2)) or deacc(dp2) in edits1(deacc(low)):
+                            best = dp2
+        if best and best != low: return best
+        # VOIE '' (inconnu sans suggestion fiable) : S6 élision PRIORITAIRE, puis S4 clé phonétique d=1
+        g = self._su_elision(low) or self._su_phon_e1(low)
+        return g if (g and g != low) else ''
+
+    def correct_text(self, text, inconnu=False):
+        """inconnu=True (OPT-IN, défaut OFF) : ajoute le palier « mot inconnu » (action 'inconnu') sur
+        les tokens que la voie correction laisse muets — comme la chaîne vigilance de spellText (JS)."""
         text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique = droite (1:1)
         out = []; starts = self._sentence_starts(text)
         ms = list(TOK.finditer(text)); toks = [m.group(0) for m in ms]
@@ -426,6 +514,10 @@ class Speller:
                 if m.group(0)[:1].isupper() and sugg[:1].islower():   # préserver la MAJUSCULE d'origine (« Ecole »→« École », pas « école »)
                     sugg = sugg[0].upper() + sugg[1:]
                 out.append((m.start(), m.group(0), sugg, r[0]))
+            elif inconnu:
+                u = self.spell_unknown(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
+                if u is not None:
+                    out.append((m.start(), m.group(0), u, 'inconnu'))
         return out
 
     @staticmethod
@@ -471,7 +563,21 @@ def main():
             elif len(miss) < 16: miss.append((b, g, hit[1] if hit else None))
     print(f"\n  [2] NON-MOTS (cible=1 mot) : {nw} | corrigés exactement : AUTO={okA} + FLAG={okF} = {okA+okF} ({100*(okA+okF)//max(1,nw)}%)")
     for b, g, s in miss: print(f"        {b} → {g}  | sugg={s}")
-    return 0
+
+    # (3) PALIER « MOT INCONNU » (spell_unknown, décalque JS — enquête 04/09/2026) : cas gagnés + témoins.
+    #     Orange AU CLIC, jamais appliqué → hors FP=0 ; la parité 3 moteurs est gardée par parity_speller.
+    su_fail = []
+    for t, exp in [('dargen', "d'argent"), ('léconomi', "l'économie"), ('bégnier', 'baigner'), ('ésituron', 'hésiteront')]:
+        got = sp.spell_unknown(t)
+        if got != exp: su_fail.append(f"{t} → {exp!r} attendu, eu {got!r}")
+    for t in ('delbrueckii', 'bulgaricus'):     # témoins : sans candidat du cadre → '' (souligné SANS suggestion, on n'invente pas)
+        got = sp.spell_unknown(t)
+        if got != '': su_fail.append(f"témoin {t} → '' attendu (pas d'invention), eu {got!r}")
+    if sp.spell_unknown('fenêtre') is not None: su_fail.append("mot CONNU « fenêtre » signalé (doit rendre None)")
+    if sp.spell_unknown('Nathalie') is not None: su_fail.append("majuscule « Nathalie » signalée (nom propre, doit rendre None)")
+    print(f"\n  [3] PALIER « mot inconnu » (spell_unknown) : {'OK' if not su_fail else 'ÉCHEC'}")
+    for x in su_fail: print(f"        ✗ {x}")
+    return 1 if su_fail else 0
 
 if __name__ == '__main__':
     sys.exit(main())
