@@ -577,7 +577,25 @@ def main():
     if sp.spell_unknown('Nathalie') is not None: su_fail.append("majuscule « Nathalie » signalée (nom propre, doit rendre None)")
     print(f"\n  [3] PALIER « mot inconnu » (spell_unknown) : {'OK' if not su_fail else 'ÉCHEC'}")
     for x in su_fail: print(f"        ✗ {x}")
-    return 1 if su_fail else 0
+
+    # (4) CAS FONDATEURS DE LA GARDE DE DOMINANCE — ils n'étaient gardés par RIEN (04/09/2026).
+    #     Ces cinq corrections sont la RAISON D'ÊTRE des gardes de dominance de `_cmp` : un rival
+    #     beaucoup plus fréquent doit écraser le bonus (POS/genre/phon) d'un junk rare du lexique.
+    #     Vécu le 04/09 : une variante d'assouplissement les a cassées (« chein »→chin) avec dev.sh
+    #     ENTIÈREMENT VERT — aucune batterie ne les regardait, seuls des commentaires les citaient.
+    #     Toute retouche de `_cmp` doit passer ici. Sortie DURE (comme [3]).
+    dom_fail = []
+    for phrase, tok, exp in [('un chein noir', 'chein', 'chien'),
+                             ('accor parfait', 'accor', 'accord'),
+                             ('je suis tres content', 'tres', 'très'),
+                             ('jamai de la vie', 'jamai', 'jamais'),
+                             ('autent que possible', 'autent', 'autant')]:
+        got = {w: sg for (i, w, sg, a) in sp.correct_text(phrase)}.get(tok)
+        if got != exp: dom_fail.append('%s -> %r attendu, eu %r   (phrase : %r)' % (tok, exp, got, phrase))
+    print('')
+    print('  [4] CAS FONDATEURS de la dominance : %s' % ('OK' if not dom_fail else 'ÉCHEC'))
+    for x in dom_fail: print('        ✗ %s' % x)
+    return 1 if (su_fail or dom_fail) else 0
 
 if __name__ == '__main__':
     sys.exit(main())

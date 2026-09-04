@@ -60,8 +60,8 @@
     },
     {
       "titre": "Dominance ≫20× du speller",
-      "etat": "cause de « parvies »→parties identifiée (la garde écrase le phon-match dès que le bon mot est rare) ; le chantier = donner du CONTEXTE (comme LanguageTool), pas baisser le seuil — mesurer d'abord les deux populations (mot rare vs bruit lexical)",
-      "ref": "CLAUDE.md/JOURNAL 2026-08-22 et 23"
+      "etat": "enquête + tentative de câblage du 04/09/2026. Les DEUX populations sont mesurées (22 tokens victimes contre 56 protégés au gold ; 96 % des tirs de garde sont neutres) et le cadre « b_slip » — la garde n'écrase pas un candidat PROCHE (tier>=1) ET homophone exact, sauf si l'écraseur est un glissement moteur de la saisie — est MESURÉ GAGNANT en référence Python (402/19 → 405/18, FP speller UD2500 91→86) mais RÉFUTÉ AU PORTAGE JS : « tres »→trés et « gran »→gram cassés dans l'app. Bloqué sur une asymétrie Py↔JS du BONUS POS contextuel (pm/pmatch) — ni le raisonnement ni la clé phonétique ne sont en cause (phonKey ≡ phon_key vérifié). Livré en attendant : la batterie des 5 cas fondateurs (speller_probe §4), qui n'existait pas et qui a rendu la réfutation visible. Reprise après instruction de pm vs pmatch",
+      "ref": "JOURNAL 2026-09-04 (soir) · batterie dictee/speller_probe.py §4"
     },
     {
       "titre": "Les 442 mots soulignés sans suggestion",

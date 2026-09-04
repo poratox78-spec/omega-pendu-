@@ -5,6 +5,55 @@
 
 ---
 
+## 2026-09-04 (soir) — dominance ≫20× : la garde n'était gardée par RIEN ; `b_slip` mesuré gagnant en Python, RÉFUTÉ au portage JS
+
+> Chantier « la dominance ne distingue pas mot rare de bruit lexical » (ouvert depuis le 22-23/08).
+> Enquête lecture-seule d'abord (les DEUX populations exigées), puis tentative de câblage.
+
+**① LA BATTERIE QUI MANQUAIT (livrée)** — `speller_probe.main` §4. Les cinq corrections qui sont la
+RAISON D'ÊTRE des gardes de dominance de `_cmp` — `chein`→chien, `accor`→accord, `tres`→très,
+`jamai`→jamais, `autent`→autant — n'étaient gardées par **RIEN** : grep exhaustif, elles ne vivaient
+que dans des **commentaires**. Vécu le jour même : une variante d'assouplissement les a cassées
+(`chein`→**chin**, `accor`→**aucune suggestion**) avec **dev.sh entièrement vert**. La batterie est
+posée, vue VERTE sur main, puis vue **ROUGE** sur la variante fautive (falsification faite avant
+d'y croire), sortie DURE comme §3. Toute retouche de `_cmp` passe désormais par elle.
+
+**② `b_slip` — MESURÉ GAGNANT EN PYTHON** : aux six sites ≫20×, la garde n'écrase pas un candidat
+à la fois PROCHE (tier≥1) et HOMOPHONE EXACT, SAUF si l'écraseur est un glissement moteur
+(`_slipMot` : anagramme/redoublement) de la saisie. Référence Python : **402/19 → 405 réparés
+(26,3 %) / 18 cassés (0,39 %)**, FP à l'échelle 1,40 % inchangé, batterie §4 verte, cas fondateurs
+intacts. Le raisonnement tient : le rapport de fréquence **seul** ne sépare pas « mot rare légitime »
+de « bruit lexical » — mesuré dans les DEUX sens (73/105 des candidats écrasés *à raison* sont eux
+aussi phon-match ; la bande 20-50× contient pollution 23× et engrais 27× **comme** chin 40×).
+
+**③ RÉFUTÉ AU PORTAGE — ne pas re-tenter en l'état.** Porté verbatim dans les deux moteurs JS
+(régions `_cmp` vérifiées identiques hors commentaires), il **casse dans l'app** ce que Python
+préserve, sur les phrases mêmes de la batterie :
+
+| saisie | Python + b_slip | app/extension + b_slip |
+|---|---|---|
+| « je suis **tres** content » | `très` (auto) ✅ | **`trés`** (flag) ❌ le junk 18/M gagne |
+| « un **gran** homme » | (abstention) | **`gram`** ❌ |
+
+⚠️ **Ce n'est PAS l'asymétrie de clé phonétique de #663** : `phonKey` ≡ `phon_key` sur ces mots,
+vérifié (`tres`/`trés`/`très` → 'tr' des deux côtés ; `gran` → 'gr2', `grand` → 'gr2d'). La
+divergence vit dans le **bonus POS contextuel** (`pm`/`pmatch`) : sur la MÊME phrase, le bonus tire
+côté JS et pas côté Python, si bien que l'exemption ouvre une porte que Python ne voit jamais.
+La parité speller CI n'a rien dit (`tres` n'est pas dans son corpus, 0 divergence nouvelle sur 209).
+
+**⇒ b_slip est BLOQUÉ sur une asymétrie Py↔JS du bonus POS, pas sur son propre raisonnement.**
+La parité 3 moteurs est obligatoire (un patch Python seul rendrait `parity_speller` rouge) : on ne
+livre donc que la batterie. Reprise possible **après** avoir instruit `pm` vs `pmatch` — et le
+gain reste attractif (+3 réparations, −1 casse, FP speller 91→86 en Python). Prix déjà nommé si
+on y revient : `juis`→jouis perdu ; `parvies` ne devient PAS une réparation (parvis 0,15/M reste
+sous la porte d'émission f1≥1,0) — seule la fausse suggestion `parties` disparaîtrait.
+
+**Ce que cet épisode confirme** : c'est la batterie posée AVANT le câblage qui a rendu la
+réfutation visible. Sans elle, `b_slip` partait en production avec dev.sh vert et deux corrections
+fondatrices cassées en silence.
+
+---
+
 ## 2026-09-04 — les soulignés sans suggestion ÉQUIPÉS : S6 élision + S4 clé phonétique d=1 dans la voie '' de spellUnknown (3 moteurs + port Python du palier)
 
 Implémentation du cadre retenu par l'enquête du 04/09 (88 fautes réelles au palier « mot inconnu »
