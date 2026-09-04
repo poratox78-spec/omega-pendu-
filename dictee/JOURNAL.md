@@ -43,6 +43,18 @@ identifiée au passage : avec `exp_pos='VA'` (copule « suis »), **ni `trés` (
 moteurs. **La cause de l'échec de b_slip au portage reste À TROUVER** ; ce n'est ni la clé
 phonétique (#663, déjà écarté), ni le POS attendu (ici). Ne pas re-tenter b_slip avant de l'avoir.
 
+**PISTE RESSERRÉE POUR LA SUITE (mesuré ici même)** — trois candidats écartés, un seul debout :
+- clé phonétique : `phonKey` ≡ `phon_key` sur les mots en cause (#663 n'explique rien ici) ;
+- **tables POS : IDENTIQUES** — l'asset JS `speller.tsv.gz` donne `trés` → `N` freq 18 089 et
+  `très` → *aucun POS* freq 1 435 582, exactement comme la référence ;
+- POS attendu du contexte : aligné par ce PR, et l'échec persiste.
+⇒ Il reste **une étape que les moteurs JS ont et que la référence n'a PAS DU TOUT** : la
+**RÉ-SÉLECTION « CONTEXTE-FIRST »** (`dys-core.js` ~3081 / app ~27567 — 1 occurrence de chaque côté
+JS, **0 côté Python**, vérifié). Elle tourne APRÈS le tri et re-choisit un candidat édit-1/accent à
+même clé phonétique. C'est le seul endroit où les deux moteurs peuvent structurellement diverger
+une fois tout le reste aligné — et l'enquête du 04/09 avait déjà noté qu'il ne fallait pas y
+toucher (son candidat est phon-exact ∧ tier≥1 par construction). **C'est LÀ qu'il faut chercher.**
+
 **Leçon** : une attribution écrite le soir d'un chantier est une hypothèse, pas un fait — celle-ci
 a tenu moins de 24 h. Ce qui l'a fait tomber : avoir mesuré au lieu de re-citer.
 
