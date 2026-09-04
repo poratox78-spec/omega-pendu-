@@ -5,6 +5,53 @@
 
 ---
 
+## 2026-09-04 — les soulignés sans suggestion ÉQUIPÉS : S6 élision + S4 clé phonétique d=1 dans la voie '' de spellUnknown (3 moteurs + port Python du palier)
+
+Implémentation du cadre retenu par l'enquête du 04/09 (88 fautes réelles au palier « mot inconnu »
+SANS suggestion, sur 1 140 ratés du pipeline ; cause dominante = distance d'édition ≥ 2 : 83/90).
+
+- **Le branchement** : UNIQUEMENT la voie `''` de `spellUnknown` (le fallback « inconnu sans
+  suggestion fiable »), app + `extension/dys-core.js` (miroir verbatim) : **S6 ÉLISION** (tête
+  d/l/j/n/m/t/s/c/qu + reste corrigé par les MÊMES pools D2A/phon/edits1, voyelle exigée,
+  ≥ FLAG_FREQ) PRIORITAIRE, puis **S4 CLÉ PHONÉTIQUE À DISTANCE 1** (edits1 sur la CLÉ, lookup
+  PHON, fréquence). Zéro asset nouveau, briques existantes (SELIDE/SVOW/sEdits1/phonKey/SP.*).
+  Écartés par l'enquête, non branchés : S1 edit-2 (104 ms/token, 60 % fatigue UD), S5 mot-collé.
+- **PROPRIÉTÉ CARDINALE PROUVÉE — aucune marque nouvelle, rien d'appliqué** : gold pipeline
+  **402 réparés (26,1 %) / 19 cassés (0,41 %) STRICTEMENT identique** avant/après ; flags totaux
+  du dump produit **1 307 = 1 307** ; UD 2500 : mots inconnus **155 = 155** (98 sans/57 avec →
+  **65 sans/90 avec**, 33 équipés — la fatigue reste DERRIÈRE le clic). `fp_scale` **1,40 %**
+  inchangé ; coût 1er passage texte dys **9 ms** (plafond 120).
+- **Ce que voit l'utilisateur** (ventilation produit des 1 140 ratés, dump dys-core) :
+  rattrapable en un clic **109 → 142** (+33, l'enquête en prédisait +32 : +1 d'écart, assumé),
+  souligné sans suggestion **90 → 30**, bruit orange 197 → 224 (le prix, refusable au clic),
+  invisible 614 inchangé. Census vigilance : justes **306 → 309** (dcuatc→ducats, qulqut→quelque,
+  spcifiqut→spécifique), pointeuses 240 → 237, fatigue 146 inchangée — aucune orange juste perdue, ré-ancré.
+- **Port Python du palier** : `speller_probe.spell_unknown` (décalque de spellUnknown, S6/S4
+  compris — None / '' / suggestion), action **`inconnu`** OPT-IN via `correct_text(...,
+  inconnu=True)` (défaut OFF, aucun consommateur existant ne bouge). `dys_pipeline_probe` la
+  consomme : la ligne « signalé SANS suggestion » cesse d'être structurellement 0 (30 mesurés ;
+  MUET 1 114 → 886, avertissement réécrit — il reste un léger sur-estimé, couches vigilance JS
+  non portées). Validé sur la population de l'enquête : top-1 32/88 · propose 60/88 (chiffres
+  d'enquête reproduits à l'identique).
+- **`parity_speller` étendue au palier `inconnu`** (comparaisons 48 → 209) — début de comblement
+  de l'angle mort « la sonde ne compare que auto/flag ». Protocole falsifiable respecté : vue
+  **ROUGE d'abord** (38 divergences, port Python fait / JS pas encore), verte après le JS.
+  **3 divergences ancrées** (chevout, rosso, yay) : la sonde a EXPOSÉ une asymétrie PRÉEXISTANTE
+  de la clé phonétique — le **x final muet** ajouté côté JS par #244 (21/07) n'a jamais été porté
+  dans `phon_key` Python (« cheveux » = '§ev' JS vs '§evek' Py). Chantier séparé proposé (il
+  déplace le PHON de la référence → re-mesure complète obligatoire).
+- **Libellé** : orange « mot inconnu » équipé = INTERROGATIF — l'app disait déjà « mot à vérifier
+  — peut-être « X » ? » (rien à faire) ; l'extension affiche désormais « municipio » →
+  peut-être « municipaux » ? (mitigation nom propre). Batteries : cas gagnés (dargen→d'argent,
+  léconomi→l'économie, bégnier→baigner, ésituron→hésiteront) + témoins sans invention
+  (delbrueckii, bulgaricus) dans `test_speller_app.js`, `extension/test_speller.js` (+ parité
+  directe ext≡app) et `speller_probe.main` §3.
+- **Écart assumé au tract d'enquête** : « luiil→lui » était le top-1 de S4 SEUL ; dans le cadre
+  combiné S6 prioritaire donne « l'huile » (les 3 moteurs d'accord). Le total 32/88 est celui
+  du cadre combiné, inchangé.
+
+---
+
 ## 2026-09-04 — _cmp non transitif : dette RE-MESURÉE et INSTRUITE — on ne câble pas (canon:F qualifiée, en réserve)
 
 > Enquête lecture-seule sur main (lexique speller 705 654 formes, baseline produit reproduite 402/19,

@@ -59,9 +59,19 @@ def pyramide(txt):
     signale = set()                                  # i -> souligné SANS suggestion (« mot inconnu »)
     starts = {m.start(): i for i, m in enumerate(TOK.finditer(txt))}
     Tc = T[:]
-    for (st, w, sg, act) in SP.correct_text(txt):
+    for (st, w, sg, act) in SP.correct_text(txt, inconnu=True):
         i = starts.get(st)
         if i is None or i >= len(T) or DP.norm(T[i]) != DP.norm(w):
+            continue
+        if act == 'inconnu':
+            # PALIER « MOT INCONNU » (porté du JS le 04/09/2026 — spell_unknown, décalque de spellUnknown).
+            # ORANGE au clic si suggestion, simple soulignement sinon : jamais appliqué → le chiffre
+            # produit (réparés/cassés) ne peut PAS bouger par construction ; seule la VENTILATION des
+            # ratés change (« signalé sans suggestion » cesse d'être structurellement 0).
+            if sg and DP.norm(sg) != DP.norm(w):
+                orange.setdefault(i, []).append(sg)
+            else:
+                signale.add(i)
             continue
         if act != 'vigilance' and sg.isalpha():
             Tc[i] = sg
@@ -192,17 +202,17 @@ def main():
           % (or_juste, 100.0 * or_juste / max(1, rate)))
     print('     - bruit orange           : %4d  (%.1f %%)             un orange est propose, mais il est FAUX'
           % (or_faux, 100.0 * or_faux / max(1, rate)))
-    print('     - signale SANS suggestion: %4d  (%.1f %%)             (!) TOUJOURS 0 ICI - voir avertissement'
+    print('     - signale SANS suggestion: %4d  (%.1f %%)             vu, pas reparable en un clic'
           % (sign, 100.0 * sign / max(1, rate)))
-    print('     - MUET (cote Python)     : %4d  (%.1f %%)             (!) SUR-ESTIME - voir avertissement'
+    print('     - MUET (cote Python)     : %4d  (%.1f %%)             (!) LEGER SUR-ESTIME - voir avertissement'
           % (muet, 100.0 * muet / max(1, rate)))
     print()
-    print('     (!) CES DEUX LIGNES NE DECRIVENT PAS CE QUE VOIT L UTILISATEUR. La reference PYTHON')
-    print('         (speller_probe) n emet que auto/flag : elle n a PAS le palier « mot inconnu », qui')
-    print('         n existe que dans spellText (app). « signale = 0 » est donc un ARTEFACT, et « MUET »')
-    print('         gonfle d autant. MESURE REELLE (23/08, en croisant avec un dump de l APP - cf.')
-    print('         ETAT_DES_LIEUX §5septies) : 38,5 % de ces rates sont SOULIGNES sans suggestion,')
-    print('         et 59,8 % seulement sont vraiment invisibles.')
+    print('     (!) Le palier « mot inconnu » (spellUnknown JS) est PORTE dans la reference depuis le')
+    print('         04/09/2026 (spell_unknown, action `inconnu`) : « signale = 0 » n est plus un artefact.')
+    print('         « MUET » reste un LEGER sur-estime : les couches vigilance de spellText encore')
+    print('         absentes cote Python (anglicisme, homoVig, accords oranges...) soulignent une part')
+    print('         de ces rates dans le produit — la ventilation PRODUIT exacte se mesure avec un dump')
+    print('         dys-core (cf. ETAT_DES_LIEUX §5septies et l enquete du 04/09).')
     if ex_or:  print('     exemples rattrapables :', ' | '.join(ex_or[:6]))
     if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
     if _dump is not None:

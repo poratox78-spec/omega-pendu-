@@ -27589,6 +27589,28 @@ function spellTokenCore(tok,atStart,T,idx){
   // VIGILANCE : mot alphabétique ABSENT du dictionnaire (≠ nom propre / sigle / romain) → suspect, souligné orange,
   // NON affirmé (on n'impose rien). Rend le correcteur non-muet sur les non-mots dys (« reamné ») que le speller,
   // faute de candidat sûr, laissait passer en silence. Meilleur candidat en best-effort (clic), sinon simple alerte.
+  // ----- VOIE '' de spellUnknown : ÉQUIPER d'une suggestion des « mot inconnu » DÉJÀ soulignés -----
+  // ENQUÊTE 04/09/2026 (88 fautes réelles à ce palier, sur 1 140 ratés du pipeline) : la cause dominante
+  // d'absence de suggestion est la distance d'édition ≥ 2 (83/90), PAS les gardes. Deux générateurs,
+  // mêmes pools, zéro asset nouveau — S6 ÉLISION (tête d/l/j/n/m/t/s/c/qu + reste corrigé) PRIORITAIRE,
+  // puis S4 CLÉ PHONÉTIQUE À DISTANCE 1 (edits1 sur la CLÉ, lookup PHON, classement fréquence).
+  // Mesuré : top-1 32/88 · propose sur 60/88 · UD ~33/96 mots inconnus équipés (la fatigue reste
+  // DERRIÈRE le clic : AUCUNE marque nouvelle, on n'équipe que des soulignés existants) · coût ~0 ms.
+  // ÉCARTÉS par l'enquête (ne pas rebrancher sans nouvelle mesure) : S1 edit-2 (104 ms/token, 60 % de
+  // fatigue UD) · S5 mot-collé (2 vrais cas). Miroir Python : speller_probe.spell_unknown (_su_elision/_su_phon_e1).
+  function _suElision(low){var heads=[];
+    if(SELIDE[low[0]]&&low.length>=4)heads.push([low[0],low.slice(1)]);
+    if(low.slice(0,2)==='qu'&&low.length>=5)heads.push(['qu',low.slice(2)]);
+    for(var hi=0;hi<heads.length;hi++){var h=heads[hi][0],rest=heads[hi][1],dr=deaccS(rest),hits={},ord=[],i,j,w,a;
+      a=SP.D2A[dr]||[];for(i=0;i<a.length;i++){w=a[i];if(hits[w]==null){hits[w]=[2,SP.FREQ[w]||0];ord.push(w);}}
+      a=SP.PHON[phonKey(rest)]||[];for(i=0;i<a.length;i++){w=a[i];if(Math.abs(deaccS(w).length-dr.length)<=2&&hits[w]==null){hits[w]=[1,SP.FREQ[w]||0];ord.push(w);}}
+      var e1=sEdits1(dr);for(i=0;i<e1.length;i++){a=SP.D2A[e1[i]];if(a)for(j=0;j<a.length;j++){w=a[j];if(hits[w]==null){hits[w]=[0,SP.FREQ[w]||0];ord.push(w);}}}
+      ord.sort(function(x,y){return hits[y][0]-hits[x][0]||hits[y][1]-hits[x][1];});   // tri stable → départage = ordre d'insertion (D2A > phon > edits1), comme le miroir Python
+      for(i=0;i<ord.length;i++){w=ord[i];if(SVOW[deaccS(w).charAt(0)]&&(SP.FREQ[w]||0)>=0.1)return h+"'"+w;}}
+    return null;}
+  function _suPhonE1(low){var hits={},best=null,bf=-1,i,j,e1=sEdits1(phonKey(low));
+    for(i=0;i<e1.length;i++){var a=SP.PHON[e1[i]];if(a)for(j=0;j<a.length;j++){var w=a[j];if(hits[w]==null){hits[w]=1;var f=SP.FREQ[w]||0;if(f>bf){bf=f;best=w;}}}}   // > strict : à fréquence égale le premier inséré gagne (miroir Python)
+    return best;}
   function spellUnknown(tok,atStart,T,idx){
     if(!SP.ready)return null;
     var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');
@@ -27613,7 +27635,9 @@ function spellTokenCore(tok,atStart,T,idx){
           if(_ng2&&_ng2!==DET_G[deaccS(best)]&&DET_G[deaccS(_dp2)]===_ng2){
             var _da2=deaccS(low).split('').sort().join('')===deaccS(_dp2).split('').sort().join('');
             if(_da2||sEd1(deaccS(low),deaccS(_dp2)))best=_dp2;}}}}
-    return (best&&best!==low)?best:'';                                      // '' = inconnu sans suggestion fiable (simple alerte)
+    if(best&&best!==low)return best;
+    var _g=_suElision(low)||_suPhonE1(low);                                 // VOIE '' : équiper le souligné existant (S6 puis S4) — orange AU CLIC, jamais une marque nouvelle
+    return (_g&&_g!==low)?_g:'';                                            // '' = inconnu sans suggestion fiable (simple alerte)
   }
   // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
   // (non affirmatif). Gardes étroites pour éviter les emplois légitimes (« la mer », « le fer », « papa »).

@@ -1,6 +1,6 @@
 {
- "justes": 306,
- "pointeuses": 240,
+ "justes": 309,
+ "pointeuses": 237,
  "fatigue": 146,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -65,6 +65,7 @@
   "danss→dans [orthographe] lettre_trop",
   "dasn→dans [orthographe] inversion",
   "dcembre→décembre [orthographe] autre",
+  "dcuatc→ducats [mot inconnu] autre",
   "depsotes→despotes [mot inconnu] inversion",
   "depuie→depuis [orthographe] terminaison",
   "depuit→depuis [orthographe] terminaison",
@@ -231,6 +232,7 @@
   "qlein→plein [orthographe] lettre_change",
   "qoui→qui [orthographe] lettre_change",
   "quelqus→quelques [orthographe] terminaison",
+  "qulqut→quelque [mot inconnu] autre",
   "quroum→quorum [mot inconnu] inversion",
   "raers→rares [orthographe] inversion",
   "ramenais→ramener [infinitif après semi-auxiliaire à vérifier] terminaison",
@@ -264,6 +266,7 @@
   "sonnt→sont [orthographe] lettre_trop",
   "sotn→sont [mot inconnu] inversion",
   "soulijnant→soulignant [mot inconnu] lettre_change",
+  "spcifiqut→spécifique [mot inconnu] autre",
   "stratégis→stratégie [orthographe] terminaison",
   "stupde→stupide [orthographe] lettre_manque",
   "supre→super [orthographe] inversion",

@@ -256,7 +256,8 @@
       dg.flags.forEach(function (f, k) {
         var vigT = f.tier === 'vigilance';                        // orange pointillé = À VÉRIFIER (hors FP=0 : clic individuel possible, JAMAIS dans « tout corriger »)
         var orth = /orthographe|[ée]lision/.test(f.name || '');   // bleu = orthographe (non-mot/accent) ; rouge = grammaire
-        h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → <b>« ' + esc(f.sugg) + ' »</b>'
+        var devine = vigT && f.name === 'mot inconnu' && f.sugg && f.sugg !== f.word;   // suggestion DEVINÉE (voie '' S6/S4, 04/09/2026) : libellé INTERROGATIF — mitigation nom propre (« municipio » → peut-être « municipaux » ?), idiome du titre app (« peut-être « X » ? »)
+        h += '<div class="omdys-item' + (vigT ? ' omdys-tvig' : (orth ? ' omdys-orth' : '')) + '" data-k="' + k + '">« ' + esc(f.word) + ' » → ' + (devine ? 'peut-être <b>« ' + esc(f.sugg) + ' »</b> ?' : '<b>« ' + esc(f.sugg) + ' »</b>')
           + ' <span class="omdys-fam">[' + esc(f.name) + (f.tier === 'auto' ? ' · sûr' : (vigT ? ' · à vérifier' : '')) + ']</span>'
           + (f.hint ? '<button class="omdys-why" data-k="' + k + '" type="button" title="pourquoi ?">💡</button>' : '')
           + ((orth && !(window.DysCore && DysCore.udHas && DysCore.udHas(f.word))) ? '<button class="omdys-ud" data-k="' + k + '" type="button" title="Ce mot est correct (prénom, lieu, jargon) : ne plus le signaler">📗</button>' : '')
