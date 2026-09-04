@@ -26,6 +26,15 @@ KNOWN_ONLY_FREQ = 0.0                          # ⭐ CONNU MAIS JAMAIS CANDIDAT 
                                                # parce que des voisins rares (égaillement, sadd, hiloire) cassaient la garde d'UNICITÉ des
                                                # candidats à distance 2. Sous ce seuil : dans WORDS, pas dans D2A. Wikt/argot/participes (0,05) intacts.
 DOMINANCE = 5.0                               # rapport freq top/2e pour qu'un candidat soit "dominant" (AUTO)
+# tokens courts NON-FRANÇAIS à ne JAMAIS corriger (port du produit, 04/09/2026) : mots anglais fréquents dans du
+# texte FR (titres/orgs) que le speller accentuait à tort (the→thé, were→père, this→tit, that→ta, from→front,
+# they→te, your→pour — 7 tirs mesurés sur les 18) + « er » = résidu d'ordinal « 1er » (le chiffre effacé laisse
+# « er »→« ère »). Aucun n'entre en collision avec un mot français (mais/or/on/en/a/ni exclus). Miroir VERBATIM
+# de `_SPELL_KEEP` (app + extension/dys-core.js) : le produit est VOLONTAIREMENT muet sur ces mots — la référence
+# doit décrire le produit, elle corrigeait the→thé en AUTO (constat 03/09, REGLES_FR.md « FERMÉ PAR CHOIX »).
+# Coût mesuré NUL : gold pipeline 402/19 STRICTEMENT identique avant/après (aucun de ces tokens dans le corpus dys).
+# NB : le palier « mot inconnu » (spellUnknown JS) n'existe pas côté Python — seule la voie correction est à couvrir.
+SPELL_KEEP = set('the and of with is are was were this that from they you your its new world er'.split())
 
 def deacc(s):
     s = s.replace('œ', 'oe').replace('Œ', 'OE').replace('æ', 'ae').replace('Æ', 'AE')
@@ -280,6 +289,7 @@ class Speller:
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
         # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
         if low in self.PRENOMS_L: return None
+        if low in SPELL_KEEP: return None      # mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ni corrigé ni signalé (miroir JS _SPELL_KEEP, même position : après prénom, avant nom-propre)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
         d = deacc(low)
