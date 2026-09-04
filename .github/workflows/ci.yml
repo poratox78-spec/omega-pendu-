@@ -216,6 +216,12 @@ jobs:
       # régénération laisserait l'extension avec l'ancien logo.
       - name: LIVRAISON — les icônes de l'extension sont FRAÎCHES (== icon-512.png)
         run: python3 extension/build_icons.py --check
+      # Même famille, côté SITE : `icon-192.png` (icône d'installation PWA du manifest) est resté un
+      # aplat 99,7 % #0d1117 pendant deux mois — #585 avait régénéré apple-touch à la main mais pas lui,
+      # et la sonde d'effet ne le couvrait pas. Les deux sont désormais DÉRIVÉS de icon-512.png par un
+      # build déterministe (mêmes fonctions que celui de l'extension) : la marque change ⇒ ils suivent.
+      - name: LIVRAISON — les icônes du site sont FRAÎCHES (apple-touch + icon-192 == icon-512.png)
+        run: python3 build_site_icons.py --check
       - name: LIVRAISON — le zip extension téléchargeable est FRAIS (octets == sources, après build_assets)
         run: python3 extension/build_zip.py --check
       - name: LIVRAISON — le pack de polices OMEGA Dys téléchargeable est FRAIS (octets == police/)
