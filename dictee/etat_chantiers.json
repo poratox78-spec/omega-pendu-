@@ -30,22 +30,22 @@
       "titre": "Collisions d'accent (« adhérent » n'est pas « adhèrent »)",
       "verdict": "16 mots courants cessent d'être pris pour des verbes ; les 3 copies (JSON == app == extension) sont gardées",
       "ref": "PR #640 · garde dictee/build_non_verbe_acc.py --check"
+    },
+    {
+      "titre": "Remise en ordre des documents de pilotage (plan du 24/08)",
+      "verdict": "SOLDÉ : CLAUDE.md sommaire (989 mots) VALIDÉ par Rem le 04/09 (sauvegarde de l'ancien : notes/CLAUDE_AVANT_TRI_2026-09-03.md) ; histoire au JOURNAL (digests #546-#610 et #611-#655, rien de perdu) ; DOCTRINE actée ; ETAT.md généré ; skill linguistique versionné ; gardes docs_probe + etat_gen --check + a11y_probe + icones élargies en dev.sh/CI",
+      "ref": "PR #656 · #657 · #658 · #659 · #660"
     }
   ],
   "ouverts": [
     {
-      "titre": "Remise en ordre des documents de pilotage (ce chantier)",
-      "etat": "Tri intégré le 03/09/2026 : CLAUDE.md ramené à un sommaire (986 mots, docs_probe VERT), histoire migrée au JOURNAL (manifeste « rien de perdu » dans le PR), DOCTRINE actée (R1-R65 perdues), docs_probe + etat_gen --check câblés dev.sh + CI ; reste à Rem la relecture du nouveau sommaire",
-      "ref": "plan du 24/08 · dictee/docs_probe.py · dictee/etat_gen.py"
-    },
-    {
       "titre": "Publication Chrome Web Store",
-      "etat": "0.6.2 téléversée par Rem le 03/09/2026 (revue Google en cours) ; 0.6.3 prête (manifest bumpé, zip --store régénéré), téléversement quand Rem décide d'une nouvelle revue — un numéro remis à Rem est brûlé",
+      "etat": "0.6.2 téléversée par Rem le 03/09/2026, puis 0.6.3 téléversée le 04/09/2026 (revue Google en cours) — un numéro remis à Rem est brûlé : bumper le manifest avant tout nouveau paquet",
       "ref": "extension/STORE.md · PR #651 · #655"
     },
     {
       "titre": "Accord verbe à vérifier (vigilance orange)",
-      "etat": "2 lots livrés — le parseur de sujet d'abord, puis la FORME avant le NOMBRE (faire semi-auxiliaire, s'est + forme finie, gérondif, gardes de sujet), 3 moteurs à parité",
+      "etat": "2 lots livrés — le parseur de sujet d'abord, puis la FORME avant le NOMBRE (faire semi-auxiliaire, s'est + forme finie, gérondif, gardes de sujet), 3 moteurs à parité. Consigne Rem 04/09 : continuer au fil des situations, la PRIORITÉ va au palier ROUGE (FP=0)",
       "ref": "PR #652 · #654"
     },
     {
@@ -75,7 +75,7 @@
     },
     {
       "titre": "Validation terrain orthophonistes",
-      "etat": "vraies copies dys externes à obtenir — valide ET nourrit la boucle descendante ; la fiche imprimable existe (validation_terrain.html)",
+      "etat": "EN SUSPENS (décision Rem 04/09 : compliqué à obtenir) — vraies copies dys externes ; valide ET nourrit la boucle descendante ; la fiche imprimable existe (validation_terrain.html)",
       "ref": "CLAUDE.md (audit projet ⏳) · dictee/build_validation_sheet.py"
     }
   ]
