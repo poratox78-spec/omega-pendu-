@@ -119,7 +119,11 @@ def phon_key(s):
         if ch == 'c':   res.append('s' if nx in 'eiy§' else 'k')
         elif ch == 'g': res.append('j' if nx in 'eiy' else 'g')
         elif ch == 'h': pass                                    # h muet
-        elif ch == 'x': res.append('ks')
+        elif ch == 'x': res.append('' if j == len(s) - 1 else 'ks')   # -x FINAL MUET (noix/prix/voix/choix) ;
+                                                                     # interne = /ks/ (taxi). Miroir de phonKey
+                                                                     # (app + dys-core, ajouté par #244 le 21/07/2026
+                                                                     # et jamais porté ici — asymétrie exposée par la
+                                                                     # sonde de parité du palier « mot inconnu », #663)
         elif ch in 'zs': res.append('s')
         elif ch == 'y': res.append('i')
         elif ch == 'w': res.append('v')
