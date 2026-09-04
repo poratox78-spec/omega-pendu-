@@ -67,7 +67,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 40 | parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé) | `node dictee/parity_gender_coll.js` |
 | 41 | parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas) | `node dictee/parity_diag.js` |
 | 42 | speller ext ≡ app (vigilance comprise) | `node extension/test_speller.js` |
-| 43 | parité SPELLER Python↔JS (suggestion, auto+flag) | `python3 dictee/parity_speller.py` |
+| 43 | parité SPELLER Python↔JS (suggestion, auto+flag+inconnu) | `python3 dictee/parity_speller.py` |
 | 44 | syntaxe extension (5 fichiers) | `"node --check extension/dys-core.js && node --check extension/content.js && node --check extensio…` |
 | 45 | correcteur standalone | `node dictee/correcteur.js` |
 | 46 | correcteur AUTONOME (bake, 3 mondes) | `node dictee/bake_probe.js --check` |
