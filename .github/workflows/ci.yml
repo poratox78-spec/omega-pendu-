@@ -42,6 +42,11 @@ jobs:
         run: node dictee/srs_probe.js
       - name: Navigateur RÉEL — Chrome pilote la page (CDP, zéro dépendance)
         run: node dictee/navigateur_probe.js --check
+      # L'accessibilité se mesure dans le DOM RENDU, pas en comptant des attributs dans la source
+      # (d83d972 : « compter des attributs mesure la syntaxe, pas l'accessibilité »). Vue ROUGE sur
+      # l'app d'avant d83d972 (Entrée/Espace muets, 0 tabindex) avant d'être vue verte.
+      - name: A11Y app réelle — aria-live, corrections au clavier, informatifs non tabbables
+        run: node dictee/a11y_probe.js --check
       - name: EXTENSION dans Chrome — paquet réel, assets chargés par chrome.runtime.getURL
         run: node extension/navigateur_ext_probe.js --check
       - name: Précision par famille AU PRODUIT — extension réelle dans Chrome (sautée sans corpus dys privé)
