@@ -5,6 +5,49 @@
 
 ---
 
+## 2026-09-10 — les six dernières étapes de `spellTokenCore` portées : accord de palier produit↔référence 100 % (880/880)
+
+> 10ᵉ et dernier maillon de la carte « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672 · #673 ·
+> #677 · #678). La garde de #674 disait ce qui restait : `_slipMot`/élongation → auto, `_aux` participe → flag, découpe
+> « a paré ». La copie instrumentée de dys-core (retours `auto`/`flag` par ligne) en a trouvé deux de plus, invisibles
+> sur le gold sauf un mot : `_AFIX` et le « e » muet du futur/conditionnel (celui qui rend `fautra`→fautera).
+
+**① LES SIX DÉCALQUES, à la position du produit dans `correct_token`.**
+- **`_AFIX`** (l.2948) : huit accents fermés (trés→très, celà→cela, içi→ici, verité→vérité…) → auto — AVANT la garde
+  « mot valide », comme le produit : « trés » EST au lexique (pollution) et le produit le corrige quand même.
+- **« e » muet du futur/conditionnel** (l.2950-2956) : non-mot en `radical(≥4)+r+terminaison` dont radical+er est un verbe
+  des tables → réinsérer le e (oublirais→oublierais, chantra→chantera). Tables du produit chargées : `vdc.cj.f` (60 397 →
+  66 146 avec la clôture 3pl régulière, décalque de `_fillReg3pl`) et `vdc.cj.c` (5 948 lemmes). **Vu rouge** : sans la
+  garde `!SP.WORDS.has(low)` du produit, la référence envoyait « il rentra », « je montrais », « il contra » — des formes
+  VALIDES — en auto ; la garde de palier l'a dit (3 hors accord nouveaux), garde posée, disparus.
+- **SOUDURE à/a+verbe** (l.2968-2975) : « àeu »→a eu, « aparé »→« a paré » (vigilance) ; gardes : jamais un infinitif
+  (atendre = attendre), le redoublement prime (aporté→apporté), un vrai verbe à une édition de même son prime
+  (`_homophone_edit1` : aboit→aboie).
+- **ÉLONGATION** (l.2980-2981, `sCollapse`) : un run ≥ 3 lettres → auto si une seule forme au lexique, flag sinon
+  (trèèès→très, alllez→allez, bonnnjour→bonjour) ; ni acronyme tout-capitale, ni chiffre romain.
+- **`_slipMot` AUTO** (l.3077) : toutes les lettres sont là, UN SEUL candidat, écart = ordre ou redoublement → auto
+  (jmaais, toujorus, grannd, beaucooup, vinngt ; sur le gold : cocinelle, contorl, fourgonette).
+- **`_aux` PARTICIPE** (l.3078-3079) : après un auxiliaire avoir / une copule (en remontant les mots-outils), le présent
+  -e devient le participe -é du même verbe → flag (il a manje→mangé, j ai prais→prêté).
+Témoins : **30 / 30** ≡ produit, mot ET palier (tetra→tétras en « inconnu » des deux côtés).
+
+**② MESURÉ, produit byte-identique.** Accord de palier sur le gold : **99,2 → 100,0 % (880/880), 0 désaccord**, même mot
+**295/295** (vigilance) · **181/181** (flag) · **129/129** (auto) · 274/275 (inconnu) ; hors accord **2** (`Enerver` = atStart ≡
+premier token du texte ; `ere` = appariement par occurrence). Ré-ancré à 100 %.
+- Parité `parity_speller` : **0 nouvelle, 1 ancre disparue** (`saisoon`→saison [auto]) → 3 → **2** (il reste `france` et `miya`, deux abstentions Python sur des noms propres en minuscule). Batterie §1 **AUTO=0** · FLAG=0 · VIGILANCE=1, §2 7/11, §3/§4/§5 verts ; FP à l'échelle **1,40 %** ; collisions de genre : rappel 269, FP 0. **Vu rouge au passage** : sans la garde « non-mot » du e-muet, §1 affichait **AUTO=1** (« il rentra »→rentera sur une phrase correcte) avec la batterie VERTE — le FP AUTO de §1 ne faisait que s'imprimer ; c'est désormais une sortie dure (cardinal).
+
+- Pipeline : **284 → 286 réparés (+2)** · un-clic 244 → 243 · bruit 227 → 224 · sans suggestion 30 → 31 · MUET 690 · appliqué FAUX 67 → 68 (`fautra`→fautera) · **CASSÉS 14 → 15 : `revérrons`→revérerons (gold reverrons)** — le « e » muet du futur y voit révérer+ons, et le PRODUIT fait exactement la même chose (vérifié dans dys-core : auto). **C'est une casse RÉELLE du produit que la référence ne voyait pas** ; désormais elle la compte. Sans la garde « non-mot » du e-muet (rouge vu) : 19 cassés et 70 appliqués faux.
+- Précision par famille (référence) : `orthographe|auto` 87,9 → **89,7 %** sur **551** événements (349 → 494 justes : les autos du produit — _AFIX, élongation, glissement, e muet — arrivent dans la référence) · `flag` 82,8 → 77,5 % (303 / 11 / 77 : les flags SÛRS sont devenus des autos, ceux qui restent sont moins précis) · `vigilance` 54,3 → 54,7 %. **Le plafond « mots justes réécrits au palier auto » monte de 28 à 29 : c'est `revérrons`→revérerons**, la casse du produit (INUTILE = juste à l'accent près, réécrit) — ré-ancré en le disant, le chantier de moteur est ouvert dans l'état. `--navigateur` intact.
+
+
+**⇒ CE QUE ÇA VEUT DIRE.** Le chiffre de référence (`dys_pipeline_probe`) décrit désormais le produit **au palier près**
+sur 880 corrections, et il s'écrit **286 réparés / 15 cassés** — le 15ᵉ cassé (`revérrons`) est une casse du PRODUIT,
+pas de la référence : le juge la voit enfin. Ce n'est plus une borne, c'est le point (à `atStart` et une découpe près,
+nommés). La série ouverte par #659 est close : dix maillons, chacun vu rouge avant d'être cru. Ce qui reste est de l'ordre
+du produit lui-même (`fautra`→fautera, `revérrons`→revérerons : le « e » muet du futur croit à un verbe rare — un chantier
+de MOTEUR, à mesurer désormais avec un juge qui ne triche plus) et de l'instrument (`atStart`, l'appariement).
+---
+
 ## 2026-09-09 — les briques de CONTEXTE alignées sur le produit : fenêtre du nombre, invariables, tables de genre
 
 > 9ᵉ maillon de « la référence décrit le produit ». Ouvert par le 18ᵉ témoin de #677 (`panden`) et par `aggrée` :
