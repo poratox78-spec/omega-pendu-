@@ -49,6 +49,11 @@ sonde pipeline alignait déjà sur les tokens à apostrophe (#614) ; les 2 muets
 d'élision où le produit propose (faux) et où la référence se taisait. FP à l'échelle **1,40 %** inchangé ; batterie
 §1 AUTO=0 · FLAG=0 · VIGILANCE=1, §2 7/11, §3-§5 verts.
 
+**Précision par famille** (référence) : `orthographe|flag` 83,9 → 82,9 % (422 J / 11 I / 76 F, n 479 → 509) ·
+`vigilance` 54,2 → 53,6 % · `auto` 88,0 → 88,2 % (350 / **0** / 47). Les 2 « mots justes réécrits » de plus au
+palier flag sont `d'oeuvre`→d'œuvre et `inspireé`→inspiré (corpus faiblesses) — **identiques au produit sur le texte
+complet** (vérifié dans dys-core) : la baisse est le juge qui décrit le produit, ré-ancrée ; `--navigateur` intact.
+
 **Parité** `parity_speller` (262 comparaisons) : **12 → 5 ancres, 0 nouvelle** — les 7 disparues sont TOUTES des
 « py — » sur des tokens d'élision (`d'aeration`, `d'oves`, `l'Oeuf`, `l'apprehender`, `l'economie`, `l'ete`,
 `l'hotel`) : la référence les coupait en deux et ne voyait rien. Les 5 qui restent : `saisoon` (auto vs flag),
