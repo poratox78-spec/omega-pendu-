@@ -15,6 +15,7 @@ LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme'.split())
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
+_DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
 VOWELS = set("aeiouyh")                        # le mot élidé commence par voyelle/h
@@ -157,6 +158,29 @@ def sed1(a, b):
             if sk > 1: return False
             j += 1
     return True
+
+
+def subseq(a, b):
+    """Décalque de `subseq` (dys-core.js) : a est-il une SOUS-SUITE de b ?"""
+    i = 0
+    for ch in b:
+        if i < len(a) and a[i] == ch: i += 1
+    return i == len(a)
+
+
+def lev_b(a, b, mx):
+    """Décalque de `_levB` (dys-core.js) : distance d'édition BORNÉE (rend mx+1 dès que le plancher de ligne dépasse mx)."""
+    if abs(len(a) - len(b)) > mx: return mx + 1
+    pr = list(range(len(b) + 1))
+    for i in range(1, len(a) + 1):
+        cu = [i] + [0] * len(b); bst = i
+        for j in range(1, len(b) + 1):
+            v = min(pr[j] + 1, cu[j - 1] + 1, pr[j - 1] + (0 if a[i - 1] == b[j - 1] else 1))
+            cu[j] = v
+            if v < bst: bst = v
+        if bst > mx: return mx + 1
+        pr = cu
+    return pr[len(b)]
 
 
 def edits1(d):
@@ -479,6 +503,36 @@ class Speller:
         # problème qui touche 1,16 % des cas en fait un chantier à faible priorité.
         ranked = sorted(cands.items(), key=cmp_to_key(_cmp))
         (w1, (p1, f1)) = ranked[0]
+        # ⭐ RE-SÉLECTION DE w1 AVANT LES GATES — portée du produit le 08/09/2026 (8e maillon de « la référence décrit le
+        # produit »). Deux étapes de spellTokenCore (dys-core.js l.3036-3061, miroir app) changeaient la CIBLE côté produit et
+        # pas côté référence ; tracées dans une copie instrumentée de dys-core : courrent/merais/regetes → null@3063,
+        # petet/panden → null@3084 — le nouveau w1, rare, tombe sous les seuils, le produit passe en « mot inconnu ».
+        # (a) DÉTERMINANT : le GENRE du NOM SUIVANT domine la fréquence (« dans uen maison » proposait « un ») — si le candidat
+        #     retenu est un déterminant genré, que le nom qui suit porte un genre pur opposé et que le jumeau de l'autre genre
+        #     est candidat (ou anagramme / à distance 1 de la saisie), le jumeau gagne.
+        if deacc(w1) in _DPAIR and toks and idx is not None and idx + 1 < len(toks):
+            nw = toks[idx + 1].lower().replace('œ', 'oe').replace('æ', 'ae')
+            if nw in self.WORDS:                                     # POS clairsemée : le genre pur suffit, None → pas d'échange
+                ng, dg, pr = self._gender(nw), self.DET_G.get(deacc(w1)), _DPAIR[deacc(w1)]
+                if ng and dg and ng != dg and self.DET_G.get(deacc(pr)) == ng:
+                    dl, dp = deacc(low), deacc(pr)
+                    ana = sorted(dl) == sorted(dp)                   # « uen »/« une » : anagramme — la transposition n'est pas dans edits1
+                    if pr in cands or ana or sed1(dl, dp):
+                        w1 = pr
+                        if pr in cands: (p1, f1) = cands[pr]
+                        else: p1, f1 = 1, self.FREQ.get(pr, 0.0)
+        # (b) OMISSION — ne pas RACCOURCIR ce que l'utilisateur a déjà raccourci (la faute dys la plus courante est d'omettre
+        #     des lettres ; « afreuses »→affreux au lieu d'affreuses). Si la cible retenue est plus COURTE que la saisie, on
+        #     re-choisit parmi les candidats plus LONGS : même initiale, saisie sous-suite du candidat, strictement plus
+        #     proche que la cible courante (coût, pas fréquence) ; à égalité de longueur, le plus fréquent. Ne change que la CIBLE.
+        if len(deacc(w1)) < len(d):
+            cc = lev_b(d, deacc(w1), 9); bs, bd = None, 0
+            for c2, (pc2, fc2) in cands.items():
+                dc = deacc(c2); dl = len(dc) - len(d)
+                if dl <= 0 or dl >= cc or dc[:1] != d[:1] or not subseq(d, dc): continue
+                if bs is None or dl < bd or (dl == bd and fc2 > cands[bs][1]): bs, bd = c2, dl
+            if bs is not None:
+                w1 = bs; (p1, f1) = cands[w1]
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
