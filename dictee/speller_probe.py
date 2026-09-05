@@ -166,7 +166,11 @@ def edits1(d):
     return list(res)
 
 class Speller:
-    DET_G = {'un':'m','une':'f','le':'m','la':'f','du':'m','au':'m','ce':'m','cet':'m','cette':'f',
+    # ⚠️ ALIGNÉ SUR LE PRODUIT le 06/09/2026 : `DET_G` (dys-core.js l.1331, miroir app) ne contient NI « du » NI « au ».
+    # La référence les avait en plus, et ça se voyait au PALIER dès que contexte-first est porté : « au boulo »,
+    # « du marcketing », « au échenge » AFFIRMÉS ici (flag) là où le produit ne fait que PROPOSER (vigilance) —
+    # 3 des 5 désaccords nouveaux vus ROUGES par palier_gold_probe. Même geste que #665 (POS attendu).
+    DET_G = {'un':'m','une':'f','le':'m','la':'f','ce':'m','cet':'m','cette':'f',
              'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f','quel':'m','quelle':'f'}
     DET_NUM = {'le':'s','la':'s','un':'s','une':'s','ce':'s','cet':'s','cette':'s','mon':'s','ma':'s',
                'ton':'s','ta':'s','son':'s','sa':'s','les':'p','des':'p','ces':'p','mes':'p','tes':'p',
@@ -202,6 +206,17 @@ class Speller:
             except Exception: return {}
         self.ADJ = _load('cgram_adj.json')         # forme_déacc -> [genre, contrepartie accentuée]
         self.GEN = _load('cgram_gender.json')       # nom_déacc -> genre (non ambigu)
+
+    def _invar_s(self, x):
+        """Décalque de `sInvarS` (dys-core.js, miroir app) : NOM/ADJ INVARIABLE en -s/-x/-z, forme identique au
+        singulier et au pluriel (noix, voix, prix, temps, heureux) => compatible avec un déterminant SINGULIER."""
+        w = x.lower()
+        if not w.endswith(('s', 'x', 'z')): return False
+        st = w[:-1]
+        if st in self.WORDS and any(c in 'NA' for c in self.POS.get(st, ())): return False   # le radical est lui-même N/A => la forme EST un pluriel (chats/chat, bijoux/bijou)
+        if w.endswith('aux') and (w[:-3] + 'al') in self.WORDS: return False                 # pluriel en -aux d'un nom en -al (journaux/journal)
+        if w in ('yeux', 'cieux', 'aieux', 'æieux', 'aïeux'): return False           # pluriels irréguliers (radical introuvable)
+        return True
 
     def _gender(self, w):
         """genre d'un candidat accentué : adjectif (paire) SI c'est un adjectif, sinon nom. None si inconnu.
@@ -436,6 +451,30 @@ class Speller:
         if len(d) >= 3 and accent_only and dominant: return ('auto', w1)
         if len(d) >= 3 and p1 == 2 and f1 >= AUTO_FREQ and len([1 for _w,(p,_f) in ranked if p == 2]) == 1:
             return ('auto', w1)                                 # une seule restauration d'accent possible → sûr
+        # ⭐ RÉ-SÉLECTION « CONTEXTE-FIRST » — portée du produit le 06/09/2026 (6e maillon de « la référence décrit
+        # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666 · palier vigilance
+        # #670). Décalque du bloc `if(expPos){…}` de spellTokenCore (dys-core.js l.3080-3083, miroir app), à la
+        # MÊME position : après les autos, avant le gate confident. Quand le contexte attend un POS, un candidat
+        # édit-1/accent (p ≥ 1) qui a la MÊME clé phonétique que la saisie, colle au POS attendu, respecte
+        # l'audibilité de la finale, le NOMBRE du contexte (forme invariable = compatible) et le GENRE du
+        # déterminant immédiat, est AFFIRMÉ (flag) même court ou non dominant — le plus fréquent d'entre eux
+        # (pri→pris, von→vont, « une gross »→grosse). Garde de dominance : si le vainqueur du tri colle déjà au
+        # POS et est ≫20× plus fréquent, il n'est pas détrôné (« un chein »→chien, pas « chin » 3/M).
+        # Effet mesuré AVANT le port (05/09) : 36 corrections du gold que le produit AFFIRME là où la référence
+        # ne faisait que PROPOSER ; 7 des 23 ancres de parity_speller (gross, innondation, sympatique…).
+        # A/B produit : « gross » seul → vigilance, « une gross » → flag.
+        if exp_pos:
+            cgd = self.DET_G.get(deacc(toks[idx - 1].lower())) if (toks and idx) else None   # GENRE du DÉTERMINANT immédiat (audible, fiable) — pas _ctx_gender, qui peut lire un genre pollué sur un mot-outil
+            def nm_p(w):                                                    # nombre PORTÉ par la forme : None = invariable (compatible des deux côtés) — décalque de nmP
+                return None if self._invar_s(w) else deacc(w).endswith(('s', 'x'))
+            b, bf = None, 0.0
+            for cw, (pc, fc) in cands.items():
+                if (pc >= 1 and phon_key(cw) == pk and pmatch(cw) and (not inp_aud or fin_aud(cw))
+                        and ('V' in exp_pos or not cn or nm_p(cw) is None or ((cn == 'p') == nm_p(cw)))
+                        and (not cgd or not self._gender(cw) or self._gender(cw) == cgd) and fc > bf):
+                    b, bf = cw, fc
+            if b and bf >= 1.0 and not (pmatch(w1) and p1 >= 1 and f1 >= 20 * bf):
+                return ('flag', b)
         if not (len(d) >= 4 and f1 >= AUTO_FREQ): return None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
         # ⭐ PALIER VIGILANCE DU SPELLER — porté du produit le 05/09/2026 (5e maillon de « la référence décrit
         # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666). Décalque du

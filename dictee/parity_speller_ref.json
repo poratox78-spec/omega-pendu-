@@ -1,29 +1,18 @@
 {
  "compares": 262,
  "divergences": [
-  "apperçoit→aperçoit [flag] vs py aperçois [vigilance]",
-  "blanch→blanche [flag] vs py blanches [vigilance]",
-  "cha→chat [flag] vs py — [—]",
   "d'aeration→d'aération [auto] vs py — [—]",
   "d'oves→d'oses [vigilance] vs py — [—]",
-  "dera→ders [vigilance] vs py sera [vigilance]",
-  "dera→déjà [vigilance] vs py sera [vigilance]",
+  "dera→ders [vigilance] vs py déjà [vigilance]",
   "france→français [vigilance] vs py — [—]",
   "genus→genou [vigilance] vs py genoux [vigilance]",
-  "gross→grosse [flag] vs py grosse [vigilance]",
-  "innondation→inondation [flag] vs py inondation [vigilance]",
   "l'Oeuf→l'œuf [flag] vs py — [—]",
   "l'apprehender→l'appréhender [auto] vs py — [—]",
   "l'economie→l'économie [auto] vs py — [—]",
   "l'ete→l'été [auto] vs py — [—]",
   "l'hotel→l'hôtel [auto] vs py — [—]",
   "miya→maya [vigilance] vs py — [—]",
-  "pery→péri [flag] vs py père [vigilance]",
-  "pû→pu [flag] vs py — [—]",
-  "saisoon→saison [auto] vs py saison [flag]",
-  "sympatiques→sympathiques [flag] vs py sympathiques [vigilance]",
-  "sympatique→sympathique [flag] vs py sympathique [vigilance]",
-  "turkey→turk [vigilance] vs py turcs [vigilance]"
+  "saisoon→saison [auto] vs py saison [flag]"
  ],
  "note": "Divergences Python↔JS ANCRÉES. Une NOUVELLE fait échouer ; une qui disparaît est un GAIN → ré-ancrer avec --fix."
 }
