@@ -1,9 +1,7 @@
 {
  "compares": 262,
  "divergences": [
-  "dera→ders [vigilance] vs py déjà [vigilance]",
   "france→français [vigilance] vs py — [—]",
-  "genus→genou [vigilance] vs py genoux [vigilance]",
   "miya→maya [vigilance] vs py — [—]",
   "saisoon→saison [auto] vs py saison [flag]"
  ],
