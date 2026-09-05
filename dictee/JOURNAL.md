@@ -5,6 +5,95 @@
 
 ---
 
+## 2026-09-05 — différés ② et ③ : la cible des « relatives » était la MAUVAISE, et le canal GROUPE reste OFF faute de données
+
+**② RELATIVES / SUJET DISTANT — mesuré avec l'instrument dédié, pas avec un filtre improvisé.**
+Première tentative : un filtre maison sur le gold dys, qui a rendu « 320 ratés » — chiffre **jeté**,
+il attrapait `foie`→fois et `tomate`→tomates (l'heuristique « terminaison verbale » matchait toute
+différence d'une lettre). C'est exactement le piège que le projet répète : *l'instrument avant le
+moteur*. Reprise avec `dictee/sujet_probe.py`, versionnée en #613 précisément pour ça.
+
+**Ventilation des échecs de sujet NOMINAL (1 166 sur 4 175 verbes finis à sujet or) :**
+
+| structure | échecs | part |
+|---|---:|---:|
+| **nom propre** | **434** | 37 % |
+| **distant > 3 jetons** | **299** | 26 % |
+| autre | 173 | 15 % |
+| postposé | 92 | 8 % |
+| coordonné | 85 | 7 % |
+| dét élidé | 50 | 4 % |
+| **relative** | **33** | **3 %** |
+
+⇒ **La cible du différé était la mauvaise.** « Relatives + coordinations » pèsent **118/1 166 (10 %)**,
+la relative étant le **plus petit** poste de tous. Les deux tiers de la masse sont ailleurs :
+**nom propre (434) et sujet distant (299) = 63 %**. Si l'on rouvre le sujet nominal un jour, c'est
+là qu'il faut aller — et le nom propre est déjà partiellement outillé (table PRÉNOMS, #615).
+
+⚠️ **Honnêteté de protocole** : cette ventilation est mesurée sur **UD (français correct)**, alors
+que le « ~13 ratés » de l'enquête du 30/08 portait sur le **gold dys**. Les deux ne se comparent pas
+terme à terme ; ce qui est solide ici, c'est la **hiérarchie des structures**, pas un report de
+volume vers le dys. Rappel du plafond global déjà mesuré (30/08) : débloquer le parseur de sujet
+vaut **+10-15 réparations au mieux**, les gisements 3-4× plus gros sont ailleurs.
+
+**③ CANAL GROUPE — rien de neuf, il reste OFF-inerte.** La règle posée en #617 est explicite : tout
+futur consommateur doit faire SA preuve AU PRODUIT (le premier essai rendait 0 réparation / +1 FP).
+Aucun consommateur n'est proposé aujourd'hui et aucune donnée nouvelle n'est apparue ⇒ **on ne
+rouvre pas**. Ce qui compterait comme « donnée nouvelle », pour mémoire : un consommateur autre que
+le lo-scan de `_np_subject` (borner `_plural_before` ? un tier orange ?) accompagné d'un A/B produit
+montrant un gain net — pas un gain de la tâche parseur, qui a déjà été mesuré comme ne traversant
+pas les gardes des règles.
+
+---
+
+## 2026-09-05 — différé « a→à devant la/le/les » : INSTRUIT par la mesure (le cadre existe, sa limite est nommée)
+
+> Le différé de #616 disait « 1 500+ configs avoir-correct » sans plus de détail. Re-mesuré des
+> DEUX côtés (gold dys + UD complet 14 450). Rien n'est câblé ici : c'est l'enquête préalable.
+
+**① La population du gold, ventilée par ce qui SUIT** (100 cas `a`→`à` alignés, 72 productions) :
+`a` + NOM NU **61** (cadre livré #616) · **`a` + la/le/les 17** · `a` + autre déterminant 12 ·
+`a` + l'X élidé 6 · `a` en fin de phrase 3 · `a` + Majuscule 1.
+
+**② La surface FP est BIEN plus petite qu'annoncé** : sur UD 2 500, `a + la/le/les` ne compte que
+**6** occurrences ; sur UD complet, **36**. Le « 1 500+ » ne décrivait pas cette configuration.
+
+**③ ⚠️ MON PREMIER CADRE ÉTAIT À L'ENVERS — et la mesure l'a dit.** J'ai d'abord exigé un
+**créneau verbal LIBRE** (la garde des règles de sujet) : **1 pris / 19 ratés** sur le gold. La
+raison est évidente après coup : dans « je vais **a la** plage », le créneau est justement PRIS par
+« vais ». **La bonne condition est l'inverse** — `a` est la PRÉPOSITION quand la proposition a
+DÉJÀ un verbe conjugué ailleurs, car alors `a` ne peut pas être le verbe. Cadre inversé :
+**19 pris / 1 raté**.
+
+**④ Le compromis, chiffré des deux côtés** :
+
+| cadre | couverture gold | FP sur UD 14 450 (français correct) |
+|---|---|---|
+| créneau verbal LIBRE (faux) | 1 / 20 | — |
+| créneau verbal PRIS (juste) | **19 / 20** | ~11 |
+| + garde « pas de sujet devant » | **8 / 20** | **2** |
+
+**⑤ Les 2 FP résiduels, lus un par un** — et il n'y en a qu'UN de vrai :
+- `qu'Alégracia a les yeux verts` : sujet PROPRE derrière une conjonction élidée ; ma garde testait
+  la majuscule du token entier (`qu'Alégracia` commence par `q`) — **fermable** en coupant sur l'apostrophe ;
+- `A la conférence de Paris…` : c'est une **VRAIE FAUTE D'UD** (la capitale `À` sans accent), que la
+  règle corrigerait à raison. Comptée FP par le protocole, elle n'en est pas une.
+
+**⑥ La vraie limite, et elle est connue** : les 12 cas perdus par la garde de sujet sont tous du type
+« je suis **aller a la** plage » — le verbe y est LUI-MÊME mal orthographié, donc indétectable comme
+verbe conjugué. C'est **le même mur que les bornes de proposition** (enquête 30/08) : sur du dys, la
+détection de verbe est le facteur limitant, pas le cadre.
+
+**⇒ Le différé devient un chantier INSTRUIT** : cadre connu (verbe conjugué ailleurs + pas de sujet
+devant), gain mesuré 8/20 pour 1 FP réel fermable, plafond fixé par la détection de verbe. À
+reprendre APRÈS le portage du palier `orthographe|vigilance` (cf. entrée précédente) : tant que la
+référence ne voit pas tout ce que le produit affiche, un « +8 » Python n'est pas un gain produit.
+
+**Non mesurés ce tour, restent différés tels quels** : relatives/coordinations du sujet distant
+(~13 ratés, enquête 30/08) · canal GROUPE (OFF-inerte #617, doit faire sa preuve au produit).
+
+---
+
 ## 2026-09-05 (fin) — b_slip : la cause TROUVÉE, et ce n'était AUCUNE des hypothèses — le juge était aveugle au palier
 
 > Enquête lecture-seule. Trois hypothèses successives avaient été écrites et **toutes réfutées** :
