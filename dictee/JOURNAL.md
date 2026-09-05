@@ -5,6 +5,45 @@
 
 ---
 
+## 2026-09-05 (suite) — le X FINAL MUET porté dans la référence — et une SONDE QUI MENTAIT au lieu d'échouer
+
+**① LE PORTAGE.** Le commit #244 (21/07/2026) avait rendu le **-x final muet** dans `phonKey` côté app
+ET extension (`res+=(j===s.length-1?'':'ks')`) ; `dictee/speller_probe.py` gardait un
+`res.append('ks')` **inconditionnel**. Six semaines d'asymétrie silencieuse — la référence ne
+décrivait pas le produit sur toutes les finales en `-x`. Elle n'a été VUE que le 04/09, par la sonde
+de parité étendue au palier « mot inconnu » (#663), qui avait ancré 3 divergences faute de pouvoir
+les expliquer. Correctif = miroir direct (prétraitement identique des deux côtés, `aux`→`o` compris) :
+seul le x FINAL tombe. Vérifié clé par clé — `cheveux` `'§evek'`→`'§ev'` (= JS), `yeux` `'iek'`→`'i'`,
+`noix`→`'nva'`, `prix`→`'pri'`, et `taxi` `'taksi'` / `exact` `'eksak'` **INCHANGÉS**.
+
+**Mesures** : gold pipeline **404 réparés (26,2 %) / 19 cassés (0,41 %) IDENTIQUE** (aucun arbitrage
+requis) · FP échelle 1,40 % identique · batteries §1/§3/§4 vertes · parité speller **15 → 12 ancres**,
+les 3 prédites disparues (`chevout`→cheveux, `rosso`→roseaux, `yay`→yeux). Ré-ancrage **À LA BAISSE** :
+une ancre de moins = une asymétrie réparée, jamais un plancher relâché.
+
+**② ⚠️⚠️ L'INSTRUMENT QUI MENTAIT (la vraie prise du jour).** `dev.sh` a sorti un rouge « précision AU
+PRODUIT » (`orthographe|vigilance·propre` 54,9 % < plancher 55,4) — alors que **ce PR ne touche AUCUN
+fichier JS**. Re-mesuré proprement sur `main` non modifié PUIS sur la branche : **108 = 108**, et les
+**196 lignes de classification identiques au caractère près**. Le 54,9 % était FAUX.
+
+**Cause** : lancer un script Python depuis `extension/` y laisse un **`__pycache__`** — gitignoré,
+donc invisible au diff. Chrome **refuse** un dossier d'extension contenant un nom en `_` (réservé
+système). Et la sonde, au lieu d'échouer, **a rendu un chiffre plausible**, lu comme une régression
+pendant une heure. C'est exactement ce que la doctrine interdit : *un instrument doit échouer
+BRUYAMMENT, jamais mentir*. (Le même piège avait déjà mordu la veille pendant la vérification de
+#663 — sans qu'on en tire la conséquence. Deuxième fois : on garde.)
+
+**Garde posée** — `verifierDossierExtension()` dans `extension/cdp_chrome.js` (le helper partagé),
+appelée par `dictee/navigateur_flags_dump.js` avant tout `Extensions.loadUnpacked` : elle refuse de
+démarrer, **nomme le fichier exact à supprimer**, et sort en 2. **Vue ROUGE sur le défaut réel**
+(`__pycache__` réintroduit) avant d'être crue.
+
+**Leçon, la même que le 04/09 sous un autre visage** : un rouge n'est pas une preuve de régression,
+c'est une question. Celui-ci disait « ton code a cassé le produit » ; la réponse mesurée était
+« ton environnement a cassé la sonde ».
+
+---
+
 ## 2026-09-05 — le POS attendu du contexte décrit enfin le PRODUIT — et RECTIFICATION de l'attribution de #664
 
 > Chantier ouvert par #664 (b_slip réfuté au portage JS). Enquête lecture-seule puis alignement.
