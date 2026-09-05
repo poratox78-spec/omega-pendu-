@@ -21,6 +21,13 @@ quels ; l'EFFET est gardé pour tous par `dictee/icones_probe.py`.
 """
 import importlib.util, os, struct, sys, zlib
 
+# ⚠️ NE PAS POLLUER extension/ : importer extension/build_icons.py y écrit un `__pycache__`,
+#    et Chrome REFUSE alors de charger le dossier (nom réservé en « _ »). Vécu le 05/09/2026 :
+#    les deux bancs navigateur de dev.sh tombaient après un simple `build_site_icons.py`.
+#    La garde `verifierDossierExtension` (extension/cdp_chrome.js) le DÉTECTE ; ici on TARIT
+#    la source. Positionné AVANT l'import — sinon le fichier est déjà écrit.
+sys.dont_write_bytecode = True
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'icon-512.png')
 
