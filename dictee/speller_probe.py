@@ -253,6 +253,23 @@ class Speller:
             except Exception: return {}
         self.ADJ = _load('cgram_adj.json')         # forme_déacc -> [genre, contrepartie accentuée]
         self.GEN = _load('cgram_gender.json')       # nom_déacc -> genre (non ambigu)
+        # ⭐ TABLES DE GENRE DU PRODUIT (09/09/2026, 9e maillon de « la référence décrit le produit ») — les mêmes assets que
+        # dys-core.js charge (`_applyVdc` : g = GENDER_MAP, gn = GENDER_PURE, a = ADJP ; `_applyGenderRelaxed` complète
+        # GENDER_PURE). La référence lisait ses propres tables Lexique4 (cgram_adj / cgram_gender) : même logique, tables
+        # différentes — « la vu panden » : le produit ne connaît pas de genre PUR pour « vu » et remonte à « la » (f), la
+        # référence lisait « vu » = m dans cgram_gender et gardait pendant là où le produit promeut pendante.
+        self.GMAP, self.GPURE, self.ADJP = {}, {}, {}
+        try:
+            import gzip as _gz
+            _ext = os.path.join(os.path.dirname(here), 'extension', 'assets')
+            _vd = json.load(open(os.path.join(_ext, 'vdc-lex.json'), encoding='utf-8'))
+            self.GMAP, self.GPURE, self.ADJP = dict(_vd.get('g') or {}), dict(_vd.get('gn') or {}), dict(_vd.get('a') or {})
+            for _ln in _gz.open(os.path.join(_ext, 'gender-relaxed.tsv.gz'), 'rt', encoding='utf-8'):
+                _p = _ln.rstrip('\n').split('\t')
+                if len(_p) >= 2 and _p[0] not in self.GPURE: self.GPURE[_p[0]] = 'f' if _p[1] == '1' else 'm'
+        except Exception:
+            pass
+        if self.ADJP: self.ADJ = self.ADJP                 # ADJP ≡ cgram_adj (17 257 entrées des deux côtés) : une seule source, celle du produit
 
     def _invar_s(self, x):
         """Décalque de `sInvarS` (dys-core.js, miroir app) : NOM/ADJ INVARIABLE en -s/-x/-z, forme identique au
@@ -268,10 +285,12 @@ class Speller:
     def _gender(self, w):
         """genre d'un candidat accentué : adjectif (paire) SI c'est un adjectif, sinon nom. None si inconnu.
         Le guard 'A' évite la collision déacc (« pomme » nom ≠ « pommé » adj → ne pas prendre le genre adj)."""
+        dw = deacc(w)
         if 'A' in self.POS.get(w, ()):
-            a = self.ADJ.get(deacc(w))
+            a = self.ADJ.get(dw)
             if a: return a[0]
-        return self.GEN.get(deacc(w))
+        g = self.GPURE.get(dw) or self.GMAP.get(dw)          # décalque de sGender : GENDER_PURE puis GENDER_MAP (produit) — plus cgram_gender
+        return g if g in ('m', 'f') else None
 
     COPULA = set('est sont suis es sommes etes etait etaient etais sera seront serai soit fut furent '
                  'parait paraissait semble semblait devient deviennent reste restent'.split())
@@ -302,15 +321,15 @@ class Speller:
             # `chère` en `cher`. Un nom ne gouverne un attribut que s'il est lui-même DÉTERMINÉ ; sans
             # déterminant c'est un adverbe, un fragment, ou un mot d'une autre construction. Abstention
             # pure : on retire une ancre, on n'en ajoute aucune ⇒ le gagnant du classement est conservé.
-            if t in self.GEN and not (j > 0 and deacc(toks[j - 1].lower()) in self.DET_G): continue
-            g = self.GEN.get(t)
-            if g: return g
+            g = self.GPURE.get(t)                             # genre PUR seulement, comme sCtxGender (GENDER_PURE) — « vu » n'en a pas, on remonte à « la »
+            if g in ('m', 'f') and not (j > 0 and deacc(toks[j - 1].lower()) in self.DET_G): continue
+            if g in ('m', 'f'): return g
         return None
 
     def _ctx_number(self, toks, idx):
         if not toks or idx is None: return None
         back, bdist = None, 99
-        for j in range(idx - 1, max(-1, idx - 4), -1):
+        for j in range(idx - 1, max(-1, idx - 5), -1):      # 4 tokens en arrière, comme sCtxNumber (j>=idx-4) — la référence n'en lisait que 3 (09/09/2026 : « une réponse favorable. Veuillez aggrée »)
             t = deacc(toks[j].lower())
             if t in self.DET_NUM: back, bdist = self.DET_NUM[t], idx - j; break
         if back is not None and bdist == 1: return back      # déterminant COLLÉ = preuve la plus forte
@@ -449,7 +468,12 @@ class Speller:
             if not cn: return 0
             ps = self.POS.get(w, ())
             if 'V' in ps and 'N' not in ps and 'A' not in ps: return 0
-            return 1 if ((cn == 'p') == (deacc(w).endswith(('s', 'x')))) else 0
+            # ⭐ 09/09/2026 : décalque de `nm` (dys-core.js) — le nombre PORTÉ par la forme via `nmP`/`sInvarS` : une forme
+            # INVARIABLE en -s/-x (français, dessus, temps, prix) est compatible des DEUX côtés (None), elle n'est pas « plurielle ».
+            # La référence lisait le -s nu comme un pluriel : dès que la fenêtre du nombre voit « la … frence », elle écartait
+            # `français` (nm=0) au profit d'un candidat rare — le produit garde français (nm=1). Même brique que la fenêtre.
+            p_ = None if self._invar_s(w) else deacc(w).endswith(('s', 'x'))
+            return 1 if (p_ is None or ((cn == 'p') == p_)) else 0
         # tri : accent d'abord, puis POS du contexte (élève/élevé), puis accord GENRE, puis DOMINANCE (edits1 ≫ phonétique),
         #       puis phonétique, puis NOMBRE, puis fréquence. cmp (pas key) car la dominance est PAIRWISE.
         def _cmp(a, b):

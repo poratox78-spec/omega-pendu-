@@ -23,12 +23,12 @@
   **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
   **284 fautes réparées sans clic (18,4 %) · 243 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
-  **· 66 rouges appliqués vers un AUTRE mauvais mot (5,2 % des ratés)** — colonne posée le 07/09, invisibles avant
-  (ils tombaient en MUET). Mesuré le 07/09/2026. ⚠️ Le JUGE a changé deux fois, jamais le produit : « 402/19 » appliquait ce que le
+  **· 67 rouges appliqués vers un AUTRE mauvais mot (5,3 % des ratés)** — colonne posée le 07/09, invisibles avant
+  (ils tombaient en MUET). Mesuré le 09/09/2026. ⚠️ Le JUGE a changé deux fois, jamais le produit : « 402/19 » appliquait ce que le
   produit ne fait que proposer (→ 239/14 le 05/09, palier vigilance porté), puis la référence a reçu ce que le
-  produit affirme (→ 284/14, contexte-first porté). Accord de palier produit↔référence sur le gold : 98,9 %
-  (870/880 le 08/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` ; ≤ 4 affirmations produit non portées
-  (élongation/_slipMot, participe après auxiliaire) — vrai chiffre 284 à ~288.
+  produit affirme (→ 284/14, contexte-first porté). Accord de palier produit↔référence sur le gold : 99,2 %
+  (873/880 le 09/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` ; ≤ 4 affirmations produit non portées
+  (élongation/_slipMot, participe après auxiliaire, découpe) — vrai chiffre 284 à ~288.
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
   À l'échelle : 1,40 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 03/09/2026.
