@@ -91,7 +91,7 @@ def main():
             # Les AUTRES vigilances (grammaire : accord, homophone…) restent hors périmètre ici.
             if f['tier'] == 'vigilance' and f.get('name') == 'orthographe':
                 compares += 1
-                got = sp.correct_token(T[i], at_start=(i == 0), toks=T, idx=i)
+                got = sp.spell_token(T[i], at_start=(i == 0), toks=T, idx=i)   # l'étage spellToken du produit (élision « d'X » = un token) — 07/09/2026
                 py_t, py_s = (got[0], got[1]) if got else (u'—', u'—')
                 if py_s.lower() != (f['sugg'] or u'').lower() or py_t != f['tier']:
                     div.append({'tok': T[i], 'js': f['sugg'], 'js_tier': f['tier'],
@@ -100,7 +100,7 @@ def main():
             if f['tier'] not in ('auto', 'flag'):
                 continue
             compares += 1
-            got = sp.correct_token(T[i], at_start=(i == 0), toks=T, idx=i)
+            got = sp.spell_token(T[i], at_start=(i == 0), toks=T, idx=i)   # l'étage spellToken du produit (élision « d'X » = un token) — 07/09/2026
             py_t, py_s = (got[0], got[1]) if got else (u'—', u'—')
             # la casse est portée par le TOKEN, pas par le choix du mot : « Lannée »→« L'année »
             # côté app et « l'année » côté référence, c'est le MÊME mot choisi.

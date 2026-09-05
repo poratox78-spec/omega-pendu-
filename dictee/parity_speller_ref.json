@@ -1,16 +1,9 @@
 {
  "compares": 262,
  "divergences": [
-  "d'aeration→d'aération [auto] vs py — [—]",
-  "d'oves→d'oses [vigilance] vs py — [—]",
   "dera→ders [vigilance] vs py déjà [vigilance]",
   "france→français [vigilance] vs py — [—]",
   "genus→genou [vigilance] vs py genoux [vigilance]",
-  "l'Oeuf→l'œuf [flag] vs py — [—]",
-  "l'apprehender→l'appréhender [auto] vs py — [—]",
-  "l'economie→l'économie [auto] vs py — [—]",
-  "l'ete→l'été [auto] vs py — [—]",
-  "l'hotel→l'hôtel [auto] vs py — [—]",
   "miya→maya [vigilance] vs py — [—]",
   "saisoon→saison [auto] vs py saison [flag]"
  ],
