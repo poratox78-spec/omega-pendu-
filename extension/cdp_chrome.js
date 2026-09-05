@@ -80,17 +80,6 @@ async function onglet(port, url) {
   throw new Error('le port de débogage ne répond pas');
 }
 
-async function onglet(port, url) {
-  for (let i = 0; i < 150; i++) {
-    try {
-      const r = await fetch('http://127.0.0.1:' + port + '/json/new?' + encodeURIComponent(url), { method: 'PUT' });
-      if (r.ok) return (await r.json()).webSocketDebuggerUrl;
-    } catch (e) { /* pas encore prêt */ }
-    await attendre(200);
-  }
-  throw new Error('le port de débogage ne répond pas');
-}
-
 /* ⚠️ CHROME REFUSE UN DOSSIER D'EXTENSION CONTENANT UN NOM COMMENÇANT PAR « _ » (réservé système).
    Le piège vécu le 05/09/2026 : lancer un script Python depuis extension/ y laisse un `__pycache__`
    (gitignoré, donc invisible au diff) et `Extensions.loadUnpacked` échoue. Le coût réel n'est pas
