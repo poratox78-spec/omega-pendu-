@@ -60,7 +60,7 @@
     },
     {
       "titre": "Dominance ≫20× du speller",
-      "etat": "CAUSE TROUVÉE le 05/09/2026 — ce n'était aucune asymétrie de moteur. Quatre hypothèses réfutées par la mesure (clé phonétique, bonus POS, tables POS identiques, ré-sélection contexte-first neutralisée sans effet ; lexiques app/extension byte-identiques). Le produit rend « gran »→grand au palier orthographe|VIGILANCE, palier que la référence Python N'ÉMET PAS (2 mentions contre 46 côté JS) : b_slip fait perdre cette correction, invisible à la mesure Python qui affichait donc un gain. b_slip est REFUSÉ pour un coût mesurable (gran→grand est gardé par test_speller_app.js), pas pour un mystère. PRÉALABLE à toute reprise : porter le palier vigilance du speller dans la référence",
+      "etat": "CAUSE TROUVÉE le 05/09/2026 — ce n'était aucune asymétrie de moteur. Quatre hypothèses réfutées par la mesure (clé phonétique, bonus POS, tables POS identiques, ré-sélection contexte-first neutralisée sans effet ; lexiques app/extension byte-identiques). Le produit rend « gran »→grand au palier orthographe|VIGILANCE, palier que la référence Python N'ÉMET PAS (2 mentions contre 46 côté JS) : b_slip fait perdre cette correction, invisible à la mesure Python qui affichait donc un gain. b_slip est REFUSÉ pour un coût mesurable (gran→grand est gardé par test_speller_app.js), pas pour un mystère. Le palier vigilance du speller est PORTÉ dans la référence depuis le 05/09 (le juge voit enfin le palier où b_slip perdait) — b_slip peut être RE-MESURÉ sur la surface complète, pas avant",
       "ref": "JOURNAL 2026-09-05 (fin) · série #659/#663/#665/#666"
     },
     {

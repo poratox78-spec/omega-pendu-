@@ -46,8 +46,16 @@ du lexique). Hybride, dans l'app (panneau « 🩹 Correcteur », debounce 350 ms
   - **AUTO** (remplace seul) : restauration d'accent NON ambiguë + dominante (≥3 lettres). Toujours **même
     longueur** → curseur préservé. Ex. `fenetre→fenêtre`, `derniere→dernière`. **FP=0 mesuré** (cardinal : change
     le texte en silence).
-  - **FLAG** (souligne bleu, clic) : candidat plausible incertain. Ex. `leson→leçon`, `gato→gâteau`,
-    `téléfone→téléphone`, `Lannée→l'année`. FP FLAG = mots rares/OOV/noms propres → non destructif.
+  - **FLAG** (souligne bleu, clic — et appliqué par « tout corriger ») : candidat SÛR mais pas silencieux.
+    Ex. `Lannée→l'année` (élision), `dehor→dehors`, `alor→alors` (finale muette -s/-x ajoutée, FP=0 mesuré
+    sur 2 500 UD), `monagne→montagne` (édit-1 même initiale, seul de son rang, dominant).
+  - **VIGILANCE** (souligne orange, clic seul — JAMAIS dans « tout corriger ») : candidat incertain, on
+    PROPOSE sans affirmer. Ex. `leson→leçon`, `gato→gâteau`, `téléfone→téléphone` (plusieurs candidats
+    au même rang), `durand→durant` (substitution de la consonne finale : Durand/Durant, poids/pois — jamais
+    affirmée). ⚠️ Ce doc citait `leson→leçon` en FLAG : le PRODUIT le rend en vigilance depuis longtemps ;
+    la référence Python ne connaissait pas ce palier avant le 05/09/2026 (elle APPLIQUAIT ce que le produit
+    propose — d'où un chiffre de référence sur-compté, cf. JOURNAL 2026-09-05). Les 9 exemples ci-dessus
+    sont mesurés identiques dans les 3 moteurs (mot ET palier).
 - **Abstention** : mot valide (→ couche grammaire), nom propre (majuscule hors début), néologisme sans voisin.
 - **Embarqué** : bloc `speller-lex-gz` (92 743 formes accentuées + freq, gzip+base64 0,56 Mo, décompressé via
   DecompressionStream). Généré par `dictee/build_speller_lex.py`. Le moteur JS = miroir exact du Python.

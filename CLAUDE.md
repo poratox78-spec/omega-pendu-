@@ -22,7 +22,11 @@
 - Trois moteurs à parité gardée en CI : **référence Python** (`dictee/correcteur_probe.py`, `speller_probe.py`, `diag_sentence.py`) ·
   **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
-  **402 fautes réparées (26,1 %) · 19 mots justes cassés (0,41 %)** — mesuré le 03/09/2026 sur main@#655.
+  **239 fautes réparées sans clic (15,5 %) · 277 rattrapables en un clic (21,3 %) · 14 mots justes cassés (0,30 %)**
+  — mesuré le 05/09/2026. ⚠️ L'ancien « 402/19 » sur-comptait : la référence APPLIQUAIT ce que le produit
+  ne fait que PROPOSER (palier vigilance du speller, porté le 05/09) ; le produit n'a pas bougé, le juge oui.
+  Borne, pas point : sur le gold, produit et référence s'accordent sur le palier à 92 % (525/570) ; le produit
+  affirme encore ≤ 37 corrections que la référence propose (contexte-first, non porté) — vrai chiffre entre 239 et ~276.
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
   À l'échelle : 1,40 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 03/09/2026.
