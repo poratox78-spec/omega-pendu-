@@ -30,6 +30,13 @@ _spec.loader.exec_module(_ext)
 
 SORTIES = (('apple-touch-icon.png', 180), ('icon-192.png', 192))
 
+# ⭐ MASKABLE (05/09/2026) : Android RECADRE l'icône (cercle, squircle, goutte…) — le glyphe doit tenir
+# dans la « zone sûre », le cercle central de 80 % du côté. On ne peut donc pas réutiliser SORTIES :
+# il faut RÉDUIRE la marque puis la recentrer sur un fond plein. Le facteur reproduit celui de l'icône
+# d'origine (glyphe mesuré 4,0 % de la surface contre 10,9 % pour icon-512 ⇒ échelle linéaire ≈ 0,61).
+# Sans cette entrée, icon-maskable-512.png restait le seul raster du site à ne PAS dériver de la marque.
+MASKABLE = ('icon-maskable-512.png', 512, 0.61)
+
 
 def encode_png_rgb(n, rgb):
     """PNG colortype 2 (RGB opaque, fond perdu), filtre 0, déterministe — même structure que
@@ -55,6 +62,23 @@ def render():
         if bpp == 4:                                   # source RGBA : on jette l'alpha (fond perdu)
             small = bytes(b for i, b in enumerate(small) if i % 4 != 3)
         out[nom] = encode_png_rgb(n, small)
+
+    # MASKABLE : marque réduite puis RECENTRÉE sur un fond plein (la couleur dominante de la source,
+    # c'est-à-dire le fond de la marque — mesurée, jamais codée en dur).
+    nom, n, ech = MASKABLE
+    interne = max(1, int(round(n * ech)))
+    petit = _ext.resize_area(w, h, bpp, px, interne)
+    if bpp == 4:
+        petit = bytes(b for i, b in enumerate(petit) if i % 4 != 3)
+    from collections import Counter
+    src3 = px if bpp == 3 else bytes(b for i, b in enumerate(px) if i % 4 != 3)
+    fond = Counter(tuple(src3[i:i + 3]) for i in range(0, len(src3), 3)).most_common(1)[0][0]
+    marge = (n - interne) // 2
+    toile = bytearray(bytes(fond) * (n * n))
+    for y in range(interne):
+        deb = ((y + marge) * n + marge) * 3
+        toile[deb:deb + interne * 3] = petit[y * interne * 3:(y + 1) * interne * 3]
+    out[nom] = encode_png_rgb(n, bytes(toile))
     return out
 
 
