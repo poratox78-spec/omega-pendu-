@@ -50,6 +50,11 @@
       "titre": "Dominance ≫20× du speller (b_slip) — FERMÉ PAR LA MESURE",
       "verdict": "Re-mesuré le 07/09/2026 sur la surface complète (référence ≡ produit à 98,4 % de palier, 880 paires) dans un worktree jamais commité : la référence REPRODUIT les casses du port JS de #664 — tres→trés [flag], apres→aprés [flag], gran→gram (batterie §5 rouge). Garde de palier 98,4 → 96,8 % (12 désaccords nouveaux), parité +5 abstentions, pipeline 284 → 286 (+2, dans la bande ±1) / 14 cassés identiques, MUET +3 = des junks appliqués. Il n'y avait PAS d'asymétrie de moteur (4 hypothèses réfutées #664-#667, puis #670/#672/#673 ont comblé la référence). Refusé sur ses effets ; ne pas rouvrir sans idée nouvelle.",
       "ref": "JOURNAL 2026-09-07 (fin) · 2026-09-05 (fin) · 2026-09-04 (soir)"
+    },
+    {
+      "titre": "dys_pipeline_probe : colonne « APPLIQUÉ FAUX » — FAIT",
+      "verdict": "Posée le 07/09/2026 (nuit) : un ROUGE appliqué vers un autre mauvais mot n'est plus rangé en MUET. Sur main : 66 (5,2 % des ratés — MUET 747 → 690, bruit 238 → 229 : ils se cachaient dans les deux) (souhaiterai→souhaitez (gold souhaiterez), travaile→travaille (gold travail), aller→allé (gold allée), le→la (gold les), posibilité→possibilité (gold possibilités) — une bonne part est « bon lemme, mauvaise flexion », sous-famille à séparer). Contrôle positif sous b_slip (worktree détaché) : 69 (+3) (les 3 « muets » de plus mesurés le 07/09 (fin) sous b_slip, dont trés et aprés déjà vus par la garde de palier).",
+      "ref": "JOURNAL 2026-09-07 (nuit)"
     }
   ],
   "ouverts": [
@@ -85,13 +90,8 @@
     },
     {
       "titre": "Étapes de spellTokenCore encore absentes de la référence (carte complète au 07/09)",
-      "etat": "Les 7 désaccords de palier restants sur le gold sont EXACTEMENT les deux dernières étapes JS non portées : `_slipMot`/élongation → auto (alllez, cocinelle, contorl, fourgonette, fautra) et `_aux` participe après auxiliaire → flag (prais→prêté, étudiré→étudiée ; ceuse→cessé vs cesse au même palier). Plus la découpe « a paré » (aparé) et `atStart` ≡ premier token du texte (1 cas). À porter un par un, garde de palier armée — et la garde doit d'abord comparer aussi le palier « mot inconnu » (③ de la file de Rem). ⭐ 07/09 (suite), garde étendue au palier « inconnu » : 6 « vigilance (py) vs inconnu (produit) » (aggrée, courrent, merais, panden, petet, regetes) = la GÉNÉRATION DES CANDIDATS diverge en amont (la référence propose en orthographe ce que le produit ne trouve qu'en « mot inconnu ») — à instruire AVANT _slipMot/_aux. Hors accord réduit à 2 (Enerver = atStart, ere = appariement), ancré.",
-      "ref": "JOURNAL 2026-09-07 · dys-core.js l.3070-3080 (_slipMot, _aux) · JOURNAL 2026-09-07 (suite)"
-    },
-    {
-      "titre": "dys_pipeline_probe : une correction APPLIQUÉE fausse tombe en MUET",
-      "etat": "Vu le 07/09/2026 avec b_slip : trés et aprés AFFIRMÉS (flag) sur des fautes ne sont comptés ni en réparé ni en cassé — ils gonflent MUET (+3). Il manque une colonne « appliqué FAUX » (rouge posé sur une faute, mais le mauvais mot) : c'est elle qui aurait montré le prix de b_slip au premier coup d'œil. Dette d'instrument, pas de moteur.",
-      "ref": "JOURNAL 2026-09-07 (fin)"
+      "etat": "Les 7 désaccords de palier restants sur le gold sont EXACTEMENT les deux dernières étapes JS non portées : `_slipMot`/élongation → auto (alllez, cocinelle, contorl, fourgonette, fautra) et `_aux` participe après auxiliaire → flag (prais→prêté, étudiré→étudiée ; ceuse→cessé vs cesse au même palier). Plus la découpe « a paré » (aparé) et `atStart` ≡ premier token du texte (1 cas). À porter un par un, garde de palier armée — et la garde doit d'abord comparer aussi le palier « mot inconnu » (③ de la file de Rem). ⭐ 07/09 (suite), garde étendue au palier « inconnu » : 6 « vigilance (py) vs inconnu (produit) » (aggrée, courrent, merais, panden, petet, regetes) = la GÉNÉRATION DES CANDIDATS diverge en amont (la référence propose en orthographe ce que le produit ne trouve qu'en « mot inconnu ») — à instruire AVANT _slipMot/_aux. Hors accord réduit à 2 (Enerver = atStart, ere = appariement), ancré. ⭐ 07/09 (nuit), CAUSE TRACÉE dans dys-core instrumenté : l'hypothèse « génération des candidats » est RÉFUTÉE (pools D2A/PHON identiques) ; les 6 « vigilance (py) vs inconnu (produit) » viennent de la RE-SÉLECTION de w1 avant les gates — OMISSION (l.3051-3057, _levB/subseq) et _DPAIR (l.3040-3049) — le w1 rare tombe sous f1<0.1 (l.3063) ou f1<1.0 (l.3084). Maillon suivant = porter OMISSION + _DPAIR.",
+      "ref": "JOURNAL 2026-09-07 · dys-core.js l.3070-3080 (_slipMot, _aux) · JOURNAL 2026-09-07 (suite) · JOURNAL 2026-09-07 (nuit)"
     }
   ]
 }

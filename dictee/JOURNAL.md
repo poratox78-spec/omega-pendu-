@@ -5,6 +5,28 @@
 
 ---
 
+## 2026-09-07 (nuit) — la colonne « APPLIQUÉ FAUX » du pipeline, et la vraie cause des « inconnu » tracée dans le produit
+
+**① L'INSTRUMENT.** `dys_pipeline_probe` ventilait les ratés en un-clic / bruit / sans-suggestion / MUET — et rangeait
+en MUET une correction ROUGE APPLIQUÉE vers un AUTRE mauvais mot (« tres »→trés, « apres »→aprés sous b_slip).
+Le pire des ratés était invisible : ni silence, ni proposition, une réécriture fausse que l'utilisateur ne voit
+plus comme une faute. Colonne ajoutée, avec exemples. **Sur main : 66 (5,2 % des ratés — MUET 747 → 690, bruit 238 → 229 : ils se cachaient dans les deux) appliqué(s) FAUX** (souhaiterai→souhaitez (gold souhaiterez), travaile→travaille (gold travail), aller→allé (gold allée), le→la (gold les), posibilité→possibilité (gold possibilités) — une bonne part est « bon lemme, mauvaise flexion », sous-famille à séparer).
+Contrôle positif (variante b_slip dans un worktree détaché, jamais commité) : **69 (+3)** (les 3 « muets » de plus mesurés le 07/09 (fin) sous b_slip, dont trés et aprés déjà vus par la garde de palier) — la colonne voit ce que
+le 07/09 (fin) avait dû aller chercher à la main.
+
+**② LA CAUSE DES « vigilance (py) vs inconnu (produit) », TRACÉE.** Hypothèse du 07/09 (suite) : la génération
+des candidats diverge. **Réfutée** : les pools D2A / PHON[:8] sont IDENTIQUES sur les 6 tokens (aggrée, courrent,
+merais, panden, petet, regetes ; 705 653 formes des deux côtés). Copie instrumentée de dys-core (chaque `return
+null` de spellTokenCore tracé par ligne) : `courrent`, `merais`, `regetes` sortent en **null@3063** (`f1<0.1`),
+`petet` et `panden`-en-contexte en **null@3084** (`f1<1.0`). Or Python a w1 = courant 133/M, peux 1930/M… Donc le
+JS a **changé de w1 AVANT les gates** : deux étapes absentes de la référence — **OMISSION** (l.3051-3057 : si w1
+est plus court que la saisie, re-choisir un candidat plus LONG, même initiale, saisie sous-suite, strictement plus
+proche — `_levB`, `subseq`) et **`_DPAIR`** (l.3040-3049 : déterminant genré ↔ jumeau selon le genre du nom
+suivant). Le nouveau w1, rare, tombe sous les seuils → null → spellUnknown → « mot inconnu ». **Maillon suivant
+nommé et localisé : porter OMISSION + `_DPAIR`**, avant `_slipMot`/élongation et `_aux`.
+
+---
+
 ## 2026-09-07 (fin) — `b_slip` RE-MESURÉ sur la surface complète : FERMÉ PAR LA MESURE, et l'« asymétrie » de #664 n'en était pas une
 
 > ② de la file de Rem, après ① tokeniseur (#673) et ③ garde étendue (#674). Variante posée dans un worktree de
