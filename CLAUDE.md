@@ -26,8 +26,8 @@
   **· 66 rouges appliqués vers un AUTRE mauvais mot (5,2 % des ratés)** — colonne posée le 07/09, invisibles avant
   (ils tombaient en MUET). Mesuré le 07/09/2026. ⚠️ Le JUGE a changé deux fois, jamais le produit : « 402/19 » appliquait ce que le
   produit ne fait que proposer (→ 239/14 le 05/09, palier vigilance porté), puis la référence a reçu ce que le
-  produit affirme (→ 284/14, contexte-first porté). Accord de palier produit↔référence sur le gold : 98,8 %
-  (597/604 le 07/09, tokeniseur porté), gardé par `palier_gold_probe.py` ; ≤ 4 affirmations produit non portées
+  produit affirme (→ 284/14, contexte-first porté). Accord de palier produit↔référence sur le gold : 98,9 %
+  (870/880 le 08/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` ; ≤ 4 affirmations produit non portées
   (élongation/_slipMot, participe après auxiliaire) — vrai chiffre 284 à ~288.
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.

@@ -5,6 +5,44 @@
 
 ---
 
+## 2026-09-08 — OMISSION + `_DPAIR` portés : la référence change de cible AVANT les gates, comme le produit
+
+> 8ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672 · #673 · #676 pour la
+> localisation). Localisé la veille par une copie instrumentée de dys-core : les « vigilance (py) vs inconnu
+> (produit) » venaient d'un w1 RE-SÉLECTIONNÉ côté produit puis tombé sous les seuils (null@3063 / null@3084).
+
+**① LE PORT** — deux étapes de `spellTokenCore` (dys-core.js l.3036-3061, miroir app), à la même position dans
+`correct_token` (après le tri, avant « mot capitalisé ») :
+- **`_DPAIR`** : si la cible est un déterminant genré et que le nom qui suit porte un genre pur opposé, le jumeau de
+  l'autre genre gagne s'il est candidat, anagramme ou à distance 1 (« dans uen maison » → une, pas un).
+- **OMISSION** : si la cible est plus COURTE que la saisie (la faute dys la plus courante est d'omettre des lettres),
+  re-choisir parmi les candidats plus LONGS — même initiale, saisie sous-suite du candidat, strictement plus proche
+  (coût `lev_b`, décalque de `_levB`), le plus fréquent à égalité (« afreuses » → affreuses, pas affreux).
+Briques décalquées : `subseq`, `lev_b`, `_DPAIR`. Témoins : **17 / 18** identiques au produit, mot ET palier
+(`courrent`, `merais`, `petet`, `regetes` → « mot inconnu » comme le produit ; `uen`→une ; `afreuses`→affreuses ;
+les 7 témoins de #670 tiennent).
+
+**② MESURÉ, produit byte-identique.**
+- Accord de palier sur le gold : **98,4 → 98,9 % (870/880), 0 nouveau, 4 disparus** (courrent, merais, petet,
+  regetes) ; ré-ancré. Reste 10 désaccords : `_slipMot`/élongation → auto ×5, `_aux` participe → flag ×2, découpe
+  « a paré » ×1, et **2 « vigilance (py) vs inconnu (produit) » qui sont une AUTRE brique : le GENRE**.
+- Parité `parity_speller` : **0 divergence nouvelle, 5 ancrées inchangées** (le corpus de parité n'exerce pas ces deux étapes). Batterie §1 AUTO=0 · FLAG=0 · VIGILANCE=1, §2 7/11, §3/§4/§5 verts. FP à l'échelle **1,40 %** inchangé.
+
+- Pipeline (avec la colonne « appliqué FAUX » de #676) : **284 réparés = inchangé · 14 cassés identiques mot à mot** · un-clic 243 → 244 · bruit 229 → 228 · sans suggestion 30 · MUET 690 · appliqué FAUX 66 = inchangé. Un seul orange change de camp : les deux étapes ne touchent que la CIBLE, et sur le gold la référence la choisissait déjà presque toujours comme le produit — c'est le PALIER qui divergeait (le produit passait en « inconnu »).
+- Précision par famille (référence) : `orthographe|auto` 88,2 → 88,1 % (349 J / **0 mot juste réécrit** / 47 F) · `flag` 82,9 → 82,7 % (422 / 11 / 77) · `vigilance` 53,6 → 54,4 %. Des mouvements d'UN événement : les 4 mots passés en « inconnu » comme le produit et une cible changée. Ré-ancrée ; `--navigateur` intact.
+
+
+**③ LE 18ᵉ TÉMOIN ET LES 2 RESTANTS, TRACÉS : la table de genre.** `panden` dans « regardé la vu panden » et
+`aggrée` dans « une réponse favorable. Veuillez aggrée » sortent en « mot inconnu » côté produit parce que le TRI
+promeut un candidat FÉMININ rare (bonus genre, cg = f) qui tombe ensuite sous f1 < 1,0 (null@3084). La référence
+ne le fait pas : **`_gender` Python ne connaît pas `agressée`** (ADJ 17 257 + GEN 53 200 entrées, depuis Lexique4)
+là où **`sGender` produit lit `gender-acc.json.gz` (59 916 formes, Morphalou) : agressée = f, pendante = f** ; et
+`_ctx_gender` lit le genre de « vu » (m) dans GEN alors que `sCtxGender` ne prend que les genres PURS et remonte à
+« la » (f). Même asset des deux côtés, jamais chargé côté Python. **Maillon suivant nommé : charger `gender-acc`
+dans la référence (`_gender` ≡ `sGender`, `_ctx_gender` ≡ `sCtxGender`).**
+
+---
+
 ## 2026-09-07 (nuit) — la colonne « APPLIQUÉ FAUX » du pipeline, et la vraie cause des « inconnu » tracée dans le produit
 
 **① L'INSTRUMENT.** `dys_pipeline_probe` ventilait les ratés en un-clic / bruit / sans-suggestion / MUET — et rangeait
