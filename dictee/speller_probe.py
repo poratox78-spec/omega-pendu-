@@ -918,7 +918,10 @@ def main():
     print('')
     print('  [5] PALIER VIGILANCE du speller (mot + palier ≡ produit) : %s' % ('OK' if not vig_fail else 'ÉCHEC'))
     for x in vig_fail: print('        ✗ %s' % x)
-    return 1 if (su_fail or dom_fail or vig_fail) else 0
+    # ⭐ 10/09/2026 : le FP AUTO de §1 est CARDINAL (doctrine : casser un mot juste est la seule vraie faute) — il ne faisait
+    # que s'imprimer. Vu ce jour : une variante envoyait « il rentra » en auto (rentera) avec la batterie VERTE. Sortie dure.
+    if fpA: print(f"  ✗ §1 : {len(fpA)} FAUX POSITIF(S) AUTO sur phrases correctes — cardinal, sortie 1")
+    return 1 if (fpA or su_fail or dom_fail or vig_fail) else 0
 
 if __name__ == '__main__':
     sys.exit(main())
