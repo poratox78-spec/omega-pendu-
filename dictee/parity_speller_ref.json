@@ -2,8 +2,7 @@
  "compares": 262,
  "divergences": [
   "france→français [vigilance] vs py — [—]",
-  "miya→maya [vigilance] vs py — [—]",
-  "saisoon→saison [auto] vs py saison [flag]"
+  "miya→maya [vigilance] vs py — [—]"
  ],
  "note": "Divergences Python↔JS ANCRÉES. Une NOUVELLE fait échouer ; une qui disparaît est un GAIN → ré-ancrer avec --fix."
 }
