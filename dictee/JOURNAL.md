@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-09-05 (fin) — b_slip : la cause TROUVÉE, et ce n'était AUCUNE des hypothèses — le juge était aveugle au palier
+
+> Enquête lecture-seule. Trois hypothèses successives avaient été écrites et **toutes réfutées** :
+> clé phonétique (#663 → portée en #666), bonus POS contextuel (#665), puis « la ré-sélection
+> contexte-first ». Voici la vraie réponse, et elle n'est dans aucune des trois.
+
+**Ce qui a été écarté par la mesure, dans l'ordre**
+1. **Clé phonétique** : `phonKey` ≡ `phon_key` sur les mots en cause (et le x final est porté depuis, #666).
+2. **Bonus POS** : aligné (#665) — l'échec persistait ; et avec `exp_pos='VA'`, ni `trés` (tagué `N`)
+   ni `très` (aucun POS) ne reçoit le bonus, dans **aucun** moteur.
+3. **Tables POS** : **identiques** — l'asset JS donne `trés`→`N`/18 089 et `très`→*aucun POS*/1 435 582,
+   exactement comme la référence.
+4. **Ré-sélection « contexte-first »** : neutralisée en A/B (`if(false&&expPos)`) → **aucun changement**.
+   L'hypothèse écrite la veille est **fausse**.
+5. **Lexiques app ↔ extension** : décompressés et comparés — **byte-identiques** (705 653 lignes).
+
+**⭐ LA CAUSE : le juge ne regardait pas le bon palier.** Le produit rend
+`gran` → **`grand`**, famille `orthographe`, palier **`vigilance`**. Or la référence Python **n'émet
+pas ce palier** : `correct_text` rend `auto`/`flag` (plus `inconnu` depuis #663) — le speller Python
+compte **2** occurrences de « vigilance » (des commentaires) contre **46** côté `dys-core.js`.
+Sous `b_slip`, le tri change et le produit **perd** `gran`→`grand` (il tombe au palier « mot inconnu »
+et rend `gram`) ; la mesure Python, elle, ne voyait pas ce palier et affichait un **gain** (405/18
+puis 407/18 après l'alignement du POS). **Il n'y a jamais eu d'asymétrie de comparateur : il y avait
+un trou dans la SURFACE DE MESURE de la référence.**
+
+**Conséquence pour b_slip** : réfuté pour une raison SIMPLE et engine-agnostique — il coûte
+`gran`→`grand`, une correction que `dictee/test_speller_app.js` garde explicitement
+(« audibilité finale muette »). Ce n'est plus un mystère de portage, c'est un coût mesurable qu'on
+refuse. Le gain Python annoncé (+3/−1) est **non fiable tant que la référence n'émet pas le palier
+vigilance du speller** : il compte des gains sur un périmètre qui ignore une partie de ce que le
+produit affiche.
+
+**⇒ LE CHANTIER SUIVANT, NOMMÉ** : porter le palier **`orthographe|vigilance`** du speller dans
+`dictee/speller_probe.py` — cinquième maillon de la série « la référence décrit le produit »
+(`_SPELL_KEEP` #659 · palier « mot inconnu » #663 · POS attendu #665 · x final #666). Tant qu'il
+manque, toute mesure speller faite en Python sous-estime ce que l'utilisateur voit. Ne PAS re-tenter
+b_slip avant : son verdict doit être rendu sur la surface complète.
+
+**Reste ouvert, mineur** : sous `b_slip`, le harnais `test_speller_app.js` (qui EXTRAIT une tranche
+de l'app et l'évalue) rendait `tres`→`trés` là où le moteur extension rend `très`, à lexiques
+identiques et `_cmp` textuellement identique. Non élucidé ; à re-tester si b_slip revient.
+
+**Leçon (la troisième en deux jours, toujours la même)** : trois attributions écrites avec assurance,
+trois réfutations par la mesure. Ce qui a fini par payer n'est pas une meilleure intuition, c'est
+d'avoir comparé **ce que chaque instrument peut voir** avant de comparer leurs résultats.
+
+---
+
 ## 2026-09-05 (suite) — le X FINAL MUET porté dans la référence — et une SONDE QUI MENTAIT au lieu d'échouer
 
 **① LE PORTAGE.** Le commit #244 (21/07/2026) avait rendu le **-x final muet** dans `phonKey` côté app
