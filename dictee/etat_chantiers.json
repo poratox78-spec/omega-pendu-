@@ -45,6 +45,11 @@
       "titre": "Tokeniseur du speller Python ≡ toks du produit (apostrophes) — PORTÉ",
       "ref": "JOURNAL 2026-09-07 · palier_gold_ref.json · parity_speller_ref.json",
       "verdict": "PORTÉ le 07/09/2026 (7e maillon) : `TOK_JS` + `spell_token` (décalque de spellToken, l'étage devant spellTokenCore) ; 12 témoins/12 ≡ produit. Accord de palier 98,3 → 98,8 % (597/604), et les colonnes hors accord passent de 35 référence seule / 20 produit seul à 8 / 1 : l'« angle mort » de parity_speller était surtout un artefact de tokenisation (7 ancres « py — » disparues). Reste, lu un par un : 5 « référence seule » sont une autre FAMILLE côté produit (mot inconnu), 1 majuscule de début de phrase (atStart ≡ premier token du texte), 1 suggestion à deux mots (« a paré »)."
+    },
+    {
+      "titre": "Dominance ≫20× du speller (b_slip) — FERMÉ PAR LA MESURE",
+      "verdict": "Re-mesuré le 07/09/2026 sur la surface complète (référence ≡ produit à 98,4 % de palier, 880 paires) dans un worktree jamais commité : la référence REPRODUIT les casses du port JS de #664 — tres→trés [flag], apres→aprés [flag], gran→gram (batterie §5 rouge). Garde de palier 98,4 → 96,8 % (12 désaccords nouveaux), parité +5 abstentions, pipeline 284 → 286 (+2, dans la bande ±1) / 14 cassés identiques, MUET +3 = des junks appliqués. Il n'y avait PAS d'asymétrie de moteur (4 hypothèses réfutées #664-#667, puis #670/#672/#673 ont comblé la référence). Refusé sur ses effets ; ne pas rouvrir sans idée nouvelle.",
+      "ref": "JOURNAL 2026-09-07 (fin) · 2026-09-05 (fin) · 2026-09-04 (soir)"
     }
   ],
   "ouverts": [
@@ -62,11 +67,6 @@
       "titre": "Chantier anglais (site → voix → extension conditionnelle)",
       "etat": "réouvert le 31/08 par Rem, feuille de route fixée ; état mesuré : bonne précision, couverture faible ; contrainte cardinale = tout doit être vérifiable sans savoir l'anglais (Rem n'y est plus le juge)",
       "ref": "CHANTIER_ANGLAIS.md · PR #618"
-    },
-    {
-      "titre": "Dominance ≫20× du speller",
-      "etat": "CAUSE TROUVÉE le 05/09/2026 — ce n'était aucune asymétrie de moteur. Quatre hypothèses réfutées par la mesure (clé phonétique, bonus POS, tables POS identiques, ré-sélection contexte-first neutralisée sans effet ; lexiques app/extension byte-identiques). Le produit rend « gran »→grand au palier orthographe|VIGILANCE, palier que la référence Python N'ÉMET PAS (2 mentions contre 46 côté JS) : b_slip fait perdre cette correction, invisible à la mesure Python qui affichait donc un gain. b_slip est REFUSÉ pour un coût mesurable (gran→grand est gardé par test_speller_app.js), pas pour un mystère. Le palier vigilance du speller est PORTÉ dans la référence depuis le 05/09 (le juge voit enfin le palier où b_slip perdait) — b_slip peut être RE-MESURÉ sur la surface complète, pas avant ⭐ 05/09 (soir) : la mesure ad hoc est devenue une GARDE (`palier_gold_probe.py`) — accord de palier produit↔référence sur le gold ancré à 92,4 % (523/566), rouge sur baisse ou désaccord nouveau, vue s'effondrer à 47,7 % avec l'ancien gate avant d'être crue. Reste : porter contexte-first (36 « vigilance py vs flag produit »), PUIS re-mesurer b_slip. ⭐ 06/09 : contexte-first PORTÉ (6e maillon) — la garde a rougi sur 5 sur-affirmations et trouvé un DET_G de trop (« du », « au ») ; accord de palier 98,3 % (575/585), pipeline 239 → 284 / 14 identiques. b_slip est RE-MESURABLE maintenant (jonction suivante, pas encore faite). ⭐ 07/09 (suite) : surface de mesure COMPLÈTE et gardée (palier inconnu + hors accord ancrés) — b_slip peut être re-mesuré (② de la file).",
-      "ref": "JOURNAL 2026-09-05 (fin) · série #659/#663/#665/#666 · JOURNAL 2026-09-05 (soir) · JOURNAL 2026-09-06"
     },
     {
       "titre": "Les 442 mots soulignés sans suggestion",
@@ -87,6 +87,11 @@
       "titre": "Étapes de spellTokenCore encore absentes de la référence (carte complète au 07/09)",
       "etat": "Les 7 désaccords de palier restants sur le gold sont EXACTEMENT les deux dernières étapes JS non portées : `_slipMot`/élongation → auto (alllez, cocinelle, contorl, fourgonette, fautra) et `_aux` participe après auxiliaire → flag (prais→prêté, étudiré→étudiée ; ceuse→cessé vs cesse au même palier). Plus la découpe « a paré » (aparé) et `atStart` ≡ premier token du texte (1 cas). À porter un par un, garde de palier armée — et la garde doit d'abord comparer aussi le palier « mot inconnu » (③ de la file de Rem). ⭐ 07/09 (suite), garde étendue au palier « inconnu » : 6 « vigilance (py) vs inconnu (produit) » (aggrée, courrent, merais, panden, petet, regetes) = la GÉNÉRATION DES CANDIDATS diverge en amont (la référence propose en orthographe ce que le produit ne trouve qu'en « mot inconnu ») — à instruire AVANT _slipMot/_aux. Hors accord réduit à 2 (Enerver = atStart, ere = appariement), ancré.",
       "ref": "JOURNAL 2026-09-07 · dys-core.js l.3070-3080 (_slipMot, _aux) · JOURNAL 2026-09-07 (suite)"
+    },
+    {
+      "titre": "dys_pipeline_probe : une correction APPLIQUÉE fausse tombe en MUET",
+      "etat": "Vu le 07/09/2026 avec b_slip : trés et aprés AFFIRMÉS (flag) sur des fautes ne sont comptés ni en réparé ni en cassé — ils gonflent MUET (+3). Il manque une colonne « appliqué FAUX » (rouge posé sur une faute, mais le mauvais mot) : c'est elle qui aurait montré le prix de b_slip au premier coup d'œil. Dette d'instrument, pas de moteur.",
+      "ref": "JOURNAL 2026-09-07 (fin)"
     }
   ]
 }

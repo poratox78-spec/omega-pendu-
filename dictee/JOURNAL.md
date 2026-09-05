@@ -5,6 +5,42 @@
 
 ---
 
+## 2026-09-07 (fin) — `b_slip` RE-MESURÉ sur la surface complète : FERMÉ PAR LA MESURE, et l'« asymétrie » de #664 n'en était pas une
+
+> ② de la file de Rem, après ① tokeniseur (#673) et ③ garde étendue (#674). Variante posée dans un worktree de
+> mesure, JAMAIS commitée : aux six sites ≫20× de `_cmp`, la dominance n'écrase pas un candidat PROCHE (tier ≥ 1) ET
+> HOMOPHONE EXACT, sauf si l'écraseur est un `_slipMot` de la saisie (décalqué, 7 lignes). Même cadre que le 04/09.
+
+**Ce que le 04/09 voyait** (référence à deux paliers, sans contexte-first, sans DET_G aligné, sans tokeniseur) :
+402/19 → 405/18, « gagnant ». Le port JS cassait « je suis **tres** content » → trés et « un **gran** homme » →
+gram ; on a cherché l'asymétrie dans la clé phonétique, le bonus POS, les tables POS, contexte-first (#664-#667).
+
+**Ce que la surface complète voit aujourd'hui** (référence ≡ produit à 98,4 % de palier, 880 paires) :
+- **La référence reproduit EXACTEMENT les casses du port JS** : sur le gold, `tres`→**trés** [flag] (produit :
+  très [auto]) et `apres`→**aprés** [flag] (produit : après [auto]) — deux junks AFFIRMÉS ; et `gran`→gram
+  [inconnu] : la batterie **§5 est ROUGE** (`gran` → None au lieu de ('vigilance', grand)). Il n'y avait pas
+  d'asymétrie de moteur : il manquait à la référence les étapes portées depuis (#670 · #672 · #673).
+- **Garde de palier : 98,4 → 96,8 %, 12 désaccords NOUVEAUX** avec le produit (angrais→engrais, polution→pollution
+  = les gains attendus, flag ; mais diver→divers, fast→fat, jant→jan, loire→loir, oten→autant, sété→ai,
+  éme→émet, apret→après = des choix que le produit ne fait pas), 1 hors accord nouveau (`l'éme`).
+- **Parité : 5 divergences nouvelles**, toutes « Python s'abstient / produit propose » (d'oves, dare, over,
+  téléphonies, usque) — b_slip éteint des propositions.
+- **Pipeline** : 284 → **286 réparés (+2)**, 14 cassés identiques mot à mot, un-clic 243 → 244, bruit 238 → 232,
+  MUET 747 → **750 (+3)**. ⚠️ Le +2 est à la limite de la bande d'ordre ±1 (#662) ; et les 3 « muets » de plus
+  sont des junks APPLIQUÉS sur des fautes (trés, aprés…) : la sonde pipeline ne compte une correction appliquée
+  fausse ni en réparé ni en cassé — elle tombe dans MUET. Instrument à instruire, pas b_slip à créditer.
+- Inchangés : FP à l'échelle 1,40 % · §4 cas fondateurs verts (chein/accor/tres/jamai/autent) · §1 AUTO=0 FLAG=0.
+
+**⇒ `b_slip` est FERMÉ PAR LA MESURE.** Pour +2 réparations dans le bruit, il affirme deux junks (trés, aprés), perd
+gran→grand, éteint 5 propositions et s'écarte du produit sur 12 paliers. Ce n'est plus « bloqué sur une asymétrie » :
+c'est refusé sur ses effets, vus par un juge qui décrit le produit. Le raisonnement du 04/09 (« le rapport de fréquence
+seul ne sépare pas mot rare et bruit ») reste vrai ; sa mise en œuvre par exemption à la dominance, non.
+
+**Et une dette d'instrument nommée** : `dys_pipeline_probe` range en MUET une correction APPLIQUÉE fausse. Il faut
+une colonne « appliqué FAUX » — c'est elle qui aurait montré trés/aprés au premier coup d'œil.
+
+---
+
 ## 2026-09-07 (suite) — la garde de palier voit désormais le palier « mot inconnu » et ANCRE ce qu'un seul moteur rend
 
 > ③ de la file de Rem (« ces trois points dans l'ordre logique »), juste après le tokeniseur (#673) et avant la
