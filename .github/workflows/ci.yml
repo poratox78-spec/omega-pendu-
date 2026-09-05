@@ -99,6 +99,8 @@ jobs:
         run: python3 dictee/vig_census_probe.py
       - name: Précision par famille sur texte DYS réel (rouge/orange mesurés — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/dys_precision_probe.py
+      - name: Accord de PALIER produit↔référence sur le gold dys (auto/flag/vigilance — SAUTÉ en CI, corpus privé local)
+        run: python3 dictee/palier_gold_probe.py
       - name: Assets extension câblés (aucun asset livré-mais-muet — le trou des prénoms)
         run: node extension/assets_wired_probe.js
       - name: Angle mort ÉLISION (test différentiel l'X vs cet/cette X — plafond qui ne doit que baisser)

@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-09-05 (soir) — la garde qui aurait vu #667 plus tôt : accord de PALIER produit↔référence sur le gold
+
+> Suite directe de #670. La mesure ad hoc qui a fermé le chantier (525/570 = 92 %) devient une garde
+> DURABLE : `dictee/palier_gold_probe.py` (+ `palier_gold_dump.js`, moteur de l'extension équipé
+> comme dans `parity_core.js`). Modèle : `parity_speller` (ancrage, rouge sur nouveauté) ×
+> `dys_precision_probe` (gold LOCAL ⇒ **SAUTÉE explicitement** sans corpus, jamais un vert muet).
+
+**Ce qu'elle compare.** Sur les 72 productions du gold, chaque correction du speller que rendent LES
+DEUX moteurs pour le même mot (appariement par occurrence, dans l'ordre — la mesure ad hoc écrasait
+par mot, dernier gagnant, d'où 570 → 566 paires) : le PALIER référence (`correct_text` → action)
+contre le palier produit (`spellText`, famille `orthographe`). Les corrections d'UN SEUL moteur
+(35 référence seule · 39 produit seul) sont comptées à part, jamais dans le pourcentage.
+
+**À la pose — 523 / 566 = 92,4 %** (référence 601 corrections, produit 605) :
+
+| py \ produit | auto | flag | vigilance |
+|---|---:|---:|---:|
+| **auto** | **119** (même mot 118) | 1 | — |
+| **flag** | 4 | **115** (même mot 115) | — |
+| **vigilance** | 2 | **36** (même mot 25) | **289** (même mot 275) |
+
+Le seul désaccord de masse reste **vigilance (py) vs flag (produit) : 36** — contexte-first non
+porté, le maillon suivant. 39 désaccords distincts ancrés.
+
+**Vue ROUGE avant d'être crue** : ancien gate flag-only rétabli dans `speller_probe` (une ligne) →
+**270 / 566 = 47,7 %, 256 désaccords NOUVEAUX**, sortie 1 ; gate restauré → 92,4 %, vert. Et le
+chemin « plancher » seul (référence trafiquée à 99,9 %) rend aussi 1.
+
+**Règle d'ancrage** : baisse de l'accord = rouge ; désaccord NOUVEAU = rouge même si l'accord global
+monte ailleurs (le masque classique du plancher) ; hausse = gain annoncé, à ré-ancrer (`--fix`).
+Câblée dev.sh ≡ ci.yml (ci_parity 89/89), ETAT.md régénéré (89 gardes).
+
+---
+
 ## 2026-09-05 — le palier VIGILANCE du speller porté dans la référence : le chiffre de référence était SUR-COMPTÉ de 165
 
 > 5ᵉ maillon de « la référence décrit le produit » (`_SPELL_KEEP` #659 · mot inconnu #663 · POS attendu

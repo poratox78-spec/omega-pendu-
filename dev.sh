@@ -92,6 +92,7 @@ run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans 
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
 run "précision par famille sur texte dys (rouge/orange mesurés)" python3 dictee/dys_precision_probe.py
+run "accord de PALIER produit↔référence sur le gold (auto/flag/vigilance ; SAUTÉ sans corpus dys)" python3 dictee/palier_gold_probe.py
 run "assets extension câblés (aucun asset livré-mais-muet)" node extension/assets_wired_probe.js
 run "angle mort ÉLISION (différentiel l'X vs cet/cette X)" node dictee/elision_probe.js --check
 run "mover impératif (parité app==ext + corrections + FP0)" node dictee/imp_probe.js --check
