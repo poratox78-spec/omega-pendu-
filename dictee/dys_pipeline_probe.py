@@ -117,6 +117,7 @@ def pyramide(txt):
 def main():
     rep = rate = casse = intact = 0
     or_juste = or_faux = muet = sign = 0
+    app_faux = 0; ex_appf = []                       # ⭐ ROUGE APPLIQUÉ… vers un AUTRE mauvais mot (07/09/2026)
     _dump = [] if _os.environ.get('DUMP_MUETS') else None   # sonde : liste des ratés SILENCIEUX côté Python                # ventilation des RATÉS : que voit vraiment l'utilisateur ?
     ex_or, ex_orf = [], []
     ex_casse, ex_rep = [], []
@@ -152,12 +153,16 @@ def main():
                     ex_rep.append('%s → %s' % (w, out[i]))
             elif etait_faux:
                 rate += 1
-                # ⭐ L'ORANGE EST-IL LÀ POUR ÇA ? (question de Rem, 23/08). Un « raté » n'est pas
-                # forcément un silence : le moteur peut avoir PROPOSÉ la bonne forme au clic. On
-                # ventile donc : rattrapable en un clic / bruit orange / muet.
+                # ⭐ APPLIQUÉ FAUX (07/09/2026, vu avec b_slip) : le ROUGE a réécrit la faute… vers un mot qui n'est
+                # PAS le gold (« tres »→trés, « apres »→aprés). Avant cette colonne, ces cas tombaient en MUET — la
+                # sonde ne savait pas dire « le produit a AFFIRMÉ un mauvais mot ». C'est le PIRE des ratés : ni
+                # silence ni proposition, une réécriture fausse que l'utilisateur ne voit plus comme une faute.
                 _props = orange.get(i, [])
                 _bons = [x for x in _props if DP.eq(x, g)]
-                if _bons:
+                if DP.norm(out[i]) != DP.norm(w):
+                    app_faux += 1
+                    if len(ex_appf) < 12: ex_appf.append('%s → %s (gold %s)' % (w, out[i], g))
+                elif _bons:
                     or_juste += 1
                     if len(ex_or) < 8: ex_or.append('%s → %s' % (w, _bons[0]))
                 elif _props:
@@ -206,6 +211,8 @@ def main():
           % (sign, 100.0 * sign / max(1, rate)))
     print('     - MUET (cote Python)     : %4d  (%.1f %%)             (!) LEGER SUR-ESTIME - voir avertissement'
           % (muet, 100.0 * muet / max(1, rate)))
+    print('     - APPLIQUE FAUX (rouge)  : %4d  (%.1f %%)             un ROUGE a REECRIT la faute vers un AUTRE mauvais mot — le pire des rates'
+          % (app_faux, 100.0 * app_faux / max(1, rate)))
     print()
     print('     (!) Le palier « mot inconnu » (spellUnknown JS) est PORTE dans la reference depuis le')
     print('         04/09/2026 (spell_unknown, action `inconnu`) : « signale = 0 » n est plus un artefact.')
@@ -215,6 +222,7 @@ def main():
     print('         dys-core (cf. ETAT_DES_LIEUX §5septies et l enquete du 04/09).')
     if ex_or:  print('     exemples rattrapables :', ' | '.join(ex_or[:6]))
     if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
+    if ex_appf: print('     appliques FAUX        :', ' | '.join(ex_appf[:12]))
     if _dump is not None:
         import json as _j
         _io.open(_os.environ['DUMP_MUETS'], 'w', encoding='utf-8').write(_j.dumps(_dump, ensure_ascii=False))
