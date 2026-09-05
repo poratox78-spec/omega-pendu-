@@ -43,6 +43,12 @@ def deacc(s):
     return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
 
 TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ]+")          # inclut œ/æ (sinon « sœur » casse en s/ur)
+# ⭐ TOKENISEUR DU PRODUIT (07/09/2026, 7e maillon de « la référence décrit le produit ») — décalque de `toks`
+# (dys-core.js l.11, miroir app) : l'apostrophe fait partie du token (« d'une », « l'est », « qu'il » = UN token).
+# `TOK` ci-dessus coupait à l'apostrophe : la référence voyait « une » puis « pérsone » là où le produit voit « d'une »
+# puis « pérsone » — donc un déterminant que le produit ne voit pas, et un palier AFFIRMÉ là où il PROPOSE (les 2
+# désaccords restants de palier_gold_ref après #672). Les typographiques ’ʼ sont normalisées en ' AVANT (1:1, index alignés).
+TOK_JS = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
 
 def load_lexicon():
     WORDS, FREQ, DEACC2ACC, POS = set(), {}, defaultdict(list), defaultdict(set)
@@ -135,6 +141,23 @@ def phon_key(s):
     s = ''.join(out)
     while s and s[-1] in 'est': s = s[:-1]                       # consonnes/e finales souvent muettes
     return s
+
+def sed1(a, b):
+    """Décalque de `sEd1` (dys-core.js) : distance d'édition ≤ 1, bornée (jamais la matrice complète)."""
+    la, lb = len(a), len(b)
+    if abs(la - lb) > 1: return False
+    if la == lb:
+        return sum(1 for k in range(la) if a[k] != b[k]) <= 1
+    s_, l_ = (a, b) if la < lb else (b, a)
+    i = j = sk = 0
+    while i < len(s_) and j < len(l_):
+        if s_[i] == l_[j]: i += 1; j += 1
+        else:
+            sk += 1
+            if sk > 1: return False
+            j += 1
+    return True
+
 
 def edits1(d):
     # ⚠️ ORDRE DE GÉNÉRATION, PAS UN ENSEMBLE (22/08/2026). Le classement des candidats du
@@ -299,6 +322,26 @@ class Speller:
             if abs(len(deacc(w)) - len(d)) > 2 or deacc(w)[:1] != d[:1]: continue   # garde-longueur (Δ≤2) + MÊME initiale : laisse le multi-édit silencieux (ortografe→orthographe : th/ph) ; bloque trist→tristesse (Δ4) et autent→hautaine (initiale a≠h)
             c[w] = max(c.get(w, (-1, 0)), (0, self.FREQ[w]))
         return c
+
+    _ELI_RE = re.compile(r"^([A-Za-zÀ-ÿ]{1,2})'(.+)$")
+
+    def spell_token(self, tok, at_start=False, toks=None, idx=None):
+        """Décalque de `spellToken` (dys-core.js l.2918-2926, miroir app) — l'ÉTAGE que le produit met devant
+        spellTokenCore : un token à apostrophe (« d'othographes ») est UN token, on analyse le RESTE avec le
+        contexte des tokens ENTIERS (le voisin de gauche reste « d'une », pas « une »), puis on ré-attache le
+        préfixe. Gardes du produit : le reste corrigé doit commencer par voyelle/h (« l'aramel »→caramel casserait
+        l'élision → abstention) ; hors auto, un reste phonétiquement distant (othographe→autographe) = faux ami → abstention."""
+        em = self._ELI_RE.match(tok)
+        if em:
+            pk = em.group(1).lower()
+            if (len(pk) == 1 and pk in ELIDE) or pk == 'qu':
+                rc = self.correct_token(em.group(2), at_start=False, toks=toks, idx=idx)
+                if not rc: return None
+                rem, sug = deacc(em.group(2).lower()), deacc(rc[1].lower())
+                if sug[:1] not in VOWELS: return None
+                if rc[0] != 'auto' and rem != sug and not sed1(rem, sug): return None
+                return (rc[0], em.group(1) + "'" + rc[1])
+        return self.correct_token(tok, at_start=at_start, toks=toks, idx=idx)
 
     def correct_token(self, tok, at_start=False, toks=None, idx=None):
         """-> (action 'auto'|'flag', suggestion) ou None. toks/idx = contexte (accord genre/nombre)."""
@@ -585,9 +628,9 @@ class Speller:
         les tokens que la voie correction laisse muets — comme la chaîne vigilance de spellText (JS)."""
         text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique = droite (1:1)
         out = []; starts = self._sentence_starts(text)
-        ms = list(TOK.finditer(text)); toks = [m.group(0) for m in ms]
+        ms = list(TOK_JS.finditer(text)); toks = [m.group(0) for m in ms]   # tokens DU PRODUIT (apostrophe comprise) — voir TOK_JS
         for i, m in enumerate(ms):
-            r = self.correct_token(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
+            r = self.spell_token(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
             if r and r[1] != m.group(0).lower():
                 sugg = r[1]
                 if m.group(0)[:1].isupper() and sugg[:1].islower():   # préserver la MAJUSCULE d'origine (« Ecole »→« École », pas « école »)
@@ -605,7 +648,7 @@ class Speller:
         for m in re.finditer(r"[.!?]\s+(\S)", text):
             st.add(m.start(1))
         # 1er mot
-        m0 = TOK.search(text)
+        m0 = TOK_JS.search(text)
         if m0: st.add(m0.start())
         return st
 

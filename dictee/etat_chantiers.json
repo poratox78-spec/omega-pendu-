@@ -40,6 +40,11 @@
       "titre": "Remise en ordre des documents de pilotage (plan du 24/08)",
       "verdict": "SOLDÉ : CLAUDE.md sommaire (989 mots) VALIDÉ par Rem le 04/09 (sauvegarde de l'ancien : notes/CLAUDE_AVANT_TRI_2026-09-03.md) ; histoire au JOURNAL (digests #546-#610 et #611-#655, rien de perdu) ; DOCTRINE actée ; ETAT.md généré ; skill linguistique versionné ; gardes docs_probe + etat_gen --check + a11y_probe + icones élargies en dev.sh/CI",
       "ref": "PR #656 · #657 · #658 · #659 · #660"
+    },
+    {
+      "titre": "Tokeniseur du speller Python ≡ toks du produit (apostrophes) — PORTÉ",
+      "ref": "JOURNAL 2026-09-07 · palier_gold_ref.json · parity_speller_ref.json",
+      "verdict": "PORTÉ le 07/09/2026 (7e maillon) : `TOK_JS` + `spell_token` (décalque de spellToken, l'étage devant spellTokenCore) ; 12 témoins/12 ≡ produit. Accord de palier 98,3 → 98,8 % (597/604), et les colonnes hors accord passent de 35 référence seule / 20 produit seul à 8 / 1 : l'« angle mort » de parity_speller était surtout un artefact de tokenisation (7 ancres « py — » disparues). Reste, lu un par un : 5 « référence seule » sont une autre FAMILLE côté produit (mot inconnu), 1 majuscule de début de phrase (atStart ≡ premier token du texte), 1 suggestion à deux mots (« a paré »)."
     }
   ],
   "ouverts": [
@@ -79,9 +84,9 @@
       "ref": "CLAUDE.md (audit projet ⏳) · dictee/build_validation_sheet.py"
     },
     {
-      "titre": "Tokeniseur du speller Python ≠ toks du produit (apostrophes)",
-      "etat": "Nommé le 06/09/2026 par la garde d'accord de palier : « d'une pérsone », « l'est conporte » — UN token côté produit (`toks`), deux côté référence (`TOK` sans apostrophe), donc le produit ne voit ni déterminant ni copule avant le mot et PROPOSE là où la référence AFFIRME. Les 2 sont ancrés avec leur cause dans palier_gold_ref.json. Jonction suivante de la série « la référence décrit le produit ».",
-      "ref": "JOURNAL 2026-09-06 · palier_gold_ref.json"
+      "titre": "Étapes de spellTokenCore encore absentes de la référence (carte complète au 07/09)",
+      "etat": "Les 7 désaccords de palier restants sur le gold sont EXACTEMENT les deux dernières étapes JS non portées : `_slipMot`/élongation → auto (alllez, cocinelle, contorl, fourgonette, fautra) et `_aux` participe après auxiliaire → flag (prais→prêté, étudiré→étudiée ; ceuse→cessé vs cesse au même palier). Plus la découpe « a paré » (aparé) et `atStart` ≡ premier token du texte (1 cas). À porter un par un, garde de palier armée — et la garde doit d'abord comparer aussi le palier « mot inconnu » (③ de la file de Rem).",
+      "ref": "JOURNAL 2026-09-07 · dys-core.js l.3070-3080 (_slipMot, _aux)"
     }
   ]
 }

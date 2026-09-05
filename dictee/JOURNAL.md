@@ -5,6 +5,61 @@
 
 ---
 
+## 2026-09-07 — le tokeniseur du produit porté dans la référence : l'angle mort de l'appariement était surtout ÇA
+
+> 7ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672). Nommé par la garde
+> d'accord de palier le 06/09 : « d'une pérsone », « l'est conporte » — UN token côté produit, deux côté référence.
+
+**① LE DÉFAUT.** `toks` (dys-core.js l.11, miroir app) garde l'apostrophe dans le token : « d'une », « l'est »,
+« qu'il », « d'othographes » sont un token. La référence tokenisait avec `TOK` (lettres seules) : elle voyait
+« une » puis « pérsone » — un déterminant que le produit ne voit pas, donc un POS attendu, donc un palier AFFIRMÉ
+là où le produit PROPOSE. Et pour les tokens d'élision fautifs (« d'oves »), le produit passe par un étage
+`spellToken` qui analyse le RESTE avec le contexte des tokens entiers puis ré-attache le préfixe (gardes :
+voyelle/h après l'élision, distance ≤ 1 hors auto) — étage absent de la référence, qui coupait le token en deux
+et corrigeait « oves » seul, à un autre offset : **inappariable** pour toute sonde qui aligne sur le produit.
+
+**② LE PORT** : `TOK_JS` (décalque de `toks`), `spell_token` (décalque de `spellToken` l.2918-2926, avec `sed1`
+décalque de `sEd1`), `correct_text` passe par les deux ; `parity_speller` compare désormais via `spell_token`
+(elle donnait déjà les tokens du produit à la référence, mais sans l'étage). 12 témoins / 12 identiques au
+produit, mot ET palier : « d'une pérsone »→personne **vigilance** · « l'est conporte »→comporte **vigilance** ·
+« les d'oves »→d'oses vigilance · « qu'il vien »→viens flag · « L'ecole »→L'école auto · « Lannée »→L'année flag
+(la fusion sans apostrophe, déjà portée, reste). `spellUnknown` refuse l'apostrophe des deux côtés.
+
+**③ LA MESURE, produit byte-identique.** Accord de palier sur le gold : **98,3 → 98,8 % (597/604), 0 nouveau,
+3 disparus** (agées, conporte, pérsone). Mais le vrai résultat est ailleurs : les colonnes HORS accord — les
+corrections qu'un seul moteur rend — passent de **35 référence seule / 20 produit seul à 8 / 1**. L'« angle mort »
+de parity_speller (« Python corrige / produit muet », noté depuis #663) était en grande partie un artefact de
+tokenisation. Ce qui reste, lu un par un dans le produit :
+- 5 « référence seule » sont en réalité **une autre FAMILLE côté produit** : `merais`, `petet`, `courrent`,
+  `regetes`, `panden` sortent en « mot inconnu » (spellTokenCore rend null, spellUnknown propose) là où
+  `correct_token` Python propose en orthographe|vigilance — la garde ne compare que la famille `orthographe`,
+  c'est le prochain pas de la garde (③ de la file : comparer aussi le palier « inconnu ») ;
+- 1 est la **majuscule en début de phrase** (`Enerver`→Énerver auto) : le produit ne passe `atStart` qu'au
+  premier token du TEXTE (`i===0`), la référence à chaque début de phrase — 1 cas sur 604, nommé, pas porté ;
+- 1 « produit seul » est une **suggestion à deux mots** (`aparé`→« a paré ») : étape de découpe absente ;
+- 2 (`ere`, `aggrée`) : même mot, même palier des deux côtés, appariement par occurrence pris en défaut — à voir
+  avec la garde étendue.
+Les 7 désaccords de palier restants sont les deux dernières étapes JS absentes : `_slipMot`/élongation → **auto**
+(`alllez`, `cocinelle`, `contorl`, `fourgonette`, `fautra`) et `_aux` participe → **flag** (`prais`→prêté,
+`étudiré`→étudiée ; et `ceuse`→cessé vs cesse au même palier).
+
+**Pipeline** (`dys_pipeline_probe`, 72 productions, 1 542 fautes) : **284 réparés (18,4 %) = inchangé · 14 cassés
+IDENTIQUES mot à mot** · un-clic 243 = inchangé · bruit orange 236 → 238 (+2) · MUET 749 → 747 (−2). Lecture : la
+sonde pipeline alignait déjà sur les tokens à apostrophe (#614) ; les 2 muets devenus bruit sont des tokens
+d'élision où le produit propose (faux) et où la référence se taisait. FP à l'échelle **1,40 %** inchangé ; batterie
+§1 AUTO=0 · FLAG=0 · VIGILANCE=1, §2 7/11, §3-§5 verts.
+
+**Parité** `parity_speller` (262 comparaisons) : **12 → 5 ancres, 0 nouvelle** — les 7 disparues sont TOUTES des
+« py — » sur des tokens d'élision (`d'aeration`, `d'oves`, `l'Oeuf`, `l'apprehender`, `l'economie`, `l'ete`,
+`l'hotel`) : la référence les coupait en deux et ne voyait rien. Les 5 qui restent : `saisoon` (auto vs flag),
+`dera` (mot, vigilance), `france`, `miya`, `genus`.
+
+**⇒** La série a maintenant une carte complète des étapes non portées : `_slipMot`/élongation (auto), `_aux`
+participe (flag), découpe « a paré », `atStart` ≡ premier token. Et la file de Rem se déroule dans l'ordre :
+① tokeniseur — fait ; ③ étendre la garde aux colonnes hors accord et au palier « inconnu » ; ② re-mesurer `b_slip`.
+
+---
+
 ## 2026-09-06 — contexte-first porté dans la référence : 239 → 284 réparés à produit identique, et un DET_G de trop
 
 > 6ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670). Chiffré avant d'être fait :

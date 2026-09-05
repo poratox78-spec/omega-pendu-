@@ -1,27 +1,22 @@
 {
- "paires": 585,
- "accord": 575,
- "accord_pct": 98.3,
+ "paires": 604,
+ "accord": 597,
+ "accord_pct": 98.8,
  "matrice": {
-  "auto (py) vs auto (produit)": 120,
-  "auto (py) vs flag (produit)": 1,
+  "auto (py) vs auto (produit)": 124,
   "flag (py) vs auto (produit)": 3,
-  "flag (py) vs flag (produit)": 167,
-  "flag (py) vs vigilance (produit)": 2,
+  "flag (py) vs flag (produit)": 179,
   "vigilance (py) vs auto (produit)": 2,
   "vigilance (py) vs flag (produit)": 2,
-  "vigilance (py) vs vigilance (produit)": 288
+  "vigilance (py) vs vigilance (produit)": 294
  },
  "desaccords": [
-  "agées→âgées [auto] vs produit âgés [flag]",
   "alllez→allez [vigilance] vs produit allez [auto]",
   "cocinelle→coccinelle [flag] vs produit coccinelle [auto]",
-  "conporte→comporte [flag] vs produit comporte [vigilance]",
   "contorl→control [flag] vs produit control [auto]",
   "fautra→faudra [vigilance] vs produit fautera [auto]",
   "fourgonette→fourgonnette [flag] vs produit fourgonnette [auto]",
   "prais→prête [vigilance] vs produit prêté [flag]",
-  "pérsone→personne [flag] vs produit personne [vigilance]",
   "étudiré→étudier [vigilance] vs produit étudiée [flag]"
  ],
  "note": "Accord de PALIER (auto/flag/vigilance) produit↔référence sur le gold dys, ANCRÉ. Une baisse de l'accord ou un désaccord NOUVEAU rougit ; une hausse est un GAIN à ré-ancrer (--fix). Le gold est local : la sonde SAUTE sans lui."
