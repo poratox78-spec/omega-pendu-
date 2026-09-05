@@ -436,7 +436,26 @@ class Speller:
         if len(d) >= 3 and accent_only and dominant: return ('auto', w1)
         if len(d) >= 3 and p1 == 2 and f1 >= AUTO_FREQ and len([1 for _w,(p,_f) in ranked if p == 2]) == 1:
             return ('auto', w1)                                 # une seule restauration d'accent possible → sûr
-        return ('flag', w1) if (len(d) >= 4 and f1 >= AUTO_FREQ) else None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
+        if not (len(d) >= 4 and f1 >= AUTO_FREQ): return None   # durcir : assez long ET fréquent — sinon abstention (moins, mais juste)
+        # ⭐ PALIER VIGILANCE DU SPELLER — porté du produit le 05/09/2026 (5e maillon de « la référence décrit
+        # le produit » : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666). Décalque du
+        # gate `confident` de spellTokenCore (app + dys-core) : on n'AFFIRME (flag) que si l'on est sûr —
+        # accent pur, OU finale muette -s/-x ajoutée (dehor→dehors, alor→alors : FP=0 mesuré sur 2 500 UD),
+        # OU édit-1 gardant la 1re lettre, SEUL de son rang et dominant. Sinon VIGILANCE (orange, au clic,
+        # jamais appliqué) : courrir→courrier, ceuille→feuille — et « gran »→grand, le cas que la mesure
+        # Python ne voyait pas et qui a fait croire b_slip gagnant (#667). Jamais une SUBSTITUTION de la
+        # consonne finale en flag : c'est là que les patronymes se séparent (Durand/Durant) et que la finale
+        # muette porte le sens (poids/pois). Conséquence assumée : le pipeline de référence n'APPLIQUE plus
+        # ces corrections — il les compte en orange, comme le produit ; le chiffre réparés/cassés baisse
+        # vers la vérité du produit, il ne régresse pas.
+        wd = deacc(w1)
+        first_ok = wd[:1] == d[:1]
+        n_top = sum(1 for _w, (p, _f) in ranked if p == p1)
+        final_s = (p1 >= 1 and len(wd) == len(d) + 1 and wd[:len(d)] == d and wd[-1:] in ('s', 'x'))
+        sub_fin = (len(d) == len(wd) and len(d) >= 4 and d != wd and d[:-1] == wd[:-1]
+                   and d[-1] not in 'aeiouy' and wd[-1] not in 'aeiouy')
+        confident = accent_only or final_s or (not sub_fin and p1 >= 1 and first_ok and n_top == 1 and dominant)
+        return ('flag' if confident else 'vigilance', w1)
 
     # ----- PALIER « MOT INCONNU » — décalque de `spellUnknown` (app + extension/dys-core.js) -----
     # Rendu : None = rien à signaler · '' = souligné SANS suggestion · 'mot' = suggestion ORANGE (au clic).
@@ -559,17 +578,17 @@ def main():
     PAIRS = [json.loads(l) for l in open(GEC, encoding='utf-8') if l.strip()]
 
     # (1) FAUX POSITIFS sur phrases CORRECTES — séparé AUTO (cardinal) / FLAG (tolérable)
-    fpA = []; fpF = []
+    fpA = []; fpF = []; fpV = []
     for p in PAIRS:
         for (i, w, s, act) in sp.correct_text(p['good']):
-            (fpA if act == 'auto' else fpF).append((w, s, p['good'][:65]))
-    print(f"  [1] FAUX POSITIFS / {len(PAIRS)} phrases correctes :  AUTO={len(fpA)} (cardinal)  ·  FLAG={len(fpF)}")
+            (fpA if act == 'auto' else (fpF if act == 'flag' else fpV)).append((w, s, p['good'][:65]))
+    print(f"  [1] FAUX POSITIFS / {len(PAIRS)} phrases correctes :  AUTO={len(fpA)} (cardinal)  ·  FLAG={len(fpF)}  ·  VIGILANCE={len(fpV)} (orange, jamais appliqué)")
     for w, s, c in fpA[:12]: print(f"        AUTO ⚠️ {w}→{s}  | {c}")
     for w, s, c in fpF[:8]:  print(f"        flag    {w}→{s}  | {c}")
 
     # (2) NON-MOTS corrigés sur phrases BAD (cible = 1 mot)
     import diag_sentence as D
-    nw = okA = okF = 0; miss = []
+    nw = okA = okF = okV = 0; miss = []
     for p in PAIRS:
         flags = {i: (w, s, a) for (i, w, s, a) in sp.correct_text(p['bad'])}
         Tg, Sb = D.toks(p['good']), D.toks(p['bad'])
@@ -580,9 +599,10 @@ def main():
             hit = next((v for v in flags.values() if v[0].lower() == b.lower()), None)
             if hit and hit[1] == g:   # comparaison EXACTE (casse comprise) : la majuscule d'origine doit être préservée (« Ecole »→« École »)
                 if hit[2] == 'auto': okA += 1
-                else: okF += 1
+                elif hit[2] == 'flag': okF += 1
+                else: okV += 1
             elif len(miss) < 16: miss.append((b, g, hit[1] if hit else None))
-    print(f"\n  [2] NON-MOTS (cible=1 mot) : {nw} | corrigés exactement : AUTO={okA} + FLAG={okF} = {okA+okF} ({100*(okA+okF)//max(1,nw)}%)")
+    print(f"\n  [2] NON-MOTS (cible=1 mot) : {nw} | corrigés exactement : AUTO={okA} + FLAG={okF} = {okA+okF} ({100*(okA+okF)//max(1,nw)}%)  ·  proposés en VIGILANCE (au clic) : {okV}")
     for b, g, s in miss: print(f"        {b} → {g}  | sugg={s}")
 
     # (3) PALIER « MOT INCONNU » (spell_unknown, décalque JS — enquête 04/09/2026) : cas gagnés + témoins.
@@ -616,7 +636,25 @@ def main():
     print('')
     print('  [4] CAS FONDATEURS de la dominance : %s' % ('OK' if not dom_fail else 'ÉCHEC'))
     for x in dom_fail: print('        ✗ %s' % x)
-    return 1 if (su_fail or dom_fail) else 0
+
+    # (5) PALIER VIGILANCE DU SPELLER (porté du produit le 05/09/2026) — mot ET palier, vérité JS mesurée
+    #     le jour même sur dys-core chargé de ses assets (10 témoins / 10). Le palier est la chose gardée :
+    #     un flag qui deviendrait vigilance ou l'inverse change ce que le pipeline APPLIQUE. Sortie DURE.
+    vig_fail = []
+    for phrase, tok, exp in [('un gran homme', 'gran', ('vigilance', 'grand')),     # finale muette SUBSTITUÉE ? non : d ajouté, mais gran≠grand-1 → pas final_s ; nTop>1 → orange
+                             ('dehor', 'dehor', ('flag', 'dehors')),                # finale muette -s AJOUTÉE (préfixe commun) → SÛR, flag
+                             ('alor', 'alor', ('flag', 'alors')),
+                             ('durand', 'durand', ('vigilance', 'durant')),         # substitution de la consonne finale → JAMAIS affirmée (Durand/Durant)
+                             ('courrir', 'courrir', ('vigilance', 'courir')),
+                             ('leson', 'leson', ('vigilance', 'leçon')),            # ⚠️ la doc citait « leson→leçon » en FLAG : le PRODUIT le rend en vigilance depuis longtemps
+                             ('la fenetre', 'fenetre', ('auto', 'fenêtre'))]:       # témoin : l'accent pur reste AUTO
+        T = phrase.split(); i = T.index(tok)
+        got = sp.correct_token(tok, False, T, i)
+        if got != exp: vig_fail.append('%s -> %r attendu, eu %r' % (tok, exp, got))
+    print('')
+    print('  [5] PALIER VIGILANCE du speller (mot + palier ≡ produit) : %s' % ('OK' if not vig_fail else 'ÉCHEC'))
+    for x in vig_fail: print('        ✗ %s' % x)
+    return 1 if (su_fail or dom_fail or vig_fail) else 0
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -83,6 +83,20 @@ def main():
                     div.append({'tok': T[i], 'js': js_s, 'js_tier': u'inconnu',
                                 'py': py_s, 'py_tier': u'inconnu'})
                 continue
+            # ⭐ DEPUIS LE 05/09/2026 : le palier ORTHOGRAPHE|VIGILANCE du speller est porté dans la
+            # référence (`correct_token` rend ('vigilance', w) quand il n'est pas CONFIANT — décalque
+            # du gate `confident` de spellTokenCore : accent pur, finale muette -s/-x, ou édit-1 même
+            # initiale SEUL de son rang et dominant ; sinon orange). C'est le palier où vivait
+            # « gran »→grand, que la mesure Python ne voyait pas (#667). On compare donc MOT et PALIER.
+            # Les AUTRES vigilances (grammaire : accord, homophone…) restent hors périmètre ici.
+            if f['tier'] == 'vigilance' and f.get('name') == 'orthographe':
+                compares += 1
+                got = sp.correct_token(T[i], at_start=(i == 0), toks=T, idx=i)
+                py_t, py_s = (got[0], got[1]) if got else (u'—', u'—')
+                if py_s.lower() != (f['sugg'] or u'').lower() or py_t != f['tier']:
+                    div.append({'tok': T[i], 'js': f['sugg'], 'js_tier': f['tier'],
+                                'py': py_s, 'py_tier': py_t})
+                continue
             if f['tier'] not in ('auto', 'flag'):
                 continue
             compares += 1
