@@ -25,6 +25,7 @@ const RACINE = path.join(__dirname, '..');
 // EXT_DIR : répertoire d'extension de REMPLACEMENT (A/B d'un asset : deux copies du paquet, deux dumps, un diff).
 const EXT = (process.env.EXT_DIR || path.join(RACINE, 'extension')).split(String.fromCharCode(92)).join('/');   // ⚠️ barres OBLIQUES (piège ①)
 
+H.verifierDossierExtension(EXT);   // un instrument doit échouer bruyamment, jamais mentir (cf. cdp_chrome.js)
 const [ENTREE, SORTIE] = process.argv.slice(2);
 if (!ENTREE || !SORTIE) { console.error('usage : node dictee/navigateur_flags_dump.js <entree.json> <sortie.json>'); process.exit(2); }
 const PHRASES = JSON.parse(fs.readFileSync(ENTREE, 'utf8'));

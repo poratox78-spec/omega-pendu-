@@ -91,4 +91,20 @@ async function onglet(port, url) {
   throw new Error('le port de débogage ne répond pas');
 }
 
-module.exports = { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet, spawn, fs, path, os };
+/* ⚠️ CHROME REFUSE UN DOSSIER D'EXTENSION CONTENANT UN NOM COMMENÇANT PAR « _ » (réservé système).
+   Le piège vécu le 05/09/2026 : lancer un script Python depuis extension/ y laisse un `__pycache__`
+   (gitignoré, donc invisible au diff) et `Extensions.loadUnpacked` échoue. Le coût réel n'est pas
+   l'échec — c'est que la sonde de précision AU PRODUIT a alors rendu un CHIFFRE PLAUSIBLE MAIS FAUX
+   (54,9 % au lieu de 55,4 %), lu comme une régression pendant une heure. Un instrument doit échouer
+   BRUYAMMENT, jamais mentir : on refuse de démarrer et on dit quoi supprimer. */
+function verifierDossierExtension(dir) {
+  const bloquants = fs.readdirSync(dir).filter(n => n.startsWith('_'));
+  if (bloquants.length) {
+    console.error("✗ DOSSIER D'EXTENSION IMPROPRE AU CHARGEMENT : Chrome réserve les noms commençant par « _ ».");
+    bloquants.forEach(n => console.error('    à supprimer : ' + require('path').join(dir, n)));
+    console.error('  (typiquement __pycache__ laissé par un script Python — gitignoré, donc invisible au diff)');
+    process.exit(2);
+  }
+}
+
+module.exports = { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet, verifierDossierExtension, spawn, fs, path, os };
