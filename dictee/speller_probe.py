@@ -15,6 +15,7 @@ LEX = os.environ.get('LEX4', '/tmp/lex4/Lexique4.tsv')
 CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque quand comme'.split())
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
+_AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
@@ -183,6 +184,17 @@ def lev_b(a, b, mx):
     return pr[len(b)]
 
 
+def slip_mot(a, b):
+    """Décalque de `_slipMot` (dys-core.js) : GLISSEMENT MOTEUR — mêmes LETTRES, seul l'ORDRE ou un REDOUBLEMENT diffère (déaccentués)."""
+    if a == b: return False
+    if sorted(a) == sorted(b): return True                                   # transposition : jmaais→jamais, toujorus→toujours
+    if abs(len(a) - len(b)) != 1: return False
+    L, S = (a, b) if len(a) > len(b) else (b, a)
+    for k in range(len(L)):                                                  # redoublement : grannd→grand, beaucooup→beaucoup
+        if L[:k] + L[k+1:] == S and (L[k] == (L[k-1] if k > 0 else '') or L[k] == (L[k+1] if k+1 < len(L) else '')): return True
+    return False
+
+
 def edits1(d):
     # ⚠️ ORDRE DE GÉNÉRATION, PAS UN ENSEMBLE (22/08/2026). Le classement des candidats du
     # speller (`_cmp`) est PAIRWISE (règles de dominance ≫20×/≫10×) : il n'est donc PAS un
@@ -270,6 +282,57 @@ class Speller:
         except Exception:
             pass
         if self.ADJP: self.ADJ = self.ADJP                 # ADJP ≡ cgram_adj (17 257 entrées des deux côtés) : une seule source, celle du produit
+        # ⭐ TABLES DE CONJUGAISON DU PRODUIT (10/09/2026) : vdc.cj.f (forme → lectures « lemme;mode:temps;pers;nb|… ») et vdc.cj.c
+        # (lemme → mode:temps → personne → forme), complétées par la clôture 3pl régulière (décalque de _fillReg3pl). Servent
+        # au « e » muet du futur/conditionnel (oublirais → oublierais), étape du produit absente de la référence jusqu'ici.
+        self.CONJ_F, self.CONJ_C = {}, {}
+        try:
+            _cj = (_vd.get('cj') or {}) if isinstance(_vd, dict) else {}
+            self.CONJ_F, self.CONJ_C = dict(_cj.get('f') or {}), _cj.get('c') or {}
+            for lem, slots in self.CONJ_C.items():
+                for mt, s3, p3 in (('ind:imp', 'ait', 'aient'), ('cnd:pre', 'ait', 'aient'), ('ind:fut', 'ra', 'ront')):
+                    slot = slots.get(mt) if isinstance(slots, dict) else None
+                    if not slot: continue
+                    f3s = slot.get('3s')
+                    if isinstance(f3s, list): f3s = f3s[0] if f3s else None
+                    if not f3s or slot.get('3p') or not f3s.endswith(s3): continue
+                    f3p = f3s[:-len(s3)] + p3; slot['3p'] = f3p
+                    key, rd = deacc(f3p.lower()), lem + ';' + mt + ';3;p'
+                    cur = self.CONJ_F.get(key)
+                    if not cur: self.CONJ_F[key] = rd
+                    elif rd not in cur: self.CONJ_F[key] = cur + '|' + rd
+        except Exception:
+            pass
+
+    def _homophone_edit1(self, low):
+        """Décalque de `_homophoneEdit1` (dys-core.js) : existe-t-il un VERBE du lexique à 1 édition, fréquent (≥1/M) et de même clé
+        phonétique que la saisie ? (« aboit »→aboie) — alors la soudure « a + verbe » ne s'applique pas."""
+        d, pk = deacc(low), phon_key(low)
+        for e in edits1(d):
+            for w in self.D2A.get(e, ()):
+                if w != low and self.FREQ.get(w, 0.0) >= 1.0 and 'V' in self.POS.get(w, ()) and phon_key(w) == pk: return True
+        return False
+
+    def _collapse(self, low):
+        """Décalque de `sCollapse` (dys-core.js) — ÉLONGATION (« trèèès »→très) : un run de ≥3 lettres identiques n'existe dans
+        aucun mot FR valide → non-mot SÛR. Chaque run ≥3 est réduit à 1 OU 2 lettres ; on garde les formes du lexique, triées
+        par fréquence. Rend None si aucune (ou explosion combinatoire > 64)."""
+        g = []
+        for ch in low:
+            if g and g[-1][0] == ch: g[-1][1] += 1
+            else: g.append([ch, 1])
+        if not any(c >= 3 for _ch, c in g): return None
+        combos = ['']
+        for ch, c in g:
+            opts = [ch, ch + ch] if c >= 3 else [ch * c]
+            combos = [a + b for a in combos for b in opts]
+            if len(combos) > 64: return None
+        seen, cs = set(), []
+        for cw in combos:
+            if cw != low and cw in self.WORDS and cw not in seen: seen.add(cw); cs.append(cw)
+        if not cs: return None
+        cs.sort(key=lambda w: -self.FREQ.get(w, 0.0))
+        return cs
 
     def _invar_s(self, x):
         """Décalque de `sInvarS` (dys-core.js, miroir app) : NOM/ADJ INVARIABLE en -s/-x/-z, forme identique au
@@ -392,7 +455,17 @@ class Speller:
         if len(low) < 2 or not all(deacc(ch) in ALPHA for ch in low): return None
         _oel = {'soeur': 'sœur', 'soeurs': 'sœurs', 'coeur': 'cœur', 'coeurs': 'cœurs', 'choeur': 'chœur', 'choeurs': 'chœurs', 'oeuf': 'œuf', 'oeufs': 'œufs', 'oeuvre': 'œuvre', 'oeuvres': 'œuvres', 'boeuf': 'bœuf', 'boeufs': 'bœufs', 'oeil': 'œil', 'voeu': 'vœu', 'voeux': 'vœux', 'noeud': 'nœud', 'noeuds': 'nœuds', 'moeurs': 'mœurs', 'manoeuvre': 'manœuvre', 'manoeuvres': 'manœuvres', 'oeillet': 'œillet', 'oeillets': 'œillets', 'oesophage': 'œsophage', 'foetus': 'fœtus'}
         if low in _oel and 'œ' not in tok and 'Œ' not in tok: return ('flag', _oel[low])   # LIGATURE œ (« soeur »→« sœur »). Liste FERMÉE oe=œ → FP=0. Garde : pas de re-flag si déjà écrit avec œ. Miroir app/ext.
-        if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
+        # ⭐ AUTO-FIX FERMÉS (10/09/2026, décalque de _AFIX l.2948) : huit accents usuels mal posés → auto — AVANT la garde
+        # « mot valide », comme le produit : « trés » EST au lexique (pollution), le produit le corrige quand même.
+        if low in _AFIX: return ('auto', _AFIX[low])
+        # ⭐ LE « e » MUET DU FUTUR/CONDITIONNEL (décalque l.2950-2956 ; audit rappel dys PR#505 : « je ne t'oublirais jamais ») :
+        # non-mot en r+terminaison dont radical+er est un verbe des tables → réinsérer le e muet (oublirais→oublierais). Le
+        # scripteur a ENTENDU le R ; « oubliais » (distance 1 aussi) n'a pas ce son. Radical ≥ 4. C'est l'étape qui rend
+        # « fautra »→fautera (auto) côté produit — vrai du produit, pas du gold (faudra).
+        fm = re.match(r'^([a-zà-ÿ]{4,})r(ai|as|a|ons|ez|ont|ais|ait|aient)$', low) if low not in self.WORDS else None   # garde du produit : `!SP.WORDS.has(low)` — « il rentra », « je montrais » sont des formes VALIDES
+        if fm and deacc(fm.group(1) + 'er') in self.CONJ_C:
+            fc = fm.group(1) + 'e' + 'r' + fm.group(2)
+            if deacc(fc) in self.CONJ_F: return ('auto', fc)
         # ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08/2026) — mesuré sur le PIPELINE (`dys_pipeline_probe.py`).
         # La garde « nom propre » existante exige une MAJUSCULE hors début de phrase : elle ne protège
         # donc RIEN chez un scripteur dys, qui n'en met pas. Mesuré : « isis » → « ici ». La liste des
@@ -400,12 +473,26 @@ class Speller:
         # les 3 moteurs pour l'accord) — on la RÉUTILISE au lieu d'en ajouter une (doctrine §5).
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
         # formes ; qu'il soit en plus un prénom attesté en fait un nom, pas un typo.
+        if low in self.WORDS: return None                       # mot valide → ne pas toucher (couche grammaire s'en occupe)
         if low in self.PRENOMS_L: return None
+        # ⭐ SOUDURE à/a+VERBE (10/09/2026, décalque de spellTokenCore l.2968-2975) : « àeu »→a eu, « aparé »→a paré. Le reste doit
+        # être une forme CONJUGUÉE ou un participe (jamais un infinitif : « atendre » = attendre) ; le REDOUBLEMENT prime
+        # (« aporté »→apporté, couche DC) ; un VRAI verbe à une édition et de même son prime aussi (« aboit » = aboie, pas « a boit »).
+        if low[:1] in ('à', 'a') and len(low) >= 3:
+            rsd = low[1:]
+            if (rsd in self.WORDS and 'V' in self.POS.get(rsd, ()) and not rsd.endswith(('er', 're', 'ir'))
+                    and (low[0] + low[1] + low[1:]) not in self.WORDS and not self._homophone_edit1(low)):
+                return ('vigilance', 'a ' + rsd)
         if low in SPELL_KEEP: return None      # mot anglais fréquent / résidu d'ordinal (« the »/« er ») → ni corrigé ni signalé (miroir JS _SPELL_KEEP, même position : après prénom, avant nom-propre)
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
         d = deacc(low)
         if not re.search(r'[aeiouy]', d): return None   # pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
+        # ⭐ ÉLONGATION (10/09/2026, décalque de spellTokenCore l.2980-2981) : « trèèès »→très, « alllez »→allez. Un run ≥3 = non-mot
+        # SÛR → AUTO si le lexique n'offre qu'UNE forme, FLAG sinon. Ni acronyme tout-capitale (AAA), ni chiffre romain (VIII, XIIIe).
+        if re.search(r'(.)\1\1', low) and not (tok == tok.upper() and len(tok) >= 2) and not re.fullmatch(r'[ivxlcdm]+(e|es|eme|emes|er|ers)?', d):
+            ec = self._collapse(low)
+            if ec: return ('auto', ec[0]) if len(ec) == 1 else ('flag', ec[0])
         # élision : « lannée »→« l'année », « dautres »→« d'autres » (consonne d'élision + mot voyelle/h valide)
         # DOUBLE-CONSONNE simplifiée = faute dys TRÈS fréquente (laisé→laissé, pome→pomme, carote→carotte, aporté→apporté,
         # décolé→décollé) : si doubler UNE consonne interne donne un mot COMMUN (freq≥3) qui GARDE la finale saisie →
@@ -584,6 +671,23 @@ class Speller:
         # Effet mesuré AVANT le port (05/09) : 36 corrections du gold que le produit AFFIRME là où la référence
         # ne faisait que PROPOSER ; 7 des 23 ancres de parity_speller (gross, innondation, sympatique…).
         # A/B produit : « gross » seul → vigilance, « une gross » → flag.
+        # ⭐ GLISSEMENT MOTEUR (10/09/2026, décalque l.3078) : toutes les LETTRES sont là, UN SEUL candidat, écart = ordre ou
+        # redoublement → on AFFIRME (auto). Mesuré côté produit : 24/24 justes sur 474 phrases dys/GEC, FP = 0 littéral sur 14 450 UD.
+        if len(cands) == 1 and len(d) >= 4 and f1 >= 1.0 and slip_mot(d, deacc(w1)): return ('auto', w1)
+        # ⭐ PARTICIPE APRÈS AUXILIAIRE (10/09/2026, décalque l.3079-3080) : « il a manje »→mangé. On remonte les mots-outils
+        # (ne/n/pas/plus/jamais/bien/tres/deja/toujours/y/en/tout) jusqu'à un auxiliaire avoir ou une copule ; le dys écrit le
+        # PRÉSENT (-e) là où l'aux impose le PARTICIPE (-é) du même verbe → flag. Ne touche que la finale -e (jamais -s/-t/-u).
+        aux = False
+        if toks:
+            z = idx - 1
+            while z >= 0:
+                dz = deacc(toks[z].lower())
+                if dz in self.AUXAV or dz in self.COPULA: aux = True; break
+                if dz in ('ne', 'n', 'pas', 'plus', 'jamais', 'bien', 'tres', 'deja', 'toujours', 'y', 'en', 'tout'): z -= 1; continue
+                break
+        if aux and w1.endswith('e') and not w1.endswith('é'):
+            pe = w1[:-1] + 'é'
+            if pe in cands and cands[pe][1] >= 1.0: return ('flag', pe)
         if exp_pos:
             cgd = self.DET_G.get(deacc(toks[idx - 1].lower())) if (toks and idx) else None   # GENRE du DÉTERMINANT immédiat (audible, fiable) — pas _ctx_gender, qui peut lire un genre pollué sur un mot-outil
             def nm_p(w):                                                    # nombre PORTÉ par la forme : None = invariable (compatible des deux côtés) — décalque de nmP
