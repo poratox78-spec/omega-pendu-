@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-09-09 — les briques de CONTEXTE alignées sur le produit : fenêtre du nombre, invariables, tables de genre
+
+> 9ᵉ maillon de « la référence décrit le produit ». Ouvert par le 18ᵉ témoin de #677 (`panden`) et par `aggrée` :
+> deux « vigilance (py) vs inconnu (produit) » où le produit promeut un candidat rare que la référence ne voyait pas.
+> Même logique des deux côtés — des TABLES et une FENÊTRE différentes.
+
+**① CE QUI DIVERGEAIT, pièce par pièce (tracé dans une copie instrumentée de dys-core, w1/p1/f1/cg/expPos lus juste
+avant le gate).**
+- **Fenêtre du nombre** : `sCtxNumber` regarde 4 tokens en arrière (`j >= idx-4`), `_ctx_number` n'en regardait que 3
+  (`range(idx-1, idx-4)`). « une réponse favorable. Veuillez aggrée » : le produit voit « une » (cn = s), la référence
+  non — et c'est cn qui promeut `agréé` (0,34/M) puis le fait tomber sous f1 < 1,0 → « mot inconnu ».
+- **Table de genre** : `sGender` lit `vdc-lex.json` (g = GENDER_MAP 4 178, gn = GENDER_PURE 68 746, a = ADJP 17 257) complété
+  par `gender-relaxed.tsv.gz` (46 432 → GENDER_PURE 70 374) ; `_gender` lisait `cgram_gender.json` (53 200, Lexique4).
+  `sCtxGender` ne prend que les genres PURS ; `_ctx_gender` lisait GEN. « la vu panden » : le produit n'a pas de genre pur
+  pour « vu », remonte à « la » (f) et promeut `pendante` (0,19/M → inconnu) ; la référence lisait « vu » = m et gardait
+  pendant. ADJP ≡ cgram_adj (identiques, vérifié) : une seule source désormais, celle du produit.
+- **Invariables dans le tri** : en élargissant la fenêtre, deux désaccords NOUVEAUX sont apparus (`frence`→français,
+  `desue`→dessus : la référence s'abstenait, le produit propose). Cause : le bonus de NOMBRE du tri — `nm` (JS) passe par
+  `nmP`/`sInvarS` (une forme invariable en -s/-x est compatible des deux côtés), `nmatch` (Python) lisait le -s nu comme un
+  pluriel et écartait `français`/`dessus` après « la ». `nm_p` avait été porté pour contexte-first (#672), pas pour le tri.
+Témoins : 13 / 13 ≡ produit (frence, desue, panden, aggrée, gran, gross, uen, tres, pri, von, nois, chère ×2).
+
+**② MESURÉ, produit byte-identique.** Accord de palier sur le gold : **98,9 → 99,2 % (873/880), 0 nouveau, 3 disparus** (aggrée, panden, étudiré→étudiée) ; à mi-chemin (fenêtre + genre sans les invariables) la garde avait ROUGI sur 2 désaccords nouveaux (frence, desue) — c'est elle qui a fait trouver `nm`/`nmP`. Au palier vigilance, **même mot 294 / 294**. Restent 7 désaccords : `_slipMot`/élongation → auto (alllez, cocinelle, contorl, fautra, fourgonette), `_aux` participe → flag (prais→prêté), découpe « a paré » (1) ; hors accord 2 (Enerver = atStart, ere). Ré-ancré.
+
+- Parité `parity_speller` : **0 nouvelle, 2 ancres DISPARUES** (`dera`→ders et `genus`→genou : des choix de MOT au palier vigilance, alignés par la table de genre) → 5 → 3 ancres. Batterie §1 AUTO=0 · FLAG=0 · VIGILANCE=1, §2 7/11, §3/§4/§5 verts ; FP à l'échelle **1,40 %** ; garde des collisions de genre (âme/amé) : rappel 269, FP 0.
+
+- Pipeline : **284 réparés = · 14 cassés identiques mot à mot** · un-clic 243 → 244 · bruit 229 → 227 · MUET 690 = · **appliqué FAUX 66 → 67** (le +1 est `étudiré`→étudiée [flag], gold étudierons : la référence AFFIRME désormais ce que le produit affirme — c'est le désaccord de palier « vigilance (py) vs flag (produit) » qui a disparu de la garde, et il avait tort des deux côtés). Comme pour #677, ces briques changent la CIBLE ou le PALIER, pas le nombre de réparations : sur le gold la référence rejoint le produit là où elle s'en écartait, y compris quand le produit a tort.
+- Précision par famille (référence) : `orthographe|auto` 88,1 → 87,9 % (349 J / **0 mot juste réécrit** / 48 F) · `flag` 82,7 → 82,8 % · `vigilance` 54,4 → 54,3 %. Mouvements d'un événement (l'auto faux de plus est le +1 appliqué FAUX ci-dessus). Ré-ancrée ; `--navigateur` intact.
+
+
+**⇒** Après ce maillon, les désaccords de palier restants sur le gold sont EXACTEMENT les trois dernières étapes JS
+absentes : `_slipMot`/élongation → auto, `_aux` participe → flag, découpe « a paré » — plus `atStart` (1 hors accord).
+
+---
+
 ## 2026-09-08 — OMISSION + `_DPAIR` portés : la référence change de cible AVANT les gates, comme le produit
 
 > 8ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672 · #673 · #676 pour la
