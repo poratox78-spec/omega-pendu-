@@ -1,16 +1,16 @@
 {
  "paires": 880,
- "accord": 866,
- "accord_pct": 98.4,
+ "accord": 870,
+ "accord_pct": 98.9,
  "matrice": {
   "auto (py) vs auto (produit)": 124,
   "flag (py) vs auto (produit)": 3,
   "flag (py) vs flag (produit)": 179,
-  "inconnu (py) vs inconnu (produit)": 269,
+  "inconnu (py) vs inconnu (produit)": 273,
   "inconnu (py) vs vigilance (produit)": 1,
   "vigilance (py) vs auto (produit)": 2,
   "vigilance (py) vs flag (produit)": 2,
-  "vigilance (py) vs inconnu (produit)": 6,
+  "vigilance (py) vs inconnu (produit)": 2,
   "vigilance (py) vs vigilance (produit)": 294
  },
  "desaccords": [
@@ -19,14 +19,10 @@
   "aparé→apparais [inconnu] vs produit a paré [vigilance]",
   "cocinelle→coccinelle [flag] vs produit coccinelle [auto]",
   "contorl→control [flag] vs produit control [auto]",
-  "courrent→courant [vigilance] vs produit courant [inconnu]",
   "fautra→faudra [vigilance] vs produit fautera [auto]",
   "fourgonette→fourgonnette [flag] vs produit fourgonnette [auto]",
-  "merais→meurt [vigilance] vs produit mère [inconnu]",
   "panden→pendant [vigilance] vs produit pendant [inconnu]",
-  "petet→peu [vigilance] vs produit peux [inconnu]",
   "prais→prête [vigilance] vs produit prêté [flag]",
-  "regetes→rejet [vigilance] vs produit rejeté [inconnu]",
   "étudiré→étudier [vigilance] vs produit étudiée [flag]"
  ],
  "seuls": [
