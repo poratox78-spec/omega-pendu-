@@ -5,6 +5,61 @@
 
 ---
 
+## 2026-09-06 — contexte-first porté dans la référence : 239 → 284 réparés à produit identique, et un DET_G de trop
+
+> 6ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670). Chiffré avant d'être fait :
+> 36 « vigilance (py) vs flag (produit) » sur le gold, 7 ancres de parité, A/B « gross » seul → vigilance,
+> « une gross » → flag. C'est la première jonction que la garde d'accord de palier (05/09 soir) a vue de bout en bout.
+
+**① LE PORT** : décalque du bloc `if(expPos){…}` de `spellTokenCore` (dys-core.js l.3080-3083, miroir app) à la
+même position dans `correct_token` — après les autos, avant le gate confident. Quand le contexte attend un POS,
+le plus fréquent des candidats édit-1/accent (p ≥ 1) qui a la MÊME clé phonétique que la saisie, colle au POS
+attendu, respecte l'audibilité de la finale, le NOMBRE du contexte (forme invariable = compatible, décalque de
+`sInvarS`) et le GENRE du déterminant immédiat, est AFFIRMÉ (flag) même court ou non dominant — sauf si le
+vainqueur du tri colle déjà au POS et est ≫20× plus fréquent (« un chein » reste chien). Témoins ≡ produit :
+`une gross`→grosse flag / `gross`→gros vigilance · `il a pri`→pris · `ils von`→vont · `il pleu`→pleut.
+
+**② ROUGE D'ABORD, ET CE QU'IL A TROUVÉ.** La garde d'accord de palier sur le gold est montée de 92,4 % à
+97,6 % — et a ROUGI : **5 désaccords NOUVEAUX**, tous « Python affirme, le produit propose » : `au boulo`,
+`du marcketing`, `au échenge`, `d'une pérsone`, `l'est conporte`. Cause 1 (3/5) : **`DET_G` Python contenait
+« du » et « au » ; le `DET_G` du produit (l.1331) non.** Le POS attendu (#665) en héritait sans que rien ne le
+dise, parce que le POS attendu ne pesait que dans le TRI ; dès qu'il décide un PALIER, l'écart se voit. Aligné
+verbatim (même geste que #665) → **98,3 % (575/585), 31 désaccords disparus, 2 restants**. Cause 2 (2/5) :
+**tokenisation des apostrophes** — « d'une », « l'est » sont UN token côté produit (`toks`), deux côté
+référence (`TOK` sans apostrophe) ; le produit ne voit donc ni déterminant ni copule avant le mot. Jonction
+suivante, nommée ; les 2 sont ancrés avec leur cause.
+
+**③ MESURÉ, produit byte-identique** (`dys_pipeline_probe`, 72 productions, 1 542 fautes) :
+
+| | main (#670) | contexte-first seul | + DET_G aligné (livré) |
+|---|---:|---:|---:|
+| RÉPARÉS sans clic | 239 (15,5 %) | 287 (18,6 %) | **284 (18,4 %)** |
+| rattrapable EN UN CLIC | 277 | 241 | 243 |
+| bruit orange | 251 | 234 | 236 |
+| signalé sans suggestion | 30 | 30 | 30 |
+| MUET côté Python | 745 | 750 | 749 |
+| ⛔ CASSÉS | 14 | 14 | **14 — identiques mot à mot** |
+
+Conservation : −45 ratés = un-clic −34 · bruit −15 · muet +4. Les 3 réparations que l'alignement DET_G
+rend au clic sont exactement celles que le produit ne fait que proposer (« au boulo »). Le « ~276 au plus »
+attendu était une borne de la mesure du 05/09 (37 vigilance/flag) : la référence affirme aussi là où elle
+s'ABSTENAIT (`cha`→chat, `pû`→pu : contexte-first tire « même court », avant le gate `len ≥ 4`).
+
+**Inchangés / verts** : FP à l'échelle 1,40 % (35/2 500) · batterie §1 AUTO=0 · FLAG=0 · VIGILANCE=1 ·
+§2 non-mots 5 → 7 corrigés exactement (les deux vigilances devenues flags, comme au produit) · §3/§4/§5 verts
+(les 7 témoins de palier de #670 tiennent). **Parité** `parity_speller` : 23 → **12** ancres, 12 disparues
+(apperçoit, blanch, cha, gross, innondation, pery, pû, sympatique×2, turkey, dera×2), 1 re-clée (`dera` : Python
+dit désormais déjà, le produit ders — désaccord de mot au palier vigilance, pas de palier), 0 nouvelle.
+**Précision par famille** (`dys_precision_ref`, référence) : `orthographe|vigilance` 57,5 → 54,2 % (les justes
+sont passés en flag, mécanique — comme au 05/09) · `flag` 83,2 → 83,9 % · `auto` 88,2 → 88,0 % (329 justes / **0 mot
+juste réécrit** / 45 fausses). Ré-ancrée ; `--navigateur` (le produit) non touché.
+
+**⇒ Ce que ça change** : le chiffre de référence est **284 / 14**, et sa borne est désormais serrée — 2
+affirmations produit non portées (apostrophes) au lieu de 37. `b_slip` peut être re-mesuré (jonction suivante,
+PAS dans ce PR). Et la garde du 05/09 a fait exactement son travail : sans elle, le DET_G de trop passait.
+
+---
+
 ## 2026-09-05 (soir) — la garde qui aurait vu #667 plus tôt : accord de PALIER produit↔référence sur le gold
 
 > Suite directe de #670. La mesure ad hoc qui a fermé le chantier (525/570 = 92 %) devient une garde
