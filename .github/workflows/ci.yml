@@ -99,7 +99,7 @@ jobs:
         run: python3 dictee/vig_census_probe.py
       - name: Précision par famille sur texte DYS réel (rouge/orange mesurés — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/dys_precision_probe.py
-      - name: Accord de PALIER produit↔référence sur le gold dys (auto/flag/vigilance — SAUTÉ en CI, corpus privé local)
+      - name: Accord de PALIER produit↔référence sur le gold dys (auto/flag/vigilance/inconnu + hors accord ancré — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/palier_gold_probe.py
       - name: Assets extension câblés (aucun asset livré-mais-muet — le trou des prénoms)
         run: node extension/assets_wired_probe.js

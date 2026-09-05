@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-09-07 (suite) — la garde de palier voit désormais le palier « mot inconnu » et ANCRE ce qu'un seul moteur rend
+
+> ③ de la file de Rem (« ces trois points dans l'ordre logique »), juste après le tokeniseur (#673) et avant la
+> re-mesure de `b_slip` : la surface de mesure doit être COMPLÈTE et gardée avant qu'on y mesure une variante.
+
+**Ce qui change dans `palier_gold_probe`** : le dump du produit inclut la famille « mot inconnu » (spellUnknown,
+orange) comme 4ᵉ palier `inconnu` (∅ = souligné sans suggestion), la référence est appelée avec `inconnu=True` ;
+et les corrections qu'UN SEUL moteur rend (« référence seule » / « produit seul ») sont ANCRÉES : une nouvelle
+rougit, une disparue est un gain. C'est l'angle mort de `parity_speller` (« Python corrige / produit muet », noté
+depuis #663), fermé.
+
+**Vue ROUGE d'abord, contre la référence de #673** — et le rouge dit exactement ce qu'on cherchait :
+- paires **604 → 880** (le palier `inconnu` en apporte 276 : **269 accords, même mot 269/269**) ; accord
+  **866/880 = 98,4 %** (< 98,8 ancré : la base a changé, pas le produit) ;
+- **7 désaccords NOUVEAUX**, invisibles jusque-là : **6 « vigilance (py) vs inconnu (produit) »** (`aggrée`,
+  `courrent`, `merais`, `panden`, `petet`, `regetes` — `correct_token` Python PROPOSE en orthographe là où
+  `spellTokenCore` rend null et `spellUnknown` propose ; même mot 3/6) et **1 « inconnu (py) vs vigilance
+  (produit) »** (`aparé`→apparais vs « a paré » : la découpe en deux mots, absente) ;
+- **hors accord : 2** (`Enerver` — atStart ≡ premier token du texte ; `ere` — appariement par occurrence),
+  **0 produit seul**. L'angle mort est ÉNUMÉRÉ, plus estimé.
+Ancré tel quel (`--fix`) : 880 paires, 98,4 %, 14 désaccords distincts, 2 hors accord ; vert ensuite.
+
+**Ce que le rouge nomme pour la suite** (aucun port dans ce PR) : la génération des CANDIDATS (`_cands` Python
+vs `cand` JS) diverge sur des non-mots à match phonétique (courrent→courant est proposé par la référence en
+orthographe, par le produit en « mot inconnu ») — à instruire AVANT `_slipMot`/`_aux`, puisque c'est en amont.
+La carte des étapes JS absentes reste : `_slipMot`/élongation (auto), `_aux` participe (flag), découpe « a paré »,
+`atStart`. **`b_slip` peut maintenant être re-mesuré sur une surface complète et gardée** (② de la file).
+
+---
+
 ## 2026-09-07 — le tokeniseur du produit porté dans la référence : l'angle mort de l'appariement était surtout ÇA
 
 > 7ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672). Nommé par la garde

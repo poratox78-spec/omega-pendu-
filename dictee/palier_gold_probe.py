@@ -14,7 +14,10 @@ occurrence, dans l'ordre) : le PALIER de la référence (`sp.correct_text` → a
 du produit (`dys-core.js` équipé de ses assets comme dans `extension/parity_core.js`, `spellText`,
 famille `orthographe`). Sortie : accord global + matrice des paires (py, produit) + désaccords.
 Les corrections que UN SEUL moteur rend sont comptées à part (elles ne sont pas un désaccord de
-palier ; c'est l'angle mort documenté de `parity_speller`), jamais dans le pourcentage.
+palier), jamais dans le pourcentage — mais depuis le 07/09/2026 elles sont ANCRÉES : une nouvelle rougit. C'est
+l'angle mort de `parity_speller` (« Python corrige / produit muet »), fermé ici. Et le palier « mot inconnu »
+(spellUnknown, orange) est comparé comme un 4ᵉ palier `inconnu` : 5 des 8 « référence seule » du 07/09 étaient
+en fait cette famille côté produit.
 
 RÈGLE D'ANCRAGE (--fix) : la référence fige l'accord mesuré ET la liste des désaccords. Une BAISSE
 de l'accord est rouge ; un désaccord NOUVEAU est rouge (une hausse ailleurs ne le compense pas —
@@ -95,14 +98,16 @@ def main():
     if prod is None: return 1
     sp = S.Speller()
 
-    matrice, memes, div = Counter(), Counter(), []
+    matrice, memes, div, seuls = Counter(), Counter(), [], []
     n_py, n_js, n_seul_py, n_seul_js = 0, 0, 0, 0
     for raw, pr in zip(textes, prod):
-        py = [(w, s, a) for (_st, w, s, a) in sp.correct_text(raw)]
+        py = [(w, s, a) for (_st, w, s, a) in sp.correct_text(raw, inconnu=True)]   # palier « inconnu » compris (07/09/2026)
         js = [(f['word'], f['sugg'] or u'', f['tier']) for f in pr['flags']]
         n_py += len(py); n_js += len(js)
         paires, seul_py, seul_js = apparier(py, js)
         n_seul_py += len(seul_py); n_seul_js += len(seul_js)
+        seuls += [u'%s→%s [%s] (référence seule)' % (w, s_ or u'∅', t) for (w, s_, t) in seul_py]
+        seuls += [u'%s→%s [%s] (produit seul)' % (w, s_ or u'∅', t) for (w, s_, t) in seul_js]
         for p, j in paires:
             k = u'%s (py) vs %s (produit)' % (p[2], j[2])
             matrice[k] += 1
@@ -122,12 +127,12 @@ def main():
 
     if fix:
         json.dump({'paires': n, 'accord': acc, 'accord_pct': round(pct, 1),
-                   'matrice': dict(sorted(matrice.items())), 'desaccords': vues,
+                   'matrice': dict(sorted(matrice.items())), 'desaccords': vues, 'seuls': sorted(set(seuls)),
                    'note': u"Accord de PALIER (auto/flag/vigilance) produit↔référence sur le gold dys, ANCRÉ. "
                            u"Une baisse de l'accord ou un désaccord NOUVEAU rougit ; une hausse est un GAIN à "
                            u"ré-ancrer (--fix). Le gold est local : la sonde SAUTE sans lui."},
                   io.open(REF, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-        print(u'✓ ancré : %d paires, accord %.1f %%, %d désaccord(s) distinct(s)' % (n, pct, len(vues)))
+        print(u'✓ ancré : %d paires, accord %.1f %%, %d désaccord(s) distinct(s), %d hors accord' % (n, pct, len(vues), len(set(seuls))))
         return 0
 
     if not os.path.exists(REF):
@@ -141,19 +146,28 @@ def main():
     if tout:
         for k in vues: print(u'      ' + (u'' if k in connus else u'NOUVEAU  ') + k)
 
+    seuls_connus = set(ref.get('seuls') or [])
+    seuls_neufs = sorted(set(seuls) - seuls_connus)
+    seuls_disparus = sorted(seuls_connus - set(seuls))
     err = []
     if pct < plancher - 0.05:
         err.append(u'accord %.1f %% < plancher ancré %.1f %% (%d paires, réf. %d)' % (pct, plancher, n, ref.get('paires') or 0))
     if neufs:
         err.append(u'%d désaccord(s) de palier NOUVEAU(X) :' % len(neufs))
+    if seuls_neufs:
+        err.append(u'%d correction(s) HORS ACCORD NOUVELLE(S) (un seul moteur la rend — l’angle mort de parity_speller) :' % len(seuls_neufs))
     if err:
         print(u'✗ ACCORD DE PALIER : ' + err[0])
         for e in err[1:]: print(u'  ✗ ' + e)
         if neufs:
             for k in neufs[:12]: print(u'      ' + k)
+        if seuls_neufs:
+            for k in seuls_neufs[:12]: print(u'      ' + k)
         print(u"    (si le changement est VOULU et mesuré : python dictee/palier_gold_probe.py --fix)")
         return 1
-    print(u'✓ ACCORD DE PALIER : %.1f %% ≥ plancher %.1f %%, 0 désaccord nouveau (%d ancré(s))' % (pct, plancher, len(connus)))
+    print(u'✓ ACCORD DE PALIER : %.1f %% ≥ plancher %.1f %%, 0 désaccord nouveau (%d ancré(s)), 0 hors-accord nouveau (%d ancré(s))' % (pct, plancher, len(connus), len(seuls_connus)))
+    if seuls_disparus:
+        print(u'  ✓ %d correction(s) hors accord DISPARUE(S) (appariée ou éteinte) → ré-ancrer (--fix) : %s' % (len(seuls_disparus), u', '.join(d.split(' [')[0] for d in seuls_disparus[:6])))
     if pct > plancher + 0.05 or disparus:
         print(u'  ✓ GAIN — %d désaccord(s) DISPARU(S), accord %.1f %% → ré-ancrer à la hausse (--fix) : %s'
               % (len(disparus), pct, u', '.join(d.split(' vs ')[0] for d in disparus[:6])))
