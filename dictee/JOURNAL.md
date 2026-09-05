@@ -5,6 +5,69 @@
 
 ---
 
+## 2026-09-05 — le palier VIGILANCE du speller porté dans la référence : le chiffre de référence était SUR-COMPTÉ de 165
+
+> 5ᵉ maillon de « la référence décrit le produit » (`_SPELL_KEEP` #659 · mot inconnu #663 · POS attendu
+> #665 · x final #666). Ouvert par #667 : le juge Python ne voyait pas le palier où `b_slip` perdait.
+
+**① LE DÉFAUT.** Le produit (`spellTokenCore`, app + dys-core) n'AFFIRME une correction (`flag`, appliquée
+par « tout corriger ») que s'il est **confiant** — accent pur, OU finale muette -s/-x ajoutée
+(dehor→dehors), OU édit-1 gardant la 1ʳᵉ lettre, SEUL de son rang et dominant ; sinon il PROPOSE en
+orange (`vigilance`, au clic). La référence Python rendait `flag` dès que le seuil passait : **elle
+appliquait ce que le produit ne fait que proposer.** Trois consommateurs (`dys_pipeline_probe`,
+`cube_veto_probe`, `spirale_probe`) branchaient déjà `act == 'vigilance'` — le palier était attendu en
+aval et jamais émis.
+
+**② LE PORT** : décalque du gate `confident` (dys-core l.3084-3097 — `first_ok`, `n_top`, `final_s`,
+`sub_fin`). Substitution de la consonne finale JAMAIS affirmée (Durand/Durant, poids/pois). Vérité JS
+mesurée sur dys-core chargé de ses assets : **10 témoins / 10** identiques, mot ET palier — dont
+`leson`→leçon en **vigilance** : `CORRECTEUR.md` le citait en FLAG depuis des semaines, c'est la doc
+qui était en retard sur le produit (corrigée : 3 paliers, 9 exemples mesurés dans les 3 moteurs).
+
+**③ PARITÉ, protocole rouge-d'abord.** `parity_speller` étendue au palier `orthographe|vigilance`
+AVANT le port → **51 divergences nouvelles / 262** (le palier manquant, chiffré). APRÈS → **14**,
+toutes à mécanisme identifié HORS gate, ancrées (12 → 23) et classées :
+- **7** : le JS affirme via une étape absente en Python — la **ré-sélection contexte-first**, CONFIRMÉE
+  par A/B (`gross` seul → vigilance, « une gross » → flag ; idem `innondation`) ; 3 ne sont que des
+  ancres re-clées (`apperçoit`, `blanch`, `pery` : Python a changé de palier sur son propre mot) ;
+- **4** : choix de mot différent AU palier vigilance (`dera`, `genus`, `turkey`) — l'angle mort les cachait ;
+- **3** : le JS propose, Python s'abstient (`d'oves`, `france`, `miya` — élision, nom propre, seuil).
+
+**④ VALIDATION SUR LE GOLD (pas seulement le corpus de parité).** 570 corrections appariées par mot :
+accord de palier produit↔référence **525 (92 %)**. Le seul désaccord de masse : **37 « vigilance (py) vs
+flag (produit) »** — contexte-first, non porté. ⇒ la référence est désormais une **borne basse** de ce que
+le produit applique, à ≤ 37 près.
+
+**⑤ LE CHIFFRE DE RÉFÉRENCE, AVANT → APRÈS** (`dys_pipeline_probe`, 72 productions, 1 542 fautes ;
+produit **byte-identique**, seul le juge change) :
+
+| | avant (main) | après le port |
+|---|---:|---:|
+| RÉPARÉS sans clic | **404 (26,2 %)** | **239 (15,5 %)** |
+| rattrapable EN UN CLIC (orange juste) | 118 | **277** |
+| bruit orange (orange faux) | 106 | 251 |
+| signalé sans suggestion | 30 | 30 |
+| MUET côté Python | 884 | 745 |
+| ⛔ CASSÉS (mots justes) | **19 (0,41 %)** | **14 (0,30 %)** |
+
+Conservation vérifiée : ratés 1 138 → 1 303 (+165) = un-clic +159 · bruit +145 · muet −139. Lecture :
+**165 « réparations » n'en étaient pas** (le produit les propose, 159 sont justes → un clic) ; **139
+« muets » recevaient en fait une proposition FAUSSE** que la référence appliquait (→ bruit orange) ;
+et **5 « cassés » ne sont pas cassés** par le produit (il ne fait que proposer). Le 402/19 de
+CLAUDE.md était périmé depuis #665 (404/19) sans avoir été mis à jour — corrigé, avec sa borne.
+
+**Inchangés** : FP à l'échelle 1,40 % (35/2 500) · batterie §1 sur GEC : AUTO=0 · FLAG=0 ·
+VIGILANCE=1 (le « FLAG=1 » d'avant était une proposition au clic) · §3/§4 verts · §5 (nouveau, 7
+témoins de palier ≡ produit) vert.
+
+**⇒ Ce que ça change pour la suite** : tout gain speller mesuré en Python AVANT ce jour sur-comptait ;
+`b_slip` peut être RE-MESURÉ sur la surface complète (préalable levé). Et le maillon suivant est
+nommé et chiffré : **porter contexte-first** (≤ 37 affirmations, 7 ancres). Une garde durable
+« accord de palier produit↔référence sur le gold » (525/570) est à créer — c'est elle qui aurait vu
+tout ça plus tôt.
+
+---
+
 ## 2026-09-05 — différés ② et ③ : la cible des « relatives » était la MAUVAISE, et le canal GROUPE reste OFF faute de données
 
 **② RELATIVES / SUJET DISTANT — mesuré avec l'instrument dédié, pas avec un filtre improvisé.**
