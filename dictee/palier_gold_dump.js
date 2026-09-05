@@ -1,6 +1,6 @@
 /* ACCORD DE PALIER produit ↔ référence — étage JS. Charge le moteur de l'EXTENSION (`dys-core.js`)
  * équipé de ses assets, exactement comme `extension/parity_core.js` (le harnais du produit), et
- * dumpe les flags du SPELLER (`spellText`, famille `orthographe`, paliers auto / flag / vigilance)
+ * dumpe les flags du SPELLER (`spellText`, famille `orthographe` paliers auto / flag / vigilance, et famille « mot inconnu » = palier `inconnu`)
  * sur les textes qu'on lui passe — le gold dys LOCAL, jamais committé.
  *
  *   node dictee/palier_gold_dump.js entree.json sortie.json
@@ -34,8 +34,12 @@ const textes = JSON.parse(fs.readFileSync(fin, 'utf8'));
 const out = textes.map(t => {
   const flags = [];
   for (const f of D.spellText(t)) {
-    if (f.name !== 'orthographe' || (f.span || 1) !== 1) continue;   // span 2 = règle à deux mots : la référence travaille token à token
-    flags.push({ i: f.i, word: f.word, sugg: f.sugg, tier: f.tier });
+    if ((f.span || 1) !== 1) continue;   // span 2 = règle à deux mots : la référence travaille token à token
+    if (f.name === 'orthographe') flags.push({ i: f.i, word: f.word, sugg: f.sugg, tier: f.tier });
+    // ⭐ 07/09/2026 : le palier « mot inconnu » (spellUnknown, orange) entre dans la comparaison — 5 des 8 « référence
+    //   seule » du 07/09 étaient en fait CETTE famille côté produit. sugg === mot = souligné SANS suggestion → ''.
+    else if (f.name === 'mot inconnu') flags.push({ i: f.i, word: f.word, tier: 'inconnu',
+      sugg: (f.sugg && f.sugg.toLowerCase() !== f.word.toLowerCase()) ? f.sugg : '' });
   }
   return { toks: D.toks(String(t).replace(/[’ʼ]/g, "'")), flags };
 });
