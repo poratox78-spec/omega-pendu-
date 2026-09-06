@@ -2963,6 +2963,13 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
     var _AFIX={"trés":"très","celà":"cela","içi":"ici","idéé":"idée","écolé":"école","fléche":"flèche","moï":"moi","verité":"vérité"};if(_AFIX[low])return["auto",_AFIX[low]];
+    /* ⭐ FORMES NUES QUI POLLUENT LE LEXIQUE (audit 11/09/2026 : « Ma mere » → orange « Mon », le speller muet). `mere` EST une entrée
+       de Lexique4 (NOM m, 6,66/M — sous-titres) à côté de `mère` (630/M) : le speller se tait sur un mot « connu ». Recensé : 13 formes
+       qui ne sont un mot sous AUCUNE graphie (1990 comprise), 0 fois en minuscules sur 14 450 phrases UD, 16 fois dans le corpus dys
+       (mere 8, age 5, reparer 2, ame 1) toutes corrigées par le gold vers la sœur accentuée. MINUSCULES SEULEMENT : « Ame V », « Special »,
+       « l'Age d'Or » existent en majuscule dans du français correct. Exclus : cote, sacre, prive, voila… (mots valides), maitre, ile,
+       gout (graphies rectifiées de 1990). Miroir Python _AFIX_MIN. */
+    var _AFIX_MIN={"mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
     /* LE « e » MUET DU FUTUR/CONDITIONNEL (audit rappel dys PR#505 : « je ne t'oublirais jamais » ×4) :
        non-mot en r+terminaison dont stem+er est un verbe des tables → réinsérer le e muet (oublirais→
        oublierais). AUDIBILITÉ : le scripteur a ENTENDU le R (/ubliʁɛ/) — « oubliais » (distance 1 aussi)
