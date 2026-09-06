@@ -102,11 +102,13 @@ def main():
     n_py, n_js, n_seul_py, n_seul_js = 0, 0, 0, 0
     for raw, pr in zip(textes, prod):
         py = [(w, s, a) for (_st, w, s, a) in sp.correct_text(raw, inconnu=True)]   # palier « inconnu » compris (07/09/2026)
-        js = [(f['word'], f['sugg'] or u'', f['tier']) for f in pr['flags']]
+        js = [(f['word'], f['sugg'] or u'', f['tier']) for f in pr['flags'] if not f['tier'].startswith('autre:')]
+        js_autre = {f['word'].lower(): f['tier'][6:] for f in pr['flags'] if f['tier'].startswith('autre:')}   # famille tierce du produit sur ce mot
         n_py += len(py); n_js += len(js)
         paires, seul_py, seul_js = apparier(py, js)
         n_seul_py += len(seul_py); n_seul_js += len(seul_js)
-        seuls += [u'%s→%s [%s] (référence seule)' % (w, s_ or u'∅', t) for (w, s_, t) in seul_py]
+        seuls += [u'%s→%s [%s] (produit : autre famille « %s »)' % (w, s_ or u'∅', t, js_autre[w.lower()]) if w.lower() in js_autre
+                  else u'%s→%s [%s] (référence seule)' % (w, s_ or u'∅', t) for (w, s_, t) in seul_py]
         seuls += [u'%s→%s [%s] (produit seul)' % (w, s_ or u'∅', t) for (w, s_, t) in seul_js]
         for p, j in paires:
             k = u'%s (py) vs %s (produit)' % (p[2], j[2])

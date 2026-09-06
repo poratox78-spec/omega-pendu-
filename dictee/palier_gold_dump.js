@@ -40,6 +40,10 @@ const out = textes.map(t => {
     //   seule » du 07/09 étaient en fait CETTE famille côté produit. sugg === mot = souligné SANS suggestion → ''.
     else if (f.name === 'mot inconnu') flags.push({ i: f.i, word: f.word, tier: 'inconnu',
       sugg: (f.sugg && f.sugg.toLowerCase() !== f.word.toLowerCase()) ? f.sugg : '' });
+    // ⭐ 10/09/2026 : les AUTRES familles du produit (nombre, anglicisme, homophone…) sont dumpées avec leur nom, pour qu'une
+    //   correction « référence seule » dont le produit a fait AUTRE CHOSE (« la 1ere » : ere→ère côté speller, « nombre »
+    //   → 1re côté produit) soit rangée « produit : autre famille », pas « produit muet ».
+    else flags.push({ i: f.i, word: f.word, tier: 'autre:' + f.name, sugg: f.sugg || '' });
   }
   return { toks: D.toks(String(t).replace(/[’ʼ]/g, "'")), flags };
 });

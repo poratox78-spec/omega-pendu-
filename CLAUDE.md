@@ -24,11 +24,12 @@
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
   **286 fautes réparées sans clic (18,5 %) · 243 rattrapables en un clic · 15 mots justes cassés (0,32 %)**
   **· 68 rouges appliqués vers un AUTRE mauvais mot (5,4 % des ratés)** — colonne posée le 07/09, invisibles avant
-  (ils tombaient en MUET). Mesuré le 10/09/2026 ; le 15ᵉ cassé (revérrons→revérerons) est une casse du PRODUIT, vue enfin.
+  (ils tombaient en MUET), **dont 37 « bon lemme, mauvaise flexion »** (54 %). Mesuré le 10/09/2026 ; le 15ᵉ cassé
+  (revérrons→revérerons) est une casse du PRODUIT, vue enfin.
   produit ne fait que proposer (→ 239/14 le 05/09, palier vigilance porté), puis la référence a reçu ce que le
   produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09). Accord de palier produit↔référence sur le gold : **100 %**
   (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le
-  produit » (#659 → #679, dix maillons) est close : 286/15 est le POINT, plus une borne (à `atStart` et une découpe près).
+  produit » (#659 → #679, dix maillons) est close : 286/15 est le POINT, plus une borne (hors accord : 1, une autre famille).
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
   À l'échelle : 1,40 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 03/09/2026.
