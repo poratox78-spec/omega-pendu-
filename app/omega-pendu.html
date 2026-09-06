@@ -24723,9 +24723,9 @@ window.addEventListener('DOMContentLoaded', () => {
     var inf=lw.slice(0,-1)+'er';
     return SP.WORDS.has(inf)&&(SP.POS[inf]||'').indexOf('V')>=0;}
   var PLURAL_DET={};'les des ces leurs mes tes ses nos vos quels quelles plusieurs certains certaines quelques aux'.split(' ').forEach(function(w){PLURAL_DET[w]=1;});
-  var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du'].forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
+  var VSTOP={};['ne','me','te','se','le','la','les',"l'",'en','y','que','qu','qui','si','ou','et','ni','car','or','ce','ces','de','des','du','lui'].forEach(function(w){VSTOP[w]=1;});   /* 'lui' (12/09/2026) : VERB_LEX le connaît (luire) → « lui a apeller »→à, casse — miroir Python VLIKE_STOP */Object.keys(NUM_DET).forEach(function(w){VSTOP[w]=1;});Object.keys(NUM_PRON).forEach(function(w){VSTOP[w]=1;});
   function vlike(T,i){if(i<0||i>=T.length)return false;if(isVerb(T,i))return true;var w=deacc(T[i].toLowerCase());if(VSTOP[w])return false;if(!COMMON_VERBS[w])return false;
-    if(i>0&&NUM_DET[T[i-1].toLowerCase()]){                                          // « le porte » reste un NOM…
+    if(i>0&&(NUM_DET[T[i-1].toLowerCase()]||{du:1,au:1,aux:1}[T[i-1].toLowerCase()])){   /* du/au/aux (12/09/2026) : contractions = déterminants, « du travaille a permises » ne lit plus un verbe — miroir Python */                                          // « le porte » reste un NOM…
       // …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08, parité Python vlike). « Il CE met a pousser » : la
       // garde déterminant tue la lecture VERBALE, et la cascade suit — vlike(met)=false → rA ne tranche
       // plus → la garde a/à de rEer ne tire pas → « pousser » devient « poussé », un mot JUSTE cassé.

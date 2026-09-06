@@ -80,14 +80,14 @@
       "titre": "INSTRUMENT — le juge (dys_pipeline_probe) compte les accents : colonne stricte posée",
       "verdict": "`_strict()` à côté de `DP.eq` (qui désaccentue) ; le chiffre historique ne bouge pas. Mesuré le 12/09/2026 : 273 fautes d'accent seul invisibles avant, 165 réparées (60,4 %), 4 accents cassés (a → à), lus un par un : 1 erreur du gold (rendu à l'ASEI), 1 ambigu sans le sens (« se manifestent a un cocar » = « ce manifestant a un cocard »), 2 vraies casses réparables (lui à appeller, à permises — tracées jusqu'à vlike).",
       "ref": "JOURNAL 2026-09-12 · dys_pipeline_probe.py (bloc ACCENTS)"
+    },
+    {
+      "titre": "ROUGE a/à : « lui a apeller » → à, « du travaille a permises » → à — 2 casses réparées par deux gardes de vlike (3 moteurs)",
+      "verdict": "« lui » rejoint VLIKE_STOP/VSTOP (il était verbe via luire) ; la garde déterminant de vlike connaît du/au/aux. Recensé sur UD (203 « a » protégés, 0 FP nouveau) et le corpus dys (0 rappel perdu). Mesuré le 12/09/2026 : colonne accents cassés 4 → 1 (reste l'ambigu « se manifestent a un cocar » ; le gold « rendu a l'ASEI » corrigé à part), FP échelle 1,40 → 1,36 %, chiffre historique inchangé, palier 100 %, parités intactes.",
+      "ref": "JOURNAL 2026-09-12 (suite)"
     }
   ],
   "ouverts": [
-    {
-      "titre": "ROUGE — a/à casse « a » devant un verbe mal orthographié : « lui a apeller » → à, « a permises » → à (2 casses réelles, vues par la colonne accents)",
-      "etat": "Vu le 12/09/2026 avec la colonne stricte, tracé jusqu'à `vlike` : « lui » est dans VERB_LEX (luire) → vlike(lui)=True → « à » ; « du travaille » : la garde déterminant de vlike connaît NUM_DET (le/la/les…) mais pas les contractions du/au/aux → « travaille » lu verbe → « à ». Deux gardes de vlike (VLIKE_STOP + 'lui' ; NUM_DET ∪ {du, au, aux}), 3 moteurs. Recensé sur UD : clitique + « a » 203 corrects, + « à » 2 (un typo UD, « l'à propos ») ; DETu + vlike + « à » 6 (tous « dû + infinitif », à exclure) ; corpus dys : 11 « a » protégés, 0 rappel perdu. Mesurer : colonne accents (cassés 4 → 2), batterie, UD 1,40 %, palier, juge. À part : corriger la ligne 30 du gold privé (rendu à l'ASEI) ; le cas « se manifestent a un cocar » reste (ambigu sans le sens).",
-      "ref": "JOURNAL 2026-09-12"
-    },
     {
       "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
       "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. ② FAIT le 11/09 (nuit, suite) : `_AFIX_MIN`, 13 formes nues closes, minuscules seulement, 3 moteurs — la fausse orange disparaît, FP=0 tenu. Reste dans l'ordre : ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",

@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-09-12 (suite) — ROUGE a/à : « lui » n'est jamais un verbe, « du/au/aux » sont des déterminants — 2 casses réparées, FP échelle 1,40 → 1,36 %
+
+> Les 2 vraies casses vues par la colonne accents (« le garagiste lui **a** apeller » → à, « du travaille **a** permises » → à), tracées
+> jusqu'à `vlike` la veille. Rouge prioritaire (consigne de Rem). Deux gardes de DONNÉES dans `vlike`, trois moteurs.
+
+- **Cause ①** : `lui` est dans le lexique verbal (luire : « il a lui ») → `vlike(lui)` vrai → la branche « après un verbe → préposition »
+  de a/à pose « à ». Garde : `lui` rejoint VLIKE_STOP / VSTOP (un clitique n'est jamais un verbe ici).
+- **Cause ②** : la garde déterminant de `vlike` (« le porte » reste un nom) connaît NUM_DET (le/la/les/un/une/mon…) mais pas les
+  contractions du/au/aux → « du travaille » lu verbe. Garde : NUM_DET ∪ {du, au, aux}.
+- **Recensé avant de poser** (UD GSD train, 14 450 phrases correctes) : clitique + « a » 203 (protégés), clitique + « à » 2 (un typo
+  UD « il n'y à rien », « l'à propos ») ; DET + vlike + « à » 6, tous « dû + infinitif » (« dû » ≠ « du », la garde teste le token
+  exact). Corpus dys (72 productions) : 11 « a » protégés, 0 rappel perdu (le seul « DET + vlike » vers « à » est « Il ce met a
+  pousser », dont l'exception « ce » écrit pour « se » est conservée).
+- **Mesuré** : référence ≡ produit sur les deux phrases (plus de « à ») ; témoins intacts (« va a la plage », « chez lui a vélo »,
+  « pense a lui » → à ; « nous a dit » muet). **Colonne accents : cassés 4 → 1** (les 2 gardes ; le gold de « rendu a l'ASEI » corrigé
+  à part → 274 fautes d'accent, 166 réparées, 60,6 %) — reste l'ambigu « se manifestent a un cocar ». Chiffre historique inchangé
+  (286 · 244 · 14 · 67). **FP à l'échelle 1,40 → 1,36 %** (35 → 34 / 2 500). Batterie FP=0 verte · accord de palier 100 % ·
+  dys-core ⊆ Py · dictée Py↔JS · impératif · speller ext ≡ app · textes : inchangés.
+- **Leçon** : la colonne d'instrument posée la veille a livré ses deux premières casses en une lecture — et les deux étaient des
+  DONNÉES de `vlike` (un homographe verbal rare, une liste de déterminants incomplète), pas la règle a/à elle-même.
+
+---
+
 ## 2026-09-12 — INSTRUMENT : le juge compte enfin les accents — 273 fautes d'accent seul, 165 réparées, 4 « cassés » lus un par un
 
 > Chantier ouvert la veille en posant `_AFIX_MIN` : 5 réparations réelles, chiffre de référence immobile. Cause : `DP.eq` compare

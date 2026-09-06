@@ -193,7 +193,7 @@ def vlike(T, i):
     w = deacc(T[i].lower())
     if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
     if w not in VERB_LEX: return False
-    if i > 0 and T[i-1].lower() in NUM_DET:                                # « le porte » reste un NOM…
+    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux')):   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du travaille a permises » → « à » était une casse)
         # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Il CE met a pousser » : le
         # scripteur confond ce/se, la garde déterminant tue alors la lecture VERBALE — et la cascade suit :
         # vlike(met)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « pousser »
@@ -210,7 +210,8 @@ def vlike(T, i):
 # faisaient mordre les règles à tort sur du texte réel. On les exclut de la détection verbale (mesuré : -FP).
 VLIKE_STOP = (set(NUM_DET) | set(NUM_PRON) |
               {'ne', 'me', 'te', 'se', 'le', 'la', 'les', "l'", 'en', 'y', 'que', 'qu', 'qui',
-               'si', 'ou', 'et', 'ni', 'car', 'or', 'ce', 'ces', 'de', 'des', 'du'})
+               'si', 'ou', 'et', 'ni', 'car', 'or', 'ce', 'ces', 'de', 'des', 'du',
+               'lui'})   # ⭐ 12/09/2026 : « lui » est dans VERB_LEX (luire) → vlike(lui)=True → « le garagiste lui a apeller » → « à » (casse vue par la colonne accents). Un clitique n'est jamais un verbe ici.
 
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
