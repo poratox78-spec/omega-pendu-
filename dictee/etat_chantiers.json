@@ -65,12 +65,17 @@
       "titre": "Le « e » muet du futur croyait à des verbes rares — GARDE MESURÉE (3 moteurs)",
       "verdict": "Recensé le 11/09/2026 sur tout le dys local + 2 500 UD + 98 GEC : 8 tirs justes (oublirais/oublirait/oublirez, lemme oublier 77/M) contre 2 faux (révérer 0/M, fauter 0,05/M), 0 sur UD. Garde : le verbe reconstruit doit être courant (≥ 1/M) — app, extension et référence à l'identique (omega_edit). Effet : revérrons → reverrons (auto, par l'accent), fautra → faudra proposé ; pipeline 286 / 14 cassés (−1) / 67 appliqués faux (−1) / 244 un-clic (+1) ; accord de palier 100 % inchangé. Premier chantier de moteur mesuré avec le juge aligné.",
       "ref": "JOURNAL 2026-09-11 · dys-core.js l.2955 · app l.27433"
+    },
+    {
+      "titre": "Textes d'explication de l'audit du 11/09 : 3 faux, 2 absents, 2 hors cadre — corrigés, app ≡ extension, sonde en CI",
+      "verdict": "dictee/textes_probe.js (rouge d'abord : 26 attentes non tenues sur main 602a3ad) lit le 💡 et les remèdes sur 7 phrases fautives + 3 témoins, et compare REMED/_HSUB/_HPROBE app ≡ ext. Test « mordre » réservé aux finales qui changent de nature (_ervk) ; 💡 -er/-é fenêtré (_erHint) ; c'est/s'est (_HPROBE, _HSUB) ; le cardinal d'à côté commande (_CARD_PL) sans indice contradictoire sur un nom ; circonflexe muet ; inconnu sans suggestion = surface, pas accent ; -ont/-ons = terminaison de « nous ». Aucune règle de moteur touchée (parités inchangées).",
+      "ref": "JOURNAL 2026-09-11 (nuit) · AUDIT_CORRECTEUR_2026-09-11.md §2"
     }
   ],
   "ouverts": [
     {
       "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
-      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. À corriger dans l'ordre : ① TEXTES — REMED.accord sert « mordre » sur un nom (clé→clés), ctxHint muet sur -er/-é, c'est/s'est générique, gouverneur « ma » pour « huit heure », accent é/è servi pour un circonflexe, apostrophe classée accent ; ② « Ma mere » → Mon (fausse orange : `mere` NOM m 6,66/M dans Lexique4, mère 630/M) → recenser puis _AFIX ; ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
+      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. Reste dans l'ordre : ② « Ma mere » → Mon (fausse orange : `mere` NOM m 6,66/M dans Lexique4, mère 630/M) → recenser puis _AFIX ; ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
       "ref": "dictee/AUDIT_CORRECTEUR_2026-09-11.md · JOURNAL 2026-09-11 (soir)"
     },
     {
