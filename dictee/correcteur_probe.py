@@ -3526,6 +3526,32 @@ def rule_noun_plural(T, i):
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
 
+
+# ⭐ ADJECTIF ANTÉPOSÉ APRÈS DÉTERMINANT PLURIEL (12/09/2026, plan ⑤-a de l'audit). Le plus gros silence du juge est
+# « bon lemme, mauvaise flexion » (329 muets sur 72 productions), et sa première forme est le PLURIEL manquant (-e→-es 99,
+# -∅→-s 34). Parmi eux : « les prochaine demande », « des bonne nouvelle », « les autre console », « les jeune lycéen » —
+# l'ADJECTIF antéposé reste au singulier après un déterminant pluriel. Or après un déterminant pluriel NON AMBIGU (classe
+# fermée, audible), un adjectif antéposé (classe fermée, _ADJ_ANTE) est TOUJOURS au pluriel : l'ancre est la même que celle
+# d'« accord pluriel nom », sans le doute du nom (verbe homographe, posterior) — on ne touche PAS au nom ici (il suit par
+# sa propre règle quand sa garde passe). Recensé : gold_claude 11 motifs (tous au pluriel dans le gold) ; UD 14 450 : le seul
+# motif correct est l'ORDINAL coordonné (« ses premier et sixième ») → premier/dernier EXCLUS, ainsi que demi et les formes
+# invariables (gros, vieux, mauvais) et bel/nouvel/vieil (jamais après un pluriel). Garde trait d'union (« grand-mères »).
+_ADJ_ANTE_PL = {'grand': 'grands', 'grande': 'grandes', 'petit': 'petits', 'petite': 'petites', 'grosse': 'grosses', 'beau': 'beaux', 'belle': 'belles', 'joli': 'jolis', 'jolie': 'jolies', 'jeune': 'jeunes', 'vieille': 'vieilles', 'nouveau': 'nouveaux', 'nouvelle': 'nouvelles', 'bon': 'bons', 'bonne': 'bonnes', 'mauvaise': 'mauvaises', 'long': 'longs', 'longue': 'longues', 'court': 'courts', 'courte': 'courtes', 'haut': 'hauts', 'haute': 'hautes', 'meilleur': 'meilleurs', 'meilleure': 'meilleures', 'moindre': 'moindres', 'seul': 'seuls', 'seule': 'seules', 'meme': 'mêmes', 'autre': 'autres', 'prochain': 'prochains', 'prochaine': 'prochaines', 'ancien': 'anciens', 'ancienne': 'anciennes', 'propre': 'propres', 'pauvre': 'pauvres', 'vrai': 'vrais', 'vraie': 'vraies', 'simple': 'simples', 'double': 'doubles', 'plein': 'pleins', 'pleine': 'pleines', 'gentil': 'gentils', 'gentille': 'gentilles', 'brave': 'braves', 'cher': 'chers', 'chere': 'chères'}
+
+
+def rule_adj_ante_plural(T, i):
+    if i == 0: return None
+    if deacc(T[i - 1].lower()) not in PLURAL_DET: return None            # déterminant pluriel NON AMBIGU (les/des/ces/mes/tes/ses/nos/vos/leurs)
+    w = T[i]
+    if not w.isalpha() or w != w.lower(): return None                    # capitalisé = nom propre / début → abstention
+    pl = _ADJ_ANTE_PL.get(deacc(w))
+    if not pl: return None
+    if _SEG is not None and ((i < len(_SEG['hy']) and _SEG['hy'][i]) or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])): return None   # trait d'union AVANT ou APRÈS (« grand-mères », « petit-fils ») : composé, invariable — hy[k] = trait dans l'espace qui PRÉCÈDE le token k
+    # « les » est aussi PRONOM (« il les autre… » n'existe pas, mais « on les grand… » non plus) : après « les », exiger un
+    # mot qui SUIT (nom ou adjectif) — jamais en fin de phrase (« il les seul » ≠ groupe nominal).
+    if deacc(T[i - 1].lower()) == 'les' and not (i + 1 < len(T) and T[i + 1][:1].isalpha()): return None
+    return pl if pl != w else None
+
 # Adjectifs ANTÉPOSÉS du français — classe fermée (c'est ce qui rend la traversée sûre). Formes
 # déaccentuées, masc/fém/pluriel confondus : le déterminant en tête porte déjà le nombre.
 _ADJ_ANTE = frozenset(('grand grande grands grandes petit petite petits petites gros grosse grosses '
@@ -4546,6 +4572,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_incise),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
+         ('accord adjectif antéposé', rule_adj_ante_plural),
          ('accord pluriel nom', rule_noun_plural),
          ('accord singulier nom', rule_noun_singular),
          ('usage être/avoir', rule_aux_usage),
@@ -4579,6 +4606,11 @@ CASES = [
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
+    ("Voici les prochaines demandes", "prochaines", "prochaine", "accord adjectif antéposé"),
+    ("J'avais des bonnes nouvelles", "bonnes", "bonne", "accord adjectif antéposé"),
+    ("Les autres consoles marchent", "autres", "autre", "accord adjectif antéposé"),
+    ("Ils ont des grandes sociétés", "grandes", "grande", "accord adjectif antéposé"),
+    ("On voit des nouveaux modèles", "nouveaux", "nouveau", "accord adjectif antéposé"),
     ("Elle a l'âge de raison", "l'âge", "l'age", "accent (âge)"),
     ("C'était une belle journée", "C'était", "C'étais", "étais après c'/s'"),
     ("Elle a grandi très vite", "grandi", "grandit", "participe après avoir"),

@@ -22,10 +22,10 @@
 - Trois moteurs à parité gardée en CI : **référence Python** (`dictee/correcteur_probe.py`, `speller_probe.py`, `diag_sentence.py`) ·
   **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
-  **294 fautes réparées sans clic (19,1 %) · 244 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
-  **· 73 rouges appliqués vers un AUTRE mauvais mot (5,8 % des ratés)** — colonne posée le 07/09, invisibles avant
-  (ils tombaient en MUET), **dont 42 « bon lemme, mauvaise flexion »** (58 %). Mesuré le 12/09/2026 — 286 → 294 le 12/09 parce que
-  le juge admet enfin l'apostrophe (la couche élision du produit lui était invisible), pas parce que le produit a changé.
+  **305 fautes réparées sans clic (19,8 %) · 244 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
+  **· 73 rouges appliqués vers un AUTRE mauvais mot (5,9 % des ratés)** — colonne posée le 07/09, invisibles avant
+  (ils tombaient en MUET), **dont 42 « bon lemme, mauvaise flexion »** (58 %). Mesuré le 13/09/2026 — 286 → 294 le 12/09 par
+  l'instrument (le juge admet l'apostrophe), 294 → 305 le 13/09 par le moteur (accord de l'adjectif antéposé, +11).
   produit ne fait que proposer (→ 239/14 le 05/09, palier vigilance porté), puis la référence a reçu ce que le
   produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09 ; → 286/14 le 11/09, moteur). Accord de palier : **100 %**
   (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le

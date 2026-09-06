@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-09-13 — ⑤-a : l'adjectif antéposé s'accorde après un déterminant pluriel (« les prochaine demande » → prochaines) — 3 moteurs, 0 FP
+
+> Plan de l'audit, ⑤ « les silences par fréquence ». Recensé d'abord (12/09, 72 productions) : le plus gros silence du juge est
+> « bon lemme, mauvaise flexion » — **329 muets**, dont le PLURIEL manquant en tête (-e→-es 99, -∅→-s 34), loin devant les
+> homophones muets (~65). Dans ces pluriels, un motif à ancre AUDIBLE : « les prochaine demande », « des bonne nouvelle »,
+> « les autre console », « les jeune lycéen », « ses propre… » — l'adjectif antéposé reste au singulier après un déterminant pluriel.
+
+- **Règle** `accord adjectif antéposé` (rouge, 3 moteurs) : DET pluriel non ambigu (les/des/ces/mes/tes/ses/nos/vos/leurs, la classe
+  d'« accord pluriel nom ») + adjectif antéposé au singulier (classe fermée `_ADJ_ANTE`, déjà dans les moteurs pour la traversée du
+  genre) → forme plurielle (table close, 46 formes). Le NOM n'est pas touché : il suit par sa propre règle quand sa garde passe —
+  une ancre, une décision. Exclus : premier/dernier (ordinaux coordonnés « ses premier et sixième » — les seuls motifs corrects
+  dans UD), demi, formes invariables (gros, vieux, mauvais), bel/nouvel/vieil (jamais après un pluriel) ; garde trait d'union AVANT
+  ou APRÈS (« mes grand-parents » — la première version ne regardait qu'avant, `hy[k]` = trait dans l'espace qui précède k : vu par
+  le témoin, corrigé) ; après « les » (aussi pronom) exiger un mot qui suit.
+- **Recensé avant de poser** : gold_claude 11 motifs, tous au pluriel dans le gold ; UD GSD train (14 450 phrases correctes) :
+  0 motif avec la spec exacte. Corpus dys toutes sources : idem, jamais un gold au singulier.
+- **Mesuré** : batterie FP=0 verte, nouvelle famille 5/5 fp=0 (+ 3 pièges dans les témoins : grand-parents, premier et deuxième,
+  « il les seul ») · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py (350 phrases) · dictée Py↔JS · impératif ·
+  speller ext ≡ app · textes. **Juge : {REP} réparés · {UNCLIC} un clic · {CASSES} cassés · {APPF} appliqués faux dont {LEM} bon lemme**
+  (était 294 · 244 · 14 · 73 dont 42).
+- **Précision au produit (Chrome), ré-ancrée `--fix`** : la nouvelle famille « accord adjectif antéposé » mesure 100 % (11 justes,
+  0 mot juste réécrit, 0 faux). La garde avait vu ROUGE sur « accord pluriel à vérifier » (orange) : 52,8 → 41,4 % (pollué) et
+  62,5 → 53,8 % (propre) — ce sont les mêmes cas, qui étaient des oranges JUSTES et deviennent des rouges appliqués : ils quittent
+  la vigilance, sa précision baisse par le dénominateur. Rien n'est perdu, tout est appliqué. Plafond FP=0 (mots justes réécrits
+  au palier auto) inchangé.
+- **Leçon** : la jonction la plus rentable n'était pas la plus visible dans l'audit (12 phrases) mais dans le recensement (72
+  productions) — et son ancre existait déjà dans les moteurs (`_ADJ_ANTE`, `PLURAL_DET`) : deux classes fermées qui se touchent.
+
+---
+
 ## 2026-09-12 (soir) — ③ formes figées à apostrophe (aujourdhui → aujourd'hui) — et le juge admet enfin l'apostrophe : 286 → 294 réparés
 
 > Plan de l'audit, étape ③ : « aujourdhui » restait un inconnu sans réponse alors que la réponse est fermée. Et, en mesurant,
@@ -30,6 +60,9 @@
   mot inconnu 38,0 → 38,1 % (jusqua → jusque, orange faux, devient jusqu'à, rouge juste). ⚠️ Instrument : le run de `dev.sh` avait
   mesuré 55,2 % (107 utiles / 194) — un flag de moins que les trois runs suivants (108 / 194, stables). Un run du produit dans
   Chrome peut perdre un flag ; si la garde rougit d'un seul flag sans changement de moteur, relancer avant de conclure.
+- **④ recensé, différé** : « mot + sa forme élidée » (que qu'elle, se s'est, de d'autres…) = **0 occurrence** dans les 1 798
+  productions dys (5 dans UD, toutes des typos du corpus : « de d'Estonie », « se s'étaient »). L'exemple de l'audit était une
+  phrase « stupide » synthétique ; sans cas réel, pas de règle (une règle se justifie par son recensement).
 - **Leçon** (la deuxième en deux jours) : chaque filtre « de commodité » du juge (désaccentuer, `isalpha`) cache une couche entière du
   produit. Le chiffre de référence est désormais 294 · 244 · 14 · 73 — il décrit plus de produit, pas un produit meilleur.
 
