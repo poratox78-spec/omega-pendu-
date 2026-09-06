@@ -58,13 +58,17 @@
     return (_VOY.indexOf(a)>=0)===(_VOY.indexOf(b)>=0);
   }
   var _VIBRE = { b:1, d:1, g:1, v:1, z:1, j:1 };                       // consonnes VOISÉES : la gorge vibre
+  function _ervk(w){w=String(w||'').toLowerCase();return /er$/.test(w)?'er':/ez$/.test(w)?'ez':/é(e|s|es)?$/.test(w)?'é':null;}   // NATURE d'une finale de 1er groupe : -er / -ez / -é(e)(s) — le test « mordre » ne vaut qu'entre DEUX natures (audit 11/09/2026)
   var _HSUB = { a:'avait', 'à':'avait', et:'et puis', est:'était', son:'mon', sont:'étaient', on:'il',
                 ont:'avaient', ou:'ou bien', 'où':'à quel endroit', ces:'ces …-là', ses:'les siens',
                 ce:'cela', se:'lui-même', sa:'la sienne', 'ça':'cela', mais:'pourtant', mes:'les miens',
                 peu:'un peu', peut:'pouvait', 'la':'le', 'là':'ici', 'ni':'et pas', 'n’y':'n’y en',
                 /* « sait » : la forme d'épreuve est celle de SAVOIR. « le train savait arrêté » ne se
                    dit pas → c'est « s'est ». Sans cette entrée le conseil tombait sur le générique. */
-                sait:'savait', sais:'savais' };
+                sait:'savait', sais:'savais',
+                /* « c'est » = « cela est » (audit 11/09/2026) : « Elle cela est trompé » ne se dit pas → c'est « s'est ».
+                   Sans cette entrée le conseil tombait sur le générique « a→avait, et→et puis, son→mon ». */
+                "c'est":'cela est' };
   var REMED={
     voisee_sourde:function(e,a){var d=_rd(e,a);
       if(d&&d.e.length===1&&d.a.length===1){var x=d.e.toLowerCase(),y=d.a.toLowerCase(),v=_VIBRE[y]?y:(_VIBRE[x]?x:null);
@@ -80,6 +84,11 @@
     // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème. Comparer
     // bêtement les caractères au point de divergence donnait « ce son s’écrit m, pas e » — absurde.
     surface:function(e,a){var d=_rd(e,a);
+      // ⭐ AUDIT 11/09/2026 (vrai Chrome) : « aujourdhui » sans suggestion arrivait ici avec e === a, et la carte parlait
+      // d'ACCENTS (« les accents s'entendent ») — il manque une apostrophe. Un inconnu sans réponse n'a qu'un conseil : relire.
+      if(e&&a&&String(e).toLowerCase()===String(a).toLowerCase())return '« '+e+' » n’est pas dans le dictionnaire : relis-le lettre à lettre (une lettre ou une apostrophe manque peut-être), ou cherche-le.';
+      // « avont → avons » (même audit) disait « ce son s'écrit s, pas t » : ce n'est pas un SON, c'est la terminaison de « nous ».
+      if(d&&d.e==='t'&&d.a==='s'&&/ont$/i.test(e)&&/ons$/i.test(a))return _pr(e,a)+'-ons, c’est « nous » ; -ont, c’est « ils ». Ici c’est la terminaison du verbe, pas un son.';
       if(d&&d.e===''&&d.a){
         if(d.a.length===1&&a.charAt(d.p-1)===d.a)return _pr(e,a)+'ici la consonne « '+d.a+' » est DOUBLE.';
         return _pr(e,a)+'il manque '+_lt(d.a)+'.';}
@@ -95,9 +104,12 @@
       if(d&&d.e&&d.a&&d.e.length<=3&&d.a.length<=3&&_mm(d.e,d.a))return _pr(e,a)+'ici ce son s’écrit « '+d.a+' », pas « '+d.e+' ».';
       if(d&&_mm(e.charAt(d.p),a.charAt(d.p)))return _pr(e,a)+'ici ce son s’écrit « '+a.charAt(d.p)+' », pas « '+e.charAt(d.p)+' ».';
       return _pr(e,a)+'même son, autre graphie — compare au mot modèle (/s/ → s, ss, c, ç).';},
-    accent:function(e,a){var ch=[],i;
-      if(e&&a&&e.length===a.length)for(i=0;i<e.length;i++)if(e.charAt(i)!==a.charAt(i))ch.push(e.charAt(i)+'→'+a.charAt(i));
-      if(ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Dis-le à voix haute — é ferme, è ouvre.';
+    accent:function(e,a){var ch=[],circ=0,i;
+      if(e&&a&&e.length===a.length)for(i=0;i<e.length;i++)if(e.charAt(i)!==a.charAt(i)){ch.push(e.charAt(i)+'→'+a.charAt(i));if(/[âîôû]/i.test(a.charAt(i)))circ++;}
+      /* ⭐ CIRCONFLEXE (audit 11/09/2026) : « chateau → château » disait « é ferme, è ouvre » — le circonflexe sur a, i, o, u
+         ne s'ENTEND pas, on ne peut pas « le dire à voix haute ». Il se mémorise : lettre disparue (hospital → hôpital). */
+      if(ch.length&&circ===ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Le circonflexe ne s’entend pas : il garde la trace d’une lettre disparue (hospital → hôpital). Photographie le mot.';
+      if(ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Dis-le à voix haute — é ferme, è/ê ouvre.';
       return _pr(e,a)+'les accents s’entendent — é ferme, è/ê ouvre. Dis le mot à voix haute avant de choisir.';},
     muette:function(e,a){var d=_rd(e,a);
       if(d&&d.e===''&&d.a)return _pr(e,a)+_lt(d.a)+' ne s’entend pas. Cherche un mot de la même famille où on l’entend.';
@@ -140,12 +152,17 @@
       // ⭐ -er / -é : le TEST DU 3e GROUPE, et rien d'autre. « manger/mangé » sont homophones, pas
       // « mordre/mordu » — c'est le test que tout le monde apprend, et il tranche à coup sûr. Il
       // passe AVANT l'accord générique, qui disait « repère qui commande » sur une terminaison.
-      if(e&&a&&/(er|é|ée|és|ées|ez)$/i.test(e)&&/(er|é|ée|és|ées|ez)$/i.test(a))
-        return _pr(e,a)+'remplace le verbe par « mordre » — si « mordre » sonne juste c’est l’infinitif -er, si c’est « mordu » c’est le participe -é.';
+      // ⭐ AUDIT 11/09/2026 (vrai Chrome) : « clé → clés » passait ici, et la carte disait « remplace le verbe par mordre »
+      // — sur un NOM. Le test ne vaut que si la finale CHANGE DE NATURE (-er ↔ -é/-ée/-és/-ées ↔ -ez) : un -s ajouté à
+      // « clé » est un pluriel, pas un infinitif. Gardé par dictee/textes_probe.js.
+      var ke=_ervk(e),ka=_ervk(a);
+      if(ke&&ka&&ke!==ka)
+        return _pr(e,a)+'remplace le verbe par « mordre » — si « mordre » sonne juste c’est l’infinitif -er, si c’est « mordu » c’est le participe -é'+((ke==='ez'||ka==='ez')?', si c’est « mordez » c’est -ez (vous)':'')+'.';
       if(d&&d.e===''&&d.a==='nt')return _pr(e,a)+'le sujet est au PLURIEL, il manque le « nt » du verbe.';
       if(d&&d.a===''&&d.e==='nt')return _pr(e,a)+'le sujet est au SINGULIER, le « nt » est en trop.';
       if(d&&d.e===''&&(d.a==='s'||d.a==='x'))return _pr(e,a)+'il manque le « '+d.a+' » du pluriel — regarde ce qui commande.';
       if(d&&d.a===''&&(d.e==='s'||d.e==='x'))return _pr(e,a)+'ici c’est le singulier, le « '+d.e+' » est en trop.';
+      if(d&&d.e===''&&d.a==='es')return _pr(e,a)+'il manque « es » : le féminin ET le pluriel — cherche qui commande.';
       if(d&&d.e===''&&d.a==='e')return _pr(e,a)+'il manque le « e » du féminin — cherche qui commande l’accord.';
       return _pr(e,a)+'repère QUI COMMANDE (déterminant, sujet) et accorde en genre et en nombre.';},
     segmentation:function(e,a){
@@ -3644,7 +3661,8 @@ function spellUnknown(tok,atStart,T,idx){
     else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
     else if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu\/peux\/peut$|^mais\/mes$|^leur\/leurs$|^sais\/sait$/.test(n))t='homophone_gram';   // miroir app : le NOM avant les heuristiques de forme
     else if(/participe/.test(n))t='participe';   // miroir app : le NOM avant l'heuristique d'accent
-    else if(w&&sg&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';
+    else if(/terminaison -er/.test(n))t='accord';   // ⭐ audit 11/09/2026 : -er/-é est un ACCORD de forme verbale (test « mordre »), il tombait en homophone_gram → « remplace par a→avait »
+    else if(w&&sg&&w.toLowerCase()!==sg.toLowerCase()&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';   // ⭐ un « mot inconnu » SANS suggestion (w === sg) n'est pas un accent (audit 11/09 : aujourdhui)
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)
     else if(/^on\/ont/.test(n))t='homophone_gram';   // miroir app
     else if(/infinitif après semi/.test(n))t='personne';   // miroir app
@@ -3658,10 +3676,17 @@ function spellUnknown(tok,atStart,T,idx){
             remed:rem?rem.fams.map(function(t){return remedTip(t,rem.rep[t]);}):[]};}
   function spell(text){return SP.ready?spellText(text):[];}                                  // flags orthographe (auto/flag) seuls
   // HINT CONTEXTUEL (identique app) : homophone = test de substitution fenêtré ±2 mots ; accord = gouverneur réel. Texte BRUT (content.js échappe).
-  var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)']};
+  var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
   function _suggVerbNum(w){var rd=svReads(w),hp=false,hs=false,k;for(k=0;k<rd.length;k++){if(rd[k][2]!=='3')continue;if(rd[k][3]==='p'||rd[k][3]==='x')hp=true;else if(rd[k][3]==='s')hs=true;}return (hp&&!hs)?'pl':((hs&&!hp)?'sg':null);}   // nombre de la forme SUGGÉRÉE lue comme verbe 3e pers. ('pl'/'sg'/null) — détecte le gouverneur ARRIÈRE contradictoire (miroir app)
+  var _CARD_PL={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1,plusieurs:1,quelques:1};   // cardinaux ≥ 2 (mots) : gouverneur PLURIEL du nom qui suit (miroir app)
+  // ⭐ -er / -é (audit 11/09/2026) : ces corrections n'avaient AUCUN 💡 — la branche accord les exclut (le gouverneur n'y dit rien) et famHint rend ''.
+  // Le test que tout le monde apprend, fenêtré sur la phrase de l'élève : « mordre » (infinitif) / « mordu » (participe) / « mordez » (-ez). Miroir app _erHint.
+  function _erHint(f,T,i){var n=f.name||'';if(!/é\/er|terminaison -er/.test(n))return '';var sg=(f.sugg||'').toLowerCase(),km=/^(.*?)(er|ez|ées|és|ée|é)$/.exec(sg);if(!km)return '';
+    var pk=km[2]==='er'?'mordre':km[2]==='ez'?'mordez':'mordu',a=Math.max(0,i-2),b=Math.min(T.length,i+3),w=T.slice(a,b);w[i-a]=pk;
+    var me=km[2]==='er'?('infinitif « '+sg+' » (-er)'):km[2]==='ez'?('« '+sg+' » (-ez, vous)'):('participe « '+sg+' » (-'+km[2]+')'),oth=km[2]==='er'?('participe « '+km[1]+'é » (-é)'):('infinitif « '+km[1]+'er » (-er)');
+    return 'Astuce : remplace par « '+pk+' ». « '+(a>0?'…':'')+w.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+me+' · non → '+oth+'.';}
   function ctxHint(f,T){var i=f.i;if(typeof i!=='number'||!T||i>=T.length)return '';
-    var h=_HPROBE[f.name];
+    var h=_HPROBE[f.name];if(!h){var eh=_erHint(f,T,i);if(eh)return eh;}
     if(h){var a=Math.max(0,i-2),b=Math.min(T.length,i+3),win=T.slice(a,b);win[i-a]=h[0];
       return 'Astuce : remplace par « '+h[0]+' ». « '+(a>0?'…':'')+win.join(' ')+(b<T.length?'…':'')+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
     var n=f.name||'';
@@ -3672,8 +3697,10 @@ function spellUnknown(tok,atStart,T,idx){
     if((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)){
       var g=null,lab='';
       if(/genre/.test(n)){var gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
+      if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut que remontait governorNumber
       if(!g){var gn=governorNumber(T,i,isVerb(T,i)||isParticiple(T,i));
-        if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné (rPostpose…) : contrôleur EN AVANT ; gouverneur arrière contredit la suggestion (nombre ≠) → pas d'indice contradictoire (miroir app _accHint)
+        if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';
+          if(gn[1]==='sg'&&/nom/.test(n)&&/[sx]$/i.test(f.sugg||'')&&!/[sx]$/i.test(f.word||''))return '';   // un NOM mis au pluriel par la règle, un gouverneur arrière au singulier : l'indice serait contradictoire → silence (miroir app)   // sujet POSTPOSÉ/coordonné (rPostpose…) : contrôleur EN AVANT ; gouverneur arrière contredit la suggestion (nombre ≠) → pas d'indice contradictoire (miroir app _accHint)
           g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
       if(g)return 'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+(f.sugg||'')+' ».';}
     return famHint(f.sugg||'');}   // dernier recours : témoin de famille / règle -ment (n'écrase aucun indice existant)

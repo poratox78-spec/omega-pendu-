@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-09-11 (nuit) — TEXTES : les six défauts de l'audit corrigés, app ≡ extension, et une sonde qui les lit enfin
+
+> Plan de l'audit, étape ① (zéro risque FP : aucune règle ne change, seuls les textes et leur famille). Rem : « enchaine le plan ».
+
+- **L'instrument d'abord** : `dictee/textes_probe.js` charge le moteur de l'extension comme le produit et lit le 💡 (`ctxHint`)
+  et la ligne « remèdes » (`REMED`) sur les 7 phrases fautives de l'audit + 3 témoins. **Rouge d'abord : 26 attentes non tenues**
+  sur main `602a3ad` — exactement les constats du §2 du rapport. Aucun test ne lisait ces textes avant : ils dérivaient sans témoin.
+  La sonde compare aussi les blocs partagés app ≡ extension (`REMED` octet pour octet, `_HSUB`/`_HPROBE` aux blancs près).
+- **Les six corrections** (app et extension par `omega_edit`, à l'identique) :
+  ① `REMED.accord` ne sert « remplace le verbe par mordre » que si la finale **change de nature** (-er ↔ -é/-ée/-és/-ées ↔ -ez,
+  `_ervk`) — « clé → clés » dit maintenant « il manque le s du pluriel » ; « es » ajouté est nommé (féminin ET pluriel).
+  ② 💡 sur **-er/-é** (`_erHint`, miroir app/ext) : le test « mordre / mordu / mordez » fenêtré sur la phrase de l'élève, avec les
+  deux formes nommées — « …et j'ai mordu des glace » se dit ? oui → participe « mangé ». La famille `terminaison -er/-é/-ez/-ai`
+  passe en **accord** (elle tombait en homophone_gram → « remplace par a→avait »).
+  ③ **c'est/s'est** : entrée `_HPROBE` (« cela est ») et `_HSUB["c'est"]` — plus de générique.
+  ④ le **cardinal d'à côté commande** (`_CARD_PL`, avant `governorNumber`) : « huit heure » → « C'est « huit » (pluriel) », plus
+  le « ma » six mots plus haut ; et un nom mis au pluriel par la règle avec un gouverneur arrière singulier → silence (pas d'indice
+  contradictoire). Première version trop large : elle taisait « tu fait → fais » (un verbe en -s) — vue par le témoin, restreinte
+  aux règles de nom.
+  ⑤ **circonflexe** (`REMED.accent`) : a/i/o/u avec ^ ne s'entendent pas → « il garde la trace d'une lettre disparue » ; è/ê pour le reste.
+  ⑥ **mot inconnu sans suggestion** n'est plus classé accent (w === sg) : `REMED.surface` dit « n'est pas dans le dictionnaire, relis-le
+  lettre à lettre » ; et « avont → avons » parle de la terminaison de « nous », plus d'un son.
+- **Vert** : 10 phrases, 3 blocs ; parité dys-core↔Py 350 phrases, imp_probe, speller ext ≡ app, dictée Py↔JS, bake : inchangés.
+  Garde ajoutée à `dev.sh` et à la CI (90). La 0.6.4 (non téléversée) embarque ces textes.
+- **Leçon** : deux routes de texte (`REMED` par famille, `ctxHint` par correction) sans test commun se contredisaient sur la même
+  faute ; la sonde les lit ensemble, et la parité de bloc empêche l'app et l'extension de diverger à nouveau.
+
+---
+
 ## 2026-09-11 (soir) — AUDIT du correcteur dans le vrai Chrome : 24 phrases, 39 flags, FP=0 — les défauts sont dans les TEXTES
 
 > Demande de Rem : branchements, ordre des règles, textes d'explication, test dans le vrai Chrome sur fautes
