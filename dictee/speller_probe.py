@@ -463,7 +463,7 @@ class Speller:
         # scripteur a ENTENDU le R ; « oubliais » (distance 1 aussi) n'a pas ce son. Radical ≥ 4. C'est l'étape qui rend
         # « fautra »→fautera (auto) côté produit — vrai du produit, pas du gold (faudra).
         fm = re.match(r'^([a-zà-ÿ]{4,})r(ai|as|a|ons|ez|ont|ais|ait|aient)$', low) if low not in self.WORDS else None   # garde du produit : `!SP.WORDS.has(low)` — « il rentra », « je montrais » sont des formes VALIDES
-        if fm and deacc(fm.group(1) + 'er') in self.CONJ_C:
+        if fm and deacc(fm.group(1) + 'er') in self.CONJ_C and self.FREQ.get(fm.group(1) + 'er', 0.0) >= 1.0:   # GARDE (11/09/2026, mesurée) : le verbe reconstruit doit être COURANT (≥1/M) — 8 tirs justes (oublier 77/M) contre 2 faux (révérer 0, fauter 0,05) sur tout le dys local, 0 sur UD ; miroir app + dys-core
             fc = fm.group(1) + 'e' + 'r' + fm.group(2)
             if deacc(fc) in self.CONJ_F: return ('auto', fc)
         # ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08/2026) — mesuré sur le PIPELINE (`dys_pipeline_probe.py`).
