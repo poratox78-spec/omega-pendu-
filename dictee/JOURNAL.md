@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-09-12 — INSTRUMENT : le juge compte enfin les accents — 273 fautes d'accent seul, 165 réparées, 4 « cassés » lus un par un
+
+> Chantier ouvert la veille en posant `_AFIX_MIN` : 5 réparations réelles, chiffre de référence immobile. Cause : `DP.eq` compare
+> via `norm()`, qui désaccentue. Règle du dépôt : l'instrument avant le moteur — on ne repart sur les accents qu'avec un juge qui les voit.
+
+- **La colonne** : `_strict()` (mêmes tolérances d'élision/soudure que `eq`, sans désaccentuer) et trois compteurs à côté du
+  chiffre historique, qui ne bouge pas (comparable) : fautes d'accent seul, réparées, accents cassés sur des mots justes.
+- **Mesuré** (72 productions, 6 217 mots) : **273 fautes d'accent seul invisibles au juge principal, 165 réparées (60,4 %)**
+  — la famille la plus fréquente des dys était absente du chiffre qui pilote les décisions. Et **4 accents cassés**, tous « a → à »,
+  lus un par un :
+  · « je me suis rendu **a** l'ASEI » : le produit a raison (« à »), c'est le **gold qui est faux** (1 ligne de `gold_claude.jsonl`,
+    corpus privé — à corriger à part et re-mesurer).
+  · « un imanse pano **se manifestent a** un cocar » : le gold lit « ce manifestant **a** un cocard » (avoir) — le produit, qui voit
+    « se manifestent » (verbe), pose « à ». **Ambigu sans le sens** : une casse réelle mais hors de portée d'une règle de surface.
+  · « le garagiste lui **a** apeller un taxi » → « à » et « la modernisation du travaille **a** permises une réduction » → « à » :
+    **2 vraies casses réparables**, tracées jusqu'à `vlike` : « lui » est dans le lexique verbal (luire) → verbe → « à » ;
+    « du travaille » : la garde déterminant de `vlike` connaît le/la/les mais pas les contractions du/au/aux → « travaille » lu
+    verbe → « à ». Rouge prioritaire : chantier de moteur ouvert (deux gardes de `vlike`, 3 moteurs, recensées sur UD).
+- **Leçon** : un juge « tolérant » cache exactement ce qu'il tolère. Les 286 réparés ne comptaient aucun accent restauré ; les 14
+  cassés ne comptaient aucun accent détruit. Désormais les deux colonnes se lisent ensemble.
+
+---
+
 ## 2026-09-11 (nuit, suite) — SPELLER : les formes nues qui polluent le lexique (« Ma mere ») — et le juge ne voit pas les accents
 
 > Plan de l'audit, étape ② : la fausse orange « Ma **mere** → Mon » (§1.1 du rapport). Chantier de MOTEUR, 3 moteurs, recensé avant d'être posé.

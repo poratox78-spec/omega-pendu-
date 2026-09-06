@@ -30,6 +30,8 @@
   produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09 ; → 286/14 le 11/09, moteur). Accord de palier : **100 %**
   (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le
   produit » (#659 → #679, dix maillons) est close : 286/14 est le POINT, plus une borne (hors accord : 1, une autre famille).
+  **Accents comptés à part depuis le 12/09** (le juge désaccentue) : 273 fautes d'accent seul, 165 réparées (60 %), 4 cassés
+  (1 gold faux, 1 ambigu, 2 vraies casses a/à réparables).
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
   À l'échelle : 1,40 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 03/09/2026.
