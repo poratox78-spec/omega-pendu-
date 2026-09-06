@@ -27430,7 +27430,7 @@ function spellTokenCore(tok,atStart,T,idx){
        n'a PAS ce son ; la reconstruction sonore prime. Radical ≥ 4 (« tetra »→tetera via téter = l'unique
        tir du flood 16 950). L'élision est déballée par spellToken (l'oublirais → oublirais). */
     if(!SP.WORDS.has(low)){var _fm=low.match(/^([a-zà-ÿ]{4,})r(ai|as|a|ons|ez|ont|ais|ait|aient)$/);
-      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]){var _fc=_fm[1]+'e'+'r'+_fm[2];
+      if(_fm&&CONJ_C[deacc(_fm[1]+'er')]&&(SP.FREQ[_fm[1]+'er']||0)>=1.0){var _fc=_fm[1]+'e'+'r'+_fm[2];   // GARDE (11/09/2026, mesurée) : le verbe reconstruit doit être COURANT (≥1/M). Recensement sur tout le dys local : 8 tirs justes (oublirais/oublirait/oublirez, oublier 77/M) contre 2 faux (« revérrons »→revérerons, révérer 0/M, alors que reverrons est à l'accent près ; « fautra »→fautera, fauter 0,05/M) — le seuil sépare parfaitement, 0 tir sur 2 500 UD. Miroir app + Python.
         if(CONJ_F[deacc(_fc)])return["auto",_fc];}}
 
     var _OEL={soeur:"sœur",soeurs:"sœurs",coeur:"cœur",coeurs:"cœurs",choeur:"chœur",choeurs:"chœurs",oeuf:"œuf",oeufs:"œufs",oeuvre:"œuvre",oeuvres:"œuvres",boeuf:"bœuf",boeufs:"bœufs",oeil:"œil",voeu:"vœu",voeux:"vœux",noeud:"nœud",noeuds:"nœuds",moeurs:"mœurs",manoeuvre:"manœuvre",manoeuvres:"manœuvres",oeillet:"œillet",oeillets:"œillets",oesophage:"œsophage",foetus:"fœtus"};

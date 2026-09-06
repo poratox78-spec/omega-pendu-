@@ -1,8 +1,8 @@
 {
  "paires": 1798,
  "planchers": {
-  "orthographe|vigilance": 54.7,
-  "orthographe|auto": 89.9,
+  "orthographe|vigilance": 54.8,
+  "orthographe|auto": 90.3,
   "orthographe|flag": 77.3,
   "grammaire:accord pluriel nom|auto·pollué": 83.3,
   "grammaire:accord singulier nom|auto·pollué": 96.1,
@@ -77,6 +77,6 @@
   "grammaire:ça/sa|auto·propre": 100.0,
   "grammaire:étais après c'/s'|auto·propre": 100.0
  },
- "inutile_auto": 29,
+ "inutile_auto": 28,
  "note": "Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse rougit ; une hausse est un GAIN à ré-ancrer (--fix)."
 }

@@ -5,6 +5,29 @@
 
 ---
 
+## 2026-09-11 — MOTEUR : le « e » muet du futur ne croit plus aux verbes rares (3 moteurs, garde mesurée)
+
+> Premier chantier de MOTEUR mesuré avec le juge aligné (série close, #679). La référence avait rendu visible ce que
+> le produit faisait vraiment : `revérrons`→revérerons (15ᵉ cassé) et `fautra`→fautera (appliqué faux).
+
+**① LE RECENSEMENT AVANT LA RÈGLE.** Toutes les fois où l'étape (PR#505 : « je ne t'oublirais jamais ») tire, sur TOUT
+le dys local (4 corpus gold + dictées + audit), sur 2 500 phrases UD correctes et sur les 98 GEC :
+- **8 tirs justes**, tous sur *oublier* (oublirais ×4, oublirait ×2, oublirez ×2 — lemme 77 /M, formes 0,68 à 1,9 /M) ;
+- **2 tirs faux** : `revérrons`→revérerons (lemme « revérer » 0 /M — et *reverrons* était là, à l'accent près, 3,8 /M) ;
+  `fautra`→fautera (lemme *fauter* 0,05 /M, forme 0,003 /M ; *faudra* à distance 1, 59 /M) ;
+- **0 tir sur UD, 0 sur GEC.**
+Le trait qui sépare parfaitement : la FRÉQUENCE DU VERBE RECONSTRUIT. Garde : `radical+er` doit être courant (≥ 1 /M,
+le seuil AUTO de la maison). Pas de seuil sur la forme (oublierait 0,68 /M passerait mal), pas de règle sur l'accent.
+
+**② LES TROIS MOTEURS, à l'identique** — `dys-core.js` l.2955, `app/omega-pendu.html` l.27433 (via `tools/omega_edit`,
+fins de ligne et zone de parité vérifiées), `speller_probe.py` : `&& (SP.FREQ[radical+'er'] || 0) >= 1.0`. Témoins **8 / 8**
+identiques Python ≡ produit : les trois *oublier* restent en auto ; `fautra` → **faudra** (vigilance, c'est le gold) ;
+`revérrons` → **reverrons auto** — la casse devient une réparation, par la voie de l'accent qui était là depuis le début.
+**③ MESURÉ, avec le juge aligné.** Accord de palier produit↔référence : **100 % (880/880)**, inchangé — les deux moteurs ont bougé à l'identique (`fautra` : auto → vigilance des deux côtés). Pipeline : **286 réparés = · 14 cassés (−1 : `revérrons` n'est plus cassé) · 67 appliqués faux (−1 : `fautra`) · 244 un-clic (+1 : `fautra`→faudra proposé, c'est le gold)** · dont bon lemme, mauvaise flexion 37 (55 %). Parité Python↔JS : 0 divergence nouvelle (2 ancres) · batterie §1 AUTO=0, §3-§5 verts · FP à l'échelle 1,40 % (Python) et 38 ≤ 48 (JS) · speller app AUTO FP=0 · extension ≡ app · précision (référence) : `orthographe|auto` 90,3 % avec **0 mot juste réécrit** (le plafond redescend 29 → 28), `flag` 77,3 %, `vigilance` 54,8 %.
+
+
+---
+
 ## 2026-09-10 (suite) — trois pièces d'instrument : `atStart`, les autres familles du produit, « bon lemme, mauvaise flexion »
 
 > Après la clôture de la série (#679), avant de toucher au moteur : l'instrument d'abord. Les deux hors accord de la

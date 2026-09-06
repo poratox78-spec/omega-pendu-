@@ -60,6 +60,11 @@
       "titre": "Étapes de spellTokenCore absentes de la référence — TOUTES PORTÉES (série « la référence décrit le produit », #659 → #679)",
       "verdict": "Dix maillons, chacun vu rouge avant d'être cru : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666 · palier vigilance #670 · contexte-first + DET_G #672 · tokeniseur #673 · OMISSION + _DPAIR #677 · briques de contexte (fenêtre du nombre, invariables, tables de genre) #678 · les six dernières étapes (_AFIX, e muet du futur, soudure à/a+verbe, élongation, _slipMot auto, _aux participe) #679. Accord de palier produit↔référence sur le gold : 92,4 % (05/09) → 100,0 % (880/880, 10/09), même mot 295/295 · 181/181 · 129/129. Le chiffre de référence (286 / 15) décrit le produit au palier près ; il n'est plus une borne. Hors accord réduit à 1 le 10/09 (suite) : atStart aligné (≡ premier token du texte), et « ere » est « la 1ere » traité par le produit en famille « nombre » — la garde le dit désormais (« produit : autre famille »).",
       "ref": "JOURNAL 2026-09-10 · palier_gold_ref.json"
+    },
+    {
+      "titre": "Le « e » muet du futur croyait à des verbes rares — GARDE MESURÉE (3 moteurs)",
+      "verdict": "Recensé le 11/09/2026 sur tout le dys local + 2 500 UD + 98 GEC : 8 tirs justes (oublirais/oublirait/oublirez, lemme oublier 77/M) contre 2 faux (révérer 0/M, fauter 0,05/M), 0 sur UD. Garde : le verbe reconstruit doit être courant (≥ 1/M) — app, extension et référence à l'identique (omega_edit). Effet : revérrons → reverrons (auto, par l'accent), fautra → faudra proposé ; pipeline 286 / 14 cassés (−1) / 67 appliqués faux (−1) / 244 un-clic (+1) ; accord de palier 100 % inchangé. Premier chantier de moteur mesuré avec le juge aligné.",
+      "ref": "JOURNAL 2026-09-11 · dys-core.js l.2955 · app l.27433"
     }
   ],
   "ouverts": [
@@ -92,11 +97,6 @@
       "titre": "Validation terrain orthophonistes",
       "etat": "EN SUSPENS (décision Rem 04/09 : compliqué à obtenir) — vraies copies dys externes ; valide ET nourrit la boucle descendante ; la fiche imprimable existe (validation_terrain.html)",
       "ref": "CLAUDE.md (audit projet ⏳) · dictee/build_validation_sheet.py"
-    },
-    {
-      "titre": "Le « e » muet du futur croit à des verbes rares (casse réelle du produit)",
-      "etat": "Vu le 10/09/2026 quand la référence a reçu l'étape : « revérrons »→revérerons (révérer+ons, gold reverrons) est CASSÉ par le produit (auto), « fautra »→fautera (fauter) appliqué faux. L'étape (PR#505) réinsère le e muet dès que radical+er est un verbe des tables — même un verbe rare. Chantier de MOTEUR (3 moteurs), à mesurer avec le juge aligné ; pistes : seuil de fréquence sur le lemme, ou abstention si la forme sans e est à distance 1 d'une forme fréquente (reverrons).",
-      "ref": "JOURNAL 2026-09-10 · dys-core.js l.2950-2956"
     },
     {
       "titre": "Les 68 appliqués FAUX : 37 sont « bon lemme, mauvaise flexion »",
