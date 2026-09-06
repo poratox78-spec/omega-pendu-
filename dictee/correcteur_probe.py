@@ -3558,6 +3558,27 @@ def rule_adj_ante_plural(T, i):
     if deacc(T[i - 1].lower()) == 'les' and not (i + 1 < len(T) and T[i + 1][:1].isalpha()): return None
     return pl if pl != w else None
 
+
+# ⭐ NOM FÉMININ EN -ée ÉCRIT -é APRÈS DÉTERMINANT FÉMININ (13/09/2026, plan ⑤-c de l'audit, paquet B). Recensé sur les 55 muets
+# « féminin manquant » des 72 productions : « la cheminé », « une parti », « une fumé », « la vu » — le nom prend la forme du participe
+# masculin. Ancre = le déterminant FÉMININ non ambigu (une/la/cette/ma/ta/sa) juste avant + une forme d'une liste CLOSE de noms en -ée
+# (la forme écrite est un participe/adjectif masculin, jamais un nom féminin). UD 14 450 : 0 occurrence. Pas de règle pour le paquet A
+# (participes après « je me suis » : le genre de « je » est inconnaissable) ni E (adjectif après nom féminin : « la voiture sur », « la mer
+# sauf », « sa voiture cher » = 3 pièges pour 2 cibles dans le gold — différé).
+_FEM_EE = {'soiré': 'soirée', 'cheminé': 'cheminée', 'fumé': 'fumée', 'vu': 'vue', 'armé': 'armée', 'parti': 'partie', 'entré': 'entrée', 'arrivé': 'arrivée', 'journé': 'journée', 'anné': 'année', 'idé': 'idée', 'pensé': 'pensée', 'allé': 'allée', 'monté': 'montée', 'duré': 'durée', 'matiné': 'matinée', 'poupé': 'poupée', 'dicté': 'dictée', 'rentré': 'rentrée', 'sorti': 'sortie', 'tourné': 'tournée', 'randonné': 'randonnée', 'bouché': 'bouchée', 'poigné': 'poignée', 'vallé': 'vallée', 'rosé': 'rosée', 'plongé': 'plongée', 'traversé': 'traversée', 'levé': 'levée', 'gelé': 'gelée', 'fessé': 'fessée', 'coulé': 'coulée', 'percé': 'percée', 'mêlé': 'mêlée', 'croisé': 'croisée'}
+_DET_FEM_SUR = frozenset(('une', 'la', 'cette', 'ma', 'ta', 'sa'))
+
+
+def rule_fem_ee(T, i):
+    if i == 0: return None
+    if deacc(T[i - 1].lower()) not in _DET_FEM_SUR: return None
+    w = T[i]
+    if not w.isalpha() or w != w.lower(): return None
+    f = _FEM_EE.get(w)
+    if not f: return None
+    if _SEG is not None and ((i < len(_SEG['hy']) and _SEG['hy'][i]) or (i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])): return None   # composé à trait d'union
+    return f
+
 # Adjectifs ANTÉPOSÉS du français — classe fermée (c'est ce qui rend la traversée sûre). Formes
 # déaccentuées, masc/fém/pluriel confondus : le déterminant en tête porte déjà le nombre.
 _ADJ_ANTE = frozenset(('grand grande grands grandes petit petite petits petites gros grosse grosses '
@@ -4579,6 +4600,7 @@ RULES = [('élision inversée', rule_deselide),
          ('genre déterminant', rule_det_gender),
          ('accord tout', rule_tout_det),
          ('accord adjectif antéposé', rule_adj_ante_plural),
+         ('nom féminin en -ée', rule_fem_ee),
          ('accord pluriel nom', rule_noun_plural),
          ('accord singulier nom', rule_noun_singular),
          ('usage être/avoir', rule_aux_usage),
@@ -4613,6 +4635,10 @@ CASES = [
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
     ("Voici les prochaines demandes", "prochaines", "prochaine", "accord adjectif antéposé"),
+    ("Il allume la cheminée", "cheminée", "cheminé", "nom féminin en -ée"),
+    ("On voit une fumée noire", "fumée", "fumé", "nom féminin en -ée"),
+    ("Regarde la vue", "vue", "vu", "nom féminin en -ée"),
+    ("Une partie de tennis", "partie", "parti", "nom féminin en -ée"),
     ("Les jeunes lycéens arrivent", "lycéens", "lycéen", "accord pluriel nom"),
     ("Les nouvelles technologies avancent", "technologies", "technologie", "accord pluriel nom"),
     ("Il a des petits chats noirs", "chats", "chat", "accord pluriel nom"),
