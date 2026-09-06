@@ -2,7 +2,7 @@
 
 > ✅ **PUBLIÉE le 28/08/2026** — revue Google passée, état « Publié · public ».
 > Fiche : https://chromewebstore.google.com/detail/dbochkbaechbemahapplibbhmfkcldln
-> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.0** — **0.6.2 téléversée par Rem le 03/09/2026**, puis **0.6.3 téléversée le 04/09/2026** (revue Google en cours)
+> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.0** — **0.6.2 téléversée par Rem le 03/09/2026**, puis **0.6.3 téléversée le 04/09/2026** (revue Google en cours) — **0.6.4 PRÊTE le 11/09/2026, non téléversée** : le « e » muet du futur exige un verbe courant (garde mesurée, 3 moteurs ; `revérrons` n'est plus cassé)
 >
 > Ce fichier reste le **dossier de soumission** : tout ce qui se colle dans la console développeur est
 > écrit ici, prêt à copier, et sert tel quel pour **chaque mise à jour** — le §3 (fiche), le §4
@@ -25,7 +25,7 @@
 | 10 | Captures d'écran 1280×800 (1 à 5) | ✅ fournies par Rem |
 | 11 | Remplir la fiche + les justifications, envoyer | ✅ envoyé et **accepté** le 28/08/2026 |
 | 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
-| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ montée à **0.6.3** le 03/09/2026 — la **0.6.2 a été téléversée par Rem le 03/09/2026** (état de main après #652 : lexique 705 653 formes, questions sans trait d'union, panneau latéral qui applique, relative en « qui », parseur de sujet d'abord). La 0.6.3 rattrape **#654** (règles de forme avant le nombre, « faire » semi-auxiliaire, participe présent après « en », gardes de sujet). ⚠️ Un numéro remis à Rem est brûlé : bumper le manifest AVANT de reconstruire un paquet. |
+| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ montée à **0.6.4** le 11/09/2026 (garde du e muet du futur, `manifest.json`) — auparavant **0.6.3** le 03/09/2026 — la **0.6.2 a été téléversée par Rem le 03/09/2026** (état de main après #652 : lexique 705 653 formes, questions sans trait d'union, panneau latéral qui applique, relative en « qui », parseur de sujet d'abord). La 0.6.3 rattrape **#654** (règles de forme avant le nombre, « faire » semi-auxiliaire, participe présent après « en », gardes de sujet). ⚠️ Un numéro remis à Rem est brûlé : bumper le manifest AVANT de reconstruire un paquet. |
 | 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ paragraphe du §3 collé à l'envoi du 28/08/2026 |
 | 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.3) | ✅ régénéré le 03/09/2026 par `python3 extension/build_zip.py --store` — ✅ **téléversé par Rem le 04/09/2026** (revue Google en cours ; la prochaine mise à jour devra être > 0.6.3) |
 
