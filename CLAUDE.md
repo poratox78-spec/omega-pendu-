@@ -22,18 +22,18 @@
 - Trois moteurs à parité gardée en CI : **référence Python** (`dictee/correcteur_probe.py`, `speller_probe.py`, `diag_sentence.py`) ·
   **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
-  **286 fautes réparées sans clic (18,5 %) · 243 rattrapables en un clic · 15 mots justes cassés (0,32 %)**
-  **· 68 rouges appliqués vers un AUTRE mauvais mot (5,4 % des ratés)** — colonne posée le 07/09, invisibles avant
-  (ils tombaient en MUET), **dont 37 « bon lemme, mauvaise flexion »** (54 %). Mesuré le 10/09/2026 ; le 15ᵉ cassé
-  (revérrons→revérerons) est une casse du PRODUIT, vue enfin.
+  **286 fautes réparées sans clic (18,5 %) · 244 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
+  **· 67 rouges appliqués vers un AUTRE mauvais mot (5,3 % des ratés)** — colonne posée le 07/09, invisibles avant
+  (ils tombaient en MUET), **dont 37 « bon lemme, mauvaise flexion »** (55 %). Mesuré le 11/09/2026 — la casse du produit
+  vue le 10/09 (revérrons→revérerons) est RÉPARÉE le 11/09 : le « e » muet du futur exige un verbe courant (3 moteurs).
   produit ne fait que proposer (→ 239/14 le 05/09, palier vigilance porté), puis la référence a reçu ce que le
-  produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09). Accord de palier produit↔référence sur le gold : **100 %**
+  produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09 ; → 286/14 le 11/09, moteur). Accord de palier : **100 %**
   (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le
-  produit » (#659 → #679, dix maillons) est close : 286/15 est le POINT, plus une borne (hors accord : 1, une autre famille).
+  produit » (#659 → #679, dix maillons) est close : 286/14 est le POINT, plus une borne (hors accord : 1, une autre famille).
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
   À l'échelle : 1,40 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 03/09/2026.
-- Extension Chrome = pivot produit : **0.6.2 téléversée au Web Store (03/09, revue en cours)**, 0.6.3 prête. Dossier : `extension/STORE.md`.
+- Extension Chrome = pivot produit : **0.6.3 téléversée au Web Store (04/09, revue en cours)**, 0.6.4 prête (11/09, moteur). Dossier : `extension/STORE.md`.
 - Corpus : `data_local/dys_reel` (privé, hors git ; `OMEGA_DYS_DATA=` pour un worktree). ⚠️ 92,7 % de sondes à faute unique —
   lire `python3 dictee/corpus_profile_probe.py` avant d'interpréter tout pourcentage « dys ».
 
