@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-09-12 (soir) — ③ formes figées à apostrophe (aujourdhui → aujourd'hui) — et le juge admet enfin l'apostrophe : 286 → 294 réparés
+
+> Plan de l'audit, étape ③ : « aujourdhui » restait un inconnu sans réponse alors que la réponse est fermée. Et, en mesurant,
+> un deuxième angle mort du juge (après les accents) : `pyramide` n'appliquait que les suggestions `isalpha()`.
+
+- **Recensement** (la règle se justifie par lui) : Lexique4 compte 34 formes figées à apostrophe hors élisions (quelqu'un 838/M,
+  aujourd'hui 370, jusqu'à…). Leurs soudures ne sont un mot ni au speller ni dans UD (14 450 phrases : 0). Corpus dys (1 798
+  productions) : **quelquun 1, jusqua 1, aujourdhui 0** — rare, mais fermé et sans risque. Exclus : entraide, quelquefois,
+  prud'homme (mots). Cibles à apostrophe SEULE (« parceque » relève de la segmentation, pas du speller).
+- **Règle** : `_APOS_FIX` (14 soudures closes → cible à apostrophe), après `_AFIX_MIN`, auto, 3 moteurs. `REMED.segmentation` ne dit
+  plus « l'article est élidé » sur une forme figée : « mot figé : il s'écrit toujours avec l'apostrophe ». `textes_probe` : le cas
+  « aujourdhui » attend maintenant « aujourd'hui », et un témoin (« xylophonage ») garde le texte de l'inconnu sans réponse.
+- **Produit ≡ speller de référence** (auto aujourd'hui, quelqu'un, jusqu'à, Aujourd'hui, lorsqu'il ; quelquefois/entraide muets)
+  — mais **la référence, elle, ne disait rien** : `pyramide` filtre les suggestions par `sg.isalpha()` (garde contre l'ESPACE,
+  qui désaligne les tokens) et rejetait l'apostrophe avec. Les tokens du juge la portent déjà (`DP.TOK`) : `_mot()` admet
+  l'apostrophe, l'espace reste exclu.
+- **Mesuré**, et le chiffre BOUGE — par l'instrument d'abord : avec l'apostrophe admise et SANS la liste ③, réparés 286 → {SEUL_REP},
+  appliqués faux 67 → {SEUL_APPF} (dont bon lemme {SEUL_LEM}) : c'est toute la couche ÉLISION du produit (Jai → J'ai, jaimerai →
+  j'aimerai…) que le juge ne voyait pas — ni ses réussites, ni ses « bon lemme, mauvaise flexion » (j'aimerai / gold j'aimerais).
+  Avec la liste ③ : **294 réparés (19,1 %) · 244 un clic · 14 cassés · 73 appliqués faux dont 42 bon lemme**. Batterie FP=0 verte ·
+  FP échelle 1,36 % · accord de palier 100 % · parités speller/dys-core/dictée/impératif/ext ≡ app · textes 11 phrases.
+- **Précision au produit (Chrome), ré-ancrée `--fix`** : orthographe vigilance·propre 55,4 → 55,7 %, auto·propre 93,1 → 93,2 %,
+  mot inconnu 38,0 → 38,1 % (jusqua → jusque, orange faux, devient jusqu'à, rouge juste). ⚠️ Instrument : le run de `dev.sh` avait
+  mesuré 55,2 % (107 utiles / 194) — un flag de moins que les trois runs suivants (108 / 194, stables). Un run du produit dans
+  Chrome peut perdre un flag ; si la garde rougit d'un seul flag sans changement de moteur, relancer avant de conclure.
+- **Leçon** (la deuxième en deux jours) : chaque filtre « de commodité » du juge (désaccentuer, `isalpha`) cache une couche entière du
+  produit. Le chiffre de référence est désormais 294 · 244 · 14 · 73 — il décrit plus de produit, pas un produit meilleur.
+
+---
+
 ## 2026-09-12 (suite) — ROUGE a/à : « lui » n'est jamais un verbe, « du/au/aux » sont des déterminants — 2 casses réparées, FP échelle 1,40 → 1,36 %
 
 > Les 2 vraies casses vues par la colonne accents (« le garagiste lui **a** apeller » → à, « du travaille **a** permises » → à), tracées

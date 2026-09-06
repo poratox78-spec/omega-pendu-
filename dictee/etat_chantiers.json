@@ -85,12 +85,17 @@
       "titre": "ROUGE a/à : « lui a apeller » → à, « du travaille a permises » → à — 2 casses réparées par deux gardes de vlike (3 moteurs)",
       "verdict": "« lui » rejoint VLIKE_STOP/VSTOP (il était verbe via luire) ; la garde déterminant de vlike connaît du/au/aux. Recensé sur UD (203 « a » protégés, 0 FP nouveau) et le corpus dys (0 rappel perdu). Mesuré le 12/09/2026 : colonne accents cassés 4 → 1 (reste l'ambigu « se manifestent a un cocar » ; le gold « rendu a l'ASEI » corrigé à part), FP échelle 1,40 → 1,36 %, chiffre historique inchangé, palier 100 %, parités intactes.",
       "ref": "JOURNAL 2026-09-12 (suite)"
+    },
+    {
+      "titre": "③ formes figées à apostrophe écrites soudées (aujourdhui, quelquun, jusqua…) → auto, liste close, 3 moteurs — et le juge admet l'apostrophe",
+      "verdict": "Recensé : soudures absentes du speller et de UD (0 FP possible), rares dans le corpus dys (quelquun 1, jusqua 1). `_APOS_FIX` après `_AFIX_MIN`. L'instrument avait un 2e angle mort : `pyramide` rejetait toute suggestion non-`isalpha()`, donc l'apostrophe — la couche élision du produit était invisible. Ouvert le 12/09 (`_mot`, espace toujours exclu) : réparés 286 → 294, appliqués faux 67 → 73 (dont bon lemme 42), cassés 14 inchangés.",
+      "ref": "JOURNAL 2026-09-12 (soir)"
     }
   ],
   "ouverts": [
     {
       "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
-      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. ② FAIT le 11/09 (nuit, suite) : `_AFIX_MIN`, 13 formes nues closes, minuscules seulement, 3 moteurs — la fausse orange disparaît, FP=0 tenu. Reste dans l'ordre : ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
+      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. ② FAIT le 11/09 (nuit, suite) : `_AFIX_MIN`, 13 formes nues closes, minuscules seulement, 3 moteurs — la fausse orange disparaît, FP=0 tenu. ③ FAIT le 12/09 (soir) : `_APOS_FIX`, 14 soudures closes, 3 moteurs — et le juge admet l'apostrophe (286 → 294). Reste dans l'ordre : ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
       "ref": "dictee/AUDIT_CORRECTEUR_2026-09-11.md · JOURNAL 2026-09-11 (soir)"
     },
     {

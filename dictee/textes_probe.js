@@ -47,8 +47,12 @@ const CAS = [
     remed: { oui: ['avont » → « avons » : -ons, c’est « nous »', 'marcher » → « marché » : remplace le verbe par « mordre »'],
              non: ['ce son s’écrit « s »', 'forme sûre'] } },
   { t: 'Il fais froid aujourdhui.',
-    mots: { aujourdhui: { sugg: 'aujourdhui' } },
-    remed: { oui: ['« aujourdhui » n’est pas dans le dictionnaire'], non: ['accents s’entendent', 'é ferme'] } },
+    mots: { aujourdhui: { sugg: "aujourd'hui" } },
+    remed: { oui: ['mot figé : il s’écrit toujours avec l’apostrophe'], non: ['accents s’entendent', 'é ferme', 'l’article est élidé'] } },
+  // l'inconnu SANS suggestion garde son texte (plan ③ : « aujourdhui » a maintenant une réponse, « xylophonage » non)
+  { t: 'Il fais froid, quel xylophonage.',
+    mots: { xylophonage: { sugg: 'xylophonage' } },
+    remed: { oui: ['« xylophonage » n’est pas dans le dictionnaire'], non: ['accents s’entendent'] } },
   // témoins : ce qui était JUSTE le 11/09 doit le rester
   { t: "Je suis allé a la plage et j'ai manger des glace.",
     mots: { a: { sugg: 'à', oui: ['remplace par « avait »', '« à » (préposition)'] }, glace: { sugg: 'glaces', oui: ['« des » (pluriel)'] } } },
