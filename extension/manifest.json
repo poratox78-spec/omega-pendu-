@@ -4,7 +4,7 @@
   "short_name": "Correcteur",
   "version": "0.6.4",
   "homepage_url": "https://omegapendu.com/",
-  "description": "Correcteur d'orthographe et de grammaire pour les dys : hors-ligne, dans le panneau latéral, avec stade et remédiation.",
+  "description": "Correcteur d'orthographe et de grammaire pour les troubles de la dyslexie : hors-ligne, panneau latéral, stade et remédiation.",
   "minimum_chrome_version": "114",
   "permissions": [
     "storage",

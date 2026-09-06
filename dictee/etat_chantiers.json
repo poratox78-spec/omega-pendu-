@@ -70,12 +70,22 @@
       "titre": "Textes d'explication de l'audit du 11/09 : 3 faux, 2 absents, 2 hors cadre — corrigés, app ≡ extension, sonde en CI",
       "verdict": "dictee/textes_probe.js (rouge d'abord : 26 attentes non tenues sur main 602a3ad) lit le 💡 et les remèdes sur 7 phrases fautives + 3 témoins, et compare REMED/_HSUB/_HPROBE app ≡ ext. Test « mordre » réservé aux finales qui changent de nature (_ervk) ; 💡 -er/-é fenêtré (_erHint) ; c'est/s'est (_HPROBE, _HSUB) ; le cardinal d'à côté commande (_CARD_PL) sans indice contradictoire sur un nom ; circonflexe muet ; inconnu sans suggestion = surface, pas accent ; -ont/-ons = terminaison de « nous ». Aucune règle de moteur touchée (parités inchangées).",
       "ref": "JOURNAL 2026-09-11 (nuit) · AUDIT_CORRECTEUR_2026-09-11.md §2"
+    },
+    {
+      "titre": "« Ma mere » → Mon : les formes nues qui polluent le lexique (mere, age, ame, reparer…) — auto vers la sœur accentuée, 3 moteurs",
+      "verdict": "Recensé avant d'être posé : 24 formes nues rares à sœur accentuée fréquente dans Lexique4, 13 retenues (non-mots sous toute graphie, 0 en minuscules sur 14 450 phrases UD, 16 occurrences dans le corpus dys toutes vers la sœur accentuée) ; exclues les formes valides (cote, prive, voila…) et les graphies de 1990 (maitre, ile, gout). `_AFIX_MIN` si tok === low. Référence ≡ produit : plus d'orange « Ma → Mon ». Batterie, FP échelle, palier 100 %, parités : inchangés. Le chiffre de référence ne bouge pas parce que le juge désaccentue (voir chantier ouvert).",
+      "ref": "JOURNAL 2026-09-11 (nuit, suite) · AUDIT_CORRECTEUR_2026-09-11.md §1.1"
     }
   ],
   "ouverts": [
     {
+      "titre": "INSTRUMENT — le juge (dys_pipeline_probe) ne voit pas les accents : 273 fautes d'accent seul invisibles, 4 « a → à » cassés invisibles",
+      "etat": "Vu le 11/09/2026 en posant _AFIX_MIN : 5 réparations réelles dans les 72 productions, chiffre de référence inchangé — `DP.eq` compare via `norm()` qui désaccentue. Comptage strict (accent_strict.py, scratchpad) : 273 fautes d'accent seul sur 6 217 mots, 160 → 165 réparées, et 4 accents cassés sur des mots justes (a → à ×4) que la colonne « cassés » ne voit pas. À faire AVANT tout chantier de moteur sur les accents : porter le comptage strict dans la sonde (colonnes « accents réparés » / « accents cassés »), ancrer, puis regarder les 4 a → à un par un (rouge prioritaire).",
+      "ref": "JOURNAL 2026-09-11 (nuit, suite) · dictee/dys_precision_probe.py norm()/eq()"
+    },
+    {
       "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
-      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. Reste dans l'ordre : ② « Ma mere » → Mon (fausse orange : `mere` NOM m 6,66/M dans Lexique4, mère 630/M) → recenser puis _AFIX ; ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
+      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. ② FAIT le 11/09 (nuit, suite) : `_AFIX_MIN`, 13 formes nues closes, minuscules seulement, 3 moteurs — la fausse orange disparaît, FP=0 tenu. Reste dans l'ordre : ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
       "ref": "dictee/AUDIT_CORRECTEUR_2026-09-11.md · JOURNAL 2026-09-11 (soir)"
     },
     {

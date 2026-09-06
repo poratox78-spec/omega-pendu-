@@ -2,12 +2,12 @@
  "paires": 1798,
  "planchers": {
   "grammaire:orthographe|vigilance·pollué": 55.2,
-  "grammaire:mot inconnu|vigilance·pollué": 33.3,
-  "grammaire:orthographe|auto·pollué": 93.1,
+  "grammaire:mot inconnu|vigilance·pollué": 38.0,
+  "grammaire:orthographe|auto·pollué": 93.9,
   "grammaire:orthographe|flag·pollué": 76.8,
   "grammaire:orthographe|vigilance·propre": 55.4,
-  "grammaire:orthographe|auto·propre": 93.0,
-  "grammaire:mot inconnu|vigilance·propre": 32.2,
+  "grammaire:orthographe|auto·propre": 93.1,
+  "grammaire:mot inconnu|vigilance·propre": 33.9,
   "grammaire:orthographe|flag·propre": 82.5,
   "grammaire:accord pluriel nom|auto·pollué": 82.3,
   "grammaire:accord singulier nom|auto·pollué": 100.0,
@@ -27,8 +27,8 @@
   "grammaire:accord verbe à vérifier|vigilance·pollué": 14.3,
   "grammaire:participe après avoir|auto·pollué": 100.0,
   "grammaire:élision fusionnée|auto·pollué": 30.8,
-  "grammaire:genre déterminant|vigilance·pollué": 61.5,
   "grammaire:ce/se|vigilance·pollué": 72.7,
+  "grammaire:genre déterminant|vigilance·pollué": 66.7,
   "grammaire:accord grammatical (é/er)|auto·propre": 80.0,
   "grammaire:accord adjectif épithète|auto·pollué": 100.0,
   "grammaire:accord sujet-verbe à vérifier|vigilance·pollué": 22.2,
@@ -42,7 +42,6 @@
   "grammaire:ça/sa|auto·pollué": 100.0,
   "grammaire:élision|flag·pollué": 0.0,
   "grammaire:élision inversée|auto·pollué": 80.0,
-  "grammaire:accent (âge)|auto·pollué": 100.0,
   "grammaire:c'est/s'est|auto·pollué": 100.0,
   "grammaire:-e/-é (participe)|auto·pollué": 50.0,
   "grammaire:accord participe|auto·pollué": 25.0,
@@ -106,6 +105,6 @@
   "grammaire:élision fusionnée|auto·propre": 0.0,
   "grammaire:étais après c'/s'|auto·propre": 100.0
  },
- "inutile_auto": 25,
+ "inutile_auto": 24,
  "note": "Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse rougit ; une hausse est un GAIN à ré-ancrer (--fix)."
 }

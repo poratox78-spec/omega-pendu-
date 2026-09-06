@@ -5,6 +5,38 @@
 
 ---
 
+## 2026-09-11 (nuit, suite) — SPELLER : les formes nues qui polluent le lexique (« Ma mere ») — et le juge ne voit pas les accents
+
+> Plan de l'audit, étape ② : la fausse orange « Ma **mere** → Mon » (§1.1 du rapport). Chantier de MOTEUR, 3 moteurs, recensé avant d'être posé.
+
+- **Cause** : `mere` EST une entrée de Lexique4 (NOM m, 6,66/M — sous-titres) à côté de `mère` (630/M). Le speller se tait sur un mot
+  « connu », la règle de genre lit un masculin. Même classe que `trés`/`aprés` (`_AFIX`), dans l'autre sens : la forme NUE pollue.
+- **Recensement** (la règle se justifie par lui, pas par l'exemple) : Lexique4, forme nue ≤ 30/M avec une sœur accentuée ≥ 30/M et
+  ≥ 10× → 24 formes, toutes dans le speller. Français correct (UD GSD train, 14 450 phrases) : **0 occurrence en minuscules** des 13
+  retenues ; en majuscule, « Ame V » (PROPN), « Special » (X), « l'Age d'Or » existent → **minuscules seulement**. Exclues : cote(s),
+  sacre, prive, enchante, coince, maries, voila (mots valides — « prive » est dans le corpus dys avec un gold identique : un FP
+  certain) ; maitre, ile, gout (graphies rectifiées de 1990, « le maitre de la campagne » est dans UD). Corpus dys (1 798 productions,
+  toutes sources) : **16 occurrences (mere 8, age 5, reparer 2, ame 1), toutes corrigées par le gold vers la sœur accentuée**.
+- **Règle** : `_AFIX_MIN` (13 formes closes), juste après `_AFIX`, si `tok === low`. Trois moteurs à l'identique (`omega_edit`).
+- **Mesuré** : référence ≡ produit sur la phrase de l'audit — « mere → mère » rouge, **plus d'orange « Ma → Mon »** (la règle de genre ne
+  lit plus le nom que le speller réécrit), « Ame V / maitre / gout / ile » muets. Batterie FP=0 verte · FP échelle 1,40 % (35/2 500)
+  inchangé · accord de palier 100 % (880/880) · parité speller 0 divergence nouvelle · ext ≡ app · dys-core ⊆ Py · textes_probe vert.
+  **Précision AU PRODUIT (extension dans Chrome, ré-ancrée `--fix`) : la garde a vu ROUGE parce que la famille « accent (âge) » a
+  DISPARU** — le speller prend « age » avant la règle de grammaire du même nom (le produit corrige la grammaire sur les tokens déjà
+  réécrits). Tout le reste monte : orthographe auto 93,1 → 93,9 % (pollué) et 93,0 → 93,1 % (propre), mot inconnu vigilance
+  33,3 → 38,0 % / 32,2 → 33,9 %, **genre déterminant vigilance 61,5 → 66,7 %** (les fausses oranges de la classe « mere »),
+  mots justes réécrits au palier auto 25 → 24. Rien ne baisse.
+- **Le chiffre de référence ne bouge PAS (286 · 244 · 14 · 67) — et c'est une trouvaille d'INSTRUMENT.** Les 72 productions du juge
+  contiennent pourtant 5 occurrences (mere ×2, reparer ×2, ame ×1), toutes réparées maintenant. Mais `DP.eq` compare via `norm()`,
+  qui **désaccentue** : pour le juge, « mere » et « mère » sont le même mot — la faute n'existait pas, la réparation non plus.
+  Comptage strict posé à côté (`scratchpad accent_strict.py`, à porter dans la sonde) : **273 fautes d'accent seul invisibles au juge**
+  sur 6 217 mots, **160 réparées avant → 165 après** (+5 = exactement les occurrences), et **4 accents CASSÉS sur des mots justes
+  (a → à ×4) que la colonne « cassés » ne voit pas**. Le juge qui pilote les décisions est aveugle à la famille de fautes la plus
+  fréquente des dys — et à quatre casses réelles du produit. Chantier d'instrument ouvert : colonne « accents » stricte dans
+  `dys_pipeline_probe` (réparés / cassés), AVANT tout nouveau chantier de moteur sur les accents.
+
+---
+
 ## 2026-09-11 (nuit) — TEXTES : les six défauts de l'audit corrigés, app ≡ extension, et une sonde qui les lit enfin
 
 > Plan de l'audit, étape ① (zéro risque FP : aucune règle ne change, seuls les textes et leur famille). Rem : « enchaine le plan ».

@@ -2,7 +2,7 @@
 
 > ✅ **PUBLIÉE le 28/08/2026** — revue Google passée, état « Publié · public ».
 > Fiche : https://chromewebstore.google.com/detail/dbochkbaechbemahapplibbhmfkcldln
-> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.0** — **0.6.2 téléversée par Rem le 03/09/2026**, puis **0.6.3 téléversée le 04/09/2026** (revue Google en cours) — **0.6.4 PRÊTE le 11/09/2026, non téléversée** : le « e » muet du futur exige un verbe courant (garde mesurée, 3 moteurs ; `revérrons` n'est plus cassé) **+ les textes d'explication de l'audit du 11/09** (6 corrections : test « mordre » réservé aux verbes, 💡 sur -er/-é, c'est/s'est, cardinal qui commande, circonflexe, mot inconnu sans suggestion — gardés par `dictee/textes_probe.js`)
+> ID : `dbochkbaechbemahapplibbhmfkcldln` · version en ligne : **0.6.0** — **0.6.2 téléversée par Rem le 03/09/2026**, puis **0.6.3 téléversée le 04/09/2026** (revue Google en cours) — **0.6.4 PRÊTE le 11/09/2026, non téléversée** : le « e » muet du futur exige un verbe courant (garde mesurée, 3 moteurs ; `revérrons` n'est plus cassé) **+ les textes d'explication de l'audit du 11/09** (6 corrections : test « mordre » réservé aux verbes, 💡 sur -er/-é, c'est/s'est, cardinal qui commande, circonflexe, mot inconnu sans suggestion — gardés par `dictee/textes_probe.js`) **+ `_AFIX_MIN`** (13 formes nues qui polluent le lexique — mere, age, ame, reparer… — auto vers la sœur accentuée, minuscules seulement ; la fausse orange « Ma mere → Mon » disparaît)
 >
 > Ce fichier reste le **dossier de soumission** : tout ce qui se colle dans la console développeur est
 > écrit ici, prêt à copier, et sert tel quel pour **chaque mise à jour** — le §3 (fiche), le §4
@@ -14,7 +14,7 @@
 | # | Point | État |
 |---|---|---|
 | 1 | Icônes 16/32/48/128 déclarées dans le manifeste | ✅ `extension/icons/`, dérivées de `icon-512.png` (`build_icons.py`) |
-| 2 | `description` du manifeste ≤ 132 caractères | ✅ 119 (elle en faisait **343** → refus automatique) |
+| 2 | `description` du manifeste ≤ 132 caractères | ✅ 126 (elle en faisait **343** → refus automatique ; « pour les troubles de la dyslexie » depuis le 11/09, demande de Rem) |
 | 3 | Paquet avec `manifest.json` **à la racine** du zip | ✅ `python3 extension/build_zip.py --store` |
 | 4 | `minimum_chrome_version` cohérent avec les API utilisées | ✅ `114` (c'est la version qui introduit `sidePanel`) |
 | 5 | Manifeste accepté par le parseur de Chrome lui-même | ✅ mesuré : `chrome --pack-extension` produit un `.crx` (cf. §8) |
@@ -61,7 +61,7 @@
 **Nom** (max 75) — `OMEGA-Ω — Correcteur dys`
 
 **Résumé court** (max 132, celui du manifeste) —
-`Correcteur d'orthographe et de grammaire pour les dys : hors-ligne, dans le panneau latéral, avec stade et remédiation.`
+`Correcteur d'orthographe et de grammaire pour les troubles de la dyslexie : hors-ligne, panneau latéral, stade et remédiation.`
 
 **Catégorie** — **Accessibilité** (et non « Productivité » : la cible est le trouble de l'écrit ; la
 catégorie est moins encombrée et dit la bonne promesse).
