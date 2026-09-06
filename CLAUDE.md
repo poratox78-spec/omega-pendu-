@@ -22,7 +22,7 @@
 - Trois moteurs à parité gardée en CI : **référence Python** (`dictee/correcteur_probe.py`, `speller_probe.py`, `diag_sentence.py`) ·
   **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
-  **308 fautes réparées sans clic (20,0 %) · 244 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
+  **312 fautes réparées sans clic (20,2 %) · 244 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
   **· 73 rouges appliqués vers un AUTRE mauvais mot (5,9 % des ratés)** — colonne posée le 07/09, invisibles avant
   (ils tombaient en MUET), **dont 42 « bon lemme, mauvaise flexion »** (58 %). Mesuré le 13/09/2026 — 286 → 294 le 12/09 par
   l'instrument (le juge admet l'apostrophe), 294 → 308 le 13/09 par le moteur (adjectif antéposé +11, puis le nom derrière lui).

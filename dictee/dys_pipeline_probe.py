@@ -100,6 +100,10 @@ def pyramide(txt):
             if d is None:
                 continue
             sg = d['sugg'] if isinstance(d, dict) else d
+            # ⑥ de l'audit (13/09/2026) : le produit garde la CASSE du token (ckeepcase) — la référence appliquait « on » sur « On »
+            # et affichait une « correction » de casse seule (vu le 11/09 dans le vrai Chrome : produit ≡ référence sauf « On → on »).
+            if isinstance(sg, str) and Tc[i][:1].isupper() and sg[:1].islower():
+                sg = sg[0].upper() + sg[1:]
             if isinstance(sg, str) and sg != Tc[i]:
                 # ⚠️ LE PALIER, comme dans le produit : ROUGE = appliqué d'office, ORANGE (vigilance) =
                 # proposé AU CLIC, jamais appliqué seul. Sans ce filtre la sonde comptait comme « cassés »

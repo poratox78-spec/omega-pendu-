@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-09-13 (soir) — ⑤-c : le féminin manquant — 55 muets en trois paquets, un seul a une ancre (« la cheminé » → cheminée)
+
+> Plan de l'audit, ⑤ « les silences par fréquence », troisième famille : le FÉMININ manquant (-∅ → -e, -é → -ée). Recensé sur les
+> 72 productions : **55 muets**, lus un par un, en trois paquets.
+
+- **(A) Le participe après « je me suis »** (réveille, douche, habille, préparé, réveillé, parti…) : le gold est féminin parce que
+  l'AUTEURE l'est — rien dans le texte ne le dit. Le genre de « je » est inconnaissable : **pas de règle** (une règle qui devinerait
+  casserait un « je » masculin une fois sur deux).
+- **(B) Le nom féminin en -ée écrit en -é** après un déterminant féminin : « la cheminé », « une parti », « une fumé », « la vu » (4 cas
+  gold, 0 dans UD 14 450). Ancre = déterminant féminin NON AMBIGU (une/la/cette/ma/ta/sa) + une forme d'une liste CLOSE (35 noms en -ée
+  dont la forme sans e est un participe/adjectif masculin, jamais un nom féminin) → **règle « nom féminin en -ée »**, rouge, 3 moteurs,
+  garde trait d'union. Pièges vérifiés muets : « la fin », « la mort », « une partie », « il a vu la mer », « elle a fumé ».
+- **(E) L'adjectif après un nom féminin** (« une course convivial », « la voiture fini », « puissance mondial », « l'Afrique austral ») :
+  la même ancre (DET fém + nom fém sûr + adjectif masc à féminin connu) trouve dans le gold **2 cibles pour 3 pièges** (« la voiture
+  SUR », « la mer SAUF », « sa voiture CHER » — prépositions et adverbes homographes) et 97 motifs dans UD (« sur », participes
+  présents). **Différé** : il faudrait exclure les homographes et le participe présent, et l'ancre resterait fragile (« la maison du
+  voisin bleu »). Le paquet le plus gros de ⑤-c reste donc muet, honnêtement.
+- **Mesuré (B)** : batterie 4/4 fp=0 · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif ·
+  speller ext ≡ app · textes. **Juge : {REP} réparés · {UNCLIC} un clic · {CASSES} cassés · {APPF} appliqués faux dont {LEM} bon lemme**
+  (était {OLDREP} · 244 · 14 · 73 dont 42).
+- **⑥ (instrument), dans le même PR** : `pyramide` garde la casse du token comme le produit (`ckeepcase`) — « On → on » n'est
+  plus une « correction » de la référence (le seul écart produit ≠ référence de l'audit du 11/09). Chiffres inchangés (le juge
+  comparait déjà en minuscules) ; c'est la LECTURE des rouges qui devient fidèle.
+- **Leçon** : recenser d'abord évite deux fautes — une règle impossible (A) et une règle fragile (E). Le gain de (B) est petit (4) mais
+  sûr par construction ; c'est ce que le recensement autorise, pas plus.
+
+---
+
 ## 2026-09-13 (suite) — ⑤-b : le nom derrière l'adjectif corrigé (« les jeunes lycéen » → lycéens) — la règle du nom traverse l'adjectif
 
 > Suite immédiate de ⑤-a : l'adjectif antéposé est maintenant au pluriel, mais le NOM qui le suit restait au singulier — la règle
