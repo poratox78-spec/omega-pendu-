@@ -58,7 +58,7 @@
     },
     {
       "titre": "Étapes de spellTokenCore absentes de la référence — TOUTES PORTÉES (série « la référence décrit le produit », #659 → #679)",
-      "verdict": "Dix maillons, chacun vu rouge avant d'être cru : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666 · palier vigilance #670 · contexte-first + DET_G #672 · tokeniseur #673 · OMISSION + _DPAIR #677 · briques de contexte (fenêtre du nombre, invariables, tables de genre) #678 · les six dernières étapes (_AFIX, e muet du futur, soudure à/a+verbe, élongation, _slipMot auto, _aux participe) #679. Accord de palier produit↔référence sur le gold : 92,4 % (05/09) → 100,0 % (880/880, 10/09), même mot 295/295 · 181/181 · 129/129. Le chiffre de référence (286 / 15) décrit le produit au palier près ; il n'est plus une borne. Reste hors accord : atStart ≡ premier token du texte (1), appariement par occurrence (1).",
+      "verdict": "Dix maillons, chacun vu rouge avant d'être cru : _SPELL_KEEP #659 · mot inconnu #663 · POS attendu #665 · x final #666 · palier vigilance #670 · contexte-first + DET_G #672 · tokeniseur #673 · OMISSION + _DPAIR #677 · briques de contexte (fenêtre du nombre, invariables, tables de genre) #678 · les six dernières étapes (_AFIX, e muet du futur, soudure à/a+verbe, élongation, _slipMot auto, _aux participe) #679. Accord de palier produit↔référence sur le gold : 92,4 % (05/09) → 100,0 % (880/880, 10/09), même mot 295/295 · 181/181 · 129/129. Le chiffre de référence (286 / 15) décrit le produit au palier près ; il n'est plus une borne. Hors accord réduit à 1 le 10/09 (suite) : atStart aligné (≡ premier token du texte), et « ere » est « la 1ere » traité par le produit en famille « nombre » — la garde le dit désormais (« produit : autre famille »).",
       "ref": "JOURNAL 2026-09-10 · palier_gold_ref.json"
     }
   ],
@@ -97,6 +97,11 @@
       "titre": "Le « e » muet du futur croit à des verbes rares (casse réelle du produit)",
       "etat": "Vu le 10/09/2026 quand la référence a reçu l'étape : « revérrons »→revérerons (révérer+ons, gold reverrons) est CASSÉ par le produit (auto), « fautra »→fautera (fauter) appliqué faux. L'étape (PR#505) réinsère le e muet dès que radical+er est un verbe des tables — même un verbe rare. Chantier de MOTEUR (3 moteurs), à mesurer avec le juge aligné ; pistes : seuil de fréquence sur le lemme, ou abstention si la forme sans e est à distance 1 d'une forme fréquente (reverrons).",
       "ref": "JOURNAL 2026-09-10 · dys-core.js l.2950-2956"
+    },
+    {
+      "titre": "Les 68 appliqués FAUX : 37 sont « bon lemme, mauvaise flexion »",
+      "etat": "Mesuré le 10/09/2026 (sous-colonne de dys_pipeline_probe, tables du produit) : 37 / 68 rouges appliqués vers un autre mauvais mot sont la bonne FORME du mauvais mot manquée (souhaiterai→souhaitez / souhaiterez, prise→prisent / prises, posibilité→possibilité / possibilités). Un raté d'ACCORD, pas d'orthographe : le speller trouve le lemme, le contexte ne le fléchit pas. Levier nommé, non traité — à mesurer famille par famille (verbe / nom / adjectif) avant toute règle.",
+      "ref": "JOURNAL 2026-09-10 (suite)"
     }
   ]
 }

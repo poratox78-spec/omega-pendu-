@@ -5,6 +5,31 @@
 
 ---
 
+## 2026-09-10 (suite) — trois pièces d'instrument : `atStart`, les autres familles du produit, « bon lemme, mauvaise flexion »
+
+> Après la clôture de la série (#679), avant de toucher au moteur : l'instrument d'abord. Les deux hors accord de la
+> garde et la sous-famille des appliqués faux nommée le 07/09 (nuit).
+
+**① `atStart` ≡ premier token du TEXTE.** `spellText` ne passe `atStart` qu'à `i === 0` ; `correct_text` l'acceptait à
+chaque début de PHRASE (`_sentence_starts`) — d'où « … fumant. Enerver il pousse » → Énerver auto côté référence, muet
+côté produit. Aligné, `_sentence_starts` retirée. Le produit ne corrige donc jamais une majuscule hors premier token :
+c'est un choix du produit (prudence nom propre), désormais décrit, plus corrigé en douce par le juge.
+
+**② Le dernier hors accord, `ere`, n'était pas un silence.** Sur le gold, « la 1ere » : le chiffre n'est pas un token, le
+speller reçoit « ere » et propose ère (auto) ; le produit, lui, le traite dans la famille **« nombre »** (→ 1re,
+vigilance). Le dump de la garde n'exportait que orthographe + mot inconnu : il porte désormais TOUTES les familles, et
+une correction « référence seule » dont le produit a fait autre chose est rangée « produit : autre famille ». Hors
+accord : 2 → **1, entièrement expliqué** (ere, autre famille) ; ré-ancré.
+
+**③ « Bon lemme, mauvaise flexion ».** Sous-colonne des appliqués faux dans `dys_pipeline_probe` : le rouge a réécrit la
+faute vers une AUTRE forme du BON mot (aller→allé / gold allée, posibilité→possibilité / possibilités) — un raté
+d'ACCORD, pas d'orthographe. Jugée avec les tables du produit que porte la référence (même lemme dans `CONJ_F`, paire
+`ADJ`, -s/-x, sinon radical déaccentué ≥ 4 + deux flexions d'une liste fermée). Heuristique, nommée.
+**④ MESURÉ.** Pipeline inchangé par `atStart` (286 réparés · 243 un-clic · 224 bruit · 31 sans suggestion · 690 muets · 15 cassés identiques mot à mot) — et la sous-colonne dit : **37 des 68 appliqués faux (54,4 %) sont « bon lemme, mauvaise flexion »** (souhaiterai→souhaitez / souhaiterez, prise→prisent / prises, bronsé→bronzé / bronzer, posibilité→possibilité / possibilités). Plus de la moitié du pire des ratés n'est pas une faute d'orthographe du speller : c'est la FORME que le contexte n'impose pas — un raté d'accord, à traiter comme tel (le speller trouve le mot, la grammaire ne le fléchit pas). Accord de palier 100 % (880/880), hors accord 1 (ere, autre famille), ré-ancré.
+
+
+---
+
 ## 2026-09-10 — les six dernières étapes de `spellTokenCore` portées : accord de palier produit↔référence 100 % (880/880)
 
 > 10ᵉ et dernier maillon de la carte « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672 · #673 ·
