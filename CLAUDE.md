@@ -76,6 +76,7 @@
   (source curée : `dictee/etat_chantiers.json`).
 - **`dictee/JOURNAL.md`** — l'histoire datée : chaque mesure, falsification, rétractation. Le cimetière de référence.
 - **`.claude/skills/linguistique/SKILL.md`** — playbook des règles du correcteur : ajouter/mesurer une règle FP=0, primitives, juges et leurs biais.
+- **Audit du correcteur dans le vrai Chrome (11/09/2026)** : `dictee/AUDIT_CORRECTEUR_2026-09-11.md` — textes, fausse orange, silences, plan ordonné.
 - Composants dictée : `dictee/CORRECTEUR.md` · `GRAMMAIRE_DOUBLE_VOIE.md` · `DECOMPOSE.md` · `P2G.md` ·
   `ETAT_DES_LIEUX.md` (corpus dys & littérature) · `dictee/README.md`.
 - Moteur pendu : `AUDIT_OMEGA.md` · `docs/CONFIG_TOGGLES.md` · `docs/COGNITION_DESIGN.md` · `docs/HANGMAN_SOTA.md` · `REPRISE_MOTEUR.md` ·
