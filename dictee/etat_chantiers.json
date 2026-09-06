@@ -69,6 +69,11 @@
   ],
   "ouverts": [
     {
+      "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
+      "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. À corriger dans l'ordre : ① TEXTES — REMED.accord sert « mordre » sur un nom (clé→clés), ctxHint muet sur -er/-é, c'est/s'est générique, gouverneur « ma » pour « huit heure », accent é/è servi pour un circonflexe, apostrophe classée accent ; ② « Ma mere » → Mon (fausse orange : `mere` NOM m 6,66/M dans Lexique4, mère 630/M) → recenser puis _AFIX ; ③ aujourd'hui (forme figée à apostrophe) ; ④ répétition « que qu'elle » à travers l'élision ; ⑤ silences par fréquence : accord à distance, bon lemme/mauvaise flexion, a→à devant tout/mes, sa→ça, ma→m'a, au→aux, peut-être ; ⑥ instrument : pyramide ignore la casse seule. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",
+      "ref": "dictee/AUDIT_CORRECTEUR_2026-09-11.md · JOURNAL 2026-09-11 (soir)"
+    },
+    {
       "titre": "Publication Chrome Web Store",
       "etat": "0.6.2 téléversée par Rem le 03/09/2026, puis 0.6.3 téléversée le 04/09/2026 (revue Google en cours) — un numéro remis à Rem est brûlé : bumper le manifest avant tout nouveau paquet",
       "ref": "extension/STORE.md · PR #651 · #655"

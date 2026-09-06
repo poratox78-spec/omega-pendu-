@@ -5,6 +5,27 @@
 
 ---
 
+## 2026-09-11 (soir) — AUDIT du correcteur dans le vrai Chrome : 24 phrases, 39 flags, FP=0 — les défauts sont dans les TEXTES
+
+> Demande de Rem : branchements, ordre des règles, textes d'explication, test dans le vrai Chrome sur fautes
+> classiques et fautes « stupides ». Rapport complet : `dictee/AUDIT_CORRECTEUR_2026-09-11.md` (run brut en annexe).
+
+- **Moteur** : 12 classiques → 19 fautes corrigées, 10 manquées (accord à distance, « bon lemme, mauvaise flexion »,
+  sa/ça, ou/où, ma/m'a, a→à devant tout/mes, au→aux, peut-être) ; 12 « stupides » → le produit se tait là où il faut
+  (mot oublié, phrase tronquée, phrase mal fichue), 1 raté : la répétition « que qu'elle » à travers l'élision.
+  **Aucun mot juste réécrit en rouge.** Produit ≡ référence sur les 24 (une différence de casse `On→on`, instrument).
+- **Fausse orange** : « **Ma** mere » → Mon — `mere` est une entrée de Lexique4 (NOM m, 6,66/M) : le speller se tait
+  sur un mot connu, la règle de genre lit un masculin. Même classe que `trés` ; candidat `_AFIX` après recensement.
+- **Textes** : 3 explications FAUSSES (« clé → clés : remplace le verbe par mordre » ; « c'est « ma » (singulier) qui
+  commande → heures » ; « chateau → château : é ferme, è ouvre »), 2 ABSENTES (aucun 💡 sur -er/-é, générique sur
+  c'est/s'est), 2 hors cadre (avont → avons « ce son s'écrit s », aujourdhui → « les accents s'entendent »). Cause de
+  fond : `REMED` et `ctxHint` sont deux routes qui ne partagent ni familles ni tests.
+- **Ordre des règles** : 72 règles, même ordre app ≡ extension ≡ référence ; rien à réordonner d'après l'audit.
+- **Plan** (§6 du rapport) : textes d'abord (zéro risque FP), puis `mere`, `aujourd'hui`, la répétition élidée, puis les
+  silences par fréquence — chacun un chantier de moteur mesuré avec le juge aligné.
+
+---
+
 ## 2026-09-11 — MOTEUR : le « e » muet du futur ne croit plus aux verbes rares (3 moteurs, garde mesurée)
 
 > Premier chantier de MOTEUR mesuré avec le juge aligné (série close, #679). La référence avait rendu visible ce que
