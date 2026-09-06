@@ -114,10 +114,37 @@ def pyramide(txt):
     return T, out, Tc, orange, signale
 
 
+_INFL = ('s', 'x', 'e', 'es', 'ent', 'é', 'ée', 'és', 'ées', 'er', 'ez', 'ai', 'ais', 'ait', 'aient', 'ons', 'ont', 'a', 'as', 'ra', 'rai', 'ras', 'rons', 'rez', 'ront')
+
+def meme_lemme(a, b):
+    """« BON LEMME, MAUVAISE FLEXION » (10/09/2026) : le rouge a réécrit la faute vers une AUTRE forme du BON mot
+    (aller→allé / gold allée, posibilité→possibilité / possibilités). Jugé avec les tables du produit que porte la
+    référence : verbes = même lemme dans CONJ_F ; adjectifs = paire ADJ (m/f) ; noms/adjectifs = même forme à -s/-x près ;
+    sinon même radical déaccentué (≥ 4 lettres) et deux finales d'une liste FERMÉE de flexions. Heuristique, nommée."""
+    la, lb = a.lower(), b.lower()
+    if la == lb: return False
+    def lemmes(w):
+        r = SP.CONJ_F.get(DP.norm(w)) or SP.CONJ_F.get(w) or ''
+        return set(x.split(';')[0] for x in r.split('|') if x)
+    if lemmes(la) & lemmes(lb): return True
+    pa, pb = SP.ADJ.get(DP.norm(la)), SP.ADJ.get(DP.norm(lb))
+    if pa and DP.norm(pa[1]) == DP.norm(lb): return True
+    if pb and DP.norm(pb[1]) == DP.norm(la): return True
+    na, nb = DP.norm(la).rstrip('sx'), DP.norm(lb).rstrip('sx')
+    if na == nb: return True
+    for ea in _INFL:
+        for eb in _INFL:
+            if la.endswith(ea) and lb.endswith(eb):
+                ra, rb = DP.norm(la[:-len(ea)]), DP.norm(lb[:-len(eb)])
+                if len(ra) >= 4 and ra == rb: return True
+    return False
+
+
 def main():
     rep = rate = casse = intact = 0
     or_juste = or_faux = muet = sign = 0
     app_faux = 0; ex_appf = []                       # ⭐ ROUGE APPLIQUÉ… vers un AUTRE mauvais mot (07/09/2026)
+    app_lem = 0; ex_lem = []                         # ⭐ dont « bon lemme, mauvaise flexion » (10/09/2026)
     _dump = [] if _os.environ.get('DUMP_MUETS') else None   # sonde : liste des ratés SILENCIEUX côté Python                # ventilation des RATÉS : que voit vraiment l'utilisateur ?
     ex_or, ex_orf = [], []
     ex_casse, ex_rep = [], []
@@ -162,6 +189,9 @@ def main():
                 if DP.norm(out[i]) != DP.norm(w):
                     app_faux += 1
                     if len(ex_appf) < 12: ex_appf.append('%s → %s (gold %s)' % (w, out[i], g))
+                    if meme_lemme(out[i], g):
+                        app_lem += 1
+                        if len(ex_lem) < 8: ex_lem.append('%s → %s (gold %s)' % (w, out[i], g))
                 elif _bons:
                     or_juste += 1
                     if len(ex_or) < 8: ex_or.append('%s → %s' % (w, _bons[0]))
@@ -213,6 +243,8 @@ def main():
           % (muet, 100.0 * muet / max(1, rate)))
     print('     - APPLIQUE FAUX (rouge)  : %4d  (%.1f %%)             un ROUGE a REECRIT la faute vers un AUTRE mauvais mot — le pire des rates'
           % (app_faux, 100.0 * app_faux / max(1, rate)))
+    print('         dont BON LEMME, mauvaise flexion : %4d  (%.1f %% des appliques faux)   le bon mot, pas la bonne forme — un rate d ACCORD, pas d orthographe'
+          % (app_lem, 100.0 * app_lem / max(1, app_faux)))
     print()
     print('     (!) Le palier « mot inconnu » (spellUnknown JS) est PORTE dans la reference depuis le')
     print('         04/09/2026 (spell_unknown, action `inconnu`) : « signale = 0 » n est plus un artefact.')
@@ -223,6 +255,7 @@ def main():
     if ex_or:  print('     exemples rattrapables :', ' | '.join(ex_or[:6]))
     if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
     if ex_appf: print('     appliques FAUX        :', ' | '.join(ex_appf[:12]))
+    if ex_lem:  print('     bon lemme, mauv. flex.:', ' | '.join(ex_lem[:8]))
     if _dump is not None:
         import json as _j
         _io.open(_os.environ['DUMP_MUETS'], 'w', encoding='utf-8').write(_j.dumps(_dump, ensure_ascii=False))

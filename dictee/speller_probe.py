@@ -809,30 +809,23 @@ class Speller:
         """inconnu=True (OPT-IN, défaut OFF) : ajoute le palier « mot inconnu » (action 'inconnu') sur
         les tokens que la voie correction laisse muets — comme la chaîne vigilance de spellText (JS)."""
         text = text.replace('’', "'").replace('ʼ', "'")   # apostrophe typographique = droite (1:1)
-        out = []; starts = self._sentence_starts(text)
+        out = []                                       # atStart ≡ PREMIER token du TEXTE (i == 0), comme spellText (10/09/2026) — plus les débuts de phrase
         ms = list(TOK_JS.finditer(text)); toks = [m.group(0) for m in ms]   # tokens DU PRODUIT (apostrophe comprise) — voir TOK_JS
         for i, m in enumerate(ms):
-            r = self.spell_token(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
+            r = self.spell_token(m.group(0), at_start=(i == 0), toks=toks, idx=i)
             if r and r[1] != m.group(0).lower():
                 sugg = r[1]
                 if m.group(0)[:1].isupper() and sugg[:1].islower():   # préserver la MAJUSCULE d'origine (« Ecole »→« École », pas « école »)
                     sugg = sugg[0].upper() + sugg[1:]
                 out.append((m.start(), m.group(0), sugg, r[0]))
             elif inconnu:
-                u = self.spell_unknown(m.group(0), at_start=(m.start() in starts), toks=toks, idx=i)
+                u = self.spell_unknown(m.group(0), at_start=(i == 0), toks=toks, idx=i)
                 if u is not None:
                     out.append((m.start(), m.group(0), u, 'inconnu'))
         return out
 
-    @staticmethod
-    def _sentence_starts(text):
-        st = {0}
-        for m in re.finditer(r"[.!?]\s+(\S)", text):
-            st.add(m.start(1))
-        # 1er mot
-        m0 = TOK_JS.search(text)
-        if m0: st.add(m0.start())
-        return st
+    # `_sentence_starts` retirée le 10/09/2026 : le produit ne passe atStart qu'au premier token du TEXTE (spellText : i===0) ;
+    # la référence acceptait la majuscule à chaque début de PHRASE (« … fumant. Enerver il pousse » → Énerver auto, produit muet).
 
 def main():
     if not os.path.exists(LEX): print(f"Lexique introuvable ({LEX})"); return 1

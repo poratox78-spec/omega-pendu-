@@ -10,8 +10,7 @@
  },
  "desaccords": [],
  "seuls": [
-  "Enerver→Énerver [auto] (référence seule)",
-  "ere→ère [auto] (référence seule)"
+  "ere→ère [auto] (produit : autre famille « nombre »)"
  ],
  "note": "Accord de PALIER (auto/flag/vigilance) produit↔référence sur le gold dys, ANCRÉ. Une baisse de l'accord ou un désaccord NOUVEAU rougit ; une hausse est un GAIN à ré-ancrer (--fix). Le gold est local : la sonde SAUTE sans lui."
 }
