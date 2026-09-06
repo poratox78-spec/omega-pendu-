@@ -2023,7 +2023,8 @@ function estQuestion(t,maxMots){
     if(pd==='les'&&!(i+1<T.length&&/^[A-Za-zÀ-ÿœŒæÆ]/.test(T[i+1])))return null;
     return pl!==w?pl:null;}
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
-    var _pd=deacc(T[i-1].toLowerCase()),_card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
+    var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&PLURAL_DET[deacc(T[i-2].toLowerCase())])_pd=deacc(T[i-2].toLowerCase());   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
+    var _card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
     if(!PLURAL_DET[_pd]&&!_card)return null;
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;   // propre/capitalisé
     var dn=deacc(n.toLowerCase());if(dn.length<3||/[sxz]$/.test(dn)||NOUN_PL_STOP[dn])return null;

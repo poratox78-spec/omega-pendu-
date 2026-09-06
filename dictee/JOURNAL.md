@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-09-13 (suite) — ⑤-b : le nom derrière l'adjectif corrigé (« les jeunes lycéen » → lycéens) — la règle du nom traverse l'adjectif
+
+> Suite immédiate de ⑤-a : l'adjectif antéposé est maintenant au pluriel, mais le NOM qui le suit restait au singulier — la règle
+> « accord pluriel nom » exige le déterminant JUSTE avant le nom.
+
+- **Recensé** (gold_claude, 72 productions) : 9 noms au singulier derrière DET pl + adjectif antéposé, tous pluriels dans le gold ;
+  3 passent la garde du nom (lycéen, technologie, console·n), 5 sont eux-mêmes mal orthographiés (sosiété, pérsone, régio…) ou
+  ambigus (demande = verbe). UD (14 450) : les 4 motifs « DET pl + adj pl + nom sg » sont des FAUTES du corpus (« ces nouveaux
+  fusil Henry », « les meilleurs rang », « les meilleurs boucherie », « les premières marque ») — la règle a raison contre le corpus.
+- **Règle** : `rule_noun_plural` / `rNounPlural` lisent le déterminant à i-2 quand i-1 est un adjectif de `_ADJ_ANTE` (la même
+  traversée que celle du genre) ; TOUTES les gardes existantes s'appliquent telles quelles (posterior §3, « les »/« leurs » pronoms,
+  composé nom+nom, capitalisé, déjà pluriel). Trois moteurs, 3 cas de batterie.
+- **Mesuré** : batterie FP=0 verte · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif · speller
+  ext ≡ app · textes · sonde FP du pluriel du nom. **Juge : {REP} réparés · {UNCLIC} un clic · {CASSES} cassés · {APPF} appliqués faux
+  dont {LEM} bon lemme** (était {OLDREP} · 244 · 14 · 73 dont 42). Les noms mal orthographiés (sosiété) restent au speller (orange
+  « sociétés » proposée) ; les ambigus (demande, console) restent muets par la garde du nom — c'est voulu.
+- **Un gold corrigé** : la garde « précision au produit » a vu 25 mots justes réécrits (plafond 24) — le 25ᵉ est « ces nouveaux
+  **fusil** Henry » (faiblesses.jsonl, issu d'UD) : le produit écrit « fusils », le gold gardait la faute d'UD. Corrigé dans le corpus
+  privé (1 ligne), comme « rendu à l'ASEI » la veille ; plafond inchangé.
+- **Précision au produit ré-ancrée** (`--fix`) : « accord pluriel nom » auto gagne les noms traversés (justes 65 → 67 pollué,
+  33 → 34 propre), « accord pluriel à vérifier » (orange) perd les mêmes cas (41,4 → 40,7 % et 53,8 → 50,0 % par le dénominateur :
+  rien de perdu, tout appliqué). Le plafond FP=0 (mots justes réécrits au palier auto) tient à 24 après la correction du gold.
+- **Census des oranges ré-ancré** (`vig_census_probe --fix`) : justes 309 → 310 — la garde voit rouge aussi quand c'est MIEUX, pour
+  que la hausse soit lue et ancrée, pas subie. Pointeuses 237, fatigue 144 inchangées.
+- **Leçon** : une règle qui exige l'ADJACENCE se tait dès qu'un mot s'intercale ; la classe fermée des adjectifs antéposés est
+  précisément ce qui rend la traversée sûre — la même qui servait déjà au genre.
+
+---
+
 ## 2026-09-13 — ⑤-a : l'adjectif antéposé s'accorde après un déterminant pluriel (« les prochaine demande » → prochaines) — 3 moteurs, 0 FP
 
 > Plan de l'audit, ⑤ « les silences par fréquence ». Recensé d'abord (12/09, 72 productions) : le plus gros silence du juge est
