@@ -140,11 +140,19 @@ def meme_lemme(a, b):
     return False
 
 
+def _strict(x, y):
+    """Comme DP.eq (élisions/soudures tolérées) mais SANS désaccentuer : « mere » ≠ « mère ». Posé le 11/09/2026 quand
+    _AFIX_MIN a réparé 5 mots dans les 72 productions sans que le chiffre bouge — eq() les tenait pour déjà justes."""
+    a = str(x).lower().replace(u'’', "'"); b = str(y).lower().replace(u'’', "'")
+    return a == b or a.split("'")[-1].split(' ')[-1] == b.split("'")[-1].split(' ')[-1]
+
+
 def main():
     rep = rate = casse = intact = 0
     or_juste = or_faux = muet = sign = 0
     app_faux = 0; ex_appf = []                       # ⭐ ROUGE APPLIQUÉ… vers un AUTRE mauvais mot (07/09/2026)
     app_lem = 0; ex_lem = []                         # ⭐ dont « bon lemme, mauvaise flexion » (10/09/2026)
+    acc_faux = acc_rep = acc_casse = 0; ex_acc_rep = []; ex_acc_casse = []   # ⭐ ACCENTS stricts (11/09/2026) : eq() désaccentue, cette colonne non
     _dump = [] if _os.environ.get('DUMP_MUETS') else None   # sonde : liste des ratés SILENCIEUX côté Python                # ventilation des RATÉS : que voit vraiment l'utilisateur ?
     ex_or, ex_orf = [], []
     ex_casse, ex_rep = [], []
@@ -174,6 +182,17 @@ def main():
             g = al[i]
             etait_faux = not DP.eq(w, g)
             fini_juste = DP.eq(out[i], g)
+            # ⭐ ACCENTS (11/09/2026) : eq()/norm() DÉSACCENTUENT — « mere » ≡ « mère » pour le juge. Les fautes d'accent SEUL (la famille
+            # la plus fréquente des dys) et les accents CASSÉS sur des mots justes lui sont donc invisibles : ni dans « faux au départ »,
+            # ni dans « réparés », ni dans « cassés ». Colonne stricte à côté, sans toucher au chiffre historique (comparable).
+            if DP.eq(w, g) and not _strict(w, g):
+                acc_faux += 1
+                if _strict(out[i], g):
+                    acc_rep += 1
+                    if len(ex_acc_rep) < 10: ex_acc_rep.append('%s → %s' % (w, out[i]))
+            elif _strict(w, g) and not _strict(out[i], g) and DP.eq(out[i], g):
+                acc_casse += 1
+                ex_acc_casse.append('%-14s → %-14s  …%s…' % (w, out[i], ' '.join(T[max(0, i - 4):i + 4])))
             if etait_faux and fini_juste:
                 rep += 1
                 if len(ex_rep) < 8:
@@ -256,6 +275,13 @@ def main():
     if ex_orf: print('     exemples de bruit     :', ' | '.join(ex_orf[:4]))
     if ex_appf: print('     appliques FAUX        :', ' | '.join(ex_appf[:12]))
     if ex_lem:  print('     bon lemme, mauv. flex.:', ' | '.join(ex_lem[:8]))
+    print()
+    print('  -- ACCENTS, comptes STRICTEMENT (tout le reste de cette sonde DESACCENTUE : « mere » ≡ « mère » pour lui) --')
+    print('     · fautes d ACCENT SEUL (invisibles ci-dessus) : %4d   dont REPAREES : %4d  (%.1f %%)'
+          % (acc_faux, acc_rep, 100.0 * acc_rep / max(1, acc_faux)))
+    print('     · (!) ACCENTS CASSES sur des mots justes       : %4d   (invisibles dans « CASSES » ci-dessous — de vraies casses du produit)' % acc_casse)
+    if ex_acc_rep: print('     exemples reparees :', ' | '.join(ex_acc_rep[:10]))
+    for _x in ex_acc_casse: print('         ', _x)
     if _dump is not None:
         import json as _j
         _io.open(_os.environ['DUMP_MUETS'], 'w', encoding='utf-8').write(_j.dumps(_dump, ensure_ascii=False))

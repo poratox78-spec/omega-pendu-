@@ -75,13 +75,18 @@
       "titre": "« Ma mere » → Mon : les formes nues qui polluent le lexique (mere, age, ame, reparer…) — auto vers la sœur accentuée, 3 moteurs",
       "verdict": "Recensé avant d'être posé : 24 formes nues rares à sœur accentuée fréquente dans Lexique4, 13 retenues (non-mots sous toute graphie, 0 en minuscules sur 14 450 phrases UD, 16 occurrences dans le corpus dys toutes vers la sœur accentuée) ; exclues les formes valides (cote, prive, voila…) et les graphies de 1990 (maitre, ile, gout). `_AFIX_MIN` si tok === low. Référence ≡ produit : plus d'orange « Ma → Mon ». Batterie, FP échelle, palier 100 %, parités : inchangés. Le chiffre de référence ne bouge pas parce que le juge désaccentue (voir chantier ouvert).",
       "ref": "JOURNAL 2026-09-11 (nuit, suite) · AUDIT_CORRECTEUR_2026-09-11.md §1.1"
+    },
+    {
+      "titre": "INSTRUMENT — le juge (dys_pipeline_probe) compte les accents : colonne stricte posée",
+      "verdict": "`_strict()` à côté de `DP.eq` (qui désaccentue) ; le chiffre historique ne bouge pas. Mesuré le 12/09/2026 : 273 fautes d'accent seul invisibles avant, 165 réparées (60,4 %), 4 accents cassés (a → à), lus un par un : 1 erreur du gold (rendu à l'ASEI), 1 ambigu sans le sens (« se manifestent a un cocar » = « ce manifestant a un cocard »), 2 vraies casses réparables (lui à appeller, à permises — tracées jusqu'à vlike).",
+      "ref": "JOURNAL 2026-09-12 · dys_pipeline_probe.py (bloc ACCENTS)"
     }
   ],
   "ouverts": [
     {
-      "titre": "INSTRUMENT — le juge (dys_pipeline_probe) ne voit pas les accents : 273 fautes d'accent seul invisibles, 4 « a → à » cassés invisibles",
-      "etat": "Vu le 11/09/2026 en posant _AFIX_MIN : 5 réparations réelles dans les 72 productions, chiffre de référence inchangé — `DP.eq` compare via `norm()` qui désaccentue. Comptage strict (accent_strict.py, scratchpad) : 273 fautes d'accent seul sur 6 217 mots, 160 → 165 réparées, et 4 accents cassés sur des mots justes (a → à ×4) que la colonne « cassés » ne voit pas. À faire AVANT tout chantier de moteur sur les accents : porter le comptage strict dans la sonde (colonnes « accents réparés » / « accents cassés »), ancrer, puis regarder les 4 a → à un par un (rouge prioritaire).",
-      "ref": "JOURNAL 2026-09-11 (nuit, suite) · dictee/dys_precision_probe.py norm()/eq()"
+      "titre": "ROUGE — a/à casse « a » devant un verbe mal orthographié : « lui a apeller » → à, « a permises » → à (2 casses réelles, vues par la colonne accents)",
+      "etat": "Vu le 12/09/2026 avec la colonne stricte, tracé jusqu'à `vlike` : « lui » est dans VERB_LEX (luire) → vlike(lui)=True → « à » ; « du travaille » : la garde déterminant de vlike connaît NUM_DET (le/la/les…) mais pas les contractions du/au/aux → « travaille » lu verbe → « à ». Deux gardes de vlike (VLIKE_STOP + 'lui' ; NUM_DET ∪ {du, au, aux}), 3 moteurs. Recensé sur UD : clitique + « a » 203 corrects, + « à » 2 (un typo UD, « l'à propos ») ; DETu + vlike + « à » 6 (tous « dû + infinitif », à exclure) ; corpus dys : 11 « a » protégés, 0 rappel perdu. Mesurer : colonne accents (cassés 4 → 2), batterie, UD 1,40 %, palier, juge. À part : corriger la ligne 30 du gold privé (rendu à l'ASEI) ; le cas « se manifestent a un cocar » reste (ambigu sans le sens).",
+      "ref": "JOURNAL 2026-09-12"
     },
     {
       "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
