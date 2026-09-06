@@ -17,6 +17,7 @@ GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.js
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
 _AFIX_MIN = {'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
+_APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
 _ELIDE_ACC = set("ldjcs")                      # préfixes SÛRS pour la restauration d'accent du reste (m'/t'/n' EXCLUS : « metre »=mètre≠m'être, mesuré FP)
@@ -463,6 +464,9 @@ class Speller:
         # Lexique4 (NOM m, 6,66/M) à côté de « mère » (630/M) — liste CLOSE recensée (non-mots, 0 en minuscules sur UD, 16 dans le
         # corpus dys tous vers la sœur accentuée). MINUSCULES SEULEMENT (« Ame V », « Special » existent en majuscule).
         if tok == low and low in _AFIX_MIN: return ('auto', _AFIX_MIN[low])
+        # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,
+        # aucune soudure n'est un mot (speller, UD : 0), corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe seule.
+        if low in _APOS_FIX: return ('auto', _APOS_FIX[low])
         # ⭐ LE « e » MUET DU FUTUR/CONDITIONNEL (décalque l.2950-2956 ; audit rappel dys PR#505 : « je ne t'oublirais jamais ») :
         # non-mot en r+terminaison dont radical+er est un verbe des tables → réinsérer le e muet (oublirais→oublierais). Le
         # scripteur a ENTENDU le R ; « oubliais » (distance 1 aussi) n'a pas ce son. Radical ≥ 4. C'est l'étape qui rend

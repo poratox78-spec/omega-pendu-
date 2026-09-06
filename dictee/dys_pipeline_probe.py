@@ -73,9 +73,12 @@ def pyramide(txt):
             else:
                 signale.add(i)
             continue
-        if act != 'vigilance' and sg.isalpha():
+        # ⚠️ `sg.isalpha()` (garde contre les suggestions à ESPACE, qui désalignent les tokens) rejetait aussi l'APOSTROPHE :
+        # « aujourdhui → aujourd'hui » n'était jamais appliqué par la référence alors que le produit l'applique (vu le 12/09/2026,
+        # plan ③). Les tokens du juge portent l'apostrophe (DP.TOK) : elle ne désaligne rien. Seul l'espace reste exclu.
+        if act != 'vigilance' and _mot(sg):
             Tc[i] = sg
-        elif act == 'vigilance' and sg.isalpha() and DP.norm(sg) != DP.norm(w):
+        elif act == 'vigilance' and _mot(sg) and DP.norm(sg) != DP.norm(w):
             orange.setdefault(i, []).append(sg)      # proposé, souligné, PAS appliqué
         elif act == 'vigilance':
             signale.add(i)                           # SOULIGNÉ sans suggestion : « il y a un problème ici »
@@ -138,6 +141,11 @@ def meme_lemme(a, b):
                 ra, rb = DP.norm(la[:-len(ea)]), DP.norm(lb[:-len(eb)])
                 if len(ra) >= 4 and ra == rb: return True
     return False
+
+
+def _mot(sg):
+    """une suggestion applicable à UN token : lettres, apostrophe admise (quelqu'un), jamais d'espace."""
+    return sg.replace("'", '').isalpha()
 
 
 def _strict(x, y):

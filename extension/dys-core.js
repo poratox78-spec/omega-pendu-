@@ -166,6 +166,7 @@
       if(d&&d.e===''&&d.a==='e')return _pr(e,a)+'il manque le « e » du féminin — cherche qui commande l’accord.';
       return _pr(e,a)+'repère QUI COMMANDE (déterminant, sujet) et accorde en genre et en nombre.';},
     segmentation:function(e,a){
+      if(a&&/^(aujourd|quelqu|jusqu|presqu|lorsqu|puisqu)'/i.test(a.replace(/’/g,"'")))return _pr(e,a)+'mot figé : il s’écrit toujours avec l’apostrophe (aujourd’hui, quelqu’un, jusqu’à).';   // plan ③ de l'audit (12/09/2026)
       if(a&&(a.indexOf('’')>=0||a.indexOf("'")>=0))return _pr(e,a)+'l’article est élidé, il faut l’apostrophe.';
       if(a&&a.indexOf(' ')>0)return _pr(e,a)+'ce sont DEUX mots, il faut l’espace.';
       return _pr(e,a)+'mot collé — sépare avec l’apostrophe (lhopital → l’hôpital) ou l’espace (ducou → du coup).';},
@@ -2970,6 +2971,11 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        « l'Age d'Or » existent en majuscule dans du français correct. Exclus : cote, sacre, prive, voila… (mots valides), maitre, ile,
        gout (graphies rectifiées de 1990). Miroir Python _AFIX_MIN. */
     var _AFIX_MIN={"mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
+    /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
+       que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
+       corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
+       Exclus : entraide, quelquefois, prudhomme (mots). Miroir Python _APOS_FIX. */
+    var _APOS_FIX={"aujourdhui":"aujourd'hui","aujourdui":"aujourd'hui","quelquun":"quelqu'un","quelquune":"quelqu'une","jusqua":"jusqu'à","jusquau":"jusqu'au","jusquaux":"jusqu'aux","jusquen":"jusqu'en","jusquici":"jusqu'ici","jusquou":"jusqu'où","presquile":"presqu'île","lorsquil":"lorsqu'il","lorsquelle":"lorsqu'elle","puisquil":"puisqu'il"};if(_APOS_FIX[low])return["auto",_APOS_FIX[low]];
     /* LE « e » MUET DU FUTUR/CONDITIONNEL (audit rappel dys PR#505 : « je ne t'oublirais jamais » ×4) :
        non-mot en r+terminaison dont stem+er est un verbe des tables → réinsérer le e muet (oublirais→
        oublierais). AUDIBILITÉ : le scripteur a ENTENDU le R (/ubliʁɛ/) — « oubliais » (distance 1 aussi)
