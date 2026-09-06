@@ -3501,6 +3501,12 @@ def _singularize_noun(n):
 def rule_noun_plural(T, i):
     if i == 0: return None
     _pd = deacc(T[i - 1].lower())
+    # ⭐ ⑤-b (13/09/2026) : TRAVERSÉE d'un adjectif antéposé — « les prochaines demande », « les jeunes lycéen » : le déterminant
+    # pluriel est à i-2, l'adjectif (classe fermée _ADJ_ANTE, celle de la traversée du genre) entre les deux. Recensé : gold_claude
+    # 9 noms au singulier derrière DET pl + adjectif, tous pluriels dans le gold ; UD : les 4 motifs trouvés sont des fautes du corpus
+    # (« ces nouveaux fusil Henry », « les meilleurs rang »). Le reste de la règle (gardes, posterior, composé) s'applique tel quel.
+    if _pd in _ADJ_ANTE and i >= 2 and deacc(T[i - 2].lower()) in PLURAL_DET:
+        _pd = deacc(T[i - 2].lower())
     _card = _pd in CARD                                          # cardinal ≥2 (« cinq kilo ») = déterminant pluriel non ambigu
     if _pd not in PLURAL_DET and not _card: return None          # déterminant pluriel juste avant
     n = T[i]
@@ -4607,6 +4613,9 @@ CASES = [
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
     ("Voici les prochaines demandes", "prochaines", "prochaine", "accord adjectif antéposé"),
+    ("Les jeunes lycéens arrivent", "lycéens", "lycéen", "accord pluriel nom"),
+    ("Les nouvelles technologies avancent", "technologies", "technologie", "accord pluriel nom"),
+    ("Il a des petits chats noirs", "chats", "chat", "accord pluriel nom"),
     ("J'avais des bonnes nouvelles", "bonnes", "bonne", "accord adjectif antéposé"),
     ("Les autres consoles marchent", "autres", "autre", "accord adjectif antéposé"),
     ("Ils ont des grandes sociétés", "grandes", "grande", "accord adjectif antéposé"),

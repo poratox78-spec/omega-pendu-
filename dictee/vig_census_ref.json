@@ -1,7 +1,7 @@
 {
- "justes": 309,
+ "justes": 310,
  "pointeuses": 237,
- "fatigue": 146,
+ "fatigue": 144,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -119,6 +119,7 @@
   "fonte→fontes [accord pluriel à vérifier] accord",
   "formèretn→formèrent [mot inconnu] inversion",
   "furend→furent [orthographe] lettre_change",
+  "fusil→fusils [accord pluriel à vérifier] inversion",
   "ggané→gagné [orthographe] inversion",
   "gours→jours [orthographe] lettre_change",
   "granb→grand [orthographe] lettre_change",
