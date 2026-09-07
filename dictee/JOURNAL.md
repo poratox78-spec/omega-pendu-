@@ -55,6 +55,22 @@
   {ORF} bruit orange · {CASSES} cassés · {APPF} appliqués faux dont {LEM} ; accents réparées {ACC_R}.**
 - Conflit noté, non traité : « Ont mange à midi » (ont en tête, sans sujet) reçoit « on » ET « mangé » — deux règles sur deux tokens,
   chacune juste seule. À trancher par l'ordre (le participe prouve « ont »).
+## 2026-09-14 (nuit, suite) — POINT D'INTERROGATION : « est-ce qui » comme « est-ce que », et « Qui est là »
+
+> Rem : « est-ce que met un point d'interrogation mais est-ce qui non ? c'est complètement con alors que qui et que même type » ;
+> puis « idem qui est là, pas de point d'interrogation, plus dur ». Vérifié : « est ce qui va venir » recevait un POINT — la tête
+> `QEQ` n'admettait que « que/qu' », et `QEQ3` excluait explicitement « est-ce » suivi de « qu ».
+
+- **Posé (app + extension, la ponctuation n'a pas de jumeau Python)** : « est-ce QUI » entre dans `QEQ` et `QEQ2` (« qui est-ce qui »,
+  « pourquoi est-ce que ») ; « qu est ce » sans apostrophe (graphie dys) entre dans `QW` et `QSEUL` ; **« Qui + verbe » en tête** :
+  « Qui » MAJUSCULE (vraie tête de phrase) + verbe tagué + ≤ 8 mots + sans virgule.
+- **Mesuré sur `question_bench` (UD + réel, 314 questions)** — la majuscule est le discriminateur, pas un détail : « qui + verbe »
+  sans elle attrape les RELATIVES en tête de fragment (« qui stockent les valeurs RVB… », « qui a co-arrangé l'album… ») → précision
+  correcteur **91,01 → 48,55 %**. Avec la majuscule : **91,30 % (84/92), rappel 26,75 % (84/314)** contre 91,01 / 25,80 avant —
+  +3 questions trouvées, 0 faux de plus ; voix 96,88 % / 19,75 % (était 96,72 / 18,79). Variante « ≤ 5 mots, sans que/qui/dont/se »
+  mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
+- **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
+  (proverbe, rare) — l'orange se refuse d'un clic.
 
 ---
 

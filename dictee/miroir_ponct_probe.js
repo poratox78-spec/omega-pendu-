@@ -65,7 +65,7 @@ function fonction(src, entete) {
 
 const BLOCS = [
   { nom: 'estQuestion (+ constantes Q*)',
-    deb: "var QW=/^(est-ce|qu'est", fin: "return tag(1)!=='DET';\n}" },
+    deb: "var QW=/^(est-ce|qu", fin: "return tag(1)!=='DET';\n}" },
   { nom: 'règles de virgule (R1-R5 + ponctInterdit)',
     deb: '// ⭐⭐⭐ LES RÈGLES DE VIRGULE — source : Allô prof',
     fin: 'out.forEach(function (i) { if (ponctInterdit(mots, tg, i)) out.delete(i); });\n  return out;\n}' },
