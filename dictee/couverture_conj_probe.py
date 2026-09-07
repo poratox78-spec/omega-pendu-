@@ -93,7 +93,7 @@ def main():
     print('COUVERTURE DE LA CONJUGAISON — faute de PERSONNE, le TEMPS est gardé (%d verbes, %d sujets)'
           % (len(VERBES), len(SUJETS)))
     print('%-12s %s' % ('sujet', ' '.join('%12s' % t for t in temps_tous)))
-    taux = {}
+    taux, reus = {}, {}
     for sujet, _ in SUJETS:
         ligne, tf, tn = [], 0, 0
         for t in temps_tous:
@@ -101,6 +101,7 @@ def main():
             tf += f; tn += n
             ligne.append('%12s' % ('%d/%d' % (f, n) if n else '—'))
         taux[sujet] = round(100.0 * tf / tn, 1) if tn else None
+        reus[sujet] = tf
         print('%-12s %s   %s' % (sujet, ' '.join(ligne),
                                  ('%.1f %%' % taux[sujet]) if taux[sujet] is not None else '—'))
     if detail:
@@ -112,19 +113,31 @@ def main():
     ref = {}
     if os.path.exists(REF):
         ref = json.loads(io.open(REF, encoding='utf-8').read())
+    def _anc(v):   # l'ancre accepte l'ANCIEN format (un simple taux) et le nouveau [taux, réussites]
+        return (v, None) if isinstance(v, (int, float)) else (v[0], v[1])
     if fix:
-        io.open(REF, 'w', encoding='utf-8').write(json.dumps(taux, ensure_ascii=False, indent=2) + '\n')
+        io.open(REF, 'w', encoding='utf-8', newline='\n').write(
+            json.dumps({s: [taux[s], reus[s]] for s in taux}, ensure_ascii=False, indent=2) + '\n')
         print('\n✓ ancré : %d sujets' % len(taux))
         return 0
     if not ref:
         print('\n· COUVERTURE : aucun ancrage (lancer --fix pour poser le plancher)')
         return 0
-    baisses = [(s, ref[s], taux[s]) for s in ref
-               if taux.get(s) is not None and ref[s] is not None and taux[s] < ref[s] - 0.05]
+    baisses = []
+    for s in ref:
+        av_t, av_r = _anc(ref[s])
+        if taux.get(s) is None or av_t is None: continue
+        if taux[s] < av_t - 0.05:
+            baisses.append((s, '%.1f %% < plancher %.1f %%' % (taux[s], av_t)))
+        # ⚠️ Le TAUX seul MENT quand le BANC grandit : le 15/09, les tables ont gagné le passé simple
+        # pluriel, le dénominateur a bondi (55 → 211 cas) et le taux a BAISSÉ alors que chaque case
+        # gagnait (« il » 5 → 14 réussites). Le nombre ABSOLU, lui, ne baisse que si on perd vraiment.
+        if av_r is not None and reus[s] < av_r:
+            baisses.append((s, '%d réussites < plancher %d (le taux, lui, ne le dit pas : le banc a pu grandir)' % (reus[s], av_r)))
     if baisses:
         print('\n✗ COUVERTURE CONJUGAISON : la couverture a BAISSÉ :')
-        for s, av, ap in baisses:
-            print('    %-10s %.1f %% < plancher %.1f %%' % (s, ap, av))
+        for s, msg in baisses:
+            print('    %-10s %s' % (s, msg))
         print('    (si la baisse est VOULUE et mesurée : python3 dictee/couverture_conj_probe.py --fix)')
         return 1
     print('\n✓ COUVERTURE CONJUGAISON : aucun sujet en baisse (%d ancrés)' % len(ref))

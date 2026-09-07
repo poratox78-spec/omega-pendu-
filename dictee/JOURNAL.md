@@ -71,6 +71,53 @@
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-15 (suite) — « NOUS MANGEAMES » : c'est de la CONJUGAISON, et les tables n'avaient AUCUNE case
+
+> Rem : « fais mangeames [...] là c'est de la conjugaison ». Il avait raison contre mon renvoi de la veille
+> vers la couche orthographe : le correcteur d'orthographe choisit par FRÉQUENCE, et il ne peut pas lire le sujet.
+> Sur « nous donnames » il proposait « donnâtes » — la bonne famille, la MAUVAISE PERSONNE. Sur « mangeames »,
+> « mangea » : il SUPPRIME des lettres, parce que « mangeâmes » a une fréquence nulle au lexique.
+
+- **LA CAUSE, la même que « nous iriez » (encore).** `CONJ_C` porte **122** cases de passé simple en « il » et
+  **0** en « nous »/« vous » — `build_cgram.py` documente pourquoi : « ne touchent que nous/vous, exclus du
+  correcteur ». L'exclusion n'a pas seulement tu la règle : elle a fait SUPPRIMER les cases de la table.
+- **CE QU'ON POSE.** Complétion de `ind:pas` aux 1re/2e/3e du PLURIEL, sur le modèle de `_fillReg3pl` (la clôture
+  du 3e pluriel régulier, déjà en place) : le RADICAL ACCENTUÉ est pris DANS la table, à un autre temps du même
+  verbe — les clés de `CONJ_C` sont déaccentuées (« desheriter »), l'imparfait ne l'est pas (« déshéritait » →
+  déshérit|âmes) ; le 2e groupe est identifié par l'imparfait en **-issait** (seul discriminant : « venir » et
+  « ouvrir » finissent aussi en -ir mais sont du 3e groupe — « vînmes », pas « venîmes ») ; le 3e groupe part de
+  sa 3e du singulier (« prit » → prîmes, « vint » → vînmes). **130 ms, 13 785 cases, aucun parcours de lexique.**
+- **LE LEXIQUE DU PRODUIT VALIDE CHAQUE FORME** (`_spos`, la table accent-exacte du speller, déjà chargée). Sans
+  lui la dérivation INVENTE : mesuré, **6,8 % des cases dérivées n'existent pas** — « comparaîmes », « apparaîmes ».
+- **⛔ LE FP QUE J'AI CRÉÉ, ET CE QU'IL APPREND.** Première version : j'ai levé la garde « la cible ne diffère que
+  par les ACCENTS → muet » **pour toutes les formes**, au lieu du seul cas dont j'avais besoin. La sonde d'échelle
+  l'a vu tout de suite (UD 2 500 : 46 → 50 phrases justes flaguées) : le correcteur réécrivait les **orthographes
+  rectifiées de 1990** vers les anciennes, et **en ROUGE** — « on sent que vous **maitrisez** » → maîtrisez,
+  « il **décèdera** d'un cancer » → décédera. La garde juste tient en une ligne et existait déjà : une correction
+  d'ACCENT SEUL n'est permise que si la forme écrite **n'est pas un mot du lexique** (`_spos(lw)` vide). 47/2 500
+  après : le 47e est « la chanson **apparait** » → apparaît, que le SPELLER applique déjà en rouge (« apparait »
+  n'est pas au lexique du produit) — la règle ne fait que le redire, à un palier plus bas.
+- **⛔ ABSTENTION VOULUE : « Nous primes le train ».** « primes » est *primer* 2sg, le passé simple de *prendre*
+  (prîmes) ET un nom (les primes). Deux lemmes, deux corrections ; sans le lemme on choisit au hasard — mesuré
+  sans la garde : **« primons »**, un ROUGE faux. Aucun des quatre instruments ne le voyait : la phrase n'est dans
+  aucun corpus.
+- **⭐ L'INSTRUMENT QUI MANQUAIT — section [3] « silences attendus » de la batterie.** `CASES` ne savait exprimer
+  qu'« une faute injectée doit être corrigée » ; il n'existait AUCUN endroit pour écrire « ici, se taire est la
+  bonne réponse ». Les six pièges y sont désormais, avec leur raison. C'est le trou de la semaine sous une autre
+  forme : les quatre sondes lisent un CORPUS, et ce qui n'y est pas leur est invisible.
+- **⭐ L'ANCRE DE COUVERTURE MENTAIT.** Les tables ayant gagné le passé simple pluriel, la sonde de couverture
+  génère **156 cas de plus** (55 → 211 au passé simple) — et son taux BAISSE (« il » 92,3 → 91,7 %) alors que
+  chaque case GAGNE (« il » 5 → 14 réussites). Le ratchet criait au recul sur un progrès ; sans vérification à la
+  main on ré-ancre à l'aveugle. Elle ancre désormais AUSSI le nombre **absolu** de réussites, qui ne baisse que
+  si une correction est vraiment perdue.
+- **Mesuré** : batterie **FP=0** (333 phrases correctes, **208** témoins dont 6 neufs) · section [3] **6/6 muets** ·
+  FP échelle **1,88 %** (47/2 500, était 1,84 %) · **juge INCHANGÉ** (314 réparés · 252 un clic · 233 bruit ·
+  14 cassés · 72 appliqués faux · accents 274/174/1 — le corpus dys ne contient pas de passé simple) ·
+  couverture passé simple **43/55 → 178/211**, dont **nous 0 → 19/20** et **vous 0 → 16/17** · app ⊆ Python ·
+  3 moteurs (référence, extension, app).
+
+---
+
 ## 2026-09-15 — LES CAS DE REM : « nous allez », « nous êtes », « les petits chats manges » — trois gardes trop LARGES, et le palier qui suit le sujet
 
 > Rem, en testant le produit livré la veille : « ça va pas : nous allez > nous allons ; nous êtes > nous sommes ;

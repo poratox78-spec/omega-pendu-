@@ -970,6 +970,34 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
   function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
   function _fillReg3pl(cjc,cjf){var _REG3PL=[['ind:imp','ait','aient'],['cnd:pre','ait','aient'],['ind:fut','ra','ront']];for(var lem in cjc){for(var t=0;t<_REG3PL.length;t++){var mt=_REG3PL[t][0],s3=_REG3PL[t][1],p3=_REG3PL[t][2],slot=cjc[lem][mt];if(!slot)continue;var f3s=slot['3s'];if(Array.isArray(f3s))f3s=f3s[0];if(!f3s||slot['3p']||f3s.slice(-s3.length)!==s3)continue;var f3p=f3s.slice(0,-s3.length)+p3;slot['3p']=f3p;var key=deacc(f3p.toLowerCase()),rd=lem+';'+mt+';3;p',cur=cjf[key];if(!cur)cjf[key]=rd;else if(cur.indexOf(rd)<0)cjf[key]=cur+'|'+rd;}}}   // CLÔTURE 3PL RÉGULIÈRE déterministe (imparfait/conditionnel -ait→-aient · futur -ra→-ront, 0 exception) : build_cgram droppe l'imparfait 3pl + cnd/fut partiels (filtre HF). Miroir Python + app.
+  var _PS_DONE=false,_PS_INDEX={};   // PASSÉ SIMPLE PLURIEL : les cases que les tables n'ont jamais eues (miroir Python _ps_completer)
+  function _ps1(d,t,s){var v=(d[t]||{})[s];return Array.isArray(v)?v[0]:v;}
+  function _psCompleter(){   /* Complète CONJ_C[lemme]['ind:pas'] aux 1re/2e/3e du PLURIEL — build_cgram les a SUPPRIMÉES
+     (« ne touchent que nous/vous, exclus du correcteur »). Même principe que _fillReg3pl : le radical ACCENTUÉ est pris
+     DANS la table, à un autre temps du même verbe (les clés de CONJ_C sont déaccentuées), et le LEXIQUE DU PRODUIT (_spos)
+     valide chaque forme — sans lui la dérivation produit « comparaîmes » (mesuré : 6,8 % des cases n'existent pas). Miroir Python. */
+    if(_PS_DONE||!CONJ_C||!(SP&&SP.ready&&SP.POS))return;
+    _PS_DONE=true;
+    for(var lem in CONJ_C){
+      var d=CONJ_C[lem],imp=_ps1(d,'ind:imp','3s'),fut=_ps1(d,'ind:fut','3s'),pas=_ps1(d,'ind:pas','3s'),cand=null,r,r2,st,st3,b,m;
+      if(imp&&imp.slice(-6)==='issait'){r=imp.slice(0,-6);cand={'1p':r+'îmes','2p':r+'îtes','3p':r+'irent'};}   // 2e groupe : SEUL -issait l'identifie (venir/ouvrir finissent en -ir mais sont du 3e)
+      else if(lem.slice(-2)==='er'){   // 1er groupe RÉGULIER : radical de l'imparfait (il porte le e de « mangeait », la cédille de « commençait »), du futur pour -èrent
+        r=lem.slice(0,-2);r2=(r.slice(-1)==='c')?r.slice(0,-1)+'ç':(r.slice(-1)==='g'?r+'e':r);
+        st=(imp&&imp.slice(-3)==='ait')?imp.slice(0,-3):r2;st3=(fut&&fut.slice(-3)==='era')?fut.slice(0,-3):r;
+        cand={'1p':st+'âmes','2p':st+'âtes','3p':st3+'èrent'};}
+      else if(pas){   // 3e groupe IRRÉGULIER : on part de la 3e du SINGULIER déjà en table (« prit » → prîmes, « vint » → vînmes)
+        b=deacc(pas.toLowerCase());
+        if(b.slice(-3)==='int'){r=pas.slice(0,-3);m=['înmes','întes','inrent'];}
+        else if(b.slice(-2)==='it'){r=pas.slice(0,-2);m=['îmes','îtes','irent'];}
+        else if(b.slice(-2)==='ut'){r=pas.slice(0,-2);m=['ûmes','ûtes','urent'];}
+        else if(b.slice(-1)==='a'){r=pas.slice(0,-1);m=['âmes','âtes','èrent'];}
+        else continue;
+        cand={'1p':r+m[0],'2p':r+m[1],'3p':r+m[2]};}
+      else continue;
+      var slots=d['ind:pas']||(d['ind:pas']={});
+      for(var sl in cand){if(slots[sl])continue;if(_spos(cand[sl]))slots[sl]=cand[sl];}   // ne JAMAIS écraser une case mesurée ; LE LEXIQUE valide
+      var nn=0,z;for(z in slots)nn++;if(!nn)delete d['ind:pas'];}
+    for(var lm in CONJ_C){var ps=CONJ_C[lm]['ind:pas'];if(!ps)continue;for(var s2 in ps){var kk=deacc((Array.isArray(ps[s2])?ps[s2][0]:ps[s2]).toLowerCase());(_PS_INDEX[kk]||(_PS_INDEX[kk]=[])).push([lm,s2]);}}}   // index INVERSE, une seule construction
   var _ELIDED_PRON=/^(?:qu|s|n|c|j|l|d|m|t|puisqu|lorsqu|quoiqu)['’](il|ils|elle|elles|on|je|tu|nous|vous)$/;   // « qu'il », « s'ils » : le pronom sujet vit DANS le token élidé (miroir Python _ELIDED_PRON)
   function _prevPron(T,i){if(i<=0)return null;var m=_ELIDED_PRON.exec(T[i-1].toLowerCase());return m?deacc(m[1]):cprev(T,i);}   // pronom sujet EFFECTIF avant i : lit aussi le pronom PORTÉ par un token élidé (« Lorsqu'il à faim », « Puisqu'elle c'est levée » — 5 règles à liste propre le rataient, mesuré 30/08/2026). Miroir Python _prev_pron.
   function svSubject(T,i){var j=i-1,st=0;while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}if(j<0)return null;if(_SEG){for(var m=j+1;m<=i&&m<_SEG.bb.length;m++)if(_SEG.bb[m])return null;}var _me=_ELIDED_PRON.exec(T[j].toLowerCase());if(_me)return SUBJ_PRON[deacc(_me[1])]||null;return SUBJ_PRON[deacc(T[j].toLowerCase())]||null;}
@@ -2662,10 +2690,15 @@ function estQuestion(t,maxMots){
     if(CLITIC[dl]||PREP[dl])return null;
     if(_PB_CONJ_ADV[dl])return null;   // « puis » se lit *pouvoir 1sg* : c'est un CONNECTEUR (miroir Python — oubli de portage vu par messy_probe)
     if(MODAL[dl]&&i+1<T.length&&(/er$/.test(deacc(T[i+1].toLowerCase()))||!svReads(T[i+1]).length))return null;   // MODAL seulement devant un vrai INFINITIF (« je vais manger ») — sinon « nous allez » restait muet
-    var lec=svReads(w);
-    if(!lec.length)return null;
+    _psCompleter();                                                  // complète le passé simple pluriel, une fois
+    var lec=svReads(w),_psSeul=false;
+    if(!lec.length){   // « mangeames » ≡ « mangeâmes » : une case de paradigme que CONJ_F ne porte pas — on la cherche par sa DÉACCENTUATION
+      var _hit=_PS_INDEX[dl]||[];
+      if(_hit.length!==1)return null;                                 // forme ambiguë entre deux lemmes → abstention
+      lec=[[_hit[0][0],'ind:pas',_hit[0][1].charAt(0),_hit[0][1].charAt(1)]];_psSeul=true;}
     var tg=posTags(T);
-    if(!tg||!_verbOrHomograph(tg,T,i))return null;
+    if(!tg)return null;
+    if(!_psSeul&&!_verbOrHomograph(tg,T,i))return null;   // le tagger tague NOUN tout mot INCONNU : sa garde ne peut rien dire de « mangeames » — l'index EST la preuve verbale
     var _lecC=[],_q;   // ACCENT-EXACT : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
     for(_q=0;_q<lec.length;_q++){var _f0=((CONJ_C[lec[_q][0]]||{})[lec[_q][1]]||{})[lec[_q][2]+lec[_q][3]];if(_f0&&_f0.toLowerCase()===lw)_lecC.push(lec[_q]);}
     if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX')))_lecC=[];   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)
@@ -2674,12 +2707,18 @@ function estQuestion(t,maxMots){
       if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
       if(/es$/.test(dl)&&_looksPpl(w.slice(0,-2)))return null;
       if(/s$/.test(dl)&&(_EPICENE_ADJ[dl.slice(0,-1)]||ADJP[dl.slice(0,-1)]||GENDER_MAP[dl.slice(0,-1)]))return null;}   // « complexes »
+    if(lec.length&&_PS_INDEX[dl]){var _hp=false;for(k=0;k<lec.length;k++)if(lec[k][1]==='ind:pas')_hp=true;if(!_hp)return null;}   // homographe d'un passé simple (« primes » = primer 2sg ET prendre 1pl) : sans le lemme on choisirait au hasard
     var sub=_sujetFlexion(T,i,tg);
     if(!sub)return null;
     var per=sub[0],nb=sub[1],src=sub[2];
     if(src!==(_ROUGE?'pron':'nom'))return null;   // pronom → ROUGE ; nominal → ORANGE (miroir Python)
     if(nb==='s'&&per==='3'&&_V3PL_SURE[dl])return null;   // « il sont », « Il ont » : c'est le SUJET qui est fauté (rIlIls le répare), pas le verbe — miroir Python
-    for(k=0;k<lec.length;k++)if(lec[k][2]===per&&(lec[k][3]===nb||lec[k][3]==='x'))return null;   // PAS svAgrees : elle ignore le nombre en 1re/2e
+    var _hors=!_spos(lw);   // la forme écrite n'est PAS un mot du lexique → une différence d'ACCENT SEUL est une vraie faute
+    for(k=0;k<lec.length;k++){   // PAS svAgrees : elle ignore le nombre en 1re/2e
+      if(lec[k][2]!==per||(lec[k][3]!==nb&&lec[k][3]!=='x'))continue;
+      var _t=((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[lec[k][2]+lec[k][3]];
+      if(_hors&&_t&&_t.toLowerCase()!==lw&&deacc(_t.toLowerCase())===dl)continue;   // accent SEUL sur une forme hors lexique : « mangeames » porte la bonne personne et reste faux
+      return null;}
     var que=false;
     for(k=Math.max(0,i-5);k<i;k++)if(/^(que|qu)$/.test(deacc(T[k].toLowerCase()).replace(/['’]$/,'')))que=true;
     var lec2=[];
@@ -2692,7 +2731,8 @@ function estQuestion(t,maxMots){
       if(!f)return null;
       if(cible===null)cible=f;else if(cible!==f)return null;
     }
-    if(!cible||deacc(cible.toLowerCase())===dl)return null;
+    if(!cible||cible.toLowerCase()===lw)return null;
+    if(deacc(cible.toLowerCase())===dl&&!_hors)return null;   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
     return ckeepcase(w,cible);}
   function persVig(T,i){
     if(!CONJ_F||!CONJ_C)return null;
