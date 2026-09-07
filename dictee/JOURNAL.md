@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-09-14 — ACCENTS : les 108 fautes d'accent seul non réparées, recensées — et le présent après un pronom sujet (« il decide » → décide)
+
+> Rem (13/09) : « encore une histoire d'accent, normalement on a de quoi traiter et poser l'accent manquant ». La colonne stricte
+> disait 274 fautes d'accent seul, 166 réparées. Les 108 autres, lues une par une (72 productions) :
+
+- **73 homophones grammaticaux muets** — 54 « a → à » (« un gateau **a** la vanille », « papi **a** lhopital », « pour laide **a** bricole »),
+  6 ou/où, 5 la/là, 3 ca/ça, media/pôle/forêt. Les « a » : 34 entre deux noms ou mots mal écrits, 13 devant un déterminant (« a la »,
+  « a des » — l'ambiguïté avec avoir, refusée par construction), 5 devant un infinitif mal écrit (« comense a avanser » : le verbe
+  d'avant n'est pas reconnu, la branche « après un verbe » ne tire pas). **Pas d'ancre sûre nouvelle** : le voisin est fauté lui-même.
+- **19 mots valides sans accent** (« j'ai **commence** », « je me suis **installe** », « il est **oblige** ») : le speller se tait sur un mot
+  connu ; la règle de grammaire « participe après auxiliaire » (`rule_e_ppl`) ne voit ni « j'ai » (token à apostrophe) ni les
+  pronominaux (« me/te/se + être », hors de sa liste fermée). Recensé : 3 pronominaux dans le gold, 1 piège UD (« se fut **mise** »,
+  déjà un participe) → extension possible, séparée.
+- **5 rouges AILLEURS** : « il **decide** de » → le produit écrivait **décidé** (et « décidée » avec « la voiture » deux mots plus haut :
+  la bascule de genre lit à travers le pronom), le gold veut **décide**. Recensé toutes sources : 7 mots nus à deux accentuations
+  (présent -e / participe -é) après un pronom sujet ou un auxiliaire — **6 après pronom, tous au présent** ; 1 après auxiliaire, participe.
+- 5 « ou → où » déjà justes en orange · 2 « **grace** → grâce » signalés sans réponse (la garde prénom taisait « grace » écrit en
+  minuscule ; UD minuscules : 0) · 1 « the → thé » (36 « the » dans UD : on ne touche pas).
+
+**Posé (3 moteurs)** : ① `PRÉSENT APRÈS PRONOM SUJET` dans le speller, symétrique du « participe après auxiliaire » — quand le mot nu a
+les deux accentuations, sujet pronom (je/tu/il/elle/on/ils/elles/nous/vous/qui, clitiques traversés) sans auxiliaire ni copule entre →
+le présent (plancher 0,5/M : « trébuche » 0,85/M). Placé AVANT la bascule de genre, qui rendait « décidée ». ② « grace » → grâce dans
+`_AFIX_MIN`. Témoins : « il a decide » → décidé, « elle est arrete » → arrêté, « il ne se decide pas » → décide, « premiere » intact.
+
+- **Mesuré** : batterie FP=0 · FP échelle 1,36 % (34/2 500, inchangé) · accord de palier 100 % · parité speller Py↔JS · ext ≡ app · dys-core ⊆ Py · textes.
+  **Juge : 312 réparés · 244 un clic · 14 cassés · 73 appliqués faux dont 42 bon lemme** (était 312 · 244 · 14 · 73
+  dont 42) ; **accents : 274 fautes, 171 réparées, 1 cassé** (était 274 · 166 · 1).
+  Précision produit (Chrome) : deux planchers ré-ancrés (`--fix`) — « grace → grâce » passe d'orange à rouge (mot inconnu·vigilance
+  38,1 → 37,9 %) et « drois → trois » devient « droits » (orthographe vigilance·propre 55,7 → 55,2 %) DANS CHROME SEULEMENT : sous
+  node, le même dys-core.js sur la même phrase donne « droits » avant comme après (diagnoseAll, tous assets). Divergence Chrome ↔ node
+  non élucidée, notée ; « nom féminin en -ée » (#690) ancré au passage (jamais ancré). Les quatre gabarits {REP}… laissés vides par
+  les docs de #688-#690 sont remplis ici (les chiffres sont ceux des PR).
+
+---
+
 ## 2026-09-13 (soir) — ⑤-c : le féminin manquant — 55 muets en trois paquets, un seul a une ancre (« la cheminé » → cheminée)
 
 > Plan de l'audit, ⑤ « les silences par fréquence », troisième famille : le FÉMININ manquant (-∅ → -e, -é → -ée). Recensé sur les
@@ -22,9 +57,9 @@
   SUR », « la mer SAUF », « sa voiture CHER » — prépositions et adverbes homographes) et 97 motifs dans UD (« sur », participes
   présents). **Différé** : il faudrait exclure les homographes et le participe présent, et l'ancre resterait fragile (« la maison du
   voisin bleu »). Le paquet le plus gros de ⑤-c reste donc muet, honnêtement.
-- **Mesuré (B)** : batterie 4/4 fp=0 · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif ·
-  speller ext ≡ app · textes. **Juge : {REP} réparés · {UNCLIC} un clic · {CASSES} cassés · {APPF} appliqués faux dont {LEM} bon lemme**
-  (était {OLDREP} · 244 · 14 · 73 dont 42).
+- **Mesuré (B)** : batterie 4/4 fp=0 · FP échelle 1,36 % (34/2 500, inchangé) · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif ·
+  speller ext ≡ app · textes. **Juge : 312 réparés · 244 un clic · 14 cassés · 73 appliqués faux dont 42 bon lemme**
+  (était 308 · 244 · 14 · 73 dont 42).
 - **⑥ (instrument), dans le même PR** : `pyramide` garde la casse du token comme le produit (`ckeepcase`) — « On → on » n'est
   plus une « correction » de la référence (le seul écart produit ≠ référence de l'audit du 11/09). Chiffres inchangés (le juge
   comparait déjà en minuscules) ; c'est la LECTURE des rouges qui devient fidèle.
@@ -45,9 +80,9 @@
 - **Règle** : `rule_noun_plural` / `rNounPlural` lisent le déterminant à i-2 quand i-1 est un adjectif de `_ADJ_ANTE` (la même
   traversée que celle du genre) ; TOUTES les gardes existantes s'appliquent telles quelles (posterior §3, « les »/« leurs » pronoms,
   composé nom+nom, capitalisé, déjà pluriel). Trois moteurs, 3 cas de batterie.
-- **Mesuré** : batterie FP=0 verte · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif · speller
-  ext ≡ app · textes · sonde FP du pluriel du nom. **Juge : {REP} réparés · {UNCLIC} un clic · {CASSES} cassés · {APPF} appliqués faux
-  dont {LEM} bon lemme** (était {OLDREP} · 244 · 14 · 73 dont 42). Les noms mal orthographiés (sosiété) restent au speller (orange
+- **Mesuré** : batterie FP=0 verte · FP échelle 1,36 % (34/2 500, inchangé) · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif · speller
+  ext ≡ app · textes · sonde FP du pluriel du nom. **Juge : 308 réparés · 244 un clic · 14 cassés · 73 appliqués faux
+  dont 42 bon lemme** (était 305 · 244 · 14 · 73 dont 42). Les noms mal orthographiés (sosiété) restent au speller (orange
   « sociétés » proposée) ; les ambigus (demande, console) restent muets par la garde du nom — c'est voulu.
 - **Un gold corrigé** : la garde « précision au produit » a vu 25 mots justes réécrits (plafond 24) — le 25ᵉ est « ces nouveaux
   **fusil** Henry » (faiblesses.jsonl, issu d'UD) : le produit écrit « fusils », le gold gardait la faute d'UD. Corrigé dans le corpus
@@ -79,8 +114,8 @@
 - **Recensé avant de poser** : gold_claude 11 motifs, tous au pluriel dans le gold ; UD GSD train (14 450 phrases correctes) :
   0 motif avec la spec exacte. Corpus dys toutes sources : idem, jamais un gold au singulier.
 - **Mesuré** : batterie FP=0 verte, nouvelle famille 5/5 fp=0 (+ 3 pièges dans les témoins : grand-parents, premier et deuxième,
-  « il les seul ») · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py (350 phrases) · dictée Py↔JS · impératif ·
-  speller ext ≡ app · textes. **Juge : {REP} réparés · {UNCLIC} un clic · {CASSES} cassés · {APPF} appliqués faux dont {LEM} bon lemme**
+  « il les seul ») · FP échelle 1,36 % (34/2 500, inchangé) · accord de palier 100 % · dys-core ⊆ Py (350 phrases) · dictée Py↔JS · impératif ·
+  speller ext ≡ app · textes. **Juge : 305 réparés · 244 un clic · 14 cassés · 73 appliqués faux dont 42 bon lemme**
   (était 294 · 244 · 14 · 73 dont 42).
 - **Précision au produit (Chrome), ré-ancrée `--fix`** : la nouvelle famille « accord adjectif antéposé » mesure 100 % (11 justes,
   0 mot juste réécrit, 0 faux). La garde avait vu ROUGE sur « accord pluriel à vérifier » (orange) : 52,8 → 41,4 % (pollué) et

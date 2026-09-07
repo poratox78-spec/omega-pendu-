@@ -16,7 +16,7 @@ CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque qu
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
-_AFIX_MIN = {'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
+_AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
@@ -654,6 +654,25 @@ class Speller:
             if bs is not None:
                 w1 = bs; (p1, f1) = cands[w1]
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
+        # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il decide » → décide, pas décidé. Sujet pronom
+        # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
+        # AVANT la bascule de genre ci-dessous, qui lisait « la voiture » deux mots plus haut et rendait « décidée ».
+        sbj = False
+        if toks and d.endswith('e'):
+            y = idx - 1
+            while y >= 0:
+                dy = deacc(toks[y].lower()).replace("'", '')
+                if dy in self.AUXAV or dy in self.COPULA: break
+                if dy in self.SUBJP or dy == 'qui': sbj = True; break
+                if dy in ('ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'le', 'la', 'les', 'l', 'lui', 'leur', 'y', 'en'): y -= 1; continue
+                break
+        if sbj:
+            pr, ppl = None, False
+            for ck in cands:                                    # les DEUX accentuations existent (présent -e / participe -é) ?
+                if deacc(ck) != d: continue
+                if ck.endswith('é'): ppl = True
+                elif ck.endswith('e') and cands[ck][1] >= 0.5 and (pr is None or cands[ck][1] > cands[pr][1]): pr = ck
+            if pr and ppl and pr != w1: return ('flag', pr)     # plancher 0,5 pour cette étape : « trébuche » 0,85/M
         # ACCORD GENRE (paire d'adjectif) : si le meilleur candidat a le mauvais genre et que sa contrepartie
         # colle au contexte ET est candidate → bascule (FLAG), même si w1 était une restauration d'accent (premiere→premier).
         if cg and 'A' in self.POS.get(w1, ()):                  # bascule réservée aux ADJECTIFS (évite nom « élève » → « élevée »)
