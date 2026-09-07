@@ -3191,6 +3191,168 @@ _ART_BLOCK = {'un', 'une', 'le', 'la', 'les', 'du', 'des', 'au', 'aux', 'ce', 'c
               'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses',
               'notre', 'nos', 'votre', 'vos', 'leur', 'leurs'}   # le français n'empile JAMAIS article + possessif
 _EPICENE_NOUN = set("""absentes absinthe absinthes accessoiriste accessoiristes accro accros accusateur acolyte acrobate acrobates actionnaire actionnaires activiste activistes adepte admirateur admirateurs ado ados adulte adultere adulteres adultes adversaire adversaires agent aide aigle albinos alcoolique alcooliques alcoolo alcoolos alpiniste amour amours analyste anarchiste anarchistes anesthesiste anesthesistes anonyme anthropologue anthropologues antiquaire antiquaires appli applis arbitre arbitres archeologue archeologues architecte architectes ardoise aria aristocrate aristocrates artiste artistes astronaute astronautes athee athees athlete athletes aube aubergiste aubergistes aubes aurore auteur autochtone autochtones automatique automatiques automne automobiliste automobilistes auxiliaire auxiliaires aventurier aveugle baba babas babine banane banque barbare barbares barbe barbes barjo barjos barjot barjots basket baskets basque bassiste bassistes baston baume baumes bavard beige beiges beigne beneficiaire beneficiaires benevole benevoles beta bi bibliothecaire bibliothecaires bicoque bicoques bienvenu biologiste biologistes black blacks blond blonds bobo boche boches boheme boire boires bolchevik bolcheviks bonhomme bordure borgne bossu botaniste botanistes boucle boucles bouddhiste bouffe bouffes boule boules boum bourge bourges bourre bourres boutique boutiques brave bretzel bretzels brutes bulle bureaucrate bureaucrates buveur cab cache caches camarade camee camionneur caniche cannelle capitaine capitaliste carpe carpes cartouche cartouches casier casiers casse casses catho catholique catholiques cathos catin catins cave celibataire centenaire cerise champagne charmeur chauffard chauve cheerleader cheerleaders chef chevre chevres chimiste chimistes chine choregraphe choregraphes choriste choristes chose choses chronique chroniques chum chums cineaste cineastes cinquieme cinquiemes claque classique clone clope coach coca cocas coche coke cokes collabo collabos collegue collegues colo coloc colocataire colocataires colocs colos com combi comique comiques commissaire commissaires commodore communiste communistes compatriote complice complices comptable comptables concepteur concessionnaire concessionnaires concierge condisciple contribuable contribuables convive convives copilote copilotes coquille cosmetique cosmonaute cosmonautes costumier coupable coupables couple couples cours couturiere createur creme crepe crepes critique critiques cycliste cyclistes cynique cyniques dactylo dactylos dealer debile debiles debriefings democrate democrates dentiste dentistes der dermatologue dermatologues dernier destinataire destinataires detective deuxieme deuxiemes diabetique diabetiques dingo dingue dingues diplomate diplomates disco discos divisionnaire divisionnaires dixieme dixiemes doberman doc docs docteur dodo domestique domestiques doudou doudous drole droles echangiste echangistes ecolo ecologiste ecologistes ecrivain egocentrique egocentriques egoiste elastique elastiques eleve eleves elfe enfant enseigne enseignes entrepreneur enzyme enzymes ermite esclave esclaves escroc espace espaces eveque ex excentrique exhibitionniste exhibitionnistes exorciste exorcistes expert exterminateur externe externes extra extraterrestre extraterrestres extremiste extremistes faible faibles fan fanatique fanatiques fans fasciste fascistes fat faune faunes faussaire faux feministe feministes fidele fideles filleul filleuls filou filous fin finale finales finaliste finalistes fins flasque fleche fleches flemmard fleuriste fleuristes foi fonctionnaire fonctionnaires forcene fossette fossettes fou foudre foudres fourbe freelance freelances fugitif fusilier gaffe gaffes gaillard gang gangs garde gardes gauche geek geeks gens geologue geologues geometre geometres gerant geste gestionnaire gestionnaires gite glace glaces gone gosse gourmand gouverneur graphique graves greffe greviste grevistes grossiste grossistes groupie guide guides guitariste gymnaste gymnastes gyneco gynecologue gynecologues gynecos hacker hadji heretique heretiques hetero heteros hippie hippies holding holdings homicide homologue hote huitieme huitiemes humanitaire humoriste humoristes hybride hymne hymnes hypocrite hypocrites hysterique iceberg idealiste idealistes iles imbecile imbeciles incendiaire incendiaires inceste indic indigene indigenes infidele infideles infirme ingenieur insolent instit instits intello inter interface interfaces interimaire interimaires intermediaire intermediaires interne interprete interpretes inutile invalide invalides ivrogne jacques jade jaguar jarre jarres jeune job jobs jonquille jonquilles journaliste journalistes juge junior juniors juste jute kamikaze kine kines lache laches laque laques legume libraire libraires lights limes liquide litre livre livres lobbyiste lobbyistes locataire locataires louche louches lune lunes magistrat magneto magnetos magnum maire maires malade mambo manche manches mangue maniaque maniaques manucure marine marines mariole marioles marionnettiste marionnettistes marque martyre martyres masque mateur mateurs matricule matte mecene medecin memoire memoires mercenaire mercenaires merci mercis meteorite meteorites meteorologue meteorologues meteque meteques micro militaire militaires millionnaire millionnaires mime mimes minable minables minettes ministre ministres mire miserable miserables missionnaire missionnaires mode modele mome momes mort moule moules mousse mystique mystiques nationaliste nationalistes naze negro neurologue neurologues neuvieme neuviemes noble nobles nomade nomades notable notables notaire nounou nounous novice novices nudiste nudistes obese obeses officier ombre ombres oncologue oncologues opportuniste opportunistes optimiste optimistes orange orbe orbes ordinaire orque orques otage otages pacifiste pacifistes page pages paillasse paillasses pamplemousse para parachutiste parachutistes parallele parano paranoiaque paranoiaques paranos paras paria parias part partenaire partenaires parties party passe passes pasteur pathologiste pathologistes patriote patriotes pauvre paysagiste paysagistes pediatre pedicure pedophile peintre peintres pendule pendules pensionnaire pensionnaires people perceur periode periodes philanthrope philanthropes philo philos philosophe philosophes photographe photographes physique physiques pianiste pianistes pickpocket pipe pipes pique piques pirate pirates pire plastique platine plume plumes poele polar politique politiques polygraphe polygraphes pompe pompes pompiste pompistes ponte poste postes pote potes pouf pouffiasse pousse pratique pratiques pretexte prime primes privilegie pro proc proche proches procs procureur prof profane professeur profs proprietaire proprietaires proprio pros protagoniste proxenete psy psychanalyste psychanalystes psychiatre psychologue psychopathe psychotique psys pub publicitaire publicitaires pubs pupille pupilles pyromane pyromanes quadrille quadrilles quatrieme quatriemes raciste racistes rade rades radio rapace rapaces rasta rastas realiste rebelle receptionniste recidiviste recidivistes reclame relache remise remises renne rennes responsable responsables retardataire retardataires revolutionnaire revolutionnaires rhino riche ridicule ripoux robot rocker romantique romantiques rose roses russe rustre sadique sadiques sage salamandre salamandres salope salopes samba sangle sangles sarcophage sarcophages sauce sauna saunas scenariste scenaristes sceptique schizophrene schizophrenes schnock schnocks schtroumpf schtroumpfs scientifique scientifiques scientologue scientologues script sculpteur secouriste secouristes secretaire secretaires semblable senior seniors separatiste septieme septiemes silicone simples sitcom sitcoms sixieme sixiemes skinhead skipper snob snobs socialiste socialistes solde soldes soliste solistes solitaire somme sommes somnambule somnambules soprano sopranos souillon souillons source sources spartiate spartiates spatule specialiste specialistes stagiaire stagiaires standardiste standardistes stations styliste stylistes subalterne subalternes sudiste sudistes suicidaire suicidaires suspense suspenses taf tank tapas tartare tartares tata tatas telegraphe telepathe telepathes tempo tendre teneurs terroriste terroristes therapeute tire titulaire titulaires tome tomes tortionnaire tortionnaires toubib tour touriste touristes tours toxicomane toxicomanes trader traders trampoline tripode troisieme troisiemes trompette trompettes trouble trouduc typhoide typhoides ultra ultras universitaire urgentiste urgentistes vague vampire vampires van vanne vannes vans vapeur vase vases ventriloque ventriloques vestiaire veterinaire veterinaires veto video videos vigile vigiles violoniste violonistes virtuose virtuoses visionnaire visionnaires vivre voile voiles volontaire zombie zombies zoom""".split())   # NOMS ÉPICÈNES (la médecin, la juge) — dérivé build_epicene_noun.py (Lexique genre epicene + professions féminisées). rule_det_gender ABSTIENT dessus (2 genres valides).
+# ⭐ LE SUJET DONNE LA PERSONNE ET LE NOMBRE ; LA FORME ÉCRITE DONNE LE TEMPS (14/09/2026, demande de Rem
+# après « nous iriez » resté muet). Les règles d'accord existantes couvrent des CASES : le NOMBRE pour
+# il/ils (rule_accord_sv…), la PERSONNE au singulier et au présent pour je/tu (rule_personne_verbe). La
+# sonde `couverture_conj_probe` a chiffré ce qui restait : nous 0 %, vous 0 %, sujet nominal 0,6 %,
+# je 58 %, tu 53 %. Cette règle est la générale : elle lit le sujet, lit le TEMPS ÉCRIT, et pose la case
+# manquante de CONJ_C — « nous iriez » → irions (conditionnel gardé), « tu irai » → iras (futur gardé).
+# Elle passe APRÈS les autres (première décision gagne) : elle ne touche que ce qu'elles laissent muet.
+_SUBJ_PRON_PL = {'nous': ('1', 'p'), 'vous': ('2', 'p')}     # ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS
+# ⛔ COQUILLE DE LA SOURCE (Lexique 4), trouvée le 14/09/2026 en cassant un mot juste : la ligne
+#     soulais<TAB>vouloir<TAB>VER<TAB>s<TAB>ind:imp:1
+# déclare « soulais » 1re personne de l'imparfait de VOULOIR (un « v » lu « s »). Les deux tables en héritent,
+# et la règle réécrivait « ce que je voulais » en « soulais », en ROUGE. Recensé pour être sûr que c'est isolé :
+# sur 70 252 cases de CONJ_C, 13 formes ne partagent aucun début avec le reste de leur paradigme, et 12 sont des
+# irrégularités LÉGITIMES (puis, vont, font, ai/a/as/ont, suis/êtes, oyez, veniez, vouliez) — « soulais » est la
+# seule vraie coquille. Correction ponctuelle ici plutôt qu'un rebuild de l'asset ; la sonde de couverture garde.
+_CONJ_FIX = {('vouloir', 'ind:imp', '1s'): 'voulais'}
+for (_l, _t, _s), _f in _CONJ_FIX.items():
+    if CONJ_C.get(_l, {}).get(_t, {}).get(_s) not in (None, _f):
+        CONJ_C[_l][_t][_s] = _f
+_FLEX_ADV_OK = ('ADV',)                                       # seul un adverbe se traverse entre le sujet et son verbe
+# ⚖️ SUJET NOMINAL — interrupteur, décision de Rem. Mesuré le 14/09/2026 avec les gardes EXISTANTES
+# (`_np_subject` : déterminant + nom-tête, écran prépositionnel, coordination ; `_PB_CONJ_ADV` pour « puis » ;
+# garde ajoutée pour les déterminants CONTRACTÉS des/du/au/aux, que `_np_subject` ne voit pas comme prépositions) :
+#     éteint (livré) : couverture « le chat » 6,6 % / « les chats » 0,6 %  ·  FP échelle 1,40 % (35/2 500)
+#     allumé         : couverture « le chat » ~77 % / « les chats » ~77 %  ·  FP échelle 1,72 % (43/2 500)
+# Les 9 restants ne sont PAS des bugs de la règle mais des tolérances ou des indécidables : accord de proximité
+# (« le plus grand nombre de personnes puissent »), accord de SENS sur collectif (« un village de paysans
+# dépendent »), coordination (« ainsi que le développement font »), titre d'œuvre (« Drakan les Chevaliers du
+# feu est »), infinitive sujet (« trouver un logement au Québec restent »), sujet POSTPOSÉ (« se trouvent des
+# poteaux »), et une phrase corrompue du corpus. Le sujet PRONOM, lui, ne coûte qu'UNE phrase sur 2 500.
+_SUJ_NOMINAL = False   # ÉTEINT le 14/09 : en ROUGE il réécrit 5 mots justes (plumes, visaient, trouvent, vaudront, dépendent — tous des pluriels ramenés au singulier) et la précision de la famille tombe à 8,3 % sur le corpus dys ; garde dure « tokens corrects détruits » 33 > 28. Le sujet PRONOM, lui, tient.
+
+
+def _sujet_flexion(T, i, tg):
+    """(personne, nombre) du sujet de T[i], ou None. Le contexte tranche, avec les primitives du projet :
+    on remonte de i-1 jusqu'à la frontière de proposition (_SEG['bb']), en traversant les CLITIQUES et les
+    ADVERBES (tagger), et on s'arrête au PREMIER candidat sujet :
+      · pronom sujet (SUBJ_PRON, élidé compris)                     → sa personne
+      · « nous »/« vous » : sujet SEULEMENT si rien avant lui dans   → 1p/2p   (« hier nous allait » oui ;
+        la proposition ne peut l'être — sinon c'est le complément      « il nous parle », « qui vous
+        (« il nous parle », « la direction nous a promis »)            passionnera », « la direction nous
+                                                                       a promis » : non)
+      · nom ou nom propre confiant (tagger NOUN/PROPN)              → 3e personne, nombre du nom
+    Abstention dès qu'un VERBE FINI est rencontré (inversion, incise) ou qu'aucun candidat n'est trouvé."""
+    if i <= 0: return None
+    j = i - 1
+    while j >= 0:
+        if _SEG is not None and j + 1 < len(_SEG['bb']) and _SEG['bb'][j + 1] and j + 1 != i:
+            return None                                              # frontière entre le candidat et le verbe
+        w = T[j]; d = deacc(w.lower())
+        m = _ELIDED_PRON.search(w.lower())
+        if m: d = deacc(m.group(1))                                  # « qu'ils », « s'il » : le sujet vit dans le token
+        if d in SUBJ_PRON: return SUBJ_PRON[d]
+        if d in _SUBJ_PRON_PL:
+            # nous/vous : sujet seulement si RIEN à gauche dans la proposition ne peut l'être.
+            k = j - 1
+            while k >= 0:
+                if _SEG is not None and k + 1 < len(_SEG['bb']) and _SEG['bb'][k + 1]: break
+                dk = deacc(T[k].lower())
+                mk = _ELIDED_PRON.search(T[k].lower())
+                if mk: return None                                   # « qu'il nous parle » : le sujet est le pronom élidé
+                if dk in SUBJ_PRON or dk in _SUBJ_PRON_PL or dk == 'qui': return None   # sujet déjà là → nous/vous = objet
+                if re.match(r"^(que|qu)$", dk.rstrip("'’")) or (tg and k < len(tg) and tg[k] == 'SCONJ'):
+                    break                                            # « il faut QUE nous mange » : la subordonnée COMMENCE ici → nous est bien son sujet
+                if tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN', 'VERB', 'AUX'): return None
+                if dk in CLITIC or (tg and k < len(tg) and tg[k] in _FLEX_ADV_OK): k -= 1; continue
+                return None                                          # inconnu à gauche → prudence
+            return _SUBJ_PRON_PL[d]
+        if d == 'qui': return None                                   # relatif : l'antécédent décide (règle dédiée)
+        if _reads(w): return None                                    # verbe fini avant → inversion/incise → abstention
+        if tg and j < len(tg) and tg[j] in ('NOUN', 'PROPN'):
+            if not _SUJ_NOMINAL: return None          # interrupteur : le sujet NOMINAL en rouge réécrit 5 mots justes du corpus (mesuré)
+            # SUJET NOMINAL — avec la primitive du projet, PAS un scan maison. Ma première version remontait
+            # token par token et prenait le premier NOUN : sur « la langue DES ISRAÉLITES du Nord est » elle
+            # lisait « Israélites » (pluriel) et proposait « sont ». `_np_subject` fait exactement ce travail
+            # correctement : déterminant + nom-tête, écran prépositionnel sauté, bornes de proposition,
+            # abstention sur coordination et sujet postposé. Mesuré : 12 phrases UD flaggées avec le scan
+            # maison, la primitive en écarte l'essentiel.
+            np = _np_subject(T, tg, i)
+            if not np or np['n'] not in ('s', 'p'): return None
+            # LIMITE MESURÉE DE LA PRIMITIVE : `_np_subject` s'abstient quand le déterminant est précédé d'une
+            # préposition, mais « des/du/au/aux » sont des CONTRACTÉS (de+les, de+le) — la préposition est DANS
+            # le déterminant, elle ne la voit pas. Sur « la vision les faisant descendre DES anciens Israélites
+            # du Nord est », elle rend « Israélites » (pluriel) au lieu de « vision ». Le groupe est un
+            # complément dès qu'un verbe ou un nom le précède.
+            _d = deacc((np.get('dtxt') or '').lower())
+            if _d in ('des', 'du', 'au', 'aux') and np['idx'] >= 2:
+                _av = np['idx'] - 2
+                if _av >= 0 and (_reads(T[_av]) or (tg and _av < len(tg) and tg[_av] in ('NOUN', 'PROPN', 'VERB', 'AUX'))):
+                    return None
+            return ('3', np['n'])
+        if d in CLITIC or (tg and j < len(tg) and tg[j] in _FLEX_ADV_OK): j -= 1; continue
+        return None
+    return None
+
+
+def rule_sujet_flexion(T, i):
+    """« nous iriez » → irions · « tu irai » → iras · « le chat mangeons » → mange. Le TEMPS ÉCRIT est gardé
+    (c'est la demande : corriger la personne, pas réécrire au présent). Deux lectures qui donneraient deux
+    formes différentes → abstention. Miroir JS : rSujFlex."""
+    if not CONJ_F or not CONJ_C: return None
+    w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if "'" in lw or not dl.isalpha() or len(dl) < 2: return None
+    if dl in CLITIC or dl in PREP or dl in MODAL: return None
+    # CONNECTEUR homographe d'une forme verbale rare : « puis » est lu *pouvoir, 1re du singulier* et faisait
+    # proposer « peuvent » dans « celle des Mariniers PUIS des Pénitents » (2 FP UD). La liste existe déjà dans
+    # ce fichier — `_PB_CONJ_ADV`, utilisée par la segmentation — on la lit au lieu d'en inventer une.
+    if dl in _PB_CONJ_ADV: return None
+    lec = _reads(w)
+    if not lec: return None
+    tg = pos_tags(T)
+    # ⭐ LA GARDE HOMOGRAPHE EXISTE DÉJÀ : `_verb_or_homograph` (écrite pour l'accord sujet-verbe) répond
+    # « T[i] est-il un VERBE EN CONTEXTE ? » et écarte les noms/adjectifs connus. Sans elle, mesuré sur la
+    # batterie : 7 FP, tous des ADJECTIFS ou PARTICIPES en -és/-es lus comme des formes finies (« Les
+    # randonneurs épuisés » → épuisent, « Ces gâteaux dorés » → dorent, « des couleurs vives » → vivent).
+    if not tg or not _verb_or_homograph(tg, T, i): return None
+    # ⛔ PARTICIPE : « Les randonneurs ÉPUISÉS arrivent », « Ces gâteaux DORÉS » — le tagger les dit VERB et
+    # `_reads` leur trouve une lecture finie homographe (épuiser 3pl). Un participe n'est pas une forme finie :
+    # il est traité par les règles d'accord du participe. Mesuré : 7 FP de batterie, tous là.
+    if _looks_ppl(w) or dl.endswith(('e', 'es')) and _looks_ppl(w[:-1] if dl.endswith('e') else w[:-2]): return None
+    # `_verb_or_homograph` teste la forme EXACTE : « complexe » est dans _EPICENE_ADJ, « complexes » non
+    # (« les élèves brillants et complexes » → complexent, 1 FP de batterie). Le pluriel d'un adjectif ou
+    # d'un nom connu est un adjectif ou un nom : on teste aussi le singulier.
+    if dl.endswith('s') and (dl[:-1] in _EPICENE_ADJ or dl[:-1] in ADJ_LEX or dl[:-1] in GENDER_FULL): return None
+    # ⭐ LECTURES FANTÔMES : `CONJ_F` porte 314 lectures sur 77 910 que `CONJ_C` contredit — Lexique agrège
+    # plusieurs formes homographes sur UNE ligne avec UN SEUL champ Nombre (« sommes » lemme=être : nombre='p',
+    # personnes 1 ET 2 → une lecture « être, 2e du singulier » qui n'existe pas). L'autorité est CONJ_C, et
+    # `rule_personne_verbe` le dit déjà en toutes lettres : « JAMAIS CONJ_F seule ». Sans ce filtre la règle se
+    # TAIT sur « tu sommes », « il sommes », « tu faites », « tu dites » : le fantôme lui fait croire que c'est
+    # accordé. On ne garde que les lectures que la table de génération confirme.
+    _lec0 = [r for r in lec if deacc(((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower()) == dl]
+    if _lec0: lec = _lec0
+    sub = _sujet_flexion(T, i, tg)
+    if sub is None: return None
+    per, nb = sub
+    # ⛔ QUAND C'EST LE SUJET QUI EST FAUTÉ, NE PAS TOUCHER AU VERBE. « a forse il sont dégouter » : le dys a
+    # écrit « il » pour « ils » — `rule_il_ils` répare le SUJET (rouge). Si on corrige aussi le verbe, on obtient
+    # « ils est » : deux rouges qui se contredisent, et un mot juste cassé (mesuré : casses 14 → 16). Les formes
+    # de `_V3PL_SURE` (sont/ont/vont/font) sont des 3e du PLURIEL non ambiguës : après un « il »/« elle »
+    # singulier, l'erreur est sur le pronom, pas sur elles.
+    if nb == 's' and per == '3' and dl in _V3PL_SURE: return None
+    # ⚠️ PAS `_agrees` ICI : elle ignore le NOMBRE pour les 1re/2e personnes (« 1re/2e = toujours singulier »),
+    # ce qui n'était vrai que parce que nous/vous étaient exclus du correcteur. Avec eux, « je irons » et
+    # « nous mange » y passaient pour accordés. On compare donc personne ET nombre, en tolérant le wildcard
+    # 'x' de derive_number (nombre indécidable sur la morphologie : « vient » 3sg ↔ « rient » 3pl).
+    if any(r[2] == per and r[3] in (nb, 'x') for r in lec): return None       # déjà accordé à cette personne
+    # LE SUBJONCTIF EXIGE SON DÉCLENCHEUR : sans « que » à gauche, « mange » est un présent, pas un subjonctif.
+    # Sans ce filtre « nous mange » a deux lectures (ind:pre, sub:pre) donnant deux cibles (mangeons, mangions)
+    # et la règle s'abstenait — un trou créé par la table des lectures, pas par la langue.
+    _que = any(re.match(r"^(que|qu)$", deacc(T[k].lower()).rstrip("\'\u2019")) for k in range(max(0, i - 5), i))
+    _lec2 = [r for r in lec if r[1].startswith('sub')] if _que else [r for r in lec if not r[1].startswith('sub')]
+    if _lec2: lec = _lec2                                            # « que » présent → subjonctif ; absent → indicatif
+    cible, slot = None, per + nb
+    for (lem, tps, _p, _n) in lec:
+        f = (CONJ_C.get(lem) or {}).get(tps, {}).get(slot)
+        if not f: return None                                        # le temps écrit n'est pas dans la table → abstention
+        if cible is None: cible = f
+        elif cible != f: return None                                 # deux lemmes, deux formes → abstention
+    if not cible or deacc(cible.lower()) == dl: return None
+    return _keepcase(w, cible)
+
+
 def rule_det_gender(T, i):
     lw = deacc(T[i].lower())
     if lw not in DET_GENDER or "'" in T[i].lower(): return None
@@ -4741,6 +4903,10 @@ RULES = [('élision inversée', rule_deselide),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret),
          ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
+         ('personne du verbe', rule_sujet_flexion),   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
+                                                       # — « c'est de la conjugaison, les fautes sont flagrantes, du rouge au moindre problème ».
+                                                       # EN DERNIER : « la première décision gagne » — la générale ne comble que
+                                                                 # ce que les règles dédiées laissent muet (« nous somme » reste à rule_aux_misspell)
          ('majuscule', rule_capital)]   # rule_genre_adj (adjectifs) reste NON branchée (FP-insûre)
 
 
@@ -4768,6 +4934,12 @@ CASES = [
     ("Il semble fatigué", "fatigué", "fatiguer", "-é/-er"),
     ("Le moteur semble cassé", "cassé", "casser", "-é/-er"),
     ("Le travail semble terminé", "terminé", "terminer", "-é/-er"),
+    ("Nous irions au cinéma", "irions", "iriez", "personne du verbe"),
+    ("Vous iriez au cinéma", "iriez", "irions", "personne du verbe"),
+    ("Tu iras demain", "iras", "irai", "personne du verbe"),
+    ("Nous allons au parc", "allons", "allez", "personne du verbe"),
+    ("Le chat mange sa pâtée", "mange", "mangeons", "personne du verbe"),
+    ("Les chats mangent leur pâtée", "mangent", "mangeons", "personne du verbe"),
     ("J'ai commencé le travail", "commencé", "commence", "-e/-é (participe)"),
     ("Il est obligé de partir", "obligé", "oblige", "-e/-é (participe)"),
     ("Elle s'est mariée hier", "mariée", "marie", "-e/-é (participe)"),

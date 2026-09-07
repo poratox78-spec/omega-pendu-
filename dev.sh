@@ -63,6 +63,7 @@ run "dictée SENT (app==json, 0 FP)" python3 dictee/sentences_parity.py
 run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
 run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
 run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
+run "COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus)" python3 dictee/couverture_conj_probe.py
 run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check
 run "Genre perdu par la désaccentuation (rappel 217, FP=0)" python3 dictee/gender_coll_probe.py --check
 run "FP speller à l'échelle (ortho affirmatif UD 2500, garde régression)" node dictee/speller_fp_scale_probe.js --check

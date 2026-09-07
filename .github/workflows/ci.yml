@@ -19,6 +19,8 @@ jobs:
         run: python3 dictee/recall_probe.py --check
       - name: Garde FP À L'ÉCHELLE (correcteur sur 2500 phrases correctes UD — plafond anti-régression, cf. audit 30/06)
         run: python3 dictee/fp_scale_probe.py --check
+      - name: COUVERTURE de la conjugaison (sujet x temps - ENUMERE, ne lit aucun corpus)
+        run: python3 dictee/couverture_conj_probe.py
       # La sonde-sujet exige les ARBRES CoNLL-U (or nsubj), pas seulement des phrases → SAUTÉE en CI
       # (pas de $UDFR), comme les sondes dys. L'instrument est versionné : la mesure d'origine du
       # « mur sujet ~63 % » (DICTEE_ROADMAP) avait été perdue avec une mémoire de session cloud.

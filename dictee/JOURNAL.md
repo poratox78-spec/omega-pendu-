@@ -71,6 +71,56 @@
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-14 (nuit, fin) — « nous iriez » : nous et vous n'étaient dans AUCUNE règle de personne, et aucun instrument ne pouvait le dire
+
+> Rem : « nous iriez… t'as détruit toute la conjugaison ? ». Vérifié AVANT toute explication : sortie IDENTIQUE entre `main`
+> et `195f06b` (avant la session) sur 27 phrases de conjugaison — rien n'avait été cassé. Puis : « pardon, dans la conjugaison
+> il n'y a pas nous et vous depuis des mois ? mais il manque quoi d'autre ? ». Et la consigne : « les fautes sont flagrantes,
+> c'est de la conjugaison, ça devrait être du ROUGE au moindre problème ; ça dépend du contexte, **on a bossé le contexte,
+> pourquoi tu ne te sers pas de tout ce qu'on a fait ?** »
+
+- **Le trou, chiffré** (matrice sujet × temps, faute de personne pure) : **nous 0/220, vous 0/235**, tous temps. Cause en deux
+  lignes : `SUBJ_PRON` ne contient ni « nous » ni « vous », et `rule_personne_verbe` ne lit que « je » et « tu », au singulier,
+  au présent. Les tables, elles, ont tout : « iriez » se lit *aller, cnd:pre, 2p* et `CONJ_C` donne « irions ». Second défaut :
+  **le temps n'était pas gardé** — « tu irai » (futur) recevait « vas ».
+- **L'exclusion est ÉCRITE dans le code depuis la construction des tables** : `build_cgram.py`, docstring de `derive_number` —
+  « les seules erreurs (passé simple 1p/2p) ne touchent que nous/vous (**exclus du correcteur**) ». Jamais mesurée : elle a servi
+  d'appui pour ne pas corriger une approximation. Même famille : `_agrees`/`svAgrees` ignorent le NOMBRE en 1re/2e personne
+  (« 1re/2e = toujours singulier »), ce qui n'était vrai QUE parce que nous/vous étaient exclus — « je irons » y passait pour accordé.
+- **POURQUOI AUCUN INSTRUMENT NE L'A VU** (la leçon). Les quatre sondes mesurent un CORPUS : batterie (188 témoins — 9 contiennent
+  nous/vous, **aucun** n'injecte une faute de personne), corpus dys (91 occurrences, **toutes** des compléments corrects : « je vous
+  conseille », « qui vous passionnera »), UD 2 500 (phrases CORRECTES : faux positifs, jamais le rappel), audit Chrome (24 phrases,
+  aucune). **Un trou absent du corpus leur est invisible.** → sonde `couverture_conj_probe.py` : elle n'ouvre aucun corpus, elle
+  ÉNUMÈRE (13 sujets × 6 temps × 12 verbes ; la forme d'une autre personne injectée, le temps gardé). 8 secondes, entrée dans dev.sh.
+- **Posé — la règle GÉNÉRALE qui manquait** (`rule_sujet_flexion` / `sujFlexVig`, 3 moteurs, EN DERNIER : « la première décision
+  gagne », elle ne comble que ce que les règles dédiées laissent muet) : le SUJET donne la personne et le nombre, la FORME ÉCRITE
+  donne le temps, `CONJ_C[lemme][temps écrit][personne+nombre]` donne la forme. **Palier ROUGE** (famille propre « personne du
+  verbe », absente de `VIG_FAMILIES`) — décision de Rem. « nous iriez » → irions, « tu irai » → iras, « vous mange » → mangez,
+  « hier nous allait » → allions, « le chat mangeons » → mange, « les chats mangeons » → mangent.
+  **Elle n'invente aucune primitive** : `_SEG`, `pos_tags`, `_ELIDED_PRON`, `CLITIC`, `svReads`/`CONJ_F`, `_verb_or_homograph`,
+  `_looks_ppl`, `_np_subject`, `_PB_CONJ_ADV`, `_V3PL_SURE`, `CONJ_C`.
+- **nous/vous SUJET ou COMPLÉMENT : le contexte tranche.** Recensé sur UD 14 450 : **89 motifs** « nous/vous + forme désaccordée »,
+  **tous** avec un sujet à gauche — pronom sujet 27, relatif « qui » 25, « ne » 9, verbe fini 7, nom 17. La règle remonte jusqu'à la
+  frontière de proposition en traversant clitiques et adverbes ; « que »/SCONJ ouvre une subordonnée (« il faut QUE nous mange »).
+- **TROIS DÉFAUTS TROUVÉS PARCE QUE C'EST DU ROUGE** (en orange ils seraient passés : un orange se refuse d'un clic) :
+  ① **le sujet fauté** — « a forse **il sont** dégouter » : `rule_il_ils` répare le SUJET, la nouvelle règle corrigeait AUSSI le verbe
+  (« ils **est** »). Garde : après il/elle singulier, une forme de `_V3PL_SURE` (sont/ont/vont/font) accuse le PRONOM, pas le verbe.
+  ② **une COQUILLE DE LEXIQUE 4** — la ligne `soulais<TAB>vouloir<TAB>VER<TAB>s<TAB>ind:imp:1` déclare « soulais » 1re personne de
+  l'imparfait de *vouloir* (un « v » lu « s ») ; « ce que je voulais » devenait « soulais », en rouge. Recensé pour être sûr que c'est
+  isolé : sur 70 252 cases de `CONJ_C`, **13** formes ne partagent aucun début avec leur paradigme et **12 sont légitimes** (puis, vont,
+  font, ai/a/as/ont, suis/êtes, oyez, veniez, vouliez) — « soulais » est la seule vraie erreur. Correctif ponctuel `_CONJ_FIX`, 3 moteurs.
+  ③ **la parité a fait son travail** : les deux gardes n'existaient d'abord que côté Python, `parity_core` a rougi (« Il ont faim »).
+- **Lectures fantômes** : `CONJ_F` porte **314 lectures sur 77 910** que `CONJ_C` contredit — Lexique agrège des formes homographes sur
+  UNE ligne avec UN champ Nombre (« sommes » lemme=être, nombre='p', personnes 1 ET 2 → une lecture « être, 2e du singulier »). La règle
+  ne garde que les lectures confirmées par `CONJ_C` — la parade que `rule_personne_verbe` documente déjà (« JAMAIS `CONJ_F` seule »).
+- **Mesuré** : couverture **nous 0 → {NOUS} %, vous 0 → {VOUS} %, je {JE} %, tu {TU} %, le chat 6,6 → {CHAT} %, les chats 0,6 → {CHATS} %** ·
+  batterie FP=0 (333 phrases correctes, 194 témoins, 6 ajoutés) · FP échelle **{FPUD}** · accord de palier 100 % · dys-core ⊆ Py · textes ·
+  **juge : {REP} réparés · {UNCLIC} un clic · {ORF} bruit orange · {CASSES} cassés (INCHANGÉ) · {APPF} appliqués faux ;
+  accents réparées {ACC_R}**.
+- **Ce qui reste, mesuré et NON caché** : ① **passé simple** — `CONJ_C` n'a que **131 lemmes sur 2 904** (filtre #127 : forme « pure »
+  non homographe ET fréquence ≥ 0,5) ; « il mangea », « ils vint » muets. ② **impératif** — 4 433 lemmes source, **0** en table :
+  « Manges ta soupe », « Prend le livre », « Fait attention » muets (`rule_imperatif` ne couvre que le motif à trait d'union).
+  ③ **subjonctif imparfait** — 375 lemmes, 0. ④ « tu irai » reste orange : `rule_personne_verbe` passe avant et ne garde pas le temps.
 
 ---
 

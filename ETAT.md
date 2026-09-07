@@ -21,7 +21,7 @@
 
 Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en local · **constat** = mesuré une fois, daté. Le détail (pages, notes) vit dans le registre lui-même.
 
-## 2. Garde-fous actifs — 90 contrôles dans `dev.sh` (= CI, parité gardée)
+## 2. Garde-fous actifs — 91 contrôles dans `dev.sh` (= CI, parité gardée)
 
 | # | contrôle | commande |
 |---:|---|---|
@@ -30,91 +30,92 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 3 | correcteur (batterie FP=0) | `python3 dictee/correcteur_probe.py` |
 | 4 | mover impératif (réf Python == cas) | `python3 dictee/imperative_clitics.py` |
 | 5 | garde j'est être/avoir (recall --check) | `python3 dictee/recall_probe.py --check` |
-| 6 | FP à l'échelle (UD 2500, garde régression) | `python3 dictee/fp_scale_probe.py --check` |
-| 7 | Genre perdu par la désaccentuation (rappel 217, FP=0) | `python3 dictee/gender_coll_probe.py --check` |
-| 8 | FP speller à l'échelle (ortho affirmatif UD 2500, garde régression) | `node dictee/speller_fp_scale_probe.js --check` |
-| 9 | held-out vocab neuf | `python3 dictee/eval_externe.py` |
-| 10 | boucle descendante (genre) | `python3 dictee/descending_probe.py` |
-| 11 | did-you-mean FALSIFIÉ | `python3 dictee/didyoumean_probe.py` |
-| 12 | tables g2p (depuis l'app) | `python3 dictee/build_g2p_tables.py` |
-| 13 | morpho md/mb (depuis l'app) | `python3 dictee/build_morpho.py` |
-| 14 | correction g2p (train) | `python3 dictee/build_g2p_corrections.py` |
-| 15 | décomposeur (held-out) | `python3 dictee/decompose.py --measure` |
-| 16 | p2g build | `python3 dictee/build_p2g.py` |
-| 17 | p2g mesure (held-out) | `python3 dictee/p2g.py --measure` |
-| 18 | régression décompo+p2g | `python3 dictee/test_decompose.py` |
-| 19 | décompo 3 voies (corpus) | `python3 dictee/decompose_corpus.py --show` |
-| 20 | clôture paradigme conj | `python3 dictee/close_conj_paradigm.py --check` |
-| 21 | POS-tagger 155k (build_pos) | `python3 dictee/build_pos.py` |
-| 22 | assets extension (build) | `python3 extension/build_assets.py` |
-| 23 | syntaxe bloc dictée+correcteur (app) | `"node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=…` |
-| 24 | syntaxe bloc Décompose (app) | `"node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=…` |
-| 25 | parité correcteur APP↔Python | `node dictee/parity_corr.js` |
-| 26 | parité POS-tagger HMM (Py==ext==app) | `node dictee/parity_pos.js` |
-| 27 | speller app (décompresse+FP0) | `node dictee/test_speller_app.js` |
-| 28 | vigilance accord sujet-verbe (orange mid-phrase) | `node dictee/test_sv_vigilance.js` |
-| 29 | sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr) | `python3 dictee/sujet_probe.py` |
-| 30 | benchmark dys réel (messy: rappel+FP+mauvaises corr.) | `node dictee/messy_probe.js --check` |
-| 31 | census vigilance dys (aucune orange juste perdue) | `python3 dictee/vig_census_probe.py` |
-| 32 | précision par famille sur texte dys (rouge/orange mesurés) | `python3 dictee/dys_precision_probe.py` |
-| 33 | accord de PALIER produit↔référence sur le gold (auto/flag/vigilance/inconnu + hors accord ancré ; SAUTÉ sans corpus dys) | `python3 dictee/palier_gold_probe.py` |
-| 34 | assets extension câblés (aucun asset livré-mais-muet) | `node extension/assets_wired_probe.js` |
-| 35 | angle mort ÉLISION (différentiel l'X vs cet/cette X) | `node dictee/elision_probe.js --check` |
-| 36 | mover impératif (parité app==ext + corrections + FP0) | `node dictee/imp_probe.js --check` |
-| 37 | parité extension dys-core↔Py | `node extension/parity_core.js` |
-| 38 | police de son (fraîcheur bloc app + clitiques≡Py + texte intact) | `node police/parity_son.js` |
-| 39 | parité OS-sujet 3 moteurs (accord verbe orange) | `node dictee/parity_os.js` |
-| 40 | parité ces/ses 3 moteurs (vigilance-enseignante) | `node dictee/parity_cesses.js` |
-| 41 | parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé) | `node dictee/parity_gender_coll.js` |
-| 42 | parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas) | `node dictee/parity_diag.js` |
-| 43 | speller ext ≡ app (vigilance comprise) | `node extension/test_speller.js` |
-| 44 | textes d'explication (audit 11/09 : 💡 + remèdes sur 10 phrases ; REMED/_HSUB/_HPROBE app ≡ ext) | `node dictee/textes_probe.js` |
-| 45 | parité SPELLER Python↔JS (suggestion, auto+flag+inconnu+vigilance) | `python3 dictee/parity_speller.py` |
-| 46 | syntaxe extension (5 fichiers) | `"node --check extension/dys-core.js && node --check extension/content.js && node --check extensio…` |
-| 47 | correcteur standalone | `node dictee/correcteur.js` |
-| 48 | correcteur AUTONOME (bake, 3 mondes) | `node dictee/bake_probe.js --check` |
-| 49 | outil d'édition (pièges monolithe) | `python tools/omega_edit.py` |
-| 50 | Double-Sens (table + règle d'équité) | `node dictee/sens_probe.js --check` |
-| 51 | ponctuation vocale (règles BDL + parité site/extension) | `node dictee/proso_probe.js` |
-| 52 | typographie ROUGE (espaces autour de , et . + parité) | `node dictee/typo_probe.js` |
-| 53 | miroir PONCTUATION app↔extension (5 blocs miroités à la main) | `node dictee/miroir_ponct_probe.js` |
-| 54 | détection de QUESTION (précision ET rappel, banc UD+réel) | `node dictee/question_bench.js` |
-| 55 | parité OCTET du moteur vocal (site==extension) | `node dictee/voix_parite_probe.js` |
-| 56 | audit structurel vocal (4000 dictées, chaînage+conflits) | `node dictee/voix_struct_probe.js` |
-| 57 | correcteur AUTONOME (bake) | `"D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null \|\| echo \"\$T\"…` |
-| 58 | smoke moteur (cheat-free+NEO) | `node evo/ci_smoke.js` |
-| 59 | scrabidon — moteur plateau | `node dictee/scrabidon_probe.js` |
-| 60 | EN speller (recall CASES + FP casse) | `python3 dictee/speller_en_probe.py --check` |
-| 61 | EN homophones (recall CASES 14/14, RED=vraies fautes) | `python3 dictee/homophone_en_probe.py --check` |
-| 62 | EN moteur JS correcteur (parité CASES) | `node dictee/corrector_en.js --check` |
-| 63 | EN règles branchées dans la page (+ tokeniseur) | `node dictee/en_page_wiring_probe.js` |
-| 64 | SITE toutes les pages atteignables depuis l'accueil (FR + EN) | `node dictee/pages_atteignables_probe.js` |
-| 65 | SITE sitemap == pages (noindex exclues, zh/ hors périmètre) | `node dictee/sitemap_probe.js` |
-| 66 | moteur de calcul (2 copies + poses + refus + câblage page) | `node dictee/calc_dys_probe.js` |
-| 67 | SITE chiffres de mesure affichés = registre unique (anti-dérive) | `node dictee/metriques_probe.js` |
-| 68 | SITE icônes : glyphe tracé + matricielles non vides | `python3 dictee/icones_probe.py` |
-| 69 | UI aucune copie n'annonce un succès qu'elle ignore | `node dictee/presse_papier_probe.js` |
-| 70 | répétition espacée (planificateur Leitner, bloc pur du monolithe) | `node dictee/srs_probe.js` |
-| 71 | navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM) | `node dictee/navigateur_probe.js --check` |
-| 72 | A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables) | `node dictee/a11y_probe.js --check` |
-| 73 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
-| 74 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
-| 75 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
-| 76 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
-| 77 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
-| 78 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
-| 79 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
-| 80 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
-| 81 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
-| 82 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
-| 83 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
-| 84 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
-| 85 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
-| 86 | service worker (version+empreinte, précache, purge) | `node dictee/sw_probe.js` |
-| 87 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
-| 88 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
-| 89 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
-| 90 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
+| 6 | COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus) | `python3 dictee/couverture_conj_probe.py` |
+| 7 | FP à l'échelle (UD 2500, garde régression) | `python3 dictee/fp_scale_probe.py --check` |
+| 8 | Genre perdu par la désaccentuation (rappel 217, FP=0) | `python3 dictee/gender_coll_probe.py --check` |
+| 9 | FP speller à l'échelle (ortho affirmatif UD 2500, garde régression) | `node dictee/speller_fp_scale_probe.js --check` |
+| 10 | held-out vocab neuf | `python3 dictee/eval_externe.py` |
+| 11 | boucle descendante (genre) | `python3 dictee/descending_probe.py` |
+| 12 | did-you-mean FALSIFIÉ | `python3 dictee/didyoumean_probe.py` |
+| 13 | tables g2p (depuis l'app) | `python3 dictee/build_g2p_tables.py` |
+| 14 | morpho md/mb (depuis l'app) | `python3 dictee/build_morpho.py` |
+| 15 | correction g2p (train) | `python3 dictee/build_g2p_corrections.py` |
+| 16 | décomposeur (held-out) | `python3 dictee/decompose.py --measure` |
+| 17 | p2g build | `python3 dictee/build_p2g.py` |
+| 18 | p2g mesure (held-out) | `python3 dictee/p2g.py --measure` |
+| 19 | régression décompo+p2g | `python3 dictee/test_decompose.py` |
+| 20 | décompo 3 voies (corpus) | `python3 dictee/decompose_corpus.py --show` |
+| 21 | clôture paradigme conj | `python3 dictee/close_conj_paradigm.py --check` |
+| 22 | POS-tagger 155k (build_pos) | `python3 dictee/build_pos.py` |
+| 23 | assets extension (build) | `python3 extension/build_assets.py` |
+| 24 | syntaxe bloc dictée+correcteur (app) | `"node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=…` |
+| 25 | syntaxe bloc Décompose (app) | `"node -e \"const fs=require('fs');const h=fs.readFileSync('app/omega-pendu.html','utf8');const i=…` |
+| 26 | parité correcteur APP↔Python | `node dictee/parity_corr.js` |
+| 27 | parité POS-tagger HMM (Py==ext==app) | `node dictee/parity_pos.js` |
+| 28 | speller app (décompresse+FP0) | `node dictee/test_speller_app.js` |
+| 29 | vigilance accord sujet-verbe (orange mid-phrase) | `node dictee/test_sv_vigilance.js` |
+| 30 | sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr) | `python3 dictee/sujet_probe.py` |
+| 31 | benchmark dys réel (messy: rappel+FP+mauvaises corr.) | `node dictee/messy_probe.js --check` |
+| 32 | census vigilance dys (aucune orange juste perdue) | `python3 dictee/vig_census_probe.py` |
+| 33 | précision par famille sur texte dys (rouge/orange mesurés) | `python3 dictee/dys_precision_probe.py` |
+| 34 | accord de PALIER produit↔référence sur le gold (auto/flag/vigilance/inconnu + hors accord ancré ; SAUTÉ sans corpus dys) | `python3 dictee/palier_gold_probe.py` |
+| 35 | assets extension câblés (aucun asset livré-mais-muet) | `node extension/assets_wired_probe.js` |
+| 36 | angle mort ÉLISION (différentiel l'X vs cet/cette X) | `node dictee/elision_probe.js --check` |
+| 37 | mover impératif (parité app==ext + corrections + FP0) | `node dictee/imp_probe.js --check` |
+| 38 | parité extension dys-core↔Py | `node extension/parity_core.js` |
+| 39 | police de son (fraîcheur bloc app + clitiques≡Py + texte intact) | `node police/parity_son.js` |
+| 40 | parité OS-sujet 3 moteurs (accord verbe orange) | `node dictee/parity_os.js` |
+| 41 | parité ces/ses 3 moteurs (vigilance-enseignante) | `node dictee/parity_cesses.js` |
+| 42 | parité genre à clé partagée 3 moteurs (âme/amé, affaire/affairé) | `node dictee/parity_gender_coll.js` |
+| 43 | parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ cas) | `node dictee/parity_diag.js` |
+| 44 | speller ext ≡ app (vigilance comprise) | `node extension/test_speller.js` |
+| 45 | textes d'explication (audit 11/09 : 💡 + remèdes sur 10 phrases ; REMED/_HSUB/_HPROBE app ≡ ext) | `node dictee/textes_probe.js` |
+| 46 | parité SPELLER Python↔JS (suggestion, auto+flag+inconnu+vigilance) | `python3 dictee/parity_speller.py` |
+| 47 | syntaxe extension (5 fichiers) | `"node --check extension/dys-core.js && node --check extension/content.js && node --check extensio…` |
+| 48 | correcteur standalone | `node dictee/correcteur.js` |
+| 49 | correcteur AUTONOME (bake, 3 mondes) | `node dictee/bake_probe.js --check` |
+| 50 | outil d'édition (pièges monolithe) | `python tools/omega_edit.py` |
+| 51 | Double-Sens (table + règle d'équité) | `node dictee/sens_probe.js --check` |
+| 52 | ponctuation vocale (règles BDL + parité site/extension) | `node dictee/proso_probe.js` |
+| 53 | typographie ROUGE (espaces autour de , et . + parité) | `node dictee/typo_probe.js` |
+| 54 | miroir PONCTUATION app↔extension (5 blocs miroités à la main) | `node dictee/miroir_ponct_probe.js` |
+| 55 | détection de QUESTION (précision ET rappel, banc UD+réel) | `node dictee/question_bench.js` |
+| 56 | parité OCTET du moteur vocal (site==extension) | `node dictee/voix_parite_probe.js` |
+| 57 | audit structurel vocal (4000 dictées, chaînage+conflits) | `node dictee/voix_struct_probe.js` |
+| 58 | correcteur AUTONOME (bake) | `"D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null \|\| echo \"\$T\"…` |
+| 59 | smoke moteur (cheat-free+NEO) | `node evo/ci_smoke.js` |
+| 60 | scrabidon — moteur plateau | `node dictee/scrabidon_probe.js` |
+| 61 | EN speller (recall CASES + FP casse) | `python3 dictee/speller_en_probe.py --check` |
+| 62 | EN homophones (recall CASES 14/14, RED=vraies fautes) | `python3 dictee/homophone_en_probe.py --check` |
+| 63 | EN moteur JS correcteur (parité CASES) | `node dictee/corrector_en.js --check` |
+| 64 | EN règles branchées dans la page (+ tokeniseur) | `node dictee/en_page_wiring_probe.js` |
+| 65 | SITE toutes les pages atteignables depuis l'accueil (FR + EN) | `node dictee/pages_atteignables_probe.js` |
+| 66 | SITE sitemap == pages (noindex exclues, zh/ hors périmètre) | `node dictee/sitemap_probe.js` |
+| 67 | moteur de calcul (2 copies + poses + refus + câblage page) | `node dictee/calc_dys_probe.js` |
+| 68 | SITE chiffres de mesure affichés = registre unique (anti-dérive) | `node dictee/metriques_probe.js` |
+| 69 | SITE icônes : glyphe tracé + matricielles non vides | `python3 dictee/icones_probe.py` |
+| 70 | UI aucune copie n'annonce un succès qu'elle ignore | `node dictee/presse_papier_probe.js` |
+| 71 | répétition espacée (planificateur Leitner, bloc pur du monolithe) | `node dictee/srs_probe.js` |
+| 72 | navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM) | `node dictee/navigateur_probe.js --check` |
+| 73 | A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables) | `node dictee/a11y_probe.js --check` |
+| 74 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
+| 75 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
+| 76 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
+| 77 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
+| 78 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
+| 79 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
+| 80 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
+| 81 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
+| 82 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
+| 83 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
+| 84 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
+| 85 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
+| 86 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
+| 87 | service worker (version+empreinte, précache, purge) | `node dictee/sw_probe.js` |
+| 88 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
+| 89 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
+| 90 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
+| 91 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 
@@ -144,10 +145,11 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 - **Accents : « il decide » → décide (présent après pronom sujet, speller, 3 moteurs) + « grace » → grâce ; les 108 accents non réparés recensés** — 108 fautes d'accent seul non réparées lues une par une : 73 homophones grammaticaux muets (54 a→à sans ancre sûre : voisins fautés, déterminant), 19 mots valides sans accent (participe après aux, hors de portée du speller), 5 rouges ailleurs (le participe choisi après un pronom sujet — corrigé : 6/6 cas gold au présent, 0 contre), 5 ou/où orange justes, 2 grace, 1 the. Mesuré le 14/09/2026 : juge 312 · 244 · 14 · 73, accents 274 / 171 / 1, FP échelle 1,36 % (34/2 500, inchangé), palier 100 %. _(JOURNAL 2026-09-14 · scratchpad census_accents / census_aa_muets / census_subjp)_
 - **Flexion brique 1 : « infinitif après pronom sujet à vérifier » (il reculer → reculait, orange), 3 moteurs** — Recensé : 9 cas gold (imparfait 6, présent 2), UD 1 motif exclu (préposition avant le pronom). Gardes : pronom sujet net (élidé compris), clitiques, frontière, pas de préposition/modal/verbe avant, nous/vous exclus. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 226 bruit orange · 14 cassés ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %. _(JOURNAL 2026-09-14 (suite))_
 - **Flexion brique 2 : participe après ÊTRE sans liste close (rouge sûr par le POS accent-exact, orange « participe après être à vérifier »), auxiliaire élidé « j'ai », 3 moteurs** — Le discriminateur manquant de #598 (26/08) était le POS accent-exact du speller (sèche AV, installe V). Recensé : gold 5 participes / 0 faux, UD 35 motifs → 0 rouge. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 229 bruit orange · 14 cassés ; accents réparées 174 ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %. Homographe adjectif en orange : mesuré (UD +7/2 500, batterie « Elle est contente »), livré éteint, décision Rem. _(JOURNAL 2026-09-14 (soir))_
-- **Point d'interrogation : « est-ce qui » comme « est-ce que », « qu est ce qui » sans apostrophe, « Qui + verbe » en tête (majuscule) — app + extension** — Mesuré sur question_bench (314 questions UD+réel) : correcteur 91,30 % / 26,75 % (était 91,01 / 25,80), voix 96,88 / 19,75 ; sans la majuscule sur « Qui », précision 48,55 % (relatives en tête de fragment) → majuscule obligatoire, planchers relevés. Coût dit : « qui est là » minuscule muet, « Qui vivra verra » orange. _(JOURNAL 2026-09-14 (nuit, suite))_
+- **Le SUJET donne la personne et le nombre, la forme écrite donne le TEMPS (« nous iriez » → irions) — ROUGE, sujet pronom ET nominal, 3 moteurs** — nous et vous n'étaient dans AUCUNE règle de personne (0/220 et 0/235) ; l'exclusion était écrite dans build_cgram.py depuis la construction des tables, jamais mesurée. Aucun des 4 instruments ne pouvait le voir : ils mesurent un corpus, pas la couverture. Mesuré le 14/09/2026 : nous 0 → 80.9 %, vous 0 → 79.9 %, je 87.7 %, tu 81.8 %, le chat 6,6 → 83.0 %, les chats 0,6 → 80.4 % ; batterie FP=0, FP échelle 1,68 % (42/2 500), palier 100 %, juge 314 réparés (était 312) · 14 cassés (inchangé). Trois défauts trouvés PARCE QUE c'est du rouge : sujet fauté (« il sont »), coquille Lexique (« soulais » pour vouloir), gardes absentes côté JS (rattrapées par parity_core). _(JOURNAL 2026-09-14 (nuit, fin))_
 
-### Ouverts — 10
+### Ouverts — 11
 
+- **COUVERTURE de la conjugaison : ce que la sonde d'énumération montre encore (passé simple, impératif, subjonctif imparfait)** — Sonde `couverture_conj_probe` (n'ouvre aucun corpus : 13 sujets × 6 temps × 12 verbes) posée le 14/09/2026 dans dev.sh, ancrée par sujet. Reste : ① passé simple — CONJ_C n'a que 131 lemmes / 2 904 (filtre #127 « forme pure » ET fréquence ≥ 0,5), « il mangea » muet ; ② impératif — 4 433 lemmes source, 0 en table, `rule_imperatif` ne couvre que le motif à trait d'union (« Manges ta soupe », « Prend le livre », « Fait attention » muets) ; ③ subjonctif imparfait 375 lemmes, 0 ; ④ « tu irai » → « vas » : `rule_personne_verbe` passe avant la générale et ne garde pas le temps écrit. _(JOURNAL 2026-09-14 (nuit, fin) · couverture_conj_ref.json)_
 - **COUCHE « flexion par le contexte » (consigne Rem 14/09) : les 329 muets « bon mot, mauvaise forme » reçoivent au moins une proposition ORANGE (gouverneur → forme des tables)** — FP=0 vaut pour le ROUGE ; l'orange ne cache plus une faute récupérable par le contexte. Recensement par gouverneur (census_flexion) : après nom 62, aux → participe 34, gouverneur fauté 83, prép/modal → infinitif 22, pronom sujet 25, dét pluriel 13, féminin 3. Brique 1 FAITE le 14/09 (infinitif après pronom sujet → imparfait, orange). Brique 2 FAITE le 14/09 (participe après être SANS liste close : rouge par le POS accent-exact du speller + sujet 3e pers., orange pronominal/je-tu-nous-vous/nominal ; homographe adjectif « elle est sèche » = interrupteur _HOMO_ORANGE mesuré, éteint, décision Rem). Suivantes : ③ préposition + -é/-e → infinitif ; ④ accord après nom (tagueur) ; ⑤ personne/nombre en gardant le temps écrit (« qui vivais » → vivaient). _(JOURNAL 2026-09-14 (suite) · mémoire orange-pour-les-fautes-recuperables)_
 - **Participe après auxiliaire (rule_e_ppl) : « j'ai commence », « je me suis installe » — le speller se tait (mot valide), la règle ne voit ni l'auxiliaire élidé ni le pronominal** — Recensé le 14/09/2026 : 3 pronominaux dans le gold (installe, réveille, douche → participe), 1 piège UD (« se fut mise » — déjà un participe : garde _is_ppl). L'auxiliaire élidé « j'ai » ne compte pas comme auxiliaire (deacc garde l'apostrophe) — à vérifier avec VERB_LEX (jeu curé). Petit gain (3-5), ancre audible. Séparé du speller. _(JOURNAL 2026-09-14 · census_eppl.txt)_
 - **AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés** — 24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. ② FAIT le 11/09 (nuit, suite) : `_AFIX_MIN`, 13 formes nues closes, minuscules seulement, 3 moteurs — la fausse orange disparaît, FP=0 tenu. ③ FAIT le 12/09 (soir) : `_APOS_FIX`, 14 soudures closes, 3 moteurs — et le juge admet l'apostrophe (286 → 294). ④ RECENSÉ le 12/09 et DIFFÉRÉ : « mot + sa forme élidée » (que qu'elle, se s'est…) = 0 occurrence dans 1 798 productions dys (5 dans UD, toutes des typos du corpus) — l'exemple de l'audit était synthétique, pas de règle sans cas réel. ⑤ RECENSÉ le 12/09 (329 muets « bon lemme, mauvaise flexion », pluriel en tête) et ⑤-a FAIT le 13/09 : « accord adjectif antéposé » après déterminant pluriel (3 moteurs, 0 FP UD, +11 motifs gold). ⑤-b FAIT le 13/09 : « accord pluriel nom » traverse l'adjectif antéposé (3 moteurs). ⑤-c féminin manquant RECENSÉ le 13/09 (55 muets) : (A) genre de « je » inconnaissable → pas de règle ; (B) FAIT « nom féminin en -ée » (la cheminé → cheminée, liste close, 3 moteurs) ; (E) adjectif après nom féminin → 2 cibles / 3 pièges, différé. Reste ⑤ : -er/-é muets (50), homophones muets (et/est 23, peu/peut 7…)  ; ⑥ FAIT le 13/09 : pyramide garde la casse (ckeepcase). ⑤-e et/est recensé (23 muets, 1 cas sûr) → différé ; ⑤-d -er/-é recensé (58 muets dispersés) → différé. Le plan de l'audit est SOLDÉ : ce qui reste (143 oranges justes, 216 mots réels ≤ 2 lettres) est d'une autre nature. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md. _(dictee/AUDIT_CORRECTEUR_2026-09-11.md · JOURNAL 2026-09-11 (soir))_
