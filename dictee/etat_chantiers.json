@@ -110,9 +110,19 @@
       "titre": "Accents : « il decide » → décide (présent après pronom sujet, speller, 3 moteurs) + « grace » → grâce ; les 108 accents non réparés recensés",
       "verdict": "108 fautes d'accent seul non réparées lues une par une : 73 homophones grammaticaux muets (54 a→à sans ancre sûre : voisins fautés, déterminant), 19 mots valides sans accent (participe après aux, hors de portée du speller), 5 rouges ailleurs (le participe choisi après un pronom sujet — corrigé : 6/6 cas gold au présent, 0 contre), 5 ou/où orange justes, 2 grace, 1 the. Mesuré le 14/09/2026 : juge 312 · 244 · 14 · 73, accents 274 / 171 / 1, FP échelle 1,36 % (34/2 500, inchangé), palier 100 %.",
       "ref": "JOURNAL 2026-09-14 · scratchpad census_accents / census_aa_muets / census_subjp"
+    },
+    {
+      "titre": "Flexion brique 1 : « infinitif après pronom sujet à vérifier » (il reculer → reculait, orange), 3 moteurs",
+      "verdict": "Recensé : 9 cas gold (imparfait 6, présent 2), UD 1 motif exclu (préposition avant le pronom). Gardes : pronom sujet net (élidé compris), clitiques, frontière, pas de préposition/modal/verbe avant, nous/vous exclus. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 226 bruit orange · 14 cassés ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %.",
+      "ref": "JOURNAL 2026-09-14 (suite)"
     }
   ],
   "ouverts": [
+    {
+      "titre": "COUCHE « flexion par le contexte » (consigne Rem 14/09) : les 329 muets « bon mot, mauvaise forme » reçoivent au moins une proposition ORANGE (gouverneur → forme des tables)",
+      "etat": "FP=0 vaut pour le ROUGE ; l'orange ne cache plus une faute récupérable par le contexte. Recensement par gouverneur (census_flexion) : après nom 62, aux → participe 34, gouverneur fauté 83, prép/modal → infinitif 22, pronom sujet 25, dét pluriel 13, féminin 3. Brique 1 FAITE le 14/09 (infinitif après pronom sujet → imparfait, orange). Suivantes : ② aux → participe orange là où le rouge refuse (pronominal, être hors liste, « a » ambigu) ; ③ préposition + -é/-e → infinitif ; ④ accord après nom (tagueur) ; ⑤ personne/nombre en gardant le temps écrit (« qui vivais » → vivaient).",
+      "ref": "JOURNAL 2026-09-14 (suite) · mémoire orange-pour-les-fautes-recuperables"
+    },
     {
       "titre": "Participe après auxiliaire (rule_e_ppl) : « j'ai commence », « je me suis installe » — le speller se tait (mot valide), la règle ne voit ni l'auxiliaire élidé ni le pronominal",
       "etat": "Recensé le 14/09/2026 : 3 pronominaux dans le gold (installe, réveille, douche → participe), 1 piège UD (« se fut mise » — déjà un participe : garde _is_ppl). L'auxiliaire élidé « j'ai » ne compte pas comme auxiliaire (deacc garde l'apostrophe) — à vérifier avec VERB_LEX (jeu curé). Petit gain (3-5), ancre audible. Séparé du speller.",

@@ -4357,6 +4357,38 @@ def _pers_slot(lem, t, sl):
     return deacc(v.lower()) if v else None
 
 
+
+# ⭐ FLEXION PAR LE CONTEXTE, brique 1 (14/09/2026, consigne de Rem : « ces fautes sont récupérables par le contexte, on a de quoi
+# détecter les types de mots »). « les enfants il RECULER », « la barrière qui PROTÉGER », « la météo il ANNONCER » : un INFINITIF
+# juste après un pronom sujet n'existe pas en français — le dys écrit /e/ pour -ait ou -e. Recensé (72 productions) : 9 cas, gold =
+# imparfait 6, présent 2, autre 1 ; UD 14 450 : 1 motif (« sur qui compter » → préposition avant le pronom, exclue). ORANGE (le temps
+# est un jugement : imparfait proposé, présent dans l'astuce) — une faute signalée avec la bonne forme vaut mieux qu'un silence.
+_PRON_INF_SLOT = {'je': '1s', 'tu': '2s', 'il': '3s', 'elle': '3s', 'on': '3s', 'qui': '3s', 'ils': '3p', 'elles': '3p'}
+_PRON_INF_CLIT = frozenset(('ne', 'n', 'me', 'm', 'te', 't', 'se', 's', 'le', 'la', 'les', 'l', 'lui', 'leur', 'y', 'en'))
+_PRON_INF_STOP = frozenset(('a', 'de', 'pour', 'sans', 'afin', 'en', 'par', 'avant', 'apres', 'sur', 'avec', 'chez', 'contre', 'vers',
+                            'dans', 'sous', 'entre', 'que', 'qu', 'faut', 'peut', 'peux', 'doit', 'dois', 'va', 'vais', 'vas', 'veut', 'veux'))
+
+
+def rule_pron_inf(T, i):
+    w = T[i]; lw = deacc(w.lower())
+    if not lw.endswith('er') or len(lw) < 4 or w != w.lower() or lw not in CONJ_C: return None
+    z = i - 1
+    while z >= 0 and deacc(T[z].lower()).replace("'", '') in _PRON_INF_CLIT: z -= 1
+    if z < 0: return None
+    _el = _ELIDED_PRON.search(T[z].lower())                                    # « qu'il aimer », « s'il reculer » : le pronom vit dans le token élidé
+    p = deacc(_el.group(1)) if _el else deacc(T[z].lower()).replace("'", '')
+    slot = _PRON_INF_SLOT.get(p)
+    if not slot: return None                                                   # nous/vous exclus : objets possibles (« va nous donner »)
+    if _SEG is not None and any(_SEG['bb'][m] for m in range(z + 1, min(i + 1, len(_SEG['bb'])))): return None
+    if z >= 1:
+        q = deacc(T[z - 1].lower()).split("'")[-1]
+        if q in _PRON_INF_STOP: return None                                    # « peut-il », « pour qui », « ce qu'il » : pas un sujet net
+        if vlike(T, z - 1): return None                                        # inversion (« dit-il », « faut-il »)
+    forms = CONJ_C.get(lw, {})
+    imp = (forms.get('ind:imp') or {}).get(slot)
+    if not imp: return None
+    return imp
+
 def rule_personne_verbe(T, i):
     """« je fini » -> finis · « tu a » -> as · « il faut que tu fini » -> finisses.
 
@@ -4496,7 +4528,7 @@ def rule_on_ont_sujet_pluriel(T, i):
 
 
 VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où',
-                'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier',
+                'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier',
                 'on/ont après un sujet pluriel à vérifier')
 _SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
 _INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
@@ -4576,6 +4608,7 @@ RULES = [('élision inversée', rule_deselide),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
          ('personne du verbe à vérifier', rule_personne_verbe),
+         ('infinitif après pronom sujet à vérifier', rule_pron_inf),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
          ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est), ('est/et (proposition)', rule_est_et_clause),
@@ -4634,6 +4667,8 @@ CASES = [
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
+    ("Les enfants, il reculait pour voir", "reculait", "reculer", "infinitif après pronom sujet à vérifier"),
+    ("La barrière qui protégeait les fleurs", "protégeait", "protéger", "infinitif après pronom sujet à vérifier"),
     ("Voici les prochaines demandes", "prochaines", "prochaine", "accord adjectif antéposé"),
     ("Il allume la cheminée", "cheminée", "cheminé", "nom féminin en -ée"),
     ("On voit une fumée noire", "fumée", "fumé", "nom féminin en -ée"),

@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-09-14 (suite) — FLEXION PAR LE CONTEXTE, brique 1 : « il reculer » → reculait (orange) — la faute n'est plus sous le tapis
+
+> Rem, après le bilan : « c'est réducteur… ces fautes sont récupérables par le contexte, on a de quoi détecter les types de mots,
+> on met les fautes sous le tapis, je ne suis pas content ». Il a raison sur un point de doctrine que j'appliquais de travers :
+> **FP=0 vaut pour le ROUGE**. L'orange (proposition au clic, jamais appliquée seule) n'est pas un faux positif — une faute signalée
+> avec la bonne forme proposée aide toujours ; la taire ne protège personne. J'appliquais la prudence du rouge à l'orange, d'où les
+> « différés » des jours précédents. Consigne mémorisée ; couche « flexion par le contexte » ouverte.
+
+- **Recensement des 329 muets « bon mot, mauvaise forme »** par gouverneur (`census_flexion.txt`) : après un NOM 62 (adjectif ou
+  verbe à sujet nominal), auxiliaire → participe 34 (dont pronominal « je me suis réveille » et « a » ambigu avec « à »), gouverneur
+  lui-même fauté (j'ais, et/est : tags PROPN/VERB/CCONJ) 83, préposition/modal → infinitif 22, pronom sujet 25 (souvent imparfait ou
+  passé simple : garder le TEMPS écrit, corriger personne et nombre), déterminant pluriel 13, féminin 3. Les tables `CONJ_C` n'ont ni
+  participe ni infinitif (morphologie du 1er groupe : radical + é / + er).
+- **Brique 1** : `infinitif après pronom sujet à vérifier` — « les enfants il reculer », « la barrière qui protéger », « ce qu'il aimer ».
+  Pronom sujet net (je/tu/il/elle/on/ils/elles/qui, élidé compris), clitiques traversés, pas de frontière, pronom non précédé d'une
+  préposition, d'un modal ou d'un verbe (« sur qui compter », « faut-il », « peut-on ») ; nous/vous exclus (objets : « va nous donner »).
+  **Orange** : le temps est un jugement — l'imparfait est proposé (6 cas gold sur 9), l'astuce nomme les deux (« il annonçait ou il
+  annonce »). Recensé : 9 cas gold, UD 14 450 : 1 motif, exclu par la garde préposition. Trois moteurs (Python `rule_pron_inf`, JS
+  `rPronInf` renvoyant `{sugg, vig:1}`), famille « personne », batterie 2 cas, sonde des textes 12 phrases.
+- **Mesuré** : batterie FP=0 · FP échelle 1,36 % (34/2 500, inchangé) · palier 100 % · parités · census des oranges inchangé. **Juge : 312 réparés ·
+  249 un clic · 226 bruit orange · 14 cassés · 73 appliqués faux dont 42** — le gain d'une orange se lit dans
+  « un clic » (juste) et « bruit orange » (temps différent du gold : présent au lieu d'imparfait, ou l'inverse), pas dans les réparés.
+- **Suite de la couche** : brique 2 = auxiliaire → participe en orange là où le rouge refuse (pronominal je/tu, être + verbe hors
+  liste, « a » ambigu) ; brique 3 = préposition + forme en -é/-e → infinitif ; brique 4 = accord après un nom (tagueur).
+
+---
+
 ## 2026-09-14 — ACCENTS : les 108 fautes d'accent seul non réparées, recensées — et le présent après un pronom sujet (« il decide » → décide)
 
 > Rem (13/09) : « encore une histoire d'accent, normalement on a de quoi traiter et poser l'accent manquant ». La colonne stricte
