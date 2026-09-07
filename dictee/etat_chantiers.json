@@ -140,6 +140,11 @@
       "titre": "Deux instruments réparés au passage : « silences attendus » dans la batterie, réussites ABSOLUES dans l'ancre de couverture",
       "verdict": "① CASES ne savait dire qu'« une injection doit être corrigée » : aucune case pour « ici, se taire est juste ». Les 6 pièges (l'homographe « primes », les orthographes rectifiées de 1990) y sont désormais avec leur raison — section [3] de correcteur_probe.py. ② L'ancre de couverture ratchetait sur le TAUX : les tables ayant grandi, le banc a gagné 156 cas et le taux a baissé alors que chaque case gagnait — le ratchet criait au recul sur un progrès. Elle ancre aussi le nombre absolu de réussites.",
       "ref": "JOURNAL 2026-09-15 (suite)"
+    },
+    {
+      "titre": "« Nous allez au parc » : corrigé par la référence depuis le #699, MUET dans le produit — le portage JS de la garde des modaux",
+      "verdict": "Le JS testait « le mot suivant n'a aucune lecture conjuguée » là où le Python teste « le mot suivant EST un verbe connu » : « au », « le », « des » passaient pour des infinitifs et la règle se taisait. Miroir exact posé (COMMON_VERBS ≡ VERB_LEX, mesuré : la liste blanche Python est entièrement contenue dans cgram). Cause de l'aveuglement : parity_corr vérifie « app ⊆ Python », donc un moteur MUET la passe — le fichier s'en défendait déjà par des blocs d'EXIGENCE (prénoms, infinitif de but, REGLES_FR), la conjugaison n'en avait pas. Elle en a un, vérifié en remettant l'ancienne ligne : la sonde rougit.",
+      "ref": "JOURNAL 2026-09-15 (fin)"
     }
   ],
   "ouverts": [

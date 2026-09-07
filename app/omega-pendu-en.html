@@ -26559,7 +26559,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||!/^[a-zà-ÿœ]+$/.test(dl)||dl.length<2)return null;
     if(CLITIC[dl]||PREP[dl])return null;
     if(_PB_CONJ_ADV[dl])return null;   // « puis » se lit *pouvoir 1sg* : c'est un CONNECTEUR (miroir Python — oubli de portage vu par messy_probe)
-    if(MODAL[dl]&&i+1<T.length&&(/er$/.test(deacc(T[i+1].toLowerCase()))||!svReads(T[i+1]).length))return null;   // MODAL seulement devant un vrai INFINITIF (« je vais manger ») — sinon « nous allez » restait muet
+    if(MODAL[dl]&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;   // MODAL seulement devant un VRAI INFINITIF (« je vais manger ») — miroir EXACT du Python (VERB_LEX ≡ COMMON_VERBS). L'ancien test « le mot suivant n'a aucune lecture » était vrai de « au », « le », « des »… : « Nous allez AU parc » restait muet DANS LE PRODUIT alors que la référence le corrigeait
     _psCompleter();                                                  // complète le passé simple pluriel, une fois
     var lec=svReads(w),_psSeul=false;
     if(!lec.length){   // « mangeames » ≡ « mangeâmes » : une case de paradigme que CONJ_F ne porte pas — on la cherche par sa DÉACCENTUATION
