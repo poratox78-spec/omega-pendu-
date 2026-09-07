@@ -26498,7 +26498,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       if(_SEG&&j+1<_SEG.bb.length&&_SEG.bb[j+1]&&j+1!==i)return null;
       var w=T[j],d=deacc(w.toLowerCase()),m=_ELIDED_PRON.exec(w.toLowerCase());
       if(m)d=deacc(m[1]);
-      if(SUBJ_PRON[d])return SUBJ_PRON[d];
+      if(SUBJ_PRON[d])return [SUBJ_PRON[d][0],SUBJ_PRON[d][1],'pron'];
       if(_SUBJ_PRON_PL[d]){
         var k=j-1;
         while(k>=0){
@@ -26511,33 +26511,43 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
           if(CLITIC[dk]||(tg&&k<tg.length&&tg[k]==='ADV')){k--;continue;}
           return null;
         }
-        return _SUBJ_PRON_PL[d];
+        return [_SUBJ_PRON_PL[d][0],_SUBJ_PRON_PL[d][1],'pron'];
       }
       if(d==='qui')return null;
       if(svReads(w).length)return null;
-      if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN'))return null;   // sujet NOMINAL : laissé aux règles d'accord SV (mesuré : 12 FP UD)
+      if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN')){var _np=_npSubject(T,tg,i);return (_np&&(_np.n==='s'||_np.n==='p'))?['3',_np.n,'nom']:null;}   // sujet NOMINAL → palier ORANGE (miroir Python)
       if(CLITIC[d]||(tg&&j<tg.length&&tg[j]==='ADV')){j--;continue;}
+      if(_ADJ_ANTE[d]||(tg&&j<tg.length&&tg[j]==='ADJ')){j--;continue;}   // « les petits chats manges » : l'adjectif antéposé se traverse
       return null;
     }
     return null;}
+  var _ROUGE=true;   // basculé par la jumelle ORANGE le temps de son appel (miroir Python)
+  function sujFlexNom(T,i){_ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
   function sujFlexVig(T,i){   /* « nous iriez » → irions · « tu irai » → iras. Le sujet donne personne et nombre, la forme écrite
      donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;
     var lw=w.toLowerCase(),dl=deacc(lw),k;
     if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||!/^[a-zà-ÿœ]+$/.test(dl)||dl.length<2)return null;
-    if(CLITIC[dl]||PREP[dl]||MODAL[dl])return null;
+    if(CLITIC[dl]||PREP[dl])return null;
+    if(_PB_CONJ_ADV[dl])return null;   // « puis » se lit *pouvoir 1sg* : c'est un CONNECTEUR (miroir Python — oubli de portage vu par messy_probe)
+    if(MODAL[dl]&&i+1<T.length&&(/er$/.test(deacc(T[i+1].toLowerCase()))||!svReads(T[i+1]).length))return null;   // MODAL seulement devant un vrai INFINITIF (« je vais manger ») — sinon « nous allez » restait muet
     var lec=svReads(w);
     if(!lec.length)return null;
     var tg=posTags(T);
     if(!tg||!_verbOrHomograph(tg,T,i))return null;
-    if(_looksPpl(w))return null;                                            // participe épithète : « Les randonneurs épuisés »
-    if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
-    if(/es$/.test(dl)&&_looksPpl(w.slice(0,-2)))return null;
-    if(/s$/.test(dl)&&(_EPICENE_ADJ[dl.slice(0,-1)]||ADJP[dl.slice(0,-1)]||GENDER_MAP[dl.slice(0,-1)]))return null;   // « complexes »
+    var _lecC=[],_q;   // ACCENT-EXACT : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
+    for(_q=0;_q<lec.length;_q++){var _f0=((CONJ_C[lec[_q][0]]||{})[lec[_q][1]]||{})[lec[_q][2]+lec[_q][3]];if(_f0&&_f0.toLowerCase()===lw)_lecC.push(lec[_q]);}
+    if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX')))_lecC=[];   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)
+    if(!_lecC.length){   // la forme n'est PAS une case exacte d'un paradigme → les gardes nom/adjectif s'appliquent (miroir Python)
+      if(_looksPpl(w))return null;                                          // participe épithète : « Les randonneurs épuisés »
+      if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
+      if(/es$/.test(dl)&&_looksPpl(w.slice(0,-2)))return null;
+      if(/s$/.test(dl)&&(_EPICENE_ADJ[dl.slice(0,-1)]||ADJP[dl.slice(0,-1)]||GENDER_MAP[dl.slice(0,-1)]))return null;}   // « complexes »
     var sub=_sujetFlexion(T,i,tg);
     if(!sub)return null;
-    var per=sub[0],nb=sub[1];
+    var per=sub[0],nb=sub[1],src=sub[2];
+    if(src!==(_ROUGE?'pron':'nom'))return null;   // pronom → ROUGE ; nominal → ORANGE (miroir Python)
     if(nb==='s'&&per==='3'&&_V3PL_SURE[dl])return null;   // « il sont », « Il ont » : c'est le SUJET qui est fauté (rIlIls le répare), pas le verbe — miroir Python
     for(k=0;k<lec.length;k++)if(lec[k][2]===per&&(lec[k][3]===nb||lec[k][3]==='x'))return null;   // PAS svAgrees : elle ignore le nombre en 1re/2e
     var que=false;
@@ -26545,6 +26555,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var lec2=[];
     for(k=0;k<lec.length;k++)if((lec[k][1].indexOf('sub')===0)===que)lec2.push(lec[k]);
     if(lec2.length)lec=lec2;                                                // « que » présent → subjonctif ; absent → indicatif
+    if(_lecC.length)lec=_lecC;
     var cible=null,slot=per+nb;
     for(k=0;k<lec.length;k++){
       var f=_CONJ_FIX[lec[k][0]+'|'+lec[k][1]+'|'+slot]||((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[slot];
@@ -28169,7 +28180,8 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
-    if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
+    if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var sfn=sujFlexNom(T,i);if(sfn){out.push({i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'});pushed=true;}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
     if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;out.push({i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp});pushed=true;}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}

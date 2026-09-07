@@ -3221,7 +3221,7 @@ _FLEX_ADV_OK = ('ADV',)                                       # seul un adverbe 
 # dépendent »), coordination (« ainsi que le développement font »), titre d'œuvre (« Drakan les Chevaliers du
 # feu est »), infinitive sujet (« trouver un logement au Québec restent »), sujet POSTPOSÉ (« se trouvent des
 # poteaux »), et une phrase corrompue du corpus. Le sujet PRONOM, lui, ne coûte qu'UNE phrase sur 2 500.
-_SUJ_NOMINAL = False   # ÉTEINT le 14/09 : en ROUGE il réécrit 5 mots justes (plumes, visaient, trouvent, vaudront, dépendent — tous des pluriels ramenés au singulier) et la précision de la famille tombe à 8,3 % sur le corpus dys ; garde dure « tokens corrects détruits » 33 > 28. Le sujet PRONOM, lui, tient.
+_SUJ_NOMINAL = True
 
 
 def _sujet_flexion(T, i, tg):
@@ -3243,7 +3243,7 @@ def _sujet_flexion(T, i, tg):
         w = T[j]; d = deacc(w.lower())
         m = _ELIDED_PRON.search(w.lower())
         if m: d = deacc(m.group(1))                                  # « qu'ils », « s'il » : le sujet vit dans le token
-        if d in SUBJ_PRON: return SUBJ_PRON[d]
+        if d in SUBJ_PRON: return SUBJ_PRON[d] + ('pron',)
         if d in _SUBJ_PRON_PL:
             # nous/vous : sujet seulement si RIEN à gauche dans la proposition ne peut l'être.
             k = j - 1
@@ -3258,11 +3258,10 @@ def _sujet_flexion(T, i, tg):
                 if tg and k < len(tg) and tg[k] in ('NOUN', 'PROPN', 'VERB', 'AUX'): return None
                 if dk in CLITIC or (tg and k < len(tg) and tg[k] in _FLEX_ADV_OK): k -= 1; continue
                 return None                                          # inconnu à gauche → prudence
-            return _SUBJ_PRON_PL[d]
+            return _SUBJ_PRON_PL[d] + ('pron',)
         if d == 'qui': return None                                   # relatif : l'antécédent décide (règle dédiée)
         if _reads(w): return None                                    # verbe fini avant → inversion/incise → abstention
         if tg and j < len(tg) and tg[j] in ('NOUN', 'PROPN'):
-            if not _SUJ_NOMINAL: return None          # interrupteur : le sujet NOMINAL en rouge réécrit 5 mots justes du corpus (mesuré)
             # SUJET NOMINAL — avec la primitive du projet, PAS un scan maison. Ma première version remontait
             # token par token et prenait le premier NOUN : sur « la langue DES ISRAÉLITES du Nord est » elle
             # lisait « Israélites » (pluriel) et proposait « sont ». `_np_subject` fait exactement ce travail
@@ -3281,10 +3280,14 @@ def _sujet_flexion(T, i, tg):
                 _av = np['idx'] - 2
                 if _av >= 0 and (_reads(T[_av]) or (tg and _av < len(tg) and tg[_av] in ('NOUN', 'PROPN', 'VERB', 'AUX'))):
                     return None
-            return ('3', np['n'])
+            return ('3', np['n'], 'nom')
         if d in CLITIC or (tg and j < len(tg) and tg[j] in _FLEX_ADV_OK): j -= 1; continue
+        if d in _ADJ_ANTE or (tg and j < len(tg) and tg[j] == 'ADJ'): j -= 1; continue   # « les petits chats manges » : l'adjectif antéposé se traverse (cas de Rem, 14/09)
         return None
     return None
+
+
+_ROUGE = True          # drapeau lu par la règle ROUGE ; la jumelle ORANGE le bascule le temps de son appel
 
 
 def rule_sujet_flexion(T, i):
@@ -3294,7 +3297,10 @@ def rule_sujet_flexion(T, i):
     if not CONJ_F or not CONJ_C: return None
     w = T[i]; lw = w.lower(); dl = deacc(lw)
     if "'" in lw or not dl.isalpha() or len(dl) < 2: return None
-    if dl in CLITIC or dl in PREP or dl in MODAL: return None
+    if dl in CLITIC or dl in PREP: return None
+    # MODAL ne vaut que devant un INFINITIF : la liste (« vais, allez, veut, peut »…) sert à ne pas toucher
+    # « je vais MANGER ». Sans cette précision elle taisait « nous ALLEZ au parc » — cas de Rem, 14/09.
+    if dl in MODAL and i + 1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX: return None   # un vrai INFINITIF suit
     # CONNECTEUR homographe d'une forme verbale rare : « puis » est lu *pouvoir, 1re du singulier* et faisait
     # proposer « peuvent » dans « celle des Mariniers PUIS des Pénitents » (2 FP UD). La liste existe déjà dans
     # ce fichier — `_PB_CONJ_ADV`, utilisée par la segmentation — on la lit au lieu d'en inventer une.
@@ -3310,22 +3316,33 @@ def rule_sujet_flexion(T, i):
     # ⛔ PARTICIPE : « Les randonneurs ÉPUISÉS arrivent », « Ces gâteaux DORÉS » — le tagger les dit VERB et
     # `_reads` leur trouve une lecture finie homographe (épuiser 3pl). Un participe n'est pas une forme finie :
     # il est traité par les règles d'accord du participe. Mesuré : 7 FP de batterie, tous là.
-    if _looks_ppl(w) or dl.endswith(('e', 'es')) and _looks_ppl(w[:-1] if dl.endswith('e') else w[:-2]): return None
+    # ⭐ ORDRE : on demande D'ABORD à la table de génération si la forme écrite est une CASE EXACTE d'un
+    # paradigme. Si oui, c'est une forme verbale prouvée et les gardes « nom/adjectif homographe » ne
+    # s'appliquent pas — « êtes » était tu parce que « ete » est un NOM connu (« l'été »). Cas de Rem, 14/09.
+    _lecC = [r for r in lec if ((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower() == lw]   # ACCENT-EXACT : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
+    # …mais une case de paradigme peut AUSSI être un adjectif (« complexes » = complexer 2sg ET adjectif) :
+    # on ne lève les gardes nom/adjectif que si le TAGGER lit un verbe ici. Mesuré : sans ce ET, 1 FP de
+    # batterie (« les problèmes complexes » → complexent).
+    if not (tg and i < len(tg) and tg[i] in ('VERB', 'AUX')): _lecC = []
+    if not _lecC:
+        if _looks_ppl(w) or dl.endswith(('e', 'es')) and _looks_ppl(w[:-1] if dl.endswith('e') else w[:-2]): return None
     # `_verb_or_homograph` teste la forme EXACTE : « complexe » est dans _EPICENE_ADJ, « complexes » non
     # (« les élèves brillants et complexes » → complexent, 1 FP de batterie). Le pluriel d'un adjectif ou
     # d'un nom connu est un adjectif ou un nom : on teste aussi le singulier.
-    if dl.endswith('s') and (dl[:-1] in _EPICENE_ADJ or dl[:-1] in ADJ_LEX or dl[:-1] in GENDER_FULL): return None
+        if dl.endswith('s') and (dl[:-1] in _EPICENE_ADJ or dl[:-1] in ADJ_LEX or dl[:-1] in GENDER_FULL): return None
     # ⭐ LECTURES FANTÔMES : `CONJ_F` porte 314 lectures sur 77 910 que `CONJ_C` contredit — Lexique agrège
     # plusieurs formes homographes sur UNE ligne avec UN SEUL champ Nombre (« sommes » lemme=être : nombre='p',
     # personnes 1 ET 2 → une lecture « être, 2e du singulier » qui n'existe pas). L'autorité est CONJ_C, et
     # `rule_personne_verbe` le dit déjà en toutes lettres : « JAMAIS CONJ_F seule ». Sans ce filtre la règle se
     # TAIT sur « tu sommes », « il sommes », « tu faites », « tu dites » : le fantôme lui fait croire que c'est
     # accordé. On ne garde que les lectures que la table de génération confirme.
-    _lec0 = [r for r in lec if deacc(((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower()) == dl]
-    if _lec0: lec = _lec0
+    if _lecC: lec = _lecC
     sub = _sujet_flexion(T, i, tg)
     if sub is None: return None
-    per, nb = sub
+    per, nb, src = sub
+    # LE PALIER SUIT LA FIABILITÉ DU SUJET : pronom → ROUGE ; nominal → ORANGE (règle jumelle ci-dessous).
+    # Mesuré le 14/09 sur le corpus dys : en rouge, le sujet nominal fait 3 corrections justes sur 17.
+    if src != ('pron' if _ROUGE else 'nom'): return None
     # ⛔ QUAND C'EST LE SUJET QUI EST FAUTÉ, NE PAS TOUCHER AU VERBE. « a forse il sont dégouter » : le dys a
     # écrit « il » pour « ils » — `rule_il_ils` répare le SUJET (rouge). Si on corrige aussi le verbe, on obtient
     # « ils est » : deux rouges qui se contredisent, et un mot juste cassé (mesuré : casses 14 → 16). Les formes
@@ -3351,6 +3368,16 @@ def rule_sujet_flexion(T, i):
         elif cible != f: return None                                 # deux lemmes, deux formes → abstention
     if not cible or deacc(cible.lower()) == dl: return None
     return _keepcase(w, cible)
+
+
+def rule_sujet_flexion_nom(T, i):
+    """Jumelle ORANGE de `rule_sujet_flexion`, pour le sujet NOMINAL (« les petits chats manges » → mangent).
+    Même code, même gardes ; seul le palier change. Mesuré le 14/09 : en ROUGE le sujet nominal fait 3 justes
+    sur 17 (17,6 %) — il propose, il n'impose pas. Le sujet PRONOM, lui, reste rouge."""
+    global _ROUGE
+    _ROUGE = False
+    try: return rule_sujet_flexion(T, i)
+    finally: _ROUGE = True
 
 
 def rule_det_gender(T, i):
@@ -4789,6 +4816,7 @@ def rule_on_ont_sujet_pluriel(T, i):
 
 VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
+                'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier')
 _SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
 _INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
@@ -4903,7 +4931,8 @@ RULES = [('élision inversée', rule_deselide),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret),
          ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
-         ('personne du verbe', rule_sujet_flexion),   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
+         ('personne du verbe', rule_sujet_flexion),
+         ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
                                                        # — « c'est de la conjugaison, les fautes sont flagrantes, du rouge au moindre problème ».
                                                        # EN DERNIER : « la première décision gagne » — la générale ne comble que
                                                                  # ce que les règles dédiées laissent muet (« nous somme » reste à rule_aux_misspell)
@@ -4938,8 +4967,10 @@ CASES = [
     ("Vous iriez au cinéma", "iriez", "irions", "personne du verbe"),
     ("Tu iras demain", "iras", "irai", "personne du verbe"),
     ("Nous allons au parc", "allons", "allez", "personne du verbe"),
-    ("Le chat mange sa pâtée", "mange", "mangeons", "personne du verbe"),
-    ("Les chats mangent leur pâtée", "mangent", "mangeons", "personne du verbe"),
+    ("Nous sommes là", "sommes", "êtes", "personne du verbe"),
+    ("Vous allez au parc", "allez", "allons", "personne du verbe"),
+    ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
+    ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("J'ai commencé le travail", "commencé", "commence", "-e/-é (participe)"),
     ("Il est obligé de partir", "obligé", "oblige", "-e/-é (participe)"),
     ("Elle s'est mariée hier", "mariée", "marie", "-e/-é (participe)"),
