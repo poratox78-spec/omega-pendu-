@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-09-07 — le gold sort du dys : deux corpus externes, mesurés au MÊME juge (532 + 2 436 textes)
+
+> Demande de Rem : « j'en ai marre que la dyslexie serve d'excuse ». Le chiffre du produit ne reposait
+> que sur `gold_claude.jsonl` — 72 productions dys, corpus privé, 92,7 % de sondes à faute unique.
+> `dys_pipeline_probe` prend désormais le gold en paramètre (`OMEGA_GOLD=…`) ; **par défaut rien ne
+> bouge** (402/19 reproduit à l'identique après le patch, contrôle fait).
+
+**Les trois corpus, côte à côte, même juge, même pyramide :**
+
+| gold | textes | mots alignés | fautes | RÉPARÉS | CASSÉS |
+|---|---|---|---|---|---|
+| `gold_claude` (dys réel, privé) | 72 | 6 217 | 1 542 | **402** (26,1 %) | **19** (0,41 %) |
+| `gold_ecriscol` (copies de 2NDE, ECRISCOL/E-CALM) | 532 | 4 297 | 456 | **94** (20,6 %) | **37** (0,96 %) |
+| `gold_frgec` (phrases Wikipédia FR, French_GEC) | 2 436 | 56 480 | 1 511 | **523** (34,6 %) | **199** (0,36 %) |
+
+⚠️ **CES TROIS LIGNES NE S'ADDITIONNENT PAS.** Densité de fautes et qualité du corrigé diffèrent, et
+surtout les deux gold externes sont **partiellement corrigés** — mesuré : 1,7 % des mots de `fixed`
+sont hors lexique dans les DEUX (`cheveaux`, `auparavent`, `colision` côté ECRISCOL ; le reste de la
+phrase côté Wikipédia, qui ne corrige qu'un mot). Conséquence directe et vérifiée : **65 % des
+« cassés » sont des DÉFAUTS DU GOLD, pas des fautes du moteur** — 24/37 (ECRISCOL) et 130/199
+(French_GEC) ont un gold hors lexique et une sortie moteur DANS le lexique. `cheveaux` → `cheveux`
+est compté contre nous.
+
+**Ce que ça donne, une fois la pollution retirée à la main sur ECRISCOL** (liste complète dans
+`data_local/casses_ecriscol.tsv`) : le moteur répare `colision`, `vilage`, `hommme`, `télélphone`,
+`trensparent`, `silouhette`, `banlieu`, `visgae`, `genous`, `décolté`, `auparavent`, `prennaient` —
+tous comptés « cassés » parce que le transcripteur ne les avait pas normalisés. Restent une poignée
+de VRAIES fautes du moteur, neuves parce que le corpus est neuf : **`vieu` → `dieu`** (gold : vieux),
+`tein` → `hein` (teint), `sorta` → `sorte` (sortit), `ranga` → `rang` (rangea), `épia` → `épi`,
+`naie` → `ne`. Côté French_GEC les 69 restants sont surtout de l'accord sur-appliqué
+(`grec`→`grecs`, `trouve`→`trouvent`, `leur`→`leurs`, `La`→`Le`) — matière à règles, pas à panique.
+
+**Sens de la notation ECRISCOL, vérifié et pas supposé** : sur 780 paires simples, 241 (30,9 %) n'ont
+que le 2e membre dans le lexique contre 13 (1,7 %) le 1er — et ces 13 sont presque toutes des
+normalisations en DEUX mots (`entrain`_`en train`, `appart`_`à part`). C'est donc bien
+`<produit>_<normalisé>` ; ~5 inversions réelles subsistent (0,6 %).
+
+**Outils** : `dictee/build_gold_externe.py` (fabrique les deux gold + imprime le taux de pollution +
+écrit `gold_externe_revue.tsv` pour relecture humaine) · `DUMP_CASSES=…` sur `dys_pipeline_probe`
+(tous les cassés, pas les 60 premiers, avec contexte et colonne `verdict` à remplir) ·
+`dictee/fetch_frgec_pairs.py` (§6 de `RESSOURCES_LIBRES.md`).
+
+**Ce qui reste ouvert** : l'archive ECRISCOL d'ORTOLANG est tronquée (107 Mio pile) — 63 copies
+récupérées sur un dépôt qui en contient beaucoup plus ; et les dictées alignées de Scoledit
+demandent un compte. Les deux se débloquent par un mail, pas par du code.
+
+---
+
 ## 2026-09-04 — _cmp non transitif : dette RE-MESURÉE et INSTRUITE — on ne câble pas (canon:F qualifiée, en réserve)
 
 > Enquête lecture-seule sur main (lexique speller 705 654 formes, baseline produit reproduite 402/19,
