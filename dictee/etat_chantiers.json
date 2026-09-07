@@ -105,9 +105,19 @@
       "titre": "⑤-c (B) « nom féminin en -ée » écrit -é après déterminant féminin (la cheminé → cheminée), liste close, 3 moteurs — (A) et (E) recensés, différés",
       "verdict": "55 muets « féminin manquant » lus un par un : (A) participes après « je me suis » = genre de l'auteure, inconnaissable dans le texte ; (B) 4 cas gold, UD 0 → règle rouge (DET fém non ambigu + 35 noms en -ée) ; (E) DET fém + nom fém + adjectif masc : 2 cibles pour 3 pièges (sur, sauf, cher) + 97 motifs UD → différé. Mesuré le 13/09/2026 : batterie 4/4, FP échelle 1,36 % (34/2 500, inchangé), palier 100 %, parités intactes ; juge 312 · 244 · 14 · 73 (dont 42).",
       "ref": "JOURNAL 2026-09-13 (soir)"
+    },
+    {
+      "titre": "Accents : « il decide » → décide (présent après pronom sujet, speller, 3 moteurs) + « grace » → grâce ; les 108 accents non réparés recensés",
+      "verdict": "108 fautes d'accent seul non réparées lues une par une : 73 homophones grammaticaux muets (54 a→à sans ancre sûre : voisins fautés, déterminant), 19 mots valides sans accent (participe après aux, hors de portée du speller), 5 rouges ailleurs (le participe choisi après un pronom sujet — corrigé : 6/6 cas gold au présent, 0 contre), 5 ou/où orange justes, 2 grace, 1 the. Mesuré le 14/09/2026 : juge 312 · 244 · 14 · 73, accents 274 / 171 / 1, FP échelle 1,36 % (34/2 500, inchangé), palier 100 %.",
+      "ref": "JOURNAL 2026-09-14 · scratchpad census_accents / census_aa_muets / census_subjp"
     }
   ],
   "ouverts": [
+    {
+      "titre": "Participe après auxiliaire (rule_e_ppl) : « j'ai commence », « je me suis installe » — le speller se tait (mot valide), la règle ne voit ni l'auxiliaire élidé ni le pronominal",
+      "etat": "Recensé le 14/09/2026 : 3 pronominaux dans le gold (installe, réveille, douche → participe), 1 piège UD (« se fut mise » — déjà un participe : garde _is_ppl). L'auxiliaire élidé « j'ai » ne compte pas comme auxiliaire (deacc garde l'apostrophe) — à vérifier avec VERB_LEX (jeu curé). Petit gain (3-5), ancre audible. Séparé du speller.",
+      "ref": "JOURNAL 2026-09-14 · census_eppl.txt"
+    },
     {
       "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",
       "etat": "24 phrases (12 classiques, 12 « stupides ») dans le vrai Chrome : 39 flags, FP=0, produit ≡ référence. ① TEXTES FAIT le 11/09 (nuit) : six corrections app ≡ ext, sonde textes_probe.js (rouge 26 → vert), garde 90. ② FAIT le 11/09 (nuit, suite) : `_AFIX_MIN`, 13 formes nues closes, minuscules seulement, 3 moteurs — la fausse orange disparaît, FP=0 tenu. ③ FAIT le 12/09 (soir) : `_APOS_FIX`, 14 soudures closes, 3 moteurs — et le juge admet l'apostrophe (286 → 294). ④ RECENSÉ le 12/09 et DIFFÉRÉ : « mot + sa forme élidée » (que qu'elle, se s'est…) = 0 occurrence dans 1 798 productions dys (5 dans UD, toutes des typos du corpus) — l'exemple de l'audit était synthétique, pas de règle sans cas réel. ⑤ RECENSÉ le 12/09 (329 muets « bon lemme, mauvaise flexion », pluriel en tête) et ⑤-a FAIT le 13/09 : « accord adjectif antéposé » après déterminant pluriel (3 moteurs, 0 FP UD, +11 motifs gold). ⑤-b FAIT le 13/09 : « accord pluriel nom » traverse l'adjectif antéposé (3 moteurs). ⑤-c féminin manquant RECENSÉ le 13/09 (55 muets) : (A) genre de « je » inconnaissable → pas de règle ; (B) FAIT « nom féminin en -ée » (la cheminé → cheminée, liste close, 3 moteurs) ; (E) adjectif après nom féminin → 2 cibles / 3 pièges, différé. Reste ⑤ : -er/-é muets (50), homophones muets (et/est 23, peu/peut 7…)  ; ⑥ FAIT le 13/09 : pyramide garde la casse (ckeepcase). ⑤-e et/est recensé (23 muets, 1 cas sûr) → différé ; ⑤-d -er/-é recensé (58 muets dispersés) → différé. Le plan de l'audit est SOLDÉ : ce qui reste (143 oranges justes, 216 mots réels ≤ 2 lettres) est d'une autre nature. Rapport : dictee/AUDIT_CORRECTEUR_2026-09-11.md.",

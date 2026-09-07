@@ -27424,7 +27424,7 @@ function spellTokenCore(tok,atStart,T,idx){
        (mere 8, age 5, reparer 2, ame 1) toutes corrigées par le gold vers la sœur accentuée. MINUSCULES SEULEMENT : « Ame V », « Special »,
        « l'Age d'Or » existent en majuscule dans du français correct. Exclus : cote, sacre, prive, voila… (mots valides), maitre, ile,
        gout (graphies rectifiées de 1990). Miroir Python _AFIX_MIN. */
-    var _AFIX_MIN={"mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
+    var _AFIX_MIN={"grace":"grâce","mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
     /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
        corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
@@ -27549,6 +27549,15 @@ function spellTokenCore(tok,atStart,T,idx){
       if(_bs){w1=_bs;p1=cand[w1][0];f1=cand[w1][1];}}
     
     if(tok[0]!==tok[0].toLowerCase()&&deaccS(w1)!==d)return null;   // capitalisé : seule la restauration d'accent (évite Nathalie→natalité)
+    /* ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, colonne accents : « il decide de » → le produit écrivait « décidé », le gold veut « décide » —
+       3 rouges ailleurs). Symétrique du participe après auxiliaire : quand le mot NU a deux accentuations, présent (-e) et participe
+       (-é), et que le sujet est un PRONOM (je/tu/il/elle/on/ils/elles/nous/vous/qui, clitiques traversés) sans auxiliaire ni copule
+       entre, c'est le présent — « il décidé » n'existe pas. AVANT la bascule de genre : elle lisait « la voiture » deux mots plus haut
+       et rendait « décidée ». Recensé (toutes sources : 6 cas, 6 présents) avant d'être posé. Miroir Python. */
+    var _sbj=false;if(T&&/e$/.test(d)){var _y=idx-1;while(_y>=0){var _dy=deaccS(T[_y].toLowerCase()).replace(/'/g,'');if(SAUXAV[_dy]||SCOPULA[_dy])break;if(SSUBJP[_dy]||_dy==='qui'){_sbj=true;break;}
+      if(_dy==='ne'||_dy==='n'||_dy==='se'||_dy==='s'||_dy==='me'||_dy==='m'||_dy==='te'||_dy==='t'||_dy==='le'||_dy==='la'||_dy==='les'||_dy==='l'||_dy==='lui'||_dy==='leur'||_dy==='y'||_dy==='en'){_y--;continue;}break;}}
+    if(_sbj){var _pr=null,_ppl=false;for(i=0;i<keys.length;i++){var _ck=keys[i];if(deaccS(_ck)!==d)continue;if(/é$/.test(_ck))_ppl=true;else if(/e$/.test(_ck)&&cand[_ck][1]>=0.5&&(!_pr||cand[_ck][1]>cand[_pr][1]))_pr=_ck;}
+      if(_pr&&_ppl&&_pr!==w1)return['flag',_pr];}   // les DEUX accentuations existent (présent -e / participe -é) et le tri a pris le participe → le présent (plancher 0,5 : « trébuche » 0,85/M)
     if(cg&&(SP.POS[w1]||'').indexOf('A')>=0){var ad=ADJP[deaccS(w1)];if(ad&&ad[0]!==cg&&cand[ad[1]]&&sGender(ad[1])===cg)return['flag',ad[1]];}  // bascule paire ADJECTIF (premiere→premier ; pas nom « élève »)
     if(f1<0.1)return null;
     var f2=keys.length>1?cand[keys[1]][1]:0,accentOnly=(p1===2&&deaccS(w1)===d),dominant=(f1>=1.0&&(f2===0||f1>=5*f2));
