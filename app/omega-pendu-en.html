@@ -27218,7 +27218,7 @@ function ponctReglesVirgule(mots,_tg,deja){
    `node dictee/question_bench.js`). Le code est repris VERBATIM (mêmes regex, mêmes gardes) ; seuls les
    appels `DC.toks`/`DC.posTags` deviennent locaux. Les deux surfaces vocales délèguent désormais ici,
    donc `voix_parite_probe` continue de les comparer — sur une délégation identique. */
-var QW=/^(est-ce|qu'est|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête (lookahead car \b casse après « où »)
+var QW=/^(est-ce|qu['’]est|qu\s+est[-\s]ce|où|comment|pourquoi|quand|combien|quel|quelle|quels|quelles|lequel|laquelle)(?![a-zà-ÿœ])/i;   // interrogatifs FORTS en tête (lookahead car \b casse après « où »)
 // ⭐⭐ DÉTECTION DE QUESTION — version MESURÉE (l'ancienne règle « interrogatif en tête » faisait
 // 45,5 % de précision : 79 faux sur 145, sur 48 653 phrases réelles). Nouvelle règle : 100 %,
 // 0 faux sur 60 998 échantillons. Le BDL confirme la cause principale : L'INTERROGATION
@@ -27293,11 +27293,11 @@ var QADV=/^\s*(?:peut-être|sans doute|ainsi|aussi|à peine|a peine|du moins|enc
 var QTAG=/\bn['’]est[-\s]ce\s+pas\s*$/i;
 // ⚠️ ANCRÉ EN TÊTE : sans l'ancre, « se demandant quand est-ce qu'il va sortir » (interrogation
 // INDIRECTE, que le BDL exclut explicitement du « ? ») redevenait une question.
-var QEQ=/^\s*est[-\s]ce\s+(?:que|qu['’])/i;
+var QEQ=/^\s*est[-\s]ce\s+(?:que|qui|qu['’])/i;   // « est-ce QUI » : même tête que « est-ce que » (Rem, 14/09)
 var QEQ3=/^\s*est[-\s]ce(?!\s+qu)(?![a-zà-ÿœ])/i;   // « est-ce possible ? » : en TETE, « est-ce » n'a pas d'emploi non interrogatif
-var QEQ2=/^\s*[a-zà-ÿœ']+\s+est[-\s]ce\s+(?:que|qu['’])/i;
+var QEQ2=/^\s*[a-zà-ÿœ']+\s+est[-\s]ce\s+(?:que|qui|qu['’])/i;   // « qui est-ce qui », « pourquoi est-ce que »
 var QW_PREP=/^\s*(?:à|a|de|d['’]|par|pour|avec|sur|dans|en|chez|vers|depuis|selon)\s+(?:quoi|qui|quel|quelle|quels|quelles|lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // interrogatif precede de sa preposition : « a quoi penses-tu ? »
-var QSEUL=/^(qu['’]est|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;
+var QSEUL=/^(qu['’]est|qu\s+est[-\s]ce|comment|pourquoi|combien)(?![a-zà-ÿœ])/i;   // « qu est ce qui » sans apostrophe (graphie dys)
 var QPRON=/^(lequel|laquelle|lesquels|lesquelles)(?![a-zà-ÿœ])/i;   // pronom interrogatif SUJET (garde anti-relatif : verbe juste apres)
 var QEUPH=/[A-Za-zÀ-ÿœ']+-t-(?:il|elle|on|ils|elles)(?![-\w])/i;   // « t » euphonique : 74/74 inversions dans UD, ancrage ORTHOGRAPHIQUE (tient la ou le tagger lache)
 var QPARTPAROLE=/^\s*(?:affirmé|précisé|precise|déclaré|declare|ajouté|ajoute|expliqué|explique|indiqué|indique|souligné|souligne|conclu|poursuivi|répondu|repondu|confié|confie|assuré|assure|estimé|estime|noté|note|rappelé|rappele|lancé|lance|martelé|martele|insisté|insiste|dit|écrit|ecrit)(?![a-zà-ÿœ])/i;   // participes de parole = incise au temps compose. ⚠️ PAS de  apres une lettre accentuee : en JS \w=[A-Za-z0-9_], donc la frontiere n'existe jamais et la regex ne matche RIEN (echec SILENCIEUX, deja paye)
@@ -27366,7 +27366,8 @@ function estQuestion(t,maxMots){
   // dernier recours : l'interrogatif seul en ordre affirmatif (4e forme du BDL, celle que
   // seule l'INTONATION signale). Le tagger ferme le FP que la liste ne voyait pas :
   // l'interrogation INDIRECTE enchaîne un GN plein (« comment UNE PERSONNE a obtenu… »).
-  if(QPRON.test(t) && t.indexOf(',')<0 && QVERBAL[tag(1)]===1) return true;   // « Lequel est le plus grand ? » ; le relatif, lui, porte un clitique (« laquelle lui repond »)
+  if(QPRON.test(t) && t.indexOf(',')<0 && QVERBAL[tag(1)]===1) return true;
+  if(/^\s*Qui(?![a-zà-ÿœ'’])/.test(t) && t.indexOf(',')<0 && mots.length<=8 && QVERBAL[tag(1)]===1) return true;   // « Qui est là », « Qui vient demain » : « Qui » MAJUSCULE en tête (vraie tête de phrase) + verbe, ≤ 8 mots, sans virgule (Rem, 14/09 : « plus dur »). Mesuré sur question_bench : sans la majuscule, les relatives en tête de fragment (« qui stockent les valeurs… ») font tomber la précision de 91 à 48,6 % ; avec : 91,30 %, +3 questions, 0 faux de plus   // « Lequel est le plus grand ? » ; le relatif, lui, porte un clitique (« laquelle lui repond »)
   if(!QSEUL.test(t) || t.indexOf(',')>=0) return false;
   if(CLIT_PERS[(mots[1]||'').toLowerCase()])return true;   // « pourquoi tu pleures » : le tagger lit « tu/DET », le clitique sujet tranche seul
   return tag(1)!=='DET';
