@@ -25926,7 +25926,12 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(/aux$/.test(dn)&&dn.length>4)cands.push(n.slice(0,-3)+'al');
     if(/eaux$|eux$/.test(dn)||_PL_OUX_PL[deacc((n.slice(0,-1)+'x').toLowerCase())])cands.push(n.slice(0,-1));
     if(/s$/.test(dn))cands.push(n.slice(0,-1));
-    for(var k=0;k<cands.length;k++){var p=NOUN_POST&&NOUN_POST[deacc(cands[k].toLowerCase())];if(p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M)return cands[k];}return null;}
+    // ⛔ finale en voyelle accentuée AUTRE que -é = pas un mot français : « Le congrès »→« congrè »
+    // en AUTO (mesuré 07/09/2026 sur gold Wikipédia). L'ancre NOUN_POST est DÉACCENTUÉE, donc
+    // « congré » y trouve « congre » et passe. Même parade que pour « apex » : la FORME tranche.
+    // Miroir EXACT de correcteur_probe._singularize_noun.
+    for(var k=0;k<cands.length;k++){var _c=cands[k];if(_c&&'àâäèêëìîïòôöùûü'.indexOf(_c.charAt(_c.length-1))>=0)continue;
+      var p=NOUN_POST&&NOUN_POST[deacc(_c.toLowerCase())];if(p&&p[0]>=PL_TAU_M&&p[1]<PL_EPS_M)return _c;}return null;}
   // Adjectifs ANTÉPOSÉS du français — classe FERMÉE (c'est ce qui rend la traversée sûre). Formes
   // déaccentuées ; le déterminant en tête porte déjà le nombre. Miroir EXACT de correcteur_probe.py.
   var _ADJ_ANTE={};('grand grande grands grandes petit petite petits petites gros grosse grosses '
@@ -25961,6 +25966,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(_nounGate(n)){var sg=desingularizeNoun(n);if(sg&&deacc(sg.toLowerCase())!==dn)return _pre+sg;}       // VOIE FRÉQUENTIELLE : pluriel NOM-dominant → « une voitures »→voiture
     if(/s$/.test(dn)&&NOUN_PLURAL[dn]&&GENDER_PURE[dn.slice(0,-1)]!==undefined){                       // VOIE RELÂCHÉE : pluriel homographe verbal (« la boites »=boiter 3sg) tranché par dét sing + tagger + lexique
       if(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;                                           // composé à trait d'union (« la sous-famille »)
+      if('àâäèêëìîïòôöùûü'.indexOf(n.charAt(n.length-2))>=0)return null;                                // même garde de FORME que desingularizeNoun : « congrès »→« congrè » n'est pas un mot
       var _tgS=posTags(T);if(_tgS&&i<_tgS.length&&_tgS[i]==='NOUN')return {sugg:n.slice(0,-1),vig:1};}    // -s retiré (« boîtes »→« boîte »). ORANGE (à vérifier) : direction ambiguë (la boîte OU les boîtes ?) + faute de frappe non exclue — décision Rem
     return null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===

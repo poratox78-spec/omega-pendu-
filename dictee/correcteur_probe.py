@@ -3493,6 +3493,16 @@ def _singularize_noun(n):
         cands.append(n[:-1])                                             # chapeaux→chapeau, cheveux→cheveu, choux→chou
     if dn.endswith('s'): cands.append(n[:-1])                            # systèmes→système
     for c in cands:
+        # ⛔ FINALE EN VOYELLE ACCENTUÉE AUTRE QUE -é → ce n'est PAS un mot français (07/09/2026).
+        # Trouvé en sortant du corpus dys (gold Wikipédia) : « Le congrès » devenait « Le congrè »,
+        # en AUTO — un rouge qui fabrique un NON-MOT sur du texte parfaitement correct. Le motif
+        # est le même que pour « apex » ci-dessus : l'ancre `NOUN_POST` est DÉACCENTUÉE, donc
+        # « congré » y trouve « congre » (le poisson) et passe. C'est la FORME qui tranche, pas le
+        # lexique — et elle tranche pour les trois moteurs, sans nouvel asset : mesuré sur les
+        # 705 653 formes du speller, 93 finissent par « è » (0,013 %, et ce sont des scories type
+        # « cherchè », « acceptè »), 14 par « à », 9 par « ô ». Couvre toute la classe -ès d'un coup
+        # (congrès, abcès, accès, excès…) là où seule une stop-liste énumérée protégeait avant.
+        if c and c[-1] in u'àâäèêëìîïòôöùûü': continue
         p = NOUN_POST.get(deacc(c.lower()))
         if p and p[0] >= PL_TAU_M and p[1] < PL_EPS_M: return c
     return None
@@ -3588,6 +3598,7 @@ def rule_noun_singular(T, i):
         if _SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None   # composé à trait d'union (« la sous-famille »)
         tg = pos_tags(T)
         if tg and i < len(tg) and tg[i] == 'NOUN':
+            if n[-2:-1] in u'àâäèêëìîïòôöùûü': return None       # même garde de FORME que _singularize_noun : « congrès »→« congrè » n'est pas un mot
             return _pre + n[:-1]                                # -s retiré, accents/casse préservés (« boîtes »→« boîte »)
     return None
 

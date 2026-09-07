@@ -133,6 +133,31 @@ def _audit(recs, W):
     return tot, sale, exs
 
 
+def _norme(recs, W):
+    u"""LE TEXTE NORMÉ — demande de Rem (07/09) : garder le gold dys, le COMPLÉTER avec du texte
+    conforme à la norme. Un gold ne vaut que si son côté `fixed` est VRAIMENT correct : sinon le
+    correcteur répare une faute que le corrigé avait laissée, et la sonde compte un « cassé » qui
+    n'en est pas (mesuré : 65 % des cassés externes étaient exactement ça). On ne garde donc que
+    les textes dont CHAQUE mot en minuscule de `fixed` est une forme du lexique.
+    ⚠️ Ce que le filtre NE garantit PAS : l'accord. « les chien mangent » passerait (les deux mots
+    existent). Il enlève la pollution LEXICALE, la seule mesurable sans juge humain."""
+    out = []
+    for r in recs:
+        ok = True
+        for w in MOT.findall(r['fixed']):
+            if w[:1].isupper():
+                continue
+            for part in re.split(u"['’-]", w.lower()):
+                if len(part) >= 2 and part not in W:
+                    ok = False
+                    break
+            if not ok:
+                break
+        if ok:
+            out.append(r)
+    return out
+
+
 def main():
     import speller_probe as S
     if not os.path.exists(S.LEX):
@@ -187,6 +212,19 @@ def main():
         revue += [('frgec', r) for r in frg]
     else:
         print(u'· French_GEC : %s absent — lance fetch_frgec_pairs.py' % FRGEC)
+
+    # ---- LE COMPLÉMENT « TEXTE NORMÉ » -------------------------------------------------
+    for recs, nom in ((ecr, 'gold_ecriscol_norme.jsonl'), (frg, 'gold_frgec_norme.jsonl')):
+        if not recs:
+            continue
+        pur = _norme(recs, W)
+        with io.open(os.path.join(DATA, nom), 'w', encoding='utf-8') as f:
+            for r in pur:
+                f.write(json.dumps(r, ensure_ascii=False) + u'\n')
+        tot, sale, _ = _audit(pur, W)
+        print(u'· %-26s %5d textes gardés sur %5d (%.0f %%) — pollution résiduelle %.2f %%'
+              % (nom, len(pur), len(recs), 100.0 * len(pur) / max(1, len(recs)),
+                 100.0 * sale / max(1, tot)))
 
     # ---- fichier de RELECTURE (c'est Rem qui tranche, pas la sonde) --------------------
     p = os.path.join(DATA, 'gold_externe_revue.tsv')

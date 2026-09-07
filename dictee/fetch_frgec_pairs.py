@@ -26,7 +26,7 @@ la correction : « théatre »→« théâtre », « inconue »→« inconnue »
 « aprsè »→« après ». Le filtre laisse passer du bruit (« pinde »→« macédoine ») : ces paires sont un
 GISEMENT À TRIER, pas un gold. Ne jamais les compter comme une mesure du produit.
 
-  LEX4=… python3 dictee/fetch_frgec_pairs.py [--mo 30] [--chunk 0]
+  LEX4=… python3 dictee/fetch_frgec_pairs.py [--mo 30] [--chunk 0 | --chunks 0,1,2,3]
   → data_local/frgec_pairs.jsonl   {bad, good, x, y}  (bad/good = les deux mots ; x/y = les phrases)
 
 Absence-safe : sans Lexique 4 (licence, hors git) la sonde SAUTE et rend 0, comme les autres.
@@ -61,13 +61,22 @@ def main():
     if not os.path.exists(S.LEX):
         print(u'· FRGEC : SAUTÉ (Lexique 4 absent — garde locale, cf. dev.sh)')
         return 0
-    mo, chunk = _arg('--mo', 30), _arg('--chunk', 0)
-    req = urllib.request.Request(URL % chunk, headers={'Range': 'bytes=0-%d' % (mo * 1048576)})
-    raw = urllib.request.urlopen(req, timeout=300).read().decode('utf-8', 'replace')
-    raw = raw[:raw.rfind('\n')]                      # la dernière ligne est coupée par le Range
+    mo = _arg('--mo', 30)
+    if '--chunks' in sys.argv:                       # plusieurs tranches : --chunks 0,1,2,3
+        chunks = [int(x) for x in sys.argv[sys.argv.index('--chunks') + 1].split(',')]
+    else:
+        chunks = [_arg('--chunk', 0)]
 
     import csv
-    rows = list(csv.DictReader(io.StringIO(raw)))
+    rows = []
+    for ch in chunks:
+        req = urllib.request.Request(URL % ch, headers={'Range': 'bytes=0-%d' % (mo * 1048576)})
+        raw = urllib.request.urlopen(req, timeout=600).read().decode('utf-8', 'replace')
+        raw = raw[:raw.rfind('\n')]                  # la dernière ligne est coupée par le Range
+        r = list(csv.DictReader(io.StringIO(raw)))
+        print(u'  chunk %d : %d paires' % (ch, len(r)))
+        rows += r
+    chunk = ','.join(str(c) for c in chunks)
     sp = S.Speller()
     W = sp.WORDS
     ident = un_mot = 0
@@ -100,7 +109,7 @@ def main():
         for g in gardees:
             f.write(json.dumps(g, ensure_ascii=False) + u'\n')
     n = len(rows) or 1
-    print(u'· FRGEC chunk %d, %d Mio : %d paires lues, %d identiques (%.1f %%), %d à un seul mot'
+    print(u'· FRGEC chunks %s, %d Mio : %d paires lues, %d identiques (%.1f %%), %d à un seul mot'
           % (chunk, mo, len(rows), ident, 100.0 * ident / n, un_mot))
     print(u'  → %d paires retenues (%.2f %% des lues), dont %d de même clé phonétique (%.1f %%)'
           % (len(gardees), 100.0 * len(gardees) / n, phon, 100.0 * phon / max(1, len(gardees))))
