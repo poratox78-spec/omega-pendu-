@@ -129,10 +129,18 @@
       "ref": "JOURNAL 2026-09-14 (nuit)",
       "titre": "Point d'interrogation : « est-ce qui » comme « est-ce que », « qu est ce qui » sans apostrophe, « Qui + verbe » en tête (majuscule) — app + extension",
       "verdict": "Mesuré sur question_bench (314 questions UD+réel) : correcteur 91,30 % / 26,75 % (était 91,01 / 25,80), voix 96,88 / 19,75 ; sans la majuscule sur « Qui », précision 48,55 % (relatives en tête de fragment) → majuscule obligatoire, planchers relevés. Coût dit : « qui est là » minuscule muet, « Qui vivra verra » orange.",
-      "ref": "JOURNAL 2026-09-14 (nuit, suite)"
+      "ref": "JOURNAL 2026-09-14 (nuit, suite)",
+      "titre": "Le SUJET donne la personne et le nombre, la forme écrite donne le TEMPS (« nous iriez » → irions) — ROUGE, sujet pronom ET nominal, 3 moteurs",
+      "verdict": "nous et vous n'étaient dans AUCUNE règle de personne (0/220 et 0/235) ; l'exclusion était écrite dans build_cgram.py depuis la construction des tables, jamais mesurée. Aucun des 4 instruments ne pouvait le voir : ils mesurent un corpus, pas la couverture. Mesuré le 14/09/2026 : nous 0 → 80.9 %, vous 0 → 79.9 %, je 87.7 %, tu 81.8 %, le chat 6,6 → 83.0 %, les chats 0,6 → 80.4 % ; batterie FP=0, FP échelle 1,68 % (42/2 500), palier 100 %, juge 314 réparés (était 312) · 14 cassés (inchangé). Trois défauts trouvés PARCE QUE c'est du rouge : sujet fauté (« il sont »), coquille Lexique (« soulais » pour vouloir), gardes absentes côté JS (rattrapées par parity_core).",
+      "ref": "JOURNAL 2026-09-14 (nuit, fin)"
     }
   ],
   "ouverts": [
+    {
+      "titre": "COUVERTURE de la conjugaison : ce que la sonde d'énumération montre encore (passé simple, impératif, subjonctif imparfait)",
+      "etat": "Sonde `couverture_conj_probe` (n'ouvre aucun corpus : 13 sujets × 6 temps × 12 verbes) posée le 14/09/2026 dans dev.sh, ancrée par sujet. Reste : ① passé simple — CONJ_C n'a que 131 lemmes / 2 904 (filtre #127 « forme pure » ET fréquence ≥ 0,5), « il mangea » muet ; ② impératif — 4 433 lemmes source, 0 en table, `rule_imperatif` ne couvre que le motif à trait d'union (« Manges ta soupe », « Prend le livre », « Fait attention » muets) ; ③ subjonctif imparfait 375 lemmes, 0 ; ④ « tu irai » → « vas » : `rule_personne_verbe` passe avant la générale et ne garde pas le temps écrit.",
+      "ref": "JOURNAL 2026-09-14 (nuit, fin) · couverture_conj_ref.json"
+    },
     {
       "titre": "COUCHE « flexion par le contexte » (consigne Rem 14/09) : les 329 muets « bon mot, mauvaise forme » reçoivent au moins une proposition ORANGE (gouverneur → forme des tables)",
       "etat": "FP=0 vaut pour le ROUGE ; l'orange ne cache plus une faute récupérable par le contexte. Recensement par gouverneur (census_flexion) : après nom 62, aux → participe 34, gouverneur fauté 83, prép/modal → infinitif 22, pronom sujet 25, dét pluriel 13, féminin 3. Brique 1 FAITE le 14/09 (infinitif après pronom sujet → imparfait, orange). Brique 2 FAITE le 14/09 (participe après être SANS liste close : rouge par le POS accent-exact du speller + sujet 3e pers., orange pronominal/je-tu-nous-vous/nominal ; homographe adjectif « elle est sèche » = interrupteur _HOMO_ORANGE mesuré, éteint, décision Rem). Suivantes : ③ préposition + -é/-e → infinitif ; ④ accord après nom (tagueur) ; ⑤ personne/nombre en gardant le temps écrit (« qui vivais » → vivaient).",

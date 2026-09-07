@@ -26487,6 +26487,72 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       if(out&&out!==a[0])return null;                    // plusieurs lemmes → abstention
       out=a[0];}
     return out;}
+  var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
+  var _CONJ_FIX={'vouloir|ind:imp|1s':'voulais'};   // COQUILLE DE LEXIQUE 4 : une ligne source donne « soulais » (un « v » lu « s ») comme 1re du singulier de l'imparfait de VOULOIR ; sans ce correctif « ce que je voulais » devenait « soulais », en ROUGE. Miroir Python _CONJ_FIX.
+  function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
+     frontière de proposition en traversant CLITIQUES et ADVERBES, on s'arrête au premier candidat sujet. nous/vous ne sont SUJETS
+     que si rien avant eux dans la proposition ne peut l'être (« il nous parle », « qui vous passionnera » = compléments). */
+    if(i<=0)return null;
+    var j=i-1;
+    while(j>=0){
+      if(_SEG&&j+1<_SEG.bb.length&&_SEG.bb[j+1]&&j+1!==i)return null;
+      var w=T[j],d=deacc(w.toLowerCase()),m=_ELIDED_PRON.exec(w.toLowerCase());
+      if(m)d=deacc(m[1]);
+      if(SUBJ_PRON[d])return SUBJ_PRON[d];
+      if(_SUBJ_PRON_PL[d]){
+        var k=j-1;
+        while(k>=0){
+          if(_SEG&&k+1<_SEG.bb.length&&_SEG.bb[k+1])break;
+          var dk=deacc(T[k].toLowerCase());
+          if(_ELIDED_PRON.exec(T[k].toLowerCase()))return null;
+          if(SUBJ_PRON[dk]||_SUBJ_PRON_PL[dk]||dk==='qui')return null;
+          if(/^(que|qu)$/.test(dk.replace(/['’]$/,''))||(tg&&k<tg.length&&tg[k]==='SCONJ'))break;   // la subordonnée COMMENCE ici
+          if(tg&&k<tg.length&&(tg[k]==='NOUN'||tg[k]==='PROPN'||tg[k]==='VERB'||tg[k]==='AUX'))return null;
+          if(CLITIC[dk]||(tg&&k<tg.length&&tg[k]==='ADV')){k--;continue;}
+          return null;
+        }
+        return _SUBJ_PRON_PL[d];
+      }
+      if(d==='qui')return null;
+      if(svReads(w).length)return null;
+      if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN'))return null;   // sujet NOMINAL : laissé aux règles d'accord SV (mesuré : 12 FP UD)
+      if(CLITIC[d]||(tg&&j<tg.length&&tg[j]==='ADV')){j--;continue;}
+      return null;
+    }
+    return null;}
+  function sujFlexVig(T,i){   /* « nous iriez » → irions · « tu irai » → iras. Le sujet donne personne et nombre, la forme écrite
+     donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
+    if(!CONJ_F||!CONJ_C)return null;
+    var w=T[i];if(!w)return null;
+    var lw=w.toLowerCase(),dl=deacc(lw),k;
+    if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||!/^[a-zà-ÿœ]+$/.test(dl)||dl.length<2)return null;
+    if(CLITIC[dl]||PREP[dl]||MODAL[dl])return null;
+    var lec=svReads(w);
+    if(!lec.length)return null;
+    var tg=posTags(T);
+    if(!tg||!_verbOrHomograph(tg,T,i))return null;
+    if(_looksPpl(w))return null;                                            // participe épithète : « Les randonneurs épuisés »
+    if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
+    if(/es$/.test(dl)&&_looksPpl(w.slice(0,-2)))return null;
+    if(/s$/.test(dl)&&(_EPICENE_ADJ[dl.slice(0,-1)]||ADJP[dl.slice(0,-1)]||GENDER_MAP[dl.slice(0,-1)]))return null;   // « complexes »
+    var sub=_sujetFlexion(T,i,tg);
+    if(!sub)return null;
+    var per=sub[0],nb=sub[1];
+    if(nb==='s'&&per==='3'&&_V3PL_SURE[dl])return null;   // « il sont », « Il ont » : c'est le SUJET qui est fauté (rIlIls le répare), pas le verbe — miroir Python
+    for(k=0;k<lec.length;k++)if(lec[k][2]===per&&(lec[k][3]===nb||lec[k][3]==='x'))return null;   // PAS svAgrees : elle ignore le nombre en 1re/2e
+    var que=false;
+    for(k=Math.max(0,i-5);k<i;k++)if(/^(que|qu)$/.test(deacc(T[k].toLowerCase()).replace(/['’]$/,'')))que=true;
+    var lec2=[];
+    for(k=0;k<lec.length;k++)if((lec[k][1].indexOf('sub')===0)===que)lec2.push(lec[k]);
+    if(lec2.length)lec=lec2;                                                // « que » présent → subjonctif ; absent → indicatif
+    var cible=null,slot=per+nb;
+    for(k=0;k<lec.length;k++){
+      var f=_CONJ_FIX[lec[k][0]+'|'+lec[k][1]+'|'+slot]||((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[slot];
+      if(!f)return null;
+      if(cible===null)cible=f;else if(cible!==f)return null;
+    }
+    if(!cible||deacc(cible.toLowerCase())===dl)return null;
+    return ckeepcase(w,cible);}
   function persVig(T,i){
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;
@@ -26757,7 +26823,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['participe après être à vérifier',rEPplVig],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['est/et (proposition)',rEstEtClause],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['ou/où',rOuOu],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['élision fusionnée',rElisionFusionnee],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['infinitif après pronom sujet à vérifier',rPronInf],['accord adjectif antéposé',rAdjAntePl],['nom féminin en -ée',rFemEe],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['participe après être à vérifier',rEPplVig],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['est/et (proposition)',rEstEtClause],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['ou/où',rOuOu],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['élision fusionnée',rElisionFusionnee],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['infinitif après pronom sujet à vérifier',rPronInf],['accord adjectif antéposé',rAdjAntePl],['nom féminin en -ée',rFemEe],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['personne du verbe',sujFlexVig],['majuscule',rCapital]];
   // FAMILLES « À VÉRIFIER » SUR TEXTE DYS (2026-08-22) — MESURÉ (dictee/dys_precision_probe.py, 1 726 paires dys réelles) : genre
   // déterminant 58 %, leur/leurs 64 %, accord du participe 43 %, ce/se 0/2 de corrections JUSTES — le reste « corrige » du texte juste
   // (« La pont »→Le, « leur payss »→leurs, « fut créée »→créé). Une règle dont le contexte dys pollue l'ancre n'a pas le droit de
