@@ -53,6 +53,20 @@ la seule mesurable sans juge humain.
 **ECRISCOL normé, au même juge** : 467 textes · 3 747 mots · 396 fautes · **58 réparés (14,6 %)** ·
 42 rattrapables en un clic · 5 appliqués faux · **13 cassés (0,39 %)**.
 
+**FRENCH_GEC normé, au même juge — l'échelle** : 13 783 textes · **293 753 mots alignés** · 8 362
+fautes · **1 737 réparés (20,8 %)** · **2 235 rattrapables en un clic** (33,7 % des ratés) ·
+133 appliqués faux · **463 cassés (0,16 %)**. C'est le taux de casse le plus BAS des trois corpus,
+sur 285 000 mots justes de français ordinaire — et c'est la première fois que FP=0 est éprouvé à
+cette échelle hors UD.
+
+**Les 463 cassés, triés mécaniquement** : **36 (8 %) sont l'artefact de ligature œ/oe** — le juge
+seul, aucun mot abîmé ; 0 de casse seule, 0 d'accent seul ; **427 vrais changements de forme**,
+dominés par les familles d'homophones rouges : `et`→`est` ×14, `leur`→`leurs` ×10, `on`→`ont` ×8,
+`est`→`sont` ×8, `ont`→`a` ×8, `sont`→`est` ×8, `une`→`un` ×6, `son`→`sont` ×5, et une correction
+franchement mauvaise, `selection`→`s'élection` ×3. Une part de ces 427 est le gold sous-corrigé (le
+filtre lexical n'attrape pas l'accord resté dans la phrase Wikipédia) — mais `et`→`est` ×14 sur du
+texte correct mérite une enquête à part entière : c'est la famille la plus chère du correcteur.
+
 **LES 13 CASSÉS, RELUS UN PAR UN** (`casses_au_produit.js` les rejoue dans l'extension réelle :
 **12 « même faute », 1 « produit innocent »** — la référence décrit bien le produit depuis la série
 #659→#679). Onze sont des **défauts du gold** : le transcripteur a laissé l'erreur d'accord et le
