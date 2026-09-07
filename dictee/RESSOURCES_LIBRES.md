@@ -91,4 +91,72 @@ d'entorse licence ; ils **mesurent**, on décide ensuite.
 - Dys FR — https://link.springer.com/article/10.1007/s10579-022-09603-6 (review) · https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9878594/ (dictée FR, annotation type d'erreur)
 - cLang-8 — https://github.com/google-research-datasets/clang8
 
+---
+
+## 6. Veille 2026-09-07 — « des dictées avec fautes corrigées », dys ou pas
+
+> Question posée : trouver des **copies avec la correction alignée** (pas seulement des copies fautives).
+> Tout ce qui suit a été **tiré et mesuré** depuis cette machine (l'égress ORTOLANG/HF/Kaggle est ouvert
+> en local, contrairement à la session cloud du §5). Chiffres verbatim, jamais de mémoire.
+
+### 6.1 Ce qui est exploitable TOUT DE SUITE
+
+| Ressource | Ce qu'on en tire | Mesuré ici | Licence / accès |
+|---|---|---|---|
+| **French_GEC** (45 M paires, révisions Wikipédia FR) | gisement de vraies fautes **en phrase** | sur 30 Mio de `chunk_0` = **71 580 paires** : 4 524 identiques (6,3 %), 21 876 à un seul mot changé (30,6 %), **2 436 paires « faute typique »** (source hors lexique → cible dans le lexique) = **3,40 % des paires lues**, dont **1 184 de même clé phonétique** (48,6 %) → ordre de **1,5 M** sur les 45 M | **CC BY-SA 4.0** (source Kaggle `isakbiderre/french-gec-dataset` ; miroir HF `FrancophonIA/French_GEC`, 20 CSV, chunk_0 = 1,3 Go). Sans compte. Loader : `dictee/fetch_frgec_pairs.py` |
+| **ECRISCOL** (copies de 2NDE, projet CLESTHIA, dans le dépôt E-CALM) | **la seule vraie correction alignée trouvée** : notation `<produit>_<normalisé>` dans les fichiers `ANNOTATIONS/*.txt` | **955 paires dans 63 copies** (~15/copie) récupérées de la partie lisible : `déja`→`déjà`, `commencait`→`commençait`, `appercevoir`→`apercevoir`, `rempli`→`remplis`, `énervé`→`énervée`, **`marché`→`marcher`, `monté`→`monter`** (la famille -é/-er, cible n°1) | ⚠️ voir 6.3 : l'archive déposée est **tronquée** |
+| `akufeldt/fr-gec-dataset` (HF) | corruptions **synthétiques ÉTIQUETÉES par famille** (`GenderDeterminerDestroyer`, `PersonVerbDisagreement`, `ApostropheChanger`, `RandomTypo`…) | 59 850 train / 3 325 dev / 3 325 test ; colonne `modified` préfixée `fix grammar: ` (à retirer) | pas de licence déclarée ; sans compte |
+
+### 6.2 Les dictées, elles, existent — mais derrière un compte
+
+**Scoledit** (LIDILEM, Grenoble) est le seul corpus FR trouvé qui contienne de **vraies dictées** :
+dictée en juin au CP (2014), puis au CE1 (2015) — six mots (`patin, pâtisson, capuchon, récréation,
+charitable, magnifique`) et deux phrases — sur la même cohorte, avec un **aligneur forme produite ↔
+forme normalisée** (Wolfarth, Brissaud & Ponton 2018). Les pages `dictees.php` et `recherche.php` de
+`scoledit.org` **renvoient le formulaire de connexion** (vérifié) : la couche normalisée n'est pas
+publique. Compte gratuit sur demande — `claude.ponton [@] univ-grenoble-alpes.fr`. **C'est la
+démarche à faire** si on veut de la dictée corrigée en volume.
+
+### 6.3 Falsifié / à ne pas refaire (mesuré le 07/09/2026)
+
+- **E-CALM v2 ne contient AUCUNE correction.** Arbre complet tiré (`repository.ortolang.fr/api/content/`,
+  navigable sans compte) : **2 078 fichiers XML**, CP→3e, **461 066 mots** de corps de texte
+  (Scoledit 337×5, Resolco 393). Comptage des balises TEI de correction `<corr|reg|choice|sic>` :
+  **0 fichier sur 2 078**. Seuls `<mod>`, `<add>`, `<gap>` sont là = les ratures de l'élève.
+  Le *Guide de transcription v1.8* le dit d'ailleurs : transcription « pseudo-diplomatique », et
+  « les temps suivants (commentaires de l'enseignant, corrections par l'élève…) seront traités
+  ultérieurement ». → **E-CALM = corpus de fautes SANS gold.** Licence des fichiers : CC BY-NC-SA 3.0 FR
+  (l'attribut `target` du TEI pointe pourtant `by-sa/3.0` — incohérence à signaler).
+- **`ECRISCOL.zip` du dépôt ORTOLANG est tronqué à la source.** `Content-Length` = 112 197 632 octets
+  = **exactement 107 Mio** ; un `Range` au-delà rend **416** → rien de plus n'existe côté serveur.
+  L'archive n'a **aucun répertoire central** (0 signature `PK`, 0 EOCD) et seulement
+  **94 en-têtes locaux** : illisible par `unzip`, récupérable seulement en marchant les en-têtes.
+  Identique dans `e-calm/v2` et `e-calm/latest` (même `Last-Modified`). → **écrire aux déposants**
+  (CLESTHIA / ORTOLANG) : c'est là que sont les 955 paires × N classes.
+- **MultiGEC-2025 : toujours pas de français** (12 langues : cs, en, et, de, el, is, it, lv, ru, sl,
+  sv, uk). Le §1 le disait pour MultiGED-2023 ; l'édition 2025 ne change rien.
+- **Corpus d'apprenants ORTOLANG (`captur-fle` 120 essais, `ceaal2` 292 textes)** : les erreurs sont
+  conservées mais « le corpus n'est pas annoté » — **pas de gold**, et CC BY-NC-ND 3.0 (pas de dérivé).
+
+### 6.4 Ce que ça change pour nous
+
+Le vrai manque n'est pas « des textes fautifs » — il y en a partout (461 066 mots rien qu'en E-CALM) —
+c'est **la correction alignée**. Trois pistes, dans cet ordre de coût :
+1. `fetch_frgec_pairs.py` tourne déjà : ~1,5 M de paires candidates, licence compatible, **en phrase**.
+   À TRIER (le filtre laisse passer `pinde`→`macédoine`) : c'est un gisement, jamais un gold.
+2. Un mail à Scoledit (dictées alignées) et un mail aux déposants d'ECRISCOL (archive cassée).
+3. E-CALM sans gold reste utile pour ce qu'il est : de l'écrit d'élève RÉEL pour observer les
+   **silences** du correcteur — pas pour mesurer FP=0, qui exige du texte juste.
+
+### Sources (§6)
+- French_GEC — https://www.kaggle.com/datasets/isakbiderre/french-gec-dataset · https://huggingface.co/datasets/FrancophonIA/French_GEC
+- E-CALM (arbre navigable, sans compte) — https://repository.ortolang.fr/api/content/e-calm/latest/ · guide : `Guides/Guide de transcription v1.8.pdf`
+- Scoledit — http://scoledit.org/scoledit/ (dictées + recherche = compte requis) · dépôt : https://repository.ortolang.fr/api/content/scoledit/latest/
+- MultiGEC-2025 — https://spraakbanken.gu.se/en/compsla/multigec-2025 · https://aclanthology.org/2025.nlp4call-1.1/
+- HF — https://huggingface.co/datasets/akufeldt/fr-gec-dataset · https://huggingface.co/datasets/datasets-CNRS/captur-fle · https://huggingface.co/datasets/datasets-CNRS/ceaal2
+
+*(Veille 2026-09-07. Rappel §4 : toute donnée intégrée doit préserver FP=0 et être citée dans `NOTICE`.)*
+
+---
+
 *(Veille datée 2026-06-21 ; à compléter au fil de l'eau. Données dérivées Lexique 4 → CC BY-SA 4.0, voir NOTICE.)*
