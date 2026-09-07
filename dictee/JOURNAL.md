@@ -5,6 +5,32 @@
 
 ---
 
+## 2026-09-14 (nuit) — FAUX POSITIF ROUGE EN PRODUCTION : « Il semble fatigué » → « fatiguer », appliqué d'office
+
+> Trouvé par l'enquête que Rem a lancée en parallèle, reproduit ici avant tout autre travail. C'est la garde
+> cardinale violée : un ROUGE s'applique seul, et il réécrivait un mot JUSTE.
+
+- **Le défaut** : « Il semble fatigué » → *fatiguer*, en rouge. Idem cassé, abandonné, décidé, terminé — cinq
+  phrases correctes sur dix réécrites. Le féminin était protégé (« elle semble fatiguée » ne peut pas être un
+  infinitif), aucune autre copule touchée.
+- **La cause est une contradiction DANS LE MÊME FICHIER** : `_PRET_COP` range « semble/semblent » avec
+  *est/sont/était* — le projet SAIT que sembler est une copule — mais `MODAL` (les verbes suivis d'un INFINITIF)
+  la contient aussi, et c'est `MODAL` que lit `rule_e_er`. Une forme en -é après une copule est un ATTRIBUT.
+- **Recensé avant de retirer** (doctrine : mesurer, pas supposer) : UD 14 450 → 97 « sembler + X », dont **2 en -é**
+  (« semblait déplacée », « semblent disposés » : des attributs corrects, donc 2 FP de plus que la règle produisait)
+  et **9 en -er** (infinitifs déjà écrits, que la règle ne touche pas) ; corpus dys → 8 occurrences, **aucune** où
+  l'infinitif serait attendu. Gain de la règle sur ce mot : **nul**. Les autres modaux sont intacts (« il veut
+  mangé » → manger, « je vais mangé » → manger, « il faut mangé » → manger).
+- **Pourquoi la batterie ne pouvait pas le voir** : « sembler + participe en -é » n'apparaît dans AUCUNE de ses
+  333 phrases correctes, ni dans les 2 500 d'UD. Même leçon que « nous iriez » le même jour — un corpus ne dit
+  pas la couverture. Trois témoins ajoutés (« Il semble fatigué », « Le moteur semble cassé », « Le travail
+  semble terminé ») : la colonne `fp` de la batterie les garde désormais.
+- **Mesuré** : batterie FP=0 (333 correctes, 191 témoins) · FP échelle **1,36 % (inchangé)** · accord de palier
+  100 % · dys-core ⊆ Py · textes · **juge 312 · 249 un clic · 229 bruit orange · 73 appliqués faux · 14 cassés,
+  strictement inchangé** — le correctif ne coûte rien et retire une casse silencieuse du produit.
+
+---
+
 ## 2026-09-14 (soir) — FLEXION, brique 2 : le participe après ÊTRE sans liste close — le discriminateur existait, on ne l'avait pas branché
 
 > Rem : « on a cassé des règles de participe passé avec détection de sujet et verbe pourtant flagrante… combien de règles sous le tapis
