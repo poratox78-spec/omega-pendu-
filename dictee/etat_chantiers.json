@@ -115,12 +115,17 @@
       "titre": "Flexion brique 1 : « infinitif après pronom sujet à vérifier » (il reculer → reculait, orange), 3 moteurs",
       "verdict": "Recensé : 9 cas gold (imparfait 6, présent 2), UD 1 motif exclu (préposition avant le pronom). Gardes : pronom sujet net (élidé compris), clitiques, frontière, pas de préposition/modal/verbe avant, nous/vous exclus. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 226 bruit orange · 14 cassés ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %.",
       "ref": "JOURNAL 2026-09-14 (suite)"
+    },
+    {
+      "titre": "Flexion brique 2 : participe après ÊTRE sans liste close (rouge sûr par le POS accent-exact, orange « participe après être à vérifier »), auxiliaire élidé « j'ai », 3 moteurs",
+      "verdict": "Le discriminateur manquant de #598 (26/08) était le POS accent-exact du speller (sèche AV, installe V). Recensé : gold 5 participes / 0 faux, UD 35 motifs → 0 rouge. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 229 bruit orange · 14 cassés ; accents réparées 174 ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %. Homographe adjectif en orange : mesuré (UD +7/2 500, batterie « Elle est contente »), livré éteint, décision Rem.",
+      "ref": "JOURNAL 2026-09-14 (soir)"
     }
   ],
   "ouverts": [
     {
       "titre": "COUCHE « flexion par le contexte » (consigne Rem 14/09) : les 329 muets « bon mot, mauvaise forme » reçoivent au moins une proposition ORANGE (gouverneur → forme des tables)",
-      "etat": "FP=0 vaut pour le ROUGE ; l'orange ne cache plus une faute récupérable par le contexte. Recensement par gouverneur (census_flexion) : après nom 62, aux → participe 34, gouverneur fauté 83, prép/modal → infinitif 22, pronom sujet 25, dét pluriel 13, féminin 3. Brique 1 FAITE le 14/09 (infinitif après pronom sujet → imparfait, orange). Suivantes : ② aux → participe orange là où le rouge refuse (pronominal, être hors liste, « a » ambigu) ; ③ préposition + -é/-e → infinitif ; ④ accord après nom (tagueur) ; ⑤ personne/nombre en gardant le temps écrit (« qui vivais » → vivaient).",
+      "etat": "FP=0 vaut pour le ROUGE ; l'orange ne cache plus une faute récupérable par le contexte. Recensement par gouverneur (census_flexion) : après nom 62, aux → participe 34, gouverneur fauté 83, prép/modal → infinitif 22, pronom sujet 25, dét pluriel 13, féminin 3. Brique 1 FAITE le 14/09 (infinitif après pronom sujet → imparfait, orange). Brique 2 FAITE le 14/09 (participe après être SANS liste close : rouge par le POS accent-exact du speller + sujet 3e pers., orange pronominal/je-tu-nous-vous/nominal ; homographe adjectif « elle est sèche » = interrupteur _HOMO_ORANGE mesuré, éteint, décision Rem). Suivantes : ③ préposition + -é/-e → infinitif ; ④ accord après nom (tagueur) ; ⑤ personne/nombre en gardant le temps écrit (« qui vivais » → vivaient).",
       "ref": "JOURNAL 2026-09-14 (suite) · mémoire orange-pour-les-fautes-recuperables"
     },
     {

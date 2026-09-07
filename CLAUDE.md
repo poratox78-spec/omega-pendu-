@@ -22,7 +22,7 @@
 - Trois moteurs à parité gardée en CI : **référence Python** (`dictee/correcteur_probe.py`, `speller_probe.py`, `diag_sentence.py`) ·
   **app** (panneaux du monolithe) · **extension Chrome** (`extension/dys-core.js`, copie verbatim). Le clone EN et le site se construisent depuis l'app.
 - **LE chiffre de référence du produit** — `OMEGA_DYS_DATA=… python3 dictee/dys_pipeline_probe.py` (72 productions dys réelles, 6 217 mots) :
-  **312 fautes réparées sans clic (20,2 %) · 244 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
+  **312 fautes réparées sans clic (20,2 %) · 249 rattrapables en un clic · 14 mots justes cassés (0,30 %)**
   **· 73 rouges appliqués vers un AUTRE mauvais mot (5,9 % des ratés)** — colonne posée le 07/09, invisibles avant
   (ils tombaient en MUET), **dont 42 « bon lemme, mauvaise flexion »** (58 %). Mesuré le 13/09/2026 — 286 → 294 le 12/09 par
   l'instrument (le juge admet l'apostrophe), 294 → 308 le 13/09 par le moteur (adjectif antéposé +11, puis le nom derrière lui).
@@ -30,7 +30,7 @@
   produit affirme (→ 284/14, contexte-first ; → 286/15 le 10/09 ; → 286/14 le 11/09, moteur). Accord de palier : **100 %**
   (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le
   produit » (#659 → #679, dix maillons) est close : 286/14 est le POINT, plus une borne (hors accord : 1, une autre famille).
-  **Accents comptés à part depuis le 12/09** (le juge désaccentue) : 274 fautes d'accent seul, 171 réparées (62 %), 1 cassé
+  **Accents comptés à part depuis le 12/09** (le juge désaccentue) : 274 fautes d'accent seul, 174 réparées (64 %), 1 cassé
   (ambigu : « se manifestent a un cocar ») — les 2 casses a/à réparées le 12/09 (gardes de `vlike`).
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.

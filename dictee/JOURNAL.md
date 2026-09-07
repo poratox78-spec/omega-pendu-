@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-09-14 (soir) — FLEXION, brique 2 : le participe après ÊTRE sans liste close — le discriminateur existait, on ne l'avait pas branché
+
+> Rem : « on a cassé des règles de participe passé avec détection de sujet et verbe pourtant flagrante… combien de règles sous le tapis
+> à cause des homophones ? on refait un travail déjà fait ». Le 26/08 (#598), « participe après être » avait été ramené à une LISTE
+> FERMÉE de dix verbes parce que « est sèche / infecte / célèbre / égale » (adjectifs) passaient pour des verbes : le tagger (déaccentué)
+> disait VERB, `ADJ_LEX` contenait « fatigue ». Le discriminateur qui manquait est **le POS accent-exact du speller** (`speller.tsv.gz`,
+> colonne 3 : « sèche » AV, « installe » V, « oblige » V) — la même table que le produit charge déjà. Inventaire des règles restreintes
+> pour homographes : JOURNAL de ce jour, réponse à Rem (mémoire `orange-pour-les-fautes-recuperables`).
+
+- **Rouge** (`rule_e_ppl`, sans liste) : ÊTRE + forme en -e dont le POS est VERBE PUR (pas d'adjectif homographe) + sujet il/elle/ils/elles
+  lu par `_etre_subject` (pronom, réfléchi, élidé « qu'elle ») → participe accordé (« il est oblige » → obligé, « ils sont oblige » → obligés).
+  L'auxiliaire ÉLIDÉ compte (« j'ai commence » → commencé, « l'a ferme » → fermé). Le radical est ré-accentué par le lexique
+  (`_ppl_form` / `_pplForm` : « lève » → levé, « sèche » → séché, « célèbre » → célébré), les participes irréguliers au féminin sont
+  écartés (« elle est mise/prise/faite » : `IRREG_PART`), « nord/sud-est » aussi.
+- **Orange** (`rule_e_ppl_vig` / `rEPplVig`, famille « participe après être à vérifier ») : sujet je/tu/nous/vous ou nominal — le genre
+  n'est pas dans le texte (« je me suis installe » → installé, astuce « installée si tu es une fille ») ; nom sûr ou déterminant féminin
+  (`_DET_F`) → féminin (« la porte est ferme » → fermée).
+- **Homographe adjectif** (« elle est sèche » / séchée, « il est infecte » / infecté) : Rem veut la proposition (« ne pas proposer sur un
+  cas ambigu, ce n'est pas de la prudence »). MESURÉ, interrupteur `_HOMO_ORANGE` (Python + JS, une ligne) : juge IDENTIQUE
+  (aucun cas gold n'est un homographe adjectif) ; UD +{UDA} oranges / 2 500 (« il est célèbre », « elle est présente », « le restau était
+  vide », « personne n'est dupe », « l'artiste est prospère », « fausse ») ; batterie 1 FP (« Elle est contente » → contentée). Fréquences
+  Lexique4 (part VER de la forme) : sèche 0,35 · infecte 0,55 · calme 0,34 · contente 0,23 · célèbre 0,10 · vide 0,08 · fausse 0,03 —
+  pas de seuil propre (contente 0,23 ↔ dupe 0,26). Livré ÉTEINT (batterie FP=0 = garde CI, elle compte l'orange) ; l'allumer est la
+  décision de Rem, qui emporte une doctrine (la batterie admet l'orange sur un homographe).
+- **Recensé avant de poser** (`census_brique2`, `census_etre_adjver`) : gold 5 participes (3 pronominaux, 2 « j'ai »), 0 faux ;
+  UD 14 450 → 35 motifs « être + -e » : 34 adjectifs ou prépositions (écartés par le POS), 1 « nord est traverse ».
+- **Mesuré** : batterie FP=0 · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py · textes. **Juge : {REP} réparés ·
+  {UNCLIC} un clic · {ORF} bruit orange · {CASSES} cassés · {APPF} appliqués faux dont {LEM} ; accents réparées {ACC_R}** — les gains
+  « attaqué », « fermé », « obligé » sont des fautes d'ACCENT SEUL (colonne accents, +3) ; « installé/réveillé/douché » sont des oranges
+  au masculin (gold féminin : l'auteure) et « c'est limite » → limité (gold limites) un orange faux : bruit orange +3, muets −3 ;
+  « elle s'est marie » → mariée (rouge) vit dans genere_gold, hors du juge (corpus réel seulement). Réparés, un clic, cassés,
+  appliqués faux : inchangés. {EXPL}
+
+---
+
 ## 2026-09-14 (suite) — FLEXION PAR LE CONTEXTE, brique 1 : « il reculer » → reculait (orange) — la faute n'est plus sous le tapis
 
 > Rem, après le bilan : « c'est réducteur… ces fautes sont récupérables par le contexte, on a de quoi détecter les types de mots,

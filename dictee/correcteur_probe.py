@@ -397,6 +397,89 @@ _E_PPL_STOP = {'cause', 'envie', 'affaire', 'affaires', 'confiance', 'honte', 'h
 _PPL_ETRE_VERBES = set('arrive tombe monte remonte reste rentre retourne passe repasse demeure'.split())
 
 
+
+# ⭐ BRIQUE 2 de la flexion par le contexte (14/09/2026, avec Rem) — le participe après ÊTRE sans liste close.
+# L'exclusion d'être (70 FP : « est infecte », « est sèche », « est célèbre », « est égale ») avait AMPUTÉ la règle ; ces quatre
+# sont des ADJECTIFS, que le lexique accentué du speller distingue des formes verbales (POS : « sèche » AV, « installe » V).
+# Mesuré avant de poser : UD 14 450 → 35 motifs « être + -e », 34 adjectifs/prépositions écartés, 1 « nord est traverse » (garde
+# nord/sud-est) ; gold → 5 participes gagnés, 0 faux. Le sujet (pronom, réfléchi, élidé) donne l'accord.
+_SPOS = None
+def _spos(w):
+    """POS ACCENT-EXACT de la forme écrite, lu dans l'asset du speller (extension/assets/speller.tsv.gz) — la même table que le
+    produit (SP.POS). '' si absent. Chargé une fois, à la première demande."""
+    global _SPOS
+    if _SPOS is None:
+        _SPOS = {}
+        try:
+            import gzip as _gz
+            for _l in _gz.open(os.path.join(os.path.dirname(HERE), 'extension', 'assets', 'speller.tsv.gz'), 'rt', encoding='utf-8'):
+                _p = _l.rstrip('\n').split('\t')
+                if len(_p) >= 3: _SPOS[_p[0]] = _p[2]
+        except Exception:
+            pass
+    return _SPOS.get(w.lower(), '')
+
+
+def _ppl_form(w, suf):
+    """Participe en -é du 1er groupe à partir de la forme au présent, ACCENT du radical restauré par le lexique du speller :
+    « sèche » → séché (sécher), « célèbre » → célébré, « lève » → levé (lever), « oblige » → obligé. Miroir de _emit(…, true) côté JS."""
+    _spos('a')                                          # charge l'asset
+    base = w[:-1]; cands = [base]
+    k = max(base.rfind('è'), base.rfind('ê'))
+    if k >= 0: cands += [base[:k] + 'é' + base[k+1:], base[:k] + 'e' + base[k+1:]]
+    for b in cands:
+        if (b + 'er') in _SPOS: return b + 'é' + suf
+    return base + 'é' + suf
+
+
+_REFL_CL = frozenset(('me', 'm', 'te', 't', 'se', 's', 'nous', 'vous'))
+_DET_F = frozenset(('la', 'une', 'ma', 'ta', 'sa', 'cette'))           # déterminants FÉMININS sûrs (mon/ton/son + voyelle = féminin possible → non lus)
+_HOMO_ORANGE = False    # homographe ADJECTIF/verbe après être (« elle est sèche » / séchée) : proposer en orange ? MESURÉ le 14/09 : juge identique (311·244·225·74),
+                        # UD +7 oranges / 2 500 (célèbre, présente, vide, dupe, prospère, fausse), batterie 1 FP (« Elle est contente » → contentée). Rem tranche (mémoire orange-pour-les-fautes-recuperables).
+_SUBJ3 = {'il': '', 'on': '', 'elle': 'e', 'ils': 's', 'elles': 'es'}
+_SUBJ12 = {'je': '', 'tu': '', 'nous': 's', 'vous': 's'}
+
+
+def _etre_subject(T, i):
+    """Sujet de l'auxiliaire ÊTRE en T[i-1] : (pronom ou None, réfléchi ?). « je me suis », « il s'est », « qu'elle est »."""
+    tok = T[i-1].lower(); j = i - 2
+    refl = ("'" in tok and deacc(tok.split("'")[0]) in ('s', 'm', 't'))
+    if j >= 0 and deacc(T[j].lower()).replace("'", '') in _REFL_CL and not refl: refl = True; j -= 1
+    if j < 0: return None, refl
+    if T[j].lower()[:2] in ("d'", "d’"): return None, refl               # « parle d'elle est… » : « d'elle » = de + elle, complément, jamais sujet
+    m = _ELIDED_PRON.search(T[j].lower())
+    p = deacc(m.group(1)) if m else deacc(T[j].lower()).replace("'", '')
+    return (p if (p in _SUBJ3 or p in _SUBJ12) else None), refl
+
+
+def rule_e_ppl_vig(T, i):
+    """ORANGE : après ÊTRE, participe PROBABLE mais non sûr — sujet je/tu/nous/vous ou nominal (genre absent du texte), ou forme
+    homographe d'un adjectif (« elle est sèche » / « séchée », « il est infecte » / « infecté ») : on PROPOSE, l'auteur tranche.
+    Le cas sûr (forme verbale pure + sujet il/elle/ils/elles) est rouge dans rule_e_ppl, qui passe avant."""
+    w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if i < 2 or "'" in lw or not dl.endswith('e') or lw.endswith(('é', 'ée')) or len(dl) < 4 or w[:1].isupper(): return None
+    if deacc(T[i-1].lower()).split("'")[-1] not in D.AUX_ETRE: return None
+    if 'à' in T[i-1].lower() or T[i-1][:1].isupper(): return None
+    if deacc((w[:-1] + 'er').lower()) not in VERB_LEX: return None
+    if dl in PREP or dl in MODAL or dl in NOUN_E or dl in _E_PPL_STOP: return None
+    if deacc(T[i-2].lower()) in ('nord', 'sud'): return None                # « le nord-est traverse » : « est » n'est pas être
+    if _is_ppl(w) or dl[:-1] in IRREG_PART: return None                     # « elle est mise/prise/faite » : participe irrégulier au féminin, pas « misée »
+    pv = _spos(lw)
+    if 'V' not in pv: return None
+    sbj, refl = _etre_subject(T, i)
+    homo = 'A' in pv
+    if homo and not _HOMO_ORANGE: return None                                # adjectif homographe : silence (variante C)
+    if not homo and sbj in _SUBJ3: return None                               # cas SÛR → rule_e_ppl (rouge)
+    if not homo and sbj is None and not refl and dl in GENDER_PURE: return None   # « il est médecin » : nom nu possible (même table que le JS : GENDER_PURE)
+    if sbj in _SUBJ3: suf = _SUBJ3[sbj]
+    elif sbj in _SUBJ12: suf = _SUBJ12[sbj]
+    else:
+        g = GENDER_PURE.get(deacc(T[i-2].lower())) if i >= 2 else None
+        if g is None and i >= 3 and deacc(T[i-3].lower()) in _DET_F: g = 'f'   # nom absent/ambigu de la table (« la pâte ») : le déterminant porte le genre
+        suf = 'e' if g == 'f' else ''
+    return _keepcase(w, _ppl_form(lw, suf))
+
+
 def rule_e_ppl(T, i):
     """AUXILIAIRE + verbe au PRÉSENT en -e → PARTICIPE en -é (« ont trouve »→trouvé, « a utilise »→utilisé).
     Le dys écrit la forme qu'il ENTEND (/truv/) ; après un auxiliaire, une forme FINIE est structurellement
@@ -411,7 +494,10 @@ def rule_e_ppl(T, i):
     # Après « est », un nom NU est impossible (« il est tombe », « il est reste ») — c'est justement
     # ce qui rend le participe certain. Sans cette exemption, la tombe / le reste / la passe
     # bloquaient 4 des 5 cas de la liste (mesuré).
-    _etre_pp = (i > 0 and deacc(T[i-1].lower()) in D.AUX_ETRE and dl in _PPL_ETRE_VERBES)
+    _sbj, _refl = (_etre_subject(T, i) if (i > 0 and deacc(T[i-1].lower()).split("'")[-1] in D.AUX_ETRE) else (None, False))
+    _pv = _spos(lw)
+    _sure = ('V' in _pv and 'A' not in _pv and _sbj in _SUBJ3 and not (i >= 2 and deacc(T[i-2].lower()) in ('nord', 'sud')))   # brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR
+    _etre_pp = (i > 0 and deacc(T[i-1].lower()).split("'")[-1] in D.AUX_ETRE and (dl in _PPL_ETRE_VERBES or _sure))
     if not _etre_pp:
         if dl in NOUN_E or dl in _E_PPL_STOP: return None                   # locution « avoir + nom NU » (« a envie de », « a cause de ») → jamais un participe
     if dl in D.GENDER_LEX and not _etre_pp:
@@ -431,9 +517,8 @@ def rule_e_ppl(T, i):
     # ⛔ TENTÉ ET REFUSÉ AVANT : filtrer par le tagger (il rend VERB sur « seche » et « celebre »,
     #    donc 2 des 4 FP passaient) et par ADJ_LEX (17 257 entrées : il contient « fatigue »,
     #    « arrive », « fixe » — il ne discrimine rien).
-    _aux_pre = deacc(T[i-1].lower())
-    if _aux_pre not in D.AUX_AVOIR:
-        if _aux_pre not in D.AUX_ETRE or dl not in _PPL_ETRE_VERBES: return None
+    _aux_pre = deacc(T[i-1].lower()).split("'")[-1]                       # auxiliaire ÉLIDÉ compris (« j'ai commence », « l'a ferme ») — 3 cas gold, 0 UD (« j'ai hâte » arrêté par la garde nom)
+    if _aux_pre not in D.AUX_AVOIR and not _etre_pp: return None
     # « à » se DÉACCENTUE en « a » : sans ce test la préposition passait pour l'auxiliaire et
     # « à BASE de » devenait « à basé de » (11 FP à elle seule).
     if 'à' in T[i-1].lower(): return None
@@ -447,10 +532,9 @@ def rule_e_ppl(T, i):
     # pronom sujet, qui est le cas dys courant ; sujet non pronominal → forme nue, l'accord se fera
     # au tour de rule_pp_etre. Après AVOIR, le participe est invariable : rien à ajouter.
     _suf = ''
-    if _etre_pp and i >= 2:
-        _suf = {'il': '', 'on': '', 'elle': 'e', 'ils': 's', 'elles': 'es',
-                'nous': 's', 'vous': 's'}.get(deacc(T[i-2].lower()), '')
-    return _keepcase(w, w[:-1] + 'é' + _suf)
+    if _etre_pp and _sbj is not None:
+        _suf = _SUBJ3.get(_sbj, _SUBJ12.get(_sbj, ''))                       # sujet lu par _etre_subject (pronom, réfléchi, élidé)
+    return _keepcase(w, _ppl_form(lw, _suf))                             # radical accentué par le lexique (« il est lève » → levé, pas « lèvé ») — miroir de _emit(…, true)
 
 
 def rule_flexion_er(T, i):
@@ -4528,7 +4612,7 @@ def rule_on_ont_sujet_pluriel(T, i):
 
 
 VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où',
-                'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier',
+                'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'on/ont après un sujet pluriel à vérifier')
 _SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
 _INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
@@ -4602,7 +4686,7 @@ def correct_tiered(text):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
          ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
@@ -4667,6 +4751,10 @@ CASES = [
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
+    ("J'ai commencé le travail", "commencé", "commence", "-e/-é (participe)"),
+    ("Il est obligé de partir", "obligé", "oblige", "-e/-é (participe)"),
+    ("Elle s'est mariée hier", "mariée", "marie", "-e/-é (participe)"),
+    ("Je me suis installé ici", "installé", "installe", "participe après être à vérifier"),
     ("Les enfants, il reculait pour voir", "reculait", "reculer", "infinitif après pronom sujet à vérifier"),
     ("La barrière qui protégeait les fleurs", "protégeait", "protéger", "infinitif après pronom sujet à vérifier"),
     ("Voici les prochaines demandes", "prochaines", "prochaine", "accord adjectif antéposé"),
