@@ -57,6 +57,7 @@ const CAS = [
   { t: "Je suis allé a la plage et j'ai manger des glace.",
     mots: { a: { sugg: 'à', oui: ['remplace par « avait »', '« à » (préposition)'] }, glace: { sugg: 'glaces', oui: ['« des » (pluriel)'] } } },
   { t: 'Il faut que tu fait attention.', mots: { fait: { sugg: 'fais', oui: ['« tu » (singulier)'] } } },
+  { t: 'Les enfants il reculer pour voir.', mots: { reculer: { sugg: 'reculait', oui: ['jamais à l\'infinitif', 'imparfait', 'présent'] } } },
   { t: 'nous sommes allé au cinéma.', mots: { 'allé': { sugg: 'allés', oui: ['« nous » (pluriel)'] } },
     remed: { oui: ['il manque « s » : le participe s’ACCORDE ici'] } },
 ];
