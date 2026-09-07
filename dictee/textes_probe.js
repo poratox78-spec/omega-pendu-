@@ -59,6 +59,7 @@ const CAS = [
   { t: 'Il faut que tu fait attention.', mots: { fait: { sugg: 'fais', oui: ['« tu » (singulier)'] } } },
   { t: 'Je me suis installe ici.', mots: { installe: { sugg: 'installé', oui: ['PARTICIPE', 'installée'] } } },
   { t: "J'ai commence le travail.", mots: { commence: { sugg: 'commencé' } } },
+  { t: 'Ils ont marche longtemps.', mots: { marche: { sugg: 'marché' } } },
   { t: 'Les enfants il reculer pour voir.', mots: { reculer: { sugg: 'reculait', oui: ['jamais à l\'infinitif', 'imparfait', 'présent'] } } },
   { t: 'nous sommes allé au cinéma.', mots: { 'allé': { sugg: 'allés', oui: ['« nous » (pluriel)'] } },
     remed: { oui: ['il manque « s » : le participe s’ACCORDE ici'] } },

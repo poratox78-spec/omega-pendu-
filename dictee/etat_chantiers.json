@@ -124,6 +124,8 @@
     {
       "titre": "FP ROUGE en production : « Il semble fatigué » → « fatiguer » (sembler rangé dans les MODAUX alors que c'est une COPULE) — 3 moteurs",
       "verdict": "Contradiction interne : _PRET_COP la déclare copule, MODAL la déclarait verbe à infinitif, et c'est MODAL que lit rule_e_er. Recensé avant de retirer : UD 14 450 = 2 « sembler + -é » (attributs corrects, donc 2 FP), 9 « + -er » non touchés ; corpus dys = 0 cas. Mesuré le 14/09/2026 : batterie FP=0, FP échelle 1,36 % inchangé, juge 312 · 249 · 229 · 73 · 14 inchangé. 3 témoins ajoutés à la batterie, qui n'avait aucune phrase de cette forme.",
+      "titre": "Après avoir (test de substitution de Rem) : « j'ai passe » → passé, « ils ont marche » → marché ; « ils ont envie » n'est plus réécrit « on » (FP rouge), participes irréguliers hors -er dans la garde on/ont — 3 moteurs",
+      "verdict": "Critère structurel : après avoir, une forme nue est un participe sauf déterminant ou idiome (liste close). NOUN_E et la garde déterminant restent après « a » nu seulement (homographe de « à »). UD 14 450 : rouges ont→on 7 → 3 ; avoir + NOUN_E sans accent 0. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 229 bruit orange · 14 cassés ; accents 174 ; FP échelle 1,36 % (34/2 500, inchangé).",
       "ref": "JOURNAL 2026-09-14 (nuit)"
     }
   ],

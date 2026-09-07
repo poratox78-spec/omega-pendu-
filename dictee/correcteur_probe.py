@@ -245,6 +245,11 @@ def _is_ppl(w):
     else: return False                                               # -u/-us écartés : trop de noms homographes (revenu, contenu, menu, tissu) → FP a/à
     return len(stem) >= 2 and (stem + inf) in VERB_LEX
 
+# Participes passés IRRÉGULIERS hors -er ABSENTS de IRREG_PART (Lexique4, par:pas, masc. sing. déaccentué ; 537 formes, liste CLOSE
+# générée le 14/09/2026) — GARDE seule (_looks_ppl) : « ont élu / survécu / disparus » n'est jamais « on ».
+_PPL_IRR2 = frozenset('''abasourdi abatardi abattu ablati aboli abouti abruti abstenu abstrait accompli accouru accroupi accru accueilli adit adjoint adouci advenu affaibli affermi affranchi agi agoni agrandi aguerri ahuri aigri alangui alourdi aluni amaigri amati amerri aminci amoindri amolli amorti aneanti anobli apercu aplani aplati appartenu appauvri applaudi approfondi arrondi ascendu assagi assailli assaini assenti asservi assombri assorti assoupi assoupli assourdi assouvi assujetti astreint atteint attendri attendu atterri autodetruit avachi averti avili banni barri bati battu beni blanchi blemi bleui blondi blotti bondi bonni bouffi bouilli brandi bruni calmi candi cati ceint charpi cheri chevi choisi chu circonscrit circonvenu combattu comparu compati complaint conclu concouru concu condescendu conduit confit confondu conjoint consenti construit contenu contraint contredit contrefait contrevenu convaincu convenu converti coproduit correspondu corrompu coti cousu craint cramoisi crepi croupi cueilli cuit debattu decati dechu deconfit deconstruit decousu decouvert decrepi decru decu dedit deduit defailli defait defendu defini deflechi defraichi degarni degluti degourdi deguerpi dejoint dementi demoli demordu demuni departi depeint dependu deperi deplu depoli depondu depourvu deraidi derougi desassorti descendu desempli desobei dessaisi desservi desuni deteint detendu detenu detruit devetu disconvenu discouru disjoint distendu distordu distrait diverti dormi durci ebahi ebloui echu eclairci econduit elargi elu embelli embouti emoulu empli empreint empuanti emu enceint encheri encouru endolori endormi enduit endurci enfoui enfreint enfui englouti engourdi enhardi enjoint enlaidi ennobli enorgueilli enrichi enseveli ensuivi entendu entrapercu entretenu entrevu entrouvert envahi epaissi epandu epanoui eperdu estourbi etabli eteint etendu etourdi etreint evanoui exclu extrait faibli failli farci feint fendu fini flechi fletri fleuri flori fondu forci foui fourbi fourni foutu fraichi franchi fremi frit fui garanti garni gauchi gaudi geint gemi glapi grandi gravi grossi gueri hai henni honni imparti induit inflechi inscrit instruit interagi interdit interrompu intervenu interverti introduit inverti investi jailli jauni joint joui langui loti lui maigri maintenu mati meconduit meconnu mecru medit menti meurtri minci moisi moiti molli mordu morfondu moulu mugi muni muri nanti noirci nordi nourri nui obei obscurci obtenu oint oui ourdi pali parcouru parfait parti parvenu pati peint pendu percu perdu perverti petri plaint poli pondu pourfendu pourri poursuivi pourvu predefini predit preetabli premuni prescrit pressenti pretendu prevalu prevenu prevu produit promu proscrit provenu puni rabattu rabougri raccourci racorni radouci raffermi rafraichi ragaillardi raidi rait rajeuni ralenti ramolli ranci raplati ravi reagi reapparu rebati rebattu rebondi rebu recomparu reconduit reconstruit reconverti recouru recousu recouvert recrit recru recueilli recuit redecouvert redefini redescendu redevenu redormi reduit reecrit reelu reentendu refendu reflechi refleuri refondu refoutu refraichi refranchi refroidi regarni regi regrossi reinscrit reintroduit reinvesti rejailli rejoint rejoui relu relui rembruni rementi remordu rempli rencheri rendormi rendu repandu reparcouru reparti reparu repeint rependu repenti reperdu replaint repondu reproduit resali resolu resplendi ressaisi ressenti resservi ressorti ressurgi restreint resurgi retabli reteint retendu retenti retenu retordu retraduit retrait retranscrit retreci reuni reussi revecu revendu reverdi reverni revetu revomi revu roidi rompu rondi rosi roti rougi roussi rouvert rugi sailli saisi sali satisfait sauri secouru seduit senti serti servi sevi sorti souri souscrit soustrait soutenu souvenu subi subvenu subverti suffi suivi surencheri surgi suri surproduit surreagi survecu survendu survenu suspendu tapi tari teint tendu terni terri tiedi tondu tordu traduit trahi trait transcrit transi transparu travesti tressailli uni vagi vaincu vendu verdi verni vetu vieilli vomi vrombi'''.split())
+
+
 def _looks_ppl(w):
     """Participe passé au sens LARGE — GARDE anti-FP (abstention seule), PAS pour décider une correction.
     Reconstruit aussi les -u/-i/-is/-it/-é des verbes en -re/-oir/-ire/-uire que _is_ppl (strict, anti-noms) écarte.
@@ -254,6 +259,8 @@ def _looks_ppl(w):
     lw = w.lower(); d = deacc(lw)
     if len(d) < 3: return False
     if d in IRREG_PART: return True
+    d2 = d[:-2] if d.endswith('es') else (d[:-1] if d.endswith(('s', 'e')) else d)   # disparus → disparu, élue → élu
+    if d2 in IRREG_PART or d2 in _PPL_IRR2: return True
     if lw.endswith(('é', 'ée', 'és', 'ées')): return True            # participe en -é (orchestré) même si l'infinitif -er manque du lexique
     if d.endswith('us'): d = d[:-1]
     if d.endswith('u') and any(inf in VERB_LEX for inf in (d[:-1]+'re', d+'re', d[:-1]+'oir')):
@@ -394,7 +401,7 @@ def _inf1(w):
 
 _E_PPL_STOP = {'cause', 'envie', 'affaire', 'affaires', 'confiance', 'honte', 'hate', 'chance', 'peine',
                'conscience', 'connaissance', 'tendance', 'coutume', 'estime', 'importance', 'influence',
-               'crainte', 'cure', 'grace', 'force', 'partie', 'suite', 'tete', 'course', 'prise', 'charge'}
+               'crainte', 'cure', 'grace', 'force', 'partie', 'suite', 'tete', 'course', 'prise', 'charge', 'cesse', 'carte'}
 
 
 # Verbes dont l'auxiliaire est ÊTRE et dont le présent 3sg finit en -e. « entre » est ABSENT :
@@ -503,9 +510,10 @@ def rule_e_ppl(T, i):
     _pv = _spos(lw)
     _sure = ('V' in _pv and 'A' not in _pv and _sbj in _SUBJ3 and not (i >= 2 and deacc(T[i-2].lower()) in ('nord', 'sud')))   # brique 2 : forme verbale pure + sujet 3e pers. → participe SÛR
     _etre_pp = (i > 0 and deacc(T[i-1].lower()).split("'")[-1] in D.AUX_ETRE and (dl in _PPL_ETRE_VERBES or _sure))
+    _aux_bare_a = (i > 0 and deacc(T[i-1].lower()).split("'")[-1] == 'a')   # « a » NU = homographe de « à » (« a cote », « a cause », « a contrôle ») : gardes nom conservées là seulement
     if not _etre_pp:
-        if dl in NOUN_E or dl in _E_PPL_STOP: return None                   # locution « avoir + nom NU » (« a envie de », « a cause de ») → jamais un participe
-    if dl in D.GENDER_LEX and not _etre_pp:
+        if dl in _E_PPL_STOP or (_aux_bare_a and dl == 'cote'): return None   # idiome « avoir + nom nu » (envie, honte, hâte…) ; « a cote » = à côté. Test de Rem (14/09) : « j'ai pris » se substitue → participe ; NOUN_E ne tait plus « j'ai passe / ont marche »                   # locution « avoir + nom NU » (« a envie de », « a cause de ») → jamais un participe
+    if (dl in D.GENDER_LEX or dl in NOUN_E) and not _etre_pp and _aux_bare_a:   # garde « déterminant derrière » : après « a » nu seulement (5 cas gold « a » = à : « penser a contrôle », « a cause »)
         # NOM homographe (commande, place, garde, écoute…). Après un auxiliaire, un nom NU n'existe qu'en
         # LOCUTION ; un vrai complément exige un DÉTERMINANT. Le déterminant est AUDIBLE, donc fiable :
         #   « a commande LES rapports » → participe      « a envie DE partir » → nom
@@ -888,6 +896,7 @@ def rule_on_ont(T, i):
                 _pe = NOUN_POST.get(deacc(_el.group(1))) if NOUN_POST else None
                 if _pe and _pe[0] >= PL_TAU_M: return _keepcase(T[i], "a")
     nx = T[i+1].lower() if i+1 < len(T) else ''
+    if lw == 'ont' and _subject_before(T, i) == ('3', 'p'): return None   # « ils ont envie », « ils nous ont rien demandé » : sujet pluriel NET → « ont » est juste ; la faute, s'il y en a une, est derrière (participe) — FP rouge vu le 14/09
     if nx.endswith('e') and not nx.endswith('ée') and _reads(nx): return 'on'   # « on » + verbe FINI présent en -e (trouve/mange) → « on » (ont ne précède JAMAIS un verbe fini) ; fixe « professeurs on trouve »→ont
     # TÊTE de proposition (i==0 ou frontière avant) : le sujet à GAUCHE appartient à une AUTRE proposition — contexte
     # gauche INVALIDE (« …des données. On pouvait… » : « données » n'est pas le sujet de « on »). FP WiCoPaCo mesuré.
@@ -4763,6 +4772,9 @@ CASES = [
     ("Il est obligé de partir", "obligé", "oblige", "-e/-é (participe)"),
     ("Elle s'est mariée hier", "mariée", "marie", "-e/-é (participe)"),
     ("Je me suis installé ici", "installé", "installe", "participe après être à vérifier"),
+    ("Ils ont envie de partir", "ont", "on", "on/ont"),
+    ("J'ai passé une bonne journée", "passé", "passe", "-e/-é (participe)"),
+    ("Ils ont marché longtemps", "marché", "marche", "-e/-é (participe)"),
     ("Les enfants, il reculait pour voir", "reculait", "reculer", "infinitif après pronom sujet à vérifier"),
     ("La barrière qui protégeait les fleurs", "protégeait", "protéger", "infinitif après pronom sujet à vérifier"),
     ("Voici les prochaines demandes", "prochaines", "prochaine", "accord adjectif antéposé"),

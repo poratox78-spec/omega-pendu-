@@ -28,6 +28,33 @@
 - **Mesuré** : batterie FP=0 (333 correctes, 191 témoins) · FP échelle **1,36 % (inchangé)** · accord de palier
   100 % · dys-core ⊆ Py · textes · **juge 312 · 249 un clic · 229 bruit orange · 73 appliqués faux · 14 cassés,
   strictement inchangé** — le correctif ne coûte rien et retire une casse silencieuse du produit.
+## 2026-09-14 (nuit) — APRÈS AVOIR : le test de substitution de Rem — « j'ai commencé → j'ai pris » ; et « ils ont envie » n'est plus « on »
+
+> Rem : « j'ai commencé : en français on remplacerait par un verbe du troisième groupe, j'ai pris. J'ai commence, non. J'ai un cheval,
+> j'ai chaud, oui. » Le critère est STRUCTUREL : après avoir, une forme nue est un participe ; les seules exceptions sont le déterminant
+> (« j'ai un cheval », hors du motif) et l'idiome (« j'ai chaud », « j'ai envie » : liste close `_E_PPL_STOP`). Les gardes d'homographes
+> posées le 30/06 (`NOUN_E` : marché, traité, passé…) et le 21/07 (déterminant obligatoire derrière) taisaient « j'ai passe », « ils ont
+> marche », « elle a traite le sujet » — deux amputations de plus dans l'inventaire du jour.
+
+- **Vu en testant « j'ai commence »** : « Ils ont envie de partir » → **« on »**, en ROUGE, référence et extension — un faux positif sur une
+  phrase correcte, invisible parce que l'échantillon FP (2 500) ne contient pas la tournure. Cause : le raccourci « ont + forme en -e =
+  on + verbe fini » passait AVANT toute lecture du sujet. UD 14 450 : **7 rouges ont→on** sur des phrases correctes (« Sahraouis ont
+  disparus », « ont péri », « ont élu », « ont survécu », « ils nous ont rien demandé »…).
+- **Posé (3 moteurs)** : ① on/ont — un sujet pluriel NET avant « ont » (`_subject_before` : ils/elles, clitiques traversés, élidés
+  « qu'ils ») ⇒ jamais « on » ; les participes irréguliers hors -er absents de `IRREG_PART` (élu, survécu, disparu — 537 formes
+  Lexique4 par:pas, liste close `_PPL_IRR2`) entrent dans la garde `_looks_ppl`, avec le pluriel/féminin (disparus, élue).
+  ② participe après avoir — `NOUN_E` et la garde « déterminant derrière » ne s'appliquent plus qu'après « a » NU (homographe de « à » :
+  « a cote » → à côté, « a cause », « penser a contrôle » : 5 cas gold) ; après ai/as/ont/avons/avez/avais…/j'ai, la forme verbale
+  en -e est un participe : « j'ai passe » → passé, « ils ont marche » → marché, « nous avons combine » → combiné, « il a passe UNE
+  bonne journée » → passé (déterminant derrière). ③ « cesse » et « carte » rejoignent les idiomes (« n'ont de cesse », « ont carte
+  blanche » — carter est dans le lexique verbal).
+- **Recensé avant de poser** (UD 14 450, `census_ont_avoir.py`) : avoir + forme de NOUN_E sans accent = 0 ; avoir + forme verbale en -e
+  sans déterminant hors idiomes = 3, toutes après « a » nu (« a base de », « a capture », « a remonte ») ; rouges ont→on : {UDA_AVANT} → {UDA_APRES}.
+- **Mesuré** : batterie FP=0 (3 témoins ajoutés : « Ils ont envie de partir », « J'ai passé une bonne journée », « Ils ont marché
+  longtemps ») · FP échelle {FPUD} · accord de palier 100 % · dys-core ⊆ Py · textes. **Juge : {REP} réparés · {UNCLIC} un clic ·
+  {ORF} bruit orange · {CASSES} cassés · {APPF} appliqués faux dont {LEM} ; accents réparées {ACC_R}.**
+- Conflit noté, non traité : « Ont mange à midi » (ont en tête, sans sujet) reçoit « on » ET « mangé » — deux règles sur deux tokens,
+  chacune juste seule. À trancher par l'ordre (le participe prouve « ont »).
 
 ---
 
