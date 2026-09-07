@@ -71,6 +71,44 @@
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-15 — LES CAS DE REM : « nous allez », « nous êtes », « les petits chats manges » — trois gardes trop LARGES, et le palier qui suit le sujet
+
+> Rem, en testant le produit livré la veille : « ça va pas : nous allez > nous allons ; nous êtes > nous sommes ;
+> nous mangeames > nous mangeâmes ; les petits chats manges. C'est fait la conjugaison ? parce que là j'ai juste honte. »
+> Trois des quatre cas étaient MUETS. Chaque cause était une garde écrite pour un autre problème, appliquée trop large.
+
+- **① « nous allez » était tu par la liste des MODAUX.** `MODAL` (veux, peut, vais, **allez**, **allons**…) sert à ne pas
+  toucher « je vais MANGER » — un verbe suivi d'un INFINITIF. La règle de personne l'utilisait comme une exclusion sèche :
+  « allez » n'était jamais examiné, même quand il est le verbe principal (« nous allez au parc »). La garde ne s'applique
+  plus que si un infinitif suit VRAIMENT (`deacc(T[i+1]) in VERB_LEX`).
+- **② « nous êtes » était tu par la garde « pluriel d'un nom connu ».** Elle avait été posée pour « complexes » (adjectif
+  épicène) ; elle testait `dl[:-1]` dans les lexiques nom/adjectif, et « **ete** » y est — « l'été ». Or « êtes » est une
+  **case EXACTE** du paradigme d'être. On ordonne : la table de génération d'abord ; si elle confirme la forme écrite
+  (comparaison **accent-exacte** — déaccentuer confondrait « épuisés » et « épuises »), les gardes nom/adjectif ne
+  s'appliquent plus. ⚠️ Avec une condition : le TAGGER doit lire un verbe. Sans ce ET, « les problèmes **complexes** »
+  redevenait « complexent » — 1 FP de batterie (« complexes » est à la fois complexer 2sg et un adjectif).
+- **③ « les petits chats manges » butait sur l'ADJECTIF.** Le scan du sujet ne traversait que les clitiques et les
+  adverbes. Il traverse désormais les adjectifs antéposés (`_ADJ_ANTE`, la classe fermée que l'accord pluriel du nom
+  utilise déjà, et le tag ADJ).
+- **④ « nous mangeames » → mangeâmes : PAS RÉPARÉ, et c'est la couche ORTHOGRAPHE.** Le speller propose déjà
+  « allames » → allâmes et « finimes » → finîmes (orange), mais sur « mangeames » il rend « **mangea** » — il SUPPRIME
+  des lettres au lieu de poser l'accent, alors que la forme déaccentuée est identique à « mangeâmes » (fréquence 0 au
+  lexique, contre « mangea » très fréquent). Chantier ouvert, séparé : la voie « accent seul » doit primer quand la
+  déaccentuation du candidat est ÉGALE au mot écrit.
+
+- **LE PALIER SUIT LA FIABILITÉ DU SUJET** (mesuré, c'est la vraie décision du jour). Le sujet nominal ouvre la
+  couverture (« le chat » 6,6 → 93 %) mais, **en ROUGE**, il fait sur le corpus dys **17 corrections dont 3 justes
+  (17,6 %)** : il se trompe quatre fois sur cinq. Le sujet PRONOM, lui, n'en rate aucune. D'où le partage :
+  **pronom → ROUGE** (famille « personne du verbe ») · **nominal → ORANGE**, dans sa FAMILLE PROPRE (« accord du verbe au sujet
+  nominal à vérifier » : logé dans la famille voisine il faisait tomber sa précision ancrée de 88,9 à 42,3 %). Après partage : le ROUGE fait **1/1 = 100 %**, l'orange **42,3 %** (11 justes / 5 inutiles /
+  10 fausses) et la famille ne réécrit **plus aucun mot juste**. C'est la consigne de Rem du 14/09 appliquée à la
+  lettre : la faute n'est plus muette, mais elle n'est imposée que là où le contexte est sûr.
+- **Mesuré** : batterie FP=0 (333 phrases correctes, 202 témoins) · FP échelle 1,84 % (46/2 500) · accord de palier 100 % ·
+  dys-core ⊆ Py · textes · **juge 314 réparés · 252 un clic · 233 bruit orange · 14 cassés (INCHANGÉ)** ·
+  couverture **nous 93,8 %, vous 93,1 %, je 93,9 %, le chat 92,3 %** (était nous 81, vous 80, je 88, le chat 6,6).
+
+---
+
 ## 2026-09-14 (nuit, fin) — « nous iriez » : nous et vous n'étaient dans AUCUNE règle de personne, et aucun instrument ne pouvait le dire
 
 > Rem : « nous iriez… t'as détruit toute la conjugaison ? ». Vérifié AVANT toute explication : sortie IDENTIQUE entre `main`

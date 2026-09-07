@@ -122,20 +122,22 @@
       "ref": "JOURNAL 2026-09-14 (soir)"
     },
     {
-      "titre": "FP ROUGE en production : « Il semble fatigué » → « fatiguer » (sembler rangé dans les MODAUX alors que c'est une COPULE) — 3 moteurs",
-      "verdict": "Contradiction interne : _PRET_COP la déclare copule, MODAL la déclarait verbe à infinitif, et c'est MODAL que lit rule_e_er. Recensé avant de retirer : UD 14 450 = 2 « sembler + -é » (attributs corrects, donc 2 FP), 9 « + -er » non touchés ; corpus dys = 0 cas. Mesuré le 14/09/2026 : batterie FP=0, FP échelle 1,36 % inchangé, juge 312 · 249 · 229 · 73 · 14 inchangé. 3 témoins ajoutés à la batterie, qui n'avait aucune phrase de cette forme.",
-      "titre": "Après avoir (test de substitution de Rem) : « j'ai passe » → passé, « ils ont marche » → marché ; « ils ont envie » n'est plus réécrit « on » (FP rouge), participes irréguliers hors -er dans la garde on/ont — 3 moteurs",
-      "verdict": "Critère structurel : après avoir, une forme nue est un participe sauf déterminant ou idiome (liste close). NOUN_E et la garde déterminant restent après « a » nu seulement (homographe de « à »). UD 14 450 : rouges ont→on 7 → 3 ; avoir + NOUN_E sans accent 0. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 229 bruit orange · 14 cassés ; accents 174 ; FP échelle 1,36 % (34/2 500, inchangé).",
-      "ref": "JOURNAL 2026-09-14 (nuit)",
-      "titre": "Point d'interrogation : « est-ce qui » comme « est-ce que », « qu est ce qui » sans apostrophe, « Qui + verbe » en tête (majuscule) — app + extension",
-      "verdict": "Mesuré sur question_bench (314 questions UD+réel) : correcteur 91,30 % / 26,75 % (était 91,01 / 25,80), voix 96,88 / 19,75 ; sans la majuscule sur « Qui », précision 48,55 % (relatives en tête de fragment) → majuscule obligatoire, planchers relevés. Coût dit : « qui est là » minuscule muet, « Qui vivra verra » orange.",
-      "ref": "JOURNAL 2026-09-14 (nuit, suite)",
       "titre": "Le SUJET donne la personne et le nombre, la forme écrite donne le TEMPS (« nous iriez » → irions) — ROUGE, sujet pronom ET nominal, 3 moteurs",
       "verdict": "nous et vous n'étaient dans AUCUNE règle de personne (0/220 et 0/235) ; l'exclusion était écrite dans build_cgram.py depuis la construction des tables, jamais mesurée. Aucun des 4 instruments ne pouvait le voir : ils mesurent un corpus, pas la couverture. Mesuré le 14/09/2026 : nous 0 → 80.9 %, vous 0 → 79.9 %, je 87.7 %, tu 81.8 %, le chat 6,6 → 83.0 %, les chats 0,6 → 80.4 % ; batterie FP=0, FP échelle 1,68 % (42/2 500), palier 100 %, juge 314 réparés (était 312) · 14 cassés (inchangé). Trois défauts trouvés PARCE QUE c'est du rouge : sujet fauté (« il sont »), coquille Lexique (« soulais » pour vouloir), gardes absentes côté JS (rattrapées par parity_core).",
       "ref": "JOURNAL 2026-09-14 (nuit, fin)"
+    },
+    {
+      "titre": "Cas de Rem : « nous allez » → allons, « nous êtes » → sommes, « les petits chats manges » → mangent ; le PALIER suit la fiabilité du sujet (pronom ROUGE, nominal ORANGE)",
+      "verdict": "Trois gardes trop larges : MODAL appliquée sans infinitif derrière, « pluriel d'un nom connu » qui taisait « êtes » (« ete » = l'été), scan du sujet qui ne traversait pas les adjectifs. La table de génération prime désormais sur les gardes nom/adjectif quand le tagger lit un verbe (sans ce ET : 1 FP « les problèmes complexes »). Mesuré le 15/09/2026 : rouge (pronom) 1/1 = 100 %, orange (nominal) 42,3 % contre 17,6 % en rouge, plus aucun mot juste réécrit par la famille ; batterie FP=0, cassés inchangés.",
+      "ref": "JOURNAL 2026-09-15"
     }
   ],
   "ouverts": [
+    {
+      "titre": "Accent du PASSÉ SIMPLE pluriel : « nous mangeames » → « mangea » au lieu de « mangeâmes » (le speller supprime des lettres au lieu de poser l'accent)",
+      "etat": "Cas de Rem le 15/09. Le speller répare déjà « allames » → allâmes et « finimes » → finîmes (orange), mais « mangeâmes » a une fréquence 0 au lexique et « mangea » est très fréquent : le tri choisit la suppression. Or la DÉACCENTUATION du candidat est ÉGALE au mot écrit — c'est une pure faute d'accent, la voie « accent seul » doit primer sur la voie « lettre en trop ». À poser dans le speller (3 moteurs), avec recensement des formes -âmes/-îmes/-ûmes.",
+      "ref": "JOURNAL 2026-09-15"
+    },
     {
       "titre": "COUVERTURE de la conjugaison : ce que la sonde d'énumération montre encore (passé simple, impératif, subjonctif imparfait)",
       "etat": "Sonde `couverture_conj_probe` (n'ouvre aucun corpus : 13 sujets × 6 temps × 12 verbes) posée le 14/09/2026 dans dev.sh, ancrée par sujet. Reste : ① passé simple — CONJ_C n'a que 131 lemmes / 2 904 (filtre #127 « forme pure » ET fréquence ≥ 0,5), « il mangea » muet ; ② impératif — 4 433 lemmes source, 0 en table, `rule_imperatif` ne couvre que le motif à trait d'union (« Manges ta soupe », « Prend le livre », « Fait attention » muets) ; ③ subjonctif imparfait 375 lemmes, 0 ; ④ « tu irai » → « vas » : `rule_personne_verbe` passe avant la générale et ne garde pas le temps écrit.",
