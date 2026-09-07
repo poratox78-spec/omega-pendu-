@@ -130,14 +130,19 @@
       "titre": "Cas de Rem : « nous allez » → allons, « nous êtes » → sommes, « les petits chats manges » → mangent ; le PALIER suit la fiabilité du sujet (pronom ROUGE, nominal ORANGE)",
       "verdict": "Trois gardes trop larges : MODAL appliquée sans infinitif derrière, « pluriel d'un nom connu » qui taisait « êtes » (« ete » = l'été), scan du sujet qui ne traversait pas les adjectifs. La table de génération prime désormais sur les gardes nom/adjectif quand le tagger lit un verbe (sans ce ET : 1 FP « les problèmes complexes »). Mesuré le 15/09/2026 : rouge (pronom) 1/1 = 100 %, orange (nominal) 42,3 % contre 17,6 % en rouge, plus aucun mot juste réécrit par la famille ; batterie FP=0, cassés inchangés.",
       "ref": "JOURNAL 2026-09-15"
+    },
+    {
+      "titre": "« Nous mangeames » → mangeâmes : le PASSÉ SIMPLE PLURIEL, que les tables n'avaient jamais porté",
+      "verdict": "Ce n'était PAS la couche orthographe (mon renvoi de la veille était faux, Rem l'a corrigé) : le speller choisit par fréquence et ne lit pas le sujet — sur « donnames » il proposait « donnâtes », la mauvaise personne. La cause est l'exclusion nous/vous de build_cgram : CONJ_C portait 122 cases de passé simple en « il » et 0 en « nous »/« vous ». Complétées le 15/09 sur le modèle de _fillReg3pl (radical accentué pris dans la table à un autre temps ; 2e groupe identifié par l'imparfait en -issait ; 3e groupe depuis sa 3e du singulier), chaque forme validée par le lexique du produit — sans cette validation, 6,8 % des cases dérivées n'existent pas (« comparaîmes »). 130 ms, 13 785 cases. Couverture du passé simple 43/55 → 178/211 (nous 0 → 19/20, vous 0 → 16/17). Batterie FP=0, juge inchangé, FP échelle 1,84 → 1,88 % (le 47e flag est un doublon d'une correction que le speller applique déjà en rouge). 3 moteurs.",
+      "ref": "JOURNAL 2026-09-15 (suite)"
+    },
+    {
+      "titre": "Deux instruments réparés au passage : « silences attendus » dans la batterie, réussites ABSOLUES dans l'ancre de couverture",
+      "verdict": "① CASES ne savait dire qu'« une injection doit être corrigée » : aucune case pour « ici, se taire est juste ». Les 6 pièges (l'homographe « primes », les orthographes rectifiées de 1990) y sont désormais avec leur raison — section [3] de correcteur_probe.py. ② L'ancre de couverture ratchetait sur le TAUX : les tables ayant grandi, le banc a gagné 156 cas et le taux a baissé alors que chaque case gagnait — le ratchet criait au recul sur un progrès. Elle ancre aussi le nombre absolu de réussites.",
+      "ref": "JOURNAL 2026-09-15 (suite)"
     }
   ],
   "ouverts": [
-    {
-      "titre": "Accent du PASSÉ SIMPLE pluriel : « nous mangeames » → « mangea » au lieu de « mangeâmes » (le speller supprime des lettres au lieu de poser l'accent)",
-      "etat": "Cas de Rem le 15/09. Le speller répare déjà « allames » → allâmes et « finimes » → finîmes (orange), mais « mangeâmes » a une fréquence 0 au lexique et « mangea » est très fréquent : le tri choisit la suppression. Or la DÉACCENTUATION du candidat est ÉGALE au mot écrit — c'est une pure faute d'accent, la voie « accent seul » doit primer sur la voie « lettre en trop ». À poser dans le speller (3 moteurs), avec recensement des formes -âmes/-îmes/-ûmes.",
-      "ref": "JOURNAL 2026-09-15"
-    },
     {
       "titre": "COUVERTURE de la conjugaison : ce que la sonde d'énumération montre encore (passé simple, impératif, subjonctif imparfait)",
       "etat": "Sonde `couverture_conj_probe` (n'ouvre aucun corpus : 13 sujets × 6 temps × 12 verbes) posée le 14/09/2026 dans dev.sh, ancrée par sujet. Reste : ① passé simple — CONJ_C n'a que 131 lemmes / 2 904 (filtre #127 « forme pure » ET fréquence ≥ 0,5), « il mangea » muet ; ② impératif — 4 433 lemmes source, 0 en table, `rule_imperatif` ne couvre que le motif à trait d'union (« Manges ta soupe », « Prend le livre », « Fait attention » muets) ; ③ subjonctif imparfait 375 lemmes, 0 ; ④ « tu irai » → « vas » : `rule_personne_verbe` passe avant la générale et ne garde pas le temps écrit.",

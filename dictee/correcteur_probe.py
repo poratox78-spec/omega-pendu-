@@ -3224,6 +3224,72 @@ _FLEX_ADV_OK = ('ADV',)                                       # seul un adverbe 
 _SUJ_NOMINAL = True
 
 
+# ⭐ PASSÉ SIMPLE PLURIEL — les cases que les tables n'ont jamais eues (15/09/2026, cas de Rem « nous mangeames »).
+# Mesuré : `CONJ_C` porte 122 cases de passé simple en « il » et **0** en « nous »/« vous » — `build_cgram.py`
+# documente pourquoi (« ne touche que nous/vous, exclus du correcteur »). Le 1er et le 2e groupe étant RÉGULIERS
+# au passé simple, on dérive les six formes de l'infinitif et on ne garde que celles que le LEXIQUE DU PRODUIT
+# confirme (même fichier que `_spos`) : on n'invente rien, et le lexique donne l'accentuation exacte.
+_PS_DONE = False
+_PS_INDEX = {}          # déaccentué → [(lemme, slot)] : l'index INVERSE, sans lui la règle relirait 36 000 cases par mot
+
+
+def _ps1(d, tps, slot):
+    """Une case de CONJ_C, la 1re si la table en porte plusieurs."""
+    v = (d.get(tps) or {}).get(slot)
+    return v[0] if isinstance(v, list) else v
+
+
+def _ps_completer():
+    """Complète CONJ_C['<lemme>']['ind:pas'] aux 1re/2e/3e personnes du PLURIEL. Idempotent, sans aucun parcours
+    de lexique, et JAMAIS d'écrasement : une case déjà en table (forme irrégulière, mesurée) reste.
+
+    Deux principes, les mêmes que `_fillReg3pl` (la clôture du 3e pluriel régulier, déjà en place) :
+      · le RADICAL ACCENTUÉ est pris DANS la table, à un autre temps du même verbe — les clés de `CONJ_C` sont
+        déaccentuées (« desheriter »), l'imparfait ne l'est pas (« déshéritait » → déshérit|âmes). À défaut
+        d'imparfait, on retombe sur l'infinitif, déaccentué : le lexique tranchera.
+      · le LEXIQUE DU PRODUIT valide chaque forme (`_spos`, table accent-exacte du speller, déjà chargée par
+        d'autres règles) : rien d'inventé. Sans lui, la dérivation produit « comparaîmes » et « apparaîmes »
+        (mesuré : 6,8 % des cases dérivées n'existent pas)."""
+    global _PS_DONE
+    if _PS_DONE or not CONJ_C: return
+    _PS_DONE = True
+    for lem, d in CONJ_C.items():
+        imp, fut, pas = _ps1(d, 'ind:imp', '3s'), _ps1(d, 'ind:fut', '3s'), _ps1(d, 'ind:pas', '3s')
+        if imp and imp.endswith('issait'):
+            # 2e groupe : SEUL l'imparfait en -issait l'identifie (« venir »/« ouvrir » finissent aussi en -ir
+            # mais sont du 3e groupe — « vînmes », pas « venîmes »).
+            r = imp[:-6]
+            cand = {'1p': r + 'îmes', '2p': r + 'îtes', '3p': r + 'irent'}
+        elif lem.endswith('er'):
+            # 1er groupe : RÉGULIER. Radical de l'imparfait pour -âmes/-âtes (il porte déjà le e de « mangeait »
+            # et la cédille de « commençait »), radical du futur pour -èrent (« mangera » → mang|èrent).
+            r = lem[:-2]
+            r2 = (r[:-1] + 'ç') if r.endswith('c') else (r + 'e' if r.endswith('g') else r)
+            st = imp[:-3] if (imp and imp.endswith('ait')) else r2
+            st3 = fut[:-3] if (fut and fut.endswith('era')) else r
+            cand = {'1p': st + 'âmes', '2p': st + 'âtes', '3p': st3 + 'èrent'}
+        elif pas:
+            # 3e groupe : IRRÉGULIER, on ne devine pas depuis l'infinitif — on part de la 3e personne du
+            # SINGULIER déjà en table (« prit » → prîmes/prîtes/prirent, « fut » → fûmes, « vint » → vînmes).
+            b = deacc(pas.lower())
+            if b.endswith('int'): r, m = pas[:-3], ('înmes', 'întes', 'inrent')
+            elif b.endswith('it'): r, m = pas[:-2], ('îmes', 'îtes', 'irent')
+            elif b.endswith('ut'): r, m = pas[:-2], ('ûmes', 'ûtes', 'urent')
+            elif b.endswith('a'): r, m = pas[:-1], ('âmes', 'âtes', 'èrent')
+            else: continue
+            cand = {'1p': r + m[0], '2p': r + m[1], '3p': r + m[2]}
+        else:
+            continue
+        slots = d.setdefault('ind:pas', {})
+        for slot, v in cand.items():
+            if slot in slots: continue                                   # ne JAMAIS écraser une forme mesurée
+            if _spos(v): slots[slot] = v                                 # LE LEXIQUE valide : rien d'inventé
+        if not slots: del d['ind:pas']
+    for lem, d in CONJ_C.items():                                        # index inverse : une seule construction
+        for slot, f in (d.get('ind:pas') or {}).items():
+            _PS_INDEX.setdefault(deacc(f.lower()), []).append((lem, slot))
+
+
 def _sujet_flexion(T, i, tg):
     """(personne, nombre) du sujet de T[i], ou None. Le contexte tranche, avec les primitives du projet :
     on remonte de i-1 jusqu'à la frontière de proposition (_SEG['bb']), en traversant les CLITIQUES et les
@@ -3305,14 +3371,26 @@ def rule_sujet_flexion(T, i):
     # proposer « peuvent » dans « celle des Mariniers PUIS des Pénitents » (2 FP UD). La liste existe déjà dans
     # ce fichier — `_PB_CONJ_ADV`, utilisée par la segmentation — on la lit au lieu d'en inventer une.
     if dl in _PB_CONJ_ADV: return None
+    _ps_completer()                                                  # complète le passé simple pluriel, une fois
     lec = _reads(w)
-    if not lec: return None
+    if not lec:
+        # FORME INCONNUE des lectures : c'est peut-être une case de paradigme que `CONJ_F` n'a pas (le passé
+        # simple pluriel n'y est pas). On la cherche par sa DÉACCENTUATION dans les tables complétées —
+        # « mangeames » ≡ « mangeâmes » : une pure faute d'accent sur une forme conjuguée.
+        _hit = _PS_INDEX.get(dl) or []
+        if len(_hit) != 1: return None                            # forme ambiguë entre deux lemmes → abstention
+        lec = [(_hit[0][0], 'ind:pas', _hit[0][1][0], _hit[0][1][1])]
+        _ps_seul = True                                           # le tagger lira NOUN (mot inconnu) : sa garde ne vaut pas ici
+    else: _ps_seul = False
     tg = pos_tags(T)
     # ⭐ LA GARDE HOMOGRAPHE EXISTE DÉJÀ : `_verb_or_homograph` (écrite pour l'accord sujet-verbe) répond
     # « T[i] est-il un VERBE EN CONTEXTE ? » et écarte les noms/adjectifs connus. Sans elle, mesuré sur la
     # batterie : 7 FP, tous des ADJECTIFS ou PARTICIPES en -és/-es lus comme des formes finies (« Les
     # randonneurs épuisés » → épuisent, « Ces gâteaux dorés » → dorent, « des couleurs vives » → vivent).
-    if not tg or not _verb_or_homograph(tg, T, i): return None
+    # ⚠️ SAUF pour une forme venue de l'index du passé simple : le tagger tague NOUN tout mot INCONNU
+    # (« mangeames »), sa garde ne peut donc rien dire — l'appartenance à l'index EST la preuve verbale.
+    if not tg: return None
+    if not _ps_seul and not _verb_or_homograph(tg, T, i): return None
     # ⛔ PARTICIPE : « Les randonneurs ÉPUISÉS arrivent », « Ces gâteaux DORÉS » — le tagger les dit VERB et
     # `_reads` leur trouve une lecture finie homographe (épuiser 3pl). Un participe n'est pas une forme finie :
     # il est traité par les règles d'accord du participe. Mesuré : 7 FP de batterie, tous là.
@@ -3337,6 +3415,7 @@ def rule_sujet_flexion(T, i):
     # TAIT sur « tu sommes », « il sommes », « tu faites », « tu dites » : le fantôme lui fait croire que c'est
     # accordé. On ne garde que les lectures que la table de génération confirme.
     if _lecC: lec = _lecC
+    if lec and (_PS_INDEX.get(dl) and not any(r[1] == 'ind:pas' for r in lec)): return None   # homographe d'un passé simple (« primes » = primer 2sg ET prendre 1pl)
     sub = _sujet_flexion(T, i, tg)
     if sub is None: return None
     per, nb, src = sub
@@ -3353,7 +3432,17 @@ def rule_sujet_flexion(T, i):
     # ce qui n'était vrai que parce que nous/vous étaient exclus du correcteur. Avec eux, « je irons » et
     # « nous mange » y passaient pour accordés. On compare donc personne ET nombre, en tolérant le wildcard
     # 'x' de derive_number (nombre indécidable sur la morphologie : « vient » 3sg ↔ « rient » 3pl).
-    if any(r[2] == per and r[3] in (nb, 'x') for r in lec): return None       # déjà accordé à cette personne
+    # ⚠️ « déjà accordé » ne veut pas dire « bien écrit » : « mangeames » PORTE la 1re du pluriel et reste faux.
+    # Mais on ne lève ce silence QUE si la forme écrite n'est pas un mot du lexique du produit (`_spos`, la table
+    # ACCENT-EXACTE du speller). Sans cette condition, la règle réécrit les orthographes RECTIFIÉES de 1990 vers
+    # les anciennes : mesuré sur UD 2 500, « vous maitrisez » → maîtrisez et « il décèdera » → décédera, deux
+    # ROUGES appliqués d'office sur des mots justes.
+    _hors = not _spos(lw)
+    for r in lec:
+        if r[2] != per or r[3] not in (nb, 'x'): continue
+        _t = (CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3])
+        if _hors and _t and _t.lower() != lw and deacc(_t.lower()) == dl: continue   # accent SEUL sur une forme hors lexique
+        return None                                                       # déjà accordé à cette personne
     # LE SUBJONCTIF EXIGE SON DÉCLENCHEUR : sans « que » à gauche, « mange » est un présent, pas un subjonctif.
     # Sans ce filtre « nous mange » a deux lectures (ind:pre, sub:pre) donnant deux cibles (mangeons, mangions)
     # et la règle s'abstenait — un trou créé par la table des lectures, pas par la langue.
@@ -3366,7 +3455,8 @@ def rule_sujet_flexion(T, i):
         if not f: return None                                        # le temps écrit n'est pas dans la table → abstention
         if cible is None: cible = f
         elif cible != f: return None                                 # deux lemmes, deux formes → abstention
-    if not cible or deacc(cible.lower()) == dl: return None
+    if not cible or cible.lower() == lw: return None
+    if deacc(cible.lower()) == dl and not _hors: return None   # accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
     return _keepcase(w, cible)
 
 
@@ -4954,6 +5044,22 @@ def correct(text):
     return out
 
 
+# ---------- phrases qui doivent rester MUETTES : l'ABSTENTION est la bonne réponse ----------
+# `CASES` ci-dessous exige qu'une faute injectée soit corrigée ; il n'y avait pas de case pour dire « ici, se
+# taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
+# quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
+MUETS = [
+    ("Nous primes le train.", "ABSTENTION VOULUE : « primes » est primer-2sg ET le passé simple de prendre (prîmes). "
+                              "Deux lemmes, deux corrections ; sans le lemme on choisit au hasard — mesuré : « primons », un ROUGE faux."),
+    ("Les primes sont versées.", "« primes » = le NOM (la prime) : un pluriel de nom ne se conjugue pas."),
+    ("Les primes annuelles augmentent.", "même nom, avec un adjectif : le scan du sujet le traverse depuis le 15/09."),
+    ("On sent que vous maitrisez votre sujet.", "ORTHOGRAPHE RECTIFIÉE de 1990 (sans circonflexe) : elle est JUSTE. "
+                                                "Une correction d'ACCENT SEUL n'est permise que hors lexique."),
+    ("Très vite l'ambiance se rafraichit.", "idem 1990 : « rafraichit » est au lexique du produit."),
+    ("C'est dans cette ville qu'il décèdera d'un cancer.", "idem, dans l'autre sens : la table porte « décédera », "
+                                                           "l'écrit « décèdera » est la forme rectifiée — les deux se disent."),
+]
+
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
     ("Elle s'est mariée très jeune ici", "s'est", "ces", "c'est/s'est"),
@@ -4969,6 +5075,12 @@ CASES = [
     ("Nous allons au parc", "allons", "allez", "personne du verbe"),
     ("Nous sommes là", "sommes", "êtes", "personne du verbe"),
     ("Vous allez au parc", "allez", "allons", "personne du verbe"),
+    ("Nous mangeâmes bien", "mangeâmes", "mangeames", "personne du verbe"),
+    ("Vous mangeâtes bien", "mangeâtes", "mangeates", "personne du verbe"),
+    ("Nous allâmes au parc", "allâmes", "allames", "personne du verbe"),
+    ("Nous finîmes tard", "finîmes", "finimes", "personne du verbe"),
+    ("Ils mangèrent bien", "mangèrent", "mangerent", "personne du verbe"),
+    ("Tu primes sur les autres", "primes", "primez", "personne du verbe"),
     ("Le chat mange sa pâtée", "mange", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("Les chats mangent leur pâtée", "mangent", "mangeons", "accord du verbe au sujet nominal à vérifier"),
     ("J'ai commencé le travail", "commencé", "commence", "-e/-é (participe)"),
@@ -5241,6 +5353,12 @@ def main():
         if name in per:
             fp, d, c = per[name]; tot = sum(1 for x in CASES if x[3] == name)
             print(f"           {name:10} fp={fp}/{tot}  det={d}/{tot}  corr={c}/{tot}")
+
+    muets = [(s, r) for (s, r) in MUETS if correct(s)]
+    print(f"\n  [3] Silences ATTENDUS ({len(MUETS)} pièges hors corpus) : {len(MUETS) - len(muets)}/{len(MUETS)} muets")
+    for s, r in muets:
+        print(f"        ⚠️ PARLE alors qu'il devait se taire : {s}  — {r}")
+        print(f"           {correct(s)}")
 
     print("\n  Lecture : faux positifs ≈ 0 = on ne « corrige » pas du texte juste (condition n°1 d'un correcteur).")
     print("            détection+correction élevées = le levier d'accord tranche l'homophone SANS corrigé.")
