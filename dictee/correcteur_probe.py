@@ -24,7 +24,12 @@ SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
 # Verbes/mots-outils suivis d'un INFINITIF (pour -é/-er). PREP (de/à/pour/sans…) vient de diag_sentence.
 MODAL = {'veux','veut','veulent','peux','peut','peuvent','dois','doit','doivent','va','vais','vas','vont',
          'faut','sais','sait','aime','aimes','aiment','adore','espere','souhaite','prefere','preferent',
-         'vient','viens','allons','allez','laisse','laissent','semble','ose','vais','pour','sans','afin','de',
+         'vient','viens','allons','allez','laisse','laissent','ose','vais','pour','sans','afin','de',   # ⛔ « semble » RETIRÉ le 14/09/2026 :
+         # c'est une COPULE (elle est déjà dans _PRET_COP avec est/sont/était), pas un verbe à infinitif. Tant qu'elle était ici,
+         # rule_e_er réécrivait « Il semble fatigué » en « fatiguer », en ROUGE donc appliqué d'office — la garde cardinale violée
+         # sur un mot juste. Mesuré avant de retirer : UD 14 450 = 2 « sembler + -é » (attributs corrects, donc 2 FP), 9 « + -er »
+         # (infinitifs déjà écrits, non touchés) ; corpus dys = 0 cas où l'infinitif est attendu. La batterie ne pouvait pas le voir :
+         # « sembler + participe en -é » n'apparaît dans AUCUNE de ses 333 phrases correctes.
          'devons','devez','pouvons','pouvez','voulons','voulez'}   # modaux conjugués 1pl/2pl (+ infinitif)
 # Marqueurs de FUTUR (désaccentués) : « je + verbe » ne se décide en futur -ai que si l'un d'eux est présent.
 # Sinon « je noté/retourné » est AMBIGU (futur « je noterai » vs passé à auxiliaire tombé « j'ai noté ») → abstention (FP-safe).
@@ -4751,6 +4756,9 @@ CASES = [
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
+    ("Il semble fatigué", "fatigué", "fatiguer", "-é/-er"),
+    ("Le moteur semble cassé", "cassé", "casser", "-é/-er"),
+    ("Le travail semble terminé", "terminé", "terminer", "-é/-er"),
     ("J'ai commencé le travail", "commencé", "commence", "-e/-é (participe)"),
     ("Il est obligé de partir", "obligé", "oblige", "-e/-é (participe)"),
     ("Elle s'est mariée hier", "mariée", "marie", "-e/-é (participe)"),

@@ -118,7 +118,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 
-### Fermés par la mesure — 24
+### Fermés par la mesure — 25
 
 - **Fermer les boucles du pendu (Möbius phon/ortho, co-décision descendante)** — réfuté chiffré — tous les effets mesurés (−0,73 à +0,87 pt) sont sous le plancher de bruit établi par un PLACEBO (~200 parties sur 3 000 basculent dès qu'on touche au chemin numérique) ; ne pas re-tenter sans idée neuve, et tout A/B du moteur doit embarquer un placebo _(JOURNAL 2026-09-03 · PR #653 · outil commité evo/pendu_paired_ab.js)_
 - **Canal GROUPE du pendu (modèle 170 poids)** — construit, mesuré, falsifié au produit — hook laissé OFF-inerte _(PR #617)_
@@ -144,6 +144,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 - **Accents : « il decide » → décide (présent après pronom sujet, speller, 3 moteurs) + « grace » → grâce ; les 108 accents non réparés recensés** — 108 fautes d'accent seul non réparées lues une par une : 73 homophones grammaticaux muets (54 a→à sans ancre sûre : voisins fautés, déterminant), 19 mots valides sans accent (participe après aux, hors de portée du speller), 5 rouges ailleurs (le participe choisi après un pronom sujet — corrigé : 6/6 cas gold au présent, 0 contre), 5 ou/où orange justes, 2 grace, 1 the. Mesuré le 14/09/2026 : juge 312 · 244 · 14 · 73, accents 274 / 171 / 1, FP échelle 1,36 % (34/2 500, inchangé), palier 100 %. _(JOURNAL 2026-09-14 · scratchpad census_accents / census_aa_muets / census_subjp)_
 - **Flexion brique 1 : « infinitif après pronom sujet à vérifier » (il reculer → reculait, orange), 3 moteurs** — Recensé : 9 cas gold (imparfait 6, présent 2), UD 1 motif exclu (préposition avant le pronom). Gardes : pronom sujet net (élidé compris), clitiques, frontière, pas de préposition/modal/verbe avant, nous/vous exclus. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 226 bruit orange · 14 cassés ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %. _(JOURNAL 2026-09-14 (suite))_
 - **Flexion brique 2 : participe après ÊTRE sans liste close (rouge sûr par le POS accent-exact, orange « participe après être à vérifier »), auxiliaire élidé « j'ai », 3 moteurs** — Le discriminateur manquant de #598 (26/08) était le POS accent-exact du speller (sèche AV, installe V). Recensé : gold 5 participes / 0 faux, UD 35 motifs → 0 rouge. Mesuré le 14/09/2026 : juge 312 · 249 un clic · 229 bruit orange · 14 cassés ; accents réparées 174 ; FP échelle 1,36 % (34/2 500, inchangé) ; palier 100 %. Homographe adjectif en orange : mesuré (UD +7/2 500, batterie « Elle est contente »), livré éteint, décision Rem. _(JOURNAL 2026-09-14 (soir))_
+- **FP ROUGE en production : « Il semble fatigué » → « fatiguer » (sembler rangé dans les MODAUX alors que c'est une COPULE) — 3 moteurs** — Contradiction interne : _PRET_COP la déclare copule, MODAL la déclarait verbe à infinitif, et c'est MODAL que lit rule_e_er. Recensé avant de retirer : UD 14 450 = 2 « sembler + -é » (attributs corrects, donc 2 FP), 9 « + -er » non touchés ; corpus dys = 0 cas. Mesuré le 14/09/2026 : batterie FP=0, FP échelle 1,36 % inchangé, juge 312 · 249 · 229 · 73 · 14 inchangé. 3 témoins ajoutés à la batterie, qui n'avait aucune phrase de cette forme. _(JOURNAL 2026-09-14 (nuit))_
 
 ### Ouverts — 10
 
