@@ -66,7 +66,13 @@ TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
 
 
 def norm(w):
-    w = w.lower().replace('’', "'")
+    # LIGATURE (08/09/2026) : le juge tolérait l'accent et l'apostrophe typographique mais PAS œ/æ,
+    # donc « soeur » → « sœur » comptait comme une CASSE alors que le produit a raison (c'est
+    # l'orthographe attendue) et qu'aucun mot n'est abîmé. Mesuré sur les 463 cassés de
+    # gold_frgec_norme : 36 (8 %) sont exactement ça — Coeur→Cœur, soeurs→sœurs, choeur→chœur,
+    # oeuvre→œuvre, foetus→fœtus, noeud→nœud. Le reste de la chaîne le fait déjà
+    # (speller_probe.deacc, build_*), c'était le juge qui était en retard.
+    w = w.lower().replace('’', "'").replace('œ', 'oe').replace('æ', 'ae')
     return ''.join(c for c in unicodedata.normalize('NFD', w) if unicodedata.category(c) != 'Mn')
 
 
