@@ -1,0 +1,29 @@
+{
+ "gold_claude.jsonl": {
+  "paires": 72,
+  "familles": {}
+ },
+ "dictees_gold.jsonl": {
+  "paires": 6,
+  "familles": {}
+ },
+ "faiblesses.jsonl": {
+  "paires": 1600,
+  "familles": {}
+ },
+ "genere_gold.jsonl": {
+  "paires": 120,
+  "familles": {}
+ },
+ "gold_ecriscol_norme.jsonl": {
+  "paires": 467,
+  "familles": {}
+ },
+ "gold_frgec_norme.jsonl": {
+  "paires": 13783,
+  "familles": {
+   "pronom sg + verbe 3e pluriel": 10,
+   "pronom pl + verbe 3e singulier": 2
+  }
+ }
+}
