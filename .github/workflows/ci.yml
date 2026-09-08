@@ -99,6 +99,8 @@ jobs:
         run: node dictee/messy_probe.js --check
       - name: Census vigilance dys (aucune orange juste perdue — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/vig_census_probe.py
+      - name: Cohérence du GOLD, le juge ne porte pas la faute qu'il juge (SAUTÉ en CI, corpus privé local)
+        run: python3 dictee/gold_coherence_probe.py --check
       - name: Précision par famille sur texte DYS réel (rouge/orange mesurés — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/dys_precision_probe.py
       - name: Accord de PALIER produit↔référence sur le gold dys (auto/flag/vigilance/inconnu + hors accord ancré — SAUTÉ en CI, corpus privé local)

@@ -92,6 +92,7 @@ run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigil
 run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr)" python3 dictee/sujet_probe.py
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
 run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
+run "cohérence du GOLD (le juge ne porte pas la faute qu'il juge)" python3 dictee/gold_coherence_probe.py --check
 run "précision par famille sur texte dys (rouge/orange mesurés)" python3 dictee/dys_precision_probe.py
 run "accord de PALIER produit↔référence sur le gold (auto/flag/vigilance/inconnu + hors accord ancré ; SAUTÉ sans corpus dys)" python3 dictee/palier_gold_probe.py
 run "assets extension câblés (aucun asset livré-mais-muet)" node extension/assets_wired_probe.js
