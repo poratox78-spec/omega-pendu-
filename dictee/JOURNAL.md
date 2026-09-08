@@ -5,6 +5,101 @@
 
 ---
 
+## 2026-09-08 — LE JUGE SORT DU DYS : deux gold externes, et le premier FP qu'ils trouvent (« Le congrès » → « congrè »)
+
+> ⚠️ Date = celle de `git log` (commits du 08/09 entre 01:51 et 04:17). Les entrées juste en dessous
+> portent « 2026-09-14 » et « 2026-09-16 » alors que leurs commits datent du **08/09** eux aussi :
+> les dates du JOURNAL ont dérivé en avant du calendrier réel. Signalé, pas corrigé — ré-dater le
+> texte d'autrui n'est pas à moi de le faire. À trancher par Rem.
+
+> Demande de Rem : « j'en ai marre que la dyslexie serve d'excuse ». Le chiffre du produit ne tenait
+> qu'à `gold_claude.jsonl` — 72 productions dys, corpus privé, 92,7 % de sondes à faute unique.
+> `dys_pipeline_probe` prend maintenant `OMEGA_GOLD=…` ; **par défaut rien ne change** (A/B ci-dessous).
+
+**⛔ LE FP QUE LE CORPUS DYS NE POUVAIT PAS TROUVER.** Sur le gold Wikipédia, `accord singulier nom`
+rend **« Le congrès » → « Le congrè »**, en **AUTO**, sur une phrase parfaitement correcte : un rouge
+qui fabrique un NON-MOT. Reproduit hors contexte, référence Python ET extension.
+*Cause* : l'ancre `NOUN_POST` est DÉACCENTUÉE — « congré » y trouve « congre » (le poisson), nom
+confiant, et le gate fréquentiel laisse passer. Les voisins (progrès, succès, procès, décès, repas,
+bras, tas) n'étaient protégés que par des stop-listes ÉNUMÉRÉES où « congrès » manquait.
+*Parade*, la même que pour « apex » — c'est la FORME qui tranche, donc elle vaut pour les trois
+moteurs sans nouvel asset : un candidat singulier finissant par une voyelle accentuée AUTRE que -é
+n'est pas un mot français. **Mesuré sur les 705 653 formes du speller : 93 finissent par « è »**
+(0,013 %, et ce sont des scories — cherchè, acceptè, blessè), 14 par « à », 9 par « ô ». Toute la
+classe -ès fermée d'un coup, aux DEUX sorties de la règle (voie fréquentielle et voie relâchée).
+*Gain secondaire* : « congrés » (la vraie faute d'accent) reçoit enfin la correction du speller —
+« congrès » en auto — que le flag bidon de la grammaire masquait.
+
+**A/B sur le gold dys — le correctif ne coûte RIEN** (même base, avec et sans la garde) :
+
+| | réparés | un clic | appliqué faux | cassés |
+|---|---|---|---|---|
+| avec la garde | 314 (20,4 %) | 252 | 72 | **14 (0,30 %)** |
+| sans (origin/main) | 314 (20,4 %) | 252 | 72 | **14 (0,30 %)** |
+
+**LES DEUX GOLD EXTERNES** (`build_gold_externe.py`), au même format `{raw, fixed}` :
+· **ECRISCOL** — copies de SECONDE (CLESTHIA/E-CALM). Les `ANNOTATIONS/*.txt` portent la forme
+produite et sa forme normalisée côte à côte : `<tres>_<très>`, `<basse>_<basses>`. Sens de la
+notation **vérifié avant usage** : sur 780 paires simples, 241 (30,9 %) n'ont que le 2e membre dans
+le lexique contre 13 (1,7 %) le 1er — et ces 13 sont des normalisations en DEUX mots
+(`entrain`_`en train`, `appart`_`à part`). C'est bien `<produit>_<normalisé>` ; ~5 inversions
+réelles (0,6 %). 63 copies → **532 segments**.
+· **French_GEC** — 6 tranches, **579 007 paires lues → 17 636 retenues** (3,05 %), dont 7 998 de
+même clé phonétique (45,4 %).
+
+**« TEXTE NORMÉ » (la demande de Rem) — et c'est ce qui rend la mesure honnête.** Les deux corpus
+sont PARTIELLEMENT corrigés : 1,7 % des mots de `fixed` sont hors lexique dans les deux. On ne garde
+donc que les textes dont CHAQUE mot du corrigé est une forme du lexique — ECRISCOL **467/532 (88 %)**,
+French_GEC **13 783/17 636 (78 %)**, pollution résiduelle **0,00 %**. Effet immédiat sur ECRISCOL :
+**cassés 37 (0,96 %) → 13 (0,39 %)**, soit le même ordre que le 0,30 % du gold dys. Le filtre ne
+garantit PAS l'accord (« les chien mangent » passerait) : c'est la pollution LEXICALE qu'il enlève,
+la seule mesurable sans juge humain.
+
+**ECRISCOL normé, au même juge** : 467 textes · 3 747 mots · 396 fautes · **58 réparés (14,6 %)** ·
+42 rattrapables en un clic · 5 appliqués faux · **13 cassés (0,39 %)**.
+
+**FRENCH_GEC normé, au même juge — l'échelle** : 13 783 textes · **293 753 mots alignés** · 8 362
+fautes · **1 737 réparés (20,8 %)** · **2 235 rattrapables en un clic** (33,7 % des ratés) ·
+133 appliqués faux · **463 cassés (0,16 %)**. C'est le taux de casse le plus BAS des trois corpus,
+sur 285 000 mots justes de français ordinaire — et c'est la première fois que FP=0 est éprouvé à
+cette échelle hors UD.
+
+**Les 463 cassés, triés mécaniquement** : **36 (8 %) sont l'artefact de ligature œ/oe** — le juge
+seul, aucun mot abîmé ; 0 de casse seule, 0 d'accent seul ; **427 vrais changements de forme**,
+dominés par les familles d'homophones rouges : `et`→`est` ×14, `leur`→`leurs` ×10, `on`→`ont` ×8,
+`est`→`sont` ×8, `ont`→`a` ×8, `sont`→`est` ×8, `une`→`un` ×6, `son`→`sont` ×5, et une correction
+franchement mauvaise, `selection`→`s'élection` ×3. Une part de ces 427 est le gold sous-corrigé (le
+filtre lexical n'attrape pas l'accord resté dans la phrase Wikipédia) — mais `et`→`est` ×14 sur du
+texte correct mérite une enquête à part entière : c'est la famille la plus chère du correcteur.
+
+**LES 13 CASSÉS, RELUS UN PAR UN** (`casses_au_produit.js` les rejoue dans l'extension réelle :
+**12 « même faute », 1 « produit innocent »** — la référence décrit bien le produit depuis la série
+#659→#679). Onze sont des **défauts du gold** : le transcripteur a laissé l'erreur d'accord et le
+moteur a raison — « ils **était** que très peu visible » → étaient, « qu'ils **a** marché » → ont,
+« de **sont** trajet » → son, « des taches de rousseurs **recouvrait** » → recouvraient, « une
+**hallucinations** » → hallucination, « leurs **apparition** » → apparitions, « Il était **vêtue** »
+→ vêtu. Une est un **artefact du juge** : `soeur` → `sœur` compté cassé parce que `DP.norm` ne
+tolère pas la ligature œ/oe alors qu'il tolère l'accent et l'élision. **Une seule vraie faute du
+moteur** : « l'obligea **a fermer** » → « fermé » (c'est « à » qui manque, pas le participe).
+
+⚠️ **CE QUI RESTE OUVERT, ET POURQUOI JE NE L'AI PAS FAIT ICI** (une jonction à la fois) :
+  1. **Ligature œ/oe dans `DP.norm`** — vrai défaut d'instrument, mais `gold_claude` contient `sœur` :
+     à mesurer et à ancrer dans son propre incrément, pas en passager clandestin de celui-ci.
+  2. FP confirmés au produit sur le texte Wikipédia, chacun mérite sa garde mesurée : `cone`→`conne`
+     (au lieu de `cône`), `tracé`→`tracer` après « de », `mai`→`mais` dans une date, `Allier`→`Allié`,
+     `grec`→`grecs` en coordination.
+  3. L'archive ECRISCOL d'ORTOLANG est **tronquée** (107 Mio pile, cf. RESSOURCES_LIBRES §6.3) et les
+     dictées alignées de Scoledit demandent un compte : deux mails, pas du code.
+
+**Piège rencontré, à ne pas refaire** : lancer un script Python depuis `extension/` y laisse un
+`__pycache__`, et Chrome REFUSE alors de charger l'extension (« Filenames starting with _ are
+reserved ») — deux gardes navigateur rouges pour une raison qui n'a rien à voir avec le code.
+
+**Batterie** : 91 gardes, tout vert après nettoyage du `__pycache__`. `dev.sh fresh` régénère zip +
+clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de batterie).
+
+---
+
 ## 2026-09-14 (nuit) — FAUX POSITIF ROUGE EN PRODUCTION : « Il semble fatigué » → « fatiguer », appliqué d'office
 
 > Trouvé par l'enquête que Rem a lancée en parallèle, reproduit ici avant tout autre travail. C'est la garde

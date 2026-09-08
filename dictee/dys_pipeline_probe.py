@@ -50,6 +50,35 @@ SP = S.Speller()
 # en auto bien avant la grammaire). Une sonde fausse est pire qu'une sonde absente.
 TOK = re.compile(r"[A-Za-zÀ-ÿœŒ'’ʼ]+")
 
+# ⭐ LE GOLD EST UN PARAMÈTRE (07/09/2026, demande de Rem : « j'en ai marre que la dyslexie serve
+# d'excuse »). Par défaut RIEN NE CHANGE — `gold_claude.jsonl`, donc le chiffre de référence reste
+# comparable à toute la série. Mais on peut passer le MÊME juge sur d'autres corpus, fabriqués par
+# `build_gold_externe.py` :
+#     OMEGA_GOLD=gold_ecriscol_norme.jsonl python3 dictee/dys_pipeline_probe.py   (copies de 2NDE)
+#     OMEGA_GOLD=gold_frgec_norme.jsonl    python3 dictee/dys_pipeline_probe.py   (Wikipédia FR)
+# ⚠️ Deux corpus NE S'ADDITIONNENT PAS en une moyenne qui voudrait dire quelque chose : densité de
+# fautes et qualité du corrigé diffèrent. On les lit CÔTE À CÔTE, jamais fondus.
+GOLD = _os.environ.get('OMEGA_GOLD', 'gold_claude.jsonl')
+
+
+def _paires(fn):
+    """Lit un gold `{raw, fixed}` SANS passer par DP.FILES — pour ne pas déplacer ce que les autres
+    sondes (dys_precision_probe et son ancre) mesurent."""
+    import io as _i, json as _j
+    p = os.path.join(DP.DATA, fn)
+    if not os.path.exists(p):
+        return
+    for line in _i.open(p, encoding='utf-8'):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            o = _j.loads(line)
+        except Exception:
+            continue
+        if o.get('raw') and o.get('fixed'):
+            yield o['raw'], o['fixed']
+
 
 def pyramide(txt):
     """LA PYRAMIDE, comme `diagnoseAll` : ortho d'abord (marques non-vigilance appliquées aux
@@ -165,22 +194,24 @@ def main():
     app_faux = 0; ex_appf = []                       # ⭐ ROUGE APPLIQUÉ… vers un AUTRE mauvais mot (07/09/2026)
     app_lem = 0; ex_lem = []                         # ⭐ dont « bon lemme, mauvaise flexion » (10/09/2026)
     acc_faux = acc_rep = acc_casse = 0; ex_acc_rep = []; ex_acc_casse = []   # ⭐ ACCENTS stricts (11/09/2026) : eq() désaccentue, cette colonne non
+    # DUMP_CASSES=chemin.tsv → TOUS les cassés, pas les 60 premiers. Sur un gold externe, un
+    # « cassé » peut aussi bien être une faute du moteur qu'un DÉFAUT DU GOLD (« cheveaux » laissé
+    # tel quel par le transcripteur) : ce fichier est fait pour être relu à la main, cas par cas.
+    _casses = [] if _os.environ.get('DUMP_CASSES') else None
     _dump = [] if _os.environ.get('DUMP_MUETS') else None   # sonde : liste des ratés SILENCIEUX côté Python                # ventilation des RATÉS : que voit vraiment l'utilisateur ?
     ex_or, ex_orf = [], []
     ex_casse, ex_rep = [], []
     n = 0
     import io as _io, json as _json
     amb_par_src = {}
-    _p = os.path.join(DP.DATA, 'gold_claude.jsonl')
+    _p = os.path.join(DP.DATA, GOLD)
     if os.path.exists(_p):
         for _l in _io.open(_p, encoding='utf-8'):
             _l = _l.strip()
             if _l:
                 _o = _json.loads(_l)
                 amb_par_src[_o['raw']] = set(x.lower() for x in _o.get('ambig', []))
-    for fn, brut, gold in DP.pairs():
-        if fn != 'gold_claude.jsonl':          # le GOLD RÉEL corrigé à la main (67 productions)
-            continue
+    for brut, gold in _paires(GOLD):
         n += 1
         # ⚠️ Les tokens `ambig` sont ceux que MOI je n'ai pas su trancher : je les ai laissés INTACTS
         # dans le gold. Les compter « cassés » quand le moteur les corrige serait lui reprocher de
@@ -236,6 +267,8 @@ def main():
                     if _dump is not None: _dump.append({'src': brut[:60], 'mot': w, 'gold': g})
             elif not fini_juste:
                 casse += 1
+                if _casses is not None:
+                    _casses.append((w, out[i], g, ' '.join(T[max(0, i - 6):i + 6])))
                 if len(ex_casse) < 60:
                     _q = ''
                     for _nm, _r in CP.RULES:                    # QUELLE règle a cassé le mot ? (pour trier par cause)
@@ -254,11 +287,13 @@ def main():
             else:
                 intact += 1
     if not n:
-        print('dys_pipeline_probe : gold dys local absent → sonde SAUTÉE (pas un échec).')
+        print('dys_pipeline_probe : gold « %s » absent de %s → sonde SAUTÉE (pas un échec).'
+              % (GOLD, DP.DATA))
         return
     faux = rep + rate
     juste = casse + intact
-    print('\nPIPELINE COMPLET sur %d productions dys RÉELLES — %d mots alignés\n' % (n, faux + juste))
+    _quoi = 'productions dys RÉELLES' if GOLD == 'gold_claude.jsonl' else ('textes de « %s »' % GOLD)
+    print('\nPIPELINE COMPLET sur %d %s — %d mots alignés\n' % (n, _quoi, faux + juste))
     print('  mots FAUX au départ : %d' % faux)
     print('     · RÉPARÉS  : %4d   (%.1f %% des fautes)   ← le gain' % (rep, 100.0 * rep / max(1, faux)))
     print('     · ratés    : %4d   (%.1f %%)              occasion manquée, pas une faute' % (rate, 100.0 * rate / max(1, faux)))
@@ -298,6 +333,15 @@ def main():
         import json as _j
         _io.open(_os.environ['DUMP_MUETS'], 'w', encoding='utf-8').write(_j.dumps(_dump, ensure_ascii=False))
         print('     (dump des muets ecrit : %d)' % len(_dump))
+    if _casses is not None:
+        _f = _io.open(_os.environ['DUMP_CASSES'], 'w', encoding='utf-8')
+        _TAB, _NL = chr(9), chr(10)
+        _f.write(_TAB.join(['gold', 'mot_saisi', 'sortie_moteur', 'gold_attendu',
+                            'contexte', 'verdict']) + _NL)
+        for _w, _o2, _g, _ctx in _casses:
+            _f.write(_TAB.join([GOLD, _w, _o2, _g, _ctx, '']) + _NL)
+        _f.close()
+        print('     (dump des CASSÉS écrit : %d → %s)' % (len(_casses), _os.environ['DUMP_CASSES']))
     print('  mots JUSTES au départ : %d' % juste)
     print('     · intacts  : %4d   (%.2f %%)' % (intact, 100.0 * intact / max(1, juste)))
     print('     · ⛔ CASSÉS : %3d   (%.2f %%)              ← LA métrique' % (casse, 100.0 * casse / max(1, juste)))
