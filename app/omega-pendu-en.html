@@ -24184,7 +24184,26 @@ window.addEventListener('DOMContentLoaded', () => {
         return _pr(e,a)+'avec « je » ou « tu », ce verbe prend un -s.';
       if(le&&la&&/(sse|sses|ienne|iennes|asse|fasse|fasses)$/.test(la))
         return _pr(e,a)+'après « il faut que », le verbe passe au SUBJONCTIF.';
-      return _pr(e,a)+'le verbe se conjugue avec SA personne — « il » n’a pas la même terminaison.';},
+      /* ⭐ NOMMER LA PERSONNE QUE PORTE LA FORME PROPOSÉE (15/09/2026, rapport de Rem). Le texte citait
+         « il » quelle que soit la correction : sur « nous allez » → « allons », il parlait d'un pronom qui
+         n'est pas dans la phrase. La forme proposée SAIT sa personne — on la lit dans les tables (svReads,
+         et l'index du passé simple pour les cases que CONJ_F ne porte pas). */
+      function _persDe(x,ref){var _P={'1s':'je','2s':'tu','3s':'il','1p':'nous','2p':'vous','3p':'ils'},r=svReads(x),k,p=null,lem=null,rr,f;
+        if(ref){rr=svReads(ref);lem={};for(k=0;k<rr.length;k++)lem[rr[k][0]]=1;}
+        for(k=0;k<r.length;k++){
+          f=((CONJ_C[r[k][0]]||{})[r[k][1]]||{})[r[k][2]+r[k][3]];if(Array.isArray(f))f=f[0];
+          if(!f||String(f).toLowerCase()!==x)continue;   // ACCENT-EXACT (la garde de la règle) : écarte les lectures FANTÔMES des tables — « sommes » y est lu « 2e du SINGULIER », et « êtes » aussi
+          if(lem&&!lem[r[k][0]])continue;                // même lemme que la forme écrite : « sommes » est aussi *sommer* 2sg (« tu sommes »)
+          var q=r[k][2]+r[k][3];if(p===null)p=q;else if(p!==q)return null;}   // deux personnes possibles → on ne nomme rien
+        if(!p&&typeof _PS_INDEX!=='undefined'){var h=_PS_INDEX[deacc(x)]||[];if(h.length===1)p=h[0][1];}
+        return _P[p]||null;}
+      var pa=_persDe(la,le),pe=_persDe(le,la);
+      if(pa&&deacc(le)===deacc(la))   // la PERSONNE est bonne, c'est l'ACCENT du temps qui manque (« nous mangeames »)
+        return _pr(e,a)+'la personne est JUSTE — c’est l’accent qui manque : « '+pa+' '+a+' ».';
+      if(pa&&pe&&pa!==pe)
+        return _pr(e,a)+'« '+pa+' » ne prend pas la terminaison de « '+pe+' » : on écrit « '+pa+' '+a+' ».';
+      if(pa) return _pr(e,a)+'avec « '+pa+' », le verbe s’écrit « '+a+' ».';
+      return _pr(e,a)+'le verbe se conjugue avec SA personne : la terminaison change avec le sujet.';},
     /* ⭐ LE PARTICIPE A SA PROPRE FAMILLE (26/08/2026). Avant, « il est arrive » → « arrivé » était
        classé ACCENT — parce que `_corrFam` teste la désaccentuation AVANT le nom de la règle — et la
        carte enseignait « e→é, dis-le à voix haute, é ferme è ouvre ». C'est faux : ce n'est pas un
@@ -28482,12 +28501,12 @@ function spellTokenCore(tok,atStart,T,idx){
     if(/^élision fusionnée$/.test(n))return 'segmentation';   // ici l'apostrophe manque VRAIMENT : la famille de forme est la bonne
     if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu\/peux\/peut$|^mais\/mes$|^leur\/leurs$|^sais\/sait$/.test(n))return 'homophone';
     if(/participe/.test(n))return 'participe';
+    if(/personne du verbe/.test(n))return 'personne';   // ⭐ 15/09/2026 : ICI, avant l'heuristique d'accent. « nous mangeames » → « mangeâmes » ne diffère QUE par l'accent, donc la carte donnait le remède des accents (« photographie le mot ») sur une faute de CONJUGAISON
     if(/terminaison -er/.test(n))return 'accord';   // ⭐ audit 11/09/2026 : -er/-é est un ACCORD de forme verbale (test « mordre »), il tombait en 'homophone' → « remplace par a→avait »
     if(w&&sg&&w.toLowerCase()!==sg.toLowerCase()&&deaccS(w.toLowerCase())===deaccS(sg.toLowerCase()))return 'accent';   // ⭐ un « mot inconnu » SANS suggestion (w === sg) n'est pas un accent (audit 11/09 : aujourdhui)
     if((sg.indexOf("'")>=0&&(!w||w.indexOf("'")<0))||(sg.indexOf(' ')>=0&&(!w||w.indexOf(' ')<0)))return 'segmentation';   // apostrophe/espace AJOUTÉ = segmentation (fusion : lhopital→l'hôpital, j'ne→je ne) — Bodard §18.5
     if(/^on\/ont/.test(n))return 'homophone';   // on/ont reste un HOMOPHONE grammatical
     if(/infinitif après (semi|pronom)/.test(n))return 'personne';   // même famille : la FORME du verbe (+ pronom sujet, 14/09)
-    if(/personne du verbe/.test(n))return 'personne';   // la PERSONNE du verbe : ni un accord de nombre, ni un homophone
     if(/accord|genre/.test(n))return 'accord';if(/orthograph|[ée]lision|surface|inconnu/.test(n))return 'surface';return 'homophone';}  // flag → famille dys (profil unifié) ; « mot inconnu » = graphie non résolue → surface
   // ===== MODÈLE NON DESTRUCTIF : le texte SOURCE (vdc-in) n'est JAMAIS réécrit. On calcule les corrections, on affiche
   //       l'ORIGINAL souligné (cadre haut) + le CORRIGÉ souligné (cadre bas) ; chaque mot souligné = une BASCULE (appliquer
@@ -28762,6 +28781,7 @@ function spellTokenCore(tok,atStart,T,idx){
     'pléonasme':"Cette expression répète deux fois la même idée.",
     'accord genre à vérifier':"Le genre du déterminant et celui du nom doivent s'accorder — vérifie lequel des deux est juste.",
     'conjugaison après je à vérifier':"Après « je », le verbe prend sa terminaison de 1re personne (-e, -s, -ai).",
+    'accord du verbe au sujet nominal à vérifier':"Le verbe s'accorde avec le NOM qui commande : « les chats » (pluriel) → « mangent », « le chat » (singulier) → « mange ». Vérifie lequel des deux est juste.",
     'personne du verbe à vérifier':"Le verbe se conjugue avec SA personne : « je »/« tu » ne prennent pas la terminaison de « il ».",
     'infinitif après pronom sujet à vérifier':"Après « il », « elle », « qui »…, le verbe se CONJUGUE, jamais à l'infinitif : il annonçait (imparfait) ou il annonce (présent) — choisis le temps du récit.",
     'participe après être à vérifier':"Après « être », c'est un PARTICIPE en -é qui s'accorde avec le sujet (je me suis installé — installée si tu es une fille) — sauf si c'est un ADJECTIF (« elle est sèche ») : à toi de voir.",

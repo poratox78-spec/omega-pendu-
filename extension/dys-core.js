@@ -128,7 +128,26 @@
         return _pr(e,a)+'avec « je » ou « tu », ce verbe prend un -s.';
       if(le&&la&&/(sse|sses|ienne|iennes|asse|fasse|fasses)$/.test(la))
         return _pr(e,a)+'après « il faut que », le verbe passe au SUBJONCTIF.';
-      return _pr(e,a)+'le verbe se conjugue avec SA personne — « il » n’a pas la même terminaison.';},
+      /* ⭐ NOMMER LA PERSONNE QUE PORTE LA FORME PROPOSÉE (15/09/2026, rapport de Rem). Le texte citait
+         « il » quelle que soit la correction : sur « nous allez » → « allons », il parlait d'un pronom qui
+         n'est pas dans la phrase. La forme proposée SAIT sa personne — on la lit dans les tables (svReads,
+         et l'index du passé simple pour les cases que CONJ_F ne porte pas). */
+      function _persDe(x,ref){var _P={'1s':'je','2s':'tu','3s':'il','1p':'nous','2p':'vous','3p':'ils'},r=svReads(x),k,p=null,lem=null,rr,f;
+        if(ref){rr=svReads(ref);lem={};for(k=0;k<rr.length;k++)lem[rr[k][0]]=1;}
+        for(k=0;k<r.length;k++){
+          f=((CONJ_C[r[k][0]]||{})[r[k][1]]||{})[r[k][2]+r[k][3]];if(Array.isArray(f))f=f[0];
+          if(!f||String(f).toLowerCase()!==x)continue;   // ACCENT-EXACT (la garde de la règle) : écarte les lectures FANTÔMES des tables — « sommes » y est lu « 2e du SINGULIER », et « êtes » aussi
+          if(lem&&!lem[r[k][0]])continue;                // même lemme que la forme écrite : « sommes » est aussi *sommer* 2sg (« tu sommes »)
+          var q=r[k][2]+r[k][3];if(p===null)p=q;else if(p!==q)return null;}   // deux personnes possibles → on ne nomme rien
+        if(!p&&typeof _PS_INDEX!=='undefined'){var h=_PS_INDEX[deacc(x)]||[];if(h.length===1)p=h[0][1];}
+        return _P[p]||null;}
+      var pa=_persDe(la,le),pe=_persDe(le,la);
+      if(pa&&deacc(le)===deacc(la))   // la PERSONNE est bonne, c'est l'ACCENT du temps qui manque (« nous mangeames »)
+        return _pr(e,a)+'la personne est JUSTE — c’est l’accent qui manque : « '+pa+' '+a+' ».';
+      if(pa&&pe&&pa!==pe)
+        return _pr(e,a)+'« '+pa+' » ne prend pas la terminaison de « '+pe+' » : on écrit « '+pa+' '+a+' ».';
+      if(pa) return _pr(e,a)+'avec « '+pa+' », le verbe s’écrit « '+a+' ».';
+      return _pr(e,a)+'le verbe se conjugue avec SA personne : la terminaison change avec le sujet.';},
     /* ⭐ LE PARTICIPE A SA PROPRE FAMILLE (26/08/2026). Avant, « il est arrive » → « arrivé » était
        classé ACCENT — parce que `_corrFam` teste la désaccentuation AVANT le nom de la règle — et la
        carte enseignait « e→é, dis-le à voix haute, é ferme è ouvre ». C'est faux : ce n'est pas un
@@ -3856,12 +3875,12 @@ function spellUnknown(tok,atStart,T,idx){
     else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
     else if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu\/peux\/peut$|^mais\/mes$|^leur\/leurs$|^sais\/sait$/.test(n))t='homophone_gram';   // miroir app : le NOM avant les heuristiques de forme
     else if(/participe/.test(n))t='participe';   // miroir app : le NOM avant l'heuristique d'accent
+    else if(/personne du verbe/.test(n))t='personne';   // ⭐ 15/09/2026, miroir app : ICI, avant l'heuristique d'accent — « nous mangeames » → « mangeâmes » est de la CONJUGAISON, pas une faute d'accent
     else if(/terminaison -er/.test(n))t='accord';   // ⭐ audit 11/09/2026 : -er/-é est un ACCORD de forme verbale (test « mordre »), il tombait en homophone_gram → « remplace par a→avait »
     else if(w&&sg&&w.toLowerCase()!==sg.toLowerCase()&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';   // ⭐ un « mot inconnu » SANS suggestion (w === sg) n'est pas un accent (audit 11/09 : aujourdhui)
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)
     else if(/^on\/ont/.test(n))t='homophone_gram';   // miroir app
     else if(/infinitif après (semi|pronom)/.test(n))t='personne';   // miroir app (+ pronom sujet, 14/09)
-    else if(/personne du verbe/.test(n))t='personne';   // miroir app
     else if(/accord|genre/.test(n))t='accord';
     else if(/orthograph|[ée]lision|surface|inconnu/.test(n))t='surface';     // mot inconnu / graphie → alphabétique
     else t='homophone_gram';                                                 // homophones du correcteur (a/à, son/sont, ou/où) = GRAMMATICAUX → morphosyntaxique

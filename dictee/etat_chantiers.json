@@ -145,9 +145,19 @@
       "titre": "« Nous allez au parc » : corrigé par la référence depuis le #699, MUET dans le produit — le portage JS de la garde des modaux",
       "verdict": "Le JS testait « le mot suivant n'a aucune lecture conjuguée » là où le Python teste « le mot suivant EST un verbe connu » : « au », « le », « des » passaient pour des infinitifs et la règle se taisait. Miroir exact posé (COMMON_VERBS ≡ VERB_LEX, mesuré : la liste blanche Python est entièrement contenue dans cgram). Cause de l'aveuglement : parity_corr vérifie « app ⊆ Python », donc un moteur MUET la passe — le fichier s'en défendait déjà par des blocs d'EXIGENCE (prénoms, infinitif de but, REGLES_FR), la conjugaison n'en avait pas. Elle en a un, vérifié en remettant l'ancienne ligne : la sonde rougit.",
       "ref": "JOURNAL 2026-09-15 (fin)"
+    },
+    {
+      "titre": "Les explications de la conjugaison : « il » cité quelle que soit la correction, le passé simple rangé dans les ACCENTS, et la famille orange sans un mot d'explication",
+      "verdict": "Trois défauts, tous vérifiés dans le moteur réel puis réparés le 16/09. ① Le remède nomme désormais la personne que porte la forme proposée, en écartant les lectures FANTÔMES des tables par la garde accent-exacte de la règle (« sommes » y est lu 2e du singulier) et par le lemme du mot écrit. ② « personne du verbe » passe AVANT l'heuristique d'accent dans _corrFam/flagsToFacts — la doctrine que le fichier énonce déjà pour le participe : « les heuristiques de FORME passent APRÈS le nom de la règle ». ③ _EXPL a l'entrée de la famille née au #699. Témoins dans textes_probe (17 phrases) ; vérifié en remettant l'ancien texte : 7 attentes non tenues.",
+      "ref": "JOURNAL 2026-09-16"
     }
   ],
   "ouverts": [
+    {
+      "titre": "Le 💡 contextuel est VIDE pour la famille « personne du verbe » (seul le 🛠️ porte le message)",
+      "etat": "Constaté le 16/09 en lisant les explications dans le moteur réel. `_accHint` ne s'ouvre qu'aux familles dont le nom contient « accord » ou « genre » ; « personne du verbe » n'en est pas, donc la bulle inline reste vide alors que le gouverneur (le pronom sujet) est parfaitement identifiable. À mesurer avant d'ouvrir la porte : sur « nous mangeames », le gouverneur serait juste mais hors sujet (c'est l'accent qui manque, pas la personne).",
+      "ref": "JOURNAL 2026-09-16"
+    },
     {
       "titre": "COUVERTURE de la conjugaison : ce que la sonde d'énumération montre encore (passé simple, impératif, subjonctif imparfait)",
       "etat": "Sonde `couverture_conj_probe` (n'ouvre aucun corpus : 13 sujets × 6 temps × 12 verbes) posée le 14/09/2026 dans dev.sh, ancrée par sujet. Reste : ① passé simple — CONJ_C n'a que 131 lemmes / 2 904 (filtre #127 « forme pure » ET fréquence ≥ 0,5), « il mangea » muet ; ② impératif — 4 433 lemmes source, 0 en table, `rule_imperatif` ne couvre que le motif à trait d'union (« Manges ta soupe », « Prend le livre », « Fait attention » muets) ; ③ subjonctif imparfait 375 lemmes, 0 ; ④ « tu irai » → « vas » : `rule_personne_verbe` passe avant la générale et ne garde pas le temps écrit.",
