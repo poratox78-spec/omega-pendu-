@@ -151,6 +151,14 @@ const CAS = [
   { txt: 'le fondateur et premier directeur du Centre', rien: true, orangeInterdit: 'et', pourquoi: 'G1 : « premier directeur » est un groupe nominal coordonné, pas un attribut' },
   { txt: 'un mois et demi de siège', rien: true, orangeInterdit: 'et', pourquoi: 'G3 : « X et demi » est une expression figée' },
   { txt: 'C++ et bien d\'autres langages', rien: true, orangeInterdit: 'et', pourquoi: 'G5 : le « C » de C++ n\'est pas le « c\' » de « c\'est »' },
+  /* ⭐ PARTICIPE + AVOIR : la moitié qui MARCHE n'avait aucune garde de comportement (vérification
+     du 08/09/2026, demandée par Rem). Le silence sur « elles ont mangés » est réel et assumé — il n'est
+     PAS gardé ici, pour qu'une règle future ne trouve pas la porte fermée. Ce qui est gardé, c'est ce
+     qui tire déjà : sans ces trois lignes, `rule_pp_avoir_cod` et `rule_pp_avoir_dont` pouvaient
+     s'éteindre sans faire rougir personne dans le vrai moteur. */
+  { txt: "la porte qu'il a ouvert", corrigeAttendu: ['ouvert', 'ouverte'], pourquoi: 'COD antéposé par « que » : le participe irrégulier accorde (table _IRR_PP)' },
+  { txt: "les fleurs que j'ai cueilli", corrigeAttendu: ['cueilli', 'cueillies'], pourquoi: 'COD antéposé par « que » + auxiliaire élidé « j\'ai »' },
+  { txt: "les choses dont je t'ai parlées", corrigeAttendu: ['parlées', 'parlé'], pourquoi: '« dont » = COI : le seul endroit du moteur qui RETIRE un accord surnuméraire après avoir' },
   { txt: 'Ce chien et gentil', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : la vraie faute reste corrigée, les gardes n\'ont pas éteint la règle' },
   { txt: 'que la lumière du Bouddha éclaire les trois mille mondes', rien: true, orangeInterdit: 'éclaire', pourquoi: 'pas une inversion : le sujet « la lumière » précède le verbe' },
   /* FORME VERBALE avant NOMBRE (03/09/2026, mesuré dans Chrome sur le corpus dys : +2 justes, −4 inutiles, −5 fausses). La règle de
