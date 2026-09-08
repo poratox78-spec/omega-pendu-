@@ -233,6 +233,8 @@
     +"trouve trouvent regarde regardent joue jouent jouez jouait porte portent cherche cherchent pense pensent reste restent passe passent arrive arrivent entre entrent monte montent "
     +"tombe tombent tombait chante chantent court courent boit boivent lit lisent ecrit ecrivent dort dorment finit finissent etudie etudient quitte quittent calme creuse vend vendent").split(/\s+/).forEach(function(w){if(w)COMMON_VERBS[w]=1;});
   var GENDER_MAP={},GENDER_PURE={},ADJP={},NOUN_PLURAL={};var CONJ_F={},CONJ_C={};
+  var _CONJ_FIX={'vouloir|ind:imp|1s':'voulais'};   // COQUILLE DE LEXIQUE 4 : une ligne source donne « soulais » (un « v » lu « s ») comme 1re du singulier de l'imparfait de VOULOIR. DÉCLARÉE ICI, avec les tables qu'elle répare : plus bas, l'amorce SYNCHRONE de l'app l'aurait lue « undefined » (un var n'est hoisté qu'en nom) et la réparation n'aurait rien fait, sans un mot. Miroir Python _CONJ_FIX.
+ 
   var _GACC={};   // genre ACCENTUÉ (assets/gender-acc.json.gz, miroir app gacc-lex-gz) — consulté INCONDITIONNELLEMENT par _nounGender, comme GENDER_ACC en Python. Table À PART, jamais unionnée dans GENDER_PURE.
   function _applyVdc(vd){BCLF=vd.bclf||null;(vd.v||[]).forEach(function(w){COMMON_VERBS[w]=1;});GENDER_MAP=vd.g||{};GENDER_PURE=vd.gn||{};ADJP=vd.a||{};var cj=vd.cj||{};CONJ_F=cj.f||{};CONJ_C=cj.c||{};_fillReg3pl(CONJ_C,CONJ_F);NOUN_PLURAL={};(vd.gp||[]).forEach(function(w){NOUN_PLURAL[w]=1;});var _GOE={soeur:'f',soeurs:'f',coeur:'m',coeurs:'m',oeuf:'m',oeufs:'m',oeuvre:'f',oeuvres:'f',boeuf:'m',boeufs:'m',voeu:'m',voeux:'m',noeud:'m',noeuds:'m',oeil:'m',moeurs:'f',manoeuvre:'f',manoeuvres:'f',oeillet:'m',oeillets:'m',oesophage:'m',foetus:'m'};for(var _goeK in _GOE)if(GENDER_PURE[_goeK]===undefined)GENDER_PURE[_goeK]=_GOE[_goeK];}   // GENRE noms en œ manquants du lexique gn (débloque « mon soeur »→ma sœur). FP=0, union. Miroir app + Python.
   // PRÉNOMS + GENRE (assets/prenoms.tsv.gz, DÉRIVÉ du blob prenoms-gz de l'app par build_assets).
@@ -988,7 +990,12 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   var SUBJ_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],ils:['3','p'],elles:['3','p']};
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
   function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
-  function _fillReg3pl(cjc,cjf){var _REG3PL=[['ind:imp','ait','aient'],['cnd:pre','ait','aient'],['ind:fut','ra','ront']];for(var lem in cjc){for(var t=0;t<_REG3PL.length;t++){var mt=_REG3PL[t][0],s3=_REG3PL[t][1],p3=_REG3PL[t][2],slot=cjc[lem][mt];if(!slot)continue;var f3s=slot['3s'];if(Array.isArray(f3s))f3s=f3s[0];if(!f3s||slot['3p']||f3s.slice(-s3.length)!==s3)continue;var f3p=f3s.slice(0,-s3.length)+p3;slot['3p']=f3p;var key=deacc(f3p.toLowerCase()),rd=lem+';'+mt+';3;p',cur=cjf[key];if(!cur)cjf[key]=rd;else if(cur.indexOf(rd)<0)cjf[key]=cur+'|'+rd;}}}   // CLÔTURE 3PL RÉGULIÈRE déterministe (imparfait/conditionnel -ait→-aient · futur -ra→-ront, 0 exception) : build_cgram droppe l'imparfait 3pl + cnd/fut partiels (filtre HF). Miroir Python + app.
+  function _fillReg3pl(cjc,cjf){var _REG3PL=[['ind:imp','ait','aient'],['cnd:pre','ait','aient'],['ind:fut','ra','ront']];for(var lem in cjc){for(var t=0;t<_REG3PL.length;t++){var mt=_REG3PL[t][0],s3=_REG3PL[t][1],p3=_REG3PL[t][2],slot=cjc[lem][mt];if(!slot)continue;var f3s=slot['3s'];if(Array.isArray(f3s))f3s=f3s[0];if(!f3s||slot['3p']||f3s.slice(-s3.length)!==s3)continue;var f3p=f3s.slice(0,-s3.length)+p3;slot['3p']=f3p;var key=deacc(f3p.toLowerCase()),rd=lem+';'+mt+';3;p',cur=cjf[key];if(!cur)cjf[key]=rd;else if(cur.indexOf(rd)<0)cjf[key]=cur+'|'+rd;}}
+    /* ⛔ COQUILLE DE LA SOURCE, réparée ICI : c'est le SEUL point que toutes les voies de chargement
+       traversent (l'app en a deux). Le 14/09 le correctif ne vivait que dans `sujFlexVig` côté JS —
+       `rAccordSV`, elle, lit la table brute, et elle écrivait « soulais » en ROUGE dans le vrai Chrome
+       quand la référence Python, qui répare LA TABLE au chargement, écrivait « voulais ». Miroir Python. */
+    for(var _cfK in _CONJ_FIX){var _cfP=_cfK.split('|'),_cfS=(cjc[_cfP[0]]||{})[_cfP[1]];if(_cfS&&_cfS[_cfP[2]]!==undefined&&_cfS[_cfP[2]]!==_CONJ_FIX[_cfK])_cfS[_cfP[2]]=_CONJ_FIX[_cfK];}}   // CLÔTURE 3PL RÉGULIÈRE déterministe (imparfait/conditionnel -ait→-aient · futur -ra→-ront, 0 exception) : build_cgram droppe l'imparfait 3pl + cnd/fut partiels (filtre HF). Miroir Python + app.
   var _PS_DONE=false,_PS_INDEX={};   // PASSÉ SIMPLE PLURIEL : les cases que les tables n'ont jamais eues (miroir Python _ps_completer)
   function _ps1(d,t,s){var v=(d[t]||{})[s];return Array.isArray(v)?v[0]:v;}
   function _psCompleter(){   /* Complète CONJ_C[lemme]['ind:pas'] aux 1re/2e/3e du PLURIEL — build_cgram les a SUPPRIMÉES
@@ -2665,7 +2672,6 @@ function estQuestion(t,maxMots){
       out=a[0];}
     return out;}
   var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
-  var _CONJ_FIX={'vouloir|ind:imp|1s':'voulais'};   // COQUILLE DE LEXIQUE 4 : une ligne source donne « soulais » (un « v » lu « s ») comme 1re du singulier de l'imparfait de VOULOIR ; sans ce correctif « ce que je voulais » devenait « soulais », en ROUGE. Miroir Python _CONJ_FIX.
   function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
      frontière de proposition en traversant CLITIQUES et ADVERBES, on s'arrête au premier candidat sujet. nous/vous ne sont SUJETS
      que si rien avant eux dans la proposition ne peut l'être (« il nous parle », « qui vous passionnera » = compléments). */
