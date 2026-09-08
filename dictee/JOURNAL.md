@@ -71,6 +71,39 @@
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-16 — LES EXPLICATIONS DE LA CONJUGAISON DISAIENT FAUX (les trois défauts que Rem a demandé de vérifier)
+
+> « fais mangeames et vérifies les règles et explication de ce qu'on vient de faire :
+>   « allez » → « allons » : le verbe se conjugue avec SA personne — « il » n'a pas la même terminaison. »
+> « il » n'est pas dans la phrase. Le texte était une CONSTANTE : quelle que soit la correction, il citait « il ».
+
+- **① LA PERSONNE EST MAINTENANT NOMMÉE.** La forme PROPOSÉE sait sa personne — elle est dans les tables. On la
+  lit, et on la dit :
+  · « allez » → « allons » : *« nous » ne prend pas la terminaison de « vous » : on écrit « nous allons ».*
+  · « allons » → « vais » : *« je » ne prend pas la terminaison de « nous » : on écrit « je vais ».*
+  ⚠️ Avec la garde ACCENT-EXACTE de la règle, sans quoi les **lectures fantômes** des tables s'invitent :
+  `_reads('sommes')` rend *être 1re du PLURIEL* mais aussi *être 2e du SINGULIER* et *sommer 2e du singulier* —
+  les fantômes recensés dans l'enquête du 14/09. On ne garde que les lectures dont la table REGÉNÈRE la forme
+  écrite à l'accent près, et du même lemme que le mot écrit. Sans ces deux filtres, « nous êtes » → « sommes »
+  retombait sur le texte générique.
+- **② « nous mangeames » → « mangeâmes » RECEVAIT LE REMÈDE DES ACCENTS** (« a→â. Le circonflexe ne s'entend
+  pas… Photographie le mot »). Rem : « là c'est de la conjugaison ». La cause est écrite noir sur blanc dans
+  le fichier, à trois lignes de là : « les heuristiques de FORME doivent toujours passer APRÈS le nom de la
+  règle, qui, lui, sait de quoi il parle » — et la règle « personne du verbe » passait APRÈS le test « ces deux
+  mots sont identiques une fois désaccentués ». Elle passe devant, comme le participe avant elle (26/08).
+  Le remède dit alors la vérité : *la personne est JUSTE — c'est l'accent qui manque : « nous mangeâmes ».*
+- **③ LA FAMILLE NÉE LA VEILLE N'AVAIT AUCUNE EXPLICATION.** `_EXPL[nom]` rend `''` pour un nom inconnu :
+  l'orange du sujet nominal (#699) s'affichait donc **sans un mot**. Elle a la sienne.
+- **LES TÉMOINS** vont dans `textes_probe` — la sonde née de l'audit du 11/09, précisément parce que « le moteur
+  était juste, les TEXTES non ». Les deux phrases de Rem y sont, avec ce que le texte ne doit **plus** contenir
+  (« il », « Photographie le mot »). Vérifié en remettant l'ancien texte : **7 attentes non tenues**.
+- **Reste ouvert, dit** : le 💡 contextuel est encore VIDE pour la famille « personne du verbe » (le 🛠️ porte
+  seul le message). `_accHint` ne s'ouvre qu'aux familles dont le nom contient « accord » ou « genre ».
+- **Mesuré** : `dev.sh fresh` 91/91 · textes 17 phrases, 3 blocs app ≡ ext · parité app ⊆ Python (384 phrases,
+  4 écarts inchangés) · messy 59 % / FP=0 · batterie, FP échelle et juge inchangés (aucune règle touchée).
+
+---
+
 ## 2026-09-15 (fin) — LE PREMIER CAS DE REM N'ÉTAIT PAS RÉPARÉ *DANS LE PRODUIT* : le #699 mal porté, et la sonde qui ne pouvait pas le dire
 
 > En vérifiant les explications demandées par Rem, le moteur de l'extension chargé comme le produit :
