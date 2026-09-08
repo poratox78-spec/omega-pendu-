@@ -7,6 +7,11 @@
 
 ## 2026-09-08 — LE JUGE SORT DU DYS : deux gold externes, et le premier FP qu'ils trouvent (« Le congrès » → « congrè »)
 
+> ⚠️ Date = celle de `git log` (commits du 08/09 entre 01:51 et 04:17). Les entrées juste en dessous
+> portent « 2026-09-14 » et « 2026-09-16 » alors que leurs commits datent du **08/09** eux aussi :
+> les dates du JOURNAL ont dérivé en avant du calendrier réel. Signalé, pas corrigé — ré-dater le
+> texte d'autrui n'est pas à moi de le faire. À trancher par Rem.
+
 > Demande de Rem : « j'en ai marre que la dyslexie serve d'excuse ». Le chiffre du produit ne tenait
 > qu'à `gold_claude.jsonl` — 72 productions dys, corpus privé, 92,7 % de sondes à faute unique.
 > `dys_pipeline_probe` prend maintenant `OMEGA_GOLD=…` ; **par défaut rien ne change** (A/B ci-dessous).
