@@ -142,6 +142,16 @@ const CAS = [
   { txt: 'un groupe de chercheurs qui traquent des trésors', rien: true, orangeInterdit: 'traquent', pourquoi: '« de chercheurs » lu pluriel : « traquent » est juste' },
   /* LE PARSEUR DE SUJET D'ABORD (03/09/2026) : le GN sujet trouvé par la règle rouge fait taire les voisins et la fausse inversion. */
   { txt: 'le taux de mortalité est plus élevé sur ce territoire', rien: true, orangeInterdit: 'est', pourquoi: 'sujet « le taux » (complément « de mortalité » enjambé) : « est » est juste' },
+  /* ⭐ « et » → « est » : CINQ GARDES (08/09/2026, mesuré dans Chrome puis sur 16 048 textes alignés et
+     14 450 phrases UD — la branche « sujet nominal » tirait 14 + 7 fois, TOUJOURS sur du français correct.
+     G1 l'« adjectif » suivi d'un NOM ou d'un déterminant élidé = coordination de groupes nominaux ·
+     G2 une capitale après « et » = nom propre · G3 « X et demi » est figé · G4 une préposition avant le
+     déterminant ⇒ complément, pas sujet · G5 « c » NU n'est pas un pronom (« C++ », « av. J.-C. »).
+     Coût mesuré : 0 correction juste perdue. Gardé comme COMPORTEMENT. */
+  { txt: 'le fondateur et premier directeur du Centre', rien: true, orangeInterdit: 'et', pourquoi: 'G1 : « premier directeur » est un groupe nominal coordonné, pas un attribut' },
+  { txt: 'un mois et demi de siège', rien: true, orangeInterdit: 'et', pourquoi: 'G3 : « X et demi » est une expression figée' },
+  { txt: 'C++ et bien d\'autres langages', rien: true, orangeInterdit: 'et', pourquoi: 'G5 : le « C » de C++ n\'est pas le « c\' » de « c\'est »' },
+  { txt: 'Ce chien et gentil', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : la vraie faute reste corrigée, les gardes n\'ont pas éteint la règle' },
   { txt: 'que la lumière du Bouddha éclaire les trois mille mondes', rien: true, orangeInterdit: 'éclaire', pourquoi: 'pas une inversion : le sujet « la lumière » précède le verbe' },
   /* FORME VERBALE avant NOMBRE (03/09/2026, mesuré dans Chrome sur le corpus dys : +2 justes, −4 inutiles, −5 fausses). La règle de
      nombre passait avant les règles de forme et les faisait taire (« vont cherchait » → cherchaient au lieu de chercher). */
