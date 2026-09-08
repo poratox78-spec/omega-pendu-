@@ -209,6 +209,42 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
   l'entraînement — d'où la règle de lecture : seul l'écart apparié vrai/mélangé est interprétable.
 - **PLANCHER, pas plafond.** Les paires viennent de l'index des HOMOPHONES : une même phonologie
   porte plusieurs mots, elle ne peut donc PAS déterminer le mot. Le vrai couplage vaut davantage.
+- **⭐ LE CONTRÔLE QUI MANQUAIT — L'ANAGRAMME**, ajouté après coup (Rem : « homophones et accent ? »).
+  Le SAMPA donné en TEXTE est un quasi-sosie de la graphie SANS ACCENTS : un modèle de caractères
+  peut y gagner des bits en le TRANSLITTÉRANT, sans rien comprendre. L'anagramme du vrai préfixe
+  garde exactement les mêmes caractères et détruit l'ORDRE. Ce qui y survit est de la COPIE, ce qui
+  n'y survit pas est l'information de SÉQUENCE — la seule que Möbius prétend transporter.
+
+  | | total | dont SÉQUENCE | dont COPIE |
+  |---|---:|---:|---:|
+  | coder le MOT sachant la PHONO | 1,43 bit | **1,13** [1,04 ; 1,22] | 0,31 [0,22 ; 0,40] |
+  | coder la PHONO sachant le MOT | 1,13 bit | **−0,80** [−0,91 ; −0,68] | 1,97 [1,85 ; 2,07] |
+
+  **Le couplage n'est réel que dans UN sens.** Vers le mot, 79 % du gain est de l'information de
+  séquence — B2 lit vraiment la phonologie. Vers la phonologie, le gain est de la **pure copie** :
+  l'ordre des phonèmes lui fait perdre 0,80 bit, il ne « comprend » rien, il translittère.
+- **HOMOPHONES — la phonologie ne peut RIEN, par construction.** Deux homophones ont la MÊME
+  phonologie. Mesuré sur 1 200 classes : une fois la phonologie connue, il reste **0,55 bit
+  d'ambiguïté par mot** (maximum si rien ne départageait : 1,29 bit). **Ces 0,55 bit sont la taille
+  du problème que le CONTEXTE doit payer** — et aucune quantité de phonologie ne les paiera.
+- **ACCENTS — la vraie phonologie NUIT**, et c'est l'inverse de ce qu'on attendait (é/è/e sont des
+  phonèmes différents, elle devrait placer l'accent). Marge en faveur de la forme accentuée contre
+  sa jumelle désaccentuée, sur 3 000 paires :
+
+  | préfixe | marge | l'accentuée gagne |
+  |---|---:|---:|
+  | sans indice | 9,45 bits | 85,4 % |
+  | SAMPA d'un AUTRE mot | 8,92 | 86,8 % |
+  | ANAGRAMME du vrai SAMPA | 8,43 | 86,5 % |
+  | **VRAI SAMPA** | **6,96** | **82,3 %** |
+
+  La vraie phonologie **nuit de 1,47 bit face à son propre anagramme** [IC95 1,34 ; 1,59] : ce n'est
+  donc pas l'inventaire des caractères, c'est la SÉQUENCE. Le SAMPA correctement ordonné est un sosie
+  de la graphie SANS accents, et le modèle le recopie — **la séquence même qui l'aide à trouver le
+  MOT lui fait perdre l'ACCENT.** C'est le FORMAT (donner la phonologie comme du texte), pas le
+  couplage. Le remède n'est pas un poids à régler : c'est un canal séparé, ou un modèle qui a vu ce
+  format à l'entraînement.
+
 - **CE QUE ÇA NE FAIT PAS.** ⛔ **Aucun chantier n'est rouvert, aucun toggle n'est rallumé.** Un gain
   en bits n'est pas un gain en réparés à FP=0 : Möbius reste OFF et le cube reste falsifié comme
   PRODUIT. Ce qui change est le sens de ces falsifications — elles ne disaient pas « il n'y a rien »,
