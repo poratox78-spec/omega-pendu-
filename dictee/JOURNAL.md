@@ -166,6 +166,61 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-08 — MÖBIUS EN BITS : le couplage ortho/phono porte **1,43 bit par mot**, et les deux falsifications ne pouvaient pas le dire
+
+> Idée de Rem : « on a testé OMEGA comme compresseur, je voulais voir pour du langage si on pouvait
+> tenter quelque chose, et voir avec les autres choses — essayer cube, Möbius. »
+
+- **LES DEUX SONT LA MÊME IDÉE.** `L01_B2_MOBIUS` (« couplage croisé ortho↔phon », poids 0,05, livré
+  OFF) et `cube_veto_probe` (les trois voies en veto croisé) couplent tous deux la voie ORTHO et la
+  voie PHONO. Falsifiés tous les deux : Möbius sur le WINRATE (config maximale 10,7 %, identique à la
+  partielle) ; le cube sur (réparés, cassés) — meilleur taux de change 5 réparations perdues pour
+  1 casse évitée, et le plafond ORACLE, en trichant, rend +0/−1, un token sur 6 217.
+- **CE QUE CES DEUX JUGES NE POUVAIENT PAS DIRE.** Ni l'un ni l'autre ne distingue « il n'y a rien à
+  tirer du couplage » de « l'information existe, le câblage était faux ». Le winrate a un plancher de
+  bruit de ~200 parties sur 3 000 pour un couplage pesant 0,05 ; les réparés/cassés portent sur
+  6 217 mots dont 92,7 % de sondes à faute unique, sous FP=0, pleins d'effets de seuil. Deux sorties
+  **discrètes et lointaines**, à basse résolution.
+- **LE COMPRESSEUR EST UN JUGE À HAUTE RÉSOLUTION** — l'entropie croisée EST une taille compressée,
+  donc chaque caractère devient une mesure, continue, sans seuil et sans contrainte de faux positif.
+  `b2_compress_probe` construisait déjà les bonnes paires (mot, SAMPA), les MÊMES mots des deux
+  côtés, mais mesurait H(ortho) et H(phono) **séparément**. Le conditionnel n'avait jamais été
+  mesuré. Or **H(ortho | phono), c'est Möbius énoncé en bits**. Nouvelle sonde : `b2_mobius_probe.py`.
+- **RÉSULTAT — 4 000 paires, B2 14,45 M, GPU.** Le placebo est une phonologie MÉLANGÉE, notée
+  exactement comme la vraie (aucun biais de convention). Second placebo, celui qui tranche : mélange
+  **à longueur égale**, sans quoi on mesurerait « la phonologie dit combien de lettres » et non
+  « elle dit lequel ».
+
+  | | coder le MOT sachant la PHONO | coder la PHONO sachant le MOT |
+  |---|---:|---:|
+  | préfixe VIDE (1er car. facturé log2 V) | 29,68 bits | 54,97 bits |
+  | préfixe MÉLANGÉ libre | 25,45 | 57,44 |
+  | préfixe MÉLANGÉ à LONGUEUR ÉGALE | 25,44 | 57,39 |
+  | préfixe VRAI | **24,02** | **56,27** |
+  | **écart vrai − même longueur** | **1,43 bit** [IC95 1,33 ; 1,53] | **1,13 bit** [IC95 1,01 ; 1,25] |
+  | le vrai préfixe gagne sur | 65,8 % des mots | 61,1 % |
+
+  Le contrôle de longueur ne déplace rien (1,44 → 1,43 ; 1,17 → 1,13) : **ce n'est pas un artefact
+  de longueur.** Sur un mot qui coûte ~24 bits, 1,43 bit pèse ~6 %.
+- **ASYMÉTRIE, dite.** Dans le sens ortho|phono, conditionner fait GAGNER 5,66 bits contre rien
+  (29,68 → 24,02). Dans l'autre sens, conditionner fait **PERDRE** 1,30 bit contre rien
+  (54,97 → 56,27) alors même que la vraie forme bat la mélangée de 1,13 : B2 sait LIRE le couplage,
+  mais le format « mot espace SAMPA » lui coûte plus qu'il ne lui rapporte. B2 n'a jamais vu ça à
+  l'entraînement — d'où la règle de lecture : seul l'écart apparié vrai/mélangé est interprétable.
+- **PLANCHER, pas plafond.** Les paires viennent de l'index des HOMOPHONES : une même phonologie
+  porte plusieurs mots, elle ne peut donc PAS déterminer le mot. Le vrai couplage vaut davantage.
+- **CE QUE ÇA NE FAIT PAS.** ⛔ **Aucun chantier n'est rouvert, aucun toggle n'est rallumé.** Un gain
+  en bits n'est pas un gain en réparés à FP=0 : Möbius reste OFF et le cube reste falsifié comme
+  PRODUIT. Ce qui change est le sens de ces falsifications — elles ne disaient pas « il n'y a rien »,
+  elles disaient « pas à ce câblage-là, vu par ce juge-là ». On sait maintenant que l'information
+  existe et combien elle pèse : **1,43 bit par mot est désormais le plafond de ce qu'un câblage
+  parfait pourrait acheter.** La question suivante est quantitative, plus une intuition : 1,43 bit
+  par mot, est-ce assez pour bouger un réparé sous FP=0 ?
+- **Sonde volontairement HORS `dev.sh`** : elle exige le point de contrôle B2 (hors git) et un GPU ;
+  en CI elle serait toujours SAUTÉE, c.-à-d. une ligne verte qui ne mesure rien.
+
+---
+
 ## 2026-09-16 (suite) — LE PRODUIT ÉCRIVAIT UN MOT QUI N'EXISTE PAS, EN ROUGE : « ce que je vouliez » → « SOULAIS »
 
 > Trouvé en dépouillant le Bescherelle passé dans le VRAI Chrome (le subjonctif), pas par une sonde.
