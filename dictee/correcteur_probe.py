@@ -1016,6 +1016,16 @@ _ET_ADV = set('tres si tout toute bien plus trop assez vraiment deja encore fort
 _ET_PREP = set('au aux du des de a en par pour sur sous dans avec sans vers chez entre'.split())
 
 
+
+_ET_ELID = ("l'", "d'", "qu'", "n'", "s'", "j'", "m'", "t'", "c'")
+
+
+def _elide_det(w):
+    """le mot commence-t-il par un déterminant/pronom ÉLIDÉ (« l'Armée », « d'autres ») ?"""
+    d = deacc((w or '').lower())
+    return d.startswith(_ET_ELID)
+
+
 def rule_et_est(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('et', 'est'): return None
@@ -1043,6 +1053,22 @@ def rule_et_est(T, i):
         # l'attribut ne peut pas être suivi d'un DÉTERMINANT : « et bien sûr LA Vierge » est une
         # énumération, pas un attribut. FP mesuré sur UD 2500.
         if _j + 1 < len(T) and deacc(T[_j+1].lower()) in NUM_DET: return None
+        # ⭐ QUATRE GARDES DE PLUS, nées de 12 FP MESURÉS sur les corpus alignés et 5 sur UD (08/09/2026) —
+        # tous du français CORRECT que la branche réécrivait en rouge.
+        # G4 — une PRÉPOSITION avant le déterminant : le groupe est un COMPLÉMENT, donc pas un sujet.
+        #      « de la noblesse et grande bourgeoisie », « entre les FTP et l'Armée », « avec les Suèves et
+        #      Chérusques ». C'est la doctrine de `_np_subject` (« s'assurer DE LA pente était crucial »).
+        if i >= 3 and deacc(T[i-3].lower()) in PREP: return None
+        # G3 — « X et demi » est une expression figée, jamais un attribut (« un mois et demi de siège »).
+        if deacc(T[i+1].lower()) in ('demi', 'demie'): return None
+        # G2 — une CAPITALE après « et » = nom propre. La branche PRONOM a déjà cette garde ; la branche
+        #      nominale ne l'avait pas (« et Chérusques »).
+        if T[i+1][:1].isupper() or T[_j][:1].isupper(): return None
+        # G1 — l'attribut ne peut pas être un GROUPE NOMINAL : si l'« adjectif » est suivi d'un NOM ou d'un
+        #      déterminant élidé, c'est une coordination de groupes nominaux, pas un attribut.
+        #      « et autres guerres », « et premier directeur », « et hymne l'ensemble », « et l'Armée ».
+        if _elide_det(T[_j]): return None
+        if _j + 1 < len(T) and (_elide_det(T[_j+1]) or _tg[_j+1] in ('NOUN', 'PROPN')): return None
         # ⭐ GARDE DÉCISIVE, née de 4 FP MESURÉS sur UD 2500 : si la proposition porte DÉJÀ un verbe
         # conjugué, « et » ne peut pas être « est ». Les quatre le montraient tous —
         #   « …SONT le norrois ET l'anglais », « …INSPIRA les dirigeants ET sympathisants »,
@@ -1050,6 +1076,10 @@ def rule_et_est(T, i):
         # « Ce chien et gentil » n'a, lui, aucun verbe : c'est précisément ce qui manque.
         if not _clause_no_finite_verb(T, i): return None
         return 'est'
+    # ⭐ G5 (08/09/2026) — « c » NU n'est pas un pronom : en français il ne vit qu'élidé (« c'est »). Le token
+    # nu vient d'ailleurs — « C++ et bien d'autres », « av. J.-C. et même avant ». Mesuré : 1 tir sur les
+    # corpus alignés (gold « et ») + 2 sur UD, 0 correction juste perdue.
+    if p == 'c' and "'" not in T[i-1]: return None
     if i+1 < len(T) and deacc(T[i+1].lower()) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'nous', 'vous', 'moi', 'toi', 'lui', 'eux', 'soi'):
         return None                                                        # « il et elle », « lui et moi » : un pronom sujet suit → sujet COORDONNÉ, jamais « est » (« il est elle » est agrammatical) → « et » reste la conjonction
     if i+1 < len(T) and T[i+1][:1].isupper(): return None                  # « et Bob », « et Chris Udoh » → nom propre → conjonction, jamais « est »
