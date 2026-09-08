@@ -74,6 +74,8 @@
 
 ## Où est le savoir (pointeurs)
 - **`DOCTRINE.md`** — la doctrine.
+- **`RESTE_A_FAIRE.md`** — le point d'entrée UNIQUE quand on reprend : par quoi commencer, avec quelle commande,
+  à quel prix mesuré, et les pièges déjà payés. Ne duplique rien — il pointe.
 - **`ETAT.md`** — l'état GÉNÉRÉ (`dictee/etat_gen.py`) : chiffres au registre unique, gardes de dev.sh, chantiers ouverts/fermés
   (source curée : `dictee/etat_chantiers.json`).
 - **`dictee/JOURNAL.md`** — l'histoire datée : chaque mesure, falsification, rétractation. Le cimetière de référence.
