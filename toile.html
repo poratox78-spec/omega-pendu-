@@ -137,7 +137,7 @@ const N = [
   {id:'ipa', f:'struct', r:11, label:'IPA · phon_key', desc:"Clé phonétique approximative (lossy). Le vrai IPA a été mesuré-réfuté : les fautes dys SONT phonétiquement approximatives."},
   {id:'colL', f:'struct', r:10, label:'_INVAR_COLOR', desc:"48 couleurs/matières invariables (crème, marine, émeraude). Empêchent le filet SV et la vigilance pluriel de les prendre pour des verbes/noms."},
   // moteurs
-  {id:'tag', f:'engine', r:16, label:'Tagger HMM', desc:"Viterbi. Donne la NATURE de chaque mot en contexte. Le sujet plafonne à ~94 % = le mur syntaxique (hors parseur)."},
+  {id:'tag', f:'engine', r:16, label:'Tagger HMM', desc:"Viterbi. Donne la NATURE de chaque mot en contexte. Le sujet plafonne à ~94 % = le mur syntaxique (hors parseur). ⭐ MESURÉ 08/09/2026 : il ne donne JAMAIS la FONCTION. « nous mangeons » (sujet) et « il nous voit » (objet) rendent le MÊME PRON — sujet et objet ne sont pas des catégories de mot, ce sont des relations, et ce modèle n'en produit pas. Demander au tagger de trancher nous/vous, c'était lui demander ce qu'il ne calcule pas. Trois limites de même nature déjà mesurées : clitique préverbal lu DET, « que » relatif lu SCONJ, participe adjectival lu VERB."},
   {id:'spell', f:'engine', r:15, label:'Speller', desc:"Canal bruité (édition + phon_key). Émet ortho (rouge/orange) + spans multi-tokens (répétition, espacement, trait d'union, élision)."},
   {id:'os', f:'engine', r:13, label:'OS-sujet', desc:"Arbitrage μ = r/(1+r) : fiabilité = piqué de la distribution. Trouve le sujet éloigné en ORANGE là où le parseur s'abstient."},
   {id:'filet', f:'engine', r:12, label:'_verb_or_homograph', desc:"Filet partagé : récupère les verbes que l'émission HMM rate (persiste/signale), tout en écartant noms/adj/couleurs connus."},
@@ -146,6 +146,7 @@ const N = [
   {id:'subjN', f:'ctx', r:14, label:'Sujet non-adjacent', desc:"Idée de Rem : le sujet se retrouve même loin — via le verbe coordonné, la relative (que/dont/où), l'incise. 4 leviers FP=0."},
   {id:'audi', f:'ctx', r:12, label:'Audibilité', desc:"Le dys écrit ce qu'il ENTEND. On ancre sur l'audible (le/la/les, voyelles), on répare le muet (-s/-ent/accents)."},
   {id:'seg', f:'ctx', r:12, label:'Ponctuation · _SEG', desc:"bb (frontière proposition), ss (phrase), hy (trait d'union), dig (nombre effacé). Détecte l'incise, borne les recherches de sujet."},
+  {id:'pers', f:'ctx', r:13, label:'Personne du verbe', desc:"Qui est le sujet, quand c'est un pronom ? Pas le tagger (il rend PRON des deux côtés) mais des TABLES FERMÉES écrites à la main : SUBJ_PRON (je·tu·il·elle·on·ils·elles) et, depuis le 08/09/2026, CLIT_PERS qui ajoute nous → 1p et vous → 2p. La garde qui rend l'ajout sûr n'est pas lexicale, elle est MORPHOLOGIQUE : _PERS attend la terminaison du verbe (nous → -ons, vous → -ez, tu → -s/-x). Même parade que pour les questions sans trait d'union : quand la nature ne tranche pas, c'est la conjugaison qui tranche. HISTOIRE : nous/vous étaient dans CLITIC donc SAUTÉS comme objets depuis le 1er commit (25/06) — une abstention écrite en dur, pas un échec de reconnaissance ; motif chiffré 13 FP sur une règle voisine."},
   {id:'postype', f:'ctx', r:11, label:'Type POS', desc:"La nature (nom/verbe/adj/dét) gate quasi toutes les règles : désambiguïse les homographes (la marche : nom vs verbe)."},
   {id:'ancre', f:'ctx', r:14, label:'Ancre fiable', desc:"MESURÉ 22/08 : 77 % des faux positifs sur texte dys viennent d'un VOISIN ABÎMÉ, pas d'une erreur de détection — un POS-tagger étiquette correctement un mot FAUX. Sur du dys ~20 % des mots sont fautifs, donc ~56 % de chances qu'un des 4 voisins le soit. Le geste qui paie n'est pas « plus de détection » mais « le mot sur lequel je lis mon information est-il digne de confiance ? » : mot inconnu du lexique · déterminant contredit par le nom · mot déjà corrigé par une autre règle (cascade à→a + conservé→conserver = faute FABRIQUÉE) · règle voisine qui sait réparer. ⚠️ Mesuré aussi : 94 % de ces ancres sont des mots PARFAITEMENT CONNUS — un test lexical générique n'en attraperait que 4 %. La garde reste donc PAR RÈGLE, pas globale."},
   // règles rouges
@@ -171,7 +172,7 @@ const E = [
   ['lex4','spw'],['lex4','gn'],['lex4','conj'],['lex4','ipa'],['wikt','spw'],['wikt','gn'],['wikt','ipa'],
   ['argot','spw'],['argot','gn'],['part','spw'],['ud','hmm'],['ud','core'],
   // structures -> engines
-  ['spw','spell'],['hmm','tag'],['conj','sv'],['conj','pp'],['conj','term'],['gn','genre'],['np','genre'],['np','gn'],
+  ['spw','spell'],['hmm','tag'],['pers','tag'],['pers','conj'],['pers','sv'],['pers','term'],['conj','sv'],['conj','pp'],['conj','term'],['gn','genre'],['np','genre'],['np','gn'],
   ['ipa','spell'],['colL','filet'],['colL','plu'],
   // engines internal / -> rules
   ['tag','filet'],['tag','core'],['spell','core'],['os','core'],['filet','sv'],
