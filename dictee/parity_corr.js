@@ -321,6 +321,31 @@ for (const ph of _BUT_NON) {
 if (_but) { console.log('PARITÉ KO — ' + _but + ' cas « infinitif de but ».'); process.exit(1); }
 
 
+/* GARDE « PERSONNE DU VERBE » (2026-09-15) — LE RAPPEL, pas seulement l'absence de FP.
+   « app ⊆ Python » est unidirectionnel : un moteur MUET passe la parité. C'est exactement ce qui est arrivé
+   au #699 : « Nous allez au parc » corrigé par la référence, MUET dans le produit pendant un jour, parce que
+   la garde des modaux avait été portée avec un autre test (« le mot suivant n'a aucune lecture conjuguée »,
+   vrai de « au »). Rem l'a vu dans son Chrome ; aucune sonde ne pouvait le dire. Même parade que pour les
+   prénoms et l'infinitif de but : on EXIGE la sortie, et on garde les pièges à côté.
+   Les pièges comptent autant que les cibles : la garde des modaux doit continuer de taire « je vais MANGER ». */
+const _CONJ_OUI = [['Nous allez au parc.', 'allons'], ['Nous êtes là.', 'sommes'],
+                   ['Nous iriez au cinéma.', 'irions'], ['Nous mangeames bien.', 'mangeâmes'],
+                   ['Vous mangeates bien.', 'mangeâtes'], ['Ils mangerent bien.', 'mangèrent']];
+const _CONJ_NON = ['Je vais manger des pommes.', 'Nous allons manger.', 'Vous allez partir bientôt.',
+                   'Il peut venir demain.', 'Nous primes le train.', 'Nous mangeâmes bien.',
+                   'On sent que vous maitrisez votre sujet.'];
+let _conj = 0;
+for (const [ph, att] of _CONJ_OUI) {
+  const got = corr(ph).map(f => String(f.sugg).toLowerCase());
+  if (!got.includes(att)) { _conj++; console.log('✗ PERSONNE DU VERBE : ' + JSON.stringify(ph) + ' doit donner « ' + att + ' », eu ' + JSON.stringify(got)); }
+}
+for (const ph of _CONJ_NON) {
+  const got = corr(ph).filter(f => f.name === 'personne du verbe');
+  if (got.length) { _conj++; console.log('✗ PIÈGE CONJUGAISON : ' + JSON.stringify(ph) + ' ne doit RIEN donner, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg))); }
+}
+if (_conj) { console.log('PARITÉ KO — ' + _conj + ' cas « personne du verbe ».'); process.exit(1); }
+
+
 /* GARDE « REGLES_FR 1-8 » (2026-08-12) — les 9 règles mesurées : rappel, pièges, et le TIER dit vrai.
    Mesuré au moteur : 7 tirs sur 14 450 phrases UD, TOUS de vraies fautes du corpus (négation orale,
    « le plus influant », « deux cent salariés »). La fumée a servi de casse-garde : la branche

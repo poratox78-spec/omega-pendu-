@@ -71,6 +71,35 @@
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-15 (fin) — LE PREMIER CAS DE REM N'ÉTAIT PAS RÉPARÉ *DANS LE PRODUIT* : le #699 mal porté, et la sonde qui ne pouvait pas le dire
+
+> En vérifiant les explications demandées par Rem, le moteur de l'extension chargé comme le produit :
+> « Nous allez au parc. » → **rien**. La référence Python, elle, corrige depuis le #699. Un jour entier avec
+> le cas n° 1 de son rapport annoncé réparé et muet chez lui.
+
+- **LA CAUSE : un portage à l'à-peu-près.** La garde des modaux doit dire « je ne touche pas à ce verbe s'il
+  est suivi d'un vrai INFINITIF » (« je vais MANGER ») :
+  · Python : `if dl in MODAL and i+1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX: return None`
+  · JS (#699) : `if(MODAL[dl] && i+1<T.length && (/er$/.test(deacc(T[i+1])) || !svReads(T[i+1]).length)) return null;`
+  Le JS teste « le mot suivant n'a AUCUNE lecture conjuguée » — ce qui est vrai de « au », de « le », de
+  n'importe quel mot-outil. Sur « Nous allez **au** parc », il croit voir un infinitif et se tait. Le miroir
+  exact tenait en un mot : `COMMON_VERBS[deacc(T[i+1].toLowerCase())]` — `COMMON_VERBS` (JS) est byte-à-byte
+  `cgram_verbs.json`, et `VERB_LEX` (Python) est cette même liste ∪ une liste blanche de 194 formes qui y est
+  ENTIÈREMENT contenue (mesuré : 0 hors cgram). Deux moteurs, un seul test.
+- **POURQUOI AUCUNE SONDE NE L'A DIT.** `parity_corr` vérifie « **app ⊆ Python** » : un moteur MUET la passe
+  toujours. Le fichier le SAIT et s'en défend déjà — blocs d'EXIGENCE pour les prénoms, l'infinitif de but,
+  REGLES_FR 1-8, le conflit déterminant/nom, chacun né d'un silence. La conjugaison, la plus récente, n'en
+  avait pas. Elle en a un : `_CONJ_OUI` (6 corrections exigées) et `_CONJ_NON` (7 pièges, dont « je vais
+  MANGER » — la garde des modaux doit continuer de se taire là). **Vérifié en remettant l'ancienne ligne :
+  la sonde rougit** (« ✗ PERSONNE DU VERBE : "Nous allez au parc." doit donner « allons », eu [] »).
+- **La leçon, elle, n'est pas neuve** : elle est écrite dans `parity_corr.js` depuis le 11/08. « Une règle non
+  branchée vaut zéro » — et une parité unidirectionnelle ne la voit pas. Toute règle nouvelle a besoin de son
+  bloc d'exigence LE JOUR où elle est portée, pas le jour où Rem la teste.
+- **Mesuré** : parité app ⊆ Python (384 phrases, 4 écarts de couverture, inchangés) · messy 59 % / FP=0 /
+  3 mauvaises corrections · textes 15 phrases · batterie et juge INCHANGÉS (le Python n'est pas touché).
+
+---
+
 ## 2026-09-15 (suite) — « NOUS MANGEAMES » : c'est de la CONJUGAISON, et les tables n'avaient AUCUNE case
 
 > Rem : « fais mangeames [...] là c'est de la conjugaison ». Il avait raison contre mon renvoi de la veille
