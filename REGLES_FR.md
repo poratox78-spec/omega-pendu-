@@ -244,6 +244,7 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | participe épithète · adjectif attribut/épithète | 🔴 | via tagger + _adj_head |
 | accord « tout » | 🔴 | règle dédiée (« tout étonnées » correctement laissé) |
 | **participes invariables (fait/vu/laissé + infinitif, se sont succédé)** | 🟡 | pas de règle POSITIVE, mais pronominal exclu des accords → silencieux, pas faux |
+| **accord SURNUMÉRAIRE après avoir, sans antécédent** (« elles ont mangés », « j'ai mangée ») | 🟡 | MESURÉ MUET dans Chrome le 08/09/2026 (10 phrases fautives, 10 silences). Le retrait d'accord n'existe qu'après le relatif « dont » (`rule_pp_avoir_dont`, 13 verbes) ; la connaissance « invariable avec avoir » n'est écrite que dans l'explicateur de DICTÉE, qui connaît déjà le texte de référence et ne détecte rien |
 | vingt/cent (quatre-vingts, deux cents) | 🔴 LIVRÉ (2026-08-12) | nom PLURIEL exigé après (tue dates/ordinaux) ; millésime « mille neuf cent » exclu ; le seul tir UD était une vraie faute (« deux cent salariés ») |
 | **adjectifs de couleur composés** | 🟡 | invariables simples couverts (listes) ; composés (« bleu foncé ») non signalés — mais jamais cassés |
 
@@ -322,6 +323,10 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
    fermés, orange, petit volume chacun.
 8. **Compléter la liste des participes à être** (« il a tombé », « ils ont retournés ») — la
    règle existe, la DONNÉE manque ; même diagnostic que les prénoms (PR#460).
+   ⚠️ *Vérifié dans Chrome le 08/09/2026* : « il a tombé » tire (`a`→`est`), « ils ont retournés »
+   NON — et c'est VOULU : `retourner` est aussi transitif (« j'ai retourné la crêpe »), il ne peut
+   donc pas entrer dans `AUX_ETRE_PP`, qui n'accepte que les intransitifs purs (FP=0 par liste
+   fermée). C'est l'EXEMPLE de cette ligne qui est mauvais, pas la règle.
 9. ~~Parenthèses/guillemets non appariés~~ — RÉFUTÉ par la mesure (voir §6) : le non-apparié est presque toujours légitime en français réel, et le gold dys n'en corrige aucun.
 
 **Bilan du chantier 2026-08-12 (items 1-8)** : 1, 2, 3, 5, 7, 8 LIVRÉS (rouge quand le cadre le
