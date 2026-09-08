@@ -85,6 +85,10 @@ if (typeof corr !== 'function') { console.error('correctText non exposé'); proc
 
 // 4) batterie : doit DÉTECTER / ne doit RIEN flaguer
 const PHRASES = [
+  // COQUILLE DE LA SOURCE (Lexique 4) : « soulais » y est déclaré imparfait de VOULOIR. Le Python répare la
+  // TABLE au chargement ; le JS ne le faisait que dans une règle, donc rAccordSV écrivait le non-mot en ROUGE.
+  // La sonde savait voir (sa clé contient la SUGGESTION) — il lui manquait la phrase.
+  'Ce que je vouliez.', 'Il faut que je vouliez souvent.',
   // INFINITIF DE BUT (PR en cours) — cibles ET pièges du participe ADJECTIVAL, qui est ce qui décide
   // de la forme de la règle. Les pièges comptent autant que les cibles : « épuisé » ne doit JAMAIS
   // devenir « épuiser ».

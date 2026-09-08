@@ -71,6 +71,38 @@
   mesurée aussi : strictement la baseline (les 3 gains y passent). Planchers relevés au mesuré (91,3 / 26,7 ; 96,8 / 19,7).
 - **Coût assumé, dit** : « qui est là » en minuscule reste muet (le dys sans majuscule), « Qui vivra verra. » reçoit un « ? » orange
   (proverbe, rare) — l'orange se refuse d'un clic.
+## 2026-09-16 (suite) — LE PRODUIT ÉCRIVAIT UN MOT QUI N'EXISTE PAS, EN ROUGE : « ce que je vouliez » → « SOULAIS »
+
+> Trouvé en dépouillant le Bescherelle passé dans le VRAI Chrome (le subjonctif), pas par une sonde.
+>   référence Python : « ce que je vouliez » → **voulais**
+>   produit (Chrome) : « ce que je vouliez » → **SOULAIS**
+
+- **LA COQUILLE ÉTAIT CONNUE ET « RÉPARÉE » DEPUIS LE 14/09.** Lexique 4 déclare « soulais » 1re personne de
+  l'imparfait de VOULOIR (un « v » lu « s »). Le Python répare **LA TABLE** au chargement — donc aucune règle
+  ne peut plus émettre la coquille. Le JS, lui, ne consultait `_CONJ_FIX` que dans **une** règle (`sujFlexVig`) ;
+  `rAccordSV` lit la table brute, et c'est ELLE qui tirait, en ROUGE, dans le navigateur. Deuxième portage
+  approximatif en deux jours, après la garde des modaux : le correctif Python touchait la DONNÉE, le port JS a
+  touché UN USAGE.
+- **⚠️ ET L'ORDRE D'ÉVALUATION — le piège dans le piège.** Le correctif posé dans `_fillReg3pl` (le seul point
+  que toutes les voies de chargement traversent — l'app en a DEUX, l'amorce synchrone et la table asynchrone)
+  ne faisait **rien**, silencieusement : `_CONJ_FIX` était déclaré à côté de la règle qui l'utilisait, donc
+  APRÈS l'amorce synchrone. Un `var` n'est hoisté qu'en NOM, pas en valeur, et `for (k in undefined)` ne lève
+  aucune erreur. La sonde de parité, elle, l'a dit tout de suite. La déclaration descend à côté des tables
+  qu'elle répare.
+- **LA GARDE EXISTAIT DÉJÀ, IL MANQUAIT LA PHRASE.** `parity_corr` compare la clé *(position | mot |
+  SUGGESTION)* : une suggestion divergente sort en « APP flague ce que PY ne flague pas ». Deux phrases
+  ajoutées ; vérifié en remettant le bug : **2 phrases en échec**.
+- **CE QUE LE BESCHERELLE DIT PAR AILLEURS** (1 279 phrases, vrai Chrome, produit du jour) : **640/640 phrases
+  correctes intactes, 0 mot juste cassé** · **565/639 fautes réparées (88,4 %)**. Sur le banc identique au
+  précédent (1 197 phrases) : **507 → 528**, soit 85,2 % → **88,7 %**. Par temps : conditionnel 100 %, futur
+  96,6 %, présent 90,0 %, imparfait 89,2 %, passé simple 86,4 % (il n'existait pas au pluriel le matin même),
+  **subjonctif 63,7 %** — le point bas, et il a UNE cause : `accord sujet-verbe` passe avant la règle de
+  personne et rend l'IMPARFAIT au lieu du subjonctif (26 des 37 ratés, tous en rouge). Chantier ouvert.
+- **Mesuré** : parité app ⊆ Python (386 phrases) · `dev.sh fresh` 91/91 · batterie, FP échelle et juge
+  inchangés (le Python n'est pas touché).
+
+---
+
 ## 2026-09-16 — LES EXPLICATIONS DE LA CONJUGAISON DISAIENT FAUX (les trois défauts que Rem a demandé de vérifier)
 
 > « fais mangeames et vérifies les règles et explication de ce qu'on vient de faire :

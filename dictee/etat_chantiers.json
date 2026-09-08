@@ -150,9 +150,19 @@
       "titre": "Les explications de la conjugaison : « il » cité quelle que soit la correction, le passé simple rangé dans les ACCENTS, et la famille orange sans un mot d'explication",
       "verdict": "Trois défauts, tous vérifiés dans le moteur réel puis réparés le 16/09. ① Le remède nomme désormais la personne que porte la forme proposée, en écartant les lectures FANTÔMES des tables par la garde accent-exacte de la règle (« sommes » y est lu 2e du singulier) et par le lemme du mot écrit. ② « personne du verbe » passe AVANT l'heuristique d'accent dans _corrFam/flagsToFacts — la doctrine que le fichier énonce déjà pour le participe : « les heuristiques de FORME passent APRÈS le nom de la règle ». ③ _EXPL a l'entrée de la famille née au #699. Témoins dans textes_probe (17 phrases) ; vérifié en remettant l'ancien texte : 7 attentes non tenues.",
       "ref": "JOURNAL 2026-09-16"
+    },
+    {
+      "titre": "Le produit écrivait « soulais » (un mot qui n'existe pas) en ROUGE : la coquille de Lexique 4 réparée côté Python dans LA TABLE, côté JS dans UN SEUL usage",
+      "verdict": "Trouvé le 16/09 en dépouillant le Bescherelle passé dans le vrai Chrome. Le Python répare CONJ_C au chargement, donc aucune règle ne peut émettre la coquille ; le JS ne consultait _CONJ_FIX que dans sujFlexVig, et rAccordSV lit la table brute. Réparation déplacée dans _fillReg3pl (le seul point que les DEUX voies de chargement de l'app traversent) — et la déclaration de _CONJ_FIX descendue à côté des tables, sans quoi l'amorce synchrone la lisait « undefined » et la réparation ne faisait rien, sans un mot (un var n'est hoisté qu'en nom). Témoins dans parity_corr, qui savait déjà voir (sa clé contient la suggestion) : vérifié, 2 phrases en échec avec le bug.",
+      "ref": "JOURNAL 2026-09-16 (suite)"
     }
   ],
   "ouverts": [
+    {
+      "titre": "SUBJONCTIF 63,7 % au Bescherelle : « accord sujet-verbe » passe avant la règle de personne et rend l'IMPARFAIT",
+      "etat": "Mesuré le 16/09 dans le vrai Chrome (1 279 phrases) : le subjonctif est le point bas, loin devant les autres temps (conditionnel 100 %, futur 96,6 %, présent 90,0 %, imparfait 89,2 %, passé simple 86,4 %). Une seule cause pour 26 des 37 ratés, tous en ROUGE : « il faut que je disiez » → « disais » (imparfait) au lieu de « dise ». C'est la même forme que le chantier « tu irai » : la vieille règle décide la première et ne garde pas le MODE ni le TEMPS de la forme écrite. 11 ratés restants sont des muets (« il faut que je devions »).",
+      "ref": "JOURNAL 2026-09-16 (suite)"
+    },
     {
       "titre": "Le 💡 contextuel est VIDE pour la famille « personne du verbe » (seul le 🛠️ porte le message)",
       "etat": "Constaté le 16/09 en lisant les explications dans le moteur réel. `_accHint` ne s'ouvre qu'aux familles dont le nom contient « accord » ou « genre » ; « personne du verbe » n'en est pas, donc la bulle inline reste vide alors que le gouverneur (le pronom sujet) est parfaitement identifiable. À mesurer avant d'ouvrir la porte : sur « nous mangeames », le gouverneur serait juste mais hors sujet (c'est l'accent qui manque, pas la personne).",
