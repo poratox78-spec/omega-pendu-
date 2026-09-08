@@ -46,6 +46,29 @@ LEX4=… python3 dictee/fetch_frgec_pairs.py --mo 40 --chunks 0,1,2,3,4,5
 OMEGA_DYS_DATA=… ECRISCOL_ZIP=… python3 dictee/build_gold_externe.py
 ```
 
+Et un **second** instrument, complémentaire : le juge lit un CORPUS, le Bescherelle ÉNUMÈRE un
+paradigme entier dans le vrai Chrome (ce qu'aucun corpus ne peut faire — une case absente du corpus
+est invisible ; c'est ainsi que nous/vous sont restés hors de la conjugaison pendant des mois) :
+
+```bash
+python3 dictee/bescherelle_gen.py   <in.json> <meta.json>    # 20 verbes × 6 temps × 6 personnes
+node    dictee/navigateur_flags_dump.js <in.json> <out.json>  # le VRAI Chrome, extension réelle
+python3 dictee/bescherelle_score.py <meta.json> <out.json>    # par TEMPS et par PERSONNE
+```
+
+Dernière mesure (08/09/2026, base `#704`, 1 279 phrases) : **640/640 phrases correctes intactes,
+0 mot juste cassé** · **565/639 fautes réparées (88,4 %)**. Sur le banc identique au passage
+précédent (1 197 phrases) : **507 → 528**, soit 85,2 % → **88,7 %**.
+
+| temps | | | | sujet | |
+|---|---:|---:|---|---|---:|
+| conditionnel | 119/119 | 100 % | | vous | 93,5 % |
+| futur | 115/119 | 96,6 % | | tu | 92,2 % |
+| présent | 108/120 | 90,0 % | | ils | 91,8 % |
+| imparfait | 107/120 | 89,2 % | | nous | 89,4 % |
+| passé simple | 51/59 | 86,4 % | | il | 83,0 % |
+| **subjonctif** | **65/102** | **63,7 %** | | je | 80,6 % |
+
 ---
 
 ## 1. Par quoi commencer — les trois premiers pas, dans cet ordre
@@ -68,6 +91,17 @@ conclusion — la référence Python n'est pas le produit.
 ### ③ Les cinq FP confirmés au produit, un incrément chacun
 `cone`→`conne` (l'accent doit gagner : `cône`) · `tracé`→`tracer` après « de » · `mai`→`mais` dans
 une date · `Allier`→`Allié` (nom propre) · `grec`→`grecs` en coordination.
+
+### ④ Le SUBJONCTIF — le point bas du paradigme, et **une seule cause**
+**26 des 37 ratés, tous en ROUGE.** « Il faut que je disiez » → **« disais »** : la vieille règle
+`accord sujet-verbe` décide la première et rend l'**imparfait** au lieu du subjonctif. Elle ne garde
+ni le MODE ni le TEMPS de la forme écrite — exactement la forme du chantier « tu irai » → « vas ».
+Les 11 ratés restants sont des muets (« il faut que je devions »). Le remède n'est pas une règle de
+plus : c'est l'ORDRE, ou la conservation du mode dans la règle qui tire en premier. Matière première :
+rejouer le banc ci-dessus et filtrer `tps == 'sub:pre'`.
+⚠️ À traiter comme un incrément à part : `accord sujet-verbe` est la famille la plus ancienne et la
+plus large ; la sonde de précision au produit la donne déjà à **79,5 %** (31 justes / 5 inutiles /
+3 fausses sur 39), soit sous le seuil des 80 % — toucher son ordre se mesure avant, pas après.
 
 ---
 
@@ -127,3 +161,17 @@ python3 dictee/etat_gen.py     # régénère ETAT.md depuis la source curée
   314/14 en une soirée sans que le produit bouge (portage du palier « mot inconnu » dans la
   référence). Ne jamais comparer deux mesures prises sur des bases différentes.
 - **Un worktree n'a pas de `data_local/`** : poser `LEX4=` et `OMEGA_DYS_DATA=` explicitement.
+- **Porter un correctif, c'est porter la DONNÉE, pas un usage.** La coquille « soulais » de Lexique 4
+  était réparée côté Python DANS LA TABLE au chargement, côté JS dans une seule règle — une autre
+  règle lisait la table brute et écrivait le non-mot **en rouge dans le produit** (#704). Poser la
+  réparation au point que TOUTES les voies de chargement traversent (l'app en a deux : amorce
+  synchrone et table asynchrone), et **vérifier l'ordre** : un `var` n'est hoisté qu'en nom, et
+  `for (k in undefined)` ne lève rien — une réparation déclarée trop bas ne fait RIEN, sans un mot.
+- **`parity_corr` est UNIDIRECTIONNELLE : un moteur MUET la passe.** « Nous allez au parc » a été
+  corrigé par la référence et muet dans le produit pendant un jour (#702), garde des modaux portée
+  avec un autre test. Le fichier a déjà la parade — les blocs d'EXIGENCE `_PREN`, `_BUT`, `_R8`,
+  `_DES`, et depuis le 08/09 `_CONJ` — chacun né d'un silence. **Toute règle portée en JS a besoin de
+  son bloc le jour même**, et il se vérifie en remettant le bug.
+- **Un TAUX ment quand le banc grandit.** Les tables ayant gagné le passé simple pluriel, la sonde de
+  couverture a gagné 156 cas et son taux a BAISSÉ alors que chaque case gagnait. Elle ancre désormais
+  aussi le nombre absolu de réussites (#701). Se méfier de tout ratchet posé sur un pourcentage.
