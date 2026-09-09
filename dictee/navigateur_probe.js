@@ -156,6 +156,25 @@ const CAS = [
      PAS gardé ici, pour qu'une règle future ne trouve pas la porte fermée. Ce qui est gardé, c'est ce
      qui tire déjà : sans ces trois lignes, `rule_pp_avoir_cod` et `rule_pp_avoir_dont` pouvaient
      s'éteindre sans faire rougir personne dans le vrai moteur. */
+  /* ⭐ LES CINQ FAUX POSITIFS CONFIRMÉS AU PRODUIT sur texte ordinaire (Wikipédia), 08/09/2026.
+     Chacun sa cause, chacun sa garde, toutes portées d'une règle SŒUR ou d'une table que le moteur
+     possédait déjà : le drapeau `dig` de _seg_info (un nombre jeté par le tokeniseur), la ligne
+     « virgule après l'adjectif » de rAdjNumber, la ligne « capitale en cours de phrase » de rEPpl,
+     la table de genre ACCENTUÉE _GACC, et le fait que le circonflexe est la trace d'une consonne
+     disparue. Mesure : 0 correction perdue, 0 tir neuf sur 14 450 phrases d'UD. */
+  { txt: 'Le logo en forme de cone de VideoLAN a changé.', corrigeAttendu: ['cone', 'cône'], pourquoi: 'l\'accent gagne sur le redoublement : « conne » était affirmé en rouge' },
+  { txt: 'ils sont armés de batons et de barres de fer.', corrigeAttendu: ['batons', 'bâtons'], pourquoi: 'même garde du circonflexe — trouvé PAR la mesure, pas par la liste' },
+  { txt: 'avec changement d\'écartement et de tracé, y compris un échange.', rien: true, orangeInterdit: 'tracé', pourquoi: '« tracé » est un NOM que seule la table de genre ACCENTUÉE connaît (trace/tracé s\'annulent en désaccentué)' },
+  { txt: 'il obtient le droit de cité en 1789.', rien: true, orangeInterdit: 'cité', pourquoi: 'même garde, règle sœur : « le droit de cité » n\'est pas un infinitif' },
+  { txt: 'La France gagne le sport 6 mai 1928 en battant la Belgique.', rien: true, orangeInterdit: 'mai', pourquoi: 'un NOMBRE juste avant = une date ; le tokeniseur jette les chiffres, le drapeau dig les sait' },
+  { txt: 'la communauté à laquelle elle appartient est Allier Comté Communauté.', rien: true, orangeInterdit: 'Allier', pourquoi: 'capitale en cours de phrase = nom propre (la règle sœur rEPpl a cette garde depuis toujours)' },
+  { txt: 'une population au carrefour des mondes grec, albanais et slave.', rien: true, pourquoi: "énumération distributive : chaque adjectif porte sur UN monde. Le ROUGE est éteint (rule_adj_epithet). L'ORANGE de pluralVig reste, et c'est VOULU : la même garde portée là a été RÉFUTÉE le 08/09 par le census (2 oranges justes perdues) et par la précision au produit (45,5 % < plancher 50 %) — doctrine : doute → orange, refusable" },
+  /* CONTRE-GARDES : les vraies fautes doivent continuer d'être corrigées. */
+  { txt: 'mon frère a manger la pomme.', corrigeAttendu: ['manger', 'mangé'], pourquoi: 'CONTRE-GARDE : auxiliaire → participe, la capitale n\'a rien éteint' },
+  { txt: 'il a oublié de parlé à sa mère.', corrigeAttendu: ['parlé', 'parler'], pourquoi: 'CONTRE-GARDE : préposition → infinitif, « parlé » n\'est pas un nom' },
+  { txt: 'les monuments grec sont beaux.', corrigeAttendu: ['grec', 'grecs'], pourquoi: 'CONTRE-GARDE : sans frontière après l\'adjectif, l\'accord tire toujours' },
+  { txt: 'il est venu mai il est reparti aussitôt.', corrigeAttendu: ['mai', 'mais'], pourquoi: 'CONTRE-GARDE : sans nombre avant, « mai » redevient la conjonction' },
+  { txt: 'j\'ai laisé la pome sur la table.', corrigeAttendu: ['pome', 'pomme'], pourquoi: 'CONTRE-GARDE : la route double-consonne vit toujours (aucun rival à circonflexe)' },
   { txt: "la porte qu'il a ouvert", corrigeAttendu: ['ouvert', 'ouverte'], pourquoi: 'COD antéposé par « que » : le participe irrégulier accorde (table _IRR_PP)' },
   { txt: "les fleurs que j'ai cueilli", corrigeAttendu: ['cueilli', 'cueillies'], pourquoi: 'COD antéposé par « que » + auxiliaire élidé « j\'ai »' },
   { txt: "les choses dont je t'ai parlées", corrigeAttendu: ['parlées', 'parlé'], pourquoi: '« dont » = COI : le seul endroit du moteur qui RETIRE un accord surnuméraire après avoir' },
