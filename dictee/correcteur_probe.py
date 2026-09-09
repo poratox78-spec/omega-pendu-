@@ -2369,6 +2369,38 @@ def _agrees(reads, per, nb):
     return any(p == per for (_l, _mt, p, _n) in reads)
 
 
+
+# ---------- DÉCLENCHEURS DU SUBJONCTIF (liste FERMÉE) ----------
+# Conjonctions et locutions qui imposent le subjonctif dans la subordonnée qu'elles ouvrent. La liste
+# est FERMÉE par construction : les tournures à VERBE (« je veux que », « je doute que », « il est
+# possible que ») sont ouvertes — donc exclues. Seule `falloir` y entre, parce qu'elle n'admet QUE le
+# subjonctif. Sert à `rule_accord_sv` pour faire passer le MODE avant le temps ; miroir JS _subjTrigger.
+_SUBJ_TRIG_1 = {'quoique', 'quoiqu'}
+_SUBJ_TRIG_2 = {('bien', 'que'), ('pour', 'que'), ('afin', 'que'), ('avant', 'que'), ('sans', 'que'),
+                ('pourvu', 'que'), ('encore', 'que'), ('non', 'que'),
+                ('faut', 'que'), ('faudrait', 'que'), ('fallait', 'que'), ('faudra', 'que')}
+_SUBJ_TRIG_3 = {('a', 'moins'), ('de', 'peur'), ('de', 'crainte'), ('a', 'condition'), ('en', 'attendant')}
+
+
+def _subj_trigger(T, i):
+    """La proposition qui contient T[i] est-elle ouverte par un déclencheur de subjonctif ?
+
+    On remonte au « que » le plus proche à gauche (fenêtre courte : le verbe suit son sujet de près
+    dans le cadre visé), puis on lit les un à trois mots qui le précèdent.
+    """
+    q = None
+    for k in range(i - 1, max(-1, i - 6), -1):
+        d = deacc(T[k].lower())
+        if d.startswith('quoiqu'): return True          # « quoique »/« quoiqu'il » : déclencheur SOUDÉ,
+        if d in ('que', 'qu') or d.startswith("qu'"):   # il n'y a pas de « que » séparé à trouver
+            q = k
+            break
+    if q is None: return False
+    d1 = deacc(T[q - 1].lower()) if q >= 1 else ''
+    d2 = deacc(T[q - 2].lower()) if q >= 2 else ''
+    return (d1, 'que') in _SUBJ_TRIG_2 or (d2, d1) in _SUBJ_TRIG_3
+
+
 def rule_accord_sv(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None        # forme élidée (j'ai) → hors v1
     if T[i].lower().endswith(('é', 'és', 'ée', 'ées')): return None   # participe (mangé…) : accord adjectival/temps composé, pas présent (deacc é→e trompe)
@@ -2396,7 +2428,17 @@ def rule_accord_sv(T, i):
     if len(lemmas) != 1: return None                             # forme homographe inter-lemmes (vis=vivre/voir) → abstention
     lem = lemmas.pop()
     mts = [mt for (_l, mt, _p, _n) in reads]
-    mt = 'ind:pre' if 'ind:pre' in mts else mts[0]               # temps cible = présent si dispo, sinon le temps tapé
+    # ⭐ LE MODE AVANT LE TEMPS (08/09/2026). Le commentaire d'origine disait « sinon le temps tapé » ;
+    # `mts[0]` est en fait le PREMIER ORDRE DU LEXIQUE. « Il faut que je disiez » : lectures
+    # {ind:imp, sub:pre} → le repli rendait « disais » au lieu de « dise ». Sur DÉCLENCHEUR FERMÉ de
+    # subjonctif, le mode passe donc devant. Mesuré : banc Bescherelle subjonctif 73,5 → 99,0 %,
+    # banc entier 92,4 → 96,8 %, 0 phrase correcte cassée, et 0 verdict changé sur les 381 textes
+    # à déclencheur des 48 866 corpus. PLACEBO (mode d'abord SANS déclencheur) : même gain sur le
+    # subjonctif mais 8 autres cases CASSÉES — c'est la liste fermée qui porte la garde.
+    _sb = [m for m in mts if m.startswith('sub')]
+    if _sb and _subj_trigger(T, i): mt = _sb[0]
+    elif 'ind:pre' in mts: mt = 'ind:pre'
+    else: mt = mts[0]                                            # à défaut, le premier ordre du lexique
     if mt == 'ind:pas': return None                             # passé simple : hors ROUGE (→ vigilance ORANGE app/ext), cohérent avec _sv_finish
     sugg = CONJ_C.get(lem, {}).get(mt, {}).get(per + nb)
     if not sugg: return None

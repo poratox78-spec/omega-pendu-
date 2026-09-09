@@ -156,6 +156,18 @@ const CAS = [
      PAS gardé ici, pour qu'une règle future ne trouve pas la porte fermée. Ce qui est gardé, c'est ce
      qui tire déjà : sans ces trois lignes, `rule_pp_avoir_cod` et `rule_pp_avoir_dont` pouvaient
      s'éteindre sans faire rougir personne dans le vrai moteur. */
+  /* ⭐ LE MODE AVANT LE TEMPS (08/09/2026). `rule_accord_sv` — la règle la plus ancienne et la plus
+     large du correcteur — repliait sur `mts[0]`, c'est-à-dire le PREMIER ORDRE DU LEXIQUE, là où son
+     commentaire disait « le temps tapé ». « Il faut que je disiez » a pour lectures {ind:imp, sub:pre} :
+     elle rendait l'imparfait. Sur DÉCLENCHEUR FERMÉ de subjonctif, le mode passe devant.
+     A/B dans CE Chrome, banc Bescherelle 1 197 cases : subjonctif 63,7 → 89,2 %, formes fausses 27 → 1,
+     mots justes cassés 0 → 0, les cinq autres temps inchangés. Sur les corpus (48 866 textes, 355 à
+     déclencheur) : 0 verdict changé. */
+  { txt: 'Il faut que je disiez la vérité.', corrigeAttendu: ['disiez', 'dise'], pourquoi: 'le subjonctif était disponible ; la règle rendait « disais »' },
+  { txt: 'Il faut que il vouliez partir.', corrigeAttendu: ['vouliez', 'veuille'], pourquoi: 'même cadre, verbe irrégulier — « voulait » avant' },
+  { txt: 'quoique tu prenions le train.', corrigeAttendu: ['prenions', 'prennes'], pourquoi: 'déclencheur SOUDÉ : il n’y a pas de « que » séparé à trouver en remontant' },
+  { txt: 'je pense que je disiez la vérité.', corrigeAttendu: ['disiez', 'disais'], pourquoi: 'CONTRE-GARDE : « je pense que » veut l’indicatif — hors liste fermée, rien ne change' },
+  { txt: 'il faut que je mange une pomme.', rien: true, pourquoi: 'CONTRE-GARDE : phrase JUSTE au subjonctif — le correcteur doit se taire' },
   /* ⭐ LES CINQ FAUX POSITIFS CONFIRMÉS AU PRODUIT sur texte ordinaire (Wikipédia), 08/09/2026.
      Chacun sa cause, chacun sa garde, toutes portées d'une règle SŒUR ou d'une table que le moteur
      possédait déjà : le drapeau `dig` de _seg_info (un nombre jeté par le tokeniseur), la ligne
