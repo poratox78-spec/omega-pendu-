@@ -3204,6 +3204,14 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       L=SP.D2A[d.slice(0,i)+_VOY_RENDUE.charAt(k)+d.slice(i)]||[];
       for(q=0;q<L.length;q++){f=SP.FREQ[L[q]]||0;if(f>bf){best=L[q];bf=f;}}}
     return bf>=_VOY_FREQ?best:null;}
+  /* ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026, miroir Python _DBL_MIN) — la sœur de
+     _AFIX_MIN, pour les consonnes DOUBLÉES. « je suis à la boure » : le moteur ne corrigeait pas
+     « boure » et proposait « la »→« le » — il ne ratait pas la faute, il en FABRIQUAIT une autre.
+     Cause : `boure` EST au lexique (0,006/M) face à `bourre` (2,943/M, ~500x). 77 candidats recensés,
+     TRIÉS À LA MAIN : on n'écrit que des NON-MOTS (écartés : embraser/puiser/miser/caser/cuire/
+     boiser/soufrer/raviser/coter/luter, pisé/colée/pane/poise/frison, homes/quite/bare/shoping/
+     chalenge/cuter/tase/bote, bonie). 0 occurrence en minuscules sur 14 450 phrases d'UD. */
+  var _DBL_MIN={adition:'addition',agrave:'aggrave',aterri:'atterri',aterrit:'atterrit',bales:'balles',balon:'ballon',balons:'ballons',beure:'beurre',boure:'bourre',casette:'cassette',casettes:'cassettes',chate:'chatte',chates:'chattes',cocote:'cocotte',comandant:'commandant',conard:'connard',conards:'connards',fasions:'fassions',feses:'fesses',filette:'fillette',frape:'frappe',masage:'massage',oseuse:'osseuse',piser:'pisser',prudement:'prudemment',tiene:'tienne',trape:'trappe'};
   function spellTokenCore(tok,atStart,T,idx){
     if(!SP.ready)return null;var low=tok.toLowerCase().replace(/œ/g,'oe').replace(/æ/g,'ae');if(low.length<2||!isAlphaS(low))return null;
     if(udHas(low))return null;                                       // dictionnaire utilisateur -> mot valide
@@ -3219,7 +3227,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
        corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
        Exclus : entraide, quelquefois, prudhomme (mots). Miroir Python _APOS_FIX. */
-    var _APOS_FIX={"aujourdhui":"aujourd'hui","aujourdui":"aujourd'hui","quelquun":"quelqu'un","quelquune":"quelqu'une","jusqua":"jusqu'à","jusquau":"jusqu'au","jusquaux":"jusqu'aux","jusquen":"jusqu'en","jusquici":"jusqu'ici","jusquou":"jusqu'où","presquile":"presqu'île","lorsquil":"lorsqu'il","lorsquelle":"lorsqu'elle","puisquil":"puisqu'il"};if(_APOS_FIX[low])return["auto",_APOS_FIX[low]];
+    var _APOS_FIX={"aujourdhui":"aujourd'hui","aujourdui":"aujourd'hui","quelquun":"quelqu'un","quelquune":"quelqu'une","jusqua":"jusqu'à","jusquau":"jusqu'au","jusquaux":"jusqu'aux","jusquen":"jusqu'en","jusquici":"jusqu'ici","jusquou":"jusqu'où","presquile":"presqu'île","lorsquil":"lorsqu'il","lorsquelle":"lorsqu'elle","puisquil":"puisqu'il"};if(_APOS_FIX[low])return["auto",_APOS_FIX[low]];if(tok===low&&_DBL_MIN[low])return["auto",_DBL_MIN[low]]   /* ⭐ consonne DOUBLÉE (miroir Python) : le mot EST au lexique, la garde « mot valide » le rendrait intouchable et la règle de genre irait corriger le déterminant. MINUSCULES seulement. */;
     /* LE « e » MUET DU FUTUR/CONDITIONNEL (audit rappel dys PR#505 : « je ne t'oublirais jamais » ×4) :
        non-mot en r+terminaison dont stem+er est un verbe des tables → réinsérer le e muet (oublirais→
        oublierais). AUDIBILITÉ : le scripteur a ENTENDU le R (/ubliʁɛ/) — « oubliais » (distance 1 aussi)

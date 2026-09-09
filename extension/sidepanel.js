@@ -21,12 +21,32 @@
      disparaît EN SILENCE. Sorti au banc : dans un contexte sans `chrome.*`, « miroir coupe la
      bulle » marchait et « bulle coupe le miroir » non. Un comportement ne doit pas dépendre de la
      réussite d'un appel de stockage. */
+  /* ⭐ FERMER LE PANNEAU COUPE LA BULLE (09/09/2026) : on ouvre un PORT vers le service worker.
+     Chrome le déconnecte dès que cette page disparaît — c'est le seul signal de fermeture fiable
+     pour un side panel MV3. C'est le service worker qui éteint `enabled` (cf. background.js) ;
+     le faire ici serait vain, la page est déjà en train de mourir. */
+  try { chrome.runtime.connect({ name: 'omdys-panneau' }); } catch (e) {}
+
   bubCb.addEventListener('change', function () {
     try { chrome.storage.local.set({ enabled: bubCb.checked }); } catch (e) {}
-    if (bubCb.checked && mirCb.checked) mirCb.checked = false;
-  });
+    if (bubCb.checked && mirCb.checked) { mirCb.checked = false; majMir(); }   // ⭐ la recopie est PERSISTÉE depuis le 09/09 : la décocher en mémoire aussi, sinon elle
+  });                                                                          //    revenait cochée à la réouverture et les DEUX étaient actives (bug signalé par Rem).
   try {
-    chrome.storage.local.get(['enabled'], function (o) { bubCb.checked = !!(o && o.enabled === true); });
+    /* ⭐⭐ RESTAURATION (09/09/2026) — trois symptômes rapportés par Rem, une seule cause : l'exclusion
+       n'était appliquée QU'AU CLIC. `#omdys-mirror` porte `checked` en dur dans le HTML et n'était NI
+       écrit NI relu dans le stockage ; au retour, la bulle revenait de `enabled`, la recopie du HTML,
+       et les DEUX étaient actives — ce que le commentaire ci-dessous interdit explicitement.
+       On relit les deux dans UN SEUL `get` (deux appels séparés, c'est une course) et on applique
+       l'invariant ICI, pas seulement dans les écouteurs `change` — qui ne se déclenchent jamais
+       quand c'est le CODE qui coche une case.
+       Migration : `omMir` absent chez tous les utilisateurs actuels → la recopie prend l'inverse de la
+       bulle, ce qui préserve le choix stocké ET rétablit l'invariant. */
+    chrome.storage.local.get(['enabled', 'omMir'], function (o) {
+      var bulle = !!(o && o.enabled === true);
+      var mir = (o && typeof o.omMir === 'boolean') ? o.omMir : !bulle;
+      if (bulle && mir) mir = false;              // stockage incohérent (legacy) : la bulle stockée gagne
+      bubCb.checked = bulle; mirCb.checked = mir;
+    });
     /* ⭐⭐ BULLE ET MIROIR SONT EXCLUSIFS (Rem, 2026-08-25 — il l'avait signalé avant, je ne l'avais
        pas cru). LE CONFLIT : `omdys-ta` est UNE SEULE zone écrite par DEUX sources — ce que
        l'utilisateur tape dans le panneau, et le miroir venu de la page. La seule garde était
@@ -285,11 +305,11 @@
   function voiceStatus(m) { stEl.textContent = m; }
   function setVoiceEnabled(on) { micBtn.disabled = !(on && SR); if (!on && recording) stopRec(); }
   if (!SR) { voiceCb.disabled = true; voiceCb.parentNode.title = 'Reconnaissance vocale non supportée par ce navigateur'; }
-  try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; if (on) mirCb.checked = false; setVoiceEnabled(on); }); } catch (e) {}
+  try { chrome.storage.local.get(['omVoice'], function (o) { var on = !!(o && o.omVoice); voiceCb.checked = on; if (on) { mirCb.checked = false; majMir(); } setVoiceEnabled(on); }); } catch (e) {}
   // EXCLUSION MUTUELLE voix ↔ miroir : les deux écrivent dans la MÊME textarea et se battaient (il fallait décocher/recocher).
   // Activer l'un désactive l'autre. Le miroir lit `mirCb.checked` en direct (l.~185) → le décocher le coupe aussitôt.
   voiceCb.addEventListener('change', function () {
-    if (voiceCb.checked && mirCb.checked) mirCb.checked = false;
+    if (voiceCb.checked && mirCb.checked) { mirCb.checked = false; majMir(); }   // ⭐ 09/09 : persister, sinon la recopie revenait cochée au retour
     try { chrome.storage.local.set({ omVoice: voiceCb.checked }); } catch (e) {}
     setVoiceEnabled(voiceCb.checked);
     if (voiceCb.checked) demanderMicro();
@@ -315,7 +335,9 @@
       else ouvre();                                   // 'prompt' : l'invite ne peut pas s'afficher ICI → onglet
     }).catch(function () { ouvre(); });
   }
+  function majMir() { try { chrome.storage.local.set({ omMir: mirCb.checked }); } catch (e) {} }   // ⭐ 09/09 : la recopie n'était PAS persistée du tout
   mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix ET la bulle (une seule surface à la fois)
+    majMir();
     if (mirCb.checked && bubCb.checked) { bubCb.checked = false; try { chrome.storage.local.set({ enabled: false }); } catch (e) {} }
     if (mirCb.checked && voiceCb.checked) { voiceCb.checked = false; try { chrome.storage.local.set({ omVoice: false }); } catch (e) {} setVoiceEnabled(false); }
   });

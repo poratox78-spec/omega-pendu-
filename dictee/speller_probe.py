@@ -17,6 +17,32 @@ GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.js
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
 _AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
+# ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026) — la sœur de `_AFIX_MIN`, pour les
+# consonnes DOUBLÉES. Cas de Rem : « je suis à la boure » — le moteur ne corrige pas « boure » et
+# propose « la »→« le » : il ne rate pas la faute, il en FABRIQUE une autre à côté. Cause : `boure`
+# EST une entrée du lexique (0,006/M) à côté de `bourre` (2,943/M, ~500x), donc le speller sort à sa
+# garde « mot valide » et la règle de genre lit `boure` masculin.
+# Recensement : 77 mots ≤ 0,5/M dont le jumeau doublé est >= 100x plus fréquent, puis TRI À LA MAIN
+# comme _AFIX_MIN — on n'écrit que des NON-MOTS. Écartés : formes de vrais verbes (embraser, puiser,
+# miser, caser, cuire, boiser, soufrer, raviser, coter, luter), vrais noms rares (pisé, colée, pane,
+# poise, frison), anglais/emprunts (homes, quite, bare, shoping, chalenge, cuter, tase, bote), risque
+# de nom propre (bonie). SÛRETÉ : 0 occurrence en minuscules sur les 14 450 phrases d'UD.
+# ⚠️ Population 0 dans les 34 416 paires appariées : l'évidence est le cas VIVANT de Rem et le fait
+# que le corpus mesuré est à 92,7 % des sondes générées, pauvre en fautes de frappe réelles.
+_DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'aterrit': 'atterrit', 'bales': 'balles', 'balon': 'ballon', 'balons': 'ballons', 'beure': 'beurre', 'boure': 'bourre', 'casette': 'cassette', 'casettes': 'cassettes', 'chate': 'chatte', 'chates': 'chattes', 'cocote': 'cocotte', 'comandant': 'commandant', 'conard': 'connard', 'conards': 'connards', 'fasions': 'fassions', 'feses': 'fesses', 'filette': 'fillette', 'frape': 'frappe', 'masage': 'massage', 'oseuse': 'osseuse', 'piser': 'pisser', 'prudement': 'prudemment', 'tiene': 'tienne', 'trape': 'trappe'}
+# ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026) — la sœur de `_AFIX_MIN`, pour les
+# consonnes DOUBLÉES. Cas de Rem : « je suis à la boure » — le moteur ne corrige pas « boure » et
+# propose « la »→« le » : il ne rate pas la faute, il en FABRIQUE une autre à côté. Cause : `boure`
+# EST une entrée du lexique (0,006/M) à côté de `bourre` (2,943/M, ~500x), donc le speller sort à sa
+# garde « mot valide » et la règle de genre lit `boure` masculin.
+# Recensement : 77 mots ≤ 0,5/M dont le jumeau doublé est >= 100x plus fréquent, puis TRI À LA MAIN
+# comme _AFIX_MIN — on n'écrit que des NON-MOTS. Écartés : formes de vrais verbes (embraser, puiser,
+# miser, caser, cuire, boiser, soufrer, raviser, coter, luter), vrais noms rares (pisé, colée, pane,
+# poise, frison), anglais/emprunts (homes, quite, bare, shoping, chalenge, cuter, tase, bote), risque
+# de nom propre (bonie). SÛRETÉ : 0 occurrence en minuscules sur les 14 450 phrases d'UD.
+# ⚠️ Population 0 dans les 34 416 paires appariées : l'évidence est le cas VIVANT de Rem et le fait
+# que le corpus mesuré est à 92,7 % des sondes générées, pauvre en fautes de frappe réelles.
+_DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'aterrit': 'atterrit', 'bales': 'balles', 'balon': 'ballon', 'balons': 'ballons', 'beure': 'beurre', 'boure': 'bourre', 'casette': 'cassette', 'casettes': 'cassettes', 'chate': 'chatte', 'chates': 'chattes', 'cocote': 'cocotte', 'comandant': 'commandant', 'conard': 'connard', 'conards': 'connards', 'fasions': 'fassions', 'feses': 'fesses', 'filette': 'fillette', 'frape': 'frappe', 'masage': 'massage', 'oseuse': 'osseuse', 'piser': 'pisser', 'prudement': 'prudemment', 'tiene': 'tienne', 'trape': 'trappe'}
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
@@ -513,6 +539,14 @@ class Speller:
         # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,
         # aucune soudure n'est un mot (speller, UD : 0), corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe seule.
         if low in _APOS_FIX: return ('auto', _APOS_FIX[low])
+        # ⭐ même geste que _AFIX_MIN, pour la consonne DOUBLÉE (cf. _DBL_MIN ci-dessus) : le mot EST au
+        # lexique, donc la garde « mot valide » plus bas le rendrait intouchable — et la règle de genre
+        # irait « corriger » le déterminant. MINUSCULES seulement.
+        if tok == low and low in _DBL_MIN: return ('auto', _DBL_MIN[low])
+        # ⭐ même geste que _AFIX_MIN, pour la consonne DOUBLÉE (cf. _DBL_MIN ci-dessus) : le mot EST au
+        # lexique, donc la garde « mot valide » plus bas le rendrait intouchable — et la règle de genre
+        # irait « corriger » le déterminant. MINUSCULES seulement.
+        if tok == low and low in _DBL_MIN: return ('auto', _DBL_MIN[low])
         # ⭐ LE « e » MUET DU FUTUR/CONDITIONNEL (décalque l.2950-2956 ; audit rappel dys PR#505 : « je ne t'oublirais jamais ») :
         # non-mot en r+terminaison dont radical+er est un verbe des tables → réinsérer le e muet (oublirais→oublierais). Le
         # scripteur a ENTENDU le R ; « oubliais » (distance 1 aussi) n'a pas ce son. Radical ≥ 4. C'est l'étape qui rend

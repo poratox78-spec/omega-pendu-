@@ -156,6 +156,17 @@ const CAS = [
      PAS gardé ici, pour qu'une règle future ne trouve pas la porte fermée. Ce qui est gardé, c'est ce
      qui tire déjà : sans ces trois lignes, `rule_pp_avoir_cod` et `rule_pp_avoir_dont` pouvaient
      s'éteindre sans faire rougir personne dans le vrai moteur. */
+  /* ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026, cas rapporté par Rem).
+     « je suis à la boure » : le moteur ne corrigeait PAS « boure » et proposait « la »→« le » — il ne
+     ratait pas la faute, il en FABRIQUAIT une autre à côté. Cause : `boure` EST au lexique (0,006/M)
+     face à `bourre` (2,943/M). Liste CLOSE de 27 non-mots, triée à la main comme _AFIX_MIN,
+     minuscules seulement, 0 occurrence sur les 14 450 phrases d'UD. La 4e garde ci-dessous est la
+     PREUVE que la fausse correction disparaît avec la vraie. */
+  { txt: 'je suis à la boure.', corrigeAttendu: ['boure', 'bourre'], pourquoi: 'le mot pollueur est corrigé, alors qu’il était « valide » au lexique' },
+  { txt: 'je suis à la boure.', rien: false, orangeInterdit: 'la', pourquoi: 'CONTRE-GARDE : plus de fausse correction sur le déterminant — c’est tout l’objet du chantier' },
+  { txt: 'le comandant a donné l’ordre.', corrigeAttendu: ['comandant', 'commandant'], pourquoi: 'même famille, nom' },
+  { txt: 'la pane du moteur nous a arrêtés.', rien: true, orangeInterdit: 'pane', pourquoi: 'CONTRE-GARDE : « pane » est un VRAI mot (partie du marteau) — écarté du tri à la main' },
+  { txt: 'je suis à la bourre.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour
