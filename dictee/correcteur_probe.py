@@ -1824,6 +1824,49 @@ def _det_de_temps(T, j):
     return deacc(T[j+1].lower()) in _NOMS_TEMPS
 
 
+
+# ---------- [être / avoir été] + IMPARFAIT → PARTICIPE (fait STRUCTUREL, mesuré) ----------
+# Le dys écrit ce qu'il ENTEND : après « est », la finale /e/ du participe s'écrit aussi bien
+# « situait » que « situé ». Or une forme FINIE ne peut pas suivre un auxiliaire — la construction
+# elle-même est la garde, comme pour « j'est ». Mesuré le 07-08/09/2026 (data_local/imp_pp.js) :
+# le cadre [être/avoir été] + une forme qui n'est QU'un imparfait ou un conditionnel apparaît
+# **0 fois sur 4 631 phrases correctes** (2 573 cadres) et **15 fois dans le texte dys écrit**.
+# Périmètre : 1er groupe (lemme en -er) — c'est là qu'est TOUTE la population, parce que c'est là
+# que l'imparfait et le participe sonnent pareil ; les autres groupes n'ont pas cette homophonie.
+_IMP_PP_MODES = ('ind:imp', 'cnd:pre')
+_IMP_PP_ETRE = (set(D.AUX_ETRE) | {'etaient', 'serait', 'seraient', 'seras', 'serez', 'serons',
+                                   'fus', 'fumes', 'futes', 'soient', 'sois'})
+
+
+def rule_aux_imparfait(T, i):
+    if not CONJ_LOADED or i == 0: return None
+    w = T[i]; lw = w.lower()
+    if "'" in lw or w[:1].isupper(): return None
+    reads = _reads(w)
+    if not reads: return None
+    if not all(mt in _IMP_PP_MODES for (_l, mt, _p, _n) in reads): return None   # AUCUNE autre lecture : c'est le cœur du fait
+    lemmas = {l for (l, _mt, _p, _n) in reads}
+    if len(lemmas) != 1: return None
+    lem = lemmas.pop()
+    if not lem.endswith('er') or deacc(lem) not in VERB_LEX: return None         # 1er groupe, jeu curé (même couverture que rule_e_ppl)
+    p1 = deacc(T[i-1].lower()).split("'")[-1]                                    # auxiliaire ÉLIDÉ compris (« s'est mariais »)
+    if p1 == 'ete':                                                              # « a été publiais » / « aurait été publiais »
+        if i < 2: return None
+        if deacc(T[i-2].lower()).split("'")[-1] not in (set(D.AUX_AVOIR) | _IMP_PP_ETRE): return None
+    elif p1 not in _IMP_PP_ETRE:
+        return None
+    # ⚠️ LE LEMME EST DÉSACCENTUÉ (CONJ_C : 0 clé accentuée sur 5 948) — « creer », « representer ».
+    # L'accent vit dans les FORMES que les tables génèrent : on prend le présent 3s (« crée »,
+    # « représente », « lève ») et on le passe à `_ppl_form`, écrit exactement pour ça — il rend
+    # « levé » et non « lèvé ». Sans ce détour : « crèaient » → *creé*, « représentait » → *representé*.
+    pres = ((CONJ_C.get(lem) or {}).get('ind:pre') or {}).get('3s')
+    if not pres or not pres.endswith('e'): return None                           # table incomplète (reléguer, édifier…) → abstention
+    _sbj, _refl = _etre_subject(T, i)                                            # même mécanique d'accord que rule_e_ppl
+    _suf = _SUBJ3.get(_sbj, _SUBJ12.get(_sbj, '')) if _sbj is not None else ''
+    sugg = _ppl_form(pres, _suf)
+    return _keepcase(w, sugg) if sugg.lower() != lw else None
+
+
 def rule_pp_etre(T, i):
     """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
     « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
@@ -5114,7 +5157,7 @@ def correct_tiered(text):
 
 RULES = [('élision inversée', rule_deselide),
          ('être (ête)', rule_ete_etre),
-         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
+         ('-é/-er', rule_e_er), ('-e/-é (participe)', rule_e_ppl), ('participe après auxiliaire', rule_aux_imparfait), ('participe après être à vérifier', rule_e_ppl_vig), ('accord participe', rule_pp_etre), ('accord participe (COD avoir)', rule_pp_avoir_cod), ('accord participe (dont)', rule_pp_avoir_dont), ('accord adjectif', rule_adj_attr), ('accord adjectif épithète', rule_adj_epithet), ('accord adjectif épithète', rule_adj_number), ('accord participe épithète', rule_pp_epithet_number),
          ('accord adjectif épithète', rule_adj_aux),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
