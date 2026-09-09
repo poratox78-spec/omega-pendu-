@@ -156,6 +156,20 @@ const CAS = [
      PAS gardé ici, pour qu'une règle future ne trouve pas la porte fermée. Ce qui est gardé, c'est ce
      qui tire déjà : sans ces trois lignes, `rule_pp_avoir_cod` et `rule_pp_avoir_dont` pouvaient
      s'éteindre sans faire rougir personne dans le vrai moteur. */
+  /* ⭐ [être / avoir été] + IMPARFAIT → PARTICIPE (08/09/2026). Le dys écrit ce qu'il ENTEND : après
+     « est », la finale /e/ du participe s'écrit aussi bien « situait » que « situé ». Une forme FINIE
+     ne peut pas suivre un auxiliaire — la CONSTRUCTION est la garde, comme pour « j'est ».
+     Mesuré : le cadre [être/avoir été] + une forme qui n'est QU'un imparfait ou un conditionnel
+     apparaît 0 fois sur 4 631 phrases correctes (2 573 cadres) et 15 fois dans le texte dys écrit ;
+     la règle tire 0 fois sur les 14 450 phrases d'UD et 15 fois sur le corpus dys, dont 7 rendues
+     IDENTIQUES au gold. L'accent du radical vient du présent 3s par _pplForm (« lève » → levé). */
+  { txt: 'Il est situait à l’Est de la ville.', corrigeAttendu: ['situait', 'situé'], pourquoi: 'imparfait écrit là où l’auxiliaire impose le participe' },
+  { txt: 'Le centre a été crèaient dans ce but.', corrigeAttendu: ['crèaient', 'créé'], pourquoi: 'cadre « avoir été » + accent du radical repris au présent 3s (« crée » → créé, pas creé)' },
+  { txt: 'Elle s’est mariais à vingt ans.', corrigeAttendu: ['mariais', 'mariée'], pourquoi: 'auxiliaire élidé + accord par le sujet-pronom, comme rule_e_ppl' },
+  { txt: 'Quand je me suis levait je me sens bien.', corrigeAttendu: ['levait', 'levé'], pourquoi: 'pronominal ; « lève » → levé et non « lèvé » (radical accentué par le lexique)' },
+  { txt: 'Il est certain que tu chantais bien.', rien: true, orangeInterdit: 'chantais', pourquoi: 'CONTRE-GARDE : l’imparfait est ici dans SA proposition, pas après l’auxiliaire' },
+  { txt: 'Quand il est parti nous mangions tranquillement.', rien: true, orangeInterdit: 'mangions', pourquoi: 'CONTRE-GARDE : le cadre s’arrête au participe, l’imparfait suivant est juste' },
+  { txt: 'Il est situé à l’Est de la ville.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase JUSTE reste muette' },
   /* ⭐ LE MODE AVANT LE TEMPS (08/09/2026). `rule_accord_sv` — la règle la plus ancienne et la plus
      large du correcteur — repliait sur `mts[0]`, c'est-à-dire le PREMIER ORDRE DU LEXIQUE, là où son
      commentaire disait « le temps tapé ». « Il faut que je disiez » a pour lectures {ind:imp, sub:pre} :
