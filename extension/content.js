@@ -79,11 +79,31 @@
     })(el);
     return { text: text, map: map };
   }
-  function ceReplace(el, s, e, sugg, viaInput) {
+  /* ⭐ ÉDITEURS QUI TIENNENT LEUR PROPRE MODÈLE (liste FERMÉE, 09/09/2026). Slate (Twitch, Reddit),
+     Draft (anciens Facebook/Twitter), ProseMirror/TipTap, Lexical (Facebook, Meta), Quill, CKEditor.
+     Chez eux, muter `nodeValue` sous l'éditeur DÉSYNCHRONISE son modèle : le DOM dit « les chiens
+     aboient », l'éditeur croit encore « les chien aboient », et il réécrit son modèle au refocus.
+     Rem : « ça peut être cause de désinstallation si ça l'empêche de taper comme dans Twitch ».
+     ⚠️ Liste fermée = un cadre non listé retombe sur le repli. C'est assumé : le repli APPLIQUE,
+     et perdre une correction partout ailleurs coûterait plus cher que ce risque résiduel. */
+  var CE_CADRE = '[data-slate-editor],[data-lexical-editor],[data-contents],.ProseMirror,.tiptap,.ql-editor,.ck-editor__editable,.public-DraftEditor-content';
+  function ceCadre(el) {
+    try { if (el.matches && el.matches(CE_CADRE)) return true; } catch (_) {}
+    try { if (el.closest && el.closest(CE_CADRE)) return true; } catch (_) {}
+    try { if (el.querySelector && el.querySelector(CE_CADRE)) return true; } catch (_) {}
+    return false;
+  }
+  /* ⭐⭐ UNE SEULE ROUTE, PAS UN DRAPEAU (09/09/2026, mesuré au banc). Cette fonction prenait un
+     paramètre `viaInput` que DEUX de ses quatre appelants oubliaient — dont `applyComplete`, dont
+     le commentaire nommait pourtant Twitch et Discord, et `applyAutos`, qui écrit EN SILENCE.
+     Un traitement qu'on ANNONCE et qui dépend d'un drapeau finit toujours par ne pas être branché
+     sur le chemin qui tourne. La route sûre (sélection + insertText → pipeline de l'éditeur) est
+     donc prise PAR DÉFAUT ; il n'y a plus de drapeau à oublier. */
+  function ceReplace(el, s, e, sugg) {
     var col = ceCollect(el);
     for (var k = 0; k < col.map.length; k++) { var m = col.map[k];
       if (s >= m.start && e <= m.end) { var off = s - m.start;
-        if (viaInput) {                                     // ÉDITEURS RICHES (Slate/Draft/ProseMirror = Twitch/Discord/Reddit) : appliquer via SÉLECTION + insertText → passe par le pipeline de l'éditeur → la correction PERSISTE. Une mutation directe du nœud est ANNULÉE par le framework au refocus (il re-rend depuis son modèle interne).
+        {                                                   // ÉDITEURS RICHES (Slate/Draft/ProseMirror = Twitch/Discord/Reddit) : appliquer via SÉLECTION + insertText → passe par le pipeline de l'éditeur → la correction PERSISTE. Une mutation directe du nœud est ANNULÉE par le framework au refocus (il re-rend depuis son modèle interne).
           try {
             var doc = el.ownerDocument || document, sel = doc.getSelection(), rg = doc.createRange();
             rg.setStart(m.node, off); rg.setEnd(m.node, off + (e - s));
@@ -92,7 +112,12 @@
             if (doc.execCommand && doc.execCommand('insertText', false, sugg)) return true;
           } catch (_) {}
         }
-        try { var v = m.node.nodeValue; m.node.nodeValue = v.slice(0, off) + sugg + v.slice(off + (e - s)); return true; } catch (_) { return false; }   // repli : mutation directe du nœud (contenteditable simple, non géré par un framework)
+        /* La route sûre a échoué (execCommand refusé). Muter `nodeValue` reste la seule façon
+           d'appliquer — mais chez un cadre à modèle propre (cf. CE_CADRE) elle le désynchronise.
+           On préfère alors NE PAS corriger : l'utilisateur peut corriger à la main, il ne peut
+           pas réparer son éditeur. Partout ailleurs, le repli s'applique. */
+        if (ceCadre(el)) return false;
+        try { var v = m.node.nodeValue; m.node.nodeValue = v.slice(0, off) + sugg + v.slice(off + (e - s)); return true; } catch (_) { return false; }
       } }
     return false;                                            // à cheval sur 2 nœuds → on n'applique PAS (structure préservée)
   }
@@ -159,7 +184,7 @@
     if (flag && flag.typo) { s0 = flag.cs; e1 = flag.ce; }   // TYPOGRAPHIE : correction ancrée CARACTÈRE (guillemets/points de suspension) — pas de token, on remplace directement [cs,ce]
     else { var sp = spans(t), s = sp[flag.i]; if (!s) return; var e = sp[flag.i + (flag.span ? flag.span - 1 : 0)] || s; s0 = s[0]; e1 = e[1]; }   // élision : la suggestion fusionne 2 tokens (« c est »→« c'est »)
     if (isCE(el)) {
-      if (ceReplace(el, s0, e1, flag.sugg, true)) el.dispatchEvent(new Event('input', { bubbles: true }));
+      if (ceReplace(el, s0, e1, flag.sugg)) el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
       var nt = t.slice(0, s0) + flag.sugg + t.slice(e1);
       setText(el, nt, s0 + flag.sugg.length);
@@ -189,7 +214,7 @@
     rng.sort(function (a, b) { return b[0] - a[0]; });   // droite→gauche : les positions restent valides
     if (isCE(el)) {
       var did = false;
-      rng.forEach(function (r) { if (ceReplace(el, r[0], r[1], r[2], true)) did = true; });
+      rng.forEach(function (r) { if (ceReplace(el, r[0], r[1], r[2])) did = true; });
       if (did) el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
       rng.forEach(function (r) { t = t.slice(0, r[0]) + r[2] + t.slice(r[1]); });
@@ -390,15 +415,24 @@
   }
   function stopObserve() { if (mo) { mo.disconnect(); mo = null; } if (pollEl && !pollUntil) pollUntil = Date.now() + 5000; }   // grâce 5 s (cf. sonde)
 
+  /* ⭐ SHADOW DOM (09/09/2026, mesuré : le champ y était INVISIBLE). Un événement qui franchit une
+     frontière shadow voit sa cible RECIBLÉE sur l'hôte — `e.target` rend alors le <div> hôte, jamais
+     le champ. `composedPath()[0]` rend le vrai élément. Sans ça, tout éditeur en composant web
+     (de plus en plus fréquent) était hors de portée du correcteur. */
+  function vraieCible(e) {
+    try { var p = e.composedPath && e.composedPath(); if (p && p.length) return p[0]; } catch (_) {}
+    return e.target;
+  }
   document.addEventListener('focusin', function (e) {
-    var el = e.target;
+    var el = vraieCible(e);
     if (isEditable(el)) { active = el; dismissed.delete(el); observeActive(el); schedule(el); }
   }, true);
   document.addEventListener('input', function (e) {
-    if (e.target === active && isEditable(e.target)) { dismissed.delete(active); schedule(active); }
+    var _c = vraieCible(e); if (_c === active && isEditable(_c)) { dismissed.delete(active); schedule(active); }
   }, true);
   document.addEventListener('keyup', function (e) {   // filet éditeurs riches : 'input' peut ne pas remonter (Slate/Draft/ProseMirror), keyup si
-    if (active && isEditable(active) && (e.target === active || active.contains(e.target))) schedule(active);
+    var _k = vraieCible(e);
+    if (active && isEditable(active) && (_k === active || active.contains(_k))) schedule(active);
   }, true);
   document.addEventListener('focusout', function (e) {
     if (e.target === active) { setTimeout(function () {

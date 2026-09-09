@@ -230,6 +230,65 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       log('  ' + (ok ? '✓' : '✗') + ' [panneau ] ' + c.txt.padEnd(34) + '→ ' + JSON.stringify(got.valeur) + (got.item ? '   (' + got.item + ')' : '   (AUCUNE proposition cliquable)'));
       if (!ok) echecs.push('panneau latéral RÉEL : « ' + c.txt + ' » devait devenir ' + JSON.stringify(c.attendu) + ' au clic, eu ' + JSON.stringify(got.valeur) + ' (' + c.pourquoi + ')');
     });
+
+    /* ⑥ LA BASCULE BULLE ↔ RECOPIE SURVIT-ELLE À UNE FERMETURE ? (rapport de Rem, 09/09/2026)
+       Trois symptômes, une seule cause : l'exclusion mutuelle n'était appliquée QU'AU CLIC.
+       `#omdys-mirror` porte `checked` en dur dans le HTML et n'était NI écrit NI relu dans le
+       stockage ; au retour, la bulle revenait de `enabled`, la recopie du HTML, et les DEUX étaient
+       actives — ce que le fichier interdit pourtant noir sur blanc (« bulle + miroir = DEUX surfaces
+       de correction pour le MÊME texte »). Un banc qui n'interroge que le moteur ne pouvait pas le
+       voir : c'est l'ÉTAT APRÈS RECHARGEMENT qu'on garde ici. */
+    const rb = await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 60000,
+      expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+        + ' const set = (o) => new Promise(r => chrome.storage.local.set(o, r));'
+        + ' const del = (k) => new Promise(r => chrome.storage.local.remove(k, r));'
+        + ' const get = (k) => new Promise(r => chrome.storage.local.get(k, r));'
+        + ' const cases = () => ({ bulle: !!document.getElementById("omdys-bubble").checked,'
+        + '                        mir: !!document.getElementById("omdys-mirror").checked });'
+        + ' const out = {};'
+        /* ③ l'état LEGACY : bulle mémorisée, omMir absent (tous les utilisateurs d'avant le correctif) */
+        + ' await set({ enabled: true }); await del("omMir");'
+        + ' return { pose: true }; })()' });   /* ⚠️ PAS de location.reload() ici : recharger depuis la page fait perdre la cible au débogueur
+       (« Inspected target navigated or closed »). On recharge par le PROTOCOLE, juste en dessous. */
+    if (rb.exceptionDetails) throw new Error('bascule : ' + ((rb.exceptionDetails.exception || {}).description || 'exception'));
+    await pp.envoyer('Page.enable');
+    await pp.envoyer('Page.reload', {});
+    await new Promise((r) => setTimeout(r, 2500));
+    const rb2 = await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 60000,
+      expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+        + ' const until = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await w(120); } };'
+        + ' const b = await until(() => document.getElementById("omdys-bubble"), 20000);'
+        + ' const m = document.getElementById("omdys-mirror"); if (!b || !m) return { fatal: "cases introuvables" };'
+        + ' await w(600);'
+        + ' const apresLegacy = { bulle: !!b.checked, mir: !!m.checked };'
+        /* ① la recopie décochée doit être MÉMORISÉE : on la décoche, on recharge, on relit */
+        + ' if (!m.checked) { m.checked = true; m.dispatchEvent(new Event("change", { bubbles: true })); await w(200); }'
+        + ' m.checked = false; m.dispatchEvent(new Event("change", { bubbles: true })); await w(400);'
+        + ' return { apresLegacy, prete: true }; })()' });
+    if (rb2.exceptionDetails) throw new Error('bascule : ' + ((rb2.exceptionDetails.exception || {}).description || 'exception'));
+    const vb = (rb2.result && rb2.result.value) || {};
+    if (vb.fatal) throw new Error('bascule : ' + vb.fatal);
+    const al = vb.apresLegacy || {};
+    const okLegacy = !(al.bulle && al.mir);
+    log('  ' + (okLegacy ? '✓' : '✗') + ' [bascule ] après fermeture sur « bulle » : bulle=' + al.bulle + ' recopie=' + al.mir
+        + (okLegacy ? '   (jamais les deux)' : '   ← LES DEUX ACTIVES'));
+    if (!okLegacy) echecs.push('bascule bulle↔recopie : les DEUX cases sont actives après un rechargement — '
+      + 'l\'exclusion n\'est appliquée qu\'au clic, pas à la restauration (rapport de Rem 09/09/2026)');
+    await pp.envoyer('Page.reload', {});
+    await new Promise((r) => setTimeout(r, 2200));
+    const rb3 = await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 60000,
+      expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+        + ' const until = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await w(120); } };'
+        + ' const m = await until(() => document.getElementById("omdys-mirror"), 20000); if (!m) return { fatal: "case recopie introuvable" };'
+        + ' await w(600); return { mir: !!m.checked }; })()' });
+    if (rb3.exceptionDetails) throw new Error('bascule : ' + ((rb3.exceptionDetails.exception || {}).description || 'exception'));
+    const vb3 = (rb3.result && rb3.result.value) || {};
+    if (vb3.fatal) throw new Error('bascule : ' + vb3.fatal);
+    const okMem = (vb3.mir === false);
+    log('  ' + (okMem ? '✓' : '✗') + ' [bascule ] recopie décochée puis rechargement : recopie=' + vb3.mir
+        + (okMem ? '   (mémorisée)' : '   ← REVENUE COCHÉE'));
+    if (!okMem) echecs.push('bascule bulle↔recopie : la recopie décochée revient COCHÉE après rechargement — '
+      + 'son état n\'est pas persisté (elle porte `checked` en dur dans sidepanel.html)');
     try { pp.fermer(); } catch (e) {}
     if (echecs.length) {
       console.log('✗ EXTENSION DANS CHROME — ' + echecs.length + ' échec(s) :');

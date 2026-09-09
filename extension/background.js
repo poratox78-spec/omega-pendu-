@@ -15,6 +15,23 @@ chrome.runtime.onStartup.addListener(createMenu);
 // clic sur l'icône de l'extension → ouvre le PANNEAU LATÉRAL (le correcteur "surface propre", F12-style)
 try { chrome.sidePanel && chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(function () {}); } catch (e) {}
 
+/* ⭐ FERMER LE PANNEAU COUPE LA BULLE (09/09/2026, décision de Rem : « un utilisateur qui ne
+   comprend pas d'où ça vient désinstalle »). Un side panel MV3 n'a pas d'événement de fermeture
+   fiable — `unload`/`pagehide` n'y sont pas garantis. Le mécanisme prévu par Chrome est le PORT :
+   le panneau en ouvre un ici, et Chrome le déconnecte quand la page du panneau disparaît, quelle
+   qu'en soit la cause. On éteint alors `enabled` ; `content.js` le voit par `storage.onChanged`,
+   le fil qui existe déjà. Rouvrir le panneau ne rallume PAS la bulle : elle est décochée par
+   défaut depuis 07/2026, l'utilisateur la recoche s'il la veut. */
+try {
+  chrome.runtime.onConnect.addListener(function (port) {
+    if (!port || port.name !== 'omdys-panneau') return;
+    port.onDisconnect.addListener(function () {
+      void chrome.runtime.lastError;
+      try { chrome.storage.local.set({ enabled: false }); } catch (e) {}
+    });
+  });
+} catch (e) {}
+
 // le content script (contextmenu) pousse le libellé du mot sous le curseur (« 🩹 « von » → « vont » ») + activé/grisé
 chrome.runtime.onMessage.addListener(function (msg) {
   if (msg && msg.type === 'omdys-menu') {
