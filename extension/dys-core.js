@@ -1032,6 +1032,18 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
   function svAgrees(reads,per,nb){var k;if(per==='3'){for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))return true;return false;}for(k=0;k<reads.length;k++)if(reads[k][2]===per)return true;return false;}
   var _V3PL_SURE={sont:1,ont:1,vont:1,font:1};   // 3e pluriel irréguliers non ambigus
   var _SAIS_PPU={perdu:1,vu:1,eu:1,venu:1,revenu:1,devenu:1,tenu:1,retenu:1,connu:1,recu:1,battu:1,mordu:1,rendu:1,vendu:1,entendu:1,repondu:1,defendu:1,descendu:1,couru:1,apercu:1,cru:1,bu:1,lu:1,su:1,pu:1,vecu:1,fondu:1,confondu:1,suspendu:1,attendu:1,obtenu:1,contenu:1,soutenu:1,parvenu:1,survenu:1,intervenu:1};
+  /* DÉCLENCHEURS DU SUBJONCTIF — liste FERMÉE, miroir Python _SUBJ_TRIG_*. Les tournures à VERBE
+     (« je veux que », « il est possible que ») sont ouvertes, donc exclues ; seule `falloir` y entre,
+     parce qu'elle n'admet QUE le subjonctif. */
+  var _SUBJ_T1={quoique:1,quoiqu:1};
+  var _SUBJ_T2={};('bien|pour|afin|avant|sans|pourvu|encore|non|faut|faudrait|fallait|faudra').split('|').forEach(function(x){_SUBJ_T2[x]=1;});
+  var _SUBJ_T3={'a moins':1,'de peur':1,'de crainte':1,'a condition':1,'en attendant':1};
+  function _subjTrigger(T,i){var q=null,k;
+    for(k=i-1;k>=0&&k>=i-5;k--){var d=deacc(T[k].toLowerCase());if(d.indexOf('quoiqu')===0)return true;   /* « quoique »/« quoiqu'il » : déclencheur SOUDÉ, pas de « que » séparé */
+      if(d==='que'||d==='qu'||d.indexOf("qu'")===0){q=k;break;}}
+    if(q===null)return false;
+    var d1=q>=1?deacc(T[q-1].toLowerCase()):'',d2=q>=2?deacc(T[q-2].toLowerCase()):'';
+    return !!(_SUBJ_T2[d1]||_SUBJ_T3[d2+' '+d1]);}
   function rAccordSV(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;var reads=svReads(T[i]);if(!reads.length)return null;
     var _dsv=deacc(T[i].toLowerCase());
     if(_dsv==='sais'||_dsv==='sait'){var _js=i+1;while(_js<T.length&&_js<=i+3&&PPMID[deacc(T[_js].toLowerCase())])_js++;
@@ -1042,7 +1054,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(svAgrees(reads,per,nb))return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux+participe) → T[i]=participe, pas un verbe fini à accorder
     var lem=null,k,mts={},uni=true;for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
-    if(!uni||lem===null)return null;var mt=mts['ind:pre']?'ind:pre':reads[0][1];if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
+    if(!uni||lem===null)return null;/* ⭐ LE MODE AVANT LE TEMPS (08/09/2026, miroir Python rule_accord_sv) : `reads[0][1]` n'est pas « le temps tapé » mais le PREMIER ORDRE DU LEXIQUE. « Il faut que je disiez » a pour lectures {ind:imp, sub:pre} → le repli rendait « disais » au lieu de « dise ». Sur DÉCLENCHEUR FERMÉ de subjonctif, le mode passe devant. Mesuré : banc Bescherelle subjonctif 73,5 → 99,0 %, banc entier 92,4 → 96,8 %, 0 phrase correcte cassée, 0 verdict changé sur les 381 textes à déclencheur des 48 866 corpus. PLACEBO (mode d'abord SANS déclencheur) : même gain sur le subjonctif mais 8 autres cases CASSÉES — c'est la liste fermée qui porte la garde. */var _sbm=null;for(k=0;k<reads.length;k++)if(reads[k][1].indexOf('sub')===0){_sbm=reads[k][1];break;}var mt=(_sbm&&_subjTrigger(T,i))?_sbm:(mts['ind:pre']?'ind:pre':reads[0][1]);if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     if(!svAgrees(svReads(sugg),per,nb))return null;return sugg;}
   function rIlIls(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='il'&&lw!=='elle')return null;   // AUDIBILITÉ sur le SUJET : « il/elle » + verbe SÛR 3pl → « s » de ils/elles muet (lâché par le dys), verbe audible fiable → corriger le PRONOM. « il sont »→« ils sont ». FP=0. Miroir Python/app.
     if(i>0&&(['et','ou','ni'].indexOf(deacc(T[i-1].toLowerCase()))>=0||T[i-1].indexOf(',')>=0))return null;   // sujet coordonné → pluriel déjà correct
