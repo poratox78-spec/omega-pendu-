@@ -156,6 +156,17 @@ const CAS = [
      PAS gardé ici, pour qu'une règle future ne trouve pas la porte fermée. Ce qui est gardé, c'est ce
      qui tire déjà : sans ces trois lignes, `rule_pp_avoir_cod` et `rule_pp_avoir_dont` pouvaient
      s'éteindre sans faire rougir personne dans le vrai moteur. */
+  /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
+     (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
+     mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour
+     27 vrais sigles. On rend UNE voyelle et rien d'autre, au-dessus d'un plancher de fréquence :
+     14 justes, 2 fausses, 2 marques sur mot correct — toutes en ORANGE, jamais appliquées. */
+  { txt: 'il snt tous là ce matin.', corrigeAttendu: ['snt', 'sont'], pourquoi: 'voyelle mangée : une seule voyelle rendue, aucune consonne touchée' },
+  { txt: 'je vais dns la maison.', corrigeAttendu: ['dns', 'dans'], pourquoi: 'et pas « des » : une insertion de voyelle ne peut pas perdre le n' },
+  { txt: 'le vent souffle frt sur la côte.', corrigeAttendu: ['frt', 'fort'], pourquoi: 'plancher de fréquence à 50 : « fort » (179) passe' },
+  { txt: 'le site www est en panne.', rien: true, orangeInterdit: 'www', pourquoi: 'CONTRE-GARDE : le sigle reste muet, c’est ce que la garde d’origine protégeait' },
+  { txt: 'il a passé son qcm hier.', rien: true, orangeInterdit: 'qcm', pourquoi: 'CONTRE-GARDE : aucun mot courant à une voyelle près' },
+  { txt: 'la région bzh a son drapeau.', rien: true, orangeInterdit: 'bzh', pourquoi: 'CONTRE-GARDE : sigle régional' },
   /* ⭐ [être / avoir été] + IMPARFAIT → PARTICIPE (08/09/2026). Le dys écrit ce qu'il ENTEND : après
      « est », la finale /e/ du participe s'écrit aussi bien « situait » que « situé ». Une forme FINIE
      ne peut pas suivre un auxiliaire — la CONSTRUCTION est la garde, comme pour « j'est ».

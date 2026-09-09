@@ -244,6 +244,34 @@ def edits1(d):
             if b: res[a + c + b[1:]] = 1
     return list(res)
 
+
+# ---------- LA VOYELLE MANGÉE ----------
+# La garde anti-sigle de `correct_token` (« pas de voyelle → sigle/abréviation (www, qcm) — on
+# n'invente pas ») confondait le SIGLE avec le DYS QUI A MANGÉ SES VOYELLES : « snt », « frt »,
+# « nrd », « dns », « pls ». Mesuré AU MOTEUR sur le corpus apparié : 111 jetons sans voyelle lui
+# échappaient, dont **84 fautes** pour 27 vrais sigles (www, mph, bzh, plc, rnb).
+# On rend UNE voyelle et rien d'autre : aucune consonne touchée, aucune substitution possible —
+# donc « dns » → dans, jamais « des » (qui perdrait le n). Puis un plancher de fréquence, parce que
+# le mot d'un dys est courant et le voisin d'un sigle ne l'est pas.
+# ⛔ RÉFUTÉ EN CHEMIN : la seule SOUS-SÉQUENCE ouvre tout le lexique aux insertions longues
+#    (kms→keums, pqr→piquer, srs→serais) — 15 justes pour 53 fausses. C'est l'INTERSECTION
+#    « une seule voyelle » × « mot courant » qui porte la règle, pas l'une des deux.
+_VOY_RENDUE = 'aeiouy'
+_VOY_FREQ = 50.0        # plancher MESURÉ : 0 → 14 justes/7 fausses/7 bruit · 50 → 14/2/2 · 200 perd « fort » et « nord »
+
+
+def _voyelle_mangee(sp, d):
+    """Mot SANS VOYELLE : une seule voyelle rendue donne-t-elle un mot COURANT ? (forme accentuée, ou None)"""
+    best, bf = None, 0.0
+    for i in range(len(d) + 1):
+        for v in _VOY_RENDUE:
+            for w in sp.D2A.get(d[:i] + v + d[i:], ()):
+                f = sp.FREQ.get(w, 0.0)
+                if f > bf:
+                    best, bf = w, f
+    return best if bf >= _VOY_FREQ else None
+
+
 class Speller:
     # ⚠️ ALIGNÉ SUR LE PRODUIT le 06/09/2026 : `DET_G` (dys-core.js l.1331, miroir app) ne contient NI « du » NI « au ».
     # La référence les avait en plus, et ça se voyait au PALIER dès que contexte-first est porté : « au boulo »,
@@ -514,7 +542,12 @@ class Speller:
         # nom propre : majuscule HORS début de phrase → on n'y touche pas
         if tok[:1].isupper() and not at_start: return None
         d = deacc(low)
-        if not re.search(r'[aeiouy]', d): return None   # pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas
+        if not re.search(r'[aeiouy]', d):
+            # ⭐ LA VOYELLE MANGÉE (09/09/2026) — cette garde écartait le sigle ET la faute dys. On tente
+            # UNE voyelle rendue (cf. `_voyelle_mangee` plus haut) avant de se taire : 14 justes,
+            # 2 fausses, 2 marques sur mot correct (chf→chef, une abréviation), toutes en ORANGE.
+            v = _voyelle_mangee(self, d)
+            return ('vigilance', v) if v else None
         # ⭐ ÉLONGATION (10/09/2026, décalque de spellTokenCore l.2980-2981) : « trèèès »→très, « alllez »→allez. Un run ≥3 = non-mot
         # SÛR → AUTO si le lexique n'offre qu'UNE forme, FLAG sinon. Ni acronyme tout-capitale (AAA), ni chiffre romain (VIII, XIIIe).
         if re.search(r'(.)\1\1', low) and not (tok == tok.upper() and len(tok) >= 2) and not re.fullmatch(r'[ivxlcdm]+(e|es|eme|emes|er|ers)?', d):
