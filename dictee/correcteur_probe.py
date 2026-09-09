@@ -321,6 +321,13 @@ def rule_e_er(T, i):
             return None   # « il sais trompé » = frame s'est — miroir JS rEer
     w = T[i]; lw = w.lower()
     if "'" in lw: return None                          # token contracté (l'été, d'…) → pas un verbe -er/-é
+    # ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026). « est Allier Comté Communauté »
+    # devenait « Allié » ; « avec Honoré de Balzac » → « Honorer » ; « Cry Me a River » → « Rivé ».
+    # La règle SŒUR `rule_e_ppl` porte exactement cette ligne (« un participe après avoir n'est
+    # pas capitalisé en cours de phrase ») ; celle-ci ne testait aucune capitale.
+    # Mesuré : 0 correction perdue, 6 faux positifs éteints, et 2 tirs éteints sur UD (du
+    # français CORRECT : « Louis de Frotté », « avec Aimé Picquet »).
+    if w[:1].isupper(): return None
     if lw.endswith('é'):              forms = (w, w[:-1] + 'er')          # tapé = participe
     elif deacc(lw).endswith('er') and len(lw) > 3: forms = (w[:-2] + 'é', w)  # tapé = infinitif
     else: return None
@@ -362,6 +369,22 @@ def rule_e_er(T, i):
         return forms[0]                               # auxiliaire (a/ont/est…) → participe -é
     if p in PREP:
         if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
+        # ⭐ …ET LA TABLE ACCENTUÉE (08/09/2026). `GENDER_LEX` est DÉSACCENTUÉE : elle perd tout
+        # nom dont la clé nue est partagée — « trace » (f) et « tracé » (m) s'annulent, donc
+        # « tracé » n'y est pas, et « et de tracé (y compris…) » devenait « tracer ». Ici on
+        # CONNAÎT la graphie accentuée (forms[0]) : on peut interroger `GENDER_ACC`, la table
+        # que le moteur charge déjà et qui, elle, sait que « tracé » est un nom masculin.
+        # Mesuré : 0 correction perdue, 5 faux positifs éteints (tracé ×2 contextes, adapté,
+        # chassé, péché), 0 tir sur 14 450 phrases d'UD.
+        # ⚠️ RESSERRÉ le 08/09 par la BATTERIE, que la mesure de corpus ne pouvait pas voir : « Ma mere
+        # ma dit de rentré avant huit heure » (banc textes_probe, hors corpus) perdait sa correction —
+        # `GENDER_ACC` classe « rentré » nom masculin. On exige donc l'INTERSECTION avec le tagger
+        # (doctrine : c'est l'intersection qui vaut, jamais une condition seule). Le tagger dit NOUN
+        # sur tracé/cité/péché et VERB sur rentré/juré/adapté/chassé/protégé — ces quatre-là restent
+        # ouverts, écrits dans la source curée plutôt que forcés.
+        if GENDER_ACC.get(forms[0].lower()) in ('m', 'f'):
+            _tge = pos_tags(T)
+            if _tge and i < len(_tge) and _tge[i] in ('NOUN', 'PROPN'): return None
         return forms[1]                              # préposition → infinitif -er
     if p in MODAL:               return forms[1]
     return None
@@ -601,6 +624,19 @@ def rule_flexion_er(T, i):
         else:
             tgt = 'part'
     elif p in _INF_GOV or p in MODAL or p in _CAUS:   # prépo (de/pour/sans/afin)/modal/causatif (faire+inf) → infinitif
+        # ⭐ …SAUF UN NOM QUE SEULE LA TABLE ACCENTUÉE CONNAÎT (08/09/2026). Les trois listes de
+        # noms homographes de cette règle (NOUN_E, _FLEX_STOP, NOUN_EE) sont DÉSACCENTUÉES : « trace »
+        # (f) et « tracé » (m) s'y annulent, donc « et de tracé (y compris…) » devenait « tracer ».
+        # Ici la graphie ACCENTUÉE est sous la main : `GENDER_ACC` sait que c'est un nom.
+        # Même geste que dans la règle sœur `rule_e_er`. Mesuré : 0 correction perdue, 12 faux
+        # positifs éteints (« le droit de cité »→citer, « la charge de juré »→jurer, « pour mission
+        # de protégé »→protéger…), 0 tir sur 14 450 phrases d'UD.
+        # ⚠️ RESSERRÉ le 08/09 par la BATTERIE (cf. règle sœur) : intersection avec le tagger, sinon
+        # « de rentré » perdait sa correction (GENDER_ACC classe « rentré » nom masculin).
+        if (p in _INF_GOV and lw.endswith(('é', 'és', 'ée', 'ées'))
+                and GENDER_ACC.get(lw) in ('m', 'f')):
+            _tgf = pos_tags(T)
+            if _tgf and i < len(_tgf) and _tgf[i] in ('NOUN', 'PROPN'): return None
         tgt = 'inf'
     elif praw == 'vous':                          # « vous » sujet → -ez  (OBJET si précédé d'un verbe : « saura vous conseiller »)
         subj = (i == 1) or (_SEG is not None and i-1 < len(_SEG['bb']) and _SEG['bb'][i-1]) \
@@ -807,6 +843,13 @@ def rule_mai_mais(T, i):
     if deacc(T[i].lower()) != 'mai': return None
     if i == 0: return None                                              # en tête : « Mai 68 » ; et une conjonction a besoin d'une proposition AVANT
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # début de proposition
+    # ⭐ UN NOMBRE JUSTE AVANT = une DATE (08/09/2026). Le tokeniseur jette les chiffres, donc
+    # « le 6 mai 1928 » arrive comme [le, mai] et la garde de date (une liste de MOTS) tient —
+    # jusqu'à ce qu'un nom s'intercale : « le sport 6 mai 1928 » passait, et « mai » devenait
+    # « mais » sur du français correct. Or `_seg_info` calcule DÉJÀ ce drapeau pour les
+    # déterminants (« le 25 mars ») : il suffisait de le consulter.
+    # Mesuré : 0 correction perdue, 1 faux positif éteint, 0 tir sur 14 450 phrases d'UD.
+    if _SEG is not None and i < len(_SEG['dig']) and _SEG['dig'][i]: return None
     if i + 1 >= len(T): return None                                     # rien à droite : pas de seconde proposition
     p = deacc(T[i-1].lower())
     if p in _MAI_DATE_LEFT or p in _MOIS: return None                   # « en mai », « le 1er mai », « avril mai »
@@ -1650,6 +1693,14 @@ def rule_adj_epithet(T, i):
     # tokeniseur jette les guillemets, donc « naturel » (une MENTION) devient l'épithète apparent de
     # « allégation ». _SEG.bb marque déjà les guillemets et virgules — il suffisait de le consulter.
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # garde GÉNÉRALE (pas seulement le cas élidé) : un épithète est dans le MÊME segment que son nom
+    # ⭐ FRONTIÈRE APRÈS L'ADJECTIF = ÉNUMÉRATION DISTRIBUTIVE (08/09/2026). « des mondes grec,
+    # albanais et slave » : chaque adjectif porte sur UN monde, le singulier est juste. La règle
+    # SŒUR `rule_adj_number` a exactement cette ligne depuis toujours ; celle-ci ne l'avait pas.
+    # Exemption : une CAPITALE après la frontière n'est pas une énumération mais une phrase
+    # neuve (« la pauvreté total ⏎ Qustion : … ») — c'est la seule correction que la garde nue
+    # perdait. Mesuré : 0 perdue, 2 faux positifs éteints (grec, local), 0 tir sur UD.
+    if (_SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i+1]
+            and not T[i+1][:1].isupper()): return None
     if i < 2 and not _el: return None
     w = T[i]; lw = w.lower()
     if "'" in lw or w[:1].isupper(): return None

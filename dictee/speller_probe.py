@@ -54,6 +54,24 @@ TOK = re.compile(r"[A-Za-zÀ-ÿœŒæÆ]+")          # inclut œ/æ (sinon « s�
 # désaccords restants de palier_gold_ref après #672). Les typographiques ’ʼ sont normalisées en ' AVANT (1:1, index alignés).
 TOK_JS = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
 
+
+_CIRC = u'âêîôûÂÊÎÔÛ'
+
+
+def _circ_rival(sp, low):
+    """La saisie (SANS accent) a-t-elle une restauration d'accent à CIRCONFLEXE, mot réel et pas rare ?
+
+    Garde de la route double-consonne. « la saisie sans accent » est essentiel : si le scripteur a
+    déjà mis un accent (« alé », « caré », « sucès »), le « rival » serait une DÉ-accentuation
+    (ale, care, suces) — jamais ce qu'il a voulu, et c'est doubler qui a raison (allé, carré, succès).
+    """
+    if deacc(low) != low: return False
+    for w in sp.D2A.get(low, []):
+        if w != low and deacc(w) == low and sp.FREQ.get(w, 0.0) >= 1.0 and any(c in _CIRC for c in w):
+            return True
+    return False
+
+
 def load_lexicon():
     WORDS, FREQ, DEACC2ACC, POS = set(), {}, defaultdict(list), defaultdict(set)
     # ⭐ LES AJOUTS AU FORMAT Lexique4 (wikt_lex_fr.tsv, gacc_lex_fr.tsv) SONT LUS ICI AUSSI (02/09/2026).
@@ -512,7 +530,15 @@ class Speller:
             _cd = low[:_q + 1] + low[_q] + low[_q + 1:]
             _f = self.FREQ.get(_cd, 0.0) if _cd in self.WORDS else 0.0
             if _f >= 3.0 and _f > _dblf: _dblw = _cd; _dblf = _f
-        if _dblw: return ('flag', _dblw)
+        # ⭐ GARDE DU CIRCONFLEXE (08/09/2026) — cette route rendait son verdict AVANT `_cands`, donc
+        # sans avoir vu la restauration d'accent (priorité 2 du speller). Or le circonflexe français
+        # est la TRACE d'une consonne DISPARUE (cône < konos, bâton < baston, hôpital < hospital) :
+        # circonflexe et consonne doublée sont deux reconstructions RIVALES de la même consonne, et
+        # doubler n'a pas le droit d'affirmer seul. Le jeton redescend alors dans la machinerie
+        # normale, qui rend l'accent (« cone »→cône, « batons »→bâtons — gold ×2 et ×3).
+        # Mesuré : 308 jetons sur cette route, 2 changent, 0 correction perdue, 0 tir sur les
+        # 354 647 jetons d'UD. Placebo sur l'accent AIGU : 5 changements dont 4 FAUX au gold.
+        if _dblw and not _circ_rival(self, low): return ('flag', _dblw)
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]; cw = rest if (rest in self.WORDS and len(rest) >= 5 and self.FREQ.get(rest, 0) >= 1.0) else None   # reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
             if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
