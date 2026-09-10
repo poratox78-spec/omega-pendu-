@@ -28003,7 +28003,12 @@ function spellTokenCore(tok,atStart,T,idx){
       if(tg[j]!=='ADV')return null;}
     if(a<1)return null;
     var pvw=T[a-1].toLowerCase();if(deaccS(pvw)==='se'||pvw.indexOf("'")>=0)return null;
-    var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deaccS(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
+    var fem=false,_pr=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deaccS(T[k].toLowerCase());if(dk==='elles'){fem=true;_pr=true;break;}if(dk==='ils'){_pr=true;break;}}
+    /* ⭐ LE GENRE DU SUJET NOMINAL (11/09/2026, chantier « les fleurs sont fané » → fanés) : cette règle ne lisait le genre que sur un
+       « elles »/« ils » LITTÉRAL et retombait au MASCULIN partout ailleurs — une proposition fausse sur une vraie faute, là où la
+       grammaire se tait. Le parseur de sujet existe (_npSubject : déterminant + nom-tête, saute les PP « de la maison », s'abstient
+       sur coordination, connaît les prénoms) et rend le genre : on le lui demande. Sujet introuvable ou singulier → comme avant. */
+    if(!_pr){var _np=_npSubject(T,tg,a);if(_np&&_np.g==='f'&&_np.n!=='s')fem=true;}
     return w+(fem?'es':'s');}
   // ACCORD SUJET-VERBE à sujet-NOM MID-phrase (« Ce matin, les clients acceptait »→acceptaient) → VIGILANCE orange.
   // Le det pluriel peut être dans un titre/apposition/PP (~0,03 % FP mesuré) → pas assez sûr pour le ROUGE, mais idéal
