@@ -13,6 +13,12 @@
   // correction effacée au reclic par Slate/Draft). Ré-activable d'un clic depuis le panneau. Ce drapeau NE coupe QUE
   // la bulle + la correction auto dans le champ ; le MIROIR (envoyé avant ce test dans run) et le clic droit vivent.
   var CFG = { enabled: false };
+  /* ⭐ null = « pas encore demandé au service worker depuis le dernier focus » : on n'affiche pas la
+     barre avant sa réponse (le panneau est-il encore ouvert ?), sinon elle clignoterait le temps de
+     son réveil. true/false = sa réponse ; l'absence de réponse vaut true (on ne bloque jamais). */
+  var _panneauOk = null;
+  var _dernierSw = 0;   // date de la dernière réponse du SW : moins de 25 s → il est vivant, le port couvre, on ne redemande pas
+  function _swPeutDormir() { return (Date.now() - _dernierSw) > 25000; }   // le SW MV3 meurt 30 s après son dernier événement
   // DICTIONNAIRE UTILISATEUR : dys-core ne tient qu'un Set SYNCHRONE (parité/tests Node) ; c'est ici
   // qu'on le remplit depuis chrome.storage.local (ASYNC) et qu'on le repersiste. chrome.storage (et
   // pas localStorage) parce que le dictionnaire doit suivre l'utilisateur sur TOUS les sites.
@@ -361,8 +367,18 @@
     return true;
   }
   function run(el) {
-    try { if (el && isEditable(el) && chrome.runtime && chrome.runtime.id) chrome.runtime.sendMessage({ type: 'omdys-mirror', text: getText(el) }, function () { void chrome.runtime.lastError; }); } catch (e) {}   // MIROIR → panneau latéral (sens unique champ→panneau ; indépendant de la barre in-place)
+    try { if (el && isEditable(el) && chrome.runtime && chrome.runtime.id) chrome.runtime.sendMessage({ type: 'omdys-mirror', text: getText(el) }, function (rep) {
+      void chrome.runtime.lastError;
+      /* ⭐ réponse du service worker (cf. background.js) : le panneau est-il encore ouvert ? Ce message le
+         RÉVEILLE s'il dormait — c'est ce qui manquait : un SW endormi ne voit pas le panneau se fermer. */
+      var attendait = (_panneauOk === null);
+      var p = (rep && typeof rep.panneau === 'boolean') ? rep.panneau : true;   // pas de réponse / Chrome sans getContexts → on ne bloque pas
+      _panneauOk = p; _dernierSw = Date.now();
+      if (!p) { if (CFG.enabled) { CFG.enabled = false; hideBar(); } }
+      else if (attendait && el === active) run(el);                          // la réponse est arrivée : on affiche maintenant
+    }); } catch (e) {}   // MIROIR → panneau latéral (sens unique champ→panneau ; indépendant de la barre in-place)
     if (!CFG.enabled || !DC.isReady() || !el || el !== active || dismissed.has(el)) return;
+    if (_panneauOk === null) return;   // ⭐ on attend la réponse du service worker avant d'afficher quoi que ce soit
     var text = getText(el);
     if (!text || !text.trim()) { hideBar(); return; }
     var dg = DC.diagnoseAll ? DC.diagnoseAll(text) : DC.diagnose(text);   // grammaire + orthographe (non-mots/accents)
@@ -425,8 +441,9 @@
   }
   document.addEventListener('focusin', function (e) {
     var el = vraieCible(e);
-    if (isEditable(el)) { active = el; dismissed.delete(el); observeActive(el); schedule(el); }
+    if (isEditable(el)) { if (_swPeutDormir()) _panneauOk = null; active = el; dismissed.delete(el); observeActive(el); schedule(el); }   // ⭐ nouveau focus → on redemande au SW
   }, true);
+  try { window.addEventListener('focus', function () { if (_swPeutDormir()) _panneauOk = null; }); } catch (e) {}   // ⭐ la fenêtre reprend la main (le panneau vient d'être fermé) → idem
   document.addEventListener('input', function (e) {
     var _c = vraieCible(e); if (_c === active && isEditable(_c)) { dismissed.delete(active); schedule(active); }
   }, true);

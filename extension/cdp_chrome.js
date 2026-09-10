@@ -30,12 +30,35 @@ function trouverChrome() {
   return c.find(p => { try { return fs.existsSync(p); } catch (e) { return false; } }) || null;
 }
 
-/* le script de contenu s'injecte sur <all_urls> mais pas sur file:// : on sert une page http */
+/* le script de contenu s'injecte sur <all_urls> mais pas sur file:// : on sert une page http.
+   ⭐ 10/09/2026 : deux pages de COUVERTURE en plus de « / » (qui reste la page d'origine) — « /shadow »,
+   un champ dans un shadow root ouvert ; « /riche », un éditeur à MODÈLE PROPRE (marqueur de Slate) qui
+   porte son oracle : la POSITION du curseur après l'écriture, CALIBRÉE par un contrôle qui rejoue les
+   deux écritures possibles (pipeline d'édition vs mutation directe du DOM). Voir navigateur_ext_probe ⑧⑨. */
+const PAGES = {
+  '/': '<!doctype html><meta charset="utf-8"><title>essai</title><textarea id="z"></textarea>',
+  '/shadow': '<!doctype html><meta charset="utf-8"><title>shadow</title><div id="hote"></div>'
+    + '<script>document.getElementById("hote").attachShadow({ mode: "open" }).innerHTML = "<textarea id=z rows=3 cols=60></textarea>";</script>',
+  '/riche': '<!doctype html><meta charset="utf-8"><title>riche</title>'
+    + '<div id="z" data-slate-editor="true" contenteditable="true" style="border:1px solid #888;padding:6px;min-height:40px"></div>'
+    + '<script>'
+    + 'const z = document.getElementById("z");'
+    + 'window.__poser = (t) => { z.textContent = t; };'
+    + 'window.__sig = () => { const s = getSelection(); const dedans = !!(s && s.rangeCount && s.anchorNode && (s.anchorNode === z || z.contains(s.anchorNode)));'
+    + '  return { dedans, off: dedans ? s.anchorOffset : null, texte: z.textContent }; };'
+    + 'window.__ctl = () => { const essai = (mode) => { const d = document.createElement("div"); d.contentEditable = "true"; d.textContent = "les chien aboient"; document.body.appendChild(d);'
+    + '  const n = d.firstChild, r = document.createRange(); r.setStart(n, 4); r.setEnd(n, 9); const s = getSelection(); s.removeAllRanges(); s.addRange(r); d.focus();'
+    + '  if (mode === "pipeline") { document.execCommand("insertText", false, "chiens"); } else { n.nodeValue = n.nodeValue.slice(0, 4) + "chiens" + n.nodeValue.slice(9); }'
+    + '  const s2 = getSelection(); const out = { off: (s2 && s2.rangeCount) ? s2.anchorOffset : null, texte: d.textContent }; d.remove(); return out; };'
+    + '  const a = essai("pipeline"), b = essai("mutation"); return { pipeline: a, mutation: b, separe: (a.off !== null && b.off !== null && a.off !== b.off) }; };'
+    + '</script>',
+};
 function servir() {
   return new Promise(res => {
     const srv = http.createServer((req, rep) => {
-      rep.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-      rep.end('<!doctype html><meta charset="utf-8"><title>essai</title><textarea id="z"></textarea>');
+      const p = (req.url || '/').split('?')[0];
+      rep.writeHead(PAGES[p] ? 200 : 404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      rep.end(PAGES[p] || 'non');
     });
     srv.listen(0, '127.0.0.1', () => res({ srv, port: srv.address().port }));
   });
