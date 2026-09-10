@@ -22,10 +22,11 @@
  * CE QU'ON TESTE : un COMPORTEMENT par asset, jamais une présence. Une table vide mais non nulle
  * répond « oui » à une question de présence ; elle ne corrige pas « les chien aboient ».
  *
- * ⚠️ CE QUE CE BANC NE TESTE PAS : l'AFFICHAGE (la barre `.omdys-bar`). Piloter le focus d'un champ
- * en headless ne déclenche pas fiablement la barre, et un banc qui échouerait là-dessus accuserait
- * le produit d'un défaut qui n'existe pas. Le chargement des assets — l'objet de ce banc — est
- * vérifié au niveau du MOTEUR. L'affichage reste à couvrir : c'est écrit, pas escamoté.
+ * ⭐ L'AFFICHAGE (la barre `.omdys-bar`) EST TESTÉ depuis le 10/09/2026 (gardes ⑦⑧⑨). Ce banc disait
+ * avant : « piloter le focus en headless ne déclenche pas fiablement la barre ». La cause, trouvée en
+ * cherchant autre chose : la page n'avait PAS LE FOCUS (onglet ouvert sur about:blank puis navigué),
+ * et Chrome n'émet aucun événement de focus dans une page non focalisée — le content script ne voyait
+ * jamais `focusin`. `Emulation.setFocusEmulationEnabled` (CDP) règle ça, et la barre est fiable.
  *
  * ⭐ QUATRE PIÈGES PAYÉS EN ÉCRIVANT CE BANC, écrits ici pour qu'ils ne soient pas repayés :
  *  ① `--load-extension` NE CHARGE PLUS RIEN sur Chrome récent (152 ici) : aucun monde isolé n'est
@@ -289,13 +290,110 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
         + (okMem ? '   (mémorisée)' : '   ← REVENUE COCHÉE'));
     if (!okMem) echecs.push('bascule bulle↔recopie : la recopie décochée revient COCHÉE après rechargement — '
       + 'son état n\'est pas persisté (elle porte `checked` en dur dans sidepanel.html)');
+
+    /* ⑦⑧⑨ COUVERTURE DE L'AFFICHAGE — la barre elle-même, dans de vraies pages (10/09/2026).
+       Jusqu'ici ce banc disait « piloter le focus en headless ne déclenche pas fiablement la barre ».
+       La cause a été trouvée en cherchant autre chose : la page n'avait PAS LE FOCUS (onglet ouvert sur
+       about:blank puis navigué), et Chrome n'émet AUCUN événement de focus dans une page non focalisée —
+       le content script ne voyait donc jamais `focusin`. `Emulation.setFocusEmulationEnabled` règle ça.
+       Trois gardes, chacune née d'un trou mesuré :
+         ⑧ un champ dans un SHADOW ROOT ouvert est vu et corrigé (composedPath()[0], PR #721) ;
+         ⑨ dans un éditeur à MODÈLE PROPRE (marqueur de Slate), la correction passe par le PIPELINE
+            D'ÉDITION, pas par une mutation du DOM sous l'éditeur — oracle : la POSITION du curseur,
+            CALIBRÉE par un contrôle qui rejoue les deux écritures (10 vs 0 mesurés) ; un compteur de
+            `beforeinput` avait menti (headless ne les livre pas, même depuis la page) ;
+         ⑦ « fermer le panneau coupe la bulle » MÊME quand le service worker s'est endormi : le port ne
+            tenait que 30 s (SW MV3 terminé après 30 s sans événement, port mort avec lui — mesuré :
+            fermé 45 s après la dernière frappe → bulle restée allumée). On TUE le SW par CDP (même état
+            qu'après l'idle, vérifié : il se réveille en 37 ms dans les deux cas), on ferme le panneau,
+            on tape → la bulle ne doit PAS apparaître et `enabled` doit être éteint. Son CONTRÔLE : SW
+            tué, panneau OUVERT, on tape → la bulle DOIT apparaître (le réveil ne l'éteint pas à tort). */
+    let couv = 0;
+    const URL_PANNEAU = 'chrome-extension://' + r0.id + '/sidepanel.html';
+    const cibles = async () => (await (await fetch('http://127.0.0.1:' + dp + '/json/list')).json());
+    const fermerCible = async (id) => { try { await fetch('http://127.0.0.1:' + dp + '/json/close/' + id); } catch (e) {} };
+    const swCible = async () => (await cibles()).find((t) => t.type === 'service_worker' && (t.url || '').indexOf(r0.id) >= 0) || null;
+    const tuerSW = async () => {   // = l'état d'après ~30 s d'inactivité ; on VÉRIFIE qu'il est mort
+      const t = await swCible(); if (t) await fermerCible(t.id);
+      for (let i = 0; i < 40; i++) { if (!(await swCible())) return true; await attendre(250); }
+      return false;
+    };
+    const allumer = async () => {   // la bulle, comme l'utilisateur qui coche la case
+      await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: 'new Promise(r => chrome.storage.local.set({ enabled: true, omMir: false }, () => r(1)))' });
+      await attendre(400);
+    };
+    const taperDans = async (route, cibleJs, riche) => {
+      let ctx2 = 0;
+      const pg2 = await connecter(await onglet(dp, 'about:blank'), (d) => {
+        if (d.method === 'Runtime.executionContextCreated' && (d.params.context.auxData || {}).type === 'isolated') ctx2 = d.params.context.id; });
+      await pg2.envoyer('Runtime.enable'); await pg2.envoyer('Page.enable');
+      await pg2.envoyer('Page.navigate', { url: 'http://127.0.0.1:' + portPage + route });
+      for (let i = 0; i < 60 && !ctx2; i++) await attendre(250);
+      for (let i = 0; i < 80; i++) {   // l'ÉTAT « moteur prêt », jamais un délai
+        const q = await pg2.envoyer('Runtime.evaluate', { contextId: ctx2, returnByValue: true, expression: "(typeof DYSCORE!=='undefined'&&DYSCORE.isReady)?!!DYSCORE.isReady():false" });
+        if (q.result && q.result.value) break; await attendre(250);
+      }
+      try { await pg2.envoyer('Page.bringToFront', {}); } catch (e) {}
+      await pg2.envoyer('Emulation.setFocusEmulationEnabled', { enabled: true });   // ⭐ sans ça, aucun `focusin` n'atteint le content script
+      const r = await pg2.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 60000,
+        expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+          + ' const el = ' + cibleJs + '; if (!el) return { fatal: "champ introuvable" };'
+          + ' const ctl = (window.__ctl ? window.__ctl() : null);'   /* le contrôle de l'oracle tourne AVANT le produit */
+          + ' if (' + riche + ') { window.__poser("les chien aboient"); } else { el.value = "les chien aboient"; }'
+          + ' el.focus(); el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true, key: "t" }));'
+          + ' let vue = false; for (let i = 0; i < 60; i++) { const b = document.querySelector(".omdys-bar"); if (b && getComputedStyle(b).display !== "none") { vue = true; break; } await w(100); }'
+          + ' await w(800);'   /* laisser l'auto s'appliquer */
+          + ' const applique = ' + riche + ' ? el.textContent : el.value;'
+          + ' const sig = (window.__sig ? window.__sig() : null);'
+          + ' return { barre: vue, applique, ctl, sig }; })()' });
+      const v = ((r.result || {}).value) || {};
+      const e = await pg2.envoyer('Runtime.evaluate', { contextId: ctx2, awaitPromise: true, returnByValue: true,
+        expression: 'new Promise(r => chrome.storage.local.get(["enabled"], o => r(o && o.enabled)))' });
+      v.enabled = (e.result || {}).value;
+      try { pg2.fermer(); } catch (x) {}
+      for (const x of (await cibles()).filter((t) => (t.url || '').indexOf('127.0.0.1:' + portPage + route) >= 0)) await fermerCible(x.id);
+      return v;
+    };
+    const garde = (ok, nom, det, echec) => { couv++; log('  ' + (ok ? '✓' : '✗') + ' [couv    ] ' + nom.padEnd(40) + det); if (!ok) echecs.push(echec); };
+
+    await allumer();
+    // ⑧ shadow DOM
+    const s8 = await taperDans('/shadow', 'document.getElementById("hote").shadowRoot.getElementById("z")', false);
+    garde(!s8.fatal && s8.barre && s8.applique === 'les chiens aboient', '⑧ champ dans un SHADOW ROOT',
+      (s8.fatal ? s8.fatal : 'barre=' + s8.barre + ' · appliqué → ' + JSON.stringify(s8.applique)),
+      'couverture ⑧ : un champ dans un shadow root ouvert n\'est plus vu ou corrigé (composedPath()[0], PR #721) — barre=' + s8.barre + ', texte ' + JSON.stringify(s8.applique));
+    // ⑨ éditeur riche : pipeline d'édition, oracle calibré
+    const s9 = await taperDans('/riche', 'document.getElementById("z")', true);
+    const c9 = s9.ctl || {}, g9 = s9.sig || {};
+    if (!c9.separe) {
+      garde(false, '⑨ éditeur RICHE (modèle propre)', 'INSTRUMENT : le contrôle ne sépare pas les deux écritures (pipeline→' + (c9.pipeline || {}).off + ', mutation→' + (c9.mutation || {}).off + ')',
+        'couverture ⑨ : INSTRUMENT — le contrôle de l\'oracle ne sépare plus pipeline et mutation ; la garde ne peut rien conclure, à regarder');
+    } else {
+      const okPipe = g9.dedans && g9.off === c9.pipeline.off;
+      garde(!s9.fatal && s9.applique === 'les chiens aboient' && okPipe, '⑨ éditeur RICHE (modèle propre)',
+        'appliqué → ' + JSON.stringify(s9.applique) + ' · curseur en ' + g9.off + ' (pipeline=' + c9.pipeline.off + ', mutation=' + c9.mutation.off + ') → ' + (okPipe ? 'PIPELINE D’ÉDITION' : 'MUTATION DIRECTE ⛔'),
+        'couverture ⑨ : dans un éditeur à modèle propre, l\'écriture ' + (okPipe ? 'n\'est pas appliquée' : 'MUTE LE DOM sous l\'éditeur (curseur en ' + g9.off + ', pipeline attendu en ' + c9.pipeline.off + ')') + ' — texte ' + JSON.stringify(s9.applique));
+    }
+    // CONTRÔLE de ⑦ : SW tué, panneau OUVERT → la bulle doit apparaître
+    const mortC = await tuerSW();
+    const sC = await taperDans('/', 'document.getElementById("z")', false);
+    garde(mortC && sC.barre === true && sC.enabled === true, 'contrôle ⑦ : SW tué, panneau OUVERT', 'SW mort=' + mortC + ' · barre=' + sC.barre + ' · enabled=' + sC.enabled + '   (la bulle doit apparaître)',
+      'couverture ⑦ (contrôle) : service worker tué et panneau OUVERT, la bulle ' + (sC.barre ? 'apparaît' : 'N\'APPARAÎT PAS') + ' et enabled=' + sC.enabled + ' — le réveil du SW éteint la bulle à tort' + (mortC ? '' : ' (et le SW n\'a pas pu être tué : instrument)'));
+    // ⑦ : SW tué, panneau FERMÉ → pas de bulle, enabled éteint
+    const mort7 = await tuerSW();
+    for (const x of (await cibles()).filter((t) => t.url === URL_PANNEAU)) await fermerCible(x.id);   // = l'utilisateur ferme le panneau
+    await attendre(800);
+    const s7 = await taperDans('/', 'document.getElementById("z")', false);
+    garde(mort7 && s7.barre === false && s7.enabled === false, '⑦ SW endormi, panneau FERMÉ, on tape', 'SW mort=' + mort7 + ' · barre=' + s7.barre + ' · enabled=' + s7.enabled + '   (jamais de bulle sans panneau)',
+      'couverture ⑦ : panneau fermé pendant le sommeil du service worker → la bulle ' + (s7.barre ? 'APPARAÎT ENCORE' : 'n\'apparaît pas') + ' et enabled=' + s7.enabled + ' (attendu false) — le SW n\'éteint pas la bulle à son réveil' + (mort7 ? '' : ' (SW non tué : instrument)'));
     try { pp.fermer(); } catch (e) {}
     if (echecs.length) {
       console.log('✗ EXTENSION DANS CHROME — ' + echecs.length + ' échec(s) :');
       echecs.forEach(e => console.log('  ' + e));
       code = 1;
     } else {
-      console.log('✓ EXTENSION DANS CHROME : ' + (CAS.length + PANNEAU.length) + ' comportements vérifiés dans le PAQUET RÉEL (dont ' + PANNEAU.length + ' gestes du panneau latéral) '
+      console.log('✓ EXTENSION DANS CHROME : ' + (CAS.length + PANNEAU.length + couv) + ' comportements vérifiés dans le PAQUET RÉEL (dont ' + PANNEAU.length + ' gestes du panneau latéral, ' + couv + ' gardes d’affichage) '
                   + '(content.js injecté, assets chargés par chrome.runtime.getURL).');
     }
   } catch (e) {

@@ -32,6 +32,33 @@ try {
   });
 } catch (e) {}
 
+/* ⭐⭐ LE PORT NE SUFFIT PAS (mesuré le 10/09/2026, Chrome réel) : un service worker MV3 est terminé
+   après ~30 s sans événement, et un port SILENCIEUX ne le garde pas en vie. Panneau ouvert 2 s puis
+   fermé → bulle éteinte ; ouvert 45 s sans frappe puis fermé → la bulle RESTAIT ALLUMÉE, le SW étant
+   mort avant la fermeture. Le cas réel est celui-là : on tape, on s'arrête, on ferme plus tard.
+   Réparation : chaque message « omdys-mirror » de la page (une salve de frappe) RÉVEILLE ce SW ; il
+   demande alors à Chrome si un document du panneau existe encore. Aucun → `enabled` s'éteint, et la
+   réponse dit « panneau: false » pour que content.js n'affiche rien en attendant storage.onChanged.
+   Chrome < 116 (pas de getContexts) → réponse « null », on ne touche à rien. Le port reste : il coupe
+   SANS DÉLAI tant que le SW est vivant. */
+var URL_PANNEAU = chrome.runtime.getURL('sidepanel.html');
+function panneauOuvert(cb) {
+  try {
+    if (!chrome.runtime.getContexts) return cb(null);
+    chrome.runtime.getContexts({ documentUrls: [URL_PANNEAU] }).then(function (c) { cb(!!(c && c.length)); }, function () { cb(null); });
+  } catch (e) { cb(null); }
+}
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (!msg || msg.type !== 'omdys-mirror') return;
+  panneauOuvert(function (ouvert) {
+    if (ouvert === false) {
+      try { chrome.storage.local.get(['enabled'], function (o) { if (o && o.enabled === true) chrome.storage.local.set({ enabled: false }); }); } catch (e) {}
+    }
+    try { sendResponse({ panneau: ouvert }); } catch (e) {}
+  });
+  return true;   // réponse asynchrone
+});
+
 // le content script (contextmenu) pousse le libellé du mot sous le curseur (« 🩹 « von » → « vont » ») + activé/grisé
 chrome.runtime.onMessage.addListener(function (msg) {
   if (msg && msg.type === 'omdys-menu') {
