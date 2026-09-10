@@ -439,20 +439,43 @@ _PPL_ETRE_VERBES = set('arrive tombe monte remonte reste rentre retourne passe r
 # Mesuré avant de poser : UD 14 450 → 35 motifs « être + -e », 34 adjectifs/prépositions écartés, 1 « nord est traverse » (garde
 # nord/sud-est) ; gold → 5 participes gagnés, 0 faux. Le sujet (pronom, réfléchi, élidé) donne l'accord.
 _SPOS = None
+_SFREQ = None   # fréquence (par million) de la forme accent-exacte — même asset, même table que SP.FREQ côté produit
+_SFREQ_D = None   # idem, clé DÉSACCENTUÉE → max des variantes (= SP.D2A côté produit) : les lemmes de CONJ_C sont nus
 def _spos(w):
     """POS ACCENT-EXACT de la forme écrite, lu dans l'asset du speller (extension/assets/speller.tsv.gz) — la même table que le
     produit (SP.POS). '' si absent. Chargé une fois, à la première demande."""
-    global _SPOS
+    global _SPOS, _SFREQ, _SFREQ_D
     if _SPOS is None:
-        _SPOS = {}
+        _SPOS = {}; _SFREQ = {}; _SFREQ_D = {}
         try:
             import gzip as _gz
             for _l in _gz.open(os.path.join(os.path.dirname(HERE), 'extension', 'assets', 'speller.tsv.gz'), 'rt', encoding='utf-8'):
                 _p = _l.rstrip('\n').split('\t')
-                if len(_p) >= 3: _SPOS[_p[0]] = _p[2]
+                if len(_p) >= 3:
+                    _SPOS[_p[0]] = _p[2]
+                    try:
+                        _f = int(_p[1]) / 1000.0                 # colonne 2 = fréquence × 1000, comme SP.FREQ le lit
+                        _SFREQ[_p[0]] = _f
+                        if _f > 0:                               # comme SP.D2A : seules les formes à fréquence > 0
+                            _d = deacc(_p[0]); _SFREQ_D[_d] = max(_SFREQ_D.get(_d, 0.0), _f)
+                    except ValueError: pass
         except Exception:
             pass
     return _SPOS.get(w.lower(), '')
+
+
+def _sfreq(w):
+    """Fréquence par million (Lexique, via l'asset du speller) de la forme ACCENT-EXACTE — la même table que SP.FREQ
+    côté produit. None si ABSENTE — une fréquence inconnue n'est pas une fréquence rare. Chargée avec _spos."""
+    _spos('a')
+    return (_SFREQ or {}).get(w.lower())
+
+
+def _lemfreq(lem):
+    """Fréquence par million du LEMME (infinitif), par sa clé DÉSACCENTUÉE — les lemmes de CONJ_C sont nus (« etre »).
+    Max des variantes accentuées à fréquence > 0, comme SP.D2A côté produit. None si inconnu (inconnu ≠ rare)."""
+    _spos('a')
+    return (_SFREQ_D or {}).get(deacc(lem.lower()))
 
 
 def _ppl_form(w, suf):
@@ -2613,6 +2636,15 @@ FULL_AUX = set((
 # Mots fréquents à ≤1 édition d'une forme aux longue (avec≈avez, avant≈avait…) mais qui ne sont JAMAIS un aux mutilé → ne pas corriger
 NON_AUX = set('avec avant apres dans pour sur sous vers chez sans mais donc alors aussi tres plus tout tous leur leurs cette cela elle elles entre selon ainsi'.split())
 
+_AUX_LONGS = None
+def _voisin_aux_long(dl):
+    """L'écrit (déaccentué) est-il à UNE lettre d'une forme LONGUE (≥ 4) d'être/avoir ? « somme » ↔ « sommes ». Les formes
+    courtes (a, as, ai, es, est, ont, eu…) sont à une lettre de tout et ne signifient rien — même seuil que rule_aux_misspell."""
+    global _AUX_LONGS
+    if _AUX_LONGS is None: _AUX_LONGS = [f for f in FULL_AUX if len(f) >= 4]
+    return any(abs(len(f) - len(dl)) <= 1 and _lev(dl, f) == 1 for f in _AUX_LONGS)
+
+
 def rule_aux_misspell(T, i):
     if not CONJ_LOADED or "'" in T[i].lower(): return None
     w = deacc(T[i].lower())
@@ -2626,7 +2658,13 @@ def rule_aux_misspell(T, i):
     # « je » (1sg) : les cibles COURTES avoir (ai) sont déjà écartées (len<4) ; on autorise les LONGUES (suis/étais/avais)
     # → « je sui »→suis. (« je ai »=élision j'ai gérée ailleurs : ai est trop court pour être une cible ici.)
     reads = _reads(T[i])
-    if reads and _agrees(reads, per, nb): return None            # déjà une forme valide accordée → ne pas toucher
+    if reads and _agrees(reads, per, nb):                        # déjà une forme valide accordée → ne pas toucher…
+        # ⭐ …SAUF nous/vous (10/09/2026, cas de Rem) : `_agrees` ignore le NOMBRE aux 1re/2e personnes — héritage de
+        # l'époque où nous/vous étaient exclus du correcteur. « nous somme » (sommer, 1re du SINGULIER) y passait pour
+        # accordé, la règle se taisait, et c'est « personne du verbe » qui parlait avec le mauvais lemme → *sommons*.
+        # Un sujet PLURIEL de 1re/2e personne exige le nombre (miroir : rAuxMisspell).
+        if not (nb == 'p' and per in ('1', '2') and not any(p == per and n in (nb, 'x') for (_l, _mt, p, n) in reads)):
+            return None
     best_d, best_f, best_v = 9, None, None
     for (dform, verb, aform) in _aux_targets(per, nb):
         if len(dform) < 4: continue                              # SEULES les formes LONGUES (avons/êtes/étions/avait…) ; jamais a/as/ai/es : ces cibles courtes attrapent ne/le/se/me
@@ -3537,6 +3575,10 @@ def rule_sujet_flexion(T, i):
     # proposer « peuvent » dans « celle des Mariniers PUIS des Pénitents » (2 FP UD). La liste existe déjà dans
     # ce fichier — `_PB_CONJ_ADV`, utilisée par la segmentation — on la lit au lieu d'en inventer une.
     if dl in _PB_CONJ_ADV: return None
+    # ⭐ SI LA RÈGLE DES AUXILIAIRES PARLE, CELLE-CI SE TAIT (10/09/2026) : « nous somme » est à une lettre de « sommes » ;
+    # rule_aux_misspell le rend, et conjuguer *sommer* par-dessus donnait « sommons » en rouge. Renvoi EXPLICITE, pour
+    # ne pas dépendre de l'ordre du registre — et la jumelle ORANGE (sujet nominal) en hérite.
+    if rule_aux_misspell(T, i): return None
     _ps_completer()                                                  # complète le passé simple pluriel, une fois
     lec = _reads(w)
     if not lec:
@@ -3615,14 +3657,25 @@ def rule_sujet_flexion(T, i):
     _que = any(re.match(r"^(que|qu)$", deacc(T[k].lower()).rstrip("\'\u2019")) for k in range(max(0, i - 5), i))
     _lec2 = [r for r in lec if r[1].startswith('sub')] if _que else [r for r in lec if not r[1].startswith('sub')]
     if _lec2: lec = _lec2                                            # « que » présent → subjonctif ; absent → indicatif
-    cible, slot = None, per + nb
+    cible, slot, lemc = None, per + nb, None
     for (lem, tps, _p, _n) in lec:
         f = (CONJ_C.get(lem) or {}).get(tps, {}).get(slot)
         if not f: return None                                        # le temps écrit n'est pas dans la table → abstention
-        if cible is None: cible = f
+        if cible is None: cible = f; lemc = lem
         elif cible != f: return None                                 # deux lemmes, deux formes → abstention
     if not cible or cible.lower() == lw: return None
     if deacc(cible.lower()) == dl and not _hors: return None   # accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
+    # ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → *sommons*, « vous somme » → *sommez*.
+    # L'écrit est une case de *sommer* — mais il est aussi à UNE lettre de « sommes » (être, 433/M), et *sommer* est un verbe
+    # que personne n'emploie (0,23/M). Le produit écrivait en ROUGE un mot que personne n'a voulu. Quand le LEMME est CONNU
+    # ET RARE (< 1/M, infinitif dans la table du speller = SP.D2A) et l'écrit voisin d'une forme LONGUE d'être/avoir, la
+    # lecture « forme finie d'un verbe rare » est la mauvaise hypothèse : on s'abstient, et rule_aux_misspell parle s'il le
+    # peut (« nous somme » → sommes). ⚠️ C'est le LEMME qu'on pèse, pas la FORME cible : la 1re version pesait la forme et
+    # taisait « nous fîtes » → fîmes, « vous pûmes » → pûtes, « ils pûtes » → purent — passés simples RARES de verbes
+    # COURANTS (faire 3 040/M, pouvoir 253/M), à une lettre de fûmes/fûtes/furent ; la couverture de la conjugaison l'a vu
+    # (−3 nous, −3 vous, −1 qu'ils, −1 les chats). « nous vont » → allons : aller 956/M, gardé.
+    _lf = _lemfreq(lemc) if lemc else None
+    if _lf is not None and _lf < 1.0 and _voisin_aux_long(dl): return None   # lemme CONNU et rare (inconnu ≠ rare : miroir JS)
     return _keepcase(w, cible)
 
 
@@ -5230,6 +5283,10 @@ MUETS = [
                               "Deux lemmes, deux corrections ; sans le lemme on choisit au hasard — mesuré : « primons », un ROUGE faux."),
     ("Les primes sont versées.", "« primes » = le NOM (la prime) : un pluriel de nom ne se conjugue pas."),
     ("Les primes annuelles augmentent.", "même nom, avec un adjectif : le scan du sujet le traverse depuis le 15/09."),
+    ("Je somme le témoin de parler.", "« somme » = sommer, 1re du singulier, ACCORDÉ : rien à corriger (garde nous/vous de rule_aux_misspell)."),
+    ("Il somme les gens de partir.", "« somme » = sommer, 3e du singulier, accordé."),
+    ("Vous somme très contents.", "FAUTE, mais ABSTENTION VOULUE : la lecture *sommer* donnait « sommez » (0,04/M) en ROUGE — un mot que personne "
+                                    "n'a voulu. Aucun auxiliaire de 2e du pluriel à une lettre de « somme » : plutôt se taire qu'inventer."),
     ("On sent que vous maitrisez votre sujet.", "ORTHOGRAPHE RECTIFIÉE de 1990 (sans circonflexe) : elle est JUSTE. "
                                                 "Une correction d'ACCENT SEUL n'est permise que hors lexique."),
     ("Très vite l'ambiance se rafraichit.", "idem 1990 : « rafraichit » est au lexique du produit."),
@@ -5248,6 +5305,7 @@ CASES = [
     ("Le travail semble terminé", "terminé", "terminer", "-é/-er"),
     ("Nous irions au cinéma", "irions", "iriez", "personne du verbe"),
     ("Vous iriez au cinéma", "iriez", "irions", "personne du verbe"),
+    ("Nous allons au parc", "allons", "vont", "personne du verbe"),   # TÉMOIN de la garde « lemme rare » : « vont » est à une lettre de « sont », allons (512/M) doit rester
     ("Tu iras demain", "iras", "irai", "personne du verbe"),
     ("Nous allons au parc", "allons", "allez", "personne du verbe"),
     ("Nous sommes là", "sommes", "êtes", "personne du verbe"),

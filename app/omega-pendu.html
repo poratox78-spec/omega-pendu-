@@ -26135,10 +26135,12 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       return ((CONJ_C.etre||{})[mt]||{})[per+nb]||null;}return null;}
   function svLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;var prev=[],cur,ja,jb;for(jb=0;jb<=b.length;jb++)prev[jb]=jb;for(ja=1;ja<=a.length;ja++){cur=[ja];for(jb=1;jb<=b.length;jb++)cur[jb]=Math.min(prev[jb]+1,cur[jb-1]+1,prev[jb-1]+(a.charAt(ja-1)!==b.charAt(jb-1)?1:0));prev=cur;}return prev[b.length];}
   function svAuxTargets(per,nb){var out=[],vs=['etre','avoir'],ms=['ind:pre','ind:imp'],vi,mi,f;for(vi=0;vi<2;vi++)for(mi=0;mi<2;mi++){f=((CONJ_C[vs[vi]]||{})[ms[mi]]||{})[per+nb];if(f)out.push([deacc(f),vs[vi],f]);}return out;}
+  var _AUX_LONGS=null;   /* formes LONGUES (≥ 4) d'être/avoir, déaccentuées — « somme » est à une lettre de « sommes » ; les courtes (a, as, ont…) sont à une lettre de tout */
+  function _voisinAuxLong(dl){if(_AUX_LONGS===null){_AUX_LONGS=[];for(var f in FULL_AUX)if(f.length>=4)_AUX_LONGS.push(f);}for(var q=0;q<_AUX_LONGS.length;q++)if(Math.abs(_AUX_LONGS[q].length-dl.length)<=1&&svLev(dl,_AUX_LONGS[q])===1)return true;return false;}
   function rAuxMisspell(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<3||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w]||NON_AUX[w])return null;
     var pn=svSubject(T,i),k;if(!pn&&i>0){var pv=deacc(T[i-1].toLowerCase());if(pv==='nous')pn=['1','p'];else if(pv==='vous')pn=['2','p'];}
     if(!pn)return null;var per=pn[0],nb=pn[1];   // « je » (1sg) : cibles courtes avoir (ai) déjà écartées (len<4) → on autorise les longues (suis/étais) : « je sui »→suis
-    var reads=svReads(T[i]);if(reads.length&&svAgrees(reads,per,nb))return null;
+    var reads=svReads(T[i]);if(reads.length&&svAgrees(reads,per,nb)){var _okn=true;if(nb==='p'&&(per==='1'||per==='2')){_okn=false;for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))_okn=true;}if(_okn)return null;}   /* ⭐ nous/vous (10/09/2026, cas de Rem) : svAgrees ignore le NOMBRE en 1re/2e (héritage de leur exclusion) — « nous somme » (sommer 1sg) passait pour accordé, la règle se taisait et « personne du verbe » parlait avec le mauvais lemme (sommons). Un sujet pluriel exige le nombre. Miroir Python. */
     var tg=svAuxTargets(per,nb),bd=9,bf=null,bv=null,d;for(k=0;k<tg.length;k++){if(tg[k][0].length<4)continue;d=svLev(w,tg[k][0]);if(d<bd){bd=d;bf=tg[k][2];bv=tg[k][1];}else if(d===bd&&tg[k][1]!==bv)bv='AMBIG';}
     if(!bf||bd>1||bv==='AMBIG')return null;if(reads.length&&bd>1)return null;if(w===deacc(bf.toLowerCase()))return null;return bf;}
   // a/à, on/ont, son/sont, mais/mes, et/est, ce/se, peu = homophones À RÔLE GRAMMATICAL → tranchés EN ROUGE par la grammaire (sujet, accord, segments, pronoms collés, cadre auxiliaire), pas en « vigilance verte ». FP=0 par cadre syntaxique forcé.
@@ -26664,6 +26666,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(CLITIC[dl]||PREP[dl])return null;
     if(_PB_CONJ_ADV[dl])return null;   // « puis » se lit *pouvoir 1sg* : c'est un CONNECTEUR (miroir Python — oubli de portage vu par messy_probe)
     if(MODAL[dl]&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;   // MODAL seulement devant un VRAI INFINITIF (« je vais manger ») — miroir EXACT du Python (VERB_LEX ≡ COMMON_VERBS). L'ancien test « le mot suivant n'a aucune lecture » était vrai de « au », « le », « des »… : « Nous allez AU parc » restait muet DANS LE PRODUIT alors que la référence le corrigeait
+    if(rAuxMisspell(T,i))return null;   // ⭐ si la règle des auxiliaires parle (« nous somme » → sommes), celle-ci se tait : conjuguer *sommer* par-dessus donnait « sommons ». Renvoi explicite, indépendant de l'ordre du registre — miroir Python
     _psCompleter();                                                  // complète le passé simple pluriel, une fois
     var lec=svReads(w),_psSeul=false;
     if(!lec.length){   // « mangeames » ≡ « mangeâmes » : une case de paradigme que CONJ_F ne porte pas — on la cherche par sa DÉACCENTUATION
@@ -26699,14 +26702,21 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     for(k=0;k<lec.length;k++)if((lec[k][1].indexOf('sub')===0)===que)lec2.push(lec[k]);
     if(lec2.length)lec=lec2;                                                // « que » présent → subjonctif ; absent → indicatif
     if(_lecC.length)lec=_lecC;
-    var cible=null,slot=per+nb;
+    var cible=null,slot=per+nb,lemc=null;
     for(k=0;k<lec.length;k++){
       var f=_CONJ_FIX[lec[k][0]+'|'+lec[k][1]+'|'+slot]||((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[slot];
       if(!f)return null;
-      if(cible===null)cible=f;else if(cible!==f)return null;
+      if(cible===null){cible=f;lemc=lec[k][0];}else if(cible!==f)return null;
     }
     if(!cible||cible.toLowerCase()===lw)return null;
     if(deacc(cible.toLowerCase())===dl&&!_hors)return null;   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
+    /* ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → sommons, « vous somme » → sommez —
+       *sommer* est un verbe que personne n'emploie (0,23/M) et l'écrit est à une lettre de « sommes » (433/M) : la lecture
+       « verbe rare » est la mauvaise hypothèse. Abstention ; rAuxMisspell parle s'il peut. ⚠️ On pèse le LEMME (SP.D2A →
+       max des variantes, comme _lemfreq côté Python), PAS la forme cible : peser la forme taisait « nous fîtes » → fîmes
+       (passé simple rare d'un verbe courant, à une lettre de fûmes). Lemme inconnu du speller → on ne change rien. */
+    var _lf;if(lemc&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A&&SP.FREQ){var _va=SP.D2A[lemc];if(_va&&_va.length){_lf=0;for(var _z=0;_z<_va.length;_z++)if((SP.FREQ[_va[_z]]||0)>_lf)_lf=SP.FREQ[_va[_z]]||0;}}
+    if(typeof _lf==='number'&&_lf<1&&_voisinAuxLong(dl))return null;
     return ckeepcase(w,cible);}
   function persVig(T,i){
     if(!CONJ_F||!CONJ_C)return null;

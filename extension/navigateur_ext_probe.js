@@ -82,6 +82,8 @@ const CAS = [
     pourquoi: "témoin de vie — n'isole aucun asset" },
   { txt: 'des oiseau dans le ciel', attendu: 'oiseaux', asset: 'moteur',
     pourquoi: "témoin de vie — n'isole aucun asset" },
+  { txt: 'nous somme très contents', attendu: 'sommes', asset: 'moteur',
+    pourquoi: '« nous somme » donnait « sommons » (lemme *sommer*, 0,02/M) en ROUGE — rule_aux_misspell exige le nombre pour nous/vous depuis le 10/09/2026 ; ici c’est le moteur de l’EXTENSION, pas celui de l’app' },
 ];
 
 /* ⚠️ ASSETS SANS AUCUNE GARDE, faute de cas trouvé — écrit plutôt qu'escamoté : confusables.json,
