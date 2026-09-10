@@ -84,17 +84,29 @@ TOK_JS = re.compile(r"[A-Za-zÀ-ÿœŒæÆ']+")
 _CIRC = u'âêîôûÂÊÎÔÛ'
 
 
-def _circ_rival(sp, low):
-    """La saisie (SANS accent) a-t-elle une restauration d'accent à CIRCONFLEXE, mot réel et pas rare ?
+def _accent_rival(sp, low, dblf=0.0):
+    """La saisie (SANS accent) a-t-elle une restauration d'ACCENT rivale, mot réel et pas rare ?
 
     Garde de la route double-consonne. « la saisie sans accent » est essentiel : si le scripteur a
     déjà mis un accent (« alé », « caré », « sucès »), le « rival » serait une DÉ-accentuation
     (ale, care, suces) — jamais ce qu'il a voulu, et c'est doubler qui a raison (allé, carré, succès).
+
+    Deux rivaux valent :
+      · le CIRCONFLEXE, toujours (08/09) : trace d'une consonne disparue, reconstruction rivale du doublement ;
+      · l'AIGU/GRAVE, seulement si le rival n'est PAS une forme VERBALE (11/09) : désert/dessert sont deux
+        NOMS et la fréquence tranche (« desert » → désert), mais jette/jeté est une alternance VERBALE que
+        seul le contexte tranche — la grammaire le fait (« il a jete » → jeté, rouge), pas le speller.
+        Sans cette condition (placebo du 08/09) : 5 changements dont 4 faux au gold (jete, rejete…).
+        ET au moins aussi fréquent que le mot doublé (`dblf`) : « guere » → guère (9,7/M, adverbe) cédait alors que
+        le dys voulait *guerre* (184/M, gold ×2) — la batterie l'a vu (précision auto 90,6 → 90,3). Recensé dans
+        toute la table : 4 paires seulement (guere, tele, desert, teles) ; avec la fréquence, désert et télé
+        gagnent, guerre et telles restent au doublement. Circonflexe : inchangé, sans condition de fréquence.
     """
     if deacc(low) != low: return False
     for w in sp.D2A.get(low, []):
-        if w != low and deacc(w) == low and sp.FREQ.get(w, 0.0) >= 1.0 and any(c in _CIRC for c in w):
-            return True
+        if w == low or deacc(w) != low or sp.FREQ.get(w, 0.0) < 1.0: continue
+        if any(c in _CIRC for c in w): return True
+        if 'V' not in sp.POS.get(w, ()) and sp.FREQ.get(w, 0.0) >= dblf: return True   # aigu/grave : rival NON verbal ET au moins aussi fréquent
     return False
 
 
@@ -605,7 +617,9 @@ class Speller:
         # normale, qui rend l'accent (« cone »→cône, « batons »→bâtons — gold ×2 et ×3).
         # Mesuré : 308 jetons sur cette route, 2 changent, 0 correction perdue, 0 tir sur les
         # 354 647 jetons d'UD. Placebo sur l'accent AIGU : 5 changements dont 4 FAUX au gold.
-        if _dblw and not _circ_rival(self, low): return ('flag', _dblw)
+        # ⭐ 11/09/2026 : la garde couvre aussi l'AIGU/GRAVE quand le rival n'est pas verbal — « desert » proposait
+        # dessert (orange) alors que désert (23,8/M, nom) attendait. Mesuré : 1 changement sur 41 987 jetons, 0 faux.
+        if _dblw and not _accent_rival(self, low, _dblf): return ('flag', _dblw)
         if len(low) > 2 and low[0] in ELIDE and deacc(low[1])[:1] in VOWELS:
             rest = low[1:]; cw = rest if (rest in self.WORDS and len(rest) >= 5 and self.FREQ.get(rest, 0) >= 1.0) else None   # reste COMMUN (≥5 lettres, freq≥1) sinon coïncidence nom propre/étranger (Sabu→S'abu abu/3, maven→m'aven aven/4, tai→t'ai ai/2, Mamadou amadou/0.19) → pas d'élision inventée ; « Lannée »→L'année préservé (année commun)
             if cw is None and low[0] in _ELIDE_ACC and len(rest) >= 4:   # restauration d'accent du reste (lhopital→l'hôpital, léconomi→l'économie) — préfixes SÛRS uniquement
