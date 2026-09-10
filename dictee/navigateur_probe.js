@@ -182,6 +182,15 @@ const CAS = [
   { txt: 'les batons sont là.', corrigeAttendu: ['batons', 'bâtons'], pourquoi: 'CONTRE-GARDE : le circonflexe, garde d’origine, tient toujours' },
   { txt: 'le dessert est bon.', rien: true, pourquoi: 'CONTRE-GARDE : le vrai « dessert » reste muet' },
   { txt: 'la guere est finie.', corrigeAttendu: ['guere', 'guerre'], pourquoi: 'CONTRE-GARDE : le rival « guère » est non verbal mais 20× moins fréquent que « guerre » (gold dys ×2) — le doublement garde la main' },
+  /* ⭐ « LES FLEURS SONT FANÉ » → fanés (11/09/2026) : l'orange « accord participe à vérifier » ne lisait le genre que sur un
+     elles/ils LITTÉRAL et retombait au masculin — une proposition fausse sur une vraie faute, là où la grammaire se tait.
+     Elle demande désormais le genre au parseur de sujet (_npSubject). Mesuré avant/après dans Chrome sur 18 phrases :
+     2 changent (fanés → fanées), rien d'autre. */
+  { txt: 'les fleurs sont fané.', corrigeAttendu: ['fané', 'fanées'], pourquoi: 'le sujet nominal est féminin : fanées, plus « fanés »' },
+  { txt: 'les fleurs du jardin sont fané.', corrigeAttendu: ['fané', 'fanées'], pourquoi: 'le parseur saute le PP « du jardin » : le nom-tête est fleurs' },
+  { txt: 'les enfants sont fatigué.', corrigeAttendu: ['fatigué', 'fatigués'], pourquoi: 'CONTRE-GARDE : sujet masculin, rien ne change' },
+  { txt: 'les amis de Marie sont fatigué.', corrigeAttendu: ['fatigué', 'fatigués'], pourquoi: 'CONTRE-GARDE : le nom-tête est « amis » (m), pas le prénom du PP' },
+  { txt: 'les fleurs sont fanées.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour

@@ -3606,7 +3606,12 @@ function spellUnknown(tok,atStart,T,idx){
       if(tg[j]!=='ADV')return null;}
     if(a<1)return null;
     var pvw=T[a-1].toLowerCase();if(deacc(pvw)==='se'||pvw.indexOf("'")>=0)return null;
-    var fem=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase());if(dk==='elles'){fem=true;break;}if(dk==='ils')break;}
+    var fem=false,_pr=false;for(var k=a-1;k>=0&&k>=a-4;k--){var dk=deacc(T[k].toLowerCase());if(dk==='elles'){fem=true;_pr=true;break;}if(dk==='ils'){_pr=true;break;}}
+    /* ⭐ LE GENRE DU SUJET NOMINAL (11/09/2026, chantier « les fleurs sont fané » → fanés) : cette règle ne lisait le genre que sur un
+       « elles »/« ils » LITTÉRAL et retombait au MASCULIN partout ailleurs — une proposition fausse sur une vraie faute, là où la
+       grammaire se tait. Le parseur de sujet existe (_npSubject : déterminant + nom-tête, saute les PP « de la maison », s'abstient
+       sur coordination, connaît les prénoms) et rend le genre : on le lui demande. Sujet introuvable ou singulier → comme avant. */
+    if(!_pr){var _np=_npSubject(T,tg,a);if(_np&&_np.g==='f'&&_np.n!=='s')fem=true;}
     return w+(fem?'es':'s');}
   // VIGILANCE accord IMPARFAIT (personne+nombre), gate AUDIBLE : verbe imparfait + gouverneur RELÂCHÉ en désaccord +
   // forme correcte HOMOPHONE (-ais/-ait/-aient /ɛ/) → orange. Résiduel (sujet non parsable). MIROIR app + scratchpad. 0 flood/2500 UD.
