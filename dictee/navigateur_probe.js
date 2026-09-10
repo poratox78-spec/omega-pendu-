@@ -175,6 +175,13 @@ const CAS = [
   { txt: 'nous vont au parc.', corrigeAttendu: ['vont', 'allons'], pourquoi: 'TÉMOIN : « vont » est à une lettre de « sont », mais allons (512/M) n’est pas rare — la garde ne le mange pas' },
   { txt: 'vous somme très contents.', rien: true, pourquoi: 'plus de « sommez » en rouge : aucun auxiliaire de 2e du pluriel à une lettre — se taire plutôt qu’inventer' },
   { txt: 'je somme le témoin de parler.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 1re du singulier, accordé' },
+  /* ⭐ « DESERT » → DESSERT (11/09/2026) : la route double-consonne ne cédait qu'au CIRCONFLEXE ; désert (aigu, nom, 23,8/M)
+     attendait derrière. La garde cède aussi à l'aigu/grave quand le rival n'est PAS verbal — jette/jeté reste au contexte. */
+  { txt: 'une oasis dans un desert de béton.', corrigeAttendu: ['desert', 'désert'], pourquoi: 'l’accent aigu rival est un NOM : il gagne sur le doublement (plus de « dessert »)' },
+  { txt: 'il jete la balle.', corrigeAttendu: ['jete', 'jette'], pourquoi: 'CONTRE-GARDE : le rival « jeté » est VERBAL — la garde ne s’applique pas, le doublement reste (gold ×5)' },
+  { txt: 'les batons sont là.', corrigeAttendu: ['batons', 'bâtons'], pourquoi: 'CONTRE-GARDE : le circonflexe, garde d’origine, tient toujours' },
+  { txt: 'le dessert est bon.', rien: true, pourquoi: 'CONTRE-GARDE : le vrai « dessert » reste muet' },
+  { txt: 'la guere est finie.', corrigeAttendu: ['guere', 'guerre'], pourquoi: 'CONTRE-GARDE : le rival « guère » est non verbal mais 20× moins fréquent que « guerre » (gold dys ×2) — le doublement garde la main' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour
