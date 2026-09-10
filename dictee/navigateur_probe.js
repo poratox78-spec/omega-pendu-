@@ -167,6 +167,14 @@ const CAS = [
   { txt: 'le comandant a donné l’ordre.', corrigeAttendu: ['comandant', 'commandant'], pourquoi: 'même famille, nom' },
   { txt: 'la pane du moteur nous a arrêtés.', rien: true, orangeInterdit: 'pane', pourquoi: 'CONTRE-GARDE : « pane » est un VRAI mot (partie du marteau) — écarté du tri à la main' },
   { txt: 'je suis à la bourre.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
+  /* ⭐ « NOUS SOMME » → SOMMONS (10/09/2026, cas de Rem) : la règle de personne conjuguait le lemme qu'elle lisait, *sommer*,
+     et écrivait en ROUGE un mot que personne n'a voulu. Deux gardes de fond : rule_aux_misspell exige le nombre pour
+     nous/vous ; rule_sujet_flexion s'abstient quand sa cible est RARE et l'écrit à une lettre d'un auxiliaire long. */
+  { txt: 'nous somme très contents.', corrigeAttendu: ['somme', 'sommes'], pourquoi: '« sommes » (être, 433/M), plus jamais « sommons » (0,02/M)' },
+  { txt: 'nous somme arrivés hier.', corrigeAttendu: ['somme', 'sommes'], pourquoi: 'même chose devant un participe' },
+  { txt: 'nous vont au parc.', corrigeAttendu: ['vont', 'allons'], pourquoi: 'TÉMOIN : « vont » est à une lettre de « sont », mais allons (512/M) n’est pas rare — la garde ne le mange pas' },
+  { txt: 'vous somme très contents.', rien: true, pourquoi: 'plus de « sommez » en rouge : aucun auxiliaire de 2e du pluriel à une lettre — se taire plutôt qu’inventer' },
+  { txt: 'je somme le témoin de parler.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 1re du singulier, accordé' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour

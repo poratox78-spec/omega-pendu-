@@ -51,10 +51,12 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    SP.POS pour savoir si un mot en -é est un VERBE PUR, et sort sur `if(!SP.ready)`. Ce harnais
    n'extrait la tranche que jusqu'à correctText/posTags — donc SP est déclaré mais VIDE, et la règle
    serait MUETTE ici : verte par omission, le piège exact du 2026-08-11. On amorce donc SP à la main
-   (WORDS + POS suffisent ; on ne charge pas tout le speller, ce harnais ne teste que la grammaire). */
+   (WORDS + POS + FREQ : depuis le 10/09/2026 la grammaire lit AUSSI SP.FREQ — rule_sujet_flexion s'abstient sur une
+   cible RARE à une lettre d'un auxiliaire. Sans FREQ ici, SP.ready était vrai et la table VIDE : « Nous êtes là » se
+   taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.) */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};t.split(String.fromCharCode(10)).forEach(function(l){' +
-  'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
+  ';globalThis.__corr=correctText;globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
+  'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
 const m = html.match(/<script type="application\/json" id="vdc-lex">([\s\S]*?)<\/script>/);
