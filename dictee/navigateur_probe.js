@@ -191,6 +191,14 @@ const CAS = [
   { txt: 'les enfants sont fatigué.', corrigeAttendu: ['fatigué', 'fatigués'], pourquoi: 'CONTRE-GARDE : sujet masculin, rien ne change' },
   { txt: 'les amis de Marie sont fatigué.', corrigeAttendu: ['fatigué', 'fatigués'], pourquoi: 'CONTRE-GARDE : le nom-tête est « amis » (m), pas le prénom du PP' },
   { txt: 'les fleurs sont fanées.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase juste reste muette' },
+  /* ⭐ « ET » → « EST » sur du texte CORRECT (11/09/2026) : 12 des 14 cas frgec étaient déjà réparés (G1–G4 du 08/09) ; les deux
+     restants ont chacun une cause structurelle — déterminant PLURIEL (G6), sujet INVERSÉ dans une proposition qui porte
+     déjà ses verbes (G7). Les contre-gardes tiennent le rappel : le cas nu « il et content » reste rouge. */
+  { txt: 'des ouvriers et marins travaillent ici.', rien: true, pourquoi: 'G6 : déterminant pluriel, « est » y est impossible' },
+  { txt: 'ils prirent la fuite dit on et se dispersèrent.', rien: true, pourquoi: 'G7 : « on » inversé, la proposition porte déjà ses verbes' },
+  { txt: 'ce chien et gentil.', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : le cas nominal singulier reste rouge' },
+  { txt: 'il et content.', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : le cas pronom nu reste rouge' },
+  { txt: 'mon frère il et gentil.', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : pronom de reprise, aucun verbe conjugué dans la proposition' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour

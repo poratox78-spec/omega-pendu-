@@ -694,7 +694,7 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
       if(!_tg||i===0||i+1>=T.length)return null;
       if(_tg[i-1]!=='NOUN'&&_tg[i-1]!=='PROPN')return null;
       if(_tg[i-1]==='PROPN'){var _c1=T[i-1].charAt(0);if(_c1!==_c1.toLowerCase())return null;}
-      if(i<2||!(deacc(T[i-2].toLowerCase()) in NUM_DET))return null;
+      if(i<2||!(deacc(T[i-2].toLowerCase()) in NUM_DET))return null;if(NUM_DET[deacc(T[i-2].toLowerCase())]==='pl')return null;   /* ⭐ G6 (11/09/2026) : déterminant PLURIEL → « est » impossible, il faudrait « sont » — « des ouvriers et marins » réécrit en rouge sur du texte correct. Miroir Python. */
       var _j=i+1,_n1=deacc(T[_j].toLowerCase());
       if(_ET_PREP[_n1])return null;
       if(_ET_ADV[_n1]&&_j+1<T.length)_j++;
@@ -705,7 +705,7 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
     }
     /* ⭐ G5 (08/09/2026) : « c » NU n'est pas un pronom — en français il ne vit qu'élidé (« c'est »). Le token nu vient d'ailleurs : « C++ et bien d'autres », « av. J.-C. et même avant ». Mesuré : 1 tir sur les corpus alignés (le gold voulait « et ») + 2 sur UD, 0 juste perdue. */if(p==='c'&&T[i-1].indexOf("'")<0)return null;if(i+1<T.length){var _na=deacc(T[i+1].toLowerCase());if(_na==='il'||_na==='elle'||_na==='on'||_na==='ils'||_na==='elles'||_na==='je'||_na==='tu'||_na==='nous'||_na==='vous'||_na==='moi'||_na==='toi'||_na==='lui'||_na==='eux'||_na==='soi')return null;}   // « il et elle », « lui et moi » : pronom sujet après « et » → sujet COORDONNÉ, jamais « est » (« il est elle » agrammatical)
     if(i+1<T.length){var c0=T[i+1].charAt(0);if(c0!==c0.toLowerCase()&&c0===c0.toUpperCase())return null;}   // « et Bob », « et Chris » → nom propre → conjonction
-    if(i+1<T.length&&(isParticiple(T,i+1)||!(T[i+1].toLowerCase() in NUM_DET)))return 'est';return null;}
+    if(i+1<T.length&&(isParticiple(T,i+1)||!(T[i+1].toLowerCase() in NUM_DET))){var _tgp=posTags(T);if(_tgp&&i>=2&&(_tgp[i-2]==='VERB'||_tgp[i-2]==='AUX')&&!(_SEG&&_SEG.bb&&_SEG.bb[i-1]))return null;   /* ⭐ G7 (11/09/2026) : SUJET INVERSÉ — le pronom suit immédiatement un verbe conjugué de la même proposition (« dit on et s'entre-tuèrent ») : il en est le sujet inversé, pas celui d'un « est ». La 1re version (« la proposition porte déjà un verbe ») tuait le rappel de la branche pronom sur du dys sans ponctuation (juste 6 → 1). Miroir Python. */return 'est';}return null;}
   var _CLAUSE_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   function rEstEtClause(T,i){   // « est » + NOUVELLE PROPOSITION (pronom sujet + verbe : « la plage est c'était cool ») → « et ». Miroir rule_est_et_clause (Python). ORANGE (vig).
     if(deacc(T[i].toLowerCase())!=='est'||i+1>=T.length||i===0)return null;
