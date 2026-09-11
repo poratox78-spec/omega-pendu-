@@ -224,6 +224,21 @@ const CAS = [
   { txt: 'la vérité éclate et Georges est partagé.', interdit: ['georges sont'], pourquoi: '« éclate » est un verbe manqué par le tagger : pas une coordination de sujets' },
   { txt: 'Marie est venu hier.', corrigeAttendu: ['venu', 'venue'], pourquoi: 'CONTRE-GARDE : le prénom NU reste un sujet' },
   { txt: 'la vérité et la justice est importante.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : la coordination de deux GN reste accordée' },
+  /* ⭐ RESTES DU TRI FRGEC, lot 2 (11/09/2026) : ce qui SUIT le verbe témoigne du nombre du vrai sujet (attribut, participe, sujet postposé), le
+     pronom élidé (« lorsqu'il sont »), « et » entre deux nombres, la relative dont le participe contredit l'antécédent proche, le collectif.
+     Différentiel de la sonde : 0 correction perdue. `interdit` = la forme fausse ne doit pas apparaître dans le texte corrigé. */
+  { txt: 'Les impudents est le premier roman de Marguerite Duras.', interdit: ['impudents sont'], pourquoi: 'titre + attribut singulier : « est » reste' },
+  { txt: 'Nos années sauvages est un film hongkongais.', interdit: ['sauvages sont'], pourquoi: 'titre + attribut singulier' },
+  { txt: 'Chaque année sont organisés des milliers de festivals.', interdit: ['année est'], pourquoi: 'sujet postposé « des milliers » : « sont » reste' },
+  { txt: 'Entre 2006 et 2016 sont parues des publications.', interdit: ['est parues'], pourquoi: '« et » entre deux nombres : pas une coordination de verbes' },
+  { txt: 'La solitude, la mélancolie, la passion pour sa ville natale sont des thèmes omniprésents.', interdit: ['natale est'], pourquoi: 'énumération + attribut pluriel : « sont » reste' },
+  { txt: 'Cette volonté est la raison de nombreuses lois concernant la sexualité qui sont faites pour retirer toute animosité.', interdit: ['qui est faites'], pourquoi: 'le participe « faites » contredit l’antécédent proche : « sont » reste' },
+  { txt: 'La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.', interdit: ['est des films'], pourquoi: 'nombres coordonnés + attribut pluriel' },
+  { txt: 'Une importante communauté d’expatriés sont également présents.', interdit: ['expatriés est'], pourquoi: 'collectif « communauté de » : accord de sens' },
+  { txt: 'Elles est formée par l’ensemble des bractées florales.', interdit: ['elles sont formée'], pourquoi: 'pronom pluriel + « est » + participe singulier : le pronom est suspect, le verbe ne bouge pas' },
+  { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
+  { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
+  { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour
