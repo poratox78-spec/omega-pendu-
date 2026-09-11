@@ -4201,6 +4201,28 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
       else if(f.span>=2&&(byTok[f.i].span==null||byTok[f.i].span<2)&&byTok[f.i].tier!=='vigilance'&&typeof f.sugg==='string'&&typeof byTok[f.i].sugg==='string'&&typeof f.word==='string'&&f.sugg.slice(0,f.word.length)===f.word){f.sugg=byTok[f.i].sugg+f.sugg.slice(f.word.length);byTok[f.i]=f;}});   // COLLISION grammaire mono-mot (majuscule) sur le 1er mot d'un span:2 speller → FUSIONNER (parité app _computeCorrs), sinon l'espace/tiret est perdu
     var flags=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};flags.forEach(function(f){if(f.span===2)_cov[f.i+1]=1;});flags=flags.filter(function(f){return !_cov[f.i];});   // un token couvert par une élision (span 2) ne compte pas 2× (parité AUDIT #4)
+    /* ⭐ BOUT DE CHAÎNE sur le MÊME mot (11/09/2026) — mesuré : orange seule → état final = F→J 27 · F→F 22 · J→F 2 (net +25 / 1 798 textes),
+       0 orange née d'une orange sur 1 500 phrases correctes. UN PAS, jamais une boucle : on applique la suggestion de l'orange seule sur
+       les tokens que la grammaire voit, on relance les règles ROUGES, et si un rouge tombe dans l'empan de la suggestion, l'orange
+       propose l'état final (« àfinit » → « a finit » → « a fini »). L'orange reste une proposition. Miroir Python bout_de_chaine. */
+    var _segMain=_SEG,_nCh=0;
+    flags.forEach(function(f){if(f.tier!=='vigilance'||typeof f.sugg!=='string'||typeof f.i!=='number'||_nCh>=12||!/^[A-Za-zÀ-ÿœŒ' -]+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase())return;
+      var _sp=(f.span&&f.span>1)?f.span:1,_st=toks(f.sugg);if(!_st.length)return;
+      var _Tv=_Tc.slice();_Tv.splice(f.i,_sp);for(var _q=_st.length-1;_q>=0;_q--)_Tv.splice(f.i,0,_st[_q]);
+      _nCh++;var _g=null;try{_SEG=_segInfo(_Tv.join(' '));var _gf=correctTokens(_Tv);for(var _q2=0;_q2<_gf.length;_q2++){var _g2=_gf[_q2];if(_g2.i>=f.i&&_g2.i<f.i+_st.length&&_g2.tier!=='vigilance'&&typeof _g2.sugg==='string'&&(_g2.span==null||_g2.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_g2.sugg)){_g=_g2;break;}}}catch(e){_g=null;}
+      if(_g){_st[_g.i-f.i]=_g.sugg;f.sugg=_st.join(' ');f.chaine=_g.name;}});
+    _SEG=_segMain;
+    /* ⭐ BOUT DE CHAÎNE sur le MÊME mot (11/09/2026) — mesuré : orange seule → état final = F→J 27 · F→F 22 · J→F 2 (net +25 / 1 798 textes),
+       0 orange née d'une orange sur 1 500 phrases correctes. UN PAS, jamais une boucle : on applique la suggestion de l'orange seule sur
+       les tokens que la grammaire voit, on relance les règles ROUGES, et si un rouge tombe dans l'empan de la suggestion, l'orange
+       propose l'état final (« àfinit » → « a finit » → « a fini »). L'orange reste une proposition. Miroir Python bout_de_chaine. */
+    var _segMain=_SEG,_nCh=0;
+    flags.forEach(function(f){if(f.tier!=='vigilance'||typeof f.sugg!=='string'||typeof f.i!=='number'||_nCh>=12||!/^[A-Za-zÀ-ÿœŒ' -]+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase())return;
+      var _sp=(f.span&&f.span>1)?f.span:1,_st=toks(f.sugg);if(!_st.length)return;
+      var _Tv=_Tc.slice();_Tv.splice(f.i,_sp);for(var _q=_st.length-1;_q>=0;_q--)_Tv.splice(f.i,0,_st[_q]);
+      _nCh++;var _g=null;try{_SEG=_segInfo(_Tv.join(' '));var _gf=correctTokens(_Tv);for(var _q2=0;_q2<_gf.length;_q2++){var _g2=_gf[_q2];if(_g2.i>=f.i&&_g2.i<f.i+_st.length&&_g2.tier!=='vigilance'&&typeof _g2.sugg==='string'&&(_g2.span==null||_g2.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_g2.sugg)){_g=_g2;break;}}}catch(e){_g=null;}
+      if(_g){_st[_g.i-f.i]=_g.sugg;f.sugg=_st.join(' ');f.chaine=_g.name;}});
+    _SEG=_segMain;
     var _Tt=toks(text);flags.forEach(function(f){var hh=ctxHint(f,_Tt);if(hh)f.hint=hh;});   // hint contextuel par correction (affiché AU CLIC dans content.js)
     var facts=flagsToFacts(flags),dev=developmental(facts),rem=remedFams(facts);
     var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts/stade (pas une faute de stade) ; ajoutée aux flags pour rendu+clic

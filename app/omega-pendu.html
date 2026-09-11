@@ -28675,6 +28675,17 @@ function spellTokenCore(tok,atStart,T,idx){
         if(f.sugg.slice(0,_ow.length)===_ow){f.sugg=_gm.sugg+f.sugg.slice(_ow.length);f.src='s';f._fuseOn=_dfltOn(_gm);byTok[f.i]=f;}}});   // le span reprend la correction grammaire en préfixe (→« Bonjour, je ») et hérite son défaut on/off
     var list=Object.keys(byTok).map(function(k){return byTok[k];}).sort(function(a,b){return a.i-b.i;});
     var _cov={};list.forEach(function(f){if(f.span>=2)for(var c=1;c<f.span;c++)_cov[f.i+c]=1;});list=list.filter(function(f){return !_cov[f.i];});
+    /* ⭐ BOUT DE CHAÎNE sur le MÊME mot (11/09/2026) — mesuré : orange seule → état final = F→J 27 · F→F 22 · J→F 2 (net +25 / 1 798 textes),
+       0 orange née d'une orange sur 1 500 phrases correctes. UN PAS, jamais une boucle : on applique la suggestion de l'orange seule sur
+       les tokens que la grammaire voit, on relance les règles ROUGES, et si un rouge tombe dans l'empan de la suggestion, l'orange
+       propose l'état final (« àfinit » → « a finit » → « a fini »). L'orange reste une proposition. Miroir Python bout_de_chaine. */
+    var _segMain=_SEG,_nCh=0;
+    list.forEach(function(f){if(f.tier!=='vigilance'||typeof f.sugg!=='string'||typeof f.i!=='number'||_nCh>=12||!/^[A-Za-zÀ-ÿœŒ' -]+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase())return;
+      var _sp=(f.span&&f.span>1)?f.span:1,_st=toks(f.sugg);if(!_st.length)return;
+      var _Tv=_Tc.slice();_Tv.splice(f.i,_sp);for(var _q=_st.length-1;_q>=0;_q--)_Tv.splice(f.i,0,_st[_q]);
+      _nCh++;var _g=null;try{_SEG=_segInfo(_Tv.join(' '));var _gf=correctTokens(_Tv);for(var _q2=0;_q2<_gf.length;_q2++){var _g2=_gf[_q2];if(_g2.i>=f.i&&_g2.i<f.i+_st.length&&_g2.tier!=='vigilance'&&typeof _g2.sugg==='string'&&(_g2.span==null||_g2.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_g2.sugg)){_g=_g2;break;}}}catch(e){_g=null;}
+      if(_g){_st[_g.i-f.i]=_g.sugg;f.sugg=_st.join(' ');f.chaine=_g.name;}});
+    _SEG=_segMain;
     list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});
     /* TYPOGRAPHIE — clé ancrée CARACTÈRE (préfixe 'T', pas de collision avec les clés mot) ;
        f.word = from, pour la carte et DysProfile.

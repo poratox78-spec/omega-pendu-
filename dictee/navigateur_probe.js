@@ -236,6 +236,11 @@ const CAS = [
   { txt: 'La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.', interdit: ['est des films'], pourquoi: 'nombres coordonnés + attribut pluriel' },
   { txt: 'Une importante communauté d’expatriés sont également présents.', interdit: ['expatriés est'], pourquoi: 'collectif « communauté de » : accord de sens' },
   { txt: 'Elles est formée par l’ensemble des bractées florales.', interdit: ['elles sont formée'], pourquoi: 'pronom pluriel + « est » + participe singulier : le pronom est suspect, le verbe ne bouge pas' },
+  /* ⭐ BOUT DE CHAÎNE (11/09/2026) : une orange propose l'état final quand une règle rouge tombe dans l'empan de sa suggestion
+     appliquée seule — +25 propositions justes mesurées sur 1 798 textes, l'orange reste une proposition. */
+  { txt: 'il àfinit son travail.', corrigeAttendu: ['àfinit', 'a fini'], pourquoi: 'orange « a finit » + rouge participe après avoir → « a fini » proposé d’un coup' },
+  { txt: 'les municipalitês ont voté.', corrigeAttendu: ['municipalitês', 'municipalités'], pourquoi: 'orange « municipalité » + rouge accord pluriel → « municipalités »' },
+  { txt: 'une cartoucheris a ouvert.', corrigeAttendu: ['cartoucheris', 'cartoucherie'], pourquoi: 'orange « cartoucheries » + rouge accord singulier → « cartoucherie »' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },

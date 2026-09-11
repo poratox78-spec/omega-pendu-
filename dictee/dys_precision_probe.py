@@ -210,6 +210,18 @@ def main():
                         flags.append((i, w, sugg, 'orthographe', act, al_s))
             except Exception as e:
                 print('  ! speller :', e)
+            # ⭐ BOUT DE CHAÎNE (11/09/2026) — miroir du produit (diagnoseAll) : une orange d'orthographe propose l'état final si un rouge
+            #    de grammaire tombe dans l'empan de sa suggestion appliquée seule (« àfinit » → « a finit » → « a fini »).
+            _ch = []
+            for (i, w, sugg, fam, tier, al) in flags:
+                if fam == 'orthographe' and tier == 'vigilance' and isinstance(sugg, str):
+                    _j = None
+                    for _k, _t in enumerate(rt_g):
+                        if norm(_t) == norm(w): _j = _k; break
+                    _fin = CP.bout_de_chaine(raw_n, _j, sugg) if _j is not None else None
+                    _ch.append((i, w, _fin if _fin else sugg, fam, tier, al))
+                else: _ch.append((i, w, sugg, fam, tier, al))
+            flags = _ch
         spelled = set(i for (i, w, sugg, fam, tier, al) in flags if fam == 'orthographe')
         def clean_ctx(i):                                   # CONTEXTE PROPRE : voisins ±3 tous connus du lexique et sans flag ortho
             for j in range(max(0, i - 3), min(len(rt_g), i + 4)):

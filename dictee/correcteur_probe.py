@@ -5402,6 +5402,33 @@ def correct(text):
     return out
 
 
+def bout_de_chaine(text, i, sugg, span=1):
+    """⭐ BOUT DE CHAÎNE sur le MÊME mot (11/09/2026) — miroir de diagnoseAll (dys-core/app) : une ORANGE à suggestion `sugg` sur le token i
+    (empan `span`) ; on applique la suggestion seule, on relance les règles ROUGES, et si un rouge tombe dans l'empan de la suggestion on
+    rend l'état final (« àfinit » → « a finit » → « a fini »), sinon None. Mesuré : F→J 27 · J→F 2 sur 1 798 textes (net +25), 0 orange née
+    d'une orange sur 1 500 phrases correctes. UN pas, jamais une boucle."""
+    global _SEG
+    if not sugg or not re.match(u"^[A-Za-zÀ-ÿœŒ' -]+$", sugg): return None
+    st = toks(sugg)
+    if not st: return None
+    T = toks(text.replace('’', "'").replace('ʼ', "'"))
+    if i < 0 or i >= len(T): return None
+    Tv = T[:i] + st + T[i + max(1, span):]
+    _sauve = _SEG
+    try:
+        _SEG = _seg_info(' '.join(Tv)); _SEG['pb'] = _pred_bounds(Tv, _SEG)
+        for j in range(i, i + len(st)):
+            for name, rule in RULES:
+                dec = rule(Tv, j)
+                if dec is not None and dec != Tv[j] and dec.lower() != Tv[j].lower() and tier_of(Tv, j, name, dec) == 'auto' and re.match(u"^[A-Za-zÀ-ÿœŒ']+$", dec):
+                    st2 = list(st); st2[j - i] = dec
+                    return ' '.join(st2)
+                if dec is not None: break
+    finally:
+        _SEG = _sauve
+    return None
+
+
 # ---------- phrases qui doivent rester MUETTES : l'ABSTENTION est la bonne réponse ----------
 # `CASES` ci-dessous exige qu'une faute injectée soit corrigée ; il n'y avait pas de case pour dire « ici, se
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
