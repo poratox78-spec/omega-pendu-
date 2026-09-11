@@ -239,6 +239,13 @@ const CAS = [
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },
+  /* ⭐ LECTURES FANTÔMES de la table de conjugaison (11/09/2026) : « mangent » n'est plus manger 2e sg, « viennent » n'est plus venir 1re sg
+     → l'accord parle ; « peux » (variante de « puis ») et « rende » (3e sg réparée) restent des formes justes. Donnée, pas règle. */
+  { txt: 'tu mangent la soupe.', corrigeAttendu: ['mangent', 'manges'], pourquoi: '« mangent » n’a plus de lecture 2e du singulier : tu + mangent est un désaccord' },
+  { txt: 'je viennent demain.', corrigeAttendu: ['viennent', 'viens'], pourquoi: '« viennent » n’a plus de lecture 1re du singulier' },
+  { txt: 'je peux venir demain.', rien: true, pourquoi: '« peux » 1re du singulier est une variante légitime de « puis » : jamais un fantôme' },
+  { txt: 'il faut qu’il rende le livre.', rien: true, pourquoi: '« rende » 3e du singulier existe (cellule réparée)' },
+  { txt: 'nous sommes là et vous faites du bruit.', rien: true, pourquoi: 'les vraies lectures 1re/2e du pluriel restent' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour

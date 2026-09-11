@@ -5415,11 +5415,16 @@ MUETS = [
     ("Entre 2006 et 2016 sont parues des publications.", "« et » entre deux nombres coordonne des nombres, pas des verbes (« Entre » lu entrer 3sg)."),
     ("La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.", "idem, et attribut pluriel « des films »."),
     ("Une importante communauté d'expatriés sont également présents.", "COLLECTIF « communauté de » : accord de sens admis → abstention."),
+    # LECTURES FANTÔMES (11/09/2026) — formes JUSTES que la table corrigée ne doit pas rendre suspectes :
+    ("Je peux venir demain.", "« peux » 1re du singulier est une VARIANTE de « puis » (la génération écrit puis) : jamais un fantôme, jamais un rouge."),
+    ("Il faut qu'il rende le livre.", "« rende » 3e du singulier : cellule de génération réparée (elle portait rende en 3e du PLURIEL)."),
 ]
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
     ("Elle s'est mariée très jeune ici", "s'est", "ces", "c'est/s'est"),
+    ("Tu manges la soupe", "manges", "mangent", "accord sujet-verbe"),      # lectures fantômes (11/09/2026) : « mangent » n'est plus manger 2e sg
+    ("Je viens demain", "viens", "viennent", "accord sujet-verbe"),         # idem : « viennent » n'est plus venir 1re sg
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
