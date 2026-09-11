@@ -25508,16 +25508,21 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     if(per==='3'&&nb==='s'&&_V3PL_SURE[deacc(T[i].toLowerCase())]){var _pp=i>0?deacc(T[i-1].toLowerCase()):'';if((_pp==='ne'||_pp==='n')&&i>1)_pp=deacc(T[i-2].toLowerCase());var _me2=_ELIDED_PRON.exec(_pp);if(_me2)_pp=deacc(_me2[1]);if(_pp==='il'||_pp==='elle')return null;}   /* ⭐ 11/09/2026 : pronom ÉLIDÉ (« lorsqu'il sont évincés ») — même garde. Miroir Python. */   // « il/elle » + verbe SÛR 3pl → le « s » MUET de ils/elles est tombé → rIlIls fixe le PRONOM (pas le verbe → « ils est »)
     if(deacc(T[i].toLowerCase())==='peut'&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='etre')return null;   // « peut-être » (adverbe)
     if(svAgrees(reads,per,nb))return null;
-    if(per==='3'&&nb==='p'&&_dsv==='est'&&i+1<T.length&&!/s$/.test(deacc(T[i+1].toLowerCase()))){var _tgd=posTags(T);if(_isPpl(T[i+1])||(_tgd&&_tgd[i+1]==='VERB'&&/(é|ée)$/.test(T[i+1].toLowerCase())))return null;}   /* ⭐ 11/09/2026 (restes frgec, lot 2) : « Elles est fomée » — pronom PLURIEL + « est » + participe SINGULIER : verbe (audible) et participe s'accordent contre le -s muet du pronom → le pronom est suspect → abstention. Miroir Python. */
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // temps composé/passif (aux+participe) → T[i] = participe, pas un verbe fini à accorder
     var lem=null,k,mts={},uni=true;for(k=0;k<reads.length;k++){if(lem===null)lem=reads[k][0];else if(lem!==reads[k][0])uni=false;mts[reads[k][1]]=1;}
     if(!uni||lem===null)return null;/* ⭐ LE MODE AVANT LE TEMPS (08/09/2026, miroir Python rule_accord_sv) : `reads[0][1]` n'est pas « le temps tapé » mais le PREMIER ORDRE DU LEXIQUE. « Il faut que je disiez » a pour lectures {ind:imp, sub:pre} → le repli rendait « disais » au lieu de « dise ». Sur DÉCLENCHEUR FERMÉ de subjonctif, le mode passe devant. Mesuré : banc Bescherelle subjonctif 73,5 → 99,0 %, banc entier 92,4 → 96,8 %, 0 phrase correcte cassée, 0 verdict changé sur les 381 textes à déclencheur des 48 866 corpus. PLACEBO (mode d'abord SANS déclencheur) : même gain sur le subjonctif mais 8 autres cases CASSÉES — c'est la liste fermée qui porte la garde. */var _sbm=null;for(k=0;k<reads.length;k++)if(reads[k][1].indexOf('sub')===0){_sbm=reads[k][1];break;}var mt=(_sbm&&_subjTrigger(T,i))?_sbm:(mts['ind:pre']?'ind:pre':reads[0][1]);if(mt==='ind:pas')return null;var slots=(CONJ_C[lem]||{})[mt];if(!slots)return null;var sugg=slots[per+nb];if(!sugg)return null;
     if(!svAgrees(svReads(sugg),per,nb))return null;return sugg;}   // garde anti-bruit : la suggestion doit vraiment s'accorder
-  function rIlIls(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='il'&&lw!=='elle')return null;   // AUDIBILITÉ sur le SUJET : « il/elle » + verbe SÛR 3pl → le « s » de ils/elles est MUET (le dys le lâche), le verbe audible est fiable → corriger le PRONOM. « il sont »→« ils sont ». FP=0 (« il+verbe-3pl » n'existe pas en correct). Miroir Python.
+  var _DET_PL={le:'les',la:'les',un:'des',une:'des',ce:'ces',cet:'ces',cette:'ces',mon:'mes',ma:'mes',ton:'tes',ta:'tes',son:'ses',sa:'ses',notre:'nos',votre:'vos'};   // pas « leur » : rLeur le porte déjà
+  function rDetNumber(T,i){var lw=deacc(T[i].toLowerCase());if(!_DET_PL[lw]||T[i].indexOf("'")>=0||i+2>=T.length)return null;if(i>0&&/^(et|ou|ni)$/.test(deacc(T[i-1].toLowerCase())))return null;   /* conjoint (« l'hébergement et la restaurations ont ») : le pluriel vient de la coordination — miroir Python */   /* ⭐ 11/09/2026 : la case manquante du triangle dét/nom/verbe — « le MAÇONS ONT » → les ? (ORANGE). Miroir Python rule_det_number. */
+    var n=T[i+1],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;var dn=deacc(n.toLowerCase());
+    if(dn.length<4||!/[sx]$/.test(dn)||_INVAR_S[dn]||_SG_STOP[dn]||NOUN_PL_STOP[dn])return null;
+    var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(!_wordKnown(sg))return null;
+    if(!_verb3pOnly(T[i+2]))return null;return ckeepcase(T[i],_DET_PL[lw]);}
+  function rIlIls(T,i){var _el=_ELIDED_PRON.exec(T[i].toLowerCase()),lw=_el?deacc(_el[1]):deacc(T[i].toLowerCase());if(lw!=='il'&&lw!=='elle')return null;   /* ⭐ 11/09/2026 : pronom ÉLIDÉ (« lorsqu'il sont » → lorsqu'ils). Miroir Python. */   // AUDIBILITÉ sur le SUJET : « il/elle » + verbe SÛR 3pl → le « s » de ils/elles est MUET (le dys le lâche), le verbe audible est fiable → corriger le PRONOM. « il sont »→« ils sont ». FP=0 (« il+verbe-3pl » n'existe pas en correct). Miroir Python.
     if(i>0&&(['et','ou','ni'].indexOf(deacc(T[i-1].toLowerCase()))>=0||T[i-1].indexOf(',')>=0))return null;   // sujet COORDONNÉ (« il et elle sont ») → pluriel déjà correct
     var j=i+1;if(j<T.length&&(deacc(T[j].toLowerCase())==='ne'||deacc(T[j].toLowerCase())==='n'))j++;   // « il ne sont pas »
     if(j>=T.length||!_V3PL_SURE[deacc(T[j].toLowerCase())])return null;
-    return ckeepcase(T[i],lw==='il'?'ils':'elles');}
+    var _s=lw==='il'?'ils':'elles';return _el?T[i].slice(0,T[i].length-_el[1].length)+_s:ckeepcase(T[i],_s);}
   // « le pronom PLURIEL est révélateur » (Rem) : ils/elles + verbe mal conjugué ABSENT du lexique (« elles sente ») →
   // le pluriel présent finit en -ent ; si (radical+ent) est une forme 3p CONFIRMÉE, on corrige. FP=0 (cf. correcteur_probe.rule_accord_sv_recover).
   function rAccordSVrecover(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;if(/(é|és|ée|ées)$/.test(T[i].toLowerCase()))return null;
@@ -26665,7 +26670,6 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(!sub)return null;
     var per=sub[0],nb=sub[1],src=sub[2];
     if(src!==(_ROUGE?'pron':'nom'))return null;   // pronom → ROUGE ; nominal → ORANGE (miroir Python)
-    if(src==='nom'&&_temoinApresVerbe(T,tg,i,nb))return null;   /* ⭐ 11/09/2026 (lot 2) : même évidence que rAccordSVnoun — l'orange se tait aussi (« Les impudents est le premier roman »). Miroir Python. */
     if(nb==='s'&&per==='3'&&_V3PL_SURE[dl])return null;   // « il sont », « Il ont » : c'est le SUJET qui est fauté (rIlIls le répare), pas le verbe — miroir Python
     var _hors=!_spos(lw);   // la forme écrite n'est PAS un mot du lexique → une différence d'ACCENT SEUL est une vraie faute
     for(k=0;k<lec.length;k++){   // PAS svAgrees : elle ignore le nombre en 1re/2e
@@ -28337,6 +28341,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(!pushed){var sfn=sujFlexNom(T,i);if(sfn){out.push({i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'});pushed=true;}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
     if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;out.push({i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp});pushed=true;}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
+    if(!pushed){var dnv=rDetNumber(T,i);if(dnv){out.push({i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'});pushed=true;}}   // « le maçons ont » → les ? (orange, 11/09/2026)
     if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);

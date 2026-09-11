@@ -357,7 +357,8 @@ if (_gacc) { console.log('PARITÉ KO — ' + _gacc + ' cas « genre accentué »
 const VIG_MAP = { 'accord du verbe au sujet nominal à vérifier': 'accord du verbe au sujet nominal à vérifier',
   'personne du verbe à vérifier': 'personne du verbe à vérifier',
   'on/ont après un sujet pluriel à vérifier': 'on/ont après un sujet pluriel à vérifier',
-  'infinitif après semi-auxiliaire à vérifier': 'infinitif après semi-auxiliaire à vérifier' };
+  'infinitif après semi-auxiliaire à vérifier': 'infinitif après semi-auxiliaire à vérifier',
+  'nombre du déterminant à vérifier': 'nombre du déterminant à vérifier' };
 const VIG_PY = new Set(Object.values(VIG_MAP));
 const VIG_PHRASES = PHRASES.concat([
   'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
@@ -365,6 +366,7 @@ const VIG_PHRASES = PHRASES.concat([
   'les enfants on mange leur soupe.', 'mes amis on chante.', 'les chats on dort.',                    // on/ont après sujet pluriel (orange) ; « on dort » = rouge on/ont, pas ici
   'je vais mange.', 'il veut mange.',                                                                 // infinitif après semi-auxiliaire
   'je manger des fraises.', "J'aimer les fraises.",                                                   // infinitif après pronom sujet (CRULES) ; j'+inf (JS seul)
+  'le maçons ont du mal à élever les murs.', 'la maison ont brûlé.',                                // nombre du déterminant (orange) ; contrôle : nom singulier → rien
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json

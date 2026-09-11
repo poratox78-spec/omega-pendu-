@@ -1,7 +1,7 @@
 {
- "justes": 317,
+ "justes": 318,
  "pointeuses": 238,
- "fatigue": 147,
+ "fatigue": 146,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -155,6 +155,7 @@
   "l'origne→l'origine [orthographe] lettre_manque",
   "l'éditon→l'édition [orthographe] lettre_manque",
   "leurr→leur [orthographe] lettre_trop",
+  "le→les [nombre du déterminant à vérifier] lettre_manque",
   "localle→locale [orthographe] lettre_trop",
   "lorque→lorsque [orthographe] lettre_manque",
   "lor→lors [mot inconnu] lettre_manque",

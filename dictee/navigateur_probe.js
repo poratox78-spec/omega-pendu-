@@ -246,6 +246,12 @@ const CAS = [
   { txt: 'je peux venir demain.', rien: true, pourquoi: '« peux » 1re du singulier est une variante légitime de « puis » : jamais un fantôme' },
   { txt: 'il faut qu’il rende le livre.', rien: true, pourquoi: '« rende » 3e du singulier existe (cellule réparée)' },
   { txt: 'nous sommes là et vous faites du bruit.', rien: true, pourquoi: 'les vraies lectures 1re/2e du pluriel restent' },
+  /* ⭐ CHAQUE SILENCE A UNE SORTIE (consigne Rem, 11/09/2026) : là où #728/#729 avaient fait taire une correction sur du texte FAUX, une
+     alternative existe désormais — orange sur le déterminant, il/ils sur le pronom élidé, jumelle orange libérée. */
+  { txt: 'le maçons ont du mal à élever les murs.', corrigeAttendu: ['le', 'les'], pourquoi: 'la case manquante dét/nom/verbe : « les ? » en orange sur le déterminant' },
+  { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', corrigeAttendu: ['lorsqu’il', "lorsqu'ils"], pourquoi: 'il/ils étendue au pronom élidé — cible écrite avec l’apostrophe droite, celle que l’app produit après normalisation : le -s muet est rendu, le verbe ne bouge pas' },
+  { txt: 'les enfants est un problème.', corrigeAttendu: ['est', 'sont'], pourquoi: 'le rouge se tait (attribut singulier = titre possible), la jumelle orange propose « sont ? »' },
+  { txt: 'Elles est formée par l’ensemble des bractées.', corrigeAttendu: ['est', 'sont'], pourquoi: 'garde D retirée : la correction du verbe est rendue (côté dys : elles sont formées)' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour
