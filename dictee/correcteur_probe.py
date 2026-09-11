@@ -2551,11 +2551,6 @@ def rule_accord_sv(T, i):
     if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre':
         return None                                              # « peut-être » (adverbe), pas le verbe pouvoir
     if _agrees(reads, per, nb): return None                      # déjà d'accord → ne pas toucher
-    # ⭐ 11/09/2026 (restes frgec, lot 2) — « Elles est fomée » : pronom PLURIEL + « est » + participe SINGULIER. Le verbe (audible) et le
-    #    participe s'accordent entre eux et contredisent le -s muet du pronom → c'est le pronom qui est suspect → abstention.
-    if per == '3' and nb == 'p' and _dsv == 'est' and i + 1 < len(T) and not deacc(T[i+1].lower()).endswith('s'):
-        _tgd = pos_tags(T)
-        if _is_ppl(T[i+1]) or (_tgd and _tgd[i+1] == 'VERB' and T[i+1].lower().endswith(('é', 'ée'))): return None
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
         return None                                              # temps composé / passif (aux + participe : « auraient tenté », « sont-ils insérés ») → T[i] = participe, pas un verbe fini à accorder
     lemmas = {l for (l, _mt, _p, _n) in reads}
@@ -2587,13 +2582,15 @@ def rule_il_ils(T, i):
     """AUDIBILITÉ sur le SUJET : « il/elle » + verbe SANS AMBIGUÏTÉ 3e pluriel → le « s » de ils/elles est MUET (le dys le
     laisse tomber), le verbe audible est fiable → corriger le PRONOM, pas le verbe. « il sont »→« ils sont ». FP=0 :
     « il/elle + verbe-3pl » n'existe pas en français correct. rule_accord_sv s'abstient en miroir (pas de « ils est »)."""
-    lw = deacc(T[i].lower())
+    _el = _ELIDED_PRON.search(T[i].lower())                                   # ⭐ 11/09/2026 — pronom ÉLIDÉ : « lorsqu'il sont » → lorsqu'ils, « qu'elle ont » → qu'elles (même doctrine, même FP=0)
+    lw = deacc(_el.group(1)) if _el else deacc(T[i].lower())
     if lw not in ('il', 'elle'): return None
     if i > 0 and (deacc(T[i-1].lower()) in ('et', 'ou', 'ni') or ',' in T[i-1]): return None   # sujet COORDONNÉ (« Paul et elle sont », « il et elle sont ») → le pluriel du verbe est DÉJÀ correct → ne pas toucher le pronom
     j = i + 1
     if j < len(T) and deacc(T[j].lower()) in ('ne', 'n'): j += 1         # « il ne sont pas »
     if j >= len(T) or deacc(T[j].lower()) not in _V3PL_SURE: return None  # verbe SÛR 3pl (sont/ont/vont/font) uniquement → FP=0 sans dépendre du tagger ; les -ent (mangent) restent au fix-verbe (à couvrir plus tard)
     s = 'ils' if lw == 'il' else 'elles'
+    if _el: return T[i][:_el.start(1)] + s                                   # « lorsqu'il » → « lorsqu'ils » : le préfixe élidé est conservé tel quel
     return s[0].upper() + s[1:] if T[i][:1].isupper() else s
 
 
@@ -2787,7 +2784,8 @@ def _temoin_apres_verbe(T, tg, i, nb):
     A « la passion pour sa ville natale sont DES thèmes » : attribut PLURIEL derrière « sont », sujet parsé singulier → le sujet réel
       est l'énumération/coordination à gauche ; B « Chaque année sont organisés DES milliers » : participe + déterminant pluriel = sujet
       POSTPOSÉ ; F « Les impudents est LE premier roman » : déterminant SINGULIER derrière « est », sujet parsé pluriel = titre/entité.
-    Partagée par rule_accord_sv_noun (rouge) et rule_sujet_flexion (orange, sujet nominal) : même évidence, même silence.
+    Portée par rule_accord_sv_noun (rouge) seulement : la jumelle ORANGE (rule_sujet_flexion, sujet nominal) parle là où le rouge se tait
+    (« les enfants est un problème » → sont ?, au prix d'oranges sur les titres) — consigne Rem du 11/09 : jamais de silence sans sortie.
     Différentiel de la sonde (11/09) : 0 correction perdue, 1 mot juste de moins réécrit. Miroir JS : _temoinApresVerbe."""
     _dv = deacc(T[i].lower()); _nx = deacc(T[i+1].lower()) if i + 1 < len(T) else ''
     if _dv == 'sont' and nb == 's':
@@ -3724,7 +3722,6 @@ def rule_sujet_flexion(T, i):
     # LE PALIER SUIT LA FIABILITÉ DU SUJET : pronom → ROUGE ; nominal → ORANGE (règle jumelle ci-dessous).
     # Mesuré le 14/09 sur le corpus dys : en rouge, le sujet nominal fait 3 corrections justes sur 17.
     if src != ('pron' if _ROUGE else 'nom'): return None
-    if src == 'nom' and _temoin_apres_verbe(T, tg, i, nb): return None   # ⭐ 11/09/2026 (lot 2) : même évidence que rule_accord_sv_noun — l'orange se tait aussi (« Les impudents est le premier roman »)
     # ⛔ QUAND C'EST LE SUJET QUI EST FAUTÉ, NE PAS TOUCHER AU VERBE. « a forse il sont dégouter » : le dys a
     # écrit « il » pour « ils » — `rule_il_ils` répare le SUJET (rouge). Si on corrige aussi le verbe, on obtient
     # « ils est » : deux rouges qui se contredisent, et un mot juste cassé (mesuré : casses 14 → 16). Les formes
@@ -3782,6 +3779,25 @@ def rule_sujet_flexion_nom(T, i):
     _ROUGE = False
     try: return rule_sujet_flexion(T, i)
     finally: _ROUGE = True
+
+
+_DET_PL = {'le': 'les', 'la': 'les', 'un': 'des', 'une': 'des', 'ce': 'ces', 'cet': 'ces', 'cette': 'ces', 'mon': 'mes', 'ma': 'mes',
+           'ton': 'tes', 'ta': 'tes', 'son': 'ses', 'sa': 'ses', 'notre': 'nos', 'votre': 'vos'}   # pas « leur » : rule_leur_leurs le porte déjà
+
+def rule_det_number(T, i):
+    """⭐ 11/09/2026 — LA CASE MANQUANTE DU TRIANGLE dét / nom / verbe (consigne Rem : jamais de silence sans sortie). « le MAÇONS ONT du
+    mal » : le nom (forme plurielle dont le singulier existe) et le verbe (3e pluriel sans lecture singulière) témoignent du pluriel contre
+    le déterminant ; rule_noun_singular et rule_on_ont s'abstiennent sur cette évidence (#728) et personne ne proposait « les ». ORANGE sur
+    le déterminant : doute → l'auteur tranche. Le genre du déterminant reste à rule_det_gender. Miroir JS : rDetNumber."""
+    lw = deacc(T[i].lower())
+    if lw not in _DET_PL or "'" in T[i] or i + 2 >= len(T): return None
+    if i > 0 and deacc(T[i-1].lower()) in ('et', 'ou', 'ni'): return None   # CONJOINT (« l'hébergement et la restaurations ont ») : le pluriel du verbe vient de la coordination — même exception que rule_noun_singular (#728), trouvée par le différentiel
+    n = T[i+1]; dn = deacc(n.lower())
+    if not n[:1].isalpha() or n[0].isupper() or len(dn) < 4 or not dn.endswith(('s', 'x')) or dn in _INVAR_S or dn in _SG_STOP or dn in NOUN_PL_STOP: return None
+    sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
+    if sg not in WORDS_SET and sg not in GENDER_PURE: return None          # singulier attesté : même test que la garde de #728
+    if not _verb_3p_only(T[i+2]): return None                              # le verbe qui suit : 3e pluriel sans lecture singulière
+    return _keepcase(T[i], _DET_PL[lw])
 
 
 def rule_det_gender(T, i):
@@ -5273,6 +5289,7 @@ def tier_of(T, i, name, sugg):
                       parti ») — sujet nominal complexe = orange ;
       · ce/se       → toujours orange (0/2 mesuré).
     Miroir JS : _tierOf dans l'app et dys-core (parité extension/parity_core.js)."""
+    if name.endswith(u'à vérifier'): return 'vigilance'   # ⭐ 11/09/2026 : une règle « à vérifier » est ORANGE par construction (miroir spellText JS : tier 'vigilance') — nombre du déterminant, etc.
     if name not in VIG_FAMILIES:
         return 'auto'
     n = len(T)
@@ -5342,6 +5359,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accord sujet-verbe', rule_accord_rel_obj),
          ('accord sujet-verbe', rule_accord_incise),
          ('genre déterminant', rule_det_gender),
+         ('nombre du déterminant à vérifier', rule_det_number),   # ORANGE (11/09/2026) : « le maçons ont » → les ?
          ('accord tout', rule_tout_det),
          ('accord adjectif antéposé', rule_adj_ante_plural),
          ('nom féminin en -ée', rule_fem_ee),
@@ -5406,11 +5424,11 @@ MUETS = [
     ("Les élections de Mars ont reconduit la majorité.", "« Mars » est dans la table des prénoms, mais derrière « de » ce n'est pas un "
                                                           "prénom NU : le sujet est « Les élections », pluriel (garde de _np_subject)."),
     ("Les Denis ont personnifié des personnages.", "nom de famille derrière un déterminant pluriel : pas un prénom nu."),
-    ("Le maçons ont du mal à élever les murs.", "déterminant singulier + nom pluriel + verbe pluriel : c'est « le » qui est faux — "
-                                                 "ni « maçon » ni « a » (rule_noun_singular et rule_on_ont s'abstiennent sur la même évidence)."),
+    ("Le maçons ont du mal à élever les murs.", "déterminant singulier + nom pluriel + verbe pluriel : c'est « le » qui est faux — rule_det_number le propose en ORANGE (les ?) ; "
+                                                 "ni « maçon » ni « a » (rule_noun_singular et rule_on_ont s'abstiennent sur la même évidence).", 'rouge'),
     ("La vérité éclate et Georges est partagé.", "« éclate » est un verbe manqué par le tagger : pas une coordination de sujets, « est » reste."),
     # RESTES DU TRI FRGEC, lot 2 (11/09/2026) — texte CORRECT, le moteur doit se taire :
-    ("Les impudents est le premier roman de Marguerite Duras.", "TITRE : sujet à forme plurielle + « est » + attribut SINGULIER (« le premier roman ») → abstention."),
+    ("Les impudents est le premier roman de Marguerite Duras.", "TITRE : sujet à forme plurielle + « est » + attribut SINGULIER (« le premier roman ») → pas de ROUGE ; l'orange « sont ? » est tolérée (11/09 : jamais de silence sans sortie).", 'rouge'),
     ("Chaque année sont organisés des milliers de festivals.", "INVERSION : « sont » + participe + déterminant pluriel = sujet postposé (« des milliers »)."),
     ("Entre 2006 et 2016 sont parues des publications.", "« et » entre deux nombres coordonne des nombres, pas des verbes (« Entre » lu entrer 3sg)."),
     ("La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.", "idem, et attribut pluriel « des films »."),
@@ -5425,6 +5443,7 @@ CASES = [
     ("Elle s'est mariée très jeune ici", "s'est", "ces", "c'est/s'est"),
     ("Tu manges la soupe", "manges", "mangent", "accord sujet-verbe"),      # lectures fantômes (11/09/2026) : « mangent » n'est plus manger 2e sg
     ("Je viens demain", "viens", "viennent", "accord sujet-verbe"),         # idem : « viennent » n'est plus venir 1re sg
+    ("lorsqu'ils sont évincés", "lorsqu'ils", "lorsqu'il", "accord sujet-verbe"),   # il/ils sur le pronom ÉLIDÉ (11/09/2026)
     ("Une femme cultivée parle", "cultivée", "cultivé", "accord participe épithète"),
     ("La porte fermée claque", "fermée", "fermé", "accord participe épithète"),
     ("Il a mon âge", "âge", "age", "accent (âge)"),
@@ -5717,11 +5736,14 @@ def main():
             fp, d, c = per[name]; tot = sum(1 for x in CASES if x[3] == name)
             print(f"           {name:10} fp={fp}/{tot}  det={d}/{tot}  corr={c}/{tot}")
 
-    muets = [(s, r) for (s, r) in MUETS if correct(s)]
+    def _parle(e):                                                  # entrée (phrase, raison[, 'rouge']) : 'rouge' = seul le ROUGE est interdit, l'orange tolérée
+        hits = correct_tiered(e[0])
+        return [h for h in hits if h[4] == 'auto'] if (len(e) > 2 and e[2] == 'rouge') else hits
+    muets = [(e[0], e[1]) for e in MUETS if _parle(e)]
     print(f"\n  [3] Silences ATTENDUS ({len(MUETS)} pièges hors corpus) : {len(MUETS) - len(muets)}/{len(MUETS)} muets")
     for s, r in muets:
         print(f"        ⚠️ PARLE alors qu'il devait se taire : {s}  — {r}")
-        print(f"           {correct(s)}")
+        print(f"           {correct_tiered(s)}")
 
     print("\n  Lecture : faux positifs ≈ 0 = on ne « corrige » pas du texte juste (condition n°1 d'un correcteur).")
     print("            détection+correction élevées = le levier d'accord tranche l'homophone SANS corrigé.")
