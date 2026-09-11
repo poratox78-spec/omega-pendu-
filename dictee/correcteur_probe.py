@@ -949,6 +949,11 @@ def rule_on_ont(T, i):
         # usage toléré), piège mesuré de cette famille. Sujet nominal SINGULIER ⇒ l'auxiliaire est « a » (avoir 3sg).
         # Débloque aussi le BLOCAGE MUTUEL : « ont modifier » n'était corrigible d'aucun côté ; « a » posé, la
         # règle du participe tire au tour suivant.
+        # ⭐ 11/09/2026 — « le MAÇONS ont du mal » → a : déterminant SINGULIER + nom à forme PLURIELLE, le déterminant est suspect
+        #    (même garde que rule_accord_sv_noun) → abstention.
+        if _so is not None and _so['n'] == 's' and _so['dtxt']:
+            _hn = deacc(T[_so['idx']].lower())
+            if _hn.endswith(('s', 'x')) and _hn not in _INVAR_S and ((_hn[:-3] + 'al' if _hn.endswith('aux') else _hn[:-1]) in WORDS_SET): return None
         if _so is not None and _so['idx'] == i - 1:
             return None if _so["n"] == "p" else _keepcase(T[i], "a")
         _cib = (i == 0) or (_SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i])
@@ -1576,7 +1581,12 @@ def _np_subject(T, tg, a):
         _pw = T[a-1]
         _pg = PRENOMS.get(_pw)
         _coord = any(deacc(T[_k].lower()) in ('et', 'ou', 'ni', 'and') for _k in range(lo, a - 1))
-        if _pg and _pw[:1].isupper() and not _coord and not (a - 1 == lo and _pg[1]):
+        # ⭐ 11/09/2026 — PAS UN PRÉNOM NU s'il est précédé d'une préposition (« de MARS »), d'un déterminant (« Les DENIS »)
+        #    ou d'un autre nom propre (« Di ROSA ») : nom de mois, nom de famille, nom composé — le balayage [dét + nom-tête]
+        #    reprend la main. Mesuré (tri frgec) : 3 rouges « ont → a » sur texte correct, tous par cette branche.
+        _pv = deacc(T[a-2].lower()) if a - 2 >= lo else ''
+        _nu = (a - 2 >= lo) and (_pv in PREP or _pv in NUM_DET or (a - 2 > lo and T[a-2][:1].isupper()))
+        if _pg and _pw[:1].isupper() and not _coord and not _nu and not (a - 1 == lo and _pg[1]):
             return {'idx': a-1, 'det': a-1, 'dtxt': '', 'htxt': _pw, 'elid': False, 'g': _pg[0], 'n': 's'}
     det_idx = None
     _seen_prep = False
@@ -2276,6 +2286,12 @@ def _reads(w):
         f = chunk.split(';')
         if len(f) == 4: r.append((f[0], f[1], f[2], f[3]))
     return r
+
+
+def _verb_3p_only(w):
+    """Forme verbale finie de 3e PLURIEL sans lecture de 3e singulier (« ont », « sont », « mangent ») : témoin de pluriel."""
+    r = _reads(w) if w else []
+    return any(x[2] == '3' and x[3] == 'p' for x in r) and not any(x[2] == '3' and x[3] == 's' for x in r)
 
 
 # ---------- Couche SEGMENTS (ponctuation + majuscules = sens/contexte) ----------
@@ -3208,6 +3224,9 @@ def rule_accord_sv_coord(T, i):
         if dm in ('ou', 'mais', 'car', 'donc', 'or', 'que', 'qu', 'qui'): return None   # autre conjonction/relative → pas une coordination simple
         if "'" in T[m].lower(): return None                        # élision (l'/d'/qu') → mistags fréquents → abstention
         if tg[m] in ('VERB', 'AUX') or dm in PREP: return None     # verbe/préposition dans la zone sujet → pas une coordination de GN sujets
+        # ⭐ 11/09/2026 — « La vérité ÉCLATE et Georges est partagé » → sont : le tagger a manqué « éclate ». Un mot à lecture
+        #    verbale FINIE qui n'est pas précédé d'un déterminant (« la porte et… » reste un nom) est un verbe → abstention.
+        if _reads(T[m]) and not (m > lo and (deacc(T[m-1].lower()) in NUM_DET or tg[m-1] == 'DET')): return None
         conjuncts[-1].append(m)
     if not has_sep or len(conjuncts) < 2: return None
     per_rank = 3; has_common = False                              # priorité de personne : 1 > 2 > 3 ; has_common = au moins un conjoint pronom OU introduit par un déterminant
@@ -4279,6 +4298,15 @@ def rule_noun_singular(T, i):
     # 3 réparations : on ne répare pas, on cesse de nuire.
     if i > 0 and deacc(T[i-1].lower()) in ('au', 'du'): return None
     nx = T[i + 1] if i + 1 < len(T) else ''
+    # ⭐ 11/09/2026 — « le MAÇONS ont du mal » : le verbe qui suit est un 3e PLURIEL sans lecture singulière → deux témoins
+    #    (nom, verbe) contre un (déterminant) : c'est « le » qui est faux, pas le nom → abstention. Même évidence que la
+    #    garde de rule_on_ont : sans celle-ci le moteur sortait « le maçon ont », incohérent.
+    #    Sauf CONJOINT (« l'hébergement et la RESTAURATIONS ont été » → restauration, correction juste mesurée) : le pluriel du
+    #    verbe vient alors de la coordination, pas du nom — pas de et/ou/ni devant le déterminant du GN.
+    _dj = i if _pre else (i - 2 if (i >= 2 and deacc(T[i-1].lower()) in _ADJ_ANTE and prev(T, i-1) in _SING_DET) else i - 1)   # index du déterminant
+    #    Pas dans la branche ÉLIDÉE (« l'hommes ont ») : rule_on_ont n'y a pas de déterminant à lire, l'abstention du nom seul
+    #    donnerait « l'hommes a faim » ; on y garde le comportement d'avant (« l'homme a faim »), non mesuré = non changé.
+    if not _pre and _verb_3p_only(nx) and not (_dj >= 1 and deacc(T[_dj-1].lower()) in ('et', 'ou', 'ni')): return None
     if nx[:1].islower() and nx.isalpha():                       # nom composé (« le vice présidents ») : nom + NOM confiant NON-verbe → 1er souvent invariable → abstention
         pp = NOUN_POST.get(deacc(nx.lower()))                   #   (P(VER)<ε : un VERBE qui suit — « chaque jours compte » — n'est PAS un composé)
         if pp and pp[0] >= PL_TAU_M and pp[1] < PL_EPS_M and deacc(nx.lower()) not in ADJ_LEX: return None
@@ -5336,6 +5364,13 @@ MUETS = [
     ("Très vite l'ambiance se rafraichit.", "idem 1990 : « rafraichit » est au lexique du produit."),
     ("C'est dans cette ville qu'il décèdera d'un cancer.", "idem, dans l'autre sens : la table porte « décédera », "
                                                            "l'écrit « décèdera » est la forme rectifiée — les deux se disent."),
+    # RESTES DU TRI FRGEC, lot 1 (11/09/2026) — texte CORRECT, le moteur doit se taire :
+    ("Les élections de Mars ont reconduit la majorité.", "« Mars » est dans la table des prénoms, mais derrière « de » ce n'est pas un "
+                                                          "prénom NU : le sujet est « Les élections », pluriel (garde de _np_subject)."),
+    ("Les Denis ont personnifié des personnages.", "nom de famille derrière un déterminant pluriel : pas un prénom nu."),
+    ("Le maçons ont du mal à élever les murs.", "déterminant singulier + nom pluriel + verbe pluriel : c'est « le » qui est faux — "
+                                                 "ni « maçon » ni « a » (rule_noun_singular et rule_on_ont s'abstiennent sur la même évidence)."),
+    ("La vérité éclate et Georges est partagé.", "« éclate » est un verbe manqué par le tagger : pas une coordination de sujets, « est » reste."),
 ]
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
