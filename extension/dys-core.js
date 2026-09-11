@@ -3821,6 +3821,7 @@ function spellUnknown(tok,atStart,T,idx){
       if(_np&&(_np.n==='s'||_np.n==='p')&&!_osCoordPlural(F,i)&&_osRelAnt(F,i)<0){   /* une relative en « qui » entre la tête et le verbe : la route relative parle (03/09/2026) */var _dsn=[_osVote(_np.n,0.9),_osR4(F,i,f3s,f3p)],_wsn=[Math.abs(_dsn[0][0]-_dsn[0][1])+1e-6,(Math.abs(_dsn[1][0]-_dsn[1][1])+1e-6)*0.4];
         var _Zn=_wsn[0]+_wsn[1],_psn=(_wsn[0]*_dsn[0][0]+_wsn[1]*_dsn[1][0])/_Zn,_ppn=(_wsn[0]*_dsn[0][1]+_wsn[1]*_dsn[1][1])/_Zn,_rnn=_psn>=_ppn?'s':'p',_rcn=Math.abs(_psn-_ppn);
         if(_rcn<_OS_TAU||_rnn===vn)return null;return _rnn==='p'?f3p:f3s;}}
+    if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]&&!(typeof _np!=='undefined'&&_np))return null;   /* ⭐ 11/09/2026 : INCISE — borne de proposition juste avant le verbe et pas de sujet trouvé (« Gordon, malgré les offres des Chinois, rentra ») : le sujet est avant l'incise, les voisins R1-R3 liraient l'incise (→ rentrèrent, faux). Révélé par la table figée. Miroir os_subject_probe. */
     if(tg){var _pp=_osRPostpose(F,i,tg);if(_pp!==null){var _pn=_pp[0]>=_pp[1]?'s':'p',_pc=Math.abs(_pp[0]-_pp[1]);if(_pc<_OS_TAU||_pn===vn)return null;return _pn==='p'?f3p:f3s;}}   // sujet postposé : mode dédié DOMINE
     var _ant=_osRelAnt(F,i),ds,ws=[],q;
     if(_ant>=0){var _an=_osAntNum(F,_ant);if(!_an)return null;ds=[_osVote(_an,0.9),_osR4(F,i,f3s,f3p)];}   // relative : l'antécédent EST le sujet ; s'il ne porte pas son nombre, on se tait
