@@ -55,7 +55,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    cible RARE à une lettre d'un auxiliaire. Sans FREQ ici, SP.ready était vrai et la table VIDE : « Nous êtes là » se
    taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.) */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
+  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
   'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
@@ -396,6 +396,50 @@ for (const ph of _R8_NON) {
   if (got.length) { _r8++; console.log('✗ R8 piège : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(got.map(f => f.word + '->' + f.sugg + '[' + f.name + ']'))); }
 }
 if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); process.exit(1); }
+
+/* ⭐ VIGILANCE (11/09/2026) — même invariant que parity_core, mais la tranche extraite n'a pas diagnoseAll : on appelle les
+   QUATRE jumelles orange (toutes définies AVANT correctText, donc dans la tranche) dans l'ordre et avec la règle « première qui
+   parle » de spellText — et la PRÉCÉDENCE DU ROUGE : dans le produit une orange ne sort jamais sur un mot que correctText a
+   déjà corrigé (le premier tour de l'instrument, sans elle, accusait 10 « oranges hors Python » qui n'existent pas au produit). « accord participe à vérifier » (participeEtreVig, définie APRÈS correctText) reste hors périmètre,
+   comme dans parity_core. EXIGENCE : chaque jumelle tire au moins une fois des DEUX côtés. */
+const VIG_ORD = [['semiInfVig', 'infinitif après semi-auxiliaire à vérifier'],
+  ['persVig', 'personne du verbe à vérifier'], ['sujFlexNom', 'accord du verbe au sujet nominal à vérifier'], ['onOntVig', 'on/ont après un sujet pluriel à vérifier']];
+const VIG_PY = new Set(VIG_ORD.map(x => x[1]));
+const VIG_PHRASES = PHRASES.concat([
+  'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
+  'je fini mon travail.', 'tu a raison.',                                                             // personne du verbe
+  'les enfants on mange leur soupe.', 'mes amis on chante.', 'les chats on dort.',                    // on/ont après sujet pluriel (orange) ; « on dort » = rouge on/ont, pas ici
+  'je vais mange.', 'il veut mange.',                                                                 // infinitif après semi-auxiliaire
+  'je manger des fraises.', "J'aimer les fraises.",                                                   // infinitif après pronom sujet (CRULES) ; j'+inf (JS seul)
+  'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
+const appVig = p => { const t = String(p).replace(/[’ʼ]/g, "'"); const rouge = new Set(corr(t).map(f => f.i)); globalThis.__segOn(t); const T = globalThis.__toks(t), out = [];
+  for (let i = 0; i < T.length; i++) if (!rouge.has(i)) for (const [fn, nom] of VIG_ORD) { const s = globalThis.__vig[fn](T, i); if (s) { out.push([i, T[i], s, nom]); break; } }
+  return out; };
+const pyV = cp.spawnSync('python3', ['-c', `
+import sys, json
+sys.path.insert(0, ${JSON.stringify(HERE)})
+import correcteur_probe as C
+ph = json.loads(sys.stdin.read())
+print(json.dumps([[(i, w, s, n) for (i, w, s, n, t) in C.correct_tiered(p)] for p in ph]))
+`], { input: JSON.stringify(VIG_PHRASES), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });
+if (pyV.status !== 0) { console.error('probe Python (vigilance) échoué :', pyV.stderr); process.exit(2); }
+const pyVig = JSON.parse(pyV.stdout);
+let _vKo = 0, _vGap = 0; const _vHitJs = {}, _vHitPy = {};
+VIG_PHRASES.forEach((p, k) => {
+  const js = appVig(p);
+  const pf = pyVig[k].filter(x => VIG_PY.has(x[3]));
+  const pset = new Set(pf.map(key)), jset = new Set(js.map(key));
+  js.forEach(x => { _vHitJs[x[3]] = (_vHitJs[x[3]] || 0) + 1; });
+  pf.forEach(x => { _vHitPy[x[3]] = (_vHitPy[x[3]] || 0) + 1; });
+  const extra = js.filter(x => !pset.has(key(x)));
+  if (extra.length) { _vKo++; console.log('✗ VIGILANCE : APP marque une orange que PY ne marque pas :', JSON.stringify(p), JSON.stringify(extra)); }
+  const miss = pf.filter(x => !jset.has(key(x)));
+  if (miss.length) { _vGap++; console.log('  (couverture vigilance) PY > APP :', JSON.stringify(p), JSON.stringify(miss)); }
+});
+const _vMuet = Array.from(VIG_PY).filter(n => !_vHitJs[n] || !_vHitPy[n]);
+if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' app=' + JSON.stringify(_vHitJs) + ' py=' + JSON.stringify(_vHitPy)); process.exit(1); }
+if (_vKo) { console.log('PARITÉ KO — ' + _vKo + ' phrase(s) où l\'app marque une ORANGE hors Python.'); process.exit(1); }
+console.log('  ✓ vigilance : ' + VIG_ORD.length + ' règles orange appariées, app ⊆ Python sur ' + VIG_PHRASES.length + ' phrases (écarts de couverture : ' + _vGap + ')');
 
 console.log(appOnly === 0
   ? `PARITÉ OK — aucun flag propre à l'app sur ${PHRASES.length} phrases (app ⊆ Python). Écarts de couverture (lexique HF) : ${gap}.`
