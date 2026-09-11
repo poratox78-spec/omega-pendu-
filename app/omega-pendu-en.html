@@ -24966,7 +24966,7 @@ var w=T[i],lw=w.toLowerCase();
        à lire un déterminant : son contexte est empoisonné par la faute elle-même. Le fait structurel,
        lui, ne l'est pas. Miroir Python rule_son_sont. */
     if(i+1<T.length&&pluralSubj&&!NUM_DET[cprev(T,i)]&&!PREP[cprev(T,i)]&&/[sx]$/.test(nxt)
-       &&!_SON_INVAR[deacc(nxt)]&&_clauseNoFiniteVerb(T,i,i+1)){
+       &&!_SON_INVAR[deacc(nxt)]&&!INVAR_NOUN[deacc(nxt)]&&_wordKnown(/aux$/.test(deacc(nxt))?deacc(nxt).slice(0,-3)+'al':deacc(nxt).slice(0,-1))&&_clauseNoFiniteVerb(T,i,i+1)){   /* ⭐ 11/09/2026 : « son SENS », « son DÉCÈS », « son REFUS » étaient réécrits en rouge — le -s n'est une marque de pluriel que si le singulier existe et que le mot n'est pas un invariable connu (miroir Python) */
       var _tgs=posTags(T),_apr=(_tgs&&i+2<_tgs.length)?_tgs[i+2]:null;
       if(_apr!=='NOUN'&&_apr!=='PROPN')return 'sont';}
     return null;}
@@ -25029,7 +25029,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(!ci){
       var p=cprev(T,i);var pr=i>0?deacc(T[i-1].toLowerCase()):'';var glued=(pr.indexOf("'")>=0)&&(/ils$/.test(pr)||/elles$/.test(pr));
       if(p==='ils'||p==='elles'||glued||(cpl(T,i-1)&&!_plurSousPrep(T,i)))return 'ont';
-      if(i+1<T.length&&_isPpl(T[i+1]))return 'ont';
+      if(i+1<T.length&&_isPpl(T[i+1])){var _rp=svReads(T[i+1]),_pre=false,_nx1=T[i+1].toLowerCase();for(var _q=0;_q<_rp.length;_q++)if(_rp[_q][1]==='ind:pre'&&((((CONJ_C[_rp[_q][0]]||{})['ind:pre']||{})[_rp[_q][2]+_rp[_q][3]])||'').toLowerCase()===_nx1)_pre=true;if(!_pre)return 'ont';}   /* ACCENT-EXACT : svReads lisait « occupés » comme « occupes » et taisait « Sumériens on occupés » → ont */   /* ⭐ 11/09/2026 : « comme on DIT », « duquel on FAIT » — participe MAIS AUSSI présent 3s, sans sujet pluriel à gauche → abstention ; les participes purs (été, occupés, grandi) gardent le rouge. Miroir Python. */
       // ⭐ IDIOME D'AVOIR après sujet pluriel À DISTANCE (31/08, transposition du pilote son/sont) :
       // « Les enfants de Paul on faim » → ont. « on + faim/soif/peur… » n'existe JAMAIS en français
       // correct — liste FERMÉE, jamais le cas général « on + nom » (FP construisible : incise « et on,
@@ -25049,6 +25049,12 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
   var MAIS_STOP={pas:1,plus:1,moins:1,point:1,rien:1,tout:1,tres:1,jamais:1,surtout:1,aussi:1,encore:1,toujours:1,comment:1,pourquoi:1,peu:1,trop:1,bien:1,non:1,oui:1,si:1,assez:1,enfin:1,donc:1,car:1,alors:1,ici:1,la:1};
   var DET_SKIP={plus:1,moins:1,tres:1,bien:1,trop:1,assez:1,aussi:1,si:1,autre:1,autres:1,meme:1,propre:1,seul:1,seule:1,tel:1,telle:1,certain:1,certaine:1,tout:1,toute:1,grand:1,grande:1,petit:1,petite:1,gros:1,grosse:1,beau:1,bel:1,belle:1,bon:1,bonne:1,nouveau:1,nouvel:1,nouvelle:1,premier:1,premiere:1,dernier:1,derniere:1,jeune:1,vieux:1,vieil:1,vieille:1,long:1,longue:1,large:1,simple:1,super:1,superbe:1,primaire:1,double:1,triple:1,sous:1,pour:1,contre:1,par:1,sans:1,avec:1,entre:1,vers:1,mi:1,demi:1,semi:1,pseudo:1,quasi:1,ex:1,porte:1,montre:1,des:1,les:1,de:1,le:1};
   function rLeur(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='leur'&&lw!=='leurs')return null;if(i+1>=T.length)return null;if(vlike(T,i+1))return 'leur';var dn=deacc(T[i+1].toLowerCase());if(INVAR_NOUN[dn])return 'leur';
+    /* ⭐ 11/09/2026 : le NOMBRE se lit sur le NOM, pas sur ce qui s'intercale (« leur PLUS grand succès », « leur TRÈS grande efficacité » → leurs, faux) ; on saute adverbes/adjectifs (3 au plus) ; un NUMÉRAL impose le pluriel (« leurs HUIT cartes »). Miroir Python. */
+    var jn=i+1,_tgl=posTags(T),_plAdj=false;
+    if(_tgl&&jn<_tgl.length&&_tgl[jn]==='NUM')return (jn+1<T.length&&/[sx]$/.test(deacc(T[jn+1].toLowerCase())))?'leurs':null;
+    while(_tgl&&jn<T.length-1&&jn<i+4&&(_tgl[jn]==='ADV'||_tgl[jn]==='ADJ')){if(_tgl[jn]==='ADJ'){var _da=deacc(T[jn].toLowerCase());if(/[sx]$/.test(_da)&&_wordKnown(/aux$/.test(_da)?_da.slice(0,-3)+'al':_da.slice(0,-1)))_plAdj=true;}jn++;}   /* le -s de l'adjectif n'est un pluriel que si son singulier existe (« français » → « françai » ✗, mesuré « leur français ») */
+    if(jn!==i+1){if(_plAdj)return lw==='leurs'?null:'leurs';   /* témoin pluriel sur l'adjectif sauté (« leurs PREMIERS moie ») : « leurs » est juste, on ne lit pas le nom */
+      if(!(_tgl&&jn<_tgl.length&&(_tgl[jn]==='NOUN'||_tgl[jn]==='PROPN')))return null;dn=deacc(T[jn].toLowerCase());if(!_wordKnown(dn))return null;if(INVAR_NOUN[dn])return 'leur';}
     // ⭐ L'ANCRE DOIT ÊTRE FIABLE (audit 2026-08-22) : cette règle lit le NOMBRE sur l'orthographe du nom suivant, or sur du texte dys c'est justement l'orthographe qui n'est pas fiable.
     //  ① nom INCONNU (« leur payss », « lèurs tigec ») : le -s final n'est pas une marque de pluriel, c'est du bruit → abstention.
     //  ② FAUX pluriel (« leur français ») : INVAR_NOUN ignore les noms en -ais/-ois → test MORPHOLOGIQUE (le singulier doit exister au lexique) au lieu d'une liste qui grandirait. Miroir Python rule_leur_leurs.
@@ -25066,7 +25072,7 @@ var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
        doctrine d'audibilité dit pareil : « leurs » s'ENTEND et porte l'intention, le -s du nom est
        MUET, c'est lui qui saute. On laisse donc la main au nom — mais seulement si `rNounPlural`
        tire VRAIMENT, sinon on perdrait la correction au lieu de la déplacer. */
-    if(lw==='leurs'&&!/[sx]$/.test(dn)&&rNounPlural(T,i+1))return null;
+    if(lw==='leurs'&&!/[sx]$/.test(dn)&&rNounPlural(T,jn))return null;
     return /[sx]$/.test(dn)?'leurs':'leur';}
   var _PP_NOUN_HOMO={mort:1,fait:1,part:1,point:1};   // noms homographes d'un participe → « à » PRÉPOSITION (condamnée à mort, tout à fait, à part, à point) ; le tagger tranche NOM vs VERB
   var _PRON_INV={il:1,elle:1,on:1,ils:1,elles:1,je:1,tu:1,nous:1,vous:1,ce:1,ca:1};   // sujets qui s'INVERSENT après le verbe

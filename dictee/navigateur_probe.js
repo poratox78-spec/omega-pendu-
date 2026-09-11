@@ -199,6 +199,21 @@ const CAS = [
   { txt: 'ce chien et gentil.', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : le cas nominal singulier reste rouge' },
   { txt: 'il et content.', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : le cas pronom nu reste rouge' },
   { txt: 'mon frère il et gentil.', corrigeAttendu: ['et', 'est'], pourquoi: 'CONTRE-GARDE : pronom de reprise, aucun verbe conjugué dans la proposition' },
+  /* ⭐ TROIS FAMILLES DE ROUGES SUR TEXTE CORRECT (tri frgec relu cas par cas, 11/09/2026) : noms INVARIABLES en -s après « son »,
+     adverbe/adjectif/numéral intercalé après « leur(s) », participe AUSSI présent après « on ». Les contre-gardes tiennent le
+     rappel : les cas où le moteur avait raison contre un gold sous-corrigé restent rouges. */
+  { txt: 'des paysages animés où son sens de la composition étonne.', rien: true, pourquoi: '« sens » est un nom invariable : possessif, plus « sont »' },
+  { txt: 'quelques mois avant son décès.', rien: true, pourquoi: '« décès » : le singulier « décè » n’existe pas, le -s n’est pas un pluriel' },
+  { txt: 'les enfants son partis.', corrigeAttendu: ['son', 'sont'], pourquoi: 'CONTRE-GARDE : participe pluriel après sujet pluriel, le rouge reste' },
+  { txt: 'il est à ce jour leur plus grand succès.', rien: true, pourquoi: '« plus » est un adverbe, le nom est « succès » (invariable) : « leur » est juste' },
+  { txt: 'malgré leur très grande efficacité.', rien: true, pourquoi: 'adverbe + adjectif sautés, le nom « efficacité » est singulier' },
+  { txt: 'les joueurs ont leurs huit cartes en main.', rien: true, pourquoi: 'un numéral impose le pluriel : « leurs » est juste' },
+  { txt: 'ils défendent leur amis.', corrigeAttendu: ['leur', 'leurs'], pourquoi: 'CONTRE-GARDE : nom pluriel direct, le rouge reste' },
+  { txt: 'comme on dit en Abitibi.', rien: true, pourquoi: '« dit » est aussi un présent : sans sujet pluriel, plus « ont »' },
+  { txt: 'ces tortues on été découvertes au Cambodge.', corrigeAttendu: ['on', 'ont'], pourquoi: 'CONTRE-GARDE : « été » n’est qu’un participe, le rouge reste' },
+  { txt: 'les Sumériens on occupés la région.', corrigeAttendu: ['on', 'ont'], pourquoi: 'CONTRE-GARDE : « occupés » n’est pas un présent (« occupes » ≠ « occupés », accent-exact) — perdu puis rendu' },
+  { txt: 'ils y font leurs premiers moie au service.', orangeInterdit: 'leurs', pourquoi: 'l’adjectif « premiers » porte le pluriel : « leurs » est juste, même si le nom est un non-mot' },
+  { txt: 'ils peuvent parfaire leur français.', rien: true, pourquoi: '« français » finit par -s mais est invariable (« françai » n’existe pas) : « leur » est juste' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour

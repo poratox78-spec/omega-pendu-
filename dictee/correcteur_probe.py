@@ -822,7 +822,11 @@ def rule_son_sont(T, i):
         # liste des INVARIABLES. Mesuré : le tagger étiquetait « contents » et « malades » NOUN parce
         # que le « son » fautif le poussait à lire un déterminant — son contexte est empoisonné par la
         # faute elle-même. Le fait structurel, lui, ne l'est pas.
-        if deacc(nxt) not in _OS_INVAR:
+        # ⭐ 11/09/2026 — « où son SENS de la composition », « avant son DÉCÈS », « son REFUS du bonheur » étaient réécrits
+        #    en ROUGE (frgec, texte correct) : sens/décès/refus manquent à _OS_INVAR. Le -s n'est une marque de pluriel que si
+        #    le SINGULIER existe au lexique (même test que leur/leurs) et que le mot n'est pas un invariable connu.
+        _dn = deacc(nxt); _sgn = _dn[:-3] + 'al' if _dn.endswith('aux') else _dn[:-1]
+        if _dn not in _OS_INVAR and _dn not in INVAR_NOUN and (_sgn in WORDS_SET or _sgn in GENDER_PURE):
             _tg = pos_tags(T)
             _ap = _tg[i+2] if (_tg and i + 2 < len(_tg)) else None
             if _ap not in ('NOUN', 'PROPN'):                 # « son ancienne équipe » : un nom suit → possessif
@@ -972,7 +976,14 @@ def rule_on_ont(T, i):
         pr = deacc(T[i-1].lower()) if i > 0 else ''
         glued_pl = ("'" in pr) and (pr.endswith('ils') or pr.endswith('elles'))   # pronom collé : qu'ils, s'ils, lorsqu'elles → sujet pluriel
         if p in ('ils', 'elles') or glued_pl or (is_plural_noun(T, i-1) and not _plur_sous_prep(T, i)): return 'ont'    # sujet/antécédent pluriel → avoir 3pl
-        if i+1 < len(T) and _is_ppl(T[i+1]): return 'ont'              # avoir + participe (« les gens qui on grandi/incarné/pu ») → 3pl, jamais « on »
+        # ⭐ 11/09/2026 — « comme on DIT », « duquel on FAIT », « et on dit que » : dit/fait sont des participes MAIS AUSSI des
+        #    présents 3s. Sans sujet pluriel à gauche (traité juste au-dessus), on ne devine pas → abstention. Les participes
+        #    purs (été, occupés, grandi) gardent le rouge : « tortues on été découvertes » → ont.
+        #    ⚠️ Le test doit être ACCENT-EXACT : `_reads` lisait « occupés » comme « occupes » (2s) et taisait « Sumériens on
+        #    occupés » → ont (mesuré, corpus frgec). Seule une forme de présent ÉGALE à l'écrit rend le mot ambigu.
+        _nx1 = T[i+1].lower() if i+1 < len(T) else ''
+        _pres_exact = any(r[1] == 'ind:pre' and ((((CONJ_C.get(r[0]) or {}).get('ind:pre') or {}).get(r[2] + r[3]) or '')).lower() == _nx1 for r in _reads(T[i+1])) if _nx1 else False
+        if i+1 < len(T) and _is_ppl(T[i+1]) and not _pres_exact: return 'ont'   # avoir + participe (« les gens qui on grandi/incarné/pu ») → 3pl, jamais « on »
         # ⭐ IDIOME D'AVOIR après sujet pluriel À DISTANCE (31/08/2026, transposition du pilote son/sont :
         # « Les enfants de Paul on faim » → ont). « on + faim/soif/peur… » n'existe JAMAIS en français
         # correct (le pronom « on » exige son verbe) — liste FERMÉE, jamais le cas général « on + nom »
@@ -994,6 +1005,27 @@ def rule_leur_leurs(T, i):
     if is_verb(T, i+1): return 'leur'                                   # pronom (invariable) : « je leur parle »
     dn = deacc(T[i+1].lower())
     if dn in INVAR_NOUN: return 'leur'                                  # nom invariable en -s/-x (« leur pays » = sg) → jamais « leurs »
+    # ⭐ 11/09/2026 — le NOMBRE se lit sur le NOM, pas sur ce qui s'intercale : « leur PLUS grand succès », « leur PLUS jeune
+    #    âge », « leur TRÈS grande efficacité » proposaient « leurs » (« plus » finit par -s et « plu » existe). On saute les
+    #    adverbes/adjectifs (tagger, 3 au plus) pour lire le nom ; un NUMÉRAL impose le pluriel (« leurs HUIT cartes » → leur !).
+    jn = i + 1
+    _tgl = pos_tags(T)
+    if _tgl and jn < len(_tgl) and _tgl[jn] == 'NUM':
+        return 'leurs' if (jn + 1 < len(T) and deacc(T[jn+1].lower()).endswith(('s', 'x'))) else None
+    _pl_adj = False
+    while _tgl and jn < len(T) - 1 and jn < i + 4 and _tgl[jn] in ('ADV', 'ADJ'):
+        if _tgl[jn] == 'ADJ':                                            # « leurs PREMIERS mois » : l'adjectif porte déjà le pluriel…
+            _da = deacc(T[jn].lower())
+            if _da.endswith(('s', 'x')):
+                _sga = _da[:-3] + 'al' if _da.endswith('aux') else _da[:-1]
+                if _sga in WORDS_SET or _sga in GENDER_PURE: _pl_adj = True   # …si son -s est une marque de pluriel (« français » → « françai » ✗ : invariable, mesuré « leur français »)
+        jn += 1
+    if jn != i + 1:
+        if _pl_adj: return None if lw == 'leurs' else 'leurs'          # témoin pluriel sur l'adjectif : « leurs » est juste, on ne lit pas le nom (« leurs premiers moie », non-mot)
+        if not (_tgl and jn < len(_tgl) and _tgl[jn] in ('NOUN', 'PROPN')): return None   # pas de nom lisible derrière → on ne sait pas
+        dn = deacc(T[jn].lower())
+        if dn not in WORDS_SET and dn not in GENDER_PURE: return None   # nom INCONNU derrière l'adjectif (tagué NOUN par défaut) : on ne s'ancre pas sur un non-mot
+        if dn in INVAR_NOUN: return 'leur'
     # ⭐ L'ANCRE DOIT ÊTRE FIABLE (audit règle-par-règle 2026-08-22). Cette règle lit le NOMBRE sur
     # l'orthographe du nom suivant — or sur un texte dys c'est précisément l'orthographe qui n'est
     # pas fiable. Deux trous mesurés, tous deux corrigés ici plutôt que par une liste qui grandirait :
@@ -1014,7 +1046,7 @@ def rule_leur_leurs(T, i):
     # 59 fois, le DÉTERMINANT 12 fois. La doctrine d'audibilité dit pareil : « leurs » s'ENTEND et
     # porte l'intention, le -s du nom est MUET. On laisse la main au nom — mais seulement si
     # rule_noun_plural tire VRAIMENT, sinon on perdrait la correction au lieu de la déplacer.
-    if lw == 'leurs' and not (dn.endswith('s') or dn.endswith('x')) and rule_noun_plural(T, i+1):
+    if lw == 'leurs' and not (dn.endswith('s') or dn.endswith('x')) and rule_noun_plural(T, jn):
         return None
     return 'leurs' if (dn.endswith('s') or dn.endswith('x')) else 'leur'  # déterminant : accord avec le nom
 
