@@ -276,6 +276,7 @@ def detect(F, vi, tau=0.85, tg=None):
     if tg is not None:                                        # COORDINATION DE VERBES (miroir JS _osCoordVerbe, 03/09/2026)
         cv = _coord_verbe(F, vi, vn, f3s, f3p, tg)
         if cv is not False: return cv
+    np_ = None
     if tg is not None:                                        # LE PARSEUR DE SUJET D'ABORD (miroir JS, 03/09/2026)
         try: np_ = C._np_subject(F, tg, vi)
         except Exception: np_ = None
@@ -286,6 +287,10 @@ def detect(F, vi, tau=0.85, tg=None):
             num = 's' if ps >= pp else 'p'; conf = abs(ps - pp)
             if conf < tau or num == vn: return None
             return (f3p if num == 'p' else f3s, conf)
+    # ⭐ 11/09/2026 — INCISE : une borne de proposition JUSTE AVANT le verbe et pas de sujet trouvé (« Gordon, malgré les offres des Chinois,
+    #    rentra ») : le sujet est avant l'incise, les voisins R1-R3 liraient l'incise (« des Chinois » → rentrèrent, FAUX sur texte correct).
+    #    Révélé par la table de conjugaison figée (la cellule 3e pluriel du passé simple manquait et taisait la route par accident). Miroir JS.
+    if tg is not None and C._SEG is not None and vi < len(C._SEG['bb']) and C._SEG['bb'][vi] and not np_: return None
     if tg is not None:                                        # SUJET POSTPOSÉ (inversion) : mode dédié qui DOMINE (ordre inversé → scan avant)
         pp_ = _R_postpose(F, vi, tg)
         if pp_ is not None:
