@@ -1469,7 +1469,8 @@ _COLL_HEAD = {'plupart', 'majorite', 'minorite', 'nombre', 'total', 'partie', 'm
               'soixantaine', 'centaine', 'millier', 'million', 'milliard', 'brochette', 'tapee', 'flopee',
               'sorte', 'espece', 'genre',
               'bande', 'groupe', 'tas', 'serie', 'masse', 'nuee', 'troupe', 'ribambelle', 'cohorte',   # collectifs courants (accord de sens ambigu : « la bande de X arrivent » AUSSI valide → abstention)
-              'myriade', 'pleiade', 'armee', 'meute', 'horde', 'essaim', 'tripotee', 'ramassis', 'foultitude', 'palanquee'}
+              'myriade', 'pleiade', 'armee', 'meute', 'horde', 'essaim', 'tripotee', 'ramassis', 'foultitude', 'palanquee',
+              'communaute'}   # ⭐ 11/09/2026 (restes frgec, lot 2) : « Une communauté d'expatriés sont » — collectif à accord de sens
 def _noun_gender(w, num='s', full=False):
     """Genre d'un NOM via GENDER_PURE (noms à genre non ambigu). Dé-pluralisation SEULEMENT si le sujet est marqué
     pluriel (num=='p') et le mot n'est pas un invariable en -s (cours→cour(f) = faux ami). None sinon → abstention.
@@ -2544,10 +2545,17 @@ def rule_accord_sv(T, i):
     if per == '3' and nb == 's' and deacc(T[i].lower()) in _V3PL_SURE:   # « il/elle » (sing) + verbe SÛR 3pl (sont/ont/vont/font) : le « s » MUET de ils/elles est tombé → c'est le PRONOM la faute (rule_il_ils), pas le verbe → NE PAS fixer le verbe (sinon « il sont »→« ils est »)
         _pp = deacc(T[i-1].lower()) if i > 0 else ''
         if _pp in ('ne', 'n') and i > 1: _pp = deacc(T[i-2].lower())
+        _me = _ELIDED_PRON.search(_pp)                                    # ⭐ 11/09/2026 — pronom ÉLIDÉ (« lorsqu'il sont évincés ») : même garde
+        if _me: _pp = deacc(_me.group(1))
         if _pp in ('il', 'elle'): return None
     if deacc(T[i].lower()) == 'peut' and i + 1 < len(T) and deacc(T[i+1].lower()) == 'etre':
         return None                                              # « peut-être » (adverbe), pas le verbe pouvoir
     if _agrees(reads, per, nb): return None                      # déjà d'accord → ne pas toucher
+    # ⭐ 11/09/2026 (restes frgec, lot 2) — « Elles est fomée » : pronom PLURIEL + « est » + participe SINGULIER. Le verbe (audible) et le
+    #    participe s'accordent entre eux et contredisent le -s muet du pronom → c'est le pronom qui est suspect → abstention.
+    if per == '3' and nb == 'p' and _dsv == 'est' and i + 1 < len(T) and not deacc(T[i+1].lower()).endswith('s'):
+        _tgd = pos_tags(T)
+        if _is_ppl(T[i+1]) or (_tgd and _tgd[i+1] == 'VERB' and T[i+1].lower().endswith(('é', 'ée'))): return None
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX):
         return None                                              # temps composé / passif (aux + participe : « auraient tenté », « sont-ils insérés ») → T[i] = participe, pas un verbe fini à accorder
     lemmas = {l for (l, _mt, _p, _n) in reads}
@@ -2774,6 +2782,22 @@ def _verb_or_homograph(tg, T, i):
     return bool(_reads(T[i]))
 
 
+def _temoin_apres_verbe(T, tg, i, nb):
+    """⭐ 11/09/2026 (restes frgec, lot 2) — ce qui SUIT le verbe témoigne du nombre du VRAI sujet, contre le sujet parsé :
+    A « la passion pour sa ville natale sont DES thèmes » : attribut PLURIEL derrière « sont », sujet parsé singulier → le sujet réel
+      est l'énumération/coordination à gauche ; B « Chaque année sont organisés DES milliers » : participe + déterminant pluriel = sujet
+      POSTPOSÉ ; F « Les impudents est LE premier roman » : déterminant SINGULIER derrière « est », sujet parsé pluriel = titre/entité.
+    Partagée par rule_accord_sv_noun (rouge) et rule_sujet_flexion (orange, sujet nominal) : même évidence, même silence.
+    Différentiel de la sonde (11/09) : 0 correction perdue, 1 mot juste de moins réécrit. Miroir JS : _temoinApresVerbe."""
+    _dv = deacc(T[i].lower()); _nx = deacc(T[i+1].lower()) if i + 1 < len(T) else ''
+    if _dv == 'sont' and nb == 's':
+        if _nx in _POST_PL: return True
+        if i + 2 < len(T) and (_is_ppl(T[i+1]) or T[i+1].lower().endswith(('és', 'ées')) or (tg and i + 1 < len(tg) and tg[i+1] == 'VERB' and _nx.endswith('s'))) \
+                and deacc(T[i+2].lower()) in _POST_PL: return True
+    if _dv == 'est' and nb == 'p' and (_nx in _POST_SG or _nx[:2] == "l'"): return True
+    return False
+
+
 def rule_accord_sv_noun(T, i):
     """Accord SUJET-VERBE à sujet-NOM, via le VRAI PARSEUR de sujet (_np_subject) : gère le sujet ÉLOIGNÉ (mots-écrans
     « de X ») que l'ancienne version (déterminant pluriel en tête seulement) ratait — « la liste des articles sont »→est,
@@ -2835,6 +2859,7 @@ def rule_accord_sv_noun(T, i):
         # abstention. Mesuré : 3 FP du corpus généré éteints, les 3 cas emblématiques préservés.
         _hn = deacc(T[hk].lower())
         if not _hn.endswith(('s', 'x')) and not rule_noun_plural(T, hk): return None
+    if _temoin_apres_verbe(T, tg, i, nb): return None                      # ⭐ 11/09/2026 (restes frgec, lot 2) : ce qui suit le verbe témoigne du vrai sujet (A/B/F, cf. la fonction)
     if subj['dtxt'] != '' and ddet not in NUM_DET and ddet not in _QUANT_PL and ddet not in _QUANT_SG: return None   # déterminant sujet DOIT être connu (le/la/les/un/des/plusieurs/chaque…) ; au/aux/du (prép+dét de PP « AU nord se trouvent ») ou mistag → abstention. Le raccourci PRÉNOM (dtxt vide, sans déterminant par nature) est exempté
     if deacc(subj['htxt'].lower()) in _COLL_HEAD: return None                # nom collectif/quantité (plupart/majorité/centaine…) → accord avec le complément → abstention
     if not subj['elid'] and subj['dtxt'] != '' and (tg[hk] == 'PROPN' or (hk > 0 and T[hk][:1].isupper())): return None   # nom-tête propre/titre (« Les Maroons », « les Chevaliers du feu ») = entité, nombre non fiable → abstention. EXEMPTÉ : le raccourci PRÉNOM (dtxt vide) — son nombre est fiable par construction (table prenoms_genre), c'est ce qui débloque « Marie es gentille »→est (31/08, même précédent que pp_etre #596)
@@ -3182,6 +3207,12 @@ def rule_accord_sv_relatif(T, i):
         elif dd in _QUANT_PL:  nb = 'p'
         elif dd in _QUANT_SG:  nb = 's'
         else: return None
+    # ⭐ 11/09/2026 (restes frgec, lot 2) — « nombreuses lois … la sexualité qui sont FAITES » : le participe qui suit s'accorde avec le
+    #    verbe et contredit l'antécédent le plus proche → l'antécédent réel est plus à gauche (« lois ») → abstention.
+    _dv = deacc(T[i].lower())
+    if _dv in ('est', 'sont') and i + 1 < len(T) and (_is_ppl(T[i+1]) or T[i+1].lower().endswith(('é', 'ée', 'és', 'ées')) or tg[i+1] == 'VERB'):   # participe, irréguliers inclus (« faites ») via le tag
+        _vn = 'p' if _dv == 'sont' else 's'; _pnb = 'p' if deacc(T[i+1].lower()).endswith('s') else 's'
+        if _pnb == _vn and _vn != nb: return None
     if any(p == per and (n == nb or n == 'x') for (_l, _mt, p, n) in reads): return None   # déjà d'accord
     lemmas = {l for (l, _mt, _p, _n) in reads}
     if len(lemmas) != 1: return None
@@ -3693,6 +3724,7 @@ def rule_sujet_flexion(T, i):
     # LE PALIER SUIT LA FIABILITÉ DU SUJET : pronom → ROUGE ; nominal → ORANGE (règle jumelle ci-dessous).
     # Mesuré le 14/09 sur le corpus dys : en rouge, le sujet nominal fait 3 corrections justes sur 17.
     if src != ('pron' if _ROUGE else 'nom'): return None
+    if src == 'nom' and _temoin_apres_verbe(T, tg, i, nb): return None   # ⭐ 11/09/2026 (lot 2) : même évidence que rule_accord_sv_noun — l'orange se tait aussi (« Les impudents est le premier roman »)
     # ⛔ QUAND C'EST LE SUJET QUI EST FAUTÉ, NE PAS TOUCHER AU VERBE. « a forse il sont dégouter » : le dys a
     # écrit « il » pour « ils » — `rule_il_ils` répare le SUJET (rouge). Si on corrige aussi le verbe, on obtient
     # « ils est » : deux rouges qui se contredisent, et un mot juste cassé (mesuré : casses 14 → 16). Les formes
@@ -4472,6 +4504,9 @@ def rule_accord_verb_coord(T, i):
     for k in range(i-1, lo-1, -1):
         if deacc(T[k].lower()) in ('et', 'ou', 'ni'): ci = k; break
     if ci is None: return None
+    # ⭐ 11/09/2026 (restes frgec, lot 2) — « entre 2006 et 2016 sont parues » : un NOMBRE touche la conjonction → « et » coordonne des
+    #    nombres, pas des verbes (« Entre » est lu entrer 3sg) → abstention.
+    if _SEG is not None and ci + 1 < len(_SEG['dig']) and (_SEG['dig'][ci] or _SEG['dig'][ci+1]): return None
     for m in range(ci+1, i):                                    # entre la conj et V2 : aucun sujet → sinon V2 a le sien
         if T[m].lower() in NUM_DET or deacc(T[m].lower()) in _COORD_SUBJW: return None
         if _elid_kind(T[m]) == 'det': return None               # DÉTERMINANT ÉLIDÉ = un NOUVEAU sujet, invisible des listes parce que COLLÉ au nom : « … et l'oxydation réduit » a son propre sujet et ne doit PAS emprunter le nombre au verbe frère (FP mesuré : réduit → réduisent)
@@ -5371,6 +5406,12 @@ MUETS = [
     ("Le maçons ont du mal à élever les murs.", "déterminant singulier + nom pluriel + verbe pluriel : c'est « le » qui est faux — "
                                                  "ni « maçon » ni « a » (rule_noun_singular et rule_on_ont s'abstiennent sur la même évidence)."),
     ("La vérité éclate et Georges est partagé.", "« éclate » est un verbe manqué par le tagger : pas une coordination de sujets, « est » reste."),
+    # RESTES DU TRI FRGEC, lot 2 (11/09/2026) — texte CORRECT, le moteur doit se taire :
+    ("Les impudents est le premier roman de Marguerite Duras.", "TITRE : sujet à forme plurielle + « est » + attribut SINGULIER (« le premier roman ») → abstention."),
+    ("Chaque année sont organisés des milliers de festivals.", "INVERSION : « sont » + participe + déterminant pluriel = sujet postposé (« des milliers »)."),
+    ("Entre 2006 et 2016 sont parues des publications.", "« et » entre deux nombres coordonne des nombres, pas des verbes (« Entre » lu entrer 3sg)."),
+    ("La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.", "idem, et attribut pluriel « des films »."),
+    ("Une importante communauté d'expatriés sont également présents.", "COLLECTIF « communauté de » : accord de sens admis → abstention."),
 ]
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
