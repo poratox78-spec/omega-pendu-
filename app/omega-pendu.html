@@ -25055,7 +25055,8 @@ var w=T[i],lw=w.toLowerCase();
 var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // « avait-on », « peut-on » : trait d'union → pronom inversé
     if(lw==='ont'){var _tgo=posTags(T),_so=_tgo?_npSubject(T,_tgo,i):null;   // « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres, sinon le raccourci « mot suivant en -e » tranche le premier (« L'équipe ont rencontre » → « on rencontre »).
-      if(_so&&_so.idx===i-1){if(_so.n==='p')return null;return ckeepcase(T[i],'a');}
+      if(_so&&_so.n==='s'&&_so.dtxt){var _hn=deacc(T[_so.idx].toLowerCase());if(/[sx]$/.test(_hn)&&!_INVAR_S[_hn]&&_wordKnown(/aux$/.test(_hn)?_hn.slice(0,-3)+'al':_hn.slice(0,-1)))return null;}   /* ⭐ 11/09/2026 : « le MAÇONS ont » — déterminant singulier + nom pluriel, le déterminant est suspect (même garde que rAccordSVnoun). Miroir Python. */
+    if(_so&&_so.idx===i-1){if(_so.n==='p')return null;return ckeepcase(T[i],'a');}
       var _cib=(i===0)||(_SEG&&i<_SEG.bb.length&&_SEG.bb[i]);
       if(!_so&&i>0&&!_cib){var _el=T[i-1].toLowerCase().match(/^l['’](.+)$/);   // ÉLISION : « L'équipe » est UN SEUL token, donc _npSubject n'y voit aucun déterminant et s'abstient. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) — l'information est là, elle est juste collée.
         var _lft=i>=2?deacc(T[i-2].toLowerCase()):'';   // MESURÉ : sans garde, cette branche coûte 4 FP sur UD (« de l'auteur, ont été publiées » sujet POSTPOSÉ, « de l'homme, ont été unanimes » incise, « et l'étalonnage ont été » coordination, « de l'album ont eu lieu » écran prépositionnel). Les quatre sont exactement ce que _npSubject garde déjà ⇒ on lui EMPRUNTE ses gardes au lieu d'en inventer.
@@ -25478,7 +25479,8 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
   // Accord SUJET-VERBE (route lexicale cgram_conj) — sujet PRONOM (personne/nombre certains), borné FP=0.
   var SUBJ_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],ils:['3','p'],elles:['3','p']};
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
-  function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
+  function _verb3pOnly(w){if(!w)return false;var r=svReads(w),k,p=false,s=false;for(k=0;k<r.length;k++){if(r[k][2]==='3'&&r[k][3]==='p')p=true;if(r[k][2]==='3'&&r[k][3]==='s')s=true;}return p&&!s;}   /* ⭐ 11/09/2026 : 3e pluriel sans lecture 3e singulier (« ont », « mangent ») = témoin de pluriel. Miroir Python _verb_3p_only. */
+function svReads(w){var s=CONJ_F[deacc(w.toLowerCase())];if(!s)return[];var r=[],a=s.split('|'),k,f;for(k=0;k<a.length;k++){f=a[k].split(';');if(f.length===4)r.push(f);}return r;}
   function _fillReg3pl(cjc,cjf){var _REG3PL=[['ind:imp','ait','aient'],['cnd:pre','ait','aient'],['ind:fut','ra','ront']];for(var lem in cjc){for(var t=0;t<_REG3PL.length;t++){var mt=_REG3PL[t][0],s3=_REG3PL[t][1],p3=_REG3PL[t][2],slot=cjc[lem][mt];if(!slot)continue;var f3s=slot['3s'];if(Array.isArray(f3s))f3s=f3s[0];if(!f3s||slot['3p']||f3s.slice(-s3.length)!==s3)continue;var f3p=f3s.slice(0,-s3.length)+p3;slot['3p']=f3p;var key=deacc(f3p.toLowerCase()),rd=lem+';'+mt+';3;p',cur=cjf[key];if(!cur)cjf[key]=rd;else if(cur.indexOf(rd)<0)cjf[key]=cur+'|'+rd;}}
     /* ⛔ COQUILLE DE LA SOURCE, réparée ICI : c'est le SEUL point que toutes les voies de chargement
        traversent (l'app en a deux). Le 14/09 le correctif ne vivait que dans `sujFlexVig` côté JS —
@@ -25902,7 +25904,7 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
       if(dm==='et'||dm==='ni'){conjuncts.push([]);hasSep=true;continue;}
       if(dm==='ou'||dm==='mais'||dm==='car'||dm==='donc'||dm==='or'||dm==='que'||dm==='qu'||dm==='qui')return null;
       if(T[m].toLowerCase().indexOf("'")>=0)return null;
-      if(tg[m]==='VERB'||tg[m]==='AUX'||PREP[dm])return null;
+      if(tg[m]==='VERB'||tg[m]==='AUX'||PREP[dm])return null;if(svReads(T[m]).length&&!(m>lo&&(NUM_DET[deacc(T[m-1].toLowerCase())]||tg[m-1]==='DET')))return null;   /* ⭐ 11/09/2026 : verbe manqué par le tagger dans la zone sujet (« La vérité ÉCLATE et Georges est ») — lecture verbale finie sans déterminant devant → verbe, pas conjoint. Miroir Python. */
       conjuncts[conjuncts.length-1].push(m);}
     if(!hasSep||conjuncts.length<2)return null;
     var perRank=3,hasCommon=false,c,cj,q;
@@ -26107,6 +26109,8 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     // et ZÉRO asset (une règle au/aux qui répare exigerait cgram_plural.json, 68 Ko, absent des 2 moteurs JS).
     if(i>0&&(deacc(T[i-1].toLowerCase())==='au'||deacc(T[i-1].toLowerCase())==='du'))return null;   // pluriel apparent ; invariant/piège → abstention
     var nx=i+1<T.length?T[i+1]:'';
+    var _dj=_pre?i:((i>=2&&_ADJ_ANTE[deacc(T[i-1].toLowerCase())]&&_SING_DET[deacc(T[i-2].toLowerCase())])?i-2:i-1);   /* index du déterminant ; sauf CONJOINT (« l'hébergement et la restaurations ont ») : le pluriel du verbe vient de la coordination */
+    if(!_pre&&_verb3pOnly(nx)&&!(_dj>=1&&/^(et|ou|ni)$/.test(deacc(T[_dj-1].toLowerCase()))))return null;   /* ⭐ 11/09/2026 : « le MAÇONS ont » — le verbe qui suit est un 3e pluriel : deux témoins contre le déterminant → abstention (miroir Python, cohérent avec rOn). */
     if(nx&&nx.charAt(0)===nx.charAt(0).toLowerCase()&&/^[A-Za-zÀ-ÿ]+$/.test(nx)){var pp=NOUN_POST[deacc(nx.toLowerCase())];   // nom composé : nom + NOM confiant NON-verbe → abstention
       if(pp&&pp[0]>=PL_TAU_M&&pp[1]<PL_EPS_M&&!ADJP[deacc(nx.toLowerCase())])return null;}
     if(_nounGate(n)){var sg=desingularizeNoun(n);if(sg&&deacc(sg.toLowerCase())!==dn)return _pre+sg;}       // VOIE FRÉQUENTIELLE : pluriel NOM-dominant → « une voitures »→voiture
@@ -26379,7 +26383,8 @@ var pn=svSubject(T,i);if(!pn)return null;var per=pn[0],nb=pn[1];
     var _pg=PRENOMS[T[a-1]];
     if(_pg&&a-1>=lo&&/^[A-ZÀ-Þ]/.test(T[a-1])){var _co=false;
       for(j=lo;j<a-1;j++){var _dj=deacc(T[j].toLowerCase());if(_dj==='et'||_dj==='ou'||_dj==='ni'||_dj==='and'){_co=true;break;}}
-      if(!_co&&!(a-1===lo&&_pg[1]))return{idx:a-1,det:a-1,dtxt:'',htxt:T[a-1],elid:false,g:_pg[0],n:'s'};}
+      var _pv=(a-2>=lo)?deacc(T[a-2].toLowerCase()):'',_nu=(a-2>=lo)&&(PREP[_pv]||NUM_DET[_pv]||(a-2>lo&&/^[A-ZÀ-Þ]/.test(T[a-2])));   /* ⭐ 11/09/2026 : pas un prénom NU derrière une préposition (« de MARS »), un déterminant (« Les DENIS ») ou un autre nom propre (« Di ROSA ») — 3 rouges ont→a sur texte correct. Miroir Python. */
+      if(!_co&&!_nu&&!(a-1===lo&&_pg[1]))return{idx:a-1,det:a-1,dtxt:'',htxt:T[a-1],elid:false,g:_pg[0],n:'s'};}
     var detIdx=-1,_sp=false,_elid=false;for(j=a-1;j>=lo;j--){var dj=deacc(T[j].toLowerCase()),tgj=(tg&&j<tg.length)?tg[j]:null;if(dj==='et'||dj==='ou'||dj==='ni')return null;if(_NP_BREAK[dj]||dj.indexOf("qu'")===0)break;   /* ⭐ TEST DE PRÉFIXE = BUG CORRIGÉ : `toks` ne sépare pas l'élision, « qu'offrent » est UN token, donc _NP_BREAK (que/qu) ne matchait JAMAIS et la coupure de relative était INERTE sur toute forme élidée. Le parseur remontait dans la proposition amont et rendait un sujet FAUX (« les possibilités qu'offrent les domaines » → il répondait « possibilités ») ; toute règle d'accord qui s'y appuie héritait de l'erreur = FP SILENCIEUX. Mesuré par dictee/ponct_morpho_probe.py. Seul « que » s'élide en « qu' » → préfixe exact. */
       if(_ELID_DET.test(T[j].toLowerCase())){   // DÉCOLLER L'ÉLISION — ce test passe AVANT la frontière VERBALE : sur un token COLLÉ le tagger est contaminé (il étiquette « l'entreprise » VERB dans « l'entreprise ne présentais pas »). Le GENRE du lexique, sans contexte, décide plus bas. : « l'équipe » est UN SEUL token, donc ni le tagger ni les listes de déterminants n'y voient de déterminant — le parseur s'abstenait, et avec lui toutes les règles d'accord. Or « l' » est TOUJOURS singulier (« les » ne s'élide jamais) : l'information EST là, simplement collée.
         if(detIdx<0||_sp){detIdx=j;_sp=false;_elid=true;}

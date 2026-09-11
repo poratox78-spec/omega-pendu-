@@ -214,6 +214,16 @@ const CAS = [
   { txt: 'les Sumériens on occupés la région.', corrigeAttendu: ['on', 'ont'], pourquoi: 'CONTRE-GARDE : « occupés » n’est pas un présent (« occupes » ≠ « occupés », accent-exact) — perdu puis rendu' },
   { txt: 'ils y font leurs premiers moie au service.', orangeInterdit: 'leurs', pourquoi: 'l’adjectif « premiers » porte le pluriel : « leurs » est juste, même si le nom est un non-mot' },
   { txt: 'ils peuvent parfaire leur français.', rien: true, pourquoi: '« français » finit par -s mais est invariable (« françai » n’existe pas) : « leur » est juste' },
+  /* ⭐ RESTES DU TRI FRGEC, lot 1 (11/09/2026) : le parseur de sujet lisait « Mars », « Denis », « Rosa » comme des PRÉNOMS NUS (ils sont
+     dans la table) et « ont » devenait « a » ; « le maçons ont » (déterminant singulier + nom pluriel) ; « La vérité éclate et Georges est »
+     (verbe manqué par le tagger dans la zone sujet). `interdit` = la forme fausse ne doit pas apparaître dans le texte corrigé. */
+  { txt: 'Les élections de Mars ont reconduit la majorité.', interdit: ['mars a reconduit'], pourquoi: '« de Mars » : un prénom derrière une préposition n’est pas un sujet nu' },
+  { txt: 'Les Denis ont personnifié des personnages.', interdit: ['denis a '], pourquoi: '« Les Denis » : nom de famille derrière un déterminant, pluriel' },
+  { txt: 'les frères Di Rosa ont créé le musée.', interdit: ['rosa a '], pourquoi: '« Di Rosa » : nom composé, pas un prénom nu' },
+  { txt: 'le maçons ont du mal à élever les murs.', interdit: ['maçons a ', 'maçon ont', 'maçon a '], pourquoi: 'déterminant singulier + nom pluriel + verbe pluriel : c’est « le » qui est faux — ni le nom ni le verbe ne bougent (cohérence des deux règles)' },
+  { txt: 'la vérité éclate et Georges est partagé.', interdit: ['georges sont'], pourquoi: '« éclate » est un verbe manqué par le tagger : pas une coordination de sujets' },
+  { txt: 'Marie est venu hier.', corrigeAttendu: ['venu', 'venue'], pourquoi: 'CONTRE-GARDE : le prénom NU reste un sujet' },
+  { txt: 'la vérité et la justice est importante.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : la coordination de deux GN reste accordée' },
   /* ⭐ LA VOYELLE MANGÉE (09/09/2026, idée de Rem). La garde anti-sigle du speller
      (« pas de voyelle → sigle/abréviation (www, qcm) — on n'invente pas ») écartait AUSSI le dys qui a
      mangé ses voyelles. Mesuré au moteur : 111 jetons sans voyelle lui échappaient, 84 FAUTES pour
