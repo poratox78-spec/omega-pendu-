@@ -1110,6 +1110,10 @@ def rule_et_est(T, i):
         if _tg[i-1] not in ('NOUN', 'PROPN'): return None       # « un homme grand et fort » : ADJ avant → coordination
         if _tg[i-1] == 'PROPN' and T[i-1][:1].isupper(): return None
         if i < 2 or deacc(T[i-2].lower()) not in NUM_DET: return None   # le NOM doit porter son déterminant
+        # ⭐ G6 (11/09/2026) — le déterminant est PLURIEL : « est » (3e du singulier) y est structurellement impossible,
+        #    il faudrait « sont », que cette règle ne sait pas produire. « des ouvriers et marins » (frgec, texte correct)
+        #    était réécrit en ROUGE. Silence.
+        if NUM_DET.get(deacc(T[i-2].lower())) == 'pl': return None
         # un ADVERBE d'intensité peut s'intercaler (« et TRÈS gentil ») ; liste FERMÉE, parce que le
         # tagger étiquette « tres » (désaccentué) NOUN et laisserait passer n'importe quel nom.
         _j = i + 1
@@ -1150,6 +1154,14 @@ def rule_et_est(T, i):
         return None                                                        # « il et elle », « lui et moi » : un pronom sujet suit → sujet COORDONNÉ, jamais « est » (« il est elle » est agrammatical) → « et » reste la conjonction
     if i+1 < len(T) and T[i+1][:1].isupper(): return None                  # « et Bob », « et Chris Udoh » → nom propre → conjonction, jamais « est »
     if i+1 < len(T) and (is_participle(T, i+1) or T[i+1].lower() not in NUM_DET):
+        # ⭐ G7 (11/09/2026) — SUJET INVERSÉ : « prirent la fuite dit on et s'entre-tuèrent » (frgec, texte correct) — le
+        #    pronom suit IMMÉDIATEMENT un verbe conjugué de la même proposition (« dit on », « pense-t-il ») : il en est le
+        #    sujet inversé, pas celui d'un « est » à venir. ⚠️ La 1re version reprenait la garde « la proposition porte déjà
+        #    un verbe » de la branche nominale : elle tuait le rappel de la branche PRONOM sur du texte dys sans ponctuation
+        #    (sonde de précision : et/est juste 6 → 1). On ne garde que l'ADJACENCE verbe-pronom, dans la même proposition.
+        _tgp = pos_tags(T)
+        if (_tgp and i >= 2 and _tgp[i-2] in ('VERB', 'AUX')
+                and not (_SEG is not None and i - 1 < len(_SEG['bb']) and _SEG['bb'][i-1])): return None
         return 'est'                                                       # pronom sujet + attribut → être 3sg
     return None
 
