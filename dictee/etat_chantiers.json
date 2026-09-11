@@ -247,6 +247,16 @@
    "titre": "Ligature œ/oe : le juge la tolère depuis #710 — chantier resté ouvert par oubli, fermé",
    "ref": "JOURNAL 2026-09-08 · PR #710 (a7df439)",
    "verdict": "Fermé le 11/09/2026 (vérifié dans le dépôt avant de présenter l'item comme ouvert) : dys_precision_probe.norm() replie œ → oe et æ → ae depuis la PR #710 (a7df439, 08/09/2026), avec le ré-ancrage du référentiel dans son propre incrément. Rien à faire."
+  },
+  {
+   "titre": "Le 💡 contextuel s'ouvre à « personne du verbe » : le pronom gouverneur est nommé (« je fini » → finis), sauf correction d'accent seul",
+   "ref": "JOURNAL 2026-09-16 · ctxHint (extension) · _accHint (app) · textes_probe.js",
+   "verdict": "Fermé le 12/09/2026. La bulle ne s'ouvrait qu'aux familles dont le nom contient « accord » ou « genre » ; « personne du verbe » en est exclue alors que le gouverneur (le pronom sujet) est trouvé par le même gouverneur de nombre — « tu a raison » (rouge « accord sujet-verbe ») avait déjà son 💡 « C'est « tu » (singulier) qui commande ». La porte s'ouvre dans les deux moteurs avec la garde annoncée par le chantier : pas de 💡 quand la suggestion ne diffère du mot que par les accents (« nous mangeames » → mangeâmes : la personne est juste, le gouverneur serait hors sujet). Gardé par la sonde des textes d'explication (« Je fini mon travail » → 💡 avec « je » ; « Nous mangeames » → pas de gouverneur) et la parité des explications app ≡ ext."
+  },
+  {
+   "titre": "Participe après auxiliaire — VÉRIFIÉ AU PRODUIT le 12/09 : « j'ai commence » → commencé, « je me suis installe » → installé, « s'est reveille » → réveillée ; rien à construire",
+   "ref": "JOURNAL 2026-09-14 · census_eppl.txt · vérifié dans dys-core chargé complet (12/09/2026)",
+   "verdict": "Fermé le 12/09/2026 (vérifié avant de présenter l'item comme ouvert). Le recensement du 14/09 (3 pronominaux du gold, l'auxiliaire élidé « j'ai ») est couvert par le moteur du jour, mesuré dans dys-core chargé complet : « j'ai commence mon travail » → commencé (rouge), « je me suis installe ici » → installé (orange participe après être), « je me suis douche » → douché (orange), « elle s'est reveille tôt » → réveillée (rouge, via le speller puis l'accord), « ils se sont reveille tard » → réveillé (drapeau). Le piège UD « se fut mise » reste tu (garde _is_ppl). Aucune règle à écrire."
   }
  ],
  "ouverts": [
@@ -261,11 +271,6 @@
    "ref": "JOURNAL 2026-09-08 (encadré en tête d'entrée)"
   },
   {
-   "titre": "Le 💡 contextuel est VIDE pour la famille « personne du verbe » (seul le 🛠️ porte le message)",
-   "etat": "Constaté le 16/09 en lisant les explications dans le moteur réel. `_accHint` ne s'ouvre qu'aux familles dont le nom contient « accord » ou « genre » ; « personne du verbe » n'en est pas, donc la bulle inline reste vide alors que le gouverneur (le pronom sujet) est parfaitement identifiable. À mesurer avant d'ouvrir la porte : sur « nous mangeames », le gouverneur serait juste mais hors sujet (c'est l'accent qui manque, pas la personne).",
-   "ref": "JOURNAL 2026-09-16"
-  },
-  {
    "titre": "COUVERTURE de la conjugaison : ce que la sonde d'énumération montre encore (passé simple, impératif, subjonctif imparfait)",
    "etat": "Sonde `couverture_conj_probe` (n'ouvre aucun corpus : 13 sujets × 6 temps × 12 verbes) posée le 14/09/2026 dans dev.sh, ancrée par sujet. Reste : ① passé simple — CONJ_C n'a que 131 lemmes / 2 904 (filtre #127 « forme pure » ET fréquence ≥ 0,5), « il mangea » muet ; ② impératif — 4 433 lemmes source, 0 en table, `rule_imperatif` ne couvre que le motif à trait d'union (« Manges ta soupe », « Prend le livre », « Fait attention » muets) ; ③ subjonctif imparfait 375 lemmes, 0 ; ④ « tu irai » → « vas » : `rule_personne_verbe` passe avant la générale et ne garde pas le temps écrit.",
    "ref": "JOURNAL 2026-09-14 (nuit, fin) · couverture_conj_ref.json"
@@ -274,11 +279,6 @@
    "titre": "COUCHE « flexion par le contexte » (consigne Rem 14/09) : les 329 muets « bon mot, mauvaise forme » reçoivent au moins une proposition ORANGE (gouverneur → forme des tables)",
    "etat": "FP=0 vaut pour le ROUGE ; l'orange ne cache plus une faute récupérable par le contexte. Recensement par gouverneur (census_flexion) : après nom 62, aux → participe 34, gouverneur fauté 83, prép/modal → infinitif 22, pronom sujet 25, dét pluriel 13, féminin 3. Brique 1 FAITE le 14/09 (infinitif après pronom sujet → imparfait, orange). Brique 2 FAITE le 14/09 (participe après être SANS liste close : rouge par le POS accent-exact du speller + sujet 3e pers., orange pronominal/je-tu-nous-vous/nominal ; homographe adjectif « elle est sèche » = interrupteur _HOMO_ORANGE mesuré, éteint, décision Rem). **Brique « aux → participe » FAITE le 08/09/2026** : le fait structurel est devenu une règle, `rule_aux_imparfait` (miroir JS `rAuxImparfait`). [être / avoir été] + une forme dont TOUTES les lectures sont un imparfait ou un conditionnel → participe, accordé par le sujet-pronom via la même mécanique que `rule_e_ppl`. Périmètre 1er groupe : c'est là qu'est TOUTE la population, parce que c'est là que l'imparfait et le participe sonnent pareil (/situe/ = situait = situé). Mesuré : **0 tir sur les 14 450 phrases d'UD**, 15 sur le corpus dys dont **7 rendues IDENTIQUES au gold** (créé, situé ×2, inauguré, levé, représenté ×2) ; 4 sortent avec le bon lemme mais l'accord non fini (confié/confiés, publié/publiée, convoqué/convoquée, accepté/acceptée) et 4 ne sont pas jugeables. ⚠️ DEUX DÉFAUTS TROUVÉS ET RÉPARÉS EN ROUTE : ① le lemme rendu par `_reads` est DÉSACCENTUÉ et `CONJ_C` n'a **aucune** clé accentuée (0 sur 5 948) — construire le participe depuis le lemme donnait « creé » et « representé ». L'accent vit dans les FORMES générées : on prend le présent 3s et on le passe à `_ppl_form`, écrit exactement pour ça (« lève » → levé, pas « lèvé »). ② Table incomplète pour certains verbes (`reléguer`, `édifier` n'ont aucun temps en table) → abstention, deux des quinze cas restent muets : c'est le chantier COUVERTURE, pas celui-ci. ⭐ L'ACCORD AVEC UN SUJET NOMINAL EST UN TROU SÉPARÉ, mesuré dans Chrome et ANTÉRIEUR à cette règle : même avec le participe DÉJÀ juste, « Léa est convoqué », « a été publié », « fut accepté » restent muets ; seul « les dessins sont confié » reçoit une orange. La règle ne crée donc pas ce trou, elle l'expose. Suivantes : ③ préposition + -é/-e → infinitif ; ④ accord après nom (tagueur) ; ⑤ personne/nombre en gardant le temps écrit (« qui vivais » → vivaient). ⭐ FAIT STRUCTUREL mesuré le 07/09/2026 pour la brique « aux → participe » (34 recensés) : le cadre [être / avoir été] + une forme qui n'est QU'un imparfait ou un conditionnel apparaît **0 fois sur 4 631 phrases correctes** (2 573 cadres balayés dans fp_scale + sentences + le gold dys) et **15 fois dans le texte dys écrit** (« il est situait », « Léa est convoquais », « la série a été publiais », « le club est reléguait », « une femme cultivait »). C'est un candidat FP=0 STRUCTUREL, du même type que « j'est » — sonde data_local/imp_pp.js.",
    "ref": "JOURNAL 2026-09-14 (suite) · mémoire orange-pour-les-fautes-recuperables"
-  },
-  {
-   "titre": "Participe après auxiliaire (rule_e_ppl) : « j'ai commence », « je me suis installe » — le speller se tait (mot valide), la règle ne voit ni l'auxiliaire élidé ni le pronominal",
-   "etat": "Recensé le 14/09/2026 : 3 pronominaux dans le gold (installe, réveille, douche → participe), 1 piège UD (« se fut mise » — déjà un participe : garde _is_ppl). L'auxiliaire élidé « j'ai » ne compte pas comme auxiliaire (deacc garde l'apostrophe) — à vérifier avec VERB_LEX (jeu curé). Petit gain (3-5), ancre audible. Séparé du speller.",
-   "ref": "JOURNAL 2026-09-14 · census_eppl.txt"
   },
   {
    "titre": "AUDIT correcteur du 11/09 (vrai Chrome) : textes d'explication faux/absents, une fausse orange, silences classés",

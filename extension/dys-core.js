@@ -4010,7 +4010,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(/infinitif après pronom/.test(n))return 'Après « il », « elle », « qui »…, le verbe se CONJUGUE, jamais à l\'infinitif : il annonçait (imparfait) ou il annonce (présent) — choisis le temps du récit.';   // brique 1 flexion (14/09/2026) — texte statique côté app (_EXPL), ici l'astuce
     if(/participe après être/.test(n))return 'Après « être », c\'est un PARTICIPE en -é qui s\'accorde avec le sujet (je me suis installé — installée si tu es une fille) — sauf si c\'est un ADJECTIF (« elle est sèche ») : à toi de voir.';   // brique 2 flexion (14/09/2026)
     if(/tout/.test(n))return '« tout » s\'accorde avec le nom qui SUIT (tous les jours, toutes les nuits).';   // s'accorde avec ce qui suit, pas avec un mot d'avant
-    if((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)){
+    if((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)||(/^personne du verbe/.test(n)&&deacc(String(f.sugg||'').toLowerCase())!==deacc(String(f.word||'').toLowerCase()))){   /* ⭐ 12/09/2026 : « personne du verbe » (« je fini » → finis) ouvre le 💡 au gouverneur (le pronom) — sauf correction d'ACCENT seul (« nous mangeames » → mangeâmes : la personne est juste, le gouverneur serait hors sujet). Miroir app _accHint. */
       var g=null,lab='';
       if(/genre/.test(n)){var gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
       if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut que remontait governorNumber

@@ -28,11 +28,13 @@ D.setGaccLex(gz('gender-acc.json.gz'));
 // Chaque cas : la phrase, puis par mot corrigé ce que le 💡 doit contenir (oui) / ne plus contenir (non),
 // et pour la ligne « remèdes » (toutes familles confondues) les mêmes attentes.
 const CAS = [
+  { t: 'Je fini mon travail.',   // 12/09/2026 : « personne du verbe » ouvre enfin le 💡 au pronom gouverneur
+    mots: { fini: { sugg: 'finis', oui: ['« Je »', 'qui commande'] } } },   // le gouverneur cite le mot de la phrase, majuscule comprise
   { t: 'Nous allez au parc.',   // rapport de Rem, 15/09 : le remède citait « il », qui n'est pas dans la phrase
     mots: { allez: { sugg: 'allons' } },
     remed: { oui: ['« nous » ne prend pas la terminaison de « vous »', 'on écrit « nous allons »'], non: ['« il »'] } },
   { t: 'Nous mangeames bien.',   // « là c'est de la conjugaison » (Rem) : le remède était celui des ACCENTS
-    mots: { mangeames: { sugg: 'mangeâmes' } },
+    mots: { mangeames: { sugg: 'mangeâmes', non: ['qui commande'] } },   // 12/09 : accent seul → pas de 💡 gouverneur (la personne est juste)
     remed: { oui: ['la personne est JUSTE', 'nous mangeâmes'], non: ['Photographie le mot', 'hospital'] } },
   { t: "Je ne sais pas ou j'ai mis mes clé, peut etre dans la cuisine.",
     mots: { 'clé': { sugg: 'clés', oui: ['« mes » (pluriel)'] } },
