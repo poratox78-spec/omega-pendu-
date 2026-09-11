@@ -5322,10 +5322,6 @@ RULES = [('élision inversée', rule_deselide),
          ('accord participe épithète', rule_pp_epithet_fem), ('terminaison -er/-é/-ez/-ai', rule_flexion_er), ('infinitif de but', rule_inf_but),
          ('impératif', rule_imperatif),
          ('son/sont', rule_son_sont), ('on/ont', rule_on_ont),
-         ('personne du verbe à vérifier', rule_personne_verbe),
-         ('infinitif après pronom sujet à vérifier', rule_pron_inf),
-         ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
-         ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('leur/leurs', rule_leur_leurs), ('a/à', rule_a_aa), ('et/est', rule_et_est), ('est/et (proposition)', rule_est_et_clause),
          ('peu/peux/peut', rule_peu), ('sujet je', rule_je_subject), ('sais/sait', rule_sais), ('ce/se', rule_ce_se),
          ('des/dès', rule_des_des), ("c'est/s'est", rule_cest_sest), ("c'est/s'est", rule_ces_sest), ('ça/sa', rule_ca_sa), ('ou/où', rule_ou_ou),
@@ -5359,6 +5355,13 @@ RULES = [('élision inversée', rule_deselide),
          ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret),
          ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
+         # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
+         #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
+         #    correction, palier différent. Trouvé par la parité de vigilance (extension/parity_core.js, dictee/parity_corr.js).
+         ('personne du verbe à vérifier', rule_personne_verbe),
+         ('infinitif après pronom sujet à vérifier', rule_pron_inf),
+         ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
+         ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
                                                        # — « c'est de la conjugaison, les fautes sont flagrantes, du rouge au moindre problème ».
                                                        # EN DERNIER : « la première décision gagne » — la générale ne comble que

@@ -346,6 +346,52 @@ for (const [ph, att] of _GACC_T) {
 }
 if (_gacc) { console.log('PARITÉ KO — ' + _gacc + ' cas « genre accentué » (gender_acc.json/_GACC).'); process.exit(1); }
 
+/* ⭐ VIGILANCE (11/09/2026, chantier « parity_corr découpe la source à correctText ») — les règles ORANGE de la couche
+   spellText n'étaient JAMAIS exercées par la parité : correctText ne les appelle pas, et « ext ⊆ Python » n'était démontré
+   que sur CRULES. Quatre ont une jumelle Python (« conjugaison après je » — j' + infinitif — est propre au JS ; « infinitif
+   après pronom sujet » est une règle CRULES déjà en parité) ; on compare leurs flags par libellé apparié, sur la batterie ET sur des
+   phrases ciblées, via le PIPELINE RÉEL (diagnoseAll → spellText). Invariant : aucune orange propre au JS ; couverture
+   affichée ; EXIGENCE : chaque règle appariée tire au moins une fois des DEUX côtés (une règle qui ne tourne pas dans le
+   harnais vaut zéro — piège du 2026-08-11). « accord participe à vérifier » reste hors périmètre : le JS y fond deux règles
+   (sestPpVig, participeEtreVig) et le Python n'a pas la couche vigilance speller (#121). */
+const VIG_MAP = { 'accord du verbe au sujet nominal à vérifier': 'accord du verbe au sujet nominal à vérifier',
+  'personne du verbe à vérifier': 'personne du verbe à vérifier',
+  'on/ont après un sujet pluriel à vérifier': 'on/ont après un sujet pluriel à vérifier',
+  'infinitif après semi-auxiliaire à vérifier': 'infinitif après semi-auxiliaire à vérifier' };
+const VIG_PY = new Set(Object.values(VIG_MAP));
+const VIG_PHRASES = PHRASES.concat([
+  'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
+  'je fini mon travail.', 'tu a raison.',                                                             // personne du verbe
+  'les enfants on mange leur soupe.', 'mes amis on chante.', 'les chats on dort.',                    // on/ont après sujet pluriel (orange) ; « on dort » = rouge on/ont, pas ici
+  'je vais mange.', 'il veut mange.',                                                                 // infinitif après semi-auxiliaire
+  'je manger des fraises.', "J'aimer les fraises.",                                                   // infinitif après pronom sujet (CRULES) ; j'+inf (JS seul)
+  'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
+const pyV = cp.spawnSync('python3', ['-c', `
+import sys, json
+sys.path.insert(0, ${JSON.stringify(path.join(ROOT, 'dictee'))})
+import correcteur_probe as C
+ph = json.loads(sys.stdin.read())
+print(json.dumps([[(i, w, s, n) for (i, w, s, n, t) in C.correct_tiered(p)] for p in ph]))
+`], { input: JSON.stringify(VIG_PHRASES), encoding: 'utf8', env: Object.assign({}, process.env, { PYTHONUTF8: '1' }) });
+if (pyV.status !== 0) { console.error('probe Python (vigilance) échoué :', pyV.stderr); process.exit(2); }
+const pyVig = JSON.parse(pyV.stdout);
+let _vKo = 0, _vGap = 0; const _vHitJs = {}, _vHitPy = {};
+VIG_PHRASES.forEach((p, k) => {
+  const js = (DYSCORE.diagnoseAll(p).flags || []).filter(f => f.tier === 'vigilance' && VIG_MAP[f.name]).map(f => [f.i, f.word, f.sugg, VIG_MAP[f.name]]);
+  const pf = pyVig[k].filter(x => VIG_PY.has(x[3]));
+  const pset = new Set(pf.map(key)), jset = new Set(js.map(key));
+  js.forEach(x => { _vHitJs[x[3]] = (_vHitJs[x[3]] || 0) + 1; });
+  pf.forEach(x => { _vHitPy[x[3]] = (_vHitPy[x[3]] || 0) + 1; });
+  const extra = js.filter(x => !pset.has(key(x)));
+  if (extra.length) { _vKo++; console.log('✗ VIGILANCE : EXT marque une orange que PY ne marque pas :', JSON.stringify(p), JSON.stringify(extra)); }
+  const miss = pf.filter(x => !jset.has(key(x)));
+  if (miss.length) { _vGap++; console.log('  (couverture vigilance) PY > EXT :', JSON.stringify(p), JSON.stringify(miss)); }
+});
+const _vMuet = Array.from(VIG_PY).filter(n => !_vHitJs[n] || !_vHitPy[n]);
+if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' ext=' + JSON.stringify(_vHitJs) + ' py=' + JSON.stringify(_vHitPy)); process.exit(1); }
+if (_vKo) { console.log('PARITÉ KO — ' + _vKo + ' phrase(s) où l\'extension marque une ORANGE hors Python.'); process.exit(1); }
+console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orange appariées, ext ⊆ Python sur ' + VIG_PHRASES.length + ' phrases (écarts de couverture : ' + _vGap + ')');
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);
