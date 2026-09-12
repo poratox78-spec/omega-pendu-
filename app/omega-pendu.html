@@ -26734,10 +26734,13 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       lec=[[_hit[0][0],'ind:pas',_hit[0][1].charAt(0),_hit[0][1].charAt(1)]];_psSeul=true;}
     var tg=posTags(T);
     if(!tg)return null;
-    if(!_psSeul&&!_verbOrHomograph(tg,T,i))return null;   // le tagger tague NOUN tout mot INCONNU : sa garde ne peut rien dire de « mangeames » — l'index EST la preuve verbale
-    var _lecC=[],_q;   // ACCENT-EXACT : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
-    for(_q=0;_q<lec.length;_q++){var _f0=((CONJ_C[lec[_q][0]]||{})[lec[_q][1]]||{})[lec[_q][2]+lec[_q][3]];if(_f0&&_f0.toLowerCase()===lw)_lecC.push(lec[_q]);}
-    if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX')))_lecC=[];   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)
+    if(i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])return null;   /* ⭐ 12/09/2026 : LA GARDE QUI MANQUAIT — après un auxiliaire c'est un PARTICIPE (« nous sommes ravis ») ; le tagger la tenait par accident (miroir Python) */
+    if(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]&&PPMID[deacc(T[i-1].toLowerCase())])return null;   /* …à distance seulement à travers un mot TRAVERSABLE : entre l'auxiliaire et le participe il n'y a jamais un PRONOM SUJET (« est il vien sasoir » → vient, réparé perdu par la 1re version) */
+    var _casex=[],_cx;for(_cx=0;_cx<lec.length;_cx++){var _fx=((CONJ_C[lec[_cx][0]]||{})[lec[_cx][1]]||{})[lec[_cx][2]+lec[_cx][3]];if(_fx&&_fx.toLowerCase()===lw)_casex.push(lec[_cx]);}
+    var _sub0=_sujetFlexion(T,i,tg),_ouvre=!!_casex.length&&!!_sub0&&_sub0[2]==='pron';   /* ⭐ 12/09/2026 : le tagger est CONTAMINÉ par la faute (« nous finis » → ADJ) ; sujet-pronom net + case EXACTE du paradigme → on lève les gardes nom/adjectif (miroir Python) */
+    if(!_psSeul&&!_ouvre&&!_verbOrHomograph(tg,T,i))return null;   // le tagger tague NOUN tout mot INCONNU : sa garde ne peut rien dire de « mangeames » — l'index EST la preuve verbale
+    var _lecC=_casex.slice();   // ACCENT-EXACT (calculé plus haut) : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
+    if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX'))&&!_ouvre)_lecC=[];   // …ou un sujet-pronom net devant une case exacte (12/09/2026)   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)
     if(!_lecC.length){   // la forme n'est PAS une case exacte d'un paradigme → les gardes nom/adjectif s'appliquent (miroir Python)
       if(_looksPpl(w))return null;                                          // participe épithète : « Les randonneurs épuisés »
       if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
@@ -26755,6 +26758,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       if(lec[k][2]!==per||(lec[k][3]!==nb&&lec[k][3]!=='x'))continue;
       var _t=((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[lec[k][2]+lec[k][3]];
       if(_hors&&_t&&_t.toLowerCase()!==lw&&deacc(_t.toLowerCase())===dl)continue;   // accent SEUL sur une forme hors lexique : « mangeames » porte la bonne personne et reste faux
+      var _lfr=_lemFreq(lec[k][0]);   /* ⭐ 12/09/2026 : « tu sommes » passait pour ACCORDÉ par *sommer* (0,23/M) alors qu'être (433/M) demande « es » — un lemme RARE ne prouve pas l'accord (miroir Python) */
+      if(typeof _lfr==='number'&&_lfr<1){var _autre=false;for(var _k2=0;_k2<lec.length;_k2++){var _q2=_lemFreq(lec[_k2][0]);if((_q2===null||_q2>=1)&&(lec[_k2][2]!==per||(lec[_k2][3]!==nb&&lec[_k2][3]!=='x')))_autre=true;}if(_autre)continue;}
       return null;}
     var que=false;
     for(k=Math.max(0,i-5);k<i;k++)if(/^(que|qu)$/.test(deacc(T[k].toLowerCase()).replace(/['’]$/,'')))que=true;

@@ -3766,18 +3766,32 @@ def rule_sujet_flexion(T, i):
     # ⚠️ SAUF pour une forme venue de l'index du passé simple : le tagger tague NOUN tout mot INCONNU
     # (« mangeames »), sa garde ne peut donc rien dire — l'appartenance à l'index EST la preuve verbale.
     if not tg: return None
-    if not _ps_seul and not _verb_or_homograph(tg, T, i): return None
+    # ⭐ 12/09/2026 — LA GARDE QUI MANQUAIT : après un auxiliaire, le mot est un PARTICIPE, jamais une forme finie à accorder
+    #    (« nous sommes ravis », « vous êtes finis »). Elle n'existait pas : c'est le TAGGER (ADJ) qui protégeait ces phrases —
+    #    une protection accidentelle, que l'ouverture ci-dessous aurait emportée (« nous sommes ravissons »). Miroir JS.
+    #    ⚠️ À DISTANCE, seulement à travers un mot TRAVERSABLE : entre l'auxiliaire et le participe il n'y a jamais un PRONOM
+    #    SUJET. La 1re version bloquait i-2 sans condition et le pipeline a perdu « est il vien sasoir » → vient (un réparé).
+    if i >= 1 and deacc(T[i-1].lower()) in FULL_AUX: return None
+    if i >= 2 and deacc(T[i-2].lower()) in FULL_AUX and deacc(T[i-1].lower()) in _PP_MID: return None
+    # ⭐ 12/09/2026 — LE TAGGER EST CONTAMINÉ PAR LA FAUTE (même piège que rule_ce_se) : « nous finis », « nous auras »,
+    #    « nous sois » sont tagués ADJ ou PROPN parce que le mot est faux à cette place — et les gardes nom/adjectif se
+    #    déclenchaient sur cette lecture. Quand le SUJET est un pronom net ET que la forme est une case EXACTE d'un paradigme,
+    #    le tagger n'a rien à arbitrer : on lève ces gardes (la garde auxiliaire ci-dessus tient le faux positif).
+    _casex = [r for r in lec if ((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower() == lw]
+    _sub0 = _sujet_flexion(T, i, tg)
+    _ouvre = bool(_casex) and bool(_sub0) and _sub0[2] == 'pron'
+    if not _ps_seul and not _ouvre and not _verb_or_homograph(tg, T, i): return None
     # ⛔ PARTICIPE : « Les randonneurs ÉPUISÉS arrivent », « Ces gâteaux DORÉS » — le tagger les dit VERB et
     # `_reads` leur trouve une lecture finie homographe (épuiser 3pl). Un participe n'est pas une forme finie :
     # il est traité par les règles d'accord du participe. Mesuré : 7 FP de batterie, tous là.
     # ⭐ ORDRE : on demande D'ABORD à la table de génération si la forme écrite est une CASE EXACTE d'un
     # paradigme. Si oui, c'est une forme verbale prouvée et les gardes « nom/adjectif homographe » ne
     # s'appliquent pas — « êtes » était tu parce que « ete » est un NOM connu (« l'été »). Cas de Rem, 14/09.
-    _lecC = [r for r in lec if ((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower() == lw]   # ACCENT-EXACT : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
+    _lecC = _casex   # ACCENT-EXACT : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
     # …mais une case de paradigme peut AUSSI être un adjectif (« complexes » = complexer 2sg ET adjectif) :
     # on ne lève les gardes nom/adjectif que si le TAGGER lit un verbe ici. Mesuré : sans ce ET, 1 FP de
     # batterie (« les problèmes complexes » → complexent).
-    if not (tg and i < len(tg) and tg[i] in ('VERB', 'AUX')): _lecC = []
+    if not (tg and i < len(tg) and tg[i] in ('VERB', 'AUX')) and not _ouvre: _lecC = []   # ⭐ …ou un sujet-pronom net devant une case exacte (12/09/2026)
     if not _lecC:
         if _looks_ppl(w) or dl.endswith(('e', 'es')) and _looks_ppl(w[:-1] if dl.endswith('e') else w[:-2]): return None
     # `_verb_or_homograph` teste la forme EXACTE : « complexe » est dans _EPICENE_ADJ, « complexes » non
@@ -3818,6 +3832,11 @@ def rule_sujet_flexion(T, i):
         if r[2] != per or r[3] not in (nb, 'x'): continue
         _t = (CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3])
         if _hors and _t and _t.lower() != lw and deacc(_t.lower()) == dl: continue   # accent SEUL sur une forme hors lexique
+        # ⭐ 12/09/2026 : « tu sommes » passait pour ACCORDÉ par *sommer* (2e du singulier, 0,23/M) alors qu'être (433/M) demande
+        #    « es ». Un lemme RARE ne prouve pas l'accord quand un lemme COURANT, lui, ne l'est pas. Même balance que « vous sommes ».
+        _lfr = _lemfreq(r[0])
+        if _lfr is not None and _lfr < 1.0 and any((_lemfreq(r2[0]) is None or _lemfreq(r2[0]) >= 1.0)
+                                                   and (r2[2] != per or r2[3] not in (nb, 'x')) for r2 in lec): continue
         return None                                                       # déjà accordé à cette personne
     # LE SUBJONCTIF EXIGE SON DÉCLENCHEUR : sans « que » à gauche, « mange » est un présent, pas un subjonctif.
     # Sans ce filtre « nous mange » a deux lectures (ind:pre, sub:pre) donnant deux cibles (mangeons, mangions)
