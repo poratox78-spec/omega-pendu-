@@ -212,6 +212,7 @@ def main():
                 print('  ! speller :', e)
             # ⭐ BOUT DE CHAÎNE (11/09/2026) — miroir du produit (diagnoseAll) : une orange d'orthographe propose l'état final si un rouge
             #    de grammaire tombe dans l'empan de sa suggestion appliquée seule (« àfinit » → « a finit » → « a fini »).
+            _avant = list(flags)
             _ch = []
             for (i, w, sugg, fam, tier, al) in flags:
                 if fam == 'orthographe' and tier == 'vigilance' and isinstance(sugg, str):
@@ -220,6 +221,19 @@ def main():
                         if norm(_t) == norm(w): _j = _k; break
                     _fin = CP.bout_de_chaine(raw_n, _j, sugg) if _j is not None else None
                     _ch.append((i, w, _fin if _fin else sugg, fam, tier, al))
+                else: _ch.append((i, w, sugg, fam, tier, al))
+            flags = _ch
+            # ⭐ BOUT DE CHAÎNE orthographe → orange (12/09/2026) — miroir du produit : une correction d'orthographe (flag ou vigilance) dont la
+            #    suggestion, appliquée seule, fait parler une règle « à vérifier » au même index devient ORANGE avec l'état final (« réusie » → réussi).
+            #    Jamais sur une marque déjà chaînée vers un rouge (comme f.chaine côté produit).
+            _ch = []
+            for (_av, (i, w, sugg, fam, tier, al)) in zip(_avant, flags):
+                if fam == 'orthographe' and tier in ('flag', 'vigilance') and isinstance(sugg, str) and sugg == _av[2]:
+                    _j = None
+                    for _k, _t in enumerate(rt_g):
+                        if norm(_t) == norm(w): _j = _k; break
+                    _fo = CP.bout_de_chaine_orange(raw_n, _j, sugg) if _j is not None else None
+                    _ch.append((i, w, _fo[0], fam, 'vigilance', al) if _fo else (i, w, sugg, fam, tier, al))
                 else: _ch.append((i, w, sugg, fam, tier, al))
             flags = _ch
         spelled = set(i for (i, w, sugg, fam, tier, al) in flags if fam == 'orthographe')

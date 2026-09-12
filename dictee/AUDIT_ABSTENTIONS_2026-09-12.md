@@ -80,12 +80,13 @@ Vérifié dans le dépôt et dans le vrai Chrome (`navigateur_flags_dump.js`) :
 | « Elles est formée » (`interdit`) | **Mal classé par cet inventaire** : le produit rendait déjà *Elles sont formées* (verbe et participe en rouge) depuis la 0.6.16. Recensé dans les corpus appariés : 2 occurrences sur 34 416 paires. Rien à coder ; le texte de la garde Chrome, qui disait « le verbe ne bouge pas », est corrigé. | textes · 0.6.27 |
 | « a réussie à se placer » (appliqué faux, accord surnuméraire) | *réussi* en orange — règle neuve pour une case vide : participe marqué après avoir, aucun antécédent, un témoin après | 0.6.27 |
 
-**Pas encore atteint : le cas dys lui-même**, « la France a **réusie** a se placer ». Le speller souligne « réusie » → *réussie*
-(palier `flag`) et les règles orange, qui vivent dans `spellText`, lisent le mot **brut** : elles ne voient jamais un mot mal
-écrit. Le bout de chaîne actuel va d'une orange vers un rouge, pas de l'orthographe vers une orange. C'est la prochaine mesure.
+**Atteint en 0.6.28 : le cas dys lui-même**, « la France a **réusie** a se placer » → *réussi ?*. Les règles orange, qui vivent
+dans `spellText`, lisaient le mot **brut** : le speller prenait « réusie » (→ *réussie*) et l'accord du participe n'était jamais
+consulté. Le bout de chaîne s'étend de l'orthographe vers l'orange : la suggestion d'orthographe est appliquée seule, les règles
+orange sont consultées au même index, et la marque devient orange avec l'état final — mesuré dans Chrome sur 1 798 textes dys : 20 marques changent — 9 fausses deviennent justes (réusie → réussi, marriée → mariée ×2, démaré → démarrer, pérméte → permettent, trouveron → trouveront, apartien → appartiennent, etute → études, régio → régions), 1 juste devient fausse (deuxiem → deuxièmes, après « deux »), 9 restent fausses, 1 sur un mot déjà juste ; 2 500 phrases correctes : 638 marques avant et après, 2 suggestions changées sur des faux positifs du speller déjà présents.
 
 « heur » → heures, prévu dans le même lot, n'est pas une abstention : c'est le choix du speller (mot rare à une lettre d'un mot
 courant, 189 occurrences hétérogènes dans les paires) — rangé avec les 637 muets.
 
-Restent, dans l'ordre : bout de chaîne orthographe → orange · « je noté » (orange, deux lectures) · leur/leurs relu après
+Restent, dans l'ordre : « je noté » (orange, deux lectures) · leur/leurs relu après
 l'orthographe · « vis » (même forme accordée pour les deux lemmes) · collectifs · genre et temps manquants (chantier COUVERTURE).

@@ -5674,6 +5674,31 @@ def bout_de_chaine(text, i, sugg, span=1):
     return None
 
 
+
+def bout_de_chaine_orange(text, i, sugg):
+    """⭐ BOUT DE CHAÎNE orthographe → orange (12/09/2026) — miroir de diagnoseAll (dys-core/app) : une correction d'ORTHOGRAPHE (palier flag ou
+    vigilance) à suggestion `sugg` sur le token i ; on applique la suggestion SEULE sur les tokens bruts, on consulte les règles « à vérifier »
+    au même index, et si l'une propose une autre forme on rend (forme, nom de la règle) — la marque devient orange. Sinon None.
+    Mesuré dans Chrome sur 1 798 textes dys : F→J 6 · J→F 1 · F→F 6 · mot déjà juste 1 ; 1 500 phrases correctes : 0 marque née. UN pas."""
+    global _SEG
+    if not sugg or not re.match(u"^[A-Za-zÀ-ÿœŒ']+$", sugg): return None
+    t = text.replace('’', "'").replace('ʼ', "'")
+    T = toks(t)
+    if i is None or i < 0 or i >= len(T) or sugg.lower() == T[i].lower(): return None
+    Tv = T[:]; Tv[i] = sugg
+    _sauve = _SEG
+    try:
+        _SEG = _seg_info(t); _SEG['pb'] = _pred_bounds(Tv, _SEG)
+        for name, rule in RULES:
+            if not name.endswith(u'à vérifier'): continue
+            dec = rule(Tv, i)
+            if isinstance(dec, dict): dec = dec.get('sugg')
+            if isinstance(dec, str) and dec.lower() != sugg.lower() and re.match(u"^[A-Za-zÀ-ÿœŒ']+$", dec):
+                return (dec, name)
+    finally:
+        _SEG = _sauve
+    return None
+
 # ---------- phrases qui doivent rester MUETTES : l'ABSTENTION est la bonne réponse ----------
 # `CASES` ci-dessous exige qu'une faute injectée soit corrigée ; il n'y avait pas de case pour dire « ici, se
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les

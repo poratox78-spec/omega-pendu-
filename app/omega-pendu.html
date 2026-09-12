@@ -28433,7 +28433,33 @@ function spellTokenCore(tok,atStart,T,idx){
   function osProbe(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),tg=posTags(T)||[],out=[],i,s;for(i=0;i<T.length;i++){s=osVerbVig(T,i,tg);if(s&&s.toLowerCase()!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:s});}return out;}
   // ANGLICISMES — LISTE CLOSE de franglais NON-MOTS (0 occurrence sur 2500 = aucun flood ; les faux-amis HOMOGRAPHES du français (réaliser/supporter/définitivement) sont EXCLUS car ils floodent sur leur sens FR légitime, mesuré). France-descriptif : uniquement les fautifs partout. → ORANGE, priorité sur le speller (sinon il mé-corrige « checker » en « chercher »).
   var _ANGLICISME={checker:'vérifier',booker:'réserver',forwarder:'transférer',canceller:'annuler',uploader:'téléverser',downloader:'télécharger',deadline:'échéance',spoiler:'divulgâcher',brainstorming:'remue-méninges'};
-  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_tg=null;for(var i=0;i<T.length;i++){
+  function vigAt(T,i,st,text){var _tg=st.tg;   /* ⭐ 12/09/2026 — la CHAÎNE ORANGE de spellText, extraite TELLE QUELLE (ordre compris) : spellText la consulte token par token (sortie identique), diagnoseAll la consulte à UN index sur des tokens où l'orthographe est corrigée (bout de chaîne orthographe → orange). st.tg = tags du tagger, calculés une fois par liste de tokens ; text = null hors spellText (le juge B2 de l'app ancre le TEXTE, il ne se consulte pas sur des tokens corrigés). */
+    {var h=homoVig(T,i);if(h){return {i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'};}}
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'};}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv&&!plTaisCarte(T,i)){return {i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'};}}
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){return {i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'};}}
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (le rouge se limite au sujet en tête = FP=0 ; l'orange couvre le reste). DOCTRINE : doute → orange, jamais silence. Le rouge gagne au même token (fusion grammaire-prioritaire).
+      if(sva&&sva.toLowerCase()!==T[i].toLowerCase()&&!svTaisCarte(T,i)){return {i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'};}}}
+    /* ORDRE (03/09/2026, mesure) : une faute de FORME (« vont cherchait » → chercher, « s'est mariaient » → mariée) est plus
+       fondamentale qu'une faute de NOMBRE ; ces règles passaient APRÈS l'orange de nombre, qui les faisait taire. Elles passent d'abord. */
+    {var gv2=gerondifVig(T,i);if(gv2&&gv2.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:gv2,name:'participe présent après « en » à vérifier',tier:'vigilance'};}}
+    {var spv=sestPpVig(T,i);if(spv){return {i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'};}}   // « elle s'est marié » → mariée ? (pronominal = orange)
+    {var siv=semiInfVig(T,i);if(siv){return {i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'};}}   // « je vais mange » → manger ? (orange)
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
+    {if(_tg===null)_tg=st.tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'};}}   // OS-sujet : accord de nombre, sujet arbitré OS+LM (résiduel « de N »)
+    {var cv=cesVig(T,i);if(cv){return {i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'};}}
+    {var sv2=saisVig(T,i);if(sv2){return {i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'};}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
+    {var jiv=jInfVig(T,i);if(jiv){return {i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'};}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
+    {var pv=persVig(T,i);if(pv){return {i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'};}}
+    {var jv=jestVig(T,i);if(jv){return {i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'};}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
+    {var pps=ppAvoirSurnumVig(T,i);if(pps){return {i:i,word:T[i],sugg:pps,name:'accord du participe après avoir à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 — RÈGLE NEUVE, orange : « a signés un contrat » → signé (miroir Python rule_pp_avoir_surnum)
+    {var sfn=sujFlexNom(T,i);if(sfn){return {i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'};}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
+    {var oov=onOntVig(T,i);if(oov){return {i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'};}}   // « Les enfants on mange » → ont ? (orange)
+    if(text!=null){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;return {i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp};}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
+    {var dnv=rDetNumber(T,i);if(dnv){return {i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'};}}   // « le maçons ont » → les ? (orange, 11/09/2026)
+    {var ov=ouVig(T,i);if(ov)return {i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'};}
+    return null;}
+  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_vst={tg:null};for(var i=0;i<T.length;i++){
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir extension.
     var _an=_ANGLICISME[T[i].toLowerCase()];if(_an){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],_an),name:'anglicisme',tier:'vigilance'});continue;}   // anglicisme franglais → ORANGE, court-circuite le speller (priorité)
     if(T[i]==='Mr'||T[i]==='Mrs'){out.push({i:i,word:T[i],sugg:T[i]==='Mr'?'M.':'Mme',name:'abréviation',tier:'vigilance'});continue;}   // « Mr/Mrs » (anglais) → « M./Mme » ; forme title-case exacte (pas l'acronyme MR) → ORANGE
@@ -28441,30 +28467,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
-    if(!pushed){var h=homoVig(T,i);if(h){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'});pushed=true;}}
-    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'});pushed=true;}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
-    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv&&!plTaisCarte(T,i)){out.push({i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'});pushed=true;}}
-    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){out.push({i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}
-    if(!pushed){if(_tg===null)_tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (le rouge se limite au sujet en tête = FP=0 ; l'orange couvre le reste). DOCTRINE : doute → orange, jamais silence. Le rouge gagne au même token (fusion grammaire-prioritaire).
-      if(sva&&sva.toLowerCase()!==T[i].toLowerCase()&&!svTaisCarte(T,i)){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'});pushed=true;}}}
-    /* ORDRE (03/09/2026, mesure) : une faute de FORME (« vont cherchait » → chercher, « s'est mariaient » → mariée) est plus
-       fondamentale qu'une faute de NOMBRE ; ces règles passaient APRÈS l'orange de nombre, qui les faisait taire. Elles passent d'abord. */
-    if(!pushed){var gv2=gerondifVig(T,i);if(gv2&&gv2.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:gv2,name:'participe présent après « en » à vérifier',tier:'vigilance'});pushed=true;}}
-    if(!pushed){var spv=sestPpVig(T,i);if(spv){out.push({i:i,word:T[i],sugg:spv,name:'accord participe à vérifier',tier:'vigilance'});pushed=true;}}   // « elle s'est marié » → mariée ? (pronominal = orange)
-    if(!pushed){var siv=semiInfVig(T,i);if(siv){out.push({i:i,word:T[i],sugg:siv,name:'infinitif après semi-auxiliaire à vérifier',tier:'vigilance'});pushed=true;}}   // « je vais mange » → manger ? (orange)
-    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var iv=imparfaitVig(T,i,_tg);if(iv&&iv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],iv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // -ais/-ait/-aient homophone, gouverneur relâché (résiduel orange)
-    if(!pushed){if(_tg===null)_tg=posTags(T)||[];var osv=osVerbVig(T,i,_tg);if(osv&&osv.toLowerCase()!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],osv),name:'accord verbe à vérifier',tier:'vigilance'});pushed=true;}}   // OS-sujet : accord de nombre, sujet arbitré OS+LM (résiduel « de N »)
-    if(!pushed){var cv=cesVig(T,i);if(cv){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],cv),name:'ces/ses à vérifier',tier:'vigilance'});pushed=true;}}
-    if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
-    if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
-    if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}
-    if(!pushed){var jv=jestVig(T,i);if(jv){out.push({i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'});pushed=true;}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
-    if(!pushed){var pps=ppAvoirSurnumVig(T,i);if(pps){out.push({i:i,word:T[i],sugg:pps,name:'accord du participe après avoir à vérifier',tier:'vigilance'});pushed=true;}}   // ⭐ 12/09/2026 — RÈGLE NEUVE, orange : « a signés un contrat » → signé (miroir Python rule_pp_avoir_surnum)
-    if(!pushed){var sfn=sujFlexNom(T,i);if(sfn){out.push({i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'});pushed=true;}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
-    if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
-    if(!pushed){var b2f=b2SaisInf(i,text);if(b2f){var _b2sp=b2f.span||2;out.push({i:i,word:_b2sp>=2?T[i]+' '+(T[i+1]||''):T[i],sugg:b2f.sugg,name:b2f.nom||"sait/s'est à vérifier (juge)",tier:'vigilance',span:_b2sp});pushed=true;}}   // le juge B2 opt-in a COMPARÉ les deux phrases (sait/s'est+inf PR#517-518 ; auxiliaire manquant) — orange jamais imposée
-    if(!pushed){var dnv=rDetNumber(T,i);if(dnv){out.push({i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'});pushed=true;}}   // « le maçons ont » → les ? (orange, 11/09/2026)
-    if(!pushed){var ov=ouVig(T,i);if(ov)out.push({i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'});}}
+    if(!pushed){var _vg=vigAt(T,i,_vst,text);if(_vg){out.push(_vg);pushed=true;}}}   // ⭐ 12/09/2026 : la chaîne orange vit dans vigAt (consultable à UN index sur des tokens corrigés — bout de chaîne orthographe → orange)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);
       for(var i=0;i<P.length-1;i++){if(done[i]||done[i+1])continue;
@@ -28766,6 +28769,21 @@ function spellTokenCore(tok,atStart,T,idx){
       var _Tv=_Tc.slice();_Tv.splice(f.i,_sp);for(var _q=_st.length-1;_q>=0;_q--)_Tv.splice(f.i,0,_st[_q]);
       _nCh++;var _g=null;try{_SEG=_segInfo(_Tv.join(' '));var _gf=correctTokens(_Tv);for(var _q2=0;_q2<_gf.length;_q2++){var _g2=_gf[_q2];if(_g2.i>=f.i&&_g2.i<f.i+_st.length&&_g2.tier!=='vigilance'&&typeof _g2.sugg==='string'&&(_g2.span==null||_g2.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_g2.sugg)){_g=_g2;break;}}}catch(e){_g=null;}
       if(_g){_st[_g.i-f.i]=_g.sugg;f.sugg=_st.join(' ');f.chaine=_g.name;}});
+    _SEG=_segMain;
+    /* ⭐ BOUT DE CHAÎNE orthographe → orange (12/09/2026) — les règles orange (vigAt) lisent le mot BRUT : sur « la France a réusie a
+       se placer », le speller proposait « réussie » et l'accord du participe n'était jamais consulté. UN PAS : une correction d'orthographe
+       (palier flag ou vigilance, mot seul) dont la suggestion, appliquée SEULE sur les tokens bruts, fait parler une règle orange au même
+       index avec une autre forme → la marque devient ORANGE avec l'état final (hors « tout corriger »). Jamais sur un rouge (auto) : 0 cas
+       mesuré. Mesuré dans Chrome sur 1 798 textes dys : 14 cas — F→J 6 · J→F 1 · F→F 6 · mot déjà juste 1 ; 1 500 phrases correctes :
+       0 marque née, 1 suggestion changée sur un faux positif du speller. SANS PLAFOND (un plafond de 12 perdait « réusie », 60e correction
+       de sa copie) : le tagger n'est relancé que sur ±30 mots autour du mot corrigé (étiquettes du texte brut ailleurs) — re-étiqueter
+       tout le texte à chaque pas coûtait +39 % sur 5 000 mots. Miroir Python bout_de_chaine_orange. */
+    var _segSp=_segInfo(t),_tgR=null;
+    list.forEach(function(f){if(f.name!=='orthographe'||(f.tier!=='flag'&&f.tier!=='vigilance')||f.chaine||typeof f.i!=='number'||(f.span&&f.span>1)||typeof f.sugg!=='string'||!/^[A-Za-zÀ-ÿœŒ']+$/.test(f.sugg)||f.sugg.toLowerCase()===String(f.word).toLowerCase()||f.i>=_T.length)return;
+      var _Tv=_T.slice();_Tv[f.i]=f.sugg;var _o=null;
+      try{if(_tgR===null)_tgR=posTags(_T)||[];var _a=Math.max(0,f.i-30),_b=Math.min(_Tv.length,f.i+31),_tw=posTags(_Tv.slice(_a,_b))||[],_tv=_tgR.slice();for(var _q=_a;_q<_b;_q++)_tv[_q]=_tw[_q-_a];
+          _SEG=_segSp;_o=vigAt(_Tv,f.i,{tg:_tv},null);}catch(e){_o=null;}
+      if(_o&&typeof _o.sugg==='string'&&(_o.span==null||_o.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_o.sugg)&&_o.sugg.toLowerCase()!==f.sugg.toLowerCase()){f.sugg=_o.sugg;f.tier='vigilance';f.chaine=_o.name;}});
     _SEG=_segMain;
     list.forEach(function(f){f.key=_ckey(f.word,f.sugg);f.on=_isOn(f);});
     /* TYPOGRAPHIE — clé ancrée CARACTÈRE (préfixe 'T', pas de collision avec les clés mot) ;
