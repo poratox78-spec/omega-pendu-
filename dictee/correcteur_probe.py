@@ -314,6 +314,18 @@ def is_plural_noun(T, j):
 # Noms fréquents en -é homographes d'un participe (marché/traité/combiné/exposé…) — JAMAIS un infinitif mutilé → abstention (FP UD)
 NOUN_E = set('marche traite combine cote passe arrete carre depute employe invite expose resume communique delegue prive defile abonne'.split())
 
+def _pp_relit(T, i, part):
+    """⭐ 12/09/2026 (lot 2 « bon lemme, mauvaise flexion ») : le participe rendu par -er → -é est NU ; on relit l'ACCORD du participe
+    (rule_pp_etre, rule_pp_avoir_cod — les règles existantes) sur la liste virtuelle où il est posé, UN pas. None si rien à accorder."""
+    if not part: return None
+    Tv = T[:i] + [part] + T[i+1:]
+    for r in (rule_pp_etre, rule_pp_avoir_cod):
+        try: d = r(Tv, i)
+        except Exception: d = None
+        if d and d.lower() != part.lower(): return d
+    return None
+
+
 def rule_e_er(T, i):
     if i >= 2:
         _pse = deacc(T[i-1].lower())
@@ -372,7 +384,8 @@ def rule_e_er(T, i):
         # (FP UD 1,44 % → 2,00 %). Le prix de la garde cardinale est trop élevé — ne pas refaire.
         if i > 0 and deacc(T[i - 1].lower()) == 'a' and rule_a_aa(T, i - 1) == 'à':
             return forms[1]
-        return forms[0]                               # auxiliaire (a/ont/est…) → participe -é
+        if forms[0].lower() == lw: return forms[0]   # participe DÉJÀ écrit : rien ici (l'accord est le métier de rule_pp_etre, avec SON explication)
+        return _pp_relit(T, i, forms[0]) or forms[0]  # auxiliaire (a/ont/est…) → participe -é, ACCORDÉ si le contexte le permet (lot 2)
     if p in PREP:
         if deacc(forms[0].lower()) in D.GENDER_LEX: return None   # prép + NOM homographe de participe (« par arrêté », « du passé/marché ») → abstention (FP)
         # ⭐ …ET LA TABLE ACCENTUÉE (08/09/2026). `GENDER_LEX` est DÉSACCENTUÉE : elle perd tout
@@ -694,7 +707,8 @@ def rule_flexion_er(T, i):
     if lw.endswith('ée') and tgt != 'part':
         return None                               # -ée = nom/participe FÉMININ (donnée, poussée, mêlée) → jamais un infinitif/-ez/-ai
     sugg = forms[tgt]
-    if tgt == 'p2pl' and cur == 'fut1': sugg = inf + 'ez'   # ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé — « dès que vous souhaiterai » → souhaiterez (futur 2e pl.), pas souhaitez (présent) ; 1 « bon lemme, mauvaise flexion » du gold dys. Miroir JS rFlexionEr.
+    if tgt == 'p2pl' and cur == 'fut1': sugg = inf + 'ez'
+    if tgt == 'part': sugg = _pp_relit(T, i, sugg) or sugg   # ⭐ 12/09/2026 (lot 2) : participe ACCORDÉ si le contexte le permet (« les a lécher » → léchés, « sont appliquer » → appliqués)   # ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé — « dès que vous souhaiterai » → souhaiterez (futur 2e pl.), pas souhaitez (présent) ; 1 « bon lemme, mauvaise flexion » du gold dys. Miroir JS rFlexionEr.
     if deacc(sugg) == d: return None
     return sugg[0].upper() + sugg[1:] if w[:1].isupper() else sugg
 
@@ -1347,7 +1361,8 @@ def rule_sais(T, i):
     return None
 
 _PP_ETRE3P = {'sont', 'etaient', 'seront', 'soient', 'furent', 'seraient'}
-_PP_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'y', 'en', 'se', 's', 'deja', 'toujours', 'aussi', 'bien', 'encore', 'tous', 'toutes', 'tout'}
+_PP_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'y', 'en', 'se', 's', 'deja', 'toujours', 'aussi', 'bien', 'encore', 'tous', 'toutes', 'tout',
+           'tres', 'trop', 'peu', 'souvent', 'vraiment', 'assez', 'plutot'}   # ⭐ 12/09/2026 (lot 2) : « sont TRÈS fréquentés » — l'adverbe de degré ne cache pas l'auxiliaire
 _DESEL = {'j': 'je', 'n': 'ne', 'm': 'me', 't': 'te', 's': 'se', 'd': 'de', 'c': 'ce', 'qu': 'que'}
 _DESEL_VOW = set('aeiouyàâäéèêëîïôöùûüh') | {'œ', 'æ'}
 def rule_deselide(T, i):
@@ -1394,6 +1409,7 @@ _PP_SUBJ = {'il': ('s', 'm'), 'elle': ('s', 'f'), 'ils': ('p', 'm'), 'elles': ('
             'nous': ('p', '?'), 'je': ('s', '?'), 'tu': ('s', '?')}   # on/vous EXCLUS (nombre/personne ambigus)
 _PP_AUX_P = {'sommes', 'etes', 'sont', 'etions', 'etiez', 'etaient', 'soyons', 'soyez', 'soient',
              'serons', 'serez', 'seront', 'furent'}                   # aux ÊTRE au PLURIEL (le reste = singulier)
+_PP_AVOIR_P = {'ont', 'avons', 'avaient', 'avions', 'auront', 'aurons', 'auraient', 'aurions', 'aient', 'ayons', 'eurent', 'eumes'}   # ⭐ 12/09/2026 (lot 2) : avoir PLURIEL audible devant « été » (« ont été dégoûtés ») ; avez/aviez exclus (vouvoiement)
 _A1_AUX_PL = {'sont', 'etaient', 'furent', 'seront'}                  # #A1 : aux ÊTRE 3e-pers PLURIEL AUDIBLE (nombre certain sans parser le sujet). « etes » EXCLU (vouvoiement « vous êtes arrivé » = SINGULIER correct → serait un FP rouge)
 
 _PP_IRR_CONS = {'mort', 'ne'}     # participes irréguliers base consonne/é où base+{'',e,s,es} accorde (mort/morte, né/née)
@@ -1962,17 +1978,29 @@ def rule_pp_etre(T, i):
     base = _pp_base(T[i])                                      # base masc-sing du participe (tous groupes) ; None sinon
     if base is None: return None
     if deacc(base) in _PP_PERCEPTION and i+1 < len(T) and deacc(T[i+1].lower()) in VERB_LEX: return None   # « s'est vu/fait/laissé/entendu + INFINITIF » → PP INVARIABLE (piège Voltaire : « se les était vu confisquer », « elle s'est fait avoir »)
-    a = None                                                   # auxiliaire ÊTRE en remontant (adverbes/clitiques tolérés)
+    a = None; _compose = False                                 # auxiliaire ÊTRE en remontant (adverbes/clitiques tolérés)
     for k in range(i-1, max(-1, i-4), -1):
         dk = deacc(T[k].lower())
+        if dk in ('ete', 'etait'):
+            # ⭐ 12/09/2026 (lot 2) : « ils ont été dégoûté », « cette histoire a était raconté » (été mal écrit) — le participe s'accorde avec le
+            #    sujet de l'auxiliaire AVOIR qui précède « été » : on remonte jusqu'à lui, c'est lui qui porte le sujet et le nombre.
+            for k2 in range(k-1, max(-1, k-4), -1):
+                d2 = deacc(T[k2].lower())
+                if d2 in _AVOIR_AUX or T[k2].lower() in _AVOIR_JE: a = k2; _compose = True; break
+                if d2 in _PP_MID: continue
+                break
+            if _compose: break
+            if dk == 'ete': return None
         if dk in _PP_ETRE_AUX: a = k; break
         if dk in _PP_MID: continue
         return None
     if a is None: return None
-    aux_num = 'p' if deacc(T[a].lower()) in _PP_AUX_P else 's'
+    aux_num = ('p' if deacc(T[a].lower()) in _PP_AVOIR_P else 's') if _compose else ('p' if deacc(T[a].lower()) in _PP_AUX_P else 's')
+    _a1ok = deacc(T[a].lower()) in _A1_AUX_PL or (_compose and deacc(T[a].lower()) in _PP_AVOIR_P)   # nombre PLURIEL certain, ancré sur l'auxiliaire audible
     _a1_refl = a >= 1 and any(deacc(T[k].lower()) in ('se', 's') for k in range(max(0, a - 2), a))   # #A1 : verbe PRONOMINAL (« se/s' sont … ») → participe potentiellement INVARIABLE (se succéder/plaire/téléphoner = « se » COI) → A1 s'abstient (nombre plus certain)
     info = None; sk = -1                                      # sujet pronom avant l'aux (tolère ne/n')
-    for k in range(a-1, max(-1, a-3), -1):
+    if _compose and T[a].lower() in _AVOIR_JE: info = _PP_SUBJ.get('je'); sk = a   # « j'ai été surpris » : le sujet est dans le token de l'auxiliaire
+    for k in (range(a-1, max(-1, a-3), -1) if not info else ()):
         dk = deacc(T[k].lower())
         if dk in ('ne', 'n'): continue
         info = _PP_SUBJ.get(dk); sk = k; break
@@ -2001,9 +2029,12 @@ def rule_pp_etre(T, i):
             # #A1 : sujet nominal NON résolu, mais aux audiblement PLURIEL (sont/étaient/furent/seront) → le NOMBRE est
             # certain (ancré sur l'aux, adjacent) même sans retrouver le sujet. On corrige le seul NOMBRE en gardant le
             # GENRE ÉCRIT (masc « -é »→« -és » ; le -s est muet, aucun flip de genre). « les élèves sont arrivé »→arrivés.
-            if deacc(T[a].lower()) in _A1_AUX_PL and not _a1_refl and lw.endswith('é') and deacc(lw) == deacc(base):
+            if _a1ok and not _a1_refl and lw.endswith('é') and deacc(lw) == deacc(base):
                 return _keepcase(T[i], base + 's')
             return None
+        if deacc((subj.get('htxt') or '').lower()) in ('plus', 'moins', 'mieux'): return None   # ⭐ 12/09/2026 : tête SUPERLATIVE (« la plus froide a été enregistrée ») — pas un nom, le vrai sujet est avant ; UD 2134
+        if subj['n'] == 's' and aux_num == 'p' and _a1ok and deacc(subj.get('dtxt', '').lower()) in PLURAL_DET:
+            subj['n'] = 'p'                                    # ⭐ 12/09/2026 (lot 2) : « ces produit chimique sont appliqué » — le nom a perdu son -s ; le déterminant ET l'auxiliaire audible disent pluriel
         if subj['n'] != aux_num: return None                   # nombre du sujet ≠ aux → sujet mal identifié → abstention
         if a - subj['idx'] > 5: return None                    # sujet trop LOIN de l'aux → parseur peu fiable sur phrase longue (FP « dioxyde … est autorisé »)
         for k in range(subj['idx']+1, a):                      # nom PROPRE/capitalisé entre le sujet et l'aux → sujet réel ambigu (FP « Plusieurs fois les Français sont forcés »)
@@ -2016,7 +2047,10 @@ def rule_pp_etre(T, i):
         return _keepcase(T[i], sugg) if sugg.lower() != lw else None
     if _SEG is not None and sk < len(_SEG['hy']) and _SEG['hy'][sk]: return None   # « poursuit-il » : pronom d'inversion (incise) ≠ sujet → abstention
     num, gen = info
-    if num != aux_num: return None                           # « elles est … » : aux et sujet en désaccord → l'erreur est ailleurs, abstention
+    if num != aux_num:
+        if num == 's' and aux_num == 'p' and _a1ok and deacc(T[sk].lower()) in ('il', 'elle'):
+            num = 'p'                                        # ⭐ 12/09/2026 (lot 2) : « il sont dégouté » — le -s du pronom est tombé (rule_il_ils le répare), l'auxiliaire audible est fiable → pluriel, genre du pronom
+        else: return None                                    # « elles est … » : aux et sujet en désaccord → l'erreur est ailleurs, abstention
     refl = deacc(T[sk].lower()) == 'se' or (sk >= 1 and deacc(T[sk-1].lower()) in _PP_SUBJ)   # pronominal RÉFLÉCHI : « se » (ou pronom doublé « nous nous »/« vous vous »)
     if refl and i+1 < len(T):                                # pronominal + COD après (nom/déterminant) → « se » = COI, PP INVARIABLE (« nous nous sommes rendu service », « ils se sont lavé les mains ») ; n'affecte PAS « devenus médecins » (non pronominal)
         tgn = pos_tags(T)
@@ -2104,6 +2138,12 @@ def rule_pp_avoir_cod(T, i):
         if dk in _PP_MID: continue
         return None
     if a is None: return None
+    _cl = a - 1
+    while _cl >= 0 and deacc(T[_cl].lower()) in ('ne', 'n'): _cl -= 1
+    _inv = (_SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]) or deacc(lw) in SUBJ_PRON or deacc(lw) in ('nous', 'vous')   # « les as-tu achetées » : « tu » inversé n'est pas le participe de taire
+    if _cl >= 0 and not a_is_je and not _inv and T[_cl].lower() == 'les':      # ⭐ 12/09/2026 (lot 2) : clitique COD « les » juste avant l'auxiliaire (« mon chaton les a léché ») → PLURIEL certain, genre inconnu gardé masculin
+        sugg = _pp_accord(base, 'p', 'm')
+        return _keepcase(T[i], sugg) if sugg.lower() != lw else None
     q = None                                                        # position du token « que » (ou du token qu'+sujet fusionné)
     if a_is_je:                                                     # « … que j'ai <PP> » : « que » juste avant « j'ai »
         if a - 1 < 0 or deacc(T[a - 1].lower()) not in ('que', 'qu'): return None

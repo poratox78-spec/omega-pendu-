@@ -84,9 +84,12 @@ def _check():
     abstain = []                                                                   # l'ancienne abstention « aux ambigu » est levée : chaque contexte a sa sortie
     nofp = ["Le chat mange une pomme.", "je suis content", "j'ai de la peine",
             "l'homme est là", "j'aime le café", "n'est-ce pas", "d'abord il faut"]  # texte correct (élision OK) → 0 flag
+    nofp += ["La température la plus froide a été enregistrée hier.", "les fleurs sont fanées.", "je les ai vus hier."]   # ⭐ 12/09/2026 (lot 2) : texte correct → 0 flag (tête superlative, accord déjà fait, clitique + participe accordé)
     elide = [("J'sais que c'est vrai", "J'sais", "Je sais"), ("Personne n'sait", "n'sait", "ne sait"),
              ("qu'tu viennes", "qu'tu", "que tu")]                                  # élision fautive devant consonne
-    elide += [("vous sommes contents", "sommes", "êtes"), ("vous somme très contents", "somme", "êtes"), ("ils somme là", "somme", "sont")]   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
+    elide += [("vous sommes contents", "sommes", "êtes"), ("vous somme très contents", "somme", "êtes"), ("ils somme là", "somme", "sont")]
+    elide += [("mon chaton les a lécher sur la figure", "lécher", "léchés"), ("ils ont été dégoûter par leur entourage", "dégoûter", "dégoûtés"),
+              ("ces produits chimiques sont appliquer dans la terre", "appliquer", "appliqués"), ("Cette histoire a était raconter hier", "raconter", "racontée")]   # ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est ACCORDÉ (clitique les, été après avoir, sujet nominal, a était)   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):
