@@ -2340,7 +2340,7 @@ function estQuestion(t,maxMots){
     if(i+1<T.length&&(T[i+1].toLowerCase()==='à'||deacc(T[i+1].toLowerCase())==='de'||deacc(T[i+1].toLowerCase())==="d'")&&i+2<T.length&&_isInfinitive(T[i+2]))return null;   // PP + à/de + INFINITIF → invariable
     var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
     if(a<0)return null;
-    var _cl=a-1;while(_cl>=0&&(deacc(T[_cl].toLowerCase())==='ne'||deacc(T[_cl].toLowerCase())==='n'))_cl--;var _inv=(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])||!!SUBJ_PRON[deacc(lw)]||deacc(lw)==='nous'||deacc(lw)==='vous';if(_cl>=0&&!aje&&!_inv&&T[_cl].toLowerCase()==='les'){var _sc=_ppAccord(base,'p','m');return _sc.toLowerCase()!==lw?ckeepcase(T[i],_sc):null;}   /* ⭐ 12/09/2026 (lot 2) : clitique COD « les » juste avant l'auxiliaire (« les a léché ») → pluriel certain, genre inconnu gardé masculin (miroir Python) */
+    var _cl=a-1;while(_cl>=0&&(deacc(T[_cl].toLowerCase())==='ne'||deacc(T[_cl].toLowerCase())==='n'))_cl--;var _inv=(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])||!!SUBJ_PRON[deacc(lw)]||deacc(lw)==='nous'||deacc(lw)==='vous';if(_cl>=0&&!aje&&!_inv&&T[_cl].toLowerCase()==='les'){var _dl=deacc(lw),_db=deacc(base);if(_dl===_db+'s'||_dl===_db+'es'||(/s$/.test(_db)&&(_dl===_db||_dl===_db+'es')))return null;var _sc=_ppAccord(base,'p',_dl===_db+'e'?'f':'m');return _sc.toLowerCase()!==lw?ckeepcase(T[i],_sc):null;}   /* ⚠️ 12/09/2026 — FP rouge du lot 2 : genre de « les » inconnaissable → jamais toucher un pluriel, garder le genre ÉCRIT (« je les ai vues » n'est plus *vus*) — miroir Python */   /* ⭐ 12/09/2026 (lot 2) : clitique COD « les » juste avant l'auxiliaire (« les a léché ») → pluriel certain, genre inconnu gardé masculin (miroir Python) */
     var q=-1;
     if(aje){if(a-1<0||!_qq(T[a-1]))return null;q=a-1;}
     else{var bk=a-1;while(bk>=0&&(deacc(T[bk].toLowerCase())==='ne'||deacc(T[bk].toLowerCase())==='n'))bk--;if(bk<0)return null;var tb=T[bk].toLowerCase();
@@ -2885,6 +2885,29 @@ function estQuestion(t,maxMots){
       var _rv=svReads(_vx);for(var _y=0;_y<_rv.length;_y++){if(_rv[_y][0]==='etre'||_rv[_y][0]==='avoir'){var _f2=((CONJ_C[_rv[_y][0]]||{})[_rv[_y][1]]||{})[slot];if(_f2&&_f2.toLowerCase()!==lw)return ckeepcase(w,_f2);}}
       return null;}}
     return ckeepcase(w,cible);}
+  var _PPS_AVOIR={},_PPS_MID={},_PPS_CLIT={},_PPS_ANTE={},_PPS_REFL={};   // ⭐ 12/09/2026 — RÈGLE NEUVE (orange) : accord SURNUMÉRAIRE du participe après avoir (miroir Python rule_pp_avoir_surnum)
+  'ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split(' ').forEach(function(w){_PPS_AVOIR[w]=1;});
+  'ne n pas plus jamais deja bien toujours aussi encore souvent vraiment enfin'.split(' ').forEach(function(w){_PPS_MID[w]=1;});
+  'le la les l me m te t se s nous vous en lui leur y'.split(' ').forEach(function(w){_PPS_CLIT[w]=1;});
+  'que qu combien quel quelle quels quelles lequel laquelle lesquels lesquelles'.split(' ').forEach(function(w){_PPS_ANTE[w]=1;});
+  'se me te nous vous le la les y en'.split(' ').forEach(function(w){_PPS_REFL[w]=1;});
+  function ppAvoirSurnumVig(T,i){   /* « Boeing a signés un contrat » → signé ; « nous avons vue notre médecin » → vu ; « a réussie à se placer » → réussi. Témoin d'invariabilité APRÈS le participe, jamais d'antécédent avant l'auxiliaire. Mesuré : 21 pièges muets, UD 1 tir (vraie faute), gold 18/18. */
+    var w=T[i];if(!w)return null;var lw=w.toLowerCase(),dw=deacc(lw),k,j;
+    if(lw.indexOf("'")>=0||w.charAt(0)!==w.charAt(0).toLowerCase()||!/(ée|ées|és|ie|ies|is|ue|ues|us|te|tes|se|ses)$/.test(lw))return null;
+    var base=_ppBase(w);if(base===null)base=(IRR_PP[dw]!==undefined?IRR_PP[dw]:null);if(!base||deacc(base)===dw)return null;
+    var a=-1;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(tk==='à')return null;if(_PPS_AVOIR[dk.split("'").pop()]){a=k;break;}if(_PPS_MID[dk])continue;return null;}
+    if(a<0)return null;var ta=T[a].toLowerCase();if(ta.indexOf("'")>=0&&['l','m','t','s','qu'].indexOf(deacc(ta.split("'")[0]))>=0)return null;
+    var lo=0;if(_SEG){for(j=a;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}
+    for(k=lo;k<a;k++){var dk2=deacc(T[k].toLowerCase()),hd=dk2.indexOf("'")>=0?dk2.split("'")[0]:dk2;if(_PPS_ANTE[hd]||_PPS_ANTE[dk2])return null;if(_PPS_CLIT[hd]&&dk2.indexOf("'")>=0)return null;}
+    if(a>=1){var p1=deacc(T[a-1].toLowerCase());if(_PPS_CLIT[p1]){if(p1==='nous'||p1==='vous'){var p2=a>=2?deacc(T[a-2].toLowerCase()):'';if(SUBJ_PRON[p2]||p2==='nous'||p2==='vous'||p2==='qui')return null;}else return null;}}
+    if(i+1>=T.length)return null;var n1=T[i+1].toLowerCase(),d1=deacc(n1),tem=false;
+    if(d1==='a'||d1==='de'||d1==='d'||n1==='à'||n1.indexOf("d'")===0){j=i+2;
+      while(j<T.length&&j<=i+3&&(_PPS_REFL[deacc(T[j].toLowerCase())]||["s'","m'","t'","l'"].indexOf(deacc(T[j].toLowerCase()).slice(0,2))>=0)){if(["s'","m'","t'","l'"].indexOf(deacc(T[j].toLowerCase()).slice(0,2))>=0&&_isInfinitive(T[j].slice(2))){j=-1;break;}j++;}
+      if(j===-1||(j<T.length&&_isInfinitive(T[j])))tem=true;
+      else if(n1.indexOf("d'")===0&&_isInfinitive(n1.slice(2)))tem=true;
+      else if(d1==='de'||d1==='d'||n1.indexOf("d'")===0){var nx=i+2<T.length?deacc(T[i+2].toLowerCase()):'';if(n1.indexOf("d'")===0||nx==='la'||nx==='le'||nx==='les'||nx.slice(0,2)==="l'")tem=true;}}
+    if(!tem&&(NUM_DET[d1]||d1==='un'||d1==='une'||d1==='des'||d1==='du')&&!_detDeTemps(T,i+1))tem=true;
+    if(!tem)return null;return ckeepcase(w,base);}
   function persVig(T,i){
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;
@@ -3917,6 +3940,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
     if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}
     if(!pushed){var jv=jestVig(T,i);if(jv){out.push({i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'});pushed=true;}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
+    if(!pushed){var pps=ppAvoirSurnumVig(T,i);if(pps){out.push({i:i,word:T[i],sugg:pps,name:'accord du participe après avoir à vérifier',tier:'vigilance'});pushed=true;}}   // ⭐ 12/09/2026 — RÈGLE NEUVE, orange : « a signés un contrat » → signé (miroir Python rule_pp_avoir_surnum)
     if(!pushed){var sfn=sujFlexNom(T,i);if(sfn){out.push({i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'});pushed=true;}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
     if(!pushed){var dnv=rDetNumber(T,i);if(dnv){out.push({i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'});pushed=true;}}   // « le maçons ont » → les ? (orange, 11/09/2026)

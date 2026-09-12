@@ -1,7 +1,7 @@
 {
- "justes": 318,
+ "justes": 319,
  "pointeuses": 238,
- "fatigue": 146,
+ "fatigue": 145,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -264,6 +264,7 @@
   "segment→segments [accord pluriel à vérifier] accord",
   "semanies→semaines [orthographe] inversion",
   "sess→ses [orthographe] lettre_trop",
+  "signés→signé [accord du participe après avoir à vérifier] accord",
   "sions→soins [orthographe] inversion",
   "sitée→située [orthographe] lettre_manque",
   "sièges→siège [accord singulier nom] accord",
