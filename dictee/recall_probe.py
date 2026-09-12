@@ -79,7 +79,9 @@ def _check():
     expect = [("j'est content", "je suis"), ("J'est malade", "Je suis"), ("j'est allé à Paris", "je suis"),
               ("j'est venu hier", "je suis"), ("j'est de la peine", "j'ai"), ("j'est du mal", "j'ai"),
               ("j'est des soucis", "j'ai"), ("j'est un chien", "j'ai")]
-    abstain = ["j'est de Paris", "j'est entendu le tonnerre"]                       # aux ambigu → « j'est » NON flagué
+    expect += [("j'est de Paris", "je suis"), ("j'est entendu le tonnerre", "j'ai"), ("j'est là", "je suis"), ("j'est à faire", "j'ai"),
+               ("j'est fatigué", "je suis"), ("j'est perdu mes clés", "j'ai"), ("j'est descendu l'escalier", "j'ai"), ("j'est dans ma chambre", "je suis")]   # ⭐ 12/09/2026 : plus d'abstention « contexte ambigu » — le voisin tranche (Rem) ; le dernier est une PROPOSITION (orange)
+    abstain = []                                                                   # l'ancienne abstention « aux ambigu » est levée : chaque contexte a sa sortie
     nofp = ["Le chat mange une pomme.", "je suis content", "j'ai de la peine",
             "l'homme est là", "j'aime le café", "n'est-ce pas", "d'abord il faut"]  # texte correct (élision OK) → 0 flag
     elide = [("J'sais que c'est vrai", "J'sais", "Je sais"), ("Personne n'sait", "n'sait", "ne sait"),

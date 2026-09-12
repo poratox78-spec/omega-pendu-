@@ -320,6 +320,12 @@ def rule_e_er(T, i):
         if _pse in ('sais', 'sait') and deacc(T[i-2].lower()) in ('il', 'elle', 'on') and (_is_ppl(T[i]) or deacc(T[i].lower()) in _SAIS_PPU):
             return None   # « il sais trompé » = frame s'est — miroir JS rEer
     w = T[i]; lw = w.lower()
+    if lw.startswith("d'") and lw.count("'") == 1 and lw.endswith('é') and len(lw) > 4 and lw[2:].isalpha() and not w[2:3].isupper():
+        # ⭐ 12/09/2026 : « il suffit d'utilisé un bateau » → d'utiliser — la préposition ÉLIDÉE vit dans le token ; mêmes gardes que la branche
+        #    « préposition » (vrai verbe -er du jeu curé, pas un nom : NOUN_E, table accentuée GENDER_ACC → « d'employé », « d'arrêté » restent des noms).
+        _r = lw[2:]; _inf = _r[:-1] + 'er'
+        if deacc(_r) not in NOUN_E and deacc(_inf) in VERB_LEX and GENDER_ACC.get(_r) not in ('m', 'f'): return w[:2] + _inf
+        return None
     if "'" in lw: return None                          # token contracté (l'été, d'…) → pas un verbe -er/-é
     # ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026). « est Allier Comté Communauté »
     # devenait « Allié » ; « avec Honoré de Balzac » → « Honorer » ; « Cry Me a River » → « Rivé ».
@@ -677,7 +683,7 @@ def rule_flexion_er(T, i):
         if g < 0: return None
         dg = deacc(T[g].lower()); graw = T[g].lower()
         if graw != 'à' and (dg in _AUX_AV or graw == "j'ai"):
-            tgt = 'part'                          # avoir/être (+ clitique/adverbe) → participe (« a déjà écouter »→écouté). « à » désaccentué = « a » → NON
+            tgt = 'inf' if (dg == 'a' and rule_a_aa(T, g) == 'à') else 'part'   # ⭐ 12/09/2026 : la MÊME garde a/à qu'en position immédiate — « a réussi a se placer » : « a » + clitique + verbe est un « à » (rule_a_aa tranche) → infinitif, plus « placé » (mot juste cassé, gold dys). Miroir JS.                          # avoir/être (+ clitique/adverbe) → participe (« a déjà écouter »→écouté). « à » désaccentué = « a » → NON
         elif dg in _INF_GOV or dg in MODAL or dg in _CAUS:
             tgt = 'inf'                           # prépo/modal/causatif (+ clitique) → infinitif (« veut se séparé »→séparer, « fait déclaré »→déclarer)
         else:
@@ -688,6 +694,7 @@ def rule_flexion_er(T, i):
     if lw.endswith('ée') and tgt != 'part':
         return None                               # -ée = nom/participe FÉMININ (donnée, poussée, mêlée) → jamais un infinitif/-ez/-ai
     sugg = forms[tgt]
+    if tgt == 'p2pl' and cur == 'fut1': sugg = inf + 'ez'   # ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé — « dès que vous souhaiterai » → souhaiterez (futur 2e pl.), pas souhaitez (présent) ; 1 « bon lemme, mauvaise flexion » du gold dys. Miroir JS rFlexionEr.
     if deacc(sugg) == d: return None
     return sugg[0].upper() + sugg[1:] if w[:1].isupper() else sugg
 
@@ -3658,6 +3665,11 @@ def rule_sujet_flexion(T, i):
     formes différentes → abstention. Miroir JS : rSujFlex."""
     if not CONJ_F or not CONJ_C: return None
     w = T[i]; lw = w.lower(); dl = deacc(lw)
+    if lw.startswith("j'") and len(lw) > 3 and lw.count("'") == 1 and lw[2:].isalpha() and deacc(lw[2:]) not in FULL_AUX:   # être/avoir élidés (« j'est », « j'a ») = famille j'est/j'ai, qui se tait à dessein sur « j'est de Paris »
+        # ⭐ 12/09/2026 : « même si j'admet que » → j'admets — le pronom ÉLIDÉ vit dans le token ; on relit la règle sur « je + verbe »
+        #    (liste virtuelle, UN pas, comme rule_il_ils lit _ELIDED_PRON) et le préfixe est rendu tel quel. Miroir JS sujFlexVig.
+        _rj = rule_sujet_flexion(T[:i] + ['je', w[2:]] + T[i+1:], i + 1)
+        return (w[:2] + _rj) if _rj else None
     if "'" in lw or not dl.isalpha() or len(dl) < 2: return None
     if dl in CLITIC or dl in PREP: return None
     # MODAL ne vaut que devant un INFINITIF : la liste (« vais, allez, veut, peut »…) sert à ne pas toucher
@@ -4002,23 +4014,65 @@ ETRE_PP = set("alle allee alles allees venu venue venus venues parti partie part
 PART_ART = {'le', 'la', "l'", 'les', 'un', 'une'}   # article après « de » → partitif AVOIR (« j'ai de la peine »)
 
 
-def rule_jest(T, i):
+_JEST_LIEU = {'ici', 'en', 'chez', 'devant', 'derriere', 'entre', 'parmi', 'vers', 'pres', 'loin'}   # ⭐ 12/09/2026 : lieu/état après « j'est » → « je suis » (rouge) ; « là » gardé ACCENTUÉ (« la » nu = article → j'ai)
+_JEST_LIEU_VIG = {'dans', 'sur', 'sous', 'avec'}   # « j'ai dans ma poche », « j'ai sur moi » existent → « je suis » PROPOSÉ (orange, jumelle rule_jest_vig)
+_JEST_ETAT = set(('fatigue fatiguee fatigues fatiguees enerve enervee enerves enervees stresse stressee stresses stressees desole desolee desoles desolees '
+                  'presse pressee presses pressees marie mariee maries mariees occupe occupee occupes occupees oblige obligee obliges obligees '
+                  'habitue habituee habitues habituees interesse interessee interesses interessees passionne passionnee passionnes passionnees '
+                  'inquiet inquiete inquiets inquietes').split())   # participes/adjectifs d'ÉTAT : « j'est fatigué » → je suis (« j'ai fatigué » sans objet = contresens)
+_JEST_MOUV = set(('descendu descendue descendus descendues monte montee montes montees reste restee restes restees rentre rentree rentres rentrees '
+                  'sorti sortie sortis sorties retourne retournee retournes retournees passe passee passes passees entre entree entres entrees').split())   # être OU avoir : l'OBJET tranche (« j'est descendu l'escalier » → j'ai, rouge ; « j'est descendu » → je suis ?, orange)
+_JEST_POSS = {'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'votre', 'leur', 'leurs', 'ce', 'cet', 'cette', 'ces', 'du', 'des', 'de', 'quelques', 'plusieurs'}
+
+
+def _jest_objet(T, i, mouv=False):
+    """Un OBJET suit le participe (déterminant, possessif, partitif, nombre, « l'/d' ») → auxiliaire AVOIR certain.
+    Ni un complément de TEMPS (« fatigué CE SOIR », liste _NOMS_TEMPS du moteur), ni — pour un verbe de mouvement — une PROVENANCE
+    (« descendu DU train », « sorti DE la maison ») : là, c'est être."""
+    if i + 2 >= len(T): return False
+    n2 = T[i + 2].lower(); d2 = deacc(n2)
+    if _det_de_temps(T, i + 2): return False
+    if mouv and (d2 in ('de', 'du', 'des') or n2[:2] == "d'"): return False
+    return n2 in NUM_DET or d2 in _JEST_POSS or n2[:2] in ("l'", "d'") or T[i + 2].isdigit()
+
+
+def rule_jest(T, i, _vig=False):
     """« j'est » (j' + est) n'est JAMAIS valide → la règle ne se déclenche que sur « j'est », donc FP=0 STRUCTUREL.
-    Suggestion bornée aux contextes SÛRS : déterminant / « été »-« eu » / partitif (du, des, de+article) → « j'ai »
-    (avoir) ; adjectif PUR ou participe de verbe d'ÊTRE → « je suis ». Participe d'AVOIR (« j'est entendu ») ou
-    « de » + nom propre (« j'est de Paris ») = auxiliaire ambigu → abstention (contexte)."""
+    Le VOISIN tranche entre les deux lectures — j'ai (avoir) / je suis (être) — et depuis le 12/09/2026 il n'y a plus
+    d'abstention « contexte ambigu » (consigne Rem : pas de silence sans regarder le contexte) :
+      · déterminant / été-eu / partitif du-des / de + article ou nom commun            → j'ai
+      · de + nom PROPRE (« j'est de Paris » : origine), « d'accord »                   → je suis
+      · lieu ou état : là, ici, en, chez, devant, derrière, entre, parmi, vers, près, loin, à + non-infinitif → je suis ;
+        à + infinitif (« j'est à faire ») → j'ai ; dans/sur/sous/avec → je suis PROPOSÉ (jumelle orange : « j'ai dans ma poche » existe)
+      · adjectif pur (CADJ), participe d'ÊTRE (ETRE_PP), participe d'ÉTAT sans objet (_JEST_ETAT : fatigué, énervé…) → je suis
+      · verbe à double auxiliaire (_JEST_MOUV) : objet derrière → j'ai (rouge) ; nu → je suis ? (orange)
+      · participe d'AVOIR (« j'est mangé », « j'est entendu », « j'est perdu mes clés » — _is_ppl OU irrégulier _IRR_PP) → j'ai.
+    Miroir JS rJest / jestVig."""
     if deacc(T[i].lower()) != "j'est" or i + 1 >= len(T):
         return None
     nxt = T[i + 1]; nl = nxt.lower(); dn = deacc(nl)
+    if _vig:                                                                        # JUMELLE ORANGE : seulement les deux lectures incertaines
+        if dn in _JEST_LIEU_VIG: return _keepcase(T[i], "je suis")
+        if dn in _JEST_MOUV and dn not in ETRE_PP and not _jest_objet(T, i, True): return _keepcase(T[i], "je suis")
+        return None
     if nl in NUM_DET or dn in ('ete', 'eu') or dn in ('du', 'des'):                 # avoir certain (déterminant / été-eu / partitif du-des)
         return _keepcase(T[i], "j'ai")
     if nl in ('de', "d'"):                                                          # possession → j'ai : « j'ai de la peine » (partitif) ET « j'est de tomates » (de + nom COMMUN)
         if i + 2 < len(T) and (T[i + 2].lower() in PART_ART or (T[i + 2][:1].isalpha() and not T[i + 2][:1].isupper())):
             return _keepcase(T[i], "j'ai")
-        return None                                                                # « j'est de Paris » (de + nom PROPRE) = origine « je suis de… » → abstention
+        if i + 2 < len(T) and T[i + 2][:1].isupper():                                # ⭐ « j'est de Paris » (de + nom PROPRE) = origine → je suis (Rem, 12/09/2026 : plus d'abstention)
+            return _keepcase(T[i], "je suis")
+        return None
+    if nl[:2] == "d'" and deacc(nl[2:]) == 'accord': return _keepcase(T[i], "je suis")   # « j'est d'accord » → je suis d'accord
+    if nl == 'là' or dn in _JEST_LIEU: return _keepcase(T[i], "je suis")             # ⭐ lieu / état → être
+    if nl == 'à':                                                                    # ⭐ « j'est à Paris » → je suis ; « j'est à faire » → j'ai (à + infinitif)
+        return _keepcase(T[i], "j'ai" if (i + 2 < len(T) and _is_infinitive(T[i + 2])) else "je suis")
     if dn in CADJ or dn in ETRE_PP:                     # adjectif PUR ou participe de verbe d'ÊTRE → je suis (liste close = parité 3 moteurs)
         return _keepcase(T[i], "je suis")
-    if _is_ppl(nxt):                                    # participe d'AVOIR (pris/mangé/fait/vu…) — les participes d'ÊTRE sont déjà traités → j'ai
+    if dn in _JEST_ETAT: return _keepcase(T[i], "j'ai" if _jest_objet(T, i) else "je suis")   # ⭐ participe d'ÉTAT : « j'est fatigué » → je suis (avant : j'ai fatigué, faux) ; objet derrière → avoir
+    if dn in _JEST_MOUV:                                                             # ⭐ double auxiliaire : l'objet tranche (rouge) ; nu → jumelle orange
+        return _keepcase(T[i], "j'ai") if _jest_objet(T, i, True) else None
+    if _is_ppl(nxt) or dn in _IRR_PP:                   # participe d'AVOIR (pris/mangé/fait/vu… + irréguliers en -u : entendu, perdu, attendu) — ceux d'être sont déjà traités → j'ai
         return _keepcase(T[i], "j'ai")
     m = re.match(r'^(.*?)(?:ez|er)$', dn)               # BLOCAGE MUTUEL « j'est mangez » : cette règle attend un participe, la règle -ez/-é attend un
     if m and len(m.group(1)) >= 2:                      # auxiliaire correct → aucune ne démarre. Or « j'est » n'est JAMAIS valide : si le mot suivant est
@@ -4026,6 +4080,11 @@ def rule_jest(T, i):
         if _is_ppl(pp):                                 # ensuite. FP=0 conservé (« j'est » toujours fautif ; ETRE_PP sépare je suis / j'ai).
             return _keepcase(T[i], "je suis" if deacc(pp) in ETRE_PP else "j'ai")
     return None
+
+
+def rule_jest_vig(T, i):
+    """Jumelle ORANGE de rule_jest : « j'est dans ma chambre » → je suis ? ; « j'est descendu » (sans objet) → je suis ?"""
+    return rule_jest(T, i, True)
 
 
 def rule_cai(T, i):
@@ -4573,6 +4632,7 @@ def rule_accord_rel_obj(T, i):
     if not r2 or _vnum3(T[i]) != 's': return None                            # cible = verbe 3sg (dir. audible : pluriel manquant)
     if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return None
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
+    if i >= 1 and deacc(T[i-1].lower()) == 'ete' and any(deacc(T[k].lower()).split("'")[-1] in _AVOIR_AUX for k in range(max(0, i-4), i-1)): return None   # ⭐ 12/09/2026 : « n'ont pas été prise en compte » → prisent : après « été » d'un passif composé, T[i] est un PARTICIPE, jamais un verbe fini (« été » est exclu de FULL_AUX à dessein : seul, il vaut « était » mal écrit). Miroir JS.
     q = None
     for k in range(i-1, -1, -1):
         wk = T[k].lower()
@@ -5169,7 +5229,9 @@ def rule_personne_verbe(T, i):
 
 
 _FAIRE_SEMI = set('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient'.split())   # faire + infinitif (« le fit ramenais » → ramener, 03/09/2026)
-_SEMI_AUX = set(('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient '
+_SEMI_NEG = {'pas', 'plus', 'jamais'}   # ⭐ 12/09/2026 : négation sautée entre le semi-auxiliaire et l'infinitif (« ne voulant plus démaré » → démarrer). Miroir JS _SEMI_NEG.
+_SEMI_AUX = set(('voulant pouvant '   # ⭐ 12/09/2026 : participes présents, jamais ambigus (« la voiture ne voulant plus démarrer ») — « devant » EXCLU (préposition)
+                 'fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient '
                  'vais vas va allons allez vont allais allait allions alliez allaient irai iras ira '
                  'irons irez iront veux veut voulons voulez veulent voulais voulait voulions vouliez '
                  'voulaient voudrais voudrait voudrions dois doit devons devez doivent devais devait '
@@ -5199,7 +5261,7 @@ def rule_inf_semi_aux(T, i):
     if not re.match(r"^[a-z'-]+$", lw): return None
     if lw in CLITIC or lw in _INF_OUTILS or w.lower() in _INF_OUTILS: return None
     j, st = i - 1, 0
-    while j >= 0 and st < 3 and deacc(T[j].lower()) in CLITIC:
+    while j >= 0 and st < 3 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in _SEMI_NEG):
         j -= 1; st += 1
     if j < 0 or deacc(T[j].lower()) not in _SEMI_AUX: return None
     # « faire » : « fait référence », « fait date », « fait la fête » — nom homographe d'une forme verbale. Pour ce
@@ -5220,6 +5282,7 @@ def rule_inf_semi_aux(T, i):
         if deacc(a[0].lower()) == lw: return None       # c'est DEJA l'infinitif
         if out and out != a[0]: return None             # plusieurs lemmes -> abstention
         out = a[0]
+    if out and w.lower().endswith('é') and deacc(w.lower()[:-1] + 'er') == deacc(out.lower()): out = w.lower()[:-1] + 'er'   # ⭐ 12/09/2026 : le lemme de la table est NU (« demarrer ») ; l'accent du radical vit dans la forme ÉCRITE (« démarré » → démarrer). Miroir JS.
     return out
 
 
@@ -5379,6 +5442,7 @@ RULES = [('élision inversée', rule_deselide),
          ('personne du verbe à vérifier', rule_personne_verbe),
          ('infinitif après pronom sujet à vérifier', rule_pron_inf),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
+         ("j'est/j'ai à vérifier", rule_jest_vig),   # ⭐ 12/09/2026 : les deux lectures incertaines de « j'est » (dans/sur/sous/avec ; mouvement sans objet) → je suis PROPOSÉ
          ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
                                                        # — « c'est de la conjugaison, les fautes sont flagrantes, du rouge au moindre problème ».
