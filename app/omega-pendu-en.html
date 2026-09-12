@@ -25251,7 +25251,11 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
     return null;}
   function rCe(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='ce'&&lw!=='se')return null;if(i+1>=T.length)return null;var nd=deacc(T[i+1].toLowerCase());
     if(nd==='qui'||nd==='que'||nd==='dont'||nd==='qu'||nd==="qu'")return ckeepcase(T[i],'ce');   // ce qui/que/dont (+ élidé qu')
-    if(CAUX[nd]||nd==='sont'||nd==='est')return null;
+    if(CAUX[nd]||nd==='sont'||nd==='est'){   /* ⭐ 12/09/2026 : ce qui suit l'AUXILIAIRE tranche « ce sont » / « se sont » — un PARTICIPE ne suit jamais « ce sont » (groupe nominal) ; sujet exigé devant, sinon ce serait « ils sont » (miroir Python rule_ce_se) */
+      if(lw==='ce'){var _j=i+2;while(_j<T.length&&_j<=i+4&&PPMID[deacc(T[_j].toLowerCase())])_j++;
+        if(_j<T.length&&_isPpl(T[_j])){var _tg0=posTags(T),_p0=_prevPron(T,i);
+          if(_p0==='il'||_p0==='elle'||_p0==='on'||_p0==='ils'||_p0==='elles'||_p0==='je'||_p0==='tu'||_p0==='qui'||(i>0&&_tg0&&i-1<_tg0.length&&(_tg0[i-1]==='NOUN'||_tg0[i-1]==='PROPN')))return ckeepcase(T[i],'se');}}
+      return null;}
     if(CLITIC[nd])return null;                                                   // clitique/ne → se pronominal / ce impersonnel → abstention
     if(NUM_DET[nd])return null;                                                  // ce/se + déterminant → abstention
     if(/ant$/.test(nd)&&nd.length>4)return null;                                 // participe présent → se réfléchi

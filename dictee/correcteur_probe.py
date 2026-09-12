@@ -1301,7 +1301,20 @@ def rule_ce_se(T, i):
     if i+1 >= len(T): return None
     nd = deacc(T[i+1].lower())
     if nd in ('qui', 'que', 'dont', 'qu', "qu'"): return _keepcase(T[i], 'ce')         # ce qui/que/dont (+ élidé « qu' » : ce qu'il/qu'aurait)
-    if nd in AUX or nd in ('sont', 'est'): return None                # « ce sont » vs « se sont déroulés », c'est vs s'est : ambigu → s'abstenir
+    if nd in AUX or nd in ('sont', 'est'):
+        # ⭐ 12/09/2026 (audit des abstentions, cas de Rem) : « ce sont » vs « se sont » n'est plus une abstention — ce qui suit
+        #    l'AUXILIAIRE tranche. Un PARTICIPE ne suit jamais « ce sont » (« ce sont des amis », « ce sont eux » : un groupe
+        #    nominal) ; il suit toujours « se sont » (« ils ce sont déroulés » → se). Garde : un SUJET doit précéder — sans lui
+        #    (« ce sont tous venus ») la bonne correction serait « ils sont », pas « se sont ». Famille ORANGE (tier_of).
+        if lw == 'ce':
+            _j = i + 2
+            while _j < len(T) and _j <= i + 4 and deacc(T[_j].lower()) in _PP_MID: _j += 1
+            if _j < len(T) and _is_ppl(T[_j]):
+                _tg = pos_tags(T)
+                _suj = _prev_pron(T, i) in ('il', 'elle', 'on', 'ils', 'elles', 'je', 'tu', 'qui') or (
+                    i > 0 and _tg and i - 1 < len(_tg) and _tg[i-1] in ('NOUN', 'PROPN'))
+                if _suj: return _keepcase(T[i], 'se')
+        return None                                                   # « c'est vs s'est » et le reste : ambigu → s'abstenir
     if nd in CLITIC: return None                                       # « se le/la/lui/en/y/ne donne » : clitique → « se » pronominal (ou « ce n'était » impersonnel) → ne pas toucher
     if nd in NUM_DET: return None                                      # « se une/le/des… » : déterminant, ni nom-tête ni verbe → abstention (texte corpus cassé)
     if nd.endswith('ant') and len(nd) > 4: return None                 # participe présent/gérondif (se constituant, en chantant) → « se » réfléchi, jamais « ce »

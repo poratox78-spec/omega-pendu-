@@ -192,6 +192,11 @@ const CAS = [
   { txt: 'Quand les as-tu achetées, ces belles pommes ?', rien: true, pourquoi: 'CONTRE-GARDE : « tu » inversé n’est pas le participe de taire' },
   { txt: 'ceux qui sont dégoûtés du système partent.', rien: true, pourquoi: 'CONTRE-GARDE : « du système » est un complément, pas le sujet — l’orange « part » du produit seul est éteint (garde Python portée)' },
   { txt: 'La température la plus froide a été enregistrée hier.', rien: true, pourquoi: 'CONTRE-GARDE : tête superlative « la plus froide » — pas un nom, pas d’orange « enregistré » (UD 2134)' },
+  /* ⭐ ce/se + auxiliaire (12/09/2026, audit des abstentions) : un PARTICIPE ne suit jamais « ce sont » — il suit « se sont ». */
+  { txt: 'ils ce sont déroulés hier.', corrigeAttendu: ['ce', 'se'], pourquoi: 'participe après l’auxiliaire + sujet pronom → pronominal (orange)' },
+  { txt: 'les faits ce sont déroulés hier.', corrigeAttendu: ['ce', 'se'], pourquoi: 'même structure, sujet NOMINAL' },
+  { txt: 'ce sont des amis de longue date.', rien: true, pourquoi: 'CONTRE-GARDE : groupe nominal après « sont » → « ce » reste' },
+  { txt: 'ce sont eux qui décident.', rien: true, pourquoi: 'CONTRE-GARDE : pronom fort → « ce » reste' },
   { txt: 'je somme le témoin de parler.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 1re du singulier, accordé' },
   /* ⭐ « DESERT » → DESSERT (11/09/2026) : la route double-consonne ne cédait qu'au CIRCONFLEXE ; désert (aigu, nom, 23,8/M)
      attendait derrière. La garde cède aussi à l'aigu/grave quand le rival n'est PAS verbal — jette/jeté reste au contexte. */
