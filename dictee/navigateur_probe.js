@@ -177,6 +177,21 @@ const CAS = [
   { txt: 'vous sommes contents.', corrigeAttendu: ['sommes', 'êtes'], pourquoi: '⭐ 12/09 (cas de Rem) : sujet-verbe côte à côte — le lemme rare « sommer » s’efface devant « être »' },
   { txt: 'ils somme là depuis midi.', corrigeAttendu: ['somme', 'sont'], pourquoi: '⭐ 12/09 (audit des abstentions) : lemme rare à une lettre de « sommes » → l’auxiliaire conjugué, plus « somment » (rouge faux)' },
   { txt: 'il somme les gens de partir.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 3e du singulier, accordé — le vrai verbe rare reste muet' },
+  /* ⭐ BON LEMME, MAUVAISE FLEXION — lot 2 (12/09/2026) : le participe rendu par -er → -é est ACCORDÉ quand le contexte le permet
+     (l'accord du participe est relu sur la forme corrigée, un pas) ; « été » après avoir, « il » devant « sont », nom sans -s
+     derrière un déterminant pluriel, clitique « les » avant avoir, « très » entre l'auxiliaire et le participe. */
+  { txt: 'mon chaton les a lécher sur la figure.', corrigeAttendu: ['lécher', 'léchés'], pourquoi: 'clitique COD « les » avant avoir → pluriel' },
+  { txt: 'ils ont été dégoûter par leur entourage.', corrigeAttendu: ['dégoûter', 'dégoûtés'], pourquoi: '« été » après « ont » : le sujet est celui d’avoir' },
+  { txt: 'il sont dégouter par le système.', corrigeAttendu: ['dégouter', 'dégoutés'], pourquoi: '« il sont » : le -s du pronom est tombé, l’auxiliaire audible est fiable' },
+  { txt: 'ces produit chimique sont appliquer dans la terre.', corrigeAttendu: ['appliquer', 'appliqués'], pourquoi: 'déterminant pluriel + auxiliaire pluriel : le nom a perdu son -s' },
+  { txt: 'tout ces produits sont rejeter dans les nappes.', corrigeAttendu: ['rejeter', 'rejetés'], pourquoi: 'auxiliaire pluriel audible' },
+  { txt: 'Cette histoire a était raconter à l’aide de photos.', corrigeAttendu: ['raconter', 'racontée'], pourquoi: '« a était » = a été : le sujet féminin est avant l’auxiliaire avoir' },
+  { txt: 'elle a été raconter hier.', corrigeAttendu: ['raconter', 'racontée'], pourquoi: '« a été » : pronom sujet féminin avant avoir' },
+  { txt: 'je les ai vus hier.', rien: true, pourquoi: 'CONTRE-GARDE : accord déjà fait' },
+  { txt: 'il les a fait venir.', rien: true, pourquoi: 'CONTRE-GARDE : causatif « fait » + infinitif, invariable' },
+  { txt: 'Quand les as-tu achetées, ces belles pommes ?', rien: true, pourquoi: 'CONTRE-GARDE : « tu » inversé n’est pas le participe de taire' },
+  { txt: 'ceux qui sont dégoûtés du système partent.', rien: true, pourquoi: 'CONTRE-GARDE : « du système » est un complément, pas le sujet — l’orange « part » du produit seul est éteint (garde Python portée)' },
+  { txt: 'La température la plus froide a été enregistrée hier.', rien: true, pourquoi: 'CONTRE-GARDE : tête superlative « la plus froide » — pas un nom, pas d’orange « enregistré » (UD 2134)' },
   { txt: 'je somme le témoin de parler.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 1re du singulier, accordé' },
   /* ⭐ « DESERT » → DESSERT (11/09/2026) : la route double-consonne ne cédait qu'au CIRCONFLEXE ; désert (aigu, nom, 23,8/M)
      attendait derrière. La garde cède aussi à l'aigu/grave quand le rival n'est PAS verbal — jette/jeté reste au contexte. */

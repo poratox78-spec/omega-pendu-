@@ -414,6 +414,8 @@ const VIG_PHRASES = PHRASES.concat([
   'je manger des fraises.', "J'aimer les fraises.",                                                   // infinitif après pronom sujet (CRULES) ; j'+inf (JS seul)
   'le maçons ont du mal à élever les murs.', 'la maison ont brûlé.',                                // nombre du déterminant (orange) ; contrôle : nom singulier → rien
   "j'est dans ma chambre.", "j'est descendu.", "j'est descendu l'escalier.", "j'est de Paris.", "j'est entendu le tonnerre.", "j'est fatigué.",   // j'est/j'ai : orange (dans, mouvement nu) + rouges (de + nom propre, participe irrégulier, état)
+  "ceux qui sont dégoûtés du système partent.", "les amis du voisin partent.",   // contrôles : contracté du/des derrière un participe/nom = complément → silence des deux côtés (12/09)
+  "La température la plus froide a été enregistrée hier.",   // contrôle : tête superlative « la plus froide » → silence des deux côtés (12/09, UD 2134)
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const appVig = p => { const t = String(p).replace(/[’ʼ]/g, "'"); const rouge = new Set(corr(t).map(f => f.i)); globalThis.__segOn(t); const T = globalThis.__toks(t), out = [];
   for (let i = 0; i < T.length; i++) if (!rouge.has(i)) for (const [fn, nom] of VIG_ORD) { const s = globalThis.__vig[fn](T, i); if (s) { out.push([i, T[i], s, nom]); break; } }

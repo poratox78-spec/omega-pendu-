@@ -24738,6 +24738,7 @@ window.addEventListener('DOMContentLoaded', () => {
   //                   mais après un auxiliaire c'est « réparé » qu'il faut).
   function _emit(src,fn,supposeFautif){var c=fn(_canonW(src,supposeFautif));   // transformation appliquée au radical CANONIQUE, puis on n'émet QUE si le résultat est un mot connu
     if(SP&&SP.ready&&SP.WORDS&&!SP.WORDS.has(c.toLowerCase()))return null;return c;}
+  function _ppRelit(T,i,part){if(!part)return null;var Tv=T.slice();Tv[i]=part;var r=null;try{r=rPpEtre(Tv,i);}catch(e){r=null;}if(!r){try{r=rPpAvoirCod(Tv,i);}catch(e){r=null;}}return (r&&r.toLowerCase()!==part.toLowerCase())?r:null;}   /* ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est NU ; on relit l'accord du participe sur la liste virtuelle, un pas (miroir Python _pp_relit) */
   function rEer(T,i){
     if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
       if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
@@ -24753,7 +24754,7 @@ var w=T[i],lw=w.toLowerCase(),f;
       // trancher en plus par la structure (proposition ayant déjà un verbe conjugué) répare 2 cas de plus
       // mais coûte 14 FAUX POSITIFS à l'échelle (FP UD 1,44 % -> 2,00 %) — ne pas refaire.
       if(i>0&&deacc(T[i-1].toLowerCase())==='a'&&rA(T,i-1)==='à')return f[1];   // rule_a_aa tranche : PRÉPOSITION → infinitif ; sinon comportement d'origine (participe) — « mon frère a manger »→mangé reste corrigé
-      return _emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});}if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;/* ⭐ …ET LA TABLE ACCENTUÉE (08/09/2026, miroir Python GENDER_ACC) : GENDER_MAP est DÉSACCENTUÉE, elle perd tout nom dont la clé nue est partagée — « trace » (f) et « tracé » (m) s'annulent, donc « tracé » n'y est pas et « et de tracé (y compris…) » devenait « tracer ». Ici on CONNAÎT la graphie accentuée (f[0]) : on interroge _GACC, table que le moteur charge déjà et qui sait que « tracé » est un nom masculin. Mesuré : 0 correction perdue, 5 FP éteints (tracé ×2, adapté, chassé, péché), 0 tir sur 14 450 phrases d'UD. *//* ⚠️ RESSERRÉ le 08/09 par la BATTERIE, que la mesure de corpus ne pouvait pas voir : « Ma mere ma dit de rentré avant huit heure » (banc textes_probe, hors corpus) perdait sa correction — _GACC classe « rentré » nom masculin. INTERSECTION avec le tagger (doctrine : l'intersection vaut, jamais une condition seule) : NOUN sur tracé/cité/péché, VERB sur rentré/juré/adapté/chassé/protégé. */var _g4=_GACC[f[0].toLowerCase()];if(_g4==='m'||_g4==='f'){var _t4=posTags(T);if(_t4&&i<_t4.length&&(_t4[i]==='NOUN'||_t4[i]==='PROPN'))return null;}return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
+      var _pe=_emit(w,function(x){return /er$/.test(deacc(x.toLowerCase()))?x.slice(0,-2)+'é':x;});return (_pe&&_pe.toLowerCase()!==lw)?(_ppRelit(T,i,_pe)||_pe):_pe;}/* participe ACCORDÉ si le contexte le permet (lot 2) ; participe DÉJÀ écrit → rien ici (rPpEtre a son explication) — la ligne continue */if(PREP[p]){if(GENDER_MAP[deacc(f[0].toLowerCase())])return null;/* ⭐ …ET LA TABLE ACCENTUÉE (08/09/2026, miroir Python GENDER_ACC) : GENDER_MAP est DÉSACCENTUÉE, elle perd tout nom dont la clé nue est partagée — « trace » (f) et « tracé » (m) s'annulent, donc « tracé » n'y est pas et « et de tracé (y compris…) » devenait « tracer ». Ici on CONNAÎT la graphie accentuée (f[0]) : on interroge _GACC, table que le moteur charge déjà et qui sait que « tracé » est un nom masculin. Mesuré : 0 correction perdue, 5 FP éteints (tracé ×2, adapté, chassé, péché), 0 tir sur 14 450 phrases d'UD. *//* ⚠️ RESSERRÉ le 08/09 par la BATTERIE, que la mesure de corpus ne pouvait pas voir : « Ma mere ma dit de rentré avant huit heure » (banc textes_probe, hors corpus) perdait sa correction — _GACC classe « rentré » nom masculin. INTERSECTION avec le tagger (doctrine : l'intersection vaut, jamais une condition seule) : NOUN sur tracé/cité/péché, VERB sur rentré/juré/adapté/chassé/protégé. */var _g4=_GACC[f[0].toLowerCase()];if(_g4==='m'||_g4==='f'){var _t4=posTags(T);if(_t4&&i<_t4.length&&(_t4[i]==='NOUN'||_t4[i]==='PROPN'))return null;}return f[1];}if(MODAL[p])return f[1];return null;}   // direction INFINITIF laissée telle quelle : la canonicaliser coûte +5 FP mesurés (« accord grammatical (é/er) » 25->29) pour zéro non-mot évité — le prix est dans la direction PARTICIPE, pas ici
   // -er/-é/-ez/-ai (verbe 1er groupe) tranché par le GOUVERNEUR (test mordre/mordu) — MIROIR de correcteur_probe.rule_flexion_er (parité)
   var _AUX_AV={avoir:1,avais:1,avaient:1,etre:1,ete:1,etais:1,etait:1,etaient:1,etions:1,etiez:1,serai:1,seras:1,serez:1,serons:1,soient:1,sois:1};Object.keys(AUX_AVOIR).forEach(function(k){_AUX_AV[k]=1;});Object.keys(AUX_ETRE).forEach(function(k){_AUX_AV[k]=1;});   // participe : avoir ET être (« je suis allez »→allé, « a été fabriquer »→fabriqué)
   var _FLEX_CLITIC={se:1,me:1,te:1};   // clitiques réfléchis PURS sautés pour trouver le vrai gouverneur (« veut se séparer »). le/la/les EXCLUS (ambigus déterminant : « la cité »=NOM)
@@ -24800,7 +24801,7 @@ var w=T[i],lw=w.toLowerCase();
     if(cur===tgt)return null;
     if(/(és|ées)$/.test(lw)&&(tgt==='inf'||tgt==='p2pl'||tgt==='fut1'))return null;
     if(/ée$/.test(lw)&&tgt!=='part')return null;
-    var sugg=forms[tgt];if(tgt==='p2pl'&&cur==='fut1')sugg=inf+'ez';   /* ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé (« vous souhaiterai » → souhaiterez, pas souhaitez) — miroir Python */
+    var sugg=forms[tgt];if(tgt==='p2pl'&&cur==='fut1')sugg=inf+'ez';if(tgt==='part'){var _ag=_ppRelit(T,i,sugg);if(_ag)sugg=_ag;}   /* ⭐ 12/09/2026 (lot 2) : participe ACCORDÉ si le contexte le permet */   /* ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé (« vous souhaiterai » → souhaiterez, pas souhaitez) — miroir Python */
     if(deacc(sugg)===d)return null;
     return ckeepcase(w,sugg);}
   // IMPÉRATIF (motifs LOCAUX, FP≈0) — MIROIR correcteur_probe.rule_imperatif : -s euphonique en/y, pas de -s (trait d'union + pronom), irréguliers jamais valides
@@ -26163,7 +26164,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(MODAL[p]||PREP[p])return keep('être');                      // infinitif (« veux/de/pour être »)
     return {sugg:pre+'être',vig:1};}                               // contexte ambigu → ORANGE « être ? » (à vérifier)
   // participe passé -é après « ils/elles + être » (collé, tolère ne…pas) → accord pluriel : ils→-és, elles→-ées. FP=0 (cf. correcteur_probe.rule_pp_etre).
-  var PPE3P={sont:1,etaient:1,seront:1,soient:1,furent:1,seraient:1},PPMID={ne:1,n:1,pas:1,plus:1,jamais:1,y:1,en:1,se:1,s:1,deja:1,toujours:1,aussi:1,bien:1,encore:1,tous:1,toutes:1,tout:1};
+  var PPE3P={sont:1,etaient:1,seront:1,soient:1,furent:1,seraient:1},PPMID={ne:1,n:1,pas:1,plus:1,jamais:1,y:1,en:1,se:1,s:1,deja:1,toujours:1,aussi:1,bien:1,encore:1,tous:1,toutes:1,tout:1,tres:1,trop:1,peu:1,souvent:1,vraiment:1,assez:1,plutot:1};   // ⭐ 12/09/2026 (lot 2) : adverbes de degré (« sont TRÈS fréquentés »)
+  var PPA_AUXP={ont:1,avons:1,avaient:1,avions:1,auront:1,aurons:1,auraient:1,aurions:1,aient:1,ayons:1,eurent:1,eumes:1};   // avoir PLURIEL audible devant « été » (miroir _PP_AVOIR_P)
   // Accord du PARTICIPE PASSÉ (-er) avec le SUJET après ÊTRE — MIROIR de correcteur_probe.rule_pp_etre (parité)
   var PPE_AUX={},PPE_AUXP={},PPE_SUBJ={il:['s','m'],elle:['s','f'],ils:['p','m'],elles:['p','f'],nous:['p','?'],je:['s','?'],tu:['s','?']};
   'suis es est sommes etes sont etais etait etions etiez etaient sera seras serez serons seront sois soit soyons soyez soient fut furent serais serait'.split(' ').forEach(function(w){PPE_AUX[w]=1;});
@@ -26196,6 +26198,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(i+1<T.length&&(T[i+1].toLowerCase()==='à'||deacc(T[i+1].toLowerCase())==='de'||deacc(T[i+1].toLowerCase())==="d'")&&i+2<T.length&&_isInfinitive(T[i+2]))return null;   // PP + à/de + INFINITIF (« eu à traiter », « décidé de modifier ») → invariable
     var a=-1,aje=false,k;for(k=i-1;k>=0&&k>i-4;k--){var tk=T[k].toLowerCase(),dk=deacc(tk);if(AVOIR_AUX[dk]){a=k;break;}if(AVOIR_JE[tk]){a=k;aje=true;break;}if(PPMID[dk])continue;return null;}
     if(a<0)return null;
+    var _cl=a-1;while(_cl>=0&&(deacc(T[_cl].toLowerCase())==='ne'||deacc(T[_cl].toLowerCase())==='n'))_cl--;var _inv=(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])||!!SUBJ_PRON[deacc(lw)]||deacc(lw)==='nous'||deacc(lw)==='vous';if(_cl>=0&&!aje&&!_inv&&T[_cl].toLowerCase()==='les'){var _sc=_ppAccord(base,'p','m');return _sc.toLowerCase()!==lw?ckeepcase(T[i],_sc):null;}   /* ⭐ 12/09/2026 (lot 2) : clitique COD « les » juste avant l'auxiliaire (« les a léché ») → pluriel certain, genre inconnu gardé masculin (miroir Python) */
     var q=-1;
     if(aje){if(a-1<0||!_qq(T[a-1]))return null;q=a-1;}
     else{var bk=a-1;while(bk>=0&&(deacc(T[bk].toLowerCase())==='ne'||deacc(T[bk].toLowerCase())==='n'))bk--;if(bk<0)return null;var tb=T[bk].toLowerCase();
@@ -26288,10 +26291,13 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   function rPpEtre(T,i){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0)return null;
     var base=_ppBase(T[i]);if(base===null)return null;
     if(/^(vu|entendu|senti|regarde|ecoute|apercu|laisse|envoye|fait)$/.test(deacc(base))&&i+1<T.length&&COMMON_VERBS[deacc(T[i+1].toLowerCase())])return null;   // « s'est vu/fait/laissé + INFINITIF » → PP INVARIABLE (piège Voltaire)
-    var a=-1,k;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
-    if(a<0)return null;var auxNum=PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s';
+    var a=-1,k,_comp=false;for(k=i-1;k>=0&&k>i-4;k--){var dk=deacc(T[k].toLowerCase());
+      if(dk==='ete'||dk==='etait'){for(var k2=k-1;k2>=0&&k2>k-4;k2--){var d2=deacc(T[k2].toLowerCase());if(AVOIR_AUX[d2]||AVOIR_JE[T[k2].toLowerCase()]){a=k2;_comp=true;break;}if(PPMID[d2])continue;break;}if(_comp)break;if(dk==='ete')return null;}   /* ⭐ 12/09/2026 (lot 2) : « ont été dégoûté », « a était raconté » → l'auxiliaire AVOIR porte le sujet (miroir Python) */
+      if(PPE_AUX[dk]){a=k;break;}if(PPMID[dk])continue;return null;}
+    if(a<0)return null;var auxNum=_comp?(PPA_AUXP[deacc(T[a].toLowerCase())]?'p':'s'):(PPE_AUXP[deacc(T[a].toLowerCase())]?'p':'s');var _a1ok=!!_A1AUXPL[deacc(T[a].toLowerCase())]||(_comp&&!!PPA_AUXP[deacc(T[a].toLowerCase())]);
     var _a1refl=false;for(var _kr=Math.max(0,a-2);_kr<a;_kr++){var _dr=deacc(T[_kr].toLowerCase());if(_dr==='se'||_dr==='s'){_a1refl=true;break;}}   // #A1 : verbe pronominal (« se sont … ») → PP potentiellement invariable → A1 s'abstient
-    var info=null,sk=-1;for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
+    var info=null,sk=-1;if(_comp&&AVOIR_JE[T[a].toLowerCase()]){info=PPE_SUBJ['je'];sk=a;}   // « j'ai été surpris » : le sujet est dans le token de l'auxiliaire
+    if(!info)for(k=a-1;k>=0&&k>a-3;k--){var d2=deacc(T[k].toLowerCase());if(d2==='ne'||d2==='n')continue;info=PPE_SUBJ[d2];sk=k;break;}
     if(!info&&a>=1){var _mel=_ELIDED_PRON.exec(T[a-1].toLowerCase());if(_mel){info=PPE_SUBJ[deacc(_mel[1])];sk=a-1;}}   // pronom élidé avant l'aux : le LIRE — il porte personne+genre+nombre (« Je crois qu'elle est parti »→partie ; mesuré muet 30/08/2026). qu'on/qu'vous → absent de PPE_SUBJ → prudence ci-dessous. Miroir Python.
     if(!info){                                                                   // pas de sujet PRONOM → sujet NOM via le VRAI PARSEUR (miroir rule_pp_etre : mots-écrans sautés, coordination/inf/PP → abstention)
       if(a>=1&&_elidKind(T[a-1])==='pron')return null;   // PRONOM élidé non lisible (« qu'on », « n'… ») → le vrai sujet est le clitique, prudence. AVANT : veto EN BLOC sur l'apostrophe, qui écartait aussi le DÉTERMINANT élidé (« l'origine est discuté ») — l'angle mort mesuré.
@@ -26307,8 +26313,10 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       if(i+1<tgp.length&&tgp[i+1]==='DET'&&!_detDeTemps(T,i+1))return null;
       var sj=_npSubject(T,tgp,a);
       if(sj===null){if(auxNum==='p'&&_ppCoordSubject(T,tgp,a)==='p'){var gcp=(/e$/.test(lw)&&!/é$/.test(lw))?'f':'m',sgp=base+(gcp==='f'?'es':'s');return sgp.toLowerCase()!==lw?ckeepcase(T[i],sgp):null;}
-        if(!_a1refl&&_A1AUXPL[deacc(T[a].toLowerCase())]&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');   // #A1 : sujet non résolu, aux pluriel audible → nombre seul (masc gardé)
+        if(!_a1refl&&_a1ok&&/é$/.test(lw)&&deacc(lw)===deacc(base))return ckeepcase(T[i],base+'s');   // #A1 : sujet non résolu, aux pluriel audible → nombre seul (masc gardé)
         return null;}   // sujet COORDONNÉ « X et Y sont » → pluriel, genre écrit gardé (miroir Python)
+      if(/^(plus|moins|mieux)$/.test(deacc(String(sj.htxt||'').toLowerCase())))return null;   /* ⭐ 12/09/2026 : tête SUPERLATIVE (« la plus froide a été enregistrée ») — pas un nom (miroir Python, UD 2134) */
+      if(sj.n==='s'&&auxNum==='p'&&_a1ok&&PLURAL_DET[deacc(String(sj.dtxt||'').toLowerCase())])sj.n='p';   // ⭐ 12/09/2026 (lot 2) : « ces produit chimique sont appliqué » — le nom a perdu son -s, déterminant et aux audible disent pluriel
       if(sj.n!==auxNum)return null;                                            // nombre du sujet ≠ aux → sujet mal identifié → abstention
       if(a-sj.idx>5)return null;                                                // sujet trop LOIN de l'aux → parseur peu fiable (FP)
       for(var kk=sj.idx+1;kk<a;kk++){if(T[kk].charAt(0)!==T[kk].charAt(0).toLowerCase()&&kk<tgp.length&&(tgp[kk]==='NOUN'||tgp[kk]==='PROPN'))return null;}   // nom propre entre sujet et aux → ambigu (FP)
@@ -26317,7 +26325,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       return sg2.toLowerCase()!==lw?ckeepcase(T[i],sg2):null;
     }
     if(_SEG&&sk<_SEG.hy.length&&_SEG.hy[sk])return null;                         // « poursuit-il » = inversion, pas le sujet
-    var num=info[0],gen=info[1];if(num!==auxNum)return null;var _refl=(deacc(T[sk].toLowerCase())==='se')||(sk>=1&&PPE_SUBJ[deacc(T[sk-1].toLowerCase())]);if(_refl&&i+1<T.length){var _tgn=posTags(T);if(_tgn&&i+1<_tgn.length&&(_tgn[i+1]==='NOUN'||_tgn[i+1]==='DET'))return null;}   // pronominal réfléchi COI + COD après → PP INVARIABLE (« nous sommes rendu service »)
+    var num=info[0],gen=info[1];if(num!==auxNum){if(num==='s'&&auxNum==='p'&&_a1ok&&(deacc(T[sk].toLowerCase())==='il'||deacc(T[sk].toLowerCase())==='elle'))num='p';else return null;}   /* ⭐ 12/09/2026 (lot 2) : « il sont dégouté » — le -s du pronom est tombé, l'aux audible est fiable (miroir Python) */var _refl=(deacc(T[sk].toLowerCase())==='se')||(sk>=1&&PPE_SUBJ[deacc(T[sk-1].toLowerCase())]);if(_refl&&i+1<T.length){var _tgn=posTags(T);if(_tgn&&i+1<_tgn.length&&(_tgn[i+1]==='NOUN'||_tgn[i+1]==='DET'))return null;}   // pronominal réfléchi COI + COD après → PP INVARIABLE (« nous sommes rendu service »)
                      // aux/sujet en désaccord de nombre → abstention
     if(gen==='?')gen=(deacc(lw.slice(-1)==='s'?lw.slice(0,-1):lw)===deacc(base)+'e')?'f':'m';
     var sugg=base+({sm:'',sf:'e',pm:'s',pf:'es'}[num+gen]);
@@ -26652,7 +26660,9 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       }
       if(d==='qui')return null;
       if(svReads(w).length)return null;
-      if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN')){var _np=_npSubject(T,tg,i);return (_np&&(_np.n==='s'||_np.n==='p'))?['3',_np.n,'nom']:null;}   // sujet NOMINAL → palier ORANGE (miroir Python)
+      if(tg&&j<tg.length&&(tg[j]==='NOUN'||tg[j]==='PROPN')){var _np=_npSubject(T,tg,i);if(!_np||(_np.n!=='s'&&_np.n!=='p'))return null;   // sujet NOMINAL → palier ORANGE (miroir Python)
+        var _dd=deacc(String(_np.dtxt||'').toLowerCase());if((_dd==='des'||_dd==='du'||_dd==='au'||_dd==='aux')&&_np.idx>=2){var _av=_np.idx-2;if(_av>=0&&(svReads(T[_av]).length||(tg&&_av<tg.length&&(tg[_av]==='NOUN'||tg[_av]==='PROPN'||tg[_av]==='VERB'||tg[_av]==='AUX'))))return null;}   /* ⭐ 12/09/2026 : contracté des/du/au/aux derrière un verbe ou un nom = COMPLÉMENT, pas le sujet (miroir Python, garde absente ici) — « dégoûtés du système partent » ne donne plus « part » */
+        return ['3',_np.n,'nom'];}
       if(CLITIC[d]||(tg&&j<tg.length&&tg[j]==='ADV')){j--;continue;}
       if(_ADJ_ANTE[d]||(tg&&j<tg.length&&tg[j]==='ADJ')){j--;continue;}   // « les petits chats manges » : l'adjectif antéposé se traverse
       return null;
