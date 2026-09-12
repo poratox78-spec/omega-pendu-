@@ -4203,6 +4203,33 @@ def rule_jest_vig(T, i):
     return rule_jest(T, i, True)
 
 
+# ⭐ AUXILIAIRE MANQUANT après je (12/09/2026, ordre validé par Rem : « je noté ») — « je » + participe en -é n'existe pas en français ;
+# le dys y a perdu l'auxiliaire (« je levée mes mains » → j'ai levé, « quand je retourné à la maison » → je suis retourné : les 2 cas
+# réels, dans ses messages). Sortie ORANGE sur le pronom : « j'ai ? » / « je suis ? » — la décision avoir/être est CELLE DE rule_jest,
+# appelée sur un « j'est » virtuel. Recensé sur 19 831 paires : il/elle + -é = 0 juste sur 8 (« il créé » = crée, présent mal accentué)
+# → exclus ; « on » + participe = on/ont (5/5) → exclu ; participes -i/-u = passé simple homophone (« il voulu » → voulut) → exclus ;
+# « été » = était. UD 14 450 phrases correctes : 0 tir. Avec un marqueur de futur, rule_flexion_er rend le futur (rouge) : pas d'orange.
+_AUXM_PRON = {'je': (u"j'ai", u'je suis')}   # « tu » EXCLU : « tu mangé » a déjà la lecture « tu manges » (personne du verbe) — deux oranges contradictoires, 0 cas « tu » recensé
+
+
+def rule_aux_manquant_vig(T, i):
+    p = deacc(T[i].lower())
+    if p not in _AUXM_PRON or i + 1 >= len(T): return None
+    nxt = T[i + 1]; nl = nxt.lower(); dn = deacc(nl)
+    if nxt != nl or "'" in nl or dn == 'ete': return None
+    if not re.search(u'(é|ée|és|ées)$', nl) or _inf1(nxt) is None or not _is_ppl(nxt): return None
+    if _SEG is not None:
+        if i < len(_SEG['hy']) and _SEG['hy'][i]: return None                    # « ai-je noté », « as-tu mangé » (inversion)
+        if i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]: return None            # ponctuation entre le pronom et le participe
+        if i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None
+    if i >= 1 and (deacc(T[i - 1].lower()) in NUM_DET or deacc(T[i - 1].lower()).split("'")[-1] in FULL_AUX): return None   # « le je », « s'est tu »
+    if any(deacc(t.lower()) in FUTURE_MARK for t in T): return None               # « demain je noté » → noterai (rule_flexion_er, rouge)
+    Tv = T[:i] + [u"j'est"] + T[i + 1:]
+    r = rule_jest(Tv, i) or rule_jest(Tv, i, True)
+    if r is None: return None
+    return _keepcase(T[i], _AUXM_PRON[p][1 if deacc(r.lower()) == u'je suis' else 0])
+
+
 def rule_cai(T, i):
     """« c'ai » (c' + ai) est TOUJOURS invalide → « c'est » : confusion avoir/être (le « vice-versa » de j'est→j'ai).
     FP=0 (« c'ai » n'existe jamais en français)."""
@@ -5623,6 +5650,7 @@ RULES = [('élision inversée', rule_deselide),
          ('infinitif après pronom sujet à vérifier', rule_pron_inf),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
          ("j'est/j'ai à vérifier", rule_jest_vig),   # ⭐ 12/09/2026 : les deux lectures incertaines de « j'est » (dans/sur/sous/avec ; mouvement sans objet) → je suis PROPOSÉ
+         ('auxiliaire manquant à vérifier', rule_aux_manquant_vig),   # ⭐ 12/09/2026 : « je noté » → j'ai ? (auxiliaire tombé, décision avoir/être de rule_jest)
          ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('accord du participe après avoir à vérifier', rule_pp_avoir_surnum),   # ⭐ 12/09/2026 — RÈGLE NEUVE, orange : accord surnuméraire (« a signés un contrat » → signé)
          ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026

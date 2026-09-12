@@ -55,7 +55,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    cible RARE à une lettre d'un auxiliaire. Sans FREQ ici, SP.ready était vrai et la table VIDE : « Nous êtes là » se
    taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.) */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
+  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig,ppAvoirSurnumVig:ppAvoirSurnumVig,auxManquantVig:auxManquantVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
   'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
@@ -404,7 +404,7 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
    comme dans parity_core. EXIGENCE : chaque jumelle tire au moins une fois des DEUX côtés. */
 const VIG_ORD = [['semiInfVig', 'infinitif après semi-auxiliaire à vérifier'],
   ['persVig', 'personne du verbe à vérifier'], ['sujFlexNom', 'accord du verbe au sujet nominal à vérifier'], ['onOntVig', 'on/ont après un sujet pluriel à vérifier'],
-  ['rDetNumber', 'nombre du déterminant à vérifier'], ['jestVig', "j'est/j'ai à vérifier"], ['ppAvoirSurnumVig', 'accord du participe après avoir à vérifier']];   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
+  ['rDetNumber', 'nombre du déterminant à vérifier'], ['jestVig', "j'est/j'ai à vérifier"], ['ppAvoirSurnumVig', 'accord du participe après avoir à vérifier'], ['auxManquantVig', 'auxiliaire manquant à vérifier']];   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
 const VIG_PY = new Set(VIG_ORD.map(x => x[1]));
 const VIG_PHRASES = PHRASES.concat([
   'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
@@ -418,6 +418,7 @@ const VIG_PHRASES = PHRASES.concat([
   "La température la plus froide a été enregistrée hier.",   // contrôle : tête superlative « la plus froide » → silence des deux côtés (12/09, UD 2134)
   "ils ce sont déroulés hier.", "ce sont des amis.",   // ce/se + auxiliaire : le participe tranche (12/09) ; contrôle : groupe nominal → silence
   'Boeing a signés un contrat.', 'nous avons vue notre médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
+  'Hier je noté le numéro.', 'quand je retourné à la maison.', 'je fatigué ce soir.', 'Ai-je noté le numéro ?', 'Demain je noté le numéro.',   // auxiliaire manquant (orange) ; contrôles : inversion, futur (rouge ailleurs)
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const appVig = p => { const t = String(p).replace(/[’ʼ]/g, "'"); const rouge = new Set(corr(t).map(f => f.i)); globalThis.__segOn(t); const T = globalThis.__toks(t), out = [];
   for (let i = 0; i < T.length; i++) if (!rouge.has(i)) for (const [fn, nom] of VIG_ORD) { const s = globalThis.__vig[fn](T, i); if (s) { out.push([i, T[i], s, nom]); break; } }

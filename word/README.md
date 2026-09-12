@@ -13,8 +13,36 @@ refuse tout mot dont la reconstruction diffère) et en CI (`word/test_son_word.j
 | `taskpane.html` | volet Word ; charge `../extension/assets/g2p.js` (g2p du moteur, extrait verbatim de l'app) et `../extension/assets/son_core.js` (== `police/son_core.js`), polices via `@font-face` pour l'aperçu |
 | `son_word.js` | **planificateur pur** (sans Office.js) : mot → morceaux `{text, font, color}` ; testé sous node |
 | `taskpane.js` | glue Office.js : `getTextRanges` (mots) → `insertText('Replace')` puis `insertText('After')` par morceau, police + couleur par run ; « Police seule » ; « Police d'origine » |
-| `manifest.xml` | manifeste Office (TaskPaneApp, WordApi 1.3), pointe sur `https://omega-pendu.pages.dev/word/taskpane.html` |
+| `manifest.xml` | manifeste Office (TaskPaneApp, WordApi 1.3), pointe sur `https://omega-pendu.pages.dev/word/taskpane` (URL canonique : Cloudflare Pages redirige le `.html` en 308) |
 | `test_son_word.js` | garde CI : texte identique partout, polices connues, ancres poison/poisson/chats, glue simulée |
+
+## Premier essai dans Word — pas à pas (13/09/2026)
+
+Le complément n'a encore **jamais tourné dans Word réel** : cet essai est le premier. Il ne demande aucun compte développeur.
+
+**1. Les polices** (sinon Word en met une autre et la graisse ne suit pas) : télécharger
+`https://omega-pendu.pages.dev/omega-police-dys.zip`, l'ouvrir, clic droit sur chacun des 3 `.ttf` → **Installer pour tous les
+utilisateurs**, puis **fermer et rouvrir Word**.
+
+**2. Charger le complément** — le plus simple est **Word en ligne** (navigateur) :
+télécharger `https://omega-pendu.pages.dev/word/manifest.xml` → ouvrir un document sur office.com → **Accueil → Compléments →
+Plus de compléments → Mes compléments → Charger mon complément** → choisir `manifest.xml`. Le bouton « Police de son » apparaît
+dans le ruban (ou le volet s'ouvre directement).
+Word Windows (bureau) et Mac : voir « Installer » ci-dessous.
+
+**3. Le document d'essai** : 3 petits paragraphes, dont une **ligne vide**, une **tabulation**, de la ponctuation (« ! », « ? »,
+guillemets), un mot en **gras**, et les mots *poison*, *poisson*, *les chats*.
+
+**4. Ce qu'il faut regarder** (une capture d'écran par étape suffit) :
+- sélectionner un paragraphe → **Appliquer la police de son** : le texte est **identique** (aucune lettre en plus ou en moins), les
+  paragraphes **ne sont pas fusionnés**, le *s* de *poison* est **épais**, les *ss* de *poisson* **fins**, le *ts* de *chats* en
+  **brun** (muet) ; la ligne d'état du volet dit « ✓ police de son appliquée sur N mots » ;
+- cocher **Syllabes en couleur** et recommencer sur un autre paragraphe : une syllabe sur deux en **bleu** ;
+- **Police d'origine** : la police revient, le texte est noir ;
+- sans rien sélectionner → **Appliquer** : tout le document ; sur un long document la ligne d'état compte « application… k / N ».
+
+**5. Si ça ne marche pas** : recopier le message en rouge de la ligne d'état du volet (« erreur Word : … »), c'est lui qui dit
+où ça casse.
 
 ## Installer (sideload — pas encore sur AppSource)
 

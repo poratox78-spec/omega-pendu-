@@ -35,23 +35,35 @@
     Word.run(function (context) {
       return cible(context).then(function (range) {
         range.font.load('name');
-        var mots = range.getTextRanges([' ', '\n', '\t', '\r'], false);   // morceaux séparés par les blancs (ponctuation incluse)
+        // ⭐ 13/09/2026 : des MOTS sans blancs (trimSpacing = true). L'ancienne découpe ([' ', '\n', '\t', '\r'], false) rendait des
+        // morceaux AVEC l'espace ou la fin de paragraphe, ré-insérés par « Replace » : dans Word réel, une marque de paragraphe
+        // remplacée peut fusionner deux paragraphes. Les blancs ne sont plus jamais touchés.
+        var mots = range.getTextRanges([' '], true);
         mots.load('items/text');
         return context.sync().then(function () {
           if (originalFont == null) originalFont = range.font.name || 'Calibri';
-          var n = 0;
-          mots.items.forEach(function (w) {
-            var pieces = planner.plan(w.text, g2p, core, {syllabes: syllabes});
-            if (planner.rebuild(pieces) !== w.text) return;  // garde cardinale : jamais un texte différent
-            var r = w.insertText(pieces[0].text, 'Replace');
-            r.font.name = pieces[0].font; r.font.color = pieces[0].color;
-            for (var i = 1; i < pieces.length; i++) {
-              r = r.insertText(pieces[i].text, 'After');
-              r.font.name = pieces[i].font; r.font.color = pieces[i].color;
+          var n = 0, k = 0, items = mots.items;
+          function lot() {                                   // synchronisation par lots : un document entier en une requête dépasse Word en ligne
+            var fin = Math.min(k + 200, items.length);
+            for (; k < fin; k++) {
+              var w = items[k];
+              if (!w.text) continue;
+              var pieces = planner.plan(w.text, g2p, core, {syllabes: syllabes});
+              if (!pieces.length || planner.rebuild(pieces) !== w.text) continue;   // garde cardinale : jamais un texte différent
+              var r = w.insertText(pieces[0].text, 'Replace');
+              r.font.name = pieces[0].font; r.font.color = pieces[0].color;
+              for (var i = 1; i < pieces.length; i++) {
+                r = r.insertText(pieces[i].text, 'After');
+                r.font.name = pieces[i].font; r.font.color = pieces[i].color;
+              }
+              n++;
             }
-            n++;
-          });
-          return context.sync().then(function () { say('✓ police de son appliquée sur ' + n + ' mot' + (n > 1 ? 's' : ''), true); });
+            return context.sync().then(function () {
+              if (k < items.length) { say('application… ' + k + ' / ' + items.length); return lot(); }
+              say('✓ police de son appliquée sur ' + n + ' mot' + (n > 1 ? 's' : ''), true);
+            });
+          }
+          return lot();
         });
       });
     }).catch(function (e) { say('erreur Word : ' + (e && e.message ? e.message : e), false); });

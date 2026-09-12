@@ -94,6 +94,8 @@ def _check():
     elide += [("vous sommes contents", "sommes", "êtes"), ("vous somme très contents", "somme", "êtes"), ("ils somme là", "somme", "sont"), ("ils ce sont déroulés hier", "ce", "se"), ("Boeing a signés un contrat", "signés", "signé"), ("La France a réussie à se placer", "réussie", "réussi"), ("les faits ce sont déroulés hier", "ce", "se")]
     elide += [("mon chaton les a lécher sur la figure", "lécher", "léchés"), ("ils ont été dégoûter par leur entourage", "dégoûter", "dégoûtés"),
               ("ces produits chimiques sont appliquer dans la terre", "appliquer", "appliqués"), ("Cette histoire a était raconter hier", "raconter", "racontée")]   # ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est ACCORDÉ (clitique les, été après avoir, sujet nominal, a était)   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
+    elide += [("Hier je noté le numéro", "je", "j'ai"), ("quand je retourné à la maison", "je", "je suis"), ("je fatigué ce soir", "je", "je suis")]   # ⭐ 12/09/2026 : auxiliaire manquant après je (orange)
+    nofp += ["Ai-je noté le numéro ?", "je l'ai noté hier."]   # ⭐ 12/09/2026 : inversion, clitique → aucun flag
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):
