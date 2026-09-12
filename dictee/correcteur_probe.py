@@ -2714,7 +2714,7 @@ def _voisin_aux_long(dl):
     courtes (a, as, ai, es, est, ont, eu…) sont à une lettre de tout et ne signifient rien — même seuil que rule_aux_misspell."""
     global _AUX_LONGS
     if _AUX_LONGS is None: _AUX_LONGS = [f for f in FULL_AUX if len(f) >= 4]
-    return any(abs(len(f) - len(dl)) <= 1 and _lev(dl, f) == 1 for f in _AUX_LONGS)
+    return next((f for f in _AUX_LONGS if abs(len(f) - len(dl)) <= 1 and _lev(dl, f) == 1), None)   # ⭐ 12/09/2026 : rend la FORME voisine (« sommes »), vrai/faux avant
 
 
 def rule_aux_misspell(T, i):
@@ -3762,11 +3762,19 @@ def rule_sujet_flexion(T, i):
     _lec2 = [r for r in lec if r[1].startswith('sub')] if _que else [r for r in lec if not r[1].startswith('sub')]
     if _lec2: lec = _lec2                                            # « que » présent → subjonctif ; absent → indicatif
     cible, slot, lemc = None, per + nb, None
+    _cands = []
     for (lem, tps, _p, _n) in lec:
         f = (CONJ_C.get(lem) or {}).get(tps, {}).get(slot)
         if not f: return None                                        # le temps écrit n'est pas dans la table → abstention
-        if cible is None: cible = f; lemc = lem
-        elif cible != f: return None                                 # deux lemmes, deux formes → abstention
+        _cands.append((lem, f))
+    if len(set(f for _l, f in _cands)) > 1:
+        # ⭐ 12/09/2026 (« vous sommes » → êtes, cas de Rem) : deux lemmes, deux formes — on pèse les LEMMES avec la balance de la garde
+        #    « lemme rare » ci-dessous : un lemme < 1/M (sommer 0,23) s'efface devant un lemme courant (être 433). Deux lemmes courants
+        #    (« vis » : vivre / voir) → abstention comme avant. Inconnu ≠ rare. Silence d'ORIGINE (07/09), jamais une régression.
+        _forts = [(l, f) for l, f in _cands if (_lemfreq(l) is None or _lemfreq(l) >= 1.0)]
+        if len(set(f for _l, f in _forts)) != 1: return None
+        _cands = _forts[:1]
+    lemc, cible = _cands[0]
     if not cible or cible.lower() == lw: return None
     if deacc(cible.lower()) == dl and not _hors: return None   # accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
     # ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → *sommons*, « vous somme » → *sommez*.
@@ -3779,7 +3787,16 @@ def rule_sujet_flexion(T, i):
     # COURANTS (faire 3 040/M, pouvoir 253/M), à une lettre de fûmes/fûtes/furent ; la couverture de la conjugaison l'a vu
     # (−3 nous, −3 vous, −1 qu'ils, −1 les chats). « nous vont » → allons : aller 956/M, gardé.
     _lf = _lemfreq(lemc) if lemc else None
-    if _lf is not None and _lf < 1.0 and _voisin_aux_long(dl): return None   # lemme CONNU et rare (inconnu ≠ rare : miroir JS)
+    if _lf is not None and _lf < 1.0:
+        _vx = _voisin_aux_long(dl)
+        if _vx:                                                      # lemme CONNU et rare (inconnu ≠ rare : miroir JS)
+            # ⭐ 12/09/2026 : plus de silence — l'écrit est à une lettre d'une forme LONGUE d'être/avoir (« vous somme » ↔ sommes) : c'est CET
+            #    auxiliaire, conjugué pour le sujet (→ êtes), pas le verbe rare et pas le silence. Miroir JS sujFlexVig.
+            for (_l2, _t2, _p2, _n2) in _reads(_vx):
+                if _l2 in ('etre', 'avoir'):
+                    _f2 = (CONJ_C.get(_l2) or {}).get(_t2, {}).get(slot)
+                    if _f2 and _f2.lower() != lw: return _keepcase(w, _f2)
+            return None
     return _keepcase(w, cible)
 
 
