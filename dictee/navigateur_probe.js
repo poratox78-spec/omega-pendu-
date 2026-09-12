@@ -175,6 +175,8 @@ const CAS = [
   { txt: 'nous vont au parc.', corrigeAttendu: ['vont', 'allons'], pourquoi: 'TÉMOIN : « vont » est à une lettre de « sont », mais allons (512/M) n’est pas rare — la garde ne le mange pas' },
   { txt: 'vous somme très contents.', corrigeAttendu: ['somme', 'êtes'], pourquoi: '⭐ 12/09 (cas de Rem) : une lettre d’un auxiliaire long → cet auxiliaire conjugué pour « vous », plus de silence (ni « sommez »)' },
   { txt: 'vous sommes contents.', corrigeAttendu: ['sommes', 'êtes'], pourquoi: '⭐ 12/09 (cas de Rem) : sujet-verbe côte à côte — le lemme rare « sommer » s’efface devant « être »' },
+  { txt: 'ils somme là depuis midi.', corrigeAttendu: ['somme', 'sont'], pourquoi: '⭐ 12/09 (audit des abstentions) : lemme rare à une lettre de « sommes » → l’auxiliaire conjugué, plus « somment » (rouge faux)' },
+  { txt: 'il somme les gens de partir.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 3e du singulier, accordé — le vrai verbe rare reste muet' },
   { txt: 'je somme le témoin de parler.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 1re du singulier, accordé' },
   /* ⭐ « DESERT » → DESSERT (11/09/2026) : la route double-consonne ne cédait qu'au CIRCONFLEXE ; désert (aigu, nom, 23,8/M)
      attendait derrière. La garde cède aussi à l'aigu/grave quand le rival n'est PAS verbal — jette/jeté reste au contexte. */

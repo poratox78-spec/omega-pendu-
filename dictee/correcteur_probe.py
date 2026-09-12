@@ -2563,6 +2563,17 @@ def rule_accord_sv(T, i):
     lemmas = {l for (l, _mt, _p, _n) in reads}
     if len(lemmas) != 1: return None                             # forme homographe inter-lemmes (vis=vivre/voir) → abstention
     lem = lemmas.pop()
+    _lfa = _lemfreq(lem)
+    if _lfa is not None and _lfa < 1.0:
+        # ⭐ 12/09/2026 (audit des abstentions) : « ils somme » → sont, pas « somment » — le lemme est RARE (sommer 0,23/M) et l'écrit est à une
+        #    lettre d'une forme LONGUE d'être/avoir (« sommes ») : c'est CET auxiliaire, conjugué pour le sujet. Même balance que rule_sujet_flexion.
+        _vxa = _voisin_aux_long(_dsv)
+        if _vxa:
+            for (_l2, _t2, _p2, _n2) in _reads(_vxa):
+                if _l2 in ('etre', 'avoir'):
+                    _f2 = (CONJ_C.get(_l2) or {}).get(_t2, {}).get(per + nb)
+                    if _f2 and _f2.lower() != T[i].lower(): return _f2
+            return None
     mts = [mt for (_l, mt, _p, _n) in reads]
     # ⭐ LE MODE AVANT LE TEMPS (08/09/2026). Le commentaire d'origine disait « sinon le temps tapé » ;
     # `mts[0]` est en fait le PREMIER ORDRE DU LEXIQUE. « Il faut que je disiez » : lectures
@@ -5566,7 +5577,8 @@ CASES = [
     ("Nous allons au parc", "allons", "allez", "personne du verbe"),
     ("Nous sommes là", "sommes", "êtes", "personne du verbe"),
     ("Vous êtes très contents", "êtes", "sommes", "personne du verbe"),   # ⭐ 12/09/2026 (cas de Rem) : deux lemmes (être / sommer), le rare s'efface — silence d'origine levé
-    ("Vous êtes très contents", "êtes", "somme", "personne du verbe"),    # une lettre d'une forme longue d'être → cet auxiliaire conjugué (plus « sommez », plus le silence)
+    ("Vous êtes très contents", "êtes", "somme", "personne du verbe"),
+    ("Ils sont là", "sont", "somme", "accord sujet-verbe"),   # ⭐ 12/09/2026 : lemme rare (sommer) à une lettre de « sommes » → l'auxiliaire conjugué, plus « somment »    # une lettre d'une forme longue d'être → cet auxiliaire conjugué (plus « sommez », plus le silence)
     ("Vous allez au parc", "allez", "allons", "personne du verbe"),
     ("Nous mangeâmes bien", "mangeâmes", "mangeames", "personne du verbe"),
     ("Vous mangeâtes bien", "mangeâtes", "mangeates", "personne du verbe"),
