@@ -84,6 +84,7 @@ def _check():
     abstain = []                                                                   # l'ancienne abstention « aux ambigu » est levée : chaque contexte a sa sortie
     nofp = ["Le chat mange une pomme.", "je suis content", "j'ai de la peine",
             "l'homme est là", "j'aime le café", "n'est-ce pas", "d'abord il faut"]  # texte correct (élision OK) → 0 flag
+    nofp += ["nous prîmes la porte.", "nous avions la marche à suivre."]   # ⭐ 12/09/2026 : noms homographes de verbes derrière un pronom NON adjacent → aucun flag (FP de la 0.6.25)
     nofp += ["ce sont des amis.", "ce sont eux qui décident.", "ils se sont déroulés hier."]   # ⭐ 12/09/2026 : « ce sont » + groupe nominal reste « ce » ; « se sont » déjà juste
     nofp += ["La température la plus froide a été enregistrée hier.", "les fleurs sont fanées.", "je les ai vus hier."]   # ⭐ 12/09/2026 (lot 2) : texte correct → 0 flag (tête superlative, accord déjà fait, clitique + participe accordé)
     elide = [("J'sais que c'est vrai", "J'sais", "Je sais"), ("Personne n'sait", "n'sait", "ne sait"),

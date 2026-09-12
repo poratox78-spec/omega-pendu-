@@ -2805,6 +2805,7 @@ function estQuestion(t,maxMots){
   var _ROUGE=true;   // basculé par la jumelle ORANGE le temps de son appel (miroir Python)
   function sujFlexNom(T,i){_ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
   function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=SP.D2A[lem];if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((SP.FREQ[_va[_z]]||0)>_lf)_lf=SP.FREQ[_va[_z]]||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
+  var _SUJ_SAUT={ne:1,n:1,se:1,s:1,me:1,m:1,te:1,t:1,y:1,en:1,le:1,la:1,les:1,lui:1,leur:1};   // clitiques et négation entre le pronom sujet et le verbe (garde d'adjacence, 12/09/2026)
   function sujFlexVig(T,i){   /* « nous iriez » → irions · « tu irai » → iras. Le sujet donne personne et nombre, la forme écrite
      donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
     if(!CONJ_F||!CONJ_C)return null;
@@ -2827,7 +2828,10 @@ function estQuestion(t,maxMots){
     if(i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])return null;   /* ⭐ 12/09/2026 : LA GARDE QUI MANQUAIT — après un auxiliaire c'est un PARTICIPE (« nous sommes ravis ») ; le tagger la tenait par accident (miroir Python) */
     if(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]&&PPMID[deacc(T[i-1].toLowerCase())])return null;   /* …à distance seulement à travers un mot TRAVERSABLE : entre l'auxiliaire et le participe il n'y a jamais un PRONOM SUJET (« est il vien sasoir » → vient, réparé perdu par la 1re version) */
     var _casex=[],_cx;for(_cx=0;_cx<lec.length;_cx++){var _fx=((CONJ_C[lec[_cx][0]]||{})[lec[_cx][1]]||{})[lec[_cx][2]+lec[_cx][3]];if(_fx&&_fx.toLowerCase()===lw)_casex.push(lec[_cx]);}
-    var _sub0=_sujetFlexion(T,i,tg),_ouvre=!!_casex.length&&!!_sub0&&_sub0[2]==='pron';   /* ⭐ 12/09/2026 : le tagger est CONTAMINÉ par la faute (« nous finis » → ADJ) ; sujet-pronom net + case EXACTE du paradigme → on lève les gardes nom/adjectif (miroir Python) */
+    var _sub0=_sujetFlexion(T,i,tg);
+    var _ja=i-1;while(_ja>=0&&_SUJ_SAUT[deacc(T[_ja].toLowerCase())])_ja--;   /* ⚠️ 12/09/2026 (FP trouvé après la 0.6.25) : « nous mangeames la soupe » → *soupons* — un pronom sujet quelque part ne suffit pas, il doit être ADJACENT (clitiques/négation sautés), sinon les gardes nom/adjectif restent (miroir Python) */
+    var _adj=_ja>=0&&(!!SUBJ_PRON[deacc(T[_ja].toLowerCase())]||!!_SUBJ_PRON_PL[deacc(T[_ja].toLowerCase())]||!!_ELIDED_PRON.exec(T[_ja].toLowerCase()));
+    var _ouvre=!!_casex.length&&!!_sub0&&_sub0[2]==='pron'&&_adj;   /* ⭐ 12/09/2026 : le tagger est CONTAMINÉ par la faute (« nous finis » → ADJ) ; sujet-pronom net + case EXACTE du paradigme → on lève les gardes nom/adjectif (miroir Python) */
     if(!_psSeul&&!_ouvre&&!_verbOrHomograph(tg,T,i))return null;   // le tagger tague NOUN tout mot INCONNU : sa garde ne peut rien dire de « mangeames » — l'index EST la preuve verbale
     var _lecC=_casex.slice();   // ACCENT-EXACT (calculé plus haut) : déaccentuer confondrait « épuisés » (participe) et « épuises » (verbe)
     if(!(tg&&i<tg.length&&(tg[i]==='VERB'||tg[i]==='AUX'))&&!_ouvre)_lecC=[];   // …ou un sujet-pronom net devant une case exacte (12/09/2026)   // une case de paradigme peut aussi être un ADJECTIF (« complexes ») : le tagger tranche (miroir Python)

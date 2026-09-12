@@ -3723,6 +3723,9 @@ def _sujet_flexion(T, i, tg):
 _ROUGE = True          # drapeau lu par la règle ROUGE ; la jumelle ORANGE le bascule le temps de son appel
 
 
+_SUJ_SAUT = {'ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'y', 'en', 'le', 'la', 'les', 'lui', 'leur'}   # clitiques et négation entre le pronom sujet et le verbe (⭐ 12/09/2026, garde d'adjacence)
+
+
 def rule_sujet_flexion(T, i):
     """« nous iriez » → irions · « tu irai » → iras · « le chat mangeons » → mange. Le TEMPS ÉCRIT est gardé
     (c'est la demande : corriger la personne, pas réécrire au présent). Deux lectures qui donneraient deux
@@ -3779,7 +3782,15 @@ def rule_sujet_flexion(T, i):
     #    le tagger n'a rien à arbitrer : on lève ces gardes (la garde auxiliaire ci-dessus tient le faux positif).
     _casex = [r for r in lec if ((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower() == lw]
     _sub0 = _sujet_flexion(T, i, tg)
-    _ouvre = bool(_casex) and bool(_sub0) and _sub0[2] == 'pron'
+    # ⚠️ 12/09/2026 (FP trouvé APRÈS la 0.6.25, qu'aucun corpus ne voyait) : « nous mangeames la soupe » → *soupons*, « tu
+    #    mangeames la glace » → *glaces*. Un pronom sujet quelque part dans la proposition ne suffit pas : « soupe » et
+    #    « glace » sont des NOMS homographes de verbes, et c'est précisément ce que les gardes nom/adjectif protègent.
+    #    L'ouverture exige donc un pronom sujet ADJACENT (clitiques objets et négation sautés), comme dans tous les cas visés.
+    _ja = i - 1
+    while _ja >= 0 and deacc(T[_ja].lower()) in _SUJ_SAUT: _ja -= 1
+    _adj = _ja >= 0 and (deacc(T[_ja].lower()) in SUBJ_PRON or deacc(T[_ja].lower()) in _SUBJ_PRON_PL
+                         or bool(_ELIDED_PRON.search(T[_ja].lower())))
+    _ouvre = bool(_casex) and bool(_sub0) and _sub0[2] == 'pron' and _adj
     if not _ps_seul and not _ouvre and not _verb_or_homograph(tg, T, i): return None
     # ⛔ PARTICIPE : « Les randonneurs ÉPUISÉS arrivent », « Ces gâteaux DORÉS » — le tagger les dit VERB et
     # `_reads` leur trouve une lecture finie homographe (épuiser 3pl). Un participe n'est pas une forme finie :
