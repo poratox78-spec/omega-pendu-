@@ -86,6 +86,7 @@ def _check():
             "l'homme est là", "j'aime le café", "n'est-ce pas", "d'abord il faut"]  # texte correct (élision OK) → 0 flag
     elide = [("J'sais que c'est vrai", "J'sais", "Je sais"), ("Personne n'sait", "n'sait", "ne sait"),
              ("qu'tu viennes", "qu'tu", "que tu")]                                  # élision fautive devant consonne
+    elide += [("vous sommes contents", "sommes", "êtes"), ("vous somme très contents", "somme", "êtes")]   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):

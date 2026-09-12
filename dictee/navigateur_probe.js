@@ -173,7 +173,8 @@ const CAS = [
   { txt: 'nous somme très contents.', corrigeAttendu: ['somme', 'sommes'], pourquoi: '« sommes » (être, 433/M), plus jamais « sommons » (0,02/M)' },
   { txt: 'nous somme arrivés hier.', corrigeAttendu: ['somme', 'sommes'], pourquoi: 'même chose devant un participe' },
   { txt: 'nous vont au parc.', corrigeAttendu: ['vont', 'allons'], pourquoi: 'TÉMOIN : « vont » est à une lettre de « sont », mais allons (512/M) n’est pas rare — la garde ne le mange pas' },
-  { txt: 'vous somme très contents.', rien: true, pourquoi: 'plus de « sommez » en rouge : aucun auxiliaire de 2e du pluriel à une lettre — se taire plutôt qu’inventer' },
+  { txt: 'vous somme très contents.', corrigeAttendu: ['somme', 'êtes'], pourquoi: '⭐ 12/09 (cas de Rem) : une lettre d’un auxiliaire long → cet auxiliaire conjugué pour « vous », plus de silence (ni « sommez »)' },
+  { txt: 'vous sommes contents.', corrigeAttendu: ['sommes', 'êtes'], pourquoi: '⭐ 12/09 (cas de Rem) : sujet-verbe côte à côte — le lemme rare « sommer » s’efface devant « être »' },
   { txt: 'je somme le témoin de parler.', rien: true, pourquoi: 'CONTRE-GARDE : sommer, 1re du singulier, accordé' },
   /* ⭐ « DESERT » → DESSERT (11/09/2026) : la route double-consonne ne cédait qu'au CIRCONFLEXE ; désert (aigu, nom, 23,8/M)
      attendait derrière. La garde cède aussi à l'aigu/grave quand le rival n'est PAS verbal — jette/jeté reste au contexte. */
