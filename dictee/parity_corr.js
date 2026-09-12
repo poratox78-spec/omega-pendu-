@@ -55,7 +55,7 @@ const ptEnd = ptIdx >= 0 ? html.indexOf('}', html.indexOf('return seq.reverse();
    cible RARE à une lettre d'un auxiliaire. Sans FREQ ici, SP.ready était vrai et la table VIDE : « Nous êtes là » se
    taisait dans ce harnais alors que le produit corrige. Mesurer un moteur amputé, ce n'est pas mesurer le produit.) */
 const code = html.slice(start, Math.max(ctEnd, ptEnd)) +
-  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
+  ';globalThis.__corr=correctText;globalThis.__vig={persVig:persVig,sujFlexNom:sujFlexNom,onOntVig:onOntVig,semiInfVig:semiInfVig,rDetNumber:rDetNumber,jestVig:jestVig};globalThis.__toks=toks;globalThis.__segOn=function(t){_SEG=_segInfo(t);};globalThis.__seedSP=function(t){if(!SP.WORDS)SP.WORDS=new Set();if(!SP.POS)SP.POS={};if(!SP.FREQ)SP.FREQ={};t.split(String.fromCharCode(10)).forEach(function(l){' +
   'var q=l.split(String.fromCharCode(9));if(q[0]){SP.WORDS.add(q[0]);if(q[1])SP.FREQ[q[0]]=parseInt(q[1],10)/1000;if(q[2])SP.POS[q[0]]=q[2];}});SP.ready=true;};})();';
 
 // 2) embed vdc-lex pour getElementById
@@ -404,7 +404,7 @@ if (_r8) { console.log('PARITÉ KO — ' + _r8 + ' cas « REGLES_FR 1-8 ».'); p
    comme dans parity_core. EXIGENCE : chaque jumelle tire au moins une fois des DEUX côtés. */
 const VIG_ORD = [['semiInfVig', 'infinitif après semi-auxiliaire à vérifier'],
   ['persVig', 'personne du verbe à vérifier'], ['sujFlexNom', 'accord du verbe au sujet nominal à vérifier'], ['onOntVig', 'on/ont après un sujet pluriel à vérifier'],
-  ['rDetNumber', 'nombre du déterminant à vérifier']];
+  ['rDetNumber', 'nombre du déterminant à vérifier'], ['jestVig', "j'est/j'ai à vérifier"]];   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
 const VIG_PY = new Set(VIG_ORD.map(x => x[1]));
 const VIG_PHRASES = PHRASES.concat([
   'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
@@ -413,6 +413,7 @@ const VIG_PHRASES = PHRASES.concat([
   'je vais mange.', 'il veut mange.',                                                                 // infinitif après semi-auxiliaire
   'je manger des fraises.', "J'aimer les fraises.",                                                   // infinitif après pronom sujet (CRULES) ; j'+inf (JS seul)
   'le maçons ont du mal à élever les murs.', 'la maison ont brûlé.',                                // nombre du déterminant (orange) ; contrôle : nom singulier → rien
+  "j'est dans ma chambre.", "j'est descendu.", "j'est descendu l'escalier.", "j'est de Paris.", "j'est entendu le tonnerre.", "j'est fatigué.",   // j'est/j'ai : orange (dans, mouvement nu) + rouges (de + nom propre, participe irrégulier, état)
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const appVig = p => { const t = String(p).replace(/[’ʼ]/g, "'"); const rouge = new Set(corr(t).map(f => f.i)); globalThis.__segOn(t); const T = globalThis.__toks(t), out = [];
   for (let i = 0; i < T.length; i++) if (!rouge.has(i)) for (const [fn, nom] of VIG_ORD) { const s = globalThis.__vig[fn](T, i); if (s) { out.push([i, T[i], s, nom]); break; } }

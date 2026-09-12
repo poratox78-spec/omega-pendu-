@@ -128,6 +128,9 @@ if __name__ == '__main__':
             ajoute += 1                     # la table actuelle ne SAIT pas
         delta[w.lower()] = g
 
+    # ⭐ 12/09/2026 : « gens » — kaikki le dit féminin (épithète ANTÉPOSÉE : « bonnes gens »), mais le moteur n'accorde qu'APRÈS le nom, où
+    #    « gens » est masculin (« les gens touchés par… ») : « les gens touché » → touchées était un rouge FAUX du gold dys. Forcé ici, pas à la main.
+    delta['gens'] = 'm'
     json.dump(delta, io.open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, sort_keys=True)
     print(u'kaikki %d · Lexique4 %d -> fusion %d noms accentués à genre net' % (len(K), len(L), len(G)))
     print(u'   écartés : %s' % (u' · '.join(u'%s %d' % (k, v) for k, v in sorted(rej.items()))))

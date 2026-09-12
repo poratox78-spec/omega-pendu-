@@ -358,7 +358,8 @@ const VIG_MAP = { 'accord du verbe au sujet nominal à vérifier': 'accord du ve
   'personne du verbe à vérifier': 'personne du verbe à vérifier',
   'on/ont après un sujet pluriel à vérifier': 'on/ont après un sujet pluriel à vérifier',
   'infinitif après semi-auxiliaire à vérifier': 'infinitif après semi-auxiliaire à vérifier',
-  'nombre du déterminant à vérifier': 'nombre du déterminant à vérifier' };
+  'nombre du déterminant à vérifier': 'nombre du déterminant à vérifier',
+  "j'est/j'ai à vérifier": "j'est/j'ai à vérifier" };   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
 const VIG_PY = new Set(Object.values(VIG_MAP));
 const VIG_PHRASES = PHRASES.concat([
   'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
@@ -367,6 +368,7 @@ const VIG_PHRASES = PHRASES.concat([
   'je vais mange.', 'il veut mange.',                                                                 // infinitif après semi-auxiliaire
   'je manger des fraises.', "J'aimer les fraises.",                                                   // infinitif après pronom sujet (CRULES) ; j'+inf (JS seul)
   'le maçons ont du mal à élever les murs.', 'la maison ont brûlé.',                                // nombre du déterminant (orange) ; contrôle : nom singulier → rien
+  "j'est dans ma chambre.", "j'est descendu.", "j'est descendu l'escalier.", "j'est de Paris.", "j'est entendu le tonnerre.", "j'est fatigué.",   // j'est/j'ai : orange (dans, mouvement nu) + rouges (de + nom propre, participe irrégulier, état)
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json

@@ -312,7 +312,10 @@
   function rEer(T,i){
     if(i>=2){var _pse=deacc(T[i-1].toLowerCase());
       if((_pse==='sais'||_pse==='sait')&&(function(){var _p2=deacc(T[i-2].toLowerCase());return _p2==='il'||_p2==='elle'||_p2==='on';})()&&(_isPpl(T[i])||_SAIS_PPU[deacc(T[i].toLowerCase())]))return null;}   // « il sais trompé » = frame s'est (orange saisVig) — ne pas fabriquer « sait tromper » ; « je sais nagé »→nager reste corrigé
-var w=T[i],lw=w.toLowerCase(),f;if(lw.indexOf("'")>=0)return null;if(w.charAt(0)!==w.charAt(0).toLowerCase())return null;   /* ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026, miroir Python) : « est Allier Comté Communauté »→Allié, « avec Honoré de Balzac »→Honorer, « Cry Me a River »→Rivé. La règle SŒUR rEPpl porte exactement cette ligne ; celle-ci ne testait aucune capitale. Mesuré : 0 correction perdue, 6 FP éteints, 2 tirs éteints sur UD (français CORRECT : « Louis de Frotté », « avec Aimé Picquet »). */if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A'){if(rA(T,i-1)==='a')return null;   // CASCADE DE DEUX ROUGES : « statue À CONSERVÉ » recevait « à »→« a » ET « conservé »→« conserver » → « a conserver », faute FABRIQUÉE. Si le correcteur juge lui-même ce « à » faux, l'ancre ne vaut rien → abstention (miroir Python rule_e_er)
+var w=T[i],lw=w.toLowerCase(),f;
+    if(lw.indexOf("d'")===0&&lw.indexOf("'")===lw.lastIndexOf("'")&&/é$/.test(lw)&&lw.length>4&&/^[a-zà-ÿœ]+$/.test(lw.slice(2))&&w.charAt(2)===w.charAt(2).toLowerCase()){   /* ⭐ 12/09/2026 : « d'utilisé un bateau » → d'utiliser — préposition ÉLIDÉE dans le token, mêmes gardes que la branche préposition (verbe -er du jeu curé, pas un nom : NOUN_E, _GACC). Miroir Python rule_e_er. */
+      var _rd=lw.slice(2),_infd=_rd.slice(0,-1)+'er',_gd=_GACC[_rd];if(!NOUN_E[deacc(_rd)]&&COMMON_VERBS[deacc(_infd)]&&_gd!=='m'&&_gd!=='f')return w.slice(0,2)+_infd;return null;}
+    if(lw.indexOf("'")>=0)return null;if(w.charAt(0)!==w.charAt(0).toLowerCase())return null;   /* ⭐ CAPITALE EN COURS DE PHRASE = NOM PROPRE (08/09/2026, miroir Python) : « est Allier Comté Communauté »→Allié, « avec Honoré de Balzac »→Honorer, « Cry Me a River »→Rivé. La règle SŒUR rEPpl porte exactement cette ligne ; celle-ci ne testait aucune capitale. Mesuré : 0 correction perdue, 6 FP éteints, 2 tirs éteints sur UD (français CORRECT : « Louis de Frotté », « avec Aimé Picquet »). */if(/é$/.test(lw))f=[w,w.slice(0,-1)+'er'];else if(/er$/.test(deacc(lw))&&lw.length>3)f=[w.slice(0,-2)+'é',w];else return null;if(NOUN_E[deacc(f[0].toLowerCase())])return null;if(!COMMON_VERBS[deacc(f[1].toLowerCase())])return null;if(i===0)return null;var praw=T[i-1].toLowerCase();if(praw==='à'||T[i-1]==='A'){if(rA(T,i-1)==='a')return null;   // CASCADE DE DEUX ROUGES : « statue À CONSERVÉ » recevait « à »→« a » ET « conservé »→« conserver » → « a conserver », faute FABRIQUÉE. Si le correcteur juge lui-même ce « à » faux, l'ancre ne vaut rien → abstention (miroir Python rule_e_er)
     return _emit(w,function(x){return /é$/.test(x.toLowerCase())?x.slice(0,-1)+'er':x;});}var p=cprev(T,i);if(CAUX[p]){
       // ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL, parité Python rule_e_er) : le scripteur dys
       // confond a/à (3e forme la plus souvent erronée, Bodard 2020). « tout en pensent A bronzer », « il se met
@@ -364,11 +367,12 @@ var w=T[i],lw=w.toLowerCase();
     else if(praw==='vous'){var subj=(i===1)||(_SEG&&i-1<_SEG.bb.length&&_SEG.bb[i-1])||(i>=2&&deacc(T[i-2].toLowerCase())==='que');if(!subj)return null;tgt='p2pl';}
     else if(praw==='je'){var _fm={demain:1,bientot:1,prochain:1,prochaine:1,prochains:1,prochaines:1,ulterieurement:1,dorenavant:1,desormais:1,tantot:1};if(!T.some(function(t){return _fm[deacc(t.toLowerCase())];}))return null;tgt='fut1';}
     else if(p==='plait'&&i>=2&&deacc(T[i-2].toLowerCase())==='vous')tgt='p2pl';   // « s'il vous plaît, cherché »→cherchez
-    else{var g=i-1;while(g>0&&(_FLEX_ADV[deacc(T[g].toLowerCase())]||_FLEX_CLITIC[deacc(T[g].toLowerCase())]))g--;if(g<0)return null;var dg=deacc(T[g].toLowerCase()),graw=T[g].toLowerCase();if(graw!=='à'&&(_AUX_AV[dg]||graw==="j'ai"))tgt='part';else if(_INF_GOV[dg]||MODAL[dg]||_CAUS[dg])tgt='inf';else return null;}
+    else{var g=i-1;while(g>0&&(_FLEX_ADV[deacc(T[g].toLowerCase())]||_FLEX_CLITIC[deacc(T[g].toLowerCase())]))g--;if(g<0)return null;var dg=deacc(T[g].toLowerCase()),graw=T[g].toLowerCase();if(graw!=='à'&&(_AUX_AV[dg]||graw==="j'ai"))tgt=(dg==='a'&&rA(T,g)==='à')?'inf':'part';   /* ⭐ 12/09/2026 : MÊME garde a/à qu'en position immédiate (« a réussi a se placer » → placer, plus placé) — miroir Python */else if(_INF_GOV[dg]||MODAL[dg]||_CAUS[dg])tgt='inf';else return null;}
     if(cur===tgt)return null;
     if(/(és|ées)$/.test(lw)&&(tgt==='inf'||tgt==='p2pl'||tgt==='fut1'))return null;
     if(/ée$/.test(lw)&&tgt!=='part')return null;
-    var sugg=forms[tgt];if(deacc(sugg)===d)return null;
+    var sugg=forms[tgt];if(tgt==='p2pl'&&cur==='fut1')sugg=inf+'ez';   /* ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé (« vous souhaiterai » → souhaiterez, pas souhaitez) — miroir Python */
+    if(deacc(sugg)===d)return null;
     return ckeepcase(w,sugg);}
   // IMPÉRATIF (motifs LOCAUX, FP≈0) — MIROIR correcteur_probe.rule_imperatif : -s euphonique en/y, pas de -s (trait d'union + pronom), irréguliers jamais valides
   var _IMP_PRON={moi:1,toi:1,lui:1,le:1,la:1,les:1,leur:1};
@@ -982,15 +986,28 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
   var CADJ={content:1,contente:1,contents:1,contentes:1,malade:1,malades:1,triste:1,tristes:1,heureux:1,heureuse:1,heureuses:1,pret:1,prete:1,prets:1,pretes:1,libre:1,libres:1,seul:1,seule:1,seuls:1,seules:1,fier:1,fiere:1,fiers:1,fieres:1};   // adj prédicatifs purs (liste CLOSE = parité 3 moteurs)
   var ETRE_PP={alle:1,allee:1,alles:1,allees:1,venu:1,venue:1,venus:1,venues:1,parti:1,partie:1,partis:1,parties:1,arrive:1,arrivee:1,arrives:1,arrivees:1,devenu:1,devenue:1,devenus:1,devenues:1,revenu:1,revenue:1,revenus:1,revenues:1,tombe:1,tombee:1,tombes:1,tombees:1,parvenu:1,parvenue:1,parvenus:1,parvenues:1,intervenu:1,intervenue:1,intervenus:1,intervenues:1,survenu:1,survenue:1,survenus:1,survenues:1,redevenu:1,redevenue:1,redevenus:1,redevenues:1};   // participes de verbes d'ÊTRE (liste CLOSE ; familles #8 ajoutées, flood UD=0)
   var PART_ART={le:1,la:1,"l'":1,les:1,un:1,une:1};   // article après « de » → partitif avoir
-  function rJest(T,i){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel
+  var _JEST_LIEU={ici:1,en:1,chez:1,devant:1,derriere:1,entre:1,parmi:1,vers:1,pres:1,loin:1},_JEST_LIEU_VIG={dans:1,sur:1,sous:1,avec:1};   // ⭐ 12/09/2026 : lieu/état après « j'est » → je suis (rouge) ; dans/sur/sous/avec → je suis PROPOSÉ (orange). Miroir Python rule_jest.
+  var _JEST_ETAT={},_JEST_MOUV={},_JEST_POSS={};
+  'fatigue fatiguee fatigues fatiguees enerve enervee enerves enervees stresse stressee stresses stressees desole desolee desoles desolees presse pressee presses pressees marie mariee maries mariees occupe occupee occupes occupees oblige obligee obliges obligees habitue habituee habitues habituees interesse interessee interesses interessees passionne passionnee passionnes passionnees inquiet inquiete inquiets inquietes'.split(' ').forEach(function(w){_JEST_ETAT[w]=1;});   // participes d'ÉTAT → je suis
+  'descendu descendue descendus descendues monte montee montes montees reste restee restes restees rentre rentree rentres rentrees sorti sortie sortis sorties retourne retournee retournes retournees passe passee passes passees entre entree entres entrees'.split(' ').forEach(function(w){_JEST_MOUV[w]=1;});   // double auxiliaire : l'objet tranche
+  'mon ma mes ton ta tes son sa ses notre votre leur leurs ce cet cette ces du des de quelques plusieurs'.split(' ').forEach(function(w){_JEST_POSS[w]=1;});
+  function _jestObjet(T,i,mouv){if(i+2>=T.length)return false;var n2=T[i+2].toLowerCase(),d2=deacc(n2);if(_detDeTemps(T,i+2))return false;if(mouv&&(d2==='de'||d2==='du'||d2==='des'||n2.slice(0,2)==="d'"))return false;return !!(NUM_DET[n2]||_JEST_POSS[d2]||n2.slice(0,2)==="l'"||n2.slice(0,2)==="d'"||/^[0-9]+$/.test(T[i+2]));}   // un OBJET suit le participe → AVOIR certain ; ni complément de TEMPS (« fatigué ce soir »), ni PROVENANCE d'un verbe de mouvement (« descendu du train »)
+  function rJest(T,i,vig){if(deacc(T[i].toLowerCase())!=="j'est"||i+1>=T.length)return null;   // « j'est » jamais valide → FP=0 structurel ; le VOISIN tranche j'ai / je suis, plus d'abstention (12/09/2026, miroir Python rule_jest)
     var nl=T[i+1].toLowerCase(),dn=deacc(nl);
+    if(vig){if(_JEST_LIEU_VIG[dn])return ckeepcase(T[i],"je suis");if(_JEST_MOUV[dn]&&!ETRE_PP[dn]&&!_jestObjet(T,i,true))return ckeepcase(T[i],"je suis");return null;}   // JUMELLE ORANGE : les deux lectures incertaines
     if(NUM_DET[nl]||dn==='ete'||dn==='eu'||dn==='du'||dn==='des')return ckeepcase(T[i],"j'ai");   // déterminant / été-eu / partitif du-des → j'ai
-    if(nl==="de"||nl==="d'"){var _n2=i+2<T.length?T[i+2]:'',_c0=_n2[0]||'';if(PART_ART[_n2.toLowerCase()]||(_c0&&_c0.toLowerCase()!==_c0.toUpperCase()&&_c0===_c0.toLowerCase()))return ckeepcase(T[i],"j'ai");return null;}   // possession → j'ai (de la peine / de tomates=nom commun) ; « de Paris » (nom propre) = origine « je suis de… » → abstention
+    if(nl==="de"||nl==="d'"){var _n2=i+2<T.length?T[i+2]:'',_c0=_n2[0]||'';if(PART_ART[_n2.toLowerCase()]||(_c0&&_c0.toLowerCase()!==_c0.toUpperCase()&&_c0===_c0.toLowerCase()))return ckeepcase(T[i],"j'ai");if(_c0&&_c0.toLowerCase()!==_c0.toUpperCase()&&_c0===_c0.toUpperCase())return ckeepcase(T[i],"je suis");return null;}   // possession → j'ai ; de + nom PROPRE (« j'est de Paris ») = origine → je suis
+    if(nl.slice(0,2)==="d'"&&deacc(nl.slice(2))==='accord')return ckeepcase(T[i],"je suis");   // « j'est d'accord »
+    if(nl==='là'||_JEST_LIEU[dn])return ckeepcase(T[i],"je suis");   // lieu / état → être
+    if(nl==='à')return ckeepcase(T[i],(i+2<T.length&&_isInfinitive(T[i+2]))?"j'ai":"je suis");   // « j'est à faire » → j'ai ; « j'est à Paris » → je suis
     if(CADJ[dn]||ETRE_PP[dn])return ckeepcase(T[i],"je suis");   // adjectif pur ou participe d'être → je suis
-    if(_isPpl(T[i+1]))return ckeepcase(T[i],"j'ai");
-    var _mz=dn.match(/^(.*?)(?:ez|er)$/);if(_mz&&_mz[1].length>=2){var _pp=_mz[1]+'é';   // BLOCAGE MUTUEL « j'est mangez » : rJest attend un participe, la règle -ez/-é attend un auxiliaire correct → aucune ne démarre. Or « j'est » n'est JAMAIS valide : si le mot suivant est une forme verbale en -ez/-er, l'auxiliaire visé est certain. On tranche ; l'itération du pipeline corrige -ez ensuite. FP=0 conservé (« j'est » toujours fautif ; ETRE_PP sépare je suis / j'ai).
-      if(_isPpl(_pp))return ckeepcase(T[i],ETRE_PP[deacc(_pp)]?"je suis":"j'ai");}   // participe d'AVOIR (pris/mangé/vu…) → j'ai (ceux d'être sont déjà traités)
-    return null;}   // sinon (de+nom propre…) → abstention
+    if(_JEST_ETAT[dn])return ckeepcase(T[i],_jestObjet(T,i)?"j'ai":"je suis");   // participe d'ÉTAT (« j'est fatigué ») → je suis, sauf objet derrière
+    if(_JEST_MOUV[dn])return _jestObjet(T,i,true)?ckeepcase(T[i],"j'ai"):null;   // double auxiliaire : l'objet tranche ; nu → jumelle orange
+    if(_isPpl(T[i+1])||IRR_PP[dn]!==undefined)return ckeepcase(T[i],"j'ai");   // participe d'AVOIR, irréguliers en -u compris (entendu, perdu…)
+    var _mz=dn.match(/^(.*?)(?:ez|er)$/);if(_mz&&_mz[1].length>=2){var _pp=_mz[1]+'é';   // BLOCAGE MUTUEL « j'est mangez » : rJest attend un participe, la règle -ez/-é attend un auxiliaire correct → aucune ne démarre ; « j'est » n'est JAMAIS valide → on tranche
+      if(_isPpl(_pp))return ckeepcase(T[i],ETRE_PP[deacc(_pp)]?"je suis":"j'ai");}
+    return null;}
+  function jestVig(T,i){return rJest(T,i,true);}   // jumelle ORANGE (« j'est dans ma chambre » → je suis ?, « j'est descendu » → je suis ?)
   function rCai(T,i){return deacc(T[i].toLowerCase())==="c'ai"?ckeepcase(T[i],"c'est"):null;}   // « c'ai » jamais valide (avoir au lieu d'être) → c'est
   // Élision fautive DEVANT CONSONNE → de-élide (FP=0 structurel : élidé valide seulement devant voyelle). Clitiques
   // DÉTERMINISTES (j'/n'/m'/d'/c'/qu') = parité triviale (aucun lexique) ; t'/s'/l'/h/y exclus (ambigus / h muet « l'homme »). Miroir correcteur_probe.rule_elide.
@@ -1369,6 +1386,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(!r2.length||_vnum3(T[i])!=='s')return null;                                         // cible = verbe 3sg (dir. audible : pluriel manquant)
     if(i>0&&(NUM_DET[T[i-1].toLowerCase()]!==undefined||PREP[deacc(T[i-1].toLowerCase())]))return null;
     if((i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])||(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]))return null;   // passé composé
+    if(i>=1&&deacc(T[i-1].toLowerCase())==='ete'){for(var _ke=Math.max(0,i-4);_ke<i-1;_ke++)if(AUX_AVOIR[deacc(T[_ke].toLowerCase()).split("'").pop()])return null;}   /* ⭐ 12/09/2026 : « n'ont pas été prise en compte » → prisent : après « été » d'un passif composé, T[i] est un PARTICIPE (miroir Python rule_accord_rel_obj) */
     var q=null;for(k=i-1;k>=0;k--){var wk=T[k].toLowerCase();
       if(wk==='que'||wk==="qu'"||wk==='qu'||wk==='dont'||wk==='où'||wk.indexOf("qu'")===0){q=k;break;}   // « où » ACCENTUÉ = relatif (≠ « ou » conjonction)
       var dk=deacc(wk);if(dk==='et'||dk==='ou'||dk==='ni'||dk==='mais'||dk==='car'||dk==='donc'||dk==='or')break;}
@@ -2655,7 +2673,8 @@ function estQuestion(t,maxMots){
        · le participe se rejoint par sa forme en -s (« fini » → « finis » → finir), mais cette route
          attrapait « peuvent par » → partir : prépositions et adverbes courants fermés aussi. */
   var _FAIRE_SEMI={fais:1,fait:1,faisons:1,faites:1,font:1,fit:1,firent:1,faisait:1,faisaient:1,fera:1,feront:1,ferait:1,feraient:1};
-  var _SEMI_AUX={fais:1,fait:1,faisons:1,faites:1,font:1,fit:1,firent:1,faisait:1,faisaient:1,fera:1,feront:1,ferait:1,feraient:1,   /* faire + infinitif (« le fit ramenais » → ramener, 03/09/2026) */
+  var _SEMI_NEG={pas:1,plus:1,jamais:1};   // ⭐ 12/09/2026 : négation sautée entre le semi-auxiliaire et l'infinitif (« ne voulant plus démaré » → démarrer) — miroir Python
+  var _SEMI_AUX={voulant:1,pouvant:1,fais:1,fait:1,faisons:1,faites:1,font:1,fit:1,firent:1,faisait:1,faisaient:1,fera:1,feront:1,ferait:1,feraient:1,   /* faire + infinitif (« le fit ramenais » → ramener, 03/09/2026) */
     vais:1,vas:1,va:1,allons:1,allez:1,vont:1,allais:1,allait:1,allions:1,alliez:1,allaient:1,
     irai:1,iras:1,ira:1,irons:1,irez:1,iront:1,veux:1,veut:1,voulons:1,voulez:1,veulent:1,voulais:1,voulait:1,
     voulions:1,vouliez:1,voulaient:1,voudrais:1,voudrait:1,voudrions:1,dois:1,doit:1,devons:1,devez:1,doivent:1,
@@ -2711,7 +2730,7 @@ function estQuestion(t,maxMots){
     if(!/^[a-z'-]+$/.test(lw)||CLITIC[lw])return null;
     if(_INF_OUTILS[lw]||_INF_OUTILS[w.toLowerCase()])return null;
     var j=i-1,st=0;
-    while(j>=0&&st<3&&CLITIC[deacc(T[j].toLowerCase())]){j--;st++;}
+    while(j>=0&&st<3&&(CLITIC[deacc(T[j].toLowerCase())]||_SEMI_NEG[deacc(T[j].toLowerCase())])){j--;st++;}
     if(j<0||!_SEMI_AUX[deacc(T[j].toLowerCase())])return null;
     /* « faire » : « fait référence », « fait date », « fait la fête » — le mot qui suit est un NOM homographe d'une forme verbale.
        Pour ce gouverneur-là, on exige un verbe PUR : posterior nom (noun-post) < 100 ‰, sinon on se tait (03/09/2026). */
@@ -2732,6 +2751,7 @@ function estQuestion(t,maxMots){
       if(deacc(a[0].toLowerCase())===lw)return null;     // c'est DÉJÀ l'infinitif
       if(out&&out!==a[0])return null;                    // plusieurs lemmes → abstention
       out=a[0];}
+    if(out&&/é$/.test(w.toLowerCase())&&deacc(w.toLowerCase().slice(0,-1)+'er')===deacc(out.toLowerCase()))out=w.toLowerCase().slice(0,-1)+'er';   /* ⭐ 12/09/2026 : lemme NU dans la table, accent repris de la forme écrite (« démarré » → démarrer) — miroir Python */
     return out;}
   var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
   function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
@@ -2773,6 +2793,7 @@ function estQuestion(t,maxMots){
     if(!CONJ_F||!CONJ_C)return null;
     var w=T[i];if(!w)return null;
     var lw=w.toLowerCase(),dl=deacc(lw),k;
+    if(lw.indexOf("j'")===0&&lw.length>3&&lw.indexOf("'")===lw.lastIndexOf("'")&&/^[a-zà-ÿœ]+$/.test(lw.slice(2))&&!FULL_AUX[deacc(lw.slice(2))]){   /* être/avoir élidés (« j'est ») = famille j'est/j'ai, silence voulu */var _Tj=T.slice(0,i).concat(['je',w.slice(2)],T.slice(i+1)),_rj=sujFlexVig(_Tj,i+1);return _rj?w.slice(0,2)+_rj:null;}   /* ⭐ 12/09/2026 : « j'admet que » → j'admets — pronom ÉLIDÉ dans le token, relu sur « je + verbe » (liste virtuelle, un pas). Miroir Python rule_sujet_flexion. */
     if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||!/^[a-zà-ÿœ]+$/.test(dl)||dl.length<2)return null;
     if(CLITIC[dl]||PREP[dl])return null;
     if(_PB_CONJ_ADV[dl])return null;   // « puis » se lit *pouvoir 1sg* : c'est un CONNECTEUR (miroir Python — oubli de portage vu par messy_probe)
@@ -3860,6 +3881,7 @@ function spellUnknown(tok,atStart,T,idx){
     if(!pushed){var sv2=saisVig(T,i);if(sv2){out.push({i:i,word:T[i],sugg:sv2,name:"sait/s'est à vérifier",tier:'vigilance'});pushed=true;}}   // participe seulement — l'infinitif est le mur assumé   // carte chaud-froid ces/ses — l'auteur tranche, l'encart enseigne
     if(!pushed){var jiv=jInfVig(T,i);if(jiv){out.push({i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'});pushed=true;}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
     if(!pushed){var pv=persVig(T,i);if(pv){out.push({i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var jv=jestVig(T,i);if(jv){out.push({i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'});pushed=true;}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
     if(!pushed){var sfn=sujFlexNom(T,i);if(sfn){out.push({i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'});pushed=true;}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     if(!pushed){var oov=onOntVig(T,i);if(oov){out.push({i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'});pushed=true;}}   // « Les enfants on mange » → ont ? (orange)
     if(!pushed){var dnv=rDetNumber(T,i);if(dnv){out.push({i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'});pushed=true;}}   // « le maçons ont » → les ? (orange, 11/09/2026)

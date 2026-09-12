@@ -250,6 +250,25 @@ const CAS = [
   { txt: 'je viennent demain.', corrigeAttendu: ['viennent', 'viens'], pourquoi: '« viennent » n’a plus de lecture 1re du singulier' },
   { txt: 'je peux venir demain.', rien: true, pourquoi: '« peux » 1re du singulier est une variante légitime de « puis » : jamais un fantôme' },
   { txt: 'il faut qu’il rende le livre.', rien: true, pourquoi: '« rende » 3e du singulier existe (cellule réparée)' },
+  /* ⭐ BON LEMME, MAUVAISE FLEXION — lot 1 (12/09/2026) : sept extensions LOCALES de règles existantes, mesurées une à une sur les 41 rouges
+     du gold dys qui réécrivaient la faute vers une AUTRE forme du bon mot. Aucune règle neuve. */
+  { txt: 'je suis disponible dès que vous souhaiterai.', corrigeAttendu: ['souhaiterai', 'souhaiterez'], pourquoi: 'le TEMPS ÉCRIT est gardé : futur 2e pl., pas le présent « souhaitez »' },
+  { txt: 'la France a réussi a se placer.', interdit: ['placé'], pourquoi: '« a » + clitique + verbe est un « à » : la garde a/à vaut à distance, « placer » ne bouge pas' },
+  { txt: 'il suffit d’utilisé un bateau.', corrigeAttendu: ["d'utilisé", "d'utiliser"], pourquoi: 'la préposition ÉLIDÉE vit dans le token → infinitif' },
+  { txt: 'même si j’admet que tu es allé là-bas.', corrigeAttendu: ["j'admet", "j'admets"], pourquoi: 'le pronom ÉLIDÉ vit dans le token → 1re personne' },
+  { txt: 'les demandes que j’ai fait passer n’ont pas été prise en compte.', interdit: ['prisent'], pourquoi: 'après « été » d’un passif composé, « prise » est un participe, jamais un verbe fini' },
+  { txt: 'la voiture ne voulant plus démarré, il rentre chez lui.', corrigeAttendu: ['démarré', 'démarrer'], pourquoi: '« voulant » + négation devant l’infinitif (orange), accent du radical repris de la forme écrite' },
+  { txt: 'les gens touché par le sida en Afrique.', corrigeAttendu: ['touché', 'touchés'], pourquoi: '« gens » s’accorde au masculin APRÈS le nom (donnée : gender_acc)' },
+  /* ⭐ j'est/j'ai : plus d'abstention « contexte ambigu » (12/09/2026, consigne Rem) — le voisin tranche j'ai / je suis ; dans/sur/sous/avec
+     et le verbe de mouvement sans objet restent une PROPOSITION (orange). Règle existante étendue, aucune règle neuve. */
+  { txt: 'j’est de Paris.', corrigeAttendu: ["j'est", 'je suis'], pourquoi: 'de + nom propre = origine → je suis (avant : abstention)' },
+  { txt: 'j’est entendu le tonnerre.', corrigeAttendu: ["j'est", "j'ai"], pourquoi: 'participe irrégulier en -u → j’ai (avant : abstention)' },
+  { txt: 'j’est là depuis midi.', corrigeAttendu: ["j'est", 'je suis'], pourquoi: 'lieu → je suis' },
+  { txt: 'j’est à faire les courses.', corrigeAttendu: ["j'est", "j'ai"], pourquoi: 'à + infinitif → j’ai' },
+  { txt: 'j’est fatigué ce soir.', corrigeAttendu: ["j'est", 'je suis'], pourquoi: 'participe d’état → je suis (avant : j’ai fatigué, faux)' },
+  { txt: 'j’est perdu mes clés.', corrigeAttendu: ["j'est", "j'ai"], pourquoi: 'objet derrière le participe → j’ai' },
+  { txt: 'j’est descendu l’escalier.', corrigeAttendu: ["j'est", "j'ai"], pourquoi: 'verbe à double auxiliaire + objet → j’ai (rouge)' },
+  { txt: 'j’est dans ma chambre.', corrigeAttendu: ["j'est", 'je suis'], pourquoi: 'dans → je suis PROPOSÉ (orange : « j’ai dans ma poche » existe)' },
   { txt: 'nous sommes là et vous faites du bruit.', rien: true, pourquoi: 'les vraies lectures 1re/2e du pluriel restent' },
   /* ⭐ CHAQUE SILENCE A UNE SORTIE (consigne Rem, 11/09/2026) : là où #728/#729 avaient fait taire une correction sur du texte FAUX, une
      alternative existe désormais — orange sur le déterminant, il/ils sur le pronom élidé, jumelle orange libérée. */
