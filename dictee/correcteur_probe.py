@@ -5521,8 +5521,9 @@ MUETS = [
     ("Les primes annuelles augmentent.", "même nom, avec un adjectif : le scan du sujet le traverse depuis le 15/09."),
     ("Je somme le témoin de parler.", "« somme » = sommer, 1re du singulier, ACCORDÉ : rien à corriger (garde nous/vous de rule_aux_misspell)."),
     ("Il somme les gens de partir.", "« somme » = sommer, 3e du singulier, accordé."),
-    ("Vous somme très contents.", "FAUTE, mais ABSTENTION VOULUE : la lecture *sommer* donnait « sommez » (0,04/M) en ROUGE — un mot que personne "
-                                    "n'a voulu. Aucun auxiliaire de 2e du pluriel à une lettre de « somme » : plutôt se taire qu'inventer."),
+    # « Vous somme très contents. » a quitté cette liste le 12/09/2026 (cas de Rem) : une abstention gardée sur du texte FAUX n'est
+    # pas une spécification — « somme » est à une lettre d'une forme longue d'être, c'est CET auxiliaire conjugué pour le sujet
+    # (→ êtes) que la règle de personne rend désormais ; le cas vit dans CASES, avec « Vous sommes » (deux lemmes, le rare pesé).
     ("On sent que vous maitrisez votre sujet.", "ORTHOGRAPHE RECTIFIÉE de 1990 (sans circonflexe) : elle est JUSTE. "
                                                 "Une correction d'ACCENT SEUL n'est permise que hors lexique."),
     ("Très vite l'ambiance se rafraichit.", "idem 1990 : « rafraichit » est au lexique du produit."),
@@ -5564,6 +5565,8 @@ CASES = [
     ("Tu iras demain", "iras", "irai", "personne du verbe"),
     ("Nous allons au parc", "allons", "allez", "personne du verbe"),
     ("Nous sommes là", "sommes", "êtes", "personne du verbe"),
+    ("Vous êtes très contents", "êtes", "sommes", "personne du verbe"),   # ⭐ 12/09/2026 (cas de Rem) : deux lemmes (être / sommer), le rare s'efface — silence d'origine levé
+    ("Vous êtes très contents", "êtes", "somme", "personne du verbe"),    # une lettre d'une forme longue d'être → cet auxiliaire conjugué (plus « sommez », plus le silence)
     ("Vous allez au parc", "allez", "allons", "personne du verbe"),
     ("Nous mangeâmes bien", "mangeâmes", "mangeames", "personne du verbe"),
     ("Vous mangeâtes bien", "mangeâtes", "mangeates", "personne du verbe"),
