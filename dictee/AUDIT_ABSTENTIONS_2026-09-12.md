@@ -79,6 +79,7 @@ Vérifié dans le dépôt et dans le vrai Chrome (`navigateur_flags_dump.js`) :
 | `rule_ce_se` : « ils ce sont déroulés » | *se* en orange : le participe après l'auxiliaire tranche | #740 · 0.6.24 |
 | « Elles est formée » (`interdit`) | **Mal classé par cet inventaire** : le produit rendait déjà *Elles sont formées* (verbe et participe en rouge) depuis la 0.6.16. Recensé dans les corpus appariés : 2 occurrences sur 34 416 paires. Rien à coder ; le texte de la garde Chrome, qui disait « le verbe ne bouge pas », est corrigé. | textes · 0.6.27 |
 | « a réussie à se placer » (appliqué faux, accord surnuméraire) | *réussi* en orange — règle neuve pour une case vide : participe marqué après avoir, aucun antécédent, un témoin après | 0.6.27 |
+| `rule_flexion_er` : « je noté » (sans marqueur de futur) | *j'ai ?* / *je suis ?* en orange sur le pronom (« Hier je noté le numéro », « quand je retourné à la maison ») — décision avoir/être de `rule_jest` ; avec un marqueur de futur, *noterai* reste rouge | 0.6.29 |
 
 **Atteint en 0.6.28 : le cas dys lui-même**, « la France a **réusie** a se placer » → *réussi ?*. Les règles orange, qui vivent
 dans `spellText`, lisaient le mot **brut** : le speller prenait « réusie » (→ *réussie*) et l'accord du participe n'était jamais
@@ -88,5 +89,5 @@ orange sont consultées au même index, et la marque devient orange avec l'état
 « heur » → heures, prévu dans le même lot, n'est pas une abstention : c'est le choix du speller (mot rare à une lettre d'un mot
 courant, 189 occurrences hétérogènes dans les paires) — rangé avec les 637 muets.
 
-Restent, dans l'ordre : « je noté » (orange, deux lectures) · leur/leurs relu après
+Restent, dans l'ordre : leur/leurs relu après
 l'orthographe · « vis » (même forme accordée pour les deux lemmes) · collectifs · genre et temps manquants (chantier COUVERTURE).

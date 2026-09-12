@@ -3,7 +3,7 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:type="TaskPaneApp">
   <Id>7e1c6f2a-3b4d-4c5e-9f10-20260821a001</Id>
-  <Version>0.1.0.0</Version>
+  <Version>0.1.1.0</Version>
   <ProviderName>OMEGA-Ω</ProviderName>
   <DefaultLocale>fr-FR</DefaultLocale>
   <DisplayName DefaultValue="OMEGA Dys — police de son"/>
@@ -23,7 +23,7 @@
     </Sets>
   </Requirements>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://omega-pendu.pages.dev/word/taskpane.html"/>
+    <SourceLocation DefaultValue="https://omega-pendu.pages.dev/word/taskpane"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
 </OfficeApp>

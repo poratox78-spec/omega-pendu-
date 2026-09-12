@@ -33,19 +33,36 @@ if (!ps.some(x => x.text === 'ss' && x.font === 'OMEGA Dys Light')) fail.push('p
 const pc = planner.plan('chats', DECL2.g2p, core, {});
 if (!(pc[pc.length - 1].color === planner.COL.mute && pc[pc.length - 1].text === 'ts')) fail.push('chats : « ts » final attendu muet, eu ' + JSON.stringify(pc));
 
-// glue Office SIMULÉE : un range Word factice qui ne sait faire que insertText Replace/After
+// glue Office SIMULÉE, calquée sur taskpane.js (13/09/2026) : getTextRanges([' '], true) rend des MOTS sans blancs ; chaque mot est
+// remplacé (Replace) puis complété (After) ; les blancs entre les mots — espaces, tabulations, fins de paragraphe — ne sont JAMAIS touchés.
 function fakeWord(text) {
-  const doc = {runs: [{text, font: 'Calibri', color: '#000000'}]};
-  const ranges = text.split(/(?<=[ \n\t\r])|(?=[ \n\t\r])/).map((t, k) => ({text: t, k}));
-  let rebuilt = [];
-  for (const w of ranges) {
-    const p = planner.plan(w.text, DECL2.g2p, core, {syllabes: true});
-    if (planner.rebuild(p) !== w.text) continue;            // même garde que taskpane.js
-    rebuilt.push(...p.map(x => x.text));                     // Replace puis After, dans l'ordre
+  const parts = text.split(/([ \n\t\r]+)/);              // alternance mot / blancs, dans l'ordre du document
+  const out = [];
+  for (const part of parts) {
+    if (!part || /^[ \n\t\r]+$/.test(part)) { out.push(part); continue; }   // blanc : laissé en place
+    const p = planner.plan(part, DECL2.g2p, core, {syllabes: true});
+    if (!p.length || planner.rebuild(p) !== part) { out.push(part); continue; }   // même garde que taskpane.js : mot laissé tel quel
+    out.push(...p.map(x => x.text));                         // Replace puis After, dans l'ordre
   }
-  return rebuilt.join('');
+  return out.join('');
 }
-for (const ph of phrases) if (fakeWord(ph) !== ph) fail.push('glue simulée : texte altéré pour ' + JSON.stringify(ph));
+for (const ph of phrases.concat(['Premier paragraphe.\r\rSecond paragraphe, après une ligne vide.\r', 'fin\tde\tligne\n'])) {
+  if (fakeWord(ph) !== ph) fail.push('glue simulée : texte altéré pour ' + JSON.stringify(ph));
+}
+const glue = fs.readFileSync(path.join(H, 'taskpane.js'), 'utf8');
+if (glue.indexOf("getTextRanges([' '], true)") < 0) fail.push("taskpane.js : la découpe doit être getTextRanges([' '], true) — sinon Word remplace aussi les blancs et les fins de paragraphe");
+
+// MANIFESTE (13/09/2026) : Cloudflare Pages redirige (308) toute URL en .html vers sa forme sans extension — le volet doit être
+// désigné par son URL CANONIQUE ; et chaque fichier que le volet charge en relatif doit exister dans le dépôt.
+const man = fs.readFileSync(path.join(H, 'manifest.xml'), 'utf8');
+const src = (man.match(/<SourceLocation DefaultValue="([^"]+)"/) || [])[1] || '';
+if (!/^https:\/\/omega-pendu\.pages\.dev\/word\/taskpane$/.test(src)) fail.push('manifest.xml : SourceLocation attendue https://omega-pendu.pages.dev/word/taskpane (sans .html, redirigé 308), eu ' + JSON.stringify(src));
+if (!/<Id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}<\/Id>/.test(man)) fail.push('manifest.xml : <Id> doit être un GUID');
+const pane = fs.readFileSync(path.join(H, 'taskpane.html'), 'utf8');
+for (const m of pane.matchAll(/(?:src|url)\(?=?['"]?([.]{1,2}\/[^'")]+|[a-z_]+\.js)['")]/g)) {
+  const rel = m[1], cible = path.join(H, rel);
+  if (!fs.existsSync(cible)) fail.push('taskpane.html charge ' + rel + ' — absent du dépôt (' + cible + ')');
+}
 
 if (fail.length) { console.error('COMPLÉMENT WORD — ÉCHEC :'); fail.forEach(f => console.error('  ✗ ' + f)); process.exit(1); }
 console.log('COMPLÉMENT WORD — OK : ' + pieces + ' morceaux planifiés, texte identique partout, ancres poison/poisson/chats, glue simulée intacte');

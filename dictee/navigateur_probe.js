@@ -284,6 +284,11 @@ const CAS = [
   { txt: 'La voiture ne voulant plus démaré, il a appelé un garage.', corrigeAttendu: ['démaré', 'démarrer'], pourquoi: 'orthographe « démarré » + infinitif après « voulant » → « démarrer »' },
   { txt: 'Les journaux ne trouveron pas de limite.', corrigeAttendu: ['trouveron', 'trouveront'], pourquoi: 'orthographe « trouverons » + accord au sujet nominal → « trouveront »' },
   { txt: 'Nous avons réusi notre examen.', corrigeAttendu: ['réusi', 'réussi'], pourquoi: 'CONTRE-GARDE : l’orthographe rend déjà la bonne forme, la chaîne ne la change pas' },
+  /* ⭐ AUXILIAIRE MANQUANT après je (12/09/2026) : « je » + participe en -é n'existe pas — orange sur le pronom, décision avoir/être de rJest. */
+  { txt: 'Hier je noté le numéro.', corrigeAttendu: ['je', "j'ai"], pourquoi: 'auxiliaire tombé : « j’ai noté » proposé en orange' },
+  { txt: 'Quand je retourné à la maison, il pleuvait.', corrigeAttendu: ['je', 'je suis'], pourquoi: 'verbe de mouvement sans objet : « je suis » proposé' },
+  { txt: 'Ai-je noté le numéro ?', orangeInterdit: 'je', pourquoi: 'CONTRE-GARDE : inversion « ai-je », rien ne manque' },
+  { txt: 'Demain je noté le numéro.', orangeInterdit: 'je', corrigeAttendu: ['noté', 'noterai'], pourquoi: 'CONTRE-GARDE : marqueur de futur → « noterai » (rouge), pas « j’ai »' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },

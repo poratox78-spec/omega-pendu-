@@ -1013,6 +1013,15 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
       if(_isPpl(_pp))return ckeepcase(T[i],ETRE_PP[deacc(_pp)]?"je suis":"j'ai");}
     return null;}
   function jestVig(T,i){return rJest(T,i,true);}   // jumelle ORANGE (« j'est dans ma chambre » → je suis ?, « j'est descendu » → je suis ?)
+  var _AUXM_PRON={je:["j'ai",'je suis']},_AUXM_FUT={demain:1,bientot:1,prochain:1,prochaine:1,prochains:1,prochaines:1,ulterieurement:1,dorenavant:1,desormais:1,tantot:1};   // ⭐ 12/09/2026 — AUXILIAIRE MANQUANT après je : « je noté » → j'ai ? (miroir Python rule_aux_manquant_vig)
+  function auxManquantVig(T,i){var p=deacc(T[i].toLowerCase());if(!_AUXM_PRON[p]||i+1>=T.length)return null;
+    var nx=T[i+1],nl=nx.toLowerCase(),dn=deacc(nl);if(nx!==nl||nl.indexOf("'")>=0||dn==='ete')return null;
+    if(!/(é|ée|és|ées)$/.test(nl)||_inf1(nx)===null||!_isPpl(nx))return null;   // -é du 1er groupe SEUL : -i/-u = passé simple homophone, il/elle = présent mal accentué (recensés)
+    if(_SEG){if(i<_SEG.hy.length&&_SEG.hy[i])return null;if(i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;if(i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;}   // inversion « ai-je noté », ponctuation, trait d'union
+    if(i>=1){var _pv=deacc(T[i-1].toLowerCase());if(NUM_DET[_pv]||FULL_AUX[_pv.split("'").pop()])return null;}   // « le je », « s'est tu »
+    if(T.some(function(t){return _AUXM_FUT[deacc(t.toLowerCase())];}))return null;   // « demain je noté » → noterai (rFlexionEr, rouge)
+    var _Tv=T.slice();_Tv[i]="j'est";var _r=rJest(_Tv,i)||rJest(_Tv,i,true);if(!_r)return null;   // la décision avoir/être est celle de rJest
+    return ckeepcase(T[i],_AUXM_PRON[p][deacc(_r.toLowerCase())==='je suis'?1:0]);}
   function rCai(T,i){return deacc(T[i].toLowerCase())==="c'ai"?ckeepcase(T[i],"c'est"):null;}   // « c'ai » jamais valide (avoir au lieu d'être) → c'est
   // Élision fautive DEVANT CONSONNE → de-élide (FP=0 structurel : élidé valide seulement devant voyelle). Clitiques
   // DÉTERMINISTES (j'/n'/m'/d'/c'/qu') = parité triviale (aucun lexique) ; t'/s'/l'/h/y exclus (ambigus / h muet « l'homme »). Miroir correcteur_probe.rule_elide.
@@ -3933,6 +3942,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var jiv=jInfVig(T,i);if(jiv){return {i:i,word:T[i],sugg:jiv,name:'conjugaison après je à vérifier',tier:'vigilance'};}}   // « J'aimer » → j'aime ? (temps inconnu = orange)
     {var pv=persVig(T,i);if(pv){return {i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'};}}
     {var jv=jestVig(T,i);if(jv){return {i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'};}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
+    {var amv=auxManquantVig(T,i);if(amv){return {i:i,word:T[i],sugg:amv,name:'auxiliaire manquant à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 : « je noté le numéro » → j'ai ? (auxiliaire tombé ; miroir Python rule_aux_manquant_vig)
     {var pps=ppAvoirSurnumVig(T,i);if(pps){return {i:i,word:T[i],sugg:pps,name:'accord du participe après avoir à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 — RÈGLE NEUVE, orange : « a signés un contrat » → signé (miroir Python rule_pp_avoir_surnum)
     {var sfn=sujFlexNom(T,i);if(sfn){return {i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'};}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     {var oov=onOntVig(T,i);if(oov){return {i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'};}}   // « Les enfants on mange » → ont ? (orange)
