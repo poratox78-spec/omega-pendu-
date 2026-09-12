@@ -275,6 +275,15 @@ const CAS = [
   { txt: 'il àfinit son travail.', corrigeAttendu: ['àfinit', 'a fini'], pourquoi: 'orange « a finit » + rouge participe après avoir → « a fini » proposé d’un coup' },
   { txt: 'les municipalitês ont voté.', corrigeAttendu: ['municipalitês', 'municipalités'], pourquoi: 'orange « municipalité » + rouge accord pluriel → « municipalités »' },
   { txt: 'une cartoucheris a ouvert.', corrigeAttendu: ['cartoucheris', 'cartoucherie'], pourquoi: 'orange « cartoucheries » + rouge accord singulier → « cartoucherie »' },
+  /* ⭐ BOUT DE CHAÎNE orthographe → orange (12/09/2026) : les règles orange lisaient le mot BRUT — sur « réusie », le speller proposait
+     « réussie » et l'accord du participe n'était jamais consulté. Une correction d'orthographe dont la suggestion fait parler une règle
+     orange devient une orange à l'état final. Mesuré dans Chrome : 1 798 textes dys, 9 justes gagnées / 1 perdue ; 2 500 phrases
+     correctes, 638 marques avant et après. Phrases inventées sur la structure des cas réels. */
+  { txt: 'La France a réusie à se placer au deuxième rang.', corrigeAttendu: ['réusie', 'réussi'], pourquoi: 'orthographe « réussie » + accord en trop du participe après avoir → « réussi » (le cas dys de la règle de la 0.6.27)' },
+  { txt: 'Elle s’est marriée à vingt ans.', corrigeAttendu: ['marriée', 'mariée'], pourquoi: 'orthographe « marié » + accord du participe pronominal → « mariée »' },
+  { txt: 'La voiture ne voulant plus démaré, il a appelé un garage.', corrigeAttendu: ['démaré', 'démarrer'], pourquoi: 'orthographe « démarré » + infinitif après « voulant » → « démarrer »' },
+  { txt: 'Les journaux ne trouveron pas de limite.', corrigeAttendu: ['trouveron', 'trouveront'], pourquoi: 'orthographe « trouverons » + accord au sujet nominal → « trouveront »' },
+  { txt: 'Nous avons réusi notre examen.', corrigeAttendu: ['réusi', 'réussi'], pourquoi: 'CONTRE-GARDE : l’orthographe rend déjà la bonne forme, la chaîne ne la change pas' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },
