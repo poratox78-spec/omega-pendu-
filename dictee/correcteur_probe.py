@@ -2155,7 +2155,12 @@ def rule_pp_avoir_cod(T, i):
     while _cl >= 0 and deacc(T[_cl].lower()) in ('ne', 'n'): _cl -= 1
     _inv = (_SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]) or deacc(lw) in SUBJ_PRON or deacc(lw) in ('nous', 'vous')   # « les as-tu achetées » : « tu » inversé n'est pas le participe de taire
     if _cl >= 0 and not a_is_je and not _inv and T[_cl].lower() == 'les':      # ⭐ 12/09/2026 (lot 2) : clitique COD « les » juste avant l'auxiliaire (« mon chaton les a léché ») → PLURIEL certain, genre inconnu gardé masculin
-        sugg = _pp_accord(base, 'p', 'm')
+        # ⚠️ 12/09/2026 — FP ROUGE du lot 2 : le genre de « les » est INCONNAISSABLE. La 1re version rabattait tout au masculin
+        #    (« je les ai vues » → *vus*, « elle les a mangées » → *mangés*). On ne touche JAMAIS un participe déjà au pluriel, et on
+        #    garde le genre ÉCRIT (« il les a léchée » → léchées, « il les a léché » → léchés), comme rule_pp_etre pour je/tu/nous.
+        _dl = deacc(lw); _db = deacc(base)
+        if _dl in (_db + 's', _db + 'es') or (_db.endswith('s') and _dl in (_db, _db + 'es')): return None
+        sugg = _pp_accord(base, 'p', 'f' if _dl == _db + 'e' else 'm')
         return _keepcase(T[i], sugg) if sugg.lower() != lw else None
     q = None                                                        # position du token « que » (ou du token qu'+sujet fusionné)
     if a_is_je:                                                     # « … que j'ai <PP> » : « que » juste avant « j'ai »
@@ -4841,6 +4846,70 @@ def rule_cetait_etait(T, i):
 
 _AVOIR_CONJ = {'a', 'as', 'ont', 'ai', 'avons', 'avez', 'avait', 'avais', 'avaient',
                'aura', 'auront', 'aurait', 'auraient', 'eut', 'eurent'}
+_PPS_AVOIR = set('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions '
+                 'auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split())
+_PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin'}
+_PPS_CLIT = {'le', 'la', 'les', 'l', 'me', 'm', 'te', 't', 'se', 's', 'nous', 'vous', 'en', 'lui', 'leur', 'y'}
+_PPS_ANTE = {'que', 'qu', 'combien', 'quel', 'quelle', 'quels', 'quelles', 'lequel', 'laquelle', 'lesquels', 'lesquelles'}
+_PPS_REFL = ('se', 'me', 'te', 'nous', 'vous', 'le', 'la', 'les', 'y', 'en')
+_PPS_MARQUE = re.compile(u'(ée|ées|és|ie|ies|is|ue|ues|us|te|tes|se|ses)$')
+
+
+def rule_pp_avoir_surnum(T, i):
+    """⭐ 12/09/2026 — RÈGLE NEUVE, case vide : l'ACCORD SURNUMÉRAIRE du participe après AVOIR, en ORANGE.
+    « Boeing a signés un contrat » → signé · « nous avons vue notre médecin » → vu · « la France a réussie à se placer » → réussi.
+    rule_pp_avoir_cod accorde avec un COD ANTÉPOSÉ ; rien ne RETIRAIT une marque injustifiée. On ne tire que sur un TÉMOIN
+    d'invariabilité APRÈS le participe (COD qui suit hors complément de temps, partitif, à/de + infinitif) et jamais s'il existe un
+    antécédent possible avant l'auxiliaire. Mesuré : 21 pièges muets, UD 2 500 → 1 tir (vraie faute d'UD), gold 18/18 justes.
+    ORANGE : 13 de ces 18 sont gardés fautifs par le gold frgec (une correction par phrase). Miroir JS ppAvoirSurnumVig."""
+    w = T[i]; lw = w.lower(); dw = deacc(lw)
+    if "'" in lw or not w[:1].islower() or not _PPS_MARQUE.search(lw): return None
+    base = _pp_base(w) or _IRR_PP.get(dw)
+    if not base or deacc(base) == dw: return None
+    a = None
+    for k in range(i - 1, max(-1, i - 4), -1):
+        tk = T[k].lower(); dk = deacc(tk)
+        if tk == u'à': return None
+        if dk.split("'")[-1] in _PPS_AVOIR: a = k; break
+        if dk in _PPS_MID: continue
+        return None
+    if a is None: return None
+    ta = T[a].lower()
+    if "'" in ta and deacc(ta.split("'")[0]) in ('l', 'm', 't', 's', 'qu'): return None      # « l'a », « m'a » : COD élidé
+    lo = 0
+    if _SEG is not None:
+        for j in range(a, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    for k in range(lo, a):
+        dk = deacc(T[k].lower()); head = dk.split("'")[0] if "'" in dk else dk
+        if head in _PPS_ANTE or dk in _PPS_ANTE: return None                                    # relatif / interrogatif antéposé
+        if head in _PPS_CLIT and "'" in dk: return None                                         # « l'avait », « m'a »
+    if a >= 1:
+        p1 = deacc(T[a - 1].lower())
+        if p1 in _PPS_CLIT:
+            if p1 in ('nous', 'vous'):                                                         # « nous avons vue » : SUJET ; « il nous a vus » : COD
+                p2 = deacc(T[a - 2].lower()) if a >= 2 else ''
+                if p2 in SUBJ_PRON or p2 in ('nous', 'vous', 'qui'): return None
+            else:
+                return None
+    if i + 1 >= len(T): return None
+    n1 = T[i + 1].lower(); d1 = deacc(n1); temoin = False
+    if d1 in ('a', 'de', 'd') or n1 == u'à' or n1.startswith("d'"):
+        j = i + 2
+        while j < len(T) and j <= i + 3 and (deacc(T[j].lower()) in _PPS_REFL or deacc(T[j].lower())[:2] in ("s'", "m'", "t'", "l'")):
+            if deacc(T[j].lower())[:2] in ("s'", "m'", "t'", "l'") and _is_infinitive(T[j][2:]): j = -1; break
+            j += 1
+        if j == -1 or (j < len(T) and _is_infinitive(T[j])): temoin = True                     # « à se placer », « à s'installer »
+        elif n1.startswith("d'") and _is_infinitive(n1[2:]): temoin = True
+        elif d1 in ('de', 'd') or n1.startswith("d'"):
+            nx = deacc(T[i + 2].lower()) if i + 2 < len(T) else ''
+            if n1.startswith("d'") or nx in ('la', 'le', 'les') or nx[:2] == "l'": temoin = True   # partitif « de l'argent »
+    if not temoin and (d1 in NUM_DET or d1 in ('un', 'une', 'des', 'du')) and not _det_de_temps(T, i + 1):
+        temoin = True                                                                           # COD qui SUIT
+    if not temoin: return None
+    return _keepcase(w, base)
+
+
 def rule_avoir_fini(T, i):
     # avoir + forme FINIE en -it/-is (jamais participe) dont la troncature EST un participe : « elle a grandit »
     # → grandi. La garde « participe tronqué doit exister » rend le flood propre (1 tir = vraie faute UD « a réagit »).
@@ -5555,6 +5624,7 @@ RULES = [('élision inversée', rule_deselide),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
          ("j'est/j'ai à vérifier", rule_jest_vig),   # ⭐ 12/09/2026 : les deux lectures incertaines de « j'est » (dans/sur/sous/avec ; mouvement sans objet) → je suis PROPOSÉ
          ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
+         ('accord du participe après avoir à vérifier', rule_pp_avoir_surnum),   # ⭐ 12/09/2026 — RÈGLE NEUVE, orange : accord surnuméraire (« a signés un contrat » → signé)
          ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
                                                        # — « c'est de la conjugaison, les fautes sont flagrantes, du rouge au moindre problème ».
                                                        # EN DERNIER : « la première décision gagne » — la générale ne comble que

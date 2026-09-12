@@ -12,6 +12,9 @@ texte **faux** est une correction perdue, qui doit recevoir une sortie (le bon m
 
 ## Réponse courte
 
+> ⚠️ Inventaire écrit au lot 1 (#736). Ce qui a reçu sa sortie depuis — et un cas mal classé ici, « Elles est formée » — est
+> dans la section **Suivi**, en fin de page.
+
 | Gisement | Total | Sur texte correct (légitime) | Sur texte FAUX avec une sortie | Sur texte FAUX **sans** sortie |
 |---|---:|---:|---:|---:|
 | bancs `rien: true` (Chrome) | 50 | 49 | — | **1** : « vous somme très contents » |
@@ -64,3 +67,25 @@ abstention décidée, c'est une règle qui n'existe pas encore. Ils sont travail
   la relire avec le voisin, et la faire passer dans `expect` quand une sortie existe (fait pour j'est).
 - « Restaurer l'abstention » n'est jamais un correctif.
 - Deux phrases qui partagent un mot n'ont pas la même structure : jamais une seule règle de silence pour les deux.
+
+## Suivi — les sorties rendues depuis l'inventaire (12/09/2026, soir)
+
+Vérifié dans le dépôt et dans le vrai Chrome (`navigateur_flags_dump.js`) :
+
+| Silence inventorié | Ce que le produit rend maintenant | Où |
+|---|---|---|
+| « vous somme très contents » (`rien`) | *êtes* en rouge — et « vous sommes » → *êtes* (deux lemmes pesés) | #737 · 0.6.21 |
+| « n'ont pas été prise » (`interdit: prisent`) | *prises* : l'accord du participe est relu après « été » et dans -er → -é | #739 · 0.6.23 |
+| `rule_ce_se` : « ils ce sont déroulés » | *se* en orange : le participe après l'auxiliaire tranche | #740 · 0.6.24 |
+| « Elles est formée » (`interdit`) | **Mal classé par cet inventaire** : le produit rendait déjà *Elles sont formées* (verbe et participe en rouge) depuis la 0.6.16. Recensé dans les corpus appariés : 2 occurrences sur 34 416 paires. Rien à coder ; le texte de la garde Chrome, qui disait « le verbe ne bouge pas », est corrigé. | textes · 0.6.27 |
+| « a réussie à se placer » (appliqué faux, accord surnuméraire) | *réussi* en orange — règle neuve pour une case vide : participe marqué après avoir, aucun antécédent, un témoin après | 0.6.27 |
+
+**Pas encore atteint : le cas dys lui-même**, « la France a **réusie** a se placer ». Le speller souligne « réusie » → *réussie*
+(palier `flag`) et les règles orange, qui vivent dans `spellText`, lisent le mot **brut** : elles ne voient jamais un mot mal
+écrit. Le bout de chaîne actuel va d'une orange vers un rouge, pas de l'orthographe vers une orange. C'est la prochaine mesure.
+
+« heur » → heures, prévu dans le même lot, n'est pas une abstention : c'est le choix du speller (mot rare à une lettre d'un mot
+courant, 189 occurrences hétérogènes dans les paires) — rangé avec les 637 muets.
+
+Restent, dans l'ordre : bout de chaîne orthographe → orange · « je noté » (orange, deux lectures) · leur/leurs relu après
+l'orthographe · « vis » (même forme accordée pour les deux lemmes) · collectifs · genre et temps manquants (chantier COUVERTURE).

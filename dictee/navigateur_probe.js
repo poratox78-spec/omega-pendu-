@@ -195,6 +195,14 @@ const CAS = [
   /* ⚠️ FP de la 0.6.25, réparé le 12/09 : l'ouverture de la couverture (pronom sujet + case exacte) exige un pronom ADJACENT — sinon un NOM homographe de verbe passait pour un verbe. */
   { txt: 'nous mangeames la soupe.', interdit: ['soupons'], pourquoi: '« soupe » est un NOM : le pronom sujet n’est pas adjacent, les gardes nom/adjectif restent' },
   { txt: 'nous finis la course.', corrigeAttendu: ['finis', 'finissons'], pourquoi: 'CONTRE-GARDE : pronom ADJACENT → la personne est corrigée' },
+  /* ⭐ RÈGLE NEUVE (12/09/2026), orange : accord SURNUMÉRAIRE du participe après avoir — témoin d'invariabilité APRÈS, jamais d'antécédent avant. */
+  { txt: 'Boeing a signés un contrat hier.', corrigeAttendu: ['signés', 'signé'], pourquoi: 'COD qui SUIT le participe → invariable (orange)' },
+  { txt: 'La France a réussie à se placer.', corrigeAttendu: ['réussie', 'réussi'], pourquoi: 'à + infinitif pronominal → invariable (orange)' },
+  { txt: 'Je les ai vues la semaine dernière.', rien: true, pourquoi: 'CONTRE-GARDE : clitique COD « les » avant l’auxiliaire, et « la semaine » est un complément de temps → accord JUSTE' },
+  { txt: 'Il l’a aidée à partir.', rien: true, pourquoi: 'CONTRE-GARDE : COD élidé « l’ » → accord JUSTE' },
+  /* ⚠️ FP rouge du lot 2 (0.6.23), réparé le 12/09 : le genre de « les » est inconnaissable — jamais toucher un participe déjà pluriel, garder le genre écrit. */
+  { txt: 'elle les a mangées hier.', rien: true, pourquoi: '« mangées » est déjà pluriel : plus de *mangés*' },
+  { txt: 'il les a léchée.', corrigeAttendu: ['léchée', 'léchées'], pourquoi: 'singulier écrit au féminin → pluriel FÉMININ, pas *léchés*' },
   /* ⭐ ce/se + auxiliaire (12/09/2026, audit des abstentions) : un PARTICIPE ne suit jamais « ce sont » — il suit « se sont ». */
   { txt: 'ils ce sont déroulés hier.', corrigeAttendu: ['ce', 'se'], pourquoi: 'participe après l’auxiliaire + sujet pronom → pronominal (orange)' },
   { txt: 'les faits ce sont déroulés hier.', corrigeAttendu: ['ce', 'se'], pourquoi: 'même structure, sujet NOMINAL' },
@@ -261,7 +269,7 @@ const CAS = [
   { txt: 'Cette volonté est la raison de nombreuses lois concernant la sexualité qui sont faites pour retirer toute animosité.', interdit: ['qui est faites'], pourquoi: 'le participe « faites » contredit l’antécédent proche : « sont » reste' },
   { txt: 'La grande majorité des films dans lesquels il joue entre 1946 et 1958 sont des films de genre.', interdit: ['est des films'], pourquoi: 'nombres coordonnés + attribut pluriel' },
   { txt: 'Une importante communauté d’expatriés sont également présents.', interdit: ['expatriés est'], pourquoi: 'collectif « communauté de » : accord de sens' },
-  { txt: 'Elles est formée par l’ensemble des bractées florales.', interdit: ['elles sont formée'], pourquoi: 'pronom pluriel + « est » + participe singulier : le pronom est suspect, le verbe ne bouge pas' },
+  { txt: 'Elles est formée par l’ensemble des bractées florales.', interdit: ['elles sont formée'], pourquoi: 'pronom pluriel + « est » + participe singulier : jamais corrigé à moitié — le verbe ET le participe suivent le pronom (« Elles sont formées », rouges rendus depuis la 0.6.16 ; vérifié dans Chrome le 12/09)' },
   /* ⭐ BOUT DE CHAÎNE (11/09/2026) : une orange propose l'état final quand une règle rouge tombe dans l'empan de sa suggestion
      appliquée seule — +25 propositions justes mesurées sur 1 798 textes, l'orange reste une proposition. */
   { txt: 'il àfinit son travail.', corrigeAttendu: ['àfinit', 'a fini'], pourquoi: 'orange « a finit » + rouge participe après avoir → « a fini » proposé d’un coup' },
