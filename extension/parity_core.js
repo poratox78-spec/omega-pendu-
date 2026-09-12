@@ -371,6 +371,7 @@ const VIG_PHRASES = PHRASES.concat([
   "j'est dans ma chambre.", "j'est descendu.", "j'est descendu l'escalier.", "j'est de Paris.", "j'est entendu le tonnerre.", "j'est fatigué.",   // j'est/j'ai : orange (dans, mouvement nu) + rouges (de + nom propre, participe irrégulier, état)
   "ceux qui sont dégoûtés du système partent.", "les amis du voisin partent.",   // contrôles : contracté du/des derrière un participe/nom = complément → silence des deux côtés (12/09)
   "La température la plus froide a été enregistrée hier.",   // contrôle : tête superlative « la plus froide » → silence des deux côtés (12/09, UD 2134)
+  "ils ce sont déroulés hier.", "ce sont des amis.",   // ce/se + auxiliaire : le participe tranche (12/09) ; contrôle : groupe nominal → silence
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json
