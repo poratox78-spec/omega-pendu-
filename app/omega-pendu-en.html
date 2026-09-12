@@ -26134,7 +26134,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   function svLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;var prev=[],cur,ja,jb;for(jb=0;jb<=b.length;jb++)prev[jb]=jb;for(ja=1;ja<=a.length;ja++){cur=[ja];for(jb=1;jb<=b.length;jb++)cur[jb]=Math.min(prev[jb]+1,cur[jb-1]+1,prev[jb-1]+(a.charAt(ja-1)!==b.charAt(jb-1)?1:0));prev=cur;}return prev[b.length];}
   function svAuxTargets(per,nb){var out=[],vs=['etre','avoir'],ms=['ind:pre','ind:imp'],vi,mi,f;for(vi=0;vi<2;vi++)for(mi=0;mi<2;mi++){f=((CONJ_C[vs[vi]]||{})[ms[mi]]||{})[per+nb];if(f)out.push([deacc(f),vs[vi],f]);}return out;}
   var _AUX_LONGS=null;   /* formes LONGUES (≥ 4) d'être/avoir, déaccentuées — « somme » est à une lettre de « sommes » ; les courtes (a, as, ont…) sont à une lettre de tout */
-  function _voisinAuxLong(dl){if(_AUX_LONGS===null){_AUX_LONGS=[];for(var f in FULL_AUX)if(f.length>=4)_AUX_LONGS.push(f);}for(var q=0;q<_AUX_LONGS.length;q++)if(Math.abs(_AUX_LONGS[q].length-dl.length)<=1&&svLev(dl,_AUX_LONGS[q])===1)return true;return false;}
+  function _voisinAuxLong(dl){if(_AUX_LONGS===null){_AUX_LONGS=[];for(var f in FULL_AUX)if(f.length>=4)_AUX_LONGS.push(f);}for(var q=0;q<_AUX_LONGS.length;q++)if(Math.abs(_AUX_LONGS[q].length-dl.length)<=1&&svLev(dl,_AUX_LONGS[q])===1)return _AUX_LONGS[q];return null;}   // ⭐ 12/09/2026 : rend la FORME voisine (miroir Python)
   function rAuxMisspell(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<3||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w]||NON_AUX[w])return null;
     var pn=svSubject(T,i),k;if(!pn&&i>0){var pv=deacc(T[i-1].toLowerCase());if(pv==='nous')pn=['1','p'];else if(pv==='vous')pn=['2','p'];}
     if(!pn)return null;var per=pn[0],nb=pn[1];   // « je » (1sg) : cibles courtes avoir (ai) déjà écartées (len<4) → on autorise les longues (suis/étais) : « je sui »→suis
@@ -26658,6 +26658,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     return null;}
   var _ROUGE=true;   // basculé par la jumelle ORANGE le temps de son appel (miroir Python)
   function sujFlexNom(T,i){_ROUGE=false;try{return sujFlexVig(T,i);}finally{_ROUGE=true;}}
+  function _lemFreq(lem){if(!lem||typeof SP==='undefined'||!SP||!SP.ready||!SP.D2A||!SP.FREQ)return null;var _va=SP.D2A[lem];if(!_va||!_va.length)return null;var _lf=0;for(var _z=0;_z<_va.length;_z++)if((SP.FREQ[_va[_z]]||0)>_lf)_lf=SP.FREQ[_va[_z]]||0;return _lf;}   // fréquence du LEMME (max des variantes accentuées), null = inconnu ≠ rare — miroir _lemfreq
   function sujFlexVig(T,i){   /* « nous iriez » → irions · « tu irai » → iras. Le sujet donne personne et nombre, la forme écrite
      donne le TEMPS (on ne réécrit pas au présent). Miroir Python rule_sujet_flexion. */
     if(!CONJ_F||!CONJ_C)return null;
@@ -26686,6 +26687,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       if(/e$/.test(dl)&&_looksPpl(w.slice(0,-1)))return null;
       if(/es$/.test(dl)&&_looksPpl(w.slice(0,-2)))return null;
       if(/s$/.test(dl)&&(_EPICENE_ADJ[dl.slice(0,-1)]||ADJP[dl.slice(0,-1)]||GENDER_MAP[dl.slice(0,-1)]))return null;}   // « complexes »
+    if(_lecC.length)lec=_lecC;   // ⭐ 12/09/2026 : AVANT le filtre « que » (ordre Python) — réinjectée APRÈS, la lecture subjonctive (sommer sub:pre) revenait dans les cibles, case 2p absente → null : « vous sommes » restait muet côté produit
     if(lec.length&&_PS_INDEX[dl]){var _hp=false;for(k=0;k<lec.length;k++)if(lec[k][1]==='ind:pas')_hp=true;if(!_hp)return null;}   // homographe d'un passé simple (« primes » = primer 2sg ET prendre 1pl) : sans le lemme on choisirait au hasard
     var sub=_sujetFlexion(T,i,tg);
     if(!sub)return null;
@@ -26703,13 +26705,19 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var lec2=[];
     for(k=0;k<lec.length;k++)if((lec[k][1].indexOf('sub')===0)===que)lec2.push(lec[k]);
     if(lec2.length)lec=lec2;                                                // « que » présent → subjonctif ; absent → indicatif
-    if(_lecC.length)lec=_lecC;
-    var cible=null,slot=per+nb,lemc=null;
+    var cible=null,slot=per+nb,lemc=null,_cands=[];
     for(k=0;k<lec.length;k++){
       var f=_CONJ_FIX[lec[k][0]+'|'+lec[k][1]+'|'+slot]||((CONJ_C[lec[k][0]]||{})[lec[k][1]]||{})[slot];
       if(!f)return null;
-      if(cible===null){cible=f;lemc=lec[k][0];}else if(cible!==f)return null;
+      _cands.push([lec[k][0],f]);
     }
+    var _formes={};for(k=0;k<_cands.length;k++)_formes[_cands[k][1]]=1;
+    if(Object.keys(_formes).length>1){   /* ⭐ 12/09/2026 (« vous sommes » → êtes, cas de Rem) : deux lemmes, deux formes — le lemme RARE (< 1/M : sommer) s'efface devant le courant (être) ; deux lemmes courants (« vis » vivre/voir) → abstention comme avant. Miroir Python. */
+      var _forts=[];for(k=0;k<_cands.length;k++){var _q=_lemFreq(_cands[k][0]);if(_q===null||_q>=1)_forts.push(_cands[k]);}
+      var _ff={};for(k=0;k<_forts.length;k++)_ff[_forts[k][1]]=1;
+      if(Object.keys(_ff).length!==1)return null;
+      _cands=[_forts[0]];}
+    lemc=_cands[0][0];cible=_cands[0][1];
     if(!cible||cible.toLowerCase()===lw)return null;
     if(deacc(cible.toLowerCase())===dl&&!_hors)return null;   // accent seul : MUET, sauf si l'écrit n'est pas un mot du lexique (« mangeames »)
     /* ⭐ LEMME RARE À UNE LETTRE D'UN AUXILIAIRE (10/09/2026, cas de Rem) : « nous somme » → sommons, « vous somme » → sommez —
@@ -26718,7 +26726,9 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
        max des variantes, comme _lemfreq côté Python), PAS la forme cible : peser la forme taisait « nous fîtes » → fîmes
        (passé simple rare d'un verbe courant, à une lettre de fûmes). Lemme inconnu du speller → on ne change rien. */
     var _lf;if(lemc&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A&&SP.FREQ){var _va=SP.D2A[lemc];if(_va&&_va.length){_lf=0;for(var _z=0;_z<_va.length;_z++)if((SP.FREQ[_va[_z]]||0)>_lf)_lf=SP.FREQ[_va[_z]]||0;}}
-    if(typeof _lf==='number'&&_lf<1&&_voisinAuxLong(dl))return null;
+    if(typeof _lf==='number'&&_lf<1){var _vx=_voisinAuxLong(dl);if(_vx){   /* ⭐ 12/09/2026 : plus de silence — l'écrit est à une lettre d'une forme longue d'ÊTRE/AVOIR (« vous somme » ↔ sommes) : c'est CET auxiliaire, conjugué pour le sujet → êtes. Miroir Python. */
+      var _rv=svReads(_vx);for(var _y=0;_y<_rv.length;_y++){if(_rv[_y][0]==='etre'||_rv[_y][0]==='avoir'){var _f2=((CONJ_C[_rv[_y][0]]||{})[_rv[_y][1]]||{})[slot];if(_f2&&_f2.toLowerCase()!==lw)return ckeepcase(w,_f2);}}
+      return null;}}
     return ckeepcase(w,cible);}
   function persVig(T,i){
     if(!CONJ_F||!CONJ_C)return null;
