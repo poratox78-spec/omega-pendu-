@@ -192,6 +192,9 @@ const CAS = [
   { txt: 'Quand les as-tu achetées, ces belles pommes ?', rien: true, pourquoi: 'CONTRE-GARDE : « tu » inversé n’est pas le participe de taire' },
   { txt: 'ceux qui sont dégoûtés du système partent.', rien: true, pourquoi: 'CONTRE-GARDE : « du système » est un complément, pas le sujet — l’orange « part » du produit seul est éteint (garde Python portée)' },
   { txt: 'La température la plus froide a été enregistrée hier.', rien: true, pourquoi: 'CONTRE-GARDE : tête superlative « la plus froide » — pas un nom, pas d’orange « enregistré » (UD 2134)' },
+  /* ⚠️ FP de la 0.6.25, réparé le 12/09 : l'ouverture de la couverture (pronom sujet + case exacte) exige un pronom ADJACENT — sinon un NOM homographe de verbe passait pour un verbe. */
+  { txt: 'nous mangeames la soupe.', interdit: ['soupons'], pourquoi: '« soupe » est un NOM : le pronom sujet n’est pas adjacent, les gardes nom/adjectif restent' },
+  { txt: 'nous finis la course.', corrigeAttendu: ['finis', 'finissons'], pourquoi: 'CONTRE-GARDE : pronom ADJACENT → la personne est corrigée' },
   /* ⭐ ce/se + auxiliaire (12/09/2026, audit des abstentions) : un PARTICIPE ne suit jamais « ce sont » — il suit « se sont ». */
   { txt: 'ils ce sont déroulés hier.', corrigeAttendu: ['ce', 'se'], pourquoi: 'participe après l’auxiliaire + sujet pronom → pronominal (orange)' },
   { txt: 'les faits ce sont déroulés hier.', corrigeAttendu: ['ce', 'se'], pourquoi: 'même structure, sujet NOMINAL' },
