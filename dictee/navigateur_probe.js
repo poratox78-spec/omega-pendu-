@@ -310,6 +310,9 @@ const CAS = [
   { txt: 'Ils ont tous le droit de venir.', rien: true, pourquoi: 'CONTRE-GARDE : quantifieur flottant' },
   { txt: 'Il part en vacance demain.', corrigeAttendu: ['vacance', 'vacances'], pourquoi: '« en vacance » : vacances' },
   { txt: 'C’est enfants sont âgés de deux ans.', corrigeAttendu: ["C'est", 'Ces'], pourquoi: '« c’est » + nom pluriel + verbe pluriel → ces (orange)' },
+  /* ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 1 (13/09/2026) : repli phonétique (variantes -er/-é/-ez + mots rares) quand rien d'autre ne propose. */
+  { txt: 'Il vit dans une grande sosiéter.', corrigeAttendu: ['sosiéter', 'société'], pourquoi: 'mot inconnu : « sosiéter » sonne « société »' },
+  { txt: 'La population vit sur les litoro.', corrigeAttendu: ['litoro', 'littoraux'], pourquoi: 'mot rare hors de l’index principal : « littoraux »' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },

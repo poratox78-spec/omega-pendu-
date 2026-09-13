@@ -41,6 +41,10 @@ const C = globalThis.__C;
   for (const l of fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n')) if (l.trim()) phrases.push(l.trim());
   for (const l of fs.readFileSync(path.join(__dirname, 'corpus_gec_fr.jsonl'), 'utf8').split('\n')) {
     if (!l.trim()) continue; try { const o = JSON.parse(l); if (o.bad) phrases.push(o.bad); } catch (e) {} }
+  // ⭐ 13/09/2026 — REPLI PHONÉTIQUE des mots inconnus sans suggestion (_suPhonRare ↔ _su_phon_rare) : aucun des deux corpus ne
+  //    l'atteint (UD 0 mot, GEC 0). Phrases INVENTÉES : variantes de finale -er/-é (sosiéter, dificulter, inaproprier) et index des rares.
+  phrases.push('Il vit dans une grande sosiéter.', 'Elle a eu une dificulter à lire.', 'Ce geste est inaproprier ici.',
+               'La population vit sur les litoro.', 'Les litaurau sont protégés.', 'Le secteur agroalimentére embauche.');
 
   const out = [];
   for (const s of phrases) {
