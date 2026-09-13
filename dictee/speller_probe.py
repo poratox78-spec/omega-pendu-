@@ -340,10 +340,12 @@ class Speller:
     def __init__(self):
         self.WORDS, self.FREQ, self.D2A, self.PHON, self.POS = load_lexicon()
         self.PRENOMS_L = set()                                  # prénoms en MINUSCULE (protection, cf. correct_token)
+        self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« harold » → Harold, miroir JS PRENOMS)
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
                 for _l in _fp:
-                    _n = _l.split('	')[0].strip().lower()
+                    _o = _l.split('	')[0].strip(); _n = _o.lower()
+                    if _o and len(_l.split('	')) >= 3: self.PRENOMS_C.add(_o)
                     if len(_n) >= 3 and _n not in self.WORDS: self.PRENOMS_L.add(_n)
         except Exception:
             pass
@@ -913,6 +915,83 @@ class Speller:
             if f > bf: best, bf = w, f
         return best
 
+    # ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 2 (13/09/2026) — décalques de _suPrenom / _suMwe / _suColle / _suAnagram (dys-core, app).
+    _MWE = ['bien sûr', 'rendez-vous', 'au revoir', 'quelque chose', 'par contre', 'tout à fait', 'peut-être', 'parce que', "c'est-à-dire", 'à partir',
+            'à travers', 'grand-mère', 'grand-père', 'grands-parents', 'tout le monde', 'tout de suite', 'jeux vidéo', 'week-end', 'tant pis', 'plus tard',
+            'tout à coup', 'en fait', "d'accord", "s'il te plaît", "s'il vous plaît", 'bien évidemment', 'petit-déjeuner', 'arc-en-ciel', 'après-midi',
+            'quand même', "tout à l'heure", 'pas du tout', 'du coup', 'en tout cas', 'de temps en temps', 'au moins', 'au lieu', 'à peu près', 'tout au long']
+    _MWEK = None
+    _FWC = set('qui que la le les ma ta sa mon ton son mes tes ses un une des de du en et au aux lui leur ne se ce il elle on nous vous ils elles je tu '
+               'par pour sur dans avec sans deux trois quatre cinq très bien pas plus'.split())
+    _PREFX = set('pro anti sur sous extra ultra néo neo post pré pre auto inter super multi semi contre co re ré mini micro macro méga mega hyper '
+                 'para poly mono bi tri non'.split())
+    _PRSUJ = set('il elle on nous vous ils elles je tu'.split())
+    _ANA = None
+
+    def _su_prenom(self, low):
+        c = low[:1].upper() + low[1:]
+        return c if len(low) >= 3 and c in self.PRENOMS_C else None
+
+    def _su_mwe(self, low):
+        if self._MWEK is None:
+            self._MWEK = {}
+            for m in self._MWE: self._MWEK.setdefault(phon_key(re.sub(r"[ '\-]", '', m)), m)
+        pk = phon_key(low)
+        if pk in self._MWEK: return self._MWEK[pk]
+        if len(pk) < 5: return None
+        best = None
+        for e in edits1(pk):
+            m = self._MWEK.get(e)
+            if m and (best is None or m < best): best = m
+        return best
+
+    def _su_colle(self, low):
+        best, bs = None, -1.0
+        for k in range(2, len(low) - 1):
+            a, b = low[:k], low[k:]
+            fa, fb = self.FREQ.get(a, 0.0), self.FREQ.get(b, 0.0)
+            if not (fa > 0 and fb > 0) or a in self._PREFX: continue
+            if a in self._FWC: ok = len(b) >= 3 and fb >= 0.1
+            elif b in self._FWC: ok = len(a) >= 3 and fa >= 0.1 and (b not in self._PRSUJ or 'V' in self.POS.get(a, ()))
+            else: ok = len(a) >= 3 and len(b) >= 3 and fa >= 5 and fb >= 5
+            if not ok: continue
+            sc, cand = min(fa, fb), a + ' ' + b
+            if sc > bs or (sc == bs and best is not None and cand < best): bs, best = sc, cand
+        return best
+
+    @staticmethod
+    def _lcs_len(a, b):
+        dp = [0] * (len(b) + 1)
+        for i in range(1, len(a) + 1):
+            prev = 0
+            for j in range(1, len(b) + 1):
+                tmp = dp[j]
+                dp[j] = prev + 1 if a[i - 1] == b[j - 1] else max(dp[j], dp[j - 1])
+                prev = tmp
+        return dp[len(b)]
+
+    def _su_anagram(self, low):
+        if self._ANA is None:
+            self._ANA = defaultdict(list)
+            for lst in self.PHON.values():
+                for w in lst:
+                    if len(w) >= 4 and re.match(r'^[a-zà-ÿœæ]+$', w): self._ANA[''.join(sorted(deacc(w)))].append(w)
+        d = deacc(low); K = ''.join(sorted(d)); keys = {K}
+        for i in range(len(K)): keys.add(K[:i] + K[i + 1:])
+        for ch in 'abcdefghijklmnopqrstuvwxyz':
+            keys.add(''.join(sorted(K + ch)))
+            for i in range(len(K)): keys.add(''.join(sorted(K[:i] + ch + K[i + 1:])))
+        best, bp, bl, bf, pk = None, -1, -1, -1.0, phon_key(low)
+        for kk in keys:
+            for w in self._ANA.get(kk, ()):
+                dw = deacc(w)
+                if dw == d or dw[:1] != d[:1] or abs(len(dw) - len(d)) > 1: continue
+                l = self._lcs_len(d, dw)
+                if 10 * l < 7 * max(len(d), len(dw)): continue
+                p, f = (1 if phon_key(w) == pk else 0), self.FREQ.get(w, 0.0)
+                if p > bp or (p == bp and (l > bl or (l == bl and (f > bf or (f == bf and w < best))))): bp, bl, bf, best = p, l, f, w
+        return best
+
     _PHONR = None
 
     def _su_phon_rare(self, low):
@@ -976,7 +1055,9 @@ class Speller:
         if best and best != low: return best
         # VOIE '' (inconnu sans suggestion fiable) : S6 élision PRIORITAIRE, puis S4 clé phonétique d=1
         g = self._su_elision(low) or self._su_phon_e1(low)
+        if not g or g == low: g = self._su_prenom(low) or self._su_mwe(low) or self._su_colle(low)   # ⭐ 13/09/2026, lot 2 — miroir JS
         if not g or g == low: g = self._su_phon_rare(low)   # ⭐ 13/09/2026 : repli phonétique (variantes -er/-é/-ez + mots rares) — miroir JS _suPhonRare
+        if not g or g == low: g = self._su_anagram(low)     # ⭐ 13/09/2026, lot 2 : lettres mélangées, en dernier — miroir JS _suAnagram
         return g if (g and g != low) else ''
 
     def correct_text(self, text, inconnu=False):

@@ -128,7 +128,9 @@ try {
                  // voie '' du « mot inconnu » ÉQUIPÉE (S6 élision / S4 clé phon, 04/09/2026) + témoin sans candidat
                  'on voit dargen ici','léconomi','bégnier','ésituron','la souche delbrueckii ici',
                  // REPLI PHONÉTIQUE (13/09/2026) : variante de finale -er/-é, index des mots rares
-                 'une grande sosiéter','sur les litoro'];
+                 'une grande sosiéter','sur les litoro',
+                 // lot 2 (13/09/2026) : prénom en minuscule, expression collée, mots collés, lettres mélangées
+                 'viendrai biensur demain','aime beaucoupma ville','irons pemdatn les vacances'];
     const key = f => f.i + '|' + String(f.word).toLowerCase() + '|' + String(f.sugg).toLowerCase() + '|' + f.tier;
     BAT.forEach(t => {
       const a = global.__app.spell(t).map(key).sort().join(' ');
@@ -149,6 +151,7 @@ async function gardeIndexRare() {
   delete require.cache[cle]; require(cle); const D = global.DYSCORE; global.DYSCORE = avant;
   if (D === DC || typeof D.phonRareEtat !== 'function') { fail.push('repli phonétique : moteur neuf ou phonRareEtat introuvable'); return; }
   D.setLex(vdc, gender, speller);
+  D.setPrenoms(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'prenoms.tsv.gz'))).toString('utf8'));   // lot 2 : la voie « prénom en minuscule » lit la table
   const e0 = D.phonRareEtat();
   if (!(e0.rares > 100000) || e0.lance) { fail.push('repli phonétique : liste des mots rares non relevée au chargement, ou index lancé avant toute analyse : ' + JSON.stringify(e0)); return; }
   D.spell('Le chat dort sur le canapé.');
@@ -158,12 +161,18 @@ async function gardeIndexRare() {
   while (D.phonRareEtat().indexes < e0.rares && Date.now() - t0 < 30000) await new Promise(r => setTimeout(r, 10));
   const e2 = D.phonRareEtat();
   if (e2.indexes < e2.rares) { fail.push('repli phonétique : l\'index des mots rares n\'avance pas seul en tâche de fond : ' + JSON.stringify(e2)); return; }
-  for (const [t, w, g] of [['il vit dans une grande sosiéter', 'sosiéter', 'société'], ['la population vit sur les litoro', 'litoro', 'littoraux']]) {
+  // lot 2 (13/09/2026) : l'index des LETTRES MÉLANGÉES suit celui des rares dans la même chaîne de fond
+  const t1 = Date.now();
+  while (D.phonRareEtat().anagrammes < D.phonRareEtat().courants && Date.now() - t1 < 30000) await new Promise(r => setTimeout(r, 10));
+  const e3 = D.phonRareEtat();
+  if (!(e3.courants > 30000) || e3.anagrammes < e3.courants) { fail.push('lettres mélangées : l\'index des mots courants n\'est pas relevé au chargement ou n\'avance pas seul en tâche de fond : ' + JSON.stringify(e3)); return; }
+  for (const [t, w, g] of [['il vit dans une grande sosiéter', 'sosiéter', 'société'], ['la population vit sur les litoro', 'litoro', 'littoraux'],
+                           ['J\'ai vu harold au marché.', 'harold', 'Harold'], ['Je viendrai biensur demain.', 'biensur', 'bien sûr'], ['Il a un rendévous chez le médecin.', 'rendévous', 'rendez-vous'], ['J\'aime beaucoupma ville.', 'beaucoupma', 'beaucoup ma'], ['Nous irons pemdatn les vacances.', 'pemdatn', 'pendant'], ['Il fait tooujousr beau ici.', 'tooujousr', 'toujours']]) {
     const f = D.spell(t).find(x => x.word.toLowerCase() === w);
     if (!f || f.sugg !== g || f.tier !== 'vigilance') fail.push('repli phonétique : « ' + w + ' » → ' + g + ' (orange) attendu, eu ' + JSON.stringify(f));
   }
   const app = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
-  for (const s of ['else if(fr>0&&fr!==0.05)SP.RARE.push(w);', 'if(!_phonRareStep(4000))setTimeout(_st,0);'])
+  for (const s of ['else if(fr>0&&fr!==0.05)SP.RARE.push(w);', 'if(!_phonRareStep(4000)||!_anaStep(4000))setTimeout(_st,0);'])
     if (app.indexOf(s) < 0) fail.push('repli phonétique : l\'app ne porte plus « ' + s + ' » (chargeur ou lancement en tâche de fond)');
 }
 

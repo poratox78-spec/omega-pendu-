@@ -24,11 +24,11 @@ const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
 if (start < 0 || spIdx < 0 || cut < 0) { console.error('extraction échouée'); process.exit(2); }
-const code = html.slice(start, cut) + ';globalThis.__C={toks:toks,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,ready:()=>SP.ready};})();';
+const code = html.slice(start, cut) + ';globalThis.__C={toks:toks,setSeg:(s)=>{_SEG=_segInfo(s);},spell:spellText,loadSp:loadSpellerLex,loadNP:loadNounPost,loadG:loadGenderLex,loadH:loadPosHmm,loadP:loadPrenoms,ready:()=>SP.ready};})();';
 
 function blob(id) { const m = html.match(new RegExp('id="' + id + '">([^]*?)</script>')); return m ? m[1] : ''; }
 const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
-            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
+            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz'), 'prenoms-gz': blob('prenoms-gz') };   // prénoms : la référence Python les charge toujours (garde minuscule, lot 2 « harold » → Harold)
 const stub = new Proxy(function(){}, { get(t,k){ if(k==='style')return{}; if(k==='classList')return{add(){},remove(){},toggle(){},contains:()=>false}; return stub; }, set:()=>true, apply:()=>stub });
 global.document = { getElementById:(id)=> B[id]!==undefined && B[id]!=='' ? {textContent:B[id]} : stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
 global.window = global; try { global.navigator = { userAgent:'node' }; } catch (e) { Object.defineProperty(global, 'navigator', { value: { userAgent:'node' }, configurable: true }); } global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
@@ -36,7 +36,7 @@ global.window = global; try { global.navigator = { userAgent:'node' }; } catch (
 const C = globalThis.__C;
 
 (async () => {
-  await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH();
+  await C.loadSp(); if (C.loadNP) await C.loadNP(); if (C.loadG) await C.loadG(); if (C.loadH) await C.loadH(); if (C.loadP) await C.loadP();
   const phrases = [];
   for (const l of fs.readFileSync(path.join(__dirname, 'fp_scale_corpus.txt'), 'utf8').split('\n')) if (l.trim()) phrases.push(l.trim());
   for (const l of fs.readFileSync(path.join(__dirname, 'corpus_gec_fr.jsonl'), 'utf8').split('\n')) {
@@ -45,6 +45,8 @@ const C = globalThis.__C;
   //    l'atteint (UD 0 mot, GEC 0). Phrases INVENTÉES : variantes de finale -er/-é (sosiéter, dificulter, inaproprier) et index des rares.
   phrases.push('Il vit dans une grande sosiéter.', 'Elle a eu une dificulter à lire.', 'Ce geste est inaproprier ici.',
                'La population vit sur les litoro.', 'Les litaurau sont protégés.', 'Le secteur agroalimentére embauche.');
+  // ⭐ 13/09/2026, lot 2 : prénom en minuscule, expression collée, mots collés, lettres mélangées (_suPrenom/_suMwe/_suColle/_suAnagram ↔ Python).
+  phrases.push("J'ai vu harold au marché.", "Je viendrai biensur demain.", "Il a un rendévous chez le médecin.", "J'aime beaucoupma ville.", "Nous irons pemdatn les vacances.", "Il fait tooujousr beau ici.");
 
   const out = [];
   for (const s of phrases) {

@@ -313,6 +313,11 @@ const CAS = [
   /* ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 1 (13/09/2026) : repli phonétique (variantes -er/-é/-ez + mots rares) quand rien d'autre ne propose. */
   { txt: 'Il vit dans une grande sosiéter.', corrigeAttendu: ['sosiéter', 'société'], pourquoi: 'mot inconnu : « sosiéter » sonne « société »' },
   { txt: 'La population vit sur les litoro.', corrigeAttendu: ['litoro', 'littoraux'], pourquoi: 'mot rare hors de l’index principal : « littoraux »' },
+  /* ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 2 (13/09/2026) : prénom en minuscule, expression collée, mots collés, lettres mélangées. */
+  { txt: "J'ai vu harold au marché.", corrigeAttendu: ['harold', 'Harold'], casse: true, pourquoi: 'prénom écrit en minuscule : sa graphie d’origine' },
+  { txt: 'Je viendrai biensur demain.', corrigeAttendu: ['biensur', 'bien sûr'], pourquoi: 'expression figée collée' },
+  { txt: "J'aime beaucoupma ville.", corrigeAttendu: ['beaucoupma', 'beaucoup ma'], pourquoi: 'deux mots collés' },
+  { txt: 'Il fait tooujousr beau ici.', corrigeAttendu: ['tooujousr', 'toujours'], pourquoi: 'lettres mélangées' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },
@@ -543,7 +548,7 @@ const SCRIPT = (cas) => `(async () => {
       // L'etat AFFIRMATIF (applique / marques) est capture AVANT le geste « appliquer » : le verdict « rien »
       // porte sur ce que le moteur a fait SEUL, pas sur ce que l'utilisateur vient de lui demander.
       const applique0 = [...document.querySelectorAll('.vdc-on')].map(e => e.textContent);
-      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className), sugg: e.getAttribute('data-sugg'), key: e.getAttribute('data-key') }));
+      const marque0 = [...document.querySelectorAll('.vdc-bad')].map(e => ({ t: e.textContent, vig: /vdc-vig/.test(e.className), sugg: e.getAttribute('data-sugg'), key: e.getAttribute('data-key'), titre: e.getAttribute('title') }));
       /* ⭐ LA MARQUE SE CLIQUE (02/09/2026, Rem : « le ? je ne sais pas comment bien faire, je te laisse faire »).
          Mesuré dans Chrome AVANT : boîte de 0 × 3 px (width:0 + glyphe absolu), seul un halo de ±5 px répondait.
          APRÈS : le glyphe est dans le flux, 16 × 32 px, et le point central de la boîte touche bien la marque. */
@@ -647,7 +652,12 @@ async function main() {
         if (!b || b.w < 8 || b.h < 16 || !b.vise) echecs.push(`« ${c.txt} » : la marque d'insertion n'est pas CLIQUABLE (boîte ${JSON.stringify(b)} ; attendu ≥ 8 × 16 px et visée au centre)`); }
       if (c.orangeInterdit) { const mauvais = got.marque.filter(m => m.vig && m.t.trim().toLowerCase() === c.orangeInterdit.toLowerCase());
         if (mauvais.length) echecs.push(`« ${c.txt} » : « ${c.orangeInterdit} » ne devait PAS être marqué (${c.pourquoi}), marques ${JSON.stringify(mauvais.map(m => m.key))}`); }
-      if (c.corrigeAttendu) { const cible = c.corrigeAttendu[1].toLowerCase(), ok = got.marque.some(m => (m.key || '').toLowerCase().endsWith('|' + cible)) || got.applique.some(a => a.toLowerCase() === cible);
+      // ⚠️ 13/09/2026 : `casse: true` compare la suggestion À LA CASSE PRÈS — sans lui, « harold » → Harold passait même sans la voie « prénom » :
+      //    la clé de la marque (_ckey) met la suggestion en minuscules, « harold|harold » dans les deux cas — la garde était vide, vu en la
+      //    falsifiant. La casse se lit dans le TITRE de la marque (« clique pour appliquer -> Harold »).
+      if (c.corrigeAttendu) { const cible = c.corrigeAttendu[1].toLowerCase(), ok = c.casse
+          ? got.marque.some(m => (m.titre || '').indexOf('-> ' + c.corrigeAttendu[1]) >= 0) || got.applique.some(a => a === c.corrigeAttendu[1])
+          : got.marque.some(m => (m.key || '').toLowerCase().endsWith('|' + cible)) || got.applique.some(a => a.toLowerCase() === cible);
         if (!ok) echecs.push(`« ${c.txt} » : « ${c.corrigeAttendu[0]} » devait être corrigé ou proposé en « ${c.corrigeAttendu[1]} » (${c.pourquoi}), marques ${JSON.stringify(got.marque.map(m => m.key))}, appliqué ${JSON.stringify(got.applique)}`); }
       if (got.carte === false)
         echecs.push(`« ${c.txt} » : le clic sur la faute dans la ZONE DE SAISIE n'ouvre pas la carte`);
