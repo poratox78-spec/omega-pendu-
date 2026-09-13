@@ -1,8 +1,5 @@
 {
- "compares": 262,
- "divergences": [
-  "france→français [vigilance] vs py — [—]",
-  "miya→maya [vigilance] vs py — [—]"
- ],
+ "compares": 274,
+ "divergences": [],
  "note": "Divergences Python↔JS ANCRÉES. Une NOUVELLE fait échouer ; une qui disparaît est un GAIN → ré-ancrer avec --fix."
 }
