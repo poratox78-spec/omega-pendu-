@@ -96,6 +96,14 @@ def _check():
               ("ces produits chimiques sont appliquer dans la terre", "appliquer", "appliqués"), ("Cette histoire a était raconter hier", "raconter", "racontée")]   # ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est ACCORDÉ (clitique les, été après avoir, sujet nominal, a était)   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
     elide += [("Hier je noté le numéro", "je", "j'ai"), ("quand je retourné à la maison", "je", "je suis"), ("je fatigué ce soir", "je", "je suis")]   # ⭐ 12/09/2026 : auxiliaire manquant après je (orange)
     nofp += ["Ai-je noté le numéro ?", "je l'ai noté hier."]   # ⭐ 12/09/2026 : inversion, clitique → aucun flag
+    elide += [("le japon ne peu pas suffire", "peu", "peut"), ("il ne peu aussi créer", "peu", "peut")]   # ⭐ 13/09/2026 : la négation sautée (rule_peu)
+    nofp += ["il ne mange que peu.", "je ne peux pas."]   # ⭐ 13/09/2026 : l'adverbe « peu » après « ne … que », le verbe déjà juste
+    elide += [("les régions qui on une sécurité alimentaire", "on", "ont"), ("deux architectes qui on besoin d'argent", "on", "ont")]   # ⭐ 13/09/2026 : « qui on » + non-verbe
+    nofp += ["le film qu'on voit.", "les gens qu'on aime."]   # ⭐ 13/09/2026 : « qu'on » + verbe reste juste
+    # ⭐ 13/09/2026 — PHRASES COURANTES à la 1re/2e personne (dictee/phrases_courantes.txt) : « Je ne peux pas. » était corrigé en ROUGE
+    #    (*puis*) depuis le 07/09 sans qu'aucun corpus le voie. Zéro flag exigé sur chacune.
+    nofp += [l.strip() for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'phrases_courantes.txt'), encoding='utf-8')
+             if l.strip() and not l.startswith('#')]
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):

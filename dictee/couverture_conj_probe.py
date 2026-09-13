@@ -69,6 +69,12 @@ def mesurer(detail=False):
                     continue
                 autres = [f for s, f in sorted(slots.items()) if s != slot and f != juste][:MAX_SUBST]
                 for faux in autres:
+                    # ⚠️ 13/09/2026 : une VARIANTE de la case juste n'est pas une faute (« je peux » = « je puis ») — la sonde injectait
+                    #    « je peux » et comptait comme RÉUSSITE le faux positif rouge « peux → puis » (07/09 → 13/09). Même définition que le
+                    #    moteur (_conj_variante), ET une lecture de la forme pour CETTE personne : « tu puis » reste une faute (puis n'est
+                    #    qu'une 1re personne), les injections sur lectures fantômes (« je ramènes ») aussi.
+                    if CP._conj_variante(juste.lower(), faux.lower()) and any(
+                            r[0] == lem and r[1] == temps and r[2] + r[3] == slot for r in CP._reads(CP.deacc(faux.lower()))): continue
                     phrase = _phrase(sujet, faux, temps)
                     flags = CP.correct_tiered(phrase) or []
                     ok = any(f[1].lower() == faux.lower() and f[2].lower() == juste.lower() for f in flags)

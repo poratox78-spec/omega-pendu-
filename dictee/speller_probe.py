@@ -16,7 +16,7 @@ CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque qu
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
-_AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
+_AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré', 'tré': 'très', 'quit': 'qui'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
 # ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026) — la sœur de `_AFIX_MIN`, pour les
 # consonnes DOUBLÉES. Cas de Rem : « je suis à la boure » — le moteur ne corrige pas « boure » et
 # propose « la »→« le » : il ne rate pas la faute, il en FABRIQUE une autre à côté. Cause : `boure`
@@ -43,6 +43,8 @@ _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'at
 # ⚠️ Population 0 dans les 34 416 paires appariées : l'évidence est le cas VIVANT de Rem et le fait
 # que le corpus mesuré est à 92,7 % des sondes générées, pauvre en fautes de frappe réelles.
 _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'aterrit': 'atterrit', 'bales': 'balles', 'balon': 'ballon', 'balons': 'ballons', 'beure': 'beurre', 'boure': 'bourre', 'casette': 'cassette', 'casettes': 'cassettes', 'chate': 'chatte', 'chates': 'chattes', 'cocote': 'cocotte', 'comandant': 'commandant', 'conard': 'connard', 'conards': 'connards', 'fasions': 'fassions', 'feses': 'fesses', 'filette': 'fillette', 'frape': 'frappe', 'masage': 'massage', 'oseuse': 'osseuse', 'piser': 'pisser', 'prudement': 'prudemment', 'tiene': 'tienne', 'trape': 'trappe'}
+_DAN_SUR = {'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leurs', 'quel', 'quelle', 'quels', 'quelles', 'tout', 'toute', 'tous', 'toutes'}   # ⭐ 13/09/2026 : « dan » + déterminant qui ne suit jamais un prénom sujet → dans (flag)
+_DAN_VIG = {'le', 'la', 'les', 'se'}   # « dan le regarde » peut être Dan → dans proposé (orange)
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
 ELIDE = set("lmtsndcj")                       # consonnes d'élision (l', d', m', t', s', n', c', j', qu')
@@ -548,6 +550,13 @@ class Speller:
         # Lexique4 (NOM m, 6,66/M) à côté de « mère » (630/M) — liste CLOSE recensée (non-mots, 0 en minuscules sur UD, 16 dans le
         # corpus dys tous vers la sœur accentuée). MINUSCULES SEULEMENT (« Ame V », « Special » existent en majuscule).
         if tok == low and low in _AFIX_MIN: return ('auto', _AFIX_MIN[low])
+        # ⭐ « dan » + déterminant → « dans » (13/09/2026, muets du pipeline : 19 occurrences, 16 vers « dans », 0 en minuscules sur l'UD 14 450).
+        # « dan » est un mot (judo) et un prénom écrit en minuscules par les dys : FLAG devant un déterminant qui ne suit jamais un prénom
+        # sujet, ORANGE devant le/la/les/l'/se (« dan le regarde » = Dan). Jamais en majuscule. Miroir JS _DAN_SUR / _DAN_VIG.
+        if tok == low and low == 'dan' and toks is not None and idx is not None and idx + 1 < len(toks):
+            _dnx = deacc(toks[idx + 1].lower())
+            if _dnx in _DAN_SUR: return ('flag', 'dans')
+            if _dnx in _DAN_VIG or _dnx[:2] == "l'": return ('vigilance', 'dans')
         # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,
         # aucune soudure n'est un mot (speller, UD : 0), corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe seule.
         if low in _APOS_FIX: return ('auto', _APOS_FIX[low])

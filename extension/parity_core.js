@@ -151,6 +151,7 @@ const PHRASES = [
   'la réunion a lieu demain', 'il a besoin de toi', 'a priori tout va bien',
   'Requiem for a Dream le film', 'de 35 a 40 ans', 'le chien a soif ce soir'
 ];
+PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
 
 // 3) flags Python
 const py = cp.spawnSync('python3', ['-c', `
