@@ -157,7 +157,7 @@ def main():
             if act == 'vigilance' or not sg.isalpha():
                 sortie[i] = 'reste_nonmot'
             elif i in al:
-                sortie[i] = 'promu_juste' if DP.eq(sg, al[i]) else ('promu_inutile' if DP.eq(al[i], w) else 'promu_faux')
+                sortie[i] = 'promu_juste' if DP.juste(sg, al, i) else ('promu_inutile' if DP.eq(al[i], w) else 'promu_faux')   # ⭐ 13/09/2026 : DP.juste
         for i, w in enumerate(T):
             if not w.isalpha():
                 continue
@@ -174,7 +174,7 @@ def main():
             for (i, w, sg, nm) in grammaire(TT):
                 if i not in al:
                     continue
-                k = 0 if DP.eq(sg, al[i]) else (1 if DP.eq(al[i], T[i]) else 2)
+                k = 0 if DP.juste(sg, al, i) else (1 if DP.eq(al[i], T[i]) else 2)   # ⭐ 13/09/2026 : suggestion de plusieurs mots (DP.juste)
                 stat[lbl][k] += 1
                 if lbl != 'nettoye':
                     continue

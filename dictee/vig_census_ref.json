@@ -1,6 +1,6 @@
 {
- "justes": 330,
- "pointeuses": 227,
+ "justes": 331,
+ "pointeuses": 226,
  "fatigue": 145,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
@@ -320,6 +320,7 @@
   "vrançaise→française [orthographe] lettre_change",
   "vria→vrai [orthographe] inversion",
   "youan→yuan [orthographe] lettre_change",
+  "àeu→a eu [orthographe] dys_reel/texte3_h22",
   "électroniquemennt→électroniquement [mot inconnu] lettre_trop",
   "électron→électrons [accord pluriel à vérifier] accord",
   "épisode→épisodes [accord pluriel à vérifier] accord",

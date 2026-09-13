@@ -97,6 +97,8 @@ jobs:
         run: node dictee/test_speller_app.js
       - name: Benchmark dys réel (rappel plancher + FP=0 + garde anti-mauvaises-corrections)
         run: node dictee/messy_probe.js --check
+      - name: Juges dys — une suggestion de PLUSIEURS mots est jugée sur la suite de tokens gold (phrases inventées, sans corpus)
+        run: python3 dictee/test_juges_multimots.py
       - name: Census vigilance dys (aucune orange juste perdue — SAUTÉ en CI, corpus privé local)
         run: python3 dictee/vig_census_probe.py
       - name: Cohérence du GOLD, le juge ne porte pas la faute qu'il juge (SAUTÉ en CI, corpus privé local)
