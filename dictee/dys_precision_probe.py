@@ -94,7 +94,9 @@ def pairs():
 
 
 def eq(x, y):
-    """égalité tolérante aux ÉLISIONS et aux soudures : « l'âge » ≡ « âge », « de dure » ≡ « dure » (dernier mot)."""
+    """égalité tolérante aux ÉLISIONS et aux soudures : « l'âge » ≡ « âge », « de dure » ≡ « dure » (dernier mot).
+    ⚠️ Pour juger une SUGGESTION contre le gold, passer par `juste` : la tolérance « dernier mot » créditait une suggestion
+    de plusieurs mots dès que son dernier mot tombait sur le token aligné (« rondevous » → « ronde vous », gold « rendez-vous »)."""
     nx, ny = norm(x), norm(y)
     if nx == ny:
         return True
@@ -105,16 +107,21 @@ def _sim(a, b):
     return difflib.SequenceMatcher(a=a, b=b, autojunk=False).ratio()
 
 
+class Alignement(dict):
+    """index brut → token gold : le dict de toujours, pour tous les appelants. Porte en plus `j` (index brut → INDEX
+    du token gold) et `gold` (les tokens gold), sans quoi une suggestion de plusieurs mots ne peut pas être jugée."""
+
+
 def align(raw_toks, fix_toks):
     """index brut → token gold. Blocs 'equal' : 1:1. Blocs 'replace' : chaque token brut prend le token gold
     du bloc qui lui RESSEMBLE le plus (similarité ≥ 0,5, un gold par brut) — sinon AMBIGU (non jugé).
     Sans ça, une insertion dans le gold (« à l'abri ») décale tout et fabrique de fausses « fausses »."""
     a = [norm(t) for t in raw_toks]; b = [norm(t) for t in fix_toks]
-    m = {}
+    m = Alignement(); m.j = {}; m.gold = list(fix_toks)
     for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(a=a, b=b, autojunk=False).get_opcodes():
         if tag == 'equal':
             for k in range(i2 - i1):
-                m[i1 + k] = fix_toks[j1 + k]
+                m[i1 + k] = fix_toks[j1 + k]; m.j[i1 + k] = j1 + k
         elif tag == 'replace':
             used = set()
             for i in range(i1, i2):
@@ -126,8 +133,66 @@ def align(raw_toks, fix_toks):
                     if s > bs:
                         best, bs = j, s
                 if best is not None and bs >= 0.5:
-                    m[i] = fix_toks[best]; used.add(best)
+                    m[i] = fix_toks[best]; m.j[i] = best; used.add(best)
     return m
+
+
+_SEP_MOTS = re.compile(r"[\s\-]+")
+
+
+def mots(s):
+    """les MOTS d'une suggestion, coupés aux blancs ET aux traits d'union — comme les tokeniseurs des juges coupent le gold."""
+    return [p for p in _SEP_MOTS.split(str(s or '')) if p]
+
+
+def juste(sugg, al, i, egal=None):
+    """⭐ LA SUGGESTION EST-ELLE LE GOLD ? (13/09/2026) — le seul endroit où un juge compare une SUGGESTION au gold.
+
+    Un juge aligne UN token brut sur UN token gold, et les tokeniseurs coupent le gold aux blancs ET aux traits d'union.
+    Une suggestion qui couvre plusieurs tokens gold — « biensur » → « bien sûr », « rendévous » → « rendez-vous »,
+    « beaucoupma » → « beaucoup ma » — ne pouvait donc JAMAIS égaler le token aligné : comptée fausse, bruit orange ou
+    pointeuse (mesuré sur le lot 2 des mots soulignés sans suggestion : 4 justes relues à la main, 0 créditée). Dans l'autre
+    sens, la tolérance « dernier mot » de `eq` créditait « rondevous » → « ronde vous » (gold « rendez-vous ») parce que
+    « vous » était le token aligné.
+    Règle : une suggestion d'UN mot est jugée par l'égalité de toujours ; une suggestion de PLUSIEURS mots est juste si
+    ses mots égalent un à un une suite de tokens gold CONSÉCUTIFS qui contient le token aligné (l'aligneur rattache le
+    mot brut à l'un quelconque des morceaux, pas forcément au premier).
+    `egal` : l'égalité du juge appelant (`eq` par défaut ; le census compare sans désaccentuer).
+    ⚠️ LA CASSE NE COMPTE PAS : « harold » → « Harold » est invisible aux juges (norm met en minuscules), et côté produit
+    la clé de marque `_ckey` met aussi la suggestion en minuscules. Documenté, pas changé : c'est le produit qui décide."""
+    egal = egal or eq
+    if i not in al:
+        return False
+    p = mots(sugg)
+    if len(p) < 2:
+        return egal(sugg, al[i])
+    j, gold = getattr(al, 'j', {}).get(i), getattr(al, 'gold', None)
+    if j is None or gold is None:
+        return False
+    n = len(p)
+    for d in range(n):
+        a = j - d
+        if a < 0 or a + n > len(gold):
+            continue
+        if all(egal(p[k], gold[a + k]) for k in range(n)):
+            return True
+    return False
+
+
+def classer(sugg, w, al, i):
+    """juste / inutile / fausse / ambigu — le classement de ce juge, en une fonction (gardée par test_juges_multimots.py)."""
+    if i not in al:
+        return 'ambigu'
+    if juste(sugg, al, i):
+        return 'juste'
+    # Une suggestion de PLUSIEURS mots découpe le token : la tolérance d'élision de `eq` y cacherait le changement que le gold
+    # demande (« d'dure » → gold « d'une dure » : « d'dure » ≡ « dure » pour eq). Sans elle, « de dure » tombait en INUTILE —
+    # la colonne FP=0 — alors que le mot était faux. Égalité stricte (norm) pour ces suggestions-là, comme le census.
+    if len(mots(sugg)) >= 2 and norm(al[i]) != norm(w):
+        return 'fausse'
+    if eq(al[i], w):
+        return 'inutile'
+    return 'fausse'
 
 
 def _flags_navigateur(phrases):
@@ -257,9 +322,7 @@ def main():
             if i not in al:
                 stats[(fam, tier)]['ambigu'] += 1; continue
             g = al[i]
-            if eq(sugg, g): k = 'juste'
-            elif eq(g, w): k = 'inutile'
-            else: k = 'fausse'
+            k = classer(sugg, w, al, i)                    # ⭐ 13/09/2026 : suggestion de plusieurs mots jugée sur la suite de tokens gold (juste)
             key = (fam, tier) if fam == 'orthographe' else (fam, tier + ('·propre' if clean_ctx(i) else '·pollué'))
             stats[key][k] += 1
             # CAS DISTINCTS : le corpus contient la MÊME dictée recopiée par plusieurs élèves → un piège

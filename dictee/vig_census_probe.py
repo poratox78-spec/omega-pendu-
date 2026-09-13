@@ -21,6 +21,29 @@ FIX = '--fix' in sys.argv
 
 def norm(w): return (w or u'').lower().replace(u'’', u"'")
 
+def _egal(x, y): return norm(x) == norm(y)       # l'égalité du census : sans désaccentuer (« mere » ≠ « mère »)
+
+def aligne_gold(tokens, tokens_fixed):
+    u"""index brut → token gold (alignement mot à mot de dys_reel_probe), avec l'INDEX gold de chaque token : sans lui, une
+    suggestion de plusieurs mots (« bien sûr ») ne peut pas être comparée à la suite de tokens gold qu'elle couvre."""
+    from dys_reel_probe import align
+    import dys_precision_probe as DP
+    al = DP.Alignement(); al.j = {}; al.gold = list(tokens_fixed)
+    ia = jb = 0
+    for k, a, b in align(tokens, tokens_fixed):
+        if k == 'ins': jb += 1; continue
+        if k == 'del': ia += 1; continue
+        al[ia] = b; al.j[ia] = jb; ia += 1; jb += 1
+    return al
+
+def classe(tokens, i, sugg, al):
+    u"""fatigue (le gold garde le mot) / juste / pointeuse. ⭐ 13/09/2026 : « juste » passe par dys_precision_probe.juste —
+    une suggestion de plusieurs mots était toujours POINTEUSE (« bien sûr » ≠ « bien », le token aligné)."""
+    import dys_precision_probe as DP
+    if norm(tokens[i]) == norm(al[i]): return 'fatigue'
+    if DP.juste(sugg, al, i, _egal): return 'juste'
+    return 'pointeuse'
+
 def main():
     if not os.path.exists(os.path.join(DATA, 'dictees_gold.jsonl')):
         print(u'· CENSUS : SAUTÉ (corpus dys absent de data_local et OMEGA_DYS_DATA non posé — garde locale)')
@@ -29,25 +52,14 @@ def main():
                        capture_output=True, text=True, encoding='utf-8', cwd=ROOT)
     if r.returncode != 0:
         print(u'✗ CENSUS : le dump a échoué\n' + (r.stderr or '')[-400:]); return 1
-    from dys_reel_probe import align
     D = json.load(io.open(DUMP, encoding='utf-8'))
     justes, pointeuses, fatigue = [], [], []
     for t in D['dys']:
-        ops = align(t['tokens'], t['tokensFixed'])
-        gold = {}; ia = 0
-        for op in ops:
-            k, a, b = op
-            if k == 'ins': continue
-            if k == 'del': ia += 1; continue
-            gold[ia] = (a, b); ia += 1
+        al = aligne_gold(t['tokens'], t['tokensFixed'])
         for f in t['flags']:
-            g = gold.get(f['i'])
-            if g is None: continue
-            a, b = g
-            cle = u'%s→%s [%s] %s' % (a, f.get('sugg'), f.get('name'), t.get('src'))
-            if norm(a) == norm(b): fatigue.append(cle)
-            elif norm(f.get('sugg')) == norm(b): justes.append(cle)
-            else: pointeuses.append(cle)
+            if f['i'] not in al: continue
+            cle = u'%s→%s [%s] %s' % (t['tokens'][f['i']], f.get('sugg'), f.get('name'), t.get('src'))
+            {'fatigue': fatigue, 'juste': justes, 'pointeuse': pointeuses}[classe(t['tokens'], f['i'], f.get('sugg'), al)].append(cle)
     etat = {'justes': len(justes), 'pointeuses': len(pointeuses), 'fatigue': len(fatigue),
             'cles_justes': sorted(justes)}
     if FIX or not os.path.exists(REF):

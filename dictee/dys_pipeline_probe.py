@@ -247,7 +247,7 @@ def main():
                 # sonde ne savait pas dire « le produit a AFFIRMÉ un mauvais mot ». C'est le PIRE des ratés : ni
                 # silence ni proposition, une réécriture fausse que l'utilisateur ne voit plus comme une faute.
                 _props = orange.get(i, [])
-                _bons = [x for x in _props if DP.eq(x, g)]
+                _bons = [x for x in _props if DP.juste(x, al, i)]   # ⭐ 13/09/2026 : « biensur » → « bien sûr » jugé sur la suite de tokens gold (était DP.eq(x, g) : bruit)
                 if DP.norm(out[i]) != DP.norm(w):
                     app_faux += 1
                     if len(ex_appf) < 12: ex_appf.append('%s → %s (gold %s)' % (w, out[i], g))

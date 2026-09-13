@@ -110,7 +110,7 @@ def main():
                             stat[r]['masque'] += 1            # une règle prioritaire a déjà gagné ce token
                     if i in al and not dup:
                         g = al[i]
-                        k = 'juste' if DP.eq(sg, g) else ('inutile' if DP.eq(g, T[i]) else 'fausse')
+                        k = 'juste' if DP.juste(sg, al, i) else ('inutile' if DP.eq(g, T[i]) else 'fausse')   # ⭐ 13/09/2026 : suggestion de plusieurs mots (DP.juste)
                         stat[r][k] += 1
                         if k != 'juste' and len(ex[r]) < 4:
                             ex[r].append('%s→%s (gold %s)  ⟨%s⟩' % (T[i], sg, g, ' '.join(T[max(0, i - 4):i + 5])))

@@ -91,6 +91,7 @@ run "speller app (décompresse+FP0)" node dictee/test_speller_app.js
 run "vigilance accord sujet-verbe (orange mid-phrase)" node dictee/test_sv_vigilance.js
 run "sonde SUJET vs or UD nsubj (précision quand répond ≥90 % ; SAUTÉ sans /tmp/udfr)" python3 dictee/sujet_probe.py
 run "benchmark dys réel (messy: rappel+FP+mauvaises corr.)" node dictee/messy_probe.js --check
+run "juges dys : suggestion de PLUSIEURS mots jugée sur la suite gold (bien sûr juste, ronde vous faux)" python3 dictee/test_juges_multimots.py
 run "census vigilance dys (aucune orange juste perdue)" python3 dictee/vig_census_probe.py
 run "cohérence du GOLD (le juge ne porte pas la faute qu'il juge)" python3 dictee/gold_coherence_probe.py --check
 run "précision par famille sur texte dys (rouge/orange mesurés)" python3 dictee/dys_precision_probe.py
