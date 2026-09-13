@@ -44,6 +44,7 @@ _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'at
 # que le corpus mesuré est à 92,7 % des sondes générées, pauvre en fautes de frappe réelles.
 _DBL_MIN = {'adition': 'addition', 'agrave': 'aggrave', 'aterri': 'atterri', 'aterrit': 'atterrit', 'bales': 'balles', 'balon': 'ballon', 'balons': 'ballons', 'beure': 'beurre', 'boure': 'bourre', 'casette': 'cassette', 'casettes': 'cassettes', 'chate': 'chatte', 'chates': 'chattes', 'cocote': 'cocotte', 'comandant': 'commandant', 'conard': 'connard', 'conards': 'connards', 'fasions': 'fassions', 'feses': 'fesses', 'filette': 'fillette', 'frape': 'frappe', 'masage': 'massage', 'oseuse': 'osseuse', 'piser': 'pisser', 'prudement': 'prudemment', 'tiene': 'tienne', 'trape': 'trappe'}
 _DAN_SUR = {'un', 'une', 'des', 'ce', 'cet', 'cette', 'ces', 'mon', 'ma', 'mes', 'ton', 'ta', 'tes', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leurs', 'quel', 'quelle', 'quels', 'quelles', 'tout', 'toute', 'tous', 'toutes'}   # ⭐ 13/09/2026 : « dan » + déterminant qui ne suit jamais un prénom sujet → dans (flag)
+_VACANCES_AV = {'en', 'de', "d'", 'des', 'les', 'mes', 'tes', 'ses', 'nos', 'vos', 'leurs', 'bonnes', 'grandes', 'petites'}   # ⭐ 13/09/2026 : « en vacance » → vacances
 _DAN_VIG = {'le', 'la', 'les', 'se'}   # « dan le regarde » peut être Dan → dans proposé (orange)
 _APOS_FIX = {"aujourdhui": "aujourd'hui", "aujourdui": "aujourd'hui", "quelquun": "quelqu'un", "quelquune": "quelqu'une", "jusqua": "jusqu'à", "jusquau": "jusqu'au", "jusquaux": "jusqu'aux", "jusquen": "jusqu'en", "jusquici": "jusqu'ici", "jusquou": "jusqu'où", "presquile": "presqu'île", "lorsquil": "lorsqu'il", "lorsquelle": "lorsqu'elle", "puisquil": "puisqu'il"}   # décalque de _APOS_FIX (dys-core.js, après _AFIX_MIN)
 _DPAIR = {'un': 'une', 'une': 'un', 'le': 'la', 'la': 'le', 'ce': 'cette', 'cette': 'ce', 'cet': 'cette'}   # décalque de _DPAIR (dys-core.js l.3040)
@@ -557,6 +558,10 @@ class Speller:
             _dnx = deacc(toks[idx + 1].lower())
             if _dnx in _DAN_SUR: return ('flag', 'dans')
             if _dnx in _DAN_VIG or _dnx[:2] == "l'": return ('vigilance', 'dans')
+        # ⭐ « vacance » après en/de/des/les… → « vacances » (13/09/2026, muets du pipeline : 4/4 sur les paires locales, UD 14 450 : 0) — le
+        # singulier « la vacance du poste » existe, jamais après ces mots-là. Miroir JS.
+        if tok == low and low == 'vacance' and toks is not None and idx is not None and idx >= 1 and deacc(toks[idx - 1].lower()) in _VACANCES_AV:
+            return ('flag', 'vacances')
         # ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (plan ③ de l'audit, décalque de _APOS_FIX du produit) : liste CLOSE,
         # aucune soudure n'est un mot (speller, UD : 0), corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe seule.
         if low in _APOS_FIX: return ('auto', _APOS_FIX[low])
