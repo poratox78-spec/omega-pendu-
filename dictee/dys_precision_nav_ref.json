@@ -52,7 +52,7 @@
   "grammaire:participe après auxiliaire|auto·propre": 60.0,
   "grammaire:ça/sa|auto·pollué": 100.0,
   "grammaire:élision|flag·pollué": 0.0,
-  "grammaire:élision inversée|auto·pollué": 0.0,
+  "grammaire:élision inversée|vigilance·pollué": 100.0,
   "grammaire:c'est/s'est|auto·pollué": 100.0,
   "grammaire:-e/-é (participe)|auto·propre": 75.0,
   "grammaire:accord verbe à vérifier|vigilance·propre": 0.0,

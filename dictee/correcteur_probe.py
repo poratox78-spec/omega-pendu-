@@ -1417,21 +1417,71 @@ _PP_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'y', 'en', 'se', 's', 'deja', 'to
            'tres', 'trop', 'peu', 'souvent', 'vraiment', 'assez', 'plutot'}   # ⭐ 12/09/2026 (lot 2) : « sont TRÈS fréquentés » — l'adverbe de degré ne cache pas l'auxiliaire
 _DESEL = {'j': 'je', 'n': 'ne', 'm': 'me', 't': 'te', 's': 'se', 'd': 'de', 'c': 'ce', 'qu': 'que'}
 _DESEL_VOW = set('aeiouyàâäéèêëîïôöùûüh') | {'œ', 'æ'}
-def rule_deselide(T, i):
-    """Élision INVERSÉE (faute dys) : « j'ne, n'sait, m'détestons, d'guerre »… Un proclitique élidé (j'/n'/m'/t'/s'/d'/c'/qu')
-    ne s'élide QUE devant voyelle ; devant CONSONNE = faute → on rétablit (je/ne/me/… + espace + mot). FP=0 (14 450 UD).
-    l' exclu (le/la ambigu) ; nom propre (reste capitalisé) et « d'œuvre » (œ = voyelle) préservés."""
+_DESEL_CLIT = {'ne', 'me', 'te', 'se', 'le', 'la', 'les', 'lui', 'leur', 'y', 'en', 'nous', 'vous'}   # suivent un proclitique verbal (« j'ne » → je ne)
+_DESEL_DET = {'du', 'des', 'de', 'le', 'la', 'les', 'un', 'une', 'au', 'aux'}
+_DESEL_SUJ = {'il': ('s', 'm'), 'elle': ('s', 'f'), 'on': ('s', 'm'), 'ils': ('p', 'm'), 'elles': ('p', 'f')}
+_DESEL_LOC = {'heure', 'heures', 'matin', 'foi', 'humeur', 'gre', 'grace', 'coeur', 'cœur'}   # « de bonne heure », « de bon matin », « de mauvaise foi » : locution sans article
+_DESEL_INF = {'va', 'vais', 'vas', 'allons', 'allez', 'vont', 'faut', 'peut', 'peux', 'pouvons', 'pouvez', 'peuvent', 'veut', 'veux', 'voulons',
+              'voulez', 'veulent', 'doit', 'dois', 'devons', 'devez', 'doivent', 'pour', 'sans', 'de', 'aller', 'pouvoir', 'vouloir', 'devoir'}   # régissent l'infinitif
+
+
+def _deselide(T, i):
+    u"""-> (suggestion, orange) ou None. Le moteur de « élision inversée » (rule_deselide la suggestion, tier_of le palier).
+    ⭐ 13/09/2026 — la règle rétablissait le mot complet PARTOUT, en rouge. Mesuré sur le vrai écrit dys : 5 tirs, 0 juste — le scripteur
+    n'avait pas élidé à tort, il avait SAUTÉ un mot (« d'[une] dure écorce », « elle s'[est] mariée ») ; le juge le cachait (crédit du
+    dernier mot). Sur le GEC synthétique et Wikipédia, l'expansion est juste là où la grammaire la FORCE (« L'population » → La,
+    « n'sait » → ne sait, « s'disputent » → se disputent). Donc :
+      · ROUGE si le mot complet est sûr : j'/n'/m'/t'/s' + verbe conjugué ou clitique, d' + nom, l' + nom de genre connu, c'/qu' ;
+      · ORANGE avec le mot manquant quand la grammaire le montre : s' + participe (ou infinitif en -er juste après le sujet) → s'est /
+        se sont + participe accordé au sujet ; d' + mot qui n'est pas un nom, suivi d'un nom → d'un / d'une ;
+      · ORANGE sans l'article en double : « d'du » → du, « de l'pétrole » → pétrole, « du l'département » → département ;
+      · ORANGE avec l'expansion quand j'/n'/m'/t' précèdent un participe (un auxiliaire est tombé, lequel : pas tranché) ;
+      · RIEN sur un nom propre : proclitique en majuscule devant un reste que les tables ne connaissent pas (« Ben M'barek », « N'djili »).
+    UD (16 950 phrases correctes) : 0 tir avant, 0 après."""
     w = T[i]; lw = w.lower()
     if lw in _ELIDE_STOP: return None                                  # liste UNIQUE partagée avec rule_elide (cf. _ELIDE_STOP)
     m = re.match(r"^(qu|[jnmtsdcl])'(.+)$", lw)
     if not m: return None
     pre = m.group(1); rest = w[len(pre)+1:]
     if not rest or rest[0].lower() in _DESEL_VOW or not rest[0].isalpha() or rest[:1].isupper(): return None
+    dr = deacc(rest.lower())
+    nom = GENDER_PURE.get(dr) in ('m', 'f')
+    if w[:1].isupper() and not (nom or _reads(rest) or _is_ppl(rest) or _inf1(rest) is not None or dr in _DESEL_CLIT or dr in _DESEL_DET):
+        return None                                                     # nom propre : « Ben M'barek », « N'djili », « Najat M'jid »
+    prev = deacc(T[i - 1].lower()) if i > 0 else ''
     if pre == 'l':                                                    # « l' » + consonne → le/la selon le GENRE du nom (lexique) ; genre inconnu → abstention
-        g = GENDER_PURE.get(deacc(rest.lower()))
+        g = GENDER_PURE.get(dr)
         if g not in ('m', 'f'): return None
-        return _keepcase(w, ('le' if g == 'm' else 'la') + ' ' + rest)
-    return _keepcase(w, _DESEL[pre] + ' ' + rest)
+        if prev in ('du', 'des', 'au', 'aux') or (prev == 'de' and g == 'm'):
+            return (_keepcase(w, rest), True)                            # déterminant en double : « du l'département », « de l'pétrole »
+        return (_keepcase(w, ('le' if g == 'm' else 'la') + ' ' + rest), False)
+    if pre == 'd':
+        if dr in _DESEL_DET: return (_keepcase(w, rest), True)          # « d'du » : déterminant en double
+        if not nom and i + 1 < len(T):
+            nx = deacc(T[i + 1].lower()); gn = GENDER_PURE.get(nx)
+            if gn in ('m', 'f') and nx not in _DESEL_LOC:                  # locution figée (« d'bonne heure ») : de, en rouge, plus bas
+                return (_keepcase(w, ("d'un " if gn == 'm' else "d'une ") + rest), True)   # « d'dure écorce » → d'une dure écorce
+        return (_keepcase(w, 'de ' + rest), False)
+    # une finale ACCENTUÉE de participe prime sur la lecture conjuguée : déaccentués, « mariés » et « mangé » sont aussi « tu maries », « je mange »
+    if pre in ('j', 'n', 'm', 't', 's') and dr not in _DESEL_CLIT and (not _is_finite(rest) or re.search(u'(é|ée|és|ées)$', rest.lower())):
+        if pre == 's':
+            inf = _inf1(rest); suj = _DESEL_SUJ.get(prev)
+            if inf is not None and prev in _DESEL_INF and deacc(inf) != dr:
+                return (_keepcase(w, 'se ' + inf), True)                     # « il faut s'marié », « elle va s'mariée » → se marier (-é mis pour -er)
+            if _is_ppl(rest) or (inf is not None and deacc(inf) == dr and suj):
+                part = _pp_accord(inf[:-2] + u'é', suj[0], suj[1]) if (suj and inf is not None) else rest
+                return (_keepcase(w, ('se sont ' if (suj and suj[0] == 'p') else u"s'est ") + part), True)   # « elle s'mariée » → s'est mariée
+        elif _is_ppl(rest):
+            return (_keepcase(w, _DESEL[pre] + ' ' + rest), True)       # « j'mangé » : un auxiliaire est tombé — orange
+    return (_keepcase(w, _DESEL[pre] + ' ' + rest), False)
+
+
+def rule_deselide(T, i):
+    """Élision INVERSÉE (faute dys) : « j'ne, n'sait, m'détestons, d'guerre »… Un proclitique élidé (j'/n'/m'/t'/s'/d'/c'/qu')
+    ne s'élide QUE devant voyelle ; devant CONSONNE = faute → on rétablit (je/ne/me/… + espace + mot). FP=0 (UD 16 950 phrases).
+    Le palier (rouge ou orange) et le mot manquant sont décidés par _deselide (13/09/2026) ; nom propre préservé."""
+    r = _deselide(T, i)
+    return r[0] if r else None
 
 _ETRE_CONJ = {'je': 'suis', 'tu': 'es', 'il': 'est', 'elle': 'est', 'on': 'est',
               'nous': 'sommes', 'vous': 'êtes', 'ils': 'sont', 'elles': 'sont'}
@@ -4380,6 +4430,9 @@ def rule_elide(T, i):
     w = T[i]; lw = w.lower()
     if lw in _ELIDE_STOP:
         return None
+    # ⭐ 13/09/2026 : « élision inversée » (RULES[0]) couvre tous ces préfixes ; quand elle passe ORANGE ou s'abstient (nom propre), cette
+    #    règle-ci ne doit pas réappliquer l'expansion en ROUGE derrière elle (les juges qui cherchent une règle après une orange le faisaient).
+    if re.match(r"^(qu|[jnmtsdcl])'", lw): return None
     for pre, full in _ELIDE.items():
         if lw.startswith(pre):
             rest = w[len(pre):]
@@ -5612,7 +5665,7 @@ def rule_on_ont_sujet_pluriel(T, i):
 VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
-                'on/ont après un sujet pluriel à vérifier')
+                'on/ont après un sujet pluriel à vérifier', 'élision inversée')
 _SUBJ_PRON = set('il elle ils elles on je tu nous vous'.split())
 _INVAR_S = set('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas '
                'cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars '
@@ -5644,6 +5697,9 @@ def tier_of(T, i, name, sugg):
     if name.endswith(u'à vérifier'): return 'vigilance'   # ⭐ 11/09/2026 : une règle « à vérifier » est ORANGE par construction (miroir spellText JS : tier 'vigilance') — nombre du déterminant, etc.
     if name not in VIG_FAMILIES:
         return 'auto'
+    if name == u'élision inversée':                        # ⭐ 13/09/2026 : rouge seulement là où le mot complet est sûr (cf. _deselide)
+        r = _deselide(T, i)
+        return 'vigilance' if (r and r[1]) else 'auto'
     n = len(T)
     if name == 'ou/où':
         return 'vigilance'   # l'accent change le SENS de la phrase : on propose, l'auteur tranche

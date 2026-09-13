@@ -25483,7 +25483,7 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
   // Élision fautive DEVANT CONSONNE → de-élide (FP=0 structurel : élidé valide seulement devant voyelle). Clitiques
   // DÉTERMINISTES (j'/n'/m'/d'/c'/qu') = parité triviale (aucun lexique) ; t'/s'/l'/h/y exclus (ambigus / h muet « l'homme »). Miroir correcteur_probe.rule_elide.
   var ELIDE={"j'":"je","n'":"ne","m'":"me","d'":"de","c'":"ce","qu'":"que"},ECONS="bcdfgjklmnpqrstvwxz",ELIDE_STOP={"n'roll":1,"m'sieur":1,"m'dame":1,"m'ame":1,"c'te":1}   /* ⚠️ LISTE UNIQUE (audit 2026-08-11), miroir de _ELIDE_STOP (Python). rElide et rDeselide font le MÊME travail et avaient DEUX listes d'exceptions divergentes : « n'roll » n'était que dans l'une, « m'dame/m'ame » que dans l'autre. Mesuré : « rock n'roll » -> « rock ne roll », « c'te histoire » -> « ce te ». */;
-  function rElide(T,i){var w=T[i],lw=w.toLowerCase();if(ELIDE_STOP[lw])return null;for(var pre in ELIDE){if(lw.indexOf(pre)===0){var rest=w.slice(pre.length),c0=rest.charAt(0);if(rest&&c0===c0.toLowerCase()&&c0!==c0.toUpperCase()&&ECONS.indexOf(deacc(c0.toLowerCase()))>=0)return ckeepcase(w,ELIDE[pre]+' '+rest);return null;}}return null;}
+  function rElide(T,i){var w=T[i],lw=w.toLowerCase();if(ELIDE_STOP[lw])return null;if(/^(qu|[jnmtsdcl])'/.test(lw))return null;   /* ⭐ 13/09/2026 : « élision inversée » couvre ces préfixes ; son orange ou son abstention (nom propre) ne doivent pas être réappliqués en rouge ici. Miroir Python rule_elide. */for(var pre in ELIDE){if(lw.indexOf(pre)===0){var rest=w.slice(pre.length),c0=rest.charAt(0);if(rest&&c0===c0.toLowerCase()&&c0!==c0.toUpperCase()&&ECONS.indexOf(deacc(c0.toLowerCase()))>=0)return ckeepcase(w,ELIDE[pre]+' '+rest);return null;}}return null;}
   // Accord SUJET-VERBE (route lexicale cgram_conj) — sujet PRONOM (personne/nombre certains), borné FP=0.
   var SUBJ_PRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],ils:['3','p'],elles:['3','p']};
   var CLITIC={};['ne','me','te','se','le','la','les','lui','leur','y','en','nous','vous',"l'","m'","t'","s'","n'"].forEach(function(w){CLITIC[w]=1;});
@@ -26188,8 +26188,30 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   function rDeselide(T,i){var w=T[i],lw=w.toLowerCase();if(lw==="m'sieur"||lw==="m'dame"||lw==="m'ame"||lw==="n'roll"||lw==="c'te")   /* ⚠️ LISTE UNIQUE (audit 2026-08-11) : rElide et rDeselide font le MÊME travail et avaient DEUX listes d'exceptions différentes — « n'roll » n'était que dans celle de rElide. Mesuré : « rock n'roll » -> « rock ne roll ». Miroir de _ELIDE_STOP (Python). */return null;
     var m=lw.match(/^(qu|[jnmtsdcl])'(.+)$/);if(!m)return null;var pre=m[1],rest=w.slice(pre.length+1),c0=rest.charAt(0);
     if(!c0||DESELV[c0.toLowerCase()]||c0.toLowerCase()===c0.toUpperCase()||c0===c0.toUpperCase())return null;   // voyelle/non-lettre/majuscule(nom propre) → OK
-    if(pre==='l'){var g=GENDER_PURE[deacc(rest.toLowerCase())]||GENDER_MAP[deacc(rest.toLowerCase())];if(g!=='m'&&g!=='f')return null;return ckeepcase(w,(g==='m'?'le':'la')+' '+rest);}
-    return ckeepcase(w,DESEL[pre]+' '+rest);}
+    var r=_deselide(T,i,pre,rest);return r?r[0]:null;}   // ⭐ 13/09/2026 : suggestion décidée par _deselide ; le palier passe par _tierOf (famille « élision inversée »)
+  /* ⭐ 13/09/2026 — MIROIR de correcteur_probe._deselide : ROUGE là où le mot complet est sûr ; ORANGE avec le mot MANQUANT quand la grammaire
+     le montre (« elle s'mariée » → s'est mariée, « d'dure écorce » → d'une dure) ; ORANGE sans l'article en double (« de l'pétrole » → pétrole) ;
+     RIEN sur un nom propre (« Ben M'barek »). Mesuré avant : vrai écrit dys 5 tirs / 0 juste, tous rouges ; UD 16 950 phrases : 0 tir.
+     Rend [suggestion, orange] ; pre/rest facultatifs (rDeselide les a extraits, _tierOf non). */
+  var DESEL_CLIT={ne:1,me:1,te:1,se:1,le:1,la:1,les:1,lui:1,leur:1,y:1,en:1,nous:1,vous:1},DESEL_DET={du:1,des:1,de:1,le:1,la:1,les:1,un:1,une:1,au:1,aux:1},DESEL_SUJ={il:['s','m'],elle:['s','f'],on:['s','m'],ils:['p','m'],elles:['p','f']},DESEL_LOC={heure:1,heures:1,matin:1,foi:1,humeur:1,gre:1,grace:1,coeur:1,'cœur':1},DESEL_INF={va:1,vais:1,vas:1,allons:1,allez:1,vont:1,faut:1,peut:1,peux:1,pouvons:1,pouvez:1,peuvent:1,veut:1,veux:1,voulons:1,voulez:1,veulent:1,doit:1,dois:1,devons:1,devez:1,doivent:1,pour:1,sans:1,de:1,aller:1,pouvoir:1,vouloir:1,devoir:1};
+  function _deselide(T,i,pre,rest){var w=T[i];
+    if(pre==null){var lw=w.toLowerCase();if(lw==="m'sieur"||lw==="m'dame"||lw==="m'ame"||lw==="n'roll"||lw==="c'te")return null;var m=lw.match(/^(qu|[jnmtsdcl])'(.+)$/);if(!m)return null;pre=m[1];rest=w.slice(pre.length+1);var c0=rest.charAt(0);
+      if(!c0||DESELV[c0.toLowerCase()]||c0.toLowerCase()===c0.toUpperCase()||c0===c0.toUpperCase())return null;}
+    var dr=deacc(rest.toLowerCase()),nom=(GENDER_PURE[dr]==='m'||GENDER_PURE[dr]==='f');
+    if(w.charAt(0)!==w.charAt(0).toLowerCase()&&!(nom||svReads(rest).length||_isPpl(rest)||_inf1(rest)!=null||DESEL_CLIT[dr]||DESEL_DET[dr]))return null;   // nom propre : « Ben M'barek », « N'djili »
+    var prev=i>0?deacc(T[i-1].toLowerCase()):'';
+    if(pre==='l'){var g=GENDER_PURE[dr]||GENDER_MAP[dr];if(g!=='m'&&g!=='f')return null;
+      if(prev==='du'||prev==='des'||prev==='au'||prev==='aux'||(prev==='de'&&g==='m'))return [ckeepcase(w,rest),true];   // déterminant en double : « du l'département », « de l'pétrole »
+      return [ckeepcase(w,(g==='m'?'le':'la')+' '+rest),false];}
+    if(pre==='d'){if(DESEL_DET[dr])return [ckeepcase(w,rest),true];   // « d'du » : déterminant en double
+      if(!nom&&i+1<T.length){var nx=deacc(T[i+1].toLowerCase()),gn=GENDER_PURE[nx];if((gn==='m'||gn==='f')&&!DESEL_LOC[nx])return [ckeepcase(w,(gn==='m'?"d'un ":"d'une ")+rest),true];}   // « d'dure écorce » → d'une dure écorce
+      return [ckeepcase(w,'de '+rest),false];}
+    if((pre==='j'||pre==='n'||pre==='m'||pre==='t'||pre==='s')&&!DESEL_CLIT[dr]&&(!_isFinite(rest)||/(é|ée|és|ées)$/.test(rest.toLowerCase()))){   // finale ACCENTUÉE de participe : prime sur la lecture conjuguée (déaccentués, « mariés » = « tu maries »)
+      if(pre==='s'){var inf=_inf1(rest),suj=DESEL_SUJ[prev];if(inf!=null&&DESEL_INF[prev]&&deacc(inf)!==dr)return [ckeepcase(w,'se '+inf),true];   // « il faut s'marié », « elle va s'mariée » → se marier (-é mis pour -er)
+        if(_isPpl(rest)||(inf!=null&&deacc(inf)===dr&&suj)){var part=(suj&&inf!=null)?_ppAccord(inf.slice(0,-2)+'é',suj[0],suj[1]):rest;
+          return [ckeepcase(w,((suj&&suj[0]==='p')?'se sont ':"s'est ")+part),true];}}   // « elle s'mariée » → s'est mariée
+      else if(_isPpl(rest))return [ckeepcase(w,DESEL[pre]+' '+rest),true];}   // « j'mangé » : un auxiliaire est tombé — orange
+    return [ckeepcase(w,DESEL[pre]+' '+rest),false];}
   // « ête » (non-mot) → être/êtes/es/été. Le SON ne tranche pas (« trés→très » = même échange d'aperture qu'on VEUT ;
   // « ête→été » qu'on ne veut PAS) → seul le CONTEXTE tranche (littérature : rescorage LM ; LanguageTool défère le
   // non-mot à l'humain). Version locale du confusion-set : avoir→été, vous→êtes, tu→es, modal/prép→être ; sinon ORANGE.
@@ -27092,13 +27114,14 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   // (« La pont »→Le, « leur payss »→leurs, « fut créée »→créé). Une règle dont le contexte dys pollue l'ancre n'a pas le droit de
   // s'APPLIQUER d'office : orange (clic), pas rouge. Les familles à 100 % (participe après avoir, majuscule, a/à, adjectif
   // épithète, singulier du nom) restent rouges. MIROIR Python : correcteur_probe.VIG_FAMILIES (parité extension/parity_core.js).
-  var _VIG_FAM={'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1};
+  var _VIG_FAM={'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
   var _SUBJ_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   var _INVAR_S={};('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars dos os heros marais palais relais jus autobus bus virus refus').split(' ').forEach(function(w){_INVAR_S[w]=1;});
   var _COLL_BARE=null;   // clé nue → nb d'entrées _GCOLL partageant la clé (jumeau accentué) — construit à la 1re demande (après _GCOLL)
   function _wordKnown(d){return !!(SP&&SP.WORDS&&(SP.WORDS.has(d)||(SP.D2A&&SP.D2A[d]&&SP.D2A[d].length)))||GENDER_PURE[d]==='m'||GENDER_PURE[d]==='f';}
   function _tierOf(T,i,name,sugg){   // MIROIR de correcteur_probe.tier_of — sous-cas SÛRS (rouge) des familles à vérifier ; sinon orange
     if(!_VIG_FAM[name])return 'auto';var n=T.length;
+    if(name==='élision inversée'){var _dz=_deselide(T,i);return (_dz&&_dz[1])?'vigilance':'auto';}   // ⭐ 13/09/2026 : miroir tier_of Python
     if(name==='leur/leurs'){if(i+1>=n)return 'vigilance';var dn=deacc(T[i+1].toLowerCase());
       if(/s$/.test(sugg.toLowerCase())){if(_INVAR_S[dn]||!/[sx]$/.test(dn))return 'vigilance';var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(_INVAR_S[sg])return 'vigilance';return _wordKnown(sg)?'auto':'vigilance';}
       // « leurs »→« leur » corrige le DÉTERMINANT : direction MINORITAIRE (12 contre 59, le gold corrige le NOM). Repli ROUGE conservé (garde produit « il range leurs livre », banc navigateur réel) SAUF PREUVE DE PLURIEL : un verbe 3e pers. PLURIELLE après le groupe (« Leurs racine ls DÉFENDENT ») montre que le GN est bien pluriel → c'est le NOM qui a perdu son -s → orange. Miroir Python tier_of.
