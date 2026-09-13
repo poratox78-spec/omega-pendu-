@@ -590,6 +590,8 @@ var w=T[i],lw=w.toLowerCase();
       if((_po==='sur'||_po==='sous'||_po==='contre'||_po==='entre')&&_isPpl(T[i+2]))return null;}   // « ils ont contre attaqué » : composé COUPÉ (mot coupé dys) — corriger ont→on cassait la phrase (conflit lu à la carto) ; 0 occurrence sur 16 950 correct
 var lw=deacc(T[i].toLowerCase());if(lw!=='on'&&lw!=='ont')return null;
     if(_SEG&&i<_SEG.hy.length&&_SEG.hy[i])return null;   // « avait-on », « peut-on » : trait d'union → pronom inversé
+    if(lw==='on'&&i>=1&&deacc(T[i-1].toLowerCase())==='qui'&&i+1<T.length){var _qn=deacc(T[i+1].toLowerCase());   /* ⭐ 13/09/2026 — « QUI ON » + NON-VERBE : « qui » est déjà sujet → « qui ont » (« les régions qui on une sécurité ») ; miroir Python rule_on_ont */
+      if(!_verbeFini(_qn)&&!CLITIC[_qn]&&!/^[nlmts]'/.test(_qn)&&(NUM_DET[_qn]||PART_ART[_qn]||(_wordKnown(_qn)&&!svReads(_qn).length)))return ckeepcase(T[i],'ont');}
     if(lw==='ont'){var _tgo=posTags(T),_so=_tgo?_npSubject(T,_tgo,i):null;   // « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres, sinon le raccourci « mot suivant en -e » tranche le premier (« L'équipe ont rencontre » → « on rencontre »).
       if(_so&&_so.n==='s'&&_so.dtxt){var _hn=deacc(T[_so.idx].toLowerCase());if(/[sx]$/.test(_hn)&&!_INVAR_S[_hn]&&_wordKnown(/aux$/.test(_hn)?_hn.slice(0,-3)+'al':_hn.slice(0,-1)))return null;}   /* ⭐ 11/09/2026 : « le MAÇONS ont » — déterminant singulier + nom pluriel, le déterminant est suspect (même garde que rAccordSVnoun). Miroir Python. */
     if(_so&&_so.idx===i-1){if(_so.n==='p')return null;return ckeepcase(T[i],'a');}
@@ -731,6 +733,7 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
      suit « de » y est un adverbe/adjectif, pas un nom quantifié — « peut » y reste le verbe. */
   var _PEU_LOC={};('nouveau loin suite pres cote force justesse memoire naissance nature bonne '+
     'mauvaise plus moins mieux trop rien tout toute').split(' ').forEach(function(w){_PEU_LOC[w]=1;});
+  var _PEU_NEG={},_PEU_PL={nous:'pouvons',vous:'pouvez',ils:'peuvent',elles:'peuvent'};'pas plus jamais rien guere point meme deja toujours vraiment donc non aussi osi'.split(' ').forEach(function(w){_PEU_NEG[w]=1;});   // ⭐ 13/09/2026 : ce qui suit « ne peu » (miroir Python)
   function rPeu(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='peu'&&lw!=='peux'&&lw!=='peut')return null;var p=cprev(T,i);if(p==='je'||p==='tu')return 'peux';if(p==='il'||p==='elle'||p==='on'||p==='qui')return 'peut';if(p==='un'||p==='de'||p==='tres'||p==='si'||p==='trop'||p==='assez'||p==='bien'||p==='plus'||p==='tout'||p==='aussi'||p==='y')return 'peu';
     /* ⭐ LE CRÉNEAU DU VERBE EST-IL DÉJÀ PRIS ? La règle ne regardait que le mot d'AVANT. Or « peut »
        est un VERBE : si la proposition en porte déjà un fini, « peut » ne peut pas l'être — c'est
@@ -743,6 +746,12 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
     if((lw==='peut'||lw==='peux')&&i+1<T.length&&deacc(T[i+1].toLowerCase())==='de'
        &&!(i+2<T.length&&_PEU_LOC[deacc(T[i+2].toLowerCase())])
        &&!_clauseNoFiniteVerb(T,i))return 'peu';
+    /* ⭐ LA NÉGATION SAUTÉE (13/09/2026, muets du pipeline) : « il ne peu pas », « le japon ne peu pas » — « ne peu » + pas/plus/jamais…
+       n'existe pas : c'est pouvoir. Sujet pluriel (déterminant pluriel + nom en -s) → peuvent. 5 justes sur 5 tirs neufs, UD 14 450 : 0. Miroir Python rule_peu. */
+    if(lw==='peu'&&i>=2&&(deacc(T[i-1].toLowerCase())==='ne'||deacc(T[i-1].toLowerCase())==="n'")){var _p2=deacc(T[i-2].toLowerCase());
+      if(_p2==='je'||_p2==='tu')return 'peux';if(['il','elle','on','qui',"l'on",'cela','ca','ceci'].indexOf(_p2)>=0)return 'peut';
+      if(_PEU_PL[_p2])return _PEU_PL[_p2];
+      if(i+1<T.length&&_PEU_NEG[deacc(T[i+1].toLowerCase())]){if(/[sx]$/.test(_p2)&&!_INVAR_S[_p2])return (i>=3&&NUM_DET[deacc(T[i-3].toLowerCase())]==='pl')?'peuvent':null;return 'peut';}}
     return null;}
   // « ke/ge/ce/se + suis/serai/serais/fus » : sujet de 1re pers. mal écrit devant ÊTRE 1sg à initiale CONSONNE. Séquence
   // IMPOSSIBLE en français → FP=0 STRUCTUREL (0/2500+14450 UD). me/te/le exclus (« je me suis ») ; voyelle ai/étais → 2e temps.
@@ -2777,6 +2786,8 @@ function estQuestion(t,maxMots){
     if(out&&/é$/.test(w.toLowerCase())&&deacc(w.toLowerCase().slice(0,-1)+'er')===deacc(out.toLowerCase()))out=w.toLowerCase().slice(0,-1)+'er';   /* ⭐ 12/09/2026 : lemme NU dans la table, accent repris de la forme écrite (« démarré » → démarrer) — miroir Python */
     return out;}
   var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
+  var _CONJ_VAR={peux:'puis'};   // ⭐ 13/09/2026 : variantes d'une même case de paradigme (la table de génération n'en garde qu'une) — miroir Python
+  function _conjVariante(c,f){if(!c)return false;if(c===f)return true;if(c.replace(/y/g,'i')===f.replace(/y/g,'i'))return true;return _CONJ_VAR[f]===c||_CONJ_VAR[c]===f;}
   function _sujetFlexion(T,i,tg){   /* (personne, nombre) du sujet de T[i] — miroir Python _sujet_flexion. On remonte jusqu'à la
      frontière de proposition en traversant CLITIQUES et ADVERBES, on s'arrête au premier candidat sujet. nous/vous ne sont SUJETS
      que si rien avant eux dans la proposition ne peut l'être (« il nous parle », « qui vous passionnera » = compléments). */
@@ -2836,7 +2847,7 @@ function estQuestion(t,maxMots){
     if(!tg)return null;
     if(i>=1&&FULL_AUX[deacc(T[i-1].toLowerCase())])return null;   /* ⭐ 12/09/2026 : LA GARDE QUI MANQUAIT — après un auxiliaire c'est un PARTICIPE (« nous sommes ravis ») ; le tagger la tenait par accident (miroir Python) */
     if(i>=2&&FULL_AUX[deacc(T[i-2].toLowerCase())]&&PPMID[deacc(T[i-1].toLowerCase())])return null;   /* …à distance seulement à travers un mot TRAVERSABLE : entre l'auxiliaire et le participe il n'y a jamais un PRONOM SUJET (« est il vien sasoir » → vient, réparé perdu par la 1re version) */
-    var _casex=[],_cx;for(_cx=0;_cx<lec.length;_cx++){var _fx=((CONJ_C[lec[_cx][0]]||{})[lec[_cx][1]]||{})[lec[_cx][2]+lec[_cx][3]];if(_fx&&_fx.toLowerCase()===lw)_casex.push(lec[_cx]);}
+    var _casex=[],_cx;for(_cx=0;_cx<lec.length;_cx++){var _fx=((CONJ_C[lec[_cx][0]]||{})[lec[_cx][1]]||{})[lec[_cx][2]+lec[_cx][3]];if(_fx&&_conjVariante(_fx.toLowerCase(),lw))_casex.push(lec[_cx]);}   /* ⚠️ 13/09/2026 — FP ROUGE « je ne peux pas » → *puis* : une case VARIANTE de la forme écrite compte (y/i, peux/puis) ; miroir Python _conj_variante */
     var _sub0=_sujetFlexion(T,i,tg);
     var _ja=i-1;while(_ja>=0&&_SUJ_SAUT[deacc(T[_ja].toLowerCase())])_ja--;   /* ⚠️ 12/09/2026 (FP trouvé après la 0.6.25) : « nous mangeames la soupe » → *soupons* — un pronom sujet quelque part ne suffit pas, il doit être ADJACENT (clitiques/négation sautés), sinon les gardes nom/adjectif restent (miroir Python) */
     var _adj=_ja>=0&&(!!SUBJ_PRON[deacc(T[_ja].toLowerCase())]||!!_SUBJ_PRON_PL[deacc(T[_ja].toLowerCase())]||!!_ELIDED_PRON.exec(T[_ja].toLowerCase()));
@@ -3290,6 +3301,7 @@ function estQuestion(t,maxMots){
     if(la===lb){var n=0;for(var k=0;k<la;k++)if(a[k]!==b[k]&&++n>1)return false;return true;}
     var s=la<lb?a:b,l=la<lb?b:a,i=0,j=0,sk=0;
     while(i<s.length&&j<l.length){if(s[i]===l[j]){i++;j++;}else{if(++sk>1)return false;j++;}}return true;}
+  var _DAN_SUR={},_DAN_VIG={le:1,la:1,les:1,se:1};'un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leurs quel quelle quels quelles tout toute tous toutes'.split(' ').forEach(function(w){_DAN_SUR[w]=1;});   // ⭐ 13/09/2026 : « dan » + déterminant → dans (miroir Python)
   function spellToken(tok,atStart,T,idx){                                  // élision : « d'othographes » = 1 token → on analyse le RESTE
     var em=tok.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){
@@ -3341,7 +3353,11 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        (mere 8, age 5, reparer 2, ame 1) toutes corrigées par le gold vers la sœur accentuée. MINUSCULES SEULEMENT : « Ame V », « Special »,
        « l'Age d'Or » existent en majuscule dans du français correct. Exclus : cote, sacre, prive, voila… (mots valides), maitre, ile,
        gout (graphies rectifiées de 1990). Miroir Python _AFIX_MIN. */
-    var _AFIX_MIN={"grace":"grâce","mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
+    var _AFIX_MIN={"grace":"grâce","mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré","tré":"très","quit":"qui"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
+    /* ⭐ « dan » + déterminant → « dans » (13/09/2026, muets du pipeline : 19 occurrences, 16 vers « dans », 0 en minuscules sur l'UD 14 450).
+       « dan » est un mot (judo) et un prénom écrit en minuscules par les dys : FLAG devant un déterminant qui ne suit jamais un prénom sujet,
+       ORANGE devant le/la/les/l'/se (« dan le regarde » = Dan). Jamais en majuscule. Miroir Python _DAN_SUR / _DAN_VIG. */
+    if(tok===low&&low==='dan'&&T&&idx!=null&&idx+1<T.length){var _dnx=deaccS(T[idx+1].toLowerCase());if(_DAN_SUR[_dnx])return["flag","dans"];if(_DAN_VIG[_dnx]||_dnx.slice(0,2)==="l'")return["vigilance","dans"];}
     /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
        corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
@@ -3970,7 +3986,7 @@ function spellUnknown(tok,atStart,T,idx){
           if(c3.charAt(0)===c3.charAt(0).toLowerCase()&&c3.indexOf("'")<0&&!(b==='le'&&/^[aeiouyh]/.test(d3))&&_tgc[i+2]==='NOUN'&&!/(er|ir|re|oir)$/.test(d3)){   // toute finale d'INFINITIF exclue (le tagger prenait « transporter/définir/haïr/sortir » pour des noms : 13 FP lus au flood)
             var ctr=(a==='de'?(b==='le'?'du':'des'):(b==='le'?'au':'aux'));
             out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],ctr),name:'contraction',tier:'flag',span:2});done[i]=done[i+1]=1;}}
-        else if(a==='qui'&&(b==='il'||b==='elle'||b==='on'||b==='ils'||b==='elles')&&i>0&&!done[i-1]){   // « le film qui il a vu »→qu'il (croisement EMF) : relatif sujet + sujet = jamais ; garde : pas de préposition avant (« avec qui il »)
+        else if(a==='qui'&&(b==='il'||b==='elle'||b==='on'||b==='ils'||b==='elles')&&i>0&&!done[i-1]&&!(b==='on'&&i+2<P.length&&!_verbeFini(deaccS(P[i+2][2].toLowerCase()))&&!CLITIC[deaccS(P[i+2][2].toLowerCase())]&&!/^[nlmts]['’]/.test(P[i+2][2].toLowerCase()))){   // ⭐ 13/09/2026 : « qui on » + NON-verbe n'est pas « qu'on » mais « qui ont » (rOn) — la fusion était appliquée par défaut (« les régions qu'on une sécurité »)   // « le film qui il a vu »→qu'il (croisement EMF) : relatif sujet + sujet = jamais ; garde : pas de préposition avant (« avec qui il »)
           var pq=deaccS(P[i-1][2].toLowerCase());
           if(!PREP[pq]&&P[i-1][2].indexOf("'")<0&&pq!=='ce'&&pq!=='celui'&&pq!=='celle'&&pq!=='ceux'&&pq!=='celles'){
             out.push({i:i,word:P[i][2]+' '+P[i+1][2],sugg:ckeepcase(P[i][2],"qu'")+P[i+1][2],name:'élision',tier:'flag',span:2});done[i]=done[i+1]=1;}}

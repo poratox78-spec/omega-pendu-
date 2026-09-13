@@ -289,6 +289,22 @@ const CAS = [
   { txt: 'Quand je retourné à la maison, il pleuvait.', corrigeAttendu: ['je', 'je suis'], pourquoi: 'verbe de mouvement sans objet : « je suis » proposé' },
   { txt: 'Ai-je noté le numéro ?', orangeInterdit: 'je', pourquoi: 'CONTRE-GARDE : inversion « ai-je », rien ne manque' },
   { txt: 'Demain je noté le numéro.', orangeInterdit: 'je', corrigeAttendu: ['noté', 'noterai'], pourquoi: 'CONTRE-GARDE : marqueur de futur → « noterai » (rouge), pas « j’ai »' },
+  /* ⭐ LE LEXIQUE ACCEPTAIT LA FAUTE (13/09/2026, muets du pipeline) : « tré » et « quit » sont au lexique du speller (pollution, 0 en
+     minuscules sur l'UD) → liste fermée ; « dan » est un mot et un prénom → seulement devant un déterminant, orange devant le/la/les/l'. */
+  { txt: 'Maud est tré ouverte.', corrigeAttendu: ['tré', 'très'], pourquoi: '« tré » n’est pas un mot : très' },
+  { txt: 'Les rondelles quit forment la chaîne.', corrigeAttendu: ['quit', 'qui'], pourquoi: '« quit » n’est pas un mot français : qui' },
+  { txt: 'Il finit sa vie dan une maison.', corrigeAttendu: ['dan', 'dans'], pourquoi: '« dan » + une → dans (flag)' },
+  { txt: 'La violence dan le cadre scolaire.', corrigeAttendu: ['dan', 'dans'], pourquoi: '« dan » + le → dans proposé (orange : « dan le regarde » peut être Dan)' },
+  { txt: 'Il est ceinture noire troisième dan.', rien: true, orangeInterdit: 'dan', pourquoi: 'CONTRE-GARDE : grade de judo, rien derrière' },
+  /* ⭐ LA NÉGATION SAUTÉE (13/09/2026) : « ne peu » + pas/plus… n'existe pas — le sujet se lit par-dessus « ne ». */
+  { txt: 'Le Japon ne peu pas suffire en nourriture.', corrigeAttendu: ['peu', 'peut'], pourquoi: '« ne peu pas » : pouvoir, 3e personne' },
+  { txt: 'Il ne mange que peu de pain.', rien: true, pourquoi: 'CONTRE-GARDE : « ne … que peu », l’adverbe' },
+  /* ⚠️ FP ROUGE « je ne peux pas » → *puis* (08/09 → 13/09/2026) : la table n'a qu'une forme par case ; les variantes comptent. */
+  { txt: 'Je ne peux pas.', rien: true, pourquoi: '« peux » est une 1re personne : jamais *puis*' },
+  { txt: 'Je rayerais volontiers cette ligne.', rien: true, pourquoi: '« rayerais » et « raierais » : deux graphies de la même case' },
+  /* ⭐ « QUI ON » + NON-VERBE (13/09/2026) : « qui » est déjà sujet ; la fusion « qu'on » était appliquée par défaut devant un nom. */
+  { txt: 'Les régions qui on une sécurité alimentaire sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on une"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on une »' },
+  { txt: 'Le film qui on voit est long.', interdit: ['qui ont voit'], pourquoi: 'CONTRE-GARDE : « qui on » + verbe conjugué → qu’on, pas « ont »' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },

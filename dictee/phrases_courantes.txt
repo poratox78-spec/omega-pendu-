@@ -1,0 +1,166 @@
+# PHRASES COURANTES, CORRECTES, À LA 1re ET 2e PERSONNE — banc anti-faux-positifs (13/09/2026).
+# Pourquoi : « Je ne peux pas. » → *puis* a été corrigé EN ROUGE du 07/09 (8ca9bdf) au 13/09/2026 sans qu'aucun instrument le voie :
+# l'UD est encyclopédique, les copies dys sont scolaires, aucun ne parle comme un message (le registre de Rem). Phrases INVENTÉES,
+# une par ligne, toutes correctes : aucune règle ne doit y poser de marque. Lu par recall_probe.py --check (référence Python, zéro
+# flag) et par parity_core.js / parity_corr.js (extension et app ⊆ Python). « C'est pas grave. » n'est pas ici : la négation y est
+# restituée exprès (Ce n'est pas grave).
+Je ne peux pas.
+Je ne sais pas.
+Je ne veux pas.
+Je ne crois pas.
+Je ne pense pas.
+Je n'ai pas le temps.
+Je n'en sais rien.
+Je ne comprends pas.
+Je ne vois pas pourquoi.
+Je ne peux pas venir ce soir.
+Je peux venir demain.
+Tu peux m'aider ?
+Tu ne peux pas faire ça.
+Tu sais quoi ?
+Tu veux un café ?
+Tu viens avec nous ?
+Tu as raison.
+Tu as vu ça ?
+Il faut que je parte.
+Il faut que tu viennes.
+Il faut qu'on parle.
+On se voit demain.
+On y va.
+On verra bien.
+On peut y aller.
+On n'a pas le choix.
+Nous sommes arrivés.
+Nous avons fini.
+Vous êtes sûrs ?
+Vous pouvez répéter ?
+Vous voulez un verre ?
+Ils sont partis.
+Elles sont rentrées.
+Ils ne peuvent pas venir.
+Je suis désolé.
+Je suis fatigué.
+Je suis content de te voir.
+Je suis en retard.
+Je suis allé au marché.
+Je suis rentré tard hier soir.
+J'ai faim.
+J'ai froid.
+J'ai fini mon travail.
+J'ai oublié mes clés.
+J'ai perdu mon téléphone.
+J'ai mal à la tête.
+J'ai besoin d'aide.
+J'ai envie de dormir.
+J'arrive dans cinq minutes.
+J'espère que tu vas bien.
+J'aime beaucoup ce film.
+Je t'aime.
+Je te rappelle plus tard.
+Je vous remercie.
+Je te dis ça demain.
+Je vais bien, merci.
+Je vais au travail.
+Je vais manger.
+Je dois partir.
+Je dois y aller.
+Je voudrais un renseignement.
+Je pourrais venir samedi.
+Je serai là à huit heures.
+J'étais malade.
+J'avais oublié.
+Je me suis trompé.
+Je me suis levé tôt.
+Je m'en occupe.
+Je m'en vais.
+Ça va ?
+Ça ne va pas.
+Ça marche.
+Ça me fait plaisir.
+Ça dépend.
+Ce n'est pas grave.
+C'est bon.
+C'est vrai.
+C'est fini.
+C'est ça.
+Qu'est-ce que tu fais ?
+Qu'est-ce qui se passe ?
+Où est-ce que tu es ?
+Est-ce que tu viens ?
+Pourquoi tu ris ?
+Comment ça va ?
+Quand est-ce qu'on mange ?
+Combien ça coûte ?
+Il pleut.
+Il fait beau.
+Il fait froid aujourd'hui.
+Il est tard.
+Il est parti.
+Il a raison.
+Elle est malade.
+Elle a appelé ce matin.
+Elle ne veut pas.
+Merci beaucoup.
+De rien.
+À demain.
+À plus tard.
+Bonne nuit.
+Bon courage.
+Pas de problème.
+Je n'ai rien dit.
+Je n'y peux rien.
+Je ne sais plus.
+Je ne peux plus.
+Je ne veux plus.
+Je n'en peux plus.
+Tu n'as pas faim ?
+Tu ne dis rien ?
+Tu ne sais pas ?
+Tu ne veux pas venir ?
+On ne sait jamais.
+On ne peut pas savoir.
+Il ne faut pas.
+Il n'y a pas de quoi.
+Il y a du monde.
+Il y avait beaucoup de bruit.
+Je paie par carte.
+Je paye en espèces.
+J'essaie de comprendre.
+J'essaye encore.
+Je m'assois ici.
+Je m'assieds là.
+Je vais essayer.
+Je suis en train de manger.
+Je viens de finir.
+Je reviens tout de suite.
+Je t'attends devant.
+Attends-moi.
+Viens ici.
+Dépêche-toi.
+Arrête !
+Regarde ça.
+Écoute-moi.
+Laisse tomber.
+Fais attention.
+Tais-toi.
+Je n'aurais pas dû.
+J'aurais voulu venir.
+Si j'avais su.
+Si tu veux.
+Comme tu veux.
+Je te crois.
+Je ne te crois pas.
+Je le savais.
+Je l'ai vu hier.
+Je les ai appelés.
+Je lui ai dit.
+Je leur ai parlé.
+Tu me manques.
+Tu m'as manqué.
+On s'est bien amusés.
+Nous nous sommes perdus.
+Vous vous êtes trompés.
+Ils se sont disputés.
+Elle s'est levée tard.
+Je ne me souviens pas.
+Je me souviens de toi.

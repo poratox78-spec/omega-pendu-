@@ -960,6 +960,13 @@ def rule_on_ont(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('on', 'ont'): return None
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
+    # ⭐ « QUI ON » + NON-VERBE (13/09/2026, pipeline) : le relatif « qui » est déjà SUJET — « qui on » n'existe que dans « qu'on » + verbe
+    # conjugué, ou « qui ont » + le reste. « les régions qui on une sécurité », « deux architectes qui on besoin d'argent » → ont (le produit
+    # y fusionnait « qu'on », palier flag : faux). Déterminant, ou mot connu SANS aucune lecture verbale → ont. Miroir JS rOn.
+    if lw == 'on' and i >= 1 and deacc(T[i-1].lower()) == 'qui' and i + 1 < len(T):
+        _qn = deacc(T[i+1].lower())
+        if not _verbe_fini(_qn) and _qn not in CLITIC and not re.match(r"^[nlmts]'", _qn) and (_qn in NUM_DET or _qn in PART_ART or (_qn in WORDS_SET and not _reads(_qn))):
+            return _keepcase(T[i], 'ont')
     if lw == 'ont':
         # « on » est un PRONOM SUJET : il ne peut PAS suivre un sujet NOMINAL. « La direction ont modifier » ne peut
         # pas devenir « La direction ON modifier » — impossible en français. Ce test passe AVANT tous les autres,
@@ -1248,6 +1255,8 @@ def rule_est_et_clause(T, i):
 _PEU_LOC = set('nouveau loin suite pres cote force justesse memoire naissance nature bonne mauvaise '
                'plus moins mieux trop rien tout toute suite'.split())
 
+_PEU_NEG = set('pas plus jamais rien guere point meme deja toujours vraiment donc non aussi osi'.split())   # ⭐ 13/09/2026 : ce qui suit « ne peu »
+_PEU_PL = {'nous': 'pouvons', 'vous': 'pouvez', 'ils': 'peuvent', 'elles': 'peuvent'}
 
 def rule_peu(T, i):
     lw = deacc(T[i].lower())
@@ -1267,6 +1276,19 @@ def rule_peu(T, i):
     # Le « de » suivant ne suffisait PAS comme garde : « de temps en temps » a lui aussi de+NOM.
     if lw in ('peut', 'peux') and i + 1 < len(T) and deacc(T[i+1].lower()) == 'de'        and not (i + 2 < len(T) and deacc(T[i+2].lower()) in _PEU_LOC)        and not _clause_no_finite_verb(T, i):
         return 'peu'
+    # ⭐ LA NÉGATION SAUTÉE (13/09/2026, muets du pipeline) : « il ne peu pas », « le japon ne peu pas », « elle ne peu déjà pas » — la
+    # règle ne lisait que le mot d'avant, et « ne » la faisait taire. « ne peu » suivi de pas/plus/jamais… n'existe pas (l'adverbe « peu »
+    # ne se nie pas) : c'est pouvoir. Sujet pluriel (déterminant pluriel + nom en -s) → peuvent. Recensé : 5 tirs neufs sur les paires
+    # locales, 5 justes ; UD 14 450 : 0. Miroir JS rPeu.
+    if lw == 'peu' and i >= 2 and deacc(T[i-1].lower()) in ('ne', "n'"):
+        p2 = deacc(T[i-2].lower())
+        if p2 in ('je', 'tu'): return 'peux'
+        if p2 in ('il', 'elle', 'on', 'qui', "l'on", 'cela', 'ca', 'ceci'): return 'peut'
+        if p2 in _PEU_PL: return _PEU_PL[p2]
+        if i + 1 < len(T) and deacc(T[i+1].lower()) in _PEU_NEG:
+            if p2.endswith(('s', 'x')) and p2 not in _INVAR_S:
+                return 'peuvent' if (i >= 3 and NUM_DET.get(deacc(T[i-3].lower())) == 'pl') else None
+            return 'peut'
     return None
 
 JE_CONFUS = {'ke', 'ge', 'ce', 'se'}          # sujet « je » mal écrit (clavier k↔j, /ʒ/→ge, ce/se démonstratif/réfléchi)
@@ -3731,6 +3753,18 @@ _ROUGE = True          # drapeau lu par la règle ROUGE ; la jumelle ORANGE le b
 _SUJ_SAUT = {'ne', 'n', 'se', 's', 'me', 'm', 'te', 't', 'y', 'en', 'le', 'la', 'les', 'lui', 'leur'}   # clitiques et négation entre le pronom sujet et le verbe (⭐ 12/09/2026, garde d'adjacence)
 
 
+_CONJ_VAR = {'peux': 'puis'}   # ⭐ 13/09/2026 : variantes d'une même case de paradigme (la table de génération n'en garde qu'une)
+
+
+def _conj_variante(cellule, forme):
+    u"""La case générée et la forme écrite sont-elles la même case ? Identiques, ou variantes : alternance y/i (paye/paie, rayerais/
+    raierais) et peux/puis."""
+    if not cellule: return False
+    if cellule == forme: return True
+    if cellule.replace('y', 'i') == forme.replace('y', 'i'): return True
+    return _CONJ_VAR.get(forme) == cellule or _CONJ_VAR.get(cellule) == forme
+
+
 def rule_sujet_flexion(T, i):
     """« nous iriez » → irions · « tu irai » → iras · « le chat mangeons » → mange. Le TEMPS ÉCRIT est gardé
     (c'est la demande : corriger la personne, pas réécrire au présent). Deux lectures qui donneraient deux
@@ -3785,7 +3819,10 @@ def rule_sujet_flexion(T, i):
     #    « nous sois » sont tagués ADJ ou PROPN parce que le mot est faux à cette place — et les gardes nom/adjectif se
     #    déclenchaient sur cette lecture. Quand le SUJET est un pronom net ET que la forme est une case EXACTE d'un paradigme,
     #    le tagger n'a rien à arbitrer : on lève ces gardes (la garde auxiliaire ci-dessus tient le faux positif).
-    _casex = [r for r in lec if ((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower() == lw]
+    # ⚠️ 13/09/2026 — FP ROUGE « je ne peux pas. » → *puis* (depuis 8ca9bdf) : la table n'a qu'UNE forme par case (pouvoir 1s = puis),
+    #    la lecture valide « peux » 1s était écartée et la règle imposait « puis ». Une case VARIANTE de la forme écrite compte : y/i
+    #    (« je rayerais » / raierais) et peux/puis. Les lectures fantômes restent écartées (« je donnes » : la case « donne » n'est pas une variante).
+    _casex = [r for r in lec if _conj_variante(((CONJ_C.get(r[0]) or {}).get(r[1], {}).get(r[2] + r[3]) or '').lower(), lw)]
     _sub0 = _sujet_flexion(T, i, tg)
     # ⚠️ 12/09/2026 (FP trouvé APRÈS la 0.6.25, qu'aucun corpus ne voyait) : « nous mangeames la soupe » → *soupons*, « tu
     #    mangeames la glace » → *glaces*. Un pronom sujet quelque part dans la proposition ne suffit pas : « soupe » et
