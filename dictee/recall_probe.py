@@ -106,6 +106,16 @@ def _check():
              if l.strip() and not l.startswith('#')]
     elide += [("tous le monde était choqué", "tous", "tout"), ("pendant tous l'été", "tous", "tout"), ("je faisais tous ce que je voulais", "tous", "tout"), ("C'est enfants sont âgés", "C'est", "Ces")]   # ⭐ 13/09/2026 : muets lot 2
     nofp += ["ils ont tous le droit de venir.", "elles connaissent tous les chemins.", "il parle à tous."]   # ⭐ 13/09/2026 : « tous » quantifieur flottant / pronom → rien
+    # ⭐ 13/09/2026 — ÉLISION INVERSÉE : rouge seulement là où le mot complet est sûr, orange avec le mot MANQUANT sinon, rien sur un nom propre.
+    elide += [("Elle s'mariée l'an dernier", "s'mariée", "s'est mariée"), ("Ils s'mariés en mai", "s'mariés", "se sont mariés"),
+              ("Le chevalier porte d'lourde armure", "d'lourde", "d'une lourde"), ("Il vend de l'pétrole", "l'pétrole", "pétrole"),
+              ("Une maison d'du bois", "d'du", "du"), ("Il va s'marier en mai", "s'marier", "se marier"), ("Ils s'disputent souvent", "s'disputent", "se disputent")]
+    nofp += ["Le stade Ben M'barek est plein."]
+    elide += [("Il est parti d'bonne heure", "d'bonne", "de bonne"), ("Il faut s'marié jeune", "s'marié", "se marier"), ("Elle va s'mariée en mai", "s'mariée", "se marier")]   # locution figée ; -é pour -er après un verbe qui régit l'infinitif
+    palier = [("Elle s'mariée l'an dernier", "s'mariée", 'vigilance'), ("Le chevalier porte d'lourde armure", "d'lourde", 'vigilance'),
+              ("Il vend de l'pétrole", "l'pétrole", 'vigilance'), ("J'mangé une pomme", "J'mangé", 'vigilance'),
+              ("Il va s'marier en mai", "s'marier", 'auto'), ("Ils s'disputent souvent", "s'disputent", 'auto'), ("Une barre d'fer", "d'fer", 'auto'),
+              ("Il est parti d'bonne heure", "d'bonne", 'auto'), ("Il faut s'marié jeune", "s'marié", 'vigilance')]
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):
@@ -118,11 +128,14 @@ def _check():
     for s in nofp:
         fl = C.correct(s)
         if fl: bad.append(f"{s!r} → FAUX POSITIF : {fl}")
+    for s, wtok, tr in palier:   # le PALIER, pas seulement la suggestion : une orange appliquée en rouge réécrit le texte en silence
+        got = [f[4] for f in C.correct_tiered(s) if deacc(f[1].lower()) == deacc(wtok.lower())]
+        if got != [tr]: bad.append(f"{s!r} → palier de {wtok!r} attendu {tr}, eu {got}")
     if bad:
         print("✗ recall_probe --check : régression(s) du correcteur :")
         for b in bad: print("    " + b)
         sys.exit(1)
-    print(f"✓ recall_probe --check : {len(expect) + len(abstain) + len(nofp) + len(elide)} comportements clés OK (j'est être/avoir + élision + FP)")
+    print(f"✓ recall_probe --check : {len(expect) + len(abstain) + len(nofp) + len(elide) + len(palier)} comportements clés OK (j'est être/avoir + élision + FP)")
 
 
 def main():

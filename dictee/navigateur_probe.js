@@ -318,6 +318,10 @@ const CAS = [
   { txt: 'Je viendrai biensur demain.', corrigeAttendu: ['biensur', 'bien sûr'], pourquoi: 'expression figée collée' },
   { txt: "J'aime beaucoupma ville.", corrigeAttendu: ['beaucoupma', 'beaucoup ma'], pourquoi: 'deux mots collés' },
   { txt: 'Il fait tooujousr beau ici.', corrigeAttendu: ['tooujousr', 'toujours'], pourquoi: 'lettres mélangées' },
+  /* ⭐ ÉLISION INVERSÉE (13/09/2026) : le mot manquant proposé en orange, jamais l'expansion appliquée en silence ; nom propre intact. */
+  { txt: "Elle s'mariée l'an dernier.", corrigeAttendu: ["s'mariée", "s'est mariée"], interdit: ['se mariée'], pourquoi: '« s’ » + participe : l’auxiliaire est tombé' },
+  { txt: "Le chevalier porte d'lourde armure.", corrigeAttendu: ["d'lourde", "d'une lourde"], interdit: ['de lourde'], pourquoi: '« d’ » + adjectif + nom : l’article est tombé' },
+  { txt: "Le stade Ben M'barek est plein.", interdit: ['Me barek'], pourquoi: 'nom propre : pas une élision fautive' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },
