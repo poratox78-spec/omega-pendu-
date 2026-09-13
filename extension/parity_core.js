@@ -362,7 +362,8 @@ const VIG_MAP = { 'accord du verbe au sujet nominal à vérifier': 'accord du ve
   'nombre du déterminant à vérifier': 'nombre du déterminant à vérifier',
   "j'est/j'ai à vérifier": "j'est/j'ai à vérifier",
   'accord du participe après avoir à vérifier': 'accord du participe après avoir à vérifier',
-  'auxiliaire manquant à vérifier': 'auxiliaire manquant à vérifier' };   // ⭐ 12/09/2026 : règle neuve orange   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
+  'auxiliaire manquant à vérifier': 'auxiliaire manquant à vérifier',
+  "c'est/ces à vérifier": "c'est/ces à vérifier" };   // ⭐ 12/09/2026 : règle neuve orange   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
 const VIG_PY = new Set(Object.values(VIG_MAP));
 const VIG_PHRASES = PHRASES.concat([
   'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
@@ -377,6 +378,7 @@ const VIG_PHRASES = PHRASES.concat([
   "ils ce sont déroulés hier.", "ce sont des amis.",   // ce/se + auxiliaire : le participe tranche (12/09) ; contrôle : groupe nominal → silence
   'Boeing a signés un contrat.', 'nous avons vue notre médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
   'Hier je noté le numéro.', 'quand je retourné à la maison.', 'je fatigué ce soir.', 'Ai-je noté le numéro ?', 'Demain je noté le numéro.',   // auxiliaire manquant (orange) ; contrôles : inversion, futur (rouge ailleurs)
+  "C'est enfants sont âgés de deux ans.", "leur père demande à c'est enfants de s'asseoir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json

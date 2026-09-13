@@ -1375,6 +1375,23 @@ def rule_cest_sest(T, i):
     return None
 
 
+def rule_cest_ces_vig(T, i):
+    u"""⭐ « C'EST » + NOM PLURIEL → ces ? / ses ? (13/09/2026, muets du pipeline) : « C'est enfants sont âgés », « leur père demande à c'est
+    enfants » — « c'est » ne précède pas un nom pluriel sans déterminant. ORANGE : ses après une préposition, ces devant un verbe pluriel ;
+    sur les paires locales 4 justes et 1 où seul le choix ces/ses diffère ; UD 14 450 : 0. Miroir JS cestCesVig."""
+    if deacc(T[i].lower()) != "c'est" or i + 1 >= len(T): return None
+    dn = deacc(T[i + 1].lower())
+    if not re.search(r'[sx]$', dn) or dn in _INVAR_S or len(dn) < 4 or T[i + 1][:1].isupper(): return None
+    sg = dn[:-3] + 'al' if dn.endswith('aux') else dn[:-1]
+    if sg not in WORDS_SET or _reads(dn): return None
+    pp = NOUN_POST.get(sg) if NOUN_POST else None
+    if not (pp and pp[0] >= PL_TAU_M): return None
+    p1 = deacc(T[i - 1].lower()) if i >= 1 else ''
+    n2 = deacc(T[i + 2].lower()) if i + 2 < len(T) else ''
+    if p1 in PREP: return _keepcase(T[i], 'ses')
+    if n2 in ('sont', 'etaient', 'ont', 'avaient') or any(r[3] == 'p' for r in _reads(n2)): return _keepcase(T[i], 'ces')
+    return None
+
 def rule_sais(T, i):
     """« je/tu + c'est/ces/ses/sait » → « sais » (savoir 1re/2e pers. sing.). Ces suites n'existent JAMAIS
     en français correct (je/tu n'introduisent ni « c'est » ni un déterminant « ces/ses ») → FP=0 STRUCTUREL,
@@ -4020,6 +4037,31 @@ def rule_det_gender(T, i):
     return _keepcase(T[i], sugg) if sugg else None
 
 
+# ⭐ « TOUS » → « TOUT » (13/09/2026, muets du pipeline) : trois cadres où « tous » ne peut PAS être le quantifieur flottant (« ils ont tous
+# le droit » reste juste) — « tous le monde » sans antécédent pluriel dans la proposition ; « pendant/durant tous » + déterminant singulier ;
+# sujet singulier net (je/tu/il/elle/on) sans antécédent pluriel + « tous ce/se que/qui ». Recensé : 6 justes sur les paires locales, 0 tir
+# sur l'UD 14 450 ; le cadre large « préposition + tous » est RÉFUTÉ (« permettant à tous d'avoir », « auprès de tous le peu d'estime »).
+_TOUS_DETSG = {'le', 'la', 'ce', 'cet', 'cette', 'mon', 'ma', 'ton', 'ta', 'son', 'sa', 'notre', 'votre', 'se'}
+_TOUS_PLANTE = {'ils', 'elles', 'nous', 'vous', 'les', 'leur', 'leurs', 'eux', 'ces', 'des', 'mes', 'tes', 'ses', 'nos', 'vos'}
+
+
+def _tous_tout(T, i):
+    nx = deacc(T[i + 1].lower())
+    if not (nx in _TOUS_DETSG or nx.startswith("l'")): return None
+    if _SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]: return None
+    lo = 0
+    if _SEG is not None:
+        for j in range(i, 0, -1):
+            if j < len(_SEG['bb']) and _SEG['bb'][j]: lo = j; break
+    avant = [deacc(T[k].lower()) for k in range(lo, i)]
+    if any(a in _TOUS_PLANTE or a.split("'")[0] in _TOUS_PLANTE for a in avant): return None
+    if nx == 'le' and i + 2 < len(T) and deacc(T[i + 2].lower()) == 'monde': return 'tout'
+    if avant and avant[-1] in ('pendant', 'durant'): return 'tout'
+    if nx in ('ce', 'se') and i + 2 < len(T) and deacc(T[i + 2].lower()).split("'")[0] in ('que', 'qu', 'qui') \
+            and any(a in ('je', 'tu', 'il', 'elle', 'on') or a.startswith("j'") for a in avant): return 'tout'
+    return None
+
+
 # Mots après lesquels « tout » n'est PAS un déterminant (prépositions, « le tout » = nom, idiomes « avant/après/en tout »).
 TOUT_LSTOP = PREP | set(NUM_DET) | {'avant', 'apres', 'après', 'en', 'comme', 'selon', 'sauf', 'envers',
                                     'durant', 'pendant', 'hormis', 'outre', 'moyennant', 'suivant', 'concernant'}
@@ -4034,6 +4076,9 @@ def rule_tout_det(T, i):
     # DIFFÉRÉ (FP-risqué) : sens inverse forme PLURIELLE (« tous le monde »→tout, « tous les actions »→toutes = quantifieur
     # flottant), rôle ADVERBE (« tout contente »→toute, invariable sauf fém.+consonne/h-aspiré), rôle PRONOM.
     lw = deacc(T[i].lower())
+    if lw == 'tous' and i + 1 < len(T):
+        _tt = _tous_tout(T, i)
+        return _keepcase(T[i], _tt) if _tt else None
     if lw not in ('tout', 'toute'): return None
     if i + 2 >= len(T): return None
     num = NUM_DET.get(deacc(T[i+1].lower()))
@@ -5688,6 +5733,7 @@ RULES = [('élision inversée', rule_deselide),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
          ("j'est/j'ai à vérifier", rule_jest_vig),   # ⭐ 12/09/2026 : les deux lectures incertaines de « j'est » (dans/sur/sous/avec ; mouvement sans objet) → je suis PROPOSÉ
          ('auxiliaire manquant à vérifier', rule_aux_manquant_vig),   # ⭐ 12/09/2026 : « je noté » → j'ai ? (auxiliaire tombé, décision avoir/être de rule_jest)
+         ("c'est/ces à vérifier", rule_cest_ces_vig),   # ⭐ 13/09/2026 : « C'est enfants sont » → ces ? (orange)
          ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('accord du participe après avoir à vérifier', rule_pp_avoir_surnum),   # ⭐ 12/09/2026 — RÈGLE NEUVE, orange : accord surnuméraire (« a signés un contrat » → signé)
          ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026

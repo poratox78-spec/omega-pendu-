@@ -1022,6 +1022,14 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
       if(_isPpl(_pp))return ckeepcase(T[i],ETRE_PP[deacc(_pp)]?"je suis":"j'ai");}
     return null;}
   function jestVig(T,i){return rJest(T,i,true);}   // jumelle ORANGE (« j'est dans ma chambre » → je suis ?, « j'est descendu » → je suis ?)
+  function cestCesVig(T,i){if(deacc(T[i].toLowerCase())!=="c'est"||i+1>=T.length)return null;   /* ⭐ 13/09/2026 — « C'est enfants sont » → ces ? ; « à c'est enfants » → ses ? (miroir Python rule_cest_ces_vig) */
+    var dn=deacc(T[i+1].toLowerCase());if(!/[sx]$/.test(dn)||_INVAR_S[dn]||dn.length<4||T[i+1].charAt(0)!==T[i+1].charAt(0).toLowerCase())return null;
+    var sg=/aux$/.test(dn)?dn.slice(0,-3)+'al':dn.slice(0,-1);if(!_wordKnown(sg)||svReads(dn).length)return null;
+    var pp=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(sg):NOUN_POST[sg]):null;if(!(pp&&pp[0]>=PL_TAU_M))return null;   // Map (extension) ou objet (app)
+    var p1=i>=1?deacc(T[i-1].toLowerCase()):'',n2=i+2<T.length?deacc(T[i+2].toLowerCase()):'';
+    if(PREP[p1])return ckeepcase(T[i],'ses');
+    if(n2==='sont'||n2==='etaient'||n2==='ont'||n2==='avaient'||svReads(n2).some(function(r){return r[3]==='p';}))return ckeepcase(T[i],'ces');
+    return null;}
   var _AUXM_PRON={je:["j'ai",'je suis']},_AUXM_FUT={demain:1,bientot:1,prochain:1,prochaine:1,prochains:1,prochaines:1,ulterieurement:1,dorenavant:1,desormais:1,tantot:1};   // ⭐ 12/09/2026 — AUXILIAIRE MANQUANT après je : « je noté » → j'ai ? (miroir Python rule_aux_manquant_vig)
   function auxManquantVig(T,i){var p=deacc(T[i].toLowerCase());if(!_AUXM_PRON[p]||i+1>=T.length)return null;
     var nx=T[i+1],nl=nx.toLowerCase(),dn=deacc(nl);if(nx!==nl||nl.indexOf("'")>=0||dn==='ete')return null;
@@ -1529,7 +1537,15 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var _pp=NOUN_POST&&NOUN_POST.get(nd);if((lw==='quel'||lw==='quelle')&&!(_pp&&_pp[0]>=PL_TAU_M)){var tgq=posTags(T);if(tgq&&i+2<T.length&&i+1<tgq.length&&tgq[i+1]==='ADJ'&&T[i+2].toLowerCase().indexOf("'")<0&&T[i+2].charAt(0)===T[i+2].charAt(0).toLowerCase()){hi=i+2;_pp=NOUN_POST&&NOUN_POST.get(deacc(T[hi].toLowerCase()));}}if(hi===i+1&&DET_SKIP[nd])return null;var _tgd=posTags(T);if(_tgd&&hi<_tgd.length&&_tgd[hi]==='ADJ'&&((hi+1<_tgd.length&&_tgd[hi+1]==='NOUN')||(hi+2<_tgd.length&&_tgd[hi+2]==='NOUN')))return null;if(!(_pp&&_pp[0]>=PL_TAU_M))return null;   // « quel/quelle + ADJECTIF antéposé + nom » : saut d'un adjectif sûr → nom-tête. GARDE §3 genre RELAXÉE : NOM confiant (P(NOM)≥τ) ; garde verbe levée (sans toucher _nounGate, partagé pluriel) — mot après déterminant = NOM même si verbe-homographe (recall +6 pts, FP 0,09→0,10/1000, gender_levers_ud.py)
     if(_EPICENE_NOUN[deacc(T[hi].toLowerCase())])return null;var gn=_GCOLL[T[hi].toLowerCase()]||GENDER_PURE[deacc(T[hi].toLowerCase())];if(gn!=='m'&&gn!=='f')return null;if(gn===gd)return null;var sg=DET_A[lw+'|'+gn];return sg?ckeepcase(T[i],sg):null;}
   var TOUT_EXTRA={avant:1,apres:1,'après':1,en:1,comme:1,selon:1,sauf:1,envers:1,durant:1,pendant:1,hormis:1,outre:1,moyennant:1,suivant:1,concernant:1};   // + PREP + NUM_DET : mots après lesquels « tout » n'est PAS un déterminant
-  function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
+  var _TOUS_DETSG={le:1,la:1,ce:1,cet:1,cette:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,se:1},_TOUS_PLANTE={ils:1,elles:1,nous:1,vous:1,les:1,leur:1,leurs:1,eux:1,ces:1,des:1,mes:1,tes:1,ses:1,nos:1,vos:1};   // ⭐ 13/09/2026 — « tous » → « tout » (miroir Python _tous_tout)
+  function _tousTout(T,i){var nx=deacc(T[i+1].toLowerCase());if(!(_TOUS_DETSG[nx]||nx.slice(0,2)==="l'"))return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;
+    var lo=0,j,k;if(_SEG){for(j=i;j>0;j--){if(j<_SEG.bb.length&&_SEG.bb[j]){lo=j;break;}}}var av=[];for(k=lo;k<i;k++)av.push(deacc(T[k].toLowerCase()));
+    for(k=0;k<av.length;k++){if(_TOUS_PLANTE[av[k]]||_TOUS_PLANTE[av[k].split("'")[0]])return null;}
+    if(nx==='le'&&i+2<T.length&&deacc(T[i+2].toLowerCase())==='monde')return 'tout';
+    if(av.length&&(av[av.length-1]==='pendant'||av[av.length-1]==='durant'))return 'tout';
+    if((nx==='ce'||nx==='se')&&i+2<T.length&&['que','qu','qui'].indexOf(deacc(T[i+2].toLowerCase()).split("'")[0])>=0){for(k=0;k<av.length;k++){if(['je','tu','il','elle','on'].indexOf(av[k])>=0||av[k].slice(0,2)==="j'")return 'tout';}}
+    return null;}
+  function rTout(T,i){var lw=deacc(T[i].toLowerCase());if(lw==='tous'&&i+1<T.length){var _tt=_tousTout(T,i);return _tt?ckeepcase(T[i],_tt):null;}if(lw!=='tout'&&lw!=='toute')return null;if(i+2>=T.length)return null;   // tout/toute (SING.) + déterminant + nom → accord genre×nombre → tous/toutes/tout/toute. FP=0 (le quantifieur flottant est tjrs pluriel). Gardes prép/dét/idiome/frontière.
     var num=NUM_DET[deacc(T[i+1].toLowerCase())];if(!num)return null;
     if(_SEG&&(i+1)<_SEG.bb.length&&_SEG.bb[i+1])return null;
     var p=cprev(T,i);if(PREP[p]||NUM_DET[p]||TOUT_EXTRA[p])return null;
@@ -3302,6 +3318,7 @@ function estQuestion(t,maxMots){
     var s=la<lb?a:b,l=la<lb?b:a,i=0,j=0,sk=0;
     while(i<s.length&&j<l.length){if(s[i]===l[j]){i++;j++;}else{if(++sk>1)return false;j++;}}return true;}
   var _DAN_SUR={},_DAN_VIG={le:1,la:1,les:1,se:1};'un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leurs quel quelle quels quelles tout toute tous toutes'.split(' ').forEach(function(w){_DAN_SUR[w]=1;});   // ⭐ 13/09/2026 : « dan » + déterminant → dans (miroir Python)
+  var _VACANCES_AV={};"en de d' des les mes tes ses nos vos leurs bonnes grandes petites".split(' ').forEach(function(w){_VACANCES_AV[w]=1;});   // ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python)
   function spellToken(tok,atStart,T,idx){                                  // élision : « d'othographes » = 1 token → on analyse le RESTE
     var em=tok.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){
@@ -3358,6 +3375,7 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        « dan » est un mot (judo) et un prénom écrit en minuscules par les dys : FLAG devant un déterminant qui ne suit jamais un prénom sujet,
        ORANGE devant le/la/les/l'/se (« dan le regarde » = Dan). Jamais en majuscule. Miroir Python _DAN_SUR / _DAN_VIG. */
     if(tok===low&&low==='dan'&&T&&idx!=null&&idx+1<T.length){var _dnx=deaccS(T[idx+1].toLowerCase());if(_DAN_SUR[_dnx])return["flag","dans"];if(_DAN_VIG[_dnx]||_dnx.slice(0,2)==="l'")return["vigilance","dans"];}
+    if(tok===low&&low==='vacance'&&T&&idx!=null&&idx>=1&&_VACANCES_AV[deaccS(T[idx-1].toLowerCase())])return["flag","vacances"];   /* ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python) */
     /* ⭐ FORMES FIGÉES À APOSTROPHE ÉCRITES SOUDÉES (audit 11/09/2026, plan ③ : « aujourdhui » restait un inconnu sans réponse alors
        que la réponse est fermée). Liste CLOSE recensée le 12/09 : aucune de ces soudures n'est un mot (speller, UD 14 450 : 0),
        corpus dys : quelquun 1, jusqua 1. Cibles à apostrophe SEULE (pas d'espace : « parceque » relève de la segmentation).
@@ -3959,6 +3977,7 @@ function spellUnknown(tok,atStart,T,idx){
     {var pv=persVig(T,i);if(pv){return {i:i,word:T[i],sugg:pv,name:'personne du verbe à vérifier',tier:'vigilance'};}}
     {var jv=jestVig(T,i);if(jv){return {i:i,word:T[i],sugg:jv,name:"j'est/j'ai à vérifier",tier:'vigilance'};}}   // ⭐ 12/09/2026 : « j'est dans ma chambre » → je suis ? (les deux lectures incertaines de j'est, miroir Python rule_jest_vig)
     {var amv=auxManquantVig(T,i);if(amv){return {i:i,word:T[i],sugg:amv,name:'auxiliaire manquant à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 : « je noté le numéro » → j'ai ? (auxiliaire tombé ; miroir Python rule_aux_manquant_vig)
+    {var ccv=cestCesVig(T,i);if(ccv){return {i:i,word:T[i],sugg:ccv,name:"c'est/ces à vérifier",tier:'vigilance'};}}   // ⭐ 13/09/2026 : « C'est enfants sont » → ces ? (miroir Python rule_cest_ces_vig)
     {var pps=ppAvoirSurnumVig(T,i);if(pps){return {i:i,word:T[i],sugg:pps,name:'accord du participe après avoir à vérifier',tier:'vigilance'};}}   // ⭐ 12/09/2026 — RÈGLE NEUVE, orange : « a signés un contrat » → signé (miroir Python rule_pp_avoir_surnum)
     {var sfn=sujFlexNom(T,i);if(sfn){return {i:i,word:T[i],sugg:sfn,name:'accord du verbe au sujet nominal à vérifier',tier:'vigilance'};}}   // sujet NOMINAL → ORANGE (« les petits chats manges » → mangent)   // « je fini » → finis ? « tu a » → as ? (orange : la personne, jamais imposée)
     {var oov=onOntVig(T,i);if(oov){return {i:i,word:T[i],sugg:oov,name:'on/ont après un sujet pluriel à vérifier',tier:'vigilance'};}}   // « Les enfants on mange » → ont ? (orange)

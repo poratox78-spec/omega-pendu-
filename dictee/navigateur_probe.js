@@ -305,6 +305,11 @@ const CAS = [
   /* ⭐ « QUI ON » + NON-VERBE (13/09/2026) : « qui » est déjà sujet ; la fusion « qu'on » était appliquée par défaut devant un nom. */
   { txt: 'Les régions qui on une sécurité alimentaire sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on une"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on une »' },
   { txt: 'Le film qui on voit est long.', interdit: ['qui ont voit'], pourquoi: 'CONTRE-GARDE : « qui on » + verbe conjugué → qu’on, pas « ont »' },
+  /* ⭐ MUETS, lot 2 (13/09/2026) : tous → tout (trois cadres étroits), en vacance → vacances, « c'est » + nom pluriel → ces/ses (orange). */
+  { txt: 'Tous le monde était content.', corrigeAttendu: ['Tous', 'Tout'], pourquoi: '« tous le monde » : tout' },
+  { txt: 'Ils ont tous le droit de venir.', rien: true, pourquoi: 'CONTRE-GARDE : quantifieur flottant' },
+  { txt: 'Il part en vacance demain.', corrigeAttendu: ['vacance', 'vacances'], pourquoi: '« en vacance » : vacances' },
+  { txt: 'C’est enfants sont âgés de deux ans.', corrigeAttendu: ["C'est", 'Ces'], pourquoi: '« c’est » + nom pluriel + verbe pluriel → ces (orange)' },
   { txt: 'jusqu’en 1099 lorsqu’il sont évincés par leur cousin.', interdit: ['lorsqu’il est', "lorsqu'il est"], pourquoi: 'pronom élidé + « sont » : le -s du pronom est tombé, le verbe ne bouge pas' },
   { txt: 'les enfants est venu hier.', corrigeAttendu: ['est', 'sont'], pourquoi: 'CONTRE-GARDE : sujet pluriel + « est » + participe reste corrigé' },
   { txt: 'la fille qui sont partie.', corrigeAttendu: ['sont', 'est'], pourquoi: 'CONTRE-GARDE : le participe singulier confirme l’antécédent proche' },

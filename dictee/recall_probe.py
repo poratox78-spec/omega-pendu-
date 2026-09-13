@@ -104,6 +104,8 @@ def _check():
     #    (*puis*) depuis le 07/09 sans qu'aucun corpus le voie. Zéro flag exigé sur chacune.
     nofp += [l.strip() for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'phrases_courantes.txt'), encoding='utf-8')
              if l.strip() and not l.startswith('#')]
+    elide += [("tous le monde était choqué", "tous", "tout"), ("pendant tous l'été", "tous", "tout"), ("je faisais tous ce que je voulais", "tous", "tout"), ("C'est enfants sont âgés", "C'est", "Ces")]   # ⭐ 13/09/2026 : muets lot 2
+    nofp += ["ils ont tous le droit de venir.", "elles connaissent tous les chemins.", "il parle à tous."]   # ⭐ 13/09/2026 : « tous » quantifieur flottant / pronom → rien
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):
