@@ -126,7 +126,9 @@ try {
                  // mise en parité ici, pas seulement la cible de la correction.
                  'jmaais','acceuil','grannd','beaucooup','toujorus','vinngt','flight','kommune','project','strategia',
                  // voie '' du « mot inconnu » ÉQUIPÉE (S6 élision / S4 clé phon, 04/09/2026) + témoin sans candidat
-                 'on voit dargen ici','léconomi','bégnier','ésituron','la souche delbrueckii ici'];
+                 'on voit dargen ici','léconomi','bégnier','ésituron','la souche delbrueckii ici',
+                 // REPLI PHONÉTIQUE (13/09/2026) : variante de finale -er/-é, index des mots rares
+                 'une grande sosiéter','sur les litoro'];
     const key = f => f.i + '|' + String(f.word).toLowerCase() + '|' + String(f.sugg).toLowerCase() + '|' + f.tier;
     BAT.forEach(t => {
       const a = global.__app.spell(t).map(key).sort().join(' ');
@@ -137,9 +139,40 @@ try {
   })().catch(e => { console.log('(comparaison app ignorée :', e.message + ')'); finish(0); });
 } catch (e) { console.log('(comparaison app ignorée :', e.message + ')'); finish(0); }
 
+// ⭐ REPLI PHONÉTIQUE (13/09/2026) — un mot inconnu SANS suggestion en reçoit une s'il ne diffère que par sa finale -er/-é/-ez ou sonne
+//    comme un mot RARE (« sosiéter » → société, « litoro » → littoraux). L'index des ~109 000 mots rares, bâti d'un seul tenant, GELAIT la
+//    page ~640 ms au premier mot sans suggestion (Node) : la liste est relevée AU CHARGEMENT et l'index bâti PAR TRANCHES en tâche de fond
+//    dès la première analyse. Garde sur un moteur NEUF (celui du haut a déjà tout analysé) : ① liste relevée ; ② la première analyse
+//    n'indexe qu'une tranche ; ③ la chaîne avance SEULE jusqu'au bout ; ④ les deux voies proposent. Et l'app porte le même chargeur.
+async function gardeIndexRare() {
+  const cle = require.resolve(path.join(HERE, 'dys-core.js')), avant = global.DYSCORE;
+  delete require.cache[cle]; require(cle); const D = global.DYSCORE; global.DYSCORE = avant;
+  if (D === DC || typeof D.phonRareEtat !== 'function') { fail.push('repli phonétique : moteur neuf ou phonRareEtat introuvable'); return; }
+  D.setLex(vdc, gender, speller);
+  const e0 = D.phonRareEtat();
+  if (!(e0.rares > 100000) || e0.lance) { fail.push('repli phonétique : liste des mots rares non relevée au chargement, ou index lancé avant toute analyse : ' + JSON.stringify(e0)); return; }
+  D.spell('Le chat dort sur le canapé.');
+  const e1 = D.phonRareEtat();
+  if (!e1.lance || e1.indexes <= 0 || e1.indexes >= e1.rares) { fail.push('repli phonétique : la première analyse doit lancer l\'index et n\'en bâtir qu\'UNE tranche (sinon la page gèle), eu ' + JSON.stringify(e1)); return; }
+  const t0 = Date.now();
+  while (D.phonRareEtat().indexes < e0.rares && Date.now() - t0 < 30000) await new Promise(r => setTimeout(r, 10));
+  const e2 = D.phonRareEtat();
+  if (e2.indexes < e2.rares) { fail.push('repli phonétique : l\'index des mots rares n\'avance pas seul en tâche de fond : ' + JSON.stringify(e2)); return; }
+  for (const [t, w, g] of [['il vit dans une grande sosiéter', 'sosiéter', 'société'], ['la population vit sur les litoro', 'litoro', 'littoraux']]) {
+    const f = D.spell(t).find(x => x.word.toLowerCase() === w);
+    if (!f || f.sugg !== g || f.tier !== 'vigilance') fail.push('repli phonétique : « ' + w + ' » → ' + g + ' (orange) attendu, eu ' + JSON.stringify(f));
+  }
+  const app = fs.readFileSync(path.join(ROOT, 'app', 'omega-pendu.html'), 'utf8');
+  for (const s of ['else if(fr>0&&fr!==0.05)SP.RARE.push(w);', 'if(!_phonRareStep(4000))setTimeout(_st,0);'])
+    if (app.indexOf(s) < 0) fail.push('repli phonétique : l\'app ne porte plus « ' + s + ' » (chargeur ou lancement en tâche de fond)');
+}
+
 function finish(parityKO) {
+  gardeIndexRare().catch(e => fail.push('repli phonétique : garde en erreur — ' + e.message)).then(() => conclure(parityKO));
+}
+function conclure(parityKO) {
   if (fail.length) { console.error('✗ ÉCHEC (comportement) :\n  ' + fail.join('\n  ')); process.exit(1); }
   if (parityKO) { console.error('✗ PARITÉ KO : ' + parityKO + ' input(s) où ext ≠ app'); process.exit(1); }
-  console.log('✓ OK : speller extension — AUTO FP=0, hybride (fote→faute, premiere→premier), accent-POS (élève/élevé), élision, ET parité directe ext ≡ app.');
+  console.log('✓ OK : speller extension — AUTO FP=0, hybride (fote→faute, premiere→premier), accent-POS (élève/élevé), élision, repli phonétique bâti en tâche de fond, ET parité directe ext ≡ app.');
   process.exit(0);
 }

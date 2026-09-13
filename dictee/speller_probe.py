@@ -913,6 +913,30 @@ class Speller:
             if f > bf: best, bf = w, f
         return best
 
+    _PHONR = None
+
+    def _su_phon_rare(self, low):
+        u"""⭐ REPLI PHONÉTIQUE des mots inconnus SANS suggestion (13/09/2026) — décalque de _suPhonRare (dys-core/app) : variantes de finale
+        -er/-é/-ez et index des mots RARES (0 < fréquence < 0,1, hors 0,05 = Wiktionnaire), bâti à la demande ; finale identique d'abord,
+        puis fréquence, puis ordre alphabétique (déterministe entre moteurs)."""
+        if self._PHONR is None:
+            self._PHONR = defaultdict(list)
+            for w, fr in self.FREQ.items():
+                if 0.0 < fr < FLAG_FREQ and fr != 0.05: self._PHONR[phon_key(w)].append(w)
+        vs = [low]
+        if low.endswith('er'): vs.append(low[:-2] + 'é')
+        if low.endswith('é'): vs.append(low[:-1] + 'er')
+        if low.endswith('ez'): vs.append(low[:-2] + 'é')
+        best, bs, dl = None, -1.0, len(deacc(low))
+        for v in vs:
+            k = phon_key(v); fin = deacc(v)[-2:]
+            for lst in (self.PHON.get(k, []), self._PHONR.get(k, [])):
+                for w in lst:
+                    if abs(len(deacc(w)) - dl) > 3: continue
+                    sc = (1e6 if deacc(w)[-2:] == fin else 0) + self.FREQ.get(w, 0)
+                    if sc > bs or (sc == bs and best is not None and w < best): bs, best = sc, w
+        return best
+
     def spell_unknown(self, tok, at_start=False, toks=None, idx=None):
         """-> None | '' (souligné sans suggestion) | suggestion (orange AU CLIC, jamais appliquée)."""
         low = tok.lower().replace('œ', 'oe').replace('æ', 'ae')
@@ -952,6 +976,7 @@ class Speller:
         if best and best != low: return best
         # VOIE '' (inconnu sans suggestion fiable) : S6 élision PRIORITAIRE, puis S4 clé phonétique d=1
         g = self._su_elision(low) or self._su_phon_e1(low)
+        if not g or g == low: g = self._su_phon_rare(low)   # ⭐ 13/09/2026 : repli phonétique (variantes -er/-é/-ez + mots rares) — miroir JS _suPhonRare
         return g if (g and g != low) else ''
 
     def correct_text(self, text, inconnu=False):

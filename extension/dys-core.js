@@ -3268,11 +3268,11 @@ function estQuestion(t,maxMots){
   // accentuait à tort (the→thé, world→…) + « er » = résidu d'ordinal « 1er » (le chiffre effacé laisse « er »→« ère »).
   // Aucun n'entre en collision avec un mot français (mais/or/on/en/a/ni exclus). Miroir app.
   var _SPELL_KEEP={the:1,and:1,of:1,with:1,is:1,are:1,was:1,were:1,this:1,that:1,from:1,they:1,you:1,your:1,its:1,new:1,world:1,er:1};
-  function _applySpellerTSV(txt){SP.WORDS=new Set();var lines=txt.split('\n');
+  function _applySpellerTSV(txt){SP.WORDS=new Set();SP.RARE=[];SP.PHONR=null;var lines=txt.split('\n');
     for(var k=0;k<lines.length;k++){var ln=lines[k];if(!ln)continue;var pr=ln.split('\t');if(pr.length<2)continue;
       var w=pr[0],fr=parseInt(pr[1],10)/1000;SP.WORDS.add(w);SP.FREQ[w]=fr;if(pr[2])SP.POS[w]=pr[2];
       if(fr>0){var d=deaccS(w);(SP.D2A[d]||(SP.D2A[d]=[])).push(w);}   // porte EXACTE : seule la fréquence 0 (gacc) est connue-seulement ; ≥ 0,01 retirait 26 % du lexique de BASE et cassait les suggestions « mot inconnu » (mesuré en A/B node)   // ⭐ connu-seulement : sous KNOWN_ONLY le mot est dans WORDS (plus « inconnu ») mais JAMAIS candidat — l'A/B navigateur perdait 3 justes par concurrence d'unicité (miroir Python KNOWN_ONLY_FREQ)
-      if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);}}
+      if(fr>=0.1){var pk=phonKey(w);(SP.PHON[pk]||(SP.PHON[pk]=[])).push(w);}else if(fr>0&&fr!==0.05)SP.RARE.push(w);}   // ⭐ 13/09/2026 : mots RARES relevés au passage (index bâti par tranches, _phonRareStep)
     ['postulée','postulées','entretint','entretinrent','armet','armets'].forEach(function(w){SP.WORDS.add(w);});   // MOTS VALIDES manquants du lexique que le speller éditait à tort (« mauvais candidat sur mot valide » : postulée→postulé, entretint→entretient, armet→arme) → protégés (SP.WORDS.has ⇒ ni correction ni vigilance). FP=0 : vrais mots FR ; liste extensible.
     var sf=function(a,b){return SP.FREQ[b]-SP.FREQ[a];};
     for(var dd in SP.D2A)SP.D2A[dd].sort(sf);for(var pp in SP.PHON)SP.PHON[pp].sort(sf);SP.ready=true;}
@@ -3614,6 +3614,26 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
       ord.sort(function(x,y){return hits[y][0]-hits[x][0]||hits[y][1]-hits[x][1];});   // tri stable → départage = ordre d'insertion (D2A > phon > edits1), comme le miroir Python
       for(i=0;i<ord.length;i++){w=ord[i];if(SVOW[deaccS(w).charAt(0)]&&(SP.FREQ[w]||0)>=0.1)return h+"'"+w;}}
     return null;}
+  /* ⭐ REPLI PHONÉTIQUE des mots inconnus SANS suggestion (13/09/2026, « les mots soulignés sans suggestion », demande de Rem) : variantes de
+     finale -er/-é/-ez (« sosiéter » → société, « dificulter » → difficulté) et index des mots RARES (0 < fréquence < 0,1, hors 0,05 =
+     Wiktionnaire). Le plancher 0,1 vaut pour la voie de CORRECTION (un rare y vole la place du bon mot) ; ici aucun candidat n'existait.
+     Mesuré : 1 798 textes dys, 6 suggestions neuves dont 5 exactes (3 par les variantes, 3 par l'index rare) ; 2 500 phrases UD : 0 changement.
+     ⚠️ COÛT : bâti d'un seul tenant, l'index gelait la page ~640 ms au premier mot sans suggestion (Node : relevé des 705 653 clés de FREQ
+     ~330 ms + 109 016 clés phonétiques ~310 ms). La liste des rares est donc relevée AU CHARGEMENT et l'index bâti PAR TRANCHES de
+     4 000 mots en tâche de fond dès la première analyse (spellText) ; un appel avant la fin le complète d'un coup — même résultat,
+     l'ordre de construction ne compte pas (départage alphabétique). Sans liste relevée (harnais qui sème SP), relevé depuis FREQ. */
+  function _phonRareStep(n){
+    if(!SP.PHONR){SP.PHONR={};SP._rareI=0;if(!SP.RARE){SP.RARE=[];for(var w0 in SP.FREQ){var f0=SP.FREQ[w0];if(f0>0&&f0<0.1&&f0!==0.05)SP.RARE.push(w0);}}}
+    var R=SP.RARE,e=Math.min(R.length,SP._rareI+n);
+    for(var i=SP._rareI;i<e;i++){var pk=phonKey(R[i]);(SP.PHONR[pk]||(SP.PHONR[pk]=[])).push(R[i]);}
+    SP._rareI=e;return e>=R.length;}
+  function _suPhonRare(low){
+    _phonRareStep(1e9);
+    var vars=[low];if(/er$/.test(low))vars.push(low.slice(0,-2)+'é');if(/é$/.test(low))vars.push(low.slice(0,-1)+'er');if(/ez$/.test(low))vars.push(low.slice(0,-2)+'é');
+    var best=null,bf=-1,dl=deaccS(low).length;
+    for(var v=0;v<vars.length;v++){var k=phonKey(vars[v]),fin=deaccS(vars[v]).slice(-2),lists=[SP.PHON[k]||[],SP.PHONR[k]||[]];
+      for(var a=0;a<2;a++)for(var i=0;i<lists[a].length;i++){var w=lists[a][i];if(Math.abs(deaccS(w).length-dl)>3)continue;var sc=(deaccS(w).slice(-2)===fin?1e6:0)+(SP.FREQ[w]||0);if(sc>bf||(sc===bf&&best!==null&&w<best)){bf=sc;best=w;}}}
+    return best;}
   function _suPhonE1(low){var hits={},best=null,bf=-1,i,j,e1=sEdits1(phonKey(low));
     for(i=0;i<e1.length;i++){var a=SP.PHON[e1[i]];if(a)for(j=0;j<a.length;j++){var w=a[j];if(hits[w]==null){hits[w]=1;var f=SP.FREQ[w]||0;if(f>bf){bf=f;best=w;}}}}   // > strict : à fréquence égale le premier inséré gagne (miroir Python)
     return best;}
@@ -3643,6 +3663,7 @@ function spellUnknown(tok,atStart,T,idx){
             if(_da2||sEd1(deaccS(low),deaccS(_dp2)))best=_dp2;}}}}
     if(best&&best!==low)return best;
     var _g=_suElision(low)||_suPhonE1(low);                                 // VOIE '' : équiper le souligné existant (S6 puis S4) — orange AU CLIC, jamais une marque nouvelle
+    if(!_g||_g===low)_g=_suPhonRare(low);                                   // ⭐ 13/09/2026 : repli phonétique (variantes -er/-é/-ez + mots rares) — miroir Python _su_phon_rare
     return (_g&&_g!==low)?_g:'';                                            // '' = inconnu sans suggestion fiable (simple alerte)
   }
   // VIGILANCE homophone : mot VALIDE mais probablement mal employé, dans un contexte SERRÉ → souligné orange « à vérifier »
@@ -3984,7 +4005,8 @@ function spellUnknown(tok,atStart,T,idx){
     {var dnv=rDetNumber(T,i);if(dnv){return {i:i,word:T[i],sugg:dnv,name:'nombre du déterminant à vérifier',tier:'vigilance'};}}   // « le maçons ont » → les ? (orange, 11/09/2026)
     {var ov=ouVig(T,i);if(ov)return {i:i,word:T[i],sugg:ov,name:'ou/où à vérifier',tier:'vigilance'};}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     return null;}
-  function spellText(text,capital){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_vst={tg:null};for(var i=0;i<T.length;i++){
+  function spellText(text,capital){if(SP.RARE&&!SP.PHONR&&typeof setTimeout==='function')(function _st(){if(!_phonRareStep(4000))setTimeout(_st,0);})();   // ⭐ 13/09/2026 : index des mots rares bâti en tâche de fond dès la première analyse
+    text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),out=[],_vst={tg:null};for(var i=0;i<T.length;i++){
     if(/^(n')?ête$/i.test(T[i])){continue;}   // « ête » → réservé à la règle grammaire rEteEtre (contexte) ; on court-circuite TOUTES les couches speller (ortho + mot-inconnu) pour éviter le double flag « ête→est ». Miroir app.
     var _an=_ANGLICISME[T[i].toLowerCase()];if(_an){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],_an),name:'anglicisme',tier:'vigilance'});continue;}   // anglicisme → ORANGE, court-circuite le speller
     if(T[i]==='Mr'||T[i]==='Mrs'){out.push({i:i,word:T[i],sugg:T[i]==='Mr'?'M.':'Mme',name:'abréviation',tier:'vigilance'});continue;}   // « Mr/Mrs »→« M./Mme » (miroir app)
@@ -4473,6 +4495,8 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
     // s'en sert à l'ENVERS du correcteur : lui doit TROUVER le mot parmi 214 000 (donc FP=0 et
     // silence dans le doute) ; le jeu CONNAÎT déjà la cible et ne compare que deux mots.
     phonKey:phonKey,
+    // état de l'index des mots RARES du repli phonétique, bâti par tranches en tâche de fond (13/09/2026) — lu par la garde de test_speller.js
+    phonRareEtat:function(){return {rares:SP.RARE?SP.RARE.length:0,indexes:SP._rareI||0,lance:!!SP.PHONR};},
     // canal TEXTE de la ponctuation (saisie vocale) — chargement EXPLICITE :
     // content.js, qui tourne sur toutes les pages, ne paie pas les 182 Ko.
     setPonctLm:setPonctLm, loadPonctLm:loadPonctLm, ponctReady:ponctReady, ponctDist:ponctDist,
