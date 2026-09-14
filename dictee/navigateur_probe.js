@@ -832,7 +832,14 @@ async function main() {
       // plus le bloc « Stade : alphabétique… » qui « est là tout le temps et ne veut rien dire »
       await passe('nous ira');
       const sousCorrections = out.innerText || '';   // blancs normalisés CÔTÉ NODE (voir la barre doublée plus haut)
-      return { res, nofire, sousCorrections };
+      const compteur = (document.getElementById('vdc-count') || {}).innerText || '';
+      // ⭐ lot 2 (14/09/2026) : la CARTE d'une correction de déterminant cite le NOM qui commande (le 💡 remontait « Il » en arrière)
+      const ch2 = await passe('Il a une chien');
+      let carteGenre = '';
+      const puce = (ch2 || []).find(c => /une/.test(c.innerText || ''));
+      if (puce) { puce.click(); await attendre(150); const cp = document.getElementById('vdc-cardpop');
+        carteGenre = (cp && cp.style.display !== 'none') ? (cp.innerText || '') : ''; if (cp) cp.style.display = 'none'; }
+      return { res, nofire, sousCorrections, compteur, carteGenre };
     })()`, awaitPromise: true, returnByValue: true, timeout: 240000 });
     if (cr.exceptionDetails) throw new Error('crible : ' + (cr.exceptionDetails.exception || {}).description);
     const cv2 = cr.result.value || {};
@@ -856,6 +863,12 @@ async function main() {
       if (/Stade/.test(sc)) echecs.push('sous les corrections de « nous ira » : un « Stade » est encore affiché — « ' + sc.slice(0, 200) + ' »');
       if (sc.indexOf('ne prend pas la terminaison de « il »') < 0) echecs.push('sous les corrections de « nous ira » : pas le conseil de conjugaison — « ' + sc.slice(0, 200) + ' »');
       log('  ' + (!/Stade/.test(sc) && sc.indexOf('ne prend pas la terminaison de « il »') >= 0 ? '✓' : '✗') + ' sous les corrections de « nous ira » : le conseil de conjugaison, aucun « Stade »');
+      const cg = String(cv2.carteGenre || '').replace(/\s+/g, ' '), cpt = String(cv2.compteur || '').replace(/\s+/g, ' ');
+      const okGenre = cg.indexOf('le nom « chien » (masculin) qui commande') >= 0 && cg.indexOf('« Il »') < 0;
+      if (!okGenre) echecs.push('carte de « Il a une chien » : le 💡 doit citer le nom qui commande, pas « Il » lu en arrière — « ' + cg.slice(0, 200) + ' »');
+      const okCpt = cpt.indexOf('ouvrir sa carte') >= 0 && !/basculer/.test(cpt);
+      if (!okCpt) echecs.push('compteur des corrections : un clic ouvre la CARTE, le libellé ne doit plus promettre une bascule — « ' + cpt.slice(0, 160) + ' »');
+      log('  ' + (okGenre && okCpt ? '✓' : '✗') + ' carte « Il a une chien » : le nom qui commande ; compteur : un clic ouvre la carte');
       if (muets.length > 2) echecs.push('crible : ' + muets.length + ' phrase(s) sans aucune détection — ' + muets.join(' · '));
       let ancres = 0, dysTot = 0;   // ce compte est REPORTÉ dans le verdict final, y compris en --check
       for (const r of cv2.res) if (!r.muet && r.dys) for (const it of r.items) { dysTot++; if (it.ancre) ancres++; }

@@ -137,17 +137,23 @@
   // au clic. Chaque rouge se révoque d'un clic (« annuler »), par clé (index, mot, suggestion) : une ré-édition
   // qui déplace les mots fait tomber les révocations d'elles-mêmes. Le miroir n'est jamais réécrit → pas de bataille.
   var _ign = {}, lastOut = null;
-  function _fk(f) { return f.i + '|' + f.word + '|' + f.sugg; }
+  function _fk(f) { return (f.i != null ? f.i : 'c' + f.cs) + '|' + f.word + '|' + f.sugg; }   // ancrée caractère : la position, sinon deux « t . » partageraient la même révocation
   function corrige(t, flags, html) {
-    var sp2 = spans(t), parts = [], last = 0, out = t;
-    var L = (flags || []).filter(function (f) { return f.tier !== 'vigilance' && !_ign[_fk(f)]; }).slice().sort(function (a, b) { return a.i - b.i; });
-    L.forEach(function (f) {
-      var s = sp2[f.i]; if (!s || s[0] < last) return; var e = sp2[f.i + (f.span ? f.span - 1 : 0)] || s;
-      parts.push([t.slice(last, s[0]), f.sugg]); last = e[1];
+    var sp2 = spans(t), ed = [], parts = [], last = 0;
+    (flags || []).forEach(function (f) {
+      if (f.tier === 'vigilance' || _ign[_fk(f)]) return;
+      /* ⭐ 14/09/2026 : les corrections ANCRÉES CARACTÈRE du palier auto (espace avant la ponctuation, espace double, espace après
+         la virgule) n'ont pas d'indice de mot — `sp2[f.i]` les sautait. L'item disait « ✓ appliqué à la copie » et la copie gardait
+         la faute, « tout corriger » aussi. Le site les appliquait déjà (_correctedText). */
+      if (f.i == null && typeof f.cs === 'number' && typeof f.ce === 'number') { ed.push([f.cs, f.ce, f.sugg]); return; }
+      var s = sp2[f.i]; if (!s) return; var e = sp2[f.i + (f.span ? f.span - 1 : 0)] || s;
+      ed.push([s[0], e[1], f.sugg]);
     });
+    ed.sort(function (a, b) { return a[0] - b[0]; });
+    ed.forEach(function (x) { if (x[0] < last) return; parts.push([t.slice(last, x[0]), x[2]]); last = x[1]; });
     if (!parts.length) return html ? '' : t;
     if (html) { var h = ''; parts.forEach(function (p) { h += esc(p[0]) + '<b>' + esc(p[1]) + '</b>'; }); return h + esc(t.slice(last)); }
-    out = ''; parts.forEach(function (p) { out += p[0] + p[1]; }); return out + t.slice(last);
+    var out = ''; parts.forEach(function (p) { out += p[0] + p[1]; }); return out + t.slice(last);
   }
   // « tout corriger » = écrit le FP=0 (auto + rouge, hors révoqués) DANS la zone ; la vigilance reste au clic explicite.
   var _undoSnap = null;

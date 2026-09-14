@@ -24402,6 +24402,36 @@ window.addEventListener('DOMContentLoaded', () => {
         :t==='accent'?t+':'+Object.keys(_accKinds(f.ecrit,f.mot).k).sort().join('+'):t;
       if(seen[k])return;seen[k]=1;fams.push(t);rep.push(f);});});
     return fams.length?{fams:fams,rep:rep}:null;}
+  /* ⭐ LE 💡 « C'EST X QUI COMMANDE », UNE SEULE COPIE (14/09/2026, lot 2 des textes explicatifs — avant : `_accHint` au site,
+     `ctxHint` à l'extension, qui avaient déjà divergé sur le genre). Remonté EN ARRIÈRE depuis le mot corrigé, le gouverneur était
+     FAUX quand le contrôleur est ailleurs : le déterminant prend le genre du nom qui le SUIT (« Il a une chien » → « C'est Il qui
+     commande »), le participe après AVOIR ne s'accorde pas avec le sujet (« nous avons vue » → « C'est nous qui commande → vu »),
+     un gouverneur SINGULIER pour une suggestion qui affiche un PLURIEL (« Un fait divers tragique » → tragiques), le pronom élidé
+     DANS le mot (« jadmet » → j'admets : « C'est le qui commande »). Rend null quand la règle n'a pas de gouverneur, '' pour se taire.
+     Texte BRUT : le site échappe. */
+  function _diffGenre(t,s){var a=deacc(String(t||'').toLowerCase()),b=deacc(String(s||'').toLowerCase()),p=0,suf;   // l'écart n'est QUE du genre (-e) : même test que accordType de la dictée
+    while(p<a.length&&p<b.length&&a.charAt(p)===b.charAt(p))p++;suf=a.slice(p)+b.slice(p);
+    return suf.indexOf('s')<0&&suf.indexOf('x')<0&&suf.indexOf('t')<0&&suf.indexOf('e')>=0;}
+  function _govHint(f,T,i){var n=f.name||'',sg=String(f.sugg||''),w=String(f.word||''),g=null,lab='',gn,svn,vb,j,gd,tg,gg;
+    if(!((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)||(/^personne du verbe/.test(n)&&deacc(sg.toLowerCase())!==deacc(w.toLowerCase()))))return null;
+    if(n==='genre déterminant'){j=i+1;gd=GEN_DET[sg.toLowerCase()]||({quel:'m',quelle:'f'})[sg.toLowerCase()];
+      if(/^quelle?$/i.test(sg)&&i+2<T.length){tg=posTags(T);if(tg&&tg[i+1]==='ADJ')j=i+2;}   // « quelle belle maison » : la règle lit le nom APRÈS l'adjectif
+      return (gd&&j<T.length)?'C\'est le nom « '+T[j]+' » ('+(gd==='f'?'féminin':'masculin')+') qui commande → on accorde « '+sg+' ».':'';}
+    if(/après avoir/.test(n))return 'Avec « avoir », le participe ne s’accorde pas avec le sujet (elles ont mangé) — seulement avec un COD placé AVANT (les pommes qu’elles ont mangées).';
+    if(/^personne du verbe/.test(n)&&/^[a-zà-ÿ]+['’]/i.test(sg))return '';
+    vb=isVerb(T,i);
+    if(/genre/.test(n)||(!vb&&_diffGenre(sg,w))){gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
+    if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut
+    if(!g){gn=governorNumber(T,i,vb||isParticiple(T,i));
+      if(gn){svn=_suggVerbNum(sg);if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné : le contrôleur est EN AVANT, le gouverneur arrière contredit la suggestion
+        if(!vb&&!/verbe|sujet|personne/.test(n)&&((gn[1]==='sg'&&/[sx]$/i.test(sg)&&!/[sx]$/i.test(w))||(gn[1]==='pl'&&/[sx]$/i.test(w)&&!/[sx]$/i.test(sg))))return '';   // le nombre du gouverneur contredit celui que la suggestion AFFICHE
+        g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');
+        if(!vb&&_diffGenre(sg,w)){gd=({elle:'féminin',elles:'féminin',il:'masculin',ils:'masculin'})[deacc(g.toLowerCase())];if(gd)lab=gd;}}}   // « Elle est parti » → partie : c'est le GENRE que le pronom commande
+    return g?'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+sg+' ».':'';}
+  /* le TÉMOIN DE FAMILLE (« le d muet s'entend dans grande ») et la règle -ment ne parlent que de la DERNIÈRE lettre : sur une
+     faute ailleurs dans le mot, ils sont hors sujet — 45 des 82 affichés sur le vrai écrit dys (« cént » → cent : « le t muet
+     s'entend dans centaine », la faute était l'accent). 14/09/2026. */
+  function _finConcernee(w,s){w=deacc(String(w||'').toLowerCase());s=deacc(String(s||'').toLowerCase());return !w||w.slice(-1)!==s.slice(-1);}
   // ===== fin de la COUCHE DYS PARTAGÉE =====
   function remedBlock(F,cls){var r=remedFams(F);if(!r)return '';
     var tips=r.fams.map(function(t,k){return remedTip(t,r.rep[k]);}).filter(Boolean);if(!tips.length)return '';
@@ -28395,6 +28425,7 @@ function spellTokenCore(tok,atStart,T,idx){
   // (« prix -> prise », « voix -> voisin » : aucun lien étymologique, mais la forme colle).
   var _FAM={"accord":"accorde","affreux":"affreuse","affront":"affronter","allemand":"allemande","amoureux":"amoureuse","appart":"appartement","apport":"apporté","arrêt":"arrête","avant":"avantage","avocat":"avocate","bloc":"bloqué","blond":"blonde","cent":"centaine","chanceux":"chanceuse","chant":"chante","chat":"chaton","chaud":"chaude","choc":"choqué","client":"cliente","command":"commande","comment":"commentaire","confort":"confortable","contact":"contacté","correct":"correctement","courageux":"courageuse","coût":"coûte","creux":"creuse","curieux":"curieuse","célibat":"célibataire","dangereux":"dangereuse","dent":"dentiste","deux":"deuxième","différent":"différente","direct":"directe","document":"documentaire","doux":"douce","drag":"dragon","droit":"droite","délicat":"délicate","délicieux":"délicieuse","emprunt":"emprunté","exact":"exacte","froid":"froide","front":"frontière","fréquent":"fréquente","furieux":"furieuse","goût":"goûte","grand":"grande","gratuit":"gratuite","group":"groupe","géant":"géante","généreux":"généreuse","habit":"habite","haut":"haute","heureux":"heureuse","idiot":"idiote","immédiat":"immédiatement","impatient":"impatiente","indic":"indice","infect":"infecté","innocent":"innocente","intelligent":"intelligente","jaloux":"jalouse","joyeux":"joyeuse","lent":"lentement","loup":"loupé","lourd":"lourde","malheureux":"malheureuse","merveilleux":"merveilleuse","mystérieux":"mystérieuse","nerveux":"nerveuse","nombreux":"nombreuses","patient":"patiente","permanent":"permanente","petit":"petite","poignard":"poignardé","port":"porte","post":"poste","profit":"profite","profond":"profonde","prudent":"prudente","précieux":"précieuse","présent":"présente","prêt":"prête","puissant":"puissante","quart":"quartier","rapport":"rapporte","regard":"regarde","rejet":"rejeté","relax":"relaxe","religieux":"religieuse","report":"reporter","respect":"respecte","récent":"récente","saut":"saute","second":"seconde","souhait":"souhaite","sport":"sportif","stand":"standard","supplément":"supplémentaire","support":"supporte","suspect":"suspecte","sénat":"sénateur","sérieux":"sérieuse","tard":"tarder","tort":"torture","tout":"toute","trac":"trace","trad":"tradition","transport":"transporter","vent":"vente","écart":"écarte","éclat":"éclate","époux":"épouse"};
   function _famHint(f){
+    if(!_finConcernee(f.word,f.sugg))return '';   // ⭐ 14/09/2026 : hors sujet quand la dernière lettre était déjà juste (« cént » → cent n'est pas le t muet) — couche partagée
     var w=(f.sugg||'').toLowerCase(), t=_FAM[w];
     // RÈGLE (pas un témoin) : le son /mɑ̃/ final s’écrit TOUJOURS « -ment », avec un t muet.
     // Mécanisme DIFFÉRENT de la famille, donc compté à part — et il couvre à lui seul 435 mots.
@@ -29191,7 +29222,7 @@ function spellTokenCore(tok,atStart,T,idx){
         dys encore moins. On la marque pour que le CSS élargisse la ZONE DE CLIC sans toucher aux
         MÉTRIQUES : l'overlay doit rester au pixel près sur la zone de saisie (padding et gras
         décalaient le texte, c'est écrit plus bas). */
-      ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
+      ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique : annuler ou ignorer'):('à vérifier -> '+esc(f.sugg)+' — clique : appliquer ou ignorer');
       o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+ti+'"'+((_vide&&!(corrected&&f.on))?(' data-sugg="'+esc(f.sugg)+'"'):'')+'>'+((_vide&&!(corrected&&f.on))?'':esc(disp))+'</span>'   /* ⭐ INSERTION = span VIDE + data-sugg (02/09). Le glyphe proposé (« . », « ? ») était écrit DANS le contenteditable : au rendu suivant le moteur le relisait comme du texte saisi (« est-ce que tu viens demain » 26 car → 28), curseur restauré sur un texte plus long, clic et sélection à côté (rapport de Rem, mesuré en Chrome réel). Glyphe dessiné par CSS hors flux : zéro caractère dans le texte. */;lp=r1;});
     o+=esc(g.slice(lp));return o;}
   function _renderView(t,corrs,corrected){var P=_tokPos(t),by={},byCs={},_RO=_runonSet(t);corrs.forEach(function(f){if(f.typo)byCs[f.cs]=f;else by[f.i]=f;});
@@ -29199,10 +29230,10 @@ function spellTokenCore(tok,atStart,T,idx){
       if(f){var end=(f.span>=2&&k+f.span-1<P.length)?k+f.span-1:k;var seg=t.slice(P[k][0],P[end][1]);
         if(!corrected){   // ZONE DE SAISIE : JAMAIS de vert (clair ET sombre). Toute correction = faute sur l'original → nos couleurs rouge/orange (jamais vdc-on). On montre le mot original.
           var clsS='vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':''));
-          o+='<span class="'+clsS+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+(f.on?'appliqué -> '+esc(f.sugg)+' — clique pour annuler':'clique pour appliquer -> '+esc(f.sugg))+'">'+esc(seg)+'</span>';last=P[end][1];k=end;}
+          o+='<span class="'+clsS+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+(f.on?'appliqué -> '+esc(f.sugg)+' — clique : annuler ou ignorer':'à vérifier -> '+esc(f.sugg)+' — clique : appliquer ou ignorer')+'">'+esc(seg)+'</span>';last=P[end][1];k=end;}
         else{var disp=f.on?f.sugg:seg;   // ENCADRÉ CORRIGÉ : vert = appliqué, rouge/orange = à vérifier
         var cls=f.on?'vdc-on':('vdc-bad'+(f.name==='orthographe'||f.name==='élision'?' vdc-orth':(f.tier==='vigilance'?' vdc-vig':'')));
-        var ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique pour annuler'):('clique pour appliquer -> '+esc(f.sugg));
+        var ti=f.on?('appliqué -> '+esc(f.sugg)+' — clique : annuler ou ignorer'):('à vérifier -> '+esc(f.sugg)+' — clique : appliquer ou ignorer');
         o+='<span class="'+cls+'" data-key="'+esc(f.key)+'" tabindex="0" role="button" title="'+ti+'">'+esc(disp)+'</span>';last=P[end][1];k=end;}}
       else if(_RO[k]){o+='<span class="vdc-vig" title="Ponctuation manquante ? deux propositions collées">'+esc(P[k][2])+'</span>';last=P[k][1];}
       else{var _vi=_vigInfo(P[k][2],_vigCtxOf(P,k));if(_vi){o+='<span class="vdc-vig" title="'+esc(_vi)+'">'+esc(P[k][2])+'</span>';}else{o+=esc(P[k][2]);}last=P[k][1];}}
@@ -29237,12 +29268,12 @@ function spellTokenCore(tok,atStart,T,idx){
     'espace après la virgule':"Après une virgule, on met UNE espace ; avant, aucune.",
     'espace avant la ponctuation':"En français, « ; : ! ? » prennent une espace AVANT ; « , . » n'en prennent pas.",
     'espace double':"Une seule espace entre deux mots.",
-    'virgule':"La virgule sépare : elle ne se met jamais entre le sujet et son verbe.",
+    'virgule':"Un mot de liaison en tête de phrase est suivi d'une virgule (« Ensuite, … ») ; entre deux phrases, elle se met devant lui (« …, mais … ») — à vérifier selon le sens.",
     'virgule doublée':"Une seule virgule suffit.",
     'mot coupé':"Ce mot a été coupé en deux : il s'écrit d'un seul tenant.",
     'contraction':"« à le » se contracte en « au », « de le » en « du », « à les » en « aux ».",
     'typographie':"Signe typographique : la forme française diffère de celle du clavier.",
-    'nombre':"Écriture des nombres : en toutes lettres jusqu'à seize, et l'espace sépare les milliers.",
+    'nombre':"Les nombres ordinaux s'abrègent 1er, 1re, 2e, 3e — pas « 1ère » ni « 2ème ».",
     'abréviation':"Cette abréviation a une forme fixe en français.",
     'anglicisme':"Un mot français dit la même chose ici.",
     'pléonasme':"Cette expression répète deux fois la même idée.",
@@ -29252,7 +29283,7 @@ function spellTokenCore(tok,atStart,T,idx){
     'personne du verbe à vérifier':"Le verbe se conjugue avec SA personne : « je »/« tu » ne prennent pas la terminaison de « il ».",
     'infinitif après pronom sujet à vérifier':"Après « il », « elle », « qui »…, le verbe se CONJUGUE, jamais à l'infinitif : il annonçait (imparfait) ou il annonce (présent) — choisis le temps du récit.",
     'participe après être à vérifier':"Après « être », c'est un PARTICIPE en -é qui s'accorde avec le sujet (je me suis installé — installée si tu es une fille) — sauf si c'est un ADJECTIF (« elle est sèche ») : à toi de voir.",
-    'infinitif après semi-auxiliaire à vérifier':"Après « je vais », « je dois », « je peux »…, le verbe reste à l'INFINITIF.",
+    'infinitif après semi-auxiliaire à vérifier':"Après « aller », « devoir », « pouvoir », « vouloir »…, le deuxième verbe reste à l'INFINITIF.",
     'on/ont après un sujet pluriel à vérifier':"Le sujet est déjà là, au pluriel : « on » ne peut pas être sujet une deuxième fois — c'est « ont », le verbe avoir.",
     'a/à':"« a » = le verbe avoir (il a faim) ; « à » = préposition (aller à Paris).",
     'et/est':"« et » relie (toi et moi) ; « est » = le verbe être (il est là).",
@@ -29274,18 +29305,18 @@ function spellTokenCore(tok,atStart,T,idx){
     'genre déterminant':"le déterminant suit le genre du nom : « la/une » au féminin, « le/un » au masculin.",
     'accord singulier nom':"le déterminant est au singulier → le nom aussi (la boîte, pas la boîtes).",
     'accord pluriel à vérifier':"après un déterminant pluriel (les, des, ces…), le mot prend le pluriel.",
-    'accord participe à vérifier':"après « sont/étaient » (sujet au pluriel), le participe s'accorde (arrivés).",
+    'accord participe à vérifier':"avec « être », le participe s'accorde avec le sujet (elle est arrivée, ils sont arrivés).",
     'accord sujet-verbe':"le verbe s'accorde avec son sujet (il joue, ils jouent).",
     'accord sujet-verbe à vérifier':"le verbe s'accorde avec son sujet.",
     'accord verbe à vérifier':"le verbe s'accorde en personne et en nombre avec son sujet (-ais = je/tu, -ait = il/elle).",
-    'terminaison -er/-é/-ez/-ai':"« -er » = infinitif (pour manger) ; « -é » = participe passé (j'ai mangé).",
+    'terminaison -er/-é/-ez/-ai':"« -er » = infinitif (pour manger) ; « -é » = participe passé (j'ai mangé) ; « -ez » va avec « vous », « -ai » avec « je ».",
     'accord grammatical (é/er)':"« -er » = infinitif ; « -é » = participe passé (après avoir/être : il a mangé).",
     'accord tout':"« tout/tous/toute/toutes » s'accorde avec le nom qui suit.",
-    'usage être/avoir':"certains verbes se conjuguent avec être (aller, venir…), d'autres avec avoir.",
+    'usage être/avoir':"aller, venir, partir… se conjuguent avec être ; et on dit « avoir faim », « avoir peur », « avoir raison ».",
     'aux mal orthographié':"l'auxiliaire (avoir/être) est mal écrit ici.",
-    'du/de':"après une négation, « du » devient « de » (il n'y a pas de pain).",
-    'sujet je':"le sujet « je » met le verbe à la 1re personne (je mange, je suis).",
-    'élision inversée':"pas d'apostrophe ici : on sépare les deux mots.",
+    'du/de':"« du », c'est déjà « de le » : devant « la » ou « l' », on écrit « de » (de la ferme).",
+    'sujet je':"« suis », « serai », « fus » vont avec le sujet « je » (je suis).",
+    'élision inversée':"devant une consonne, « j' », « d' », « qu' » s'écrivent en entier (je, de, que) — ou bien un petit mot manque (d'une, s'est).",
     "j'est/j'ai":"« j'ai » = je + ai (verbe avoir) ; « j'est » n'existe pas.",
     "c'ai/c'est":"« c'est » = cela est (pas « c'ai »).",
     'accord participe':"avec être, le participe s'accorde avec le sujet.",
@@ -29293,13 +29324,13 @@ function spellTokenCore(tok,atStart,T,idx){
     'accord participe (dont)':"« dont » reprend un complément avec « de » : le participe passé reste invariable (les fleurs dont il a parlé).",
     'accord adjectif':"l'adjectif s'accorde en genre et en nombre avec le nom.",
     'accord adjectif épithète':"l'adjectif s'accorde avec le nom qu'il accompagne.",
-    'impératif':"à l'impératif, un trait d'union relie le verbe et le pronom (donne-moi).",
+    'impératif':"à l'impératif, les verbes en -er n'ont pas de -s (mange, donne-moi), sauf devant « en » ou « y » (manges-en, vas-y).",
     'élision':"on relie les deux mots avec une apostrophe (j'ai, l'ami).",
-    'espacement':"en français, on met une espace après la virgule.",
+    'espacement':"deux mots collés par une ponctuation : une espace après la virgule, et « ; : ? ! » s'entourent d'espaces.",
     'répétition':"ce mot est écrit deux fois de suite.",
-    "trait d'union":"les nombres composés prennent un trait d'union (vingt-deux).",
+    "trait d'union":"certaines expressions s'écrivent avec un trait d'union : au-dessus, là-bas, ci-joint.",
     'majuscule':"une phrase commence par une majuscule.",
-    'orthographe':"même son, l'orthographe est corrigée.",
+    'orthographe':"l'orthographe du mot est corrigée.",
     'mot inconnu':"ce mot n'est pas reconnu — vérifie l'orthographe.",
     'homophone à vérifier':"ces mots se prononcent pareil mais s'écrivent différemment.",
     'ou/où à vérifier':"« ou » = un choix ; « où » = le lieu (où vas-tu ?).",
@@ -29307,15 +29338,7 @@ function spellTokenCore(tok,atStart,T,idx){
     'accord pluriel nom':"après un déterminant pluriel, le nom prend un -s."};
   // HINT CONTEXTUEL : homophone grammatical → test de substitution FENÊTRÉ (±2 mots) avec la phrase de l'utilisateur. La table _HPROBE vit dans la COUCHE DYS PARTAGÉE (le conseil 🛠️ la lit aussi).
   function _suggVerbNum(w){var rd=svReads(w),hp=false,hs=false,k;for(k=0;k<rd.length;k++){if(rd[k][2]!=='3')continue;if(rd[k][3]==='p'||rd[k][3]==='x')hp=true;else if(rd[k][3]==='s')hs=true;}return (hp&&!hs)?'pl':((hs&&!hp)?'sg':null);}   // nombre de la forme SUGGÉRÉE lue comme verbe 3e pers. ('pl'/'sg'/null si non-verbe/ambigu) — détecte le gouverneur ARRIÈRE contradictoire
-  function _accHint(f,i){var n=f.name||'';if(!((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)||(/^personne du verbe/.test(n)&&deaccS(String(f.sugg||'').toLowerCase())!==deaccS(String(f.word||'').toLowerCase()))))return '';   /* ⭐ 12/09/2026 : « personne du verbe » ouvre le 💡 au pronom gouverneur, sauf correction d'accent seul. Miroir extension ctxHint. */   // EXCLUT aussi COD-avoir (gouverneur = COD antéposé, pas le sujet) et « tout » (s'accorde avec le nom qui SUIT) : le gouverneur remonté en arrière y serait FAUX/contradictoire → on garde l'explication _EXPL statique (correcte)   // ACCORD : le GOUVERNEUR (sujet/déterminant) qui commande, avec le mot réel de la phrase. EXCLUT « dont » : le participe y est INVARIABLE, pas d'accord de gouverneur (sinon indice contradictoire) — expliqué par _EXPL['accord participe (dont)'].
-    var verb=isVerb(_curToks,i),at=accordType(f.sugg||'',f.word||'',verb),g=null,lab='';
-    if(at==='genre'){var gg=governorGender(_curToks,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
-    if(!g&&i>0&&_CARD_PL[deaccS(_curToks[i-1].toLowerCase())]){g=_curToks[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut que remontait governorNumber
-    if(!g){var gn=governorNumber(_curToks,i,verb||isParticiple(_curToks,i));
-      if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';
-        if(gn[1]==='sg'&&/nom/.test(n)&&/[sx]$/i.test(f.sugg||'')&&!/[sx]$/i.test(f.word||''))return '';   // un NOM mis au pluriel par la règle, un gouverneur arrière au singulier : l'indice serait contradictoire → silence (miroir extension)   // sujet POSTPOSÉ/coordonné (rPostpose…) : le contrôleur est EN AVANT ; le gouverneur remonté en arrière contredit la suggestion (nombre ≠) → on retombe sur _EXPL générique, pas un mot faux
-        g=gn[0];lab=nb(gn[1]);}}
-    return g?('C\'est « '+esc(g)+' » ('+lab+') qui commande → on accorde « '+esc(f.sugg)+' ».'):'';}
+  function _accHint(f,i){var s=_govHint(f,_curToks,i);return s?esc(s):'';}   // ⭐ 14/09/2026 : le gouverneur vit dans la COUCHE DYS PARTAGÉE (_govHint) — l'app et l'extension avaient déjà divergé sur le genre
   var _CARD_PL={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1,plusieurs:1,quelques:1};   // cardinaux ≥ 2 (mots) : gouverneur PLURIEL du nom qui suit (miroir extension)
   // ⭐ -er / -é (audit 11/09/2026) : ces corrections n'avaient AUCUN 💡 — `_accHint` les exclut (le gouverneur n'y dit rien) et `_famHint` rend ''.
   // Le test que tout le monde apprend, fenêtré sur la phrase de l'élève : « mordre » (infinitif) / « mordu » (participe) / « mordez » (-ez). Miroir extension _erHint.
@@ -29327,7 +29350,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var a=Math.max(0,i-2),b=Math.min(_curToks.length,i+3),win=_curToks.slice(a,b);win[i-a]=h[0];   // remplace le mot par le probe
     var pre=a>0?'…':'',suf=b<_curToks.length?'…':'';
     return 'Astuce : remplace par « '+esc(h[0])+' ». « '+pre+esc(win.join(' '))+suf+' » se dit ? oui → '+h[1]+' · non → '+h[2]+'.';}
-  function _explain(f){var e=_EXPL[f.name]||'';if(f.name==='orthographe'&&f.sugg)e="même son, orthographe corrigée : « "+f.sugg+" ».";
+  function _explain(f){var e=_EXPL[f.name]||'';if(f.name==='orthographe'&&f.sugg)e="orthographe corrigée : « "+esc(f.sugg)+" ».";
     var cx=_ctxHint(f);if(cx)e=e?(e+'<br><span style="color:#0a66c2">'+cx+'</span>'):cx;
     var fh=_famHint(f);if(fh)e=e?(e+'<br><span style="color:#7a4bd0">'+fh+'</span>'):fh;
     /* ⭐ LE CONSEIL DYS, ancré sur CE mot. Mesuré le 26/08/2026 : sur 16 corrections déclenchées,
@@ -29557,15 +29580,16 @@ function spellTokenCore(tok,atStart,T,idx){
       return {s:sc,lbl:lbl};
     }
     var onC=_corrs.filter(function(f){return f.on;}),offC=_corrs.filter(function(f){return !f.on;});
+    if(!_corrs.length&&!SP.ready){$('vdc-count').innerHTML='';$('vdc-out').innerHTML='<div class="vdc-fact vdc-lite" style="border-left-color:#8a7a55;background:#f4efe0"><b>⏳ Chargement du dictionnaire…</b> <span class="vdc-sc">la correction arrive dans un instant.</span></div>';return;}   /* ⭐ 14/09/2026 : sans dictionnaire, _corrs est VIDE et la page affirmait « ✓ Aucune faute détectée » — vu dans Chrome pendant ~30 s au premier chargement. Le chargement relance runCorr. */
     if(!_corrs.length){var _liB=_lisibilite(t);$('vdc-count').innerHTML=_liB?'📖 '+_liB.lbl+' <span class="vdc-sc">('+_liB.s+'/100 — indicative, never a judgment)</span>':'';$('vdc-out').innerHTML=_rest+'<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e3f6e6"><b>✓ Aucune faute détectée.</b></div>';return;}
     var _sur=_corrs.filter(function(f){return f.tier!=='vigilance';}).length,_avf=_corrs.length-_sur;   // sûr = rouge/bleu (FP=0) ; à vérifier = orange (vigilance)
-    $('vdc-count').innerHTML='<b>'+_corrs.length+'</b> correction'+(_corrs.length>1?'s':'')+' : <b>'+_sur+'</b> sûre'+(_sur>1?'s':'')+' · <b>'+_avf+'</b> à vérifier <span class="vdc-sc">('+onC.length+' appliquée'+(onC.length>1?'s':'')+' — clique un mot souligné pour basculer)</span>';
+    $('vdc-count').innerHTML='<b>'+_corrs.length+'</b> correction'+(_corrs.length>1?'s':'')+' : <b>'+_sur+'</b> sûre'+(_sur>1?'s':'')+' · <b>'+_avf+'</b> à vérifier <span class="vdc-sc">('+onC.length+' appliquée'+(onC.length>1?'s':'')+' — clique un mot souligné pour ouvrir sa carte)</span>';
     var _liA=_lisibilite(t);if(_liA)$('vdc-count').innerHTML+=' · 📖 '+_liA.lbl+' <span class="vdc-sc">('+_liA.s+'/100)</span>';
     _navRender();
     var chip='display:inline-block;margin:3px 5px 0 0;cursor:pointer;border-radius:6px;padding:1px 8px;background:#fff';
     var html=_rest;
-    if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique pour annuler)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
-    if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique pour appliquer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
+    if(onC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#1f7a3d;background:#e9f7ec"><b>✓ Appliqué</b> <span class="vdc-sc">(clique : annuler ou ignorer)</span><br>'+onC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #7fb98e"><s style="opacity:.6">'+esc(f.word)+'</s> → <b>'+esc(f.sugg)+'</b></span>';}).join('')+'</div>';
+    if(offC.length)html+='<div class="vdc-fact vdc-lite" style="border-left-color:#e8920c;background:#fff8ea"><b>À vérifier</b> <span class="vdc-sc">(clique : appliquer ou ignorer)</span><br>'+offC.map(function(f){return '<span data-key="'+esc(f.key)+'" tabindex="0" role="button" style="'+chip+';border:1px solid #e0b060">'+esc(f.word)+(f.sugg&&f.sugg!==f.word?' → <b>'+esc(f.sugg)+'</b>':'')+' <span class="vdc-sc">['+esc(f.name)+']</span></span>';}).join('')+'</div>';
     var devF=_corrs.map(function(f){var fm=_corrFam(f.name,f.word,f.sugg);return {types:[fm==='homophone'?'homophone_gram':fm],mot:f.sugg,ecrit:f.word,regle:f.name};});   // ⭐ le mot ÉCRIT, sa correction et la RÈGLE voyagent jusqu'au conseil ; les homophones du correcteur (a/à, son/sont…) sont GRAMMATICAUX
     // ⛔ plus de bloc « Stade » ici (14/09/2026, rapport de Rem) : voir la COUCHE DYS PARTAGÉE — affiché presque partout, message souvent faux
     html+=remedBlock(devF,'vdc-fact');
@@ -29604,7 +29628,7 @@ function spellTokenCore(tok,atStart,T,idx){
   if(_touch){document.body.classList.add('vdc-touch');var _ced=$('vdc-editor'),_ccb=$('vdc-complete');if(_ced&&_ccb&&_ced.parentNode)_ced.parentNode.insertBefore(_ccb,_ced);}   // TACTILE : le cadre des complétions AU-DESSUS de la saisie (sinon sous le clavier virtuel)
   // (Piste A : la zone du HAUT est 100% éditable — le clic y place le curseur, il ne bascule plus la correction ; l'action passe par la carte du cadre BAS)
   function _cardKey(e){if(e.key!=='Enter'&&e.key!==' '&&e.key!=='Spacebar')return;if(!e.target.closest||!e.target.closest('[data-key]'))return;e.preventDefault();_cardClick(e);}   /* CLAVIER : une correction ne doit pas etre atteignable a la SOURIS SEULE (cible dys = co-usagers lecteur d ecran, audit 20/06). Meme delegation que le clic, memes cibles ([data-key] = les corrections ACTIONNABLES ; les soulignes informatifs sans data-key restent non focusables, sinon ils creeraient des arrets de tabulation qui ne font rien). */ var _rz=$('vdc-result');if(_rz)_rz.addEventListener('click',_cardClick);if(_rz)_rz.addEventListener('keydown',_cardKey);   // clic sur un mot souligné (cadre BAS) = ouvre la carte
-  $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('keydown',_cardKey);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce d'annotation = bascule
+  $('vdc-out').addEventListener('click',_cardClick);$('vdc-out').addEventListener('keydown',_cardKey);$('vdc-out').addEventListener('click',function(e){if(e.target.closest('.vdc-unig')){_ignored={};runCorr();}});cov.addEventListener('click',function(e){var c=$('vdc-cardpop');if(c&&c.style.display==='block'&&!c.contains(e.target)&&!(e.target.closest&&e.target.closest('#vdc-result [data-key],#vdc-out [data-key]')))_hideCard();});      // clic sur une puce = ouvre sa carte (appliquer, annuler, ignorer)
   var _cp=$('vdc-copy');if(_cp)_cp.addEventListener('click',function(){clearTimeout(_ct);runCorr();var txt=_lastCorrected||$('vdc-in').value;var _o=_cp.getAttribute('data-lbl')||_cp.textContent;_cp.setAttribute('data-lbl',_o);/* on n'annonce '✓ Copied' QU'APRÈS coup : writeText rend une PROMESSE, son rejet (page non focalisée, permission bloquée) ne remontait nulle part et l'étiquette s'affichait quand même — l'interface AFFIRMAIT une copie qui n'avait pas eu lieu, et le dys collait l'ancien contenu. */var _fini=function(ok){_cp.textContent=ok?'✓ Copied':'⚠ copy refused — press Ctrl+C';setTimeout(function(){_cp.textContent=_o;},ok?1200:3200);};var _repli=function(){var t=document.createElement('textarea');t.value=txt;t.setAttribute('readonly','');t.style.cssText='position:fixed;top:-1000px;left:0;opacity:0';document.body.appendChild(t);t.select();var ok=false;try{ok=document.execCommand('copy');}catch(_){ok=false;}document.body.removeChild(t);_fini(ok);};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(function(){_fini(true);},_repli);else _repli();});   // copie le TEXTE CORRIGÉ (l'original reste intact dans la zone de frappe)
   // ===== Réglages d'affichage : thème auto(système)/clair/sombre · daltonien · police dys — mémorisés (localStorage), partagés par les panneaux =====
   (function(){
