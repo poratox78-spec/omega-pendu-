@@ -809,15 +809,15 @@ async function main() {
           ch.click(); await attendre(150);
           const card = document.getElementById('vdc-cardpop');
           const vis = card && card.style.display !== 'none';
-          const t = vis ? (card.innerText || '').replace(/\s+/g, ' ') : '';
+          const t = vis ? (card.innerText || '').replace(/\\s+/g, ' ') : '';   // \\s DOUBLÉ : dans ce gabarit une seule barre disparaît, et /s+/ mangeait tous les « s » (« Astuce » ne se lisait plus) — vu le 14/09/2026
           // NE PAS accepter « Pourquoi » : c'est le TITRE de la carte, donc toujours present.
           // Teste le 26/08/2026 : avec lui, couper le fil du conseil laissait la sonde VERTE.
           // Les trois marqueurs retenus sont ancres sur le mot par construction.
-          items.push({ chip: (ch.innerText || '').replace(/\s+/g, ' ').trim(),
+          items.push({ chip: (ch.innerText || '').replace(/\\s+/g, ' ').trim(),
                        ancre: !!(t && (t.indexOf('\u{1F6E0}') >= 0 || /Astuce|commande/.test(t))),
                        raison: (function(){ if(!t) return false;
                          var i = t.indexOf('Pourquoi'); if (i < 0) return false;
-                         return t.slice(i + 8).replace(/\s+/g,' ').trim().length >= 25; })(),
+                         return t.slice(i + 8).replace(/\\s+/g,' ').trim().length >= 25; })(),
                        vide: !vis });
           if (card) card.style.display = 'none';
         }
@@ -826,9 +826,13 @@ async function main() {
       const nofire = [];
       for (const txt of ${JSON.stringify([])}.concat(NOFIRE)) {
         const chips = await passe(txt);
-        if (chips && chips.length) nofire.push({ txt, vus: chips.map(c => (c.innerText || '').replace(/\s+/g, ' ').trim()) });
+        if (chips && chips.length) nofire.push({ txt, vus: chips.map(c => (c.innerText || '').replace(/\\s+/g, ' ').trim()) });
       }
-      return { res, nofire };
+      // ⭐ 14/09/2026 (rapport de Rem sur « nous ira ») : ce que l'utilisateur LIT sous les corrections — le conseil de SA faute,
+      // plus le bloc « Stade : alphabétique… » qui « est là tout le temps et ne veut rien dire »
+      await passe('nous ira');
+      const sousCorrections = out.innerText || '';   // blancs normalisés CÔTÉ NODE (voir la barre doublée plus haut)
+      return { res, nofire, sousCorrections };
     })()`, awaitPromise: true, returnByValue: true, timeout: 240000 });
     if (cr.exceptionDetails) throw new Error('crible : ' + (cr.exceptionDetails.exception || {}).description);
     const cv2 = cr.result.value || {};
@@ -848,6 +852,10 @@ async function main() {
       for (const nf of (cv2.nofire || []))
         echecs.push('crible NOFIRE : « ' + nf.txt +' » est CORRECT et ne doit rien produire — eu ' + JSON.stringify(nf.vus));
       if (sansCarte) echecs.push('crible : ' + sansCarte + ' correction(s) sans carte au clic');
+      const sc = String(cv2.sousCorrections || '').replace(/\s+/g, ' ');
+      if (/Stade/.test(sc)) echecs.push('sous les corrections de « nous ira » : un « Stade » est encore affiché — « ' + sc.slice(0, 200) + ' »');
+      if (sc.indexOf('ne prend pas la terminaison de « il »') < 0) echecs.push('sous les corrections de « nous ira » : pas le conseil de conjugaison — « ' + sc.slice(0, 200) + ' »');
+      log('  ' + (!/Stade/.test(sc) && sc.indexOf('ne prend pas la terminaison de « il »') >= 0 ? '✓' : '✗') + ' sous les corrections de « nous ira » : le conseil de conjugaison, aucun « Stade »');
       if (muets.length > 2) echecs.push('crible : ' + muets.length + ' phrase(s) sans aucune détection — ' + muets.join(' · '));
       let ancres = 0, dysTot = 0;   // ce compte est REPORTÉ dans le verdict final, y compris en --check
       for (const r of cv2.res) if (!r.muet && r.dys) for (const it of r.items) { dysTot++; if (it.ancre) ancres++; }

@@ -27,20 +27,17 @@
   function governorGender(T,idx){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();if(GEN_DET[w])return[T[j],GEN_DET[w]];if(NUM_DET[w]||NUM_PRON[w])return null;}return null;}
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
 
-  // ===== couche dys (stades + remédiation) — VERBATIM app =====
-  var STAGE_FAM={voisee_sourde:'phonologique',inversion:'phonologique',ajout:'phonologique',surface:'alphabetique',accent:'alphabetique',segmentation:'alphabetique',majuscule:'alphabetique',muette:'lexical',homophone_lex:'lexical',homophone:'lexical',homophone_gram:'morphosyntaxique',accord:'morphosyntaxique',personne:'morphosyntaxique',participe:'morphosyntaxique'};   // homophone LEXICAL (ver/vert)=lexical ; GRAMMATICAL (a/à, son/sont)=morphosyntaxique ; 'homophone' nu = repli lexical ; segmentation/majuscule = conventions (alphabétique)
-  var STAGE_ORDER=['phonologique','alphabetique','lexical','morphosyntaxique'];
-  var STAGE_LBL={phonologique:'phonologique (le son)',alphabetique:'alphabétique (écrit au son)',lexical:'lexical (orthographe du mot)',morphosyntaxique:'morphosyntaxique (grammaire)'};
-  var STAGE_MSG={phonologique:'le mot n’est pas encore bien ENTENDU — on travaille le son avant l’orthographe.',alphabetique:'le son est juste, la graphie non — c’est le palier des accents et des graphies.',lexical:'la graphie du MOT lui-même : lettres muettes, et homophones que le SENS tranche (ver/vert/verre).',morphosyntaxique:'le palier le plus tardif : les accords, et les homophones que seule la grammaire tranche (a/à, son/sont).'};
-  function stageOfFact(types){var best=-1;(types||[]).forEach(function(t){var st=STAGE_FAM[t];if(st){var k=STAGE_ORDER.indexOf(st);if(k>best)best=k;}});return best<0?null:STAGE_ORDER[best];}
-  function developmental(F){var c={},tot=0,i;for(i=0;i<STAGE_ORDER.length;i++)c[STAGE_ORDER[i]]=0;F.forEach(function(f){var st=stageOfFact(f.types);if(st){c[st]++;tot++;}});if(!tot)return null;for(i=0;i<STAGE_ORDER.length;i++)if(c[STAGE_ORDER[i]]>0)return{stade:STAGE_ORDER[i]};return null;}
-  // ⭐ CHAQUE CONSEIL PART DU MOT RÉEL (refonte 26/08/2026). Avant, c'étaient des phrases de manuel identiques
-  // pour tout le monde — « Majuscule : une phrase commence TOUJOURS par une majuscule… » — alors que le moteur
-  // CONNAÎT le mot écrit et sa correction : le correcteur les jetait littéralement une ligne avant l'affichage
-  // (`{types:[fm]}`, sans `word` ni `sugg`). Un conseil qui ne cite pas la faute qu'il commente ne s'adresse à
-  // personne, et sa longueur le rend illisible pour un dys. Chaque entrée est donc une FONCTION (écrit, attendu)
-  // qui nomme la faute puis donne UNE action ; appelée sans argument elle rend la règle générale (profil de
-  // session, où aucun mot n'est en jeu). ⛔ Texte BRUT : les 3 sorties échappent elles-mêmes.
+  // ===== COUCHE DYS PARTAGÉE : les CONSEILS (🛠️) — app/omega-pendu.html ≡ extension/dys-core.js, OCTET POUR OCTET (gardé par dictee/textes_probe.js) =====
+  /* ⛔ LE CORRECTEUR N'AFFICHE PLUS DE « STADE » (14/09/2026). Rapport de Rem sur « nous ira » : le bloc « Stade : alphabétique (écrit
+     au son) — le son est juste, la graphie non » « est là tout le temps, elle veut rien dire ». Mesuré avant de le retirer, moteur de
+     l'extension : affiché sur 1 236 des 1 798 textes du vrai écrit dys, « alphabétique » 1 117 fois, dont ≈ 580 décidés par des
+     ORANGES seules et 592 où le message était FAUX (le son n'est pas juste) ; affiché aussi sur 293 des 2 500 phrases CORRECTES de
+     l'UD ; sur le site, la majuscule initiale « à vérifier » le rendait quasi constant. Sur un seul texte, avec des soupçons orange
+     dedans, un stade ne se lit pas. Il reste dans la DICTÉE, où il se juge sur une session et sur une cible connue.
+     Restent ici les CONSEILS : un par leçon, ancré sur le mot de l'élève.
+     ⭐ CHAQUE CONSEIL PART DU MOT RÉEL (refonte 26/08/2026) : chaque entrée est une FONCTION (écrit, attendu, règle) qui nomme la
+     faute puis donne UNE action ; appelée sans mot elle rend la règle générale (profil de session). ⛔ Texte BRUT : les sorties
+     échappent elles-mêmes. */
   function _rd(e, a) {                       // le segment qui DIFFÈRE : préfixe et suffixe communs retirés
     e = String(e || ''); a = String(a || ''); if (!e || !a) return null;
     var m = Math.min(e.length, a.length), p = 0, s = 0;
@@ -59,16 +56,55 @@
   }
   var _VIBRE = { b:1, d:1, g:1, v:1, z:1, j:1 };                       // consonnes VOISÉES : la gorge vibre
   function _ervk(w){w=String(w||'').toLowerCase();return /er$/.test(w)?'er':/ez$/.test(w)?'ez':/é(e|s|es)?$/.test(w)?'é':null;}   // NATURE d'une finale de 1er groupe : -er / -ez / -é(e)(s) — le test « mordre » ne vaut qu'entre DEUX natures (audit 11/09/2026)
-  var _HSUB = { a:'avait', 'à':'avait', et:'et puis', est:'était', son:'mon', sont:'étaient', on:'il',
-                ont:'avaient', ou:'ou bien', 'où':'à quel endroit', ces:'ces …-là', ses:'les siens',
-                ce:'cela', se:'lui-même', sa:'la sienne', 'ça':'cela', mais:'pourtant', mes:'les miens',
-                peu:'un peu', peut:'pouvait', 'la':'le', 'là':'ici', 'ni':'et pas', 'n’y':'n’y en',
+  function _meme(x,y){return !!x&&!!y&&typeof phonKey==='function'&&phonKey(String(x))===phonKey(String(y));}   // même SON (clé phonétique du moteur)
+  /* le petit mot qu'une ÉLISION remplace (14/09/2026) : « jai → j'ai », « nai → n'ai », « quil → qu'il » recevaient tous « l'article
+     est élidé » — « j' » n'est pas un article. On nomme le mot qui a perdu sa voyelle. */
+  var _ELIDE={j:'je',m:'me',t:'te',s:'se',n:'ne',d:'de',c:'ce',qu:'que',l:'le » ou « la'};
+  function _elidePre(w){var m=/^([a-zà-ÿ]+)'(.*)$/i.exec(String(w||'').replace(/’/g,"'")),p;if(!m)return null;p=m[1].toLowerCase();
+    if(/^(jusqu|lorsqu|puisqu|quoiqu|presqu|quelqu)$/.test(p))return {p:p,full:p.slice(0,-2)+'que',reste:m[2]};
+    if(!_ELIDE[p])return null;
+    return {p:p,full:(p==='s'&&/^ils?$/i.test(m[2]))?'si':_ELIDE[p],reste:m[2]};}
+  // les lettres qui changent d'accent, et la NATURE de chaque changement (circonflexe, cédille, tréma, grave, é/è/ê) : une leçon par nature
+  function _accKinds(e,a){var ch=[],k={},nk=0,i,y,t;e=String(e||'');a=String(a||'');
+    if(e&&a&&e.length===a.length)for(i=0;i<e.length;i++)if(e.charAt(i)!==a.charAt(i)){y=a.charAt(i).toLowerCase();ch.push(e.charAt(i)+'→'+a.charAt(i));
+      t=/[âîôû]/.test(y)?'circ':y==='ç'?'ced':/[ëïüÿ]/.test(y)?'trema':/[àù]/.test(y)?'grave':/[éèê]/.test(y)?'e':(/[a-z]/.test(y)&&/[àâäéèêëîïôöùûüÿç]/.test(e.charAt(i).toLowerCase()))?'sans':'autre';if(!k[t]){k[t]=1;nk++;}}
+    return {ch:ch,k:k,nk:nk};}
+  // -s / -x / -t en fin de verbe : c'est la PERSONNE qui les choisit (je, tu : -s ou -x ; il, elle, on : -t)
+  function _stx(le,la){if(!le||!la||le.length!==la.length||le.slice(0,-1)!==la.slice(0,-1))return '';var ce=le.slice(-1),ca=la.slice(-1);
+    if((ca==='s'||ca==='x')&&ce==='t')return 'avec « je » ou « tu », ce verbe finit par -'+ca+' ; -t, c’est avec « il », « elle » ou « on ».';
+    if(ca==='t'&&(ce==='s'||ce==='x'))return 'avec « il », « elle », « on » ou un nom, ce verbe finit par -t ; -'+ce+', c’est avec « je » ou « tu ».';
+    return '';}
+  // -ai / -ez (futur, passé simple) : « je » ou « vous »
+  function _aiez(le,la){if(!le||!la||le.length!==la.length||le.slice(0,-2)!==la.slice(0,-2))return '';
+    if(/ai$/.test(le)&&/ez$/.test(la))return 'avec « vous », ce verbe finit par -ez ; -ai, c’est avec « je ».';
+    if(/ez$/.test(le)&&/ai$/.test(la))return 'avec « je », ce verbe finit par -ai ; -ez, c’est avec « vous ».';
+    return '';}
+  /* ⭐ NOMMER LA PERSONNE QUE PORTE LA FORME PROPOSÉE (15/09/2026, rapport de Rem). Le texte citait « il » quelle que soit la
+     correction : sur « nous allez » → « allons », il parlait d'un pronom qui n'est pas dans la phrase. La forme proposée SAIT sa
+     personne — on la lit dans les tables (svReads, et l'index du passé simple pour les cases que CONJ_F ne porte pas). */
+  function _persDe(x,ref){var _P={'1s':'je','2s':'tu','3s':'il','1p':'nous','2p':'vous','3p':'ils'},r=svReads(x),k,p=null,lem=null,rr,f;
+    if(ref){rr=svReads(ref);lem={};for(k=0;k<rr.length;k++)lem[rr[k][0]]=1;}
+    for(k=0;k<r.length;k++){
+      f=((CONJ_C[r[k][0]]||{})[r[k][1]]||{})[r[k][2]+r[k][3]];if(Array.isArray(f))f=f[0];
+      if(!f||String(f).toLowerCase()!==x)continue;   // ACCENT-EXACT (la garde de la règle) : écarte les lectures FANTÔMES des tables — « sommes » y est lu « 2e du SINGULIER », et « êtes » aussi
+      if(lem&&!lem[r[k][0]])continue;                // même lemme que la forme écrite : « sommes » est aussi *sommer* 2sg (« tu sommes »)
+      var q=r[k][2]+r[k][3];if(p===null)p=q;else if(p!==q)return null;}   // deux personnes possibles → on ne nomme rien
+    if(!p&&typeof _PS_INDEX!=='undefined'){var h=_PS_INDEX[deacc(x)]||[];if(h.length===1)p=h[0][1];}
+    return _P[p]||null;}
+  /* TEST DE SUBSTITUTION des homophones. La forme d'épreuve VALIDE le mot en clé : « a » → « avait » (si ça se dit, c'est « a »).
+     ⛔ 14/09/2026 : « à » → « avait » disait « si la phrase ne tient plus, c'est « a » » — l'inverse du test ; « où » → « à quel
+     endroit » ne marche pas sur le relatif (« la ville où je suis né ») ; « se » → « lui-même », « sa » → « la sienne », « ses » →
+     « les siens » ne se disent jamais devant un nom. Retirés : on éprouve la forme qui a un test (« là » → ici, « se » → me). */
+  var _HSUB = { a:'avait', et:'et puis', est:'était', son:'mon', sont:'étaient', on:'il',
+                ont:'avaient', ou:'ou bien', se:'me', sa:'ma', 'ça':'cela', ca:'cela', mais:'pourtant', mes:'tes',
+                peu:'un peu', peut:'pouvait', 'là':'ici', 'ni':'et pas', "n'y":"n'y en", du:'de le',
                 /* « sait » : la forme d'épreuve est celle de SAVOIR. « le train savait arrêté » ne se
                    dit pas → c'est « s'est ». Sans cette entrée le conseil tombait sur le générique. */
                 sait:'savait', sais:'savais',
-                /* « c'est » = « cela est » (audit 11/09/2026) : « Elle cela est trompé » ne se dit pas → c'est « s'est ».
-                   Sans cette entrée le conseil tombait sur le générique « a→avait, et→et puis, son→mon ». */
+                /* « c'est » = « cela est » (audit 11/09/2026) : « Elle cela est trompé » ne se dit pas → c'est « s'est ». */
                 "c'est":'cela est' };
+  // la phrase-test du 💡 (fenêtrée sur la phrase de l'élève) : [forme d'épreuve, si ça se dit, sinon]
+  var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
   var REMED={
     voisee_sourde:function(e,a){var d=_rd(e,a);
       if(d&&d.e.length===1&&d.a.length===1){var x=d.e.toLowerCase(),y=d.a.toLowerCase(),v=_VIBRE[y]?y:(_VIBRE[x]?x:null);
@@ -79,149 +115,233 @@
         return _pr(e,a)+'« '+d.a.charAt(0)+' » et « '+d.a.charAt(1)+' » sont inversées. Suis du doigt, de gauche à droite.';
       return _pr(e,a)+'des lettres ont changé de place — découpe en syllabes et écris-les dans l’ordre.';},
     ajout:function(e,a){var d=_rd(e,a);
-      if(d&&d.a===''&&d.e)return _pr(e,a)+_lt(d.e)+(d.e.length>1?' sont':' est')+' en trop. Compte les sons que tu entends.';
+      if(d&&d.a===''&&d.e){var pl=d.e.length>1;
+        // ⭐ 14/09/2026 : une lettre en trop MUETTE (« grandit » → « grandi ») recevait « compte les sons que tu entends » — on ne l'entend pas
+        if(_meme(e,a))return _pr(e,a)+_lt(d.e)+(pl?' sont':' est')+' en trop, et '+(pl?'elles ne s’entendent':'elle ne s’entend')+' pas : photographie le mot « '+a+' ».';
+        return _pr(e,a)+_lt(d.e)+(pl?' sont':' est')+' en trop. Compte les sons que tu entends.';}
       return _pr(e,a)+'relis en COMPTANT les sons — un son entendu = une lettre attendue, pas plus.';},
-    // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème. Comparer
-    // bêtement les caractères au point de divergence donnait « ce son s’écrit m, pas e » — absurde.
+    // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème.
     surface:function(e,a){var d=_rd(e,a);
-      // ⭐ AUDIT 11/09/2026 (vrai Chrome) : « aujourdhui » sans suggestion arrivait ici avec e === a, et la carte parlait
-      // d'ACCENTS (« les accents s'entendent ») — il manque une apostrophe. Un inconnu sans réponse n'a qu'un conseil : relire.
+      // ⭐ AUDIT 11/09/2026 (vrai Chrome) : « aujourdhui » sans suggestion arrivait ici avec e === a. Un inconnu sans réponse n'a qu'un conseil : relire.
       if(e&&a&&String(e).toLowerCase()===String(a).toLowerCase())return '« '+e+' » n’est pas dans le dictionnaire : relis-le lettre à lettre (une lettre ou une apostrophe manque peut-être), ou cherche-le.';
       // « avont → avons » (même audit) disait « ce son s'écrit s, pas t » : ce n'est pas un SON, c'est la terminaison de « nous ».
       if(d&&d.e==='t'&&d.a==='s'&&/ont$/i.test(e)&&/ons$/i.test(a))return _pr(e,a)+'-ons, c’est « nous » ; -ont, c’est « ils ». Ici c’est la terminaison du verbe, pas un son.';
+      if(d&&/^oe$/i.test(d.e)&&/^œ$/i.test(d.a))return _pr(e,a)+'« o » et « e » s’écrivent collés ici : « œ » (sœur, cœur, œuf).';
       if(d&&d.e===''&&d.a){
         if(d.a.length===1&&a.charAt(d.p-1)===d.a)return _pr(e,a)+'ici la consonne « '+d.a+' » est DOUBLE.';
         return _pr(e,a)+'il manque '+_lt(d.a)+'.';}
       if(d&&d.a===''&&d.e){
         if(d.e.length===1&&e.charAt(d.p-1)===d.e)return _pr(e,a)+'ici la consonne « '+d.e+' » ne se double PAS.';
         return _pr(e,a)+_lt(d.e)+(d.e.length>1?' sont':' est')+' en trop.';}
-      // segments COURTS : « fote → faute » est o→au, pas o→a. Au-delà de 3 lettres l'écart n'est plus
-      // un graphème mais du bruit (sertin→certain donnerait « sert »→« certa ») : on retombe alors
-      // sur le premier caractère qui diffère, qui reste juste.
-      // GARDE : ne promettre « ce son s’écrit X » que si les deux lettres sont de MÊME NATURE. Sans elle,
-      // « ozo → oiseau » affirmait « ce son s’écrit i, pas z » — une consonne contre une voyelle : les
-      // deux mots sont trop éloignés pour qu’un seul graphème explique l’écart. Là, la règle générale.
-      if(d&&d.e&&d.a&&d.e.length<=3&&d.a.length<=3&&_mm(d.e,d.a))return _pr(e,a)+'ici ce son s’écrit « '+d.a+' », pas « '+d.e+' ».';
+      // ⭐ LETTRES DÉPLACÉES (14/09/2026) : « uen → une » recevait « même son, autre graphie — compare au mot modèle (/s/ → s, ss, c, ç) »
+      if(d&&d.e.length>1&&d.e.length===d.a.length&&d.e.split('').sort().join('')===d.a.split('').sort().join(''))
+        return _pr(e,a)+'des lettres ont changé de place : « '+d.a+' », pas « '+d.e+' ». Suis le mot du doigt, lettre par lettre.';
+      // segments COURTS : « fote → faute » est o→au. « ce son s’écrit X » seulement entre lettres de MÊME NATURE (« ozo → oiseau »
+      // affirmait « ce son s’écrit i, pas z ») ; sinon on dit juste la lettre, sans promettre un son.
+      if(d&&d.e&&d.a&&d.e.length<=3&&d.a.length<=3)return _pr(e,a)+(_mm(d.e,d.a)?'ici ce son s’écrit « '+d.a+' », pas « '+d.e+' ».':'ici c’est « '+d.a+' », pas « '+d.e+' ».');
       if(d&&_mm(e.charAt(d.p),a.charAt(d.p)))return _pr(e,a)+'ici ce son s’écrit « '+a.charAt(d.p)+' », pas « '+e.charAt(d.p)+' ».';
-      return _pr(e,a)+'même son, autre graphie — compare au mot modèle (/s/ → s, ss, c, ç).';},
-    accent:function(e,a){var ch=[],circ=0,i;
-      if(e&&a&&e.length===a.length)for(i=0;i<e.length;i++)if(e.charAt(i)!==a.charAt(i)){ch.push(e.charAt(i)+'→'+a.charAt(i));if(/[âîôû]/i.test(a.charAt(i)))circ++;}
-      /* ⭐ CIRCONFLEXE (audit 11/09/2026) : « chateau → château » disait « é ferme, è ouvre » — le circonflexe sur a, i, o, u
-         ne s'ENTEND pas, on ne peut pas « le dire à voix haute ». Il se mémorise : lettre disparue (hospital → hôpital). */
-      if(ch.length&&circ===ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Le circonflexe ne s’entend pas : il garde la trace d’une lettre disparue (hospital → hôpital). Photographie le mot.';
-      if(ch.length)return _pr(e,a)+ch.slice(0,3).join(', ')+'. Dis-le à voix haute — é ferme, è/ê ouvre.';
-      return _pr(e,a)+'les accents s’entendent — é ferme, è/ê ouvre. Dis le mot à voix haute avant de choisir.';},
+      return _pr(e,a)+'compare lettre par lettre avec le mot corrigé.';},
+    /* ⭐ L'ACCENT QUI CHANGE (14/09/2026). « é ferme, è/ê ouvre » ne vaut que pour e → é/è/ê : il était donné à la cédille (garcon),
+       au tréma (Noel), à l'accent grave de « où ». Le circonflexe sur a, i, o, u ne s'ENTEND pas (audit 11/09/2026). */
+    accent:function(e,a){var ak=_accKinds(e,a),ch=ak.ch,k=ak.k,nk=ak.nk;
+      if(!ch.length)return e&&a?_pr(e,a)+'photographie le mot avec ses accents.':'Accents : é ferme, è/ê ouvre — dis le mot à voix haute ; le circonflexe, lui, ne s’entend pas.';
+      var p=_pr(e,a)+ch.slice(0,3).join(', ')+'. ';
+      if(nk===1&&k.circ)return p+'Le circonflexe ne s’entend pas : il garde la trace d’une lettre disparue (hospital → hôpital). Photographie le mot.';
+      if(nk===1&&k.ced)return p+'Devant a, o, u, le « c » prend une cédille pour garder le son /s/ (garçon, leçon, reçu).';
+      if(nk===1&&k.trema)return p+'Le tréma fait prononcer la voyelle à part (naïf, Noël).';
+      if(nk===1&&k.grave)return p+'Cet accent ne change pas le son : photographie le mot (déjà, voilà, où).';
+      if(nk===1&&k.e)return p+'Dis-le à voix haute — é ferme, è/ê ouvre.';
+      if(nk===1&&k.sans)return p+'Ici, pas d’accent : photographie le mot.';   // « vitè → vite », « avéc → avec » : le son ne tranche pas (le e de « avec » s'entend è sans accent)
+      return p+'Photographie le mot avec ses accents.';},
     muette:function(e,a){var d=_rd(e,a);
       if(d&&d.e===''&&d.a)return _pr(e,a)+_lt(d.a)+' ne s’entend pas. Cherche un mot de la même famille où on l’entend.';
       return _pr(e,a)+'lettre muette — trouve un mot de la même famille où on l’entend (petit → petite).';},
-    homophone_gram:function(e,a){var k=e?String(e).toLowerCase():'',sub=_HSUB[k];
-      if(sub&&a)return _pr(e,a)+'essaie « '+sub+' » à la place — si la phrase ne tient plus, c’est « '+a+' ».';
-      return _pr(e,a)+'remplace par une forme sûre (a→avait, et→et puis, son→mon) — si la phrase tient, garde-la.';},
+    homophone_gram:function(e,a,r){var le=String(e||'').toLowerCase().replace(/’/g,"'"),la=String(a||'').toLowerCase().replace(/’/g,"'"),h=r?_HPROBE[r]:null;
+      if(/^peu[xt]$/.test(le)&&/^peu[xt]$/.test(la))return _pr(e,a)+_stx(le,la);   // « il peux » : c'est la PERSONNE, pas peu/peut
+      if(h&&e&&a)return _pr(e,a)+'remplace par « '+h[0]+' » : si la phrase se dit encore, c’est '+h[1]+' ; sinon '+h[2]+'.';
+      if(_HSUB[le]&&a)return _pr(e,a)+'essaie « '+_HSUB[le]+' » à la place — si la phrase ne tient plus, c’est « '+a+' ».';
+      if(_HSUB[la]&&e)return _pr(e,a)+'essaie « '+_HSUB[la]+' » à la place de « '+e+' » — si la phrase tient, c’est « '+a+' ».';
+      /* ⛔ 14/09/2026 : le repli était « remplace par une forme sûre (a→avait, et→et puis, son→mon) » pour TOUTES les paires — y
+         compris « cheminé → cheminée », « cent → cents », « j'aurais → j'avais », « ke → je » : 20 règles sur 94. */
+      if(e&&a)return _pr(e,a)+'ces deux mots '+(_meme(le,la)?'se prononcent pareil':'se ressemblent')+' : c’est la GRAMMAIRE de la phrase qui choisit — ici « '+a+' ».';
+      return 'Homophones : remplace par une forme sûre (a → avait, et → et puis, son → mon) — si la phrase tient, garde-la.';},
     homophone_lex:function(e,a){
-      return _pr(e,a)+'ici c’est le SENS qui décide — remplace par un mot de la même famille (verre→du verre, vert→verdure).';},
-    homophone:function(e,a){return REMED.homophone_gram(e,a);},
-    personne:function(e,a){
-      var le=(e||'').toLowerCase(),la=(a||'').toLowerCase();
+      if(e&&a)return _pr(e,a)+'ces deux mots '+(_meme(e,a)?'se prononcent pareil':'se ressemblent')+' mais n’ont pas le même SENS : ici, c’est « '+a+' ».';
+      return 'Homophones : c’est le SENS qui décide — pense à un mot de la même famille (vert → verdure, mer → marin).';},
+    homophone:function(e,a,r){return REMED.homophone_gram(e,a,r);},
+    personne:function(e,a,r){
+      var le=String(e||'').toLowerCase().replace(/’/g,"'"),la=String(a||'').toLowerCase().replace(/’/g,"'"),el=_elidePre(la),ee=_elidePre(le),x;
+      if(el)la=el.reste;if(ee)le=ee.reste;   // le pronom ÉLIDÉ fait partie du mot (« j'otais ») : on lit le verbe seul
       if(le&&la&&/(er|ir|re|oir)$/.test(la)&&!/(er|ir|re|oir)$/.test(le))
-        return _pr(e,a)+'après « je vais », « je dois », « je peux »…, le verbe reste à l’INFINITIF.';
-      if(le&&la&&la.length===le.length+1&&la.slice(0,-1)===le&&/s$/.test(la))
+        return _pr(e,a)+'après « aller », « devoir », « pouvoir », « vouloir »…, le deuxième verbe reste à l’INFINITIF.';
+      if(le&&la&&/(er|ir|oir)$/.test(le)&&!/(er|ir|re|oir)$/.test(la))
+        return _pr(e,a)+'ici le verbe se CONJUGUE avec son sujet : « '+a+' », pas l’infinitif.';
+      if((x=_stx(le,la))||(x=_aiez(le,la)))return _pr(e,a)+x;
+      if(el&&el.p==='j'&&/[sx]$/.test(la)&&!/[sx]$/.test(le))return _pr(e,a)+'avec « je », ce verbe finit par -'+la.slice(-1)+' : « '+a+' ».';   // « jadmet » → j'admets
+      var pa=_persDe(la,le),pe=_persDe(le,la),dit=(el||!pa)?a:(pa+' '+a);
+      if(le&&la&&deacc(le)===deacc(la))   // la PERSONNE est bonne, c'est l'ACCENT du temps qui manque (« nous mangeames »)
+        return _pr(e,a)+'la personne est JUSTE — c’est l’accent qui manque : « '+dit+' ».';
+      if(pa&&pe&&pa!==pe)
+        return _pr(e,a)+'« '+pa+' » ne prend pas la terminaison de « '+pe+' » : on écrit « '+dit+' ».';
+      if(le&&la&&la.length===le.length+1&&la.slice(0,-1)===le&&/s$/.test(la)&&(!pa||pa==='je'||pa==='tu'))
         return _pr(e,a)+'avec « je » ou « tu », ce verbe prend un -s.';
       if(le&&la&&/(sse|sses|ienne|iennes|asse|fasse|fasses)$/.test(la))
         return _pr(e,a)+'après « il faut que », le verbe passe au SUBJONCTIF.';
-      /* ⭐ NOMMER LA PERSONNE QUE PORTE LA FORME PROPOSÉE (15/09/2026, rapport de Rem). Le texte citait
-         « il » quelle que soit la correction : sur « nous allez » → « allons », il parlait d'un pronom qui
-         n'est pas dans la phrase. La forme proposée SAIT sa personne — on la lit dans les tables (svReads,
-         et l'index du passé simple pour les cases que CONJ_F ne porte pas). */
-      function _persDe(x,ref){var _P={'1s':'je','2s':'tu','3s':'il','1p':'nous','2p':'vous','3p':'ils'},r=svReads(x),k,p=null,lem=null,rr,f;
-        if(ref){rr=svReads(ref);lem={};for(k=0;k<rr.length;k++)lem[rr[k][0]]=1;}
-        for(k=0;k<r.length;k++){
-          f=((CONJ_C[r[k][0]]||{})[r[k][1]]||{})[r[k][2]+r[k][3]];if(Array.isArray(f))f=f[0];
-          if(!f||String(f).toLowerCase()!==x)continue;   // ACCENT-EXACT (la garde de la règle) : écarte les lectures FANTÔMES des tables — « sommes » y est lu « 2e du SINGULIER », et « êtes » aussi
-          if(lem&&!lem[r[k][0]])continue;                // même lemme que la forme écrite : « sommes » est aussi *sommer* 2sg (« tu sommes »)
-          var q=r[k][2]+r[k][3];if(p===null)p=q;else if(p!==q)return null;}   // deux personnes possibles → on ne nomme rien
-        if(!p&&typeof _PS_INDEX!=='undefined'){var h=_PS_INDEX[deacc(x)]||[];if(h.length===1)p=h[0][1];}
-        return _P[p]||null;}
-      var pa=_persDe(la,le),pe=_persDe(le,la);
-      if(pa&&deacc(le)===deacc(la))   // la PERSONNE est bonne, c'est l'ACCENT du temps qui manque (« nous mangeames »)
-        return _pr(e,a)+'la personne est JUSTE — c’est l’accent qui manque : « '+pa+' '+a+' ».';
-      if(pa&&pe&&pa!==pe)
-        return _pr(e,a)+'« '+pa+' » ne prend pas la terminaison de « '+pe+' » : on écrit « '+pa+' '+a+' ».';
       if(pa) return _pr(e,a)+'avec « '+pa+' », le verbe s’écrit « '+a+' ».';
       return _pr(e,a)+'le verbe se conjugue avec SA personne : la terminaison change avec le sujet.';},
-    /* ⭐ LE PARTICIPE A SA PROPRE FAMILLE (26/08/2026). Avant, « il est arrive » → « arrivé » était
-       classé ACCENT — parce que `_corrFam` teste la désaccentuation AVANT le nom de la règle — et la
-       carte enseignait « e→é, dis-le à voix haute, é ferme è ouvre ». C'est faux : ce n'est pas un
-       accent, c'est un participe après auxiliaire. On enseignait la mauvaise chose. */
-    participe:function(e,a){var d=_rd(e,a);
+    /* ⭐ LE PARTICIPE A SA PROPRE FAMILLE (26/08/2026) : « il est arrive » → « arrivé » n'est pas un accent. */
+    participe:function(e,a){var d=_rd(e,a),le=String(e||'').toLowerCase(),la=String(a||'').toLowerCase(),ac=/é(e|s|es)$/.exec(la);
       if(d&&/^e$/i.test(d.e)&&/^é$/i.test(d.a))
         return _pr(e,a)+'après un auxiliaire, le verbe prend sa forme de PARTICIPE en -é, jamais celle du présent en -e.';
       if(d&&/^e$/i.test(d.e)&&/^é(e|s|es)$/i.test(d.a))
         return _pr(e,a)+'deux choses à la fois : le PARTICIPE en -é, et l’ACCORD « '+d.a.slice(1)+' ».';
-      /* ⛔ ne pas promettre « -é » sur un participe qui n'en a pas : cueilli, venu, parti, pris.
-         On ne parle d'accent QUE si le segment manquant en porte un. */
+      if(_ervk(e)==='er'&&_ervk(a)==='é')   // « elle s'est marier » : l'infinitif à la place du participe
+        return _pr(e,a)+'remplace par « mordre » : si c’est « mordu » qui se dit, c’est le PARTICIPE en -é'+(ac?', accordé : « '+a+' »':'')+'.';
+      /* ⛔ ne pas promettre « -é » sur un participe qui n'en a pas : cueilli, venu, parti, pris. */
       if(d&&d.e===''&&/^é/i.test(d.a))
         return _pr(e,a)+'il manque « '+d.a+' » : l’accent du participe, et son accord.';
       if(d&&d.e===''&&/^(e|s|es)$/i.test(d.a))
         return _pr(e,a)+'il manque « '+d.a+' » : le participe s’ACCORDE ici.';
       if(d&&d.a===''&&/^(e|s|es)$/i.test(d.e))
         return _pr(e,a)+'le participe ne s’accorde PAS ici : le « '+d.e+' » est en trop.';
-      /* repli EXACT : ne pas promettre « -é », qui est faux pour « écrite », « prise », « mise ». */
+      // ⭐ 14/09/2026 : une forme CONJUGUÉE à la place du participe (« il a grandit », « il était situait ») recevait la règle d'accord
+      if(/[iu]$/.test(la)&&(le===la+'t'||le===la+'s'))
+        return _pr(e,a)+'c’est le PARTICIPE : mets-le au féminin, « '+a+'e » — on n’y entend pas de « '+le.slice(-1)+' », donc « '+a+' ».';
+      if(/é(e|s|es)?$/.test(la)&&/(ais|ait|aient)$/.test(le))
+        return _pr(e,a)+'après un auxiliaire, c’est le PARTICIPE « '+a+' », pas l’imparfait « '+e+' ».';
+      if(ac)return _pr(e,a)+'le participe s’accorde ici : « '+a+' » ('+({e:'féminin singulier',s:'masculin pluriel',es:'féminin pluriel'})[ac[1]]+').';
       return _pr(e,a)+'c’est un PARTICIPE : il s’accorde avec le SUJET après « être », et avec le COD placé AVANT après « avoir ».';},
-    accord:function(e,a){var d=_rd(e,a);
-      // ⭐ -er / -é : le TEST DU 3e GROUPE, et rien d'autre. « manger/mangé » sont homophones, pas
-      // « mordre/mordu » — c'est le test que tout le monde apprend, et il tranche à coup sûr. Il
-      // passe AVANT l'accord générique, qui disait « repère qui commande » sur une terminaison.
-      // ⭐ AUDIT 11/09/2026 (vrai Chrome) : « clé → clés » passait ici, et la carte disait « remplace le verbe par mordre »
-      // — sur un NOM. Le test ne vaut que si la finale CHANGE DE NATURE (-er ↔ -é/-ée/-és/-ées ↔ -ez) : un -s ajouté à
-      // « clé » est un pluriel, pas un infinitif. Gardé par dictee/textes_probe.js.
+    accord:function(e,a,r){var d=_rd(e,a),le=String(e||'').toLowerCase(),la=String(a||'').toLowerCase(),vb=/verbe|sujet/.test(r||''),x;
+      // ⭐ -er / -é : le TEST DU 3e GROUPE — seulement si la finale CHANGE DE NATURE (« clé → clés » est un pluriel, audit 11/09/2026)
       var ke=_ervk(e),ka=_ervk(a);
       if(ke&&ka&&ke!==ka)
         return _pr(e,a)+'remplace le verbe par « mordre » — si « mordre » sonne juste c’est l’infinitif -er, si c’est « mordu » c’est le participe -é'+((ke==='ez'||ka==='ez')?', si c’est « mordez » c’est -ez (vous)':'')+'.';
+      if(vb&&(x=_stx(le,la)))return _pr(e,a)+x;   // « je doit » → dois : -s/-t, c'est la personne
+      if((x=_aiez(le,la)))return _pr(e,a)+x;       // « vous souhaiterai » → souhaiterez
+      if(vb&&/aient$/.test(le)&&la===le.slice(0,-5)+'ait')return _pr(e,a)+'le sujet est au SINGULIER : -ait, pas -aient.';
+      if(vb&&/ait$/.test(le)&&la===le.slice(0,-3)+'aient')return _pr(e,a)+'le sujet est au PLURIEL : -aient, pas -ait.';
       if(d&&d.e===''&&d.a==='nt')return _pr(e,a)+'le sujet est au PLURIEL, il manque le « nt » du verbe.';
       if(d&&d.a===''&&d.e==='nt')return _pr(e,a)+'le sujet est au SINGULIER, le « nt » est en trop.';
+      if(vb&&d&&d.e===''&&d.a==='s'&&_persDe(la,le)==='tu')return _pr(e,a)+'avec « tu », le verbe prend un -s.';
       if(d&&d.e===''&&(d.a==='s'||d.a==='x'))return _pr(e,a)+'il manque le « '+d.a+' » du pluriel — regarde ce qui commande.';
       if(d&&d.a===''&&(d.e==='s'||d.e==='x'))return _pr(e,a)+'ici c’est le singulier, le « '+d.e+' » est en trop.';
       if(d&&d.e===''&&d.a==='es')return _pr(e,a)+'il manque « es » : le féminin ET le pluriel — cherche qui commande.';
       if(d&&d.e===''&&d.a==='e')return _pr(e,a)+'il manque le « e » du féminin — cherche qui commande l’accord.';
-      return _pr(e,a)+'repère QUI COMMANDE (déterminant, sujet) et accorde en genre et en nombre.';},
-    segmentation:function(e,a){
-      if(a&&/^(aujourd|quelqu|jusqu|presqu|lorsqu|puisqu)'/i.test(a.replace(/’/g,"'")))return _pr(e,a)+'mot figé : il s’écrit toujours avec l’apostrophe (aujourd’hui, quelqu’un, jusqu’à).';   // plan ③ de l'audit (12/09/2026)
-      if(a&&(a.indexOf('’')>=0||a.indexOf("'")>=0))return _pr(e,a)+'l’article est élidé, il faut l’apostrophe.';
-      if(a&&a.indexOf(' ')>0)return _pr(e,a)+'ce sont DEUX mots, il faut l’espace.';
+      if(d&&d.a===''&&d.e==='e')return _pr(e,a)+'ici c’est le masculin, le « e » est en trop.';
+      if(d&&d.e===''&&d.a.length===2&&d.a.charAt(1)==='e'&&d.a.charAt(0)===le.slice(-1))return _pr(e,a)+'au féminin, la consonne finale double et prend un « e » : « '+a+' ».';   // présidentiel → présidentielle, bon → bonne
+      if(/al$/.test(le)&&la===le.slice(0,-2)+'aux')return _pr(e,a)+'au pluriel, -al devient ici -aux : « '+a+' ».';   // cheval → chevaux
+      if(vb)return _pr(e,a)+'le verbe s’accorde avec son SUJET : ici « '+a+' ».';   // « va → vont », « ont → a » : « genre et nombre » ne se dit pas d'un verbe
+      return _pr(e,a)+'repère QUI COMMANDE (le déterminant, le nom, le sujet) et accorde.';},
+    segmentation:function(e,a){var ea=String(e||'').replace(/’/g,"'"),aa=String(a||'').replace(/’/g,"'"),el;
+      if(aa&&/^(aujourd|quelqu|jusqu|presqu|lorsqu|puisqu)'/i.test(aa))return _pr(e,a)+'mot figé : il s’écrit toujours avec l’apostrophe (aujourd’hui, quelqu’un, jusqu’à).';   // plan ③ de l'audit (12/09/2026)
+      if(aa.indexOf('-')>0&&ea.indexOf('-')<0)return _pr(e,a)+'il faut un trait d’union : « '+a+' ».';
+      if(ea.indexOf("'")<0&&(el=_elidePre(aa)))return _pr(e,a)+'« '+el.p+'’ », c’est « '+el.full+' » devant une voyelle ou un h muet : il faut l’apostrophe.';
+      if(aa.indexOf(' ')>0&&ea.indexOf(' ')<0)return _pr(e,a)+'ce sont DEUX mots, il faut l’espace.';
       return _pr(e,a)+'mot collé — sépare avec l’apostrophe (lhopital → l’hôpital) ou l’espace (ducou → du coup).';},
     liaison:function(e,a){var d=_rd(e,a);
       if(d&&d.a===''&&d.e.length===1)return _pr(e,a)+'le « '+d.e+' » que tu entends appartient au mot d’avant, il ne s’écrit pas ici.';
       return _pr(e,a)+'le son entre deux mots (les‿z‿amis) appartient au PREMIER — écris « les amis ».';},
-    majuscule:function(e,a){
-      if(e&&a)return _pr(e,a)+(/^[A-ZÀ-ÖØ-Þ]/.test(a)?'début de phrase ou nom propre, il faut la capitale.'
+    majuscule:function(e,a,r){
+      if(e&&a)return _pr(e,a)+(/^[A-ZÀ-ÖØ-Þ]/.test(a)?(/majuscule/.test(r||'')?'début de phrase : il faut la capitale.':(r?'nom propre : il commence par une capitale.':'début de phrase ou nom propre, il faut la capitale.'))
                                                      :'ce n’est pas un début de phrase, pas de capitale ici.');
       return 'Majuscule : une phrase commence par une capitale, les noms propres aussi.';}
   };
-  // le conseil d'une famille, nourri par un fait REPRÉSENTATIF (le premier de cette famille) ; sans fait → règle générale
-  // …et si aucun mot n'est en jeu (profil de session), la phrase commence la ligne : on la capitalise.
-  function remedTip(t,f){var fn=REMED[t];if(!fn)return '';var s=fn(f&&f.ecrit,f&&f.mot);
+  /* ⭐ LA LEÇON DE LA RÈGLE (14/09/2026). Recensé sur les phrases inventées des gardes et sur les corpus locaux : une vingtaine de
+     règles tombaient sur un conseil de FAMILLE qui ne parlait pas de leur faute — « remplace par une forme sûre (a→avait…) » sur
+     « cheminé → cheminée », « l'article est élidé » sur « y → n'y », « c'est un PARTICIPE : il s'accorde… » sur « Quelque → Quel
+     que »… La règle SAIT de quoi elle parle : quand son nom a une leçon, c'est elle qu'on donne. */
+  var _RTIP={
+    'nom féminin en -ée':function(e,a){return '« '+a+' » est ici un NOM féminin : il finit par un « e » qui ne s’entend pas (la fumée, l’arrivée).';},
+    'vingt/cent':function(e,a){return /^vingt/i.test(String(a||''))?'« vingt » prend un -s dans « quatre-vingts » quand aucun autre nombre ne le suit (quatre-vingts ans, mais quatre-vingt-deux ans).':'« cent » prend un -s quand il est multiplié et qu’aucun autre nombre ne le suit (deux cents euros, mais deux cent trois euros).';},
+    'sujet je':function(){return 'le verbe « être » à la 1re personne (suis, serai, fus) va avec le sujet « je ».';},
+    'du/de':function(){return '« du », c’est déjà « de le » : devant « la » ou « l’ », on écrit « de » (de la ferme, de l’école).';},
+    'des/dès':function(){return '« dès » (= à partir de : dès que, dès l’aube) prend un accent ; « des » ne se met jamais devant « que » ou « l’ ».';},
+    'sur/sûr':function(){return '« sûr » (= certain : je suis sûr de moi) prend un accent ; « sur » (= dessus) n’en prend pas.';},
+    'près/prêt':function(){return '« près de » = pas loin de (près de la gare) ; « prêt à » = préparé (prêt à partir).';},
+    'davantage':function(){return '« davantage » (= plus) s’écrit en un seul mot ; « d’avantage » veut dire « d’un avantage ».';},
+    'adjectif en -ant/-ent':function(e,a){return 'l’ADJECTIF s’écrit « '+a+' » ; « '+String(e||'').toLowerCase()+' » est la forme du VERBE (en '+String(e||'').toLowerCase()+').';},
+    'si + conditionnel':function(e,a){return 'après « si », pas de conditionnel en -rais : on écrit l’imparfait, « '+a+' » (si j’avais su).';},
+    'quel que soit':function(){return '« quel que » s’écrit en deux mots devant « soit » et s’accorde avec le nom (quelle que soit la raison, quels que soient les jours).';},
+    'que/dont':function(){return 'on dit « avoir besoin DE », « avoir envie DE », « avoir peur DE »… : le mot qui remplace « de … » est « dont » (ce dont j’ai besoin).';},
+    'qui/que':function(){return '« qui » est SUJET : il ne se met pas devant un autre sujet (je, tu, j’) — ici c’est « que » (le film que j’ai vu).';},
+    "j'est/j'ai":function(){return '« est » va avec « il » ou « elle » ; avec « je », on écrit « j’ai » (avoir) ou « je suis » (être).';},
+    "j'est/j'ai à vérifier":function(){return '« est » va avec « il » ou « elle » ; avec « je », on écrit « j’ai » (avoir) ou « je suis » (être).';},
+    "c'ai/c'est":function(){return '« c’ » (= cela) va avec « est » : c’est.';},
+    "étais après c'/s'":function(e,a){return 'après « c’ » ou « s’ », le verbe se conjugue comme avec « il » : -ait, pas -ais (« '+a+' »).';},
+    'conjugaison après je à vérifier':function(e,a){return 'après « je », le verbe se CONJUGUE : « '+a+' », pas l’infinitif.';},
+    'être (ête)':function(e,a){var s=deacc(String(a||'').toLowerCase().replace(/^n['’]/,''));
+      return s==='ete'?'« ête » n’existe pas : après « avoir », c’est le participe « été » (j’ai été).'
+        :s==='etre'?'« ête » n’existe pas : l’infinitif s’écrit « être », avec un r.'
+        :s==='etes'?'« ête » n’existe pas : avec « vous », on écrit « êtes ».'
+        :'« ête » n’existe pas : le verbe être se conjugue je suis, tu es, il est, nous sommes, vous êtes, ils sont.';},
+    'usage être/avoir':function(e,a){return /^(a|as|ai|ont|avons|avez|avais|avait|avions|aviez|avaient)$/.test(deacc(String(a||'').toLowerCase()))
+      ?'on dit « avoir faim », « avoir peur », « avoir raison », « avoir dix ans » : c’est le verbe AVOIR.'
+      :'« aller », « venir », « partir », « arriver »… se conjuguent avec ÊTRE : il est allé, elle est venue.';},
+    'impératif':function(e,a){return /^(soy|ay)/i.test(String(a||''))?'à l’impératif, « être » et « avoir » s’écrivent sans i : soyons, soyez, ayons, ayez.'
+      :'à l’impératif, les verbes en -er n’ont pas de -s (mange, donne-moi), sauf devant « en » ou « y » (manges-en, vas-y).';},
+    'impératif (pronom)':function(){return 'à l’impératif, les pronoms se placent APRÈS le verbe, reliés par des traits d’union (donne-le-moi) ; à la forme négative, ils repassent devant (ne me le donne pas).';},
+    'négation':function(e,a){return /(^| )n'/i.test(String(a||'').replace(/’/g,"'"))?'la négation a deux morceaux, « ne … pas » : devant une voyelle, « ne » devient « n’ ».':'la négation a deux morceaux, « ne … pas » : il manque « ne ».';},
+    /* « élision inversée » (13/09/2026) : trois sorties possibles, trois leçons — un mot SAUTÉ (« d'lourde » → d'une lourde), une
+       élision devant consonne (« j'sais » → je sais), un déterminant en double (« de l'pétrole » → pétrole). */
+    'élision inversée':function(e,a){var el=_elidePre(e),aa=String(a||'').replace(/’/g,"'"),f=aa.split(' ')[0].toLowerCase();
+      if(!el)return '';
+      if(aa.indexOf("'")>=0)return 'un petit mot manque ici : « '+a+' ».';
+      if(el.p==='l'?(f==='le'||f==='la'):f===el.full)return '« '+el.p+'’ » ne va que devant une voyelle ou un h muet : devant une consonne, on écrit « '+f+' ».';
+      return 'deux déterminants se suivent : on n’en garde qu’un.';},
+    'accord tout':function(){return '« tout » prend le genre et le nombre du nom qui le suit : tout le jour, toute la nuit, tous les jours, toutes les nuits.';},
+    'genre déterminant':function(e,a){var g=GEN_DET[String(a||'').toLowerCase()];return 'le déterminant prend le GENRE du nom qui le suit'+(g?' : ici '+(g==='f'?'féminin':'masculin'):'')+'.';},
+    'nombre du déterminant à vérifier':function(){return 'le déterminant prend le NOMBRE du nom qui le suit (le chat, les chats).';},
+    'auxiliaire manquant à vérifier':function(e,a){return 'il manque l’auxiliaire devant le participe : « '+a+' … » (j’ai noté, je suis allé).';},
+    'participe présent après « en » à vérifier':function(e,a){return 'après « en », le verbe prend la forme en -ANT : en '+String(a||'').toLowerCase()+'.';},
+    'infinitif après semi-auxiliaire à vérifier':function(e,a){return 'après « aller », « devoir », « pouvoir », « vouloir »…, le deuxième verbe reste à l’INFINITIF : « '+a+' ».';},
+    'infinitif après pronom sujet à vérifier':function(e,a){return 'après un sujet (il, elle, qui…), le verbe se CONJUGUE : « '+a+' », pas l’infinitif « '+e+' ».';},
+    'ces/ses à vérifier':function(){return '« ces » montre (ces livres-là) ; « ses » dit à qui c’est (ses livres, à lui ou à elle) : qui possède ?';},
+    'leur/leurs':function(){return 'devant un NOM au pluriel, « leurs » prend un -s (leurs jouets) ; devant un verbe, « leur » ne change jamais (je leur parle).';},
+    'sais/sait':function(e,a){return /^s['’]est$/i.test(String(a||''))?'devant un participe, c’est « s’est » (il s’est trompé) ; « sait », c’est le verbe savoir (il sait nager).':'ici c’est le verbe SAVOIR : je sais, tu sais, il sait.';}
+  };
+  /* ⭐ LA FAMILLE D'UNE RÈGLE, PAR SON NOM (14/09/2026) — une seule table pour le site (_corrFam) et l'extension (flagsToFacts).
+     La cascade de formes qui suivait le nom a classé « point final » en homophone, « ou → où » et « du → dû » en ACCENT (« u→ù : é
+     ferme, è ouvre »), « sait → s'est » en DÉCOUPAGE (« l'article est élidé »), « nombre du déterminant » en STYLE (sans conseil). */
+  var _REGLE_FAM={
+    'a/à':'homophone_gram','et/est':'homophone_gram','est/et (proposition)':'homophone_gram','son/sont':'homophone_gram','on/ont':'homophone_gram',
+    'on/ont après un sujet pluriel à vérifier':'homophone_gram','ce/se':'homophone_gram',"c'est/s'est":'homophone_gram',"c'est/ces à vérifier":'homophone_gram',
+    "sait/s'est à vérifier":'homophone_gram','ça/sa':'homophone_gram','ou/où':'homophone_gram','ou/où à vérifier':'homophone_gram','la/là':'homophone_gram',
+    'du/dû':'homophone_gram','du/de':'homophone_gram','des/dès':'homophone_gram','sur/sûr':'homophone_gram','près/prêt':'homophone_gram',
+    'mais/mes':'homophone_gram','met/mais':'homophone_gram','mai/mais':'homophone_gram','peu/peux/peut':'homophone_gram','leur/leurs':'homophone_gram',
+    'ces/ses à vérifier':'homophone_gram','que/dont':'homophone_gram','qui/que':'homophone_gram',
+    'guère/guerre':'homophone_lex','vit/vie':'homophone_lex','homophone à vérifier':'homophone_lex','adjectif en -ant/-ent':'homophone_lex',
+    'personne du verbe':'personne','personne du verbe à vérifier':'personne','sais/sait':'personne',"j'est/j'ai":'personne',"j'est/j'ai à vérifier":'personne',
+    "c'ai/c'est":'personne',"étais après c'/s'":'personne','être (ête)':'personne','conjugaison après je à vérifier':'personne','si + conditionnel':'personne',
+    'infinitif après semi-auxiliaire à vérifier':'personne','infinitif après pronom sujet à vérifier':'personne','impératif':'personne','usage être/avoir':'personne','sujet je':'personne',
+    '-e/-é (participe)':'participe','participe après auxiliaire':'participe','participe après être à vérifier':'participe','participe après avoir':'participe',"participe après s'est":'participe',
+    'accord participe':'participe','accord participe (COD avoir)':'participe','accord participe (dont)':'participe','accord participe épithète':'participe','accord participe à vérifier':'participe',
+    'accord du participe après avoir à vérifier':'participe','participe présent après « en » à vérifier':'participe','auxiliaire manquant à vérifier':'participe',
+    'accord grammatical (é/er)':'accord','terminaison -er/-é/-ez/-ai':'accord','infinitif de but':'accord','accord sujet-verbe':'accord','accord sujet-verbe à vérifier':'accord',
+    'accord verbe à vérifier':'accord','accord du verbe au sujet nominal à vérifier':'accord','accord adjectif':'accord','accord adjectif épithète':'accord','accord adjectif antéposé':'accord',
+    'accord pluriel nom':'accord','accord singulier nom':'accord','accord pluriel à vérifier':'accord','accord genre à vérifier':'accord','genre déterminant':'accord',
+    'nombre du déterminant à vérifier':'accord','accord tout':'accord','vingt/cent':'accord',
+    'élision':'segmentation','élision fusionnée':'segmentation','élision inversée':'segmentation',"qu'il (élision)":'segmentation','négation':'segmentation',
+    'quel que soit':'segmentation','davantage':'segmentation','impératif (pronom)':'segmentation',
+    'nom féminin en -ée':'muette','accent (âge)':'accent','aux mal orthographié':'surface'
+  };
+  function _famRegle(n,sg){var t=_REGLE_FAM[n];if(t==='personne'&&n==='sais/sait'&&/^s['’]est$/i.test(String(sg||'')))t='homophone_gram';return t||null;}   // « il sait trompé » → s'est : un homophone, pas une personne
+  // le conseil d'une faute : la leçon de SA règle quand elle en a une, sinon celle de sa famille ; sans mot en jeu (profil de session) → règle générale
+  function remedTip(t,f){var r=f&&f.regle,x=r&&_RTIP[r],s='';
+    if(x){s=x(f.ecrit,f.mot);if(s)s=_pr(f.ecrit,f.mot)+s;}
+    if(!s){var fn=REMED[t];if(!fn)return '';s=fn(f&&f.ecrit,f&&f.mot,r);}
     return (s&&s.charAt(0)!=='«')?s.charAt(0).toUpperCase()+s.slice(1):s;}
-  /* ⭐ LA REMÉDIATION NE FILTRE PLUS SUR LE SEUL STADE (01/09/2026, signalé par Rem : « il manque les
-     conjugaisons dans les explications des fautes »).
-     Elle ne retenait que les familles dont STAGE_FAM[t] égale le stade diagnostiqué. Or ce stade est,
-     par CONSTRUCTION, la bande la plus EN AMONT où l'élève bute encore (diag_sentence.py:322 :
-     « on maîtrise de bas en haut ») — c'est VOULU et ce n'est pas ce qu'on change ici. Mais comme une
-     seule faute d'accent suffit à fixer ce stade, TOUTE explication de conjugaison ou d'accord
-     disparaissait avec lui. Mesuré dans l'extension réelle : « je suis allez » + une faute d'accent,
-     donc UNE faute de chaque — stade alphabétique, rémédiation [accent] SEULE, « participe » perdu.
-     Sur 200 phrases dys réelles : 51 faits sur 224 (23 %) sans aucune explication, dont participe (11),
-     homophone_gram (15), accord (8), ponctuation (11), style (6).
-     Le stade reste INCHANGÉ ; on montre les familles de TOUS les stades présents, celles du stade
-     diagnostiqué EN TÊTE (l'ordre porte la priorité pédagogique, le filtre ne la portait plus).
-     ⚠️ `remedBlock` n'imprime PAS le nom du stade (il est dans son propre bloc) : aucun titre ne se
-     retrouve en contradiction avec les familles listées. Vérifié avant d'écrire. */
-  function remedFams(F){var dev=developmental(F);if(!dev)return null;var seen={},rep={},parStade={};
-    (F||[]).forEach(function(f){(f.types||[]).forEach(function(t){var st=STAGE_FAM[t];
-      if(!st||seen[t])return;seen[t]=1;rep[t]=f;(parStade[st]=parStade[st]||[]).push(t);});});
-    var out=(parStade[dev.stade]||[]).slice();
-    for(var i=0;i<STAGE_ORDER.length;i++){var s=STAGE_ORDER[i];
-      if(s!==dev.stade&&parStade[s])out=out.concat(parStade[s]);}
-    return out.length?{stade:dev.stade,fams:out,rep:rep}:null;}
+  /* UN conseil par LEÇON, dans l'ordre des fautes (14/09/2026 — avant : celles du « stade » en tête). Une famille = une leçon, sauf
+     trois cas où la famille en contient plusieurs : chaque PAIRE d'homophones (a/à n'enseigne pas ou/où), chaque NATURE d'accent (la
+     cédille de « garçon » n'enseigne pas le tréma de « naïf »), et chaque règle qui a sa propre leçon (« genre déterminant »
+     n'enseigne pas « accord pluriel nom »). */
+  function remedFams(F){var seen={},fams=[],rep=[];
+    (F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(!REMED[t])return;
+      var k=(f.regle&&_RTIP[f.regle])?'r:'+f.regle
+        :/^homophone/.test(t)?t+':'+[deacc(String(f.ecrit||'').toLowerCase()),deacc(String(f.mot||'').toLowerCase())].sort().join('/')
+        :t==='accent'?t+':'+Object.keys(_accKinds(f.ecrit,f.mot).k).sort().join('+'):t;
+      if(seen[k])return;seen[k]=1;fams.push(t);rep.push(f);});});
+    return fams.length?{fams:fams,rep:rep}:null;}
+  // ===== fin de la COUCHE DYS PARTAGÉE =====
 
   // ===== correcteur (règles homophones + accord + genre) — VERBATIM app =====
   var COMMON_VERBS={};("suis es est sommes etes sont etais etait etions etiez etaient sera seront fut furent serait soit "
@@ -4183,33 +4303,32 @@ function spellUnknown(tok,atStart,T,idx){
     if(capital&&T.length>=2&&/^[a-zà-ÿœ]/.test(T[0])&&!out.some(function(f){return f.i===0;}))out.push({i:0,word:T[0],sugg:T[0].charAt(0).toUpperCase()+T[0].slice(1),name:'majuscule initiale à vérifier',tier:'vigilance'});   // capital=true (correcteur SEULEMENT, pas en direct) : 1er mot minuscule sans autre correction → ORANGE
     return out;}
 
-  // ===== couche dys au-dessus des flags (nom de règle → famille → stade) =====
-  function flagsToFacts(flags){return (flags||[]).map(function(f){var n=f.name||'',w=f.word||'',sg=String(f.sugg||''),t;
-    // classification IDENTIQUE à _corrFam de l'app (flag → famille → stade)
-    if(/majuscule/.test(n))t='majuscule';                                    // convention → alphabétique
-    else if(/r[ée]p[ée]tition/.test(n))t='repetition';                       // lapsus → hors-stade
-    else if(/^virgule$|point d.interrogation/.test(n))t='ponctuation';   // ⭐ miroir app : la ponctuation n'est ni un homophone ni du style
+  // ===== couche dys au-dessus des flags (nom de règle → famille) =====
+  function flagsToFacts(flags){return (flags||[]).map(function(f){var n=f.name||'',w=f.word||'',sg=String(f.sugg||''),t=_famRegle(n,sg);
+    // classification IDENTIQUE à _corrFam de l'app : le NOM de la règle d'abord (_famRegle, table de la couche PARTAGÉE), la forme ensuite
+    if(t){}
+    else if(/majuscule/.test(n))t='majuscule';                                    // convention
+    else if(/r[ée]p[ée]tition/.test(n))t='repetition';                       // lapsus → sans conseil
+    else if(/^virgule$|point d.interrogation|^point final$/.test(n))t='ponctuation';   // ⭐ miroir app : la ponctuation n'est ni un homophone ni du style (« point final » tombait en homophone jusqu'au 14/09/2026)
     else if(/espace|^virgule|ponctuation|mot coup|trait d.union/i.test(n))t='ponctuation';   // ⭐ miroir app : « espace après la virgule » tombait dans le `else` final = homophone
     else if(/contraction/i.test(n))t='contraction';
-    else if(/typographie|nombre|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE (élargissement 07/2026) : name-based AVANT les heuristiques accent/segmentation → famille neutre HORS-STADE (miroir _corrFam app ; sinon pléonasme/anglicisme… tombaient en 'homophone_gram' = morphosyntaxique à tort)
-    else if(/^sais\/sait$|c'est\/s'est|^son\/sont$|^on\/ont$|^et\/est$|^a\/à$|^ce\/se$|^la\/là$|^peu\/peux\/peut$|^mais\/mes$|^leur\/leurs$|^sais\/sait$/.test(n))t='homophone_gram';   // miroir app : le NOM avant les heuristiques de forme
-    else if(/participe/.test(n))t='participe';   // miroir app : le NOM avant l'heuristique d'accent
-    else if(/personne du verbe/.test(n))t='personne';   // ⭐ 15/09/2026, miroir app : ICI, avant l'heuristique d'accent — « nous mangeames » → « mangeâmes » est de la CONJUGAISON, pas une faute d'accent
-    else if(/terminaison -er/.test(n))t='accord';   // ⭐ audit 11/09/2026 : -er/-é est un ACCORD de forme verbale (test « mordre »), il tombait en homophone_gram → « remplace par a→avait »
+    else if(/typographie|^nombre$|anglicisme|abr[ée]viation|pl[ée]onasme/.test(n))t='style';   // catégories STYLE : famille neutre, sans conseil (miroir _corrFam app)
+    else if(/participe/.test(n))t='participe';   // noms hors table : le NOM avant les heuristiques de forme (miroir app)
+    else if(/personne du verbe/.test(n))t='personne';
+    else if(/terminaison -er/.test(n))t='accord';
+    else if(w&&sg&&w!==sg&&w.toLowerCase()===sg.toLowerCase())t='majuscule';   // ⭐ 14/09/2026 : « harold » → Harold (seule la capitale change) = un nom propre, pas « n'est pas dans le dictionnaire »
     else if(w&&sg&&w.toLowerCase()!==sg.toLowerCase()&&deacc(w.toLowerCase())===deacc(sg.toLowerCase()))t='accent';   // ⭐ un « mot inconnu » SANS suggestion (w === sg) n'est pas un accent (audit 11/09 : aujourdhui)
     else if((sg.indexOf("'")>=0&&w.indexOf("'")<0)||(sg.indexOf(' ')>=0&&w.indexOf(' ')<0))t='segmentation';   // apostrophe/espace ajouté (élision, espacement)
-    else if(/^on\/ont/.test(n))t='homophone_gram';   // miroir app
-    else if(/infinitif après (semi|pronom)/.test(n))t='personne';   // miroir app (+ pronom sujet, 14/09)
+    else if(/infinitif après (semi|pronom)/.test(n))t='personne';
     else if(/accord|genre/.test(n))t='accord';
-    else if(/orthograph|[ée]lision|surface|inconnu/.test(n))t='surface';     // mot inconnu / graphie → alphabétique
-    else t='homophone_gram';                                                 // homophones du correcteur (a/à, son/sont, ou/où) = GRAMMATICAUX → morphosyntaxique
-    return {types:[t],mot:sg,ecrit:w};});}   // ⭐ le mot ÉCRIT et sa correction VOYAGENT jusqu'au conseil (miroir app)
-  function diagnose(text){var flags=correctText(text);var facts=flagsToFacts(flags);var dev=developmental(facts);var rem=remedFams(facts);
-    return {flags:flags,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
-            remed:rem?rem.fams.map(function(t){return remedTip(t,rem.rep[t]);}):[]};}
+    else if(/orthograph|[ée]lision|surface|inconnu/.test(n))t='surface';     // mot inconnu / graphie
+    else t='homophone_gram';
+    return {types:[t],mot:sg,ecrit:w,regle:n};});}   // ⭐ le mot ÉCRIT, sa correction et la RÈGLE voyagent jusqu'au conseil (miroir app)
+  function diagnose(text){var flags=correctText(text);var rem=remedFams(flagsToFacts(flags));
+    return {flags:flags,remed:rem?rem.fams.map(function(t,k){return remedTip(t,rem.rep[k]);}):[]};}
   function spell(text){return SP.ready?spellText(text):[];}                                  // flags orthographe (auto/flag) seuls
   // HINT CONTEXTUEL (identique app) : homophone = test de substitution fenêtré ±2 mots ; accord = gouverneur réel. Texte BRUT (content.js échappe).
-  var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
+  // (la table _HPROBE des phrases-tests vit dans la COUCHE DYS PARTAGÉE, en tête de fichier : le conseil 🛠️ la lit aussi)
   function _suggVerbNum(w){var rd=svReads(w),hp=false,hs=false,k;for(k=0;k<rd.length;k++){if(rd[k][2]!=='3')continue;if(rd[k][3]==='p'||rd[k][3]==='x')hp=true;else if(rd[k][3]==='s')hs=true;}return (hp&&!hs)?'pl':((hs&&!hp)?'sg':null);}   // nombre de la forme SUGGÉRÉE lue comme verbe 3e pers. ('pl'/'sg'/null) — détecte le gouverneur ARRIÈRE contradictoire (miroir app)
   var _CARD_PL={deux:1,trois:1,quatre:1,cinq:1,six:1,sept:1,huit:1,neuf:1,dix:1,onze:1,douze:1,treize:1,quatorze:1,quinze:1,seize:1,vingt:1,trente:1,quarante:1,cinquante:1,soixante:1,cent:1,cents:1,mille:1,plusieurs:1,quelques:1};   // cardinaux ≥ 2 (mots) : gouverneur PLURIEL du nom qui suit (miroir app)
   // ⭐ -er / -é (audit 11/09/2026) : ces corrections n'avaient AUCUN 💡 — la branche accord les exclut (le gouverneur n'y dit rien) et famHint rend ''.
@@ -4447,10 +4566,10 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
       if(_o&&typeof _o.sugg==='string'&&(_o.span==null||_o.span<2)&&/^[A-Za-zÀ-ÿœŒ']+$/.test(_o.sugg)&&_o.sugg.toLowerCase()!==f.sugg.toLowerCase()){f.sugg=_o.sugg;f.tier='vigilance';f.chaine=_o.name;}});
     _SEG=_segMain;
     var _Tt=toks(text);flags.forEach(function(f){var hh=ctxHint(f,_Tt);if(hh)f.hint=hh;});   // hint contextuel par correction (affiché AU CLIC dans content.js)
-    var facts=flagsToFacts(flags),dev=developmental(facts),rem=remedFams(facts);
-    var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts/stade (pas une faute de stade) ; ajoutée aux flags pour rendu+clic
-    return {flags:flags.concat(_typ),grammar:gf,spell:sf,stade:dev?dev.stade:null,stadeLbl:dev?STAGE_LBL[dev.stade]:null,stadeMsg:dev?STAGE_MSG[dev.stade]:null,
-            remed:rem?rem.fams.map(function(t){return remedTip(t,rem.rep[t]);}):[]};}
+    var rem=remedFams(flagsToFacts(flags));
+    var _typ=_typoScan(text).concat(_questionScan(text)).concat(_virguleScan(text));_typ.forEach(function(f){f.word=f.from;});   // typo ancrée caractère, orange, HORS facts (aucun conseil de remédiation) ; ajoutée aux flags pour rendu+clic
+    return {flags:flags.concat(_typ),grammar:gf,spell:sf,
+            remed:rem?rem.fams.map(function(t,k){return remedTip(t,rem.rep[k]);}):[]};}
 
   // ===== chargement lexiques =====
   var _ready=false,_loading=null;
@@ -4549,8 +4668,8 @@ var byTok={};gf.forEach(function(f){byTok[f.i]=f;});sf.forEach(function(f){if(by
       info=_vigOne(T[i],ctx);if(info){seen[lw]=1;out.push({word:T[i],info:info});}}
     return out;}
   global.DYSCORE={
-    correctText:correctText, diagnose:diagnose, developmental:developmental, remedFams:remedFams,
-    flagsToFacts:flagsToFacts, REMED:REMED, STAGE_LBL:STAGE_LBL, STAGE_MSG:STAGE_MSG, STAGE_FAM:STAGE_FAM,
+    correctText:correctText, diagnose:diagnose, remedFams:remedFams, remedTip:remedTip, famRegle:_famRegle,
+    flagsToFacts:flagsToFacts, REMED:REMED,
     spell:spell, spellText:spellText, diagnoseAll:diagnoseAll, loadSpellerLex:loadSpellerLex,
     spellerReady:function(){return SP.ready;}, complete:complete,
     setNounPost:_applyNounPost, loadNounPost:loadNounPost,
