@@ -30,7 +30,6 @@
 .omdys-tts:hover{ opacity:1; }
 .omdys-astuce{ margin-top:4px; padding:4px 7px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:4px; font-size:.9em; color:#22303c; line-height:1.4; }
 .omdys-dark .omdys-astuce{ background:rgba(90,162,230,.16); color:#cfe0f0; }
-.omdys-stade{ margin-top:6px; padding:5px 7px; border-left:4px solid #2a6f97; background:#eaf2f8; border-radius:4px; font-size:.92em; }
 .omdys-remed{ margin-top:4px; padding:5px 7px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:4px; font-size:.92em; }
 /* aide-frappe : complétions du mot en cours (violet, distinct du rouge grammaire / bleu orthographe) */
 .omdys-comp{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px; }
@@ -54,7 +53,6 @@
 .omdys-dark .omdys-item.omdys-tvig:hover{ background:rgba(232,146,12,.32); }
 .omdys-dark .omdys-vitem{ background:rgba(31,122,61,.22); color:#cdeccf; }
 .omdys-dark .omdys-fam{ color:#9aa4af; }
-.omdys-dark .omdys-stade{ background:rgba(42,111,151,.22); }
 .omdys-dark .omdys-remed{ background:rgba(184,134,11,.18); }
 .omdys-dark .omdys-all{ background:#1d3f54; color:#cfe6f5; border-color:#3a6f97; }
 .omdys-dark .omdys-all:hover{ background:#265267; }

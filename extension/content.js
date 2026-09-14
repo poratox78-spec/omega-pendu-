@@ -1,7 +1,7 @@
 // content.js — correcteur dys EN PLACE dans n'importe quel champ. Réutilise dys-core.js (le moteur mesuré).
 // Détecte les fautes du périmètre — GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, j'est→j'ai)
 // ET ORTHOGRAPHE (non-mots/accents/typos : fenetre→fenêtre, leson→leçon, élision « c est »→« c'est ») —
-// affiche une barre flottante près du champ : on clique pour corriger DANS le champ. Situe le stade dys + remédiation.
+// affiche une barre flottante près du champ : on clique pour corriger DANS le champ. Explique chaque faute (remédiation dys).
 // FP=0 (mêmes règles que l'app/Python). Hors-ligne, aucune donnée envoyée.
 (function () {
   'use strict';
@@ -311,10 +311,7 @@
       ro.forEach(function (r) { h += '<div class="omdys-vitem">entre « ' + esc(r.a) + ' » et « ' + esc(r.b) + ' » — ponctuation manquante ? (virgule ou point selon le sens)</div>'; });
       h += '</div>';
     }
-    if (dg.stade) {
-      h += '<div class="omdys-stade"><b>Stade : ' + esc(dg.stadeLbl) + '</b><br>' + esc(dg.stadeMsg) + '</div>';
-      if (dg.remed && dg.remed.length) h += '<div class="omdys-remed"><b>🛠️ Remédiation</b><br>' + dg.remed.map(esc).join('<br>') + '</div>';
-    }
+    if (dg.remed && dg.remed.length) h += '<div class="omdys-remed"><b>🛠️ Remédiation</b><br>' + dg.remed.map(esc).join('<br>') + '</div>';   // ⛔ plus de « Stade » (14/09/2026, cf. dys-core.js)
     b.innerHTML = h;
     b.style.display = 'block';
     place(el);

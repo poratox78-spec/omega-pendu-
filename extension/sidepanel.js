@@ -254,10 +254,9 @@
 
     undoBtn.hidden = !(_undoSnap && ta.value === _undoSnap.after);
 
-    // stade + remédiation (couche dys)
+    // remédiation (couche dys) — ⛔ plus de « Stade » (14/09/2026, rapport de Rem : affiché presque partout, message souvent faux ; cf. dys-core.js)
     var s = '';
-    if (dg && dg.stade) { s = '<div class="stade"><b>Stade : ' + esc(dg.stadeLbl || dg.stade) + '</b>' + (dg.stadeMsg ? '<br>' + esc(dg.stadeMsg) : '') + '</div>';
-      if (dg.remed && dg.remed.length) s += '<div class="remed"><b>🛠️ Remédiation</b><br>' + dg.remed.map(esc).join('<br>') + '</div>'; }
+    if (dg && dg.remed && dg.remed.length) s = '<div class="remed"><b>🛠️ Remédiation</b><br>' + dg.remed.map(esc).join('<br>') + '</div>';
     else if (ta.value.trim() && !flags.length && !conf.length && !ro.length) s = '<div class="ok-msg">✓ Aucune faute détectée.</div>';
     stadeEl.innerHTML = s;
   }

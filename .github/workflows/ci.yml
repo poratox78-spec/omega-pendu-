@@ -142,7 +142,7 @@ jobs:
         run: python3 dictee/ci_parity_probe.py
       - name: Extension — speller ext ≡ app (couche vigilance comprise)
         run: node extension/test_speller.js
-      - name: Textes d'explication (audit 11/09 — 💡 et remèdes sur 10 phrases ; REMED/_HSUB/_HPROBE app ≡ ext)
+      - name: Textes d'explication (💡 et conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur)
         run: node dictee/textes_probe.js
       - name: Parité SPELLER Python↔JS (suggestion — saute sans Lexique4, garde locale, vigilance comprise)
         run: python3 dictee/parity_speller.py

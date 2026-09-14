@@ -9,8 +9,9 @@ pas seulement dans une page dédiée.
 
 ## Le produit, c'est la couche dys
 Le **moteur de correction est un consommable** ; **notre couche dys est le produit** : chaque faute est rattachée à
-une **famille** → un **stade développemental** (phonologique → alphabétique → lexical → morphosyntaxique) → une
-**remédiation ciblée**. La barre flottante affiche la correction **et** le stade **et** le conseil.
+une **famille** → une **remédiation ciblée**, écrite à partir du mot fautif. La barre flottante affiche la correction **et** le
+conseil. (Le « stade développemental » n'est plus affiché depuis la 0.6.35 : sur un seul texte, avec des soupçons orange
+dedans, il tombait presque toujours sur « alphabétique » et son message était souvent faux — mesuré, voir `dys-core.js`.)
 
 ## Publier sur le Chrome Web Store
 Dossier de soumission complet (fiche prête à coller, justifications de chaque permission, déclarations de
@@ -51,7 +52,7 @@ L'en-tête du panneau porte **🌐 omegapendu.com** (globe seul en panneau étro
 ## Architecture
 | Fichier | Rôle |
 |---|---|
-| `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (stades, remédiation) + **`complete()`** (complétion préfixe accentuée, hors parité). Sans DOM. |
+| `dys-core.js` | **Le moteur** — copie **verbatim** des règles de l'app : GRAMMAIRE (homophones, accord sujet-verbe, genre déterminant, `j'est→j'ai`) **+ ORTHOGRAPHE** (`spellToken`/`spellText` : non-mots/accents/typos, AUTO/FLAG, élision) + couche dys (familles, remédiation) + **`complete()`** (complétion préfixe accentuée, hors parité). Sans DOM. |
 | `assets/` | Lexiques extraits de l'app (`vdc-lex.json`, `gender-relaxed.tsv.gz`, `speller.tsv.gz` = 92 743 formes accentuées). Régénérés par `build_assets.py`. Données Lexique 4 → **CC BY-SA 4.0**. |
 | `content.js` | S'accroche aux champs (`textarea`, `input`, `contenteditable`), lance le moteur (`diagnoseAll` = grammaire + orthographe), **applique en place** (gère la fusion de 2 tokens pour l'élision) ; affiche aussi les **complétions** du mot en cours (`DYSCORE.complete`). |
 | `icons/` | Icônes 16/32/48/128 exigées par Chrome et le Store — **dérivées** de `icon-512.png` par `build_icons.py` (pur Python, déterministe, gardé en CI). |
