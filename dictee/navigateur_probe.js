@@ -696,6 +696,7 @@ async function main() {
       const out = { mots: mots,
         b1: mots.every(w => S[w].b === 1), futur: mots.every(w => S[w].due > now),
         encart: (document.getElementById('vdd-fb').textContent || '').indexOf('Révision espacée') >= 0,
+        fb: (document.getElementById('vdd-fb').textContent || ''),
         chip: (document.getElementById('vdd-srs').textContent || '').indexOf('en apprentissage') >= 0 };
       try { localStorage.removeItem('vdd_srs'); } catch (e) {}
       return out;
@@ -708,8 +709,14 @@ async function main() {
       else if (!(sv.b1 && sv.futur)) echecs.push('dictée SRS : les mots inscrits doivent être en boîte 1 avec une échéance future');
       if (!sv.encart) echecs.push('dictée SRS : l\'encart « 🔁 Révision espacée » doit apparaître dans le feedback');
       if (!sv.chip) echecs.push('dictée SRS : le chip #vdd-srs doit annoncer les mots en apprentissage');
+      // lot 3 (14/09/2026) : répondre « zzz zzz » oublie des mots — le retour doit DIRE lesquels (il affichait « Mot oublié : mot oublié »)
+      const fbT = String(sv.fb || '');
+      if (/Mot oublié : mot oublié|Mot en trop : mot en trop/.test(fbT)) echecs.push('dictée : le retour dit « Mot oublié : mot oublié » sans nommer le mot — ' + fbT.slice(0, 160));
+      else if (fbT.indexOf('Mot oublié') >= 0 && fbT.indexOf('Mot oublié : «') < 0) echecs.push('dictée : « Mot oublié » affiché sans le mot entre guillemets — ' + fbT.slice(0, 160));
+      else if (fbT.indexOf('Mot oublié : «') < 0) echecs.push('dictée : répondre « zzz zzz » doit afficher au moins un « Mot oublié : « … » » — ' + fbT.slice(0, 160));
       log('  ' + (sv.mots && sv.mots.length && sv.b1 && sv.futur && sv.encart && sv.chip ? '✓' : '✗')
         + ' dictée : répétition espacée (' + (sv.mots || []).join(' · ') + ')');
+      log('  ' + (String(sv.fb || '').indexOf('Mot oublié : «') >= 0 && !/Mot oublié : mot oublié/.test(String(sv.fb || '')) ? '✓' : '✗') + ' dictée : le retour nomme le mot oublié');
     }
 
     /* ── READ-ALONG (chantier 2026-08-13) : le karaoké se construit AVANT la voix (déterministe

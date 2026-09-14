@@ -17,6 +17,9 @@
 //   4) chaque nom de règle du moteur est classé par son NOM (table ou nom reconnu), jamais par le repli « homophone » —
 //      c'est ce repli qui donnait « remplace par a→avait » au point final ;
 //   5) le correcteur n'affiche plus de « Stade » (app, panneau, bulle) ; la dictée garde le sien.
+//   6) lot 2 : les cartes du site et la copie du panneau.
+//   7) lot 3 : la DICTÉE — le retour que check() écrit (faits, stade, conseils), exécuté tel quel : le mot oublié est dit, une lettre
+//      muette ou qui s'entend est nommée comme telle (le stade et le conseil suivent), les mots collés/coupés sont un découpage.
 //   node dictee/textes_probe.js            (sortie 1 = rouge)
 'use strict';
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
@@ -219,6 +222,17 @@ console.log('  ✓ tests de substitution sans nom de règle (dictée, IA) : la f
   if (!has(s, 'ne s’entend pas') || has(s, 'Compte les sons')) fail('ajout muet « grandit → grandi » : ' + s);
   if (!has(s2, 'ne s’entend pas')) fail('ajout muet « tabble → table » : ' + s2);
   console.log('  ✓ lettre en trop muette : ' + s);
+  // lot 3 : une consonne finale échangée n'est « muette » que si le mot la tait — « tennis », « sept » la prononcent
+  const s3 = D.REMED.surface('bois', 'boit'), s5 = D.REMED.muette('tie', 'tige');
+  if (!has(s3, 'à la fin du mot, « t » ne s’entend pas')) fail('consonne finale muette « bois → boit » : ' + s3);
+  if (!has(s5, 'elle s’entend') || has(s5, 'ne s’entend pas')) fail('lettre oubliée qui s’entend « tie → tige » : ' + s5);
+  const s6 = D.REMED.muette('hui', 'huit');   // le t de « huit » se prononce : la liste fermée des finales sonores
+  if (has(s6, 'ne s’entend pas')) fail('« hui → huit » : le t de huit se prononce — ' + s6);
+  // …et les finales qui PEUVENT se prononcer, hors liste : -is/-us après consonne, -ct (on ne sait pas → le conseil ne promet rien)
+  const s7 = D.REMED.surface('irit', 'iris'), s8 = D.REMED.muette('direc', 'direct');
+  if (has(s7, 'ne s’entend pas')) fail('« irit → iris » : le s de iris se prononce — ' + s7);
+  if (has(s8, 'ne s’entend pas')) fail('« direc → direct » : le t de direct se prononce — ' + s8);
+  console.log('  ✓ lettre finale muette ou prononcée (bois/boit, hui/huit, irit/iris, direc/direct), lettre oubliée qui s’entend (tie/tige)');
 }
 
 // 2) app ≡ extension : la COUCHE DYS PARTAGÉE, octet pour octet, définie une seule fois
@@ -235,7 +249,7 @@ const coucheApp = bloc(app, COUCHE[0], COUCHE[1], 'COUCHE app'), coucheExt = blo
 if (coucheApp !== coucheExt) { let k = 0; while (k < coucheApp.length && coucheApp[k] === coucheExt[k]) k++; fail('COUCHE DYS PARTAGÉE app ≠ extension au caractère ' + k + ' : app « ' + coucheApp.slice(k, k + 60) + ' » / ext « ' + coucheExt.slice(k, k + 60) + ' »'); }
 else console.log('  ✓ COUCHE DYS PARTAGÉE app ≡ extension (' + coucheApp.length + ' c.)');
 for (const [nom, src] of [['app', app], ['extension', ext]]) {
-  for (const def of ['var _HPROBE=', 'var _HSUB =', 'var REMED=', 'var _RTIP=', 'var _REGLE_FAM=', 'function remedTip(', 'function remedFams(', 'function _govHint(', 'function _diffGenre(', 'function _finConcernee(']) {
+  for (const def of ['var _HPROBE=', 'var _HSUB =', 'var REMED=', 'var _RTIP=', 'var _REGLE_FAM=', 'function remedTip(', 'function remedFams(', 'function _govHint(', 'function _diffGenre(', 'function _finConcernee(', 'function _diffMuette(']) {
     const n = src.split(def).length - 1;
     if (n !== 1) fail(nom + ' : « ' + def + ' » défini ' + n + ' fois (une 2e définition écraserait la couche partagée)');
   }
@@ -320,6 +334,56 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
     if (got !== attendu) fail('panneau : la copie de « ' + t + ' » est « ' + got + ' », attendu « ' + attendu + ' » (corrections sûres ancrées caractère sautées ?)');
   }
   console.log('  ✓ cartes du site et copie du panneau (💡 partagé, témoin filtré, libellés de clic, chargement, corrections ancrées caractère)');
+}
+
+// 7) lot 3 (14/09/2026) — la DICTÉE. Rejouée sur le vrai écrit dys (188 textes découpés en phrases), elle affichait « Mot oublié : mot
+//    oublié » (196 fois : le mot n'était jamais dit), « lettre muette » sur des lettres qui S'ENTENDENT (406), « phonologique — le mot n'est
+//    pas encore bien ENTENDU » décidé par des lettres muettes seules (136 blocs), « ne s'entend pas » en conseil sur une lettre qui
+//    s'entend (180), et lisait « vontchercher » comme « mot oublié » + « lettre en trop ». Le rendu de check() est EXTRAIT de l'app et
+//    exécuté dans la portée de la dictée, sur des phrases inventées.
+{
+  const i0 = app.indexOf('mode PHRASES'), start = app.indexOf('(function(){', i0);
+  const spIdx = app.indexOf('function spellText', start), cut = app.indexOf('return out;}', spIdx) + 'return out;}'.length;
+  const ck = app.indexOf('function check(){if(!cur||answered)return;');
+  const m1 = app.indexOf(':F.map(function(x){', ck), m2 = app.indexOf("}).join('');", m1) + "}).join('')".length;
+  const s1 = app.indexOf('if(!ok){var dev=developmental(SESSF);', ck), s2 = app.indexOf('}', app.indexOf("remedBlock(SESSF,'vdd-fact');", s1)) + 1;
+  if (ck < 0 || m1 < 0 || s1 < 0 || m1 > s1) fail('dictée : le rendu de check() est introuvable (faits ' + m1 + ', stade ' + s1 + ')');
+  else {
+    const code = app.slice(start, cut) + ';globalThis.__DICTEE={diagnose:diagnoseSentence,rendre:function(F,SESSF,nT){var html="",ok=F.length===0;html=' + app.slice(m1 + 1, m2) + ';' + app.slice(s1, s2) + 'return html;}};})();';
+    try { globalThis.OMEGA_VDC = require(path.join(__dirname, 'blobgz')).vdcSeed(app); } catch (e) {}
+    const blob = (id) => { const m = app.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; };
+    const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'), 'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
+    const stub = new Proxy(function () {}, { get(o, k) { if (k === 'style') return {}; if (k === 'classList') return { add() {}, remove() {}, toggle() {}, contains: () => false }; return stub; }, set: () => true, apply: () => stub });
+    global.document = { getElementById: (id) => B[id] ? { textContent: B[id] } : stub, createElement: () => stub, body: stub, head: stub, addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] };
+    global.window = global; try { global.navigator = { userAgent: 'node' }; } catch (e) { Object.defineProperty(global, 'navigator', { value: { userAgent: 'node' }, configurable: true }); }
+    global.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
+    (0, eval)(code);
+    const X = globalThis.__DICTEE;
+    const texte = (h) => h.replace(/<br>/g, ' ¶ ').replace(/<\/div>/g, ' ¶ ').replace(/<[^>]+>/g, '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    const CASD = [
+      ['Le chat dort sur le lit.', 'Le chat dort sur lit.', {}, ['Mot oublié : « le »'], ['Mot oublié : mot oublié']],
+      ['Le chat dort sur le lit.', 'Le chat dort sur le le lit.', {}, ['Mot en trop : « le »'], ['Mot en trop : mot en trop']],
+      ['Il a grandi très vite.', 'Il a grandit très vite.', {}, ['lettre muette en trop', 'Stade (sur la session, 1 phrase) : lexical', 'Vu : « grandit » pour « grandi »', 'elle ne s’entend pas'],
+        ['phonologique', 'Compte les sons', 'pas encore bien ENTENDU']],
+      ['La tige est verte.', 'La tie est verte.', {}, ['lettre oubliée (elle s’entend)', ': phonologique', 'ne se lit pas comme le mot dicté', 'elle s’entend : dis le mot lentement'],
+        ['lettre muette', 'ne s’entend pas', 'lexical']],
+      ['Ils vont chercher du pain.', 'Ils vontchercher du pain.', {}, ['« vontchercher » → « vont chercher » : découpage', 'ce sont DEUX mots'], ['Mot oublié', 'lettre en trop', 'phonologique']],
+      ['Elle est bienveillante.', 'Elle est bien veillante.', {}, ['« bien veillante » → « bienveillante » : découpage', 'c’est UN seul mot'], ['Mot en trop', 'lettre muette', 'ne s’entend']],
+      ['Les enfants mangent la soupe.', 'Les enfants mange la soupe.', { mangent: ['mange'] }, ['accord sujet-verbe', '(la marque ne s’entend pas : c’est l’accord qui la dit)', 'il manque le « nt » du verbe'],
+        ['groupe nominal', 'même famille', 'nt » ne s’entend', 'les lettres « nt »', 'compare avec « mangent »']],   // un conseil par leçon : pas de conseil de LONGUEUR en plus de l'accord
+      ['Le chat boit du lait.', 'Le chat bois du lait.', {}, ['à la fin du mot, « t » ne s’entend pas'], ['ce son s’écrit']],
+      ['Elle a mangé une pomme.', 'Elle a mange une pomme.', {}, ['accents'], ['le son est juste', 'écrit au son']],
+      ['Le lit est grand.', 'le lit est grand.', {}, ['il manque la majuscule'], ['majuscule initiale']],
+    ];
+    for (const [cible, eleve, fam, oui, non] of CASD) {
+      let h; try { const F = X.diagnose(cible, eleve, fam); h = texte(X.rendre(F, F, 1)); } catch (e) { fail('dictée « ' + eleve + ' » : ' + e.message); continue; }
+      for (const x of oui) if (!has(h, x)) fail('dictée « ' + eleve + ' » (dicté : « ' + cible + ' ») sans « ' + x + ' » — rendu : ' + h);
+      for (const x of non) if (has(h, x)) fail('dictée « ' + eleve + ' » (dicté : « ' + cible + ' ») contient « ' + x + ' » — rendu : ' + h);
+    }
+    for (const faux of ["x.msg.replace(/: [^:]*$/,': <b>'+tags+'</b>')", "phonologique:'le mot n’est pas encore bien ENTENDU", "alphabetique:'le son est juste, la graphie non", "alphabetique:'alphabétique (écrit au son)'"])
+      if (app.indexOf(faux) >= 0) fail('app (dictée) : texte ou rendu faux encore présent — « ' + faux + ' »');
+    console.log('  ✓ dictée : mot oublié dit, lettre muette / qui s’entend nommée (stade et conseil suivent), mots collés/coupés = découpage (' + CASD.length + ' phrases)');
+  }
 }
 
 console.log(rouge ? ('\nTEXTES : ' + rouge + ' attente(s) non tenue(s)') : '\nTEXTES : toutes les attentes tenues (' + CAS.length + ' phrases, couche partagée, routage de ' + NOMS.size + ' règles)');
