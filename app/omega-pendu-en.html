@@ -22853,6 +22853,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "accent",
    "accord",
    "ajout",
+   "homophone",
    "inversion",
    "muette",
    "segmentation",
@@ -24042,7 +24043,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if(!_seg&&ds.length<dt.length&&subseq(ds,dt))o.push('muette');
     if(!_seg&&ds.length>dt.length&&subseq(dt,ds))o.push('ajout');
     var fl=fam.map(function(x){return x.toLowerCase();});
-    if(fl.indexOf(s.toLowerCase())>=0)o.push(isAccord(t,s)?'accord':(homoGram(t,s)?'homophone_gram':'homophone_lex'));   // grammatical (a/à, son/sont → morphosyntaxique) vs lexical (ver/vert → lexical)
+    /* ⭐ LOT 4 (14/09/2026) : le MOT-OUTIL d'abord. isAccord (« ne diffère que par s, e, t, x, n ») prenait « et/est », « sur/sure »,
+       « son/sons », « une/unes » pour des ACCORDS — et la note inventait « « ses » pluriel → accorder « et » » (532 faits sur les 5 318
+       substitutions des 333 phrases). Puis la FORME DU VERBE : « trouver » pour « trouvé » était un « homophone lexical : le SENS
+       tranche » (196) — c'est -er/-é/-ez, la grammaire (test « mordre/mordu » du conseil). MIROIR Python diag_word. */
+    if(fl.indexOf(s.toLowerCase())>=0)o.push(homoGram(t,s)?'homophone_gram':((_natureEr(t,s)||isAccord(t,s))?'accord':'homophone_lex'));
     if(!o.length)o.push(norm(t)===norm(s)?'surface':'autre');
     return o;
   }
@@ -24074,8 +24079,16 @@ window.addEventListener('DOMContentLoaded', () => {
   var AUX_ETRE={est:1,sont:1,furent:1,fut:1,etait:1,etaient:1,sera:1,seront:1,suis:1,es:1,sommes:1,etes:1,soit:1};
   var AUX_AVOIR={a:1,ont:1,avons:1,avez:1,ai:1,as:1,avait:1,avaient:1,aurait:1,aura:1,auront:1,aurais:1,eu:1};
   var PART_FORMS={arrive:1,arrives:1,arrivee:1,arrivees:1,peint:1,peints:1,peinte:1,peintes:1,cueilli:1,cueillie:1,cueillis:1,cueillies:1,trouve:1,trouves:1,trouvee:1,trouvees:1,prefere:1,preferes:1,preferee:1,preferees:1,abandonne:1,abandonnes:1,abandonnee:1,abandonnees:1};
-  function isParticiple(T,idx){return idx>=0&&idx<T.length&&!!PART_FORMS[deacc(T[idx].toLowerCase())];}
-  function findAux(T,idx){for(var j=idx-1;j>=Math.max(0,idx-4);j--){var w=deacc(T[j].toLowerCase());if(AUX_ETRE[w])return'etre';if(AUX_AVOIR[w])return'avoir';}return null;}
+  /* ⭐ LOT 4 : « Elle a mangée une pomme » donnait « accord en genre : « une » féminin → accorder « mangé » » — « mangé » n'était pas
+     dans les 24 participes connus. Une forme en -é(e)(s) JUSTE après un auxiliaire (adverbes et négation sautés) est un participe ;
+     l'élision « n'a », « l'a » se lit « a ». MIROIR Python is_participle / find_aux. */
+  var _PP_SAUT={pas:1,plus:1,jamais:1,rien:1,bien:1,deja:1,tout:1,toujours:1,encore:1,souvent:1,trop:1,beaucoup:1,vraiment:1,aussi:1,ete:1,ne:1};
+  function _auxMot(w){return deacc(String(w).toLowerCase()).replace(/^(n|l|m|t|s|j|qu)'/,'');}
+  function isParticiple(T,idx){if(idx<0||idx>=T.length)return false;if(PART_FORMS[deacc(T[idx].toLowerCase())])return true;
+    if(!/(é|ée|és|ées)$/i.test(T[idx]))return false;
+    for(var j=idx-1;j>=0&&j>=idx-3;j--){var w=_auxMot(T[j]);if(AUX_ETRE[w]||AUX_AVOIR[w])return true;if(!_PP_SAUT[w])return false;}
+    return false;}
+  function findAux(T,idx){for(var j=idx-1;j>=Math.max(0,idx-4);j--){var w=_auxMot(T[j]);if(AUX_ETRE[w])return'etre';if(AUX_AVOIR[w])return'avoir';}return null;}
   var GEN_DET={le:'m',un:'m',ce:'m',cet:'m',mon:'m',ton:'m',son:'m',au:'m',du:'m',la:'f',une:'f',cette:'f',ma:'f',ta:'f',sa:'f'};
   function governorGender(T,idx){for(var j=idx-1;j>=0;j--){var w=T[j].toLowerCase();if(GEN_DET[w])return[T[j],GEN_DET[w]];if(NUM_DET[w]||NUM_PRON[w])return null;}return null;}
   function findCodAntepose(T,idx){for(var j=idx-1;j>=Math.max(0,idx-5);j--){var w=T[j].toLowerCase();if(w==='que'||w.slice(0,3)==="qu'"){if(j===0)return null;var gg=governorGender(T,j),gn=governorNumber(T,j,false);return[T[j-1],gg?gg[1]:null,gn?gn[1]:null];}}return null;}
@@ -24523,71 +24536,114 @@ window.addEventListener('DOMContentLoaded', () => {
     if(sg===stem)return['accord',false];   // vend/vendent : consonne prononcée au pluriel
     if(/ssent$/.test(pl)&&sg===pl.slice(0,-5)+'t')return['accord',false];
     return null;}
-  function diagnoseSentence(cible,eleve,fam){var T=toks(cible),S=toks(eleve),F=[],ti=-1;
-    align(T,S).forEach(function(op,oi){var k=op[0],t=op[1],s=op[2];
-      if(k==='ins'){F.push({types:['mot_en_trop'],ecrit:s,_o:oi,msg:'Mot en trop : « '+esc(s)+' ».'});return;}
+  /* ⭐ LOT 4 (14/09/2026) — LA NOTE DE GRAMMAIRE NE DIT QUE CE QUE LA FORME ATTENDUE CONFIRME. Rejouées sur les 333 phrases de la dictée,
+     chaque homophone curé substitué (5 318 cas), 356 notes se contredisaient : « « La » féminin → accorder « sur » », « « ma » (singulier)
+     → accorder « arrivés » » (sujet coordonné), « « Les » pluriel → accorder « branche » » (un nom). Chaque note est confrontée à la marque
+     de la forme attendue (e du féminin, s/x du pluriel, -nt/-ons/-ez du verbe, accord du participe) ; si elle la contredit, pas de note.
+     MIROIR Python _note_ok. */
+  function _natureEr(t,s){var r=/(er|ez|ées|ée|és|é)$/,a=String(t||'').toLowerCase(),b=String(s||'').toLowerCase(),ma=r.exec(a),mb=r.exec(b),na,nb2;   // -er / -ez / -é(e)(s) du MÊME radical
+    if(!ma||!mb)return false;na=ma[1].charAt(0)==='é'?'é':ma[1];nb2=mb[1].charAt(0)==='é'?'é':mb[1];
+    return na!==nb2&&a.length-ma[1].length>=3&&deacc(a.slice(0,a.length-ma[1].length))===deacc(b.slice(0,b.length-mb[1].length));}   // radical désaccentué : « ager » pour « âgés »
+  function _noteOk(k,g,t,s){t=String(t||'').toLowerCase();s=String(s||'').toLowerCase();var fe=/e(s)?$/,pl=/[sx]$/,tf,sf;
+    if(k==='genre'){tf=fe.test(t)&&!fe.test(s);sf=fe.test(s)&&!fe.test(t);return g==='f'?tf:(g==='m'?sf:(tf||sf));}
+    if(k==='gn')return g==='pl'?(pl.test(t)&&!pl.test(s)):(pl.test(s)&&!pl.test(t));
+    if(k==='sv')return g==='pl'?(/(nt|ons|ez|mes|tes)$/.test(t)&&t!==s):!/nt$/.test(t);
+    if(k==='pp-etre')return g==='pl'?pl.test(t):!pl.test(t);
+    if(k==='pp-avoir-cod')return (!g[0]||(g[0]==='f')===fe.test(t))&&(!g[1]||(g[1]==='pl')===pl.test(t));
+    if(k==='pp-avoir-inv')return !/(ée|ées|és|ie|ies|ue|ues|us|te|tes|ts|se|ses)$/.test(t);
+    return true;}
+  function _seps(x){var re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,fin=-1,out=[],b;x=String(x);   // entre deux mots : '-' (trait d'union), ' ' (espace), 'p' (ponctuation) — MIROIR Python _seps
+    while((m=re.exec(x))){if(fin>=0){b=x.slice(fin,m.index);out.push(b==='-'?'-':(/^\s+$/.test(b)?' ':'p'));}fin=m.index+m[0].length;}return out;}
+  function diagnoseSentence(cible,eleve,fam){var T=toks(cible),S=toks(eleve),F=[],ti=-1,sj=-1,ST=_seps(cible),SS=_seps(eleve),av=null,pseg=null;
+    align(T,S).forEach(function(op,oi){var k=op[0],t=op[1],s=op[2],prec;
+      if(k==='ins'){sj++;av=null;F.push({types:['mot_en_trop'],ecrit:s,_o:oi,_sj:sj,msg:'Mot en trop : « '+esc(s)+' ».'});return;}
       ti++;
-      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],mot:t,ecrit:s,_o:oi,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}return;}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
-      if(k==='del'){F.push({types:['omission'],mot:t,_o:oi,msg:'Mot oublié : « '+esc(t)+' ».'});return;}
-      var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;
+      if(k==='del'){av=null;F.push({types:['omission'],mot:t,_o:oi,_ti:ti,msg:'Mot oublié : « '+esc(t)+' ».'});return;}
+      sj++;prec=av;av=[ti,sj,true];   // [mot dicté, mot écrit, les deux mots se ressemblent ?]
+      if(k==='match'){if(t!==s){var _mq=/^[A-ZÀ-ÖØ-Þ]/.test(t)&&/^[a-zà-öø-ÿ]/.test(s);F.push({types:['majuscule'],mot:t,ecrit:s,_o:oi,_ti:ti,_sj:sj,msg:'« '+esc(s)+' » → « '+esc(t)+' » : '+(_mq?'il manque la majuscule.':'pas de majuscule ici.')});}}   // même mot à la CASSE près (align insensible) → faute de casse : réf de dictée connue → 0 FP. Couvre mot-1 ET milieu de phrase (noms propres)
+      else{
+      var ty=diagWord(t,s,(fam[t.toLowerCase()]||[])),idx=ti;av[2]=ty.indexOf('autre')<0;   // un mot sans rapport (alignement décalé) ne fait pas de paire à trait d'union
       if(idx>=1&&isLiaison(T[idx-1],t,s))ty=['liaison'];   // consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
-      var _muet=false,_pnv=(ty.indexOf('accord')<0)?paireNombreVerbale(t,s):null;
+      var _pdet=idx>0?T[idx-1].toLowerCase().replace(/^[a-zà-ÿ]+'/,''):'',_apresDet=!!(_pdet&&(NUM_DET[_pdet]||GEN_DET[_pdet]||_pdet==='aux'));   // le mot dicté suit un déterminant (« d'une » compris) : c'est un NOM
+      var _muet=false,_pnv=(ty.indexOf('accord')<0&&!ty.some(function(x){return /^homophone/.test(x);})&&!_apresDet)?paireNombreVerbale(t,s):null;   // lot 4 : jamais sur un homophone curé (« surent » pour « sur » devenait « accord sujet-verbe : « La » singulier → accorder « sur » »)
       if(_pnv){var _gv=governorNumber(T,idx,true),_want=(deacc(t.toLowerCase()).length>deacc(s.toLowerCase()).length)?'pl':'sg';   // croisement Excuse My French : « ils mange » HORS famille curée = ACCORD, pas « lettre muette »
         if(_gv&&_gv[1]===_want){ty=ty.filter(function(x){return x!=='muette'&&x!=='ajout';});ty.push('accord');
           var _nx=(idx+1<T.length)?T[idx+1]:'';_muet=_pnv[1]&&!/^[aeiouyhàâéèêëîïôöùûü]/i.test(_nx);}}
-      var fact={types:ty,mot:t,ecrit:s,_o:oi};
+      // lot 4 : un NOM écrit avec la terminaison -nt d'un verbe (« la tempêtent », « le lient ») n'est pas un accord — « le sujet est au SINGULIER, le nt est en trop » était faux
+      if(_apresDet&&ty.indexOf('accord')>=0&&/nt$/.test(s.toLowerCase())&&!/nt$/.test(t.toLowerCase()))ty=ty.map(function(x){return x==='accord'?'homophone_lex':x;});
+      var fact={types:ty,mot:t,ecrit:s,_o:oi,_ti:ti,_sj:sj};
       if(ty.indexOf('ajout')>=0||ty.indexOf('muette')>=0||ty.indexOf('voisee_sourde')>=0){var _dm=_diffMuette(s,t);if(_dm===null&&ty.indexOf('accord')>=0){var _pv=paireNombreVerbale(t,s);if(_pv)_dm=_pv[1];}if(_dm!==null)fact.audible=!_dm;}   // la lettre en trop, oubliée ou échangée S'ENTEND-elle ? (libellé, stade, conseil — lot 3)
-      fact.msg='« '+esc(s)+' » → « '+esc(t)+' » : '+ty.map(function(x){return _lblFait(x,fact);}).join(', ');
+      fact.msg='« '+esc(s)+' » → « '+esc(t)+' » : '+_tagsFait(fact);
       if(_muet){fact.audible=false;fact.msg+=' (marque MUETTE : ça ne s\'entend pas, c\'est l\'accord qui le dit)';}
-      if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE
+      if(ty.indexOf('accord')>=0){                                   // LEVIER GRAMMAIRE — [genre de note, gouverneur, texte], vérifiée par _noteOk
+        var _n=null;
         if(isParticiple(T,idx)){var aux=findAux(T,idx);
-          if(aux==='etre'){var g1=governorNumber(T,idx,true);fact.gram='participe passé avec être : accord avec le sujet'+(g1?' « '+esc(g1[0])+' » ('+nb(g1[1])+')':'');}
+          if(aux==='etre'){var g1=governorNumber(T,idx,true);
+            if(!g1)_n=['pp-etre','','participe passé avec être : accord avec le sujet'];
+            else if(_noteOk('pp-etre',g1[1],t,s))_n=['pp-etre',g1[0],'participe passé avec être : accord avec le sujet « '+esc(g1[0])+' » ('+nb(g1[1])+')'];}
           else if(aux==='avoir'){var cod=findCodAntepose(T,idx);   // COD antéposé (relatif « que ») → accord
-            if(cod){var d=[];if(cod[1])d.push(cod[1]==='f'?'féminin':'masculin');if(cod[2])d.push(cod[2]==='pl'?'pluriel':'singulier');
-              fact.gram='participe passé avec avoir : COD antéposé « '+esc(cod[0])+' »'+(d.length?' ('+d.join(' ')+')':'')+' → accorder « '+esc(t)+' »';}
-            else fact.gram='participe passé avec avoir : invariable (COD placé après)';}
-          else fact.gram='participe passé';
-        } else {var verb=isVerb(T,idx)||!!_pnv||!!paireNombreVerbale(t,s),at=accordType(t,s,verb);   // paire de nombre VERBALE → sujet-verbe, même quand la famille curée porte déjà l'accord (« mange » pour « mangent » disait « accord dans le groupe nominal », lot 3) — miroir Python
+            if(cod){if(_noteOk('pp-avoir-cod',[cod[1],cod[2]],t,s)){var d=[];if(cod[1])d.push(cod[1]==='f'?'féminin':'masculin');if(cod[2])d.push(cod[2]==='pl'?'pluriel':'singulier');
+              _n=['pp-avoir-cod',cod[0],'participe passé avec avoir : COD antéposé « '+esc(cod[0])+' »'+(d.length?' ('+d.join(' ')+')':'')+' → accorder « '+esc(t)+' »'];}}
+            else if(_noteOk('pp-avoir-inv',null,t,s))_n=['pp-avoir-inv','','participe passé avec avoir : invariable (COD placé après)'];}
+          else _n=['pp','','participe passé'];
+        } else if(!_natureEr(t,s)){   // -er / -é / -ez hors participe : la forme du verbe, pas un accord — pas de gouverneur à citer (le conseil fait le test « mordre »)
+          var verb=isVerb(T,idx)||!!_pnv||!!paireNombreVerbale(t,s),at=accordType(t,s,verb);   // paire de nombre VERBALE → sujet-verbe (lot 3) ; un nom écrit en -nt est déjà rangé homophone plus haut (lot 4)   // paire de nombre VERBALE → sujet-verbe (lot 3), sauf après un déterminant : « la tablent » est un NOM (sinon « accord sujet-verbe : « la » singulier → accorder « table » »)
           if(at==='genre'&&!verb){var gg=governorGender(T,idx)||(typeof lexicalGender==='function'?lexicalGender(T,idx):null);   // déterminant genré, sinon route lexicale (nom-tête)
-            fact.gram=gg?('accord en genre : « '+esc(gg[0])+' » '+(gg[1]==='f'?'féminin':'masculin')+' → accorder « '+esc(t)+' »'):'accord en genre';
+            if(_noteOk('genre',gg?gg[1]:null,t,s))_n=gg?['genre',gg[0],'accord en genre : « '+esc(gg[0])+' » '+(gg[1]==='f'?'féminin':'masculin')+' → accorder « '+esc(t)+' »']:['genre','','accord en genre'];
           } else {var g=governorNumber(T,idx,verb);
-            if(g)fact.gram=(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+esc(g[0])+' » '+nb(g[1])+' → accorder « '+esc(t)+' »';
+            if(g&&_noteOk(verb?'sv':'gn',g[1],t,s))_n=[verb?'sv':'gn',g[0],(verb?'accord sujet-verbe':'accord dans le groupe nominal')+' : « '+esc(g[0])+' » '+nb(g[1])+' → accorder « '+esc(t)+' »'];
           }
         }
+        if(_n){fact.gram=_n[2];fact.note=[_n[0],_n[1]];}
       }
-      F.push(fact);});
+      F.push(fact);}
+      /* ⭐ TRAIT D'UNION (lot 4) : la dictée découpe aux traits d'union, « La grand mère » passait donc pour « ✓ Phrase correcte » et
+         « Il est-parti » aussi. Deux mots de suite, le séparateur écrit n'est pas celui dicté (trait d'union ↔ espace) = un découpage ;
+         une chaîne (« a t il ») reste UN fait. */
+      if(prec&&prec[2]&&av[2]&&prec[0]===ti-1&&prec[1]===sj-1){var sa=ST[ti-1],sb=SS[sj-1];
+        if(sa&&sb&&sa!==sb&&(sa==='-'||sb==='-')&&sa!=='p'&&sb!=='p'){
+          if(pseg&&pseg._te===ti-1&&pseg._se===sj-1){pseg.mot+=sa+t;pseg.ecrit+=sb+s;pseg._te=ti;pseg._se=sj;}
+          else{pseg={types:['segmentation'],mot:T[ti-1]+sa+t,ecrit:S[sj-1]+sb+s,_o:-2,_te:ti,_se:sj};F.push(pseg);}
+          pseg.msg='« '+esc(pseg.ecrit)+' » → « '+esc(pseg.mot)+' » : '+LBL.segmentation;}}
+    });
     // (majuscule mot-1 désormais gérée par le contrôle de casse général dans la boucle align — couvre aussi les noms propres en milieu de phrase) // MAJUSCULE INITIALE : mot 1 correct mais en minuscule → l'align l'a matché (insensible casse) ; on le signale (sinon « ✓ correcte » alors que la majuscule manque)
     /* ⭐ MOTS COLLÉS, MOTS COUPÉS (14/09/2026, lot 3). « Ils vontchercher » s'alignait en « Mot oublié : vont » + « vontchercher →
        chercher : lettre en trop » (stade phonologique, conseil « compte les sons »), « bien veillante » en « Mot en trop » + « lettre
-       muette ». Deux faits VOISINS dans l'alignement dont les lettres recollées font le même mot = UN découpage. MIROIR Python. */
-    var _cle=function(x){return deacc(String(x||'').toLowerCase()).replace(/['’\- ]/g,'');},G=[],z,a0,b0;
+       muette ». Deux faits VOISINS dans l'alignement dont les lettres recollées font le même mot = UN découpage. Lot 4 : recollés avec
+       le VRAI séparateur (« grandmère » → « grand-mère », pas « grand mère »). MIROIR Python. */
+    var _cle=function(x){return deacc(String(x||'').toLowerCase()).replace(/['’\- ]/g,'');},_sp=function(A,i){return A[i]==='-'?'-':' ';},G=[],z,a0,b0;
     function _segFait(e,m){return {types:['segmentation'],mot:m,ecrit:e,msg:'« '+esc(e)+' » → « '+esc(m)+' » : '+LBL.segmentation};}
     for(z=0;z<F.length;z++){a0=F[z];b0=F[z+1];
       if(b0&&b0._o===a0._o+1){
-        if(a0.types[0]==='omission'&&b0.ecrit!=null&&b0.mot!=null&&_cle(b0.ecrit)===_cle(a0.mot+b0.mot)){G.push(_segFait(b0.ecrit,a0.mot+' '+b0.mot));z++;continue;}
-        if(b0.types[0]==='omission'&&a0.ecrit!=null&&a0.mot!=null&&_cle(a0.ecrit)===_cle(a0.mot+b0.mot)){G.push(_segFait(a0.ecrit,a0.mot+' '+b0.mot));z++;continue;}
-        if(a0.types[0]==='mot_en_trop'&&b0.ecrit!=null&&b0.mot!=null&&_cle(a0.ecrit+b0.ecrit)===_cle(b0.mot)){G.push(_segFait(a0.ecrit+' '+b0.ecrit,b0.mot));z++;continue;}
-        if(b0.types[0]==='mot_en_trop'&&a0.ecrit!=null&&a0.mot!=null&&_cle(a0.ecrit+b0.ecrit)===_cle(a0.mot)){G.push(_segFait(a0.ecrit+' '+b0.ecrit,a0.mot));z++;continue;}}
+        if(a0.types[0]==='omission'&&b0.ecrit!=null&&b0.mot!=null&&_cle(b0.ecrit)===_cle(a0.mot+b0.mot)){G.push(_segFait(b0.ecrit,a0.mot+_sp(ST,a0._ti)+b0.mot));z++;continue;}
+        if(b0.types[0]==='omission'&&a0.ecrit!=null&&a0.mot!=null&&_cle(a0.ecrit)===_cle(a0.mot+b0.mot)){G.push(_segFait(a0.ecrit,a0.mot+_sp(ST,a0._ti)+b0.mot));z++;continue;}
+        if(a0.types[0]==='mot_en_trop'&&b0.ecrit!=null&&b0.mot!=null&&_cle(a0.ecrit+b0.ecrit)===_cle(b0.mot)){G.push(_segFait(a0.ecrit+_sp(SS,a0._sj)+b0.ecrit,b0.mot));z++;continue;}
+        if(b0.types[0]==='mot_en_trop'&&a0.ecrit!=null&&a0.mot!=null&&_cle(a0.ecrit+b0.ecrit)===_cle(a0.mot)){G.push(_segFait(a0.ecrit+_sp(SS,a0._sj)+b0.ecrit,a0.mot));z++;continue;}}
       G.push(a0);}
-    G.forEach(function(f){delete f._o;});
+    G.forEach(function(f){delete f._o;delete f._ti;delete f._sj;delete f._te;delete f._se;});
     return G;
   }
   var COL={accent:'#d99a00',voisee_sourde:'#2a6f97',inversion:'#7a4fb5',muette:'#1f7a3d',ajout:'#b06a00',homophone:'#b23b3b',homophone_gram:'#b23b3b',homophone_lex:'#b23b3b',accord:'#c0392b',omission:'#8a6d3b',mot_en_trop:'#8a6d3b',surface:'#6a3d9a',segmentation:'#0a7d8c',liaison:'#0f7a6a',majuscule:'#b8860b',autre:'#777'};
-  var LBL={accord:'accord',homophone:'homophone',homophone_gram:'homophone grammatical',homophone_lex:'homophone lexical',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette ou oubliée',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (apostrophe/espace)',liaison:'liaison (les zamis)',majuscule:'majuscule initiale',autre:'à vérifier'};
+  var LBL={accord:'accord',homophone:'homophone',homophone_gram:'homophone grammatical',homophone_lex:'homophone lexical',accent:'accent',voisee_sourde:'sourde/sonore',muette:'lettre muette ou oubliée',ajout:'lettre en trop',inversion:'inversion',omission:'mot oublié',mot_en_trop:'mot en trop',surface:'graphie plausible (sonne pareil)',segmentation:'découpage (espace, apostrophe, trait d’union)',liaison:'liaison (les zamis)',majuscule:'majuscule initiale',autre:'à vérifier'};
   // le libellé d'UN fait (lot 3, 14/09/2026) : « lettre muette » était affiché sur « tie » pour « tige » — le g s'entend
   function _lblFait(x,f){
     if(x==='muette')return f.audible===true?'lettre oubliée (elle s’entend)':(f.audible===false?'lettre muette':'lettre manquante');
     if(x==='ajout')return f.audible===false?'lettre muette en trop':'lettre en trop';
     if(x==='voisee_sourde'&&f.audible===false)return 'lettre finale muette';
     if(x==='majuscule')return /^[A-ZÀ-ÖØ-Þ]/.test(String(f.mot||''))?'il manque la majuscule':'pas de majuscule ici';
+    if(x==='accord'&&_natureEr(f.mot,f.ecrit))return 'terminaison -er / -é / -ez';   // lot 4 : la forme du verbe, pas un accord de nombre
     return LBL[x]||x;}
+  // un fait = une leçon (lot 4) : « lettre muette, terminaison -er / -é / -ez » — le détecteur de LONGUEUR s'efface derrière la famille précise
+  var _LONG_LBL={muette:1,ajout:1};
+  function _tagsFait(f){var spec=f.types.some(function(y){return y==='accord'||/^homophone/.test(y);});
+    return f.types.filter(function(y){return !(spec&&_LONG_LBL[y]);}).map(function(y){return _lblFait(y,f);}).join(', ');}
   /* ⛔ le rendu remplaçait tout ce qui suit le DERNIER « : » du message par les libellés : « Mot oublié : « le » » devenait « Mot oublié :
      mot oublié » (196 fois sur le vrai écrit dys rejoué : le mot n'était jamais dit), et « (marque MUETTE : ça ne s'entend pas…) » était
      coupé en deux. On rend depuis les champs du fait. */
   function _faitHtml(x){var t0=x.types[0];
     if(t0==='omission')return '<b>Mot oublié</b> : « '+esc(x.mot)+' »';
     if(t0==='mot_en_trop')return '<b>Mot en trop</b> : « '+esc(x.ecrit)+' »';
-    return '« '+esc(x.ecrit)+' » → « '+esc(x.mot)+' » : <b>'+x.types.map(function(y){return _lblFait(y,x);}).join(', ')+'</b>'+(x.audible===false&&x.types.indexOf('accord')>=0?' <span class="vdd-sc">(la marque ne s’entend pas : c’est l’accord qui la dit)</span>':'');}
+    return '« '+esc(x.ecrit)+' » → « '+esc(x.mot)+' » : <b>'+_tagsFait(x)+'</b>'+(x.audible===false&&x.types.indexOf('accord')>=0?' <span class="vdd-sc">'+(_natureEr(x.mot,x.ecrit)?'(-er, -é et -ez se prononcent pareil : c’est la grammaire qui choisit)':'(la marque ne s’entend pas : c’est l’accord qui la dit)')+'</span>':'');}
   function _preuvesHtml(dev){var v=dev.preuves.filter(function(f){return f.ecrit!=null&&f.mot!=null;}).slice(-2);   // les plus RÉCENTES
     if(!v.length)return '';
     return '<br><span class="vdd-sc">Vu : '+v.map(function(f){return '« '+esc(f.ecrit)+' » pour « '+esc(f.mot)+' »';}).join(', ')+' ('+(dev.n===dev.tot?dev.n+' faute'+(dev.n>1?'s':'')+' dans la session':dev.n+' des '+dev.tot+' fautes de la session')+').</span>';}
@@ -24843,7 +24899,7 @@ window.addEventListener('DOMContentLoaded', () => {
       var html='';
       if(bon)html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6"><b>✓ Exact !</b> '+esc(att)+' — '+quoi+(qui?', avec <b>'+qui+'</b>':'')+'.</div>';
       else{
-        if(tap&&deacc(tap)===deacc(att))html+='<div class="vdd-fact" style="border-left:5px solid #c77f00;background:#fdf3e3"><b>Presque !</b> Le bon verbe, le bon son — il manque l accent : <b>'+esc(att)+'</b>.</div>';
+        if(tap&&deacc(tap)===deacc(att))html+='<div class="vdd-fact" style="border-left:5px solid #c77f00;background:#fdf3e3"><b>Presque !</b> Le bon verbe — il manque l accent : <b>'+esc(att)+'</b>.</div>';
         else if(tap&&svReads(tap).length&&svReads(tap)[0][0]===rd[0])html+='<div class="vdd-fact" style="border-left:5px solid #c0392b;background:#fdecea"><b>✗ Bon verbe, autre forme.</b> Ici on entend <b>'+esc(att)+'</b> — '+quoi+(qui?', avec <b>'+qui+'</b>':'')+'.</div>';
         else html+='<div class="vdd-fact" style="border-left:5px solid #c0392b;background:#fdecea"><b>✗ Forme attendue : '+esc(att)+'</b> — '+quoi+(qui?', avec <b>'+qui+'</b>':'')+'.</div>';
         html+='<div class="vdd-fact" style="border-left:5px solid #1f7a3d;background:#e3f6e6">Phrase complète : <span class="vdd-truth">'+_dsModel(cCur.texte)+'</span></div>';

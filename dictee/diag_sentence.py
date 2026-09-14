@@ -49,11 +49,23 @@ AUX_AVOIR={'a','ont','avons','avez','ai','as','avait','avaient','aurait','aura',
 PART_FORMS={'arrive','arrives','arrivee','arrivees','peint','peints','peinte','peintes','cueilli','cueillie',
             'cueillis','cueillies','trouve','trouves','trouvee','trouvees','prefere','preferes','preferee',
             'preferees','abandonne','abandonnes','abandonnee','abandonnees'}
-def is_participle(T,idx): return 0<=idx<len(T) and deacc(T[idx].lower()) in PART_FORMS
+PP_SAUT={'pas','plus','jamais','rien','bien','deja','tout','toujours','encore','souvent','trop','beaucoup','vraiment','aussi','ete','ne'}
+def _aux_mot(w): return re.sub(r"^(n|l|m|t|s|j|qu)'", '', deacc(w.lower()))
+def is_participle(T,idx):
+    """Participe passé : forme connue, OU forme en -é(e)(s) JUSTE après un auxiliaire (adverbes/négation sautés) — lot 4 : « Elle a
+    mangée une pomme » donnait « accord en genre : « une » féminin → accorder « mangé » ». MIROIR app isParticiple."""
+    if not (0<=idx<len(T)): return False
+    if deacc(T[idx].lower()) in PART_FORMS: return True
+    if not re.search(r'(é|ée|és|ées)$', T[idx], re.I): return False
+    for j in range(idx-1, max(-1, idx-4), -1):
+        w=_aux_mot(T[j])
+        if w in AUX_ETRE or w in AUX_AVOIR: return True
+        if w not in PP_SAUT: return False
+    return False
 def find_aux(T,idx):
     """Auxiliaire le plus proche à gauche (fenêtre courte) d'un participe → 'etre' | 'avoir' | None."""
     for j in range(idx-1,max(-1,idx-5),-1):
-        w=deacc(T[j].lower())
+        w=_aux_mot(T[j])
         if w in AUX_ETRE: return 'etre'
         if w in AUX_AVOIR: return 'avoir'
     return None
@@ -213,6 +225,50 @@ def diff_muette(e, a):
         if x == 'nt' and pv == 'e': return None                                                                   # vivent (muet) / souvent (nasal) : l'accord tranche
     return False
 
+_NAT_RE = re.compile(r'(er|ez|ées|ée|és|é)$')
+def _nature_er(t, s):
+    """-er / -ez / -é(e)(s) du MÊME radical (≥ 3 lettres) : la FORME du verbe, pas un accord ni un homophone lexical. MIROIR app _natureEr."""
+    a=(t or '').lower(); b=(s or '').lower(); ma=_NAT_RE.search(a); mb=_NAT_RE.search(b)
+    if not ma or not mb: return False
+    na='é' if ma.group(1)[0]=='é' else ma.group(1); nb2='é' if mb.group(1)[0]=='é' else mb.group(1)
+    return na!=nb2 and len(a)-len(ma.group(1))>=3 and deacc(a[:len(a)-len(ma.group(1))])==deacc(b[:len(b)-len(mb.group(1))])   # radical désaccentué : « ager » pour « âgés »
+
+def _note_ok(k, g, t, s):
+    """La note de grammaire est-elle CONFIRMÉE par la forme attendue ? (lot 4 : 356 notes contradictoires sur les 333 phrases — « « La »
+    féminin → accorder « sur » », « « ma » singulier → accorder « arrivés » »). MIROIR app _noteOk."""
+    t=(t or '').lower(); s=(s or '').lower()
+    fe=lambda x: re.search(r'e(s)?$', x) is not None
+    pl=lambda x: re.search(r'[sx]$', x) is not None
+    if k=='genre':
+        tf=fe(t) and not fe(s); sf=fe(s) and not fe(t)
+        return tf if g=='f' else (sf if g=='m' else (tf or sf))
+    if k=='gn': return (pl(t) and not pl(s)) if g=='pl' else (pl(s) and not pl(t))
+    if k=='sv': return (re.search(r'(nt|ons|ez|mes|tes)$', t) is not None and t!=s) if g=='pl' else re.search(r'nt$', t) is None
+    if k=='pp-etre': return pl(t) if g=='pl' else not pl(t)
+    if k=='pp-avoir-cod': return ((not g[0]) or ((g[0]=='f')==fe(t))) and ((not g[1]) or ((g[1]=='pl')==pl(t)))
+    if k=='pp-avoir-inv': return re.search(r'(ée|ées|és|ie|ies|ue|ues|us|te|tes|ts|se|ses)$', t) is None
+    return True
+
+_TOK_RE = re.compile(r"[A-Za-zÀ-ÿœŒ'’ʼ]+")
+def _seps(x):
+    """Le séparateur entre deux mots : '-' (trait d'union), ' ' (espace), 'p' (ponctuation). MIROIR app _seps."""
+    out=[]; fin=-1
+    for m in _TOK_RE.finditer(x):
+        if fin>=0:
+            b=x[fin:m.start()]
+            out.append('-' if b=='-' else (' ' if re.fullmatch(r'\s+', b) else 'p'))
+        fin=m.end()
+    return out
+
+def joindre(cible, S):
+    """Phrase de l'élève rebâtie avec les séparateurs de la CIBLE (le trait d'union de « grand-mère ») quand elle a autant de mots ;
+    sinon jointe aux espaces. Les générateurs travaillent sur des listes de mots : ' '.join perdait les traits d'union."""
+    T=toks(cible); sp=_seps(cible)
+    if len(S)!=len(T) or not S: return ' '.join(S)
+    out=S[0]
+    for i in range(1,len(S)): out+=('-' if sp[i-1]=='-' else ' ')+S[i]
+    return out
+
 def diag_word(t,s,fam):
     """t=cible, s=élève (mots). fam=liste homophones de t. -> liste de types."""
     if s.lower()==t.lower(): return []
@@ -229,7 +285,7 @@ def diag_word(t,s,fam):
     if not _seg and len(ds)<len(dt) and subseq(ds,dt): out.append('muette')   # !_seg : une apostrophe retirée n'est PAS une lettre muette (miroir app)
     if not _seg and len(ds)>len(dt) and subseq(dt,ds): out.append('ajout')
     if s.lower() in (x.lower() for x in fam):
-        out.append('accord' if is_accord(t,s) else ('homophone_gram' if _homo_gram(t,s) else 'homophone_lex'))   # grammatical (a/à, son/sont → morphosyntaxique) vs lexical (ver/vert → lexical)
+        out.append('homophone_gram' if _homo_gram(t,s) else ('accord' if (_nature_er(t,s) or is_accord(t,s)) else 'homophone_lex'))   # lot 4 : le MOT-OUTIL d'abord (et/est n'est pas un accord), puis la forme du verbe (-er/-é/-ez), puis l'accord — miroir app
     if not out: out.append('surface' if norm(t)==norm(s) else 'autre')
     return out
 
@@ -270,96 +326,122 @@ def paire_nombre_verbale(t,s):
     return None
 
 def diagnose_sentence(cible, eleve, fam):
-    T,S=toks(cible),toks(eleve); facts=[]; ti=-1
+    T,S=toks(cible),toks(eleve); facts=[]; ti=-1; sj=-1; ST=_seps(cible); SS=_seps(eleve); av=None; pseg=None
     for oi,(op,t,s) in enumerate(align(T,S)):
         if op=='ins':
-            facts.append({'mot':s,'types':['mot_en_trop'],'_o':oi,'msg':f'Mot en trop : « {s} ».'}); continue
+            sj+=1; av=None
+            facts.append({'mot':s,'types':['mot_en_trop'],'_o':oi,'_sj':sj,'msg':f'Mot en trop : « {s} ».'}); continue
         ti+=1                                                   # match/sub/del avancent dans la cible
+        if op=='del':
+            av=None
+            facts.append({'mot':t,'types':['omission'],'_o':oi,'_ti':ti,'msg':f'Mot oublié : « {t} ».'}); continue
+        sj+=1; prec=av; av=[ti,sj,True]                        # [mot dicté, mot écrit, les deux mots se ressemblent ?]
         if op=='match':
             if t!=s:                                            # même mot à la CASSE près (align insensible à la casse) → faute de casse (réf connue → 0 FP)
                 manque=t[:1].isupper() and s[:1].islower()
-                facts.append({'mot':t,'tentative':s,'types':['majuscule'],'_o':oi,
+                facts.append({'mot':t,'tentative':s,'types':['majuscule'],'_o':oi,'_ti':ti,'_sj':sj,
                               'msg':(f'« {s} » → « {t} » : il manque la majuscule.' if manque else f'« {s} » → « {t} » : pas de majuscule ici.')})
-            continue
-        if op=='del':
-            facts.append({'mot':t,'types':['omission'],'_o':oi,'msg':f'Mot oublié : « {t} ».'}); continue
-        types=diag_word(t,s,fam.get(t.lower(),[]))
-        if ti>=1 and is_liaison(T[ti-1],t,s): types=['liaison']   # consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
-        _muet=False
-        _pnv=paire_nombre_verbale(t,s) if 'accord' not in types else None
-        if _pnv:                                                  # croisement Excuse My French : « ils mange » pour « ils mangent » HORS famille curée
-            _gv=governor_number(T,ti,skip_pp=True)                #  → c'est un ACCORD (morphosyntaxique), pas une « lettre muette » lexicale
-            _want='pl' if len(deacc(t))>len(deacc(s)) else 'sg'      # NUM_PRON/NUM_DET valent 'pl'/'sg'
-            if _gv and _gv[1]==_want:
-                types=[x for x in types if x not in ('muette','ajout')]+['accord']
-                _nx=T[ti+1] if ti+1<len(T) else ''
-                _muet=_pnv[1] and not (_nx[:1].lower() in 'aeiouyhàâéèêëîïôöùûü')   # liaison possible → la marque peut s'entendre
-        fact={'mot':t,'tentative':s,'types':types,'_o':oi,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
-        if any(x in types for x in ('ajout','muette','voisee_sourde')):   # la lettre en trop, oubliée ou échangée S'ENTEND-elle ? (lot 3, miroir app)
-            _dm=diff_muette(s,t)
-            if _dm is None and 'accord' in types:       # -e/-ent d'un verbe ACCORDÉ : la paire de nombre dit si la marque s'entend (miroir app)
-                _pv=paire_nombre_verbale(t,s)
-                if _pv: _dm=_pv[1]
-            if _dm is not None: fact['audible']=not _dm
-        if _muet: fact['audible']=False; fact['msg']+=' (marque MUETTE : ça ne s\'entend pas, c\'est l\'accord qui le dit)'
-        if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte)
-            if is_participle(T,ti):                            # (1) PARTICIPE PASSÉ
-                aux=find_aux(T,ti); fact['accord_type']='participe'
-                if aux=='etre':
-                    gov=governor_number(T,ti,skip_pp=True)     # (2) accord avec le SUJET (à distance)
-                    fact['grammaire']='participe passé (être)'
-                    if gov: fact['gouverneur'],fact['gouv_nombre']=gov[0],gov[1]; fact['msg']+=f' (participe passé avec être : accord avec le sujet « {gov[0]} » {gov[1]})'
-                    else:   fact['msg']+=' (participe passé avec être : accord avec le sujet)'
-                elif aux=='avoir':
-                    fact['grammaire']='participe passé (avoir)'
-                    cod=find_cod_antepose(T,ti)               # COD antéposé (relatif « que ») → accord ; sinon invariable
-                    if cod:
-                        if cod[1]: fact['gouv_genre']=cod[1]
-                        if cod[2]: fact['gouv_nombre']=cod[2]
-                        fact['cod_antepose']=cod[0]
-                        marq=[m for m in (('féminin' if cod[1]=='f' else 'masculin') if cod[1] else None,
-                                          ('pluriel' if cod[2]=='pl' else 'singulier') if cod[2] else None) if m]
-                        det=(' '+' '.join(marq)) if marq else ''
-                        fact['msg']+=f' (participe passé avec avoir : COD antéposé « {cod[0]} »{det} → accorder « {t} »)'
+        else:
+            types=diag_word(t,s,fam.get(t.lower(),[])); av[2]='autre' not in types   # un mot sans rapport ne fait pas de paire à trait d'union (miroir app)
+            if ti>=1 and is_liaison(T[ti-1],t,s): types=['liaison']   # consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
+            _muet=False
+            _pdet = re.sub(r"^[a-zà-ÿ]+'", '', T[ti-1].lower()) if ti>0 else ''
+            _apres_det = bool(_pdet) and (_pdet in NUM_DET or _pdet in GEN_DET or _pdet=='aux')   # le mot dicté suit un déterminant (« d'une » compris) : c'est un NOM (miroir app)
+            _pnv=paire_nombre_verbale(t,s) if ('accord' not in types and not any(x.startswith('homophone') for x in types) and not _apres_det) else None   # lot 4 : jamais sur un homophone curé (« surent » pour « sur »), ni sur un nom
+            if _pnv:                                                  # croisement Excuse My French : « ils mange » pour « ils mangent » HORS famille curée
+                _gv=governor_number(T,ti,skip_pp=True)                #  → c'est un ACCORD (morphosyntaxique), pas une « lettre muette » lexicale
+                _want='pl' if len(deacc(t))>len(deacc(s)) else 'sg'      # NUM_PRON/NUM_DET valent 'pl'/'sg'
+                if _gv and _gv[1]==_want:
+                    types=[x for x in types if x not in ('muette','ajout')]+['accord']
+                    _nx=T[ti+1] if ti+1<len(T) else ''
+                    _muet=_pnv[1] and not (_nx[:1].lower() in 'aeiouyhàâéèêëîïôöùûü')   # liaison possible → la marque peut s'entendre
+            if _apres_det and 'accord' in types and s.lower().endswith('nt') and not t.lower().endswith('nt'):   # lot 4 : un NOM écrit avec le -nt d'un verbe n'est pas un accord (miroir app)
+                types=['homophone_lex' if x=='accord' else x for x in types]
+            fact={'mot':t,'tentative':s,'types':types,'_o':oi,'_ti':ti,'_sj':sj,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
+            if any(x in types for x in ('ajout','muette','voisee_sourde')):   # la lettre en trop, oubliée ou échangée S'ENTEND-elle ? (lot 3, miroir app)
+                _dm=diff_muette(s,t)
+                if _dm is None and 'accord' in types:       # -e/-ent d'un verbe ACCORDÉ : la paire de nombre dit si la marque s'entend (miroir app)
+                    _pv=paire_nombre_verbale(t,s)
+                    if _pv: _dm=_pv[1]
+                if _dm is not None: fact['audible']=not _dm
+            if _muet: fact['audible']=False; fact['msg']+=' (marque MUETTE : ça ne s\'entend pas, c\'est l\'accord qui le dit)'
+            if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte) — note vérifiée par _note_ok (lot 4, miroir app)
+                if is_participle(T,ti):                            # (1) PARTICIPE PASSÉ
+                    aux=find_aux(T,ti); fact['accord_type']='participe'
+                    if aux=='etre':
+                        gov=governor_number(T,ti,skip_pp=True)     # (2) accord avec le SUJET (à distance)
+                        fact['grammaire']='participe passé (être)'
+                        if not gov: fact['note']=['pp-etre','']; fact['msg']+=' (participe passé avec être : accord avec le sujet)'
+                        elif _note_ok('pp-etre',gov[1],t,s):
+                            fact['gouverneur'],fact['gouv_nombre']=gov[0],gov[1]; fact['note']=['pp-etre',gov[0]]
+                            fact['msg']+=f' (participe passé avec être : accord avec le sujet « {gov[0]} » {gov[1]})'
+                    elif aux=='avoir':
+                        fact['grammaire']='participe passé (avoir)'
+                        cod=find_cod_antepose(T,ti)               # COD antéposé (relatif « que ») → accord ; sinon invariable
+                        if cod:
+                            if _note_ok('pp-avoir-cod',[cod[1],cod[2]],t,s):
+                                if cod[1]: fact['gouv_genre']=cod[1]
+                                if cod[2]: fact['gouv_nombre']=cod[2]
+                                fact['cod_antepose']=cod[0]; fact['note']=['pp-avoir-cod',cod[0]]
+                                marq=[m for m in (('féminin' if cod[1]=='f' else 'masculin') if cod[1] else None,
+                                                  ('pluriel' if cod[2]=='pl' else 'singulier') if cod[2] else None) if m]
+                                det=(' '+' '.join(marq)) if marq else ''
+                                fact['msg']+=f' (participe passé avec avoir : COD antéposé « {cod[0]} »{det} → accorder « {t} »)'
+                        elif _note_ok('pp-avoir-inv',None,t,s):
+                            fact['note']=['pp-avoir-inv','']; fact['msg']+=' (participe passé avec avoir : invariable, COD placé après)'
                     else:
-                        fact['msg']+=' (participe passé avec avoir : invariable, COD placé après)'
+                        fact['grammaire']='participe passé'; fact['note']=['pp','']; fact['msg']+=' (participe passé)'
+                elif not _nature_er(t,s):                          # -er / -é / -ez hors participe : la forme du verbe — pas de gouverneur (miroir app)
+                    verb=is_verb(T,ti) or (_pnv is not None) or (paire_nombre_verbale(t,s) is not None)   # un nom écrit en -nt est déjà rangé homophone plus haut (lot 4, miroir app) : « la tablent » est un nom (lot 4, miroir app)
+                    at=accord_type(t,s,verb); fact['accord_type']=at
+                    if at=='genre' and not verb:                  # chaîne du GN : ACCORD EN GENRE (« une robe vert »)
+                        gg=governor_gender(T,ti) or lexical_gender(T,ti)   # déterminant genré, sinon route lexicale (nom-tête)
+                        fact['grammaire']='groupe nominal (genre)'
+                        if _note_ok('genre', gg[1] if gg else None, t, s):
+                            if gg:
+                                gl='féminin' if gg[1]=='f' else 'masculin'
+                                fact['gouverneur'],fact['gouv_genre']=gg[0],gg[1]; fact['note']=['genre',gg[0]]
+                                fact['msg']+=f' (accord en genre : « {gg[0]} » {gl} → accorder « {t} »)'
+                            else:
+                                fact['note']=['genre','']; fact['msg']+=' (accord en genre)'
+                    else:
+                        gov=governor_number(T,ti,skip_pp=verb)     # (2) verbe → vrai sujet (saute les PP)
+                        k='sv' if verb else 'gn'
+                        if gov and _note_ok(k,gov[1],t,s):
+                            rel='sujet-verbe' if verb else 'groupe nominal'
+                            fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel; fact['note']=[k,gov[0]]
+                            fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
+                        else:
+                            fact['msg']+=f' (accord: {at})'
+            facts.append(fact)
+        # TRAIT D'UNION (lot 4) : deux mots de suite dont le séparateur écrit n'est pas celui dicté (trait d'union ↔ espace) = un découpage ;
+        # une chaîne (« a t il ») reste UN fait. MIROIR app diagnoseSentence.
+        if prec is not None and prec[2] and av[2] and prec[0]==ti-1 and prec[1]==sj-1:
+            sa=ST[ti-1] if 0<=ti-1<len(ST) else None; sb=SS[sj-1] if 0<=sj-1<len(SS) else None
+            if sa and sb and sa!=sb and (sa=='-' or sb=='-') and sa!='p' and sb!='p':
+                if pseg is not None and pseg['_te']==ti-1 and pseg['_se']==sj-1:
+                    pseg['mot']+=sa+t; pseg['tentative']+=sb+s; pseg['_te']=ti; pseg['_se']=sj
                 else:
-                    fact['grammaire']='participe passé'; fact['msg']+=' (participe passé)'
-            else:
-                verb=is_verb(T,ti) or (_pnv is not None) or (paire_nombre_verbale(t,s) is not None)   # nom/verbe par le contexte, ou paire de nombre VERBALE — même quand la famille curée porte l'accord (lot 3, miroir app)
-                at=accord_type(t,s,verb); fact['accord_type']=at
-                if at=='genre' and not verb:                  # chaîne du GN : ACCORD EN GENRE (« une robe vert »)
-                    gg=governor_gender(T,ti) or lexical_gender(T,ti)   # déterminant genré, sinon route lexicale (nom-tête)
-                    if gg:
-                        gl='féminin' if gg[1]=='f' else 'masculin'
-                        fact['gouverneur'],fact['gouv_genre'],fact['grammaire']=gg[0],gg[1],'groupe nominal (genre)'
-                        fact['msg']+=f' (accord en genre : « {gg[0]} » {gl} → accorder « {t} »)'
-                    else:
-                        fact['grammaire']='groupe nominal (genre)'; fact['msg']+=' (accord en genre)'
-                else:
-                    gov=governor_number(T,ti,skip_pp=verb)     # (2) verbe → vrai sujet (saute les PP)
-                    if gov:
-                        rel='sujet-verbe' if verb else 'groupe nominal'
-                        fact['gouverneur'],fact['gouv_nombre'],fact['grammaire']=gov[0],gov[1],rel
-                        fact['msg']+=f' (accord {rel} : « {gov[0]} » {gov[1]} → accorder « {t} »)'
-                    else:
-                        fact['msg']+=f' (accord: {at})'
-        facts.append(fact)
+                    pseg={'mot':T[ti-1]+sa+t,'tentative':S[sj-1]+sb+s,'types':['segmentation'],'_o':-2,'_te':ti,'_se':sj}; facts.append(pseg)
+                pseg['msg']=f"« {pseg['tentative']} » → « {pseg['mot']} » : segmentation"
     # MOTS COLLÉS, MOTS COUPÉS (lot 3, 14/09/2026) : deux faits VOISINS dans l'alignement dont les lettres recollées font le même mot
-    # = UN découpage (« vontchercher » n'est ni « mot oublié : vont » ni « lettre en trop »). MIROIR app diagnoseSentence.
+    # = UN découpage (« vontchercher » n'est ni « mot oublié : vont » ni « lettre en trop »). Lot 4 : recollés avec le VRAI séparateur.
+    # MIROIR app diagnoseSentence.
     def cle(x): return re.sub(r"['’\- ]", '', deacc((x or '').lower()))
+    def sp(A,i): return '-' if (i is not None and 0<=i<len(A) and A[i]=='-') else ' '
     def seg(e, m): return {'mot': m, 'tentative': e, 'types': ['segmentation'], 'msg': f'« {e} » → « {m} » : segmentation'}
     G=[]; z=0
     while z < len(facts):
         a0=facts[z]; b0=facts[z+1] if z+1 < len(facts) else None
         if b0 is not None and b0['_o']==a0['_o']+1:
             sa='tentative' in a0 and 'mot' in a0; sb='tentative' in b0 and 'mot' in b0
-            if a0['types'][0]=='omission' and sb and cle(b0['tentative'])==cle(a0['mot']+b0['mot']): G.append(seg(b0['tentative'], a0['mot']+' '+b0['mot'])); z+=2; continue
-            if b0['types'][0]=='omission' and sa and cle(a0['tentative'])==cle(a0['mot']+b0['mot']): G.append(seg(a0['tentative'], a0['mot']+' '+b0['mot'])); z+=2; continue
-            if a0['types'][0]=='mot_en_trop' and sb and cle(a0['mot']+b0['tentative'])==cle(b0['mot']): G.append(seg(a0['mot']+' '+b0['tentative'], b0['mot'])); z+=2; continue
-            if b0['types'][0]=='mot_en_trop' and sa and cle(a0['tentative']+b0['mot'])==cle(a0['mot']): G.append(seg(a0['tentative']+' '+b0['mot'], a0['mot'])); z+=2; continue
+            if a0['types'][0]=='omission' and sb and cle(b0['tentative'])==cle(a0['mot']+b0['mot']): G.append(seg(b0['tentative'], a0['mot']+sp(ST,a0.get('_ti'))+b0['mot'])); z+=2; continue
+            if b0['types'][0]=='omission' and sa and cle(a0['tentative'])==cle(a0['mot']+b0['mot']): G.append(seg(a0['tentative'], a0['mot']+sp(ST,a0.get('_ti'))+b0['mot'])); z+=2; continue
+            if a0['types'][0]=='mot_en_trop' and sb and cle(a0['mot']+b0['tentative'])==cle(b0['mot']): G.append(seg(a0['mot']+sp(SS,a0.get('_sj'))+b0['tentative'], b0['mot'])); z+=2; continue
+            if b0['types'][0]=='mot_en_trop' and sa and cle(a0['tentative']+b0['mot'])==cle(a0['mot']): G.append(seg(a0['tentative']+sp(SS,a0.get('_sj'))+b0['mot'], a0['mot'])); z+=2; continue
         G.append(a0); z+=1
-    for f in G: f.pop('_o', None)
+    for f in G:
+        for k in ('_o','_ti','_sj','_te','_se'): f.pop(k, None)
     return G
 
 # === Diagnostic DÉVELOPPEMENTAL (stades) — additif, réutilise diag_word ===
@@ -424,12 +506,12 @@ def cas_accent(T, fam):
 def cas_accord(T, fam):
     for w in T:
         for h in fam.get(w.lower(), []):
-            if is_accord(w, h): return [h if t == w else t for t in T]
+            if is_accord(w, h) and not _homo_gram(w, h): return [h if t == w else t for t in T]   # lot 4 : et/est n'est pas un accord
     return None
 def cas_homophone(T, fam):
     for w in T:
         for h in fam.get(w.lower(), []):
-            if not is_accord(w, h) and deacc(h) != deacc(w.lower()): return [h if t == w else t for t in T]
+            if not is_accord(w, h) and not _nature_er(w, h) and deacc(h) != deacc(w.lower()): return [h if t == w else t for t in T]   # lot 4 : -er/-é/-ez est la forme du verbe
     return None
 def cas_omission(T, fam):
     if len(T) > 3:
@@ -462,7 +544,17 @@ def cas_coupe(T, fam):           # lot 3 : un mot coupé en deux (« bienveillan
     for i, w in enumerate(T):
         if len(w) >= 8 and w.isalpha(): return T[:i]+[w[:4], w[4:]]+T[i+1:]
     return None
-CAS_GENERATEURS = [('accent', cas_accent), ('accord', cas_accord), ('homophone', cas_homophone),
+def cas_mot_outil(T, fam):       # lot 4 : un mot-outil remplacé par son homophone qui ne diffère que par s/e/t (sur → sure, et → est) — pas un accord
+    for i, w in enumerate(T):
+        for h in fam.get(w.lower(), []):
+            if h.lower() != w.lower() and _homo_gram(w, h) and is_accord(w, h): return T[:i]+[h]+T[i+1:]
+    return None
+def cas_terminaison(T, fam):     # lot 4 : -er / -é / -ez du même verbe (joué → jouer) — la forme du verbe, pas un homophone lexical
+    for i, w in enumerate(T):
+        for h in fam.get(w.lower(), []):
+            if _nature_er(w, h): return T[:i]+[h]+T[i+1:]
+    return None
+CAS_GENERATEURS = [('accent', cas_accent), ('accord', cas_accord), ('homophone', cas_homophone), ('mot_outil', cas_mot_outil), ('terminaison', cas_terminaison),
                     ('omission', cas_omission), ('surface', cas_surface), ('ajout_muet', cas_ajout_muet),
                     ('lettre_oubliee', cas_lettre_oubliee), ('colle', cas_colle), ('coupe', cas_coupe)]
 
@@ -470,17 +562,27 @@ if len(sys.argv) > 1 and sys.argv[1] == '--dump-cas':
     # Dump JSON des cas générés + diagnostic Python, pour la parité Python↔JS (parity_diag.js).
     SENT = json.load(open(os.path.join(HERE, 'sentences.json'), encoding='utf-8'))
     out = []
+    def cas(e, eleve, nom):
+        f = diagnose_sentence(e['text'], eleve, e['fam'])
+        types = sorted(set(ty for x in f for ty in x['types']))
+        aud = sorted(([x['mot'], x['audible']] for x in f if 'audible' in x), key=lambda v: v[0] + '|' + ('true' if v[1] else 'false'))
+        notes = sorted(([x['mot'], x['note'][0], x['note'][1]] for x in f if 'note' in x), key=lambda v: '|'.join(v))
+        segs = sorted(([x.get('tentative', ''), x['mot']] for x in f if x['types'][0] == 'segmentation'), key=lambda v: '|'.join(v))
+        out.append({'cible': e['text'], 'eleve': eleve, 'fam': e['fam'], 'famille_visee': nom, 'types': types,
+                    'audible': aud, 'stade': developmental_diagnosis(f)['stade'], 'notes': notes, 'segs': segs})
+    TRAIT = re.compile(r'([A-Za-zÀ-ÿ])-([A-Za-zÀ-ÿ])')
     for e in SENT:
         T = toks(e['text']); fam = e['fam']
         for nom, gen in CAS_GENERATEURS:
             S = gen(T, fam)
             if S is None: continue
-            eleve = ' '.join(S)
-            f = diagnose_sentence(e['text'], eleve, fam)
-            types = sorted(set(ty for x in f for ty in x['types']))
-            aud = sorted(([x['mot'], x['audible']] for x in f if 'audible' in x), key=lambda v: v[0] + '|' + ('true' if v[1] else 'false'))
-            out.append({'cible': e['text'], 'eleve': eleve, 'fam': fam, 'famille_visee': nom, 'types': types,
-                        'audible': aud, 'stade': developmental_diagnosis(f)['stade']})
+            cas(e, joindre(e['text'], S), nom)
+        if TRAIT.search(e['text']):                      # lot 4 : le trait d'union oublié (espace) ou collé, et le mot fautif dans la paire
+            cas(e, TRAIT.sub(r'\1 \2', e['text']), 'trait_espace')
+            cas(e, TRAIT.sub(r'\1\2', e['text']), 'trait_colle')
+        # un trait d'union EN TROP entre les deux premiers mots de la phrase
+        m = re.match(r"([A-Za-zÀ-ÿœŒ'’ʼ]+) ([A-Za-zÀ-ÿœŒ'’ʼ]+)", e['text'])
+        if m: cas(e, m.group(1) + '-' + m.group(2) + e['text'][m.end():], 'trait_en_trop')
     print(json.dumps(out, ensure_ascii=False))
     sys.exit(0)
 
@@ -495,20 +597,20 @@ if __name__=='__main__':
         T=toks(e['text']); fam=e['fam']
         S=cas_accent(T,fam)
         if S is not None:
-            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('accent', any('accent' in x['types'] for x in f))
+            f=diagnose_sentence(e['text'],joindre(e['text'],S),fam); rec('accent', any('accent' in x['types'] for x in f))
         S=cas_accord(T,fam)
         if S is not None:
-            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('accord', any('accord' in x['types'] for x in f))
+            f=diagnose_sentence(e['text'],joindre(e['text'],S),fam); rec('accord', any('accord' in x['types'] for x in f))
         S=cas_homophone(T,fam)
         if S is not None:
-            f=diagnose_sentence(e['text'],' '.join(S),fam)
+            f=diagnose_sentence(e['text'],joindre(e['text'],S),fam)
             rec('homophone', any(ty.startswith('homophone') for x in f for ty in x['types']))
         S=cas_omission(T,fam)
         if S is not None:
-            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('omission', any('omission' in x['types'] for x in f))
+            f=diagnose_sentence(e['text'],joindre(e['text'],S),fam); rec('omission', any('omission' in x['types'] for x in f))
         S=cas_surface(T,fam)
         if S is not None:
-            f=diagnose_sentence(e['text'],' '.join(S),fam); rec('surface', any('surface' in x['types'] for x in f))
+            f=diagnose_sentence(e['text'],joindre(e['text'],S),fam); rec('surface', any('surface' in x['types'] for x in f))
     print('=== rappel par famille (dictée de phrases, 30 phrases) ===')
     for k in sorted(tot): print(f'  {k:11} {ok[k]}/{tot[k]}  = {ok[k]/tot[k]*100:.0f}%')
 
@@ -528,12 +630,12 @@ if __name__=='__main__':
     def first_lexical(T,fam):   # homophone LEXICAL (non flexionnel ET non grammatical : ver/vert, pas son/sont)
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
-                if h.lower()!=w.lower() and not is_accord(w,h) and deacc(h)!=deacc(w.lower()) and not _homo_gram(w,h) and not re.search(r"[- ']", h): return T[:i]+[h]+T[i+1:]   # lot 3 : « long-temps » n'est pas un homophone lexical, c'est un DÉCOUPAGE
+                if h.lower()!=w.lower() and not is_accord(w,h) and not _nature_er(w,h) and deacc(h)!=deacc(w.lower()) and not _homo_gram(w,h) and not re.search(r"[- ']", h): return T[:i]+[h]+T[i+1:]   # lot 3 : « long-temps » n'est pas un homophone lexical, c'est un DÉCOUPAGE
         return None
     def first_morpho(T,fam):    # accord (flexionnel) = grammaire
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
-                if h.lower()!=w.lower() and is_accord(w,h): return T[:i]+[h]+T[i+1:]
+                if h.lower()!=w.lower() and is_accord(w,h) and not _homo_gram(w,h): return T[:i]+[h]+T[i+1:]
         return None
     builders={'phonologique':first_vs_swap,'alphabetique':first_surface,'lexical':first_lexical,'morphosyntaxique':first_morpho}
     print('=== diagnostic par STADE (élève "pur" par stade) ===')
@@ -541,7 +643,7 @@ if __name__=='__main__':
         facts_all=[]
         for e in SENT:
             T=toks(e['text']); S=build(T,e['fam'])
-            if S: facts_all+=[f for f in diagnose_sentence(e['text'],' '.join(S),e['fam']) if f.get('types')]
+            if S: facts_all+=[f for f in diagnose_sentence(e['text'],joindre(e['text'],S),e['fam']) if f.get('types')]
         dx=developmental_diagnosis(facts_all)
         flag='OK' if dx['stade']==exp else 'X'
         extra=''
@@ -557,7 +659,7 @@ if __name__=='__main__':
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
                 if h.lower()!=w.lower() and is_accord(w,h):
-                    f=diagnose_sentence(e['text'],' '.join(T[:i]+[h]+T[i+1:]),fam)
+                    f=diagnose_sentence(e['text'],joindre(e['text'],T[:i]+[h]+T[i+1:]),fam)
                     fa=next((x for x in f if x.get('mot')==w and 'accord' in x.get('types',[])),None)
                     if fa:
                         gv_tot+=1; gv_ok+=1 if fa.get('grammaire') else 0
@@ -582,7 +684,7 @@ if __name__=='__main__':
             if not is_participle(T,i): continue
             for h in fam.get(w.lower(),[]):
                 if h.lower()!=w.lower() and is_accord(w,h):
-                    f=diagnose_sentence(e['text'],' '.join(T[:i]+[h]+T[i+1:]),fam)
+                    f=diagnose_sentence(e['text'],joindre(e['text'],T[:i]+[h]+T[i+1:]),fam)
                     fa=next((x for x in f if x.get('mot')==w),None)
                     if fa: pp_tot+=1; pp_ok+=1 if fa.get('grammaire','').startswith('participe') else 0
                     break
@@ -594,7 +696,7 @@ if __name__=='__main__':
     print("  participe (avoir) COD antéposé/postposé :")
     for txt,part,bad,anteposed in pp_cases:
         T=toks(txt); i=[k for k,w in enumerate(T) if w.lower()==part.lower()][0]
-        f=diagnose_sentence(txt,' '.join(T[:i]+[bad]+T[i+1:]),{part.lower():[bad,part]})
+        f=diagnose_sentence(txt,joindre(txt,T[:i]+[bad]+T[i+1:]),{part.lower():[bad,part]})
         fa=next((x for x in f if x.get('mot')==part),None)
         got=bool(fa and fa.get('cod_antepose')); flag='✓' if got==anteposed else '✗'
         info=(f"COD antéposé « {fa.get('cod_antepose')} » g={fa.get('gouv_genre')} n={fa.get('gouv_nombre')}" if got else "invariable") if fa else "(non diagnostiqué)"
@@ -612,7 +714,7 @@ if __name__=='__main__':
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
                 if h.lower()!=w.lower() and is_accord(w,h):
-                    f=diagnose_sentence(e['text'],' '.join(T[:i]+[h]+T[i+1:]),fam)
+                    f=diagnose_sentence(e['text'],joindre(e['text'],T[:i]+[h]+T[i+1:]),fam)
                     fa=next((x for x in f if x.get('mot')==w and x.get('accord_type')=='genre'),None)
                     if fa:
                         marked=any(T[j].lower() in GEN_DET for j in range(i)) and governor_gender(T,i) is not None
@@ -632,7 +734,7 @@ if __name__=='__main__':
     for txt,adj,bad,exp in lex_cases:
         T=toks(txt); i=[k for k,w in enumerate(T) if w.lower()==adj.lower()][0]
         det=governor_gender(T,i); lex=lexical_gender(T,i)            # déterminant seul (None) vs route lexicale
-        f=diagnose_sentence(txt,' '.join(T[:i]+[bad]+T[i+1:]),{adj.lower():[bad,adj]})
+        f=diagnose_sentence(txt,joindre(txt,T[:i]+[bad]+T[i+1:]),{adj.lower():[bad,adj]})
         fa=next((x for x in f if x.get('mot')==adj),None)
         got=fa.get('gouv_genre') if fa else None
         flag=('· lexique absent' if not GENDER_LEX else ('✓' if got==exp else '✗'))

@@ -20,6 +20,8 @@
 //   6) lot 2 : les cartes du site et la copie du panneau.
 //   7) lot 3 : la DICTÉE — le retour que check() écrit (faits, stade, conseils), exécuté tel quel : le mot oublié est dit, une lettre
 //      muette ou qui s'entend est nommée comme telle (le stade et le conseil suivent), les mots collés/coupés sont un découpage.
+//   8) lot 4 : les NOTES de grammaire de la dictée ne contredisent jamais la forme attendue (balayage des 333 phrases), et/est n'est
+//      pas un accord, -er/-é/-ez est la forme du verbe, un trait d'union oublié ou en trop est vu.
 //   node dictee/textes_probe.js            (sortie 1 = rouge)
 'use strict';
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
@@ -349,7 +351,7 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
   const s1 = app.indexOf('if(!ok){var dev=developmental(SESSF);', ck), s2 = app.indexOf('}', app.indexOf("remedBlock(SESSF,'vdd-fact');", s1)) + 1;
   if (ck < 0 || m1 < 0 || s1 < 0 || m1 > s1) fail('dictée : le rendu de check() est introuvable (faits ' + m1 + ', stade ' + s1 + ')');
   else {
-    const code = app.slice(start, cut) + ';globalThis.__DICTEE={diagnose:diagnoseSentence,rendre:function(F,SESSF,nT){var html="",ok=F.length===0;html=' + app.slice(m1 + 1, m2) + ';' + app.slice(s1, s2) + 'return html;}};})();';
+    const code = app.slice(start, cut) + ';globalThis.__DICTEE={diagnose:diagnoseSentence,homoGram:homoGram,natureEr:(typeof _natureEr==="function"?_natureEr:null),rendre:function(F,SESSF,nT){var html="",ok=F.length===0;html=' + app.slice(m1 + 1, m2) + ';' + app.slice(s1, s2) + 'return html;}};})();';
     try { globalThis.OMEGA_VDC = require(path.join(__dirname, 'blobgz')).vdcSeed(app); } catch (e) {}
     const blob = (id) => { const m = app.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; };
     const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'), 'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
@@ -383,6 +385,95 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
     for (const faux of ["x.msg.replace(/: [^:]*$/,': <b>'+tags+'</b>')", "phonologique:'le mot n’est pas encore bien ENTENDU", "alphabetique:'le son est juste, la graphie non", "alphabetique:'alphabétique (écrit au son)'"])
       if (app.indexOf(faux) >= 0) fail('app (dictée) : texte ou rendu faux encore présent — « ' + faux + ' »');
     console.log('  ✓ dictée : mot oublié dit, lettre muette / qui s’entend nommée (stade et conseil suivent), mots collés/coupés = découpage (' + CASD.length + ' phrases)');
+  }
+}
+
+// 8) lot 4 (14/09/2026) — les NOTES de la dictée. Chaque homophone curé de chaque mot des 333 phrases substitué (5 318 cas) : 356 notes
+//    de grammaire contredisaient la forme attendue (« « La » féminin → accorder « sur » », « « ma » (singulier) → accorder « arrivés » »),
+//    532 mots-outils (et/est, sur/sure) étaient rangés « accord », 196 -er/-é/-ez « homophone lexical : le SENS tranche », et « La grand
+//    mère tricote » passait pour « ✓ Phrase correcte ». Corpus de la dictée (public) ; la note est confrontée à la marque attendue.
+{
+  const X = globalThis.__DICTEE;
+  if (!X || !X.natureEr) fail('dictée (lot 4) : moteur de la dictée non chargé ou _natureEr absent');
+  else {
+    const SENT = JSON.parse(fs.readFileSync(path.join(__dirname, 'sentences.json'), 'utf8'));
+    const low = (x) => String(x || '').toLowerCase();
+    const contredit = (g, t, s) => {   // la note contredit-elle la forme attendue t (écrit s) ? — même lecture que la mesure du lot
+      let m;
+      if ((m = /accord en genre : « [^»]+ » (féminin|masculin) → accorder/.exec(g))) {
+        if (m[1] === 'féminin' && !/e(s)?$/.test(t)) return 'genre féminin, attendu sans -e';
+        if (m[1] === 'masculin' && /e(s)?$/.test(t) && !/e(s)?$/.test(s)) return 'genre masculin, attendu en -e';
+      }
+      if ((m = /accord dans le groupe nominal : « [^»]+ » (pluriel|singulier) → accorder/.exec(g))) {
+        if (m[1] === 'pluriel' && !/[sx]$/.test(t)) return 'GN pluriel, attendu sans -s/-x';
+        if (m[1] === 'singulier' && /[sx]$/.test(t) && !/[sx]$/.test(s)) return 'GN singulier, attendu avec -s/-x';
+      }
+      if ((m = /accord sujet-verbe : « [^»]+ » (pluriel|singulier) → accorder/.exec(g))) {
+        if (m[1] === 'pluriel' && !/(nt|ons|ez|mes|tes)$/.test(t)) return 'sujet pluriel, verbe attendu sans marque du pluriel';
+        if (m[1] === 'singulier' && /nt$/.test(t)) return 'sujet singulier, verbe attendu en -nt';
+      }
+      if ((m = /participe passé avec être : accord avec le sujet « [^»]+ » \((pluriel|singulier)\)/.exec(g))) {
+        if (m[1] === 'singulier' && /[sx]$/.test(t)) return 'participe : sujet singulier, attendu au pluriel';
+        if (m[1] === 'pluriel' && !/[sx]$/.test(t)) return 'participe : sujet pluriel, attendu sans -s';
+      }
+      if (/participe passé avec avoir : invariable/.test(g) && /(ée|ées|és|ie|ies|ue|ues|us|te|tes|ts|se|ses)$/.test(t)) return '« invariable », attendu accordé';
+      return null;
+    };
+    const apresDet = (phrase, mot) => new RegExp("(^|[\\s'’])(le|la|les|l|un|une|des|du|au|aux|mon|ton|son|ma|ta|sa|mes|tes|ses|nos|vos|notre|votre|leur|leurs|ce|cet|cette|ces)[\\s'’]+" + String(mot).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + "(?![A-Za-zÀ-ÿ])", 'i').test(phrase);   // le mot attendu suit un déterminant : c'est un nom
+    let nSub = 0, nNote = 0; const pb = {};
+    const note = (k, v) => { (pb[k] = pb[k] || []).push(v); };
+    for (const e of SENT) {
+      const re = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g; let m; const tk = [];
+      while ((m = re.exec(e.text))) tk.push([m.index, m.index + m[0].length, m[0]]);
+      for (const [a, b, w] of tk) for (const h of (e.fam[w] || [])) {
+        if (low(h) === low(w)) continue;
+        const eleve = e.text.slice(0, a) + h + e.text.slice(b);
+        let F; try { F = X.diagnose(e.text, eleve, e.fam); } catch (err) { note('le moteur a levé', eleve + ' : ' + err.message); continue; }
+        nSub++;
+        for (const f of F) {
+          if (!f.mot || !f.ecrit) continue;
+          if (f.gram) { nNote++; const c = contredit(f.gram, low(f.mot), low(f.ecrit)); if (c) note('note contradictoire (' + c + ')', '« ' + eleve + ' » → ' + f.gram);
+            if (/^accord sujet-verbe/.test(f.gram) && apresDet(e.text, f.mot)) note('« accord sujet-verbe » sur un NOM (après un déterminant)', '« ' + eleve + ' » → ' + f.gram); }
+          if (f.types.indexOf('accord') >= 0 && X.homoGram(f.mot, f.ecrit)) note('mot-outil rangé « accord »', '« ' + eleve + ' » : ' + f.ecrit + ' → ' + f.mot);
+          if (f.types.indexOf('accord') >= 0 && /nt$/.test(low(f.ecrit)) && !/nt$/.test(low(f.mot)) && apresDet(e.text, f.mot)) note('« accord » sur un NOM écrit avec le -nt d’un verbe', '« ' + eleve + ' » : ' + f.ecrit + ' → ' + f.mot);
+          if (X.natureEr(f.mot, f.ecrit) && f.types.some((y) => /^homophone/.test(y))) note('-er/-é/-ez rangé homophone', '« ' + eleve + ' » : ' + f.ecrit + ' → ' + f.mot);
+        }
+      }
+    }
+    if (nSub < 5000 || nNote < 300) fail('dictée (lot 4) : balayage trop maigre (' + nSub + ' substitutions, ' + nNote + ' notes) — le corpus ou le moteur ont changé ?');
+    // les traits d'union des phrases de la dictée : remplacés par une espace, retirés, ou ajoutés entre deux mots
+    let nTrait = 0;
+    for (const e of SENT) if (/[A-Za-zÀ-ÿ]-[A-Za-zÀ-ÿ]/.test(e.text)) {
+      for (const eleve of [e.text.replace(/([A-Za-zÀ-ÿ])-([A-Za-zÀ-ÿ])/g, '$1 $2'), e.text.replace(/([A-Za-zÀ-ÿ])-([A-Za-zÀ-ÿ])/g, '$1$2')]) {
+        nTrait++;
+        const F = X.diagnose(e.text, eleve, e.fam);
+        if (!F.some((f) => f.types[0] === 'segmentation' && /-/.test(String(f.mot)))) note('trait d’union oublié non vu (ou rendu sans lui)', '« ' + eleve + ' » : ' + JSON.stringify(F.map((f) => [f.ecrit, f.mot, f.types])));
+      }
+    }
+    if (nTrait < 8) fail('dictée (lot 4) : moins de 4 phrases à trait d’union dans le corpus (' + nTrait / 2 + ') — la garde ne voit plus rien');
+    for (const [k, v] of Object.entries(pb)) fail('dictée (lot 4) : ' + v.length + ' × ' + k + ' — ex. ' + v.slice(0, 2).join(' ¶ '));
+    // le rendu de check() sur des phrases de la dictée (public) et inventées
+    const FM = { 'mangé': ['manger', 'mangez', 'mangée', 'mangées', 'mangés'], et: ['est', 'é'], 'arrivés': ['arrivé', 'arrivée', 'arrivées', 'arriver', 'arrivez'] };
+    const texte = (h) => h.replace(/<br>/g, ' ¶ ').replace(/<\/div>/g, ' ¶ ').replace(/<[^>]+>/g, '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    for (const [cible, eleve, fam, oui, non] of [
+      ['La grand-mère tricote un pull chaud.', 'La grand mère tricote un pull chaud.', {}, ['« grand mère » → « grand-mère »', 'il faut un trait d’union'], ['Phrase correcte']],
+      ['La grand-mère tricote un pull chaud.', 'La grandmère tricote un pull chaud.', {}, ['« grandmère » → « grand-mère »', 'il faut un trait d’union'], ['il faut l’espace', '« grand mère »']],
+      ['Il est parti tôt.', 'Il est-parti tôt.', {}, ['« est-parti » → « est parti »', 'ce sont DEUX mots'], []],
+      ['Elle a mangé une pomme.', 'Elle a manger une pomme.', FM, ['terminaison -er / -é / -ez', 'participe passé avec avoir : invariable', 'mordre', 'se prononcent pareil'], ['homophone lexical', 'le SENS', 'c’est l’accord qui la dit', 'lettre muette']],
+      ['Elle a mangé une pomme.', 'Elle a mangée une pomme.', FM, ['participe passé avec avoir : invariable', 'le « e » est en trop'], ['« une » féminin']],
+      ['Il met ses chaussures et son manteau.', 'Il met ses chaussures est son manteau.', FM, ['homophone grammatical'], ['accorder « et »', 'groupe nominal']],
+      ['La mer se calme après la tempête.', 'La mer se calme après la tempêtent.', { 'tempête': ['tempêtent', 'tempêtes'] }, ['homophone lexical'], ['le sujet est au SINGULIER', '« tempêtent » → « tempête » : accord']],
+      ['Mon frère et ma sœur sont arrivés ensemble.', 'Mon frère et ma sœur sont arrivé ensemble.', FM, [], ['« ma » (singulier)']],
+      // un alignement DÉCALÉ ne fabrique pas de paire à trait d'union (phrases et fautes inventées)
+      ['Il a pris deux rendez-vous.', 'Il a pri deu randévou.', {}, [], ['deu randévou']],
+      ['Elle garde ses porte-clés.', 'Elle garde cé portklé.', {}, [], ['cé portklé']],
+    ]) {
+      let h; try { const F = X.diagnose(cible, eleve, fam); h = texte(X.rendre(F, F, 1)); } catch (e) { fail('dictée (lot 4) « ' + eleve + ' » : ' + e.message); continue; }
+      for (const x of oui) if (!has(h, x)) fail('dictée (lot 4) « ' + eleve + ' » (dicté : « ' + cible + ' ») sans « ' + x + ' » — rendu : ' + h);
+      for (const x of non) if (has(h, x)) fail('dictée (lot 4) « ' + eleve + ' » (dicté : « ' + cible + ' ») contient « ' + x + ' » — rendu : ' + h);
+    }
+    if (app.indexOf('Le bon verbe, le bon son') >= 0) fail('app (Conjugue) : « Le bon verbe, le bon son » — un accent manquant ne garantit pas le son (« achete » / « achète »)');
+    console.log('  ✓ dictée (lot 4) : ' + nNote + ' notes de grammaire sur ' + nSub + ' substitutions, aucune ne contredit la forme attendue ; mots-outils, -er/-é/-ez, ' + nTrait + ' traits d’union');
   }
 }
 
