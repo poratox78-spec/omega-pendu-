@@ -198,9 +198,14 @@ jobs:
       # Né d'un échec RÉEL : Search Console « Page avec redirection », validation lancée le 13/08/2026
       # et ÉCHOUÉE le 15/08. Quatre pages étaient liées depuis le menu mais ABSENTES du sitemap, et
       # rien ne le disait. Symétrique : une page « noindex » déclarée au sitemap est un signal
-      # CONTRADICTOIRE, que Google arbitre contre nous.
-      - name: SITE — le sitemap déclare exactement les pages indexables
+      # CONTRADICTOIRE, que Google arbitre contre nous. Depuis le 14/09 : canonical = URL déclarée, et aucun
+      # lien interne vers « .html » (Cloudflare y répond 308 ; 9 liens restaient le 14/09, dont 1 dans nav.js).
+      - name: SITE — le sitemap déclare exactement les pages indexables (+ canonical, liens sans .html)
         run: node dictee/sitemap_probe.js
+      # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le
+      # 14/09/2026 : le mode d'emploi OMEGA·KEY chargeait encore Google Fonts — rien ne vérifiait la promesse.
+      - name: SITE — confidentialité, aucune page ne charge de ressource tierce à l'ouverture
+        run: node dictee/tiers_probe.js
       # Le moteur de calcul vit en DEUX copies : `extension/calc_dys.js` (l'outil rapide) et
       # `calc_dys.js` à la racine (la page /calcul, qui montre comment on pose l'opération). Un
       # fichier recopié sans garde est exactement ce qui a coûté 134 diagnostics le 2026-08-25.

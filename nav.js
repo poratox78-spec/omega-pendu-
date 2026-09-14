@@ -40,7 +40,7 @@
     ['Dyslexia tools', [
       ['correcteur', 'Corrector'],
       ['dictee', 'Dictation'],
-      ['decompose-outil.html', 'Decompose'],
+      ['decompose-outil', 'Decompose'],
     ]],
     ['Play', [
       ['./', 'The Hangman'],
