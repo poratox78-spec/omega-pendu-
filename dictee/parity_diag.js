@@ -27,7 +27,7 @@ try { globalThis.OMEGA_VDC = require(path.join(HERE, 'blobgz')).vdcSeed(html); }
 const i0 = html.indexOf('mode PHRASES'), start = html.indexOf('(function(){', i0);
 const spIdx = html.indexOf('function spellText', start);
 const cut = html.indexOf('return out;}', spIdx) + 'return out;}'.length;
-const code = html.slice(start, cut) + ';globalThis.__C={diagnose:diagnoseSentence,ready:()=>SP.ready};})();';
+const code = html.slice(start, cut) + ';globalThis.__C={diagnose:diagnoseSentence,dev:developmental,ready:()=>SP.ready};})();';
 function blob(id) { const m = html.match(new RegExp('id="' + id + '">([\\s\\S]*?)</script>')); return m ? m[1] : ''; }
 const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
             'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz') };
@@ -41,15 +41,26 @@ const C = globalThis.__C;
 // 3) comparaison — ensemble des `types` déclenchés (même granularité que le self-test Python,
 //    qui teste déjà par `any(fam in x['types'] ...)` : la liste triée, pas l'alignement token-à-token,
 //    qui peut légitimement différer d'ordre entre deux implémentations équivalentes).
+//    Lot 3 (14/09/2026) : aussi l'AUDIBILITÉ de chaque lettre en trop/oubliée/échangée (qui décide du libellé, du stade et du
+//    conseil) et le STADE de la phrase — les deux pipelines pouvaient s'accorder sur les types et dire l'inverse à l'élève.
+const cleAud = (v) => v[0] + '|' + (v[1] ? 'true' : 'false');
 let echecs = [];
 for (const c of cas) {
-  let jsTypes;
-  try { const F = C.diagnose(c.cible, c.eleve, c.fam); jsTypes = Array.from(new Set(F.flatMap(f => f.types || []))).sort(); }
+  let jsTypes, jsAud, jsStade;
+  try { const F = C.diagnose(c.cible, c.eleve, c.fam); jsTypes = Array.from(new Set(F.flatMap(f => f.types || []))).sort();
+        jsAud = F.filter(f => 'audible' in f).map(f => [f.mot, f.audible]).sort((p, q) => cleAud(p) < cleAud(q) ? -1 : cleAud(p) > cleAud(q) ? 1 : 0);
+        const d = C.dev(F); jsStade = d ? d.stade : null; }
   catch (e) { echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee, erreur: 'JS a levé : ' + e.message }); continue; }
   const pyTypes = (c.types || []).slice().sort();
   if (JSON.stringify(jsTypes) !== JSON.stringify(pyTypes))
     echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee, python: pyTypes, js: jsTypes });
+  else if (JSON.stringify(jsAud) !== JSON.stringify(c.audible || []))
+    echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee + ' (audibilité)', python: c.audible, js: jsAud });
+  else if (jsStade !== (c.stade === undefined ? null : c.stade))
+    echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee + ' (stade)', python: c.stade, js: jsStade });
 }
+const parFam = {}; for (const c of cas) parFam[c.famille_visee] = (parFam[c.famille_visee] || 0) + 1;
+console.log('cas par famille visée : ' + Object.entries(parFam).map(([k, v]) => k + ' ' + v).join(' · '));
 console.log('parité dictée Python↔JS : ' + (cas.length - echecs.length) + '/' + cas.length + ' cas identiques');
 if (echecs.length) {
   console.log('\n✗ ' + echecs.length + ' divergence(s) :');

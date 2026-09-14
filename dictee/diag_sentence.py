@@ -164,6 +164,55 @@ def is_liaison(prev, t, s):
     pd = deacc(prev.lower())
     return ds[0] in _LIAISON_LIC and bool(pd) and pd[-1] in _LIAISON_LIC[ds[0]]
 
+def _rd(e, a):
+    """Le segment qui DIFFÈRE, préfixe et suffixe communs retirés → (écrit, attendu, position). MIROIR de _rd (couche dys partagée)."""
+    if not e or not a: return None
+    m = min(len(e), len(a)); p = 0; s = 0
+    while p < m and e[p] == a[p]: p += 1
+    while s < m - p and e[len(e) - 1 - s] == a[len(a) - 1 - s]: s += 1
+    return (e[p:len(e) - s], a[p:len(a) - s], p)
+
+_DM_ACC = str.maketrans({'è': 'e', 'ê': 'e', 'ë': 'e', 'à': 'a', 'â': 'a', 'ä': 'a', 'î': 'i', 'ï': 'i', 'ô': 'o', 'ö': 'o',
+                         'ù': 'u', 'û': 'u', 'ü': 'u', 'ç': 'c', '’': "'"})
+_DM_V = 'aeiouyé'
+_DM_E = re.compile(r'^(é|ée|és|ées|er|ez|ai)$')
+_FIN_SONORE = {'as', 'atlas', 'aout', 'bonus', 'brut', 'bus', 'but', 'cet', 'cactus', 'campus', 'cap', 'chut', 'dix', 'est', 'express', 'fils', 'gaz', 'hélas', 'huit', 'index', 'jadis', 'lis', 'lynx', 'mars', 'net', 'os', 'ours', 'ouest', 'plus', 'sens', 'sept', 'six', 'stop', 'sud', 'tennis', 'top', 'tous', 'virus', 'vis', 'zut'}   # consonne finale PRONONCÉE ou prononciation hésitante : jamais « muet » (miroir _FIN_SONORE)
+_FIN_AMBIGUE = re.compile(r'[^aeiouyé](is|us)$|(ct|pt|st|ex|ax|yx)$|[^ao]ix$|(^|[^o])[aeiu]p$')   # finale de l'ATTENDU qui PEUT se prononcer (miroir _finSonore)
+def diff_muette(e, a):
+    """Ce qui diffère entre l'écrit `e` et l'attendu `a` S'ENTEND-il ? True = muet, False = ça s'entend, None = on ne sait pas.
+    On juge le SEGMENT qui diffère, pas le mot entier (phon_key/norm rendent « les »≡« le », « tigés »≡« tige »). Muet : -s -t -d -x -p
+    en fin de mot, -e/-es après voyelle, -ent verbal, é ↔ -er/-ez/-ai, lettre doublée (sauf s entre voyelles, cc/gg devant e/i, ill),
+    h hors ch/ph/sh, consonne finale muette échangée (vond/vont). Accents gommés sauf é. MIROIR de _diffMuette (lot 3, 14/09/2026)."""
+    e = (e or '').lower().translate(_DM_ACC); a = (a or '').lower().translate(_DM_ACC)
+    if not e or not a or e == a or e in _FIN_SONORE or a in _FIN_SONORE: return None
+    d = _rd(e, a)
+    if not d: return None
+    de, da, p = d
+    if not da and de: x, w, dans = de, e, 'ecrit'
+    elif not de and da: x, w, dans = da, a, 'attendu'
+    elif p + len(de) == len(e) and p + len(da) == len(a) and _DM_E.match(de) and _DM_E.match(da): return True   # allé / aller
+    elif len(de) == 1 and len(da) == 1 and p == len(e) - 1 and de in 'dtsxp' and da in 'dtsxp': return None if _FIN_AMBIGUE.search(a) else True   # vond / vont ; irit / iris
+    else: return False
+    pv = w[p - 1] if p > 0 else ''
+    if len(x) == 1 and (x == pv or x == (w[p + 1] if p + 1 < len(w) else '')):   # lettre doublée ou dédoublée
+        if x in _DM_V: return None
+        q = p - 1 if x == pv else p
+        av = w[q - 1] if q - 1 >= 0 else ''
+        ap = w[q + 2] if q + 2 < len(w) else ''
+        if x == 's' and av and av in _DM_V and ap and ap in _DM_V: return False   # poison / poisson
+        if x in 'cg' and ap and ap in 'eiyé': return False                        # acident / accident
+        if x == 'l' and av == 'i': return None                                    # file / fille
+        return True
+    if x == 'h': return (not pv) or pv not in 'cps'
+    if x == 'e' and pv and pv in _DM_V and re.match(r'^(s|nt)?$', w[p + 1:]): return True
+    if p + len(x) == len(w):
+        if re.match(r'^[stdxpz]{1,2}$', x) and pv == 'e' and len(re.sub(r'[^aeiouyé]', '', w[:p])) == 1: return False   # le / les
+        if dans == 'attendu' and _FIN_AMBIGUE.search(a): return None                                              # tenni / tennis
+        if re.match(r'^[stdxp]{1,2}$', x): return True
+        if x == 'es' and pv and pv in _DM_V: return True
+        if x == 'nt' and pv == 'e': return None                                                                   # vivent (muet) / souvent (nasal) : l'accord tranche
+    return False
+
 def diag_word(t,s,fam):
     """t=cible, s=élève (mots). fam=liste homophones de t. -> liste de types."""
     if s.lower()==t.lower(): return []
@@ -222,18 +271,18 @@ def paire_nombre_verbale(t,s):
 
 def diagnose_sentence(cible, eleve, fam):
     T,S=toks(cible),toks(eleve); facts=[]; ti=-1
-    for op,t,s in align(T,S):
+    for oi,(op,t,s) in enumerate(align(T,S)):
         if op=='ins':
-            facts.append({'mot':s,'types':['mot_en_trop'],'msg':f'Mot en trop : « {s} ».'}); continue
+            facts.append({'mot':s,'types':['mot_en_trop'],'_o':oi,'msg':f'Mot en trop : « {s} ».'}); continue
         ti+=1                                                   # match/sub/del avancent dans la cible
         if op=='match':
             if t!=s:                                            # même mot à la CASSE près (align insensible à la casse) → faute de casse (réf connue → 0 FP)
                 manque=t[:1].isupper() and s[:1].islower()
-                facts.append({'mot':t,'tentative':s,'types':['majuscule'],
+                facts.append({'mot':t,'tentative':s,'types':['majuscule'],'_o':oi,
                               'msg':(f'« {s} » → « {t} » : il manque la majuscule.' if manque else f'« {s} » → « {t} » : pas de majuscule ici.')})
             continue
         if op=='del':
-            facts.append({'mot':t,'types':['omission'],'msg':f'Mot oublié : « {t} ».'}); continue
+            facts.append({'mot':t,'types':['omission'],'_o':oi,'msg':f'Mot oublié : « {t} ».'}); continue
         types=diag_word(t,s,fam.get(t.lower(),[]))
         if ti>=1 and is_liaison(T[ti-1],t,s): types=['liaison']   # consonne de liaison mal placée (les amis -> les zamis) : prime sur 'ajout'
         _muet=False
@@ -245,7 +294,13 @@ def diagnose_sentence(cible, eleve, fam):
                 types=[x for x in types if x not in ('muette','ajout')]+['accord']
                 _nx=T[ti+1] if ti+1<len(T) else ''
                 _muet=_pnv[1] and not (_nx[:1].lower() in 'aeiouyhàâéèêëîïôöùûü')   # liaison possible → la marque peut s'entendre
-        fact={'mot':t,'tentative':s,'types':types,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
+        fact={'mot':t,'tentative':s,'types':types,'_o':oi,'msg':f'« {s} » → « {t} » : {",".join(types)}'}
+        if any(x in types for x in ('ajout','muette','voisee_sourde')):   # la lettre en trop, oubliée ou échangée S'ENTEND-elle ? (lot 3, miroir app)
+            _dm=diff_muette(s,t)
+            if _dm is None and 'accord' in types:       # -e/-ent d'un verbe ACCORDÉ : la paire de nombre dit si la marque s'entend (miroir app)
+                _pv=paire_nombre_verbale(t,s)
+                if _pv: _dm=_pv[1]
+            if _dm is not None: fact['audible']=not _dm
         if _muet: fact['audible']=False; fact['msg']+=' (marque MUETTE : ça ne s\'entend pas, c\'est l\'accord qui le dit)'
         if 'accord' in types:                                  # LEVIER GRAMMAIRE (POS-contexte)
             if is_participle(T,ti):                            # (1) PARTICIPE PASSÉ
@@ -271,7 +326,7 @@ def diagnose_sentence(cible, eleve, fam):
                 else:
                     fact['grammaire']='participe passé'; fact['msg']+=' (participe passé)'
             else:
-                verb=is_verb(T,ti) or (_pnv is not None)       # nom/verbe désambiguïsé par le contexte (ou paire de nombre VERBALE détectée)
+                verb=is_verb(T,ti) or (_pnv is not None) or (paire_nombre_verbale(t,s) is not None)   # nom/verbe par le contexte, ou paire de nombre VERBALE — même quand la famille curée porte l'accord (lot 3, miroir app)
                 at=accord_type(t,s,verb); fact['accord_type']=at
                 if at=='genre' and not verb:                  # chaîne du GN : ACCORD EN GENRE (« une robe vert »)
                     gg=governor_gender(T,ti) or lexical_gender(T,ti)   # déterminant genré, sinon route lexicale (nom-tête)
@@ -290,31 +345,56 @@ def diagnose_sentence(cible, eleve, fam):
                     else:
                         fact['msg']+=f' (accord: {at})'
         facts.append(fact)
-    return facts
+    # MOTS COLLÉS, MOTS COUPÉS (lot 3, 14/09/2026) : deux faits VOISINS dans l'alignement dont les lettres recollées font le même mot
+    # = UN découpage (« vontchercher » n'est ni « mot oublié : vont » ni « lettre en trop »). MIROIR app diagnoseSentence.
+    def cle(x): return re.sub(r"['’\- ]", '', deacc((x or '').lower()))
+    def seg(e, m): return {'mot': m, 'tentative': e, 'types': ['segmentation'], 'msg': f'« {e} » → « {m} » : segmentation'}
+    G=[]; z=0
+    while z < len(facts):
+        a0=facts[z]; b0=facts[z+1] if z+1 < len(facts) else None
+        if b0 is not None and b0['_o']==a0['_o']+1:
+            sa='tentative' in a0 and 'mot' in a0; sb='tentative' in b0 and 'mot' in b0
+            if a0['types'][0]=='omission' and sb and cle(b0['tentative'])==cle(a0['mot']+b0['mot']): G.append(seg(b0['tentative'], a0['mot']+' '+b0['mot'])); z+=2; continue
+            if b0['types'][0]=='omission' and sa and cle(a0['tentative'])==cle(a0['mot']+b0['mot']): G.append(seg(a0['tentative'], a0['mot']+' '+b0['mot'])); z+=2; continue
+            if a0['types'][0]=='mot_en_trop' and sb and cle(a0['mot']+b0['tentative'])==cle(b0['mot']): G.append(seg(a0['mot']+' '+b0['tentative'], b0['mot'])); z+=2; continue
+            if b0['types'][0]=='mot_en_trop' and sa and cle(a0['tentative']+b0['mot'])==cle(a0['mot']): G.append(seg(a0['tentative']+' '+b0['mot'], a0['mot'])); z+=2; continue
+        G.append(a0); z+=1
+    for f in G: f.pop('_o', None)
+    return G
 
 # === Diagnostic DÉVELOPPEMENTAL (stades) — additif, réutilise diag_word ===
 # Fondé sur Ferreiro (genèse de l'écriture) via Berliocchi (2022) + typologie dysorthographique
 # (phonologique / lexicale-surface / morphosyntaxique). Chaque famille révèle le PALIER non maîtrisé.
 STAGE_OF = {
-    'phonologique':    ['voisee_sourde','inversion','ajout'], # le SON mal perçu/segmenté (conscience phonémique)
+    'phonologique':    ['voisee_sourde','inversion','ajout'], # le SON mal perçu/segmenté (conscience phonémique) — ajout/muette/sourde-sonore : rangés par AUDIBILITÉ dans stage_of_fact
     'alphabetique':    ['surface','accent','segmentation','liaison'],   # écrit "comme ça sonne" / mauvais découpage : graphies, accents, apostrophe (l'ami), liaison (les zamis)
     'lexical':         ['muette','homophone_lex','homophone'],# orthographe du MOT : lettres muettes, homophone LEXICAL (ver/vert) ; 'homophone' nu = repli lexical
     'morphosyntaxique':['accord','homophone_gram'],           # GRAMMAIRE : accords ET homophones GRAMMATICAUX (a/à, son/sont) — apex, sans indice sonore
 }
 STAGE_ORDER = ['phonologique','alphabetique','lexical','morphosyntaxique']  # du plus amont au plus avancé
 FAM2STAGE = {f:st for st,fs in STAGE_OF.items() for f in fs}
-STAGE_MSG = {
-    'phonologique':    "travaille le SON (conscience phonémique) : confusions sourde/sonore, inversions, lettres en trop.",
-    'alphabetique':    "écrit « comme ça sonne » : il faut passer du son à l'orthographe conventionnelle (accents, graphies).",
-    'lexical':         "maîtrise le son→lettre ; reste l'orthographe du MOT : lettres muettes, homophones LEXICAUX (ver/vert/verre).",
+STAGE_MSG = {   # lot 3 (14/09/2026) : ne promettre que ce que les faits du palier garantissent — miroir des messages de l'app
+    'phonologique':    "ce qui est écrit ne se lit pas comme le mot dicté : un son manque, s'ajoute, change de place ou se confond (b/p, d/t).",
+    'alphabetique':    "les accents, les façons d'écrire un même son (o, au, eau), le découpage des mots et les majuscules.",
+    'lexical':         "le mot se lit juste, mais ses lettres muettes (en trop ou oubliées) ne sont pas fixées, ou c'est un homophone LEXICAL (ver/vert/verre).",
     'morphosyntaxique':"orthographe lexicale OK ; reste la GRAMMAIRE : accords en genre/nombre/verbal ET homophones grammaticaux (a/à, son/sont) — le palier le plus tardif.",
 }
 
-def stage_of_fact(types):
-    """Stade d'UNE erreur (mot). diag_word est multi-étiquette : une erreur spécifique (homophone, accord…)
+_LETTRE_SON = {'ajout', 'muette', 'voisee_sourde'}
+def stage_of_fact(f):
+    """Stade d'UNE erreur (fait, ou liste de types). diag_word est multi-étiquette : une erreur spécifique (homophone, accord…)
     co-déclenche souvent un détecteur STRUCTUREL de longueur (ajout/muette). Le stade le plus AVANCÉ
-    l'emporte → la famille spécifique prime sur le détecteur structurel incident."""
-    sts=[FAM2STAGE[t] for t in types if t in FAM2STAGE]
+    l'emporte → la famille spécifique prime sur le détecteur structurel incident.
+    Lot 3 (14/09/2026) : une lettre en trop, oubliée ou échangée se range par son AUDIBILITÉ (fact['audible'], diff_muette) —
+    elle s'entend → phonologique, muette → lexical, doute → hors stade. Rejoué sur le vrai écrit dys, « grandit » pour « grandi »
+    disait « phonologique » et « tie » pour « tige » « lexical ». MIROIR app stageOfFact."""
+    types = f.get('types', []) if isinstance(f, dict) else (f or [])
+    aud = f.get('audible') if isinstance(f, dict) else None
+    sts = []
+    for t in types:
+        st = FAM2STAGE.get(t)
+        if t in _LETTRE_SON: st = 'phonologique' if aud is True else ('lexical' if aud is False else None)
+        if st: sts.append(st)
     return max(sts, key=lambda s: STAGE_ORDER.index(s)) if sts else None
 
 def developmental_diagnosis(all_facts):
@@ -324,7 +404,7 @@ def developmental_diagnosis(all_facts):
     sur-compter les co-tags structurels. 'autre'/omission/mot_en_trop = hors-stades (attention/lexique)."""
     counts={st:0 for st in STAGE_ORDER}; off=0
     for f in all_facts:
-        st=stage_of_fact(f.get('types',[]))
+        st=stage_of_fact(f)
         if st: counts[st]+=1
         elif any(t in ('autre','omission','mot_en_trop') for t in f.get('types',[])): off+=1
     if sum(counts.values())==0:
@@ -364,8 +444,27 @@ def cas_surface(T, fam):
                 w2 = w.lower().replace(a, b, 1)
                 if w2 != w.lower() and norm(w2) == norm(w): return T[:i]+[w2]+T[i+1:]
     return None
+def cas_ajout_muet(T, fam):      # lot 3 : une lettre MUETTE en trop (« grandi » → « grandit ») — lexical, pas phonologique
+    for i, w in enumerate(T):
+        if len(w) > 3 and w.isalpha() and w[-1].lower() in 'iu': return T[:i]+[w+'t']+T[i+1:]
+    return None
+def cas_lettre_oubliee(T, fam):  # lot 3 : une consonne qui S'ENTEND oubliée (« tige » → « tie ») — pas « lettre muette »
+    for i, w in enumerate(T):
+        lw = w.lower()
+        for j in range(1, len(lw)-1):
+            if lw[j] in 'bdfgkmprtv' and lw[j-1] in 'aeiouéèê' and lw[j+1] in 'aeiouéèê': return T[:i]+[w[:j]+w[j+1:]]+T[i+1:]
+    return None
+def cas_colle(T, fam):           # lot 3 : deux mots collés (« vont chercher » → « vontchercher ») — un découpage
+    for i in range(len(T)-1):
+        if len(T[i]) > 1 and len(T[i+1]) > 2 and "'" not in T[i]+T[i+1]: return T[:i]+[T[i]+T[i+1]]+T[i+2:]
+    return None
+def cas_coupe(T, fam):           # lot 3 : un mot coupé en deux (« bienveillante » → « bien veillante »)
+    for i, w in enumerate(T):
+        if len(w) >= 8 and w.isalpha(): return T[:i]+[w[:4], w[4:]]+T[i+1:]
+    return None
 CAS_GENERATEURS = [('accent', cas_accent), ('accord', cas_accord), ('homophone', cas_homophone),
-                    ('omission', cas_omission), ('surface', cas_surface)]
+                    ('omission', cas_omission), ('surface', cas_surface), ('ajout_muet', cas_ajout_muet),
+                    ('lettre_oubliee', cas_lettre_oubliee), ('colle', cas_colle), ('coupe', cas_coupe)]
 
 if len(sys.argv) > 1 and sys.argv[1] == '--dump-cas':
     # Dump JSON des cas générés + diagnostic Python, pour la parité Python↔JS (parity_diag.js).
@@ -379,7 +478,9 @@ if len(sys.argv) > 1 and sys.argv[1] == '--dump-cas':
             eleve = ' '.join(S)
             f = diagnose_sentence(e['text'], eleve, fam)
             types = sorted(set(ty for x in f for ty in x['types']))
-            out.append({'cible': e['text'], 'eleve': eleve, 'fam': fam, 'famille_visee': nom, 'types': types})
+            aud = sorted(([x['mot'], x['audible']] for x in f if 'audible' in x), key=lambda v: v[0] + '|' + ('true' if v[1] else 'false'))
+            out.append({'cible': e['text'], 'eleve': eleve, 'fam': fam, 'famille_visee': nom, 'types': types,
+                        'audible': aud, 'stade': developmental_diagnosis(f)['stade']})
     print(json.dumps(out, ensure_ascii=False))
     sys.exit(0)
 
@@ -415,7 +516,7 @@ if __name__=='__main__':
     def first_vs_swap(T,fam):
         for i,w in enumerate(T):
             for j,ch in enumerate(w.lower()):
-                if ch in VS: return T[:i]+[w[:j]+VS[ch]+w[j+1:]]+T[i+1:]
+                if ch in VS and j < len(w)-1: return T[:i]+[w[:j]+VS[ch]+w[j+1:]]+T[i+1:]   # lot 3 : pas la finale (« chat » → « chad » ne s'entend pas)
         return None
     def first_surface(T,fam):
         for i,w in enumerate(T):
@@ -427,7 +528,7 @@ if __name__=='__main__':
     def first_lexical(T,fam):   # homophone LEXICAL (non flexionnel ET non grammatical : ver/vert, pas son/sont)
         for i,w in enumerate(T):
             for h in fam.get(w.lower(),[]):
-                if h.lower()!=w.lower() and not is_accord(w,h) and deacc(h)!=deacc(w.lower()) and not _homo_gram(w,h): return T[:i]+[h]+T[i+1:]
+                if h.lower()!=w.lower() and not is_accord(w,h) and deacc(h)!=deacc(w.lower()) and not _homo_gram(w,h) and not re.search(r"[- ']", h): return T[:i]+[h]+T[i+1:]   # lot 3 : « long-temps » n'est pas un homophone lexical, c'est un DÉCOUPAGE
         return None
     def first_morpho(T,fam):    # accord (flexionnel) = grammaire
         for i,w in enumerate(T):

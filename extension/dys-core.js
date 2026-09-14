@@ -57,6 +57,45 @@
   var _VIBRE = { b:1, d:1, g:1, v:1, z:1, j:1 };                       // consonnes VOISÉES : la gorge vibre
   function _ervk(w){w=String(w||'').toLowerCase();return /er$/.test(w)?'er':/ez$/.test(w)?'ez':/é(e|s|es)?$/.test(w)?'é':null;}   // NATURE d'une finale de 1er groupe : -er / -ez / -é(e)(s) — le test « mordre » ne vaut qu'entre DEUX natures (audit 11/09/2026)
   function _meme(x,y){return !!x&&!!y&&typeof phonKey==='function'&&phonKey(String(x))===phonKey(String(y));}   // même SON (clé phonétique du moteur)
+  /* ⭐ CE QUI DIFFÈRE S'ENTEND-IL ? (14/09/2026, lot 3 des textes explicatifs). Rend true (muet), false (ça s'entend), null (on ne sait
+     pas). On juge le SEGMENT qui diffère (_rd), pas le mot entier : phonKey et norm sont trop grossiers pour ça (ils rendent « les » et
+     « le », « tigés » et « tige » identiques — cf. l'audibilité de la finale, PR #119). Rejoué sur la dictée du vrai écrit dys (188
+     textes découpés en phrases) : « lettre muette » affiché 391 fois sur une lettre qui S'ENTEND (« tie » pour « tige »), le conseil
+     « ne s'entend pas » 174 fois, et 136 blocs « phonologique — le mot n'est pas encore bien ENTENDU » décidés par des lettres MUETTES
+     seules (« grandit » pour « grandi »). Muet : -s -t -d -x -p en fin de mot, -e/-es après une voyelle, é ↔ -er/-ez/-ai, lettre doublée
+     (sauf s entre voyelles, cc/gg devant e/i, ill), h hors ch/ph/sh, une consonne finale muette échangée (vond → vont). Doute : la finale
+     de l'attendu qui PEUT se prononcer (_FIN_SONORE, _finSonore : tennis, iris, direct, cap), et -ent (vivent muet, souvent nasal —
+     la dictée laisse l'accord du fait trancher). Accents gommés sauf é, qui change le son d'un e. MIROIR Python : diag_sentence.diff_muette. */
+  var _FIN_SONORE={as:1,atlas:1,aout:1,bonus:1,brut:1,bus:1,but:1,cet:1,cactus:1,campus:1,cap:1,chut:1,dix:1,est:1,express:1,fils:1,gaz:1,'hélas':1,huit:1,index:1,jadis:1,lis:1,lynx:1,mars:1,net:1,os:1,ours:1,ouest:1,plus:1,sens:1,sept:1,six:1,stop:1,sud:1,tennis:1,top:1,tous:1,virus:1,vis:1,zut:1};   // la consonne finale SE PRONONCE (tennis, sept) ou la prononciation hésite (plus, tous, est) : jamais « muet » (lot 3)
+  // la consonne finale de l'ATTENDU PEUT se prononcer : -is/-us après consonne (tennis, iris, virus — mais aussi pris, jus), -ct/-pt/-st
+  // (direct, concept, test), -ex/-ax/-yx (silex), -ix hors -aix/-oix (phénix), -ap/-ep/-ip/-up hors -oup (cap, slip) : on ne sait pas
+  function _finSonore(w){return /[^aeiouyé](is|us)$|(ct|pt|st|ex|ax|yx)$|[^ao]ix$|(^|[^o])[aeiu]p$/.test(w);}
+  function _diffMuette(e,a){var n=function(s){return String(s||'').toLowerCase().replace(/’/g,"'").replace(/[èêë]/g,'e').replace(/[àâä]/g,'a').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c');},
+      V='aeiouyé',d,x,w,p,pv,q,av,ap,dans,E=/^(é|ée|és|ées|er|ez|ai)$/;
+    e=n(e);a=n(a);if(!e||!a||e===a||_FIN_SONORE[e]||_FIN_SONORE[a])return null;
+    d=_rd(e,a);if(!d)return null;p=d.p;
+    if(!d.a&&d.e){x=d.e;w=e;dans='ecrit';}else if(!d.e&&d.a){x=d.a;w=a;dans='attendu';}
+    else if(p+d.e.length===e.length&&p+d.a.length===a.length&&E.test(d.e)&&E.test(d.a))return true;   // allé / aller, mangez / mangé
+    else if(d.e.length===1&&d.a.length===1&&p===e.length-1&&/[dtsxp]/.test(d.e)&&/[dtsxp]/.test(d.a))return _finSonore(a)?null:true;   // vond / vont ; irit / iris : on ne sait pas
+    else return false;
+    pv=w.charAt(p-1);
+    if(x.length===1&&(x===pv||x===w.charAt(p+1))){          // lettre doublée ou dédoublée
+      if(V.indexOf(x)>=0)return null;                         // voyelle doublée : le son se discute
+      q=(x===pv)?p-1:p;av=w.charAt(q-1);ap=w.charAt(q+2);
+      if(x==='s'&&av&&V.indexOf(av)>=0&&ap&&V.indexOf(ap)>=0)return false;   // poison / poisson
+      if((x==='c'||x==='g')&&ap&&/[eiyé]/.test(ap))return false;             // acident / accident
+      if(x==='l'&&av==='i')return null;                                       // file / fille
+      return true;}
+    if(x==='h')return !pv||'cps'.indexOf(pv)<0;               // abiter / habiter ; mais cercher / chercher s'entend
+    if(x==='e'&&pv&&V.indexOf(pv)>=0&&/^(s|nt)?$/.test(w.slice(p+1)))return true;   // ami / amie, allé / allée
+    if(p+x.length===w.length){
+      if(/^[stdxpz]{1,2}$/.test(x)&&pv==='e'&&w.slice(0,p).replace(/[^aeiouyé]/g,'').length===1)return false;   // le / les, de / des : la consonne change le e
+      if(dans==='attendu'&&_finSonore(a))return null;                    // tenni / tennis
+      if(/^[stdxp]{1,2}$/.test(x))return true;                // grandi / grandit, petit / petits
+      if(x==='es'&&pv&&V.indexOf(pv)>=0)return true;          // ami / amies
+      if(x==='nt'&&pv==='e')return null;                       // vive / vivent (verbe, muet) ou souve / souvent (nasal) : l'accord du fait tranche
+    }
+    return false;}
   /* le petit mot qu'une ÉLISION remplace (14/09/2026) : « jai → j'ai », « nai → n'ai », « quil → qu'il » recevaient tous « l'article
      est élidé » — « j' » n'est pas un article. On nomme le mot qui a perdu sa voyelle. */
   var _ELIDE={j:'je',m:'me',t:'te',s:'se',n:'ne',d:'de',c:'ce',qu:'que',l:'le » ou « la'};
@@ -107,6 +146,7 @@
   var _HPROBE={'a/à':['avait','« a » (verbe avoir)','« à » (préposition)'],'et/est':['était','« est » (verbe être)','« et » (= et puis)'],'son/sont':['étaient','« sont » (verbe être)','« son » (le sien)'],'on/ont':['avaient','« ont » (verbe avoir)','« on » (pronom)'],'met/mais':['mettait','« met » (verbe mettre)','« mais » (= pourtant)'],'ça/sa':['cela','« ça » (= cela)','« sa » (la sienne)'],'mais/mes':['tes','« mes » (à moi)','« mais » (= pourtant)'],'peu/peux/peut':['pouvait','« peut/peux » (verbe pouvoir)','« peu » (= pas beaucoup)'],"c'est/s'est":['cela est','« c\'est » (= cela est)','« s\'est » (il se … : verbe pronominal)']};
   var REMED={
     voisee_sourde:function(e,a){var d=_rd(e,a);
+      if(d&&d.e.length===1&&d.a.length===1&&_diffMuette(e,a)===true)return _pr(e,a)+'à la fin du mot, « '+d.a+' » ne s’entend pas : photographie le mot « '+a+' ».';   // « vond » → « vont » : ni d ni t ne s'entendent (lot 3)
       if(d&&d.e.length===1&&d.a.length===1){var x=d.e.toLowerCase(),y=d.a.toLowerCase(),v=_VIBRE[y]?y:(_VIBRE[x]?x:null);
         if(v)return _pr(e,a)+'« '+v+' » fait vibrer la gorge, « '+(v===y?x:y)+' » non. Pose ta main dessus et allonge le son.';}
       return _pr(e,a)+'pose la main sur ta gorge — b, d, g, v, z, j vibrent ; p, t, k, f, s, ch non.';},
@@ -114,11 +154,13 @@
       if(d&&d.e.length===2&&d.a.length===2&&d.e.charAt(0)===d.a.charAt(1)&&d.e.charAt(1)===d.a.charAt(0))
         return _pr(e,a)+'« '+d.a.charAt(0)+' » et « '+d.a.charAt(1)+' » sont inversées. Suis du doigt, de gauche à droite.';
       return _pr(e,a)+'des lettres ont changé de place — découpe en syllabes et écris-les dans l’ordre.';},
-    ajout:function(e,a){var d=_rd(e,a);
-      if(d&&d.a===''&&d.e){var pl=d.e.length>1;
+    ajout:function(e,a){var d=_rd(e,a),m,s;
+      if(d&&d.a===''&&d.e){var pl=d.e.length>1;m=_diffMuette(e,a);s=_pr(e,a)+_lt(d.e)+(pl?' sont':' est')+' en trop';
         // ⭐ 14/09/2026 : une lettre en trop MUETTE (« grandit » → « grandi ») recevait « compte les sons que tu entends » — on ne l'entend pas
-        if(_meme(e,a))return _pr(e,a)+_lt(d.e)+(pl?' sont':' est')+' en trop, et '+(pl?'elles ne s’entendent':'elle ne s’entend')+' pas : photographie le mot « '+a+' ».';
-        return _pr(e,a)+_lt(d.e)+(pl?' sont':' est')+' en trop. Compte les sons que tu entends.';}
+        if(m===true)return s+', et '+(pl?'elles ne s’entendent':'elle ne s’entend')+' pas : photographie le mot « '+a+' ».';
+        if(m===false)return s+'. Compte les sons que tu entends.';
+        return s+' : compare avec « '+a+' », lettre par lettre.';}
+      if(e&&a)return _pr(e,a)+'des lettres sont en trop : compare avec « '+a+' », lettre par lettre.';
       return _pr(e,a)+'relis en COMPTANT les sons — un son entendu = une lettre attendue, pas plus.';},
     // l'ordre compte : une INSERTION (pome→pomme) n'est pas une substitution de graphème.
     surface:function(e,a){var d=_rd(e,a);
@@ -136,6 +178,9 @@
       // ⭐ LETTRES DÉPLACÉES (14/09/2026) : « uen → une » recevait « même son, autre graphie — compare au mot modèle (/s/ → s, ss, c, ç) »
       if(d&&d.e.length>1&&d.e.length===d.a.length&&d.e.split('').sort().join('')===d.a.split('').sort().join(''))
         return _pr(e,a)+'des lettres ont changé de place : « '+d.a+' », pas « '+d.e+' ». Suis le mot du doigt, lettre par lettre.';
+      if(d&&d.e.length===1&&d.a.length===1&&d.p===a.length-1&&/[dtsxp]/i.test(d.e)&&/[dtsxp]/i.test(d.a)){var fm=_diffMuette(e,a);   // « bois » → « boit » disait « ce son s'écrit t » (lot 3)
+        if(fm===true)return _pr(e,a)+'à la fin du mot, « '+d.a+' » ne s’entend pas : ici c’est « '+d.a+' », pas « '+d.e+' ».';
+        if(fm===null)return _pr(e,a)+'à la fin du mot, c’est « '+d.a+' », pas « '+d.e+' ».';}
       // segments COURTS : « fote → faute » est o→au. « ce son s’écrit X » seulement entre lettres de MÊME NATURE (« ozo → oiseau »
       // affirmait « ce son s’écrit i, pas z ») ; sinon on dit juste la lettre, sans promettre un son.
       if(d&&d.e&&d.a&&d.e.length<=3&&d.a.length<=3)return _pr(e,a)+(_mm(d.e,d.a)?'ici ce son s’écrit « '+d.a+' », pas « '+d.e+' ».':'ici c’est « '+d.a+' », pas « '+d.e+' ».');
@@ -153,8 +198,17 @@
       if(nk===1&&k.e)return p+'Dis-le à voix haute — é ferme, è/ê ouvre.';
       if(nk===1&&k.sans)return p+'Ici, pas d’accent : photographie le mot.';   // « vitè → vite », « avéc → avec » : le son ne tranche pas (le e de « avec » s'entend è sans accent)
       return p+'Photographie le mot avec ses accents.';},
-    muette:function(e,a){var d=_rd(e,a);
-      if(d&&d.e===''&&d.a)return _pr(e,a)+_lt(d.a)+' ne s’entend pas. Cherche un mot de la même famille où on l’entend.';
+    /* ⭐ 14/09/2026 (lot 3) : « tie » → « tige » recevait « la lettre g ne s'entend pas. Cherche un mot de la même famille où on
+       l'entend » — elle s'entend ; « bien veillante » → « bienveillante » : « les lettres bien ne s'entend pas ». Le juge décide. */
+    muette:function(e,a){var d=_rd(e,a),m,pl;
+      if(d&&d.e===''&&d.a){m=_diffMuette(e,a);pl=d.a.length>1;
+        if(m===false)return _pr(e,a)+_lt(d.a)+(pl?' manquent, et elles s’entendent':' manque, et elle s’entend')+' : dis le mot lentement, un son entendu = une lettre écrite.';
+        if(m===null)return _pr(e,a)+'il manque '+_lt(d.a)+' : compare avec « '+a+' », lettre par lettre.';
+        if(d.a.length===1&&(a.charAt(d.p-1)===d.a||a.charAt(d.p+1)===d.a))return _pr(e,a)+'ici la consonne « '+d.a+' » est DOUBLE, et ça ne s’entend pas : photographie le mot.';
+        if(/^h$/i.test(d.a))return _pr(e,a)+'le « h » ne s’entend pas : photographie le mot « '+a+' ».';
+        if(d.p+d.a.length===a.length&&/^[td]$/i.test(d.a))return _pr(e,a)+_lt(d.a)+' ne s’entend pas à la fin : un mot de la même famille peut la faire entendre (grand → grande), sinon photographie le mot.';
+        return _pr(e,a)+_lt(d.a)+(pl?' ne s’entendent':' ne s’entend')+' pas : photographie le mot « '+a+' ».';}
+      if(e&&a)return _pr(e,a)+'il manque des lettres : compare avec « '+a+' », lettre par lettre.';
       return _pr(e,a)+'lettre muette — trouve un mot de la même famille où on l’entend (petit → petite).';},
     homophone_gram:function(e,a,r){var le=String(e||'').toLowerCase().replace(/’/g,"'"),la=String(a||'').toLowerCase().replace(/’/g,"'"),h=r?_HPROBE[r]:null;
       if(/^peu[xt]$/.test(le)&&/^peu[xt]$/.test(la))return _pr(e,a)+_stx(le,la);   // « il peux » : c'est la PERSONNE, pas peu/peut
@@ -237,6 +291,7 @@
       if(aa.indexOf('-')>0&&ea.indexOf('-')<0)return _pr(e,a)+'il faut un trait d’union : « '+a+' ».';
       if(ea.indexOf("'")<0&&(el=_elidePre(aa)))return _pr(e,a)+'« '+el.p+'’ », c’est « '+el.full+' » devant une voyelle ou un h muet : il faut l’apostrophe.';
       if(aa.indexOf(' ')>0&&ea.indexOf(' ')<0)return _pr(e,a)+'ce sont DEUX mots, il faut l’espace.';
+      if(ea.indexOf(' ')>0&&aa.indexOf(' ')<0)return _pr(e,a)+'c’est UN seul mot : « '+a+' », sans espace.';   // « bien veillante » (lot 3)
       return _pr(e,a)+'mot collé — sépare avec l’apostrophe (lhopital → l’hôpital) ou l’espace (ducou → du coup).';},
     liaison:function(e,a){var d=_rd(e,a);
       if(d&&d.a===''&&d.e.length===1)return _pr(e,a)+'le « '+d.e+' » que tu entends appartient au mot d’avant, il ne s’écrit pas ici.';
@@ -334,8 +389,11 @@
      trois cas où la famille en contient plusieurs : chaque PAIRE d'homophones (a/à n'enseigne pas ou/où), chaque NATURE d'accent (la
      cédille de « garçon » n'enseigne pas le tréma de « naïf »), et chaque règle qui a sa propre leçon (« genre déterminant »
      n'enseigne pas « accord pluriel nom »). */
+  // « mange » → « mangent » porte « muette » ET « accord » (la dictée étiquette plusieurs familles) : la famille PRÉCISE l'emporte sur le
+  // détecteur de longueur, comme pour le stade — sinon « les lettres nt ne s'entend pas, cherche un mot de la même famille » (lot 3)
+  var _LONGUEUR={muette:1,ajout:1};
   function remedFams(F){var seen={},fams=[],rep=[];
-    (F||[]).forEach(function(f){(f.types||[]).forEach(function(t){if(!REMED[t])return;
+    (F||[]).forEach(function(f){var ty=f.types||[],spec=ty.some(function(t){return REMED[t]&&!_LONGUEUR[t];});ty.forEach(function(t){if(!REMED[t]||(spec&&_LONGUEUR[t]))return;
       var k=(f.regle&&_RTIP[f.regle])?'r:'+f.regle
         :/^homophone/.test(t)?t+':'+[deacc(String(f.ecrit||'').toLowerCase()),deacc(String(f.mot||'').toLowerCase())].sort().join('/')
         :t==='accent'?t+':'+Object.keys(_accKinds(f.ecrit,f.mot).k).sort().join('+'):t;
