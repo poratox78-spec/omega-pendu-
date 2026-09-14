@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OMEGA·KEY — Rapport &amp; mode d'emploi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Spectral:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="description" content="Mode d'emploi et rapport technique d'OMEGA·KEY : générer une passphrase, clé partagée, conversation chiffrée (AES-GCM-256, Double Ratchet), chat sans copier-coller par relais, sécurité et licences.">
+<link rel="canonical" href="https://omegapendu.com/omega-key/docs/RAPPORT_MODE_EMPLOI">
+<!-- Polices : plus de Google Fonts (14/09) — la page Confidentialité promet « aucune requête vers un serveur tiers au chargement » ;
+     les piles de polices ci-dessous retombent sur Georgia / serif / monospace, comme le reste du site depuis juillet (PR #73). -->
 <style>
 :root{   /* SOMBRE PAR DÉFAUT */
   --paper:#14181d; --paper-2:#1d242c; --ink:#e8e3d8; --ink-soft:#a39d92;
@@ -17,6 +18,7 @@
   --maxw:980px;
 }
 *{box-sizing:border-box}
+body{font-variant-numeric:lining-nums}   /* sans Spectral, Georgia dessine des chiffres elzéviriens : « 03/06 » s'y lit « o3/o6 » */
 html{scroll-behavior:smooth;overflow-x:hidden}
 body{
   margin:0; background:var(--paper); color:var(--ink);

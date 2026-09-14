@@ -129,7 +129,10 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 # livrées n'étaient appelées par aucune page. Ce check ferme la classe de bug (+ tokeniseur identique).
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
-run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre)" node dictee/sitemap_probe.js
+run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
+# La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :
+# le mode d'emploi OMEGA·KEY chargeait encore Google Fonts, oublié par le retrait de juillet — rien ne vérifiait.
+run "SITE confidentialité : aucune page ne charge de ressource tierce à l'ouverture" node dictee/tiers_probe.js
 # Le moteur de calcul vit en DEUX copies : `extension/calc_dys.js` (l'outil rapide) et
 # `calc_dys.js` à la racine (la page /calcul, qui montre comment on pose l'opération). Un
 # fichier recopié sans garde est exactement ce qui a coûté 134 diagnostics le 2026-08-25.
