@@ -141,7 +141,7 @@ const CAS = [
     remed: { oui: ['après « je », le verbe se CONJUGUE'], non: ['forme sûre'] } },
   { t: 'Vous ête gentils.', mots: { 'ête': { sugg: 'êtes' } },
     remed: { oui: ['avec « vous », on écrit « êtes »'], non: ['forme sûre'] } },
-  { t: 'Il a une chien', mots: { une: { sugg: 'un' } },
+  { t: 'Il a une chien', mots: { une: { sugg: 'un', oui: ['le nom « chien » (masculin) qui commande'], non: ['« Il »'] } },   // lot 2 : le 💡 citait « Il », lu en arrière
     remed: { oui: ['le déterminant prend le GENRE du nom qui le suit : ici masculin'], non: ['en genre et en nombre'] } },
   { t: 'Les cheval galopent.', mots: { cheval: { sugg: 'chevaux' } },
     remed: { oui: ['-al devient ici -aux'] } },
@@ -163,6 +163,14 @@ const CAS = [
   // le rapport de Rem : un conseil par faute, et plus de « Stade »
   { t: 'nous ira au parc', mots: { ira: { sugg: 'irons' } },
     remed: { oui: ['« nous » ne prend pas la terminaison de « il »'], non: ['Stade', 'le son est juste'] } },
+  // ===== 14/09/2026, lot 2 : le 💡 « C'est X qui commande » (UNE copie, _govHint) et le témoin de famille =====
+  { t: 'nous avons vue notre médecin', mots: { vue: { sugg: 'vu', oui: ['Avec « avoir », le participe ne s’accorde pas avec le sujet'], non: ['« nous » (pluriel) qui commande'] } } },
+  { t: 'Un fait divers tragique', mots: { tragique: { sugg: 'tragiques', non: ['« Un » (singulier) qui commande'] } } },   // gouverneur singulier pour une suggestion au pluriel : silence
+  { t: 'La commission présidentiel est là', mots: { 'présidentiel': { sugg: 'présidentielle', oui: ['« La » (féminin) qui commande'] } } },   // le genre, plus « (singulier) »
+  { t: 'Elle est parti tôt.', mots: { parti: { sugg: 'partie', oui: ['« Elle » (féminin) qui commande'] } } },
+  { t: 'Le soir jadmet tout.', mots: { jadmet: { sugg: "j'admets", non: ['qui commande'] } } },   // le pronom est DANS le mot : « C'est le qui commande »
+  { t: 'Il a cént euros.', mots: { 'cént': { sugg: 'cent', non: ['muet s’entend'] } } },   // la faute est l'accent, pas le t final
+  { t: 'Il est gran.', mots: { gran: { sugg: 'grand', oui: ['Le d muet s’entend dans « grande »'] } } },   // témoin : la dernière lettre manquait
 ];
 
 let rouge = 0;
@@ -227,7 +235,7 @@ const coucheApp = bloc(app, COUCHE[0], COUCHE[1], 'COUCHE app'), coucheExt = blo
 if (coucheApp !== coucheExt) { let k = 0; while (k < coucheApp.length && coucheApp[k] === coucheExt[k]) k++; fail('COUCHE DYS PARTAGÉE app ≠ extension au caractère ' + k + ' : app « ' + coucheApp.slice(k, k + 60) + ' » / ext « ' + coucheExt.slice(k, k + 60) + ' »'); }
 else console.log('  ✓ COUCHE DYS PARTAGÉE app ≡ extension (' + coucheApp.length + ' c.)');
 for (const [nom, src] of [['app', app], ['extension', ext]]) {
-  for (const def of ['var _HPROBE=', 'var _HSUB =', 'var REMED=', 'var _RTIP=', 'var _REGLE_FAM=', 'function remedTip(', 'function remedFams(']) {
+  for (const def of ['var _HPROBE=', 'var _HSUB =', 'var REMED=', 'var _RTIP=', 'var _REGLE_FAM=', 'function remedTip(', 'function remedFams(', 'function _govHint(', 'function _diffGenre(', 'function _finConcernee(']) {
     const n = src.split(def).length - 1;
     if (n !== 1) fail(nom + ' : « ' + def + ' » défini ' + n + ' fois (une 2e définition écraserait la couche partagée)');
   }
@@ -283,6 +291,36 @@ for (const [nom, src, motifs] of [
 }
 if (app.indexOf('<b>Stade (sur la session') < 0) fail('la dictée a perdu son « Stade (sur la session…) » — il n\'était pas visé');
 console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) ; la dictée garde le sien');
+
+// 6) lot 2 (14/09/2026) — les CARTES du site et le PANNEAU de l'extension
+{
+  // le 💡 gouverneur : UNE copie (couche partagée) lue par les deux moteurs, et le témoin de famille filtré des deux côtés
+  const exige = [
+    ['app', app, "function _accHint(f,i){var s=_govHint(f,_curToks,i);return s?esc(s):'';}", 'le 💡 gouverneur du site ne lit plus _govHint'],
+    ['extension', ext, 'var gh=_govHint(f,T,i);if(gh!==null)return gh;', 'le 💡 gouverneur de l\'extension ne lit plus _govHint'],
+    ['app', app, "if(!_finConcernee(f.word,f.sugg))return '';", 'le témoin de famille du site n\'est plus filtré'],
+    ['extension', ext, "return _finConcernee(f.word,f.sugg)?famHint(f.sugg||''):'';", 'le témoin de famille de l\'extension n\'est plus filtré'],
+    // un clic ouvre la CARTE : les libellés ne promettent plus une bascule ; et le chargement ne se fait plus passer pour « aucune faute »
+    ['app', app, "if(!_corrs.length&&!SP.ready){", 'la page affirme « Aucune faute détectée » tant que le dictionnaire charge'],
+  ];
+  for (const [nom, src, motif, msg] of exige) if (src.indexOf(motif) < 0) fail(nom + ' : ' + msg);
+  // les explications FAUSSES des cartes (_EXPL) : du/de n'est pas « après une négation », « nombre » est l'ordinal, etc.
+  for (const faux of ['après une négation, « du » devient « de »', "en toutes lettres jusqu'à seize", "les nombres composés prennent un trait d'union",
+                      "même son, l'orthographe est corrigée", 'e="même son, orthographe corrigée', 'La virgule sépare : elle ne se met jamais',
+                      "un trait d'union relie le verbe et le pronom (donne-moi)", "pas d'apostrophe ici : on sépare les deux mots",
+                      'pour basculer)', "' — clique pour annuler'", "'clique pour appliquer -> '", '(clique pour annuler)</span>', '(clique pour appliquer)</span>'])
+    if (app.indexOf(faux) >= 0) fail('app : texte faux encore présent — « ' + faux + ' »');
+  // la COPIE du panneau (« c'est lui que Copier copie ») : corrige() exécuté tel quel sur les corrections du moteur
+  const P = norm(fs.readFileSync(path.join(EXT, 'sidepanel.js'), 'utf8'));
+  const src = (P.match(/  var TOKRE = [^\n]*\n/) || [''])[0] + (P.match(/  function spans\(t\) [^\n]*\n/) || [''])[0] + (P.match(/  function esc\(s\) [^\n]*\n/) || [''])[0]
+    + bloc(P, '  var _ign = {}, lastOut = null;', "    var out = ''; parts.forEach(function (p) { out += p[0] + p[1]; }); return out + t.slice(last);\n  }", 'corrige du panneau');
+  const pan = new Function(src + '\nreturn {corrige:corrige};')();
+  for (const [t, attendu] of [['Il arrive , puis il repart', 'Il arrive, puis il repart'], ['Il est  là,elle aussi', 'Il est là, elle aussi'], ['les enfant joue', 'les enfants jouent']]) {
+    const got = pan.corrige(t, D.diagnoseAll(t).flags);
+    if (got !== attendu) fail('panneau : la copie de « ' + t + ' » est « ' + got + ' », attendu « ' + attendu + ' » (corrections sûres ancrées caractère sautées ?)');
+  }
+  console.log('  ✓ cartes du site et copie du panneau (💡 partagé, témoin filtré, libellés de clic, chargement, corrections ancrées caractère)');
+}
 
 console.log(rouge ? ('\nTEXTES : ' + rouge + ' attente(s) non tenue(s)') : '\nTEXTES : toutes les attentes tenues (' + CAS.length + ' phrases, couche partagée, routage de ' + NOMS.size + ' règles)');
 process.exit(rouge ? 1 : 0);

@@ -341,6 +341,36 @@
         :t==='accent'?t+':'+Object.keys(_accKinds(f.ecrit,f.mot).k).sort().join('+'):t;
       if(seen[k])return;seen[k]=1;fams.push(t);rep.push(f);});});
     return fams.length?{fams:fams,rep:rep}:null;}
+  /* ⭐ LE 💡 « C'EST X QUI COMMANDE », UNE SEULE COPIE (14/09/2026, lot 2 des textes explicatifs — avant : `_accHint` au site,
+     `ctxHint` à l'extension, qui avaient déjà divergé sur le genre). Remonté EN ARRIÈRE depuis le mot corrigé, le gouverneur était
+     FAUX quand le contrôleur est ailleurs : le déterminant prend le genre du nom qui le SUIT (« Il a une chien » → « C'est Il qui
+     commande »), le participe après AVOIR ne s'accorde pas avec le sujet (« nous avons vue » → « C'est nous qui commande → vu »),
+     un gouverneur SINGULIER pour une suggestion qui affiche un PLURIEL (« Un fait divers tragique » → tragiques), le pronom élidé
+     DANS le mot (« jadmet » → j'admets : « C'est le qui commande »). Rend null quand la règle n'a pas de gouverneur, '' pour se taire.
+     Texte BRUT : le site échappe. */
+  function _diffGenre(t,s){var a=deacc(String(t||'').toLowerCase()),b=deacc(String(s||'').toLowerCase()),p=0,suf;   // l'écart n'est QUE du genre (-e) : même test que accordType de la dictée
+    while(p<a.length&&p<b.length&&a.charAt(p)===b.charAt(p))p++;suf=a.slice(p)+b.slice(p);
+    return suf.indexOf('s')<0&&suf.indexOf('x')<0&&suf.indexOf('t')<0&&suf.indexOf('e')>=0;}
+  function _govHint(f,T,i){var n=f.name||'',sg=String(f.sugg||''),w=String(f.word||''),g=null,lab='',gn,svn,vb,j,gd,tg,gg;
+    if(!((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)||(/^personne du verbe/.test(n)&&deacc(sg.toLowerCase())!==deacc(w.toLowerCase()))))return null;
+    if(n==='genre déterminant'){j=i+1;gd=GEN_DET[sg.toLowerCase()]||({quel:'m',quelle:'f'})[sg.toLowerCase()];
+      if(/^quelle?$/i.test(sg)&&i+2<T.length){tg=posTags(T);if(tg&&tg[i+1]==='ADJ')j=i+2;}   // « quelle belle maison » : la règle lit le nom APRÈS l'adjectif
+      return (gd&&j<T.length)?'C\'est le nom « '+T[j]+' » ('+(gd==='f'?'féminin':'masculin')+') qui commande → on accorde « '+sg+' ».':'';}
+    if(/après avoir/.test(n))return 'Avec « avoir », le participe ne s’accorde pas avec le sujet (elles ont mangé) — seulement avec un COD placé AVANT (les pommes qu’elles ont mangées).';
+    if(/^personne du verbe/.test(n)&&/^[a-zà-ÿ]+['’]/i.test(sg))return '';
+    vb=isVerb(T,i);
+    if(/genre/.test(n)||(!vb&&_diffGenre(sg,w))){gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
+    if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut
+    if(!g){gn=governorNumber(T,i,vb||isParticiple(T,i));
+      if(gn){svn=_suggVerbNum(sg);if(svn&&svn!==gn[1])return '';   // sujet POSTPOSÉ/coordonné : le contrôleur est EN AVANT, le gouverneur arrière contredit la suggestion
+        if(!vb&&!/verbe|sujet|personne/.test(n)&&((gn[1]==='sg'&&/[sx]$/i.test(sg)&&!/[sx]$/i.test(w))||(gn[1]==='pl'&&/[sx]$/i.test(w)&&!/[sx]$/i.test(sg))))return '';   // le nombre du gouverneur contredit celui que la suggestion AFFICHE
+        g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');
+        if(!vb&&_diffGenre(sg,w)){gd=({elle:'féminin',elles:'féminin',il:'masculin',ils:'masculin'})[deacc(g.toLowerCase())];if(gd)lab=gd;}}}   // « Elle est parti » → partie : c'est le GENRE que le pronom commande
+    return g?'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+sg+' ».':'';}
+  /* le TÉMOIN DE FAMILLE (« le d muet s'entend dans grande ») et la règle -ment ne parlent que de la DERNIÈRE lettre : sur une
+     faute ailleurs dans le mot, ils sont hors sujet — 45 des 82 affichés sur le vrai écrit dys (« cént » → cent : « le t muet
+     s'entend dans centaine », la faute était l'accent). 14/09/2026. */
+  function _finConcernee(w,s){w=deacc(String(w||'').toLowerCase());s=deacc(String(s||'').toLowerCase());return !w||w.slice(-1)!==s.slice(-1);}
   // ===== fin de la COUCHE DYS PARTAGÉE =====
 
   // ===== correcteur (règles homophones + accord + genre) — VERBATIM app =====
@@ -4348,16 +4378,8 @@ function spellUnknown(tok,atStart,T,idx){
     if(/infinitif après pronom/.test(n))return 'Après « il », « elle », « qui »…, le verbe se CONJUGUE, jamais à l\'infinitif : il annonçait (imparfait) ou il annonce (présent) — choisis le temps du récit.';   // brique 1 flexion (14/09/2026) — texte statique côté app (_EXPL), ici l'astuce
     if(/participe après être/.test(n))return 'Après « être », c\'est un PARTICIPE en -é qui s\'accorde avec le sujet (je me suis installé — installée si tu es une fille) — sauf si c\'est un ADJECTIF (« elle est sèche ») : à toi de voir.';   // brique 2 flexion (14/09/2026)
     if(/tout/.test(n))return '« tout » s\'accorde avec le nom qui SUIT (tous les jours, toutes les nuits).';   // s'accorde avec ce qui suit, pas avec un mot d'avant
-    if((/accord/.test(n)&&!/é\/er|grammatical|dont|COD|tout/.test(n))||/genre/.test(n)||(/^personne du verbe/.test(n)&&deacc(String(f.sugg||'').toLowerCase())!==deacc(String(f.word||'').toLowerCase()))){   /* ⭐ 12/09/2026 : « personne du verbe » (« je fini » → finis) ouvre le 💡 au gouverneur (le pronom) — sauf correction d'ACCENT seul (« nous mangeames » → mangeâmes : la personne est juste, le gouverneur serait hors sujet). Miroir app _accHint. */
-      var g=null,lab='';
-      if(/genre/.test(n)){var gg=governorGender(T,i);if(gg){g=gg[0];lab=gg[1]==='f'?'féminin':'masculin';}}
-      if(!g&&i>0&&_CARD_PL[deacc(T[i-1].toLowerCase())]){g=T[i-1];lab='pluriel';}   // ⭐ audit 11/09/2026 : « huit heure » — le CARDINAL d'à côté commande, pas le « ma » six mots plus haut que remontait governorNumber
-      if(!g){var gn=governorNumber(T,i,isVerb(T,i)||isParticiple(T,i));
-        if(gn){var svn=_suggVerbNum(f.sugg||'');if(svn&&svn!==gn[1])return '';
-          if(gn[1]==='sg'&&/nom/.test(n)&&/[sx]$/i.test(f.sugg||'')&&!/[sx]$/i.test(f.word||''))return '';   // un NOM mis au pluriel par la règle, un gouverneur arrière au singulier : l'indice serait contradictoire → silence (miroir app)   // sujet POSTPOSÉ/coordonné (rPostpose…) : contrôleur EN AVANT ; gouverneur arrière contredit la suggestion (nombre ≠) → pas d'indice contradictoire (miroir app _accHint)
-          g=gn[0];lab=(gn[1]==='pl'?'pluriel':'singulier');}}
-      if(g)return 'C\'est « '+g+' » ('+lab+') qui commande → on accorde « '+(f.sugg||'')+' ».';}
-    return famHint(f.sugg||'');}   // dernier recours : témoin de famille / règle -ment (n'écrase aucun indice existant)
+    var gh=_govHint(f,T,i);if(gh!==null)return gh;   // ⭐ 14/09/2026 : le gouverneur (« C'est X qui commande ») vit dans la COUCHE DYS PARTAGÉE — une copie pour le site et l'extension
+    return _finConcernee(f.word,f.sugg)?famHint(f.sugg||''):'';}   // dernier recours : témoin de famille / règle -ment — seulement quand la faute touche la DERNIÈRE lettre (couche partagée)
   // TYPOGRAPHIE (catégorie Grammalecte) — flags ANCRÉS CARACTÈRE (guillemets droits " → «/», points de suspension ... → …). Miroir app _typoScan. ORANGE. FP-safe : garde chiffre (pouces 5"), contexte ouvrant/fermant. content.js applyOne gère la branche {cs,ce}.
   function _typoScan(text){var out=[],m,re1=/\.{3,}/g;
     while((m=re1.exec(text))){var _p=text[m.index-1]||'',_n=text[m.index+m[0].length]||'';if(/[0-9]/.test(_p)&&/[0-9]/.test(_n))continue;

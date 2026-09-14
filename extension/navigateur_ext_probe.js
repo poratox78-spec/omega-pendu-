@@ -222,7 +222,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
         + '   ta.dispatchEvent(new Event("input", { bubbles: true }));'
         + '   const it = await until(() => [...document.querySelectorAll("#omdys-corr .item")].find(e => (e.textContent || "").indexOf(c.attendu.slice(-1)) >= 0), 30000);'
         + '   if (!it) { out.push({ txt: c.txt, item: null, valeur: ta.value }); continue; }'
-        + '   const lib = (it.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60); it.click(); await w(300);'
+        + '   const lib = (it.textContent || "").replace(/\\s+/g, " ").trim().slice(0, 60); it.click(); await w(300);'
         + '   out.push({ txt: c.txt, item: lib, valeur: ta.value }); }'
         + ' return { out }; })()' });
     if (rp.exceptionDetails) throw new Error('panneau : ' + ((rp.exceptionDetails.exception || {}).description || 'exception'));
@@ -233,6 +233,22 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       log('  ' + (ok ? '✓' : '✗') + ' [panneau ] ' + c.txt.padEnd(34) + '→ ' + JSON.stringify(got.valeur) + (got.item ? '   (' + got.item + ')' : '   (AUCUNE proposition cliquable)'));
       if (!ok) echecs.push('panneau latéral RÉEL : « ' + c.txt + ' » devait devenir ' + JSON.stringify(c.attendu) + ' au clic, eu ' + JSON.stringify(got.valeur) + ' (' + c.pourquoi + ')');
     });
+
+    /* ⑤bis LA COPIE DU PANNEAU applique les corrections SÛRES ancrées caractère (14/09/2026, lot 2 des textes explicatifs).
+       « espace avant la ponctuation », « espace double », « espace après la virgule » (palier auto) n'ont pas d'indice de mot :
+       `corrige()` les sautait — l'item disait « ✓ appliqué à la copie », la copie et « tout corriger » gardaient la faute. */
+    const rc = await pp.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 60000,
+      expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+        + ' const until = async (f, ms) => { const t0 = Date.now(); for (;;) { let v = null; try { v = f(); } catch (e) {} if (v) return v; if (Date.now() - t0 > ms) return null; await w(150); } };'
+        + ' const ta = document.getElementById("omdys-ta"), out = document.getElementById("omdys-out"); if (!ta || !out) return { fatal: "zone ou copie introuvable" };'
+        + ' ta.value = "Il arrive , puis il repart"; ta.dispatchEvent(new Event("input", { bubbles: true }));'
+        + ' const ok = await until(() => !out.hidden && (out.textContent || "").indexOf("Il arrive, puis il repart") >= 0, 20000);'
+        + ' return { ok: !!ok, copie: out.textContent }; })()' });
+    if (rc.exceptionDetails) throw new Error('copie du panneau : ' + ((rc.exceptionDetails.exception || {}).description || 'exception'));
+    const vc = (rc.result && rc.result.value) || {};
+    if (vc.fatal) throw new Error('copie du panneau : ' + vc.fatal);
+    log('  ' + (vc.ok ? '✓' : '✗') + ' [panneau ] copie de « Il arrive , puis il repart » → ' + JSON.stringify(vc.copie));
+    if (!vc.ok) echecs.push('panneau latéral RÉEL : la copie doit appliquer les corrections sûres ancrées caractère (« Il arrive, puis il repart »), eu ' + JSON.stringify(vc.copie));
 
     /* ⑥ LA BASCULE BULLE ↔ RECOPIE SURVIT-ELLE À UNE FERMETURE ? (rapport de Rem, 09/09/2026)
        Trois symptômes, une seule cause : l'exclusion mutuelle n'était appliquée QU'AU CLIC.
