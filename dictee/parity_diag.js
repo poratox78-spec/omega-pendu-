@@ -43,13 +43,16 @@ const C = globalThis.__C;
 //    qui peut légitimement différer d'ordre entre deux implémentations équivalentes).
 //    Lot 3 (14/09/2026) : aussi l'AUDIBILITÉ de chaque lettre en trop/oubliée/échangée (qui décide du libellé, du stade et du
 //    conseil) et le STADE de la phrase — les deux pipelines pouvaient s'accorder sur les types et dire l'inverse à l'élève.
+//    Lot 4 : et la NOTE de grammaire affichée (genre de note + mot gouverneur), vérifiée des deux côtés contre la forme attendue.
 const cleAud = (v) => v[0] + '|' + (v[1] ? 'true' : 'false');
 let echecs = [];
 for (const c of cas) {
-  let jsTypes, jsAud, jsStade;
+  let jsTypes, jsAud, jsStade, jsNotes, jsSegs;
   try { const F = C.diagnose(c.cible, c.eleve, c.fam); jsTypes = Array.from(new Set(F.flatMap(f => f.types || []))).sort();
         jsAud = F.filter(f => 'audible' in f).map(f => [f.mot, f.audible]).sort((p, q) => cleAud(p) < cleAud(q) ? -1 : cleAud(p) > cleAud(q) ? 1 : 0);
-        const d = C.dev(F); jsStade = d ? d.stade : null; }
+        const d = C.dev(F); jsStade = d ? d.stade : null;
+        jsNotes = F.filter(f => f.note).map(f => [f.mot, f.note[0], f.note[1]]).sort((p, q) => p.join('|') < q.join('|') ? -1 : p.join('|') > q.join('|') ? 1 : 0);
+        jsSegs = F.filter(f => f.types[0] === 'segmentation').map(f => [f.ecrit || '', f.mot]).sort((p, q) => p.join('|') < q.join('|') ? -1 : p.join('|') > q.join('|') ? 1 : 0); }
   catch (e) { echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee, erreur: 'JS a levé : ' + e.message }); continue; }
   const pyTypes = (c.types || []).slice().sort();
   if (JSON.stringify(jsTypes) !== JSON.stringify(pyTypes))
@@ -58,6 +61,10 @@ for (const c of cas) {
     echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee + ' (audibilité)', python: c.audible, js: jsAud });
   else if (jsStade !== (c.stade === undefined ? null : c.stade))
     echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee + ' (stade)', python: c.stade, js: jsStade });
+  else if (JSON.stringify(jsNotes) !== JSON.stringify(c.notes || []))
+    echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee + ' (note de grammaire)', python: c.notes, js: jsNotes });
+  else if (JSON.stringify(jsSegs) !== JSON.stringify(c.segs || []))
+    echecs.push({ cible: c.cible, eleve: c.eleve, famille_visee: c.famille_visee + ' (découpage : écrit → attendu)', python: c.segs, js: jsSegs });
 }
 const parFam = {}; for (const c of cas) parFam[c.famille_visee] = (parFam[c.famille_visee] || 0) + 1;
 console.log('cas par famille visée : ' + Object.entries(parFam).map(([k, v]) => k + ' ' + v).join(' · '));
