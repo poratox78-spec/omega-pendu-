@@ -73,7 +73,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 46 | speller ext ≡ app (vigilance comprise) | `node extension/test_speller.js` |
 | 47 | textes d'explication (💡 + conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur) | `node dictee/textes_probe.js` |
 | 48 | parité SPELLER Python↔JS (suggestion, auto+flag+inconnu+vigilance) | `python3 dictee/parity_speller.py` |
-| 49 | syntaxe extension (5 fichiers) | `"node --check extension/dys-core.js && node --check extension/content.js && node --check extensio…` |
+| 49 | syntaxe extension (6 fichiers) | `"node --check extension/dys-core.js && node --check extension/content.js && node --check extensio…` |
 | 50 | correcteur standalone | `node dictee/correcteur.js` |
 | 51 | correcteur AUTONOME (bake, 3 mondes) | `node dictee/bake_probe.js --check` |
 | 52 | outil d'édition (pièges monolithe) | `python tools/omega_edit.py` |

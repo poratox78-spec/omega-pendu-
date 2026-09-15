@@ -13,6 +13,14 @@ une **famille** → une **remédiation ciblée**, écrite à partir du mot fauti
 conseil. (Le « stade développemental » n'est plus affiché depuis la 0.6.35 : sur un seul texte, avec des soupçons orange
 dedans, il tombait presque toujours sur « alphabétique » et son message était souvent faux — mesuré, voir `dys-core.js`.)
 
+## Mode d'emploi (utilisateur)
+Le bouton **❓ Mode d'emploi** du panneau ouvre `aide.html`, une page du paquet (hors-ligne, sans script en ligne) : ouvrir le
+correcteur, lire les couleurs, copier, écouter, dicter, la bulle et le clic droit, les réglages, la vie privée, les pannes.
+Il décrit le code, et c'est gardé : `dictee/textes_probe.js` §9 (chaque libellé cité existe, chaque commande du panneau est
+expliquée, les exemples sont de vraies sorties du moteur, le CSS des exemples est celui du panneau) et
+`extension/navigateur_ext_probe.js` (bouton ❓ visible, page ouverte dans Chrome sans erreur, réglages suivis en direct).
+`build_zip.py` refuse un paquet dont une page, un script ou une image référencés manquent.
+
 ## Publier sur le Chrome Web Store
 Dossier de soumission complet (fiche prête à coller, justifications de chaque permission, déclarations de
 confidentialité, captures à produire, commandes) : **`STORE.md`**. Techniquement le paquet est prêt —
@@ -24,9 +32,10 @@ développeur (5 $) et les captures d'écran.
 ## Installer (mode développeur)
 1. `chrome://extensions` → activer **Mode développeur**.
 2. **Charger l'extension non empaquetée** → choisir ce dossier `extension/`.
-3. Ouvrir n'importe quelle page, cliquer dans un champ texte, écrire (ex. `j'est le poisse`, `les enfants joue`,
-   `le voiture`, `il son contents`). Une barre apparaît : clique une faute (ou **tout corriger**) → c'est appliqué
-   **dans le champ**.
+3. Cliquer l'icône Ω de l'extension : le panneau latéral s'ouvre. Écrire ou coller un texte (ex. `les enfants joue`,
+   `le voiture`, `il son contents`) : les corrections sûres sont appliquées au texte corrigé, « 📋 Copier » le copie.
+   La bulle dans la page (clic sur une faute → appliqué **dans le champ**) est une option du panneau, décochée par défaut.
+   Le bouton **❓** ouvre le mode d'emploi.
 
 ## Aide-frappe (complétion)
 Pendant la frappe, pour le mot **sous le curseur**, la barre propose aussi des **complétions** — mots plus longs du

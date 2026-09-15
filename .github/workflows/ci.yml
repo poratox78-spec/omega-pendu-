@@ -146,8 +146,8 @@ jobs:
         run: node dictee/textes_probe.js
       - name: Parité SPELLER Python↔JS (suggestion — saute sans Lexique4, garde locale, vigilance comprise)
         run: python3 dictee/parity_speller.py
-      - name: Extension — syntaxe dys-core / content / background / sidepanel / micro
-        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js
+      - name: Extension — syntaxe dys-core / content / background / sidepanel / micro / aide
+        run: node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js && node --check extension/aide.js
       - name: Moteur correcteur standalone (sans UI/DOM)
         run: node dictee/correcteur.js
       - name: Correcteur autonome (bake) — 3 mondes dont l'environnement CI

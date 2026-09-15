@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mode d'emploi — Correcteur dys</title>
+<!-- MODE D'EMPLOI DE L'EXTENSION (15/09/2026, demande de Rem : « dans l'extension on a pas de mode d'emploi c'est gênant »).
+     Ouvert par le bouton ❓ du panneau (#omdys-aide), page du paquet : hors-ligne, aucun script en ligne (CSP de l'extension).
+     ⚠️ CHAQUE PHRASE DÉCRIT LE CODE. dictee/textes_probe.js (§9) le vérifie à chaque batterie :
+       · class="ui" data-src="fichier" : le libellé cité existe TEL QUEL dans ce fichier ;
+       · data-cmd="omdys-…" : chaque commande du panneau (bouton, case, liste, zone) est expliquée ici, et aucune qui n'existe plus ;
+       · data-phrase / data-mot / data-sugg / data-famille / data-palier : les exemples sont de VRAIES sorties du moteur de l'extension ;
+       · le bloc CSS « copie exacte » ci-dessous est identique à sidepanel.html (les exemples ont l'air de ce qu'on verra).
+     Si le panneau change, ce guide change — la sonde rougit sinon. -->
+<style>
+  :root{ --fs:17px; --bleu:#2a6f97; --encre:#1a1a1a; --doux:#4b5563; --filet:#e3e3e3; --fond:#fff; --carte:#f6f8fa; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font:var(--fs)/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; color:var(--encre); background:var(--fond); }
+  header{ background:var(--bleu); color:#fff; padding:12px 16px; position:sticky; top:0; z-index:2; }
+  header b{ font-size:1.1em; }
+  main{ max-width:760px; margin:0 auto; padding:18px 16px 60px; display:grid; gap:34px; }
+  h1{ font-size:1.7em; line-height:1.2; margin:6px 0 0; }
+  h2{ font-size:1.3em; line-height:1.25; margin:0 0 10px; padding-top:6px; }
+  h3{ font-size:1.05em; margin:18px 0 6px; }
+  p{ margin:0 0 10px; }
+  a{ color:var(--bleu); }
+  :focus-visible{ outline:2px solid var(--bleu); outline-offset:2px; }
+  .intro{ color:var(--doux); margin-top:6px; }
+  nav.sommaire{ background:var(--carte); border-radius:10px; padding:12px 16px; }
+  nav.sommaire ul{ margin:6px 0 0; padding-left:20px; columns:2; column-gap:28px; }
+  nav.sommaire li{ margin:2px 0; break-inside:avoid; }
+  @media (max-width:560px){ nav.sommaire ul{ columns:1; } }
+  ol.etapes{ margin:0; padding:0; list-style:none; display:grid; gap:10px; counter-reset:etape; }
+  ol.etapes > li{ counter-increment:etape; display:grid; grid-template-columns:34px 1fr; gap:10px; align-items:start; }
+  ol.etapes > li::before{ content:counter(etape); width:30px; height:30px; border-radius:50%; background:var(--bleu); color:#fff; font-weight:700;
+    display:flex; align-items:center; justify-content:center; margin-top:1px; }
+  ul.points{ margin:0 0 10px; padding-left:22px; display:grid; gap:6px; }
+  .ui{ font-weight:700; -webkit-box-decoration-break:clone; box-decoration-break:clone; background:var(--carte); border:1px solid var(--filet); border-radius:6px; padding:0 6px; }
+  .ex{ border:1px solid var(--filet); border-radius:10px; padding:12px; background:var(--fond); display:grid; gap:6px; margin:10px 0 12px; font-size:.9em; }
+  .ex .phrase{ color:var(--doux); font-size:.95em; }
+  .note{ border-left:4px solid var(--bleu); background:var(--carte); border-radius:6px; padding:8px 12px; }
+  .prive{ border-left-color:#1f7a3d; }
+  .ico{ width:1.4em; height:1.4em; vertical-align:-.35em; border-radius:4px; }
+  footer{ color:#6b7280; font-size:.85em; border-top:1px solid var(--filet); padding-top:12px; }
+
+  /* ⇣⇣ COPIE EXACTE de sidepanel.html — ne pas modifier ici : changer le panneau, puis recopier (textes_probe §9 compare) ⇣⇣ */
+  .item{ cursor:pointer; padding:5px 8px; border-radius:7px; border-left:3px solid #c0392b; background:#fcf3f2; }
+  .item.tvig{ border-left:3px dashed #e8920c; background:#fff8ea; }
+  .fam{ color:#777; font-size:.82em; }
+  .item.done{ border-left-color:#2e8b57; background:#eef8f0; }   /* rouge APPLIQUÉ à la copie (clic = annuler) */
+  .item.off{ opacity:.6; border-left-style:dotted; }             /* rouge ANNULÉ par l'utilisateur (clic = réappliquer) */
+  .etat{ color:#2e8b57; font-size:.78em; margin-left:6px; }
+  .item.off .etat{ color:#888; }
+  .out{ margin:6px 0; padding:7px 9px; border-radius:8px; background:#eef8f0; border-left:3px solid #2e8b57; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .out .lab{ color:#4f7f5f; font-size:.78em; }
+  .why,.tts{ border:0; background:none; cursor:pointer; font-size:.95em; padding:0 3px; opacity:.7; vertical-align:middle; }
+  .astuce{ margin-top:4px; padding:5px 8px; background:#eef5fb; border-left:3px solid #2a6f97; border-radius:5px; font-size:.9em; color:#22303c; line-height:1.45; }
+  .remed{ margin-top:5px; padding:6px 9px; border-left:4px solid #b8860b; background:#fdf6e3; border-radius:5px; font-size:.92em; }
+  .vig{ margin-top:8px; padding:6px 9px; border-left:4px solid #1f7a3d; background:#eefaf1; border-radius:5px; font-size:.9em; }
+  .vlab{ font-weight:700; color:#1f7a3d; margin-bottom:3px; }
+  .vitem{ color:#28483a; }
+  body.dark .item.done{ background:#17281c; } body.dark .out{ background:#17281c; } /* le trait #2e8b57 passe le seuil sur les deux fonds : rien à surcharger ici. */
+  body.dark .item.tvig{ background:#2b2412; }
+  body.dark .astuce{ background:#16242f; color:#cfe0ee; }
+  body.dark .remed{ background:#2b2412; color:#f0e2bd; }
+  body.dark .vig{ background:#14251b; }
+  body.dark .vitem{ color:#bfe0cc; }
+  /* ⇡⇡ fin de la copie exacte ⇡⇡ */
+  .out b{ text-decoration:underline; text-decoration-color:#2e8b57; text-decoration-thickness:2px; text-underline-offset:2px; }
+  .ex .item{ cursor:default; }
+
+  body.dark{ --encre:#e8edf2; --doux:#aab4bf; --filet:#2a333c; --fond:#14181c; --carte:#1d2329; }
+  body.dark a{ color:#8cc3e8; }
+  body.dark .ex .phrase{ color:#aab4bf; }
+  body.dark footer{ color:#8a94a0; }
+</style>
+</head>
+<body>
+<header><b>🩹 Correcteur dys — mode d'emploi</b></header>
+<main>
+
+<section>
+  <h1>Écrire sans fautes, dans Chrome</h1>
+  <p class="intro">Le correcteur lit ton texte et propose des corrections. Quand il est sûr, il corrige. Quand il doute, il ne change rien et te le signale.</p>
+</section>
+
+<nav class="sommaire" aria-label="Sommaire">
+  <b>Dans ce guide</b>
+  <ul>
+    <li><a href="#vite">En 4 étapes</a></li>
+    <li><a href="#ouvrir">Ouvrir le correcteur</a></li>
+    <li><a href="#ecrire">Écrire ton texte</a></li>
+    <li><a href="#couleurs">Comprendre les corrections</a></li>
+    <li><a href="#recuperer">Récupérer ton texte</a></li>
+    <li><a href="#outils">Écouter, dicter, compter</a></li>
+    <li><a href="#page">Corriger dans la page</a></li>
+    <li><a href="#reglages">Réglages</a></li>
+    <li><a href="#prive">Ce qui reste sur ta machine</a></li>
+    <li><a href="#probleme">Si ça ne marche pas</a></li>
+  </ul>
+</nav>
+
+<section id="vite">
+  <h2>En 4 étapes</h2>
+  <ol class="etapes">
+    <li><span>Clique sur l'icône <img class="ico" src="icons/icon32.png" alt="Ω"> du correcteur, en haut à droite de Chrome. Le panneau s'ouvre à droite.</span></li>
+    <li><span data-cmd="omdys-ta">Écris ou colle ton texte dans la grande zone du panneau.</span></li>
+    <li><span>Regarde sous la zone : les corrections sûres sont déjà faites dans le <b>texte corrigé</b>.</span></li>
+    <li><span data-cmd="omdys-copy">Clique <span class="ui" data-src="sidepanel.html">📋 Copier</span>, puis colle ton texte où tu veux (Ctrl+V).</span></li>
+  </ol>
+</section>
+
+<section id="ouvrir">
+  <h2>Ouvrir le correcteur</h2>
+  <ul class="points">
+    <li>Clique sur l'icône <img class="ico" src="icons/icon32.png" alt="Ω"> en haut à droite de Chrome : un Ω blanc sur un carré noir.</li>
+    <li>Tu ne la vois pas ? Clique sur la pièce de puzzle <b>🧩</b>, puis sur l'épingle à côté de <b>OMEGA-Ω — Correcteur dys</b>. L'icône reste alors visible.</li>
+    <li>Le panneau s'ouvre à droite de la page. En haut, il affiche <span class="ui" data-src="sidepanel.html">chargement…</span> puis <span class="ui" data-src="sidepanel.js">prêt</span> : le dictionnaire est chargé.</li>
+    <li data-cmd="omdys-aide">Ce guide s'ouvre avec le bouton <span class="ui" data-src="sidepanel.html">❓</span> en haut du panneau.</li>
+    <li data-cmd="omdys-site">Le bouton <span class="ui" data-src="sidepanel.html">🌐</span> ouvre le site omegapendu.com : la dictée, le pendu et le correcteur en grand.</li>
+  </ul>
+</section>
+
+<section id="ecrire">
+  <h2>Écrire ton texte</h2>
+  <p data-cmd="omdys-ta">Écris ou colle ton texte dans la grande zone du panneau. Les corrections se mettent à jour pendant que tu tapes.</p>
+  <h3>Ou écrire dans la page</h3>
+  <p data-cmd="omdys-mirror">Tu peux aussi écrire dans un champ de la page : un mail, un message, un formulaire. Si la case <span class="ui" data-src="sidepanel.html">Recopier ce que je tape sur la page</span> est cochée, ton texte se recopie dans le panneau.</p>
+  <ul class="points">
+    <li>La recopie va dans un seul sens : le panneau ne réécrit jamais la page. Tu corriges la copie, puis tu la colles.</li>
+    <li>Avec la recopie, si tu changes d'onglet ou de page, la zone se vide : le panneau ne garde pas un texte que la page n'a plus.</li>
+  </ul>
+</section>
+
+<section id="couleurs">
+  <h2>Comprendre les corrections</h2>
+  <p>Les corrections s'affichent sous la zone. Voici ce que tu verras, avec de vrais exemples du correcteur.</p>
+
+  <h3>Vert : correction sûre, déjà faite</h3>
+  <div class="ex" data-phrase="Les enfants mange des pomme.">
+    <div class="phrase">Tu as écrit : « Les enfants mange des pomme. »</div>
+    <div class="out" data-phrase="Les enfants mange des pomme."><span class="lab">texte corrigé (c'est lui que « Copier » copie) :</span><br>Les enfants <b>mangent</b> des <b>pommes</b>.</div>
+    <div class="item done" data-phrase="Les enfants mange des pomme." data-mot="mange" data-sugg="mangent" data-famille="accord sujet-verbe" data-palier="auto">« mange » → <b>« mangent »</b> <span class="fam">[accord sujet-verbe · sûr]</span><span class="etat">✓ appliqué à la copie · clique pour annuler</span><span class="why" aria-hidden="true">💡</span><span class="tts" aria-hidden="true">🔊</span><div class="astuce">C'est « Les » (pluriel) qui commande → on accorde « mangent ».</div></div>
+    <div class="item done" data-phrase="Les enfants mange des pomme." data-mot="pomme" data-sugg="pommes" data-famille="accord pluriel nom" data-palier="auto">« pomme » → <b>« pommes »</b> <span class="fam">[accord pluriel nom · sûr]</span><span class="etat">✓ appliqué à la copie · clique pour annuler</span><span class="why" aria-hidden="true">💡</span><span class="tts" aria-hidden="true">🔊</span></div>
+    <div class="remed" data-phrase="Les enfants mange des pomme."><b>🛠️ Remédiation</b><br>« mange » → « mangent » : le sujet est au PLURIEL, il manque le « nt » du verbe.</div>
+  </div>
+  <ul class="points">
+    <li>La correction est déjà dans le <b>texte corrigé</b>, la boîte verte. C'est ce texte que tu copies.</li>
+    <li>Tu n'es pas d'accord ? Clique sur la correction : elle s'annule et passe en pointillés, avec <span class="ui" data-src="sidepanel.js">annulé · clique pour réappliquer</span>. Clique encore pour la remettre.</li>
+    <li><b>💡</b> montre pourquoi. <b>🔊</b> fait écouter la correction et son explication.</li>
+    <li><span class="ui" data-src="sidepanel.js">🛠️ Remédiation</span> donne une astuce pour retenir la règle.</li>
+  </ul>
+
+  <h3>Orange en pointillés : à vérifier</h3>
+  <div class="ex" data-phrase="Ils ce sont trompés de route.">
+    <div class="phrase">Tu as écrit : « Ils ce sont trompés de route. »</div>
+    <div class="item tvig" data-phrase="Ils ce sont trompés de route." data-mot="ce" data-sugg="se" data-famille="ce/se" data-palier="vigilance">« ce » → <b>« se »</b> <span class="fam">[ce/se · à vérifier]</span><span class="tts" aria-hidden="true">🔊</span></div>
+  </div>
+  <ul class="points">
+    <li>Le correcteur n'est pas sûr. Il ne change rien tout seul.</li>
+    <li>Si la proposition est juste, clique dessus : elle s'écrit dans ta zone.</li>
+  </ul>
+
+  <h3>Vert clair : juste une vigilance</h3>
+  <div class="ex" data-phrase="Mon frère a acheté un verre à la brocante.">
+    <div class="phrase">Tu as écrit : « Mon frère a acheté un verre à la brocante. »</div>
+    <div class="vig" data-phrase="Mon frère a acheté un verre à la brocante."><div class="vlab">🟢 à vérifier — mots confusables</div><div class="vitem">« verre » — ver (l'animal) · vers (direction · en poésie) · vert (la couleur) · verts · verre (le récipient) · verres</div></div>
+  </div>
+  <ul class="points">
+    <li>Ce n'est pas une faute : ce mot ressemble à d'autres. Relis-le pour être sûr.</li>
+    <li>Il n'y a rien à cliquer.</li>
+  </ul>
+  <p>Quand tout va bien, le panneau affiche <span class="ui" data-src="sidepanel.js">✓ Aucune faute détectée.</span></p>
+</section>
+
+<section id="recuperer">
+  <h2>Récupérer ton texte</h2>
+  <ul class="points">
+    <li data-cmd="omdys-copy"><span class="ui" data-src="sidepanel.html">📋 Copier</span> copie le texte corrigé. Colle-le où tu veux avec Ctrl+V.</li>
+    <li data-cmd="omdys-fixall"><span class="ui" data-src="sidepanel.html">✓ Tout corriger</span> écrit les corrections sûres dans ta zone. Les propositions orange ne sont jamais écrites sans ton clic.</li>
+    <li data-cmd="omdys-undo"><span class="ui" data-src="sidepanel.html">↩ Annuler</span> revient au texte d'avant « Tout corriger », tant que tu n'as pas retouché le texte.</li>
+    <li data-cmd="omdys-ta">Pendant que tu tapes un mot dans la zone, <span class="ui" data-src="sidepanel.js">✏️ compléter :</span> propose des mots pour le finir. Clique sur le bon mot pour l'écrire.</li>
+  </ul>
+</section>
+
+<section id="outils">
+  <h2>Écouter, dicter, compter</h2>
+  <h3>Écouter ton texte</h3>
+  <p data-cmd="omdys-lire"><span class="ui" data-src="sidepanel.html">🔊 Lire</span> lit ton texte à voix haute. Le mot lu est surligné dans le texte corrigé. <span class="ui" data-src="sidepanel.js">⏹ Stop</span> arrête la lecture. C'est la voix de ton navigateur.</p>
+  <h3>Dicter à la voix</h3>
+  <ol class="etapes">
+    <li><span data-cmd="omdys-voice-ok">Coche <span class="ui" data-src="sidepanel.html">Activer la dictée vocale</span>.</span></li>
+    <li><span>La première fois, un onglet s'ouvre : autorise le micro.</span></li>
+    <li><span data-cmd="omdys-mic">Clique <span class="ui" data-src="sidepanel.html">🎤 Dicter</span>, parle, puis clique <span class="ui" data-src="sidepanel.js">⏹ Stop</span>.</span></li>
+    <li><span>Ton texte arrive dans la zone, ponctué et corrigé.</span></li>
+  </ol>
+  <p class="note">La dictée vocale envoie le son de ton micro au service vocal de ton navigateur (Google), et seulement pendant que tu dictes. Activer la dictée coupe la recopie de la page : une seule source à la fois.</p>
+  <h3>Lire un nombre</h3>
+  <p data-cmd="omdys-calc">Ouvre <span class="ui" data-src="sidepanel.html">🔢 Aide au nombre</span>.</p>
+  <p data-cmd="omdys-num">Écris un nombre ou un calcul, par exemple 305 ou 12+5. Le nombre s'affiche en groupes de chiffres, en lettres, et chaque chiffre avec ce qu'il vaut. Pour un calcul, tu vois aussi le résultat.</p>
+</section>
+
+<section id="page">
+  <h2>Corriger directement dans la page</h2>
+  <h3>Le clic droit</h3>
+  <p>Dans un champ de la page, fais un clic droit sur un mot. Si le correcteur est sûr de lui, le menu affiche la correction, par exemple « 🩹 « mange » → « mangent » ». Clique dessus : le mot est corrigé dans le champ.</p>
+  <h3>La bulle</h3>
+  <p data-cmd="omdys-bubble">Coche <span class="ui" data-src="sidepanel.html">Bulle dans la page</span> : une bulle s'affiche près du champ où tu écris.</p>
+  <ul class="points">
+    <li>Clique une correction dans la bulle : elle s'applique dans le champ.</li>
+    <li><span class="ui" data-src="content.js">tout corriger</span> applique les corrections sûres, <span class="ui" data-src="content.js">↩ annuler</span> revient en arrière.</li>
+    <li><b>📗</b> veut dire « ce mot est correct » : un prénom, un lieu, un mot de métier. Il ne sera plus signalé, ni dans la page ni dans le panneau.</li>
+    <li><b>×</b> cache la bulle pour ce champ.</li>
+    <li>La bulle et la recopie ne marchent pas en même temps. Fermer le panneau éteint la bulle.</li>
+  </ul>
+</section>
+
+<section id="reglages">
+  <h2>Réglages</h2>
+  <p>En haut du panneau :</p>
+  <ul class="points">
+    <li data-cmd="omdys-size"><b>Texte</b> : <span class="ui" data-src="sidepanel.html">normal</span>, <span class="ui" data-src="sidepanel.html">grand</span> ou <span class="ui" data-src="sidepanel.html">très grand</span>.</li>
+    <li data-cmd="omdys-dark"><span class="ui" data-src="sidepanel.html">Sombre</span> : fond foncé.</li>
+    <li data-cmd="omdys-son"><span class="ui" data-src="sidepanel.html">🔡 Police de son</span> : les sons se voient sur les lettres : les sons qui font vibrer la gorge en épais, les autres en fin, les lettres muettes en couleur. Le texte ne change pas.</li>
+    <li data-cmd="omdys-syl"><span class="ui" data-src="sidepanel.html">✂️ Syllabes</span> : les syllabes changent de couleur, une sur deux. Avec la police de son.</li>
+  </ul>
+  <p>La taille et le mode sombre s'appliquent aussi à la bulle et à ce guide.</p>
+</section>
+
+<section id="prive">
+  <h2>Ce qui reste sur ta machine</h2>
+  <p class="note prive">La correction se fait dans ton navigateur, sans internet : ton texte n'est envoyé nulle part pour être corrigé. La dictée vocale, si tu l'actives, envoie le son de ton micro au service vocal du navigateur. Les mots que tu marques 📗 restent dans ton Chrome.</p>
+</section>
+
+<section id="probleme">
+  <h2>Si ça ne marche pas</h2>
+  <ul class="points">
+    <li><b>Le panneau reste sur « chargement… »</b> : attends quelques secondes, le dictionnaire se charge.</li>
+    <li><b>Rien ne se recopie depuis la page</b> : vérifie que la recopie est cochée, et que la bulle et la dictée vocale sont décochées.</li>
+    <li><b>Certaines zones ne se recopient jamais</b> : les pages de Chrome, la boutique Chrome et les champs placés dans un cadre intégré. Copie-colle alors ton texte dans le panneau.</li>
+    <li><b>Le micro ne marche pas</b> : si le panneau affiche <span class="ui" data-src="sidepanel.js">micro bloqué : réautorise-le dans les réglages de site de Chrome</span>, suis ce conseil.</li>
+    <li><b>La copie est refusée</b> : si tu vois <span class="ui" data-src="sidepanel.js">⚠ copie refusée — Ctrl+C</span>, sélectionne le texte corrigé et fais Ctrl+C.</li>
+  </ul>
+</section>
+
+<footer>OMEGA-Ω — Correcteur dys. Le site : <a href="https://omegapendu.com/" target="_blank" rel="noopener">omegapendu.com</a>.</footer>
+</main>
+<script src="aide.js"></script>
+</body>
+</html>

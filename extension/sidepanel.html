@@ -12,6 +12,7 @@
   header a.site{ color:#fff; font-size:.8em; text-decoration:none; border:1px solid rgba(255,255,255,.55); border-radius:6px; padding:1px 7px; white-space:nowrap; }   /* lien vers le site : app complète, dictée, pendu */
   header a.site:hover, header a.site:focus-visible{ background:rgba(255,255,255,.18); outline:none; }
   @media (max-width:420px){ header a.site .t{ display:none; } }   /* panneau étroit : le globe seul, le statut garde sa ligne (mesuré 340 px) */
+  @media (max-width:560px){ header a#omdys-site .t{ display:none; } }   /* ❓ Mode d'emploi garde son mot plus longtemps que le site : c'est lui qu'on cherche la première fois */
   .wrap{ padding:10px; }
   #omdys-ta{ width:100%; min-height:140px; font:inherit; padding:9px 10px; border:1px solid #c9c9c9; border-radius:9px; line-height:1.6; background:#fff; color:#1a1a1a; white-space:pre-wrap; overflow-wrap:break-word; outline:none; cursor:text; }
   #omdys-ta:empty:before{ content:attr(data-ph); color:#8a94a0; pointer-events:none; }
@@ -134,7 +135,7 @@
 </style>
 </head>
 <body>
-<header><b>🩹 Correcteur dys</b><a class="site" href="https://omegapendu.com/" target="_blank" rel="noopener" title="Ouvrir le site OMEGA-Ω (app complète, dictée, pendu) dans un nouvel onglet">🌐<span class="t"> omegapendu.com</span></a><span class="st" id="omdys-st">chargement…</span></header>
+<header><b>🩹 Correcteur dys</b><a class="site" id="omdys-aide" href="aide.html" target="_blank" rel="noopener" aria-label="Mode d'emploi" title="Mode d'emploi : comment utiliser le correcteur (s'ouvre dans un onglet)">❓<span class="t"> Mode d'emploi</span></a><a class="site" id="omdys-site" href="https://omegapendu.com/" target="_blank" rel="noopener" title="Ouvrir le site OMEGA-Ω (app complète, dictée, pendu) dans un nouvel onglet">🌐<span class="t"> omegapendu.com</span></a><span class="st" id="omdys-st">chargement…</span></header>
 <div class="wrap">
   <div class="prefs">
     <label>Texte
