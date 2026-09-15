@@ -589,5 +589,24 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
   }
 }
 
+// ===== 10) LA LECTURE À VOIX HAUTE N'EST PAS PROMISE HORS-LIGNE (15/09/2026, mesuré dans le Chrome de Rem) =====
+// speechSynthesis (lang fr-FR, aucune voix choisie) lit avec une voix de l'ordinateur S'IL EN A UNE en français ; sinon Chrome prend sa voix
+// Google, en ligne (mesuré : les langues sans voix locale y sont lues par la voix Google, sans aucune frontière de mot). L'infobulle de
+// « 🔊 Lire » promettait « Rien ne quitte ta machine ». Décision de Rem : pas de clic de plus (« ça va faire peur »), l'info dans le ⓘ.
+{
+  const lit = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+  const INFO = "s'il n'a pas de voix française, Chrome utilise sa voix Google, en ligne";
+  const pan = lit('extension/sidepanel.html');
+  for (const [rel, x] of [['extension/sidepanel.html', 'Rien ne quitte ta machine'], ['extension/sidepanel.html', 'moment où quelque chose sort de ta machine'],
+                          ['extension/micro.html', 'seul moment où quelque chose sort de ton appareil'], ['confidentialite.html', 'la seule chose qui sorte de l'],
+                          ['confidentialite.html', 'moment où quelque chose sort de ton appareil'], ['extension/STORE.md', 'Rien ne sort de votre appareil']])
+    if (lit(rel).indexOf(x) >= 0) fail('lecture à voix haute : « ' + x + ' » dans ' + rel + ' — faux sans voix française sur l’ordinateur (Chrome lit alors avec sa voix Google en ligne)');
+  const foot = /<details class="foot">[\s\S]*?<\/details>/.exec(pan);
+  if (!foot || foot[0].indexOf('lecture à voix haute') < 0 || foot[0].indexOf(INFO) < 0) fail('panneau : le ⓘ du bas ne dit plus que la lecture à voix haute peut passer par la voix Google en ligne');
+  for (const rel of ['extension/aide.html', 'confidentialite.html', 'extension/STORE.md'])
+    if (lit(rel).replace(/\s+/g, ' ').indexOf(INFO) < 0) fail('lecture à voix haute : ' + rel + ' ne dit plus « ' + INFO + ' »');
+  console.log('  ✓ lecture à voix haute : aucune promesse « hors-ligne », l’info « voix Google en ligne » est dans le ⓘ du panneau, le guide, la page Confidentialité et la fiche');
+}
+
 console.log(rouge ? ('\nTEXTES : ' + rouge + ' attente(s) non tenue(s)') : '\nTEXTES : toutes les attentes tenues (' + CAS.length + ' phrases, couche partagée, routage de ' + NOMS.size + ' règles)');
 process.exit(rouge ? 1 : 0);

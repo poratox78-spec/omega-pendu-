@@ -332,7 +332,7 @@
       btn.onclick = function (ev) { ev.stopPropagation(); var as = b.querySelector('.omdys-astuce[data-k="' + btn.getAttribute('data-k') + '"]'); if (as) as.hidden = !as.hidden; };
     })(whys[wq]);
     var tts = b.querySelectorAll('.omdys-tts');
-    for (var tq = 0; tq < tts.length; tq++) (function (btn) {   // 🔊 = lit l'explication à voix haute (dys : entendre > lire) — speechSynthesis natif, hors-ligne
+    for (var tq = 0; tq < tts.length; tq++) (function (btn) {   // 🔊 = lit l'explication à voix haute (dys : entendre > lire) — speechSynthesis natif : voix de l'ordinateur, ou voix Google en ligne s'il n'a pas de voix française (mesuré 15/09/2026)
       btn.onclick = function (ev) { ev.stopPropagation(); var f = dg.flags[+btn.getAttribute('data-k')]; if (!f) return;
         try { speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(('« ' + f.word + ' » devient « ' + f.sugg + ' ». ' + (f.hint || '')).replace(/\s+/g, ' ').trim()); u.lang = 'fr-FR'; u.rate = 0.95; speechSynthesis.speak(u); } catch (e) {} };
     })(tts[tq]);
