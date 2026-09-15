@@ -31,7 +31,9 @@ STORE_ZIP = os.path.join(ROOT, 'omega-correcteur-dys-store.zip')  # zip du CHROM
 # était devenu INJOIGNABLE, et ses réglages (taille de texte, sombre) livrés en code mort. Ils vivent dans le panneau.
 # micro.html/micro.js : page d'AUTORISATION MICRO ouverte dans un vrai onglet — le side panel ne peut
 # pas afficher l'invite (contexte « offscreen »). Sans elles dans le zip, la dictée reste muette.
-FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'calc_dys.js', 'background.js', 'sidepanel.html', 'sidepanel.js', 'son_panel.js', 'micro.html', 'micro.js', 'README.md']
+# aide.html/aide.js : le MODE D'EMPLOI (15/09/2026), ouvert par le bouton ❓ du panneau. Oublié ici, le bouton mènerait à une page
+# absente du paquet — c'est ce que `references_pendantes()` refuse désormais pour TOUTE page, script ou image référencé.
+FILES = ['manifest.json', 'content.js', 'content.css', 'dys-core.js', 'calc_dys.js', 'background.js', 'sidepanel.html', 'sidepanel.js', 'son_panel.js', 'micro.html', 'micro.js', 'aide.html', 'aide.js', 'README.md']
 EXCLUDE_DIRS = set()
 
 def shipped():
@@ -46,7 +48,40 @@ def shipped():
                 out.append(('extension/%s/%s' % (sub, name), p))
     return out
 
+def references_pendantes():
+    """Ce que le PAQUET référence doit être DANS le paquet : href/src locaux des pages livrées (hors liens web, ancres,
+    data:) et `chrome.runtime.getURL('…')` littéraux des scripts livrés. Né du mode d'emploi (15/09/2026) : une page ajoutée
+    au panneau mais pas à FILES aurait donné un bouton qui ouvre une erreur chez l'utilisateur, zip « frais » quand même."""
+    import re
+    livres = set(arc[len('extension/'):] for arc, _ in shipped())
+    trous = []
+    for rel in sorted(livres):
+        chemin = os.path.join(HERE, *rel.split('/'))
+        if rel.endswith('.html'):
+            txt = open(chemin, encoding='utf-8').read()
+            txt = re.sub(r'<!--.*?-->', '', txt, flags=re.S)
+            refs = [m[1] for m in re.findall(r'''\b(href|src)\s*=\s*["']([^"']+)["']''', txt)]
+        elif rel.endswith('.js'):
+            refs = re.findall(r'''getURL\(\s*["']([^"']+)["']\s*\)''', open(chemin, encoding='utf-8').read())
+        else:
+            continue
+        for ref in refs:
+            if re.match(r'^(?:[a-z][a-z0-9+.-]*:|//|#)', ref, re.I):
+                continue
+            cible = ref.split('#')[0].split('?')[0]
+            if not cible:
+                continue
+            cible = os.path.normpath(os.path.join(os.path.dirname(rel), cible)).replace(os.sep, '/')
+            if cible not in livres:
+                trous.append('%s référence « %s » : absent du paquet (ajouter à FILES ou retirer la référence)' % (rel, ref))
+    return trous
+
 def build():
+    trous = references_pendantes()
+    if trous:
+        print('✗ PAQUET INCOMPLET :')
+        for x in trous: print('   ', x)
+        return 1
     entries = shipped()
     with zipfile.ZipFile(ZIP, 'w', zipfile.ZIP_DEFLATED) as z:
         for arc, path in entries:
@@ -101,8 +136,9 @@ def check():
         for n in names:
             if n not in entries:
                 bad.append('EN TROP dans le zip (pas une source livrée) : ' + n)
+    bad += ['RÉFÉRENCE PENDANTE : ' + x for x in references_pendantes()]
     if bad:
-        print('✗ ZIP EXTENSION PAS FRAIS — régénérer avec : python3 extension/build_zip.py')
+        print('✗ ZIP EXTENSION PAS FRAIS (ou paquet incomplet) — régénérer avec : python3 extension/build_zip.py')
         for b in bad: print('   ', b)
         return 1
     print('✓ zip extension frais : %d fichiers == sources' % len(entries))

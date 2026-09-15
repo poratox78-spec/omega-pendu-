@@ -477,5 +477,117 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
   }
 }
 
+// ===== 9) LE MODE D'EMPLOI DE L'EXTENSION (15/09/2026, demande de Rem : « dans l'extension on a pas de mode d'emploi c'est gênant ») =====
+// Un guide qui décrit un panneau qui n'existe plus est pire que pas de guide. On garde quatre choses dans extension/aide.html :
+//   a) chaque libellé cité (class="ui" data-src) existe TEL QUEL dans le fichier nommé ;
+//   b) chaque commande du panneau (bouton, case, liste, volet, lien ou zone à id omdys-…) est expliquée (data-cmd), et aucune data-cmd
+//      ne vise une commande disparue ;
+//   c) les exemples sont de VRAIES sorties du moteur de l'extension : mot, suggestion, famille, palier, 💡, remède, texte corrigé, vigilance ;
+//   d) le bloc CSS « copie exacte » est celui du panneau, ligne pour ligne, et chaque ancre du sommaire mène quelque part.
+{
+  const AIDE = path.join(EXT, 'aide.html');
+  if (!fs.existsSync(AIDE)) fail('mode d’emploi : extension/aide.html absent');
+  else {
+    const aide = fs.readFileSync(AIDE, 'utf8'), corps = aide.replace(/<!--[\s\S]*?-->/g, '');
+    const brut = {}, lireSrc = (f) => (brut[f] = brut[f] || fs.readFileSync(path.join(EXT, f), 'utf8'));
+    const ent = (s) => s.replace(/&nbsp;/g, ' ').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    const txt9 = (h) => ent(h.replace(/<br\s*\/?>/g, '\n').replace(/<[^>]+>/g, ''));
+    const sp9 = (s) => String(s).replace(/\s+/g, ' ').trim();
+    const blocDiv = (s, fin) => { let d = 1, i = fin; const re = /<div\b|<\/div>/g; re.lastIndex = fin; let m;
+      while ((m = re.exec(s))) { d += m[0] === '</div>' ? -1 : 1; if (!d) return s.slice(fin, m.index); } return null; };
+    const attr = (tag, nom) => { const m = new RegExp('\\b' + nom + '="([^"]*)"').exec(tag); return m ? ent(m[1]) : null; };
+
+    // a) libellés cités
+    let nUi = 0;
+    for (const m of corps.matchAll(/<span class="ui" data-src="([^"]+)">([\s\S]*?)<\/span>/g)) {
+      nUi++;
+      const f = m[1], lib = sp9(txt9(m[2]));
+      if (!fs.existsSync(path.join(EXT, f))) { fail('mode d’emploi : « ' + lib + ' » attribué à ' + f + ', fichier absent'); continue; }
+      const s = lireSrc(f);
+      if (sp9(s).indexOf(lib) < 0 && sp9(txt9(s)).indexOf(lib) < 0) fail('mode d’emploi : le libellé « ' + lib + ' » n’existe pas dans ' + f + ' — le guide décrit un bouton qui a changé');
+    }
+    if (nUi < 20) fail('mode d’emploi : seulement ' + nUi + ' libellés cités lus — la lecture du guide est cassée (garde muette)');
+
+    // b) chaque commande du panneau est expliquée
+    const ids = new Set();
+    for (const m of lireSrc('sidepanel.html').matchAll(/<(button|input|select|details|a|div)\b[^>]*\bid="(omdys-[^"]+)"[^>]*>/g)) {
+      if (m[1] === 'div' && !/role="textbox"/.test(m[0])) continue;   // une div n'est une commande que si c'est la zone de saisie
+      ids.add(m[2]);
+    }
+    const cmds = new Set([...corps.matchAll(/data-cmd="([^"]+)"/g)].map((m) => m[1]));
+    for (const id of ids) if (!cmds.has(id)) fail('mode d’emploi : la commande #' + id + ' du panneau n’est expliquée nulle part (data-cmd)');
+    for (const c of cmds) if (!ids.has(c)) fail('mode d’emploi : data-cmd="' + c + '" vise une commande qui n’existe plus dans le panneau');
+    if (ids.size < 15) fail('mode d’emploi : seulement ' + ids.size + ' commandes lues dans sidepanel.html — la lecture est cassée (garde muette)');
+    if (!/<a\b[^>]*\bid="omdys-aide"[^>]*\bhref="aide\.html"/.test(lireSrc('sidepanel.html'))) fail('mode d’emploi : le panneau n’a plus de bouton #omdys-aide vers aide.html — le guide est injoignable');
+
+    // c) les exemples sont de vraies sorties du moteur (confusables chargées, comme dans le panneau)
+    try { D.setConfusables(JSON.parse(rd('confusables.json').toString('utf8'))); } catch (e) { fail('mode d’emploi : confusables.json illisible (' + e.message + ')'); }
+    const cache9 = {}, dg9 = (t) => (cache9[t] = cache9[t] || D.diagnoseAll(t));
+    const TOK9 = /[A-Za-zÀ-ÿœŒ'’ʼ]+/g;   // le motif de sidepanel.js (spans)
+    const corrige9 = (t, flags) => {   // corrige() du panneau : paliers auto + rouge appliqués, la vigilance jamais
+      const sp2 = [...t.matchAll(TOK9)].map((m) => [m.index, m.index + m[0].length]), ed = [];
+      for (const f of flags) { if (f.tier === 'vigilance') continue;
+        if (f.i == null && typeof f.cs === 'number') { ed.push([f.cs, f.ce, f.sugg]); continue; }
+        const a = sp2[f.i]; if (!a) continue; const b = sp2[f.i + (f.span ? f.span - 1 : 0)] || a; ed.push([a[0], b[1], f.sugg]); }
+      ed.sort((x, y) => x[0] - y[0]); let out = '', last = 0;
+      for (const x of ed) { if (x[0] < last) continue; out += t.slice(last, x[0]) + x[2]; last = x[1]; }
+      return out + t.slice(last);
+    };
+    const n9 = { item: 0, out: 0, remed: 0, vig: 0 };
+    for (const m of corps.matchAll(/<div class="(item [a-z ]+|out|remed|vig)"([^>]*)>/g)) {
+      const cls = m[1], tag = m[0], phrase = attr(tag, 'data-phrase'), inner = blocDiv(corps, m.index + tag.length);
+      if (!phrase || inner == null) { fail('mode d’emploi : exemple .' + cls.split(' ')[0] + ' sans data-phrase ou mal fermé'); continue; }
+      const dg = dg9(phrase), flags = dg.flags || [];
+      if (/^item/.test(cls)) {
+        n9.item++;
+        const mot = attr(tag, 'data-mot'), sugg = attr(tag, 'data-sugg'), fam = attr(tag, 'data-famille'), pal = attr(tag, 'data-palier');
+        const f = flags.find((x) => x.word === mot && x.sugg === sugg);
+        if (!f) { fail('mode d’emploi : « ' + phrase + ' » ne donne plus « ' + mot + ' » → « ' + sugg + ' » (eu : ' + JSON.stringify(flags.map((x) => x.word + '→' + x.sugg)) + ')'); continue; }
+        if (f.name !== fam) fail('mode d’emploi : « ' + mot + ' » → « ' + sugg + ' » est de la famille « ' + f.name + ' », le guide dit « ' + fam + ' »');
+        if (f.tier !== pal) fail('mode d’emploi : « ' + mot + ' » → « ' + sugg + ' » est au palier « ' + f.tier + ' », le guide dit « ' + pal + ' »');
+        const vig = f.tier === 'vigilance';
+        if (vig !== /\btvig\b/.test(cls) || (!vig && !/\b(done|off)\b/.test(cls))) fail('mode d’emploi : l’exemple « ' + mot + ' » a la classe « ' + cls + ' », le panneau lui donnerait « ' + (vig ? 'item tvig' : 'item done') + ' »');
+        const astuce = /<div class="astuce">([\s\S]*?)<\/div>/.exec(inner), sans = sp9(txt9(inner.replace(/<div class="astuce">[\s\S]*?<\/div>/, '')));
+        const attendu = '« ' + mot + ' » → « ' + sugg + ' » [' + f.name + (f.tier === 'auto' ? ' · sûr' : (vig ? ' · à vérifier' : '')) + ']';
+        if (sans.indexOf(attendu) !== 0) fail('mode d’emploi : l’exemple s’affiche « ' + sans + ' », le panneau afficherait « ' + attendu + ' »');
+        const etat = /\boff\b/.test(cls) ? 'annulé · clique pour réappliquer' : (vig ? null : '✓ appliqué à la copie · clique pour annuler');
+        if (etat && sans.indexOf(etat) < 0) fail('mode d’emploi : l’exemple « ' + mot + ' » n’a pas la mention « ' + etat + ' » du panneau');
+        if (!etat && /appliqué|annulé/.test(sans)) fail('mode d’emploi : l’exemple orange « ' + mot + ' » porte une mention d’application que le panneau ne met pas');
+        if (!!f.hint !== /class="why"/.test(inner)) fail('mode d’emploi : l’exemple « ' + mot + ' » ' + (f.hint ? 'n’a pas le 💡 que le panneau afficherait' : 'a un 💡 que le panneau n’afficherait pas'));
+        if (astuce && sp9(txt9(astuce[1])) !== sp9(f.hint || '')) fail('mode d’emploi : le 💡 de « ' + mot + ' » dit « ' + sp9(txt9(astuce[1])) + ' », le moteur dit « ' + (f.hint || '') + ' »');
+      } else if (cls === 'out') {
+        n9.out++;
+        const lab = 'texte corrigé (c\'est lui que « Copier » copie) :', montre = sp9(txt9(inner));
+        if (montre.indexOf(lab) !== 0) fail('mode d’emploi : la boîte « texte corrigé » n’a pas l’étiquette du panneau');
+        else if (sp9(montre.slice(lab.length)) !== sp9(corrige9(phrase, flags))) fail('mode d’emploi : texte corrigé montré « ' + sp9(montre.slice(lab.length)) + ' », le panneau copierait « ' + corrige9(phrase, flags) + ' »');
+      } else if (cls === 'remed') {
+        n9.remed++;
+        const lignes = txt9(inner).split('\n').map(sp9).filter(Boolean);
+        if (lignes[0] !== '🛠️ Remédiation') fail('mode d’emploi : la boîte remède ne commence pas par « 🛠️ Remédiation »');
+        for (const l of lignes.slice(1)) if (!(dg.remed || []).map(sp9).includes(l)) fail('mode d’emploi : remède « ' + l + ' » absent du moteur pour « ' + phrase + ' » (eu : ' + JSON.stringify(dg.remed || []) + ')');
+      } else {
+        n9.vig++;
+        const vus = (D.vigText(phrase) || []).map((v) => '« ' + v.word + ' » — ' + v.info);
+        for (const it of inner.matchAll(/<div class="vitem">([\s\S]*?)<\/div>/g)) if (!vus.includes(sp9(txt9(it[1])))) fail('mode d’emploi : vigilance « ' + sp9(txt9(it[1])) + ' » absente du moteur (eu : ' + JSON.stringify(vus) + ')');
+        const vl = /<div class="vlab">([\s\S]*?)<\/div>/.exec(inner);
+        if (!vl || lireSrc('sidepanel.js').indexOf(sp9(txt9(vl[1]))) < 0) fail('mode d’emploi : l’en-tête de la vigilance n’est pas celui du panneau');
+      }
+    }
+    if (n9.item < 3 || !n9.out || !n9.remed || !n9.vig) fail('mode d’emploi : exemples trop maigres (' + JSON.stringify(n9) + ') — la lecture est cassée ou des exemples ont disparu');
+
+    // d) le CSS recopié est celui du panneau, et le sommaire mène quelque part
+    const bloc = /⇣⇣ COPIE EXACTE[^\n]*\n([\s\S]*?)\n[^\n]*⇡⇡ fin de la copie exacte/.exec(aide);
+    if (!bloc) fail('mode d’emploi : bloc CSS « copie exacte » introuvable');
+    else {
+      const lp = new Set(lireSrc('sidepanel.html').split('\n').map((l) => l.trim()));
+      const lignesCss = bloc[1].split('\n').map((l) => l.trim()).filter(Boolean);
+      for (const l of lignesCss) if (!lp.has(l)) fail('mode d’emploi : règle CSS recopiée qui n’est plus celle du panneau : ' + l.slice(0, 90));
+      if (lignesCss.length < 15) fail('mode d’emploi : bloc CSS recopié trop court (' + lignesCss.length + ' lignes)');
+    }
+    for (const m of corps.matchAll(/href="#([^"]+)"/g)) if (corps.indexOf('id="' + m[1] + '"') < 0) fail('mode d’emploi : le sommaire mène à #' + m[1] + ', qui n’existe pas');
+    console.log('  ✓ mode d’emploi : ' + nUi + ' libellés cités existent, ' + ids.size + ' commandes du panneau expliquées, exemples = moteur (' + n9.item + ' corrections, texte corrigé, remède, vigilance), CSS du panneau');
+  }
+}
+
 console.log(rouge ? ('\nTEXTES : ' + rouge + ' attente(s) non tenue(s)') : '\nTEXTES : toutes les attentes tenues (' + CAS.length + ' phrases, couche partagée, routage de ' + NOMS.size + ' règles)');
 process.exit(rouge ? 1 : 0);

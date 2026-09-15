@@ -250,6 +250,57 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
     log('  ' + (vc.ok ? '✓' : '✗') + ' [panneau ] copie de « Il arrive , puis il repart » → ' + JSON.stringify(vc.copie));
     if (!vc.ok) echecs.push('panneau latéral RÉEL : la copie doit appliquer les corrections sûres ancrées caractère (« Il arrive, puis il repart »), eu ' + JSON.stringify(vc.copie));
 
+    /* ⑤ter LE MODE D'EMPLOI (15/09/2026, demande de Rem : « dans l'extension on a pas de mode d'emploi c'est gênant »).
+       Le bouton ❓ du panneau doit mener à une page DU PAQUET qui s'ouvre vraiment : sans erreur de script (la CSP d'une page
+       d'extension refuse tout script en ligne — un <script> collé dans aide.html serait muet, pas rouge, sans ce banc), avec ses
+       sections, ses exemples dessinés par le CSS du panneau, l'icône Ω chargée depuis le paquet, et les réglages du panneau
+       (sombre, taille) suivis EN DIRECT par aide.js. Le CONTENU (libellés, commandes, exemples = moteur) est gardé par textes_probe §9. */
+    const URL_AIDE = 'chrome-extension://' + r0.id + '/aide.html';
+    const ra = await pp.envoyer('Runtime.evaluate', { returnByValue: true,
+      expression: '(() => { const a = document.getElementById("omdys-aide"); return a ? { href: a.href, cible: a.target, visible: !!(a.offsetWidth || a.offsetHeight) } : null; })()' });
+    const lienAide = (ra.result && ra.result.value) || null;
+    const okLien = !!(lienAide && lienAide.href === URL_AIDE && lienAide.cible === '_blank' && lienAide.visible);
+    log('  ' + (okLien ? '✓' : '✗') + ' [aide    ] bouton ❓ du panneau → ' + JSON.stringify(lienAide));
+    if (!okLien) echecs.push('mode d’emploi : le panneau n’a pas de bouton ❓ visible qui ouvre ' + URL_AIDE + ' dans un onglet (eu ' + JSON.stringify(lienAide) + ')');
+    const erreursAide = [];
+    const pa = await connecter(await onglet(dp, 'about:blank'), (d) => {
+      if (d.method === 'Runtime.exceptionThrown') erreursAide.push('exception : ' + ((d.params.exceptionDetails || {}).text || '?'));
+      if (d.method === 'Log.entryAdded' && d.params.entry && d.params.entry.level === 'error') erreursAide.push(d.params.entry.text);
+      if (d.method === 'Runtime.consoleAPICalled' && d.params.type === 'error') erreursAide.push('console : ' + JSON.stringify((d.params.args || []).map((x) => x.value)));
+    });
+    await pa.envoyer('Runtime.enable'); await pa.envoyer('Log.enable'); await pa.envoyer('Page.enable');
+    await pa.envoyer('Page.navigate', { url: URL_AIDE });
+    const etatAide = async () => {
+      const q = await pa.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+        expression: '(async () => { const w = (ms) => new Promise(r => setTimeout(r, ms));'
+          + ' for (let i = 0; i < 60 && (location.href !== ' + JSON.stringify(URL_AIDE) + ' || document.readyState !== "complete"); i++) await w(100);'
+          + ' const it = document.querySelector(".ex .item.done"), im = document.querySelector("img.ico");'
+          + ' return { url: location.href, titre: document.title, sections: document.querySelectorAll("main section[id]").length,'
+          + '   exemples: document.querySelectorAll(".ex .item").length, bord: it ? getComputedStyle(it).borderLeftColor : null,'
+          + '   icone: im ? (im.complete ? im.naturalWidth : -2) : -1, sombre: document.body.classList.contains("dark"),'
+          + '   fs: getComputedStyle(document.documentElement).getPropertyValue("--fs").trim() }; })()' });
+      return (q.result && q.result.value) || {};
+    };
+    const reglerAide = (o) => pa.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true, timeout: 20000,
+      expression: 'new Promise(r => chrome.storage.local.set(' + JSON.stringify(o) + ', () => setTimeout(() => r(1), 400)))' });
+    const a0 = await etatAide();
+    const okPage = a0.url === URL_AIDE && a0.titre === 'Mode d\'emploi — Correcteur dys' && a0.sections >= 9 && a0.exemples >= 3
+      && a0.bord === 'rgb(46, 139, 87)' && a0.icone > 0 && a0.sombre === false && a0.fs === '17px';
+    log('  ' + (okPage ? '✓' : '✗') + ' [aide    ] page ouverte : ' + JSON.stringify(a0));
+    if (!okPage) echecs.push('mode d’emploi : aide.html ne s’affiche pas comme prévu dans Chrome (titre, ≥ 9 sections, ≥ 3 exemples au CSS du panneau, icône du paquet, réglages par défaut) — eu ' + JSON.stringify(a0));
+    await reglerAide({ omDark: true, omSize: 'g' });
+    const a1 = await etatAide();
+    await reglerAide({ omDark: false, omSize: 'p' });   // on rend les réglages par défaut : la bulle des gardes suivantes les lit aussi
+    const a2 = await etatAide();
+    const okRegl = a1.sombre === true && a1.fs === '22px' && a2.sombre === false && a2.fs === '17px';
+    log('  ' + (okRegl ? '✓' : '✗') + ' [aide    ] réglages du panneau suivis en direct : sombre+très grand → ' + a1.sombre + '/' + a1.fs + ', retour → ' + a2.sombre + '/' + a2.fs);
+    if (!okRegl) echecs.push('mode d’emploi : le guide ne suit pas les réglages du panneau (omDark/omSize) — eu ' + JSON.stringify({ a1, a2 }));
+    const okErr = erreursAide.length === 0;
+    log('  ' + (okErr ? '✓' : '✗') + ' [aide    ] aucune erreur de script ni de CSP' + (okErr ? '' : ' : ' + erreursAide.slice(0, 3).join(' | ')));
+    if (!okErr) echecs.push('mode d’emploi : erreurs dans aide.html — ' + erreursAide.slice(0, 3).join(' | '));
+    try { pa.fermer(); } catch (e) {}
+    try { const tl = await (await fetch('http://127.0.0.1:' + dp + '/json/list')).json(); const t = tl.find((x) => x.url === URL_AIDE); if (t) await fetch('http://127.0.0.1:' + dp + '/json/close/' + t.id); } catch (e) {}
+
     /* ⑥ LA BASCULE BULLE ↔ RECOPIE SURVIT-ELLE À UNE FERMETURE ? (rapport de Rem, 09/09/2026)
        Trois symptômes, une seule cause : l'exclusion mutuelle n'était appliquée QU'AU CLIC.
        `#omdys-mirror` porte `checked` en dur dans le HTML et n'était NI écrit NI relu dans le
@@ -412,6 +463,7 @@ const { trouverChrome, servir, attendre, lirePortDevTools, connecter, onglet } =
       code = 1;
     } else {
       console.log('✓ EXTENSION DANS CHROME : ' + (CAS.length + PANNEAU.length + couv) + ' comportements vérifiés dans le PAQUET RÉEL (dont ' + PANNEAU.length + ' gestes du panneau latéral, ' + couv + ' gardes d’affichage) '
+                  + '+ mode d’emploi (bouton ❓, page ouverte, réglages suivis, sans erreur) '
                   + '(content.js injecté, assets chargés par chrome.runtime.getURL).');
     }
   } catch (e) {

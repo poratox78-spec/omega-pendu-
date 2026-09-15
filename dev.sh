@@ -108,7 +108,7 @@ run "parité DICTÉE Python↔JS (diag_sentence.py == diagnoseSentence, 1300+ ca
 run "speller ext ≡ app (vigilance comprise)" node extension/test_speller.js
 run "textes d'explication (💡 + conseils attendus, anciens textes faux interdits ; couche dys app ≡ ext ; routage de chaque règle ; plus de Stade au correcteur)" node dictee/textes_probe.js
 run "parité SPELLER Python↔JS (suggestion, auto+flag+inconnu+vigilance)" python3 dictee/parity_speller.py
-runsh "syntaxe extension (5 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js"
+runsh "syntaxe extension (6 fichiers)" "node --check extension/dys-core.js && node --check extension/content.js && node --check extension/background.js && node --check extension/sidepanel.js && node --check extension/micro.js && node --check extension/aide.js"
 run "correcteur standalone"         node dictee/correcteur.js
 run "correcteur AUTONOME (bake, 3 mondes)" node dictee/bake_probe.js --check
 run "outil d'édition (pièges monolithe)" python tools/omega_edit.py
