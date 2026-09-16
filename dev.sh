@@ -128,6 +128,10 @@ run "EN moteur JS correcteur (parité CASES)" node dictee/corrector_en.js --chec
 # Une règle non branchée dans la page vaut ZÉRO : le 2026-08-09, 8 règles anglaises mesurées et
 # livrées n'étaient appelées par aucune page. Ce check ferme la classe de bug (+ tokeniseur identique).
 run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiring_probe.js
+# Parité Python↔JS PAR TOKEN sur un corpus committé (PUD) : l'ancienne garde comparait deux totaux sur EWT, absent de la CI,
+# et le Python a pris cinq semaines de retard sur le JS (16/09/2026) sans qu'elle rougisse. En local, EWT s'ajoute au corpus.
+run "EN parité Python↔JS par token : tokeniseur, speller, homophones (PUD committé + EWT local)" node dictee/parity_en.js
+run "EN parité du POS-tagger Python↔JS par token (PUD committé + EWT local)" node dictee/parity_pos_en.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :

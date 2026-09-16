@@ -64,15 +64,30 @@ def phon_key(s):
     return ''.join(o2)
 
 def edits1(d):
+    # ⚠️ ORDRE D'INSERTION conservé (dict), comme le Set du JS : les égalités de score se départagent par le PREMIER
+    # candidat généré. Avec un set Python, « isda » donnait ida ou isds selon le hachage du processus.
     sp = [(d[:i], d[i:]) for i in range(len(d) + 1)]
-    res = set()
+    res = {}
     for a, b in sp:
-        if b: res.add(a + b[1:])                              # delete
-        if len(b) > 1: res.add(a + b[1] + b[0] + b[2:])       # transpose
+        if b: res[a + b[1:]] = None                           # delete
+        if len(b) > 1: res[a + b[1] + b[0] + b[2:]] = None    # transpose
         for c in ALPHA:
-            res.add(a + c + b)                                # insert
-            if b: res.add(a + c + b[1:])                      # replace
-    return res
+            res[a + c + b] = None                             # insert
+            if b: res[a + c + b[1:]] = None                   # replace
+    return list(res)
+
+
+_US_SUBS = [('isation', 'ization'), ('isations', 'izations'), ('isers', 'izers'), ('iser', 'izer'), ('isable', 'izable'),
+            ('ise', 'ize'), ('ised', 'ized'), ('ises', 'izes'), ('ising', 'izing'),
+            ('yse', 'yze'), ('ysed', 'yzed'), ('yses', 'yzes'), ('ysing', 'yzing'),
+            ('our', 'or'), ('ours', 'ors'), ('oured', 'ored'), ('ouring', 'oring'),
+            ('logue', 'log'), ('logues', 'logs')]
+def _us_variant(low):
+    """Variante américaine d'une graphie britannique — MIROIR EXACT de la chaîne `_us` de corrector_en.js :
+    chaque motif ne remplace que sa PREMIÈRE occurrence en fin de mot (\\b), dans cet ordre, puis -re final -> -er."""
+    for a, b in _US_SUBS:
+        low = re.sub(a + r'\b', b, low, count=1)
+    return re.sub(r'^(.*[bcdfghjklmnpqrstvwxz])re\b', r'\1er', low, count=1)
 
 
 def _doubling(a, b):
@@ -92,7 +107,7 @@ def _doubling(a, b):
 
 # ---------- lexique ----------
 def load_lexicon():
-    KNOWN = set(); FREQ = {}; POS = {}; PHON = collections.defaultdict(list)
+    KNOWN = set(); FREQ = {}; POS = {}; PHON = collections.defaultdict(list); ORDRE = []
     with gzip.open(LEX, 'rt', encoding='utf-8') as f:
         f.readline()
         for line in f:
@@ -100,14 +115,15 @@ def load_lexicon():
             if len(c) < 7: continue
             w = c[0]
             if not w: continue
+            if w not in KNOWN: ORDRE.append(w)               # ordre du fichier, pour départager les égalités comme le JS
             KNOWN.add(w)
             try: fr = int(c[6])
             except ValueError: fr = 0
             FREQ[w] = fr
             if c[1]: POS[w] = c[1]
     # index phonétique : mots a-z seulement (candidats), classés par fréquence décroissante
-    az = [w for w in KNOWN if all(ch in ALPHA for ch in w)]
-    for w in sorted(az, key=lambda w: -FREQ.get(w, 0)):
+    az = [w for w in ORDRE if all(ch in ALPHA for ch in w)]
+    for w in sorted(az, key=lambda w: -FREQ.get(w, 0)):      # tri stable : égalités dans l'ordre du fichier (miroir JS)
         PHON[phon_key(w)].append(w)
     return KNOWN, FREQ, POS, PHON
 
@@ -162,6 +178,12 @@ class SpellerEN:
         if not low or len(low) < 2 or any(ch not in ALPHA for ch in low):
             return None, 'OK'                                # lettre seule (a, I) / non a-z : hors périmètre speller
         if low in self.KNOWN:
+            return None, 'OK'
+        # graphie BRITANNIQUE inconnue -> on dérive la variante américaine et on interroge le lexique qu'on a déjà
+        # (miroir JS : iodised, sanitisers, organise, colour, centre). Direction unique, UK -> US, pour INTERROGER :
+        # on ne PROPOSE jamais de réécrire l'une en l'autre, les deux orthographes sont correctes.
+        us = _us_variant(low)
+        if us != low and us in self.KNOWN:
             return None, 'OK'
         if w[:1].isupper():
             return None, 'OK'                                # capitalisé = nom propre probable → pas de speller (anti-flood ; les homophones gèrent leur casse)
@@ -258,7 +280,7 @@ class SpellerEN:
 
     def correct(self, text):
         out = []
-        for tok in re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*|[^A-Za-z]+", text):
+        for tok in re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*|[^A-Za-zÀ-ÖØ-öø-ÿ]+", text):     # MÊME motif que le moteur JS
             if tok[:1].isalpha():
                 s, mode = self.suggest(tok)
                 if mode == 'AUTO' and s:
@@ -338,7 +360,7 @@ def main():
         if not ok: sys.exit(1)
 
 
-URL_RE = re.compile(r"https?:|www\.|@|[\/]|\.(?:com|org|net|edu|gov|co|io|fr|uk|de)", re.I)
+URL_RE = re.compile(r"https?:|www\.|@|[\\/]|\.(?:com|org|net|edu|gov|co|io|fr|uk|de)\b", re.I)   # miroir exact du JS (barre inverse admise, TLD borné)
 
 def url_mask(text):
     """Indices des tokens qui vivent dans une URL, une adresse ou un chemin — a ne JAMAIS corriger.
@@ -354,7 +376,7 @@ def url_mask(text):
     Miroir exact de `urlMask` dans dictee/corrector_en.js (parite Python<->JS).
     """
     proteges, i = set(), 0
-    for m in re.finditer(r"[A-Za-z]+(?:'[A-Za-z]+)*", text):
+    for m in re.finditer(r"[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*", text):                     # MÊME motif que tokenize (JS) : sinon les index divergent
         a, b = m.start(), m.end()
         while a > 0 and not text[a-1].isspace(): a -= 1
         while b < len(text) and not text[b].isspace(): b += 1
@@ -375,7 +397,7 @@ def fp_scale(sp):
         seen += 1
         _txt = l.split('=', 1)[1]
         _prot = url_mask(_txt)                      # cf. url_mask : un mot dans une URL n'est pas du langage
-        for _i, _m in enumerate(re.finditer(r"[A-Za-z]+(?:'[A-Za-z]+)*", _txt)):
+        for _i, _m in enumerate(re.finditer(r"[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*", _txt)):   # MÊME motif que le moteur JS
             tok = _m.group(0)
             toks += 1
             if _i in _prot: continue

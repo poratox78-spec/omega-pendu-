@@ -190,6 +190,13 @@ jobs:
       # renvoient des indices qui désignent d'autres mots — silencieusement).
       - name: EN — les règles du moteur sont branchées dans la page (+ tokeniseur identique)
         run: node dictee/en_page_wiring_probe.js
+      # Parité Python↔JS PAR TOKEN sur les 1 000 phrases d'UD English-PUD committées (CC BY-SA 3.0) : l'ancienne
+      # garde ne tournait qu'en local (EWT) et comparait deux totaux ; le 16/09/2026 le Python avait cinq semaines de
+      # retard sur le JS (post-passes du tagger, familles where/were, whose, led, passed, two, paronymes, accord 3sg…).
+      - name: EN — parité Python↔JS par token (tokeniseur, speller, homophones ; PUD committé)
+        run: node dictee/parity_en.js
+      - name: EN — parité du POS-tagger Python↔JS par token (PUD committé)
+        run: node dictee/parity_pos_en.js
       # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
       # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».

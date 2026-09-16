@@ -1,0 +1,65 @@
+# Phrases INVENTÉES pour la garde de parité anglaise (parity_en.js, parity_pos_en.js) — une par ligne, « # » = commentaire.
+# Pourquoi ce fichier en plus du corpus PUD : un corpus réel n'exerce pas toutes les règles. Mesuré le 16/09/2026 : retirer
+# l'exception « of course » (modal + of -> have) d'UN SEUL moteur restait VERT sur 13 544 phrases réelles — aucune ne
+# contient « would of course ». Chaque famille du canal homophone, du speller et du tokeniseur a donc ici sa phrase
+# déclenchante ET sa phrase piège (qui doit rester muette), pour qu'une dérive d'un côté rougisse à coup sûr.
+# Tokeniseur et masques (apostrophe typographique, accents, trait d'union, adjacence, URL)
+She didn’t know that México and Domínguez were on the list.
+Those moon-cursed waters hit a .322 average last year.
+Visit www.example.com/liberta or mail liberta@example.org today.
+# modal + of -> have, sauf « of course »
+They would of course be late.
+I could of done it myself.
+He should of asked first.
+# a / an par le son (IPA), majuscules, adjacence
+I waited a hour for a answer.
+He is an user of an useful tool.
+She has an MBA and an honest heart.
+An heir and an historic moment happened in a US firm.
+# then / than
+It is bigger then mine.
+Work harder then rest.
+# where / were, we're, whose / who's, led, passed, two
+They where happy to tell you where it is.
+Were going home now.
+Were you there?
+A friend who's aunt left knows whose going home.
+The nation whose king ruled has lead to nothing.
+It has lead to problems.
+I past the test in the past few years.
+The old man past the shop.
+I want two go home but the two screamed.
+Ways of Two Hypnotizing people are two working now.
+# paronymes nom / verbe, except / accept
+I will advice you to breath deeply.
+My advise to all is good, take a deep breathe.
+I had to chose one and it will effect the outcome.
+The affect of this is big, but to effect that change is hard.
+I except your offer, everyone except me came.
+# accord 3sg, subjonctif, auxiliaire devant
+He have a car and he don't know it.
+If he were to read, Does she have any interest?
+Could he have had a blow, as it were?
+# their / there / they're, your / you're, its / it's
+Their is a problem there house is big.
+They're car is red and your welcome to stay.
+its a good idea, its not fair, it's tail is long.
+There time is over there, the people there attempt it.
+# to / too, weather / whether
+You are to tired to walk, it is to much.
+Listen to much music and refer to many books.
+I do not know weather or not to go.
+# don't / doesn't, was / were (titre, préposition), loose / lose
+She don't know, I doesn't care.
+They was late, but Really Really Love You was released.
+Part of you was right and we was wrong.
+Don't loose your keys, cut loose the rope.
+# verbes irréguliers régularisés, participe après have
+He runned home and they teached us well.
+She goed to school and has went home.
+# speller : graphies britanniques (dérivation US), fautes classiques, égalité de score, redoublement, glissement
+The iodised salt and the sanitisers were organised by colour in the centre.
+I recieved a seperate letter, definately occured becuase of teh mistake.
+The isda contract was signed by the adress office.
+He is a succesful goverment official with a wonderfull calender and stressfull comunities.
+This is more cleverer than that, i think, and theyre late.

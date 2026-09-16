@@ -71,6 +71,24 @@ LOOSE_TRIG  = {'to', 'will', 'would', 'can', 'could', 'might', 'must', 'should',
     'gonna', 'cannot', "'ll", 'll', "won't", 'wont'}
 LOOSE_IDIOM = {'let', 'cut', 'break', 'set', 'turn', 'come', 'work', 'hang', 'shake', 'get', 'got', 'be',
     'been', 'being', 'is', 'are', 'was', 'were', 'on', 'so', 'too', 'very', 'more'}  # « be loose », « cut loose »… = adj légitime
+TO_MUCH_PREV_STOP = {'', 'listen', 'up', 'close', 'talk', 'talking', 'speak', 'speaking', 'refer',
+    'referred', 'according', 'due', 'access', 'attention', 'related'}
+# ---- familles ajoutées en 08/2026 (miroir de corrector_en.js) : le discriminateur est STRUCTUREL (mot voisin ou POS)
+SUBJ_PRON = {'i', 'we', 'they', 'you', 'he', 'she', 'it'}          # pronoms SUJETS uniquement (« the place where… » est correct)
+VERB_SLOT = {'to', 'will', "'ll", 'would', 'can', 'could', 'may', 'might', 'must', 'shall', 'should',
+    'please', 'let', 'helps', 'help', 'wanna', 'gonna'}                 # position qui appelle un VERBE
+NOUN_SLOT = {'the', 'a', 'an', 'this', 'that', 'my', 'your', 'his', 'her', 'our', 'their', 'some', 'any',
+    'no', 'good', 'bad', 'best', 'free', 'professional', 'legal', 'medical', 'financial', 'deep', 'sound'}   # appelle un NOM
+DET_AFTER = {'the', 'a', 'an', 'my', 'your', 'his', 'her', 'our', 'their', 'its'}   # PAS this/that : « effect that change » est l'idiome valide
+AUX_BEFORE = {'does', 'do', 'did', "doesn't", "didn't", "don't", 'will', 'would', 'can', 'could', 'may',
+    'might', 'must', 'shall', 'should', 'to', 'and', 'or', 'not', "won't", "can't", 'why', 'how', 'when', 'what', 'that'}
+SUBJUNCTIVE = {'if', 'as', 'wish', 'wishes', 'wished', 'whether', 'though', 'although', 'unless', 'lest', 'than', 'suppose', 'supposing'}
+SUBJ_3SG = {'he', 'she', 'it'}                       # pronoms 3e pers. sing. SEULS (un NOM serait ambigu : pluriel invariable, collectif)
+DET_BEFORE = {'the', 'these', 'those', 'his', 'her', 'their', 'our', 'my', 'your', 'its', 'both', 'all', 'other', 'first', 'last', 'only', 'same', 'remaining'}
+PERF_AUX = {'have', 'has', 'had', "'ve", "'s"}
+# prépositions : un pronom qui les suit est COMPLÉMENT, pas sujet (« part of you was »)
+_PREP_AVANT = {'of', 'to', 'with', 'for', 'at', 'from', 'about', 'between', 'among', 'like',
+    'without', 'against', 'upon', 'than', 'as', 'on', 'in', 'by', 'near', 'behind', 'beside', 'toward', 'towards'}
 # morphologie verbale irrégulière régularisée (runned->ran, goed->went…) — map de build_verbmorph_en.py
 import os as _os, json as _json
 VERBMORPH = {}
@@ -80,7 +98,20 @@ except Exception: pass
 PP_AUX = {'have', 'has', 'had', 'having', "'ve", "'d", 'been', 'be', 'is', 'am', 'are', 'was', 'were',
     'get', 'gets', 'got', 'getting'}       # auxiliaires -> participe passé (have runned -> run) ; sinon passé (I runned -> ran)
 
-def _tok(text): return re.findall(r"[A-Za-z]+(?:'[A-Za-z]+)*", text)
+# MÊME motif que `tokenize` de corrector_en.js (apostrophe typographique ’, lettres accentuées) : sinon les index divergent.
+_TOK_RE = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*")
+def _tok(text): return _TOK_RE.findall(text)
+
+def adj_mask(text):
+    """Indices i tels que le token i TOUCHE le token i+1 dans le texte (rien d'autre que des espaces entre).
+    `tokenize` jette chiffres et ponctuation : « hit a .322 average » donne `hit a average`, où « a » PARAÎT coller
+    à « average ». Les règles qui exigent l'adjacence consultent ce masque. Miroir exact de `adjMask` (JS)."""
+    adj = set(); prev_end = -1; i = -1
+    for m in _TOK_RE.finditer(text):
+        i += 1
+        if prev_end >= 0 and re.fullmatch(r'[ \t]*', text[prev_end:m.start()]): adj.add(i - 1)
+        prev_end = m.end()
+    return adj
 
 # ---- POS CONTEXTUEL (HMM UPOS, pos_en.py) : débloque la direction possessive ----------------------
 # `only_noun` s'appuie sur le lexique Wiktionary, qui SUR-VERBIFIE (house/engine/phone/sister sont tous
@@ -95,9 +126,9 @@ _POSCACHE = {}
 def ctx_pos(T, i):
     """UPOS du token i dans SA phrase (ou None si pas de modèle)."""
     if _tagseq is None or not _posload(): return None
-    k = id(T)
+    k = ''.join(T)                                     # miroir JS (T.join('')) — id(T) se réutilise, pas le texte
     tags = _POSCACHE.get(k)
-    if tags is None or len(tags) != len(T):
+    if tags is None:
         tags = _tagseq(list(T)); _POSCACHE.clear(); _POSCACHE[k] = tags
     return tags[i] if 0 <= i < len(tags) else None
 
@@ -120,33 +151,100 @@ def _next_is_noun_ctx(T, i):
     #   · nom de TEMPS = adverbial, pas possédé : « went there yesterday », « gone there time and time » ;
     #   · « there » POST-NOMINAL (nom juste avant) : « the people there attempt… » = les gens de là-bas.
     # Aucune des 8 vraies fautes d'EWT n'est perdue (leur pv est VERB/ADP/CCONJ/ADV, jamais NOUN).
-    if T[i+1].lower() in TIME_NOUNS: return False
+    if i + 1 < len(T) and T[i+1].lower() in TIME_NOUNS: return False
     if ctx_pos(T, i - 1) == 'NOUN': return False
     return ctx_pos(T, i + 1) == 'NOUN'
 
-def decide(T, i):
+def decide(T, i, adj=None):
     """-> (suggestion, level) | (None, None). level ∈ {'RED','ORANGE'}.
-    RED = faute STRUCTURELLEMENT certaine (FP=0) ; ORANGE = vigilance contextuelle (doute→orange)."""
+    RED = faute STRUCTURELLEMENT certaine (FP=0) ; ORANGE = vigilance contextuelle (doute→orange).
+    `adj` = masque d'adjacence RÉELLE (cf. adj_mask) ; absent, on suppose l'adjacence (comportement historique).
+    ⚠️ MIROIR EXACT de `homoDecide` (corrector_en.js), règle pour règle et dans le MÊME ORDRE : la première qui
+    répond gagne. Toute règle ajoutée d'un côté doit l'être de l'autre — parity_en.js compare token par token."""
     w = T[i]; lw = w.lower()
     nx = T[i+1].lower() if i+1 < len(T) else ''
     nx2 = T[i+2].lower() if i+2 < len(T) else ''
-    pv = T[i-1].lower() if i > 0 else ''
-    # 1) modal + of -> have  (RED : « modal + of » n'est JAMAIS grammatical)
-    if lw == 'of' and pv in MODALS:
-        return 'have', 'RED'
-    # « a » + son voyelle du mot suivant (IPA) -> « an » (a apple/hour). FP=0 : mot suivant en MINUSCULES
-    # seulement (les acronymes/noms propres US/UN/August se prononcent lettre-à-lettre → lookup lowercase
-    # faux : « a US firm » = « a you-ess » est correct). Direction an->a ABANDONNÉE (rare + « an »=typo « and »).
     nx_raw = T[i+1] if i+1 < len(T) else ''
-    if (lw == 'a' and (w == 'a' or i == 0)              # « A » capital = article seulement en début de phrase (sinon étiquette : « Party A », « vitamin A »)
-            and nx_raw.isalpha() and nx_raw.islower() and vowel_start(nx) is True):
+    pv = T[i-1].lower() if i > 0 else ''
+    # 1) modal + of -> have  (RED : « modal + of » n'est JAMAIS grammatical) — SAUF « of course » (« would of course be »)
+    if lw == 'of' and pv in MODALS and nx != 'course':
+        return 'have', 'RED'
+    # « a » + son voyelle du mot suivant (IPA) -> « an ». FP=0 : mot suivant en MINUSCULES seulement (US/UN/August se
+    # prononcent lettre à lettre) ; « A » capital = article seulement en début de phrase (« Party A ») ; et ADJACENCE
+    # RÉELLE (« hit a .322 average » donne les tokens `hit a average`).
+    if (lw == 'a' and (w == 'a' or i == 0)
+            and nx_raw.isalpha() and nx_raw == nx_raw.lower() and nx_raw != nx_raw.upper()
+            and vowel_start(nx) is True
+            and (adj is None or i in adj)):
         return 'an', 'RED'
+    # la direction inverse « an user » -> « a » : le SON décide (an user, an one : consonne /j/, /w/) ; « an hour »
+    # reste muet (IPA vocalique) ; la classe h- aspiré (« an historic », registre britannique) est exclue exprès.
+    if (lw == 'an' and (w == 'an' or i == 0)
+            and nx_raw.isalpha() and nx_raw == nx_raw.lower() and nx_raw != nx_raw.upper()
+            and not nx.startswith('h')
+            and vowel_start(nx) is False                     # None (mot hors IPA) => on s'abstient
+            and (adj is None or i in adj)):
+        return 'a', 'RED'
     # 2) comparatif + then : RED si suivi d'un GN/pronom comparé (bigger then mine) ; sinon un verbe
     #    après = « then » temporel (work harder then rest) -> ORANGE prudent
     if lw == 'then' and (pv in COMPAR or (pv.endswith('er') and is_adj(pv))):
         if nx in THAN_OBJ or (nx and (is_noun(nx) or is_adj(nx)) and not is_verb(nx)):
-            return 'than', 'RED'                           # bigger then mine / more then happy
-        return 'than', 'ORANGE'                            # « harder then rest » : then peut être temporel
+            return 'than', 'RED'
+        return 'than', 'ORANGE'
+    # --- familles ajoutées : le discriminateur est STRUCTUREL (mot voisin), donc mesurable à FP=0 ---
+    # WHERE/WERE : un pronom sujet ne peut pas être suivi de « where » (« they where happy ») — SAUF si « where »
+    # ouvre une vraie subordonnée : sujet + VERBE/AUX derrière (« tell you where it is »). Le tagger dit AUX pour is/are.
+    if (lw == 'where' and pv in SUBJ_PRON
+            and not (nx in SUBJ_PRON and i + 2 < len(T) and ctx_pos(T, i + 2) in ('VERB', 'AUX'))):
+        return 'were', 'RED'
+    # WERE/WE'RE : « were » en tête suivi d'un participe présent (« Were going home ») = « We're » ; question inversée exclue.
+    if lw == 'were' and i == 0 and nx.endswith('ing') and nx not in SUBJ_PRON and not only_noun(nx):
+        return "We're", 'ORANGE'
+    # WHO'S/WHOSE : la NATURE du mot suivant tranche (nom pur -> possessif).
+    if lw == "who's" and nx and only_noun(nx):
+        return 'whose', 'ORANGE'
+    # WHOSE/WHO'S : -ing ne suffit pas (« whose king »), le TAGGER dit VERB en contexte.
+    if lw == 'whose' and (nx == 'been' or nx == 'gonna' or (nx.endswith('ing') and ctx_pos(T, i+1) == 'VERB')):
+        return "who's", 'RED'
+    # LEAD/LED : après un auxiliaire du parfait, le PARTICIPE ; borné à « to » (« have lead » peut être le NOM).
+    if lw == 'lead' and pv in PERF_AUX and nx == 'to':
+        return 'led', 'RED'
+    # PASSED/PAST : « I past » n'a aucune lecture correcte ; le pronom sujet est la garde.
+    if lw == 'past' and pv in SUBJ_PRON:
+        return 'passed', 'RED'
+    # TWO/TO : un nombre n'est pas suivi d'un verbe seul (« I want two go ») ; « the two » = pronom ; « Two » capitalisé
+    # hors tête = mot de titre ; un gérondif ne suit jamais « to » infinitif (« series two working »).
+    if (lw == 'two' and pv not in DET_BEFORE and nx and ctx_pos(T, i+1) == 'VERB'
+            and (i == 0 or T[i] == T[i].lower())
+            and not nx.endswith('ing')):
+        return 'to', 'RED'
+    # PARONYMES nom/verbe : la POSITION tranche — un modal/« to » appelle un VERBE, un déterminant un NOM.
+    if pv in VERB_SLOT:
+        if lw == 'advice': return 'advise', 'RED'
+        if lw == 'breath': return 'breathe', 'RED'
+        if lw == 'chose': return 'choose', 'RED'
+        if lw == 'cloth': return 'clothe', 'RED'
+        if lw == 'loath': return 'loathe', 'RED'
+        if lw == 'device': return 'devise', 'RED'
+        if lw == 'prophecy': return 'prophesy', 'RED'
+        if lw == 'effect' and nx in DET_AFTER: return 'affect', 'ORANGE'   # « to effect the change » existe : ambigu -> orange
+    if pv in NOUN_SLOT:
+        if lw == 'advise': return 'advice', 'RED'
+        if lw == 'breathe': return 'breath', 'RED'
+        if lw == 'clothe': return 'cloth', 'RED'
+        if lw == 'devise': return 'device', 'RED'
+        if lw == 'prophesy': return 'prophecy', 'RED'
+        if lw == 'affect': return 'effect', 'ORANGE'                        # « a flat affect » existe (psychologie)
+    # ACCEPT/EXCEPT : « except » est une préposition, pas le verbe d'un pronom sujet.
+    if lw == 'except' and pv in SUBJ_PRON:
+        return 'accept', 'RED'
+    # ACCORD SUJET-VERBE 3sg : seulement si le pronom est vraiment SUJET (pas après un auxiliaire : « Does she have »),
+    # et pas au subjonctif (« if he were »).
+    pv2 = T[i-2].lower() if i > 1 else ''
+    if pv in SUBJ_3SG and pv2 not in AUX_BEFORE:
+        if lw == 'have': return 'has', 'RED'
+        if lw == "don't": return "doesn't", 'ORANGE'                         # « he don't » est attesté à l'oral/en dialecte
+        if lw == 'were' and pv2 not in SUBJUNCTIVE: return 'was', 'ORANGE'
     # 3) their / there / they're  (direction possessive = ORANGE : nom PUR après = candidat possessif)
     if lw == 'their' and nx in BE_AFTER:
         return 'there', 'RED'                              # « their is/are » -> there (possessif+copule impossible)
@@ -167,22 +265,23 @@ def decide(T, i):
     if lw == "it's" and nx and only_noun(nx) and nx not in BE_AFTER:
         return 'its', 'ORANGE'                             # « it's tail » -> its
     # 6) to / too  (ORANGE : « to » intensif vs préposition = ambigu)
-    if lw == 'to' and nx in ('much', 'many') and pv not in (
-            '', 'listen', 'up', 'close', 'talk', 'talking', 'speak', 'speaking',
-            'refer', 'referred', 'according', 'due', 'access', 'attention', 'related'):
+    if lw == 'to' and nx in ('much', 'many') and pv not in TO_MUCH_PREV_STOP:
         return 'too', 'ORANGE'
-    # 6b) « to <adj gradable> to/for » = construction « too … to/for » (RED, FP≈0) :
-    #     « to tired to walk », « to big for me », « to close to home ». Le « to/for » qui suit l'adj
-    #     verrouille le sens intensif ; pv non-verbe-à-infinitif (évite « want to close … »).
+    # 6b) « to <adj gradable> to/for » = construction « too … to/for » (RED, FP≈0)
     if lw == 'to' and nx in DEGREE_ADJ and nx2 in ('to', 'for') and pv not in TO_INF_GUARD:
         return 'too', 'RED'
-    # 7) « weather or not » -> « whether or not » (RED : jamais correct — la météo ne se conjugue pas ainsi)
+    # 7) « weather or not » -> « whether or not » (RED : jamais correct)
     if lw == 'weather' and nx == 'or' and nx2 == 'not':
         return 'whether', 'RED'
     # 8) accord sujet-verbe (RED, FP=0 en anglais standard)
-    if lw == "don't" and pv in SUBJ_SING3:  return "doesn't", 'RED'   # he/she/it don't -> doesn't
+    if lw == "don't" and pv in SUBJ_SING3:  return "doesn't", 'RED'   # he/she/it don't -> doesn't (atteint seulement après un auxiliaire, cf. SUBJ_3SG)
     if lw == "doesn't" and pv in SUBJ_NON3: return "don't", 'RED'     # I/you/we/they doesn't -> don't
-    if lw == 'was' and pv in WAS_WRONG:     return 'were', 'RED'      # you/we/they was -> were
+    # you/we/they was -> were — SAUF pronom capitalisé hors tête (mot de TITRE : « Love You was released ») et pronom
+    # COMPLÉMENT d'une préposition (« part of you was »).
+    if (lw == 'was' and pv in WAS_WRONG
+            and (i - 1 == 0 or T[i-1] == T[i-1].lower())
+            and not (i >= 2 and T[i-2].lower() in _PREP_AVANT)):
+        return 'were', 'RED'
     # 9) loose (adj) mis pour le verbe lose : trigger modal/to devant, hors idiome (be/cut/let… loose) -> ORANGE
     if lw == 'loose' and pv in LOOSE_TRIG and (i < 2 or T[i-2].lower() not in LOOSE_IDIOM):
         return 'lose', 'ORANGE'
@@ -193,9 +292,9 @@ def decide(T, i):
     return None, None
 
 def correct(text, reds_only=True):
-    T = _tok(text); out = []
+    T = _tok(text); adj = adj_mask(text); out = []
     for i, w in enumerate(T):
-        s, lv = decide(T, i)
+        s, lv = decide(T, i, adj)
         out.append((w, s, lv))
     return out
 
@@ -221,8 +320,8 @@ CASES = [
     ("It is to big for me", 2, 'too', 'RED'),
     ("We are to close to home", 2, 'too', 'RED'),
     ("I do not know weather or not to go", 4, 'whether', 'RED'),
-    ("He don't like it", 1, "doesn't", 'RED'),
-    ("She don't know", 1, "doesn't", 'RED'),
+    ("He don't like it", 1, "doesn't", 'ORANGE'),          # ORANGE comme le JS : « he don't » est attesté à l'oral/en dialecte
+    ("She don't know", 1, "doesn't", 'ORANGE'),
     ("I doesn't care", 1, "don't", 'RED'),
     ("They was late", 1, 'were', 'RED'),
     ("You was right", 1, 'were', 'RED'),
@@ -265,9 +364,10 @@ def fp_scale():
     for l in open(path, encoding='utf-8'):
         if not l.startswith('# text = '): continue
         sents += 1
-        T = _tok(l.split('=', 1)[1])
+        _txt = l.split('=', 1)[1]
+        T = _tok(_txt); adj = adj_mask(_txt)
         for i in range(len(T)):
-            s, lv = decide(T, i)
+            s, lv = decide(T, i, adj)
             if lv == 'RED':
                 red[(T[i].lower(), s)] += 1
                 if len(redex) < 20: redex.append('%s→%s' % (T[i], s))
