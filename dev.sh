@@ -132,6 +132,9 @@ run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiri
 # et le Python a pris cinq semaines de retard sur le JS (16/09/2026) sans qu'elle rougisse. En local, EWT s'ajoute au corpus.
 run "EN parité Python↔JS par token : tokeniseur, speller, homophones (PUD committé + EWT local)" node dictee/parity_en.js
 run "EN parité du POS-tagger Python↔JS par token (PUD committé + EWT local)" node dictee/parity_pos_en.js
+# Le décomposeur phonique anglais lisait la prononciation par prédiction et ignorait le dictionnaire (8 irréguliers/8 faux, 16/09/2026) :
+# la garde exige les phonèmes du dictionnaire sur les mots du défaut, l'alignement lettres↔sons en bijection, et la page branchée sur le module.
+run "EN décomposeur phonique : prononciation du dictionnaire, alignement lettres↔sons, page branchée" node dictee/phonics_en_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :
