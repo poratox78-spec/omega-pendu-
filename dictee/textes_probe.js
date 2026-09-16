@@ -614,5 +614,44 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
   console.log('  ✓ lecture à voix haute : aucune promesse « hors-ligne », l’info « voix Google en ligne » est dans le ⓘ du panneau, le guide, la page Confidentialité et la fiche ; saisie vocale : ses 3 descriptions ne promettent pas « hors-ligne »');
 }
 
+// ===== 11) LES PAGES DISENT LE CAP « ZÉRO FAUX POSITIF » ET LE CHIFFRE, JAMAIS UN ABSOLU (16/09/2026, oui de Rem) =====
+// Un audit externe relevait « 0 faux positif » affiché sans contexte. Mesuré le 16/09 sur les 2 500 phrases CORRECTES d'UD (fp_scale_corpus) :
+// 87 reçoivent au moins une correction rouge = 3,48 % (grammaire 47, orthographe 44, 4 en commun ; dont de vraies fautes du corpus et des
+// noms étrangers). La page Correcteur affichait ≈ 1,5 % dans son texte et ≈ 2 % en tête et dans ses descriptions. Rem : on ne RETIRE aucune
+// correction pour ça, on TEND vers zéro. Donc : le cap (« vise zéro faux positif ») + le chiffre, un seul chiffre partout.
+// Même famille que §10 : « rien ne quitte ton appareil » / « seule exception » étaient faux (saisie vocale, lecture à voix haute sans voix
+// française, OCR de Scrabidon qui télécharge Tesseract.js depuis cdn.jsdelivr.net au clic).
+{
+  const lit = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8').replace(/&nbsp;/g, ' ').replace(/\u00a0/g, ' ').replace(/’/g, "'");
+  // Comparés en minuscules. Le CAP reste permis : « cherche à ne jamais souligner un mot juste » (titre de l'accueil) dit une direction.
+  const ABSOLUS = ['jamais du juste', 'jamais souligner', 'jamais un mot juste', '0 faux positif mesuré', '(fp=0)', 'aucune donnée envoyée', 'rien ne quitte ton appareil', "rien ne quitte l'appareil"];
+  for (const rel of ['index.html', 'correcteur.html', '404.html', 'saisie-vocale.html']) {
+    const t = lit(rel), bas = t.toLowerCase();
+    for (const x of ABSOLUS)
+      for (let i = bas.indexOf(x); i >= 0; i = bas.indexOf(x, i + 1))
+        if (!/(cherche|vise) à ne $/.test(bas.slice(Math.max(0, i - 16), i))) { fail('promesse absolue : « ' + t.slice(i, i + x.length) + ' » dans ' + rel + ' — dire le cap (« vise zéro faux positif ») et le chiffre mesuré'); break; }
+    for (const m of t.matchAll(/\b0 faux positif(.{0,40})/g))
+      if (!/batterie|test/.test(m[1])) fail('« 0 faux positif » sans dire sur quoi dans ' + rel + ' : « 0 faux positif' + m[1] + ' »');
+  }
+  // UN seul chiffre de fausses alertes sur du français réel, là où la page Correcteur et l'accueil le donnent.
+  const RE_REEL = /≈ ?(\d+(?:,\d+)?) ?%(?:<\/strong>|<\/b>)?(?: sur du français réel| reçoivent quand même une correction rouge|<small>fausse alerte sur du français réel)/g;
+  const cor = [...lit('correcteur.html').matchAll(RE_REEL)].map(m => m[1]);
+  const acc = [...lit('index.html').matchAll(RE_REEL)].map(m => m[1]);
+  if (cor.length !== 6) fail('page Correcteur : ' + cor.length + ' chiffre(s) « français réel » lu(s) au lieu de 6 (3 descriptions, données structurées, texte, encadré) — la garde ne vérifierait plus tout');
+  if (acc.length !== 1) fail('accueil : ' + acc.length + ' chiffre(s) « français réel » lu(s) au lieu de 1');
+  const tous = new Set(cor.concat(acc));
+  if (tous.size > 1) fail('chiffres différents pour les fausses alertes sur du français réel : ' + [...tous].map(x => '≈ ' + x + ' %').join(', ') + ' — un seul chiffre, le dernier mesuré');
+  // Confidentialité : les trois exceptions sont dites, plus aucune « seule exception ».
+  const conf = lit('confidentialite.html');
+  for (const x of ['Seule exception', 'Tout reste sur votre appareil'])
+    if (conf.indexOf(x) >= 0) fail('Confidentialité : « ' + x + ' » est faux (saisie vocale, lecture à voix haute sans voix française, OCR de Scrabidon)');
+  for (const x of ['Exception : la saisie vocale', 'Exception : la lecture à voix haute', 'Capturer + lire', 'cdn.jsdelivr.net', "S'il n'a pas de voix française, le navigateur peut lire avec une voix en ligne"])
+    if (conf.indexOf(x) < 0) fail('Confidentialité : ne dit plus « ' + x + ' »');
+  const scr = lit('scrabidon.html');
+  for (const x of ['seul point du site qui contacte un serveur tiers', "rien d'autre ne quitte l'appareil"])
+    if (scr.indexOf(x) >= 0) fail('Scrabidon : « ' + x + ' » est faux (saisie vocale, lecture à voix haute)');
+  console.log('  ✓ promesses : le cap « zéro faux positif » + un seul chiffre sur du français réel (≈ ' + [...tous][0] + ' %, ' + (cor.length + acc.length) + ' endroits), aucun absolu sur 4 pages ; Confidentialité dit les 3 exceptions (voix, lecture à voix haute, OCR)');
+}
+
 console.log(rouge ? ('\nTEXTES : ' + rouge + ' attente(s) non tenue(s)') : '\nTEXTES : toutes les attentes tenues (' + CAS.length + ' phrases, couche partagée, routage de ' + NOMS.size + ' règles)');
 process.exit(rouge ? 1 : 0);
