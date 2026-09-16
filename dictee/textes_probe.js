@@ -605,7 +605,13 @@ console.log('  ✓ plus de « Stade » dans le correcteur (app, panneau, bulle) 
   if (!foot || foot[0].indexOf('lecture à voix haute') < 0 || foot[0].indexOf(INFO) < 0) fail('panneau : le ⓘ du bas ne dit plus que la lecture à voix haute peut passer par la voix Google en ligne');
   for (const rel of ['extension/aide.html', 'confidentialite.html', 'extension/STORE.md'])
     if (lit(rel).replace(/\s+/g, ' ').indexOf(INFO) < 0) fail('lecture à voix haute : ' + rel + ' ne dit plus « ' + INFO + ' »');
-  console.log('  ✓ lecture à voix haute : aucune promesse « hors-ligne », l’info « voix Google en ligne » est dans le ⓘ du panneau, le guide, la page Confidentialité et la fiche');
+  // Même famille (16/09/2026, oui de Rem) : la SAISIE VOCALE passe par le service vocal du navigateur (Google). Les descriptions de sa page
+  // (Google, réseaux) disaient « OMEGA le corrige (FP=0, hors-ligne) ». Garde : aucune des trois ne promet hors-ligne / sans connexion.
+  const descSv = [...lit('saisie-vocale.html').matchAll(/<meta\s+(?:name|property)="((?:og:|twitter:)?description)"\s+content="([^"]*)"/g)];
+  if (descSv.length !== 3) fail('saisie vocale : ' + descSv.length + ' description(s) lue(s) au lieu de 3 (description, og, twitter) — la garde ne vérifierait plus rien');
+  for (const m of descSv)
+    if (/hors[\s-]*ligne|offline|sans (connexion|internet)/i.test(m[2])) fail('saisie vocale : la ' + m[1] + ' promet « hors-ligne » — la dictée passe par le service vocal de Google');
+  console.log('  ✓ lecture à voix haute : aucune promesse « hors-ligne », l’info « voix Google en ligne » est dans le ⓘ du panneau, le guide, la page Confidentialité et la fiche ; saisie vocale : ses 3 descriptions ne promettent pas « hors-ligne »');
 }
 
 console.log(rouge ? ('\nTEXTES : ' + rouge + ' attente(s) non tenue(s)') : '\nTEXTES : toutes les attentes tenues (' + CAS.length + ' phrases, couche partagée, routage de ' + NOMS.size + ' règles)');
