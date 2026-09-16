@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>English phonics decomposer — spelling → sounds (IPA) | OMEGA-Ω</title>
 <meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/decompose-outil"><meta property="og:site_name" content="OMEGA-Ω"><meta property="og:locale" content="en_GB">
-<meta property="og:title" content="English phonics decomposer — spelling to sounds | OMEGA-Ω"><meta property="og:description" content="Type an English word and see how its letters map to sounds (IPA), split into syllables, with the grapheme→phoneme breakdown. For dyslexia-friendly phonics. Runs in your browser.">
+<meta property="og:title" content="English phonics decomposer — spelling to sounds | OMEGA-Ω"><meta property="og:description" content="Type an English word and see its dictionary pronunciation (IPA), its syllables, and which letters make which sound — with the unusual spellings pointed out. For dyslexia-friendly phonics. Runs in your browser.">
 <meta property="og:image" content="https://omegapendu.com/icon.svg">
 <meta name="twitter:card" content="summary"><meta name="twitter:title" content="English phonics decomposer | OMEGA-Ω"><meta name="twitter:description" content="Letters → sounds (IPA), syllables, grapheme-by-grapheme. In-browser, private.">
-<meta name="description" content="A dyslexia-friendly English phonics tool: type a word and see its spelling decomposed into sounds (IPA), syllable split, and a letter-group → sound table. Data-driven grapheme-to-phoneme, 100% in your browser, nothing is sent.">
+<meta name="description" content="A dyslexia-friendly English phonics tool: type a word and see its dictionary pronunciation (IPA, 106,000 words with a pronunciation), its syllables, and a letter-group → sound table that points out silent letters and unusual spellings. 100% in your browser, nothing is sent.">
 <link rel="canonical" href="https://omegapendu.com/en/decompose-outil">
 <link rel="alternate" hreflang="en" href="https://omegapendu.com/en/decompose-outil">
 <link rel="alternate" hreflang="x-default" href="https://omegapendu.com/en/decompose-outil">
@@ -44,6 +44,10 @@
   .brk .g{font-weight:700}
   .brk .p{color:var(--accent-2);font-weight:600}
   .brk .silent{color:var(--fg-2);font-style:italic;font-size:15px}
+  .brk td.n{font:15px var(--sans);color:var(--fg-2)}
+  .brk td.n .u{color:#b45309;font-weight:600}
+  .src{font:14px var(--sans);color:var(--fg-2);margin:4px 0 0}
+  .src.pred{color:#b45309}
   .tip{font:14px var(--sans);color:var(--fg-2);margin-top:16px}
   .ex{font:15px var(--sans);color:var(--fg-2);margin-top:6px}
   .ex a{color:var(--accent);cursor:pointer;text-decoration:none;border-bottom:1px dotted var(--accent)}
@@ -63,119 +67,68 @@
   </nav>
 </div></header>
 <div class="tool-note">🔡 <strong>Phonics decomposer</strong> — type a word, see its letters map to sounds. Everything runs in your browser; nothing is sent.</div>
-<div class="tool-note" style="background:color-mix(in srgb,#d29922 14%,var(--bg-2))">⚠️ <strong>Beta</strong> — the sound mapping is data-driven (predicted from spelling), so it is approximate on rare or irregular words. Syllable splits follow a maximal-onset rule and can differ from a dictionary.</div>
+<div class="tool-note" style="background:color-mix(in srgb,#d29922 14%,var(--bg-2))">⚠️ <strong>Beta</strong> — pronunciations come from the dictionary (Wiktionary: 106,000 words with a pronunciation; some entries are British). For a word the dictionary does not know, the sounds are <em>predicted</em> from spelling, and the page says so. Syllable splits follow a maximal-onset rule and can differ from a dictionary.</div>
 
 <div class="cw">
   <div class="card">
     <h1>English spelling → sounds</h1>
-    <p class="sub">Type a word to see its pronunciation (IPA), syllable split, and how each letter group maps to a sound — a phonics aid for dyslexia.</p>
+    <p class="sub">Type a word to see its pronunciation (IPA), its syllables, and which letters make which sound — silent letters and unusual spellings pointed out. A phonics aid for dyslexia.</p>
     <div class="row">
-      <input id="in" spellcheck="false" placeholder="e.g. strength, unicorns, athlete" value="phonics">
+      <input id="in" spellcheck="false" placeholder="e.g. strength, island, enough" value="phonics">
       <button class="go" id="go" disabled>Decompose</button>
     </div>
-    <div class="row"><span id="status">Loading the sound model…</span></div>
-    <p class="ex">Try: <a data-w="strength">strength</a> · <a data-w="unicorns">unicorns</a> · <a data-w="athlete">athlete</a> · <a data-w="thoroughly">thoroughly</a> · <a data-w="scramble">scramble</a></p>
+    <div class="row"><span id="status">Loading the dictionary and the sound model…</span></div>
+    <p class="ex">Try: <a data-w="strength">strength</a> · <a data-w="island">island</a> · <a data-w="enough">enough</a> · <a data-w="castle">castle</a> · <a data-w="choir">choir</a> · <a data-w="thoroughly">thoroughly</a></p>
     <div id="out" aria-live="polite"></div>
-    <p class="tip">Each row shows a <b>grapheme</b> (letter group) and the <b>sound</b> it makes here (IPA). Sounds are predicted from spelling by a data-driven grapheme→phoneme model — great for regular words, approximate for irregular ones.</p>
+    <p class="tip">Each row shows a <b>letter group</b> and the <b>sound</b> it makes in this word (IPA, from the dictionary). <b>Silent</b> letters are named, and an <b>unusual</b> reading says what those letters usually sound like. When a word is not in the dictionary, the sounds are predicted from its spelling — the page tells you.</p>
   </div>
 </div>
 
+<script src="../dictee/phonics_en.js"></script>
 <script>
 (function(){
-  var SEG=null, COND=null, DBL=null, VOW='aeiouy';
+  /* La décomposition est faite par PhonicsEN (dictee/phonics_en.js), le MÊME code que dictee/phonics_en_probe.js
+     exerce en Node : la page ne fait que charger les deux actifs et afficher. Avant le 16/09/2026 la page devinait la
+     prononciation à partir de l'orthographe et ignorait le dictionnaire — 8 mots irréguliers sur 8 lus faux. */
+  var P=window.PhonicsEN, T=null, IPA=null;
   var inEl=document.getElementById('in'), outEl=document.getElementById('out'),
       btn=document.getElementById('go'), st=document.getElementById('status');
   function esc(s){ return (s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
-
-  // charge les tables g2p anglaises (mêmes que le pendu EN) : fetch du JSON, aucune donnée envoyée
+  function pret(){ if(T && IPA){ btn.disabled=false; st.textContent=IPA.size.toLocaleString('en')+' words · '+T.SEG.length+' spelling patterns loaded — ready.'; run(); } }
+  // les tables g2p (mêmes que le pendu EN) et la colonne IPA du dictionnaire (le .gz partagé, décompressé ici) : deux
+  // téléchargements, aucune donnée envoyée. Un échec est NOMMÉ, jamais avalé (un actif manquant = un outil qui ment).
   fetch('../dictee/g2p_en.json')
     .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); })
-    .then(function(t){ SEG=t.SEG; COND=t.COND; DBL=new Set(t.DBL);
-      btn.disabled=false; st.textContent='Ready — '+SEG.length+' spelling patterns loaded.'; run(); })
+    .then(function(t){ T=t; pret(); })
     .catch(function(e){ st.textContent='Could not load the sound model ('+e.message+').'; });
-
-  // g2p : mot -> [{g:graphème, ph:phonème IPA}] (longest-match SEG + COND contextuel ; miroir du moteur)
-  function g2pSteps(word){
-    var w=(word||'').toLowerCase().replace(/[^a-z]/g,''), steps=[], i=0;
-    while(i<w.length){
-      var g=null;
-      for(var s=0;s<SEG.length;s++){ if(w.substr(i,SEG[s].length)===SEG[s]){ g=SEG[s]; break; } }
-      if(!g) g=w.charAt(i);
-      var nxt = (i+g.length<w.length) ? w.charAt(i+g.length) : '#';
-      var ph;
-      if(DBL.has(g) && COND[g.charAt(0)]){ var e0=COND[g.charAt(0)]['_']; ph=e0?e0[0]:g.charAt(0); }
-      else { var t=COND[g]; var e=t?(t[nxt]||t['_']):null; ph=e?e[0]:''; }
-      if(ph==='∅') ph='';
-      steps.push({g:g, ph:ph});
-      i+=g.length;
-    }
-    return steps;
-  }
-
-  // syllabation sur les PHONÈMES (noyaux = voyelles + consonnes syllabiques), remappée aux graphèmes.
-  var VOWPH={i:1,'ɪ':1,'ɛ':1,'æ':1,'ɑ':1,'ɔ':1,'ʊ':1,u:1,'ʌ':1,'ə':1,'ɚ':1,'eɪ':1,'aɪ':1,'ɔɪ':1,'oʊ':1,'aʊ':1};
-  var SYLLABIC={l:1,'ɹ':1,m:1,n:1}, LIQ={l:1,'ɹ':1,w:1,j:1};
-  function legalOnset(ps){ // attaque phonémique anglaise (approx) : 1 C · s+C · C+liquide · s+C+liquide
-    if(ps.length<=1) return true;
-    if(ps.length===2) return ps[0]==='s' || !!LIQ[ps[1]];
-    if(ps.length===3) return ps[0]==='s' && !!LIQ[ps[2]];
-    return false;
-  }
-  function syllables(steps){
-    var U=[]; for(var k=0;k<steps.length;k++) U.push({g:steps[k].g, ph:steps[k].ph});
-    // indices de noyaux
-    var nuc=[];
-    for(var i=0;i<U.length;i++){
-      var ph=U[i].ph; if(!ph){continue;}
-      if(VOWPH[ph]){ nuc.push(i); continue; }
-      if(SYLLABIC[ph]){ // consonne syllabique : précédée d'une consonne, pas d'un noyau, et fin/consonne après
-        var prevV=false; for(var a=i-1;a>=0;a--){ if(U[a].ph){ prevV=!!VOWPH[U[a].ph]; break; } }
-        var nextC=true; for(var b=i+1;b<U.length;b++){ if(U[b].ph){ nextC=!VOWPH[U[b].ph]; break; } }
-        if(!prevV && nextC) nuc.push(i);
-      }
-    }
-    if(nuc.length<2) return [U.map(function(u){return u.g;}).join('')];
-    var cuts=[0];
-    for(var n=0;n<nuc.length-1;n++){
-      var A=nuc[n], B=nuc[n+1];
-      var inter=U.slice(A+1,B);
-      var cut=B;
-      for(var L=Math.min(3,inter.length);L>=0;L--){
-        var tail=[]; for(var x=inter.length-L;x<inter.length;x++){ if(inter[x].ph) tail.push(inter[x].ph); }
-        if(L===0 || legalOnset(tail)){ cut=B-L; break; }
-      }
-      cuts.push(cut);
-    }
-    cuts.push(U.length);
-    var out=[];
-    for(var c=0;c<cuts.length-1;c++){
-      var seg=''; for(var j=cuts[c];j<cuts[c+1];j++) seg+=U[j].g;
-      if(seg) out.push(seg);
-    }
-    return out;
-  }
+  fetch('../dictee/lex_en.tsv.gz')
+    .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
+    .then(function(b){ return new Response(b).text(); })
+    .then(function(txt){ IPA=P.parseIpaText(txt); pret(); })
+    .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
   function run(){
-    if(!SEG){ return; }
-    var word=(inEl.value||'').trim();
-    var w=word.toLowerCase().replace(/[^a-z]/g,'');
-    if(!w){ outEl.style.display='none'; return; }
-    var steps=g2pSteps(w);
-    var ipa=steps.map(function(s){return s.ph;}).join('');
-    var phons=steps.filter(function(s){return s.ph;});
-    var syll=syllables(steps);
-    var cv=''; for(var i=0;i<phons.length;i++){ var p=phons[i]; cv += VOWPH[p.ph] ? 'V' : (LIQ[p.ph]&&!SYLLABIC[p.ph]?'G':'C'); }
+    if(!T || !IPA) return;
+    var d=P.decompose(T, inEl.value, function(w){ return IPA.get(w)||null; });
+    if(!d){ outEl.style.display='none'; return; }
     var html='';
-    html+='<div class="word-head">'+esc(w)+' <span class="ipa">/'+esc(ipa)+'/</span></div>';
-    html+='<div class="meta"><span><b>'+syll.length+'</b> syllable'+(syll.length===1?'':'s')+'</span>'+
-          '<span><b>'+phons.length+'</b> sounds</span>'+
-          '<span>letters: <b>'+w.length+'</b></span>'+
-          '<span>structure: <b>'+esc(cv)+'</b></span></div>';
-    html+='<div class="syll">'+syll.map(function(s){return '<span class="s">'+esc(s)+'</span>';}).join(' ')+'</div>';
-    html+='<table class="brk"><thead><tr><th>letters</th><th>sound (IPA)</th></tr></thead><tbody>';
-    for(var k=0;k<steps.length;k++){
-      var s=steps[k];
-      html+='<tr><td class="g">'+esc(s.g)+'</td><td>'+(s.ph?'<span class="p">'+esc(s.ph)+'</span>':'<span class="silent">silent</span>')+'</td></tr>';
+    html+='<div class="word-head">'+esc(d.word)+' <span class="ipa">/'+esc(d.source==='dictionary'?d.ipa:d.phonemes.join(''))+'/</span></div>';
+    html+= d.source==='dictionary'
+      ? '<p class="src">Pronunciation from the dictionary'+(d.aligned?'':' — the sounds could not be lined up with the letters, so the table below is predicted from spelling')+'.</p>'
+      : '<p class="src pred">This word is not in the dictionary: the sounds below are predicted from its spelling and may be wrong.</p>';
+    html+='<div class="meta"><span><b>'+d.syllables.length+'</b> syllable'+(d.syllables.length===1?'':'s')+'</span>'+
+          '<span><b>'+d.phonemes.length+'</b> sounds</span>'+
+          '<span>letters: <b>'+d.word.length+'</b></span>'+
+          '<span>structure: <b>'+esc(d.cv)+'</b></span>'+
+          (d.unusual?'<span><b>'+d.unusual+'</b> unusual spelling'+(d.unusual===1?'':'s')+'</span>':'')+'</div>';
+    html+='<div class="syll">'+d.syllables.map(function(s){return '<span class="s">'+esc(s)+'</span>';}).join(' ')+'</div>';
+    html+='<table class="brk"><thead><tr><th>letters</th><th>sound (IPA)</th><th>note</th></tr></thead><tbody>';
+    for(var k=0;k<d.rows.length;k++){
+      var r=d.rows[k], note='';
+      if(r.kind==='silent') note='silent';
+      else if(r.kind==='silent-unusual') note='<span class="u">silent</span> — usually /'+esc(r.pred)+'/';
+      else if(r.kind==='unusual') note='<span class="u">unusual</span> — these letters usually sound /'+esc(r.pred||'∅')+'/';
+      html+='<tr><td class="g">'+esc(r.g)+'</td><td>'+(r.ph?'<span class="p">'+esc(r.ph)+'</span>':'<span class="silent">—</span>')+'</td><td class="n">'+note+'</td></tr>';
     }
     html+='</tbody></table>';
     outEl.innerHTML=html; outEl.style.display='block';

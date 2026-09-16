@@ -197,6 +197,10 @@ jobs:
         run: node dictee/parity_en.js
       - name: EN — parité du POS-tagger Python↔JS par token (PUD committé)
         run: node dictee/parity_pos_en.js
+      # Le décomposeur phonique lisait la prononciation par prédiction et ignorait le dictionnaire (8 mots irréguliers sur 8
+      # faux, 16/09/2026) : la garde exige les phonèmes du dictionnaire, l'alignement lettres↔sons et la page branchée sur le module.
+      - name: EN — décomposeur phonique (dictionnaire, alignement lettres↔sons, page branchée)
+        run: node dictee/phonics_en_probe.js
       # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
       # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
