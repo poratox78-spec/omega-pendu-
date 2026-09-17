@@ -337,8 +337,8 @@
   },
   {
    "titre": "Chantier anglais (site → voix → extension conditionnelle)",
-   "etat": "réouvert le 31/08 par Rem, feuille de route fixée ; état mesuré : bonne précision, couverture faible ; contrainte cardinale = tout doit être vérifiable sans savoir l'anglais (Rem n'y est plus le juge)",
-   "ref": "CHANTIER_ANGLAIS.md · PR #618"
+   "etat": "réouvert le 31/08 par Rem, feuille de route fixée ; contrainte cardinale = tout doit être vérifiable sans savoir l'anglais (Rem n'y est plus le juge). Relancé le 16/09 (« rattraper le plus possible le français ») : parité Python↔JS rétablie et gardée par token en CI (#762), Décompose lit la prononciation du dictionnaire (#763), promesse de la dictée corrigée (#764), lexique +41 744 dérivés (#765, mots justes soulignés 244 → 199). 17/09 : table des 2 823 fautes attestées de Wiktionary — la cible relue par des humains remplace la cible devinée (liste de Wikipédia : bonne cible 80,4 → 81,9 %, rouge faux 2 → 1 ; JFLEG 190 → 214 rouges confirmés). Reste mesuré : mauvaises cibles 409 (15 %), dont 55 % où la bonne cible était candidate à une édition (classement) ; rouge faux welcame → welcome ; volume de la dictée (45 phrases) ; voix puis extension ensuite",
+   "ref": "CHANTIER_ANGLAIS.md · REGLES_EN.md · PR #618, #762-#765 · dictee/build_misspell_en.py"
   },
   {
    "titre": "Les 442 mots soulignés sans suggestion",
