@@ -24,11 +24,11 @@ et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **
 
 | mesure | valeur | lecture |
 |---|---:|---|
-| rappel speller EN (2 886 fautes Wikipédia) | **81,9 %** | ce n'est pas un prototype (80,5 % avant la table des fautes attestées, 17/09/2026) |
-| rouges sur texte édité (PUD+GUM, 176 893 tokens) | **10** (0,0057 %) | très précis — le 10ᵉ (« recieve », 17/09) est une vraie faute du corpus |
-| rouges confirmés par un annotateur (JFLEG) | **214 / 227 = 94,3 %** | ce qu'il affirme est juste (190/203 avant le 17/09) |
+| rappel speller EN (2 886 fautes Wikipédia) | **86,4 %** | ce n'est pas un prototype (80,5 % le 31/08 ; 81,9 % avec la table des fautes attestées, 86,4 % avec le classement par sorte d'édition, 17/09/2026) |
+| rouges sur texte édité (PUD+GUM, 176 893 tokens) | **11** (0,0062 %) | très précis — les 10ᵉ et 11ᵉ (« recieve », « preceeding », 17/09) sont de vraies fautes du corpus |
+| rouges confirmés par un annotateur (JFLEG) | **215 / 228 = 94,3 %** | ce qu'il affirme est juste (190/203 avant le 17/09) |
 | **couverture** des corrections d'annotateurs (JFLEG) | **7,9 %** | 🔴 **le vrai retard** |
-| mauvaise cible (WRONG) | 409 (15,0 %) | à ventiler par palier (446 avant le 17/09) |
+| mauvaise cible (WRONG) | 287 (10,5 %) | 446 avant le 17/09 ; 409 avec la table ; 287 avec le classement par sorte d'édition |
 | **AUTO_WRONG** (rouges faux) | **1** | 🔴 **FP=0 est violé** (2 avant le 17/09) |
 | tagger EN / FR | **90,7 %** / ~95 % | goulot pour toute grammaire |
 | chunker de GN | 82,3 % | idem |
@@ -152,8 +152,8 @@ vérifiables par Rem.
 
 | lot | contenu | critère de succès |
 |---|---|---|
-| **1** | **Rendre les bancs capables d'échouer** : supprimer `red_fp is None or` et son jumeau ; corpus témoin committé (licence à valider) ; `OMEGA_ALLOW_SKIP` explicite, jamais implicite | les 5 `--check` **échouent** quand on retire le corpus |
-| **2** | **Parité décision par décision, en CI** ; diagnostiquer les ruptures 69/68 et 53/46 ; `parity_pos_en` en CI | 0 divergence sur 178 k tokens ; `exit 1` en CI |
+| **1** ✅ 17/09 | **Rendre les bancs capables d'échouer** (FAIT : les gardes FP du speller et des homophones mesurent TOUJOURS les 1 000 phrases PUD committées, plafond 0 rouge, corpus absent = échec ; EWT local reste une borne affichée) : supprimer `red_fp is None or` et son jumeau ; corpus témoin committé (licence à valider) ; `OMEGA_ALLOW_SKIP` explicite, jamais implicite | les 5 `--check` **échouent** quand on retire le corpus |
+| **2** ✅ 16/09 (#762) | **Parité décision par décision, en CI** ; diagnostiquer les ruptures 69/68 et 53/46 ; `parity_pos_en` en CI | 0 divergence sur 178 k tokens ; `exit 1` en CI |
 | **3** | **Registre des règles + banc de tir** ; ventiler les 446 WRONG en AUTO_WRONG (viole FP=0) vs FLAG_WRONG (doute→orange, conforme) | AUTO_WRONG → **0** ; chaque règle a sa ligne ; les règles muettes sont nommées |
 | **4** | **Falsification** : mutants, journal doré, banc navigateur réel EN | 100 % des mutants tués |
 | — | *…et seulement après, on a le droit d'écrire une règle anglaise* | |

@@ -205,6 +205,10 @@ jobs:
       # par des humains : le fichier livré doit rester trié, ses cibles au lexique, sans graphie fréquente ni chaîne.
       - name: EN — table des fautes attestées (invariants du fichier livré)
         run: python3 dictee/build_misspell_en.py --check
+      # Le classement du speller juge un candidat aussi sur la SORTE d'édition qu'il suppose ; ses constantes sont apprises sur
+      # la table des fautes attestées — la garde les recalcule et exige les mêmes valeurs dans les deux moteurs.
+      - name: EN — classement par sorte d'édition (constantes des deux moteurs == table recalculée)
+        run: python3 dictee/build_canal_en.py --check
       # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
       # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».

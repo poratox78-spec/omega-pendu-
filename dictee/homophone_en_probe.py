@@ -350,21 +350,36 @@ def main():
         else:
             miss += 1; print('  MISS  %-26s [%s] -> %s/%s (attendu %s/%s)' % (text, T[idx], s, lv, exp, lvl))
     print('recall %d/%d (RED %d + ORANGE %d)' % (hitR+hitO, len(CASES), hitR, hitO))
-    red_fp = fp_scale()
-    if '--check' in sys.argv:                                # garde CI : recall CASES complet + (si EWT) RED = vraies fautes
-        ok = (hitR + hitO == len(CASES)) and (red_fp is None or red_fp <= 55)
-        print('[check] %s — recall %d/%d, RED-EWT %s' % ('OK' if ok else 'ÉCHEC', hitR+hitO, len(CASES), red_fp))
+    red_pud, red_fp = fp_scale()
+    if '--check' in sys.argv:                                # garde CI : recall CASES complet + rouges sur texte correct
+        # ⚠️ 17/09/2026 (lot 1 de CHANTIER_ANGLAIS §4) : « red_fp is None or … » laissait la garde FP se DÉSACTIVER dès
+        # qu'EWT (corpus local) manquait — c'est-à-dire toujours en CI. Elle tient désormais sur PUD committé : 0 rouge.
+        ok = (hitR + hitO == len(CASES)) and red_pud == 0 and (red_fp is None or red_fp <= 55)
+        print('[check] %s — recall %d/%d, RED sur PUD committé %s (max 0), RED-EWT local %s (max 55)'
+              % ('OK' if ok else 'ÉCHEC', hitR+hitO, len(CASES), red_pud, red_fp))
         if not ok: sys.exit(1)
 
 def fp_scale():
-    path = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu')
-    if not os.path.exists(path):
-        print('[fp] EWT introuvable — skip'); return None
+    """Rouges sur texte CORRECT : (PUD committé, EWT local ou None). PUD = dictee/parity_en_corpus.txt, 1 000 phrases
+    d'UD English-PUD (CC BY-SA 3.0, texte édité) — toujours là, donc la garde ne peut plus se désactiver."""
+    pud = _fp_mesure(os.path.join(HERE, 'parity_en_corpus.txt'), 'PUD committé')
+    ewt = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu')
+    if not os.path.exists(ewt):
+        print('[fp] EWT local absent — la garde tient sur PUD committé'); return pud, None
+    return pud, _fp_mesure(ewt, 'EWT local')
+
+
+def _fp_mesure(path, nom):
     red = collections.Counter(); orange = 0; sents = 0; redex = []
+    conllu = path.endswith('.conllu')
     for l in open(path, encoding='utf-8'):
-        if not l.startswith('# text = '): continue
+        if conllu:
+            if not l.startswith('# text = '): continue
+            _txt = l.split('=', 1)[1]
+        else:
+            if not l.strip() or l.startswith('#'): continue
+            _txt = l
         sents += 1
-        _txt = l.split('=', 1)[1]
         T = _tok(_txt); adj = adj_mask(_txt)
         for i in range(len(T)):
             s, lv = decide(T, i, adj)
@@ -374,7 +389,8 @@ def fp_scale():
             elif lv == 'ORANGE':
                 orange += 1
     tot = sum(red.values())
-    print('\n=== FP SCALE (EWT %d phrases) ===' % sents)
+    if sents < 900 and nom.startswith('PUD'): raise RuntimeError('corpus PUD committé tronqué : %d phrases' % sents)
+    print('\n=== FP SCALE (%s : %d phrases) ===' % (nom, sents))
     print('  RED (rouge) sur texte correct : %d  ← doit tendre vers 0 (FP)' % tot)
     if red: print('   détail RED :', red.most_common(12))
     print('  ORANGE (vigilance) : %d (%.2f/phrase)' % (orange, orange/max(sents,1)))

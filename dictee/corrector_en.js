@@ -75,6 +75,41 @@ function slotBonus(lex, prev, x){
   return 0;
 }
 const _E2 = new Map();                        // mémo des candidats à 2 éditions (cf. spellSuggest)
+/* ---------- classement par SORTE D'ÉDITION (17/09/2026, miroir speller_en_probe.py) ----------
+   MESURÉ : quand le speller montrait une mauvaise cible, 55 % du temps la bonne était candidate À UNE ÉDITION et perdait
+   sur la seule fréquence (accesed -> accused au lieu d'accessed ; achive -> active au lieu d'achieve ; acertain -> certain
+   au lieu d'ascertain). Les fautes réelles ne se répartissent pas au hasard entre les sortes d'édition : ln lift(sorte) =
+   ln P(sorte | bonne cible) / P(sorte | candidat à une édition), APPRIS sur les 2 784 fautes attestées de Wiktionary
+   (dictee/build_canal_en.py, qui garde aussi ces constantes en CI) et VALIDÉ sur deux bancs qu'il n'a pas vus :
+     liste de Wikipédia  mauvaises cibles 426 -> 303 · JFLEG (en contexte) 138 -> 116 · rouges et rouges faux inchangés.
+   Poids 1,5 et bonus « lettre doublée » 3 calibrés par balayage (poids : JFLEG culmine à 1,5 ; bonus : plateau 3-4,
+   JFLEG rechute à 5). Appliqué aux seuls candidats à une édition (tier 1). */
+const _VOY = new Set(['a','e','i','o','u','y']);
+function _doubling(a, b){                                // l'écart est-il UNE lettre doublée (en trop ou en moins) ? miroir Python
+  if(Math.abs(a.length - b.length) !== 1) return false;
+  const L = a.length > b.length ? a : b, S = a.length > b.length ? b : a;
+  for(let k = 0; k < L.length; k++) if(L.slice(0, k) + L.slice(k + 1) === S && (L[k] === L[k - 1] || L[k] === L[k + 1])) return true;
+  return false;
+}
+function _sorte(a, b){                                   // sorte de l'édition UNIQUE qui mène de la faute au candidat
+  if(a.length === b.length){
+    const d = []; for(let i = 0; i < a.length; i++) if(a[i] !== b[i]) d.push(i);
+    if(d.length === 1){ const i = d[0], va = _VOY.has(a[i]), vb = _VOY.has(b[i]); return (va && vb) ? 'vv' : (!va && !vb) ? 'cc' : 'vc'; }
+    if(d.length === 2 && d[1] === d[0] + 1 && a[d[0]] === b[d[1]] && a[d[1]] === b[d[0]]) return 'transp';
+    return 'autre';
+  }
+  if(Math.abs(a.length - b.length) === 1){
+    if(_doubling(a, b)) return 'double';
+    const L = a.length > b.length ? a : b, S = a.length > b.length ? b : a;
+    for(let k = 0; k < L.length; k++) if(L.slice(0, k) + L.slice(k + 1) === S)
+      return (b.length > a.length ? 'oubli_' : 'ajout_') + (_VOY.has(L[k]) ? 'v' : 'c');
+  }
+  return 'autre';
+}
+const _CANAL = {double: 0.42, transp: 0.4, oubli_v: 0.39, vv: 0.27, oubli_c: 0.15, ajout_v: 0.09, ajout_c: -0.33, cc: -1.06, vc: -2.16};
+const _CANAL_1RE = [0.1, -1.9];                          // première lettre conservée / changée
+const _CANAL_POIDS = 1.5, _DOUBLE_BONUS = 3;
+
 function spellSuggest(lex, w, prev){          // prev = mot précédent en minuscules ; absent -> pas de bonus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
@@ -90,7 +125,7 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
   if(att !== undefined){
     if(w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) return [null, 'OK'];   // capitalisé = nom propre probable
     const dev = _spellDevine(lex, low, prev);
-    return (dev[0] === att && !lex.KNOWN.has(low)) ? [att, 'AUTO'] : [att, 'FLAG'];
+    return (dev[0] === att && !lex.KNOWN.has(low) && !_rivalFort(lex, low, att)) ? [att, 'AUTO'] : [att, 'FLAG'];
   }
   if(lex.KNOWN.has(low)) return [null, 'OK'];
   /* ⭐ ORTHOGRAPHE BRITANNIQUE — notre lexique est biaisé AMÉRICAIN (kaikki + SUBTLEX US), donc
@@ -114,6 +149,19 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
   if(_us !== low && lex.KNOWN.has(_us)) return [null, 'OK'];
   if(w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) return [null, 'OK']; // capitalisé = nom propre probable
   return _spellDevine(lex, low, prev);
+}
+/* RIVAL FORT (miroir SpellerEN._rival_fort) : un AUTRE candidat à une édition, fréquent (≥ 200) et au moins 20 fois plus que
+   la cible attestée — « agress » -> aggress (2) alors que agrees (219) est à une édition, et là les deux listes humaines se
+   CONTREDISENT (Wiktionary : aggress ; Wikipédia : agrees). Le rouge redevient un pari -> orange, avec la cible attestée.
+   MESURÉ sur la table : 16 rouges sur 2 273 (acerage/average, futton/button, theif/their…). */
+function _rivalFort(lex, low, att){
+  const fa = lex.FREQ.get(att) || 0;
+  for(const e of edits1(low)){
+    if(e === att || e === low || !lex.KNOWN.has(e) || !/^[a-z]+$/.test(e)) continue;
+    const f = lex.FREQ.get(e) || 0;
+    if(f >= 200 && f >= 20 * Math.max(1, fa)) return true;
+  }
+  return false;
 }
 /* La cible DEVINÉE par les candidats (édition, son, fréquence) — le speller d'avant la table des fautes attestées.
    Miroir de SpellerEN._devine. Un candidat n'est jamais le mot lui-même (il ne peut l'être que pour une faute
@@ -185,7 +233,9 @@ function _spellDevine(lex, low, prev){
   const _sorted = low.split('').sort().join('');
   for(const [x, tier] of cands){
     const ana = (x.length === low.length && x.split('').sort().join('') === _sorted);
-    const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0)) + (ana ? 2 : 0) + 2 * slotBonus(lex, prev, x);
+    // + SORTE D'ÉDITION : un candidat à une édition est jugé aussi sur la sorte de faute qu'il suppose (cf. _sorte).
+    const canal = tier === 1 ? (_CANAL_POIDS * ((_CANAL[_sorte(low, x)] || 0) + _CANAL_1RE[x[0] !== low[0] ? 1 : 0]) + (_doubling(low, x) ? _DOUBLE_BONUS : 0)) : 0;
+    const sc = 6 * tier + Math.log(1 + (lex.FREQ.get(x)||0)) + (ana ? 2 : 0) + 2 * slotBonus(lex, prev, x) + canal;
     if(sc > bestScore){ best = x; bestScore = sc; } }
   const bt = cands.get(best), bf = lex.FREQ.get(best) || 0;
   let second = 0;
@@ -216,11 +266,7 @@ function _spellDevine(lex, low, prev){
      dérivation mécanique -y→-iness a été essayée et RÉFUTÉE : la marque ADJ de kaikki est polluée
      (money, today, turkey, honey sont ADJ) et on fabriquerait « moneiness », « turkeiness ». Ça
      relève du chantier de complétude lexicale, pas d'un correctif ici. */
-  const _dbl = (a, b) => { if(Math.abs(a.length - b.length) !== 1) return false;
-    const L = a.length > b.length ? a : b, S = a.length > b.length ? b : a;
-    for(let k = 0; k < L.length; k++) if(L.slice(0, k) + L.slice(k + 1) === S && (L[k] === L[k - 1] || L[k] === L[k + 1])) return true;
-    return false; };
-  if(cands.size === 1 && low.length >= 4 && (transp || _dbl(low, best))) return [best, 'AUTO'];
+  if(cands.size === 1 && low.length >= 4 && (transp || _doubling(low, best))) return [best, 'AUTO'];
   return [best, 'FLAG'];
 }
 
@@ -1750,11 +1796,12 @@ if(typeof require !== 'undefined' && require.main === module){
   let attKO = 0;
   for(const [bad, good, mode] of [['definatly','definitely','FLAG'],   // le rouge FAUX du banc Wikipédia (devinée : defiantly)
                                   ['abcess','abscess','FLAG'],          // devinée : access
-                                  ['acount','account','FLAG'],          // devinée : count
+                                  ['acount','account','AUTO'],          // devinée : count AVANT le classement par sorte d'édition, account depuis -> les deux sources d'accord
                                   ['thier','their','AUTO'],             // les deux sources d'accord -> rouge
                                   ['arguement','argument','AUTO'],
                                   ['wierd','weird','FLAG'],             // le lexique la tenait pour un mot -> orange, plus de silence
                                   ['tought','taught','FLAG'],
+                                  ['agress','aggress','FLAG'],          // RIVAL FORT (agrees, 100× plus fréquent, à une édition) : les deux listes humaines se contredisent -> orange
                                   ['shouldnt',"shouldn't",'FLAG']]){    // contraction : la graphie est la cible sans son apostrophe
     const [s, m] = spellSuggest(lex, bad);
     if(s !== good || m !== mode){ attKO++; console.log('  FAUTE ATTESTÉE MISS %s -> %s/%s (attendu %s/%s)', bad, s, m, good, mode); } }
@@ -1762,6 +1809,17 @@ if(typeof require !== 'undefined' && require.main === module){
     const [s, m] = spellSuggest(lex, w);
     if(m !== 'OK'){ attKO++; console.log('  FAUTE ATTESTÉE : « %s » ne doit pas être touché (-> %s/%s)', w, s, m); } }
   console.log('fautes attestées : %s (%d dans la table)', attKO ? 'KO(' + attKO + ')' : 'OK', lex.ATTESTED ? lex.ATTESTED.size : 0);
+  /* CLASSEMENT PAR SORTE D'ÉDITION (miroir speller_en_probe.py) — aucune de ces fautes n'est dans la table : c'est la cible
+     DEVINÉE qu'on regarde. Avant, la fréquence seule donnait accused, active, audition, acquired, present, buried. */
+  let canalKO = 0;
+  for(const [bad, good] of [['accesed','accessed'],['achive','achieve'],['adition','addition'],['acquited','acquitted'],
+                            ['cresent','crescent'],['buriel','burial']]){
+    const [s] = spellSuggest(lex, bad);
+    if((lex.ATTESTED && lex.ATTESTED.has(bad)) || s !== good){ canalKO++; console.log('  CLASSEMENT MISS %s -> %s (attendu %s)', bad, s, good); } }
+  for(const [bad, good] of [['teh','the'],['inot','into'],['eveyr','every'],['recieve','receive']]){   // ce que l'ancien classement gagnait reste gagné
+    const [s] = spellSuggest(lex, bad);
+    if(s !== good){ canalKO++; console.log('  CLASSEMENT RÉGRESSION %s -> %s (attendu %s)', bad, s, good); } }
+  console.log('classement par sorte d\'édition : %s', canalKO ? 'KO(' + canalKO + ')' : 'OK');
   // homophone CASES
   const HP = [['I could of done it',2,'have','RED'],['It is bigger then mine',3,'than','RED'],
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
@@ -1996,7 +2054,7 @@ if(typeof require !== 'undefined' && require.main === module){
   console.log('règles ⑧ab: %d/%d rappel, %d anomalie(s)', hOk2, H_OUI.length, hKo2);
   console.log('règles ③④⑤⑥: %d/%d rappel, %d anomalie(s)', qOk, Q_OUI.length, qKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (attKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (attKO === 0) && (canalKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0);
     console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies), q3456 %d/%d (%d anomalies)',
                 ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo, qOk, Q_OUI.length, qKo);
     if(!ok) process.exit(1);
