@@ -142,6 +142,9 @@ run "EN table des fautes attestées : invariants du fichier livré" python3 dict
 # autre : courant ; consonne pour une autre, première lettre changée : rare). Ses constantes sont APPRISES sur la table des fautes
 # attestées : la garde les recalcule et exige qu'elles soient les mêmes dans les deux moteurs.
 run "EN classement par sorte d'édition : constantes des deux moteurs == table recalculée" python3 dictee/build_canal_en.py --check
+# Rappel du PRODUIT ENTIER sur des fautes réelles en contexte : UD English-EWT annote ses propres fautes (Typo=Yes) avec la bonne
+# forme. Plancher de fautes bien corrigées (FP=0 seul récompense le silence) + plafond de rouges FAUX, chacun imprimé.
+run "EN fautes réelles en contexte (EWT annoté) : plancher de rappel + plafond de rouges faux" node dictee/ewt_typos_en_probe.js --check
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :

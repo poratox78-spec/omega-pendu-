@@ -25,8 +25,9 @@ et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **
 | mesure | valeur | lecture |
 |---|---:|---|
 | rappel speller EN (2 886 fautes Wikipédia) | **86,4 %** | ce n'est pas un prototype (80,5 % le 31/08 ; 81,9 % avec la table des fautes attestées, 86,4 % avec le classement par sorte d'édition, 17/09/2026) |
-| rouges sur texte édité (PUD+GUM, 176 893 tokens) | **11** (0,0062 %) | très précis — les 10ᵉ et 11ᵉ (« recieve », « preceeding », 17/09) sont de vraies fautes du corpus |
-| rouges confirmés par un annotateur (JFLEG) | **215 / 228 = 94,3 %** | ce qu'il affirme est juste (190/203 avant le 17/09) |
+| rouges sur texte édité (PUD+GUM, 176 893 tokens) | **15** (0,0085 %) | très précis — tous de vraies fautes du corpus. Mesuré depuis le 17/09 par le PIPELINE DU PRODUIT (`analyzeText`) : l'ancienne chaîne du banc ignorait 4 règles et en comptait 11 le même jour |
+| rouges confirmés par un annotateur (JFLEG) | **295 / 308 = 95,8 %** | ce qu'il affirme est juste — pipeline du produit et références recollées (« do n't ») ; 215/228 avec l'ancienne chaîne du banc, le même jour |
+| **fautes réelles en contexte** (EWT annoté, 626 fautes) | **36,9 %** bien corrigées · 4 rouges faux | 🔴 le banc de rappel qui manquait (CI, plancher + plafond) ; 45 % des fautes y sont de VRAIS MOTS, muettes |
 | **couverture** des corrections d'annotateurs (JFLEG) | **7,9 %** | 🔴 **le vrai retard** |
 | mauvaise cible (WRONG) | 287 (10,5 %) | 446 avant le 17/09 ; 409 avec la table ; 287 avec le classement par sorte d'édition |
 | **AUTO_WRONG** (rouges faux) | **1** | 🔴 **FP=0 est violé** (2 avant le 17/09) |

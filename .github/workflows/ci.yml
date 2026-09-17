@@ -209,6 +209,10 @@ jobs:
       # la table des fautes attestées — la garde les recalcule et exige les mêmes valeurs dans les deux moteurs.
       - name: EN — classement par sorte d'édition (constantes des deux moteurs == table recalculée)
         run: python3 dictee/build_canal_en.py --check
+      # Rappel du PRODUIT ENTIER (C.analyzeText) sur des fautes réelles en contexte : UD English-EWT annote ses propres fautes
+      # avec la bonne forme (557 phrases committées, CC BY-SA 4.0). Plancher de rappel + plafond de rouges faux.
+      - name: EN — fautes réelles en contexte (EWT annoté), plancher de rappel et plafond de rouges faux
+        run: node dictee/ewt_typos_en_probe.js --check
       # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
       # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».

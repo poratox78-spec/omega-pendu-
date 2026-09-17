@@ -179,117 +179,29 @@
         .catch(function(){ _manque.push('verb bases'); _signaler(); }); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
+  /* ⭐ LE PIPELINE VIT DANS LE MOTEUR (C.analyzeText, 17/09/2026) — la page ne fait plus que le RENDU.
+     Avant, la chaîne des 18 décisions était écrite ICI et chaque banc en rejouait un bout à sa façon : on mesurait autre
+     chose que ce que l'utilisateur voit. Déplacement vérifié au caractère (même HTML sur 15 105 textes). L'ordre des
+     règles, les trois masques (URL, adjacence réelle, trait d'union) et leurs raisons sont commentés dans le moteur. */
+  var WHY={'double-comp':'redundant — the next word is already comparative', 'repetition':'repeated word',
+           'irreg-plural':"irregular plural — or did you mean the possessive (children's)?"};
   function analyze(text){
-    /* ⚠️⚠️ LE MÊME MOTIF QUE `C.tokenize`, ET C'EST OBLIGATOIRE. La page avait sa propre copie du
-       découpage — l'ANCIENNE version, sans lettres accentuées ni apostrophe typographique. Or
-       `urlMask`, `adjMask` et `hyphMask` rendent des INDICES calculés avec le motif du moteur : deux
-       découpages différents, et les indices ne désignent plus les mêmes mots. Toutes les règles de
-       contexte se seraient trompées de cible, SILENCIEUSEMENT.
-       Le motif du moteur répare aussi deux coupures mesurées : `didn’t` -> `didn`+`t` (apostrophe
-       typographique) et `México` -> `M`+`xico` (lettre accentuée). */
-    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, m, toks=[], pos=[];
-    while((m=re.exec(text))){ toks.push(m[0]); pos.push(m.index); }
-    var marks=new Array(toks.length).fill(null);
-    // ⭐ LES MOTS DANS UNE URL NE SONT PAS DU LANGAGE : ce sont des identifiants, et les corriger
-    // casse le lien. Mesuré sur EWT : 1 616 tokens sur 176 137 (0,92 %) vivent dans une URL, et
-    // il n'y avait aucune garde — d'où « liberta -> liberty » au milieu d'une URL de catalogue.
-    var PROT=C.urlMask(text);
-    // ⭐ ADJACENCE RÉELLE : `tokenize` jette chiffres et ponctuation, donc deux tokens voisins dans
-    // la liste ne se touchent pas forcément dans le texte (« hit a .322 average » -> `hit a average`).
-    // Les règles qui exigent que deux mots se touchent consultent ce masque. Mesuré : 8 rouges de
-    // moins sur du texte anglais ÉDITÉ (GUM+PUD).
-    var ADJ=C.adjMask(text);
-    /* ⭐ TRAIT D'UNION — cousin du masque d'adjacence. « those moon-cursed waters » se tokenise en
-       `those moon cursed` : une règle de contexte y lit un composé qui n'existe pas. Mesuré : ce
-       masque a évité un faux positif à TROIS règles différentes (nombre, article, confusables). */
-    var HYP=C.hyphMask?C.hyphMask(text):null;
-    /* Les groupes de confusables, pour les deux règles qui s'en servent (créneau ROUGE et
-       vigilance ORANGE). Chargés une seule fois avec le lexique. */
-    var CG=(typeof CONFUS!=='undefined'&&CONFUS)?(Array.isArray(CONFUS)?CONFUS:(CONFUS.groupes||[])):[];
-    for(var i=0;i<toks.length;i++){
-      if(PROT.has(i)) continue;
-      /* ⭐⭐ LES RÈGLES DE GRAMMAIRE AJOUTÉES LE 2026-08-09, dans l'ORDRE où elles doivent passer.
-         Toutes sont mesurées sur 177 748 tokens de texte ÉDITÉ (PUD+GUM) et sur JFLEG.
-         L'ordre compte : les règles les plus SPÉCIFIQUES d'abord, sinon une règle large réclame un
-         token qu'une règle précise aurait mieux traité. */
-      // ARTICLE devant un INDÉNOMBRABLE — « a information ». Zéro FP mesuré.
-      var am=C.articleMassDecide?C.articleMassDecide(LEX,toks,i,ADJ,HYP):[null,null];
-      if(am[1]){ marks[i]={sugg:'', cls:'red', del:true}; continue; }
-      // CONTRACTIONS SANS APOSTROPHE — « dont » -> don't, « Im » -> I'm, « its not » -> it's not.
-      // 3 tirs / 15 353 phrases éditées, tous de vraies fautes ; le web (EWT) en porte 119.
-      var ct=C.contractionDecide?C.contractionDecide(LEX,toks,i,ADJ):[null,null];
-      if(ct[1]){ marks[i]={sugg:ct[0], cls:'red'}; continue; }
-      // MODAL/TO/DO + forme fléchie → BASE — « she can sings » -> sing, « have to reduced » -> reduce.
-      // Flood 1/15 353 phrases éditées (une vraie faute) ; JFLEG 5/5 confirmées gold.
-      var bf=C.baseFormDecide?C.baseFormDecide(LEX,toks,i,ADJ,BASEMAP):[null,null];
-      if(bf[1]){ marks[i]={sugg:bf[0], cls:'red'}; continue; }
-      // « i » -> I (cadre i+verbe au tagger : le i mathématique et « the i » journal sont exclus). 1 tir/10 137 = vraie faute.
-      var ci=C.capIDecide?C.capIDecide(LEX,toks,i,ADJ,HYP):[null,null];
-      if(ci[1]){ marks[i]={sugg:ci[0], cls:'red'}; continue; }
-      // mots collés figés (alot -> a lot, infact -> in fact). 0 tir/10 137.
-      var mg=C.mergedDecide?C.mergedDecide(LEX,toks,i,ADJ):[null,null];
-      if(mg[1]){ marks[i]={sugg:mg[0], cls:'red'}; continue; }
-      // double comparatif (« more better » -> better) : le more/most est supprimé. 0 tir/10 137.
-      var dc=C.doubleCompDecide?C.doubleCompDecide(LEX,toks,i,ADJ):[null,null];
-      if(dc[1]){ marks[i]={sugg:'', cls:'red', del:true, why:'redundant — the next word is already comparative'}; continue; }
-      // répétition de mot (« the the ») — ORANGE : les transcriptions orales (court/speech) répètent verbatim.
-      var rp=C.repetitionDecide?C.repetitionDecide(LEX,toks,i,ADJ,HYP):[null,null];
-      if(rp[1]){ marks[i]={sugg:'', cls:'orange', del:true, why:'repeated word'}; continue; }
-      // pluriel irrégulier + s (« childrens » -> children — ou children's ? l'infobulle le dit). ORANGE.
-      var ip=C.irregPluralDecide?C.irregPluralDecide(LEX,toks,i,ADJ):[null,null];
-      if(ip[1]){ marks[i]={sugg:ip[0], cls:'orange', why:"irregular plural — or did you mean the possessive (children's)?"}; continue; }
-      // jours/mois minuscules (« monday » -> Monday). ORANGE (casse = préférence). may/march/august exclus (homographes).
-      var cc=C.calendarCapDecide?C.calendarCapDecide(LEX,toks,i,ADJ):[null,null];
-      if(cc[1]){ marks[i]={sugg:cc[0], cls:'orange'}; continue; }
-      // ACCORD DE L'AUXILIAIRE — « he are going » -> is · « he have gone » -> has. Zéro FP.
-      var ax=C.auxAgree?C.auxAgree(LEX,toks,i,ADJ):[null,null];
-      if(ax[1]){ marks[i]={sugg:ax[0], cls:'red'}; continue; }
-      // INTERROGATIF — « Does he goes ? » -> go · « Do he go ? » -> Does. Zéro FP.
-      var iq=C.interroDecide?C.interroDecide(LEX,toks,i,ADJ):[null,null];
-      if(iq[1]){ marks[i]={sugg:iq[0], cls:'red'}; continue; }
-      // VERBE 3ᵉ PERSONNE — « he go » -> goes. 1 seul déclenchement sur texte édité, et c'était
-      // une VRAIE faute. Neuf gardes, dont le prétérit (« he met » ne prend pas de -s).
-      var v3=C.verb3Decide?C.verb3Decide(LEX,toks,i,ADJ):[null,null];
-      if(v3[1]){ marks[i]={sugg:v3[0], cls:'red'}; continue; }
-      // CONFUSABLES par CRÉNEAU — « I will council him » -> counsel. Zéro FP.
-      var cs=C.confuseSlotDecide?C.confuseSlotDecide(LEX,toks,i,ADJ,HYP,CG):[null,null];
-      if(cs[1]){ marks[i]={sugg:cs[0], cls:'red'}; continue; }
-      // ⭐ PARTICIPE APRÈS « HAVE » (« has went » -> « has gone ») : après have/has/had la grammaire
-      // n'admet QUE le participe — clôture de paradigme, pas jugement. FP=0 mesuré sur EWT.
-      var pp=C.pastPartDecide(LEX,toks,i);
-      if(pp[1]){ marks[i]={sugg:pp[0], cls:'red'}; continue; }
-      var hd=C.homoDecide(LEX,toks,i,ADJ);
-      if(hd[1]){ marks[i]={sugg:hd[0], cls:(hd[1]==='RED'?'red':'orange')}; continue; }
-      var sp=C.spellSuggest(LEX,toks[i], i>0?toks[i-1].toLowerCase():'');   // contexte : le mot-outil précédent ouvre un slot (verbe/nom)
-      if(sp[1]==='AUTO'){ marks[i]={sugg:sp[0], cls:'red'}; continue; }
-      if(sp[1]==='FLAG' && sp[0]){ marks[i]={sugg:sp[0], cls:'orange'}; continue; }
-      /* ⭐ LES DEUX COUCHES ORANGE, EN DERNIER — elles ne tranchent pas, elles SIGNALENT.
-         Elles passent après tout le reste : si une règle rouge a su décider, on ne va pas
-         rétrograder sa décision en « à vérifier ». */
-      // ACCORD EN NOMBRE — « many student ». Refusé DEUX FOIS en rouge (+5 puis +11 FP), tenu en
-      // orange : le doute se signale, il ne se tranche pas.
-      var nb=C.numberDecide?C.numberDecide(LEX,toks,i,ADJ,HYP):[null,null];
-      if(nb[1]){ marks[i]={sugg:nb[0], cls:'orange'}; continue; }
-      // CONFUSABLES INDÉCIDABLES — « witch » pour « which ». On ne signale que le membre RARE
-      // (freq <= moitié du max du groupe) : tout signaler donnait 2,88 % de flood, 4× le seuil.
-      var cv=C.confuseVigDecide?C.confuseVigDecide(LEX,toks,i,ADJ,CG):[null,null];
-      /* ⚠️ CELLE-CI NE PROPOSE PAS, ELLE INTERROGE. Elle rend la LISTE des mots avec lesquels
-         celui-ci se confond (« which / witch ») — cliquer dessus insérerait la liste entière dans
-         le texte. On la marque `info` : l'infobulle montre les alternatives, le clic ne fait rien.
-         C'est le sens même de l'orange ici — on ne sait pas trancher, donc on ne tranche pas. */
-      if(cv[1]) marks[i]={sugg:cv[0], cls:'orange', info:true};
-    }
+    var a=C.analyzeText(LEX, text, {confus:(typeof CONFUS!=='undefined'?CONFUS:null), basemap:BASEMAP});
+    var toks=a.toks, pos=a.pos, marks=a.marks;
     var html='', cur=0, n=0;
     for(var j=0;j<toks.length;j++){
       html+=esc(text.slice(cur, pos[j]));
       var w=toks[j], mk=marks[j];
       if(mk){ n++;
-        /* La règle « article devant un indénombrable » ne REMPLACE pas, elle SUPPRIME : la
-           correction de « a information » est « information », pas un autre mot. On le dit dans
-           l'infobulle plutôt que d'afficher une suggestion vide, qui n'aurait aucun sens. */
+        /* Une règle qui SUPPRIME (article devant un indénombrable, more/most redondant, mot répété) n'a pas de mot à
+           proposer : l'infobulle dit « remove » et pourquoi. Une règle qui INTERROGE (`info` : « which / witch ») montre
+           les alternatives, et le clic ne fait rien — on ne sait pas trancher, donc on ne tranche pas.
+           ⚠️ Une règle qui PROPOSE peut aussi avoir un « pourquoi » : l'ancien rendu ne l'affichait que pour les
+           suppressions, donc la note du pluriel irrégulier (« childrens » : children… ou le possessif children's ?) était
+           écrite mais JAMAIS montrée — annoncée dans REGLES_EN.md, pas branchée. */
         var titre = mk.info ? 'often confused with: ' + esc(mk.sugg) + ' — check which one you mean'
-                  : mk.del ? ('remove — ' + (mk.why || 'uncountable noun') + ' (click to apply)')
-                           : '→ ' + esc(mk.sugg) + ' (click to apply)';
+                  : mk.del ? ('remove — ' + (WHY[mk.rule] || 'uncountable noun') + ' (click to apply)')
+                           : '→ ' + esc(mk.sugg) + ' (click to apply)' + (WHY[mk.rule] ? ' — ' + esc(WHY[mk.rule]) : '');
         html+='<span class="corr '+mk.cls+(mk.info?' info':'')+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'"'
             + (mk.del?' data-del="1"':'') + (mk.info?' data-info="1"':'')
             + ' title="'+titre+'">'+esc(w)+'</span>';
