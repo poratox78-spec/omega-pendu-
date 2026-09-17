@@ -24,18 +24,20 @@ et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **
 
 | mesure | valeur | lecture |
 |---|---:|---|
-| rappel speller EN (2 886 fautes Wikipédia) | **80,5 %** | ce n'est pas un prototype |
-| rouges sur texte édité (PUD+GUM, 176 893 tokens) | **9** (0,0051 %) | très précis |
-| rouges confirmés par un annotateur (JFLEG) | **190 / 203 = 93,6 %** | ce qu'il affirme est juste |
+| rappel speller EN (2 886 fautes Wikipédia) | **81,9 %** | ce n'est pas un prototype (80,5 % avant la table des fautes attestées, 17/09/2026) |
+| rouges sur texte édité (PUD+GUM, 176 893 tokens) | **10** (0,0057 %) | très précis — le 10ᵉ (« recieve », 17/09) est une vraie faute du corpus |
+| rouges confirmés par un annotateur (JFLEG) | **214 / 227 = 94,3 %** | ce qu'il affirme est juste (190/203 avant le 17/09) |
 | **couverture** des corrections d'annotateurs (JFLEG) | **7,9 %** | 🔴 **le vrai retard** |
-| mauvaise cible (WRONG) | 446 (16,3 %) | à ventiler par palier |
-| **AUTO_WRONG** (rouges faux) | **2** | 🔴 **FP=0 est violé** |
+| mauvaise cible (WRONG) | 409 (15,0 %) | à ventiler par palier (446 avant le 17/09) |
+| **AUTO_WRONG** (rouges faux) | **1** | 🔴 **FP=0 est violé** (2 avant le 17/09) |
 | tagger EN / FR | **90,7 %** / ~95 % | goulot pour toute grammaire |
 | chunker de GN | 82,3 % | idem |
 | règles EN / FR | **53** / **82** | rapport 1 à 1,7 |
 
-Les 2 rouges faux : `definatly→defiantly` (attendu *definitely*), `welcame→welcome` (attendu
-*welcomed*).
+Le rouge faux restant : `welcame→welcome` (attendu *welcomed*). `definatly→defiantly` (attendu *definitely*) est
+corrigé depuis le 17/09/2026 par la **table des fautes attestées** (`dictee/misspell_en.tsv`, 2 823 graphies que
+Wiktionary étiquette « misspelling of X ») : la cible relue par des humains remplace la cible devinée — rouge si le
+moteur devine la même, orange sinon.
 
 Les familles **jamais vues** (0 rouge, 0 orange) sur JFLEG : mot en trop (716), mot oublié (608),
 article oublié (222), article en trop (180), prépositions (~380 cumulés).

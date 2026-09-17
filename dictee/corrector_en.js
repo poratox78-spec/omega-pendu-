@@ -78,6 +78,20 @@ const _E2 = new Map();                        // mémo des candidats à 2 éditi
 function spellSuggest(lex, w, prev){          // prev = mot précédent en minuscules ; absent -> pas de bonus
   const low = deacc(w.toLowerCase());
   if(!low || low.length < 2 || /[^a-z]/.test(low)) return [null, 'OK'];  // lettre seule (a, I) / non a-z
+  /* ⭐ FAUTE ATTESTÉE (17/09/2026, miroir speller_en_probe.py) — Wiktionary étiquette lui-même 2 823 graphies
+     « Misspelling of X », relues par des anglophones (dictee/misspell_en.tsv, build_misspell_en.py). MESURÉ : sur ces
+     fautes réelles le classement proposait une MAUVAISE cible 17,4 % du temps (abcess -> access, acount -> count) et
+     le seul rouge franchement faux du banc Wikipédia était definatly -> defiantly. La cible attestée REMPLACE la cible
+     devinée ; ROUGE si le moteur arrive SEUL à la même cible (deux sources indépendantes d'accord : 224/226
+     confirmées par la liste de Wikipédia), ORANGE sinon. Une graphie que le lexique tenait pour un mot (wierd,
+     tought, hight : kaikki les liste, le speller se taisait) ne passe plus en silence — mais reste ORANGE : le
+     lexique et Wiktionary ne sont pas d'accord, donc doute. Table absente (lex.ATTESTED non posé) = ancien speller. */
+  const att = lex.ATTESTED ? lex.ATTESTED.get(low) : undefined;
+  if(att !== undefined){
+    if(w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) return [null, 'OK'];   // capitalisé = nom propre probable
+    const dev = _spellDevine(lex, low, prev);
+    return (dev[0] === att && !lex.KNOWN.has(low)) ? [att, 'AUTO'] : [att, 'FLAG'];
+  }
   if(lex.KNOWN.has(low)) return [null, 'OK'];
   /* ⭐ ORTHOGRAPHE BRITANNIQUE — notre lexique est biaisé AMÉRICAIN (kaikki + SUBTLEX US), donc
      `iodised`, `sanitisers`, `organise`, `colour`, `centre` étaient signalés comme des fautes.
@@ -99,8 +113,14 @@ function spellSuggest(lex, w, prev){          // prev = mot précédent en minus
     .replace(/^(.*[bcdfghjklmnpqrstvwxz])re\b/, '$1er');
   if(_us !== low && lex.KNOWN.has(_us)) return [null, 'OK'];
   if(w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase()) return [null, 'OK']; // capitalisé = nom propre probable
+  return _spellDevine(lex, low, prev);
+}
+/* La cible DEVINÉE par les candidats (édition, son, fréquence) — le speller d'avant la table des fautes attestées.
+   Miroir de SpellerEN._devine. Un candidat n'est jamais le mot lui-même (il ne peut l'être que pour une faute
+   attestée que le lexique connaît : « wierd »). */
+function _spellDevine(lex, low, prev){
   const cands = new Map(); // cand -> tier
-  for(const e of edits1(low)){ if(lex.KNOWN.has(e) && /^[a-z]+$/.test(e)) cands.set(e, 1); }
+  for(const e of edits1(low)){ if(e !== low && lex.KNOWN.has(e) && /^[a-z]+$/.test(e)) cands.set(e, 1); }
   const pk = phonKey(low);
   const neigh = lex.PHON.get(pk) || [];
   for(let i = 0; i < Math.min(12, neigh.length); i++){ const x = neigh[i]; if(x !== low && !cands.has(x) && /^[a-z]+$/.test(x)) cands.set(x, 0); }  // ASCII-seul : ne JAMAIS suggérer un accent (EN sans accents ; emprunts café/résumé restent connus mais pas proposés)
@@ -1299,9 +1319,23 @@ function parseLexText(raw){
   buildPhonIndex(lex);
   return lex;
 }
+/* Pose la table des fautes attestées (texte de dictee/misspell_en.tsv : « faute<TAB>cible », 1re ligne = en-tête).
+   Rend le nombre de lignes lues — 0 = table vide ou illisible, à l'appelant de le DIRE (actif nommé dans la page). */
+function setAttested(lex, raw){
+  const att = new Map(), lines = String(raw || '').split('\n');
+  for(let i = 1; i < lines.length; i++){
+    const c = lines[i].replace(/\r$/, '').split('\t');
+    if(c.length === 2 && c[0]) att.set(c[0], c[1]);
+  }
+  if(att.size) lex.ATTESTED = att;
+  return att.size;
+}
 function loadLexNode(path){
   const fs = require('fs'), zlib = require('zlib');
   const lex = parseLexText(zlib.gunzipSync(fs.readFileSync(path)).toString('utf8'));
+  // fichier LIVRÉ : son absence est une erreur, pas un repli muet (une table non chargée = un moteur qui ment en silence)
+  if(setAttested(lex, fs.readFileSync(require('path').join(__dirname, 'misspell_en.tsv'), 'utf8')) < 2500)
+    throw new Error('misspell_en.tsv : table des fautes attestées tronquée ou vide');
   try { lex.VERBMORPH = JSON.parse(fs.readFileSync(require('path').join(__dirname, 'verbmorph_en.json'), 'utf8')); } catch (e) {}
   return lex;
 }
@@ -1667,7 +1701,7 @@ function calendarCapDecide(lex, T, i, adj){
 
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
                pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, repetitionDecide, capIDecide, mergedDecide, buildCompSets, doubleCompDecide, irregPluralDecide, calendarCapDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
-               parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel };
+               parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel, setAttested };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
 
@@ -1704,10 +1738,30 @@ if(typeof require !== 'undefined' && require.main === module){
      harrass/harass = redoublement) mais le lexique leur oppose PLUSIEURS candidats : le choix
      redevient un pari, ils doivent rester ORANGE. Sans cette contre-garde, retirer la condition
      « un seul candidat » passerait inaperçu en CI. Puissance vérifiée : les 4 tirent bien, en orange. */
+  /* ⚠️ Interrogée sur la cible DEVINÉE (_spellDevine), pas sur spellSuggest : depuis la table des fautes attestées,
+     « thier » et « beleive » sont rouges pour une AUTRE raison (Wiktionary les atteste et le moteur devine la même
+     cible) — la contre-garde protège la condition « un seul candidat » du glissement moteur, elle la regarde seule. */
   for(const bad of ['beleive','thier','littel','harrass']){
-    const [s, m] = spellSuggest(lex, bad);
+    const [s, m] = _spellDevine(lex, bad);
     if(m === 'AUTO'){ slipKO++; console.log('  CONTRE-GARDE : %s -> %s ne doit PAS être affirmé (candidats concurrents)', bad, s); } }
   if(slipKO) console.log('  ✗ %d cas de glissement moteur en défaut', slipKO);
+  /* FAUTES ATTESTÉES (miroir speller_en_probe.py) — la cible relue par des humains remplace la cible devinée ; rouge si
+     les deux sources sont d'accord, orange sinon ; une graphie que le lexique connaissait ne passe plus en silence. */
+  let attKO = 0;
+  for(const [bad, good, mode] of [['definatly','definitely','FLAG'],   // le rouge FAUX du banc Wikipédia (devinée : defiantly)
+                                  ['abcess','abscess','FLAG'],          // devinée : access
+                                  ['acount','account','FLAG'],          // devinée : count
+                                  ['thier','their','AUTO'],             // les deux sources d'accord -> rouge
+                                  ['arguement','argument','AUTO'],
+                                  ['wierd','weird','FLAG'],             // le lexique la tenait pour un mot -> orange, plus de silence
+                                  ['tought','taught','FLAG'],
+                                  ['shouldnt',"shouldn't",'FLAG']]){    // contraction : la graphie est la cible sans son apostrophe
+    const [s, m] = spellSuggest(lex, bad);
+    if(s !== good || m !== mode){ attKO++; console.log('  FAUTE ATTESTÉE MISS %s -> %s/%s (attendu %s/%s)', bad, s, m, good, mode); } }
+  for(const w of ['Wierd','their','loose','forth','are']){              // capitalisé ou mot RÉEL : la table ne les touche pas
+    const [s, m] = spellSuggest(lex, w);
+    if(m !== 'OK'){ attKO++; console.log('  FAUTE ATTESTÉE : « %s » ne doit pas être touché (-> %s/%s)', w, s, m); } }
+  console.log('fautes attestées : %s (%d dans la table)', attKO ? 'KO(' + attKO + ')' : 'OK', lex.ATTESTED ? lex.ATTESTED.size : 0);
   // homophone CASES
   const HP = [['I could of done it',2,'have','RED'],['It is bigger then mine',3,'than','RED'],
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
@@ -1942,7 +1996,7 @@ if(typeof require !== 'undefined' && require.main === module){
   console.log('règles ⑧ab: %d/%d rappel, %d anomalie(s)', hOk2, H_OUI.length, hKo2);
   console.log('règles ③④⑤⑥: %d/%d rappel, %d anomalie(s)', qOk, Q_OUI.length, qKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (attKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0);
     console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies), q3456 %d/%d (%d anomalies)',
                 ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo, qOk, Q_OUI.length, qKo);
     if(!ok) process.exit(1);
