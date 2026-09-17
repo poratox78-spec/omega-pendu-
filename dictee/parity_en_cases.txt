@@ -75,3 +75,15 @@ She accesed the files before the adition of the new rule.
 They hope to achive a lot with a cresent shaped garden.
 He was acquited after the buriel of the old quarrel.
 They agress on the plan but the theif took the lable anyway.
+# fautes de vrai mot (orange) et leurs silences voulus : les deux moteurs lisent les mêmes listes fermées, dans le même ordre
+I think the are ready now, but the don't answer and this way the will learn faster.
+Thanks for you patience today, I hope you day is going well.
+He went a little to far that time, and that was to bad for him.
+I never new that about him, and everyone has there own way.
+Just leave it their.
+She is very kind an gentle, he was tired an hungry after work, and she is and excellent doctor.
+She found an gentle giant near an user manual.
+The will of the people matters, and they want the can opener.
+I told you dinner is ready, this is for you guys, and I gave it to you personally.
+It ranges from fair to good, we drove to far places, and he is and always was kind.
+We work from early morning to late, and the quality is fair to good.

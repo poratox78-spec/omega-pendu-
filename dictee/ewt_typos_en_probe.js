@@ -17,7 +17,7 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 const C = require(path.join(__dirname, 'corrector_en.js'));
-const PLANCHER_ROUGE_JUSTE = 88, PLANCHER_JUSTE = 228, PLAFOND_ROUGE_FAUX = 4;      // mesurés le 17/09/2026 : 90, 231, 4
+const PLANCHER_ROUGE_JUSTE = 88, PLANCHER_JUSTE = 248, PLAFOND_ROUGE_FAUX = 3;      // mesurés : 90 rouges justes ; 231 puis 251 bien corrigées et 4 puis 3 rouges faux avec les règles de vrai mot (17/09/2026) — cliquet
 
 const src = path.join(__dirname, 'ewt_typos_en.tsv');
 const lignes = fs.readFileSync(src, 'utf8').split('\n').filter(l => l && !l.startsWith('#'));
