@@ -2,7 +2,7 @@
 //
 // Pourquoi centralisé : la nav était codée EN DUR dans ~9 pages → elle a dérivé (index avait 12 liens,
 // saisie-vocale 7, correcteur-outil 9…) = incohérent et « moins lisible ». Ici la liste est UNIQUE :
-// chaque page reçoit exactement le même menu, groupé (Outils / Jeux / Recherche / Plus) pour la lisibilité.
+// chaque page reçoit exactement le même menu, groupé (Outils dys / Jeux / Plus) pour la lisibilité.
 // nav.js RÉÉCRIT le contenu de <nav> (les <a> codés en dur ne servent plus que de repli sans JS), garde le
 // bouton « 🔤 Lisible », marque la page courante (aria-current), et replie le tout derrière ☰ à toutes largeurs.
 // Idempotent ; se ferme au clic sur un lien, au clic dehors, ou sur Échap. Les pages /en/ reçoivent le menu
@@ -22,18 +22,17 @@
       ['pendable', 'Pendable'],
       ['double-sens', 'Double-Sens'],
     ]],
-    ['Recherche', [
-      ['recherche', 'La recherche'],
-      ['donnees', 'Données'],
-      ['arbitrage', "L'arbitrage"],
-      ['evolution', "L'évolution"],
-    ]],
+    // Rem (17/09/2026) : sur Google, « omega pendu » listait Confidentialité, le modèle double route, le mémoire,
+    // l'arbitrage… — les pages de recherche, poussées par ce menu présent sur toutes les pages. Une seule entrée :
+    // Données, L'arbitrage et L'évolution se lisent depuis la page Recherche (pages_atteignables_probe le vérifie).
     ['Plus', [
+      ['recherche', 'La recherche'],
       ['omega-key', 'OMEGA·KEY'],
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
     ]],
   ];
-  // Menu ANGLAIS (pages /en/) — même structure que le FR, mais seulement les outils/pages qui EXISTENT
+  // Menu ANGLAIS (pages /en/) — même mécanisme que le FR (il garde un groupe Research : la page Research anglaise
+  // ne relie pas encore Data ni Arbitration), et seulement les outils/pages qui EXISTENT
   // en anglais (pas de saisie-vocale/scrabidon/pendable/données EN pour l'instant). hrefs relatifs à /en/.
   // Centralisé ici pour tuer la dérive (« Dictation » manquait sur 6 pages/8, dont l'accueil).
   var GROUPS_EN = [
