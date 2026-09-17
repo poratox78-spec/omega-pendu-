@@ -256,6 +256,7 @@
       if(LEX.VERBMORPH && LEX.VERBMORPH[lw]) return WHY['verb-irregular'];
       return WHY_PAIR[[lw, String(mk.sugg).toLowerCase()].sort().join('|')] || WHY['homophone'];
     }
+    if(mk.rule==='contraction' && String(mk.sugg).indexOf("'")<0) return WHY_PAIR["you're|your"];   // « youre » devant un nom : le possessif, pas une apostrophe oubliée
     if(mk.rule==='spelling') return (LEX.ATTESTED && LEX.ATTESTED.has(lw)) ? WHY['spelling-known'] : (mk.cls==='red' ? WHY['spelling'] : WHY['spelling-unknown']);
     return WHY[mk.rule] || '';
   }

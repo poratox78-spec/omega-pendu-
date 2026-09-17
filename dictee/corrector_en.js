@@ -1852,7 +1852,7 @@ function analyzeText(lex, text, ctx){
     if(PROT.has(i)) continue;
     let r;
     r = articleMassDecide(lex, toks, i, ADJ, HYP);      if(r[1]){ marks[i] = {sugg:'', cls:'red', del:true, rule:'article-mass'}; continue; }   // « a information »
-    r = contractionDecide(lex, toks, i, ADJ);           if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'contraction'}; continue; }          // dont -> don't
+    r = contractionDecide(lex, toks, i, ADJ);           if(r[1]){ marks[i] = {sugg:r[0], cls:(r[1] === 'RED' ? 'red' : 'orange'), rule:'contraction'}; continue; }   // dont -> don't ; le NIVEAU vient de la règle (« youre » + nom -> your, orange) — le pipeline posait tout en rouge, vu au navigateur le 17/09/2026
     r = baseFormDecide(lex, toks, i, ADJ, BM);          if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'base-form'}; continue; }            // she can sings -> sing
     r = capIDecide(lex, toks, i, ADJ, HYP);             if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'cap-i'}; continue; }                // i -> I
     r = mergedDecide(lex, toks, i, ADJ);                if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'merged'}; continue; }               // alot -> a lot
@@ -2130,6 +2130,13 @@ if(typeof require !== 'undefined' && require.main === module){
   for(const [T, i, att] of [[['if', 'youre', 'snake', 'will', 'eat'], 1, 'your'], [['is', 'this', 'youre', 'dog'], 2, 'your']]){
     const r = contractionDecide(lex, T, i, null);
     if(!(r[1] === 'ORANGE' && r[0] === att)){ ctKo++; console.log('  CONTR MISS %s[%d] -> %s/%s (attendu %s/ORANGE)', T.join(' '), i, r[0], r[1], att); } }
+  /* LE PIPELINE RESPECTE LE NIVEAU RENDU PAR LA RÈGLE — vu au navigateur le 17/09/2026 : contractionDecide rendait bien
+     « your » en ORANGE, et analyzeText l'affichait en ROUGE (il posait toutes les contractions en rouge, ce qui était vrai tant
+     que la règle ne rendait que du rouge). Les tests ci-dessus appellent la règle seule : celui-ci passe par le pipeline. */
+  { const a1 = analyzeText(lex, 'Ask if youre snake will eat', {}), m1 = a1.marks[a1.toks.indexOf('youre')];
+    const a2 = analyzeText(lex, 'I think youre very kind', {}), m2 = a2.marks[a2.toks.indexOf('youre')];
+    if(!(m1 && m1.cls === 'orange' && m1.sugg === 'your')){ ctKo++; console.log('  PIPELINE : « youre snake » -> %j (attendu your en orange)', m1); }
+    if(!(m2 && m2.cls === 'red' && m2.sugg === "you're")){ ctKo++; console.log("  PIPELINE : « youre very kind » -> %j (attendu you're en rouge)", m2); } }
   for(const [T, i] of CT_NON){ const r = contractionDecide(lex, T, i, null);
     if(r[1]){ ctKo++; console.log('  CONTR FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
   console.log('contractions: %d/%d rappel, %d anomalie(s)', ctOk, CT_OUI.length, ctKo);
