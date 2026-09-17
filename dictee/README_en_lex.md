@@ -25,9 +25,9 @@ donc on extrait TOUT (pas de filtre « mot manquant »).
 
 | Fichier | Taille | Contenu |
 |---|---|---|
-| `lex_en.tsv.gz` | 1,42 Mo | **maître** : `surface · pos · ipa · lemma · tags · gender · freq` (124 189 surfaces à **signal utile** : ipa OU freq>0 OU homophone) |
+| `lex_en.tsv.gz` | 2,24 Mo | **maître** : `surface · pos · ipa · lemma · tags · gender · freq` (258 392 surfaces : 199 673 à **signal utile** — ipa OU freq>0 OU homophone) |
 | `homophones_en.json` | 0,16 Mo | `{ mot : [homophones…] }` — 5 549 groupes symétriques (their→there/they're, ate→eight/eyot…) |
-| `forms_en.tsv.gz` | 0,70 Mo | table de flexion : `lemme · POS · form:tag,…` (91 214 lemmes ; go→went→gone, big→bigger→biggest) |
+| `forms_en.tsv.gz` | 0,84 Mo | table de flexion : `lemme · POS · form:tag,…` (104 462 lemmes ; go→went→gone, big→bigger→biggest) |
 | `ngrams_ortho_en.json.gz` | 0,06 Mo | bi/trigrammes **caractères** (graphotactique — orthographe profonde EN) |
 | `ngrams_phon_en.json.gz` | 0,10 Mo | bi/trigrammes **phonèmes** (inventaire General-American, 40) |
 
@@ -52,6 +52,11 @@ PYTHONUTF8=1 python dictee/build_en_lex.py kaikki-en.jsonl dictee --freq subtlex
 
 # 3) n-grammes ortho + phon (TYPE par défaut ; --freq = pondéré fréquence)
 PYTHONUTF8=1 python dictee/build_en_ngrams.py dictee/lex_en.tsv dictee
+
+# 4) AJOUT PUR des dérivés que la portée écartait (16/09/2026) : mot RÉEL et COURANT dans kaikki, dérivé par un SUFFIXE
+#    STANDARD (-ly, -ness, -er/-or, -al, -ity, -ive, -ment, -tion, -able…) d'un mot déjà gardé — causally, mitigator, torsional.
+#    Pas de préfixe ni de composé (mesuré : la règle large doublait le lexique et créait un rouge faux). --dry pour mesurer d'abord.
+PYTHONUTF8=1 python dictee/build_en_lex_additif.py kaikki-en.jsonl --freq subtlex_us.json [--dry]
 ```
 
 ## Schéma & choix

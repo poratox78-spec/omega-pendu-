@@ -18,8 +18,8 @@
 
 ## 1. L'état réel — meilleur que prévu sur la précision, faible sur la couverture
 
-**Ce qui va bien.** Les briques sont là et **commitées** (3,42 Mo) : lexique **199 673** surfaces,
-**92 660** lemmes fléchis, 5 549 homophones, g2p (63 SEG / 89 COND), POS-HMM, n-grammes.
+**Ce qui va bien.** Les briques sont là et **commitées** (3,86 Mo) : lexique **258 392** surfaces (199 673, plus 41 744 dérivés
+et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **104 462** lemmes fléchis, 5 549 homophones, g2p (63 SEG / 89 COND), POS-HMM, n-grammes.
 **Rien ne manque côté données livrées.**
 
 | mesure | valeur | lecture |
