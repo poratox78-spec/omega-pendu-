@@ -95,6 +95,30 @@ if (divergentes.length) {
   divergentes.forEach(c => console.log('    page   : ' + c));
   console.log('    Les masques rendent des INDICES : un découpage différent fait viser le mauvais mot.');
 }
-if (manquantes.length || divergentes.length || !pageAppelle || enDirect.length || texteOubliees.length) process.exit(1);
+/* ⭐ CHAQUE SUGGESTION EST EXPLIQUÉE (17/09/2026) — une règle sans explication, ou une paire de mots gardée par le moteur
+   sans son texte, et la page montre une suggestion muette : la même famille que « règle non branchée ». */
+const blocWhy = (/var WHY=\{([\s\S]*?)\n  \};/.exec(page) || [])[1] || '';
+const blocPair = (/var WHY_PAIR=\{([\s\S]*?)\n  \};/.exec(page) || [])[1] || '';
+const clesWhy = new Set([...blocWhy.matchAll(/^\s*'([a-z0-9-]+)'\s*:/gm)].map(m => m[1]));
+const clesPair = new Set([...blocPair.matchAll(/^\s*(?:'([^']+)'|"([^"]+)")\s*:/gm)].map(m => m[1] || m[2]));
+const reglesMoteur = [...new Set([...corpsAnalyze.matchAll(/rule:'([a-z0-9-]+)'/g)].map(m => m[1]))];
+const sansWhy = reglesMoteur.filter(r => !clesWhy.has(r));
+const C_ = require(MOTEUR);
+const VM = JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'verbmorph_en.json'), 'utf8'));
+const hp = (/const HP = \[([\s\S]*?)\]\];/.exec(moteur) || [])[1] || '';
+const pairesSans = [];
+for (const m of hp.matchAll(/\[(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"),(\d+),(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"),'(RED|ORANGE)'\]/g)) {
+  const txt = (m[1] !== undefined ? m[1] : m[2]).replace(/\\'/g, "'"), cible = (m[4] !== undefined ? m[4] : m[5]).replace(/\\'/g, "'");
+  const mot = (C_.tokenize(txt)[+m[3]] || '').toLowerCase();
+  if (!mot || VM[mot]) continue;
+  const k = [mot, cible.toLowerCase()].sort().join('|');
+  if (!clesPair.has(k) && !pairesSans.includes(k)) pairesSans.push(k);
+}
+if (!clesWhy.size || !reglesMoteur.length || !hp) { console.log('  ✗ explications : blocs WHY / analyzeText / HP introuvables (la garde serait MUETTE)'); process.exit(1); }
+if (sansWhy.length) console.log('\n  ✗ RÈGLES SANS EXPLICATION DANS LA PAGE : ' + sansWhy.join(', '));
+if (pairesSans.length) console.log('\n  ✗ PAIRES GARDÉES PAR LE MOTEUR SANS EXPLICATION (WHY_PAIR) : ' + pairesSans.join(', '));
+if (page.indexOf('id="why"') < 0 || page.indexOf('whyOf(') < 0) { console.log('\n  ✗ la page n\'affiche plus la liste des explications (#why / whyOf)'); process.exit(1); }
+if (manquantes.length || divergentes.length || !pageAppelle || enDirect.length || texteOubliees.length || sansWhy.length || pairesSans.length) process.exit(1);
+console.log('  ' + reglesMoteur.length + ' règles du pipeline expliquées · ' + clesPair.size + ' paires de mots expliquées (toutes celles que le moteur garde)');
 if (process.exitCode) process.exit(process.exitCode);
 console.log('  ✓ toutes les règles sont appelées par analyzeText, que la page appelle · aucun appel en direct · tokeniseur identique');

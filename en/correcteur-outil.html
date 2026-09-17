@@ -43,6 +43,10 @@
   #out .corr.red{border-bottom:3px solid #f85149;background:color-mix(in srgb,#f85149 16%,transparent)}
   #out .corr.orange{border-bottom:3px solid #d29922;background:color-mix(in srgb,#d29922 20%,transparent)}
   #out .corr.info{cursor:help}
+  #why{margin:12px 0 0;padding:0;list-style:none;font:15px/1.5 var(--sans);color:var(--fg-2)}
+  #why li{margin:6px 0;padding-left:12px;border-left:3px solid var(--line,#30363d)}
+  #why li.red{border-left-color:#f85149} #why li.orange{border-left-color:#d29922}
+  #why b{color:var(--fg,inherit)}
   #out .corr:hover{background:color-mix(in srgb,var(--accent) 24%,transparent)}
   #count{font:600 15px var(--sans);color:var(--fg)}
   #status{font:15px var(--sans);color:var(--fg-2)}
@@ -99,6 +103,10 @@
       <span id="count"></span>
     </span></div>
     <div id="out" aria-live="polite"></div>
+    <!-- ⭐ CHAQUE SUGGESTION, EXPLIQUÉE (17/09/2026). Jusqu'ici le « pourquoi » ne vivait que dans l'infobulle — invisible
+         au doigt sur un téléphone, et il n'existait que pour trois règles. Le correcteur français explique chaque faute ;
+         l'anglais le fait maintenant aussi, en une ligne par suggestion, sous le texte. -->
+    <ul id="why" aria-label="Why these suggestions" style="display:none"></ul>
     <!-- ⭐ LA COUCHE TYPOGRAPHIQUE A SA PROPRE LIGNE, ET C'EST VOULU. Elle travaille sur des PLAGES
          DE TEXTE (« Hello ,how » = un espace mal placé), pas sur des mots — l'entrelacer avec le
          surlignage par token demanderait de découper des spans à cheval, pour un gain nul.
@@ -183,16 +191,84 @@
      Avant, la chaîne des 18 décisions était écrite ICI et chaque banc en rejouait un bout à sa façon : on mesurait autre
      chose que ce que l'utilisateur voit. Déplacement vérifié au caractère (même HTML sur 15 105 textes). L'ordre des
      règles, les trois masques (URL, adjacence réelle, trait d'union) et leurs raisons sont commentés dans le moteur. */
-  var WHY={'double-comp':'redundant — the next word is already comparative', 'repetition':'repeated word',
-           'irreg-plural':"irregular plural — or did you mean the possessive (children's)?"};
+  /* UNE EXPLICATION PAR RÈGLE du moteur (les marques portent `rule`) — la garde de câblage exige que chaque règle
+     d'analyzeText ait la sienne, et que chaque paire de mots gardée par le moteur (their/there, to/too…) ait son texte.
+     Phrases courtes, deuxième personne, pas de jargon : c'est un dys qui lit. Les trois textes des suppressions
+     (article-mass, double-comp, repetition) sont ceux d'avant, mot pour mot. */
+  var WHY={
+    'article-mass':'uncountable noun',
+    'double-comp':'redundant — the next word is already comparative',
+    'repetition':'repeated word',
+    'irreg-plural':"irregular plural — or did you mean the possessive (children's)?",
+    'contraction':'the apostrophe is missing',
+    'base-form':'after “to”, “do / does / did” or a modal (can, will, must…), the verb keeps its base form',
+    'cap-i':'the pronoun “I” is always a capital letter',
+    'merged':'these are two words',
+    'calendar-cap':'days and months start with a capital letter',
+    'aux-agree':'“is / are” and “has / have” must match the subject',
+    'interro':'in a question, “do / does / did” carries the ending and the verb stays in its base form',
+    'verb-3sg':'with he, she or it, the verb takes -s in the present',
+    'confuse-slot':'two words that look alike — this one fits the sentence',
+    'past-part':'after “have / has / had”, use the past participle (gone, eaten, taken)',
+    'number':'singular or plural? check the word that follows',
+    'confuse-vig':'these words are easy to mix up',
+    'homophone':'these words sound alike — this one fits the sentence',
+    'verb-irregular':'this verb is irregular',
+    'spelling':'spelling',
+    'spelling-known':'a common misspelling',
+    'spelling-unknown':'this word is not in the dictionary — is this the one you meant?'
+  };
+  var WHY_PAIR={
+    'a|an':'“an” before a vowel sound, “a” before a consonant sound',
+    'have|of':'after could, would, should…, write “have” — it only sounds like “of”',
+    'than|then':'“than” compares; “then” is about time',
+    'their|there':'“their” = belonging to them; “there” = a place, or “there is / there are”',
+    "there|they're":'“they’re” = they are',
+    "their|they're":'“they’re” = they are; “their” = belonging to them',
+    "it's|its":'“it’s” = it is or it has; “its” = belonging to it',
+    "you're|your":'“you’re” = you are; “your” = belonging to you',
+    'to|too':'“too” = more than enough, or also; “to” goes before a verb or a place',
+    'to|two':'“two” is the number 2',
+    'too|two':'“two” is the number 2',
+    'were|where':'“where” is about a place; “were” is the past of “are”',
+    "we're|were":'“we’re” = we are; “were” is the past of “are”',
+    'was|were':'with you, we or they, the past of “be” is “were”',
+    'has|have':'“has” goes with he, she, it; “have” with I, you, we, they',
+    "doesn't|don't":'“doesn’t” goes with he, she, it; “don’t” with I, you, we, they',
+    'loose|lose':'“lose” = not win, or misplace; “loose” = not tight',
+    'weather|whether':'“whether” = if; “weather” = rain, sun, wind',
+    "who's|whose":'“who’s” = who is; “whose” = belonging to whom',
+    'lead|led':'“led” is the past of “lead”',
+    'passed|past':'“passed” is the verb (she passed); “past” is a time or a place (in the past, walk past)',
+    'the|they':'“they” is the subject of the verb that follows',
+    'you|your':'“your” goes before the thing that belongs to you',
+    'knew|new':'“knew” is the past of “know”; “new” is the opposite of old',
+    'an|and':'“and” joins two words; “an” goes before a noun',
+    'advice|advise':'“advice” is the noun; “advise” is the verb',
+    'breath|breathe':'“breath” is the noun; “breathe” is the verb',
+    'choose|chose':'“chose” is the past of “choose”',
+    'accept|except':'“accept” = say yes to; “except” = but not',
+    'affect|effect':'“affect” is usually the verb; “effect” is usually the noun'
+  };
+  function whyOf(mk, w){
+    var lw=w.toLowerCase();
+    if(mk.rule==='homophone'){
+      if(LEX.VERBMORPH && LEX.VERBMORPH[lw]) return WHY['verb-irregular'];
+      return WHY_PAIR[[lw, String(mk.sugg).toLowerCase()].sort().join('|')] || WHY['homophone'];
+    }
+    if(mk.rule==='spelling') return (LEX.ATTESTED && LEX.ATTESTED.has(lw)) ? WHY['spelling-known'] : (mk.cls==='red' ? WHY['spelling'] : WHY['spelling-unknown']);
+    return WHY[mk.rule] || '';
+  }
   function analyze(text){
     var a=C.analyzeText(LEX, text, {confus:(typeof CONFUS!=='undefined'?CONFUS:null), basemap:BASEMAP});
     var toks=a.toks, pos=a.pos, marks=a.marks;
-    var html='', cur=0, n=0;
+    var html='', cur=0, n=0, items=[];
     for(var j=0;j<toks.length;j++){
       html+=esc(text.slice(cur, pos[j]));
       var w=toks[j], mk=marks[j];
       if(mk){ n++;
+        var why=whyOf(mk, w);
+        items.push('<li class="'+mk.cls+'"><b>'+esc(w)+'</b> '+(mk.info ? '— often confused with: '+esc(mk.sugg) : mk.del ? '→ remove' : '→ '+esc(mk.sugg))+(why ? ' — '+esc(why) : '')+'</li>');
         /* Une règle qui SUPPRIME (article devant un indénombrable, more/most redondant, mot répété) n'a pas de mot à
            proposer : l'infobulle dit « remove » et pourquoi. Une règle qui INTERROGE (`info` : « which / witch ») montre
            les alternatives, et le clic ne fait rien — on ne sait pas trancher, donc on ne tranche pas.
@@ -200,8 +276,8 @@
            suppressions, donc la note du pluriel irrégulier (« childrens » : children… ou le possessif children's ?) était
            écrite mais JAMAIS montrée — annoncée dans REGLES_EN.md, pas branchée. */
         var titre = mk.info ? 'often confused with: ' + esc(mk.sugg) + ' — check which one you mean'
-                  : mk.del ? ('remove — ' + (WHY[mk.rule] || 'uncountable noun') + ' (click to apply)')
-                           : '→ ' + esc(mk.sugg) + ' (click to apply)' + (WHY[mk.rule] ? ' — ' + esc(WHY[mk.rule]) : '');
+                  : mk.del ? ('remove — ' + esc(why || 'uncountable noun') + ' (click to apply)')
+                           : '→ ' + esc(mk.sugg) + ' (click to apply)' + (why ? ' — ' + esc(why) : '');
         html+='<span class="corr '+mk.cls+(mk.info?' info':'')+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'"'
             + (mk.del?' data-del="1"':'') + (mk.info?' data-info="1"':'')
             + ' title="'+titre+'">'+esc(w)+'</span>';
@@ -209,7 +285,7 @@
       cur=pos[j]+w.length;
     }
     html+=esc(text.slice(cur));
-    return {html:html, n:n};
+    return {html:html, n:n, items:items};
   }
 
   function run(){
@@ -217,6 +293,8 @@
     var r=analyze(inEl.value);
     outEl.innerHTML=r.html; outEl.style.display='block';
     cnt.textContent='· '+r.n+' suggestion'+(r.n===1?'':'s');
+    var whyEl=document.getElementById('why');
+    whyEl.innerHTML=r.items.join(''); whyEl.style.display=r.items.length?'block':'none';
     /* ⭐ COUCHE TYPOGRAPHIQUE (espace avant une ponctuation, espace manquante après une virgule
        PUIS après un point, marque doublée, double espace). Mesurée sur 15 353 phrases ÉDITÉES
        (GUM + PUD) : 1 seul déclenchement, et c'était une vraie faute de frappe du corpus

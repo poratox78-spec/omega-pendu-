@@ -409,8 +409,15 @@ function homoDecide(lex, T, i, adj){
       /* ⭐ ADJACENCE RÉELLE EXIGÉE. « hit a .322 average » donne les tokens `hit a average` :
          `tokenize` jette les chiffres et la ponctuation, donc « a » PARAÎT coller à « average ».
          8 des 17 rouges restants sur texte ÉDITÉ (GUM+PUD) venaient de là. */
-      && (!adj || adj.has(i)))
-    return ['an', 'RED'];
+      && (!adj || adj.has(i))){
+    /* ⭐ 17/09/2026 — le son impose « an », mais « a » est-il bien un ARTICLE ? Deux rouges lus sur des fautes réelles :
+       « rabbits a easily escape » (EWT annote « can ») et « already have a everything settled » (JFLEG : le « a » est en
+       trop). Devant un PRONOM, ou devant un adverbe suivi d'un VERBE, aucun groupe nominal ne commence : le rouge « an »
+       réécrit une faute en une autre. MESURÉ sur texte édité, EWT et JFLEG : ces deux contextes ne couvrent QUE ces deux
+       cas (tous les autres tirs sont devant un adjectif ou un nom) -> orange, la suggestion reste visible. */
+    const _p1 = ctxPos(T, i + 1), _p2 = ctxPos(T, i + 2) || '';
+    return ['an', (_p1 === 'PRON' || (_p1 === 'ADV' && (_p2 === 'VERB' || _p2 === 'AUX'))) ? 'ORANGE' : 'RED'];
+  }
   /* ⭐ LA DIRECTION INVERSE — « an user » -> « a ». Elle avait été abandonnée ; elle est REPRISE
      parce que les gardes qui manquaient alors existent maintenant (adjacence réelle, exclusion des
      majuscules). REMESURÉ sur 15 353 phrases d'anglais édité (GUM + PUD) : **1 déclenchement**, et
@@ -1604,6 +1611,10 @@ function contractionDecide(lex, T, i, adj){
   if(w === w.toUpperCase() && w.length > 1) return [null, null];         // sigles : IM, DONT (acronymes)
   if(lw in _CONTR_RED){
     if(lw === 'im' && w === 'Im' && i + 1 < T.length && /^[A-Z]/.test(T[i + 1])) return [null, null];   // « Im Yoon-ah » (patronyme coréen)
+    /* « if youre snake will take pre-killed » : devant un NOM, « youre » est le possessif écrit avec un e de trop, pas
+       « you're » (rouge faux lu sur le banc des fautes réelles ; les 3 autres « youre » d'EWT sont devant un adverbe ou
+       un adjectif : you're). Orange : « youre welcome » garde les deux lectures ouvertes si le tagger y voit un nom. */
+    if(lw === 'youre' && i + 1 < T.length && (!adj || adj.has(i)) && ctxPos(T, i + 1) === 'NOUN') return [_keepCaseEn(w, 'your'), 'ORANGE'];
     return [_keepCaseEn(w, _CONTR_RED[lw]), 'RED'];
   }
   const nx = (i + 1 < T.length && (!adj || adj.has(i))) ? T[i + 1].toLowerCase() : null;
@@ -1961,6 +1972,9 @@ if(typeof require !== 'undefined' && require.main === module){
     ['Just leave it their',3,'there','ORANGE'],['She is very kind an gentle',4,'and','ORANGE'],
     ['He was tired an hungry after work',3,'and','ORANGE'],['She is and excellent doctor',2,'an','ORANGE'],
     ['She found an gentle giant',2,'a','RED'],                         // « an » + adjectif + NOM reste l'article : an -> a
+    // a -> an : le son impose « an », mais devant un pronom ou un adverbe + verbe « a » n'est pas un article -> orange
+    ['The rabbits a easily escape the pen',2,'an','ORANGE'],['I already have a everything I need',3,'an','ORANGE'],
+    ['She ate a apple today',2,'an','RED'],
     // … et ce qui doit rester MUET : chaque liste fermée a été posée après un tir sur du texte édité ou du web
     ['The will of the people matters',0,null,null],['They want the can opener',2,null,null],['Are the children here',1,null,null],
     ['I told you dinner is ready',2,null,null],['This is for you guys',3,null,null],['I gave it to you personally',4,null,null],
@@ -2112,6 +2126,10 @@ if(typeof require !== 'undefined' && require.main === module){
   let ctOk = 0, ctKo = 0;
   for(const [T, i, att] of CT_OUI){ const r = contractionDecide(lex, T, i, null);
     if(r[1] === 'RED' && r[0] === att) ctOk++; else { ctKo++; console.log('  CONTR MISS %s[%d] -> %s (attendu %s)', T.join(' '), i, r[0], att); } }
+  // « youre » devant un NOM = le possessif (orange) ; devant un adverbe ou un adjectif = you're (rouge, déjà dans CT_OUI)
+  for(const [T, i, att] of [[['if', 'youre', 'snake', 'will', 'eat'], 1, 'your'], [['is', 'this', 'youre', 'dog'], 2, 'your']]){
+    const r = contractionDecide(lex, T, i, null);
+    if(!(r[1] === 'ORANGE' && r[0] === att)){ ctKo++; console.log('  CONTR MISS %s[%d] -> %s/%s (attendu %s/ORANGE)', T.join(' '), i, r[0], r[1], att); } }
   for(const [T, i] of CT_NON){ const r = contractionDecide(lex, T, i, null);
     if(r[1]){ ctKo++; console.log('  CONTR FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
   console.log('contractions: %d/%d rappel, %d anomalie(s)', ctOk, CT_OUI.length, ctKo);

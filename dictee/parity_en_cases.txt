@@ -87,3 +87,5 @@ The will of the people matters, and they want the can opener.
 I told you dinner is ready, this is for you guys, and I gave it to you personally.
 It ranges from fair to good, we drove to far places, and he is and always was kind.
 We work from early morning to late, and the quality is fair to good.
+# a -> an : rouge devant un groupe nominal, orange quand « a » n'est pas un article (pronom, adverbe + verbe)
+The rabbits a easily escape the pen, I already have a everything I need, and she ate a apple today.
