@@ -39,7 +39,7 @@ const REGISTRE = {
             sonde: { fichier: 'dictee/proso_probe.js', portee: 'constat',
                      note: 'mesuré une fois (PR#403), documenté dans la garde CI de la prosodie' } },
   15353:  { nom: 'flood EN édité PUD+GUM — règles anglaises (REGLES_EN)',
-            pages: { 'en/correcteur-outil.html': 3 },
+            pages: { 'en/correcteur-outil.html': 1 },      // 3 jusqu'au 17/09/2026 : deux commentaires de règles ont suivi la chaîne des décisions dans le moteur (analyzeText)
             sonde: { fichier: 'dictee/fp_en_propre_probe.js', portee: 'locale' } },
   14450:  { nom: 'UD FR complet (14 450 phrases correctes) — FP=0 du correcteur',
             pages: { 'correcteur.html': 1, 'recherche.html': 1, 'saisie-vocale.html': 1 },
