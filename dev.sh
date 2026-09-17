@@ -138,6 +138,10 @@ run "EN décomposeur phonique : prononciation du dictionnaire, alignement lettre
 # La table des fautes attestées (Wiktionary « misspelling of », 17/09/2026) remplace la cible DEVINÉE par la cible relue par des
 # humains : la garde vérifie le fichier livré (trié, cibles toutes au lexique, aucune graphie fréquente du lexique, aucune chaîne).
 run "EN table des fautes attestées : invariants du fichier livré" python3 dictee/build_misspell_en.py --check
+# Le classement du speller anglais juge un candidat aussi sur la SORTE d'édition qu'il suppose (lettre doublée, voyelle pour une
+# autre : courant ; consonne pour une autre, première lettre changée : rare). Ses constantes sont APPRISES sur la table des fautes
+# attestées : la garde les recalcule et exige qu'elles soient les mêmes dans les deux moteurs.
+run "EN classement par sorte d'édition : constantes des deux moteurs == table recalculée" python3 dictee/build_canal_en.py --check
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :

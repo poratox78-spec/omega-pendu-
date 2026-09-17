@@ -105,6 +105,37 @@ def _doubling(a, b):
             return True
     return False
 
+# ---------- classement par SORTE D'ÉDITION (17/09/2026, miroir corrector_en.js) ----------
+# MESURÉ : quand le speller montrait une mauvaise cible, 55 % du temps la bonne était candidate À UNE ÉDITION et perdait sur
+# la seule fréquence (accesed -> accused au lieu d'accessed ; achive -> active au lieu d'achieve ; acertain -> certain au lieu
+# d'ascertain). Les fautes réelles ne se répartissent pas au hasard entre les sortes d'édition : ln lift(sorte) =
+# ln P(sorte | bonne cible) / P(sorte | candidat à une édition), APPRIS sur les 2 784 fautes attestées de Wiktionary
+# (dictee/build_canal_en.py, qui garde aussi ces constantes en CI) et VALIDÉ sur deux bancs qu'il n'a pas vus :
+#   liste de Wikipédia  mauvaises cibles 426 -> 303 · JFLEG (en contexte) 138 -> 116 · rouges et rouges faux inchangés.
+# Poids 1,5 et bonus « lettre doublée » 3 calibrés par balayage (poids 0/0,5/1/1,5/2/2,5/3 : JFLEG culmine à 1,5 ; bonus
+# 0..8 : plateau 3-4, JFLEG rechute à 5). Appliqué aux seuls candidats à une édition (tier 1).
+_VOY = set('aeiouy')
+def _sorte(a, b):
+    """Sorte de l'édition UNIQUE qui mène de la faute `a` au candidat `b` ('autre' sinon). Miroir exact du JS."""
+    if len(a) == len(b):
+        d = [i for i in range(len(a)) if a[i] != b[i]]
+        if len(d) == 1:
+            i = d[0]
+            return 'vv' if (a[i] in _VOY and b[i] in _VOY) else 'cc' if (a[i] not in _VOY and b[i] not in _VOY) else 'vc'
+        if len(d) == 2 and d[1] == d[0] + 1 and a[d[0]] == b[d[1]] and a[d[1]] == b[d[0]]: return 'transp'
+        return 'autre'
+    if abs(len(a) - len(b)) == 1:
+        if _doubling(a, b): return 'double'
+        L, S_ = (a, b) if len(a) > len(b) else (b, a)
+        for k in range(len(L)):
+            if L[:k] + L[k + 1:] == S_:
+                return ('oubli_' if len(b) > len(a) else 'ajout_') + ('v' if L[k] in _VOY else 'c')
+    return 'autre'
+_CANAL = {'double': 0.42, 'transp': 0.4, 'oubli_v': 0.39, 'vv': 0.27, 'oubli_c': 0.15, 'ajout_v': 0.09,
+          'ajout_c': -0.33, 'cc': -1.06, 'vc': -2.16}
+_CANAL_1RE = (0.1, -1.9)            # première lettre conservée / changée
+_CANAL_POIDS, _DOUBLE_BONUS = 1.5, 3.0
+
 # ---------- lexique ----------
 def load_lexicon():
     KNOWN = set(); FREQ = {}; POS = {}; PHON = collections.defaultdict(list); ORDRE = []
@@ -202,7 +233,7 @@ class SpellerEN:
         if att is not None:
             if w[:1].isupper(): return None, 'OK'            # capitalisé = nom propre probable (même garde que plus bas)
             best, mode = self._devine(low, prev)
-            if best == att and low not in self.KNOWN: return att, 'AUTO'
+            if best == att and low not in self.KNOWN and not self._rival_fort(low, att): return att, 'AUTO'
             return att, 'FLAG'
         if low in self.KNOWN:
             return None, 'OK'
@@ -215,6 +246,15 @@ class SpellerEN:
         if w[:1].isupper():
             return None, 'OK'                                # capitalisé = nom propre probable → pas de speller (anti-flood ; les homophones gèrent leur casse)
         return self._devine(low, prev)
+
+    def _rival_fort(self, low, att):
+        """Un AUTRE candidat à une édition, fréquent (≥ 200) et au moins 20 fois plus que la cible attestée (les constantes
+        du rouge ci-dessous) : « agress » -> aggress (2) alors que agrees (219) est à une édition — et là les deux listes
+        humaines se CONTREDISENT (Wiktionary : aggress ; Wikipédia : agrees). Le rouge redevient un pari -> orange, avec la
+        cible attestée. MESURÉ sur la table : 16 rouges sur 2 273 (acerage/average, futton/button, theif/their…)."""
+        cs, _ = self._cands(low); fa = self.FREQ.get(att, 0)
+        return any(x != att and t == 1 and self.FREQ.get(x, 0) >= 200 and self.FREQ.get(x, 0) >= 20 * max(1, fa)
+                   for x, t in cs.items())
 
     def _devine(self, low, prev=None):
         """La cible DEVINÉE par les candidats (édition, son, fréquence) — le speller d'avant la table des fautes attestées."""
@@ -257,8 +297,15 @@ class SpellerEN:
             ana = (len(x) == len(low) and sorted(x) == sorted(low))
             # bonus SLOT = 2, calibré (0/0,5/1/1,5/2/3/5) : plateau 2-3, effondrement à 5 quand il
             # dépasse l'écart de tier (6). Mauvaises cibles 350 -> 324.
+            # + SORTE D'ÉDITION (cf. _sorte plus haut) : un candidat à une édition est jugé aussi sur la sorte de faute
+            # qu'il suppose — lettre doublée, voyelle pour une autre : courant ; consonne pour une autre, première
+            # lettre changée : rare.
+            canal = 0.0
+            if cands[x] == 1:
+                canal = (_CANAL_POIDS * (_CANAL.get(_sorte(low, x), 0.0) + _CANAL_1RE[1 if x[:1] != low[:1] else 0])
+                         + (_DOUBLE_BONUS if _doubling(low, x) else 0.0))
             return (6.0 * cands[x] + math.log(1.0 + self.FREQ.get(x, 0))
-                    + (2.0 if ana else 0.0) + 2.0 * self._slot(prev, x))
+                    + (2.0 if ana else 0.0) + 2.0 * self._slot(prev, x) + canal)
         # PLANCHER DE CANDIDAT : kaikki contient des non-mots (« acros » freq 0, « accomodate » freq 6).
         # Sans plancher, un mot que PERSONNE n'écrit gagne parce qu'il est à une édition, contre
         # « across » (freq 4801) qui est à deux. On ne les retire PAS de KNOWN (ils restent tolérés en
@@ -365,7 +412,7 @@ def main():
     tot = len([1 for b, g in CASES if b not in ctrl and b != g])
     print('\nrecall %d/%d (auto rouge %d + flag orange %d) · contrôles OK %d, FP contrôle %d'
           % (hit, tot, auto, flag, ctrl_ok, ctrl_bad))
-    fp_scale(sp)
+    fp_pud = fp_scale(sp)
     # GLISSEMENT MOTEUR -> ROUGE (miroir corrector_en.js). Un seul candidat ET l'écart n'est qu'un
     # ORDRE de lettres ou un REDOUBLEMENT. Mesuré : +16 rouges sur JFLEG (14/16 confirmés par les
     # références), 1 seul tir ajouté sur le banc FP officiel (une vraie faute) => FP = 0, et sur EWT
@@ -392,11 +439,12 @@ def main():
     att_ko = 0
     for bad, good, mode in [('definatly', 'definitely', 'FLAG'),   # le rouge FAUX du banc Wikipédia (devinée : defiantly)
                             ('abcess', 'abscess', 'FLAG'),          # devinée : access
-                            ('acount', 'account', 'FLAG'),          # devinée : count
+                            ('acount', 'account', 'AUTO'),          # devinée : count AVANT le classement par sorte d'édition, account depuis -> les deux sources d'accord
                             ('thier', 'their', 'AUTO'),             # les deux sources d'accord -> rouge
                             ('arguement', 'argument', 'AUTO'),
                             ('wierd', 'weird', 'FLAG'),             # le lexique la tenait pour un mot -> orange, plus de silence
                             ('tought', 'taught', 'FLAG'),
+                            ('agress', 'aggress', 'FLAG'),          # RIVAL FORT (agrees, 100× plus fréquent, à une édition) : les deux listes humaines se contredisent -> orange
                             ('shouldnt', "shouldn't", 'FLAG')]:     # contraction : la graphie est la cible sans son apostrophe
         s, m = sp.suggest(bad)
         if s != good or m != mode:
@@ -406,10 +454,25 @@ def main():
         if m != 'OK':
             att_ko += 1; print('  FAUTE ATTESTÉE : « %s » ne doit pas être touché (-> %s/%s)' % (w, s, m))
     print('fautes attestées : %s (%d dans la table)' % ('OK' if att_ko == 0 else 'KO(%d)' % att_ko, len(sp.ATTESTED)))
+    # CLASSEMENT PAR SORTE D'ÉDITION (miroir corrector_en.js) — aucune de ces fautes n'est dans la table : c'est la cible
+    # DEVINÉE qu'on regarde. Avant, la fréquence seule donnait accused, active, audition, acquired, present, buried.
+    canal_ko = 0
+    for bad, good in [('accesed', 'accessed'), ('achive', 'achieve'), ('adition', 'addition'), ('acquited', 'acquitted'),
+                      ('cresent', 'crescent'), ('buriel', 'burial')]:
+        s, m = sp.suggest(bad)
+        if bad in sp.ATTESTED or s != good:
+            canal_ko += 1; print('  CLASSEMENT MISS %-10s -> %s (attendu %s%s)' % (bad, s, good, ' ; ⚠️ entré dans la table : changer de cas' if bad in sp.ATTESTED else ''))
+    for bad, good in [('teh', 'the'), ('inot', 'into'), ('eveyr', 'every'), ('recieve', 'receive')]:   # ce que l'ancien classement gagnait reste gagné
+        s, m = sp.suggest(bad)
+        if s != good:
+            canal_ko += 1; print('  CLASSEMENT RÉGRESSION %-10s -> %s (attendu %s)' % (bad, s, good))
+    print('classement par sorte d\'édition : %s' % ('OK' if canal_ko == 0 else 'KO(%d)' % canal_ko))
     if '--check' in sys.argv:                                # garde CI : recall + contrôles (FP=0 sur casse)
-        ok = (hit >= 40 and ctrl_bad == 0 and slip_ko == 0 and att_ko == 0)
-        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0), glissement moteur %s, fautes attestées %s'
-              % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad, 'OK' if slip_ko == 0 else 'KO', 'OK' if att_ko == 0 else 'KO'))
+        ok = (hit >= 40 and ctrl_bad == 0 and slip_ko == 0 and att_ko == 0 and canal_ko == 0 and fp_pud == 0)
+        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0), glissement moteur %s, fautes attestées %s, classement %s, '
+              'rouges sur PUD committé %s (max 0)'
+              % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad, 'OK' if slip_ko == 0 else 'KO', 'OK' if att_ko == 0 else 'KO',
+                 'OK' if canal_ko == 0 else 'KO', fp_pud))
         if not ok: sys.exit(1)
 
 
@@ -437,18 +500,37 @@ def url_mask(text):
         i += 1
     return proteges
 
+def _textes_corpus(path):
+    """Phrases d'un .conllu (lignes « # text = ») ou d'un corpus committé (une phrase par ligne, « # » = commentaire)."""
+    conllu = path.endswith('.conllu')
+    for l in open(path, encoding='utf-8'):
+        if conllu:
+            if l.startswith('# text = '): yield l.split('=', 1)[1]
+        elif l.strip() and not l.startswith('#'): yield l
+
+
 def fp_scale(sp):
-    """FP=0 à l'échelle : sur du texte anglais CORRECT (UD English-EWT), aucun mot ne doit être
-    AUTO-corrigé (rouge). On compte aussi les FLAG (orange) sur mots corrects (tolérés mais suivis)."""
-    path = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu')
-    if not os.path.exists(path):
-        print('[fp] EWT introuvable — skip'); return
+    """FP=0 à l'échelle : sur du texte anglais CORRECT, aucun mot ne doit être AUTO-corrigé (rouge).
+
+    ⚠️ LA GARDE NE PEUT PLUS SE DÉSACTIVER (17/09/2026, lot 1 de CHANTIER_ANGLAIS §4). Avant, ce banc ne lisait qu'EWT — un
+    corpus LOCAL, absent de la CI : « EWT introuvable — skip », et le --check ne regardait même pas le résultat. Il mesure
+    désormais TOUJOURS les 1 000 phrases d'UD English-PUD committées (dictee/parity_en_corpus.txt, CC BY-SA 3.0, texte
+    ÉDITÉ par des traducteurs professionnels) : 0 rouge mesuré, plafond 0, fichier absent = échec. EWT (web, fautes
+    réelles comprises) reste une borne supérieure affichée quand il est là.
+    Rend le nombre de rouges sur PUD."""
+    pud = os.path.join(HERE, 'parity_en_corpus.txt')
+    n_pud = _fp_mesure(sp, pud, 'PUD committé')
+    ewt = os.path.join(HERE, '..', 'data_local', 'en_ewt-ud-train.conllu')
+    if os.path.exists(ewt): _fp_mesure(sp, ewt, 'EWT local')
+    else: print('[fp] EWT local absent — la garde tient sur PUD committé')
+    return n_pud
+
+
+def _fp_mesure(sp, path, nom):
     seen = auto_fp = flag_ct = toks = 0
     ex = []
-    for l in open(path, encoding='utf-8'):
-        if not l.startswith('# text = '): continue
+    for _txt in _textes_corpus(path):
         seen += 1
-        _txt = l.split('=', 1)[1]
         _prot = url_mask(_txt)                      # cf. url_mask : un mot dans une URL n'est pas du langage
         for _i, _m in enumerate(re.finditer(r"[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*", _txt)):   # MÊME motif que le moteur JS
             tok = _m.group(0)
@@ -460,10 +542,12 @@ def fp_scale(sp):
                 if len(ex) < 15: ex.append('%s→%s' % (tok, s))
             elif mode == 'FLAG':
                 flag_ct += 1
-    print('\n=== FP SCALE (EWT %d phrases, %d tokens a-z) ===' % (seen, toks))
+    print('\n=== FP SCALE (%s : %d phrases, %d tokens a-z) ===' % (nom, seen, toks))
     print('  AUTO (rouge) sur texte correct : %d (%.3f%%)  ← doit tendre vers 0' % (auto_fp, 100*auto_fp/max(toks,1)))
     print('  FLAG (orange) : %d (%.2f%%)  ← toléré (inconnus : noms propres, rares)' % (flag_ct, 100*flag_ct/max(toks,1)))
     if ex: print('  ex AUTO-FP :', ', '.join(ex))
+    if seen < 900 and nom.startswith('PUD'): raise RuntimeError('corpus PUD committé tronqué : %d phrases' % seen)
+    return auto_fp
 
 if __name__ == '__main__':
     main()
