@@ -38,11 +38,10 @@ if (!fs.existsSync(path.join(DIR, 'dev.src'))) {
   process.exit(0);
 }
 
-const lex = C.loadLexNode(path.join(RACINE, 'dictee', 'lex_en.tsv.gz'));
-try {
-  const mp = path.join(RACINE, 'dictee', 'pos_hmm_en.json');
-  if (fs.existsSync(mp)) C.setPosModel(JSON.parse(fs.readFileSync(mp, 'utf8')));
-} catch (e) {}
+/* ⭐ 17/09/2026 — LE PIPELINE DU PRODUIT (C.analyzeText + tous les actifs), plus une chaîne recopiée : l'ancienne ignorait les
+   contractions, la forme de base, « i » -> I, les mots collés, le double comparatif. Changement d'INSTRUMENT : le même jour,
+   l'ancienne chaîne comptait 228 rouges dont 215 confirmés. */
+const { lex, ctx } = C.loadAllNode(path.join(RACINE, 'dictee'));
 
 const lignes = f => fs.readFileSync(path.join(DIR, f), 'utf8').split('\n');
 let nPhr = 0, propose = 0, confirme = 0;
@@ -55,31 +54,14 @@ for (const set of ['dev', 'test']) {
     const t = src[s];
     if (!t || !t.trim()) continue;
     nPhr++;
-    const gold = refs.map(r => ' ' + (r[s] || '').toLowerCase() + ' ');
-    const T = C.tokenize(t), prot = C.urlMask(t), adj = C.adjMask(t);
+    /* JFLEG est PRÉ-TOKENISÉ : les références écrivent « do n't », « it 's ». Sans recoller le clitique, une contraction
+       proposée (« don't ») n'était JAMAIS confirmée — 16 sur 16 comptées « non confirmées » le 17/09/2026, par l'instrument. */
+    const gold = refs.map(r => ' ' + (r[s] || '').toLowerCase().replace(/ (n't|'s|'re|'ve|'ll|'m|'d)(?= )/g, '$1') + ' ');
+    const a = C.analyzeText(lex, t, ctx), T = a.toks;
     for (let i = 0; i < T.length; i++) {
-      if (prot.has(i)) continue;
-      let sugg = null, canal = null;
-      const cs = C.confuseSlotDecide ? C.confuseSlotDecide(lex, T, i, adj, C.hyphMask?C.hyphMask(t):null, CONFG) : [null,null];
-      if (cs[1] === 'RED') { sugg = cs[0]; canal = 'confus'; }
-      const am = C.articleMassDecide ? C.articleMassDecide(lex, T, i, adj, C.hyphMask ? C.hyphMask(t) : null) : [null,null];
-      if (am[1] === 'RED') { sugg = am[0]; canal = 'article'; }
-      const ax = C.auxAgree ? C.auxAgree(lex, T, i, adj) : [null,null];
-      if (ax[1] === 'RED') { sugg = ax[0]; canal = 'aux'; }
-      const iq = C.interroDecide ? C.interroDecide(lex, T, i, adj) : [null,null];
-      if (iq[1] === 'RED') { sugg = iq[0]; canal = 'interro'; }
-      const v3 = C.verb3Decide ? C.verb3Decide(lex, T, i, adj) : [null,null];
-      if (v3[1] === 'RED') { sugg = v3[0]; canal = 'verbe-3sg'; }
-      const pp = C.pastPartDecide(lex, T, i);
-      if (pp[1]) { sugg = pp[0]; canal = 'participe'; }
-      else {
-        const h = C.homoDecide(lex, T, i, adj);
-        if (h[1] === 'RED') { sugg = h[0]; canal = 'homophone'; }
-        else {
-          const sp = C.spellSuggest(lex, T[i], i > 0 ? T[i - 1].toLowerCase() : '');
-          if (sp[1] === 'AUTO') { sugg = sp[0]; canal = 'speller'; }
-        }
-      }
+      const mk = a.marks[i];
+      if (!mk || mk.cls !== 'red' || mk.del) continue;          // les rouges qui PROPOSENT un mot (une suppression n'a pas de cible à confirmer)
+      const sugg = mk.sugg, canal = mk.rule;
       if (!sugg) continue;
       propose++;
       const cible = String(sugg).toLowerCase();

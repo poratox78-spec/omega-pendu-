@@ -1745,9 +1745,75 @@ function calendarCapDecide(lex, T, i, adj){
   return [w[0].toUpperCase() + w.slice(1), 'ORANGE'];
 }
 
+/* ---------- LE PIPELINE, UNE SEULE FOIS (17/09/2026) ----------
+   Jusqu'ici la CHAÎNE des décisions vivait dans la page (en/correcteur-outil.html) et chaque banc en rejouait un bout à sa
+   façon : le banc JFLEG ignorait les contractions, la forme de base, « i » -> I ; le banc de texte édité avait sa propre
+   copie. On mesurait donc autre chose que ce que l'utilisateur voit — la leçon française « pipeline, pas registre ».
+   analyzeText EST le produit : la page ne fait plus que le rendu, les bancs l'appellent tel quel.
+   Déplacement vérifié AU CARACTÈRE : l'ancien analyze() de la page, extrait du HTML, et cette fonction + le nouveau rendu
+   donnent le même HTML sur 15 105 textes (cas de garde, PUD, EWT, JFLEG), 2 256 marques, 0 différence.
+
+   L'ORDRE COMPTE — les règles les plus SPÉCIFIQUES d'abord, sinon une règle large réclame un token qu'une règle précise
+   aurait mieux traité ; les deux couches ORANGE qui signalent sans trancher (nombre, confusables indécidables) passent en
+   dernier, pour ne jamais rétrograder une décision rouge en « à vérifier ».
+   LES TROIS MASQUES : urlMask (un mot dans une URL est un identifiant : le corriger casse le lien — 0,92 % des tokens
+   d'EWT), adjMask (tokenize jette chiffres et ponctuation : deux tokens voisins dans la liste ne se touchent pas forcément
+   dans le texte, « hit a .322 average »), hyphMask (« moon-cursed waters » n'est pas « moon cursed »).
+   Rend {toks, pos, marks} ; marks[i] = null ou {sugg, cls:'red'|'orange', rule, del?, info?}.
+     del  : la correction SUPPRIME le mot (article devant indénombrable, more/most redondant, mot répété)
+     info : la règle INTERROGE sans proposer (sugg = la liste « which / witch » : le clic ne doit rien insérer)
+   ctx = {confus: groupes de confusables_en.json, basemap: buildBaseMap(forms_en)} — absents, les règles concernées se taisent. */
+function analyzeText(lex, text, ctx){
+  ctx = ctx || {};
+  const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;        // LE motif de tokenize (la garde de câblage le compare)
+  let m; const toks = [], pos = [];
+  while((m = re.exec(text))){ toks.push(m[0]); pos.push(m.index); }
+  const marks = new Array(toks.length).fill(null);
+  const PROT = urlMask(text), ADJ = adjMask(text), HYP = hyphMask(text);
+  const CG = ctx.confus ? (Array.isArray(ctx.confus) ? ctx.confus : (ctx.confus.groupes || [])) : [];
+  const BM = ctx.basemap;
+  for(let i = 0; i < toks.length; i++){
+    if(PROT.has(i)) continue;
+    let r;
+    r = articleMassDecide(lex, toks, i, ADJ, HYP);      if(r[1]){ marks[i] = {sugg:'', cls:'red', del:true, rule:'article-mass'}; continue; }   // « a information »
+    r = contractionDecide(lex, toks, i, ADJ);           if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'contraction'}; continue; }          // dont -> don't
+    r = baseFormDecide(lex, toks, i, ADJ, BM);          if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'base-form'}; continue; }            // she can sings -> sing
+    r = capIDecide(lex, toks, i, ADJ, HYP);             if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'cap-i'}; continue; }                // i -> I
+    r = mergedDecide(lex, toks, i, ADJ);                if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'merged'}; continue; }               // alot -> a lot
+    r = doubleCompDecide(lex, toks, i, ADJ);            if(r[1]){ marks[i] = {sugg:'', cls:'red', del:true, rule:'double-comp'}; continue; }  // more better
+    r = repetitionDecide(lex, toks, i, ADJ, HYP);       if(r[1]){ marks[i] = {sugg:'', cls:'orange', del:true, rule:'repetition'}; continue; } // the the (orange : l'oral transcrit répète)
+    r = irregPluralDecide(lex, toks, i, ADJ);           if(r[1]){ marks[i] = {sugg:r[0], cls:'orange', rule:'irreg-plural'}; continue; }      // childrens
+    r = calendarCapDecide(lex, toks, i, ADJ);           if(r[1]){ marks[i] = {sugg:r[0], cls:'orange', rule:'calendar-cap'}; continue; }      // monday
+    r = auxAgree(lex, toks, i, ADJ);                    if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'aux-agree'}; continue; }            // he are going
+    r = interroDecide(lex, toks, i, ADJ);               if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'interro'}; continue; }              // Does he goes ?
+    r = verb3Decide(lex, toks, i, ADJ);                 if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'verb-3sg'}; continue; }             // he go
+    r = confuseSlotDecide(lex, toks, i, ADJ, HYP, CG);  if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'confuse-slot'}; continue; }         // I will council him
+    r = pastPartDecide(lex, toks, i);                   if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'past-part'}; continue; }            // has went
+    r = homoDecide(lex, toks, i, ADJ);                  if(r[1]){ marks[i] = {sugg:r[0], cls:(r[1] === 'RED' ? 'red' : 'orange'), rule:'homophone'}; continue; }
+    r = spellSuggest(lex, toks[i], i > 0 ? toks[i - 1].toLowerCase() : '');   // le mot-outil précédent ouvre un slot (verbe/nom)
+    if(r[1] === 'AUTO'){ marks[i] = {sugg:r[0], cls:'red', rule:'spelling'}; continue; }
+    if(r[1] === 'FLAG' && r[0]){ marks[i] = {sugg:r[0], cls:'orange', rule:'spelling'}; continue; }
+    r = numberDecide(lex, toks, i, ADJ, HYP);           if(r[1]){ marks[i] = {sugg:r[0], cls:'orange', rule:'number'}; continue; }            // many student (refusé 2× en rouge)
+    r = confuseVigDecide(lex, toks, i, ADJ, CG);        if(r[1]) marks[i] = {sugg:r[0], cls:'orange', info:true, rule:'confuse-vig'};          // witch / which : membre rare seulement
+  }
+  return {toks, pos, marks};
+}
+/* Node : TOUT ce que la page charge, au même endroit — lexique (+ verbes irréguliers + fautes attestées), modèle POS,
+   confusables, bases verbales et comparatifs. Un banc qui oublie un actif mesure un moteur à moitié muet. */
+function loadAllNode(dir){
+  const fs = require('fs'), path = require('path'), zlib = require('zlib');
+  dir = dir || __dirname;
+  const lex = loadLexNode(path.join(dir, 'lex_en.tsv.gz'));
+  setPosModel(JSON.parse(fs.readFileSync(path.join(dir, 'pos_hmm_en.json'), 'utf8')));
+  const confus = JSON.parse(fs.readFileSync(path.join(dir, 'confusables_en.json'), 'utf8'));
+  const forms = zlib.gunzipSync(fs.readFileSync(path.join(dir, 'forms_en.tsv.gz'))).toString('utf8');
+  const basemap = buildBaseMap(forms, lex); buildCompSets(forms);
+  return {lex, ctx: {confus, basemap}};
+}
+
 const _API = { deacc, phonKey, edits1, buildPhonIndex, spellSuggest, homoDecide, tokenize, urlMask, adjMask, hyphMask,
                pastPartDecide, buildPastPart, contractionDecide, buildBaseMap, baseFormDecide, repetitionDecide, capIDecide, mergedDecide, buildCompSets, doubleCompDecide, irregPluralDecide, calendarCapDecide, numberDecide, buildNumber, verb3Decide, interroDecide, auxAgree, articleMassDecide, typoScanEn, confuseSlotDecide, buildConfuseSlot, confuseVigDecide, buildConfuseVig,
-               parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel, setAttested };
+               parseLexText, loadLexNode, loadLexB64, tagSentence, setPosModel, loadPosModel, setAttested, analyzeText, loadAllNode };
 if(typeof module !== 'undefined' && module.exports) module.exports = _API;
 if(typeof window !== 'undefined') window.CorrectorEN = _API;
 

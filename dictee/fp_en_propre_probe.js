@@ -38,11 +38,12 @@ if (!fs.existsSync(PUD)) {
   process.exit(0);
 }
 
-const lex = C.loadLexNode(path.join(RACINE, 'dictee', 'lex_en.tsv.gz'));
-try {
-  const mp = path.join(RACINE, 'dictee', 'pos_hmm_en.json');
-  if (fs.existsSync(mp)) C.setPosModel(JSON.parse(fs.readFileSync(mp, 'utf8')));
-} catch (e) {}
+/* ⭐ 17/09/2026 — LE PIPELINE DU PRODUIT, pas une copie. Ce banc rejouait SA chaîne de règles : sans les contractions, la
+   forme de base, « i » -> I, les mots collés, le double comparatif, la répétition… et dans un AUTRE ordre que la page (les
+   oranges « nombre » et « confusables » passaient AVANT le speller). Il appelle désormais C.analyzeText avec tous les actifs
+   (C.loadAllNode) : ce qu'il compte est ce que l'utilisateur voit. Les chiffres d'avant ne sont donc pas comparables un à un
+   (changement d'INSTRUMENT, pas de moteur) : 11 rouges / 534 oranges avec l'ancienne chaîne, le même jour. */
+const { lex, ctx } = C.loadAllNode(path.join(RACINE, 'dictee'));
 
 const EDITE = new Set(['news', 'academic', 'bio', 'fiction', 'voyage', 'textbook', 'essay',
                        'whow', 'letter', 'speech', 'court', 'legal']);
@@ -64,46 +65,27 @@ function phrases() {
 }
 
 const PHR = phrases();
-let toks = 0, rouge = 0, orange = 0, orNb = 0, orV3 = 0, orCv = 0;
-const fam = new Map(), ex = [];
+let toks = 0, rouge = 0, orange = 0;
+const fam = new Map(), ex = [], orRegle = new Map();
 for (const t of PHR) {
-  const T = C.tokenize(t), prot = C.urlMask(t), adj = C.adjMask(t);
-  const hyph = C.hyphMask ? C.hyphMask(t) : null;
-  for (let i = 0; i < T.length; i++) {
-    toks++;
-    if (prot.has(i)) continue;                       // un mot dans une URL n'est pas du langage
-    const note = (k, s) => {
-      rouge++; fam.set(k, (fam.get(k) || 0) + 1);
-      if (ex.length < 14) ex.push(k.padEnd(26) + '| ' + t.slice(0, 62));
-    };
-    const cs = C.confuseSlotDecide ? C.confuseSlotDecide(lex, T, i, adj, hyph, CONFG) : [null,null];
-    if (cs[1] === 'RED') { note('[confus] ' + T[i] + '→' + cs[0]); continue; }
-    const am = C.articleMassDecide ? C.articleMassDecide(lex, T, i, adj, hyph) : [null,null];
-    if (am[1] === 'RED') { note('[article] ' + T[i] + '→∅'); continue; }
-    const ax = C.auxAgree ? C.auxAgree(lex, T, i, adj) : [null,null];
-    if (ax[1] === 'RED') { note('[aux] ' + T[i] + '→' + ax[0]); continue; }
-    const iq = C.interroDecide ? C.interroDecide(lex, T, i, adj) : [null,null];
-    if (iq[1] === 'RED') { note('[interro] ' + T[i] + '→' + iq[0]); continue; }
-    const v3 = C.verb3Decide ? C.verb3Decide(lex, T, i, adj) : [null,null];
-    if (v3[1] === 'RED') { note('[verbe-3sg] ' + T[i] + '→' + v3[0]); continue; }
-    const nb = C.numberDecide ? C.numberDecide(lex, T, i, adj, hyph) : [null,null];
-    if (nb[1] === 'ORANGE') { orange++; orNb++; continue; }
-    const cv = C.confuseVigDecide ? C.confuseVigDecide(lex, T, i, adj, CONFG) : [null,null];
-    if (cv[1] === 'ORANGE') { orange++; orCv++; continue; }
-    const pp = C.pastPartDecide(lex, T, i);
-    if (pp[1]) { note('[participe] ' + T[i] + '→' + pp[0]); continue; }
-    const h = C.homoDecide(lex, T, i, adj);
-    if (h[1] === 'RED') { note(T[i].toLowerCase() + '→' + h[0]); continue; }
-    const s = C.spellSuggest(lex, T[i], i > 0 ? T[i - 1].toLowerCase() : '');
-    if (s[1] === 'AUTO') note('[speller] ' + T[i] + '→' + s[0]);
-    else if (s[1] === 'FLAG' && s[0]) orange++;
-  }
+  const a = C.analyzeText(lex, t, ctx);
+  toks += a.toks.length;
+  a.marks.forEach((mk, i) => {
+    if (!mk) return;
+    if (mk.cls === 'red') {
+      rouge++;
+      const k = '[' + mk.rule + '] ' + a.toks[i] + '→' + (mk.sugg || '∅');
+      fam.set(k, (fam.get(k) || 0) + 1);
+      if (ex.length < 14) ex.push(k.padEnd(34) + '| ' + t.slice(0, 62));
+    } else { orange++; orRegle.set(mk.rule, (orRegle.get(mk.rule) || 0) + 1); }
+  });
 }
 
 console.log('FP ANGLAIS SUR TEXTE ÉDITÉ (PUD + GUM genres édités)');
 console.log('  %d phrases · %d tokens', PHR.length, toks);
 console.log('  ROUGES : %d  (%s %%)', rouge, (100 * rouge / toks).toFixed(4));
-console.log('  orange : %d  (%s %%)   dont NOMBRE %d · VERBE-3sg %d · CONFUS %d', orange, (100 * orange / toks).toFixed(2), orNb, orV3, orCv);
+console.log('  orange : %d  (%s %%)   par règle : %s', orange, (100 * orange / toks).toFixed(2),
+            [...orRegle.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ' + v).join(' · '));
 console.log('\n  par famille :');
 [...fam.entries()].sort((a, b) => b[1] - a[1])
   .forEach(([k, v]) => console.log('    ' + String(v).padStart(3) + '  ' + k));

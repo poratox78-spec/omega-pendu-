@@ -76,7 +76,7 @@ fautif) et « were + gérondif » (we're).
 | to + forme fléchie (have to reduced) | 🔴 LIVRÉ (2026-08-12) | gouverneur INFINITIVAL fermé adjacent exigé — le to prépositionnel + participe adjectival était 12 des 24 tirs du proto (« leads to reduced activity ») ; PAST seulement ; jamais -ing (« forward to going ») |
 | do/does/did déclaratif + forme fléchie (she did went) | 🔴 LIVRÉ (2026-08-12) | PAST seulement (« did wonders » = pluriel nominal) ; be exclu (« all we did was » = pseudo-clivée) |
 | comparatif redondant (more better, most easiest) | 🔴 LIVRÉ (2026-08-12, `doubleCompDecide`) | comparatifs RÉELS de forms_en (2 359/2 397) — « more clever », « most honest » sûrs par CONSTRUCTION (pas un test de suffixe) ; le more/most est supprimé ; 0 tir/10 137 |
-| pluriel irrégulier + s (childrens, mens) | 🟠 LIVRÉ (2026-08-12, `irregPluralDecide`) | 10 formes ; « mens rea » (latin juridique) exclu ; l'infobulle mentionne le possessif (children's) ; 0 tir/10 137, 1 vraie faute web |
+| pluriel irrégulier + s (childrens, mens) | 🟠 LIVRÉ (2026-08-12, `irregPluralDecide`) | 10 formes ; « mens rea » (latin juridique) exclu ; l'infobulle mentionne le possessif (children's) — ⚠️ elle était écrite mais jamais AFFICHÉE (le rendu ne montrait le « pourquoi » que pour les suppressions), branchée le 17/09/2026 ; 0 tir/10 137, 1 vraie faute web |
 | accord en nombre dét↔nom | 🟠 | REFUSÉ 2× en rouge (+5 puis +11 FP — nom épithète = fait de langue) ; vit en orange |
 | BE-copule (they is happy) | ⛔ réfuté | sujets nominaux = mur du chunker de GN ; pronoms = rappel 0 |
 | accord sujet nominal (the boys goes) | ⛔ réfuté 3× | il faut savoir où FINIT le GN ; prochaine tentative = chunker d'abord |
@@ -92,6 +92,17 @@ fautif) et « were + gérondif » (we're).
 | jours/mois minuscules (monday, january) | 🟠 LIVRÉ (2026-08-12, `calendarCapDecide`) | 16 mots — may/march/august EXCLUS (modal, marche, adjectif auguste) ; 1 tir/10 137 = vraie anomalie ; rappel web 10 |
 | possessif sans apostrophe (my dads car) | ❌ | dads = pluriel légitime ; il faut le contexte possessif → 🟠 au mieux, à mesurer |
 
+## 5 bis. LE PIPELINE ET SES BANCS (17/09/2026)
+
+La chaîne des 18 décisions vit dans le moteur : `analyzeText(lex, text, ctx)` rend, pour chaque mot, `{sugg, cls, rule}`. La page ne fait plus que le rendu ; les bancs appellent la même fonction avec tous les actifs (`loadAllNode`). Déplacement vérifié au caractère : la page committée et la page refaite donnent le même HTML sur 15 104 textes (cas de garde, PUD, EWT, JFLEG), 2 250 marques. Avant, chaque banc rejouait SA copie de la chaîne — sans les contractions, la forme de base, « i » → I, les mots collés — et le banc de texte édité passait les oranges avant le speller : on mesurait autre chose que le produit.
+
+| banc | ce qu'il mesure | 17/09/2026 (pipeline du produit) |
+|---|---|---|
+| `fp_en_propre_probe.js` (local) | rouges et oranges sur texte ÉDITÉ, PUD + genres édités de GUM | 15 rouges / 176 893 tokens, tous de vraies fautes du corpus (11 avec l'ancienne chaîne, qui ignorait 4 règles) ; 582 oranges (0,33 %) |
+| `jfleg_en_probe.js` (local) | rouges confirmés par ≥ 1 des 4 annotateurs | 295 / 308 = 95,8 % (références recollées : « do n't » → don't, sinon aucune contraction n'était jamais confirmée) |
+| `ewt_typos_en_probe.js` (**CI**) | rappel du produit sur 626 fautes RÉELLES en contexte, annotées par UD English-EWT (`Typo=Yes` / `CorrectForm`) | 231 bien corrigées (36,9 %) dont 90 rouges ; 4 rouges faux, imprimés ; 279 muettes parce que la graphie est un vrai mot (you → your ×14, the → they, to ↔ too) = le prochain écart ; plancher 228 / 88, plafond 4 |
+| `recall_en_probe.py` (local) | bonne cible du speller, 2 886 fautes de la liste de Wikipédia | 86,4 % · rouge faux 1 |
+
 ## 6. CE QU'ON A DÉCIDÉ / RÉFUTÉ (ne pas rejouer)
 
 - ⛔ **be + forme nue** (he is concern→concerned) : précision 8/35 sur JFLEG — be ne contraint RIEN.
@@ -101,6 +112,8 @@ fautif) et « were + gérondif » (we're).
 - ⛔ **dérivation -y→-iness** : kaikki marque money/turkey ADJ → moneiness. Chantier lexique.
 - ⛔ **extension navigateur EN** : décision de Rem, actée.
 - SCONJ 58,8 % : frontière de proposition = début de parseur, pas une table.
+- ⛔ **« rival à DEUX éditions » pour rétrograder un rouge** (17/09/2026) : les deux rouges faux connus ont leur bonne cible à deux éditions (convience → convenience, welcame → welcomed). Mesuré sur 3 284 rouges (Wikipédia, Wiktionary, EWT, JFLEG) : « un rival fréquent à deux éditions » rétrograde **757 rouges JUSTES** pour 12 faux ; « même son » n'attrape rien ; « forme fléchie de la cible » : 387 justes perdus pour 6. On ne retire pas des centaines de corrections pour deux cas.
+- ⛔ **orange « mot rare voisin d'un mot très fréquent »** (wether → whether, 17/09/2026) : 35 occasions dans EWT, mais sur du texte ÉDITÉ la règle soulignerait 0,22 % des mots connus (PUD) à 0,25 % (GUM) — un mot juste sur 400, presque tous légitimes (arid, silt, median, tort, mites). Flood sans rendement.
 
 ---
 
