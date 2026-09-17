@@ -22,6 +22,7 @@ moteur) · ⛔ HORS PÉRIMÈTRE ou RÉFUTÉ chiffré.
 |---|---|---|
 | non-mot → candidat (édit-1, phon, slot du mot-outil) | 🔴/🟠 | speller ; score 6·tier+log(freq), anagramme +2, slot +2 (calibrés) |
 | glissement moteur (occuring, teh — 1 candidat + désordre/redoublement) | 🔴 | porté du FR ; JFLEG 176→190 confirmés |
+| faute ATTESTÉE (definatly, abcess, wierd — Wiktionary « misspelling of ») | 🔴/🟠 LIVRÉ (2026-09-17, table `misspell_en.tsv`, `build_misspell_en.py`) | 2 823 graphies ; la cible relue par des humains REMPLACE la cible devinée (abcess → abscess, plus access) ; ROUGE si le moteur devine la même cible (deux sources d'accord : 224/226 confirmées par la liste de Wikipédia), ORANGE sinon ; 20 graphies que le lexique tenait pour des mots (wierd, tought, hight) ne passent plus en silence (orange). Mesuré : Wikipédia 80,4 → 81,9 %, mauvaises cibles 448 → 409, rouge faux 2 → 1 ; JFLEG 190/203 → 214/227 confirmés ; texte édité +1 rouge = vraie faute du corpus (recieve) |
 | distance 2 en secours | 🟠 | jamais rouge (tier 0,5) ; rappel 61,0→64,4 % |
 | prétérit RÉGULARISÉ (doed→did, bited→bit, goed→went) | 🔴 | **vérifié BRANCHÉ à la batterie** (la question ouverte de 2026-08-03 est résolue) |
 | orthographe britannique | ✅ tolérée | dérivation UK→US pour INTERROGER seulement ; jamais proposer colour→color |

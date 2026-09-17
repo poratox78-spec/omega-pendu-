@@ -27,7 +27,12 @@ const MOTEUR = path.join(RACINE, 'dictee', 'corrector_en.js');
    On ne leur demande pas d'être appelées par la page. */
 const _NON_REGLE = new Set(['deacc', 'phonKey', 'edits1', 'buildPhonIndex', 'tokenize', 'urlMask',
   'adjMask', 'hyphMask', 'parseLexText', 'loadLexNode', 'loadLexB64', 'tagSentence', 'setPosModel',
-  'loadPosModel', 'buildPastPart', 'buildNumber', 'buildConfuseSlot', 'buildConfuseVig']);
+  'loadPosModel', 'buildPastPart', 'buildNumber', 'buildConfuseSlot', 'buildConfuseVig', 'setAttested']);
+
+/* Les ACTIFS que le moteur attend : la page doit demander chacun, et poser celui qui se pose par un appel
+   (une table jamais chargée = des règles muettes, sans aucun symptôme — cf. PR#443, le modèle POS oublié). */
+const _ACTIFS = { 'lex_en.tsv.gz': 'C.parseLexText', 'verbmorph_en.json': 'VERBMORPH', 'pos_hmm_en.json': 'C.setPosModel',
+                  'confusables_en.json': 'CONFUS', 'forms_en.tsv.gz': 'C.buildBaseMap', 'misspell_en.tsv': 'C.setAttested' };
 
 /* Règles volontairement absentes de la page — avec la RAISON, sinon ce check ne sert à rien. */
 const _HORS_PAGE = {};
@@ -56,6 +61,11 @@ const motifMoteur = (/function tokenize\(text\)\{ return text\.match\((\/[^\/]+\
 const copiesPage = (page.match(/\/\[A-Za-z[^\/]*\/g/g) || []);
 const divergentes = motifMoteur ? copiesPage.filter(c => c !== motifMoteur) : [];
 
+const actifsOublies = Object.keys(_ACTIFS).filter(a => page.indexOf(a) < 0 || page.indexOf(_ACTIFS[a]) < 0);
+if (actifsOublies.length) {
+  console.log('\n  ✗ ACTIFS DU MOTEUR NON CHARGÉS PAR LA PAGE : ' + actifsOublies.join(', '));
+  process.exitCode = 1;
+} else console.log('  ' + Object.keys(_ACTIFS).length + ' actifs du moteur demandés et posés par la page (' + Object.keys(_ACTIFS).join(', ') + ')');
 if (manquantes.length) {
   console.log('\n  ✗ RÈGLES NON BRANCHÉES DANS LA PAGE : ' + manquantes.join(', '));
   console.log('    Une règle non branchée vaut zéro. La brancher, ou l\'inscrire dans _HORS_PAGE');

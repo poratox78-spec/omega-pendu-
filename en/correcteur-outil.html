@@ -166,6 +166,11 @@
       _optionnel('../dictee/pos_hmm_en.json', 'grammar model', function(j){ if(C.setPosModel) C.setPosModel(j); });
       // groupes de confusables : créneau ROUGE + vigilance ORANGE
       _optionnel('../dictee/confusables_en.json', 'confusable words', function(j){ CONFUS = j; });
+      // fautes attestées (Wiktionary « misspelling of ») : la cible relue par des humains remplace la cible devinée
+      fetch('../dictee/misspell_en.tsv')
+        .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.text(); })
+        .then(function(t){ if(!C.setAttested(LEX, t)) throw new Error('empty'); })
+        .catch(function(){ _manque.push('known misspellings'); _signaler(); });
       // bases verbales (modal/to/do + forme fléchie → base) : .gz → texte, actif NOMMÉ comme les autres
       fetch('../dictee/forms_en.tsv.gz')
         .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })

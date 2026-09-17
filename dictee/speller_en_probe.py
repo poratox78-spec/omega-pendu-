@@ -142,9 +142,23 @@ NOUN_SLOT_W = frozenset(['the','a','an','this','that','my','your','his','her','o
     'any','no','of','in','on','at','for','with','from','about','into','more','most','one','two','three',
     'every','each','both','all','such','other','another'])
 
+def load_attested():
+    """dictee/misspell_en.tsv — les fautes ATTESTÉES (Wiktionary « misspelling of », build_misspell_en.py) : faute -> cible.
+    Fichier LIVRÉ : son absence est une erreur, pas un repli muet (une table non chargée = un moteur qui ment en silence)."""
+    att = {}
+    with open(os.path.join(HERE, 'misspell_en.tsv'), encoding='utf-8') as f:
+        next(f)
+        for ln in f:
+            c = ln.rstrip('\n').split('\t')
+            if len(c) == 2 and c[0]: att[c[0]] = c[1]
+    if len(att) < 2500: raise RuntimeError('misspell_en.tsv : %d lignes — table tronquée ?' % len(att))
+    return att
+
+
 class SpellerEN:
     def __init__(self):
         self.KNOWN, self.FREQ, self.POS, self.PHON = load_lexicon()
+        self.ATTESTED = load_attested()
         self._e2 = {}                                    # mémo des candidats à 2 éditions (cf. suggest)
 
     def is_known(self, w):
@@ -155,7 +169,7 @@ class SpellerEN:
         """dict cand -> tier : 1 = edit-1 (∩KNOWN), 0 = voisin phonétique (FLAG)."""
         c = {}
         for e in edits1(low):
-            if e in self.KNOWN and all(ch in ALPHA for ch in e):
+            if e != low and e in self.KNOWN and all(ch in ALPHA for ch in e):
                 c[e] = max(c.get(e, 0), 1)
         pk = phon_key(low)
         for w in self.PHON.get(pk, [])[:12]:                 # voisins phonétiques limités, déjà classés freq
@@ -177,6 +191,19 @@ class SpellerEN:
         low = deacc(w.lower())
         if not low or len(low) < 2 or any(ch not in ALPHA for ch in low):
             return None, 'OK'                                # lettre seule (a, I) / non a-z : hors périmètre speller
+        # ⭐ FAUTE ATTESTÉE (17/09/2026, miroir corrector_en.js) — Wiktionary étiquette lui-même 2 823 graphies « Misspelling
+        # of X », relues par des anglophones. MESURÉ : sur ces fautes réelles le classement proposait une MAUVAISE cible
+        # 17,4 % du temps (abcess -> access, acount -> count) et le seul rouge franchement faux du banc Wikipédia était
+        # definatly -> defiantly. La cible attestée REMPLACE la cible devinée ; ROUGE si le moteur arrive SEUL à la même
+        # cible (deux sources indépendantes d'accord : 224/226 confirmées par la liste de Wikipédia), ORANGE sinon.
+        # Une graphie que le lexique tenait pour un mot (wierd, tought, hight : kaikki les liste, le speller se taisait)
+        # ne passe plus en silence — mais reste ORANGE : le lexique et Wiktionary ne sont pas d'accord, donc doute.
+        att = self.ATTESTED.get(low)
+        if att is not None:
+            if w[:1].isupper(): return None, 'OK'            # capitalisé = nom propre probable (même garde que plus bas)
+            best, mode = self._devine(low, prev)
+            if best == att and low not in self.KNOWN: return att, 'AUTO'
+            return att, 'FLAG'
         if low in self.KNOWN:
             return None, 'OK'
         # graphie BRITANNIQUE inconnue -> on dérive la variante américaine et on interroge le lexique qu'on a déjà
@@ -187,6 +214,10 @@ class SpellerEN:
             return None, 'OK'
         if w[:1].isupper():
             return None, 'OK'                                # capitalisé = nom propre probable → pas de speller (anti-flood ; les homophones gèrent leur casse)
+        return self._devine(low, prev)
+
+    def _devine(self, low, prev=None):
+        """La cible DEVINÉE par les candidats (édition, son, fréquence) — le speller d'avant la table des fautes attestées."""
         cands, pk = self._cands(low)
         # ⭐ DISTANCE 2 EN SECOURS (miroir corrector_en.js, cf. le commentaire long côté JS).
         # Seulement quand la distance 1 ne rend RIEN, et sur ≤12 lettres. Mesuré sur 1006 mots
@@ -348,15 +379,37 @@ def main():
     # /!\ CONTRE-GARDE : c'est l'INTERSECTION qui est sûre. Ces quatre SONT des glissements moteurs,
     # mais le lexique leur oppose PLUSIEURS candidats -> le choix redevient un pari, ils restent ORANGE.
     # Sans elle, retirer la condition « un seul candidat » passerait inaperçu. Puissance vérifiée.
+    # ⚠️ Interrogée sur la cible DEVINÉE (_devine), pas sur suggest : depuis la table des fautes attestées, « thier » et
+    # « beleive » sont rouges pour une AUTRE raison (Wiktionary les atteste et le moteur devine la même cible) — la
+    # contre-garde protège la condition « un seul candidat » du glissement moteur, elle doit donc la regarder seule.
     for bad in ('beleive', 'thier', 'littel', 'harrass'):
-        s, m = sp.suggest(bad)
+        s, m = sp._devine(bad)
         if m == 'AUTO':
             slip_ko += 1; print('  CONTRE-GARDE : %s -> %s ne doit PAS être affirmé (candidats concurrents)' % (bad, s))
     print('glissement moteur : %s' % ('OK' if slip_ko == 0 else 'KO(%d)' % slip_ko))
+    # FAUTES ATTESTÉES (miroir corrector_en.js) — la cible relue par des humains remplace la cible devinée ; rouge si
+    # les deux sources sont d'accord, orange sinon ; une graphie que le lexique connaissait ne passe plus en silence.
+    att_ko = 0
+    for bad, good, mode in [('definatly', 'definitely', 'FLAG'),   # le rouge FAUX du banc Wikipédia (devinée : defiantly)
+                            ('abcess', 'abscess', 'FLAG'),          # devinée : access
+                            ('acount', 'account', 'FLAG'),          # devinée : count
+                            ('thier', 'their', 'AUTO'),             # les deux sources d'accord -> rouge
+                            ('arguement', 'argument', 'AUTO'),
+                            ('wierd', 'weird', 'FLAG'),             # le lexique la tenait pour un mot -> orange, plus de silence
+                            ('tought', 'taught', 'FLAG'),
+                            ('shouldnt', "shouldn't", 'FLAG')]:     # contraction : la graphie est la cible sans son apostrophe
+        s, m = sp.suggest(bad)
+        if s != good or m != mode:
+            att_ko += 1; print('  FAUTE ATTESTÉE MISS %-12s -> %s/%s (attendu %s/%s)' % (bad, s, m, good, mode))
+    for w in ('Wierd', 'their', 'loose', 'forth', 'are'):           # capitalisé ou mot RÉEL : la table ne les touche pas
+        s, m = sp.suggest(w)
+        if m != 'OK':
+            att_ko += 1; print('  FAUTE ATTESTÉE : « %s » ne doit pas être touché (-> %s/%s)' % (w, s, m))
+    print('fautes attestées : %s (%d dans la table)' % ('OK' if att_ko == 0 else 'KO(%d)' % att_ko, len(sp.ATTESTED)))
     if '--check' in sys.argv:                                # garde CI : recall + contrôles (FP=0 sur casse)
-        ok = (hit >= 40 and ctrl_bad == 0 and slip_ko == 0)
-        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0), glissement moteur %s'
-              % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad, 'OK' if slip_ko == 0 else 'KO'))
+        ok = (hit >= 40 and ctrl_bad == 0 and slip_ko == 0 and att_ko == 0)
+        print('[check] %s — recall %d (min 40), FP contrôle %d (max 0), glissement moteur %s, fautes attestées %s'
+              % ('OK' if ok else 'ÉCHEC', hit, ctrl_bad, 'OK' if slip_ko == 0 else 'KO', 'OK' if att_ko == 0 else 'KO'))
         if not ok: sys.exit(1)
 
 
