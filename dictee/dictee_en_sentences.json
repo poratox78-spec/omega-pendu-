@@ -1,56 +1,1211 @@
 {
-  "_note": "Corpus de PHRASES de la dictée anglaise (équivalent adapté des phrases FR de build_dictee.py). Graduées easy/medium/hard. Chaque phrase VISE des classes d'erreurs dys ANGLAISES (focus) : homophones (their/there, your/you're, its/it's, to/too/two, than/then, hear/here, know/no, write/right, weather/whether, break/brake, peace/piece…), morphologie (pluriels, temps), et pièges d'orthographe (doublement, e/lettre muette, ie/ei, -ough). La TTS lit la phrase ; l'élève tape ; corrector_en.js diagnostique chaque mot vs le gold. Phrases naturelles, vocabulaire courant. CC BY-SA (dérivé indirect kaikki via le moteur).",
-  "levels": {
-    "easy": [
-      {"text": "The dog is in the house.", "focus": "base"},
-      {"text": "I can see the big red car.", "focus": "base"},
-      {"text": "She put her book on the table.", "focus": "base"},
-      {"text": "We went to the park today.", "focus": "homophone:to/two/too"},
-      {"text": "They are my best friends.", "focus": "homophone:their/there/they're"},
-      {"text": "Do you know where it is?", "focus": "homophone:know/no · its/it's"},
-      {"text": "Can you hear me over here?", "focus": "homophone:hear/here"},
-      {"text": "The sun is too hot today.", "focus": "homophone:to/too"},
-      {"text": "He is your new teacher.", "focus": "homophone:your/you're"},
-      {"text": "There are four cats and two dogs.", "focus": "homophone:there/their · four/for"},
-      {"text": "I like to read every night.", "focus": "homophone:read/red · night/knight"},
-      {"text": "Please write your name here.", "focus": "homophone:write/right · your/you're"},
-      {"text": "We had a piece of cake.", "focus": "homophone:piece/peace"},
-      {"text": "The weather is nice this week.", "focus": "homophone:weather/whether · week/weak"},
-      {"text": "It is time to go home now.", "focus": "homophone:to/too · its/it's"}
-    ],
-    "medium": [
-      {"text": "You're going to love their new house.", "focus": "homophone:you're/your · to/too · their/there"},
-      {"text": "I could have finished it, but I was too tired.", "focus": "modal:could have/could of · too/to"},
-      {"text": "Their car is faster than ours.", "focus": "homophone:their/there · than/then"},
-      {"text": "Whether or not you come is up to you.", "focus": "homophone:whether/weather · to/too"},
-      {"text": "She accepts that its colour has faded.", "focus": "homophone:its/it's · accept/except"},
-      {"text": "We were not sure where they were going.", "focus": "homophone:were/we're/where"},
-      {"text": "He threw the ball right through the window.", "focus": "homophone:threw/through · right/write"},
-      {"text": "Do not lose the loose button on your coat.", "focus": "confusion:lose/loose · your/you're"},
-      {"text": "The principal is our main teacher.", "focus": "confusion:principal/principle"},
-      {"text": "They have already been there twice.", "focus": "homophone:their/there/they're · been"},
-      {"text": "It is quite quiet in the library now.", "focus": "confusion:quite/quiet · library"},
-      {"text": "Please accept my advice about the weather.", "focus": "confusion:advice/advise · accept/except"},
-      {"text": "You should have brought your umbrella.", "focus": "modal:should have/should of · brought/bought"},
-      {"text": "The effect of the news affected everyone.", "focus": "confusion:effect/affect"},
-      {"text": "Then we walked farther than before.", "focus": "homophone:than/then · farther/further"}
-    ],
-    "hard": [
-      {"text": "It is definitely necessary to separate the two groups.", "focus": "spelling:definitely/necessary/separate"},
-      {"text": "I would have recommended a different restaurant.", "focus": "modal:would have · spelling:recommended/restaurant"},
-      {"text": "Their argument about the environment was embarrassing.", "focus": "homophone:their · spelling:argument/environment/embarrassing"},
-      {"text": "You're supposed to acknowledge the committee's decision.", "focus": "you're/your · spelling:supposed/acknowledge/committee"},
-      {"text": "Whether they succeed depends on their perseverance.", "focus": "whether/weather · their · spelling:succeed/perseverance"},
-      {"text": "The government's business is rarely straightforward.", "focus": "spelling:government/business/straightforward"},
-      {"text": "She was too conscious of the occurrence to relax.", "focus": "too/to · spelling:conscious/occurrence"},
-      {"text": "It is a privilege to pursue your own conscience.", "focus": "its/it's · your/you're · spelling:privilege/pursue/conscience"},
-      {"text": "They rhythmically rehearsed the unusual maneuver.", "focus": "spelling:rhythmically/rehearsed/unusual/maneuver"},
-      {"text": "We guarantee the maintenance will not disappoint you.", "focus": "spelling:guarantee/maintenance/disappoint"},
-      {"text": "The knowledgeable colleague answered independently.", "focus": "spelling:knowledgeable/colleague/answered/independently"},
-      {"text": "Its accompanying leaflet exaggerated the benefits.", "focus": "its/it's · spelling:accompanying/leaflet/exaggerated"},
-      {"text": "You could have questioned the questionnaire's relevance.", "focus": "could have · spelling:questioned/questionnaire/relevance"},
-      {"text": "Their neighbour's mischievous dog seized the sausage.", "focus": "their/there · spelling:neighbour/mischievous/seized"},
-      {"text": "The lieutenant apologized for the awkward misunderstanding.", "focus": "spelling:lieutenant/apologized/awkward/misunderstanding"}
-    ]
-  }
+ "_note": "Corpus de PHRASES de la dictée anglaise (équivalent adapté des phrases FR de build_dictee.py). Graduées easy/medium/hard. Chaque phrase VISE des classes d'erreurs dys ANGLAISES (focus) : homophones (their/there, your/you're, its/it's, to/too/two, than/then, hear/here, know/no, write/right, weather/whether, break/brake, peace/piece…), morphologie (pluriels, temps), et pièges d'orthographe (doublement, e/lettre muette, ie/ei, -ough). La TTS lit la phrase ; l'élève tape ; corrector_en.js diagnostique chaque mot vs le gold. Phrases naturelles, vocabulaire courant. CC BY-SA (dérivé indirect kaikki via le moteur). — 17/09/2026 : 45 -> 300 phrases (100 par niveau). Facile = mots très courants et homophones simples ; moyen = homophones, confusions, modal + have, contractions ; difficile = les mots que les gens écrivent le plus souvent mal (cibles les plus fréquentes de la table des fautes attestées, dictee/misspell_en.tsv). Chaque phrase est vérifiée par dictee/dictee_en_probe.js (lexique, aucune marque du correcteur, focus présent, pas de doublon) : toute phrase ajoutée doit le passer.",
+ "levels": {
+  "easy": [
+   {
+    "text": "The dog is in the house.",
+    "focus": "base"
+   },
+   {
+    "text": "I can see the big red car.",
+    "focus": "base"
+   },
+   {
+    "text": "She put her book on the table.",
+    "focus": "base"
+   },
+   {
+    "text": "We went to the park today.",
+    "focus": "homophone:to/two/too"
+   },
+   {
+    "text": "They are my best friends.",
+    "focus": "homophone:their/there/they're"
+   },
+   {
+    "text": "Do you know where it is?",
+    "focus": "homophone:know/no · its/it's"
+   },
+   {
+    "text": "Can you hear me over here?",
+    "focus": "homophone:hear/here"
+   },
+   {
+    "text": "The sun is too hot today.",
+    "focus": "homophone:to/too"
+   },
+   {
+    "text": "He is your new teacher.",
+    "focus": "homophone:your/you're"
+   },
+   {
+    "text": "There are four cats and two dogs.",
+    "focus": "homophone:there/their · four/for"
+   },
+   {
+    "text": "I like to read every night.",
+    "focus": "homophone:read/red · night/knight"
+   },
+   {
+    "text": "Please write your name here.",
+    "focus": "homophone:write/right · your/you're"
+   },
+   {
+    "text": "We had a piece of cake.",
+    "focus": "homophone:piece/peace"
+   },
+   {
+    "text": "The weather is nice this week.",
+    "focus": "homophone:weather/whether · week/weak"
+   },
+   {
+    "text": "It is time to go home now.",
+    "focus": "homophone:to/too · its/it's"
+   },
+   {
+    "text": "The cat sleeps on my bed.",
+    "focus": "base"
+   },
+   {
+    "text": "I have a new blue bag.",
+    "focus": "homophone:new/knew · blue/blew"
+   },
+   {
+    "text": "We play in the garden after school.",
+    "focus": "base"
+   },
+   {
+    "text": "My mother made soup for dinner.",
+    "focus": "homophone:made/maid · for/four"
+   },
+   {
+    "text": "The bus stops near our street.",
+    "focus": "homophone:our/hour"
+   },
+   {
+    "text": "He runs fast in the morning.",
+    "focus": "base"
+   },
+   {
+    "text": "She has two little brothers.",
+    "focus": "homophone:two/to/too"
+   },
+   {
+    "text": "It is cold, so wear your coat.",
+    "focus": "homophone:wear/where · your/you're"
+   },
+   {
+    "text": "Their house has a green door.",
+    "focus": "homophone:their/there"
+   },
+   {
+    "text": "I want to buy some bread.",
+    "focus": "homophone:buy/by · to/too"
+   },
+   {
+    "text": "The birds sing in the tree.",
+    "focus": "base"
+   },
+   {
+    "text": "Can I come with you?",
+    "focus": "base"
+   },
+   {
+    "text": "We eat lunch at school.",
+    "focus": "base"
+   },
+   {
+    "text": "The baby is sleeping now.",
+    "focus": "base"
+   },
+   {
+    "text": "I do not know his name.",
+    "focus": "homophone:know/no"
+   },
+   {
+    "text": "Look at the moon in the sky.",
+    "focus": "base"
+   },
+   {
+    "text": "My father drives a small car.",
+    "focus": "base"
+   },
+   {
+    "text": "The water in the lake is cold.",
+    "focus": "base"
+   },
+   {
+    "text": "She reads a story to her sister.",
+    "focus": "homophone:to/too"
+   },
+   {
+    "text": "There is milk in the fridge.",
+    "focus": "homophone:there/their"
+   },
+   {
+    "text": "I saw a bird by the sea.",
+    "focus": "homophone:sea/see · by/buy"
+   },
+   {
+    "text": "He ate eight apples this week.",
+    "focus": "homophone:ate/eight · week/weak"
+   },
+   {
+    "text": "The red ball is under the chair.",
+    "focus": "homophone:red/read"
+   },
+   {
+    "text": "Put your shoes by the door.",
+    "focus": "homophone:by/buy · your/you're"
+   },
+   {
+    "text": "We won the game last night.",
+    "focus": "homophone:won/one · night/knight"
+   },
+   {
+    "text": "I have one brother and one sister.",
+    "focus": "homophone:one/won"
+   },
+   {
+    "text": "It is my turn to play.",
+    "focus": "homophone:to/too"
+   },
+   {
+    "text": "The teacher is very kind.",
+    "focus": "base"
+   },
+   {
+    "text": "Open the window, please.",
+    "focus": "base"
+   },
+   {
+    "text": "I can ride my bike to school.",
+    "focus": "homophone:to/too"
+   },
+   {
+    "text": "The shop is closed today.",
+    "focus": "base"
+   },
+   {
+    "text": "My friend lives near the park.",
+    "focus": "spelling:friend"
+   },
+   {
+    "text": "She would like some more tea.",
+    "focus": "homophone:would/wood"
+   },
+   {
+    "text": "The son plays in the sun.",
+    "focus": "homophone:son/sun"
+   },
+   {
+    "text": "I will meet you at four.",
+    "focus": "homophone:meet/meat · four/for"
+   },
+   {
+    "text": "We need more wood for the fire.",
+    "focus": "homophone:wood/would · for/four"
+   },
+   {
+    "text": "This gift is for my mother.",
+    "focus": "homophone:for/four"
+   },
+   {
+    "text": "He has blue eyes and brown hair.",
+    "focus": "homophone:blue/blew · hair/hare"
+   },
+   {
+    "text": "The wind blew all night.",
+    "focus": "homophone:blew/blue · night/knight"
+   },
+   {
+    "text": "I can see the sea from here.",
+    "focus": "homophone:see/sea · here/hear"
+   },
+   {
+    "text": "Be careful when you cross the road.",
+    "focus": "homophone:road/rode"
+   },
+   {
+    "text": "She rode her horse to the farm.",
+    "focus": "homophone:rode/road · to/too"
+   },
+   {
+    "text": "The plane flew over the town.",
+    "focus": "homophone:plane/plain"
+   },
+   {
+    "text": "It is too late to call them.",
+    "focus": "homophone:too/to"
+   },
+   {
+    "text": "Where is my other sock?",
+    "focus": "homophone:where/wear"
+   },
+   {
+    "text": "We made a cake with flour and eggs.",
+    "focus": "homophone:flour/flower · made/maid"
+   },
+   {
+    "text": "The flower is red and white.",
+    "focus": "homophone:flower/flour · red/read"
+   },
+   {
+    "text": "I wait for the train every day.",
+    "focus": "homophone:wait/weight · for/four"
+   },
+   {
+    "text": "My dad is at work right now.",
+    "focus": "homophone:right/write"
+   },
+   {
+    "text": "Please sit down and eat.",
+    "focus": "base"
+   },
+   {
+    "text": "The children laugh and play outside.",
+    "focus": "spelling:laugh"
+   },
+   {
+    "text": "It rains a lot in the spring.",
+    "focus": "base"
+   },
+   {
+    "text": "He gave me a big hug.",
+    "focus": "base"
+   },
+   {
+    "text": "I left my keys at home.",
+    "focus": "base"
+   },
+   {
+    "text": "The movie starts at nine.",
+    "focus": "base"
+   },
+   {
+    "text": "She wants a glass of water.",
+    "focus": "base"
+   },
+   {
+    "text": "We walk to school together.",
+    "focus": "homophone:to/too"
+   },
+   {
+    "text": "The old man reads the paper.",
+    "focus": "base"
+   },
+   {
+    "text": "I brush my teeth before bed.",
+    "focus": "spelling:before"
+   },
+   {
+    "text": "Do you want some more rice?",
+    "focus": "base"
+   },
+   {
+    "text": "Our dog likes to chase the ball.",
+    "focus": "homophone:our/hour · to/too"
+   },
+   {
+    "text": "The class starts in one hour.",
+    "focus": "homophone:hour/our · one/won"
+   },
+   {
+    "text": "I hear music from the next room.",
+    "focus": "homophone:hear/here"
+   },
+   {
+    "text": "Come here and sit with me.",
+    "focus": "homophone:here/hear"
+   },
+   {
+    "text": "The answer is not so hard.",
+    "focus": "spelling:answer"
+   },
+   {
+    "text": "I know the way to the station.",
+    "focus": "homophone:know/no · way/weigh"
+   },
+   {
+    "text": "No, I do not want any more.",
+    "focus": "homophone:no/know"
+   },
+   {
+    "text": "She knew the answer to the question.",
+    "focus": "homophone:knew/new · to/too"
+   },
+   {
+    "text": "We have a new teacher this year.",
+    "focus": "homophone:new/knew"
+   },
+   {
+    "text": "The mail comes late in the morning.",
+    "focus": "homophone:mail/male"
+   },
+   {
+    "text": "He broke his leg last winter.",
+    "focus": "base"
+   },
+   {
+    "text": "Take a break and drink some water.",
+    "focus": "homophone:break/brake"
+   },
+   {
+    "text": "The plate is on the top shelf.",
+    "focus": "base"
+   },
+   {
+    "text": "They live in a small town.",
+    "focus": "base"
+   },
+   {
+    "text": "I made my bed this morning.",
+    "focus": "homophone:made/maid"
+   },
+   {
+    "text": "The bear sleeps all winter.",
+    "focus": "homophone:bear/bare"
+   },
+   {
+    "text": "Would you like a pear or a plum?",
+    "focus": "homophone:pear/pair · would/wood"
+   },
+   {
+    "text": "I need a new pair of shoes.",
+    "focus": "homophone:pair/pear · new/knew"
+   },
+   {
+    "text": "The sky is clear and blue.",
+    "focus": "homophone:blue/blew"
+   },
+   {
+    "text": "She sent me a letter last month.",
+    "focus": "homophone:sent/scent"
+   },
+   {
+    "text": "It costs one dollar and ten cents.",
+    "focus": "homophone:one/won"
+   },
+   {
+    "text": "My aunt lives far away.",
+    "focus": "homophone:aunt/ant"
+   },
+   {
+    "text": "The tale has a happy ending.",
+    "focus": "homophone:tale/tail"
+   },
+   {
+    "text": "The cat has a long tail.",
+    "focus": "homophone:tail/tale"
+   },
+   {
+    "text": "We will be there in an hour.",
+    "focus": "homophone:there/their · hour/our"
+   }
+  ],
+  "medium": [
+   {
+    "text": "You're going to love their new house.",
+    "focus": "homophone:you're/your · to/too · their/there"
+   },
+   {
+    "text": "I could have finished it, but I was too tired.",
+    "focus": "modal:could have/could of · too/to"
+   },
+   {
+    "text": "Their car is faster than ours.",
+    "focus": "homophone:their/there · than/then"
+   },
+   {
+    "text": "Whether or not you come is up to you.",
+    "focus": "homophone:whether/weather · to/too"
+   },
+   {
+    "text": "She accepts that its colour has faded.",
+    "focus": "homophone:its/it's · accept/except"
+   },
+   {
+    "text": "We were not sure where they were going.",
+    "focus": "homophone:were/we're/where"
+   },
+   {
+    "text": "He threw the ball right through the window.",
+    "focus": "homophone:threw/through · right/write"
+   },
+   {
+    "text": "Do not lose the loose button on your coat.",
+    "focus": "confusion:lose/loose · your/you're"
+   },
+   {
+    "text": "The principal is our main teacher.",
+    "focus": "confusion:principal/principle"
+   },
+   {
+    "text": "They have already been there twice.",
+    "focus": "homophone:their/there/they're · been"
+   },
+   {
+    "text": "It is quite quiet in the library now.",
+    "focus": "confusion:quite/quiet · library"
+   },
+   {
+    "text": "Please accept my advice about the weather.",
+    "focus": "confusion:advice/advise · accept/except"
+   },
+   {
+    "text": "You should have brought your umbrella.",
+    "focus": "modal:should have/should of · brought/bought"
+   },
+   {
+    "text": "The effect of the news affected everyone.",
+    "focus": "confusion:effect/affect"
+   },
+   {
+    "text": "Then we walked farther than before.",
+    "focus": "homophone:than/then · farther/further"
+   },
+   {
+    "text": "They're leaving their bags over there.",
+    "focus": "homophone:they're/their/there"
+   },
+   {
+    "text": "Your keys are where you left them.",
+    "focus": "homophone:your/you're · where/were"
+   },
+   {
+    "text": "It's a shame the dog hurt its paw.",
+    "focus": "homophone:it's/its"
+   },
+   {
+    "text": "There were too many people to count.",
+    "focus": "homophone:there/their · too/to/two"
+   },
+   {
+    "text": "I would rather walk than take the bus.",
+    "focus": "homophone:than/then · would/wood"
+   },
+   {
+    "text": "First we ate, then we went home.",
+    "focus": "homophone:then/than · ate/eight"
+   },
+   {
+    "text": "We're late because the roads were icy.",
+    "focus": "homophone:we're/were · roads/rode"
+   },
+   {
+    "text": "Whose jacket is this, and who's taking it home?",
+    "focus": "homophone:whose/who's"
+   },
+   {
+    "text": "I can't hear you from over here.",
+    "focus": "homophone:hear/here · contraction:can't"
+   },
+   {
+    "text": "She knew the new rules by heart.",
+    "focus": "homophone:knew/new · by/buy"
+   },
+   {
+    "text": "He passed the ball past the defender.",
+    "focus": "confusion:passed/past"
+   },
+   {
+    "text": "Please be quiet, the baby is quite tired.",
+    "focus": "confusion:quiet/quite"
+   },
+   {
+    "text": "The brake on my bike might break soon.",
+    "focus": "homophone:brake/break"
+   },
+   {
+    "text": "Everyone came except my cousin, who could not accept.",
+    "focus": "confusion:except/accept"
+   },
+   {
+    "text": "The weather will decide whether we go out.",
+    "focus": "homophone:weather/whether"
+   },
+   {
+    "text": "I should have called you before I left.",
+    "focus": "modal:should have/should of"
+   },
+   {
+    "text": "They would have won if they had tried harder.",
+    "focus": "modal:would have/would of · won/one"
+   },
+   {
+    "text": "You must have left your phone in the car.",
+    "focus": "modal:must have/must of · your/you're"
+   },
+   {
+    "text": "We might have taken the wrong road.",
+    "focus": "modal:might have/might of · road/rode"
+   },
+   {
+    "text": "Don't lose your ticket, the strap is loose.",
+    "focus": "confusion:lose/loose · your/you're"
+   },
+   {
+    "text": "It's too cold to swim, and the water is too deep.",
+    "focus": "homophone:it's/its · too/to"
+   },
+   {
+    "text": "Their teacher said they're doing well.",
+    "focus": "homophone:their/they're"
+   },
+   {
+    "text": "Is there a reason you're so quiet today?",
+    "focus": "homophone:there/their · you're/your · quiet/quite"
+   },
+   {
+    "text": "The two of us want to go too.",
+    "focus": "homophone:two/to/too"
+   },
+   {
+    "text": "I want a piece of pie and some peace.",
+    "focus": "homophone:piece/peace"
+   },
+   {
+    "text": "Write the right answer on the right side.",
+    "focus": "homophone:write/right"
+   },
+   {
+    "text": "She wore a plain dress on the plane.",
+    "focus": "homophone:plain/plane"
+   },
+   {
+    "text": "We waited for an hour at our gate.",
+    "focus": "homophone:hour/our · for/four"
+   },
+   {
+    "text": "The wind blew the blue kite away.",
+    "focus": "homophone:blew/blue"
+   },
+   {
+    "text": "He threw the keys through the open door.",
+    "focus": "homophone:threw/through"
+   },
+   {
+    "text": "I guessed that our guest would be late.",
+    "focus": "homophone:guessed/guest · our/hour"
+   },
+   {
+    "text": "The whole class saw the hole in the wall.",
+    "focus": "homophone:whole/hole"
+   },
+   {
+    "text": "Our principal explained the principle of fairness.",
+    "focus": "confusion:principal/principle"
+   },
+   {
+    "text": "Her advice was to advise him gently.",
+    "focus": "confusion:advice/advise"
+   },
+   {
+    "text": "The medicine had no effect, and it did not affect her sleep.",
+    "focus": "confusion:effect/affect"
+   },
+   {
+    "text": "I need to breathe, so let me catch my breath.",
+    "focus": "confusion:breathe/breath"
+   },
+   {
+    "text": "We chose the red one, but you can choose another.",
+    "focus": "confusion:chose/choose"
+   },
+   {
+    "text": "He led the team to the final.",
+    "focus": "confusion:led/lead"
+   },
+   {
+    "text": "My shoes are wet because it rained all night.",
+    "focus": "spelling:because · night/knight"
+   },
+   {
+    "text": "You're welcome to stay at our house.",
+    "focus": "homophone:you're/your · our/hour"
+   },
+   {
+    "text": "I don't know whether it's theirs or ours.",
+    "focus": "homophone:whether/weather · it's/its · know/no"
+   },
+   {
+    "text": "Where were you when we were waiting?",
+    "focus": "homophone:where/were"
+   },
+   {
+    "text": "There's no time to waste, so let's go.",
+    "focus": "contraction:there's/let's · waste/waist"
+   },
+   {
+    "text": "They've been to the coast twice this year.",
+    "focus": "contraction:they've · to/too"
+   },
+   {
+    "text": "She doesn't mind if you're a little late.",
+    "focus": "contraction:doesn't · you're/your"
+   },
+   {
+    "text": "We weren't sure which way to turn.",
+    "focus": "contraction:weren't · which/witch · way/weigh"
+   },
+   {
+    "text": "He couldn't find his keys anywhere.",
+    "focus": "contraction:couldn't"
+   },
+   {
+    "text": "I wouldn't worry about it too much.",
+    "focus": "contraction:wouldn't · too/to"
+   },
+   {
+    "text": "It isn't fair to leave them alone.",
+    "focus": "contraction:isn't · fair/fare"
+   },
+   {
+    "text": "The bus fare is cheaper than the train.",
+    "focus": "homophone:fare/fair · than/then"
+   },
+   {
+    "text": "Who's going to feed the cat this week?",
+    "focus": "homophone:who's/whose · week/weak"
+   },
+   {
+    "text": "I felt weak after a week in bed.",
+    "focus": "homophone:weak/week"
+   },
+   {
+    "text": "The knight rode through the night.",
+    "focus": "homophone:knight/night · rode/road · through/threw"
+   },
+   {
+    "text": "Please wait here while I check your weight.",
+    "focus": "homophone:wait/weight · here/hear · your/you're"
+   },
+   {
+    "text": "She has already read the red book.",
+    "focus": "homophone:read/red"
+   },
+   {
+    "text": "I can see that the sea is calm today.",
+    "focus": "homophone:see/sea"
+   },
+   {
+    "text": "The new mayor knew everyone in town.",
+    "focus": "homophone:new/knew"
+   },
+   {
+    "text": "He bought the shoes that she brought back.",
+    "focus": "confusion:bought/brought"
+   },
+   {
+    "text": "Our plane leaves in an hour, so hurry.",
+    "focus": "homophone:our/hour · plane/plain"
+   },
+   {
+    "text": "They're sure that their plan will work.",
+    "focus": "homophone:they're/their"
+   },
+   {
+    "text": "Your brother said you're coming with us.",
+    "focus": "homophone:your/you're"
+   },
+   {
+    "text": "The dog wagged its tail because it's happy.",
+    "focus": "homophone:its/it's · tail/tale"
+   },
+   {
+    "text": "It's been raining since the sun went down.",
+    "focus": "homophone:it's/its · sun/son"
+   },
+   {
+    "text": "Then he said it was bigger than mine.",
+    "focus": "homophone:then/than"
+   },
+   {
+    "text": "We're going where the others were yesterday.",
+    "focus": "homophone:we're/were/where"
+   },
+   {
+    "text": "I would buy it, but the price is too high.",
+    "focus": "homophone:would/wood · buy/by · too/to"
+   },
+   {
+    "text": "She stood by the door to say goodbye.",
+    "focus": "homophone:by/buy · to/too"
+   },
+   {
+    "text": "The male bird brings food to the nest.",
+    "focus": "homophone:male/mail"
+   },
+   {
+    "text": "He could not bear to see the bare walls.",
+    "focus": "homophone:bear/bare · see/sea"
+   },
+   {
+    "text": "A pair of birds sat in the pear tree.",
+    "focus": "homophone:pair/pear"
+   },
+   {
+    "text": "The maid made the beds before noon.",
+    "focus": "homophone:maid/made"
+   },
+   {
+    "text": "The flowers have a sweet scent.",
+    "focus": "homophone:scent/sent"
+   },
+   {
+    "text": "She sent the letter before she left.",
+    "focus": "homophone:sent/scent"
+   },
+   {
+    "text": "Which sweater did the witch wear in the play?",
+    "focus": "homophone:which/witch · wear/where"
+   },
+   {
+    "text": "The answer was right there all along.",
+    "focus": "homophone:right/write · there/their"
+   },
+   {
+    "text": "No one knows why the lights went out.",
+    "focus": "homophone:no/know · one/won"
+   },
+   {
+    "text": "He won one prize and lost another.",
+    "focus": "homophone:won/one"
+   },
+   {
+    "text": "We heard that the herd had moved north.",
+    "focus": "homophone:heard/herd"
+   },
+   {
+    "text": "The rain fell on the plain all night.",
+    "focus": "homophone:plain/plane · night/knight"
+   },
+   {
+    "text": "I meant to meet you at noon.",
+    "focus": "homophone:meet/meat · to/too"
+   },
+   {
+    "text": "The meat was too salty to eat.",
+    "focus": "homophone:meat/meet · too/to"
+   },
+   {
+    "text": "She tied a knot in the rope.",
+    "focus": "homophone:knot/not"
+   },
+   {
+    "text": "It is not the knot I wanted.",
+    "focus": "homophone:not/knot"
+   },
+   {
+    "text": "They allowed us to read aloud.",
+    "focus": "homophone:allowed/aloud · read/red"
+   },
+   {
+    "text": "The guest stayed for four nights.",
+    "focus": "homophone:guest/guessed · for/four"
+   }
+  ],
+  "hard": [
+   {
+    "text": "It is definitely necessary to separate the two groups.",
+    "focus": "spelling:definitely/necessary/separate"
+   },
+   {
+    "text": "I would have recommended a different restaurant.",
+    "focus": "modal:would have · spelling:recommended/restaurant"
+   },
+   {
+    "text": "Their argument about the environment was embarrassing.",
+    "focus": "homophone:their · spelling:argument/environment/embarrassing"
+   },
+   {
+    "text": "You're supposed to acknowledge the committee's decision.",
+    "focus": "you're/your · spelling:supposed/acknowledge/committee"
+   },
+   {
+    "text": "Whether they succeed depends on their perseverance.",
+    "focus": "whether/weather · their · spelling:succeed/perseverance"
+   },
+   {
+    "text": "The government's business is rarely straightforward.",
+    "focus": "spelling:government/business/straightforward"
+   },
+   {
+    "text": "She was too conscious of the occurrence to relax.",
+    "focus": "too/to · spelling:conscious/occurrence"
+   },
+   {
+    "text": "It is a privilege to pursue your own conscience.",
+    "focus": "its/it's · your/you're · spelling:privilege/pursue/conscience"
+   },
+   {
+    "text": "They rhythmically rehearsed the unusual maneuver.",
+    "focus": "spelling:rhythmically/rehearsed/unusual/maneuver"
+   },
+   {
+    "text": "We guarantee the maintenance will not disappoint you.",
+    "focus": "spelling:guarantee/maintenance/disappoint"
+   },
+   {
+    "text": "The knowledgeable colleague answered independently.",
+    "focus": "spelling:knowledgeable/colleague/answered/independently"
+   },
+   {
+    "text": "Its accompanying leaflet exaggerated the benefits.",
+    "focus": "its/it's · spelling:accompanying/leaflet/exaggerated"
+   },
+   {
+    "text": "You could have questioned the questionnaire's relevance.",
+    "focus": "could have · spelling:questioned/questionnaire/relevance"
+   },
+   {
+    "text": "Their neighbour's mischievous dog seized the sausage.",
+    "focus": "their/there · spelling:neighbour/mischievous/seized"
+   },
+   {
+    "text": "The lieutenant apologized for the awkward misunderstanding.",
+    "focus": "spelling:lieutenant/apologized/awkward/misunderstanding"
+   },
+   {
+    "text": "I actually believe it was an accident.",
+    "focus": "spelling:actually/believe/accident"
+   },
+   {
+    "text": "She literally finished the exercise in a minute.",
+    "focus": "spelling:literally/exercise/minute"
+   },
+   {
+    "text": "It was an unbelievable opportunity for the whole family.",
+    "focus": "spelling:unbelievable/opportunity/family"
+   },
+   {
+    "text": "Unfortunately, the restaurant was closed yesterday.",
+    "focus": "spelling:unfortunately/restaurant/yesterday"
+   },
+   {
+    "text": "We were grateful for their generous surprise.",
+    "focus": "spelling:grateful/generous/surprise · their/there"
+   },
+   {
+    "text": "The professor was disappointed by the absence of students.",
+    "focus": "spelling:professor/disappointed/absence"
+   },
+   {
+    "text": "Tomorrow we will probably visit the library.",
+    "focus": "spelling:tomorrow/probably/library"
+   },
+   {
+    "text": "My daughter is interested in science and medicine.",
+    "focus": "spelling:daughter/interested/science/medicine"
+   },
+   {
+    "text": "The temperature dropped suddenly during the night.",
+    "focus": "spelling:temperature/suddenly · night/knight"
+   },
+   {
+    "text": "Please address the envelope to the committee.",
+    "focus": "spelling:address/envelope/committee"
+   },
+   {
+    "text": "It is especially important to be on time.",
+    "focus": "spelling:especially/important"
+   },
+   {
+    "text": "He accidentally deleted the wrong message.",
+    "focus": "spelling:accidentally/deleted/message"
+   },
+   {
+    "text": "The beginning of the story was beautiful.",
+    "focus": "spelling:beginning/beautiful"
+   },
+   {
+    "text": "They were finally successful after many attempts.",
+    "focus": "spelling:finally/successful/attempts"
+   },
+   {
+    "text": "I would recommend a comfortable pair of shoes.",
+    "focus": "spelling:recommend/comfortable · pair/pear"
+   },
+   {
+    "text": "Her apartment is across the street from the library.",
+    "focus": "spelling:apartment/across/library"
+   },
+   {
+    "text": "The engineer explained the difference very clearly.",
+    "focus": "spelling:engineer/explained/difference"
+   },
+   {
+    "text": "We occasionally have breakfast in the garden.",
+    "focus": "spelling:occasionally/breakfast"
+   },
+   {
+    "text": "It was an extraordinary and magnificent performance.",
+    "focus": "spelling:extraordinary/magnificent/performance"
+   },
+   {
+    "text": "The vegetable soup was surprisingly delicious.",
+    "focus": "spelling:vegetable/surprisingly/delicious"
+   },
+   {
+    "text": "I really appreciate your patience and kindness.",
+    "focus": "spelling:really/appreciate/patience · your/you're"
+   },
+   {
+    "text": "Someone left a dictionary on the kitchen table.",
+    "focus": "spelling:someone/dictionary/kitchen"
+   },
+   {
+    "text": "The government announced a new national holiday.",
+    "focus": "spelling:government/announced/national"
+   },
+   {
+    "text": "She is responsible for the maintenance of the building.",
+    "focus": "spelling:responsible/maintenance/building"
+   },
+   {
+    "text": "You should separate the colors before you wash them.",
+    "focus": "spelling:separate/colors"
+   },
+   {
+    "text": "The explanation was thorough but a little confusing.",
+    "focus": "spelling:explanation/thorough/confusing"
+   },
+   {
+    "text": "He was embarrassed because he forgot her name.",
+    "focus": "spelling:embarrassed/because/forgot"
+   },
+   {
+    "text": "We are committed to finishing the project together.",
+    "focus": "spelling:committed/finishing/together"
+   },
+   {
+    "text": "The medical equipment arrived earlier than expected.",
+    "focus": "spelling:medical/equipment/earlier · than/then"
+   },
+   {
+    "text": "I honestly thought the decision was unreasonable.",
+    "focus": "spelling:honestly/thought/decision/unreasonable"
+   },
+   {
+    "text": "The island is usually quiet in the winter.",
+    "focus": "spelling:island/usually/quiet"
+   },
+   {
+    "text": "Her favorite character is a brilliant detective.",
+    "focus": "spelling:favorite/character/brilliant/detective"
+   },
+   {
+    "text": "The sandwich was identical to the one I had yesterday.",
+    "focus": "spelling:sandwich/identical/yesterday"
+   },
+   {
+    "text": "They seriously considered a different career.",
+    "focus": "spelling:seriously/considered/different/career"
+   },
+   {
+    "text": "The weight of the vehicle was written on the door.",
+    "focus": "spelling:weight/vehicle/written"
+   },
+   {
+    "text": "It is convenient to live close to the station.",
+    "focus": "spelling:convenient/station"
+   },
+   {
+    "text": "We received your letter and replied immediately.",
+    "focus": "spelling:received/immediately · your/you're"
+   },
+   {
+    "text": "The competition was extremely difficult this year.",
+    "focus": "spelling:competition/extremely/difficult"
+   },
+   {
+    "text": "He had the strength to continue without complaining.",
+    "focus": "spelling:strength/continue/complaining"
+   },
+   {
+    "text": "The language course begins in the autumn.",
+    "focus": "spelling:language/course/autumn"
+   },
+   {
+    "text": "She felt uncomfortable in the crowded elevator.",
+    "focus": "spelling:uncomfortable/crowded/elevator"
+   },
+   {
+    "text": "The research suggests that exercise improves memory.",
+    "focus": "spelling:research/suggests/exercise/memory"
+   },
+   {
+    "text": "Everyone was surprised by the sudden announcement.",
+    "focus": "spelling:everyone/surprised/announcement"
+   },
+   {
+    "text": "It is possible to guarantee the delivery date.",
+    "focus": "spelling:possible/guarantee/delivery"
+   },
+   {
+    "text": "The neighbors were friendly and extremely helpful.",
+    "focus": "spelling:neighbors/friendly/extremely"
+   },
+   {
+    "text": "He is capable of solving the problem independently.",
+    "focus": "spelling:capable/solving/independently"
+   },
+   {
+    "text": "The ceremony was held in the medieval castle.",
+    "focus": "spelling:ceremony/medieval/castle"
+   },
+   {
+    "text": "I would prefer a quieter table near the window.",
+    "focus": "spelling:prefer/quieter"
+   },
+   {
+    "text": "The article described a rare tropical disease.",
+    "focus": "spelling:article/described/tropical/disease"
+   },
+   {
+    "text": "They finally reached the bottom of the valley.",
+    "focus": "spelling:finally/reached/bottom/valley"
+   },
+   {
+    "text": "Her knowledge of the subject is truly impressive.",
+    "focus": "spelling:knowledge/truly/impressive"
+   },
+   {
+    "text": "The official letter arrived this morning.",
+    "focus": "spelling:official/arrived"
+   },
+   {
+    "text": "We basically agreed on every important point.",
+    "focus": "spelling:basically/agreed/important"
+   },
+   {
+    "text": "The museum has a separate entrance for groups.",
+    "focus": "spelling:museum/separate/entrance"
+   },
+   {
+    "text": "It was a pleasure to meet your colleagues.",
+    "focus": "spelling:pleasure/colleagues · your/you're"
+   },
+   {
+    "text": "The rhythm of the music made everyone dance.",
+    "focus": "spelling:rhythm/everyone"
+   },
+   {
+    "text": "He whispered the answer to his neighbor.",
+    "focus": "spelling:whispered/answer/neighbor"
+   },
+   {
+    "text": "The weather forecast was completely wrong again.",
+    "focus": "spelling:forecast/completely/wrong · weather/whether"
+   },
+   {
+    "text": "She carefully measured the length and the height.",
+    "focus": "spelling:carefully/measured/length/height"
+   },
+   {
+    "text": "The secretary scheduled the appointment for next week.",
+    "focus": "spelling:secretary/scheduled/appointment"
+   },
+   {
+    "text": "Their argument was based on a false assumption.",
+    "focus": "spelling:argument/assumption · their/there"
+   },
+   {
+    "text": "I am particularly fond of chocolate biscuits.",
+    "focus": "spelling:particularly/chocolate/biscuits"
+   },
+   {
+    "text": "The athlete trained through the entire winter.",
+    "focus": "spelling:athlete/entire · through/threw"
+   },
+   {
+    "text": "We noticed a strange noise in the ceiling.",
+    "focus": "spelling:noticed/strange/ceiling"
+   },
+   {
+    "text": "The foreign visitors enjoyed the local cuisine.",
+    "focus": "spelling:foreign/visitors/cuisine"
+   },
+   {
+    "text": "His behavior was surprisingly mature for his age.",
+    "focus": "spelling:behavior/surprisingly/mature"
+   },
+   {
+    "text": "The calendar shows that the holiday is near.",
+    "focus": "spelling:calendar/holiday"
+   },
+   {
+    "text": "She described the experience as unforgettable.",
+    "focus": "spelling:described/experience/unforgettable"
+   },
+   {
+    "text": "The piece of jewelry was extremely valuable.",
+    "focus": "spelling:jewelry/extremely/valuable · piece/peace"
+   },
+   {
+    "text": "Our apartment has a beautiful view of the harbor.",
+    "focus": "spelling:apartment/beautiful/harbor · our/hour"
+   },
+   {
+    "text": "The mysterious package contained an ancient map.",
+    "focus": "spelling:mysterious/package/contained/ancient"
+   },
+   {
+    "text": "He apologized sincerely for the misunderstanding.",
+    "focus": "spelling:apologized/sincerely/misunderstanding"
+   },
+   {
+    "text": "It is definitely easier with a little practice.",
+    "focus": "spelling:definitely/easier/practice"
+   },
+   {
+    "text": "The scientist explained the experiment patiently.",
+    "focus": "spelling:scientist/experiment/patiently"
+   },
+   {
+    "text": "We are responsible for our own happiness.",
+    "focus": "spelling:responsible/happiness · our/hour"
+   },
+   {
+    "text": "The principal congratulated the successful students.",
+    "focus": "spelling:principal/congratulated/successful"
+   },
+   {
+    "text": "Her handwriting is neat and perfectly readable.",
+    "focus": "spelling:handwriting/perfectly/readable"
+   },
+   {
+    "text": "The orchestra rehearsed the symphony every evening.",
+    "focus": "spelling:orchestra/rehearsed/symphony"
+   },
+   {
+    "text": "They were jealous of his wonderful imagination.",
+    "focus": "spelling:jealous/wonderful/imagination"
+   },
+   {
+    "text": "The pharmacy closes earlier on the weekend.",
+    "focus": "spelling:pharmacy/earlier/weekend"
+   },
+   {
+    "text": "I occasionally forget where I parked the bicycle.",
+    "focus": "spelling:occasionally/forget/bicycle · where/were"
+   },
+   {
+    "text": "The temperature of the ocean rises in summer.",
+    "focus": "spelling:temperature/ocean/rises"
+   },
+   {
+    "text": "She was determined to succeed despite the difficulties.",
+    "focus": "spelling:determined/succeed/despite/difficulties"
+   },
+   {
+    "text": "The lawyer reviewed the agreement very thoroughly.",
+    "focus": "spelling:lawyer/reviewed/agreement/thoroughly"
+   },
+   {
+    "text": "We should acknowledge the effort of the volunteers.",
+    "focus": "spelling:acknowledge/effort/volunteers"
+   }
+  ]
+ }
 }

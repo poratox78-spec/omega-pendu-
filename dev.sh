@@ -145,6 +145,9 @@ run "EN classement par sorte d'édition : constantes des deux moteurs == table r
 # Rappel du PRODUIT ENTIER sur des fautes réelles en contexte : UD English-EWT annote ses propres fautes (Typo=Yes) avec la bonne
 # forme. Plancher de fautes bien corrigées (FP=0 seul récompense le silence) + plafond de rouges FAUX, chacun imprimé.
 run "EN fautes réelles en contexte (EWT annoté) : plancher de rappel + plafond de rouges faux" node dictee/ewt_typos_en_probe.js --check
+# Les 300 phrases de la dictée anglaise, vérifiées une à une : au lexique, AUCUNE marque de notre propre correcteur, focus présent,
+# pas de doublon, et le nombre affiché sur la page == le fichier. Rem ne lit pas l'anglais : c'est la relecture, en machine.
+run "EN dictée : 300 phrases au lexique, sans marque du correcteur, focus présent, nombre affiché == fichier" node dictee/dictee_en_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :

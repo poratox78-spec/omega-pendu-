@@ -213,6 +213,10 @@ jobs:
       # avec la bonne forme (557 phrases committées, CC BY-SA 4.0). Plancher de rappel + plafond de rouges faux.
       - name: EN — fautes réelles en contexte (EWT annoté), plancher de rappel et plafond de rouges faux
         run: node dictee/ewt_typos_en_probe.js --check
+      # Les 300 phrases de la dictée anglaise : au lexique, aucune marque de notre propre correcteur, focus présent, pas de
+      # doublon, nombre affiché == fichier.
+      - name: EN — dictée (300 phrases vérifiées une à une, nombre affiché == fichier)
+        run: node dictee/dictee_en_probe.js
       # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
       # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
