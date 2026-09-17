@@ -299,6 +299,36 @@ const LOOSE_TRIG = new Set(['to','will','would','can','could','might','must','sh
   'gonna','cannot',"'ll",'ll',"won't",'wont']);
 const LOOSE_IDIOM = new Set(['let','cut','break','set','turn','come','work','hang','shake','get','got','be',
   'been','being','is','are','was','were','on','so','too','very','more']);
+/* ⭐ FAUTES DE VRAI MOT, PAR OCCASIONS COMPTÉES (17/09/2026, miroir homophone_en_probe.py). Sur les 626 fautes réelles
+   qu'UD English-EWT annote (dictee/ewt_typos_en.tsv), 279 sont MUETTES parce que la graphie fautive est elle-même un mot :
+   you pour your (14 sur 14 muettes), the pour they (6 sur 6), to pour too (5 sur 6), and/an, new pour knew, there own.
+   Chaque règle ci-dessous a été passée au banc de tir AVANT d'être écrite : occasions justes sur ces fautes annotées, et
+   tirs sur 176 893 tokens de texte ÉDITÉ (PUD + genres édités de GUM) et sur le reste d'EWT (web) — chaque tir lu.
+   Toutes ORANGE : la phrase fautive laisse parfois deux lectures (« the are » = they are / there are), donc doute. */
+const YOU_APPOS = new Set(['guys','people','folks','two','three','four','five','all','both','lot','lots','kids','boys',
+  'girls','ladies','gentlemen','men','women','fellas','fellows','ones','lads','children','students','parents','kind','sort',
+  'sir','madam','too','either','yourself','yourselves','everyone','everybody','anyone','something','anything','nothing',
+  'time','money','credit','luck','access','information','advice','permission','notice','trouble','peace','joy','hell']);   // « you guys », « give you time » : pas un possessif
+const PREP_YOU = new Set(['on','for','of','in','with','at','by','from','about','into','onto','under','over','through',
+  'without','behind','near','inside','against','around','upon','within']);   // PAS « to » : « give it to you people », « to you personally »
+const YOUR_IS = new Set(['is','was','has',"isn't","wasn't",'will','would']);
+const YOUR_INTRO = new Set(['that','if','hope','hoping','know','sure','glad','when','because','and','but','so','as',
+  'since','while','whether','think','guess']);                                // « told you dinner is ready » reste correct : pas de verbe quelconque avant
+const THEY_AUX = new Set(['are','were',"aren't","weren't","don't","didn't","can't","couldn't","won't","wouldn't",
+  "shouldn't","haven't","hadn't"]);
+const THEY_MODAL = new Set(['will','would','can','could','should','must','might']);
+const TOO_ADJ = new Set(['far','bad','late','early','tight','hard','easy','big','small','large','high','hot','cold','old',
+  'young','soon','tired','expensive','cheap','heavy','loud','weak','strong','difficult','dangerous','scared','afraid','deep',
+  'wide','thick','rich','poor','sick','tall','nervous','lazy','complicated','painful','risky','good','funny','cute','sweet',
+  'stupid','crazy','scary','hungry','sleepy','drunk']);                       // PAS fast/long/slow/close/light/thin… : « to fast », « to long for » sont des infinitifs
+const TOO_PREV_STOP = new Set(['close','next','up','due','according','prior','similar','equal','compared','relative',
+  'opposed','back','down']);
+const KNEW_PREV = new Set(['i','he','she','we','they','you','never','always','already','just','really','who']);
+const KNEW_NEXT = new Set(['what','that','this','nothing','how','who','where','why','it','he','she','they','you','i','we',
+  'about','exactly','better','of']);
+const AND_AN_PREV = new Set(['is','was','be','been',"it's",'visit','watching','have','has','had','got','need','want']);
+const _COORD_POS = new Set(['ADJ','PROPN','VERB','NOUN','ADV']);
+const _motMinuscule = s => !!s && s === s.toLowerCase() && /^[a-z]+$/.test(s);
 const SUBJ_PRON = new Set(['i','we','they','you','he','she','it']);   // pronoms SUJETS uniquement (un NOM avant « where » est correct : « the place where… »)
 const VERB_SLOT = new Set(['to','will',"'ll",'would','can','could','may','might','must','shall','should',
   'please','let','helps','help','wanna','gonna']);                       // position qui appelle un VERBE
@@ -403,6 +433,16 @@ function homoDecide(lex, T, i, adj){
      fichiers dans `jfleg/dev/dev.src` alors qu'ils sont à plat dans `jfleg/dev.src`, et lisait
      donc le vide. Un corpus muet et un corpus absent rendent le même chiffre — vérifier qu'un
      banc a bien été LU avant de conclure qu'il ne dit rien. */
+  /* « very kind an gentle », « Barcelona an Valencia » : la règle an -> a y posait un ROUGE FAUX (l'un des 4 rouges faux du
+     banc EWT). Entre deux mots de même nature, « an » devant consonne est un « and » tronqué : orange, et la règle an -> a
+     ne parle plus. Banc de tir : 1 juste, 0 tir sur 176 893 tokens édités, 0 sur le reste d'EWT. */
+  if(lw === 'an' && w === 'an' && i > 0 && _motMinuscule(nxRaw) && nxRaw.length >= 3 && /^[bcdfghjklmnpqrstvwxz]/.test(nx)
+      && (!adj || adj.has(i))
+      && ((_COORD_POS.has(ctxPos(T, i + 1)) && ctxPos(T, i - 1) === ctxPos(T, i + 1))
+          /* le tagger se trompe sur les phrases courtes (« kind an gentle » en fin de phrase : gentle/PROPN ; « clean an
+             quiet » : clean/VERB) : deux mots que le LEXIQUE connaît comme adjectifs, sans nom derrière, suffisent. */
+          || (isAdj(lex, pv) && isAdj(lex, nx) && ctxPos(T, i + 2) !== 'NOUN')))
+    return ['and', 'ORANGE'];
   if(lw === 'an' && (w === 'an' || i === 0)
       && /^\p{L}+$/u.test(nxRaw) && nxRaw === nxRaw.toLowerCase() && nxRaw !== nxRaw.toUpperCase()
       && !/^h/.test(nx)                                   // registre britannique, pas une faute
@@ -535,6 +575,31 @@ function homoDecide(lex, T, i, adj){
      && !(i >= 2 && _PREP_AVANT.has(String(T[i-2]).toLowerCase())))
     return ['were', 'RED'];
   if(lw === 'loose' && LOOSE_TRIG.has(pv) && (i < 2 || !LOOSE_IDIOM.has(T[i-2].toLowerCase()))) return ['lose', 'ORANGE'];
+  // ---- fautes de vrai mot, par occasions comptées (cf. les listes fermées plus haut) ----
+  const _colle = (!adj || adj.has(i));
+  // « the are located », « the don't do », « the will go » -> they. Banc de tir : 5 justes, 0 tir édité, 0 tir web.
+  if(lw === 'the' && _colle && THEY_AUX.has(nx)) return ['they', 'ORANGE'];
+  if(lw === 'the' && _colle && THEY_MODAL.has(nx) && _motMinuscule(T[i+2]) && nx2 !== 'of' && nx2 !== 'to' && nx2 !== 'power'
+      && ctxPos(T, i + 2) === 'VERB') return ['they', 'ORANGE'];
+  // « thanks for you cooperation », « hope you day is going well » -> your. 3 justes, 0 tir édité, 0 tir web.
+  // (« verbe + you + nom nu » — got you message — a été MESURÉ et écarté : 5 justes mais « wishing you prosperity »,
+  //  « hearing you scream » sur texte édité ; le lexique sur-verbifie, le tagger prend « scream » pour un nom.)
+  if(lw === 'you' && _colle && _motMinuscule(nxRaw) && !YOU_APPOS.has(nx) && ctxPos(T, i + 1) === 'NOUN'
+      && (PREP_YOU.has(pv) || (YOUR_IS.has(nx2) && (i === 0 || YOUR_INTRO.has(pv))))) return ['your', 'ORANGE'];
+  // « sink to far into », « that was to bad she » -> too. 4 justes ; les GAMMES (« fair to good », « warm to hot ») sont
+  // écartées par l'adjectif d'avant, les infinitifs (« to fast », « to close ») par la liste fermée.
+  if(lw === 'to' && _colle && TOO_ADJ.has(nx) && !TOO_PREV_STOP.has(pv) && !(ctxPos(T, i - 1) === 'ADJ' && pv !== 'little')
+      && !['NOUN','ADJ','PROPN','NUM'].includes(ctxPos(T, i + 2) || '')
+      && !T.slice(Math.max(0, i - 5), i).some(x => /^(from|between)$/i.test(x))) return ['too', 'ORANGE'];
+  // « I never new this », « she new what she was doing » -> knew. 2 justes, 0 tir.
+  if(lw === 'new' && KNEW_PREV.has(pv) && KNEW_NEXT.has(nx)) return ['knew', 'ORANGE'];
+  // « everyone has there own way » -> their. 2 justes, 0 tir.
+  if(lw === 'there' && nx === 'own') return ['their', 'ORANGE'];
+  // « leave it their. » : « their » veut un nom derrière lui ; en fin de phrase c'est « there ». 1 juste, 0 tir.
+  if(lw === 'their' && i === T.length - 1 && i > 0) return ['there', 'ORANGE'];
+  // « she is and excellent doctor », « watching and old film » -> an. 2 justes, 0 tir (3 lettres au moins : « and e mail »).
+  if(lw === 'and' && AND_AN_PREV.has(pv) && _motMinuscule(nxRaw) && nxRaw.length >= 3 && /^[aeio]/.test(nx) && !/s$/.test(nx)
+      && ['AUX','VERB'].includes(ctxPos(T, i - 1) || '') && ['ADJ','NOUN'].includes(ctxPos(T, i + 1) || '')) return ['an', 'ORANGE'];
   // verbe irrégulier RÉGULARISÉ (runned->ran, goed->went, teached->taught) — RED FP=0 (forme nonstandard)
   const _vm = lex.VERBMORPH && lex.VERBMORPH[lw];
   if(_vm) return [PP_AUX.has(pv) ? _vm[1] : _vm[0], 'RED'];
@@ -1888,6 +1953,21 @@ if(typeof require !== 'undefined' && require.main === module){
   console.log('classement par sorte d\'édition : %s', canalKO ? 'KO(' + canalKO + ')' : 'OK');
   // homophone CASES
   const HP = [['I could of done it',2,'have','RED'],['It is bigger then mine',3,'than','RED'],
+    // fautes de vrai mot, par occasions comptées (17/09/2026) — phrases inventées, mêmes cas que homophone_en_probe.py
+    ['I think the are ready now',2,'they','ORANGE'],["We waited but the don't answer",3,'they','ORANGE'],
+    ['This way the will learn faster',2,'they','ORANGE'],['Thanks for you patience today',2,'your','ORANGE'],
+    ['I hope you day is going well',2,'your','ORANGE'],['He went a little to far that time',4,'too','ORANGE'],
+    ['I never new that about him',2,'knew','ORANGE'],['Everyone has there own way',2,'their','ORANGE'],
+    ['Just leave it their',3,'there','ORANGE'],['She is very kind an gentle',4,'and','ORANGE'],
+    ['He was tired an hungry after work',3,'and','ORANGE'],['She is and excellent doctor',2,'an','ORANGE'],
+    ['She found an gentle giant',2,'a','RED'],                         // « an » + adjectif + NOM reste l'article : an -> a
+    // … et ce qui doit rester MUET : chaque liste fermée a été posée après un tir sur du texte édité ou du web
+    ['The will of the people matters',0,null,null],['They want the can opener',2,null,null],['Are the children here',1,null,null],
+    ['I told you dinner is ready',2,null,null],['This is for you guys',3,null,null],['I gave it to you personally',4,null,null],
+    ['It ranges from fair to good',4,null,null],['We drove to far places',2,null,null],
+    ['We work from early morning to late',5,null,null],              // gamme « from … to » : seule la garde from/between la protège (le mot d'avant est un nom)
+    ['The quality is fair to good',4,null,null],                     // gamme sans « from » : seule la garde « adjectif avant to » la protège
+    ['Anything new that I should know',1,null,null],['He is and always was kind',2,null,null],
     ['Their is a problem',0,'there','RED'],['its a good idea',0,"it's",'RED'],
     ['your gonna love it',0,"you're",'RED'],['there car is red',0,'their','ORANGE'],
     ['its not fair',0,"it's",'ORANGE'],['your welcome to stay',0,"you're",'ORANGE'],
