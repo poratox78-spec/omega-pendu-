@@ -33,6 +33,7 @@ et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **
 | **AUTO_WRONG** (rouges faux) | **1** | 🔴 **FP=0 est violé** (2 avant le 17/09) |
 | tagger EN / FR | **90,7 %** / ~95 % | goulot pour toute grammaire |
 | chunker de GN | 82,3 % | idem |
+| phrases de la dictée anglaise | **300** (100 par niveau) | 45 jusqu'au 17/09/2026 (333 en français). Chaque phrase passe `dictee/dictee_en_probe.js` en CI : au lexique, aucune marque de notre propre correcteur, focus présent, pas de doublon, nombre affiché == fichier — la relecture que Rem ne peut pas faire en anglais, faite en machine |
 | règles EN / FR | **53** / **82** | rapport 1 à 1,7 |
 
 Le rouge faux restant : `welcame→welcome` (attendu *welcomed*). `definatly→defiantly` (attendu *definitely*) est
