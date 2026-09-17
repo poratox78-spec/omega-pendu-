@@ -209,7 +209,10 @@ def decide(T, i, adj=None):
             and nx_raw.isalpha() and nx_raw == nx_raw.lower() and nx_raw != nx_raw.upper()
             and vowel_start(nx) is True
             and (adj is None or i in adj)):
-        return 'an', 'RED'
+        # 17/09/2026 (miroir JS) — devant un PRONOM, ou un adverbe suivi d'un VERBE, « a » n'ouvre aucun groupe nominal
+        # (« rabbits a easily escape » = can ; « have a everything settled » = a en trop) : orange, pas rouge.
+        p1, p2 = ctx_pos(T, i + 1), ctx_pos(T, i + 2) or ''
+        return 'an', ('ORANGE' if (p1 == 'PRON' or (p1 == 'ADV' and p2 in ('VERB', 'AUX'))) else 'RED')
     # la direction inverse « an user » -> « a » : le SON décide (an user, an one : consonne /j/, /w/) ; « an hour »
     # reste muet (IPA vocalique) ; la classe h- aspiré (« an historic », registre britannique) est exclue exprès.
     # « very kind an gentle », « Barcelona an Valencia » : la règle an -> a y posait un ROUGE FAUX (l'un des 4 du banc EWT).
@@ -390,10 +393,14 @@ CASES = [
     ("He was tired an hungry after work", 3, 'and', 'ORANGE'),
     ("She is and excellent doctor", 2, 'an', 'ORANGE'),
     ("She found an gentle giant", 2, 'a', 'RED'),          # « an » + adjectif + NOM reste l'article : an -> a
+    # a -> an : devant un pronom ou un adverbe + verbe, « a » n'est pas un article -> orange (miroir JS)
+    ("The rabbits a easily escape the pen", 2, 'an', 'ORANGE'),
+    ("I already have a everything I need", 3, 'an', 'ORANGE'),
+    ("She ate a apple today", 2, 'an', 'RED'),
     ("I could of done it", 2, 'have', 'RED'),
     ("You should of asked", 2, 'have', 'RED'),
     ("It is bigger then mine", 3, 'than', 'RED'),
-    ("She is more then happy", 3, 'than', 'RED'),
+    ("She is more then happy", 3, 'than', 'ORANGE'),      # attendu RED jusqu'au 17/09/2026 — jamais comparé ; les deux moteurs rendent ORANGE (then + adjectif : pas de GN comparé derrière)
     ("Their is a problem", 0, 'there', 'RED'),
     ("Their are many people", 0, 'there', 'RED'),
     ("its a good idea", 0, "it's", 'RED'),
@@ -434,7 +441,9 @@ def main():
     for text, idx, exp, lvl in CASES:
         T = _tok(text)
         s, lv = decide(T, idx)
-        ok = (s == exp)
+        # ⚠️ 17/09/2026 : le NIVEAU attendu fait partie du cas. Avant, seul le mot proposé était comparé — une mutation qui
+        # remettait en ROUGE une suggestion voulue ORANGE passait ce --check (elle ne tombait que par la parité).
+        ok = (s == exp and lv == lvl)
         if ok and lv == 'RED': hitR += 1
         elif ok and lv == 'ORANGE': hitO += 1
         else:
