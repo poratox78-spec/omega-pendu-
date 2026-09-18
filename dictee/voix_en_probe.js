@@ -145,6 +145,14 @@ for (const a of new Set(actifs)) ok(src.includes("'" + a + "'"), 'actif du corre
 ok(/C\.analyzeText\(/.test(src), 'la page n\'appelle plus le pipeline du produit (C.analyzeText)');
 ok(/two things<\/b> listen to your microphone/.test(src) && /neither recorded nor sent/.test(src), 'la note de confidentialité ne décrit plus les DEUX écoutes du micro');
 
+/* ── ⑦ bis APPLIQUER UNE SUGGESTION (18/09/2026) : diagnose + _applique EXTRAITS de la page, avec le vrai moteur. « with out » -> without
+   est une marque de DEUX mots (span:2) : la page remplaçait « with » seul et écrivait « without out ». */
+{ const CE = require(path.join(__dirname, 'corrector_en.js')), AE = CE.loadAllNode(__dirname);
+  const G = new Function('ready', 'C', 'LEX', 'CONFUS', 'BASEMAP', bloc('function diagnose(') + '\n' + bloc('function _applique(') + '\nreturn { diagnose, _applique };')(true, CE, AE.lex, AE.ctx.confus, AE.ctx.basemap);
+  const fixAll = (t) => { G.diagnose(t).filter(m => m.red).sort((a, b) => b.d - a.d).forEach(m => { t = G._applique(t, m); }); return t; };
+  ok(fixAll('She left with out a word.') === 'She left without a word.', 'Fix all : « with out » -> ' + JSON.stringify(fixAll('She left with out a word.')) + ' (attendu « without », sans « out » orphelin)');
+  ok(fixAll('Their is more better news.') === 'There is better news.', 'Fix all : remplacement à la casse du mot + mot en trop retiré avec son espace — ' + JSON.stringify(fixAll('Their is more better news.'))); }
+
 // ── ⑧ MESURES sur de l'anglais ÉCRIT PAR DES HUMAINS (PUD committé ; GUM + EWT en local) ──
 function mesure(nom, phrases) {
   let perOrd = 0, perConv = 0, qTir = 0, qJuste = 0, tTir = 0, tVirg = 0; const exP = [], exQ = [];

@@ -190,6 +190,12 @@ jobs:
       # renvoient des indices qui désignent d'autres mots — silencieusement).
       - name: EN — les règles du moteur sont branchées dans la page (+ tokeniseur identique)
         run: node dictee/en_page_wiring_probe.js
+      # Ce que la page FAIT des marques (modèle semi-direct du 18/09/2026, repris du correcteur français) : fonctions EXTRAITES
+      # de la page livrée et exécutées avec le vrai moteur. Le rendu de la saisie est le texte tapé au caractère près ; le corrigé
+      # affiché est le corrigé copié ; « with out » -> without remplace les DEUX mots ; jamais « No mistakes » sans dictionnaire ;
+      # l'aide-frappe ne propose ni mot rare ni grossièreté ; chaque outil est nommé dans le mode d'emploi ; contraste ≥ 3.
+      - name: EN — la page du correcteur (texte intact, corrigé == copié, cartes, aide-frappe, mode d'emploi, contraste)
+        run: node dictee/correcteur_en_page_probe.js
       # Parité Python↔JS PAR TOKEN sur les 1 000 phrases d'UD English-PUD committées (CC BY-SA 3.0) : l'ancienne
       # garde ne tournait qu'en local (EWT) et comparait deux totaux ; le 16/09/2026 le Python avait cinq semaines de
       # retard sur le JS (post-passes du tagger, familles where/were, whose, led, passed, two, paronymes, accord 3sg…).

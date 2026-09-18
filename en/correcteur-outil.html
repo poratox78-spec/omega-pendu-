@@ -23,34 +23,93 @@
   .tool-note{font:15px var(--sans);color:var(--fg-2);text-align:center;padding:9px 12px;background:var(--bg-2);border-bottom:1px solid var(--line)}
   .tool-note strong{color:var(--fg)}
   .cw{max-width:1000px;margin:0 auto;padding:20px 16px 60px}
-  .card{background:var(--bg-2);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:22px}
+  /* LES COULEURS DES MARQUES SONT DES JETONS, posés sur la carte : le thème clair et la palette daltonien ne font que les
+     redéfinir. La FORME du trait porte aussi la catégorie (plein = sûr, tirets = à vérifier, double = appliqué, pointillé =
+     à regarder) : jamais la couleur seule. La sonde de la page recalcule le contraste de chaque jeton sur son fond (≥ 3). */
+  .card{background:var(--bg-2);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:22px;
+        --c-sur:#f85149;--c-verif:#d29922;--c-ok:#3fb950;--c-vig:#9aa4af}
+  :root[data-theme="light"] .card{--c-sur:#c62828;--c-verif:#9a6700;--c-ok:#1a7f37;--c-vig:#586170}
+  .card.cb{--c-sur:#d55e00;--c-verif:#56b4e9;--c-ok:#009e73}
+  :root[data-theme="light"] .card.cb{--c-sur:#b34e00;--c-verif:#0072b2;--c-ok:#007a59}
   .card h1{font:700 24px/1.2 var(--sans);margin:0 0 4px;color:var(--fg)}
-  .card p.sub{font:16px var(--sans);color:var(--fg-2);margin:0 0 18px}
-  #in{width:100%;box-sizing:border-box;min-height:26vh;font:20px/1.7 var(--sans);color:var(--fg);
-      background:var(--bg-3);border:2px solid var(--line);border-radius:10px;padding:14px;resize:vertical}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
-  button.go{font:700 17px var(--sans);background:var(--accent);color:#fff;border:0;border-radius:9px;padding:12px 24px;cursor:pointer}
-  button.go:disabled{opacity:.55;cursor:default}
-  button.ghost{font:600 15px var(--sans);background:var(--bg-3);color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:10px 17px;cursor:pointer}
+  .card p.sub{font:16px var(--sans);color:var(--fg-2);margin:0 0 12px}
+  .sc{color:var(--fg-2);font-weight:400}
+  /* barre d'outils — miroir de #vdc-set (correcteur français) */
+  #tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+  #tools button,.mini{font:600 13px var(--sans);padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg-3);color:var(--fg);cursor:pointer;min-height:34px}
+  #tools button:hover,.mini:hover{background:var(--bg-2)}
+  #tools button[aria-pressed=true]{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  .mini{min-height:0;padding:3px 10px;margin-left:8px}
+  .flabel{font:700 14px var(--sans);color:var(--fg-2);margin:16px 0 5px}
+  .flabel.big{font-size:16px;color:var(--fg)}
+  /* ZONE DE SAISIE = contenteditable : le surlignage vit SUR le texte tapé (même modèle que le français). Le texte reste
+     celui de l'utilisateur au caractère près — la sonde le vérifie sur chaque rendu. */
+  #in{width:100%;box-sizing:border-box;min-height:20vh;font:20px/1.8 var(--sans);color:var(--fg);caret-color:var(--fg);
+      background:var(--bg-3);border:2px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;
+      overflow-wrap:break-word;outline:none;cursor:text}
+  #in:focus{border-color:var(--accent)}
+  #in:empty:before{content:attr(data-ph);color:var(--fg-2);pointer-events:none}
+  #out{font:20px/1.9 var(--sans);color:var(--fg);background:color-mix(in srgb,var(--c-ok) 7%,var(--bg-3));
+       border:2px solid var(--c-ok);border-radius:10px;padding:14px;min-height:3.4em;white-space:pre-wrap;overflow-wrap:break-word}
+  .card.lisible #in,.card.lisible #out{font-family:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.14em;line-height:2.05}
+  .corr{border-radius:3px;cursor:pointer;text-decoration-line:underline;text-decoration-thickness:3px;text-underline-offset:4px;text-decoration-skip-ink:none}
+  .corr.red{text-decoration-style:solid;text-decoration-color:var(--c-sur);background:color-mix(in srgb,var(--c-sur) 16%,transparent)}
+  .corr.orange{text-decoration-style:dashed;text-decoration-color:var(--c-verif);background:color-mix(in srgb,var(--c-verif) 20%,transparent)}
+  .corr.on{text-decoration-style:double;text-decoration-color:var(--c-ok);background:color-mix(in srgb,var(--c-ok) 18%,transparent)}
+  .corr.vig{text-decoration-style:dotted;text-decoration-color:var(--c-vig);cursor:help}
+  .corr:hover{background:color-mix(in srgb,var(--accent) 24%,transparent)}
+  .corr.cur{outline:3px solid var(--accent);outline-offset:2px}
+  #in .corr{cursor:text}
+  /* mot SUPPRIMÉ par une correction appliquée : dessiné par un pseudo-élément, donc jamais dans le texte corrigé (ni à la
+     copie, ni à la sélection) — mais cliquable, pour pouvoir annuler */
+  .corr.gone{display:inline-block;min-width:.9em;text-align:center;margin-right:.3em}
+  .corr.gone::before{content:attr(data-w);text-decoration:line-through;opacity:.75}
+  #complete{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin:6px 0 2px;min-height:36px;overflow-x:auto;scrollbar-width:none}
+  #complete::-webkit-scrollbar{display:none}
+  #complete>*{flex:0 0 auto;white-space:nowrap}
+  .comp{font:600 15px var(--sans);padding:4px 11px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:var(--bg);cursor:pointer}
+  .comp.top{box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+  button.ghost{font:600 15px var(--sans);background:var(--bg-3);color:var(--fg);border:1px solid var(--line);border-radius:9px;padding:9px 16px;cursor:pointer}
   button.ghost:hover{background:var(--bg-2)}
-  .legend{font:15px var(--sans);color:var(--fg-2);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
-  .swatch{border-bottom:3px solid;padding-bottom:1px;color:var(--fg)}
-  .swatch.red{border-color:#f85149}
-  .swatch.orange{border-color:#d29922}
-  #out{font:20px/1.9 var(--sans);color:var(--fg);background:var(--bg-3);border:2px solid var(--line);border-radius:10px;
-       padding:16px;min-height:14vh;white-space:pre-wrap;word-wrap:break-word;display:none}
-  #out .corr{cursor:pointer;border-radius:3px}
-  #out .corr.red{border-bottom:3px solid #f85149;background:color-mix(in srgb,#f85149 16%,transparent)}
-  #out .corr.orange{border-bottom:3px solid #d29922;background:color-mix(in srgb,#d29922 20%,transparent)}
-  #out .corr.info{cursor:help}
-  #why{margin:12px 0 0;padding:0;list-style:none;font:15px/1.5 var(--sans);color:var(--fg-2)}
-  #why li{margin:6px 0;padding-left:12px;border-left:3px solid var(--line,#30363d)}
-  #why li.red{border-left-color:#f85149} #why li.orange{border-left-color:#d29922}
-  #why b{color:var(--fg,inherit)}
-  #out .corr:hover{background:color-mix(in srgb,var(--accent) 24%,transparent)}
-  #count{font:600 15px var(--sans);color:var(--fg)}
-  #status{font:15px var(--sans);color:var(--fg-2)}
-  .tip{font:14px var(--sans);color:var(--fg-2);margin-top:12px}
+  #status{font:14px var(--sans);color:var(--fg-2)}
+  #count{font:15px/1.5 var(--sans);color:var(--fg);margin-top:10px}
+  #nav{display:flex;align-items:center;gap:6px;margin-top:8px}
+  #nav[hidden]{display:none}
+  #navpos{font:600 13px var(--sans);color:var(--fg-2);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+  #nav .mini{margin-left:0;padding:5px 12px}
+  .fact{padding:8px 11px;border-radius:9px;margin:8px 0;font:15px/1.5 var(--sans);background:var(--bg-3);border-left:5px solid var(--line)}
+  .fact.ok{border-left-color:var(--c-ok)} .fact.tov{border-left-color:var(--c-verif)} .fact.vigb{border-left-color:var(--c-vig)}
+  .chip{display:inline-block;margin:4px 6px 0 0;cursor:pointer;border-radius:7px;padding:2px 9px;background:var(--bg-2);border:1px solid var(--line);color:var(--fg)}
+  .chip:hover{border-color:var(--accent)}
+  .chip s{opacity:.65}
+  #whybox{margin-top:10px;font:15px/1.5 var(--sans);color:var(--fg-2)}
+  #whybox[hidden]{display:none}
+  #whybox summary{cursor:pointer;font-weight:600;color:var(--fg)}
+  #why{margin:8px 0 0;padding:0;list-style:none}
+  #why li{margin:6px 0;padding-left:12px;border-left:3px solid var(--line)}
+  #why li.red{border-left-color:var(--c-sur)} #why li.orange{border-left-color:var(--c-verif)}
+  #why b{color:var(--fg)}
+  /* CARTE D'ACTION — le même geste que le français : appliquer / annuler · ignorer · (c'est un mot) · pourquoi + écouter */
+  #cardpop{position:absolute;z-index:1000;display:none;box-sizing:border-box;max-width:min(340px,calc(100vw - 16px));background:var(--bg-2);color:var(--fg);
+           border:1px solid var(--c-ok);border-radius:12px;padding:12px 14px;font:15px/1.45 var(--sans);box-shadow:0 10px 28px rgba(0,0,0,.45)}
+  #cardpop.tov{border-color:var(--c-verif)} #cardpop.vigc{border-color:var(--c-vig)}
+  #cardpop .vch{font:800 12px var(--sans);letter-spacing:.04em;margin-bottom:6px;color:var(--c-ok)}
+  #cardpop.tov .vch{color:var(--c-verif)} #cardpop.vigc .vch{color:var(--fg-2)}
+  #cardpop .vcs{font-size:17px;margin-bottom:11px}
+  #cardpop .vcs s{opacity:.6;margin-right:6px}
+  #cardpop .vcp{display:inline-block;border-radius:9px;padding:1px 10px;font-weight:700;border:2px solid var(--c-ok)}
+  #cardpop.tov .vcp{border-color:var(--c-verif)} #cardpop.vigc .vcp{border-color:var(--c-vig)}
+  #cardpop .vca{display:flex;gap:8px;flex-wrap:wrap}
+  #cardpop .vca button{font:700 14px var(--sans);padding:7px 14px;border-radius:9px;border:1px solid var(--line);cursor:pointer;background:var(--bg-3);color:var(--fg);min-height:36px}
+  #cardpop .vca .vcap{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+  #cardpop .vcx{font-size:14px;background:var(--bg-3);border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.5}
+  #cardpop .vcb{font-weight:800}
+  #cardpop .vcsp{background:none;border:0;cursor:pointer;font-size:15px;padding:0 4px}
+  #cardpop .vce{font-size:12.5px;color:var(--fg-2);margin-top:9px;border-top:1px solid var(--line);padding-top:7px}
+  .karaoke{font-size:1.06em;line-height:2}
+  .kara.lit{background:#1f5fa8;color:#fff;border-radius:4px;padding:1px 3px}
+  .tip{font:14px var(--sans);color:var(--fg-2);margin-top:4px}
   /* ⓘ replié — miroir du correcteur FR. Le cercle s'INVERSE à l'ouverture : on voit d'un
      coup d'œil si le détail est déplié, sans lire le texte. */
   .howto summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -61,6 +120,7 @@
   .howto-d{margin-top:8px;line-height:1.55}
   .howto-d p{margin:0 0 7px}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  @media (pointer:coarse){ #tools button{min-height:40px} #cardpop .vca button{min-height:42px} #cardpop .vcsp{min-width:40px;min-height:40px} .chip{padding:5px 11px} }
 </style>
 <script src="../nav.js" defer></script>
 </head>
@@ -77,11 +137,11 @@
     <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
   </nav>
 </div></header>
-<div class="tool-note">🩹 <strong>English checker</strong> — paste or type your text, then click the underlined words. Everything runs in your browser; nothing is sent.</div>
+<div class="tool-note">🩹 <strong>English checker</strong> — type or paste your text: it is checked as you write, and the corrected text appears below. The checking runs in your browser; your text is not sent.</div>
 <div class="tool-note" style="background:color-mix(in srgb,#d29922 14%,var(--bg-2))">⚠️ <strong>Beta</strong> — the English version is new and updated only occasionally; unlike the French, it isn't human-reviewed. Please double-check suggestions as you use it.</div>
 
 <div class="cw">
-  <div class="card">
+  <div class="card" id="card">
     <h1>English spell &amp; grammar checker</h1>
     <!-- ⚠️ CE TEXTE DÉCRIT CE QUE LE MOTEUR FAIT VRAIMENT — il était resté à « typos + homophones »
          alors que la conjugaison, l'interrogatif, l'article, a/an et la ponctuation avaient été
@@ -90,64 +150,74 @@
     <p class="sub">Catches typos (recieve → receive), real-word confusions (their/there, its/it&rsquo;s,
       could of → could have), verb forms (he go → he goes, Does he goes → go), articles
       (a apple → an, an user → a) and punctuation spacing.</p>
-    <textarea id="in" spellcheck="false" placeholder="Type or paste English text here… e.g. Their is no point, its a shame you could of come.">Their is no point, its a shame you could of come. I recieve alot of freind requests and definately need to seperate them.</textarea>
+    <!-- ⓘ REPLIÉ, EN TÊTE — pendant anglais du mode d'emploi du correcteur FR (app/omega-pendu.html). La 1re phrase reste
+         VISIBLE (c'est la seule dont on a besoin pour démarrer), le reste s'ouvre sur demande. `<details>` NATIF : clavier +
+         lecteur d'écran, et fonctionne sans JS. ⚠️ Si le fonctionnement du correcteur change, CE TEXTE CHANGE AUSSI — la
+         sonde de la page vérifie que chaque outil de la barre y est nommé. -->
+    <details class="tip howto">
+      <summary><span>Type or paste your text: <b>it stays untouched</b>.</span> <span class="hi" aria-hidden="true">i</span><span class="sr-only"> — how it works</span></summary>
+      <div class="howto-d">
+        <p>On your text, only the <b>points to look at</b> are underlined: <b>red, solid line</b> = a sure fix; <b>orange, dashed line</b> = worth checking — you decide; <b>dotted line</b> = two words that are easy to mix up.</p>
+        <p>The <b>corrected text</b> appears in the box below, with the sure fixes already made, in <b>green</b>. Click a word there — or an underlined word in your own text — to open its <b>card</b>: apply · undo · ignore, and <b>why</b>.</p>
+        <p>Your text stays <b>freely editable</b>, and Ctrl+Z still goes back. <b>📋 Copy</b> takes the corrected text. <b>◂ ▸</b> walk through the corrections one by one.</p>
+        <p>While you type, <b>➡️ complete</b> offers common words that start the same way (Tab takes the first one).</p>
+        <p><b>Theme</b>, <b>Colour-blind</b> palette and <b>Readable font</b> change the display only; your choices are remembered on this device.</p>
+        <p><b>🔊 Read aloud</b> uses a voice installed on your device. If it has no English voice, the browser may read with an online voice (in Chrome: its Google voice) — the text being read is then sent to that service.</p>
+        <p>The checking itself runs entirely in your browser, <b>offline</b>: your text is not sent anywhere.</p>
+      </div>
+    </details>
+    <div id="tools" role="group" aria-label="Display settings">
+      <button id="t-theme" type="button" aria-pressed="false" title="Theme: dark or light (same setting as the button at the top of the site)">🌙 Theme: dark</button>
+      <button id="t-cb" type="button" aria-pressed="false" title="Colour-blind friendly palette (vermilion / blue / green) — the line style also tells the categories apart">🎨 Colour-blind</button>
+      <button id="t-lis" type="button" aria-pressed="false" title="More readable font: Verdana, with wider letter and word spacing (dyslexia)">🔤 Readable font</button>
+      <button id="readaloud" type="button" aria-pressed="false" title="Listen to your text read aloud — the word being read is highlighted">🔊 Read aloud</button>
+    </div>
+    <div class="flabel">📝 Write here <span class="sc">— the points to look at are underlined <b>on your text</b>; click one to open its card</span></div>
+    <div id="editor"><div id="in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Text to check" spellcheck="false" data-ph="Type or paste English text here… e.g. Their is no point, its a shame you could of come.">Their is no point, its a shame you could of come. I recieve alot of freind requests and definately need to seperate them.</div></div>
+    <div id="complete" aria-live="polite"></div>
     <div class="row">
-      <button class="go" id="check" disabled>Check</button>
-      <button class="ghost" id="clear">Clear</button>
-      <button class="ghost" id="readaloud" title="Listen to your text read aloud — the word being read is highlighted (nothing leaves your device)">🔊 Read aloud</button>
+      <button class="ghost" id="clear" type="button">Clear</button>
       <span id="status">Loading the dictionary…</span>
     </div>
-    <div class="row"><span class="legend">
-      <span class="swatch red">red</span> = confident fix (click to apply)
-      <span class="swatch orange">orange</span> = suggestion to check
-      <span id="count"></span>
-    </span></div>
-    <div id="out" aria-live="polite"></div>
-    <!-- ⭐ CHAQUE SUGGESTION, EXPLIQUÉE (17/09/2026). Jusqu'ici le « pourquoi » ne vivait que dans l'infobulle — invisible
-         au doigt sur un téléphone, et il n'existait que pour trois règles. Le correcteur français explique chaque faute ;
-         l'anglais le fait maintenant aussi, en une ligne par suggestion, sous le texte. -->
-    <ul id="why" aria-label="Why these suggestions" style="display:none"></ul>
-    <!-- ⭐ LA COUCHE TYPOGRAPHIQUE A SA PROPRE LIGNE, ET C'EST VOULU. Elle travaille sur des PLAGES
-         DE TEXTE (« Hello ,how » = un espace mal placé), pas sur des mots — l'entrelacer avec le
-         surlignage par token demanderait de découper des spans à cheval, pour un gain nul.
-         Un bouton « tout corriger » est plus simple ET plus utile : ces fautes-là sont mécaniques,
-         on ne les examine pas une par une. Caché tant qu'il n'y a rien à signaler. -->
-    <div id="typo" style="display:none;margin-top:12px;font:15px var(--sans);color:var(--fg-2)">
-      <span id="typon"></span>
-      <button class="ghost" id="typofix" style="margin-left:8px">Fix punctuation</button>
-    </div>
-    <!-- ⓘ REPLIÉ — pendant anglais de l'infobulle du correcteur FR (app/omega-pendu.html).
-         La page n'avait qu'une ligne sur les COULEURS et rien sur ce qui rassure vraiment :
-         que le texte tapé n'est jamais réécrit. On ajoute donc l'explication qui MANQUAIT,
-         mais pliée — la page reste aussi courte qu'avant.
-         `<details>` NATIF : clavier + lecteur d'écran, et fonctionne sans JS. ⚠️ Si le
-         fonctionnement du correcteur change, CE TEXTE CHANGE AUSSI. -->
-    <details class="tip howto">
-      <summary>Paste or type your text: <b>it stays untouched</b>. <span class="hi" aria-hidden="true">i</span><span class="sr-only"> — how it works</span></summary>
-      <div class="howto-d">
-        <p>Your text is only <b>highlighted</b>, never rewritten. <b>Red</b> = high confidence (a real typo, or a construction English does not allow). <b>Orange</b> = worth a look — you decide.</p>
-        <p><b>Click a highlighted word</b> to apply its suggestion. Nothing is applied for you.</p>
-        <p>Runs entirely <b>offline</b>, in your browser. <b>No data is sent anywhere.</b></p>
-      </div>
+    <div class="flabel big">✅ Corrected text <button id="copy" type="button" class="mini">📋 Copy</button></div>
+    <div id="out"></div>
+    <div id="count" aria-live="polite"></div>
+    <div id="nav" hidden><button id="prev" type="button" class="mini" title="previous correction">◂ previous</button><span id="navpos"></span><button id="next" type="button" class="mini" title="next correction">next ▸</button></div>
+    <!-- Appliqué · À vérifier · À regarder · ponctuation · ignorées : des puces cliquables, la même carte que dans le texte -->
+    <div id="lists"></div>
+    <!-- ⭐ CHAQUE SUGGESTION, EXPLIQUÉE (17/09/2026) : une ligne par suggestion. La carte donne le « pourquoi » d'un mot ; cette
+         liste les donne tous d'un coup, pliée pour ne pas allonger la page. -->
+    <details id="whybox" hidden><summary>💡 Why these suggestions?</summary>
+      <ul id="why" aria-label="Why these suggestions"></ul>
     </details>
   </div>
 </div>
+<div id="cardpop" role="dialog" aria-label="Correction card"></div>
 
 <script src="../dictee/corrector_en.js"></script>
 <script>
 (function(){
-  var LEX=null, CONFUS=null, C=window.CorrectorEN;var BASEMAP=null;
-  var inEl=document.getElementById('in'), outEl=document.getElementById('out'),
-      btn=document.getElementById('check'), clr=document.getElementById('clear'),
-      st=document.getElementById('status'), cnt=document.getElementById('count');
-  function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  var LEX=null, CONFUS=null, C=window.CorrectorEN;var BASEMAP=null;var _pret=false;
+  function $(id){ return document.getElementById(id); }
+  var inEl=$('in'), outEl=$('out'), clr=$('clear'), st=$('status'), cnt=$('count'), listes=$('lists'), whyEl=$('why');
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
   // charge le lexique : fetch du .gz partagé + décompression navigateur (aucune donnée envoyée : c'est un téléchargement)
   fetch('../dictee/lex_en.tsv.gz')
     .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
     .then(function(s){ return new Response(s).text(); })
-    .then(function(txt){ LEX=C.parseLexText(txt); btn.disabled=false;
-      st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.';
+    .then(function(txt){ LEX=C.parseLexText(txt);
+      st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — loading the grammar data…';
+      /* ⭐ SEMI-DIRECT : LA PREMIÈRE ANALYSE ATTEND LES CINQ ACTIFS (18/09/2026). Avec un bouton « Check », on cliquait après
+         le chargement. En direct, l'analyse partait dès le dictionnaire — AVANT verbmorph et les confusables : le moteur bâtissait
+         alors quatre tables sur du vide et les gardait (« has went », « I will council him », « witch / which » muets toute la
+         session : vu au navigateur). Le moteur rebâtit maintenant ses tables quand leur source change, mais la page ne doit pas
+         en dépendre : le service worker sert les scripts « cache d'abord », donc un visiteur de retour peut avoir CETTE page avec
+         le moteur de sa visite précédente. Chaque actif, arrivé OU en échec, décompte ; à zéro la page est prête. Filet : 8 s. */
+      var _restants=5;
+      function _arrive(){ if(--_restants===0) _pretMaintenant(); }
+      function _pretMaintenant(){ if(_pret) return; _pret=true; st.textContent=LEX.KNOWN.size.toLocaleString('en')+' words loaded — ready.'; _signaler(); planifier(0); }
+      setTimeout(_pretMaintenant, 8000);
       /* ⭐⭐ LES TROIS ACTIFS OPTIONNELS — ET POURQUOI LEUR ÉCHEC DOIT SE VOIR.
          Le modèle POS surtout : le mur anglais est le CONTEXTE, pas le lexique. `verb3Decide`,
          `numberDecide`, `articleMassDecide`, `interroDecide` interrogent toutes `ctxPos`. Sans le
@@ -166,7 +236,8 @@
       function _optionnel(url, nom, appliquer){
         fetch(url).then(function(r){ if(!r.ok) throw new Error('http ' + r.status); return r.json(); })
           .then(function(j){ appliquer(j); })
-          .catch(function(){ _manque.push(nom); _signaler(); });
+          .catch(function(){ _manque.push(nom); _signaler(); })
+          .then(_arrive);
       }
       // morphologie verbale irrégulière (runned->ran…)
       _optionnel('../dictee/verbmorph_en.json', 'verb forms', function(j){ LEX.VERBMORPH = j; });
@@ -178,13 +249,15 @@
       fetch('../dictee/misspell_en.tsv')
         .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.text(); })
         .then(function(t){ if(!C.setAttested(LEX, t)) throw new Error('empty'); })
-        .catch(function(){ _manque.push('known misspellings'); _signaler(); });
+        .catch(function(){ _manque.push('known misspellings'); _signaler(); })
+        .then(_arrive);
       // bases verbales (modal/to/do + forme fléchie → base) : .gz → texte, actif NOMMÉ comme les autres
       fetch('../dictee/forms_en.tsv.gz')
         .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.body.pipeThrough(new DecompressionStream('gzip')); })
         .then(function(st2){ return new Response(st2).text(); })
         .then(function(txt2){ BASEMAP = C.buildBaseMap(txt2, LEX); if(C.buildCompSets) C.buildCompSets(txt2); })
-        .catch(function(){ _manque.push('verb bases'); _signaler(); }); })
+        .catch(function(){ _manque.push('verb bases'); _signaler(); })
+        .then(_arrive); })
     .catch(function(e){ st.textContent='Could not load the dictionary ('+e.message+').'; });
 
   /* ⭐ LE PIPELINE VIT DANS LE MOTEUR (C.analyzeText, 17/09/2026) — la page ne fait plus que le RENDU.
@@ -292,172 +365,559 @@
     if(mk.rule==='spelling') return (LEX.ATTESTED && LEX.ATTESTED.has(lw)) ? WHY['spelling-known'] : (mk.cls==='red' ? WHY['spelling'] : WHY['spelling-unknown']);
     return WHY[mk.rule] || '';
   }
-  function analyze(text){
+  /* ═══ LE MODÈLE SEMI-DIRECT (18/09/2026) — le même que le correcteur français (app/omega-pendu.html, module vdc) ═══
+     Rem : « le correcteur je vois pas les mêmes outils que le français ». La page anglaise avait un bouton « Check », un
+     cadre de sortie et rien d'autre. Elle reprend maintenant le modèle français, outil par outil :
+       · la saisie est surlignée PENDANT la frappe, et reste le texte de l'utilisateur au caractère près ;
+       · « ✅ Corrected text » porte les corrections SÛRES déjà faites (vert), les autres restent à décider ;
+       · un clic sur un mot ouvre sa CARTE : appliquer / annuler · ignorer · c'est un mot · pourquoi (+ écouter) ;
+       · compteur sûres / à vérifier, navigation ◂ ▸, puces « Applied / To check », ignorées à rétablir ;
+       · aide-frappe (complétion du mot en cours, Tab), copie, barre Thème · Daltonien · Police lisible · Lire.
+     L'état (appliqué / annulé / ignoré) est tenu PAR PAIRE « mot|suggestion », comme en français : il survit à la frappe
+     (les positions bougent, la paire non) et une même faute répétée se règle d'un seul geste.
+     Les fonctions de ce bloc qui ne touchent pas au DOM (calcule, segments, typographie, vues, listes, complétion) sont
+     EXTRAITES ET EXÉCUTÉES par dictee/correcteur_en_page_probe.js : ce que la sonde mesure est ce que la page livre. */
+  var MAX_CAR=20000;                                  // au-delà, le rendu de milliers de <span> fige l'onglet (plafond du français, mesuré dans Chrome)
+  var SEUIL_COMP=20;                                  // aide-frappe : mots COURANTS seulement (≥ 20 occurrences SUBTLEX) — sur une faute de frappe la liste est vide et la correction prend le relais
+  var _on={}, _off={}, _ign={}, _choix={}, _UD={}, _typoOff=false;
+  var _tous=[], _corrs=[], _vigs=[], _navIdx=-1, _navSig='', _corrige='', _duree=0, _t=null, _t2=null, _compo=false;
+  /* UNE ÉTIQUETTE PAR RÈGLE — le pied de la carte et les puces « To check ». La sonde exige qu'aucune règle d'analyzeText
+     n'en manque (une règle sans étiquette afficherait son nom de code). */
+  var LABEL={
+    'spelling':'Spelling', 'homophone':'Word mix-up', 'confuse-slot':'Word mix-up', 'confuse-vig':'Easy to mix up',
+    'contraction':'Apostrophe', 'merged':'Two words', 'cap-i':'Capital letter', 'calendar-cap':'Capital letter',
+    'base-form':'Verb form', 'past-part':'Verb form', 'verb-3sg':'Verb ending', 'interro':'Question form',
+    'aux-agree':'Agreement', 'number':'Singular / plural', 'irreg-plural':'Irregular plural',
+    'article-mass':'Article', 'double-comp':'Comparative', 'repetition':'Repeated word'
+  };
+  function cleDe(word, mk){ return String(word).toLowerCase().replace(/[’ʼ]/g,"'")+'|'+(mk.info?'?':mk.del?'-':String(mk.sugg).toLowerCase()); }
+  function parDefaut(f){ return f.cls==='red' && !f.info; }          // le rouge (sûr) est appliqué d'office dans le corrigé ; l'orange attend un clic
+  /* La suggestion, à la CASSE du mot tapé : « Their » -> « There », « RECIEVE » -> « RECEIVE ». */
+  function remplacement(f){
+    if(f.del) return '';
+    var rep=String(f.sugg), o=f.word;
+    if(o.length>1 && o===o.toUpperCase() && o!==o.toLowerCase()) return rep.toUpperCase();
+    if(o.charAt(0)!==o.charAt(0).toLowerCase()) rep=rep.charAt(0).toUpperCase()+rep.slice(1);
+    return rep;
+  }
+  /* LES CORRECTIONS D'UN TEXTE — une par marque du moteur, avec sa plage (cs, ce) dans le texte, sa clé d'état et son
+     « pourquoi ». span:2 = la suggestion remplace ce mot ET le suivant (« with out » -> without). */
+  function calcule(text, finMotEnCours){
     var a=C.analyzeText(LEX, text, {confus:(typeof CONFUS!=='undefined'?CONFUS:null), basemap:BASEMAP});
-    var toks=a.toks, pos=a.pos, marks=a.marks;
-    var html='', cur=0, n=0, items=[];
-    for(var j=0;j<toks.length;j++){
-      html+=esc(text.slice(cur, pos[j]));
-      var w=toks[j], mk=marks[j];
-      if(mk){ n++;
-        var why=whyOf(mk, w);
-        items.push('<li class="'+mk.cls+'"><b>'+esc(w)+'</b> '+(mk.info ? '— often confused with: '+esc(mk.sugg) : mk.del ? '→ remove' : '→ '+esc(mk.sugg))+(why ? ' — '+esc(why) : '')+'</li>');
-        /* Une règle qui SUPPRIME (article devant un indénombrable, more/most redondant, mot répété) n'a pas de mot à
-           proposer : l'infobulle dit « remove » et pourquoi. Une règle qui INTERROGE (`info` : « which / witch ») montre
-           les alternatives, et le clic ne fait rien — on ne sait pas trancher, donc on ne tranche pas.
-           ⚠️ Une règle qui PROPOSE peut aussi avoir un « pourquoi » : l'ancien rendu ne l'affichait que pour les
-           suppressions, donc la note du pluriel irrégulier (« childrens » : children… ou le possessif children's ?) était
-           écrite mais JAMAIS montrée — annoncée dans REGLES_EN.md, pas branchée. */
-        var titre = mk.info ? 'often confused with: ' + esc(mk.sugg) + ' — check which one you mean'
-                  : mk.del ? ('remove — ' + esc(why || 'uncountable noun') + ' (click to apply)')
-                           : '→ ' + esc(mk.sugg) + ' (click to apply)' + (why ? ' — ' + esc(why) : '');
-        html+='<span class="corr '+mk.cls+(mk.info?' info':'')+'" data-i="'+j+'" data-sugg="'+esc(mk.sugg)+'"'
-            + (mk.del?' data-del="1"':'') + (mk.info?' data-info="1"':'')
-            + ' title="'+titre+'">'+esc(w)+'</span>';
-      } else html+=esc(w);
-      cur=pos[j]+w.length;
+    var L=[];
+    for(var j=0;j<a.toks.length;j++){
+      var mk=a.marks[j]; if(!mk) continue;
+      var ce=a.pos[j]+a.toks[j].length;
+      if(mk.span===2 && j+1<a.toks.length) ce=a.pos[j+1]+a.toks[j+1].length;
+      if(ce===finMotEnCours) continue;                                          // le mot EN COURS de frappe attend la pause suivante (cf. run)
+      var word=text.slice(a.pos[j], ce);
+      var f={cs:a.pos[j], ce:ce, word:word, sugg:String(mk.sugg||''), cls:mk.cls, del:!!mk.del, info:!!mk.info, rule:mk.rule, key:cleDe(word, mk)};
+      if(_ign[f.key]) continue;                                                 // ignorée par l'utilisateur
+      if(mk.rule==='spelling' && _UD[word.toLowerCase()]) continue;             // « c'est un mot » : dictionnaire personnel
+      f.why=whyOf(mk, a.toks[j]);
+      if(f.info){
+        /* VIGILANCE (« witch / which ») : le moteur ne tranche pas, donc rien n'est appliqué — mais l'utilisateur, lui, peut
+           trancher : la carte propose chaque mot du groupe, et son choix s'applique comme une correction. */
+        f.alts=f.sugg.split(' / ');
+        if(_choix[f.key] && f.alts.indexOf(_choix[f.key])>=0){ f.sugg=_choix[f.key]; f.on=true; f.choisi=true; } else f.on=false;
+      } else f.on=parDefaut(f) ? !_off[f.key] : !!_on[f.key];
+      f.n=L.length; L.push(f);
     }
-    html+=esc(text.slice(cur));
-    return {html:html, n:n, items:items};
+    return L;
   }
-
-  function run(){
-    if(!LEX) return;
-    var r=analyze(inEl.value);
-    outEl.innerHTML=r.html; outEl.style.display='block';
-    cnt.textContent='· '+r.n+' suggestion'+(r.n===1?'':'s');
-    var whyEl=document.getElementById('why');
-    whyEl.innerHTML=r.items.join(''); whyEl.style.display=r.items.length?'block':'none';
-    /* ⭐ COUCHE TYPOGRAPHIQUE (espace avant une ponctuation, espace manquante après une virgule
-       PUIS après un point, marque doublée, double espace). Mesurée sur 15 353 phrases ÉDITÉES
-       (GUM + PUD) : 1 seul déclenchement, et c'était une vraie faute de frappe du corpus
-       (« follo,wers »). C'est la seule couche de ponctuation qui
-       atteint FP=0 — « où mettre une virgule » est un jugement, « l'espace autour de celle qui est
-       là » est mécanique. La frontière a été mesurée côté français et se transpose telle quelle. */
-    var t=typoFix(inEl.value);
-    var box=document.getElementById('typo');
-    if(t.n){ box.style.display='block';
-      document.getElementById('typon').textContent=t.n+' punctuation issue'+(t.n===1?'':'s')+' (spacing, doubled marks)';
-    } else box.style.display='none';
+  function titreDe(f){
+    if(f.info && !f.choisi) return 'easy to mix up with: '+f.sugg+' — click for details';
+    var quoi=f.del ? 'remove “'+f.word+'”' : '→ '+remplacement(f);
+    return (f.on?'applied ':'to check ')+quoi+' — click: '+(f.on?'undo':'apply')+' or ignore';
   }
-  /* ⚠️ IL FAUT ITÉRER, et c'est une conséquence directe du découpage en règles. Les fautes de
-     ponctuation s'emboîtent : « Hello ,how » a UNE espace en trop avant la virgule ET une espace
-     manquante après — mais la seconde n'est visible qu'une fois la première corrigée, parce que le
-     motif « mot,mot » exige que la virgule TOUCHE le mot de gauche. Le moteur écarte de surcroît les
-     plages qui se chevauchent (elles se mangeraient l'une l'autre), et reporte donc la seconde au
-     passage suivant. Un seul passage laissait « Hello,how ».
-
-     ⭐ C'EST AUSSI POURQUOI LE COMPTEUR VIENT D'ICI et pas d'un simple `scan().length` : un scan
-     unique annonçait « 4 fautes » là où le bouton en réparait 5, parce qu'il ne voyait pas celles
-     que la réparation fait apparaître. On annonce ce qu'on corrige vraiment. */
-  function typoFix(texte){
-    /* Plafond à 8 et non à 3 : « Hello ,how are you ? I said ,,no. Two  spaces here. » converge
-       PILE en 3 passes (4 puis 2 puis 1 remplacements). Un plafond à 3 n'avait donc aucune marge —
-       un texte un peu plus emmêlé se serait arrêté en laissant une faute. La boucle sort de toute
-       façon dès que le texte ne bouge plus ; le plafond n'est là que contre un cycle. */
-    var v=texte, n=0;
-    for(var pass=0; pass<8; pass++){
-      var tp=C.typoScanEn?C.typoScanEn(v):[];
-      if(!tp.length) break;
-      tp.sort(function(a,b){return b.cs-a.cs;});   // de la FIN vers le DÉBUT : sinon les plages se décalent
-      var avant=v;
-      for(var i=0;i<tp.length;i++) v=v.slice(0,tp[i].cs)+tp[i].sugg+v.slice(tp[i].ce);
-      if(v===avant) break;                          // point fixe : plus rien ne bouge
-      n+=tp.length;
+  function balise(f, cls, focusable){
+    return '<span class="corr '+cls+'" data-key="'+esc(f.key)+'" data-n="'+f.n+'"'+(focusable?' tabindex="0" role="button"':'')+' title="'+esc(titreDe(f))+'">';
+  }
+  /* VUE DE LA SAISIE : le texte TAPÉ, mot pour mot, avec les points à traiter soulignés. Aucun caractère ajouté ni retiré —
+     `textContent` du rendu == le texte, c'est la garde « texte intact » (le rendu français avait un jour modifié la saisie). */
+  function vueSaisie(text, L){
+    var h='', cur=0;
+    for(var k=0;k<L.length;k++){ var f=L[k];
+      h+=esc(text.slice(cur, f.cs))+balise(f, (f.info&&!f.choisi)?'vig':f.cls, false)+esc(f.word)+'</span>'; cur=f.ce; }
+    return h+esc(text.slice(cur));
+  }
+  function debutDePhrase(text, i){ return /(^|[.!?]["')\]]*\s+|\n\s*)$/.test(text.slice(Math.max(0, i-40), i)); }
+  /* LE TEXTE CORRIGÉ, EN SEGMENTS : {s: texte, f: correction ou rien}. Le texte corrigé est la concaténation des `s` — la
+     copie, l'affichage et la sonde lisent donc la MÊME chose.
+     · correction appliquée : `s` = la suggestion à la casse du mot ; non appliquée : `s` = le mot tapé ;
+     · SUPPRESSION appliquée (« a information », « more better », « the the ») : `s` vide, et on retire l'espace qui suit —
+       ou celle qui précède quand rien ne suit (« the the, » -> « the, ») ; si le mot retiré ouvrait la phrase, le suivant
+       prend sa majuscule (« A information is » -> « Information is »). */
+  function segments(text, L){
+    var S=[], cur=0, capSuiv=false;
+    function cap(s){
+      if(!capSuiv || !s) return s;
+      capSuiv=false;
+      return s.replace(/^(["'“‘(\[]*)([a-z])/, function(_, a, b){ return a+b.toUpperCase(); });
     }
-    return { texte: v, n: n };
-  }
-  document.getElementById('typofix').addEventListener('click', function(){
-    inEl.value=typoFix(inEl.value).texte; run();
-  });
-  btn.addEventListener('click', run);
-  clr.addEventListener('click', function(){ inEl.value=''; outEl.style.display='none'; cnt.textContent=''; inEl.focus(); });
-
-  outEl.addEventListener('click', function(e){
-    var t=e.target.closest('.corr'); if(!t) return;
-    if(t.getAttribute('data-info')==='1') return;   // vigilance : on informe, on n'applique pas
-    var sugg=t.getAttribute('data-sugg'), orig=t.textContent, del=t.getAttribute('data-del')==='1';
-    /* ⚠️ TROISIÈME COPIE DU MOTIF DE DÉCOUPAGE, et elle doit être la MÊME que les deux autres —
-       ici il sert à retrouver le mot n° `data-i` dans le texte source. Un motif différent décale
-       le comptage et on remplacerait le mauvais mot. */
-    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, m, k=0,
-        idx=parseInt(t.getAttribute('data-i'),10), at=-1, len=0;
-    while((m=re.exec(inEl.value))){ if(k===idx){ at=m.index; len=m[0].length; break; } k++; }
-    if(at>=0){
-      if(del){
-        /* SUPPRESSION (« a information » -> « information ») : on retire le mot ET l'espace qui le
-           suit, sinon on laisse une double espace derrière soi. */
-        var fin=at+len; while(fin<inEl.value.length && inEl.value[fin]===' ') fin++;
-        inEl.value=inEl.value.slice(0,at)+inEl.value.slice(fin);
-      } else {
-        var rep=sugg;
-        if(orig[0]===orig[0].toUpperCase() && orig[0]!==orig[0].toLowerCase()) rep=sugg.charAt(0).toUpperCase()+sugg.slice(1);
-        inEl.value=inEl.value.slice(0,at)+rep+inEl.value.slice(at+len);
+    for(var k=0;k<L.length;k++){ var f=L[k];
+      if(f.cs>cur) S.push({s:cap(text.slice(cur, f.cs)), f:null});
+      if(f.on && f.del){
+        var fin=f.ce; while(fin<text.length && text.charAt(fin)===' ') fin++;
+        if(fin===f.ce && S.length && !S[S.length-1].f) S[S.length-1].s=S[S.length-1].s.replace(/ +$/, '');
+        if(/^[A-Z]/.test(f.word) && debutDePhrase(text, f.cs)) capSuiv=true;
+        S.push({s:'', f:f}); cur=fin; continue;
       }
-      run();
+      S.push({s:cap(f.on ? remplacement(f) : f.word), f:f}); cur=f.ce;
     }
-  });
-})();
-</script>
-<script>
-/* READABILITY (2026-08-13, audit de complétude) : Flesch Reading Ease (EN coefficients), syllables
-   by vowel groups — indicative, never a judgment ; silent under 8 words. Mirrors the FR app. */
-(function(){
+    if(cur<text.length) S.push({s:cap(text.slice(cur)), f:null});
+    return S;
+  }
+  function texteDe(S){ var t=''; for(var i=0;i<S.length;i++) t+=S[i].s; return t; }
+  /* Une adresse (URL, e-mail) n'est pas de la ponctuation de phrase : « mailto:someone », « user:pass@host ». */
+  function zonesProtegees(t){ var z=[], re=/\S+/g, m; while((m=re.exec(t))){ if(/:\/\/|@|^www\.|^mailto:/i.test(m[0])) z.push([m.index, m.index+m[0].length]); } return z; }
+  function dansZone(z, a, b){ for(var i=0;i<z.length;i++) if(a<z[i][1] && b>z[i][0]) return true; return false; }
+  /* Applique UNE retouche de ponctuation aux segments : retirer [a,b) et/ou insérer `ins` en a. Elle ne touche que du TEXTE
+     LIBRE (les espaces et les marques entre les mots) ; si elle mordait sur un mot corrigé, on s'abstient. */
+  function editeSegments(S, a, b, ins){
+    var i, off, g, d, f;
+    if(b>a){
+      for(i=0, off=0;i<S.length;i++){ g=S[i]; d=off; f=d+g.s.length; off=f; if(g.f && f>d && a<f && b>d) return false; }
+      for(i=0, off=0;i<S.length;i++){ g=S[i]; d=off; f=d+g.s.length; off=f; if(g.f || f<=a || d>=b) continue;
+        g.s=g.s.slice(0, Math.max(0, a-d))+g.s.slice(Math.min(g.s.length, b-d)); }
+    }
+    if(ins){
+      var cible=-1, debut=0;
+      for(i=0, off=0;i<S.length;i++){ g=S[i]; d=off; f=d+g.s.length; off=f; if(g.f) continue;
+        if(a>d && a<=f){ cible=i; debut=d; break; }                              // dans un segment libre, ou à sa FIN (l'espace va après la virgule)
+        if(a===d && cible<0){ cible=i; debut=d; } }
+      if(cible<0) return false;
+      g=S[cible]; g.s=g.s.slice(0, a-debut)+ins+g.s.slice(a-debut);
+    }
+    return true;
+  }
+  /* ⭐ LA COUCHE TYPOGRAPHIQUE (espace avant une ponctuation, espace manquante après une virgule PUIS après un point, marque
+     doublée, double espace), appliquée AU TEXTE CORRIGÉ — la saisie, elle, n'est jamais réécrite. Mesurée sur 15 353 phrases
+     ÉDITÉES (GUM + PUD) : 1 seul déclenchement, et c'était une vraie faute de frappe du corpus (« follo,wers »). C'est la seule
+     couche de ponctuation qui atteint FP=0 — « où mettre une virgule » est un jugement, « l'espace autour de celle qui est
+     là » est mécanique.
+     ⚠️ IL FAUT ITÉRER : les fautes de ponctuation s'emboîtent. « Hello ,how » a UNE espace en trop avant la virgule ET une
+     espace manquante après — mais la seconde n'est visible qu'une fois la première corrigée, et le moteur écarte les plages qui
+     se chevauchent. Un seul passage laissait « Hello,how ». Plafond à 8 : « Hello ,how are you ? I said ,,no. Two  spaces
+     here. » converge en 3 passes ; la boucle sort dès que plus rien ne bouge, le plafond n'est là que contre un cycle.
+     Le moteur rend des plages « mot,mot » -> « mot, mot » : on n'en garde que la RETOUCHE (ce qui change entre le préfixe et
+     le suffixe communs), qui ne porte jamais sur une lettre. Rend le nombre de retouches faites. */
+  function typographie(S){
+    var n=0;
+    for(var pass=0; pass<8; pass++){
+      var plain=texteDe(S), tp=C.typoScanEn ? C.typoScanEn(plain) : [];
+      if(!tp.length) break;
+      var prot=zonesProtegees(plain), fait=0;
+      tp.sort(function(x, y){ return y.cs-x.cs; });                              // de la FIN vers le DÉBUT : les positions de gauche restent valables
+      for(var i=0;i<tp.length;i++){ var e=tp[i];
+        if(dansZone(prot, e.cs, e.ce)) continue;
+        var from=plain.slice(e.cs, e.ce), to=String(e.sugg), p=0, q=0;
+        while(p<from.length && p<to.length && from.charAt(p)===to.charAt(p)) p++;
+        while(q<from.length-p && q<to.length-p && from.charAt(from.length-1-q)===to.charAt(to.length-1-q)) q++;
+        if(editeSegments(S, e.cs+p, e.ce-q, to.slice(p, to.length-q))) fait++; }
+      if(!fait) break;
+      n+=fait;
+    }
+    return n;
+  }
+  function vueCorrigee(S){
+    var h='';
+    for(var i=0;i<S.length;i++){ var g=S[i], f=g.f;
+      if(!f){ h+=esc(g.s); continue; }
+      if(f.on && f.del){ h+='<span class="corr on gone" data-key="'+esc(f.key)+'" data-n="'+f.n+'" data-w="'+esc(f.word)+'" tabindex="0" role="button" title="'+esc(titreDe(f))+'"></span>'; continue; }
+      h+=balise(f, f.on?'on':(f.info?'vig':f.cls), true)+esc(g.s)+'</span>'; }
+    return h;
+  }
+  /* 📖 LISIBILITÉ — Flesch Reading Ease (coefficients anglais), syllabes par groupes de voyelles. Indicatif, jamais un
+     jugement ; muet sous 8 mots. Le MÊME tokeniseur que le moteur. */
   function lisibilite(tx){
     var ph=tx.split(/[.!?…]+/).filter(function(x){return x.trim().length>1;});
-    var mots=(window.CorrectorEN&&window.CorrectorEN.tokenize)?window.CorrectorEN.tokenize(tx):[];   // le MÊME tokeniseur que le moteur — la sonde anti-drift veille
-    if(mots.length<8||!ph.length)return null;
-    var syl=0;for(var i=0;i<mots.length;i++){var g=mots[i].toLowerCase().match(/[aeiouy]+/g);syl+=g?g.length:1;}
-    var sc=Math.max(0,Math.min(100,Math.round(206.835-1.015*(mots.length/ph.length)-84.6*(syl/mots.length))));
+    var mots=C.tokenize ? C.tokenize(tx) : [];
+    if(mots.length<8 || !ph.length) return null;
+    var syl=0; for(var i=0;i<mots.length;i++){ var g=mots[i].toLowerCase().match(/[aeiouy]+/g); syl+=g?g.length:1; }
+    var sc=Math.max(0, Math.min(100, Math.round(206.835-1.015*(mots.length/ph.length)-84.6*(syl/mots.length))));
     var lbl=sc>=70?'very easy to read':(sc>=60?'easy to read':(sc>=50?'standard reading':(sc>=30?'demanding reading':'dense reading')));
-    return {s:sc,lbl:lbl};
+    return {s:sc, lbl:lbl};
   }
-  var zone=document.getElementById('in');
-  var chip=document.createElement('div');chip.id='readability';chip.style.cssText='margin-top:6px;font-size:13px;opacity:.85';
-  var out=document.getElementById('out');if(out&&out.parentNode)out.parentNode.insertBefore(chip,out);
-  function maj(){var li=zone?lisibilite(zone.value||''):null;
-    chip.textContent=li?('📖 '+li.lbl+' ('+li.s+'/100 — indicative, never a judgment)'):'';}
-  if(zone){zone.addEventListener('input',maj);maj();}
-})();
-</script>
-<script>
-/* READ-ALOUD (2026-08-13, miroir du FR) : proofreading by EAR — karaoke highlight of the word
-   being read, over #out ; snapshot/restore, no re-analysis. Local voices only, nothing sent. */
-(function(){
-  var br=document.getElementById('readaloud');if(!br)return;
-  if(!('speechSynthesis' in window)){br.style.display='none';return;}
-  var stl=document.createElement('style');
-  stl.textContent='.karaoke{font-size:1.06em;line-height:2;padding:8px 10px}'
-    +'.kara.lit{background:#1f5fa8;color:#fff!important;border-radius:4px;padding:1px 3px}';
-  document.head.appendChild(stl);
-  var enCours=false,avant=null;
-  function esc2(x){return String(x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-  function stop(){try{speechSynthesis.cancel();}catch(e){}
-    enCours=false;br.textContent='🔊 Read aloud';
-    var out=document.getElementById('out');if(out&&avant!=null){out.innerHTML=avant;avant=null;}}
-  br.addEventListener('click',function(){
-    if(enCours){stop();return;}
-    var z=document.getElementById('in'),out=document.getElementById('out');if(!z||!out)return;
-    var txt=z.value||'';if(!txt.trim())return;
-    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g,m,pos=[];
-    while((m=re.exec(txt)))pos.push([m.index,m.index+m[0].length]);
-    avant=out.innerHTML;
-    var html='',last=0;
-    for(var k=0;k<pos.length;k++){html+=esc2(txt.slice(last,pos[k][0]))+'<span class="kara" data-k="'+k+'">'+esc2(txt.slice(pos[k][0],pos[k][1]))+'</span>';last=pos[k][1];}
-    out.innerHTML='<div class="karaoke">'+html+esc2(txt.slice(last))+'</div>';
-    try{
-      speechSynthesis.cancel();
-      var u=new SpeechSynthesisUtterance(txt);u.lang='en-US';u.rate=0.95;
-      u.onboundary=function(ev){if(ev.name&&ev.name!=='word')return;var ci=ev.charIndex||0,idx=-1;
-        for(var k=0;k<pos.length;k++){if(ci<pos[k][1]){idx=k;break;}}
-        var old=out.querySelector('.kara.lit');if(old)old.classList.remove('lit');
-        if(idx>=0){var el=out.querySelector('.kara[data-k="'+idx+'"]');
-          if(el){el.classList.add('lit');try{el.scrollIntoView({block:'nearest'});}catch(e){}}}};
-      u.onend=stop;u.onerror=stop;
-      enCours=true;br.textContent='⏹ Stop';
-      speechSynthesis.speak(u);
-    }catch(e){stop();}
+  function compteurHtml(text, corrs){
+    var li=lisibilite(text), n=corrs.length, h='';
+    if(n){
+      var sur=corrs.filter(function(f){return f.cls==='red';}).length, ap=corrs.filter(function(f){return f.on;}).length;
+      h='<b>'+n+'</b> correction'+(n>1?'s':'')+': <b>'+sur+'</b> sure · <b>'+(n-sur)+'</b> to check <span class="sc">('+ap+' applied — click an underlined word to open its card)</span>';
+    }
+    if(li) h+=(h?' · ':'')+'📖 '+li.lbl+' <span class="sc">('+li.s+'/100'+(n?'':' — indicative, never a judgment')+')</span>';
+    return h;
+  }
+  function puce(f){
+    var c='<span class="chip" data-key="'+esc(f.key)+'" data-n="'+f.n+'" tabindex="0" role="button">';
+    if(f.info && !f.choisi) return c+esc(f.word)+' ↔ <b>'+esc(f.sugg)+'</b></span>';
+    if(f.on) return c+'<s>'+esc(f.word)+'</s> '+(f.del?'<b>removed</b>':'→ <b>'+esc(remplacement(f))+'</b>')+'</span>';
+    return c+esc(f.word)+' → <b>'+(f.del?'remove':esc(remplacement(f)))+'</b> <span class="sc">['+esc(LABEL[f.rule]||f.rule)+']</span></span>';
+  }
+  /* LES LISTES sous le texte corrigé. `pret` = le dictionnaire est chargé : tant qu'il ne l'est pas on le DIT — sans lui il
+     n'y a aucune marque, et la page française a un jour affirmé « aucune faute » pendant les 30 s du premier chargement. */
+  function listesHtml(pret, text, tous, nTypo){
+    if(!pret) return '<div class="fact"><b>⏳ Loading the dictionary…</b> <span class="sc">checking starts in a moment.</span></div>';
+    if(text.length>MAX_CAR) return '<div class="fact tov">📏 <b>Text too long</b> ('+text.length.toLocaleString('en')+' characters) for live checking. Above '+MAX_CAR.toLocaleString('en')+' characters, check it section by section (one paragraph at a time). Your text is not modified.</div>';
+    var h='', nIg=0, nUd=0, k, mots=[];
+    for(k in _ign) nIg++;
+    for(k in _UD){ nUd++; if(mots.length<8) mots.push(k); }
+    if(nIg) h+='<div class="fact">🚫 <b>'+nIg+'</b> ignored <button type="button" class="mini" data-act="unig">↩ restore</button></div>';
+    if(text.trim()){
+      var on=tous.filter(function(f){return f.on;}), off=tous.filter(function(f){return !f.on && !f.info;}), vig=tous.filter(function(f){return f.info && !f.on;});
+      if(!tous.length && !nTypo) h+='<div class="fact ok"><b>✓ No mistakes found.</b></div>';
+      if(on.length) h+='<div class="fact ok"><b>✓ Applied</b> <span class="sc">(click: undo or ignore)</span><br>'+on.map(puce).join('')+'</div>';
+      if(off.length) h+='<div class="fact tov"><b>To check</b> <span class="sc">(click: apply or ignore)</span><br>'+off.map(puce).join('')+'</div>';
+      if(vig.length) h+='<div class="fact vigb"><b>👀 Easy to mix up</b> <span class="sc">(click: details or ignore)</span><br>'+vig.map(puce).join('')+'</div>';
+      if(nTypo) h+=_typoOff
+        ? '<div class="fact tov">␣ <b>'+nTypo+'</b> punctuation issue'+(nTypo>1?'s':'')+' (spacing, doubled marks) — not fixed <button type="button" class="mini" data-act="typo">fix</button></div>'
+        : '<div class="fact ok">␣ <b>'+nTypo+'</b> punctuation fix'+(nTypo>1?'es':'')+' made in the corrected text (spacing, doubled marks) <button type="button" class="mini" data-act="typo">undo</button></div>';
+    }
+    if(nUd) h+='<div class="fact">📗 <b>'+nUd+'</b> word'+(nUd>1?'s':'')+' in your dictionary <span class="sc">('+esc(mots.join(', '))+(nUd>mots.length?'…':'')+')</span> <button type="button" class="mini" data-act="udreset">↩ forget</button></div>';
+    return h;
+  }
+  function pourquoiHtml(tous){
+    var h='';
+    for(var k=0;k<tous.length;k++){ var f=tous[k];
+      h+='<li class="'+f.cls+'"><b>'+esc(f.word)+'</b> '+((f.info&&!f.choisi) ? '— often confused with: '+esc(f.sugg) : f.del ? '→ remove' : '→ '+esc(remplacement(f)))+(f.why ? ' — '+esc(f.why) : '')+'</li>'; }
+    return h;
+  }
+  /* ➡️ AIDE-FRAPPE — les mots COURANTS qui commencent comme le mot en cours de frappe (Tab prend le premier). Classement par
+     fréquence SUBTLEX ; le plancher écarte les mots rares, donc un préfixe fautif (« recie ») ne rend rien et la correction
+     prend le relais — la leçon du français (« pome » ne doit pas proposer « pomerol »). Mesuré : ≤ 8 ms par frappe. */
+  /* ⚠️ Les fréquences viennent de SOUS-TITRES de films (SUBTLEX) : « shit » (24 207) y est plus courant que « shirt ». Une barre
+     qui propose des grossièretés à un enfant qui tape « sh » n'est pas acceptable — ces mots restent dans le dictionnaire
+     (on peut les écrire, ils ne sont pas soulignés), ils ne sont simplement jamais PROPOSÉS. Liste large exprès : un mot
+     banal écarté à tort coûte une proposition ; l'inverse coûte la confiance d'une classe. */
+  var _COMP_STOP=/^(?:fuck|motherf|shit|bullshit|horseshit|chickenshit|bitch|ass$|asses$|asshole|arse$|arsehole|jackass|dumbass|smartass|badass|bastard|dick$|dicks$|dickhead|cock$|cocks$|cocksuck|puss(?:y|ies)$|cunt|whore|slut|piss|tits?$|titt|boob|nigg|fags?$|faggot|dykes?$|kike|chinks?$|spic$|retard|crap|goddam|damn|wank|porn|sex(?:y|ier|iest|ing)?$|rap(?:e|ed|es|ist|ists)$|penis|vagina|horny|butts?$|butthole|douche|pricks?$|twat|hooker|blowjob|cum$|jizz|dildo|orgasm|bollock|bugger|homo$|hoes?$|turd|poop|pee$|fart|hell$|bloody$|screw|suck|pimp(?:s|ing)?$|hump(?:s|ing)?$|stripper|condom|boner|clit|tampon|anal$|anus|erection|ejacul|masturb|sonofabitch|shite)/;
+  var _tri=null, _freqTri=null;
+  function triFreq(){
+    if(_tri) return _tri;
+    var a=[];
+    LEX.FREQ.forEach(function(fq, w){ if(fq>=SEUIL_COMP && /^[a-z]+(?:'[a-z]+)?$/.test(w) && !_COMP_STOP.test(w)) a.push([w, fq]); });
+    a.sort(function(x, y){ return y[1]-x[1] || (x[0]<y[0]?-1:1); });
+    _tri=a.map(function(x){ return x[0]; }); _freqTri=a.map(function(x){ return x[1]; });
+    return _tri;
+  }
+  function completions(prefixe){
+    if(!LEX) return [];
+    var p=String(prefixe).toLowerCase().replace(/[’ʼ]/g,"'");
+    if(p.length<2 || !/^[a-z']+$/.test(p)) return [];
+    /* PLANCHER RELATIF : quand ce qui est tapé est DÉJÀ un mot courant (« here », 230 788), on ne propose que des mots du même
+       ordre de fréquence (≥ 1/200) — « hereby » (325) sous « here » n'aide personne ; « there, they, them » sous « the », si. */
+    var T=triFreq(), o=[], maj=/^[A-Z]/.test(prefixe), plancher=(LEX.FREQ.get(p)||0)/200;
+    for(var i=0;i<T.length && o.length<6;i++){ var w=T[i];
+      if(_freqTri[i]<plancher) break;                                           // trié par fréquence : tout ce qui suit est plus rare encore
+      if(w.length>p.length && w.lastIndexOf(p, 0)===0) o.push(maj ? w.charAt(0).toUpperCase()+w.slice(1) : w); }
+    return o;
+  }
+  var _WCH=/[A-Za-z'’ʼ]/;
+  function motSousCurseur(v, pos){ var s=pos, e=pos; while(s>0 && _WCH.test(v.charAt(s-1))) s--; while(e<v.length && _WCH.test(v.charAt(e))) e++; return {word:v.slice(s, e), start:s, end:e}; }
+
+  /* ─── À PARTIR D'ICI : LE DOM ─────────────────────────────────────────────────────────────────────────────────────── */
+  /* La zone de saisie est un contenteditable (le surlignage vit sur le texte). On lui donne l'interface d'une <textarea> :
+     `value`, et un curseur repéré par son DÉCALAGE DANS LE TEXTE — c'est lui qu'on restaure après chaque redessin. */
+  function ceCurseur(el){ var s=window.getSelection(); if(!s || !s.rangeCount) return null; var r=s.getRangeAt(0); if(!el.contains(r.endContainer)) return null;
+    var pre=r.cloneRange(); pre.selectNodeContents(el); pre.setEnd(r.endContainer, r.endOffset); return pre.toString().length; }
+  function cePoseCurseur(el, off){
+    if(el==null || off==null) return;
+    var s=window.getSelection(), r=document.createRange(), vu=0, fait=false;
+    (function marche(n){ for(var c=n.firstChild; c && !fait; c=c.nextSibling){
+      if(c.nodeType===3){ var L=c.nodeValue.length; if(vu+L>=off){ r.setStart(c, Math.max(0, Math.min(L, off-vu))); fait=true; return; } vu+=L; }
+      else marche(c); } })(el);
+    if(fait) r.collapse(true); else { r.selectNodeContents(el); r.collapse(false); }
+    try{ s.removeAllRanges(); s.addRange(r); }catch(e){}
+  }
+  Object.defineProperty(inEl, 'value', {configurable:true, get:function(){ return this.textContent; }, set:function(v){ this.textContent=(v==null?'':String(v)); }});
+  function insereTexte(txt){                        // un NŒUD TEXTE à la place de la sélection : les « \n » sont gardés (execCommand les avale)
+    var s=window.getSelection(); if(!s || !s.rangeCount) return;
+    var rg=s.getRangeAt(0); if(!inEl.contains(rg.commonAncestorContainer)) return;
+    rg.deleteContents(); var tn=document.createTextNode(txt); rg.insertNode(tn);
+    if(/\n$/.test(inEl.textContent) && !(inEl.lastChild && inEl.lastChild.nodeName==='BR')) inEl.appendChild(document.createElement('br'));   // sentinelle du saut de ligne final (cf. run)
+    rg.setStart(tn, tn.nodeValue.length); rg.collapse(true);
+    s.removeAllRanges(); s.addRange(rg);
+    inEl.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+  /* ANNULER (Ctrl+Z) — redessiner le contenteditable vide la pile d'annulation du navigateur. On tient donc la nôtre : un
+     instantané du texte à chaque pause de frappe. */
+  var _hist=[], _hpos=-1;
+  function histNote(t){
+    var c=ceCurseur(inEl);
+    if(_hpos>=0 && _hist[_hpos].t===t){ if(c!=null) _hist[_hpos].c=c; return; }
+    _hist=_hist.slice(0, _hpos+1); _hist.push({t:t, c:c==null?t.length:c});
+    if(_hist.length>200) _hist.shift();
+    _hpos=_hist.length-1;
+  }
+  function histVa(d){
+    histNote(inEl.value);                                                     // la frappe en cours d'abord (elle doit pouvoir être refaite)
+    var n=_hpos+d; if(n<0 || n>=_hist.length) return;
+    _hpos=n; inEl.value=_hist[n].t; cePoseCurseur(inEl, _hist[n].c); run(); completer();
+  }
+  function maintenant(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+  /* SEMI-DIRECT : on relance 350 ms après la dernière frappe — et plus tard si l'analyse est longue (gros texte), pour ne
+     jamais couper la frappe. */
+  function planifier(ms){ clearTimeout(_t); clearTimeout(_t2); _t=setTimeout(function(){ run(true); }, ms==null ? Math.max(350, Math.min(1500, Math.round(_duree*3))) : ms); }
+
+  /* `enFrappe` : la relance vient de la frappe. Le mot sous le curseur est alors INACHEVÉ (« rece… ») : le souligner à chaque
+     pause ferait clignoter du rouge sous chaque mot qu'on écrit, et le corrigé afficherait des devinettes. On le laisse donc
+     de côté — 1,1 s seulement : sans nouvelle frappe, une seconde passe le vérifie comme les autres (on s'arrête souvent
+     juste après le dernier mot, sans espace). Toute autre relance (clic, copie, carte) vérifie tout, tout de suite. */
+  function run(enFrappe){
+    clearTimeout(_t); clearTimeout(_t2); fermerCarte(false); arreterLecture(false);
+    var t=inEl.value, t0=maintenant(), pret=!!LEX && _pret, trop=t.length>MAX_CAR, nTypo=0, finMot=-1;
+    histNote(t);
+    if(enFrappe===true && document.activeElement===inEl){ var c0=ceCurseur(inEl), w0=c0==null ? null : motSousCurseur(t, c0); if(w0 && w0.word && c0===w0.end){ finMot=w0.end; _t2=setTimeout(run, 1100); } }
+    _tous=(pret && !trop) ? calcule(t, finMot) : [];
+    _corrs=_tous.filter(function(f){return !f.info || f.on;});
+    _vigs=_tous.filter(function(f){return f.info && !f.on;});
+    /* la saisie : on ne redessine que s'il y a (ou s'il y avait) quelque chose à souligner — du texte nu reste tel que le
+       navigateur le tient, curseur compris */
+    if(_tous.length || inEl.firstElementChild || t.charAt(t.length-1)==='\n'){
+      var c=ceCurseur(inEl);
+      /* un « \n » FINAL n'ouvre pas de ligne à l'écran dans un contenteditable : le curseur retombe devant lui et la frappe
+         suivante passe AVANT le saut de ligne (vu au navigateur). Un <br> sentinelle règle ça ; il n'ajoute rien au texte. */
+      inEl.innerHTML=vueSaisie(t, _tous)+(t.charAt(t.length-1)==='\n' ? '<br>' : '');
+      if(inEl.textContent!==t){ inEl.textContent=t; if(window.console) console.warn('OMEGA: input rendering changed the text — plain text restored'); }   // sentinelle « texte intact »
+      cePoseCurseur(inEl, c);
+    }
+    var S=segments(t, _tous);
+    if(pret && !trop){
+      var S2=S.map(function(g){ return {s:g.s, f:g.f}; });
+      nTypo=typographie(S2);
+      if(!_typoOff) S=S2;
+    }
+    _corrige=texteDe(S);
+    outEl.innerHTML=vueCorrigee(S);
+    if(outEl.textContent!==_corrige) outEl.textContent=_corrige;                // sentinelle : ce qu'on lit == ce qu'on copie
+    cnt.innerHTML=(pret && !trop && t.trim()) ? compteurHtml(t, _corrs) : '';
+    listes.innerHTML=listesHtml(pret, t, _tous, nTypo);
+    var pq=pourquoiHtml(_tous); whyEl.innerHTML=pq; $('whybox').hidden=!pq;
+    var sig=_corrs.map(function(f){return f.cs+':'+f.key;}).join('/');
+    if(sig!==_navSig){ _navSig=sig; _navIdx=-1; }
+    navRendu();
+    if(_navIdx>=0 && _corrs[_navIdx]){ surligne(inEl, _corrs[_navIdx].n); surligne(outEl, _corrs[_navIdx].n); }
+    _duree=maintenant()-t0;
+  }
+
+  /* NAVIGATION ◂ ▸ entre les corrections : la courante est cerclée dans la saisie (là où est l'œil) ET dans le corrigé. */
+  function navRendu(){
+    var nv=$('nav'); if(_corrs.length<2){ nv.hidden=true; return; }
+    nv.hidden=false; $('navpos').textContent=(_navIdx<0 ? '·' : (_navIdx+1))+' / '+_corrs.length;
+  }
+  function surligne(cont, n){
+    var sp=cont.querySelectorAll('[data-n]'), t=null;
+    for(var i=0;i<sp.length;i++){ sp[i].classList.remove('cur'); if(sp[i].getAttribute('data-n')===String(n)) t=sp[i]; }
+    if(t) t.classList.add('cur');
+    return t;
+  }
+  function navVa(d){
+    var n=_corrs.length; if(n<2) return;
+    _navIdx=_navIdx<0 ? (d>0?0:n-1) : (_navIdx+d+n)%n;
+    navRendu();
+    var a=surligne(inEl, _corrs[_navIdx].n), b=surligne(outEl, _corrs[_navIdx].n), cible=a||b;
+    var doux=!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if(cible && cible.scrollIntoView) cible.scrollIntoView({block:'center', behavior:doux?'smooth':'auto'});
+  }
+  $('prev').addEventListener('click', function(){ navVa(-1); });
+  $('next').addEventListener('click', function(){ navVa(1); });
+
+  /* LA CARTE — un clic sur un mot souligné (saisie, corrigé ou puce). */
+  var pop=$('cardpop'), _carteSpan=null;
+  function fermerCarte(rendreFocus){
+    if(pop.style.display!=='block') return;
+    pop.style.display='none';
+    if(rendreFocus && _carteSpan && document.body.contains(_carteSpan)){ try{ _carteSpan.focus(); }catch(e){} }
+    _carteSpan=null;
+  }
+  function bascule(f){
+    if(f.info) delete _choix[f.key];
+    else if(f.on){ if(parDefaut(f)) _off[f.key]=1; delete _on[f.key]; }
+    else { if(!parDefaut(f)) _on[f.key]=1; delete _off[f.key]; }
+    run();
+  }
+  /* « It's a word » n'a de sens que pour un mot INCONNU du dictionnaire (prénom, lieu, jargon) — pas pour une faute attestée
+     (« recieve » est dans la table des fautes connues : ce n'est pas un mot), ni pour une confusion entre deux vrais mots. */
+  function motInconnu(f){ var w=f.word.toLowerCase(); return f.rule==='spelling' && /^[a-z][a-z'’-]+$/.test(w) && !!LEX && !LEX.KNOWN.has(w) && !(LEX.ATTESTED && LEX.ATTESTED.has(w)) && !_UD[w]; }
+  function voixLocale(){                              // une voix anglaise INSTALLÉE si l'appareil en a une : la lecture reste alors sur l'appareil
+    try{ var v=speechSynthesis.getVoices().filter(function(x){ return /^en([-_]|$)/i.test(x.lang) && x.localService; });
+      return v.filter(function(x){ return /en[-_]US/i.test(x.lang); })[0] || v[0] || null; }catch(e){ return null; }
+  }
+  function enonce(txt){ var u=new SpeechSynthesisUtterance(txt), v=voixLocale(); if(v){ u.voice=v; u.lang=v.lang; } else u.lang='en-US'; u.rate=0.95; return u; }
+  function dire(txt){ if(!txt || !('speechSynthesis' in window)) return; try{ speechSynthesis.cancel(); speechSynthesis.speak(enonce(String(txt).replace(/\s+/g,' ').trim())); }catch(e){} }
+  function ouvrirCarte(span, auClavier){
+    var f=_tous[+span.getAttribute('data-n')]; if(!f || f.key!==span.getAttribute('data-key')) return;
+    var vig=f.info && !f.choisi, h='';
+    pop.className=vig ? 'vigc' : (f.on ? '' : 'tov');
+    h+='<div class="vch">'+(vig ? '👀 Easy to mix up' : (f.on ? '✓ Correction applied' : 'To check'))+'</div>';
+    if(vig) h+='<div class="vcs">'+esc(f.word)+' <span class="sc">or</span> '+f.alts.map(function(a){ return '<span class="vcp">'+esc(a)+'</span>'; }).join(' <span class="sc">or</span> ')+' ?</div>';
+    else if(f.del) h+='<div class="vcs">remove <s>'+esc(f.word)+'</s></div>';
+    else h+='<div class="vcs"><s>'+esc(f.word)+'</s> → <span class="vcp">'+esc(remplacement(f))+'</span></div>';
+    h+='<div class="vca">';
+    if(vig) h+=f.alts.map(function(a, i){ return '<button type="button" class="vcalt'+(i?'':' vcap')+'" data-alt="'+esc(a)+'">Use “'+esc(a)+'”</button>'; }).join('');
+    else h+='<button type="button" class="vcap">'+(f.on?'Undo':'Apply')+'</button>';
+    h+='<button type="button" class="vcig">Ignore</button>';
+    if(motInconnu(f)) h+='<button type="button" class="vcud" title="This word is correct (a name, a place, jargon): stop flagging it">📗 It’s a word</button>';
+    h+='</div>';
+    if(f.why) h+='<div class="vcx"><span class="vcb">💡 Why?</span> '+esc(f.why)+' <button type="button" class="vcsp" title="Listen to the explanation" aria-label="Listen to the explanation">🔊</button></div>';
+    h+='<div class="vce">'+esc(LABEL[f.rule]||f.rule)+((f.cls==='orange' && !vig) ? ' · to confirm' : '')+'</div>';
+    pop.innerHTML=h;
+    var b, alts=pop.querySelectorAll('.vcalt');
+    for(var i=0;i<alts.length;i++) alts[i].onclick=function(){ _choix[f.key]=this.getAttribute('data-alt'); run(); };
+    if((b=pop.querySelector('.vcap')) && !vig) b.onclick=function(){ bascule(f); };
+    pop.querySelector('.vcig').onclick=function(){ _ign[f.key]=1; delete _choix[f.key]; run(); };
+    if((b=pop.querySelector('.vcud'))) b.onclick=function(){ _UD[f.word.toLowerCase()]=1; sauveUD(); run(); };
+    if((b=pop.querySelector('.vcsp'))) b.onclick=function(){ dire(vig ? f.why : ('“'+f.word+'” '+(f.del ? 'should be removed. ' : 'becomes “'+remplacement(f)+'”. ')+f.why)); };
+    /* placée SOUS le mot, en coordonnées de PAGE (elle suit le défilement) ; au-dessus si le bas de l'écran la couperait */
+    pop.style.display='block';
+    var r=span.getBoundingClientRect(), W=document.documentElement.clientWidth||window.innerWidth||800, H=window.innerHeight||600;
+    var gauche=Math.max(8, Math.min(r.left, W-pop.offsetWidth-8)), haut=r.bottom+8;
+    if(haut+pop.offsetHeight>H-8 && r.top-pop.offsetHeight-8>8) haut=r.top-pop.offsetHeight-8;
+    pop.style.left=(gauche+window.pageXOffset)+'px'; pop.style.top=(haut+window.pageYOffset)+'px';
+    _carteSpan=span;
+    if(auClavier){ var prem=pop.querySelector('button'); if(prem) try{ prem.focus(); }catch(e){} }
+  }
+  function clicCarte(e){ var s=e.target.closest ? e.target.closest('[data-key]') : null; if(!s) return; e.stopPropagation(); ouvrirCarte(s, false); }
+  function toucheCarte(e){ if(e.key!=='Enter' && e.key!==' ' && e.key!=='Spacebar') return; var s=e.target.closest ? e.target.closest('[data-key]') : null; if(!s) return; e.preventDefault(); ouvrirCarte(s, true); }
+  inEl.addEventListener('click', function(e){ completer(); clicCarte(e); });
+  outEl.addEventListener('click', clicCarte); outEl.addEventListener('keydown', toucheCarte);
+  listes.addEventListener('click', function(e){
+    var b=e.target.closest ? e.target.closest('[data-act]') : null;
+    if(b){ var act=b.getAttribute('data-act');
+      if(act==='unig') _ign={};
+      else if(act==='typo') _typoOff=!_typoOff;
+      else if(act==='udreset'){ _UD={}; sauveUD(); }
+      run(); return; }
+    clicCarte(e);
   });
+  listes.addEventListener('keydown', toucheCarte);
+  document.addEventListener('click', function(e){ if(pop.style.display==='block' && !pop.contains(e.target)) fermerCarte(false); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape' && pop.style.display==='block'){ e.preventDefault(); fermerCarte(true); } });
+
+  /* dictionnaire personnel (« It's a word ») — sur cet appareil seulement */
+  function sauveUD(){ try{ localStorage.setItem('omega_en_ud', JSON.stringify(Object.keys(_UD))); }catch(e){} }
+  try{ (JSON.parse(localStorage.getItem('omega_en_ud')||'[]')||[]).forEach(function(w){ if(typeof w==='string') _UD[w]=1; }); }catch(e){}
+
+  /* AIDE-FRAPPE : seulement en FIN de mot (préfixe en cours de frappe). Tab prend la première proposition. */
+  var compEl=$('complete'), _comp1=null, _tactile=!!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  function completer(){
+    _comp1=null;
+    var v=inEl.value, pos=ceCurseur(inEl); if(pos==null){ compEl.innerHTML=''; return; }
+    var w=motSousCurseur(v, pos);
+    if(!w.word || pos!==w.end){ compEl.innerHTML=''; return; }
+    var cs=completions(w.word); if(!cs.length){ compEl.innerHTML=''; return; }
+    _comp1=cs[0];
+    compEl.innerHTML='<span class="sc">➡️ complete '+(_tactile?'':'(Tab) ')+':</span>'+cs.map(function(a, i){ return '<button type="button" class="comp'+(i?'':' top')+'" data-w="'+esc(a)+'">'+esc(a)+'</button>'; }).join('');
+  }
+  function poseCompletion(repl){
+    var v=inEl.value, pos=ceCurseur(inEl); if(pos==null) pos=v.length;
+    var w=motSousCurseur(v, pos); if(!w.word || !repl) return;
+    inEl.value=v.slice(0, w.start)+repl+v.slice(w.end);
+    var np=w.start+repl.length; if(inEl.value.charAt(np)===' ') np++;
+    inEl.focus(); cePoseCurseur(inEl, np); run(); completer();
+  }
+  compEl.addEventListener('mousedown', function(e){ e.preventDefault(); });   // le clic sur une proposition ne doit pas faire perdre le curseur à la saisie
+  compEl.addEventListener('click', function(e){ var b=e.target.closest ? e.target.closest('.comp') : null; if(b) poseCompletion(b.getAttribute('data-w')); });
+  if(_tactile){ var ed=$('editor'); ed.parentNode.insertBefore(compEl, ed); }  // tactile : les propositions AU-DESSUS de la saisie (sinon sous le clavier virtuel)
+
+  inEl.addEventListener('input', function(){ if(_compo) return; completer(); planifier(); });
+  inEl.addEventListener('compositionstart', function(){ _compo=true; });
+  inEl.addEventListener('compositionend', function(){ _compo=false; completer(); planifier(); });
+  inEl.addEventListener('keyup', function(e){ if(e.key && (e.key.indexOf('Arrow')===0 || e.key==='Home' || e.key==='End')) completer(); });
+  inEl.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); insereTexte('\n'); return; }
+    if(e.key==='Escape' && _comp1){ _comp1=null; compEl.innerHTML=''; return; }   // Échap retire les propositions : Tab redevient « champ suivant » (on ne piège pas le clavier)
+    if(e.key==='Tab' && _comp1 && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey){ e.preventDefault(); poseCompletion(_comp1); return; }
+    if((e.ctrlKey || e.metaKey) && !e.altKey){
+      var k=(e.key||'').toLowerCase();
+      if(k==='z'){ e.preventDefault(); histVa(e.shiftKey ? 1 : -1); }
+      else if(k==='y'){ e.preventDefault(); histVa(1); }
+    }
+  });
+  inEl.addEventListener('beforeinput', function(e){        // claviers virtuels : Entrée et Annuler n'y passent pas toujours par keydown
+    if(e.inputType==='insertParagraph' || e.inputType==='insertLineBreak'){ e.preventDefault(); insereTexte('\n'); }
+    else if(e.inputType==='historyUndo'){ e.preventDefault(); histVa(-1); }
+    else if(e.inputType==='historyRedo'){ e.preventDefault(); histVa(1); }
+  });
+  inEl.addEventListener('paste', function(e){ e.preventDefault(); var t=''; try{ t=(e.clipboardData||window.clipboardData).getData('text/plain'); }catch(_){ } if(t) insereTexte(t.replace(/\r\n?/g, '\n')); });
+  inEl.addEventListener('drop', function(e){ e.preventDefault(); var t=''; try{ t=e.dataTransfer.getData('text/plain'); }catch(_){ } if(t){ inEl.focus(); insereTexte(t.replace(/\r\n?/g, '\n')); } });
+
+  clr.addEventListener('click', function(){ _on={}; _off={}; _ign={}; _choix={}; _typoOff=false; inEl.value=''; compEl.innerHTML=''; run(); inEl.focus(); });
+
+  /* 📋 COPIER le texte CORRIGÉ. On n'annonce « ✓ Copied » qu'APRÈS coup : writeText rend une PROMESSE, et son rejet (page non
+     focalisée, permission bloquée) ne remontait nulle part — l'interface AFFIRMAIT une copie qui n'avait pas eu lieu. */
+  var cp=$('copy');
+  cp.addEventListener('click', function(){
+    run();
+    var txt=_corrige, lbl=cp.getAttribute('data-lbl')||cp.textContent; cp.setAttribute('data-lbl', lbl);
+    function fini(ok){ cp.textContent=ok ? '✓ Copied' : '⚠ copy refused — Ctrl+C'; setTimeout(function(){ cp.textContent=lbl; }, ok?1200:3200); }
+    function repli(){ var ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;top:-1000px;left:0;opacity:0';
+      document.body.appendChild(ta); ta.select(); var ok=false; try{ ok=document.execCommand('copy'); }catch(_){ ok=false; } document.body.removeChild(ta); fini(ok); }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ fini(true); }, repli); else repli();
+  });
+
+  /* RÉGLAGES D'AFFICHAGE — mémorisés sur l'appareil. Le THÈME est celui du site (nav.js : data-theme sur <html>, clé
+     omega_theme) : le bouton de la barre et celui du haut de page restent d'accord, dans les deux sens. */
+  (function(){
+    var carte=$('card'), bT=$('t-theme'), bC=$('t-cb'), bL=$('t-lis'), racine=document.documentElement, reg={cb:false, lis:false};
+    try{ var lu=JSON.parse(localStorage.getItem('omega_en_corr')||'{}'); reg.cb=!!lu.cb; reg.lis=!!lu.lis; }catch(e){}
+    function sauve(){ try{ localStorage.setItem('omega_en_corr', JSON.stringify(reg)); }catch(e){} }
+    function theme(){ return racine.getAttribute('data-theme')==='light' ? 'light' : 'dark'; }
+    function applique(){
+      carte.classList.toggle('cb', reg.cb); carte.classList.toggle('lisible', reg.lis);
+      bC.setAttribute('aria-pressed', reg.cb?'true':'false'); bL.setAttribute('aria-pressed', reg.lis?'true':'false');
+      bT.textContent=theme()==='light' ? '☀️ Theme: light' : '🌙 Theme: dark';
+      bT.setAttribute('aria-pressed', theme()==='light'?'true':'false');
+    }
+    bT.addEventListener('click', function(){
+      var haut=document.querySelector('.a11y .a11y-btn');                       // le bouton de nav.js : lui sait mettre à jour sa propre étiquette
+      if(haut) haut.click();
+      else { var n=theme()==='light'?'dark':'light'; racine.setAttribute('data-theme', n); try{ localStorage.setItem('omega_theme', n); }catch(e){} }
+      applique();
+    });
+    bC.addEventListener('click', function(){ reg.cb=!reg.cb; sauve(); applique(); });
+    bL.addEventListener('click', function(){ reg.lis=!reg.lis; sauve(); applique(); });
+    if(window.MutationObserver) new MutationObserver(applique).observe(racine, {attributes:true, attributeFilter:['data-theme']});
+    applique();
+  })();
+
+  /* 🔊 LIRE — se relire par l'OREILLE : le texte TAPÉ est lu, le mot lu est surligné dans le cadre du bas (karaoké). On prend
+     une voix anglaise INSTALLÉE quand il y en a une ; sinon le navigateur choisit, et dans Chrome c'est sa voix Google, en
+     ligne — le ⓘ le dit, sans promesse « rien ne quitte l'appareil » (mesuré le 15/09/2026 : un PC français n'a souvent
+     aucune voix anglaise). Si la voix ne donne pas les frontières de mots, la lecture continue sans surlignage. */
+  var br=$('readaloud'), _lect=false;
+  function arreterLecture(redessiner){
+    if(!_lect) return;
+    _lect=false; try{ speechSynthesis.cancel(); }catch(e){}
+    br.textContent='🔊 Read aloud'; br.setAttribute('aria-pressed', 'false');
+    if(redessiner) run();
+  }
+  if(!('speechSynthesis' in window)) br.style.display='none';
+  else {
+    try{ speechSynthesis.getVoices(); if(speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged', function(){}); }catch(e){}
+    br.addEventListener('click', function(){
+      if(_lect){ arreterLecture(true); return; }
+      run();                                        // une relance en attente couperait la lecture 350 ms après son départ
+      var txt=inEl.value; if(!txt.trim()) return;
+      var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, m, pos=[];
+      while((m=re.exec(txt))) pos.push([m.index, m.index+m[0].length]);
+      var html='', last=0;
+      for(var k=0;k<pos.length;k++){ html+=esc(txt.slice(last, pos[k][0]))+'<span class="kara" data-k="'+k+'">'+esc(txt.slice(pos[k][0], pos[k][1]))+'</span>'; last=pos[k][1]; }
+      outEl.innerHTML='<div class="karaoke">'+html+esc(txt.slice(last))+'</div>';
+      try{
+        speechSynthesis.cancel();
+        var u=enonce(txt);
+        u.onboundary=function(ev){ if(ev.name && ev.name!=='word') return; var ci=ev.charIndex||0, idx=-1;
+          for(var k=0;k<pos.length;k++){ if(ci<pos[k][1]){ idx=k; break; } }
+          var old=outEl.querySelector('.kara.lit'); if(old) old.classList.remove('lit');
+          if(idx>=0){ var el=outEl.querySelector('.kara[data-k="'+idx+'"]'); if(el){ el.classList.add('lit'); try{ el.scrollIntoView({block:'nearest'}); }catch(e){} } } };
+        u.onend=function(){ arreterLecture(true); }; u.onerror=function(){ arreterLecture(true); };
+        _lect=true; br.textContent='⏹ Stop'; br.setAttribute('aria-pressed', 'true');
+        speechSynthesis.speak(u);
+      }catch(e){ arreterLecture(true); }
+    });
+  }
+
+  run();                                              // premier rendu : « Loading the dictionary… » tant que le lexique n'est pas là
 })();
 </script>
 <script>if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('../sw.js').catch(function(){});});}</script>

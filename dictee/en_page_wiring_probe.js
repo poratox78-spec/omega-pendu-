@@ -32,7 +32,7 @@ const _NON_REGLE = new Set(['deacc', 'phonKey', 'edits1', 'buildPhonIndex', 'tok
 
 /* Règles de TEXTE (pas de MOT) : elles réparent la ponctuation d'un bloc entier derrière un bouton de la page — hors du
    pipeline des mots par nature, donc appelées EN DIRECT par la page, et c'est ce qu'on exige d'elles. */
-const _REGLES_TEXTE = { typoScanEn: 'bouton « Fix punctuation » : espaces et doublons de ponctuation sur tout le texte' };
+const _REGLES_TEXTE = { typoScanEn: 'espaces et doublons de ponctuation, réparés dans le TEXTE CORRIGÉ (la saisie reste telle quelle) — un bouton « Fix punctuation » avant le 18/09/2026' };
 
 /* Les ACTIFS que le moteur attend : la page doit demander chacun, et poser celui qui se pose par un appel
    (une table jamais chargée = des règles muettes, sans aucun symptôme — cf. PR#443, le modèle POS oublié). */
