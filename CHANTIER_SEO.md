@@ -49,7 +49,7 @@ par page de l'autre. On lit chaque ligne pour elle-même, jamais la somme.)*
 
 ---
 
-## 1. DIAGNOSTIC — cinq constats, par impact mesuré
+## 1. DIAGNOSTIC — six constats, par impact mesuré
 
 ### ① Google RÉÉCRIT nos titres, et le mot cherché disparaît de la ligne bleue
 
@@ -109,7 +109,33 @@ comparatifs ou des pages institutionnelles.** Aucun n'est un correcteur qu'on ut
 Conclusion mesurée : sur cette requête, du code ne nous fera pas entrer. **Y entrer, c'est être
 CITÉ dans ces listes.** C'est un travail hors-site, pas un travail de balises.
 
-### ⑤ Le plafond arithmétique — à dire avant de dépenser du temps
+### ⑤ Aucune de nos pages produit n'a UNE SEULE requête nommable
+
+Mesuré en filtrant le rapport page par page (`&page=!https://omegapendu.com/…`) :
+
+| page filtrée | impressions | position | requêtes nommées par Google |
+|---|---:|---:|---|
+| `/correcteur` | 54 | 3,9 | **aucune** |
+| `/recherche` | 77 | 3,2 | **aucune** |
+| `/docs/rapport-mode-emploi` | 87 | 3,8 | **aucune** |
+
+« Aucune donnée » ne veut pas dire zéro requête : Search Console **masque** les requêtes trop
+rares. Ces pages sont donc trouvées par une longue traîne de formulations vues une ou deux fois,
+jamais par une requête qui revient. Les 19 requêtes nommées du site (≈ 180 impressions) sont
+presque toutes accrochées à l'**accueil**.
+
+Trois conséquences, et c'est le constat le plus lourd du document :
+- **Google ne sait pas de quoi ce site est l'outil.** 815 impressions éparpillées sur des centaines
+  de formulations uniques, c'est la signature d'un site qu'on croise, pas d'un site qu'on cherche.
+- Ça explique le CTR de `/correcteur` (1,9 % en position 3,9) mieux que le titre seul : chaque
+  impression est une recherche DIFFÉRENTE et très précise, qu'aucun titre générique ne peut viser
+  toutes.
+- **Le Lot A reste juste, mais son gain est incertain sur cette page** : mettre les mots de tête
+  (« correcteur », « dyslexie », « gratuit ») dans la ligne bleue est le meilleur pari, parce que
+  la tête est ce que la plupart des variantes longues contiennent — mais ça se vérifiera à la
+  mesure, pas à la logique. À dire tel quel dans le relevé de J+28.
+
+### ⑥ Le plafond arithmétique — à dire avant de dépenser du temps
 
 815 impressions par trimestre. Même en portant chaque page à un très bon CTR, le plafond est de
 l'ordre de **80 à 120 clics par trimestre** au lieu de 44. C'est un gain réel, mais **la croissance
@@ -178,6 +204,9 @@ de le dire, on lira le tableau à l'envers dans un mois.
 ### VOIE 2 — apparaître sur des requêtes qui existent (le vrai levier, plus lent)
 
 #### Lot D — ouvrir un espace de requêtes, mesuré avant d'écrire
+
+*C'est ce lot que le constat ⑤ rend prioritaire : tant qu'aucune page n'est trouvée par une
+requête qui REVIENT, le site n'a pas d'adresse dans Google, seulement des rencontres.*
 
 Les « Recherches associées » relevées sur les deux pages de résultats donnent des intentions
 RÉELLES, observées, qu'aucune de nos pages ne sert :
