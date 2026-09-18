@@ -268,8 +268,15 @@ ne faut pas faire. Mesuré : poids réel en mots (scripts exclus) contre clics s
 
 ### Niveau 1 — épurer ce que GOOGLE voit (aucun effet sur les visiteurs)
 
-C'est le Lot B, plus une page oubliée : **`/toile`** — 72 mots, aucune `meta description`, un titre
-de 31 caractères, absente du menu, 0 clic. Elle est déclarée au sitemap : elle n'a rien à y faire.
+C'est le Lot B, plus une page qu'on n'avait pas regardée : **`/toile`** — 72 mots, aucune
+`meta description`, un titre de 31 caractères, 0 clic. ⚠️ Elle n'est PAS orpheline : c'est la vue
+**plein écran** d'une figure déjà intégrée en `iframe` dans `/recherche` (section « La toile du
+correcteur »). Elle n'a donc pas de contenu propre, et `/recherche` est sa vraie adresse — mais elle
+est déclarée au sitemap comme une page à part entière.
+
+Et c'est un MOTIF, pas un cas isolé : **une vue plein écran d'un contenu qui vit ailleurs ne doit
+pas être indexée séparément.** Le motif couvre `/toile` — et c'est exactement le même argument que
+la fusion de `/correcteur-outil` au niveau 2, qui est lui aussi un plein-écran d'une `iframe`.
 
 ### Niveau 2 — fusionner les doublons *(le geste le plus fort, et le plus structurel)*
 
