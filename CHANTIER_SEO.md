@@ -356,7 +356,16 @@ qui renvoie vers `/evolution` et `/omega-key`. Ni Scrabidon ni Données n'y figu
 | Données & police dys | non | **ajouter** | **oui, mais à part** — ce n'est pas un outil pour qui écrit mal, c'est pour les profs, orthophonistes et développeurs. Une ligne, plus bas, pas dans le même bloc |
 | « Le pendu » (le moteur) | oui, 2 boutons dans le héros | garder | **c'est mon seul désaccord** — voir ci-dessous |
 
-**Le désaccord : deux entrées « pendu » en haut de page.** Le héros propose déjà « Voir le pendu
+> ✅ **TRANCHÉ par Rem le 19/09 : « ok pas le pendu ».** La liste de l'accueil est donc arrêtée —
+> **le correcteur · la dictée · la saisie vocale · poser un calcul · Pendable**, puis **Données &
+> police dys** à part, plus bas. Double-Sens et Scrabidon restent au menu, pas sur l'accueil. Le
+> moteur du pendu n'est plus un produit de l'accueil : il redescend dans le récit.
+>
+> Conséquence dans le HÉROS, par cohérence : « ▶️ Voir le pendu jouer » est exactement la démo du
+> moteur — elle rejoint la section « Le pendu, mesuré ». Le héros garde **« ✍️ Ouvrir le
+> correcteur »** en action principale et **« 🎯 Jouer au pendu »** (Pendable) en second rang.
+
+**Le désaccord qui l'a motivé : deux entrées « pendu » en haut de page.** Le héros propose déjà « Voir le pendu
 jouer » ET « Jouer au pendu », et la liste ajoute Pendable. Or c'est exactement là que se joue le
 constat ⑤ : le visiteur qui arrive de *solveur pendu* (position 6, CTR 2,2 %) veut jouer ou
 résoudre, et celui qui arrive de *correcteur dyslexie* ne comprend pas pourquoi un site
