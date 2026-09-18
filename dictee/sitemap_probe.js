@@ -102,7 +102,10 @@ for (const [nom, depuis] of [['GROUPS', 'index.html'], ['GROUPS_EN', 'en/index.h
    mémoire, l'arbitrage… Le nom que Google lit (WebSite.name de l'accueil, og:site_name, <title>) doit être « OMEGA Pendu » —
    ce que les gens tapent — et le même partout ; les cinq pages à montrer (accueil, correcteur, dictée, saisie vocale, Pendable)
    le portent dans leur <title> ; et le menu (sur toutes les pages) ne pousse plus les pages de recherche : une seule entrée
-   « recherche », données/arbitrage/évolution se lisent depuis elle. */
+   « recherche », arbitrage/évolution se lisent depuis elle.
+   ⚠️ 18/09/2026 — DONNÉES N'EN FAIT PAS PARTIE : c'est une page produit (lexiques à télécharger, police dys). Elle était sortie
+   du menu avec le groupe « Recherche » ; Rem : « je suis pas d'accord […] on a fait un gros travail dessus et en plus y a la
+   police dys ». Le menu DOIT la porter. */
 const NOM = 'OMEGA Pendu';
 {
   const acc = lire('index.html');
@@ -119,10 +122,11 @@ const NOM = 'OMEGA Pendu';
     if (!t || t[1].indexOf(NOM) < 0) fail.push('<title> sans « ' + NOM + ' » : ' + p + (t ? '  (« ' + t[1] + ' »)' : ''));
   }
   const i = nav.indexOf('var GROUPS = ['), bloc = i < 0 ? '' : nav.slice(i, nav.indexOf('\n  ];', i));
-  const rech = [...bloc.matchAll(/\['(recherche|donnees|arbitrage|evolution|docs\/[a-zA-Z-]+)'/g)].map(m => m[1]);
+  const rech = [...bloc.matchAll(/\['(recherche|arbitrage|evolution|docs\/[a-zA-Z-]+)'/g)].map(m => m[1]);
   if (rech.join(',') !== 'recherche') fail.push('nav.js GROUPS pousse des pages de recherche dans le menu de toutes les pages : ' + (rech.join(', ') || '(aucune)') + ' — attendu : la seule entrée « recherche »');
+  if (!/\['donnees',/.test(bloc)) fail.push('nav.js GROUPS : la page Données (lexiques à télécharger, police dys) a disparu du menu — décision de Rem du 18/09/2026 : elle doit y être');
 }
 
 if (fail.length) { fail.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
 console.log('✓ sitemap : ' + declare.size + ' URL déclarées == ' + pages.length + ' pages du site (noindex exclues, zh/ hors périmètre), canonical = URL déclarée ; '
-            + nLiens + ' liens internes lus (pages + nav.js), aucun vers « .html » ; nom de site « ' + NOM + ' » (WebSite, og:site_name, 5 titres), menu sans pages de recherche.');
+            + nLiens + ' liens internes lus (pages + nav.js), aucun vers « .html » ; nom de site « ' + NOM + ' » (WebSite, og:site_name, 5 titres), menu sans pages de recherche, avec Données.');

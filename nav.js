@@ -23,9 +23,14 @@
       ['double-sens', 'Double-Sens'],
     ]],
     // Rem (17/09/2026) : sur Google, « omega pendu » listait Confidentialité, le modèle double route, le mémoire,
-    // l'arbitrage… — les pages de recherche, poussées par ce menu présent sur toutes les pages. Une seule entrée :
-    // Données, L'arbitrage et L'évolution se lisent depuis la page Recherche (pages_atteignables_probe le vérifie).
+    // l'arbitrage… — les pages de recherche, poussées par ce menu présent sur toutes les pages. Une seule entrée pour
+    // elles : L'arbitrage et L'évolution se lisent depuis la page Recherche (pages_atteignables_probe le vérifie).
+    // ⚠️ DONNÉES N'EST PAS UNE PAGE DE RECHERCHE (Rem, 18/09/2026 : « je suis pas d'accord que les données soient sorties du
+    // menu, on a fait un gros travail dessus et en plus y a la police dys ») : c'est une page PRODUIT — les lexiques à
+    // télécharger et la police dys. Sortie du menu par erreur avec le groupe « Recherche », elle y revient ; la garde
+    // sitemap_probe ⑤ EXIGE maintenant sa présence.
     ['Plus', [
+      ['donnees', 'Données & police dys'],
       ['recherche', 'La recherche'],
       ['omega-key', 'OMEGA·KEY'],
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
