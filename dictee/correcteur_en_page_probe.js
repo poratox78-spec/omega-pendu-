@@ -69,10 +69,10 @@ const nCommit = textes.length;
 const JF = path.join(RACINE, 'data_local', 'en', 'jfleg', 'dev.src');
 if (fs.existsSync(JF)) textes.push(...fs.readFileSync(JF, 'utf8').split(/\r?\n/).filter(Boolean));
 textes.push('Tom & Jerry <b>is</b> "fun" , and its 3 < 5 alot', 'I recieve it.\nShe dont know ,and he go.\n', '  leading spaces and the the end  ');
-let nMarques = 0, nTypoEdite = 0, invKo = 0;
+let nMarques = 0, nMarquesCommit = 0, nTypoEdite = 0, invKo = 0;
 F.etat({});
 textes.forEach((t, idx) => {
-  const L = F.calcule(t); nMarques += L.length;
+  const L = F.calcule(t); nMarques += L.length; if (idx < nCommit) nMarquesCommit += L.length;
   const dit = (quoi) => { invKo++; if (invKo <= 6) bad.push('invariant « ' + quoi + ' » rompu sur : ' + t.slice(0, 90)); };
   if (nu(F.vueSaisie(t, L)) !== t) dit('le rendu de la saisie est le texte tapé, au caractère près');
   const S = F.segments(t, L);
@@ -88,7 +88,9 @@ textes.forEach((t, idx) => {
   F.etat({});
 });
 nTests += 6;
-ok(nMarques > 300, 'trop peu de marques pour que les invariants prouvent quelque chose (' + nMarques + ')');
+/* Plancher sur les textes COMMITTÉS seulement (171 marques le 18/09/2026) : le premier jet exigeait 300 marques, chiffre mesuré
+   en local avec JFLEG — absent de la CI, qui a rougi. Un plancher se fonde sur ce que la CI voit. */
+ok(nMarquesCommit >= 150, 'trop peu de marques sur les textes committés pour que les invariants prouvent quelque chose (' + nMarquesCommit + ')');
 ok(nTypoEdite <= 2, 'la couche de ponctuation retouche du texte ÉDITÉ (PUD) : ' + nTypoEdite + ' retouches');
 
 // ── ② CE QUE LE TEXTE CORRIGÉ DOIT ÊTRE — phrases inventées, résultat connu ──
