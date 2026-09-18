@@ -84,11 +84,13 @@ const CAS = [
     pourquoi: "témoin de vie — n'isole aucun asset" },
   { txt: 'nous somme très contents', attendu: 'sommes', asset: 'moteur',
     pourquoi: '« nous somme » donnait « sommons » (lemme *sommer*, 0,02/M) en ROUGE — rule_aux_misspell exige le nombre pour nous/vous depuis le 10/09/2026 ; ici c’est le moteur de l’EXTENSION, pas celui de l’app' },
+  { txt: 'le marché provençale est ouvert', attendu: 'provençal', asset: 'moteur',
+    pourquoi: 'faute vue par Rem le 18/09/2026, muette : « marché »/« marche » partagent la clé sans accent — la règle d’épithète lit la table des collisions (dans le moteur : mesuré par ablation, n’isole aucun asset)' },
 ];
 
 /* ⚠️ ASSETS SANS AUCUNE GARDE, faute de cas trouvé — écrit plutôt qu'escamoté : confusables.json,
    gender-acc.json.gz, gender-relaxed.tsv.gz, os-subj-lm.json.gz, ponct-lm.json.gz, sens.json.gz,
-   vdc-lex.json. Aucun des 7 cas ci-dessus ne meurt quand on les retire. Absence de cas trouvé
+   vdc-lex.json. Aucun des cas ci-dessus ne meurt quand on les retire. Absence de cas trouvé
    ≠ asset inutile (plusieurs servent des surfaces que ce banc ne touche pas : ponctuation vocale,
    jeu Double-Sens, couche verte des confusables). À compléter. */
 

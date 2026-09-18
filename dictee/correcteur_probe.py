@@ -1920,7 +1920,7 @@ def rule_adj_epithet(T, i):
     if tg[i-1] != 'NOUN' and not _el: return None   # sur un nom ÉLIDÉ le tagger dit PROPN (majuscule de l'article en tête de phrase) : c'est le genre du lexique qui fait foi ci-dessous
     if d in _COLOR_ADJ and i+1 < len(tg) and tg[i+1] in ('ADJ', 'NOUN'): return None   # COULEUR COMPOSÉE (bleu clair, vert pomme, bleu marine) = INVARIABLE → abstention (piège Voltaire)
     if _head_text(T[i-1])[:1].isupper(): return None                 # nom propre (capitalisé) → genre non fiable. ÉLISION DÉCOLLÉE : « L'allégation » en tête de phrase porte la majuscule du DÉTERMINANT, pas du nom — la tester ici écartait tout nom commun élidé.
-    _hd = _head_text(T[i-1]).lower(); dn = deacc(_hd); g = GENDER_ACC.get(_hd) or GENDER_PURE.get(dn)   # accentué d'abord
+    _hd = _head_text(T[i-1]).lower(); dn = deacc(_hd); g = GENDER_ACC_COLL.get(_hd) or GENDER_PURE.get(dn)   # collisions d'ACCENT d'abord (marché/marche) — PAS la table accentuée brute : elle donne « f » aux épicènes (peintre, architecte, ministre) et faisait un ROUGE faux, « un peintre italien » → italienne (18/09/2026, vu en portant la ligne vers le produit)
     if g not in ('m', 'f') or dn in _SG_STOP: return None            # genre connu (nom pur) ET pas un invariant -s/-x
     num = 's' if _el else (_EPI_ART.get(deacc(T[i-2].lower())) if i >= 2 else None)   # « l' » ne s'élide qu'au SINGULIER (« les » ne s'élide jamais) : le nombre est certain
     if num is None: return None                                      # nombre NON net (pas d'article devant le nom) → abstention (écran/possessif)
@@ -5871,6 +5871,11 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("C'est un peintre italien baroque.", "NOM ÉPICÈNE (un / une peintre) : la table de genre accentuée BRUTE lui donne « f », et la règle d'épithète, qui la lisait "
+                                         "en premier, écrivait « italienne » en ROUGE (18/09/2026 — vu en portant cette ligne vers le produit : 8 rouges faux "
+                                         "sur 14 450 phrases UD). Elle ne lit plus que les COLLISIONS D'ACCENT (marché / marche), seules porteuses d'information."),
+    ("La femme du diplomate américain est venue.", "même famille : « diplomate » épicène, « américain » est juste."),
+    ("C'est le ministre marocain des Affaires étrangères.", "même famille : « ministre » épicène."),
     ("Nous primes le train.", "ABSTENTION VOULUE : « primes » est primer-2sg ET le passé simple de prendre (prîmes). "
                               "Deux lemmes, deux corrections ; sans le lemme on choisit au hasard — mesuré : « primons », un ROUGE faux."),
     ("Les primes sont versées.", "« primes » = le NOM (la prime) : un pluriel de nom ne se conjugue pas."),

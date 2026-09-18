@@ -241,7 +241,8 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | déterminant↔nom (genre) | 🔴 | table genre désaccentuée (PR#450→453) |
 | participe avec être (+ prénoms) | 🔴 | 8 729 prénoms (PR#460) |
 | participe avec avoir + COD antéposé (que) | 🔴 | rule_pp_avoir_cod |
-| participe épithète · adjectif attribut/épithète | 🔴 | via tagger + _adj_head |
+| participe épithète · adjectif attribut/épithète | 🔴 | via tagger + _adj_head ; le GENRE du nom-tête se lit d'abord dans la table des COLLISIONS D'ACCENT puis dans GENDER_PURE (18/09/2026 : « le marché provençale » était muet — « marché »/« marche » partagent la clé sans accent). ⚠️ jamais la table accentuée BRUTE : mesurée, elle donne « f » aux noms épicènes et fabrique 8 rouges faux sur 14 450 phrases correctes |
+| adjectif épithète, FÉMININ EN TROP sur un nom masculin (« le marché provençale ») | 🟠 | `genreAdjVig` / « accord genre à vérifier » : `_adj_estem` range toute forme en -e parmi les épicènes, donc les règles ROUGES savent ajouter un féminin, jamais en retirer — l'orange le propose. Articles simples + contractés (au/aux) depuis le 18/09/2026 |
 | accord « tout » | 🔴 | règle dédiée (« tout étonnées » correctement laissé) |
 | **participes invariables (fait/vu/laissé + infinitif, se sont succédé)** | 🟡 | pas de règle POSITIVE, mais pronominal exclu des accords → silencieux, pas faux |
 | **accord SURNUMÉRAIRE après avoir, sans antécédent** (« elles ont mangés », « j'ai mangée ») | 🟡 | MESURÉ MUET dans Chrome le 08/09/2026 (10 phrases fautives, 10 silences). Le retrait d'accord n'existe qu'après le relatif « dont » (`rule_pp_avoir_dont`, 13 verbes) ; la connaissance « invariable avec avoir » n'est écrite que dans l'explicateur de DICTÉE, qui connaît déjà le texte de référence et ne détecte rien |
