@@ -34,12 +34,14 @@ def tag_sentence(words, M=None):
     """Viterbi bigramme -> liste d'UPOS alignée sur `words`. [] si pas de modèle."""
     M = M or load_model()
     if not M or not words: return []
-    tags = M['tags']; tr = M['trans']; em = M['emit']; suf = M['suf']; pri = M['prior']; FL = M['floor']
+    tags = M['tags']; tr = M['trans']; em = M['emit']; suf = M['suf']; pri = M['prior']; FL = M['floor']; emcap = M.get('emitcap') or {}
     def lt(a, b): return tr.get(a, {}).get(b, FL)
-    def le(t, w):
+    def le(t, w, mid):
         lw = w.lower()
         # une suite de lettres n'est jamais PUNCT/SYM (garde reprise du FR)
         if (t == 'PUNCT' or t == 'SYM') and _ASCII_LETTER.search(lw): return -100.0     # miroir JS : /[a-z]/i
+        # 18/09/2026 : mot CAPITALISÉ en milieu de phrase vu ainsi à l'entraînement -> sa propre distribution (American : ADJ)
+        if mid and lw in emcap: return emcap[lw].get(t, FL)
         if lw in em: return em[lw].get(t, FL)
         for k in (4, 3, 2):                                  # backoff par suffixe (mots rares)
             if len(lw) >= k and lw[-k:] in suf:
@@ -47,12 +49,13 @@ def tag_sentence(words, M=None):
                 return d.get(t, FL) + (math.log(1.1) if (_ASCII_UPPER.match(w) and t == 'PROPN') else 0.0)
         return pri.get(t, FL) + (math.log(3.0) if (_ASCII_UPPER.match(w) and t == 'PROPN') else 0.0)
     n = len(words)
+    mids = [i > 0 and bool(_CAP_WORD.match(str(words[i] or ''))) and not _SENT_END.match(str(words[i-1] or '')) for i in range(n)]
     V = [{}]; bk = [{}]
-    for t in tags: V[0][t] = lt('<s>', t) + le(t, words[0]); bk[0][t] = '<s>'
+    for t in tags: V[0][t] = lt('<s>', t) + le(t, words[0], False); bk[0][t] = '<s>'
     for i in range(1, n):
         V.append({}); bk.append({})
         for t in tags:
-            et = le(t, words[i]); best = -1e18; bp = None
+            et = le(t, words[i], mids[i]); best = -1e18; bp = None
             for pt in tags:
                 sc = V[i-1][pt] + lt(pt, t)
                 if sc > best: best, bp = sc, pt
@@ -63,7 +66,8 @@ def tag_sentence(words, M=None):
         if sc > best: best, bt = sc, t
     seq = [bt]
     for i in range(n-1, 0, -1): seq.append(bk[i][seq[-1]])
-    return _amb_pass(words, _that_pass(words, _propn_pass(words, seq[::-1])))
+    seq = _amb_pass(words, _that_pass(words, _propn_pass(words, seq[::-1], emcap)))
+    return _roman_pass(words, _ger_pass(words, _more_pass(words, _be_have_pass(words, seq))))
 
 
 # ---- POST-PASSES (miroir exact de corrector_en.js : _propnPass -> _thatPass -> _ambPass, l'ordre compte) ----
@@ -71,12 +75,56 @@ def tag_sentence(words, M=None):
 # on bascule NOUN/ADJ -> PROPN sur un mot capitalisé hors tête de phrase, hors acronymes, hors après . ! ? : ;
 _CAP_WORD = re.compile('^[A-Z][a-z]')
 _SENT_END = re.compile('^[.!?:;]$')
-def _propn_pass(words, seq):
+def _propn_pass(words, seq, emcap=None):
     for i in range(1, len(words)):
         w = str(words[i] or '')
         if not _CAP_WORD.match(w): continue
         if _SENT_END.match(str(words[i-1] or '')): continue
+        if emcap and w.lower() in emcap: continue          # 18/09/2026 : le modèle a vu ce mot capitalisé, il a tranché lui-même
         if seq[i] == 'NOUN' or seq[i] == 'ADJ': seq[i] = 'PROPN'
+    return seq
+
+# ---- POST-PASSES du 18/09/2026 (miroir exact du JS, même ordre : be/have -> more -> gérondif -> romain), chacune MESURÉE sur PUD ----
+# · be après there/here = existentiel, VERB en UD (« there is ») ; have + déterminant/nom/pronom objet = possession, VERB ; have + verbe = AUX.
+#   +0,25 pt (91,24 -> 91,49). Un « to » (PART/ADP par le mot suivant) a été mesuré : +0,01 pt, écarté.
+# · more/most/less/least : ADV devant un adjectif ou un adverbe, ADJ devant un nom (+0,08). · préposition + gérondif = SCONJ en UD
+#   (« after eating », « by doing ») (+0,05). · I/II/III… après un nom propre = NUM (« World War I ») (+0,04).
+_ADV_SKIP = frozenset(['not', "n't", 'never', 'also', 'just', 'already', 'ever', 'still', 'always', 'often', 'really', 'even', 'only', 'probably', 'actually'])
+_BE_W = frozenset(['is', 'are', 'was', 'were', 'am', 'be', 'been', 'being', "'s", "'re", "'m"])
+_HAVE_W = frozenset(['have', 'has', 'had', 'having', "'ve", "'d"])
+_SUBJ_PRON = frozenset(['i', 'you', 'we', 'they', 'he', 'she', 'it'])
+def _be_have_pass(words, seq):
+    low = [str(w or '').lower() for w in words]
+    for i, w in enumerate(low):
+        if w in _BE_W:
+            j = i - 1
+            while j >= 0 and low[j] in _ADV_SKIP: j -= 1
+            if j >= 0 and low[j] in ('there', 'here') and seq[i] == 'AUX': seq[i] = 'VERB'
+        if w in _HAVE_W and seq[i] in ('AUX', 'VERB'):
+            j = i + 1
+            while j < len(low) and low[j] in _ADV_SKIP: j += 1
+            if j < len(low):
+                nt = seq[j]
+                if nt in ('DET', 'NUM', 'PROPN', 'NOUN', 'ADJ') or (nt == 'PRON' and low[j] not in _SUBJ_PRON): seq[i] = 'VERB'
+                elif low[j] == 'to' and j + 1 < len(low) and seq[j+1] == 'VERB': seq[i] = 'VERB'
+                elif nt in ('VERB', 'AUX'): seq[i] = 'AUX'
+    return seq
+_MORE_W = frozenset(['more', 'most', 'less', 'least'])
+def _more_pass(words, seq):
+    for i in range(len(words) - 1):
+        if str(words[i] or '').lower() not in _MORE_W: continue
+        if seq[i+1] in ('ADJ', 'ADV'): seq[i] = 'ADV'
+        elif seq[i+1] == 'NOUN': seq[i] = 'ADJ'
+    return seq
+_GER_W = frozenset(['of', 'as', 'after', 'for', 'by', 'than', 'in', 'before', 'while', 'since', 'until', 'on', 'with', 'without', 'despite', 'about', 'like', 'from', 'at', 'through', 'into', 'upon', 'besides', 'instead'])
+def _ger_pass(words, seq):
+    for i in range(len(words) - 1):
+        if str(words[i] or '').lower() in _GER_W and seq[i] == 'ADP' and str(words[i+1] or '').lower().endswith('ing') and seq[i+1] == 'VERB': seq[i] = 'SCONJ'
+    return seq
+_ROMAN = frozenset(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'])
+def _roman_pass(words, seq):
+    for i in range(1, len(words)):
+        if str(words[i] or '') in _ROMAN and seq[i-1] == 'PROPN' and seq[i] != 'NUM': seq[i] = 'NUM'
     return seq
 
 # « that » (SCONJ / PRON / DET) : table (tag gauche | tag droit) -> tag, apprise sur GUM seul, 61 contextes ;

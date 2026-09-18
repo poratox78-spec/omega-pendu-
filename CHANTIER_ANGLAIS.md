@@ -31,7 +31,7 @@ et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **
 | **couverture** des corrections d'annotateurs (JFLEG) | **7,9 %** | 🔴 **le vrai retard** |
 | mauvaise cible (WRONG) | 287 (10,5 %) | 446 avant le 17/09 ; 409 avec la table ; 287 avec le classement par sorte d'édition |
 | **AUTO_WRONG** (rouges faux) | **1** | 🔴 **FP=0 est violé** (2 avant le 17/09) |
-| tagger EN / FR | **90,7 %** / ~95 % | goulot pour toute grammaire |
+| tagger EN / FR | **91,6 %** / ~95 % | goulot pour toute grammaire — 90,7 % jusqu'au 18/09 ; table d'émission « avec majuscule » + 4 post-passes mesurées ; or PUD committé et plancher en CI (`pos_en_gold.tsv`, `pos_en_exactitude_probe.js --check`) ; ce qui reste est une convention NOUN/PROPN entre corpus et le plafond du bigramme (perceptron mesuré à 93,2 % : pas maintenant) |
 | chunker de GN | 82,3 % | idem |
 | phrases de la dictée anglaise | **300** (100 par niveau) | 45 jusqu'au 17/09/2026 (333 en français). Chaque phrase passe `dictee/dictee_en_probe.js` en CI : au lexique, aucune marque de notre propre correcteur, focus présent, pas de doublon, nombre affiché == fichier — la relecture que Rem ne peut pas faire en anglais, faite en machine |
 | règles EN / FR | **53** / **82** | rapport 1 à 1,7 |
@@ -162,7 +162,7 @@ vérifiables par Rem.
 | **5** | Le câblé-mais-muet, tranché par la mesure | voir ⚠️ ci-dessous |
 | **6** | Couverture **au moteur** (pas sur la table) : % de tokens connus / à clé phon / à fréquence | dit si le rappel plafonne par le lexique ou par les règles |
 | **7** | Nouvelles règles, une par une, sous R1–R6 | occasions **comptées** avant d'écrire une ligne |
-| **8** | Goulot POS / chunker | tagger 90,7 → ≥ 94 % ; GN 82,3 → ≥ 90 % |
+| **8** ▶ 18/09 | Goulot POS / chunker | tagger 90,7 → **91,6 %** (table majuscule + post-passes be/have, more/most, gérondif, romain ; 0 marque changée sur les trois corpus) — le ≥ 94 % visé demande un autre modèle : perceptron moyenné mesuré à 93,2 % sur PUD (~2 Mo de poids, double portage), et NOUN↔PROPN (359 tokens) est une différence de CONVENTION entre EWT et PUD, hors d'atteinte d'un modèle ; GN 82,3 → ≥ 90 % non commencé |
 | **9** | Rappel dys anglophone | voir §5 |
 
 ### ⛔ Ce qu'il ne faut PAS faire en premier

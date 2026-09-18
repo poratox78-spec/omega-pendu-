@@ -132,6 +132,9 @@ run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiri
 # et le Python a pris cinq semaines de retard sur le JS (16/09/2026) sans qu'elle rougisse. En local, EWT s'ajoute au corpus.
 run "EN parité Python↔JS par token : tokeniseur, speller, homophones (PUD committé + EWT local)" node dictee/parity_en.js
 run "EN parité du POS-tagger Python↔JS par token (PUD committé + EWT local)" node dictee/parity_pos_en.js
+# Le tagger anglais est le plafond de toute règle de contexte ; son exactitude n'était mesurée qu'en local (18/09/2026) : or PUD committé + plancher.
+run "EN or du POS-tagger committé (pos_en_gold.tsv, UD English-PUD) : complet, == data_local" python3 dictee/build_pos_gold_en.py --check
+run "EN exactitude du POS-tagger contre l'or PUD (plancher 91,5 %)" node dictee/pos_en_exactitude_probe.js --check
 # Le décomposeur phonique anglais lisait la prononciation par prédiction et ignorait le dictionnaire (8 irréguliers/8 faux, 16/09/2026) :
 # la garde exige les phonèmes du dictionnaire sur les mots du défaut, l'alignement lettres↔sons en bijection, et la page branchée sur le module.
 run "EN décomposeur phonique : prononciation du dictionnaire, alignement lettres↔sons, page branchée" node dictee/phonics_en_probe.js

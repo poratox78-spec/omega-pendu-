@@ -1636,11 +1636,13 @@ function setPosModel(m){ _POS = m || null; return !!_POS; }
 function tagSentence(words, M){
   M = M || _POS;
   if(!M || !words || !words.length) return [];
-  const tags = M.tags, tr = M.trans, em = M.emit, suf = M.suf, pri = M.prior, FL = M.floor;
+  const tags = M.tags, tr = M.trans, em = M.emit, suf = M.suf, pri = M.prior, FL = M.floor, emcap = M.emitcap || {};
   const lt = (a, b) => { const r = tr[a]; const v = r && r[b]; return (v === undefined) ? FL : v; };
-  function le(t, w){
+  function le(t, w, mid){
     const lw = w.toLowerCase();
     if((t === 'PUNCT' || t === 'SYM') && /[a-z]/i.test(lw)) return -100.0;   // lettres => jamais ponctuation
+    // 18/09/2026 : mot CAPITALISÉ en milieu de phrase vu ainsi à l'entraînement -> sa propre distribution (American : ADJ)
+    if(mid && Object.prototype.hasOwnProperty.call(emcap, lw)){ const v = emcap[lw][t]; return (v === undefined) ? FL : v; }
     if(Object.prototype.hasOwnProperty.call(em, lw)){ const v = em[lw][t]; return (v === undefined) ? FL : v; }
     for(const k of [4, 3, 2]){                                              // backoff par suffixe (mots rares)
       if(lw.length >= k){ const sf = lw.slice(-k);
@@ -1651,11 +1653,12 @@ function tagSentence(words, M){
     return ((p === undefined) ? FL : p) + ((/^[A-Z]/.test(w) && t === 'PROPN') ? Math.log(3.0) : 0);
   }
   const n = words.length, V = [{}], bk = [{}];
-  for(const t of tags){ V[0][t] = lt('<s>', t) + le(t, words[0]); bk[0][t] = '<s>'; }
+  const mids = words.map((w, i) => i > 0 && /^[A-Z][a-z]/.test(String(w || '')) && !/^[.!?:;]$/.test(String(words[i-1] || '')));
+  for(const t of tags){ V[0][t] = lt('<s>', t) + le(t, words[0], false); bk[0][t] = '<s>'; }
   for(let i = 1; i < n; i++){
     V.push({}); bk.push({});
     for(const t of tags){
-      const et = le(t, words[i]); let best = -1e18, bp = null;
+      const et = le(t, words[i], mids[i]); let best = -1e18, bp = null;
       for(const pt of tags){ const sc = V[i-1][pt] + lt(pt, t); if(sc > best){ best = sc; bp = pt; } }
       V[i][t] = best + et; bk[i][t] = bp;
     }
@@ -1664,7 +1667,8 @@ function tagSentence(words, M){
   for(const t of tags){ const sc = V[n-1][t] + lt(t, '</s>'); if(sc > best){ best = sc; bt = t; } }
   const seq = [bt];
   for(let i = n-1; i > 0; i--) seq.push(bk[i][seq[seq.length-1]]);
-  return _ambPass(words, _thatPass(words, _propnPass(words, seq.reverse())));
+  const s2 = _ambPass(words, _thatPass(words, _propnPass(words, seq.reverse(), emcap)));
+  return _romanPass(words, _gerPass(words, _morePass(words, _beHavePass(words, s2))));
 }
 
 /* ⭐⭐ POST-PASSE PROPN — la MAJUSCULE, que le modèle jette.
@@ -1684,12 +1688,69 @@ function tagSentence(words, M){
      · `[A-Z][a-z]` : écarte les ACRONYMES tout en capitales (NASA, USA), qui ont leur propre régime ;
      · pas après `. ! ? : ;` : c'est un début de phrase, même règle que le mot initial.
    ⚠️ Cette passe tourne AVANT `_thatPass`, qui lit les tags voisins : l'ordre compte. */
-function _propnPass(words, seq){
+function _propnPass(words, seq, emcap){
   for(let i = 1; i < words.length; i++){
     const w = String(words[i] || '');
     if(!/^[A-Z][a-z]/.test(w)) continue;
     if(/^[.!?:;]$/.test(String(words[i-1] || ''))) continue;
+    if(emcap && Object.prototype.hasOwnProperty.call(emcap, w.toLowerCase())) continue;   // 18/09/2026 : le modèle a vu ce mot capitalisé, il a tranché lui-même
     if(seq[i] === 'NOUN' || seq[i] === 'ADJ') seq[i] = 'PROPN';
+  }
+  return seq;
+}
+/* POST-PASSES du 18/09/2026 (miroir exact de pos_en.py, même ordre : be/have -> more -> gérondif -> romain), chacune MESURÉE sur
+   UD English-PUD. Avec la table d'émission « avec majuscule » : 90,66 -> 91,24 % ; be après there/here = existentiel (VERB en
+   UD), have + déterminant/nom/pronom objet = possession (VERB), have + verbe = AUX : 91,49 % ; more/most devant adjectif = ADV,
+   devant nom = ADJ ; préposition + gérondif = SCONJ (« after eating ») ; I/II/III après un nom propre = NUM : 91,65 %.
+   ⛔ MESURÉ ET ÉCARTÉ : « to » PART/ADP par le mot suivant (+0,01 pt). Ce qui reste : NOUN↔PROPN (283 + 76, une différence de
+   CONVENTION entre corpus : EWT tague « the Court », « President » PROPN, PUD NOUN) et VERB↔NOUN (216), plafond du bigramme —
+   un perceptron moyenné mesuré le même jour donne 93,2 % sur PUD pour ~2 Mo de poids et un double portage : pas maintenant. */
+const _ADV_SKIP = new Set(['not', "n't", 'never', 'also', 'just', 'already', 'ever', 'still', 'always', 'often', 'really', 'even', 'only', 'probably', 'actually']);
+const _BE_W = new Set(['is', 'are', 'was', 'were', 'am', 'be', 'been', 'being', "'s", "'re", "'m"]);
+const _HAVE_W = new Set(['have', 'has', 'had', 'having', "'ve", "'d"]);
+const _SUBJ_PRON_T = new Set(['i', 'you', 'we', 'they', 'he', 'she', 'it']);
+function _beHavePass(words, seq){
+  const low = words.map(w => String(w || '').toLowerCase());
+  for(let i = 0; i < low.length; i++){
+    const w = low[i];
+    if(_BE_W.has(w)){
+      let j = i - 1;
+      while(j >= 0 && _ADV_SKIP.has(low[j])) j--;
+      if(j >= 0 && (low[j] === 'there' || low[j] === 'here') && seq[i] === 'AUX') seq[i] = 'VERB';
+    }
+    if(_HAVE_W.has(w) && (seq[i] === 'AUX' || seq[i] === 'VERB')){
+      let j = i + 1;
+      while(j < low.length && _ADV_SKIP.has(low[j])) j++;
+      if(j < low.length){
+        const nt = seq[j];
+        if(['DET', 'NUM', 'PROPN', 'NOUN', 'ADJ'].includes(nt) || (nt === 'PRON' && !_SUBJ_PRON_T.has(low[j]))) seq[i] = 'VERB';
+        else if(low[j] === 'to' && j + 1 < low.length && seq[j+1] === 'VERB') seq[i] = 'VERB';
+        else if(nt === 'VERB' || nt === 'AUX') seq[i] = 'AUX';
+      }
+    }
+  }
+  return seq;
+}
+const _MORE_W = new Set(['more', 'most', 'less', 'least']);
+function _morePass(words, seq){
+  for(let i = 0; i < words.length - 1; i++){
+    if(!_MORE_W.has(String(words[i] || '').toLowerCase())) continue;
+    if(seq[i+1] === 'ADJ' || seq[i+1] === 'ADV') seq[i] = 'ADV';
+    else if(seq[i+1] === 'NOUN') seq[i] = 'ADJ';
+  }
+  return seq;
+}
+const _GER_W = new Set(['of', 'as', 'after', 'for', 'by', 'than', 'in', 'before', 'while', 'since', 'until', 'on', 'with', 'without', 'despite', 'about', 'like', 'from', 'at', 'through', 'into', 'upon', 'besides', 'instead']);
+function _gerPass(words, seq){
+  for(let i = 0; i < words.length - 1; i++){
+    if(_GER_W.has(String(words[i] || '').toLowerCase()) && seq[i] === 'ADP' && /ing$/.test(String(words[i+1] || '').toLowerCase()) && seq[i+1] === 'VERB') seq[i] = 'SCONJ';
+  }
+  return seq;
+}
+const _ROMAN = new Set(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']);
+function _romanPass(words, seq){
+  for(let i = 1; i < words.length; i++){
+    if(_ROMAN.has(String(words[i] || '')) && seq[i-1] === 'PROPN' && seq[i] !== 'NUM') seq[i] = 'NUM';
   }
   return seq;
 }
