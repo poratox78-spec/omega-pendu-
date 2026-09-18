@@ -417,8 +417,10 @@
           else if(estQuestion(nx.t)) mk='.';
           else if(_CONT_VIRGULE.test(nx.t)) mk=','; }
         out=out.replace(/[ \t]*$/,'')+mk+(/\n\s*$/.test(out)?'':' ');
-        if(mk!=='.'&&mk!=='?'&&!/[.!?…\n]\s*$/.test(out)) txt=txt.charAt(0).toLowerCase()+txt.slice(1);   // la majuscule d'amorce que la reconnaissance colle à chaque segment
-        if(/^i(?![a-z])/.test(txt)) txt='I'+txt.slice(1); }
+        /* ⛔ ON NE REMET PAS EN MINUSCULE la première lettre du segment à l'aveugle (la page française le fait) : en anglais ce
+           serait abîmer un NOM PROPRE en tête de segment (« …the museum, london is… »). La majuscule d'amorce d'un MOT-OUTIL
+           (« …, And then ») est traitée plus bas par normMajInterne, liste fermée ; un nom propre garde la sienne. */
+      }
       if(s===0 && !state.base.trim()){ var n=teteHorsPhrase(txt); if(n) txt=txt.slice(0,n)+','+txt.slice(n); }
       out+=txt; }
     var last=segs[segs.length-1];

@@ -124,6 +124,8 @@ ok(annonce, 'la page n\'annonce plus la liste des commandes dictées (comma · f
  [['we went home', 'but it was late'], [0], { sansAudio: true }, 'We went home, but it was late.', 'sans seconde écoute (téléphone) : seule la virgule devant but/so/because'],
  [['we went home', 'it was late'], [0], { sansAudio: true }, 'We went home it was late.', 'sans seconde écoute : aucune durée connue → on n\'affirme rien'],
  [['and then we left'], [], { base: 'We ate.' }, 'We ate. And then we left.', 'le texte déjà présent est gardé'],
+ [['we visited the museum', 'London is a big city'], [300], null, 'We visited the museum, London is a big city.', 'un NOM PROPRE en tête de segment garde sa majuscule après une virgule'],
+ [['we went home', 'And then we slept'], [300], null, 'We went home, and then we slept.', 'la majuscule que la reconnaissance colle à un MOT-OUTIL en tête de segment est retirée'],
  [['we went home', 'do you know the way'], [0], { sansAudio: true }, 'We went home. Do you know the way?', 'sans seconde écoute : une question reconnue à sa tête ouvre une phrase → point devant elle'],
  [['we went home', 'what is your name'], [300], null, 'We went home. What is your name?', '300 ms + question derrière → point, pas virgule'],
  [['I asked him', 'what is your name'], [100], null, 'I asked him what is your name.', 'sous 190 ms, même devant une question : rien (pas de pause entendue) — et la phrase entière, jugée à sa tête, reste une affirmation'],

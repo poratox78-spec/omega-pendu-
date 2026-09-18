@@ -22,7 +22,7 @@
 > commande en fin de segment seulement, 0 conversion à tort sur PUD) ; « jamais de marque après » déterminant / préposition /
 > conjonction / auxiliaire / to (taux ≤ 1,2 %) ; question par la tête : auxiliaire + pronom sujet 87 %, wh- + auxiliaire 88-96 %
 > (which 33 % : exclu) ; mot de tête : meanwhile 100 %, finally 93, however 86… (so 16 %, then 23 %, now 36 % : exclus). Garde CI :
-> `dictee/voix_en_probe.js` — fonctions EXTRAITES de la page livrée, audio synthétique aux silences connus, PUD committé ; 93
+> `dictee/voix_en_probe.js` — fonctions EXTRAITES de la page livrée, audio synthétique aux silences connus, PUD committé ; 95
 > contrôles, falsifiée par 9 défauts injectés. ⚠️ **NON MESURÉ, à valider au micro** : les seuils de silence (190 / 600 ms) et la
 > montée de hauteur (+4 demi-tons) viennent de la page française (grandeurs acoustiques, pas linguistiques) ; aucune prise
 > anglaise n'existe. Le bouton 🩺 exporte de quoi rejouer un cas. Vérifié au navigateur avec une reconnaissance SIMULÉE (flux
