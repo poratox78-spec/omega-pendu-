@@ -18,7 +18,8 @@ FILES = [
     ('extension/assets/speller.tsv.gz',   'speller.tsv.gz',
      'Lexique orthographique — ~706 000 formes (correction, accents, non-mots ; forme, fréquence ‰, catégorie).', 'Lexique 4 + Wiktionnaire + Morphalou 3.1 (LGPL-LR)'),
     ('extension/assets/gender-acc.json.gz', 'genre-accentue.json.gz',
-     'Genre des noms, formes accentuées (accord du déterminant et de l’adjectif).', 'Lexique 4 + Wiktionnaire + Morphalou 3.1 (LGPL-LR)'),
+     'Genre des noms, formes accentuées (accord du déterminant et de l’adjectif) — hors noms épicènes, '
+     'qui ont les deux genres (un/une peintre) et ne peuvent donc trancher aucun accord.', 'Lexique 4 + Wiktionnaire + Morphalou 3.1 (LGPL-LR)'),
     ('extension/assets/gender-relaxed.tsv.gz', 'genre-noms.tsv.gz',
      'Genre des noms à genre non ambigu (accord).', 'Lexique 4 + Wiktionnaire'),
     ('extension/assets/pos-hmm.json.gz',   'pos-tagger-hmm.json.gz',
