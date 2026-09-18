@@ -331,6 +331,44 @@ Ce qui la concerne vraiment, et c'est tout :
 
 ⛔ Pas de `noindex`, pas de découpe en plusieurs pages, pas de suppression de sections.
 
+### L'ACCUEIL — tri proposé par Rem le 19/09, et mon avis
+
+> Rem : *« dans index je ne mettrais que le correcteur, la dictée, saisie vocale, poser un calcul,
+> le pendu, Pendable et données et police, et c'est tout »*.
+
+⚠️ **C'est la page la plus risquée du site à toucher** : 420 impressions, **35 des 44 clics**,
+position 4,2. Elle se modifie SEULE, et on mesure avant d'enchaîner.
+
+Ce qu'elle contient aujourd'hui, mesuré : un héros de 107 mots avec **trois** boutons (« Ouvrir le
+correcteur », « Voir le pendu jouer », « Jouer au pendu »), puis une liste dite « six outils »
+— correcteur, dictée, saisie vocale, **Pendable**, poser un calcul, **Double-Sens** — puis quatre
+sections de récit (l'idée, le pendu mesuré, le mode d'emploi, pourquoi c'est rare) et une dernière
+qui renvoie vers `/evolution` et `/omega-key`. Ni Scrabidon ni Données n'y figurent.
+
+| l'outil | aujourd'hui sur l'accueil | Rem propose | mon avis |
+|---|---|---|---|
+| Le correcteur | oui | garder | **oui** — c'est la promesse du site |
+| La dictée | oui | garder | **oui** |
+| Saisie vocale | oui | garder | **oui** |
+| Poser un calcul | oui | garder | **oui** — seule réponse dyscalculie du site |
+| Pendable | oui | garder | **oui** — 6 clics, 2ᵉ page du site |
+| Double-Sens | oui | **retirer** | **d'accord** — 129 mots, 0 clic, et la règle du jeu ne tient pas en une ligne. Il reste au menu |
+| Données & police dys | non | **ajouter** | **oui, mais à part** — ce n'est pas un outil pour qui écrit mal, c'est pour les profs, orthophonistes et développeurs. Une ligne, plus bas, pas dans le même bloc |
+| « Le pendu » (le moteur) | oui, 2 boutons dans le héros | garder | **c'est mon seul désaccord** — voir ci-dessous |
+
+**Le désaccord : deux entrées « pendu » en haut de page.** Le héros propose déjà « Voir le pendu
+jouer » ET « Jouer au pendu », et la liste ajoute Pendable. Or c'est exactement là que se joue le
+constat ⑤ : le visiteur qui arrive de *solveur pendu* (position 6, CTR 2,2 %) veut jouer ou
+résoudre, et celui qui arrive de *correcteur dyslexie* ne comprend pas pourquoi un site
+d'orthographe s'ouvre sur un jeu. **Deux publics, deux promesses, dans le même écran.**
+
+Ma proposition : **une seule entrée jeu dans la liste — Pendable** ; le moteur du pendu reste sur
+la page, mais dans la section de récit « Le pendu, mesuré », là où il explique d'où vient le
+correcteur. C'est sa place : il est la PREUVE, pas le produit.
+
+**Et un héros = une action.** Trois boutons qui partent dans trois directions, c'est la page elle-même
+qui hésite. Un bouton principal (« Ouvrir le correcteur »), les autres en second rang.
+
 ### ⛔ Ce que « épurer » ne doit PAS vouloir dire
 
 Supprimer ce qui n'a pas encore marché. Scrabidon, Double-Sens, Poser un calcul, Saisie vocale,
