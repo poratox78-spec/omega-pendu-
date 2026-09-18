@@ -11,7 +11,7 @@
 #
 #   python dictee/build_pos_hmm.py           # entraîne sur TOUT UD → dictee/pos_hmm.json (+ extension/assets/pos-hmm.json.gz)
 #   python dictee/build_pos_hmm.py --eval    # split 90/10, mesure l'exactitude du modèle EXPORTÉ sur le test tenu
-import os, sys, math, json, gzip
+import os, sys, math, json, gzip, re
 from collections import defaultdict, Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -45,22 +45,27 @@ def suffixes(w):
     w = w.lower()
     return [w[-k:] for k in range(2, 5) if len(w) >= k]
 
+_CAP = re.compile(r'^[A-Z][a-z]'); _SENT_END = re.compile(r'^[.!?:;]$')
 def train(sents):
     trans = defaultdict(Counter); emitc = defaultdict(Counter); tagc = Counter()
-    sufc = defaultdict(Counter); wordc = Counter()
+    sufc = defaultdict(Counter); wordc = Counter(); capc = defaultdict(Counter)
     for s in sents:
         for w, t in s: wordc[w.lower()] += 1
     for s in sents:
         prev = '<s>'
-        for w, t in s:
+        for i, (w, t) in enumerate(s):
             trans[prev][t] += 1; emitc[t][w.lower()] += 1; tagc[t] += 1; prev = t
             if wordc[w.lower()] <= 2:
                 for sf in suffixes(w): sufc[sf][t] += 1
+            # EN (18/09/2026) : le mot CAPITALISÉ en milieu de phrase a sa propre distribution (« American » ADJ 62 fois,
+            # « United » ADJ 81, « Court » PROPN 12) — la table d'émission en minuscules la jetait, et la post-passe PROPN
+            # forçait tout mot capitalisé : 563 erreurs sur PUD, dont 307 sur des mots vus ici.
+            if EN and i > 0 and _CAP.match(w) and not _SENT_END.match(s[i-1][0]): capc[w.lower()][t] += 1
         trans[prev]['</s>'] += 1
-    return trans, emitc, tagc, sufc, wordc
+    return trans, emitc, tagc, sufc, wordc, capc
 
 def build_model(sents):
-    trans, emitc, tagc, sufc, wordc = train(sents)
+    trans, emitc, tagc, sufc, wordc, capc = train(sents)
     tags = sorted(tagc); V = len(tags); N = sum(tagc.values())
     # transitions bigramme lissées (add-0.1)
     logtrans = {}
@@ -81,8 +86,11 @@ def build_model(sents):
         if tot >= 3:
             logsuf[sf] = {t: round(math.log((c[t] + 0.01) / (tot + 0.01 * V)), 4) for t in c}
     logprior = {t: round(math.log(tagc[t] / N), 4) for t in tags}
-    return {'tags': tags, 'trans': logtrans, 'emit': logemit, 'suf': logsuf, 'prior': logprior,
-            'floor': LO, 'meta': 'HMM bigramme UPOS, %s CC BY-SA 4.0' % SRC_NAME}
+    M = {'tags': tags, 'trans': logtrans, 'emit': logemit, 'suf': logsuf, 'prior': logprior,
+         'floor': LO, 'meta': 'HMM bigramme UPOS, %s CC BY-SA 4.0' % SRC_NAME}
+    if EN:                                       # mots vus capitalisés en milieu de phrase au moins 2 fois : logP(mot capitalisé | tag)
+        M['emitcap'] = {w: {t: round(math.log(n / tagc[t]), 4) for t, n in c.items()} for w, c in capc.items() if sum(c.values()) >= 2}
+    return M
 
 # ---- décodeur de référence (sert au build --eval ; le MÊME algo sera porté en Python correcteur + JS) ----
 _L2U = {'NOM':'NOUN','VER':'VERB','ADJ':'ADJ','ADV':'ADV','PRE':'ADP','PRO':'PRON','ART':'DET','CON':'CCONJ','AUX':'AUX'}

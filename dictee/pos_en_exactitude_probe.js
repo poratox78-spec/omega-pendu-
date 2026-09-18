@@ -13,7 +13,15 @@
  * UPOS annoté à la main. La ponctuation et les symboles sont exclus : les tagger dessus est trivial
  * et gonflerait le score de plusieurs points.
  *
- *   node dictee/pos_en_exactitude_probe.js
+ *   node dictee/pos_en_exactitude_probe.js [--check]      (--check : plancher d'exactitude, CI ; l'or est COMMITTÉ, pos_en_gold.tsv)
+ *
+ * 18/09/2026 — **91,6 %** : table d'émission « avec majuscule » (le mot capitalisé en milieu de phrase a sa distribution :
+ *   American ADJ, Court PROPN — la post-passe PROPN ne force plus les mots que le modèle a vus ainsi) + post-passes be/have
+ *   (existentiel « there is » = VERB, possession « has a » = VERB), more/most, préposition + gérondif = SCONJ, chiffres romains.
+ *   Ce qui reste : NOUN↔PROPN (convention entre corpus : EWT tague « the Court », « President » PROPN, PUD NOUN) et VERB↔NOUN
+ *   (plafond du bigramme). Perceptron moyenné mesuré : 93,2 % pour ~2 Mo de poids et un double portage — pas maintenant.
+ *   L'or vit désormais dans le dépôt (dictee/pos_en_gold.tsv, CC BY-SA 3.0, bâti par build_pos_gold_en.py) : le plancher
+ *   rougit en CI si le modèle ou une post-passe régresse.
  *
  * MESURÉ (2026-08-08, APRÈS les post-passes PROPN et `that`) — 18 693 tokens, **90,5 %** :
  *   DET 98,6 · AUX 98,8 · CCONJ 98,8 · ADP 95,7 · PRON 94,7 · PROPN 93,5 · NUM 93,3
@@ -38,12 +46,9 @@ const fs = require('fs'), path = require('path');
 const RACINE = path.dirname(__dirname);
 const C = require(path.join(RACINE, 'dictee', 'corrector_en.js'));
 
-const P = path.join(RACINE, 'data_local', 'en', 'en_pud-ud-test.conllu');
-if (!fs.existsSync(P)) {
-  console.log('UD English-PUD absent (data_local/en) — sonde locale seulement.');
-  console.log('  https://github.com/UniversalDependencies/UD_English-PUD  (CC BY-SA 3.0)');
-  process.exit(0);
-}
+const PLANCHER = 91.5;                                  // cliquet — 90,7 % jusqu'au 18/09/2026, 91,65 % depuis (table majuscule + post-passes) ; retirer les post-passes rend 91,24, la table 91,07
+const P = path.join(RACINE, 'dictee', 'pos_en_gold.tsv');   // or COMMITTÉ (UD English-PUD, CC BY-SA 3.0) — la sonde ne peut plus sauter
+if (!fs.existsSync(P)) { console.log('✗ dictee/pos_en_gold.tsv absent (bâti par build_pos_gold_en.py) — la mesure serait MUETTE'); process.exit(1); }
 const M = JSON.parse(fs.readFileSync(path.join(RACINE, 'dictee', 'pos_hmm_en.json'), 'utf8'));
 C.setPosModel(M);
 
@@ -70,10 +75,11 @@ for (const l of fs.readFileSync(P, 'utf8').split('\n')) {
   if (!l.trim()) { finPhrase(); continue; }
   if (l[0] === '#') continue;
   const c = l.split('\t');
-  if (c.length < 5 || c[0].includes('-')) continue;   // lignes de tokens composés (don't -> do n't)
-  mots.push(c[1]); gold.push(c[3]);
+  if (c.length !== 2) continue;
+  mots.push(c[0]); gold.push(c[1]);
 }
 finPhrase();
+if (tot < 18000) { console.log('✗ or tronqué : ' + tot + ' tokens'); process.exit(1); }
 
 console.log('EXACTITUDE DU TAGGER ANGLAIS — UD English-PUD (gold annoté main, ponctuation exclue)\n');
 console.log('  ' + tot + ' tokens · exactitude ' + (100 * ok / tot).toFixed(1) + ' %'
@@ -88,3 +94,8 @@ console.log('\n  ⚠️ SCONJ (58,8 %) est le point faible qui COÛTE : une conj
 console.log('     marque une FRONTIÈRE DE PROPOSITION. La lire comme une préposition, c\'est perdre');
 console.log('     la frontière — et toute détection de SUJET en a besoin. un discriminateur naïf ADP->SCONJ a été');
 console.log('     TESTÉ ET RÉFUTÉ (-0,25 pt) : il faut savoir où finit le groupe nominal, donc parser.');
+if (process.argv.includes('--check')) {
+  const ex = 100 * ok / tot, ok2 = ex >= PLANCHER;
+  console.log('[check] %s — exactitude %s %% (plancher %s %%) sur %d tokens', ok2 ? 'OK' : 'ÉCHEC', ex.toFixed(2), PLANCHER, tot);
+  if (!ok2) process.exit(1);
+}

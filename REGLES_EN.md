@@ -8,7 +8,7 @@ dys : audibilité × fréquence × FP-risque.
 
 **Référence LT** : 6 150 règles EN, dont l'essentiel est style/typographie. Notre unité est le
 PHÉNOMÈNE ; LT tolère les FP, nous non (mesuré : sur « We was late » LT propose « are », qui change
-le temps). Le mur anglais nommé : le CONTEXTE — kaikki sur-verbifie, c'est le TAGGER (90,7 %) qui
+le temps). Le mur anglais nommé : le CONTEXTE — kaikki sur-verbifie, c'est le TAGGER (91,6 % au 18/09/2026, 90,7 avant) qui
 tranche ; toute règle d'accord bute sur l'absence de chunker de GN (3 réfutations mesurées).
 
 Légende : 🔴 corrigé d'office (FP=0 mesuré) · 🟠 proposé/signalé · 🟡 PARTIEL · ❌ ABSENT (vérifié au
@@ -116,6 +116,8 @@ Le 18/09/2026, le banc de tir a servi une deuxième fois (`homoDecide` lot 2 + q
 - ⛔ **be + forme nue** (he is concern→concerned) : précision 8/35 sur JFLEG — be ne contraint RIEN.
 - ⛔ **contrainte de créneau dominante** : 614→612, dégrade. Le bonus reste un bonus.
 - ⛔ **rescoring POS du speller** : toute dose dégrade (95,4→94,0→90,5 %).
+- **Tagger EN, 18/09/2026** : 90,7 → 91,6 % sur l'or PUD (committé, plancher CI) par une table d'émission « avec majuscule » (American ADJ, Court PROPN : la post-passe PROPN ne force plus les mots que le modèle a vus capitalisés) et quatre post-passes mesurées une à une (be après there/here = VERB, have + nom/pronom objet = VERB, have + verbe = AUX : +0,25 ; more/most : +0,08 ; préposition + gérondif = SCONJ : +0,05 ; I/II/III après un nom propre = NUM : +0,04). ⛔ « to » PART/ADP par le mot suivant : +0,01, écarté. ⛔ **Perceptron moyenné** (traits mot/suffixes/voisins/tags précédents, 5 passes, EWT train) : 93,2 % sur PUD, soit +1,5 pt de plus, pour ~115 000 traits (≈ 2 Mo de poids) et un double portage JS/Python à parité exacte — pas maintenant ; noté pour quand une règle en aura besoin. Ce qui reste est surtout une CONVENTION : EWT tague « the Court », « President », « Minister » PROPN, PUD NOUN (283 + 76 tokens) ; VERB↔NOUN (216) est le plafond du bigramme.
+- ⛔ **lift « dernière lettre conservée » dans le classement du speller** (18/09/2026) : appris sur Wiktionary comme les autres, anagrammes exclus — liste de Wikipédia 287 → 265 mauvaises cibles, banc EWT +1, MAIS JFLEG en contexte (643 mots inconnus jugés par les annotateurs) 488 → 480 bonnes cibles (olders → orders, alsow → allow, wayse → was). Un a priori de faute d'ORTHOGRAPHE relue, pas de faute de FRAPPE : la lettre parasite en fin de mot est courante chez les scripteurs, rare dans les listes. Deux bancs sur trois ne confirment pas. Idem : « ne jamais proposer une faute attestée comme candidat » (0 gagnant concerné) ; « resserrer -re → -er » (agre → ager : 4 fautes de Wikipédia, mais iodised/sanitisers du texte édité ont une forme US de fréquence 0-2) ; « jetons de 2-3 lettres connus mais rares → speller » (~9 tirs justes sur texte édité — Chi-wai, au grisbi, doi — pour 3 fautes).
 - ⛔ **brancher homophones_en.json (5 549)** : 36 % de flood — index de collisions, pas de confusions.
 - ⛔ **dérivation -y→-iness** : kaikki marque money/turkey ADJ → moneiness. Chantier lexique.
 - ⛔ **extension navigateur EN** : décision de Rem, actée.

@@ -197,6 +197,10 @@ jobs:
         run: node dictee/parity_en.js
       - name: EN — parité du POS-tagger Python↔JS par token (PUD committé)
         run: node dictee/parity_pos_en.js
+      - name: EN — or du POS-tagger committé (pos_en_gold.tsv) complet
+        run: python3 dictee/build_pos_gold_en.py --check
+      - name: EN — exactitude du POS-tagger contre l'or PUD (plancher)
+        run: node dictee/pos_en_exactitude_probe.js --check
       # Le décomposeur phonique lisait la prononciation par prédiction et ignorait le dictionnaire (8 mots irréguliers sur 8
       # faux, 16/09/2026) : la garde exige les phonèmes du dictionnaire, l'alignement lettres↔sons et la page branchée sur le module.
       - name: EN — décomposeur phonique (dictionnaire, alignement lettres↔sons, page branchée)
