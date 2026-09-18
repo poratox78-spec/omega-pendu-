@@ -30,9 +30,9 @@
 | 10 | Captures d'écran 1280×800 (1 à 5) | ✅ fournies par Rem |
 | 11 | Remplir la fiche + les justifications, envoyer | ✅ envoyé et **accepté** le 28/08/2026 |
 | 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
-| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ **0.6.39 en ligne** (fiche publique lue le 16/09/2026) — 0.6.7 à 0.6.38 remises à Rem : un numéro remis est brûlé ; la prochaine devra être **> 0.6.39** — le dépôt est monté à **0.6.40** le 18/09/2026 (accord de genre) |
+| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ **0.6.39 en ligne** (fiche publique lue le 16/09/2026) — 0.6.7 à 0.6.38 remises à Rem : un numéro remis est brûlé ; la **0.6.40 a été REMISE à Rem le 18/09/2026** (les deux correctifs d'accord de genre) : elle est brûlée à son tour, la prochaine devra être **> 0.6.40** |
 | 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ collé à l'envoi du 28/08/2026 (en fin de description) ; il fait maintenant partie de la description du §3 |
-| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.39) | ✅ **0.6.39 en ligne le 16/09/2026** — pour la suivante : monter `version`, puis `python3 extension/build_zip.py --store` sur `main` |
+| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.40) | ✅ **régénéré le 18/09/2026 sur `main` (e2fe0b7) et remis à Rem** — 33 fichiers, 5,59 Mo, manifest à la racine, batterie 106/106 ; vérifié dans le zip : les deux règles d'épithète lisent la table des collisions, et la table de genre (59 123 entrées) ne contient plus peintre/ministre/architecte/diplomate. Pour la suivante : monter `version`, puis `python3 extension/build_zip.py --store` sur `main` |
 | 16 | La **description en ligne** est celle du §3 | ⬜ Rem — lue le 16/09/2026 : c'est encore l'ancienne (promesse « hors-ligne » d'avant #758) ; recoller la description du §3 en entier |
 
 ## 1. Ce qui était bloquant et qui est corrigé
