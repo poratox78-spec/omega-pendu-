@@ -393,31 +393,60 @@ retire pas un outil du site.**
 
 ## 3. CALENDRIER ET MÉTHODE
 
-| quand | quoi |
-|---|---|
-| jusqu'au **02/10** | **on ne touche à rien** — on mesure l'effet du nom de site du 17/09 |
-| 02/10 | relevé complet : clics, impressions, CTR, position, par page ET par requête |
-| 02/10 → J+28 | **Lot A** seul (titres, H1, descriptions, garde) |
-| +28 j | relevé, puis **Lot B** seul (noindex des docs) |
-| +28 j | relevé, puis **Lot C** |
-| en parallèle, sans horloge | **Lot D** (mesurer les pages de résultats avant d'écrire) et **Lot E** (hors-site) |
+### ⚠️ D'abord, une correction de ce plan par la mesure
 
-**Où s'insère « épurer » (§2 bis)** : le niveau 1 fait partie du Lot B. Le niveau 2 (fusionner
-les doublons) est un lot À PART ENTIÈRE, à passer **après** le Lot A — une redirection 301 et un
-changement de titre lancés ensemble seraient inséparables à la mesure. Le niveau 3 (alléger les
-textes) n'a pas d'horloge : il peut se faire page par page, quand l'envie vient.
+J'avais écrit « un lot à la fois, 28 jours entre deux ». **À ce volume, c'est faux pour presque
+toutes les pages.** Impressions reçues en 28 jours, et clics qu'on obtiendrait à un très bon CTR
+de 8 % :
 
-**Trois règles de mesure**, sans lesquelles ce plan ne vaut rien :
-1. **un lot à la fois**, 28 jours entre deux — sinon aucun effet n'est attribuable ;
-2. **la métrique est le CLIC**, et le CTR à position égale. L'impression peut monter pendant que
-   tout se dégrade : c'est précisément ce qui se passe depuis juillet ;
-3. **on compare à position égale.** Si la position bouge, le CTR bouge tout seul, et on
-   s'attribuerait un mérite qui vient du classement.
+| page | impressions / 28 j | clics attendus à 8 % | mesurable en un mois ? |
+|---|---:|---:|---|
+| `/` | **153** | 12,2 | **oui** |
+| `/pendable` | 36 | 2,9 | à peine |
+| `/recherche` | 28 | 2,2 | non |
+| `/correcteur` | **20** | 1,6 | **non** — on ne distingue pas 1 clic de 2 |
+| `/correcteur-outil` | 12 | 1,0 | non |
+| `/dictee` | **5** | 0,4 | non |
+
+**Seul l'accueil a de quoi se juger en un mois.** Découper le reste en lots de 28 jours ne
+mesurerait rien : ce serait un rituel, pas une méthode. La règle corrigée :
+
+- **on groupe les changements qui servent UNE SEULE hypothèse**, même s'ils touchent plusieurs
+  pages — c'est l'hypothèse qu'on teste, pas le fichier ;
+- **on mesure l'accueil à 28 jours** (il a le volume) et **le reste au trimestre** ;
+- pour les pages sans volume, on assume : le changement se justifie par la RAISON (un titre coupé
+  en plein milieu est mauvais, même sans chiffre pour le prouver), et on le dit.
+
+### Le calendrier
+
+| quand | bloc | ce qu'on en attend, et comment on le lit |
+|---|---|---|
+| **jusqu'au 02/10** | rien | fenêtre de mesure du nom de site du 17/09 ; calme demandé par Rem |
+| **02/10** | **relevé de référence** | clics, impressions, CTR, position — par page ET par requête. C'est la ligne de base de tout le reste |
+| **02/10** | **BLOC 1 — « le site dit ce qu'il est »** : accueil épuré (liste arrêtée le 19/09, héros à une action) + titres/H1/descriptions de toutes les pages + la garde de seuils | lu sur l'**accueil à J+28** (153 impressions, ~12 clics attendus : un écart se verra) ; sur les autres pages, au trimestre |
+| **~30/10** | **BLOC 2 — niveau 1** : `noindex` des docs et de `/toile`, retrait du sitemap | ⚠️ les impressions BAISSENT d'environ 250, c'est l'effet voulu. Ce qu'on regarde : le CTR moyen du site monte, et les clics ne baissent pas |
+| **~27/11** | **BLOC 3 — fusion des doublons** : `/correcteur-outil` → `/correcteur` (l'outil en haut), idem dictée, 301 | une 301 fait osciller le classement quelques semaines : lecture au **trimestre**, jamais à trois jours |
+| **sans horloge** | **Lot D** (mesurer les SERP avant d'écrire) et **Lot E** (hors-site) | ce sont les seuls leviers de croissance ; ils ne dépendent d'aucun déploiement |
+
+**Ce qui ne change pas :** la métrique est le **clic**, et le CTR **à position égale** — si la
+position bouge, le CTR bouge tout seul et on s'attribuerait le mérite du classement.
 
 **⛔ Pas de demande d'indexation à la Search Console** tant que Rem ne le dit pas (calme demandé le
 17/09).
 
----
+### Ce qu'on peut PRÉPARER sans rien déployer
+
+Fusionner sur `main` = déployer : tout ce qui suit vit donc sur une branche, prêt, non fusionné.
+
+| préparable tout de suite | ce que c'est | risque |
+|---|---|---|
+| **le BLOC 1 en entier** | l'accueil épuré, les titres courts, la garde de seuils, batterie complète passée | nul — rien n'est fusionné |
+| **le BLOC 3** | la page fusionnée (outil en haut), la règle de redirection, sitemap et gardes à jour | nul |
+| **Lot D** | relever la SERP réelle de chaque intention candidate (outil ou comparatif ? Aperçu IA ?) et ne garder que celles où Google montre un OUTIL | nul — c'est de la lecture |
+| **Lot E** | écrire les messages aux comparatifs (dysclick, poppins, Glaaster, Merci App) et aux associations dys | nul — **Rem les envoie, pas moi** |
+| **le relevé de référence** | la procédure exacte du 02/10, pour que la lecture soit comparable | nul |
+
+⛔ **Non préparable** : rien qui suppose de connaître l'effet du nom de site avant le 02/10.
 
 ## 4. CE QUE JE NE PROPOSE PAS, ET POURQUOI
 
