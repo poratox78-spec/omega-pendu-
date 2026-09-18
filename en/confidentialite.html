@@ -6,9 +6,9 @@
 <title>Privacy — we collect nothing | OMEGA-Ω</title>
 <meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/en/confidentialite">
 <link rel="canonical" href="https://omegapendu.com/en/confidentialite"><meta property="og:site_name" content="OMEGA Pendu"><meta property="og:locale" content="en"><meta property="og:locale:alternate" content="fr_FR">
-<meta property="og:title" content="Privacy — we collect nothing | OMEGA-Ω"><meta property="og:description" content="OMEGA-Ω sets no cookies, uses no trackers and loads no third-party resources. Everything stays on your device."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
-<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Privacy — we collect nothing | OMEGA-Ω"><meta name="twitter:description" content="No cookies, no trackers, no third-party resources. Everything stays on your device.">
-<meta name="description" content="OMEGA-Ω's privacy policy: no cookies, no trackers, no data collected, no third-party resources. Everything runs and stays on your device.">
+<meta property="og:title" content="Privacy — we collect nothing | OMEGA-Ω"><meta property="og:description" content="OMEGA-Ω sets no cookies, uses no trackers and loads no third-party resources. The checking runs on your device. One exception, always signposted: voice typing."><meta property="og:image" content="https://omegapendu.com/icon-512.png">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Privacy — we collect nothing | OMEGA-Ω"><meta name="twitter:description" content="No cookies, no trackers, no third-party resources. The checking runs on your device. One signposted exception: voice typing.">
+<meta name="description" content="OMEGA-Ω's privacy policy: no cookies, no trackers, no data collected, no third-party resources. The checking runs on your device. One exception, always signposted: voice typing.">
 <link rel="alternate" hreflang="fr" href="https://omegapendu.com/confidentialite">
 <link rel="alternate" hreflang="en" href="https://omegapendu.com/en/confidentialite">
 <link rel="alternate" hreflang="x-default" href="https://omegapendu.com/confidentialite">
@@ -40,12 +40,12 @@
 <section class="hero"><div class="wrap">
   <span class="tag">Privacy · no data collected</span>
   <h1>The short version: <em>we collect nothing</em>.</h1>
-  <p class="lead">OMEGA-Ω sets <strong>no cookies</strong>, uses <strong>no trackers</strong>, loads <strong>no third-party resources</strong> and has <strong>no accounts</strong>. The corrector, the dictation and the Hangman run <strong>entirely in your browser</strong>. That's why there's no "cookie" banner: we don't have any.</p>
+  <p class="lead">OMEGA-Ω sets <strong>no cookies</strong>, uses <strong>no trackers</strong>, loads <strong>no third-party resources</strong> and has <strong>no accounts</strong>. The corrector, the dictation and the Hangman run <strong>entirely in your browser</strong>. That's why there's no "cookie" banner: we don't have any. One exception, always signposted: <a href="#voice">voice typing</a>.</p>
 </div></section>
 
 <section><div class="wrap">
   <h2>What stays on your device</h2>
-  <p>To be useful, the site remembers a few settings <strong>locally</strong> (in your browser's <code>localStorage</code>): your <strong>readable font &amp; theme</strong> if you set them, the <strong>tool state</strong> (the text you're working on) and your <strong>progress</strong> in the dictation. It <strong>never leaves your device</strong>, it is sent to no one, and you can erase all of it by clearing the site's data in your browser.</p>
+  <p>To be useful, the site remembers a few settings <strong>locally</strong> (in your browser's <code>localStorage</code>): your <strong>readable font &amp; theme</strong> if you set them, your <strong>consent for voice typing</strong>, the <strong>tool state</strong> (the text you're working on) and your <strong>progress</strong> in the dictation. It <strong>never leaves your device</strong>, it is sent to no one, and you can erase all of it by clearing the site's data in your browser.</p>
 </div></section>
 
 <section><div class="wrap">
@@ -62,14 +62,28 @@
 <section><div class="wrap">
   <div class="promise" style="border-left-color:var(--accent)">
     <h2 style="margin-top:0">Everything runs offline</h2>
-    <p>The corrector, the dictation and the Hangman all run <strong>on your device</strong> — no text, no answer, nothing you type is ever sent anywhere. The dictation uses your browser's built-in speech synthesis to <em>read a word aloud</em>; that stays local too, and nothing you type is transmitted. <span class="small">(The French site also offers voice <em>input</em>, which — being opt-in — is the one feature that sends audio to the browser's speech service; it is not part of the English site.)</span></p>
+    <p>The corrector, the dictation and the Hangman all run <strong>on your device</strong> — no text, no answer, nothing you type is ever sent anywhere. The dictation uses your browser's built-in speech synthesis to <em>read a word aloud</em>; that stays local too, and nothing you type is transmitted.</p>
+  </div>
+</div></section>
+
+<section id="voice"><div class="wrap">
+  <div class="promise">
+    <h2 style="margin-top:0">Exception: voice typing</h2>
+    <p><a href="saisie-vocale">Voice typing</a> turns your voice into text. To do that, the browser sends the <strong>audio to its speech recognition service (Google, in Chrome)</strong>. So:</p>
+    <ul>
+      <li>It is <strong>off by default</strong>: nothing leaves until you tick the box and press the microphone.</li>
+      <li>A <strong>note says so clearly</strong> right where you turn it on.</li>
+      <li>The page also listens locally to <strong>measure your silences</strong> (to place punctuation). That sound is neither recorded nor sent.</li>
+      <li>The <strong>checker stays 100&nbsp;% offline</strong> — even while you dictate, the checking happens on your device.</li>
+      <li>You are <strong>never required</strong> to use it: everything else works without it.</li>
+    </ul>
   </div>
 </div></section>
 
 <section><div class="wrap">
   <h2>A question?</h2>
   <p>The code is open — you can verify everything yourself. To reach us: <a href="https://github.com/poratox78-spec/omega-pendu-/issues">GitHub (issues)</a> or <a class="cmail" href="https://github.com/poratox78-spec/omega-pendu-/issues" rel="nofollow">by e-mail</a>.</p>
-  <p class="small">Last updated: 2 August 2026.</p>
+  <p class="small">Last updated: 18 September 2026.</p>
 </div></section>
 
 </main>

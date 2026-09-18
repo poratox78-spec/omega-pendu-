@@ -13,6 +13,20 @@
 > travail = plus d'occasions de se tromper. Filtre de licence en §6.
 >
 > Mesures faites sur `main @fc7f09a`, arbre propre, 12 bancs anglais réellement exécutés.
+>
+> **Étape ② ouverte le 18/09/2026 — `en/saisie-vocale.html`.** Mêmes mécanismes que la page française, moins ce qui dépend d'un
+> modèle de texte français : segments de la reconnaissance (en-US), seconde écoute locale pour les silences et la hauteur,
+> marques AUX FRONTIÈRES DE SEGMENT seulement, commandes dictées, majuscules, mot de tête hors phrase, puis le correcteur
+> anglais (`analyzeText`) en suggestions à cliquer — rien n'est appliqué d'office (bêta). Chaque règle de texte est MESURÉE sur
+> de l'anglais écrit par des humains (UD GUM + EWT + PUD, 27 897 phrases) : mots-commandes libres sauf « period » (2,34 / 10 000 →
+> commande en fin de segment seulement, 0 conversion à tort sur PUD) ; « jamais de marque après » déterminant / préposition /
+> conjonction / auxiliaire / to (taux ≤ 1,2 %) ; question par la tête : auxiliaire + pronom sujet 87 %, wh- + auxiliaire 88-96 %
+> (which 33 % : exclu) ; mot de tête : meanwhile 100 %, finally 93, however 86… (so 16 %, then 23 %, now 36 % : exclus). Garde CI :
+> `dictee/voix_en_probe.js` — fonctions EXTRAITES de la page livrée, audio synthétique aux silences connus, PUD committé ; 95
+> contrôles, falsifiée par 9 défauts injectés. ⚠️ **NON MESURÉ, à valider au micro** : les seuils de silence (190 / 600 ms) et la
+> montée de hauteur (+4 demi-tons) viennent de la page française (grandeurs acoustiques, pas linguistiques) ; aucune prise
+> anglaise n'existe. Le bouton 🩺 exporte de quoi rejouer un cas. Vérifié au navigateur avec une reconnaissance SIMULÉE (flux
+> complet : Stop, transcription en direct, ponctuation, suggestions, Fix all, téléphone 375 px).
 
 ---
 

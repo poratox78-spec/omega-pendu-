@@ -221,6 +221,8 @@ jobs:
       # doublon, nombre affiché == fichier.
       - name: EN — dictée (300 phrases vérifiées une à une, nombre affiché == fichier)
         run: node dictee/dictee_en_probe.js
+      - name: EN — saisie vocale (fonctions extraites de la page, audio synthétique, mesures sur PUD committé)
+        run: node dictee/voix_en_probe.js
       # Même bug de fond, un cran plus haut : le 2026-08-09, 5 pages du site ANGLAIS n'étaient
       # reliées à rien depuis l'accueil (7/12 atteignables contre 16/17 en français), dont
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
