@@ -41,11 +41,22 @@
 > ⑤ la lecture à voix haute promettait « nothing leaves your device » : faux sans voix anglaise installée (mesuré le 15/09 : le
 > PC de Rem n'en a aucune) → voix locale préférée quand elle existe, information dans le ⓘ et dans la page Confidentialité
 > (exception « reading aloud »), sans oui/non. Garde CI : `dictee/correcteur_en_page_probe.js` — fonctions EXTRAITES de la page,
-> vrai moteur, 136 contrôles (texte intact et corrigé == copié sur 1 092 textes committés + JFLEG en local, résultats attendus,
+> vrai moteur, 136 contrôles à la livraison (texte intact et corrigé == copié sur 1 092 textes committés + JFLEG en local, résultats attendus,
 > listes, aide-frappe, mode d'emploi qui nomme chaque outil, une étiquette par règle, contraste ≥ 3 des traits dans les quatre
 > thèmes), falsifiée par 35 défauts injectés. ⚠️ La sonde ne voit pas le DOM : frappe réelle, Entrée, Tab, Ctrl+Z, carte, 375 px
-> vérifiés à la main dans un navigateur. **Pas encore portés** : Police de son et Syllabes (les données existent : `phonics_en.js`
-> + la colonne IPA du dictionnaire déjà chargé) ; la remédiation par profil, le juge et l'IA du français n'ont pas d'équivalent anglais.
+> vérifiés à la main dans un navigateur. La remédiation par profil, le juge et l'IA du français n'ont pas d'équivalent anglais.
+> **🔡 Police de son · ✂️ Syllabes (19/09/2026)** — les deux derniers outils de la barre française. Les données existaient : le
+> dictionnaire que la page charge porte la prononciation (colonne IPA) et `phonics_en.js` (l'outil « Decompose ») l'aligne sur les
+> lettres. Chaque mot est découpé en groupes de lettres : muettes en vermillon, consonnes voisées en graisse Heavy, sourdes en
+> Light (polices OMEGA Dys, servies par le site, téléchargées seulement si l'outil est allumé), une syllabe écrite sur deux en
+> bleu. Principe du français repris tel quel : le texte ne change JAMAIS (on n'ajoute que des `<span>`), abstention si
+> l'alignement ne recouvre pas le mot lettre pour lettre, abstention au-delà de 4 000 caractères. Un mot absent du dictionnaire
+> est lu d'après son orthographe — le mode d'emploi dit que cette lecture peut être fausse. Mesuré sur les 1 092 textes
+> committés : 0 texte modifié, 0 abstention sur 19 333 mots, 0,5 s. Trouvé au navigateur : outil resté allumé d'une visite à
+> l'autre → les données de son (43 Ko) arrivent AVANT le dictionnaire (2 Mo), le premier rendu mettait en cache l'échec de
+> chaque mot, qui restait nu toute la session — troisième défaut d'ordre de chargement de la série. Sonde : 174 contrôles
+> (invariants rejoués habillage allumé, découpages attendus, contraste ≥ 4,5 du texte coloré), 16 défauts injectés de plus,
+> dont une garde redondante retirée plutôt que laissée infalsifiable.
 >
 > **Étape ② ouverte le 18/09/2026 — `en/saisie-vocale.html`.** Mêmes mécanismes que la page française, moins ce qui dépend d'un
 > modèle de texte français : segments de la reconnaissance (en-US), seconde écoute locale pour les silences et la hauteur,

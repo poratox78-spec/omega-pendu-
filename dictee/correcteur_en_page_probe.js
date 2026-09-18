@@ -49,11 +49,15 @@ const code = [
   bloc('function compteurHtml('), bloc('function puce('), bloc('function listesHtml('), bloc('function pourquoiHtml('),
   ligneVar('_COMP_STOP'), ligneVar('_tri'), bloc('function triFreq('), bloc('function completions('),
   ligneVar('_WCH'), bloc('function motSousCurseur('),
+  ligneVar('MAX_SON'), ligneVar('_son'), ligneVar('_SON_VOI'), ligneVar('_SON_SRD'), ligneVar('_sonCache'),
+  bloc('function grapheMot('), bloc('function habilleTexte('), bloc('function hab('),
   // harnais (pas une règle) : poser l'état que les clics posent dans la page
   'function etat(o){ _on=o.on||{}; _off=o.off||{}; _ign=o.ign||{}; _choix=o.choix||{}; _UD=o.ud||{}; _typoOff=!!o.typoOff; }',
   'function sansLexique(f){ var g=LEX; LEX=null; try{ return f(); } finally { LEX=g; } }',
-].join('\n') + '\nreturn { calcule, remplacement, vueSaisie, segments, texteDe, typographie, vueCorrigee, compteurHtml, listesHtml, pourquoiHtml, completions, motSousCurseur, etat, sansLexique, LABEL, MAX_CAR };';
+  'function son(o){ _son=!!o.son; _syl=!!o.syl; _PH=o.PH||null; _G2P=o.G2P||null; _sonPret=!!o.pret; _sonCourt=o.court!==false; _sonCache={}; }',
+].join('\n') + '\nreturn { calcule, remplacement, vueSaisie, segments, texteDe, typographie, vueCorrigee, compteurHtml, listesHtml, pourquoiHtml, completions, motSousCurseur, etat, sansLexique, son, grapheMot, habilleTexte, hab, LABEL, MAX_CAR, MAX_SON };';
 const A = C.loadAllNode(__dirname);
+const PH = require(path.join(__dirname, 'phonics_en.js')), G2P = JSON.parse(fs.readFileSync(path.join(__dirname, 'g2p_en.json'), 'utf8'));
 const F = new Function('C', 'LEX', 'CONFUS', 'BASEMAP', code)(C, A.lex, A.ctx.confus, A.ctx.basemap);
 
 const nu = h => h.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
@@ -71,8 +75,11 @@ if (fs.existsSync(JF)) textes.push(...fs.readFileSync(JF, 'utf8').split(/\r?\n/)
 textes.push('Tom & Jerry <b>is</b> "fun" , and its 3 < 5 alot', 'I recieve it.\nShe dont know ,and he go.\n', '  leading spaces and the the end  ');
 let nMarques = 0, nMarquesCommit = 0, nTypoEdite = 0, invKo = 0;
 F.etat({});
+/* Deux passes : rendu nu, puis police de son + syllabes allumées (les <span> d'habillage ne doivent RIEN changer au texte). */
+for (const habille of [false, true]) {
+F.son(habille ? { son: true, syl: true, PH: PH, G2P: G2P, pret: true } : {});
 textes.forEach((t, idx) => {
-  const L = F.calcule(t); nMarques += L.length; if (idx < nCommit) nMarquesCommit += L.length;
+  const L = F.calcule(t); if (!habille) { nMarques += L.length; if (idx < nCommit) nMarquesCommit += L.length; }
   const dit = (quoi) => { invKo++; if (invKo <= 6) bad.push('invariant « ' + quoi + ' » rompu sur : ' + t.slice(0, 90)); };
   if (nu(F.vueSaisie(t, L)) !== t) dit('le rendu de la saisie est le texte tapé, au caractère près');
   const S = F.segments(t, L);
@@ -81,13 +88,15 @@ textes.forEach((t, idx) => {
   if (nu(F.vueCorrigee(S2)) !== F.texteDe(S2)) dit('après la ponctuation, le corrigé affiché est encore le corrigé copié');
   if (C.tokenize(F.texteDe(S2)).join(' ') !== C.tokenize(F.texteDe(S)).join(' ')) dit('la ponctuation ne touche aucune lettre');
   if (F.typographie(copie(S2)) !== 0) dit('la ponctuation converge (une seconde passe ne trouve plus rien)');
-  if (idx >= 92 && idx < nCommit) nTypoEdite += n;                              // PUD = texte ÉDITÉ : toute retouche y est suspecte
+  if (!habille && idx >= 92 && idx < nCommit) nTypoEdite += n;                              // PUD = texte ÉDITÉ : toute retouche y est suspecte
   // rien d'appliqué -> le corrigé EST le texte tapé
   const off = {}; L.forEach(f => { off[f.key] = 1; }); F.etat({ off: off });
   if (F.texteDe(F.segments(t, F.calcule(t))) !== t) dit('tout annulé, le corrigé est le texte tapé');
   F.etat({});
 });
-nTests += 6;
+}
+F.son({});
+nTests += 12;
 /* Plancher sur les textes COMMITTÉS seulement (171 marques le 18/09/2026) : le premier jet exigeait 300 marques, chiffre mesuré
    en local avec JFLEG — absent de la CI, qui a rougi. Un plancher se fonde sur ce que la CI voit. */
 ok(nMarquesCommit >= 150, 'trop peu de marques sur les textes committés pour que les invariants prouvent quelque chose (' + nMarquesCommit + ')');
@@ -204,6 +213,49 @@ ok(/pret=!!LEX && _pret/.test(src), 'run() analyse de nouveau avant que tous les
     for (const m of b.matchAll(/--c-(sur|verif|ok|vig):(#[0-9a-f]{6})/gi)) { nJetons++; const c = contraste(m[2], fond || '#000000');
       ok(c >= 3, 'contraste insuffisant : trait « ' + m[1] + ' » ' + m[2] + ' sur ' + fond + ' (' + nom + ') = ' + c.toFixed(2)); } }
   ok(nJetons === 14, 'jetons de couleur des marques introuvables (' + nJetons + '/14) : la garde du contraste serait muette'); }
+
+// ── ⑦ POLICE DE SON · SYLLABES : les groupes de lettres suivent la prononciation du DICTIONNAIRE ; le texte ne change jamais ──
+{ F.son({ son: true, syl: true, PH: PH, G2P: G2P, pret: true });
+  const forme = w => { const G = F.grapheMot(w); return G ? G.map(x => x.g + ':' + x.cls).join(' ') : null; };
+  // attendus lus dans un dictionnaire de prononciation, pas dans le code : knight /naɪt/, island /ˈaɪlənd/, because /bɪˈkɔz/
+  ok(forme('knight') === 'kn:n igh:n t:srd', 'knight : « kn » se lit /n/, « igh » /aɪ/, « t » est sourd — ' + forme('knight'));
+  ok(/(^| )s:mute( |$)/.test(forme('Island') || '') && (forme('Island') || '').indexOf('I:') === 0, 'Island : le « s » est muet, et la majuscule du mot tapé est gardée — ' + forme('Island'));
+  ok(/^b:voi /.test(forme('because') || '') && / e:mute$/.test(forme('because') || '') && / c:srd /.test(forme('because') || ''), 'because : b voisé, c sourd, e final muet — ' + forme('because'));
+  ok(/^d:voi /.test(forme('day') || '') && /^z:voi /.test(forme('zoo') || '') && /^p:srd /.test(forme('pen') || '') && /^f:srd /.test(forme('fun') || ''), 'voisées (d, z) en gras, sourdes (p, f) en maigre — ' + [forme('day'), forme('zoo'), forme('pen'), forme('fun')].join(' | '));
+  for (const w of ["don't", "children's", 'THROUGH', 'Wednesday', 'definitely', 'blorfing']) { const G = F.grapheMot(w);
+    ok(!!G && G.map(x => x.g).join('') === w, 'les groupes de lettres ne recouvrent pas le mot tel qu\'il est écrit : ' + w + ' -> ' + JSON.stringify(G && G.map(x => x.g))); }
+  { const G = F.grapheMot('definitely') || [], syl = [...new Set(G.map(x => x.syl))];
+    ok(syl.length === 4 && syl.join('') === '0123', 'definitely = 4 syllabes écrites (de·fi·ni·tely) : ' + syl.join(','));
+    const h = F.habilleTexte('definitely'); ok((h.match(/ sy"/g) || []).length >= 2 && (h.match(/ sy"/g) || []).length < G.length, 'une syllabe sur deux est marquée (ni aucune, ni toutes) : ' + (h.match(/ sy"/g) || []).length + '/' + G.length); }
+  ok(F.habilleTexte('café au lait & <b>') === 'café <span class="sg n">au</span> <span class="sg n">l</span><span class="sg n">ai</span><span class="sg srd">t</span> &amp; &lt;b&gt;' || nu(F.habilleTexte('café au lait & <b>')) === 'café au lait & <b>', 'un mot accentué reste nu, le reste est habillé, tout est échappé');
+  ok(F.habilleTexte('café').indexOf('<span') < 0, 'un mot que l\'alignement ne sait pas lire (lettre accentuée) doit rester NU : ' + F.habilleTexte('café'));
+  // éteint, pas prêt, ou texte trop long : le rendu est exactement le rendu nu
+  const t = 'I know the island.';
+  F.son({ son: false, syl: false, PH: PH, G2P: G2P, pret: true }); ok(F.hab(t) === 'I know the island.', 'outils éteints : aucun <span> d\'habillage');
+  F.son({ son: true, syl: false, PH: null, G2P: null, pret: false }); ok(F.hab(t) === t, 'données de son pas encore arrivées : rendu nu, sans exception');
+  F.son({ son: true, syl: true, PH: PH, G2P: G2P, pret: true, court: false }); ok(F.hab(t) === t, 'texte au-delà du plafond : on s\'abstient');
+  /* ORDRE DE CHARGEMENT : outil resté allumé d'une visite à l'autre -> les données de son (43 Ko) arrivent AVANT le dictionnaire
+     (2 Mo). Le premier rendu se fait donc sans dictionnaire : il doit rester nu ET ne rien mémoriser — le premier jet mettait en
+     cache l'échec de chaque mot, qui restait nu toute la session (vu au rechargement dans le navigateur). */
+  F.son({ son: true, syl: true, PH: PH, G2P: G2P, pret: true });
+  ok(F.sansLexique(() => F.hab(t)) === t && F.sansLexique(() => F.grapheMot('island')) === null, 'sans dictionnaire : rendu nu');
+  ok(/class="sg mute( sy)?">s</.test(F.hab(t)), 'le dictionnaire arrive APRÈS les données de son : les mots déjà rendus nus doivent maintenant être habillés (cache empoisonné ?) — ' + F.hab(t));
+  F.son({ son: true, syl: false, PH: PH, G2P: G2P, pret: true }); ok(/class="sg mute( sy)?">s</.test(F.hab(t)), 'police de son allumée : le « s » muet de island est habillé');
+  F.son({});
+  ok(F.MAX_SON === 4000, 'plafond de l\'habillage : ' + F.MAX_SON);
+  for (const id of ['t-son', 't-syl']) ok(new RegExp('id="' + id + '"').test(src), 'bouton absent de la barre : #' + id);
+  for (const mot of ['Sound font', 'Syllables', 'that guess can be wrong']) ok(modeEmploi.indexOf(mot) >= 0, 'le mode d\'emploi (ⓘ) ne dit plus « ' + mot + ' »');
+  ok(/phonics_en\.js/.test(src) && /g2p_en\.json/.test(src) && /the sound data failed to load/.test(src), 'les données de son ne sont plus chargées, ou leur échec n\'est plus NOMMÉ');
+  // contraste du TEXTE coloré (muette, syllabe) sur son fond : ≥ 4,5 (WCAG 1.4.3)
+  const css = fs.readFileSync(path.join(RACINE, 'site.css'), 'utf8');
+  const fonds = { sombre: (/:root\{[^}]*--bg-3:(#[0-9a-f]{6})/i.exec(css) || [])[1], clair: (/:root\[data-theme="light"\]\{[^}]*--bg-3:(#[0-9a-f]{6})/i.exec(css) || [])[1] };
+  const lum = h => { const v = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(x => x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+  const contraste = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  let nJ = 0;
+  for (const [nom, re] of [['sombre', /\.card\{[^}]*\}/], ['clair', /:root\[data-theme="light"\] \.card\{[^}]*\}/]]) { const b = (re.exec(src) || [''])[0];
+    for (const m of b.matchAll(/--c-(mute|syl):(#[0-9a-f]{6})/gi)) { nJ++; const c = contraste(m[2], fonds[nom] || '#000000');
+      ok(c >= 4.5, 'contraste insuffisant pour du TEXTE : « ' + m[1] + ' » ' + m[2] + ' sur ' + fonds[nom] + ' (' + nom + ') = ' + c.toFixed(2)); } }
+  ok(nJ === 4, 'jetons de couleur du son introuvables (' + nJ + '/4)'); }
 
 console.log('PAGE DU CORRECTEUR ANGLAIS — ' + textes.length + ' textes (' + nCommit + ' committés' + (textes.length - nCommit > 3 ? ', JFLEG en local' : '') + '), ' + nMarques + ' marques, ' + nTypoEdite + ' retouche(s) de ponctuation sur le texte édité');
 if (bad.length) { console.log('  ✗ ' + bad.length + ' contrôle(s) en échec sur ' + nTests + ' :'); bad.forEach(b => console.log('    – ' + b)); if (invKo > 6) console.log('    … et ' + (invKo - 6) + ' autre(s) invariant(s) rompu(s)'); process.exit(1); }
