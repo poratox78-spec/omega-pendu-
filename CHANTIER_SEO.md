@@ -242,6 +242,77 @@ textes, pas les envoyer.
 
 ---
 
+## 2 bis. ÉPURER LE SITE — question de Rem, 19/09/2026
+
+> *« peut-être épurer un peu le site ? »*
+
+L'instinct est juste, et il répond au constat ⑤ : **un site qui offre douze choses n'est l'outil
+de rien.** Mais « épurer » recouvre trois gestes de risque très différent, et un quatrième qu'il
+ne faut pas faire. Mesuré : poids réel en mots (scripts exclus) contre clics sur 3 mois.
+
+| page | mots | clics | ce que j'en fais |
+|---|---:|---:|---|
+| `/recherche` | **5 091** | **0** | alléger (niveau 3) |
+| `/arbitrage` | 1 222 | 0 | laisser — atteignable depuis Recherche seulement |
+| `/correcteur` | 1 198 | 1 | **fusionner** avec `/correcteur-outil` |
+| `/index` | 1 071 | **35** | ne pas casser : c'est 80 % des clics du site |
+| `/dictee` | 1 004 | 1 | **fusionner** avec `/dictee-outil` |
+| `/confidentialite` | 838 | 0 | laisser — page légale, 0 clic est normal |
+| `/evolution` | 789 | 0 | laisser |
+| `/donnees` | 648 | 0 | laisser — tranché par Rem le 18/09 |
+| `/omega-key` | 544 | 0 | laisser |
+| `/correcteur-outil` | 440 | 2 | **fusionner** |
+| `/dictee-outil` | 299 | 1 | **fusionner** |
+| `/pendable` | 271 | **6** | laisser — 2ᵉ poste de clics du site |
+| `/toile` | **72** | 0 | **noindex** (niveau 1) |
+
+### Niveau 1 — épurer ce que GOOGLE voit (aucun effet sur les visiteurs)
+
+C'est le Lot B, plus une page oubliée : **`/toile`** — 72 mots, aucune `meta description`, un titre
+de 31 caractères, absente du menu, 0 clic. Elle est déclarée au sitemap : elle n'a rien à y faire.
+
+### Niveau 2 — fusionner les doublons *(le geste le plus fort, et le plus structurel)*
+
+**Mesuré : il y a trois URL pour une seule application.** `/correcteur` (page d'explication,
+1 198 mots), `/correcteur-outil` (102 lignes : une `iframe` vers `app/omega-pendu.html`, plus le
+menu), et l'application elle-même. Idem pour la dictée. Conséquences lues dans la Search Console :
+
+- les deux pages se partagent le signal — `/correcteur` 54 impressions en position 3,9 et
+  `/correcteur-outil` 34 en position 4,1, sur le même sujet ;
+- **celle que Google classe le mieux est celle qu'on LIT, pas celle dont on SE SERT.**
+
+Proposition : **une seule URL par outil** — `/correcteur` — avec **l'outil en haut**, utilisable
+tout de suite, et l'explication en dessous pour qui veut. `/correcteur-outil` redirige (301) vers
+elle. Pareil pour `/dictee`. On passe de 4 URL à 2 (8 à 4 avec `/en/`).
+
+C'est aussi ce que font les sites qui gagnent sur « solveur pendu » : l'outil d'abord (constat ③).
+
+⚠️ **Une redirection 301 fait osciller le classement quelques semaines.** Ce lot se fait SEUL, et
+il se mesure sur le clic à 28 jours, pas sur la position à 3 jours.
+
+### Niveau 3 — alléger les textes *(bon pour les dys ET pour Google)*
+
+`/recherche` : **5 091 mots, 13 sections, 0 clic.** Ce n'est pas une page de site, c'est un article
+de fond. Et `/correcteur` fait 1 198 mots en 6 sections d'argumentation, alors que son rôle est de
+faire ESSAYER. Sur un site dont les visiteurs sont dyslexiques, la longueur n'est pas un détail
+esthétique : c'est une barrière.
+
+Cible raisonnable : **500 à 700 mots** par page produit, l'essentiel au-dessus de la ligne de
+flottaison, le reste replié ou renvoyé à une page de fond.
+
+### ⛔ Ce que « épurer » ne doit PAS vouloir dire
+
+Supprimer ce qui n'a pas encore marché. Scrabidon, Double-Sens, Poser un calcul, Saisie vocale,
+OMEGA·KEY font 0 clic sur trois mois — **et ce n'est pas une raison de les retirer** : ils ne
+coûtent aucun clic aux autres, le menu tient en trois groupes, et un outil sans visiteurs n'est pas
+un outil raté, c'est un outil pas encore trouvé. Le 18/09, la page Données est sortie du menu par
+un raisonnement de ce genre, et Rem a eu raison de le refuser.
+
+**La règle : on épure ce que GOOGLE voit en trop, et la LONGUEUR de ce qu'on donne à lire. On ne
+retire pas un outil du site.**
+
+---
+
 ## 3. CALENDRIER ET MÉTHODE
 
 | quand | quoi |
@@ -252,6 +323,11 @@ textes, pas les envoyer.
 | +28 j | relevé, puis **Lot B** seul (noindex des docs) |
 | +28 j | relevé, puis **Lot C** |
 | en parallèle, sans horloge | **Lot D** (mesurer les pages de résultats avant d'écrire) et **Lot E** (hors-site) |
+
+**Où s'insère « épurer » (§2 bis)** : le niveau 1 fait partie du Lot B. Le niveau 2 (fusionner
+les doublons) est un lot À PART ENTIÈRE, à passer **après** le Lot A — une redirection 301 et un
+changement de titre lancés ensemble seraient inséparables à la mesure. Le niveau 3 (alléger les
+textes) n'a pas d'horloge : il peut se faire page par page, quand l'envie vient.
 
 **Trois règles de mesure**, sans lesquelles ce plan ne vaut rien :
 1. **un lot à la fois**, 28 jours entre deux — sinon aucun effet n'est attribuable ;
