@@ -390,7 +390,10 @@
        · un POINT seulement si le silence atteint 600 ms ET que le segment suivant ne dit pas que la phrase continue (_CONT) ;
          sinon une virgule ;
        · « ? » si le segment qui finit est une question par sa tête, ou si la hauteur monte de plus de 4 demi-tons ;
-       · sans seconde écoute (téléphone) : aucune durée n'est connue — seule la virgule devant but/so/because/which… est posée. */
+       · une QUESTION reconnue à sa tête OUVRE une phrase : devant elle, la frontière reçoit un point (vu au navigateur le
+         18/09/2026 : « …every day do you know the way? » sortait d'un seul tenant) ;
+       · sans seconde écoute (téléphone) : aucune durée n'est connue — seuls ce point et la virgule devant but/so/because/which…
+         sont posés. */
   function prosodyText(state){
     var ks=Object.keys(state.finals).map(Number).sort(function(a,b){return a-b;});
     var segs=[]; for(var k=0;k<ks.length;k++){
@@ -408,8 +411,10 @@
         if(!dejaFini && !_PASAPRES[_dernierMot(pv.t)]){
           if(estQuestion(pv.t) || riseAt(pv.idx)>QR) mk='?';
           else if(useAudio){ var sil=silBetween(au.tl,thr,(state.ftimes[pv.idx]||0)-100,(state.ftimes[nx.idx]||1e9));
-            if(sil>=PERIOD && !_CONT.test(nx.t)) mk='.';
+            if(sil>=COMMA && estQuestion(nx.t)) mk='.';
+            else if(sil>=PERIOD && !_CONT.test(nx.t)) mk='.';
             else if(sil>=COMMA) mk=','; }
+          else if(estQuestion(nx.t)) mk='.';
           else if(_CONT_VIRGULE.test(nx.t)) mk=','; }
         out=out.replace(/[ \t]*$/,'')+mk+(/\n\s*$/.test(out)?'':' ');
         if(mk!=='.'&&mk!=='?'&&!/[.!?…\n]\s*$/.test(out)) txt=txt.charAt(0).toLowerCase()+txt.slice(1);   // la majuscule d'amorce que la reconnaissance colle à chaque segment
