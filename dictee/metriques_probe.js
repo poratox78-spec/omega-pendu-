@@ -38,6 +38,10 @@ const REGISTRE = {
             pages: { 'saisie-vocale.html': 1 },
             sonde: { fichier: 'dictee/proso_probe.js', portee: 'constat',
                      note: 'mesuré une fois (PR#403), documenté dans la garde CI de la prosodie' } },
+  27897:  { nom: 'anglais écrit UD (GUM + EWT + PUD) — règles de la saisie vocale anglaise (commandes, mot de tête, question, « jamais de marque après »)',
+            pages: { 'en/saisie-vocale.html': 1 },
+            sonde: { fichier: 'dictee/voix_en_probe.js', portee: 'locale',
+                     note: 'PUD (1 000 phrases, committé) est rejoué en CI ; GUM + EWT (26 897) sous data_local' } },
   15353:  { nom: 'flood EN édité PUD+GUM — règles anglaises (REGLES_EN)',
             pages: { 'en/correcteur-outil.html': 1 },      // 3 jusqu'au 17/09/2026 : deux commentaires de règles ont suivi la chaîne des décisions dans le moteur (analyzeText)
             sonde: { fichier: 'dictee/fp_en_propre_probe.js', portee: 'locale' } },

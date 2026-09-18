@@ -39,6 +39,7 @@
     ['Dyslexia tools', [
       ['correcteur', 'Corrector'],
       ['dictee', 'Dictation'],
+      ['saisie-vocale', 'Voice typing'],
       ['decompose-outil', 'Decompose'],
     ]],
     ['Play', [
