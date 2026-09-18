@@ -17,7 +17,7 @@
 'use strict';
 const fs = require('fs'), path = require('path');
 const C = require(path.join(__dirname, 'corrector_en.js'));
-const PLANCHER_ROUGE_JUSTE = 89, PLANCHER_JUSTE = 250, PLAFOND_ROUGE_FAUX = 1;      // cliquet — mesurés le 17/09/2026 : 231 bien corrigées / 4 rouges faux, puis 252 / 3 (règles de vrai mot), puis 253 / 1 et 91 rouges justes (« a » non article et « youre » + nom passent à l'orange)
+const PLANCHER_ROUGE_JUSTE = 93, PLANCHER_JUSTE = 300, PLAFOND_ROUGE_FAUX = 1;      // cliquet — mesurés le 17/09/2026 : 231 bien corrigées / 4 rouges faux, puis 252 / 3 (règles de vrai mot), puis 253 / 1 et 91 rouges justes ; le 18/09 (lot 2 : 33 paires + verbes) 305 / 1 et 95 rouges justes
 
 const src = path.join(__dirname, 'ewt_typos_en.tsv');
 const lignes = fs.readFileSync(src, 'utf8').split('\n').filter(l => l && !l.startsWith('#'));
@@ -30,14 +30,14 @@ for (const l of lignes) {
   const a = C.analyzeText(lex, text, ctx);
   for (const s of ann.split(' | ')) {
     const m = /^(\d+):(\d+):(.+)$/.exec(s); if (!m) continue;
-    const deb = +m[1], fin = +m[2], gold = m[3].toLowerCase().replace(/[’ʼ]/g, "'");
+    const deb = +m[1], fin = +m[2], gold = m[3].toLowerCase().replace(/[’ʼ]/g, "'").replace(/-/g, ' ');   // « no-one » (annotateurs) == « no one » (moteur) : deux graphies admises
     const j = a.pos.findIndex((p, k) => p === deb && p + a.toks[k].length === fin);
     if (j < 0) continue;
     n++;
     const mk = a.marks[j], forme = a.toks[j]; let k;
     if (!mk) k = lex.KNOWN.has(forme.toLowerCase()) ? 'muet — la graphie est un mot réel' : 'muet — non-mot sans proposition';
     else if (mk.info) k = 'orange « souvent confondu »' + (String(mk.sugg).toLowerCase().split(/\s*\/\s*/).includes(gold) ? ' (la bonne forme est dans la liste)' : ' (autre liste)');
-    else if (String(mk.sugg).toLowerCase() === gold) k = mk.cls === 'red' ? 'ROUGE juste' : 'orange juste';
+    else if (String(mk.sugg).toLowerCase().replace(/-/g, " ") === gold) k = mk.cls === 'red' ? 'ROUGE juste' : 'orange juste';
     else k = mk.cls === 'red' ? 'ROUGE FAUX' : 'orange, autre cible';
     bump(cat, k); if (mk) bump(parRegle, mk.rule + ' — ' + k);
     if (!ex.has(k)) ex.set(k, []);

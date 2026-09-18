@@ -337,6 +337,65 @@ const NOUN_SLOT = new Set(['the','a','an','this','that','my','your','his','her',
 const DET_AFTER = new Set(['the','a','an','my','your','his','her','our','their','its']);   // PAS this/that : « effect that change » est l'idiome valide
 const AUX_BEFORE = new Set(['does','do','did',"doesn't","didn't","don't",'will','would','can','could','may',
   'might','must','shall','should','to','and','or','not',"won't","can't",'why','how','when','what','that']);
+/* ⭐ LOT 2 (18/09/2026) — même méthode, même banc de tir : chaque règle ci-dessous a ses occasions JUSTES sur les fautes
+   annotées d'EWT et 0 tir sur 176 893 tokens de texte ÉDITÉ (chaque tir lu). Les listes fermées sont nées des tirs.
+   Miroir exact : homophone_en_probe.py (mêmes listes, même ordre). Explications : WHY_PAIR dans en/correcteur-outil.html. */
+const _S = s => new Set(s.split(' '));
+const MASS_NOUN = _S('time money credit luck access information advice permission notice trouble peace joy hell company room space food water coffee dinner lunch breakfast help hope control power energy support feedback pleasure comfort shelter insurance coverage warning cover cash wine beer tea milk bread sleep rest work business service stuff damage harm grief pain rain snow sun air mail news homework respect love attention freedom justice strength courage confidence faith patience wisdom experience chance pause mercy grace hurt trust care thanks happiness health safety heat light shade cheer wealth fame glory honor honour proof evidence data input output leverage guidance direction directions instructions instruction assistance aid relief hassle stress fun entertainment music art culture science research education training practice exercise medicine therapy treatment surgery pizza cake candy fruit meat fish chicken beef rice pasta soup salad cheese butter sugar salt pepper oil gas fuel electricity internet wifi tv television radio email post paper ink paint glue tape stock inventory equipment furniture luggage baggage clothing footwear jewelry jewellery makeup hair skin blood sweat tears ice fire smoke dust dirt sand mud grass wood metal plastic glass cloth fabric leather cotton wool silk gold silver change debt interest profit revenue income tax taxes welfare unemployment employment housing transport transportation traffic parking entry admission membership ownership custody leave vacation overtime');   // « give you time », « make you dinner » : un nom MASSIF après « you » n'est pas un possessif
+const DITRANS = _S("give gave giving gives given tell told telling tells send sent sending sends show showed shown showing shows offer offered offering offers wish wished wishing wishes cost costs costing owe owed owes bring brought bringing brings buy bought buying buys get got getting gets gotten make made making makes call called calling calls teach taught teaching teaches save saved saving saves pay paid paying pays lend lent lending grant granted hand handed pass passed passing promise promised ask asked asking asks want wants wanted wanting need needs needed needing let lets see saw seen seeing sees help helped helping helps hear heard hearing hears watch watched watching have has had having thank thanks thanked keep kept keeps keeping find found finds finding leave left leaves leaving allow allowed allows deny denied guarantee guaranteed spare spared fix fixed cook cooked pour poured build built write wrote written read reads reading sing sang play played cause caused charge charged fine fined bear bore consider considered name named elect elected appoint appointed declare declared drive drove feed fed serve served earn earned win won bid bade refuse refused envy envied forgive forgave forgiven do does did doing done mean means meant order ordered book booked reserve reserved rent rented sell sold selling sells throw threw thrown toss tossed slip slipped mail mailed text texted email emailed ship shipped wire wired forward forwarded quote quoted bill billed award awarded assign assigned issue issued advise advised remind reminded inform informed notify notified warn warned convince convinced persuade persuaded expect expected suppose supposed assume assumed believe believed imagine imagined guess guessed reckon reckoned doubt doubted fear feared hope hoped bet betting wager wagered");   // verbes à DEUX objets : « wish you luck », « send you flowers », « show you pictures »
+const _AUX_INV = /^(?:do|does|did|don't|doesn't|didn't|can|could|will|would|should|shall|may|might|must|can't|won't|wouldn't|couldn't|shouldn't|are|were|is|was|am|be|been|being)$/;   // « don't you state it » : inversion, pas un possessif
+const YOUR_AFTER_OK = _S('is was has will would can could should');
+const DET_SET = _S('the a an my your his her their our its this that these those some any');
+const OBJ_SET = _S('me him her us them you it');
+const WHERE_PREV = _S('know knew knows knowing wonder wondering wondered see saw tell told ask asked asking find found remember forget forgot understand explain sure idea matter care about exactly');
+const WHERE_NEXT = _S('i you we they he she it this that');
+const PARTICLE_OFF = _S('sent turned dropped picked shut logged signed kicked switched paid ripped wiped cooled knocked broke broken finished pulled tore torn scraped sealed killed laughed shook shaken brushed fought warded staved leveled fended dozed nodded wore worn showed shown backed put ran went fell laid called sold headed dusted polished chopped sawed sliced peeled rubbed shaved hopped jumped stepped walked drove flew rode dashed stormed marched wandered drifted sped raced run');   // formes passées de verbes à particule « off » (« turned of the light ») — PAS de forme en -ing (« the killing of »), pas de verbe qui prend « of » (told of, made of, scared of)
+const BE_RUN = _S('be been being is are was were');                 // « run » seulement après be : « can be run of those cylinders »
+const THEN_PREV = _S("i you we they he she it and but so will would can could should must may might shall is are was were be been do does did has have had didn't don't doesn't isn't wasn't won't can't couldn't wouldn't shouldn't");   // « than » après un sujet/auxiliaire/conjonction : « the people would than rally »
+const _COMPAR_RE = /(?:er|more|less|rather|other|fewer)$/;
+const AFFECTED_OBJ = _S('me him her us them you my your his its their our');
+const AFFECTED_PREV = _S("was were is are been being be get got gets getting am i'm you're we're they're he's she's it's isn't aren't wasn't weren't badly greatly deeply directly negatively adversely severely");
+const BE_DOM = _S("is are was were be been being am isn't aren't it's");
+const DOMINANT_ADV = _S('incomplete incompletely also very more most less usually completely fully');
+const LOSER_PREV = _S('a total complete sore such real big');
+const COLLEGE_PREV = _S('to at in from before after during through into for finish finished finishing start started starting attend attended attending graduate graduated go going went');
+const COLLEGE_NEXT = _S('student students degree degrees kids life years education football basketball campus town tuition graduate graduates professor courses course class classes application applications fund essay essays dorm dorms roommate roommates freshman sophomore junior senior admission admissions loan loans');
+const OUR_PREV = _S('for behind of in at on from about near by into onto over under with to through during after before around beside');
+const OUR_STOP = _S('there here loud side west east north south back front patient patients house reach right door doors way of town state country office work school date box tray group crowd sourcing breaks break line lines field fields bounds bound building buildings put standing stand come coming');
+const WITHOUT_NEXT = _S('a the any my your his her their our it them this that these those me him us you having being even so much more too');
+const THEM_PREV = _S('let tell told give gave show showed ask asked help helped send sent bring brought join joined contact contacted thank thanked love hate meet met follow followed keep kept leave left take took allow allowed put get got make made see saw want wanted need needed call called visit visited pay paid teach taught watch watched hear heard');
+const THEM_NEXT = _S('know to the a that what how about in on out up all both off down away back go come be do have if when where why because with for from at by as home there here more some something anything nothing everything it this these those my your his her our their its');
+const ABROAD_PREV = _S('study studying studied studies semester year years program programs programme trip trips travel traveling travelling traveled travelled travels work working worked works move moving moved job jobs experience experiences students student teaching teach taught vacation holiday holidays');
+const ABROAD_STOP = _S('the a an this that his her its their our my your one');   // « twelve years aboard the cruise ship » : à bord
+const HEAR_MODAL = _S("can could will would should might must may can't couldn't won't wouldn't didn't don't doesn't ll 'll");
+const HEAR_OBJ = _S('what that about anything something nothing everything more people voices music noise sounds sound');
+const HEAR_TO = _S('about you me him her them us it what that this anything something nothing everything more back');   // PAS « from » : « moved to here from Texas »
+const THEIR_ADJ_STOP = _S('many few enough more less any no some other such several most much little own same next last first');
+const THEIR_NOUN_STOP = _S('there here people time times day days year years way ways thing things place places one ones lot lots money problem problems room rooms later today tomorrow yesterday now then too also again anyway though forever tonight soon already once twice alone ahead along apart aside away back behind below down forward inside outside upstairs downstairs overseas abroad home ago yet still anymore somewhere anywhere everywhere nowhere sometimes often always never ever instead otherwise indeed however therefore thus hence perhaps maybe please');   // adverbes que le tagger lit NOM (« resided there afterwards »)
+const PARONYM = { chose: 'choose', advice: 'advise', breath: 'breathe', cloth: 'clothe', device: 'devise' };
+const PARONYM_ADV = _S('then also just really never always still probably definitely simply');
+const VERB_SLOT_MODAL = _S("to will 'll would can could may might must shall should");
+const EVER_PP = _S('been had seen heard wanted done tried used traveled travelled visited felt met known wondered considered imagined experienced needed noticed tasted gotten got taken played watched worked lived loved eaten owned written driven dreamed witnessed encountered gone be see hear want do try travel feel know wonder consider imagine make get take find watch live eat own write witness encounter');   // PAS thought/read/made/dream/visit… : « every thought », « every visit » sont des noms
+const USED_PREV = _S("am is are was were be been being get got gets getting i'm you're we're they're he's she's it's isn't aren't wasn't weren't");
+const USED_STOP = _S('do does did can could will would what which that who how why where when you i we they he she it to');   // « what do you use to clean » : l'outil, pas l'habitude
+const SUPPOSED_PREV = _S("am is are was were be been being i'm you're we're they're he's she's it's isn't aren't wasn't weren't m re s");
+const PLEASED_PREV = _S("am is are was were be been being very more so really quite extremely not i'm you're we're they're he's she's it's");
+const PEDAL_PREV = _S('new left right foot gas brake clutch bike bicycle piano effects guitar broken');
+const BORDER_PREV = _S('southern northern eastern western mexican canadian us cross crossing crossed across the');
+const BORDER_PREV_STRONG = _S('southern northern eastern western mexican canadian cross crossing crossed');
+const BORDER_NEXT_WIDE = _S('with between crossing crossings patrol control town towns guard guards area areas region regions wall fence security checkpoint of into to and');
+const BORDER_NEXT = _S('with between crossing crossings patrol control guard guards wall fence checkpoint');
+const LATTER_PREV = _S('chose choose prefer preferred prefers like liked pick picked take took want wanted recommend recommended went go');
+const THOROUGH_PREV = _S('a an very more so really quite pretty extremely super most less not being is was were are be been');
+const THOROUGH_NEXT = _S('job jobs cleaning check checks inspection examination exam review investigation search understanding knowledge analysis look clean research explanation study testing test report assessment evaluation reading wash checkup work manner way person');
+const ACCEPTED_PREV = _S("was were been being get got am is are i'm you're we're they're he's she's it's");
+const ACCEPTED_NEXT = _S('to into at by for as');
+const WHILE_PREV = _S('a short long little');
+const WEIGHT_PREV = _S('your my his her their our the body lose losing lost gain gaining gained birth extra excess more much some ideal healthy');
+const BEING_PREV = _S("is are was were be am i'm you're we're they're isn't aren't wasn't weren't");   // PAS he's/it's : « it's been » = it has been
+const BEING_ADV = _S('currently still now also just being');
+const TO_VERB = _S('die go get make see find buy take give eat come know tell say think put keep let help try ask become leave mean meet pay sit speak stand write hear learn lose send bring hold understand watch follow create allow add spend grow walk win offer remember love consider appear wait serve expect build stay fall reach kill remain suggest raise pass sell require report decide pull use want describe explain avoid prevent reduce receive provide include continue achieve begin finish feel enjoy visit choose pick drink wear drive fly sing read teach bite catch fight forget forgive hide shake throw wake');   // verbes sans lecture adjectivale (« too close », « too open » restent muets) ; ni have/do/be (« so too have the… »)
+const _pluriel = n => /(s|x|z|ch|sh)$/.test(n) ? n + 'es' : (/[^aeiou]y$/.test(n) ? n.slice(0, -1) + 'ies' : n + 's');
 const SUBJUNCTIVE = new Set(['if','as','wish','wishes','wished','whether','though','although','unless','lest','than','suppose','supposing']);
 const SUBJ_3SG = new Set(['he','she','it']);                             // pronoms 3e pers. sing. SEULS (un NOM serait ambigu : pluriel invariable, collectif)
 const DET_BEFORE = new Set(['the','these','those','his','her','their','our','my','your','its','both','all','other','first','last','only','same','remaining']);
@@ -607,6 +666,87 @@ function homoDecide(lex, T, i, adj){
   // « she is and excellent doctor », « watching and old film » -> an. 2 justes, 0 tir (3 lettres au moins : « and e mail »).
   if(lw === 'and' && AND_AN_PREV.has(pv) && _motMinuscule(nxRaw) && nxRaw.length >= 3 && /^[aeio]/.test(nx) && !/s$/.test(nx)
       && ['AUX','VERB'].includes(ctxPos(T, i - 1) || '') && ['ADJ','NOUN'].includes(ctxPos(T, i + 1) || '')) return ['an', 'ORANGE'];
+  // ---- LOT 2 (18/09/2026) : conditions du banc de tir, dans cet ordre ; miroir = homophone_en_probe.py ----
+  const _collePrev = i > 0 && (!adj || adj.has(i - 1)), pvRaw = i > 0 ? String(T[i - 1]) : '';   // pv2 est déjà défini plus haut
+  // « cancel you ticket », « place you hand in the cage » -> your : verbe (non ditransitif, hors inversion « don't you… »)
+  // + you + nom singulier COMPTABLE (son pluriel est au lexique, pas un nom massif). 2 justes, 0 tir. « wishing you prosperity »
+  // (massif) et « hearing you scream » (verbe de perception, ditransitif) restent muets PAR CONSTRUCTION, plus par renoncement.
+  if(lw === 'you' && _colle && _collePrev && ctxPos(T, i - 1) === 'VERB' && _motMinuscule(pvRaw) && !DITRANS.has(pv) && !_AUX_INV.test(pv)
+      && !/^(?:why|how|what|when|where|who)$/.test(pv2) && _motMinuscule(nxRaw) && ctxPos(T, i + 1) === 'NOUN' && !/s$/.test(nx)
+      && !MASS_NOUN.has(nx) && !YOU_APPOS.has(nx) && nx.length >= 3 && lex.KNOWN.has(_pluriel(nx))
+      && !(['VERB','AUX'].includes(ctxPos(T, i + 2) || '') && !YOUR_AFTER_OK.has(nx2))) return ['your', 'ORANGE'];
+  // « the hotel is you choice » -> your. 1 juste, 0 tir.
+  if(lw === 'you' && _colle && _collePrev && (pv === 'is' || pv === 'was') && _motMinuscule(nxRaw) && ctxPos(T, i + 1) === 'NOUN'
+      && !/s$/.test(nx) && !MASS_NOUN.has(nx) && !YOU_APPOS.has(nx) && !['VERB','AUX','ADJ','ADV','PART'].includes(ctxPos(T, i + 2) || '')) return ['your', 'ORANGE'];
+  // « wanted to know were we stand » -> where : verbe de savoir/dire + were + pronom sujet. 1 juste, 0 tir.
+  if(lw === 'were' && _colle && _collePrev && WHERE_PREV.has(pv) && WHERE_NEXT.has(nx)) return ['where', 'ORANGE'];
+  // « can be run of those cylinders », « turned of the light » -> off : forme passée d'un verbe à particule + of. 1 juste, 0 tir.
+  if(lw === 'of' && _collePrev && _motMinuscule(pvRaw) && PARTICLE_OFF.has(pv) && (pv !== 'run' || BE_RUN.has(pv2))
+      && (DET_SET.has(nx) || OBJ_SET.has(nx) || nx === 'if' || ctxPos(T, i + 1) === 'NOUN' || i === T.length - 1)) return ['off', 'ORANGE'];
+  // « the people would than rally », « Than the troops… » -> then : « than » sans comparatif devant. 2 justes, 0 tir.
+  if(lw === 'than'){
+    if(i === 0){ if(T[i] === 'Than' && T.length > 2) return ['then', 'ORANGE']; }
+    else if(_collePrev && THEN_PREV.has(pv) && !T.slice(Math.max(0, i - 4), i - 1).some(x => _COMPAR_RE.test(String(x).toLowerCase()))) return ['then', 'ORANGE'];
+  }
+  // « this piece effected me », « guests were effected » -> affected : on n'« effectue » pas une personne. 4 justes, 0 tir.
+  if(lw === 'effected' && ((_colle && AFFECTED_OBJ.has(nx)) || (_collePrev && AFFECTED_PREV.has(pv)))) return ['affected', 'ORANGE'];
+  // « the gene is dominate », « incompletely dominate » -> dominant : après be, le verbe est impossible. 3 justes, 0 tir.
+  if(lw === 'dominate' && _collePrev && (BE_DOM.has(pv) || (DOMINANT_ADV.has(pv) && BE_DOM.has(pv2)))) return ['dominant', 'ORANGE'];
+  // « loosing my trust » -> losing ; « feel a looser » -> loser. 1 + 1 justes, 0 tir.
+  if(lw === 'loosing') return ['losing', 'ORANGE'];
+  if(lw === 'looser' && i > 0 && LOSER_PREV.has(pv) && !['NOUN','PROPN','ADJ'].includes(ctxPos(T, i + 1) || '')) return ['loser', 'ORANGE'];
+  // « a year before collage », « collage students » -> college. 1 juste, 0 tir.
+  if((lw === 'collage' || lw === 'collages') && ((_collePrev && COLLEGE_PREV.has(pv)) || (_colle && COLLEGE_NEXT.has(nx))))
+    return [lw === 'collage' ? 'college' : 'colleges', 'ORANGE'];
+  // « for out family trip », « behind out garage » -> our : préposition + out + nom. 2 justes, 0 tir.
+  if(lw === 'out' && _colle && _collePrev && OUR_PREV.has(pv) && _motMinuscule(nxRaw) && ctxPos(T, i + 1) === 'NOUN' && !OUR_STOP.has(nx) && nx2 !== 'of') return ['our', 'ORANGE'];
+  // « with out a job » -> without : jamais deux mots devant un déterminant. 0 tir édité ; RED (aucune lecture correcte).
+  if(lw === 'with' && _colle && nx === 'out' && (!adj || adj.has(i + 1)) && WITHOUT_NEXT.has(nx2)) return ['without', 'RED'];
+  // « to let then know » -> them ; « explore it and them you can » -> then. 1 + 1 justes, 0 tir.
+  if(lw === 'then' && _colle && _collePrev && THEM_PREV.has(pv) && THEM_NEXT.has(nx)) return ['them', 'ORANGE'];
+  if(lw === 'them' && _colle && _collePrev && pv === 'and' && SUBJ_PRON.has(nx) && ['AUX','VERB'].includes(ctxPos(T, i + 2) || '')) return ['then', 'ORANGE'];
+  // « on the calender » -> calendar : la machine à calandrer n'apparaît nulle part (0 tir sur 22 124 phrases). 2 justes.
+  if(lw === 'calender' || lw === 'calenders') return [lw === 'calender' ? 'calendar' : 'calendars', 'ORANGE'];
+  // « studying aboard » -> abroad (à bord d'un bateau : « aboard the ship » garde son déterminant). 2 justes, 0 tir.
+  if(lw === 'aboard' && _collePrev && ABROAD_PREV.has(pv) && !ABROAD_STOP.has(nx)) return ['abroad', 'ORANGE'];
+  // « I could here my neighbors » -> hear : modal + here + objet ; « to here about » -> hear. 1 juste, 0 tir (« I must here diverge » : verbe derrière, muet).
+  if(lw === 'here' && _collePrev){
+    if(HEAR_MODAL.has(pv) && _colle && (DET_SET.has(nx) || OBJ_SET.has(nx) || HEAR_OBJ.has(nx))) return ['hear', 'ORANGE'];
+    if(pv === 'to' && _colle && HEAR_TO.has(nx)) return ['hear', 'ORANGE'];
+  }
+  // « announced there new console » -> their : there + ADJECTIF + nom, mêmes gardes que « there + nom » (existentiel, locatif,
+  // nom avant, nom de temps) + adverbes que le tagger lit NOM. 1 juste, 0 tir.
+  if(lw === 'there' && i > 0 && _colle && (!adj || adj.has(i + 1)) && !EXIST_BEFORE.has(pv) && !PLACE_BEFORE.has(pv) && ctxPos(T, i - 1) !== 'NOUN'
+      && ctxPos(T, i + 1) === 'ADJ' && _motMinuscule(nxRaw) && !THEIR_ADJ_STOP.has(nx) && !TIME_NOUNS.has(nx2)
+      && _motMinuscule(T[i + 2]) && ctxPos(T, i + 2) === 'NOUN' && !THEIR_NOUN_STOP.has(nx2) && !/(?:ly|wards?)$/.test(nx2)) return ['their', 'ORANGE'];
+  // « they may then chose to » -> choose : le paronyme nom/verbe après modal + adverbe (la règle modal + chose existe). 1 juste, 0 tir.
+  if(PARONYM[lw] && i >= 2 && _collePrev && (!adj || adj.has(i - 2)) && PARONYM_ADV.has(pv) && VERB_SLOT_MODAL.has(pv2)) return [PARONYM[lw], 'ORANGE'];
+  // « have you every traveled » -> ever : every + participe (jamais un nom derrière). 1 juste, 0 tir.
+  if(lw === 'every' && _colle && EVER_PP.has(nx) && !['NOUN','PROPN'].includes(ctxPos(T, i + 2) || '')) return ['ever', 'ORANGE'];
+  // « got use to », « I use to think » -> used to ; « I m suppose to » -> supposed to ; « more please with » -> pleased. 1 + 1 + 1, 0 tir.
+  if(lw === 'use' && _colle && nx === 'to' && _collePrev){
+    if(USED_PREV.has(pv)) return ['used', 'ORANGE'];
+    if(SUBJ_PRON.has(pv) && !USED_STOP.has(pv2) && ctxPos(T, i + 2) === 'VERB' && !/ing$/.test(nx2)) return ['used', 'ORANGE'];
+  }
+  if(lw === 'suppose' && _colle && _collePrev && nx === 'to' && SUPPOSED_PREV.has(pv)) return ['supposed', 'ORANGE'];
+  if(lw === 'please' && _colle && _collePrev && nx === 'with' && PLEASED_PREV.has(pv)) return ['pleased', 'ORANGE'];
+  // Petites paires lues dans le banc, chacune 1 ou 2 justes et 0 tir : peddle/pedal, boarder/border, later/latter,
+  // through/thorough, excepted/accepted, wile/while, wight/weight, old fashion/fashioned.
+  if((lw === 'peddle' || lw === 'peddles') && _collePrev && (DET_SET.has(pv) || PEDAL_PREV.has(pv))) return [lw === 'peddle' ? 'pedal' : 'pedals', 'ORANGE'];
+  if((lw === 'boarder' || lw === 'boarders') && ((_collePrev && BORDER_PREV.has(pv) && ((_colle && BORDER_NEXT_WIDE.has(nx)) || BORDER_PREV_STRONG.has(pv)))
+      || (_colle && BORDER_NEXT.has(nx)))) return [lw === 'boarder' ? 'border' : 'borders', 'ORANGE'];
+  if(lw === 'later' && i > 1 && pv === 'the' && _collePrev && (!adj || adj.has(i - 2)) && LATTER_PREV.has(pv2) && !['NOUN','PROPN','ADJ'].includes(ctxPos(T, i + 1) || '')) return ['latter', 'ORANGE'];
+  if(lw === 'through' && _colle && _collePrev && THOROUGH_PREV.has(pv) && THOROUGH_NEXT.has(nx)) return ['thorough', 'ORANGE'];
+  if(lw === 'excepted' && _colle && _collePrev && ACCEPTED_PREV.has(pv) && ACCEPTED_NEXT.has(nx)) return ['accepted', 'ORANGE'];
+  if(lw === 'wile' && _collePrev && WHILE_PREV.has(pv)) return ['while', 'ORANGE'];
+  if(lw === 'wight' && _collePrev && WEIGHT_PREV.has(pv)) return ['weight', 'ORANGE'];
+  if(lw === 'fashion' && _collePrev && pv === 'old' && !['NOUN','PROPN'].includes(ctxPos(T, i + 1) || '')) return ['fashioned', 'ORANGE'];
+  // « are currently been gathered » -> being : après une forme pure de be (pas « it's » = it has). 1 juste, 0 tir.
+  if(lw === 'been' && _collePrev && (BEING_PREV.has(pv) || (BEING_ADV.has(pv) && BEING_PREV.has(pv2)))) return ['being', 'ORANGE'];
+  // « shall read as follow. » -> follows : en fin de proposition. 1 juste, 0 tir.
+  if(lw === 'follow' && pv === 'as' && (i === T.length - 1 || !_colle)) return ['follows', 'ORANGE'];
+  // « they are too die for » -> to : « too » ne précède jamais un verbe pur. 1 juste, 0 tir.
+  if(lw === 'too' && _colle && TO_VERB.has(nx)) return ['to', 'ORANGE'];
   // verbe irrégulier RÉGULARISÉ (runned->ran, goed->went, teached->taught) — RED FP=0 (forme nonstandard)
   const _vm = lex.VERBMORPH && lex.VERBMORPH[lw];
   if(_vm) return [PP_AUX.has(pv) ? _vm[1] : _vm[0], 'RED'];
@@ -636,7 +776,7 @@ function homoDecide(lex, T, i, adj){
 const _PREP_AVANT = new Set(['of','to','with','for','at','from','about','between','among','like',
   'without','against','upon','than','as','on','in','by','near','behind','beside','toward','towards']);
 const _BE_FORMS = new Set(['was','were','been','is','are','am','be']);
-const _PP_AUX = new Set(['have','has','had','having']);
+const _PP_AUX = new Set(['have','has','had','having',"haven't","hasn't","hadn't","i've","you've","we've","they've","could've","should've","would've","must've","might've"]);   // 18/09/2026 : « haven't see him », « we've went » — le tokeniseur garde la contraction en UN token
 const _PP_ADV = new Set(['already','just','never','always','recently','also','probably','actually',
   'ever','not','only','still','often','clearly','apparently','once','twice','long','since']);
 /* ⭐⭐ ACCORD EN NOMBRE DÉTERMINANT ↔ NOM — en **ORANGE**, et c'est tout l'intérêt.
@@ -679,6 +819,7 @@ const _PL_IRREG = new Set(['children','men','women','feet','teeth','mice','geese
 const _NUM_UNIT = new Set(['percent','cent','hundred','thousand','million','billion','dozen','score',
   'stone','head','pound','degree']);
 
+const _ONE_OF_STOP = new Set('team family staff crew group class faculty public gang band army police clergy jury committee audience majority minority cast elite bunch few many best worst most rest above following latter former same kind sort type lot number half third quarter percent world year day week month hour minute moment time past future present media data species series news'.split(' '));
 function buildNumber(lex){
   const m = new Map();
   for(const w of lex.KNOWN){
@@ -721,17 +862,24 @@ function numberDecide(lex, T, i, adj, hyph){
     if(_DET_SG.has(sl) || _DET_PL.has(sl) || sl === 'the') return [null, null];
   }
   // Remonter au déterminant en sautant ADJECTIFS et NUMÉRAUX (« many good student »).
-  let j = i - 1, saut = 0;
+  let j = i - 1, saut = 0, oneOf = false;
   while(j >= 0 && saut < 3){
     if(adj && !adj.has(j)) return [null, null];                       // adjacence RÉELLE à chaque pas
     const p = ctxPos(T, j), pl = String(T[j] || '').toLowerCase();
     if(_DET_SG.has(pl) || _DET_PL.has(pl)) break;
+    /* 18/09/2026 — « one of the major hospital that… » -> hospitals : après « one of the », le nom est PLURIEL. Gardes lues
+       dans les tirs : un nom derrière = composé (« one of the deepest commuter systems »), « of » derrière (« one of the most
+       basic form of commons »), un verbe derrière (« one of the more notable is »), collectifs (« one of the team »).
+       Banc : 1 juste, 0 tir édité, 0 tir web. */
+    if(pl === 'the' && j >= 2 && String(T[j - 1] || '').toLowerCase() === 'of' && String(T[j - 2] || '').toLowerCase() === 'one'
+       && (!adj || (adj.has(j - 1) && adj.has(j - 2)))){ oneOf = true; break; }
     if(p !== 'ADJ' && p !== 'NUM') return [null, null];
     j--; saut++;
   }
   if(j < 0 || saut >= 3) return [null, null];
+  if(oneOf && (_ONE_OF_STOP.has(w) || ['AUX','VERB'].includes(ctxPos(T, i + 1) || '') || String(T[i + 1] || '').toLowerCase() === 'of')) return [null, null];
   const det = String(T[j] || '').toLowerCase();
-  const veutPl = _DET_PL.has(det), veutSg = _DET_SG.has(det);
+  const veutPl = _DET_PL.has(det) || oneOf, veutSg = _DET_SG.has(det);
   if(!veutPl && !veutSg) return [null, null];
   const [sg, pl2] = paire;
   if(veutPl && w === sg) return [pl2, 'ORANGE'];
@@ -808,13 +956,20 @@ function _v3sg(lex, base){
   return base + 's';
 }
 
+const _V3_ADV = new Set(['suddenly','just','really','always','never','often','usually','still','also','actually','only','even',
+  'sometimes','probably','definitely','certainly','simply','quickly','finally','then','now','already']);
 function verb3Decide(lex, T, i, adj){
   const w = String(T[i] || '');
   if(i < 1 || w !== w.toLowerCase()) return [null, null];
   const lw = w.toLowerCase();
   if(_V3_STOP.has(lw)) return [null, null];                          // auxiliaires/modaux : hors sujet
   if(adj && !adj.has(i - 1)) return [null, null];                    // adjacence RÉELLE
-  const s = String(T[i - 1] || '').toLowerCase();
+  /* 18/09/2026 — UN ADVERBE entre le pronom et le verbe : « he suddenly run away » -> runs. Pronoms he/she/it seulement,
+     adverbes en liste fermée, et TOUTES les gardes ci-dessous regardent le mot AVANT LE PRONOM (ps - 1), pas avant l'adverbe.
+     Banc de tir : 1 juste, 0 tir édité, 0 tir web (« does it really matter », « did he just say » : inversion, muets). */
+  const ps = (i >= 2 && _V3_ADV.has(String(T[i - 1] || '').toLowerCase()) && SUBJ_SING3.has(String(T[i - 2] || '').toLowerCase())
+              && (!adj || adj.has(i - 2))) ? i - 2 : i - 1;
+  const s = String(T[ps] || '').toLowerCase();
   const sg = _V3_SG.has(s), pl = _V3_PL.has(s);
   if(!sg && !pl) return [null, null];                                // sujet non pronominal -> abstention
   if(ctxPos(T, i) !== 'VERB') return [null, null];                   // ④ le tagger tranche
@@ -840,12 +995,12 @@ function verb3Decide(lex, T, i, adj){
         structure. Même discriminateur que celui déjà connu pour was->were.
         ⚠️ C'est la garde la plus COÛTEUSE en rappel : on renonce à tout sujet précédé d'un verbe
         ou d'une préposition. On l'assume — un rouge faux coûte plus qu'un rappel manqué. */
-  if(i >= 2){
-    const p2 = ctxPos(T, i - 2);
+  if(ps >= 1){
+    const p2 = ctxPos(T, ps - 1);
     if(p2 === 'ADP' || p2 === 'VERB') return [null, null];
   }
-  if(i >= 2){                                                        // ⑦ inversion / infinitif nu
-    const av = String(T[i - 2] || '').toLowerCase().replace(/[’ʼ]/g, "'");
+  if(ps >= 1){                                                       // ⑦ inversion / infinitif nu
+    const av = String(T[ps - 1] || '').toLowerCase().replace(/[’ʼ]/g, "'");
     /* ⚠️ LES NÉGATIONS CONTRACTÉES comptent comme auxiliaires — « Doesn't it make… »,
        « Wouldn't it want… » sont des INVERSIONS interrogatives, donc la base est correcte.
        Le tokeniseur réparé rend `doesn't` en UN token, il fallait donc les lister explicitement :
@@ -1331,15 +1486,22 @@ function buildPastPart(lex){
   }
   return m;
 }
-function pastPartDecide(lex, T, i){
+function pastPartDecide(lex, T, i, adj){
   if(!lex._P2P) lex._P2P = buildPastPart(lex);
   const w = String(T[i] || '').toLowerCase();
-  const pp = lex._P2P.get(w);
-  if(!pp) return [null, null];
   let j = i - 1;
   while(j > 0 && _PP_ADV.has(String(T[j] || '').toLowerCase())) j--;   // « has already ran »
-  if(j < 0 || !_PP_AUX.has(String(T[j] || '').toLowerCase())) return [null, null];
-  return [pp, 'RED'];
+  if(j < 0 || !_PP_AUX.has(String(T[j] || '').toLowerCase().replace(/[’ʼ]/g, "'"))) return [null, null];
+  const pp = lex._P2P.get(w);
+  if(pp) return [pp, 'RED'];                                            // « has went » -> gone
+  /* 18/09/2026 — LA BASE d'un irrégulier après have : « haven't see him » -> seen, « had hear great things » -> heard.
+     Table lex._IRRPP (bâtie par buildBaseMap depuis forms_en : base -> participe quand ils diffèrent, formes attestées
+     seulement) MOINS les bases à lecture NOMINALE courante (« we have wind turbines », « had mean and standard deviation »,
+     drink/break/show/sleep/…), le tagger doit dire VERB et aucun nom ne doit suivre (« have swim practice »). Banc de tir :
+     2 justes, 0 tir sur 176 893 tokens édités, 0 tir web. Les verbes RÉGULIERS restent hors de portée : « I have work to do ». */
+  const pb = lex._IRRPP && lex._IRRPP.get(w);
+  if(pb && T[i] === w && (!adj || adj.has(j)) && ctxPos(T, i) === 'VERB' && !['NOUN','PROPN'].includes(ctxPos(T, i + 1) || '')) return [pb, 'RED'];
+  return [null, null];
 }
 
 
@@ -1656,10 +1818,23 @@ var _BF_PREV = { the: 1, a: 1, an: 1, this: 1, that: 1, these: 1, those: 1, my: 
   her: 1, its: 1, our: 1, their: 1, no: 1, any: 1, some: 1, of: 1, and: 1, or: 1,
   on: 1, in: 1, at: 1, by: 1, for: 1, with: 1, from: 1, about: 1, against: 1, between: 1, during: 1, per: 1 };
 var _BF_BE = { be: 1, is: 1, are: 1, was: 1, were: 1, been: 1, being: 1, am: 1 };
+var _BF_SUBJ = { i: 1, you: 1, he: 1, she: 1, it: 1, we: 1, they: 1 };
 var _BF_GOUV_TO = {};
 'have has had want wants wanted need needs needed going used able unable how try tries tried trying decide decides decided plan plans planned hope hopes hoped wish wishes wished ought refuse refused fail failed tend tends tended like likes liked love loves loved begin began begun start started continue continued learn learned forget forgot remember remembered choose chose chosen expect expected agree agreed promise promised ask asked help helps helped easy hard difficult important possible impossible way order time best'.split(' ').forEach(function(w){ _BF_GOUV_TO[w] = 1; });
+const _IRRPP_NOUNY = new Set('mean have to can shit fix born light lie wind lay deal fight catch hold spring sink string strike draw dig shake freeze bite stick wake win meet creep drink break show sleep stand drive fall ride swim spit bend spin swing tear hang shoot lose beat cum grind limp fink dee dc clip flea relay twilight resting underlay flashlight shoe bless slide swell shine cling sling fling'.split(' '));
 function buildBaseMap(raw, lex){
   const bases = new Set(), pre = new Map();
+  if(lex && lex.FREQ){                                       // 18/09/2026 : base -> participe irrégulier (« have see » -> seen), cf. pastPartDecide
+    const F = w => lex.FREQ.get(w) || 0, irr = new Map();
+    for(const l of raw.split('\n')){
+      const p = l.split('\t');
+      if(p.length < 3 || p[1] !== 'VERB' || !/^[a-z]+$/.test(p[0]) || _IRRPP_NOUNY.has(p[0])) continue;
+      const pp = p[2].split(',').find(x => /:participle\|past$/.test(x)); if(!pp) continue;
+      const f = pp.slice(0, pp.indexOf(':'));
+      if(f !== p[0] && /^[a-z]+$/.test(f) && !/ed$/.test(f) && lex.KNOWN.has(f) && F(f) >= 100 && F(p[0]) >= 500 && F(f) >= F(p[0]) / 100) irr.set(p[0], f);
+    }
+    lex._IRRPP = irr;
+  }
   for(const l of raw.split('\n')){
     const p = l.split('\t');
     if(p.length < 3 || p[1] !== 'VERB') continue;
@@ -1701,13 +1876,19 @@ function baseFormDecide(lex, T, i, adj, BM){
   let k = i - 1;
   while(k > 0 && _BF_ADV[T[k].toLowerCase()] && (!adj || adj.has(k))) k--;
   if(k < 0 || (adj && !adj.has(k))) return [null, null];     // adjacence RÉELLE trigger→cible (« the watering can, boxes »)
+  /* 18/09/2026 — INVERSION : « can I used for other schools » -> use. Le sujet pronominal s'intercale entre le modal et le
+     verbe ; le modal peut alors être capitalisé (« Can I used », en tête de phrase donc n'importe où dans le texte) : un
+     prénom/mois n'est jamais suivi d'un pronom sujet puis d'un verbe (le vocatif « Will, I used » a sa virgule : adjacence).
+     Banc de tir : 1 juste, 0 tir édité, 0 tir web. */
+  let inv = false;
+  if(k >= 1 && _BF_SUBJ[T[k].toLowerCase()] && (T[k] === T[k].toLowerCase() || T[k] === 'I') && _BF_MODAL[T[k - 1].toLowerCase()] && (!adj || adj.has(k - 1))){ k--; inv = true; }
   const tw = T[k], tl = tw.toLowerCase();
-  if(tw !== tl) return [null, null];                         // « Will/May/Did » capitalisés : prénom, mois, inversion
-  if(k === 0) return [null, null];                           // inversion en tête (« Can fishing be fun ? »)
+  if(tw !== tl && !inv) return [null, null];                 // « Will/May/Did » capitalisés : prénom, mois, inversion — sauf « Can I used » (vu au navigateur : en milieu de texte, la majuscule de phrase n'est pas au token 0)
+  if(k === 0 && !inv) return [null, null];                   // inversion en tête (« Can fishing be fun ? »)
   let kind = null;
   if(_BF_MODAL[tl]) kind = 'modal'; else if(_BF_DO[tl]) kind = 'do'; else if(tl === 'to') kind = 'to';
   if(!kind) return [null, null];
-  if(kind !== 'to' && _BF_PREV[T[k - 1].toLowerCase()]) return [null, null];   // « the can », « free will », « on may »
+  if(kind !== 'to' && k > 0 && _BF_PREV[T[k - 1].toLowerCase()]) return [null, null];   // « the can », « free will », « on may »
   if(kind === 'to'){
     if(!_BF_GOUV_TO[T[k - 1].toLowerCase()]) return [null, null];
     if(adj && !adj.has(k - 1)) return [null, null];
@@ -1755,7 +1936,7 @@ function capIDecide(lex, T, i, adj, hyph){
 var _MERGED = { alot: 'a lot', aswell: 'as well', infact: 'in fact', incase: 'in case',
   atleast: 'at least', eachother: 'each other', infront: 'in front', alittle: 'a little',
   abit: 'a bit', aslong: 'as long', inspite: 'in spite', upto: 'up to', ontop: 'on top',
-  nevermind: 'never mind' };                                           // alright ABSENT : graphie acceptée
+  nevermind: 'never mind', noone: 'no one' };                          // alright ABSENT : graphie acceptée ; noone : 2 fautes réelles d'EWT, 0 tir (18/09/2026)
 function mergedDecide(lex, T, i, adj){
   const w = T[i], lw = w.toLowerCase();
   const c = _MERGED[lw];
@@ -1864,7 +2045,7 @@ function analyzeText(lex, text, ctx){
     r = interroDecide(lex, toks, i, ADJ);               if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'interro'}; continue; }              // Does he goes ?
     r = verb3Decide(lex, toks, i, ADJ);                 if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'verb-3sg'}; continue; }             // he go
     r = confuseSlotDecide(lex, toks, i, ADJ, HYP, CG);  if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'confuse-slot'}; continue; }         // I will council him
-    r = pastPartDecide(lex, toks, i);                   if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'past-part'}; continue; }            // has went
+    r = pastPartDecide(lex, toks, i, ADJ);              if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'past-part'}; continue; }            // has went
     r = homoDecide(lex, toks, i, ADJ);                  if(r[1]){ marks[i] = {sugg:r[0], cls:(r[1] === 'RED' ? 'red' : 'orange'), rule:'homophone'}; continue; }
     r = spellSuggest(lex, toks[i], i > 0 ? toks[i - 1].toLowerCase() : '');   // le mot-outil précédent ouvre un slot (verbe/nom)
     if(r[1] === 'AUTO'){ marks[i] = {sugg:r[0], cls:'red', rule:'spelling'}; continue; }
@@ -1975,6 +2156,71 @@ if(typeof require !== 'undefined' && require.main === module){
     // a -> an : le son impose « an », mais devant un pronom ou un adverbe + verbe « a » n'est pas un article -> orange
     ['The rabbits a easily escape the pen',2,'an','ORANGE'],['I already have a everything I need',3,'an','ORANGE'],
     ['She ate a apple today',2,'an','RED'],
+    // LOT 2 (18/09/2026) — mêmes cas que homophone_en_probe.py ; chaque règle a son occasion juste et 0 tir sur texte édité
+    ['Please cancel you ticket before noon',2,'your','ORANGE'],
+    ['The hotel is you choice tonight',3,'your','ORANGE'],
+    ['I want to know were we stand',4,'where','ORANGE'],
+    ['He turned of the light and left',2,'off','ORANGE'],
+    ['The crowd would than rally again',3,'then','ORANGE'],
+    ['Than the troops moved on',0,'then','ORANGE'],
+    ['This news effected me deeply',2,'affected','ORANGE'],
+    ['Only the guests were effected',4,'affected','ORANGE'],
+    ['The brown gene is dominate here',4,'dominant','ORANGE'],
+    ['We kept loosing the ball',2,'losing','ORANGE'],
+    ['Nobody wants to feel a looser',5,'loser','ORANGE'],
+    ['He worked a year before collage',5,'college','ORANGE'],
+    ['We booked flights for out family trip',4,'our','ORANGE'],
+    ['She left with out a word',2,'without','RED'],
+    ['Call to let then know tonight',3,'them','ORANGE'],
+    ['Rest first and them you can run',3,'then','ORANGE'],
+    ['Put it on the calender now',4,'calendar','ORANGE'],
+    ['She spent a year studying aboard',5,'abroad','ORANGE'],
+    ['I could here my neighbors talking',2,'hear','ORANGE'],
+    ['They announced there new console yesterday',2,'their','ORANGE'],
+    ['You may then chose to leave',3,'choose','ORANGE'],
+    ['Have you every traveled by train',2,'ever','ORANGE'],
+    ['We got use to the noise',2,'used','ORANGE'],
+    ['I use to think so',1,'used','ORANGE'],
+    ['I m suppose to attend today',2,'supposed','ORANGE'],
+    ['We were please with the service',2,'pleased','ORANGE'],
+    ['The left peddle broke yesterday',2,'pedal','ORANGE'],
+    ['They live south of the boarder with Mexico',5,'border','ORANGE'],
+    ['I chose the later but regretted it',3,'latter','ORANGE'],
+    ['They did a very through job',4,'thorough','ORANGE'],
+    ['She was excepted to medical school',2,'accepted','ORANGE'],
+    ['Wait here for a wile',4,'while','ORANGE'],
+    ['Watch your wight carefully',2,'weight','ORANGE'],
+    ['This camera is old fashion',4,'fashioned','ORANGE'],
+    ['Reviews are currently been gathered',3,'being','ORANGE'],
+    ['The rules shall read as follow',5,'follows','ORANGE'],
+    ['These fries are too die for',3,'to','ORANGE'],
+    // … et ce qui doit rester MUET (lot 2) : verbe ditransitif, inversion, « took of you », comparatif proche, « aboard the ship », « must here diverge », « use to clean »…
+    ['I am wishing you prosperity',3,null,null],
+    ['She will teach you piano next year',3,null,null],       // ISOLANTE : seule la garde des ditransitifs la protège (piano est comptable)
+    ['That would afford you room to grow',3,null,null],       // ISOLANTE : seule la liste des noms massifs la protège (afford n'est pas ditransitif, « rooms » existe)
+    ['Why don\'t you state it clearly',2,null,null],
+    ['The photo I took of you',4,null,null],
+    ['It was no more so than usual',5,null,null],
+    ['They will dominate the league',2,null,null],
+    ['A looser fit is more comfortable',1,null,null],
+    ['She made a collage of photos',3,null,null],
+    ['Look for out of town guests',2,null,null],
+    ['What did you come up with out there',5,null,null],
+    ['Show them you can do it',1,null,null],
+    ['We spent twelve years aboard the ship',4,null,null],
+    ['I must here diverge from the topic',2,null,null],
+    ['We moved to here from Texas',3,null,null],
+    ['Is there enough time left',1,null,null],
+    ['Write every thought down',1,null,null],
+    ['What do you use to clean it',3,null,null],
+    ['We aim to please with every dish',3,null,null],
+    ['They peddle drugs downtown',1,null,null],
+    ['The new boarder pays rent monthly',2,null,null],
+    ['See you later this week',2,null,null],
+    ['We walked through the park',2,null,null],
+    ['It\'s been a long day',1,null,null],
+    ['The door was too close to the wall',3,null,null],
+    ['So too have the others',1,null,null],
     // … et ce qui doit rester MUET : chaque liste fermée a été posée après un tir sur du texte édité ou du web
     ['The will of the people matters',0,null,null],['They want the can opener',2,null,null],['Are the children here',1,null,null],
     ['I told you dinner is ready',2,null,null],['This is for you guys',3,null,null],['I gave it to you personally',4,null,null],
@@ -2037,11 +2283,16 @@ if(typeof require !== 'undefined' && require.main === module){
   /* ⭐ PARTICIPE APRÈS « HAVE » — positifs ET négatifs. Les négatifs sont la moitié qui compte :
      la règle est ROUGE, donc appliquée seule. « the difference we had was » est le faux positif
      exact que la mesure sur EWT avait sorti (5 fois) avant le filtre sur les formes de « be ». */
+  buildBaseMap(require('zlib').gunzipSync(require('fs').readFileSync(path.join(__dirname, 'forms_en.tsv.gz'))).toString('utf8'), lex);   // pose lex._IRRPP (base -> participe, 18/09/2026)
   const PP_OUI = [['I have went there','went','gone'], ['she has ate already','ate','eaten'],
                   ['they had drank it all','drank','drunk'], ['he has broke the vase','broke','broken'],
-                  ['we have took the bus','took','taken'], ['it has fell down','fell','fallen']];
+                  ['we have took the bus','took','taken'], ['it has fell down','fell','fallen'],
+                  // 18/09/2026 — la BASE après have, et les contractions de have (« haven't see him », « they've went »)
+                  ["I haven't see him since", 'see', 'seen'], ['we had hear great things', 'hear', 'heard'],
+                  ["they've went home already", 'went', 'gone'], ["he hasn't ate yet", 'ate', 'eaten']];
   const PP_NON = ['the only difference we had was for package V02', 'he has run fast every day',
-                  'I have read the book twice', 'the water had cost too much', 'she has left already'];
+                  'I have read the book twice', 'the water had cost too much', 'she has left already',
+                  'we have wind turbines here', 'the group had mean and standard deviation', 'I have work to do', 'they have swim practice today'];
   let ppOk = 0, ppKo = 0;
   for(const [txt, mot, att] of PP_OUI){ const T = tokenize(txt); let vu = null;
     for(let k = 1; k < T.length; k++){ const d = pastPartDecide(lex, T, k);
@@ -2151,6 +2402,9 @@ if(typeof require !== 'undefined' && require.main === module){
     [['she', "didn't", 'went', 'home'], 2, 'go'],
     [['it', 'will', 'causes', 'heat'], 2, 'cause'],
     [['you', 'must', 'never', 'went', 'there'], 3, 'go'],
+    [['the', 'visa', 'can', 'I', 'used', 'for', 'other', 'schools'], 4, 'use'],   // 18/09/2026 : inversion, le pronom s'intercale
+    [['Can', 'I', 'used', 'it', 'again'], 2, 'use'],                                // … même en tête, capitalisé
+    [['town', 'Can', 'I', 'used', 'it', 'again'], 3, 'use'],                        // … et en milieu de texte (majuscule de phrase)
   ];
   const BF_NON = [
     [['the', 'can', 'rusted', 'away'], 2],
@@ -2163,6 +2417,8 @@ if(typeof require !== 'undefined' && require.main === module){
     [['it', 'leads', 'to', 'reduced', 'activity'], 3],
     [['Can', 'fishing', 'be', 'fun'], 1],
     [['look', 'forward', 'to', 'going', 'home'], 3],
+    [['the', 'will', 'I', 'signed', 'yesterday'], 3],                               // « the will » : nom, même avec un pronom derrière
+    [['what', 'can', 'I', 'say'], 3],
   ];
   let bfOk = 0, bfKo = 0;
   for(const [T, i, att] of BF_OUI){ const r = baseFormDecide(lex, T, i, null, BM);
@@ -2179,6 +2435,7 @@ if(typeof require !== 'undefined' && require.main === module){
     ['merged', ['alot', 'of', 'people'], 0, 'a lot'],
     ['merged', ['we', 'went', 'aswell'], 2, 'as well'],
     ['merged', ['infact', 'it', 'works'], 0, 'in fact'],
+    ['merged', ['noone', 'came', 'today'], 0, 'no one'],
     ['dbl', ['this', 'is', 'more', 'better'], 2, ''],
     ['dbl', ['the', 'most', 'easiest', 'test'], 1, ''],
   ];
@@ -2224,8 +2481,31 @@ if(typeof require !== 'undefined' && require.main === module){
     if(r[1]){ hKo2++; console.log('  H FAUX POSITIF [%s] %s[%d] -> %s', k, T.join(' '), i, r[0]); } }
   console.log('règles ⑧ab: %d/%d rappel, %d anomalie(s)', hOk2, H_OUI.length, hKo2);
   console.log('règles ③④⑤⑥: %d/%d rappel, %d anomalie(s)', qOk, Q_OUI.length, qKo);
+  /* 18/09/2026 — accord 3sg avec UN adverbe entre le pronom et le verbe, et « one of the » + nom singulier. Positifs = les
+     occasions du banc ; pièges = les tirs lus sur texte édité et web, chacun protégé par une garde nommée. */
+  const V3_OUI = [['it just make those people angry', 'make', 'makes'], ['she also use this to challenge him', 'use', 'uses'],
+                  ['she always forget the keys', 'forget', 'forgets']];   // « he suddenly run away » reste MUET : run est aussi participe (garde du prétérit)
+  const V3_NON = ['does it really matter whether you come', 'did he just say sorry', 'after he already put it away', 'and he suddenly run away to his tube',
+                  'it simply rose and fell in the night', 'out of it quickly get a towel', 'she just left the room'];
+  let v3Ok = 0, v3Ko = 0;
+  for(const [txt, mot, att] of V3_OUI){ const T = tokenize(txt); let vu = null;
+    for(let k = 1; k < T.length; k++){ const d = verb3Decide(lex, T, k, null); if(d[1] === 'RED' && T[k] === mot) vu = d[0]; }
+    if(vu === att) v3Ok++; else { v3Ko++; console.log('  V3 MISS %s : %s -> %s (attendu %s)', txt, mot, vu, att); } }
+  for(const txt of V3_NON){ const T = tokenize(txt);
+    for(let k = 1; k < T.length; k++){ const d = verb3Decide(lex, T, k, null); if(d[1]){ v3Ko++; console.log('  V3 FAUX POSITIF : %s -> %s   | %s', T[k], d[0], txt); } } }
+  console.log('accord 3sg + adverbe: %d/%d rappel, %d anomalie(s)', v3Ok, V3_OUI.length, v3Ko);
+  const NB_OUI = [['one of the major hospital that does this', 'hospital', 'hospitals'], ['it is one of the best restaurant in town', 'restaurant', 'restaurants']];
+  const NB_NON = ['one of the train stations was closed', 'one of the more notable is the tern', 'one of the most basic form of commons',
+                  'she is one of the team', 'one of the deepest commuter systems in the world'];
+  let nbOk = 0, nbKo = 0;
+  for(const [txt, mot, att] of NB_OUI){ const T = tokenize(txt); let vu = null;
+    for(let k = 1; k < T.length; k++){ const d = numberDecide(lex, T, k, null, null); if(d[1] && T[k] === mot) vu = d[0]; }
+    if(vu === att) nbOk++; else { nbKo++; console.log('  NB MISS %s : %s -> %s (attendu %s)', txt, mot, vu, att); } }
+  for(const txt of NB_NON){ const T = tokenize(txt);
+    for(let k = 1; k < T.length; k++){ const d = numberDecide(lex, T, k, null, null); if(d[1]){ nbKo++; console.log('  NB FAUX POSITIF : %s -> %s   | %s', T[k], d[0], txt); } } }
+  console.log('one of the + nom: %d/%d rappel, %d anomalie(s)', nbOk, NB_OUI.length, nbKo);
   if(process.argv.includes('--check')){                    // garde CI : parité CASES (auto+flag ≥ 10 typos clairs, homophones tous)
-    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (attKO === 0) && (canalKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0);
+    const ok = (auto + flag >= 10) && (hok === HP.length) && (tyOk === TY_OUI.length) && (tyKo === 0) && (slipKO === 0) && (attKO === 0) && (canalKO === 0) && (ctOk === CT_OUI.length) && (ctKo === 0) && (bfOk === BF_OUI.length) && (bfKo === 0) && (qOk === Q_OUI.length) && (qKo === 0) && (hOk2 === H_OUI.length) && (hKo2 === 0) && (v3Ok === V3_OUI.length) && (v3Ko === 0) && (nbOk === NB_OUI.length) && (nbKo === 0) && (ppKo - (PP_OUI.length - ppOk) === 0) && (ppOk === PP_OUI.length);
     console.log('[check] %s — speller %d, glissement moteur %s, homophone %d/%d, typo %d/%d (%d anomalies), contractions %d/%d (%d anomalies), base %d/%d (%d anomalies), q3456 %d/%d (%d anomalies)',
                 ok ? 'OK' : 'ÉCHEC', auto + flag, slipKO ? 'KO(' + slipKO + ')' : 'OK', hok, HP.length, tyOk, TY_OUI.length, tyKo, ctOk, CT_OUI.length, ctKo, bfOk, BF_OUI.length, bfKo, qOk, Q_OUI.length, qKo);
     if(!ok) process.exit(1);

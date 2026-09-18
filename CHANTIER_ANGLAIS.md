@@ -26,8 +26,8 @@ et leurs formes ajoutés le 16/09/2026 par `dictee/build_en_lex_additif.py`), **
 |---|---:|---|
 | rappel speller EN (2 886 fautes Wikipédia) | **86,4 %** | ce n'est pas un prototype (80,5 % le 31/08 ; 81,9 % avec la table des fautes attestées, 86,4 % avec le classement par sorte d'édition, 17/09/2026) |
 | rouges sur texte édité (PUD+GUM, 176 893 tokens) | **15** (0,0085 %) | très précis — tous de vraies fautes du corpus. Mesuré depuis le 17/09 par le PIPELINE DU PRODUIT (`analyzeText`) : l'ancienne chaîne du banc ignorait 4 règles et en comptait 11 le même jour |
-| rouges confirmés par un annotateur (JFLEG) | **294 / 306 = 96,1 %** | ce qu'il affirme est juste — pipeline du produit et références recollées (« do n't ») ; 215/228 avec l'ancienne chaîne du banc, le même jour |
-| **fautes réelles en contexte** (EWT annoté, 626 fautes) | **40,4 %** bien corrigées · 1 rouge faux (36,9 % · 4 avant les règles de vrai mot et les deux raffinements a → an / youre) | 🔴 le banc de rappel qui manquait (CI, plancher + plafond) ; 45 % des fautes y sont de VRAIS MOTS, muettes |
+| rouges confirmés par un annotateur (JFLEG) | **298 / 310 = 96,1 %** | ce qu'il affirme est juste — pipeline du produit et références recollées (« do n't ») ; 294/306 le 17/09, +4 rouges du lot 2 tous confirmés le 18/09 |
+| **fautes réelles en contexte** (EWT annoté, 626 fautes) | **48,7 %** bien corrigées · 1 rouge faux (40,4 % le 17/09 ; 36,9 % · 4 avant les règles de vrai mot) | le banc de rappel qui manquait (CI, plancher + plafond) ; 45 % des fautes y sont de VRAIS MOTS — deux lots de règles par occasions comptées (17 et 18/09) en ont rendu 74 audibles, 0 marque nouvelle sur le texte édité |
 | **couverture** des corrections d'annotateurs (JFLEG) | **7,9 %** | 🔴 **le vrai retard** |
 | mauvaise cible (WRONG) | 287 (10,5 %) | 446 avant le 17/09 ; 409 avec la table ; 287 avec le classement par sorte d'édition |
 | **AUTO_WRONG** (rouges faux) | **1** | 🔴 **FP=0 est violé** (2 avant le 17/09) |

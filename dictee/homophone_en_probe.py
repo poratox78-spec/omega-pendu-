@@ -107,6 +107,68 @@ AND_AN_PREV = {'is', 'was', 'be', 'been', "it's", 'visit', 'watching', 'have', '
 _COORD_POS = {'ADJ', 'PROPN', 'VERB', 'NOUN', 'ADV'}
 _MOT_MIN = re.compile(r'^[a-z]+$')
 def _mot_minuscule(s): return bool(s) and s == s.lower() and bool(_MOT_MIN.match(s))
+# ---- LOT 2 (18/09/2026) — miroir exact des constantes de corrector_en.js (mêmes listes, nées du banc de tir) ----
+def _S(t): return set(t.split(' '))
+MASS_NOUN = _S('time money credit luck access information advice permission notice trouble peace joy hell company room space food water coffee dinner lunch breakfast help hope control power energy support feedback pleasure comfort shelter insurance coverage warning cover cash wine beer tea milk bread sleep rest work business service stuff damage harm grief pain rain snow sun air mail news homework respect love attention freedom justice strength courage confidence faith patience wisdom experience chance pause mercy grace hurt trust care thanks happiness health safety heat light shade cheer wealth fame glory honor honour proof evidence data input output leverage guidance direction directions instructions instruction assistance aid relief hassle stress fun entertainment music art culture science research education training practice exercise medicine therapy treatment surgery pizza cake candy fruit meat fish chicken beef rice pasta soup salad cheese butter sugar salt pepper oil gas fuel electricity internet wifi tv television radio email post paper ink paint glue tape stock inventory equipment furniture luggage baggage clothing footwear jewelry jewellery makeup hair skin blood sweat tears ice fire smoke dust dirt sand mud grass wood metal plastic glass cloth fabric leather cotton wool silk gold silver change debt interest profit revenue income tax taxes welfare unemployment employment housing transport transportation traffic parking entry admission membership ownership custody leave vacation overtime')
+DITRANS = _S("give gave giving gives given tell told telling tells send sent sending sends show showed shown showing shows offer offered offering offers wish wished wishing wishes cost costs costing owe owed owes bring brought bringing brings buy bought buying buys get got getting gets gotten make made making makes call called calling calls teach taught teaching teaches save saved saving saves pay paid paying pays lend lent lending grant granted hand handed pass passed passing promise promised ask asked asking asks want wants wanted wanting need needs needed needing let lets see saw seen seeing sees help helped helping helps hear heard hearing hears watch watched watching have has had having thank thanks thanked keep kept keeps keeping find found finds finding leave left leaves leaving allow allowed allows deny denied guarantee guaranteed spare spared fix fixed cook cooked pour poured build built write wrote written read reads reading sing sang play played cause caused charge charged fine fined bear bore consider considered name named elect elected appoint appointed declare declared drive drove feed fed serve served earn earned win won bid bade refuse refused envy envied forgive forgave forgiven do does did doing done mean means meant order ordered book booked reserve reserved rent rented sell sold selling sells throw threw thrown toss tossed slip slipped mail mailed text texted email emailed ship shipped wire wired forward forwarded quote quoted bill billed award awarded assign assigned issue issued advise advised remind reminded inform informed notify notified warn warned convince convinced persuade persuaded expect expected suppose supposed assume assumed believe believed imagine imagined guess guessed reckon reckoned doubt doubted fear feared hope hoped bet betting wager wagered")
+_AUX_INV = re.compile(r"^(?:do|does|did|don't|doesn't|didn't|can|could|will|would|should|shall|may|might|must|can't|won't|wouldn't|couldn't|shouldn't|are|were|is|was|am|be|been|being)$")
+_WH = re.compile(r'^(?:why|how|what|when|where|who)$')
+YOUR_AFTER_OK = _S('is was has will would can could should')
+DET_SET = _S('the a an my your his her their our its this that these those some any')
+OBJ_SET = _S('me him her us them you it')
+WHERE_PREV = _S('know knew knows knowing wonder wondering wondered see saw tell told ask asked asking find found remember forget forgot understand explain sure idea matter care about exactly')
+WHERE_NEXT = _S('i you we they he she it this that')
+PARTICLE_OFF = _S('sent turned dropped picked shut logged signed kicked switched paid ripped wiped cooled knocked broke broken finished pulled tore torn scraped sealed killed laughed shook shaken brushed fought warded staved leveled fended dozed nodded wore worn showed shown backed put ran went fell laid called sold headed dusted polished chopped sawed sliced peeled rubbed shaved hopped jumped stepped walked drove flew rode dashed stormed marched wandered drifted sped raced run')
+BE_RUN = _S('be been being is are was were')
+THEN_PREV = _S("i you we they he she it and but so will would can could should must may might shall is are was were be been do does did has have had didn't don't doesn't isn't wasn't won't can't couldn't wouldn't shouldn't")
+_COMPAR_RE = re.compile(r'(?:er|more|less|rather|other|fewer)$')
+AFFECTED_OBJ = _S('me him her us them you my your his its their our')
+AFFECTED_PREV = _S("was were is are been being be get got gets getting am i'm you're we're they're he's she's it's isn't aren't wasn't weren't badly greatly deeply directly negatively adversely severely")
+BE_DOM = _S("is are was were be been being am isn't aren't it's")
+DOMINANT_ADV = _S('incomplete incompletely also very more most less usually completely fully')
+LOSER_PREV = _S('a total complete sore such real big')
+COLLEGE_PREV = _S('to at in from before after during through into for finish finished finishing start started starting attend attended attending graduate graduated go going went')
+COLLEGE_NEXT = _S('student students degree degrees kids life years education football basketball campus town tuition graduate graduates professor courses course class classes application applications fund essay essays dorm dorms roommate roommates freshman sophomore junior senior admission admissions loan loans')
+OUR_PREV = _S('for behind of in at on from about near by into onto over under with to through during after before around beside')
+OUR_STOP = _S('there here loud side west east north south back front patient patients house reach right door doors way of town state country office work school date box tray group crowd sourcing breaks break line lines field fields bounds bound building buildings put standing stand come coming')
+WITHOUT_NEXT = _S('a the any my your his her their our it them this that these those me him us you having being even so much more too')
+THEM_PREV = _S('let tell told give gave show showed ask asked help helped send sent bring brought join joined contact contacted thank thanked love hate meet met follow followed keep kept leave left take took allow allowed put get got make made see saw want wanted need needed call called visit visited pay paid teach taught watch watched hear heard')
+THEM_NEXT = _S('know to the a that what how about in on out up all both off down away back go come be do have if when where why because with for from at by as home there here more some something anything nothing everything it this these those my your his her our their its')
+ABROAD_PREV = _S('study studying studied studies semester year years program programs programme trip trips travel traveling travelling traveled travelled travels work working worked works move moving moved job jobs experience experiences students student teaching teach taught vacation holiday holidays')
+ABROAD_STOP = _S('the a an this that his her its their our my your one')
+HEAR_MODAL = _S("can could will would should might must may can't couldn't won't wouldn't didn't don't doesn't ll 'll")
+HEAR_OBJ = _S('what that about anything something nothing everything more people voices music noise sounds sound')
+HEAR_TO = _S('about you me him her them us it what that this anything something nothing everything more back')
+THEIR_ADJ_STOP = _S('many few enough more less any no some other such several most much little own same next last first')
+THEIR_NOUN_STOP = _S('there here people time times day days year years way ways thing things place places one ones lot lots money problem problems room rooms later today tomorrow yesterday now then too also again anyway though forever tonight soon already once twice alone ahead along apart aside away back behind below down forward inside outside upstairs downstairs overseas abroad home ago yet still anymore somewhere anywhere everywhere nowhere sometimes often always never ever instead otherwise indeed however therefore thus hence perhaps maybe please')
+_ADV_RE = re.compile(r'(?:ly|wards?)$')
+PARONYM = {'chose': 'choose', 'advice': 'advise', 'breath': 'breathe', 'cloth': 'clothe', 'device': 'devise'}
+PARONYM_ADV = _S('then also just really never always still probably definitely simply')
+VERB_SLOT_MODAL = _S("to will 'll would can could may might must shall should")
+EVER_PP = _S('been had seen heard wanted done tried used traveled travelled visited felt met known wondered considered imagined experienced needed noticed tasted gotten got taken played watched worked lived loved eaten owned written driven dreamed witnessed encountered gone be see hear want do try travel feel know wonder consider imagine make get take find watch live eat own write witness encounter')
+USED_PREV = _S("am is are was were be been being get got gets getting i'm you're we're they're he's she's it's isn't aren't wasn't weren't")
+USED_STOP = _S('do does did can could will would what which that who how why where when you i we they he she it to')
+SUPPOSED_PREV = _S("am is are was were be been being i'm you're we're they're he's she's it's isn't aren't wasn't weren't m re s")
+PLEASED_PREV = _S("am is are was were be been being very more so really quite extremely not i'm you're we're they're he's she's it's")
+PEDAL_PREV = _S('new left right foot gas brake clutch bike bicycle piano effects guitar broken')
+BORDER_PREV = _S('southern northern eastern western mexican canadian us cross crossing crossed across the')
+BORDER_PREV_STRONG = _S('southern northern eastern western mexican canadian cross crossing crossed')
+BORDER_NEXT_WIDE = _S('with between crossing crossings patrol control town towns guard guards area areas region regions wall fence security checkpoint of into to and')
+BORDER_NEXT = _S('with between crossing crossings patrol control guard guards wall fence checkpoint')
+LATTER_PREV = _S('chose choose prefer preferred prefers like liked pick picked take took want wanted recommend recommended went go')
+THOROUGH_PREV = _S('a an very more so really quite pretty extremely super most less not being is was were are be been')
+THOROUGH_NEXT = _S('job jobs cleaning check checks inspection examination exam review investigation search understanding knowledge analysis look clean research explanation study testing test report assessment evaluation reading wash checkup work manner way person')
+ACCEPTED_PREV = _S("was were been being get got am is are i'm you're we're they're he's she's it's")
+ACCEPTED_NEXT = _S('to into at by for as')
+WHILE_PREV = _S('a short long little')
+WEIGHT_PREV = _S('your my his her their our the body lose losing lost gain gaining gained birth extra excess more much some ideal healthy')
+BEING_PREV = _S("is are was were be am i'm you're we're they're isn't aren't wasn't weren't")
+BEING_ADV = _S('currently still now also just being')
+TO_VERB = _S('die go get make see find buy take give eat come know tell say think put keep let help try ask become leave mean meet pay sit speak stand write hear learn lose send bring hold understand watch follow create allow add spend grow walk win offer remember love consider appear wait serve expect build stay fall reach kill remain suggest raise pass sell require report decide pull use want describe explain avoid prevent reduce receive provide include continue achieve begin finish feel enjoy visit choose pick drink wear drive fly sing read teach bite catch fight forget forgive hide shake throw wake')
+def _pluriel(n):
+    if re.search(r'(s|x|z|ch|sh)$', n): return n + 'es'
+    if re.search(r'[^aeiou]y$', n): return n[:-1] + 'ies'
+    return n + 's'
 SUBJ_PRON = {'i', 'we', 'they', 'you', 'he', 'she', 'it'}          # pronoms SUJETS uniquement (« the place where… » est correct)
 VERB_SLOT = {'to', 'will', "'ll", 'would', 'can', 'could', 'may', 'might', 'must', 'shall', 'should',
     'please', 'let', 'helps', 'help', 'wanna', 'gonna'}                 # position qui appelle un VERBE
@@ -364,6 +426,114 @@ def decide(T, i, adj=None):
             and not nx.endswith('s') and (ctx_pos(T, i - 1) or '') in ('AUX', 'VERB')
             and (ctx_pos(T, i + 1) or '') in ('ADJ', 'NOUN')):
         return 'an', 'ORANGE'
+    # ---- LOT 2 (18/09/2026) : conditions du banc de tir, MÊME ORDRE que corrector_en.js ----
+    colle_prev = i > 0 and (adj is None or (i - 1) in adj)
+    pv_raw = T[i-1] if i > 0 else ''
+    pos1, pos2 = (ctx_pos(T, i + 1) or ''), (ctx_pos(T, i + 2) or '')
+    nx2_raw = T[i+2] if i + 2 < len(T) else ''
+    # « cancel you ticket », « place you hand in the cage » -> your
+    if (lw == 'you' and colle and colle_prev and ctx_pos(T, i - 1) == 'VERB' and _mot_minuscule(pv_raw) and pv not in DITRANS
+            and not _AUX_INV.match(pv) and not _WH.match(pv2) and _mot_minuscule(nx_raw) and pos1 == 'NOUN' and not nx.endswith('s')
+            and nx not in MASS_NOUN and nx not in YOU_APPOS and len(nx) >= 3 and _pluriel(nx) in POS
+            and not (pos2 in ('VERB', 'AUX') and nx2 not in YOUR_AFTER_OK)):
+        return 'your', 'ORANGE'
+    # « the hotel is you choice » -> your
+    if (lw == 'you' and colle and colle_prev and pv in ('is', 'was') and _mot_minuscule(nx_raw) and pos1 == 'NOUN'
+            and not nx.endswith('s') and nx not in MASS_NOUN and nx not in YOU_APPOS and pos2 not in ('VERB', 'AUX', 'ADJ', 'ADV', 'PART')):
+        return 'your', 'ORANGE'
+    # « wanted to know were we stand » -> where
+    if lw == 'were' and colle and colle_prev and pv in WHERE_PREV and nx in WHERE_NEXT:
+        return 'where', 'ORANGE'
+    # « can be run of those cylinders », « turned of the light » -> off
+    if (lw == 'of' and colle_prev and _mot_minuscule(pv_raw) and pv in PARTICLE_OFF and (pv != 'run' or pv2 in BE_RUN)
+            and (nx in DET_SET or nx in OBJ_SET or nx == 'if' or pos1 == 'NOUN' or i == len(T) - 1)):
+        return 'off', 'ORANGE'
+    # « the people would than rally », « Than the troops… » -> then
+    if lw == 'than':
+        if i == 0:
+            if T[i] == 'Than' and len(T) > 2: return 'then', 'ORANGE'
+        elif colle_prev and pv in THEN_PREV and not any(_COMPAR_RE.search(x.lower()) for x in T[max(0, i - 4):i - 1]):
+            return 'then', 'ORANGE'
+    # « this piece effected me », « guests were effected » -> affected
+    if lw == 'effected' and ((colle and nx in AFFECTED_OBJ) or (colle_prev and pv in AFFECTED_PREV)):
+        return 'affected', 'ORANGE'
+    # « the gene is dominate » -> dominant
+    if lw == 'dominate' and colle_prev and (pv in BE_DOM or (pv in DOMINANT_ADV and pv2 in BE_DOM)):
+        return 'dominant', 'ORANGE'
+    # « loosing my trust » -> losing ; « feel a looser » -> loser
+    if lw == 'loosing': return 'losing', 'ORANGE'
+    if lw == 'looser' and i > 0 and pv in LOSER_PREV and pos1 not in ('NOUN', 'PROPN', 'ADJ'):
+        return 'loser', 'ORANGE'
+    # « a year before collage », « collage students » -> college
+    if lw in ('collage', 'collages') and ((colle_prev and pv in COLLEGE_PREV) or (colle and nx in COLLEGE_NEXT)):
+        return ('college' if lw == 'collage' else 'colleges'), 'ORANGE'
+    # « for out family trip » -> our
+    if (lw == 'out' and colle and colle_prev and pv in OUR_PREV and _mot_minuscule(nx_raw) and pos1 == 'NOUN'
+            and nx not in OUR_STOP and nx2 != 'of'):
+        return 'our', 'ORANGE'
+    # « with out a job » -> without (RED)
+    if lw == 'with' and colle and nx == 'out' and (adj is None or (i + 1) in adj) and nx2 in WITHOUT_NEXT:
+        return 'without', 'RED'
+    # « to let then know » -> them ; « and them you can » -> then
+    if lw == 'then' and colle and colle_prev and pv in THEM_PREV and nx in THEM_NEXT:
+        return 'them', 'ORANGE'
+    if lw == 'them' and colle and colle_prev and pv == 'and' and nx in SUBJ_PRON and pos2 in ('AUX', 'VERB'):
+        return 'then', 'ORANGE'
+    # « on the calender » -> calendar
+    if lw in ('calender', 'calenders'):
+        return ('calendar' if lw == 'calender' else 'calendars'), 'ORANGE'
+    # « studying aboard » -> abroad
+    if lw == 'aboard' and colle_prev and pv in ABROAD_PREV and nx not in ABROAD_STOP:
+        return 'abroad', 'ORANGE'
+    # « I could here my neighbors » -> hear ; « to here about » -> hear
+    if lw == 'here' and colle_prev:
+        if pv in HEAR_MODAL and colle and (nx in DET_SET or nx in OBJ_SET or nx in HEAR_OBJ): return 'hear', 'ORANGE'
+        if pv == 'to' and colle and nx in HEAR_TO: return 'hear', 'ORANGE'
+    # « announced there new console » -> their : there + ADJ + nom
+    if (lw == 'there' and i > 0 and colle and (adj is None or (i + 1) in adj) and pv not in EXIST_BEFORE and pv not in PLACE_BEFORE
+            and ctx_pos(T, i - 1) != 'NOUN' and pos1 == 'ADJ' and _mot_minuscule(nx_raw) and nx not in THEIR_ADJ_STOP
+            and nx2 not in TIME_NOUNS and _mot_minuscule(nx2_raw) and pos2 == 'NOUN' and nx2 not in THEIR_NOUN_STOP
+            and not _ADV_RE.search(nx2)):
+        return 'their', 'ORANGE'
+    # « they may then chose to » -> choose : paronyme après modal + adverbe
+    if lw in PARONYM and i >= 2 and colle_prev and (adj is None or (i - 2) in adj) and pv in PARONYM_ADV and pv2 in VERB_SLOT_MODAL:
+        return PARONYM[lw], 'ORANGE'
+    # « have you every traveled » -> ever
+    if lw == 'every' and colle and nx in EVER_PP and pos2 not in ('NOUN', 'PROPN'):
+        return 'ever', 'ORANGE'
+    # « got use to », « I use to think » -> used ; « I m suppose to » -> supposed ; « more please with » -> pleased
+    if lw == 'use' and colle and nx == 'to' and colle_prev:
+        if pv in USED_PREV: return 'used', 'ORANGE'
+        if pv in SUBJ_PRON and pv2 not in USED_STOP and pos2 == 'VERB' and not nx2.endswith('ing'): return 'used', 'ORANGE'
+    if lw == 'suppose' and colle and colle_prev and nx == 'to' and pv in SUPPOSED_PREV:
+        return 'supposed', 'ORANGE'
+    if lw == 'please' and colle and colle_prev and nx == 'with' and pv in PLEASED_PREV:
+        return 'pleased', 'ORANGE'
+    # petites paires : peddle/pedal, boarder/border, later/latter, through/thorough, excepted/accepted, wile/while, wight/weight, old fashion
+    if lw in ('peddle', 'peddles') and colle_prev and (pv in DET_SET or pv in PEDAL_PREV):
+        return ('pedal' if lw == 'peddle' else 'pedals'), 'ORANGE'
+    if lw in ('boarder', 'boarders') and ((colle_prev and pv in BORDER_PREV and ((colle and nx in BORDER_NEXT_WIDE) or pv in BORDER_PREV_STRONG))
+                                          or (colle and nx in BORDER_NEXT)):
+        return ('border' if lw == 'boarder' else 'borders'), 'ORANGE'
+    if (lw == 'later' and i > 1 and pv == 'the' and colle_prev and (adj is None or (i - 2) in adj) and pv2 in LATTER_PREV
+            and pos1 not in ('NOUN', 'PROPN', 'ADJ')):
+        return 'latter', 'ORANGE'
+    if lw == 'through' and colle and colle_prev and pv in THOROUGH_PREV and nx in THOROUGH_NEXT:
+        return 'thorough', 'ORANGE'
+    if lw == 'excepted' and colle and colle_prev and pv in ACCEPTED_PREV and nx in ACCEPTED_NEXT:
+        return 'accepted', 'ORANGE'
+    if lw == 'wile' and colle_prev and pv in WHILE_PREV: return 'while', 'ORANGE'
+    if lw == 'wight' and colle_prev and pv in WEIGHT_PREV: return 'weight', 'ORANGE'
+    if lw == 'fashion' and colle_prev and pv == 'old' and pos1 not in ('NOUN', 'PROPN'): return 'fashioned', 'ORANGE'
+    # « are currently been gathered » -> being
+    if lw == 'been' and colle_prev and (pv in BEING_PREV or (pv in BEING_ADV and pv2 in BEING_PREV)):
+        return 'being', 'ORANGE'
+    # « shall read as follow. » -> follows
+    if lw == 'follow' and pv == 'as' and (i == len(T) - 1 or not colle):
+        return 'follows', 'ORANGE'
+    # « they are too die for » -> to
+    if lw == 'too' and colle and nx in TO_VERB:
+        return 'to', 'ORANGE'
     # 10) verbe irrégulier RÉGULARISÉ (runned->ran, goed->went, teached->taught) — RED FP=0 (forme nonstandard)
     if lw in VERBMORPH:
         past, pp = VERBMORPH[lw]
@@ -397,6 +567,44 @@ CASES = [
     ("The rabbits a easily escape the pen", 2, 'an', 'ORANGE'),
     ("I already have a everything I need", 3, 'an', 'ORANGE'),
     ("She ate a apple today", 2, 'an', 'RED'),
+    # LOT 2 (18/09/2026) — mêmes cas que corrector_en.js
+    ("Please cancel you ticket before noon", 2, 'your', 'ORANGE'),
+    ("The hotel is you choice tonight", 3, 'your', 'ORANGE'),
+    ("I want to know were we stand", 4, 'where', 'ORANGE'),
+    ("He turned of the light and left", 2, 'off', 'ORANGE'),
+    ("The crowd would than rally again", 3, 'then', 'ORANGE'),
+    ("Than the troops moved on", 0, 'then', 'ORANGE'),
+    ("This news effected me deeply", 2, 'affected', 'ORANGE'),
+    ("Only the guests were effected", 4, 'affected', 'ORANGE'),
+    ("The brown gene is dominate here", 4, 'dominant', 'ORANGE'),
+    ("We kept loosing the ball", 2, 'losing', 'ORANGE'),
+    ("Nobody wants to feel a looser", 5, 'loser', 'ORANGE'),
+    ("He worked a year before collage", 5, 'college', 'ORANGE'),
+    ("We booked flights for out family trip", 4, 'our', 'ORANGE'),
+    ("She left with out a word", 2, 'without', 'RED'),
+    ("Call to let then know tonight", 3, 'them', 'ORANGE'),
+    ("Rest first and them you can run", 3, 'then', 'ORANGE'),
+    ("Put it on the calender now", 4, 'calendar', 'ORANGE'),
+    ("She spent a year studying aboard", 5, 'abroad', 'ORANGE'),
+    ("I could here my neighbors talking", 2, 'hear', 'ORANGE'),
+    ("They announced there new console yesterday", 2, 'their', 'ORANGE'),
+    ("You may then chose to leave", 3, 'choose', 'ORANGE'),
+    ("Have you every traveled by train", 2, 'ever', 'ORANGE'),
+    ("We got use to the noise", 2, 'used', 'ORANGE'),
+    ("I use to think so", 1, 'used', 'ORANGE'),
+    ("I m suppose to attend today", 2, 'supposed', 'ORANGE'),
+    ("We were please with the service", 2, 'pleased', 'ORANGE'),
+    ("The left peddle broke yesterday", 2, 'pedal', 'ORANGE'),
+    ("They live south of the boarder with Mexico", 5, 'border', 'ORANGE'),
+    ("I chose the later but regretted it", 3, 'latter', 'ORANGE'),
+    ("They did a very through job", 4, 'thorough', 'ORANGE'),
+    ("She was excepted to medical school", 2, 'accepted', 'ORANGE'),
+    ("Wait here for a wile", 4, 'while', 'ORANGE'),
+    ("Watch your wight carefully", 2, 'weight', 'ORANGE'),
+    ("This camera is old fashion", 4, 'fashioned', 'ORANGE'),
+    ("Reviews are currently been gathered", 3, 'being', 'ORANGE'),
+    ("The rules shall read as follow", 5, 'follows', 'ORANGE'),
+    ("These fries are too die for", 3, 'to', 'ORANGE'),
     ("I could of done it", 2, 'have', 'RED'),
     ("You should of asked", 2, 'have', 'RED'),
     ("It is bigger then mine", 3, 'than', 'RED'),
