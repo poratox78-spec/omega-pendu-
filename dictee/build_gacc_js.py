@@ -27,8 +27,22 @@ OUT = os.path.join(HERE, 'gacc_lex_js.json')
 def main():
     d = json.load(open(GACC, encoding='utf-8'))
     out = {w: g for w, g in d.items() if w.isalpha() and g in ('m', 'f')}
+    # ⭐ NOMS ÉPICÈNES (18/09/2026) : un/une peintre, un/une ministre. La table les déclarait FÉMININS
+    # (le signal d'ambiguïté de kaikki+Lexique4 se perdait avant l'ajout Morphalou, cf.
+    # build_gacc_epicene_excl.py) et le produit corrigeait « Le peintre est italien. » → italienne, EN
+    # ROUGE. Ils sont retirés ICI, du blob de GENRE seulement : `_GACC` n'a pas d'autre consommateur
+    # que `_nounGender` dans les deux moteurs JS. Le lexique du speller (gacc_lex_fr.tsv, bâti depuis
+    # le MÊME gender_acc.json) n'est pas touché : ces mots restent connus en orthographe.
+    epi = set()
+    try:
+        epi = set(json.load(open(os.path.join(HERE, 'gacc_epicene_excl.json'), encoding='utf-8')))
+    except Exception:
+        pass
+    n_epi = sum(1 for w in out if w.lower() in epi)
+    out = {w: g for w, g in out.items() if w.lower() not in epi}
     json.dump(out, io.open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'), sort_keys=True)
-    print(f'{len(d)} entrées brutes -> {len(out)} après filtre isalpha (identique au runtime Python)')
+    print(f'{len(d)} entrées brutes -> {len(out)} après filtre isalpha (identique au runtime Python) '
+          f'et retrait de {n_epi} noms épicènes')
     print(f'écrit -> {os.path.relpath(OUT, os.path.dirname(HERE))}')
     return 0
 

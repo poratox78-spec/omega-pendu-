@@ -242,6 +242,23 @@ for (const ph of _GCOLL_NON) {
 if (_gcoll) { console.log('PARITÉ KO — ' + _gcoll + ' cas « genre du nom perdu par la désaccentuation ».'); process.exit(1); }
 console.log('  ✓ genre par collision d\'accent : ' + _GCOLL_OUI.length + ' corrections exigées, ' + _GCOLL_NON.length + ' pièges muets');
 
+/* GARDE « UN NOM ÉPICÈNE NE TRANCHE AUCUN ACCORD » (18/09/2026). La table de genre ACCENTUÉE déclarait
+   FÉMININS des noms qui ont les deux genres — peintre, ministre, architecte, diplomate, astronaute — parce
+   que le signal d'ambiguïté de kaikki+Lexique4 se perdait avant l'ajout Morphalou (cf.
+   dictee/build_gacc_epicene_excl.py). Au produit, ça faisait des ROUGES sur du français JUSTE, par la route
+   ATTRIBUT et par la route PARTICIPE (`_nounGender` consulte `_GACC` en premier, inconditionnellement).
+   Ces phrases sont CORRECTES : toute marque d'accord y est un faux positif. Falsifiable en une ligne :
+   rendre les 793 entrées au blob (build_gacc_js.py) et les six tirent à nouveau. */
+const _EPI_MUET = ['Le peintre est italien.', 'Le ministre est content.', 'Ce diplomate est américain.',
+                   'Le cinéaste était présent.', 'Le peintre est parti hier.', "L'architecte est venu."];
+let _epi = 0;
+for (const ph of _EPI_MUET) {
+  const f = (DYSCORE.diagnoseAll(ph).flags || []).filter((x) => /accord|genre/.test(x.name || ''));
+  if (f.length) { _epi++; console.log('✗ ÉPICÈNE : ' + JSON.stringify(ph) + ' est du français JUSTE, eu ' + JSON.stringify(f.map((x) => x.word + '->' + x.sugg + '[' + x.tier + ']'))); }
+}
+if (_epi) { console.log('PARITÉ KO — ' + _epi + ' phrase(s) correcte(s) marquée(s) sur un nom épicène.'); process.exit(1); }
+console.log('  ✓ noms épicènes : ' + _EPI_MUET.length + ' phrases correctes sans une seule marque d\'accord');
+
 
 /* GARDE « UN SEUL SENS PAR DÉSACCORD » — deux ROUGES ne doivent pas se contredire.
    « leurs tige » : rLeur (rang 15) voulait « leurs »->« leur », rNounPlural (rang 47) voulait
