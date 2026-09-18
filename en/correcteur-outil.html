@@ -27,8 +27,8 @@
      redéfinir. La FORME du trait porte aussi la catégorie (plein = sûr, tirets = à vérifier, double = appliqué, pointillé =
      à regarder) : jamais la couleur seule. La sonde de la page recalcule le contraste de chaque jeton sur son fond (≥ 3). */
   .card{background:var(--bg-2);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:22px;
-        --c-sur:#f85149;--c-verif:#d29922;--c-ok:#3fb950;--c-vig:#9aa4af}
-  :root[data-theme="light"] .card{--c-sur:#c62828;--c-verif:#9a6700;--c-ok:#1a7f37;--c-vig:#586170}
+        --c-sur:#f85149;--c-verif:#d29922;--c-ok:#3fb950;--c-vig:#9aa4af;--c-mute:#f0a04b;--c-syl:#6cc0f0}
+  :root[data-theme="light"] .card{--c-sur:#c62828;--c-verif:#9a6700;--c-ok:#1a7f37;--c-vig:#586170;--c-mute:#a34700;--c-syl:#005f99}
   .card.cb{--c-sur:#d55e00;--c-verif:#56b4e9;--c-ok:#009e73}
   :root[data-theme="light"] .card.cb{--c-sur:#b34e00;--c-verif:#0072b2;--c-ok:#007a59}
   .card h1{font:700 24px/1.2 var(--sans);margin:0 0 4px;color:var(--fg)}
@@ -107,6 +107,19 @@
   #cardpop .vcb{font-weight:800}
   #cardpop .vcsp{background:none;border:0;cursor:pointer;font-size:15px;padding:0 4px}
   #cardpop .vce{font-size:12.5px;color:var(--fg-2);margin-top:9px;border-top:1px solid var(--line);padding-top:7px}
+  /* 🔡 POLICE DE SON · ✂️ SYLLABES — pendant anglais de police/son_ui.js. Le texte ne change JAMAIS : on n'ajoute que des
+     <span> autour des groupes de lettres. Muette = vermillon, syllabe impaire = bleu (paire Okabe-Ito, sûre pour les
+     daltoniens, contraste ≥ 4,5 gardé par la sonde) ; consonne voisée = graisse Heavy, sourde = Light (polices OMEGA Dys,
+     OFL, servies par le site — téléchargées seulement si l'outil est allumé). La plage de graisse évite le faux gras. */
+  @font-face{font-family:'OMEGA Dys';src:url(../police/OmegaDys-Regular.ttf) format('truetype');font-weight:1 1000;font-display:swap}
+  @font-face{font-family:'OMEGA Dys Light';src:url(../police/OmegaDys-Light.ttf) format('truetype');font-weight:1 1000;font-display:swap}
+  @font-face{font-family:'OMEGA Dys Heavy';src:url(../police/OmegaDys-Heavy.ttf) format('truetype');font-weight:1 1000;font-display:swap}
+  .card.son .sg{font-family:'OMEGA Dys',monospace;font-size:1.08em}
+  .card.son .sg.voi{font-family:'OMEGA Dys Heavy',monospace}
+  .card.son .sg.srd{font-family:'OMEGA Dys Light',monospace}
+  .card.son .sg.mute{color:var(--c-mute)}
+  .card.syl .sg.sy{color:var(--c-syl)}
+  .card.son.syl .sg.sy.mute{color:var(--c-mute)}
   .karaoke{font-size:1.06em;line-height:2}
   .kara.lit{background:#1f5fa8;color:#fff;border-radius:4px;padding:1px 3px}
   .tip{font:14px var(--sans);color:var(--fg-2);margin-top:4px}
@@ -162,6 +175,7 @@
         <p>Your text stays <b>freely editable</b>, and Ctrl+Z still goes back. <b>📋 Copy</b> takes the corrected text. <b>◂ ▸</b> walk through the corrections one by one.</p>
         <p>While you type, <b>➡️ complete</b> offers common words that start the same way (Tab takes the first one).</p>
         <p><b>Theme</b>, <b>Colour-blind</b> palette and <b>Readable font</b> change the display only; your choices are remembered on this device.</p>
+        <p><b>🔡 Sound font</b> shows how the words sound: letters that are not pronounced are coloured, voiced consonants (b, d, g, v, z…) are heavy and voiceless ones (p, t, k, f, s…) light. <b>✂️ Syllables</b> colours every other syllable. Both follow the dictionary&rsquo;s pronunciation; a word it does not know is read from its spelling, and that guess can be wrong.</p>
         <p><b>🔊 Read aloud</b> uses a voice installed on your device. If it has no English voice, the browser may read with an online voice (in Chrome: its Google voice) — the text being read is then sent to that service.</p>
         <p>The checking itself runs entirely in your browser, <b>offline</b>: your text is not sent anywhere.</p>
       </div>
@@ -171,6 +185,8 @@
       <button id="t-cb" type="button" aria-pressed="false" title="Colour-blind friendly palette (vermilion / blue / green) — the line style also tells the categories apart">🎨 Colour-blind</button>
       <button id="t-lis" type="button" aria-pressed="false" title="More readable font: Verdana, with wider letter and word spacing (dyslexia)">🔤 Readable font</button>
       <button id="readaloud" type="button" aria-pressed="false" title="Listen to your text read aloud — the word being read is highlighted">🔊 Read aloud</button>
+      <button id="t-son" type="button" aria-pressed="false" title="Sound font: silent letters are coloured, voiced consonants are heavy, voiceless ones light (texts up to 4,000 characters)">🔡 Sound font</button>
+      <button id="t-syl" type="button" aria-pressed="false" title="Syllables: every other syllable is coloured (texts up to 4,000 characters)">✂️ Syllables</button>
     </div>
     <div class="flabel">📝 Write here <span class="sc">— the points to look at are underlined <b>on your text</b>; click one to open its card</span></div>
     <div id="editor"><div id="in" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Text to check" spellcheck="false" data-ph="Type or paste English text here… e.g. Their is no point, its a shame you could of come.">Their is no point, its a shame you could of come. I recieve alot of freind requests and definately need to seperate them.</div></div>
@@ -372,7 +388,7 @@
        · « ✅ Corrected text » porte les corrections SÛRES déjà faites (vert), les autres restent à décider ;
        · un clic sur un mot ouvre sa CARTE : appliquer / annuler · ignorer · c'est un mot · pourquoi (+ écouter) ;
        · compteur sûres / à vérifier, navigation ◂ ▸, puces « Applied / To check », ignorées à rétablir ;
-       · aide-frappe (complétion du mot en cours, Tab), copie, barre Thème · Daltonien · Police lisible · Lire.
+       · aide-frappe (complétion du mot en cours, Tab), copie, barre Thème · Daltonien · Police lisible · Lire · Police de son · Syllabes.
      L'état (appliqué / annulé / ignoré) est tenu PAR PAIRE « mot|suggestion », comme en français : il survit à la frappe
      (les positions bougent, la paire non) et une même faute répétée se règle d'un seul geste.
      Les fonctions de ce bloc qui ne touchent pas au DOM (calcule, segments, typographie, vues, listes, complétion) sont
@@ -438,8 +454,8 @@
   function vueSaisie(text, L){
     var h='', cur=0;
     for(var k=0;k<L.length;k++){ var f=L[k];
-      h+=esc(text.slice(cur, f.cs))+balise(f, (f.info&&!f.choisi)?'vig':f.cls, false)+esc(f.word)+'</span>'; cur=f.ce; }
-    return h+esc(text.slice(cur));
+      h+=hab(text.slice(cur, f.cs))+balise(f, (f.info&&!f.choisi)?'vig':f.cls, false)+hab(f.word)+'</span>'; cur=f.ce; }
+    return h+hab(text.slice(cur));
   }
   function debutDePhrase(text, i){ return /(^|[.!?]["')\]]*\s+|\n\s*)$/.test(text.slice(Math.max(0, i-40), i)); }
   /* LE TEXTE CORRIGÉ, EN SEGMENTS : {s: texte, f: correction ou rien}. Le texte corrigé est la concaténation des `s` — la
@@ -523,9 +539,9 @@
   function vueCorrigee(S){
     var h='';
     for(var i=0;i<S.length;i++){ var g=S[i], f=g.f;
-      if(!f){ h+=esc(g.s); continue; }
+      if(!f){ h+=hab(g.s); continue; }
       if(f.on && f.del){ h+='<span class="corr on gone" data-key="'+esc(f.key)+'" data-n="'+f.n+'" data-w="'+esc(f.word)+'" tabindex="0" role="button" title="'+esc(titreDe(f))+'"></span>'; continue; }
-      h+=balise(f, f.on?'on':(f.info?'vig':f.cls), true)+esc(g.s)+'</span>'; }
+      h+=balise(f, f.on?'on':(f.info?'vig':f.cls), true)+hab(g.s)+'</span>'; }
     return h;
   }
   /* 📖 LISIBILITÉ — Flesch Reading Ease (coefficients anglais), syllabes par groupes de voyelles. Indicatif, jamais un
@@ -582,6 +598,60 @@
       h+='<li class="'+f.cls+'"><b>'+esc(f.word)+'</b> '+((f.info&&!f.choisi) ? '— often confused with: '+esc(f.sugg) : f.del ? '→ remove' : '→ '+esc(remplacement(f)))+(f.why ? ' — '+esc(f.why) : '')+'</li>'; }
     return h;
   }
+  /* 🔡 POLICE DE SON · ✂️ SYLLABES (19/09/2026) — les deux derniers outils de la barre française. Les données existaient : le
+     dictionnaire que la page charge porte la prononciation (colonne IPA), et dictee/phonics_en.js (l'outil « Decompose ») sait
+     l'aligner sur les lettres. grapheMot rend, pour un mot TEL QU'IL EST ÉCRIT (casse, apostrophe), ses groupes de lettres :
+     {g, cls, syl} — cls : « mute » (lettres non prononcées), « voi » / « srd » (le groupe commence par une consonne voisée /
+     sourde, comme en français : les obstruantes seulement), « n » (le reste) ; syl : le numéro de la syllabe écrite.
+     PRINCIPE CARDINAL : le texte ne change jamais. Si l'alignement ne recouvre pas le mot lettre pour lettre, on s'abstient
+     (le mot reste nu). Au-delà de 4 000 caractères on s'abstient aussi, comme en français (des milliers de <span>). */
+  var MAX_SON=4000;
+  var _son=false, _syl=false, _PH=null, _G2P=null, _sonPret=false, _sonCourt=true;
+  var _SON_VOI=/^(?:b|d|ɡ|g|v|ð|z|ʒ)/;
+  var _SON_SRD=/^(?:p|t|k|f|θ|s|ʃ|h)/;
+  var _sonCache={}, _sonN=0;
+  function grapheMot(word){
+    /* ⚠️ ORDRE DE CHARGEMENT : les données de son (43 Ko) arrivent AVANT le dictionnaire (2 Mo) quand l'outil est resté allumé
+       d'une visite à l'autre. Sans dictionnaire on ne sait rien lire — et surtout on ne met RIEN en cache : le premier jet
+       mémorisait l'échec de chaque mot du texte, qui restait nu pour toute la session (vu au rechargement). */
+    if(!LEX || !_PH || !_G2P) return null;
+    if(Object.prototype.hasOwnProperty.call(_sonCache, word)) return _sonCache[word];
+    var res=null;
+    try{
+      var bas=word.toLowerCase().replace(/[’ʼ]/g, "'");
+      var d=_PH.decompose(_G2P, word, function(){ return LEX.IPA.get(bas) || LEX.IPA.get(bas.replace(/[^a-z]/g, '')) || null; });
+      if(d && d.rows && d.rows.length){
+        var bornes=[], n=0, i;
+        for(i=0;i<d.syllables.length;i++){ n+=d.syllables[i].length; bornes.push(n); }
+        var out=[], pos=0, lettres=0, juste=true;
+        for(var r=0;r<d.rows.length && juste;r++){
+          var g=d.rows[r].g, pris='', k=0;
+          while(k<g.length && pos<word.length){ var ch=word.charAt(pos++); pris+=ch; if(/[A-Za-z]/.test(ch)){ if(ch.toLowerCase()!==g.charAt(k)) juste=false; k++; } }
+          if(k<g.length) juste=false;
+          var syl=0; while(syl<bornes.length-1 && lettres>=bornes[syl]) syl++;
+          lettres+=g.length;
+          var ph=d.rows[r].ph || '';
+          out.push({g:pris, cls:!ph ? 'mute' : (_SON_VOI.test(ph) ? 'voi' : (_SON_SRD.test(ph) ? 'srd' : 'n')), syl:syl});
+        }
+        if(juste && pos<word.length) out[out.length-1].g+=word.slice(pos);
+        if(juste && out.map(function(x){ return x.g; }).join('')===word) res=out;
+      }
+    }catch(e){ res=null; }
+    if(++_sonN>6000){ _sonCache={}; _sonN=0; }
+    _sonCache[word]=res;
+    return res;
+  }
+  function habilleTexte(t){
+    var re=/[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g, m, h='', cur=0;
+    while((m=re.exec(t))){
+      h+=esc(t.slice(cur, m.index)); cur=m.index+m[0].length;
+      var G=/^[A-Za-z'’ʼ]+$/.test(m[0]) ? grapheMot(m[0]) : null;
+      if(!G){ h+=esc(m[0]); continue; }
+      for(var i=0;i<G.length;i++) h+='<span class="sg '+G[i].cls+(G[i].syl%2 ? ' sy' : '')+'">'+esc(G[i].g)+'</span>';
+    }
+    return h+esc(t.slice(cur));
+  }
+  function hab(t){ return ((_son || _syl) && _sonPret && _sonCourt) ? habilleTexte(t) : esc(t); }
   /* ➡️ AIDE-FRAPPE — les mots COURANTS qui commencent comme le mot en cours de frappe (Tab prend le premier). Classement par
      fréquence SUBTLEX ; le plancher écarte les mots rares, donc un préfixe fautif (« recie ») ne rend rien et la correction
      prend le relais — la leçon du français (« pome » ne doit pas proposer « pomerol »). Mesuré : ≤ 8 ms par frappe. */
@@ -665,14 +735,14 @@
   function run(enFrappe){
     clearTimeout(_t); clearTimeout(_t2); fermerCarte(false); arreterLecture(false);
     var t=inEl.value, t0=maintenant(), pret=!!LEX && _pret, trop=t.length>MAX_CAR, nTypo=0, finMot=-1;
-    histNote(t);
+    histNote(t); _sonCourt=t.length<=MAX_SON;
     if(enFrappe===true && document.activeElement===inEl){ var c0=ceCurseur(inEl), w0=c0==null ? null : motSousCurseur(t, c0); if(w0 && w0.word && c0===w0.end){ finMot=w0.end; _t2=setTimeout(run, 1100); } }
     _tous=(pret && !trop) ? calcule(t, finMot) : [];
     _corrs=_tous.filter(function(f){return !f.info || f.on;});
     _vigs=_tous.filter(function(f){return f.info && !f.on;});
     /* la saisie : on ne redessine que s'il y a (ou s'il y avait) quelque chose à souligner — du texte nu reste tel que le
        navigateur le tient, curseur compris */
-    if(_tous.length || inEl.firstElementChild || t.charAt(t.length-1)==='\n'){
+    if(_tous.length || inEl.firstElementChild || t.charAt(t.length-1)==='\n' || ((_son || _syl) && _sonPret)){
       var c=ceCurseur(inEl);
       /* un « \n » FINAL n'ouvre pas de ligne à l'écran dans un contenteditable : le curseur retombe devant lui et la frappe
          suivante passe AVANT le saut de ligne (vu au navigateur). Un <br> sentinelle règle ça ; il n'ajoute rien au texte. */
@@ -858,13 +928,15 @@
   /* RÉGLAGES D'AFFICHAGE — mémorisés sur l'appareil. Le THÈME est celui du site (nav.js : data-theme sur <html>, clé
      omega_theme) : le bouton de la barre et celui du haut de page restent d'accord, dans les deux sens. */
   (function(){
-    var carte=$('card'), bT=$('t-theme'), bC=$('t-cb'), bL=$('t-lis'), racine=document.documentElement, reg={cb:false, lis:false};
-    try{ var lu=JSON.parse(localStorage.getItem('omega_en_corr')||'{}'); reg.cb=!!lu.cb; reg.lis=!!lu.lis; }catch(e){}
+    var carte=$('card'), bT=$('t-theme'), bC=$('t-cb'), bL=$('t-lis'), bS=$('t-son'), bY=$('t-syl'), racine=document.documentElement, reg={cb:false, lis:false, son:false, syl:false};
+    try{ var lu=JSON.parse(localStorage.getItem('omega_en_corr')||'{}'); reg.cb=!!lu.cb; reg.lis=!!lu.lis; reg.son=!!lu.son; reg.syl=!!lu.syl; }catch(e){}
     function sauve(){ try{ localStorage.setItem('omega_en_corr', JSON.stringify(reg)); }catch(e){} }
     function theme(){ return racine.getAttribute('data-theme')==='light' ? 'light' : 'dark'; }
     function applique(){
       carte.classList.toggle('cb', reg.cb); carte.classList.toggle('lisible', reg.lis);
+      carte.classList.toggle('son', reg.son); carte.classList.toggle('syl', reg.syl);
       bC.setAttribute('aria-pressed', reg.cb?'true':'false'); bL.setAttribute('aria-pressed', reg.lis?'true':'false');
+      bS.setAttribute('aria-pressed', reg.son?'true':'false'); bY.setAttribute('aria-pressed', reg.syl?'true':'false');
       bT.textContent=theme()==='light' ? '☀️ Theme: light' : '🌙 Theme: dark';
       bT.setAttribute('aria-pressed', theme()==='light'?'true':'false');
     }
@@ -876,6 +948,26 @@
     });
     bC.addEventListener('click', function(){ reg.cb=!reg.cb; sauve(); applique(); });
     bL.addEventListener('click', function(){ reg.lis=!reg.lis; sauve(); applique(); });
+    /* Les données de son (phonics_en.js 15 Ko + g2p_en.json 28 Ko) ne sont demandées que si un des deux outils est allumé.
+       Un échec est NOMMÉ dans la barre d'état et les boutons se relâchent : jamais un outil allumé qui ne fait rien. */
+    var _sonDemande=false;
+    function chargeSon(){
+      if(_sonDemande) return; _sonDemande=true;
+      var reste=2, rate=false;
+      function fin(){
+        if(--reste) return;
+        if(rate || !window.PhonicsEN || !_G2P){ _sonDemande=false; reg.son=reg.syl=false; sonSync();
+          st.textContent=st.textContent.split(' — ')[0]+' — ⚠ the sound data failed to load: Sound font and Syllables are off'; return; }
+        _PH=window.PhonicsEN; _sonPret=true; run();
+      }
+      var sc=document.createElement('script'); sc.src='../dictee/phonics_en.js'; sc.onload=fin; sc.onerror=function(){ rate=true; fin(); }; document.head.appendChild(sc);
+      fetch('../dictee/g2p_en.json').then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.json(); })
+        .then(function(j){ _G2P=j; }).catch(function(){ rate=true; }).then(fin);
+    }
+    function sonSync(){ _son=reg.son; _syl=reg.syl; applique(); if((_son || _syl) && !_sonPret) chargeSon(); else run(); }
+    bS.addEventListener('click', function(){ reg.son=!reg.son; sauve(); sonSync(); });
+    bY.addEventListener('click', function(){ reg.syl=!reg.syl; sauve(); sonSync(); });
+    _son=reg.son; _syl=reg.syl; if(_son || _syl) chargeSon();
     if(window.MutationObserver) new MutationObserver(applique).observe(racine, {attributes:true, attributeFilter:['data-theme']});
     applique();
   })();

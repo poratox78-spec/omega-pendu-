@@ -131,7 +131,7 @@ run "EN règles branchées dans la page (+ tokeniseur)" node dictee/en_page_wiri
 # … et ce que la page FAIT des marques (modèle semi-direct, 18/09/2026) : le rendu de la saisie est le texte tapé au caractère
 # près, le corrigé affiché est le corrigé copié, « with out » -> without remplace les DEUX mots, jamais « No mistakes » sans
 # dictionnaire, l'aide-frappe ne propose ni mot rare ni grossièreté, chaque outil est dans le mode d'emploi, contraste ≥ 3.
-# Fonctions EXTRAITES de la page livrée ; falsifiée par 35 défauts injectés.
+# Fonctions EXTRAITES de la page livrée ; falsifiée par 51 défauts injectés (35 + 16 pour la police de son et les syllabes).
 run "EN page du correcteur : texte intact, corrigé == copié, cartes et listes, aide-frappe, mode d'emploi, contraste" node dictee/correcteur_en_page_probe.js
 # Parité Python↔JS PAR TOKEN sur un corpus committé (PUD) : l'ancienne garde comparait deux totaux sur EWT, absent de la CI,
 # et le Python a pris cinq semaines de retard sur le JS (16/09/2026) sans qu'elle rougisse. En local, EWT s'ajoute au corpus.
