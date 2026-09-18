@@ -179,7 +179,10 @@
     if(!ready||!C||!C.analyzeText) return [];
     var a; try{ a=C.analyzeText(LEX, t, {confus:CONFUS, basemap:BASEMAP}); }catch(e){ return []; }
     var out=[]; for(var i=0;i<a.toks.length;i++){ var mk=a.marks[i]; if(!mk||mk.info) continue;
-      out.push({ d:a.pos[i], f:a.pos[i]+a.toks[i].length, word:a.toks[i], sugg:mk.sugg||'', red:mk.cls==='red', del:!!mk.del, rule:mk.rule }); }
+      /* span:2 — la suggestion remplace ce mot ET le suivant (« with out » -> without) : la plage va jusqu'au bout du second,
+         sinon on écrivait « without out ». */
+      var f=a.pos[i]+a.toks[i].length; if(mk.span===2 && i+1<a.toks.length) f=a.pos[i+1]+a.toks[i+1].length;
+      out.push({ d:a.pos[i], f:f, word:t.slice(a.pos[i], f), sugg:mk.sugg||'', red:mk.cls==='red', del:!!mk.del, rule:mk.rule }); }
     return out; }
   function _applique(t, mk){
     var d=mk.d, f=mk.f;

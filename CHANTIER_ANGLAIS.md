@@ -14,6 +14,39 @@
 >
 > Mesures faites sur `main @fc7f09a`, arbre propre, 12 bancs anglais réellement exécutés.
 >
+> **Étape ① — la PAGE reprend les outils du correcteur français (18/09/2026).** Remarque de Rem : « le correcteur, je vois pas les
+> mêmes outils que le français ». Le moteur avait été rattrapé, pas la page : un bouton « Check », un cadre de sortie, rien d'autre.
+> `en/correcteur-outil.html` suit maintenant le modèle SEMI-DIRECT du module français (`vdc`), outil par outil : saisie surlignée
+> pendant la frappe (contenteditable, texte intact au caractère près, curseur restauré par décalage) ; « ✅ Corrected text » avec
+> les corrections SÛRES déjà faites en vert, 📋 Copy (copie annoncée seulement si elle a eu lieu) ; CARTE au clic sur un mot —
+> appliquer / annuler · ignorer · 📗 It's a word (dictionnaire personnel, sur l'appareil) · 💡 pourquoi + 🔊 écouter ; compteur
+> sûres / à vérifier + lisibilité ; navigation ◂ ▸ ; puces « Applied / To check / Easy to mix up », ignorées à rétablir ; aide-frappe
+> (mots courants qui commencent comme le mot en cours, Tab) ; barre Thème (celui du site) · Daltonien · Police lisible · Lire ;
+> Ctrl+Z tenu par la page (redessiner un contenteditable vide la pile du navigateur) ; plafond de 20 000 caractères. L'état
+> appliqué / annulé / ignoré est tenu PAR PAIRE « mot|suggestion », comme en français. Trois écarts VOULUS avec le français : la
+> ponctuation mécanique est réparée dans le texte corrigé (une puce, annulable) et non plus par un bouton qui réécrivait la
+> saisie ; une vigilance (« witch / which ») peut être TRANCHÉE par l'utilisateur depuis sa carte ; le mot en cours de frappe
+> n'est souligné qu'après 1,1 s sans frappe (sinon chaque mot clignote en rouge pendant qu'on l'écrit).
+> **Ce que l'essai au navigateur a trouvé, et qu'aucun banc ne voyait** : ① « with out » → le moteur proposait « without » sur
+> « with » seul : la page (et la page vocale) écrivait « without out » → marque `span:2`, test général (suggestion == ce mot et le
+> suivant collés ; 1 règle concernée sur 28 049 textes) ; ② ORDRE DE CHARGEMENT : quatre tables du moteur étaient bâties au
+> premier appel puis gardées (participes, passés irréguliers, deux tables de confusables) — en direct, le premier appel part
+> AVANT l'arrivée de verbmorph et des confusables, donc « has went », « I will council him » et « witch / which » restaient
+> muets toute la session (l'ancien bouton masquait le défaut : on cliquait après le chargement). Les tables se rebâtissent quand
+> leur source change (garde dans l'auto-test du moteur, 5 mutations tuées) et la page attend ses cinq actifs avant la première
+> analyse — le service worker sert les scripts « cache d'abord » : un visiteur de retour peut avoir la page neuve avec le moteur
+> de sa visite précédente (constaté en production sur `nav.js` après #775) ; ③ les fréquences de l'aide-frappe viennent de
+> sous-titres de films : « sh » proposait « shit » (24 207 occ.) — liste de mots jamais PROPOSÉS (ils restent dans le
+> dictionnaire) ; ④ « here » proposait « hereby, hereditary » → plancher RELATIF (≥ 1/200 de la fréquence du mot déjà tapé) ;
+> ⑤ la lecture à voix haute promettait « nothing leaves your device » : faux sans voix anglaise installée (mesuré le 15/09 : le
+> PC de Rem n'en a aucune) → voix locale préférée quand elle existe, information dans le ⓘ et dans la page Confidentialité
+> (exception « reading aloud »), sans oui/non. Garde CI : `dictee/correcteur_en_page_probe.js` — fonctions EXTRAITES de la page,
+> vrai moteur, 136 contrôles (texte intact et corrigé == copié sur 1 092 textes committés + JFLEG en local, résultats attendus,
+> listes, aide-frappe, mode d'emploi qui nomme chaque outil, une étiquette par règle, contraste ≥ 3 des traits dans les quatre
+> thèmes), falsifiée par 35 défauts injectés. ⚠️ La sonde ne voit pas le DOM : frappe réelle, Entrée, Tab, Ctrl+Z, carte, 375 px
+> vérifiés à la main dans un navigateur. **Pas encore portés** : Police de son et Syllabes (les données existent : `phonics_en.js`
+> + la colonne IPA du dictionnaire déjà chargé) ; la remédiation par profil, le juge et l'IA du français n'ont pas d'équivalent anglais.
+>
 > **Étape ② ouverte le 18/09/2026 — `en/saisie-vocale.html`.** Mêmes mécanismes que la page française, moins ce qui dépend d'un
 > modèle de texte français : segments de la reconnaissance (en-US), seconde écoute locale pour les silences et la hauteur,
 > marques AUX FRONTIÈRES DE SEGMENT seulement, commandes dictées, majuscules, mot de tête hors phrase, puis le correcteur
@@ -22,8 +55,8 @@
 > commande en fin de segment seulement, 0 conversion à tort sur PUD) ; « jamais de marque après » déterminant / préposition /
 > conjonction / auxiliaire / to (taux ≤ 1,2 %) ; question par la tête : auxiliaire + pronom sujet 87 %, wh- + auxiliaire 88-96 %
 > (which 33 % : exclu) ; mot de tête : meanwhile 100 %, finally 93, however 86… (so 16 %, then 23 %, now 36 % : exclus). Garde CI :
-> `dictee/voix_en_probe.js` — fonctions EXTRAITES de la page livrée, audio synthétique aux silences connus, PUD committé ; 95
-> contrôles, falsifiée par 9 défauts injectés. ⚠️ **NON MESURÉ, à valider au micro** : les seuils de silence (190 / 600 ms) et la
+> `dictee/voix_en_probe.js` — fonctions EXTRAITES de la page livrée, audio synthétique aux silences connus, PUD committé ; 97
+> contrôles, falsifiée par 10 défauts injectés. ⚠️ **NON MESURÉ, à valider au micro** : les seuils de silence (190 / 600 ms) et la
 > montée de hauteur (+4 demi-tons) viennent de la page française (grandeurs acoustiques, pas linguistiques) ; aucune prise
 > anglaise n'existe. Le bouton 🩺 exporte de quoi rejouer un cas. Vérifié au navigateur avec une reconnaissance SIMULÉE (flux
 > complet : Stop, transcription en direct, ponctuation, suggestions, Fix all, téléphone 375 px).

@@ -935,7 +935,8 @@ const _V3_INVAR = new Set(['set','cost','put','cut','hit','let','shut','spread',
 function _v3Passe(lex, w){
   if(/ed$/.test(w)) return true;
   if(_V3_INVAR.has(w)) return true;
-  if(!lex._V3PAST){
+  if(!lex._V3PAST || lex._V3PAST_src !== lex.VERBMORPH){      // table bâtie sur VERBMORPH : rebâtie s'il ARRIVE APRÈS le premier appel (cf. ORDRE DE CHARGEMENT, analyzeText)
+    lex._V3PAST_src = lex.VERBMORPH;
     const s = new Set(), V = lex.VERBMORPH || {};
     for(const k of Object.keys(V)){ const v = V[k]; if(Array.isArray(v)) v.forEach(x => x && s.add(String(x).toLowerCase())); }
     // Irréguliers très fréquents que `verbmorph` (795 entrées, orienté sur-régularisation) ne couvre pas.
@@ -1374,7 +1375,7 @@ function typoScanEn(text){
 
    ⚠️ On n'utilise QUE les groupes SANS règle : ceux qui en ont une sont déjà traités, et deux
    couches sur le même mot se contrediraient. */
-let _CONF_SLOT = null;
+let _CONF_SLOT = null, _CONF_SLOT_src = null;
 function buildConfuseSlot(lex, groupes){
   const m = new Map();
   for(const g of (groupes || [])){
@@ -1402,7 +1403,7 @@ function buildConfuseSlot(lex, groupes){
   return m;
 }
 function confuseSlotDecide(lex, T, i, adj, hyph, groupes){
-  if(!_CONF_SLOT) _CONF_SLOT = buildConfuseSlot(lex, groupes);
+  if(!_CONF_SLOT || _CONF_SLOT_src !== groupes){ _CONF_SLOT = buildConfuseSlot(lex, groupes); _CONF_SLOT_src = groupes; }   // les groupes peuvent arriver APRÈS le premier appel
   const w = String(T[i] || '');
   if(i < 1 || w !== w.toLowerCase()) return [null, null];
   const cible = _CONF_SLOT.get(w.toLowerCase());
@@ -1444,7 +1445,7 @@ function confuseSlotDecide(lex, T, i, adj, hyph, groupes){
    l'écart de couverture.
    C'est le même raisonnement que la curation par SÉPARABILITÉ de la liste, appliqué au signalement. */
 const _CONF_VIG_R = 2;
-let _CONF_VIG = null;
+let _CONF_VIG = null, _CONF_VIG_src = null;
 function buildConfuseVig(lex, groupes, dejaRouge){
   const m = new Map();
   for(const g of (groupes || [])){
@@ -1461,7 +1462,8 @@ function buildConfuseVig(lex, groupes, dejaRouge){
   return m;
 }
 function confuseVigDecide(lex, T, i, adj, groupes){
-  if(!_CONF_VIG){
+  if(!_CONF_VIG || _CONF_VIG_src !== groupes){
+    _CONF_VIG_src = groupes;
     const rouge = buildConfuseSlot(lex, groupes);
     _CONF_VIG = buildConfuseVig(lex, groupes, new Set(rouge.keys()));
   }
@@ -1487,7 +1489,7 @@ function buildPastPart(lex){
   return m;
 }
 function pastPartDecide(lex, T, i, adj){
-  if(!lex._P2P) lex._P2P = buildPastPart(lex);
+  if(!lex._P2P || lex._P2P_src !== lex.VERBMORPH){ lex._P2P = buildPastPart(lex); lex._P2P_src = lex.VERBMORPH; }   // idem : VERBMORPH peut arriver après le premier appel
   const w = String(T[i] || '').toLowerCase();
   let j = i - 1;
   while(j > 0 && _PP_ADV.has(String(T[j] || '').toLowerCase())) j--;   // « has already ran »
@@ -2077,10 +2079,12 @@ function calendarCapDecide(lex, T, i, adj){
    LES TROIS MASQUES : urlMask (un mot dans une URL est un identifiant : le corriger casse le lien — 0,92 % des tokens
    d'EWT), adjMask (tokenize jette chiffres et ponctuation : deux tokens voisins dans la liste ne se touchent pas forcément
    dans le texte, « hit a .322 average »), hyphMask (« moon-cursed waters » n'est pas « moon cursed »).
-   Rend {toks, pos, marks} ; marks[i] = null ou {sugg, cls:'red'|'orange', rule, del?, info?}.
+   Rend {toks, pos, marks} ; marks[i] = null ou {sugg, cls:'red'|'orange', rule, del?, info?, span?}.
+     span : 2 quand la suggestion REMPLACE ce mot ET le suivant (« with out » -> without) ; le suivant n'a alors pas de marque
      del  : la correction SUPPRIME le mot (article devant indénombrable, more/most redondant, mot répété)
      info : la règle INTERROGE sans proposer (sugg = la liste « which / witch » : le clic ne doit rien insérer)
    ctx = {confus: groupes de confusables_en.json, basemap: buildBaseMap(forms_en)} — absents, les règles concernées se taisent. */
+const _SANS_GROUPES = [];
 function analyzeText(lex, text, ctx){
   ctx = ctx || {};
   const re = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’ʼ][A-Za-zÀ-ÖØ-öø-ÿ]+)*/g;        // LE motif de tokenize (la garde de câblage le compare)
@@ -2088,7 +2092,7 @@ function analyzeText(lex, text, ctx){
   while((m = re.exec(text))){ toks.push(m[0]); pos.push(m.index); }
   const marks = new Array(toks.length).fill(null);
   const PROT = urlMask(text), ADJ = adjMask(text), HYP = hyphMask(text);
-  const CG = ctx.confus ? (Array.isArray(ctx.confus) ? ctx.confus : (ctx.confus.groupes || [])) : [];
+  const CG = ctx.confus ? (Array.isArray(ctx.confus) ? ctx.confus : (ctx.confus.groupes || _SANS_GROUPES)) : _SANS_GROUPES;   // le MÊME tableau vide à chaque appel : les tables de confusables se rebâtissent quand leur source CHANGE
   const BM = ctx.basemap;
   for(let i = 0; i < toks.length; i++){
     if(PROT.has(i)) continue;
@@ -2107,7 +2111,12 @@ function analyzeText(lex, text, ctx){
     r = verb3Decide(lex, toks, i, ADJ);                 if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'verb-3sg'}; continue; }             // he go
     r = confuseSlotDecide(lex, toks, i, ADJ, HYP, CG);  if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'confuse-slot'}; continue; }         // I will council him
     r = pastPartDecide(lex, toks, i, ADJ);              if(r[1]){ marks[i] = {sugg:r[0], cls:'red', rule:'past-part'}; continue; }            // has went
-    r = homoDecide(lex, toks, i, ADJ);                  if(r[1]){ marks[i] = {sugg:r[0], cls:(r[1] === 'RED' ? 'red' : 'orange'), rule:'homophone'}; continue; }
+    r = homoDecide(lex, toks, i, ADJ);                  if(r[1]){ marks[i] = {sugg:r[0], cls:(r[1] === 'RED' ? 'red' : 'orange'), rule:'homophone'};
+      /* FUSION (18/09/2026) : la suggestion est ce mot et le suivant COLLÉS (« with out » -> without). La marque couvre alors
+         les DEUX tokens (span:2) et le second n'est plus examiné. Sans cela le rendu remplaçait « with » seul et laissait
+         « without out » — vu en sondant les marques ; une seule règle concernée sur 28 049 textes, mais le test est général. */
+      if(i + 1 < toks.length && ADJ.has(i) && String(r[0]).toLowerCase() === (toks[i] + toks[i + 1]).toLowerCase()){ marks[i].span = 2; i++; }
+      continue; }
     r = spellSuggest(lex, toks[i], i > 0 ? toks[i - 1].toLowerCase() : '');   // le mot-outil précédent ouvre un slot (verbe/nom)
     if(r[1] === 'AUTO'){ marks[i] = {sugg:r[0], cls:'red', rule:'spelling'}; continue; }
     if(r[1] === 'FLAG' && r[0]){ marks[i] = {sugg:r[0], cls:'orange', rule:'spelling'}; continue; }
@@ -2449,6 +2458,24 @@ if(typeof require !== 'undefined' && require.main === module){
     const a2 = analyzeText(lex, 'I think youre very kind', {}), m2 = a2.marks[a2.toks.indexOf('youre')];
     if(!(m1 && m1.cls === 'orange' && m1.sugg === 'your')){ ctKo++; console.log('  PIPELINE : « youre snake » -> %j (attendu your en orange)', m1); }
     if(!(m2 && m2.cls === 'red' && m2.sugg === "you're")){ ctKo++; console.log("  PIPELINE : « youre very kind » -> %j (attendu you're en rouge)", m2); } }
+  /* FUSION DE DEUX MOTS (18/09/2026) : « with out » -> without couvre les DEUX tokens (span:2), et le second n'a pas de marque.
+     Le rendu remplaçait « with » seul : « without out ». */
+  { const a = analyzeText(lex, 'She left with out a word', {}), k = a.toks.indexOf('with'), m = a.marks[k];
+    if(!(m && m.sugg === 'without' && m.span === 2 && !a.marks[k + 1])){ ctKo++; console.log('  PIPELINE : « with out » -> %j puis %j (attendu without, span 2, rien sur « out »)', m, a.marks[k + 1]); } }
+  /* ORDRE DE CHARGEMENT (18/09/2026) — la page analyse dès que le dictionnaire est là, AVANT l'arrivée de verbmorph_en.json et
+     de confusables_en.json. Quatre tables étaient bâties au premier appel puis gardées : bâties sur du vide, elles rendaient
+     « has went », « I will council him » et « witch / which » muets pour toute la session (vu au navigateur : la vigilance
+     avait disparu de la page en direct). Les tables se rebâtissent maintenant quand leur source change. On rejoue l'ordre de
+     la page : un premier appel sans rien, puis les actifs, puis le même texte. */
+  { const lexB = Object.create(lex); lexB.VERBMORPH = {}; lexB._P2P = null; lexB._V3PAST = null;   // un dictionnaire NEUF : sans ces deux lignes lexB hériterait des tables déjà bâties et la garde ne verrait rien (mutation survivante, 18/09)
+    const CONF = JSON.parse(require('fs').readFileSync(path.join(__dirname, 'confusables_en.json'), 'utf8'));
+    const BM = buildBaseMap(require('zlib').gunzipSync(require('fs').readFileSync(path.join(__dirname, 'forms_en.tsv.gz'))).toString('utf8'), lexB);
+    const TEXTES = [['She has went home', 'went', m => m && m.sugg === 'gone'], ['Did he threw the ball', 'threw', m => m && m.sugg === 'throw'], ['I will council him tomorrow', 'council', m => m && m.sugg === 'counsel'],
+                    ['we saw a witch last night', 'witch', m => m && m.info && /which/.test(m.sugg)]];
+    for(const [txt] of TEXTES) analyzeText(lexB, txt, {});                                      // premier rendu : rien n'est encore arrivé
+    lexB.VERBMORPH = lex.VERBMORPH;                                                             // … puis les actifs arrivent
+    for(const [txt, mot, attendu] of TEXTES){ const a = analyzeText(lexB, txt, {confus: CONF, basemap: BM}), m = a.marks[a.toks.indexOf(mot)];
+      if(!attendu(m)){ ctKo++; console.log('  ORDRE DE CHARGEMENT : « %s » -> %j — la règle est restée muette après l\'arrivée de son actif', txt, m); } } }
   for(const [T, i] of CT_NON){ const r = contractionDecide(lex, T, i, null);
     if(r[1]){ ctKo++; console.log('  CONTR FAUX POSITIF %s[%d] -> %s', T.join(' '), i, r[0]); } }
   console.log('contractions: %d/%d rappel, %d anomalie(s)', ctOk, CT_OUI.length, ctKo);
