@@ -204,7 +204,10 @@ run "clone anglais FRAIS (app EN == build(app FR))" python3 dictee/build_pendu_e
 # La table des PRÉNOMS existe en 3 copies (TSV Python, blob de l'app, asset de l'extension) : si elles
 # divergent, l'accord sur « Marie est venu » ne dit pas la même chose selon le moteur.
 run "prénoms : 3 copies identiques + contenu" python3 dictee/prenoms_probe.py
-run "service worker (version+empreinte, précache, purge)" node dictee/sw_probe.js
+# … et son COMPORTEMENT, joué dans un bac à sable (faux cache, faux réseau, fausse minuterie) : mesuré en production le
+# 18/09/2026, un visiteur de retour exécutait la page NEUVE avec les scripts de sa visite précédente (« cache d'abord » +
+# cache HTTP de 4 h). Code et style sont « réseau d'abord revalidé » ; falsifiée par 23 défauts injectés dans sw.js.
+run "service worker (version+empreinte, précache, purge, comportement en bac à sable)" node dictee/sw_probe.js
 # CLAUDE.md est un SOMMAIRE gardé (tri du 03/09/2026) : budget 1 500 mots, pas de ligne-fleuve,
 # zéro énoncé recopié de DOCTRINE.md (le résumé tue la source — mesuré le 24/08).
 run "docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE)" python3 dictee/docs_probe.py
