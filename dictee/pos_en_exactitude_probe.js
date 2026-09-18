@@ -90,7 +90,7 @@ console.log('\n  par classe :');
 console.log('\n  confusions principales :');
 [...conf.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).forEach(([k, v]) =>
   console.log('    ' + String(v).padStart(4) + '  ' + k));
-console.log('\n  ⚠️ SCONJ (58,8 %) est le point faible qui COÛTE : une conjonction de subordination');
+console.log('\n  Note : SCONJ (60,2 %) reste le point faible qui COÛTE : une conjonction de subordination');
 console.log('     marque une FRONTIÈRE DE PROPOSITION. La lire comme une préposition, c\'est perdre');
 console.log('     la frontière — et toute détection de SUJET en a besoin. un discriminateur naïf ADP->SCONJ a été');
 console.log('     TESTÉ ET RÉFUTÉ (-0,25 pt) : il faut savoir où finit le groupe nominal, donc parser.');
