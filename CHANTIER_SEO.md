@@ -182,9 +182,9 @@ retrait du sitemap dans le même commit — la sonde sitemap exige déjà cette 
 déclarée ne doit pas porter `noindex`). Elles restent en ligne et accessibles par leurs liens : on
 cesse seulement de les proposer à des gens qui ne les cliquent jamais.
 
-`/recherche` : **à ne PAS mettre en noindex** — c'est une vraie page publique, elle porte la
-crédibilité du projet. Elle relève du Lot A (titre, H1, description). Sa vraie question est :
-quelle recherche l'amène en position 3,2 ? À instruire avant de décider.
+`/recherche` : **à ne PAS mettre en noindex**, et à ne pas alléger non plus — voir l'encadré qui
+lui est consacré au §2 bis. Elle relève du seul Lot A (titre, H1, description). Sa question ouverte
+reste : quelle recherche l'amène en position 3,2 ? Mesuré le 19/09, Google n'en nomme AUCUNE.
 
 ⚠️ **Effet attendu, à annoncer AVANT de mesurer** : les impressions vont BAISSER (environ −225) et
 le CTR moyen va monter. Une baisse d'impressions n'est donc pas une régression ici ; si on oublie
@@ -252,7 +252,7 @@ ne faut pas faire. Mesuré : poids réel en mots (scripts exclus) contre clics s
 
 | page | mots | clics | ce que j'en fais |
 |---|---:|---:|---|
-| `/recherche` | **5 091** | **0** | alléger (niveau 3) |
+| `/recherche` | **5 091** | **0** | **on n'y touche pas** — voir l'encadré dédié |
 | `/arbitrage` | 1 222 | 0 | laisser — atteignable depuis Recherche seulement |
 | `/correcteur` | 1 198 | 1 | **fusionner** avec `/correcteur-outil` |
 | `/index` | 1 071 | **35** | ne pas casser : c'est 80 % des clics du site |
@@ -297,15 +297,39 @@ C'est aussi ce que font les sites qui gagnent sur « solveur pendu » : l'outil 
 ⚠️ **Une redirection 301 fait osciller le classement quelques semaines.** Ce lot se fait SEUL, et
 il se mesure sur le clic à 28 jours, pas sur la position à 3 jours.
 
-### Niveau 3 — alléger les textes *(bon pour les dys ET pour Google)*
+### Niveau 3 — alléger les PAGES PRODUIT *(bon pour les dys ET pour Google)*
 
-`/recherche` : **5 091 mots, 13 sections, 0 clic.** Ce n'est pas une page de site, c'est un article
-de fond. Et `/correcteur` fait 1 198 mots en 6 sections d'argumentation, alors que son rôle est de
-faire ESSAYER. Sur un site dont les visiteurs sont dyslexiques, la longueur n'est pas un détail
+`/correcteur` fait **1 198 mots en 6 sections d'argumentation**, alors que son rôle est de faire
+ESSAYER. Sur un site dont les visiteurs sont dyslexiques, la longueur n'est pas un détail
 esthétique : c'est une barrière.
 
-Cible raisonnable : **500 à 700 mots** par page produit, l'essentiel au-dessus de la ligne de
-flottaison, le reste replié ou renvoyé à une page de fond.
+Cible raisonnable : **500 à 700 mots** par page PRODUIT, l'essentiel au-dessus de la ligne de
+flottaison, le reste replié.
+
+### ⚠️ `/recherche` — CE QU'IL NE FAUT PAS EN FAIRE (correction du 19/09)
+
+**J'avais rangé `/recherche` parmi les pages « à alléger ». C'était une erreur de catégorie, et je
+la corrige ici plutôt que de la laisser traîner dans un plan.**
+
+Ses 13 sections — la doctrine « mesurer ou rejeter », le pendu comme banc d'essai, la double route
+phono↔ortho, la police qui encode le son, **« Ce qu'on a essayé… et rejeté »** — ne sont pas du
+remplissage : c'est la colonne vertébrale du projet, et la seule page qui montre que le travail est
+réel. La cible « 500-700 mots » s'applique aux pages PRODUIT ; `/recherche` n'en est pas une.
+
+**Son 0 clic n'est pas un échec.** Cette page n'est pas là pour capter du clic, elle est là pour
+que celui qui arrive voie sur quoi c'est bâti. La juger au clic serait exactement l'erreur que ce
+document reproche au reste : confondre l'indicateur d'une chose avec sa valeur.
+
+Ce qui la concerne vraiment, et c'est tout :
+1. **Lot A** — son titre affiché par Google est « modèle double route, dyslexie | OMEGA-Ω », un bout
+   de phrase qui commence en minuscule (le `<title>` fait 88 caractères, le H1 « Une architecture
+   cognitive de la double route. » ne reprend aucun de ses mots). Un titre court + un H1 qui lui
+   répond, et la ligne bleue redevient lisible. **Aucun mot du contenu n'est touché.**
+2. **Une PORTE, pas une coupe** — 5 091 mots sans sommaire, pour un lecteur dys, ce n'est pas trop
+   long : c'est sans prise. Une entrée de trois lignes en haut (« ce que tu vas trouver ») et un
+   sommaire cliquable des 13 sections donnent des points d'appui. **Ça ajoute, ça ne retire rien.**
+
+⛔ Pas de `noindex`, pas de découpe en plusieurs pages, pas de suppression de sections.
 
 ### ⛔ Ce que « épurer » ne doit PAS vouloir dire
 
