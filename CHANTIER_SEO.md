@@ -229,6 +229,38 @@ résultats réelle — qui est là, est-ce une liste ou un outil, y a-t-il un Ap
 réponse — et ne garder que celles où **un outil** est ce que Google montre. Une page écrite pour
 une requête où Google ne montre que des comparatifs est du temps perdu : c'est le constat ④.
 
+#### ✅ Relevé fait le 19/09 — trois intentions sur quatre sont ouvertes
+
+| intention | ce que Google montre en page 1 | verdict |
+|---|---|---|
+| **transformer un texte pour dyslexique en ligne** | **#1 LireCouleur (un OUTIL)**, Coloritext (un OUTIL), BlogPéda, Académie de Lyon, un « Top 10 » dysclick. Aperçu IA qui nomme LireCouleur, Coloritext, Cantoo Scribe | **OUVERTE** — les outils y rangent |
+| **logiciel dyslexie texte couleur** | **#1 LireCouleur, #2 Coloritext**, Colorization, Dys-Vocal, Éducation nationale (Primàbord), académies | **OUVERTE, encore plus nettement** |
+| **mot difficile pendu 10 lettres** | mot-pendu.com, jeudupendu.com (« 10 000 mots durs par nombre de lettres »), idees-gages, le-jeu-du-pendu, Reddit, un *gist* GitHub — **que des listes de mots** | **OUVERTE, et la concurrence est mince** |
+| correcteur orthographe dyslexie gratuit | comparatifs tiers uniquement | **FERMÉE** (constat ④) |
+
+#### 🎯 Et le plus important : **le produit existe déjà, la page manque**
+
+Ce que font LireCouleur et Coloritext, qui occupent les deux premières places : *colorer les
+syllabes, colorer les phonèmes, griser les lettres muettes, élargir les espacements.*
+
+**C'est exactement la police de son et le découpage en syllabes d'OMEGA** — déjà écrits, déjà
+mesurés, déjà en ligne dans le correcteur, l'extension et la page anglaise. Et la **police OMEGA
+Dys** est téléchargeable sur `/donnees` — la page que Rem a tenu à garder au menu le 18/09.
+
+Le trou n'est donc pas un trou de produit, c'est un trou de FORMULATION : `/donnees` s'annonce
+« Lexiques français ouverts & POS-tagger » (pour développeurs), et la police de son est une
+*option* à l'intérieur du correcteur. **Aucune page ne dit : « colle ton texte, il ressort avec les
+syllabes en couleur et les lettres muettes grisées ».**
+
+C'est la page la plus prometteuse à écrire de tout ce document : la demande est démontrée, les
+outils y rangent, et il n'y a rien à construire — seulement à nommer.
+
+⚠️ **Sur « mot difficile pendu N lettres »** : la famille entière existe (4, 5, 7, 10, 12, 15, 20,
+30 lettres, vu dans les recherches associées). Tentation : huit pages gabarit. **Non** — ce serait
+exactement la page-passerelle mince que Google sanctionne, et le contraire de ce que dit le §4.
+**Une seule page-outil** avec un choix de longueur, adossée à notre lexique (705 653 formes, le
+meilleur de cette page de résultats).
+
 #### Lot E — hors-site : être dans les listes *(le seul levier qui déplace vraiment la voie 2)*
 
 Les pages qui occupent la page 1 sur « correcteur dyslexie » sont des comparatifs tenus par des
