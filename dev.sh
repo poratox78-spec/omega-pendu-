@@ -206,7 +206,8 @@ run "clone anglais FRAIS (app EN == build(app FR))" python3 dictee/build_pendu_e
 run "prénoms : 3 copies identiques + contenu" python3 dictee/prenoms_probe.py
 # … et son COMPORTEMENT, joué dans un bac à sable (faux cache, faux réseau, fausse minuterie) : mesuré en production le
 # 18/09/2026, un visiteur de retour exécutait la page NEUVE avec les scripts de sa visite précédente (« cache d'abord » +
-# cache HTTP de 4 h). Code et style sont « réseau d'abord revalidé » ; falsifiée par 23 défauts injectés dans sw.js.
+# cache HTTP de 4 h). Code et style sont « réseau d'abord revalidé », et chaque écriture dans le cache est confiée à waitUntil ;
+# falsifiée par 27 défauts injectés dans sw.js.
 run "service worker (version+empreinte, précache, purge, comportement en bac à sable)" node dictee/sw_probe.js
 # CLAUDE.md est un SOMMAIRE gardé (tri du 03/09/2026) : budget 1 500 mots, pas de ligne-fleuve,
 # zéro énoncé recopié de DOCTRINE.md (le résumé tue la source — mesuré le 24/08).

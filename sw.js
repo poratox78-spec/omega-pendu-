@@ -48,15 +48,21 @@ async function reshape(res) {
 }
 /* Range une réponse du réseau dans le cache — sauf si c'est, d'après son ETag, le fichier qu'on a déjà : après un 304 le
    navigateur rend une réponse 200 reconstituée, et la ranger réécrivait le fichier sur le disque à CHAQUE visite (15 Mo pour
-   le modèle du juge). Rend la réponse PROPRE (jamais « redirected »). */
-async function range(cache, req, res, cached) {
+   le modèle du juge). Rend la réponse PROPRE (jamais « redirected »), SANS attendre la fin de l'écriture (elle dure autant que
+   le téléchargement du corps) — mais l'écriture est CONFIÉE à `waitUntil` : vu en production le 18/09/2026, une entrée de
+   cache n'a pas été remplacée alors que le fichier du réseau avait bien été servi ; rien ne retenait le service worker
+   jusqu'à la fin du `put`, le navigateur peut l'arrêter avant. */
+async function range(cache, req, res, cached, e) {
   const clean = res.redirected ? await reshape(res) : res;
   const etag = res.headers.get('etag');
-  if (!(cached && etag && cached.headers.get('etag') === etag)) cache.put(req, clean.clone()).catch(() => {});
+  if (!(cached && etag && cached.headers.get('etag') === etag)) {
+    const ecrit = cache.put(req, clean.clone()).catch(() => {});
+    try { e.waitUntil(ecrit); } catch (err) {}                          // l'événement n'est plus prolongeable : l'écriture part quand même
+  }
   return clean;
 }
-function revalidate(cache, req, cached) {
-  return fetch(req, FRAIS).then((res) => { if (res && res.ok) return range(cache, req, res, cached); }).catch(() => {});
+function revalidate(cache, req, cached, e) {
+  return fetch(req, FRAIS).then((res) => { if (res && res.ok) return range(cache, req, res, cached, e); }).catch(() => {});
 }
 
 // STRATÉGIE — TROIS régimes, parce que « frais », « assorti » et « léger » ne se règlent pas pareil :
@@ -81,7 +87,7 @@ const GRACE_MS = 3000;
 
 function reseauDAbord(cache, req, cached, e) {
   const reseau = fetch(req, FRAIS).then((res) => {
-    if (res && res.ok) return range(cache, req, res, cached);
+    if (res && res.ok) return range(cache, req, res, cached, e);
     return (res && res.status >= 500 && cached) ? cached : res;          // panne passagère du serveur : la copie vaut mieux ; un 404 est une réponse (fichier retiré)
   });
   if (!cached) return reseau.catch(() => Response.error());
@@ -101,7 +107,7 @@ self.addEventListener('fetch', (e) => {
       const res = await fetch(req.url, { redirect: 'follow' }).catch(() => null);   // req.url + follow, PAS fetch(req) : une requête de NAVIGATION porte redirect:'manual' → sur une redirection Cloudflare le SW recevait un opaqueredirect (ok=false), tombait sur le repli et servait l'INDEX à la place de la page (scrabidon/pendable non précachées → accueil). Suivre les redirections rend un vrai 200.
       if (res && res.ok) {
         const clean = res.redirected ? await reshape(res) : res;           // jamais de réponse redirigée (page blanche)
-        cache.put(req, clean.clone()).catch(() => {});
+        e.waitUntil(cache.put(req, clean.clone()).catch(() => {}));         // l'écriture va au bout (cf. range)
         return clean;
       }
       if (res) return res;                                                 // le serveur a répondu (dont 404.html : depuis le vrai 404
@@ -115,11 +121,11 @@ self.addEventListener('fetch', (e) => {
     }
     const cached = await cache.match(req);
     if (CODE.test(new URL(req.url).pathname)) return reseauDAbord(cache, req, cached, e);   // ── code, style, petites données : réseau d'abord revalidé ──
-    if (cached) { e.waitUntil(revalidate(cache, req, cached)); return cached; }             // ── lourds : cache d'abord, revalidation en fond ──
+    if (cached) { e.waitUntil(revalidate(cache, req, cached, e)); return cached; }             // ── lourds : cache d'abord, revalidation en fond ──
     const res = await fetch(req).catch(() => null);
     if (!res) return Response.error();
     const clean = res.redirected ? await reshape(res) : res;
-    if (res.ok) cache.put(req, clean.clone()).catch(() => {});
+    if (res.ok) e.waitUntil(cache.put(req, clean.clone()).catch(() => {}));
     return clean;
   }));
 });

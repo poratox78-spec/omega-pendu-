@@ -86,9 +86,12 @@ async function comportement() {
   const rep = (corps, etag, status) => new Response(corps, { status: status || 200, headers: etag ? { etag: etag } : {} });
   function bac() {
     const ecoute = {}, journal = [], minuteries = [], ecrits = [], magasin = new Map(), reseau = new Map();
+    const lent = { actif: false, lache: [] };                                  // écriture LENTE à la demande : `put` ne finit que quand le test le décide
     const cache = {
       async match(req) { const r = magasin.get(abs(req)); return r ? r.clone() : undefined; },
-      async put(req, res) { ecrits.push(abs(req)); magasin.set(abs(req), res); },
+      put(req, res) { const fin = () => { ecrits.push(abs(req)); magasin.set(abs(req), res); };
+        if (!lent.actif) { fin(); return Promise.resolve(); }
+        return new Promise((ok) => { lent.lache.push(() => { fin(); ok(); }); }); },
     };
     const env = {
       self: { addEventListener: (t, f) => { ecoute[t] = f; }, skipWaiting() {}, clients: { claim: async () => {} } },
@@ -106,7 +109,7 @@ async function comportement() {
                    waitUntil(p) { this.fond.push(p); } };
       ecoute.fetch(ev); await tic(); return ev;
     }
-    return { ecoute, journal, minuteries, ecrits, magasin, reseau, cache, demande, tic };
+    return { ecoute, journal, minuteries, ecrits, magasin, reseau, cache, demande, tic, lent };
   }
   const texte = async (p) => { try { const r = await p; return r && r.type !== 'error' ? await r.text() : '(erreur réseau)'; } catch (e) { return '(promesse rejetée : ' + (e && e.message) + ')'; } };
   const enCache = async (b, chemin) => { const r = await b.cache.match(ORIGINE + chemin); return r ? r.text() : null; };
@@ -119,6 +122,20 @@ async function comportement() {
     if (await enCache(b, JS) !== 'v2') fail.push('le script neuf n\'est pas rangé dans le cache (hors ligne, on resservirait l\'ancien)');
     const j = b.journal.find((x) => x.url === ORIGINE + JS);
     if (!j || j.cache !== 'no-cache') fail.push('le script est demandé SANS `cache: no-cache` : Cloudflare envoie max-age=14400, le navigateur relirait son cache HTTP pendant 4 h sans aller au réseau'); }
+  /* A bis. L'ÉCRITURE DANS LE CACHE EST CONFIÉE À waitUntil (vu en production le 18/09/2026 : le fichier du réseau était servi,
+     mais l'entrée du cache n'était pas remplacée — rien ne retenait le service worker jusqu'à la fin du `put`). On rend le
+     `put` LENT : la réponse doit être servie sans l'attendre, et les promesses confiées à waitUntil ne doivent PAS être
+     toutes tenues tant que l'écriture n'est pas finie. Même exigence pour une page et pour un fichier lourd jamais vu. */
+  for (const [quoi, chemin, mode] of [['script', JS, 'no-cors'], ['page', '/correcteur', 'navigate'], ['fichier lourd jamais vu', GZ, 'no-cors']]) {
+    const b = bac(); b.lent.actif = true; if (quoi === 'script') b.magasin.set(ORIGINE + chemin, rep('v1', '"a"'));
+    b.reseau.set(ORIGINE + chemin, async () => rep('v2', '"b"'));
+    const ev = await b.demande(chemin, mode); let servi = null; ev.reponse.then(async (r) => { servi = await r.text(); }); await b.tic();
+    if (servi !== 'v2') fail.push(quoi + ' : la réponse attend la fin de l\'écriture dans le cache (« ' + servi + ' ») — elle doit partir tout de suite');
+    let fondFini = false; Promise.all(ev.fond).then(() => { fondFini = true; }); await b.tic();
+    if (!b.lent.lache.length) fail.push(quoi + ' : rien n\'est écrit dans le cache');
+    else if (fondFini) fail.push(quoi + ' : l\'écriture dans le cache n\'est pas confiée à waitUntil — le navigateur peut arrêter le service worker avant la fin du put (entrée jamais remplacée)');
+    b.lent.lache.forEach((f) => f()); await b.tic();
+    if (!fondFini) fail.push(quoi + ' : waitUntil ne se libère pas une fois l\'écriture finie'); }
   // B. hors ligne : la copie
   { const b = bac(); b.magasin.set(ORIGINE + JS, rep('v1', '"a"'));
     const servi = await texte((await b.demande(JS)).reponse);
