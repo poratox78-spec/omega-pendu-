@@ -1877,12 +1877,13 @@ function baseFormDecide(lex, T, i, adj, BM){
   while(k > 0 && _BF_ADV[T[k].toLowerCase()] && (!adj || adj.has(k))) k--;
   if(k < 0 || (adj && !adj.has(k))) return [null, null];     // adjacence RÉELLE trigger→cible (« the watering can, boxes »)
   /* 18/09/2026 — INVERSION : « can I used for other schools » -> use. Le sujet pronominal s'intercale entre le modal et le
-     verbe ; le modal peut alors être capitalisé en tête (« Can I used ») : un prénom/mois n'est jamais suivi d'un pronom
-     sujet puis d'un verbe. Banc de tir : 1 juste, 0 tir édité, 0 tir web. */
+     verbe ; le modal peut alors être capitalisé (« Can I used », en tête de phrase donc n'importe où dans le texte) : un
+     prénom/mois n'est jamais suivi d'un pronom sujet puis d'un verbe (le vocatif « Will, I used » a sa virgule : adjacence).
+     Banc de tir : 1 juste, 0 tir édité, 0 tir web. */
   let inv = false;
   if(k >= 1 && _BF_SUBJ[T[k].toLowerCase()] && (T[k] === T[k].toLowerCase() || T[k] === 'I') && _BF_MODAL[T[k - 1].toLowerCase()] && (!adj || adj.has(k - 1))){ k--; inv = true; }
   const tw = T[k], tl = tw.toLowerCase();
-  if(tw !== tl && !(inv && k === 0)) return [null, null];    // « Will/May/Did » capitalisés : prénom, mois, inversion
+  if(tw !== tl && !inv) return [null, null];                 // « Will/May/Did » capitalisés : prénom, mois, inversion — sauf « Can I used » (vu au navigateur : en milieu de texte, la majuscule de phrase n'est pas au token 0)
   if(k === 0 && !inv) return [null, null];                   // inversion en tête (« Can fishing be fun ? »)
   let kind = null;
   if(_BF_MODAL[tl]) kind = 'modal'; else if(_BF_DO[tl]) kind = 'do'; else if(tl === 'to') kind = 'to';
@@ -2403,6 +2404,7 @@ if(typeof require !== 'undefined' && require.main === module){
     [['you', 'must', 'never', 'went', 'there'], 3, 'go'],
     [['the', 'visa', 'can', 'I', 'used', 'for', 'other', 'schools'], 4, 'use'],   // 18/09/2026 : inversion, le pronom s'intercale
     [['Can', 'I', 'used', 'it', 'again'], 2, 'use'],                                // … même en tête, capitalisé
+    [['town', 'Can', 'I', 'used', 'it', 'again'], 3, 'use'],                        // … et en milieu de texte (majuscule de phrase)
   ];
   const BF_NON = [
     [['the', 'can', 'rusted', 'away'], 2],
