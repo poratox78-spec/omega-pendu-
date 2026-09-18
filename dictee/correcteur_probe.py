@@ -1603,7 +1603,7 @@ def _noun_gender(w, num='s', full=False):
     verbe/nom : pomme/livre/lettre) — sûr UNIQUEMENT si l'appelant a déjà confirmé un antécédent [dét + NOM]
     (le contexte tranche l'homographie ; sinon on FP). Fix C : débloque l'accord du participe sur pomme/etc."""
     _lw = w.lower()
-    _ga = GENDER_ACC.get(_lw)
+    _ga = None if _lw in _GACC_EPICENE else GENDER_ACC.get(_lw)   # un nom ÉPICÈNE ne tranche aucun accord (cf. _GACC_EPICENE)
     if _ga in ('m', 'f'): return _ga                       # forme ACCENTUÉE exacte : tranche marche(f)/marché(m)
     d = deacc(_lw)
     def src(x):
@@ -3584,6 +3584,21 @@ _GACC_PATH = os.path.join(HERE, 'gender_acc.json')
 if os.path.exists(_GACC_PATH):
     try: GENDER_ACC = json.load(open(_GACC_PATH, encoding='utf-8'))
     except Exception: GENDER_ACC = {}
+
+# ⭐ NOMS ÉPICÈNES (18/09/2026) — un/une peintre, un/une ministre. La table est bâtie en deux temps :
+# kaikki+Lexique4 ÉCARTENT les mots à genre ambigu (genre « e » de Lexique4), puis Morphalou AJOUTE ce
+# que cette base ne couvre pas — et comme un mot écarté POUR AMBIGUÏTÉ n'y est plus, Morphalou le
+# rajoutait avec le genre de sa seule entrée, « feminine ». D'où peintre→f, ministre→f, architecte→f…
+# et, AU PRODUIT, des ROUGES sur du français juste : « Le peintre est italien. » → italienne.
+# La liste restaure le signal perdu ; elle n'est consultée QUE par `_noun_gender` (le seul site qui
+# DÉCIDE d'un genre), jamais par les tests « ce mot est-il un nom ? » ni par le lexique du speller —
+# ces mots restent connus en orthographe. Miroir JS : l'asset gender-acc.json.gz est filtré au build
+# (build_gacc_js.py), et `_GACC` n'y a pas d'autre consommateur que `_nounGender`.
+_GACC_EPICENE = set()
+try:
+    _GACC_EPICENE = set(json.load(open(os.path.join(HERE, 'gacc_epicene_excl.json'), encoding='utf-8')))
+except Exception:
+    pass
 
 # ⚠️⚠️ FILTRE AJOUTÉ APRÈS MESURE (2026-08-09) — LA TABLE BRUTE CONTENAIT DES RÉPONSES FAUSSES,
 # ET ELLE EST CONSULTÉE **EN PREMIER**, DONC ELLES ÉCRASAIENT DES GENRES CORRECTS.
@@ -5876,6 +5891,11 @@ MUETS = [
                                          "sur 14 450 phrases UD). Elle ne lit plus que les COLLISIONS D'ACCENT (marché / marche), seules porteuses d'information."),
     ("La femme du diplomate américain est venue.", "même famille : « diplomate » épicène, « américain » est juste."),
     ("C'est le ministre marocain des Affaires étrangères.", "même famille : « ministre » épicène."),
+    ("Le peintre est italien.", "même nom épicène, AUTRE ROUTE : l'ATTRIBUT (rule_adj_attr) demande le genre du sujet à `_noun_gender`, "
+                                "qui consulte la table accentuée en premier — elle répondait « f » et le rouge écrivait « italienne ». "
+                                "Les 793 noms que Lexique4 marque épicènes en sont retirés depuis le 18/09/2026 (gacc_epicene_excl.json)."),
+    ("Le ministre est content.", "même route, autre nom : phrase JUSTE, aucune marque."),
+    ("Le peintre est parti hier.", "3e route : le PARTICIPE avec être, qui demande le même genre au même endroit."),
     ("Nous primes le train.", "ABSTENTION VOULUE : « primes » est primer-2sg ET le passé simple de prendre (prîmes). "
                               "Deux lemmes, deux corrections ; sans le lemme on choisit au hasard — mesuré : « primons », un ROUGE faux."),
     ("Les primes sont versées.", "« primes » = le NOM (la prime) : un pluriel de nom ne se conjugue pas."),
