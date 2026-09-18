@@ -82,7 +82,7 @@
        entier — les DEUX écoutes du micro (le service vocal du navigateur, et la mesure locale des silences), la correction
        locale, et le bouton Diagnostic. SI LE CODE CHANGE, CE TEXTE CHANGE. `<details>` natif : clavier, lecteur d'écran, sans JS. -->
   <details class="vnote">
-    <summary><span class="lock">🔒</span> Your microphone is only listened to while you dictate, and <b>the sound is never recorded</b>. <span class="vi" aria-hidden="true">i</span><span class="vsr"> — details</span></summary>
+    <summary><span class="lock">🔒</span> <span>Your microphone is only listened to while you dictate, and <b>the sound is never recorded</b>.</span> <span class="vi" aria-hidden="true">i</span><span class="vsr"> — details</span></summary>
     <div class="vdet">
       <p>While you dictate, <b>two things</b> listen to your microphone.</p>
       <p><b>①</b> Your <b>browser's speech service (Google, in Chrome)</b> receives the audio to turn it into words. This is the <b>only moment anything leaves your device</b>.</p>
@@ -101,7 +101,7 @@
   <div class="corr" id="corr"></div>
   <div id="stade"></div>
   <details class="vnote">
-    <summary>🗣️ You can <b>say the punctuation</b>: “comma”, “full stop”, “question mark”… <span class="vi" aria-hidden="true">i</span><span class="vsr"> — the list</span></summary>
+    <summary><span>🗣️ You can <b>say the punctuation</b>: “comma”, “full stop”, “question mark”…</span> <span class="vi" aria-hidden="true">i</span><span class="vsr"> — the list</span></summary>
     <div class="vdet">
       <p>Say <b>comma</b> · <b>full stop</b> or <b>period</b> · <b>question mark</b> · <b>exclamation mark</b> · <b>colon</b> · <b>semicolon</b> · <b>new line</b> · <b>new paragraph</b>.</p>
       <p>“Period” only counts at the end of what you say, and it stays a word when it clearly is one: <i>a period of time</i>, <i>the same period</i>. “Full stop” works anywhere.</p>
@@ -172,7 +172,7 @@
   // Libellé court par règle du pipeline (la page du correcteur porte l'explication complète ; ici, comme en français, la famille).
   var LABEL={ 'article-mass':'article', 'contraction':'apostrophe', 'base-form':'verb form', 'cap-i':'capital I', 'merged':'two words',
     'double-comp':'comparative', 'repetition':'repeated word', 'irreg-plural':'plural', 'calendar-cap':'capital letter', 'aux-agree':'verb agreement',
-    'interro':'question form', 'verb-3sg':'verb agreement', 'confuse-slot':'look-alike word', 'past-part':'past participle', 'homophone':'sound-alike word',
+    'interro':'question form', 'verb-3sg':'verb agreement', 'confuse-slot':'look-alike word', 'past-part':'past participle', 'homophone':'word mix-up',
     'spelling':'spelling', 'number':'singular / plural', 'confuse-vig':'easy to mix up' };
   var lastMarks=[];
   function diagnose(t){
