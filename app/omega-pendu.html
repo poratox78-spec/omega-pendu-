@@ -27315,7 +27315,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(_ADV_ADJ_INVAR[d]&&i+1<tg.length&&(tg[i+1]==='DET'||tg[i+1]==='VERB'||tg[i+1]==='ADJ'||_elidKind(T[i+1])==='det'))return null;   // emploi ADVERBIAL invariable (« plein les yeux »/« haut placées »)
     if(tg[i-1]!=='NOUN'&&!_el)return null;if(_COLOR_ADJ[deacc(lw)]&&i+1<tg.length&&(tg[i+1]==='ADJ'||tg[i+1]==='NOUN'))return null;
     if(_headText(T[i-1]).charAt(0)!==_headText(T[i-1]).charAt(0).toLowerCase())return null;                 // nom propre → genre non fiable
-    var dn=deacc(_headText(T[i-1]).toLowerCase()),g=GENDER_PURE[dn];
+    var _hdG=_headText(T[i-1]).toLowerCase(),dn=deacc(_hdG),g=_GCOLL[_hdG]||GENDER_PURE[dn];   /* ⭐ 18/09/2026 (cas de Rem : « le marché provençale », muet) — « marché » (m) et « marche » (f) partagent la clé nue « marche » : GENDER_PURE ne connaît ni l'un ni l'autre, et la règle se taisait. La table des COLLISIONS D'ACCENT (_GCOLL, celle de rDetGenre) répare exactement cette perte. ⚠️ PAS la table accentuée brute (_GACC) : essayée et mesurée sur 14 450 phrases correctes, elle donne « f » aux noms épicènes et fabriquait 8 ROUGES faux (« un peintre italien » → italienne) — que la référence Python avait, et n'a plus. */
     if((g!=='m'&&g!=='f')||_SG_STOP[dn])return null;                                  // genre connu (nom pur) ET pas invariant -s/-x
     var num=_el?'s':(i>=2?_EPI_ART[deacc(T[i-2].toLowerCase())]:null);
     if(!num)return null;                                                             // nombre non net (pas d'article) → abstention
@@ -28686,6 +28686,7 @@ function spellTokenCore(tok,atStart,T,idx){
     if(ka===null)return false;return lw===ka.toLowerCase()||lw===alt.toLowerCase();}
   function _adjAgreeG(w,gender,num){var d=deacc(w.toLowerCase()),e=ADJP[d];if(!e)return w;var base=(e[0]===gender)?w:e[1];   // flip de GENRE (≠ _adjAgree qui gèle le -e en nombre seul)
     if(num==='p'){var db=deacc(base.toLowerCase()),lc=db.charAt(db.length-1);if(lc==='s'||lc==='x'){}else if(db.slice(-2)==='al')base=base.slice(0,-2)+'aux';else if(db.slice(-3)==='eau')base=base+'x';else base=base+'s';}return base;}
+  var _EPI_ART_AU={au:'s',aux:'p'};   // (une garde « locution : au final, au total » a été essayée puis RETIRÉE : 0 différence sur 14 450 phrases UD et aucune phrase construite ne la sollicitait — le nom doit déjà avoir un genre PUR)
   function genreAdjVig(T,i,tg){var _el=(i>=1&&_elidKind(T[i-1])==='det');
     if(_SEG&&i<_SEG.bb.length&&_SEG.bb[i])return null;
     if(i<2&&!_el)return null;var w=T[i],lw=w.toLowerCase();
@@ -28702,9 +28703,9 @@ function spellTokenCore(tok,atStart,T,idx){
     if(i+1<T.length){var nx=deacc(T[i+1].toLowerCase());if(nx==='de'||nx==='et'||nx==='ou'||nx==='ni'||nx==='que')return null;}
     if(_COLOR_ADJ[d]&&i+1<tg.length&&(tg[i+1]==='ADJ'||tg[i+1]==='NOUN'))return null;
     if(_headText(T[i-1]).charAt(0)!==_headText(T[i-1]).charAt(0).toLowerCase())return null;
-    var dn=deacc(_headText(T[i-1]).toLowerCase()),g=GENDER_PURE[dn];
+    var _hdG=_headText(T[i-1]).toLowerCase(),dn=deacc(_hdG),g=_GCOLL[_hdG]||GENDER_PURE[dn];   /* ⭐ 18/09/2026 (cas de Rem : « le marché provençale », muet) — « marché » (m) et « marche » (f) partagent la clé nue « marche » : GENDER_PURE ne connaît ni l'un ni l'autre, et la règle se taisait. La table des COLLISIONS D'ACCENT (_GCOLL, celle de rDetGenre) répare exactement cette perte. ⚠️ PAS la table accentuée brute (_GACC) : essayée et mesurée sur 14 450 phrases correctes, elle donne « f » aux noms épicènes et fabriquait 8 ROUGES faux (« un peintre italien » → italienne) — que la référence Python avait, et n'a plus. */
     if((g!=='m'&&g!=='f')||_SG_STOP[dn])return null;
-    var num=_el?'s':(i>=2?_EPI_ART[deacc(T[i-2].toLowerCase())]:null);
+    var _a2=(i>=2)?deacc(T[i-2].toLowerCase()):'',num=_el?'s':(_EPI_ART[_a2]||_EPI_ART_AU[_a2]||null);   /* ⭐ 18/09/2026 — « au / aux » : l'article CONTRACTÉ manquait à la table (« nous allons au marché provençale », « au niveau mondiale » ×2 dans le corpus dys). Pour cette règle ORANGE seulement : la rouge garde sa table mesurée. */
     if(!num)return null;
     var sugg=_adjAgreeG(w,g,num);return sugg.toLowerCase()!==lw?sugg:null;}
   function imparfaitVig(T,i,tg){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0||lw.length<3)return null;

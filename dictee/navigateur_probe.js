@@ -442,6 +442,11 @@ const CAS = [
   { txt: 'une errreur de frappe', attendu: ['erreur'], pourquoi: 'élongation réelle du corpus dys' },
   // ⑤ prénoms -> accord (PR#460)
   { txt: 'Marie est venu.', attendu: ['venue'], pourquoi: 'genre du prénom (table prenoms-gz chargée)' },
+  // ⑤ bis — GENRE PAR COLLISION D'ACCENT (18/09/2026, faute vue par Rem et muette : « marché provençale »). « marché » (m) et
+  //    « marche » (f) partagent la clé sans accent : le genre ne vient que de la table des collisions (_GCOLL, dans le moteur — mesuré par
+  //    ablation : ces deux cas n'isolent AUCUN asset, ils gardent le BRANCHEMENT de la règle dans la page). Orange : proposé, pas appliqué.
+  { txt: 'le marché provençale est ouvert', corrigeAttendu: ['provençale', 'provençal'], pourquoi: 'adjectif féminin sur nom masculin — la règle d\'épithète lit la table des collisions d\'accent' },
+  { txt: 'la pêche miraculeux a eu lieu', attendu: ['miraculeuse'], pourquoi: 'même table, sens inverse, en rouge (pêche f / péché m)' },
   // ⑥ accent = la route affirmative historique
   { txt: 'la fenetre est ouverte', attendu: ['fenêtre'], pourquoi: 'restauration d\'accent' },
   // ⑦ INFINITIF DE BUT — la phrase que Rem a tapée, et les pièges qui ont dicté la forme de la règle

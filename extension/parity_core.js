@@ -214,6 +214,34 @@ for (const [ph, att] of _ATT) {
 }
 if (_pren) { console.log("PARITÉ KO — " + _pren + " cas prénom non corrigés par l'extension."); process.exit(1); }
 
+/* GARDE « GENRE DU NOM PERDU PAR LA DÉSACCENTUATION » (18/09/2026 — cas de Rem : « le marché provençale », muet au produit).
+   Les deux règles d'accord de l'adjectif épithète (rouge rAdjEpithet, orange genreAdjVig) lisaient GENDER_PURE seule : table
+   DÉSACCENTUÉE, où « marché » (m) et « marche » (f) partagent une clé et disparaissent tous les deux. Elles lisent maintenant
+   d'abord la table des COLLISIONS D'ACCENT (_GCOLL, celle de rDetGenre). « ext ⊆ Python » ne peut pas garder ça : l'orange
+   « accord genre à vérifier » n'a pas de jumelle Python, et un moteur muet passe la parité — on EXIGE donc la sortie.
+   ⚠️ LE PIÈGE EST AUSSI IMPORTANT QUE LES CIBLES : le premier jet lisait la table accentuée BRUTE (_GACC), qui donne « f » aux
+   noms épicènes (peintre, architecte, ministre). Mesuré sur 14 450 phrases UD correctes : 8 ROUGES faux, tous du type
+   « un peintre italien » → italienne. Avec _GCOLL : 0 marque nouvelle, 0 perdue. */
+const _GCOLL_OUI = [["Le marché provençale est ouvert.", 'provençale', 'provençal', 'accord genre à vérifier', 'vigilance'],
+                    ["J'adore le marché provençale du samedi.", 'provençale', 'provençal', 'accord genre à vérifier', 'vigilance'],
+                    ['Le côté droite est libre.', 'droite', 'droit', 'accord genre à vérifier', 'vigilance'],
+                    ['Nous allons au marché provençale.', 'provençale', 'provençal', 'accord genre à vérifier', 'vigilance'],   // l'article contracté « au » manquait à la table de la règle orange
+                    ['La pêche miraculeux a eu lieu.', 'miraculeux', 'miraculeuse', 'accord adjectif épithète', 'auto']];
+const _GCOLL_NON = ["C'est un peintre italien baroque.", 'La femme du diplomate américain est venue.', "C'est le ministre marocain des Affaires étrangères.",
+                    'Le marché provençal est ouvert.', 'La pêche miraculeuse a eu lieu.'];
+let _gcoll = 0;
+for (const [ph, mot, att, nom, palier] of _GCOLL_OUI) {
+  const f = (DYSCORE.diagnoseAll(ph).flags || []).find(x => x.word === mot);
+  if (!f || String(f.sugg).toLowerCase() !== att || f.name !== nom || f.tier !== palier) { _gcoll++;
+    console.log('✗ GENRE (collision d\'accent) : ' + JSON.stringify(ph) + ' doit donner « ' + mot + ' » → « ' + att + ' » [' + nom + ', ' + palier + '], eu ' + JSON.stringify(f || null)); }
+}
+for (const ph of _GCOLL_NON) {
+  const f = (DYSCORE.diagnoseAll(ph).flags || []).filter(x => x.name === 'accord adjectif épithète' || x.name === 'accord genre à vérifier');
+  if (f.length) { _gcoll++; console.log('✗ GENRE (collision d\'accent) : ' + JSON.stringify(ph) + ' doit rester muet, eu ' + JSON.stringify(f.map(x => x.word + '->' + x.sugg + '[' + x.tier + ']'))); }
+}
+if (_gcoll) { console.log('PARITÉ KO — ' + _gcoll + ' cas « genre du nom perdu par la désaccentuation ».'); process.exit(1); }
+console.log('  ✓ genre par collision d\'accent : ' + _GCOLL_OUI.length + ' corrections exigées, ' + _GCOLL_NON.length + ' pièges muets');
+
 
 /* GARDE « UN SEUL SENS PAR DÉSACCORD » — deux ROUGES ne doivent pas se contredire.
    « leurs tige » : rLeur (rang 15) voulait « leurs »->« leur », rNounPlural (rang 47) voulait
