@@ -2,7 +2,10 @@
 // à chaque déploiement (audit 07/2026). Vérifie les invariants STATIQUES qui protègent de la page blanche :
 //  1. syntaxe valide ; 2. version au format omega-vNNN ; 3. précache CORE = liste blanche de ressources
 //  non redirigées ; 4. TOUTE mise en cache passe par la garde anti-redirection (reshape) ;
-//  5. l'activation purge les vieux caches.  Lancer : node dictee/sw_probe.js
+//  5. l'activation purge les vieux caches ;
+//  6. (18/09/2026) le COMPORTEMENT : sw.js est EXÉCUTÉ dans un bac à sable (faux cache, faux réseau, fausse minuterie) et
+//     on regarde ce qu'il SERT — une page et son code se déploient ensemble, ils doivent être servis ensemble.
+//  Lancer : node dictee/sw_probe.js
 const fs = require('fs'), path = require('path');
 const src = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
 const fail = [];
@@ -69,5 +72,123 @@ for (const line of src.split('\n')) {
 if (!/caches\.delete/.test(src)) fail.push("l'activation ne purge pas les anciens caches (caches.delete absent)");
 if (!/skipWaiting/.test(src)) fail.push('skipWaiting absent (les clients resteraient sur la vieille version)');
 
-if (fail.length) { console.error('✗ SW KO :\n  ' + fail.join('\n  ')); process.exit(1); }
-console.log('✓ sw.js : syntaxe, version ' + v[1] + ', précache liste blanche, garde anti-redirection sur chaque cache.put, purge des vieux caches.');
+/* ── 6. LE COMPORTEMENT, dans un bac à sable ──
+   POURQUOI. Mesuré en production le 18/09/2026 : sw.js servait les pages « réseau d'abord » et TOUT LE RESTE « cache d'abord ».
+   Après un déploiement, un visiteur de retour exécutait donc la page NEUVE avec les scripts de sa visite PRÉCÉDENTE (page du
+   correcteur anglais neuve + ancien moteur : « with out » corrigé en « without out » ; nav.js périmé après #775 : entrée de menu
+   absente). Aucune regex sur le source ne peut garder ça : on CHARGE le vrai sw.js, on lui envoie de vrais événements
+   (install, fetch) et on lit la réponse SERVIE, l'état du cache, et les options passées au réseau.
+   Le faux réseau rend ce que chaque scénario décide (réponse, panne, silence) ; la minuterie est fausse aussi, pour jouer le
+   délai de grâce sans attendre trois secondes. */
+async function comportement() {
+  const ORIGINE = 'https://site.test';
+  const abs = (u) => new URL(typeof u === 'string' ? u : u.url, ORIGINE + '/').href;
+  const rep = (corps, etag, status) => new Response(corps, { status: status || 200, headers: etag ? { etag: etag } : {} });
+  function bac() {
+    const ecoute = {}, journal = [], minuteries = [], ecrits = [], magasin = new Map(), reseau = new Map();
+    const cache = {
+      async match(req) { const r = magasin.get(abs(req)); return r ? r.clone() : undefined; },
+      async put(req, res) { ecrits.push(abs(req)); magasin.set(abs(req), res); },
+    };
+    const env = {
+      self: { addEventListener: (t, f) => { ecoute[t] = f; }, skipWaiting() {}, clients: { claim: async () => {} } },
+      caches: { open: async () => cache, keys: async () => [], delete: async () => true },
+      fetch: (entree, init) => { const u = abs(entree); journal.push({ url: u, cache: init && init.cache, redirect: init && init.redirect });
+        const f = reseau.get(u); return f ? f() : Promise.reject(new TypeError('hors ligne')); },
+      location: { origin: ORIGINE },
+      setTimeout: (f, ms) => { minuteries.push({ f: f, ms: ms }); return minuteries.length; },
+    };
+    new Function('self', 'caches', 'fetch', 'location', 'setTimeout', src)(env.self, env.caches, env.fetch, env.location, env.setTimeout);
+    const tic = async () => { for (let i = 0; i < 6; i++) await new Promise((r) => setImmediate(r)); };
+    async function demande(chemin, mode, methode, origine) {
+      const ev = { request: { url: (origine || ORIGINE) + chemin, method: methode || 'GET', mode: mode || 'no-cors' }, reponse: null, fond: [],
+                   respondWith(p) { this.reponse = p; Promise.resolve(p).catch(() => {}); },   // un rejet se lit plus tard, par `texte` : sans ce catch Node tue la sonde sur « unhandled rejection » avant qu'elle ait pu le DIRE
+                   waitUntil(p) { this.fond.push(p); } };
+      ecoute.fetch(ev); await tic(); return ev;
+    }
+    return { ecoute, journal, minuteries, ecrits, magasin, reseau, cache, demande, tic };
+  }
+  const texte = async (p) => { try { const r = await p; return r && r.type !== 'error' ? await r.text() : '(erreur réseau)'; } catch (e) { return '(promesse rejetée : ' + (e && e.message) + ')'; } };
+  const enCache = async (b, chemin) => { const r = await b.cache.match(ORIGINE + chemin); return r ? r.text() : null; };
+  const JS = '/dictee/corrector_en.js', GZ = '/dictee/lex_en.tsv.gz';
+
+  // A. le cas de production : script en cache (v1), le site a été redéployé (v2) -> la page neuve doit recevoir v2, tout de suite
+  { const b = bac(); b.magasin.set(ORIGINE + JS, rep('v1', '"a"')); b.reseau.set(ORIGINE + JS, async () => rep('v2', '"b"'));
+    const ev = await b.demande(JS), servi = await texte(ev.reponse);
+    if (servi !== 'v2') fail.push('script en cache + site redéployé : la page reçoit « ' + servi + ' » au lieu du script NEUF (une visite de retard : page neuve + ancien moteur)');
+    if (await enCache(b, JS) !== 'v2') fail.push('le script neuf n\'est pas rangé dans le cache (hors ligne, on resservirait l\'ancien)');
+    const j = b.journal.find((x) => x.url === ORIGINE + JS);
+    if (!j || j.cache !== 'no-cache') fail.push('le script est demandé SANS `cache: no-cache` : Cloudflare envoie max-age=14400, le navigateur relirait son cache HTTP pendant 4 h sans aller au réseau'); }
+  // B. hors ligne : la copie
+  { const b = bac(); b.magasin.set(ORIGINE + JS, rep('v1', '"a"'));
+    const servi = await texte((await b.demande(JS)).reponse);
+    if (servi !== 'v1') fail.push('hors ligne, le script en cache n\'est pas servi : « ' + servi + ' »'); }
+  // C. réseau MUET (il ne répond jamais) : la copie, après le délai de grâce — pas de page figée sur un <script> bloquant
+  { const b = bac(); b.magasin.set(ORIGINE + JS, rep('v1', '"a"')); b.reseau.set(ORIGINE + JS, () => new Promise(() => {}));
+    const ev = await b.demande(JS); let servi = null; ev.reponse.then(async (r) => { servi = await r.text(); });
+    await b.tic();
+    if (servi !== null) fail.push('réseau muet : la copie est servie AVANT le délai de grâce — le réseau n\'a plus la priorité');
+    if (!b.minuteries.length) fail.push('réseau muet : aucun délai de grâce — la page resterait figée sur son <script>');
+    else { if (b.minuteries[0].ms < 1000 || b.minuteries[0].ms > 5000) fail.push('délai de grâce hors de la plage 1-5 s : ' + b.minuteries[0].ms + ' ms');
+      b.minuteries[0].f(); await b.tic();
+      if (servi !== 'v1') fail.push('réseau muet : après le délai de grâce la copie n\'est pas servie (« ' + servi + ' »)'); }
+    if (!ev.fond.length) fail.push('réseau muet : le téléchargement n\'est pas confié à waitUntil (le navigateur peut tuer le service worker avant la fin)'); }
+  // D. jamais vu + réseau : servi et rangé · E. jamais vu + hors ligne : erreur réseau (pas une réponse inventée)
+  { const b = bac(); b.reseau.set(ORIGINE + JS, async () => rep('v2', '"b"'));
+    if (await texte((await b.demande(JS)).reponse) !== 'v2' || await enCache(b, JS) !== 'v2') fail.push('script jamais vu : pas servi ou pas rangé');
+    const b2 = bac(); const r = await (await b2.demande(JS)).reponse;
+    if (!r || r.type !== 'error') fail.push('script jamais vu et hors ligne : on attend une erreur réseau, pas une réponse fabriquée'); }
+  // K. le serveur a une panne passagère (503) : la copie ; le fichier a été RETIRÉ (404) : le 404
+  { const b = bac(); b.magasin.set(ORIGINE + JS, rep('v1', '"a"')); b.reseau.set(ORIGINE + JS, async () => rep('panne', null, 503));
+    if (await texte((await b.demande(JS)).reponse) !== 'v1') fail.push('503 du serveur avec une copie en cache : la copie doit être servie');
+    const b2 = bac(); b2.magasin.set(ORIGINE + JS, rep('v1', '"a"')); b2.reseau.set(ORIGINE + JS, async () => rep('absent', null, 404));
+    const r = await (await b2.demande(JS)).reponse;
+    if (!r || r.status !== 404) fail.push('404 du serveur : la réponse du serveur doit passer (un fichier retiré ne se ressuscite pas depuis le cache)'); }
+  // F. un LOURD en cache est servi SANS attendre le réseau (ici le réseau ne répond jamais), et revalidé en fond, vraiment
+  { const b = bac(); b.magasin.set(ORIGINE + GZ, rep('lex1', '"a"')); let lache = null;
+    b.reseau.set(ORIGINE + GZ, () => new Promise((ok) => { lache = ok; }));
+    const ev = await b.demande(GZ); let servi = null; ev.reponse.then(async (r) => { servi = await r.text(); }); await b.tic();
+    if (servi !== 'lex1') fail.push('un fichier lourd en cache attend le réseau : 2 Mo de lexique bloqués derrière un aller-retour');
+    if (b.minuteries.length) fail.push('un fichier lourd passe par le délai de grâce : il est traité comme du code');
+    const j = b.journal.find((x) => x.url === ORIGINE + GZ);
+    if (!j) fail.push('un fichier lourd n\'est plus revalidé en fond : il ne se mettrait jamais à jour');
+    else if (j.cache !== 'no-cache') fail.push('la revalidation en fond relit le cache HTTP (max-age=14400) : demander avec `cache: no-cache`');
+    if (lache) { lache(rep('lex2', '"b"')); await Promise.all(ev.fond); await b.tic(); }
+    if (await enCache(b, GZ) !== 'lex2') fail.push('la revalidation en fond ne range pas le fichier neuf (« ' + (await enCache(b, GZ)) + ' »)'); }
+  // G. même ETag : on ne réécrit pas le fichier sur le disque à chaque visite
+  { const b = bac(); b.magasin.set(ORIGINE + GZ, rep('lex1', '"a"')); b.reseau.set(ORIGINE + GZ, async () => rep('lex1', '"a"'));
+    const ev = await b.demande(GZ); await Promise.all(ev.fond); await b.tic();
+    if (b.ecrits.length) fail.push('fichier inchangé (même ETag) réécrit dans le cache : ' + b.ecrits.join(', ')); }
+  // L. le classement se fait sur le CHEMIN (pas sur l'URL entière) et couvre code, style et petites données — pas les lourds
+  for (const [chemin, code] of [['/site.css', true], ['/nav.js?v=3', true], ['/dictee/pos_hmm_en.json', true], ['/dictee/misspell_en.tsv', true],
+                                ['/dictee/forms_en.tsv.gz', false], ['/app/b2_web.bin', false], ['/police/OmegaDys-Regular.ttf', false], ['/icon.svg', false]]) {
+    const b = bac(), u = ORIGINE + chemin; b.magasin.set(u, rep('vieux', '"a"')); b.reseau.set(u, async () => rep('neuf', '"b"'));
+    const servi = await texte((await b.demande(chemin)).reponse);
+    if (code && servi !== 'neuf') fail.push(chemin + ' : code, style ou petite donnée servi depuis le cache (« ' + servi + ' ») alors que le site a changé');
+    if (!code && servi !== 'vieux') fail.push(chemin + ' : fichier lourd servi « réseau d\'abord »'); }
+  // H. les PAGES : inchangé — réseau d'abord, jamais de réponse « redirected », hors ligne la page elle-même, jamais l'index à sa place
+  { const b = bac(), P = ORIGINE + '/correcteur';
+    const redirigee = { ok: true, status: 200, redirected: true, headers: new Headers(), clone() { return this; }, blob: async () => new Blob(['page neuve']) };
+    b.magasin.set(P, rep('page en cache')); b.reseau.set(P, async () => redirigee);
+    const r = await (await b.demande('/correcteur', 'navigate')).reponse;
+    if (!r || r.redirected || await r.text() !== 'page neuve') fail.push('navigation : la réponse redirigée n\'est pas remodelée (page blanche dans Chrome) ou la page neuve n\'est pas servie');
+    const j = b.journal.find((x) => x.url === P); if (!j || j.redirect !== 'follow') fail.push('navigation : le réseau n\'est plus demandé avec redirect:follow (l\'index était servi à la place des pages)');
+    const b2 = bac(); b2.magasin.set(P, rep('page en cache')); b2.magasin.set(ORIGINE + '/', rep('index'));
+    if (await texte((await b2.demande('/correcteur', 'navigate')).reponse) !== 'page en cache') fail.push('navigation hors ligne : la page en cache n\'est pas servie');
+    const r3 = await (await b2.demande('/jamais-vue', 'navigate')).reponse;
+    if (!r3 || r3.type !== 'error') fail.push('navigation hors ligne vers une page jamais vue : l\'index est servi à sa place'); }
+  // I. hors périmètre : autre origine, autre méthode -> le service worker ne s'en mêle pas
+  { const b = bac();
+    if ((await b.demande('/x.js', 'no-cors', 'GET', 'https://ailleurs.test')).reponse) fail.push('une requête vers une AUTRE origine est interceptée');
+    if ((await b.demande('/x.js', 'cors', 'POST')).reponse) fail.push('une requête POST est interceptée'); }
+  // J. l'installation précache des fichiers REVALIDÉS (sinon une nouvelle version fige le nav.js du cache HTTP, vieux de 4 h)
+  { const b = bac(); let attente = null; b.ecoute.install({ waitUntil(p) { attente = p; } }); await attente;
+    const sans = b.journal.filter((x) => x.cache !== 'no-cache');
+    if (!b.journal.length) fail.push('installation : rien n\'est précaché');
+    if (sans.length) fail.push('installation : ' + sans.length + ' fichier(s) précaché(s) sans `cache: no-cache` (ex. ' + sans[0].url + ') — le cache HTTP de 4 h y figerait un fichier périmé'); }
+}
+
+comportement().catch((e) => { fail.push('bac à sable : ' + (e && e.stack || e)); }).then(() => {
+  if (fail.length) { console.error('✗ SW KO :\n  ' + fail.join('\n  ')); process.exit(1); }
+  console.log('✓ sw.js : syntaxe, version ' + v[1] + ', précache liste blanche, garde anti-redirection sur chaque cache.put, purge des vieux caches ; comportement joué dans un bac à sable (code et style réseau d\'abord revalidé, délai de grâce, lourds cache d\'abord, pages inchangées).');
+});

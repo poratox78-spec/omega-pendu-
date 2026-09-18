@@ -300,7 +300,9 @@ jobs:
       # gitignoré donc absent du runner — le piège payé avec lex4_en.b64 (#458).
       - name: DONNÉES — table des prénoms identique dans les 3 moteurs
         run: python3 dictee/prenoms_probe.py
-      - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge)
+      # Depuis le 18/09/2026 la sonde EXÉCUTE sw.js dans un bac à sable et lit ce qu'il SERT : une page et son code se déploient
+      # ensemble, ils doivent être servis ensemble (mesuré en production : page neuve + moteur de la visite précédente).
+      - name: LIVRAISON — service worker (syntaxe, précache liste blanche, garde anti-redirection, purge, comportement en bac à sable)
         run: node dictee/sw_probe.js
       - name: Docs de pilotage — CLAUDE.md dans son budget (1 500 mots, pas de ligne-fleuve) + zéro doublon DOCTRINE
         run: python3 dictee/docs_probe.py

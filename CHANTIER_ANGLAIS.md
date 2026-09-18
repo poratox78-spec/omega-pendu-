@@ -34,7 +34,8 @@
 > AVANT l'arrivée de verbmorph et des confusables, donc « has went », « I will council him » et « witch / which » restaient
 > muets toute la session (l'ancien bouton masquait le défaut : on cliquait après le chargement). Les tables se rebâtissent quand
 > leur source change (garde dans l'auto-test du moteur, 5 mutations tuées) et la page attend ses cinq actifs avant la première
-> analyse — le service worker sert les scripts « cache d'abord » : un visiteur de retour peut avoir la page neuve avec le moteur
+> analyse — le service worker servait les scripts « cache d'abord » (corrigé le jour même dans `sw.js` : code et style « réseau
+> d'abord revalidé » ; hors ligne ou réseau muet, la copie reste possible) : un visiteur de retour peut avoir la page neuve avec le moteur
 > de sa visite précédente (constaté en production sur `nav.js` après #775) ; ③ les fréquences de l'aide-frappe viennent de
 > sous-titres de films : « sh » proposait « shit » (24 207 occ.) — liste de mots jamais PROPOSÉS (ils restent dans le
 > dictionnaire) ; ④ « here » proposait « hereby, hereditary » → plancher RELATIF (≥ 1/200 de la fréquence du mot déjà tapé) ;

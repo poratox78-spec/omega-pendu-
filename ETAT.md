@@ -126,7 +126,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 98 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
 | 99 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
 | 100 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
-| 101 | service worker (version+empreinte, précache, purge) | `node dictee/sw_probe.js` |
+| 101 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
 | 102 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
 | 103 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
 | 104 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
