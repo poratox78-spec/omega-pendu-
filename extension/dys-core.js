@@ -693,7 +693,11 @@ var w=T[i],lw=w.toLowerCase();
   /* _groupBounds — miroir Python _group_bounds, CONTRAT du build : etat (last_b, vu_verbe), reset sur
      ss[i] ; features tg-1/tg0/w=/w-1=/ELIDQU/ELIDPRON/vu_verbe/dist/vu_verbe&DET ; seuil en LOG-ODDS
      (p >= tau ⟺ z >= ln(tau/(1-tau)), = 0 pour 0,5 — sigmoide monotone, decisions identiques).
-     Consomme par le SEUL lo-scan de _npSubject (+0,92 pt sujet mesure, 0 juste perdue). */
+     ⚠️ 19/09/2026 — CE COMMENTAIRE MENTAIT. Il disait « Consomme par le SEUL lo-scan de _npSubject
+     (+0,92 pt sujet mesure, 0 juste perdue) » : c'etait vrai du BANC PARSEUR, jamais du produit. Au #617 la
+     consommation a ete RETIREE (0 reparation, +1 FP mesures au produit) et seule l'infrastructure a ete
+     gardee, en hook OFF-inerte. Mesure du jour : `_groupBounds` n'est appelee NULLE PART, dans aucun des
+     trois moteurs. Elle attend un consommateur qui devra faire SA preuve au produit, pas au banc. */
   function _groupBounds(T,seg){
     if(!BCLF)return null;var tg=posTags(T);if(!tg)return null;
     var W=BCLF.w,n=T.length,tau=BCLF.tau||0.5,zt=(tau===0.5)?0:Math.log(tau/(1-tau));
