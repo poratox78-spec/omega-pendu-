@@ -487,5 +487,13 @@
       rcMenu('🩹 « ' + flag.word + ' » → « ' + flag.sugg + ' »', true);
     } catch (err) { rcMenu('', false); }
   }, true);
-  try { chrome.runtime.onMessage.addListener(function (msg) { if (msg && msg.type === 'omdys-apply-rc' && _rcFix) { applyOne(_rcFix.el, _rcFix.flag); _rcFix = null; } }); } catch (e) {}   // clic du menu → applique
+  /* ⭐ RÉPONDRE « je suis là » (19/09/2026, rapport de Rem). Un `content_scripts` déclaratif ne s'injecte
+     JAMAIS dans une page DÉJÀ OUVERTE : après une installation ou une mise à jour, les onglets d'avant
+     n'ont pas ce script — la recopie ne marchait pas et le panneau restait vide SANS RIEN DIRE. Le panneau
+     demande donc à l'onglet s'il est branché ; c'est ici qu'on répond. Sans ce listener, Chrome rend
+     « Receiving end does not exist » — mesuré, pas supposé : extension/ordre_chargement_probe.js. */
+  try { chrome.runtime.onMessage.addListener(function (msg, _snd, rep) {
+    if (msg && msg.type === 'omdys-ping') { try { rep({ branche: true }); } catch (e) {} return; }
+    if (msg && msg.type === 'omdys-apply-rc' && _rcFix) { applyOne(_rcFix.el, _rcFix.flag); _rcFix = null; }
+  }); } catch (e) {}   // clic du menu → applique ; ping → « je suis là »
 })();

@@ -51,6 +51,8 @@ jobs:
         run: node dictee/a11y_probe.js --check
       - name: EXTENSION dans Chrome — paquet réel, assets chargés par chrome.runtime.getURL
         run: node extension/navigateur_ext_probe.js --check
+      - name: ORDRE DE CHARGEMENT — page ouverte AVANT l'extension, le panneau le DIT
+        run: node extension/ordre_chargement_probe.js --check
       - name: Précision par famille AU PRODUIT — extension réelle dans Chrome (sautée sans corpus dys privé)
         run: python3 dictee/dys_precision_probe.py --navigateur
       - name: Résiduel — tokens CORRECTS détruits (FP=0, plafond dur ; sauté sans corpus local)
