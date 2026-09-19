@@ -340,7 +340,38 @@
       else ouvre();                                   // 'prompt' : l'invite ne peut pas s'afficher ICI → onglet
     }).catch(function () { ouvre(); });
   }
-  function majMir() { try { chrome.storage.local.set({ omMir: mirCb.checked }); } catch (e) {} }   // ⭐ 09/09 : la recopie n'était PAS persistée du tout
+  function majMir() { try { chrome.storage.local.set({ omMir: mirCb.checked }); } catch (e) {} verifBranche(0); }   // ⭐ 09/09 : la recopie n'était PAS persistée du tout
+
+  /* ⭐ DIRE POURQUOI LE PANNEAU RESTE VIDE (19/09/2026, rapport de Rem : « si l'extension est chargée
+     après la page ça marche pas »). Reproduit et mesuré : un `content_scripts` ne s'injecte jamais dans
+     une page déjà ouverte. Le panneau restait vide, la recopie muette, et RIEN ne le disait — le pire cas
+     pour un lecteur dys, qui ne peut pas deviner que la panne est dans l'ordre de chargement.
+     Le message ne s'affiche QUE si la recopie est demandée : sans elle, rien n'est cassé, on ne gêne pas.
+     ⚠️ Le bouton PROPOSE, il ne promet pas : sur les pages protégées par Chrome le script ne viendra pas
+     même après rechargement, et on ne peut pas les distinguer sans la permission « tabs » (qui afficherait
+     « lire votre historique » à l'installation — trop cher pour ce service). Le petit texte le dit. */
+  var noBr = document.getElementById('omdys-nobranch');
+  var reBtn = document.getElementById('omdys-recharger');
+  var _brT = 0;
+  function verifBranche(delai) {
+    if (!noBr) return;
+    clearTimeout(_brT);
+    if (!mirCb.checked) { noBr.hidden = true; return; }
+    _brT = setTimeout(function () {
+      try {
+        chrome.runtime.sendMessage({ type: 'omdys-branche?' }, function (r) {
+          void chrome.runtime.lastError;
+          noBr.hidden = !(r && r.branche === false);   // `null` (inconnu) ne montre RIEN : le doute ne se crie pas
+        });
+      } catch (e) {}
+    }, delai || 0);
+  }
+  if (reBtn) reBtn.addEventListener('click', function () {
+    try { chrome.runtime.sendMessage({ type: 'omdys-recharge' }, function () { void chrome.runtime.lastError; }); } catch (e) {}
+    noBr.hidden = true;
+    verifBranche(1800);   // si la page ne pouvait pas accueillir le script, le message revient — on ne ment pas par omission
+  });
+  verifBranche(600);
   mirCb.addEventListener('change', function () {   // activer le miroir coupe la voix ET la bulle (une seule surface à la fois)
     majMir();
     if (mirCb.checked && bubCb.checked) { bubCb.checked = false; try { chrome.storage.local.set({ enabled: false }); } catch (e) {} }
@@ -1026,6 +1057,7 @@
     if (!msg) return;
     if (msg.type === 'omdys-tab') {                          // autre onglet / navigation : en miroir, le panneau n'affirme jamais un texte que la page n'a plus
       if (mirCb.checked && ta.value && !(document.hasFocus() && document.activeElement === ta)) { ta.value = ''; _ign = {}; runNow(); }
+      verifBranche(900);   // la nouvelle page peut, elle, ne pas être branchée — on revérifie après son chargement
       return;
     }
     if (msg.type !== 'omdys-mirror') return;
