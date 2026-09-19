@@ -70,16 +70,24 @@ for (const site of SITES) {
 
   const lire = (p) => fs.readFileSync(path.join(abs, p), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
   /* Un lien commenté n'est pas un lien ; les liens externes et ../ sortent de la langue. */
-  const liensDe = (p) => [...lire(p).matchAll(/href="([^"#?]+)"/g)].map(m => m[1])
+  const liensDeTexte = (t) => [...t.matchAll(/href="([^"#?]+)"/g)].map(m => m[1])
       .filter(u => !/^(https?:)?\/\//.test(u) && !u.startsWith('../') && !u.startsWith('/'))
       .map(versFichier).filter(Boolean)
       .map(u => u.split('/').pop());
 
-  /* ① AVEC JS — le menu centralisé, plus ce qu'il permet d'atteindre de proche en proche. */
+  const liensDe = (p) => liensDeTexte(lire(p));
+
+  /* ① AVEC JS — le menu centralisé, plus ce qu'il permet d'atteindre de proche en proche.
+     ⚠️ 19/09/2026 — CE MODE MENTAIT, et une page en est morte. Il suivait `liensDe`, qui lit le HTML SERVI :
+     donc la barre de repli de l'en-tête… celle que nav.js REMPLACE au chargement. Il validait ainsi des
+     chemins qui n'existent pour AUCUN visiteur ayant JavaScript. Conséquence mesurée : /arbitrage, sortie du
+     menu le 17/09, n'était plus liée par aucun contenu — orpheline — et ce banc répondait « atteignable ».
+     C'est Rem qui l'a vu, pas la sonde. Avec JS, on ne suit donc QUE les liens du CONTENU. */
+  const liensContenu = (p) => liensDeTexte(lire(p).replace(/<header[\s\S]*?<\/header>/gi, ' '));
   const menu = groupesNav(site.groupes) || new Set();
   const avecJS = new Set([site.accueil, ...menu].filter(p => pages.includes(p)));
   { const f = [...avecJS];
-    while (f.length){ for (const l of liensDe(f.shift())) if (pages.includes(l) && !avecJS.has(l)) { avecJS.add(l); f.push(l); } } }
+    while (f.length){ for (const l of liensContenu(f.shift())) if (pages.includes(l) && !avecJS.has(l)) { avecJS.add(l); f.push(l); } } }
 
   /* ② SANS JS — uniquement les liens réellement présents dans le HTML servi. */
   const sansJS = new Set([site.accueil]); const file = [site.accueil];
