@@ -10,7 +10,7 @@
  * cette figure-là, dessinée à la main, n'était comparée à rien. Elle a donc vieilli en silence.
  *
  * CE QU'ON GARDE, et pourquoi c'est ce découpage :
- *   ① LA LÉGENDE NE PEUT PAS MENTIR — « N nœuds, M familles » dans recherche.html == ce que la toile
+ *   ① LES LÉGENDES NE PEUVENT PAS MENTIR — « N nœuds, M familles » en français ET en anglais == ce que la toile
  *      déclare vraiment. Exact, falsifiable, et c'est la première chose qu'un lecteur croit.
  *   ② CE QUE LE MOTEUR CHARGE DOIT ÊTRE NOMMÉ — la liste n'est PAS écrite ici à la main : on la
  *      DÉRIVE des setters publics de dys-core (setLex, setNounPost, setPosHmm, setPrenoms,
@@ -43,15 +43,19 @@ const noeuds = [...toile.matchAll(/\{id:'([^']+)',\s*f:'([^']+)',[^}]*?label:'([
 const familles = new Set(noeuds.map((n) => n.f));
 if (!noeuds.length) fail.push("toile.html : aucun nœud lu — le format du tableau N a changé, ce banc ne mesure plus rien");
 
-/* ---------- ① la légende ---------- */
-{
-  const rech = lire('recherche.html');
-  const m = /(\d+)\s*nœuds,\s*(\d+)\s*familles/.exec(rech.replace(/&nbsp;/g, ' '));
-  if (!m) fail.push("recherche.html : la légende « N nœuds, M familles » a disparu — plus rien ne dit au lecteur ce qu'il regarde");
-  else {
-    if (+m[1] !== noeuds.length) fail.push('légende : « ' + m[1] + ' nœuds » annoncés, ' + noeuds.length + ' déclarés dans toile.html');
-    if (+m[2] !== familles.size) fail.push('légende : « ' + m[2] + ' familles » annoncées, ' + familles.size + ' déclarées');
-  }
+/* ---------- ① les légendes, DANS LES DEUX LANGUES ----------
+ * Trouvé le 19/09 en cherchant à falsifier ce banc : `en/recherche.html` annonçait « 36 nodes »
+ * et pointait vers la MÊME page `toile` que le français, qui en déclarait 41. Une garde qui ne lit
+ * qu'une langue laisse l'autre vieillir en silence — exactement ce qu'on venait de réparer. */
+const LEGENDES = [
+  { page: 'recherche.html', re: /(\d+)\s*nœuds,\s*(\d+)\s*familles/, mots: 'N nœuds, M familles' },
+  { page: 'en/recherche.html', re: /(\d+)\s*nodes?,\s*(\d+)\s*families/, mots: 'N nodes, M families' },
+];
+for (const L of LEGENDES) {
+  const m = L.re.exec(lire(L.page).replace(/&nbsp;/g, ' '));
+  if (!m) { fail.push(L.page + ' : la légende « ' + L.mots + " » a disparu — plus rien ne dit au lecteur ce qu'il regarde"); continue; }
+  if (+m[1] !== noeuds.length) fail.push(L.page + ' : « ' + m[1] + ' » nœuds annoncés, ' + noeuds.length + ' déclarés dans toile.html');
+  if (+m[2] !== familles.size) fail.push(L.page + ' : « ' + m[2] + ' » familles annoncées, ' + familles.size + ' déclarées');
 }
 
 /* ---------- ② ce que le moteur charge doit être nommé ---------- */
@@ -89,7 +93,7 @@ const nRegles = i < 0 ? 0 : [...moteur.slice(i, i + 4000).matchAll(/\['([^']{4,6
 const nVig = new Set([...moteur.matchAll(/name:'([^']*à vérifier)'/g)].map((m) => m[1])).size;
 
 if (fail.length) { fail.forEach((f) => console.log('  ✗ ' + f)); process.exit(1); }
-log('✓ toile : ' + noeuds.length + ' nœuds / ' + familles.size + ' familles == la légende ; '
+log('✓ toile : ' + noeuds.length + ' nœuds / ' + familles.size + ' familles == les légendes FR et EN ; '
     + setters.length + ' tables chargées par le moteur, toutes nommées ; aucun symbole disparu.');
 log('  (information, sans verdict : le moteur porte ' + nRegles + ' règles de grammaire et ' + nVig
     + ' vigilances — la toile en montre les FAMILLES, pas le détail.)');
