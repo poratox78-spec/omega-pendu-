@@ -79,3 +79,36 @@ chrome.contextMenus.onClicked.addListener(function (info, tab) {
 function preventPanneau() { try { chrome.runtime.sendMessage({ type: 'omdys-tab' }, function () { void chrome.runtime.lastError; }); } catch (e) {} }
 try { chrome.tabs.onActivated.addListener(function () { preventPanneau(); }); } catch (e) {}
 try { chrome.tabs.onUpdated.addListener(function (id, ch, tab) { if (ch && ch.status === 'loading' && tab && tab.active) preventPanneau(); }); } catch (e) {}
+
+/* ⭐ « CETTE PAGE EST-ELLE BRANCHÉE ? » (19/09/2026). Le panneau ne peut pas le savoir seul : il n'a
+   aucun lien direct avec l'onglet. On demande ici, et on répond par un BOOLÉEN, jamais par un message
+   tout fait — le texte montré à un lecteur dys se décide dans le panneau, pas dans le service worker.
+   ⚠️ Aucune permission nouvelle : `tabs.query` sans la permission « tabs » rend bien l'identifiant
+   (l'URL est vide, on ne s'en sert pas), et `tabs.sendMessage` distingue déjà les deux états. */
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (!msg || msg.type !== 'omdys-branche?') return;
+  try {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, function (ts) {
+      var t = ts && ts[0];
+      if (!t || t.id == null) { try { sendResponse({ branche: null }); } catch (e) {} return; }
+      chrome.tabs.sendMessage(t.id, { type: 'omdys-ping' }, function (rep) {
+        var e = chrome.runtime.lastError;   // « Receiving end does not exist » = aucun script de contenu
+        try { sendResponse({ branche: !e && !!(rep && rep.branche) }); } catch (x) {}
+      });
+    });
+  } catch (e) { try { sendResponse({ branche: null }); } catch (x) {} }
+  return true;   // réponse asynchrone
+});
+
+// le panneau demande de recharger l'onglet actif. `tabs.reload` ne réclame AUCUNE permission (mesuré).
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (!msg || msg.type !== 'omdys-recharge') return;
+  try {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, function (ts) {
+      var t = ts && ts[0];
+      if (t && t.id != null) chrome.tabs.reload(t.id, {}, function () { void chrome.runtime.lastError; });
+      try { sendResponse({ ok: true }); } catch (e) {}
+    });
+  } catch (e) { try { sendResponse({ ok: false }); } catch (x) {} }
+  return true;
+});

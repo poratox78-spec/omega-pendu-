@@ -185,6 +185,7 @@ run "répétition espacée (planificateur Leitner, bloc pur du monolithe)" node 
 run "navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM)" node dictee/navigateur_probe.js --check
 run "A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables)" node dictee/a11y_probe.js --check
 run "EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL)" node extension/navigateur_ext_probe.js --check
+run "ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT)" node extension/ordre_chargement_probe.js --check
 run "précision par famille AU PRODUIT (extension réelle dans Chrome)" python3 dictee/dys_precision_probe.py --navigateur
 run "résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local)" node dictee/residual_audit.js --check
 run "collisions d’accent : JSON == app == extension (non_verbe_acc)" python3 dictee/build_non_verbe_acc.py --check
