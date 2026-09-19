@@ -127,6 +127,30 @@ const NOM = 'OMEGA Pendu';
   if (!/\['donnees',/.test(bloc)) fail.push('nav.js GROUPS : la page Données (lexiques à télécharger, police dys) a disparu du menu — décision de Rem du 18/09/2026 : elle doit y être');
 }
 
+/* ⑥ CE QUE GOOGLE AFFICHE — longueur des titres et des descriptions (19/09/2026).
+   Mesuré : sur `site:omegapendu.com`, Google REMPLAÇAIT nos titres par le H1 ou par un bout de phrase
+   (« Un correcteur qui ne te corrige jamais à tort. », « modèle double route, dyslexie | OMEGA-Ω »,
+   « reasons instead of reading the answer »). Cause : des <title> de 77 à 99 caractères là où la page de
+   résultats en affiche ~60, écrits en trois morceaux et comme des slogans. Conséquence chiffrée : sur
+   /correcteur, position 3,9 et CTR 1,9 % — la ligne bleue ne contenait ni « dyslexie » ni « gratuit ».
+   Une description au-delà de ~155 caractères est coupée : tout ce qui suit est invisible.
+   ⚠️ Ces seuils ne garantissent pas que Google garde le titre — rien ne le garantit. Ils suppriment la
+   RAISON connue de ne pas le garder, et ils empêchent la dérive de revenir dans trois semaines.
+   ⚠️ PÉRIMÈTRE : seulement les pages DÉCLARÉES au sitemap — une page `noindex` ou hors sitemap (404,
+   documents internes) n'a aucune ligne dans Google, sa longueur de titre n'y change rien. */
+const TMAX = 60, DMIN = 110, DMAX = 155;
+for (const p of pages) {
+  if (!declare.has(cle(p))) continue;                       // hors sitemap = aucune ligne à afficher
+  const h = lire(p);
+  const t = /<title>([^<]*)<\/title>/.exec(h);
+  if (!t) { fail.push('<title> absent : ' + p); continue; }
+  if (t[1].length > TMAX) fail.push('<title> de ' + t[1].length + ' caractères (max ' + TMAX + ', au-delà Google le remplace) : ' + p + '  « ' + t[1] + ' »');
+  const d = /<meta name="description" content="([^"]*)"/.exec(h);
+  if (!d) fail.push('meta description absente (Google compose alors le résumé tout seul) : ' + p);
+  else if (d[1].length > DMAX) fail.push('description de ' + d[1].length + ' caractères (max ' + DMAX + ', le reste est coupé) : ' + p);
+  else if (d[1].length < DMIN) fail.push('description de ' + d[1].length + ' caractères (min ' + DMIN + ' : trop courte pour dire ce qu\'on fait sur la page) : ' + p);
+}
+
 if (fail.length) { fail.forEach(f => console.log('  ✗ ' + f)); process.exit(1); }
 console.log('✓ sitemap : ' + declare.size + ' URL déclarées == ' + pages.length + ' pages du site (noindex exclues, zh/ hors périmètre), canonical = URL déclarée ; '
-            + nLiens + ' liens internes lus (pages + nav.js), aucun vers « .html » ; nom de site « ' + NOM + ' » (WebSite, og:site_name, 5 titres), menu sans pages de recherche, avec Données.');
+            + nLiens + ' liens internes lus (pages + nav.js), aucun vers « .html » ; nom de site « ' + NOM + ' » (WebSite, og:site_name, 5 titres), titres ≤ ' + TMAX + ' et descriptions ' + DMIN + '-' + DMAX + ' caractères, menu sans pages de recherche, avec Données.');
