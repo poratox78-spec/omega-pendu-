@@ -123,7 +123,16 @@ const NOM = 'OMEGA Pendu';
   }
   const i = nav.indexOf('var GROUPS = ['), bloc = i < 0 ? '' : nav.slice(i, nav.indexOf('\n  ];', i));
   const rech = [...bloc.matchAll(/\['(recherche|arbitrage|evolution|docs\/[a-zA-Z-]+)'/g)].map(m => m[1]);
-  if (rech.join(',') !== 'recherche') fail.push('nav.js GROUPS pousse des pages de recherche dans le menu de toutes les pages : ' + (rech.join(', ') || '(aucune)') + ' — attendu : la seule entrée « recherche »');
+  /* ⚠️ 19/09/2026 — RÈGLE RETOURNÉE. Le 17/09 elle EXIGEAIT que le menu ne porte que « recherche » ; conséquence
+     mesurée : /arbitrage n'était plus liée que par les DOCUMENTS INTERNES (docs/MEMOIRE, docs/rapport-mode-emploi) ;
+     aucune page normale ne la portait hors de la barre de repli que nav.js remplace. Pas invisible : enterrée. Le vrai
+     problème SEO d'origine, ce sont les DOCUMENTS INTERNES dans les liens de site : ils sont traités par leur
+     `noindex`, pas en amputant le menu. La règle garde donc l'interdiction des `docs/…` et EXIGE désormais
+     les trois pages publiques, pour qu'aucune ne puisse re-disparaître en silence. */
+  const docsMenu = rech.filter((r) => r.indexOf('docs/') === 0);
+  if (docsMenu.length) fail.push('nav.js GROUPS pousse des DOCUMENTS INTERNES dans le menu de toutes les pages : ' + docsMenu.join(', ') + ' — ils sont en noindex, ils ne doivent pas y figurer');
+  for (const exigee of ['recherche', 'arbitrage', 'evolution'])
+    if (rech.indexOf(exigee) < 0) fail.push('nav.js GROUPS : « ' + exigee + ' » a disparu du menu — page publique, elle DOIT y rester (19/09/2026 : son retrait avait rendu /arbitrage orpheline)');
   if (!/\['donnees',/.test(bloc)) fail.push('nav.js GROUPS : la page Données (lexiques à télécharger, police dys) a disparu du menu — décision de Rem du 18/09/2026 : elle doit y être');
 }
 
