@@ -16,7 +16,7 @@
 > Ce fichier reste le **dossier de soumission** : tout ce qui se colle dans la console développeur est
 > écrit ici, prêt à copier, et sert tel quel pour **chaque mise à jour** — le §3 (fiche), le §4
 > (justifications) et le §5 (données) sont redemandés à chaque envoi qui touche aux permissions.
-> ⚠️ Toute mise à jour exige une `version` **strictement supérieure à 0.6.40 (EN LIGNE depuis le 18/09/2026)**, et repasse en revue.
+> ⚠️ Toute mise à jour exige une `version` **strictement supérieure à 0.6.41 (numéro REMIS le 19/09/2026, donc brûlé)**, et repasse en revue.
 
 ## 0. Où on en est
 
@@ -34,9 +34,9 @@
 | 10 | Captures d'écran 1280×800 (1 à 5) | ✅ fournies par Rem |
 | 11 | Remplir la fiche + les justifications, envoyer | ✅ envoyé et **accepté** le 28/08/2026 |
 | 12 | Après publication : mettre à jour `correcteur.html` | ✅ fait le 28/08/2026 — bouton « Ajouter à Chrome », repli manuel gardé dans un `<details>` |
-| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ **0.6.40 EN LIGNE** (fiche publique relue le 19/09/2026) — 0.6.7 à 0.6.38 remises à Rem : un numéro remis est brûlé ; la **0.6.40 a été REMISE à Rem le 18/09/2026** (les deux correctifs d'accord de genre) : elle est **en ligne depuis le 18/09 à 22 h 26 UTC**, la prochaine devra être **> 0.6.40** — et le manifeste du dépôt porte encore 0.6.40 : **le prochain paquet commence par le bump** |
+| 13 | **Prochaine mise à jour** : `version` **strictement supérieure** à celle publiée | ✅ **0.6.40 EN LIGNE** (fiche publique relue le 19/09/2026) — 0.6.7 à 0.6.38 remises à Rem : un numéro remis est brûlé ; la **0.6.40 a été REMISE à Rem le 18/09/2026** (les deux correctifs d'accord de genre) : elle est **en ligne depuis le 18/09 à 22 h 26 UTC**. La **0.6.41 a été REMISE à Rem le 19/09/2026** (le panneau dit enfin pourquoi il ne voit rien quand la page était déjà ouverte) : brûlée à son tour, la suivante devra être **> 0.6.41** |
 | 14 | Le bloc **« 🔢 Aide au nombre »** est décrit dans la fiche | ✅ collé à l'envoi du 28/08/2026 (en fin de description) ; il fait maintenant partie de la description du §3 |
-| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.40) | ✅ **téléversé par Rem et EN LIGNE** depuis le 18/09/2026 22 h 26 UTC (régénéré sur `main`, e2fe0b7) — 33 fichiers, 5,59 Mo, manifest à la racine, batterie 106/106 ; vérifié dans le zip : les deux règles d'épithète lisent la table des collisions, et la table de genre (59 123 entrées) ne contient plus peintre/ministre/architecte/diplomate. Pour la suivante : monter `version`, puis `python3 extension/build_zip.py --store` sur `main` |
+| 15 | **Paquet à téléverser** : `omega-correcteur-dys-store.zip` (manifest à la racine, v0.6.41) | ⬜ **0.6.41 remise à Rem le 19/09/2026** — 33 fichiers, 5,33 Mio, manifest à la racine, batterie 108/108 ; vérifié DANS le zip : `content.js` répond au ping, le service worker arbitre, le panneau porte le message et son bouton, **aucun fichier de banc embarqué**, et les permissions sont **inchangées** (storage, contextMenus, sidePanel — `tabs.reload` n'en demande aucune, mesuré). La 0.6.40 reste EN LIGNE depuis le 18/09/2026 22 h 26 UTC (régénérée sur `main`, e2fe0b7) — 33 fichiers, 5,59 Mo, manifest à la racine, batterie 106/106 ; vérifié dans le zip : les deux règles d'épithète lisent la table des collisions, et la table de genre (59 123 entrées) ne contient plus peintre/ministre/architecte/diplomate. Pour la suivante : monter `version`, puis `python3 extension/build_zip.py --store` sur `main` |
 | 16 | La **description en ligne** est celle du §3 | ✅ **vérifié le 19/09/2026** — tout le §3 est en ligne, mot à mot (0 « insert » à l'alignement). ⚠️ Cette case disait ⬜ « c'est encore l'ancienne, recoller » depuis le 16/09 alors que l'en-tête la démentait dès le 18/09 : le document se contredisait sur la seule question que Rem lui pose avant un envoi. |
 
 ## 1. Ce qui était bloquant et qui est corrigé
