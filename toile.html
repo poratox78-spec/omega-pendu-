@@ -167,11 +167,16 @@ const N = [
   {id:'unk', f:'orange', r:11, label:'Mot inconnu', desc:"Non-mot hors SP.WORDS → candidat orange. 78 % de vrais typos sur le corpus dys réel ; le lexique large éteint le reste."},
   // sortie
   {id:'ROUGE', f:'out', r:16, label:'ROUGE', desc:"Correction affirmative. Doctrine : FP = 0, mesuré sur 2 500 phrases UD correctes. Une faute de grammaire est rouge, jamais tue par paresse."},
+  {id:'gacc', f:'struct', r:13, label:'GENDER_ACC · collisions', desc:"Genre des formes ACCENTUÉES (59 916 entrées, kaikki + Lexique4 + Morphalou). Son sous-ensemble COLLISION (713 mots dont la clé sans accent est partagée : marché/marche, côté/côte, pêche/péché) est le SEUL que les règles d'accord consultent — la table brute donne « f » aux noms épicènes et fabriquait 8 rouges faux sur 14 450 phrases correctes (19/09/2026)."},
+  {id:'epi', f:'struct', r:10, label:'Épicènes exclus', desc:"793 noms que Lexique4 marque à deux genres (un/une peintre, ministre, architecte) : ils ne tranchent AUCUN accord. Sans ce filtre, « Le peintre est italien. » devenait « italienne », en rouge, sur du français juste. Le lexique d'orthographe, lui, les garde : ils cessent d'affirmer un genre, pas d'exister."},
+  {id:'pren', f:'struct', r:12, label:'PRENOMS', desc:"8 729 prénoms avec leur genre. C'est ce qui permet « Marie est venu. » → venue. Livrée une fois sans être chargée : le bug fondateur du banc navigateur."},
+  {id:'conf', f:'struct', r:10, label:'Confusables', desc:"Paires de mots que le dys échange (couche verte, pédagogique) : proposées, jamais imposées."},
   {id:'ORANGE', f:'out', r:16, label:'ORANGE', desc:"Vigilance « à vérifier ». Réponse au doute (jamais le silence) : priver un dys d'une piste parce qu'on n'est « pas sûr » = discrimination."},
 ];
 const E = [
   ['ancre','sv'],['ancre','nom'],['ancre','genre'],['ancre','homo'],['ancre','core'],
   // sources -> structures
+  ['lex4','gacc'],['wikt','gacc'],['gacc','genre'],['epi','gacc'],['gn','genre'],['lex4','pren'],['pren','pp'],['wikt','conf'],
   ['lex4','spw'],['lex4','gn'],['lex4','conj'],['lex4','ipa'],['wikt','spw'],['wikt','gn'],['wikt','ipa'],
   ['argot','spw'],['argot','gn'],['part','spw'],['ud','hmm'],['ud','core'],
   // structures -> engines
