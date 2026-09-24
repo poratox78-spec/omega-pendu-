@@ -1080,6 +1080,35 @@ async function main() {
         echecs.push('pendu : le contrôle « ' + a + ' » a DISPARU des commandes — le rangement a perdu quelque chose');
       for (const c of CHAMPS) if (vu.champs.indexOf(c) < 0)
         echecs.push('pendu : le champ #' + c + ' a DISPARU des commandes — le rangement a perdu quelque chose');
+      /* ④ LA GRILLE D INSTRUMENTS — RÉORGANISÉE, PAS CACHÉE (Rem : « pas mal d espace vide »).
+         Mesuré à 1440 px avant de toucher à quoi que ce soit : trois panneaux de 786 / 786 / 1648 px,
+         le troisième imposant sa hauteur aux deux autres, étirés à vide sur 862 px chacun. Il portait
+         DEUX titres : scindé, les quatre blocs tiennent sur une ligne et la page perd 21 % de hauteur.
+         ⚠️ Chrome headless démarre en 800×600 : sans forcer la largeur, cette garde mesurerait la mise
+         en page étroite et ne dirait RIEN de ce qu on vient de faire. */
+      for (const [larg, lignesAttendues] of [[1440, 1], [1200, 0]]) {
+        await sess3.envoyer('Emulation.setDeviceMetricsOverride',
+          { width: larg, height: 950, deviceScaleFactor: 1, mobile: false });
+        await attendre(600);
+        const rg = await sess3.envoyer('Runtime.evaluate', { returnByValue: true, expression: `({
+          panneaux: document.querySelectorAll('.instrument-grid > .panel').length,
+          lignes: new Set([...document.querySelectorAll('.instrument-grid > .panel')]
+                    .map(p => Math.round(p.getBoundingClientRect().top))).size,
+          tronquees: [...document.querySelectorAll('.module-formula')]
+                    .filter(e => e.scrollWidth > e.clientWidth + 1).length,
+          scrollX: document.documentElement.scrollWidth > innerWidth
+        })` });
+        const gr = (rg.result || {}).value || {};
+        if (gr.panneaux !== 4) echecs.push('pendu : ' + gr.panneaux + ' panneaux dans la grille au lieu de 4 (à '
+          + larg + " px) — le panneau des statistiques en portait deux, il doit rester séparé");
+        if (gr.tronquees) echecs.push('pendu : ' + gr.tronquees + ' formule(s) ROGNÉE(S) à ' + larg
+          + " px — une formule coupée n est pas une formule");
+        if (gr.scrollX) echecs.push('pendu : la page déborde horizontalement à ' + larg + ' px');
+        if (lignesAttendues && gr.lignes !== lignesAttendues)
+          echecs.push('pendu : la grille fait ' + gr.lignes + ' ligne(s) à ' + larg + ' px au lieu de '
+            + lignesAttendues + " — les quatre panneaux ne tiennent plus côte à côte, le vide revient");
+      }
+      await sess3.envoyer('Emulation.clearDeviceMetricsOverride', {});
       log('  ✓ 🎯 pendu : config optimale active au chargement (' + vu.actifs + '/' + vu.total
           + ' réglages), ' + ACTIONS.length + ' actions et ' + CHAMPS.length + ' champs tous présents');
     } catch (e) { echecs.push('pendu (onglet frais) : ' + e.message); }

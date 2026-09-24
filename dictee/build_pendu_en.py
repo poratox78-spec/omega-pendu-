@@ -152,6 +152,8 @@ TRANSLATIONS = [
     ("ui_filtreToggles('cfg-triche')\">Triche <b>", "ui_filtreToggles('cfg-triche')\">Cheat <b>"),
     ("ui_filtreToggles('cfg-orange')\">À surveiller <b>", "ui_filtreToggles('cfg-orange')\">To watch <b>"),
     ("ui_filtreToggles('autres')\">Expérimentaux <b>", "ui_filtreToggles('autres')\">Experimental <b>"),
+    # ⭐ 24/09/2026 — le panneau détaché des statistiques
+    ('<div class="panel-label">SUBSTRAT · SANTÉ bPC</div>', '<div class="panel-label">SUBSTRATE · bPC HEALTH</div>'),
     # présentation (haut de page)
     ('<span class="v">architecture cognitive du pendu français — « cognition &gt; oracle »</span>',
      '<span class="v">cognitive architecture of English hangman — “cognition &gt; oracle”</span>'),
