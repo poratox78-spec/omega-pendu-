@@ -24,14 +24,29 @@
     ]],
     // Rem (17/09/2026) : sur Google, « omega pendu » listait Confidentialité, le modèle double route, le mémoire,
     // l'arbitrage… — les pages de recherche, poussées par ce menu présent sur toutes les pages. Une seule entrée pour
-    // elles : L'arbitrage et L'évolution se lisent depuis la page Recherche (pages_atteignables_probe le vérifie).
+    // ⚠️ 19/09/2026 — Rem : « arbitrage aussi a sauté du menu, c'est chiant ». Les deux reviennent, à sa demande.
+    // MESURE, et correction de ce que j'avais d'abord affirmé : /arbitrage n'était PAS orpheline — on y arrivait
+    // encore, mais UNIQUEMENT en passant par docs/MEMOIRE et docs/rapport-mode-emploi, qui la lient dans leur
+    // corps. Aucune page NORMALE ne la liait hors de cette barre de repli (que ce fichier remplace au
+    // chargement) : le seul chemin restant passait par un mémoire de recherche. Ce n'est pas « invisible »,
+    // c'est enterré — et ça le devient plus encore depuis que ces documents sont en `noindex`.
+    // Le motif SEO du 17/09 (les pages de recherche poussées dans les liens de site Google) est traité là où
+    // il se joue : le `noindex` des documents internes, pas l'amputation du menu.
     // ⚠️ DONNÉES N'EST PAS UNE PAGE DE RECHERCHE (Rem, 18/09/2026 : « je suis pas d'accord que les données soient sorties du
     // menu, on a fait un gros travail dessus et en plus y a la police dys ») : c'est une page PRODUIT — les lexiques à
     // télécharger et la police dys. Sortie du menu par erreur avec le groupe « Recherche », elle y revient ; la garde
     // sitemap_probe ⑤ EXIGE maintenant sa présence.
+    // ⭐ 19/09/2026 — MÊME FORME QU'EN ANGLAIS, à la demande de Rem : « tu les as mis en anglais mais pas en
+    // français ». GROUPS_EN portait « Research : recherche · donnees · arbitrage · evolution » depuis toujours ;
+    // le 17/09 n'avait amputé QUE le menu français. Quatre entrées dans « Plus » en faisaient un mur — pour un
+    // lecteur dys, un groupe qui NOMME ce qu'il contient vaut mieux qu'une liste fourre-tout.
+    ['Recherche', [
+      ['recherche', 'La recherche'],
+      ['arbitrage', "L'arbitrage"],
+      ['evolution', "L'évolution"],
+    ]],
     ['Plus', [
       ['donnees', 'Données & police dys'],
-      ['recherche', 'La recherche'],
       ['omega-key', 'OMEGA·KEY'],
       ['https://github.com/poratox78-spec/omega-pendu-', 'Code'],
     ]],
