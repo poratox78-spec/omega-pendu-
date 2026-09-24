@@ -49,6 +49,84 @@ par page de l'autre. On lit chaque ligne pour elle-même, jamais la somme.)*
 
 ---
 
+
+## 0 bis. RELEVÉ DE RÉFÉRENCE — lu le 24/09/2026 (J-0 du BLOC 1)
+
+C'est la **ligne de base** annoncée au calendrier : tout ce qui suit se lira contre elle.
+Search Console, **03/07 → 21/09/2026** (Google a deux à trois jours de retard).
+
+**Total : 46 clics · 889 impressions · CTR 5,2 % · position moyenne 10,5.**
+
+Contre le relevé du plan (03/07 → 16/09 : 44 · 815 · 5,4 % · 11,1) : **+74 impressions,
++2 clics, et le CTR qui BAISSE encore**. Cinq jours de plus n'ont pas infléchi la courbe —
+c'est exactement le constat qui a ouvert ce chantier, et il tient.
+
+| page | clics | impr. |
+|---|---:|---:|
+| `/` | 36 | 457 |
+| `/pendable` | 6 | 112 |
+| `/correcteur-outil` | 2 | 46 |
+| `/correcteur` | 1 | 61 |
+| `/en/` | 1 | 44 |
+| `/dictee` | 1 | 22 |
+| `/scrabidon` | 1 | 8 |
+| `/docs/rapport-mode-emploi` | **0** | **116** |
+| `/en/docs/rapport-mode-emploi` | **0** | **108** |
+| `/recherche` | **0** | **100** |
+
+*(39 pages au total ; les dix premières sont triées par clics. Les lignes ne s'additionnent
+pas au total — Search Console déduplique par propriété d'un côté, par page de l'autre.)*
+
+| requête | clics | impr. |
+|---|---:|---:|
+| solveur pendu | **2** | 95 |
+| triche pendu | 0 | 20 |
+| solveur de pendu | 0 | 15 |
+| pendu triche | 0 | 13 |
+| saisie audio | 0 | 7 |
+| pendu en ligne | 0 | 7 |
+| saisie vocale | 0 | 6 |
+| jeux de mots double sens | 0 | 3 |
+| omega crypt | 0 | 3 |
+| jeux de mots à double sens | 0 | 2 |
+
+*(20 requêtes visibles ; le reste est anonymisé par Google. **Une seule requête apporte des
+clics**, et c'est « solveur pendu » — 2 clics sur 95 impressions, soit 2,1 %.)*
+
+### ✅ La condition de départ est VÉRIFIÉE — les robots sont repassés
+
+Rem : « les bots sont passés ». Contrôlé dans le rapport d'indexation, pas cru sur parole :
+le motif **« Détectée, actuellement non indexée » est à 0, validation « Réussi »** — c'était
+lui qui retenait 4 pages le 14/09 (« le robot n'est pas repassé »). **33 pages dans l'index.**
+La fenêtre de calme du 17/09 a donc fait son travail : le BLOC 1 peut partir.
+
+### ⚠️ Deux entrées parasites dans les sitemaps — décision de Rem
+
+Le rapport Sitemaps en liste trois, dont deux qui n'auraient jamais dû y être :
+
+| entrée | état | quoi |
+|---|---|---|
+| `/sitemap.xml` | ✅ lu le 17/09, 34 pages | le vrai |
+| `/correcteu/sitemap.xml` | ❌ « Impossible de récupérer » | **faute de frappe** (`correcteu`), envoyée le 12/07 |
+| `/correcteur` | ❌ « 1 erreur » | une **page** envoyée comme sitemap, le 04/07 |
+
+Elles ne coûtent aucun classement : Google ignore ce qu'il ne peut pas lire. Mais elles
+salissent le rapport, et l'une d'elles est réessayée (dernière lecture : 21/09). Les retirer
+est une action **dans la console** : c'est à Rem, je ne touche pas à la propriété.
+
+### ⚠️ Pourquoi le BLOC 2 NE PART PAS avec le BLOC 1
+
+Le travail préparé le 19/09 mélangeait les deux dans un seul commit. Séparés ici, et voici
+le chiffre qui l'impose : `/docs/rapport-mode-emploi` (116), `/en/docs/rapport-mode-emploi`
+(108) et `/recherche` (100) font **324 impressions pour zéro clic** — 36 % de tout ce que le
+site reçoit. Les passer en `noindex` ferait mécaniquement monter le CTR du site de **5,2 %**
+à **8,1 %** (46 ÷ 565) **sans un seul clic de plus**.
+
+Livrés ensemble, on lirait ce bond et on en créditerait les titres. On mesurerait une
+soustraction en croyant mesurer une amélioration. Le BLOC 2 part donc plus tard, seul, et
+sa réussite se lira sur les **clics** et sur le CTR **des pages produit**, jamais sur la
+moyenne du site.
+
 ## 1. DIAGNOSTIC — six constats, par impact mesuré
 
 ### ① Google RÉÉCRIT nos titres, et le mot cherché disparaît de la ligne bleue
@@ -453,9 +531,9 @@ mesurerait rien : ce serait un rituel, pas une méthode. La règle corrigée :
 
 | quand | bloc | ce qu'on en attend, et comment on le lit |
 |---|---|---|
-| **jusqu'au 02/10** | rien | fenêtre de mesure du nom de site du 17/09 ; calme demandé par Rem |
-| **02/10** | **relevé de référence** | clics, impressions, CTR, position — par page ET par requête. C'est la ligne de base de tout le reste |
-| **02/10** | **BLOC 1 — « le site dit ce qu'il est »** : accueil épuré (liste arrêtée le 19/09, héros à une action) + titres/H1/descriptions de toutes les pages + la garde de seuils | lu sur l'**accueil à J+28** (153 impressions, ~12 clics attendus : un écart se verra) ; sur les autres pages, au trimestre |
+| ~~jusqu'au 02/10~~ **24/09** | rien | fenêtre de mesure du nom de site du 17/09 ; calme demandé par Rem. **Close le 24/09** : Rem constate que les robots sont repassés, vérifié au rapport d'indexation (§0 bis) |
+| ~~02/10~~ **24/09 — FAIT** | **relevé de référence** (§0 bis) | clics, impressions, CTR, position — par page ET par requête. C'est la ligne de base de tout le reste |
+| ~~02/10~~ **24/09** | **BLOC 1 — « le site dit ce qu'il est »** : accueil épuré (liste arrêtée le 19/09, héros à une action) + titres/H1/descriptions de toutes les pages + la garde de seuils | lu sur l'**accueil à J+28** (153 impressions, ~12 clics attendus : un écart se verra) ; sur les autres pages, au trimestre |
 | **~30/10** | **BLOC 2 — niveau 1** : `noindex` des docs et de `/toile`, retrait du sitemap | ⚠️ les impressions BAISSENT d'environ 250, c'est l'effet voulu. Ce qu'on regarde : le CTR moyen du site monte, et les clics ne baissent pas |
 | **~27/11** | **BLOC 3 — fusion des doublons** : `/correcteur-outil` → `/correcteur` (l'outil en haut), idem dictée, 301 | une 301 fait osciller le classement quelques semaines : lecture au **trimestre**, jamais à trois jours |
 | **sans horloge** | **Lot D** (mesurer les SERP avant d'écrire) et **Lot E** (hors-site) | ce sont les seuls leviers de croissance ; ils ne dépendent d'aucun déploiement |
