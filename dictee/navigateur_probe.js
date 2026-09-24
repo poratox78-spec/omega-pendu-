@@ -1021,6 +1021,70 @@ async function main() {
     } catch (e) { echecs.push('conjugue chemin frais : ' + e.message); }
     finally { if (sess2) sess2.fermer(); }
 
+    /* ⭐ 24/09/2026 — LE PENDU : SA CONFIG AU CHARGEMENT, ET RIEN DE PERDU EN RANGEANT.
+       Trois questions, sur une page FRAÎCHE parce que c est l état du chargement qui est en cause.
+
+       ① LA CONFIGURATION OPTIMALE EST-ELLE ACTIVE TOUTE SEULE ? Avant le 24/09, la page démarrait avec
+         3 réglages sur 46 (≈ 2,6 % de parties gagnées) et son propre bouton disait « À cliquer en
+         premier » : elle livrait un état qu elle demandait de ne pas garder. Mesuré après : 27.
+         Le plancher est à 20 et non à 27 exactement, parce que `ui_syncAssembledColor()` peut
+         légitimement déplacer un réglage d une famille à l autre ; ce qu on garde, c est que le
+         préréglage a bien été appliqué, pas un nombre au réglage près.
+
+       ② LES 46 RÉGLAGES SONT-ILS TOUS LÀ ? Replié n est pas retiré : le menu les masque, il ne les
+         supprime pas. Un rangement qui en perdrait un rougirait ici.
+
+       ③ LES CONTRÔLES SONT-ILS TOUS LÀ ? C est le « sans rien perdre » de Rem, écrit noir sur blanc :
+         l inventaire ci-dessous est l état AVANT rangement (11 actions + 12 champs, relevé le 24/09).
+         Il est gelé exprès : retirer un contrôle devient une décision qu on écrit, pas un oubli.
+         ⚠️ On interroge le DOM, donc un contrôle REPLIÉ compte comme présent — c est voulu : il est
+         atteignable en un clic. Ce qui est interdit, c est qu il DISPARAISSE. */
+    let sess3 = null;
+    try {
+      const ACTIONS = ['ui_startGame()', 'applyReferenceConfig()', 'ui_runStep()', 'ui_runUntilEnd()',
+        'ui_abortGame()', 'ui_resetLearning()', 'omega_runMeasurementExport(200, 12345)',
+        'omega_runDriverComparisonExport(200, 12345)', 'ui_trainThetaFromUI()', 'ui_sweepBetaFromUI()',
+        'ui_exportOSLTrajectory()'];
+      const CHAMPS = ['input-word', 'btn-reset-engine', 'train-steps', 'train-batch', 'train-seed',
+        'sweep-bmin', 'sweep-bmax', 'sweep-bstep', 'sweep-batch', 'osl-w', 'osl-c', 'osl-eta'];
+      sess3 = await connecter(await cible(dbg, 'about:blank'));
+      await sess3.envoyer('Page.enable'); await sess3.envoyer('Runtime.enable');
+      await sess3.envoyer('Page.navigate', { url });
+      let pret3 = false;
+      for (let i3 = 0; i3 < 300 && !pret3; i3++) {
+        try { const q3 = await sess3.envoyer('Runtime.evaluate',
+          { expression: '(document.readyState === "complete") && !!document.getElementById("toggle-grid")', returnByValue: true });
+          pret3 = q3.result.value === true; } catch (e) {}
+        if (!pret3) await attendre(200);
+      }
+      if (!pret3) throw new Error('onglet frais : la page du pendu ne se charge pas');
+      let vu = null;
+      for (let i3 = 0; i3 < 60; i3++) {          // un ÉTAT, pas un délai : le préréglage suit le smoke d amorçage
+        await attendre(300);
+        const r3 = await sess3.envoyer('Runtime.evaluate', { returnByValue: true, expression: `({
+          total: document.querySelectorAll('#toggle-grid .toggle-item').length,
+          actifs: document.querySelectorAll('#toggle-grid .toggle-item.on').length,
+          actions: [...document.querySelectorAll('.game-controls [onclick]')].map(e => e.getAttribute('onclick')),
+          champs: [...document.querySelectorAll('.game-controls [id]')].map(e => e.id)
+        })` });
+        vu = (r3.result || {}).value || null;
+        if (vu && vu.actifs >= 20) break;
+      }
+      if (!vu) throw new Error('onglet frais : rien lu dans la page du pendu');
+      if (vu.actifs < 20) echecs.push('pendu : la configuration optimale n est PAS active au chargement ('
+        + vu.actifs + ' réglages sur ' + vu.total
+        + ' ; avant le 24/09 la page démarrait à 3, soit ≈ 2,6 % de parties gagnées)');
+      if (vu.total !== 46) echecs.push('pendu : ' + vu.total
+        + ' réglages dans la grille au lieu de 46 — replier n est pas retirer');
+      for (const a of ACTIONS) if (vu.actions.indexOf(a) < 0)
+        echecs.push('pendu : le contrôle « ' + a + ' » a DISPARU des commandes — le rangement a perdu quelque chose');
+      for (const c of CHAMPS) if (vu.champs.indexOf(c) < 0)
+        echecs.push('pendu : le champ #' + c + ' a DISPARU des commandes — le rangement a perdu quelque chose');
+      log('  ✓ 🎯 pendu : config optimale active au chargement (' + vu.actifs + '/' + vu.total
+          + ' réglages), ' + ACTIONS.length + ' actions et ' + CHAMPS.length + ' champs tous présents');
+    } catch (e) { echecs.push('pendu (onglet frais) : ' + e.message); }
+    finally { if (sess3) sess3.fermer(); }
+
     if (echecs.length) { console.error('\n✗ NAVIGATEUR RÉEL — ' + echecs.length + ' échec(s) :\n  ' + echecs.join('\n  ')); code = 1; }
     else console.log('✓ NAVIGATEUR RÉEL : ' + CAS.length + ' cas + révision espacée + read-along, vérifiés dans Chrome (DOM et localStorage lus) · crible explications ' + (global.__CRIBLE_RES || 'n/a') + '.');
   } catch (e) {

@@ -507,6 +507,34 @@ body::before {
   padding-top: 20px;
   border-top: 1px solid var(--border-soft);
 }
+/* ⭐ 24/09/2026 — GROUPES DE CONTRÔLES. Un intitulé par usage, et les bancs de mesure repbounds : la
+   première ligne de la page ne demande plus de choisir entre « Start » et « Sweep β ». */
+.ctl-groupe { display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+  border:1px solid rgba(128,128,128,.22); border-radius:8px; padding:7px 9px; margin:0 0 7px; }
+.ctl-titre { font-size:10px; letter-spacing:.09em; text-transform:uppercase; opacity:.62;
+  margin-right:4px; white-space:nowrap; }
+.ctl-note { font-size:11px; opacity:.6; margin-left:8px; }
+details.ctl-mesure { display:block; }
+details.ctl-mesure > summary { cursor:pointer; list-style:none; display:flex; align-items:center;
+  flex-wrap:wrap; }
+details.ctl-mesure > summary::-webkit-details-marker { display:none; }
+details.ctl-mesure > summary::before { content:"▸"; margin-right:6px; opacity:.55; }
+details.ctl-mesure[open] > summary::before { content:"▾"; }
+.ctl-corps { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px;
+  padding-top:8px; border-top:1px solid rgba(128,128,128,.18); width:100%; }
+
+/* ⭐ LE MENU DES RÉGLAGES : replier, et filtrer par famille. */
+#toggles-repli > summary { cursor:pointer; list-style:none; display:flex; align-items:center;
+  flex-wrap:wrap; gap:4px; padding:4px 0 8px; }
+#toggles-repli > summary::-webkit-details-marker { display:none; }
+#toggles-repli > summary::before { content:"▸"; margin-right:6px; opacity:.55; }
+#toggles-repli[open] > summary::before { content:"▾"; }
+.toggle-filtres { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 10px; }
+.tfiltre { font:inherit; font-size:11px; cursor:pointer; border:1px solid rgba(128,128,128,.3);
+  background:transparent; color:inherit; border-radius:999px; padding:3px 10px; opacity:.72; }
+.tfiltre b { opacity:.6; font-weight:600; margin-left:3px; }
+.tfiltre.on { opacity:1; border-color:currentColor; }
+.toggle-item[hidden] { display:none !important; }
 .toggle-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -788,14 +816,27 @@ footer {
       <!-- letters populated by JS -->
     </div>
 
+    <!-- ⭐ 24/09/2026 — RANGÉ PAR USAGE (demande de Rem). Avant : quinze contrôles sur UNE ligne, où
+         « ▶ Start » voisinait avec « β min / max / pas / batch ». Trois groupes : ce qu on fait pour JOUER,
+         ce qui touche au MOTEUR, et les bancs de MESURE — ces derniers REPLIÉS, jamais retirés. Chaque
+         bouton garde son id, son onclick et son infobulle : rien n est perdu, tout est rangé. -->
     <div class="game-controls">
+      <div class="ctl-groupe">
+        <span class="ctl-titre">Play</span>
       <input type="text" class="input-word" id="input-word" placeholder="Word to guess (≥7 letters)" maxlength="20">
       <button class="btn primary" onclick="ui_startGame()">▶ Start</button>
-      <button class="btn primary" onclick="applyReferenceConfig()" title="Activate the optimal CHEAT-FREE configuration (report preset §8.3). Click this first: at start all switches are OFF (≈ 2.6%).">⚙️ Optimal config</button>
       <button class="btn" onclick="ui_runStep()">+1 Tick</button>
       <button class="btn" onclick="ui_runUntilEnd()">▶▶ Auto</button>
       <button class="btn danger" onclick="ui_abortGame()">Abort</button>
+      </div>
+      <div class="ctl-groupe">
+        <span class="ctl-titre">Engine</span>
+      <button class="btn primary" onclick="applyReferenceConfig()" title="RE-APPLIES the optimal CHEAT-FREE configuration (report preset §8.3). Since 24/09/2026 it is already active on load: this button is how you COME BACK to it after touching the settings. It resets EVERY switch to its measured value, not only the ones you changed.">⚙️ Optimal config</button>
       <button class="btn" id="btn-reset-engine" onclick="ui_resetLearning()" title="Remet le moteur À FROID (cold) : re-init substrates + stats + apprentissage de session. ⚠️ À cliquer après avoir changé un toggle EN COURS DE SESSION — sinon l'état appris reste « contaminé » et la même config ne rejoue pas pareil (le moteur apprend en jouant). Voir AUDIT_BASELINE.md §8.">🔄 Reset engine</button>
+      </div>
+      <details class="ctl-groupe ctl-mesure">
+        <summary><span class="ctl-titre">Measure</span><span class="ctl-note">benches, θ training, sweeps, exports — for research</span></summary>
+        <div class="ctl-corps">
       <button class="btn" onclick="omega_runMeasurementExport(200, 12345)" title="A/B/C measurement (200 games, seed 12345) + JSON export">📊 Measure</button>
       <button class="btn" onclick="omega_runDriverComparisonExport(200, 12345)" title="Compares the 3 W phon drivers (candidates/r_lagged/fixed) + JSON export">🔬 Drivers</button>
       <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;opacity:.85;margin-left:4px">θ step<input id="train-steps" type="number" value="15" min="1" max="200" style="width:46px">batch<input id="train-batch" type="number" value="150" min="20" max="2000" style="width:54px">seed<input id="train-seed" type="number" value="12345" style="width:68px"></span>
@@ -804,6 +845,8 @@ footer {
       <button class="btn" onclick="ui_sweepBetaFromUI()" title="Sweeps β at α=1,13 (fields: min / max / step / batch) → winrate(β) vs coherence(β) curve + JSON export. Headless.">📈 Sweep β</button>
       <span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;opacity:.85;margin-left:4px">θ online W<input id="osl-w" type="number" value="8" min="1" max="64" style="width:46px">c<input id="osl-c" type="number" value="0.10" step="0.01" style="width:52px">η<input id="osl-eta" type="number" value="0.05" step="0.01" style="width:52px"></span>
       <button class="btn" onclick="ui_exportOSLTrajectory()" title="Exports the θ trajectory of online learning (JSON). First enable the "θ ONLINE Learning" toggle.">🌊 θ online JSON</button>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -999,6 +1042,24 @@ footer {
 <div class="panel">
   <div class="panel-label">EXPERIMENTAL · L01 ENHANCEMENTS</div>
   <div class="panel-title">Toggles <span class="accent">Phase A + B2</span></div>
+  <!-- ⭐ 24/09/2026 — UN MENU POUR AFFICHER ET MASQUER (demande de Rem). Quarante-six réglages en un seul
+       mur, c était la page qui demandait au lecteur de trier. Ils sont maintenant REPLIÉS par défaut et
+       filtrables par famille — les familles existaient déjà dans le balisage (cfg-optim, cfg-option,
+       cfg-triche…), elles n étaient simplement pas offertes au lecteur. Aucun réglage n est retiré : le
+       filtre masque, il ne débranche pas, et « Tous » les ramène. -->
+  <details id="toggles-repli">
+    <summary>
+      <span class="ctl-titre">Engine settings</span>
+      <span class="ctl-note"><b id="toggles-actifs">—</b> active out of <b id="toggles-total">—</b> — click to open</span>
+    </summary>
+    <div class="toggle-filtres" role="group" aria-label="Filter the settings">
+      <button type="button" class="tfiltre on" data-cat="tous" onclick="ui_filtreToggles('tous')">All <b>—</b></button>
+      <button type="button" class="tfiltre" data-cat="cfg-optim" onclick="ui_filtreToggles('cfg-optim')">Optimal config <b>—</b></button>
+      <button type="button" class="tfiltre" data-cat="cfg-option" onclick="ui_filtreToggles('cfg-option')">Options <b>—</b></button>
+      <button type="button" class="tfiltre" data-cat="cfg-triche" onclick="ui_filtreToggles('cfg-triche')">Cheat <b>—</b></button>
+      <button type="button" class="tfiltre" data-cat="cfg-orange" onclick="ui_filtreToggles('cfg-orange')">To watch <b>—</b></button>
+      <button type="button" class="tfiltre" data-cat="autres" onclick="ui_filtreToggles('autres')">Experimental <b>—</b></button>
+    </div>
   <div class="toggle-grid" id="toggle-grid">
     <div class="toggle-item cfg-triche" data-toggle="L01_A1_M2_ORTHO_ENABLED" title="A1 · Orthographic perception (M2): reads the revealed letters as visual/spelling input. Foundation of the ortho route (legacy -11)." onclick="ui_toggle(this)">
       <div class="toggle-switch"></div>
@@ -1322,6 +1383,7 @@ footer {
         <div class="toggle-desc">the played word is removed from the dictionary — OMEGA generalizes (phon→ortho)</div>
       </div>
     </div>
+  </details>
   </div>
 </div>
 
@@ -9154,9 +9216,58 @@ function ui_startGame() {
   }
 }
 
+/* ⭐ 24/09/2026 — FILTRER LES RÉGLAGES, ET DIRE COMBIEN SONT ACTIFS.
+   Le filtre MASQUE (attribut `hidden`), il ne débranche RIEN : un réglage invisible reste exactement
+   dans l état où il est, et « Tous » le ramène. C est la différence entre ranger et perdre.
+   Le compteur lit la classe `.on` posée par ui_initToggles — donc l ÉTAT RÉEL du moteur, jamais une
+   liste recopiée qui pourrait vieillir. */
+function ui_filtreToggles(cat) {
+  try {
+    var items = document.querySelectorAll('#toggle-grid .toggle-item');
+    for (var i = 0; i < items.length; i++) {
+      var el = items[i], garde;
+      if (cat === 'tous') garde = true;
+      else if (cat === 'autres') garde = !/cfg-(optim|option|triche|orange)/.test(el.className);
+      else garde = el.classList.contains(cat);
+      if (garde) el.removeAttribute('hidden'); else el.setAttribute('hidden', '');
+    }
+    var f = document.querySelectorAll('.tfiltre');
+    for (var j = 0; j < f.length; j++) f[j].classList.toggle('on', f[j].getAttribute('data-cat') === cat);
+  } catch (e) {}
+}
+function ui_majCompteurToggles() {
+  try {
+    var items = document.querySelectorAll('#toggle-grid .toggle-item');
+    var el = document.getElementById('toggles-actifs');
+    if (el) el.textContent = String(document.querySelectorAll('#toggle-grid .toggle-item.on').length);
+    var tot = document.getElementById('toggles-total');
+    if (tot) tot.textContent = String(items.length);
+    /* ⚠️ LES EFFECTIFS SE COMPTENT, ILS NE S ÉCRIVENT PAS. Je les avais d abord écrits en dur depuis le
+       balisage (optimale 21, à surveiller 3) ; mesuré dans Chrome : 23 et 1. `ui_syncAssembledColor()`
+       DÉPLACE deux réglages d une famille à l autre au chargement, quand la cohorte phonologique les rend
+       cheat-free. Un chiffre écrit à la main était donc faux d emblée, et le redeviendrait à chaque
+       évolution du moteur. La page compte ce qu elle affiche. */
+    var f = document.querySelectorAll('.tfiltre');
+    for (var i = 0; i < f.length; i++) {
+      var cat = f[i].getAttribute('data-cat'), k = 0;
+      for (var j = 0; j < items.length; j++) {
+        if (cat === 'tous') k++;
+        else if (cat === 'autres') { if (!/cfg-(optim|option|triche|orange)/.test(items[j].className)) k++; }
+        else if (items[j].classList.contains(cat)) k++;
+      }
+      var b = f[i].querySelector('b'); if (b) b.textContent = String(k);
+    }
+  } catch (e) {}
+}
+
 function applyReferenceConfig() {
-  // Preset 1-clic : configuration optimale CHEAT-FREE (rapport §8.3 / docs/CONFIG_TOGGLES.md, 97,5 % in-lexique).
-  // N'altère PAS le boot (la baseline reste OFF-inerte au chargement) : c'est une action explicite de l'utilisateur.
+  // Preset : configuration optimale CHEAT-FREE (rapport §8.3 / docs/CONFIG_TOGGLES.md, 97,5 % in-lexique).
+  // ⚠️ 24/09/2026 — IL EST DÉSORMAIS APPLIQUÉ AU CHARGEMENT (demande de Rem). Avant, la page démarrait
+  // tous interrupteurs OFF (≈ 2,6 % de parties gagnées) et son propre bouton disait « à cliquer en
+  // premier » : elle livrait donc un état qu elle demandait elle-même de ne pas garder. Le bouton reste,
+  // pour REVENIR à la config mesurée après avoir touché aux réglages.
+  // ⚠️ Ce que ça NE change pas : les bancs (evo/ci_smoke.js et les A/B) posent leur propre configuration
+  // en dur et ne lisent pas l état de la page — vérifié avant de toucher au chargement.
   try {
     const ON = ['L01_A4_M4M_DECOMP_ENABLED','L01_A5_M2M_POSITIONAL_ENABLED','L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED',
       'M_VOIE_PHON_ENABLED','M_OS_V07_ENABLED','M4_PHON_USE_P_ENABLED','M_SUBSTRAT_ORTHO_PURE_ENABLED','M_PHON_FEEDBACK_ENABLED',
@@ -9179,6 +9290,7 @@ function applyReferenceConfig() {
     if (typeof initOmegaGlobals === 'function') initOmegaGlobals();   // (re)bâtit voie phon / substrat avec la config
     if (typeof ui_attachGameEndSub === 'function') ui_attachGameEndSub();
     if (typeof ui_initToggles === 'function') ui_initToggles();        // resync visuels + aria-checked
+    if (typeof ui_majCompteurToggles === 'function') ui_majCompteurToggles();
     if (typeof ui_syncAssembledColor === 'function') ui_syncAssembledColor();   // assemblé/muette → VERT (cheat-free, cohorte phon ON)
     if (typeof ui_renderGame === 'function') ui_renderGame();
     if (typeof ui_renderMath === 'function') ui_renderMath();
@@ -10102,6 +10214,12 @@ window.addEventListener('DOMContentLoaded', () => {
     updateStatus();
     // Init UI après init engine
     ui_init();
+    /* ⭐ 24/09/2026 — LA CONFIG OPTIMALE, ACTIVE DÈS LE CHARGEMENT (demande de Rem).
+       APRÈS le smoke d amorçage, jamais avant : ce smoke vérifie l état à froid et son commentaire dit
+       expressément qu il compte sur A2/B2 éteints. Le preset les laisse éteints (ce sont les réglages
+       de TRICHE, hors config cheat-free), mais l ordre reste le bon : on mesure à froid, puis on règle. */
+    if (typeof applyReferenceConfig === 'function') applyReferenceConfig();
+    if (typeof ui_majCompteurToggles === 'function') ui_majCompteurToggles();
   }, 100);
 });
 </script>
