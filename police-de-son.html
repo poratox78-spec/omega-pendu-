@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Police de son : les syllabes en couleur | OMEGA Pendu</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/police-de-son"><meta property="og:site_name" content="OMEGA Pendu">
+<meta property="og:title" content="Police de son — les syllabes et les lettres muettes en couleur | OMEGA-Ω"><meta property="og:description" content="Colle ton texte : il ressort avec les syllabes alternées en couleur et les lettres muettes en vermillon. Le texte ne change pas, seulement son apparence.">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Police de son — syllabes en couleur | OMEGA-Ω"><meta name="twitter:description" content="Les syllabes alternées en couleur, les lettres muettes en vermillon. Le texte reste intact.">
+<meta name="description" content="Colle ton texte : les syllabes ressortent en couleur alternée et les lettres muettes en vermillon. Le texte ne change pas, seulement son apparence.">
+<link rel="canonical" href="https://omegapendu.com/police-de-son">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
+<style>
+  main.pds{max-width:var(--maxw);margin:0 auto;padding:18px 18px 48px}
+
+  /* ── L'OUTIL. Deux zones l'une sous l'autre plutôt que côte à côte : sur un texte long, comparer
+     la saisie et le rendu en vis-à-vis oblige à sauter d'une colonne à l'autre, et c'est
+     exactement l'effort qu'on vient épargner. */
+  .pds-saisie{width:100%;min-height:8em;font:inherit;font-size:1.05em;line-height:1.7;padding:12px 14px;
+    border:1px solid var(--line);border-radius:10px;background:var(--bg-2);color:var(--fg);resize:vertical}
+  .pds-saisie:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .pds-regl{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:12px 0}
+  .pds-regl label{display:inline-flex;align-items:center;gap:6px;font-size:.92em}
+  .pds-sortie{font-size:1.5em;line-height:2;padding:16px 14px;border:1px solid var(--line);
+    border-radius:10px;background:var(--bg-2);min-height:3em;word-break:break-word}
+  .pds-vide{color:var(--fg-2);font-size:.62em;font-style:italic}
+
+  /* Couleurs identiques à celles du correcteur et de l'extension (Okabe-Ito, sûres pour les
+     daltonismes courants). Elles sont RECOPIÉES ici et gardées par une sonde : si l'une des deux
+     bouge sans l'autre, le banc rougit — une page qui montre d'autres couleurs que le produit
+     mentirait sur le produit. */
+  .son-seg{font-size:1.14em}
+  .son-mute{color:#a34700}
+  .son-syl{color:#0072b2}
+  .son-syl.son-mute{color:#a34700}
+  @media (prefers-color-scheme:dark){
+    .son-mute{color:#f0a04b}
+    .son-syl{color:#6cc0f0}
+    .son-syl.son-mute{color:#f0a04b}
+  }
+  .pds-legende{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 0;font-size:.9em;color:var(--fg-2)}
+  .pds-legende b{font-weight:600}
+  .pds-panne{border-left:3px solid #e8920c;background:rgba(232,146,12,.08);padding:10px 12px;
+    border-radius:6px;margin:12px 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="correcteur">Le correcteur</a>
+    <a href="dictee">La dictée</a>
+    <a href="police-de-son" aria-current="page">Police de son</a>
+    <a href="donnees">Données &amp; police dys</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+
+<main class="pds">
+  <h1>Police de son</h1>
+
+  <p class="note">Colle ton texte&nbsp;: il ressort avec les <strong>syllabes en couleur alternée</strong>
+  et les <strong>lettres muettes en vermillon</strong>. Ton texte ne change pas&nbsp;— pas une lettre
+  n'est ajoutée, retirée ni corrigée&nbsp;: seule son <em>apparence</em> change. Tout se fait sur ton
+  appareil.</p>
+
+  <h2>Essaie</h2>
+
+  <label for="pds-in" class="pds-lab">Ton texte</label>
+  <textarea id="pds-in" class="pds-saisie" spellcheck="false"
+    placeholder="Colle ou écris ton texte ici…">Le petit chat gris dort sur le tapis. Les oiseaux chantent dans le jardin.</textarea>
+
+  <div class="pds-regl">
+    <label><input type="checkbox" id="pds-syl" checked> ✂️ Syllabes en couleur</label>
+    <label><input type="checkbox" id="pds-mute" checked> 🔇 Lettres muettes en vermillon</label>
+  </div>
+
+  <div id="pds-out" class="pds-sortie" aria-live="polite"></div>
+
+  <p class="pds-legende">
+    <span><b style="color:#0072b2">syl·la·bes</b> alternées</span>
+    <span><b style="color:#a34700">lettre muette</b></span>
+    <span>le reste&nbsp;: inchangé</span>
+  </p>
+
+  <h2>Ce que la couleur dit</h2>
+
+  <p>Une lettre muette n'est pas une faute&nbsp;: c'est une lettre qui <strong>ne s'entend pas</strong>.
+  Le «&nbsp;t&nbsp;» de <i>chat</i>, le «&nbsp;x&nbsp;» de <i>oiseaux</i>, le «&nbsp;e&nbsp;» de <i>petites</i>.
+  Quand on apprend à lire en s'appuyant sur le son, ces lettres-là sont le principal piège&nbsp;: on les
+  prononce, et le mot ne sonne plus juste.</p>
+
+  <p>Ici, elles sont <strong>colorées</strong>, pas grisées. Le gris était notre premier choix, et nous
+  l'avons changé&nbsp;: il disait «&nbsp;moins important&nbsp;», alors qu'une lettre muette compte autant
+  que les autres pour l'orthographe. Le vermillon dit «&nbsp;celle-ci ne se prononce pas&nbsp;» sans dire
+  «&nbsp;celle-ci ne sert à rien&nbsp;».</p>
+
+  <p>Les syllabes, elles, alternent entre deux teintes. Le découpage suit le <strong>son</strong> et non
+  la lettre&nbsp;: c'est le même découpage que celui du correcteur et de la dictée, calculé à partir de la
+  prononciation du mot, pas d'une règle de coupure typographique.</p>
+
+  <p>Les deux couleurs viennent de la palette Okabe-Ito, choisie pour rester distinguable avec les
+  daltonismes les plus courants&nbsp;; et la couleur n'est jamais le seul canal&nbsp;— la syllabe se lit
+  aussi à son découpage, la muette à sa place dans le mot.</p>
+
+  <h2>Pourquoi le son plutôt que la lettre</h2>
+
+  <p>Beaucoup d'outils colorent les syllabes en découpant les lettres. C'est utile, mais ça se trompe
+  dès que l'écrit s'éloigne du son&nbsp;: <i>oiseau</i> ne se coupe pas comme il s'écrit, <i>femme</i> ne
+  se prononce pas comme il se lit. OMEGA passe d'abord par la <strong>prononciation</strong> du mot,
+  puis remet chaque lettre à la syllabe du son qu'elle sert. C'est plus lent à écrire, et c'est la
+  raison d'être de tout ce site.</p>
+
+  <p>La police elle-même porte une deuxième information, que cette page ne montre qu'en partie&nbsp;: le
+  <strong>voisement</strong>. Une consonne voisée — celle qui fait vibrer les cordes — est dessinée plus
+  épaisse que sa jumelle sourde&nbsp;: <i>b</i> contre <i>p</i>, <i>d</i> contre <i>t</i>, <i>v</i> contre
+  <i>f</i>. Ces paires-là sont parmi les confusions les plus fréquentes à l'écrit.</p>
+
+  <h2>Pour qui</h2>
+
+  <p>Pour quelqu'un qui apprend à lire, pour un lecteur dyslexique, pour un enseignant ou un
+  orthophoniste qui prépare un support&nbsp;: colle le texte, copie le rendu. Et pour n'importe qui
+  d'autre&nbsp;: il n'y a rien à installer, rien à créer, aucun compte.</p>
+
+  <h2>Où elle sert déjà</h2>
+
+  <ul class="points">
+    <li>Dans <a href="correcteur">le correcteur</a>, comme option&nbsp;: on corrige son texte et on peut
+    l'afficher en couleur au passage.</li>
+    <li>Dans <a href="dictee">la dictée</a>, pour relire le mot qu'on vient d'écrire.</li>
+    <li>Dans l'extension Chrome, sur n'importe quel champ d'une page.</li>
+  </ul>
+
+  <p>La police <strong>OMEGA&nbsp;Dys</strong> est libre (licence OFL) et se télécharge sur
+  <a href="donnees">la page Données</a>, avec les lexiques&nbsp;: tu peux l'installer sur ton ordinateur
+  et t'en servir dans un traitement de texte.</p>
+</main>
+
+<script src="police/son_core.js" defer></script>
+<script src="extension/assets/g2p.js" defer></script>
+<script>
+/* L'outil : on réutilise TELS QUELS le découpage du moteur (`OmegaDysSonCore`) et sa prononciation
+   (`_DECL2.g2p`) — les deux mêmes fichiers que l'extension et l'application. Rien n'est réécrit ici,
+   sinon la mise en page : une page qui recalculerait les syllabes à sa façon finirait par montrer
+   autre chose que le produit.
+   ⚠️ Si l'un des deux ne charge pas, on le DIT et on laisse le texte brut — jamais une zone vide qui
+   laisserait croire que le texte n'a rien donné. */
+(function () {
+  'use strict';
+  var IN = document.getElementById('pds-in'), OUT = document.getElementById('pds-out');
+  var SYL = document.getElementById('pds-syl'), MUTE = document.getElementById('pds-mute');
+  var MAX = 4000;   // au-delà, on s'abstient : le texte reste lisible tel quel
+
+  function pret() {
+    return typeof OmegaDysSonCore !== 'undefined' && OmegaDysSonCore &&
+           typeof _DECL2 !== 'undefined' && _DECL2 && typeof _DECL2.g2p === 'function';
+  }
+
+  function panne(msg) {
+    OUT.innerHTML = '';
+    var d = document.createElement('div');
+    d.className = 'pds-panne';
+    d.textContent = msg;
+    OUT.appendChild(d);
+    var p = document.createElement('div');
+    p.textContent = IN.value;
+    OUT.appendChild(p);
+  }
+
+  function rendre() {
+    var texte = IN.value;
+    if (!pret()) { panne('Le découpage en sons n’a pas pu se charger. Ton texte est affiché tel quel.'); return; }
+    if (texte.length > MAX) { panne('Texte trop long pour être coloré d’un coup (' + texte.length + ' caractères). Il est affiché tel quel.'); return; }
+    OUT.innerHTML = '';
+    if (!texte.trim()) {
+      var v = document.createElement('span');
+      v.className = 'pds-vide';
+      v.textContent = 'Écris ou colle un texte ci-dessus : il s’affichera ici en couleur.';
+      OUT.appendChild(v);
+      return;
+    }
+    var mots;
+    try { mots = OmegaDysSonCore.sentenceSegments(texte, _DECL2.g2p); }
+    catch (e) { panne('Le découpage en sons a échoué sur ce texte. Il est affiché tel quel.'); return; }
+
+    /* `sentenceSegments` ne rend que les MOTS : on recolle nous-mêmes ce qu'il y a entre eux
+       (espaces, ponctuation, retours à la ligne) en suivant le texte d'origine, pour que le rendu
+       soit le texte ENTIER et pas une liste de mots. */
+    var pos = 0;
+    mots.forEach(function (m) {
+      var i = texte.indexOf(m.mot, pos);
+      if (i < 0) return;
+      if (i > pos) OUT.appendChild(document.createTextNode(texte.slice(pos, i)));
+      var idx = null;
+      try { idx = OmegaDysSonCore.syllableIndex(m.segs); } catch (e) {}
+      m.segs.forEach(function (sg, k) {
+        var sp = document.createElement('span');
+        sp.className = 'son-seg';
+        var muet = !sg.ph;
+        if (SYL.checked && idx && (idx[k] % 2 === 0)) sp.className += ' son-syl';
+        if (MUTE.checked && muet) sp.className += ' son-mute';
+        sp.textContent = sg.g;
+        OUT.appendChild(sp);
+      });
+      pos = i + m.mot.length;
+    });
+    if (pos < texte.length) OUT.appendChild(document.createTextNode(texte.slice(pos)));
+  }
+
+  IN.addEventListener('input', rendre);
+  SYL.addEventListener('change', rendre);
+  MUTE.addEventListener('change', rendre);
+  /* Les deux scripts sont en `defer` : ils s'exécutent avant DOMContentLoaded, mais on attend
+     quand même l'événement pour ne pas dépendre de l'ordre d'évaluation. */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rendre);
+  else rendre();
+})();
+</script>
+</body>
+</html>
