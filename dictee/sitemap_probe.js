@@ -106,6 +106,24 @@ for (const [nom, depuis] of [['GROUPS', 'index.html'], ['GROUPS_EN', 'en/index.h
    ⚠️ 18/09/2026 — DONNÉES N'EN FAIT PAS PARTIE : c'est une page produit (lexiques à télécharger, police dys). Elle était sortie
    du menu avec le groupe « Recherche » ; Rem : « je suis pas d'accord […] on a fait un gros travail dessus et en plus y a la
    police dys ». Le menu DOIT la porter. */
+/* ⑥ AUCUNE ENTRÉE DE MENU NE RAMÈNE À L ACCUEIL (25/09/2026, rapport de Rem : « quand je clique sur le
+   pendu dans le menu j arrive sur le main »). `['./', 'Le pendu']` et `['./', 'The Hangman']` se
+   résolvaient en « / » — vérifié dans Chrome avant correction. Ce n était pas une régression : l entrée
+   est née ainsi (#312), et même alors l accueil était une page de présentation, jamais le jeu. Le menu
+   promettait donc le pendu et livrait l accueil DEPUIS LE DÉBUT, dans les deux langues.
+   La règle couvre la CLASSE, pas le cas : le menu n a aucune entrée « Accueil » (le logo fait ce
+   travail), donc tout `./` y est forcément une entrée qui annonce autre chose que ce qu elle donne. */
+{
+  for (const [nomG, titre] of [['GROUPS', 'français'], ['GROUPS_EN', 'anglais']]) {
+    const i = nav.indexOf('var ' + nomG + ' = [');
+    if (i < 0) continue;   // absence déjà signalée par la règle ④
+    const bloc = nav.slice(i, nav.indexOf('\n  ];', i));
+    for (const m of bloc.matchAll(/\['(\.\/?|\/)',\s*'([^']+)'\]/g))
+      fail.push('menu ' + titre + ' : l entrée « ' + m[2] + ' » pointe sur « ' + m[1]
+        + " », c est-à-dire l ACCUEIL — elle annonce une page et en livre une autre");
+  }
+}
+
 const NOM = 'OMEGA Pendu';
 {
   const acc = lire('index.html');

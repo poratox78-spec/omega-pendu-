@@ -17,7 +17,13 @@
       ['calcul', 'Poser un calcul'],
     ]],
     ['Jeux', [
-      ['./', 'Le pendu'],
+      /* ⚠️ 25/09/2026 — CETTE ENTRÉE MENAIT À L ACCUEIL. Rapport de Rem : « quand je clique sur le pendu
+         dans le menu j arrive sur le main ». Vérifié dans Chrome : href="./" se résoud en « / », la page
+         d accueil. Ce n était pas une régression récente : l entrée est née ainsi (#312), et même à cette
+         époque l accueil était déjà une page de présentation, jamais le jeu. Le menu promettait donc le
+         pendu et livrait l accueil depuis le début. Chemin ABSOLU : le menu est injecté sur des pages de
+         profondeurs différentes (/en/…), un chemin relatif s y résoudrait ailleurs. */
+      ['/app/omega-pendu.html', 'Le pendu'],
       ['scrabidon', 'Scrabidon'],
       ['pendable', 'Pendable'],
       ['double-sens', 'Double-Sens'],
@@ -63,7 +69,7 @@
       ['decompose-outil', 'Decompose'],
     ]],
     ['Play', [
-      ['./', 'The Hangman'],
+      ['/app/omega-pendu-en.html', 'The Hangman'],   // même défaut côté anglais, même correction
     ]],
     ['Research', [
       ['recherche', 'Research'],
