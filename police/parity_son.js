@@ -47,6 +47,17 @@ const iRet = html.indexOf('return { g2p: g2p,', i0);
 const iEnd = html.indexOf('})()', iRet) + '})()'.length;
 if (i0 < 0 || iRet < 0) { console.error('extraction _DECL2 échouée'); process.exit(2); }
 let DECL2;
+/* ⚠️ 25/09/2026 — LE BANC DOIT REPRODUIRE LA PORTÉE DE L APP, pas une version amputée. Depuis que le
+   « -ent » des verbes se lit dans les tables de conjugaison DÉJÀ EMBARQUÉES,  évalué tout seul
+   n y a pas accès et retombe sur la vieille liste de 582 mots : les ancres rougissaient sur le BANC
+   alors que le produit est juste. On fournit donc les mêmes tables que l app. */
+// ⚠️ globalThis, pas var :  est un eval INDIRECT, il s exécute dans la portée GLOBALE ;
+// un  de module lui reste invisible. Première tentative perdue là-dessus.
+globalThis.CONJ_F = {}; globalThis.CONJ_C = {};
+try {
+  const _vdc = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'extension', 'assets', 'vdc-lex.json'), 'utf8'));
+  globalThis.CONJ_F = (_vdc.cj && _vdc.cj.f) || {}; globalThis.CONJ_C = (_vdc.cj && _vdc.cj.c) || {};
+} catch (e) { fail.push('vdc-lex.json illisible : les ancres -ent ne mesureraient rien (' + e.message + ')'); }
 try { DECL2 = (0, eval)(html.slice(i0 + 'var _DECL2 = '.length, iEnd)); }
 catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2); }
 
@@ -78,6 +89,14 @@ catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2);
     if (eMuet(w) !== false) fail.push('g2p de l APP : le « e » de « ' + w + ' » est donné MUET (il se prononce)');
   for (const w of ['petites','portes','chantes'])
     if (eMuet(w) !== true) fail.push('g2p de l APP : le « e » de « ' + w + ' » n est plus muet');
+  // ⭐ le « -ent » des verbes, sur le g2p de l APP : la table des conjugaisons est déjà embarquée,
+  // encore faut-il la LIRE. Ancres : verbes muets d un côté, noms/adjectifs prononcés de l autre.
+  const entMuet = (w) => { const st = DECL2.g2p(w); const x = [...st].reverse().find(y => y.g === 'en');
+    return x ? (!x.ph || x.ph === '∅') : null; };
+  for (const w of ['jouent','chantent','abaissent','dorment','lisent'])
+    if (entMuet(w) !== true) fail.push('g2p de l APP : le « -ent » de « ' + w + ' » est donné PRONONCÉ (verbe)');
+  for (const w of ['gouvernement','dent','lent','talent','ferment'])
+    if (entMuet(w) !== false) fail.push('g2p de l APP : le « -ent » de « ' + w + ' » est donné MUET (nom/adjectif)');
 }
 
 const ref = JSON.parse(fs.readFileSync(path.join(HERE, 'son_layer.json'), 'utf8'));

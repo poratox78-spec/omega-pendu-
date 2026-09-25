@@ -45,11 +45,12 @@ def main():
     # pour que Python tienne la même liste que l'app sans qu'on la recopie à la main.
     rfin = json.loads(grab(r"const RFIN = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
     epron = json.loads(grab(r"const EPRON = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
+    entambig = json.loads(grab(r"const ENTAMBIG = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
 
     # SEG est trié par longueur décroissante dans l'app (maximal munch). On fige ce tri ici.
     seg = sorted(seg, key=lambda s: -len(s))
     tables = {'VOW': vow, 'NASAL': nasal, 'DBL': dbl, 'SEG': seg, 'COND': cond, 'ENTSIL': entsil,
-              'RFIN': rfin, 'EPRON': epron}
+              'RFIN': rfin, 'EPRON': epron, 'ENTAMBIG': entambig}
     json.dump(tables, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[g2p] tables extraites de l'app → {OUT}")
     print(f"      VOW={len(vow)} car · NASAL={len(nasal)} · DBL={len(dbl)} · SEG={len(seg)} · "

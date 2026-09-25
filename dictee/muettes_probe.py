@@ -47,6 +47,11 @@ def main():
         print('· R FINAL : SAUTÉ — %s' % e)
         return 0
     W2P = D.W2P
+
+    def _gold(w):
+        p = W2P[w]
+        return str(p[0] if isinstance(p, (list, tuple)) else p)
+
     if not W2P:
         print('✗ R FINAL : lexique phonétique vide — ce banc ne mesure rien')
         return 1
@@ -120,9 +125,35 @@ def main():
         print('✗ MUETTES : le « e » n est plus muet dans %s — la liste fermée a débordé' % ', '.join(mauvais_m))
         return 1
 
+    # ③ LE « -ent » DES VERBES (25/09/2026). Le commentaire du moteur disait « la POS lève l ambiguïté » :
+    # FAUX, le code lisait une liste figée de 582 mots pour 8 137 concernés. La table qui sait était déjà
+    # embarquée (vdc-lex.cj : 66 146 formes, 5 948 verbes). Plancher mesuré : 93,9 %, 0 faux positif.
+    PLANCHER_ENT = 90.0
+    ent_muet = [w for w in W2P if w.endswith('ent') and w.isalpha() and len(w) > 4
+                and not _gold(w).endswith('@')]
+    ent_pron = [w for w in W2P if w.endswith('ent') and w.isalpha() and len(w) > 4
+               and _gold(w).endswith('@')]
+    if len(ent_muet) < 5000:
+        print('✗ MUETTES : seulement %d mots en -ent lus — lecture du lexique cassée' % len(ent_muet))
+        return 1
+    def _dit_muet(w):
+        return any(x['g'] == 'en' and ((not x['ph']) or x['ph'] in ('∅', '')) for x in D.g2p(w))
+    bons_e = sum(1 for w in ent_muet if _dit_muet(w))
+    faux_e = [w for w in ent_pron if _dit_muet(w)]
+    pct_e = 100.0 * bons_e / len(ent_muet)
+    if faux_e:
+        print('✗ MUETTES : le « -ent » est déclaré muet sur %d nom(s)/adjectif(s) : %s'
+              % (len(faux_e), ', '.join(sorted(faux_e)[:12])))
+        return 1
+    if pct_e < PLANCHER_ENT:
+        print('✗ MUETTES : -ent verbal couvert à %.1f %% < plancher %.1f %% (%d/%d) — la lecture des'
+              ' formes conjuguées a-t-elle été débranchée ?' % (pct_e, PLANCHER_ENT, bons_e, len(ent_muet)))
+        return 1
+
     log('✓ muettes : r final — %d mots mesurés, %.2f %% justes, AUCUN muet à tort ; '
-        'e de les/des/mes/ces/ses/tes prononcé, e de petites/portes muet '
-        '(le gold seul reste fautif sur %s).' % (tot, pct, ', '.join(sorted(GOLD_FAUTIF))))
+        'e de les/des/mes prononcé ; -ent verbal muet à %.1f %% sur %d mots, 0 faux positif '
+        '(le gold seul reste fautif sur %s).'
+        % (tot, pct, pct_e, len(ent_muet), ', '.join(sorted(GOLD_FAUTIF))))
     return 0
 
 

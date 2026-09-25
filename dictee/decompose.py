@@ -42,6 +42,14 @@ VOW, NASAL, DBL = _T['VOW'], set(_T['NASAL']), set(_T['DBL'])
 COND, ENTSIL = _T['COND'], set(_T['ENTSIL'])
 RFIN = set(_T.get('RFIN') or [])                     # -er au r prononcé (extrait de l'app)
 EPRON = set(_T.get('EPRON') or [])                   # e+s final prononcé (extrait de l'app)
+ENTAMBIG = set(_T.get('ENTAMBIG') or [])             # -ent homographes (nom/adj ET 3e p. pluriel)
+try:                                                  # formes conjuguées DÉJÀ embarquées (vdc-lex.cj.f)
+    import json as _j, io as _io, os as _os
+    _vp = _os.path.join(HERE, '..', 'extension', 'assets', 'vdc-lex.json')
+    _cjv = _j.load(_io.open(_vp, encoding='utf-8'))['cj'] if _os.path.exists(_vp) else {}
+    CONJ_F, CONJ_C = _cjv.get('f') or {}, _cjv.get('c') or {}
+except Exception:
+    CONJ_F, CONJ_C = {}, {}
 # SEG du moteur (43) ENRICHI de 8 segments mesurés net-positifs en held-out (+2.23 pts d'exactitude ;
 # 'ti'→/sj/ seul vaut +1.4). Le moteur pendu garde SON SEG intact (R66) ; seul le décomposeur l'étend.
 # 'ion','ue','oui'… ont été TESTÉS et ÉCARTÉS (ils dégradent) — cf. build_g2p_corrections.py / DECOMPOSE.md.
@@ -125,6 +133,36 @@ def ipa_to_sampa(ph_ipa):
     return ''.join(out)
 
 # ── ROUTE SUBLEXICALE : portage FIDÈLE du g2p() de l'app (briques AQUA-PHOTON v3) ──
+_3P = None
+
+
+def _build_3p():
+    """Index des 3e personnes du pluriel depuis l arbre CONJ_C (miroir app).
+
+    CONJ_F est une projection INCOMPLÈTE de l arbre : mesuré 69,2 % des -ent muets par CONJ_F seul,
+    95,8 % en lisant aussi l arbre. Construit une fois, à la première question."""
+    global _3P
+    _3P = set()
+    for lem, modes in (CONJ_C or {}).items():
+        for mo, pers in (modes or {}).items():
+            f = (pers or {}).get('3p')
+            if isinstance(f, str):
+                _3P.add(f)
+            elif isinstance(f, list):
+                _3P.update(f)
+    return _3P
+
+
+def _ent_verbe(w):
+    """Forme de 3e personne du PLURIEL connue des tables déjà chargées (miroir app)."""
+    if w in ENTAMBIG:
+        return False
+    e = CONJ_F.get(w)
+    if e and any(x.endswith(';3;p') for x in str(e).split('|')):
+        return True
+    return w in (_3P if _3P is not None else _build_3p())
+
+
 def g2p(word, accents=True, seg=None):
     """graphème→phonème déterministe + hésitation `h` (latent §3). Renvoie la liste des pas
     {g: graphème, ph: phonème IPA, h: hésitation}. `accents` active l'overlay é/è/ç (sinon '?').
@@ -181,7 +219,11 @@ def g2p(word, accents=True, seg=None):
             ph, h = 'ʁ', 0.05
         steps.append({'g': g, 'ph': ph, 'h': max(0.0, h)})
         i += len(g)
-    if w in ENTSIL and w.endswith('ent'):                # -ent muet (verbe) : POS lève /ɑ̃/ vs ∅
+    # ⭐ 25/09/2026 — le « -ent » des verbes : la table était déjà là (miroir app).
+    # Le commentaire d avant disait « la POS lève l ambiguïté » : c était faux, on lisait une liste de
+    # 582 mots. 7,0 % des -ent muets couverts ; avec les formes conjuguées déjà chargées : 95,8 %.
+    # ⚠️ ENTAMBIG prime sur ENTSIL : la liste faite main contenait déjà « ferment » (nom, prononcé).
+    if w not in ENTAMBIG and (w in ENTSIL or _ent_verbe(w)) and w.endswith('ent'):                # -ent muet (verbe) : POS lève /ɑ̃/ vs ∅
         for k in range(len(steps) - 1, -1, -1):
             if steps[k]['g'] == 'en':
                 steps[k]['ph'], steps[k]['h'] = '∅', 0.02; break
