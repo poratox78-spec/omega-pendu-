@@ -24,7 +24,10 @@ def main():
     a = src.find('var _DECL2')
     if a < 0:
         print("[g2p] bloc _DECL2 introuvable"); return 2
-    blk = src[a:a + 20000]                      # les const PHON tiennent dans les ~20 Ko qui suivent
+    # ⚠️ 25/09/2026 — fenêtre élargie : l ajout de RFIN (160 mots) a poussé la fin de la liste ENTSIL
+    # au-delà des 20 Ko, et  ne trouvait plus son motif — le builder rendait des tables VIDES
+    # en le DISANT. Le message a servi ; la fenêtre suit désormais la taille du bloc.
+    blk = src[a:a + 40000]
 
     def grab(pattern, flags=0):
         m = re.search(pattern, blk, flags)
@@ -38,10 +41,15 @@ def main():
     seg = json.loads(grab(r"const SEG=(\[.*?\])\.sort", re.S).replace("'", '"'))
     cond = json.loads(grab(r"const COND = (\{.*?\})\n", re.S))     # COND est déjà du JSON (guillemets doubles)
     entsil = json.loads(grab(r"const ENTSIL = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
+    # ⭐ 25/09/2026 — RFIN : les -er dont le r se PRONONCE (liste fermée). Extraite comme le reste,
+    # pour que Python tienne la même liste que l'app sans qu'on la recopie à la main.
+    rfin = json.loads(grab(r"const RFIN = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
+    epron = json.loads(grab(r"const EPRON = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
 
     # SEG est trié par longueur décroissante dans l'app (maximal munch). On fige ce tri ici.
     seg = sorted(seg, key=lambda s: -len(s))
-    tables = {'VOW': vow, 'NASAL': nasal, 'DBL': dbl, 'SEG': seg, 'COND': cond, 'ENTSIL': entsil}
+    tables = {'VOW': vow, 'NASAL': nasal, 'DBL': dbl, 'SEG': seg, 'COND': cond, 'ENTSIL': entsil,
+              'RFIN': rfin, 'EPRON': epron}
     json.dump(tables, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[g2p] tables extraites de l'app → {OUT}")
     print(f"      VOW={len(vow)} car · NASAL={len(nasal)} · DBL={len(dbl)} · SEG={len(seg)} · "

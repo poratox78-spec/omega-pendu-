@@ -50,6 +50,36 @@ let DECL2;
 try { DECL2 = (0, eval)(html.slice(i0 + 'var _DECL2 = '.length, iEnd)); }
 catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2); }
 
+/* ⭐ 25/09/2026 — LE « R » FINAL, SUR LE g2p DE L APP (rapport de Rem : « pour, jour, sur, bonjour, mer :
+   ils sont pas muets ces r »). Le banc Python (dictee/r_final_probe.py) mesure la même chose à l échelle,
+   mais sur le moteur PYTHON : la règle vit dans le CODE des deux moteurs, pas dans les tables extraites,
+   donc lui seul ne protège pas le produit. Ces ancres-ci interrogent le _DECL2 de l APP.
+   ⚠️ Trouvé en falsifiant : retirer la règle de l app laissait le banc Python VERT. Une garde qui ne
+   regarde pas l’artefact livré ne garde pas le produit. */
+{
+  const R_PRONONCE = ['pour','jour','sur','bonjour','mur','dur','par','peur','professeur','ordinateur',
+                      'mer','fer','hier','hiver','cher','amer','enfer','ver','fier'];
+  const R_MUET = ['manger','parler','premier','boulanger','cahier','papier','léger'];
+  const finalR = (w) => { const st = DECL2.g2p(w); const d = st[st.length - 1];
+    return (d && d.g === 'r') ? !(!d.ph || d.ph === '∅') : null; };
+  for (const w of R_PRONONCE) {
+    const v = finalR(w);
+    if (v !== true) fail.push('g2p de l APP : le « r » final de « ' + w + ' » est donné MUET (il se prononce)');
+  }
+  for (const w of R_MUET) {
+    const v = finalR(w);
+    if (v !== false) fail.push('g2p de l APP : le « r » final de « ' + w + ' » est donné PRONONCÉ (il est muet)');
+  }
+  // ⭐ le « e » de « les » (même famille) : prononcé dans les six déterminants, muet ailleurs.
+  // ⚠️ le DERNIER e, pas le premier : dans « petites » le premier e se prononce et le dernier est muet.
+  const eMuet = (w) => { const st = DECL2.g2p(w); const x = [...st].reverse().find(y => y.g === 'e');
+    return x ? (!x.ph || x.ph === '∅') : null; };
+  for (const w of ['ces','des','les','mes','ses','tes'])
+    if (eMuet(w) !== false) fail.push('g2p de l APP : le « e » de « ' + w + ' » est donné MUET (il se prononce)');
+  for (const w of ['petites','portes','chantes'])
+    if (eMuet(w) !== true) fail.push('g2p de l APP : le « e » de « ' + w + ' » n est plus muet');
+}
+
 const ref = JSON.parse(fs.readFileSync(path.join(HERE, 'son_layer.json'), 'utf8'));
 const CLS = {voi: 1, srd: 1, mute: 1, n: 1};
 for (const s of ref) {
