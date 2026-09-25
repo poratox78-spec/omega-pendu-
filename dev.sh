@@ -64,7 +64,7 @@ run "correcteur (batterie FP=0)"   python3 dictee/correcteur_probe.py
 run "mover impératif (réf Python == cas)" python3 dictee/imperative_clitics.py
 run "garde j'est être/avoir (recall --check)" python3 dictee/recall_probe.py --check
 run "COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus)" python3 dictee/couverture_conj_probe.py
-run "r final PRONONCÉ (7 263 mots contre la vérité-terrain phonétique, 0 muet à tort)" python3 dictee/r_final_probe.py --check
+run "MUETTES justes (r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain)" python3 dictee/muettes_probe.py --check
 run "FP à l'échelle (UD 2500, garde régression)" python3 dictee/fp_scale_probe.py --check
 run "Genre perdu par la désaccentuation (rappel 217, FP=0)" python3 dictee/gender_coll_probe.py --check
 run "FP speller à l'échelle (ortho affirmatif UD 2500, garde régression)" node dictee/speller_fp_scale_probe.js --check

@@ -90,7 +90,38 @@ def main():
         for f in fail:
             print('  ' + f)
         return 1
-    log('✓ r final : %d mots mesurés, %.2f %% justes, AUCUN muet à tort '
+    # ② LE « e » DE « LES » (25/09/2026). COND['e']['s'] tranche MUET avec h = 1,45, la deuxième
+    # hésitation la plus haute de la table. Juste pour l immense majorité (petites, portes, chantes),
+    # faux pour une poignée de monosyllabes très fréquents — six déterminants présents dans presque
+    # toutes les phrases. La liste est fermée et relevée dans le gold.
+    E_PRONONCE = ['ces', 'des', 'les', 'mes', 'ses', 'tes']
+    mauvais_e = []
+    for w in E_PRONONCE:
+        if w not in W2P:
+            continue
+        st = D.g2p(w)
+        for x in st:
+            if x['g'] == 'e' and ((not x['ph']) or x['ph'] in ('∅', '')):
+                mauvais_e.append(w); break
+    if mauvais_e:
+        print('✗ MUETTES : le « e » est déclaré muet dans %s — or il se prononce (gold /le/, /de/…)'
+              % ', '.join(mauvais_e))
+        return 1
+    # et l inverse : le e de « petites » DOIT rester muet
+    E_MUET = ['petites', 'portes', 'chantes', 'bases', 'roses']
+    mauvais_m = []
+    for w in E_MUET:
+        if w not in W2P:
+            continue
+        st = D.g2p(w)
+        if not any(x['g'] == 'e' and ((not x['ph']) or x['ph'] in ('∅', '')) for x in st):
+            mauvais_m.append(w)
+    if mauvais_m:
+        print('✗ MUETTES : le « e » n est plus muet dans %s — la liste fermée a débordé' % ', '.join(mauvais_m))
+        return 1
+
+    log('✓ muettes : r final — %d mots mesurés, %.2f %% justes, AUCUN muet à tort ; '
+        'e de les/des/mes/ces/ses/tes prononcé, e de petites/portes muet '
         '(le gold seul reste fautif sur %s).' % (tot, pct, ', '.join(sorted(GOLD_FAUTIF))))
     return 0
 

@@ -32,7 +32,7 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 4 | mover impératif (réf Python == cas) | `python3 dictee/imperative_clitics.py` |
 | 5 | garde j'est être/avoir (recall --check) | `python3 dictee/recall_probe.py --check` |
 | 6 | COUVERTURE de la conjugaison (sujet × temps — ÉNUMÈRE, ne lit aucun corpus) | `python3 dictee/couverture_conj_probe.py` |
-| 7 | r final PRONONCÉ (7 263 mots contre la vérité-terrain phonétique, 0 muet à tort) | `python3 dictee/r_final_probe.py --check` |
+| 7 | MUETTES justes (r final sur 7 263 mots + le e de les/des/mes, contre la vérité-terrain) | `python3 dictee/muettes_probe.py --check` |
 | 8 | FP à l'échelle (UD 2500, garde régression) | `python3 dictee/fp_scale_probe.py --check` |
 | 9 | Genre perdu par la désaccentuation (rappel 217, FP=0) | `python3 dictee/gender_coll_probe.py --check` |
 | 10 | FP speller à l'échelle (ortho affirmatif UD 2500, garde régression) | `node dictee/speller_fp_scale_probe.js --check` |

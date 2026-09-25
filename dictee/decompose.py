@@ -41,6 +41,7 @@ _T = json.load(open(TABLES_PATH, encoding='utf-8'))
 VOW, NASAL, DBL = _T['VOW'], set(_T['NASAL']), set(_T['DBL'])
 COND, ENTSIL = _T['COND'], set(_T['ENTSIL'])
 RFIN = set(_T.get('RFIN') or [])                     # -er au r prononcé (extrait de l'app)
+EPRON = set(_T.get('EPRON') or [])                   # e+s final prononcé (extrait de l'app)
 # SEG du moteur (43) ENRICHI de 8 segments mesurés net-positifs en held-out (+2.23 pts d'exactitude ;
 # 'ti'→/sj/ seul vaut +1.4). Le moteur pendu garde SON SEG intact (R66) ; seul le décomposeur l'étend.
 # 'ion','ue','oui'… ont été TESTÉS et ÉCARTÉS (ils dégradent) — cf. build_g2p_corrections.py / DECOMPOSE.md.
@@ -188,6 +189,10 @@ def g2p(word, accents=True, seg=None):
         for k in range(len(steps) - 1, -1, -1):
             if steps[k]['g'] == 'r':
                 steps[k]['ph'], steps[k]['h'] = 'ʁ', 0.05; break
+    if w in EPRON:                                   # ⭐ e+s final PRONONCÉ (liste fermée, miroir app)
+        for k in range(len(steps)):
+            if steps[k]['g'] == 'e':
+                steps[k]['ph'], steps[k]['h'] = 'e', 0.05; break
     return steps
 
 def sublexical_phon(word, accents=True, correct=True, seg=None):

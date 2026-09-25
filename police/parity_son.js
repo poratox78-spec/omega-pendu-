@@ -70,6 +70,14 @@ catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2);
     const v = finalR(w);
     if (v !== false) fail.push('g2p de l APP : le « r » final de « ' + w + ' » est donné PRONONCÉ (il est muet)');
   }
+  // ⭐ le « e » de « les » (même famille) : prononcé dans les six déterminants, muet ailleurs.
+  // ⚠️ le DERNIER e, pas le premier : dans « petites » le premier e se prononce et le dernier est muet.
+  const eMuet = (w) => { const st = DECL2.g2p(w); const x = [...st].reverse().find(y => y.g === 'e');
+    return x ? (!x.ph || x.ph === '∅') : null; };
+  for (const w of ['ces','des','les','mes','ses','tes'])
+    if (eMuet(w) !== false) fail.push('g2p de l APP : le « e » de « ' + w + ' » est donné MUET (il se prononce)');
+  for (const w of ['petites','portes','chantes'])
+    if (eMuet(w) !== true) fail.push('g2p de l APP : le « e » de « ' + w + ' » n est plus muet');
 }
 
 const ref = JSON.parse(fs.readFileSync(path.join(HERE, 'son_layer.json'), 'utf8'));
