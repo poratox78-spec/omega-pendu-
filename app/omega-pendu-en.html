@@ -142,7 +142,12 @@ body::before {
    mathématiques étaient tronquées (« Σ shift(let… ») ; à 1.1fr/1.5fr, zéro. Une colonne qui coupe ce
    qu elle doit montrer n a pas gagné de place, elle a perdu de l information — et c est gardé. */
 @media (min-width: 1360px) {
-  .instrument-grid { grid-template-columns: 1.1fr 1.5fr 1fr 1fr; }
+  /* ⚠️ 25/09/2026 — RATIO REVU : le JEU repasse devant. Rem : « le mot est coupé dans le pendu ».
+     En donnant 280 px à la colonne du jeu (contre 447 avant), j avais réduit la zone du mot à 239 px :
+     seul un mot de SEPT lettres y tenait sur une ligne, alors que le tirage du jeu va de 7 à 15.
+     Le mot est le contenu principal de cette page ; je l avais mis au régime pour faire de la place
+     aux tableaux de bord. Mesuré après : 428 px pour le jeu, et le mot tient de 7 à 19 lettres. */
+  .instrument-grid { grid-template-columns: 1.46fr 0.98fr 0.78fr 0.78fr; }
 }
 /* le tiroir « Mesurer » porte des champs de largeur fixe : dans une colonne étroite il débordait de
    88 px. Il défile SUR LUI-MÊME plutôt que de pousser la page de côté — rien n est coupé. */
@@ -239,6 +244,15 @@ body::before {
   border: 1px solid var(--border-soft);
   min-height: 60px;
 }
+/* ⭐ 25/09/2026 — UN MOT NE SE COUPE PAS. Plutôt que de laisser le mot passer à la ligne quand il
+   est long, on RESSERRE les lettres. Un mot brisé en deux morceaux n est plus un mot — et pour un
+   lecteur dys, c est exactement la difficulté qu on passe nos journées à lui épargner ailleurs.
+   Paliers mesurés dans une zone de 386 px : ≤12 lettres → 28 px (inchangé) ; 13-16 → 22 px ;
+   ≥17 → 18 px. À chaque palier le mot entier tient sur UNE ligne. */
+.word-display.mot-long { gap: 4px; }
+.word-display.mot-long .letter-slot { min-width: 18px; font-size: 22px; }
+.word-display.mot-tres-long { gap: 3px; }
+.word-display.mot-tres-long .letter-slot { min-width: 14px; font-size: 18px; }
 .letter-slot {
   display: inline-flex;
   flex-direction: column;
@@ -381,20 +395,15 @@ body::before {
   font-style: italic;
   color: var(--fg-dim);
   font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-/* ⚠️ 24/09/2026 — UNE FORMULE COUPÉE N EST PAS UNE FORMULE. Mesuré à 1200 px après le rangement :
-   trois formules du panneau mathématiques étaient tronquées. La cause n est PAS la grille (colonnes
-   identiques à 342 px avant/après) : c est que la config optimale est maintenant active au chargement,
-   donc les normes affichent leurs VALEURS (« 12/12 active », « T=1.00 ») au lieu d un tiret, et cette
-   colonne pousse la formule. La page coupait donc déjà ses formules dès qu elle avait quelque chose à
-   dire — personne ne l avait vu parce qu elle n avait jamais rien à dire au chargement.
-   Au-dessus de 1360 px la colonne fait 382 px et rien ne dépasse ; en dessous, la formule revient à la
-   ligne au lieu d être rognée. Mesuré : 3 coupées → 0, +41 px de haut, page inchangée. */
-@media (max-width: 1359px) {
-  .math-row .module-formula { white-space: normal; overflow: visible; text-overflow: clip; }
+  /* ⚠️ 25/09/2026 — UNE FORMULE COUPÉE N EST PAS UNE FORMULE. Ce bloc était en nowrap + ellipsis :
+     il ROGNAIT. On l a d abord vu à 1200 px le 24/09, et la cause n était pas la grille mais la config
+     optimale devenue active au chargement — les normes affichent enfin leurs VALEURS (« 12/12 active »,
+     « T=1.00 ») au lieu d un tiret, et cette colonne pousse la formule. La page coupait donc déjà ses
+     formules dès qu elle avait quelque chose à dire ; personne ne l avait vu parce qu elle n avait
+     jamais rien à dire au chargement. Réparé d abord sous 1360 px seulement ; depuis que la colonne des
+     maths rétrécit aussi (le JEU reprend la place), la formule revient à la ligne EN PERMANENCE. */
+  white-space: normal;
+  overflow: visible;
 }
 .math-row .module-norm {
   font-family: var(--mono);
@@ -8495,6 +8504,10 @@ function ui_renderGame() {
     html += `<span class="letter-slot ${revealed ? 'revealed' : ''}">${ch}</span>`;
   }
   document.getElementById('word-display').innerHTML = html;
+  /* ⭐ 25/09/2026 — le mot reste ENTIER : on resserre les lettres plutôt que de le couper. */
+  const _wdEl = document.getElementById('word-display');
+  _wdEl.classList.toggle('mot-long', wlen >= 13 && wlen < 17);
+  _wdEl.classList.toggle('mot-tres-long', wlen >= 17);
 
   // Tried letters
   const tried = [];

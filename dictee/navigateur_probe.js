@@ -1108,6 +1108,38 @@ async function main() {
           echecs.push('pendu : la grille fait ' + gr.lignes + ' ligne(s) à ' + larg + ' px au lieu de '
             + lignesAttendues + " — les quatre panneaux ne tiennent plus côte à côte, le vide revient");
       }
+      /* ⑤ LE MOT NE SE COUPE PAS (25/09/2026, rapport de Rem : « le mot est coupé dans le pendu,
+         c est visuellement pas fou »). C était MOI : en rétrécissant la colonne du jeu de 447 à 280 px
+         pour combler le vide, la zone du mot tombait à 239 px et seul un mot de SEPT lettres y tenait
+         sur une ligne — or le tirage du jeu va de 7 à 15. Presque chaque partie affichait donc un mot
+         brisé en deux ou trois morceaux ; pour un lecteur dys, un mot brisé n est plus un mot.
+         On vérifie à 1440 px, de 7 à 19 lettres, que les lettres sont toutes sur la MÊME ligne — le
+         remède étant de RESSERRER les lettres, jamais de passer à la ligne. */
+      await sess3.envoyer('Emulation.setDeviceMetricsOverride',
+        { width: 1440, height: 950, deviceScaleFactor: 1, mobile: false });
+      await attendre(500);
+      const MOTS = ['FENETRE', 'MONTAGNE', 'ORDINATEUR', 'ANNIVERSAIRE', 'EXTRAORDINAIRE',
+        'CIRCONSTANCIELLE', 'ANTICONSTITUTIONNEL'];
+      for (const mot of MOTS) {
+        const rm = await sess3.envoyer('Runtime.evaluate', { awaitPromise: true, returnByValue: true,
+          expression: `(async () => {
+            document.getElementById('input-word').value = ${JSON.stringify(mot)};
+            ui_startGame();
+            await new Promise(r => setTimeout(r, 400));
+            const wd = document.getElementById('word-display');
+            const s = [...wd.querySelectorAll('.letter-slot')];
+            return { lettres: s.length,
+              lignes: new Set(s.map(x => Math.round(x.getBoundingClientRect().top))).size };
+          })()` });
+        const vm = (rm.result || {}).value || {};
+        if (vm.lignes !== 1)
+          echecs.push('pendu : le mot « ' + mot + ' » (' + mot.length + ' lettres) s affiche sur '
+            + vm.lignes + " ligne(s) — un mot brisé n est plus un mot");
+        else if (vm.lettres !== mot.length)
+          echecs.push('pendu : « ' + mot + ' » affiche ' + vm.lettres + ' cases pour ' + mot.length + ' lettres');
+      }
+      log('  ✓ ✏️ pendu : le mot tient sur UNE ligne de ' + MOTS[0].length + ' à '
+          + MOTS[MOTS.length - 1].length + ' lettres (les lettres se resserrent, le mot ne se coupe pas)');
       await sess3.envoyer('Emulation.clearDeviceMetricsOverride', {});
       log('  ✓ 🎯 pendu : config optimale active au chargement (' + vu.actifs + '/' + vu.total
           + ' réglages), ' + ACTIONS.length + ' actions et ' + CHAMPS.length + ' champs tous présents');
