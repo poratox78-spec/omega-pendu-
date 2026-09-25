@@ -23,7 +23,13 @@
          époque l accueil était déjà une page de présentation, jamais le jeu. Le menu promettait donc le
          pendu et livrait l accueil depuis le début. Chemin ABSOLU : le menu est injecté sur des pages de
          profondeurs différentes (/en/…), un chemin relatif s y résoudrait ailleurs. */
-      ['/app/omega-pendu.html', 'Le pendu'],
+      /* ⚠️ 25/09/2026, deux heures après la correction précédente : SANS « .html ». Vérifié EN LIGNE,
+         « /app/omega-pendu.html » répond 308 vers « /app/omega-pendu » (Cloudflare Pages retire l extension).
+         Mettre l URL avec extension dans le MENU, c est un aller-retour sur CHAQUE page du site, et c est
+         la catégorie « Page avec redirection » qui compte déjà 30 pages à la Search Console. Sans extension :
+         200 direct, mesuré (14,0 Mo en FR, 4,3 Mo en EN). La règle ④ de sitemap_probe existe pour ça ;
+         elle exemptait l app, mais sa RAISON vaut ici plus qu ailleurs. */
+      ['/app/omega-pendu', 'Le pendu'],
       ['scrabidon', 'Scrabidon'],
       ['pendable', 'Pendable'],
       ['double-sens', 'Double-Sens'],
@@ -69,7 +75,7 @@
       ['decompose-outil', 'Decompose'],
     ]],
     ['Play', [
-      ['/app/omega-pendu-en.html', 'The Hangman'],   // même défaut côté anglais, même correction
+      ['/app/omega-pendu-en', 'The Hangman'],   // même défaut côté anglais, même correction : 200 direct au lieu d un 308
     ]],
     ['Research', [
       ['recherche', 'Research'],
