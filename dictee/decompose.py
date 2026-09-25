@@ -40,6 +40,7 @@ if not os.path.exists(TABLES_PATH):
 _T = json.load(open(TABLES_PATH, encoding='utf-8'))
 VOW, NASAL, DBL = _T['VOW'], set(_T['NASAL']), set(_T['DBL'])
 COND, ENTSIL = _T['COND'], set(_T['ENTSIL'])
+RFIN = set(_T.get('RFIN') or [])                     # -er au r prononcé (extrait de l'app)
 # SEG du moteur (43) ENRICHI de 8 segments mesurés net-positifs en held-out (+2.23 pts d'exactitude ;
 # 'ti'→/sj/ seul vaut +1.4). Le moteur pendu garde SON SEG intact (R66) ; seul le décomposeur l'étend.
 # 'ion','ue','oui'… ont été TESTÉS et ÉCARTÉS (ils dégradent) — cf. build_g2p_corrections.py / DECOMPOSE.md.
@@ -169,12 +170,24 @@ def g2p(word, accents=True, seg=None):
             ph, h = 'z', 0.10                            # s intervocalique → /z/ (maison, rose)
         elif g == 'x' and prev in VOW and nxt in VOW:
             ph, h = 'ɡz', 0.15                           # x intervocalique → /gz/ (examen)
+        elif g == 'r' and nxt == '#' and prev != 'e':
+            # ⭐ 25/09/2026 — LE « R » FINAL N EST PAS MUET (miroir app, rapport de Rem). COND est
+            # indexée sur le SUIVANT : en fin de mot elle ne voyait que « # » et tranchait MUET avec
+            # h=0,85, son hésitation la plus haute. Ce « # » mélange les infinitifs en -er (muets) et
+            # tout le reste (prononcé). La table APPRISE avait refusé de trancher : g2p_corrections.json
+            # a une entrée « r+suivant » pour 29 lettres et AUCUNE pour « # » (sous le seuil de pureté).
+            # Mesuré : 72,9 % → 97,8 % justes sur 7 263 mots, un seul « cassé » (gold fautif).
+            ph, h = 'ʁ', 0.05
         steps.append({'g': g, 'ph': ph, 'h': max(0.0, h)})
         i += len(g)
     if w in ENTSIL and w.endswith('ent'):                # -ent muet (verbe) : POS lève /ɑ̃/ vs ∅
         for k in range(len(steps) - 1, -1, -1):
             if steps[k]['g'] == 'en':
                 steps[k]['ph'], steps[k]['h'] = '∅', 0.02; break
+    if w in RFIN:                                    # ⭐ -er au r PRONONCÉ (liste fermée, miroir app)
+        for k in range(len(steps) - 1, -1, -1):
+            if steps[k]['g'] == 'r':
+                steps[k]['ph'], steps[k]['h'] = 'ʁ', 0.05; break
     return steps
 
 def sublexical_phon(word, accents=True, correct=True, seg=None):
