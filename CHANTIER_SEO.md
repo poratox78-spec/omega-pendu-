@@ -270,6 +270,15 @@ de le dire, on lira le tableau à l'envers dans un mois.
 
 #### Lot C — la famille pendu, honnêtement
 
+> ✅ **TRANCHÉ PAR REM, 24/09/2026 : « si ça fait du clic on garde »**, et « **sans triche** » reste dit.
+> Ce n’est pas une formule : le moteur **trichait vraiment** — les routes assemblée et muette lisaient le
+> SON du mot caché. Le rendre cheat-free a été, dans les mots de Rem, « une galère infinie » : il a fallu
+> traquer les failles une par une, et le coût a été mesuré puis assumé (in-lexique 100 → 94-99 %,
+> hors-lexique 39 → 26 %). C’est donc une revendication CHÈREMENT PAYÉE, pas un argument : on la dit.
+> La page répond à l’intention « solveur / triche pendu » — la seule famille qui a du volume, et la
+> seule qui apporte des clics aujourd’hui (2 sur 95 impressions) — en annonçant ce que le moteur fait
+> vraiment : **il devine, il ne lit pas le mot**.
+
 1. **Trancher le mot « triche »** (décision de Rem, pas la mienne) : soit une page qui répond à
    l'intention sans mentir — *« Solveur de pendu : il devine, il ne triche pas »*, avec le solveur
    réellement utilisable en haut de page — soit on laisse ces requêtes partir.
@@ -328,7 +337,14 @@ Dys** est téléchargeable sur `/donnees` — la page que Rem a tenu à garder a
 Le trou n'est donc pas un trou de produit, c'est un trou de FORMULATION : `/donnees` s'annonce
 « Lexiques français ouverts & POS-tagger » (pour développeurs), et la police de son est une
 *option* à l'intérieur du correcteur. **Aucune page ne dit : « colle ton texte, il ressort avec les
-syllabes en couleur et les lettres muettes grisées ».**
+syllabes et les lettres muettes EN COULEUR ».**
+
+> ⚠️ **24/09/2026 — correction de Rem : « grise c’était avant ».** J’avais écrit « lettres muettes
+> grisées ». C’est la formulation des CONCURRENTS, et c’est ce qu’OMEGA faisait autrefois. Vérifié
+> dans le produit : la lettre muette est en `#a34700` (brun-vermillon ; `#f0a04b` en sombre) et la
+> syllabe en `#0072b2`. **Rien n’est grisé, tout est coloré.** La page à écrire doit donc dire
+> « en couleur » — promettre du gris et livrer du vermillon serait exactement la promesse fausse
+> qu’on traque partout ailleurs sur ce site.
 
 C'est la page la plus prometteuse à écrire de tout ce document : la demande est démontrée, les
 outils y rangent, et il n'y a rien à construire — seulement à nommer.
