@@ -15,6 +15,7 @@
       ['dictee', 'La dictée'],
       ['saisie-vocale', 'Saisie vocale'],
       ['calcul', 'Poser un calcul'],
+      ['police-de-son', 'Police de son'],
     ]],
     ['Jeux', [
       /* ⚠️ 25/09/2026 — CETTE ENTRÉE MENAIT À L ACCUEIL. Rapport de Rem : « quand je clique sur le pendu
