@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mot difficile au pendu, de 3 à 15 lettres | OMEGA</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/mot-difficile-pendu"><meta property="og:site_name" content="OMEGA Pendu">
+<meta property="og:title" content="Mot difficile au pendu — choisis le nombre de lettres | OMEGA-Ω"><meta property="og:description" content="Choisis une longueur : les mots les plus durs du français sortent, avec le nombre de lettres qu'ils font perdre à celui qui joue au plus fréquent.">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Mot difficile au pendu — par nombre de lettres | OMEGA-Ω"><meta name="twitter:description" content="Les mots les plus durs du français, mesurés et non recopiés d'une liste.">
+<meta name="description" content="Choisis un nombre de lettres : les mots les plus durs du français sortent, avec ce qu'ils coûtent à celui qui joue les lettres les plus fréquentes.">
+<link rel="canonical" href="https://omegapendu.com/mot-difficile-pendu">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
+<style>
+  main.mdp{max-width:var(--maxw);margin:0 auto;padding:18px 18px 48px}
+
+  /* ── L'OUTIL EN HAUT, comme pour le solveur : la requête est « donne-moi un mot dur de N
+     lettres », pas « explique-moi ». Toute la prose est dessous. */
+  .mdp-lgr{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+  .mdp-lgr button{font:inherit;font-size:1.05em;min-width:2.6em;padding:9px 10px;border-radius:9px;
+    border:1px solid var(--line);background:var(--bg-2);color:var(--fg);cursor:pointer}
+  .mdp-lgr button:hover{border-color:var(--accent)}
+  .mdp-lgr button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#0d1117;font-weight:600}
+  .mdp-opt{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:12px 0;font-size:.94em}
+  .mdp-opt label{display:inline-flex;align-items:center;gap:6px}
+
+  .mdp-rep{margin:16px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2)}
+  .mdp-rep:empty{display:none}
+  .mdp-liste{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+  .mdp-mot{display:inline-flex;align-items:baseline;gap:7px;padding:6px 10px;border-radius:7px;
+    background:var(--bg);border:1px solid var(--line);letter-spacing:.08em;font-size:1.05em}
+  .mdp-mot i{font-style:normal;font-size:.8em;color:var(--fg-2);letter-spacing:0}
+  .mdp-etat{color:var(--fg-2);font-size:.92em;margin:0}
+  .mdp-rien{border-left:3px solid #e8920c;background:rgba(232,146,12,.08);padding:10px 12px;border-radius:6px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="mot-difficile-pendu" aria-current="page">Mot difficile</a>
+    <a href="pendable">Pendable, le jeu du pendu</a>
+    <a href="solveur-pendu">Solveur de pendu</a>
+    <a href="correcteur">Le correcteur</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+
+<main class="mdp">
+  <h1>Mot difficile au pendu</h1>
+
+  <p class="note">Choisis un nombre de lettres.</p>
+
+  <div class="mdp-lgr" id="mdp-lgr" role="group" aria-label="Nombre de lettres"></div>
+
+  <div class="mdp-opt">
+    <label><input type="checkbox" id="mdp-etr"> Garder les mots à <strong>W</strong> et <strong>K</strong></label>
+    <span class="mdp-etat">(surtout des mots venus d'ailleurs et des noms propres)</span>
+  </div>
+
+  <div id="mdp-rep" class="mdp-rep" aria-live="polite"></div>
+
+  <h2>Ce que « difficile » veut dire ici</h2>
+
+  <p>Le chiffre à côté de chaque mot est le nombre de lettres qu'il fait <strong>perdre</strong> à
+  quelqu'un qui joue l'alphabet dans l'ordre de fréquence du français — E, S, A, I, T, N… — jusqu'à
+  tout découvrir. <em>PIZZA</em> en coûte vingt : il faut descendre jusqu'au Z, et presque rien de ce
+  qu'on a essayé en chemin n'était dedans. Avec six vies, c'est perdu d'avance.</p>
+
+  <p>Ce n'est donc pas une liste recopiée&nbsp;: c'est une <strong>mesure</strong>, refaite sur chaque
+  mot du lexique. Un mot rare n'est pas forcément dur — <em>quiche</em> est court et commun, et il
+  coûte cher. Un mot savant n'est pas forcément dur non plus&nbsp;: <em>existentielles</em> fait
+  quatorze lettres et se laisse deviner, parce qu'il est presque entièrement fait de lettres
+  fréquentes.</p>
+
+  <h2>Comment la liste est bâtie</h2>
+
+  <p>Les mots viennent du <a href="donnees">lexique français qu'on publie</a>, sous licence LGPL-LR.
+  Pour chaque longueur, on ne garde que les <strong>2 500 mots les plus courants</strong>&nbsp;: un mot
+  que personne ne connaît n'est pas un mot difficile, c'est un mot injouable. On écarte ensuite les
+  <a href="donnees">prénoms</a> — 8 729 d'entre eux — et on limite à trois les mots qui finissent
+  pareil, sinon la liste ne serait qu'une suite de verbes en <i>-ez</i>.</p>
+
+  <p>Par défaut, les mots contenant un <strong>W</strong> ou un <strong>K</strong> sont écartés. Ce
+  n'est pas un jugement sur la langue&nbsp;: ces deux lettres n'apparaissent presque qu'en mots
+  d'emprunt et en noms propres, et notre lexique ne sait pas les distinguer d'un nom commun. Sans ce
+  filtre, la liste se remplit de <i>Tupperware</i> et de <i>Stewart</i>. La case au-dessus les rend
+  si tu les veux&nbsp;: ils sont, eux, redoutables.</p>
+
+  <p>Il reste une limite qu'on préfère dire que masquer&nbsp;: la fréquence est comptée sur du
+  français réellement écrit et parlé, sous-titres compris, et le lexique n'étiquette pas les noms
+  propres autrement que les noms communs. Un nom de marque ou de personne peut donc apparaître
+  haut dans la liste. Le chiffre à côté reste juste — c'est bien ce que ce mot coûterait — mais
+  c'est à toi de juger s'il est jouable. Une liste noire écrite à la main réglerait le cas du jour
+  et aucun autre&nbsp;; on ne l'écrit pas.</p>
+
+  <h2>Et après</h2>
+
+  <p>Pour jouer tout de suite, <a href="pendable">Pendable</a> tire ses grilles avec la même mesure,
+  calibrée pour te laisser gagner neuf fois sur dix, trois fois sur quatre ou une sur deux, selon le
+  niveau. Si tu es de l'autre côté — bloqué sur une grille — le <a href="solveur-pendu">solveur de
+  pendu</a> liste les mots qui collent à ce que tu vois et dit quelle lettre tenter.</p>
+
+  <p>Et si la machine t'intéresse plus que le jeu&nbsp;: le <a href="app/omega-pendu">pendu
+  cognitif</a> devine sans tricher — sans jamais lire le mot caché ni la liste des mots possibles.</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var LGR = document.getElementById('mdp-lgr');
+  var ETR = document.getElementById('mdp-etr');
+  var REP = document.getElementById('mdp-rep');
+
+  var MIN = 3, MAX = 15, COMBIEN = 24;
+  var FAMILIERS = 2500;          /* on ne cherche que parmi les plus courants de cette longueur */
+  var PAR_FIN = 3;               /* au plus 3 mots partageant les deux dernières lettres */
+
+  /* La même table de fréquence que le jeu : ce qui est mesuré ici doit l'être là-bas. */
+  var FREQ = {E:14.7,A:7.6,I:7.5,S:7.9,N:7.1,R:6.6,T:7.2,O:5.4,L:5.5,U:6.3,D:3.7,C:3.3,P:3.0,
+              M:3.0,V:1.6,Q:1.4,F:1.1,B:0.9,G:0.9,H:0.7,J:0.5,X:0.4,Y:0.3,Z:0.1,K:0.05,W:0.04};
+  var RANG = {};
+  Object.keys(FREQ).sort(function (a, b) { return FREQ[b] - FREQ[a]; })
+    .forEach(function (l, i) { RANG[l] = i; });
+
+  var seaux = {}, prenoms = null, choisie = 0, jeton = 0;
+
+  /* ce qu'un joueur qui descend l'ordre de fréquence PERD avant de tout découvrir */
+  function manques(mot) {
+    var vues = {}, n = 0, max = 0;
+    for (var i = 0; i < mot.length; i++) {
+      var L = mot[i];
+      if (!vues[L]) { vues[L] = 1; n++; if (RANG[L] > max) max = RANG[L]; }
+    }
+    return max + 1 - n;
+  }
+
+  function texteGz(url) {
+    if (typeof DecompressionStream !== 'function') return Promise.reject(new Error('nav'));
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text();
+    });
+  }
+
+  function lesPrenoms() {
+    if (prenoms) return Promise.resolve(prenoms);
+    /* la liste que le site publie déjà — aucune donnée nouvelle */
+    return texteGz('extension/assets/prenoms.tsv.gz').then(function (t) {
+      prenoms = {};
+      t.split('\n').forEach(function (l) {
+        var p = l.split('\t')[0];
+        if (p) prenoms[p.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase()] = 1;
+      });
+      return prenoms;
+    }).catch(function () { prenoms = {}; return prenoms; });   /* sans eux, on continue */
+  }
+
+  function leSeau(n) {
+    if (seaux[n]) return Promise.resolve(seaux[n]);
+    return texteGz('solveur/mots-' + n + '.txt.gz').then(function (t) {
+      seaux[n] = t.split('\n'); return seaux[n];
+    });
+  }
+
+  function rendre() {
+    var n = choisie, moi = ++jeton;
+    if (!n) { REP.textContent = ''; return; }
+    REP.innerHTML = '<p class="mdp-etat">Recherche…</p>';
+    Promise.all([leSeau(n), lesPrenoms()]).then(function (r) {
+      if (moi !== jeton) return;
+      var mots = r[0], pren = r[1], garderWK = ETR.checked;
+      var cand = [];
+      for (var i = 0; i < mots.length && i < FAMILIERS; i++) {
+        var w = mots[i];
+        if (w.length !== n || pren[w]) continue;
+        if (!garderWK && (w.indexOf('W') >= 0 || w.indexOf('K') >= 0)) continue;
+        cand.push([manques(w), w]);
+      }
+      cand.sort(function (a, b) { return b[0] - a[0] || (a[1] < b[1] ? -1 : 1); });
+
+      var fins = {}, sortie = [];
+      for (var k = 0; k < cand.length && sortie.length < COMBIEN; k++) {
+        var fin = cand[k][1].slice(-2);
+        if ((fins[fin] || 0) >= PAR_FIN) continue;
+        fins[fin] = (fins[fin] || 0) + 1;
+        sortie.push(cand[k]);
+      }
+      if (!sortie.length) {
+        REP.innerHTML = '<p class="mdp-rien">Aucun mot de ' + n + ' lettres ne reste après les filtres. '
+          + 'Coche la case au-dessus pour garder les mots à W et K.</p>';
+        return;
+      }
+      var h = '<p class="mdp-etat">' + sortie.length + ' mots de ' + n + ' lettres, du plus dur au moins dur '
+        + '— le chiffre est le nombre de lettres perdues par qui joue au plus fréquent :</p><p class="mdp-liste">';
+      sortie.forEach(function (x) {
+        h += '<span class="mdp-mot">' + x[1] + ' <i>' + x[0] + '</i></span>';
+      });
+      REP.innerHTML = h + '</p>';
+    }).catch(function (e) {
+      if (moi !== jeton) return;
+      REP.innerHTML = '<p class="mdp-rien">' + (e && e.message === 'nav'
+        ? 'Ton navigateur ne sait pas décompresser le lexique. Essaie une version plus récente de Chrome, Firefox ou Safari.'
+        : 'Le lexique n’a pas pu être chargé. Recharge la page.') + '</p>';
+    });
+  }
+
+  for (var n = MIN; n <= MAX; n++) {
+    (function (n) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = n; b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () {
+        choisie = n;
+        [].forEach.call(LGR.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        rendre();
+      });
+      LGR.appendChild(b);
+    })(n);
+  }
+  ETR.addEventListener('change', rendre);
+})();
+</script>
+</body>
+</html>
