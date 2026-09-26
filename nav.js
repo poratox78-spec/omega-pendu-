@@ -38,6 +38,7 @@
          « Pendable » était le pendu. Les deux entrées disent maintenant ce qu’elles sont. */
       ['/app/omega-pendu', 'Le pendu cognitif'],
       ['solveur-pendu', 'Solveur de pendu'],
+      ['mot-difficile-pendu', 'Mot difficile au pendu'],
       ['scrabidon', 'Scrabidon'],
       ['pendable', 'Pendable, le jeu du pendu'],
       ['double-sens', 'Double-Sens'],

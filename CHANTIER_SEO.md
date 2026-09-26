@@ -370,6 +370,48 @@ une requête où Google ne montre que des comparatifs est du temps perdu : c'est
 | **mot difficile pendu 10 lettres** | mot-pendu.com, jeudupendu.com (« 10 000 mots durs par nombre de lettres »), idees-gages, le-jeu-du-pendu, Reddit, un *gist* GitHub — **que des listes de mots** | **OUVERTE, et la concurrence est mince** |
 | correcteur orthographe dyslexie gratuit | comparatifs tiers uniquement | **FERMÉE** (constat ④) |
 
+> ✅ **RELEVÉ REFAIT LE 26/09/2026** (dans le navigateur de Rem — Google sert une page
+> anti-robot au navigateur intégré, et on ne résout pas de CAPTCHA). **Les trois intentions
+> restent ouvertes, et aucun Aperçu IA ne mange la réponse.**
+>
+> | intention | page 1 le 26/09 | verdict |
+> |---|---|---|
+> | mot difficile pendu 10 lettres | mot-pendu.com, jeudupendu.com (« Top 10 000 mots durs »), idees-gages, Reddit, un *gist* GitHub — **des listes**, plus un générateur à choix de longueur | **ouverte**, concurrence mince |
+> | transformer un texte pour dyslexique en ligne | **LireCouleur #1**, **Dysfacile #3**, **Le Cartable Fantastique #7** — des OUTILS | **ouverte** |
+> | mettre un texte en couleur pour dyslexique | **LireCouleur #1, Coloritext #2**, Colorization — des OUTILS | **ouverte** |
+>
+> Coloritext, deuxième, se décrit ainsi : *« colore automatiquement lettres, digrammes et
+> **lettres muettes** »*. C’est mot pour mot ce que fait `/police-de-son`.
+
+> ✅ **LOT D FAIT le 26/09/2026.**
+>
+> **① `/police-de-son` reformulée.** Mesure avant : sur 490 mots visibles, « dyslex » apparaissait
+> **une** fois, « adapter » **zéro**, « transformer » **zéro**, « en ligne » **zéro** — et le titre
+> annonçait « Police de son », notre jargon, que personne ne tape. Le trou était bien un trou de
+> **formulation**, comme ce document l’avait prévu. Titre → *« Mettre un texte en couleur pour
+> dyslexique »* (50 c.), H1 qui garde le nom du menu, et une section *« Transformer un texte pour
+> un lecteur dyslexique »*. 490 → 600 mots. Rien n’est bourré : chaque phrase sert le lecteur.
+>
+> **② `/mot-difficile-pendu` écrite** — **une seule** page-outil avec un choix de longueur, comme
+> ce document l’exige (surtout pas huit pages gabarit). Elle s’adosse au lexique du solveur, déjà
+> rangé par longueur : rien de neuf n’entre dans le projet. Réponse en **113 ms**.
+>
+> « Difficile » y est une **mesure**, pas une étiquette : le nombre de lettres qu’un mot fait
+> perdre à qui joue l’alphabet dans l’ordre de fréquence du français — la même table que le jeu.
+> PIZZA coûte 20, EXISTENTIELLES 15 malgré ses quatorze lettres.
+>
+> ⚠️ **Quatre recettes essayées avant de garder la bonne.** Le classement brut sortait TWEETEE,
+> AKAWAIO, DEWATTATES — exactement le travers des concurrents. Il a fallu : ne chercher que parmi
+> les 2 500 mots les plus courants de chaque longueur, écarter les 8 729 prénoms qu’on publie
+> déjà, limiter à trois les mots finissant pareil (sinon la liste n’est qu’une suite de verbes en
+> *-ez*), et écarter par défaut les mots à **W** ou **K** — deux lettres qui n’apparaissent
+> presque qu’en emprunts et en noms propres, que le lexique ne sait pas distinguer.
+>
+> ⚠️ **Limite dite sur la page**, pas masquée : la fréquence est comptée sur du français réel
+> (sous-titres compris) et les noms propres portent la même étiquette que les noms communs. Un
+> nom de marque peut donc monter haut. Le chiffre reste juste ; le lecteur juge. Une liste noire
+> écrite à la main réglerait le cas du jour et aucun autre : on ne l’écrit pas.
+
 #### 🎯 Et le plus important : **le produit existe déjà, la page manque**
 
 Ce que font LireCouleur et Coloritext, qui occupent les deux premières places : *colorer les
