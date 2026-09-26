@@ -270,6 +270,14 @@ de le dire, on lira le tableau à l'envers dans un mois.
 
 #### Lot C — la famille pendu, honnêtement
 
+> ✅ **FAIT le 26/09/2026.** ① et ③ : `/solveur-pendu` est en ligne — l’outil en haut, sans
+> préambule, réponse en **112 ms** dans le pire cas (onze cases vides, 98 345 mots). Le mot
+> « triche » est dit des deux côtés sans les confondre : la question est posée au joueur pour
+> l’outil, et le moteur garde son « sans tricher » avec son prix publié (100 → 94-99 %
+> in-lexique, 39 → 26 % hors-lexique). ② : `/pendable` étoffée, 218 → 697 mots (#800).
+> **À relire à J+28** : la position de `/pendable` (13,9) et le CTR de la famille
+> solveur/triche (2 clics sur 140 impressions, positions 4,7 à 6,0).
+
 > ✅ **TRANCHÉ PAR REM, 24/09/2026 : « si ça fait du clic on garde »**, et « **sans triche** » reste dit.
 > Ce n’est pas une formule : le moteur **trichait vraiment** — les routes assemblée et muette lisaient le
 > SON du mot caché. Le rendre cheat-free a été, dans les mots de Rem, « une galère infinie » : il a fallu
