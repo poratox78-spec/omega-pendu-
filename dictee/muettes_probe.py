@@ -150,8 +150,28 @@ def main():
               ' formes conjuguées a-t-elle été débranchée ?' % (pct_e, PLANCHER_ENT, bons_e, len(ent_muet)))
         return 1
 
+    # ④ LE « c » ET LE « g » FINAUX (26/09/2026). Le défaut de la table était à l ENVERS : muet pour
+    # tous, alors que 141 des 163 « c » finaux se prononcent (87 % faux) et 116 des 139 « g » (77 %).
+    # Défaut renversé, muets en liste fermée. On garde les deux sens.
+    for lettre, sons, pron_ex, muet_ex in [
+            ('c', ('k', 'g'), ['roc', 'tac', 'chic', 'plouc', 'bec', 'sac'],
+             ['tabac', 'banc', 'tronc', 'blanc', 'porc', 'marc']),
+            ('g', ('g', 'G', 'nj', 'J'), ['lemming', 'zigzag', 'drag', 'blog'],
+             ['bourg', 'poing', 'long', 'sang', 'étang'])]:
+        for w in pron_ex:
+            st = D.g2p(w)
+            if st and st[-1]['g'] == lettre and ((not st[-1]['ph']) or st[-1]['ph'] in ('∅', '')):
+                print('✗ MUETTES : le « %s » final de « %s » est donné MUET (il se prononce)' % (lettre, w))
+                return 1
+        for w in muet_ex:
+            st = D.g2p(w)
+            if st and st[-1]['g'] == lettre and st[-1]['ph'] and st[-1]['ph'] not in ('∅', ''):
+                print('✗ MUETTES : le « %s » final de « %s » n est plus muet — la liste fermée a-t-elle sauté ?'
+                      % (lettre, w))
+                return 1
+
     log('✓ muettes : r final — %d mots mesurés, %.2f %% justes, AUCUN muet à tort ; '
-        'e de les/des/mes prononcé ; -ent verbal muet à %.1f %% sur %d mots, 0 faux positif '
+        'e de les/des/mes prononcé ; c/g finaux dans les deux sens ; -ent verbal muet à %.1f %% sur %d mots, 0 faux positif '
         '(le gold seul reste fautif sur %s).'
         % (tot, pct, pct_e, len(ent_muet), ', '.join(sorted(GOLD_FAUTIF))))
     return 0
