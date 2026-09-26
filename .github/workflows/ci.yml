@@ -242,6 +242,12 @@ jobs:
       # « Privacy » et « Data » — les pages qui attestent la promesse « nothing is sent ».
       - name: SITE — toutes les pages sont atteignables depuis leur accueil (FR + EN)
         run: node dictee/pages_atteignables_probe.js
+      # Le défaut rapporté par Rem le 25/09 (« je clique sur le pendu, j'arrive sur le main ») avait
+      # été corrigé dans nav.js seulement. Le 26/09 : 34 liens de la barre de REPLI (celle que voit un
+      # visiteur sans JavaScript), sur 24 pages et dans les deux langues, promettaient encore le pendu
+      # et livraient l'accueil. Les noms de pages sont relevés dans nav.js et les h1, jamais recopiés.
+      - name: SITE — une barre de navigation ne promet pas une page pour en livrer une autre
+        run: node dictee/menu_promesse_probe.js --check
       # Né d'un échec RÉEL : Search Console « Page avec redirection », validation lancée le 13/08/2026
       # et ÉCHOUÉE le 15/08. Quatre pages étaient liées depuis le menu mais ABSENTES du sitemap, et
       # rien ne le disait. Symétrique : une page « noindex » déclarée au sitemap est un signal

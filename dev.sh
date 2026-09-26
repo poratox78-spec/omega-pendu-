@@ -160,6 +160,12 @@ run "EN dictée : 300 phrases au lexique, sans marque du correcteur, focus prés
 # Saisie vocale anglaise (18/09/2026) : fonctions EXTRAITES de la page livrée, audio synthétique aux silences connus, mesures sur PUD committé.
 run "EN saisie vocale : commandes, mot de tête, question, ponctuation par silences, actifs du correcteur, promesse" node dictee/voix_en_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
+# Rem, 25/09/2026 : « quand je clique sur le pendu dans le menu j'arrive sur le main ». Corrigé le
+# jour même dans nav.js SEULEMENT — or nav.js remplace une barre de repli écrite en dur dans chaque
+# page, celle que voit un visiteur sans JavaScript. Mesuré le 26/09 : 34 liens sur 24 pages (18 FR,
+# 16 EN) disaient encore « Le pendu » / « The Hangman » et menaient à l'accueil. Le bug avait survécu
+# à sa propre correction, dans l'autre moitié du menu.
+run "SITE une barre de navigation ne promet pas une page pour en livrer une autre" node dictee/menu_promesse_probe.js --check
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
 # /pendable raconte sa mécanique, et prose et moteur vivent dans le MÊME fichier. Le 26/09/2026,
 # en étoffant la page (218 → 670 mots), cinq affirmations écrites AVANT lecture du code étaient
