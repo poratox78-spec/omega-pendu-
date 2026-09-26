@@ -27,7 +27,10 @@
   .pds-saisie:focus{outline:2px solid var(--accent);border-color:var(--accent)}
   .pds-regl{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:12px 0}
   .pds-regl label{display:inline-flex;align-items:center;gap:6px;font-size:.92em}
-  .pds-sortie{font-size:1.5em;line-height:2;padding:16px 14px;border:1px solid var(--line);
+  /* ⚠ `pre-wrap` : les retours à la ligne du texte collé étaient bien dans le DOM mais écrasés
+     à l’affichage (la saisie est en pre-wrap, la sortie était en normal). Un poème, une liste ou
+     un exercice perdaient leur mise en lignes — or la page promet que seule l’APPARENCE change. */
+  .pds-sortie{white-space:pre-wrap;font-size:1.5em;line-height:2;padding:16px 14px;border:1px solid var(--line);
     border-radius:10px;background:var(--bg-2);min-height:3em;word-break:break-word}
   .pds-vide{color:var(--fg-2);font-size:.62em;font-style:italic}
 
@@ -35,7 +38,13 @@
      daltonismes courants). Elles sont RECOPIÉES ici et gardées par une sonde : si l'une des deux
      bouge sans l'autre, le banc rougit — une page qui montre d'autres couleurs que le produit
      mentirait sur le produit. */
-  .son-seg{font-size:1.14em}
+  /* ⚠ LA POLICE PORTE LE SON, pas seulement la couleur : voisé en Heavy, sourd en Light.
+     La page ne chargeait AUCUNE police — elle portait le nom de l’outil et n’en rendait que la
+     moitié. Rapport de Rem, 26/09/2026. La table est celle de `police/son_ui.js` et de
+     `extension/son_panel.js`, à l’identique ; une sonde compare désormais les trois. */
+  .son-seg{font-size:1.14em;font-family:'OMEGA Dys',monospace}
+  .son-seg[data-son="voi"]{font-family:'OMEGA Dys Heavy',monospace}
+  .son-seg[data-son="srd"]{font-family:'OMEGA Dys Light',monospace}
   .son-mute{color:#a34700}
   .son-syl{color:#0072b2}
   .son-syl.son-mute{color:#a34700}
@@ -85,10 +94,24 @@
   <div id="pds-out" class="pds-sortie" aria-live="polite"></div>
 
   <p class="pds-legende">
+    <span><b style="font-family:'OMEGA Dys Heavy',monospace">b d g v z j</b> voisées, épaisses</span>
+    <span><b style="font-family:'OMEGA Dys Light',monospace">p t k f s ch</b> sourdes, fines</span>
     <span><b style="color:#0072b2">syl·la·bes</b> alternées</span>
     <span><b style="color:#a34700">lettre muette</b></span>
-    <span>le reste&nbsp;: inchangé</span>
   </p>
+
+  <h2>Ce que l'épaisseur dit</h2>
+
+  <p>C'est de là que vient le nom : la <strong>police</strong> porte le <strong>son</strong>. Une
+  consonne <strong>voisée</strong> — celle qui fait vibrer la gorge, <i>b d g v z j</i> — est dessinée
+  <strong>épaisse</strong> ; une consonne <strong>sourde</strong> — <i>p t k f s ch</i>, le même geste sans
+  la voix — est dessinée <strong>fine</strong>. Pose un doigt sur ta gorge et dis « ssss » puis
+  « zzzz » : c'est exactement cette différence-là que l'œil voit ici.</p>
+
+  <p>Et l'épaisseur suit le <em>son réel</em>, pas la lettre. Dans <i>poison</i> le « s » se prononce
+  /z/ et sort en gras ; dans <i>poisson</i> le « ss » se prononce /s/ et sort en maigre. Même lettre,
+  épaisseur opposée, parce que le mot autour a changé. C'est ce que fait aussi le correcteur et
+  l'extension : le même moteur, le même dessin.</p>
 
   <h2>Ce que la couleur dit</h2>
 
@@ -215,8 +238,13 @@
         var sp = document.createElement('span');
         sp.className = 'son-seg';
         var muet = !sg.ph;
-        if (SYL.checked && idx && (idx[k] % 2 === 0)) sp.className += ' son-syl';
+        /* ⚠️ L'ALTERNANCE SUIT L'EXTENSION : syllabes IMPAIRES. Elle était sur les PAIRES ici, donc
+           « chocolat » se lisait CHOcoLAT sur la page et choCOlat dans l'extension — même découpage,
+           coloration inversée, et deux produits qui se contredisent à l'œil. */
+        if (SYL.checked && idx && (idx[k] % 2 === 1)) sp.className += ' son-syl';
         if (MUTE.checked && muet) sp.className += ' son-mute';
+        /* la classe de son porte la GRAISSE (voi → Heavy, srd → Light), via le CSS ci-dessus */
+        if (sg.cls) sp.setAttribute('data-son', sg.cls);
         sp.textContent = sg.g;
         OUT.appendChild(sp);
       });
@@ -224,6 +252,20 @@
     });
     if (pos < texte.length) OUT.appendChild(document.createTextNode(texte.slice(pos)));
   }
+
+  /* LES TROIS POLICES. Chargées par URL, comme `extension/son_panel.js` (l'app, elle, les
+     embarque en base64 — ici les fichiers sont servis, autant les laisser au cache).
+     ⚠ `weight: '1 1000'` N'EST PAS DÉCORATIF : sans la plage, chaque face n'existe qu'en 400
+     et le navigateur SYNTHÉTISE le gras dès qu'une lettre tombe dans un <b> — le voisement
+     s'INVERSE alors, le Light devenant plus encré que le Heavy (mesuré : 1263 px contre 1242). */
+  [['OMEGA Dys', 'police/OmegaDys-Regular.ttf'],
+   ['OMEGA Dys Light', 'police/OmegaDys-Light.ttf'],
+   ['OMEGA Dys Heavy', 'police/OmegaDys-Heavy.ttf']].forEach(function (p) {
+    try {
+      var f = new FontFace(p[0], 'url(' + p[1] + ')', { weight: '1 1000' });
+      f.load().then(function (ff) { document.fonts.add(ff); rendre(); }).catch(function () {});
+    } catch (e) {}
+  });
 
   IN.addEventListener('input', rendre);
   SYL.addEventListener('change', rendre);

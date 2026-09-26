@@ -157,7 +157,13 @@ if (seg('bateau').filter(x => x.cls === 'voi').length !== 1) fail.push('bateau :
 // donc PLUS ÉPAIS que Heavy (1242) : le signal de voisement s'INVERSE.
 // ⚠️ La largeur ne le voit pas (chasse fixe, 143,17 px des deux côtés) — ne pas « vérifier » par là.
 // Correctif : {weight:'1 1000'} fait matcher la face unique pour tout poids demandé.
-const SOURCES_FONTFACE = ['../app/omega-pendu.html', 'son_ui.js', '../extension/son_panel.js'];
+// ⚠ 26/09/2026 — `police-de-son.html` MANQUAIT À CETTE LISTE, et c'est la page qui porte le nom
+// de l'outil. Rapport de Rem : « c'est pas le même découpage par syllabe et t'as pas utilisé notre
+// police de caractère ». Mesuré : la page ne chargeait AUCUNE police — elle ne rendait que la
+// couleur, soit la moitié de l'outil, et pas celle qui lui donne son nom. La sonde vérifiait la
+// plage de graisse dans l'app, son_ui et l'extension, et se taisait sur la page.
+const SOURCES_FONTFACE = ['../app/omega-pendu.html', 'son_ui.js', '../extension/son_panel.js',
+                          '../police-de-son.html'];
 for (const rel of SOURCES_FONTFACE) {
   const p = path.join(HERE, rel);
   if (!fs.existsSync(p)) { fail.push('FontFace : fichier introuvable ' + rel); continue; }
@@ -170,5 +176,40 @@ for (const rel of SOURCES_FONTFACE) {
   });
 }
 
+// ── LA GRAISSE DIT LE SON : la table doit être LA MÊME partout ───────────────────────────────
+// `voi` → Heavy, `srd` → Light, le reste → Regular. Elle vit en trois exemplaires (son_ui.js,
+// extension/son_panel.js, police-de-son.html) ; si l'un dérive, le même mot se lit autrement d'un
+// produit à l'autre. On les compare au lieu de les croire.
+//
+// ⚠️ ET L'ALTERNANCE DES SYLLABES. Le découpage (`syllableIndex`) est commun, mais la page colorait
+// les syllabes PAIRES quand l'extension colore les IMPAIRES : « chocolat » se lisait CHOcoLAT ici
+// et choCOlat là. Même découpage, coloration inversée — deux produits qui se contredisent à l'œil.
+const TRIO = [
+  ['son_ui.js', /FAM\s*=\s*\{([^}]*)\}/, /seg\.syl\s*%\s*2/],
+  ['../extension/son_panel.js', /FAM\s*=\s*\{([^}]*)\}/, /seg\.syl\s*%\s*2/],
+  ['../police-de-son.html', /data-son="voi"\][^}]*\}[\s\S]{0,160}?data-son="srd"\][^}]*\}/, /idx\[k\]\s*%\s*2\s*===\s*1/],
+];
+for (const [rel, reFam, reAlt] of TRIO) {
+  const p = path.join(HERE, rel);
+  if (!fs.existsSync(p)) { fail.push('graisse : fichier introuvable ' + rel); continue; }
+  const src = fs.readFileSync(p, 'utf8');
+  const mf = src.match(reFam);
+  if (!mf) { fail.push('graisse : la table voisé/sourd est introuvable dans ' + rel); continue; }
+  const t = mf[0];
+  if (!/Heavy/.test(t) || !/Light/.test(t)) {
+    fail.push('graisse : ' + rel + ' ne distingue plus le voisé (Heavy) du sourd (Light)');
+  }
+  /* l'ordre compte : voisé = ÉPAIS, sourd = FIN. L'inverse serait pire que rien. */
+  const iVoi = t.search(/voi/), iSrd = t.search(/srd/);
+  const hVoi = t.slice(iVoi, iSrd > iVoi ? iSrd : undefined);
+  if (iVoi >= 0 && !/Heavy/.test(hVoi)) {
+    fail.push('graisse : dans ' + rel + ' le voisé n\'est plus en Heavy — le signal s\'inverse');
+  }
+  if (!reAlt.test(src)) {
+    fail.push('syllabes : ' + rel + ' ne colore plus les syllabes IMPAIRES — « chocolat » se lirait ' +
+              'CHOcoLAT ici et choCOlat ailleurs');
+  }
+}
+
 if (fail.length) { console.error('PARITÉ SON — ÉCHEC :'); fail.forEach(f => console.error('  ✗ ' + f)); process.exit(1); }
-console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse)');
+console.log('PARITÉ SON — OK (fraîcheur bloc + TTF, clitiques ≡ Python, texte intact, ancres voisé/sourd/muettes, plage de graisse sur 4 sources, table voisé=Heavy/sourd=Light et alternance des syllabes identiques dans son_ui, l\'extension et la page)');
