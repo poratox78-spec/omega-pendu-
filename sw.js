@@ -7,7 +7,7 @@
 // V = numéro + EMPREINTE du contenu du site. NE PAS éditer à la main : `node dictee/sw_probe.js --fix` le régénère,
 // et le même probe ÉCHOUE en CI si le site a changé sans que V suive. (L'ancienne consigne « incrémenter à chaque
 // déploiement » n'a pas tenu : mesuré, V est resté figé pendant 70 commits touchant le site — d'où le cache périmé.)
-const V = 'omega-v260-094aa3d1';
+const V = 'omega-v263-f231a8ea';
 // PRÉCACHE : toutes les PETITES pages du site (~180 Ko) → la navigation marche HORS-LIGNE même vers une page
 // jamais visitée. Chaque entrée passe par la garde anti-redirection (reshape) : sur Cloudflare les .html
 // répondent 308 → l'ancien addAll aurait caché une réponse redirigée = PAGE BLANCHE (audit 07/2026).
@@ -16,7 +16,7 @@ const V = 'omega-v260-094aa3d1';
 // Cloudflare Pages repond 308 sur les `.html` -> Google les classait « Page avec redirection »
 // et les EXCLUAIT de l'index. Ce precache DOIT suivre : precacher `/correcteur.html` quand le
 // visiteur demande `/correcteur` = cache manquant = navigation HORS-LIGNE CASSEE.
-const CORE = ['./', './correcteur', './correcteur-outil', './dictee', './dictee-outil',
+const CORE = ['./', './correcteur', './dictee',
               './saisie-vocale', './calcul', './calc_dys.js', './omega-key', './recherche', './donnees', './confidentialite', './evolution', './site.css', './nav.js', './manifest.json', './icon.svg'];
 
 /* ⭐ REVALIDER = `cache: 'no-cache'` (18/09/2026). Cloudflare sert les .js / .css / .gz / polices avec

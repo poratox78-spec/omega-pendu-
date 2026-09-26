@@ -23,3 +23,15 @@
 # Contexte (rapport Search Console) : www servait un site COMPLET en double (200, redirs=0) →
 # toutes les variantes crawlées. zh/ et arbitrage en noindex = DÉLIBÉRÉ. Les canonical sont
 # déjà posés partout — ils limitent la casse en attendant la règle de zone.
+
+# ── BLOC 3 (26/09/2026) : une seule URL par outil ────────────────────────────────────────
+# Mesuré : /correcteur 54 impressions en position 3,9 et /correcteur-outil 34 en 4,1, sur le
+# MÊME sujet — deux URL qui se partagent le signal. L'outil est passé EN HAUT de /correcteur
+# et de /dictee ; les deux enveloppes plein écran n'ont plus de raison d'être.
+#
+# ⚠️ Le commentaire ci-dessus affirmait depuis le 13/08 que Pages « n'interprète pas » ce
+# fichier, au motif qu'il était « SERVI tel quel en 200 ». Re-mesuré le 26/09 sur le vrai
+# domaine : /_redirects répond 404, /_headers aussi. Pages les CONSOMME. Ce qui ne marchait
+# pas, c'était la source avec HÔTE (www) — pas la règle de CHEMIN.
+/correcteur-outil  /correcteur  301
+/dictee-outil      /dictee      301

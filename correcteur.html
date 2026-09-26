@@ -21,6 +21,24 @@
 <meta name="twitter:title" content="Correcteur dyslexie gratuit qui ne corrige jamais à tort | OMEGA Pendu">
 <meta name="twitter:description" content="Correcteur dys : 0 faux positif sur sa batterie de test, ≈ 3,5 % sur du français réel. Hors-ligne, gratuit.">
 <link rel="stylesheet" href="site.css">
+<style>
+  /* ── L'OUTIL EN HAUT (BLOC 3, 26/09/2026). Styles SCOPÉS : la page d'origine garde sa mise en
+     page, on n'impose pas le `display:flex` sur `body` que faisait la page plein écran. */
+  .outil-bloc{margin:0 0 6px}
+  .outil-note{font:13px var(--sans);color:var(--fg-2);padding:7px 12px;background:var(--bg-2);
+    border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
+  .outil-note strong{color:var(--fg)}
+  .outil-note a{color:var(--accent)}
+  .outil-wrap{position:relative;height:min(72vh,760px);min-height:420px;background:var(--bg);
+    border:1px solid var(--line);border-radius:0 0 10px 10px;overflow:hidden}
+  iframe.outil{width:100%;height:100%;border:0;display:block}
+  .outil-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:16px;background:var(--bg);color:var(--fg-2);font:15px var(--sans);
+    text-align:center;padding:24px}
+  .outil-load .sp{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:outil-spin 1s linear infinite}
+  @keyframes outil-spin{to{transform:rotate(360deg)}}
+</style>
 <meta name="theme-color" content="#0d1117">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico" sizes="any">
@@ -62,11 +80,23 @@
   <h1>Un correcteur qui ne te corrige <em>jamais</em> à tort.</h1>
   <p class="lead">La plupart des correcteurs soulignent du juste — et chez une personne dys, chaque fausse alerte ravive le sentiment d'échec. Ici la règle est inversée&nbsp;: <strong>ne rien signaler tant qu'on n'est pas sûr</strong>. C'est la garde absolue du projet.</p>
   <div class="cta">
-    <a class="btn primary" href="correcteur-outil">✍️ Essayer le correcteur</a>
+    <a class="btn primary" href="#outil">✍️ Essayer le correcteur</a>
     <a class="btn ghost" href="#installer">Installer l'extension</a>
   </div>
   <p class="small">correction 100&nbsp;% sur ton appareil · gratuit · open source · <span class="small">dans l'app, bouton « 🩹 Correcteur »</span></p>
 </div></section>
+<section id="outil"><div class="wrap">
+  <div class="outil-bloc">
+    <div class="outil-note">🩹 <strong>Le correcteur</strong> — colle ou écris ton texte, clique les mots soulignés. Tout reste sur ton appareil.</div>
+    <div class="outil-wrap">
+      <iframe id="outil-cadre" class="outil" src="app/omega-pendu" title="Correcteur OMEGA-Ω" loading="eager"></iframe>
+      <div class="outil-load" id="outil-chargement"><div class="sp"></div><div>Chargement du correcteur…</div>
+        <div style="opacity:.7;font-size:.85em;margin-top:8px">Première visite&nbsp;: une dizaine de secondes, le temps d'installer les lexiques.<br>Ensuite c'est instantané — et ça marche hors-ligne.</div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
 
 <section><div class="wrap">
   <div class="promise">
@@ -178,6 +208,41 @@
   try{if(localStorage.getItem(k))set(true);}catch(e){}
   t.addEventListener('click',function(){set(!b.classList.contains('lisible'));});})();
 if('serviceWorker' in navigator && location.protocol.lastIndexOf('http',0)===0){addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+<script>
+/* Chargeur repris VERBATIM de la page plein écran qu'il remplace : même séquence d'attente du
+   bouton, même feuille injectée dans l'iframe, même repli si l'outil tarde. Seuls les identifiants
+   changent (`outil-*` au lieu de `app`/`loading`), parce que la page hôte a maintenant du contenu
+   autour. */
+(function(){
+  var TOOL='vdc';   // correcteur (vdc) · dictée (vdd) · décompose (vdk)
+  var f=document.getElementById('outil-cadre'), load=document.getElementById('outil-chargement');
+  if(!f||!load) return;
+  function fail(msg){ load.innerHTML='<div>'+(msg||"L'outil tarde à charger.")+'</div><div><a href="app/omega-pendu">Ouvrir l\'application directement →</a></div>'; }
+  f.addEventListener('load', function(){
+    var doc; try{ doc=f.contentDocument||f.contentWindow.document; }catch(e){ fail('Outil non accessible ici.'); return; }
+    var n=0, iv=setInterval(function(){
+      var btn=doc.getElementById(TOOL+'-btn');
+      if(btn){
+        clearInterval(iv);
+        var s=doc.createElement('style');
+        s.textContent='#'+TOOL+'-ov{background:#0d1117!important;align-items:flex-start!important;padding:20px 0!important}'
+          +'#'+TOOL+'-card{width:min(96vw,1080px)!important;max-height:calc(100vh - 40px)!important;margin:0 auto!important}'
+          /* ⚠️ 26/09/2026 — la page plein écran injectait aussi `#vdc-render{min-height:16vh}`.
+             Vérifié dans l'iframe sur le déploiement Cloudflare : CET ÉLÉMENT N'EXISTE PLUS.
+             Il portait la surimpression au-dessus de la zone de frappe, retirée quand l'éditeur
+             est passé en `contenteditable` (6567363) ; la sortie vit dans `#vdc-out`. La règle
+             était donc morte, et recopiée telle quelle depuis des mois. Retirée. */
+          +'#vdc-in{min-height:40vh!important;font-size:19px!important}'
+          +'#vdc-btn,#vdd-btn,#vdk-btn{display:none!important}'
+          +'#'+TOOL+'-x{display:none!important}';
+        doc.head.appendChild(s);
+        try{ btn.click(); }catch(e){}
+        setTimeout(function(){ load.style.display='none'; }, 200);
+      } else if(++n>250){ clearInterval(iv); fail(); }
+    }, 80);
+  });
+})();
 </script>
 </body>
 </html>
