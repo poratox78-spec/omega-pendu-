@@ -30,10 +30,16 @@
          la catégorie « Page avec redirection » qui compte déjà 30 pages à la Search Console. Sans extension :
          200 direct, mesuré (14,0 Mo en FR, 4,3 Mo en EN). La règle ④ de sitemap_probe existe pour ça ;
          elle exemptait l app, mais sa RAISON vaut ici plus qu ailleurs. */
-      ['/app/omega-pendu', 'Le pendu'],
+      /* ⚠ 26/09/2026 — L’ÉTIQUETTE PROMETTAIT UN JEU ET LIVRAIT UN BANC D’ESSAI. Le 25/09 on avait
+         corrigé la DESTINATION de cette entrée (elle menait à l’accueil) ; le LIBELLÉ, lui, disait
+         toujours « Le pendu ». Or le h1 de la page est « architecture cognitive du pendu français —
+         cognition > oracle », et ses titres parlent de smoke tests et de bench R1. Qui cherche à jouer
+         cliquait là et tombait dans un laboratoire ; qui cherche le jeu ne devinait pas que
+         « Pendable » était le pendu. Les deux entrées disent maintenant ce qu’elles sont. */
+      ['/app/omega-pendu', 'Le pendu cognitif'],
       ['solveur-pendu', 'Solveur de pendu'],
       ['scrabidon', 'Scrabidon'],
-      ['pendable', 'Pendable'],
+      ['pendable', 'Pendable, le jeu du pendu'],
       ['double-sens', 'Double-Sens'],
     ]],
     // Rem (17/09/2026) : sur Google, « omega pendu » listait Confidentialité, le modèle double route, le mémoire,
@@ -44,6 +50,11 @@
     // corps. Aucune page NORMALE ne la liait hors de cette barre de repli (que ce fichier remplace au
     // chargement) : le seul chemin restant passait par un mémoire de recherche. Ce n'est pas « invisible »,
     // c'est enterré — et ça le devient plus encore depuis que ces documents sont en `noindex`.
+    // ⚠️ CETTE PHRASE A ÉTÉ ÉCRITE AVANT LE FAIT. Vérifié le 26/09/2026 en relevant les directives
+    // `robots` de tout le site : SEUL 404.html en portait une. Les documents n'étaient pas en
+    // `noindex` ; le commentaire décrivait une intention comme un acquis. Elle est vraie DEPUIS le
+    // Lot B du 26/09 (docs FR+EN, /toile), et /arbitrage ne dépend plus d'eux : Rem l'a fait revenir
+    // au menu le 19/09.
     // Le motif SEO du 17/09 (les pages de recherche poussées dans les liens de site Google) est traité là où
     // il se joue : le `noindex` des documents internes, pas l'amputation du menu.
     // ⚠️ DONNÉES N'EST PAS UNE PAGE DE RECHERCHE (Rem, 18/09/2026 : « je suis pas d'accord que les données soient sorties du

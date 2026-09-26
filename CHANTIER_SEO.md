@@ -255,6 +255,43 @@ Falsification : rallonger un titre d'un caractère au-dessus du seuil doit faire
 
 #### Lot B — sortir de l'index ce qui ne peut pas être cliqué
 
+> ✅ **FAIT le 26/09/2026.** Cinq pages en `noindex, follow`, retirées du sitemap dans le même
+> commit : `/docs/MEMOIRE`, `/docs/rapport-mode-emploi`, `/en/docs/MEMOIRE`,
+> `/en/docs/rapport-mode-emploi`, `/toile`. Le sitemap passe de **37 à 32 URL**.
+>
+> ⚠️ **Le plan n’en nommait que trois** : `/en/docs/MEMOIRE` manquait à la liste. Les deux
+> langues bougent ensemble — une version anglaise laissée dans l’index pendant que la française
+> en sort est un signal incohérent, et c’est la règle posée le 19/09.
+>
+> ⚠️ **Le commentaire de `nav.js` affirmait depuis le 19/09 que ces documents étaient DÉJÀ en
+> `noindex`.** Relevé le 26/09 sur tout le site : seul `404.html` en portait un. La phrase
+> décrivait une intention comme un acquis ; elle est vraie depuis aujourd’hui, et le commentaire
+> le dit désormais.
+>
+> **Rien n’est retiré du menu ni des liens** : les cinq pages restent en ligne et atteignables,
+> avec et sans JavaScript (sonde verte). `follow` est explicite parce que ces documents lient
+> d’autres pages.
+>
+> **La cohérence est gardée dans les quatre sens** — falsifié le 26/09 sur `sitemap_probe` :
+> une page `noindex` redéclarée au sitemap, un `noindex` retiré en douce, une page indexable
+> sortie du sitemap, un `noindex` posé sur une page déclarée : les quatre font rougir la sonde.
+> Aucune garde nouvelle n’a été écrite : celle qui existe suffisait, et une garde redondante se
+> retire.
+
+> ### ⚠️ Comment lire les chiffres après ce lot — à savoir AVANT de les regarder
+>
+> **Les impressions vont baisser d’environ 250, et c’est l’effet voulu.** Une baisse
+> d’impressions n’est PAS une régression ici. Ce qu’on regarde : le **CTR moyen du site monte**,
+> et **les clics ne baissent pas** (ces pages en apportaient zéro).
+>
+> **La lecture J+28 du BLOC 1 n’est pas abîmée** : elle se fait sur l’**accueil** (153
+> impressions, ~12 clics attendus), page que ce lot ne touche pas. Ce qui change, ce sont les
+> totaux du SITE — à ne pas confondre avec la ligne de l’accueil.
+>
+> **Délai** : Google met plusieurs semaines à retirer une page de l’index après un `noindex`.
+> Rien à conclure avant la fin octobre, et surtout rien à demander à la Search Console (calme
+> demandé par Rem le 17/09, toujours en vigueur).
+
 `/docs/rapport-mode-emploi`, `/docs/MEMOIRE`, `/en/docs/rapport-mode-emploi` : **`noindex`**, et
 retrait du sitemap dans le même commit — la sonde sitemap exige déjà cette cohérence (une page
 déclarée ne doit pas porter `noindex`). Elles restent en ligne et accessibles par leurs liens : on
