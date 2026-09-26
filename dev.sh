@@ -166,6 +166,13 @@ run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical +
 # fausses (six vies au lieu de sept en Facile, un ordre de lettres inversé, un tirage inventé).
 # Un simple réglage d'équilibrage suffirait à faire mentir la page en silence.
 run "SITE /pendable dit ce que le jeu fait (vies, cibles, taux + boutons, ordre des lettres, lexique, combo)" node dictee/pendable_probe.js --check
+# Le solveur de pendu répond à la seule famille de requêtes qui apporte des clics au site
+# (« solveur pendu », « triche pendu » : 140 impressions, 2 clics, positions 4,7 à 6,0). Un solveur
+# qui se trompe est pire qu'une page absente : on a fait venir le lecteur pour ça. Les deux bancs
+# mesurent les FONCTIONS DE LA PAGE sur le VRAI lexique, et que ce lexique est bien une vue
+# d'omega-lexiques.zip — aucune donnée nouvelle, aucune liste maison.
+run "SOLVEUR lexique == vue d'omega-lexiques.zip (14 fichiers, un par longueur)" python3 dictee/build_solveur_lex.py --check
+run "SOLVEUR la page trouve le mot, respecte les lettres révélées, et ses chiffres == le lexique" node dictee/solveur_probe.js --check
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :
 # le mode d'emploi OMEGA·KEY chargeait encore Google Fonts, oublié par le retrait de juillet — rien ne vérifiait.
 run "SITE confidentialité : aucune page ne charge de ressource tierce à l'ouverture" node dictee/tiers_probe.js

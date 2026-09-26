@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solveur de pendu : le mot et la lettre à jouer | OMEGA</title>
+<meta property="og:type" content="website"><meta property="og:url" content="https://omegapendu.com/solveur-pendu"><meta property="og:site_name" content="OMEGA Pendu">
+<meta property="og:title" content="Solveur de pendu — les mots possibles et la lettre à jouer | OMEGA-Ω"><meta property="og:description" content="Tape ce que tu vois, avec des tirets pour les lettres manquantes : le solveur liste les mots possibles et dit quelle lettre tenter. Gratuit, sans compte.">
+<meta name="twitter:card" content="summary"><meta name="twitter:title" content="Solveur de pendu — le mot et la lettre | OMEGA-Ω"><meta name="twitter:description" content="Les mots possibles et la lettre à jouer, calculés sur ton appareil.">
+<meta name="description" content="Tape ce que tu vois au pendu, tirets pour les lettres manquantes : le solveur liste les mots possibles et dit quelle lettre tenter. Gratuit, sans compte.">
+<link rel="canonical" href="https://omegapendu.com/solveur-pendu">
+<link rel="stylesheet" href="site.css">
+<meta name="theme-color" content="#0d1117">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="nav.js" defer></script>
+<style>
+  main.slv{max-width:var(--maxw);margin:0 auto;padding:18px 18px 48px}
+
+  /* ── L'OUTIL EN HAUT. Le plan du chantier SEO le dit sans détour : « utilisable en trois
+     secondes, sans explication préalable ». Toute la prose est donc SOUS l'outil, et l'outil tient
+     dans un écran de téléphone. */
+  .slv-form{display:grid;gap:14px;margin:6px 0 4px}
+  .slv-champ label{display:block;font-weight:600;margin-bottom:4px}
+  .slv-champ .aide{font-weight:400;color:var(--fg-2);font-size:.88em}
+  .slv-in{width:100%;box-sizing:border-box;font:inherit;font-size:1.35em;letter-spacing:.14em;
+    text-transform:uppercase;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg-2);color:var(--fg)}
+  .slv-in:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .slv-in.court{letter-spacing:.06em;font-size:1.1em}
+
+  /* Le motif relu par la page, en cases. On RENVOIE ce qu'on a compris avant de répondre : une
+     saisie mal interprétée qui produit quand même une réponse est pire qu'une erreur. */
+  .slv-cases{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 0;min-height:2.2em;align-items:center}
+  .slv-case{width:1.7em;height:2.1em;display:flex;align-items:center;justify-content:center;
+    border-radius:6px;background:var(--bg-2);border:1px solid var(--line);font-size:1.1em;font-weight:600}
+  .slv-case.vide{border-style:dashed;color:var(--fg-2)}
+  .slv-cases .lgr{color:var(--fg-2);font-size:.9em;margin-left:6px}
+
+  /* La réponse. Une seule chose en gros : la lettre. */
+  .slv-rep{margin:18px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2)}
+  .slv-rep:empty{display:none}   /* pas de cadre creux tant qu'on n'a rien demande */
+  .slv-lettre{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .slv-lettre b{font-size:2.6em;line-height:1;color:var(--accent);letter-spacing:.02em}
+  .slv-lettre span{color:var(--fg-2)}
+  .slv-mots{margin:14px 0 0;line-height:1.9;word-break:break-word}
+  .slv-mots code{font-size:1.02em;padding:2px 7px;border-radius:5px;background:var(--bg);
+    border:1px solid var(--line);margin:0 4px 4px 0;display:inline-block;letter-spacing:.06em}
+  .slv-mots code.rare{color:var(--fg-2);border-style:dashed}
+  .slv-rien{border-left:3px solid #e8920c;background:rgba(232,146,12,.08);padding:10px 12px;
+    border-radius:6px}
+  .slv-etat{color:var(--fg-2);font-size:.92em;margin:8px 0 0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./">OMEGA<b>·Ω</b></a>
+  <nav aria-label="Principale">
+    <a href="correcteur">Le correcteur</a>
+    <a href="solveur-pendu" aria-current="page">Solveur de pendu</a>
+    <a href="pendable">Le jeu du pendu</a>
+    <a href="app/omega-pendu">Le pendu cognitif</a>
+    <a href="https://github.com/poratox78-spec/omega-pendu-">Code</a>
+  </nav>
+</div></header>
+
+<main class="slv">
+  <h1>Solveur de pendu</h1>
+
+  <p class="note">Tape ce que tu vois, un tiret par lettre manquante.</p>
+
+  <div class="slv-form">
+    <div class="slv-champ">
+      <label for="slv-motif">Le mot, tel qu'il s'affiche
+        <span class="aide">— par exemple <code>_A__ON</code></span></label>
+      <input id="slv-motif" class="slv-in" type="text" inputmode="latin" autocomplete="off"
+        spellcheck="false" autofocus placeholder="_A__ON" maxlength="30">
+      <div id="slv-cases" class="slv-cases" aria-live="polite"></div>
+    </div>
+    <div class="slv-champ">
+      <label for="slv-absentes">Lettres déjà tentées qui n'y sont pas
+        <span class="aide">— facultatif</span></label>
+      <input id="slv-absentes" class="slv-in court" type="text" inputmode="latin" autocomplete="off"
+        spellcheck="false" placeholder="E T R" maxlength="30">
+    </div>
+  </div>
+
+  <div id="slv-rep" class="slv-rep" aria-live="polite"></div>
+
+  <h2>Comment lire la réponse</h2>
+
+  <p>La <strong>lettre à jouer</strong> est celle qui apparaît dans le plus de mots encore possibles.
+  Ce n'est pas une certitude&nbsp;: c'est le pari qui perd le moins souvent. Le pourcentage à côté dit
+  dans quelle proportion des mots restants elle se trouve — à 80&nbsp;%, tu as quatre chances sur cinq
+  de gagner une lettre plutôt qu'une vie.</p>
+
+  <p>Elle est calculée sur les mots <strong>courants</strong> quand il y en a, sur tous sinon. Un mot
+  de pendu est presque toujours un mot du quotidien, pas une forme verbale rare&nbsp;; compter les
+  deux à égalité ferait pencher la réponse du mauvais côté. Les mots courants sont affichés en
+  premier, les autres <span class="slv-mots"><code class="rare">en pointillé</code></span>.</p>
+
+  <p>Une case vide ne peut pas contenir une lettre déjà affichée ailleurs&nbsp;: au pendu, une lettre
+  trouvée se révèle <em>partout</em> à la fois. C'est la règle que les solveurs oublient le plus
+  souvent, et elle élimine beaucoup de mots — sur <code>_A__ON</code>, elle fait tomber la liste de
+  plusieurs centaines à cinquante-cinq.</p>
+
+  <h2>Ce que ce solveur fait, et ce qu'il ne fait pas</h2>
+
+  <p>Il <strong>lit un dictionnaire</strong>. C'est ce qu'on attend d'un solveur, et c'est ce que font
+  les outils du même genre&nbsp;: il compare ton motif aux mots français de cette longueur et te rend
+  ceux qui collent. Rien n'est deviné, rien n'est deviné à moitié.</p>
+
+  <p>Le calcul se fait <strong>sur ton appareil</strong>. Rien de ce que tu tapes ne part vers un
+  serveur — seule la liste des mots de la bonne longueur est téléchargée, une fois, puis gardée. Pas
+  de compte, pas de publicité, et ça continue de marcher hors connexion.</p>
+
+  <h2>Et notre moteur, lui, ne regarde pas cette liste</h2>
+
+  <p>Ce site est né d'autre chose&nbsp;: un <a href="app/omega-pendu">pendu cognitif</a> qui joue
+  <strong>sans jamais lire le mot caché ni la liste des mots encore possibles</strong>. Il raisonne
+  sur ce qu'il voit — les sons probables, l'orthographe du français, le voisinage des lettres — comme
+  un humain qui «&nbsp;sonne&nbsp;» le mot.</p>
+
+  <p>La différence n'est pas une figure de style. Un solveur qui consulte la liste des mots possibles
+  est un oracle&nbsp;: il gagne presque à tous les coups, et il n'apprend rien sur la langue. Lui
+  retirer cet accès a coûté cher — c'est ce chantier-là qui a produit le moteur de langue derrière le
+  <a href="correcteur">correcteur pour la dyslexie</a>, la <a href="dictee">dictée</a> et la
+  <a href="police-de-son">police de son</a>. Les chiffres, honnêtes, sont sur
+  <a href="./">la page d'accueil</a>.</p>
+
+  <p>Si tu veux juste <em>jouer</em>, <a href="pendable">Pendable</a> est le jeu&nbsp;: une grille de
+  mots croisés à deviner, trois niveaux, sans compte et hors-ligne.</p>
+
+  <h2>D'où viennent les mots</h2>
+
+  <p>Du lexique français qu'on publie sur <a href="donnees">la page Données</a>, sous licence
+  LGPL-LR&nbsp;: 639&nbsp;501 formes de trois à quinze lettres, accents retirés et tout en capitales,
+  comme au pendu. L'ordre d'affichage suit la fréquence d'usage. Le fichier n'est pas une liste
+  maison&nbsp;: c'est une vue du même lexique qui fait tourner le correcteur.</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var MOTIF = document.getElementById('slv-motif');
+  var ABS   = document.getElementById('slv-absentes');
+  var CASES = document.getElementById('slv-cases');
+  var REP   = document.getElementById('slv-rep');
+
+  var MIN_LEN = 3, MAX_LEN = 15;
+  var MAX_AFFICHES = 240;          // au-delà, la liste cesse d'aider et devient un mur
+  var cache = {};                  // longueur -> {mots:[], courants:n}
+  var index = null;                // solveur/index.json
+  var jeton = 0;                   // annule une réponse en retard sur une saisie plus récente
+
+  /* La saisie est libre : tiret bas, point, interrogation, astérisque, espace — tout ce qu'on voit
+     écrire pour « lettre manquante ». On normalise avant de juger, jamais l'inverse. */
+  function lireMotif(v) {
+    var s = v.toUpperCase().replace(/[ÀÂÄ]/g, 'A').replace(/[ÉÈÊË]/g, 'E').replace(/[ÎÏ]/g, 'I')
+             .replace(/[ÔÖ]/g, 'O').replace(/[ÙÛÜ]/g, 'U').replace(/Ç/g, 'C');
+    var out = '';
+    for (var i = 0; i < s.length; i++) {
+      var c = s[i];
+      if (c >= 'A' && c <= 'Z') out += c;
+      else if ('_-.?*·•'.indexOf(c) >= 0) out += '_';
+      /* tout le reste (espaces, ponctuation) est ignoré : on ne devine pas une intention */
+    }
+    return out;
+  }
+
+  function lireLettres(v) {
+    var s = v.toUpperCase(), vu = {}, out = '';
+    for (var i = 0; i < s.length; i++) {
+      var c = s[i];
+      if (c >= 'A' && c <= 'Z' && !vu[c]) { vu[c] = 1; out += c; }
+    }
+    return out;
+  }
+
+  function dessinerCases(motif) {
+    CASES.textContent = '';
+    if (!motif) return;
+    for (var i = 0; i < motif.length; i++) {
+      var d = document.createElement('span');
+      d.className = 'slv-case' + (motif[i] === '_' ? ' vide' : '');
+      d.textContent = motif[i] === '_' ? '·' : motif[i];
+      CASES.appendChild(d);
+    }
+    var n = document.createElement('span');
+    n.className = 'lgr';
+    n.textContent = motif.length + ' lettre' + (motif.length > 1 ? 's' : '');
+    CASES.appendChild(n);
+  }
+
+  function dire(html, alerte) {
+    REP.innerHTML = alerte ? '<p class="slv-rien">' + html + '</p>' : html;
+  }
+
+  function charger(n) {
+    if (cache[n]) return Promise.resolve(cache[n]);
+    if (typeof DecompressionStream !== 'function') {
+      return Promise.reject(new Error('nav'));
+    }
+    var meta = index && index.longueurs && index.longueurs[String(n)];
+    return fetch('solveur/mots-' + n + '.txt.gz')
+      .then(function (r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text();
+      })
+      .then(function (txt) {
+        cache[n] = { mots: txt.split('\n'), courants: meta ? meta.courants : 0 };
+        return cache[n];
+      });
+  }
+
+  /* Le cœur, et sa règle la plus importante : une case vide ne peut PAS porter une lettre déjà
+     révélée ailleurs dans le motif — au pendu, une lettre trouvée s'affiche partout d'un coup. */
+  function filtrer(seau, motif, absentes) {
+    var connues = {};
+    for (var i = 0; i < motif.length; i++) if (motif[i] !== '_') connues[motif[i]] = 1;
+    var interdites = {};
+    for (var k in connues) interdites[k] = 1;
+    for (var j = 0; j < absentes.length; j++) interdites[absentes[j]] = 1;
+
+    var res = [], mots = seau.mots, n = motif.length;
+    for (var m = 0; m < mots.length; m++) {
+      var mot = mots[m];
+      if (mot.length !== n) continue;
+      var ok = true;
+      for (var p = 0; p < n; p++) {
+        var attendu = motif[p], lettre = mot[p];
+        if (attendu === '_') { if (interdites[lettre]) { ok = false; break; } }
+        else if (lettre !== attendu) { ok = false; break; }
+      }
+      if (ok) res.push({ mot: mot, courant: m < seau.courants });
+    }
+    return res;
+  }
+
+  function meilleureLettre(candidats, motif, absentes) {
+    var exclues = {};
+    for (var i = 0; i < motif.length; i++) if (motif[i] !== '_') exclues[motif[i]] = 1;
+    for (var j = 0; j < absentes.length; j++) exclues[absentes[j]] = 1;
+
+    /* Sur les COURANTS quand il y en a : un mot de pendu est rarement une forme verbale rare. */
+    var base = candidats.filter(function (c) { return c.courant; });
+    var surCourants = base.length > 0;
+    if (!surCourants) base = candidats;
+
+    var compte = {};
+    base.forEach(function (c) {
+      var vu = {};
+      for (var p = 0; p < c.mot.length; p++) {
+        var L = c.mot[p];
+        if (exclues[L] || vu[L]) continue;
+        vu[L] = 1; compte[L] = (compte[L] || 0) + 1;
+      }
+    });
+    var best = null;
+    for (var L in compte) if (!best || compte[L] > compte[best] || (compte[L] === compte[best] && L < best)) best = L;
+    if (!best) return null;
+    return { lettre: best, part: compte[best] / base.length, sur: base.length, courants: surCourants };
+  }
+
+  function rendre() {
+    var motif = lireMotif(MOTIF.value);
+    var absentes = lireLettres(ABS.value);
+    dessinerCases(motif);
+    var moi = ++jeton;
+
+    if (!motif) { REP.textContent = ''; return; }
+    if (motif.length < MIN_LEN || motif.length > MAX_LEN) {
+      dire('Notre lexique va de ' + MIN_LEN + ' à ' + MAX_LEN + ' lettres. Ton motif en fait '
+           + motif.length + '.', true);
+      return;
+    }
+    if (motif.indexOf('_') < 0) {
+      dire('Il n’y a plus de lettre manquante&nbsp;: <strong>' + motif + '</strong> est le mot.');
+      return;
+    }
+
+    REP.innerHTML = '<p class="slv-etat">Recherche…</p>';
+    charger(motif.length).then(function (seau) {
+      if (moi !== jeton) return;                       // une saisie plus récente a pris la main
+      var c = filtrer(seau, motif, absentes);
+      if (!c.length) {
+        dire('Aucun mot de notre lexique ne correspond. Vérifie le motif et les lettres tentées&nbsp;— '
+             + 'ou le mot n’y est pas&nbsp;: 639&nbsp;501 formes, ce n’est pas tout le français.', true);
+        return;
+      }
+      var m = meilleureLettre(c, motif, absentes);
+      var h = '';
+      if (m) {
+        h += '<div class="slv-lettre"><b>' + m.lettre + '</b><span>à tenter&nbsp;: présente dans '
+          + Math.round(m.part * 100) + '&nbsp;% des ' + m.sur + ' mot' + (m.sur > 1 ? 's' : '')
+          + (m.courants ? ' courants' : '') + ' restants</span></div>';
+      } else {
+        h += '<div class="slv-lettre"><span>Toutes les lettres restantes sont déjà connues ou '
+          + 'tentées&nbsp;: c’est le moment de proposer le mot.</span></div>';
+      }
+      var montres = c.slice(0, MAX_AFFICHES);
+      h += '<p class="slv-etat">' + c.length + ' mot' + (c.length > 1 ? 's' : '') + ' possible'
+        + (c.length > 1 ? 's' : '')
+        + (c.length > montres.length ? '&nbsp;; les ' + montres.length + ' plus fréquents&nbsp;:' : '&nbsp;:')
+        + '</p><p class="slv-mots">';
+      montres.forEach(function (x) {
+        h += '<code' + (x.courant ? '' : ' class="rare"') + '>' + x.mot + '</code>';
+      });
+      h += '</p>';
+      REP.innerHTML = h;
+    }).catch(function (e) {
+      if (moi !== jeton) return;
+      dire(e && e.message === 'nav'
+        ? 'Ton navigateur ne sait pas décompresser le lexique. Essaie une version plus récente de '
+          + 'Chrome, Firefox ou Safari.'
+        : 'Le lexique n’a pas pu être chargé. Recharge la page&nbsp;; hors connexion, il faut '
+          + 'l’avoir ouvert une fois.', true);
+    });
+  }
+
+  fetch('solveur/index.json').then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) { index = j; if (MOTIF.value) rendre(); })
+    .catch(function () { /* l'index n'est qu'un confort : sans lui, « courants » vaut 0 */ });
+
+  MOTIF.addEventListener('input', rendre);
+  ABS.addEventListener('input', rendre);
+})();
+</script>
+</body>
+</html>
