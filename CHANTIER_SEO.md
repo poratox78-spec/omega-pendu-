@@ -444,6 +444,14 @@ meilleur de cette page de résultats).
 
 #### Lot E — hors-site : être dans les listes *(le seul levier qui déplace vraiment la voie 2)*
 
+> 📝 **Textes préparés le 26/09/2026 → [LOT_E.md](LOT_E.md)** : les cibles relevées sur les
+> pages de résultats RÉELLES du jour (dysclick, poppins, Les Outils Tice, BlogPéda, Lettres et
+> TICE, Ressources école inclusive, Primàbord, Glaaster, CultureDys), un message long, une
+> version courte, et ce qu'il ne faut pas faire.
+>
+> ⏸️ **EN PAUSE, décision de Rem le 26/09** : « j'ai déjà été rejeté de pas mal d'endroits,
+> pas envie d'essayer pour l'instant ». Les textes attendent ; rien ne part.
+
 Les pages qui occupent la page 1 sur « correcteur dyslexie » sont des comparatifs tenus par des
 tiers : dysclick.fr, poppins.io, glaaster.com, merci-app, et des pages d'académies. **Un outil
 gratuit, open source, sans compte et sans traqueur est exactement ce qu'ils citent.** Ce n'est pas
@@ -492,6 +500,31 @@ pas être indexée séparément.** Le motif couvre `/toile` — et c'est exactem
 la fusion de `/correcteur-outil` au niveau 2, qui est lui aussi un plein-écran d'une `iframe`.
 
 ### Niveau 2 — fusionner les doublons *(le geste le plus fort, et le plus structurel)*
+
+> ✅ **FAIT le 26/09/2026, en français seulement** — vérifié sur le vrai domaine :
+> `/correcteur-outil` → **301** → `/correcteur`, `/dictee-outil` → **301** → `/dictee`.
+> L'outil est passé EN HAUT des deux pages ; les deux enveloppes plein écran sont supprimées.
+> **De 4 URL à 2.** Et l'outil a été essayé dans l'iframe sur le déploiement : « Les enfant joue
+> dans le jardin » → « Les enfants jouent dans le jardin », 2 corrections sûres appliquées.
+>
+> ⚠️ **Le plan supposait la symétrie avec l'anglais — elle n'existe pas.** Mesuré : les pages
+> `-outil` françaises sont des enveloppes de ~102 lignes autour d'une iframe ;
+> `en/correcteur-outil.html` fait **1 018 lignes, 77 Ko, sans aucune iframe** — un outil
+> AUTONOME, moteur inline, son propre `h1`, nommé par six bancs de la batterie. Fusionner
+> l'anglais serait DÉPLACER un outil, pas retirer une enveloppe : autre chantier, autre risque.
+> L'annonce « 8 URL à 4 » reposait sur une symétrie jamais vérifiée.
+>
+> ⚠️ **Et le commentaire de `_redirects` était périmé** : il affirmait depuis le 13/08 que Pages
+> « ne l'interprète pas ». Re-mesuré le 26/09 : `/_redirects` répond **404**, Pages le CONSOMME.
+> Ce qui ne marchait pas, c'était la source avec HÔTE (www), pas la règle de CHEMIN.
+>
+> ⚠️ **Une règle CSS morte retirée au passage** : le chargeur injectait `#vdc-render{…}` — cet
+> élément n'existe plus depuis que l'éditeur est passé en `contenteditable` (6567363). Elle était
+> recopiée telle quelle depuis des mois.
+>
+> **À lire au trimestre, pas à trois jours** : une 301 fait osciller le classement quelques
+> semaines. La métrique est le CLIC sur `/correcteur` et `/dictee`.
+
 
 **Mesuré : il y a trois URL pour une seule application.** `/correcteur` (page d'explication,
 1 198 mots), `/correcteur-outil` (102 lignes : une `iframe` vers `app/omega-pendu.html`, plus le
