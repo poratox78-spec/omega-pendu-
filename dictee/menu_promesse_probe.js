@@ -106,6 +106,45 @@ for (const f of FICHIERS) {
 }
 if (barres < 20) rouges.push(`seulement ${barres} barres de navigation lues — l'extraction est cassée`);
 
+/* ── ② LE PANNEAU RESTE EN UNE COLONNE ───────────────────────────────────────────────────────
+ * Rapport de Rem, 26/09/2026 : « menu plus assez large ». Mesuré dans Chrome à 1280×900 : le
+ * panneau offrait 298 px utiles et en réclamait 383. Ce n'était PAS la largeur — le plus long
+ * libellé ne demande que 196 px. La nav hérite de `flex-wrap:wrap` (la barre horizontale en a
+ * besoin) ; repliée en colonne et devenue plus haute que son `max-height`, elle fabriquait une
+ * SECONDE COLONNE qui sortait du panneau de 75 px. Trois entrées — « Données & police dys »,
+ * « OMEGA·KEY », « Code » — commençaient à x=919 au lieu de 721, donc hors du cadre.
+ *
+ * ⚠️ LE `overflow-y:auto` ÉTAIT DÉJÀ LÀ ET NE SERVAIT À RIEN : le wrap gagnait avant lui. Une
+ * intention écrite n'est pas un comportement — c'est le même piège que le commentaire de `nav.js`
+ * qui annonçait un `noindex` inexistant.
+ *
+ * CE DÉFAUT REVIENDRA : il se déclenche dès que le menu dépasse la hauteur de l'écran, donc à
+ * chaque page ajoutée. Deux règles, sur la source :
+ *   ⓐ la règle qui met le panneau en colonne doit aussi dire `flex-wrap:nowrap` ;
+ *   ⓑ et garder de quoi défiler, sinon les dernières entrées deviennent inatteignables. */
+const css = fs.readFileSync(path.join(RACINE, 'site.css'), 'utf8');
+/* ⚠ `header.top nav{…}` existe DEUX fois : la barre horizontale, puis le panneau replié.
+   Falsifié : prendre la PREMIÈRE prenait la barre, qui n'est pas en colonne — toutes les règles
+   se taisaient et les quatre mutations survivaient. On prend celle qui est en COLONNE. */
+const regles = css.match(/header\.top nav\{[^}]*\}/g) || [];
+const regle = regles.find((r) => /flex-direction:\s*column/.test(r));
+if (!regle) {
+  rouges.push('la règle du panneau de menu (`header.top nav{…}` en colonne) est introuvable dans site.css');
+} else {
+  const colonne = true;
+  if (colonne && !/flex-wrap:\s*nowrap/.test(regle)) {
+    rouges.push('le panneau de menu est en colonne SANS `flex-wrap:nowrap` : dès qu\u2019il dépasse la ' +
+                'hauteur de l\u2019écran, il se replie en une seconde colonne qui sort du cadre');
+  }
+  if (colonne && !/overflow-y:\s*auto|overflow:\s*auto/.test(regle)) {
+    rouges.push('le panneau de menu n\u2019a plus de quoi défiler : les dernières entrées deviendraient ' +
+                'inatteignables sur un écran court');
+  }
+  if (colonne && !/max-height:/.test(regle)) {
+    rouges.push('le panneau de menu n\u2019a plus de `max-height` : il déborderait de la fenêtre');
+  }
+}
+
 if (rouges.length) {
   console.log('✗ MENU : une barre de navigation promet une page et en livre une autre —');
   rouges.slice(0, 12).forEach((r) => console.log('  ' + r));
