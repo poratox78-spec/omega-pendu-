@@ -249,6 +249,12 @@ jobs:
       # lien interne vers « .html » (Cloudflare y répond 308 ; 9 liens restaient le 14/09, dont 1 dans nav.js).
       - name: SITE — le sitemap déclare exactement les pages indexables (+ canonical, liens sans .html)
         run: node dictee/sitemap_probe.js
+      # /pendable est la page la mieux classée du site (position 13,9 pour 99 impressions au 24/09/2026)
+      # et la seule où la prose et le moteur du jeu cohabitent dans un fichier. Le 26/09, en l'étoffant,
+      # cinq affirmations écrites avant lecture du code étaient fausses — dont le nombre de vies. Un
+      # réglage d'équilibrage la ferait mentir sans rien casser : ce banc lit les deux et les confronte.
+      - name: SITE — /pendable dit ce que le jeu fait (vies, cibles, taux, ordre des lettres, lexique)
+        run: node dictee/pendable_probe.js --check
       # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le
       # 14/09/2026 : le mode d'emploi OMEGA·KEY chargeait encore Google Fonts — rien ne vérifiait la promesse.
       - name: SITE — confidentialité, aucune page ne charge de ressource tierce à l'ouverture
