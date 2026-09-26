@@ -161,6 +161,11 @@ run "EN dictée : 300 phrases au lexique, sans marque du correcteur, focus prés
 run "EN saisie vocale : commandes, mot de tête, question, ponctuation par silences, actifs du correcteur, promesse" node dictee/voix_en_probe.js
 run "SITE toutes les pages atteignables depuis l'accueil (FR + EN)" node dictee/pages_atteignables_probe.js
 run "SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html" node dictee/sitemap_probe.js
+# /pendable raconte sa mécanique, et prose et moteur vivent dans le MÊME fichier. Le 26/09/2026,
+# en étoffant la page (218 → 670 mots), cinq affirmations écrites AVANT lecture du code étaient
+# fausses (six vies au lieu de sept en Facile, un ordre de lettres inversé, un tirage inventé).
+# Un simple réglage d'équilibrage suffirait à faire mentir la page en silence.
+run "SITE /pendable dit ce que le jeu fait (vies, cibles, taux + boutons, ordre des lettres, lexique, combo)" node dictee/pendable_probe.js --check
 # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le 14/09 :
 # le mode d'emploi OMEGA·KEY chargeait encore Google Fonts, oublié par le retrait de juillet — rien ne vérifiait.
 run "SITE confidentialité : aucune page ne charge de ressource tierce à l'ouverture" node dictee/tiers_probe.js

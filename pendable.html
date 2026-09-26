@@ -309,14 +309,49 @@ function showBest(){try{const cur=JSON.parse(localStorage.getItem('penducroise_b
   $('best').textContent=b?('Record '+{facile:'Facile',moyen:'Moyen',dur:'Dur'}[tier]+' : '+b.r+' manches · '+b.s+' pts'):'';}catch(e){$('best').textContent='';}}
 document.querySelectorAll('.diff').forEach(b=>b.addEventListener('click',showBest)); showBest();
 </script><a href="./" title="Retour à OMEGA-Ω" style="position:fixed;left:12px;bottom:12px;z-index:2147483647;font:600 13px system-ui,sans-serif;color:#fff;background:rgba(13,17,23,.72);padding:7px 12px;border-radius:20px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.4)">↩ OMEGA·Ω</a>
-<style>.tool-plus{max-width:860px;margin:0 auto;padding:28px 18px 40px;font:15px/1.65 var(--sans);color:var(--fg)}.tool-plus h2{font-size:20px;margin:22px 0 8px}.tool-plus h3{font-size:16px;margin:16px 0 6px}.tool-plus p{margin:8px 0}.tool-plus a{color:var(--accent)}</style>
+<style>.tool-plus{max-width:860px;margin:0 auto;padding:28px 18px 40px;font:15px/1.65 var(--sans);color:var(--fg)}.tool-plus h2{font-size:20px;margin:22px 0 8px}.tool-plus h2:first-of-type{font-size:24px;margin-top:6px}.tool-plus h3{font-size:16px;margin:16px 0 6px}.tool-plus p{margin:8px 0}.tool-plus a{color:var(--accent)}</style>
 <section class="tool-plus">
 <h2>Pendable : le jeu du pendu, en ligne et sans arrière-pensée</h2>
 <p>Le pendu classique : un mot caché, des lettres à proposer, des vies à préserver. <strong>Pendable</strong> est gratuit, <strong>sans publicité</strong>, sans compte, et fonctionne <strong>hors-ligne</strong> — tu peux y jouer dans le train. Plusieurs niveaux, un score qui suit tes parties, et un vocabulaire français riche qui va des mots du quotidien aux pièges à double consonne.</p>
-<h3>Pourquoi le pendu fait du bien à l'orthographe</h3>
+<h2>Comment on joue</h2>
+<p>Une grille de mots croisés se remplit à mesure que tu devines. Tu proposes une lettre : si elle
+est dans la grille, <strong>toutes ses cases s’ouvrent d’un coup</strong> ; sinon, tu perds une vie. Tu en as
+sept en Facile, six aux deux autres niveaux. Grille complète, manche gagnée, et la suivante monte
+d’un cran.</p>
+<p>Le compte suit les valeurs du Scrabble : les lettres rares rapportent plus, les cases premium
+doublent ou triplent, et terminer un mot posé sur une case « mot » le fait payer une fois de
+plus. Deux bonnes lettres de suite déclenchent un <strong>combo</strong>, qui ajoute un quart au
+multiplicateur à chaque cran : ×1,25, ×1,5, ×1,75… C’est ce qui récompense d’avoir
+<em>réfléchi</em> à la lettre suivante plutôt que d’essayer l’alphabet dans l’ordre.</p>
+<h2>Trois niveaux, et ce qu’ils veulent dire</h2>
+<p>Un niveau, ici, n’est pas un jugement sur le vocabulaire : c’est une mesure de ce que coûte la
+stratégie évidente. Avant de te servir une grille, le jeu calcule combien de lettres perdrait
+quelqu’un qui descend l’alphabet <strong>dans l’ordre de fréquence du français</strong> — E, S, A, I,
+T, N… — jusqu’à tout découvrir. Puis il tire jusqu’à deux cents grilles et garde celle dont ce coût tombe
+le plus près de sa cible.</p>
+<p><strong>Facile</strong> vise deux lettres perdues, <strong>Moyen</strong> quatre, <strong>Dur</strong> cinq.
+Face à sept, six et six vies, ça donne les taux affichés sous chaque bouton : environ 90 %, 75 % et
+50 % de manches gagnées. Chaque manche remportée ajoute une lettre perdue à la cible, jusqu’à huit —
+où il reste 6 % de chances de passer. Personne ne finit ; on va aussi loin qu’on peut.</p>
+<p>La conséquence est concrète : en montant, la grille admet des lettres de plus en plus rares, et le
+réflexe « je commence par les voyelles » cesse de suffire. Il faut lire ce que les cases déjà ouvertes
+disent du mot — exactement le geste qu’on veut entraîner.</p>
+<h2>Quatre-vingt-cinq mille mots, dans la page</h2>
+<p>La liste est <strong>embarquée dans la page</strong> : 85 140 mots de quatre à huit lettres, formes
+conjuguées comprises. C’est ce qui permet de jouer sans connexion — rien n’est demandé à un serveur
+pendant la partie.</p>
+<p>Chaque mot porte une étiquette : le rang de sa lettre la plus rare. La grille ne pioche que sous un
+plafond, et ce plafond s’ouvre à mesure que le niveau monte. Les mots à K, W ou Z n’arrivent donc pas
+en Facile, et le vocabulaire s’élargit tout seul quand tu tiens.</p>
+<h2>Pourquoi le pendu fait du bien à l'orthographe</h2>
 <p>Deviner un mot lettre à lettre oblige à se représenter sa <strong>forme écrite</strong> : combien de lettres, lesquelles sont probables, où tombent les doubles. C'est un entraînement discret de la mémoire orthographique — celle-là même qui fait défaut quand on hésite entre <em>-ment</em> et <em>-mment</em>.</p>
-<h3>Et le « Pendu cognitif », alors ?</h3>
+<h2>Et le « Pendu cognitif », alors ?</h2>
 <p>Sur la <a href="./">page principale</a>, les rôles sont inversés : c'est <strong>la machine qui devine ton mot</strong>, en raisonnant à voix haute sur les sons, l'orthographe et la fréquence. Pendable est le jeu ; le Pendu cognitif est la démonstration. Les deux se complètent — et le même moteur de langue les fait tourner.</p>
+
+<h2>Sans compte, sans pub, et hors ligne</h2>
+<p>Rien à installer, rien à créer. La page se garde toute seule après la première visite : une fois
+ouverte, elle rejoue dans le métro, en salle d’attente, sur un poste d’école sans connexion. Rien de ce
+que tu joues ne sort de ton appareil — il n’y a ni compte, ni traqueur, ni publicité à charger.</p>
 <p><a href="./">← Le pendu cognitif</a> · <a href="scrabidon">Essayer Scrabidon</a> · <a href="correcteur">Le correcteur dys</a></p>
 </section>
 
