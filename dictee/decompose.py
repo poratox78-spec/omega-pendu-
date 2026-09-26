@@ -43,6 +43,8 @@ COND, ENTSIL = _T['COND'], set(_T['ENTSIL'])
 RFIN = set(_T.get('RFIN') or [])                     # -er au r prononcé (extrait de l'app)
 EPRON = set(_T.get('EPRON') or [])                   # e+s final prononcé (extrait de l'app)
 ENTAMBIG = set(_T.get('ENTAMBIG') or [])             # -ent homographes (nom/adj ET 3e p. pluriel)
+CFIN_MUET = set(_T.get('CFIN_MUET') or [])           # « c » final muet (liste fermée)
+GFIN_MUET = set(_T.get('GFIN_MUET') or [])           # « g » final muet (liste fermée)
 try:                                                  # formes conjuguées DÉJÀ embarquées (vdc-lex.cj.f)
     import json as _j, io as _io, os as _os
     _vp = _os.path.join(HERE, '..', 'extension', 'assets', 'vdc-lex.json')
@@ -231,6 +233,9 @@ def g2p(word, accents=True, seg=None):
         for k in range(len(steps) - 1, -1, -1):
             if steps[k]['g'] == 'r':
                 steps[k]['ph'], steps[k]['h'] = 'ʁ', 0.05; break
+    if w in CFIN_MUET or w in GFIN_MUET:              # ⭐ c/g final MUET (listes fermées, miroir app)
+        if steps and steps[-1]['g'] in ('c', 'g'):
+            steps[-1]['ph'], steps[-1]['h'] = '∅', 0.05
     if w in EPRON:                                   # ⭐ e+s final PRONONCÉ (liste fermée, miroir app)
         for k in range(len(steps)):
             if steps[k]['g'] == 'e':

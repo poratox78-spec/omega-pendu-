@@ -46,11 +46,14 @@ def main():
     rfin = json.loads(grab(r"const RFIN = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
     epron = json.loads(grab(r"const EPRON = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
     entambig = json.loads(grab(r"const ENTAMBIG = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
+    cfin = json.loads(grab(r"const CFIN_MUET = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
+    gfin = json.loads(grab(r"const GFIN_MUET = new Set\((\[.*?\])\)", re.S).replace("'", '"'))
 
     # SEG est trié par longueur décroissante dans l'app (maximal munch). On fige ce tri ici.
     seg = sorted(seg, key=lambda s: -len(s))
     tables = {'VOW': vow, 'NASAL': nasal, 'DBL': dbl, 'SEG': seg, 'COND': cond, 'ENTSIL': entsil,
-              'RFIN': rfin, 'EPRON': epron, 'ENTAMBIG': entambig}
+              'RFIN': rfin, 'EPRON': epron, 'ENTAMBIG': entambig,
+              'CFIN_MUET': cfin, 'GFIN_MUET': gfin}
     json.dump(tables, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print(f"[g2p] tables extraites de l'app → {OUT}")
     print(f"      VOW={len(vow)} car · NASAL={len(nasal)} · DBL={len(dbl)} · SEG={len(seg)} · "

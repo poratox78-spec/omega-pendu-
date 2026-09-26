@@ -97,6 +97,14 @@ catch (e) { console.error('eval _DECL2 échoué :', e.message); process.exit(2);
     if (entMuet(w) !== true) fail.push('g2p de l APP : le « -ent » de « ' + w + ' » est donné PRONONCÉ (verbe)');
   for (const w of ['gouvernement','dent','lent','talent','ferment'])
     if (entMuet(w) !== false) fail.push('g2p de l APP : le « -ent » de « ' + w + ' » est donné MUET (nom/adjectif)');
+  // ⭐ c et g finaux, sur le g2p de l APP : le défaut de la table était muet pour tous (87 % et 77 %
+  // de faux) ; il est renversé, muets en liste fermée. On garde les DEUX sens.
+  const finMuet = (w) => { const st = DECL2.g2p(w); const d = st[st.length-1];
+    return d ? (!d.ph || d.ph === '∅') : null; };
+  for (const w of ['roc','tac','chic','plouc','lemming','zigzag','drag','blog'])
+    if (finMuet(w) !== false) fail.push('g2p de l APP : la finale de « ' + w + ' » est donnée MUETTE (elle se prononce)');
+  for (const w of ['tabac','banc','tronc','porc','bourg','poing','long','sang'])
+    if (finMuet(w) !== true) fail.push('g2p de l APP : la finale de « ' + w + ' » n est plus muette');
 }
 
 const ref = JSON.parse(fs.readFileSync(path.join(HERE, 'son_layer.json'), 'utf8'));
