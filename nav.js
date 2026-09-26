@@ -31,6 +31,7 @@
          200 direct, mesuré (14,0 Mo en FR, 4,3 Mo en EN). La règle ④ de sitemap_probe existe pour ça ;
          elle exemptait l app, mais sa RAISON vaut ici plus qu ailleurs. */
       ['/app/omega-pendu', 'Le pendu'],
+      ['solveur-pendu', 'Solveur de pendu'],
       ['scrabidon', 'Scrabidon'],
       ['pendable', 'Pendable'],
       ['double-sens', 'Double-Sens'],

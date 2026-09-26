@@ -255,6 +255,15 @@ jobs:
       # réglage d'équilibrage la ferait mentir sans rien casser : ce banc lit les deux et les confronte.
       - name: SITE — /pendable dit ce que le jeu fait (vies, cibles, taux, ordre des lettres, lexique)
         run: node dictee/pendable_probe.js --check
+      # /solveur-pendu sert « solveur pendu » et « triche pendu » : 140 impressions pour 2 clics en
+      # positions 4,7 à 6,0 au 24/09/2026 — la seule famille de requêtes qui amène du monde. Le premier
+      # banc vérifie que le lexique livré reste une VUE d'omega-lexiques.zip ; le second fait tourner les
+      # fonctions de la page sur ce lexique (le mot cherché est toujours trouvé, une lettre révélée
+      # n'apparaît jamais dans une case vide, la lettre proposée est recomptée à part).
+      - name: SOLVEUR — le lexique est une vue d'omega-lexiques.zip
+        run: python3 dictee/build_solveur_lex.py --check
+      - name: SOLVEUR — la page trouve le mot et ses chiffres == le lexique livré
+        run: node dictee/solveur_probe.js --check
       # La page Confidentialité promet « aucune requête vers un serveur tiers au chargement ». Mesuré le
       # 14/09/2026 : le mode d'emploi OMEGA·KEY chargeait encore Google Fonts — rien ne vérifiait la promesse.
       - name: SITE — confidentialité, aucune page ne charge de ressource tierce à l'ouverture
