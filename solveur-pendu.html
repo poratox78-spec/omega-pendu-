@@ -45,13 +45,60 @@
   .slv-lettre{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
   .slv-lettre b{font-size:2.6em;line-height:1;color:var(--accent);letter-spacing:.02em}
   .slv-lettre span{color:var(--fg-2)}
-  .slv-mots{margin:14px 0 0;line-height:1.9;word-break:break-word}
+  /* ⚠ MESURE DU 26/09 : sur un motif tout neuf de onze lettres, 87 617 mots sont possibles et
+     la liste des 240 affiches faisait 5 306 px de haut sur telephone — un mur entre la partie et
+     le texte. On la BORNE et on la fait defiler : rien n est retire, tout reste parcourable. */
+  .slv-mots{margin:14px 0 0;line-height:1.9;word-break:break-word;
+    max-height:min(38vh,320px);overflow-y:auto;padding-right:4px}
   .slv-mots code{font-size:1.02em;padding:2px 7px;border-radius:5px;background:var(--bg);
     border:1px solid var(--line);margin:0 4px 4px 0;display:inline-block;letter-spacing:.06em}
   .slv-mots code.rare{color:var(--fg-2);border-style:dashed}
   .slv-rien{border-left:3px solid #e8920c;background:rgba(232,146,12,.08);padding:10px 12px;
     border-radius:6px}
   .slv-etat{color:var(--fg-2);font-size:.92em;margin:8px 0 0}
+
+  /* ── LE JEU (26/09/2026, à la demande de Rem). Il vient APRÈS le solveur : la requête qui amène
+     ici est « solveur pendu », et le chantier SEO exige l'outil en trois secondes. */
+  /* ── LE DUO (26/09/2026, demande de Rem : « fusionner le jeu et l'aide au lieu de devoir
+     descendre dans la page »). Deux colonnes sur large, empilées sur téléphone. La partie à
+     gauche, l'aide à droite — et l'aide LIT la partie au lieu d'attendre qu'on la recopie. */
+  .duo{display:grid;gap:16px;margin:10px 0 0}
+  @media (min-width:900px){ .duo{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start} }
+  .duo-col{min-width:0}
+  .duo h3{font-size:1.02em;margin:0 0 8px;color:var(--fg-2);font-weight:600}
+  .slv-lien{font-size:.9em;color:var(--fg-2);margin:8px 0 0}
+  .slv-lien a{color:var(--accent);cursor:pointer}
+  /* la lettre proposee se joue d un clic TANT QUE l aide suit la partie : on met la classe sur
+     le CONTENEUR, pas sur le <b>, parce que la reponse est rendue de maniere asynchrone */
+  .slv-rep.suit .slv-lettre b{cursor:pointer;text-decoration:underline;text-underline-offset:5px}
+  .slv-rep.suit .slv-lettre b:hover{opacity:.82}
+
+  .jeu{margin:22px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg-2)}
+  .jeu-haut{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .jeu-potence{flex:0 0 auto}
+  .jeu-etat{flex:1 1 220px;min-width:200px}
+  .jeu-vies{font-size:.92em;color:var(--fg-2);margin:0 0 6px}
+  .jeu-vies b{color:var(--fg)}
+  .jeu-mot{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 0}
+  .jeu-mot span{width:1.5em;height:1.9em;display:flex;align-items:center;justify-content:center;
+    border-bottom:2px solid var(--line);font-size:1.25em;font-weight:600;letter-spacing:.02em}
+  .jeu-mot span.trouve{border-bottom-color:var(--accent)}
+  .jeu-mot span.rate{color:#e2504a;border-bottom-color:#e2504a}
+  .jeu-clavier{display:flex;flex-wrap:wrap;gap:5px;margin:14px 0 0}
+  .jeu-clavier button{font:inherit;font-size:1em;width:2.1em;height:2.3em;border-radius:7px;
+    border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;padding:0}
+  .jeu-clavier button:hover:not(:disabled){border-color:var(--accent)}
+  .jeu-clavier button:disabled{opacity:.32;cursor:default}
+  .jeu-clavier button.bonne{background:var(--accent);border-color:var(--accent);color:#0d1117;opacity:1;font-weight:600}
+  .jeu-clavier button.mauvaise{color:#e2504a;border-color:#e2504a;opacity:.55}
+  .jeu-fin{margin:14px 0 0;padding:11px 13px;border-radius:8px;border-left:3px solid var(--accent);
+    background:rgba(224,177,78,.10)}
+  .jeu-fin.perdu{border-left-color:#e2504a;background:rgba(226,80,74,.10)}
+  .jeu-fin b{letter-spacing:.06em}
+  .jeu-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 0;align-items:center}
+  .jeu-actions button{font:inherit;padding:9px 14px;border-radius:9px;border:1px solid var(--line);
+    background:var(--bg);color:var(--fg);cursor:pointer}
+  .jeu-actions button:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -69,27 +116,66 @@
 <main class="slv">
   <h1>Solveur de pendu</h1>
 
-  <p class="note">Tape ce que tu vois, un tiret par lettre manquante.</p>
+  <p class="note">Joue une partie difficile, ou tape la grille que tu as sous les yeux&nbsp;:
+  l'aide répond aux deux.</p>
 
-  <div class="slv-form">
-    <div class="slv-champ">
-      <label for="slv-motif">Le mot, tel qu'il s'affiche
-        <span class="aide">— par exemple <code>_A__ON</code></span></label>
-      <input id="slv-motif" class="slv-in" type="text" inputmode="latin" autocomplete="off"
-        spellcheck="false" autofocus placeholder="_A__ON" maxlength="30">
-      <div id="slv-cases" class="slv-cases" aria-live="polite"></div>
+  <div class="duo">
+    <div class="duo-col">
+      <h3>La partie</h3>
+      <div class="jeu" id="jeu">
+        <div class="jeu-haut">
+          <svg class="jeu-potence" id="jeu-potence" width="92" height="104" viewBox="0 0 92 104" aria-hidden="true"></svg>
+          <div class="jeu-etat">
+            <p class="jeu-vies" id="jeu-vies">Chargement du mot…</p>
+            <div class="jeu-mot" id="jeu-mot" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="jeu-clavier" id="jeu-clavier" role="group" aria-label="Lettres à proposer"></div>
+        <div id="jeu-fin"></div>
+        <div class="jeu-actions">
+          <button type="button" id="jeu-encore">Un autre mot</button>
+          <button type="button" id="jeu-abandon">Je donne ma langue au chat</button>
+        </div>
+      </div>
     </div>
-    <div class="slv-champ">
-      <label for="slv-absentes">Lettres déjà tentées qui n'y sont pas
-        <span class="aide">— facultatif</span></label>
-      <input id="slv-absentes" class="slv-in court" type="text" inputmode="latin" autocomplete="off"
-        spellcheck="false" placeholder="E T R" maxlength="30">
+
+    <div class="duo-col">
+      <h3>L'aide</h3>
+      <div class="slv-form">
+        <div class="slv-champ">
+          <label for="slv-motif">Le mot, tel qu'il s'affiche
+            <span class="aide">— un tiret par lettre manquante</span></label>
+          <input id="slv-motif" class="slv-in" type="text" inputmode="latin" autocomplete="off"
+            spellcheck="false" placeholder="_A__ON" maxlength="30">
+          <div id="slv-cases" class="slv-cases" aria-live="polite"></div>
+        </div>
+        <div class="slv-champ">
+          <label for="slv-absentes">Lettres déjà tentées qui n'y sont pas
+            <span class="aide">— facultatif</span></label>
+          <input id="slv-absentes" class="slv-in court" type="text" inputmode="latin" autocomplete="off"
+            spellcheck="false" placeholder="E T R" maxlength="30">
+        </div>
+      </div>
+      <p class="slv-lien" id="slv-lien"></p>
+      <div id="slv-rep" class="slv-rep" aria-live="polite"></div>
     </div>
   </div>
 
-  <div id="slv-rep" class="slv-rep" aria-live="polite"></div>
+  <h2 id="jouer">Ce que « difficile » veut dire ici</h2>
 
-  <h2>Comment lire la réponse</h2>
+  <p>«&nbsp;Dur&nbsp;» est mesuré, pas décrété. Pour chaque longueur, on classe les mots courants par ce
+  qu'ils coûtent à qui joue l'alphabet dans l'ordre de fréquence, et on tire dans la <strong>bande des
+  30&nbsp;% les plus durs, sans le dernier dixième</strong> — la queue, où la partie est perdue d'avance,
+  est écartée. Concrètement&nbsp;: après avoir joué les huit lettres les plus fréquentes du français, tu
+  arrives à <strong>six lettres sur dix découvertes</strong> avec une à trois vies en poche. C'est de là
+  que ça se joue.</p>
+
+  <p>L'aide, elle, suit la partie toute seule&nbsp;: à chaque lettre jouée, elle recalcule les mots
+  encore possibles et celle qu'il faudrait tenter. Clique la lettre qu'elle propose et elle est
+  jouée. Si tu écris dans les champs, l'aide se détache de la partie et répond à <em>ta</em>
+  grille — celle du jeu auquel tu joues ailleurs.</p>
+
+<h2>Comment lire la réponse</h2>
 
   <p>La <strong>lettre à jouer</strong> est celle qui apparaît dans le plus de mots encore possibles.
   Ce n'est pas une certitude&nbsp;: c'est le pari qui perd le moins souvent. Le pourcentage à côté dit
@@ -337,6 +423,264 @@
 
   MOTIF.addEventListener('input', rendre);
   ABS.addEventListener('input', rendre);
+})();
+
+/* ── LE JEU ───────────────────────────────────────────────────────────────────────────────────
+   Réutilise les seaux du solveur, la liste de prénoms publiée et la MÊME mesure de difficulté que
+   /mot-difficile-pendu et que Pendable : le nombre de lettres qu'un mot fait perdre à qui descend
+   l'alphabet dans l'ordre de fréquence du français. Aucune donnée nouvelle. */
+(function () {
+  'use strict';
+  var POT = document.getElementById('jeu-potence'), MOT = document.getElementById('jeu-mot');
+  var CLA = document.getElementById('jeu-clavier'), VIES = document.getElementById('jeu-vies');
+  var FIN = document.getElementById('jeu-fin');
+  if (!POT || !MOT || !CLA) return;
+
+  var VIES_MAX = 6, ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var FREQ = {E:14.7,A:7.6,I:7.5,S:7.9,N:7.1,R:6.6,T:7.2,O:5.4,L:5.5,U:6.3,D:3.7,C:3.3,P:3.0,
+              M:3.0,V:1.6,Q:1.4,F:1.1,B:0.9,G:0.9,H:0.7,J:0.5,X:0.4,Y:0.3,Z:0.1,K:0.05,W:0.04};
+  var RANG = {};
+  Object.keys(FREQ).sort(function (a, b) { return FREQ[b] - FREQ[a]; })
+    .forEach(function (l, i) { RANG[l] = i; });
+
+  var prenoms = null, durs = {}, mot = '', cout = 0, tentees = {}, rates = 0, fini = false;
+
+  function manques(m) {
+    var vu = {}, n = 0, max = 0;
+    for (var i = 0; i < m.length; i++) {
+      var L = m[i];
+      if (!vu[L]) { vu[L] = 1; n++; if (RANG[L] > max) max = RANG[L]; }
+    }
+    return max + 1 - n;
+  }
+
+  function gz(url) {
+    if (typeof DecompressionStream !== 'function') return Promise.reject(new Error('nav'));
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('http ' + r.status);
+      return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text();
+    });
+  }
+
+  function lesPrenoms() {
+    if (prenoms) return Promise.resolve(prenoms);
+    return gz('extension/assets/prenoms.tsv.gz').then(function (t) {
+      prenoms = {};
+      t.split('\n').forEach(function (l) {
+        var p = l.split('\t')[0];
+        if (p) prenoms[p.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()] = 1;
+      });
+      return prenoms;
+    }).catch(function () { prenoms = {}; return prenoms; });
+  }
+
+  /* les mots DURS d'une longueur : mêmes filtres que /mot-difficile-pendu */
+  function lesDurs(n) {
+    if (durs[n]) return Promise.resolve(durs[n]);
+    return Promise.all([gz('solveur/mots-' + n + '.txt.gz'), lesPrenoms()]).then(function (r) {
+      var mots = r[0].split('\n'), pren = r[1], cand = [];
+      /* ⚠ FENÊTRE PLUS SERRÉE QUE /mot-difficile-pendu (1 200 au lieu de 2 500), et c'est voulu :
+         une LISTE laisse le lecteur juger, un JEU impose son mot. Mesuré — à 2 500, « CHERRY »
+         (rang 1 904) sortait au tirage : un mot que notre lexique ne sait pas distinguer d'un nom
+         commun, et qui n'a ni W ni K pour se faire écarter. À 1 200 il disparaît. */
+      for (var i = 0; i < mots.length && i < 1200; i++) {
+        var w = mots[i];
+        if (w.length !== n || pren[w]) continue;
+        if (w.indexOf('W') >= 0 || w.indexOf('K') >= 0) continue;   /* emprunts et noms propres */
+        cand.push([manques(w), w]);
+      }
+      if (!cand.length) { durs[n] = []; return durs[n]; }
+
+      /* ⭐ LA BANDE, CALIBRÉE SUR LA DISTRIBUTION ET NON À L'ŒIL. Première version : « les 60 plus
+         durs ». Jouée dans le navigateur, 20 parties à l'ordre de fréquence : ZÉRO victoire. Un
+         pendu où la stratégie évidente ne gagne jamais n'est pas difficile, il est injouable.
+         Le coût médian d'un mot courant est de 8 à 9 ; ce réservoir-là tournait à 15,4 — le dernier
+         décile. On prend la bande p70–p90 : nettement plus dur que la médiane, sans la queue où
+         la partie est perdue d'avance. Elle se recalcule pour CHAQUE longueur, donc un changement
+         de lexique la déplace tout seul. */
+      var croissant = cand.map(function (c) { return c[0]; }).sort(function (a, b) { return a - b; });
+      var bas = croissant[Math.floor(croissant.length * 0.70)];
+      var haut = croissant[Math.floor(croissant.length * 0.90)];
+      var bande = cand.filter(function (c) { return c[0] >= bas && c[0] <= haut; });
+      bande.sort(function (a, b) { return b[0] - a[0] || (a[1] < b[1] ? -1 : 1); });
+
+      /* ⚠ ET LA DIVERSITÉ DES FINS. Sans elle le réservoir se sature de formes en -EZ (Z est la
+         24e lettre de la fréquence, donc tout « -EZ » score haut) : mesuré, 15 des 20 premiers à
+         six lettres. Un pendu où il suffit de taper Z n'est pas un pendu. */
+      var fins = {}, pool = [];
+      for (var k2 = 0; k2 < bande.length; k2++) {
+        var fin2 = bande[k2][1].slice(-2);
+        if ((fins[fin2] || 0) >= 3) continue;
+        fins[fin2] = (fins[fin2] || 0) + 1;
+        pool.push(bande[k2]);
+      }
+      durs[n] = pool;
+      return durs[n];
+    });
+  }
+
+  function potence() {
+    var S = 'stroke="#e9d4a8" stroke-width="3" fill="none" stroke-linecap="round"';
+    var h = '<line x1="6" y1="100" x2="50" y2="100" ' + S + '/>'
+          + '<line x1="20" y1="100" x2="20" y2="8" ' + S + '/>'
+          + '<line x1="20" y1="8" x2="62" y2="8" ' + S + '/>'
+          + '<line x1="62" y1="8" x2="62" y2="20" ' + S + '/>';
+    var n = rates;
+    if (n >= 1) h += '<circle cx="62" cy="30" r="9" ' + S + '/>';
+    if (n >= 2) h += '<line x1="62" y1="39" x2="62" y2="66" ' + S + '/>';
+    if (n >= 3) h += '<line x1="62" y1="46" x2="50" y2="58" ' + S + '/>';
+    if (n >= 4) h += '<line x1="62" y1="46" x2="74" y2="58" ' + S + '/>';
+    if (n >= 5) h += '<line x1="62" y1="66" x2="52" y2="84" ' + S + '/>';
+    if (n >= 6) h += '<line x1="62" y1="66" x2="72" y2="84" ' + S + '/>';
+    POT.innerHTML = h;
+  }
+
+  function gagne() {
+    for (var i = 0; i < mot.length; i++) if (!tentees[mot[i]]) return false;
+    return true;
+  }
+
+  function dessine() {
+    potence();
+    MOT.textContent = '';
+    for (var i = 0; i < mot.length; i++) {
+      var c = document.createElement('span');
+      var su = !!tentees[mot[i]];
+      c.textContent = (su || fini) ? mot[i] : '';
+      if (su) c.className = 'trouve';
+      else if (fini) c.className = 'rate';
+      MOT.appendChild(c);
+    }
+    VIES.innerHTML = 'Vies&nbsp;: <b>' + (VIES_MAX - rates) + '</b> sur ' + VIES_MAX
+      + ' · <b>' + mot.length + '</b> lettres';
+    [].forEach.call(CLA.children, function (b) {
+      var L = b.textContent;
+      b.disabled = fini || !!tentees[L];
+      b.className = tentees[L] ? (mot.indexOf(L) >= 0 ? 'bonne' : 'mauvaise') : '';
+    });
+  }
+
+  function terminer(gagnant) {
+    fini = true;
+    dessine();
+    pousser();
+    FIN.innerHTML = '<div class="jeu-fin' + (gagnant ? '' : ' perdu') + '">'
+      + (gagnant ? 'Trouvé&nbsp;! ' : 'Perdu. Le mot était <b>' + mot + '</b>. ')
+      + 'Il coûtait <b>' + cout + '</b> lettres à qui joue l\'alphabet dans l\'ordre de fréquence '
+      + '— c\'est la mesure de la page <a href="mot-difficile-pendu">mot difficile au pendu</a>.'
+      + '</div>';
+  }
+
+  function jouer(L) {
+    if (fini || tentees[L]) return;
+    tentees[L] = 1;
+    if (mot.indexOf(L) < 0) rates++;
+    if (rates >= VIES_MAX) { terminer(false); return; }
+    if (gagne()) { terminer(true); return; }
+    dessine();
+    pousser();
+  }
+
+  function nouvelle() {
+    fini = false; rates = 0; tentees = {}; FIN.textContent = '';
+    VIES.textContent = 'Chargement du mot…';
+    var n = 6 + Math.floor(Math.random() * 6);        /* 6 à 11 lettres */
+    lesDurs(n).then(function (liste) {
+      if (!liste.length) throw new Error('vide');
+      var x = liste[Math.floor(Math.random() * liste.length)];
+      cout = x[0]; mot = x[1];
+      dessine();
+      pousser();
+    }).catch(function (e) {
+      FIN.innerHTML = '<div class="jeu-fin perdu">' + (e && e.message === 'nav'
+        ? 'Ton navigateur ne sait pas décompresser le lexique.'
+        : 'Le lexique n\'a pas pu être chargé. Recharge la page.') + '</div>';
+      VIES.textContent = '';
+    });
+  }
+
+  for (var i = 0; i < ALPHABET.length; i++) {
+    (function (L) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = L;
+      b.addEventListener('click', function () { jouer(L); });
+      CLA.appendChild(b);
+    })(ALPHABET[i]);
+  }
+  /* le clavier physique aussi : taper est plus rapide que viser */
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var L = (e.key || '').toUpperCase();
+    if (L.length === 1 && ALPHABET.indexOf(L) >= 0 && document.activeElement
+        && document.activeElement.tagName !== 'INPUT') jouer(L);
+  });
+  /* ── LE PONT vers l'aide ────────────────────────────────────────────────────────────────────
+     Demande de Rem : « fusionner le jeu et l'aide au lieu de devoir descendre dans la page ».
+     Le jeu pousse son état dans les champs de l'aide à chaque coup ; si l'humain écrit dedans,
+     l'aide se détache et répond à SA grille. */
+  var MOTIF = document.getElementById('slv-motif');
+  var ABS = document.getElementById('slv-absentes');
+  var LIEN = document.getElementById('slv-lien');
+  var REP2 = document.getElementById('slv-rep');
+  var prog = false, detache = false;
+
+  function motifCourant() {
+    var out = '';
+    for (var i = 0; i < mot.length; i++) out += tentees[mot[i]] ? mot[i] : '_';
+    return out;
+  }
+  function absentesCourantes() {
+    var out = '';
+    for (var L in tentees) if (mot.indexOf(L) < 0) out += L;
+    return out;
+  }
+
+  function pousser() {
+    if (detache || !mot || !MOTIF) return;
+    prog = true;
+    MOTIF.value = motifCourant(); MOTIF.dispatchEvent(new Event('input', { bubbles: true }));
+    ABS.value = absentesCourantes(); ABS.dispatchEvent(new Event('input', { bubbles: true }));
+    prog = false;
+    majLien();
+  }
+
+  function majLien() {
+    if (REP2) REP2.classList.toggle('suit', !detache && !!mot);
+    if (!LIEN) return;
+    LIEN.innerHTML = detache
+      ? 'L\u2019aide répond à <strong>ta</strong> grille, plus à la partie. '
+        + '<a id="slv-resuivre" role="button" tabindex="0">Revenir à la partie</a>'
+      : 'L\u2019aide suit la partie. Écris dans les champs pour lui donner une autre grille.';
+    var r = document.getElementById('slv-resuivre');
+    if (r) {
+      var revenir = function () { detache = false; pousser(); };
+      r.addEventListener('click', revenir);
+      r.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') revenir(); });
+    }
+  }
+
+  /* ⚠️ le drapeau `prog` sépare l'écriture du PROGRAMME de celle de l'HUMAIN : sans lui, chaque
+     poussée du jeu passerait pour une saisie et détacherait l'aide dès le premier coup. */
+  [MOTIF, ABS].forEach(function (el) {
+    if (!el) return;
+    el.addEventListener('input', function () { if (!prog && !detache) { detache = true; majLien(); } });
+  });
+
+  /* la lettre proposée se joue d'un clic — tant que l'aide suit la partie */
+  if (REP2) {
+    REP2.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('.slv-lettre b') : null;
+      if (!b || detache || fini) return;
+      var L = (b.textContent || '').trim().toUpperCase();
+      if (L.length === 1) jouer(L);
+    });
+  }
+
+  document.getElementById('jeu-encore').addEventListener('click', nouvelle);
+  document.getElementById('jeu-abandon').addEventListener('click', function () {
+    if (!fini && mot) terminer(false);
+  });
+  nouvelle();
 })();
 </script>
 </body>

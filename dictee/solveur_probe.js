@@ -35,6 +35,7 @@ const RACINE = path.join(__dirname, '..');
 const PAGE = path.join(RACINE, 'solveur-pendu.html');
 const LEX = path.join(RACINE, 'solveur');
 const rouges = [];
+let jeuResume = '(jeu non mesuré)';
 const rouge = (m) => rouges.push(m);
 const log = (...a) => { if (!CHECK) console.log(...a); };
 
@@ -218,6 +219,162 @@ for (const n of longueurs) {
   }
 }
 
+/* ── ⑧ LE JEU (26/09/2026, demande de Rem : « il aurait été préférable de lui rattacher un vrai
+ *    jeu pendu difficile »). Le réservoir de mots est tiré des MÊMES seaux et de la MÊME mesure ;
+ *    ce banc vérifie que la recette de la page est bien celle qu'elle annonce, et que ce qu'elle
+ *    en dit reste vrai.
+ *
+ *    ⚠️ CE QUI A FORCÉ LA CALIBRATION. Première version : « les 60 mots les plus durs ». Le
+ *    réservoir tournait à un coût moyen de 15,4 alors que le coût MÉDIAN d'un mot courant est de
+ *    8 à 9 — le dernier décile, et « CHERRY » (rang 1 904) pouvait sortir au tirage. La bande
+ *    p70–p90 le remplace, recalculée pour chaque longueur. */
+const mGame = {
+  fenetre: src.match(/i < mots\.length && i < (\d+); i\+\+/),
+  bas: src.match(/croissant\.length \* (0\.\d+)\)\];\s*\n\s*var haut/),
+  haut: src.match(/var haut = croissant\[Math\.floor\(croissant\.length \* (0\.\d+)\)\]/),
+  parFin: src.match(/if \(\(fins\[fin2\] \|\| 0\) >= (\d+)\) continue/),
+  vies: src.match(/var VIES_MAX = (\d+)/),
+};
+for (const [nom, m] of Object.entries(mGame)) {
+  if (!m) rouges.push(`la recette du jeu a changé : « ${nom} » est introuvable dans la page`);
+}
+if (!rouges.length) {
+  const FENETRE = +mGame.fenetre[1], BAS = +mGame.bas[1], HAUT = +mGame.haut[1];
+  const PAR_FIN = +mGame.parFin[1], VIES_MAX = +mGame.vies[1];
+
+  /* ⚠️ 26/09/2026 — CE BANC SUIVAIT LA PAGE AU LIEU DE LA CONTRAINDRE. Falsifié : en portant le
+     plafond de diversité de 3 à 99 dans la page, la règle lisait 99 et ne rougissait pas ; en
+     retirant les filtres « prénom » et « W/K », le banc recalculait le réservoir avec SES propres
+     filtres et ne voyait rien. Une garde qui recopie ce qu'elle doit vérifier ne vérifie rien.
+     Les trois sont maintenant des BORNES et des PRÉSENCES, lues dans la page. */
+  if (PAR_FIN > 3) {
+    rouges.push(`le jeu autorise ${PAR_FIN} mots partageant les deux dernières lettres (plafond 3) ` +
+                '— le réservoir se saturerait de formes en « -ez »');
+  }
+  const recette = src.slice(src.indexOf('function lesDurs'), src.indexOf('function potence'));
+  if (!/pren\[w\]/.test(recette)) {
+    rouges.push("le jeu n’écarte plus les prénoms : il pourrait tirer un nom de personne");
+  }
+  if (!/indexOf\('W'\)/.test(recette) || !/indexOf\('K'\)/.test(recette)) {
+    rouges.push("le jeu n’écarte plus les mots à W ou K — deux lettres qui n’apparaissent presque " +
+                "qu’en emprunts et en noms propres, que le lexique ne sait pas distinguer");
+  }
+
+  /* les prénoms publiés, que le jeu écarte */
+  const zlib2 = require('zlib');
+  let pren = new Set();
+  const fPren = path.join(RACINE, 'extension/assets/prenoms.tsv.gz');
+  if (fs.existsSync(fPren)) {
+    pren = new Set(zlib2.gunzipSync(fs.readFileSync(fPren)).toString('utf8').split('\n')
+      .map((l) => l.split('\t')[0]).filter(Boolean)
+      .map((p) => p.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()));
+  } else {
+    rouges.push('extension/assets/prenoms.tsv.gz absent — le jeu ne pourrait pas écarter les prénoms');
+  }
+
+  const FR = {E:14.7,A:7.6,I:7.5,S:7.9,N:7.1,R:6.6,T:7.2,O:5.4,L:5.5,U:6.3,D:3.7,C:3.3,P:3.0,
+              M:3.0,V:1.6,Q:1.4,F:1.1,B:0.9,G:0.9,H:0.7,J:0.5,X:0.4,Y:0.3,Z:0.1,K:0.05,W:0.04};
+  const ORD = Object.keys(FR).sort((a, b) => FR[b] - FR[a]);
+  const RG = {}; ORD.forEach((l, i) => { RG[l] = i; });
+  const cout = (m) => { const v = new Set(); let x = 0;
+    for (const L of m) { if (!v.has(L)) { v.add(L); if (RG[L] > x) x = RG[L]; } } return x + 1 - v.size; };
+
+  let poolsVus = 0, pire = 0, coutTotal = 0, nTotal = 0;
+  for (const n of [6, 7, 8, 9, 10, 11]) {
+    const sn = seau(n);
+    if (!sn) { rouges.push(`le jeu tire des mots de ${n} lettres et le seau manque`); continue; }
+    const cand = sn.mots.slice(0, FENETRE)
+      .filter((w) => w.length === n && !pren.has(w) && !w.includes('W') && !w.includes('K'))
+      .map((w) => [cout(w), w]);
+    const cs = cand.map((c) => c[0]).sort((a, b) => a - b);
+    const bas = cs[Math.floor(cs.length * BAS)], haut = cs[Math.floor(cs.length * HAUT)];
+    const bande = cand.filter((c) => c[0] >= bas && c[0] <= haut)
+      .sort((a, b) => b[0] - a[0] || (a[1] < b[1] ? -1 : 1));
+    const fins = {}, pool = [];
+    for (const c of bande) {
+      const f = c[1].slice(-2);
+      if ((fins[f] || 0) >= PAR_FIN) continue;
+      fins[f] = (fins[f] || 0) + 1; pool.push(c);
+    }
+    if (pool.length < 20) { rouges.push(`le réservoir du jeu ne contient que ${pool.length} mots de ${n} lettres`); continue; }
+    poolsVus++;
+    /* ⓐ aucun prénom, aucun W ni K */
+    const sale = pool.find((c) => pren.has(c[1]) || c[1].includes('W') || c[1].includes('K'));
+    if (sale) rouges.push(`le jeu peut tirer « ${sale[1]} » (${n} lettres) — prénom ou lettre d'emprunt`);
+    /* ⓑ la bande est bien celle qui est annoncée : pas la queue */
+    const max = cs[cs.length - 1];
+    if (haut >= max) rouges.push(`à ${n} lettres, la bande du jeu monte jusqu'au mot le plus dur (${haut}) — la queue n'est plus écartée`);
+    const median = cs[Math.floor(cs.length * 0.5)];
+    if (bas <= median) rouges.push(`à ${n} lettres, la bande du jeu descend à la médiane (${bas} ≤ ${median}) — ce n'est plus « dur »`);
+    /* ⓒ la diversité des fins tient */
+    const compte = {};
+    for (const c of pool) { const f = c[1].slice(-2); compte[f] = (compte[f] || 0) + 1; }
+    const trop = Object.entries(compte).find(([, v]) => v > PAR_FIN);
+    if (trop) rouges.push(`le réservoir du jeu porte ${trop[1]} mots en « -${trop[0]} » à ${n} lettres (plafond ${PAR_FIN})`);
+    if (pool.length > pire) pire = pool.length;
+    pool.forEach((c) => { coutTotal += c[0]; nTotal++; });
+  }
+  if (poolsVus < 6) rouges.push(`seulement ${poolsVus} longueurs jouables sur 6`);
+  if (VIES_MAX !== 6) rouges.push(`le jeu donne ${VIES_MAX} vies ; un pendu en donne six`);
+  /* ⓓ ce que la page ÉCRIT sur sa difficulté doit rester vrai */
+  const pctBande = Math.round((HAUT - BAS) * 100);
+  if (!prose.includes(`${Math.round((1 - BAS) * 100)} % les plus durs`)) {
+    rouges.push(`la page tire dans les ${Math.round((1 - BAS) * 100)} % les plus durs et ne l'écrit pas`);
+  }
+  if (!prose.includes('six lettres sur dix')) {
+    rouges.push("la page n'annonce plus ce que valent les huit premières lettres jouées");
+  }
+  /* ── ⑨ LE PONT ENTRE LA PARTIE ET L'AIDE (26/09/2026, demande de Rem : « fusionner ce nouveau
+   *    jeu du pendu et l'aide au pendu, au lieu de devoir descendre dans la page »).
+   *    C'est ce qui fait la page : l'aide LIT la partie au lieu d'attendre qu'on la recopie. Si le
+   *    pont saute, tout reste vert — la partie se joue, l'aide répond — et plus rien ne les relie.
+   *    On exige donc que chaque morceau soit là, nommément. */
+  const pont = [
+    [/function pousser\s*\(/, "le jeu ne pousse plus son état vers l'aide"],
+
+    [/var prog = false, detache = false;/, 'le drapeau qui sépare l\u2019écriture du programme de celle de ' +
+     'l\u2019humain a disparu : chaque coup du jeu détacherait l\u2019aide'],
+    [/classList\.toggle\('suit'/, 'la lettre proposée ne se signale plus jouable'],
+
+  ];
+  for (const [re, quoi] of pont) {
+    const n = (src.match(re) || []).length;
+    if (!n) rouges.push(`PONT rompu : ${quoi}`);
+  }
+  /* ⚠️ LA POUSSÉE, DANS CHACUN DES TROIS MOMENTS — et non « au moins trois appels quelque part ».
+     Falsifié : il y a QUATRE appels (tirage, coup, fin, retour à la partie) ; en retirer un
+     laissait le compte à 3 et la règle passait. Un seuil recopié sur l'existant ne garde rien. */
+  const moments = [
+    ['function jouer', 'après chaque coup joué'],
+    ['function nouvelle', 'au tirage du mot'],
+    ['function terminer', 'à la fin de la partie'],
+  ];
+  for (const [entree, quand] of moments) {
+    /* ⚠ LE CORPS EXACT, PAS UNE FENÊTRE. Falsifié : une fenêtre de 1 400 caractères débordait
+       sur la fonction suivante, qui porte sa propre poussée — retirer celle de `jouer` restait vert.
+       On réutilise le découpage par accolades déjà écrit plus haut. */
+    const suite = decouper(entree.replace('function ', ''));
+    if (suite === null) { continue; }
+    if (!/pousser\(\);/.test(suite)) {
+      rouges.push(`PONT : l'aide n'est plus rafraîchie ${quand}`);
+    }
+  }
+  /* le retour à la partie : l'identifiant vit DEUX fois (le lien écrit, et sa reprise). Exiger la
+     seule présence laissait passer le renommage de l'un des deux. */
+  const resuivre = (src.match(/slv-resuivre/g) || []).length;
+  if (resuivre < 2) {
+    rouges.push(`PONT : « slv-resuivre » n'apparaît que ${resuivre} fois — le retour à la partie ` +
+                'est écrit sans être repris, ou repris sans être écrit');
+  }
+  if (!prose.includes("L'aide, elle, suit la partie toute seule")) {
+    rouges.push("la page n'explique plus que l'aide suit la partie");
+  }
+
+  jeuResume = `réservoir du jeu : ${poolsVus} longueurs, coût moyen ${(coutTotal / nTotal).toFixed(1)} ` +
+              `(médiane du lexique : 8-9), bande p${Math.round(BAS * 100)}–p${Math.round(HAUT * 100)}, ` +
+              `${VIES_MAX} vies`;
+}
+
 sortir();
 const plusLourd = longueurs.reduce((a, b) =>
   index.longueurs[String(b)].octets > index.longueurs[String(a)].octets ? b : a);
@@ -225,4 +382,4 @@ log(`✓ solveur : ${TEMOINS.length} mots témoins tous retrouvés, ${casVus} si
     `lettres révélées jamais dans une case vide, absentes jamais dans un candidat, lettre proposée ` +
     `recomptée à l'identique ; ${total.toLocaleString('fr-FR')} formes en ${longueurs.length} seaux ` +
     `(le plus lourd, ${plusLourd} lettres, ${Math.round(index.longueurs[String(plusLourd)].octets / 1024)} Ko) ; ` +
-    `les chiffres de la page == le lexique livré.`);
+`les chiffres de la page == le lexique livré.\n  ` + jeuResume + '.');
