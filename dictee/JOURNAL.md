@@ -80,6 +80,18 @@
   vraie entrée sonore hors lexique : +18,5 pt avec un son exact, encore au-dessus des lettres seules avec 30 % de phonèmes faux.
   Prochaine étape falsifiable : remplacer `wp.get(currentWord)` par ce que la voie B entend sur l'audio des mots test (voix
   variées), mêmes 10 graines — le chiffre tombera entre 56 et 74,5 %, l'écart sera le coût de l'oreille.
+- **« Penser le son à partir du plateau » (M1 → M2 → voie B) : RÉFUTÉ, chiffré** (`evo/sonde_phon_plateau.py`, lexique lu
+  dans le monolithe, 4 000 mots test absents de toutes les tables, 8 000 plateaux de milieu de partie, déterministe). La
+  vision de Rem : en humain, on prononce ce qu'on voit (M1), on pense les sons qui manquent (M2), la voie B les change en
+  lettres. Mesuré sur la lettre que chaque méthode jouerait : n-gram de lettres du moteur 73,8 % de coups justes ; les sons
+  seuls 64,7 % ; sons puis lettres (cascade) 71,9 % ; lettres × sons 69,8-71,7 % ; M2 qui connaît la position : pareil.
+  Toutes les variantes DÉGRADENT le n-gram. Même avec les VRAIS sons des lettres révélées (la triche de la sonde
+  anglaise du 02/08) : 73,5 % — rien. Le vrai son de la case cachée : **99,0 %**. Lecture : le son qu'on tire du
+  plateau est déjà dans ses lettres, et passer par le son en perd (plusieurs graphies pour un même son) ; ce qui
+  manque à un mot inconnu, c'est un son venu d'AILLEURS. En pendu, ça veut dire un mot DIT à voix haute (voie B) —
+  le « pendu entendu », cousin de la dictée. L'IA qui « pense le son » (le déformateur de voix de Rem, en local dans
+  OMEGA ; ou notre B2 réentraîné sur des sons) sert donc là : fabriquer des voix variées pour mesurer l'oreille, et
+  corriger ce que l'oreille entend mal (courbe du bruit : chaque 10 % de sons faux coûte ~4 pt).
 - **À corriger quand on touchera** (rien de changé ce jour dans le moteur ni les pages) : `evolution.html` et
   `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo ; filtrer `wp` avec `len_index`. `evo/EVO_ROADMAP.md`
   porte l'avertissement en tête de sa section hors-lexique et sur le tableau O2 (même régime : cohorte phon jamais posée).
