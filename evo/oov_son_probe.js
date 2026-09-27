@@ -20,7 +20,9 @@
 //
 // Conditions : evo0 · evo30 · evo30_placebo · evo0_sourd · evo30_sourd · evo30_sourdPendant ·
 //   evo30_bruitNN (NN = % de phonèmes remplacés au hasard) · produit · produit_placebo · produit_inlex ·
-//   evo30_inlex · evo30_apresProduit
+//   produit_ngram · produit_ngram_inlex · evo30_inlex · evo30_apresProduit
+//   produit_ngram = le préréglage du produit + le n-gram arbitré (M_NEO_OS_ARB_NGRAM), rien d'autre.
+//                   Mesuré le 27/09 (10 graines) : hors lexique 21,5 → 56,1 %, dans le lexique 95,9 → 95,8 % (bruit)
 //   sourd         = le son des mots test est retiré de `wp` pendant tout le test (vrai hors-lexique)
 //   sourdPendant  = retiré PENDANT la partie seulement (l'apprentissage de fin de partie le reçoit)
 //   bruitNN       = oreille imparfaite : chaque phonème du mot caché remplacé par un phonème AU HASARD
@@ -82,6 +84,10 @@ function condition(cond, seed) {
     produit:            { cfg: `__cfgProduit(${seed})` },
     produit_placebo:    { cfg: `__cfgProduit(${seed})`, placebo: true },
     produit_inlex:      { cfg: `__cfgProduit(${seed})`, inlex: true },
+    // le n-gram ARBITRÉ dans la config du PRODUIT : un seul changement, M_NEO_OS_ARB_NGRAM. Mesuré le 19/06
+    // dans une config de test (AUDIT_OMEGA §1.9), jamais dans le préréglage jusqu'au 27/09
+    produit_ngram:       { cfg: `__cfgProduit(${seed}); M_NEO_OS_ARB_NGRAM=true;` },
+    produit_ngram_inlex: { cfg: `__cfgProduit(${seed}); M_NEO_OS_ARB_NGRAM=true;`, inlex: true },
   };
   if (T[cond]) return T[cond];
   const m = /^evo(0|30)_bruit(\d+)$/.exec(cond);
@@ -158,7 +164,8 @@ function rapport(R, graines, conds) {
     console.log(c.padEnd(20) + ((100 * w / n).toFixed(1) + ' %').padStart(9) + `   ${k('lectures')}         ${k('arb')}         ${k('arbAbstient')}            ${k('ngram')}`);
   }
   const paires = [['evo0', 'evo30'], ['evo30', 'evo30_placebo'], ['evo0', 'evo0_sourd'], ['evo30', 'evo30_sourd'],
-    ['evo30_sourd', 'evo30_sourdPendant'], ['produit', 'produit_placebo'], ['produit', 'evo0']];
+    ['evo30_sourd', 'evo30_sourdPendant'], ['produit', 'produit_placebo'], ['produit', 'evo0'],
+    ['produit', 'produit_ngram'], ['produit_inlex', 'produit_ngram_inlex']];
   console.log('\nappariement mot à mot (A → B) : parties perdues→gagnées / gagnées→perdues');
   for (const [A, B] of paires) {
     if (!conds.includes(A) || !conds.includes(B)) continue;

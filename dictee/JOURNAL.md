@@ -54,10 +54,21 @@
   probabilité p, par un symbole tiré AU HASARD dans l'inventaire du lexique (49 symboles, rares compris), tirage figé par mot.
   Pessimiste : une vraie oreille confond des voisins (/b/-/p/, /e/-/ɛ/), pas /k/-/a/ ; substitution seulement, ni ajout ni perte.
   Son exact 76,9 % · 10 % faux 72,7 · 20 % 69,3 · 30 % 64,2 · 50 % 55,3 · sans son 39,6 · lettres seules (gène 0) 56,9.
+- **Le n-gram arbitré, jamais essayé DANS LE PRODUIT — mesuré.** Le 19/06 (`AUDIT_OMEGA.md` §1.9), `M_NEO_OS_ARB_NGRAM`
+  avait été mesuré dans une config de test : dans le lexique 96-99 %, hors lexique 52-63 %, « meilleur ou égal dans les deux
+  régimes » ; `docs/CONFIG_TOGGLES.md` le dit « recommandé, activable sans risque ». Il n'est jamais entré dans le préréglage :
+  le script de mesure vivait dans `/tmp` (perdu) ; le préréglage a été refait le 20/06 (l'anti-triche) sans lui ; puis le
+  commentaire « reset complet » (dans le dépôt depuis le commit #9 du 25/06) coupe TOUTES les voies n-gram en citant une mesure
+  faite sur le n-gram EN CASCADE seul (100 → 60 % dans le lexique). Et aucun banc ne mesure le produit livré sur des mots
+  inconnus : le smoke de la CI joue dans le lexique. Mesuré ce jour dans la config du produit, un seul changement : hors
+  lexique 21,5 → **56,1 %** (+34,6 pt, 10 graines sur 10, 1 367 gagnées / 155 perdues) ; dans le lexique 95,9 → 95,8 %
+  (80 / 82 : du bruit, le placebo en fait basculer 94). Le son caché n'est pas lu ; le n-gram décide à chaque tour (10,8 appels,
+  0 abstention). Allumer ce réglage dans le préréglage est une décision de Rem, pas prise.
 - **Leçons.** ① La sélection trouve la fuite : un banc hors-lexique filtre TOUTES les tables où le mot vit (orthographe,
   prononciation…), pas seulement l'index qu'on croit lu. ② Une config qui ne pose pas tout n'est pas une config : tout poser, puis
   initialiser, dans un moteur neuf. ③ Se comparer à un SOTA exige la même entrée : les LLM et Trexquant jouent sans le son —
-  le chiffre comparable est 56 %, pas 74.
+  le chiffre comparable est 56 %, pas 74. ④ Un commentaire qui justifie un réglage par une mesure doit dire QUELLE variante
+  a été mesurée : « n-gram » couvrait la cascade (qui casse le lexique) et l'arbitré (qui ne le casse pas).
 - **Ce que ça ouvre — l'objectif de Rem : les trous de la phonologie (M1/M2).** État du code : `M1_phon` superpose les traits
   articulatoires des LETTRES révélées (26 one-hot + 14 traits), pas du son ; `M1_phon_m`/`M2_phon_m` sont calculés, jamais lus ;
   le seul vrai son du moteur est le champ `p` du lexique, donc un mot inconnu n'a pas de son. La mesure chiffre ce que vaut une

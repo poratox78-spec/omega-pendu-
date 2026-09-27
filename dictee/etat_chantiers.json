@@ -301,6 +301,11 @@
  ],
  "ouverts": [
   {
+   "titre": "Produit : allumer le n-gram arbitré (M_NEO_OS_ARB_NGRAM) dans le préréglage du pendu",
+   "ref": "JOURNAL 2026-09-27 · evo/oov_son_probe.js (produit_ngram) · AUDIT_OMEGA.md §1.9 · docs/CONFIG_TOGGLES.md",
+   "etat": "Mesuré le 27/09/2026 dans la config du produit, un seul changement (10 graines × 350 mots, appariés mot à mot, placebo) : hors lexique 21,5 → 56,1 % (+34,6 pt, 10/10 graines), dans le lexique 95,9 → 95,8 % (bruit : 80/82 parties, le placebo en fait basculer 94) ; le son du mot caché n'est pas lu. Déjà mesuré le 19/06 dans une config de test et recommandé par docs/CONFIG_TOGGLES.md, jamais entré dans le préréglage : le commentaire du « reset complet » coupe toutes les voies n-gram en citant une mesure du n-gram EN CASCADE. Décision de Rem en attente ; reste à mesurer avec le gap-aware (M_NEO_NGRAM_GAP, +2 pt hors lexique en juin)."
+  },
+  {
    "titre": "Pendu cognitif — les trous de la phonologie (M1/M2) : une vraie entrée sonore",
    "ref": "JOURNAL 2026-09-27 · evo/oov_son_probe.js · dictee/asr_voix.py (voie B)",
    "etat": "Ouvert le 27/09/2026, objectif donné par Rem après la mesure du « 74 % ». État du code : M1_phon superpose les traits articulatoires des LETTRES révélées (pas du son) ; M1_phon_m et M2_phon_m sont calculés, jamais lus ; le seul son du moteur est le champ p du lexique, donc un mot inconnu n'en a pas. Valeur mesurée d'un son exact hors lexique : +18,5 pt (56,1 → 74,5 %) ; oreille bruitée au hasard (3 graines) : 30 % de phonèmes faux = 64,2 %, encore au-dessus des lettres seules. Prochaine étape falsifiable : remplacer wp.get(currentWord) par ce que la voie B entend sur l'audio des mots test (voix variées), mêmes 10 graines. Rien touché dans le moteur : phase 1 = regarder."

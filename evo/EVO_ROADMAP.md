@@ -213,6 +213,9 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
     le préréglage de la page.
   - **À corriger quand on touchera** : `evolution.html` et `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo
     (tout poser, puis init) ; filtrer `wp` avec `len_index` dans tout banc OOV.
+  - **Sans tricher, le produit a +34,6 pt hors lexique à portée d'un interrupteur** : le préréglage + `M_NEO_OS_ARB_NGRAM` seul
+    (mesuré §1.9 le 19/06 dans une config de test, jamais dans le préréglage) = 21,5 → 56,1 % hors lexique, 95,9 → 95,8 % dans le
+    lexique (bruit), 10 graines, sans lire le son caché. Décision de Rem en attente.
   - **Ce que ça ouvre** : la valeur d'une VRAIE entrée sonore hors lexique est chiffrée (+18,5 pt avec un son exact ; une oreille qui se
     trompe sur 30 % des phonèmes bat encore les lettres seules). Le son exact vient aujourd'hui d'une table qu'un mot inconnu n'a pas ;
     une source légitime = le mot DIT (voie B). Chantier ouvert « trous de la phonologie (M1/M2) », cf. `ETAT.md`.
