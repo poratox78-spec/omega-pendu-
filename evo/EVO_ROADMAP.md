@@ -220,6 +220,9 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   - **Ce que ça ouvre** : la valeur d'une VRAIE entrée sonore hors lexique est chiffrée (+18,5 pt avec un son exact ; une oreille qui se
     trompe sur 30 % des phonèmes bat encore les lettres seules). Le son exact vient aujourd'hui d'une table qu'un mot inconnu n'a pas ;
     une source légitime = le mot DIT (voie B). Chantier ouvert « trous de la phonologie (M1/M2) », cf. `ETAT.md`.
+    ⛔ *Le son PENSÉ depuis le plateau n'est pas cette source* (`evo/sonde_phon_plateau.py`, 27/09) : toutes les variantes
+    dégradent le n-gram de lettres (73,8 % → 64,7-71,9 % de coups justes), et même les vrais sons des lettres révélées
+    ne gagnent rien (73,5 %) ; le vrai son de la case cachée donne 99,0 %. Le son doit venir d'ailleurs.
 
 - ✅ **EXTENSION OOV de P3 — l'évolution EN GRAND, là où il reste de la marge (2026-06-26 — idée de Rem : « chercher l'évolution où il reste
   du JEU » ; `evo_oov_*.js`)** : même mécanisme que P3 (sélection sur le génome param, le pendu juge), mais en **hors-lexique** (Trexquant) où
