@@ -5,6 +5,54 @@
 
 ---
 
+## 2026-09-27 (soir) — VOIE B : l'OREILLE APPRISE et le LM ORAL (la boucle intérieure appliquée à la dictée vocale locale)
+
+> Demande de Rem : « la boucle intérieure marche, on peut améliorer notre voie B qui ne tournait qu'à 86 % ». Travail au
+> labo (`data_local/pendu_labo/voieb/`, jamais commité), puis porté dans `dictee/asr_voix.py`.
+
+- **Un vrai banc, enfin.** Les 53 mots de la voix de Rem ne tranchent rien (1 mot = 1,9 pt). Banc : **250 extraits
+  VoxPopuli FR** (vraies voix du Parlement européen, CC0 ; 8 701 mots, 47 locuteurs) découpés PAR LOCUTEUR — moitié A
+  pour apprendre et régler, moitié B pour mesurer ; **90 phrases INVENTÉES au registre parlé** (« tu viens ce soir ? »),
+  dites par Hortense, Julie et Paul : 1-45 pour régler, 46-90 pour mesurer ; la voix de Rem en contrôle jamais vu.
+  Le décodeur du produit est rejoué À L'IDENTIQUE (vérifié : même score au mot près) ; seule change la note du son.
+- **Diagnostic.** Sur 1 192 mots faux du produit, le bon mot était déjà parmi les candidats 771 fois (65 %) : c'est le
+  CLASSEMENT qui rate, pas la recherche. Et **le modèle acoustique n'a PAS de /ɥ/** (59 symboles, pas de ɥ) : « lui »,
+  « puis », « suis », « depuis », « aujourd'hui » sont toujours entendus avec « y » — le produit payait −6 sur chacun (le
+  « aujourd'hui → ozurdyi » classé « acoustique dur » en juillet, c'était ça).
+- **L'oreille apprise** (`dictee/asr_oreille.json`, recette `dictee/build_asr_oreille.py`) : sur la moitié A, le son de
+  référence de chaque phrase est aligné sur ce que wav2vec2 a entendu ; on compte ce qu'il fait de chaque son (EM dur, 3
+  passes) → un coût −log P(entendu | dit) par paire. Elle a appris : /ɥ/ → « y » 88 %, schwa perdu 45 %, ø → ə 32 %,
+  œ → ø 24 %, ɛ̃ → œ̃ 20 %, o → ɔ 20 %, liaisons. Elle remplace la distance uniforme (−6 par erreur, rayon 2).
+- **Le LM oral.** Réglé sur le Parlement seul, le poids du son descend (0,75) et le petit LM, tiré de l'ÉCRIT, tranche :
+  « Tu viens » devient « Tant vient » chez Rem (« tu » est rare à l'écrit ; le LM écrit met « tant » 3,7 nats devant en
+  tête de phrase). L'optimum dépend du registre (Parlement 0,75 ; parlé 1,5). Remède : l'unigramme mélangé à 50 % aux
+  fréquences du speller, qui sont ORALES (« tu » : 13,9 M). Réglé sur les DEUX registres : poids du son 1, mélange 0,5.
+- **Mesure (réglages figés, jamais vu au réglage) :**
+
+  | | produit | + oreille apprise | + oreille + LM oral |
+  |---|---|---|---|
+  | Parlement B (4 349 mots) | 70,4 % | 74,6 % | **75,1 %** (+297 / −94, p 1e-25) |
+  | registre parlé B (1 002 mots) | 69,4 % | 69,0 % | **80,6 %** (+125 / −12, p 7e-25) |
+  | voix de Rem (53 mots) | 46 | 45 | **48** |
+  | voix de Rem bruitée | 25 | 28 | **30** |
+
+  Placebos du MÊME régime, à plat : l'oreille aux confusions redistribuées (Parlement B 70,4 %, +211/−213) ; le LM mélangé
+  aux mêmes fréquences brouillées entre les mots (parlé B 68,8 % ; l'oral bat ce placebo +138/−19).
+- **Réfutés en route** (ne pas refaire) : pondérer le son par la confiance de wav2vec2 (il est PLUS sûr de lui sur le
+  Parlement, 0,96, que sur Rem, 0,89 : ça baisserait le son là où il faut le monter) ; un treillis qui laisse le décodeur
+  fusionner deux segments ou en couper un (−95 / +21 contre l'oreille seule) ; « 8 ≡ y » seul, sans l'oreille, n'aide
+  que le registre parlé (+28/−8) ; un rayon plus large en coûts uniformes (67-70 %).
+- **Porté** dans `dictee/asr_voix.py` : `cands()` note chaque prononciation du lexique avec l'oreille (calcul vectorisé
+  numpy, élagage exact au-delà de 14), LM oral (`LAM_ORAL`), et `--sans-oreille` garde l'ancien décodeur pour comparer.
+  Vérifié : le décodeur porté redonne exactement les chiffres du labo (3 265/4 349, 808/1 002, 48, 30) et
+  `--sans-oreille` ceux d'avant (3 061/4 349, 695/1 002, 46, 25) ; la chaîne complète sur le WAV de Rem : 48/53 contre 46.
+  Garde `dictee/asr_oreille_probe.py` (dev.sh + CI) : l'asset, le classement au son sur un mini-lexique où la fréquence
+  pousse le mauvais mot (/lyi/ → lui, /mzyR/ → mesure), le LM oral (« tu » devant « tant »), le branchement de `run()` et
+  `init()` ; falsifiée quatre fois (LM écrit, `run()` à l'ancien décodeur, table uniforme, l'`asr_voix.py` d'avant).
+- **Limites dites.** Le registre parlé est mesuré sur des voix Windows (les phrases de mesure sont neuves, pas les voix) ;
+  la voix de Rem ne fait que 53 mots. Pour l'USAGE, Whisper local reste l'outil (98 % sur la voix de Rem) : la voie B est
+  le décodeur d'OMEGA, et l'oreille du pendu entendu.
+
 ## 2026-09-27 (suite) — CORRIGÉ le jour même : le compteur de parties, les bancs de l'évolution, la page évolution
 
 > Feu vert de Rem sur trois des points relevés plus bas.

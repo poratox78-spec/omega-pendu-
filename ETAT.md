@@ -22,7 +22,7 @@
 
 Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en local · **constat** = mesuré une fois, daté. Le détail (pages, notes) vit dans le registre lui-même.
 
-## 2. Garde-fous actifs — 115 contrôles dans `dev.sh` (= CI, parité gardée)
+## 2. Garde-fous actifs — 116 contrôles dans `dev.sh` (= CI, parité gardée)
 
 | # | contrôle | commande |
 |---:|---|---|
@@ -90,62 +90,64 @@ Portées : **ci** = re-vérifié à chaque CI · **locale** = reproductible en l
 | 62 | smoke moteur (cheat-free+NEO) | `node evo/ci_smoke.js` |
 | 63 | compteur de parties : une partie jouée = une comptée (page) | `node evo/compteur_parties_probe.js` |
 | 64 | banc hors-lexique : le mot test n'a pas de son, la config n'hérite pas | `node evo/banc_oov_probe.js` |
-| 65 | scrabidon — moteur plateau | `node dictee/scrabidon_probe.js` |
-| 66 | EN speller (recall CASES + FP casse) | `python3 dictee/speller_en_probe.py --check` |
-| 67 | EN homophones (recall CASES 14/14, RED=vraies fautes) | `python3 dictee/homophone_en_probe.py --check` |
-| 68 | EN moteur JS correcteur (parité CASES) | `node dictee/corrector_en.js --check` |
-| 69 | EN règles branchées dans la page (+ tokeniseur) | `node dictee/en_page_wiring_probe.js` |
-| 70 | EN page du correcteur : texte intact, corrigé == copié, cartes et listes, aide-frappe, mode d'emploi, contraste | `node dictee/correcteur_en_page_probe.js` |
-| 71 | EN parité Python↔JS par token : tokeniseur, speller, homophones (PUD committé + EWT local) | `node dictee/parity_en.js` |
-| 72 | EN parité du POS-tagger Python↔JS par token (PUD committé + EWT local) | `node dictee/parity_pos_en.js` |
-| 73 | EN or du POS-tagger committé (pos_en_gold.tsv, UD English-PUD) : complet, == data_local | `python3 dictee/build_pos_gold_en.py --check` |
-| 74 | EN exactitude du POS-tagger contre l'or PUD (plancher 91,5 %) | `node dictee/pos_en_exactitude_probe.js --check` |
-| 75 | EN décomposeur phonique : prononciation du dictionnaire, alignement lettres↔sons, page branchée | `node dictee/phonics_en_probe.js` |
-| 76 | EN table des fautes attestées : invariants du fichier livré | `python3 dictee/build_misspell_en.py --check` |
-| 77 | EN classement par sorte d'édition : constantes des deux moteurs == table recalculée | `python3 dictee/build_canal_en.py --check` |
-| 78 | EN fautes réelles en contexte (EWT annoté) : plancher de rappel + plafond de rouges faux | `node dictee/ewt_typos_en_probe.js --check` |
-| 79 | EN dictée : 300 phrases au lexique, sans marque du correcteur, focus présent, nombre affiché == fichier | `node dictee/dictee_en_probe.js` |
-| 80 | EN saisie vocale : commandes, mot de tête, question, ponctuation par silences, actifs du correcteur, promesse | `node dictee/voix_en_probe.js` |
-| 81 | SITE toutes les pages atteignables depuis l'accueil (FR + EN) | `node dictee/pages_atteignables_probe.js` |
-| 82 | SITE une barre de navigation ne promet pas une page pour en livrer une autre | `node dictee/menu_promesse_probe.js --check` |
-| 83 | SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html | `node dictee/sitemap_probe.js` |
-| 84 | SITE /pendable dit ce que le jeu fait (vies, cibles, taux + boutons, ordre des lettres, lexique, combo) | `node dictee/pendable_probe.js --check` |
-| 85 | SOLVEUR lexique == vue d'omega-lexiques.zip (14 fichiers, un par longueur) | `python3 dictee/build_solveur_lex.py --check` |
-| 86 | SOLVEUR la page trouve le mot, respecte les lettres révélées, et ses chiffres == le lexique | `node dictee/solveur_probe.js --check` |
-| 87 | SITE confidentialité : aucune page ne charge de ressource tierce à l'ouverture | `node dictee/tiers_probe.js` |
-| 88 | moteur de calcul (2 copies + poses + refus + câblage page) | `node dictee/calc_dys_probe.js` |
-| 89 | SITE chiffres de mesure affichés = registre unique (anti-dérive) | `node dictee/metriques_probe.js` |
-| 90 | SITE icônes : glyphe tracé + matricielles non vides | `python3 dictee/icones_probe.py` |
-| 91 | UI aucune copie n'annonce un succès qu'elle ignore | `node dictee/presse_papier_probe.js` |
-| 92 | répétition espacée (planificateur Leitner, bloc pur du monolithe) | `node dictee/srs_probe.js` |
-| 93 | navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM) | `node dictee/navigateur_probe.js --check` |
-| 94 | A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables) | `node dictee/a11y_probe.js --check` |
-| 95 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
-| 96 | ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT) | `node extension/ordre_chargement_probe.js --check` |
-| 97 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
-| 98 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
-| 99 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
-| 100 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
-| 101 | noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
-| 102 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
-| 103 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
-| 104 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
-| 105 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
-| 106 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
-| 107 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
-| 108 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
-| 109 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
-| 110 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
-| 111 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
-| 112 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
-| 113 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
-| 114 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
-| 115 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
+| 65 | voie B : oreille apprise + LM oral branchés (asset, classement au son, falsifié) | `python3 dictee/asr_oreille_probe.py` |
+| 66 | scrabidon — moteur plateau | `node dictee/scrabidon_probe.js` |
+| 67 | EN speller (recall CASES + FP casse) | `python3 dictee/speller_en_probe.py --check` |
+| 68 | EN homophones (recall CASES 14/14, RED=vraies fautes) | `python3 dictee/homophone_en_probe.py --check` |
+| 69 | EN moteur JS correcteur (parité CASES) | `node dictee/corrector_en.js --check` |
+| 70 | EN règles branchées dans la page (+ tokeniseur) | `node dictee/en_page_wiring_probe.js` |
+| 71 | EN page du correcteur : texte intact, corrigé == copié, cartes et listes, aide-frappe, mode d'emploi, contraste | `node dictee/correcteur_en_page_probe.js` |
+| 72 | EN parité Python↔JS par token : tokeniseur, speller, homophones (PUD committé + EWT local) | `node dictee/parity_en.js` |
+| 73 | EN parité du POS-tagger Python↔JS par token (PUD committé + EWT local) | `node dictee/parity_pos_en.js` |
+| 74 | EN or du POS-tagger committé (pos_en_gold.tsv, UD English-PUD) : complet, == data_local | `python3 dictee/build_pos_gold_en.py --check` |
+| 75 | EN exactitude du POS-tagger contre l'or PUD (plancher 91,5 %) | `node dictee/pos_en_exactitude_probe.js --check` |
+| 76 | EN décomposeur phonique : prononciation du dictionnaire, alignement lettres↔sons, page branchée | `node dictee/phonics_en_probe.js` |
+| 77 | EN table des fautes attestées : invariants du fichier livré | `python3 dictee/build_misspell_en.py --check` |
+| 78 | EN classement par sorte d'édition : constantes des deux moteurs == table recalculée | `python3 dictee/build_canal_en.py --check` |
+| 79 | EN fautes réelles en contexte (EWT annoté) : plancher de rappel + plafond de rouges faux | `node dictee/ewt_typos_en_probe.js --check` |
+| 80 | EN dictée : 300 phrases au lexique, sans marque du correcteur, focus présent, nombre affiché == fichier | `node dictee/dictee_en_probe.js` |
+| 81 | EN saisie vocale : commandes, mot de tête, question, ponctuation par silences, actifs du correcteur, promesse | `node dictee/voix_en_probe.js` |
+| 82 | SITE toutes les pages atteignables depuis l'accueil (FR + EN) | `node dictee/pages_atteignables_probe.js` |
+| 83 | SITE une barre de navigation ne promet pas une page pour en livrer une autre | `node dictee/menu_promesse_probe.js --check` |
+| 84 | SITE sitemap == pages (noindex exclues, zh/ hors périmètre) + canonical + liens internes sans .html | `node dictee/sitemap_probe.js` |
+| 85 | SITE /pendable dit ce que le jeu fait (vies, cibles, taux + boutons, ordre des lettres, lexique, combo) | `node dictee/pendable_probe.js --check` |
+| 86 | SOLVEUR lexique == vue d'omega-lexiques.zip (14 fichiers, un par longueur) | `python3 dictee/build_solveur_lex.py --check` |
+| 87 | SOLVEUR la page trouve le mot, respecte les lettres révélées, et ses chiffres == le lexique | `node dictee/solveur_probe.js --check` |
+| 88 | SITE confidentialité : aucune page ne charge de ressource tierce à l'ouverture | `node dictee/tiers_probe.js` |
+| 89 | moteur de calcul (2 copies + poses + refus + câblage page) | `node dictee/calc_dys_probe.js` |
+| 90 | SITE chiffres de mesure affichés = registre unique (anti-dérive) | `node dictee/metriques_probe.js` |
+| 91 | SITE icônes : glyphe tracé + matricielles non vides | `python3 dictee/icones_probe.py` |
+| 92 | UI aucune copie n'annonce un succès qu'elle ignore | `node dictee/presse_papier_probe.js` |
+| 93 | répétition espacée (planificateur Leitner, bloc pur du monolithe) | `node dictee/srs_probe.js` |
+| 94 | navigateur RÉEL (Chrome pilote la page, marques lues dans le DOM) | `node dictee/navigateur_probe.js --check` |
+| 95 | A11Y app réelle (aria-live, corrections au clavier, informatifs non tabbables) | `node dictee/a11y_probe.js --check` |
+| 96 | EXTENSION dans Chrome (paquet réel, assets par chrome.runtime.getURL) | `node extension/navigateur_ext_probe.js --check` |
+| 97 | ORDRE DE CHARGEMENT (page ouverte AVANT l'extension : le panneau le DIT) | `node extension/ordre_chargement_probe.js --check` |
+| 98 | précision par famille AU PRODUIT (extension réelle dans Chrome) | `python3 dictee/dys_precision_probe.py --navigateur` |
+| 99 | résiduel : tokens CORRECTS détruits (FP=0, plafond dur, corpus local) | `node dictee/residual_audit.js --check` |
+| 100 | collisions d’accent : JSON == app == extension (non_verbe_acc) | `python3 dictee/build_non_verbe_acc.py --check` |
+| 101 | toile du correcteur À JOUR (légende == nœuds ; chaque table chargée y est nommée) | `node dictee/toile_probe.js --check` |
+| 102 | noms épicènes exclus du genre (liste == Lexique4 ; SAUTÉ sans Lexique4.tsv.xz) | `python3 dictee/build_gacc_epicene_excl.py --check` |
+| 103 | lots Morphalou du speller : TSV commités bien formés (morph_na, morph_ver.gz) | `python3 dictee/build_morph_lex.py --check` |
+| 104 | paquet de données ouvertes du site (omega-lexiques.zip == sources, NOTICE comprise) | `python3 build_lexiques.py --check` |
+| 105 | icônes extension FRAÎCHES (== icon-512.png, exigées par le Store) | `python3 extension/build_icons.py --check` |
+| 106 | icônes du site FRAÎCHES (apple-touch + icon-192 dérivées de icon-512.png) | `python3 build_site_icons.py --check` |
+| 107 | zip extension FRAIS (octets == sources) | `python3 extension/build_zip.py --check` |
+| 108 | pack police OMEGA Dys FRAIS (octets == police/) | `python3 police/build_pack.py --check` |
+| 109 | complément Word (planificateur, texte jamais altéré) | `node word/test_son_word.js` |
+| 110 | clone anglais FRAIS (app EN == build(app FR)) | `python3 dictee/build_pendu_en.py --check` |
+| 111 | prénoms : 3 copies identiques + contenu | `python3 dictee/prenoms_probe.py` |
+| 112 | service worker (version+empreinte, précache, purge, comportement en bac à sable) | `node dictee/sw_probe.js` |
+| 113 | docs de pilotage (CLAUDE.md : budget mots, lignes-fleuves, doublons DOCTRINE) | `python3 dictee/docs_probe.py` |
+| 114 | ETAT.md FRAIS (généré == 3 sources machine) | `python3 dictee/etat_gen.py --check` |
+| 115 | parité dev.sh ↔ ci.yml (anti-dérive) | `python3 dictee/ci_parity_probe.py` |
+| 116 | omega-key crypto (entropie + gel listes + KAT Double Ratchet) | `node omega-key/test_crypto.js` |
 
 ## 3. Chantiers (source curée : `dictee/etat_chantiers.json`)
 
-### Fermés par la mesure — 62
+### Fermés par la mesure — 63
 
+- **Voie B (dictée vocale locale) : la note du son et le registre du modèle de langue** — l'OREILLE APPRISE (ce que wav2vec2 entend vraiment, apprise sur de vraies voix VoxPopuli ; le modèle n'a pas de /ɥ/) remplace la distance uniforme, et l'unigramme du LM est mélangé aux fréquences orales du speller. Mesuré sur des locuteurs et des phrases jamais vus : Parlement 70,4 → 75,1 %, registre parlé 69,4 → 80,6 %, voix de Rem 46 → 48/53 ; placebos à plat. Réfutés : pondération par la confiance de l'oreille, treillis fusion/coupe _(JOURNAL 2026-09-27 (soir) · garde dictee/asr_oreille_probe.py (dev.sh) · dictee/build_asr_oreille.py)_
 - **Pendu : les parties comptées deux fois dans la page (du 24/09 au 27/09)** — réparé à la source — le compteur de fin de partie se branche une fois PAR CANAL (initOmegaGlobals le rebranchait déjà, applyReferenceConfig le rebranchait encore, dès le chargement depuis le 24/09). Vérifié dans la vraie page (1 partie affichait « 2 », désormais 3 parties → 3) ; garde falsifiée sur l'ancien monolithe (2 compteurs, 3 parties comptées 6) _(JOURNAL 2026-09-27 (suite) · garde evo/compteur_parties_probe.js (dev.sh))_
 - **Bancs hors-lexique de l'évolution : son du mot test lisible, réglages posés après l'init** — réparés à un seul endroit (evo/fitness_harness.js : un mot hors du lexique n'a plus de son, __defauts() remet les 88 réglages ; les 10 bancs posent tout PUIS initialisent) ; gros N honnête : gène 0 = 56,7 %, gène 0,30 = 38,3 %. Garde : 0 lecture du son caché (379 garde levée), même 15/40 moteur neuf ou après le préréglage (l'ancien protocole 13/40). Page évolution FR/EN : « +14 pt » requalifié « mot entendu », simulation qui pose tout avant l'init (vérifiée dans le navigateur) _(JOURNAL 2026-09-27 (suite) · garde evo/banc_oov_probe.js (dev.sh) · evo/EVO_ROADMAP.md)_
 - **Pendu : « penser le son à partir du plateau » (M1 → M2 → voie B) pour les mots inconnus** — réfuté chiffré — 4 000 mots test absents de toutes les tables, 8 000 plateaux, déterministe : n-gram de lettres du moteur 73,8 % de coups justes ; toutes les variantes par les sons le DÉGRADENT (sons seuls 64,7 %, cascade 71,9 %, produits 69,3-71,7 %) ; même avec les vrais sons des lettres révélées : 73,5 %. Le vrai son de la case cachée : 99,0 %. Le son tiré du plateau est déjà dans ses lettres ; ce qui manque à un mot inconnu, c'est un son venu d'ailleurs (le mot dit à voix haute). Ne pas refaire avec un autre M2 : même l'oracle ne gagne rien _(JOURNAL 2026-09-27 · outil commité evo/sonde_phon_plateau.py)_

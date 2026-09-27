@@ -4,8 +4,9 @@
 OMEGA-Ω — ASR local « voie B » (sans Google). PROTOTYPE (expérimental, hors build/CI).
 
 Chaîne :  audio WAV  ->  wav2vec2-french-phonemizer (phonèmes IPA + pauses)  ->  OMEGA :
-  1. récupération lexicale : homophones exacts + proximité de prononciation sur les 214 k du speller
-  2. grammaire : décodage Viterbi trigramme (os-subj-lm)
+  1. récupération lexicale : chaque prononciation du lexique (speller + W2P) notée par l'OREILLE APPRISE (ce que
+     wav2vec2 entend vraiment quand on dit chaque son — asr_oreille.json) ; avant le 27/09 : distance uniforme
+  2. grammaire : décodage Viterbi trigramme (os-subj-lm, unigramme mélangé aux fréquences orales du speller)
   3. ponctuation PROSODIQUE : les silences (timing wav2vec2) posent points/virgules
   4. parseur de sujet MODE-CONFIANCE : accord son/sont, adj/participe (flips de genre gratuits à l'oral)
   5. correcteur rouge FP=0 + majuscules
@@ -20,6 +21,7 @@ Usage :
     python dictee/asr_voix.py  mon_audio.wav
     python dictee/asr_voix.py  --record 6            # 6 s depuis le micro par défaut
     python dictee/asr_voix.py  mon_audio.wav --show  # montre les étapes intermédiaires
+    python dictee/asr_voix.py  mon_audio.wav --sans-oreille   # l'ancien décodeur, pour comparer
 """
 import os, sys, math, gzip, json, pickle, tempfile, argparse
 import numpy as np
@@ -34,6 +36,15 @@ from correcteur_probe import deacc
 MODEL = 'Cnam-LMSSC/wav2vec2-french-phonemizer'
 SPELLER = os.path.join(HERE, '..', 'extension', 'assets', 'speller.tsv.gz')
 LM_PATH = os.path.join(HERE, 'os_subj_lm.json.gz')   # petit LM : MESURÉ > gros LM WiCoPaCo sur registre chat (piège de fréquence Wikipédia) — cf build_asr_lm.py
+# L'OREILLE APPRISE (27/09) : ce que wav2vec2 entend quand on lui dit chaque son (substitutions, pertes, ajouts),
+# appris sur de vraies voix (VoxPopuli, CC0) par build_asr_oreille.py. Remplace la distance uniforme (−6 par erreur).
+# Mesuré sur des locuteurs jamais vus : 70,4 → 75,1 % (Parlement), 69,4 → 80,6 % (registre parlé), voix de Rem
+# 46 → 48/53 ; placebo (mêmes coûts, confusions brouillées) à plat. Détail : dictee/JOURNAL.md du 27/09.
+OREILLE_PATH = os.path.join(HERE, 'asr_oreille.json')
+B_SON = 1.0          # poids du son : émission = −B_SON × coût appris (−log P(entendu | dit)), face au LM (LAM)
+LAM_ORAL = 0.5       # unigramme du LM = 0,5 × LM (écrit) + 0,5 × fréquences du speller (ORALES : « tu », « te » y sont
+                     # fréquents) ; placebo (mêmes fréquences, brouillées) à plat
+DN_SON, K_CANDS, TAU_SON = 3, 18, 14.0   # longueurs m±3 ; 18 candidats ; élagage exact au-delà de 14 (≈ 3 erreurs)
 FR_MS = 20                       # ~20 ms / frame (wav2vec2 base)
 COMMA_MS, PERIOD_MS = 190, 750   # seuils de silence (virgule ~320 ; POINT ~1000+ : au-dessus de 750 pour ne PAS couper sur une respiration intra-phrase ~500 ms qui ferait un faux « ? »)
 STRIDE = 320                     # échantillons par frame wav2vec2 (20 ms @ 16 kHz) : frame -> position audio
@@ -132,13 +143,20 @@ def build_index():
     return PH2W, FREQ, POS
 
 # ── modèle de langue (trigramme os-subj-lm) ──
-def load_lm():
+def load_lm(freq=None, lam=1.0):
+    u"""Trigramme os-subj-lm. Avec `freq` et lam < 1 : l'unigramme est mélangé aux fréquences orales du speller
+    (P = lam·P_lm + (1−lam)·P_freq) ; bigrammes et trigrammes inchangés."""
     LM = json.load(gzip.open(LM_PATH, 'rt', encoding='utf-8'))
     UNI = dict(LM['uni']); NTOK = float(LM['N']); V = len(UNI) + 1
     def _m(x): return {k: v for k, v in x} if isinstance(x, list) else dict(x or {})
     BF = {k: _m(v) for k, v in _m(LM.get('bf', {})).items()}
     TF = {k: _m(v) for k, v in _m(LM.get('tf', {})).items()}
-    def lu(w): return math.log((UNI.get(w, 0) + 0.5) / (NTOK + 0.5 * V))
+    if freq and lam < 1.0:
+        FT = float(sum(freq.values())); NF = len(freq)
+        def lu(w): return math.log(lam * (UNI.get(w, 0) + 0.5) / (NTOK + 0.5 * V)
+                                   + (1.0 - lam) * (freq.get(w, 0) + 0.5) / (FT + 0.5 * NF))
+    else:
+        def lu(w): return math.log((UNI.get(w, 0) + 0.5) / (NTOK + 0.5 * V))
     def l2(w, p1):
         d = BF.get(p1)
         if d and w in d: return math.log((d[w] + 0.4) / (sum(d.values()) + 0.4 * V))
@@ -153,6 +171,9 @@ def load_lm():
 TORCH = PROC = AM = None
 PH2W = FREQ = POS = BYLEN = LEX = None
 LU = L2 = L3 = None
+L3_ECRIT = None                        # le LM sans le mélange oral (chemin --sans-oreille, pour comparer)
+OREILLE = None                         # (SUB, DEL, INS) float32, indexés par SYMI
+SYMI = {}; PRN = {}                    # symbole -> indice ; longueur -> (prononciations, tableau des indices)
 PAD = BAR = None
 _ALPHA = 'abcdefghijklmnopqrstuvwxyzàâäéèêëîïôöùûüçœ'
 
@@ -197,8 +218,88 @@ def lev(a, b, cap=2):
         pv = cur
     return pv[lb]
 
+def load_oreille(path=OREILLE_PATH):
+    u"""L'oreille apprise : SUB[dit][entendu], DEL[dit], INS[entendu] = −log P (asset build_asr_oreille.py). Un symbole
+    absent de la table (rare) reçoit des coûts neutres : se garder soi-même peu cher, tout le reste cher."""
+    global OREILLE, SYMI
+    T = json.load(open(path, encoding='utf-8'))
+    sy = list(T['symboles'])
+    extra = sorted({c for ph in (PH2W or {}) for c in ph} - set(sy))
+    n0 = len(sy); n = n0 + len(extra)
+    SUB = np.full((n, n), 8.0, dtype=np.float32); DEL = np.full(n, 5.0, dtype=np.float32); INS = np.full(n, 5.0, dtype=np.float32)
+    SUB[:n0, :n0] = np.array(T['sub'], dtype=np.float32); DEL[:n0] = T['del']; INS[:n0] = T['ins']
+    for i in range(n0, n): SUB[i, i] = 0.1
+    SYMI = {c: i for i, c in enumerate(sy + extra)}
+    OREILLE = (SUB, DEL, INS)
+    return OREILLE
+
+def index_sons():
+    u"""Les prononciations de l'index groupées par longueur, en tableaux d'indices (pour le calcul vectorisé)."""
+    global PRN
+    par = defaultdict(list)
+    for ph in PH2W: par[len(ph)].append(ph)
+    PRN = {}
+    for n, lst in par.items():
+        lst.sort()
+        PRN[n] = (lst, np.array([[SYMI[c] for c in ph] for ph in lst], dtype=np.int16))
+
+def couts_son(seg, dn=DN_SON, tau=TAU_SON):
+    u"""Coût (−log P) que le son entendu `seg` vienne de chaque prononciation de longueur m±dn : alignement pondéré par
+    l'oreille apprise, vectorisé. Élagage EXACT : les coûts sont positifs, une prononciation qui dépasse tau à une ligne
+    ne peut que monter — abandonnée. Rend [(coûts, prononciations)] par longueur."""
+    SUB, DEL, INS = OREILLE
+    s = [SYMI.get(c, -1) for c in seg]
+    if any(i < 0 for i in s): return []
+    m = len(s); out = []
+    for n in range(max(1, m - dn), m + dn + 1):
+        if n not in PRN: continue
+        strs, P = PRN[n]
+        idx = None; dl = DEL[P]
+        prev = np.zeros((n + 1, P.shape[0]), dtype=np.float32); prev[1:] = np.cumsum(dl, axis=1).T
+        for si in s:
+            cur = np.empty_like(prev)
+            cur[0] = prev[0] + INS[si]
+            sc = SUB[P, si]
+            for j in range(1, n + 1):
+                cur[j] = np.minimum(np.minimum(prev[j - 1] + sc[:, j - 1], cur[j - 1] + dl[:, j - 1]), prev[j] + INS[si])
+            prev = cur
+            garde = prev.min(axis=0) <= tau
+            if not garde.all():
+                idx = np.nonzero(garde)[0] if idx is None else idx[garde]
+                P = P[garde]; dl = dl[garde]; prev = prev[:, garde]
+                if P.shape[0] == 0: break
+        if P.shape[0]:
+            out.append((prev[n], strs if idx is None else [strs[t] for t in idx]))
+    return out
+
 _RC = {}
-def cands(seg, A=6, K=18):
+def cands(seg, K=K_CANDS):
+    u"""Candidats d'un son entendu, notés par l'OREILLE APPRISE : les K mots les moins coûteux (ex æquo du K-ième inclus,
+    départagés par la fréquence), émission −B_SON × coût."""
+    if seg in _RC: return _RC[seg]
+    res = {}
+    groupes = couts_son(seg)
+    if groupes:
+        allc = np.concatenate([c for c, _ in groupes])
+        offs = np.cumsum([0] + [len(s) for _, s in groupes])
+        kth = None
+        for t in np.argsort(allc, kind='stable'):
+            c = float(allc[t])
+            if kth is not None and c > kth + 1e-9: break
+            g = int(np.searchsorted(offs, t, side='right')) - 1
+            for w in PH2W[groupes[g][1][t - offs[g]]]:
+                if w not in res or c < res[w]: res[w] = c
+            if kth is None and len(res) >= K: kth = c
+    if not res:
+        out = [(seg, -9.0)]
+    else:
+        lst = sorted(res.items(), key=lambda x: (x[1], -math.log(FREQ.get(x[0], 1) + 1)))[:K]
+        out = [(w, -B_SON * c) for w, c in lst]
+    _RC[seg] = out; return out
+
+_RCU = {}
+def cands_uniforme(seg, A=6, K=18):     # l'ancien décodeur (distance uniforme, −6 par erreur) : --sans-oreille
+    _RC = _RCU
     if seg in _RC: return _RC[seg]
     L = len(seg); res = {}
     for dl in range(-2, 3):
@@ -215,13 +316,14 @@ def cands(seg, A=6, K=18):
     _RC[seg] = out; return out
 
 LAM = 1.0                              # poids du LM en shallow-fusion (émission-son + LAM·LM) — réglable
-def viterbi(seq):                      # décodage trigramme (émission + LM)
+def viterbi(seq, l3=None):             # décodage trigramme (émission + LM)
+    l3 = l3 or L3
     beam = {('<s>', '<s>'): (0.0, ['<s>', '<s>'])}
     for cs in seq:
         nb = {}
         for (p2, p1), (sc, path) in beam.items():
             for sp, em in cs:
-                v = sc + em + LAM * L3(sp, p2, p1); nk = (p1, sp)
+                v = sc + em + LAM * l3(sp, p2, p1); nk = (p1, sp)
                 if nk not in nb or v > nb[nk][0]: nb[nk] = (v, path + [sp])
         beam = nb or beam
     return max(beam.values(), key=lambda x: x[0])[1][2:]
@@ -361,7 +463,8 @@ def assemble(words, pauses):           # ponctuation prosodique (virgules) + maj
     text = ' '.join(parts).replace(' ,', ',')
     return text[:1].upper() + text[1:] if text else text
 
-def run(wav, dbg=None):
+def run(wav, dbg=None, oreille=True):
+    u"""oreille=False : l'ancien décodeur (distance uniforme + LM écrit), pour comparer."""
     import soundfile as sf
     raw = transcribe(wav)
     if not raw: return ''
@@ -380,7 +483,7 @@ def run(wav, dbg=None):
     out = []
     for sent in sents:
         phs = [w[0] for w in sent]; pauses = [w[1] for w in sent]
-        dec = viterbi([cands(w) for w in phs])
+        dec = viterbi([cands(w) for w in phs]) if oreille else viterbi([cands_uniforme(w) for w in phs], l3=L3_ECRIT)
         if dbg is not None: dbg.append('décodé   : ' + ' '.join(dec))
         dec = agree(dec)
         # récup NON-MOTS par double-route pendu (phon+ortho) — ne touche que les non-mots (safe)
@@ -446,7 +549,7 @@ def record(sec, device=None):
 
 def init():
     """Charge le modèle acoustique + l'index + le LM (une fois). Réutilisable par l'interface graphique."""
-    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LEX, LU, L2, L3, PAD, BAR
+    global TORCH, PROC, AM, PH2W, FREQ, POS, BYLEN, LEX, LU, L2, L3, L3_ECRIT, PAD, BAR
     if AM is not None: return
     TORCH, PROC, AM = load_am()
     PAD = PROC.tokenizer.pad_token_id
@@ -455,7 +558,9 @@ def init():
     BYLEN = defaultdict(list)
     for ph in PH2W: BYLEN[len(ph)].append(ph)
     LEX = set(FREQ) | set(D.W2P)                       # lexique pour détecter les non-mots
-    LU, L2, L3 = load_lm()
+    LU, L2, L3 = load_lm(FREQ, LAM_ORAL)                # LM mélangé aux fréquences orales
+    L3_ECRIT = load_lm()[2]
+    load_oreille(); index_sons()
 
 def main():
     ap = argparse.ArgumentParser(description="OMEGA ASR local (voie B, sans Google)")
@@ -464,6 +569,7 @@ def main():
     ap.add_argument('--device', type=int, metavar='N', help='numéro du micro (voir --list-devices)')
     ap.add_argument('--list-devices', action='store_true', help='lister les micros disponibles et quitter')
     ap.add_argument('--show', action='store_true', help='montrer les étapes intermédiaires')
+    ap.add_argument('--sans-oreille', action='store_true', help="l'ancien décodeur (distance uniforme, LM écrit), pour comparer")
     args = ap.parse_args()
     if args.list_devices: list_devices(); return
     wav = record(args.record, args.device) if args.record else args.wav
@@ -471,7 +577,7 @@ def main():
     if not os.path.exists(wav): die("Fichier introuvable : " + wav)
     init()
     dbg = [] if args.show else None
-    text = run(wav, dbg=dbg)
+    text = run(wav, dbg=dbg, oreille=not args.sans_oreille)
     if dbg:
         for l in dbg: print('  ' + l)
     print('\n' + text + '\n')

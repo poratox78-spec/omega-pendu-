@@ -186,6 +186,8 @@ jobs:
         run: node evo/compteur_parties_probe.js
       - name: Banc hors-lexique — le mot test n'a pas de son, la config n'hérite pas de l'état précédent (le « 74 % »)
         run: node evo/banc_oov_probe.js
+      - name: Voie B — l'oreille apprise et le LM oral sont branchés (/ɥ/ entendu « y », schwa perdu ; falsifié par une table uniforme)
+        run: python3 -m pip install --quiet numpy && python3 dictee/asr_oreille_probe.py
       - name: OMEGA·KEY — crypto (entropie passphrases + gel des listes + KAT Double Ratchet)
         run: node omega-key/test_crypto.js
       - name: Scrabidon — moteur plateau (mots croisés sur le bon axe, CHATS proposé, bi-mots scorés)
