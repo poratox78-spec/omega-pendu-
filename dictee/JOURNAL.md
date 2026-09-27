@@ -38,11 +38,15 @@
   uniforme (Julie ; 94,7 contre 94,8 sur la voix déformée) — nulle.
 - ⭐ **Trouvaille : hors lexique, la voie phon du produit coûte ~7 points.** Sans ses traits, ou coupée, le moteur gagne
   29,2-29,5 % au lieu de 22,5 % (+129 / −23), et dans le lexique rien ne bouge (les mêmes 1 446 parties sur 1 500).
-  L'ordre placebo > articulatoire > onde dit le mécanisme : plus le « son des lettres » est juste, plus il nuit — la voie
-  phon pousse vers des lettres qui SONNENT comme celles déjà révélées, mauvais indice au pendu (c'est, dans le vrai
-  moteur, la réfutation Python du matin : le son tiré du plateau est déjà dans ses lettres). Le tort ne passe ni par le
-  readout couplé, ni par la rétroaction, ni par le bind (ablations : 22,3 / 22,7 / 22,9 %). **Décision de Rem** : couper
-  la voie phon en mode hors lexique (l'interrupteur existe), rien n'est changé dans le produit.
+  Carte des voies, aller et retour (remarque de Rem : ne pas conclure sans elle ; `qui_decide_probe*.js`, 3 graines,
+  plus de 10 000 coups par condition) : les traits n'agissent QUE par l'aller, quand l'OS (M_OS_V07) remplace la lettre
+  de l'ortho — OS coupé, traits ou zéro trait donnent les mêmes parties au coup près ; le retour ne change rien (miroirs
+  de l'ortho gelés : mêmes parties ; Möbius allumé : l'écart tient ; ni readout couplé, ni rétroaction, ni bind : 22,3 /
+  22,7 / 22,9 %) ; le biais du hub M_S dans M4_phon n'y est pour rien. Coup par coup, la lettre de la voie phon BAT celle
+  de l'ortho qu'elle remplace (52-57 % de lettres justes contre 42 %) ; mais avec les traits, les lettres phon jouées sont
+  moins justes (48 % contre 57 %) et l'OS leur fait plus confiance (μ 0,48 contre 0,35). Non localisé plus finement
+  (restent M2_phon → M3_phon → hub, et le signal de M5_phon qui fixe μ). **Décision de Rem**, rien n'est changé dans le
+  produit.
 - **Où l'onde sert vraiment** : voir et entendre les sons (une page les montre, avec un vrai morceau d'onde de chaque son).
   Pour COMPARER des sons, ce sont les erreurs réelles de l'oreille qui comptent — c'est l'oreille apprise de la voie B
   (entrée suivante, +4,8 pt), pas la forme des ondes.

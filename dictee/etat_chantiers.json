@@ -327,7 +327,7 @@
  "ouverts": [
   {
    "titre": "Voie phon hors lexique : elle coûte ~7 points",
-   "etat": "mesuré : préréglage du produit hors lexique 22,5 % ; traits phon à zéro 29,5 %, voie phon coupée 29,2 % (+129/−23) ; dans le lexique les mêmes parties au mot près. Elle pousse vers les lettres qui sonnent comme les révélées. Le tort ne passe ni par le readout couplé, ni par la rétroaction, ni par le bind. Décision de Rem : couper la voie phon en mode hors lexique",
+   "etat": "mesuré : préréglage du produit hors lexique 22,5 % ; traits phon à zéro 29,5 %, voie phon coupée 29,2 % (+129/−23) ; dans le lexique les mêmes parties au mot près. Les traits n'agissent que par l'aller (remplacement de la lettre par l'OS) ; le retour ne change rien. Coup par coup la lettre phon bat celle de l'ortho, mais avec les traits elle est moins juste et l'OS lui fait plus confiance. Décision de Rem",
    "ref": "JOURNAL 2026-09-27 (nuit)"
   },
   {
