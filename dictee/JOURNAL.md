@@ -61,9 +61,14 @@
   commentaire « reset complet » (dans le dépôt depuis le commit #9 du 25/06) coupe TOUTES les voies n-gram en citant une mesure
   faite sur le n-gram EN CASCADE seul (100 → 60 % dans le lexique). Et aucun banc ne mesure le produit livré sur des mots
   inconnus : le smoke de la CI joue dans le lexique. Mesuré ce jour dans la config du produit, un seul changement : hors
-  lexique 21,5 → **56,1 %** (+34,6 pt, 10 graines sur 10, 1 367 gagnées / 155 perdues) ; dans le lexique 95,9 → 95,8 %
-  (80 / 82 : du bruit, le placebo en fait basculer 94). Le son caché n'est pas lu ; le n-gram décide à chaque tour (10,8 appels,
-  0 abstention). Allumer ce réglage dans le préréglage est une décision de Rem, pas prise.
+  lexique 21,5 → **56,1 %** (+34,6 pt, 10 graines sur 10, 1 367 gagnées / 155 perdues) ; dans le lexique 95,9 → 95,8 % :
+  162 parties changent d'issue, mais à parts égales (80 gagnées / 82 perdues) → effet net NUL. ⚠️ Ce n'est pas le placebo qui
+  le dit : dans le lexique, le placebo RNG ne fait basculer qu'UNE partie sur 3 500 (les 94, c'était hors lexique). Ces 162
+  bascules équilibrées sont le « bruit de perturbation » du moteur quand son chemin de calcul change (03/09 : ~200 parties
+  sur 3 000 basculent même pour un changement mathématiquement nul). Le son caché n'est pas lu ; le n-gram décide à chaque
+  tour. **+ gap-aware** (`M_NEO_NGRAM_GAP`, même protocole) : hors lexique 56,1 → 57,4 % (+1,3 pt, 8 graines sur 10,
+  198 / 152), dans le lexique 95,8 → 95,5 % (34 / 44, 1 graine sur 10 mieux : petit coût possible, non établi). Allumer ces
+  réglages dans le préréglage est une décision de Rem, pas prise.
 - **Leçons.** ① La sélection trouve la fuite : un banc hors-lexique filtre TOUTES les tables où le mot vit (orthographe,
   prononciation…), pas seulement l'index qu'on croit lu. ② Une config qui ne pose pas tout n'est pas une config : tout poser, puis
   initialiser, dans un moteur neuf. ③ Se comparer à un SOTA exige la même entrée : les LLM et Trexquant jouent sans le son —

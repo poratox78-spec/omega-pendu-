@@ -303,7 +303,7 @@
   {
    "titre": "Produit : allumer le n-gram arbitré (M_NEO_OS_ARB_NGRAM) dans le préréglage du pendu",
    "ref": "JOURNAL 2026-09-27 · evo/oov_son_probe.js (produit_ngram) · AUDIT_OMEGA.md §1.9 · docs/CONFIG_TOGGLES.md",
-   "etat": "Mesuré le 27/09/2026 dans la config du produit, un seul changement (10 graines × 350 mots, appariés mot à mot, placebo) : hors lexique 21,5 → 56,1 % (+34,6 pt, 10/10 graines), dans le lexique 95,9 → 95,8 % (bruit : 80/82 parties, le placebo en fait basculer 94) ; le son du mot caché n'est pas lu. Déjà mesuré le 19/06 dans une config de test et recommandé par docs/CONFIG_TOGGLES.md, jamais entré dans le préréglage : le commentaire du « reset complet » coupe toutes les voies n-gram en citant une mesure du n-gram EN CASCADE. Décision de Rem en attente ; reste à mesurer avec le gap-aware (M_NEO_NGRAM_GAP, +2 pt hors lexique en juin)."
+   "etat": "Mesuré le 27/09/2026 dans la config du produit, un seul changement (10 graines × 350 mots, appariés mot à mot, placebo) : hors lexique 21,5 → 56,1 % (+34,6 pt, 10/10 graines), dans le lexique 95,9 → 95,8 % (162 parties changent d'issue à parts égales, 80/82 : effet net nul) ; le son du mot caché n'est pas lu. Déjà mesuré le 19/06 dans une config de test et recommandé par docs/CONFIG_TOGGLES.md, jamais entré dans le préréglage : le commentaire du « reset complet » coupe toutes les voies n-gram en citant une mesure du n-gram EN CASCADE. + gap-aware (M_NEO_NGRAM_GAP), mesuré le même jour : 57,4 % hors lexique (+1,3 pt, 8/10 graines), 95,5 % dans le lexique. Décision de Rem en attente."
   },
   {
    "titre": "Pendu cognitif — les trous de la phonologie (M1/M2) : une vraie entrée sonore",

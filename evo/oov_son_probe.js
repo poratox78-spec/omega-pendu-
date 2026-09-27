@@ -22,7 +22,9 @@
 //   evo30_bruitNN (NN = % de phonèmes remplacés au hasard) · produit · produit_placebo · produit_inlex ·
 //   produit_ngram · produit_ngram_inlex · evo30_inlex · evo30_apresProduit
 //   produit_ngram = le préréglage du produit + le n-gram arbitré (M_NEO_OS_ARB_NGRAM), rien d'autre.
-//                   Mesuré le 27/09 (10 graines) : hors lexique 21,5 → 56,1 %, dans le lexique 95,9 → 95,8 % (bruit)
+//                   Mesuré le 27/09 (10 graines) : hors lexique 21,5 → 56,1 %, dans le lexique 95,9 → 95,8 % (162
+//                   parties changent d'issue à parts égales, 80/82 : effet net nul — le placebo RNG, lui, n'en fait
+//                   basculer qu'UNE dans le lexique : ce sont des bascules de chemin de calcul, cf. JOURNAL 03/09)
 //   sourd         = le son des mots test est retiré de `wp` pendant tout le test (vrai hors-lexique)
 //   sourdPendant  = retiré PENDANT la partie seulement (l'apprentissage de fin de partie le reçoit)
 //   bruitNN       = oreille imparfaite : chaque phonème du mot caché remplacé par un phonème AU HASARD

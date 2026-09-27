@@ -215,7 +215,8 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
     (tout poser, puis init) ; filtrer `wp` avec `len_index` dans tout banc OOV.
   - **Sans tricher, le produit a +34,6 pt hors lexique à portée d'un interrupteur** : le préréglage + `M_NEO_OS_ARB_NGRAM` seul
     (mesuré §1.9 le 19/06 dans une config de test, jamais dans le préréglage) = 21,5 → 56,1 % hors lexique, 95,9 → 95,8 % dans le
-    lexique (bruit), 10 graines, sans lire le son caché. Décision de Rem en attente.
+    lexique (162 parties changent d'issue à parts égales, 80/82 : effet net nul), 10 graines, sans lire le son caché.
+    + gap-aware : 57,4 % hors lexique (+1,3 pt, 8/10 graines), 95,5 % dans le lexique. Décision de Rem en attente.
   - **Ce que ça ouvre** : la valeur d'une VRAIE entrée sonore hors lexique est chiffrée (+18,5 pt avec un son exact ; une oreille qui se
     trompe sur 30 % des phonèmes bat encore les lettres seules). Le son exact vient aujourd'hui d'une table qu'un mot inconnu n'a pas ;
     une source légitime = le mot DIT (voie B). Chantier ouvert « trous de la phonologie (M1/M2) », cf. `ETAT.md`.
