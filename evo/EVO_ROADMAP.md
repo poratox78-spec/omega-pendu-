@@ -211,8 +211,10 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
     elle appelle `initOmegaGlobals()` AVANT de poser ses interrupteurs et en laisse trois non posés (`M_OS_LEARNING_ENABLED`,
     `M_NEO_G2P_EXP_ENABLED`, `M_NEO_PHON_COHORT_JOINTE`) → la « même » config fait 25/40 dans un moteur neuf, 28/40 posée par-dessus
     le préréglage de la page.
-  - **À corriger quand on touchera** : `evolution.html` et `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo
-    (tout poser, puis init) ; filtrer `wp` avec `len_index` dans tout banc OOV.
+  - **✅ Corrigé le 27/09 (feu vert de Rem)** : `evolution.html` et `en/evolution.html` disent « +14 pt quand le moteur entend le
+    mot » et leur simulation pose tout avant l'init (`__poser`) ; les bancs passent par `fitness_harness.js`, qui coupe le son
+    des mots hors lexique (`--entendu` pour le régime « mot entendu ») et remet tous les réglages (`__defauts()`) avant chaque
+    config. Gros N réparé : gène 0 = 56,7 %, gène 0,30 = 38,3 %. Gardes : `evo/banc_oov_probe.js`, `evo/compteur_parties_probe.js`.
   - **Sans tricher, le produit a +34,6 pt hors lexique à portée d'un interrupteur** : le préréglage + `M_NEO_OS_ARB_NGRAM` seul
     (mesuré §1.9 le 19/06 dans une config de test, jamais dans le préréglage) = 21,5 → 56,1 % hors lexique, 95,9 → 95,8 % dans le
     lexique (162 parties changent d'issue à parts égales, 80/82 : effet net nul), 10 graines, sans lire le son caché.

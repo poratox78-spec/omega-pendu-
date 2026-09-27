@@ -5,6 +5,34 @@
 
 ---
 
+## 2026-09-27 (suite) — CORRIGÉ le jour même : le compteur de parties, les bancs de l'évolution, la page évolution
+
+> Feu vert de Rem sur trois des points relevés plus bas.
+
+- **Le compteur de parties comptait double** (rapport de Rem : « depuis notre changement de formation de la grille, les parties
+  sont comptées 2 pour 1 »). Mesuré dans la vraie page : une partie jouée par le bouton Start affichait « 2 ». Cause : depuis le
+  04/07, `initOmegaGlobals()` rebranche lui-même le compteur de fin de partie (`ui_attachGameEndSub`) ; `applyReferenceConfig()`
+  l'appelle PUIS rebranchait encore ; depuis le 24/09 (config optimale au chargement, « …la grille réorganisée »), c'est le cas
+  dès l'ouverture — 2 abonnés sur `OS_game_end`, et `subscribe()` ne dédoublonne pas. Touchés : parties, victoires, lignes du
+  journal ; les pourcentages restaient justes. Correctif : branché une fois PAR CANAL (la marque vit sur le canal, que chaque
+  init recrée). Vérifié d'abord dans la copie du labo, puis dans la page : 1 abonné, 3 parties → 3. Garde
+  `evo/compteur_parties_probe.js` (ordre du chargement de la page, puis bouton de config et réinitialisation), falsifiée sur
+  le monolithe d'avant : 2 compteurs, 3 parties comptées 6.
+- **Les bancs hors-lexique de l'évolution, réparés à un seul endroit** (`evo/fitness_harness.js`, que tous utilisent) :
+  ① un mot absent du lexique en cours n'a plus de son (`wp.get` coupé, comme dans le produit où un mot inconnu n'en a pas) ;
+  `--entendu` pour mesurer VOLONTAIREMENT le mot entendu ; ② `__defauts()` remet les 88 réglages à leur valeur de chargement,
+  et les 10 bancs posent tous leurs réglages PUIS initialisent. Garde `evo/banc_oov_probe.js` : 0 lecture du son caché sur 40
+  parties (379 quand on lève la garde — elle sait voir une fuite) ; la config réparée gagne les mêmes 15/40 mots dans un
+  moteur neuf et après le préréglage du produit, là où l'ancien protocole en gagnait 13/40 (il héritait). Le banc « gros N »
+  réparé donne le vrai chiffre : gène 0 = 56,7 %, gène 0,30 = 38,3 % (le « ~74 % » venait du son). Les verdicts imprimés par
+  `evo_oov_bigN.js` et `evo_oov_evolve.js` n'invoquent plus un « petit N » ni un « sur-apprentissage » et disent leur régime.
+  `evo/oov_son_probe.js` garde exprès l'ancien protocole (il sert à le reproduire) et lève la garde.
+- **La page évolution (FR + EN)** : « +14 pt hors-lexique » devient « +14 pt quand le moteur entend le mot », avec une
+  correction datée dans l'explication (le régime, l'oreille réelle 69-72 %, sans son 37,5 %) et « mot entendu » partout où la
+  page dit hors-lexique. Sa simulation en direct posait sa config APRÈS l'init et héritait du préréglage de l'app (appliqué
+  au chargement depuis le 24/09) : elle passe par `__poser` (tout éteint, la config, puis l'init). Vérifié dans le navigateur :
+  les trois réglages hérités sont revenus à faux, et le premier génome est jugé sur 72 parties sans erreur.
+
 ## 2026-09-27 — PENDU COGNITIF : le « 74 % hors-lexique » de l'évolution, c'est le moteur qui ENTEND le mot caché
 
 > Déclencheur : phase 1 « redécouverte » du pendu cognitif (regarder avant de toucher). Question de Rem : pourquoi l'évolution
@@ -111,7 +139,7 @@
     commande la perte, et des erreurs RÉELLES coûtent plus qu'un bruit au hasard du même taux (20 % : 65,1 contre
     69,3) — elles ajoutent et perdent des sons, ce qui casse l'alignement lettres ↔ sons. L'écart son exact → entendu
     (4 à 12 pt) est la place de M2 : l'IA qui corrige ce que l'oreille entend mal.
-- **À corriger quand on touchera** (rien de changé ce jour dans le moteur ni les pages) : `evolution.html` et
+- **À corriger quand on touchera** — ✅ FAIT le jour même (entrée « suite » ci-dessus) : `evolution.html` et
   `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo ; filtrer `wp` avec `len_index`. `evo/EVO_ROADMAP.md`
   porte l'avertissement en tête de sa section hors-lexique et sur le tableau O2 (même régime : cohorte phon jamais posée).
 
