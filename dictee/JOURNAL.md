@@ -92,6 +92,25 @@
   le « pendu entendu », cousin de la dictée. L'IA qui « pense le son » (le déformateur de voix de Rem, en local dans
   OMEGA ; ou notre B2 réentraîné sur des sons) sert donc là : fabriquer des voix variées pour mesurer l'oreille, et
   corriger ce que l'oreille entend mal (courbe du bruit : chaque 10 % de sons faux coûte ~4 pt).
+- **LE PENDU ENTENDU, mesuré de bout en bout** (feu vert de Rem : « c'est une expérience, envoie » ; labo local
+  `data_local/pendu_labo/entendu/`, non versionné : il dépend des voix Windows, de wav2vec2 et du moteur IA du
+  Déformateur, GPL-3, utilisé EN LOCAL seulement). Le mot test est DIT (orthographe accentuée, Lexique4) par une voix,
+  écouté par la voie B (wav2vec2-french-phonemizer, conversion IPA → SAMPA d'`asr_voix.py`), et le moteur de la COPIE
+  reçoit ce que l'oreille a entendu à la place du son du lexique. Aucune table ne voit le vrai son du mot test.
+  - **Voix Windows** (10 graines, 3 500 parties par ligne ; l'oreille se trompe sur 10,4-12,9 % des sons) :
+    lettres seules 56,1 % · son exact 74,5 % · **Hortense 71,7 % · Julie 71,1 % · Paul 68,9 %** · sans son 37,5 %.
+    L'oreille réelle garde ~80 % du gain (Julie contre le son exact : 218 / 96 parties, au-dessus du placebo, 105).
+  - **Voix du Déformateur de Rem** (Seed-VC tiny lancé en local ; mots de Julie convertis, 3 graines, 1 050 parties) :
+    « homme grave » (oreille 15,4 % de sons faux) **67,4 %** · « femme vieille » (20,0 %) **65,1 %** — contre 56,9 %
+    en lettres seules et 76,9 % avec le son exact sur ces graines. Piège de labo réglé : couper le retard du
+    convertisseur au DÉBUT mangeait les premiers sons (« ablatif » entendu /atif/) → silence avant le mot, rien coupé.
+  - **Mode « entendu » du produit** (préréglage + n-gram arbitré + gène 0,30 + son board-dérivé éteint) :
+    56,1 → 68,4 % avec le son exact, 67,3 % Julie, 64,4 % Paul (10 graines) ; 63,1 % « homme grave », 60,0 % « femme
+    vieille » (3 graines).
+  - **Lecture.** M1 (l'oreille) marche dès que le mot est vraiment DIT, même mal entendu. Le taux de sons faux
+    commande la perte, et des erreurs RÉELLES coûtent plus qu'un bruit au hasard du même taux (20 % : 65,1 contre
+    69,3) — elles ajoutent et perdent des sons, ce qui casse l'alignement lettres ↔ sons. L'écart son exact → entendu
+    (4 à 12 pt) est la place de M2 : l'IA qui corrige ce que l'oreille entend mal.
 - **À corriger quand on touchera** (rien de changé ce jour dans le moteur ni les pages) : `evolution.html` et
   `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo ; filtrer `wp` avec `len_index`. `evo/EVO_ROADMAP.md`
   porte l'avertissement en tête de sa section hors-lexique et sur le tableau O2 (même régime : cohorte phon jamais posée).
