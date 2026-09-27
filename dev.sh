@@ -124,6 +124,7 @@ runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\";
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
 run "compteur de parties : une partie jouée = une comptée (page)" node evo/compteur_parties_probe.js
 run "banc hors-lexique : le mot test n'a pas de son, la config n'hérite pas" node evo/banc_oov_probe.js
+run "voie B : oreille apprise + LM oral branchés (asset, classement au son, falsifié)" python3 dictee/asr_oreille_probe.py
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js
 run "EN speller (recall CASES + FP casse)" python3 dictee/speller_en_probe.py --check
 run "EN homophones (recall CASES 14/14, RED=vraies fautes)" python3 dictee/homophone_en_probe.py --check

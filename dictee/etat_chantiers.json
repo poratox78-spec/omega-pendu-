@@ -2,6 +2,11 @@
  "_comment": "CURÉ À LA MAIN — c'est le SEUL fichier éditable de la chaîne ETAT.md (l'assemblage, lui, est généré par dictee/etat_gen.py ; après toute édition ici : python3 dictee/etat_gen.py pour régénérer, sinon le --check rougit). Un chantier FERMÉ l'est PAR LA MESURE (verdict chiffré, réf vérifiable) ; un chantier OUVERT dit où il en est et où c'est écrit. Rempli le 03/09/2026 depuis git log #616-#655 + dictee/JOURNAL.md + extension/STORE.md — chaque fait relu dans le dépôt, aucun chiffre recopié de mémoire.",
  "fermes": [
   {
+   "titre": "Voie B (dictée vocale locale) : la note du son et le registre du modèle de langue",
+   "verdict": "l'OREILLE APPRISE (ce que wav2vec2 entend vraiment, apprise sur de vraies voix VoxPopuli ; le modèle n'a pas de /ɥ/) remplace la distance uniforme, et l'unigramme du LM est mélangé aux fréquences orales du speller. Mesuré sur des locuteurs et des phrases jamais vus : Parlement 70,4 → 75,1 %, registre parlé 69,4 → 80,6 %, voix de Rem 46 → 48/53 ; placebos à plat. Réfutés : pondération par la confiance de l'oreille, treillis fusion/coupe",
+   "ref": "JOURNAL 2026-09-27 (soir) · garde dictee/asr_oreille_probe.py (dev.sh) · dictee/build_asr_oreille.py"
+  },
+  {
    "titre": "Pendu : les parties comptées deux fois dans la page (du 24/09 au 27/09)",
    "verdict": "réparé à la source — le compteur de fin de partie se branche une fois PAR CANAL (initOmegaGlobals le rebranchait déjà, applyReferenceConfig le rebranchait encore, dès le chargement depuis le 24/09). Vérifié dans la vraie page (1 partie affichait « 2 », désormais 3 parties → 3) ; garde falsifiée sur l'ancien monolithe (2 compteurs, 3 parties comptées 6)",
    "ref": "JOURNAL 2026-09-27 (suite) · garde evo/compteur_parties_probe.js (dev.sh)"
