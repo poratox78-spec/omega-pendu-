@@ -10263,7 +10263,14 @@ function omega_runDriverComparisonExport(nWords, seed) {
 function ui_attachGameEndSub() {
   if (typeof OS === 'undefined' || !OS || !OS.channels) return;
   if (!OS.channels.has('OS_game_end')) return;
-  OS.channels.get('OS_game_end').subscribe(function(event, t) {
+  // ⚠️ UNE FOIS PAR CANAL. initOmegaGlobals() rebranche déjà ce compteur (04/07) et applyReferenceConfig()
+  // le rebranchait après lui : 2 abonnés dès le chargement depuis le 24/09, chaque partie comptée DEUX fois
+  // (rapport de Rem, 27/09). subscribe() ne dédoublonne pas ; la marque vit sur le canal, que chaque
+  // réinitialisation recrée — le rebranchement reste donc possible après un initOmegaGlobals().
+  const _chFin = OS.channels.get('OS_game_end');
+  if (_chFin._uiStatsBranche) return;
+  _chFin._uiStatsBranche = true;
+  _chFin.subscribe(function(event, t) {
     if (!event || !event.word) return;
     _ui_gameCount++;
     if (event.success) _ui_winsCount++;

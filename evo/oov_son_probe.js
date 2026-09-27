@@ -105,6 +105,9 @@ async function travailleur(seed, cond, testN, warmN) {
   const O = loadEngine(); await O.loadLex(); const ev = O.evalIn;
   ev(`_omegaSeed=12345;_omegaRng=makeMulberry32(12345);initOmegaGlobals();`);
   ev(CFG_EVO); ev(CFG_PRODUIT); ev(SETUP);
+  // Ce banc REPRODUIT le protocole d'origine, fuite comprise, et gère lui-même le son de chaque condition
+  // (exact, retiré, bruité, entendu par l'oreille) : il lève donc la garde du harnais.
+  ev('__OREILLE_PARFAITE = true;');
   ev(`__oovSetup(${seed},${testN},${warmN})`);
   return ev(`(function(){
     ${C.cfg};

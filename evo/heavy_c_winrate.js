@@ -1,3 +1,7 @@
+// ⛔ 27/09/2026 — jusqu'à cette date, ce banc laissait le son du mot test lisible (la voie « assemblé » l'entendait :
+//    c'était le « 74 % hors-lexique ») et posait ses réglages APRÈS initOmegaGlobals(). Réparé : le son des mots
+//    hors lexique est coupé par fitness_harness.js ; __defauts() puis réglages puis init. `--entendu` pour mesurer
+//    VOLONTAIREMENT le mot entendu (oreille parfaite). Voir dictee/JOURNAL.md, 27/09/2026.
 // OMEGA — TEST VALIDE du C lourd : WINRATE dans le VRAI moteur à CONFIG OPTIMALE (AUDIT §1.12).
 // Réponse à la critique « tes tests sont caducs : top-1 sur masques aléatoires, hors pipeline, hors config optimale ».
 // Ici : on câble le C lourd comme VOIE SUBLEXICALE de l'arbitrage OS (M_NEO_C_HEAVY, remplace le n-gram gap-aware),
@@ -67,6 +71,7 @@ const pad=(s,n)=>{ s=String(s); while(s.length<n)s+=' '; return s; };
   // une condition : config optimale + arbitrage OS n-gram ; sublexicale = C lourd (heavy=true) ou n-gram gap-aware (heavy=false).
   function runCond(seed, sets, oov, heavy){
     const CFG = oov ? CFG_OOV : CFG_INLEX;
+    ev('__defauts();');   // 27/09 : sans ça, un réglage posé par la condition précédente survivait
     ev(CFG);
     ev(`_omegaSeed=${seed};_omegaRng=makeMulberry32(${seed});initOmegaGlobals();`
       + `if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();`

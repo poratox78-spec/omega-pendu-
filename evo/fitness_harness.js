@@ -44,7 +44,49 @@ function loadEngine() {
     get tried(){return (typeof alreadyTried!=='undefined')?alreadyTried:undefined},
     evalIn:(c)=>eval(c) };`;   // pont de MESURE (direct eval = même portée que le moteur) : lit/écrit les toggles (let) et objets internes par référence. N'altère pas la baseline (clé d'export en plus).
   eval(js + exp);
+  installerBancHonnete(globalThis.__O, js);
   return globalThis.__O;
+}
+
+// ── BANCS HONNÊTES (27/09/2026) ─────────────────────────────────────────────────────────────────────────────────
+// ① TOUS LES RÉGLAGES, PUIS L'INIT. Une config qui ne pose qu'une partie des réglages hérite du reste de ce qui a
+//    tourné avant ; et initOmegaGlobals() appelé AVANT la pose bâtit ses structures avec l'état précédent. Mesuré :
+//    la « même » config de l'évolution faisait 25/40 dans un moteur neuf et 28/40 posée après le préréglage de la page.
+//    __defauts() remet TOUS les réglages (les `let M_*`, `M4_*`, `M5_*`, `L01_*` à valeur simple, relevés dans le
+//    code) à leur valeur de chargement. Une config s'écrit donc : __defauts() ; <ses réglages> ; initOmegaGlobals().
+// ② UN MOT HORS DU LEXIQUE N'A PAS DE SON. Retirer le mot test de len_index ne suffisait pas : la table des
+//    prononciations `wp` (_emrg_initOnline, _emrg_initG2P) est bâtie sur OMEGA_LEX4.words, et la voie « assemblé »
+//    lisait le son du mot caché — c'était tout le « 74 % hors-lexique » (dictee/JOURNAL.md, 27/09/2026). Ici `wp.get`
+//    ne rend un son que pour un mot présent dans le lexique EN COURS, comme dans le produit où un mot inconnu n'a pas de
+//    son. Pour mesurer VOLONTAIREMENT le « mot entendu » (oreille parfaite) : `--entendu` sur la ligne de commande,
+//    ou `__OREILLE_PARFAITE = true` dans le moteur — et le dire dans le résultat.
+const REGLAGE = /(?:^|\n)[ \t]*let[ \t]+((?:M_|M4_|M5_|L01_)[A-Z0-9_]+)[ \t]*=[ \t]*(?:true|false|-?\d[\d.]*|'[^'\n]*'|"[^"\n]*")[ \t]*[;,]/g;
+function installerBancHonnete(O, js) {
+  const noms = [...new Set([...js.matchAll(REGLAGE)].map((m) => m[1]))];
+  O.evalIn(`(function(){
+    const D = {};
+    for (const n of ${JSON.stringify(noms)}) { try { D[n] = eval(n); } catch (e) {} }
+    globalThis.__DEFAUTS = D;
+    globalThis.__defauts = function(){ for (const n in D) { try { eval(n + '=' + JSON.stringify(D[n])); } catch (e) {} } };
+    globalThis.__OREILLE_PARFAITE = ${process.argv.includes('--entendu') ? 'true' : 'false'};
+    let src = null, ens = null;
+    const dansLexique = (m) => {
+      const LI = (typeof OMEGA_LEX4 !== 'undefined' && OMEGA_LEX4) ? OMEGA_LEX4.len_index : null;
+      if (!LI) return true;
+      if (LI !== src) { src = LI; ens = new Set(); for (const k in LI) for (const id of LI[k]) { const w = OMEGA_LEX4.words[id]; if (w && w.m) ens.add(w.m); } }
+      return ens.has(m);
+    };
+    const garder = (G) => {
+      if (!G || !G.wp || G.__banc) return G;
+      const get0 = G.wp.get.bind(G.wp);
+      G.wp.get = function (k) { return (__OREILLE_PARFAITE || dansLexique(k)) ? get0(k) : undefined; };
+      G.__banc = true; return G;
+    };
+    const on0 = _emrg_initOnline; _emrg_initOnline = function () { return garder(on0()); };
+    const g0 = _emrg_initG2P; _emrg_initG2P = function () { return garder(g0()); };
+    globalThis.__dansLexique = dansLexique;
+  })()`);
+  O.reglages = Object.keys(O.evalIn('__DEFAUTS')).length;
 }
 
 function _snap(O){ const t=O.tried,w=O.word; if(!t||!w)return null; let coups=0,err=0; for(let i=0;i<26;i++){ if(t[i]){coups++; if(!w.includes(String.fromCharCode(65+i)))err++;} } return {coups,err}; }

@@ -1,4 +1,8 @@
 'use strict';
+// ⛔ 27/09/2026 — jusqu'à cette date, ce banc laissait le son du mot test lisible (la voie « assemblé » l'entendait :
+//    c'était le « 74 % hors-lexique ») et posait ses réglages APRÈS initOmegaGlobals(). Réparé : le son des mots
+//    hors lexique est coupé par fitness_harness.js ; __defauts() puis réglages puis init. `--entendu` pour mesurer
+//    VOLONTAIREMENT le mot entendu (oreille parfaite). Voir dictee/JOURNAL.md, 27/09/2026.
 // EVO — CONFIRMATION OOV : le gène arbConf (M_NEO_OS_ARB_CONF) a donné +12,7 pts sur seed 12345 (64→76,7%). Est-ce ROBUSTE
 // ou sur-appris à cette graine ? Test HORS ÉCHANTILLON : on fixe la valeur évoluée (0,30, choisie sur 12345) et on la teste
 // sur 5 AUTRES seeds vs la référence (arbConf 0). Config OS_ARB (la meilleure), caches invalidés. Si le gain tient → vraie
@@ -20,7 +24,7 @@ const { loadEngine } = require('./fitness_harness.js');
     return __oov.testW.length;
   };`);
   ev(`globalThis.__oovGene=function(seed,arbConf){
-    _omegaSeed=seed;_omegaRng=makeMulberry32(seed);initOmegaGlobals();
+    __defauts();_omegaSeed=seed;_omegaRng=makeMulberry32(seed);   /* init APRÈS les réglages, plus bas */
     if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
     L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;
     M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
@@ -29,6 +33,7 @@ const { loadEngine } = require('./fitness_harness.js');
     if(typeof M_NEO_C_HEAVY!=='undefined') M_NEO_C_HEAVY=false;
     if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=M_NEO_OS_ARB_ALPHA=1;M_OS_v07.beta=M_NEO_OS_ARB_BETA=1;}
     if(typeof M_NEO_OS_ARB_CONF!=='undefined')M_NEO_OS_ARB_CONF=arbConf;
+    initOmegaGlobals();   // APRÈS la pose de TOUS les réglages (27/09 : avant, l'init voyait l'état précédent)
     function play(w){startNewGame(w);let sf=300;while(gameActive&&sf-->0)omegaStep();return lastGameWon;}
     OMEGA_LEX4.len_index=__oov.origLI; _neoWBL=null; _neoNG=null; _omegaRng=makeMulberry32(seed);
     for(let i=0;i<__oov.trainW.length;i++)play(__oov.trainW[i]);
@@ -54,7 +59,8 @@ const { loadEngine } = require('./fitness_harness.js');
   let verdict;
   if(robust) verdict=`✅ GAIN OOV ROBUSTE — l'évolution paie HORS ÉCHANTILLON`;
   else if(mean>1) verdict=`≈ gain réel mais plus petit / variable que sur seed 12345`;
-  else verdict=`❌ ne tient pas — c'était sur-appris à seed 12345`;
+  else verdict=`❌ ne tient pas — sans le son du mot caché, reporter la décision ne rapporte rien (27/09 : l'ancien +14 venait de ce son)`;
   console.log(`  → ${verdict}`);
-  console.log(`  → honnête : arbConf monte le winrate OOV moyen de ${mean.toFixed(1)} pt sur des graines NON utilisées pour le choisir.${mean>3?' Première vraie évolution OOV mesurée.':''}`);
+  console.log(`  → mesuré : arbConf change le winrate hors lexique moyen de ${mean>=0?'+':''}${mean.toFixed(1)} pt sur des graines NON utilisées pour le choisir.`);
+  console.log(`  (régime : ${process.argv.includes('--entendu') ? 'MOT ENTENDU — --entendu, le moteur a le son exact du mot test (oreille parfaite)' : 'HORS LEXIQUE HONNÊTE — le mot test n\'a pas de son ; --entendu pour le régime « mot entendu »'})`);
 })().catch(e=>{console.error('ERR',e&&e.stack||e);process.exit(1);});
