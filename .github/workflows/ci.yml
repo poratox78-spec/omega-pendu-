@@ -182,6 +182,10 @@ jobs:
           node -e "const C=require('/tmp/correcteur.standalone.js');C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');console.log('bake OK');});"
       - name: Smoke anti-régression du MOTEUR (cognition cheat-free + NEO, seedé) — AUDIT_COMPLET CI1
         run: node evo/ci_smoke.js
+      - name: Compteur de parties — une partie jouée = une comptée (page ; double comptage du 24/09 au 27/09)
+        run: node evo/compteur_parties_probe.js
+      - name: Banc hors-lexique — le mot test n'a pas de son, la config n'hérite pas de l'état précédent (le « 74 % »)
+        run: node evo/banc_oov_probe.js
       - name: OMEGA·KEY — crypto (entropie passphrases + gel des listes + KAT Double Ratchet)
         run: node omega-key/test_crypto.js
       - name: Scrabidon — moteur plateau (mots croisés sur le bon axe, CHATS proposé, bi-mots scorés)

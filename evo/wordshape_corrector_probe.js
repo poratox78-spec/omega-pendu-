@@ -1,4 +1,8 @@
 'use strict';
+// ⛔ 27/09/2026 — jusqu'à cette date, ce banc laissait le son du mot test lisible (la voie « assemblé » l'entendait :
+//    c'était le « 74 % hors-lexique ») et posait ses réglages APRÈS initOmegaGlobals(). Réparé : le son des mots
+//    hors lexique est coupé par fitness_harness.js ; __defauts() puis réglages puis init. `--entendu` pour mesurer
+//    VOLONTAIREMENT le mot entendu (oreille parfaite). Voir dictee/JOURNAL.md, 27/09/2026.
 // SONDE (NÉGATIF) — le modèle de forme-de-mot du pendu peut-il aider le correcteur à distinguer vrai-mot vs typo ?
 // Vrai moteur (config optimale cheat-free + gap-aware + NEO), score CONTINU = nb de mauvaises lettres au pendu,
 // ROC valide-OOV minuscule vs typo (noms propres exclus de fait : mots communs du lexique), lexique amputé.
@@ -28,11 +32,11 @@ function playErr(O,w){ O.startNewGame(w); let sf=300,last=0,s; while(O.active&&s
   const typos=[]; for(const w of typoSrc){ const t=mk(w); if(!idx[t]&&t.length>=7&&t.length<=12&&/^[A-Z]+$/.test(t))typos.push(t); if(typos.length>=N)break; }
   const rm=new Set([...valid.map(w=>idx[w]),...typoSrc.map(w=>idx[w])]);
   ev(`globalThis.__rm=${JSON.stringify([...rm])};(function(){const s=new Set(__rm),LI=OMEGA_LEX4.len_index;const f={};for(const k in LI)f[k]=LI[k].filter(id=>!s.has(id));OMEGA_LEX4.__filt=f;})();`);
-  ev(`(function(seed){_omegaSeed=seed;_omegaRng=makeMulberry32(seed);initOmegaGlobals();if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
+  ev(`(function(seed){__defauts();_omegaSeed=seed;_omegaRng=makeMulberry32(seed);if(typeof _omega_OSL_reset==='function')_omega_OSL_reset();if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
     L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;
     M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
     M_DECLARE_NEO_ENABLED=true;M_NEO_RECALL_ENABLED=true;M_NEO_ASSEMBLED_ENABLED=true;M_NEO_COHORT_ENABLED=true;M_NEO_PHON_COHORT_ENABLED=false;M_NEO_MUTE_ENABLED=false;M_NEO_TRIGGER_ENABLED=false;M_EMERGENT_DECLARE_ENABLED=true;
-    M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=true;if(typeof M_DECLARE_NEO_CONF!=='undefined')M_DECLARE_NEO_CONF=0.6;})(12345); OMEGA_LEX4.len_index=OMEGA_LEX4.__filt;`);
+    M_NEO_LETTER_NGRAM=false;M_NEO_OS_ARB=true;M_NEO_OS_ARB_NGRAM=true;M_NEO_NGRAM_GAP=true;if(typeof M_DECLARE_NEO_CONF!=='undefined')M_DECLARE_NEO_CONF=0.6;initOmegaGlobals();})(12345); OMEGA_LEX4.len_index=OMEGA_LEX4.__filt;`);
   const ev_v=valid.map(w=>playErr(O,w)), ev_t=typos.map(w=>playErr(O,w));
   const med=a=>{ const b=a.slice().sort((x,y)=>x-y); return b[b.length>>1]; };
   let c=0,tot=ev_v.length*ev_t.length; for(const p of ev_t)for(const n of ev_v){ if(p>n)c++; else if(p===n)c+=0.5; }

@@ -122,6 +122,8 @@ run "parité OCTET du moteur vocal (site==extension)" node dictee/voix_parite_pr
 run "audit structurel vocal (4000 dictées, chaînage+conflits)" node dictee/voix_struct_probe.js
 runsh "correcteur AUTONOME (bake)"  "D=\$(mktemp -d); T=\"\$D/c.standalone.js\"; TW=\$(cygpath -m \"\$T\" 2>/dev/null || echo \"\$T\"); node dictee/build_correcteur.js \"\$TW\" && node -e \"const C=require(process.argv[1]);C.init().then(function(){var f=C.correct('une grosse fote');if(!f.find(function(x){return x.word==='fote'&&x.sugg==='faute';}))throw new Error('bake KO');if(C.correct('Le chat mange une pomme.').length)throw new Error('bake FP');});\" \"\$TW\"; rc=\$?; rm -rf \"\$D\"; exit \$rc"
 run "smoke moteur (cheat-free+NEO)" node evo/ci_smoke.js
+run "compteur de parties : une partie jouée = une comptée (page)" node evo/compteur_parties_probe.js
+run "banc hors-lexique : le mot test n'a pas de son, la config n'hérite pas" node evo/banc_oov_probe.js
 run "scrabidon — moteur plateau"    node dictee/scrabidon_probe.js
 run "EN speller (recall CASES + FP casse)" python3 dictee/speller_en_probe.py --check
 run "EN homophones (recall CASES 14/14, RED=vraies fautes)" python3 dictee/homophone_en_probe.py --check

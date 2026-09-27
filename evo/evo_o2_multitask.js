@@ -1,4 +1,8 @@
 'use strict';
+// ⛔ 27/09/2026 — jusqu'à cette date, ce banc laissait le son du mot test lisible (la voie « assemblé » l'entendait :
+//    c'était le « 74 % hors-lexique ») et posait ses réglages APRÈS initOmegaGlobals(). Réparé : le son des mots
+//    hors lexique est coupé par fitness_harness.js ; __defauts() puis réglages puis init. `--entendu` pour mesurer
+//    VOLONTAIREMENT le mot entendu (oreille parfaite). Voir dictee/JOURNAL.md, 27/09/2026.
 // EVO O2 — MESURE MULTI-USAGE (première brique). Roadmap : "ne mesurer que le pendu (in-lex)" est aveugle ; une version
 // n'est "meilleure" que si elle progresse sur une SUITE de tâches. Ici : le MÊME génome évalué sur DEUX usages du même
 // substrat cognitif — pendu IN-LEXIQUE (rappel/cohorte) et pendu HORS-LEXIQUE (généralisation, held-out propre façon bigN).
@@ -31,7 +35,7 @@ const { loadEngine } = require('./fitness_harness.js');
 
   // applique un GÉNOME (mêmes toggles de base ; on FAIT VARIER phon / OS-arbitrage / arbConf / gap / seuil declare)
   ev(`globalThis.__applyGenome=function(g,seed){
-    _omegaSeed=seed;_omegaRng=makeMulberry32(seed);initOmegaGlobals();
+    __defauts();_omegaSeed=seed;_omegaRng=makeMulberry32(seed);   /* init APRÈS les réglages, plus bas */
     if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
     L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;
     // --- gène PHON (route du son : forte en lexique, neutre/coûteuse en OOV-sans-son) ---
@@ -42,6 +46,7 @@ const { loadEngine } = require('./fitness_harness.js');
     if(typeof M_NEO_C_HEAVY!=='undefined') M_NEO_C_HEAVY=false;
     if(typeof M_NEO_OS_ARB_CONF!=='undefined') M_NEO_OS_ARB_CONF=g.arbConf;
     if(typeof M_DECLARE_NEO_CONF!=='undefined') M_DECLARE_NEO_CONF=g.neoConf;
+    initOmegaGlobals();   // APRÈS la pose de TOUS les réglages (27/09 : avant, l'init voyait l'état précédent)
   };`);
   ev(`globalThis.__play=function(w){startNewGame(w);let sf=300;while(gameActive&&sf-->0)omegaStep();return !!lastGameWon;};`);
 

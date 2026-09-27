@@ -2,6 +2,16 @@
  "_comment": "CURÉ À LA MAIN — c'est le SEUL fichier éditable de la chaîne ETAT.md (l'assemblage, lui, est généré par dictee/etat_gen.py ; après toute édition ici : python3 dictee/etat_gen.py pour régénérer, sinon le --check rougit). Un chantier FERMÉ l'est PAR LA MESURE (verdict chiffré, réf vérifiable) ; un chantier OUVERT dit où il en est et où c'est écrit. Rempli le 03/09/2026 depuis git log #616-#655 + dictee/JOURNAL.md + extension/STORE.md — chaque fait relu dans le dépôt, aucun chiffre recopié de mémoire.",
  "fermes": [
   {
+   "titre": "Pendu : les parties comptées deux fois dans la page (du 24/09 au 27/09)",
+   "verdict": "réparé à la source — le compteur de fin de partie se branche une fois PAR CANAL (initOmegaGlobals le rebranchait déjà, applyReferenceConfig le rebranchait encore, dès le chargement depuis le 24/09). Vérifié dans la vraie page (1 partie affichait « 2 », désormais 3 parties → 3) ; garde falsifiée sur l'ancien monolithe (2 compteurs, 3 parties comptées 6)",
+   "ref": "JOURNAL 2026-09-27 (suite) · garde evo/compteur_parties_probe.js (dev.sh)"
+  },
+  {
+   "titre": "Bancs hors-lexique de l'évolution : son du mot test lisible, réglages posés après l'init",
+   "verdict": "réparés à un seul endroit (evo/fitness_harness.js : un mot hors du lexique n'a plus de son, __defauts() remet les 88 réglages ; les 10 bancs posent tout PUIS initialisent) ; gros N honnête : gène 0 = 56,7 %, gène 0,30 = 38,3 %. Garde : 0 lecture du son caché (379 garde levée), même 15/40 moteur neuf ou après le préréglage (l'ancien protocole 13/40). Page évolution FR/EN : « +14 pt » requalifié « mot entendu », simulation qui pose tout avant l'init (vérifiée dans le navigateur)",
+   "ref": "JOURNAL 2026-09-27 (suite) · garde evo/banc_oov_probe.js (dev.sh) · evo/EVO_ROADMAP.md"
+  },
+  {
    "titre": "Pendu : « penser le son à partir du plateau » (M1 → M2 → voie B) pour les mots inconnus",
    "verdict": "réfuté chiffré — 4 000 mots test absents de toutes les tables, 8 000 plateaux, déterministe : n-gram de lettres du moteur 73,8 % de coups justes ; toutes les variantes par les sons le DÉGRADENT (sons seuls 64,7 %, cascade 71,9 %, produits 69,3-71,7 %) ; même avec les vrais sons des lettres révélées : 73,5 %. Le vrai son de la case cachée : 99,0 %. Le son tiré du plateau est déjà dans ses lettres ; ce qui manque à un mot inconnu, c'est un son venu d'ailleurs (le mot dit à voix haute). Ne pas refaire avec un autre M2 : même l'oracle ne gagne rien",
    "ref": "JOURNAL 2026-09-27 · outil commité evo/sonde_phon_plateau.py"

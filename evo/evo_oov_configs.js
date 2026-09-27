@@ -1,4 +1,8 @@
 'use strict';
+// ⛔ 27/09/2026 — jusqu'à cette date, ce banc laissait le son du mot test lisible (la voie « assemblé » l'entendait :
+//    c'était le « 74 % hors-lexique ») et posait ses réglages APRÈS initOmegaGlobals(). Réparé : le son des mots
+//    hors lexique est coupé par fitness_harness.js ; __defauts() puis réglages puis init. `--entendu` pour mesurer
+//    VOLONTAIREMENT le mot entendu (oreille parfaite). Voir dictee/JOURNAL.md, 27/09/2026.
 // EVO — QUELLE CONFIG OOV ? (réponse au pointeur de Rem : « OOV a des toggles spécifiques »). On compare les variantes
 // documentées (CONFIG_TOGGLES §6) : cascade LETTER_NGRAM vs OS_ARB_NGRAM vs +GAP vs +C_HEAVY, sur 120 mots hors-lexique,
 // avec INVALIDATION EXPLICITE des caches cohorte/n-gram au swap (OOV honnête, pas de fuite _neoWBL). But : trouver la
@@ -23,7 +27,7 @@ const { loadEngine } = require('./fitness_harness.js');
 
   // c = {ngram, osarb, gap, cheavy, conf, alpha, beta}
   ev(`globalThis.__oovRunCfg=function(seed,c){
-    _omegaSeed=seed;_omegaRng=makeMulberry32(seed);initOmegaGlobals();
+    __defauts();_omegaSeed=seed;_omegaRng=makeMulberry32(seed);   /* init APRÈS les réglages, plus bas */
     if(typeof _omega_OSL_reset==='function')_omega_OSL_reset(); if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=1;M_OS_v07.beta=1;}
     L01_A4_M4M_DECOMP_ENABLED=true;L01_A5_M2M_POSITIONAL_ENABLED=true;L01_A6_OS_CONCEPT_ARBITRAGE_ENABLED=true;L01_B2_MOBIUS_ENABLED=true;M_OS_V07_ENABLED=true;M_SUBSTRAT_ORTHO_PURE_ENABLED=true;M_BPC_M3D_ENABLED=true;M_BPC_READOUT_COUPLE_ENABLED=true;M_OS_LEARNING_ONLINE_ENABLED=true;M_OS_LEARNING_GUARD_1_BOUNDED=true;M_OS_LEARNING_GUARD_2_ANALYTIC_AUDIT=true;M_OS_LEARNING_GUARD_3_MDL_REGUL=true;M_OS_LEARNING_GUARD_4_COHERENCE=true;
     M_VOIE_PHON_ENABLED=false;M4_PHON_USE_P_ENABLED=false;M_PHON_FEEDBACK_ENABLED=false;M_PHON_READOUT_COUPLE_ENABLED=false;M_PHON_CONCEPT_BIND_ENABLED=false;
@@ -34,6 +38,7 @@ const { loadEngine } = require('./fitness_harness.js');
     if(typeof M_NEO_C_HEAVY!=='undefined') M_NEO_C_HEAVY=!!c.cheavy;
     if(typeof M_OS_v07!=='undefined'&&M_OS_v07){M_OS_v07.alpha=M_NEO_OS_ARB_ALPHA=(c.alpha!=null?c.alpha:1);M_OS_v07.beta=M_NEO_OS_ARB_BETA=(c.beta!=null?c.beta:1);}
     if(typeof M_DECLARE_NEO_CONF!=='undefined'&&c.conf!=null)M_DECLARE_NEO_CONF=c.conf;
+    initOmegaGlobals();   // APRÈS la pose de TOUS les réglages (27/09 : avant, l'init voyait l'état précédent)
     function play(w){startNewGame(w);let sf=300;while(gameActive&&sf-->0)omegaStep();return lastGameWon;}
     OMEGA_LEX4.len_index=__oov.origLI; _neoWBL=null; _neoNG=null; _omegaRng=makeMulberry32(seed);
     for(let i=0;i<__oov.trainW.length;i++)play(__oov.trainW[i]);
