@@ -191,6 +191,32 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   - **Ce que ça change vraiment** : l'A→Z (P1 ✅ se copie, P2 ✅ communiquent, P3 ✅ générations) **tient** ; ce stress-test **borne les ampleurs
     in-lex** (modestes, plafond ~97 %) et **écarte le backlog O1**. Le **vrai relief** est ailleurs → l'OOV ci-dessous.
 
+- ⛔ **27/09/2026 — LE « 74 % HORS-LEXIQUE » EST LE MOTEUR QUI *ENTEND* LE MOT CACHÉ** (lu dans le code, chiffré sur 10 graines
+  neuves, vérifié dans la vraie page ; `evo/oov_son_probe.js`, `dictee/JOURNAL.md` 2026-09-27). **À lire AVANT les deux entrées OOV
+  ci-dessous, qui décrivent ce régime comme du pendu pur.**
+  - **Mécanisme.** Le banc OOV retire le mot test de `OMEGA_LEX4.len_index` SEULEMENT. La table des prononciations `wp` (mot → phonèmes,
+    bâtie par `_emrg_initOnline()` sur les 155 493 mots de `OMEGA_LEX4.words`) n'est jamais filtrée. Le gène 0,30 fait s'abstenir
+    l'arbitrage n-gram quand il doute ; la décision tombe alors sur la voie « assemblé » qui, cohorte phon OFF, lit `wp.get(currentWord)`
+    = la prononciation du mot caché (le « mot entendu » que l'UI du produit marque elle-même ORANGE). Compté : chaque abstention du
+    n-gram est suivie d'une lecture du son caché. **La sélection n'a pas trouvé une meilleure stratégie de lettres : elle a trouvé la fuite.**
+  - **Chiffres** (10 graines × 350 mots = 3 500 parties par ligne, appariés mot à mot, placebo) : gène 0 = **56,1 %** (identique sans le
+    son : 0 partie ne bascule) · gène 0,30 = **74,5 %** (placebo 74,0 %) · gène 0,30 **sans le son du mot caché = 37,5 %** · produit
+    (préréglage de la page) = 21,5 % hors lexique, 95,9 % dans le lexique. Reproduction du chiffre d'origine (2 graines de
+    `evo_oov_bigN.js`) : 75,2 %.
+  - **Comparable aux LLM et au SOTA Trexquant (qui jouent sans le son) : 56 %**, pas 74. Le gène 0,30 n'est bon QUE s'il y a un son ;
+    sans son il s'effondre (37,5 < 56,1).
+  - **Le tableau O2 plus bas est dans le même régime** : `M_NEO_PHON_COHORT_ENABLED` n'y est jamais posé (OFF par défaut), donc la voie
+    assemblé lit le son du mot caché dans les 4 lignes (lu dans le code, non mesuré à l'espion).
+  - **Harnais ≡ page** (vérifié mot à mot dans le vrai navigateur) : même état → mêmes mots gagnés. Mais la config evo n'est pas figée :
+    elle appelle `initOmegaGlobals()` AVANT de poser ses interrupteurs et en laisse trois non posés (`M_OS_LEARNING_ENABLED`,
+    `M_NEO_G2P_EXP_ENABLED`, `M_NEO_PHON_COHORT_JOINTE`) → la « même » config fait 25/40 dans un moteur neuf, 28/40 posée par-dessus
+    le préréglage de la page.
+  - **À corriger quand on touchera** : `evolution.html` et `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo
+    (tout poser, puis init) ; filtrer `wp` avec `len_index` dans tout banc OOV.
+  - **Ce que ça ouvre** : la valeur d'une VRAIE entrée sonore hors lexique est chiffrée (+18,5 pt avec un son exact ; une oreille qui se
+    trompe sur 30 % des phonèmes bat encore les lettres seules). Le son exact vient aujourd'hui d'une table qu'un mot inconnu n'a pas ;
+    une source légitime = le mot DIT (voie B). Chantier ouvert « trous de la phonologie (M1/M2) », cf. `ETAT.md`.
+
 - ✅ **EXTENSION OOV de P3 — l'évolution EN GRAND, là où il reste de la marge (2026-06-26 — idée de Rem : « chercher l'évolution où il reste
   du JEU » ; `evo_oov_*.js`)** : même mécanisme que P3 (sélection sur le génome param, le pendu juge), mais en **hors-lexique** (Trexquant) où
   OMEGA n'est **PAS au plafond** (~55-66 %) → le génome **a de la prise**. *D'abord* le bon terrain : la config OOV optimale est
@@ -204,6 +230,8 @@ Copier **fidèlement** tape dans le **mur de capacité** du concept (AUC familia
   ⟵ **La leçon** : l'évolution se voit là où il y a de la MARGE (OOV), pas au plafond (in-lex saturé). Les deux instincts de Rem (muscler + viser l'OOV) étaient justes.
 - ⏳ **Reste P1** (mineur) : config de référence (~90 %) dans le harnais ; prédicteur **hiérarchique** (optimisation du résidu).
 - ✓ **Suite OOV (gros N fait)** : 350 mots × 2 seeds → l'absolu **TIENT** (~74 %, ne régresse pas). ⏳ reste : balayer arbConf 0,30→0,60 (optimum ?) ; œil externe sur l'absolu vs SOTA.
+  ⛔ *27/09 : reproduit (75,2 % sur ces 2 graines, 74,5 % sur 10 neuves) et EXPLIQUÉ — c'est le son du mot caché (entrée ⛔ ci-dessus).
+  « Dépasse le SOTA » : parce qu'il entend le mot. Le balayage d'arbConf n'a de sens qu'une fois le banc privé de ce son.*
 
 ---
 
@@ -296,6 +324,9 @@ Le pendu a été **la** fitness unique de tout EVO → risque de **spécialisati
   - Le **« champion in-lex » (phon+cohorte) est un PIÈGE** : correct au pendu, **catastrophique en généralisation (46 %)**.
   - Sélection scalaire « in-lex » → phon+OS-arb (98,8) ; scalaire « OOV » → OS-arb+gap (73,3) : **gagnants DIFFÉRENTS**. Front de **Pareto = 3/4**.
   - ⇒ **un scalaire « pendu in-lex » est AVEUGLE à la généralisation** — exactement le risque « on ne mesure que le pendu ». La sélection P3 **doit** optimiser le **vecteur** (Pareto/pondéré), pas le scalaire. *(Caveat honnête : les absolus OOV ici, 180 mots × 2 graines, sont indicatifs/optimistes sur petit N (cf. bigN) ; le résultat est la DISSOCIATION relative, pas un nouvel absolu OOV.)*
+  - ⛔ *27/09/2026 : la colonne OOV de ce tableau est mesurée en régime « mot entendu » — `M_NEO_PHON_COHORT_ENABLED` n'est jamais
+    posé par `__applyGenome` (OFF par défaut), donc la voie assemblé lit `wp.get(currentWord)`, non filtré (cf. entrée ⛔ OOV plus haut).
+    Les trois lignes à arbConf 0,30 en dépendent le plus : sans le son, la config OOV bigN tombe de 74,5 à 37,5 %.*
 - ✅ **Généralité HORS-FRANÇAIS testée (`evo_o2_crossdomain.js`, 3 graines).** *« Le mécanisme fait-il autre chose que du pendu français, sans le lexique ? »* (Rem). Le moteur est câblé Lex4+phonologie FR → on réimplémente son **substrat** (cohorte + n-gram positionnel = le moteur OOV) **domaine-agnostique**, même tâche de reconstruction, sur **FR** (mots Lex4) vs **CODE** (identifiants des `.js` du repo, jamais le monolithe, pas Lex4) vs **CODE-brouillé** (contrôle : caractères mélangés, structure détruite). Gain du mécanisme sur sa baseline fréquence :
 
   | domaine | gain mécanisme |

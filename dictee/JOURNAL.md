@@ -5,6 +5,69 @@
 
 ---
 
+## 2026-09-27 — PENDU COGNITIF : le « 74 % hors-lexique » de l'évolution, c'est le moteur qui ENTEND le mot caché
+
+> Déclencheur : phase 1 « redécouverte » du pendu cognitif (regarder avant de toucher). Question de Rem : pourquoi l'évolution
+> (gène `M_NEO_OS_ARB_CONF` = 0,30) monte-t-elle à ~74 % hors lexique, plus que les LLM et le SOTA Trexquant (65-68 %), et plus
+> que le produit ? Sa piste : le harnais, difficile à rendre identique au produit, et le flou des lexiques utilisés ou non.
+
+- **Ce qui est vrai dans le code.** Le banc hors-lexique (`evo/evo_oov_*.js`, CFG_SIM d'`evolution.html`) retire le mot test de
+  `OMEGA_LEX4.len_index` SEULEMENT. La table des prononciations `wp` de `_emrg_initOnline()` (mot → phonèmes, bâtie sur les
+  155 493 mots de `OMEGA_LEX4.words`) n'est jamais filtrée. Dans `omegaStep`, le declare NEO essaie dans l'ordre : le rappel →
+  l'arbitrage OS (`_neoDeclareOSmix` : n-gram de lettres ⟷ cohorte filtrée, il ne lit jamais le mot caché) → la voie « assemblé ».
+  Le gène 0,30 fait rendre `null` à l'arbitrage quand sa meilleure lettre pèse moins de 0,30 ; la voie assemblé prend alors la
+  main et, cohorte phon OFF, lit `wp.get(currentWord)` : la prononciation du mot caché, alignée sur les lettres et décodée par la
+  table phonème → lettre apprise en jouant. C'est le « mot entendu » que l'UI du produit marque elle-même ORANGE.
+- **Mesuré** (`evo/oov_son_probe.js` : même tirage et même config que `evo_oov_bigN.js`, un processus neuf par condition ;
+  10 graines neuves 11…65521 × 350 mots = 3 500 parties par ligne, appariées mot à mot, avec placebo). Reproduction du chiffre
+  d'origine d'abord, sur les 2 graines de `evo_oov_bigN.js` : 75,2 %.
+
+| condition | hors lexique |
+|---|---|
+| évolution, gène 0 | 56,1 % |
+| gène 0 sans le son du mot caché | 56,1 % (0 partie ne bascule) |
+| évolution, gène 0,30 (le « 74 % ») | **74,5 %** |
+| placebo du 0,30 (un tirage du RNG consommé) | 74,0 % (105 parties basculent sur 3 500) |
+| gène 0,30 **sans le son du mot caché** | **37,5 %** (1 334 perdues, 38 gagnées) |
+| gène 0,30, son retiré pendant la partie seulement | identique au sans-son (l'apprentissage de fin de partie n'y est pour rien) |
+| produit (préréglage chargé par la page) | 21,5 % (placebo 21,6 %) |
+| produit, mots du lexique | 95,9 % |
+| évolution 0,30, mots du lexique | 97,9 % |
+
+- **Compteurs par partie** (3 graines, 1 050 parties par condition). Gène 0 : l'arbitrage OS décide 10,8 fois par partie et
+  ne s'abstient jamais ; le son caché n'est jamais lu. Gène 0,30 : 9,9 arbitrages, dont **7,0 abstentions — et 7,0 lectures du
+  son caché** : chaque abstention en donne une. Sans le son, les 9,4 abstentions ne trouvent rien à lire et la décision retombe
+  sur la cognition de base. Produit : l'arbitrage tourne (11,3 par partie, 4,1 abstentions — la cohorte phon est vide hors
+  lexique), mais sa voie sublexicale est la cohorte phon : **le n-gram de lettres n'est jamais appelé** (0,0 par partie), et le
+  son caché n'est jamais lu.
+- **Harnais ≡ page, vérifié dans le vrai navigateur** (page servie en local, mêmes 40 mots, graine 12345) : à état égal, mêmes
+  mots gagnés un par un — produit 9/40, évolution 25/40, évolution posée par-dessus le préréglage 28/40. Le MOTEUR est le même.
+  L'écart vient du PROTOCOLE : la config evo appelle `initOmegaGlobals()` AVANT de poser ses interrupteurs (l'init voit l'état
+  précédent : voie phon ON dans la page, OFF dans le banc) et en laisse trois non posés (`M_OS_LEARNING_ENABLED`,
+  `M_NEO_G2P_EXP_ENABLED`, `M_NEO_PHON_COHORT_JOINTE`). La « même » config fait donc 25 ou 28/40 selon ce qui a tourné avant.
+  15 réglages sur 49 diffèrent entre le produit et l'évolution ; le 0,30 n'a jamais été porté (produit : 0, n-gram arbitré OFF).
+- **Tables P2G/G2P : pas la fuite.** `PHON_TO_LETTERS` est écrite à la main ; la table du g2p en ligne n'apprend que des
+  parties jouées (et la priver du son des mots test après leur partie ne change rien, ligne « pendant seulement ») ;
+  `_emrg_initG2P` (EM sur 10 000 mots du lexique) est OFF partout. La fuite est le DICTIONNAIRE de prononciation, rangé dans le
+  même objet. Le reste du lexique est propre : aucune forme en double, n-gram et cohorte bâtis sur l'index filtré.
+- **Oreille bruitée** (3 graines, 1 050 parties par point, sans placebo). Chaque phonème du mot caché est remplacé, avec la
+  probabilité p, par un symbole tiré AU HASARD dans l'inventaire du lexique (49 symboles, rares compris), tirage figé par mot.
+  Pessimiste : une vraie oreille confond des voisins (/b/-/p/, /e/-/ɛ/), pas /k/-/a/ ; substitution seulement, ni ajout ni perte.
+  Son exact 76,9 % · 10 % faux 72,7 · 20 % 69,3 · 30 % 64,2 · 50 % 55,3 · sans son 39,6 · lettres seules (gène 0) 56,9.
+- **Leçons.** ① La sélection trouve la fuite : un banc hors-lexique filtre TOUTES les tables où le mot vit (orthographe,
+  prononciation…), pas seulement l'index qu'on croit lu. ② Une config qui ne pose pas tout n'est pas une config : tout poser, puis
+  initialiser, dans un moteur neuf. ③ Se comparer à un SOTA exige la même entrée : les LLM et Trexquant jouent sans le son —
+  le chiffre comparable est 56 %, pas 74.
+- **Ce que ça ouvre — l'objectif de Rem : les trous de la phonologie (M1/M2).** État du code : `M1_phon` superpose les traits
+  articulatoires des LETTRES révélées (26 one-hot + 14 traits), pas du son ; `M1_phon_m`/`M2_phon_m` sont calculés, jamais lus ;
+  le seul vrai son du moteur est le champ `p` du lexique, donc un mot inconnu n'a pas de son. La mesure chiffre ce que vaut une
+  vraie entrée sonore hors lexique : +18,5 pt avec un son exact, encore au-dessus des lettres seules avec 30 % de phonèmes faux.
+  Prochaine étape falsifiable : remplacer `wp.get(currentWord)` par ce que la voie B entend sur l'audio des mots test (voix
+  variées), mêmes 10 graines — le chiffre tombera entre 56 et 74,5 %, l'écart sera le coût de l'oreille.
+- **À corriger quand on touchera** (rien de changé ce jour dans le moteur ni les pages) : `evolution.html` et
+  `en/evolution.html` (« +14 pt hors-lexique », 72 %) ; figer la config evo ; filtrer `wp` avec `len_index`. `evo/EVO_ROADMAP.md`
+  porte l'avertissement en tête de sa section hors-lexique et sur le tableau O2 (même régime : cohorte phon jamais posée).
+
 ## 2026-09-08 — LE JUGE SORT DU DYS : deux gold externes, et le premier FP qu'ils trouvent (« Le congrès » → « congrè »)
 
 > ⚠️ Date = celle de `git log` (commits du 08/09 entre 01:51 et 04:17). Les entrées juste en dessous
