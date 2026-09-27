@@ -2,6 +2,11 @@
  "_comment": "CURÉ À LA MAIN — c'est le SEUL fichier éditable de la chaîne ETAT.md (l'assemblage, lui, est généré par dictee/etat_gen.py ; après toute édition ici : python3 dictee/etat_gen.py pour régénérer, sinon le --check rougit). Un chantier FERMÉ l'est PAR LA MESURE (verdict chiffré, réf vérifiable) ; un chantier OUVERT dit où il en est et où c'est écrit. Rempli le 03/09/2026 depuis git log #616-#655 + dictee/JOURNAL.md + extension/STORE.md — chaque fait relu dans le dépôt, aucun chiffre recopié de mémoire.",
  "fermes": [
   {
+   "titre": "L'alphabet phonologique en graphe d'onde, par les routes du moteur (M3_d, BPC)",
+   "verdict": "réfuté : les images d'onde des sons (mesurées sur de vraies voix) à la place des traits articulatoires du substrat phon font PERDRE hors lexique (19,7 % contre 22,5 % ; placebo 26,1 %) ; le croisement BPC de M3_d ne change rien ; le son entendu par le concept = son placebo (n.s.) ; une oreille « à l'onde » sans apprentissage = une oreille uniforme dans la boucle intérieure. Dans le lexique : inerte (mêmes parties)",
+   "ref": "JOURNAL 2026-09-27 (nuit) · labo data_local/pendu_labo/onde/"
+  },
+  {
    "titre": "Voie B (dictée vocale locale) : la note du son et le registre du modèle de langue",
    "verdict": "l'OREILLE APPRISE (ce que wav2vec2 entend vraiment, apprise sur de vraies voix VoxPopuli ; le modèle n'a pas de /ɥ/) remplace la distance uniforme, et l'unigramme du LM est mélangé aux fréquences orales du speller. Mesuré sur des locuteurs et des phrases jamais vus : Parlement 70,4 → 75,1 %, registre parlé 69,4 → 80,6 %, voix de Rem 46 → 48/53 ; placebos à plat. Réfutés : pondération par la confiance de l'oreille, treillis fusion/coupe",
    "ref": "JOURNAL 2026-09-27 (soir) · garde dictee/asr_oreille_probe.py (dev.sh) · dictee/build_asr_oreille.py"
@@ -320,6 +325,11 @@
   }
  ],
  "ouverts": [
+  {
+   "titre": "Voie phon hors lexique : elle coûte ~7 points",
+   "etat": "mesuré : préréglage du produit hors lexique 22,5 % ; traits phon à zéro 29,5 %, voie phon coupée 29,2 % (+129/−23) ; dans le lexique les mêmes parties au mot près. Elle pousse vers les lettres qui sonnent comme les révélées. Le tort ne passe ni par le readout couplé, ni par la rétroaction, ni par le bind. Décision de Rem : couper la voie phon en mode hors lexique",
+   "ref": "JOURNAL 2026-09-27 (nuit)"
+  },
   {
    "titre": "Pendu : le n-gram arbitré (M_NEO_OS_ARB_NGRAM) dans le réglage des parties hors lexique",
    "ref": "JOURNAL 2026-09-27 · evo/oov_son_probe.js (produit_ngram) · AUDIT_OMEGA.md §1.9 · docs/CONFIG_TOGGLES.md",

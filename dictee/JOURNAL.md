@@ -5,6 +5,48 @@
 
 ---
 
+## 2026-09-27 (nuit) — L'ALPHABET PHONOLOGIQUE EN GRAPHE D'ONDE, testé par les routes du moteur (M3_d, BPC)
+
+> Question de Rem : « convertir l'alphabet phonologique en graphe d'onde, et son utilité », le test devant suivre les
+> routes du moteur (M3_d et le BPC), pas une sonde à côté. Labo `data_local/pendu_labo/onde/`, rien de porté.
+
+- **La conversion.** Chaque son du moteur (SAMPA) reçoit son image d'onde, mesurée sur de VRAIES voix : dans 51 min de
+  VoxPopuli FR (CC0), l'oreille de la voie B dit quel son occupe chaque trame de 20 ms ; on y prend 32 ms d'onde, son
+  spectre en 40 bandes mel, moins la couleur moyenne de l'extrait, et on moyenne par son (34 sons, de 34 à 2 671 trames).
+  Leurs 14 axes principaux (99,9 % de ce qui les distingue) remplacent, dimension pour dimension, les 14 traits
+  articulatoires binaires faits main du substrat phon (PHON_FEATURES) ; chaque lettre = mélange des sons qu'elle écrit
+  (PHON_TO_LETTERS), même norme que les traits binaires. À l'onde, les lettres se rapprochent comme à l'articulation
+  (B~P 0,86, Z~S 0,87, I~Y 0,98), sauf V~F (0,21 : /v/ voisé et /f/ soufflé ne se ressemblent pas).
+- **Le test, dans le moteur** (préréglage du produit, harnais honnête, 5 graines × 300 mots après 200 d'échauffement,
+  mêmes mots partout ; moteur déterministe vérifié : deux passages identiques au mot près). Le substrat phon alimente la
+  voie phon du produit (M1_phon → M2_phon → M3_phon, readout couplé) et, avec `M_BPC_CROSSMODAL_ENABLED`, l'autoencodeur
+  BPC du concept M3_d (M1_d ⊕ M1_phon).
+
+  | substrat phon (14 nombres par lettre) | dans le lexique | hors lexique | + croisement BPC |
+  |---|---|---|---|
+  | traits articulatoires (le produit) | 96,4 % | 22,5 % | 21,8 % |
+  | l'onde | — | 19,7 % | 21,1 % |
+  | l'onde permutée entre les lettres (placebo) | — | 26,1 % | 25,9 % |
+  | aucun trait (identité seule) | 96,4 % (mêmes parties) | **29,5 %** | 29,1 % |
+  | voie phon coupée | — | **29,2 %** | — |
+
+  ⛔ **L'onde par les routes du moteur : réfutée** (−2,8 pt contre les traits faits main, −6,4 contre son placebo) ; le
+  croisement BPC de M3_d ne change rien. ⛔ **Le son ENTENDU par le concept** (M1_phon reçoit aussi l'image d'onde de ce
+  que l'oreille a entendu du mot, voix de Julie) : 22,3 % contre 21,0 % avec le son d'un AUTRE mot (+87/−68, n.s.) — le
+  canal du concept est trop étroit ; le son entendu passe par la route assemblé (+12 à 18 pt, entrée du 27/09).
+  ⛔ **Une oreille « à l'onde » sans apprentissage dans la boucle intérieure** : 98,0 % contre 98,2 % pour une oreille
+  uniforme (Julie ; 94,7 contre 94,8 sur la voix déformée) — nulle.
+- ⭐ **Trouvaille : hors lexique, la voie phon du produit coûte ~7 points.** Sans ses traits, ou coupée, le moteur gagne
+  29,2-29,5 % au lieu de 22,5 % (+129 / −23), et dans le lexique rien ne bouge (les mêmes 1 446 parties sur 1 500).
+  L'ordre placebo > articulatoire > onde dit le mécanisme : plus le « son des lettres » est juste, plus il nuit — la voie
+  phon pousse vers des lettres qui SONNENT comme celles déjà révélées, mauvais indice au pendu (c'est, dans le vrai
+  moteur, la réfutation Python du matin : le son tiré du plateau est déjà dans ses lettres). Le tort ne passe ni par le
+  readout couplé, ni par la rétroaction, ni par le bind (ablations : 22,3 / 22,7 / 22,9 %). **Décision de Rem** : couper
+  la voie phon en mode hors lexique (l'interrupteur existe), rien n'est changé dans le produit.
+- **Où l'onde sert vraiment** : voir et entendre les sons (une page les montre, avec un vrai morceau d'onde de chaque son).
+  Pour COMPARER des sons, ce sont les erreurs réelles de l'oreille qui comptent — c'est l'oreille apprise de la voie B
+  (entrée suivante, +4,8 pt), pas la forme des ondes.
+
 ## 2026-09-27 (soir) — VOIE B : l'OREILLE APPRISE et le LM ORAL (la boucle intérieure appliquée à la dictée vocale locale)
 
 > Demande de Rem : « la boucle intérieure marche, on peut améliorer notre voie B qui ne tournait qu'à 86 % ». Travail au
