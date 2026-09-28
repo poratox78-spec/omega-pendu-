@@ -515,15 +515,15 @@ async function liveSim(){
    showGameNoReset/applyGenome/__simEvalCore/CFG_OOV/wrOf/wrSweep — sont INATTEIGNABLES (liveSim pose stop=true
    avant mode='live'). Le mode réel passe UNIQUEMENT par liveSim()+CFG_SIM+__simEvalChunk : CFG_OOV n'est PAS la
    config mesurée à l'écran. Suppression différée (hygiène) — ne pas s'en servir comme référence. */
-/* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS les ~11 Mo ════════ */
+/* ════════ moteur CHARGÉ À LA DEMANDE (lazy) — la démo NE charge PAS les ~14 Mo ════════ */
 let tries=0, loading=false;
 function probe(){ tries++; let n=0; try{ n=ev('(typeof OMEGA_LEX4!=="undefined"&&OMEGA_LEX4&&OMEGA_LEX4.words&&typeof omegaStep==="function")?OMEGA_LEX4.words.length:0'); }catch(e){ n=-1; }
   if(n>0){ engineReady=true; loading=false; liveBadge('ready','engine ready · '+n.toLocaleString('en')+' words'); injectHelpers(); $('evReal').textContent='● collective live'; $('evHint').textContent='genesis : one OMEGA copies itself (P1), whispers (P2), and the collective grows + evolves (P3) while playing the Hangman — real omegaStep'; liveSim(); }
   else if(tries>50){ loading=false; liveBadge('','engine unavailable here'); $('evReal').disabled=false; $('evReal').textContent='↻ Retry the real engine'; $('evHint').textContent='the engine didn\'t start here (sandbox/offline) — retry, or open the deployed site. The demo (real captured games) continues.'; }
-  else { liveBadge('on','loading the engine ~11 MB…'); setTimeout(probe,500); } }
+  else { liveBadge('on','loading the engine ~14 MB…'); setTimeout(probe,500); } }
 
 $('evPause').onclick=function(){ paused=!paused; this.textContent=paused?'▶ Play':'⏸ Pause'; };
-$('evReal').onclick=function(){ if(engineReady||loading)return; loading=true; tries=0; $('evReal').disabled=true; $('evReal').textContent='● loading…'; liveBadge('on','loading the engine ~11 MB…');
+$('evReal').onclick=function(){ if(engineReady||loading)return; loading=true; tries=0; $('evReal').disabled=true; $('evReal').textContent='● loading…'; liveBadge('on','loading the engine ~14 MB…');
   frame.addEventListener('load',()=>setTimeout(probe,300),{once:true}); frame.src='../app/omega-pendu-en.html'; setTimeout(()=>{ if(!engineReady&&loading)probe(); },2800); };
 
 (async function boot(){ const ok=await initThree(); if(ok){ renderFrame(performance.now()); cycle(); } })();
