@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-09-28 — LE PLURIEL PAR LE SON : la grammaire dit la FORME, le son dit le MOT (« les mure » → murs, orange)
+
+> Suite du test complet de la carte des sons (labo `data_local/pendu_labo/onde/`) : sur le gold dys, 412 fautes de MÊME son passent
+> muettes — la carte n'y peut rien (distance nulle), c'est un chantier de grammaire. Rem : « faut bosser sur les homophones avec les
+> bons sons ». Le recensement par gouverneur a trouvé l'endroit où les deux se rejoignent : derrière un déterminant pluriel.
+
+- **Le trou, vérifié sur phrases inventées** : « des plante », « ces produit », « les porte » passent sans rien dire (homographes d'un
+  verbe : la règle rouge du nom exige P(NOM) ≥ 0,5, et `pluralVig` s'abstient dès qu'une lecture verbale existe), alors que « des
+  sapin » est réparé. Et « les mure » ne pouvait pas être réparé par la grammaire seule : le pluriel du mot écrit est « mures », le mot
+  voulu est « murs ».
+- **La règle** (`rule_pluriel_son` / `plurielSonVig`, ORANGE, 3 moteurs + app anglaise, bloc identique octet pour octet) : parmi les mots
+  de même clé phonétique (index SP.PHON du speller, rien de neuf à charger), même initiale, même consonne finale AUDIBLE (la clé ôte les
+  t/s/e finaux et confondait « plante » et « plans » — vu au premier essai), marqués -s/-x, lus nom ou adjectif, dont le singulier existe
+  (« hayes » écarté) — le plus fréquent, pluriel + singulier, un nom d'abord (« murs » avant « mûres »).
+- **Mesuré au PRODUIT** (dys-core en Node sur les 223 mots du gold qui suivent un déterminant pluriel ; la référence Python n'a pas
+  `pluralVig`, elle aurait sur-compté) : pluriels muets **24 → 5**, **19 bons mots au clic** (murs ×4, haies ×4, médias ×2, plantes ×2,
+  produits ×2…), **0 orange nouvelle sur un mot juste**. UD 14 450 phrases correctes : premier jet **52 oranges** (40 sur les nombres
+  « les quatre » → quatres, 5 sur des infinitifs « les faire » → fers, « et les tue ») → gardes nombre, infinitif (CONJ_C, 5 948 lemmes
+  identiques des deux côtés), « et/ou/mais » retirés, préfixes, nom propre qui continue → **4 oranges, toutes sur de vraies fautes
+  d'UD** (« les forme modulaires », « des groupe », « Les modèle », « des critique »).
+- **« les » est aussi un pronom** (« il les porte ») : devant une lecture verbale, la règle ne tire qu'en début de proposition, après une
+  préposition, tous/tout/que/pas, ou un VERBE (« ouvre les porte », « j'ouvre les porte »). Mesuré sans objet : la carte « pluriel-tais »
+  ne change rien au gold, pas ajoutée.
+- **Gardes** : batterie 5 témoins (det 5/5, corr 5/5) + 4 silences voulus ; parité vigilance (`parity_core`, Python ≡ JS sur 18 phrases
+  inventées ; les 2 écarts de couverture sont des cas où `pluralVig`, propre au JS, propose déjà le même mot) ; bancs navigateur app et
+  extension (étiquette `speller` établie par ablation en Node : lexique retiré → rien). Extension **0.6.43** (0.6.42 remise, brûlée).
+- **Trouvé en route, réparé : un ROUGE FAUX en production.** « Le colis part dès réception » → « réceptions », appliqué d'office : la
+  règle du nom ôtait les accents AVANT de comparer le déterminant, et « dès » (préposition) devenait « des ». Même défaut dans l'orange
+  `pluralVig` (UD : « dès janvier » → janviers, « dès novembre » → novembres). Le déterminant se compare désormais accents compris dans
+  les trois règles (Python + 3 JS) ; gold dys : un seul « dès », juste — rien de perdu. Trouvé par le silence voulu ajouté à la batterie
+  pour la nouvelle règle (« dès désignait » → designs, vu au produit dans Chrome).
+- **Précision au produit** (`dys_precision_probe --navigateur`, extension réelle) : pluriel par le son 84,2 % sur texte pollué (16/2/1),
+  100 % sur texte propre (8/0/0) — l'orange de pluriel existante y fait 40,7 % et 50 %.
+- **Hors champ, signalé** : la clé phonétique diverge entre Python et JS sur « oeu » (cœur → « koer » / « ser ») — tâche à part.
+
 ## 2026-09-27 (nuit) — L'ALPHABET PHONOLOGIQUE EN GRAPHE D'ONDE, testé par les routes du moteur (M3_d, BPC)
 
 > Question de Rem : « convertir l'alphabet phonologique en graphe d'onde, et son utilité », le test devant suivre les

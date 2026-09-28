@@ -447,6 +447,10 @@ const CAS = [
   //    ablation : ces deux cas n'isolent AUCUN asset, ils gardent le BRANCHEMENT de la règle dans la page). Orange : proposé, pas appliqué.
   { txt: 'le marché provençale est ouvert', corrigeAttendu: ['provençale', 'provençal'], pourquoi: 'adjectif féminin sur nom masculin — la règle d\'épithète lit la table des collisions d\'accent' },
   { txt: 'la pêche miraculeux a eu lieu', attendu: ['miraculeuse'], pourquoi: 'même table, sens inverse, en rouge (pêche f / péché m)' },
+  // ⑤ ter — PLURIEL PAR LE SON (28/09/2026, orange) : « des/les » exigent le pluriel, le SON donne le mot. « haies » et « murs » ne sont
+  //    pas le pluriel du mot écrit (hais, mure) : seul l'index phonétique du speller (SP.PHON) les trouve — la règle est branchée dans la page.
+  { txt: 'il y a des hais autour du jardin', corrigeAttendu: ['hais', 'haies'], pourquoi: 'pluriel par le son : le mot de même son marqué du pluriel' },
+  { txt: 'dans les mure de la ville', corrigeAttendu: ['mure', 'murs'], pourquoi: 'pluriel par le son : le pluriel du mot écrit serait « mures », le mot voulu est « murs »' },
   // ⑥ accent = la route affirmative historique
   { txt: 'la fenetre est ouverte', attendu: ['fenêtre'], pourquoi: 'restauration d\'accent' },
   // ⑦ INFINITIF DE BUT — la phrase que Rem a tapée, et les pièges qui ont dicté la forme de la règle

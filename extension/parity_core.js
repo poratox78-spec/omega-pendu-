@@ -409,7 +409,8 @@ const VIG_MAP = { 'accord du verbe au sujet nominal à vérifier': 'accord du ve
   "j'est/j'ai à vérifier": "j'est/j'ai à vérifier",
   'accord du participe après avoir à vérifier': 'accord du participe après avoir à vérifier',
   'auxiliaire manquant à vérifier': 'auxiliaire manquant à vérifier',
-  "c'est/ces à vérifier": "c'est/ces à vérifier" };   // ⭐ 12/09/2026 : règle neuve orange   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
+  "c'est/ces à vérifier": "c'est/ces à vérifier",
+  'pluriel par le son à vérifier': 'pluriel par le son à vérifier' };   // ⭐ 28/09/2026 : le son donne le mot quand la grammaire exige le pluriel   // ⭐ 12/09/2026 : règle neuve orange   // ⭐ 12/09/2026 : jumelle orange de j'est/j'ai
 const VIG_PY = new Set(Object.values(VIG_MAP));
 const VIG_PHRASES = PHRASES.concat([
   'les petits chats manges la soupe.', 'le chien mangeons.', 'Les impudents est le premier roman.',   // sujet NOMINAL (orange) ; titre = silence (lot 2)
@@ -425,6 +426,9 @@ const VIG_PHRASES = PHRASES.concat([
   'Boeing a signés un contrat.', 'nous avons vue notre médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
   'Hier je noté le numéro.', 'quand je retourné à la maison.', 'je fatigué ce soir.', 'Ai-je noté le numéro ?', 'Demain je noté le numéro.',   // auxiliaire manquant (orange) ; contrôles : inversion, futur (rouge ailleurs)
   "C'est enfants sont âgés de deux ans.", "leur père demande à c'est enfants de s'asseoir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
+  'Nous avons acheté des plante vertes.', 'Il range ces produit dans le placard.', 'Elle ouvre les porte du garage.',   // pluriel par le son (orange) : homographes d'un verbe
+  'Dans les mure de la ville.', 'Il y a des hais autour du jardin.', "J'ouvre les porte du garage.",                        // … mauvais homophone (mure → murs) ; « les » après un verbe élidé
+  'Le vent les porte loin.', 'Il faut les faire.', 'Les quatre amis sont là.', 'On a vu les new Warriors.', 'Le colis part dès réception de la commande.',              // contrôles : « les » pronom, infinitif, nombre, nom propre → silence
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const pyV = cp.spawnSync('python3', ['-c', `
 import sys, json
