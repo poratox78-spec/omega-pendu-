@@ -27771,10 +27771,10 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     s=s.replace(/oin(?![aeiouy])/g,'w1').replace(/ien(?![aeiouy])/g,'j1').replace(/(?:ain|aim|ein|eim|in|im|yn|ym|un|um)(?![aeiouymn])/g,'1').replace(/(?:an|am|en|em)(?![aeiouymn])/g,'2').replace(/(?:on|om)(?![aeiouymn])/g,'3');   // NASALES → classe unique (in/ain/un→1 /ɛ̃/, an/en→2, on→3) ; +6 pts rappel nasal, FP=0 (MIROIR speller_probe.phon_key)
     s=s.replace(/ph/g,'f').replace(/sch/g,'ch').replace(/th/g,'t').replace(/ch(?=[bcdfgjklmnpqrstvwxz])/g,'k').replace(/ch/g,'§').replace(/gn/g,'¤');
     s=s.replace(/qu/g,'k').replace(/gu/g,'g').replace(/eau/g,'o').replace(/aux/g,'o').replace(/au/g,'o');
-    s=s.replace(/oeu/g,'e').replace(/ou/g,'u').replace(/eu/g,'e').replace(/ai/g,'e').replace(/ei/g,'e').replace(/ay/g,'e').replace(/ey/g,'e').replace(/oi/g,'wa');
+    s=s.replace(/oeu/g,'ø').replace(/ou/g,'u').replace(/eu/g,'e').replace(/ai/g,'e').replace(/ei/g,'e').replace(/ay/g,'e').replace(/ey/g,'e').replace(/oi/g,'wa');
     var res='';for(var j=0;j<s.length;j++){var ch=s[j],nx=s[j+1]||'';
       if(ch==='c')res+=('eiy§'.indexOf(nx)>=0?'s':'k');else if(ch==='g')res+=('eiy'.indexOf(nx)>=0?'j':'g');
-      else if(ch==='h'){}else if(ch==='x')res+=(j===s.length-1?'':'ks');   /* -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi) */else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else res+=ch;}
+      else if(ch==='h'){}else if(ch==='x')res+=(j===s.length-1?'':'ks');   /* -x FINAL MUET (noix/prix/voix/choix) ; interne = ks (taxi) */else if(ch==='z'||ch==='s')res+='s';else if(ch==='y')res+='i';else if(ch==='w')res+='v';else if(ch==='ø')res+='e';else res+=ch;}   /* ⭐ 28/09/2026 : « oeu » (cœur, sœur, vœu) prend la classe e APRÈS le choix dur/doux du c et du g — le c était écrit devant un o, il reste /k/ : cœur → ker (l'ancien oeu→e d'avant la boucle donnait « ser »). Miroir speller_probe.phon_key, gardé par phonkey_parity_probe.py */
     s=res.replace(/¤/g,'nj');var out='';for(var k=0;k<s.length;k++){if(s[k]!==out[out.length-1])out+=s[k];}s=out;
     while(s.length&&'est'.indexOf(s[s.length-1])>=0)s=s.slice(0,-1);return s;}
   function sEdits1(d){var res={},i,ci,c,a,b,sp=[];for(i=0;i<=d.length;i++)sp.push([d.slice(0,i),d.slice(i)]);

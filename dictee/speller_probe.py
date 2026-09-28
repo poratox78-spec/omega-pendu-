@@ -179,7 +179,10 @@ def phon_key(s):
     s = s.replace('ch', '§').replace('gn', '¤')                 # ch restant (devant voyelle) → /ʃ/ ; digraphes → placeholders
     s = s.replace('qu', 'k').replace('gu', 'g')
     s = s.replace('eau', 'o').replace('aux', 'o').replace('au', 'o')
-    s = s.replace('ou', 'u').replace('eu', 'e').replace('oeu', 'e')
+    # « oeu » (cœur, sœur, vœu) : classe e, mais APRÈS le choix dur/doux du c et du g — le c écrit devant o reste /k/ (cœur → ker).
+    # Avant le 28/09/2026 ce remplacement venait APRÈS « eu » et ne trouvait jamais rien (cœur → « koer ») ; le JS le faisait
+    # avant la boucle (cœur → « ser », c doux). Repère ø, rendu « e » dans la boucle. Gardé par phonkey_parity_probe.py.
+    s = s.replace('oeu', 'ø').replace('ou', 'u').replace('eu', 'e')
     s = s.replace('ai', 'e').replace('ei', 'e').replace('ay', 'e').replace('ey', 'e')
     s = s.replace('oi', 'wa')
     res = []
@@ -196,6 +199,7 @@ def phon_key(s):
         elif ch in 'zs': res.append('s')
         elif ch == 'y': res.append('i')
         elif ch == 'w': res.append('v')
+        elif ch == 'ø': res.append('e')                          # « oeu » (repère posé plus haut)
         else: res.append(ch)
     s = ''.join(res).replace('§', '§').replace('¤', 'nj')        # gn≈nj ; ch reste distinct (§)
     out = []                                                     # collapse doublons
