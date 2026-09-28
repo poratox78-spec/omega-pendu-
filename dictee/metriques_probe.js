@@ -114,9 +114,57 @@ for (const v of Object.keys(REGISTRE)) {
       ko(v + ' : ' + sd.fichier + " est déclarée portée « ci » mais n'est PAS branchée dans dev.sh — un chiffre « re-vérifié à chaque CI » doit l'être vraiment");
   } else orphelins.push(v + ' (' + REGISTRE[v].nom + ') — ' + (sd.note || 'sans note'));
 }
+/* ④ TAILLES MESURÉES SUR LE FICHIER LIVRÉ (28/09/2026). Le dictionnaire du correcteur et le poids du fichier hors-ligne ne sont
+ * pas des « N phrases » : rien ne les gardait, et correcteur.html annonçait encore « ≈ 10 Mo · dictionnaire de 211 000 mots »
+ * quand app/omega-pendu.html pesait 14 Mo et embarquait 705 653 formes — même dérive sur confidentialite.html (« plus de
+ * 200 000 formes »), la toile (SP.WORDS « 214 685 mots connus »), les pages Évolution (« moteur ~11 Mo ») et le paquet de
+ * lexiques de donnees.html (« ~4,4 Mo » pour 4 530 775 octets). Ici le chiffre
+ * attendu n'est pas écrit à la main : il est CALCULÉ sur le fichier livré, arrondi comme les pages l'écrivent (au millier de
+ * formes, au Mo), exigé dans chaque page qui en parle, et tout AUTRE chiffre posé au même endroit est refusé. Le lexique du
+ * PENDU (OMEGA_LEX4, 155 493 mots) est un autre objet : il n'entre pas ici. */
+const zlib = require('zlib');
+const APP = fs.readFileSync(path.join(R, 'app', 'omega-pendu.html'));
+const lignes = (buf) => zlib.gunzipSync(buf).toString('utf8').split('\n').filter(l => l.trim()).length;
+const blocDico = APP.toString('utf8').match(/<script[^>]*id="speller-lex-gz"[^>]*>([\s\S]*?)<\/script>/);
+const nApp = blocDico ? lignes(Buffer.from(blocDico[1].replace(/\s+/g, ''), 'base64')) : 0;
+const nExt = lignes(fs.readFileSync(path.join(R, 'extension', 'assets', 'speller.tsv.gz')));
+if (!nApp) ko('app/omega-pendu.html : bloc « speller-lex-gz » introuvable — la taille du dictionnaire ne se mesure plus');
+else if (nApp !== nExt) ko('dictionnaire du correcteur : ' + nApp + ' formes dans l\'app ≠ ' + nExt + ' dans l\'extension — ils doivent livrer le même');
+const plat = s => s.replace(/&nbsp;|&#8239;|&thinsp;|[   ]/g, ' ');
+const TAILLES = [
+  { nom: 'dictionnaire du correcteur (formes embarquées, arrondi au millier)', attendu: Math.round(nApp / 1000) * 1000, unite: 'formes',
+    pages: { 'correcteur.html': 1, 'confidentialite.html': 1, 'donnees.html': 3, 'toile.html': 1 },
+    re: /(\d{1,3}(?: \d{3})+)\s*(?:mots|formes)/g, pres: /dictionnaire|lexique orthographique|SP\.WORDS|formes connues/i, fr: true },
+  { nom: 'poids de app/omega-pendu.html (téléchargement hors-ligne, moteur chargé par Évolution), arrondi au Mo', attendu: Math.round(APP.length / 1e6), unite: 'Mo',
+    pages: { 'correcteur.html': 1, 'evolution.html': 3, 'en/evolution.html': 3 },
+    re: /(\d{1,3})\s*(?:Mo|MB)\b/g, pres: /hors-ligne\)|chargement du moteur|charge PAS les|loading the engine/i },
+  { nom: 'poids du paquet de lexiques ouverts (omega-lexiques.zip), arrondi au dixième de Mo', unite: 'Mo',
+    attendu: Math.round(fs.statSync(path.join(R, 'omega-lexiques.zip')).size / 1e5) / 10, pages: { 'donnees.html': 1 },
+    re: /(\d{1,2}(?:,\d)?)\s*(?:Mo|MB)\b/g, pres: /paquet \(\.zip|package \(\.zip/i },
+];
+for (const t of TAILLES) {
+  const cible = t.attendu.toLocaleString('fr-FR').replace(/[  ]/g, ' ');
+  for (const p of pages) {
+    if (t.fr && p.startsWith('en/')) continue;                       // le lexique anglais est un autre dictionnaire
+    const s = plat(fs.readFileSync(path.join(R, p), 'utf8'));
+    let m, n = 0; t.re.lastIndex = 0;
+    while ((m = t.re.exec(s))) {
+      const v = parseFloat(m[1].replace(/ /g, '').replace(',', '.'));
+      if (v === t.attendu) { n++; continue; }                         // présence : le bon chiffre compte où qu'il soit
+      const autour = s.slice(Math.max(0, m.index - 120), m.index + m[0].length + 30);
+      if (t.pres.test(autour)) ko(p + ' affiche « ' + m[0].trim() + ' » pour ' + t.nom + ' — mesuré sur le fichier livré : ' + cible + ' ' + t.unite +
+              '. Corrige la page (et les autres pages listées dans ④ de dictee/metriques_probe.js).');
+    }
+    if (t.pages[p] && n < t.pages[p]) ko(p + ' : ' + t.nom + ' — « ' + cible + ' ' + t.unite + ' » attendu ×' + t.pages[p] + ', trouvé ×' + n);
+  }
+}
+
 if (err) { console.log('metriques_probe : ' + err + ' incohérence(s)'); process.exit(1); }
 const tot = Object.keys(REGISTRE).length;
 orphelins.forEach(o => console.log('  ⚠️ SANS SONDE VIVANTE : ' + o));
 const nCi = Object.keys(REGISTRE).filter(v => REGISTRE[v].sonde.portee === 'ci').length;
 const nLoc = Object.keys(REGISTRE).filter(v => REGISTRE[v].sonde.portee === 'locale').length;
 console.log('metriques_probe : ' + tot + ' métriques épinglées · ' + pages.length + ' pages balayées · 0 chiffre hors registre · provenance ' + nCi + ' ci / ' + nLoc + ' locales / ' + orphelins.length + ' sans sonde vivante');
+console.log('  tailles mesurées sur le fichier livré : dictionnaire du correcteur ' + nApp + ' formes (affiché ~' + TAILLES[0].attendu.toLocaleString('fr-FR').replace(/[  ]/g, ' ') +
+            ') · app/omega-pendu.html ' + APP.length + ' octets (affiché ≈ ' + TAILLES[1].attendu + ' Mo) · omega-lexiques.zip (affiché ~' +
+            TAILLES[2].attendu.toLocaleString('fr-FR') + ' Mo)');

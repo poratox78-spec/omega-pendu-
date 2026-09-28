@@ -133,7 +133,7 @@ const N = [
   {id:'part', f:'source', r:11, label:'Participes accordés', desc:"3 049 participes fléchis (dallée/dallés) — fin du FP « dallées→d'allées »."},
   {id:'ud', f:'source', r:12, label:'Treebank UD', desc:"French-GSD : entraîne le tagger HMM (UPOS + deprel). CC BY-SA. 2 500 phrases = garde FP=0 à l'échelle."},
   // structures
-  {id:'spw', f:'struct', r:15, label:'SP.WORDS', desc:"214 685 mots connus. La garde anti-flood du speller : un mot connu n'est jamais « inconnu »."},
+  {id:'spw', f:'struct', r:15, label:'SP.WORDS', desc:"~706 000 formes connues. La garde anti-flood du speller : un mot connu n'est jamais « inconnu »."},
   {id:'gn', f:'struct', r:14, label:'GENDER · gn', desc:"68 746 genres (21 847 wikt + 56 argot). Nourrit l'accord genre du déterminant et de l'adjectif."},
   {id:'conj', f:'struct', r:14, label:'CONJ_C', desc:"Paradigme complet (Bescherelle) : lemme × mode × personne × nombre. Émet les formes de correction verbale."},
   {id:'hmm', f:'struct', r:13, label:'POS-HMM', desc:"Modèle bigramme Viterbi (155 k), ~95 % d'exactitude. Émission apprise + backoff suffixe."},
