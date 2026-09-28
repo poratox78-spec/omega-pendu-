@@ -1,7 +1,7 @@
 {
  "paires": 1798,
  "planchers": {
-  "grammaire:orthographe|vigilance·pollué": 57.8,
+  "grammaire:orthographe|vigilance·pollué": 58.1,
   "grammaire:mot inconnu|vigilance·pollué": 46.8,
   "grammaire:orthographe|auto·pollué": 94.6,
   "grammaire:orthographe|flag·pollué": 80.0,
@@ -19,6 +19,7 @@
   "grammaire:accord grammatical (é/er)|auto·pollué": 80.0,
   "grammaire:a/à|auto·propre": 100.0,
   "grammaire:accord singulier nom|auto·propre": 100.0,
+  "grammaire:pluriel par le son à vérifier|vigilance·pollué": 88.9,
   "grammaire:accord sujet-verbe|auto·propre": 82.4,
   "grammaire:répétition|flag·pollué": 100.0,
   "grammaire:terminaison -er/-é/-ez/-ai|auto·pollué": 66.7,
@@ -36,6 +37,7 @@
   "grammaire:accord adjectif antéposé|auto·pollué": 100.0,
   "grammaire:accord sujet-verbe à vérifier|vigilance·pollué": 25.0,
   "grammaire:genre déterminant|vigilance·propre": 25.0,
+  "grammaire:pluriel par le son à vérifier|vigilance·propre": 100.0,
   "grammaire:participe après auxiliaire|auto·pollué": 62.5,
   "grammaire:-e/-é (participe)|auto·pollué": 71.4,
   "grammaire:accord adjectif épithète|auto·propre": 100.0,

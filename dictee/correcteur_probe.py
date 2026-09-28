@@ -4576,6 +4576,7 @@ def rule_noun_plural(T, i):
     # (« ces nouveaux fusil Henry », « les meilleurs rang »). Le reste de la règle (gardes, posterior, composé) s'applique tel quel.
     if _pd in _ADJ_ANTE and i >= 2 and deacc(T[i - 2].lower()) in PLURAL_DET:
         _pd = deacc(T[i - 2].lower())
+    if (T[i - 1] if _pd == deacc(T[i - 1].lower()) else T[i - 2]).lower() in (u'dès', u'lès'): return None   # ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE
     _card = _pd in CARD                                          # cardinal ≥2 (« cinq kilo ») = déterminant pluriel non ambigu
     if _pd not in PLURAL_DET and not _card: return None          # déterminant pluriel juste avant
     n = T[i]
@@ -4600,6 +4601,111 @@ def rule_noun_plural(T, i):
         if pp and pp[0] >= PL_TAU_M and deacc(nx.lower()) not in ADJ_LEX: return None   # (« français » = adj-nom → PAS un composé : « les département français » corrigé)
     pl = _pluralize_noun(n)
     return pl if (pl and deacc(pl.lower()) != dn) else None
+
+
+# ⭐ PLURIEL PAR LE SON (28/09/2026, ORANGE) — miroir EXACT de plurielSonVig (extension/dys-core.js, app). Derrière un déterminant
+# pluriel, un mot écrit au singulier que rule_noun_plural laisse passer : homographe d'un verbe (« des plante », « ces produit » :
+# P(NOM) < 0,5) ou MAUVAIS homophone (« les mure » : le pluriel du mot écrit serait « mures », le mot voulu est « murs »). La
+# grammaire dit la FORME (pluriel), le SON dit le MOT : mots de même clé phonétique (index des formes de fréquence ≥ 0,1 du speller,
+# = SP.PHON), même initiale, même consonne finale AUDIBLE (la clé ôte les t/s/e finaux : « plante » n'est pas « plans »), marqués
+# -s/-x, lus nom ou adjectif, dont le singulier existe — le plus fréquent (pluriel + singulier), un nom d'abord. Mesuré au produit
+# (gold dys, Node) : 24 pluriels muets → 5, 19 bons mots au clic, 0 orange sur un mot juste ; UD 14 450 phrases : 4 oranges, toutes
+# sur de vraies fautes du corpus. Tables lues dans l'asset du speller (colonnes comme SP.FREQ/SP.POS), pas dans _spos : même
+# équipement que le produit.
+_PSON_GRAM_TXT = (u"a à y en ne pas plus moins très trop bien mal tout tous toute toutes que qui quoi dont où ou et mais donc or ni "
+                  u"car si me te se moi toi soi lui eux elle elles il ils on nous vous je tu le la les l un une du de des au aux ce cet "
+                  u"cette ces mon ton son ma ta sa mes tes ses notre votre leur nos vos leurs dans sur sous avec sans pour par chez "
+                  u"vers entre contre depuis après avant pendant comme quand lorsque puis alors ainsi aussi encore déjà jamais toujours "
+                  u"souvent non oui demi mi semi même autre quelque chaque plusieurs certains ça cela ceci celui celle ceux celles est "
+                  u"sont ont ai as es être avoir été eu fait peu beaucoup assez tant autant rien personne chacun ici là voici voilà "
+                  u"super hyper mini maxi multi anti extra néo post pré pro vice auto")
+_PSON_DPUR = {'des', 'ces', 'mes', 'tes', 'ses', 'nos', 'vos'}      # jamais pronoms
+_PSON_DAMB = {'les', 'leurs'}                                       # aussi pronoms (« il les porte »)
+_PSON_AVL = {'tous', 'toutes', 'tout', 'que', 'pas'}                # « les » sûrement déterminant après eux (et après PREP)
+_PSON_RE = re.compile(u'^[a-zà-ÿœæ]+$', re.I)
+_PSON = None                                                        # (phon, freq, pos, gram) — chargé à la première demande
+
+
+def _dS(s):                                                         # = deaccS du produit (ligatures d'abord)
+    return deacc(s.replace(u'œ', 'oe').replace(u'Œ', 'OE').replace(u'æ', 'ae').replace(u'Æ', 'AE'))
+
+
+def _pson_tables():
+    global _PSON
+    if _PSON is None:
+        from speller_probe import phon_key
+        import gzip as _gz
+        ph, fr, po = {}, {}, {}
+        try:
+            for _l in _gz.open(os.path.join(os.path.dirname(HERE), 'extension', 'assets', 'speller.tsv.gz'), 'rt', encoding='utf-8'):
+                _p = _l.rstrip('\n').split('\t')
+                if not _p[0] or len(_p) < 2: continue
+                try: _f = int(_p[1]) / 1000.0
+                except ValueError: continue
+                fr[_p[0]] = _f
+                if len(_p) >= 3 and _p[2]: po[_p[0]] = _p[2]
+                if _f >= 0.1: ph.setdefault(phon_key(_p[0]), []).append(_p[0])
+        except Exception:
+            pass
+        _PSON = (ph, fr, po, set(_dS(x) for x in _PSON_GRAM_TXT.split()), phon_key)
+    return _PSON
+
+
+def _pson_coda(w):
+    x = w.lower()
+    if len(x) > 2 and x[-1] in 'sx': x = x[:-1]
+    if x.endswith('e'):
+        c = x[-2:-1]
+        return c if (c and _dS(c) not in 'aeiouy') else ''
+    c2 = x[-1:]
+    return c2 if (c2 and _dS(c2) in 'crfl') else ''
+
+
+def _pson_cands(n):
+    ph, fr, po, _g, phon_key = _pson_tables()
+    low = n.lower(); dn = _dS(low); key = phon_key(low); cd = _dS(_pson_coda(low)); out = []
+    for x in ph.get(key, ()):
+        dx = _dS(x)
+        if x == low or dx[-1:] not in ('s', 'x') or dx[:1] != dn[:1] or abs(len(dx) - len(dn)) > 3: continue
+        if len(key) < 2 and dx[:2] != dn[:2]: continue
+        if _dS(_pson_coda(x)) != cd: continue
+        px = po.get(x, '')
+        if 'N' not in px and 'A' not in px: continue
+        sg = [x[:-3] + 'al', x[:-1]] if dx.endswith('aux') else [x[:-1]]
+        if any(('N' in po.get(y, '') or 'A' in po.get(y, '')) for y in sg): out.append(x)
+    out.sort(key=lambda x: (0 if 'N' in po.get(x, '') else 1, -(fr.get(x, 0.0) + fr.get(x[:-1], 0.0)), x))
+    return out
+
+
+def rule_pluriel_son(T, i):
+    if i < 1: return None
+    ph, fr, po, gram, _k = _pson_tables()
+    if not ph: return None
+    pd = T[i - 1].lower()                                          # accents COMPRIS : « dès » n'est pas « des »
+    if pd not in _PSON_DPUR and pd not in _PSON_DAMB: return None
+    n = T[i]
+    if not _PSON_RE.match(n) or n[0] != n[0].lower(): return None
+    low = n.lower(); dn = _dS(low)
+    if len(dn) < 2 or dn in gram or dn in CARD or dn in CARDSTOP or dn in CONJ_C: return None   # mot-outil · nombre · préfixe · INFINITIF
+    seg = _SEG or {}; hy = seg.get('hy') or []; ss = seg.get('ss') or []; bb = seg.get('bb') or []
+    if (i < len(hy) and hy[i]) or (i + 1 < len(hy) and hy[i + 1]): return None                   # mot composé (« porte-avions »)
+    nx = T[i + 1] if i + 1 < len(T) else ''
+    if nx and nx[0] != nx[0].lower() and not (i + 1 < len(ss) and ss[i + 1]): return None        # nom propre qui continue
+    pos = po.get(low, '')
+    if not pos: return None                                                                       # inconnu : c'est le speller
+    if dn[-1] in 'sxz' and ('N' in pos or 'A' in pos): return None                              # déjà pluriel
+    if 'N' not in pos and pd in ('ces', 'ses'): return None                                      # ces/ses ↔ c'est/s'est
+    if 'V' in pos and pd in _PSON_DAMB and not (i - 1 == 0 or (i - 1 < len(bb) and bb[i - 1])):  # « les » pronom ? (« il les porte »)
+        p2r = T[i - 2] if i >= 2 else ''
+        ap = p2r.find("'")
+        p2v = p2r[ap + 1:] if ap > 0 else p2r
+        p2 = _dS(p2v.lower())
+        np_ = NOUN_POST.get(p2) if p2 else None
+        verbe = (bool(_PSON_RE.match(p2v)) and (ap > 0 or p2v[:1] == p2v[:1].lower()) and p2 not in gram
+                 and 'V' in po.get(p2v.lower(), '') and (not np_ or np_[0] < 500))
+        if p2 not in PREP and p2 not in _PSON_AVL and not verbe: return None
+    cs = _pson_cands(n)
+    return cs[0] if cs else None
 
 
 # ⭐ ADJECTIF ANTÉPOSÉ APRÈS DÉTERMINANT PLURIEL (12/09/2026, plan ⑤-a de l'audit). Le plus gros silence du juge est
@@ -5799,6 +5905,7 @@ RULES = [('élision inversée', rule_deselide),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
          #    AVANT les rouges d'accord, et « tu a raison » sortait orange ici là où le produit corrige en rouge (rAccordSV) — même
          #    correction, palier différent. Trouvé par la parité de vigilance (extension/parity_core.js, dictee/parity_corr.js).
+         ('pluriel par le son à vérifier', rule_pluriel_son),   # ⭐ 28/09/2026 : même rang que dans vigAt (juste après l'orange de pluriel, avant la personne)
          ('personne du verbe à vérifier', rule_personne_verbe),
          ('infinitif après pronom sujet à vérifier', rule_pron_inf),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
@@ -5886,6 +5993,12 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    # ⭐ PLURIEL PAR LE SON (28/09/2026) — ses silences voulus : « les » PRONOM, infinitif, nombre, nom propre qui continue.
+    ("Le vent les porte loin.", "« les » PRONOM devant un verbe conjugué après un nom (sujet possible) : pas de pluriel par le son."),
+    ("Il faut les faire tout de suite.", "INFINITIF après « les » pronom : jamais un nom à mettre au pluriel (« les faire » → fers, vu sur UD)."),
+    ("Les quatre amis sont arrivés.", "NOMBRE après le déterminant : « quatre » ne prend pas de -s (40 fausses alertes sur UD avant la garde)."),
+    ("On a revu les new Warriors hier.", "nom propre qui continue (majuscule au mot suivant) : abstention."),
+    ("Le colis part dès réception de la commande.", "« dès » (préposition) n'est pas le déterminant « des » : le déterminant se compare ACCENTS COMPRIS. Avant le 28/09/2026, la règle ROUGE du nom écrivait « réceptions » d'office (accents ôtés avant la comparaison), et l'orange du pluriel « dès janvier » → janviers (UD)."),
     ("C'est un peintre italien baroque.", "NOM ÉPICÈNE (un / une peintre) : la table de genre accentuée BRUTE lui donne « f », et la règle d'épithète, qui la lisait "
                                          "en premier, écrivait « italienne » en ROUGE (18/09/2026 — vu en portant cette ligne vers le produit : 8 rouges faux "
                                          "sur 14 450 phrases UD). Elle ne lit plus que les COLLISIONS D'ACCENT (marché / marche), seules porteuses d'information."),
@@ -5930,6 +6043,13 @@ MUETS = [
 
 # ---------- jeu de test : (phrase correcte, mot-déclencheur, forme fautive, règle) ----------
 CASES = [
+    # ⭐ PLURIEL PAR LE SON (28/09/2026, orange) : derrière un déterminant pluriel, le mot de même son marqué du pluriel — homographe
+    # d'un verbe (plante, produit, porte) ou MAUVAIS homophone (mure → murs : le pluriel du mot écrit serait « mures »).
+    ("Nous avons acheté des plantes vertes.", "plantes", "plante", "pluriel par le son à vérifier"),
+    ("Il range ces produits dans le placard.", "produits", "produit", "pluriel par le son à vérifier"),
+    ("Elle ouvre les portes du garage.", "portes", "porte", "pluriel par le son à vérifier"),
+    ("Dans les murs de la ville, il fait frais.", "murs", "mure", "pluriel par le son à vérifier"),
+    ("Ils ont planté des haies autour du jardin.", "haies", "hais", "pluriel par le son à vérifier"),
     ("Elle s'est mariée très jeune ici", "s'est", "ces", "c'est/s'est"),
     ("Tu manges la soupe", "manges", "mangent", "accord sujet-verbe"),      # lectures fantômes (11/09/2026) : « mangent » n'est plus manger 2e sg
     ("Je viens demain", "viens", "viennent", "accord sujet-verbe"),         # idem : « viennent » n'est plus venir 1re sg

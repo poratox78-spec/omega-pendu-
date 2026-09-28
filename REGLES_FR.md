@@ -238,6 +238,7 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 |---|---|---|
 | sujet-verbe (13 fonctions : noms, pronoms, coordination, relative-objet, incise, postposé, quantifieurs…) | 🔴+🟠 | rouge sur cadres sûrs ; OS-sujet en vigilance sur le résiduel ; sujet postposé SINGULIER réparé (PR#472) |
 | déterminant↔nom (nombre, les deux sens) | 🔴 | un seul sens par désaccord (PR#467) ; élidés exclus (PR#473) |
+| déterminant pluriel + mot au singulier que la règle du nom laisse passer : homographe d'un verbe (« des plante »), MAUVAIS homophone (« les mure » → murs, pas « mures ») | 🟠 | « pluriel par le son à vérifier » (28/09/2026, `rule_pluriel_son` / `plurielSonVig`) : la grammaire dit la FORME, l'index phonétique du speller (SP.PHON) dit le MOT — même initiale, même consonne finale audible, marqué -s/-x, nom d'abord. Gold dys (produit en Node) : 24 pluriels muets → 5 ; 0 orange sur un mot juste ; UD 14 450 : 4 oranges, toutes sur de vraies fautes d'UD. Jamais : « les » pronom devant un verbe, infinitif, nombre, préfixe, nom propre qui continue |
 | déterminant↔nom (genre) | 🔴 | table genre désaccentuée (PR#450→453) |
 | participe avec être (+ prénoms) | 🔴 | 8 729 prénoms (PR#460) |
 | participe avec avoir + COD antéposé (que) | 🔴 | rule_pp_avoir_cod |

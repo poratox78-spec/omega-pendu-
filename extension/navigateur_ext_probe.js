@@ -86,6 +86,8 @@ const CAS = [
     pourquoi: '« nous somme » donnait « sommons » (lemme *sommer*, 0,02/M) en ROUGE — rule_aux_misspell exige le nombre pour nous/vous depuis le 10/09/2026 ; ici c’est le moteur de l’EXTENSION, pas celui de l’app' },
   { txt: 'le marché provençale est ouvert', attendu: 'provençal', asset: 'moteur',
     pourquoi: 'faute vue par Rem le 18/09/2026, muette : « marché »/« marche » partagent la clé sans accent — la règle d’épithète lit la table des collisions (dans le moteur : mesuré par ablation, n’isole aucun asset)' },
+  { txt: 'dans les mure de la ville', attendu: 'murs', asset: 'speller',
+    pourquoi: 'pluriel par le son (28/09/2026) : le mot vient de l’index phonétique du lexique orthographique (SP.PHON) — muet sans lui (ablation en Node : speller retiré → rien)' },
 ];
 
 /* ⚠️ ASSETS SANS AUCUNE GARDE, faute de cas trouvé — écrit plutôt qu'escamoté : confusables.json,

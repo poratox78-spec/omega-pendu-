@@ -24686,6 +24686,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'accord tout':function(){return '« tout » prend le genre et le nombre du nom qui le suit : tout le jour, toute la nuit, tous les jours, toutes les nuits.';},
     'genre déterminant':function(e,a){var g=GEN_DET[String(a||'').toLowerCase()];return 'le déterminant prend le GENRE du nom qui le suit'+(g?' : ici '+(g==='f'?'féminin':'masculin'):'')+'.';},
     'nombre du déterminant à vérifier':function(){return 'le déterminant prend le NOMBRE du nom qui le suit (le chat, les chats).';},
+    'pluriel par le son à vérifier':function(e,a){return 'après « les », « des », « ces »…, le nom est au PLURIEL : « '+a+' » se prononce comme « '+String(e||'').toLowerCase()+' » — est-ce bien ce mot ?';},   // ⭐ 28/09/2026 : le son a choisi le mot, l'auteur vérifie
     'auxiliaire manquant à vérifier':function(e,a){return 'il manque l’auxiliaire devant le participe : « '+a+' … » (j’ai noté, je suis allé).';},
     'participe présent après « en » à vérifier':function(e,a){return 'après « en », le verbe prend la forme en -ANT : en '+String(a||'').toLowerCase()+'.';},
     'infinitif après semi-auxiliaire à vérifier':function(e,a){return 'après « aller », « devoir », « pouvoir », « vouloir »…, le deuxième verbe reste à l’INFINITIF : « '+a+' ».';},
@@ -24713,7 +24714,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'accord du participe après avoir à vérifier':'participe','participe présent après « en » à vérifier':'participe','auxiliaire manquant à vérifier':'participe',
     'accord grammatical (é/er)':'accord','terminaison -er/-é/-ez/-ai':'accord','infinitif de but':'accord','accord sujet-verbe':'accord','accord sujet-verbe à vérifier':'accord',
     'accord verbe à vérifier':'accord','accord du verbe au sujet nominal à vérifier':'accord','accord adjectif':'accord','accord adjectif épithète':'accord','accord adjectif antéposé':'accord',
-    'accord pluriel nom':'accord','accord singulier nom':'accord','accord pluriel à vérifier':'accord','accord genre à vérifier':'accord','genre déterminant':'accord',
+    'accord pluriel nom':'accord','accord singulier nom':'accord','accord pluriel à vérifier':'accord','pluriel par le son à vérifier':'accord','accord genre à vérifier':'accord','genre déterminant':'accord',
     'nombre du déterminant à vérifier':'accord','accord tout':'accord','vingt/cent':'accord',
     'élision':'segmentation','élision fusionnée':'segmentation','élision inversée':'segmentation',"qu'il (élision)":'segmentation','négation':'segmentation',
     'quel que soit':'segmentation','davantage':'segmentation','impératif (pronom)':'segmentation',
@@ -26641,7 +26642,8 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     if(z>=1){var q=deacc(T[z-1].toLowerCase()).split("'").pop();if(_PRON_INF_STOP[q])return null;if(vlike(T,z-1))return null;}
     var imp=((CONJ_C[lw]||{})["ind:imp"]||{})[slot];if(!imp)return null;return {sugg:imp,vig:1};}
   function rNounPlural(T,i){if(!NOUN_POST||i===0)return null;
-    var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&PLURAL_DET[deacc(T[i-2].toLowerCase())])_pd=deacc(T[i-2].toLowerCase());   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
+    var _pd=deacc(T[i-1].toLowerCase());if(_ADJ_ANTE[_pd]&&i>=2&&PLURAL_DET[deacc(T[i-2].toLowerCase())])_pd=deacc(T[i-2].toLowerCase());
+    if(/^(dès|lès)$/i.test(_pd===deacc(T[i-1].toLowerCase())?T[i-1]:T[i-2]))return null;   // ⭐ 28/09/2026 : « dès » (préposition) n'est pas « des » — « dès réception » devenait « réceptions » en ROUGE (accents ôtés avant la comparaison)   // ⑤-b (13/09/2026) : traversée d'UN adjectif antéposé (« les prochaines demande ») — miroir Python
     var _card=!!CARD[_pd];   // cardinal ≥2 (« cinq kilo »→kilos) = déterminant pluriel NON AMBIGU → mêmes gardes ROUGES (l'ANCRE de pluralizeNoun tue « cinq sestieri/minima ») ; miroir Python
     if(!PLURAL_DET[_pd]&&!_card)return null;                                                        // déterminant pluriel / cardinal juste avant (et posterior chargé)
     var n=T[i],c0=n.charAt(0);if(!/[A-Za-zÀ-ÿœŒæÆ]/.test(c0)||c0!==c0.toLowerCase())return null;       // nom propre / capitalisé → abstention (FP)
@@ -28756,7 +28758,7 @@ function spellTokenCore(tok,atStart,T,idx){
        -s. La branche CARDINAL avait déjà cette garde ; celle-ci manquait. Doctrine élision : faire
        ABSTENIR une liste fermée est net-PROTECTEUR. */
     var c0=T[i][0];if(c0&&c0!==c0.toLowerCase())return null;           // nom propre
-    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());
+    for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|lès)$/i.test(T[j]))break;   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
       if(PLDET[dj]){
         if(svReads(T[i]).length||_COLOR_ADJ[w]||_INVAR_COLOR[w])return null;   // verbe mistagué NOUN (« les chats mangent »→mangents) ou couleur INVARIABLE (« yeux marron », « gants crème ») → jamais pluralisés (miroir garde CARD ci-dessous + sets couleur)
         var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
@@ -29093,10 +29095,53 @@ function spellTokenCore(tok,atStart,T,idx){
   function osProbe(text){text=String(text).replace(/[’ʼ]/g,"'");_SEG=_segInfo(text);var T=toks(text),tg=posTags(T)||[],out=[],i,s;for(i=0;i<T.length;i++){s=osVerbVig(T,i,tg);if(s&&s.toLowerCase()!==T[i].toLowerCase())out.push({i:i,word:T[i],sugg:s});}return out;}
   // ANGLICISMES — LISTE CLOSE de franglais NON-MOTS (0 occurrence sur 2500 = aucun flood ; les faux-amis HOMOGRAPHES du français (réaliser/supporter/définitivement) sont EXCLUS car ils floodent sur leur sens FR légitime, mesuré). France-descriptif : uniquement les fautifs partout. → ORANGE, priorité sur le speller (sinon il mé-corrige « checker » en « chercher »).
   var _ANGLICISME={checker:'vérifier',booker:'réserver',forwarder:'transférer',canceller:'annuler',uploader:'téléverser',downloader:'télécharger',deadline:'échéance',spoiler:'divulgâcher',brainstorming:'remue-méninges'};
+  /* ⭐ 28/09/2026 — PLURIEL PAR LE SON (orange). Derrière un déterminant pluriel, un mot écrit au singulier que la règle rouge du nom
+     et pluralVig laissent passer : homographe d'un verbe (« des plante », « ces produit ») ou MAUVAIS homophone (« les mure » : le
+     pluriel du mot écrit serait « mures », le mot voulu est « murs »). La grammaire dit la FORME (pluriel), le SON dit le MOT : parmi
+     les mots de même clé phonétique (SP.PHON), même initiale, même consonne finale AUDIBLE (la clé ôte les t/s/e finaux : « plante »
+     n'est pas « plans »), marqués -s/-x, lus nom ou adjectif, dont le singulier existe — le plus fréquent, un nom d'abord. Mesuré
+     (gold dys, produit en Node) : 24 pluriels muets → 5, 19 bons mots au clic, 0 orange sur un mot juste ; UD 14 450 phrases
+     correctes : 4 oranges, toutes sur de vraies fautes du corpus (« les forme modulaires »). « les/leurs » sont aussi des pronoms
+     (« il les porte ») : devant une lecture verbale, on ne tire qu'en début de proposition, après une préposition, tous/tout/que/pas,
+     ou un VERBE (« elle ouvre les porte », « j'ouvre les porte »). Jamais : mot-outil, nombre, préfixe, INFINITIF (« les faire »), nom
+     propre qui continue (« les new Warriors »). Miroir Python : rule_pluriel_son (dictee/correcteur_probe.py). */
+  var _PSON_GRAM={};('a à y en ne pas plus moins très trop bien mal tout tous toute toutes que qui quoi dont où ou et mais donc or ni car si me te se moi toi soi lui eux elle elles il ils on nous vous je tu le la les l un une du de des au aux ce cet cette ces mon ton son ma ta sa mes tes ses notre votre leur nos vos leurs dans sur sous avec sans pour par chez vers entre contre depuis après avant pendant comme quand lorsque puis alors ainsi aussi encore déjà jamais toujours souvent non oui demi mi semi même autre quelque chaque plusieurs certains ça cela ceci celui celle ceux celles est sont ont ai as es être avoir été eu fait peu beaucoup assez tant autant rien personne chacun ici là voici voilà super hyper mini maxi multi anti extra néo post pré pro vice auto').split(' ').forEach(function(x){_PSON_GRAM[deaccS(x)]=1;});
+  var _PSON_DPUR={des:1,ces:1,mes:1,tes:1,ses:1,nos:1,vos:1},_PSON_DAMB={les:1,leurs:1},_PSON_AVL={tous:1,toutes:1,tout:1,que:1,pas:1};
+  function _psonCoda(w){var x=w.toLowerCase();if(x.length>2&&/[sx]$/.test(x))x=x.slice(0,-1);   // la consonne AUDIBLE de la fin (après le -s/-x)
+    if(/e$/.test(x)){var c=x.slice(-2,-1);return (c&&'aeiouy'.indexOf(deaccS(c))<0)?c:'';}             // avant un e muet : plante → t, mure → r
+    var c2=x.slice(-1);return (c2&&'crfl'.indexOf(deaccS(c2))>=0)?c2:'';}                                // finale c/r/f/l (mur, sac) ; sinon muette
+  function _psonCands(n){var low=n.toLowerCase(),dn=deaccS(low),key=phonKey(low),cd=deaccS(_psonCoda(low)),L=SP.PHON[key]||[],out=[],q,r;
+    for(q=0;q<L.length;q++){var x=L[q],dx=deaccS(x);
+      if(x===low||!/[sx]$/.test(dx)||dx.charAt(0)!==dn.charAt(0)||Math.abs(dx.length-dn.length)>3)continue;
+      if(key.length<2&&dx.slice(0,2)!==dn.slice(0,2))continue;                    // clé trop courte (« hais » → '') : deux lettres communes
+      if(deaccS(_psonCoda(x))!==cd)continue;
+      var px=SP.POS[x]||'';if(px.indexOf('N')<0&&px.indexOf('A')<0)continue;
+      var sg=/aux$/.test(dx)?[x.slice(0,-3)+'al',x.slice(0,-1)]:[x.slice(0,-1)],ok=false;
+      for(r=0;r<sg.length;r++){var ps=SP.POS[sg[r]]||'';if(ps.indexOf('N')>=0||ps.indexOf('A')>=0){ok=true;break;}}   // le singulier existe (« hayes » : non)
+      if(ok)out.push(x);}
+    var sc=function(x){return (SP.FREQ[x]||0)+(SP.FREQ[x.slice(0,-1)]||0);};   // le pluriel ET son singulier : « murs » (mur) avant « mûres »
+    out.sort(function(a,b){var na=(SP.POS[a]||'').indexOf('N')>=0?0:1,nb=(SP.POS[b]||'').indexOf('N')>=0?0:1;if(na!==nb)return na-nb;var d=sc(b)-sc(a);if(d)return d;return a<b?-1:(a>b?1:0);});
+    return out;}
+  function plurielSonVig(T,i){if(!SP.ready||!SP.PHON||i<1)return null;var pd=T[i-1].toLowerCase();   // accents COMPRIS : « dès » n'est pas « des »
+    if(!_PSON_DPUR[pd]&&!_PSON_DAMB[pd])return null;
+    var n=T[i];if(!/^[a-zà-ÿœæ]+$/i.test(n)||n.charAt(0)!==n.charAt(0).toLowerCase())return null;
+    var low=n.toLowerCase(),dn=deaccS(low);if(dn.length<2||_PSON_GRAM[dn]||CARD[dn]||CARDSTOP[dn]||CONJ_C[dn])return null;
+    var sg=_SEG||{},hy=sg.hy||[],ss=sg.ss||[],bb=sg.bb||[];if(hy[i]||hy[i+1])return null;
+    var nx=T[i+1];if(nx&&nx.charAt(0)!==nx.charAt(0).toLowerCase()&&!ss[i+1])return null;
+    var pos=SP.POS[low]||'';if(!pos)return null;                                                     // inconnu du lexique : c'est le speller
+    if(/[sxz]$/.test(dn)&&(pos.indexOf('N')>=0||pos.indexOf('A')>=0))return null;                   // déjà pluriel
+    if(pos.indexOf('N')<0&&(pd==='ces'||pd==='ses'))return null;                                    // ces/ses ↔ c'est/s'est (« ses fini »)
+    if(pos.indexOf('V')>=0&&_PSON_DAMB[pd]&&!(i-1===0||bb[i-1])){
+      var p2r=i>=2?T[i-2]:'',ap=p2r.indexOf("'"),p2v=ap>0?p2r.slice(ap+1):p2r,p2=deaccS(p2v.toLowerCase());
+      var np=(p2&&NOUN_POST)?(typeof NOUN_POST.get==='function'?NOUN_POST.get(p2):NOUN_POST[p2]):null;
+      var verbe=/^[a-zà-ÿœæ]+$/i.test(p2v)&&(ap>0||p2v.charAt(0)===p2v.charAt(0).toLowerCase())&&!_PSON_GRAM[p2]&&(SP.POS[p2v.toLowerCase()]||'').indexOf('V')>=0&&(!np||np[0]<500);
+      if(!PREP[p2]&&!_PSON_AVL[p2]&&!verbe)return null;}
+    var cs=_psonCands(n);return cs.length?cs[0]:null;}
   function vigAt(T,i,st,text){var _tg=st.tg;   /* ⭐ 12/09/2026 — la CHAÎNE ORANGE de spellText, extraite TELLE QUELLE (ordre compris) : spellText la consulte token par token (sortie identique), diagnoseAll la consulte à UN index sur des tokens où l'orthographe est corrigée (bout de chaîne orthographe → orange). st.tg = tags du tagger, calculés une fois par liste de tokens ; text = null hors spellText (le juge B2 de l'app ancre le TEXTE, il ne se consulte pas sur des tokens corrigés). */
     {var h=homoVig(T,i);if(h){return {i:i,word:T[i],sugg:ckeepcase(T[i],h),name:'homophone à vérifier',tier:'vigilance'};}}
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var gv=genreAdjVig(T,i,_tg);if(gv&&gv.toLowerCase()!==T[i].toLowerCase()){return {i:i,word:T[i],sugg:ckeepcase(T[i],gv),name:'accord genre à vérifier',tier:'vigilance'};}}   // genre adjectif épithète (« qui est-ce qui, il ou elle ? ») — audible, hors FP=0 → orange
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pv=pluralVig(T,_tg,i);if(pv&&!plTaisCarte(T,i)){return {i:i,word:T[i],sugg:pv,name:'accord pluriel à vérifier',tier:'vigilance'};}}
+    {var psv=plurielSonVig(T,i);if(psv){return {i:i,word:T[i],sugg:ckeepcase(T[i],psv),name:'pluriel par le son à vérifier',tier:'vigilance'};}}   // ⭐ 28/09/2026 : le son donne le mot quand la grammaire exige le pluriel
     {if(_tg===null)_tg=st.tg=posTags(T)||[];var pe=participeEtreVig(T,_tg,i);if(pe){return {i:i,word:T[i],sugg:pe,name:'accord participe à vérifier',tier:'vigilance'};}}
     {if(_tg===null)_tg=st.tg=posTags(T)||[];if(_tg[i]==='VERB'||_tg[i]==='AUX'){var sva=rAccordSVnoun(T,i,true);   // ACCORD SUJET-VERBE mid-phrase (le rouge se limite au sujet en tête = FP=0 ; l'orange couvre le reste). DOCTRINE : doute → orange, jamais silence. Le rouge gagne au même token (fusion grammaire-prioritaire).
       if(sva&&sva.toLowerCase()!==T[i].toLowerCase()&&!svTaisCarte(T,i)){return {i:i,word:T[i],sugg:ckeepcase(T[i],sva),name:'accord sujet-verbe à vérifier',tier:'vigilance'};}}}
