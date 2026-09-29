@@ -190,7 +190,7 @@ accent-normalisant + 1 vrai « the »=thé français, invisible au pipeline pour
 | règle | exemple | FP mesurés |
 |---|---|---|
 | personne du verbe | `je fini`→finis · `tu a`→as · `il faut que tu fini`→**finisses** | 0 / 25 752 formes correctes · 0 / UD 2500 |
-| infinitif après semi-auxiliaire | `je vais mange`→manger · `je dois fini`→finir | 0 / 35 556 couples corrects · 0 / UD |
+| infinitif après semi-auxiliaire | `je vais mange`→manger · `je dois fini`→finir | 0 / 35 556 couples corrects · 0 / UD ; **29/09/2026** : 4 faux positifs mesurés fermés, une garde chacun (« fait » nom ou locution, sigle en gouverneur, participe ACCORDÉ après un auxiliaire — le causatif est invariable —, déterminant + nom dominant) ; les 5 prises des corpus dys restent ; suggestion ré-accentuée (« il va réussi » → réussir, plus reussir) |
 | on/ont après sujet pluriel | `Les enfants on mange`→ont | 0 / UD · 0 / corpus dys |
 
 ### 🐞 FP ROUGE réparé (violation du FP=0, présente en production)

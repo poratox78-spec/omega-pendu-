@@ -116,6 +116,11 @@ def _check():
               ("Il vend de l'pétrole", "l'pétrole", 'vigilance'), ("J'mangé une pomme", "J'mangé", 'vigilance'),
               ("Il va s'marier en mai", "s'marier", 'auto'), ("Ils s'disputent souvent", "s'disputent", 'auto'), ("Une barre d'fer", "d'fer", 'auto'),
               ("Il est parti d'bonne heure", "d'bonne", 'auto'), ("Il faut s'marié jeune", "s'marié", 'vigilance')]
+    # ⭐ 29/09/2026 — infinitif après semi-auxiliaire : les prises restent et gardent l'accent ; 4 faux positifs mesurés tombent (miroir JS)
+    elide += [("Elle ne peut plus marche", "marche", "marcher"), ("On pouvait regardé la mer", "regardé", "regarder"),
+              ("Il va réussi son examen", "réussi", "réussir"), ("Il doit été là", "été", "être")]
+    nofp += ["Les photos que j'ai faites ont été publiées.", "C'est tout à fait différent.", "Ils sont en fait utilisés partout.",
+             "Ce fait pourrait tout changer.", "Il va en prison."]
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):

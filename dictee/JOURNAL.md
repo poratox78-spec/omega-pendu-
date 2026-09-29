@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-09-29 (suite) — « infinitif après semi-auxiliaire » : 4 faux positifs fermés sans rien perdre
+
+- Rem : « rassure-moi, tu ne m'enlèves pas une règle qui marchait ». Inventaire d'abord (produit en Node, corpus dys appariés + UD) :
+  22 marques — 5 prises JUSTES sur texte dys, 2 vraies fautes au mauvais lemme, 15 marques sur des mots justes (frgec 12, UD 3).
+- Les 15 ont 4 structures : « fait » nom ou locution (en fait, de fait, tout à fait, ce fait) ; un sigle lu comme « aller » (majuscule hors
+  début de phrase) ; un participe ACCORDÉ après un auxiliaire (le « fait » causatif est invariable : c'est ce qui sépare « que j'ai faites
+  ont été » de « j'ai fait réparer ») ; un déterminant lu comme clitique devant un nom dominant (≥ 900 ‰). Une garde par structure ; ni
+  « faites » ni être/avoir ne sortent de la règle (« vous faites mange » → manger, « il doit été » → être restent).
+- Mesuré : 22 → 11 marques ; les 5 prises restent, les 2 vraies fautes restent signalées ; 11 des 15 marques sur mots justes tombent ; les
+  4 restantes sont ambiguës et gardent leur orange (« veut en fait » peut être « en faire », « en moyenne », « fait la remarque », un nom
+  de modèle coupé par un point).
+- Défaut de SORTIE trouvé en chemin : la suggestion venait du lemme désaccentué de la table (« il va réussi » → reussir, « il doit été » →
+  etre) ; ré-accentuée par le lexique (JS `SP.D2A`, Python `_acc_lemme`).
+- Tests : `test_sv_vigilance` (page) et `recall_probe` (référence) — prises, accent, faux positifs.
+
 ## 2026-09-29 (suite) — « on a un lexique de prénoms » (Rem) : l'orange « mot inconnu » propose le PRÉNOM
 
 - **Constat** : la table des prénoms (8 730) ne servait qu'à empêcher la correction d'office ; l'orange « mot inconnu » cherchait

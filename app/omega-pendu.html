@@ -27299,6 +27299,14 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     var j=i-1,st=0;
     while(j>=0&&st<3&&(CLITIC[deacc(T[j].toLowerCase())]||_SEMI_NEG[deacc(T[j].toLowerCase())])){j--;st++;}
     if(j<0||!_SEMI_AUX[deacc(T[j].toLowerCase())])return null;
+    /* ⭐ 29/09/2026 — QUATRE FAUX POSITIFS MESURÉS, une garde chacun (Rem : « tu ne m'enlèves pas une règle qui marchait ») : sur les corpus dys,
+       les 5 prises justes restent (« on pouvait regardé » → regarder, « se fit renversé » → renverser…) ; 11 des 15 marques sur du français
+       juste (frgec, UD) tombent ; les 4 autres sont AMBIGUËS et gardent leur orange (« veut en fait » = en faire ?, « en moyenne »…). */
+    var _gv=deacc(T[j].toLowerCase()),_g1=j>0?deacc(T[j-1].toLowerCase()):'',_g2=j>1?deacc(T[j-2].toLowerCase()):'',_em2=j>1?_ELIDED_PRON.exec(T[j-2].toLowerCase()):null;if(_em2)_g2=deacc(_em2[1]);
+    if(j>0&&T[j].charAt(0)!==T[j].charAt(0).toLowerCase()&&!(_SEG&&_SEG.bb&&_SEG.bb[j]))return null;   // ① SIGLE ou nom propre en gouverneur (« le satellite IRAS avait ») : majuscule hors début de phrase
+    if(_gv==='fait'&&({en:1,de:1,ce:1,cet:1,le:1,du:1,au:1,un:1}[_g1]||(_g1==='a'&&_g2==='tout'))&&!SUBJ_PRON[_g2]&&_g2!=='ne')return null;   // ② « fait » NOM ou locution (en fait, de fait, tout à fait, ce fait) ; « il en fait », « il le fait » restent le verbe
+    if(({faite:1,faites:1,faits:1})[_gv]&&!/é(e?s?)$/.test(w.toLowerCase())){for(var _k=j-1;_k>=0&&_k>=j-3;_k--){var _ak=deacc(T[_k].toLowerCase()).split("'").pop();if(AUX_AVOIR[_ak]||AUX_ETRE[_ak])return null;if(!CLITIC[_ak])break;}}   // ③ PARTICIPE ACCORDÉ après un auxiliaire (« que j'ai faites ont été ») : le « fait » causatif, lui, est invariable
+    if(i-1>j&&({la:1,le:1,les:1,"l'":1,en:1})[deacc(T[i-1].toLowerCase())]){var _np2=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(lw):NOUN_POST[lw]):null;if(_np2&&_np2[0]>=900)return null;}   // ④ déterminant / préposition + NOM dominant (≥ 900 ‰ : « va en prison », « doit la série »), pas un clitique
     /* « faire » : « fait référence », « fait date », « fait la fête » — le mot qui suit est un NOM homographe d'une forme verbale.
        Pour ce gouverneur-là, on exige un verbe PUR : posterior nom (noun-post) < 100 ‰, sinon on se tait (03/09/2026). */
     if(_FAIRE_SEMI[deacc(T[j].toLowerCase())]){var _npx=NOUN_POST?(typeof NOUN_POST.get==='function'?NOUN_POST.get(lw):NOUN_POST[lw]):null;if(_npx&&_npx[0]>=100)return null;}
@@ -27319,6 +27327,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       if(out&&out!==a[0])return null;                    // plusieurs lemmes → abstention
       out=a[0];}
     if(out&&/é$/.test(w.toLowerCase())&&deacc(w.toLowerCase().slice(0,-1)+'er')===deacc(out.toLowerCase()))out=w.toLowerCase().slice(0,-1)+'er';   /* ⭐ 12/09/2026 : lemme NU dans la table, accent repris de la forme écrite (« démarré » → démarrer) — miroir Python */
+    if(out&&out===deaccS(out)&&typeof SP!=='undefined'&&SP&&SP.ready&&SP.D2A){var _va=SP.D2A[out];if(_va&&_va.length){var _bf=-1,_ba=null;for(var _z=0;_z<_va.length;_z++){var _fz=SP.FREQ[_va[_z]]||0;if(_fz>_bf){_bf=_fz;_ba=_va[_z];}}if(_ba)out=_ba;}}   // ⭐ 29/09/2026 : le lemme de la table est désaccentué → graphie du lexique (« il va réussi » → réussir, plus « reussir » ; « il doit été » → être) — miroir Python
     return out;}
   var _SUBJ_PRON_PL={nous:['1','p'],vous:['2','p']};   // ABSENTS de SUBJ_PRON : ce sont aussi des clitiques OBJETS (miroir Python)
   var _CONJ_VAR={peux:'puis'};   // ⭐ 13/09/2026 : variantes d'une même case de paradigme (la table de génération n'en garde qu'une) — miroir Python

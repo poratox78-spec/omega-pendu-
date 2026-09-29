@@ -96,6 +96,16 @@ const C = globalThis.__C;
   for (const s of ['Il habite au 42 boulevard Voltaire.', 'La saison 5 épisode 8 commence.', 'Il est né en 2012 dans le Nord.', 'Le 25 mars il pleut.', 'Il court 4 min par jour.', 'Il a 1 frère.']) {
     const r = pv(s); if (r.length) fail.push(`[chiffres ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
+  // ⭐ 29/09/2026 — « infinitif après semi-auxiliaire » : les prises restent (suggestion accentuée), 4 faux positifs mesurés tombent.
+  const si = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'infinitif après semi-auxiliaire à vérifier'); };
+  for (const [s, w, sg] of [['Elle ne peut plus marche.', 'marche', 'marcher'], ['On pouvait regardé la mer.', 'regardé', 'regarder'], ['Il se fit renversé par un vélo.', 'renversé', 'renverser'],
+                           ['Vous faites mange le chien.', 'mange', 'manger'], ['Il va réussi son examen.', 'réussi', 'réussir'], ['Il doit été là.', 'été', 'être']]) {
+    const r = si(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[semi-aux ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const s of ["Les photos que j'ai faites ont été publiées.", "C'est tout à fait différent.", 'Ils sont en fait utilisés partout.', "L'éponge de ce fait absorbe l'eau.",
+                   'Ce fait pourrait tout changer.', 'Il va en prison.', 'On doit la série à sa sœur.', 'Le satellite IRAS avait photographié la galaxie.']) {
+    const r = si(s); if (r.length) fail.push(`[semi-aux ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();

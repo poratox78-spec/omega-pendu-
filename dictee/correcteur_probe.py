@@ -5801,6 +5801,26 @@ _INF_OUTILS = set((u"a \u00e0 en y de du des le la les ce se ne que qui si ou o\
                    u"tout tous bien mieux trop puis donc alors ainsi aussi encore jamais toujours").split())
 
 
+_SEMI_AUXV = frozenset(('est sont furent fut etait etaient sera seront suis es sommes etes soit '      # = AUX_ETRE ∪ AUX_AVOIR du JS (listes closes)
+                        'a ont avons avez ai as avait avaient aurait aura auront aurais eu').split())
+
+
+def _acc_lemme(out):
+    """Lemme désaccentué de la table de conjugaison → graphie du lexique du speller (la forme de fréquence > 0 la plus fréquente,
+    la première en cas d'égalité) — miroir JS SP.D2A/SP.FREQ. « reussir » → réussir, « etre » → être."""
+    global _SACC
+    if _SACC is None:
+        _spos('a'); _SACC = {}; _bf = {}
+        for _w, _f in _SFREQ.items():
+            if _f > 0:
+                _d = deacc(_w)
+                if _f > _bf.get(_d, -1.0): _bf[_d] = _f; _SACC[_d] = _w
+    return _SACC.get(out) or out
+
+
+_SACC = None
+
+
 def rule_inf_semi_aux(T, i):
     """« je vais mange » -> manger · « je dois fini » -> finir.
 
@@ -5818,6 +5838,21 @@ def rule_inf_semi_aux(T, i):
     while j >= 0 and st < 3 and (deacc(T[j].lower()) in CLITIC or deacc(T[j].lower()) in _SEMI_NEG):
         j -= 1; st += 1
     if j < 0 or deacc(T[j].lower()) not in _SEMI_AUX: return None
+    # ⭐ 29/09/2026 — QUATRE FAUX POSITIFS MESURÉS, une garde chacun (miroir JS semiInfVig) : les prises justes restent.
+    gv = deacc(T[j].lower()); g1 = deacc(T[j - 1].lower()) if j > 0 else ''; g2 = deacc(T[j - 2].lower()) if j > 1 else ''
+    em2 = _ELIDED_PRON.match(T[j - 2].lower()) if j > 1 else None
+    if em2: g2 = deacc(em2.group(1))
+    _bb = (_SEG or {}).get('bb') or []
+    if j > 0 and T[j][:1] != T[j][:1].lower() and not (j < len(_bb) and _bb[j]): return None     # ① sigle / nom propre en gouverneur
+    if gv == 'fait' and (g1 in ('en', 'de', 'ce', 'cet', 'le', 'du', 'au', 'un') or (g1 == 'a' and g2 == 'tout')) and g2 not in SUBJ_PRON and g2 != 'ne': return None   # ② « fait » nom / locution
+    if gv in ('faite', 'faites', 'faits') and not re.search(r'é(e?s?)$', w.lower()):                  # ③ participe accordé après un auxiliaire
+        for _k in range(j - 1, max(-1, j - 4), -1):
+            _ak = deacc(T[_k].lower()).split("'")[-1]
+            if _ak in _SEMI_AUXV: return None
+            if _ak not in CLITIC: break
+    if i - 1 > j and deacc(T[i - 1].lower()) in ('la', 'le', 'les', "l'", 'en'):                      # ④ déterminant + NOM dominant
+        _np2 = NOUN_POST.get(lw) if NOUN_POST else None
+        if _np2 and _np2[0] >= 900: return None
     # « faire » : « fait référence », « fait date », « fait la fête » — nom homographe d'une forme verbale. Pour ce
     # gouverneur-là, on exige un verbe PUR : posterior nom (cgram_noun_post) < 100 ‰ (miroir JS, 03/09/2026).
     if deacc(T[j].lower()) in _FAIRE_SEMI:
@@ -5837,6 +5872,7 @@ def rule_inf_semi_aux(T, i):
         if out and out != a[0]: return None             # plusieurs lemmes -> abstention
         out = a[0]
     if out and w.lower().endswith('é') and deacc(w.lower()[:-1] + 'er') == deacc(out.lower()): out = w.lower()[:-1] + 'er'   # ⭐ 12/09/2026 : le lemme de la table est NU (« demarrer ») ; l'accent du radical vit dans la forme ÉCRITE (« démarré » → démarrer). Miroir JS.
+    if out and out == deacc(out): out = _acc_lemme(out)   # ⭐ 29/09/2026 : lemme désaccentué → graphie du lexique (réussir, être) — miroir JS
     return out
 
 
