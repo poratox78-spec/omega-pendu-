@@ -3724,6 +3724,15 @@ function _levB(a,b,max){if(Math.abs(a.length-b.length)>max)return max+1;var pr=[
        « l'Age d'Or » existent en majuscule dans du français correct. Exclus : cote, sacre, prive, voila… (mots valides), maitre, ile,
        gout (graphies rectifiées de 1990). Miroir Python _AFIX_MIN. */
     var _AFIX_MIN={"grace":"grâce","mere":"mère","age":"âge","ame":"âme","reparer":"réparer","bebe":"bébé","moitie":"moitié","repondre":"répondre","repondu":"répondu","reponds":"réponds","envoye":"envoyé","special":"spécial","camera":"caméra","enfoire":"enfoiré","tré":"très","quit":"qui"};if(tok===low&&_AFIX_MIN[low])return["auto",_AFIX_MIN[low]];
+    /* ⭐ 29/09/2026 — ACCENTS MUETS (catalogue des muets) : des formes SANS accent qui existent aussi sous cette forme, ou se lisent autrement
+       hors contexte → ORANGE, jamais rouge. « ca » → ça (le circa « ca 1850 » existe) ; « foret » → forêt, sauf après un déterminant
+       masculin (« le foret » est l'outil) ; « pole », « media » → pôle, média après un déterminant français, sauf composé anglais (pole
+       position, pole dance, mot suivant inconnu ou en -ing : « media planning »). MINUSCULES seulement (« Ca » = calcium). Mesuré (produit) :
+       gold +9 bons mots, EcriScol +1, frgec +2 (dont un circa, orange) ; UD 14 450 : 1 marque, une vraie faute du corpus (« pour ca »).
+       Miroir Python _AFIX_VIG. */
+    var _AFIX_VIG={media:"média",pole:"pôle",foret:"forêt",ca:"ça"},_AFIX_DET={le:1,la:1,les:1,un:1,une:1,des:1,du:1,au:1,aux:1,ce:1,cet:1,cette:1,ces:1,mon:1,ma:1,ton:1,ta:1,son:1,sa:1,notre:1,votre:1,leur:1,mes:1,tes:1,ses:1,nos:1,vos:1,leurs:1},_AFIX_MASC={le:1,un:1,du:1,au:1,ce:1,cet:1,mon:1,ton:1,son:1};
+    if(tok===low&&_AFIX_VIG[low]){var _ap=(T&&idx!=null&&idx>0)?deaccS(T[idx-1].toLowerCase()):"",_nr=(T&&idx!=null&&idx+1<T.length)?T[idx+1].toLowerCase():"",_an=deaccS(_nr);
+      if(low==="ca"||(low==="foret"&&!_AFIX_MASC[_ap])||((low==="pole"||low==="media")&&_AFIX_DET[_ap]&&!(_nr&&!SP.WORDS.has(_nr)&&!SP.WORDS.has(_an))&&!/^(position|positions|dance)$/.test(_an)&&!/ing$/.test(_an)))return["vigilance",_AFIX_VIG[low]];}
     /* ⭐ « dan » + déterminant → « dans » (13/09/2026, muets du pipeline : 19 occurrences, 16 vers « dans », 0 en minuscules sur l'UD 14 450).
        « dan » est un mot (judo) et un prénom écrit en minuscules par les dys : FLAG devant un déterminant qui ne suit jamais un prénom sujet,
        ORANGE devant le/la/les/l'/se (« dan le regarde » = Dan). Jamais en majuscule. Miroir Python _DAN_SUR / _DAN_VIG. */

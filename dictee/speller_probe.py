@@ -16,6 +16,13 @@ CTX_STOP = set('qui que qu dont ou où et ni mais car donc or puis si lorsque qu
 GEC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'corpus_gec_fr.jsonl')
 ALPHA = "abcdefghijklmnopqrstuvwxyz"
 _AFIX = {'trés': 'très', 'celà': 'cela', 'içi': 'ici', 'idéé': 'idée', 'écolé': 'école', 'fléche': 'flèche', 'moï': 'moi', 'verité': 'vérité'}   # décalque de _AFIX (dys-core.js l.2948)
+# ⭐ 29/09/2026 (catalogue des muets, accents) — formes SANS accent qui existent aussi sous cette forme, ou se lisent autrement hors
+# contexte : ORANGE, jamais rouge. « ca » → ça (circa « ca 1850 ») ; « foret » → forêt sauf après un déterminant masculin (« le foret »,
+# l'outil) ; « pole », « media » → pôle, média après un déterminant français, sauf composé anglais (pole position/dance, mot suivant
+# inconnu ou en -ing). Minuscules seulement. Miroir JS _AFIX_VIG.
+_AFIX_VIG = {'media': 'média', 'pole': 'pôle', 'foret': 'forêt', 'ca': 'ça'}
+_AFIX_DET = frozenset('le la les un une des du au aux ce cet cette ces mon ma ton ta son sa notre votre leur mes tes ses nos vos leurs'.split())
+_AFIX_MASC = frozenset('le un du au ce cet mon ton son'.split())
 _AFIX_MIN = {'grace': 'grâce', 'mere': 'mère', 'age': 'âge', 'ame': 'âme', 'reparer': 'réparer', 'bebe': 'bébé', 'moitie': 'moitié', 'repondre': 'répondre', 'repondu': 'répondu', 'reponds': 'réponds', 'envoye': 'envoyé', 'special': 'spécial', 'camera': 'caméra', 'enfoire': 'enfoiré', 'tré': 'très', 'quit': 'qui'}   # décalque de _AFIX_MIN (dys-core.js, après _AFIX) : formes nues polluant Lexique4, minuscules seulement
 # ⭐ CONSONNES SIMPLIFIÉES QUI POLLUENT LE LEXIQUE (09/09/2026) — la sœur de `_AFIX_MIN`, pour les
 # consonnes DOUBLÉES. Cas de Rem : « je suis à la boure » — le moteur ne corrige pas « boure » et
@@ -564,6 +571,14 @@ class Speller:
         # Lexique4 (NOM m, 6,66/M) à côté de « mère » (630/M) — liste CLOSE recensée (non-mots, 0 en minuscules sur UD, 16 dans le
         # corpus dys tous vers la sœur accentuée). MINUSCULES SEULEMENT (« Ame V », « Special » existent en majuscule).
         if tok == low and low in _AFIX_MIN: return ('auto', _AFIX_MIN[low])
+        if tok == low and low in _AFIX_VIG:                  # ⭐ 29/09/2026 : accents muets, ORANGE (cf. _AFIX_VIG) — miroir JS
+            ap = deacc(toks[idx - 1].lower()) if (toks and idx is not None and idx > 0) else ''
+            nr = toks[idx + 1].lower() if (toks and idx is not None and idx + 1 < len(toks)) else ''
+            an = deacc(nr)
+            if (low == 'ca' or (low == 'foret' and ap not in _AFIX_MASC)
+                    or (low in ('pole', 'media') and ap in _AFIX_DET and not (nr and nr not in self.WORDS and an not in self.WORDS)
+                        and not re.match(r'^(position|positions|dance)$', an) and not an.endswith('ing'))):
+                return ('vigilance', _AFIX_VIG[low])
         # ⭐ « dan » + déterminant → « dans » (13/09/2026, muets du pipeline : 19 occurrences, 16 vers « dans », 0 en minuscules sur l'UD 14 450).
         # « dan » est un mot (judo) et un prénom écrit en minuscules par les dys : FLAG devant un déterminant qui ne suit jamais un prénom
         # sujet, ORANGE devant le/la/les/l'/se (« dan le regarde » = Dan). Jamais en majuscule. Miroir JS _DAN_SUR / _DAN_VIG.
