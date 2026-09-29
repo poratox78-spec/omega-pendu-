@@ -155,7 +155,14 @@ const PHRASES = [
   // Les deux moteurs doivent se taire ; les contrôles juste après doivent, eux, continuer de corriger.
   'Ils sont du côté des perdants.', 'Elles sont du même avis.', 'Elles sont partie prenante du projet.',
   'Les rideaux sont orange.', 'Elle porte des chemises orange.', 'Les enfants se sont succédé.',
-  'Ils sont parti hier.', 'Les enfants se sont lavé.', 'Les rideaux sont vert.'
+  'Ils sont parti hier.', 'Les enfants se sont lavé.', 'Les rideaux sont vert.',
+  // ⭐ 28/09/2026 — « participe après avoir » étendue : consonne finale muette échangée (fais → fait, mit → mis, prit → pris…),
+  // « était » → été, l'infinitif « avoir »/« ayant » ; eux/prix en ORANGE (palier) ; pièges : relative, sigle, participe accordé.
+  'Les élèves ont prit le bus.', 'Ils ont fais leurs devoirs.', 'Les enfants ont mit leurs bottes.', 'Ils ont écris une lettre.',
+  'Ils ont dut partir tôt.', 'La fête a était réussie.', "Merci d'avoir fais le ménage.", 'Ayant mit son manteau, elle sortit.',
+  "J'ai prix le train de nuit.", 'Nous avons eux de la chance.', 'Il a eux un accident.',
+  "Tout ce qu'il a était à elle.", 'Ils ont eux aussi des droits.', "C'est a eux de jouer.", 'La C2A était riche.',
+  'Les tableaux que tu as vus sont célèbres.', "Les pommes qu'il a prises sont mûres.", 'Il a dit bonjour.'
 ];
 PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)

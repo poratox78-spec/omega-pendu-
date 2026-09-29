@@ -26758,7 +26758,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     return null;}
   // === ponctuation/majuscules (sens & contexte) : couche segments + majuscule début de phrase (parité correcteur_probe.py) ===
   var _SEG=null,ABBREV={};'m mme mlle mr dr pr me mgr st ste etc cf ex vs no nos art av bd env fig vol ed p pp al co inc ave apr jc subsp ssp var sp spp gen fam'.split(' ').forEach(function(w){ABBREV[w]=1;});
-  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push((gap.indexOf('.')>=0&&/\s/.test(gap))&&gap.indexOf('..')<0&&!/\d/.test(gap)&&!(gap.indexOf('.')>=0&&!/\s/.test(gap)&&/^(com|net|org|fr|io|co|eu|de|uk|be|ca|ch|us|info|edu|gov|biz|tv|me|app)$/i.test(m[0])))   /* MAJUSCULE : seulement après un POINT + espace ; PAS ! ? … (interjection « Ah! comme », inversion « viendra-t-il? je », suspension = ~100% FP mesuré banc OQLF/BDL) ni domaine collé « oqlf.gouv ». ss/bb gardent s (bornes de proposition). */;dig.push(/\d/.test(gap));prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig};}
+  function _segInfo(text){var ss=[],bb=[],hy=[],cap=[],dig=[],rw=[],re=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,m,prev=0,s;while((m=re.exec(text))){var gap=text.slice(prev,m.index);s=/[.!?…]/.test(gap);ss.push(s);bb.push(s||/[,;:()«»"–—\n]/.test(gap));hy.push(gap.indexOf('-')>=0);cap.push((gap.indexOf('.')>=0&&/\s/.test(gap))&&gap.indexOf('..')<0&&!/\d/.test(gap)&&!(gap.indexOf('.')>=0&&!/\s/.test(gap)&&/^(com|net|org|fr|io|co|eu|de|uk|be|ca|ch|us|info|edu|gov|biz|tv|me|app)$/i.test(m[0])))   /* MAJUSCULE : seulement après un POINT + espace ; PAS ! ? … (interjection « Ah! comme », inversion « viendra-t-il? je », suspension = ~100% FP mesuré banc OQLF/BDL) ni domaine collé « oqlf.gouv ». ss/bb gardent s (bornes de proposition). */;dig.push(/\d/.test(gap));rw.push(m[0]);prev=m.index+m[0].length;}return {ss:ss,bb:bb,hy:hy,cap:cap,dig:dig,raw:rw};}   // raw (28/09/2026) : le mot tel que l'AUTEUR l'a écrit — les règles voient les tokens nettoyés par l'orthographe
   // C : run-on (ponctuation manquante entre 2 propositions) — VIGILANCE (vert) ; conservateur, anti-inversion (trait d'union)
   var RPRON={je:['1','s'],tu:['2','s'],il:['3','s'],elle:['3','s'],on:['3','s'],nous:['1','p'],vous:['2','p'],ils:['3','p'],elles:['3','p']},RCONJ={};'et ou ni mais car donc or que qu qui dont quand lorsque comme si puisque quoique lequel laquelle pour sans a'.split(' ').forEach(function(w){RCONJ[w]=1;});
   function _isFinite(w){var r=svReads(w),k;for(k=0;k<r.length;k++){var md=r[k][1].split(':')[0];if(md==='ind'||md==='sub'||md==='cnd'||md==='cond'||md==='imp')return true;}return false;}
@@ -27594,16 +27594,38 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
     return w==='age'?'âge':'âges';}
   function rCetaitEtait(T,i){var m=T[i].match(/^([CcSs])(['’])[ée]tais$/);if(!m)return null;
     return m[1]+m[2]+'était';}                                           // après c'/s' (= ce/se), la 1re personne n'existe pas — 0 tir/16 950 (audit rappel dys)
-  var _AVOIR_CONJ={a:1,as:1,ont:1,ai:1,avons:1,avez:1,avait:1,avais:1,avaient:1,aura:1,auront:1,aurait:1,auraient:1,eut:1,eurent:1};
+  var _AVOIR_CONJ={a:1,as:1,ont:1,ai:1,avons:1,avez:1,avait:1,avais:1,avaient:1,aura:1,auront:1,aurait:1,auraient:1,eut:1,eurent:1,avoir:1,ayant:1};   // ⭐ 28/09/2026 : l'infinitif et le participe présent aussi (« après avoir prit », « ayant fais »)
+  /* ⭐ 28/09/2026 — « LA MÊME CHOSE POUR ONT » (Rem). La règle ne voyait que la consonne finale ÔTÉE (grandit → grandi). Même fait, même
+     son, quand la consonne muette est ÉCHANGÉE : après l'auxiliaire avoir, une forme CONJUGUÉE n'a rien à faire — fais → fait, mit → mis,
+     prit → pris, dis → dit, écris → écrit, conduis → conduit, dut → dû ; et « était » → été. UD 14 450 : 4 tirs = 4 vraies fautes d'UD
+     (« la pose a était parfaite », « j'ai fais appel », « m'a permit », « a réagit ») ; gold dys : 0 mot juste touché. Pièges gardés : le
+     A d'un sigle (« la C2A était »), avoir verbe plein dans une relative (« tout ce qu'il a était à elle »). Miroir Python rule_avoir_fini. */
+  var _AVOIR_PP_ACC={du:'dû',mu:'mû',recu:'reçu',decu:'déçu',apercu:'aperçu',concu:'conçu',percu:'perçu'};
+  var _AVOIR_ETAIT={'était':1,'étais':1,'étaient':1,etait:1,etais:1,etaient:1};
+  var _AVOIR_HOMO={eux:'eu',prix:'pris'};   // homophones HORS verbe → ORANGE (_tierOf) : « ils ont prix le train », « nous avons eux de la chance »
+  var _AVOIR_HOMO_STOP={aussi:1,meme:1,memes:1,seuls:1,seules:1,tous:1,toutes:1,non:1,ni:1};   // « ils ont eux aussi des droits » : juste
+  var _AVOIR_EUX_DET={un:1,une:1,des:1,du:1,le:1,la:1,les:1,beaucoup:1,peur:1,faim:1,mal:1,raison:1,tort:1,besoin:1};   // après « a » seul, « eux » + déterminant seulement (« c'est à eux », « à eux de jouer »)
+  function _avoirPp(x){var d=deacc(x.toLowerCase());return !!(IRREG_PART[d]||_PPL_IRR2[d]||_isPpl(x));}
   function rAvoirFini(T,i){if(i<1)return null;var w=T[i];if(w!==w.toLowerCase())return null;
-    if(w.length<4||!/^[a-zà-ÿ]+(it|is)$/.test(w))return null;
-    var pv=T[i-1].toLowerCase().replace(/’/g,"'"),ap=pv.lastIndexOf("'");if(ap>=0)pv=pv.slice(ap+1);   // « l'a finit » → a
+    var pv0=T[i-1],pv=pv0.toLowerCase().replace(/’/g,"'"),ap=pv.lastIndexOf("'");if(ap>=0)pv=pv.slice(ap+1);   // « l'a finit » → a
     if(!_AVOIR_CONJ[pv])return null;
-    if(!svReads(w).length)return null;                                   // forme FINIE connue (CONJ_F ne contient QUE les temps finis)
-    if(_isPpl(w))return null;                                            // « il a construit/dit » : déjà participe → correct
-    var part=w.slice(0,-1);
-    if(!_isPpl(part))return null;                                        // le participe tronqué doit EXISTER (grandit→grandi) — LA garde qui rend le flood propre (1 tir = vraie faute UD « il a réagit »)
-    return part;}
+    if(pv0.slice(-1)!==pv0.slice(-1).toLowerCase())return null;         // « la C2A était » : le A d'un sigle n'est pas « a »
+    if(_AVOIR_ETAIT[w]){var p2=i>=2?T[i-2].toLowerCase().replace(/’/g,"'"):'',p3=i>=3?deacc(T[i-3].toLowerCase()):'';
+      if(/^qu'/.test(p2)||deacc(p2)==='que'||deacc(p2)==='qu'||p3==='que'||p3==='qu')return null;   // « tout ce qu'il a était à elle » : avoir verbe plein
+      if(_SEG&&_SEG.raw&&i-1<_SEG.raw.length){var r0=_SEG.raw[i-1].toLowerCase().replace(/[’ʼ]/g,"'"),a0=r0.lastIndexOf("'");if(a0>=0)r0=r0.slice(a0+1);if(r0!==pv)return null;}   // l'auxiliaire vient d'une AUTRE correction (« nai » → « n'ai » par l'orthographe) : ancre non écrite par l'auteur → rien
+      return 'été';}
+    if(_AVOIR_HOMO[w]){var nx=i+1<T.length?deacc(T[i+1].toLowerCase()):'';if(_AVOIR_HOMO_STOP[nx])return null;
+      if(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1])return null;             // « eux-mêmes »
+      if((pv==='a'||pv==='as')&&!(w==='eux'&&_AVOIR_EUX_DET[nx]))return null;   // « à prix d'or », « c'est à eux »
+      return _AVOIR_HOMO[w];}
+    if(w.length<3||!svReads(w).length)return null;                      // forme FINIE connue (CONJ_F ne contient QUE les temps finis)
+    if(w.length>=4&&/^[a-zà-ÿ]+(it|is)$/.test(w)&&!_isPpl(w)&&_isPpl(w.slice(0,-1)))return w.slice(0,-1);   // troncature, la règle d'origine (grandit → grandi) — le participe tronqué doit EXISTER
+    if(_avoirPp(w))return null;                                          // « il a construit/dit/pris/mis » : déjà participe → correct
+    var _dw=deacc(w),_sx=['es','s','e'];for(var z=0;z<_sx.length;z++){if(_dw.slice(-_sx[z].length)===_sx[z]&&_dw.length>_sx[z].length+1&&_avoirPp(w.slice(0,-_sx[z].length)))return null;}   // participe ACCORDÉ (« les tableaux que tu as vus ») : juste, ou l'affaire de l'orange d'accord
+    var d=deacc(w),lc=d.charAt(d.length-1);if(lc!=='s'&&lc!=='t')return null;
+    var cc=[w.slice(0,-1),w.slice(0,-1)+(lc==='s'?'t':'s')];            // consonne finale MUETTE ôtée ou échangée : même son
+    for(var q=0;q<cc.length;q++){if(deacc(cc[q]).length>=2&&_avoirPp(cc[q]))return _AVOIR_PP_ACC[deacc(cc[q])]||cc[q];}
+    return null;}
   function rEtreInfEr(T,i){if(i<1)return null;var w=T[i];if(w!==w.toLowerCase())return null;
     if(w.length<4||!/^[a-zà-ÿ]+er$/.test(w))return null;
     var pv=T[i-1].toLowerCase().replace(/’/g,"'");
@@ -27725,7 +27747,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
   // (« La pont »→Le, « leur payss »→leurs, « fut créée »→créé). Une règle dont le contexte dys pollue l'ancre n'a pas le droit de
   // s'APPLIQUER d'office : orange (clic), pas rouge. Les familles à 100 % (participe après avoir, majuscule, a/à, adjectif
   // épithète, singulier du nom) restent rouges. MIROIR Python : correcteur_probe.VIG_FAMILIES (parité extension/parity_core.js).
-  var _VIG_FAM={'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
+  var _VIG_FAM={'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1,'participe après avoir':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
   var _SUBJ_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   var _INVAR_S={};('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars dos os heros marais palais relais jus autobus bus virus refus').split(' ').forEach(function(w){_INVAR_S[w]=1;});
   var _COLL_BARE=null;   // clé nue → nb d'entrées _GCOLL partageant la clé (jumeau accentué) — construit à la 1re demande (après _GCOLL)
@@ -27740,6 +27762,7 @@ function rAccordSVnoun(T,i,vig){var lw=T[i].toLowerCase();if(lw.indexOf("'")>=0|
       return (_wordKnown(dn)&&!/[sx]$/.test(dn))?'auto':'vigilance';}
     if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx))return 'auto';
       return 'vigilance';}   // nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
+    if(name==='participe après avoir')return _AVOIR_HOMO[deacc(T[i].toLowerCase())]?'vigilance':'auto';   // ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge (miroir tier_of)
     if(name==='accord participe'){for(var j=i-1;j>=Math.max(0,i-3);j--){var t=deacc(T[j].toLowerCase());if(_SUBJ_PRON[t])return 'auto';if(PRENOMS[T[j]])return 'auto';}return 'vigilance';}
     return 'vigilance';}
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||_tierOf(T,i,CRULES[r][0],_sg)};if(_vg)_f.vigRule=1;if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST DÉSORMAIS PORTÉ PAR LE FLAG (audit 2026-08-11). Avant : tier=null, et le rouge était DÉDUIT à l'affichage par `_dfltOn` (src==='g'). Deux conséquences mesurées : (1) le moteur autonome rendait 416 corrections sur 1 506 SANS aucun tier — un intégrateur ne pouvait pas savoir ce qui est sûr sans réimplémenter l'UI ; (2) l'EXTENSION n'applique que `tier==='auto'`, donc elle ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut : le même texte était corrigé sur le site et seulement signalé dans l'extension. Une règle peut toujours renvoyer {sugg,vig:1} → 'vigilance' (orange) ; sinon c'est du rouge, et il le DIT. */

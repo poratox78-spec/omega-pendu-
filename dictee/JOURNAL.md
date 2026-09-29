@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-09-28 (soir) — « LA MÊME CHOSE POUR ONT » : le participe après avoir, consonne finale échangée (fais → fait, mit → mis, prit → pris)
+
+> Rem, après « sont + adjectif » : « la même chose pour ont ? ». Même méthode : recensement au PRODUIT (labo `onde/produit_avoir.js`
+> sur les 151 mots du gold dys placés après une forme d'avoir, auxiliaire comparé ACCENTS COMPRIS — « à » n'est pas « a »).
+
+- **Après « ont » bien écrit, rien de muet dans le gold** : le trou, c'est « on » écrit pour « ont » (3 cas, où les autres règles
+  lisent « on » comme un sujet). Sur toutes les formes d'avoir et sur phrases inventées, la famille muette est la FORME du participe :
+  « ont prit », « ont fais », « ont mit », « ont dis », « ont écris », « a était », « ont eux », « ont prix ».
+- **Ce qui existait** : `rule_avoir_fini` / `rAvoirFini`, rouge — avoir + forme conjuguée en -it/-is dont la troncature est un participe
+  (grandit → grandi). **Étendue, pas de règle neuve** : même fait, même son, quand la consonne finale MUETTE est échangée (s ↔ t) ou ôtée
+  (lut → lu, dut → dû), le résultat devant être un participe connu (`IRREG_PART`, `_PPL_IRR2`, `_is_ppl`) ; « était » → été ; après
+  l'infinitif et le participe présent aussi (« d'avoir fais », « ayant mit » — test de Rem : « d'avoir prit » était muet). eux → eu,
+  prix → pris : homophones HORS verbe → ORANGE (`tier_of` / `_tierOf`), jamais après « a » seul (« à prix d'or », « c'est à eux »)
+  sauf « eux » + déterminant, jamais « eux aussi », « eux-mêmes ».
+- **Écarté, mesuré** : une liste de 523 formes tirée de Lexique 4 (prononciation comprise, `onde/apres_avoir_homophones.py`) — la
+  morphologie (consonne muette) fait le même travail sans table ; -er et -ez ont déjà leurs règles.
+- **Mesuré** — gold : 4 réparations de plus (a était → été ×2 dont un « etait » que l'orthographe rendait « était », rouge faux en moins ;
+  j'ai prix → pris et a eux → eu en orange), 0 mot juste touché. UD 14 450, produit entier avant/après : **+3, toutes de vraies fautes
+  d'UD** (« la pose a était parfaite », « j'ai fais appel », « m'a permit »), 0 en moins. Précision au produit (Chrome) : rouge 20/0/0 →
+  22/0/0, orange neuve 2/0/0.
+- **Trois pièges, trois gardes** : la batterie a vu « les tableaux que tu as vus » → vu (participe ACCORDÉ, juste : la forme sans son
+  -e/-s/-es est un participe → rien) ; la précision au produit a vu « nai était » → été (l'orthographe fait « n'ai » de « nai », la règle
+  bâtissait sur cette ancre — l'auxiliaire est désormais relu tel que l'auteur l'a écrit, nouveau canal `_SEG.raw`, Python ≡ JS, pour la
+  seule branche « était ») ; « tout ce qu'il a était à elle » (avoir verbe plein : « que » avant le sujet → rien) ; « la C2A était » (le A
+  d'un sigle n'est pas « a »).
+- **Pas fait, noté** : « lut », « crut », « but » (absents de la table de conjugaison du moteur) ; « on » écrit pour « ont » + participe
+  (la cascade on → ont puis participe) ; l'auxiliaire mal écrit (« jais prix », « j'aime mit ») ; « ravager » absent du lexique verbal
+  de la règle -er/-é.
+
 ## 2026-09-28 (suite) — « SONT + ADJECTIF » : l'orange du participe après « sont » étendue aux adjectifs et aux participes irréguliers
 
 > Rem : « sont et adjectifs, en regardant ce qui existe ». Le recensement au PRODUIT (dys-core en Node, labo `onde/produit_copule.js`
