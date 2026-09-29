@@ -306,6 +306,9 @@ const CAS = [
   { txt: 'Les pays qui on un port sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on un"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on un »' },
   { txt: 'Le film qui on voit est long.', interdit: ['qui ont voit'], pourquoi: 'CONTRE-GARDE : « qui on » + verbe conjugué → qu’on, pas « ont »' },
   /* ⭐ MUETS, lot 2 (13/09/2026) : tous → tout (trois cadres étroits), en vacance → vacances, « c'est » + nom pluriel → ces/ses (orange). */
+  /* ⭐ 29/09/2026 — élision fusionnée : « s' » ne précède jamais « éte » ; « jen » après un déterminant est « gens ». */
+  { txt: 'Il aime séte maison.', interdit: ["s'éte"], pourquoi: 'plus de rouge faux « s’éte » : « s’ » ne précède que être, il(s), en' },
+  { txt: 'Ces jen sont drôles.', interdit: ["j'en"], pourquoi: '« jen » après un déterminant est un nom (gens), pas « j’en »' },
   /* ⭐ 29/09/2026 — mot ÉLIDÉ inconnu : la forme élidée ne recevait RIEN ; elle reçoit le mot en orange, comme la forme nue. */
   { txt: "Il est allé à l'aupital hier.", corrigeAttendu: ["l'aupital", "l'hôpital"], pourquoi: 'reste inconnu après l’apostrophe : orange, préfixe gardé' },
   { txt: "La cité de L'Atalaya est belle.", rien: true, pourquoi: 'majuscule : nom propre possible, comme la forme nue — rien d’appliqué' },

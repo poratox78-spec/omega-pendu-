@@ -26011,7 +26011,7 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
         RETIRÉS des proclitiques : « mai » et « tai » sont des mots réels.
      Miroir Python rule_elision_fusionnee. */
   var _FUS_PRE=['qu','j','s','c','n','d','l'];
-  var _FUS_VOY={},_FUS_APRES={};
+  var _FUS_VOY={},_FUS_APRES={},_FUS_SC={s:{est:1,etait:1,etaient:1,etre:1,il:1,ils:1,en:1},c:{est:1,etait:1,etaient:1,en:1}};   // _FUS_SC : suites possibles après s' et c' (29/09/2026)
   'aeiouyhàâäéèêëîïôöùûü'.split('').forEach(function(c){_FUS_VOY[c]=1;});
   ('ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre eu '+
    'il ils elle elles on en un une autre autres ici ailleurs aujourd hui heure heures '+
@@ -26036,7 +26036,13 @@ function _rEtBase(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est'
       var rest=w.slice(pre.length);
       if(rest.length<2||rest.charAt(0)!==rest.charAt(0).toLowerCase())return null;
       if(!_FUS_VOY[deaccS(rest.charAt(0).toLowerCase())])return null;                // ③
-      return _FUS_APRES[deaccS(rest.toLowerCase())]?ckeepcase(w,pre+"'"+rest):null;  // ④
+      var _dr=deaccS(rest.toLowerCase());if(!_FUS_APRES[_dr])return null;  // ④
+      /* ⭐ 29/09/2026 (2e catalogue : les rouges FAUX) — « s' » et « c' » ne précèdent que quelques suites : « séte » devenait « s'éte »,
+         « seu » → « s'eu », en ROUGE. Et « jen » après un déterminant est le nom « gens », pas « j'en ». Mesuré : 9 rouges faux du gold
+         retirés (le correcteur d'orthographe propose en orange), 0 ailleurs, UD 0. Miroir Python _FUS_SC. */
+      if(_FUS_SC[pre]&&!_FUS_SC[pre][_dr])return null;
+      if(pre==='j'&&_dr==='en'&&i>0&&(deacc(T[i-1].toLowerCase()) in NUM_DET))return null;
+      return ckeepcase(w,pre+"'"+rest);
     }
     return null;}
   function rMais(T,i){if(deacc(T[i].toLowerCase())!=='mais'||i+1>=T.length)return null;
