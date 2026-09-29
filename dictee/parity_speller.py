@@ -76,6 +76,7 @@ def main():
             if f['tier'] == 'vigilance' and f.get('name') == 'mot inconnu':
                 compares += 1
                 got = sp.spell_unknown(T[i], at_start=(i == 0), toks=T, idx=i)
+                if got is None: got = sp.spell_unknown_elide(T[i], toks=T, idx=i)   # ⭐ 29/09/2026 : mot ÉLIDÉ inconnu (« l'aupital ») — même voie que correct_text
                 py_s = (u'∅' if got == u'' else got) if got is not None else u'—'
                 js_raw = f.get('sugg') or u''
                 # ⚠️ 13/09/2026 : « sans suggestion » = la suggestion EST le token, à la casse près comprise. Une suggestion qui ne change

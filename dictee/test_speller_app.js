@@ -200,6 +200,13 @@ const SP = globalThis.__sp;
   if (SP.spell('la mer est belle et le fer est chaud').some(x => x.name === 'homophone à vérifier')) fail.push('FP vigilance homophone sur « la mer »/« le fer »');
   // QUALITÉ DES REMPLACEMENTS (audit 07/2026) : le bonus POS/genre ne doit pas promouvoir une graphie polluée du
   // lexique (« trés » N 18/M) contre un rival ≫20× plus fréquent (« très » 1435/M) — ni « jamal » contre « jamais ».
+  // ⭐ 29/09/2026 — MOTS ÉLIDÉS INCONNUS : la forme nue recevait le bon mot en orange, la forme élidée RIEN. Reste inconnu → orange ;
+  // « l' » collé à tort → la soudure ; nom propre (majuscule), élision devant consonne, mot connu → rien.
+  for (const [t, w, s] of [["Il est allé à l'aupital hier.", "l'aupital", "l'hôpital"], ["Elle s'inkiète pour rien.", "s'inkiète", "s'inquiète"], ["Il part l'orsque la nuit tombe.", "l'orsque", 'lorsque']]) {
+    const f = SP.spell(t).find(x => x.word === w);
+    if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('élidé inconnu « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+  for (const t of ["La cité de L'Atalaya est belle.", "N'golo court vite.", "Il joue de l'ukulélé."])
+    if (SP.spell(t).length) fail.push('élidé : FP sur « ' + t + ' » → ' + JSON.stringify(SP.spell(t).map(x => x.word + '→' + x.sugg)));
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');

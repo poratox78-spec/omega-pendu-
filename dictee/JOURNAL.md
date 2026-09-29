@@ -5,6 +5,24 @@
 
 ---
 
+## 2026-09-29 (suite) — le correcteur d'orthographe qui saute : les mots ÉLIDÉS inconnus reçoivent enfin leur orange
+
+- Catalogue des muets : une douzaine de mots élidés à reste inconnu (« s'… », « l'… », « d'… ») passaient sans AUCUNE marque, alors que
+  la forme nue du même mot reçoit le bon mot en orange. Deux causes : l'étage d'élision (spellToken / spell_token) jetait tout candidat à
+  plus d'une édition (garde « faux ami » : othographe → autographe), et le repli « mot inconnu » refusait l'apostrophe. Un silence sans
+  sortie sur du texte faux.
+- Quand le reste est INCONNU : le candidat distant descend en ORANGE ; sans candidat, « mot inconnu » orange sur le reste, préfixe gardé ;
+  un « l' » collé à tort (« l'entement ») donne la soudure si elle est au lexique. Reste connu : abstention inchangée.
+- Prototype mesuré avant les moteurs : 7 oranges sur des NOMS PROPRES justes (frgec : « M'… », « N'… », « L'… » suivis d'un nom) →
+  deux gardes, calquées sur la forme nue : une MAJUSCULE = nom propre possible ; un reste qui commence par une consonne n'est pas une
+  élision française. Après gardes : +14 bons mots en orange sur les 3 corpus dys (gold 9, EcriScol 2, frgec 3), 7 mots imparfaits en
+  orange sur des mots vraiment fautifs jusqu'ici muets (dont une graphie rectifiée de 1990), 1 inutile.
+- UD 14 450 : 38 oranges « mot inconnu » de plus — le produit en posait déjà 822 sur les mots NUS (mots rares, étrangers, techniques) et 0
+  sur les élidés : c'était un angle mort, pas une politique. 9 des 38 sont de vraies fautes du corpus (« l'émmision », « s'interessa »…).
+- Catalogue : muettes → 648, orange juste → 391.
+- Vu en passant, pour un autre lot : le tri de spellUnknown préfère « éclair » à « éclairait » (la forme longue accentuée est battue).
+- Tests : test_speller (extension + app), recall_probe, garde de palier gold (accord produit ≡ référence), parités.
+
 ## 2026-09-29 (suite) — et/est : sujet nominal + « et » + participe, « est voilà », « est » + adverbe + nouvelle proposition (orange)
 
 - Inventaire (catalogue des muets, produit en Node) : 23 et/est muets sur le gold (et → est 12, est → et 11), 7 déjà pris. Structures :

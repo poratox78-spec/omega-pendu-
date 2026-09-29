@@ -539,8 +539,15 @@ class Speller:
                 rc = self.correct_token(em.group(2), at_start=False, toks=toks, idx=idx)
                 if not rc: return None
                 rem, sug = deacc(em.group(2).lower()), deacc(rc[1].lower())
-                if sug[:1] not in VOWELS: return None
-                if rc[0] != 'auto' and rem != sug and not sed1(rem, sug): return None
+                if sug[:1] not in VOWELS:
+                    sd = deacc((em.group(1) + em.group(2)).lower())   # ⭐ 29/09/2026 : « l'entement » → la SOUDURE au lexique (orange) — miroir JS
+                    if pk == 'l' and self.D2A.get(sd) and em.group(2).lower() not in self.WORDS and rem not in self.WORDS: return ('vigilance', self.D2A[sd][0])
+                    return None
+                if rc[0] != 'auto' and rem != sug and not sed1(rem, sug):
+                    # ⭐ 29/09/2026 (mots élidés inconnus) : abstention sur un reste CONNU, une MAJUSCULE (nom propre possible) ou un reste à
+                    # consonne ; reste INCONNU → le candidat distant descend en ORANGE (la forme nue le reçoit déjà) — miroir JS
+                    if em.group(2).lower() in self.WORDS or rem in self.WORDS or tok[:1] != tok[:1].lower() or not re.match(r'[aeiouyh]', rem): return None
+                    return ('vigilance', em.group(1) + "'" + rc[1])
                 return (rc[0], em.group(1) + "'" + rc[1])
         return self.correct_token(tok, at_start=at_start, toks=toks, idx=idx)
 
@@ -1066,6 +1073,19 @@ class Speller:
         if not g or g == low: g = self._su_anagram(low)     # ⭐ 13/09/2026, lot 2 : lettres mélangées, en dernier — miroir JS _suAnagram
         return g if (g and g != low) else ''
 
+    def spell_unknown_elide(self, tok, toks=None, idx=None):
+        """⭐ 29/09/2026 (catalogue des muets) — mot ÉLIDÉ dont le reste est inconnu (« l'aupital », « s'inkiète ») : spell_unknown refuse
+        l'apostrophe, le produit ne disait RIEN. → « mot inconnu » sur le RESTE, préfixe gardé : None | '' (souligné sans suggestion) |
+        préfixe + suggestion. Gardes (mêmes que spell_token) : préfixe d'élision, pas de MAJUSCULE (nom propre possible : « L'Atalaya »),
+        reste qui commence par voyelle/h (« N'golo » n'est pas une élision). Miroir JS : la voie « _ee » de spellText."""
+        em = self._ELI_RE.match(tok)
+        pk = em.group(1).lower() if em else ''
+        if not em or not ((len(pk) == 1 and pk in ELIDE) or pk == 'qu'): return None
+        if tok[:1] != tok[:1].lower() or not re.match(r'[aeiouyh]', deacc(em.group(2).lower())): return None
+        u = self.spell_unknown(em.group(2), at_start=False, toks=toks, idx=idx)
+        if u is None: return None
+        return (em.group(1) + "'" + u) if (u and deacc(u.lower())[:1] in VOWELS) else ''
+
     def correct_text(self, text, inconnu=False):
         """inconnu=True (OPT-IN, défaut OFF) : ajoute le palier « mot inconnu » (action 'inconnu') sur
         les tokens que la voie correction laisse muets — comme la chaîne vigilance de spellText (JS)."""
@@ -1081,6 +1101,7 @@ class Speller:
                 out.append((m.start(), m.group(0), sugg, r[0]))
             elif inconnu:
                 u = self.spell_unknown(m.group(0), at_start=(i == 0), toks=toks, idx=i)
+                if u is None: u = self.spell_unknown_elide(m.group(0), toks=toks, idx=i)   # ⭐ 29/09/2026 : mot ÉLIDÉ inconnu — miroir JS
                 if u is not None:
                     out.append((m.start(), m.group(0), u, 'inconnu'))
         return out
