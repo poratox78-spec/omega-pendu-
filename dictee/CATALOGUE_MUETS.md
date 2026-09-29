@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **589** (29,3 %) |
 | bon mot proposé en orange | 356 (17,7 %) | **401** (19,9 %) |
-| mot FAUX proposé | 373 (18,5 %) | **365** (18,1 %) |
+| mot FAUX proposé | 373 (18,5 %) | **364** (18,1 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 18 (0,9 %) |
-| **muette** | **711** (35,3 %) | **639** (31,8 %) |
+| **muette** | **711** (35,3 %) | **640** (31,8 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **54** aujourd'hui (34 / 20) — voir plus
@@ -116,4 +116,23 @@ est la seule colonne qui viole la doctrine FP=0.
 4. **Les silences de grammaire** (forme du verbe, nombre du nom, adjectif, sujet-verbe : ~180) — tracer les gardes, étendre l'existant.
 5. **Lot C** : en parler avec Rem — le réglage du genre, le juge de sens, la ponctuation.
 
-Les fautes où le produit propose un **mot faux** (373) feront l'objet d'un second catalogue, même méthode.
+Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dessous.
+
+## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
+
+Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
+d'office par une autre. Mesuré après les lots ci-dessus : **364**, dont **38 en rouge** (47 avant le premier lot), 42 « flag »,
+284 en orange.
+
+| rouges faux, par règle (avant le premier lot) | n | cause | statut |
+|---|---|---|---|
+| orthographe | 15 | l'accent est bien restauré, mais le gold attend une autre flexion ou une élision | à lire : souvent « bon lemme » |
+| élision fusionnée | 9 | reste d'une liste fermée cherché sans accent, recopié tel quel (« s'éte ») ; « jen » = gens | ✅ 29/09 : 9 retirés |
+| -e/-é (participe) | 4 | la forme en -e lue comme participe (le nom ou le présent était voulu) | à mesurer |
+| accord sujet-verbe | 4 | sujet ou verbe lui-même mal écrit | à mesurer |
+| pluriel du nom | 4 | le nom mal écrit est pluralisé tel quel | ⛔ garde « pluriel attesté » réfutée (1 retiré, 1 juste cassé) |
+| terminaison -er/-é, accord é/er | 7 | participe nu là où l'accord est attendu (bon lemme) | à relier à l'accord du participe |
+| accord participe, participe après auxiliaire, genre du déterminant | 4 | cas isolés | à lire |
+
+Le plus gros gisement est **orange** : le correcteur d'orthographe propose un candidat, mais pas le bon (tri des candidats :
+« séte » → sais au lieu de cette, « eclairait » → éclair). C'est le prochain chantier de ce catalogue.

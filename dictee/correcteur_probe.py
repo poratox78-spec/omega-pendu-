@@ -4522,6 +4522,7 @@ _ELIDE_STOP = {"n'roll", "m'sieur", "m'dame", "m'ame", "c'te"}   # emprunt (rock
 # langue) sont des mots réels ; « m'ai »/« t'ai » ne valaient pas le FP mesuré sur UD.
 _FUS_PRE = ('qu', 'j', 's', 'c', 'n', 'd', 'l')
 _FUS_VOY = set('aeiouyhàâäéèêëîïôöùûü')
+_FUS_SC = {'s': frozenset('est etait etaient il ils en etre'.split()), 'c': frozenset('est etait etaient en'.split())}   # suites possibles après s' / c' (29/09/2026)
 # Mots qui suivent RÉELLEMENT une élision : auxiliaires, pronoms, et les noms vocaliques usuels.
 # Liste FERMÉE — le lexique entier produisait 104 FP (« harles », « avoie », « aria », « uke »).
 _FUS_APRES = set('ai as a ait avait avais avaient ont avons avez est es etait etais etaient ete etre eu '
@@ -4572,7 +4573,12 @@ def rule_elision_fusionnee(T, i):
         rl = deacc(rest.lower())
         # ④ le reste doit être un mot qui SUIT réellement une élision — liste FERMÉE. Le lexique entier
         #    laissait passer « harles », « avoie », « aria », « uke »… tous connus mais jamais élidés.
-        return _keepcase(w, pre + "'" + rest) if rl in _FUS_APRES else None
+        if rl not in _FUS_APRES: return None
+        # ⭐ 29/09/2026 (2e catalogue : les rouges FAUX) — « s' » et « c' » ne précèdent que quelques suites (« séte » → s'éte, « seu » →
+        # s'eu étaient rouges) ; « jen » après un déterminant = le nom « gens ». Miroir JS _FUS_SC.
+        if pre in _FUS_SC and rl not in _FUS_SC[pre]: return None
+        if pre == 'j' and rl == 'en' and i > 0 and deacc(T[i - 1].lower()) in NUM_DET: return None
+        return _keepcase(w, pre + "'" + rest)
     return None
 
 def rule_elide(T, i):

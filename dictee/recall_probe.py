@@ -132,6 +132,11 @@ def _check():
     nofp += ["Un ami et associé de longue date.", "Né à Lyon le 3 mai 1900 et mort à Paris.", "Un étage et un grenier et fait cent mètres.",
              "Terminée en mars et publiée en mai."]
     palier += [("Le chat et parti ce matin", "et", 'vigilance'), ("Il et content", "et", 'auto')]
+    # ⭐ 29/09/2026 — élision fusionnée : « s' » / « c' » seulement devant une suite possible, « jen » après un déterminant = gens (plus de rouge
+    # faux) ; les élisions fusionnées vraies tirent toujours
+    nofp += ["Il aime séte maison.", "Ces jen sont drôles."]
+    elide += [("cest vrai", "cest", "c'est"), ("jai faim", "jai", "j'ai")]
+    palier += [("cest vrai", "cest", 'auto')]
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):

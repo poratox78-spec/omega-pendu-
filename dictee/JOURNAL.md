@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-09-29 (suite) — 2e catalogue ouvert (les mots FAUX proposés) : les 9 rouges faux de l'élision fusionnée
+
+- Le 2e catalogue demandé à la suite des muets : 364 fautes du gold où le produit propose un MOT FAUX — 47 en ROUGE (appliqués
+  d'office : le pire cas), 42 « flag », 284 en orange. Méthode inchangée : les rouges d'abord, une garde par structure.
+- Premier groupe : « élision fusionnée », 9 rouges faux. La règle découpe un mot inconnu en préfixe + reste d'une liste fermée, cherchée
+  SANS accent mais recopiée telle qu'écrite : « séte » → « s'éte », « seu » → « s'eu ». Et « jen » après un déterminant (le nom « gens »)
+  devenait « j'en ». Gardes : « s' » ne précède que être, il(s), en ; « c' » que être et en ; « jen » après un déterminant → rien.
+- Mesuré (produit) : 9 rouges faux retirés (8 deviennent une orange du correcteur d'orthographe — encore imparfaite : « séte » → sais au
+  lieu de cette —, 1 un silence), 0 changement sur EcriScol, frgec et UD. Rouges faux : 47 → 38.
+- Essayé et écarté : restaurer l'accent du reste (« etais » → étais) — aucune prise mesurée ; « pluriel attesté » sur l'accord du nom
+  (1 rouge faux retiré, mais « haikus », juste, cassé en orange).
+- Le plus gros gisement du 2e catalogue est orange : le TRI des candidats du correcteur d'orthographe (« séte » → sais, « eclairait » →
+  éclair) — un chantier à part.
+- Tests : recall_probe (2 gardes, 2 contrôles, 1 palier), navigateur_probe (Chrome), parités.
+
 ## 2026-09-29 (suite) — accents muets : « ca », « foret », « pole », « media » en orange
 
 - Catalogue des muets, groupe « accents » : hors a → à, les muets se concentrent sur quelques mots fréquents dont la forme SANS accent
