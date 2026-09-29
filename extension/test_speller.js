@@ -19,13 +19,13 @@ DC.setPrenoms(zlib.gunzipSync(fs.readFileSync(path.join(HERE, 'assets', 'prenoms
 
 const fail = [];
 // ⛔ PRÉNOM EN MINUSCULE — mesuré sur le pipeline dys réel (dictee/dys_pipeline_probe.py) : le Python
-// APPLIQUAIT « isis »→« ici ». La garde « nom propre » d'origine exige une MAJUSCULE hors début de
+// APPLIQUAIT un prénom en minuscule → « ici ». La garde « nom propre » d'origine exige une MAJUSCULE hors début de
 // phrase, que le scripteur dys ne met jamais. Mots CASSÉS 26 -> 20 après la garde côté Python.
 // ⚠️ Ce qu'on interdit ici est l'APPLICATION SILENCIEUSE (auto/flag), pas le signalement : router un
 // mot inconnu vers « mot inconnu » en VIGILANCE est légitime — l'utilisateur voit et décide.
-{ const f = (t => DC.spell(t).find(x => x.word.toLowerCase() === 'isis'))('isis qui a eu son permis');
+{ const f = (t => DC.spell(t).find(x => x.word.toLowerCase() === 'enzo'))('enzo qui a gagné le match');
   if (f && f.tier !== 'vigilance')
-    fail.push('prénom minuscule « isis » APPLIQUÉ en « ' + f.sugg + ' » (palier ' + f.tier + ' ; doit rester intact ou vigilance)'); }
+    fail.push('prénom minuscule « enzo » APPLIQUÉ en « ' + f.sugg + ' » (palier ' + f.tier + ' ; doit rester intact ou vigilance)'); }
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
 
@@ -55,7 +55,7 @@ const pre = find('le premiere pays', 'premiere');
 if (!pre || pre.sugg !== 'premier') fail.push('premiere→premier (bascule paire) attendu, eu ' + JSON.stringify(pre));
 const el1 = find('un eleve serieux', 'eleve');
 if (!el1 || el1.sugg !== 'élève') fail.push('un eleve→élève (nom après dét.) attendu, eu ' + JSON.stringify(el1));
-const el2 = find('le niveau est tres eleve', 'eleve');
+const el2 = find('le niveau reste tres eleve', 'eleve');
 if (!el2 || el2.sugg !== 'élevé') fail.push('tres eleve→élevé (adj après adverbe) attendu, eu ' + JSON.stringify(el2));
 const ce = sp('c est très bien').find(x => x.name === 'élision');
 if (!ce || ce.sugg !== "c'est" || ce.span !== 2) fail.push("c est→c'est (élision merge) attendu, eu " + JSON.stringify(ce));
@@ -128,7 +128,7 @@ try {
                  // voie '' du « mot inconnu » ÉQUIPÉE (S6 élision / S4 clé phon, 04/09/2026) + témoin sans candidat
                  'on voit dargen ici','léconomi','bégnier','ésituron','la souche delbrueckii ici',
                  // REPLI PHONÉTIQUE (13/09/2026) : variante de finale -er/-é, index des mots rares
-                 'une grande sosiéter','sur les litoro',
+                 'une grande sosiéter','le long des litaurau',
                  // lot 2 (13/09/2026) : prénom en minuscule, expression collée, mots collés, lettres mélangées
                  'viendrai biensur demain','aime beaucoupma ville','irons pemdatn les vacances'];
     const key = f => f.i + '|' + String(f.word).toLowerCase() + '|' + String(f.sugg).toLowerCase() + '|' + f.tier;
@@ -166,8 +166,8 @@ async function gardeIndexRare() {
   while (D.phonRareEtat().anagrammes < D.phonRareEtat().courants && Date.now() - t1 < 30000) await new Promise(r => setTimeout(r, 10));
   const e3 = D.phonRareEtat();
   if (!(e3.courants > 30000) || e3.anagrammes < e3.courants) { fail.push('lettres mélangées : l\'index des mots courants n\'est pas relevé au chargement ou n\'avance pas seul en tâche de fond : ' + JSON.stringify(e3)); return; }
-  for (const [t, w, g] of [['il vit dans une grande sosiéter', 'sosiéter', 'société'], ['la population vit sur les litoro', 'litoro', 'littoraux'],
-                           ['J\'ai vu harold au marché.', 'harold', 'Harold'], ['Je viendrai biensur demain.', 'biensur', 'bien sûr'], ['Il a un rendévous chez le médecin.', 'rendévous', 'rendez-vous'], ['J\'aime beaucoupma ville.', 'beaucoupma', 'beaucoup ma'], ['Nous irons pemdatn les vacances.', 'pemdatn', 'pendant'], ['Il fait tooujousr beau ici.', 'tooujousr', 'toujours']]) {
+  for (const [t, w, g] of [['il vit dans une grande sosiéter', 'sosiéter', 'société'], ['la ville longe les litaurau', 'litaurau', 'littoraux'],
+                           ['J\'ai vu ludovic au marché.', 'ludovic', 'Ludovic'], ['Je viendrai biensur demain.', 'biensur', 'bien sûr'], ['Il a un rendévous chez le médecin.', 'rendévous', 'rendez-vous'], ['J\'aime beaucoupma ville.', 'beaucoupma', 'beaucoup ma'], ['Nous irons pemdatn les vacances.', 'pemdatn', 'pendant'], ['Il fait tooujousr beau ici.', 'tooujousr', 'toujours']]) {
     const f = D.spell(t).find(x => x.word.toLowerCase() === w);
     if (!f || f.sugg !== g || f.tier !== 'vigilance') fail.push('repli phonétique : « ' + w + ' » → ' + g + ' (orange) attendu, eu ' + JSON.stringify(f));
   }

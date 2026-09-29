@@ -30,7 +30,7 @@ CAS = [
     (u"J'aime beaucoupma ville.", u"J'aime beaucoup ma ville.", u"beaucoupma", u"beaucoup ma", u'juste', u'rattrapable', u'juste'),
     (u"Il àfinit son travail.", u"Il a fini son travail.", u"àfinit", u"a fini", u'juste', u'rattrapable', u'juste'),
     # contre-gardes
-    (u"Il va au rondevous demain.", u"Il va au rendez-vous demain.", u"rondevous", u"ronde vous", u'fausse', u'bruit', u'pointeuse'),
+    (u"Il va au rondévou demain.", u"Il va au rendez-vous demain.", u"rondévou", u"ronde vous", u'fausse', u'bruit', u'pointeuse'),
     (u"Une ville proanglaise ici.", u"Une ville proanglaise ici.", u"proanglaise", u"pro anglaise", u'inutile', u'hors ratés', u'fatigue'),
     (u"Je viendrai biensur demain.", u"Je viendrai bien sur demain.", u"biensur", u"bien sûr", u'juste', u'rattrapable', u'pointeuse'),   # le census ne désaccentue pas
     (u"Il fait tooujousr beau.", u"Il fait toujours beau.", u"tooujousr", u"toujours", u'juste', u'rattrapable', u'juste'),                 # un seul mot : l'égalité de toujours

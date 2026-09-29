@@ -18,6 +18,6 @@ try { (0, eval)(code); } catch (e) { console.error('exec KO:', e.message); proce
 const corr = globalThis.__corr;
 const flags = s => corr(s).map(f => f.word + '→' + f.sugg + ' [' + f.name + ']');
 console.log('=== DÉTECTION (doit corriger) ===');
-['il est faim', 'il a allé à Paris', 'ils ont restés ici', 'on est 10 ans', 'tu es soif', 'vous ete là', 'nous avon faim', 'vous ave raison', 'nous étion là'].forEach(s => { const f = corr(s); console.log((f.length ? ' ✓ ' : ' ✗ ') + s + ' → ' + (flags(s).join(', ') || 'rien')); });
+['il est faim', 'il a allé à Paris', 'ils ont restés ici', 'on est 10 ans', 'tu es soif', 'vous ete là', 'nous avont faim', 'vous ave raison', 'nous étion là'].forEach(s => { const f = corr(s); console.log((f.length ? ' ✓ ' : ' ✗ ') + s + ' → ' + (flags(s).join(', ') || 'rien')); });
 console.log('\n=== FP (ne doit RIEN toucher) ===');
 ['Il a faim', 'Il est content', 'Il est allé', 'Il est mort', 'Il a tort', 'Elle est restée', 'J\'ai été malade', 'Il a eu peur', 'Elle aurait préféré', 'Nous avons un chien', 'Ils sont partis'].forEach(s => { const f = corr(s); console.log((f.length ? ' FP! ' : ' ok  ') + s + (f.length ? ' → ' + flags(s).join(', ') : '')); });

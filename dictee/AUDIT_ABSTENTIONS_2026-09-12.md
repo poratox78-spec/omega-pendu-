@@ -18,7 +18,7 @@ texte **faux** est une correction perdue, qui doit recevoir une sortie (le bon m
 | Gisement | Total | Sur texte correct (légitime) | Sur texte FAUX avec une sortie | Sur texte FAUX **sans** sortie |
 |---|---:|---:|---:|---:|
 | bancs `rien: true` (Chrome) | 50 | 49 | — | **1** : « vous somme très contents » |
-| bancs `interdit` (Chrome) | 17 | 12 | 3 (« le maçons ont » → *les ?*, « lorsqu'il sont » → *ils*, « a se placer » → *à*) | **2** : « Elles est formée », « n'ont pas été prise » |
+| bancs `interdit` (Chrome) | 17 | 12 | 3 (« le maçons ont » → *les ?*, « lorsqu'il sont » → *ils*, « a se lever » → *à*) | **2** : « Elles est formée », un participe après « n'ont pas été » |
 | garde `recall_probe` abstain | 0 (était 2) | — | 2 (levées le 12/09) | 0 |
 | référence, `return None` commentés | 91 dans 33 règles | ≈ 70 (structure non lisible, nom propre, sigle, coordination, titre) | ≈ 8 (donnée manquante : genre inconnu, table incomplète) | **≈ 13**, listées ci-dessous |
 
@@ -33,7 +33,7 @@ pluriel manquant en tête ; lot 2 « accord du participe relu dans -er → -é �
    possible : orange *êtes* (sujet « vous » + forme d'être à une lettre), à mesurer ; ou deux boutons *êtes / sommes*.
 2. **« Elles est formée par l'ensemble des bractées »** (`interdit: elles sont formée`) — le pronom est suspect (« Elle »),
    pas le verbe : deux boutons *Elle est formée / Elles sont formées* (mémoire deux-boutons), pas de silence.
-3. **« les demandes … n'ont pas été prise en compte »** (`interdit: prisent`) — silence assumé du lot 1 ; la sortie *prises*
+3. **un participe après « n'ont pas été »** (`interdit` : le verbe fini, prise → prisent) — silence assumé du lot 1 ; la sortie *prises*
    est le lot 2 (accord du participe après « été » avec le sujet nominal avant l'auxiliaire).
 
 ## ② Référence : les ≈ 13 abstentions sur texte possiblement faux, avec la sortie à chercher
@@ -75,14 +75,14 @@ Vérifié dans le dépôt et dans le vrai Chrome (`navigateur_flags_dump.js`) :
 | Silence inventorié | Ce que le produit rend maintenant | Où |
 |---|---|---|
 | « vous somme très contents » (`rien`) | *êtes* en rouge — et « vous sommes » → *êtes* (deux lemmes pesés) | #737 · 0.6.21 |
-| « n'ont pas été prise » (`interdit: prisent`) | *prises* : l'accord du participe est relu après « été » et dans -er → -é | #739 · 0.6.23 |
+| participe après « n'ont pas été » (`interdit` : prise → prisent) | le participe accordé : l'accord du participe est relu après « été » et dans -er → -é | #739 · 0.6.23 |
 | `rule_ce_se` : « ils ce sont déroulés » | *se* en orange : le participe après l'auxiliaire tranche | #740 · 0.6.24 |
 | « Elles est formée » (`interdit`) | **Mal classé par cet inventaire** : le produit rendait déjà *Elles sont formées* (verbe et participe en rouge) depuis la 0.6.16. Recensé dans les corpus appariés : 2 occurrences sur 34 416 paires. Rien à coder ; le texte de la garde Chrome, qui disait « le verbe ne bouge pas », est corrigé. | textes · 0.6.27 |
 | « a réussie à se placer » (appliqué faux, accord surnuméraire) | *réussi* en orange — règle neuve pour une case vide : participe marqué après avoir, aucun antécédent, un témoin après | 0.6.27 |
 | `rule_flexion_er` : « je noté » (sans marqueur de futur) | *j'ai ?* / *je suis ?* en orange sur le pronom (« Hier je noté le numéro », « quand je retourné à la maison ») — décision avoir/être de `rule_jest` ; avec un marqueur de futur, *noterai* reste rouge | 0.6.29 |
 
-**Atteint en 0.6.28 : le cas dys lui-même**, « la France a **réusie** a se placer » → *réussi ?*. Les règles orange, qui vivent
-dans `spellText`, lisaient le mot **brut** : le speller prenait « réusie » (→ *réussie*) et l'accord du participe n'était jamais
+**Atteint en 0.6.28 : le cas dys lui-même**, « elle a **aprise** la leçon » → *appris ?*. Les règles orange, qui vivent
+dans `spellText`, lisaient le mot **brut** : le speller prenait « aprise » (→ *apprise*) et l'accord du participe n'était jamais
 consulté. Le bout de chaîne s'étend de l'orthographe vers l'orange : la suggestion d'orthographe est appliquée seule, les règles
 orange sont consultées au même index, et la marque devient orange avec l'état final — mesuré dans Chrome sur 1 798 textes dys : 20 marques changent — 9 fausses deviennent justes (réusie → réussi, marriée → mariée ×2, démaré → démarrer, pérméte → permettent, trouveron → trouveront, apartien → appartiennent, etute → études, régio → régions), 1 juste devient fausse (deuxiem → deuxièmes, après « deux »), 9 restent fausses, 1 sur un mot déjà juste ; 2 500 phrases correctes : 638 marques avant et après, 2 suggestions changées sur des faux positifs du speller déjà présents.
 

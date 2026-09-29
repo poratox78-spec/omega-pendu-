@@ -64,7 +64,7 @@ Exclus après mesure : genre du déterminant et accord sujet-verbe (1 bon mot po
 voisin change le genre ou la personne), épithète (2 fausses sur UD, mots étrangers). Quand le voisin conclut « à », le rouge -er → -é
 du mot suivant (qui lisait « a » comme avoir : « il commanse a pleurer » → pleuré) redevient orange.
 
-Vu en chemin, pour le catalogue des **mots faux proposés** : « il continu a chanter » → chanté, « je m'occupe a nettoyer » →
+Vu en chemin, pour le catalogue des **mots faux proposés** : « on continu a chanter » → chanté, « je m'occupe a nettoyer » →
 nettoyé, « elle a de la peine a chanter » → chanté (phrases inventées, même construction que 3 cas du gold), en ROUGE — le « a »
 y est lu comme avoir ; les constructions « commencer à », « avoir du mal / de la peine à », « prêt à » sont le prochain chantier a → à.
 

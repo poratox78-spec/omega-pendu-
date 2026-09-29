@@ -158,7 +158,7 @@ def juste(sugg, al, i, egal=None):
     ses mots égalent un à un une suite de tokens gold CONSÉCUTIFS qui contient le token aligné (l'aligneur rattache le
     mot brut à l'un quelconque des morceaux, pas forcément au premier).
     `egal` : l'égalité du juge appelant (`eq` par défaut ; le census compare sans désaccentuer).
-    ⚠️ LA CASSE NE COMPTE PAS : « harold » → « Harold » est invisible aux juges (norm met en minuscules), et côté produit
+    ⚠️ LA CASSE NE COMPTE PAS : « ludovic » → « Ludovic » est invisible aux juges (norm met en minuscules), et côté produit
     la clé de marque `_ckey` met aussi la suggestion en minuscules. Documenté, pas changé : c'est le produit qui décide."""
     egal = egal or eq
     if i not in al:

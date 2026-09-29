@@ -28,7 +28,7 @@ const code = html.slice(start, cut) + ';globalThis.__C={toks:toks,setSeg:(s)=>{_
 
 function blob(id) { const m = html.match(new RegExp('id="' + id + '">([^]*?)</script>')); return m ? m[1] : ''; }
 const B = { 'vdc-lex': blob('vdc-lex'), 'speller-lex-gz': blob('speller-lex-gz'), 'noun-post-gz': blob('noun-post-gz'),
-            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz'), 'prenoms-gz': blob('prenoms-gz') };   // prénoms : la référence Python les charge toujours (garde minuscule, lot 2 « harold » → Harold)
+            'pos-hmm-gz': blob('pos-hmm-gz'), 'gdet-lex-gz': blob('gdet-lex-gz'), 'prenoms-gz': blob('prenoms-gz') };   // prénoms : la référence Python les charge toujours (garde minuscule, lot 2 « ludovic » → Ludovic)
 const stub = new Proxy(function(){}, { get(t,k){ if(k==='style')return{}; if(k==='classList')return{add(){},remove(){},toggle(){},contains:()=>false}; return stub; }, set:()=>true, apply:()=>stub });
 global.document = { getElementById:(id)=> B[id]!==undefined && B[id]!=='' ? {textContent:B[id]} : stub, createElement:()=>stub, body:stub, head:stub, addEventListener(){}, querySelector:()=>null, querySelectorAll:()=>[] };
 global.window = global; try { global.navigator = { userAgent:'node' }; } catch (e) { Object.defineProperty(global, 'navigator', { value: { userAgent:'node' }, configurable: true }); } global.localStorage = { getItem:()=>null, setItem(){}, removeItem(){} };
@@ -44,9 +44,9 @@ const C = globalThis.__C;
   // ⭐ 13/09/2026 — REPLI PHONÉTIQUE des mots inconnus sans suggestion (_suPhonRare ↔ _su_phon_rare) : aucun des deux corpus ne
   //    l'atteint (UD 0 mot, GEC 0). Phrases INVENTÉES : variantes de finale -er/-é (sosiéter, dificulter, inaproprier) et index des rares.
   phrases.push('Il vit dans une grande sosiéter.', 'Elle a eu une dificulter à lire.', 'Ce geste est inaproprier ici.',
-               'La population vit sur les litoro.', 'Les litaurau sont protégés.', 'Le secteur agroalimentére embauche.');
+               'La ville longe les litorau.', 'Les litaurau sont protégés.', 'Le secteur agroalimentére embauche.');
   // ⭐ 13/09/2026, lot 2 : prénom en minuscule, expression collée, mots collés, lettres mélangées (_suPrenom/_suMwe/_suColle/_suAnagram ↔ Python).
-  phrases.push("J'ai vu harold au marché.", "Je viendrai biensur demain.", "Il a un rendévous chez le médecin.", "J'aime beaucoupma ville.", "Nous irons pemdatn les vacances.", "Il fait tooujousr beau ici.");
+  phrases.push("J'ai vu ludovic au marché.", "Je viendrai biensur demain.", "Il a un rendévous chez le médecin.", "J'aime beaucoupma ville.", "Nous irons pemdatn les vacances.", "Il fait tooujousr beau ici.");
 
   const out = [];
   for (const s of phrases) {

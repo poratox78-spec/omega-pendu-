@@ -114,7 +114,7 @@ def pyramide(txt):
     # ⚠️ VICE D'INSTRUMENT RÉPARÉ (31/08/2026, même famille que le bug des apostrophes du 22/08) :
     # « ' '.join(Tc) » DÉTRUISAIT la ponctuation de l'AUTEUR — le produit (diagnoseAll) calcule _SEG
     # sur le texte ORIGINAL, points et virgules compris. Mesuré sur une production réelle : « … des
-    # milliers d'animaux . les animaux mange … » — le point donne la borne qui permet mange→mangent ;
+    # milliers de chats . les chats mange … » — le point donne la borne qui permet mange→mangent ;
     # la sonde sans point comptait un RATÉ que le produit répare. On normalise ’ʼ→' comme correct()
     # (sinon _seg_info, dont le motif n'a pas les apostrophes typographiques, désaligne les indices).
     sp_orange = {i: list(s) for i, s in orange.items()}   # ⭐ 29/09/2026 (lot B1) : les oranges de l'ORTHOGRAPHE seules, avant la grammaire
