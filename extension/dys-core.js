@@ -313,6 +313,8 @@
     'des/dès':function(){return '« dès » (= à partir de : dès que, dès l’aube) prend un accent ; « des » ne se met jamais devant « que » ou « l’ ».';},
     'sur/sûr':function(){return '« sûr » (= certain : je suis sûr de moi) prend un accent ; « sur » (= dessus) n’en prend pas.';},
     'près/prêt':function(){return '« près de » = pas loin de (près de la gare) ; « prêt à » = préparé (prêt à partir).';},
+    'cher/chez':function(){return '« chez » = dans la maison de, auprès de (chez moi, chez lui) ; « cher » = qui coûte beaucoup, ou qu’on aime (un cher ami).';},
+    'majuscule':function(e,a){return _LIEUX[String(e||'').toLowerCase().split("'").pop()]?'un nom de lieu (pays, continent, région) prend toujours une capitale.':'';},   // ⭐ 29/09/2026 : sinon la leçon générale (début de phrase)
     'davantage':function(){return '« davantage » (= plus) s’écrit en un seul mot ; « d’avantage » veut dire « d’un avantage ».';},
     'adjectif en -ant/-ent':function(e,a){return 'l’ADJECTIF s’écrit « '+a+' » ; « '+String(e||'').toLowerCase()+' » est la forme du VERBE (en '+String(e||'').toLowerCase()+').';},
     'si + conditionnel':function(e,a){return 'après « si », pas de conditionnel en -rais : on écrit l’imparfait, « '+a+' » (si j’avais su).';},
@@ -362,7 +364,7 @@
     'a/à':'homophone_gram','et/est':'homophone_gram','est/et (proposition)':'homophone_gram','son/sont':'homophone_gram','on/ont':'homophone_gram',
     'on/ont après un sujet pluriel à vérifier':'homophone_gram','ce/se':'homophone_gram',"c'est/s'est":'homophone_gram',"c'est/ces à vérifier":'homophone_gram',
     "sait/s'est à vérifier":'homophone_gram','ça/sa':'homophone_gram','ou/où':'homophone_gram','ou/où à vérifier':'homophone_gram','la/là':'homophone_gram',
-    'du/dû':'homophone_gram','du/de':'homophone_gram','des/dès':'homophone_gram','sur/sûr':'homophone_gram','près/prêt':'homophone_gram',
+    'du/dû':'homophone_gram','du/de':'homophone_gram','des/dès':'homophone_gram','sur/sûr':'homophone_gram','près/prêt':'homophone_gram','cher/chez':'homophone_gram',
     'mais/mes':'homophone_gram','met/mais':'homophone_gram','mai/mais':'homophone_gram','peu/peux/peut':'homophone_gram','leur/leurs':'homophone_gram',
     'ces/ses à vérifier':'homophone_gram','que/dont':'homophone_gram','qui/que':'homophone_gram',
     'guère/guerre':'homophone_lex','vit/vie':'homophone_lex','homophone à vérifier':'homophone_lex','adjectif en -ant/-ent':'homophone_lex',
@@ -1177,8 +1179,13 @@ function rEt(T,i){var lw=deacc(T[i].toLowerCase());if(lw!=='et'&&lw!=='est')retu
    'air arbre arbres animal animaux idee idees image images objet objets oeuf oeufs '+
    'histoire histoires hopital ordinateur oreille oiseau oiseaux').split(' ')
    .forEach(function(w){_FUS_APRES[w]=1;});
+  /* ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : deux élisions fusionnées forment un mot CONNU (« na », « né ») — la condition ① (mot
+     inconnu) les écartait toujours. Devant une négation, pas de doute : « il na pas » → n'a, « ce né pas » → n'est (« tu né pas » →
+     n'es). Gold dys : 12 muettes réparées ; UD 14 450 : 0 tir. « il est né pas loin d'ici » (participe après être) : rien. */
+  var _FUS_CONNUS={'na':1,'né':1},_FUS_NEG={pas:1,plus:1,jamais:1,rien:1,point:1,guere:1,personne:1,aucun:1,aucune:1};
   function rElisionFusionnee(T,i){
     var w=T[i],lw=w.toLowerCase();
+    if(_FUS_CONNUS[lw]&&i+1<T.length&&_FUS_NEG[deacc(T[i+1].toLowerCase())]){if(lw==='na')return ckeepcase(w,"n'a");var _p1=i?deacc(T[i-1].toLowerCase()):'';if(PPE_AUX[_p1])return null;return ckeepcase(w,_p1==='tu'?"n'es":"n'est");}
     if(lw.indexOf("'")>=0||lw.indexOf('’')>=0||lw.length<3)return null;
     if(!SP||!SP.ready||!SP.WORDS)return null;
     if(SP.WORDS.has(lw)||SP.WORDS.has(deaccS(lw)))return null;                       // ① mot connu
@@ -2509,7 +2516,11 @@ function estQuestion(t,maxMots){
          sujet INVERSÉ (« Pourquoi avez vous décidé ») — jamais le début d'une proposition. Mesuré :
          ces deux formes sont les seules du motif sur les 2 500 phrases correctes de fp_scale. */
       if(_isFinite(T[i-1]))continue;      var _dr=_isFinite(T[i+1]),_flechissable=(typeof _inf1==='function')&&_inf1(T[i+1])!==null;      if(!_dr&&!_flechissable)continue;      if(_dr&&!svAgrees(svReads(T[i+1]),pn[0],pn[1])&&!_flechissable)continue;out.push({a:T[i-1],b:T[i]});}return out;}
-  function rCapital(T,i){if(!_SEG||i>=_SEG.cap.length||!_SEG.cap[i])return null;var w=T[i],c=w.charAt(0);if(c.toUpperCase()===c)return null;if(i>0&&ABBREV[deacc(T[i-1].toLowerCase())])return null;if(i>0&&deacc(T[i-1].toLowerCase()).length===1)return null;return c.toUpperCase()+w.slice(1);}
+  /* ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : un nom de LIEU sans ambiguïté écrit en minuscule (« japon », « l'europe ») → capitale, où qu'il
+     soit. Liste FERMÉE : « suisse » (un franc suisse) et « paris » (les paris sportifs) exclus — mesuré sur UD. Gold dys : 16 ; UD : 0 tir. */
+  var _LIEUX={'japon':'Japon','pyrénées':'Pyrénées','pyrenees':'Pyrénées','europe':'Europe','afrique':'Afrique','amérique':'Amérique','amerique':'Amérique','asie':'Asie','espagne':'Espagne','italie':'Italie','allemagne':'Allemagne','angleterre':'Angleterre','belgique':'Belgique','france':'France'};
+  function rCapital(T,i){var _w=T[i];if(_w===_w.toLowerCase()){var _ap=_w.lastIndexOf("'"),_pre=_ap>=0?_w.slice(0,_ap+1):'',_cap=_LIEUX[_w.slice(_ap+1)];if(_cap&&!(_SEG&&i+1<_SEG.hy.length&&_SEG.hy[i+1]))return _pre+_cap;}   // « france-israel.org » : le trait d'union coupe
+    if(!_SEG||i>=_SEG.cap.length||!_SEG.cap[i])return null;var w=T[i],c=w.charAt(0);if(c.toUpperCase()===c)return null;if(i>0&&ABBREV[deacc(T[i-1].toLowerCase())])return null;if(i>0&&deacc(T[i-1].toLowerCase()).length===1)return null;return c.toUpperCase()+w.slice(1);}
   // === confusion d'USAGE être↔avoir + auxiliaire MAL ORTHOGRAPHIÉ (parité dictee/correcteur_probe.py) ===
   var AVOIR_IDIOM={};'faim soif sommeil raison tort envie besoin peur'.split(' ').forEach(function(w){AVOIR_IDIOM[w]=1;});
   var AUX_ETRE_PP={};'alle allee alles allees venu venue venus venues arrive arrivee arrives arrivees parti partie partis parties devenu devenue devenus devenues revenu revenue revenus revenues reste restee restes restees ne nee nes nees mort morte morts mortes decede decedee decedes decedees reparti repartie repartis reparties tombe tombee tombes tombees parvenu parvenue parvenus parvenues intervenu intervenue intervenus intervenues survenu survenue survenus survenues redevenu redevenue redevenus redevenues'.split(' ').forEach(function(w){AUX_ETRE_PP[w]=1;});
@@ -2530,7 +2541,12 @@ function estQuestion(t,maxMots){
   function svAuxTargets(per,nb){var out=[],vs=['etre','avoir'],ms=['ind:pre','ind:imp'],vi,mi,f;for(vi=0;vi<2;vi++)for(mi=0;mi<2;mi++){f=((CONJ_C[vs[vi]]||{})[ms[mi]]||{})[per+nb];if(f)out.push([deacc(f),vs[vi],f]);}return out;}
   var _AUX_LONGS=null;   /* formes LONGUES (≥ 4) d'être/avoir, déaccentuées — « somme » est à une lettre de « sommes » ; les courtes (a, as, ont…) sont à une lettre de tout */
   function _voisinAuxLong(dl){if(_AUX_LONGS===null){_AUX_LONGS=[];for(var f in FULL_AUX)if(f.length>=4)_AUX_LONGS.push(f);}for(var q=0;q<_AUX_LONGS.length;q++)if(Math.abs(_AUX_LONGS[q].length-dl.length)<=1&&svLev(dl,_AUX_LONGS[q])===1)return _AUX_LONGS[q];return null;}   // ⭐ 12/09/2026 : rend la FORME voisine (miroir Python)
-  function rAuxMisspell(T,i){if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<3||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w]||NON_AUX[w])return null;
+  function rAuxMisspell(T,i){
+    /* ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : « il été content » → était, « j'été » → j'étais. Le participe « été » ne suit JAMAIS un sujet
+       sans auxiliaire ; deux corrections possibles (« il était » / « il a été ») → ORANGE (_tierOf). Gold dys : 3 ; UD 14 450 : 0 tir. */
+    var _l0=T[i].toLowerCase().replace(/’/g,"'");if(_l0==="j'été"||_l0==="j'ete")return ckeepcase(T[i],"j'étais");
+    if(_l0==='été'&&i>=1&&!(_SEG&&i-1<_SEG.hy.length&&_SEG.hy[i-1])){var _p0=deacc(T[i-1].toLowerCase());if(_p0==='il'||_p0==='elle'||_p0==='on')return ckeepcase(T[i],'était');if(_p0==='je'||_p0==='tu')return ckeepcase(T[i],'étais');}
+    if(T[i].toLowerCase().indexOf("'")>=0)return null;var w=deacc(T[i].toLowerCase());if(w.length<3||!/^[a-zà-ÿœæ]+$/.test(w))return null;if(FULL_AUX[w]||NON_AUX[w])return null;
     var pn=svSubject(T,i),k;if(!pn&&i>0){var pv=deacc(T[i-1].toLowerCase());if(pv==='nous')pn=['1','p'];else if(pv==='vous')pn=['2','p'];}
     if(!pn)return null;var per=pn[0],nb=pn[1];   // « je » (1sg) : cibles courtes avoir (ai) déjà écartées (len<4) → on autorise les longues (suis/étais) : « je sui »→suis
     var reads=svReads(T[i]);if(reads.length&&svAgrees(reads,per,nb)){var _okn=true;if(nb==='p'&&(per==='1'||per==='2')){_okn=false;for(k=0;k<reads.length;k++)if(reads[k][2]===per&&(reads[k][3]===nb||reads[k][3]==='x'))_okn=true;}if(_okn)return null;}   /* ⭐ nous/vous (10/09/2026, cas de Rem) : svAgrees ignore le NOMBRE en 1re/2e (héritage de leur exclusion) — « nous somme » (sommer 1sg) passait pour accordé, la règle se taisait et « personne du verbe » parlait avec le mauvais lemme (sommons). Un sujet pluriel exige le nombre. Miroir Python. */
@@ -3441,6 +3457,11 @@ function estQuestion(t,maxMots){
     return null;}
   var _PRET_COP={est:1,es:1,suis:1,sont:1,sommes:1,etes:1,etait:1,etais:1,etaient:1,semble:1,semblent:1,parait:1,paraissent:1,reste:1,restent:1,tout:1,toute:1,tous:1,toutes:1,pas:1,presque:1,deja:1,enfin:1,etre:1,toujours:1,jamais:1};
   var _PRET_DET={la:1,le:1,les:1,un:1,une:1,des:1,du:1,ma:1,mon:1,mes:1,sa:1,son:1,ses:1,notre:1,nos:1,votre:1,vos:1,leur:1,leurs:1,cette:1,ces:1,cet:1};
+  /* ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : « cher moi », « cher lui » → chez. Devant un pronom TONIQUE, « cher » (qui coûte, ou aimé)
+     n'a jamais sa place. Gold dys : 5 muettes ; UD 14 450 : 0 tir. « cher le » reste muet (« un cadeau cher le jour de Noël »). Miroir
+     Python rule_cher_chez. */
+  var _CHEZ_TONIQ={moi:1,toi:1,lui:1,elle:1,nous:1,vous:1,eux:1,elles:1,soi:1};
+  function rCherChez(T,i){if(T[i].toLowerCase()!=='cher'||i+1>=T.length)return null;if(_SEG&&i+1<_SEG.bb.length&&_SEG.bb[i+1])return null;return _CHEZ_TONIQ[deacc(T[i+1].toLowerCase())]?ckeepcase(T[i],'chez'):null;}   // « mon cher, moi je… » : la virgule coupe
   function rPresPret(T,i){var lw=T[i].toLowerCase();
     var dur=(lw==='prêt'||lw==='prêts'),mou=(lw==='prête'||lw==='prêtes');
     if(!dur&&!mou)return null;
@@ -3477,7 +3498,7 @@ function estQuestion(t,maxMots){
     if(!_VC_MULT[pv])return null;
     if(i>=2){var p2=deacc(T[i-2].toLowerCase());if(p2==='mille'||p2==='mil')return null;}   // « mille neuf cent » (millésime)
     return T[i]+'s';}
-  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['participe après auxiliaire',rAuxImparfait],['participe après être à vérifier',rEPplVig],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['est/et (proposition)',rEstEtClause],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['ou/où',rOuOu],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['élision fusionnée',rElisionFusionnee],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['infinitif après pronom sujet à vérifier',rPronInf],['accord adjectif antéposé',rAdjAntePl],['nom féminin en -ée',rFemEe],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['personne du verbe',sujFlexVig],['majuscule',rCapital]];
+  var CRULES=[['élision inversée',rDeselide],['être (ête)',rEteEtre],['accord grammatical (é/er)',rEer],['-e/-é (participe)',rEPpl],['participe après auxiliaire',rAuxImparfait],['participe après être à vérifier',rEPplVig],['accord participe',rPpEtre],['accord participe (COD avoir)',rPpAvoirCod],['accord participe (dont)',rPpAvoirDont],['accord adjectif',rAdjAttr],['accord adjectif épithète',rAdjEpithet],['accord adjectif épithète',rAdjNumber],['accord participe épithète',rPpEpithetNum],['accord adjectif épithète',rAdjAux],['accord participe épithète',rPpEpithetFem],['terminaison -er/-é/-ez/-ai',rFlexionEr],['infinitif de but',rInfBut],['impératif',rImperatif],['son/sont',rSon],['on/ont',rOn],['leur/leurs',rLeur],['a/à',rA],['et/est',rEt],['est/et (proposition)',rEstEtClause],['peu/peux/peut',rPeu],['sujet je',rJeSubject],['sais/sait',rSais],['ce/se',rCe],['des/dès',rDesDes],["c'est/s'est",rCestSest],["c'est/s'est",rCesSest],['ça/sa',rCaSa],['ou/où',rOuOu],['met/mais',rMetMais],['mai/mais',rMaiMais],['mais/mes',rMais],['élision fusionnée',rElisionFusionnee],['du/de',rDuDe],['du/dû',rDuDu],['sur/sûr',rSurSur],['la/là',rLaLa],['guère/guerre',rGuere],['vit/vie',rSaVit],["j'est/j'ai",rJest],["c'ai/c'est",rCai],['élision',rElide],['accord sujet-verbe',rAccordSV],['accord sujet-verbe',rIlIls],['accord sujet-verbe',rAccordSVrecover],['accord sujet-verbe',rAccordSVnoun],['accord sujet-verbe',rAisAit],['accord sujet-verbe',rAiAit],['accord sujet-verbe',rAccordSVquant],['accord sujet-verbe',rAccordSVrelatif],['accord sujet-verbe',rAccordSVcoord],['accord sujet-verbe',rAccordSVinfinitif],['accord sujet-verbe',rPostpose],['accord sujet-verbe',rAccordVerbCoord],['accord sujet-verbe',rAccordRelObj],['accord sujet-verbe',rAccordIncise],['genre déterminant',rDetGenre],['accord tout',rTout],['infinitif après pronom sujet à vérifier',rPronInf],['accord adjectif antéposé',rAdjAntePl],['nom féminin en -ée',rFemEe],['accord pluriel nom',rNounPlural],['accord singulier nom',rNounSing],['usage être/avoir',rAuxUsage],['aux mal orthographié',rAuxMisspell],['accent (âge)',rAgeAcc],["étais après c'/s'",rCetaitEtait],['participe après avoir',rAvoirFini],["participe après s'est",rEtreInfEr],['négation',rNegNe],['si + conditionnel',rSiCond],['quel que soit',rQuelQue],["qu'il (élision)",rQuiPron],['que/dont',rQueDont],['qui/que',rQuiQue],['près/prêt',rPresPret],['cher/chez',rCherChez],['davantage',rDavantage],['adjectif en -ant/-ent',rAntAdj],['vingt/cent',rVingtCent],['personne du verbe',sujFlexVig],['majuscule',rCapital]];
   /* ⭐ SCINDÉ EN DEUX (2026-08-11) pour avoir la MÊME STRUCTURE QUE L'APP : `correctTokens(T)`
      travaille sur un TABLEAU de tokens, `correctText` n'est qu'une enveloppe qui tokenise. Sans ce
      point d'entrée par tokens, la PYRAMIDE était impossible ici — on ne pouvait pas faire tourner la
@@ -3487,7 +3508,7 @@ function estQuestion(t,maxMots){
   // (« La pont »→Le, « leur payss »→leurs, « fut créée »→créé). Une règle dont le contexte dys pollue l'ancre n'a pas le droit de
   // s'APPLIQUER d'office : orange (clic), pas rouge. Les familles à 100 % (participe après avoir, majuscule, a/à, adjectif
   // épithète, singulier du nom) restent rouges. MIROIR Python : correcteur_probe.VIG_FAMILIES (parité extension/parity_core.js).
-  var _VIG_FAM={'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1,'participe après avoir':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
+  var _VIG_FAM={'genre déterminant':1,'leur/leurs':1,'accord participe':1,'ce/se':1,'élision inversée':1,'participe après avoir':1,'aux mal orthographié':1};   // ⭐ 13/09/2026 : élision inversée rouge seulement dans ses sous-cas sûrs (_deselide)
   var _SUBJ_PRON={il:1,elle:1,ils:1,elles:1,on:1,je:1,tu:1,nous:1,vous:1};
   var _INVAR_S={};('pays francais anglais bras temps corps repas mois fois bois choix voix prix croix noix nez gaz tas cas avis colis puits tapis radis souris fils cours discours secours concours parcours mars dos os heros marais palais relais jus autobus bus virus refus').split(' ').forEach(function(w){_INVAR_S[w]=1;});
   var _COLL_BARE=null;   // clé nue → nb d'entrées _GCOLL partageant la clé (jumeau accentué) — construit à la 1re demande (après _GCOLL)
@@ -3502,7 +3523,8 @@ function estQuestion(t,maxMots){
       return (_wordKnown(dn)&&!/[sx]$/.test(dn))?'auto':'vigilance';}
     if(name==='genre déterminant'){if(i+1>=n)return 'vigilance';var nx=T[i+1].toLowerCase();if(nx!==deacc(nx))return 'auto';
       return 'vigilance';}   // nom NU : mesuré 7/12 sur texte dys (« La pont », « Le sole » = nom mal écrit qui existe) → orange
-    if(name==='participe après avoir')return _AVOIR_HOMO[deacc(T[i].toLowerCase())]?'vigilance':'auto';   // ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge (miroir tier_of)
+    if(name==='participe après avoir')return _AVOIR_HOMO[deacc(T[i].toLowerCase())]?'vigilance':'auto';
+    if(name==='aux mal orthographié')return deacc(T[i].toLowerCase()).split("'").pop()==='ete'?'vigilance':'auto';   // ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge   // ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge (miroir tier_of)
     if(name==='accord participe'){for(var j=i-1;j>=Math.max(0,i-3);j--){var t=deacc(T[j].toLowerCase());if(_SUBJ_PRON[t])return 'auto';if(PRENOMS[T[j]])return 'auto';}return 'vigilance';}
     return 'vigilance';}
   function correctTokens(T){var out=[];for(var i=0;i<T.length;i++){for(var r=0;r<CRULES.length;r++){var dec=CRULES[r][1](T,i);if(dec==null)continue;var _sg=(typeof dec==='object')?dec.sugg:dec,_vg=(typeof dec==='object'&&dec.vig)?'vigilance':null,_sp=(typeof dec==='object'&&dec.span>=2)?dec.span:null;if(_sg!==T[i]&&(CRULES[r][0]==='majuscule'||_sg.toLowerCase()!==T[i].toLowerCase())){var _f={i:i,word:T[i],sugg:_sg,name:CRULES[r][0],tier:_vg||_tierOf(T,i,CRULES[r][0],_sg)};if(_vg)_f.vigRule=1;if(_sp)_f.span=_sp;out.push(_f);break;}}}return out;}   /* ⭐ LE ROUGE DE LA GRAMMAIRE EST PORTÉ PAR LE FLAG (audit 2026-08-11, miroir app). Avant tier=null : content.js n'applique que `tier==='auto'`, donc l'extension ne corrigeait JAMAIS la grammaire alors que l'app la coche par défaut — le même texte était corrigé sur le site et seulement signalé ici. {sugg,vig:1} → 'vigilance' (orange) ; sinon rouge, et il le DIT. */
@@ -4035,6 +4057,7 @@ function spellUnknown(tok,atStart,T,idx){
     for(var j=i-1;j>=0&&j>=i-4;j--){var dj=deaccS(T[j].toLowerCase());if(/^(dès|lès)$/i.test(T[j]))break;   /* « dès » : préposition, sortie du GN (« dès janvier » → janviers, vu sur UD) */
       if(PLDET[dj]){
         if(svReads(T[i]).length||_COLOR_ADJ[w]||_INVAR_COLOR[w])return null;   // verbe mistagué NOUN (« les chats mangent »→mangents) ou couleur INVARIABLE (« yeux marron », « gants crème ») → jamais pluralisés (miroir garde CARD ci-dessous + sets couleur)
+        if((dj==='les'||dj==='ces'||dj==='ses')&&(function(){for(var _q=j+1;_q<=i;_q++)if(CONJ_C[deaccS(T[_q].toLowerCase())])return true;return false;})())return null;   // ⭐ 29/09/2026 (catalogue des muets) : « les acheter », « ces [se] reposer calmement » — un INFINITIF dans le groupe : « les » est un pronom, « ces » un « se » ; jamais « acheters », « calmements »
         var pl=_plu(T[i].toLowerCase());return pl!==T[i].toLowerCase()?ckeepcase(T[i],pl):null;}
       if(CARD[dj]){                                                    // cardinal ≥2 + nom singulier → pluriel (à vérifier)
         if(T[i].indexOf("'")>=0)return null;                          // élision (« quatre d'entre eux », « tous deux s'élèvent ») = pas un nom compté

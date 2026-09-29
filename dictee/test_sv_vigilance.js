@@ -84,6 +84,11 @@ const C = globalThis.__C;
     if (got !== !!kind) fail.push(`[attribut ${s}] → ${got ? JSON.stringify(r[0].sugg) + ' ' + r[0].name : 'aucun'} (attendu ${kind ? sugg : 'aucun'})`);
     else if (kind && ((r[0].sugg || '') !== sugg || r[0].name !== AD_NOMS[kind])) fail.push(`[attribut ${s}] → ${r[0].sugg} [${r[0].name}] ≠ ${sugg} [${AD_NOMS[kind]}]`);
   }
+  // ⭐ 29/09/2026 — orange de pluriel : jamais sur un INFINITIF (ni l'adverbe qui suit) derrière les/ces/ses — « les » pronom, « ces » pour « se ».
+  const pv = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord pluriel à vérifier'); };
+  for (const s of ['Il faudra les vendre en ville.', 'Tu dois ces reposer calmement.']) {
+    const r = pv(s); if (r.length) fail.push(`[pluriel ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();

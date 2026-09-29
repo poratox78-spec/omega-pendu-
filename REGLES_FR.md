@@ -214,8 +214,8 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | omission interne (afreuses→affreuses) | 🔴 | sous-suite + même initiale + plus proche |
 | ligature œ/æ | 🔴 | normalisation partagée, banc dédié |
 | mot inconnu → signalement | 🟠 | jamais imposé |
-| élision manquante/inversée (c est→c'est, j'mange→je mange) | 🔴 | 2 règles + listes closes unifiées |
-| majuscule initiale / nom propre | 🟠 | page correcteur seulement (politique) |
+| élision manquante/inversée (c est→c'est, j'mange→je mange) | 🔴 | 2 règles + listes closes unifiées ; **29/09/2026 (catalogue des muets, lot A)** : deux élisions fusionnées qui forment un mot CONNU — « il na pas » → n'a, « ce né pas » → n'est, « tu né pas » → n'es (devant une négation seulement ; « il est né pas loin » : rien). Gold dys 12, UD 0 |
+| majuscule initiale / nom propre | 🟠 + 🔴 | page correcteur seulement (politique) ; **29/09/2026 (lot A)** : nom de LIEU sans ambiguïté écrit en minuscule → capitale, en rouge (japon, l'europe, pyrénées… ; liste fermée : « suisse » et « paris » exclus, mesuré sur UD). Gold dys 16, UD 0 |
 | **trous du lexique** (désarçonnaient, belle-sœur, exclamassent) | 🟡 | mesuré : 22 formes verbales rares / 1 059 « inconnus » sur UD ; **chantier lexique unifié, pas de génération mécanique** (abeillier→abeilliaient réfuté) |
 
 ## 2. HOMOPHONES GRAMMATICAUX (LT : « Confusion d'homonymes et paronymes »)
@@ -228,6 +228,7 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | quel/quelle (genre) | 🔴 | via accord adjectival |
 | homophones lexicaux (vert/verre/vers, sceau/seau/sot) | ⛔→🟢 | indécidable sans sémantique ; couche verte « homophone à vérifier » sur liste |
 | près de / prêt de | 🟠 LIVRÉ (2026-08-12) | prêt/prêts sûrs ; prête/prêtes exigent une copule avant (« elle prête de l'argent » = verbe) ; clitique+infinitif exclu par POS |
+| cher / chez | 🔴 LIVRÉ (2026-09-29, lot A du catalogue des muets) | « cher moi », « cher lui » → chez : devant un pronom TONIQUE, « cher » n'a jamais sa place. « cher le… » reste muet (« un cadeau cher le jour de Noël »). Gold dys 5, UD 0 |
 | davantage / d'avantage(s) | 🟠 LIVRÉ (2026-08-12) | fin de proposition ou devant « que » seulement ; « pas d'avantage » (lecture nominale) exclu |
 | quelque soit / quel que soit | 🔴 LIVRÉ (2026-08-12) | accord quel/quelle/quels/quelles par le verbe et le déterminant suivant ; 0 tir/14 450 UD |
 | ce qui il / ce qu'il | 🔴+🟠 LIVRÉ (2026-08-12) | « ce qui il »→rouge (jamais correct) ; autres « qui+pronom »→orange ; gardes préposition (« avec qui il »), verbes de savoir (« je sais qui il est »), majuscule |
@@ -239,6 +240,7 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | sujet-verbe (13 fonctions : noms, pronoms, coordination, relative-objet, incise, postposé, quantifieurs…) | 🔴+🟠 | rouge sur cadres sûrs ; OS-sujet en vigilance sur le résiduel ; sujet postposé SINGULIER réparé (PR#472) |
 | déterminant↔nom (nombre, les deux sens) | 🔴 | un seul sens par désaccord (PR#467) ; élidés exclus (PR#473) |
 | déterminant pluriel + mot au singulier que la règle du nom laisse passer : homographe d'un verbe (« des plante »), MAUVAIS homophone (« les mure » → murs, pas « mures ») | 🟠 | « pluriel par le son à vérifier » (28/09/2026, `rule_pluriel_son` / `plurielSonVig`) : la grammaire dit la FORME, l'index phonétique du speller (SP.PHON) dit le MOT — même initiale, même consonne finale audible, marqué -s/-x, nom d'abord. Gold dys (produit en Node) : 24 pluriels muets → 5 ; 0 orange sur un mot juste ; UD 14 450 : 4 oranges, toutes sur de vraies fautes d'UD. Jamais : « les » pronom devant un verbe, infinitif, nombre, préfixe, nom propre qui continue |
+| orange de pluriel (« accord pluriel à vérifier ») sur un INFINITIF | ✅ CORRIGÉ (2026-09-29) | « les juger » → jugers, « mieux vaut les oublier » → oubliers, « ces [se] reposer calmement » → reposers, calmements : derrière les/ces/ses, un infinitif dans le groupe (pronom « les », « ces » pour « se ») coupe l'accord. UD 14 450 : **20 fausses oranges en moins**, 0 en plus ; gold dys : 3 |
 | déterminant↔nom (genre) | 🔴 | table genre désaccentuée (PR#450→453) |
 | participe avec être (+ prénoms) | 🔴 | 8 729 prénoms (PR#460) ; « du » SANS accent est l'article, jamais le participe « dû » (« ils sont du côté des perdants » → dus, « elles sont du même avis » → dues : ROUGES FAUX appliqués d'office jusqu'au 28/09/2026) ; locution « partie prenante » invariable (« elles sont partie prenante » → parties, rouge faux, même date) |
 | participe avec avoir + COD antéposé (que) | 🔴 | rule_pp_avoir_cod |
@@ -259,7 +261,7 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | infinitif de but après mouvement | 🔴 | PR#469 |
 | impératif (-s euphonique, irréguliers) | 🔴 | |
 | usage être/avoir | 🔴 | données complétées 2026-08-12 : familles tombé/parvenu/intervenu/survenu/redevenu + reparties (flood UD=0) ; garde COD « il a tombé la veste » |
-| auxiliaire mal orthographié (ête) | 🔴 | |
+| auxiliaire mal orthographié (ête) | 🔴 + 🟠 | **29/09/2026 (lot A)** : « il été content » → était, « j'été » → j'étais, en ORANGE (« il a été » est aussi possible) ; jamais « ça été » (= ça a été), jamais l'inversion (« a-t-elle été »). Gold dys 3, UD 0 |
 | futur 1ʳᵉ pers. avec marqueur temporel (je mangerai demain) | 🟡 | exige un marqueur explicite |
 | futur/conditionnel -rai/-rais hors marqueur | ⛔ REPORTÉ chiffré (2026-08-12) | 9 « je …-rais » corrects sur UD (conditionnel de politesse) pour 0 occasion au corpus dys → tout signalement hors marqueur inflige de l'orange sans rappel démontré |
 | si + conditionnel (si j'aurais) | 🔴 LIVRÉ (2026-08-12) | protase seulement (tête de proposition) ; interrogation indirecte exclue (« je ne sais pas si je serais ») ; 0 tir/14 450 UD, 1 occasion dys confirmée gold |
