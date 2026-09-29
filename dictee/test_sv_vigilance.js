@@ -59,6 +59,31 @@ const C = globalThis.__C;
     if (got !== expect) fail.push(`[participe ${s}] → ${got ? JSON.stringify(r[0].sugg) : 'aucun'} (attendu ${expect ? sugg : 'aucun'})`);
     else if (expect && (r[0].sugg || '') !== sugg) fail.push(`[participe ${s}] → sugg ${r[0].sugg} ≠ ${sugg}`);
   }
-  if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe :\n  ' + fail.join('\n  ')); process.exit(1); }
-  console.log(`✓ OK : vigilance accord sujet-verbe + participe (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
+  // ⭐ 28/09/2026 — « SONT + ADJECTIF » (attributPlVig) : après sont/étaient/furent/seront, un ADJECTIF ou un participe IRRÉGULIER
+  // sans marque du pluriel → la marque du nombre (orange), genre écrit gardé. [phrase, nom de règle attendu | null, suggestion]
+  const AD_NOMS = { adj: 'accord adjectif à vérifier', pp: 'accord participe à vérifier' };
+  const ad = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === AD_NOMS.adj || f.name === AD_NOMS.pp); };
+  const AD = [
+    ['les résultats sont exploitable', 'adj', 'exploitables'],   // épicène (hors paire de genre)
+    ['les voisins étaient insolent', 'adj', 'insolents'],       // lu VERBE par le tagger
+    ['les données sont disponible en ligne', 'adj', 'disponibles'],
+    ['les décisions sont prise trop vite', 'pp', 'prises'],      // participe irrégulier, genre écrit gardé
+    ['les sommes sont due à la banque', 'pp', 'dues'],
+    ['les retards sont due à la neige', null, null],            // sujet masculin + forme féminine : genre en conflit → rien (pas « dues »)
+    ['ils sont bien sûr partis', null, null],                   // « bien sûr » : locution
+    ['ils sont mal à l\'aise', null, null],                     // « mal » adverbe
+    ['ils sont juste là', null, null],                          // « juste » adverbe
+    ['les chemises sont orange', null, null],                   // couleur invariable
+    ['vous êtes prêt', null, null],                             // vous de politesse : « êtes » hors cadre
+    ['ils sont gentille', null, null],                          // genre en conflit avec « ils » : rien
+    ['les enfants se sont succédé', null, null],                // pronominal (« se » complément indirect) : invariable
+    ['les murs sont blanc cassé', null, null],                  // couleur composée
+  ];
+  for (const [s, kind, sugg] of AD) {
+    const r = ad(s), got = r.length > 0;
+    if (got !== !!kind) fail.push(`[attribut ${s}] → ${got ? JSON.stringify(r[0].sugg) + ' ' + r[0].name : 'aucun'} (attendu ${kind ? sugg : 'aucun'})`);
+    else if (kind && ((r[0].sugg || '') !== sugg || r[0].name !== AD_NOMS[kind])) fail.push(`[attribut ${s}] → ${r[0].sugg} [${r[0].name}] ≠ ${sugg} [${AD_NOMS[kind]}]`);
+  }
+  if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
+  console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
 })();

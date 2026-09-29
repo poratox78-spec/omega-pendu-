@@ -149,7 +149,13 @@ const PHRASES = [
   "il est rentré de l'école a vélo", "elle a rangé l'assiette a table",
   'Avait il a manger ce soir', 'A-t-il a manger ce soir',
   'la réunion a lieu demain', 'il a besoin de toi', 'a priori tout va bien',
-  'Requiem for a Dream le film', 'de 35 a 40 ans', 'le chien a soif ce soir'
+  'Requiem for a Dream le film', 'de 35 a 40 ans', 'le chien a soif ce soir',
+  // ⭐ 28/09/2026 — quatre rouges/oranges FAUX de l'accord après « être », vus en cherchant les pièges de « sont + adjectif » :
+  // « du » article (→ dus), « partie prenante » (→ parties), couleur invariable (→ oranges), « se » complément indirect (→ succédés).
+  // Les deux moteurs doivent se taire ; les contrôles juste après doivent, eux, continuer de corriger.
+  'Ils sont du côté des perdants.', 'Elles sont du même avis.', 'Elles sont partie prenante du projet.',
+  'Les rideaux sont orange.', 'Elle porte des chemises orange.', 'Les enfants se sont succédé.',
+  'Ils sont parti hier.', 'Les enfants se sont lavé.', 'Les rideaux sont vert.'
 ];
 PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)

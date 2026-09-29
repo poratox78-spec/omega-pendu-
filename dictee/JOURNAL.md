@@ -5,6 +5,39 @@
 
 ---
 
+## 2026-09-28 (suite) — « SONT + ADJECTIF » : l'orange du participe après « sont » étendue aux adjectifs et aux participes irréguliers
+
+> Rem : « sont et adjectifs, en regardant ce qui existe ». Le recensement au PRODUIT (dys-core en Node, labo `onde/produit_copule.js`
+> sur les 208 mots du gold dys placés après une forme d'être) a d'abord dit ce qui existait et où ça se taisait.
+
+- **Ce qui existait** : trois règles pour le même cadre — l'accord ROUGE de l'adjectif attribut (`rule_adj_attr` / `rAdjAttr` : paire de
+  genre, tagger ADJ, sujet parsé), l'accord ROUGE du participe (`rule_pp_etre` / `rPpEtre`, dont le #A1 « nombre seul » limité au -é) et
+  l'ORANGE `participeEtreVig` (JS seul : participe en -é lu VERBE après sont/étaient/furent/seront).
+- **Où ça se taisait** : après un être pluriel, 7 fautes d'accord muettes — des ADJECTIFS hors paire de genre (épicènes : « exploitable »)
+  ou lus VERBE par le tagger (« insolent »), des participes IRRÉGULIERS (« prise », « due », « couvert »), et 2 dont le « sont » lui-même
+  est mal écrit (« son », « sot » : hors d'atteinte, l'ancre est polluée).
+- **Extension, pas règle neuve** : `attributPlVig`, appelée juste après `participeEtreVig`, même cadre (être AUDIBLEMENT pluriel ; « êtes »
+  exclu, vous de politesse) : la marque du NOMBRE seule, genre écrit gardé ; sujet sûrement féminin → féminin ; sujet masculin (« ils »,
+  groupe nominal masculin) + forme féminine → rien. Réutilise `ADJP`, la liste close `_EPICENE_ADJ`, `IRREG_PART`/`_isPpl`, `_npSubject`,
+  `rSon` (« voit sont amie » : le « sont » lui-même est en cause). Nom par nature du mot : « accord participe à vérifier » ou « accord
+  adjectif à vérifier » (famille accord, texte d'explication dans l'app).
+- **Mesuré** — gold dys après un être pluriel : muettes **7 → 2**, **4 bons mots au clic** (exploitable, due, insolent, prise), 1 nombre
+  juste mais genre faux (couvert → couverts, gold couvertes : le sujet est derrière une relative), **0 marque sur les 95 mots justes**
+  placés après une forme d'être. UD 14 450, produit entier avant/après : **+7 oranges, 0 en moins** — 6 sur de vraies fautes d'UD (« les
+  prix sont très raisonnable », « l'accueil et le service sont excellent », « ils sont incapable »…), 1 sur une mention (« les trois
+  relations possibles sont inférieur à, égal… »). Premier jet : « sont tout de même » → touts, « sont mal à l'aise » → maux — gardés.
+- **Précision au produit** (Chrome) : « accord participe à vérifier » 5/1/0 → 7/1/1 sur texte pollué (83,3 → 77,8 %, ré-ancré : +2
+  justes, +1 genre faux) ; « accord adjectif à vérifier » 1/0/0 pollué, 1/0/0 propre.
+- **Trouvé en cherchant les pièges, réparé : QUATRE marques fausses qui existaient déjà** (phrases inventées, Python ET JS) :
+  « ils sont du côté des perdants » → **dus**, « elles sont du même avis » → **dues** (ROUGE appliqué d'office : « du » sans accent lu
+  comme le participe « dû ») ; « elles sont partie prenante » → **parties** (rouge) ; « les rideaux sont orange », « des chemises orange »
+  → **oranges** (rouge : paire de lexique orange/orangée, et « orange » dans la liste épicène — retiré À LA SOURCE, `build_epicene.py`,
+  2 104 → 2 103) ; « les enfants se sont succédé » → **succédés** (orange : « se » complément indirect, `_PP_COD_STOP`). Aucune ne vivait
+  dans UD avec un cadre que la règle lit (0 en moins) — c'est la liste des pièges qui les a sorties. Gardées : 4 silences voulus (34/34),
+  parité (9 phrases inventées, cibles et contrôles).
+- **Pas fait, noté** : « sont nefaste » → le speller propose « néfaste » en « mot inconnu » ; la chaîne orthographe → orange ne prend que
+  les corrections d'« orthographe » — l'étendre au « mot inconnu » demande sa propre mesure (1 cas au gold).
+
 ## 2026-09-28 — LE PLURIEL PAR LE SON : la grammaire dit la FORME, le son dit le MOT (« les mure » → murs, orange)
 
 > Suite du test complet de la carte des sons (labo `data_local/pendu_labo/onde/`) : sur le gold dys, 412 fautes de MÊME son passent
