@@ -91,20 +91,20 @@ def _check():
     nofp += ["La température la plus froide a été enregistrée hier.", "les fleurs sont fanées.", "je les ai vus hier."]   # ⭐ 12/09/2026 (lot 2) : texte correct → 0 flag (tête superlative, accord déjà fait, clitique + participe accordé)
     elide = [("J'sais que c'est vrai", "J'sais", "Je sais"), ("Personne n'sait", "n'sait", "ne sait"),
              ("qu'tu viennes", "qu'tu", "que tu")]                                  # élision fautive devant consonne
-    elide += [("vous sommes contents", "sommes", "êtes"), ("vous somme très contents", "somme", "êtes"), ("ils somme là", "somme", "sont"), ("ils ce sont déroulés hier", "ce", "se"), ("Boeing a signés un contrat", "signés", "signé"), ("La France a réussie à se placer", "réussie", "réussi"), ("les faits ce sont déroulés hier", "ce", "se")]
-    elide += [("mon chaton les a lécher sur la figure", "lécher", "léchés"), ("ils ont été dégoûter par leur entourage", "dégoûter", "dégoûtés"),
-              ("ces produits chimiques sont appliquer dans la terre", "appliquer", "appliqués"), ("Cette histoire a était raconter hier", "raconter", "racontée")]   # ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est ACCORDÉ (clitique les, été après avoir, sujet nominal, a était)   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
+    elide += [("vous sommes contents", "sommes", "êtes"), ("vous somme très contents", "somme", "êtes"), ("ils somme là", "somme", "sont"), ("ils ce sont déroulés hier", "ce", "se"), ("Boeing a signés un contrat", "signés", "signé"), ("Elle a réussie son examen", "réussie", "réussi"), ("les faits ce sont déroulés hier", "ce", "se")]
+    elide += [("mon chien les a garder toute la nuit", "garder", "gardés"), ("ils ont été fâcher par leurs voisins", "fâcher", "fâchés"),
+              ("ces outils agricoles sont ranger dans la grange", "ranger", "rangés"), ("Cette chanson a était chanter hier", "chanter", "chantée")]   # ⭐ 12/09/2026 (lot 2) : le participe rendu par -er → -é est ACCORDÉ (clitique les, été après avoir, sujet nominal, a était)   # ⭐ 12/09/2026 (cas de Rem) : sujet-verbe côte à côte — le lemme rare (sommer) s'efface devant être ; une lettre d'un auxiliaire long → cet auxiliaire conjugué
     elide += [("Hier je noté le numéro", "je", "j'ai"), ("quand je retourné à la maison", "je", "je suis"), ("je fatigué ce soir", "je", "je suis")]   # ⭐ 12/09/2026 : auxiliaire manquant après je (orange)
     nofp += ["Ai-je noté le numéro ?", "je l'ai noté hier."]   # ⭐ 12/09/2026 : inversion, clitique → aucun flag
-    elide += [("le japon ne peu pas suffire", "peu", "peut"), ("il ne peu aussi créer", "peu", "peut")]   # ⭐ 13/09/2026 : la négation sautée (rule_peu)
+    elide += [("le moteur ne peu plus tourner", "peu", "peut"), ("on ne peu aussi chanter", "peu", "peut")]   # ⭐ 13/09/2026 : la négation sautée (rule_peu)
     nofp += ["il ne mange que peu.", "je ne peux pas."]   # ⭐ 13/09/2026 : l'adverbe « peu » après « ne … que », le verbe déjà juste
-    elide += [("les régions qui on une sécurité alimentaire", "on", "ont"), ("deux architectes qui on besoin d'argent", "on", "ont")]   # ⭐ 13/09/2026 : « qui on » + non-verbe
+    elide += [("les pays qui on un port", "on", "ont"), ("deux architectes qui on besoin d'argent", "on", "ont")]   # ⭐ 13/09/2026 : « qui on » + non-verbe
     nofp += ["le film qu'on voit.", "les gens qu'on aime."]   # ⭐ 13/09/2026 : « qu'on » + verbe reste juste
     # ⭐ 13/09/2026 — PHRASES COURANTES à la 1re/2e personne (dictee/phrases_courantes.txt) : « Je ne peux pas. » était corrigé en ROUGE
     #    (*puis*) depuis le 07/09 sans qu'aucun corpus le voie. Zéro flag exigé sur chacune.
     nofp += [l.strip() for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'phrases_courantes.txt'), encoding='utf-8')
              if l.strip() and not l.startswith('#')]
-    elide += [("tous le monde était choqué", "tous", "tout"), ("pendant tous l'été", "tous", "tout"), ("je faisais tous ce que je voulais", "tous", "tout"), ("C'est enfants sont âgés", "C'est", "Ces")]   # ⭐ 13/09/2026 : muets lot 2
+    elide += [("tous le monde était choqué", "tous", "tout"), ("durant tous l'hiver", "tous", "tout"), ("je faisais tous ce que je voulais", "tous", "tout"), ("C'est chiens sont âgés", "C'est", "Ces")]   # ⭐ 13/09/2026 : muets lot 2
     nofp += ["ils ont tous le droit de venir.", "elles connaissent tous les chemins.", "il parle à tous."]   # ⭐ 13/09/2026 : « tous » quantifieur flottant / pronom → rien
     # ⭐ 13/09/2026 — ÉLISION INVERSÉE : rouge seulement là où le mot complet est sûr, orange avec le mot MANQUANT sinon, rien sur un nom propre.
     elide += [("Elle s'mariée l'an dernier", "s'mariée", "s'est mariée"), ("Ils s'mariés en mai", "s'mariés", "se sont mariés"),

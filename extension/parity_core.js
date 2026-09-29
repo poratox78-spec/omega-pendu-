@@ -139,9 +139,9 @@ const PHRASES = [
   'Marie es gentille', 'La fillette as peur', 'ma soeur vas au marché', 'le train arrivais en retard',
   'Marie chantent bien', 'mes amis on raison',
   'Les articles conformes passent', 'selon les experts on peut venir', 'toi qui as faim', 'tu vas au marché',
-  'Marie est gentille', 'Dans ses statistiques on voit bien',
+  'Marie est gentille', 'Dans ses carnets on voit bien',
   // « a » devant NOM NU (31/08) : cibles + gardes idiomes/latins/anglais/chiffres
-  'je suis rentré chez moi a vélo', 'un cours a domicile pour tous', 'ma soeur va a pied au marché',
+  'il va au travail a vélo', 'un cours a domicile pour tous', 'ma soeur va a pied au marché',
   // ⭐ a/à : le garde d'INVERSION ne vérifiait pas ce qu'il nommait (un verbe en i-2 suffisait, sans
   // exiger un PRONOM en i-1) et l'ancre AVANT ne voyait pas à travers une élision. Résultat : la règle
   // se taisait sur tout « VERBE + nom + a ». Cibles + les deux gardes qui doivent RESTER muettes.
@@ -160,7 +160,7 @@ const PHRASES = [
   // « était » → été, l'infinitif « avoir »/« ayant » ; eux/prix en ORANGE (palier) ; pièges : relative, sigle, participe accordé.
   'Les élèves ont prit le bus.', 'Ils ont fais leurs devoirs.', 'Les enfants ont mit leurs bottes.', 'Ils ont écris une lettre.',
   'Ils ont dut partir tôt.', 'La fête a était réussie.', "Merci d'avoir fais le ménage.", 'Ayant mit son manteau, elle sortit.',
-  "J'ai prix le train de nuit.", 'Nous avons eux de la chance.', 'Elle a eux une bonne note.',
+  "Nous avons prix le train de nuit.", 'Nous avons eux de la chance.', 'Elle a eux une bonne note.',
   "Tout ce qu'il a était à elle.", 'Ils ont eux aussi des droits.', "C'est a eux de jouer.", 'La C2A était riche.',
   'Les tableaux que tu as vus sont célèbres.', "Les pommes qu'il a prises sont mûres.", 'Il a dit bonjour.',
   // ⭐ 29/09/2026 — catalogue des muets, lot A : cibles et pièges (élision n', cher/chez, « il été » orange, lieux en minuscule).
@@ -440,9 +440,9 @@ const VIG_PHRASES = PHRASES.concat([
   "ceux qui sont dégoûtés du système partent.", "les amis du voisin partent.",   // contrôles : contracté du/des derrière un participe/nom = complément → silence des deux côtés (12/09)
   "La température la plus froide a été enregistrée hier.",   // contrôle : tête superlative « la plus froide » → silence des deux côtés (12/09, UD 2134)
   "ils ce sont déroulés hier.", "ce sont des amis.",   // ce/se + auxiliaire : le participe tranche (12/09) ; contrôle : groupe nominal → silence
-  'Boeing a signés un contrat.', 'nous avons vue notre médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
+  'Boeing a signés un contrat.', 'ils ont vue leur médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
   'Hier je noté le numéro.', 'quand je retourné à la maison.', 'je fatigué ce soir.', 'Ai-je noté le numéro ?', 'Demain je noté le numéro.',   // auxiliaire manquant (orange) ; contrôles : inversion, futur (rouge ailleurs)
-  "C'est enfants sont âgés de deux ans.", "leur père demande à c'est enfants de s'asseoir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
+  "C'est chiens sont âgés de trois ans.", "leur mère parle à c'est parents de sortir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
   'Nous avons acheté des plante vertes.', 'Il range ces produit dans le placard.', 'Elle ouvre les porte du garage.',   // pluriel par le son (orange) : homographes d'un verbe
   'Dans les mure de la ville.', 'Il y a des hais autour du jardin.', "J'ouvre les porte du garage.",                        // … mauvais homophone (mure → murs) ; « les » après un verbe élidé
   'Le vent les porte loin.', 'Il faut les faire.', 'Les quatre amis sont là.', 'On a vu les new Warriors.', 'Le colis part dès réception de la commande.',              // contrôles : « les » pronom, infinitif, nombre, nom propre → silence

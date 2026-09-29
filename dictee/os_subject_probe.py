@@ -90,7 +90,7 @@ def _rel_ant(F, vi):
     return -1
 def _ant_num(F, ant):
     """nombre porté par l'antécédent LUI-MÊME (miroir JS _osAntNum) : _num_at, sinon partitif « de N-s » ; sinon None → la
-    règle se tait (un repli de 3 mots en arrière tombait à côté : « FIRA-AER qui », « architékete … qui »)."""
+    règle se tait (un repli de 3 mots en arrière tombait à côté : « FIRA-AER qui », « [nom mal écrit] … qui »)."""
     if ant >= 2 and F[ant-1] in NUM_DET and SP.deacc(F[ant-2]) in ('de', 'des', 'du', "d'"):
         return None                                   # « les nations de la FIRA-AER qui » : antécédent = COMPLÉMENT, tête avant → ambigu, on se tait (miroir JS)
     x = _num_at(F, ant)

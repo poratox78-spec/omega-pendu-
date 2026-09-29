@@ -514,7 +514,7 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
 > posées le 30/06 (`NOUN_E` : marché, traité, passé…) et le 21/07 (déterminant obligatoire derrière) taisaient « j'ai passe », « ils ont
 > marche », « elle a traite le sujet » — deux amputations de plus dans l'inventaire du jour.
 
-- **Vu en testant « j'ai commence »** : « Ils ont envie de partir » → **« on »**, en ROUGE, référence et extension — un faux positif sur une
+- **Vu en testant « j'ai termine »** : « Ils ont envie de partir » → **« on »**, en ROUGE, référence et extension — un faux positif sur une
   phrase correcte, invisible parce que l'échantillon FP (2 500) ne contient pas la tournure. Cause : le raccourci « ont + forme en -e =
   on + verbe fini » passait AVANT toute lecture du sujet. UD 14 450 : **7 rouges ont→on** sur des phrases correctes (« Sahraouis ont
   disparus », « ont péri », « ont élu », « ont survécu », « ils nous ont rien demandé »…).
@@ -760,7 +760,7 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
   **tous** avec un sujet à gauche — pronom sujet 27, relatif « qui » 25, « ne » 9, verbe fini 7, nom 17. La règle remonte jusqu'à la
   frontière de proposition en traversant clitiques et adverbes ; « que »/SCONJ ouvre une subordonnée (« il faut QUE nous mange »).
 - **TROIS DÉFAUTS TROUVÉS PARCE QUE C'EST DU ROUGE** (en orange ils seraient passés : un orange se refuse d'un clic) :
-  ① **le sujet fauté** — « a forse **il sont** dégouter » : `rule_il_ils` répare le SUJET, la nouvelle règle corrigeait AUSSI le verbe
+  ① **le sujet fauté** — « a force **il sont** énerver » : `rule_il_ils` répare le SUJET, la nouvelle règle corrigeait AUSSI le verbe
   (« ils **est** »). Garde : après il/elle singulier, une forme de `_V3PL_SURE` (sont/ont/vont/font) accuse le PRONOM, pas le verbe.
   ② **une COQUILLE DE LEXIQUE 4** — la ligne `soulais<TAB>vouloir<TAB>VER<TAB>s<TAB>ind:imp:1` déclare « soulais » 1re personne de
   l'imparfait de *vouloir* (un « v » lu « s ») ; « ce que je voulais » devenait « soulais », en rouge. Recensé pour être sûr que c'est
@@ -791,12 +791,12 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
 > pour homographes : JOURNAL de ce jour, réponse à Rem (mémoire `orange-pour-les-fautes-recuperables`).
 
 - **Rouge** (`rule_e_ppl`, sans liste) : ÊTRE + forme en -e dont le POS est VERBE PUR (pas d'adjectif homographe) + sujet il/elle/ils/elles
-  lu par `_etre_subject` (pronom, réfléchi, élidé « qu'elle ») → participe accordé (« il est oblige » → obligé, « ils sont oblige » → obligés).
-  L'auxiliaire ÉLIDÉ compte (« j'ai commence » → commencé, « l'a ferme » → fermé). Le radical est ré-accentué par le lexique
+  lu par `_etre_subject` (pronom, réfléchi, élidé « qu'elle ») → participe accordé (« il est presse » → pressé, « ils sont presse » → pressés).
+  L'auxiliaire ÉLIDÉ compte (« j'ai termine » → terminé, « l'a ferme » → fermé). Le radical est ré-accentué par le lexique
   (`_ppl_form` / `_pplForm` : « lève » → levé, « sèche » → séché, « célèbre » → célébré), les participes irréguliers au féminin sont
   écartés (« elle est mise/prise/faite » : `IRREG_PART`), « nord/sud-est » aussi.
 - **Orange** (`rule_e_ppl_vig` / `rEPplVig`, famille « participe après être à vérifier ») : sujet je/tu/nous/vous ou nominal — le genre
-  n'est pas dans le texte (« je me suis installe » → installé, astuce « installée si tu es une fille ») ; nom sûr ou déterminant féminin
+  n'est pas dans le texte (« je me suis habitue » → habitué, avec l'astuce fixe du féminin « installée si tu es une fille ») ; nom sûr ou déterminant féminin
   (`_DET_F`) → féminin (« la porte est ferme » → fermée).
 - **Homographe adjectif** (« elle est sèche » / séchée, « il est infecte » / infecté) : Rem veut la proposition (« ne pas proposer sur un
   cas ambigu, ce n'est pas de la prudence »). MESURÉ, interrupteur `_HOMO_ORANGE` (Python + JS, une ligne) : juge IDENTIQUE
@@ -825,11 +825,11 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
 > « différés » des jours précédents. Consigne mémorisée ; couche « flexion par le contexte » ouverte.
 
 - **Recensement des 329 muets « bon mot, mauvaise forme »** par gouverneur (`census_flexion.txt`) : après un NOM 62 (adjectif ou
-  verbe à sujet nominal), auxiliaire → participe 34 (dont pronominal « je me suis réveille » et « a » ambigu avec « à »), gouverneur
+  verbe à sujet nominal), auxiliaire → participe 34 (dont pronominal « je me suis lave » et « a » ambigu avec « à »), gouverneur
   lui-même fauté (j'ais, et/est : tags PROPN/VERB/CCONJ) 83, préposition/modal → infinitif 22, pronom sujet 25 (souvent imparfait ou
   passé simple : garder le TEMPS écrit, corriger personne et nombre), déterminant pluriel 13, féminin 3. Les tables `CONJ_C` n'ont ni
   participe ni infinitif (morphologie du 1er groupe : radical + é / + er).
-- **Brique 1** : `infinitif après pronom sujet à vérifier` — « les enfants il reculer », « la barrière qui protéger », « ce qu'il aimer ».
+- **Brique 1** : `infinitif après pronom sujet à vérifier` — « les chats il sauter », « la barrière qui protéger », « ce qu'il aimer ».
   Pronom sujet net (je/tu/il/elle/on/ils/elles/qui, élidé compris), clitiques traversés, pas de frontière, pronom non précédé d'une
   préposition, d'un modal ou d'un verbe (« sur qui compter », « faut-il », « peut-on ») ; nous/vous exclus (objets : « va nous donner »).
   **Orange** : le temps est un jugement — l'imparfait est proposé (6 cas gold sur 9), l'astuce nomme les deux (« il annonçait ou il
@@ -843,20 +843,20 @@ clone EN (sans `fresh`, les deux contrôles « FRAIS » rougissent en fin de bat
 
 ---
 
-## 2026-09-14 — ACCENTS : les 108 fautes d'accent seul non réparées, recensées — et le présent après un pronom sujet (« il decide » → décide)
+## 2026-09-14 — ACCENTS : les 108 fautes d'accent seul non réparées, recensées — et le présent après un pronom sujet (« il espere » → espère)
 
 > Rem (13/09) : « encore une histoire d'accent, normalement on a de quoi traiter et poser l'accent manquant ». La colonne stricte
 > disait 274 fautes d'accent seul, 166 réparées. Les 108 autres, lues une par une (72 productions) :
 
-- **73 homophones grammaticaux muets** — 54 « a → à » (« un gateau **a** la vanille », « papi **a** lhopital », « pour laide **a** bricole »),
+- **73 homophones grammaticaux muets** — 54 « a → à » (« une tarte **a** la crème », « maman **a** lécole »),
   6 ou/où, 5 la/là, 3 ca/ça, media/pôle/forêt. Les « a » : 34 entre deux noms ou mots mal écrits, 13 devant un déterminant (« a la »,
-  « a des » — l'ambiguïté avec avoir, refusée par construction), 5 devant un infinitif mal écrit (« comense a avanser » : le verbe
+  « a des » — l'ambiguïté avec avoir, refusée par construction), 5 devant un infinitif mal écrit (« commanse a dessinner » : le verbe
   d'avant n'est pas reconnu, la branche « après un verbe » ne tire pas). **Pas d'ancre sûre nouvelle** : le voisin est fauté lui-même.
-- **19 mots valides sans accent** (« j'ai **commence** », « je me suis **installe** », « il est **oblige** ») : le speller se tait sur un mot
+- **19 mots valides sans accent** (« j'ai **termine** », « je me suis **habitue** », « il est **presse** ») : le speller se tait sur un mot
   connu ; la règle de grammaire « participe après auxiliaire » (`rule_e_ppl`) ne voit ni « j'ai » (token à apostrophe) ni les
   pronominaux (« me/te/se + être », hors de sa liste fermée). Recensé : 3 pronominaux dans le gold, 1 piège UD (« se fut **mise** »,
   déjà un participe) → extension possible, séparée.
-- **5 rouges AILLEURS** : « il **decide** de » → le produit écrivait **décidé** (et « décidée » avec « la voiture » deux mots plus haut :
+- **5 rouges AILLEURS** : « **decide** » après « il » → le produit écrivait **décidé** (et « décidée » avec un nom féminin deux mots plus haut :
   la bascule de genre lit à travers le pronom), le gold veut **décide**. Recensé toutes sources : 7 mots nus à deux accentuations
   (présent -e / participe -é) après un pronom sujet ou un auxiliaire — **6 après pronom, tous au présent** ; 1 après auxiliaire, participe.
 - 5 « ou → où » déjà justes en orange · 2 « **grace** → grâce » signalés sans réponse (la garde prénom taisait « grace » écrit en
@@ -883,16 +883,16 @@ le présent (plancher 0,5/M : « trébuche » 0,85/M). Placé AVANT la bascule d
 > Plan de l'audit, ⑤ « les silences par fréquence », troisième famille : le FÉMININ manquant (-∅ → -e, -é → -ée). Recensé sur les
 > 72 productions : **55 muets**, lus un par un, en trois paquets.
 
-- **(A) Le participe après « je me suis »** (réveille, douche, habille, préparé, réveillé, parti…) : le gold est féminin parce que
+- **(A) Le participe après « je me suis »** (six formes : réveille, douche, habille, préparé, réveillé, parti…) : le gold est féminin parce que
   l'AUTEURE l'est — rien dans le texte ne le dit. Le genre de « je » est inconnaissable : **pas de règle** (une règle qui devinerait
   casserait un « je » masculin une fois sur deux).
 - **(B) Le nom féminin en -ée écrit en -é** après un déterminant féminin : « la cheminé », « une parti », « une fumé », « la vu » (4 cas
   gold, 0 dans UD 14 450). Ancre = déterminant féminin NON AMBIGU (une/la/cette/ma/ta/sa) + une forme d'une liste CLOSE (35 noms en -ée
   dont la forme sans e est un participe/adjectif masculin, jamais un nom féminin) → **règle « nom féminin en -ée »**, rouge, 3 moteurs,
   garde trait d'union. Pièges vérifiés muets : « la fin », « la mort », « une partie », « il a vu la mer », « elle a fumé ».
-- **(E) L'adjectif après un nom féminin** (« une course convivial », « la voiture fini », « puissance mondial », « l'Afrique austral ») :
+- **(E) L'adjectif après un nom féminin** (« une fête convivial », « la porte fini », « puissance mondial », « l'Europe central ») :
   la même ancre (DET fém + nom fém sûr + adjectif masc à féminin connu) trouve dans le gold **2 cibles pour 3 pièges** (« la voiture
-  SUR », « la mer SAUF », « sa voiture CHER » — prépositions et adverbes homographes) et 97 motifs dans UD (« sur », participes
+  SUR », « la mer SAUF », « sa robe CHER » — prépositions et adverbes homographes) et 97 motifs dans UD (« sur », participes
   présents). **Différé** : il faudrait exclure les homographes et le participe présent, et l'ancre resterait fragile (« la maison du
   voisin bleu »). Le paquet le plus gros de ⑤-c reste donc muet, honnêtement.
 - **Mesuré (B)** : batterie 4/4 fp=0 · FP échelle 1,36 % (34/2 500, inchangé) · accord de palier 100 % · dys-core ⊆ Py · dictée Py↔JS · impératif ·
@@ -935,12 +935,12 @@ le présent (plancher 0,5/M : « trébuche » 0,85/M). Placé AVANT la bascule d
 
 ---
 
-## 2026-09-13 — ⑤-a : l'adjectif antéposé s'accorde après un déterminant pluriel (« les prochaine demande » → prochaines) — 3 moteurs, 0 FP
+## 2026-09-13 — ⑤-a : l'adjectif antéposé s'accorde après un déterminant pluriel (« les prochaine fêtes » → prochaines) — 3 moteurs, 0 FP
 
 > Plan de l'audit, ⑤ « les silences par fréquence ». Recensé d'abord (12/09, 72 productions) : le plus gros silence du juge est
 > « bon lemme, mauvaise flexion » — **329 muets**, dont le PLURIEL manquant en tête (-e→-es 99, -∅→-s 34), loin devant les
-> homophones muets (~65). Dans ces pluriels, un motif à ancre AUDIBLE : « les prochaine demande », « des bonne nouvelle »,
-> « les autre console », « les jeune lycéen », « ses propre… » — l'adjectif antéposé reste au singulier après un déterminant pluriel.
+> homophones muets (~65). Dans ces pluriels, un motif à ancre AUDIBLE : « les prochaine fêtes », « des bonne idées »,
+> « les autre joueurs », « les jeune chats », « ses propre… » — l'adjectif antéposé reste au singulier après un déterminant pluriel.
 
 - **Règle** `accord adjectif antéposé` (rouge, 3 moteurs) : DET pluriel non ambigu (les/des/ces/mes/tes/ses/nos/vos/leurs, la classe
   d'« accord pluriel nom ») + adjectif antéposé au singulier (classe fermée `_ADJ_ANTE`, déjà dans les moteurs pour la traversée du
@@ -1000,7 +1000,7 @@ le présent (plancher 0,5/M : « trébuche » 0,85/M). Placé AVANT la bascule d
 
 ## 2026-09-12 (suite) — ROUGE a/à : « lui » n'est jamais un verbe, « du/au/aux » sont des déterminants — 2 casses réparées, FP échelle 1,40 → 1,36 %
 
-> Les 2 vraies casses vues par la colonne accents (« le garagiste lui **a** apeller » → à, « du travaille **a** permises » → à), tracées
+> Les 2 vraies casses vues par la colonne accents (« le voisin lui **a** donner » → à, « du conseille **a** permis » → à), tracées
 > jusqu'à `vlike` la veille. Rouge prioritaire (consigne de Rem). Deux gardes de DONNÉES dans `vlike`, trois moteurs.
 
 - **Cause ①** : `lui` est dans le lexique verbal (luire : « il a lui ») → `vlike(lui)` vrai → la branche « après un verbe → préposition »
@@ -1009,11 +1009,11 @@ le présent (plancher 0,5/M : « trébuche » 0,85/M). Placé AVANT la bascule d
   contractions du/au/aux → « du travaille » lu verbe. Garde : NUM_DET ∪ {du, au, aux}.
 - **Recensé avant de poser** (UD GSD train, 14 450 phrases correctes) : clitique + « a » 203 (protégés), clitique + « à » 2 (un typo
   UD « il n'y à rien », « l'à propos ») ; DET + vlike + « à » 6, tous « dû + infinitif » (« dû » ≠ « du », la garde teste le token
-  exact). Corpus dys (72 productions) : 11 « a » protégés, 0 rappel perdu (le seul « DET + vlike » vers « à » est « Il ce met a
-  pousser », dont l'exception « ce » écrit pour « se » est conservée).
+  exact). Corpus dys (72 productions) : 11 « a » protégés, 0 rappel perdu (le seul « DET + vlike » vers « à » est « Elle ce lance a
+  chanter », dont l'exception « ce » écrit pour « se » est conservée).
 - **Mesuré** : référence ≡ produit sur les deux phrases (plus de « à ») ; témoins intacts (« va a la plage », « chez lui a vélo »,
-  « pense a lui » → à ; « nous a dit » muet). **Colonne accents : cassés 4 → 1** (les 2 gardes ; le gold de « rendu a l'ASEI » corrigé
-  à part → 274 fautes d'accent, 166 réparées, 60,6 %) — reste l'ambigu « se manifestent a un cocar ». Chiffre historique inchangé
+  « pense a lui » → à ; « nous a dit » muet). **Colonne accents : cassés 4 → 1** (les 2 gardes ; le gold d'un « a » devant un sigle corrigé
+  à part → 274 fautes d'accent, 166 réparées, 60,6 %) — reste un cas ambigu (« a » avoir ou à selon la lecture du mot d'avant, mal écrit). Chiffre historique inchangé
   (286 · 244 · 14 · 67). **FP à l'échelle 1,40 → 1,36 %** (35 → 34 / 2 500). Batterie FP=0 verte · accord de palier 100 % ·
   dys-core ⊆ Py · dictée Py↔JS · impératif · speller ext ≡ app · textes : inchangés.
 - **Leçon** : la colonne d'instrument posée la veille a livré ses deux premières casses en une lecture — et les deux étaient des
@@ -1031,11 +1031,11 @@ le présent (plancher 0,5/M : « trébuche » 0,85/M). Placé AVANT la bascule d
 - **Mesuré** (72 productions, 6 217 mots) : **273 fautes d'accent seul invisibles au juge principal, 165 réparées (60,4 %)**
   — la famille la plus fréquente des dys était absente du chiffre qui pilote les décisions. Et **4 accents cassés**, tous « a → à »,
   lus un par un :
-  · « je me suis rendu **a** l'ASEI » : le produit a raison (« à »), c'est le **gold qui est faux** (1 ligne de `gold_claude.jsonl`,
+  · un « a » devant un sigle : le produit a raison (« à »), c'est le **gold qui est faux** (1 ligne de `gold_claude.jsonl`,
     corpus privé — à corriger à part et re-mesurer).
-  · « un imanse pano **se manifestent a** un cocar » : le gold lit « ce manifestant **a** un cocard » (avoir) — le produit, qui voit
-    « se manifestent » (verbe), pose « à ». **Ambigu sans le sens** : une casse réelle mais hors de portée d'une règle de surface.
-  · « le garagiste lui **a** apeller un taxi » → « à » et « la modernisation du travaille **a** permises une réduction » → « à » :
+  · un « a » après un mot mal écrit qui se lit comme un verbe : le gold lit « a » (avoir) — le produit, qui voit
+    un verbe, pose « à ». **Ambigu sans le sens** : une casse réelle mais hors de portée d'une règle de surface.
+  · « le voisin lui **a** donner un livre » → « à » et « l'aide du conseille **a** permis un accord » → « à » :
     **2 vraies casses réparables**, tracées jusqu'à `vlike` : « lui » est dans le lexique verbal (luire) → verbe → « à » ;
     « du travaille » : la garde déterminant de `vlike` connaît le/la/les mais pas les contractions du/au/aux → « travaille » lu
     verbe → « à ». Rouge prioritaire : chantier de moteur ouvert (deux gardes de `vlike`, 3 moteurs, recensées sur UD).
@@ -1155,11 +1155,11 @@ identiques Python ≡ produit : les trois *oublier* restent en auto ; `fautra` �
 > garde et la sous-famille des appliqués faux nommée le 07/09 (nuit).
 
 **① `atStart` ≡ premier token du TEXTE.** `spellText` ne passe `atStart` qu'à `i === 0` ; `correct_text` l'acceptait à
-chaque début de PHRASE (`_sentence_starts`) — d'où « … fumant. Enerver il pousse » → Énerver auto côté référence, muet
+chaque début de PHRASE (`_sentence_starts`) — d'où « Enerver » en tête de phrase → Énerver auto côté référence, muet
 côté produit. Aligné, `_sentence_starts` retirée. Le produit ne corrige donc jamais une majuscule hors premier token :
 c'est un choix du produit (prudence nom propre), désormais décrit, plus corrigé en douce par le juge.
 
-**② Le dernier hors accord, `ere`, n'était pas un silence.** Sur le gold, « la 1ere » : le chiffre n'est pas un token, le
+**② Le dernier hors accord, `ere`, n'était pas un silence.** Sur le gold, « 1ere » : le chiffre n'est pas un token, le
 speller reçoit « ere » et propose ère (auto) ; le produit, lui, le traite dans la famille **« nombre »** (→ 1re,
 vigilance). Le dump de la garde n'exportait que orthographe + mot inconnu : il porte désormais TOUTES les familles, et
 une correction « référence seule » dont le produit a fait autre chose est rangée « produit : autre famille ». Hors
@@ -1226,11 +1226,11 @@ de MOTEUR, à mesurer désormais avec un juge qui ne triche plus) et de l'instru
 **① CE QUI DIVERGEAIT, pièce par pièce (tracé dans une copie instrumentée de dys-core, w1/p1/f1/cg/expPos lus juste
 avant le gate).**
 - **Fenêtre du nombre** : `sCtxNumber` regarde 4 tokens en arrière (`j >= idx-4`), `_ctx_number` n'en regardait que 3
-  (`range(idx-1, idx-4)`). « une réponse favorable. Veuillez aggrée » : le produit voit « une » (cn = s), la référence
+  (`range(idx-1, idx-4)`). « aggrée », quatre mots après « une » : le produit voit « une » (cn = s), la référence
   non — et c'est cn qui promeut `agréé` (0,34/M) puis le fait tomber sous f1 < 1,0 → « mot inconnu ».
 - **Table de genre** : `sGender` lit `vdc-lex.json` (g = GENDER_MAP 4 178, gn = GENDER_PURE 68 746, a = ADJP 17 257) complété
   par `gender-relaxed.tsv.gz` (46 432 → GENDER_PURE 70 374) ; `_gender` lisait `cgram_gender.json` (53 200, Lexique4).
-  `sCtxGender` ne prend que les genres PURS ; `_ctx_gender` lisait GEN. « la vu panden » : le produit n'a pas de genre pur
+  `sCtxGender` ne prend que les genres PURS ; `_ctx_gender` lisait GEN. « vu » après « la », devant un mot inconnu : le produit n'a pas de genre pur
   pour « vu », remonte à « la » (f) et promeut `pendante` (0,19/M → inconnu) ; la référence lisait « vu » = m et gardait
   pendant. ADJP ≡ cgram_adj (identiques, vérifié) : une seule source désormais, celle du produit.
 - **Invariables dans le tri** : en élargissant la fenêtre, deux désaccords NOUVEAUX sont apparus (`frence`→français,
@@ -1279,8 +1279,8 @@ les 7 témoins de #670 tiennent).
 - Précision par famille (référence) : `orthographe|auto` 88,2 → 88,1 % (349 J / **0 mot juste réécrit** / 47 F) · `flag` 82,9 → 82,7 % (422 / 11 / 77) · `vigilance` 53,6 → 54,4 %. Des mouvements d'UN événement : les 4 mots passés en « inconnu » comme le produit et une cible changée. Ré-ancrée ; `--navigateur` intact.
 
 
-**③ LE 18ᵉ TÉMOIN ET LES 2 RESTANTS, TRACÉS : la table de genre.** `panden` dans « regardé la vu panden » et
-`aggrée` dans « une réponse favorable. Veuillez aggrée » sortent en « mot inconnu » côté produit parce que le TRI
+**③ LE 18ᵉ TÉMOIN ET LES 2 RESTANTS, TRACÉS : la table de genre.** `panden` (après « la vu ») et
+`aggrée` (quatre mots après « une ») sortent en « mot inconnu » côté produit parce que le TRI
 promeut un candidat FÉMININ rare (bonus genre, cg = f) qui tombe ensuite sous f1 < 1,0 (null@3084). La référence
 ne le fait pas : **`_gender` Python ne connaît pas `agressée`** (ADJ 17 257 + GEN 53 200 entrées, depuis Lexique4)
 là où **`sGender` produit lit `gender-acc.json.gz` (59 916 formes, Morphalou) : agressée = f, pendante = f** ; et
@@ -1329,7 +1329,7 @@ gram ; on a cherché l'asymétrie dans la clé phonétique, le bonus POS, les ta
   d'asymétrie de moteur : il manquait à la référence les étapes portées depuis (#670 · #672 · #673).
 - **Garde de palier : 98,4 → 96,8 %, 12 désaccords NOUVEAUX** avec le produit (angrais→engrais, polution→pollution
   = les gains attendus, flag ; mais diver→divers, fast→fat, jant→jan, loire→loir, oten→autant, sété→ai,
-  éme→émet, apret→après = des choix que le produit ne fait pas), 1 hors accord nouveau (`l'éme`).
+  éme→émet, apret→après = des choix que le produit ne fait pas), 1 hors accord nouveau (`éme`, élidé).
 - **Parité : 5 divergences nouvelles**, toutes « Python s'abstient / produit propose » (d'oves, dare, over,
   téléphonies, usque) — b_slip éteint des propositions.
 - **Pipeline** : 284 → **286 réparés (+2)**, 14 cassés identiques mot à mot, un-clic 243 → 244, bruit 238 → 232,
@@ -1381,7 +1381,7 @@ La carte des étapes JS absentes reste : `_slipMot`/élongation (auto), `_aux` p
 ## 2026-09-07 — le tokeniseur du produit porté dans la référence : l'angle mort de l'appariement était surtout ÇA
 
 > 7ᵉ maillon de « la référence décrit le produit » (#659 · #663 · #665 · #666 · #670 · #672). Nommé par la garde
-> d'accord de palier le 06/09 : « d'une pérsone », « l'est conporte » — UN token côté produit, deux côté référence.
+> d'accord de palier le 06/09 : « pérsone » et « conporte » derrière une élision — UN token côté produit, deux côté référence.
 
 **① LE DÉFAUT.** `toks` (dys-core.js l.11, miroir app) garde l'apostrophe dans le token : « d'une », « l'est »,
 « qu'il », « d'othographes » sont un token. La référence tokenisait avec `TOK` (lettres seules) : elle voyait
@@ -1394,8 +1394,8 @@ et corrigeait « oves » seul, à un autre offset : **inappariable** pour toute 
 **② LE PORT** : `TOK_JS` (décalque de `toks`), `spell_token` (décalque de `spellToken` l.2918-2926, avec `sed1`
 décalque de `sEd1`), `correct_text` passe par les deux ; `parity_speller` compare désormais via `spell_token`
 (elle donnait déjà les tokens du produit à la référence, mais sans l'étage). 12 témoins / 12 identiques au
-produit, mot ET palier : « d'une pérsone »→personne **vigilance** · « l'est conporte »→comporte **vigilance** ·
-« les d'oves »→d'oses vigilance · « qu'il vien »→viens flag · « L'ecole »→L'école auto · « Lannée »→L'année flag
+produit, mot ET palier : « pérsone »→personne **vigilance** · « conporte »→comporte **vigilance** ·
+« les d'oves »→d'oses vigilance · « vien »→viens flag · « L'ecole »→L'école auto · « Lannée »→L'année flag
 (la fusion sans apostrophe, déjà portée, reste). `spellUnknown` refuse l'apostrophe des deux côtés.
 
 **③ LA MESURE, produit byte-identique.** Accord de palier sur le gold : **98,3 → 98,8 % (597/604), 0 nouveau,
@@ -1453,8 +1453,8 @@ vainqueur du tri colle déjà au POS et est ≫20× plus fréquent (« un chein 
 `une gross`→grosse flag / `gross`→gros vigilance · `il a pri`→pris · `ils von`→vont · `il pleu`→pleut.
 
 **② ROUGE D'ABORD, ET CE QU'IL A TROUVÉ.** La garde d'accord de palier sur le gold est montée de 92,4 % à
-97,6 % — et a ROUGI : **5 désaccords NOUVEAUX**, tous « Python affirme, le produit propose » : `au boulo`,
-`du marcketing`, `au échenge`, `d'une pérsone`, `l'est conporte`. Cause 1 (3/5) : **`DET_G` Python contenait
+97,6 % — et a ROUGI : **5 désaccords NOUVEAUX**, tous « Python affirme, le produit propose » : `boulo`,
+`marcketing`, `échenge`, `pérsone`, `conporte`. Cause 1 (3/5) : **`DET_G` Python contenait
 « du » et « au » ; le `DET_G` du produit (l.1331) non.** Le POS attendu (#665) en héritait sans que rien ne le
 dise, parce que le POS attendu ne pesait que dans le TRI ; dès qu'il décide un PALIER, l'écart se voit. Aligné
 verbatim (même geste que #665) → **98,3 % (575/585), 31 désaccords disparus, 2 restants**. Cause 2 (2/5) :
@@ -1474,7 +1474,7 @@ suivante, nommée ; les 2 sont ancrés avec leur cause.
 | ⛔ CASSÉS | 14 | 14 | **14 — identiques mot à mot** |
 
 Conservation : −45 ratés = un-clic −34 · bruit −15 · muet +4. Les 3 réparations que l'alignement DET_G
-rend au clic sont exactement celles que le produit ne fait que proposer (« au boulo »). Le « ~276 au plus »
+rend au clic sont exactement celles que le produit ne fait que proposer (« boulo »). Le « ~276 au plus »
 attendu était une borne de la mesure du 05/09 (37 vigilance/flag) : la référence affirme aussi là où elle
 s'ABSTENAIT (`cha`→chat, `pû`→pu : contexte-first tire « même court », avant le gate `len ≥ 4`).
 
@@ -1645,7 +1645,7 @@ pas les gardes des règles.
 
 **③ ⚠️ MON PREMIER CADRE ÉTAIT À L'ENVERS — et la mesure l'a dit.** J'ai d'abord exigé un
 **créneau verbal LIBRE** (la garde des règles de sujet) : **1 pris / 19 ratés** sur le gold. La
-raison est évidente après coup : dans « je vais **a la** plage », le créneau est justement PRIS par
+raison est évidente après coup : dans « je vais **a la** plage », ce créneau est justement PRIS par
 « vais ». **La bonne condition est l'inverse** — `a` est la PRÉPOSITION quand la proposition a
 DÉJÀ un verbe conjugué ailleurs, car alors `a` ne peut pas être le verbe. Cadre inversé :
 **19 pris / 1 raté**.
@@ -1665,7 +1665,7 @@ DÉJÀ un verbe conjugué ailleurs, car alors `a` ne peut pas être le verbe. Ca
   règle corrigerait à raison. Comptée FP par le protocole, elle n'en est pas une.
 
 **⑥ La vraie limite, et elle est connue** : les 12 cas perdus par la garde de sujet sont tous du type
-« je suis **aller a la** plage » — le verbe y est LUI-MÊME mal orthographié, donc indétectable comme
+« je suis **partir a la** mer » — le verbe y est LUI-MÊME mal orthographié, donc indétectable comme
 verbe conjugué. C'est **le même mur que les bornes de proposition** (enquête 30/08) : sur du dys, la
 détection de verbe est le facteur limitant, pas le cadre.
 
@@ -2135,7 +2135,7 @@ l'égalité INTER-moteurs sur les cas cycliques reste empirique (Timsort vs sort
   à jour (lexicalité élargie au speller : mesurée PIRE, écartée).
 - **#654** la FORME avant le NOMBRE : « vont cherchait »→chercher existait mais passait APRÈS l'orange
   de nombre qui le taisait ; « faire » semi-auxiliaire ; « elle s'est mariaient »→mariée ; gérondif
-  (« tout en pensent »→pensant). NOUN_POST est une Map dans l'extension, un objet dans l'app →
+  (« tout en chantent »→chantant). NOUN_POST est une Map dans l'extension, un objet dans l'app →
   accesseur tolérant (le portage verbatim PLANTAIT l'app) ; `parity_os` charge noun-post comme le
   produit (l'écart 17/16 venait de là). Famille 2/10/9+0/6/1 → 2/7/5+0/4/0 ; texte correct 537→529.
 
@@ -2589,7 +2589,7 @@ embarqué) ⇒ « lexique introuvable » était FAUX. Ce qui ferme : **134 002 n
 tombant sur un toponyme. Variante consignée non recommandée : toponymes FR seuls (quelques dizaines de Ko,
 2 casses/22). ⚠️ Si le sujet revient, l'argument est le COÛT/GAIN.
 
-⭐ **« une TRÉ faible exportation » → un (23/08, §5quinquies) — le posterior LEXICAL ne sait pas OÙ est le
+⭐ **« une TRÉ belle maison » → un (23/08, §5quinquies) — le posterior LEXICAL ne sait pas OÙ est le
 mot** : `rule_det_gender` prenait le mot juste après le déterminant pour nom-tête et le validait au
 posterior ; or `tré` **est un vrai mot** (0,038/M, masculin, P(NOM)=100 %) alors que le nom-tête est
 `exportation` — `très` (1 435/M, **37 000×**) est dans `DET_SKIP`, pas `tré`. **2 casses au palier ROUGE,

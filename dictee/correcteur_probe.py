@@ -198,14 +198,14 @@ def vlike(T, i):
     w = deacc(T[i].lower())
     if w in VLIKE_STOP: return False                                       # mots-outils homographes du cgram (« ne », « le »…) — jamais verbe ici
     if w not in VERB_LEX: return False
-    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux')):   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du travaille a permises » → « à » était une casse)
-        # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Il CE met a pousser » : le
+    if i > 0 and (T[i-1].lower() in NUM_DET or T[i-1].lower() in ('du', 'au', 'aux')):   # « le porte » reste un NOM… — et « du travaille » aussi (12/09/2026 : les contractions sont des déterminants ; « du conseille a permis » → « à » était une casse)
+        # …SAUF « CE » ÉCRIT POUR « SE » (mesuré 22/08 sur gold dys réel). « Elle CE lance a chanter » : le
         # scripteur confond ce/se, la garde déterminant tue alors la lecture VERBALE — et la cascade suit :
-        # vlike(met)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « pousser »
-        # devient « poussé », un mot JUSTE cassé. Trois étages pour une seule faute d'ancre.
+        # vlike(lance)=False → rule_a_aa ne tranche plus → la garde a/à de rule_e_er ne tire pas → « chanter »
+        # devient « chanté », un mot JUSTE cassé. Trois étages pour une seule faute d'ancre.
         # Test LOCAL et étroit (pas d'appel à rule_ce_se : elle appelle vlike, ce serait récursif) : un
         # PRONOM SUJET juste avant le « ce » ⇒ c'est un « se » pronominal, jamais un déterminant
-        # (« il ce met » n'existe pas comme groupe nominal ; « il lit ce livre » garde la garde).
+        # (« elle ce lance » n'existe pas comme groupe nominal ; « il lit ce livre » garde la garde).
         if not (deacc(T[i-1].lower()) == 'ce' and i > 1 and deacc(T[i-2].lower()) in SUBJ_PRON):
             return False
     return True
@@ -216,7 +216,7 @@ def vlike(T, i):
 VLIKE_STOP = (set(NUM_DET) | set(NUM_PRON) |
               {'ne', 'me', 'te', 'se', 'le', 'la', 'les', "l'", 'en', 'y', 'que', 'qu', 'qui',
                'si', 'ou', 'et', 'ni', 'car', 'or', 'ce', 'ces', 'de', 'des', 'du',
-               'lui'})   # ⭐ 12/09/2026 : « lui » est dans VERB_LEX (luire) → vlike(lui)=True → « le garagiste lui a apeller » → « à » (casse vue par la colonne accents). Un clitique n'est jamais un verbe ici.
+               'lui'})   # ⭐ 12/09/2026 : « lui » est dans VERB_LEX (luire) → vlike(lui)=True → « le voisin lui a donner » → « à » (casse vue par la colonne accents). Un clitique n'est jamais un verbe ici.
 
 
 def prev(T, i): return deacc(T[i-1].lower()) if i > 0 else None
@@ -368,13 +368,13 @@ def rule_e_er(T, i):
     p = prev(T, i)
     if p in AUX:
         # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — c'est la
-        # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en pensent A bronzer »,
-        # « il se met A pousser », « une difficulté A étudier » : la règle lisait ce « a » comme l'AUXILIAIRE
-        # et rendait le participe (bronzé/poussé/étudié) — alors que c'est une PRÉPOSITION, donc l'infinitif.
+        # 3e forme la plus souvent erronée du français dys (Bodard 2020). « tout en cherchent A trouver »,
+        # « elle se lance A chanter », « une difficulté A étudier » : la règle lisait ce « a » comme l'AUXILIAIRE
+        # et rendait le participe (trouvé/chanté/étudié) — alors que c'est une PRÉPOSITION, donc l'infinitif.
         # `rule_a_aa` le sait (100 % de précision sur ce corpus) : si ELLE juge que ce « a » est un « à »,
         # l'ancre « auxiliaire » ne vaut rien. SYMÉTRIQUE EXACT de la garde ci-dessus (ligne « à »→« a »).
         # ⭐ « a » ÉCRIT POUR « à » (mesuré 22/08 sur gold dys RÉEL) : le scripteur dys confond a/à — 3e forme
-        # la plus souvent erronée du français dys (Bodard 2020). « tout en pensent A bronzer » : ce « a » lu
+        # la plus souvent erronée du français dys (Bodard 2020). « tout en cherchent A trouver » : ce « a » lu
         # comme AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif.
         # On s'en remet à `rule_a_aa`, LA règle qui tranche a/à (100 % de précision sur ce corpus) — et à elle
         # SEULE. Quand elle ne tranche pas, on garde le comportement d'origine (participe) : « mon frère a
@@ -409,7 +409,7 @@ def rule_e_er(T, i):
     return None
 
 # --- Terminaisons -er / -é / -ez / -ai (verbe 1er groupe) tranchées par le GOUVERNEUR (test mordre/mordu) ---
-# cadre PARTICIPE PASSÉ : avoir ET être (« je suis allez »→allé, « elle est rentrez »→rentré). « j'ai » = 1 token.
+# cadre PARTICIPE PASSÉ : avoir ET être (« je suis tombez »→tombé, « elle est rentrez »→rentré). « j'ai » = 1 token.
 _AUX_AV = (set(D.AUX_AVOIR) | set(D.AUX_ETRE)
            | {'avoir', 'avais', 'avaient', "j'ai", 'etre', 'ete', 'etais', 'etait', 'etaient', 'etions', 'etiez',
               'serai', 'seras', 'serez', 'serons', 'soient', 'sois'})
@@ -595,7 +595,7 @@ def rule_e_ppl(T, i):
     # ⛔ TENTÉ ET REFUSÉ AVANT : filtrer par le tagger (il rend VERB sur « seche » et « celebre »,
     #    donc 2 des 4 FP passaient) et par ADJ_LEX (17 257 entrées : il contient « fatigue »,
     #    « arrive », « fixe » — il ne discrimine rien).
-    _aux_pre = deacc(T[i-1].lower()).split("'")[-1]                       # auxiliaire ÉLIDÉ compris (« j'ai commence », « l'a ferme ») — 3 cas gold, 0 UD (« j'ai hâte » arrêté par la garde nom)
+    _aux_pre = deacc(T[i-1].lower()).split("'")[-1]                       # auxiliaire ÉLIDÉ compris (« j'ai termine », « l'a ferme ») — 3 cas gold, 0 UD (« j'ai hâte » arrêté par la garde nom)
     if _aux_pre not in D.AUX_AVOIR and not _etre_pp: return None
     # « à » se DÉACCENTUE en « a » : sans ce test la préposition passait pour l'auxiliaire et
     # « à BASE de » devenait « à basé de » (11 FP à elle seule).
@@ -656,7 +656,7 @@ def rule_flexion_er(T, i):
         tgt = 'inf'                               # « à »/« À » = PRÉPOSITION → infinitif (AVANT avoir : « à » désaccentué = « a »)
     elif p in _AUX_AV or praw == "j'ai":          # avoir immédiat → participe (« avez classez »→classé)
         # ⭐ MÊME GARDE QUE `rule_e_er` (22/08) : le scripteur dys écrit « a » pour « à » (3e forme la
-        # plus souvent erronée, Bodard 2020). « tout en pensent A bronzer » : ce « a » lu comme
+        # plus souvent erronée, Bodard 2020). « tout en cherchent A trouver » : ce « a » lu comme
         # AUXILIAIRE rendait le participe, alors que c'est une PRÉPOSITION → infinitif. Les DEUX
         # règles partageaient l'angle mort — celle-ci l'avait encore, mesurée sur le PIPELINE complet
         # (« bronzer »→bronzé cassait un mot juste). On s'en remet à `rule_a_aa` et à elle seule ;
@@ -696,7 +696,7 @@ def rule_flexion_er(T, i):
         if g < 0: return None
         dg = deacc(T[g].lower()); graw = T[g].lower()
         if graw != 'à' and (dg in _AUX_AV or graw == "j'ai"):
-            tgt = 'inf' if (dg == 'a' and rule_a_aa(T, g) == 'à') else 'part'   # ⭐ 12/09/2026 : la MÊME garde a/à qu'en position immédiate — « a réussi a se placer » : « a » + clitique + verbe est un « à » (rule_a_aa tranche) → infinitif, plus « placé » (mot juste cassé, gold dys). Miroir JS.                          # avoir/être (+ clitique/adverbe) → participe (« a déjà écouter »→écouté). « à » désaccentué = « a » → NON
+            tgt = 'inf' if (dg == 'a' and rule_a_aa(T, g) == 'à') else 'part'   # ⭐ 12/09/2026 : la MÊME garde a/à qu'en position immédiate — « a réussi a se lever » : « a » + clitique + verbe est un « à » (rule_a_aa tranche) → infinitif, plus « levé » (mot juste cassé, gold dys). Miroir JS.                          # avoir/être (+ clitique/adverbe) → participe (« a déjà écouter »→écouté). « à » désaccentué = « a » → NON
         elif dg in _INF_GOV or dg in MODAL or dg in _CAUS:
             tgt = 'inf'                           # prépo/modal/causatif (+ clitique) → infinitif (« veut se séparé »→séparer, « fait déclaré »→déclarer)
         else:
@@ -708,7 +708,7 @@ def rule_flexion_er(T, i):
         return None                               # -ée = nom/participe FÉMININ (donnée, poussée, mêlée) → jamais un infinitif/-ez/-ai
     sugg = forms[tgt]
     if tgt == 'p2pl' and cur == 'fut1': sugg = inf + 'ez'
-    if tgt == 'part': sugg = _pp_relit(T, i, sugg) or sugg   # ⭐ 12/09/2026 (lot 2) : participe ACCORDÉ si le contexte le permet (« les a lécher » → léchés, « sont appliquer » → appliqués)   # ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé — « dès que vous souhaiterai » → souhaiterez (futur 2e pl.), pas souhaitez (présent) ; 1 « bon lemme, mauvaise flexion » du gold dys. Miroir JS rFlexionEr.
+    if tgt == 'part': sugg = _pp_relit(T, i, sugg) or sugg   # ⭐ 12/09/2026 (lot 2) : participe ACCORDÉ si le contexte le permet (« les a garder » → gardés, « sont ranger » → rangés)   # ⭐ 12/09/2026 : le TEMPS ÉCRIT est gardé — « dès que vous arriverai » → arriverez (futur 2e pl.), pas arrivez (présent) ; 1 « bon lemme, mauvaise flexion » du gold dys. Miroir JS rFlexionEr.
     if deacc(sugg) == d: return None
     return sugg[0].upper() + sugg[1:] if w[:1].isupper() else sugg
 
@@ -923,10 +923,10 @@ _LELID_STOP = {'un', 'une', 'autre', 'autres', 'on', 'uns'}   # « l'un et l'aut
 def _plur_sous_prep(T, i):
     """Le PLURIEL qui précède « on » est-il dans un groupe PRÉPOSITIONNEL ?
 
-    FP ROUGE mesuré EN PRODUCTION le 26/08/2026 : « Dans ses statistiques on voit bien. » — français
-    parfaitement correct — devenait « ses statistiques ONT voit bien », appliqué D'OFFICE. Cause :
+    FP ROUGE mesuré EN PRODUCTION le 26/08/2026 : « Dans ses carnets on voit bien. » — français
+    parfaitement correct — devenait « ses carnets ONT voit bien », appliqué D'OFFICE. Cause :
     `is_plural_noun(T, i-1)` ne demande qu'un pluriel juste avant « on », sans vérifier que c'est le
-    SUJET. Ici il appartient à « Dans ses statistiques », donc « on » est bien le sujet.
+    SUJET. Ici il appartient à « Dans ses carnets », donc « on » est bien le sujet.
     Cette garde ne peut que RETIRER une correction, jamais en ajouter. Miroir JS : _plurSousPrep."""
     d = -1
     for j in range(i - 1, max(-1, i - 4), -1):
@@ -961,7 +961,7 @@ def rule_on_ont(T, i):
     if lw not in ('on', 'ont'): return None
     if _SEG is not None and i < len(_SEG['hy']) and _SEG['hy'][i]: return None   # « avait-on », « peut-on » : trait d'union → pronom inversé, jamais une faute
     # ⭐ « QUI ON » + NON-VERBE (13/09/2026, pipeline) : le relatif « qui » est déjà SUJET — « qui on » n'existe que dans « qu'on » + verbe
-    # conjugué, ou « qui ont » + le reste. « les régions qui on une sécurité », « deux architectes qui on besoin d'argent » → ont (le produit
+    # conjugué, ou « qui ont » + le reste. « les pays qui on un port », « deux architectes qui on besoin d'argent » → ont (le produit
     # y fusionnait « qu'on », palier flag : faux). Déterminant, ou mot connu SANS aucune lecture verbale → ont. Miroir JS rOn.
     if lw == 'on' and i >= 1 and deacc(T[i-1].lower()) == 'qui' and i + 1 < len(T):
         _qn = deacc(T[i+1].lower())
@@ -1118,8 +1118,8 @@ def rule_a_aa(T, i):
         pv = NOUN_POST.get(deacc(T[i-1].lower())) if i > 0 else None   # …SAUF si le mot avant « a » est un NOM confiant (posterior) :
         if pv and pv[0] >= PL_TAU_M and pv[1] < PL_EPS_M: return None  # « l'entreprise a », « la voiture a » → avoir, pas « à » (fixe ~10 FP a→à)
         return 'à'
-    # ⭐ « a » devant NOM NU (31/08/2026, chantier a→à) : AVOIR exige un déterminant — « rentré cher
-    # moi a vélo », « une semaine a Bayonne »… = la forme DOMINANTE des a→à du gold (41 cas nom-nu,
+    # ⭐ « a » devant NOM NU (31/08/2026, chantier a→à) : AVOIR exige un déterminant — « va au
+    # travail a vélo », « une semaine a Lyon »… = la forme DOMINANTE des a→à du gold (41 cas nom-nu,
     # mesurée par alignement). Sur UD 14 450, les SEULS « a + nom nu » corrects sont les idiomes
     # d'avoir (a lieu ×13, a besoin, a droit, a recours, a tendance… — 36 occurrences en tout) →
     # stop-liste FERMÉE (_AVOIR_IDIOM + _A_NU_STOP) ; locutions latines (a priori/contrario/minima) ;
@@ -1276,7 +1276,7 @@ def rule_peu(T, i):
     # Le « de » suivant ne suffisait PAS comme garde : « de temps en temps » a lui aussi de+NOM.
     if lw in ('peut', 'peux') and i + 1 < len(T) and deacc(T[i+1].lower()) == 'de'        and not (i + 2 < len(T) and deacc(T[i+2].lower()) in _PEU_LOC)        and not _clause_no_finite_verb(T, i):
         return 'peu'
-    # ⭐ LA NÉGATION SAUTÉE (13/09/2026, muets du pipeline) : « il ne peu pas », « le japon ne peu pas », « elle ne peu déjà pas » — la
+    # ⭐ LA NÉGATION SAUTÉE (13/09/2026, muets du pipeline) : « on ne peu plus », « le moteur ne peu jamais », « Paul ne peu même plus » — la
     # règle ne lisait que le mot d'avant, et « ne » la faisait taire. « ne peu » suivi de pas/plus/jamais… n'existe pas (l'adverbe « peu »
     # ne se nie pas) : c'est pouvoir. Sujet pluriel (déterminant pluriel + nom en -s) → peuvent. Recensé : 5 tirs neufs sur les paires
     # locales, 5 justes ; UD 14 450 : 0. Miroir JS rPeu.
@@ -1376,8 +1376,8 @@ def rule_cest_sest(T, i):
 
 
 def rule_cest_ces_vig(T, i):
-    u"""⭐ « C'EST » + NOM PLURIEL → ces ? / ses ? (13/09/2026, muets du pipeline) : « C'est enfants sont âgés », « leur père demande à c'est
-    enfants » — « c'est » ne précède pas un nom pluriel sans déterminant. ORANGE : ses après une préposition, ces devant un verbe pluriel ;
+    u"""⭐ « C'EST » + NOM PLURIEL → ces ? / ses ? (13/09/2026, muets du pipeline) : « C'est chiens sont âgés », « leur mère parle à c'est
+    parents » — « c'est » ne précède pas un nom pluriel sans déterminant. ORANGE : ses après une préposition, ces devant un verbe pluriel ;
     sur les paires locales 4 justes et 1 où seul le choix ces/ses diffère ; UD 14 450 : 0. Miroir JS cestCesVig."""
     if deacc(T[i].lower()) != "c'est" or i + 1 >= len(T): return None
     dn = deacc(T[i + 1].lower())
@@ -1900,7 +1900,7 @@ def rule_adj_epithet(T, i):
     # albanais et slave » : chaque adjectif porte sur UN monde, le singulier est juste. La règle
     # SŒUR `rule_adj_number` a exactement cette ligne depuis toujours ; celle-ci ne l'avait pas.
     # Exemption : une CAPITALE après la frontière n'est pas une énumération mais une phrase
-    # neuve (« la pauvreté total ⏎ Qustion : … ») — c'est la seule correction que la garde nue
+    # neuve (« une fête convivial ⏎ Question : … ») — c'est la seule correction que la garde nue
     # perdait. Mesuré : 0 perdue, 2 faux positifs éteints (grec, local), 0 tir sur UD.
     if (_SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i+1]
             and not T[i+1][:1].isupper()): return None
@@ -2072,7 +2072,7 @@ def rule_aux_imparfait(T, i):
 
 def rule_pp_etre(T, i):
     """Accord du PARTICIPE PASSÉ (tous groupes) avec le SUJET après ÊTRE : « nous sommes allez/allé »→allés,
-    « elle est venu »→venue, « nous sommes parti »→partis, « elle est mort »→morte, « ils sont transformé »→transformés.
+    « elle est venu »→venue, « nous sommes sorti »→sortis, « elle est mort »→morte, « ils sont transformé »→transformés.
     Sujet = pronom fiable (il/elle/ils/elles/nous/je/tu ; on/vous exclus car ambigus). Genre inconnu (je/tu/nous) →
     on GARDE le genre écrit (jamais de fém→masc forcé). FP≈0 : ne se déclenche QUE si le participe est en DÉSACCORD."""
     lw = T[i].lower()
@@ -2086,7 +2086,7 @@ def rule_pp_etre(T, i):
     for k in range(i-1, max(-1, i-4), -1):
         dk = deacc(T[k].lower())
         if dk in ('ete', 'etait'):
-            # ⭐ 12/09/2026 (lot 2) : « ils ont été dégoûté », « cette histoire a était raconté » (été mal écrit) — le participe s'accorde avec le
+            # ⭐ 12/09/2026 (lot 2) : « ils ont été fâché », « cette chanson a était chanté » (été mal écrit) — le participe s'accorde avec le
             #    sujet de l'auxiliaire AVOIR qui précède « été » : on remonte jusqu'à lui, c'est lui qui porte le sujet et le nombre.
             for k2 in range(k-1, max(-1, k-4), -1):
                 d2 = deacc(T[k2].lower())
@@ -2139,7 +2139,7 @@ def rule_pp_etre(T, i):
             return None
         if deacc((subj.get('htxt') or '').lower()) in ('plus', 'moins', 'mieux'): return None   # ⭐ 12/09/2026 : tête SUPERLATIVE (« la plus froide a été enregistrée ») — pas un nom, le vrai sujet est avant ; UD 2134
         if subj['n'] == 's' and aux_num == 'p' and _a1ok and deacc(subj.get('dtxt', '').lower()) in PLURAL_DET:
-            subj['n'] = 'p'                                    # ⭐ 12/09/2026 (lot 2) : « ces produit chimique sont appliqué » — le nom a perdu son -s ; le déterminant ET l'auxiliaire audible disent pluriel
+            subj['n'] = 'p'                                    # ⭐ 12/09/2026 (lot 2) : « ces outil agricole sont vendu » — le nom a perdu son -s ; le déterminant ET l'auxiliaire audible disent pluriel
         if subj['n'] != aux_num: return None                   # nombre du sujet ≠ aux → sujet mal identifié → abstention
         if a - subj['idx'] > 5: return None                    # sujet trop LOIN de l'aux → parseur peu fiable sur phrase longue (FP « dioxyde … est autorisé »)
         for k in range(subj['idx']+1, a):                      # nom PROPRE/capitalisé entre le sujet et l'aux → sujet réel ambigu (FP « Plusieurs fois les Français sont forcés »)
@@ -2850,7 +2850,7 @@ def rule_aux_usage(T, i):
     return None
 
 
-# ---------- Auxiliaire être/avoir MAL ORTHOGRAPHIÉ (faute dys n°1) : « je sui »→suis, « nous avon »→avons, « vous ete »→êtes
+# ---------- Auxiliaire être/avoir MAL ORTHOGRAPHIÉ (faute dys n°1) : « je sui »→suis, « nous avont »→avons, « vous ete »→êtes
 # Après un sujet-pronom net, si le mot n'est PAS une forme valide accordée mais est à ≤2 éditions d'UNE forme être/avoir
 # accordée → on corrige. ABSTENTION si ambigu entre être et avoir (anti-swap) ou si c'est déjà un autre verbe valide.
 def _lev(a, b):
@@ -3017,7 +3017,7 @@ def rule_accord_sv_noun(T, i):
     # « allégations FAITES »→font, « PUIS »→peut ×3, titre « CHANTONS sous la pluie »→chante) ; et son
     # rappel unique était nul : les -ais/-ais (étais, arrivais) sont DÉJÀ couverts par rule_ais_ait.
     # Le créneau verbal libre reste en ceinture ; les gardes de structure s'appliquent inchangées.
-    # NB : les possessifs (« ma sœur vas ») étaient DÉJÀ acceptés (NUM_DET les contient).
+    # NB : les possessifs (« mon frère vas ») étaient DÉJÀ acceptés (NUM_DET les contient).
     _p12 = (not p3) and deacc(T[i].lower()) in ('es', 'as', 'vas') \
         and _clause_no_finite_verb(T, i, i + 1 if (i + 1 < len(T) and _is_ppl(T[i + 1])) else None)
     if not p3 and not _p12: return None
@@ -3389,7 +3389,7 @@ def rule_accord_sv_relatif(T, i):
         mm = det - 1                                                        # token AVANT le déterminant (adverbes antéposés sautés)
         while mm > lo and tg[mm] == 'ADV': mm -= 1
         if mm >= lo and deacc(T[mm].lower()) in PREP: return None           # « de CE type qui », « à LA musique qui » : GN = COMPLÉMENT → antécédent réel plus à gauche → abstention
-        if mm >= lo and deacc(T[mm].lower()) in ('et', 'ou', 'ni'): return None   # antécédent COORDONNÉ (« le tram ET le bus qui », « … et secondairement le maïs qui ») → pluriel ambigu → abstention
+        if mm >= lo and deacc(T[mm].lower()) in ('et', 'ou', 'ni'): return None   # antécédent COORDONNÉ (« le tram ET le métro qui », « … et secondairement le maïs qui ») → pluriel ambigu → abstention
         dd = deacc(T[det].lower())
         if dd in NUM_DET:      nb = 'p' if NUM_DET[dd] == 'pl' else 's'
         elif dd in _QUANT_PL:  nb = 'p'
@@ -3919,7 +3919,7 @@ def rule_sujet_flexion(T, i):
     #    (« nous sommes ravis », « vous êtes finis »). Elle n'existait pas : c'est le TAGGER (ADJ) qui protégeait ces phrases —
     #    une protection accidentelle, que l'ouverture ci-dessous aurait emportée (« nous sommes ravissons »). Miroir JS.
     #    ⚠️ À DISTANCE, seulement à travers un mot TRAVERSABLE : entre l'auxiliaire et le participe il n'y a jamais un PRONOM
-    #    SUJET. La 1re version bloquait i-2 sans condition et le pipeline a perdu « est il vien sasoir » → vient (un réparé).
+    #    SUJET. La 1re version bloquait i-2 sans condition et le pipeline a perdu un réparé (une inversion « est-il » devant un verbe mal écrit).
     if i >= 1 and deacc(T[i-1].lower()) in FULL_AUX: return None
     if i >= 2 and deacc(T[i-2].lower()) in FULL_AUX and deacc(T[i-1].lower()) in _PP_MID: return None
     # ⭐ 12/09/2026 — LE TAGGER EST CONTAMINÉ PAR LA FAUTE (même piège que rule_ce_se) : « nous finis », « nous auras »,
@@ -3972,7 +3972,7 @@ def rule_sujet_flexion(T, i):
     # LE PALIER SUIT LA FIABILITÉ DU SUJET : pronom → ROUGE ; nominal → ORANGE (règle jumelle ci-dessous).
     # Mesuré le 14/09 sur le corpus dys : en rouge, le sujet nominal fait 3 corrections justes sur 17.
     if src != ('pron' if _ROUGE else 'nom'): return None
-    # ⛔ QUAND C'EST LE SUJET QUI EST FAUTÉ, NE PAS TOUCHER AU VERBE. « a forse il sont dégouter » : le dys a
+    # ⛔ QUAND C'EST LE SUJET QUI EST FAUTÉ, NE PAS TOUCHER AU VERBE. « a force il sont énerver » : le dys a
     # écrit « il » pour « ils » — `rule_il_ils` répare le SUJET (rouge). Si on corrige aussi le verbe, on obtient
     # « ils est » : deux rouges qui se contredisent, et un mot juste cassé (mesuré : casses 14 → 16). Les formes
     # de `_V3PL_SURE` (sont/ont/vont/font) sont des 3e du PLURIEL non ambiguës : après un « il »/« elle »
@@ -4094,8 +4094,8 @@ def rule_det_gender(T, i):
     if hi == i + 1 and nd in DET_SKIP: return None                 # adverbe/modifieur (pas le nom-tête) sans saut → abstention (FP)
     if deacc(T[hi].lower()) in _EPICENE_NOUN: return None          # NOM ÉPICÈNE (médecin/juge/artiste…) → 2 genres valides → ne pas forcer le déterminant
     # ⛔ ANCRE : LE POSTERIOR LEXICAL NE SUFFIT PAS, IL FAUT LE TAGGER (23/08, gold dys réel).
-    # « une tré faible exportation » → « un » : `tré` est un VRAI mot français (0,038/M) et son
-    # posterior dit NOM à 100 % — mais le nom-tête est `exportation`, et `tré` n'est qu'un « très »
+    # « une tré belle maison » → « un » : `tré` est un VRAI mot français (0,038/M) et son
+    # posterior dit NOM à 100 % — mais le nom-tête est `maison`, et `tré` n'est qu'un « très »
     # mal accentué (1 435/M, soit 37 000× plus fréquent). Le posterior est LEXICAL : il ne sait pas
     # où le mot se trouve. Le tagger HMM, lui, le dit — il tague `tré` ADJ dans cette position, et
     # NOUN sur tous les cas légitimes (« le babiche »→la, « une problème »→un, « le faute »→la).
@@ -4747,7 +4747,7 @@ def rule_pluriel_son(T, i):
 
 # ⭐ ADJECTIF ANTÉPOSÉ APRÈS DÉTERMINANT PLURIEL (12/09/2026, plan ⑤-a de l'audit). Le plus gros silence du juge est
 # « bon lemme, mauvaise flexion » (329 muets sur 72 productions), et sa première forme est le PLURIEL manquant (-e→-es 99,
-# -∅→-s 34). Parmi eux : « les prochaine demande », « des bonne nouvelle », « les autre console », « les jeune lycéen » —
+# -∅→-s 34). Parmi eux : « les prochaine fêtes », « des bonne idées », « les autre joueurs », « les jeune chats » —
 # l'ADJECTIF antéposé reste au singulier après un déterminant pluriel. Or après un déterminant pluriel NON AMBIGU (classe
 # fermée, audible), un adjectif antéposé (classe fermée, _ADJ_ANTE) est TOUJOURS au pluriel : l'ancre est la même que celle
 # d'« accord pluriel nom », sans le doute du nom (verbe homographe, posterior) — on ne touche PAS au nom ici (il suit par
@@ -4776,7 +4776,7 @@ def rule_adj_ante_plural(T, i):
 # masculin. Ancre = le déterminant FÉMININ non ambigu (une/la/cette/ma/ta/sa) juste avant + une forme d'une liste CLOSE de noms en -ée
 # (la forme écrite est un participe/adjectif masculin, jamais un nom féminin). UD 14 450 : 0 occurrence. Pas de règle pour le paquet A
 # (participes après « je me suis » : le genre de « je » est inconnaissable) ni E (adjectif après nom féminin : « la voiture sur », « la mer
-# sauf », « sa voiture cher » = 3 pièges pour 2 cibles dans le gold — différé).
+# sauf », « sa robe cher » = 3 pièges pour 2 cibles dans le gold — différé).
 _FEM_EE = {'soiré': 'soirée', 'cheminé': 'cheminée', 'fumé': 'fumée', 'vu': 'vue', 'armé': 'armée', 'parti': 'partie', 'entré': 'entrée', 'arrivé': 'arrivée', 'journé': 'journée', 'anné': 'année', 'idé': 'idée', 'pensé': 'pensée', 'allé': 'allée', 'monté': 'montée', 'duré': 'durée', 'matiné': 'matinée', 'poupé': 'poupée', 'dicté': 'dictée', 'rentré': 'rentrée', 'sorti': 'sortie', 'tourné': 'tournée', 'randonné': 'randonnée', 'bouché': 'bouchée', 'poigné': 'poignée', 'vallé': 'vallée', 'rosé': 'rosée', 'plongé': 'plongée', 'traversé': 'traversée', 'levé': 'levée', 'gelé': 'gelée', 'fessé': 'fessée', 'coulé': 'coulée', 'percé': 'percée', 'mêlé': 'mêlée', 'croisé': 'croisée'}
 _DET_FEM_SUR = frozenset(('une', 'la', 'cette', 'ma', 'ta', 'sa'))
 
@@ -4877,12 +4877,12 @@ _SA_NONNOUN = {'je','tu','il','elle','on','ils','elles','nous','vous','y','en','
 # classait « carte enseignante », donc signalée sans suggestion). ORANGE : une virgule d'accent
 # change le sens de la phrase, l'auteur tranche.
 # TROIS CADRES, chacun mesuré à 0 faux positif sur 121 phrases UD correctes contenant « ou » :
-#   F1  « ou » + PRONOM SUJET .................. « ou il été », « ou je serai »
-#   F2  nom de LIEU/TEMPS DÉTERMINÉ + « ou » ... « dans le cas ou », « un garage ou trouve »
-#   F5  INVERSION : « ou » + forme verbale + pronom sujet ... « ou été tu »
+#   F1  « ou » + PRONOM SUJET .................. « ou elle dort », « ou nous irons »
+#   F2  nom de LIEU/TEMPS DÉTERMINÉ + « ou » ... « la ville ou vit », « dans le cas ou »
+#   F5  INVERSION : « ou » + forme verbale + pronom sujet ... « ou vas tu »
 # ⛔ CADRES MESURÉS ET REFUSÉS (les chiffres sont dans la note, pas dans une intuition) :
-#   · « ou » + VERBE CONJUGUÉ : 14 FP/121 — les homographes nom/verbe la tuent (« insolent ou
-#     VIOLENT », « en cour ou A », « le catch ou LUTTE professionnelle »).
+#   · « ou » + VERBE CONJUGUÉ : 14 FP/121 — les homographes nom/verbe la tuent (« rapide ou
+#     COURT », « en classe ou A », « le catch ou LUTTE professionnelle »).
 #   · tête de proposition + verbe (= LE seul cas que couvre LanguageTool, « Ou sont mes affaires ? ») :
 #     2 FP pour +1 faute trouvée. Refusé. On couvre donc PLUS que LT, et autrement.
 #   · le sens inverse « où »→« ou » : trop lâche (« tradition chinoise OÙ la généalogie prime »
@@ -5068,7 +5068,7 @@ def rule_accord_rel_obj(T, i):
     if not r2 or _vnum3(T[i]) != 's': return None                            # cible = verbe 3sg (dir. audible : pluriel manquant)
     if i > 0 and (T[i-1].lower() in NUM_DET or deacc(T[i-1].lower()) in PREP): return None
     if (i >= 1 and deacc(T[i-1].lower()) in FULL_AUX) or (i >= 2 and deacc(T[i-2].lower()) in FULL_AUX): return None
-    if i >= 1 and deacc(T[i-1].lower()) == 'ete' and any(deacc(T[k].lower()).split("'")[-1] in _AVOIR_AUX for k in range(max(0, i-4), i-1)): return None   # ⭐ 12/09/2026 : « n'ont pas été prise en compte » → prisent : après « été » d'un passif composé, T[i] est un PARTICIPE, jamais un verbe fini (« été » est exclu de FULL_AUX à dessein : seul, il vaut « était » mal écrit). Miroir JS.
+    if i >= 1 and deacc(T[i-1].lower()) == 'ete' and any(deacc(T[k].lower()).split("'")[-1] in _AVOIR_AUX for k in range(max(0, i-4), i-1)): return None   # ⭐ 12/09/2026 : « n'ont pas été mise en ligne » → misent : après « été » d'un passif composé, T[i] est un PARTICIPE, jamais un verbe fini (« été » est exclu de FULL_AUX à dessein : seul, il vaut « était » mal écrit). Miroir JS.
     q = None
     for k in range(i-1, -1, -1):
         wk = T[k].lower()
@@ -5178,7 +5178,7 @@ _PPS_MARQUE = re.compile(u'(ée|ées|és|ie|ies|is|ue|ues|us|te|tes|se|ses)$')
 
 def rule_pp_avoir_surnum(T, i):
     """⭐ 12/09/2026 — RÈGLE NEUVE, case vide : l'ACCORD SURNUMÉRAIRE du participe après AVOIR, en ORANGE.
-    « Boeing a signés un contrat » → signé · « nous avons vue notre médecin » → vu · « la France a réussie à se placer » → réussi.
+    « Boeing a signés un contrat » → signé · « ils ont vue leur médecin » → vu · « elle a réussie son examen » → réussi.
     rule_pp_avoir_cod accorde avec un COD ANTÉPOSÉ ; rien ne RETIRAIT une marque injustifiée. On ne tire que sur un TÉMOIN
     d'invariabilité APRÈS le participe (COD qui suit hors complément de temps, partitif, à/de + infinitif) et jamais s'il existe un
     antécédent possible avant l'auxiliaire. Mesuré : 21 pièges muets, UD 2 500 → 1 tir (vraie faute d'UD), gold 18/18 justes.
@@ -5447,15 +5447,15 @@ def rule_qui_pron(T, i):
     pv = deacc(T[i - 1].lower())
     if pv in _QUI_PREP or pv in _SI_SAVOIR: return None                      # « avec qui il est ami » / « je sais qui il est »
     # ⭐ « QUI ON » = « QUI ONT » (mesuré 22/08 sur le gold dys réel : 5 des 36 mots CASSÉS, la plus
-    # grosse famille sur UNE seule règle). Le scripteur dys écrit « on » pour « ont » — « les région QUI ON
-    # une sécurité », « des architectes QUI ON besoin », « tous ceux QUI ON éprouver ». Fusionner en
+    # grosse famille sur UNE seule règle). Le scripteur dys écrit « on » pour « ont » — « les pays QUI ON
+    # un port », « des architectes QUI ON besoin », « tous ceux QUI ON gagner ». Fusionner en
     # « qu'on » DÉTRUIT le « qui » du gold ET masque la vraie faute.
     # DISCRIMINANT : un relatif SUJET a un antécédent PLURIEL — un déterminant/pronom pluriel dans les
     # 3 tokens qui précèdent (les/des/ces… ou ceux/celles). « ce qu'on fait », « je crois qu'on peut »
     # n'en ont pas. On ABSTIENT seulement (jamais de nouvelle suggestion) : la règle on/ont fera le reste
     # quand elle le peut, et rater une correction coûte bien moins que d'en fabriquer une.
     if deacc(T[i + 1].lower()) == 'on':
-        for _k in range(i - 1, max(-1, i - 6), -1):        # fenêtre 5 : « aux chefs d'entreprise africain QUI ON »
+        for _k in range(i - 1, max(-1, i - 6), -1):        # fenêtre 5 : « aux joueurs du club local QUI ON »
             _d = deacc(T[_k].lower())
             if (_d in PLURAL_DET or _d in CARD                # CARD = cardinaux ≥2 (« deux architectes qui on ») — même
                     or _d in ('ceux', 'celles', 'tous', 'toutes', 'plusieurs', 'certains', 'certaines')):
@@ -5703,7 +5703,7 @@ def _pers_slot(lem, t, sl):
 
 
 # ⭐ FLEXION PAR LE CONTEXTE, brique 1 (14/09/2026, consigne de Rem : « ces fautes sont récupérables par le contexte, on a de quoi
-# détecter les types de mots »). « les enfants il RECULER », « la barrière qui PROTÉGER », « la météo il ANNONCER » : un INFINITIF
+# détecter les types de mots »). « les chats il SAUTER », « la barrière qui PROTÉGER », « la radio il ANNONCER » : un INFINITIF
 # juste après un pronom sujet n'existe pas en français — le dys écrit /e/ pour -ait ou -e. Recensé (72 productions) : 9 cas, gold =
 # imparfait 6, présent 2, autre 1 ; UD 14 450 : 1 motif (« sur qui compter » → préposition avant le pronom, exclue). ORANGE (le temps
 # est un jugement : imparfait proposé, présent dans l'astuce) — une faute signalée avec la bonne forme vaut mieux qu'un silence.
@@ -5783,8 +5783,8 @@ def rule_personne_verbe(T, i):
 
 
 _FAIRE_SEMI = set('fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient'.split())   # faire + infinitif (« le fit ramenais » → ramener, 03/09/2026)
-_SEMI_NEG = {'pas', 'plus', 'jamais'}   # ⭐ 12/09/2026 : négation sautée entre le semi-auxiliaire et l'infinitif (« ne voulant plus démaré » → démarrer). Miroir JS _SEMI_NEG.
-_SEMI_AUX = set(('voulant pouvant '   # ⭐ 12/09/2026 : participes présents, jamais ambigus (« la voiture ne voulant plus démarrer ») — « devant » EXCLU (préposition)
+_SEMI_NEG = {'pas', 'plus', 'jamais'}   # ⭐ 12/09/2026 : négation sautée entre le semi-auxiliaire et l'infinitif (« ne voulant plus avansé » → avancer). Miroir JS _SEMI_NEG.
+_SEMI_AUX = set(('voulant pouvant '   # ⭐ 12/09/2026 : participes présents, jamais ambigus (« le vélo ne voulant plus avancer ») — « devant » EXCLU (préposition)
                  'fais fait faisons faites font fit firent faisait faisaient fera feront ferait feraient '
                  'vais vas va allons allez vont allais allait allions alliez allaient irai iras ira '
                  'irons irez iront veux veut voulons voulez veulent voulais voulait voulions vouliez '
@@ -5865,7 +5865,7 @@ def rule_on_ont_sujet_pluriel(T, i):
         if j + 1 <= i and j + 1 < len(_SEG['bb']) and _SEG['bb'][j + 1]: return None
         # RELATIVE : « ou » et « dont » ouvrent une proposition dont « on » est le SUJET
         # (« les endroits ou on va », « les auteurs dont on cite ») -- 2 FP de la batterie de PARITE.
-        # `qui` reste HORS liste : « qui on montrais » est une vraie faute.
+        # `qui` reste HORS liste : « qui on gagné » est une vraie faute.
         if deacc(T[j].lower()).rstrip("'’") in _ON_REL: return None
         if deacc(T[j].lower()) in _ON_DETPL:
             d = j; break
@@ -6006,7 +6006,7 @@ RULES = [('élision inversée', rule_deselide),
          ('infinitif après semi-auxiliaire à vérifier', rule_inf_semi_aux),
          ("j'est/j'ai à vérifier", rule_jest_vig),   # ⭐ 12/09/2026 : les deux lectures incertaines de « j'est » (dans/sur/sous/avec ; mouvement sans objet) → je suis PROPOSÉ
          ('auxiliaire manquant à vérifier', rule_aux_manquant_vig),   # ⭐ 12/09/2026 : « je noté » → j'ai ? (auxiliaire tombé, décision avoir/être de rule_jest)
-         ("c'est/ces à vérifier", rule_cest_ces_vig),   # ⭐ 13/09/2026 : « C'est enfants sont » → ces ? (orange)
+         ("c'est/ces à vérifier", rule_cest_ces_vig),   # ⭐ 13/09/2026 : « C'est chiens sont » → ces ? (orange)
          ('on/ont après un sujet pluriel à vérifier', rule_on_ont_sujet_pluriel),
          ('accord du participe après avoir à vérifier', rule_pp_avoir_surnum),   # ⭐ 12/09/2026 — RÈGLE NEUVE, orange : accord surnuméraire (« a signés un contrat » → signé)
          ('accord du verbe au sujet nominal à vérifier', rule_sujet_flexion_nom),   # ORANGE, famille PROPRE : le sujet NOMINAL (17,6 % en rouge) ne dilue pas la famille voisine, ancrée à 88,9 %   # ROUGE (famille PROPRE, absente de VIG_FAMILIES) : décision de Rem le 14/09/2026
@@ -6204,7 +6204,7 @@ CASES = [
     ("Les jeunes lycéens arrivent", "lycéens", "lycéen", "accord pluriel nom"),
     ("Les nouvelles technologies avancent", "technologies", "technologie", "accord pluriel nom"),
     ("Il a des petits chats noirs", "chats", "chat", "accord pluriel nom"),
-    ("J'avais des bonnes nouvelles", "bonnes", "bonne", "accord adjectif antéposé"),
+    ("J'avais des bonnes idées", "bonnes", "bonne", "accord adjectif antéposé"),
     ("Les autres consoles marchent", "autres", "autre", "accord adjectif antéposé"),
     ("Ils ont des grandes sociétés", "grandes", "grande", "accord adjectif antéposé"),
     ("On voit des nouveaux modèles", "nouveaux", "nouveau", "accord adjectif antéposé"),
@@ -6422,7 +6422,7 @@ CASES = [
     # IDIOME D'AVOIR après sujet pluriel à distance (« Les enfants de Paul on faim » — liste fermée)
     ("mes amis ont raison", "ont", "on", "on/ont"),
     # « a » devant NOM NU (31/08/2026) : avoir exige un déterminant → à ; stop-listes idiomes/latins/unités.
-    ("je suis rentré chez moi à vélo", "à", "a", "a/à"),
+    ("il va au travail à vélo", "à", "a", "a/à"),
     ("un cours à domicile pour tous", "à", "a", "a/à"),
     ("la réunion a lieu demain", "a", "à", "a/à"),                    # 2a = GARDE idiome (« a lieu » ne doit pas devenir à) ; 2b indétectable (à→a hors cadre), miss assumé
     # majuscule : seulement APRÈS un POINT + espace (PAS ! ? … = souvent milieu de phrase : interjection/inversion/suspension ;

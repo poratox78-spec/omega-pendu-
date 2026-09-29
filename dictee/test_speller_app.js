@@ -65,7 +65,7 @@ const SP = globalThis.__sp;
   // désambiguïsation d'accent par POS du contexte
   const el1 = SP.spell('un eleve serieux').find(x => x.word.toLowerCase() === 'eleve');
   if (!el1 || el1.sugg !== 'élève') fail.push('un eleve→élève (nom après dét.) attendu, eu ' + JSON.stringify(el1));
-  const el2 = SP.spell('le niveau est tres eleve').find(x => x.word.toLowerCase() === 'eleve');
+  const el2 = SP.spell('le niveau reste tres eleve').find(x => x.word.toLowerCase() === 'eleve');
   if (!el2 || el2.sugg !== 'élevé') fail.push('tres eleve→élevé (adj après adverbe) attendu, eu ' + JSON.stringify(el2));
   // PARTICIPE APRÈS AUXILIAIRE : le dys écrit le présent (-e) là où l'aux impose le participe (-é) du même verbe
   const mj = SP.spell('il a manje une pomme').find(x => x.word.toLowerCase() === 'manje');
@@ -200,7 +200,7 @@ const SP = globalThis.__sp;
   if (SP.spell('la mer est belle et le fer est chaud').some(x => x.name === 'homophone à vérifier')) fail.push('FP vigilance homophone sur « la mer »/« le fer »');
   // QUALITÉ DES REMPLACEMENTS (audit 07/2026) : le bonus POS/genre ne doit pas promouvoir une graphie polluée du
   // lexique (« trés » N 18/M) contre un rival ≫20× plus fréquent (« très » 1435/M) — ni « jamal » contre « jamais ».
-  const tr1 = SP.spell('une tres bonne note').find(x => x.word.toLowerCase() === 'tres');
+  const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');
   if (!ch1 || ch1.sugg !== 'chère') fail.push('chere→chère (le token fautif « tres » ne doit plus ancrer un genre masculin) attendu, eu ' + JSON.stringify(ch1));
@@ -271,7 +271,7 @@ const SP = globalThis.__sp;
   // paie chez l'utilisateur. Vérifiée en la cassant (un plafond de longueur relevé à 12 dans la
   // génération de candidats faisait passer ce même texte de 8 ms à 196 ms → rouge).
   const TXT_DYS = "Je voulai vous dir que la leson daujourdhui etait tres interesante. Le profeseur a explique " +
-    "lortografe des mots dificiles et jai pri des note. Demain nous auron un contrôle sur les acord " +
+    "lortografe des mots dificiles et jai fini des note. Demain nous auron un contrôle sur les acord " +
     "du participe passe, ce qui me stress un peu car je fait toujour des faute la dessus.";
   SP.spell('amorce');                                    // 1re invocation = chargement paresseux, hors mesure
   const _t = Date.now(); SP.spell(TXT_DYS); const _ms = Date.now() - _t;

@@ -77,10 +77,10 @@ const CAS = [
   { t: "Je suis allé a la plage et j'ai manger des glace.",
     mots: { a: { sugg: 'à', oui: ['remplace par « avait »', '« à » (préposition)'] }, glace: { sugg: 'glaces', oui: ['« des » (pluriel)'] } } },
   { t: 'Il faut que tu fait attention.', mots: { fait: { sugg: 'fais', oui: ['« tu » (singulier)'] } } },
-  { t: 'Je me suis installe ici.', mots: { installe: { sugg: 'installé', oui: ['PARTICIPE', 'installée'] } } },
-  { t: "J'ai commence le travail.", mots: { commence: { sugg: 'commencé' } } },
+  { t: 'Je me suis habitue ici.', mots: { habitue: { sugg: 'habitué', oui: ['PARTICIPE', 'installée'] } } },
+  { t: "J'ai termine le travail.", mots: { termine: { sugg: 'terminé' } } },
   { t: 'Ils ont marche longtemps.', mots: { marche: { sugg: 'marché' } } },
-  { t: 'Les enfants il reculer pour voir.', mots: { reculer: { sugg: 'reculait', oui: ['jamais à l\'infinitif', 'imparfait', 'présent'] } } },
+  { t: 'Les chats il sauter pour jouer.', mots: { sauter: { sugg: 'sautait', oui: ['jamais à l\'infinitif', 'imparfait', 'présent'] } } },
   { t: 'nous sommes allé au cinéma.', mots: { 'allé': { sugg: 'allés', oui: ['« nous » (pluriel)'] } },
     remed: { oui: ['il manque « s » : le participe s’ACCORDE ici'] } },
 
@@ -163,13 +163,13 @@ const CAS = [
     remed: { oui: ['des lettres ont changé de place'], non: ['/s/ → s, ss, c, ç', 'même son'] } },
   { t: 'Il a vu sa soeur.', mots: { soeur: { sugg: 'sœur' } },
     remed: { oui: ['s’écrivent collés ici : « œ »'], non: ['/s/ → s, ss, c, ç', 'é ferme'] } },
-  { t: 'Je parle avec harold demain.', mots: { harold: { sugg: 'Harold' } },
+  { t: 'Je parle avec ludovic demain.', mots: { ludovic: { sugg: 'Ludovic' } },
     remed: { oui: ['nom propre : il commence par une capitale'], non: ['n’est pas dans le dictionnaire'] } },
   // le rapport de Rem : un conseil par faute, et plus de « Stade »
   { t: 'nous ira au parc', mots: { ira: { sugg: 'irons' } },
     remed: { oui: ['« nous » ne prend pas la terminaison de « il »'], non: ['Stade', 'le son est juste'] } },
   // ===== 14/09/2026, lot 2 : le 💡 « C'est X qui commande » (UNE copie, _govHint) et le témoin de famille =====
-  { t: 'nous avons vue notre médecin', mots: { vue: { sugg: 'vu', oui: ['Avec « avoir », le participe ne s’accorde pas avec le sujet'], non: ['« nous » (pluriel) qui commande'] } } },
+  { t: 'ils ont vue leur médecin', mots: { vue: { sugg: 'vu', oui: ['Avec « avoir », le participe ne s’accorde pas avec le sujet'], non: ['« ils » (pluriel) qui commande'] } } },
   { t: 'Un fait divers tragique', mots: { tragique: { sugg: 'tragiques', non: ['« Un » (singulier) qui commande'] } } },   // gouverneur singulier pour une suggestion au pluriel : silence
   { t: 'La commission présidentiel est là', mots: { 'présidentiel': { sugg: 'présidentielle', oui: ['« La » (féminin) qui commande'] } } },   // le genre, plus « (singulier) »
   { t: 'Elle est parti tôt.', mots: { parti: { sugg: 'partie', oui: ['« Elle » (féminin) qui commande'] } } },
@@ -272,7 +272,7 @@ if (ext.indexOf("'impératif (pronom)'") >= 0) NOMS.add('impératif (pronom)');
 if (NOMS.size < 100) fail('extraction des noms de règle : ' + NOMS.size + ' seulement (le motif ne lit plus le moteur ?)');
 const TRIPLES = [];
 for (const n of NOMS) TRIPLES.push([n, 'x', 'y'], [n, 'le', 'la'], [n, 'ou', 'où'], [n, 'jai', "j'ai"]);
-for (const [w, s] of [['harold', 'Harold'], ['soeur', 'sœur'], ['reception', 'réception'], ['jai', "j'ai"], ['ducou', 'du coup'],
+for (const [w, s] of [['ludovic', 'Ludovic'], ['soeur', 'sœur'], ['reception', 'réception'], ['jai', "j'ai"], ['ducou', 'du coup'],
                       ['pome', 'pomme'], ['aujourdhui', 'aujourdhui'], ['aujourdhui', "aujourd'hui"], ['uen', 'une'], ['garcon', 'garçon']])
   for (const n of ['orthographe', 'mot inconnu']) TRIPLES.push([n, w, s]);
 for (const s of ["s'est", 'sais']) TRIPLES.push(['sais/sait', 'sait', s]);

@@ -180,12 +180,12 @@ const CAS = [
   /* ⭐ BON LEMME, MAUVAISE FLEXION — lot 2 (12/09/2026) : le participe rendu par -er → -é est ACCORDÉ quand le contexte le permet
      (l'accord du participe est relu sur la forme corrigée, un pas) ; « été » après avoir, « il » devant « sont », nom sans -s
      derrière un déterminant pluriel, clitique « les » avant avoir, « très » entre l'auxiliaire et le participe. */
-  { txt: 'mon chaton les a lécher sur la figure.', corrigeAttendu: ['lécher', 'léchés'], pourquoi: 'clitique COD « les » avant avoir → pluriel' },
-  { txt: 'ils ont été dégoûter par leur entourage.', corrigeAttendu: ['dégoûter', 'dégoûtés'], pourquoi: '« été » après « ont » : le sujet est celui d’avoir' },
-  { txt: 'il sont dégouter par le système.', corrigeAttendu: ['dégouter', 'dégoutés'], pourquoi: '« il sont » : le -s du pronom est tombé, l’auxiliaire audible est fiable' },
-  { txt: 'ces produit chimique sont appliquer dans la terre.', corrigeAttendu: ['appliquer', 'appliqués'], pourquoi: 'déterminant pluriel + auxiliaire pluriel : le nom a perdu son -s' },
+  { txt: 'mon chien les a garder toute la nuit.', corrigeAttendu: ['garder', 'gardés'], pourquoi: 'clitique COD « les » avant avoir → pluriel' },
+  { txt: 'ils ont été fâcher par leurs voisins.', corrigeAttendu: ['fâcher', 'fâchés'], pourquoi: '« été » après « ont » : le sujet est celui d’avoir' },
+  { txt: 'il sont énerver par le bruit.', corrigeAttendu: ['énerver', 'énervés'], pourquoi: '« il sont » : le -s du pronom est tombé, l’auxiliaire audible est fiable' },
+  { txt: 'ces outil agricole sont ranger dans la grange.', corrigeAttendu: ['ranger', 'rangés'], pourquoi: 'déterminant pluriel + auxiliaire pluriel : le nom a perdu son -s' },
   { txt: 'tout ces produits sont rejeter dans les nappes.', corrigeAttendu: ['rejeter', 'rejetés'], pourquoi: 'auxiliaire pluriel audible' },
-  { txt: 'Cette histoire a était raconter à l’aide de photos.', corrigeAttendu: ['raconter', 'racontée'], pourquoi: '« a était » = a été : le sujet féminin est avant l’auxiliaire avoir' },
+  { txt: 'Cette chanson a était chanter par un enfant.', corrigeAttendu: ['chanter', 'chantée'], pourquoi: '« a était » = a été : le sujet féminin est avant l’auxiliaire avoir' },
   { txt: 'elle a été raconter hier.', corrigeAttendu: ['raconter', 'racontée'], pourquoi: '« a été » : pronom sujet féminin avant avoir' },
   { txt: 'je les ai vus hier.', rien: true, pourquoi: 'CONTRE-GARDE : accord déjà fait' },
   { txt: 'il les a fait venir.', rien: true, pourquoi: 'CONTRE-GARDE : causatif « fait » + infinitif, invariable' },
@@ -279,10 +279,10 @@ const CAS = [
      « réussie » et l'accord du participe n'était jamais consulté. Une correction d'orthographe dont la suggestion fait parler une règle
      orange devient une orange à l'état final. Mesuré dans Chrome : 1 798 textes dys, 9 justes gagnées / 1 perdue ; 2 500 phrases
      correctes, 638 marques avant et après. Phrases inventées sur la structure des cas réels. */
-  { txt: 'La France a réusie à se placer au deuxième rang.', corrigeAttendu: ['réusie', 'réussi'], pourquoi: 'orthographe « réussie » + accord en trop du participe après avoir → « réussi » (le cas dys de la règle de la 0.6.27)' },
+  { txt: 'Elle a aprise la leçon par cœur.', corrigeAttendu: ['aprise', 'appris'], pourquoi: 'orthographe « apprise » + accord en trop du participe après avoir → « appris » (le cas de la règle de la 0.6.27)' },
   { txt: 'Elle s’est marriée à vingt ans.', corrigeAttendu: ['marriée', 'mariée'], pourquoi: 'orthographe « marié » + accord du participe pronominal → « mariée »' },
-  { txt: 'La voiture ne voulant plus démaré, il a appelé un garage.', corrigeAttendu: ['démaré', 'démarrer'], pourquoi: 'orthographe « démarré » + infinitif après « voulant » → « démarrer »' },
-  { txt: 'Les journaux ne trouveron pas de limite.', corrigeAttendu: ['trouveron', 'trouveront'], pourquoi: 'orthographe « trouverons » + accord au sujet nominal → « trouveront »' },
+  { txt: 'Le vélo ne voulant plus avansé, il est descendu.', corrigeAttendu: ['avansé', 'avancer'], pourquoi: 'orthographe « avancé » + infinitif après « voulant » → « avancer »' },
+  { txt: 'Les élèves ne chanteron pas ce soir.', corrigeAttendu: ['chanteron', 'chanteront'], pourquoi: 'orthographe « chanterons » + accord au sujet nominal → « chanteront »' },
   { txt: 'Nous avons réusi notre examen.', corrigeAttendu: ['réusi', 'réussi'], pourquoi: 'CONTRE-GARDE : l’orthographe rend déjà la bonne forme, la chaîne ne la change pas' },
   /* ⭐ AUXILIAIRE MANQUANT après je (12/09/2026) : « je » + participe en -é n'existe pas — orange sur le pronom, décision avoir/être de rJest. */
   { txt: 'Hier je noté le numéro.', corrigeAttendu: ['je', "j'ai"], pourquoi: 'auxiliaire tombé : « j’ai noté » proposé en orange' },
@@ -291,30 +291,30 @@ const CAS = [
   { txt: 'Demain je noté le numéro.', orangeInterdit: 'je', corrigeAttendu: ['noté', 'noterai'], pourquoi: 'CONTRE-GARDE : marqueur de futur → « noterai » (rouge), pas « j’ai »' },
   /* ⭐ LE LEXIQUE ACCEPTAIT LA FAUTE (13/09/2026, muets du pipeline) : « tré » et « quit » sont au lexique du speller (pollution, 0 en
      minuscules sur l'UD) → liste fermée ; « dan » est un mot et un prénom → seulement devant un déterminant, orange devant le/la/les/l'. */
-  { txt: 'Maud est tré ouverte.', corrigeAttendu: ['tré', 'très'], pourquoi: '« tré » n’est pas un mot : très' },
+  { txt: 'Léa est tré contente.', corrigeAttendu: ['tré', 'très'], pourquoi: '« tré » n’est pas un mot : très' },
   { txt: 'Les rondelles quit forment la chaîne.', corrigeAttendu: ['quit', 'qui'], pourquoi: '« quit » n’est pas un mot français : qui' },
   { txt: 'Il finit sa vie dan une maison.', corrigeAttendu: ['dan', 'dans'], pourquoi: '« dan » + une → dans (flag)' },
-  { txt: 'La violence dan le cadre scolaire.', corrigeAttendu: ['dan', 'dans'], pourquoi: '« dan » + le → dans proposé (orange : « dan le regarde » peut être Dan)' },
+  { txt: 'Il reste dan le jardin.', corrigeAttendu: ['dan', 'dans'], pourquoi: '« dan » + le → dans proposé (orange : « dan le regarde » peut être Dan)' },
   { txt: 'Il est ceinture noire troisième dan.', rien: true, orangeInterdit: 'dan', pourquoi: 'CONTRE-GARDE : grade de judo, rien derrière' },
-  /* ⭐ LA NÉGATION SAUTÉE (13/09/2026) : « ne peu » + pas/plus… n'existe pas — le sujet se lit par-dessus « ne ». */
-  { txt: 'Le Japon ne peu pas suffire en nourriture.', corrigeAttendu: ['peu', 'peut'], pourquoi: '« ne peu pas » : pouvoir, 3e personne' },
+  /* ⭐ LA NÉGATION SAUTÉE (13/09/2026) : « ne peu » suivi de pas/plus… n'existe pas — le sujet se lit par-dessus « ne ». */
+  { txt: 'Le moteur ne peu plus tourner.', corrigeAttendu: ['peu', 'peut'], pourquoi: '« ne peu plus » : pouvoir, 3e personne' },
   { txt: 'Il ne mange que peu de pain.', rien: true, pourquoi: 'CONTRE-GARDE : « ne … que peu », l’adverbe' },
   /* ⚠️ FP ROUGE « je ne peux pas » → *puis* (08/09 → 13/09/2026) : la table n'a qu'une forme par case ; les variantes comptent. */
   { txt: 'Je ne peux pas.', rien: true, pourquoi: '« peux » est une 1re personne : jamais *puis*' },
   { txt: 'Je rayerais volontiers cette ligne.', rien: true, pourquoi: '« rayerais » et « raierais » : deux graphies de la même case' },
   /* ⭐ « QUI ON » + NON-VERBE (13/09/2026) : « qui » est déjà sujet ; la fusion « qu'on » était appliquée par défaut devant un nom. */
-  { txt: 'Les régions qui on une sécurité alimentaire sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on une"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on une »' },
+  { txt: 'Les pays qui on un port sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on un"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on un »' },
   { txt: 'Le film qui on voit est long.', interdit: ['qui ont voit'], pourquoi: 'CONTRE-GARDE : « qui on » + verbe conjugué → qu’on, pas « ont »' },
   /* ⭐ MUETS, lot 2 (13/09/2026) : tous → tout (trois cadres étroits), en vacance → vacances, « c'est » + nom pluriel → ces/ses (orange). */
   { txt: 'Tous le monde était content.', corrigeAttendu: ['Tous', 'Tout'], pourquoi: '« tous le monde » : tout' },
   { txt: 'Ils ont tous le droit de venir.', rien: true, pourquoi: 'CONTRE-GARDE : quantifieur flottant' },
   { txt: 'Il part en vacance demain.', corrigeAttendu: ['vacance', 'vacances'], pourquoi: '« en vacance » : vacances' },
-  { txt: 'C’est enfants sont âgés de deux ans.', corrigeAttendu: ["C'est", 'Ces'], pourquoi: '« c’est » + nom pluriel + verbe pluriel → ces (orange)' },
+  { txt: 'C’est chiens sont âgés de trois ans.', corrigeAttendu: ["C'est", 'Ces'], pourquoi: '« c’est » + nom pluriel + verbe pluriel → ces (orange)' },
   /* ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 1 (13/09/2026) : repli phonétique (variantes -er/-é/-ez + mots rares) quand rien d'autre ne propose. */
   { txt: 'Il vit dans une grande sosiéter.', corrigeAttendu: ['sosiéter', 'société'], pourquoi: 'mot inconnu : « sosiéter » sonne « société »' },
-  { txt: 'La population vit sur les litoro.', corrigeAttendu: ['litoro', 'littoraux'], pourquoi: 'mot rare hors de l’index principal : « littoraux »' },
+  { txt: 'La ville longe les litaurau.', corrigeAttendu: ['litaurau', 'littoraux'], pourquoi: 'mot rare hors de l’index principal : « littoraux »' },
   /* ⭐ MOTS SOULIGNÉS SANS SUGGESTION, lot 2 (13/09/2026) : prénom en minuscule, expression collée, mots collés, lettres mélangées. */
-  { txt: "J'ai vu harold au marché.", corrigeAttendu: ['harold', 'Harold'], casse: true, pourquoi: 'prénom écrit en minuscule : sa graphie d’origine' },
+  { txt: "J'ai vu ludovic au marché.", corrigeAttendu: ['ludovic', 'Ludovic'], casse: true, pourquoi: 'prénom écrit en minuscule : sa graphie d’origine' },
   { txt: 'Je viendrai biensur demain.', corrigeAttendu: ['biensur', 'bien sûr'], pourquoi: 'expression figée collée' },
   { txt: "J'aime beaucoupma ville.", corrigeAttendu: ['beaucoupma', 'beaucoup ma'], pourquoi: 'deux mots collés' },
   { txt: 'Il fait tooujousr beau ici.', corrigeAttendu: ['tooujousr', 'toujours'], pourquoi: 'lettres mélangées' },
@@ -333,13 +333,13 @@ const CAS = [
   { txt: 'il faut qu’il rende le livre.', rien: true, pourquoi: '« rende » 3e du singulier existe (cellule réparée)' },
   /* ⭐ BON LEMME, MAUVAISE FLEXION — lot 1 (12/09/2026) : sept extensions LOCALES de règles existantes, mesurées une à une sur les 41 rouges
      du gold dys qui réécrivaient la faute vers une AUTRE forme du bon mot. Aucune règle neuve. */
-  { txt: 'je suis disponible dès que vous souhaiterai.', corrigeAttendu: ['souhaiterai', 'souhaiterez'], pourquoi: 'le TEMPS ÉCRIT est gardé : futur 2e pl., pas le présent « souhaitez »' },
-  { txt: 'la France a réussi a se placer.', interdit: ['placé'], pourquoi: '« a » + clitique + verbe est un « à » : la garde a/à vaut à distance, « placer » ne bouge pas' },
+  { txt: 'je t’appelle dès que vous arriverai.', corrigeAttendu: ['arriverai', 'arriverez'], pourquoi: 'le TEMPS ÉCRIT est gardé : futur 2e pl., pas le présent « arrivez »' },
+  { txt: 'l’équipe a réussi a se qualifier.', interdit: ['qualifié'], pourquoi: '« a » + clitique + verbe est un « à » : la garde a/à vaut à distance, « placer » ne bouge pas' },
   { txt: 'il suffit d’utilisé un bateau.', corrigeAttendu: ["d'utilisé", "d'utiliser"], pourquoi: 'la préposition ÉLIDÉE vit dans le token → infinitif' },
   { txt: 'même si j’admet que tu es allé là-bas.', corrigeAttendu: ["j'admet", "j'admets"], pourquoi: 'le pronom ÉLIDÉ vit dans le token → 1re personne' },
-  { txt: 'les demandes que j’ai fait passer n’ont pas été prise en compte.', interdit: ['prisent'], pourquoi: 'après « été » d’un passif composé, « prise » est un participe, jamais un verbe fini' },
-  { txt: 'la voiture ne voulant plus démarré, il rentre chez lui.', corrigeAttendu: ['démarré', 'démarrer'], pourquoi: '« voulant » + négation devant l’infinitif (orange), accent du radical repris de la forme écrite' },
-  { txt: 'les gens touché par le sida en Afrique.', corrigeAttendu: ['touché', 'touchés'], pourquoi: '« gens » s’accorde au masculin APRÈS le nom (donnée : gender_acc)' },
+  { txt: 'les photos que j’ai prises n’ont pas été mise en ligne.', interdit: ['misent'], pourquoi: 'après « été » d’un passif composé, « mise » est un participe, jamais un verbe fini' },
+  { txt: 'le vélo ne voulant plus avancé, il rentre chez lui.', corrigeAttendu: ['avancé', 'avancer'], pourquoi: '« voulant » + négation devant l’infinitif (orange), accent du radical repris de la forme écrite' },
+  { txt: 'les gens blessé par la tempête.', corrigeAttendu: ['blessé', 'blessés'], pourquoi: '« gens » s’accorde au masculin APRÈS le nom (donnée : gender_acc)' },
   /* ⭐ j'est/j'ai : plus d'abstention « contexte ambigu » (12/09/2026, consigne Rem) — le voisin tranche j'ai / je suis ; dans/sur/sous/avec
      et le verbe de mouvement sans objet restent une PROPOSITION (orange). Règle existante étendue, aucune règle neuve. */
   { txt: 'j’est de Paris.', corrigeAttendu: ["j'est", 'je suis'], pourquoi: 'de + nom propre = origine → je suis (avant : abstention)' },
@@ -378,7 +378,7 @@ const CAS = [
   { txt: 'Il est situait à l’Est de la ville.', corrigeAttendu: ['situait', 'situé'], pourquoi: 'imparfait écrit là où l’auxiliaire impose le participe' },
   { txt: 'Le centre a été crèaient dans ce but.', corrigeAttendu: ['crèaient', 'créé'], pourquoi: 'cadre « avoir été » + accent du radical repris au présent 3s (« crée » → créé, pas creé)' },
   { txt: 'Elle s’est mariais à vingt ans.', corrigeAttendu: ['mariais', 'mariée'], pourquoi: 'auxiliaire élidé + accord par le sujet-pronom, comme rule_e_ppl' },
-  { txt: 'Quand je me suis levait je me sens bien.', corrigeAttendu: ['levait', 'levé'], pourquoi: 'pronominal ; « lève » → levé et non « lèvé » (radical accentué par le lexique)' },
+  { txt: 'Quand je me suis promenait je me sens bien.', corrigeAttendu: ['promenait', 'promené'], pourquoi: 'pronominal ; « promène » → promené et non « promèné » (radical accentué par le lexique)' },
   { txt: 'Il est certain que tu chantais bien.', rien: true, orangeInterdit: 'chantais', pourquoi: 'CONTRE-GARDE : l’imparfait est ici dans SA proposition, pas après l’auxiliaire' },
   { txt: 'Quand il est parti nous mangions tranquillement.', rien: true, orangeInterdit: 'mangions', pourquoi: 'CONTRE-GARDE : le cadre s’arrête au participe, l’imparfait suivant est juste' },
   { txt: 'Il est situé à l’Est de la ville.', rien: true, pourquoi: 'CONTRE-GARDE : la phrase JUSTE reste muette' },
@@ -423,10 +423,10 @@ const CAS = [
   { txt: 'les racines vont cherchait de petits tuyaux', corrigeAttendu: ['cherchait', 'chercher'], pourquoi: 'semi-auxiliaire + forme conjuguée → infinitif, et non un accord de nombre' },
   { txt: 'le roi le fit ramenais au château', corrigeAttendu: ['ramenais', 'ramener'], pourquoi: '« faire » est un semi-auxiliaire : infinitif attendu' },
   { txt: "elle s'est mariaient à vingt ans", corrigeAttendu: ['mariaient', 'mariée'], pourquoi: "forme conjuguée après « s'est » → participe accordé" },
-  { txt: 'tout en pensent à la plage il bronze', corrigeAttendu: ['pensent', 'pensant'], pourquoi: '« tout en » + forme conjuguée → participe présent' },
+  { txt: 'tout en chantent à la fête il danse', corrigeAttendu: ['chantent', 'chantant'], pourquoi: '« tout en » + forme conjuguée → participe présent' },
   { txt: "alors qu'il reste encore trente minutes", rien: true, orangeInterdit: 'reste', pourquoi: "sujet pronominal élidé « qu'il » : pas une inversion" },
   { txt: 'il remporta six victoires et encaisse trois défaites', rien: true, orangeInterdit: 'encaisse', pourquoi: 'coordination de verbes : même sujet que « remporta »' },
-  { txt: 'les haies qui délimite les champs', corrigeAttendu: ['délimite', 'délimitent'], pourquoi: 'la seule utile du corpus : « délimite » → délimitent (rouge si le sujet en tête se lit, orange OS sinon — l’un ou l’autre, jamais rien)' },
+  { txt: 'les murs qui entoure les champs', corrigeAttendu: ['entoure', 'entourent'], pourquoi: 'le cas utile du corpus, en phrase inventée : « entoure » → entourent (rouge si le sujet en tête se lit, orange OS sinon — l’un ou l’autre, jamais rien)' },
   { txt: 'les chien aboient', attendu: ['chiens'], pourquoi: 'accord pluriel du nom (NOUN_POST chargé)' },
   { txt: 'des oiseau dans le ciel', attendu: ['oiseaux'], pourquoi: 'pluriel en -x (NOUN_POST chargé)' },
   // ② conflit de direction déterminant/nom : UN SEUL sens par désaccord (PR#467)
@@ -665,9 +665,9 @@ async function main() {
         if (!b || b.w < 8 || b.h < 16 || !b.vise) echecs.push(`« ${c.txt} » : la marque d'insertion n'est pas CLIQUABLE (boîte ${JSON.stringify(b)} ; attendu ≥ 8 × 16 px et visée au centre)`); }
       if (c.orangeInterdit) { const mauvais = got.marque.filter(m => m.vig && m.t.trim().toLowerCase() === c.orangeInterdit.toLowerCase());
         if (mauvais.length) echecs.push(`« ${c.txt} » : « ${c.orangeInterdit} » ne devait PAS être marqué (${c.pourquoi}), marques ${JSON.stringify(mauvais.map(m => m.key))}`); }
-      // ⚠️ 13/09/2026 : `casse: true` compare la suggestion À LA CASSE PRÈS — sans lui, « harold » → Harold passait même sans la voie « prénom » :
-      //    la clé de la marque (_ckey) met la suggestion en minuscules, « harold|harold » dans les deux cas — la garde était vide, vu en la
-      //    falsifiant. La casse se lit dans le TITRE de la marque (« clique pour appliquer -> Harold »).
+      // ⚠️ 13/09/2026 : `casse: true` compare la suggestion À LA CASSE PRÈS — sans lui, « ludovic » → Ludovic passait même sans la voie « prénom » :
+      //    la clé de la marque (_ckey) met la suggestion en minuscules, « ludovic|ludovic » dans les deux cas — la garde était vide, vu en la
+      //    falsifiant. La casse se lit dans le TITRE de la marque (« clique pour appliquer -> Ludovic »).
       if (c.corrigeAttendu) { const cible = c.corrigeAttendu[1].toLowerCase(), ok = c.casse
           ? got.marque.some(m => (m.titre || '').indexOf('-> ' + c.corrigeAttendu[1]) >= 0) || got.applique.some(a => a === c.corrigeAttendu[1])
           : got.marque.some(m => (m.key || '').toLowerCase().endsWith('|' + cible)) || got.applique.some(a => a.toLowerCase() === cible);
@@ -790,10 +790,10 @@ async function main() {
       ['participe',   'Il a remplit un sceau tout neuf.', 1],
     ];
     /* Contre-épreuve : ces phrases sont CORRECTES et ne doivent produire AUCUNE correction.
-       « Dans ses statistiques on voit bien. » était corrigé D'OFFICE en « ont » sur la production du
+       « Dans ses carnets on voit bien. » était corrigé D'OFFICE en « ont » sur la production du
        26/08/2026 — un FP ROUGE, donc une violation du FP=0, trouvé en élargissant le crible. */
     const CRIB_NOFIRE = [
-      'Dans ses statistiques on voit bien.',
+      'Dans ses carnets on voit bien.',
       'Les enfants, on mange !',
       'Le chat on le voit souvent.',
       'Je lui parle souvent.',

@@ -223,9 +223,9 @@ const PHRASES = [
   'Marie es gentille', 'La fillette as peur', 'ma soeur vas au marché', 'le train arrivais en retard',
   'Marie chantent bien', 'mes amis on raison',
   'Les articles conformes passent', 'selon les experts on peut venir', 'toi qui as faim', 'tu vas au marché',
-  'Marie est gentille', 'Dans ses statistiques on voit bien',
+  'Marie est gentille', 'Dans ses carnets on voit bien',
   // « a » devant NOM NU (31/08) : cibles + gardes idiomes/latins/anglais/chiffres
-  'je suis rentré chez moi a vélo', 'un cours a domicile pour tous', 'ma soeur va a pied au marché',
+  'il va au travail a vélo', 'un cours a domicile pour tous', 'ma soeur va a pied au marché',
   'la réunion a lieu demain', 'il a besoin de toi', 'a priori tout va bien',
   'Requiem for a Dream le film', 'de 35 a 40 ans', 'le chien a soif ce soir',
   // ⭐ a/à : le garde d'INVERSION ne vérifiait pas ce qu'il nommait (un verbe en i-2 suffisait, sans
@@ -419,9 +419,9 @@ const VIG_PHRASES = PHRASES.concat([
   "ceux qui sont dégoûtés du système partent.", "les amis du voisin partent.",   // contrôles : contracté du/des derrière un participe/nom = complément → silence des deux côtés (12/09)
   "La température la plus froide a été enregistrée hier.",   // contrôle : tête superlative « la plus froide » → silence des deux côtés (12/09, UD 2134)
   "ils ce sont déroulés hier.", "ce sont des amis.",   // ce/se + auxiliaire : le participe tranche (12/09) ; contrôle : groupe nominal → silence
-  'Boeing a signés un contrat.', 'nous avons vue notre médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
+  'Boeing a signés un contrat.', 'ils ont vue leur médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
   'Hier je noté le numéro.', 'quand je retourné à la maison.', 'je fatigué ce soir.', 'Ai-je noté le numéro ?', 'Demain je noté le numéro.',   // auxiliaire manquant (orange) ; contrôles : inversion, futur (rouge ailleurs)
-  "C'est enfants sont âgés de deux ans.", "leur père demande à c'est enfants de s'asseoir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
+  "C'est chiens sont âgés de trois ans.", "leur mère parle à c'est parents de sortir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
   'les enfants dorment.', 'il est parti hier.', 'nous mangeons la soupe.']);                          // contrôles : rien
 const appVig = p => { const t = String(p).replace(/[’ʼ]/g, "'"); const rouge = new Set(corr(t).map(f => f.i)); globalThis.__segOn(t); const T = globalThis.__toks(t), out = [];
   for (let i = 0; i < T.length; i++) if (!rouge.has(i)) for (const [fn, nom] of VIG_ORD) { const s = globalThis.__vig[fn](T, i); if (s) { out.push([i, T[i], s, nom]); break; } }

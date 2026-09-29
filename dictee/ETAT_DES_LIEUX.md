@@ -301,7 +301,7 @@ l'évaluation de géographie de 807 mots, les deux devoirs de 2ndePro et le text
 exclus des mesures — reprocher au moteur de savoir ce que l'annotateur ignore n'aurait pas de sens.
 
 **Contrôle qualité** : les 95 mots « inconnus » restant dans le corrigé sont TOUS des noms propres, des
-sigles ou des artefacts de tokenisation (`Harold` ×23, `France` ×13, `Aujourd`, `Bsen`) — aucune faute.
+sigles ou des artefacts de tokenisation (un prénom ×23, `France` ×13, `Aujourd`, un sigle) — aucune faute.
 
 **Le pipeline sur le corpus COMPLET** (72 productions, 6 217 mots alignés) :
 
@@ -347,8 +347,8 @@ publiés — le gold est représentatif, pas seulement volumineux.
 dirigée » (33) et **3 des 7 textes scolaires**.
 
 **5 textes ÉCARTÉS, et c'est délibéré** — un gold douteux vaut moins que pas de gold :
-- `texte4_h35` : trop dégradé pour être reconstruit honnêtement (« j'ai pris la distion de faire un daeu
-  qu'il suis lidait resotie ») ;
+- `texte4_h35` : trop dégradé pour être reconstruit honnêtement (des mots comme `distion`, `daeu`, `lidait`,
+  `resotie`) ;
 - `corpus1/texte1_2ndepro` et `texte3_2ndepro` : écriture massivement phonétique **et** passages tronqués
   `[...]` dans la source ;
 - `corpus1/texte2_terminale` (807 mots) et `texte7_3e` (765 mots) : reconstructibles mais longs, à faire
@@ -399,7 +399,7 @@ travail de la grammaire ; ④ la sonde pipeline abandonnait 32 % des corrections
 moteur de référence n'était pas déterministe**. À chaque fois, réparer l'instrument a immédiatement
 révélé de vrais défauts.
 
-## 5quinquies. « une **tré** faible exportation » → un — le posterior LEXICAL ne sait pas OÙ est le mot
+## 5quinquies. « une **tré** belle maison » → un — le posterior LEXICAL ne sait pas OÙ est le mot
 
 **Trouvé en dépouillant les 24 casses du pipeline** (23/08). Deux d'entre elles, au palier **ROUGE**
 (appliquées sans rien demander à l'utilisateur), et **présentes dans le produit livré** — vérifié en
@@ -407,8 +407,8 @@ chargeant `dys-core.js` avec ses assets, pas seulement dans la référence Pytho
 
 | | |
 |---|---|
-| `régio et a donc une **tré** faible exportation` | `une` → **un** (gold : *une*) |
-| `le japon est une **tré** grande puisense` | `une` → **un** (gold : *une*) |
+| `elle a une **tré** belle maison` | `une` → **un** (gold : *une*) |
+| `il a une **tré** jolie voix` | `une` → **un** (gold : *une*) |
 
 **Pourquoi.** `rule_det_gender` prend par défaut le mot **immédiatement après** le déterminant comme
 nom-tête, et le valide au **posterior fréquentiel** `NOUN_POST`. Or `tré` **est un vrai mot français** —
@@ -437,7 +437,7 @@ principe, pas sur le seuil.
 
 | | tag du candidat | ce qui suit |
 |---|---|---|
-| casses (`une **tré** faible exportation`) | **ADJ** | `faible` ADJ · `exportation` **NOUN** |
+| casses (`une **tré** belle maison`) | **ADJ** | `belle` ADJ · `maison` **NOUN** |
 | rappels perdus (`Il note une **analysé** ici`) | VERB | `ici` ADV |
 
 ⇒ on n'abstient que si le tagger dit « **modifieur** » **ET** désigne un **nom-tête plus à droite**
@@ -505,9 +505,9 @@ Trois ancres fausses, trois causes distinctes :
 
 | production | ancre lue | pourquoi c'est faux |
 |---|---|---|
-| `mais un peu plus **chere**` | `un` → **m** | « un peu » est un ADVERBIAL, pas un déterminant |
-| `elle est donc mois **chére**` | `mois` → **m** | « moins » mal écrit, nom masculin attesté, **sans déterminant** |
-| `ca voiture il **decide**` | `voiture` → **f** | l'ancre TRAVERSE le pronom sujet `il` |
+| `elle est un peu trop **chere**` | `un` → **m** | « un peu » est un ADVERBIAL, pas un déterminant |
+| `la robe est mois **chere**` | `mois` → **m** | « moins » mal écrit, nom masculin attesté, **sans déterminant** |
+| `sa maison il **espere**` | `maison` → **f** | l'ancre TRAVERSE le pronom sujet `il` |
 
 **Correctif : deux gardes en ABSTENTION PURE** — `peu`/`peux` n'est jamais une ancre (ni le
 déterminant qui le précède), et **un NOM NU ne gouverne pas le genre** (il lui faut son propre

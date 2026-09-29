@@ -276,8 +276,8 @@ if __name__ == '__main__':
     if autres and LEX:
         # ⚠️ NETTOYAGE OBLIGATOIRE AVANT DE LIRE LE CHIFFRE. Le premier passage donnait 12,5 %, soit
         # PLUS que le taux de fautes total des dictées (19,8 % dont 6 % de non-mots) — incohérent,
-        # donc suspect. Lecture des cas : les « non-mots » les plus fréquents étaient `harold`(23),
-        # `afrique`(16), `france`(12), `maud`, `sony`, `bouddah`, plus les nombres `1960`, `30`, `70`.
+        # donc suspect. Lecture des cas : les « non-mots » les plus fréquents étaient un prénom (23),
+        # `afrique`(16), `france`(12), deux autres noms propres, `bouddah`, plus les nombres `1960`, `30`, `70`.
         # Des NOMS PROPRES et des CHIFFRES, pas des fautes. On retire ce qui est objectivement
         # retirable ; le résidu de noms propres non capitalisés reste et est annoncé comme tel.
         nt = nn = 0

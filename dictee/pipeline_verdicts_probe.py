@@ -5,7 +5,7 @@ POURQUOI. `dys_pipeline_probe` donne des TOTAUX (réparés, cassés, appliqués 
 changé, et deux mouvements opposés s'annulent en silence. Le 12/09, la garde auxiliaire du lot « couverture conjugaison » a fait
 tomber les réparés de 325 à 324 : ni le juge (0 famille), ni l'UD (liste identique), ni les parités ne l'ont vu. Cet instrument
 imprime un VERDICT par (texte, index, mot) et compare deux états du moteur — il a nommé le cas en un run :
-« est il vien sasoir » → vient, perdu parce que la garde lisait l'auxiliaire en i-2 sans voir le PRONOM SUJET intercalé.
+une inversion « est-il » devant un verbe mal écrit, perdue parce que la garde lisait l'auxiliaire en i-2 sans voir le PRONOM SUJET intercalé.
 
   python3 dictee/pipeline_verdicts_probe.py avant.json            # état courant du dépôt
   git stash push -- dictee/correcteur_probe.py                     # (ou git checkout d'un autre état)

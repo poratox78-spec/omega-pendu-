@@ -79,7 +79,7 @@ def main():
                 py_s = (u'∅' if got == u'' else got) if got is not None else u'—'
                 js_raw = f.get('sugg') or u''
                 # ⚠️ 13/09/2026 : « sans suggestion » = la suggestion EST le token, à la casse près comprise. Une suggestion qui ne change
-                #    que la casse (« harold » → Harold, lot 2) est une suggestion ; la comparer sans casse la faisait passer pour ∅.
+                #    que la casse (« ludovic » → Ludovic, lot 2) est une suggestion ; la comparer sans casse la faisait passer pour ∅.
                 js_s = u'∅' if (not js_raw or js_raw == T[i]) else js_raw
                 if py_s.lower() != js_s.lower():
                     div.append({'tok': T[i], 'js': js_s, 'js_tier': u'inconnu',

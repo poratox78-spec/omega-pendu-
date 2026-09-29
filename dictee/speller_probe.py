@@ -319,8 +319,8 @@ def _voyelle_mangee(sp, d):
 
 class Speller:
     # ⚠️ ALIGNÉ SUR LE PRODUIT le 06/09/2026 : `DET_G` (dys-core.js l.1331, miroir app) ne contient NI « du » NI « au ».
-    # La référence les avait en plus, et ça se voyait au PALIER dès que contexte-first est porté : « au boulo »,
-    # « du marcketing », « au échenge » AFFIRMÉS ici (flag) là où le produit ne fait que PROPOSER (vigilance) —
+    # La référence les avait en plus, et ça se voyait au PALIER dès que contexte-first est porté : « boulo »,
+    # « marcketing », « échenge » AFFIRMÉS ici (flag) là où le produit ne fait que PROPOSER (vigilance) —
     # 3 des 5 désaccords nouveaux vus ROUGES par palier_gold_probe. Même geste que #665 (POS attendu).
     DET_G = {'un':'m','une':'f','le':'m','la':'f','ce':'m','cet':'m','cette':'f',
              'mon':'m','ma':'f','ton':'m','ta':'f','son':'m','sa':'f','quel':'m','quelle':'f'}
@@ -344,7 +344,7 @@ class Speller:
     def __init__(self):
         self.WORDS, self.FREQ, self.D2A, self.PHON, self.POS = load_lexicon()
         self.PRENOMS_L = set()                                  # prénoms en MINUSCULE (protection, cf. correct_token)
-        self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« harold » → Harold, miroir JS PRENOMS)
+        self.PRENOMS_C = set()                                  # ⭐ 13/09/2026 : graphie d'ORIGINE (« ludovic » → Ludovic, miroir JS PRENOMS)
         try:
             with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'prenoms_genre.tsv'), encoding='utf-8') as _fp:
                 for _l in _fp:
@@ -363,7 +363,7 @@ class Speller:
         # ⭐ TABLES DE GENRE DU PRODUIT (09/09/2026, 9e maillon de « la référence décrit le produit ») — les mêmes assets que
         # dys-core.js charge (`_applyVdc` : g = GENDER_MAP, gn = GENDER_PURE, a = ADJP ; `_applyGenderRelaxed` complète
         # GENDER_PURE). La référence lisait ses propres tables Lexique4 (cgram_adj / cgram_gender) : même logique, tables
-        # différentes — « la vu panden » : le produit ne connaît pas de genre PUR pour « vu » et remonte à « la » (f), la
+        # différentes — « vu » après « la », devant un mot inconnu : le produit ne connaît pas de genre PUR pour « vu » et remonte à « la » (f), la
         # référence lisait « vu » = m dans cgram_gender et gardait pendant là où le produit promeut pendante.
         self.GMAP, self.GPURE, self.ADJP = {}, {}, {}
         try:
@@ -466,7 +466,7 @@ class Speller:
             t = deacc(toks[j].lower())
             if t in self.COPULA: continue
             if t in CTX_STOP: return None                     # frontière de proposition (« un chien QUI aboit ») : le genre de « un » ne gouverne plus
-            # ⛔ « UN PEU » N'EST PAS UN DÉTERMINANT (23/08, gold dys réel). « mais un peu plus chere » :
+            # ⛔ « UN PEU » N'EST PAS UN DÉTERMINANT (23/08, gold dys réel). « elle est un peu trop chere » :
             # le `un` de « un peu » était lu comme un déterminant MASCULIN, et la bascule d'accord
             # d'adjectif retournait `chère` (qui avait pourtant GAGNÉ le classement, priorité 2) en
             # `cher`. Le mot juste était trouvé puis DÉFAIT par une ancre adverbiale.
@@ -474,7 +474,7 @@ class Speller:
                                         and deacc(toks[j + 1].lower()) in ('peu', 'peux')): continue
             if t in self.DET_G: return self.DET_G[t]
             if toks[j].lower().replace('œ', 'oe').replace('æ', 'ae') not in self.WORDS: continue   # ancre de genre = un VRAI mot écrit : un token abîmé
-            # ⛔ UN NOM NU NE GOUVERNE PAS LE GENRE (23/08, gold dys réel). « elle est donc mois chére » :
+            # ⛔ UN NOM NU NE GOUVERNE PAS LE GENRE (23/08, gold dys réel). « la robe est mois chere » :
             # `mois` (= « moins » mal écrit, mais nom MASCULIN attesté) servait d'ancre et retournait
             # `chère` en `cher`. Un nom ne gouverne un attribut que s'il est lui-même DÉTERMINÉ ; sans
             # déterminant c'est un adverbe, un fragment, ou un mot d'une autre construction. Abstention
@@ -487,7 +487,7 @@ class Speller:
     def _ctx_number(self, toks, idx):
         if not toks or idx is None: return None
         back, bdist = None, 99
-        for j in range(idx - 1, max(-1, idx - 5), -1):      # 4 tokens en arrière, comme sCtxNumber (j>=idx-4) — la référence n'en lisait que 3 (09/09/2026 : « une réponse favorable. Veuillez aggrée »)
+        for j in range(idx - 1, max(-1, idx - 5), -1):      # 4 tokens en arrière, comme sCtxNumber (j>=idx-4) — la référence n'en lisait que 3 (09/09/2026 : « aggrée » quatre mots après « une »)
             t = deacc(toks[j].lower())
             if t in self.DET_NUM: back, bdist = self.DET_NUM[t], idx - j; break
         if back is not None and bdist == 1: return back      # déterminant COLLÉ = preuve la plus forte
@@ -589,7 +589,7 @@ class Speller:
             if deacc(fc) in self.CONJ_F: return ('auto', fc)
         # ⛔ PRÉNOM ÉCRIT EN MINUSCULE (22/08/2026) — mesuré sur le PIPELINE (`dys_pipeline_probe.py`).
         # La garde « nom propre » existante exige une MAJUSCULE hors début de phrase : elle ne protège
-        # donc RIEN chez un scripteur dys, qui n'en met pas. Mesuré : « isis » → « ici ». La liste des
+        # donc RIEN chez un scripteur dys, qui n'en met pas. Mesuré : un prénom en minuscule → « ici ». La liste des
         # prénoms EXISTE DÉJÀ (`prenoms_genre.tsv`, 8 729 entrées, Wiktionnaire CC BY-SA, chargée par
         # les 3 moteurs pour l'accord) — on la RÉUTILISE au lieu d'en ajouter une (doctrine §5).
         # Risque quasi nul : la garde ne s'applique qu'à un token DÉJÀ inconnu du lexique de 211 k
@@ -781,7 +781,7 @@ class Speller:
             if bs is not None:
                 w1 = bs; (p1, f1) = cands[w1]
         if tok[:1].isupper() and deacc(w1) != d: return None    # mot capitalisé : SEULE la restauration d'accent (évite « Nathalie »→« natalité » : nom propre)
-        # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il decide » → décide, pas décidé. Sujet pronom
+        # ⭐ PRÉSENT APRÈS PRONOM SUJET (13/09/2026, décalque du produit) : « il espere » → espère, pas espéré. Sujet pronom
         # (clitiques traversés) sans auxiliaire ni copule → quand le mot nu a les deux accentuations, c'est le présent (-e).
         # AVANT la bascule de genre ci-dessous, qui lisait « la voiture » deux mots plus haut et rendait « décidée ».
         sbj = False
@@ -1084,7 +1084,7 @@ class Speller:
         return out
 
     # `_sentence_starts` retirée le 10/09/2026 : le produit ne passe atStart qu'au premier token du TEXTE (spellText : i===0) ;
-    # la référence acceptait la majuscule à chaque début de PHRASE (« … fumant. Enerver il pousse » → Énerver auto, produit muet).
+    # la référence acceptait la majuscule à chaque début de PHRASE (« Enerver » en tête de phrase → Énerver auto, produit muet).
 
 def main():
     if not os.path.exists(LEX): print(f"Lexique introuvable ({LEX})"); return 1

@@ -31,7 +31,7 @@
   (880/880 le 10/09, palier « inconnu » compris), gardé par `palier_gold_probe.py` — la série « la référence décrit le
   produit » (#659 → #679, dix maillons) est close : 286/14 est le POINT, plus une borne (hors accord : 1, une autre famille).
   **Accents comptés à part depuis le 12/09** (le juge désaccentue) : 274 fautes d'accent seul, 174 réparées (64 %), 1 cassé
-  (ambigu : « se manifestent a un cocar ») — les 2 casses a/à réparées le 12/09 (gardes de `vlike`).
+  (ambigu : « a » avoir ou à selon la lecture du mot d'avant, mal écrit) — les 2 casses a/à réparées le 12/09 (gardes de `vlike`).
   C'est LUI qui pilote les décisions : les mesures par couche mentent sur le produit.
 - Garde cardinale : **FP=0 sur batterie** — un rouge s'applique seul, un orange n'agit qu'au clic ; casser un mot juste est la seule vraie faute.
   À l'échelle : 1,36 % de phrases correctes flaggées (UD 2 500, plafond CI 3 %) — mesuré le 12/09/2026 (1,40 % du 03/09 au 12/09).
