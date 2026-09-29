@@ -2465,7 +2465,7 @@ _TLD_CAP = {'com', 'net', 'org', 'fr', 'io', 'co', 'eu', 'de', 'uk', 'be', 'ca',
 
 def _seg_info(text):
     import re
-    ss, bb, hy, cap, dig, prev_end = [], [], [], [], [], 0
+    ss, bb, hy, cap, dig, raw, prev_end = [], [], [], [], [], [], 0
     for k, m in enumerate(re.finditer(r"[A-Za-zÀ-ÿœŒ']+", text)):
         gap = text[prev_end:m.start()]
         s = any(c in gap for c in '.!?…')                        # début de phrase = APRÈS . ! ? (pas le 1er token : un fragment ne se capitalise pas)
@@ -2475,9 +2475,10 @@ def _seg_info(text):
         _dom = ('.' in gap and not any(c.isspace() for c in gap) and m.group().lower() in _TLD_CAP)   # « .net/.com » collé (point de domaine, pas de fin de phrase) → jamais capitaliser le TLD
         _capp = ('.' in gap and any(c.isspace() for c in gap))   # MAJUSCULE = seulement après un POINT suivi d'une espace ; PAS ! ? … (souvent milieu de phrase : interjection « Ah! comme », inversion « viendra-t-il? je », suspension « … », = quasi 100 % de FP mesurés banc OQLF/BDL) ni un point de DOMAINE collé « oqlf.gouv » (pas d'espace)
         cap.append(_capp and '..' not in gap and not any(c.isdigit() for c in gap) and not _dom)   # MAJUSCULE : vraie fin de phrase (point + espace) — pas une ellipse « .. », un point de nombre/décimale, ni un point de DOMAINE (URL)
+        raw.append(m.group())                                    # ⭐ 28/09/2026 : le mot tel que l'AUTEUR l'a écrit (les règles voient les tokens nettoyés par l'orthographe)
         dig.append(any(c.isdigit() for c in gap))                # un NOMBRE (supprimé par toks) précédait ce token : « le 25 mars », « le 100 mètres » → écran, le déterminant ne gouverne pas ce nom
         prev_end = m.end()
-    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig}
+    return {'ss': ss, 'bb': bb, 'hy': hy, 'cap': cap, 'dig': dig, 'raw': raw}
 
 
 # ---------- BORNES DE PROPOSITION PRÉDITES (canal « pb », 31/08/2026) ----------
@@ -5131,7 +5132,8 @@ def rule_cetait_etait(T, i):
 
 
 _AVOIR_CONJ = {'a', 'as', 'ont', 'ai', 'avons', 'avez', 'avait', 'avais', 'avaient',
-               'aura', 'auront', 'aurait', 'auraient', 'eut', 'eurent'}
+               'aura', 'auront', 'aurait', 'auraient', 'eut', 'eurent',
+               'avoir', 'ayant'}   # ⭐ 28/09/2026 : l'infinitif et le participe présent aussi (« après avoir prit », « ayant fais »)
 _PPS_AVOIR = set('ai as a avons avez ont avais avait avions aviez avaient aurai auras aura aurons aurez auront aurais aurait aurions '
                  'auriez auraient aie aies ait ayons ayez aient eus eut eurent'.split())
 _PPS_MID = {'ne', 'n', 'pas', 'plus', 'jamais', 'deja', 'bien', 'toujours', 'aussi', 'encore', 'souvent', 'vraiment', 'enfin'}
@@ -5196,21 +5198,63 @@ def rule_pp_avoir_surnum(T, i):
     return _keepcase(w, base)
 
 
+# ⭐ 28/09/2026 — « LA MÊME CHOSE POUR ONT » (Rem). La règle ne voyait que la consonne finale ÔTÉE (grandit → grandi). Même fait,
+# même son, quand la consonne muette est ÉCHANGÉE : après l'auxiliaire avoir, une forme CONJUGUÉE n'a rien à faire — fais → fait,
+# mit → mis, prit → pris, dis → dit, écris → écrit, conduis → conduit, lut → lu, dut → dû ; et « était » → été (« il a été »).
+# Mesuré (labo onde/apres_avoir_morpho.py) : UD 14 450 phrases correctes, 4 tirs = 4 vraies fautes d'UD (« la pose a était
+# parfaite », « j'ai fais appel », « m'a permit », « a réagit ») ; gold dys : 0 mot juste touché. Pièges gardés : le A d'un
+# sigle (« la C2A était »), avoir verbe plein dans une relative (« tout ce qu'il a était à elle »).
+_AVOIR_PP_ACC = {'du': u'dû', 'mu': u'mû', 'recu': u'reçu', 'decu': u'déçu', 'apercu': u'aperçu', 'concu': u'conçu', 'percu': u'perçu'}
+_AVOIR_ETAIT = {u'était', u'étais', u'étaient', 'etait', 'etais', 'etaient'}
+# Homophones HORS verbe, ORANGE (tier_of) : « ils ont prix le train » → pris, « nous avons eux de la chance » → eu. Jamais après
+# « a »/« as » seuls (« à prix d'or », « c'est à eux ») sauf « eux » + déterminant (« il a eux un accident ») ; « ils ont eux aussi
+# des droits », « eux-mêmes » : juste.
+_AVOIR_HOMO = {'eux': 'eu', 'prix': 'pris'}
+_AVOIR_HOMO_STOP = {'aussi', 'meme', 'memes', 'seuls', 'seules', 'tous', 'toutes', 'non', 'ni'}
+_AVOIR_EUX_DET = {'un', 'une', 'des', 'du', 'le', 'la', 'les', 'beaucoup', 'peur', 'faim', 'mal', 'raison', 'tort', 'besoin'}
+
+def _avoir_pp(x):
+    d = deacc(x.lower())
+    return d in IRREG_PART or d in _PPL_IRR2 or _is_ppl(x)
+
 def rule_avoir_fini(T, i):
     # avoir + forme FINIE en -it/-is (jamais participe) dont la troncature EST un participe : « elle a grandit »
     # → grandi. La garde « participe tronqué doit exister » rend le flood propre (1 tir = vraie faute UD « a réagit »).
     if i < 1: return None
     w = T[i]
     if w != w.lower(): return None
-    if len(w) < 4 or not re.match(u'^[a-zà-ÿ]+(it|is)$', w): return None
-    pv = T[i - 1].lower().replace(u'’', u"'")
+    pv0 = T[i - 1]
+    pv = pv0.lower().replace(u'’', u"'")
     if "'" in pv: pv = pv.rsplit("'", 1)[1]
     if pv not in _AVOIR_CONJ: return None
-    if not CONJ_F.get(deacc(w)): return None
-    if _looks_ppl(w): return None
-    part = w[:-1]
-    if not _is_ppl(part): return None
-    return part
+    if pv0[-1:] != pv0[-1:].lower(): return None                               # « la C2A était » : le A d'un sigle n'est pas « a »
+    if w in _AVOIR_ETAIT:                                                       # « il a était » → été
+        p2 = T[i - 2].lower().replace(u'’', u"'") if i >= 2 else ''
+        p3 = deacc(T[i - 3].lower()) if i >= 3 else ''
+        if p2.startswith("qu'") or deacc(p2) in ('que', 'qu') or p3 in ('que', 'qu'): return None   # « tout ce qu'il a était à elle » : avoir verbe plein
+        if _SEG is not None and _SEG.get('raw') and i - 1 < len(_SEG['raw']):
+            r0 = _SEG['raw'][i - 1].lower().replace(u'’', u"'")
+            if "'" in r0: r0 = r0.rsplit("'", 1)[1]
+            if r0 != pv: return None                                     # l'auxiliaire vient d'une AUTRE correction (« nai » → « n'ai » par l'orthographe) : ancre non écrite par l'auteur
+        return u'été'
+    if w in _AVOIR_HOMO:                                                        # ORANGE (tier_of) : homophone hors verbe
+        nx = deacc(T[i + 1].lower()) if i + 1 < len(T) else ''
+        if nx in _AVOIR_HOMO_STOP: return None
+        if _SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]: return None      # « eux-mêmes »
+        if pv in ('a', 'as') and not (w == 'eux' and nx in _AVOIR_EUX_DET): return None           # « à prix d'or », « c'est à eux »
+        return _AVOIR_HOMO[w]
+    if len(w) < 3 or not CONJ_F.get(deacc(w)): return None
+    if len(w) >= 4 and re.match(u'^[a-zà-ÿ]+(it|is)$', w) and not _looks_ppl(w) and _is_ppl(w[:-1]):
+        return w[:-1]                                                           # troncature (règle d'origine)
+    if _avoir_pp(w): return None                                                # dit, fait, pris, mis, écrit : déjà participe (test STRICT : _looks_ppl prend « prit » pour un participe)
+    d = deacc(w)
+    for suf in ('es', 's', 'e'):                                                # participe ACCORDÉ (« les tableaux que tu as vus », « qu'il a prises ») : juste, ou l'affaire de l'orange d'accord
+        if d.endswith(suf) and len(d) > len(suf) + 1 and _avoir_pp(w[:-len(suf)]): return None
+    if d[-1:] not in ('s', 't'): return None
+    for c in (w[:-1], w[:-1] + ('t' if d[-1] == 's' else 's')):                # consonne finale MUETTE ôtée ou échangée : même son
+        if len(deacc(c)) >= 2 and _avoir_pp(c):
+            return _AVOIR_PP_ACC.get(deacc(c), c)
+    return None
 
 
 def rule_etre_inf_er(T, i):
@@ -5786,7 +5830,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où',
+VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -5821,6 +5865,8 @@ def tier_of(T, i, name, sugg):
     if name.endswith(u'à vérifier'): return 'vigilance'   # ⭐ 11/09/2026 : une règle « à vérifier » est ORANGE par construction (miroir spellText JS : tier 'vigilance') — nombre du déterminant, etc.
     if name not in VIG_FAMILIES:
         return 'auto'
+    if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
+        return 'vigilance' if deacc(T[i].lower()) in _AVOIR_HOMO else 'auto'
     if name == u'élision inversée':                        # ⭐ 13/09/2026 : rouge seulement là où le mot complet est sûr (cf. _deselide)
         r = _deselide(T, i)
         return 'vigilance' if (r and r[1]) else 'auto'
@@ -5996,6 +6042,10 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Tout ce qu'il a était à elle.", "AVOIR verbe plein dans une relative (ce qu'il a) : « était » est le verbe principal, jamais « été » (28/09/2026)."),
+    ("Ils ont eux aussi des droits.", "« eux aussi » : pronom d'insistance après avoir, pas le participe « eu »."),
+    ("C'est a eux de jouer.", "« a eux » sans déterminant derrière : c'est « à eux », jamais « eu »."),
+    ("La C2A était riche.", "le A d'un sigle n'est pas l'auxiliaire « a » : « était » reste le verbe."),
     # ⭐ PLURIEL PAR LE SON (28/09/2026) — ses silences voulus : « les » PRONOM, infinitif, nombre, nom propre qui continue.
     ("Le vent les porte loin.", "« les » PRONOM devant un verbe conjugué après un nom (sujet possible) : pas de pluriel par le son."),
     ("Il faut les faire tout de suite.", "INFINITIF après « les » pronom : jamais un nom à mettre au pluriel (« les faire » → fers, vu sur UD)."),
@@ -6109,6 +6159,15 @@ CASES = [
     ("Elle a l'âge de raison", "l'âge", "l'age", "accent (âge)"),
     ("C'était une belle journée", "C'était", "C'étais", "étais après c'/s'"),
     ("Elle a grandi très vite", "grandi", "grandit", "participe après avoir"),
+    # ⭐ 28/09/2026 — « la même chose pour ont » : la consonne finale MUETTE échangée (même son, même fait) + « était » ; eux/prix en orange.
+    ("Les élèves ont pris le bus.", "pris", "prit", "participe après avoir"),
+    ("Ils ont fait leurs devoirs.", "fait", "fais", "participe après avoir"),
+    ("Les enfants ont mis leurs bottes.", "mis", "mit", "participe après avoir"),
+    ("Ils ont écrit une lettre.", "écrit", "écris", "participe après avoir"),
+    ("Ils ont dû partir tôt.", "dû", "dut", "participe après avoir"),
+    ("La fête a été réussie.", "été", "était", "participe après avoir"),
+    ("J'ai pris le train de nuit.", "pris", "prix", "participe après avoir"),
+    ("Nous avons eu de la chance.", "eu", "eux", "participe après avoir"),
     ("Il s'est marié jeune", "marié", "marier", "participe après s'est"),
     ("Il a mangé la soupe", "mangé", "manger", "-é/-er"),
     ("Il veut manger la soupe", "manger", "mangé", "-é/-er"),
