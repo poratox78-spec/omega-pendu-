@@ -175,7 +175,7 @@ def pyramide(txt):
     return T, out, Tc, orange, signale
 
 
-_VOISIN_OK = {u'a/à', u'ou/où', u'élision fusionnée', u'accord grammatical (é/er)'}
+_VOISIN_OK = {u'a/à', u'ou/où', u'élision fusionnée', u'accord grammatical (é/er)', u'est/et (proposition)'}   # + est/et (29/09/2026) — miroir JS
 
 
 _INFL = ('s', 'x', 'e', 'es', 'ent', 'é', 'ée', 'és', 'ées', 'er', 'ez', 'ai', 'ais', 'ait', 'aient', 'ons', 'ont', 'a', 'as', 'ra', 'rai', 'ras', 'rons', 'rez', 'ront')

@@ -306,6 +306,10 @@ const CAS = [
   { txt: 'Les pays qui on un port sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on un"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on un »' },
   { txt: 'Le film qui on voit est long.', interdit: ['qui ont voit'], pourquoi: 'CONTRE-GARDE : « qui on » + verbe conjugué → qu’on, pas « ont »' },
   /* ⭐ MUETS, lot 2 (13/09/2026) : tous → tout (trois cadres étroits), en vacance → vacances, « c'est » + nom pluriel → ces/ses (orange). */
+  /* ⭐ 29/09/2026 — et/est : sujet nominal + « et » + participe → « est » (orange) ; « est voilà » → « et ». */
+  { txt: 'Le chat et parti ce matin.', corrigeAttendu: ['et', 'est'], pourquoi: 'sujet nominal + participe, aucun autre verbe : « est »' },
+  { txt: "Il est tombé dans l'eau est voilà.", corrigeAttendu: ['est', 'et'], pourquoi: '« est voilà » n’existe pas' },
+  { txt: 'Un ami et associé de longue date.', interdit: ['est'], pourquoi: '« associé » est ici un nom : deux noms coordonnés' },
   /* ⭐ 29/09/2026 — « a + INFINITIF » : là où « a » ne peut pas être l'auxiliaire, c'est « à » (orange) et l'infinitif reste. */
   { txt: "Tu n'as pas a te plaindre.", corrigeAttendu: ['a', 'à'], pourquoi: 'négation avant « a » : l’auxiliaire la précède toujours' },
   { txt: 'Elle continu a avancer.', corrigeAttendu: ['a', 'à'], interdit: ['avancé'], pourquoi: 'sujet + verbe (mal écrit) : la place du verbe est prise, « a » est « à »' },

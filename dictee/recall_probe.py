@@ -126,6 +126,12 @@ def _check():
               ("Je m'occupe a nettoyer", "a", "à"), ("On a oublier la clé", "oublier", "oublié"), ("je né jamais froid", "né", "n'ai")]
     nofp += ["L'expulsé a droit au pouvoir.", "Le mal a gagné la ville.", "La peine a été lourde."]
     palier += [("Elle continu a avancer", "a", 'vigilance'), ("On a oublier la clé", "oublier", 'auto')]
+    # ⭐ 29/09/2026 — et/est : sujet nominal + et + participe → est (orange) ; « est voilà », « est aussi » + pronom + verbe → et ; contrôles
+    elide += [("Le chat et parti ce matin", "et", "est"), ("Le repas et fini depuis une heure", "et", "est"),
+              ("Il est tombé dans l'eau est voilà", "est", "et"), ("Nous avons parlé est aussi elle a ri", "est", "et")]
+    nofp += ["Un ami et associé de longue date.", "Né à Lyon le 3 mai 1900 et mort à Paris.", "Un étage et un grenier et fait cent mètres.",
+             "Terminée en mars et publiée en mai."]
+    palier += [("Le chat et parti ce matin", "et", 'vigilance'), ("Il et content", "et", 'auto')]
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):

@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-09-29 (suite) — et/est : sujet nominal + « et » + participe, « est voilà », « est » + adverbe + nouvelle proposition (orange)
+
+- Inventaire (catalogue des muets, produit en Node) : 23 et/est muets sur le gold (et → est 12, est → et 11), 7 déjà pris. Structures :
+  sujet nominal + « et » + participe (la branche nominale n'acceptait qu'un ADJECTIF) ; « est voilà » ; « est » + adverbe de liaison +
+  pronom sujet + verbe. Le reste porte deux fautes à la fois (déterminant ou pronom mal écrit, participe écrit à l'infinitif) ou demande
+  le sens (« est » + groupe nominal + verbe).
+- Construit en voie NOUVELLE (_rEtNouveau / _rule_et_est_nouveau), jouée seulement si la logique existante se tait, ORANGE (tier_of) ;
+  rEstEtClause (déjà orange) reçoit « est voilà » et « est » + adverbe de liaison ; « est/et (proposition) » rejoint les règles du voisin
+  orange (un adverbe mal écrit entre « est » et le pronom).
+- Prototype mesuré avant les moteurs, une garde par cas faux : 5 oranges inutiles sur frgec, toutes des notices « né à … le [date] et
+  mort à … » (gardes : pas de participe plus tôt dans la proposition, pas de mois juste avant — une date n'est pas un sujet) ; 1 sur UD
+  (« … et un grenier et fait … » : le participe ne doit pas se lire aussi comme un verbe conjugué) ; « un ami et associé » (nom
+  coordonné : NOUN_POST ≥ 500 ‰). Essayés et retirés faute de prise : « il / on » + et + déterminant (le seul cas du gold est tenu, à
+  raison, par la garde du sujet inversé), « et/est » parmi les règles du voisin.
+- Résultat : gold +3 justes (orange), 0 fausse ni inutile sur les 3 corpus dys (14 322 textes) ; UD 14 450 : 0 marque en plus, 0 en
+  moins. Catalogue : 662 → 659 muettes, et/est 23 → 20, mots justes touchés inchangés.
+- Silence assumé et nommé : un participe homographe d'un présent (« le livre et écrit » : « écrit » se lit aussi « il écrit »).
+- Tests : recall_probe (référence : 4 prises, 4 contrôles, 2 paliers) — falsifié : 5 échecs sans le correctif ; navigateur_probe
+  (Chrome) ; parités.
+
 ## 2026-09-29 (suite) — rouges FAUX « a + infinitif » : « à » en orange là où « a » ne peut pas être l'auxiliaire
 
 - Inventaire (produit en Node, corpus dys appariés + UD) : 16 marques -er → -é derrière un « a » sans accent ; sur le gold, 6 JUSTES

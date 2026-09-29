@@ -1191,7 +1191,7 @@ def _elide_det(w):
     return d.startswith(_ET_ELID)
 
 
-def rule_et_est(T, i):
+def _rule_et_est_base(T, i):
     lw = deacc(T[i].lower())
     if lw not in ('et', 'est'): return None
     if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None   # frontière avant (« elle, et … ») → pas de sujet net
@@ -1264,6 +1264,65 @@ def rule_et_est(T, i):
         return 'est'                                                       # pronom sujet + attribut → être 3sg
     return None
 
+# ⭐ 29/09/2026 — CATALOGUE DES MUETS, et/est : la voie NOUVELLE, ORANGE (tier_of), jouée seulement si la logique mesurée se tait (même
+# schéma que a/à). Sujet nominal + « et » + PARTICIPE (« le chat et parti ce matin » → est) : la branche nominale n'acceptait qu'un
+# ADJECTIF. Gardes, chacune née d'un cas mesuré : le participe ne se lit pas aussi comme un verbe conjugué (« … et un grenier et fait
+# cent mètres ») ; il n'est pas surtout un nom (« un ami et associé » : coordination) ; pas de participe plus tôt dans la proposition
+# (« terminée … et publiée ») ; pas de mois juste avant (« né à Lyon le 3 mai 1900 et mort à Paris » : une date n'est pas un sujet) ;
+# aucun verbe conjugué dans la proposition (infinitifs et participes n'en sont pas). Silence assumé : un participe homographe d'un
+# présent (« le livre et écrit »). Miroir JS _rEtNouveau.
+_MOIS_ET = frozenset('janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre'.split())
+_EST_LIAISON = frozenset('aussi puis ensuite alors apres enfin donc maintenant'.split())
+
+
+def _et_ppl(w):
+    d = deacc(w.lower())
+    return _is_ppl(w) or (re.search(r'(es|e|s)$', d) is not None and re.sub(r'(es|e|s)$', '', d) in IRREG_PART)   # irréguliers au féminin/pluriel (venue)
+
+
+def _et_sans_verbe_fini(T, i, j):
+    """Aucun verbe CONJUGUÉ dans la proposition de i (bornes _SEG bb + pb), hors i et j — infinitifs et participes n'en sont pas —, et
+    pas de participe AVANT i dans la proposition (« terminée … et publiée » : coordination de participes)."""
+    n = len(T); lo, hi = 0, n
+    tg = pos_tags(T)
+    if tg is None: return False
+    if _SEG is not None:
+        pb = _SEG.get('pb')
+        for k in range(i, 0, -1):
+            if (k < len(_SEG['bb']) and _SEG['bb'][k]) or (pb is not None and k < len(pb) and pb[k]): lo = k; break
+        for k in range(i + 1, n):
+            if (k < len(_SEG['bb']) and _SEG['bb'][k]) or (pb is not None and k < len(pb) and pb[k]): hi = k; break
+    for k in range(lo, i):
+        if _et_ppl(T[k]): return False
+    for k in range(lo, hi):
+        if k in (i, j) or tg[k] not in ('VERB', 'AUX'): continue
+        if tg[k] == 'VERB' and (re.search(r'(er|ir|oir|dre)$', deacc(T[k].lower())) or _et_ppl(T[k])): continue
+        return False
+    return True
+
+
+def _rule_et_est_nouveau(T, i):
+    if deacc(T[i].lower()) != 'et' or i < 2 or i + 1 >= len(T): return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    if T[i + 1][:1].isupper(): return None                                   # « et Paul » : nom propre
+    tg = pos_tags(T)
+    d1, d2 = deacc(T[i - 1].lower()), deacc(T[i - 2].lower())
+    if tg is None or d1 in _MOIS_ET: return None
+    if not (tg[i - 1] == 'NOUN' or (tg[i - 1] == 'PROPN' and not T[i - 1][:1].isupper())): return None
+    if d2 not in NUM_DET or NUM_DET.get(d2) == 'pl' or (i >= 3 and deacc(T[i - 3].lower()) in PREP): return None   # déterminant singulier, pas de préposition devant
+    j = i + 1
+    if deacc(T[j].lower()) in _ET_ADV and j + 1 < len(T): j += 1
+    dj = deacc(T[j].lower())
+    np_ = NOUN_POST.get(dj) if NOUN_POST else None
+    if not _et_ppl(T[j]) or (np_ and np_[0] >= 500) or _reads(T[j].lower()): return None
+    return 'est' if _et_sans_verbe_fini(T, i, j) else None
+
+
+def rule_et_est(T, i):
+    r = _rule_et_est_base(T, i)
+    return r if r is not None else _rule_et_est_nouveau(T, i)
+
+
 _CLAUSE_PRON = ('il', 'elle', 'ils', 'elles', 'on', 'je', 'tu', 'nous', 'vous')
 def rule_est_et_clause(T, i):
     """« est » suivi d'une NOUVELLE PROPOSITION (pronom sujet + verbe : « la plage est c'était cool », « je
@@ -1278,6 +1337,10 @@ def rule_est_et_clause(T, i):
     m = re.match(r"^(c|j)'(.+)$", nx)
     if m:
         return _keepcase(T[i], 'et') if m.group(1) == 'c' and m.group(2)[:1] in 'eé' else None   # c'est / c'était — pas j' (« est j'imagine »)
+    if deacc(nx) == 'voila': return _keepcase(T[i], 'et')                   # ⭐ 29/09/2026 : « est voilà » n'existe pas → « et voilà »
+    if deacc(nx) in _EST_LIAISON and i + 3 < len(T) and deacc(T[i + 2].lower()) in _CLAUSE_PRON:   # ⭐ 29/09/2026 : « est aussi elle a ri »
+        tg3 = pos_tags(T)
+        if tg3 and tg3[i + 3] in ('VERB', 'AUX'): return _keepcase(T[i], 'et')
     if deacc(nx) in _CLAUSE_PRON and i + 2 < len(T) and T[i + 2].lower() not in ('qui', 'que', 'qu', 'même'):
         tg = pos_tags(T)                                   # « est il POUR les débutants ? » (inversion sans trait d'union, UD) : pas une proposition → le pronom doit être SUIVI D'UN VERBE
         if not tg or i + 2 >= len(tg) or tg[i + 2] not in ('VERB', 'AUX'): return None
@@ -5944,7 +6007,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('a/à', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
+VIG_FAMILIES = ('a/à', 'et/est', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -5981,6 +6044,8 @@ def tier_of(T, i, name, sugg):
         return 'auto'
     if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
         return 'vigilance' if (_rule_a_aa_base(T, i) is None and _rule_a_aa_nouveau(T, i) == u'à') else 'auto'
+    if name == 'et/est':                                  # ⭐ 29/09/2026 : la voie NOUVELLE (sujet nominal + participe) est orange — miroir JS
+        return 'vigilance' if (_rule_et_est_base(T, i) is None and _rule_et_est_nouveau(T, i) is not None) else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
         return 'vigilance' if deacc(T[i].lower()) in _AVOIR_HOMO else 'auto'
     if name == 'aux mal orthographié':                    # ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge
