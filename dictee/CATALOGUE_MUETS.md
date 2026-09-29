@@ -20,16 +20,16 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | après le lot A |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A + B1) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **587** (29,2 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **359** (17,8 %) |
-| mot FAUX proposé | 373 (18,5 %) | 372 (18,5 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **367** (18,2 %) |
+| mot FAUX proposé | 373 (18,5 %) | 373 (18,5 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 18 (0,9 %) |
-| **muette** | **711** (35,3 %) | **676** (33,6 %) |
+| **muette** | **711** (35,3 %) | **667** (33,2 %) |
 | **total** | **2 012** | 2 012 |
 
-Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **55** après le lot A (36 / 19) — voir plus
+Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **55** aujourd'hui (36 / 19) — voir plus
 bas, à auditer un par un.
 
 ## Les 711 muettes, par remédiation
@@ -43,9 +43,9 @@ ou il faut un modèle) · **C** impossible avec le texte seul, à discuter · **
 |---|---|---|---|---|---|
 | élision « n' » | 15 | na→n'a ×9 · né→n'est ×4 · non→n'ont | « na », « né », « non » sont des mots connus : le correcteur d'orthographe se tait, la règle d'élision fusionnée ne connaît que jai, quil, leau… | « na » / « né » devant une négation → n'a, n'est, n'es (après « tu ») | ✅ **12 réparées** (lot A) ; UD 0 tir. « na » + verbe après « on » : le gold attend « a » (« on a » ≡ « on n'a » à l'oreille) — rien |
 | lieu en minuscule | 16 | japon→Japon ×12 · pyrénées · l'europe · d'afrique | « japon » existe en minuscule (le papier), le correcteur ne touche pas aux mots connus | liste fermée de lieux sans ambiguïté → capitale (« suisse », « paris » exclus : l'adjectif, les paris) | ✅ **16 réparées** (dont « france ») ; UD 0 tir |
-| nom au singulier après un nombre en chiffres | 9 | hectare→hectares ×3 · heure→heures ×2 · euro→euros | la règle du nombre ne lit que les nombres écrits en lettres (deux, trois) | nombre en chiffres > 1 (hors date « le 25 mars ») + nom au singulier → pluriel | ⏳ prochain lot (il faut la VALEUR du nombre : `_SEG` ne dit que « un chiffre précédait ») |
+| nom au singulier après un nombre en chiffres | 9 | hectare→hectares ×3 · heure→heures ×2 · euro→euros | la règle du nombre ne lit que les nombres écrits en lettres (deux, trois) | nombre en chiffres ≥ 2 (hors année, date, adresse, unité, numéro) + nom au singulier → pluriel, en ORANGE | ✅ orange de pluriel (JS), nouveau canal `_SEG.num` (la valeur de l'entier) ; gold : 1 bon mot de plus ; UD : +2 vraies fautes d'UD (« 60 euro la nuit », « pour 20 personne »), fausses alertes à l'équilibre (+2 « 350 000 koku », « 4 année » ; −2 anciennes : « 25 mai » → mais, « épisode ») |
 | cher → chez | 7 | cher→chez ×7 | « cher » est un vrai mot | « cher » + pronom tonique (moi, toi, lui, eux…) → chez | ✅ **5 réparées** ; UD 0 tir. « cher le… » (2) → lot B (« un cadeau cher le jour de Noël » est juste) |
-| genre du déterminant | 6 | un→une ×4 · cet→cette | la règle existe (« un voiture » → une, vérifié) ; ici une garde se tait | tracer la garde, cas par cas | ⏳ prochain lot |
+| genre du déterminant | 6 | un→une ×4 · cet→cette | la règle existe (« un voiture » → une, vérifié) ; ici une garde se tait | tracer la garde, cas par cas | → lot B : le NOM qui suit est lui-même mal écrit (le nom est hors lexique : foto, sécuriter, troisieme) — il faut son orthographe avant son genre |
 | « été » pour « était » après un sujet | 5 | été→était ×3 · été→étais ×2 | « il été » sans auxiliaire n'est jamais correct, aucune règle ne le lit | sujet + été → était / étais, en ORANGE (« il a été » aussi possible) ; « j'été » → j'étais | ✅ **3 en orange** ; UD 0 tir |
 | au / aux | 4 | au→aux ×4 | « au » + nom pluriel : pas de règle | au + nom au pluriel → aux | ⛔ → lot B : même en ne gardant que les formes seulement plurielles, 10 tirs sur UD (« au départ », « au 15 mars ») |
 
@@ -53,6 +53,20 @@ Trouvé dans les mots justes touchés et ajouté au lot : l'orange de pluriel pr
 infinitif derrière « les » pronom ou « ces » écrit pour « se », et l'adverbe qui suit). ✅ Corrigé : derrière les/ces/ses, un infinitif
 dans le groupe coupe l'accord — **3 sur le gold, et 20 fausses oranges de moins sur UD** (« les juger » → jugers, « mieux vaut les
 oublier » → oubliers…).
+
+### B1 — le VOISIN ORANGE ✅ (29/09/2026)
+
+Mesure transversale : **130 des 674 muettes** avaient un voisin que l'orthographe signale en ORANGE (« il commanse a
+pleurer ») — la grammaire ne voyait que le mot brut, inconnu. `diagnoseAll` relit maintenant la phrase avec ces corrections orange ;
+ce que la grammaire y trouve en plus, sur un autre mot, est proposé en orange, et seulement pour les 4 règles qui décident sur la
+NATURE du voisin (a/à, ou/où, élision fusionnée, -er/-é). **674 → 667 muettes, +7 bons mots, 1 mot juste touché ; UD : 0 marque.**
+Exclus après mesure : genre du déterminant et accord sujet-verbe (1 bon mot pour 6 justes touchés ou faux : la forme corrigée du
+voisin change le genre ou la personne), épithète (2 fausses sur UD, mots étrangers). Quand le voisin conclut « à », le rouge -er → -é
+du mot suivant (qui lisait « a » comme avoir : « il commanse a pleurer » → pleuré) redevient orange.
+
+Vu en chemin, pour le catalogue des **mots faux proposés** : « il continu a chanter » → chanté, « je m'occupe a nettoyer » →
+nettoyé, « elle a de la peine a chanter » → chanté (phrases inventées, même construction que 3 cas du gold), en ROUGE — le « a »
+y est lu comme avoir ; les constructions « commencer à », « avoir du mal / de la peine à », « prêt à » sont le prochain chantier a → à.
 
 ### B — à mesurer (513)
 

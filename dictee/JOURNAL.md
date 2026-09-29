@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-09-29 (suite) — lot B1 : LE VOISIN ORANGE (la grammaire lit la correction orange de l'orthographe sur le mot d'à côté)
+
+- **Mesure transversale** : 130 des 674 muettes du gold avaient un voisin signalé en ORANGE par l'orthographe. La pyramide ne passe à la
+  grammaire que les corrections rouges : « il commanse a pleurer » — la grammaire lit un mot inconnu et se tait.
+- **Prototype** (labo `catalogue/voisin_orange_proto.js`) : relire la phrase avec les corrections orange, garder ce qui est NOUVEAU sur un
+  autre mot, en orange. Tel quel : +8 bons mots mais +7 mots justes touchés et +2 mots faux (≈ 47 %). Par règle : a/à, ou/où, élision,
+  -er/-é nets ; genre du déterminant et sujet-verbe mauvais (la forme corrigée change le genre ou la personne) ; épithète : 2 fausses
+  sur UD (mots étrangers). Gardées : les 4 règles qui décident sur la NATURE du voisin.
+- **Relire depuis la phrase corrigée par l'orthographe, pas depuis la cascade de la grammaire** : la cascade avait déjà appliqué son rouge
+  faux (« il commanse a pleurer » → pleuré), et « a » + participe se lisait avoir. Et quand le voisin conclut « à », ce rouge -er → -é
+  redevient orange : deux propositions, l'auteur tranche, plus de contradiction appliquée d'office.
+- **Au produit** : 674 → 667 muettes, +7 bons mots, 1 mot juste touché ; UD 14 450 : 0 marque. Miroir de mesure dans
+  `dys_pipeline_probe.pyramide`. Test : `parity_core` (falsifié : sans l'étape, les 2 attentes tombent).
+
+## 2026-09-29 (suite) — lot A, dernier groupe : le nom après un nombre EN CHIFFRES (« 40 pommier » → pommiers, orange)
+
+- La règle rouge du nom lit les cardinaux écrits en lettres (« cinq kilo ») ; les chiffres, `toks` les jette et `_SEG` ne disait que « un
+  chiffre précédait ». Nouveau canal `_SEG.num` (JS) : la VALEUR de l'entier seul qui précède le mot. Branché dans l'orange de pluriel.
+- **Prototype mesuré d'abord** (`catalogue/lot_a2_chiffres.py`) : premier jet 23 tirs sur UD (adresses « 42 boulevard », numéros
+  « saison 5 épisode 8 », unités « 4 min », mois révolutionnaires « 30 prairial ») → gardes → 7, dont 3 vraies fautes d'UD. Trop pour
+  du rouge : ORANGE.
+- **Au produit** : gold +1 bon mot en orange ; UD +4 / −2 — +2 vraies fautes (« 60 euro la nuit », « pour 20 personne »), +2 fausses
+  (« 350 000 koku », « 2, 3 et 4 année »), −2 fausses qui existaient (« les dimanches 25 mai » → mais, « épisode ») : la garde des mois
+  passe AVANT la branche du déterminant pluriel.
+- **Genre du déterminant** (6 muettes) : → lot B. Le nom qui suit est lui-même mal écrit (le nom est hors lexique : foto, sécuriter) : il faut son
+  orthographe avant son genre.
+
 ## 2026-09-29 — LE CATALOGUE DES FAUTES MUETTES (demande de Rem) + son lot A
 
 > Rem, 28/09 : mesurer et cataloguer toutes les fautes encore muettes, de façon organisée et écrite, avec la remédiation possible de
@@ -58,7 +85,7 @@
   seule branche « était ») ; « tout ce qu'il a était à elle » (avoir verbe plein : « que » avant le sujet → rien) ; « la C2A était » (le A
   d'un sigle n'est pas « a »).
 - **Pas fait, noté** : « lut », « crut », « but » (absents de la table de conjugaison du moteur) ; « on » écrit pour « ont » + participe
-  (la cascade on → ont puis participe) ; l'auxiliaire mal écrit (« jais prix », « j'aime mit ») ; « ravager » absent du lexique verbal
+  (la cascade on → ont puis participe) ; l'auxiliaire mal écrit (jais pour j'ai, aime pour ai) ; « ravager » absent du lexique verbal
   de la règle -er/-é.
 
 ## 2026-09-28 (suite) — « SONT + ADJECTIF » : l'orange du participe après « sont » étendue aux adjectifs et aux participes irréguliers

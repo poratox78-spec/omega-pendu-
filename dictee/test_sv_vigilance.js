@@ -75,7 +75,7 @@ const C = globalThis.__C;
     ['ils sont juste là', null, null],                          // « juste » adverbe
     ['les chemises sont orange', null, null],                   // couleur invariable
     ['vous êtes prêt', null, null],                             // vous de politesse : « êtes » hors cadre
-    ['ils sont gentille', null, null],                          // genre en conflit avec « ils » : rien
+    ['ils sont heureuse', null, null],                          // genre en conflit avec « ils » : rien
     ['les enfants se sont succédé', null, null],                // pronominal (« se » complément indirect) : invariable
     ['les murs sont blanc cassé', null, null],                  // couleur composée
   ];
@@ -88,6 +88,13 @@ const C = globalThis.__C;
   const pv = (s) => { C.setSeg(s); return (C.spell(s) || []).filter(f => f.name === 'accord pluriel à vérifier'); };
   for (const s of ['Il faudra les vendre en ville.', 'Tu dois ces reposer calmement.']) {
     const r = pv(s); if (r.length) fail.push(`[pluriel ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
+  }
+  // ⭐ 29/09/2026 — un nombre EN CHIFFRES ≥ 2 joue le rôle du cardinal (orange) ; jamais une année, une date, une adresse, une unité, un numéro.
+  for (const [s, w, sg] of [['Nous avons planté 40 pommier.', 'pommier', 'pommiers'], ['Elle a 3 frère et 2 sœur.', 'frère', 'frères']]) {
+    const r = pv(s).filter(f => f.word === w); if (!r.length || r[0].sugg !== sg) fail.push(`[chiffres ${s}] → ${r.length ? r[0].sugg : 'aucun'} (attendu ${sg})`);
+  }
+  for (const s of ['Il habite au 42 boulevard Voltaire.', 'La saison 5 épisode 8 commence.', 'Il est né en 2012 dans le Nord.', 'Le 25 mars il pleut.', 'Il court 4 min par jour.', 'Il a 1 frère.']) {
+    const r = pv(s); if (r.length) fail.push(`[chiffres ${s}] → ${r.map(f => f.word + '→' + f.sugg).join(', ')} (attendu aucun)`);
   }
   if (fail.length) { console.error('✗ ÉCHEC vigilance sujet-verbe / participe / attribut :\n  ' + fail.join('\n  ')); process.exit(1); }
   console.log(`✓ OK : vigilance accord sujet-verbe + participe + attribut après « sont » (orange) — ${CASES.filter(c=>c[1]).length + PE.filter(c=>c[1]).length + AD.filter(c=>c[1]).length} déclenchements, ${CASES.filter(c=>!c[1]).length + PE.filter(c=>!c[1]).length + AD.filter(c=>!c[1]).length} textes corrects sans fausse alerte.`);
