@@ -1,0 +1,103 @@
+# Catalogue des fautes encore muettes — correcteur dys (29/09/2026)
+
+> **La demande de Rem (28/09/2026)** : mesurer et cataloguer, de façon organisée et écrite, toutes les fautes que le correcteur
+> laisse encore passer sans rien dire ; pour chacune, la remédiation possible ; appliquer le possible, mettre de côté ce qui paraît
+> impossible — et en parler ensemble, parce que rien n'est impossible.
+
+Ce document est la **liste de travail**. Chaque groupe porte un effectif mesuré, sa cause tracée, sa remédiation et un verdict.
+Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le nouvel effectif mesuré.
+
+## Comment c'est mesuré
+
+- **Corpus** : le gold dys réel (72 productions, ~6 600 mots, privé — `data_local/dys_reel/gold_claude.jsonl`, annoté par Claude, pas
+  par un expert). Ce document ne cite que des **effectifs** et des **paires de mots isolés**, jamais une phrase, jamais un nom propre.
+- **Le produit** : `extension/dys-core.js` (pipeline `diagnoseAll`, mêmes fichiers que l'extension), état `main` + #822. Chaque mot
+  écrit est aligné sur le mot attendu par l'aligneur du juge officiel (`dys_precision_probe.align`) ; élision tolérée comme le juge
+  (« j'ai » ≡ « ai »), **accents et majuscules exigés** ; mots marqués ambigus dans le gold exclus.
+- **Outils** (labo, privés) : `data_local/pendu_labo/catalogue/` — `dump_positions_tout.py` (alignement) → `produit_tout.js`
+  (le produit) → `catalogue.py` (familles × sort) → `mecanismes.py` → `remediation.py` (ce tableau). Pour remesurer après une PR,
+  relancer les cinq étages dans cet ordre.
+
+## Le bilan
+
+| ce que le produit fait d'une faute | 29/09, départ | après le lot A |
+|---|---|---|
+| réparée en rouge | 554 (27,5 %) | **587** (29,2 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **359** (17,8 %) |
+| mot FAUX proposé | 373 (18,5 %) | 372 (18,5 %) |
+| soulignée sans mot proposé | 18 (0,9 %) | 18 (0,9 %) |
+| **muette** | **711** (35,3 %) | **676** (33,6 %) |
+| **total** | **2 012** | 2 012 |
+
+Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **55** après le lot A (36 / 19) — voir plus
+bas, à auditer un par un.
+
+## Les 711 muettes, par remédiation
+
+Verdicts : **A** faisable maintenant (fait structurel, extension de l'existant) · **B** à mesurer (l'existant se tait pour une garde,
+ou il faut un modèle) · **C** impossible avec le texte seul, à discuter · **D** pas une faute (le gold est trop strict).
+
+### A — faisable maintenant (62)
+
+| groupe | n | paires | cause | remédiation | statut |
+|---|---|---|---|---|---|
+| élision « n' » | 15 | na→n'a ×9 · né→n'est ×4 · non→n'ont | « na », « né », « non » sont des mots connus : le correcteur d'orthographe se tait, la règle d'élision fusionnée ne connaît que jai, quil, leau… | « na » / « né » devant une négation → n'a, n'est, n'es (après « tu ») | ✅ **12 réparées** (lot A) ; UD 0 tir. « na » + verbe après « on » : le gold attend « a » (« on a » ≡ « on n'a » à l'oreille) — rien |
+| lieu en minuscule | 16 | japon→Japon ×12 · pyrénées · l'europe · d'afrique | « japon » existe en minuscule (le papier), le correcteur ne touche pas aux mots connus | liste fermée de lieux sans ambiguïté → capitale (« suisse », « paris » exclus : l'adjectif, les paris) | ✅ **16 réparées** (dont « france ») ; UD 0 tir |
+| nom au singulier après un nombre en chiffres | 9 | hectare→hectares ×3 · heure→heures ×2 · euro→euros | la règle du nombre ne lit que les nombres écrits en lettres (deux, trois) | nombre en chiffres > 1 (hors date « le 25 mars ») + nom au singulier → pluriel | ⏳ prochain lot (il faut la VALEUR du nombre : `_SEG` ne dit que « un chiffre précédait ») |
+| cher → chez | 7 | cher→chez ×7 | « cher » est un vrai mot | « cher » + pronom tonique (moi, toi, lui, eux…) → chez | ✅ **5 réparées** ; UD 0 tir. « cher le… » (2) → lot B (« un cadeau cher le jour de Noël » est juste) |
+| genre du déterminant | 6 | un→une ×4 · cet→cette | la règle existe (« un voiture » → une, vérifié) ; ici une garde se tait | tracer la garde, cas par cas | ⏳ prochain lot |
+| « été » pour « était » après un sujet | 5 | été→était ×3 · été→étais ×2 | « il été » sans auxiliaire n'est jamais correct, aucune règle ne le lit | sujet + été → était / étais, en ORANGE (« il a été » aussi possible) ; « j'été » → j'étais | ✅ **3 en orange** ; UD 0 tir |
+| au / aux | 4 | au→aux ×4 | « au » + nom pluriel : pas de règle | au + nom au pluriel → aux | ⛔ → lot B : même en ne gardant que les formes seulement plurielles, 10 tirs sur UD (« au départ », « au 15 mars ») |
+
+Trouvé dans les mots justes touchés et ajouté au lot : l'orange de pluriel proposait « cultivers », « acheters », « sainements » (un
+infinitif derrière « les » pronom ou « ces » écrit pour « se », et l'adverbe qui suit). ✅ Corrigé : derrière les/ces/ses, un infinitif
+dans le groupe coupe l'accord — **3 sur le gold, et 20 fausses oranges de moins sur UD** (« les juger » → jugers, « mieux vaut les
+oublier » → oubliers…).
+
+### B — à mesurer (513)
+
+| groupe | n | paires | ce qu'il faut regarder |
+|---|---|---|---|
+| a → à | 52 | a→à ×52 | la règle rouge en répare autant (53) ; le reste n'a pas d'ancre sûre (recensement du 14/09 : le voisin est souvent fautif lui-même). Piste : une orange « carte » comme ces/ses, avec son seuil, mesurée sur UD et le gold |
+| homophones grammaticaux | 60 | et→est ×12 · est→et ×11 · se→ce ×6 · son→sont ×6 · ce→se ×5 · tout→tous ×3 · peu→peut ×3 | les règles existent ; lire les gardes qui se taisent, **et/est d'abord (23)** |
+| forme du verbe (-er / -é / -ait) | 48 | arriver→arrivé ×2 · énerver→énervé ×2 · priver→privée ×2 · rouler→roulé | règles existantes muettes : auxiliaire lui-même mal écrit (« na », « jais »), verbe absent du lexique verbal (« ravager »), garde a/à |
+| élisions et apostrophes (autres) | 39 | ses→c'est ×3 · que→qu'il ×3 · jais→j'ai ×2 · ma→m'a ×2 · ces→c'est ×2 | motifs par préfixe : ses/ces + participe → c'est ; ma + participe → m'a ; jais / javais → j'ai / j'avais |
+| nombre du nom | 60 | prise→prises ×2 · espace→espaces ×2 · tomate→tomates · pied→pieds · voiture→voitures | après « de » (beaucoup de, des tonnes de : 7) et après d'autres gouverneurs (53) : noms homographes d'un verbe, gouverneur loin |
+| accord de l'adjectif | 43 | austral→australe ×4 · chimique→chimiques ×4 · mondial→mondiale ×2 · majeur→majeure ×2 · quelque→quelques ×2 | épithète séparé de son nom, genre du nom inconnu, adjectif lu comme verbe |
+| terminaisons homophones (autres) | 66 | mure→murs ×3 · voire→voir ×2 · soi→soit ×2 · foie→fois | finales muettes entre deux mots différents : il faut le contexte grammatical, cas par cas |
+| accord sujet-verbe | 28 | avances→avancent · mange→mangent · utilises→utilisent · voulais→voulait · vas→va | silences connus : sujet loin, inversion, relative, incise |
+| mots inconnus non signalés | 28 | s'arette→s'arrête · p'apareille→l'appareil · s'asoire→s'asseoir · em→e ×2 | le correcteur d'orthographe saute les mots ÉLIDÉS inconnus (14) et les mots inconnus à MAJUSCULE en milieu de texte (7) ; 7 mots hors dictionnaire acceptés |
+| homophones nom / verbe | 25 | travaille→travail ×4 · rappel→rappelle · appel→appelle · party→parti ×3 · plastic→plastique ×3 | déterminant + forme verbale → nom (« le travaille ») ; sujet + nom → verbe (« je travail ») ; mots anglais acceptés |
+| majuscule après ! ? … | 25 | je→Je ×5 · ce→Ce ×3 · le→Le ×3 | le produit ne met la majuscule qu'après un POINT (mesuré ~100 % de faux sur OQLF/BDL après ! ? …) ; à remesurer sur texte dys |
+| accents | 31 | la→là ×5 · ca→ça ×3 · ou→où ×3 · media→média ×3 · pole→pôle ×2 · foret→forêt ×2 | mot-outil (là, ça, où, dû, sûr, dès : 15) ; mot connu sans son accent (16 : même mécanisme que « mere » → mère, `_AFIX_MIN`) |
+| autres majuscules (prénoms, sigles, mois) | 8 | d'ogm→d'OGM · Avril→avril | prénoms homographes de mots communs, sigles en minuscules, un mois écrit avec une majuscule |
+
+### C — impossible avec le texte seul : à discuter ensemble (134)
+
+| groupe | n | paires | pourquoi | pistes pour que ça devienne possible |
+|---|---|---|---|---|
+| vrai mot à la place d'un autre (son différent) | 93 | plus→plupart ×3 · que→qui ×2 · en→on ×2 · place→plage ×2 · mois→moins ×2 | un vrai mot, mal choisi : le son ne le trahit pas, il faut le sens | quelques structures à creuser (que→qui sans sujet, en→on + verbe) ; le reste : un juge qui lit le sens (modèle léger local, comme le juge s'est/sait) |
+| homophone de sens | 30 | an→en ×2 · pano→panneau ×2 · publique→public ×2 · industriel→industrielle ×2 · pin→pain | même son, deux mots : seul le sens tranche | même piste (juge de sens) ; les accords de genre (publique, industriel) relèvent du groupe adjectif |
+| genre de l'AUTEUR | 7 | allée→allé · partie→parti · réveillé→réveillée · préparé→préparée | « je suis allé / allée » : le genre de celui ou celle qui écrit n'est pas dans le texte | **demander une fois** (réglage facultatif « j'écris au féminin / au masculin ») : alors ces 7 deviennent corrigibles |
+| début de phrase sans ponctuation | 4 | le→Le · pour→Pour | l'auteur n'a pas mis de point : on ne sait pas où la phrase commence | la ponctuation (hors sujet dys, acté par Rem) ; ou le détecteur de phrases collées (run-on) |
+
+### D — pas une faute (2)
+
+`entrainement`, `gout` : orthographe rectifiée de 1990, correcte. Le gold est trop strict ici ; rien à faire côté correcteur.
+
+## Mots justes touchés (57) — à auditer
+
+36 en rouge, 21 en orange. Ce qu'on y voit : des mots **ajoutés** (élision « l' »/« d' », négation « ne » : le gold ne corrige que
+l'orthographe, il n'ajoute pas le « ne » oublié), des **genres de déterminant** retournés (la → le ×3, le → la ×2), l'orange de
+pluriel sur un infinitif ou un adverbe (voir lot A), et quelques accords sujet-verbe. Chacun est à relire : un rouge sur un mot juste
+est la seule colonne qui viole la doctrine FP=0.
+
+## Ordre de travail
+
+1. **Lot A** (62 + les 3 oranges fausses) : une PR par groupe ou par petits paquets, chacune mesurée (gold, UD, précision au produit).
+2. **Les deux gros gisements** : a → à (52) et et/est (23) — mesurer d'abord, orange d'abord.
+3. **Le correcteur d'orthographe qui saute** (28) et les **accents** (31).
+4. **Les silences de grammaire** (forme du verbe, nombre du nom, adjectif, sujet-verbe : ~180) — tracer les gardes, étendre l'existant.
+5. **Lot C** : en parler avec Rem — le réglage du genre, le juge de sens, la ponctuation.
+
+Les fautes où le produit propose un **mot faux** (373) feront l'objet d'un second catalogue, même méthode.

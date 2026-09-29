@@ -5,6 +5,33 @@
 
 ---
 
+## 2026-09-29 — LE CATALOGUE DES FAUTES MUETTES (demande de Rem) + son lot A
+
+> Rem, 28/09 : mesurer et cataloguer toutes les fautes encore muettes, de façon organisée et écrite, avec la remédiation possible de
+> chacune ; appliquer le possible, mettre de côté l'impossible et en parler ensemble. → `dictee/CATALOGUE_MUETS.md` (la liste de
+> travail, tenue à jour) ; outils du labo `data_local/pendu_labo/catalogue/` (5 étages : alignement → produit → familles → mécanismes →
+> remédiations).
+
+- **Le bilan, au produit** (dys-core en Node sur les 72 textes du gold, élision tolérée comme le juge, accents et majuscules exigés) :
+  2 012 fautes — 554 réparées en rouge, 356 bon mot en orange, 373 mot FAUX proposé, 18 soulignées sans mot, **711 muettes**.
+- **Piège de mesure, vu au premier jet** : le gold écrit l'apostrophe typographique (’), que le découpage du juge ne connaît pas —
+  « j’ai » y devenait « j » + « ai », et 97 « fautes » d'apostrophe étaient des artefacts. Normaliser le gold avant de découper.
+- **Les 711, par remédiation** : A faisable maintenant 62 · B à mesurer 513 (a → à 52, homophones grammaticaux 60 dont et/est 23,
+  forme du verbe 48, nombre du nom 60, adjectif 43, terminaisons homophones 66…) · C impossible avec le texte seul 134 (vrai mot à la
+  place d'un autre 93, homophone de sens 30, genre de l'auteur 7 — piste : le DEMANDER une fois —, début de phrase sans point 4) ·
+  D pas une faute 2 (orthographe de 1990).
+- **Lot A, construit et mesuré (4 moteurs, extension de l'existant)** :
+  - élision fusionnée : « na »/« né » devant une négation → n'a, n'est, n'es (12) ;
+  - majuscule : nom de lieu sans ambiguïté en minuscule → capitale (16 ; « suisse », « paris » exclus, mesuré sur UD) ;
+  - « cher moi », « cher lui » → chez, nouvelle paire fermée comme près/prêt (5) ;
+  - auxiliaire mal orthographié : « il été » → était, « j'été » → j'étais, en ORANGE (3) ;
+  - l'orange de pluriel ne propose plus « jugers », « oubliers », « calmements » : derrière les/ces/ses, un infinitif coupe l'accord.
+- **Mesuré** : muettes **711 → 676**, réparées en rouge 554 → 587 ; UD 14 450, produit entier : **0 marque en plus, 20 fausses
+  oranges en moins** ; référence Python sur UD : 370 → 370 ; précision au produit : élision fusionnée 30,8 → 64 %, majuscule 97,4 →
+  98,1 %, orange de pluriel 40,7 → 44 % (pollué) et 50 → 60 % (propre) ; census : pointeuses 227 → 226, fatigue 145 → 144.
+- **Écarté, mesuré** : au → aux (même en ne gardant que les formes seulement plurielles, 10 tirs sur UD — « au départ », « au 15
+  mars ») ; « cher » + article (« un cadeau cher le jour de Noël »).
+
 ## 2026-09-28 (soir) — « LA MÊME CHOSE POUR ONT » : le participe après avoir, consonne finale échangée (fais → fait, mit → mis, prit → pris)
 
 > Rem, après « sont + adjectif » : « la même chose pour ont ? ». Même méthode : recensement au PRODUIT (labo `onde/produit_avoir.js`

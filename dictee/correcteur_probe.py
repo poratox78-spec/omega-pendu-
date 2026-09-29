@@ -2620,7 +2620,20 @@ def runon_positions(text):
         out.append(i)
     return out
 
+# ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : un nom de LIEU sans ambiguïté écrit en minuscule (« japon », « l'europe ») → capitale, où qu'il
+# soit. Liste FERMÉE : « suisse » (un franc suisse) et « paris » (les paris sportifs) exclus — mesuré sur UD. Gold dys : 16 ; UD : 0 tir.
+_LIEUX = {u'japon': u'Japon', u'pyrénées': u'Pyrénées', u'pyrenees': u'Pyrénées', u'europe': u'Europe', u'afrique': u'Afrique',
+          u'amérique': u'Amérique', u'amerique': u'Amérique', u'asie': u'Asie', u'espagne': u'Espagne', u'italie': u'Italie',
+          u'allemagne': u'Allemagne', u'angleterre': u'Angleterre', u'belgique': u'Belgique', u'france': u'France'}
+
+
 def rule_capital(T, i):
+    w = T[i]
+    if w == w.lower():
+        pre, _, reste = w.rpartition("'")
+        cap = _LIEUX.get(reste)
+        if cap and not (_SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]):   # « france-israel.org » : le trait d'union coupe
+            return (pre + "'" + cap) if pre else cap
     if _SEG is None or i >= len(_SEG['cap']) or not _SEG['cap'][i]: return None
     w = T[i]
     if not (w[:1].isalpha() and w[:1].islower()): return None    # déjà capitale / non-lettre
@@ -2880,6 +2893,14 @@ def _voisin_aux_long(dl):
 
 
 def rule_aux_misspell(T, i):
+    # ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : « il été content » → était, « j'été » → j'étais. Le participe « été » ne suit JAMAIS un
+    # sujet sans auxiliaire ; deux corrections possibles (« il était » / « il a été ») → ORANGE (tier_of). Gold dys : 3 ; UD 14 450 : 0 tir.
+    l0 = T[i].lower().replace(u'’', "'")
+    if l0 in (u"j'été", u"j'ete"): return _keepcase(T[i], u"j'étais")
+    if l0 == u'été' and i >= 1 and not (_SEG is not None and i - 1 < len(_SEG['hy']) and _SEG['hy'][i - 1]):   # « a-t-elle été » : inversion
+        p0 = deacc(T[i - 1].lower())
+        if p0 in ('il', 'elle', 'on'): return _keepcase(T[i], u'était')
+        if p0 in ('je', 'tu'): return _keepcase(T[i], u'étais')
     if not CONJ_LOADED or "'" in T[i].lower(): return None
     w = deacc(T[i].lower())
     if len(w) < 3 or not w.isalpha(): return None                # ≥3 lettres (les mots-outils courts « ne »/« le »/« se » ne sont jamais un aux mutilé)
@@ -4413,6 +4434,13 @@ _FUS_APRES = set('ai as a ait avait avais avaient ont avons avez est es etait et
                  'histoire histoires hopital ordinateur oreille oiseau oiseaux'.split())
 
 
+# ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : deux élisions fusionnées forment un mot CONNU (« na », « né ») — la condition ① (mot inconnu)
+# les écartait toujours. Devant une négation, pas de doute : « il na pas » → n'a, « ce né pas » → n'est (« tu né pas » → n'es). Gold dys :
+# 12 muettes réparées ; UD 14 450 : 0 tir. « il est né pas loin d'ici » (participe après être) : rien.
+_FUS_CONNUS = {'na', u'né'}
+_FUS_NEG = {'pas', 'plus', 'jamais', 'rien', 'point', 'guere', 'personne', 'aucun', 'aucune'}
+
+
 def rule_elision_fusionnee(T, i):
     """« jai »→« j'ai », « cest »→« c'est », « quil »→« qu'il », « dailleurs »→« d'ailleurs ».
 
@@ -4427,6 +4455,11 @@ def rule_elision_fusionnee(T, i):
     """
     w = T[i]
     lw = w.lower()
+    if lw in _FUS_CONNUS and i + 1 < len(T) and deacc(T[i + 1].lower()) in _FUS_NEG:
+        if lw == 'na': return _keepcase(w, u"n'a")
+        p1 = deacc(T[i - 1].lower()) if i else ''
+        if p1 in _PP_ETRE_AUX: return None                             # « il est né pas loin d'ici » : participe
+        return _keepcase(w, u"n'es" if p1 == 'tu' else u"n'est")
     if "'" in lw or "’" in lw or len(lw) < 3: return None
     if lw in WORDS_SET or deacc(lw) in WORDS_SET: return None          # ① mot connu → rien à dire
     # ⭐ NOM PROPRE. Un mot CAPITALISÉ hors début de phrase n'est pas une élision fusionnée.
@@ -5462,6 +5495,17 @@ _PRET_DET = {'la', 'le', 'les', 'un', 'une', 'des', 'du', 'ma', 'mon', 'mes', 's
              'votre', 'vos', 'leur', 'leurs', 'cette', 'ces', 'cet'}
 
 
+# ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : « cher moi », « cher lui » → chez. Devant un pronom TONIQUE, « cher » (qui coûte, ou aimé)
+# n'a jamais sa place. Gold dys : 5 muettes ; UD 14 450 : 0 tir. « cher le » reste muet (« un cadeau cher le jour de Noël »).
+_CHEZ_TONIQ = {'moi', 'toi', 'lui', 'elle', 'nous', 'vous', 'eux', 'elles', 'soi'}
+
+
+def rule_cher_chez(T, i):
+    if T[i].lower() != 'cher' or i + 1 >= len(T): return None
+    if _SEG is not None and i + 1 < len(_SEG['bb']) and _SEG['bb'][i + 1]: return None   # « mon cher, moi je… » : la virgule coupe
+    return _keepcase(T[i], u'chez') if deacc(T[i + 1].lower()) in _CHEZ_TONIQ else None
+
+
 def rule_pres_pret(T, i):
     lw = T[i].lower()
     dur = lw in ('prêt', 'prêts'); mou = lw in ('prête', 'prêtes')
@@ -5830,7 +5874,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir',
+VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -5867,6 +5911,8 @@ def tier_of(T, i, name, sugg):
         return 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
         return 'vigilance' if deacc(T[i].lower()) in _AVOIR_HOMO else 'auto'
+    if name == 'aux mal orthographié':                    # ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge
+        return 'vigilance' if deacc(T[i].lower()).split("'")[-1] == 'ete' else 'auto'
     if name == u'élision inversée':                        # ⭐ 13/09/2026 : rouge seulement là où le mot complet est sûr (cf. _deselide)
         r = _deselide(T, i)
         return 'vigilance' if (r and r[1]) else 'auto'
@@ -5948,7 +5994,7 @@ RULES = [('élision inversée', rule_deselide),
          ('accent (âge)', rule_age_accent), ("étais après c'/s'", rule_cetait_etait),
          ('participe après avoir', rule_avoir_fini), ("participe après s'est", rule_etre_inf_er),
          ('négation', rule_neg_ne), ('si + conditionnel', rule_si_cond), ('quel que soit', rule_quel_que),
-         ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret),
+         ("qu'il (élision)", rule_qui_pron), ('que/dont', rule_que_dont), ('qui/que', rule_qui_que), ('près/prêt', rule_pres_pret), ('cher/chez', rule_cher_chez),
          ('davantage', rule_davantage), ('adjectif en -ant/-ent', rule_ant_adj), ('vingt/cent', rule_vingt_cent),
          ('personne du verbe', rule_sujet_flexion),
          # ⭐ 11/09/2026 — ORANGE APRÈS ROUGE, comme le pipeline JS (correctTokens puis spellText) : ces quatre règles étaient placées
@@ -6042,6 +6088,12 @@ def bout_de_chaine_orange(text, i, sugg):
 # taire est juste ». Faute de cette case, le 15/09/2026, deux ROUGES sur des mots justes sont passés sous les
 # quatre instruments (trouvés par la sonde d'échelle UD, pas par la batterie).
 MUETS = [
+    ("Il est né pas loin d'ici.", "« né » participe après être, suivi de « pas loin » : pas une élision fusionnée (29/09/2026)."),
+    ("Mon cher, moi je reste.", "la virgule coupe : ce « cher » n'est pas « chez »."),
+    ("Un cadeau cher le jour de Noël.", "« cher » + article : l'adjectif (seul le pronom tonique, « cher moi », est sûr)."),
+    ("Ça été une belle fête.", "« ça été » = « ça a été » à l'oral : jamais « était »."),
+    ("Laquelle a-t-elle été ?", "inversion : « été » participe, juste."),
+    ("Le franc suisse monte.", "« suisse » est aussi l'adjectif : pas de capitale."),
     ("Tout ce qu'il a était à elle.", "AVOIR verbe plein dans une relative (ce qu'il a) : « était » est le verbe principal, jamais « été » (28/09/2026)."),
     ("Ils ont eux aussi des droits.", "« eux aussi » : pronom d'insistance après avoir, pas le participe « eu »."),
     ("C'est a eux de jouer.", "« a eux » sans déterminant derrière : c'est « à eux », jamais « eu »."),
@@ -6159,6 +6211,12 @@ CASES = [
     ("Elle a l'âge de raison", "l'âge", "l'age", "accent (âge)"),
     ("C'était une belle journée", "C'était", "C'étais", "étais après c'/s'"),
     ("Elle a grandi très vite", "grandi", "grandit", "participe après avoir"),
+    # ⭐ 29/09/2026 — catalogue des muets, lot A : élision « n' » (na, né), cher → chez, « il été » → était (orange), lieux en minuscule.
+    ("Il n'a pas compris.", "n'a", "na", "élision fusionnée"),
+    ("Ce n'est pas grave.", "n'est", "né", "élision fusionnée"),
+    ("Je rentre chez moi ce soir.", "chez", "cher", "cher/chez"),
+    ("Il était content de venir.", "était", "été", "aux mal orthographié"),
+    ("Je pars au Japon cet été.", "Japon", "japon", "majuscule"),
     # ⭐ 28/09/2026 — « la même chose pour ont » : la consonne finale MUETTE échangée (même son, même fait) + « était » ; eux/prix en orange.
     ("Les élèves ont pris le bus.", "pris", "prit", "participe après avoir"),
     ("Ils ont fait leurs devoirs.", "fait", "fais", "participe après avoir"),

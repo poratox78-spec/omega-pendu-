@@ -162,7 +162,11 @@ const PHRASES = [
   'Ils ont dut partir tôt.', 'La fête a était réussie.', "Merci d'avoir fais le ménage.", 'Ayant mit son manteau, elle sortit.',
   "J'ai prix le train de nuit.", 'Nous avons eux de la chance.', 'Il a eux un accident.',
   "Tout ce qu'il a était à elle.", 'Ils ont eux aussi des droits.', "C'est a eux de jouer.", 'La C2A était riche.',
-  'Les tableaux que tu as vus sont célèbres.', "Les pommes qu'il a prises sont mûres.", 'Il a dit bonjour.'
+  'Les tableaux que tu as vus sont célèbres.', "Les pommes qu'il a prises sont mûres.", 'Il a dit bonjour.',
+  // ⭐ 29/09/2026 — catalogue des muets, lot A : cibles et pièges (élision n', cher/chez, « il été » orange, lieux en minuscule).
+  'Il na pas compris.', 'Ce né pas grave.', 'Tu né pas prêt.', "Il est né pas loin d'ici.", 'Je rentre cher moi ce soir.',
+  'Mon cher, moi je reste.', 'Un cadeau cher le jour de Noël.', 'Il été content de venir.', "J'été fatigué hier.",
+  'Laquelle a-t-elle été ?', 'Ça été une belle fête.', 'Je pars au japon cet été.', "Elle aime l'europe.", 'Le franc suisse monte.'
 ];
 PHRASES.push(...fs.readFileSync(path.join(ROOT, 'dictee', 'phrases_courantes.txt'), 'utf8').split('\n').map(s => s.trim()).filter(s => s && s[0] !== '#'));   // ⭐ 13/09/2026 : phrases courantes 1re/2e personne — « Je ne peux pas. » → *puis* en rouge du 07 au 13/09, vu par aucun corpus
 PHRASES.push("Le chevalier porte d'lourde armure.", "Elle s'mariée l'an dernier.", "Ils s'mariés en mai.", "Il va s'marier en mai.", "Ils s'disputent souvent.", "J'sais pas.", "Une barre d'fer.", "Il vend de l'pétrole.", "Le stade Ben M'barek est plein.", "Une maison d'du bois.", "J'mangé une pomme.", "Il est parti d'bonne heure.", "Il faut s'marié jeune.", "Elle va s'mariée en mai.");   // ⭐ 13/09/2026 : élision inversée — rouge sûr, orange avec le mot manquant, nom propre muet (paliers comparés)
