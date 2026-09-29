@@ -1056,6 +1056,8 @@ class Speller:
                     if ng2 and ng2 != self.DET_G[deacc(best)] and self.DET_G.get(deacc(dp2)) == ng2:
                         if sorted(deacc(low)) == sorted(deacc(dp2)) or deacc(dp2) in edits1(deacc(low)):
                             best = dp2
+        pr = self._su_prenom(low)   # ⭐ 29/09/2026 (Rem) : un prénom de la table en minuscule → le PRÉNOM d'abord (enzo → Enzo), sauf mot du dictionnaire à UNE édition (dee → de) — miroir JS
+        if pr and not (best and sed1(d, deacc(best))): return pr
         if best and best != low: return best
         # VOIE '' (inconnu sans suggestion fiable) : S6 élision PRIORITAIRE, puis S4 clé phonétique d=1
         g = self._su_elision(low) or self._su_phon_e1(low)

@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-09-29 (suite) — « on a un lexique de prénoms » (Rem) : l'orange « mot inconnu » propose le PRÉNOM
+
+- **Constat** : la table des prénoms (8 730) ne servait qu'à empêcher la correction d'office ; l'orange « mot inconnu » cherchait
+  d'abord un mot du dictionnaire (accents, phonétique, une édition) et ne tentait le prénom qu'en 4e voie — « enzo » → saute, un
+  prénom du gold → un nom commun. Le prénom ne sortait que quand aucun mot du dictionnaire ne venait.
+- **Mesuré** (produit en Node, trois corpus appariés, mots inconnus en minuscule dont la forme capitalisée est dans la table) : le
+  prénom d'abord, tel quel = gold dys +12, EcriScol +1, mais frgec −7 (le mot du dictionnaire était juste et à UNE lettre : dee → de,
+  agricol → agricole). Règle retenue : le prénom d'abord, sauf mot du dictionnaire à une édition (`sEd1` / `sed1`) → gold dys +7,
+  0 perdu sur les corpus réels ; 1 perdu sur le corpus de fautes GÉNÉRÉES (« unai » → Unai au lieu de « une », à deux éditions) ;
+  précision au produit (Chrome, « mot inconnu » orange) 46,9 → 48,2 % ; UD 14 450 (produit entier) : 0 marque, 2 suggestions changées.
+- 3 moteurs + référence Python (`spell_unknown`) ; test : « enzo » → Enzo, « dee » → de (contre-garde).
+
 ## 2026-09-29 (suite) — lot B1 : LE VOISIN ORANGE (la grammaire lit la correction orange de l'orthographe sur le mot d'à côté)
 
 - **Mesure transversale** : 130 des 674 muettes du gold avaient un voisin signalé en ORANGE par l'orthographe. La pyramide ne passe à la

@@ -28781,6 +28781,7 @@ function spellTokenCore(tok,atStart,T,idx){
           if(_ng2&&_ng2!==DET_G[deaccS(best)]&&DET_G[deaccS(_dp2)]===_ng2){
             var _da2=deaccS(low).split('').sort().join('')===deaccS(_dp2).split('').sort().join('');
             if(_da2||sEd1(deaccS(low),deaccS(_dp2)))best=_dp2;}}}}
+    var _prn=_suPrenom(low);if(_prn&&!(best&&sEd1(d,deaccS(best))))return _prn;   // ⭐ 29/09/2026 (Rem : « on a un lexique de prénoms ») : un prénom de la table écrit en minuscule → le PRÉNOM d'abord (enzo → Enzo, plus « saute ») — sauf si le dictionnaire propose un mot à UNE édition (dee → de, agricol → agricole). Gold dys +7, 0 perdu (frgec, EcriScol). Miroir Python.
     if(best&&best!==low)return best;
     var _g=_suElision(low)||_suPhonE1(low);                                 // VOIE '' : équiper le souligné existant (S6 puis S4) — orange AU CLIC, jamais une marque nouvelle
     if(!_g||_g===low)_g=_suPrenom(low)||_suMwe(low)||_suColle(low);         // ⭐ 13/09/2026, lot 2 : prénom en minuscule, expression collée, mots collés — miroir Python

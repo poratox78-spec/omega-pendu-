@@ -213,7 +213,7 @@ cite les livres` — les relatives `où`/`dont` ouvrent une proposition dont « 
 | lettre finale muette (dehor→dehors) | 🔴 | préfixe commun + s/x |
 | omission interne (afreuses→affreuses) | 🔴 | sous-suite + même initiale + plus proche |
 | ligature œ/æ | 🔴 | normalisation partagée, banc dédié |
-| mot inconnu → signalement | 🟠 | jamais imposé |
+| mot inconnu → signalement | 🟠 | jamais imposé ; **29/09/2026** : un PRÉNOM de la table (8 730) écrit en minuscule reçoit le prénom (« enzo » → Enzo ?) avant un mot du dictionnaire — sauf si le dictionnaire propose un mot à UNE édition (« dee » → de). Gold dys +7 bonnes suggestions, 0 perdue sur les corpus réels (EcriScol, frgec), 1 sur le corpus de fautes GÉNÉRÉES (« unai » → Unai au lieu de « une ») ; précision au produit (Chrome) 46,9 → 48,2 % ; UD 14 450 : 0 marque, 2 suggestions changées |
 | élision manquante/inversée (c est→c'est, j'mange→je mange) | 🔴 | 2 règles + listes closes unifiées ; **29/09/2026 (catalogue des muets, lot A)** : deux élisions fusionnées qui forment un mot CONNU — « on na jamais » → n'a, « ce né pas » → n'est, « tu né plus » → n'es (devant une négation seulement ; « il est né pas loin » : rien). Gold dys 12, UD 0 |
 | majuscule initiale / nom propre | 🟠 + 🔴 | page correcteur seulement (politique) ; **29/09/2026 (lot A)** : nom de LIEU sans ambiguïté écrit en minuscule → capitale, en rouge (japon, l'europe, pyrénées… ; liste fermée : « suisse » et « paris » exclus, mesuré sur UD). Gold dys 16, UD 0 |
 | **trous du lexique** (désarçonnaient, belle-sœur, exclamassent) | 🟡 | mesuré : 22 formes verbales rares / 1 059 « inconnus » sur UD ; **chantier lexique unifié, pas de génération mécanique** (abeillier→abeilliaient réfuté) |
