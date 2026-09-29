@@ -25,7 +25,11 @@ const fail = [];
 // mot inconnu vers « mot inconnu » en VIGILANCE est légitime — l'utilisateur voit et décide.
 { const f = (t => DC.spell(t).find(x => x.word.toLowerCase() === 'enzo'))('enzo qui a gagné le match');
   if (f && f.tier !== 'vigilance')
-    fail.push('prénom minuscule « enzo » APPLIQUÉ en « ' + f.sugg + ' » (palier ' + f.tier + ' ; doit rester intact ou vigilance)'); }
+    fail.push('prénom minuscule « enzo » APPLIQUÉ en « ' + f.sugg + ' » (palier ' + f.tier + ' ; doit rester intact ou vigilance)');
+  if (!f || f.sugg !== 'Enzo') fail.push('prénom de la table « enzo » : suggestion ' + JSON.stringify(f && f.sugg) + ', attendu « Enzo » (le prénom d’abord, 29/09/2026)'); }
+// ⭐ 29/09/2026 : … sauf si le dictionnaire propose un mot à UNE édition — le mot garde la main (« dee » → de, pas Dee).
+{ const f = DC.spell('il vient dee Paris').find(x => x.word === 'dee');
+  if (!f || f.sugg !== 'de') fail.push('« dee » (prénom Dee à une lettre de « de ») : suggestion ' + JSON.stringify(f && f.sugg) + ', attendu « de »'); }
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
 
