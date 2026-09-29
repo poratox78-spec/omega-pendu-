@@ -306,6 +306,11 @@ const CAS = [
   { txt: 'Les pays qui on un port sont au sud.', corrigeAttendu: ['on', 'ont'], interdit: ["qu'on un"], pourquoi: '« qui on » + déterminant → qui ont, jamais « qu’on un »' },
   { txt: 'Le film qui on voit est long.', interdit: ['qui ont voit'], pourquoi: 'CONTRE-GARDE : « qui on » + verbe conjugué → qu’on, pas « ont »' },
   /* ⭐ MUETS, lot 2 (13/09/2026) : tous → tout (trois cadres étroits), en vacance → vacances, « c'est » + nom pluriel → ces/ses (orange). */
+  /* ⭐ 29/09/2026 — « a + INFINITIF » : là où « a » ne peut pas être l'auxiliaire, c'est « à » (orange) et l'infinitif reste. */
+  { txt: "Tu n'as pas a te plaindre.", corrigeAttendu: ['a', 'à'], pourquoi: 'négation avant « a » : l’auxiliaire la précède toujours' },
+  { txt: 'Elle continu a avancer.', corrigeAttendu: ['a', 'à'], interdit: ['avancé'], pourquoi: 'sujet + verbe (mal écrit) : la place du verbe est prise, « a » est « à »' },
+  { txt: 'Elle a de la peine a chanter.', corrigeAttendu: ['a', 'à'], interdit: ['chanté'], pourquoi: '« avoir de la peine à » + infinitif' },
+  { txt: 'On a oublier la clé.', corrigeAttendu: ['oublier', 'oublié'], pourquoi: '« a » juste après son sujet : l’auxiliaire, le participe reste rouge' },
   { txt: 'Tous le monde était content.', corrigeAttendu: ['Tous', 'Tout'], pourquoi: '« tous le monde » : tout' },
   { txt: 'Ils ont tous le droit de venir.', rien: true, pourquoi: 'CONTRE-GARDE : quantifieur flottant' },
   { txt: 'Il part en vacance demain.', corrigeAttendu: ['vacance', 'vacances'], pourquoi: '« en vacance » : vacances' },

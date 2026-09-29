@@ -121,6 +121,11 @@ def _check():
               ("Il va réussi son examen", "réussi", "réussir"), ("Il doit été là", "été", "être")]
     nofp += ["Les photos que j'ai faites ont été publiées.", "C'est tout à fait différent.", "Ils sont en fait utilisés partout.",
              "Ce fait pourrait tout changer.", "Il va en prison."]
+    # ⭐ 29/09/2026 — « a + infinitif » : « à » (orange) là où « a » ne peut pas être l'auxiliaire ; l'auxiliaire juste après le sujet reste avoir ; « je né » → n'ai
+    elide += [("Tu n'as pas a te plaindre", "a", "à"), ("Elle continu a avancer", "a", "à"), ("Elle a de la peine a chanter", "a", "à"),
+              ("Je m'occupe a nettoyer", "a", "à"), ("On a oublier la clé", "oublier", "oublié"), ("je né jamais froid", "né", "n'ai")]
+    nofp += ["L'expulsé a droit au pouvoir.", "Le mal a gagné la ville.", "La peine a été lourde."]
+    palier += [("Elle continu a avancer", "a", 'vigilance'), ("On a oublier la clé", "oublier", 'auto')]
     bad = []
     for s, wtok, sug in elide:
         if not any(deacc(f[1].lower()) == deacc(wtok.lower()) and f[2] == sug for f in C.correct(s)):

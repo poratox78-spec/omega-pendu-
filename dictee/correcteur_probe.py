@@ -1099,7 +1099,7 @@ def _aa_inverted(T, i):
     if i - 1 < len(hy) and hy[i - 1]: return True        # « a-t-il » : le trait d'union PROUVE l'inversion
     return vlike(T, i - 2) and deacc(T[i-1].lower()) in _PRON_INV   # « avait il a faim » (dys, trait d'union omis)
 
-def rule_a_aa(T, i):
+def _rule_a_aa_base(T, i):
     if deacc(T[i].lower()) != 'a': return None
     if T[i] == T[i].upper() and T[i] != T[i].lower(): return None      # « A » majuscule (sigle/lettre « Serie A » ; « À » en tête) → abstention (FP)
     if i+2 < len(T) and deacc(T[i+1].lower()) == 't' and deacc(T[i+2].lower()) in ('il', 'elle', 'on', 'ils', 'elles'): return None   # « a-t-il/elle/on » : « t » euphonique = INVERSION → « a » est le VERBE avoir, jamais « à » (le -t- n'apparaît qu'après un verbe)
@@ -1142,6 +1142,40 @@ def rule_a_aa(T, i):
                 and not (_SEG is not None and i + 1 < len(_SEG['dig']) and _SEG['dig'][i+1])):
             return 'à'
     return None
+
+
+# ⭐ 29/09/2026 — ROUGES FAUX « a + INFINITIF » : quatre structures où « a » ne peut pas être l'auxiliaire, toujours devant un infinitif
+# (clitiques traversés) ; voie NOUVELLE jouée seulement si la logique existante se tait, ORANGE (tier_of). Miroir JS _rAnouveau.
+_AA_NEG = frozenset(('pas', 'plus', 'jamais', 'rien', 'point', 'guere'))
+_AA_NOM = frozenset(('difficulte', 'difficultes', 'peine', 'mal', 'facilite', 'tendance', 'plaisir', 'interet'))
+_AA_AUX = frozenset(('est sont etait etaient sera seront a ont ai as avons avez avait avaient aura auront fut furent soit ait').split())
+_AA_ADV = frozenset(('ne pas plus jamais bien deja toujours souvent aussi encore meme donc alors enfin pourtant vraiment beaucoup trop tout').split())
+
+
+def _rule_a_aa_nouveau(T, i):
+    if deacc(T[i].lower()) != 'a' or T[i] != T[i].lower() or i < 1: return None
+    if _SEG is not None and i < len(_SEG['bb']) and _SEG['bb'][i]: return None
+    k = i + 1
+    while k < len(T) and deacc(T[k].lower()) in CLITIC: k += 1
+    if k >= len(T) or not re.search(r'(er|ir|re|oir)$', deacc(T[k].lower())): return None
+    p1 = deacc(T[i - 1].lower())
+    if p1 in _AA_NEG: return u'à'                                     # ① négation AVANT « a »
+    if p1 in _AA_NOM: return u'à'                                     # ② nom qui appelle « à »
+    el = re.match(u"^(m|t|s|l)['’](.+)$", T[i - 1].lower())
+    if el:
+        wv = el.group(2); dv = deacc(wv)
+        if dv not in _AA_AUX and not _is_ppl(wv):
+            np_ = NOUN_POST.get(dv) if NOUN_POST else None
+            T3 = list(T); T3[i - 1] = wv
+            if (el.group(1) != 'l' or not (np_ and np_[0] >= 100)) and (vlike(T3, i - 1) or (CONJ_F and dv in CONJ_F)): return u'à'   # ③ verbe + pronom élidé
+    if (i >= 2 and deacc(T[i - 2].lower()) in SUBJ_PRON and p1 not in CLITIC and p1 not in VLIKE_STOP and p1 not in _AA_ADV
+            and p1 not in _AA_AUX and not _is_ppl(T[i - 1])): return u'à'   # ④ sujet + un mot plein + « a »
+    return None
+
+
+def rule_a_aa(T, i):
+    r = _rule_a_aa_base(T, i)
+    return r if r is not None else _rule_a_aa_nouveau(T, i)
 
 _ET_ADV = set('tres si tout toute bien plus trop assez vraiment deja encore fort peu moins aussi'.split())
 _ET_PREP = set('au aux du des de a en par pour sur sous dans avec sans vers chez entre'.split())
@@ -4459,7 +4493,7 @@ def rule_elision_fusionnee(T, i):
         if lw == 'na': return _keepcase(w, u"n'a")
         p1 = deacc(T[i - 1].lower()) if i else ''
         if p1 in _PP_ETRE_AUX: return None                             # « il est né pas loin d'ici » : participe
-        return _keepcase(w, u"n'es" if p1 == 'tu' else u"n'est")
+        return _keepcase(w, u"n'es" if p1 == 'tu' else (u"n'ai" if p1 == 'je' else u"n'est"))   # ⭐ 29/09/2026 : « je né jamais » → n'ai
     if "'" in lw or "’" in lw or len(lw) < 3: return None
     if lw in WORDS_SET or deacc(lw) in WORDS_SET: return None          # ① mot connu → rien à dire
     # ⭐ NOM PROPRE. Un mot CAPITALISÉ hors début de phrase n'est pas une élision fusionnée.
@@ -5910,7 +5944,7 @@ def rule_on_ont_sujet_pluriel(T, i):
     return 'ont'
 
 
-VIG_FAMILIES = ('genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
+VIG_FAMILIES = ('a/à', 'genre déterminant', 'leur/leurs', 'accord participe', 'ce/se', 'est/et (proposition)', 'ou/où', 'participe après avoir', 'aux mal orthographié',
                 'personne du verbe à vérifier', 'infinitif après semi-auxiliaire à vérifier', 'infinitif après pronom sujet à vérifier', 'participe après être à vérifier',
                 'accord du verbe au sujet nominal à vérifier',
                 'on/ont après un sujet pluriel à vérifier', 'élision inversée')
@@ -5945,6 +5979,8 @@ def tier_of(T, i, name, sugg):
     if name.endswith(u'à vérifier'): return 'vigilance'   # ⭐ 11/09/2026 : une règle « à vérifier » est ORANGE par construction (miroir spellText JS : tier 'vigilance') — nombre du déterminant, etc.
     if name not in VIG_FAMILIES:
         return 'auto'
+    if name == 'a/à':                                     # ⭐ 29/09/2026 : la voie NOUVELLE (devant un infinitif) est orange — miroir JS
+        return 'vigilance' if (_rule_a_aa_base(T, i) is None and _rule_a_aa_nouveau(T, i) == u'à') else 'auto'
     if name == 'participe après avoir':                   # ⭐ 28/09/2026 : homophone HORS verbe (eux → eu, prix → pris) = orange ; forme conjuguée = rouge
         return 'vigilance' if deacc(T[i].lower()) in _AVOIR_HOMO else 'auto'
     if name == 'aux mal orthographié':                    # ⭐ 29/09/2026 : « il été » → était (ou « a été ») = orange ; le reste = rouge

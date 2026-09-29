@@ -20,16 +20,16 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A + B1) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif) |
 |---|---|---|
-| réparée en rouge | 554 (27,5 %) | **587** (29,2 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **367** (18,2 %) |
-| mot FAUX proposé | 373 (18,5 %) | 373 (18,5 %) |
+| réparée en rouge | 554 (27,5 %) | **589** (29,3 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **379** (18,8 %) |
+| mot FAUX proposé | 373 (18,5 %) | **364** (18,1 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 18 (0,9 %) |
-| **muette** | **711** (35,3 %) | **667** (33,2 %) |
+| **muette** | **711** (35,3 %) | **662** (32,9 %) |
 | **total** | **2 012** | 2 012 |
 
-Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **55** aujourd'hui (36 / 19) — voir plus
+Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **54** aujourd'hui (34 / 20) — voir plus
 bas, à auditer un par un.
 
 ## Les 711 muettes, par remédiation
@@ -66,7 +66,9 @@ du mot suivant (qui lisait « a » comme avoir : « il commanse a pleurer » →
 
 Vu en chemin, pour le catalogue des **mots faux proposés** : « on continu a chanter » → chanté, « je m'occupe a nettoyer » →
 nettoyé, « elle a de la peine a chanter » → chanté (phrases inventées, même construction que 3 cas du gold), en ROUGE — le « a »
-y est lu comme avoir ; les constructions « commencer à », « avoir du mal / de la peine à », « prêt à » sont le prochain chantier a → à.
+y est lu comme avoir ; les constructions « commencer à », « avoir du mal / de la peine à », « prêt à » sont le prochain chantier a → à. ✅ **Fermé le 29/09** : « à » en orange là où « a » ne
+peut pas être l'auxiliaire (négation, nom qui appelle « à », verbe + pronom élidé, sujet + verbe) — 5 « à » justes de plus, 4 rouges
+faux retirés ou ramenés en orange, 0 perte.
 
 ### B — à mesurer (513)
 

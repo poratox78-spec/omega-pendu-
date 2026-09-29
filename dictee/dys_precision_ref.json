@@ -19,7 +19,7 @@
   "grammaire:majuscule|auto·propre": 94.1,
   "grammaire:accord sujet-verbe|auto·propre": 87.5,
   "grammaire:participe après avoir|auto·pollué": 100.0,
-  "grammaire:terminaison -er/-é/-ez/-ai|auto·pollué": 60.0,
+  "grammaire:terminaison -er/-é/-ez/-ai|auto·pollué": 64.3,
   "grammaire:genre déterminant|vigilance·pollué": 53.8,
   "grammaire:ce/se|vigilance·pollué": 72.7,
   "grammaire:-é/-er|auto·propre": 77.8,
@@ -58,6 +58,7 @@
   "grammaire:terminaison -er/-é/-ez/-ai|auto·propre": 100.0,
   "grammaire:infinitif après semi-auxiliaire à vérifier|vigilance·propre": 75.0,
   "grammaire:-e/-é (participe)|auto·pollué": 100.0,
+  "grammaire:a/à|vigilance·pollué": 100.0,
   "grammaire:accord participe|auto·pollué": 33.3,
   "grammaire:c'est/ces à vérifier|vigilance·pollué": 100.0,
   "grammaire:négation|auto·pollué": 66.7,
@@ -77,6 +78,7 @@
   "grammaire:personne du verbe à vérifier|vigilance·pollué": 50.0,
   "grammaire:sais/sait|auto·pollué": 100.0,
   "grammaire:élision fusionnée|auto·propre": 50.0,
+  "grammaire:a/à|vigilance·propre": 100.0,
   "grammaire:accord du participe après avoir à vérifier|vigilance·pollué": 100.0,
   "grammaire:accord participe|auto·propre": 100.0,
   "grammaire:accord participe (COD avoir)|auto·pollué": 100.0,
@@ -101,6 +103,6 @@
   "grammaire:ça/sa|auto·propre": 100.0,
   "grammaire:étais après c'/s'|auto·propre": 100.0
  },
- "inutile_auto": 26,
+ "inutile_auto": 25,
  "note": "Précision par (famille, palier) sur texte dys, ANCRÉE. Une baisse rougit ; une hausse est un GAIN à ré-ancrer (--fix)."
 }

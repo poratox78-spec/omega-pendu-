@@ -440,6 +440,7 @@ const VIG_PHRASES = PHRASES.concat([
   "ceux qui sont dégoûtés du système partent.", "les amis du voisin partent.",   // contrôles : contracté du/des derrière un participe/nom = complément → silence des deux côtés (12/09)
   "La température la plus froide a été enregistrée hier.",   // contrôle : tête superlative « la plus froide » → silence des deux côtés (12/09, UD 2134)
   "ils ce sont déroulés hier.", "ce sont des amis.",   // ce/se + auxiliaire : le participe tranche (12/09) ; contrôle : groupe nominal → silence
+  "Tu n'as pas a te plaindre.", 'Elle continu a avancer.', 'Elle a de la peine a chanter.', "Je m'occupe a nettoyer.", 'On a oublier la clé.', "L'expulsé a droit au pouvoir.",   // a + infinitif (29/09/2026) : « à » orange là où « a » ne peut pas être l'auxiliaire ; contrôles : avoir juste après le sujet (laissé), l'expulsé
   'Boeing a signés un contrat.', 'ils ont vue leur médecin.', 'Je les ai vues la semaine dernière.',   // accord surnuméraire après avoir (orange) ; contrôle : clitique COD → silence
   'Hier je noté le numéro.', 'quand je retourné à la maison.', 'je fatigué ce soir.', 'Ai-je noté le numéro ?', 'Demain je noté le numéro.',   // auxiliaire manquant (orange) ; contrôles : inversion, futur (rouge ailleurs)
   "C'est chiens sont âgés de trois ans.", "leur mère parle à c'est parents de sortir.", "c'est gens-là.", "C'est les vacances.",   // c'est/ces (orange) ; contrôles : nom propre/trait d'union, déterminant
