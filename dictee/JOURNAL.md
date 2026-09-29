@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-09-29 (suite) — rouges FAUX « a + infinitif » : « à » en orange là où « a » ne peut pas être l'auxiliaire
+
+- Inventaire (produit en Node, corpus dys appariés + UD) : 16 marques -er → -é derrière un « a » sans accent ; sur le gold, 6 JUSTES
+  (« a » juste après son sujet : on a, elle a, les a, il a…) et 5 fausses dont 3 ROUGES ; EcriScol 1 rouge faux ; UD 2.
+- Les règles -er/-é consultent déjà rA (« a réussi a se lever ») : le trou est dans rA, qui ne reconnaissait pas « à » après une négation
+  (« n'as pas a te plaindre » — l'auxiliaire précède toujours la négation), après un nom qui appelle « à » (du mal, de la peine…), après
+  un verbe collé à un pronom élidé (« m'occupe a ») ni après sujet + verbe mal écrit (« elle continu a »).
+- Construit en voie NOUVELLE (_rAnouveau / _rule_a_aa_nouveau), jouée seulement si la logique existante se tait, toujours devant un
+  infinitif, et ORANGE (tier_of) : la logique mesurée garde ses rouges. Deux défauts vus en mesurant et fermés avant de construire :
+  « l'Est » lu comme verbe devant « a » (d'où l'infinitif exigé et être/avoir écartés), « l'expulsé a droit » (d'où « l' » seulement devant un verbe).
+- Mesuré (14 322 textes dys + UD) : 5 « à » justes de plus sur le gold, 3 rouges faux retirés (avancé ×2 → avancer, justifié), 1 ramené
+  en orange (étudié), 0 perte ; frgec : 1 « à » juste ; UD : 1 marque, une vraie faute du corpus (« rien a redire »).
+- En chemin, un rouge faux de MA règle de #823 : « je né jamais » → n'est ; après « je », c'est n'ai. Corrigé (JS + Python).
+- Tests : recall_probe (référence : « à », paliers, contrôles), navigateur_probe (Chrome), parités.
+
 ## 2026-09-29 (suite) — « infinitif après semi-auxiliaire » : 4 faux positifs fermés sans rien perdre
 
 - Rem : « rassure-moi, tu ne m'enlèves pas une règle qui marchait ». Inventaire d'abord (produit en Node, corpus dys appariés + UD) :
