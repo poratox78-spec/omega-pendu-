@@ -117,6 +117,7 @@ def pyramide(txt):
     # milliers d'animaux . les animaux mange … » — le point donne la borne qui permet mange→mangent ;
     # la sonde sans point comptait un RATÉ que le produit répare. On normalise ’ʼ→' comme correct()
     # (sinon _seg_info, dont le motif n'a pas les apostrophes typographiques, désaligne les indices).
+    sp_orange = {i: list(s) for i, s in orange.items()}   # ⭐ 29/09/2026 (lot B1) : les oranges de l'ORTHOGRAPHE seules, avant la grammaire
     CP._SEG = CP._seg_info(txt.replace('’', "'").replace('ʼ', "'"))
     CP._SEG['pb'] = CP._pred_bounds(Tc, CP._SEG)   # bornes prédites (canal pb) : la sonde équipe la grammaire COMME LE PRODUIT (diagnoseAll pose pb sur les tokens nettoyés)
     out = Tc[:]
@@ -147,7 +148,34 @@ def pyramide(txt):
                     continue                      # orange : on n'applique pas, on continue de chercher
                 out[i] = sg
                 break
+    # ⭐ 29/09/2026 — LE VOISIN ORANGE (miroir de diagnoseAll, lot B1 du catalogue des muets) : la grammaire relit les tokens où les
+    # corrections ORANGE de l'orthographe sont appliquées ; ce que la première règle qui tire trouve EN PLUS sur un autre mot est proposé
+    # en orange — seulement pour les 4 règles qui décident sur la NATURE du voisin.
+    Tv = Tc[:]
+    for i, sgs in sp_orange.items():
+        if sgs and _mot(sgs[0]): Tv[i] = sgs[0]
+    if Tv != Tc:
+        for i in range(len(Tv)):
+            if i in sp_orange or i in orange or i in signale or out[i] != Tc[i]: continue
+            for nm, rule in CP.RULES:
+                try:
+                    d = rule(Tv, i)
+                except Exception:
+                    continue
+                if d is None: continue
+                sg = d['sugg'] if isinstance(d, dict) else d
+                if isinstance(sg, str) and Tv[i][:1].isupper() and sg[:1].islower(): sg = sg[0].upper() + sg[1:]
+                if isinstance(sg, str) and sg != Tv[i]:
+                    if nm in _VOISIN_OK:
+                        orange.setdefault(i, []).append(sg)
+                        j = i + 1                                  # « il commanse a pleurer » : le rouge « pleuré » lisait « a » comme AVOIR → orange
+                        if nm == u'a/à' and j < len(out) and out[j] != Tc[j] and Tc[j].lower().endswith('er') and out[j].lower().endswith(u'é'):
+                            orange.setdefault(j, []).append(out[j]); out[j] = Tc[j]
+                    break
     return T, out, Tc, orange, signale
+
+
+_VOISIN_OK = {u'a/à', u'ou/où', u'élision fusionnée', u'accord grammatical (é/er)'}
 
 
 _INFL = ('s', 'x', 'e', 'es', 'ent', 'é', 'ée', 'és', 'ées', 'er', 'ez', 'ai', 'ais', 'ait', 'aient', 'ons', 'ont', 'a', 'as', 'ra', 'rai', 'ras', 'rons', 'rez', 'ront')

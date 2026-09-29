@@ -1,7 +1,7 @@
 {
- "justes": 336,
- "pointeuses": 226,
- "fatigue": 144,
+ "justes": 337,
+ "pointeuses": 227,
+ "fatigue": 143,
  "cles_justes": [
   "L'économit→L'économie [orthographe] terminaison",
   "L'églisse→L'église [orthographe] lettre_trop",
@@ -44,6 +44,7 @@
   "cess→ces [orthographe] lettre_trop",
   "cestillan→castillan [mot inconnu] lettre_change",
   "champion→champions [accord pluriel à vérifier] accord",
+  "chanson→chansons [accord pluriel à vérifier] accord",
   "charcuteris→charcuterie [mot inconnu] terminaison",
   "chque→chaque [orthographe] lettre_manque",
   "cinéastte→cinéaste [orthographe] lettre_trop",

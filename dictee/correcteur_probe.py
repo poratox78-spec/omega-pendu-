@@ -4435,7 +4435,7 @@ _FUS_APRES = set('ai as a ait avait avais avaient ont avons avez est es etait et
 
 
 # ⭐ 29/09/2026 — CATALOGUE DES MUETS, lot A : deux élisions fusionnées forment un mot CONNU (« na », « né ») — la condition ① (mot inconnu)
-# les écartait toujours. Devant une négation, pas de doute : « il na pas » → n'a, « ce né pas » → n'est (« tu né pas » → n'es). Gold dys :
+# les écartait toujours. Devant une négation, pas de doute : « on na jamais » → n'a, « ce né pas » → n'est (« tu né plus » → n'es). Gold dys :
 # 12 muettes réparées ; UD 14 450 : 0 tir. « il est né pas loin d'ici » (participe après être) : rien.
 _FUS_CONNUS = {'na', u'né'}
 _FUS_NEG = {'pas', 'plus', 'jamais', 'rien', 'point', 'guere', 'personne', 'aucun', 'aucune'}
@@ -5240,7 +5240,7 @@ def rule_pp_avoir_surnum(T, i):
 _AVOIR_PP_ACC = {'du': u'dû', 'mu': u'mû', 'recu': u'reçu', 'decu': u'déçu', 'apercu': u'aperçu', 'concu': u'conçu', 'percu': u'perçu'}
 _AVOIR_ETAIT = {u'était', u'étais', u'étaient', 'etait', 'etais', 'etaient'}
 # Homophones HORS verbe, ORANGE (tier_of) : « ils ont prix le train » → pris, « nous avons eux de la chance » → eu. Jamais après
-# « a »/« as » seuls (« à prix d'or », « c'est à eux ») sauf « eux » + déterminant (« il a eux un accident ») ; « ils ont eux aussi
+# « a »/« as » seuls (« à prix d'or », « c'est à eux ») sauf « eux » + déterminant (« elle a eux une bonne note ») ; « ils ont eux aussi
 # des droits », « eux-mêmes » : juste.
 _AVOIR_HOMO = {'eux': 'eu', 'prix': 'pris'}
 _AVOIR_HOMO_STOP = {'aussi', 'meme', 'memes', 'seuls', 'seules', 'tous', 'toutes', 'non', 'ni'}

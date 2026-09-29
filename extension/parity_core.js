@@ -160,11 +160,11 @@ const PHRASES = [
   // « était » → été, l'infinitif « avoir »/« ayant » ; eux/prix en ORANGE (palier) ; pièges : relative, sigle, participe accordé.
   'Les élèves ont prit le bus.', 'Ils ont fais leurs devoirs.', 'Les enfants ont mit leurs bottes.', 'Ils ont écris une lettre.',
   'Ils ont dut partir tôt.', 'La fête a était réussie.', "Merci d'avoir fais le ménage.", 'Ayant mit son manteau, elle sortit.',
-  "J'ai prix le train de nuit.", 'Nous avons eux de la chance.', 'Il a eux un accident.',
+  "J'ai prix le train de nuit.", 'Nous avons eux de la chance.', 'Elle a eux une bonne note.',
   "Tout ce qu'il a était à elle.", 'Ils ont eux aussi des droits.', "C'est a eux de jouer.", 'La C2A était riche.',
   'Les tableaux que tu as vus sont célèbres.', "Les pommes qu'il a prises sont mûres.", 'Il a dit bonjour.',
   // ⭐ 29/09/2026 — catalogue des muets, lot A : cibles et pièges (élision n', cher/chez, « il été » orange, lieux en minuscule).
-  'Il na pas compris.', 'Ce né pas grave.', 'Tu né pas prêt.', "Il est né pas loin d'ici.", 'Je rentre cher moi ce soir.',
+  'On na jamais compris.', 'Ce né pas grave.', 'Tu né plus prêt.', "Il est né pas loin d'ici.", 'Je rentre cher moi ce soir.',
   'Mon cher, moi je reste.', 'Un cadeau cher le jour de Noël.', 'Il été content de venir.', "J'été fatigué hier.",
   'Laquelle a-t-elle été ?', 'Ça été une belle fête.', 'Je pars au japon cet été.', "Elle aime l'europe.", 'Le franc suisse monte.'
 ];
@@ -472,6 +472,21 @@ const _vMuet = Array.from(VIG_PY).filter(n => !_vHitJs[n] || !_vHitPy[n]);
 if (_vMuet.length) { console.log('PARITÉ KO — règle(s) de vigilance jamais exercée(s) par le harnais : ' + JSON.stringify(_vMuet) + ' ext=' + JSON.stringify(_vHitJs) + ' py=' + JSON.stringify(_vHitPy)); process.exit(1); }
 if (_vKo) { console.log('PARITÉ KO — ' + _vKo + ' phrase(s) où l\'extension marque une ORANGE hors Python.'); process.exit(1); }
 console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orange appariées, ext ⊆ Python sur ' + VIG_PHRASES.length + ' phrases (écarts de couverture : ' + _vGap + ')');
+
+// ⭐ 29/09/2026 — LE VOISIN ORANGE (catalogue des muets, lot B1) : diagnoseAll relit la phrase avec les corrections ORANGE de
+// l'orthographe ; ce que a/à, ou/où, élision fusionnée, -er/-é y trouvent EN PLUS est proposé en orange, et le rouge -er → -é qui
+// lisait « a » comme avoir redevient orange. Miroir de mesure : dys_pipeline_probe.pyramide (même étape).
+{
+  const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _vo = 0;
+  const f1 = fl('Il commanse a pleurer.'), fa = f1.find(f => f.word === 'a'), fp = f1.find(f => f.word === 'pleurer');
+  if (!fa || fa.sugg !== 'à' || fa.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : « commanse a pleurer » → a/à orange attendu, obtenu ' + JSON.stringify(fa || null)); }
+  if (fp && fp.tier !== 'vigilance') { _vo++; console.log('  ✗ voisin orange : le rouge « pleuré » (a lu comme avoir) devait passer en orange : ' + JSON.stringify(fp)); }
+  const f2 = fl('Elle commence à avancer doucement.');
+  if (f2.length) { _vo++; console.log('  ✗ voisin orange : phrase correcte marquée ' + JSON.stringify(f2.map(f => [f.word, f.sugg, f.name]))); }
+  if (_vo) { console.log('PARITÉ KO — voisin orange : ' + _vo + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ voisin orange : « commanse a pleurer » → à ? (orange), le rouge « pleuré » repasse en orange ; phrase correcte muette');
+}
 
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
