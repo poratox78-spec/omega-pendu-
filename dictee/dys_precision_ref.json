@@ -86,6 +86,8 @@
   "grammaire:accord tout|auto·propre": 0.0,
   "grammaire:c'est/s'est|auto·propre": 100.0,
   "grammaire:cher/chez|auto·propre": 100.0,
+  "grammaire:est/et (proposition)|vigilance·propre": 100.0,
+  "grammaire:et/est|vigilance·propre": 100.0,
   "grammaire:genre déterminant|auto·pollué": 0.0,
   "grammaire:guère/guerre|auto·pollué": 100.0,
   "grammaire:infinitif de but|auto·pollué": 100.0,

@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **589** (29,3 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **379** (18,8 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **382** (19,0 %) |
 | mot FAUX proposé | 373 (18,5 %) | **364** (18,1 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 18 (0,9 %) |
-| **muette** | **711** (35,3 %) | **662** (32,9 %) |
+| **muette** | **711** (35,3 %) | **659** (32,8 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **54** aujourd'hui (34 / 20) — voir plus
@@ -75,7 +75,7 @@ faux retirés ou ramenés en orange, 0 perte.
 | groupe | n | paires | ce qu'il faut regarder |
 |---|---|---|---|
 | a → à | 52 | a→à ×52 | la règle rouge en répare autant (53) ; le reste n'a pas d'ancre sûre (recensement du 14/09 : le voisin est souvent fautif lui-même). Piste : une orange « carte » comme ces/ses, avec son seuil, mesurée sur UD et le gold |
-| homophones grammaticaux | 60 | et→est ×12 · est→et ×11 · se→ce ×6 · son→sont ×6 · ce→se ×5 · tout→tous ×3 · peu→peut ×3 | les règles existent ; lire les gardes qui se taisent, **et/est d'abord (23)** |
+| homophones grammaticaux | 60 | et→est ×12 · est→et ×11 · se→ce ×6 · son→sont ×6 · ce→se ×5 · tout→tous ×3 · peu→peut ×3 | les règles existent ; lire les gardes qui se taisent, **et/est d'abord (23)**. ✅ 29/09 : **3 de plus en orange** (sujet nominal + participe, « est voilà », « est » + adverbe + nouvelle proposition), 0 fausse, UD 0 ; restent 20 : deux fautes à la fois (déterminant ou pronom mal écrit, participe écrit à l'infinitif) ou le sens (« est » + groupe nominal + verbe) |
 | forme du verbe (-er / -é / -ait) | 48 | arriver→arrivé ×2 · énerver→énervé ×2 · priver→privée ×2 · rouler→roulé | règles existantes muettes : auxiliaire lui-même mal écrit (« na », « jais »), verbe absent du lexique verbal (« ravager »), garde a/à |
 | élisions et apostrophes (autres) | 39 | ses→c'est ×3 · que→qu'il ×3 · jais→j'ai ×2 · ma→m'a ×2 · ces→c'est ×2 | motifs par préfixe : ses/ces + participe → c'est ; ma + participe → m'a ; jais / javais → j'ai / j'avais |
 | nombre du nom | 60 | prise→prises ×2 · espace→espaces ×2 · tomate→tomates · pied→pieds · voiture→voitures | après « de » (beaucoup de, des tonnes de : 7) et après d'autres gouverneurs (53) : noms homographes d'un verbe, gouverneur loin |
@@ -111,7 +111,7 @@ est la seule colonne qui viole la doctrine FP=0.
 ## Ordre de travail
 
 1. **Lot A** (62 + les 3 oranges fausses) : une PR par groupe ou par petits paquets, chacune mesurée (gold, UD, précision au produit).
-2. **Les deux gros gisements** : a → à (52) et et/est (23) — mesurer d'abord, orange d'abord.
+2. **Les deux gros gisements** : a → à (52) et et/est (23) — mesurer d'abord, orange d'abord. (et/est : 3 de plus le 29/09, 20 restent.)
 3. **Le correcteur d'orthographe qui saute** (28) et les **accents** (31).
 4. **Les silences de grammaire** (forme du verbe, nombre du nom, adjectif, sujet-verbe : ~180) — tracer les gardes, étendre l'existant.
 5. **Lot C** : en parler avec Rem — le réglage du genre, le juge de sens, la ponctuation.
