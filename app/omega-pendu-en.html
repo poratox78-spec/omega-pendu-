@@ -28465,13 +28465,20 @@ function estQuestion(t,maxMots){
     while(i<s.length&&j<l.length){if(s[i]===l[j]){i++;j++;}else{if(++sk>1)return false;j++;}}return true;}
   var _DAN_SUR={},_DAN_VIG={le:1,la:1,les:1,se:1};'un une des ce cet cette ces mon ma mes ton ta tes son sa ses notre nos votre vos leurs quel quelle quels quelles tout toute tous toutes'.split(' ').forEach(function(w){_DAN_SUR[w]=1;});   // ⭐ 13/09/2026 : « dan » + déterminant → dans (miroir Python)
   var _VACANCES_AV={};"en de d' des les mes tes ses nos vos leurs bonnes grandes petites".split(' ').forEach(function(w){_VACANCES_AV[w]=1;});   // ⭐ 13/09/2026 : « en vacance » → vacances (miroir Python)
+  /* ⭐ 29/09/2026 — MOTS ÉLIDÉS INCONNUS (catalogue des muets) : « l'aupital », « s'inkiète » ne recevaient RIEN alors que la forme nue
+     reçoit le bon mot en orange — l'étage d'élision jetait tout candidat à plus d'une édition (« faux ami »), et le repli « mot inconnu »
+     refusait l'apostrophe. Désormais, quand le reste est INCONNU : candidat distant → ORANGE ; rien → « mot inconnu » orange sur le reste,
+     préfixe gardé ; « l'entement » → la soudure si elle est au lexique. Gardes : reste connu, MAJUSCULE (nom propre possible, comme la
+     forme nue : « L'Atalaya ») ou reste à consonne (pas une élision française : « N'golo ») → abstention. Mesuré (produit) :
+     +14 bons mots en orange sur les 3 corpus dys (gold 9) ; UD 14 450 : 38 oranges de plus (822 « mot inconnu » déjà : mêmes mots rares,
+     dont 9 vraies fautes du corpus). Miroir Python : speller_probe.spell_token / correct_text. */
   function spellToken(tok,atStart,T,idx){                                  // élision : « d'othographes » = 1 token (toks garde l'apostrophe) → on analyse le RESTE
     var em=tok.match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),pk;
     if(em&&((pk=em[1].toLowerCase()).length===1&&SELIDE[pk]||pk==='qu')){  // d'/l'/j'/qu'… + reste ; le reste d'une élision CORRECTE est un mot connu → core rend null (FP-safe)
       var rc=spellTokenCore(em[2],false,T,idx);if(!rc)return null;
       var rem=deaccS(em[2].toLowerCase()),sug=deaccS(rc[1].toLowerCase());
-      if(!SVOW[sug[0]])return null;                                        // l'/d' exige une voyelle/h après : « l'aramel »→« caramel » casserait l'élision → abstention
-      if(rc[0]!=='auto'&&rem!==sug&&!sEd1(rem,sug))return null;            // conservateur sur l'élision : phonétique distant (othographe→autographe) = faux ami → abstention
+      if(!SVOW[sug[0]]){var _sd=deaccS((em[1]+em[2]).toLowerCase()),_fz=SP.D2A[_sd];if(pk==='l'&&_fz&&_fz.length&&!SP.WORDS.has(em[2].toLowerCase())&&!SP.WORDS.has(rem))return ['vigilance',_fz[0]];return null;}   // l'/d' exige une voyelle/h après : « l'aramel »→« caramel » casserait l'élision → abstention ; SAUF la soudure au lexique (« l'entement » → lentement, orange)
+      if(rc[0]!=='auto'&&rem!==sug&&!sEd1(rem,sug)){if(SP.WORDS.has(em[2].toLowerCase())||SP.WORDS.has(rem)||tok.charAt(0)!==tok.charAt(0).toLowerCase()||!/^[aeiouyh]/.test(rem))return null;return ['vigilance',em[1]+"'"+rc[1]];}   // phonétique distant (othographe→autographe) : abstention sur un reste CONNU ; reste INCONNU → ORANGE (29/09/2026)
       return [rc[0],em[1]+"'"+rc[1]];}
     return spellTokenCore(tok,atStart,T,idx);}
   // ÉLONGATION (« trèèès »→très) : un run de ≥3 lettres identiques n'existe dans AUCUN mot FR valide → non-mot SÛR.
@@ -29336,6 +29343,7 @@ function spellTokenCore(tok,atStart,T,idx){
     var r=spellToken(T[i],i===0,T,i),pushed=false;
     if(r&&r[1]!==T[i].toLowerCase()){out.push({i:i,word:T[i],sugg:ckeepcase(T[i],r[1]),name:'orthographe',tier:r[0]});pushed=true;}   // ckeepcase : préserver la MAJUSCULE (« Ecole »→« École »)
     if(!pushed){var u=spellUnknown(T[i],i===0,T,i);if(u!==null){out.push({i:i,word:T[i],sugg:(u||T[i]),name:'mot inconnu',tier:'vigilance'});pushed=true;}}
+    if(!pushed){var _ee=T[i].match(/^([A-Za-zÀ-ÿ]{1,2})['’](.+)$/),_ep=_ee?_ee[1].toLowerCase():'';if(_ee&&((_ep.length===1&&SELIDE[_ep])||_ep==='qu')&&T[i].charAt(0)===T[i].charAt(0).toLowerCase()&&/^[aeiouyh]/.test(deaccS(_ee[2].toLowerCase()))){var _eu=spellUnknown(_ee[2],false,T,i);if(_eu!==null){out.push({i:i,word:T[i],sugg:(_eu&&SVOW[deaccS(_eu.toLowerCase())[0]])?_ee[1]+"'"+_eu:T[i],name:'mot inconnu',tier:'vigilance'});pushed=true;}}}   // ⭐ 29/09/2026 : mot ÉLIDÉ inconnu → « mot inconnu » sur le reste, préfixe gardé (miroir correct_text)
     if(!pushed){var _vg=vigAt(T,i,_vst,text);if(_vg){out.push(_vg);pushed=true;}}}   // ⭐ 12/09/2026 : la chaîne orange vit dans vigAt (consultable à UN index sur des tokens corrigés — bout de chaîne orthographe → orange)
     if(SP.ready){var done={};out.forEach(function(f){done[f.i]=1;});   // élision-espace : « c est »→« c'est », « qu il »→« qu'il », « aujourd hui »→« aujourd'hui »
       var er=/[A-Za-zÀ-ÿœŒ'’ʼ]+/g,em,P=[];while((em=er.exec(text)))P.push([em.index,em.index+em[0].length,em[0]]);

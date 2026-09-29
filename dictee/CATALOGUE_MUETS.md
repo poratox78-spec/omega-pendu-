@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés) |
 |---|---|---|
 | réparée en rouge | 554 (27,5 %) | **589** (29,3 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **382** (19,0 %) |
-| mot FAUX proposé | 373 (18,5 %) | **364** (18,1 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **391** (19,4 %) |
+| mot FAUX proposé | 373 (18,5 %) | **366** (18,2 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 18 (0,9 %) |
-| **muette** | **711** (35,3 %) | **659** (32,8 %) |
+| **muette** | **711** (35,3 %) | **648** (32,2 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **54** aujourd'hui (34 / 20) — voir plus
@@ -82,7 +82,7 @@ faux retirés ou ramenés en orange, 0 perte.
 | accord de l'adjectif | 43 | austral→australe ×4 · chimique→chimiques ×4 · mondial→mondiale ×2 · majeur→majeure ×2 · quelque→quelques ×2 | épithète séparé de son nom, genre du nom inconnu, adjectif lu comme verbe |
 | terminaisons homophones (autres) | 66 | mure→murs ×3 · voire→voir ×2 · soi→soit ×2 · foie→fois | finales muettes entre deux mots différents : il faut le contexte grammatical, cas par cas |
 | accord sujet-verbe | 28 | avances→avancent · mange→mangent · utilises→utilisent · voulais→voulait · vas→va | silences connus : sujet loin, inversion, relative, incise |
-| mots inconnus non signalés | 28 | s'arette→s'arrête · p'apareille→l'appareil · s'asoire→s'asseoir · em→e ×2 | le correcteur d'orthographe saute les mots ÉLIDÉS inconnus (14) et les mots inconnus à MAJUSCULE en milieu de texte (7) ; 7 mots hors dictionnaire acceptés |
+| mots inconnus non signalés | 28 ✅ élidés (29/09) | s'arette→s'arrête · p'apareille→l'appareil · s'asoire→s'asseoir · em→e ×2 | le correcteur d'orthographe saute les mots ÉLIDÉS inconnus (14) et les mots inconnus à MAJUSCULE en milieu de texte (7) ; 7 mots hors dictionnaire acceptés |
 | homophones nom / verbe | 25 | travaille→travail ×4 · rappel→rappelle · appel→appelle · party→parti ×3 · plastic→plastique ×3 | déterminant + forme verbale → nom (« le travaille ») ; sujet + nom → verbe (« je travail ») ; mots anglais acceptés |
 | majuscule après ! ? … | 25 | je→Je ×5 · ce→Ce ×3 · le→Le ×3 | le produit ne met la majuscule qu'après un POINT (mesuré ~100 % de faux sur OQLF/BDL après ! ? …) ; à remesurer sur texte dys |
 | accents | 31 | la→là ×5 · ca→ça ×3 · ou→où ×3 · media→média ×3 · pole→pôle ×2 · foret→forêt ×2 | mot-outil (là, ça, où, dû, sûr, dès : 15) ; mot connu sans son accent (16 : même mécanisme que « mere » → mère, `_AFIX_MIN`) |

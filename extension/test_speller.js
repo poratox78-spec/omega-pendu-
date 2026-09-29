@@ -30,6 +30,13 @@ const fail = [];
 // ⭐ 29/09/2026 : … sauf si le dictionnaire propose un mot à UNE édition — le mot garde la main (« dee » → de, pas Dee).
 { const f = DC.spell('il vient dee Paris').find(x => x.word === 'dee');
   if (!f || f.sugg !== 'de') fail.push('« dee » (prénom Dee à une lettre de « de ») : suggestion ' + JSON.stringify(f && f.sugg) + ', attendu « de »'); }
+// ⭐ 29/09/2026 — MOTS ÉLIDÉS INCONNUS : la forme nue recevait le bon mot en orange, la forme élidée RIEN. Reste inconnu → orange ;
+// « l' » collé à tort → la soudure ; nom propre (majuscule), élision devant consonne, mot connu → rien.
+for (const [t, w, s] of [["Il est allé à l'aupital hier.", "l'aupital", "l'hôpital"], ["Elle s'inkiète pour rien.", "s'inkiète", "s'inquiète"], ["Il part l'orsque la nuit tombe.", "l'orsque", 'lorsque']]) {
+  const f = DC.spell(t).find(x => x.word === w);
+  if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('élidé inconnu « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+for (const t of ["La cité de L'Atalaya est belle.", "N'golo court vite.", "Il joue de l'ukulélé."])
+  if (DC.spell(t).length) fail.push('élidé : FP sur « ' + t + ' » → ' + JSON.stringify(DC.spell(t).map(x => x.word + '→' + x.sugg)));
 const sp = t => DC.spell(t);
 const find = (t, w) => sp(t).find(x => x.word.toLowerCase() === w);
 
