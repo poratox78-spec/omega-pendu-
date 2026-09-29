@@ -214,6 +214,9 @@ const SP = globalThis.__sp;
     if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('accent muet « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
   for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass media', 'media'], ['il part en pole position', 'pole'], ['Ca réagit avec l’eau', 'Ca']])
     if (SP.spell(t).some(x => x.word === w)) fail.push('accent muet : FP sur « ' + t + ' »');
+  // ⭐ 30/09/2026 — CLÉ PHONÉTIQUE : un e muet écrit garde la consonne qui le précède (« cette » avait une clé VIDE, partagée avec « sais »).
+  { const f = SP.spell('le chat est vitte parti').find(x => x.word === 'vitte');
+    if (!f || f.sugg !== 'vite') fail.push('« vitte » : attendu « vite » (la clé garde le t devant le e muet), eu ' + JSON.stringify(f && f.sugg)); }
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');

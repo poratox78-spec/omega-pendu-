@@ -213,6 +213,11 @@ def phon_key(s):
     for ch in s:
         if not out or out[-1] != ch: out.append(ch)
     s = ''.join(out)
+    # ⭐ 30/09/2026 : un e muet ÉCRIT final garde la consonne qui le précède (« cette », « séte » → set ; la boucle rendait une clé VIDE,
+    # partagée avec « sais », « ai »…) ; « -es » se lit comme « -e ». Sinon la boucle d'origine (mangé = mangez = mangeait). Exception
+    # MESURÉE à la clé approximative ci-dessus (le reste de l'avertissement tient). Miroir JS phonKey.
+    if re.search(r'[^e]es$', s): s = s[:-1]
+    if re.search(r'[^e]e$', s): return s[:-1]
     while s and s[-1] in 'est': s = s[:-1]                       # consonnes/e finales souvent muettes
     return s
 
@@ -749,6 +754,11 @@ class Speller:
                 return phy - phx
             nx, ny = nmatch(wx), nmatch(wy)
             if nx != ny: return ny - nx
+            if phx == 1 and phy == 1 and (wx == wy + 's' or wy == wx + 's' or wx == wy + 'x' or wy == wx + 'x'):
+                # ⭐ 30/09/2026 : singulier / pluriel HOMOPHONES — la finale -s/-x du mot ÉCRIT départage avant la fréquence (« afreuses » →
+                # affreuses) ; restreint à ces paires : le comparateur n'est pas transitif (« rélles » → elles sinon) — miroir JS
+                ls = bool(re.search(r'[sx]$', low))
+                return (1 if bool(re.search(r'[sx]$', wy)) == ls else 0) - (1 if bool(re.search(r'[sx]$', wx)) == ls else 0)
             return -1 if fx > fy else (1 if fx < fy else 0)
         # ⚠️⚠️ « RENDRE `_cmp` TRANSITIF » — CONSTRUIT, MESURÉ, FALSIFIÉ (23/08/2026). NE PAS REFAIRE
         # EN L'ÉTAT. Le constat de départ est JUSTE : `_cmp` est PAIRWISE (les gardes de dominance
