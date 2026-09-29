@@ -207,6 +207,13 @@ const SP = globalThis.__sp;
     if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('élidé inconnu « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
   for (const t of ["La cité de L'Atalaya est belle.", "N'golo court vite.", "Il joue de l'ukulélé."])
     if (SP.spell(t).length) fail.push('élidé : FP sur « ' + t + ' » → ' + JSON.stringify(SP.spell(t).map(x => x.word + '→' + x.sugg)));
+  // ⭐ 29/09/2026 — ACCENTS MUETS : « ca », « foret », « pole » → ça, forêt, pôle en ORANGE ; « le foret » (l'outil), « les mass media »,
+  // « la pole position » et « Ca » (calcium) : rien.
+  for (const [t, w, s] of [['je crois que ca marche', 'ca', 'ça'], ['on marche en foret', 'foret', 'forêt'], ['ils vont au pole sud', 'pole', 'pôle']]) {
+    const f = SP.spell(t).find(x => x.word === w);
+    if (!f || f.sugg !== s || f.tier !== 'vigilance') fail.push('accent muet « ' + w + ' » : attendu « ' + s + ' » en orange, eu ' + JSON.stringify(f && [f.sugg, f.tier])); }
+  for (const [t, w] of [['il perce avec le foret', 'foret'], ['on lit les mass media', 'media'], ['il part en pole position', 'pole'], ['Ca réagit avec l’eau', 'Ca']])
+    if (SP.spell(t).some(x => x.word === w)) fail.push('accent muet : FP sur « ' + t + ' »');
   const tr1 = SP.spell('la tres belle note').find(x => x.word.toLowerCase() === 'tres');
   if (!tr1 || tr1.sugg !== 'très') fail.push('tres→très (garde dominance vs « trés » pollué) attendu, eu ' + JSON.stringify(tr1));
   const ch1 = SP.spell('ma tres chere amie').find(x => x.word.toLowerCase() === 'chere');

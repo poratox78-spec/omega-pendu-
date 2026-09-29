@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-09-29 (suite) — accents muets : « ca », « foret », « pole », « media » en orange
+
+- Catalogue des muets, groupe « accents » : hors a → à, les muets se concentrent sur quelques mots fréquents dont la forme SANS accent
+  existe aussi ou se lit autrement hors contexte — le correcteur d'orthographe les tenait pour justes. UD (minuscules) : « ca » 1 fois,
+  une vraie faute ; « media » dans otitis media et media planning ; « pole » dans pole position et pole dance.
+- Liste fermée _AFIX_VIG, ORANGE jamais rouge (3 moteurs + référence Python) : « ca » → ça ; « foret » → forêt sauf après un
+  déterminant masculin (« le foret », l'outil) ; « pole », « media » → pôle, média après un déterminant français, sauf composé anglais
+  (pole position, pole dance, mot suivant inconnu ou en -ing). Minuscules seulement : « Ca » est le calcium.
+- Prototype mesuré avant les moteurs, une garde par cas faux : « ca » était d'abord ROUGE — un circa (« ca 1850 ») sur frgec l'a fait
+  passer en orange ; mass media, media networking, pole positions, pole dance, media planning → la garde du déterminant et celle du
+  composé anglais. Le juge désaccentue : chaque cas relu à la main, accents compris.
+- Résultat : gold +9 bons mots (orange), EcriScol +1, frgec +2 (dont le circa, orange) ; UD 14 450 : 1 marque, une vraie faute du
+  corpus. Catalogue : 648 → 639 muettes, mots justes touchés inchangés.
+- Défaut EXISTANT vu en passant : devant « foret », la règle du genre du déterminant lit l'outil (masculin) et propose « la » → « le »
+  en orange — pour le catalogue des mots faux proposés.
+- Tests : test_speller (extension + app : 3 prises, 4 gardes), garde de palier gold (939/939), parité speller Python ↔ JS.
+
 ## 2026-09-29 (suite) — le correcteur d'orthographe qui saute : les mots ÉLIDÉS inconnus reçoivent enfin leur orange
 
 - Catalogue des muets : une douzaine de mots élidés à reste inconnu (« s'… », « l'… », « d'… ») passaient sans AUCUNE marque, alors que
