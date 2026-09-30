@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-09-30 (suite) — homophones nom / verbe : « le travaille » → travail, « je travail » → travaille (catalogue des muets)
+
+- Catalogue : travaille → travail ×4, appel → appelle, rappel → rappelle… muets, dans les deux sens. Structure : un déterminant masculin ne
+  précède pas une forme seulement verbale ; un pronom sujet ne précède pas un nom sans lecture verbale. Paires en -ail/-aille,
+  -eil/-eille, -euil/-euille, -el/-elle, -oi/-oie, -ui/-uie, -ai/-aie (travail, réveil, conseil, appel, rappel, envoi, appui, essai).
+- Orange « homophone à vérifier » (chaîne vigAt, JS : la famille n'existe pas côté Python). Gardes de nature : forme seulement verbale
+  (P(NOM) < 0,1) et nom masculin attesté (P(NOM) ≥ 0,5) dans un sens ; nom sans lecture verbale et forme au présent attestée dans l'autre.
+- La première version faisait 4 fausses alertes UD (« je le conseille vivement ») et 1 perte frgec (« X le rappelle ») : « le » y est
+  PRONOM. Garde : « le/leur » après un sujet, un clitique, un nom ou un prénom n'est pas un déterminant.
+- Mesuré (produit) : gold +7 (6 muets, 1 mot faux), 0 ailleurs sur les 3 corpus dys ; UD 14 450 : aucune marque.
+- Tests : parity_core (5 homophones proposés ; 5 témoins muets : « le » pronom ×3, phrases justes ×2).
+
 ## 2026-09-30 (suite) — « ma / ta / jais » + participe → m'a / t'a / j'ai (catalogue des muets)
 
 - Catalogue : ma → m'a ×2 muets (possessif devant un participe), jais → j'ai ×2 (dont les participes eux-mêmes mal écrits : non
