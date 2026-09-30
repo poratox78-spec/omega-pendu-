@@ -634,6 +634,21 @@ console.log('  ✓ vigilance : ' + Object.keys(VIG_MAP).length + ' règles orang
   if (_av) { console.log('PARITÉ KO — verbe + adverbe + a, intervalle : ' + _av + ' attente(s) non tenue(s).'); process.exit(1); }
   console.log('  ✓ adverbe : 4 « à » ; intervalle : 2 « à » (orange) ; 5 témoins avoir muets (relative sujet, participe, âge, loi de 1995)'); }
 
+// ⭐ 30/09/2026 — MARQUES ET SIGLES en minuscule → capitale (liste fermée) ; témoins : internet, usa (user), la marque proche de « sont » entre deux pluriels.
+{ const fl = (s) => (DYSCORE.diagnoseAll(s).flags || []).filter(f => typeof f.i === 'number');
+  let _mq = 0;
+  for (const [s, w, sg] of [['J\'ai une console xbox et un jeu nintendo.', 'xbox', 'Xbox'], ['J\'ai une console xbox et un jeu nintendo.', 'nintendo', 'Nintendo'],
+                            ['Les ogm posent question.', 'ogm', 'OGM'], ['Elle regarde une série sur netflix.', 'netflix', 'Netflix']]) {
+    const m = fl(s).find(x => x.word === w);
+    if (!m || m.sugg !== sg || m.name !== 'majuscule') { _mq++; console.log('  ✗ marques : « ' + s + ' » → « ' + sg + ' » attendu, obtenu ' + JSON.stringify(m || null)); }
+  }
+  for (const s of ['Il utilise internet tous les jours.', 'Il usa de son charme.', 'Les enfants sony contents.']) {
+    const m = fl(s).filter(x => x.name === 'majuscule');
+    if (m.length) { _mq++; console.log('  ✗ marques : témoin « ' + s + ' » marqué ' + JSON.stringify(m)); }
+  }
+  if (_mq) { console.log('PARITÉ KO — marques et sigles : ' + _mq + ' attente(s) non tenue(s).'); process.exit(1); }
+  console.log('  ✓ marques : Xbox, Nintendo, OGM, Netflix ; 3 témoins (internet, usa, la marque proche de « sont » entre deux pluriels)'); }
+
 console.log(appOnly === 0
   ? `PARITÉ OK — dys-core ⊆ Python sur ${PHRASES.length} phrases (aucun FP propre extension). Écarts de couverture : ${gap}.`
   : `PARITÉ KO — ${appOnly} phrase(s) où l'extension flague hors Python.`);

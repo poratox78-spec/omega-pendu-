@@ -20,13 +20,13 @@ Quand un groupe est traité, sa ligne passe à ✅ avec le numéro de PR et le n
 
 ## Le bilan
 
-| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle) |
+| ce que le produit fait d'une faute | 29/09, départ | aujourd'hui (lots A, B1, prénoms, a + infinitif, et/est, élidés, accents, élision fusionnée, clé phonétique, ou ≠ u, gérondif, élision manquante, ces/ses → c'est, ma/ta/jais, nom/verbe, gardes ce/se et tout, locutions a → à, peu/peut, a → à après adverbe et dans l'intervalle, marques et sigles) |
 |---|---|---|
-| réparée en rouge | 554 (27,5 %) | **599** (29,8 %) |
-| bon mot proposé en orange | 356 (17,7 %) | **460** (22,9 %) |
-| mot FAUX proposé | 373 (18,5 %) | **334** (16,6 %) |
+| réparée en rouge | 554 (27,5 %) | **612** (30,4 %) |
+| bon mot proposé en orange | 356 (17,7 %) | **456** (22,7 %) |
+| mot FAUX proposé | 373 (18,5 %) | **328** (16,3 %) |
 | soulignée sans mot proposé | 18 (0,9 %) | 23 (1,1 %) |
-| **muette** | **711** (35,3 %) | **596** (29,6 %) |
+| **muette** | **711** (35,3 %) | **593** (29,5 %) |
 | **total** | **2 012** | 2 012 |
 
 Et dans l'autre sens : **57 mots justes touchés** au départ (36 en rouge, 21 en orange), **53** aujourd'hui (36 / 17 — le rouge de plus : « soiété », coquille laissée par le gold ; 4 oranges de genre du déterminant
@@ -87,7 +87,7 @@ faux retirés ou ramenés en orange, 0 perte.
 | homophones nom / verbe | 25 ✅ -ail/-aille, -eil/-eille… (30/09) | travaille→travail ×4 · rappel→rappelle · appel→appelle · party→parti ×3 · plastic→plastique ×3 | déterminant + forme verbale → nom (« le travaille ») ; sujet + nom → verbe (« je travail ») ; mots anglais acceptés |
 | majuscule après ! ? … | 25 | je→Je ×5 · ce→Ce ×3 · le→Le ×3 | le produit ne met la majuscule qu'après un POINT (mesuré ~100 % de faux sur OQLF/BDL après ! ? …) ; à remesurer sur texte dys |
 | accents | 31 ✅ ca, foret, pole, media en orange (29/09) | la→là ×5 · ca→ça ×3 · ou→où ×3 · media→média ×3 · pole→pôle ×2 · foret→forêt ×2 | mot-outil (là, ça, où, dû, sûr, dès : 15) ; mot connu sans son accent (16 : même mécanisme que « mere » → mère, `_AFIX_MIN`) |
-| autres majuscules (prénoms, sigles, mois) | 8 | d'ogm→d'OGM · Avril→avril | prénoms homographes de mots communs, sigles en minuscules, un mois écrit avec une majuscule |
+| autres majuscules (prénoms, sigles, mois) | 8 ✅ sigles et marques (30/09) | d'ogm→d'OGM · Avril→avril | prénoms homographes de mots communs, sigles en minuscules, un mois écrit avec une majuscule |
 
 ### C — impossible avec le texte seul : à discuter ensemble (134)
 
@@ -126,8 +126,8 @@ Les fautes où le produit propose un **mot faux** : le second catalogue, ci-dess
 ## Le 2e catalogue : les mots FAUX proposés (29/09/2026)
 
 Même méthode. Le produit propose un mot, mais pas celui qu'attend le gold. Le pire cas est le **rouge** : la faute est remplacée
-d'office par une autre. Mesuré après les lots ci-dessus : **334**, dont **37 en rouge** (47 avant le premier lot), 42 « flag » (dont 2 artefacts
-d'alignement de l'élision à deux mots, 30/09), 255 en orange (dont 2 du même artefact, ma/ta/jais).
+d'office par une autre. Mesuré après les lots ci-dessus : **328**, dont **37 en rouge** (47 avant le premier lot), 42 « flag » (dont 2 artefacts
+d'alignement de l'élision à deux mots, 30/09), 249 en orange (dont 2 du même artefact, ma/ta/jais).
 
 | rouges faux, par règle (avant le premier lot) | n | cause | statut |
 |---|---|---|---|

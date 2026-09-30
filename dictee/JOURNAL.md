@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-09-30 (suite) — marques et sigles écrits en minuscule → capitale (catalogue des muets, 2e catalogue)
+
+- 2e catalogue : des marques et sigles écrits en minuscule recevaient un mot faux (une marque à une lettre de « sont » en recevait
+  « sont »), rien, ou un souligné sans mot. La liste des lieux du lot A (« japon » → Japon) s'étend aux MARQUES et SIGLES sans
+  ambiguïté (liste fermée,
+  27 formes : consoles, plateformes, réseaux, sigles d'usage courant — ogm, sncf, onu, pib, tdah, aesh…).
+- Mesuré avant de poser : « internet », « cd », « dvd », « wifi », « sms » restent en minuscule (admis, présents sur UD et dans les
+  corrigés) ; « usa » (passé simple d'user), « google » et « twitter » (verbes) exclus. La marque à une lettre de « sont » l'était, sur
+  frgec, devant un participe pluriel → garde : entre deux mots au pluriel, c'est le verbe (« les enfants … contents »
+  garde l'orange « sont »).
+- Mesuré (produit) : gold +13 (3 muettes réparées, 6 marques inutiles et 4 bons mots mal rendus devenus justes) ; 0 ailleurs sur les
+  3 corpus ; UD 14 450 : aucune marque changée.
+- Tests : parity_core (4 capitales, 3 témoins) ; miroir Python _MARQUES dans rule_capital.
+
 ## 2026-09-30 (suite) — a → à après verbe + adverbe, et dans l'intervalle « de 10 … a 20 » (catalogue des muets)
 
 - Suite du groupe a → à, deux structures de plus dans la voie nouvelle (orange) de rA / rule_a_aa :

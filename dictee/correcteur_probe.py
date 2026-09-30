@@ -2816,13 +2816,26 @@ _LIEUX = {u'japon': u'Japon', u'pyrénées': u'Pyrénées', u'pyrenees': u'Pyré
           u'amérique': u'Amérique', u'amerique': u'Amérique', u'asie': u'Asie', u'espagne': u'Espagne', u'italie': u'Italie',
           u'allemagne': u'Allemagne', u'angleterre': u'Angleterre', u'belgique': u'Belgique', u'france': u'France'}
 
+# ⭐ 30/09/2026 — et les MARQUES / SIGLES sans ambiguïté écrits en minuscule (« nintendo », « xbox », « ogm ») : l'orthographe proposait un mot faux
+# ou rien. Liste FERMÉE, mesurée : « internet », « cd », « dvd », « wifi », « sms » exclus (minuscule admise, présents sur UD) ; « usa » (passé
+# simple d'user), « google » et « twitter » (verbes : je google, twitter) aussi. Une marque de la liste est à une lettre de « sont » : entre
+# deux mots au pluriel, c'est le verbe (garde dans rule_capital). Gold dys : 13 ; UD : 0 tir. Miroir JS _MARQUES.
+_MARQUES = {u'sony': u'Sony', u'microsoft': u'Microsoft', u'nintendo': u'Nintendo', u'xbox': u'Xbox', u'playstation': u'PlayStation',
+            u'samsung': u'Samsung', u'youtube': u'YouTube', u'facebook': u'Facebook', u'instagram': u'Instagram', u'snapchat': u'Snapchat',
+            u'tiktok': u'TikTok', u'netflix': u'Netflix', u'whatsapp': u'WhatsApp', u'disney': u'Disney', u'ogm': u'OGM', u'snk': u'SNK',
+            u'sncf': u'SNCF', u'ratp': u'RATP', u'onu': u'ONU', u'edf': u'EDF', u'pnb': u'PNB', u'pib': u'PIB', u'svt': u'SVT', u'samu': u'SAMU',
+            u'tdah': u'TDAH', u'mdph': u'MDPH', u'aesh': u'AESH'}
+_LIEUX.update(_MARQUES)
+
 
 def rule_capital(T, i):
     w = T[i]
     if w == w.lower():
         pre, _, reste = w.rpartition("'")
         cap = _LIEUX.get(reste)
-        if cap and not (_SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1]):   # « france-israel.org » : le trait d'union coupe
+        if (cap and not (_SEG is not None and i + 1 < len(_SEG['hy']) and _SEG['hy'][i + 1])   # « france-israel.org » : le trait d'union coupe
+                and not (w == 'sony' and ((i > 0 and T[i - 1].lower()[-1:] in ('s', 'x'))
+                                          or (i + 1 < len(T) and T[i + 1].lower()[-1:] in ('s', 'x'))))):   # ⭐ 30/09/2026 : la marque à une lettre de « sont », entre deux pluriels, est le verbe
             return (pre + "'" + cap) if pre else cap
     if _SEG is None or i >= len(_SEG['cap']) or not _SEG['cap'][i]: return None
     w = T[i]
